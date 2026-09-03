@@ -1,0 +1,123 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexbook}
+
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}}
+\makeatother
+\usepackage{researchnotes}
+
+
+\title{机器学习笔记}
+\author{}
+\date{\today}
+
+
+\begin{document}
+
+
+\maketitle
+\tableofcontents
+\clearpage
+
+
+\chapter{基本概念}
+
+\keyterm{机器学习}（machine learning）是研究如何让计算机利用数据或交互经验，在给定任务和评价标准下改进表现的一类方法。其核心是从有限的经验中学习具有\keyterm{泛化能力}的模型，使模型能够对未见过的数据进行预测、发现数据中的潜在结构，或根据环境反馈选择合适的行动。因此，机器学习的目标不仅是拟合已有数据，更是利用从经验中获得的规律解决新的问题，典型任务包括分类、回归、聚类和序贯决策。
+
+机器学习利用有限的数据或交互经验，学习具有\keyterm{泛化能力}的\keyterm{函数或概率模型}，用于预测、发现结构或决策。
+
+
+\section{监督学习、无监督学习与强化学习的区别}
+\label{sec:learning-paradigms}
+
+\keyterm{监督学习}（supervised learning）、\keyterm{无监督学习}（unsupervised learning）与\keyterm{强化学习}（reinforcement learning，RL）是机器学习的三种基本范式。理解它们的区别，需要同时考察三个问题：\keyterm{训练数据包含什么信息、学习过程依靠什么反馈、最终需要优化什么目标}。三者都可以使用神经网络等模型，因此不能仅凭模型结构判断一个任务属于哪种学习范式。
+
+\begin{enumerate}
+  \clubpenalty=10000
+  \widowpenalty=10000
+  \item \textbf{监督学习：从带标签的样本中学习预测规则}
+
+  监督学习的训练集通常写为
+  \[
+    \mathcal{D}_{\mathrm{sup}}=\{(x_i,y_i)\}_{i=1}^{n},
+  \]
+  其中 $x_i$ 是输入随机变量 $X$ 的一个观测值，$y_i$ 是与之对应的\keyterm{标签}（label），即目标输出随机变量 $Y$ 的观测值。标签可以是离散类别，也可以是连续数值；前者对应\keyterm{分类}（classification），后者对应\keyterm{回归}（regression）。例如，根据已标注的邮件学习识别垃圾邮件，或根据房屋特征及其成交价格学习预测房价。
+
+  设 $f_\theta$ 是参数为 $\theta$ 的预测模型，$\ell(\widehat y,y)$ 是衡量预测值与标签差异的\keyterm{损失函数}（loss function）。一种基本训练方式是\keyterm{经验风险最小化}（empirical risk minimization）：
+  \begin{equation}
+    \min_{\theta}\;\widehat{\mathcal{R}}_n(\theta),
+    \qquad
+    \widehat{\mathcal{R}}_n(\theta)
+    =\frac{1}{n}\sum_{i=1}^{n}\ell\bigl(f_\theta(x_i),y_i\bigr).
+  \end{equation}
+  标签为每个样本提供直接的预测目标，但实际标签可能含有噪声。在训练样本独立同分布于 $P_{X,Y}$ 的常见设定下，最终关注的是模型对未见样本的\keyterm{泛化}（generalization）能力，即总体风险 $\mathcal{R}(\theta)=\mathbb{E}_{(X,Y)\sim P_{X,Y}}[\ell(f_\theta(X),Y)]$ 是否足够小，而不只是训练误差是否足够小。
+
+  \item \textbf{无监督学习：从未标注的数据中提取结构}\nopagebreak
+
+  无监督学习通常只有输入样本
+  \[
+    \mathcal{D}_{\mathrm{unsup}}=\{x_i\}_{i=1}^{n},
+  \]
+  没有针对当前任务给定的目标标签 $y_i$。学习任务可以是\keyterm{聚类}（clustering）、\keyterm{降维}（dimensionality reduction）或\keyterm{密度估计}（density estimation），分别关注样本的分组、低维表示或概率分布。例如，根据用户的行为特征发现相似群体，而不事先提供每位用户所属的群体类别。
+
+  无监督学习并不意味着没有优化目标。以 $K$ 均值聚类（$K$-means clustering）为例，给定 $x_i\in\mathbb{R}^{d}$ 和簇数 $K$，可以求解
+  \begin{equation}
+    \min_{\mu_1,\ldots,\mu_K,\,c_1,\ldots,c_n}
+    \sum_{i=1}^{n}\lVert x_i-\mu_{c_i}\rVert_2^2,
+    \qquad c_i\in\{1,\ldots,K\},
+  \end{equation}
+  其中 $\mu_k\in\mathbb{R}^{d}$ 是第 $k$ 个簇的中心，$c_i$ 是算法为样本 $x_i$ 学到的簇编号。与监督学习的标签不同，$c_i$ 不是预先给定的目标答案。算法发现的结构取决于特征表示、距离度量和建模假设，也未必与人们期望的语义类别一致。
+
+  \item \textbf{强化学习：从交互经验中学习序贯决策}
+
+  强化学习研究\keyterm{智能体}（agent）如何在\keyterm{环境}（environment）中选择动作，以获得较高的长期收益。时刻 $t$，环境具有\keyterm{状态}（state）$S_t$，智能体接收\keyterm{观测}（observation）$O_t$，选择\keyterm{动作}（action）$A_t$；随后环境转移到 $S_{t+1}$，并给出\keyterm{奖励}（reward）$R_{t+1}$。状态描述环境的有关状况，观测是智能体实际获得的信息，两者一般不能等同；在完全可观测的设定下，通常简写为 $O_t=S_t$。
+
+  智能体学习的是选择动作的\keyterm{策略}（policy）$\pi$。以完全可观测的离散问题为例，平稳\keyterm{随机策略}（stochastic policy）$\pi(a\mid s)$ 给出状态 $s$ 下选择动作 $a$ 的概率；\keyterm{确定性策略}（deterministic policy）则为每个状态指定一个动作。若只能部分观测环境，策略可能需要利用观测与动作的历史信息。
+
+  对于奖励有界的无限时域任务，给定\keyterm{折扣因子}（discount factor）$0\leq\gamma<1$，一种常用目标为
+  \begin{equation}
+    G_t=\sum_{k=0}^{\infty}\gamma^k R_{t+k+1},
+    \qquad J(\pi)=\mathbb{E}_{\pi}[G_0],
+    \qquad \max_{\pi}\;J(\pi).
+  \end{equation}
+  这里 $G_t$ 称为\keyterm{回报}（return），是未来奖励的折扣累积；期望同时考虑给定的初始状态分布、策略和环境所产生的随机性。\keyterm{奖励是单步反馈，回报是跨时间累积的结果}，因此强化学习不等于逐步选择即时奖励最大的动作。
+
+  与监督学习的标签相比，奖励通常只评价行为产生的结果，并不直接指出当前应当采取哪个动作。当前动作还可能改变未来状态，使奖励的影响延迟出现，形成\keyterm{信用分配}（credit assignment）问题，即如何判断先前哪些动作促成了后续结果。在线学习时，智能体还要权衡\keyterm{探索}（exploration）与\keyterm{利用}（exploitation）：探索通过尝试尚不熟悉的动作获得信息，利用则依据已有知识选择预期回报较高的动作。例如，机器人需要学习一系列移动动作，使整个搬运过程既高效又能避免碰撞。
+\end{enumerate}
+
+表~\ref{tab:learning-paradigms} 汇总了三类范式在典型设定下的区别。
+
+\begin{table}[htbp]
+  \centering
+  \caption{三种学习范式的典型比较}
+  \label{tab:learning-paradigms}
+  \small
+  \begin{tabularx}{\textwidth}{@{}L{1.7cm}YYY@{}}
+    \toprule
+    \textbf{比较维度} & \textbf{监督学习} & \textbf{无监督学习} & \textbf{强化学习} \\
+    \midrule
+    训练数据 & 输入与目标标签 $(x_i,y_i)$ & 未标注的输入 $x_i$ & 含观测、动作和奖励的交互轨迹 \\
+    反馈依据 & 预测结果与给定标签之间的差异 & 数据本身及人为设定的结构准则 & 动作引起的奖励及其长期后果 \\
+    学习目标 & 在新样本上准确预测 & 发现结构、表示或分布 & 学习使期望回报较大的策略 \\
+    采样方式 & 通常使用预先给定的数据集 & 通常使用预先给定的数据集 & 在线交互时，策略会影响后续采样分布 \\
+    典型任务 & 分类、回归 & 聚类、降维、密度估计 & 机器人控制、游戏决策、序贯资源调度 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+这些区别描述的是\keyterm{任务的反馈机制与学习目标}，并非所有算法都严格采用同一种数据收集方式。例如，\keyterm{离线强化学习}（offline reinforcement learning）可以仅使用事先收集的交互数据学习策略，而不在训练时继续与环境交互；它仍然以优化序贯决策的回报为目标。
+
+三类方法也可以组合使用：机器人可以用监督学习从带标签的图像中学习物体识别，用无监督学习提取传感器数据的结构，再用强化学习优化搬运策略。
+
+
+\chapter{监督学习}
+
+
+\chapter{无监督学习}
+
+
+\chapter{模型评估与选择}
+
+
+\end{document}
