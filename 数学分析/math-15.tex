@@ -1,0 +1,2052 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+% 保留分册独立编译时的章号前缀。
+\renewcommand{\thesection}{15.\arabic{section}}
+
+\title{第十五章\quad 重积分}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+本章中, 我们将研究多元函数的重积分. 多元函数的重积分理论与一元函数的定积分理论是平行的, 最主要的差别在于重积分的积分区域与闭区间相比更为复杂, 从而使得重积分的理论与计算也要复杂得多. 读者在学习重积分这部分内容时, 应该对一般的重积分理论有深刻的理解, 而具体计算重积分时, 主要精力则应放在二重及三重积分上。
+
+\section{重积分的定义}
+
+在日常生活和科学技术中许多问题的解决都需要用到重积分. 例如, 设有一物体 (如一块铁矿等), 已知其密度, 要求它的质量. 若将此物体放在 $\mathbb R^3$ 中, 则从几何上看, 该物体即为空间的一个闭区域 $D$, 而该物体的密度可以通过 $D$ 上的一个函数 $\rho(x,y,z)$ 来刻画。
+
+当 $\rho(x,y,z)=\rho_0$ ($\rho_0$ 为常数) 时, 该物体的质量 $m=\rho_0V$, 其中 $V$ 是 $D$ 的体积; 当 $\rho(x,y,z)$ 不是常数函数时, 我们可以利用“分割--求和--取极限”的方法来求其质量. 我们将 $D$ 作分割
+\[
+  \Delta=\{\Delta D_1,\Delta D_2,\cdots,\Delta D_K\},
+\]
+使得
+\[
+  \bigcup_{k=1}^K\Delta D_k=D,
+\]
+且每个 $\Delta D_k$ 的直径
+\[
+  \operatorname{diam}(\Delta D_k)=\sup_{x,y\in\Delta D_k}|x-y|
+\]
+很小. 这样做的原因是使得 $\rho(x,y,z)$ 在 $\Delta D_k$ 上的变化不是很大, 因此可认为 $\rho(x,y,z)$ 在 $\Delta D_k$ 上几乎是常数. 在 $\Delta D_k$ 上任取 $(\xi_k,\eta_k,\zeta_k)$, 记 $\Delta V_k$ 为 $\Delta D_k$ 的体积, 作和式
+\[
+  \sum_{k=1}^K\rho(\xi_k,\eta_k,\zeta_k)\Delta V_k
+\]
+(该和式也称为 $\rho(x,y,z)$ 的黎曼和). 若当
+\[
+  \lambda(\Delta)=\max_{1\le k\le K}\operatorname{diam}(\Delta D_k)\to0
+\]
+时, 上述和式存在极限 $m$, 则自然认为 $m$ 为该物体的质量。
+
+另外一个例子是求曲顶柱体的体积. 设 $D\subset\mathbb R^2$ 是有界闭区域, 函数 $z=f(x,y)$ 在 $D$ 上连续, 且对于 $\forall(x,y)\in D$, 有 $f(x,y)>0$. 因此我们有一个空间立体
+\[
+  \Omega=\{(x,y,z):(x,y)\in D,\ 0\le z\le f(x,y)\}.
+\]
+通常称形如这样的立体为曲顶柱体(见图 15.1.1). 为了求 $\Omega$ 的体积 $V$, 我们可以对 $D$ 作分割
+\[
+  \Delta=\{\Delta D_1,\Delta D_2,\cdots,\Delta D_K\}.
+\]
+在 $\Delta D_k(k=1,2,\cdots,K)$ 上取 $(\xi_k,\eta_k)$, 并记 $\Delta\sigma_k$ 为 $\Delta D_k$ 的面积. 当极限
+\[
+  \lim_{\lambda(\Delta)\to0}\sum_{k=1}^K f(\xi_k,\eta_k)\Delta\sigma_k
+\]
+存在时, 同样可以认为该极限即为 $V$ 的体积。
+
+上面的两个例子都归结到求一个特别的黎曼和的极限. 讨论何时这种和式存在极限就是重积分理论所要研究的问题。
+
+\subsection{$\mathbb R^n$ 空间中集合的体积}
+
+在上面两个例子的黎曼和中, 我们首先面临的问题是平面区域的面积与 $\mathbb R^3$ 中区域的体积问题. 在本小节中, 我们先来研究一下这个问题. 在 $\mathbb R^n$ 空间中, 我们使用的是欧氏度量, 即对于
+\[
+  x=(x_1,x_2,\cdots,x_n),\quad y=(y_1,y_2,\cdots,y_n)\in\mathbb R^n,
+\]
+$x,y$ 之间的距离为
+\[
+  |x-y|=\sqrt{\sum_{j=1}^n(x_j-y_j)^2}.
+\]
+因此我们可以定义一个 $n$ 维长方体
+\[
+  A=\{(x_1,x_2,\cdots,x_n):a_j\le x_j\le b_j\}
+\]
+的体积为
+\[
+  V(A)=\prod_{j=1}^n(b_j-a_j).
+\]
+在本章中, 如果没有特别说明, 所有的长方体都是指上述形式的长方体, 即这些长方体的各个面均是与某个坐标平面平行的。
+
+下面我们希望用长方体的体积来给出一般集合体积的定义. 设 $E\subset\mathbb R^n$ 是一给定的非空有界集合, 我们来讨论 $E$ 的体积的定义. 不妨设 $E$ 不是一个长方体. 我们考虑由 $\mathbb R^n$ 中有限个长方体构成的长方体族 $\{A_k\}_{k=1}^K$, 且假定它满足条件:
+\[
+  (1)\quad A_j^\circ\cap A_l^\circ=\varnothing\quad (j,l=1,2,\cdots,K;\ j\ne l);
+\]
+\[
+  (2)\quad \bigcup_{k=1}^K A_k\supset E.
+\]
+为了简便, 以下我们将满足上述条件的长方体族记为 $\mathcal A_E$。
+
+对每个给定的长方体族 $\mathcal A_E$, 记 $m(\mathcal A_E)$ 为 $\mathcal A_E$ 中完全含于 $E$ 内的那些长方体的体积之和, $M(\mathcal A_E)$ 为 $\mathcal A_E$ 中与 $E$ 的交非空的那些长方体的体积之和. 由定义, 显然有 $m(\mathcal A_E)\le M(\mathcal A_E)$。
+
+设 $\mathcal A_E=\{A_k\}_{k=1}^K,\mathcal A'_E=\{A'_j\}_{j=1}^J$ 分别为两个满足上述条件的长方体族, 称 $\mathcal A'_E$ 是 $\mathcal A_E$ 的细分, 若对每个 $A'_{j_0}\in\mathcal A'_E(j_0=1,2,\cdots,J)$, 都存在 $A_{k_0}\in\mathcal A_E$, 使得 $A'_{j_0}\subset A_{k_0}$. 当 $\mathcal A'_E$ 是 $\mathcal A_E$ 的细分时, 我们有
+\[
+  m(\mathcal A_E)\le m(\mathcal A'_E)\le M(\mathcal A'_E)\le M(\mathcal A_E).
+\]
+因此, 类似于定积分达布理论中的上下积分, 我们定义
+\[
+  m(E)=\sup m(\mathcal A_E),\quad M(E)=\inf M(\mathcal A_E).
+\]
+在这里 $\sup$ 和 $\inf$ 都是关于所有满足条件 (1) 和 (2) 的长方体族 $\mathcal A_E$ 取的。
+
+\noindent\textbf{定义 15.1.1}\quad 设 $E\subset\mathbb R^n$ 是有界集合, 若 $E$ 满足
+\[
+  m(E)=M(E),
+\]
+则称 $E$ 是可求体积的, 并称 $m(E)=M(E)$ 是 $E$ 的体积, 记其为 $V(E)$。
+
+为了刻画可求体积的集合, 我们给出下述定理。
+
+\noindent\textbf{定理 15.1.1}\quad 设 $E\subset\mathbb R^n$ 是有界集合, 则 $E$ 可求体积的充分必要条件是 $V(\partial E)=0$。
+
+\noindent\textbf{证明}\quad \textbf{必要性}\quad 设 $E$ 可求体积, 由定义可知, 对于 $\forall\varepsilon>0$, 存在满足条件 (1), (2) 的长方体族 $\mathcal A_E^1$, 使得
+\[
+  M(\mathcal A_E^1)-m(\mathcal A_E^1)<\varepsilon.
+\]
+取 $\mathcal A_E^1$ 中与 $\partial E$ 相交的长方体构成的集合为 $\mathcal A_{\partial E}^1$, 则
+\[
+  M(\mathcal A_{\partial E}^1)=M(\mathcal A_E^1)-m(\mathcal A_E^1)<\varepsilon,
+\]
+从而有
+\[
+  \inf_{\mathcal A_{\partial E}}M(\mathcal A_{\partial E})<\varepsilon.
+\]
+由 $\varepsilon$ 的任意性知 $V(\partial E)=0$。
+
+\textbf{充分性}\quad 设 $V(\partial E)=0$, 则对于 $\forall\varepsilon>0$, 存在有限个长方体构成的集合 $\mathcal A_{\partial E}^2$, 使得 $M(\mathcal A_{\partial E}^2)<\varepsilon$. 任取集合 $\mathcal A_E^2$, 使得 $\mathcal A_{\partial E}^2$ 中的长方体都在 $\mathcal A_E^2$ 中, 则
+\[
+  M(\mathcal A_E^2)-m(\mathcal A_E^2)\le M(\mathcal A_{\partial E}^2)<\varepsilon.
+\]
+因此有 $M(E)=m(E)$, 从而 $E$ 可求体积. 证毕。
+
+对于 $\mathbb R^n$ 中的有界集合 $E$, 若 $V(E)=0$, 则称 $E$ 为零体积集. 由体积的定义, 若 $E_1$ 与 $E_2$ 为零体积集, 显然 $E_1\cap E_2,E_1\cup E_2$ 及 $E_1\setminus E_2$ 都是零体积集. 对于 $\mathbb R^2$ 中的可求体积的有界集合 $E$, 我们有时也称 $E$ 可求面积, 并记 $V(E)=\sigma(E)$。
+
+\noindent\textbf{注}\quad 从体积的定义不难看出, 若集合 $E\subset\mathbb R^n$ 的体积为零, 则对于 $\forall\varepsilon>0$, 存在 $\mathbb R^n$ 中有限个长方体 $A_1,A_2,\cdots,A_K$, 使得
+\[
+  \bigcup_{k=1}^K A_k^\circ\supset E,
+\]
+且
+\[
+  V\left(\bigcup_{k=1}^K A_k\right)<\varepsilon.
+\]
+由有限个长方体组成的集合也称为简单集合。
+
+关于 $\mathbb R^n$ 的有界子集的体积, 由定理 15.1.1 我们有以下推论。
+
+\noindent\textbf{推论 1}\quad 设 $A,B$ 是 $\mathbb R^n$ 中可求体积的有界集合, 则 $A\cup B,A\cap B,A\setminus B$ 均可求体积。
+
+\noindent\textbf{证明}\quad 注意到
+\[
+  \partial(A\cup B)\subset\partial(A)\cup\partial(B),\quad
+  \partial(A\cap B)\subset\partial(A)\cup\partial(B),
+\]
+\[
+  \partial(A\setminus B)\subset\partial(A)\cup\partial(B),
+\]
+由于 $\partial(A),\partial(B)$ 的体积为零, 从而 $\partial(A\cup B),\partial(A\cap B),\partial(A-B)$ 的体积均为零. 由定理 15.1.1 知推论 1 成立. 证毕。
+
+特别地, 对于我们经常遇到的区域, 我们容易看出下述结论成立。
+
+\noindent\textbf{推论 2}\quad 设 $D$ 是 $\mathbb R^n$ 中的有界区域, 则 $D$ 可求体积的充分必要条件是 $\overline D$ 可求体积, 并且当它们可求体积时, $V(D)=V(\overline D)$。
+
+下面我们来研究一下今后常见的 $\mathbb R^2$ 中的有界区域的面积问题。
+
+\noindent\textbf{例 15.1.1}\quad 设 $\mathbb R^2$ 中的有界区域 $D$ 的边界由有限条可求长曲线所组成, 证明 $D$ 可求面积。
+
+\noindent\textbf{证明}\quad 设
+\[
+  \partial D=\bigcup_{j=1}^J\Gamma_j,
+\]
+其中 $\Gamma_j$ 为可求长曲线. 现在我们证明 $\sigma(\partial D)=0$. 因此 $D$ 可求面积。
+
+事实上, 对于 $\forall j(1\le j\le J)$, 我们只要证 $\sigma(\Gamma_j)=0$ 即可. 设 $\Gamma_j$ 的长度为 $l_j$, 对于 $\forall k\in\mathbb N$, 将 $\Gamma_j$ 按弧长等分成 $k$ 个小弧段. 易见每一小弧段均可含于一个边长为 $4\dfrac{l_j}{k}$ 的正方形内. 因此 $\Gamma_j$ 可被 $k$ 个边长为 $4\dfrac{l_j}{k}$ 的正方形所覆盖. 由于
+\[
+  k\left(4\frac{l_j}{k}\right)^2=16\frac{l_j^2}{k}\to0\quad (k\to\infty),
+\]
+因此有 $\sigma(\Gamma_j)=0$。
+
+由例 15.1.1 可知, 若平面上一个有界区域 $D$, 它是由有限条分段光滑的曲线所围, 则 $D$ 可求面积. 作为习题, 请读者证明, 若曲线 $\Gamma$ 是一元连续函数 $y=f(x)(x\in[a,b])$ 的图像, 则 $\sigma(\Gamma)=0$。
+
+最后我们指出, 在 $\mathbb R^n$ 中是存在不可求体积的有界闭区域的. 由于这类集合的构造相当复杂, 在这里我们就不对此加以介绍了。
+
+\subsection{重积分的定义}
+
+设 $D\subset\mathbb R^n$ 是可求体积的有界闭区域, 我们称
+\[
+  \Delta=\{\Delta D_1,\Delta D_2,\cdots,\Delta D_K\}
+\]
+为 $D$ 的一个分割, 若 $\Delta$ 满足:
+
+(1) 每个 $\Delta D_k(k=1,2,\cdots,K)$ 是 $D$ 的一个可求体积的闭子集;
+
+(2) $\Delta D_1,\Delta D_2,\cdots,\Delta D_K$ 两两交集的体积为零, 即
+\[
+  V(\Delta D_j\cap\Delta D_k)=0\quad (j,k=1,2,\cdots,K;\ j\ne k);
+\]
+
+(3)
+\[
+  D=\bigcup_{k=1}^K\Delta D_k.
+\]
+
+记 $\Delta V_k$ 为 $\Delta D_k$ 的体积, $d_k$ 为 $\Delta D_k$ 的直径, 即
+\[
+  d_k=\sup_{x,y\in\Delta D_k}|x-y|\quad (k=1,2,\cdots,K),
+\]
+并记
+\[
+  \lambda(\Delta)=\max_{1\le k\le K}\{d_k\}.
+\]
+
+\noindent\textbf{定义 15.1.2}\quad 设函数 $f(x)=f(x_1,x_2,\cdots,x_n)$ 在可求体积的有界闭区域 $D\subset\mathbb R^n$ 上有定义, $\Delta$ 为 $D$ 的一个分割. 在每个 $\Delta D_k$ 上任取一点 $\xi_k(k=1,2,\cdots,K)$, 作黎曼和
+\[
+  \sum_{k=1}^K f(\xi_k)\Delta V_k.
+\]
+如果存在常数 $I$, 使得对于 $\forall\varepsilon>0$, $\exists\delta>0$, 对 $D$ 的任何分割 $\Delta$ 以及任意选取的 $\xi_k$, 当 $\lambda(\Delta)<\delta$ 时, 有
+\[
+  \left|\sum_{k=1}^K f(\xi_k)\Delta V_k-I\right|<\varepsilon,
+\]
+则称 $f(x)$ 在 $D$ 上可积, 并且称 $I$ 为 $f(x)$ 在 $D$ 上的 $n$ 重积分, 记为
+\[
+  \idotsint_D f(x)\mathrm dV
+  \quad\text{或}\quad
+  \idotsint_D f(x_1,x_2,\cdots,x_n)\mathrm dx_1\mathrm dx_2\cdots\mathrm dx_n,
+\]
+其中 $f(x)$ 称为被积函数, $D$ 称为积分区域, $x_1,x_2,\cdots,x_n$ 称为积分变量, $\mathrm dV=\mathrm dx_1\mathrm dx_2\cdots\mathrm dx_n$ 称为体积元素。
+
+在上述定义中, 特别地, 当 $n=2$ 时, 我们常常记被积函数 $f(x)=f(x,y)$, 此时 $f(x,y)$ 在 $D$ 上的二重积分记为
+\[
+  \iint_D f(x,y)\mathrm d\sigma
+  \quad\text{或}\quad
+  \iint_D f(x,y)\mathrm dx\mathrm dy.
+\]
+这时也称 $\mathrm d\sigma=\mathrm dx\mathrm dy$ 为面积元素. 当 $n=3$ 时, 记被积函数 $f(x)=f(x,y,z)$, 则 $f(x,y,z)$ 在 $D$ 上的三重积分记为
+\[
+  \iiint_D f(x,y,z)\mathrm dV
+  \quad\text{或}\quad
+  \iiint_D f(x,y,z)\mathrm dx\mathrm dy\mathrm dz.
+\]
+在重积分中, 二重积分具有鲜明的几何意义. 设 $z=f(x,y)((x,y)\in D)$, 其中 $D\subset\mathbb R^2$ 是可求面积的有界闭区域, 再设 $f(x,y)$ 在 $D$ 上连续且为正函数, 则从二重积分的定义可以看出, $\iint_D f(x,y)\mathrm dx\mathrm dy$ 是以曲面 $z=f(x,y)((x,y)\in D)$ 为顶, 以闭区域 $D$ 为底的曲顶柱体的体积 (见图 15.1.2)。
+
+特别地, 当 $D\subset\mathbb R^2$ 是可求面积的有界闭区域时, $\iint_D\mathrm dx\mathrm dy$ 等于 $D$ 的面积; 当 $D\subset\mathbb R^3$ 是可求体积的有界闭区域时, $\iiint_D\mathrm dx\mathrm dy\mathrm dz$ 等于 $D$ 的体积。
+
+\noindent\textbf{注}\quad 当 $n=1$ 时, 有界闭区域 $D$ 一定是有界闭区间. 设函数 $f(x)$ 在区间 $[a,b]$ 上有定义, 上述重积分的定义与 $f(x)$ 在 $[a,b]$ 上的定积分并不一致. 这主要是在定积分中我们必须考虑积分区间的有向长度的缘故, 而上述重积分不考虑区间的方向, 只考虑其长度。
+
+\section{多元函数的可积性理论与重积分的性质}
+
+\subsection{达布理论}
+
+在重积分定义中, 我们没有假定 $f(x)$ 在有界闭区域 $D\subset\mathbb R^n$ 上是有界的, 但当 $f(x)$ 可积时, 我们可以推出 $f(x)$ 在 $D$ 上必定有界. 事实上, 倘若 $f(x)$ 在 $D$ 上无界, 由于 $D$ 是有界闭区域, 因此它的体积大于零. 由有限覆盖定理可知, 存在 $x_0\in D$, 使得对于任何 $x_0$ 的邻域 $U(x_0,\delta)(\delta>0)$, $f(x)$ 在 $U(x_0,\delta)\cap D$ 上都无界. 因此对于 $\forall\delta>0$, 令 $\Delta D_\delta$ 为 $U(x_0,\delta)\cap D$ 的闭包, 则 $\Delta D_\delta$ 的体积 $V(\Delta D_\delta)>0$. 这是因为, 当 $x_0$ 是 $D$ 的内点时, 这是显然的; 当 $x_0$ 是 $D$ 的边界点时, 由于 $D$ 是 $D^\circ$ 的闭包, 因此 $U(x_0,\delta)$ 必含有 $D^\circ$ 中的点 $x_1$, 从而存在 $\delta'(0<\delta'<\delta)$ 使得 $U(x_1,\delta')\subset\Delta D_\delta$, 故这时也有 $V(\Delta D_\delta)>0$. 另外, 显然存在 $D$ 的分割
+\[
+  \Delta=\{\Delta D_\delta,\Delta D_1,\cdots,\Delta D_K\},
+\]
+且 $\lambda(\Delta)\le2\delta$. 如同定积分一样, 我们可以选择 $\xi_\delta\in\Delta D_\delta$, 使得 $f(x)$ 关于 $\Delta$ 的某些黎曼和的绝对值可以大于任何指定的正数. 这就说明了 $f(x)$ 在 $D$ 不可积. 于是我们有下面的定理。
+
+\noindent\textbf{定理 15.2.1}\quad 设 $D\subset\mathbb R^n$ 是可求体积的有界闭区域, 若 $f(x)$ 在 $D$ 上可积, 则 $f(x)$ 在 $D$ 上有界。
+
+在本小节中, 我们总假定 $D$ 是 $\mathbb R^n$ 中可求体积的有界闭区域, $f(x)$ 是 $D$ 上的有界函数, 并记 $M$ 与 $m$ 分别为 $f(x)$ 在 $D$ 上的上、下确界。
+
+设
+\[
+  \Delta=\{\Delta D_1,\Delta D_2,\cdots,\Delta D_K\}
+\]
+是 $D$ 的一个分割, 对于 $k=1,2,\cdots,K$, 记 $\Delta V_k$ 是 $\Delta D_k$ 的体积, $M_k$ 与 $m_k$ 分别为 $f(x)$ 在 $\Delta D_k(k=1,2,\cdots,K)$ 的上、下确界. 我们称
+\[
+  \overline S(\Delta)=\sum_{k=1}^K M_k\Delta V_k
+\]
+为 $f(x)$ 关于分割 $\Delta$ 的达布大和, 而称
+\[
+  \underline S(\Delta)=\sum_{k=1}^K m_k\Delta V_k
+\]
+为 $f(x)$ 关于分割 $\Delta$ 的达布小和。
+
+设 $\Delta_1=\{\Delta D_1,\Delta D_2,\cdots,\Delta D_K\}$ 与 $\Delta_2=\{\Delta D'_1,\Delta D'_2,\cdots,\Delta D'_L\}$ 是 $D$ 的两个分割, 若对于 $\forall l(1\le l\le L)$, 都存在 $k(1\le k\le K)$ 使得 $\Delta D'_l\subset\Delta D_k$, 则称 $\Delta_2$ 是 $\Delta_1$ 的细分, 并记为 $\Delta_1\subset\Delta_2$. 不难看出, 对 $D$ 的任意两个分割 $\Delta_1$ 与 $\Delta_2$, 总存在 $D$ 的分割 $\Delta'$, 使得 $\Delta_1\subset\Delta'$ 和 $\Delta_2\subset\Delta'$. 事实上, 取
+\[
+  \Delta D_l\cap\Delta D'_k\ne\varnothing\quad (l=1,2,\cdots,L;\ k=1,2,\cdots,K)
+\]
+组成的分割为 $\Delta'$ 即可。
+
+如同定积分的达布理论, 关于达布大和、达布小和, 我们有下列性质:
+
+(1) 记 $S(\Delta)$ 为函数 $f(x)$ 关于分割 $\Delta$ 的任一黎曼和, 则有
+\[
+  \underline S(\Delta)\le S(\Delta)\le\overline S(\Delta).
+\]
+
+(2) 若 $D$ 的两个分割 $\Delta_1,\Delta_2$ 满足 $\Delta_2\subset\Delta_1$, 则有
+\[
+  \underline S(\Delta_1)\ge\underline S(\Delta_2),\quad
+  \overline S(\Delta_1)\le\overline S(\Delta_2).
+\]
+
+(3) 对 $D$ 的任意两个分割 $\Delta_1,\Delta_2$, 总有
+\[
+  \underline S(\Delta_1)\le\overline S(\Delta_2).
+\]
+
+现记
+\[
+  I^*=\inf_\Delta\overline S(\Delta),\quad
+  I_*=\sup_\Delta\underline S(\Delta),
+\]
+我们分别称 $I^*,I_*$ 为 $f(x)$ 在 $D$ 上的上积分和下积分。
+
+\noindent\textbf{定理 15.2.2 (达布定理)}\quad
+\[
+  \lim_{\lambda(\Delta)\to0}\overline S(\Delta)=I^*,\quad
+  \lim_{\lambda(\Delta)\to0}\underline S(\Delta)=I_*.
+\]
+
+利用类似于定积分达布理论的讨论, 我们可以证明下面的结论。
+
+\noindent\textbf{定理 15.2.3}\quad 设函数 $f(x)$ 在可求体积的有界闭区域 $D\subset\mathbb R^n$ 上有界, 则 $f(x)$ 在 $D$ 上可积的充分必要条件是: 对于 $\forall\varepsilon>0$, 存在 $D$ 的分割
+\[
+  \Delta=\{\Delta D_1,\Delta D_2,\cdots,\Delta D_K\},
+\]
+使得
+\[
+  \sum_{k=1}^K\omega_k\Delta V_k<\varepsilon,
+\]
+其中 $\omega_k=M_k-m_k$ 为 $f(x)$ 在 $\Delta D_k(k=1,2,\cdots,K)$ 上的振幅, $\Delta V_k$ 为 $\Delta D_k$ 的体积。
+
+上述定理以及性质 (1)--(3) 的证明几乎与定积分相应定理、性质的证明方法完全一样, 作为练习, 请读者自己给出。
+
+在重积分的定义及可积性讨论中, 当有界闭区域 $D$ 的边界很复杂时, 相应的分割 $\Delta=\{\Delta D_1,\Delta D_2,\cdots,\Delta D_K\}$ 中的每个小集合也可能是很复杂的. 这使得对重积分计算公式的推导产生很大困难. 值得指出的是, 当 $f(x)$ 在有界闭区域 $D$ 上可积时, 我们可以证明 $f(x)$ 在 $D$ 上的重积分 $I$ 等于一列特别的黎曼和的极限. 在该序列中, 黎曼和对应的分割具有下面的形式:
+\[
+  \Delta'=\{\Delta D'_1,\Delta D'_2,\cdots,\Delta D'_J,\Delta D''_1,\Delta D''_2,\cdots,\Delta D''_L\},
+\]
+其中, 对于 $\forall j(1\le j\le J)$, $\Delta D'_j$ 为完全落在 $D^\circ$ 的小闭区域 (甚至可以是小立方体), 而 $\Delta D''_l\cap\partial D\ne\varnothing(l=1,2,\cdots,L)$. 在 $\Delta D'_j$ 上任取 $\xi_j$ 并记 $\Delta V'_j$ 为 $\Delta D'_j$ 的体积 $(j=1,2,\cdots,J)$, 则有
+\[
+  \lim_{\lambda(\Delta')\to0}\sum_{j=1}^J f(\xi_j)\Delta V'_j=I.
+\]
+
+事实上, 由 $f(x)$ 在 $D$ 上可积, 从而存在 $M>0$, 使得对于 $\forall x\in D$, 有 $|f(x)|\le M$. 另外, 再由 $f(x)$ 的可积性, 从而 $\exists I\in\mathbb R$, 使得对于 $\forall\varepsilon>0$, $\exists\delta>0$, 对于 $D$ 的任意分割
+\[
+  \Delta=\{\Delta D_1,\Delta D_2,\cdots,\Delta D_K\}
+\]
+及 $\Delta D_k$ 上任意选取的 $\xi_k(k=1,2,\cdots,K)$, 当 $\lambda(\Delta)<\delta$ 时, 有
+\[
+  \left|\sum_{k=1}^K f(\xi_k)\Delta V_k-I\right|<\frac{\varepsilon}{2}
+  \quad\text{和}\quad
+  \sum_{k=1}^K\omega_kV_k<\frac{\varepsilon}{4},
+\]
+其中 $\omega_k(k=1,2,\cdots,K)$ 为 $f(x)$ 在 $\Delta D_k$ 上的振幅。
+
+由 $D$ 可求体积, 总存在有限个长方体集合 $\mathcal A_D=\{A_k\}_{k=1}^{K'}$, 使得
+\[
+  M(\mathcal A_D)-m(\mathcal A_D)<\frac{\varepsilon}{4M}.
+\]
+显然, 我们可以取得每个小长方体 $A_k$ 充分小, 使得 $\operatorname{diam}(A_k)<\delta(k=1,2,\cdots,K')$. 因此
+\[
+  \Delta=\{A_k\cap D\}_{k=1}^{K'}
+\]
+是 $D$ 的一个分割, 且 $\lambda(\Delta)<\delta$. 在每个 $\Delta D_k=A_k\cap D$ 上取 $\xi_k$, 并记 $\Delta V_k$ 为 $\Delta D_k$ 的体积 $(k=1,2,\cdots,K')$, 则有
+\[
+  \left|\sum_{k=1}^{K'} f(\xi_k)\Delta V_k-I\right|<\frac{\varepsilon}{2}.
+\]
+记
+\[
+  \Delta=\{\Delta D'_1,\Delta D'_2,\cdots,\Delta D'_J,\Delta D''_1,\Delta D''_2,\cdots,\Delta D''_L\},
+\]
+其中 $\Delta D'_j\subset D^\circ(j=1,2,\cdots,J)$, 其余的 $\Delta D''_j$ 与 $\partial D$ 的交非空. 记 $\Delta V'_j$ 为 $\Delta D'_j(j=1,2,\cdots,J)$ 的体积, $\Delta V''_l$ 为 $\Delta D''_l(l=1,2,\cdots,L)$ 的体积. 在 $\Delta D'_j$ 上任取 $\xi'_j(j=1,2,\cdots,J)$, 则有
+\[
+\begin{aligned}
+  &\left|\sum_{k=1}^{K'}f(\xi_k)\Delta V_k-\sum_{j=1}^J f(\xi'_j)\Delta V'_j\right|\\
+  &\quad\le
+  \sum_{j=1}^J|f(\xi_j)-f(\xi'_j)|\Delta V'_j+
+  \left|\sum_{l=1}^L f(\xi_l)\Delta V''_l\right|\\
+  &\quad\le
+  \sum_{k=1}^{K'}\omega_k\Delta V_k+M\cdot(M(\mathcal A_D)-m(\mathcal A_D))
+  <\frac{\varepsilon}{4}+\frac{\varepsilon}{4}=\frac{\varepsilon}{2},
+\end{aligned}
+\]
+从而有
+\[
+  \left|\sum_{j=1}^J f(\xi'_j)\Delta V'_j-I\right|<\varepsilon.
+\]
+
+注意到上述黎曼和只与 $D$ 内部的小长方体构成的集合有关. 由于以后我们还将用到上面的结论, 我们将其用下面的推论形式给出。
+
+\noindent\textbf{推论}\quad 设函数 $f(x)$ 在可求体积的有界闭区域 $D$ 上可积, 且其积分值为 $I$, 则对于 $\forall\varepsilon>0$, $\exists\delta>0$, 对 $D$ 的特殊分割
+\[
+  \Delta=\{\Delta D'_1,\Delta D'_2,\cdots,\Delta D'_J,\Delta D''_1,\Delta D''_2,\cdots,\Delta D''_L\},
+\]
+其中 $\Delta D'_j\subset D^\circ(j=1,2,\cdots,J)$, 并且 $\Delta D'_j$ 均是小长方体, 而 $\Delta D''_l\cap\partial D\ne\varnothing(l=1,2,\cdots,L)$, 当 $\lambda(\Delta)<\delta$ 时, 任取 $\xi'_j\in\Delta D'_j(j=1,2,\cdots,J)$, 则有
+\[
+  \left|\sum_{j=1}^J f(\xi'_j)\Delta V'_j-I\right|<\varepsilon,
+\]
+其中 $\Delta V'_j$ 是 $\Delta D'_j(j=1,2,\cdots,J)$ 的体积。
+
+下面我们来讨论一下可积函数类。
+
+\noindent\textbf{定理 15.2.4}\quad 设 $D\subset\mathbb R^n$ 是可求体积的有界闭区域, 再设函数 $f(x)$ 在 $D$ 上连续, 则 $f(x)$ 在 $D$ 上可积。
+
+\noindent\textbf{证明}\quad 记 $D$ 的体积为 $V>0$. 由于 $f(x)$ 在 $D$ 上连续, 且 $D$ 是紧集, 因此 $f(x)$ 在 $D$ 上一致连续, 从而对于 $\forall\varepsilon>0$, $\exists\delta>0$, 当 $D_1\subset D$ 且 $D_1$ 的直径 $\operatorname{diam}(D_1)<\delta$ 时, $f(x)$ 在 $D_1$ 上的振幅 $\omega(D_1)<\dfrac{\varepsilon}{V}$。
+于是我们可以任取 $D$ 的一个分割 $\Delta=\{\Delta D_1,\Delta D_2,\cdots,\Delta D_K\}$, 使得 $\lambda(\Delta)<\delta$, 这样我们就有
+\[
+  \sum_{k=1}^K\omega_k\Delta V_k<\frac{\varepsilon}{V}\sum_{k=1}^K\Delta V_k=\varepsilon,
+\]
+其中 $\omega_k$ 是 $f(x)$ 在 $\Delta D_k$ 上的振幅, $\Delta V_k$ 为 $\Delta D_k(k=1,2,\cdots,K)$ 的体积. 因此 $f(x)$ 在 $D$ 上可积. 证毕。
+
+\noindent\textbf{注}\quad 上面的证明方法可以用来证明下述结论: 设函数 $f(x)$ 在可求体积的有界闭区域 $D$ 上有界, 并且除去 $D$ 的一个零体积集外连续, 则 $f(x)$ 在 $D$ 上可积。
+
+\noindent\textbf{例 15.2.1}\quad 设 $\{x_k\}$ 是区间 $[0,1]$ 上所有有理数组成的序列, 定义 $D=[0,1]\times[0,1]$ 上的函数 $f(x,y)$ 如下:
+\[
+  f(x,y)=
+  \begin{cases}
+    \dfrac1k, & x=x_k(k\in\mathbb N),\ 0\le y\le1,\\
+    0, & \text{其他}.
+  \end{cases}
+\]
+证明 $f(x,y)$ 在 $D$ 上可积, 且
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy=0.
+\]
+
+\noindent\textbf{证明}\quad 对于 $\forall\varepsilon>0$, $\exists K\in\mathbb N$, 使得 $\dfrac1K<\dfrac{\varepsilon}{2}$. 任取 $k>K$, 将 $[0,1]$ 等分成 $k$ 个小区间, 相应地将 $D$ 等分成 $k^2$ 个小正方形
+\[
+  \Delta D_1,\Delta D_2,\cdots,\Delta D_{k^2}.
+\]
+这 $k^2$ 个小正方形中最多只有 $2kK$ 个小正方形与下述线段
+\[
+  \{(x,y):x=x_1,x_2,\cdots,x_K,\ 0\le y\le1\}
+\]
+的交非空. 记 $f(x,y)$ 在 $\Delta D_l(1\le l\le k^2)$ 上的振幅为 $\omega_l$, 则有
+\[
+  \sum_{l=1}^{k^2}\omega_l\frac1{k^2}
+  \le \frac{2kK}{k^2}+\frac{\varepsilon}{2}\sum_{l=1}^{k^2}\frac1{k^2}
+  =\frac{2K}{k}+\frac{\varepsilon}{2}.
+\]
+因此取 $k>\dfrac{4K}{\varepsilon}$, 则有
+\[
+  \sum_{l=1}^{k^2}\omega_l\frac1{k^2}<\varepsilon.
+\]
+由定理 15.2.3 知 $f(x,y)$ 在 $D$ 上可积。
+
+对 $D$ 的任意分割 $\Delta=\{\Delta D_1,\Delta D_2,\cdots,\Delta D_K\}$, 我们总可以取 $(\xi_k,\eta_k)\in\Delta D_k(k=1,2,\cdots,K)$, 使得 $f(\xi_k,\eta_k)=0$(除非 $\Delta D_k$ 的面积 $\Delta\sigma_k=0$). 因此
+\[
+  \sum_{k=1}^K f(\xi_k,\eta_k)\Delta\sigma_k=0,
+\]
+所以
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy=0.
+\]
+
+读者可以证明上面例子中的函数的间断点集合恰好是
+\[
+  \{(x,y):x=x_k(k\in\mathbb N),\ 0\le y\le1\}.
+\]
+上例说明, 尽管 $f(x,y)$ 在无穷多条线段上不连续, 但它仍然可积。
+
+\subsection{重积分的性质}
+
+对于重积分, 我们同样有定积分所具有的一些相应性质. 在下述性质中, 我们总是假定 $D\subset\mathbb R^n$ 为可求体积的有界闭区域。
+
+\noindent\textbf{性质 15.2.5}\quad 设函数 $f(x),g(x)$ 在 $D$ 上可积, $\alpha,\beta\in\mathbb R$ 是两常数, 则 $\alpha f(x)+\beta g(x)$ 在 $D$ 上可积, 并且有
+\[
+  \idotsint_D(\alpha f(x)+\beta g(x))\mathrm dV
+  =\alpha\idotsint_D f(x)\mathrm dV+\beta\idotsint_D g(x)\mathrm dV.
+\]
+
+\noindent\textbf{性质 15.2.6}\quad 设函数 $f(x)$ 在 $D$ 上可积, 则 $|f(x)|$ 在 $D$ 上可积, 并且有
+\[
+  \left|\idotsint_D f(x)\mathrm dV\right|
+  \le \idotsint_D |f(x)|\mathrm dV.
+\]
+
+\noindent\textbf{性质 15.2.7}\quad 设 $D_1\subset\mathbb R^n,D_2\subset\mathbb R^n$ 为可求体积的有界闭区域, $D_1^\circ\cap D_2^\circ=\varnothing$, 且 $D_1\cup D_2$ 为可求体积的有界闭区域, 则 $f(x)$ 在 $D_1\cup D_2$ 上可积的充分必要条件是 $f(x)$ 在 $D_1$ 和 $D_2$ 上分别可积, 并且 $f(x)$ 在 $D_1\cup D_2$ 上可积时成立
+\[
+  \idotsint_{D_1\cup D_2}f(x)\mathrm dV
+  =\idotsint_{D_1}f(x)\mathrm dV+\idotsint_{D_2}f(x)\mathrm dV.
+\]
+在性质 15.2.7 中, 当 $D_1\cap D_2=\varnothing$ 时, 我们自然地定义 $f(x)$ 在 $D_1\cup D_2$ 上的重积分为 $f(x)$ 在 $D_1$ 与 $D_2$ 上的重积分之和. 容易看出这个性质可以推广到有限个两两不交可求体积的有界闭区域的情况, 我们在广义重积分中要遇到这种情况。
+
+\noindent\textbf{性质 15.2.8}\quad 设函数 $f(x),g(x)$ 在 $D$ 上可积, 且对于 $\forall x\in D$, 有 $f(x)\le g(x)$, 则
+\[
+  \idotsint_D f(x)\mathrm dV\le\idotsint_D g(x)\mathrm dV.
+\]
+
+\noindent\textbf{性质 15.2.9}\quad 设函数 $f(x),g(x)$ 在 $D$ 上可积, 则 $f(x)g(x)$ 在 $D$ 上可积。
+
+\noindent\textbf{性质 15.2.10 (重积分第一中值定理)}\quad 设函数 $f(x)$ 在 $D$ 上连续, $g(x)$ 在 $D$ 上可积且不变号, 则存在 $\xi\in D$, 使得
+\[
+  \idotsint_D f(x)g(x)\mathrm dV=f(\xi)\idotsint_D g(x)\mathrm dV.
+\]
+
+以上这些性质的证明与定积分相应性质的证明类似, 请读者自己给出。
+
+\section{化重积分为累次积分}
+
+我们在前面介绍了 $\mathbb R^n$ 中可求体积的有界闭区域上的重积分理论. 在本节及下节中, 我们将讨论重积分的计算问题. 我们主要介绍二重积分与三重积分的计算。
+
+\subsection{化二重积分为累次积分}
+
+在讨论一般可求体积的有界闭区域上的二重积分的计算之前, 我们先来讨论一下矩形区域上的二重积分。
+
+\noindent\textbf{定理 15.3.1}\quad 设函数 $f(x,y)$ 在 $D=[a,b]\times[c,d]$ 上可积, 且对于 $\forall x\in[a,b]$, $I(x)=\int_c^d f(x,y)\mathrm dy$ 存在, 则定积分 $\int_a^b I(x)\mathrm dx$ 存在, 并且
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+  =\int_a^b I(x)\mathrm dx
+  \triangleq\int_a^b\mathrm dx\int_c^d f(x,y)\mathrm dy.
+\]
+
+\noindent\textbf{证明}\quad 对 $[a,b]$ 作分割
+\[
+  \Delta_x:a=x_0<x_1<\cdots<x_J=b,
+\]
+并记 $\Delta x_j=x_j-x_{j-1}(j=1,2,\cdots,J)$; 对 $[c,d]$ 作分割
+\[
+  \Delta_y:c=y_0<y_1<\cdots<y_K=d,
+\]
+并记 $\Delta y_k=y_k-y_{k-1}(k=1,2,\cdots,K)$. 过点 $(x_j,0)(j=1,2,\cdots,J)$ 且平行于 $y$ 轴的直线以及过点 $(0,y_k)(k=1,2,\cdots,K)$ 且平行于 $x$ 轴的直线将 $D$ 分成了一些小矩形, 它们组成了 $D$ 的一个分割:
+\[
+  \Delta=\{\Delta D_{jk}:1\le j\le J,\ 1\le k\le K\}.
+\]
+显然 $\lambda(\Delta)\to0$ 的充分必要条件是 $\lambda(\Delta_x)\to0$ 和 $\lambda(\Delta_y)\to0$. 在 $[x_{j-1},x_j]$ 上任取 $\xi_j$, 在 $[y_{k-1},y_k]$ 上任取 $\eta_k$, 则 $(\xi_j,\eta_k)\in\Delta D_{jk}(1\le j\le J,1\le k\le K)$。
+
+记
+\[
+  m_{jk}=\inf_{(x,y)\in\Delta D_{jk}}f(x,y),\quad
+  M_{jk}=\sup_{(x,y)\in\Delta D_{jk}}f(x,y),
+\]
+则有
+\[
+  \sum_{j=1}^J\sum_{k=1}^K m_{jk}\Delta x_j\Delta y_k
+  \le \sum_{j=1}^J\sum_{k=1}^K f(\xi_j,\eta_k)\Delta x_j\Delta y_k
+  \le \sum_{j=1}^J\sum_{k=1}^K M_{jk}\Delta x_j\Delta y_k,
+\]
+从而有
+\[
+\begin{aligned}
+  \sum_{j=1}^J\sum_{k=1}^K m_{jk}\Delta x_j\Delta y_k
+  &\le \sum_{j=1}^J\left(\int_c^d f(\xi_j,y)\mathrm dy\right)\Delta x_j\\
+  &=\sum_{j=1}^J I(\xi_j)\Delta x_j
+  \le \sum_{j=1}^J\sum_{k=1}^K M_{jk}\Delta x_j\Delta y_k.
+\end{aligned}
+\]
+由于
+\[
+  \lim_{\lambda(\Delta)\to0}\sum_{j=1}^J\sum_{k=1}^K m_{jk}\Delta x_j\Delta y_k
+  =
+  \lim_{\lambda(\Delta)\to0}\sum_{j=1}^J\sum_{k=1}^K M_{jk}\Delta x_j\Delta y_k
+  =
+  \iint_D f(x,y)\mathrm dx\mathrm dy,
+\]
+从定积分的定义知, $I(x)$ 在 $[a,b]$ 上可积, 并且
+\[
+  \int_a^b I(x)\mathrm dx
+  =
+  \lim_{\lambda(\Delta_x)\to0}\sum_{j=1}^J I(\xi_j)\Delta x_j
+  =
+  \iint_D f(x,y)\mathrm dx\mathrm dy.
+\]
+证毕。
+
+\noindent\textbf{注 1}\quad 若 $f(x,y)$ 在 $D=[a,b]\times[c,d]$ 上可积, 且对于 $\forall y\in[c,d]$, $J(y)=\int_a^b f(x,y)\mathrm dx$ 存在, 则类似地可以证明 $\int_c^d J(y)\mathrm dy$ 存在, 并且
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+  =
+  \int_c^d\mathrm dy\int_a^b f(x,y)\mathrm dx.
+\]
+今后我们称形如 $\int_a^b\mathrm dx\int_c^d f(x,y)\mathrm dy$ 或 $\int_c^d\mathrm dy\int_a^b f(x,y)\mathrm dx$ 的积分为累次积分。
+
+\noindent\textbf{注 2}\quad 在矩形区域上的二重积分相当于一个二元函数的极限, 而累次积分相当于一个二元函数的累次极限. 因此, 类似于极限与累次极限的关系, 当一个二重积分存在时, 我们不能保证该积分能用累次积分求出. 这样的例子可以容易举出. 事实上, 我们只要对例 15.2.1 稍稍加以修改即可, 例如设 $D=[0,1]\times[0,1]$, 当 $(x,y)\in D$ 时, 令
+\[
+  f(x,y)=
+  \begin{cases}
+    \dfrac1k, & x=\dfrac1k(k\in\mathbb N),\ y\text{ 为有理数},\\
+    0, & \text{其他}.
+  \end{cases}
+\]
+我们来说明 $f(x,y)$ 在 $D$ 上的二重积分不能通过累次积分求出. 用与例 15.2.1 完全相同的方法可以证明 $f(x,y)$ 在 $D$ 上可积且积分为零. 但当 $x=\dfrac1k$ 时, $f\left(\dfrac1k,y\right)=\dfrac1k\mathrm D(y)$, 其中 $\mathrm D(y)$ 是 $[0,1]$ 上的狄利克雷函数, 从而它在 $[0,1]$ 上不可积。
+
+\noindent\textbf{例 15.3.1}\quad 设 $D=[0,1]\times[0,1]$, 计算
+\[
+  I=\iint_D x(x-y)^2\mathrm dx\mathrm dy.
+\]
+
+\noindent\textbf{解}\quad 由于被积函数 $x(x-y)^2$ 在 $D$ 上连续, 因此
+\[
+\begin{aligned}
+  I
+  &=\int_0^1 x\mathrm dx\int_0^1(x-y)^2\mathrm dy
+    =\int_0^1 x\left[-\frac13(x-y)^3\right]_0^1\mathrm dx\\
+  &=\frac13\int_0^1x[x^3-(x-1)^3]\mathrm dx
+    =\frac1{12}.
+\end{aligned}
+\]
+
+下面我们讨论 $\mathbb R^2$ 中两类特殊有界闭区域上的二重积分问题. 在此我们先来复习一下 X 型区域与 Y 型区域的概念. 若区域
+\[
+  D=\{(x,y):a\le x\le b,\ \varphi_1(x)\le y\le\varphi_2(x)\},
+\]
+其中 $\varphi_1(x)$ 与 $\varphi_2(x)$ 是区间 $[a,b]$ 上的连续函数, 且对于 $\forall x\in(a,b)$, 有 $\varphi_1(x)<\varphi_2(x)$, 则称 $D$ 为 X 型区域(见图 15.3.1)。
+
+若
+\[
+  D=\{(x,y):c\le y\le d,\ \psi_1(y)\le x\le\psi_2(y)\},
+\]
+其中 $\psi_1(y)$ 与 $\psi_2(y)$ 是区间 $[c,d]$ 上的连续函数, 且对于 $\forall y\in(c,d)$, 有 $\psi_1(y)<\psi_2(y)$, 则称 $D$ 为 Y 型区域(见图 15.3.2)。
+
+显然任何 X 型区域与 Y 型区域都是可求面积的. 对于此类区域上的二重积分, 我们有以下结论。
+
+\noindent\textbf{定理 15.3.2}\quad 设 $D=\{(x,y):a\le x\le b,\varphi_1(x)\le y\le\varphi_2(x)\}$ 是 X 型区域, 函数 $f(x,y)$ 在 $D$ 上可积, 且对于 $\forall x\in[a,b]$,
+\[
+  I(x)=\int_{\varphi_1(x)}^{\varphi_2(x)}f(x,y)\mathrm dy
+\]
+存在, 则定积分 $\int_a^b I(x)\mathrm dx$ 存在, 且
+\begin{equation}
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+  =\int_a^b I(x)\mathrm dx
+  =\int_a^b\mathrm dx\int_{\varphi_1(x)}^{\varphi_2(x)}f(x,y)\mathrm dy.
+  \tag{15.3.1}
+\end{equation}
+
+\noindent\textbf{证明}\quad 由于函数 $\varphi_1(x)$ 与 $\varphi_2(x)$ 在 $[a,b]$ 上连续, 我们取
+\[
+  c=\min_{x\in[a,b]}\varphi_1(x)-1,\qquad
+  d=\max_{x\in[a,b]}\varphi_2(x)+1,
+\]
+则 $D\subset D_1=[a,b]\times[c,d]$. 记
+\[
+  \tilde f(x,y)=
+  \begin{cases}
+    f(x,y), & (x,y)\in D,\\
+    0, & (x,y)\in D_1\setminus D.
+  \end{cases}
+\]
+由重积分的性质知, $\tilde f(x,y)$ 在 $D_1$ 上可积, 且对于 $\forall x\in[a,b]$,
+\[
+  \int_c^d\tilde f(x,y)\mathrm dy
+  =\int_{\varphi_1(x)}^{\varphi_2(x)}f(x,y)\mathrm dy.
+\]
+因此
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+  =\iint_{D_1}\tilde f(x,y)\mathrm dx\mathrm dy
+  =\int_a^b\mathrm dx\int_{\varphi_1(x)}^{\varphi_2(x)}f(x,y)\mathrm dy.
+\]
+证毕。
+
+\noindent\textbf{注}\quad 当 $f(x,y)$ 在 Y 型区域
+\[
+  D=\{(x,y):c\le y\le d,\ \psi_1(y)\le x\le\psi_2(y)\}
+\]
+上可积, 且对于 $\forall y\in[c,d]$, $J(y)=\int_{\psi_1(y)}^{\psi_2(y)}f(x,y)\mathrm dx$ 存在时, 则定积分 $\int_c^dJ(y)\mathrm dy$ 存在, 且
+\begin{equation}
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+  =\int_c^dJ(y)\mathrm dy
+  =\int_c^d\mathrm dy\int_{\psi_1(y)}^{\psi_2(y)}f(x,y)\mathrm dx.
+  \tag{15.3.2}
+\end{equation}
+
+通常我们称 (15.3.1) 与 (15.3.2) 右边的积分为重积分 $\iint_D f(x,y)\mathrm dx\mathrm dy$ 的累次积分. 另外, 当 $D$ 是一般有界闭区域时, 若添加有限条光滑曲线可以将 $D$ 分成有限个 X 型或 Y 型区域, 我们也可以通过累次积分来计算 $D$ 上的二重积分。
+
+\noindent\textbf{例 15.3.2}\quad 设有界闭区域 $D\subset\mathbb R^2$ 由直线 $y=0$ 及曲线 $y=x^3,x+y=2$ 所围成, $f(x,y)$ 是 $D$ 上的连续函数, 试用两种不同的积分顺序将二重积分 $\iint_D f(x,y)\mathrm dx\mathrm dy$ 化为累次积分。
+
+\noindent\textbf{解}\quad 参照图 15.3.3, 我们有
+\[
+\begin{aligned}
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+  &=\int_0^1\mathrm dy\int_{y^{1/3}}^{2-y}f(x,y)\mathrm dx\\
+  &=\int_0^1\mathrm dx\int_0^{x^3}f(x,y)\mathrm dy
+    +\int_1^2\mathrm dx\int_0^{2-x}f(x,y)\mathrm dy.
+\end{aligned}
+\]
+
+从上例中可以看出, 选择不同的积分顺序, 计算的难易程度可能会有所差别。
+
+\noindent\textbf{例 15.3.3}\quad 计算累次积分
+\[
+  \int_0^1\mathrm dx\int_x^{\sqrt x}\frac{\sin y}{y}\mathrm dy.
+\]
+
+\noindent\textbf{解}\quad 由于 $\dfrac{\sin y}{y}$ 的原函数无法求出, 累次积分不能直接计算. 为此考虑函数
+\[
+  f(x,y)=
+  \begin{cases}
+    \dfrac{\sin y}{y}, & y\ne0,\\
+    1, & y=0
+  \end{cases}
+\]
+在平面区域 $D=\{(x,y):0\le x\le1,\ x\le y\le\sqrt x\}$ 上的二重积分(见图 15.3.4)。
+
+由于 $f(x,y)$ 在 $D$ 上连续, 因此该二重积分可以化为累次积分. 我们有
+\[
+\begin{aligned}
+  \int_0^1\mathrm dx\int_x^{\sqrt x}\frac{\sin y}{y}\mathrm dy
+  &=\iint_D\frac{\sin y}{y}\mathrm dx\mathrm dy
+    =\int_0^1\mathrm dy\int_{y^2}^{y}\frac{\sin y}{y}\mathrm dx\\
+  &=\int_0^1\frac{(y-y^2)\sin y}{y}\mathrm dy
+    =1-\sin1.
+\end{aligned}
+\]
+从例 15.3.3 可以看出, 对于一些二重积分, 其中一个累次积分很难计算出二重积分的值, 而另一个累次积分却能容易地算出二重积分的值。
+
+\noindent\textbf{例 15.3.4}\quad 计算 $\mathbb R^3$ 中以柱面 $x^2+y^2=a^2$ 与 $x^2+z^2=a^2(a>0)$ 为边界且含有原点的立体体积 $V$。
+
+\noindent\textbf{解}\quad 由对称性, 该立体在八个卦限中都具有相等的体积. 在第一卦限中, 该立体是以区域
+\[
+  D=\{(x,y):x^2+y^2\le a^2,\ x\ge0,\ y\ge0\}
+\]
+为底, 以曲面 $z=\sqrt{a^2-x^2}$ 为顶的曲顶柱体(见图 15.3.5)。
+由二重积分的几何意义知
+\[
+  V=8\iint_D z\mathrm dx\mathrm dy.
+\]
+化二重积分为累次积分即得
+\[
+\begin{aligned}
+  V
+  &=8\iint_D z\mathrm dx\mathrm dy
+    =8\int_0^a\mathrm dx\int_0^{\sqrt{a^2-x^2}}\sqrt{a^2-x^2}\mathrm dy\\
+  &=8\int_0^a(a^2-x^2)\mathrm dx
+    =\frac{16}{3}a^3.
+\end{aligned}
+\]
+
+\subsection{化三重积分为累次积分}
+
+对于三重积分, 当其积分区域具有特殊形状时, 我们可以将三重积分化为累次积分。
+
+设 $\Omega\subset\mathbb R^2$ 是可求面积的有界闭区域, $\varphi(x,y),\psi(x,y),(x,y)\in\Omega$ 是 $\Omega$ 上的连续函数, 且对于 $\forall(x,y)\in\Omega^\circ$, 有 $\varphi(x,y)<\psi(x,y)$, 记
+\[
+  D=\{(x,y,z):(x,y)\in\Omega,\ \varphi(x,y)\le z\le\psi(x,y)\}
+\]
+(见图 15.3.6), 则容易推出 $D$ 是可求体积的闭区域(见本章习题). 再设函数 $f(x,y,z)$ 在 $D$ 上连续, 则
+\[
+  I(x,y)=\int_{\varphi(x,y)}^{\psi(x,y)}f(x,y,z)\mathrm dz
+\]
+在 $\Omega$ 上可积, 且有
+\[
+  \iiint_D f(x,y,z)\mathrm dV
+  =\iint_\Omega I(x,y)\mathrm dx\mathrm dy
+  \triangleq \iint_\Omega\mathrm dx\mathrm dy
+    \int_{\varphi(x,y)}^{\psi(x,y)}f(x,y,z)\mathrm dz.
+\]
+若三重积分 $\iiint_D f(x,y,z)\mathrm dV$ 的积分区域 $D$ 具有如下两种形式:
+\[
+  D=\{(x,y,z):(y,z)\in\Omega,\ \varphi(y,z)\le x\le\psi(y,z)\},
+\]
+\[
+  D=\{(x,y,z):(x,z)\in\Omega,\ \varphi(x,z)\le y\le\psi(x,z)\},
+\]
+类似地, 我们也可以将其化为累次积分。
+
+现在设空间有界闭区域 $D\subset\mathbb R^3$ 的边界是由有限块分片光滑曲面所组成, 并且当 $(x,y,z)\in D$ 时, 有 $a\le z\le b$, 又设对于 $\forall z\in[a,b]$, 过点 $(0,0,z)$ 且与 $Oxy$ 平面平行的平面截 $D$ 所得到的截面是可求面积的平面闭区域 $D_z$(见图 15.3.7), 则当函数 $f(x,y,z)$ 在 $D$ 上连续时, 有
+\[
+  \iiint_D f(x,y,z)\mathrm dV
+  =\int_a^b\left(\iint_{D_z}f(x,y,z)\mathrm dx\mathrm dy\right)\mathrm dz
+  \triangleq \int_a^b\mathrm dz\iint_{D_z}f(x,y,z)\mathrm dx\mathrm dy.
+\]
+当用平行于 $Ozx$ 平面或 $Oyz$ 平面的平面截 $D$ 所得的截面为可求面积的平面闭区域时, 我们也有类似的公式。
+
+\noindent\textbf{例 15.3.5}\quad 计算三重积分
+\[
+  I=\iiint_D\frac{\mathrm dx\mathrm dy\mathrm dz}{(1+x+y+z)^3},
+\]
+其中 $D$ 是由平面 $x=0,y=0,z=0$ 及 $x+y+z=1$ 所围成的闭区域。
+
+\noindent\textbf{解}\quad 记 $\Omega\subset\mathbb R^2$ 为由直线 $x=0,y=0$ 及 $x+y=1$ 所围的闭区域, 见图 15.3.8, 则
+\[
+  D=\{(x,y,z):0\le z\le1-x-y,\ (x,y)\in\Omega\}.
+\]
+于是有
+\[
+\begin{aligned}
+  I
+  &=\iint_\Omega\mathrm dx\mathrm dy\int_0^{1-x-y}\frac{\mathrm dz}{(1+x+y+z)^3}\\
+  &=\int_0^1\mathrm dx\int_0^{1-x}\mathrm dy\int_0^{1-x-y}\frac{\mathrm dz}{(1+x+y+z)^3}\\
+  &=\int_0^1\mathrm dx\int_0^{1-x}
+    \left.\frac{-1}{2(1+x+y+z)^2}\right|_0^{1-x-y}\mathrm dy\\
+  &=\int_0^1\mathrm dx\int_0^{1-x}\frac12\left[\frac1{(1+x+y)^2}-\frac14\right]\mathrm dy\\
+  &=\frac12\int_0^1\left.\left(\frac{-1}{1+x+y}-\frac y4\right)\right|_0^{1-x}\mathrm dx\\
+  &=\frac12\int_0^1\left(\frac1{1+x}-\frac{3-x}{4}\right)\mathrm dx
+    =\frac12\ln2-\frac5{16}.
+\end{aligned}
+\]
+
+\noindent\textbf{例 15.3.6}\quad 计算三重积分
+\[
+  I=\iiint_D (x+y+z)^2\mathrm dx\mathrm dy\mathrm dz,
+\]
+其中
+\[
+  D=\left\{(x,y,z):\frac{x^2}{a^2}+\frac{y^2}{b^2}+\frac{z^2}{c^2}\le1,\ a,b,c>0\right\}.
+\]
+
+\noindent\textbf{解}\quad 由积分区域的对称性以及被积函数的对称性容易看出
+\[
+  \iiint_D xy\mathrm dx\mathrm dy\mathrm dz
+  =\iiint_D xz\mathrm dx\mathrm dy\mathrm dz
+  =\iiint_D yz\mathrm dx\mathrm dy\mathrm dz=0,
+\]
+因此
+\[
+  I=\iiint_D (x^2+y^2+z^2)\mathrm dx\mathrm dy\mathrm dz.
+\]
+对任意 $x\in[-a,a]$, 过点 $(x,0,0)$ 且平行于 $Oyz$ 平面的平面与 $D$ 的交为
+\[
+  D_x=\left\{(y,z):\frac{y^2}{b^2\left(1-\frac{x^2}{a^2}\right)}
+  +\frac{z^2}{c^2\left(1-\frac{x^2}{a^2}\right)}\le1\right\},
+\]
+其面积为 $\pi bc\left(1-\dfrac{x^2}{a^2}\right)$. 因此有
+\[
+\begin{aligned}
+  \iiint_D x^2\mathrm dx\mathrm dy\mathrm dz
+  &=\int_{-a}^a x^2\mathrm dx\iint_{D_x}\mathrm dy\mathrm dz\\
+  &=\int_{-a}^a x^2\pi bc\left(1-\frac{x^2}{a^2}\right)\mathrm dx
+    =\frac4{15}\pi a^3bc.
+\end{aligned}
+\]
+同理可计算出
+\[
+  \iiint_D y^2\mathrm dx\mathrm dy\mathrm dz=\frac4{15}\pi ab^3c,\qquad
+  \iiint_D z^2\mathrm dx\mathrm dy\mathrm dz=\frac4{15}\pi abc^3.
+\]
+最后我们有
+\[
+  I=\frac4{15}\pi abc(a^2+b^2+c^2).
+\]
+
+\section{重积分的变量替换}
+
+\subsection{重积分的变量替换公式}
+
+在本节中, 我们主要证明二重积分的变量替换公式. 对于 $n(n>2)$ 重积分, 我们将不加证明地给出其变量替换公式。
+
+设
+\[
+  T(u,v):
+  \begin{cases}
+    x=x(u,v),\\
+    y=y(u,v)
+  \end{cases}
+\]
+是可求面积的有界闭区域 $D$ 到可求面积的有界闭区域 $\Omega$ 的一个 $C^1$ 同胚映射, 并且假定对于 $\forall(u,v)\in D$ 有
+\[
+  \frac{\partial(x,y)}{\partial(u,v)}\ne0.
+\]
+由此假定与偏导数的连续性知, $\dfrac{\partial(x,y)}{\partial(u,v)}$ 在 $D$ 上不改变符号. 注意到向量函数的导数定义, $T(u,v)$ 在 $(u,v)\in D$ 处导数的行列式即为 $\dfrac{\partial(x,y)}{\partial(u,v)}$。
+
+在一元微积分中, 当 $f'(x)$ 在区间 $[a,b]$ 上连续且不变号时, $f(x)$ 在 $[a,b]$ 上单调, 从而
+\[
+  \int_a^b|f'(x)|\mathrm dx
+  =\left|\int_a^bf'(x)\mathrm dx\right|
+  =|f(b)-f(a)|.
+\]
+这说明 $\int_a^b|f'(x)|\mathrm dx$ 是函数 $y=f(x)$ 的值域的“长度”. 因此, 我们有理由猜测
+\[
+  \iint_D\left|\frac{\partial(x,y)}{\partial(u,v)}\right|\mathrm du\mathrm dv
+\]
+应该是 $\Omega$ 的面积。
+
+再从微元法的观点来看, 在点 $(u_0,v_0)\in D$ 处给一增量 $(\mathrm du,\mathrm dv)$, 则以 $(u_0,v_0)$, $(u_0+\mathrm du,v_0)$, $(u_0+\mathrm du,v_0+\mathrm dv)$, $(u_0,v_0+\mathrm dv)$ 为顶点的小矩形的面积为 $\mathrm du\mathrm dv$. 而这个小矩形在变换
+\[
+  T(u,v):
+  \begin{cases}
+    x=x(u,v),\\
+    y=y(u,v)
+  \end{cases}
+\]
+下近似地映成一个平行四边形, 其四个顶点分别为
+\[
+\begin{aligned}
+  P_1&=(x(u_0,v_0),y(u_0,v_0)),\\
+  P_2&=(x(u_0+\mathrm du,v_0),y(u_0+\mathrm du,v_0)),\\
+  P_3&=(x(u_0+\mathrm du,v_0+\mathrm dv),y(u_0+\mathrm du,v_0+\mathrm dv)),\\
+  P_4&=(x(u_0,v_0+\mathrm dv),y(u_0,v_0+\mathrm dv)).
+\end{aligned}
+\]
+由于 $T(u,v)$ 是 $C^1$ 映射, 因此有
+\[
+  |\overrightarrow{P_1P_2}|\approx
+  \left|\frac{\partial x(u_0,v_0)}{\partial u}\boldsymbol i
+  +\frac{\partial y(u_0,v_0)}{\partial u}\boldsymbol j\right|\mathrm du,
+\]
+\[
+  |\overrightarrow{P_1P_4}|\approx
+  \left|\frac{\partial x(u_0,v_0)}{\partial v}\boldsymbol i
+  +\frac{\partial y(u_0,v_0)}{\partial v}\boldsymbol j\right|\mathrm dv.
+\]
+该近似平行四边形的面积约为
+\[
+  |\overrightarrow{P_1P_2}\times\overrightarrow{P_1P_4}|
+  \approx
+  \left|\frac{\partial(x,y)}{\partial(u,v)}\right|\mathrm du\mathrm dv.
+\]
+这也说明了 $\dfrac{\partial(x,y)}{\partial(u,v)}$ 起着一元函数 $f(x)$ 的导数相似的作用. 下面我们将给出上述结论的严格证明, 并推出相应的二重积分的变量替换公式。
+
+\noindent\textbf{定理 15.4.1}\quad 设 $D\subset\mathbb R^2$ 是有界闭区域, $\partial D$ 由有限条分段光滑曲线所组成, 变换
+\[
+  T(u,v):
+  \begin{cases}
+    x=x(u,v),\\
+    y=y(u,v)
+  \end{cases}
+\]
+是 $D$ 到有界闭区域 $\Omega$ 的 $C^1$ 同胚映射, 并且在 $D$ 上处处有
+\[
+  \frac{\partial(x,y)}{\partial(u,v)}\ne0,
+\]
+再设函数 $f(x,y)$ 在 $\Omega$ 上可积, 则
+\[
+  \iint_\Omega f(x,y)\mathrm dx\mathrm dy
+  =\iint_D f(x(u,v),y(u,v))
+  \left|\frac{\partial(x,y)}{\partial(u,v)}\right|\mathrm du\mathrm dv.
+\]
+
+为了证明定理 15.4.1, 我们先做一些准备工作. 设 $D_0$ 为 $D$ 内的一个正方形, 它的四个顶点为 $(u_0,v_0)$, $(u_0+\delta,v_0)$, $(u_0+\delta,v_0+\delta)$, $(u_0,v_0+\delta)$, 其中 $\delta>0$. 同胚映射 $T$ 将 $D_0$ 映成了区域 $\Omega$ 内的一个由四条光滑曲线组成的一个曲边四边形 $T(D_0)$. 如果我们进一步假定变换 $T$ 的四个偏导数 $x'_u,x'_v,y'_u,y'_v$ 中至少有一个在 $D_0$ 上恒大(小)于零, 取 $D_0$ 的某一条对角线将 $D_0$ 分成两个三角形, 则不难看出变换 $T$ 将这两个三角形映成两个 X 型区域(或两个 Y 型区域). 下面我们先证明一个引理。
+
+\noindent\textbf{引理 15.4.2}\quad 假设变换
+\[
+  T(u,v):
+  \begin{cases}
+    x=x(u,v),\\
+    y=y(u,v)
+  \end{cases}
+\]
+在 $D$ 内具有二阶连续偏导数, $D_0$ 为 $D$ 内的一个正方形并且 $T(D_0)$ 可以分解成有限个由分段光滑曲线所围成的 X 型区域(或 Y 型区域), 则 $T(D_0)$ 的面积
+\[
+  \sigma(T(D_0))=\iint_{D_0}\left|\frac{\partial(x,y)}{\partial(u,v)}\right|\mathrm du\mathrm dv.
+\]
+
+\noindent\textbf{证明}\quad 在定积分的几何应用中, 我们知道, 对于 $T(D_0)$ 的面积, 有以下的计算公式:
+\[
+  \sigma(T(D_0))=-\int_{\partial T(D_0)}y\mathrm dx
+  =\int_{\partial T(D_0)}x\mathrm dy
+  =\frac12\int_{\partial T(D_0)}x\mathrm dy-y\mathrm dx,
+\]
+其中 $\partial T(D_0)$ 的方向取正向. 曲线 $\partial T(D_0)$ 的方程可以由参数 $(u,v)$ 在 $D_0$ 四条边上的变化来描述. 先假设 $T$ 将 $\partial D_0$ 的正向映成了 $\partial T(D_0)$ 的正向, 这时我们有
+\[
+\begin{aligned}
+  -\int_{\partial T(D_0)}y\mathrm dx
+  &=-\int_{u_0}^{u_0+\delta}y(u,v_0)\frac{\partial x(u,v_0)}{\partial u}\mathrm du
+    -\int_{v_0}^{v_0+\delta}y(u_0+\delta,v)\frac{\partial x(u_0+\delta,v)}{\partial v}\mathrm dv\\
+  &\quad-\int_{u_0+\delta}^{u_0}y(u,v_0+\delta)\frac{\partial x(u,v_0+\delta)}{\partial u}\mathrm du
+    -\int_{v_0+\delta}^{v_0}y(u_0,v)\frac{\partial x(u_0,v)}{\partial v}\mathrm dv\\
+  &=\int_{u_0}^{u_0+\delta}
+    \left[y(u,v_0+\delta)\frac{\partial x(u,v_0+\delta)}{\partial u}
+    -y(u,v_0)\frac{\partial x(u,v_0)}{\partial u}\right]\mathrm du\\
+  &\quad-\int_{v_0}^{v_0+\delta}
+    \left[y(u_0+\delta,v)\frac{\partial x(u_0+\delta,v)}{\partial v}
+    -y(u_0,v)\frac{\partial x(u_0,v)}{\partial v}\right]\mathrm dv\\
+  &=\iint_{D_0}\left[
+    \frac{\partial}{\partial v}\left(y\frac{\partial x}{\partial u}\right)
+    -\frac{\partial}{\partial u}\left(y\frac{\partial x}{\partial v}\right)
+    \right]\mathrm du\mathrm dv\\
+  &=\iint_{D_0}\frac{\partial(x,y)}{\partial(u,v)}\mathrm du\mathrm dv.
+\end{aligned}
+\]
+当 $T$ 将 $\partial D_0$ 的正向映成了 $\partial T(D_0)$ 的负向时, 由上述方法同样可以证明
+\[
+  \sigma(T(D_0))=-\iint_{D_0}\frac{\partial(x,y)}{\partial(u,v)}\mathrm du\mathrm dv
+  =\iint_{D_0}\left|\frac{\partial(x,y)}{\partial(u,v)}\right|\mathrm du\mathrm dv.
+\]
+证毕。
+
+\noindent\textbf{注}\quad 在引理 15.4.2 中, 我们对 $x(u,v),y(u,v)$ 假定了它们具有二阶连续偏导数. 当 $x(u,v)$ 与 $y(u,v)$ 具有一阶连续偏导数时, 利用具有二阶连续偏导数的函数对它们进行逼近, 则可以证明此时引理的结论仍成立. 由于这种逼近过程过于复杂, 我们在此不作介绍, 但我们还是假定引理在此稍弱的条件下仍成立。
+
+\noindent\textbf{定理 15.4.1 的证明}\quad 由于函数 $f(x,y)$ 在 $\Omega$ 上可积, 从而
+\[
+  I=\iint_\Omega f(x,y)\mathrm dx\mathrm dy
+\]
+存在. 由于 $T$ 是 $D$ 到 $\Omega$ 的同胚映射, 因此 $f(x(u,v),y(u,v))$ 在 $D$ 上可积(见本章习题). 再注意到 $\dfrac{\partial(x,y)}{\partial(u,v)}$ 在 $D$ 上连续, 从而
+\[
+  \iint_D f(x(u,v),y(u,v))
+  \left|\frac{\partial(x,y)}{\partial(u,v)}\right|\mathrm du\mathrm dv
+\]
+存在. 下面只要证明它等于 $I$ 即可。
+
+取 $\delta>0$ 充分小, 并在 $Ouv$ 平面上作平行于两坐标轴的两个直线族, 使得它们的间距为 $\delta$. 这两个直线族对 $D$ 产生了一个分割:
+\[
+  \Delta_D=\{\Delta D_1,\Delta D_2,\cdots,\Delta D_K\},
+\]
+即每个 $\Delta D_k(k=1,2,\cdots,K)$ 都是一个小正方形与 $D$ 的交集. 利用变换 $T$, 我们得到 $\Omega$ 的一个分割
+\[
+  \Delta_\Omega=\{T(\Delta D_1),T(\Delta D_2),\cdots,T(\Delta D_K)\},
+\]
+由于 $T$ 在 $D$ 上的一致连续性, 当 $\delta\to0$ 时, 有 $\lambda(\Delta_D)\to0$ 和 $\lambda(\Delta_\Omega)\to0$。
+
+现将 $\Delta_D$ 中的小闭集分成两类: 记 $\Delta'_D=\{\Delta D'_1,\Delta D'_2,\cdots,\Delta D'_J\}$ 为 $\Delta(D)$ 中所有完全落在 $D$ 内部的正方形的全体, 而记 $\Delta''_D=\{\Delta D''_1,\Delta D''_2,\cdots,\Delta D''_L\}$ 为 $\Delta_D$ 中所有含有 $\partial D$ 的点的集合. 显然, $\Delta'_\Omega=\{T(\Delta D'_1),T(\Delta D'_2),\cdots,T(\Delta D'_J)\}$ 中的每个集合均落在 $\Omega$ 的内部, 而 $\Delta''_\Omega=\{T(\Delta D''_1),T(\Delta D''_2),\cdots,T(\Delta D''_L)\}$ 中的每个集合均与 $\partial\Omega$ 的交非空。
+
+由假设 $D$ 由有限条分段光滑曲线所围成, 从而 $D$ 可求面积. 由此我们有
+\[
+  \lim_{\delta\to0}\sigma\left(\bigcup_{l=1}^L\Delta D''_l\right)=0.
+\]
+由于变换 $T$ 是 $C^1$ 同胚映射, $\partial\Omega$ 也是由有限条分段光滑曲线所组成. 因此对于 $\forall\varepsilon>0$, 存在有限个长方体组成的简单集 $A$, 使得 $\partial\Omega\subset A^\circ$ 且 $\sigma(A)<\varepsilon$. 因为 $\partial\Omega$ 与 $\partial A$ 均为紧集, 从而有
+\[
+  \rho=\min_{x\in\partial\Omega,\ y\in\partial A}|x-y|>0.
+\]
+再由 $T$ 在 $\overline D$ 的一致连续性, 当 $\delta<\dfrac\rho2$ 时, 必有 $T(\Delta D''_l)\subset A^\circ(l=1,2,\cdots,L)$. 这说明了
+\[
+  \lim_{\delta\to0}\sigma\left(\bigcup_{l=1}^LT(\Delta D''_l)\right)=0.
+\]
+注意到在 $D$ 上处处有 $\left|\dfrac{\partial(x,y)}{\partial(u,v)}\right|\ne0$, 对每个 $\Delta D'_j(j=1,2,\cdots,J)$, 由有限覆盖定理不难看出, 若将其等分成 $k^2(k\in\mathbb N)$ 个小正方形, 则当 $k$ 充分大时, 在每个小正方形上 $x'_u,x'_v,y'_u$ 及 $y'_v$ 中至少有一个不取零. 因此, $T$ 将该小正方形映成一个曲边小四边形, 这个小曲边四边形必是两个由分段光滑曲线围成的 X 型或 Y 型区域的并. 由引理 15.4.2 有
+\[
+  \sigma(T(\Delta D'_j))
+  =\iint_{\Delta D'_j}\left|\frac{\partial(x,y)}{\partial(u,v)}\right|\mathrm du\mathrm dv.
+\]
+由重积分第一中值定理, 在 $\Delta D'_j(j=1,2,\cdots,J)$ 上存在 $(u'_j,v'_j)$, 使得
+\[
+  \sigma(T(\Delta D'_j))
+  =\left|\frac{\partial(x,y)}{\partial(u,v)}\right|_{(u'_j,v'_j)}
+  \sigma(\Delta D'_j).
+\]
+
+记 $x'_j=x(u'_j,v'_j), y'_j=y(u'_j,v'_j)(j=1,2,\cdots,J)$. 在 $\Delta D''_l$ 内任取 $(u''_l,v''_l)$, 在 $T(\Delta D''_l)$ 内任取 $(x''_l,y''_l)(l=1,2,\cdots,L)$, 作和式
+\begin{equation}
+  \sum_{j=1}^J f(x'_j,y'_j)\sigma(T(\Delta D'_j))
+  +\sum_{l=1}^L f(x''_l,y''_l)\sigma(T(\Delta D''_l)),
+  \tag{15.4.1}
+\end{equation}
+则当 $\delta\to0$ 时, 上述和式趋于
+\[
+  \iint_\Omega f(x,y)\mathrm dx\mathrm dy.
+\]
+另外, 我们作和式
+\begin{equation}
+\begin{aligned}
+  &\sum_{j=1}^J f(x(u'_j,v'_j),y(u'_j,v'_j))
+  \left|\frac{\partial(x,y)}{\partial(u,v)}\right|_{(u'_j,v'_j)}
+  \sigma(\Delta D'_j)\\
+  &\quad+\sum_{l=1}^L f(x(u''_l,v''_l),y(u''_l,v''_l))
+  \left|\frac{\partial(x,y)}{\partial(u,v)}\right|_{(u''_l,v''_l)}
+  \sigma(\Delta D''_l),
+\end{aligned}
+  \tag{15.4.2}
+\end{equation}
+则当 $\delta\to0$, 上述和式趋于
+\[
+  \iint_D f(x(u,v),y(u,v))
+  \left|\frac{\partial(x,y)}{\partial(u,v)}\right|\mathrm du\mathrm dv.
+\]
+由于 $f(x(u,v),y(u,v))$ 和
+\[
+  \left|f(x(u,v),y(u,v))\left|\frac{\partial(x,y)}{\partial(u,v)}\right|\right|
+\]
+在 $D$ 上可积, 从而存在 $M>0$, 使得当 $(x,y)\in\Omega$ 时, 有 $|f(x,y)|\le M$, 以及当 $(u,v)\in D$ 时, 有
+\[
+  \left|f(x(u,v),y(u,v))\left|\frac{\partial(x,y)}{\partial(u,v)}\right|\right|\le M.
+\]
+由此我们有
+\[
+\begin{aligned}
+  &\left|
+  \sum_{j=1}^J f(x'_j,y'_j)\sigma(T(\Delta D'_j))
+  +\sum_{l=1}^L f(x''_l,y''_l)\sigma(T(\Delta D''_l))\right.\\
+  &\quad-\left[
+  \sum_{j=1}^J f(x(u'_j,v'_j),y(u'_j,v'_j))
+  \left|\frac{\partial(x,y)}{\partial(u,v)}\right|_{(u'_j,v'_j)}
+  \sigma(\Delta D'_j)\right.\\
+  &\qquad\left.\left.
+  +\sum_{l=1}^L f(x(u''_l,v''_l),y(u''_l,v''_l))
+  \left|\frac{\partial(x,y)}{\partial(u,v)}\right|_{(u''_l,v''_l)}
+  \sigma(\Delta D''_l)\right]\right|\\
+  &=\left|
+  \sum_{l=1}^L f(x''_l,y''_l)\sigma(T(\Delta D''_l))
+  -\sum_{l=1}^L f(x(u''_l,v''_l),y(u''_l,v''_l))
+  \left|\frac{\partial(x,y)}{\partial(u,v)}\right|_{(u''_l,v''_l)}
+  \sigma(\Delta D''_l)\right|\\
+  &\le M\sigma\left(\bigcup_{l=1}^L T(\Delta D''_l)\right)
+  +M\sigma\left(\bigcup_{l=1}^L\Delta D''_l\right)\to0\quad(\delta\to0).
+\end{aligned}
+\]
+因此有
+\[
+  \iint_\Omega f(x,y)\mathrm dx\mathrm dy
+  =\iint_D f(x(u,v),y(u,v))
+  \left|\frac{\partial(x,y)}{\partial(u,v)}\right|\mathrm du\mathrm dv.
+\]
+证毕。
+
+对于 $n$ 重积分, 我们不加证明地给出下述定理。
+
+\noindent\textbf{定理 15.4.3}\quad 设变换
+\[
+  \boldsymbol x(\boldsymbol u)=(x_1(\boldsymbol u),x_2(\boldsymbol u),\cdots,x_n(\boldsymbol u))
+\]
+是可求体积的有界闭区域 $D\subset\mathbb R^n$ 到可求体积的有界闭区域 $\Omega\subset\mathbb R^n$ 的同胚映射, 它的各个偏导数在包含 $D$ 的区域上连续, 并且在 $D$ 上
+\[
+  \frac{\partial(x_1,\cdots,x_n)}{\partial(u_1,\cdots,u_n)}\ne0,
+\]
+再设函数 $f(\boldsymbol x)$ 在 $\Omega$ 上可积, 则有
+\[
+\begin{aligned}
+  &\int\!\!\int\cdots\int_\Omega f(x_1,\cdots,x_n)\mathrm dx_1\cdots\mathrm dx_n\\
+  &\quad=\int\!\!\int\cdots\int_D
+  f(x_1(u_1,\cdots,u_n),\cdots,x_n(u_1,\cdots,u_n))
+  \left|\frac{\partial(x_1,\cdots,x_n)}{\partial(u_1,\cdots,u_n)}\right|
+  \mathrm du_1\cdots\mathrm du_n.
+\end{aligned}
+\]
+
+\subsection{利用变量替换计算重积分}
+
+在本小节中, 我们举例说明如何用变量替换公式来计算重积分. 在二重积分变量替换中, 极坐标变换
+\[
+  \begin{cases}
+    x=r\cos\theta,\\
+    y=r\sin\theta
+  \end{cases}
+  \quad(0\le r<+\infty,0\le\theta\le2\pi)
+\]
+是非常重要的变换之一. 我们前面已经知道, 它的雅可比行列式为
+\[
+  \left.\frac{\partial(x,y)}{\partial(r,\theta)}\right|_{(r,\theta)}=r.
+\]
+注意到极坐标变换在正实轴与原点处不是一一映射的, 但它是 $\{(r,\theta):0<r<+\infty,0<\theta<2\pi\}$ 到 $\mathbb R^2\setminus\{(x,y):x\ge0\}$ 的 $C^1$ 同胚映射。
+
+\noindent\textbf{例 15.4.1}\quad 计算闭单位圆盘 $\Omega=\{(x,y):x^2+y^2\le1\}$ 的面积。
+
+\noindent\textbf{解}\quad 极坐标变换
+\[
+  \begin{cases}
+    x=r\cos\theta,\\
+    y=r\sin\theta
+  \end{cases}
+\]
+把 $D=\{(r,\theta):0\le r\le1,0\le\theta\le2\pi\}$ 映成 $\Omega$, 且 $\dfrac{\partial(x,y)}{\partial(r,\theta)}=r$. 因此 $\Omega$ 的面积为
+\[
+  \sigma(\Omega)=\iint_\Omega\mathrm dx\mathrm dy
+  =\iint_D r\mathrm dr\mathrm d\theta
+  =\int_0^1 r\mathrm dr\int_0^{2\pi}\mathrm d\theta=\pi.
+\]
+
+细心的读者可以发现, 尽管极坐标变换不是 $D$ 到 $\Omega$ 的同胚. 但在上例中应用极坐标变换仍然能正确计算出 $\sigma(\Omega)$. 我们可以用下面的方法来说明上述计算的合理性. 对于 $\forall\varepsilon>0$, 记 $\Omega_\varepsilon=\Omega\setminus\{(x,y):\varepsilon<x<1,-\varepsilon x<y<\varepsilon x\}$, 则极坐标变换是 $D_\varepsilon=\{(r,\theta):\varepsilon\le r\le1,2\pi-\arctan\varepsilon\le\theta\le\arctan\varepsilon\}$ 到 $\Omega_\varepsilon$ 的 $C^1$ 变换. 因此
+\[
+\begin{aligned}
+  \sigma(\Omega)
+  &=\lim_{\varepsilon\to0+0}\iint_{\Omega_\varepsilon}\mathrm dx\mathrm dy
+  =\lim_{\varepsilon\to0+0}\iint_{D_\varepsilon}r\mathrm dr\mathrm d\theta\\
+  &=\lim_{\varepsilon\to0+0}\int_\varepsilon^1 r\mathrm dr
+  \int_{\arctan\varepsilon}^{2\pi-\arctan\varepsilon}\mathrm d\theta
+  =\int_0^1 r\mathrm dr\int_0^{2\pi}\mathrm d\theta=\pi.
+\end{aligned}
+\]
+
+因此, 若今后我们遇到一个映射在挖掉有限条光滑曲线后的区域之间是 $C^1$ 同胚映射时, 我们可以在原来的闭区域上直接应用定理 15.4.1。
+
+\noindent\textbf{例 15.4.2}\quad 计算二重积分
+\[
+  \iint_D(x^2+y^2)\mathrm dx\mathrm dy,
+\]
+其中 $D$ 是由曲线 $(x^2+y^2)^2=a^2(x^2-y^2)$ 所围且落在第一、四象限的部分, 这里 $a>0$ 为常数。
+
+\noindent\textbf{解}\quad 利用极坐标变换
+\[
+  \begin{cases}
+    x=r\cos\theta,\\
+    y=r\sin\theta
+  \end{cases}
+\]
+可把曲线方程 $(x^2+y^2)^2=a^2(x^2-y^2)$ 化为
+\[
+  r^4=a^2r^2(\cos^2\theta-\sin^2\theta)=a^2r^2\cos2\theta.
+\]
+注意到 $x>0$ 时, 有
+\[
+  r=a\sqrt{\cos2\theta},\quad -\frac\pi4\le\theta\le\frac\pi4,
+\]
+再注意到 $\dfrac{\partial(x,y)}{\partial(r,\theta)}=r$, 我们有
+\[
+\begin{aligned}
+  \iint_D(x^2+y^2)\mathrm dx\mathrm dy
+  &=\int_{-\frac\pi4}^{\frac\pi4}\mathrm d\theta
+  \int_0^{a\sqrt{\cos2\theta}}r^2\cdot r\mathrm dr\\
+  &=2\int_0^{\frac\pi4}\frac14a^4\cos^22\theta\mathrm d\theta
+  =\frac\pi8a^4.
+\end{aligned}
+\]
+
+下面我们介绍利用一些特殊的变量替换来计算重积分的例子。
+
+\noindent\textbf{例 15.4.3}\quad 计算二重积分
+\[
+  \iint_D(x^2+y^2)\mathrm dx\mathrm dy,
+\]
+其中 $D$ 是由曲线 $x^2-y^2=1,x^2-y^2=9,xy=2,xy=4$ 所围成的闭区域。
+
+\noindent\textbf{解}\quad 作变换 $T$:
+\[
+  \begin{cases}
+    u=x^2-y^2,\\
+    v=2xy,
+  \end{cases}
+\]
+则 $T^{-1}$ 将矩形
+\[
+  \Omega=\{(u,v):1\le u\le9,4\le v\le8\}
+  \]
+一一地映成 $D$. 由
+\[
+  \frac{\partial(x,y)}{\partial(u,v)}
+  =\frac1{\dfrac{\partial(u,v)}{\partial(x,y)}}
+  =\frac1{\left|\begin{matrix}2x&-2y\\2y&2x\end{matrix}\right|}
+  =\frac1{4(x^2+y^2)}
+  =\frac1{4\sqrt{u^2+v^2}},
+\]
+得
+\[
+\begin{aligned}
+  \iint_D(x^2+y^2)\mathrm dx\mathrm dy
+  &=\iint_\Omega\sqrt{u^2+v^2}\frac1{4\sqrt{u^2+v^2}}\mathrm du\mathrm dv\\
+  &=\frac14\iint_\Omega\mathrm du\mathrm dv=8.
+\end{aligned}
+\]
+
+\noindent\textbf{例 15.4.4}\quad 求椭球体
+\[
+  \frac{x^2}{a^2}+\frac{y^2}{b^2}+\frac{z^2}{c^2}\le1\quad(a,b,c>0)
+\]
+的体积。
+
+\noindent\textbf{解}\quad 取
+\[
+  D=\left\{(x,y):\frac{x^2}{a^2}+\frac{y^2}{b^2}\le1\right\},
+\]
+则由二重积分的几何意义知, 所求体积为
+\[
+  V=2\iint_D c\sqrt{1-\frac{x^2}{a^2}-\frac{y^2}{b^2}}\mathrm dx\mathrm dy.
+\]
+作广义极坐标变换
+\[
+  \begin{cases}
+    x=ar\cos\theta,\\
+    y=br\sin\theta,
+  \end{cases}
+\]
+则 $\dfrac{\partial(x,y)}{\partial(r,\theta)}=abr$, 且
+\[
+  \Omega=\{(r,\theta):0\le r<1,0\le\theta<2\pi\}
+\]
+经变换一一地映成 $D\setminus\{(0,0)\}$, 从而
+\[
+\begin{aligned}
+  V&=2\iint_\Omega c\sqrt{1-r^2}\,abr\mathrm dr\mathrm d\theta
+  =2\int_0^{2\pi}\mathrm d\theta\int_0^1 c\sqrt{1-r^2}\,abr\mathrm dr\\
+  &=4\pi abc\cdot\frac12\cdot\frac23(1-r^2)^{\frac32}\Big|_0^1
+  =\frac43\pi abc.
+\end{aligned}
+\]
+
+\noindent\textbf{例 15.4.5}\quad 计算二重积分
+\[
+  \iint_D\sqrt{\frac{xy}{x+y}}\mathrm dx\mathrm dy,
+\]
+其中 $D$ 是由直线 $x=0,y=0,x+y=1$ 所围成的闭区域。
+
+\noindent\textbf{解}\quad 首先我们注意到
+\[
+  \lim_{D\ni(x,y)\to(0,0)}\frac{xy}{x+y}=0,
+\]
+因此该二重积分存在. 显然, 对于积分区域 $D$, 该二重积分易于化成累次积分. 但由于被积函数比较复杂, 该积分仍不易求出. 为此我们利用下述变换
+\[
+  \begin{cases}
+    x=r\cos^2\theta,\\
+    y=r\sin^2\theta.
+  \end{cases}
+\]
+该变换将
+\[
+  \Omega=\left\{(r,\theta):0<r<1,0<\theta<\frac\pi2\right\}
+\]
+一一地变到 $D$ 的内部, 并且
+\[
+  \frac{\partial(x,y)}{\partial(r,\theta)}
+  =\left|\begin{matrix}
+    \cos^2\theta&-r\sin2\theta\\
+    \sin^2\theta&r\sin2\theta
+  \end{matrix}\right|
+  =r\sin2\theta.
+\]
+因此有
+\[
+\begin{aligned}
+  \iint_D\sqrt{\frac{xy}{x+y}}\mathrm dx\mathrm dy
+  &=\frac12\iint_\Omega r^{\frac12}\sin2\theta\cdot r\sin2\theta\,\mathrm dr\mathrm d\theta\\
+  &=\frac12\int_0^{\frac\pi2}\sin^22\theta\,\mathrm d\theta\int_0^1 r^{\frac32}\mathrm dr
+  =\frac\pi{20}.
+\end{aligned}
+\]
+
+对于三重积分的计算, 下面的两种变换是经常用到的。
+
+\noindent\textbf{柱坐标变换}
+\[
+  \begin{cases}
+    x=r\cos\theta,\\
+    y=r\sin\theta,\\
+    z=z,
+  \end{cases}
+\]
+其中 $0\le r<+\infty,0\le\theta<2\pi,-\infty<z<+\infty$. 这种变换本质上是将空间一点投影到 $Oxy$ 平面内, 然后取它投影点的极坐标(见图 15.4.1). 因此它将
+\[
+  \{(r,\theta,z):0\le r<+\infty,0\le\theta<2\pi,-\infty<z<+\infty\}
+\]
+映成 $\mathbb R^3$, 其雅可比行列式为
+\[
+  \frac{\partial(x,y,z)}{\partial(r,\theta,z)}=r.
+\]
+
+\noindent\textbf{球坐标变换}
+\[
+  \begin{cases}
+    x=r\sin\varphi\cos\theta,\\
+    y=r\sin\varphi\sin\theta,\\
+    z=r\cos\varphi,
+  \end{cases}
+\]
+其中 $0\le r<+\infty,0\le\varphi\le\pi,0\le\theta<2\pi$(见图 15.4.2). 它的雅可比行列式
+\[
+  \frac{\partial(x,y,z)}{\partial(r,\varphi,\theta)}=r^2\sin\varphi.
+\]
+显然, 在球坐标下, $r=a$ 对应于球面 $x^2+y^2+z^2=a^2$, $\varphi=b$ 对应于锥面 $z=\cot b\sqrt{x^2+y^2}$, $\theta=c$ 为以 $z$ 轴为边的半平面。
+
+\noindent\textbf{例 15.4.6}\quad 设空间立体 $D$ 由曲面 $z=25-x^2-y^2$ 与平面 $z=0$ 所围成, 试求它的体积 $V$。
+
+\noindent\textbf{解}\quad 由三重积分的几何意义得
+\[
+  V=\iiint_D\mathrm dx\mathrm dy\mathrm dz.
+\]
+取柱坐标变换
+\[
+  \begin{cases}
+    x=r\cos\theta,\\
+    y=r\sin\theta,\\
+    z=z,
+  \end{cases}
+\]
+则它将
+\[
+  \Omega=\{(r,\theta,z):0\le r\le5,0\le\theta<2\pi,0\le z\le25-r^2\}
+\]
+映成 $D$. 因此
+\[
+\begin{aligned}
+  V&=\iiint_\Omega\frac{\partial(x,y,z)}{\partial(r,\theta,z)}
+  \mathrm dr\mathrm d\theta\mathrm dz
+  =\int_0^{2\pi}\mathrm d\theta\int_0^5 r\mathrm dr\int_0^{25-r^2}\mathrm dz\\
+  &=2\pi\int_0^5 r(25-r^2)\mathrm dr=\frac{625}2\pi.
+\end{aligned}
+\]
+
+\noindent\textbf{注}\quad 上例中的柱坐标变换在 $\Omega$ 和 $D$ 内分别挖掉一个光滑曲面后是 $C^1$ 同胚, 利用处理极坐标变换相似的方法, 容易验证上述的重积分的变量替换公式仍然成立。
+
+\noindent\textbf{例 15.4.7}\quad 设 $\mathbb R^3$ 中均匀物体 $D$ 由球面 $x^2+y^2+z^2=1$ 和锥面 $z=\sqrt{x^2+y^2}$ 所围成, 求它的质心坐标。
+
+\noindent\textbf{解}\quad 由对称性, 可设其质心坐标为 $(0,0,z_0)$. 锥面方程 $z=\sqrt{x^2+y^2}$ 在球坐标系下为 $\varphi=\dfrac\pi4$. 因此 $D$ 的体积
+\[
+\begin{aligned}
+  V&=\iiint_D\mathrm dV
+  =\int_0^{2\pi}\mathrm d\theta\int_0^{\frac\pi4}\mathrm d\varphi\int_0^1 r^2\sin\varphi\mathrm dr\\
+  &=2\pi\int_0^{\frac\pi4}\sin\varphi\frac{r^3}3\Big|_0^1\mathrm d\varphi
+  =\frac{2\pi}3\left(1-\frac{\sqrt2}2\right).
+\end{aligned}
+\]
+下面还要计算物体到 $Oxy$ 平面的力矩 $M_{xy}$. 利用微元法, 我们有
+\[
+\begin{aligned}
+  M_{xy}&=\iiint_D z\mathrm dV
+  =\int_0^{2\pi}\mathrm d\theta\int_0^{\frac\pi4}\mathrm d\varphi\int_0^1
+  r\cos\varphi\cdot r^2\sin\varphi\mathrm dr\\
+  &=2\pi\int_0^{\frac\pi4}\sin\varphi\cos\varphi\mathrm d\varphi\int_0^1r^3\mathrm dr
+  =\frac\pi8.
+\end{aligned}
+\]
+因此有
+\[
+  z_0=\frac{M_{xy}}V=\frac{3\left(1+\dfrac{\sqrt2}2\right)}8.
+\]
+
+\section{广义重积分}
+
+类似于一元函数的无穷积分与瑕积分, 对于多元函数的重积分我们也有相应的问题: 无界区域上函数的重积分与有界区域上无界函数的重积分. 前者称为无穷重积分, 而后者称为瑕重积分, 二者统称为广义重积分. 与一元函数的广义积分相比, 多元函数的广义重积分最大的困难是区域的复杂性. 因此, 对它有可能得到与一元函数情形具有本质差别的结果。
+
+\subsection{无穷重积分的基本概念}
+
+我们下面来讨论无界区域上函数的重积分. 我们只给出二元函数情形的详细讨论, 对于 $n(n>2)$ 元函数的情形, 相应理论可平行推出, 在此不再赘述。
+
+广义重积分理论可以讨论非常广泛的无界区域, 但在这里我们只对一些较为简单的区域进行讨论. 设 $D\subset\mathbb R^2$ 是无界闭区域, 在本节中, 我们总是假定当 $R$ 充分大时, $D_R\cap D$ 是可求面积闭区域, 其中
+\[
+  D_R=\{(x,y):x^2+y^2\le R\};
+\]
+并且当 $R_1<R_2$, 且 $R_1$ 充分大时, $D(R_1,R_2)\cap D$ 是有限个内部不相交的可求面积的闭区域的并, 其中
+\[
+  D(R_1,R_2)=\{(x,y):R_1^2\le x^2+y^2\le R_2^2\}.
+\]
+
+\noindent\textbf{例 15.5.1}\quad 设 $D=\{(x,y):0\le x\le1,y\in\mathbb R\}$, 则容易看出, 对于 $\forall R>0$ 及 $\forall R_2>R_1>1$, $D\cap D_R$ 是一个闭区域, 而 $D\cap D(R_1,R_2)$ 是两个闭区域。
+
+\noindent\textbf{定义 15.5.1}\quad 设 $D\subset\mathbb R^2$ 是无界闭区域, 函数 $f(x,y)$ 在 $D$ 上有定义, 并且在 $D$ 的任何可求面积的有界闭子区域上可积. 若存在常数 $I$, 使得对于 $\forall\varepsilon>0$, $\exists R>0$, 对任何 $D$ 的可求面积的有界闭子区域 $\widetilde D$, 只要 $\widetilde D\supset D_R\cap D$, 就有
+\begin{equation}
+  \left|\iint_{\widetilde D}f(x,y)\mathrm dx\mathrm dy-I\right|<\varepsilon,
+  \tag{15.5.1}
+\end{equation}
+则称 $f(x,y)$ 在 $D$ 上的无穷重积分收敛, 并称 $I$ 为 $f(x,y)$ 在 $D$ 上的无穷重积分, 记为
+\[
+  I=\iint_D f(x,y)\mathrm dx\mathrm dy.
+\]
+如果不存在 $I\in\mathbb R$, 使得式 (15.5.1) 成立, 则称无穷重积分
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+发散。
+
+初学者应特别注意, 上述定义中要求对任何包含 $D_R\cap D$ 的闭区域 $\widetilde D$ 成立式 (15.5.1). 为了强调这一点我们来看以下例子。
+
+\noindent\textbf{例 15.5.2}\quad 设函数
+\[
+  f(x,y)=\frac{x}{x^2+y^2+1},
+\]
+试讨论无穷重积分
+\[
+  \iint_{\mathbb R^2} f(x,y)\mathrm dx\mathrm dy
+\]
+的敛散性。
+
+\noindent\textbf{解}\quad 对于 $\forall R>0$, 取 $r>R$, 考虑
+\[
+  \Omega_r=\{(x,y):|x|\le r, |y|\le r\}
+\]
+与
+\[
+  Q_r=\{(x,y):r\le x\le2r, |y|\le r\}.
+\]
+容易看出 $\Omega_r\supset D_R=\{(x,y):\sqrt{x^2+y^2}\le R\}$, 且 $\Omega_r\cup Q_r$ 是一个可求面积的闭区域, 显然它也包含了 $D_R$。
+
+下面我们来估计
+\[
+  \iint_{\Omega_r\cup Q_r} f(x,y)\mathrm dx\mathrm dy
+  =\iint_{\Omega_r}\frac{x}{x^2+y^2+1}\mathrm dx\mathrm dy
+  +\iint_{Q_r}\frac{x}{x^2+y^2+1}\mathrm dx\mathrm dy.
+\]
+由 $\Omega_r$ 的对称性知
+\[
+  \iint_{\Omega_r}\frac{x}{x^2+y^2+1}\mathrm dx\mathrm dy=0,
+\]
+而
+\[
+  \iint_{Q_r}\frac{x}{x^2+y^2+1}\mathrm dx\mathrm dy
+  \ge\iint_{Q_r}\frac{r}{(2r)^2+r^2+1}\mathrm dx\mathrm dy
+  =\frac{r}{1+5r^2}\cdot2r^2.
+\]
+因此当 $r\to+\infty$ 时, 我们有
+\[
+  \iint_{\Omega_r\cup Q_r} f(x,y)\mathrm dx\mathrm dy\to+\infty.
+\]
+这说明
+\[
+  \iint_{\mathbb R^2} f(x,y)\mathrm dx\mathrm dy
+\]
+发散。
+
+\noindent\textbf{注}\quad 从上述例子可以看出, 尽管无穷重积分
+\[
+  \iint_{\mathbb R^2} f(x,y)\mathrm dx\mathrm dy
+\]
+是发散的, 但对于 $\forall R>0$, 当 $r>R$ 时, 有 $D_r\supset D_R$ 且
+\[
+  \iint_{D_r} f(x,y)\mathrm dx\mathrm dy=0.
+\]
+
+\subsection{无穷重积分敛散性的判定}
+
+受函数极限与序列极限之间关系的启发, 我们对无界闭区域引进穷尽闭区域列的概念, 借助它来讨论无穷重积分的敛散性。
+
+\noindent\textbf{定义 15.5.2}\quad 设 $D\subset\mathbb R^2$ 是无界闭区域, 若可求面积的有界闭区域序列 $\{D_k\}$ 满足:
+
+(1) $D_1\subset D_2\subset\cdots\subset D_k\subset\cdots\subset D$;
+
+(2) 对于 $\forall R>0$, $\exists K\in\mathbb N$, 当 $k>K$ 时, $D_k\supset D\cap D_R$,
+
+则称 $\{D_k\}$ 是 $D$ 的一个\textbf{穷尽闭区域列}(简称穷尽列)。
+
+\noindent\textbf{定理 15.5.1}\quad 设函数 $f(x,y)$ 在无界闭区域 $D\subset\mathbb R^2$ 上有定义, 在 $D$ 的任何可求面积的有界闭子区域上可积, 则无穷重积分
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+收敛的充分必要条件是: 对 $D$ 的任何一个穷尽列 $\{D_k\}$, 序列极限
+\[
+  \lim_{k\to\infty}\iint_{D_k}f(x,y)\mathrm dx\mathrm dy
+\]
+存在。
+
+作为练习, 请读者自己给出上述定理的证明。
+
+\noindent\textbf{定理 15.5.2}\quad 设 $D\subset\mathbb R^2$ 是无界闭区域, 函数 $f(x,y)$ 在 $D$ 上有定义, 在 $D$ 的任何可求面积的有界闭子区域上可积, 并且对于 $\forall(x,y)\in D$, 有 $f(x,y)\ge0$, 则无穷重积分
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+收敛的充分必要条件是: 存在 $D$ 的一个穷尽列 $\{D_k\}$ 及常数 $I>0$, 使得对于 $\forall k\in\mathbb N$, 有
+\[
+  \iint_{D_k}f(x,y)\mathrm dx\mathrm dy\le I.
+\]
+
+\noindent\textbf{证明}\quad 必要性\quad 设
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+收敛, 令
+\[
+  I=\iint_D f(x,y)\mathrm dx\mathrm dy,
+\]
+则任取 $D$ 的一个穷尽列 $\{D_k\}$, 对于 $\forall k\in\mathbb N$, 都有
+\[
+  \iint_{D_k}f(x,y)\mathrm dx\mathrm dy\le I.
+\]
+
+充分性\quad 设存在 $D$ 的一个穷尽列 $\{D_k\}$ 及常数 $I>0$ 满足: 对于 $\forall k\in\mathbb N$, 有
+\[
+  I_k=\iint_{D_k}f(x,y)\mathrm dx\mathrm dy\le I.
+\]
+显然 $\{I_k\}$ 是一个单调上升序列且有上界 $I$, 因此它收敛. 下面设 $\{D'_j\}$ 是 $D$ 的任何一个穷尽列, 并对 $j=1,2,\cdots$, 记
+\[
+  I'_j=\iint_{D'_j}f(x,y)\mathrm dx\mathrm dy.
+\]
+由穷尽列的定义, 对于 $\forall j\in\mathbb N$, 必存在 $k_j\in\mathbb N$, 使得有 $k_j>j$ 和 $D'_j\subset D_{k_j}$ 成立. 因此有 $I'_j\le I_{k_j}\le I$. 这说明 $\{I'_j\}$ 是单调上升有上界的序列, 从而
+\[
+  \lim_{j\to\infty}\iint_{D'_j}f(x,y)\mathrm dx\mathrm dy
+\]
+收敛. 再由定理 15.5.1 知
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+收敛. 证毕。
+
+\noindent\textbf{注}\quad 显然, 当 $f(x,y)$ 在 $D$ 上不变号时, 对 $D$ 的任何一个穷尽列 $\{D_k\}$, 都有
+\[
+  \lim_{k\to\infty}\iint_{D_k}f(x,y)\mathrm dx\mathrm dy
+  =\iint_D f(x,y)\mathrm dx\mathrm dy.
+\]
+上述等式可以理解为: 当
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+收敛时总成立等式, 而当
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+发散时, 等号两边都等于 $+\infty$。
+
+无穷重积分中与一元函数的无穷积分具有本质区别的是以下的结果。
+
+\noindent\textbf{定理 15.5.3}\quad 设 $D\subset\mathbb R^2$ 是无界闭区域, 函数 $f(x,y)$ 在 $D$ 上有定义, 且在 $D$ 的任何可求面积的有界闭子区域上可积, 则无穷重积分
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+收敛的充分必要条件是无穷重积分
+\[
+  \iint_D |f(x,y)|\mathrm dx\mathrm dy
+\]
+收敛。
+
+\noindent\textbf{证明}\quad 充分性\quad 设
+\[
+  \iint_D |f(x,y)|\mathrm dx\mathrm dy
+\]
+收敛, 并记
+\[
+  \iint_D |f(x,y)|\mathrm dx\mathrm dy=I.
+\]
+对于 $\forall(x,y)\in D$, 定义
+\[
+  f_+(x,y)=\max\{f(x,y),0\}\quad\text{和}\quad f_-(x,y)=\max\{-f(x,y),0\},
+\]
+则 $f_+(x,y)\ge0$, $f_-(x,y)\ge0$, 且对于 $\forall(x,y)\in D$, 有
+\[
+  f(x,y)=f_+(x,y)-f_-(x,y).
+\]
+设 $\{D_k\}$ 为 $D$ 的任意一个穷尽列, 则对于 $\forall k\in\mathbb N$, 有
+\[
+  \iint_{D_k}f_+(x,y)\mathrm dx\mathrm dy
+  \le\iint_{D_k}|f(x,y)|\mathrm dx\mathrm dy\le I,
+\]
+\[
+  \iint_{D_k}f_-(x,y)\mathrm dx\mathrm dy
+  \le\iint_{D_k}|f(x,y)|\mathrm dx\mathrm dy\le I.
+\]
+这说明
+\[
+  \iint_D f_+(x,y)\mathrm dx\mathrm dy
+\]
+与
+\[
+  \iint_D f_-(x,y)\mathrm dx\mathrm dy
+\]
+均收敛, 从而
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+  =\iint_D f_+(x,y)\mathrm dx\mathrm dy
+  -\iint_D f_-(x,y)\mathrm dx\mathrm dy
+\]
+收敛。
+
+必要性\quad 设
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+收敛, 倘若
+\[
+  \iint_D |f(x,y)|\mathrm dx\mathrm dy
+\]
+发散, 我们将推出矛盾。
+
+由于
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+收敛, 若记
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy=I,
+\]
+则 $\exists R_1>0$, 当 $R>R_1$ 时,
+\[
+  I-1<\iint_{D\cap D_R}f(x,y)\mathrm dx\mathrm dy<I+1.
+\]
+由
+\[
+  \iint_D |f(x,y)|\mathrm dx\mathrm dy
+\]
+发散有
+\[
+  \lim_{R\to+\infty}\iint_{D\cap D_R}|f(x,y)|\mathrm dx\mathrm dy=+\infty.
+\]
+由于 $f(x,y)=f_+(x,y)-f_-(x,y)$, 因此 $f_+(x,y)$ 与 $f_-(x,y)$ 中必有一个函数, 不妨设 $f_+(x,y)$, 满足
+\[
+  \lim_{R\to+\infty}\iint_{D\cap D_R}f_+(x,y)\mathrm dx\mathrm dy=+\infty.
+\]
+因此可选取一列 $R_k\to+\infty$, 若记 $D_k=D\cap D_{R_k}$, $D'_k=\overline{D_k\setminus D_{k-1}}$, 则当 $k$ 充分大时, 有
+\[
+  \iint_{D'_k}f_+(x,y)\mathrm dx\mathrm dy>|I|+4.
+\]
+注意到由我们的假设, $D'_k$ 是有限个可求面积的且内部互不相交的闭区域的并. 由重积分的可积性理论可知(参考定理 15.2.3 的推论), 存在 $D'_k$ 的一个分割
+\[
+  \Delta=\{\Delta D_1,\Delta D_2,\cdots,\Delta D_J\},
+\]
+满足如下性质:
+
+(1) 设 $\Delta$ 中与 $\partial D'_k$ 交非空的小闭区域为 $\Delta D_1,\cdots,\Delta D_l(l<J)$, 则有
+\[
+  \sum_{j=1}^l M_j\Delta\sigma_j<1,
+\]
+其中 $M_j$ 为 $f_+(x,y)$ 在 $\Delta D_j$ 的上确界, $\Delta\sigma_j$ 为 $\Delta D_j(j=1,2,\cdots,l)$ 的面积。
+
+(2) 记 $\Delta$ 中全部落在 $D'_k$ 内部的小闭区域为 $\Delta D_{l+1},\cdots,\Delta D_J$, 则每个 $\Delta D_j(j=l+1,\cdots,J)$ 均为一个矩形, 且满足
+\[
+  \sum_{j=l+1}^J m_j\Delta\sigma_j>|I|+3,
+\]
+其中 $m_j$ 是 $f_+(x,y)$ 在 $\Delta D_j$ 的下确界, $\Delta\sigma_j$ 为 $\Delta D_j(j=l+1,\cdots,J)$ 的面积. 不妨设 $m_j>0(j=l+1,\cdots,J')$, $m_j=0(j=J'+1,\cdots,J)$, 则
+\[
+  \sum_{j=l+1}^{J'}m_j\Delta\sigma_j>|I|+3.
+\]
+
+记
+\[
+  D''_k=\bigcup_{j=l+1}^{J'}\Delta D_j,
+\]
+则当 $k$ 充分大时, 有
+\[
+\begin{aligned}
+  \iint_{D_{k-1}\cup D''_k}f(x,y)\mathrm dx\mathrm dy
+  &=\iint_{D_{k-1}}f(x,y)\mathrm dx\mathrm dy
+  +\iint_{D''_k}f(x,y)\mathrm dx\mathrm dy\\
+  &=\iint_{D_{k-1}}f(x,y)\mathrm dx\mathrm dy
+  +\iint_{D''_k}f_+(x,y)\mathrm dx\mathrm dy\\
+  &\ge I-1+\sum_{j=l+1}^{J'}m_j\Delta\sigma_j
+  \ge I-1+|I|+3\ge I+2.
+\end{aligned}
+\]
+如果 $D_{k-1}\cup D''_k$ 是闭区域, 则上式与
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy=I
+\]
+矛盾. 若 $D_{k-1}\cup D''_k$ 不连通, 注意到 $D''_k$ 是由区域 $D_k^\circ$ 内有限个小矩形组成, 因此可在 $D_k^\circ$ 中取有限个面积很小的狭窄带状闭区域组成集合 $D'''_k$, 使得 $D_{k-1}\cup D''_k\cup D'''_k$ 为有界闭区域, 且
+\[
+  \iint_{D_{k-1}\cup D''_k\cup D'''_k}f(x,y)\mathrm dx\mathrm dy>|I|+1.
+\]
+这样我们仍然得到矛盾. 证毕。
+
+对于无穷重积分, 当区域及被积函数满足一定条件, 我们仍然可以将其化为累次积分或利用变量替换来计算它. 我们不加证明地给出下面的定理。
+
+\noindent\textbf{定理 15.5.4}\quad 设函数 $f(x,y)$ 在 $D=[a,+\infty)\times[b,+\infty)$ 上有定义, 且在 $D$ 的任何可求面积的有界闭子区域上可积. 若累次积分
+\[
+  \int_a^{+\infty}\mathrm dx\int_b^{+\infty}|f(x,y)|\mathrm dy<+\infty
+\]
+(或
+\[
+  \int_b^{+\infty}\mathrm dy\int_a^{+\infty}|f(x,y)|\mathrm dx<+\infty),
+\]
+则
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+收敛, 且
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+  =\int_a^{+\infty}\mathrm dx\int_b^{+\infty}f(x,y)\mathrm dy
+\]
+(或
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+  =\int_b^{+\infty}\mathrm dy\int_a^{+\infty}f(x,y)\mathrm dx).
+\]
+若其中的两个累次积分有一个为 $\infty$, 则
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+发散。
+
+\noindent\textbf{定理 15.5.5}\quad 设 $D\subset\mathbb R^2$ 是无界闭区域, 变换
+\[
+  T(u,v):
+  \begin{cases}
+    x=x(u,v),\\
+    y=y(u,v)
+  \end{cases}
+  \quad (u,v)\in D
+\]
+是 $D$ 到 $T(D)$ 的 $C^1$ 同胚映射, 函数 $f(x,y)$ 在 $T(D)$ 的任何可求面积的有界闭子区域上可积, 则
+\begin{equation}
+  \iint_{T(D)}f(x,y)\mathrm dx\mathrm dy
+  =\iint_D f(x(u,v),y(u,v))
+  \left|\frac{\partial(x,y)}{\partial(u,v)}\right|\mathrm du\mathrm dv.
+  \tag{15.5.2}
+\end{equation}
+
+\noindent\textbf{注}\quad 等式 (15.5.2) 应理解为: 若等号两端有一个积分收敛, 则另一个积分也收敛, 并且积分值相等。
+
+\noindent\textbf{例 15.5.3}\quad 设函数
+\[
+  f(x,y)=\frac1{(x^2+y^2)^{\frac\alpha2}}=\frac1{r^\alpha},
+\]
+其中 $r=\sqrt{x^2+y^2}$, $\alpha$ 为常数. 分别就下列积分区域讨论无穷重积分
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+的敛散性:
+
+(1) $D=\{(r,\theta):1\le r<+\infty,0\le\theta_1\le\theta\le\theta_2\le2\pi\}$;
+
+(2) $D=\{(x,y):1\le x<+\infty,0\le y\le1\}$。
+
+\noindent\textbf{解}\quad (1) 由极坐标变换得
+\[
+  \iint_D\frac{\mathrm dx\mathrm dy}{(x^2+y^2)^{\frac\alpha2}}
+  =\lim_{R\to+\infty}\int_{\theta_1}^{\theta_2}\mathrm d\theta
+  \int_1^R\frac r{r^\alpha}\mathrm dr.
+\]
+由一元函数无穷积分的收敛性知, 当 $\alpha-1>1$, 即 $\alpha>2$ 时,
+\[
+  \iint_D\frac{\mathrm dx\mathrm dy}{(x^2+y^2)^{\frac\alpha2}}
+\]
+收敛; 而当 $\alpha\le2$ 时, 该无穷重积分发散。
+
+(2) 在对于 $\forall(x,y)\in D$ 中有
+\[
+  \frac1{(x^2+1)^{\frac\alpha2}}\le
+  \frac1{(x^2+y^2)^{\frac\alpha2}}\le\frac1{x^\alpha},
+\]
+且
+\[
+\begin{aligned}
+  \iint_D\frac1{(x^2+1)^{\frac\alpha2}}\mathrm dx\mathrm dy
+  &=\lim_{X\to+\infty}\int_0^1\mathrm dy\int_1^X
+  \frac{\mathrm dx}{(x^2+1)^{\frac\alpha2}}\\
+  &=\lim_{X\to+\infty}\int_1^X
+  \frac{\mathrm dx}{(x^2+1)^{\frac\alpha2}},
+\end{aligned}
+\]
+及
+\[
+  \iint_D\frac1{x^\alpha}\mathrm dx\mathrm dy
+  =\lim_{X\to+\infty}\int_1^X\frac{\mathrm dx}{x^\alpha}.
+\]
+由一元非负函数无穷积分敛散性的判别法知, 当 $\alpha>1$ 时,
+\[
+  \iint_D\frac1{x^\alpha}\mathrm dx\mathrm dy
+\]
+收敛, 从而
+\[
+  \iint_D\frac{\mathrm dx\mathrm dy}{(x^2+y^2)^{\frac\alpha2}}
+\]
+收敛; 当 $\alpha\le1$ 时,
+\[
+  \iint_D\frac{\mathrm dx\mathrm dy}{(x^2+1)^{\frac\alpha2}}
+\]
+发散, 从而
+\[
+  \iint_D\frac{\mathrm dx\mathrm dy}{(x^2+y^2)^{\frac\alpha2}}
+\]
+发散。
+
+\noindent\textbf{注}\quad 当 $1<\alpha\le2$ 时,
+\[
+  \frac1{(x^2+y^2)^{\frac\alpha2}}
+\]
+在 (1) 中 $D$ 上的无穷重积分发散, 而在 (2) 中 $D$ 上的无穷重积分收敛. 这说明相同的函数在不同区域上的积分可能具有不同的敛散性. 读者不难证明: 对任何一个 $\mathbb R^2$ 内的连续函数 $f(x,y)$, 总可找到一个无界闭区域 $D$, 使得
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+收敛. 反过来, 对于任何一个无界闭区域 $D\subset\mathbb R^2$, 总可以找到一个 $D$ 上的正的连续函数 $g(x,y)$, 使得
+\[
+  \iint_D g(x,y)\mathrm dx\mathrm dy
+\]
+发散。
+
+\noindent\textbf{例 15.5.4}\quad 讨论无穷重积分
+\[
+  \iint_D\frac{x^2-y^2}{(x^2+y^2)^2}\mathrm dx\mathrm dy
+\]
+的敛散性, 其中
+\[
+  D=\{(x,y):1\le x<+\infty,1\le y<+\infty\}.
+\]
+
+\noindent\textbf{解}\quad 取定 $0<\theta_1<\theta_2<\pi/8$, 利用极坐标变换, 则存在 $R_0>0$, 使得
+\[
+  \Omega=\{(r,\theta):R_0\le r<+\infty,\theta_1\le\theta\le\theta_2\}
+\]
+在变换
+\[
+  \begin{cases}
+    x=r\cos\theta,\\
+    y=r\sin\theta
+  \end{cases}
+\]
+下的像 $D_1$ 落在 $D$ 内. 由
+\[
+\begin{aligned}
+  \iint_D\frac{|x^2-y^2|}{(x^2+y^2)^2}\mathrm dx\mathrm dy
+  &\ge\iint_{D_1}\frac{|x^2-y^2|}{(x^2+y^2)^2}\mathrm dx\mathrm dy\\
+  &=\iint_\Omega\frac{r^2\cos2\theta}{r^4}r\mathrm dr\mathrm d\theta\\
+  &=\lim_{R\to+\infty}\int_{\theta_1}^{\theta_2}\mathrm d\theta
+  \int_{R_0}^R\cos2\theta\frac{\mathrm dr}r=+\infty
+\end{aligned}
+\]
+知原无穷重积分发散。
+
+\noindent\textbf{例 15.5.5}\quad 通过计算
+\[
+  \iint_{\mathbb R^2}e^{-(x^2+y^2)}\mathrm dx\mathrm dy
+\]
+求
+\[
+  \int_0^{+\infty}e^{-x^2}\mathrm dx
+\]
+的值。
+
+\noindent\textbf{解}\quad 取
+\[
+  D_R=\{(x,y):x^2+y^2\le R^2\},
+\]
+则由极坐标变换得
+\[
+  \lim_{R\to+\infty}\iint_{D_R}e^{-(x^2+y^2)}\mathrm dx\mathrm dy
+  =\lim_{R\to+\infty}\int_0^{2\pi}\mathrm d\theta\int_0^R e^{-r^2}r\mathrm dr=\pi.
+\]
+因此无穷重积分
+\[
+  \iint_{\mathbb R^2}e^{-(x^2+y^2)}\mathrm dx\mathrm dy
+\]
+收敛, 并且它的值为 $\pi$。
+
+现取
+\[
+  N_R=\{(x,y):-R\le x\le R,-R\le y\le R\},
+\]
+则
+\[
+\begin{aligned}
+  \pi&=\iint_{\mathbb R^2}e^{-(x^2+y^2)}\mathrm dx\mathrm dy
+  =\lim_{R\to+\infty}\iint_{N_R}e^{-(x^2+y^2)}\mathrm dx\mathrm dy\\
+  &=\lim_{R\to+\infty}\int_{-R}^R e^{-x^2}\mathrm dx
+  \int_{-R}^R e^{-y^2}\mathrm dy
+  =\left(\int_{-\infty}^{+\infty}e^{-x^2}\mathrm dx\right)^2.
+\end{aligned}
+\]
+所以
+\[
+  \int_0^{+\infty}e^{-x^2}\mathrm dx=\frac{\sqrt\pi}2.
+\]
+
+\subsection{瑕重积分}
+
+设 $D\subset\mathbb R^2$ 是可求面积的有界闭区域, $x_0=(x_0,y_0)\in D$. 在本节中, 我们对 $D$ 作如下假定: 对每个充分小的 $\delta>0$, $D\setminus U(x_0,\delta)$ 是一个闭区域; 若记
+\[
+  A(x_0,\delta_1,\delta_2)=\{x:0<\delta_1\le |x-x_0|\le\delta_2\},
+\]
+则当 $\delta_2$ 充分小时, $D\cap A(x_0,\delta_1,\delta_2)$ 是有限个两两内部不交的可求面积的闭区域之并. 我们引入如下瑕重积分敛散性的定义:
+
+\noindent\textbf{定义 15.5.3}\quad 设 $D\subset\mathbb R^2$ 是可求面积的有界闭区域, $x_0\in D$, 函数 $f(x,y)$ 在 $D\setminus\{x_0\}$ 上有定义且无界, 在 $D\setminus\{x_0\}$ 的任何可求面积的闭子区域上可积. 若存在常数 $I$, 使得对于 $\forall\varepsilon>0$, $\exists\delta>0$, 对 $D\setminus\{x_0\}$ 的任何可求面积的闭子区域 $D'$, 只要 $D'\supset D\setminus U(x_0,\delta)$, 就有
+\begin{equation}
+  \left|\iint_{D'}f(x,y)\mathrm dx\mathrm dy-I\right|<\varepsilon,
+  \tag{15.5.3}
+\end{equation}
+则称瑕重积分
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+收敛, 同时称 $I$ 为 $f(x,y)$ 在 $D$ 上的瑕重积分, 并记为
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy=I.
+\]
+若不存在常数 $I$, 使得式 (15.5.3) 成立, 则称瑕重积分
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+发散。
+
+\noindent\textbf{注}\quad 我们把定义 15.5.3 中的 $x_0=(x_0,y_0)$ 称为 $f(x,y)$ 的瑕点. 如同讨论无穷重积分敛散性时引入的穷尽列, 称 $\{D_k\}$ 为可求体积的有界闭区域 $D$ 的一个穷尽列, 若 $D_1\subset D_2\subset\cdots\subset D_k\subset\cdots\subset D$, 且对于 $\forall\delta>0$, $\exists K\in\mathbb N$, 当 $k>K$ 时, 有 $D_k\supset D\setminus U(x_0,\delta)$. 我们也有以下类似于判定无穷重积分敛散性的定理。
+
+\noindent\textbf{定理 15.5.6}\quad 设 $D\subset\mathbb R^2$ 是可求面积的有界闭区域, $x_0=(x_0,y_0)\in D$, 函数 $f(x,y)$ 在 $D\setminus\{x_0\}$ 上有定义且无界, 在 $D\setminus\{x_0\}$ 的任何可求面积的闭子区域上可积, 则瑕重积分
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+收敛的充分必要条件是: 对 $D$ 的任何穷尽列 $\{D_k\}$, 序列极限
+\[
+  \lim_{k\to\infty}\iint_{D_k}f(x,y)\mathrm dx\mathrm dy
+\]
+存在。
+
+\noindent\textbf{定理 15.5.7}\quad 设 $D\subset\mathbb R^2$ 是可求面积的有界闭区域, $x_0=(x_0,y_0)\in D$, 函数 $f(x,y)$ 在 $D\setminus\{x_0\}$ 上有定义、非负且无界, 在 $D\setminus\{x_0\}$ 的任何可求面积的闭子区域上可积, 则瑕重积分
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+收敛的充分必要条件是: 存在常数 $I>0$ 和 $D$ 的穷尽列 $\{D_k\}$, 使得对于 $\forall k\in\mathbb N$, 有
+\[
+  \iint_{D_k}f(x,y)\mathrm dx\mathrm dy\le I.
+\]
+
+\noindent\textbf{定理 15.5.8}\quad 设 $D\subset\mathbb R^2$ 是可求面积的有界区域, $x_0=(x_0,y_0)\in D$, 函数 $f(x,y)$ 在 $D\setminus\{x_0\}$ 上有定义且无界, 在 $D\setminus\{x_0\}$ 的任何可求面积的闭子区域上可积, 则瑕重积分
+\[
+  \iint_D f(x,y)\mathrm dx\mathrm dy
+\]
+收敛的充分必要条件是瑕重积分
+\[
+  \iint_D |f(x,y)|\mathrm dx\mathrm dy
+\]
+收敛。
+
+上述这些定理的证明与无穷重积分相应定理的证明相似, 请读者自证. 另外, $f(x,y)$ 在 $D$ 内一点的邻域内无界的瑕重积分, 可以推广到多个点, 甚至在一些曲线上无界的情形, 请读者给出它们相应的定义与性质, 在此我们就不再赘述了。
+
+\noindent\textbf{例 15.5.6}\quad 试讨论瑕重积分
+\[
+  \iint_D\frac{\mathrm dx\mathrm dy}{(x^2+y^2)^{\frac\alpha2}}
+\]
+的敛散性, 其中
+\[
+  D=\{(x,y):x^2+y^2\le1\}.
+\]
+
+\noindent\textbf{解法 1}\quad 显然, 当 $\alpha>0$ 时, 原点是被积函数的瑕点. 由极坐标变换得
+\[
+  \iint_D\frac{\mathrm dx\mathrm dy}{(x^2+y^2)^{\frac\alpha2}}
+  =\lim_{\delta\to0+0}\int_0^{2\pi}\mathrm d\theta\int_\delta^1\frac r{r^\alpha}\mathrm dr
+  =\lim_{\delta\to0+0}2\pi\int_\delta^1r^{1-\alpha}\mathrm dr,
+\]
+因此, 当 $\alpha<2$ 时, 原瑕重积分收敛; 当 $\alpha\ge2$ 时, 原瑕重积分发散。
+
+\noindent\textbf{解法 2}\quad 记
+\[
+  D^*=\{(s,t):s^2+t^2\ge1\}.
+\]
+作变换
+\[
+  \begin{cases}
+    x=\dfrac{s}{s^2+t^2},\\
+    y=\dfrac{-t}{s^2+t^2},
+  \end{cases}
+  \quad(s,t)\in D^*,
+\]
+则变换将 $D^*$ 映成 $D\setminus\{(0,0)\}$, 且
+\[
+  \frac{\partial(x,y)}{\partial(s,t)}=\frac1{(s^2+t^2)^2}.
+\]
+因此
+\[
+  \iint_D\frac{\mathrm dx\mathrm dy}{(x^2+y^2)^{\frac\alpha2}}
+  =\iint_{D^*}\frac{(s^2+t^2)^{\frac\alpha2}}{(s^2+t^2)^2}\mathrm ds\mathrm dt
+  =\iint_{D^*}\frac{\mathrm ds\mathrm dt}{(s^2+t^2)^{2-\frac\alpha2}}.
+\]
+由例 15.5.3 知, 当 $2-\dfrac\alpha2>1$, 即 $\alpha<2$ 时, 原瑕重积分收敛; 当 $2-\dfrac\alpha2\le1$, 即 $\alpha\ge2$ 时, 原瑕重积分发散。
+
+\noindent\textbf{注 1}\quad 结合例 15.5.3 和例 15.5.6, 我们推知, 对任意的 $\alpha\in\mathbb R$, 广义重积分
+\[
+  \iint_{\mathbb R^2}\frac{\mathrm dx\mathrm dy}{(x^2+y^2)^{\frac\alpha2}}
+\]
+都发散。
+
+\noindent\textbf{注 2}\quad 由解法 2, 我们容易将有界闭区域上具有一个瑕点的无界函数的重积分与无界区域上的重积分进行转化. 例如, 从例 15.5.3 我们可以容易地构造以原点为心的单位圆盘 $D$ 内的一个闭区域 $\Omega$, 使得 $0\in\partial\Omega$ 且当 $2\le\alpha<3$ 时, 无穷重积分
+\[
+  \iint_\Omega\frac{\mathrm dx\mathrm dy}{(x^2+y^2)^{\frac\alpha2}}
+\]
+仍然收敛。
+
+事实上, 取 $(s,t)$ 平面上的闭区域
+\[
+  G=\{(s,t):1\le s<+\infty,0\le t\le1\},
+\]
+然后利用变换
+\[
+  \begin{cases}
+    x=\dfrac{s}{s^2+t^2},\\
+    y=\dfrac{-t}{s^2+t^2}
+  \end{cases}
+\]
+将它变到单位圆盘内, 容易看出其像集合并上 $(0,0)$ 为一个可求面积的有界闭区域 $\Omega$. 利用例 15.5.3, 可知
+\[
+  \iint_\Omega\frac{\mathrm dx\mathrm dy}{(x^2+y^2)^{\alpha/2}}
+\]
+必收敛。
+
+最后, 我们举一个例子来说明如何判别具有多个瑕点的多元函数瑕积分的敛散性。
+
+\noindent\textbf{例 15.5.7}\quad 设函数 $f(x)$ 在区间 $[0,1]$ 上连续, 且对于 $\forall x\in[0,1]$, 有 $f(x)>0$, 又设闭区域
+\[
+  D=\{(x,y):0\le x\le1,0\le y\le f(x)\}.
+\]
+试讨论瑕重积分
+\[
+  \iint_D\frac{\mathrm dx\mathrm dy}{|y-f(x)|^\alpha}
+\]
+的敛散性, 其中 $\alpha<1$。
+
+\noindent\textbf{解}\quad 设 $f(x)$ 在 $[0,1]$ 上的最大值为 $M$. 取 $r>0$, 令
+\[
+  D_r=\{(x,y):0\le x\le1,0\le y\le f(x)-r\},
+\]
+则
+\[
+\begin{aligned}
+  \iint_D\frac{\mathrm dx\mathrm dy}{|y-f(x)|^\alpha}
+  &=\lim_{r\to0+0}\iint_{D_r}\frac{\mathrm dx\mathrm dy}{|y-f(x)|^\alpha}\\
+  &=\lim_{r\to0+0}\int_0^1\mathrm dx\int_0^{f(x)-r}
+  \frac{\mathrm dy}{|y-f(x)|^\alpha}.
+\end{aligned}
+\]
+将 $x$ 看成常数, 对定积分
+\[
+  \int_0^{f(x)-r}\frac{\mathrm dy}{|y-f(x)|^\alpha}
+\]
+作变换 $y=f(x)-t$, 则有
+\[
+\begin{aligned}
+  &\lim_{r\to0+0}\int_0^1\mathrm dx\int_0^{f(x)-r}
+  \frac{\mathrm dy}{|y-f(x)|^\alpha}\\
+  &\quad=\lim_{r\to0+0}\int_0^1\mathrm dx\int_r^{f(x)}\frac{\mathrm dt}{t^\alpha}\\
+  &\quad\le\lim_{r\to0+0}\int_0^1\mathrm dx\int_r^M\frac{\mathrm dt}{t^\alpha}
+  =\int_0^M\frac{\mathrm dt}{t^\alpha}<+\infty.
+\end{aligned}
+\]
+因此原瑕重积分收敛。
+
+\end{document}
