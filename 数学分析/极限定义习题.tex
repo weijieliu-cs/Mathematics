@@ -1,0 +1,149 @@
+\documentclass{ctexart}
+
+% 支持从项目根目录或当前目录编译。
+\makeatletter
+\def\input@path{{../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{极限定义习题}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+按极限定义（$\varepsilon$--$\delta$ 法）证明：
+\[
+  \lim_{x\to 1}\sqrt{\frac{7}{16x^2-9}}=1.
+\]
+
+\section{分析：怎样找到合适的邻域}
+
+\subsection{明确要控制的误差}
+
+按照极限的 $\varepsilon$--$\delta$ 定义，必须证明：对任意给定的
+$\varepsilon>0$，都存在 $\delta>0$，使得定义域内的 $x$ 只要满足
+$0<|x-1|<\delta$，就有
+\[
+  \left|\sqrt{\frac{7}{16x^2-9}}-1\right|<\varepsilon.
+\]
+这里，$\varepsilon$ 表示对函数值误差的要求，它是任意给定的，不能只选取
+某个方便的正数；$\delta$ 表示为满足这一要求而对 $x$ 与 $1$ 的距离施加的限制，
+需要根据 $\varepsilon$ 来确定，而且不能依赖具体的 $x$。
+
+因此，我们先不直接写出 $\delta$，而是从上述误差不等式出发，寻找能够保证它成立的条件。
+下面的分析用于寻找 $\delta$，随后再按定义的顺序给出正式证明。
+
+\subsection{有理化：把误差与 \texorpdfstring{$|x-1|$}{|x-1|} 联系起来}
+
+已知条件控制的是 $|x-1|$，而目标中出现的是根式与 $1$ 的差。
+为了把两者联系起来，利用平方差公式进行有理化。只要 $16x^2-9>0$，便有
+\begin{align*}
+  \left|\sqrt{\frac{7}{16x^2-9}}-1\right|
+  &=\frac{\left|\frac{7}{16x^2-9}-1\right|}
+          {\sqrt{\frac{7}{16x^2-9}}+1}\\
+  &=\frac{|7-(16x^2-9)|}
+          {(16x^2-9)\left(\sqrt{\frac{7}{16x^2-9}}+1\right)}\\
+  &=\frac{16|1-x^2|}
+          {(16x^2-9)\left(\sqrt{\frac{7}{16x^2-9}}+1\right)}\\
+  &=\frac{16|x+1|}
+          {(16x^2-9)\left(\sqrt{\frac{7}{16x^2-9}}+1\right)}\,|x-1|.
+\end{align*}
+最后一步使用了 $1-x^2=(1-x)(1+x)$。现在误差中已经出现了 $|x-1|$，
+但它前面的系数仍随 $x$ 变化。接下来的目标是在 $1$ 的某个固定邻域内，
+用一个与 $x$ 无关的正常数控制这个系数。
+
+\subsection{先选固定邻域，控制其余因子}
+
+根式的定义域由 $16x^2-9>0$ 决定，即
+\[
+  x<-\frac34\quad\text{或}\quad x>\frac34.
+\]
+在 $1$ 附近，首先需要避免 $x$ 接近 $\frac34$，否则分母可能过小。
+$1$ 到 $\frac34$ 的距离是 $\frac14$，我们取这个距离的一半作为初步的邻域半径，
+要求
+\[
+  |x-1|<\frac18.
+\]
+这就给出 $\frac78<x<\frac98$，从而
+\[
+  16x^2-9>16\left(\frac78\right)^2-9=\frac{13}{4}>3,
+  \qquad
+  |x+1|=x+1<\frac{17}{8}<3.
+\]
+此外，根式为正，所以
+\[
+  \sqrt{\frac{7}{16x^2-9}}+1>1.
+\]
+对分子使用上界、对分母使用正的下界，便得到
+\[
+  \frac{16|x+1|}
+       {(16x^2-9)\left(\sqrt{\frac{7}{16x^2-9}}+1\right)}
+  <\frac{16\cdot3}{3\cdot1}=16.
+\]
+因此，当 $0<|x-1|<\frac18$ 时，
+\begin{equation}\label{eq:limit-error-bound}
+  \left|\sqrt{\frac{7}{16x^2-9}}-1\right|<16|x-1|.
+\end{equation}
+这里使用 $3$ 和 $1$ 是为了简化估计，不必求出最精确的界。
+同样，$\frac18$ 也不是唯一的选择；它的作用是提供一个分母远离零的固定邻域。
+
+\subsection{根据误差要求反推 \texorpdfstring{$\delta$}{delta}}
+
+由式~\eqref{eq:limit-error-bound}，要使函数值误差小于 $\varepsilon$，
+只需进一步要求
+\[
+  16|x-1|<\varepsilon,
+  \qquad\text{即}\qquad
+  |x-1|<\frac{\varepsilon}{16}.
+\]
+这是一个充分条件，不要求它与原来的误差不等式等价。
+不过，前面的估计是在 $|x-1|<\frac18$ 的条件下得到的，因此必须同时保证
+\[
+  |x-1|<\frac18
+  \quad\text{和}\quad
+  |x-1|<\frac{\varepsilon}{16}.
+\]
+于是取这两个上界中较小的一个：
+\[
+  \delta=\min\left\{\frac18,\frac{\varepsilon}{16}\right\}.
+\]
+这样，$|x-1|<\delta$ 就同时满足两个要求。由于 $\varepsilon>0$，这个 $\delta$
+一定为正，且只依赖 $\varepsilon$。不能在未经说明的情况下只取
+$\delta=\frac{\varepsilon}{16}$：当 $\varepsilon$ 较大时，这个半径可能超过
+$\frac18$，便不能直接使用已经建立的估计。
+
+\section{按极限定义完成证明}
+
+\begin{proof}
+
+任给 $\varepsilon>0$，取
+\[
+  \delta=\min\left\{\frac18,\frac{\varepsilon}{16}\right\}.
+\]
+当 $0<|x-1|<\delta$ 时，由 $|x-1|<\frac18$ 得
+\[
+  \frac78<x<\frac98,
+  \qquad
+  16x^2-9>16\left(\frac78\right)^2-9=\frac{13}{4}>3.
+\]
+因此根式有定义，且 $|x+1|<3$。有理化后可得
+\begin{align*}
+  \left|\sqrt{\frac{7}{16x^2-9}}-1\right|
+  &=\frac{\left|\frac{7}{16x^2-9}-1\right|}
+          {\sqrt{\frac{7}{16x^2-9}}+1}\\
+  &=\frac{16|x-1|\,|x+1|}
+          {(16x^2-9)\left(\sqrt{\frac{7}{16x^2-9}}+1\right)}\\
+  &<\frac{16|x-1|\cdot3}{3\cdot1}
+   =16|x-1|
+   <16\delta
+   \leq\varepsilon.
+\end{align*}
+这说明对任意 $\varepsilon>0$，上述 $\delta>0$ 都满足极限定义的要求，故
+\[
+  \lim_{x\to1}\sqrt{\frac{7}{16x^2-9}}=1.
+\]
+\end{proof}
+
+\end{document}

@@ -1,0 +1,463 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol,oneside]{ctexart}
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}}
+\makeatother
+\usepackage{researchnotes}
+\usepackage{tcolorbox}
+\newtcolorbox{intuitiveexplanation}{
+  colback=cyan!10,colframe=cyan!60,coltext=black,
+  colbacktitle=cyan!30,coltitle=black,fonttitle=\bfseries,
+  title=直观理解：确界原理在保证什么？,
+  boxrule=0.5pt,arc=1mm
+}
+
+\title{实数系完备性笔记}
+\author{}
+\date{}
+
+\begin{document}
+
+% 保持段落首尾至少两行，避免新增导言后出现跨页孤行。
+\clubpenalty=10000
+\widowpenalty=10000
+
+\maketitle
+\tableofcontents
+\clearpage
+
+\section{问题背景与逻辑约定}
+
+\keyterm{实数系的完备性}排除了“有理数中本应存在的极限却落在体系之外”这一现象。它可以用确界、数列收敛、闭区间、紧致性或聚点等不同语言表述。本笔记讨论六个常用命题，并通过一个闭合的蕴含链证明它们彼此等价。
+
+\begin{whispers}
+在数学理论中，{\upshape\keyterm{公理}}（axiom）是在给定体系中选定的出发假设，在该体系内不要求证明；{\upshape\keyterm{定理}}（theorem）则是依据公理、定义及已有结论，按照逻辑规则严格证明的命题。二者的区别在于相对于所选体系的逻辑地位，而不在于命题是否直观或重要。同一个命题可以在一种体系中作为公理，在另一种体系中作为定理被证明。
+
+{\upshape\keyterm{原理}}（principle）通常是对具有基础性或普遍性的命题的惯用称呼，并不是与公理、定理严格并列的逻辑类别；仅凭“原理”这一名称，不能判断它是否需要证明。例如，若把确界原理选作实数完备性的基本假设，它就承担公理的角色；若从其他完备性假设推出它，它就是定理。本文保留“确界原理”的惯用名称，并将其与其余五个命题一同研究；各命题在具体推导中作为假设还是结论，以所证明的蕴含方向为准。
+\end{whispers}
+
+全文在实数的有序域运算与阿基米德性质的基础上展开，可以使用有限集合的基本性质、绝对值不等式以及极限的四则运算和保序性。证明某一蕴含时，只调用该箭头左端的完备性命题，不预先借用链中尚未推出的其他命题。例如，从单调有界定理推出柯西收敛准则时，不能直接断言任意有界尾集都有上、下确界，因为这一断言本身已经使用了确界原理。
+
+本文约定 $\mathbb N=\{1,2,\ldots\}$。若 $E\subset\mathbb R$，点 $\xi\in\mathbb R$ 称为 $E$ 的\keyterm{聚点}（accumulation point），是指对每个 $\delta>0$，都有
+\[
+  \bigl((\xi-\delta,\xi+\delta)\setminus\{\xi\}\bigr)\cap E\ne\varnothing.
+\]
+特别地，聚点不必属于 $E$。若一族开集 $\mathcal U$ 满足 $[a,b]\subset\bigcup_{U\in\mathcal U}U$，则称 $\mathcal U$ 是 $[a,b]$ 的\keyterm{开覆盖}（open cover）。
+
+\section{六个基本定理}
+
+这六个定理分别回答不同的问题：有界集合是否有最小上界，单调数列是否有极限，数列能否仅凭项之间的距离判定收敛，逐层缩小的区间是否能确定一个实数，以及有界闭区间与无限点集具有怎样的整体性质。以下先明确各命题的条件和结论，再说明其含义；它们之间的逻辑推导放在后续各节中。
+
+\subsection{确界原理：有上界的集合具有最小上界}
+
+\begin{theorem}[确界原理]
+  \label{thm:supremum}
+  设 $S\subset\mathbb R$ 非空且有上界，即存在 $M\in\mathbb R$，使得每个 $x\in S$ 都满足 $x\leq M$。则存在唯一的实数 $\xi$ 满足：
+  \begin{enumerate}
+    \item $\xi$ 是 $S$ 的上界：对每个 $x\in S$，有 $x\leq\xi$；
+    \item 任何小于 $\xi$ 的实数都不是 $S$ 的上界：对每个 $u<\xi$，存在 $x\in S$ 使得 $u<x$。
+  \end{enumerate}
+  此数 $\xi$ 称为 $S$ 的\keyterm{上确界}（supremum），记为 $\sup S$；它就是 $S$ 的所有上界中最小的一个。
+\end{theorem}
+
+第一条保证 $\xi$ 从上方控制整个集合，第二条保证这个上界不能再减小。在第一条成立的前提下，第二条也可写为
+\[
+  \forall\varepsilon>0\ \exists x\in S,
+  \qquad \xi-\varepsilon<x\leq\xi.
+\]
+这表示无论给定多小的正误差，总能在集合中找到距上确界不足该误差的元素。唯一性来自最小性：若 $\xi,\eta$ 都满足上述两条，而 $\xi<\eta$，则 $\xi$ 作为上界与 $\eta$ 的第二条性质矛盾；$\eta<\xi$ 同样不可能。
+
+上确界不一定属于原集合。集合 $S=(0,1)$ 的上确界为 $1$，但没有最大值；集合 $T=(0,1]$ 的上确界也为 $1$，且 $1$ 同时是其最大值。因此，\keyterm{最大值}必须是集合中的元素，而上确界只要求是最小上界。对非空且有下界的集合，相应的最大下界称为\keyterm{下确界}（infimum），记为 $\inf S$；它的存在性可对 $-S=\{-x:x\in S\}$ 应用确界原理得到，且 $\inf S=-\sup(-S)$。
+
+\begin{intuitiveexplanation}
+把非空集合 $S$ 的元素想成数轴上的一些点。“有上界”意味着可以在数轴上放一道挡板，使所有这些点都在挡板左侧或恰好落在挡板处。确界原理保证：在所有能挡住整个集合的位置中，确实存在一个\keyterm{最靠左的位置}，它就是上确界。挡板放在这里仍能挡住所有点，但只要向左移动任何正距离，就一定有集合中的点落到挡板右侧。
+
+这里保证的是这个最靠左的位置\keyterm{存在于实数轴上}，并不要求挡板处恰好有集合中的点。例如，$(0,1)$ 中没有最大的数，但挡板仍可恰好放在 $1$ 处；若放在任何小于 $1$ 的位置，就挡不住整个集合。因此，“没有最大值”并不妨碍“存在一个不能再降低的上界”。
+\end{intuitiveexplanation}
+
+\subsection{单调有界定理：单向变化且受约束的数列必收敛}
+
+\begin{theorem}[单调有界定理]
+  \label{thm:monotone}
+  设 $(x_n)_{n\in\mathbb N}$ 是实数列，满足
+  \[
+    x_n\leq x_{n+1}\quad(n\in\mathbb N),
+    \qquad \exists M\in\mathbb R\ \forall n\in\mathbb N,
+    \quad x_n\leq M.
+  \]
+  则存在有限实数 $\xi$，使得 $x_n\to\xi$，即
+  \[
+    \forall\varepsilon>0\ \exists N\in\mathbb N\ \forall n\geq N,
+    \qquad |x_n-\xi|<\varepsilon.
+  \]
+\end{theorem}
+
+这里的\keyterm{单调递增}（monotonically increasing）允许相邻两项相等，也称单调不减。单调性使数列只能向一个方向变化，上界使它不能无限增大；定理保证这两个条件足以使数列趋近某个实数。在确界原理成立时，极限可具体表示为
+\[
+  \lim_{n\to\infty}x_n=\sup\{x_n:n\in\mathbb N\}.
+\]
+后文将从确界原理证明这一结论。例如 $x_n=1-1/n$ 单调递增且以 $1$ 为上界，其极限为 $1$，但没有任何一项等于极限。
+
+单调递减且有下界的版本不必另作假设。若 $x_{n+1}\leq x_n$ 且存在 $m\in\mathbb R$ 使所有 $x_n\geq m$，则 $(-x_n)$ 单调递增且有上界 $-m$；应用定理~\ref{thm:monotone} 即知 $(x_n)$ 收敛，其极限为全体项的下确界。两个条件不可随意省略：$x_n=n$ 单调递增却不收敛到有限实数，$x_n=(-1)^n$ 有界却不收敛。
+
+\subsection{柯西收敛准则：用数列内部的距离判定收敛}
+
+\begin{theorem}[柯西收敛准则]
+  \label{thm:cauchy}
+  实数列 $(x_n)$ 收敛到某个 $\xi\in\mathbb R$，当且仅当它是\keyterm{柯西序列}（Cauchy sequence），即
+  \[
+    \forall\varepsilon>0\ \exists N\in\mathbb N\ \forall m,n\geq N,
+    \qquad |x_m-x_n|<\varepsilon.
+  \]
+  其中 $N$ 可以依赖于 $\varepsilon$，但同一个 $N$ 必须适用于所有满足 $m,n\geq N$ 的指标对。
+\end{theorem}
+
+极限定义比较 $x_n$ 与某个固定实数 $\xi$ 的距离，柯西条件则比较数列后段任意两项之间的距离。因此，使用该准则时不必预先猜出极限。必要性说明，趋近同一点的各项最终彼此接近；充分性则体现实数系的完备性：只要后段各项能够一致地彼此接近，就确实存在一个实数作为它们的极限。
+
+\begin{samepage}
+柯西条件强于“相邻两项的差趋于零”。例如调和部分和 $s_n=\sum_{k=1}^{n}1/k$ 满足 $s_{n+1}-s_n=1/(n+1)\to0$，但
+\[
+  s_{2n}-s_n=\sum_{k=n+1}^{2n}\frac1k
+  \geq n\cdot\frac1{2n}=\frac12.
+\]
+取 $\varepsilon=1/2$，无论 $N$ 多大，总能取 $n\geq N$，使指标 $n,2n$ 违反柯西条件，故该数列不是柯西序列。
+\end{samepage}
+
+\subsection{闭区间套定理：逐层缩小的闭区间确定唯一实数}
+
+\begin{theorem}[闭区间套定理]
+  \label{thm:nested-intervals}
+  设 $I_n=[a_n,b_n]$ 是非空有界闭区间，其中 $a_n,b_n\in\mathbb R$ 且 $a_n\leq b_n$。若
+  \[
+    I_{n+1}\subseteq I_n\quad(n\in\mathbb N),
+    \qquad \lim_{n\to\infty}(b_n-a_n)=0,
+  \]
+  则存在唯一的 $\xi\in\mathbb R$ 属于所有区间，即
+  \[
+    \bigcap_{n=1}^{\infty}I_n=\{\xi\}.
+  \]
+  此时对每个 $n$ 都有 $a_n\leq\xi\leq b_n$，且 $a_n\to\xi$、$b_n\to\xi$。
+\end{theorem}
+
+\keyterm{闭区间套}（nested closed intervals）的嵌套条件意味着
+\[
+  a_n\leq a_{n+1}\leq b_{n+1}\leq b_n.
+\]
+左端点向右移动，右端点向左移动；长度趋于零使两端最终逼近同一个位置。公共点存在后，由 $0\leq\xi-a_n\leq b_n-a_n$ 和 $0\leq b_n-\xi\leq b_n-a_n$ 即可得到两个端点极限。实际使用时，这也给出误差控制：任选 $y_n\in I_n$，都有 $|y_n-\xi|\leq b_n-a_n$。
+
+各条件承担不同作用。开区间 $(0,1/n)$ 虽然嵌套且长度趋于零，交集却为空，说明不能直接把闭区间换成开区间；若去掉长度趋于零的条件，则不能保证唯一性，例如 $I_n=[0,1]$ 的交集仍为 $[0,1]$。此外，长度趋于零本身并不保证公共点存在，例如 $I_n=[n,n+1/n]$ 就不满足嵌套条件，且交集为空。
+
+\subsection{有限覆盖定理：任意开覆盖都能抽取有限子覆盖}
+
+\begin{theorem}[有限覆盖定理]
+  \label{thm:finite-cover}
+  设 $a,b\in\mathbb R$ 且 $a\leq b$，$\mathcal U$ 是一族 $\mathbb R$ 中的开集，满足
+  \[
+    [a,b]\subseteq\bigcup_{U\in\mathcal U}U.
+  \]
+  则可从原覆盖中选出有限多个 $U_1,\ldots,U_N\in\mathcal U$，构成\keyterm{有限子覆盖}（finite subcover），即
+  \[
+    [a,b]\subseteq\bigcup_{j=1}^{N}U_j.
+  \]
+\end{theorem}
+
+原覆盖可以含有无限多个开集，也不要求可数。定理保证的是从这族已经给定的开集中选出有限多个，仍能覆盖区间内的每一个点；不能另外换用一个较大的开集来代替选择过程。整数 $N$ 可以随覆盖而变化，定理没有给出对所有覆盖统一有效的个数上界。
+
+每个开覆盖都有有限子覆盖的性质称为\keyterm{紧致性}（compactness），所以该定理说明实数轴上的有界闭区间是紧致的。闭性、有界性以及覆盖集的开放性都不能随意删去。例如 $(0,1)$ 被开集族 $\{(1/n,1):n\geq2\}$ 覆盖，但任取有限多个，其中最大的区间仍遗漏靠近 $0$ 的点；$\mathbb R$ 被 $\{(-n,n):n\in\mathbb N\}$ 覆盖，也没有有限子覆盖。若允许用非开集覆盖，则 $[0,1]$ 的全体单点集构成一个覆盖，却不可能从中选出有限子覆盖。
+
+\subsection{聚点定理：有界无限点集必有聚集位置}
+
+\begin{theorem}[聚点定理]
+  \label{thm:accumulation}
+  设 $E\subset\mathbb R$ 含有无限多个不同的点，且有界，即存在 $M>0$ 使每个 $x\in E$ 都满足 $|x|\leq M$。则存在 $\xi\in\mathbb R$，使得
+  \[
+    \forall\delta>0\ \exists x\in E,
+    \qquad 0<|x-\xi|<\delta.
+  \]
+  这样的 $\xi$ 就是 $E$ 的聚点；若 $E\subseteq[a,b]$，则其聚点必位于 $[a,b]$ 中。
+\end{theorem}
+
+条件 $0<|x-\xi|$ 要求邻域内找到的是不同于 $\xi$ 的点，从而排除仅凭 $\xi\in E$ 就认定它是聚点的错误。事实上，聚点的每个邻域都含有 $E$ 的无限多个不同的点：若某个邻域只含有限多个异于 $\xi$ 的点，就可以把半径缩小到这些点与 $\xi$ 的最小距离以下，与聚点定义矛盾。聚点也不会落在包含 $E$ 的闭区间之外，因为区间外的点与区间有正距离，可找到不与 $E$ 相交的小邻域。
+
+例如 $E=\{1/n:n\in\mathbb N\}$ 的聚点为 $0$，而 $0\notin E$，说明聚点不必属于集合。两个假设也各有作用：有限集合没有聚点；无界无限集合 $\mathbb N$ 在 $\mathbb R$ 中没有聚点。这里的“无限”按不同的点计数，与数列有无限多个指标不同，常数列的取值集合仍只有一个点。
+
+聚点定理还有常用的数列形式：每个有界实数列都有收敛子列。二者的联系需要区分两种情况：若某个值出现无限次，就有常数子列；否则取值集合是无限集，取其聚点 $\xi$，利用每个邻域中都有无限多个取值，便可递归选出严格递增的指标 $n_k$，使 $|x_{n_k}-\xi|<1/k$。这只保证子列收敛，并不保证原数列收敛，例如 $(-1)^n$ 的偶数项子列恒等于 $1$，而原数列不收敛。
+
+我们证明如下循环蕴含：
+\begin{equation}
+  \begin{aligned}
+    \text{确界原理}
+    &\Longrightarrow \text{单调有界定理}
+    \Longrightarrow \text{柯西收敛准则} \\
+    &\Longrightarrow \text{闭区间套定理}
+    \Longrightarrow \text{有限覆盖定理} \\
+    &\Longrightarrow \text{聚点定理}
+    \Longrightarrow \text{确界原理}.
+  \end{aligned}
+  \label{eq:cycle}
+\end{equation}
+由于式~\eqref{eq:cycle} 构成闭环，任取其中一个命题为真，都可沿箭头依次推出其余五个命题，故六者等价。
+
+\section{确界原理推出单调有界定理}
+
+\begin{proof}
+  假设确界原理成立。设 $(x_n)$ 单调递增且有上界，并令
+  \[
+    S=\{x_n:n\in\mathbb N\}.
+  \]
+  集合 $S$ 非空且有上界，故由定理~\ref{thm:supremum} 可令
+  \[
+    \xi=\sup S.
+  \]
+  下证 $x_n\to\xi$。
+
+  任取 $\varepsilon>0$。数 $\xi-\varepsilon$ 小于 $\sup S$，因而不可能是 $S$ 的上界；所以存在 $N\in\mathbb N$ 使得
+  \[
+    x_N>\xi-\varepsilon.
+  \]
+  当 $n\geq N$ 时，单调性与 $\xi$ 的上界性质给出
+  \[
+    \xi-\varepsilon<x_N\leq x_n\leq\xi<\xi+\varepsilon.
+  \]
+  因此 $|x_n-\xi|<\varepsilon$。按照数列极限的定义，$x_n\to\xi$。
+\end{proof}
+
+\section{单调有界定理推出柯西收敛准则}
+
+证明的关键是先仅凭单调有界定理，从任意有界数列中抽取一个收敛子列。这里使用二分区间，而不使用尾集的上、下确界。
+
+\begin{lemma}[有界数列的收敛子列]
+  \label{lem:bounded-subsequence}
+  假设单调有界定理成立，则每个有界实数列都有收敛子列。
+\end{lemma}
+
+\begin{proof}
+  设 $(x_n)$ 有界。取闭区间 $I_1=[a_1,b_1]$ 包含数列的全部项。若 $a_1=b_1$，则数列为常数列，结论成立。以下设 $a_1<b_1$。
+
+  将 $I_1$ 二等分。两个闭半区间中至少有一个包含无穷多个数列项，这里的“无穷多个”按指标计数；否则两个半区间都只包含有限多个指标，与所有 $x_n$ 都在 $I_1$ 中矛盾。选取其中一个记为 $I_2$。继续这一过程：若已选定 $I_k=[a_k,b_k]$，就把它二等分，并选取包含无穷多个数列项的一个闭半区间作为 $I_{k+1}$。于是
+  \begin{equation}
+    I_{k+1}\subseteq I_k,
+    \qquad
+    b_k-a_k=\frac{b_1-a_1}{2^{k-1}}.
+    \label{eq:halving-length}
+  \end{equation}
+
+  由区间的嵌套性，$(a_k)$ 单调递增且以上界 $b_1$ 为界，所以它收敛；记 $a_k\to\alpha$。同理，$(b_k)$ 单调递减且以下界 $a_1$ 为界，所以它也收敛；记 $b_k\to\beta$。由式~\eqref{eq:halving-length} 及 $2^{-(k-1)}\to0$，有
+  \[
+    \beta-\alpha
+    =\lim_{k\to\infty}(b_k-a_k)=0,
+  \]
+  故 $\alpha=\beta$。记其共同值为 $\xi$。
+
+  现在递归选择严格递增的指标 $n_1<n_2<\cdots$，使得
+  \[
+    x_{n_k}\in I_k.
+  \]
+  这是可行的，因为每个 $I_k$ 都包含无穷多个指标所对应的数列项。于是
+  \[
+    a_k\leq x_{n_k}\leq b_k.
+  \]
+  两端都趋于 $\xi$，由夹逼定理得到 $x_{n_k}\to\xi$。
+\end{proof}
+
+\begin{proof}[定理~\ref{thm:monotone} 推出定理~\ref{thm:cauchy}]
+  先证明必要性。若 $x_n\to\xi$，则对任意 $\varepsilon>0$，存在 $N$ 使得当 $n\geq N$ 时，
+  \[
+    |x_n-\xi|<\frac{\varepsilon}{2}.
+  \]
+  因而对任意 $m,n\geq N$，由三角不等式有
+  \[
+    |x_m-x_n|
+    \leq |x_m-\xi|+|x_n-\xi|
+    <\varepsilon.
+  \]
+  所以每个收敛数列都是柯西序列。
+
+  再证明充分性。设 $(x_n)$ 是柯西序列。取 $\varepsilon=1$，存在 $N_0$，使得对所有 $n\geq N_0$，
+  \[
+    |x_n-x_{N_0}|<1.
+  \]
+  令下式定义全体数列项的一个统一上界：
+  \nopagebreak[4]
+  \[
+    M=\max\bigl\{|x_1|,\ldots,|x_{N_0-1}|,|x_{N_0}|+1\bigr\},
+  \]
+  其中当 $N_0=1$ 时省略前一列有限项。于是对每个 $n\in\mathbb N$ 都有 $|x_n|\leq M$，故 $(x_n)$ 有界。
+
+  由引理~\ref{lem:bounded-subsequence}，存在子列 $(x_{n_k})$ 及 $\xi\in\mathbb R$，使得 $x_{n_k}\to\xi$。任取 $\varepsilon>0$。柯西条件给出 $N_1$，使得
+  \[
+    m,n\geq N_1\quad\Longrightarrow\quad
+    |x_m-x_n|<\frac{\varepsilon}{2}.
+  \]
+  再取充分大的 $k$，使得 $n_k\geq N_1$ 且
+  \[
+    |x_{n_k}-\xi|<\frac{\varepsilon}{2}.
+  \]
+  对任意 $n\geq N_1$，有
+  \[
+    |x_n-\xi|
+    \leq |x_n-x_{n_k}|+|x_{n_k}-\xi|
+    <\varepsilon.
+  \]
+  因此 $x_n\to\xi$，充分性得证。
+\end{proof}
+
+\section{柯西收敛准则推出闭区间套定理}
+
+\begin{proof}
+  假设柯西收敛准则成立。设闭区间列 $I_n=[a_n,b_n]$ 满足定理~\ref{thm:nested-intervals} 的条件。由嵌套性可知：若 $m\geq n$，则
+  \begin{equation}
+    a_n\leq a_m\leq b_m\leq b_n.
+    \label{eq:nested-endpoints}
+  \end{equation}
+
+  下证 $(a_n)$ 是柯西序列。任取 $\varepsilon>0$。由 $b_n-a_n\to0$，存在 $N$，使得当 $r\geq N$ 时，
+  \[
+    b_r-a_r<\varepsilon.
+  \]
+  对任意 $m,n\geq N$，令 $r=\min\{m,n\}$。利用式~\eqref{eq:nested-endpoints}，无论 $m$ 与 $n$ 的大小关系如何，都有
+  \[
+    |a_m-a_n|\leq b_r-a_r<\varepsilon.
+  \]
+  所以 $(a_n)$ 是柯西序列。由定理~\ref{thm:cauchy}，存在 $\xi\in\mathbb R$ 使得 $a_n\to\xi$。
+
+  固定任意 $k\in\mathbb N$。当 $n\geq k$ 时，由嵌套性有
+  \[
+    a_k\leq a_n\leq b_k.
+  \]
+  令 $n\to\infty$，极限的保序性给出 $a_k\leq\xi\leq b_k$，即 $\xi\in I_k$。由于 $k$ 任意，
+  \[
+    \xi\in\bigcap_{k=1}^{\infty}I_k,
+  \]
+  从而公共点存在。
+
+  最后证明唯一性。若 $\xi$ 与 $\eta$ 都属于每个 $I_n$，则
+  \[
+    |\xi-\eta|\leq b_n-a_n\qquad(n\in\mathbb N).
+  \]
+  若 $\xi\ne\eta$，取 $\varepsilon=|\xi-\eta|>0$；当 $n$ 充分大时 $b_n-a_n<\varepsilon$，与上式矛盾。因此 $\xi=\eta$。
+\end{proof}
+
+\section{闭区间套定理推出有限覆盖定理}
+
+\begin{proof}
+  假设闭区间套定理成立。若 $a=b$，从覆盖中任取一个包含 $a$ 的开集即可得到有限子覆盖。以下设 $a<b$。
+
+  反设 $[a,b]$ 有一个开覆盖 $\mathcal U$，但不存在有限子覆盖。把 $I_1=[a,b]$ 二等分。至少有一个闭半区间不能被 $\mathcal U$ 中有限多个开集覆盖；否则两个半区间各自具有有限子覆盖，合并这两个有限族便得到 $I_1$ 的有限子覆盖。选取一个不能被有限覆盖的半区间记为 $I_2$，再对 $I_2$ 重复这一过程。由归纳可得闭区间列
+  \[
+    I_n=[a_n,b_n],
+    \qquad
+    I_{n+1}\subseteq I_n,
+    \qquad
+    b_n-a_n=\frac{b-a}{2^{n-1}},
+  \]
+  且每个 $I_n$ 都不能由 $\mathcal U$ 中有限多个开集覆盖。
+
+  区间长度趋于 $0$，故由定理~\ref{thm:nested-intervals}，存在唯一的
+  \[
+    \xi\in\bigcap_{n=1}^{\infty}I_n.
+  \]
+  因为 $\mathcal U$ 覆盖 $[a,b]$，可取 $U_0\in\mathcal U$ 使得 $\xi\in U_0$。开集的定义保证存在 $\delta>0$，使得
+  \[
+    (\xi-\delta,\xi+\delta)\subseteq U_0.
+  \]
+  取充分大的 $n$ 使 $b_n-a_n<\delta$。对任意 $x\in I_n$，由于 $x,\xi\in I_n$，有
+  \[
+    |x-\xi|\leq b_n-a_n<\delta.
+  \]
+  因而 $I_n\subseteq U_0$。这说明单个 $U_0$ 已经覆盖 $I_n$，与 $I_n$ 的选取矛盾。故 $[a,b]$ 必有有限子覆盖。
+\end{proof}
+
+\section{有限覆盖定理推出聚点定理}
+
+\begin{proof}
+  假设有限覆盖定理成立。设 $E\subset\mathbb R$ 是有界无限集合。可取 $a<b$ 使得 $E\subset[a,b]$。
+
+  反设 $E$ 没有聚点。于是对每个 $x\in[a,b]$，都存在 $r_x>0$，使得
+  \begin{equation}
+    \bigl((x-r_x,x+r_x)\setminus\{x\}\bigr)\cap E=\varnothing.
+    \label{eq:no-accumulation-neighborhood}
+  \end{equation}
+  令 $U_x=(x-r_x,x+r_x)$。开集族
+  \[
+    \mathcal U=\{U_x:x\in[a,b]\}
+  \]
+  覆盖 $[a,b]$。由定理~\ref{thm:finite-cover}，存在 $x_1,\ldots,x_N\in[a,b]$，使得
+  \[
+    [a,b]\subseteq\bigcup_{j=1}^{N}U_{x_j}.
+  \]
+  由式~\eqref{eq:no-accumulation-neighborhood}，每个 $U_{x_j}$ 与 $E$ 至多相交于一个点，即可能的点 $x_j$ 本身。因此
+  \[
+    E\subseteq\bigcup_{j=1}^{N}(U_{x_j}\cap E)
+  \]
+  是有限集，与 $E$ 为无限集矛盾。故 $E$ 至少有一个聚点。
+\end{proof}
+
+\section{聚点定理推出确界原理}
+
+\begin{proof}
+  假设聚点定理成立。设 $S\subset\mathbb R$ 非空且有上界。若 $S$ 有最大元 $s_*$，则 $s_*=\sup S$，结论立即成立。以下设 $S$ 没有最大元。
+
+  任取 $a_1\in S$，并取 $S$ 的一个上界 $b_1$。由于 $S$ 没有最大元，$a_1$ 不是上界，且 $a_1<b_1$。以下递归构造闭区间 $I_n=[a_n,b_n]$。若 $I_n$ 已经给出，令
+  \[
+    c_n=\frac{a_n+b_n}{2}.
+  \]
+  按照 $c_n$ 是否为 $S$ 的上界，定义
+  \begin{equation}
+    (a_{n+1},b_{n+1})=
+    \begin{cases}
+      (a_n,c_n), & c_n\text{ 是 }S\text{ 的上界},\\
+      (c_n,b_n), & c_n\text{ 不是 }S\text{ 的上界}.
+    \end{cases}
+    \label{eq:sup-bisection}
+  \end{equation}
+  由归纳法，对每个 $n$ 都有：
+  \begin{enumerate}
+    \item $a_n$ 不是 $S$ 的上界，而 $b_n$ 是 $S$ 的上界；
+    \item $I_{n+1}\subseteq I_n$；
+    \item $b_n-a_n=(b_1-a_1)/2^{n-1}$。
+  \end{enumerate}
+
+  考虑端点集合
+  \[
+    E=\{a_n:n\in\mathbb N\}\cup\{b_n:n\in\mathbb N\}.
+  \]
+  它包含在 $[a_1,b_1]$ 中，因而有界。它还是无限集：若 $E$ 有限，则有序对 $(a_n,b_n)$ 只能取有限多个值，可是差 $b_n-a_n=(b_1-a_1)/2^{n-1}$ 取无穷多个不同的正值，矛盾。由定理~\ref{thm:accumulation}，$E$ 有一个聚点，记为 $\xi$。
+
+  我们先证明 $\xi\in I_N$ 对每个 $N\in\mathbb N$ 都成立。固定 $N$。由区间嵌套性，所有满足 $n\geq N$ 的端点 $a_n,b_n$ 都属于 $I_N$，所以 $E\setminus I_N$ 至多包含前 $N-1$ 对端点，是有限集。若 $\xi\notin I_N$，则因为 $I_N$ 是闭集，且 $E\setminus I_N$ 除去可能的 $\xi$ 后只有有限多个点，可以取 $\xi$ 的一个充分小的去心邻域，使它既不交 $I_N$，也不含 $E\setminus(I_N\cup\{\xi\})$ 中的任何点。这与 $\xi$ 是 $E$ 的聚点矛盾。故
+  \begin{equation}
+    a_n\leq\xi\leq b_n\qquad(n\in\mathbb N).
+    \label{eq:xi-in-all-bisected-intervals}
+  \end{equation}
+
+  下面验证 $\xi$ 是 $S$ 的上确界。首先证明它是上界。任取 $s\in S$。若 $s>\xi$，取充分大的 $n$ 使得
+  \[
+    b_n-a_n<s-\xi.
+  \]
+  由式~\eqref{eq:xi-in-all-bisected-intervals}，
+  \[
+    b_n\leq\xi+(b_n-a_n)<s,
+  \]
+  这与 $b_n$ 是 $S$ 的上界矛盾。因此每个 $s\in S$ 都满足 $s\leq\xi$。
+
+  再证最小性。任取 $u<\xi$，并取充分大的 $n$ 使得
+  \[
+    b_n-a_n<\xi-u.
+  \]
+  由式~\eqref{eq:xi-in-all-bisected-intervals}，
+  \[
+    a_n\geq\xi-(b_n-a_n)>u.
+  \]
+  因为 $a_n$ 不是 $S$ 的上界，存在 $s_n\in S$ 使得 $s_n>a_n>u$。所以任何 $u<\xi$ 都不是 $S$ 的上界。综上，$\xi=\sup S$，确界原理成立。
+\end{proof}
+
+\section{结论与方法比较}
+
+六个命题分别从序结构、数列、区间、覆盖与点集结构描述了同一完备性事实。循环证明反复使用三种策略：\keyterm{取确界逼近}利用最小上界性质找到任意精度的集合元素；\keyterm{二分区间}把全局问题逐级压缩到长度趋于零的闭区间；\keyterm{有限性反证}则把“无聚点”转化为局部有限性，再借有限子覆盖导出矛盾。
+
+特别地，在定理~\ref{thm:monotone} 推出定理~\ref{thm:cauchy} 时，若直接使用尾集 $\{x_k:k\geq n\}$ 的上、下确界，便预先假定了这些确界存在，从而循环使用定理~\ref{thm:supremum}。引理~\ref{lem:bounded-subsequence} 的二分构造正是为避免这一逻辑循环。
+
+\noindent\textbf{资料说明}\quad 本文根据用户提供的材料重新组织、补全并校正证明。原材料注明来源为点学网：\url{https://dimhok.com/home/kaoyan/post/id/24}。本文的定理表述、证明结构与严谨性说明均已重新编写。
+
+\end{document}

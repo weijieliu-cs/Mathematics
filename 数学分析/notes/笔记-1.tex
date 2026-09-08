@@ -1,0 +1,237 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexbook}
+
+% 支持从项目根目录或当前文件所在目录编译。
+\makeatletter
+\def\input@path{{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\begin{document}
+
+\chapter{实数的戴德金构造}
+
+数学分析中的极限、收敛与连续性都依赖实数系的完备性。为了说明这种完备性从何而来，本章从有理数域 $\mathbb{Q}$ 出发，介绍\keyterm{戴德金分割}（Dedekind cut）对实数的构造。其基本思想是：一个数可以由所有小于它的有理数组成的集合唯一确定。因此，当有理数轴在某个位置存在“空隙”时，不必预先假定空隙处已经有一个数，而可以直接把空隙左侧的全体有理数定义为一个新数。
+
+\section{从有理数的稠密性到实数的完备性}
+
+有理数域对加、减、乘、除四则运算封闭，并且具有稠密性：若 $x,y\in\mathbb{Q}$ 且 $x<y$，则存在 $q\in\mathbb{Q}$ 使得 $x<q<y$。然而，稠密性只说明任意两个已有的有理数之间还有有理数，并不保证每一个应当存在的边界都属于 $\mathbb{Q}$。
+
+\begin{definition}[实数的序完备性]\label{def:order-completeness}
+设 $E\subseteq\mathbb{R}$ 非空。若存在 $M\in\mathbb{R}$，使得对所有 $x\in E$ 都有 $x\le M$，则称 $E$ \keyterm{有上界}，并称 $M$ 为 $E$ 的一个\keyterm{上界}。若 $s\in\mathbb{R}$ 是 $E$ 的上界，且对 $E$ 的任意上界 $M$ 都有 $s\le M$，则称 $s$ 为 $E$ 的\keyterm{上确界}，记为 $s=\sup E$。
+
+如果 $\mathbb{R}$ 的每个非空有上界子集都在 $\mathbb{R}$ 中存在上确界，就称实数域具有\keyterm{序完备性}（order completeness），也简称实数具有完备性。
+\end{definition}
+
+完备性保证集合的边界不会落在实数域之外，但并不保证上确界属于原集合。例如，开区间 $(0,1)$ 没有最大元，却有上确界 $1$。相应地，每个非空有下界的实数集合也存在下确界；这可通过对集合 $-E=\{-x:x\in E\}$ 应用上确界性质得到。
+
+在数列理论中还常使用\keyterm{柯西完备性}（Cauchy completeness）：若实数数列 $(x_n)$ 满足对任意 $\varepsilon>0$，都存在 $N\in\mathbb{N}$，使得当 $m,n\ge N$ 时有 $|x_m-x_n|<\varepsilon$，则必存在 $x\in\mathbb{R}$ 使 $x_n\to x$。对于通常的实数域，序完备性与柯西完备性等价；本章采用序完备性，因为它与戴德金分割之间的关系最为直接。
+
+\begin{proposition}
+不存在有理数 $q$ 满足 $q^2=2$。
+\end{proposition}
+
+\begin{proof}
+假设存在 $q\in\mathbb{Q}$ 满足 $q^2=2$。将其写成既约分数\footnote{既约分数是已经约分到最简形式的分数，即分子与分母互素。} $q=p/r$，其中 $p\in\mathbb{Z}$、$r\in\mathbb{N}$ 且 $p,r$ 互素。由 $p^2=2r^2$ 可知 $p^2$ 为偶数，因而 $p$ 为偶数。令 $p=2k$，代回可得 $r^2=2k^2$，所以 $r$ 也为偶数。这与 $p,r$ 互素矛盾。因此不存在这样的有理数。
+\end{proof}
+
+这个结论表明，集合 $\{q\in\mathbb{Q}:q>0,\ q^2<2\}$ 在有理数域中有上界，却没有一个有理数能够充当它在直观数轴上的边界。戴德金构造的目标正是系统地补入所有这类边界。
+
+\section{戴德金分割的定义}
+
+\begin{definition}[戴德金分割]
+设 $(S,<)$ 是一个非空线性有序集。若 $A,B\subseteq S$ 满足
+\begin{enumerate}[label=(\arabic*)]
+  \item $A\ne\varnothing$ 且 $B\ne\varnothing$；
+  \item $A\cup B=S$ 且 $A\cap B=\varnothing$；
+  \item 对任意 $a\in A$ 与 $b\in B$，都有 $a<b$；
+  \item $A$ 没有最大元，
+\end{enumerate}
+则称有序对 $(A\mid B)$ 为 $S$ 的一个\keyterm{戴德金分割}。集合 $A$ 称为分割的\keyterm{左集}，集合 $B$ 称为分割的\keyterm{右集}。
+\end{definition}
+
+条件 (3) 表明分割不是任意的集合划分：左集中的数全部位于右集中的数之前。条件 (4) 是一种端点约定；如果切割位置恰好是 $S$ 中的元素，就把该元素放入右集。这个约定排除了同一切割位置的两种表示，使表示具有唯一性。
+
+由于 $B=S\setminus A$，一个分割完全由左集 $A$ 决定。因此也可只用左集给出定义。
+
+\begin{proposition}[左集形式]
+设 $S$ 是线性有序集。子集 $A\subseteq S$ 能够作为某个戴德金分割的左集，当且仅当它满足：
+\begin{enumerate}[label=(\arabic*)]
+  \item $A\ne\varnothing$ 且 $A\ne S$；
+  \item 若 $x\in A$ 且 $y<x$，则 $y\in A$；
+  \item $A$ 没有最大元。
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+若 $(A\mid B)$ 是一个分割，则 $A$ 非空且 $B=S\setminus A$ 非空，所以 $A\ne S$。设 $x\in A$ 且 $y<x$。如果 $y\notin A$，则 $y\in B$；由分割的次序条件应有 $x<y$，与 $y<x$ 矛盾。因此 $y\in A$，即 $A$ 向下封闭。左集没有最大元是分割定义中的条件。
+
+反之，设 $A$ 满足上述三个条件并令 $B=S\setminus A$。前两个非空性条件保证 $A,B$ 都非空。任取 $a\in A$ 与 $b\in B$。如果 $b<a$，由 $A$ 向下封闭可得 $b\in A$，与 $b\in B$ 矛盾；又因为 $A\cap B=\varnothing$，不可能有 $a=b$，故 $a<b$。其余条件直接成立，所以 $(A\mid B)$ 是一个戴德金分割。
+\end{proof}
+
+由此可见，左集是有理数轴上一个向左无限延伸、向下封闭且在右端没有最后一个元素的部分。
+
+\section{有理分割与平方根二所对应的分割}
+
+先考虑切割位置为有理数的情形。对任意 $r\in\mathbb{Q}$，令
+\begin{equation}\label{eq:rational-cut}
+  A_r=\{q\in\mathbb{Q}:q<r\},\qquad
+  B_r=\{q\in\mathbb{Q}:q\ge r\}.
+\end{equation}
+则 $(A_r\mid B_r)$ 是 $\mathbb{Q}$ 的一个分割，而且 $B_r$ 的最小元为 $r$。反过来，如果一个有理数分割的右集有最小元 $r$，那么这个分割必为式 \eqref{eq:rational-cut} 的形式。因此，右集有最小元的分割称为\keyterm{有理分割}；右集没有最小元的分割称为\keyterm{无理分割}。
+
+下面只使用有理数来定义与 $\sqrt{2}$ 对应的切口：
+\begin{equation}\label{eq:sqrt-two-cut}
+  A_{\sqrt{2}}
+  =\{q\in\mathbb{Q}:q\le 0\ \text{或}\ (q>0\ \text{且}\ q^2<2)\},
+  \qquad
+  B_{\sqrt{2}}=\mathbb{Q}\setminus A_{\sqrt{2}}.
+\end{equation}
+这里的下标 $\sqrt{2}$ 只是对该分割的预告性命名；式 \eqref{eq:sqrt-two-cut} 本身没有预先使用无理数 $\sqrt{2}$。
+
+\begin{proposition}
+式 \eqref{eq:sqrt-two-cut} 给出 $\mathbb{Q}$ 的一个无理分割。
+\end{proposition}
+
+\begin{proof}
+由 $0\in A_{\sqrt{2}}$、$2\in B_{\sqrt{2}}$ 及 $B_{\sqrt{2}}=\mathbb{Q}\setminus A_{\sqrt{2}}$，两集非空且互补。任取 $a\in A_{\sqrt{2}}$、$b\in B_{\sqrt{2}}$，则 $b>0$ 且 $b^2>2$。若 $a\le 0$，则 $a<b$；若 $a>0$，由 $a^2<2<b^2$ 也得 $a<b$。
+
+还需验证左集没有最大元。若 $a<0$，则 $a<a/2\le 0$；若 $a=0$，则 $0<1$ 且 $1^2<2$。若 $a>0$ 且 $a^2<2$，令
+\[
+  a'=\frac{2(a+1)}{a+2}.
+\]
+由于
+\[
+  a'-a=\frac{2-a^2}{a+2}>0,
+  \qquad
+  2-(a')^2=\frac{2(2-a^2)}{(a+2)^2}>0,
+\]
+所以 $a<a'$ 且 $a'\in A_{\sqrt{2}}$。因此 $A_{\sqrt{2}}$ 没有最大元。
+
+最后，任取 $b\in B_{\sqrt{2}}$ 并令 $b'=2(b+1)/(b+2)$。此时 $b^2>2$，由同样的两个恒等式可得 $b'<b$ 且 $(b')^2>2$，故 $b'\in B_{\sqrt{2}}$。所以 $B_{\sqrt{2}}$ 没有最小元，这个分割是无理分割。
+\end{proof}
+
+从直观上看，这一分割把所有位于目标边界左侧的有理数收入 $A_{\sqrt{2}}$。例如
+\[
+  1<1.4<1.41<1.414<\sqrt{2}<1.415<1.42<1.5.
+\]
+严格的逻辑顺序并不是先有 $\sqrt{2}$ 再形成分割，而是先由式 \eqref{eq:sqrt-two-cut} 得到一个分割，再把这个分割定义为正实数 $\sqrt{2}$；在定义实数乘法后，可以证明它的平方等于 $2$。
+
+\begin{remark}[有理数域中的空隙]
+分割 $(A_{\sqrt{2}}\mid B_{\sqrt{2}})$ 的左集没有最大元，右集也没有最小元。因此，在 $\mathbb{Q}$ 中不存在一个元素能够充当这一分割的切割点。这里的“空隙”并不是指两个相邻有理数之间存在一段没有有理数的区间；事实上，$\mathbb{Q}$ 是稠密的。它准确地表示：这个有理数分割在 $\mathbb{Q}$ 内没有端点。这正是 $\mathbb{Q}$ 不具备戴德金完备性的一个具体见证。
+\end{remark}
+
+\section{由分割构造实数}
+
+\begin{definition}[戴德金实数]
+记
+\[
+  \mathbb{R}_{\mathrm D}
+  =\bigl\{A\subsetneq\mathbb{Q}:A\ne\varnothing,
+  \ A\text{ 向下封闭且没有最大元}\bigr\}.
+\]
+集合 $\mathbb{R}_{\mathrm D}$ 的元素称为\keyterm{戴德金实数}。换言之，每一个实数就是一个满足左集条件的有理数子集。
+\end{definition}
+
+有理数 $r$ 通过映射
+\[
+  \iota:\mathbb{Q}\longrightarrow\mathbb{R}_{\mathrm D},
+  \qquad
+  \iota(r)=A_r=\{q\in\mathbb{Q}:q<r\}
+\]
+嵌入 $\mathbb{R}_{\mathrm D}$。严格说来，$r$ 与集合 $A_r$ 是不同的集合论对象；由于映射 $\iota$ 保持大小关系和四则运算，通常将 $r$ 与 $A_r$ 视为同一个数，并写成 $\mathbb{Q}\subseteq\mathbb{R}$。
+
+分割的大小关系由集合包含关系给出。对 $L,M\in\mathbb{R}_{\mathrm D}$，定义
+\[
+  L\le M\quad\Longleftrightarrow\quad L\subseteq M.
+\]
+数越大，位于它左侧的有理数越多，因此这个定义与通常的数轴次序一致。例如 $\iota(r)<\iota(s)$ 当且仅当 $r<s$。加法可以定义为
+\[
+  L\oplus M
+  =\{q\in\mathbb{Q}:\text{存在 }\ell\in L,\ m\in M
+  \text{ 使得 }q<\ell+m\}.
+\]
+乘法与加法逆元也可以从有理数运算定义。验证这些运算后，$\mathbb{R}_{\mathrm D}$ 构成一个包含 $\mathbb{Q}$ 的有序域。通常将它记为 $\mathbb{R}$。
+
+\section{构造为何自动得到完备性}
+
+戴德金构造的关键优点是：上确界可以直接由左集的并集得到。
+
+\begin{theorem}[上确界存在性]
+设 $\mathcal{E}\subseteq\mathbb{R}_{\mathrm D}$ 非空，并且在 $\mathbb{R}_{\mathrm D}$ 中有上界，则 $\mathcal{E}$ 存在上确界。
+\end{theorem}
+
+\begin{proof}
+令
+\[
+  C=\bigcup_{L\in\mathcal{E}}L.
+\]
+因为 $\mathcal{E}$ 非空且每个 $L\in\mathcal{E}$ 非空，所以 $C\ne\varnothing$。设 $U\in\mathbb{R}_{\mathrm D}$ 是 $\mathcal{E}$ 的一个上界，则对每个 $L\in\mathcal{E}$ 都有 $L\subseteq U$，从而 $C\subseteq U\ne\mathbb{Q}$，故 $C\ne\mathbb{Q}$。
+
+每个 $L$ 都向下封闭，因此它们的并集 $C$ 也向下封闭。若 $q\in C$，则存在 $L\in\mathcal{E}$ 使得 $q\in L$；由于 $L$ 没有最大元，存在 $q'\in L$ 满足 $q<q'$，于是 $q'\in C$。所以 $C$ 没有最大元，因而 $C\in\mathbb{R}_{\mathrm D}$。
+
+对每个 $L\in\mathcal{E}$ 都有 $L\subseteq C$，故 $C$ 是 $\mathcal{E}$ 的上界。若 $V$ 是 $\mathcal{E}$ 的任意上界，则每个 $L\in\mathcal{E}$ 都包含于 $V$，于是 $C\subseteq V$。因此 $C$ 是最小上界，即
+\[
+  \sup\mathcal{E}=\bigcup_{L\in\mathcal{E}}L.
+\]
+\end{proof}
+
+这个证明准确表达了“补齐空隙”的含义：任意一族有共同上界的切口，其共同边界仍然是一个切口，并且已经属于所构造的实数系。
+
+\section{戴德金分割定理与上确界原理}
+
+\begin{theorem}[戴德金分割定理]\label{thm:dedekind-cut}
+设 $(A\mid B)$ 是实数集 $\mathbb{R}$ 的戴德金分割，并采用左集 $A$ 没有最大元的约定，则 $B$ 存在唯一的最小元 $c$，并且
+\[
+  c=\sup A=\inf B.
+\]
+\end{theorem}
+
+\begin{proof}
+集合 $A$ 非空，而且任意 $b\in B$ 都是 $A$ 的上界。由上确界存在性，$c=\sup A$ 存在。因为 $A\cup B=\mathbb{R}$ 且 $A\cap B=\varnothing$，所以 $c$ 必属于二者之一。若 $c\in A$，则由 $A$ 没有最大元，存在 $a\in A$ 使得 $a>c$，这与 $c$ 是 $A$ 的上界矛盾。因此 $c\in B$。
+
+对任意 $b\in B$，$b$ 都是 $A$ 的上界，所以 $c\le b$。故 $c$ 是 $B$ 的最小元，且最小元必唯一。又因为 $c\in B$ 且 $c\le b$ 对所有 $b\in B$ 成立，所以 $c=\inf B$。
+\end{proof}
+
+\begin{proposition}[两种完备性表述的等价性]
+上确界原理与定理 \ref{thm:dedekind-cut} 并非两个彼此独立的事实，而是序完备性的两种等价表述。更准确地说，对任意有序域 $F$，下列两个命题等价：
+\begin{enumerate}[label=(\arabic*)]
+  \item $F$ 的每个非空有上界子集都存在上确界；
+  \item $F$ 的每个戴德金分割 $(A\mid B)$ 的右集 $B$ 都存在最小元。
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+由 (1) 推出 (2) 的论证与定理 \ref{thm:dedekind-cut} 的证明相同：令 $c=\sup A$，利用 $A$ 没有最大元可知 $c\notin A$，从而 $c\in B$，并且 $c=\min B$。
+
+反过来，假设 (2) 成立。设 $E\subseteq F$ 非空且有上界，令
+\[
+  B=\{b\in F:b\text{ 是 }E\text{ 的上界}\},
+  \qquad A=F\setminus B.
+\]
+集合 $B$ 非空。任取 $e\in E$，数 $e-1$ 不是 $E$ 的上界，所以 $A$ 也非空。若 $a\in A$，则存在 $e_a\in E$ 使得 $a<e_a$；对任意 $b\in B$，有 $e_a\le b$，从而 $a<b$。再令 $a'=(a+e_a)/2$，则 $a<a'<e_a$，所以 $a'$ 仍不是 $E$ 的上界，即 $a'\in A$。因此 $A$ 没有最大元，$(A\mid B)$ 是 $F$ 的一个戴德金分割。
+
+由 (2)，$B$ 存在最小元 $c$。因为 $B$ 正是 $E$ 的所有上界组成的集合，所以 $c$ 是 $E$ 的最小上界，即 $c=\sup E$。于是 (1) 成立。
+\end{proof}
+
+\begin{remark}[“连续”一词的含义]
+本章所说实数轴“没有空隙”，严格地指实数域具有\keyterm{序完备性}。它与稠密性不同：$\mathbb{Q}$ 已经是稠密的，却不是完备的。实数轴在通常拓扑下的连通性可以由序完备性进一步推出，但“序完备”与“拓扑连通”不是同一个定义。
+\end{remark}
+
+\section{直观图景与结论}
+
+可以把有理数轴想象成一条稠密但仍有切口的线。对一个尚未命名的边界，只需收集位于它左侧的全部有理数；这个左集已经包含确定该边界所需的全部次序信息。戴德金的做法是把每一个符合条件的左集都承认为一个数。因此，有理数对应右集有最小元的切口，而像式 \eqref{eq:sqrt-two-cut} 那样右集没有最小元的切口则定义了新的无理数。
+
+戴德金构造的核心可以概括为
+\[
+  \boxed{\text{用有理数轴上的一个切口定义一个实数。}}
+\]
+构造后的实数域满足
+\[
+  \boxed{\text{戴德金分割性质}
+  \quad\Longleftrightarrow\quad
+  \text{上确界性质}
+  \quad\Longleftrightarrow\quad
+  \text{实数的序完备性}.}
+\]
+
+\end{document}
