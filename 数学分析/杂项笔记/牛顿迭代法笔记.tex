@@ -1,0 +1,711 @@
+\documentclass{ctexart}
+
+% 支持从项目根目录、数学分析目录或本笔记目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{牛顿迭代法笔记}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{绪论：用局部信息求解非线性方程}
+\label{sec:newton-introduction}
+
+给定实函数 $f$，求解方程 $f(x)=0$ 是数学分析与数值计算中的基本问题。
+即使已经用介值定理证明零点存在，也未必能够写出零点的初等表达式。
+例如，方程 $\cos x=x$ 在区间 $[0,1]$ 上有唯一实根，但仍需要一种方法求出它的近似值。
+存在性证明回答“有没有解”，迭代算法回答“怎样逐步接近解”，而收敛性分析说明这一步步计算是否可靠。
+
+\keyterm{牛顿迭代法（Newton's method）}的基本思想是：在当前近似点附近，
+用函数的一阶线性近似代替原函数，再以线性方程的解作为下一次近似。
+它每一步需要函数值与导数值；在单根附近，适当的光滑性能够保证误差以平方的速度缩小。
+但是，这是一种有条件的局部性质，不能由此推断任意初值都收敛。
+
+本笔记先推导迭代公式，再借助不动点与泰勒公式解释收敛速度，
+随后给出两类收敛定理、典型计算与失败反例，最后讨论误差控制和算法改进。
+读者需要熟悉数列极限、介值定理、微分中值定理、二阶泰勒公式及闭区间上连续函数的基本性质。
+正文首先讨论精确实数运算下的数学结论；有限精度计算中的判断另作说明。
+
+\section{从切线方程到迭代公式}
+\label{sec:newton-construction}
+
+\subsection{线性化与几何解释}
+
+设 $f$ 在开区间 $I\subseteq\mathbb R$ 上可微，当前近似值为 $x_n\in I$。
+当 $h$ 趋于零时，可微性给出
+\[
+  f(x_n+h)=f(x_n)+f'(x_n)h+o(h).
+\]
+暂时忽略余项，令线性部分等于零。如果 $f'(x_n)\ne0$，得到
+\[
+  h_n=-\frac{f(x_n)}{f'(x_n)}.
+\]
+于是定义
+\begin{equation}\label{eq:newton-iteration}
+  x_{n+1}=x_n-\frac{f(x_n)}{f'(x_n)},\qquad n=0,1,2,\ldots.
+\end{equation}
+这里 $x_0$ 是给定的\keyterm{初值（initial guess）}，$h_n=x_{n+1}-x_n$ 称为牛顿步。
+线性化只用于说明公式从何而来，并不自动证明迭代点始终位于定义域内或趋于零点。
+
+从几何上看，曲线 $y=f(x)$ 在 $(x_n,f(x_n))$ 处的切线为
+\[
+  y=f(x_n)+f'(x_n)(x-x_n).
+\]
+它与横轴的交点横坐标恰好是 $x_{n+1}$。
+当切线接近水平时，交点可能离 $x_n$ 很远；当切线水平而函数值不为零时，这一步无法进行。
+若已经有 $f(x_n)=0$，应当直接终止，即使此时导数也为零。
+
+\subsection{迭代映射与不动点}
+
+在 $f'(x)\ne0$ 的点定义\keyterm{牛顿映射（Newton map）}
+\begin{equation}\label{eq:newton-map}
+  N(x)=x-\frac{f(x)}{f'(x)}.
+\end{equation}
+牛顿迭代即 $x_{n+1}=N(x_n)$。
+若 $f(\alpha)=0$ 且 $f'(\alpha)\ne0$，则 $N(\alpha)=\alpha$，
+所以零点 $\alpha$ 是 $N$ 的\keyterm{不动点（fixed point）}。
+反过来，在 $N$ 的定义域中，$N(x)=x$ 蕴含 $f(x)=0$。
+
+若 $f\in C^2(I)$，即 $f$ 在 $I$ 上有连续的二阶导数，那么
+\begin{equation}\label{eq:newton-map-derivative}
+  N'(x)=\frac{f(x)f''(x)}{[f'(x)]^2}.
+\end{equation}
+特别地，在满足 $f'(\alpha)\ne0$ 的零点处，$N'(\alpha)=0$。
+一般不动点迭代的一阶误差项通常与 $N'(\alpha)$ 有关；
+牛顿映射在此处消掉了这一阶项，这是它能够快速收敛的关键。
+第~\ref{sec:newton-local} 节将用精确误差公式把这一解释变成定理。
+
+\section{误差与收敛速度}
+\label{sec:newton-order}
+
+设目标零点为 $\alpha$，定义\keyterm{误差（error）}与\keyterm{残差（residual）}
+\[
+  e_n=x_n-\alpha,\qquad r_n=f(x_n).
+\]
+误差衡量自变量与真解的距离，残差衡量当前点代入方程后的偏离程度。
+由于 $\alpha$ 通常未知，误差往往不能直接计算，而残差通常可以计算。
+
+\begin{definition}[收敛阶]\label{def:newton-order}
+设 $x_n\to\alpha$，且序列不在有限步后恒等于 $\alpha$。
+若存在 $p\ge1$ 与 $\lambda\in(0,\infty)$，使得
+\[
+  \lim_{n\to\infty}\frac{|e_{n+1}|}{|e_n|^p}=\lambda,
+\]
+则称其具有 $p$ 阶收敛，$\lambda$ 为渐近误差常数。
+当 $p=1$ 且 $0<\lambda<1$ 时称为\keyterm{线性收敛（linear convergence）}；
+当 $p=2$ 时称为\keyterm{二次收敛（quadratic convergence）}。
+若 $|e_{n+1}|/|e_n|\to0$，则称为\keyterm{超线性收敛（superlinear convergence）}。
+\end{definition}
+
+若只能证明对充分大的 $n$ 有 $|e_{n+1}|\le C|e_n|^2$，其中 $C>0$ 与 $n$ 无关，
+本笔记称之为“至少二次的误差估计”。这允许更高阶收敛，也允许有限步到达零点，
+不等同于已经证明定义~\ref{def:newton-order} 中的极限是正数。
+
+二次收敛描述的是足够接近零点后的行为。
+在 $|e_{n+1}|\approx C|e_n|^2$ 的阶段，取十进制对数可得
+\[
+  -\log_{10}|e_{n+1}|\approx2\bigl(-\log_{10}|e_n|\bigr)-\log_{10}C.
+\]
+因此正确小数位数通常大致翻倍；常数、进入局部阶段之前的过程和舍入误差都会影响实际表现。
+
+\section{单根附近的局部收敛理论}
+\label{sec:newton-local}
+
+\subsection{精确误差公式}
+
+\begin{definition}[单根]
+若 $f(\alpha)=0$ 且 $f'(\alpha)\ne0$，则称 $\alpha$ 为 $f$ 的\keyterm{单根（simple root）}。
+\end{definition}
+
+\begin{lemma}[一步误差恒等式]\label{lem:newton-error}
+设 $f\in C^2(I)$，$f(\alpha)=0$，$x\in I$ 且 $f'(x)\ne0$。
+若 $x\ne\alpha$，则存在介于 $x$ 与 $\alpha$ 之间的 $\xi$，使得
+\begin{equation}\label{eq:newton-exact-error}
+  N(x)-\alpha=\frac{f''(\xi)}{2f'(x)}(x-\alpha)^2.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+在当前点 $x$ 展开 $f(\alpha)$，由带拉格朗日余项的泰勒公式，
+\[
+  0=f(\alpha)=f(x)+f'(x)(\alpha-x)
+    +\frac12f''(\xi)(\alpha-x)^2.
+\]
+移项并除以非零的 $f'(x)$，得到
+\[
+  \frac{f(x)}{f'(x)}=x-\alpha-\frac{f''(\xi)}{2f'(x)}(x-\alpha)^2.
+\]
+代入式~\eqref{eq:newton-map} 即得结论。
+\end{proof}
+
+这里特意在 $x$ 而非 $\alpha$ 处展开，是为了让分母中的 $f'(x)$ 与牛顿公式直接配对。
+恒等式不仅描述误差大小，还保留误差符号：若相关区间内 $f''\ge0$ 且 $f'>0$，
+则下一步位于零点右侧，或者正好落在零点上。
+
+\subsection{邻域不变性与二次误差估计}
+
+\begin{theorem}[局部收敛]\label{thm:newton-local}
+设 $f\in C^2(I)$，$\alpha\in I$ 是单根。
+则存在 $\delta>0$，使得任意 $x_0\in[\alpha-\delta,\alpha+\delta]$ 的牛顿迭代均有定义，
+始终留在该区间内，并收敛到 $\alpha$；若某步到达根，则在数学上将后续项定义为 $\alpha$。
+此外，可以取常数 $C>0$，使所有步骤满足
+\begin{equation}\label{eq:newton-quadratic-bound}
+  |e_{n+1}|\le C|e_n|^2.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+由 $f'(\alpha)\ne0$ 及 $f'$ 连续，可以选择 $r>0$，使闭区间
+$J=[\alpha-r,\alpha+r]\subset I$ 上有 $|f'(x)|\ge\mu>0$。
+由 $f''$ 连续，存在一个正数 $M$，使 $|f''(x)|\le M$ 在 $J$ 上成立。
+即使 $f''$ 恒为零，也可以选取正的 $M$ 作为上界。令
+\[
+  C=\frac{M}{2\mu},\qquad
+  0<\delta\le\min\left\{r,\frac{1}{2C}\right\}.
+\]
+对 $|x-\alpha|\le\delta$，引理~\ref{lem:newton-error} 给出
+\[
+  |N(x)-\alpha|\le C|x-\alpha|^2
+     \le\frac12|x-\alpha|\le\frac\delta2.
+\]
+当 $x=\alpha$ 时同一不等式也成立。
+因此 $N$ 将该闭邻域映入自身，而导数在其中不为零。
+归纳可知所有迭代点均有定义且不离开邻域，并且
+\[
+  |e_n|\le2^{-n}|e_0|\longrightarrow0.
+\]
+每一步应用同一引理又得到式~\eqref{eq:newton-quadratic-bound}。
+\end{proof}
+
+证明的顺序不可颠倒：先证明映射不把点送出可用区间，再证明迭代可以无限进行并收敛。
+只写出 $|e_{n+1}|\le C|e_n|^2$ 而不控制 $C|e_n|$，不足以推出误差变小。
+该定理保证存在合适初值范围，但其中的 $\alpha$ 通常未知，因此它本身未必直接提供可计算的初值。
+
+\begin{corollary}[渐近误差常数]\label{cor:newton-asymptotic}
+在定理~\ref{thm:newton-local} 的条件下，若迭代不在有限步到达根，则
+\begin{equation}\label{eq:newton-asymptotic}
+  \lim_{n\to\infty}\frac{e_{n+1}}{e_n^2}
+    =\frac{f''(\alpha)}{2f'(\alpha)}.
+\end{equation}
+若 $f''(\alpha)\ne0$，收敛阶恰为二次，渐近误差常数为
+$|f''(\alpha)/(2f'(\alpha))|$。
+\end{corollary}
+
+\begin{proof}
+由式~\eqref{eq:newton-exact-error}，左侧商等于 $f''(\xi_n)/(2f'(x_n))$，
+其中 $\xi_n$ 介于 $x_n$ 与 $\alpha$ 之间。
+既然 $x_n\to\alpha$，也有 $\xi_n\to\alpha$；再利用导数连续及 $f'(\alpha)\ne0$ 即得极限。
+\end{proof}
+
+若 $f''(\alpha)=0$，这个极限为零，不能仍称误差常数为正的“恰好二次收敛”。
+例如 $f(x)=x+x^3$ 在 $\alpha=0$ 处给出
+\[
+  x_{n+1}=\frac{2x_n^3}{1+3x_n^2},
+\]
+故在收敛且未到达零点的情况下，$|x_{n+1}|/|x_n|^3\to2$，实际为三次收敛。
+
+\subsection{显式的迭代次数估计}
+
+在局部定理的邻域内，令 $q=C|e_0|<1$。
+由 $C|e_{n+1}|\le(C|e_n|)^2$ 归纳可得
+\begin{equation}\label{eq:newton-double-exponential}
+  |e_n|\le\frac{q^{2^n}}{C}.
+\end{equation}
+对于 $0<C\varepsilon<1$ 且 $0<q<1$，若
+\[
+  2^n\ge\frac{\log(1/(C\varepsilon))}{\log(1/q)},
+\]
+则 $|e_n|\le\varepsilon$。这解释了局部阶段达到高精度所需步数很少。
+在 $C,q$ 固定且以每步函数与导数求值成本固定为前提时，步数随
+$\varepsilon\downarrow0$ 按 $O(\log\log(1/\varepsilon))$ 增长。
+任意精度运算中单步成本随精度变化，因此该步数结论不是完整的位运算复杂度结论。
+
+\section{由单调性与凸性保证收敛}
+\label{sec:newton-monotone}
+
+局部定理要求初值足够接近未知零点。若已知函数在整个区间上的单调性和凸性，
+则可以从区间端点构造有保证的迭代。
+
+\begin{theorem}[递增凸函数的单调牛顿迭代]\label{thm:newton-monotone}
+设 $f$ 在包含 $[a,b]$ 的开区间上属于 $C^2$，并满足
+\[
+  f(a)<0<f(b),\qquad f'(x)>0,\qquad f''(x)\ge0
+  \quad(x\in[a,b]).
+\]
+则 $f$ 在 $(a,b)$ 内有唯一零点 $\alpha$。
+对任意 $x_0\in[\alpha,b]$，牛顿迭代满足
+\[
+  \alpha\le x_{n+1}\le x_n\le b,
+\]
+并收敛到 $\alpha$。特别地，可以选择可直接确定的初值 $x_0=b$。
+\end{theorem}
+
+\begin{proof}
+介值定理保证根存在，$f'>0$ 保证 $f$ 严格递增，因而根唯一。
+设 $x\in[\alpha,b]$。由 $f(x)\ge0$ 及 $f'(x)>0$，有 $N(x)\le x$。
+另一方面，泰勒公式及 $f''\ge0$ 给出
+\[
+  0=f(\alpha)\ge f(x)+f'(x)(\alpha-x),
+\]
+因此 $N(x)\ge\alpha$。当 $x=\alpha$ 时也成立。
+归纳即得区间不变性与单调性。于是存在 $\ell\in[\alpha,b]$，使 $x_n\to\ell$。
+牛顿映射在该区间连续，故取极限得到
+\[
+  \ell=\ell-\frac{f(\ell)}{f'(\ell)},
+\]
+从而 $f(\ell)=0$。由零点唯一性，$\ell=\alpha$。
+\end{proof}
+
+这里的收敛保证覆盖整个指定的右侧区间，但不表示实轴上的任意初值都收敛。
+对递增凹函数，即 $f'>0$、$f''\le0$ 的情形，同理可证明从根左侧出发单调递增收敛：
+此时 $f(x)\le0$ 给出 $N(x)\ge x$，凹函数的切线不等式给出 $N(x)\le\alpha$。
+若函数递减，可以先把方程改写为 $-f(x)=0$；乘以非零常数不改变牛顿映射。
+
+\section{典型例题}
+\label{sec:newton-examples}
+
+\subsection{平方根与经典根式数列}
+
+\begin{example}[计算正平方根]\label{ex:newton-sqrt}
+给定 $A>0$，用牛顿法求 $\alpha=\sqrt A$，并证明任意 $x_0>0$ 都收敛。
+\end{example}
+
+\begin{proof}[解]
+对 $f(x)=x^2-A$ 使用式~\eqref{eq:newton-iteration}，得到
+\begin{equation}\label{eq:newton-sqrt}
+  x_{n+1}=\frac12\left(x_n+\frac{A}{x_n}\right).
+\end{equation}
+正初值保证每步为正。利用 $A=\alpha^2$，直接计算得
+\begin{equation}\label{eq:newton-sqrt-error}
+  x_{n+1}-\alpha=\frac{(x_n-\alpha)^2}{2x_n}\ge0.
+\end{equation}
+因此从第一步起 $x_n\ge\alpha$。对于 $n\ge1$，
+\[
+  x_{n+1}-x_n=\frac{A-x_n^2}{2x_n}\le0.
+\]
+序列从第一步起单调递减且以 $\alpha$ 为下界，故有极限 $\ell\ge\alpha>0$。
+在式~\eqref{eq:newton-sqrt} 中取极限，得 $2\ell=\ell+A/\ell$，
+从而 $\ell^2=A$，故 $\ell=\alpha$。
+式~\eqref{eq:newton-sqrt-error} 进一步给出渐近误差常数 $1/(2\sqrt A)$。
+\end{proof}
+
+取 $A=2$、$x_0=1$，连续几步的精确值为
+\[
+  x_1=\frac32,\qquad x_2=\frac{17}{12},\qquad
+  x_3=\frac{577}{408},\qquad x_4=\frac{665857}{470832}.
+\]
+这些分数是迭代公式的精确结果；十进制近似为
+\[
+  x_2\approx1.4166666667,\quad
+  x_3\approx1.4142156863,\quad
+  x_4\approx1.4142135624.
+\]
+还可以直接构造上下界。由于 $x_n\ge\sqrt A$ 对 $n\ge1$ 成立，
+\[
+  \frac{A}{x_n}\le\sqrt A\le x_n.
+\]
+因此 $x_n-A/x_n$ 是可计算的区间宽度；当它不超过指定的绝对误差容限时，
+$x_n$ 已经达到该容限。这个结论不需要预先知道 $\sqrt A$ 的数值。
+
+\subsection{一个超越方程}
+
+\begin{example}[求解余弦不动点]\label{ex:newton-cos}
+证明 $\cos x=x$ 在 $[0,1]$ 内有唯一解，并构造收敛的牛顿迭代。
+\end{example}
+
+\begin{proof}[解]
+令 $f(x)=x-\cos x$。在 $[0,1]$ 上，
+\[
+  f(0)=-1<0,\quad f(1)=1-\cos1>0,\quad
+  f'(x)=1+\sin x\ge1,\quad f''(x)=\cos x>0.
+\]
+由定理~\ref{thm:newton-monotone}，取 $x_0=1$，则
+\[
+  x_{n+1}=x_n-\frac{x_n-\cos x_n}{1+\sin x_n}
+\]
+单调递减收敛到唯一根 $\alpha$。
+前几步数值近似为
+\[
+  x_1\approx0.7503638678,\qquad
+  x_2\approx0.7391128909,\qquad
+  x_3\approx0.7390851334.
+\]
+因为 $|f'|\ge1$，由中值定理可知 $|x_n-\alpha|\le|x_n-\cos x_n|$。
+故还可以用残差直接验证当前近似的绝对误差上界。
+\end{proof}
+
+\section{重根与收敛速度的退化}
+\label{sec:newton-multiple}
+
+\begin{definition}[重根]
+若在 $\alpha$ 的某邻域内可以写成
+\[
+  f(x)=(x-\alpha)^m g(x),\qquad g(\alpha)\ne0,
+\]
+其中 $m\ge2$ 为整数、$g$ 至少连续，则称 $\alpha$ 为 $m$ 重根，$m$ 为根的重数
+（multiplicity）。下文的微分计算进一步假设 $g\in C^2$。
+\end{definition}
+
+在 $x\ne\alpha$ 且充分接近 $\alpha$ 时，令 $e=x-\alpha$，则
+\[
+  f'(x)=e^{m-1}\bigl(mg(x)+eg'(x)\bigr),\qquad
+  \frac{f(x)}{f'(x)}=\frac{eg(x)}{mg(x)+eg'(x)}.
+\]
+分母括号内的因子趋于 $mg(\alpha)\ne0$，所以在足够小的去心邻域内迭代有定义。
+普通牛顿法的误差满足
+\begin{equation}\label{eq:newton-multiple-error}
+  e_{n+1}=e_n\frac{(m-1)g(x_n)+e_ng'(x_n)}{mg(x_n)+e_ng'(x_n)}.
+\end{equation}
+该式中的系数在 $x_n\to\alpha$ 时趋于 $(m-1)/m\in(0,1)$。
+选取常数 $q$ 满足 $(m-1)/m<q<1$，由连续性可选取足够小的邻域，
+使系数绝对值不超过 $q$，从而迭代不离开邻域并满足 $|e_n|\le q^n|e_0|\to0$。
+再由式~\eqref{eq:newton-multiple-error} 得到
+\[
+  \lim_{n\to\infty}\frac{|e_{n+1}|}{|e_n|}=\frac{m-1}{m}.
+\]
+因此普通牛顿法在重根附近通常只有线性收敛；重数越大，该因子越接近 $1$。
+例如 $f(x)=(x-\alpha)^m$ 恰好给出 $e_{n+1}=(1-1/m)e_n$。
+
+如果已知重数，可以使用\keyterm{重数修正牛顿法（modified Newton method）}
+\begin{equation}\label{eq:newton-modified}
+  x_{n+1}=x_n-m\frac{f(x_n)}{f'(x_n)}.
+\end{equation}
+同样的代数计算得到
+\[
+  e_{n+1}=\frac{g'(x_n)}{mg(x_n)+e_ng'(x_n)}e_n^2.
+\]
+由于分母在根附近远离零，系数有界；缩小邻域后，按照
+定理~\ref{thm:newton-local} 中同样的不变性论证，得到局部收敛及至少二次的误差估计。
+若迭代不在有限步终止，则带符号误差商趋于 $g'(\alpha)/(mg(\alpha))$。
+
+重数未知时，也可以考虑对 $u=f/f'$ 应用牛顿法，形式上得到
+\begin{equation}\label{eq:newton-unknown-multiplicity}
+  x_{n+1}=x_n-
+  \frac{f(x_n)f'(x_n)}{[f'(x_n)]^2-f(x_n)f''(x_n)}.
+\end{equation}
+在上述分解下，$u(x)=eg(x)/(mg(x)+eg'(x))$ 可连续延拓为 $u(\alpha)=0$，
+且 $u'(\alpha)=1/m$，因而重根变成单根。
+若进一步有 $g\in C^3$，则该延拓属于 $C^2$，可以直接应用局部收敛定理。
+实际计算必须检查式~\eqref{eq:newton-unknown-multiplicity} 的分母；
+它需要二阶导数，且两个相近量相减可能损失有效数字，并不总比普通牛顿法更合适。
+
+\section{失败反例与初值的作用}
+\label{sec:newton-failure}
+
+\subsection{导数为零而函数值非零}
+
+令 $f(x)=x^3-1$，取 $x_0=0$。尽管方程有单根 $\alpha=1$，
+但 $f(0)=-1$、$f'(0)=0$，第一步便无法定义。
+根处的导数非零不意味着整个定义域内的导数非零。
+
+\subsection{所有步骤有定义，却落入周期}
+
+令 $f(x)=x^3-2x+2$，取 $x_0=0$，则
+\[
+  N(0)=1,\qquad N(1)=0.
+\]
+迭代在 $0$ 与 $1$ 之间循环，始终不收敛，而这两点的导数分别为 $-2$ 与 $1$，均不为零。
+该方程的实根存在于 $(-2,-1)$ 内，因为 $f(-2)=-2$、$f(-1)=3$。
+函数光滑、实根存在、每一步可以计算，三者合起来仍不足以保证给定初值收敛。
+
+\subsection{离开定义域}
+
+令 $f(x)=\log x$，定义域为 $(0,\infty)$，唯一根为 $1$。牛顿公式为
+\[
+  x_{n+1}=x_n(1-\log x_n).
+\]
+如果 $x_0>\mathrm e$，则 $x_1<0$，下一步函数值不再有定义。
+这说明检查当前导数非零还不够，还必须检查候选点是否属于函数定义域。
+
+\subsection{缺少根处光滑性时误差放大}
+
+对 $f(x)=\sqrt[3]{x}$，根为 $0$，但函数在根处不可微。
+对任何 $x_n\ne0$，牛顿公式仍可计算，并给出
+\[
+  x_{n+1}=-2x_n.
+\]
+非零初值产生交替变号且绝对值不断增大的序列。
+这不违反局部收敛定理，因为根处的可微性和单根条件均不成立。
+
+这些例子表明，初值选择必须与定义域、单调性、凸性和导数信息结合。
+“离某个零点很近”的局部保证与“从当前初值确实能到达该邻域”是两个不同问题。
+
+\section{误差估计、停止准则与计算流程}
+\label{sec:newton-stopping}
+
+\subsection{残差何时能够控制误差}
+
+\begin{proposition}[由残差估计误差]\label{prop:newton-residual}
+设 $x$ 与零点 $\alpha$ 位于同一区间 $J$，$f$ 在 $J$ 上可微，且
+$|f'(t)|\ge\mu>0$ 对 $t\in J$ 成立，则
+\begin{equation}\label{eq:newton-residual-bound}
+  |x-\alpha|\le\frac{|f(x)|}{\mu}.
+\end{equation}
+若还满足 $|f'(t)|\le L$，则 $\mu|x-\alpha|\le|f(x)|\le L|x-\alpha|$。
+\end{proposition}
+
+\begin{proof}
+若 $x=\alpha$，结论直接成立。否则由拉格朗日中值定理，
+$f(x)-f(\alpha)=f'(\eta)(x-\alpha)$，其中 $\eta$ 介于 $x$ 与 $\alpha$ 之间。
+取绝对值并使用导数上下界即可。
+\end{proof}
+
+缺少导数下界时，残差很小未必代表误差很小。
+例如 $f(x)=10^{-12}(x-1)$ 在 $x=0$ 处的残差绝对值为 $10^{-12}$，误差却为 $1$。
+将方程乘以非零常数不改变牛顿迭代，却会改变残差的数值尺度，
+所以残差容限应当结合问题的尺度或式~\eqref{eq:newton-residual-bound} 选取。
+
+\subsection{相邻步差与后验估计}
+
+\begin{proposition}[压缩条件下的步差估计]\label{prop:newton-step}
+设闭区间 $J$ 上的映射 $N$ 满足 $N(J)\subseteq J$，并且存在 $0\le q<1$，使
+\[
+  |N(x)-N(y)|\le q|x-y|\qquad(x,y\in J).
+\]
+从 $x_0\in J$ 出发迭代，则存在唯一不动点 $\alpha\in J$，$x_n\to\alpha$，且
+\begin{equation}\label{eq:newton-step-bound}
+  |x_{n+1}-\alpha|\le\frac{q}{1-q}|x_{n+1}-x_n|.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+由压缩不等式，$|x_{k+1}-x_k|\le q^k|x_1-x_0|$。
+对任意 $p\ge1$，相邻差求和给出
+\[
+  |x_{n+p}-x_n|\le\frac{q^n}{1-q}|x_1-x_0|.
+\]
+因此 $\{x_n\}$ 为柯西列，由实数完备性及 $J$ 闭，极限 $\alpha$ 属于 $J$。
+压缩条件保证连续性，故 $N(\alpha)=\alpha$。
+若另有不动点 $\beta$，则 $|\alpha-\beta|\le q|\alpha-\beta|$，从而 $\alpha=\beta$。
+最后，固定 $n$，从 $x_{n+1}$ 起对尾部差求和得
+\[
+  |\alpha-x_{n+1}|\le\sum_{j=1}^{\infty}q^j|x_{n+1}-x_n|
+  =\frac{q}{1-q}|x_{n+1}-x_n|.
+\]
+\end{proof}
+
+如果 $N$ 在 $J$ 上可微且 $\sup_J|N'|\le q<1$，中值定理保证上述压缩不等式。
+单根附近由式~\eqref{eq:newton-map-derivative} 可以得到这样的导数控制，
+但还需要验证 $N(J)\subseteq J$。
+没有压缩条件或其他误差论证时，“相邻两步很接近”只能作为数值诊断，不能单独作为精度证明。
+
+\subsection{可执行的标量牛顿流程}
+
+算法输入为函数 $f$、导数 $f'$、定义域 $D$、初值 $x_0\in D$、
+绝对与相对步长容限 $\varepsilon_{\mathrm{abs}},\varepsilon_{\mathrm{rel}}>0$、
+残差容限 $\varepsilon_f>0$ 以及最大迭代次数 $K$。
+输出应包括近似根、实际残差、迭代次数和终止原因；只有附带严格误差界时才声明已保证指定精度。
+
+\begin{enumerate}
+  \item 初始化 $x=x_0$。若初值不在定义域内，返回输入失败。
+  \item 对 $n=0,\ldots,K-1$，计算 $r=f(x)$。若精确运算下 $r=0$，返回根；
+        有限精度下函数返回零仍需结合求值误差判断。
+        若已有包含目标根的区间及导数下界 $\mu$，也可在 $|r|/\mu$ 满足目标误差时返回。
+  \item 计算 $d=f'(x)$。若 $r,d$ 非有限数或 $d=0$，报告失败。
+        有限精度下若导数相对于问题尺度过小，则转用保护步骤或报告数值困难。
+  \item 计算 $s=-r/d$ 与候选点 $y=x+s$。若 $y\notin D$ 或计算出现非有限数，
+        拒绝该步并报告失败，或者按事先指定的保护策略处理。
+  \item 计算 $f(y)$。常用的联合诊断为
+        \[
+          |s|\le\varepsilon_{\mathrm{abs}}+\varepsilon_{\mathrm{rel}}|y|,
+          \qquad |f(y)|\le\varepsilon_f.
+        \]
+        二者满足时可报告“满足数值停止条件”；若有式~\eqref{eq:newton-residual-bound}
+        或式~\eqref{eq:newton-step-bound} 的条件，则同时报告相应误差保证。
+  \item 若未终止，令 $x=y$ 并继续。达到 $K$ 后返回未收敛状态及最后一个有效迭代点。
+\end{enumerate}
+
+在浮点计算中，可能出现 $y=x$ 而残差仍不可接受的情形，这是停滞信号。
+此时继续重复同一步通常无益，应当检查精度、尺度或更换方法。
+上述误差界以精确函数值为基础；若已知求值误差不超过 $\eta$，
+则残差界中的 $|f(x)|$ 应由“计算所得残差的绝对值加 $\eta$”代替。
+
+\section{提高可靠性的改进与相关方法}
+\label{sec:newton-variants}
+
+\subsection{二分保护的牛顿法}
+
+如果已知闭区间 $[a_0,b_0]$ 包含一个根，$f$ 在其上连续且
+$f(a_0)f(b_0)<0$，可以把牛顿步与\keyterm{二分法（bisection method）}结合。
+下面给出一种能够直接证明区间收缩的具体规则。固定 $\theta\in(0,1/2)$，
+在第 $n$ 步持有异号端点 $a_n,b_n$，并取当前点 $x_n\in[a_n,b_n]$。
+
+\begin{enumerate}
+  \item 若当前点已经是根，则终止。否则，在导数存在且非零时计算牛顿候选点 $z$。
+  \item 只有当 $z$ 存在且位于
+        $[a_n+\theta(b_n-a_n),\,b_n-\theta(b_n-a_n)]$ 内时，才接受它；
+        否则令 $z=(a_n+b_n)/2$。
+  \item 若 $f(z)=0$，返回 $z$。否则，保留端点异号的子区间作为
+        $[a_{n+1},b_{n+1}]$，并令 $x_{n+1}=z$。
+\end{enumerate}
+
+设区间宽度为 $w_n=b_n-a_n$。无论接受牛顿候选点还是采用中点，保留区间均满足
+\[
+  w_{n+1}\le(1-\theta)w_n,
+\]
+所以 $w_n\le(1-\theta)^n w_0\to0$。
+闭区间套定理保证交集为单点 $\alpha$；由端点函数值异号及连续性，必有 $f(\alpha)=0$。
+区间中点近似的误差不超过 $w_n/2$，而当前端点近似的误差不超过 $w_n$。
+该收敛证明不需要根唯一，但若区间内有多个根，不能预先指定最终选中哪一个。
+
+这项保护规则提供明确的区间收缩保证，但可能拒绝靠近端点的优良牛顿步，
+因此不能直接声称它仍保持原始牛顿法的局部二次收敛。
+若要同时追求局部速度，可以在已经验证局部收敛条件后切换为纯牛顿迭代。
+
+\subsection{阻尼牛顿法}
+
+\keyterm{阻尼牛顿法（damped Newton method）}把完整步长乘以系数：
+\[
+  x_{n+1}=x_n-\lambda_n\frac{f(x_n)}{f'(x_n)},\qquad0<\lambda_n\le1.
+\]
+一种选择依据是\keyterm{评价函数（merit function）} $\Phi(x)=\frac12f(x)^2$。
+当 $f(x)\ne0$、$f'(x)\ne0$ 时，牛顿方向 $s=-f(x)/f'(x)$ 满足
+\[
+  \Phi'(x)s=-f(x)^2<0.
+\]
+因此在开定义域内部，可微性保证充分小的正步长能够降低 $\Phi$。
+例如，固定 $c,\beta\in(0,1)$，依次尝试 $\lambda=1,\beta,\beta^2,\ldots$，
+直到候选点位于定义域内并满足
+\[
+  \Phi(x+\lambda s)\le\Phi(x)-c\lambda f(x)^2.
+\]
+这一\keyterm{回溯线搜索（backtracking line search）}在上述单步条件下会终止，
+因为 $\Phi(x+\lambda s)=\Phi(x)-\lambda f(x)^2+o(\lambda)$。
+单步下降本身不保证整个序列一定趋于根；全局收敛还需排除导数退化、逃向无穷远等情形。
+
+若在单根附近使用固定的 $\lambda\in(0,1)$，则误差为
+\[
+  e_{n+1}=(1-\lambda)e_n+O(e_n^2),
+\]
+所以通常退化为线性收敛。要恢复二次收敛，最直接的充分条件是最终始终接受完整牛顿步。
+
+\subsection{割线法：用差商代替导数}
+
+当导数难以获得时，可以用两个近似点构造\keyterm{割线法（secant method）}
+\[
+  x_{n+1}=x_n-
+  f(x_n)\frac{x_n-x_{n-1}}{f(x_n)-f(x_{n-1})}.
+\]
+它需要两个初值，并要求分母非零；保存前一步函数值后，每次更新只需一次新的函数求值。
+牛顿法使用当前点的切线，割线法使用两点确定的直线，二者都属于局部线性近似的思路。
+由于差商不等于真实导数，本文关于牛顿法二次收敛的证明不能直接移用到割线法。
+
+\section{向方程组与优化问题推广}
+\label{sec:newton-extensions}
+
+\subsection{非线性方程组}
+
+设 $F:U\subseteq\mathbb R^d\to\mathbb R^d$，其中 $U$ 为开集，目标为 $F(x)=0$。
+以 $J_F(x)$ 表示\keyterm{雅可比矩阵（Jacobian matrix）}，其第 $(i,j)$ 个元素为
+$\partial F_i/\partial x_j$。一阶线性化给出
+\[
+  F(x_n+s)\approx F(x_n)+J_F(x_n)s.
+\]
+因此每步先求解线性方程组，再更新：
+\begin{equation}\label{eq:newton-system}
+  J_F(x_n)s_n=-F(x_n),\qquad x_{n+1}=x_n+s_n.
+\end{equation}
+实现时应求解线性系统，而不是先显式计算矩阵逆。
+对于一般稠密 $d\times d$ 矩阵，直接消元的算术操作量通常为 $O(d^3)$，
+此外还需计入 $F$ 与雅可比矩阵的求值成本。
+
+标量误差公式在高维中可由积分表示替代。
+设 $F(\alpha)=0$，在线段所处的邻域内 $J_F$ 满足 Lipschitz 条件
+$\|J_F(x)-J_F(y)\|\le L\|x-y\|$，并且 $\|J_F(x)^{-1}\|\le B$。
+这里向量取欧氏范数，矩阵取相应的算子范数。令 $e=x-\alpha$，由逐分量微积分基本定理，
+\[
+  F(x)=\int_0^1J_F(\alpha+te)e\,\mathrm dt.
+\]
+于是一步更新后的误差满足
+\begin{align*}
+  \|x+s-\alpha\|
+  &=\left\|J_F(x)^{-1}\int_0^1
+      [J_F(x)-J_F(\alpha+te)]e\,\mathrm dt\right\|\\
+  &\le BL\int_0^1(1-t)\|e\|^2\,\mathrm dt
+   =\frac{BL}{2}\|e\|^2.
+\end{align*}
+当 $J_F(\alpha)$ 可逆且雅可比矩阵在附近连续时，可以在小邻域内取得逆矩阵的一致上界。
+再缩小球形邻域以保证上述误差估计将球映入自身，便得到与标量情形相同的局部收敛论证。
+
+\subsection{求驻点与求极小值的区别}
+
+对于二阶可微的目标函数 $\varphi:U\subseteq\mathbb R^d\to\mathbb R$，
+可以把方程组选为 $F(x)=\nabla\varphi(x)$。此时式~\eqref{eq:newton-system} 变为
+\[
+  \nabla^2\varphi(x_n)s_n=-\nabla\varphi(x_n),\qquad x_{n+1}=x_n+s_n,
+\]
+其中 $\nabla^2\varphi$ 是\keyterm{海森矩阵（Hessian matrix）}。
+该公式首先是在求\keyterm{驻点（stationary point）}，即梯度为零的点，
+并不自动保证得到极小值。若 $\varphi\in C^2$，驻点处海森矩阵正定，则该点是严格局部极小点；
+若迭代过程中海森矩阵正定且梯度非零，则牛顿方向满足
+\[
+  \nabla\varphi(x_n)^{\mathsf T}s_n
+   =-\nabla\varphi(x_n)^{\mathsf T}
+      [\nabla^2\varphi(x_n)]^{-1}\nabla\varphi(x_n)<0.
+\]
+这只保证方向为下降方向，完整一步仍可能需要线搜索控制。
+例如对 $\varphi(x)=-x^2$，求解 $\varphi'(x)=0$ 的牛顿法从任意初值一步到达 $0$，
+但 $0$ 是严格极大点。
+
+\section{练习与解答要点}
+\label{sec:newton-exercises}
+
+\begin{example}[正数的高次方根]
+设 $A>0$、整数 $p\ge2$，推导求 $A^{1/p}$ 的牛顿公式，并证明任意正初值都收敛。
+\end{example}
+\begin{proof}[解答要点]
+令 $f(x)=x^p-A$，得到
+\[
+  x_{n+1}=\frac1p\left((p-1)x_n+\frac{A}{x_n^{p-1}}\right).
+\]
+设 $\alpha=A^{1/p}$。正半轴上 $f'>0$、$f''>0$，由切线不等式
+$f(\alpha)\ge f(x)+f'(x)(\alpha-x)$ 可得 $N(x)\ge\alpha$ 对任意 $x>0$ 成立。
+所以第一步后位于根右侧。此后 $f(x_n)\ge0$，从而 $x_{n+1}\le x_n$，
+单调有界性及在迭代公式中取极限给出极限 $\alpha$。
+渐近误差常数为 $(p-1)/(2\alpha)$。
+\end{proof}
+
+\begin{example}[判断重根对精度的影响]
+对 $f(x)=(x-1)^4$，分别写出普通牛顿法与重数修正牛顿法，比较误差。
+\end{example}
+\begin{proof}[解答要点]
+对 $x_n\ne1$，普通牛顿法为 $x_{n+1}=x_n-(x_n-1)/4$，
+所以 $e_n=(3/4)^ne_0$，仅线性收敛。
+修正方法取 $m=4$，给出 $x_{n+1}=1$，一步到达根。
+若初值已经等于 $1$，应直接返回，而不是计算形式上的 $0/0$。
+\end{proof}
+
+\begin{example}[小步长不能独立认证精度]
+说明为什么对 $f(x)=\exp(kx)$、$k>0$，牛顿步可以很小，但方程没有实根。
+\end{example}
+\begin{proof}[解答要点]
+有 $f(x)/f'(x)=1/k$，所以 $x_{n+1}=x_n-1/k$。
+只要 $k$ 足够大，每步都可以小于给定步长容限，然而指数函数始终为正，没有实零点。
+序列实际上趋向负无穷。这说明步长检验必须与根存在性和误差条件结合。
+\end{proof}
+
+\begin{example}[方程表示会改变牛顿映射]
+设 $f$ 在单根 $\alpha$ 附近属于 $C^2$，$h\in C^2$ 且在该邻域内不为零。
+方程 $f(x)=0$ 与 $h(x)f(x)=0$ 的零点相同，它们的牛顿映射是否相同？
+\end{example}
+\begin{proof}[解答要点]
+令 $g=hf$，则其牛顿映射为
+\[
+  N_g(x)=x-\frac{h(x)f(x)}{h'(x)f(x)+h(x)f'(x)},
+\]
+一般不同于 $N_f(x)$。在共同单根处，渐近带符号误差系数为
+\[
+  \frac{g''(\alpha)}{2g'(\alpha)}
+  =\frac{f''(\alpha)}{2f'(\alpha)}+\frac{h'(\alpha)}{h(\alpha)}.
+\]
+因此等价方程可以有不同的迭代轨道和局部误差常数；只有乘以非零常数时，
+牛顿映射必然保持不变。算法分析必须针对实际采用的函数表达式进行。
+\end{proof}
+
+\end{document}

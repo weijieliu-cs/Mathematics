@@ -1,0 +1,98 @@
+\documentclass{ctexart}
+
+% 支持从项目根目录或本文件所在目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{收敛级数的加权极限}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{题目}
+
+\textbf{原题 *1.4.6}\quad
+已知 $\displaystyle\lim_{n\to\infty}\sum_{k=1}^{n}a_k$ 存在，
+$\{p_n\}$ 为单调增加的正数列，且
+\[
+  \lim_{n\to\infty}p_n=+\infty,
+  \qquad p_{n+1}\ne p_n\quad(n=1,2,\ldots).
+\]
+求证：
+\begin{equation}\label{eq:weighted-limit}
+  \lim_{n\to\infty}
+  \frac{p_1a_1+p_2a_2+\cdots+p_na_n}{p_n}=0.
+\end{equation}
+
+这里，部分和的极限存在是指它收敛到一个有限实数，即级数
+$\sum_{k=1}^{\infty}a_k$ 收敛。
+
+\section{解题思路}
+
+级数收敛并不要求绝对收敛，因此不能直接把所有 $a_k$ 换成
+$|a_k|$ 后估计。可利用收敛级数的柯西条件：从足够靠后的项开始，
+任意有限段的和都很小。
+
+具体地，把加权和分成固定的前段与其后的尾段。前段除以趋于无穷的
+$p_n$ 后趋于零；对尾段使用\keyterm{分部求和}（summation by parts），
+将 $a_k$ 改写为尾段部分和的相邻差，再利用 $p_k$ 的单调性估计。
+
+\section{证明}
+
+\begin{proof}\color{black}
+任取 $\varepsilon>0$。由级数 $\sum_{k=1}^{\infty}a_k$ 收敛的柯西条件，
+存在正整数 $N$，使得对所有 $k\ge N$，均有
+\[
+  \left|\sum_{j=N}^{k}a_j\right|<\frac{\varepsilon}{4}.
+\]
+记
+\[
+  T_{N-1}=0,\qquad
+  T_k=\sum_{j=N}^{k}a_j\quad(k\ge N).
+\]
+于是 $a_k=T_k-T_{k-1}$，且 $|T_k|<\varepsilon/4$。
+对任意 $n\ge N$，将相邻两项相减并整理，得到
+\begin{align}
+  \sum_{k=N}^{n}p_ka_k
+  &=\sum_{k=N}^{n}p_k(T_k-T_{k-1})\notag\\
+  &=p_nT_n-\sum_{k=N}^{n-1}(p_{k+1}-p_k)T_k.
+  \label{eq:summation-by-parts}
+\end{align}
+当 $n=N$ 时，右侧的求和为空和，约定其值为零。
+
+由于 $p_{k+1}-p_k\ge0$ 且 $p_n>0$，由
+式~\eqref{eq:summation-by-parts} 可得
+\begin{align*}
+  \left|\frac{1}{p_n}\sum_{k=N}^{n}p_ka_k\right|
+  &\le |T_n|+
+       \frac{1}{p_n}\sum_{k=N}^{n-1}(p_{k+1}-p_k)|T_k|\\
+  &\le \frac{\varepsilon}{4}
+       +\frac{\varepsilon}{4p_n}
+        \sum_{k=N}^{n-1}(p_{k+1}-p_k)\\
+  &=\frac{\varepsilon}{4}
+       \left(1+\frac{p_n-p_N}{p_n}\right)
+   \le\frac{\varepsilon}{2}.
+\end{align*}
+
+另一方面，$N$ 已经固定，因而
+$C=\left|\sum_{k=1}^{N-1}p_ka_k\right|$ 是与 $n$ 无关的有限常数
+（$N=1$ 时取 $C=0$）。由 $p_n\to+\infty$，存在整数 $M\ge N$，
+使得 $n\ge M$ 时 $C/p_n<\varepsilon/2$。故对所有 $n\ge M$，
+\[
+  \left|\frac{1}{p_n}\sum_{k=1}^{n}p_ka_k\right|
+  \le\frac{C}{p_n}
+       +\left|\frac{1}{p_n}\sum_{k=N}^{n}p_ka_k\right|
+  <\frac{\varepsilon}{2}+\frac{\varepsilon}{2}
+  =\varepsilon.
+\]
+这就按照数列极限的定义证明了式~\eqref{eq:weighted-limit}。
+\end{proof}
+
+上述证明仅使用了 $p_n>0$、$p_{n+1}\ge p_n$ 和 $p_n\to+\infty$，
+所以即使允许相邻的 $p_n$ 相等，结论仍然成立。
+
+\end{document}
