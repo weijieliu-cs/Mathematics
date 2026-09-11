@@ -1,0 +1,242 @@
+\documentclass{ctexart}
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{可导与可微笔记}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{导言：变化率与线性近似}
+\label{sec:motivation}
+
+研究函数在一点附近的变化，可以提出两个问题：输入发生微小变化时，
+输出与输入的变化量之比是否趋于一个确定的有限数？输出的变化量能否用输入变化量的线性函数近似，
+并使误差比输入变化量更小阶？前一个问题引出\keyterm{可导}，后一个问题引出\keyterm{可微}。
+
+对一元实函数，这两种要求等价，但着眼点不同：可导强调差商的极限，
+可微强调增量的线性近似。多元函数中，各偏导数存在只描述沿坐标轴方向的变化，
+不能单独保证整体的线性近似成立。本笔记先说明一元情形的定义与等价性，再解释多元情形的区别。
+
+\section{一元函数的定义与等价性}
+\label{sec:one-variable}
+
+本节设 $I\subseteq\mathbb R$ 是开区间，$f:I\to\mathbb R$，$a\in I$。
+令 $h$ 表示输入的增量，并记
+\[
+  \Delta y=f(a+h)-f(a).
+\]
+以下只讨论内点处的双侧导数；区间端点处的单侧导数需另外约定。
+
+\subsection{可导：平均变化率的极限}
+
+\begin{definition}[导数与可导]
+\label{def:derivative}
+若存在有限实数 $L$，使得
+\begin{equation}\label{eq:derivative}
+  \lim_{h\to0}\frac{f(a+h)-f(a)}{h}=L,
+\end{equation}
+则称 $f$ 在 $a$ 处\keyterm{可导}，并称 $L$ 为 $f$ 在 $a$ 处的
+\keyterm{导数}（derivative），记为 $f'(a)$。
+\end{definition}
+
+当 $h\ne0$ 时，差商 $\Delta y/h$ 是区间两端之间的平均变化率，
+也是图像上相应割线的斜率。可导要求当 $h$ 从正、负两侧趋于 $0$ 时，
+差商趋于同一个有限数。因此，可导可以理解为：随着观察区间缩小，斜率能确定下来。
+若差商趋于无穷，则不满足定义~\ref{def:derivative} 中的可导要求。
+
+\subsection{可微：增量具有足够精确的线性近似}
+
+先约定\keyterm{小 $o$ 记号}（little-o notation）：
+\[
+  r(h)=o(|h|)\quad(h\to0)
+  \quad\Longleftrightarrow\quad
+  \lim_{h\to0}\frac{|r(h)|}{|h|}=0.
+\]
+这不仅要求误差 $r(h)$ 趋于 $0$，还要求误差相对于输入增量的大小 $|h|$ 趋于 $0$。
+
+\begin{definition}[可微与微分]
+\label{def:differentiability}
+若存在与 $h$ 无关的常数 $A\in\mathbb R$，使得
+\begin{equation}\label{eq:linear-increment}
+  f(a+h)-f(a)=Ah+r(h),\qquad r(h)=o(|h|)\quad(h\to0),
+\end{equation}
+则称 $f$ 在 $a$ 处\keyterm{可微}。增量的线性部分 $Ah$ 称为 $f$ 在 $a$ 处的
+\keyterm{微分}（differential）。令 $\mathrm dx=h$，则微分记作
+$\mathrm dy=A\,\mathrm dx$，也可将其写成作用于增量的线性映射 $\mathrm df_a(h)=Ah$。
+\end{definition}
+
+这里的 $A$ 可以依赖于基点 $a$，但不能随着增量 $h$ 改变。
+条件 $r(h)=o(|h|)$ 的精确含义是：对任意 $\varepsilon>0$，存在 $\delta>0$，使得
+\[
+  0<|h|<\delta,\quad a+h\in I
+  \quad\Longrightarrow\quad
+  |f(a+h)-f(a)-Ah|\le\varepsilon|h|.
+\]
+因此，可微要求同一个线性项 $Ah$ 在所有充分小的增量上都达到上述精度。
+
+从图像看，式~\eqref{eq:linear-increment} 给出
+\[
+  f(a+h)=f(a)+Ah+o(|h|).
+\]
+其中 $y=f(a)+A(x-a)$ 是函数图像在该点的切线。
+对函数值而言，这是仿射近似；对函数增量而言，$Ah$ 是线性近似。
+所谓切线能近似曲线，具体就是二者在相同横坐标处的纵向误差为 $o(|h|)$。
+
+\subsection{为什么一元函数可导与可微等价}
+
+\begin{theorem}[一元函数可导与可微的等价性]
+\label{thm:equivalence}
+设 $f:I\to\mathbb R$，$I$ 为开区间，$a\in I$。
+则 $f$ 在 $a$ 处可导，当且仅当 $f$ 在 $a$ 处可微。
+此时式~\eqref{eq:linear-increment} 中的系数唯一，且 $A=f'(a)$。
+\end{theorem}
+
+\begin{proof}
+若 $f$ 在 $a$ 处可导，取 $A=f'(a)$，并令
+$r(h)=f(a+h)-f(a)-Ah$。对 $h\ne0$，有
+\[
+  \frac{|r(h)|}{|h|}
+  =\left|\frac{f(a+h)-f(a)}{h}-A\right|\longrightarrow0.
+\]
+故 $r(h)=o(|h|)$，从而 $f$ 在 $a$ 处可微。
+
+反之，若 $f$ 在 $a$ 处可微，则对 $h\ne0$，由式~\eqref{eq:linear-increment} 得
+\[
+  \frac{f(a+h)-f(a)}{h}=A+\frac{r(h)}{h}.
+\]
+由于 $|r(h)/h|\to0$，差商趋于 $A$，所以 $f$ 在 $a$ 处可导，且 $f'(a)=A$。
+极限的唯一性同时说明线性系数 $A$ 唯一。
+\end{proof}
+
+\begin{remark}[术语与记号]
+英文中，一元函数的可导与可微通常都用 differentiable 表述。
+导数 $f'(a)$ 是一个数，微分 $\mathrm df_a$ 是线性映射 $h\mapsto f'(a)h$；
+给定增量 $h$ 后，微分的值为 $f'(a)h$。
+实际增量 $\Delta y$ 一般不等于微分 $\mathrm dy$，二者满足
+$\Delta y=\mathrm dy+o(|h|)$。
+\end{remark}
+
+\section{例子与容易混淆的地方}
+\label{sec:examples}
+
+\begin{example}[同一变化的两种观察方式]
+设 $f(x)=x^2$，考察它在 $a=1$ 处的可导性与可微性。
+\end{example}
+\begin{solve}
+直接展开增量，得到
+\[
+  f(1+h)-f(1)=(1+h)^2-1=2h+h^2.
+\]
+从差商看，$(2h+h^2)/h=2+h\to2$，所以 $f'(1)=2$。
+从线性近似看，$2h$ 是线性部分，余项满足
+$|h^2|/|h|=|h|\to0$，所以函数在 $1$ 处可微，且 $\mathrm df_1(h)=2h$。
+例如取 $h=0.01$，实际增量为 $0.0201$，微分为 $0.02$，误差为 $0.0001$。
+导数给出局部的变化率，微分利用这个变化率预测输出增量。
+\end{solve}
+
+\begin{proposition}[可微蕴含连续]
+\label{prop:continuity}
+在第~\ref{sec:one-variable} 节的假设下，若 $f$ 在 $a$ 处可微，则 $f$ 在 $a$ 处连续。
+\end{proposition}
+\begin{proof}
+可微时 $f(a+h)-f(a)=Ah+r(h)$。其中 $Ah\to0$，并且
+$|r(h)|=|h|\bigl(|r(h)|/|h|\bigr)\to0$。
+故 $f(a+h)\to f(a)$，即在 $a$ 处连续。
+\end{proof}
+
+\begin{example}[连续不保证可导或可微]
+函数 $f(x)=|x|$ 在 $0$ 处连续，因为 $|h|\to0$。
+但当 $h>0$ 时，差商 $|h|/h=1$；当 $h<0$ 时，差商 $|h|/h=-1$。
+两侧极限不同，因此函数在 $0$ 处不可导，由定理~\ref{thm:equivalence} 也不可微。
+虽然采用 $A=0$ 时误差 $|h|$ 趋于 $0$，但它除以 $|h|$ 恒为 $1$，
+并不是 $o(|h|)$。这说明仅有误差趋于 $0$，不足以保证可微。
+\end{example}
+
+上述结论都是关于一个固定点的。说函数在一个开区间上可导或可微，
+是指它在该区间的每一点都具有相应性质；这并不在定义中要求导函数连续。
+
+\section{多元函数：偏导数存在与可微的区别}
+\label{sec:several-variables}
+
+\subsection{偏导数只考察指定坐标方向}
+
+设 $U\subseteq\mathbb R^2$ 是开集，$f:U\to\mathbb R$，$(a,b)\in U$。
+如果以下极限存在且有限，就分别称其为该点关于 $x$ 和 $y$ 的
+\keyterm{偏导数}（partial derivative）：
+\begin{align*}
+  f_x(a,b)&=\lim_{h\to0}\frac{f(a+h,b)-f(a,b)}{h},\\
+  f_y(a,b)&=\lim_{k\to0}\frac{f(a,b+k)-f(a,b)}{k}.
+\end{align*}
+第一个极限固定 $y=b$，第二个极限固定 $x=a$；
+它们只考察通过基点、分别平行于两条坐标轴的直线上的变化。
+
+\subsection{可微要求对所有微小位移成立的线性近似}
+
+\begin{definition}[二元函数可微]
+\label{def:total-differentiability}
+若存在常数 $A,B\in\mathbb R$，使得
+\begin{equation}\label{eq:total-differential}
+  f(a+h,b+k)-f(a,b)=Ah+Bk+r(h,k),
+  \qquad
+  \lim_{(h,k)\to(0,0)}\frac{|r(h,k)|}{\sqrt{h^2+k^2}}=0,
+\end{equation}
+则称 $f$ 在 $(a,b)$ 处可微。线性映射 $(h,k)\mapsto Ah+Bk$ 称为该点的
+\keyterm{全微分}（total differential）。
+\end{definition}
+
+这里的极限要求对任意方式趋于 $(0,0)$ 的非零位移都成立，
+包括沿曲线趋近，不能只检查若干条直线。
+当可微时，在式~\eqref{eq:total-differential} 中分别取 $k=0$ 和 $h=0$，
+再除以非零增量并取极限，便得到
+\[
+  A=f_x(a,b),\qquad B=f_y(a,b).
+\]
+因此可微蕴含两个偏导数存在，而且
+\[
+  \mathrm df_{(a,b)}(h,k)=f_x(a,b)h+f_y(a,b)k.
+\]
+可微还蕴含连续：令 $\rho=\sqrt{h^2+k^2}$，则
+\[
+  |f(a+h,b+k)-f(a,b)|
+  \le (|A|+|B|)\rho+|r(h,k)|\longrightarrow0.
+\]
+
+\begin{example}[两个偏导数存在，但函数不可微]
+\label{ex:partials-not-differentiable}
+定义
+\[
+  f(x,y)=
+  \begin{cases}
+    \dfrac{xy}{x^2+y^2},&(x,y)\ne(0,0),\\
+    0,&(x,y)=(0,0).
+  \end{cases}
+\]
+沿坐标轴有 $f(h,0)=f(0,k)=0$，所以 $f_x(0,0)=f_y(0,0)=0$。
+但沿 $x=y=t\ne0$ 有 $f(t,t)=1/2$，当 $t\to0$ 时并不趋于 $f(0,0)=0$。
+函数在原点不连续，因而不可微。
+也可以直接检查可微定义：唯一可能的线性部分为 $0$，但沿 $(h,k)=(t,t)$，
+\[
+  \frac{|f(t,t)-f(0,0)|}{\sqrt{t^2+t^2}}
+  =\frac{1}{2\sqrt{2}|t|}\longrightarrow+\infty,
+\]
+不满足余项相对于位移长度趋于 $0$ 的要求。
+\end{example}
+
+\subsection{阅读教材时如何辨别}
+
+对一元实函数，可导与可微在同一点等价，分别用差商极限与增量的线性近似描述同一性质。
+对多元函数，则应明确区分各偏导数存在与可微：可微保证各偏导数存在，反向推论不成立，
+如例题~\ref{ex:partials-not-differentiable} 所示。
+
+多元语境中的“导数”也可能指作为线性映射的\keyterm{全导数}（total derivative，
+亦称 Fr\'{e}chet derivative），其存在性正是可微性。
+因此不能笼统地把“多元函数可导”理解为“各偏导数存在”，应先核对教材采用的定义。
+
+\end{document}

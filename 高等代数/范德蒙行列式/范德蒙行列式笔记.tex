@@ -1,0 +1,728 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{范德蒙行列式笔记}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{引言：从多项式的取值到行列式}
+
+给定若干个点上的函数值，能否确定一个次数受到限制的多项式？
+这个问题把多项式与线性方程组联系起来。
+例如，设 $p(t)=c_0+c_1t+c_2t^2$，要求它满足
+\[
+  p(x_1)=y_1,\qquad p(x_2)=y_2,\qquad p(x_3)=y_3,
+\]
+就是求解关于 $c_0,c_1,c_2$ 的方程组
+\[
+  \begin{pmatrix}
+    1&x_1&x_1^2\\
+    1&x_2&x_2^2\\
+    1&x_3&x_3^2
+  \end{pmatrix}
+  \begin{pmatrix}c_0\\c_1\\c_2\end{pmatrix}
+  =\begin{pmatrix}y_1\\y_2\\y_3\end{pmatrix}.
+\]
+矩阵的每一行都由同一个数的连续幂组成。
+这类矩阵的行列式称为\keyterm{范德蒙行列式}（Vandermonde determinant）。
+它能够分解成所有两两差值的乘积，因而把矩阵是否可逆的问题归结为各点是否互异。
+
+本文先固定矩阵的排列方式并陈述乘积公式，再分别用多项式方法和初等变换证明；
+随后讨论常见变形、多项式基变换，以及多项式插值、线性无关性和求和恒等式等应用。
+阅读时只需预先掌握行列式的基本性质、线性方程组和一元多项式的因式定理。
+全文在数域 $\mathbb F=\mathbb R$ 或 $\mathbb C$ 上讨论，$n$ 为正整数。
+
+\section{定义、公式与符号约定}
+
+\subsection{标准形式}
+
+\begin{definition}[范德蒙矩阵与范德蒙行列式]
+\label{def:vandermonde}
+给定 $x_1,\ldots,x_n\in\mathbb F$，称
+\begin{equation}
+  V_n(x_1,\ldots,x_n)
+  =\bigl(x_j^{\,i-1}\bigr)_{1\leq i,j\leq n}
+  =\begin{pmatrix}
+    1&1&\cdots&1\\
+    x_1&x_2&\cdots&x_n\\
+    x_1^2&x_2^2&\cdots&x_n^2\\
+    \vdots&\vdots&&\vdots\\
+    x_1^{n-1}&x_2^{n-1}&\cdots&x_n^{n-1}
+  \end{pmatrix}
+  \label{eq:vandermonde-matrix}
+\end{equation}
+为\keyterm{范德蒙矩阵}（Vandermonde matrix），并记
+\[
+  D_n(x_1,\ldots,x_n)=\det V_n(x_1,\ldots,x_n).
+\]
+这里把零次幂理解为常数多项式 $t^0=1$ 的取值，因此即使 $x_j=0$，第一行也仍为 $1$。
+\end{definition}
+
+本文采用\keyterm{每列对应一个节点、每行对应一个次数}的约定。
+另一种常见定义是 $V_n^{\mathsf T}$，即把每个节点放在一行。
+转置不改变行列式，因此两种约定的行列式公式相同；
+但是写插值方程组时必须注意所用矩阵是否需要转置。
+
+\begin{theorem}[范德蒙行列式公式]
+\label{thm:vandermonde}
+对任意 $x_1,\ldots,x_n\in\mathbb F$，有
+\begin{equation}
+  D_n(x_1,\ldots,x_n)
+  =\prod_{1\leq i<j\leq n}(x_j-x_i).
+  \label{eq:vandermonde-product}
+\end{equation}
+当 $n=1$ 时，约定右端的空乘积等于 $1$，与 $D_1(x_1)=1$ 一致。
+\end{theorem}
+
+乘积的指标 $i<j$ 表示每一对不同节点只取一次，共有
+\[
+  N=\binom n2=\frac{n(n-1)}2
+\]
+个因子。对于式~\eqref{eq:vandermonde-matrix} 的列顺序与递增幂次，
+每个因子的方向是\keyterm{后列节点减前列节点}。
+如果把全部因子都写成相反的差，必须补上符号：
+\begin{equation}
+  \prod_{i<j}(x_i-x_j)=(-1)^N D_n(x_1,\ldots,x_n).
+  \label{eq:reversed-differences}
+\end{equation}
+
+\subsection{低阶情形与直接推论}
+
+二阶情形可以直接核对差值的方向：
+\[
+  D_2(x_1,x_2)=\begin{vmatrix}1&1\\x_1&x_2\end{vmatrix}=x_2-x_1.
+\]
+三阶情形为
+\[
+  D_3(x_1,x_2,x_3)
+  =(x_2-x_1)(x_3-x_1)(x_3-x_2).
+\]
+因此，实际计算时不必展开成许多单项式，只需按列顺序列出差值。
+
+\begin{corollary}[非零条件]
+\label{cor:vandermonde-nonsingular}
+矩阵 $V_n(x_1,\ldots,x_n)$ 可逆，当且仅当 $x_1,\ldots,x_n$ 两两不同。
+若节点为实数且 $x_1<\cdots<x_n$，则 $D_n(x_1,\ldots,x_n)>0$。
+\end{corollary}
+
+\begin{proof}
+在 $\mathbb R$ 或 $\mathbb C$ 中，有限个数的乘积非零，当且仅当每个因子均非零。
+将这一事实用于式~\eqref{eq:vandermonde-product}，再用方阵可逆等价于行列式非零，即得第一项结论。
+节点严格递增时，每个 $x_j-x_i$ 都为正，故乘积为正。
+\end{proof}
+
+交换两个节点就是交换矩阵的两列，行列式变号。
+更一般地，若 $\sigma$ 是 $\{1,\ldots,n\}$ 的一个排列，
+$\operatorname{sgn}(\sigma)$ 表示其符号，则
+\[
+  D_n(x_{\sigma(1)},\ldots,x_{\sigma(n)})
+  =\operatorname{sgn}(\sigma)D_n(x_1,\ldots,x_n).
+\]
+所以节点的集合决定行列式是否为零，而节点的排列还会影响行列式的符号。
+
+\section{乘积公式的两种证明}
+
+\subsection{多项式方法：零点与最高次项系数}
+
+这一证明只把最后一个节点看作变量，其余节点视为固定参数。
+关键是同时确定多项式的零点和最高次项系数；只找到零点还不能确定乘法常数。
+
+\begin{proof}[定理~\ref{thm:vandermonde} 的第一种证明]
+对阶数 $n$ 作归纳。$n=1$ 时结论成立。
+设 $n\geq2$，并假设 $n-1$ 阶公式已经成立。
+
+先处理 $x_1,\ldots,x_{n-1}$ 中存在重复节点的情形。
+此时原矩阵含有相同的两列，左端等于零；右端也含有一个零因子，故公式成立。
+
+以下假设 $x_1,\ldots,x_{n-1}$ 两两不同，令
+\[
+  f(t)=D_n(x_1,\ldots,x_{n-1},t).
+\]
+沿最后一列展开，可知 $f$ 是次数至多为 $n-1$ 的多项式。
+当 $t=x_i$，$1\leq i\leq n-1$ 时，最后一列与第 $i$ 列相同，所以 $f(x_i)=0$。
+这些零点互不相同，由因式定理可得
+\[
+  f(t)=c\prod_{i=1}^{n-1}(t-x_i)
+\]
+其中 $c$ 是与 $t$ 无关的常数。
+
+最后一列中只有最后一个元素 $t^{n-1}$ 能对 $t^{n-1}$ 的系数作出贡献。
+它对应的代数余子式为
+\[
+  (-1)^{n+n}D_{n-1}(x_1,\ldots,x_{n-1})
+  =D_{n-1}(x_1,\ldots,x_{n-1}).
+\]
+而 $\prod_{i=1}^{n-1}(t-x_i)$ 的最高次项系数为 $1$，故
+\[
+  c=D_{n-1}(x_1,\ldots,x_{n-1}).
+\]
+令 $t=x_n$，得到递推式
+\begin{equation}
+  D_n(x_1,\ldots,x_n)
+  =D_{n-1}(x_1,\ldots,x_{n-1})\prod_{i=1}^{n-1}(x_n-x_i).
+  \label{eq:vandermonde-recursion}
+\end{equation}
+代入归纳假设，右端恰好包含所有 $1\leq i<j\leq n$ 的差值因子，证明完成。
+\end{proof}
+
+先区分重复节点，是为了保证因式定理给出的 $n-1$ 个零点互不相同。
+如果重复列举同一个零点，不能据此断言它是相应次数的重根。
+
+\subsection{初等变换方法：从高次行向低次行消去}
+
+记 $R_k$ 为第 $k$ 行，$C_j$ 为第 $j$ 列。
+这一证明通过行变换在第一列制造零，再把其余列中的差值因子提出。
+
+\begin{proof}[定理~\ref{thm:vandermonde} 的第二种证明]
+$n=1$ 时结论成立。对 $n\geq2$，依次执行
+\[
+  R_k\longleftarrow R_k-x_1R_{k-1},\qquad k=n,n-1,\ldots,2.
+\]
+必须从下向上进行，这样每次使用的第 $k-1$ 行尚未改变。
+这些行变换不改变行列式。
+变换后，第一列除首项 $1$ 外全部为零；第 $j$ 列的第 $k$ 个元素为
+\[
+  x_j^{k-1}-x_1x_j^{k-2}=x_j^{k-2}(x_j-x_1),\qquad k\geq2.
+\]
+沿第一列展开，并从所得子式中对应于 $j=2,\ldots,n$ 的各列提出 $x_j-x_1$，得到
+\begin{equation}
+  D_n(x_1,\ldots,x_n)
+  =\left(\prod_{j=2}^n(x_j-x_1)\right)D_{n-1}(x_2,\ldots,x_n).
+  \label{eq:vandermonde-elimination}
+\end{equation}
+这里的提出公因子使用的是行列式对列的线性性质，并未除以 $x_j-x_1$，
+所以即使某个差为零，等式也成立。
+对右端的低阶行列式继续使用同一递推关系，即得式~\eqref{eq:vandermonde-product}。
+\end{proof}
+
+两种证明分别揭示了公式的不同来源：第一种证明利用节点重合时行列式消失的性质，
+第二种证明把这些差值直接从矩阵中提取出来。
+学习时应能够说明递推关系为何成立，而不只是记住最后的乘积。
+
+\section{识别标准形式与常见变形}
+
+\subsection{转置、逆序与列因子}
+
+如果幂次从左到右递增、节点从上到下排列，矩阵是 $V_n^{\mathsf T}$，行列式仍为 $D_n$。
+如果把标准矩阵的行按相反顺序排列，使幂次由 $n-1$ 降至 $0$，
+则每一对行的相对次序都被颠倒，共产生 $N$ 个逆序，故
+\begin{equation}
+  \det\bigl(x_j^{\,n-i}\bigr)_{1\leq i,j\leq n}
+  =(-1)^N D_n(x_1,\ldots,x_n)
+  =\prod_{i<j}(x_i-x_j).
+  \label{eq:descending-powers}
+\end{equation}
+只把列逆序排列也产生 $(-1)^N$；同时把行、列都逆序排列则两个符号相消。
+
+对于任意 $w_1,\ldots,w_n\in\mathbb F$，由各列提出常数可得
+\begin{equation}
+  \det\bigl(w_jx_j^{\,i-1}\bigr)_{1\leq i,j\leq n}
+  =\left(\prod_{j=1}^n w_j\right)D_n(x_1,\ldots,x_n).
+  \label{eq:column-weights}
+\end{equation}
+特别地，若 $r$ 为非负整数，则
+\begin{equation}
+  \det\bigl(x_j^{\,r+i-1}\bigr)_{1\leq i,j\leq n}
+  =\left(\prod_{j=1}^n x_j^r\right)D_n(x_1,\ldots,x_n).
+  \label{eq:shifted-powers}
+\end{equation}
+这说明连续幂次不从 $0$ 开始时，应先提出各列共有的幂，而不能直接套用标准公式。
+
+\subsection{节点的平移、伸缩与倒数}
+
+对 $a,b\in\mathbb F$，新节点 $z_j=ax_j+b$ 满足 $z_j-z_i=a(x_j-x_i)$。
+于是
+\begin{equation}
+  D_n(ax_1+b,\ldots,ax_n+b)=a^N D_n(x_1,\ldots,x_n).
+  \label{eq:affine-nodes}
+\end{equation}
+当 $n=1$ 时把 $a^0$ 理解为常数 $1$。
+因此，同时平移所有节点不改变行列式；同时将节点乘以 $a$，则产生 $a^N$ 的因子。
+
+若所有 $x_j\ne0$，则
+\[
+  \frac1{x_j}-\frac1{x_i}=-\frac{x_j-x_i}{x_ix_j}.
+\]
+每个 $x_k$ 在全部分母中出现 $n-1$ 次，因此
+\begin{equation}
+  D_n\left(\frac1{x_1},\ldots,\frac1{x_n}\right)
+  =\frac{(-1)^N}{\prod_{k=1}^n x_k^{n-1}}D_n(x_1,\ldots,x_n).
+  \label{eq:reciprocal-nodes}
+\end{equation}
+这个公式既需要非零节点的条件，也需要保留分子中的符号。
+
+\subsection{典型计算}
+
+\begin{example}[按列顺序计算]
+计算
+\[
+  D=\begin{vmatrix}
+    1&1&1&1\\
+    -1&0&2&3\\
+    1&0&4&9\\
+    -1&0&8&27
+  \end{vmatrix}.
+\]
+\end{example}
+
+\begin{solve}
+各列节点依次为 $-1,0,2,3$，幂次依次为 $0,1,2,3$，所以
+\[
+  D=(0+1)(2+1)(3+1)(2-0)(3-0)(3-2)
+   =1\cdot3\cdot4\cdot2\cdot3\cdot1=72.
+\]
+节点严格递增，结果为正也与推论~\ref{cor:vandermonde-nonsingular} 一致。
+\end{solve}
+
+\begin{example}[等差节点]
+\label{ex:arithmetic-nodes}
+设 $x_j=a+(j-1)d$，$j=1,\ldots,n$，其中 $a,d\in\mathbb F$。求 $D_n(x_1,\ldots,x_n)$。
+\end{example}
+
+\begin{solve}
+对 $i<j$，有 $x_j-x_i=(j-i)d$，因而
+\begin{equation}
+  D_n(a,a+d,\ldots,a+(n-1)d)
+  =d^N\prod_{j=2}^n\prod_{i=1}^{j-1}(j-i)
+  =d^N\prod_{k=1}^{n-1}k!.
+  \label{eq:arithmetic-nodes}
+\end{equation}
+固定 $j$ 时，内层乘积为 $(j-1)!$，这解释了阶乘的来源。
+例如，节点为 $0,1,2,3$ 时，行列式为 $1!\,2!\,3!=12$。
+当 $n\geq2$ 且 $d=0$ 时所有节点重合，两端均为零；$n=1$ 时两端均为 $1$。
+\end{solve}
+
+\begin{example}[幂次整体提高]
+计算
+\[
+  D=\begin{vmatrix}
+    a&b&c\\a^2&b^2&c^2\\a^3&b^3&c^3
+  \end{vmatrix},\qquad a,b,c\in\mathbb F.
+\]
+\end{example}
+
+\begin{solve}
+分别从三列提出 $a,b,c$，得到
+\[
+  D=abc\begin{vmatrix}1&1&1\\a&b&c\\a^2&b^2&c^2\end{vmatrix}
+   =abc(b-a)(c-a)(c-b).
+\]
+即使 $a,b,c$ 两两不同，原行列式仍可能为零，因为其中某个节点为零时会出现零列。
+所以推论~\ref{cor:vandermonde-nonsingular} 的判别不能不加条件地用于改变幂次后的矩阵。
+\end{solve}
+
+\section{多项式行与基变换}
+
+\subsection{用一般多项式替换各次幂}
+
+范德蒙结构不要求每一行恰好写成单项式。
+如果第 $k+1$ 行是同一个 $k$ 次多项式在各节点上的取值，
+行列式仍然可以由各多项式的最高次项系数和节点差值计算。
+
+\begin{theorem}[逐次多项式的取值行列式]
+\label{thm:polynomial-basis}
+设 $p_0(t),\ldots,p_{n-1}(t)\in\mathbb F[t]$，且
+\[
+  p_k(t)=\sum_{r=0}^k a_{kr}t^r,\qquad a_{kk}\ne0,\qquad 0\leq k\leq n-1.
+\]
+则对任意节点 $x_1,\ldots,x_n$，有
+\begin{equation}
+  \det\bigl(p_{i-1}(x_j)\bigr)_{1\leq i,j\leq n}
+  =\left(\prod_{k=0}^{n-1}a_{kk}\right)D_n(x_1,\ldots,x_n).
+  \label{eq:polynomial-basis}
+\end{equation}
+特别地，若各 $p_k$ 均为首一多项式，即最高次项系数为 $1$，则该行列式就是 $D_n$。
+\end{theorem}
+
+\begin{proof}
+构造 $n$ 阶下三角矩阵 $A$，规定 $A_{k+1,r+1}=a_{kr}$，
+其中 $0\leq k,r\leq n-1$，并在 $r>k$ 时令 $a_{kr}=0$。
+记取值矩阵为 $P=(p_{i-1}(x_j))$。
+由矩阵乘法的定义，第 $k+1$ 行、第 $j$ 列的元素满足
+\[
+  (AV_n)_{k+1,j}=\sum_{r=0}^{k}a_{kr}x_j^r=p_k(x_j),
+\]
+故 $P=AV_n$。取行列式，并利用下三角矩阵的行列式等于对角元之积，得到
+\[
+  \det P=\det A\det V_n
+  =\left(\prod_{k=0}^{n-1}a_{kk}\right)D_n.
+\]
+\end{proof}
+
+次数条件是 $\deg p_k=k$，不仅是这些多项式的次数互不相同。
+若幂次中间有缺项，就需要另外分析，不能仅将最高次项系数相乘。
+
+\begin{example}[低次项不影响结果]
+求
+\[
+  D=\begin{vmatrix}
+    1&1&1\\
+    2a+3&2b+3&2c+3\\
+    3a^2-a+4&3b^2-b+4&3c^2-c+4
+  \end{vmatrix}.
+\]
+\end{example}
+
+\begin{solve}
+三行分别由 $p_0(t)=1$、$p_1(t)=2t+3$、$p_2(t)=3t^2-t+4$ 取值得到。
+其次数为 $0,1,2$，最高次项系数依次为 $1,2,3$，故
+\[
+  D=6(b-a)(c-a)(c-b).
+\]
+从行变换的角度看，低次项能够用前面的行消去；
+矩阵分解 $P=AV_n$ 将这些消去操作统一表达出来。
+\end{solve}
+
+\subsection{牛顿基带来的另一种理解}
+
+定义多项式
+\[
+  q_0(t)=1,\qquad q_k(t)=\prod_{r=1}^{k}(t-x_r),\quad 1\leq k\leq n-1.
+\]
+这些多项式称为关于给定节点顺序的\keyterm{牛顿基}（Newton basis）。
+它们都是首一多项式，次数依次为 $0,\ldots,n-1$，因而线性无关：
+若有非平凡线性组合等于零，选取系数非零的最高次数项，
+其最高次项无法被其余低次项抵消，产生矛盾。
+它们共有 $n$ 个，故构成次数至多为 $n-1$ 的多项式空间的一组基。
+
+考虑 $Q=(q_{i-1}(x_j))$。当 $i>j$ 时，$q_{i-1}$ 的因子中包含 $t-x_j$，
+所以 $q_{i-1}(x_j)=0$；因此 $Q$ 为上三角矩阵，对角元为
+\[
+  q_{j-1}(x_j)=\prod_{r=1}^{j-1}(x_j-x_r).
+\]
+由定理~\ref{thm:polynomial-basis} 的矩阵分解及首一性，$\det Q=\det V_n$，于是
+\[
+  D_n=\det Q=\prod_{j=1}^n\prod_{r=1}^{j-1}(x_j-x_r).
+\]
+这也构成乘积公式的另一种证明：用牛顿基替换单项式基后，取值矩阵成为三角矩阵。
+
+\subsection{缺少一个幂次时的额外因子}
+
+下面的变形说明，偏离连续幂次后，节点互异未必足以保证行列式非零。
+
+\begin{proposition}[用 $n$ 次幂替换最后一行]
+\label{prop:missing-power}
+设 $n\geq2$。令 $E_n(x_1,\ldots,x_n)$ 为各行幂次依次为
+$0,1,\ldots,n-2,n$ 的取值行列式，则
+\begin{equation}
+  E_n(x_1,\ldots,x_n)
+  =(x_1+\cdots+x_n)D_n(x_1,\ldots,x_n).
+  \label{eq:missing-power}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+记 $s=x_1+\cdots+x_n$，将节点多项式展开为
+\[
+  g(t)=\prod_{j=1}^n(t-x_j)
+      =t^n-st^{n-1}+\sum_{r=0}^{n-2}b_rt^r.
+\]
+$t^{n-1}$ 的系数为 $-s$，因为这一项由每次选一个常数项 $-x_j$、其余均选 $t$ 得到。
+对每个节点都有 $g(x_j)=0$，所以
+\[
+  x_j^n=sx_j^{n-1}-\sum_{r=0}^{n-2}b_rx_j^r.
+\]
+将最后一行按此式分解。由行列式对最后一行的线性性，
+第一项贡献 $sD_n$，其余各项都与前面某行重复，行列式为零。
+相加得到式~\eqref{eq:missing-power}，整个论证不需要节点互异。
+\end{proof}
+
+例如，
+\[
+  \begin{vmatrix}1&1&1\\a&b&c\\a^3&b^3&c^3\end{vmatrix}
+  =(a+b+c)(b-a)(c-a)(c-b).
+\]
+取 $a=-1,b=0,c=1$，三个节点互异，但 $a+b+c=0$，所以行列式仍为零。
+此时第二行与第三行恰好相同，也可直接看出退化原因。
+
+\section{线性代数与多项式插值中的应用}
+
+\subsection{线性无关性与矩阵的秩}
+
+由推论~\ref{cor:vandermonde-nonsingular}，当节点两两不同时，列向量
+\[
+  v(x_j)=(1,x_j,\ldots,x_j^{n-1})^{\mathsf T},\qquad j=1,\ldots,n,
+\]
+构成 $\mathbb F^n$ 的一组基。
+特别地，若未知数 $u_1,\ldots,u_n$ 满足
+\[
+  \sum_{j=1}^n u_jx_j^k=0,\qquad k=0,1,\ldots,n-1,
+\]
+那么方程组可以写成 $V_nu=0$，可逆性给出 $u_1=\cdots=u_n=0$。
+
+结论还可以扩展到非方阵以及含有重复节点的情形。
+
+\begin{proposition}[矩形取值矩阵的秩]
+\label{prop:rectangular-rank}
+设 $m,n$ 为正整数，$x_1,\ldots,x_n$ 中共有 $r$ 个不同的值。令
+\[
+  W=\bigl(x_j^{\,i-1}\bigr)_{1\leq i\leq m,\,1\leq j\leq n}.
+\]
+则 $\operatorname{rank}W=\min(m,r)$。
+\end{proposition}
+
+\begin{proof}
+$W$ 只有 $m$ 行，且相同节点产生相同列，故其秩不超过 $\min(m,r)$。
+记 $s=\min(m,r)$，选择 $s$ 个互异节点对应的列，再保留前 $s$ 行，
+得到一个 $s$ 阶范德蒙子矩阵，其行列式非零。
+因此 $\operatorname{rank}W\geq s$，上下界合并即得结论。
+\end{proof}
+
+\subsection{插值多项式的存在唯一性}
+
+记
+\[
+  \mathcal P_{n-1}=\left\{\sum_{k=0}^{n-1}c_kt^k:c_k\in\mathbb F\right\},
+\]
+它包含零多项式，是以 $1,t,\ldots,t^{n-1}$ 为基的 $n$ 维线性空间。
+
+\begin{theorem}[多项式插值的存在唯一性]
+\label{thm:interpolation}
+设 $x_1,\ldots,x_n\in\mathbb F$ 两两不同。
+对任意 $y_1,\ldots,y_n\in\mathbb F$，存在唯一的 $p\in\mathcal P_{n-1}$，使得
+\[
+  p(x_j)=y_j,\qquad j=1,\ldots,n.
+\]
+\end{theorem}
+
+\begin{proof}
+将 $p$ 写成 $p(t)=\sum_{k=0}^{n-1}c_kt^k$，并令
+$c=(c_0,\ldots,c_{n-1})^{\mathsf T}$、$y=(y_1,\ldots,y_n)^{\mathsf T}$。
+插值条件等价于
+\begin{equation}
+  V_n(x_1,\ldots,x_n)^{\mathsf T}c=y.
+  \label{eq:interpolation-system}
+\end{equation}
+节点互异意味着 $V_n^{\mathsf T}$ 可逆，故对每个 $y$ 恰有一个解 $c$，从而恰有一个多项式 $p$。
+\end{proof}
+
+也可以单独用零点数证明唯一性：若 $p$、$q$ 都满足条件，
+则 $p-q$ 的次数至多为 $n-1$，却在 $n$ 个互异节点处为零，故 $p-q$ 只能是零多项式。
+这一论证本身只给出唯一性；存在性还需要线性方程组的可解性或下面的显式构造。
+
+若节点重复且给定值冲突，例如同时要求 $p(a)=1$ 和 $p(a)=2$，则无解；
+若重复节点上的给定值一致，则重复条件只是冗余条件。
+在总共 $n$ 个取值条件但只有 $r<n$ 个不同节点时，一旦有解 $p$，
+就可向 $p$ 加上不同节点所构成的多项式 $\prod_{\ell=1}^r(t-z_\ell)$ 的任意常数倍，
+仍满足全部条件且次数至多为 $n-1$，所以解不唯一。
+
+\subsection{拉格朗日公式与逆矩阵的含义}
+
+对于互异节点，定义\keyterm{拉格朗日基多项式}（Lagrange basis polynomials）
+\begin{equation}
+  \ell_j(t)=\prod_{\substack{1\leq k\leq n\\k\ne j}}
+  \frac{t-x_k}{x_j-x_k},\qquad j=1,\ldots,n.
+  \label{eq:lagrange-basis}
+\end{equation}
+所有分母非零，且 $\ell_j(x_i)$ 在 $i=j$ 时为 $1$，在 $i\ne j$ 时为 $0$。
+因此
+\begin{equation}
+  p(t)=\sum_{j=1}^n y_j\ell_j(t)
+  \label{eq:lagrange-interpolation}
+\end{equation}
+属于 $\mathcal P_{n-1}$ 并满足全部取值条件。
+由定理~\ref{thm:interpolation}，这就是唯一的插值多项式。
+
+若将每个基多项式写成
+\[
+  \ell_j(t)=\sum_{k=0}^{n-1}b_{kj}t^k,
+\]
+并令 $B$ 的第 $j$ 列为 $(b_{0j},\ldots,b_{n-1,j})^{\mathsf T}$，
+则取值条件给出 $V_n^{\mathsf T}B=I_n$，其中 $I_n$ 为 $n$ 阶单位矩阵。
+所以
+\[
+  B=(V_n^{\mathsf T})^{-1}.
+\]
+这说明逆矩阵的各列有具体的多项式含义：它们是拉格朗日基多项式在单项式基下的系数。
+
+\begin{example}[由三个取值恢复二次多项式]
+求次数至多为 $2$ 且满足 $p(0)=1$、$p(1)=2$、$p(2)=5$ 的多项式。
+\end{example}
+
+\begin{solve}
+节点 $0,1,2$ 对应的范德蒙行列式为 $1\cdot2\cdot1=2\ne0$，所以解唯一。
+拉格朗日基多项式为
+\[
+  \ell_1(t)=\frac{(t-1)(t-2)}2,\qquad
+  \ell_2(t)=-t(t-2),\qquad
+  \ell_3(t)=\frac{t(t-1)}2.
+\]
+于是
+\[
+  p(t)=\ell_1(t)+2\ell_2(t)+5\ell_3(t)=t^2+1.
+\]
+代回三个节点分别得到 $1,2,5$，与给定条件一致。
+\end{solve}
+
+\subsection{由最高次项系数得到求和恒等式}
+
+\begin{proposition}[插值权重恒等式]
+\label{prop:interpolation-weights}
+设 $x_1,\ldots,x_n$ 两两不同，定义
+\[
+  w_j=\frac{1}{\prod_{k\ne j}(x_j-x_k)}.
+\]
+则
+\begin{equation}
+  \sum_{j=1}^n w_jx_j^m
+  =\begin{cases}
+    0,&0\leq m\leq n-2,\\
+    1,&m=n-1.
+  \end{cases}
+  \label{eq:interpolation-weights}
+\end{equation}
+当 $n=1$ 时，第一种情形的指标范围为空。
+\end{proposition}
+
+\begin{proof}
+对 $0\leq m\leq n-1$，多项式 $t^m$ 本身属于 $\mathcal P_{n-1}$。
+将式~\eqref{eq:lagrange-interpolation} 用于它，得到恒等式
+\[
+  t^m=\sum_{j=1}^n x_j^m\ell_j(t).
+\]
+比较两端 $t^{n-1}$ 的系数。
+每个 $\ell_j$ 的最高次项系数为 $w_j$，左端的相应系数在 $m<n-1$ 时为 $0$，
+在 $m=n-1$ 时为 $1$，于是得到所需结论。
+\end{proof}
+
+例如，取三个节点 $a,b,c$，有
+\[
+  \frac{1}{(a-b)(a-c)}+
+  \frac{1}{(b-a)(b-c)}+
+  \frac{1}{(c-a)(c-b)}=0,
+\]
+以及
+\[
+  \frac{a^2}{(a-b)(a-c)}+
+  \frac{b^2}{(b-a)(b-c)}+
+  \frac{c^2}{(c-a)(c-b)}=1.
+\]
+这些恒等式的分母都以当前节点减其余节点为方向，不宜在中途任意改变差值的顺序。
+
+\section{解题检查与常见误区}
+
+面对一个疑似范德蒙行列式，可按下列顺序检查结构：
+\begin{enumerate}
+  \item 确定每个节点对应一行还是一列，以及节点的实际排列顺序。
+  \item 检查幂次是否连续且从 $0$ 开始；若存在公共列因子，先提出。
+  \item 若各行是多项式取值，检查次数是否恰为 $0,1,\ldots,n-1$，并记录最高次项系数。
+  \item 记录行、列交换的符号，再按 $i<j$ 写出 $x_j-x_i$。
+  \item 核对因子个数、总次数、重复节点时是否为零；实节点有序时还可检查符号。
+\end{enumerate}
+
+标准行列式展开中的每一项都从每一行各取一个元素，其总次数为
+\[
+  0+1+\cdots+(n-1)=N.
+\]
+所以 $D_n$ 是总次数为 $N$ 的\keyterm{齐次多项式}（homogeneous polynomial），
+乘积公式也恰好有 $N$ 个一次因子。
+这一检查可以发现漏因子，但不能替代证明：
+即使知道一个表达式含有所需的全部因子且次数相同，仍需确定乘法常数。
+
+另一个需要区分的问题是\keyterm{精确可逆性与数值敏感性}。
+节点互异保证精确算术下插值系数唯一，却不保证系数对数据扰动不敏感。
+例如，节点为 $0$ 和非零实数 $\varepsilon$ 时，线性插值斜率为
+\[
+  c_1=\frac{y_2-y_1}{\varepsilon}.
+\]
+若仅将 $y_2$ 改为 $y_2+\delta$，斜率就改变 $\delta/\varepsilon$。
+当 $|\varepsilon|$ 很小时，较小的数据误差也可能带来较大的系数误差。
+这个例子说明非零行列式并不自动意味着数值计算可靠；
+也不能仅凭行列式的绝对值大小判断一般矩阵的数值敏感程度，因为行、列缩放会改变该数值。
+
+\section{练习与解答}
+
+\subsection{练习}
+
+\begin{enumerate}[label=\arabic*.]
+  \item\label{exercise:descending} 计算
+  \[
+    \begin{vmatrix}a^2&b^2&c^2\\a&b&c\\1&1&1\end{vmatrix},
+  \]
+  并说明它与标准三阶范德蒙行列式的符号关系。
+
+  \item\label{exercise:squares} 对实数 $a,b,c$，分解
+  \[
+    \begin{vmatrix}1&1&1\\a^2&b^2&c^2\\a^4&b^4&c^4\end{vmatrix},
+  \]
+  并给出它非零的充要条件。
+
+  \item\label{exercise:falling-factorials} 定义
+  \[
+    p_0(t)=1,\qquad p_k(t)=t(t-1)\cdots(t-k+1),\quad 1\leq k\leq n-1.
+  \]
+  计算 $\det(p_{i-1}(x_j))_{1\leq i,j\leq n}$。
+
+  \item\label{exercise:reciprocal} 设 $a,b,c$ 均非零，计算
+  \[
+    \begin{vmatrix}1&1&1\\a^{-1}&b^{-1}&c^{-1}\\a^{-2}&b^{-2}&c^{-2}\end{vmatrix}.
+  \]
+
+  \item\label{exercise:next-moment} 设 $x_1,\ldots,x_n$ 两两不同，证明
+  \[
+    \sum_{j=1}^n\frac{x_j^n}{\prod_{k\ne j}(x_j-x_k)}=x_1+\cdots+x_n.
+  \]
+\end{enumerate}
+
+\subsection{解答}
+
+\begin{solve}[练习~\ref{exercise:descending}]
+将第一行与第三行交换一次，得到标准形式。因此原行列式为
+\[
+  -(b-a)(c-a)(c-b)=(a-b)(a-c)(b-c).
+\]
+这里 $n=3$，$N=3$，也与式~\eqref{eq:descending-powers} 一致。
+\end{solve}
+
+\begin{solve}[练习~\ref{exercise:squares}]
+实际节点为 $a^2,b^2,c^2$，所以行列式为
+\[
+  (b^2-a^2)(c^2-a^2)(c^2-b^2)
+  =(b-a)(b+a)(c-a)(c+a)(c-b)(c+b).
+\]
+它非零当且仅当 $a^2,b^2,c^2$ 两两不同；在实数范围内，等价于
+$|a|,|b|,|c|$ 两两不同。
+仅有 $a,b,c$ 两两不同还不够，例如 $a=-b$ 时前两列相同。
+\end{solve}
+
+\begin{solve}[练习~\ref{exercise:falling-factorials}]
+$p_k$ 是 $k$ 次首一多项式，满足定理~\ref{thm:polynomial-basis} 的全部条件，故
+\[
+  \det\bigl(p_{i-1}(x_j)\bigr)_{1\leq i,j\leq n}
+  =\prod_{i<j}(x_j-x_i).
+\]
+各行中的低次项不改变行列式的值，因为从单项式基到这些多项式的系数矩阵为对角元全为 $1$ 的下三角矩阵。
+\end{solve}
+
+\begin{solve}[练习~\ref{exercise:reciprocal}]
+将式~\eqref{eq:reciprocal-nodes} 用于 $n=3$，得到
+\[
+  -\frac{(b-a)(c-a)(c-b)}{a^2b^2c^2}.
+\]
+三个倒数差各引入一个负号，合计符号为负。
+节点非零保证原矩阵及结果中的分母都有意义。
+\end{solve}
+
+\begin{solve}[练习~\ref{exercise:next-moment}]
+令 $g(t)=\prod_{j=1}^n(t-x_j)$，并记 $s=x_1+\cdots+x_n$。
+多项式 $r(t)=t^n-g(t)$ 的次数至多为 $n-1$，$t^{n-1}$ 的系数为 $s$，
+且 $r(x_j)=x_j^n$。
+对 $r$ 应用拉格朗日插值公式，得到
+\[
+  r(t)=\sum_{j=1}^n x_j^n\ell_j(t).
+\]
+比较 $t^{n-1}$ 的系数即得结论。
+不能直接把 $t^n$ 代入命题~\ref{prop:interpolation-weights} 的证明，
+因为 $t^n$ 已超出次数至多为 $n-1$ 的范围；先减去节点多项式正是为了恢复这一条件。
+\end{solve}
+
+\end{document}

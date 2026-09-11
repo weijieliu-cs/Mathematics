@@ -1,0 +1,701 @@
+\documentclass[UTF8]{ctexart}
+
+% 支持从项目根目录、强化学习目录或当前笔记目录读取共享样式。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{马尔可夫决策过程笔记}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+马尔可夫决策过程用于描述这样一类问题：每做出一个选择，环境就发生变化，而这个选择既影响眼前的奖励，也影响以后的收益。本文以一个简单的机器人任务为例，逐步介绍状态、动作、策略、回报和价值函数，再解释贝尔曼方程为什么成立。最后简要说明这些概念与 Q-learning、语言模型强化学习的联系。阅读时只需要基本的概率知识，重点是理解每个量在描述什么，以及它们为什么这样联系起来。
+\end{abstract}
+
+\tableofcontents
+
+\section{绪论：为什么要考虑长期收益}
+\label{sec:mdp-introduction}
+
+\keyterm{强化学习}（reinforcement learning，RL）研究如何通过与环境交互，学会做出更好的选择。负责选择的主体叫作\keyterm{智能体}（agent），与它交互的外部系统叫作\keyterm{环境}（environment）。例如，让机器人学习走到目标位置时，控制机器人的程序可以看作智能体，地图和运动规则可以看作环境。
+
+这类问题的特点是：\keyterm{当前动作会改变接下来遇到的情况}。因此，一个动作即使眼前没有奖励，也可能为以后的收益创造条件。
+
+\subsection{贯穿全文的例子}
+
+考虑一个机器人，它可能处于起点 $s_{\mathrm A}$、中间位置 $s_{\mathrm B}$ 或终点 $g$。规则如下：在起点，它可以立即结束任务，获得 $1$ 分；也可以向前走到中间位置，这一步得 $0$ 分。到达中间位置后，它只能继续向前，进入终点并获得 $10$ 分。到达终点后任务结束，没有后续奖励。
+
+表\ref{tab:mdp-example}列出了这个任务的全部实际动作。每个动作的结果都是确定的。
+\begin{table}
+  \centering
+  \caption{机器人任务的规则}
+  \label{tab:mdp-example}
+  \begin{tabular}{llll}
+    \toprule
+    当前位置 & 选择的动作 & 下一位置 & 本次奖励 \\
+    \midrule
+    起点 $s_{\mathrm A}$ & 立即结束 & 终点 $g$ & $1$ \\
+    起点 $s_{\mathrm A}$ & 向前 & 中间位置 $s_{\mathrm B}$ & $0$ \\
+    中间位置 $s_{\mathrm B}$ & 向前 & 终点 $g$ & $10$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+如果只比较第一步奖励，机器人会立即结束，因为 $1>0$。但如果把后面的收益也考虑进去，先走到中间位置就可能更好。这说明，学习决策时需要区分两个问题：\keyterm{这一步得到多少，以及从这一步开始总共能得到多少}。
+
+\subsection{MDP 要描述什么}
+
+\keyterm{马尔可夫决策过程}（Markov decision process，MDP）就是用来描述这类连续做选择的任务的数学模型。建立模型时，需要说清楚机器人可能在哪里、可以做什么、做完以后会到哪里，以及得到多少奖励。
+
+本文先用上述例子解释这些要素，再介绍如何计算长期收益，最后说明如何据此选择动作。为使公式容易理解，主要讨论状态和动作都只有有限种的情形。除单独说明的回合式任务外，假设环境规则不随时间改变，每一步奖励的绝对值都有同一个有限上限，并取折扣因子 $0\leq\gamma<1$。折扣的具体含义将在第\ref{sec:mdp-return}节解释。
+
+\section{MDP 的五个基本要素}
+\label{sec:mdp-elements}
+
+\subsection{状态：当前处于什么情况}
+
+\keyterm{状态}（state）表示环境当前的情况，通常记为 $s$。所有可能状态组成\keyterm{状态空间}（state space），记为 $\mathcal S$。
+
+在机器人例子中，位置已经足以描述当前情况，因此
+\[
+  \mathcal S=\{s_{\mathrm A},s_{\mathrm B},g\}.
+\]
+在规则固定的简单迷宫中，状态也可以是格点坐标 $(i,j)$。如果任务还涉及是否拿到钥匙、剩余电量等信息，就应根据需要把它们加入状态，因为这些信息会影响接下来的移动或奖励。
+
+所以，状态并不一定只是“位置”。选择状态时应考虑：\keyterm{哪些当前信息会影响下一步的结果？}
+
+\subsection{动作：当前可以做什么}
+
+\keyterm{动作}（action）是智能体可以作出的选择，通常记为 $a$。动作空间记为 $\mathcal A$；如果不同状态允许的动作不同，就用 $\mathcal A(s)$ 表示状态 $s$ 下的可用动作集合。
+
+例如，机器人在起点可以选择“向前”或“立即结束”，在中间位置只能选择“向前”。在格点迷宫中，动作则可能是上、下、左、右。
+
+动作和结果需要分清：选择“向右”是动作，实际是否向右移动成功是环境产生的结果。环境有随机性时，同一个动作不一定每次产生同一个结果。
+
+\subsection{转移概率：做完动作会到哪里}
+
+\keyterm{状态转移概率}（transition probability）记为
+\begin{equation}
+  P(s'\mid s,a).
+  \label{eq:mdp-transition}
+\end{equation}
+它表示：当前处于 $s$，执行动作 $a$ 后，下一状态是 $s'$ 的概率。竖线 $\mid$ 可以读作“在已经知道……的条件下”；$s'$ 只是下一状态的记号，这里的撇号不表示求导。
+
+在机器人例子中，向前移动必定成功，因此
+\[
+  P(s_{\mathrm B}\mid s_{\mathrm A},\text{向前})=1.
+\]
+如果地面打滑，规则改为有 $80\%$ 的概率到达 $s_{\mathrm B}$，有 $20\%$ 的概率留在原地，那么
+\[
+  P(s_{\mathrm B}\mid s_{\mathrm A},\text{向前})=0.8,
+  \qquad
+  P(s_{\mathrm A}\mid s_{\mathrm A},\text{向前})=0.2.
+\]
+这只是说明随机转移的一个变体，后面计算机器人价值时仍采用表\ref{tab:mdp-example}中的确定性规则。
+
+给定当前状态和动作，下一状态总要落在某个可能状态上，因此
+\begin{equation}
+  P(s'\mid s,a)\geq0,
+  \qquad \sum_{s'\in\mathcal S}P(s'\mid s,a)=1.
+  \label{eq:mdp-transition-sum}
+\end{equation}
+这里的求和，就是把所有可能去向的概率加起来。
+
+\subsection{奖励：这一步得到多少反馈}
+
+\keyterm{奖励}（reward）是环境在一次动作之后给出的数值反馈。奖励可以是正数、零或负数。在机器人例子中，从起点走到中间位置奖励为 $0$，从中间位置走到终点奖励为 $10$。
+
+对规则确定的情形，可以用 $r(s,a)$ 表示在状态 $s$ 执行动作 $a$ 后的奖励。如果同一状态下执行同一动作，奖励也可能不同，本文就用 $r(s,a)$ 表示这些奖励的\keyterm{平均值}。例如，一次尝试有一半概率得 $10$ 分、一半概率得 $0$ 分，那么平均奖励为 $5$ 分，但某一次实际奖励仍然可能是 $10$ 或 $0$。
+
+奖励应表达任务希望鼓励的行为。例如，在迷宫中给每次移动 $-1$ 的奖励，可以让多走一步付出代价。在不折扣、每次移动都得 $-1$ 且最终到达目标的任务中，走 $T$ 步的总奖励就是 $-T$，所以提高总奖励等价于减少步数。
+
+\subsection{折扣因子与五元组}
+
+\keyterm{折扣因子}（discount factor）记为 $\gamma$，用于规定未来奖励在当前计算中占多大权重。通常 $\gamma$ 越接近 $1$，后面的奖励保留的权重越大。
+
+把上述要素合在一起，便得到常见的 MDP 写法：
+\begin{equation}
+  \mathcal M=(\mathcal S,\mathcal A,P,r,\gamma).
+  \label{eq:mdp-tuple}
+\end{equation}
+这个式子只是把五项任务说明放在一起：\keyterm{状态、动作、转移概率、奖励和折扣因子}。除此之外，还应交代任务从哪里开始。例如，本文的机器人总从 $s_{\mathrm A}$ 开始。
+
+MDP 还要求状态包含预测下一步所需的信息。这一要求就是下一节的马尔可夫性质。
+
+\section{马尔可夫性质：当前状态应包含哪些信息}
+\label{sec:mdp-markov}
+
+\subsection{先看一个信息不足的例子}
+
+假设要预测汽车下一秒的位置，只知道它现在位于道路上的某一点。仅凭位置还不够：汽车可能停着，也可能正在快速前进；当前位置一样，下一秒的位置却会不同。
+
+如果再给出当前速度，在一个只由位置、速度和控制动作决定运动的简化模型中，就能预测下一步。此时不需要重新查看汽车过去每一秒的位置，因为当前状态已经保留了预测所需的信息。
+
+这个例子说明，所谓“当前状态足够”，不是要求记录尽可能多的数据，而是要求\keyterm{不遗漏会影响下一步结果的信息}。
+
+\subsection{马尔可夫性质的含义}
+
+\begin{definition}[马尔可夫性质]
+如果在知道当前状态和当前动作之后，再补充更早的历史，不会改变对下一状态和本次奖励的概率判断，就称这个状态表示满足\keyterm{马尔可夫性质}（Markov property）。
+\end{definition}
+
+例如，在地图和运动规则固定、也没有钥匙或电量限制的简单迷宫中，知道机器人现在的位置和准备执行的动作，就可以判断下一步会到哪里，无须再知道它是沿哪条路线来到当前位置的。
+
+为了用公式表达，需要区分随机变量与实际取值：用 $S_t$ 表示第 $t$ 步的状态随机变量，$A_t$ 表示动作随机变量，$R_{t+1}$ 表示执行该动作后得到的奖励随机变量；一次实际交互中，它们的取值分别记为 $s_t,a_t,r_{t+1}$。例如，$S_t=s_{\mathrm A}$ 表示“第 $t$ 步处于起点”。
+
+只写下一状态这一部分，马尔可夫性质可表示为
+\begin{equation}
+  \Pr(S_{t+1}=s'\mid \text{此前全部历史},S_t=s,A_t=a)
+  =P(s'\mid s,a).
+  \label{eq:mdp-markov}
+\end{equation}
+这个等式说的是：右边只使用当前状态和动作，就已经包含了左边用于预测下一状态的信息。奖励也应满足同样的信息要求。
+
+马尔可夫性质允许环境有随机性。例如，无论机器人过去怎样到达当前位置，只要现在向前走，总是以 $0.8$ 的概率成功，这仍然可以是马尔可夫模型。还要注意，预测下一步时通常不能漏掉当前动作：在同一位置选择向左和向右，结果自然可能不同。
+
+\subsection{状态和观测不一定相同}
+
+\keyterm{观测}（observation）是智能体实际看到或测量到的信息。例如，传感器可能只测到前车的位置，却没有直接测到速度。这时，单次观测未必包含完整状态。
+
+如果智能体能获得作出预测所需的完整状态，就可以直接采用本文的 MDP 描述。如果只能看到其中一部分，则可用\keyterm{部分可观测马尔可夫决策过程}（partially observable Markov decision process，POMDP）描述。例如，在扑克游戏中，自己的牌和公共牌可以看到，对手的私牌却看不到。
+
+入门时先记住这个区别即可：\keyterm{状态描述环境的情况，观测描述智能体实际得到的信息}。观测不足时，智能体往往还需要结合过去看到的内容作判断。
+
+\section{策略：在每个状态下怎样选择动作}
+\label{sec:mdp-policy}
+
+\subsection{确定性策略与随机策略}
+
+MDP 规定环境的规则，\keyterm{策略}（policy）则规定智能体怎样行动，通常记为 $\pi$。
+
+\keyterm{确定性策略}（deterministic policy）为每个状态指定一个动作，可以写为
+\[
+  a=\pi(s).
+\]
+例如，机器人在起点选择向前，在中间位置也选择向前。这已经是一套完整的行为规则，而不只是第一步的选择。
+
+\keyterm{随机策略}（stochastic policy）为各个可用动作指定选择概率，记为
+\[
+  \pi(a\mid s).
+\]
+例如，在起点以 $0.7$ 的概率向前，以 $0.3$ 的概率立即结束，则
+\[
+  \pi(\text{向前}\mid s_{\mathrm A})=0.7,
+  \qquad
+  \pi(\text{立即结束}\mid s_{\mathrm A})=0.3.
+\]
+所有可用动作的概率必须非负且加起来为 $1$：
+\begin{equation}
+  \sum_{a\in\mathcal A(s)}\pi(a\mid s)=1.
+  \label{eq:mdp-policy-sum}
+\end{equation}
+确定性策略也可以看成随机策略的特殊情况：某个动作的概率为 $1$，其余为 $0$。
+
+本文讨论的策略只根据当前状态选择动作，并且同一状态下的选择规则不随时间改变。若任务要求“还剩一步”和“还剩十步”时采用不同决策，就需要把剩余时间考虑进去。
+
+\subsection{策略与转移概率有什么区别}
+
+两者都写成条件概率，但负责不同的事情：
+\[
+  \pi(a\mid s):\ \text{在当前状态选哪个动作},
+  \qquad
+  P(s'\mid s,a):\ \text{执行动作后会到哪里}.
+\]
+例如，机器人可以有 $0.7$ 的概率选择向前，而一旦选了向前，就必定到达中间位置。前一个概率来自策略，后一个概率来自环境。
+
+\subsection{一次完整交互与一条轨迹}
+
+在第 $t$ 步，智能体按策略选择动作，环境再给出奖励和下一状态，过程为
+\begin{equation}
+  S_t\longrightarrow A_t\longrightarrow(R_{t+1},S_{t+1}).
+  \label{eq:mdp-interaction}
+\end{equation}
+这里用 $R_{t+1}$ 表示动作 $A_t$ 之后得到的奖励，以便在时间顺序上保持一致。
+
+把一次实际交互记录下来，就得到一条\keyterm{轨迹}（trajectory）：
+\[
+  \tau=(s_0,a_0,r_1,s_1,a_1,r_2,\ldots).
+\]
+例如，机器人两次向前走的轨迹为
+\[
+  (s_{\mathrm A},\text{向前},0,s_{\mathrm B},\text{向前},10,g).
+\]
+这条记录包含了从哪里开始、做过什么、拿到多少奖励以及最终到达哪里。
+
+\section{回报：怎样把多步奖励合起来}
+\label{sec:mdp-return}
+
+\subsection{奖励与回报的区别}
+
+奖励只对应某一步。为了评价一连串动作，需要把从当前开始的奖励合起来，得到\keyterm{回报}（return），记为 $G_t$。
+
+如果暂时不考虑折扣，机器人连续向前两步的回报为 $0+10=10$，立即结束的回报为 $1$。这样才能比较两种选择的完整后果。
+
+通常使用的折扣回报为
+\begin{equation}
+  G_t=R_{t+1}+\gamma R_{t+2}+\gamma^2R_{t+3}+\cdots
+     =\sum_{k=0}^{\infty}\gamma^kR_{t+k+1}.
+  \label{eq:mdp-return}
+\end{equation}
+这个公式可以逐项读：接下来第一次奖励完整计入，第二次奖励乘以 $\gamma$，第三次乘以 $\gamma^2$，依此类推。
+
+\subsection{折扣怎样影响比较结果}
+
+例如，$\gamma=0.9$ 时，同样是 $10$ 分，如果出现在接下来的第一次、第二次、第三次奖励中，对当前回报的贡献分别是
+\[
+  10,\qquad 0.9\times10=9,\qquad 0.9^2\times10=8.1.
+\]
+注意，接下来第一步得到的奖励不折扣。这是式\eqref{eq:mdp-return}中时间下标的约定。
+
+回到机器人例子。立即结束的回报为 $1$；连续向前的回报为
+\begin{equation}
+  G_0=0+0.9\times10=9.
+  \label{eq:mdp-example-return}
+\end{equation}
+因此，在 $\gamma=0.9$ 时，向前比立即结束更好。
+
+折扣会影响最优选择。如果改用任意 $\gamma$，向前的回报为 $10\gamma$：当 $\gamma>0.1$ 时向前更好，当 $\gamma<0.1$ 时立即结束更好，等于 $0.1$ 时两者一样好。所以，比较动作前需要先明确怎样评价未来奖励。
+
+\subsection{为什么无限求和可以得到有限结果}
+
+对于一直运行的任务，如果每一步都得到 $1$ 分，不折扣的总和 $1+1+1+\cdots$ 没有有限结果。若 $0\leq\gamma<1$，则
+\[
+  1+\gamma+\gamma^2+\cdots=\frac{1}{1-\gamma}.
+\]
+更一般地，如果每一步奖励的绝对值都不超过同一个有限数 $M$，那么
+\begin{equation}
+  |G_t|\leq M+\gamma M+\gamma^2M+\cdots
+           =\frac{M}{1-\gamma}.
+  \label{eq:mdp-return-bound}
+\end{equation}
+因此，在“奖励有统一上限”和“$\gamma<1$”这两个条件下，回报可以安全地按无限级数定义。
+
+折扣还可以表达对较早收益的偏好。环境有随机性本身并不意味着一定要折扣；是否折扣以及取多大的 $\gamma$，都是任务目标的一部分。
+
+\subsection{回合、持续任务与终止奖励}
+
+一局游戏、一次走迷宫或生成一份回答，都可能有明确的结束时刻。这样一次完整过程叫作\keyterm{回合}（episode），相应任务叫作回合式任务（episodic task）。没有明确结束点、长期运行的任务叫作持续式任务（continuing task）。
+
+若任务在状态 $S_T$ 处结束，则实际执行了 $A_0,\ldots,A_{T-1}$ 共 $T$ 次动作，获得了 $R_1,\ldots,R_T$ 共 $T$ 个奖励。回报只需加到最后一次奖励：
+\begin{equation}
+  G_t=R_{t+1}+\gamma R_{t+2}+\cdots+\gamma^{T-t-1}R_T,
+  \qquad t<T.
+  \label{eq:mdp-finite-return}
+\end{equation}
+
+\keyterm{终止状态}（terminal state）表示任务已经结束。本文约定结束后没有新奖励，因此 $G_T=0$。机器人进入终点时获得的 $10$ 分属于最后一次动作的奖励，应当计入；只有到达终点之后的奖励才为零。
+
+如果任务步数有固定上限且奖励有界，可以取 $\gamma=1$。如果只是最终会结束、却没有步数上限，那么还需要检查平均累计奖励是否有限，不能仅凭“有终点”就省略这一条件。
+
+\section{价值函数：从这里出发有多好}
+\label{sec:mdp-value}
+
+\subsection{为什么还需要价值函数}
+
+一条实际轨迹可以算出一个回报。但策略可能随机选择动作，环境也可能随机变化，所以从同一个状态出发，每次得到的回报未必相同。
+
+为了评价这个状态，需要考虑：\keyterm{如果反复从这里出发，按同一个策略行动，平均能得到多少回报？}这个平均结果就是状态价值。
+
+\begin{definition}[状态价值函数]
+给定策略 $\pi$，状态 $s$ 的\keyterm{状态价值}（state value）为
+\begin{equation}
+  V^\pi(s)=\mathbb E_\pi[G_t\mid S_t=s].
+  \label{eq:mdp-state-value}
+\end{equation}
+其中 $\mathbb E$ 表示期望，可以理解为按各种可能结果的概率计算平均值；下标 $\pi$ 表示后续按策略 $\pi$ 行动，上标 $\pi$ 则提醒我们价值取决于这个策略，不表示乘方。
+\end{definition}
+
+这个式子可以读作：“从状态 $s$ 出发，今后执行策略 $\pi$ 的平均回报。”给定起点后，平均值中的随机性来自动作选择和环境结果。
+
+\subsection{先算一个确定性策略的价值}
+
+设 $\pi_{\mathrm F}$ 是机器人在起点和中间位置都向前的策略，仍取 $\gamma=0.9$。
+
+在终点 $g$，任务已经结束，因此
+\[
+  V^{\pi_{\mathrm F}}(g)=0.
+\]
+在中间位置，只需要再走一步就能得到 $10$ 分，所以
+\[
+  V^{\pi_{\mathrm F}}(s_{\mathrm B})=10.
+\]
+从起点出发，要先得到 $0$ 分，再得到 $10$ 分，因此
+\[
+  V^{\pi_{\mathrm F}}(s_{\mathrm A})=0+0.9\times10=9.
+\]
+这里没有随机性，所以价值恰好等于那条确定轨迹的回报。有随机性时，价值则是不同轨迹回报的平均值。
+
+\subsection{动作价值：先做这个动作有多好}
+
+状态价值评价“从这里出发，按策略行动”。如果想比较当前的两个动作，就需要把第一步动作单独指定出来。
+
+\begin{definition}[动作价值函数]
+状态 $s$ 下动作 $a$ 的\keyterm{动作价值}（action value）为
+\begin{equation}
+  Q^\pi(s,a)=\mathbb E_\pi[G_t\mid S_t=s,A_t=a].
+  \label{eq:mdp-action-value}
+\end{equation}
+它表示从状态 $s$ 出发，\keyterm{第一步指定做 $a$，此后再按 $\pi$ 行动}的平均回报。
+\end{definition}
+
+即使策略 $\pi$ 平时不选某个动作，也可以问“如果第一步改选它，之后仍按 $\pi$ 行动，会怎样”。这是 $Q^\pi(s,a)$ 的含义。
+
+在机器人例子中，
+\[
+  Q^{\pi_{\mathrm F}}(s_{\mathrm A},\text{向前})=9,
+  \qquad
+  Q^{\pi_{\mathrm F}}(s_{\mathrm A},\text{立即结束})=1.
+\]
+这两个数直接比较了起点处两种选择的长期后果。$Q^\pi$ 中第一步动作已经指定，而 $V^\pi$ 中第一步也由策略决定。
+
+\subsection{状态价值是动作价值的加权平均}
+
+现在考虑随机策略 $\pi_{\mathrm M}$：在起点以 $0.7$ 的概率向前，以 $0.3$ 的概率立即结束；在中间位置仍然向前。
+
+如果第一步向前，之后的回报为 $9$；如果第一步立即结束，回报为 $1$。所以
+\[
+  V^{\pi_{\mathrm M}}(s_{\mathrm A})=0.7\times9+0.3\times1=6.6.
+\]
+这个计算展示了一般关系：
+\begin{equation}
+  V^\pi(s)=\sum_{a\in\mathcal A(s)}\pi(a\mid s)Q^\pi(s,a).
+  \label{eq:mdp-vq}
+\end{equation}
+每一项都是“选中这个动作的概率”乘以“先做这个动作的平均回报”，然后对所有动作相加。它是在评价当前策略，因此通常是加权平均，而不是直接取最大的动作价值。
+
+\subsection{奖励、回报和价值放在一起比较}
+
+仍以从起点向前为例：这一步的奖励是 $0$；沿着后续路径走完的折扣回报是 $9$；在确定性策略 $\pi_{\mathrm F}$ 下，起点价值也是 $9$。改为随机策略 $\pi_{\mathrm M}$ 后，一次回合可能获得回报 $9$ 或 $1$，而平均价值是 $6.6$。
+
+因此，三个量回答的问题依次是：\keyterm{这一步得多少、这次从现在起合计得多少、按这个策略平均得多少}。
+
+\section{贝尔曼方程：把长期问题拆成一步}
+\label{sec:mdp-bellman}
+
+\subsection{从已经算过的例子出发}
+
+前面算起点价值时，用了
+\[
+  V^{\pi_{\mathrm F}}(s_{\mathrm A})
+  =0+0.9V^{\pi_{\mathrm F}}(s_{\mathrm B}).
+\]
+这一步并没有从头列出所有未来奖励，而是直接使用中间位置的价值。原因是：中间位置的价值已经把从那里开始的后续奖励合在一起了。
+
+\keyterm{贝尔曼方程}（Bellman equation）的核心就是这种拆分：\keyterm{当前价值由这一步的奖励和下一状态的价值共同组成}。
+
+\subsection{回报为什么可以拆开}
+
+根据回报定义，
+\begin{align*}
+  G_t&=R_{t+1}+\gamma R_{t+2}+\gamma^2R_{t+3}+\cdots,\\
+  G_{t+1}&=R_{t+2}+\gamma R_{t+3}+\cdots.
+\end{align*}
+把第二行乘以 $\gamma$，它就与第一行除首项以外的部分相同。因此
+\begin{equation}
+  G_t=R_{t+1}+\gamma G_{t+1}.
+  \label{eq:mdp-return-recursion}
+\end{equation}
+有限回合可以直接逐项核对；无限回合在式\eqref{eq:mdp-return-bound}的条件下也可以这样拆分，因为各项绝对值相加仍然是有限的。
+
+\subsection{先固定第一步动作}
+
+假设当前在 $s$，先执行动作 $a$。这一步的平均奖励为 $r(s,a)$。之后可能到达不同的 $s'$，到达每个 $s'$ 的概率是 $P(s'\mid s,a)$。
+
+本节及后文涉及选择、比较动作的公式，都针对任务尚未结束的状态。终点没有实际动作，其后续价值直接取零。
+
+到达 $s'$ 后，继续按 $\pi$ 行动的平均回报就是 $V^\pi(s')$。这是因为状态满足马尔可夫性质，而且后续继续采用同一个策略。因此，下一状态价值的平均值为
+\[
+  \sum_{s'\in\mathcal S}P(s'\mid s,a)V^\pi(s').
+\]
+再乘以折扣 $\gamma$，加上第一步奖励，便得到
+\begin{equation}
+  Q^\pi(s,a)
+  =r(s,a)+\gamma\sum_{s'\in\mathcal S}P(s'\mid s,a)V^\pi(s').
+  \label{eq:mdp-bellman-q-v}
+\end{equation}
+这里的两部分分别是\keyterm{这一步的平均奖励}和\keyterm{后续平均回报的折扣值}。
+
+\subsection{再考虑策略如何选择第一步动作}
+
+如果第一步动作也由策略 $\pi$ 选择，就还要按动作概率取平均。将式\eqref{eq:mdp-bellman-q-v}代入式\eqref{eq:mdp-vq}，得到
+\begin{equation}
+  V^\pi(s)=\sum_{a\in\mathcal A(s)}\pi(a\mid s)
+  \left[r(s,a)+\gamma\sum_{s'\in\mathcal S}P(s'\mid s,a)V^\pi(s')\right].
+  \label{eq:mdp-bellman-v}
+\end{equation}
+这就是\keyterm{贝尔曼期望方程}（Bellman expectation equation）。“期望”说明它把随机结果按概率取了平均。
+
+阅读这个式子时，可以从里往外看：先算做某个动作后可能到达的状态有多好，再加上该动作的即时奖励，最后考虑当前策略有多大概率选择各个动作。
+
+对于随机策略 $\pi_{\mathrm M}$，代入机器人规则便得到
+\[
+  V^{\pi_{\mathrm M}}(s_{\mathrm A})
+  =0.7[0+0.9\times10]+0.3[1+0.9\times0]
+  =6.6.
+\]
+这和前面直接按两条轨迹计算的结果相同。
+
+有时文献把奖励写成 $r(s,a,s')$，表示已知下一状态为 $s'$ 时的平均奖励。这时同一方程可以写为
+\[
+  V^\pi(s)=\sum_a\pi(a\mid s)\sum_{s'}P(s'\mid s,a)
+  [r(s,a,s')+\gamma V^\pi(s')].
+\]
+两种写法的区别只在于是否把奖励对下一状态的依赖单独写出；$r(s,a)$ 已经对不同下一状态的奖励取了平均。
+
+\subsection{动作价值也能写成递推公式}
+
+在式\eqref{eq:mdp-bellman-q-v}中，把下一状态的 $V^\pi(s')$ 换成动作价值的平均，便得到
+\begin{equation}
+  Q^\pi(s,a)=r(s,a)+\gamma\sum_{s'\in\mathcal S}P(s'\mid s,a)
+  \sum_{a'\in\mathcal A(s')}\pi(a'\mid s')Q^\pi(s',a').
+  \label{eq:mdp-bellman-q}
+\end{equation}
+这个式子仍在说同一件事：先做当前动作得到奖励，再考虑下一状态、下一动作和之后的收益。$s'$、$a'$ 分别表示下一状态和下一动作。
+
+贝尔曼方程的用途是把长远收益联系到相邻两步。环境规则已知时，可以利用这些方程计算给定策略的价值，这个过程叫作\keyterm{策略评价}（policy evaluation）。
+
+\section{最优策略：怎样选择更好的动作}
+\label{sec:mdp-optimal}
+
+\subsection{评价策略和寻找策略是两件事}
+
+前面的 $V^\pi$ 和 $Q^\pi$ 都在回答：“如果采用策略 $\pi$，结果怎样？”接下来要回答的是：“应该采用哪一个策略，才能得到最大的平均回报？”
+
+\keyterm{最优策略}（optimal policy）记为 $\pi^*$。它的含义是，从每个状态出发，所得到的平均回报都不低于其他可用策略：
+\begin{equation}
+  V^{\pi^*}(s)\geq V^\pi(s)
+  \qquad\text{对所有状态 }s\text{ 和所有可用策略 }\pi.
+  \label{eq:mdp-optimal-policy}
+\end{equation}
+
+本文使用的有限状态、有限动作、有界奖励及 $\gamma<1$ 条件下，存在这样的最优策略，而且可以让它在每个状态固定选择一个动作。这里先使用这一标准结论，进一步的理论说明可参考文献\cite{sutton-barto}。
+
+最优状态价值和最优动作价值分别记为
+\begin{equation}
+  V^*(s)=\max_\pi V^\pi(s),
+  \qquad Q^*(s,a)=\max_\pi Q^\pi(s,a).
+  \label{eq:mdp-optimal-value}
+\end{equation}
+其中，$Q^*(s,a)$ 仍然先指定执行 $a$，只是此后的行动采用最优选择。
+
+\subsection{从按概率平均到选择最好动作}
+
+在给定策略下，需要按 $\pi(a\mid s)$ 对动作价值取平均；如果已经知道最优动作价值，就可以直接选最大的一个。因此
+\begin{equation}
+  V^*(s)=\max_{a\in\mathcal A(s)}Q^*(s,a).
+  \label{eq:mdp-optimal-vq}
+\end{equation}
+例如，机器人在起点向前的最优动作价值是 $9$，立即结束是 $1$，所以应该向前。
+
+常用下面的式子表示这种选择：
+\[
+  \pi^*(s)\in\operatorname*{arg\,max}_{a\in\mathcal A(s)}Q^*(s,a).
+\]
+这里 $\max$ 给出“最大的价值是多少”，而 $\operatorname*{arg\,max}$ 给出“哪些动作取得这个最大值”。写成属于号，是因为多个动作可能并列最好，此时任选其中一个即可。
+
+\subsection{贝尔曼最优方程}
+
+先指定当前动作，然后从下一状态开始最优行动，就得到
+\[
+  Q^*(s,a)=r(s,a)+\gamma\sum_{s'}P(s'\mid s,a)V^*(s').
+\]
+再对当前动作取最大值，有
+\begin{equation}
+  V^*(s)=\max_{a\in\mathcal A(s)}
+  \left[r(s,a)+\gamma\sum_{s'\in\mathcal S}P(s'\mid s,a)V^*(s')\right].
+  \label{eq:mdp-optimal-bellman-v}
+\end{equation}
+把下一状态的最优价值换成最大的动作价值，又得到
+\begin{equation}
+  Q^*(s,a)=r(s,a)+\gamma\sum_{s'\in\mathcal S}P(s'\mid s,a)
+  \max_{a'\in\mathcal A(s')}Q^*(s',a').
+  \label{eq:mdp-optimal-bellman-q}
+\end{equation}
+这两式称为\keyterm{贝尔曼最优方程}（Bellman optimality equation）。它们与期望方程的关键区别是：后续选择采用最优动作，而不是按照一个事先给定的策略平均。
+
+如果环境有随机性，选了最优动作后仍然可能产生不同结果，所以公式中对下一状态的概率平均仍要保留。智能体能选择动作，并不能任意选择环境产生的结果。
+
+\subsection{把机器人例子完整算完}
+
+终点没有后续奖励，中间位置只能向前，因此
+\[
+  V^*(g)=0,\qquad V^*(s_{\mathrm B})=10+0.9\times0=10.
+\]
+起点有两个动作，分别计算后比较：
+\begin{align*}
+  Q^*(s_{\mathrm A},\text{向前})&=0+0.9\times10=9,\\
+  Q^*(s_{\mathrm A},\text{立即结束})&=1+0.9\times0=1.
+\end{align*}
+所以 $V^*(s_{\mathrm A})=9$，最优策略是在起点和中间位置都向前。这个例子只有两条路线，可以直接算完；状态很多时，就需要算法帮助进行大量计算或从数据估计价值。
+
+\section{这些概念怎样连接到强化学习算法}
+\label{sec:mdp-algorithms}
+
+\subsection{知道环境规则时，可以直接计算}
+
+如果已经知道 $P$ 和 $r$，就知道各动作可能产生什么结果及相应的平均奖励，可以用贝尔曼方程计算价值，进而比较动作。这类根据环境规则进行计算的过程属于规划。
+
+\keyterm{基于模型的方法}（model-based method）会使用这样的环境模型。模型既可能事先已知，也可能由交互数据学出来。利用已知模型反复计算状态价值，是\keyterm{动态规划}（dynamic programming）中的常见做法。
+
+\subsection{不知道环境规则时，可以从经验学习}
+
+如果不知道转移概率和奖励规律，就无法直接算出贝尔曼方程中的完整平均值。但每次交互仍能得到一条经验：
+\[
+  (s,a,r,s').
+\]
+这里分别是实际的当前状态、动作、奖励和下一状态。\keyterm{无模型方法}（model-free method）可以利用这些经验直接学习价值或策略，而不先建立用于规划的环境模型。
+
+“无模型”不表示没有数学模型，也不表示不能使用神经网络。它指的是学习决策时不依赖显式的环境转移模型进行上述规划。
+
+\subsection{Q-learning 的一次更新在做什么}
+
+\keyterm{Q 学习}（Q-learning）维护当前的动作价值估计 $Q(s,a)$，希望它逐渐接近 $Q^*(s,a)$。得到一次经验 $(s,a,r,s')$ 后，可以构造一个目标：
+\[
+  \text{本次更新目标}=r+\gamma\max_{a'\in\mathcal A(s')}Q(s',a').
+\]
+第一部分是实际观察到的奖励；第二部分是根据已有估计，认为从下一状态继续行动可以得到的最好收益。然后让旧估计向这个目标靠近：
+\begin{equation}
+  Q(s,a)\leftarrow Q(s,a)+\alpha
+  \left[r+\gamma\max_{a'\in\mathcal A(s')}Q(s',a')-Q(s,a)\right],
+  \label{eq:mdp-q-learning}
+\end{equation}
+其中 $0<\alpha\leq1$ 是\keyterm{学习率}（learning rate），控制这一次修改多少。到达终止状态时，后续价值按零计算。
+
+例如，机器人从起点向前走，实际奖励为 $0$。假设目前对中间位置最好动作的估计为 $8$，那么在 $\gamma=0.9$ 时，本次目标为 $0+0.9\times8=7.2$。如果起点向前动作的旧估计为 $5$，学习率为 $0.5$，则更新为
+\[
+  5+0.5(7.2-5)=6.1.
+\]
+新估计从 $5$ 向 $7.2$ 靠近了一半。它还不是精确答案 $9$，因为下一状态的估计也尚未准确。
+
+实际学习时，先初始化各项估计，再反复选择动作、取得经验、更新估计，最后根据估计较大的动作形成策略。还需要适当尝试未充分了解的动作，才能获得用于比较的数据。
+
+式\eqref{eq:mdp-q-learning}展示的是更新思路。表格型 Q-learning 的收敛需要充分访问各状态动作对，并适当安排逐渐减小的学习率等条件；不能仅凭写出更新公式，就断言有限次训练一定得到最优策略。相应理论可参考文献\cite{watkins-dayan}。
+
+\subsection{后续算法从这里接过什么}
+
+理解 MDP 后，学习不同算法时可以先分清它们在估计或更新什么：
+\begin{itemize}
+  \item \keyterm{蒙特卡洛方法}（Monte Carlo method）可以等一个回合结束，用实际累计回报估计价值。
+  \item \keyterm{时序差分方法}（temporal-difference method，TD）利用当前奖励和下一步的价值估计更新当前价值。Q-learning 属于这一类方法；SARSA 的一步更新则使用实际选出的下一动作的价值。
+  \item \keyterm{深度 Q 网络}（deep Q-network，DQN）用神经网络表示和学习动作价值。
+  \item \keyterm{策略梯度方法}（policy gradient method）直接调整策略，让高回报的行为更容易被选择。\keyterm{行动者--评论家方法}（actor--critic method）则把策略更新和价值估计结合起来。
+\end{itemize}
+
+这些名称用于说明学习方向，不需要在学习 MDP 时同时掌握所有算法。当前最重要的是分清策略、回报、状态价值、动作价值以及贝尔曼方程之间的关系。
+
+\section{语言模型中的状态、动作和奖励}
+\label{sec:mdp-llm}
+
+\subsection{生成下一个词元，也可以看成一次动作}
+
+\keyterm{大语言模型}（large language model，LLM）逐步生成文本。\keyterm{词元}（token）是模型生成文本时使用的基本单位，可能是一个字、一个词或一个词的一部分，具体由分词器决定。
+
+考虑一个没有工具调用的单轮问答任务，例如“计算 $27\times14$”。可以这样对应 MDP 的要素：
+\begin{itemize}
+  \item 状态：问题以及已经生成的内容。
+  \item 动作：选择下一个词元。
+  \item 下一状态：把这个词元追加到已有内容之后。
+  \item 奖励：对生成内容的评价，例如完整答案是否正确。
+  \item 策略：模型在当前内容下为各个下一词元给出的概率。
+\end{itemize}
+
+设问题为 $x$，已经生成的词元为 $y_1,\ldots,y_t$，则可以写成
+\[
+  s_t=(x,y_1,\ldots,y_t),\qquad a_t=y_{t+1}.
+\]
+模型的策略为
+\[
+  \pi_\theta(a_t\mid s_t),
+\]
+其中 $\theta$ 表示模型参数。给定当前内容和选中的词元，追加后的内容是确定的；但模型抽取哪个词元可以是随机的。因此，确定的状态转移与随机的策略可以同时存在。
+
+\subsection{为什么奖励可能只在最后给出}
+
+对于检查答案是否正确的任务，生成到一半时可能还无法评分，等完整回答出现后才能给出奖励。例如，一个生成了 $T$ 个词元的回答可以采用
+\[
+  R_1=\cdots=R_{T-1}=0,
+  \qquad R_T=\text{完整回答的评分}.
+\]
+任务在最后一个词元后结束，最后一次奖励仍计入回报。若设置最大生成长度、评分有界，并取 $\gamma=1$，回报就是完整回答的评分。
+
+有了这样的奖励，训练仍需要判断应该怎样调整之前各步的选择。这涉及\keyterm{信用分配}（credit assignment）：如何利用最终结果来学习前面哪些选择值得增加或减少。最后答对了，并不意味着前面每一个词元都同样重要。
+
+终局评分并不是唯一的奖励方式。也可以对中间步骤评分，提供更细的反馈，具体取决于任务如何设计。
+
+\subsection{价值与优势怎样帮助理解策略更新}
+
+在这个对应中，$V^\pi(s)$ 可以理解为：“已经写到当前这段内容，接着按现有模型生成，最终平均能得多少分？”而 $Q^\pi(s,a)$ 则进一步指定：“下一个词元先选 $a$，之后继续按现有模型生成，平均能得多少分？”
+
+常见的\keyterm{优势函数}（advantage function）定义为
+\begin{equation}
+  A^\pi(s,a)=Q^\pi(s,a)-V^\pi(s).
+  \label{eq:mdp-advantage}
+\end{equation}
+它比较某个动作与当前策略平均行为的价值差。若 $V^\pi(s)=6$、$Q^\pi(s,a)=8$，则优势为 $2$，表示先选择这个动作的预期结果比当前策略的平均结果高 $2$。这里的 $A^\pi$ 是函数名称，与动作随机变量 $A_t$ 要通过上下标和参数区分。
+
+\keyterm{近端策略优化}（proximal policy optimization，PPO）会利用优势的估计来更新策略，并通过训练目标抑制过大的策略变化\cite{schulman-ppo}。\keyterm{群组相对策略优化}（group relative policy optimization，GRPO）的原始方案则利用同一问题下多份回答的评分进行相对比较，不需要单独训练一个价值模型\cite{shao-deepseekmath}。两者的具体目标和更新细节属于后续内容，理解它们仍应从策略、回报和价值的含义出发。
+
+上述对应适用于所描述的生成任务。如果模型还要调用工具、与用户多轮交互，或者奖励依赖没有包含在当前内容中的信息，就需要进一步补充状态和环境规则。
+
+\section{核心概念回顾}
+\label{sec:mdp-summary}
+
+表\ref{tab:mdp-summary}把主要符号与它们回答的问题放在一起，便于阅读公式时查阅。
+\begin{table}
+  \centering
+  \caption{主要符号及其含义}
+  \label{tab:mdp-summary}
+  \begin{tabularx}{\textwidth}{lY}
+    \toprule
+    符号 & 它回答的问题 \\
+    \midrule
+    $s$ & 当前处于什么状态？ \\
+    $a$ & 当前选择什么动作？ \\
+    $P(s'\mid s,a)$ & 执行动作后，到达 $s'$ 的概率是多少？ \\
+    $r(s,a)$ & 在这里执行这个动作，平均得到多少即时奖励？ \\
+    $\pi(a\mid s)$ & 当前策略有多大概率选择这个动作？ \\
+    $R_{t+1}$ & 第 $t$ 步动作之后得到什么随机奖励？ \\
+    $G_t$ & 从第 $t$ 步开始，累计的折扣奖励是多少？ \\
+    $V^\pi(s)$ & 从这里开始按 $\pi$ 行动，平均回报是多少？ \\
+    $Q^\pi(s,a)$ & 先做 $a$，之后按 $\pi$ 行动，平均回报是多少？ \\
+    $\gamma$ & 后面的奖励按什么比例折扣？ \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+理解 MDP，可以沿着实际交互过程回顾：智能体看到当前状态，按照策略选择动作；环境产生奖励并进入下一状态；多步奖励形成回报，对可能的回报取平均得到价值。贝尔曼方程把这些长期价值拆成“当前一步”和“后续部分”，使我们能够逐步计算和比较动作。
+
+对机器人例子，只要能说明为什么第一步奖励为 $0$、向前路线的回报为 $9$、随机策略的状态价值为 $6.6$，以及为什么最优策略选择向前，就已经把奖励、回报、价值和策略的主要区别联系起来了。
+
+\begin{thebibliography}{9}
+  \bibitem{sutton-barto}
+  Sutton R S, Barto A G.
+  \emph{Reinforcement Learning: An Introduction}.
+  2nd ed. MIT Press, 2018.
+  \url{https://mitpress.mit.edu/9780262039246/reinforcement-learning/}.
+
+  \bibitem{watkins-dayan}
+  Watkins C J C H, Dayan P.
+  Q-learning.
+  \emph{Machine Learning}, 1992, 8: 279--292.
+  \url{https://www.gatsby.ucl.ac.uk/~dayan/papers/cjch.pdf}.
+
+  \bibitem{schulman-ppo}
+  Schulman J, Wolski F, Dhariwal P, Radford A, Klimov O.
+  Proximal Policy Optimization Algorithms.
+  arXiv:1707.06347, 2017.
+  \url{https://arxiv.org/abs/1707.06347}.
+
+  \bibitem{shao-deepseekmath}
+  Shao Z, Wang P, Zhu Q, et al.
+  DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models.
+  arXiv:2402.03300, 2024.
+  \url{https://arxiv.org/abs/2402.03300}.
+\end{thebibliography}
+
+\end{document}
