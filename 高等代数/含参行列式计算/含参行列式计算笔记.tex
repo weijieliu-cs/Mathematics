@@ -1,0 +1,295 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{含参行列式计算笔记}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{题意与观察：究竟要计算什么}
+
+本题要求计算关于 $x$ 的四阶\keyterm{行列式}（determinant）
+\begin{equation}
+  D(x)=\begin{vmatrix}
+    x+1&x&x&x\\
+    x&x+2&x&x\\
+    x&x&x+3&x\\
+    x&x&x&x+4
+  \end{vmatrix},\qquad x\in\mathbb R.
+  \label{eq:problem}
+\end{equation}
+竖线表示行列式：它把方阵中的元素按一定规则组合成一个数。
+由于这里的元素含有变量 $x$，计算结果是一个关于 $x$ 的表达式。
+题目没有给出方程，所以不是要求求出 $x$，也不能自行添加条件 $D(x)=0$。
+
+四阶行列式按定义展开会有 $4!=24$ 个带符号的乘积项，但本题不必逐项展开。
+观察式~\eqref{eq:problem}：\keyterm{所有位置都有一个共同的 $x$，只有主对角线额外加了 $1,2,3,4$}。
+这里的\keyterm{主对角线}（main diagonal）是从左上角到右下角的四个位置。
+共同部分提示我们先做减法，把大部分 $x$ 消掉。
+
+本文先用行、列变换给出可以直接照着计算的解法，再用按列的线性性质说明结果为什么只有一次项。
+最终将得到
+\begin{equation}
+  \boxed{D(x)=24+50x.}
+  \label{eq:answer}
+\end{equation}
+下面的推导对每一个实数 $x$ 都成立。
+
+\section{计算前需要的基本性质}
+\label{sec:properties}
+
+记 $R_i$ 为第 $i$ 行，$C_j$ 为第 $j$ 列。行、列变换作用于行列式所对应的方阵。
+本题主要用到以下性质。
+
+\begin{property}[倍加变换不改变行列式]
+\label{prop:addition}
+将一行加上另一行的 $k$ 倍，行列式的值不变；列也有相同性质。
+例如，$R_2\leftarrow R_2-R_1$ 表示逐项相减后，用所得行替换第二行，第一行保持不变。
+\end{property}
+
+这里必须是两条不同的行或列。把一行自身乘以 $k$ 是另一种操作，会使行列式乘以 $k$。
+交换两行则会使行列式变号。本题只做性质~\ref{prop:addition} 中的倍加变换，因而不需要补乘系数或改变符号。
+
+\begin{property}[三角行列式]
+\label{prop:triangular}
+若主对角线下方的元素全为零，即对应方阵是\keyterm{上三角矩阵}（upper triangular matrix），
+则行列式等于主对角线各元素的乘积。
+主对角线上方的元素不必为零。
+\end{property}
+
+例如，二阶情形为
+\[
+  \begin{vmatrix}a&b\\0&d\end{vmatrix}=ad-b\cdot0=ad.
+\]
+一般情形可以沿第一列展开，再对剩下的上三角行列式重复这一过程：每次只留下第一项，
+相应位置的代数余子式符号都是 $(-1)^{1+1}=1$，最终得到对角线元素的乘积。
+
+\section{解法一：先消去共同的 $x$，再化为三角形}
+\label{sec:elimination}
+
+\subsection{用第一行消去其余三行中的 $x$}
+
+第一行保持不变，依次作
+\[
+  R_2\leftarrow R_2-R_1,\qquad
+  R_3\leftarrow R_3-R_1,\qquad
+  R_4\leftarrow R_4-R_1.
+\]
+以第二行为例，逐项计算得到
+\[
+  \bigl(x-(x+1),\ (x+2)-x,\ x-x,\ x-x\bigr)
+  =(-1,2,0,0).
+\]
+第三行和第四行同理，因此
+\begin{equation}
+  D(x)=\begin{vmatrix}
+    x+1&x&x&x\\
+    -1&2&0&0\\
+    -1&0&3&0\\
+    -1&0&0&4
+  \end{vmatrix}.
+  \label{eq:row-reduced}
+\end{equation}
+现在只有第一行还含有 $x$。这一步利用了原题各行具有相同部分的特点。
+注意第一列下方得到的是 $-1$，因为减去的是 $x+1$，不是 $x$。
+
+\subsection{用其余三列消去第一列中的 $-1$}
+
+式~\eqref{eq:row-reduced} 距离上三角形只差第一列中的三个 $-1$。
+第二列在第二行有 $2$，第三列在第三行有 $3$，第四列在第四行有 $4$，
+所以可以用它们分别抵消这三个 $-1$。依次作
+\[
+  C_1\leftarrow C_1+\frac12C_2,\qquad
+  C_1\leftarrow C_1+\frac13C_3,\qquad
+  C_1\leftarrow C_1+\frac14C_4.
+\]
+每次都使用上一步得到的第一列，而第二、三、四列始终保持不变。
+三次操作也可合写为
+\[
+  C_1\leftarrow C_1+\frac12C_2+\frac13C_3+\frac14C_4.
+\]
+这里的分数只用来乘相应列后加到第一列，\keyterm{并没有把第二、三、四列本身缩小}。
+新第一列的四个元素分别为
+\begin{align*}
+  &(x+1)+\frac{x}{2}+\frac{x}{3}+\frac{x}{4}
+    =1+\frac{25}{12}x,\\
+  &-1+\frac12\cdot2+\frac13\cdot0+\frac14\cdot0=0,\\
+  &-1+\frac12\cdot0+\frac13\cdot3+\frac14\cdot0=0,\\
+  &-1+\frac12\cdot0+\frac13\cdot0+\frac14\cdot4=0.
+\end{align*}
+于是
+\begin{align}
+  D(x)
+  &=\begin{vmatrix}
+    1+\frac{25}{12}x&x&x&x\\
+    0&2&0&0\\
+    0&0&3&0\\
+    0&0&0&4
+  \end{vmatrix}\notag\\
+  &=\left(1+\frac{25}{12}x\right)\cdot2\cdot3\cdot4
+    =24+50x.
+  \label{eq:triangular-calculation}
+\end{align}
+最后一步使用了性质~\ref{prop:triangular}。第一行中的三个 $x$ 不需要继续消去。
+整个过程只除以非零常数 $2,3,4$，没有除以 $x$ 或含 $x$ 的表达式，因此无须讨论 $x=0$ 等特殊情形。
+
+\section{解法二：为什么四阶行列式只有一次项}
+\label{sec:linearity}
+
+\subsection{行列式对每一列分别是线性的}
+
+记 $\det(C_1,C_2,C_3,C_4)$ 为以四个列向量组成的方阵的行列式。
+所谓对某一列的\keyterm{线性性}（linearity），是指固定其他列时，有
+\begin{align*}
+  \det(U+V,C_2,C_3,C_4)
+  &=\det(U,C_2,C_3,C_4)+\det(V,C_2,C_3,C_4),\\
+  \det(kU,C_2,C_3,C_4)
+  &=k\det(U,C_2,C_3,C_4).
+\end{align*}
+这两条性质对任意一列都成立，合称\keyterm{多重线性}（multilinearity）。
+它们也可从行列式的定义看出：每个乘积项恰好含该列中的一个元素，因而可以应用分配律和提取公因子。
+另一个需要的性质是：两列相同或成比例时，行列式等于零。
+对于相同的两列，交换它们既保持方阵不变，又使行列式变号，所以其值只能是零；成比例时再利用提取公因子的性质即可。
+这也解释了性质~\ref{prop:addition}：倍加变换展开后额外产生的行列式有两条相同的行或列，故额外项为零。
+
+\subsection{把每列分成共同部分与对角线部分}
+
+令 $u=(1,1,1,1)^{\mathsf T}$，其中 $\mathsf T$ 表示转置；
+令 $e_j$ 为四维实向量空间中的第 $j$ 个\keyterm{标准基向量}（standard basis vector），即第 $j$ 个分量为 $1$，其余分量为 $0$。
+例如，$e_1=(1,0,0,0)^{\mathsf T}$。
+原题的第 $j$ 列可以写成
+\[
+  C_j=xu+je_j,\qquad j=1,2,3,4.
+\]
+例如，第一列是 $xu+e_1=(x+1,x,x,x)^{\mathsf T}$。
+因此
+\[
+  D(x)=\det(e_1+xu,\ 2e_2+xu,\ 3e_3+xu,\ 4e_4+xu).
+\]
+按多重线性展开，相当于在每一列的两个部分中各选一个，总共有 $2^4=16$ 项。
+如果一项中有两列或更多列选了 $xu$，就出现相同列，该项等于零。
+所以只有以下两类项可能留下：
+\begin{itemize}
+  \item 四列都选对角线部分，得到常数项；
+  \item 恰有一列选 $xu$，得到关于 $x$ 的一次项，共四项。
+\end{itemize}
+这就解释了\keyterm{为什么 $x^2,x^3,x^4$ 的系数都为零}。
+四阶指方阵有四行四列，并不意味着结果一定是四次多项式。
+
+\subsection{算出留下的五项}
+
+常数项为
+\[
+  \det(e_1,2e_2,3e_3,4e_4)=1\cdot2\cdot3\cdot4=24.
+\]
+计算一次项时，可以用
+\[
+  u=e_1+e_2+e_3+e_4.
+\]
+例如，第一列选 $xu$ 时，提取系数后得到
+\[
+  x\cdot2\cdot3\cdot4\,\det(u,e_2,e_3,e_4)=24x.
+\]
+这里把 $u$ 拆成四个标准基向量后，选 $e_2,e_3,e_4$ 的三项都因重复列而为零，
+只有 $\det(e_1,e_2,e_3,e_4)=1$ 留下。
+同理，$u$ 在第 $j$ 列时，只有它的 $e_j$ 分量留下，且仍是标准顺序，不产生负号。
+于是四个一次项分别为
+\[
+  24x,\qquad12x,\qquad8x,\qquad6x.
+\]
+相加可得
+\[
+  D(x)=24+(24+12+8+6)x=24+50x,
+\]
+与式~\eqref{eq:triangular-calculation} 一致。
+
+\section{容易混淆的地方与结果核对}
+
+\subsection{不能把两个矩阵的和直接拆成两个行列式}
+
+虽然原方阵是对角矩阵 $\operatorname{diag}(1,2,3,4)$ 与所有元素都为 $x$ 的矩阵之和，
+但一般并没有 $\det(A+B)=\det A+\det B$。
+这里 $\operatorname{diag}(1,2,3,4)$ 表示以 $1,2,3,4$ 为主对角线元素、其余元素为零的矩阵。
+若直接拆成两个行列式，就会遗漏第~\ref{sec:linearity} 节中的四个一次项。
+多重线性要求\keyterm{一次拆一列，并保留展开产生的混合项}。
+
+同样，不能只乘原题的四个对角线元素，写成 $(x+1)(x+2)(x+3)(x+4)$。
+只有已化为三角形时，才可以直接使用性质~\ref{prop:triangular}。
+
+\subsection{代入特殊值作核对}
+
+当 $x=0$ 时，原题变为对角行列式，值为 $1\cdot2\cdot3\cdot4=24$，与式~\eqref{eq:answer} 一致。
+这能检查常数项，但单独代入一个数不能证明整个公式。
+
+还可检查零点。由结果得 $D(x)=0$ 当且仅当 $x=-12/25$。
+令 $A(x)$ 表示式~\eqref{eq:problem} 对应的方阵，取非零向量
+\[
+  v=\left(1,\frac12,\frac13,\frac14\right)^{\mathsf T}.
+\]
+由于 $v$ 的分量之和是 $25/12$，$A(x)v$ 的第 $i$ 个分量为
+\[
+  x\left(1+\frac12+\frac13+\frac14\right)+i\cdot\frac1i
+  =\frac{25}{12}x+1,\qquad i=1,2,3,4.
+\]
+在 $x=-12/25$ 时，各分量均为零。这意味着 $A(x)$ 的各列以 $v$ 的分量为系数存在非平凡线性关系，
+从而行列式为零，与计算结果相符。
+这一步也说明解法一中出现的 $1+25x/12$ 与原方阵的结构一致。
+
+\section{同类题的推广与小练习}
+
+\begin{proposition}[非对角元素相同的情形]
+\label{prop:general-form}
+设 $n\geq2$ 为整数，$a_1,\ldots,a_n$ 为固定实数。
+令 $A_n(x)$ 的第 $(i,j)$ 个元素在 $i=j$ 时为 $x+a_i$，在 $i\ne j$ 时为 $x$，则
+\begin{equation}
+  \det A_n(x)=\prod_{i=1}^n a_i
+    +x\sum_{j=1}^n\prod_{\substack{1\leq i\leq n\\i\ne j}}a_i.
+  \label{eq:general-form}
+\end{equation}
+若所有 $a_i$ 均非零，还可写成
+\[
+  \det A_n(x)=\left(\prod_{i=1}^n a_i\right)
+  \left(1+x\sum_{i=1}^n\frac1{a_i}\right).
+\]
+\end{proposition}
+
+\begin{proof}
+令 $u$ 为 $n$ 维全 $1$ 列向量，$e_j$ 为 $n$ 维第 $j$ 个标准基向量。
+第 $j$ 列为 $a_je_j+xu$。沿用第~\ref{sec:linearity} 节的展开方法，
+至少两列选 $xu$ 的项全部为零；没有列选 $xu$ 的项为 $\prod_i a_i$；
+只有第 $j$ 列选 $xu$ 的项为 $x\prod_{i\ne j}a_i$。
+将这些项相加得到式~\eqref{eq:general-form}。
+所有 $a_i$ 非零时提取 $\prod_i a_i$，即可得到第二种写法。
+\end{proof}
+
+式~\eqref{eq:general-form} 没有除法，即使某个 $a_i=0$ 也适用；含倒数的写法则不能用于这种情形。
+本题取 $(a_1,a_2,a_3,a_4)=(1,2,3,4)$，常数项是 $24$，一次项系数是 $24+12+8+6=50$。
+
+\begin{example}[先用低阶题练习]
+计算
+\[
+  E(x)=\begin{vmatrix}x+2&x\\x&x+3\end{vmatrix}.
+\]
+\end{example}
+\begin{solve}
+按二阶行列式公式直接计算：
+\[
+  E(x)=(x+2)(x+3)-x^2=6+5x.
+\]
+也可以先作 $R_2\leftarrow R_2-R_1$，再作 $C_1\leftarrow C_1+\frac23C_2$，得到
+\[
+  E(x)=\begin{vmatrix}x+2&x\\-2&3\end{vmatrix}
+  =\begin{vmatrix}2+\frac53x&x\\0&3\end{vmatrix}
+  =6+5x.
+\]
+这正是第~\ref{sec:elimination} 节方法的二阶版本：先相减消去共同项，再用倍加变换化成三角形。
+\end{solve}
+
+\end{document}

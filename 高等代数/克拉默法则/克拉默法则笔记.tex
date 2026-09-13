@@ -1,0 +1,316 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{克拉默法则笔记}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{引言：用行列式表示方程组的解}
+
+求解线性方程组时，消元法通过逐步消去未知数得到答案。
+另一个自然的问题是：能否直接用系数和常数项写出每个未知数的表达式？
+\keyterm{克拉默法则}（Cramer's rule）给出了这样的公式：
+对于方程个数与未知数个数相同的线性方程组，如果系数行列式非零，
+那么方程组有唯一解，而且每个未知数都等于两个行列式之比。
+
+例如，对二元一次方程组
+\[
+  \begin{cases}
+    ax+by=u,\\
+    cx+dy=v,
+  \end{cases}
+\]
+将第一式乘以 $d$、第二式乘以 $b$ 后相减，得到
+$(ad-bc)x=ud-bv$；将第二式乘以 $a$、第一式乘以 $c$ 后相减，得到
+$(ad-bc)y=av-cu$。因此，当 $ad-bc\ne0$ 时，任何解都必须满足
+\[
+  x=\frac{ud-bv}{ad-bc}
+   =\frac{\begin{vmatrix}u&b\\v&d\end{vmatrix}}
+          {\begin{vmatrix}a&b\\c&d\end{vmatrix}},
+  \qquad
+  y=\frac{av-cu}{ad-bc}
+   =\frac{\begin{vmatrix}a&u\\c&v\end{vmatrix}}
+          {\begin{vmatrix}a&b\\c&d\end{vmatrix}}.
+\]
+分母相同，分子分别把系数矩阵的第一列、第二列换成常数项列。
+这一规律可以推广到任意阶。不过，从“任何解必须具有某种形式”到“这个表达式确实是解”，
+还需要验证存在性，后文将补全这一论证。
+
+本文先约定符号并陈述法则，再利用行列式性质证明，随后通过例题讨论计算方法与适用边界。
+阅读时只需了解矩阵乘法、行列式的线性性质以及按一行或一列展开的公式。
+全文在 $\mathbb F=\mathbb R$ 或 $\mathbb C$ 上讨论，$n$ 为正整数。
+
+\section{方程组、替换列与克拉默公式}
+
+考虑含 $n$ 个未知数、$n$ 个方程的线性方程组
+\begin{equation}
+  \begin{cases}
+    a_{11}x_1+a_{12}x_2+\cdots+a_{1n}x_n=b_1,\\
+    a_{21}x_1+a_{22}x_2+\cdots+a_{2n}x_n=b_2,\\
+    \qquad\vdots\\
+    a_{n1}x_1+a_{n2}x_2+\cdots+a_{nn}x_n=b_n.
+  \end{cases}
+  \label{eq:cramer-system}
+\end{equation}
+其\keyterm{系数矩阵}（coefficient matrix）、未知向量与常数项向量分别记为
+\[
+  A=(a_{ij})_{n\times n},\qquad
+  x=(x_1,\ldots,x_n)^{\mathsf T},\qquad
+  b=(b_1,\ldots,b_n)^{\mathsf T}.
+\]
+这里 $a_{ij},b_i\in\mathbb F$ 为已知数，$x\in\mathbb F^n$ 为待求向量，
+$\mathsf T$ 表示转置。方程组可简写为 $Ax=b$。
+
+把 $A$ 的第 $j$ 列记为 $a_j$，则
+\begin{equation}
+  A=(a_1,\ldots,a_n),\qquad
+  Ax=x_1a_1+\cdots+x_na_n=b.
+  \label{eq:cramer-column-combination}
+\end{equation}
+其中 $a_j$ 是列向量，而 $a_{ij}$ 是标量元素，两者需要区分。
+
+\begin{definition}[系数行列式与替换列行列式]
+\label{def:cramer-determinants}
+记系数行列式为 $D=\det A$。对每个 $j\in\{1,\ldots,n\}$，定义
+\begin{equation}
+  A_j=(a_1,\ldots,a_{j-1},b,a_{j+1},\ldots,a_n),\qquad
+  D_j=\det A_j.
+  \label{eq:cramer-replacement}
+\end{equation}
+即 $A_j$ 由 $A$ 的第 $j$ 列替换为 $b$ 得到，其余列的位置保持不变。
+\end{definition}
+
+\begin{theorem}[克拉默法则]
+\label{thm:cramer}
+设 $A\in\mathbb F^{n\times n}$ 且 $D=\det A\ne0$。
+则对任意 $b\in\mathbb F^n$，方程组 $Ax=b$ 都有唯一解，且
+\begin{equation}
+  x_j=\frac{D_j}{D},\qquad j=1,\ldots,n.
+  \label{eq:cramer-formula}
+\end{equation}
+这里 $D_j$ 按定义~\ref{def:cramer-determinants} 构造。
+\end{theorem}
+
+使用公式前，必须先确认 $A$ 是方阵且 $D\ne0$。
+分子是\keyterm{替换与所求未知数对应的列}，不是替换同编号的行，
+也不是把 $b$ 追加到矩阵末尾。追加 $b$ 得到的是增广矩阵 $(A\mid b)$，其大小为 $n\times(n+1)$，
+不能直接取通常意义下的行列式。
+
+\section{为什么公式成立}
+
+\subsection{列的线性性质给出公式与唯一性}
+
+先证明一个即使 $D=0$ 也成立的必要条件。
+
+\begin{proposition}
+\label{prop:cramer-necessary}
+若 $x$ 是方程组 $Ax=b$ 的一个解，则对每个 $j=1,\ldots,n$，都有
+\begin{equation}
+  D_j=x_jD.
+  \label{eq:cramer-identity}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+固定 $j$。把式~\eqref{eq:cramer-column-combination} 代入 $A_j$ 的第 $j$ 列，
+利用行列式对这一列的线性性质，得到
+\[
+  D_j=\sum_{k=1}^n x_k
+  \det(a_1,\ldots,a_{j-1},a_k,a_{j+1},\ldots,a_n).
+\]
+当 $k\ne j$ 时，求和项中的矩阵第 $j$ 列与第 $k$ 列相同，行列式为零；
+当 $k=j$ 时，矩阵恰好是 $A$，行列式为 $D$。
+因此整个和只剩 $x_jD$，即得结论。
+\end{proof}
+
+若 $D\ne0$，式~\eqref{eq:cramer-identity} 强制任何解都满足
+式~\eqref{eq:cramer-formula}，所以解至多有一个。
+这也解释了为什么必须替换第 $j$ 列：只有这样，线性展开后才会保留下与 $x_j$ 对应的项。
+但上述论证假设了一个解已经存在，尚未证明这些比值代回后一定满足方程组。
+
+\subsection{代数余子式保证解的存在性}
+
+设 $C_{ij}$ 为元素 $a_{ij}$ 的\keyterm{代数余子式}（cofactor），即
+\[
+  C_{ij}=(-1)^{i+j}\det A^{(i\mid j)},
+\]
+其中 $A^{(i\mid j)}$ 表示删去 $A$ 的第 $i$ 行、第 $j$ 列后得到的矩阵。
+当 $n=1$ 时，约定零阶行列式为 $1$，从而 $C_{11}=1$。
+下面直接将候选解代回各个方程。
+
+\begin{proof}[定理~\ref{thm:cramer} 的存在性证明]
+沿 $A_j$ 的第 $j$ 列展开。由于删去该列后，剩余元素与 $A$ 中完全相同，故
+\begin{equation}
+  D_j=\sum_{i=1}^n b_iC_{ij}.
+  \label{eq:cramer-cofactor-expansion}
+\end{equation}
+对任意 $r,i\in\{1,\ldots,n\}$，有
+\begin{equation}
+  \sum_{j=1}^n a_{rj}C_{ij}
+  =\begin{cases}
+    D,&r=i,\\
+    0,&r\ne i.
+  \end{cases}
+  \label{eq:cramer-cofactor-identity}
+\end{equation}
+当 $r=i$ 时，这是 $D$ 按第 $i$ 行的展开式。
+当 $r\ne i$ 时，将 $A$ 的第 $i$ 行替换为第 $r$ 行，再按第 $i$ 行展开，
+得到左端的和；这个矩阵有两行相同，因此其行列式为零。
+
+令 $\widehat x_j=D_j/D$。对每个 $r=1,\ldots,n$，利用上述两个等式计算得
+\[
+  \sum_{j=1}^n a_{rj}\widehat x_j
+  =\frac1D\sum_{j=1}^n a_{rj}\sum_{i=1}^n b_iC_{ij}
+  =\frac1D\sum_{i=1}^n b_i\sum_{j=1}^n a_{rj}C_{ij}
+  =\frac{b_rD}{D}=b_r.
+\]
+这里交换的都是有限求和。因此 $\widehat x$ 满足全部方程，解确实存在。
+结合命题~\ref{prop:cramer-necessary} 已得的唯一性，定理得证。
+\end{proof}
+
+若定义\keyterm{伴随矩阵}（adjugate matrix）$\operatorname{adj}(A)=(C_{ji})_{n\times n}$，
+则式~\eqref{eq:cramer-cofactor-identity} 就是
+$A\operatorname{adj}(A)=DI_n$，其中 $I_n$ 为 $n$ 阶单位矩阵。
+所以克拉默公式也可写为
+\[
+  x=\frac{\operatorname{adj}(A)b}{D}=A^{-1}b.
+\]
+这说明克拉默法则把逆矩阵求解公式的各个分量表示成了行列式之比。
+
+\section{计算例题}
+
+\begin{example}[二元方程组]
+求解
+\[
+  \begin{cases}2x+y=5,\\x-y=1.\end{cases}
+\]
+\end{example}
+
+\begin{solve}
+按未知数 $x,y$ 的顺序排列系数列，计算
+\[
+  D=\begin{vmatrix}2&1\\1&-1\end{vmatrix}=-3\ne0.
+\]
+所以方程组有唯一解。分别替换第一列与第二列：
+\[
+  D_1=\begin{vmatrix}5&1\\1&-1\end{vmatrix}=-6,\qquad
+  D_2=\begin{vmatrix}2&5\\1&1\end{vmatrix}=-3.
+\]
+因此 $x=D_1/D=2$，$y=D_2/D=1$。
+代回可得 $2\cdot2+1=5$、$2-1=1$，满足原方程组。
+\end{solve}
+
+\begin{example}[三元方程组]
+求解
+\[
+  \begin{cases}
+    x+y+z=6,\\
+    2x-y+z=3,\\
+    x+2y-z=2.
+  \end{cases}
+\]
+\end{example}
+
+\begin{solve}
+先计算系数行列式，再依次替换三列。以下各式均按第一行展开：
+\begin{align*}
+  D&=\begin{vmatrix}1&1&1\\2&-1&1\\1&2&-1\end{vmatrix}
+     =-1+3+5=7,\\
+  D_1&=\begin{vmatrix}6&1&1\\3&-1&1\\2&2&-1\end{vmatrix}
+     =-6+5+8=7,\\
+  D_2&=\begin{vmatrix}1&6&1\\2&3&1\\1&2&-1\end{vmatrix}
+     =-5+18+1=14,\\
+  D_3&=\begin{vmatrix}1&1&6\\2&-1&3\\1&2&2\end{vmatrix}
+     =-8-1+30=21.
+\end{align*}
+因为 $D=7\ne0$，唯一解为
+\[
+  (x,y,z)=\left(\frac77,\frac{14}7,\frac{21}7\right)=(1,2,3).
+\]
+代回三条方程，其左端依次为 $6,3,2$，与常数项一致。
+\end{solve}
+
+\begin{example}[含参数时先讨论分母]
+设 $t\in\mathbb R$，讨论方程组
+\[
+  \begin{cases}tx+y=1,\\x+ty=1\end{cases}
+\]
+的解。
+\end{example}
+
+\begin{solve}
+有 $D=t^2-1$，$D_1=D_2=t-1$。
+当 $t\ne\pm1$ 时，克拉默法则给出唯一解
+\[
+  x=y=\frac{t-1}{t^2-1}=\frac1{t+1}.
+\]
+当 $t=1$ 时，两条方程都成为 $x+y=1$，故有无穷多解
+$(x,y)=(s,1-s)$，$s\in\mathbb R$。
+当 $t=-1$ 时，两条方程相加得到 $0=2$，故无解。
+
+约分后的表达式 $1/(t+1)$ 虽然在 $t=1$ 处有定义，但不能据此断言该处仍有唯一解。
+它在 $t=1$ 时只给出众多解中的 $(1/2,1/2)$；克拉默法则原本要求的 $D\ne0$ 仍须保留。
+\end{solve}
+
+\section{行列式为零时能得到什么}
+
+\subsection{零分母不能用于求解}
+
+当 $D=0$ 时，式~\eqref{eq:cramer-formula} 中的除法无意义。
+不过，命题~\ref{prop:cramer-necessary} 仍然成立，因而可得以下判断：
+\begin{itemize}
+  \item 若至少有一个 $D_j\ne0$，则方程组无解。
+  因为任何解都应满足 $D_j=x_jD=0$，与该条件矛盾。
+  \item 若所有 $D_j=0$，仅凭这些等式不能判定方程组是否有解，
+  更不能把 $0/0$ 当成未知数的取值。
+\end{itemize}
+
+例如，取
+\[
+  A=\begin{pmatrix}1&0&0\\0&0&0\\0&0&0\end{pmatrix}.
+\]
+无论 $b$ 如何取值，$D$ 及所有 $D_j$ 都为零，因为替换一列之后仍至少有一列为零。
+若 $b=(1,0,0)^{\mathsf T}$，方程组只有约束 $x_1=1$，$x_2,x_3$ 可任意取值，因而有无穷多解；
+若 $b=(1,1,0)^{\mathsf T}$，第二条方程为 $0=1$，因而无解。
+这个例子说明“$D=D_1=\cdots=D_n=0$”不是可解的充分条件。
+
+对 $D=0$ 的方程组，可以用消元法继续判断。
+初等行变换保持解集不变：若增广矩阵的阶梯形中出现形如
+$(0,\ldots,0\mid c)$、$c\ne0$ 的行，则无解；若没有矛盾行，则可以回代求解。
+由于交换行使行列式变号、非零倍乘行使行列式乘以相应非零数、行倍加不改变行列式，
+消元过程中行列式始终为零。
+若阶梯形的 $n$ 个系数列全有主元，它将是对角元非零的上三角矩阵，行列式应非零，产生矛盾。
+因此至少有一个自由变量；在 $\mathbb R$ 或 $\mathbb C$ 上，可解时就有无穷多解。
+
+\subsection{齐次方程组与法则的用途}
+
+常数项为零的方程组 $Ax=0$ 称为\keyterm{齐次线性方程组}（homogeneous linear system）。
+零向量总是它的一个解。当 $D\ne0$ 时，每个 $A_j$ 都含有零列，故 $D_j=0$，
+由克拉默法则可知唯一解为 $x=0$。
+当 $D=0$ 时，齐次方程组不会出现矛盾行，又至少有一个自由变量，
+令某个自由变量为 $1$、其余自由变量为 $0$ 并回代，即可得到非零解。
+因此，对于 $n$ 阶方阵，
+\[
+  Ax=0\text{ 有非零解}\quad\Longleftrightarrow\quad\det A=0.
+\]
+
+克拉默法则适合低阶方程组的手算，以及需要显式表达式的理论推导。
+实际使用时，可依次进行：固定未知数顺序，计算 $D$ 并检查非零条件，
+按同一顺序构造所需的 $D_j$，最后取比值并代回核对。
+若只关心某一个未知数，在已知 $D\ne0$ 后，只需计算它对应的替换列行列式。
+
+对于一般的大规模稠密方程组，逐个计算 $n+1$ 个行列式通常比直接消元繁琐。
+在每次标量算术运算计为常数代价的模型下，普通高斯消元求解需要 $O(n^3)$ 次算术运算；
+若每个行列式都独立用 $O(n^3)$ 次运算计算，直接实施克拉默公式则需要 $O(n^4)$ 次运算。
+这一比较针对上述实现方式，不计精确运算中数值位数增长的代价，也不是对所有可能实现的复杂度下界。
+学习克拉默法则的主要意义，是理解行列式如何同时控制解的唯一性，并给出每个解分量的显式表达式。
+
+\end{document}

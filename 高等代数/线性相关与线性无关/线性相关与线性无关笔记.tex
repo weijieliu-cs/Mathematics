@@ -1,0 +1,107 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{线性相关与线性无关笔记}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{从线性组合到定义}
+
+给定一组向量，其中是否有某个向量可以由其余向量表示出来？
+线性相关与线性无关刻画的就是这种表示上的冗余。
+以下在实向量空间 $\mathbb R^n$ 中讨论，$n,m$ 均为正整数，
+$\boldsymbol{0}$ 表示零向量；将实数换为复数，也可作同样的定义。
+
+设 $\boldsymbol{v}_1,\ldots,\boldsymbol{v}_m\in\mathbb R^n$。
+形如 $a_1\boldsymbol{v}_1+\cdots+a_m\boldsymbol{v}_m$ 的向量称为它们的
+\keyterm{线性组合}（linear combination），其中 $a_1,\ldots,a_m\in\mathbb R$ 称为系数。
+判断有无冗余，可以统一考察方程
+\begin{equation}
+  a_1\boldsymbol{v}_1+\cdots+a_m\boldsymbol{v}_m=\boldsymbol{0}.
+  \label{eq:linear-relation}
+\end{equation}
+系数全为零总能使等式成立，关键在于是否还有其他解。
+
+\begin{definition}[线性相关与线性无关]
+若存在\keyterm{不全为零}的系数 $a_1,\ldots,a_m$ 使式~\eqref{eq:linear-relation} 成立，
+则称向量组 $\boldsymbol{v}_1,\ldots,\boldsymbol{v}_m$ \keyterm{线性相关}（linearly dependent）。
+若式~\eqref{eq:linear-relation} 只能在 $a_1=\cdots=a_m=0$ 时成立，
+则称该向量组\keyterm{线性无关}（linearly independent）。
+\end{definition}
+
+“不全为零”表示\keyterm{至少一个系数非零}，并不要求每个系数都非零。
+因此，证明相关只需找到一组这样的系数；证明无关则须说明所有满足等式的系数都为零。
+
+\section{为什么相关意味着冗余}
+
+\begin{proposition}
+当 $m\geq2$ 时，向量组线性相关，当且仅当其中至少一个向量是其余向量的线性组合。
+\end{proposition}
+
+\begin{proof}
+若存在不全为零的系数满足式~\eqref{eq:linear-relation}，选取 $a_j\neq0$，移项并除以 $a_j$ 得
+\[
+  \boldsymbol{v}_j=-\sum_{\substack{1\leq i\leq m\\i\neq j}}
+  \frac{a_i}{a_j}\boldsymbol{v}_i.
+\]
+反过来，若某个向量可由其余向量线性表示，将等式移到同一侧，
+便得到一个等于零向量的线性组合，其中该向量的系数为 $1$，故系数不全为零。
+\end{proof}
+
+因此，相关时可以删去某个向量而不改变这组向量所能表示的范围；
+无关时每个向量都不可被其余向量替代。
+在几何上，两个非零向量相关等价于它们平行；在 $\mathbb R^3$ 中，
+三个向量相关等价于它们都位于某个经过原点的平面内。
+
+\begin{example}[无关的一组与相关的一组]
+在 $\mathbb R^2$ 中，取 $\boldsymbol{u}=(1,0)$、$\boldsymbol{v}=(0,1)$。
+由 $a\boldsymbol{u}+b\boldsymbol{v}=(a,b)=(0,0)$ 得 $a=b=0$，所以二者线性无关。
+再加入 $\boldsymbol{w}=(1,1)$，则
+$\boldsymbol{u}+\boldsymbol{v}-\boldsymbol{w}=\boldsymbol{0}$，
+系数 $1,1,-1$ 不全为零，故三者线性相关。
+注意这三个向量两两不平行：\keyterm{两两线性无关不保证整个向量组线性无关}。
+\end{example}
+
+\section{怎样判断与容易混淆的情形}
+
+将向量作为列排成矩阵 $A=(\boldsymbol{v}_1\ \cdots\ \boldsymbol{v}_m)\in\mathbb R^{n\times m}$，
+记系数列向量 $\boldsymbol{a}=(a_1,\ldots,a_m)^{\mathsf T}$，则式~\eqref{eq:linear-relation} 就是
+$A\boldsymbol{a}=\boldsymbol{0}$。因此，实际判断时可对 $A$ 作初等行变换，求解这一齐次线性方程组：
+有非零解则相关，只有零解则无关。这里未知的是\keyterm{组合系数}，给定向量保持固定。
+
+\begin{proposition}[线性无关向量的数量上限]
+在 $\mathbb R^n$ 中，线性无关的向量最多有 $n$ 个；换言之，任意超过 $n$ 个向量必线性相关。
+\end{proposition}
+
+\begin{proof}
+若 $m>n$，则 $A\boldsymbol{a}=\boldsymbol{0}$ 有 $n$ 个方程、$m$ 个未知系数。
+将 $A$ 化为行阶梯形后，主元至多有 $n$ 个，故至少有一个自由变量。
+取一个自由变量为 $1$、其余自由变量为 $0$，再回代求出主元变量，便得到非零解，故向量组线性相关。
+这一上限可以达到：取 $n$ 个坐标单位向量，第 $i$ 个向量仅第 $i$ 个坐标为 $1$，其余为 $0$。
+它们的线性组合等于零向量时，逐个比较坐标就得到所有系数均为零。
+\end{proof}
+
+因此，\keyterm{二维平面中最多有两个线性无关的向量，三维空间中最多有三个}。
+从几何上看，平面内两个不平行的向量能够线性表示平面内的任意向量，
+所以加入第三个向量后必相关；空间中三个不共面的向量能够线性表示空间内的任意向量，
+所以加入第四个向量后必相关。这里“共面”指把向量的起点都放在原点时，
+它们位于同一个经过原点的平面内。
+但\keyterm{数量不超过上限并不保证线性无关}，例如二维中的两个平行向量仍然相关。
+
+\begin{itemize}
+  \item \textbf{只有一个向量时：}零向量线性相关，因为 $1\boldsymbol{0}=\boldsymbol{0}$；
+  非零向量线性无关，因为 $a\boldsymbol{v}=\boldsymbol{0}$ 且 $\boldsymbol{v}\neq\boldsymbol{0}$ 强制 $a=0$。
+  \item \textbf{含有零向量时：}整个向量组必相关，取零向量的系数为 $1$、其余系数为 $0$ 即可。
+  \item \textbf{无关不等于垂直：}$(1,0)$ 与 $(1,1)$ 不垂直，
+  但由 $a(1,0)+b(1,1)=(a+b,b)=(0,0)$ 可得 $b=0$、$a=0$，故二者线性无关。
+\end{itemize}
+
+\end{document}

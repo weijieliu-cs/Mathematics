@@ -1,0 +1,348 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
+
+% 支持从项目根目录或本文件所在目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{行列式计算练习（含答案）}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{作答说明}
+本练习共 10 道行列式计算题，由基础计算逐步过渡到含参数及一般 $n$ 阶行列式。
+请写出主要计算步骤，并将结果尽可能化简或写成因式的乘积。
+除题目另有说明外，所有参数均为实数，$n$ 为整数。
+本文件保留全部题目，并在每题后给出参考解答。
+解答中的 $R_i$ 表示当前矩阵的第 $i$ 行，行变换按所列顺序执行。
+
+\section*{计算题与参考解答}
+\begin{enumerate}[label=\arabic*.]
+
+\item\label{q:detcalc-three}
+计算
+\[
+\begin{vmatrix}
+2&1&-1\\
+1&3&2\\
+3&-1&1
+\end{vmatrix}.
+\]
+
+\begin{solve}
+按第一行展开，注意三个位置符号依次为 $+,-,+$：
+\begin{align*}
+D&=2\begin{vmatrix}3&2\\-1&1\end{vmatrix}
+-\begin{vmatrix}1&2\\3&1\end{vmatrix}
+-\begin{vmatrix}1&3\\3&-1\end{vmatrix}\\
+&=2(3+2)-(1-6)-(-1-9)=\boxed{25}.
+\end{align*}
+最后一项前的负号来自原矩阵的元素 $-1$，而不是第三个位置的代数余子式符号。
+\end{solve}
+
+\item\label{q:detcalc-four}
+计算
+\[
+\begin{vmatrix}
+1&2&0&1\\
+0&3&1&0\\
+2&4&1&3\\
+1&2&2&1
+\end{vmatrix}.
+\]
+
+\begin{solve}
+作 $R_3\leftarrow R_3-2R_1$、$R_4\leftarrow R_4-R_1$，行列式的值不变，得
+\[
+D=\begin{vmatrix}
+1&2&0&1\\
+0&3&1&0\\
+0&0&1&1\\
+0&0&2&0
+\end{vmatrix}.
+\]
+先按第一列展开，再按所得三阶行列式的第一列展开，有
+\[
+D=\begin{vmatrix}3&1&0\\0&1&1\\0&2&0\end{vmatrix}
+=3\begin{vmatrix}1&1\\2&0\end{vmatrix}=\boxed{-6}.
+\]
+\end{solve}
+
+\item\label{q:detcalc-cyclic-three}
+计算，并将结果分解因式：
+\[
+\begin{vmatrix}
+a&b&c\\
+c&a&b\\
+b&c&a
+\end{vmatrix}.
+\]
+
+\begin{solve}
+按第一行展开：
+\begin{align*}
+D&=a(a^2-bc)-b(ac-b^2)+c(c^2-ab)\\
+&=a^3+b^3+c^3-3abc.
+\end{align*}
+利用恒等式
+\[
+a^3+b^3+c^3-3abc
+=(a+b+c)(a^2+b^2+c^2-ab-ac-bc),
+\]
+得到
+\[
+\boxed{D=(a+b+c)(a^2+b^2+c^2-ab-ac-bc).}
+\]
+第二个因子也可以写成
+$\tfrac12\bigl((a-b)^2+(b-c)^2+(c-a)^2\bigr)$。
+推导未对参数作除法，因此对所有实数 $a,b,c$ 均成立。
+\end{solve}
+
+\item\label{q:detcalc-parameter}
+计算关于 $x$ 的行列式
+\[
+\begin{vmatrix}
+x+1&x&x&x\\
+x&x+2&x&x\\
+x&x&x+3&x\\
+x&x&x&x+4
+\end{vmatrix}.
+\]
+
+\begin{solve}
+记 $e=(1,1,1,1)^{\mathsf T}$，$e_j$ 为四维实坐标空间中第 $j$ 个标准单位列向量。
+题给矩阵的第 $j$ 列为 $je_j+xe$（$j=1,2,3,4$）。
+按列的多重线性性质展开：
+不选取 $xe$ 的项为 $1\cdot2\cdot3\cdot4=24$；
+从至少两列中选取 $xe$ 的项均因列成比例而为零。
+
+若仅在第 $j$ 列选取 $xe$，则其余列仍为各自的对角列。
+将 $e=e_1+e_2+e_3+e_4$ 代入该列后，只有 $e_j$ 对应的项不产生重复的单位列，
+故这一项等于 $x\prod_{k\ne j}k$。因此
+\[
+D(x)=24+x(2\cdot3\cdot4+1\cdot3\cdot4+1\cdot2\cdot4+1\cdot2\cdot3)
+=\boxed{24+50x}.
+\]
+上述展开对所有实数 $x$ 均成立。
+\end{solve}
+
+\item\label{q:detcalc-powers}
+计算
+\[
+\begin{vmatrix}
+1&1&1&1\\
+-2&-1&1&3\\
+4&1&1&9\\
+-8&-1&1&27
+\end{vmatrix}.
+\]
+
+\begin{solve}
+这是节点按 $-2,-1,1,3$ 排列的\keyterm{范德蒙行列式}（Vandermonde determinant），
+各行幂次依次为 $0,1,2,3$。
+使用公式 $\det(x_j^{i-1})=\prod_{i<j}(x_j-x_i)$，每个因子取后列节点减前列节点，得
+\begin{align*}
+D&=\bigl((-1)-(-2)\bigr)\bigl(1-(-2)\bigr)\bigl(3-(-2)\bigr)\\
+&\quad\cdot\bigl(1-(-1)\bigr)\bigl(3-(-1)\bigr)(3-1)\\
+&=1\cdot3\cdot5\cdot2\cdot4\cdot2=\boxed{240}.
+\end{align*}
+\end{solve}
+
+\item\label{q:detcalc-sparse}
+计算
+\[
+\begin{vmatrix}
+1&0&2&0\\
+3&0&1&0\\
+0&2&0&1\\
+0&1&0&4
+\end{vmatrix}.
+\]
+
+\begin{solve}
+交换第二、三列，将交错分布的非零元素集中到两个对角块中。
+交换一次使行列式变号，所以
+\[
+D=-\begin{vmatrix}
+1&2&0&0\\
+3&1&0&0\\
+0&0&2&1\\
+0&0&1&4
+\end{vmatrix}
+=-\begin{vmatrix}1&2\\3&1\end{vmatrix}
+\begin{vmatrix}2&1\\1&4\end{vmatrix}.
+\]
+最后一步可按前两行作拉普拉斯展开：只有前两列对应的二阶子式有贡献，且位置符号为正。
+于是
+\[
+D=-(1-6)(8-1)=\boxed{35}.
+\]
+\end{solve}
+
+\item\label{q:detcalc-tridiagonal}
+设 $n\geq2$，$A_n=(a_{ij})_{1\leq i,j\leq n}$，其中
+\[
+a_{ij}=\begin{cases}
+3,&i=j,\\
+1,&j=i+1,\\
+2,&i=j+1,\\
+0,&|i-j|\geq2.
+\end{cases}
+\]
+计算 $D_n=\det A_n$，给出关于 $n$ 的通项公式。
+
+\begin{solve}
+为统一递推，补充定义 $D_0=1$、$D_1=\det(3)=3$。
+当 $n\geq2$ 时按第一行展开：主对角元 $3$ 对应的项为 $3D_{n-1}$；
+另一非零元素是第一行第二列的 $1$，其位置符号为负。
+删去第一行和第二列所得余子式的第一列仅有首项 $2$ 非零，
+沿该列再展开，得到 $2D_{n-2}$。因此
+\[
+D_n=3D_{n-1}-2D_{n-2}\qquad(n\geq2).
+\]
+将其改写为
+\[
+D_n-D_{n-1}=2(D_{n-1}-D_{n-2}).
+\]
+记 $E_n=D_n-D_{n-1}$（$n\geq1$），则 $E_1=2$、$E_n=2E_{n-1}$，
+由归纳得 $E_n=2^n$。累加相邻差，得到
+\[
+D_n=D_0+\sum_{k=1}^n E_k
+=1+\sum_{k=1}^n2^k=\boxed{2^{n+1}-1}.
+\]
+例如 $D_2=3\cdot3-1\cdot2=7$，与通项在 $n=2$ 时的值一致。
+\end{solve}
+
+\item\label{q:detcalc-min-powers}
+设 $n\geq2$，计算
+\[
+D_n(a)=\det\bigl(a^{\min(i,j)}\bigr)_{1\leq i,j\leq n}.
+\]
+例如 $n=4$ 时，
+\[
+D_4(a)=\begin{vmatrix}
+a&a&a&a\\
+a&a^2&a^2&a^2\\
+a&a^2&a^3&a^3\\
+a&a^2&a^3&a^4
+\end{vmatrix}.
+\]
+所得表达式应同时适用于 $a=0$ 和 $a=1$。
+
+\begin{solve}
+按 $i=n,n-1,\ldots,2$ 的顺序，依次作 $R_i\leftarrow R_i-R_{i-1}$。
+必须从下往上进行，使每次减去的第 $i-1$ 行仍为原矩阵中的行。
+对 $i\geq2$，变换后的第 $(i,j)$ 个元素为
+\[
+a^{\min(i,j)}-a^{\min(i-1,j)}
+=\begin{cases}
+0,&j<i,\\
+a^i-a^{i-1},&j\geq i.
+\end{cases}
+\]
+因此变换后为上三角矩阵，主对角线依次为
+$a,a^2-a,\ldots,a^n-a^{n-1}$。于是
+\begin{align*}
+D_n(a)&=a\prod_{i=2}^n(a^i-a^{i-1})\\
+&=a\prod_{i=2}^n\bigl(a^{i-1}(a-1)\bigr)\\
+&=\boxed{a^{\,1+n(n-1)/2}(a-1)^{n-1}}.
+\end{align*}
+全程只有倍加变换和多项式因式分解，没有除以 $a$ 或 $a-1$。
+当 $a=0$ 时原矩阵为零矩阵；当 $a=1$ 时原矩阵全为 $1$，且 $n\geq2$，行列式为零。
+这两种情形都与公式一致。
+\end{solve}
+
+\item\label{q:detcalc-arrow}
+设 $n\geq3$，$B_n(x)=(b_{ij})_{1\leq i,j\leq n}$，其中
+\[
+b_{ij}=\begin{cases}
+x,&i=j,\\
+1,&i=1,\ j\geq2,\text{ 或 }j=1,\ i\geq2,\\
+0,&i\geq2,\ j\geq2,\ i\ne j.
+\end{cases}
+\]
+计算 $\det B_n(x)$，并求其关于 $x$ 的全部实零点。
+
+\begin{solve}
+利用排列展开分析可能非零的项。第 $i$ 行（$i\geq2$）只能选第一列或第 $i$ 列。
+
+若第一行选第一列，则其余各行只能选各自的对角元，得到 $x^n$。
+若第一行选第 $k$ 列（$k\geq2$），第 $k$ 行的对角位置已被占用，
+故该行必须选第一列，其余各行只能选对角元。
+对应的列指标排列是交换 $1,k$ 的换位，符号为负，贡献为 $-x^{n-2}$。
+这样的 $k$ 共有 $n-1$ 个；以上两类包含了全部可能非零的排列项。因此
+\[
+\det B_n(x)=x^n-(n-1)x^{n-2}
+=\boxed{x^{n-2}\bigl(x^2-(n-1)\bigr)}.
+\]
+因为 $n\geq3$，$n-2\geq1$，全部实零点为
+\[
+\boxed{x=0,\qquad x=\sqrt{n-1},\qquad x=-\sqrt{n-1}.}
+\]
+其中 $0$ 的重数为 $n-2$，其余两个零点各为单根。
+排列展开没有除以 $x$，所以也涵盖 $x=0$。
+\end{solve}
+
+\item\label{q:detcalc-rational-vandermonde}
+设 $n\geq2$，$x_1,\ldots,x_n$ 两两不同，且 $t\ne x_j$（$1\leq j\leq n$）。
+定义 $n$ 阶矩阵 $C=(c_{ij})$：
+\[
+c_{ij}=\begin{cases}
+x_j^{\,i-1},&1\leq i\leq n-1,\\
+\displaystyle\frac{1}{t-x_j},&i=n.
+\end{cases}
+\]
+其中零次幂表示常数多项式 $1$ 的取值。计算 $\det C$，将结果写成乘积之商。
+例如 $n=3$ 时，所求行列式为
+\[
+\begin{vmatrix}
+1&1&1\\
+x_1&x_2&x_3\\
+\dfrac{1}{t-x_1}&\dfrac{1}{t-x_2}&\dfrac{1}{t-x_3}
+\end{vmatrix}.
+\]
+
+\begin{solve}
+记 $D=\det C$。对每个 $j=1,\ldots,n$，将第 $j$ 列乘以 $t-x_j$，
+所得矩阵记为 $M$，则
+\[
+\det M=\left(\prod_{j=1}^n(t-x_j)\right)D.
+\]
+矩阵 $M$ 的前 $n-1$ 行依次为
+$\bigl(tx_j^k-x_j^{k+1}\bigr)_{j=1}^n$（$k=0,\ldots,n-2$），最后一行全为 $1$。
+将最后一行移至第一行，保持其他行的相对顺序，所得矩阵记为 $N$。
+这相当于交换相邻行 $n-1$ 次，因此
+\[
+\det N=(-1)^{n-1}\det M.
+\]
+
+接下来将 $N$ 化成范德蒙形式。先作 $R_2\leftarrow R_2-tR_1$，
+第二行变为 $(-x_j)_{j=1}^n$。
+再按 $i=3,4,\ldots,n$ 的顺序作 $R_i\leftarrow R_i+tR_{i-1}$，
+此时使用的是已经更新的上一行。
+若上一行为 $(-x_j^{i-2})_{j=1}^n$，则当前行的元素变为
+\[
+\bigl(tx_j^{i-2}-x_j^{i-1}\bigr)+t\bigl(-x_j^{i-2}\bigr)=-x_j^{i-1}.
+\]
+因此最终各行依次为 $(1)_{j=1}^n,(-x_j)_{j=1}^n,\ldots,(-x_j^{n-1})_{j=1}^n$。
+从后 $n-1$ 行各提取一个 $-1$，并使用范德蒙公式，得
+\[
+\det N=(-1)^{n-1}\prod_{1\leq i<j\leq n}(x_j-x_i).
+\]
+两次符号因子相消，故 $\det M=\prod_{i<j}(x_j-x_i)$。
+由于题设保证每个 $t-x_j\ne0$，可以除以它们的乘积，得到
+\[
+\boxed{\det C=
+\frac{\displaystyle\prod_{1\leq i<j\leq n}(x_j-x_i)}
+{\displaystyle\prod_{j=1}^n(t-x_j)}.}
+\]
+当 $n=2$ 时，前述 $i=3,\ldots,n$ 的操作为空；
+直接计算也得到 $1/(t-x_2)-1/(t-x_1)=(x_2-x_1)/((t-x_1)(t-x_2))$，符号一致。
+\end{solve}
+
+\end{enumerate}
+\end{document}
