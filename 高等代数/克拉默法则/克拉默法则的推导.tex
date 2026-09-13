@@ -1,0 +1,107 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{克拉默法则的推导}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{从二元消元看出规律}
+
+考虑方程组 $ax+by=u$、$cx+dy=v$。分别消去 $y$ 和 $x$，得到
+\[
+  (ad-bc)x=ud-bv,\qquad (ad-bc)y=av-cu.
+\]
+当 $ad-bc\ne0$ 时，任何解都必须满足
+\[
+  x=\frac{\begin{vmatrix}u&b\\v&d\end{vmatrix}}
+          {\begin{vmatrix}a&b\\c&d\end{vmatrix}},\qquad
+  y=\frac{\begin{vmatrix}a&u\\c&v\end{vmatrix}}
+          {\begin{vmatrix}a&b\\c&d\end{vmatrix}}.
+\]
+分母都是系数行列式；求哪个未知数，分子就把它对应的系数列换成常数项列。
+\keyterm{克拉默法则}（Cramer's rule）把这一规律推广到任意阶。
+下面只用行列式的线性性质、两列（行）相同时行列式为零，以及按列（行）展开公式来推导。
+
+\section{为什么替换一列就能提取一个未知数}
+
+设 $n$ 为正整数，$A=(a_{ij})\in\mathbb F^{n\times n}$，其中
+$\mathbb F=\mathbb R$ 或 $\mathbb C$。记 $A$ 的列为 $a_1,\ldots,a_n$，
+常数项向量为 $b=(b_1,\ldots,b_n)^{\mathsf T}$，未知向量为
+$x=(x_1,\ldots,x_n)^{\mathsf T}$，$\mathsf T$ 表示转置。
+方程组 $Ax=b$ 就是
+\begin{equation}
+  x_1a_1+\cdots+x_na_n=b.
+  \label{eq:derivation-column-system}
+\end{equation}
+记 $D=\det A$，并对 $j=1,\ldots,n$ 定义
+\[
+  D_j=\det(a_1,\ldots,a_{j-1},b,a_{j+1},\ldots,a_n).
+\]
+也就是说，$D_j$ 只替换第 $j$ 列，其他列的位置不变。
+
+假设 $x$ 是一个解。将式~\eqref{eq:derivation-column-system} 代入 $D_j$，
+再利用行列式对第 $j$ 列的线性性质，得到
+\begin{equation}
+  D_j=\sum_{k=1}^n x_k
+  \det(a_1,\ldots,a_{j-1},a_k,a_{j+1},\ldots,a_n)=x_jD.
+  \label{eq:derivation-extract}
+\end{equation}
+最后一步的原因是：当 $k\ne j$ 时，第 $j$ 列与原来的第 $k$ 列相同，
+该项行列式为零；当 $k=j$ 时，矩阵恰好恢复为 $A$。
+因此，\keyterm{替换列再作线性展开，会消去其余未知数，只留下所求未知数乘以 $D$}。
+
+\begin{theorem}[克拉默法则]
+\label{thm:derivation-cramer}
+若 $D\ne0$，则对任意 $b\in\mathbb F^n$，方程组 $Ax=b$ 有唯一解，且
+\begin{equation}
+  x_j=\frac{D_j}{D},\qquad j=1,\ldots,n.
+  \label{eq:derivation-cramer}
+\end{equation}
+\end{theorem}
+
+式~\eqref{eq:derivation-extract} 已说明任何解都只能取上述值，因而解至多有一个。
+但推导时假设了解存在，还须验证这些比值确实满足原方程组。
+
+\section{补全证明：这些比值确实构成解}
+
+\begin{proof}[定理~\ref{thm:derivation-cramer} 的存在性证明]
+记 $C_{ij}$ 为 $a_{ij}$ 的\keyterm{代数余子式}（cofactor），即删去 $A$ 的第 $i$ 行、
+第 $j$ 列后所得行列式乘以 $(-1)^{i+j}$；$n=1$ 时约定 $C_{11}=1$。
+沿替换后的第 $j$ 列展开，因为删去这一列后剩余元素没有改变，故
+\[
+  D_j=\sum_{i=1}^n b_iC_{ij}.
+\]
+对任意 $r,i\in\{1,\ldots,n\}$，按行展开又给出
+\begin{equation}
+  \sum_{j=1}^n a_{rj}C_{ij}
+  =\begin{cases}D,&r=i,\\0,&r\ne i.\end{cases}
+  \label{eq:derivation-cofactor}
+\end{equation}
+当 $r=i$ 时，这是 $D$ 按第 $i$ 行展开。
+当 $r\ne i$ 时，把 $A$ 的第 $i$ 行换成第 $r$ 行，再按第 $i$ 行展开，
+就得到左端；删去该行后子式不变，而替换后的矩阵有两行相同，所以结果为零。
+
+令 $\widehat x_j=D_j/D$。对原方程组的每一行 $r$，有
+\[
+  \sum_{j=1}^n a_{rj}\widehat x_j
+  =\frac1D\sum_{j=1}^n a_{rj}\sum_{i=1}^n b_iC_{ij}
+  =\frac1D\sum_{i=1}^n b_i\sum_{j=1}^n a_{rj}C_{ij}
+  =b_r.
+\]
+这里仅交换了有限求和，再使用式~\eqref{eq:derivation-cofactor}。
+因此 $A\widehat x=b$，解确实存在；结合前面得到的唯一性，证明完成。
+\end{proof}
+
+条件 $D\ne0$ 用于把 $D_j=x_jD$ 除以 $D$。
+当 $D=0$ 时，任何解仍须满足 $D_j=x_jD=0$，所以只要某个 $D_j\ne0$ 就无解；
+若所有 $D_j=0$，则不能用这些比值求解，应另用消元法判断。
+
+\end{document}
