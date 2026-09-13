@@ -1,0 +1,103 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
+
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{范德蒙行列式的意义}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{从确定一个多项式出发}
+
+范德蒙行列式值得单独命名，不只是因为形式整齐或公式漂亮，更因为它反复出现在同一类重要问题中：
+\keyterm{知道多项式在若干点上的值，能否唯一确定它的系数？}
+本文在实数范围内讨论，所用结论对复数同样成立。
+
+设 $p(t)=a_0+a_1t+a_2t^2$，要求 $p(x_i)=y_i$（$i=1,2,3$）。
+这里 $x_i,y_i$ 已知，$a_0,a_1,a_2$ 待定。代入取值条件，得到
+\[
+  \begin{pmatrix}
+    1&x_1&x_1^2\\
+    1&x_2&x_2^2\\
+    1&x_3&x_3^2
+  \end{pmatrix}
+  \begin{pmatrix}a_0\\a_1\\a_2\end{pmatrix}
+  =\begin{pmatrix}y_1\\y_2\\y_3\end{pmatrix}.
+\]
+每一行来自在一个点上求值，每一列对应一个单项式 $1,t,t^2$。
+因此，这种排列自然来自多项式的结构。它能否对任意右端给出唯一解，取决于系数行列式是否非零。
+
+\section{乘积公式表达了什么}
+
+对正整数 $n$ 和实数 $x_1,\ldots,x_n$，称矩阵
+$V=(x_i^{\,j-1})_{1\leq i,j\leq n}$ 为\keyterm{范德蒙矩阵}（Vandermonde matrix），
+其行列式称为\keyterm{范德蒙行列式}（Vandermonde determinant）。零次幂在这里表示常数多项式 $1$ 的取值。
+本文每行对应一个节点；也可采用转置形式，行列式的值不变。
+
+\begin{theorem}[范德蒙行列式公式]
+\label{thm:meaning-product}
+对任意实数 $x_1,\ldots,x_n$，有
+\begin{equation}
+  D_n:=\det V=\prod_{1\leq i<j\leq n}(x_j-x_i).
+  \label{eq:meaning-product}
+\end{equation}
+当 $n=1$ 时，右端的空乘积约定为 $1$。
+\end{theorem}
+
+例如，$D_3=(x_2-x_1)(x_3-x_1)(x_3-x_2)$。
+每一对节点贡献一个差，方向为后行节点减前行节点。由式~\eqref{eq:meaning-product}，
+\[
+  \det V\ne0\quad\Longleftrightarrow\quad x_1,\ldots,x_n\text{ 两两不同}.
+\]
+若两个节点重合，相应两行相同：同一点的两次求值不能提供两条独立约束。
+若指定的值相同，条件重复；若指定的值不同，条件矛盾。
+公式更进一步说明：\keyterm{只要节点互异，就没有其他导致矩阵不可逆的障碍。}
+
+\section{为什么出现两两之差}
+
+节点重合时行列式为零，提示差值应当成为因子。下面用一元多项式的因式定理说明这一点，并确定乘法常数。
+
+\begin{proof}[定理~\ref{thm:meaning-product} 的证明]
+对 $n$ 归纳，$n=1$ 时成立。设 $n\geq2$ 且低一阶公式成立。
+若前 $n-1$ 个节点有重复，等式两边均为零。
+否则令 $f(t)=D_n(x_1,\ldots,x_{n-1},t)$。
+沿末行展开，$f$ 的次数至多为 $n-1$；当 $t=x_i$ 时两行相同，故 $f(x_i)=0$。
+由这 $n-1$ 个互异零点及因式定理，
+\[
+  f(t)=c\prod_{i=1}^{n-1}(t-x_i).
+\]
+末行展开中，$t^{n-1}$ 的系数是其代数余子式
+$(-1)^{n+n}D_{n-1}=D_{n-1}$，所以 $c=D_{n-1}$。
+令 $t=x_n$，再代入归纳假设，便得到全部两两差值的乘积。
+\end{proof}
+
+\section{核心用途：从取值恢复系数}
+
+\keyterm{多项式插值}（polynomial interpolation）是寻找满足给定取值条件的多项式。
+设 $p(t)=\sum_{k=0}^{n-1}a_kt^k$，则条件 $p(x_i)=y_i$ 等价于
+$Va=y$，其中 $a=(a_0,\ldots,a_{n-1})^{\mathsf T}$，
+$y=(y_1,\ldots,y_n)^{\mathsf T}$，$\mathsf T$ 表示转置。
+节点互异时 $V$ 可逆，所以对任意 $y_1,\ldots,y_n$，\keyterm{存在唯一一个次数不超过 $n-1$ 的多项式满足这些条件}（包括零多项式）。
+
+\begin{example}[三个取值确定多项式]
+要求 $p(0)=1$、$p(1)=2$、$p(2)=5$，且次数不超过 $2$。
+节点互异，行列式为 $(1-0)(2-0)(2-1)=2\ne0$，故解唯一。
+代入 $p(t)=a_0+a_1t+a_2t^2$，得
+\[
+  a_0=1,\qquad a_1+a_2=1,\qquad 2a_1+4a_2=4.
+\]
+解得 $a_1=0$、$a_2=1$，故 $p(t)=1+t^2$。
+次数限制不可省略：任取非零实数 $c$，多项式
+$1+t^2+ct(t-1)(t-2)$ 也满足这三个取值条件。
+\end{example}
+
+同一个公式还证明：节点互异时，向量 $(1,x_i,\ldots,x_i^{n-1})$（$i=1,\ldots,n$）线性无关；
+计算行列式时，识别这种结构也能直接使用乘积公式。
+它的核心意义是连接\keyterm{多项式的系数与有限个点上的取值}，并给出二者能够唯一相互确定的条件。
+
+\end{document}
