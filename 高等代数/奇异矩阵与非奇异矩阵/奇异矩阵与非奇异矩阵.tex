@@ -1,0 +1,185 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+\usepackage{tcolorbox}
+\tcbuselibrary{breakable}
+\newtcolorbox{inputoutputbox}{
+  breakable,
+  colback=rnlinkblue!4!white,
+  colframe=rnlinkblue,
+  coltext=black,
+  colbacktitle=rnlinkblue,
+  coltitle=white,
+  fonttitle=\bfseries,
+  title={具体例子：从计算结果找回原向量}
+}
+
+\title{奇异矩阵与非奇异矩阵}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{定义：线性变换能否被还原}
+
+矩阵 $A$ 把输入向量 $x$ 变为输出向量 $b=Ax$。给定 $b$，能否唯一地找回 $x$？
+奇异矩阵与非奇异矩阵的区别，正是这一问题在方阵情形下的体现。
+以下设 $n$ 为正整数，$A\in\mathbb R^{n\times n}$，向量均写成列向量，
+$\mathsf T$ 表示转置，$I_n$ 表示 $n$ 阶单位矩阵。
+
+\begin{inputoutputbox}
+\impo{这里的矩阵始终是已知的}。“输入”是乘法之前的向量 $x$，“输出”是乘法得到的向量 $b$；
+“找回 $x$”就是在已知矩阵和 $b$ 的情况下，求解关于 $x$ 的方程。
+
+\textbf{可以唯一找回的情形。}
+取 $D=\begin{pmatrix}2&0\\0&3\end{pmatrix}$，它将第一个坐标乘以 $2$，第二个坐标乘以 $3$。例如
+\[
+  D\underbrace{\begin{pmatrix}1\\2\end{pmatrix}}_{\text{输入 }x}
+  =\underbrace{\begin{pmatrix}2\\6\end{pmatrix}}_{\text{输出 }b}.
+\]
+反过来，只知道输出为 $(2,6)^{\mathsf T}$ 时，解 $Dx=b$ 就是解
+$2x_1=2$、$3x_2=6$，唯一得到 $x=(1,2)^{\mathsf T}$。
+对任意 $b=(b_1,b_2)^{\mathsf T}$，同样都能唯一得到
+$x=(b_1/2,b_2/3)^{\mathsf T}$，因此 $D$ 是非奇异矩阵。
+
+\textbf{不能唯一找回的情形。}
+取 $P=\begin{pmatrix}1&0\\0&0\end{pmatrix}$，它保留第一个坐标，把第二个坐标变成 $0$：
+\[
+  P\begin{pmatrix}x_1\\x_2\end{pmatrix}=\begin{pmatrix}x_1\\0\end{pmatrix},
+  \qquad
+  P\begin{pmatrix}2\\1\end{pmatrix}
+  =P\begin{pmatrix}2\\5\end{pmatrix}
+  =P\begin{pmatrix}2\\100\end{pmatrix}
+  =\begin{pmatrix}2\\0\end{pmatrix}.
+\]
+看到输出 $(2,0)^{\mathsf T}$，只能确定原来的第一个坐标为 $2$，第二个坐标可以是任意实数。
+不同输入得到同一输出，因而无法唯一还原，$P$ 是奇异矩阵。
+若指定输出为 $(2,1)^{\mathsf T}$，则根本找不到输入，因为 $Px$ 的第二个坐标总是 $0$。
+
+这两个例子说明：\textcolor{orange}{非奇异时，每个输出都对应唯一的输入；奇异时，有些输出对应多个输入，另一些输出无法得到}。
+下面用逆矩阵给出正式定义。
+\end{inputoutputbox}
+
+\begin{definition}[非奇异矩阵与奇异矩阵]
+若存在矩阵 $B\in\mathbb R^{n\times n}$，使 $AB=BA=I_n$，则称 $A$ 为
+\keyterm{可逆矩阵}（invertible matrix），也称\keyterm{非奇异矩阵}（nonsingular matrix）。
+矩阵 $B$ 称为 $A$ 的\keyterm{逆矩阵}（inverse matrix），记为 $A^{-1}$。
+若不存在这样的矩阵，则称 $A$ 为\keyterm{奇异矩阵}（singular matrix）。
+\end{definition}
+
+逆矩阵若存在，必定唯一：若 $B,C$ 都是 $A$ 的逆矩阵，则
+$B=B(AC)=(BA)C=C$。此时由 $Ax=b$ 两边左乘 $A^{-1}$ 得 $x=A^{-1}b$，
+而代回也有 $A(A^{-1}b)=b$，所以每个输出 $b$ 都对应唯一的输入。
+这里讨论的是方阵；非方阵可能有左逆或右逆，不直接套用上述分类。
+
+\section{判别：行列式、秩与齐次方程组}
+
+矩阵的\keyterm{秩}（rank）$\operatorname{rank}A$ 是其列向量组中线性无关向量的最大个数。
+若 $\operatorname{rank}A=n$，称 $A$ 为\keyterm{满秩}（full rank）方阵。
+下面的等价关系把可逆性与熟悉的计算方法联系起来。
+
+\begin{theorem}[非奇异矩阵的等价判别]
+\label{thm:nonsingular-criteria}
+对 $A\in\mathbb R^{n\times n}$，下列条件等价：
+\begin{enumerate}
+  \item $A$ 非奇异；
+  \item $\det A\ne0$；
+  \item $\operatorname{rank}A=n$，即 $A$ 的列向量线性无关；
+  \item 齐次线性方程组 $Ax=0$ 只有零解；
+  \item 对每个 $b\in\mathbb R^n$，方程组 $Ax=b$ 都有唯一解。
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+若 $A$ 可逆，则 $\det A\det A^{-1}=\det I_n=1$，故 $\det A\ne0$。
+初等行变换保持秩以及行列式是否为零的性质；将 $A$ 化为行阶梯形矩阵后，
+其行列式非零当且仅当有 $n$ 个主元，也即 $\operatorname{rank}A=n$。
+这里使用了行秩等于列秩这一基本结论。
+
+设 $A$ 的列为 $a_1,\ldots,a_n$。等式 $Ax=0$ 就是
+$x_1a_1+\cdots+x_na_n=0$，故列向量线性无关等价于齐次方程组只有零解。
+此时 $n$ 个线性无关的列向量构成 $\mathbb R^n$ 的一组基，每个 $b$ 都可唯一表示为它们的线性组合，
+所以 $Ax=b$ 对每个 $b$ 都有唯一解。
+
+最后，若上述唯一可解性成立，分别求解 $Ab_j=e_j$，其中 $e_j$ 是第 $j$ 个标准基向量，
+并令 $B=(b_1,\ldots,b_n)$，则 $AB=I_n$。对任意 $x$，有
+$A(BAx)=Ax$；由解的唯一性，$BAx=x$，因而 $BA=I_n$，所以 $A$ 可逆。
+\end{proof}
+
+取上述等价条件的否定，即得到常用的奇异性判据：
+\begin{equation}
+  A\text{ 奇异}
+  \ \Longleftrightarrow\ \det A=0
+  \ \Longleftrightarrow\ \operatorname{rank}A<n
+  \ \Longleftrightarrow\ \text{存在 }z\ne0\text{ 使 }Az=0.
+  \label{eq:singular-criteria}
+\end{equation}
+因此，小阶方阵通常可直接计算行列式；较大方阵可用高斯消元检查是否每列都有主元。
+若已发现列向量间的非平凡线性关系，也可以直接判定矩阵奇异。
+
+\section{方程组中的区别：唯一解、无解与无穷多解}
+
+\begin{example}[非奇异矩阵]
+设 $A=\begin{pmatrix}1&2\\3&4\end{pmatrix}$。判断其可逆性，并解 $Ax=(5,11)^{\mathsf T}$。
+\end{example}
+
+\begin{solve}
+因为 $\det A=4-6=-2\ne0$，所以 $A$ 非奇异。由二阶矩阵求逆公式，
+\[
+  A^{-1}=\frac1{-2}\begin{pmatrix}4&-2\\-3&1\end{pmatrix},\qquad
+  x=A^{-1}\begin{pmatrix}5\\11\end{pmatrix}=\begin{pmatrix}1\\2\end{pmatrix}.
+\]
+代回得到 $A(1,2)^{\mathsf T}=(5,11)^{\mathsf T}$。非零行列式保证解存在且唯一，
+并不要求行列式为正。
+\end{solve}
+
+\begin{example}[奇异矩阵]
+设 $S=\begin{pmatrix}1&2\\2&4\end{pmatrix}$，讨论 $Sx=b$ 的解。
+\end{example}
+
+\begin{solve}
+第二列是第一列的两倍，故 $\det S=0$，$S$ 奇异。方程组为
+\[
+  x_1+2x_2=b_1,\qquad 2x_1+4x_2=b_2.
+\]
+若 $b_2\ne2b_1$，两个方程相互矛盾，因而无解；若 $b_2=2b_1$，第二个方程重复第一个方程，
+全部解为 $x=(b_1-2t,t)^{\mathsf T}$，其中 $t\in\mathbb R$，因而有无穷多解。
+\end{solve}
+
+\keyterm{奇异并不意味着每个方程组都无解}。一般地，若奇异矩阵对应的 $Ax=b$ 有一个解 $x_0$，
+由式~\eqref{eq:singular-criteria} 可取 $z\ne0$ 使 $Az=0$，于是
+\[
+  A(x_0+tz)=Ax_0+tAz=b,\qquad t\in\mathbb R.
+\]
+不同的 $t$ 给出不同的解，所以有无穷多解。综上，对实方阵，非奇异时每个 $b$ 都给出唯一解；
+奇异时则随 $b$ 的不同而无解或有无穷多解，不会恰有一个解。
+
+\section{几何含义：是否丢失方向信息}
+
+从线性变换 $x\mapsto Ax$ 看，若 $A$ 奇异，就有非零向量 $z$ 被映到零向量。
+于是 $A(x+tz)=Ax$：沿 $z$ 方向的一整条直线被映成同一个点，无法从输出辨别这些输入。
+例如，前述矩阵 $S$ 满足
+\[
+  S\begin{pmatrix}x_1\\x_2\end{pmatrix}
+  =(x_1+2x_2)\begin{pmatrix}1\\2\end{pmatrix}.
+\]
+整个平面的像是一条直线，且 $(-2,1)^{\mathsf T}$ 被映到零向量。
+平面被压缩到更低维的子空间，这正是该矩阵不可逆的原因。
+
+非奇异矩阵则保持整个空间的维数，每个输出恰有一个原像。在二维情形，
+$|\det A|$ 是面积的缩放倍数：奇异变换使面积变为零，非奇异变换的面积缩放倍数非零。
+非奇异不要求保持长度，例如 $2I_2$ 将所有长度扩大为两倍，但仍可用 $\tfrac12 I_2$ 还原。
+
+平面旋转矩阵提供了另一类非奇异矩阵：对任意实数 $\theta$，
+\[
+  R(\theta)=\begin{pmatrix}\cos\theta&-\sin\theta\\\sin\theta&\cos\theta\end{pmatrix},
+  \qquad \det R(\theta)=1,\qquad R(\theta)^{-1}=R(-\theta).
+\]
+旋转不会丢失方向信息，反向旋转即可恢复原向量。因此它的所有整数次幂也都非奇异。
+
+\end{document}

@@ -1,0 +1,316 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
+
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+
+\title{平面旋转矩阵及其幂}
+\author{}
+\date{}
+
+
+\begin{document}
+\maketitle
+
+
+\section{研究问题与坐标约定}
+在平面内，把一个向量绕原点旋转给定角度，如何用矩阵表示？如果连续进行同样的旋转，
+矩阵的乘法与幂又表示什么？本笔记从坐标关系推导旋转矩阵，再由旋转的复合解释矩阵的整数次幂。
+
+
+全文使用通常的平面直角坐标系：$x$ 轴向右，$y$ 轴向上，坐标轴保持不动。
+向量写成列向量 $v=(x,y)^{\mathsf T}\in\mathbb R^2$，其中 $\mathsf T$ 表示转置。
+所有旋转都以原点为中心，角度采用\emph{弧度制}；\impo{正角表示逆时针旋转，负角表示顺时针旋转}。
+这种约定描述的是向量本身的旋转。
+
+
+\section{旋转矩阵是如何得到的}
+\subsection{从三角函数的和角公式推导}
+设 $v\ne0$，其长度为 $r>0$，与 $x$ 轴正方向的有向夹角为 $\alpha$，于是
+\[
+  x=r\cos\alpha,\qquad y=r\sin\alpha.
+\]
+将 $v$ 旋转 $\theta\in\mathbb R$ 后，长度不变，夹角变为 $\alpha+\theta$。
+记旋转后的向量为 $v'=(x',y')^{\mathsf T}$，利用和角公式可得
+\begin{align*}
+  x'&=r\cos(\alpha+\theta)
+     =r\cos\alpha\cos\theta-r\sin\alpha\sin\theta
+     =x\cos\theta-y\sin\theta,\\
+  y'&=r\sin(\alpha+\theta)
+     =r\sin\alpha\cos\theta+r\cos\alpha\sin\theta
+     =x\sin\theta+y\cos\theta.
+\end{align*}
+零向量旋转后仍为零向量，也满足这两个等式。因此，对所有 $v\in\mathbb R^2$，都有
+\begin{equation}
+  \begin{pmatrix}x'\\y'\end{pmatrix}
+  =\begin{pmatrix}
+    \cos\theta&-\sin\theta\\
+    \sin\theta&\cos\theta
+  \end{pmatrix}
+  \begin{pmatrix}x\\y\end{pmatrix}.
+  \label{eq:rotation-coordinate}
+\end{equation}
+
+
+\begin{definition}[平面旋转矩阵]
+对任意 $\theta\in\mathbb R$，称
+\begin{equation}
+  R(\theta)=\begin{pmatrix}
+    \cos\theta&-\sin\theta\\
+    \sin\theta&\cos\theta
+  \end{pmatrix}
+  \label{eq:rotation-matrix}
+\end{equation}
+为角度 $\theta$ 对应的\keyterm{平面旋转矩阵}（plane rotation matrix）。
+在上述坐标约定下，映射 $v\mapsto R(\theta)v$ 表示将向量绕原点旋转 $\theta$。
+\end{definition}
+
+
+\subsection{从标准基向量理解矩阵的两列}
+\keyterm{标准基}（standard basis）为
+\[
+  e_1=\begin{pmatrix}1\\0\end{pmatrix},\qquad
+  e_2=\begin{pmatrix}0\\1\end{pmatrix}.
+\]
+旋转 $\theta$ 后，它们分别变为
+\[
+  R(\theta)e_1=\begin{pmatrix}\cos\theta\\\sin\theta\end{pmatrix},\qquad
+  R(\theta)e_2=
+  \begin{pmatrix}\cos(\pi/2+\theta)\\\sin(\pi/2+\theta)\end{pmatrix}
+  =\begin{pmatrix}-\sin\theta\\\cos\theta\end{pmatrix}.
+\]
+对任意二阶矩阵 $A$，$Ae_1$ 是 $A$ 的第一列，$Ae_2$ 是 $A$ 的第二列。
+因此，\keyterm{旋转矩阵的两列就是两个标准基向量旋转后的坐标}。
+
+前面的坐标推导已经表明，旋转是一个\keyterm{线性变换}（linear transformation），即
+对任意 $u,v\in\mathbb R^2$ 和 $a,b\in\mathbb R$，有
+\[
+  R(\theta)(au+bv)=aR(\theta)u+bR(\theta)v.
+\]
+特别地，由 $v=xe_1+ye_2$ 可得
+$R(\theta)v=xR(\theta)e_1+yR(\theta)e_2$，
+这也解释了为什么确定两个基向量的像，就能确定整个旋转变换。
+
+\section{旋转如何对应矩阵乘法}
+
+\subsection{连续旋转使角度相加}
+
+先将 $v$ 旋转 $\beta$，再旋转 $\alpha$，得到
+$R(\alpha)\bigl(R(\beta)v\bigr)=\bigl(R(\alpha)R(\beta)\bigr)v$。
+这里靠右的矩阵先作用。几何上，两次旋转的总角度是 $\alpha+\beta$，
+对应如下乘法公式。
+
+\begin{proposition}[旋转的复合]
+\label{prop:rotation-composition}
+对任意 $\alpha,\beta\in\mathbb R$，有
+\begin{equation}
+  R(\alpha)R(\beta)=R(\alpha+\beta).
+  \label{eq:rotation-composition}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+按矩阵乘法计算，并使用三角函数的和角公式，得到
+\begin{align*}
+  R(\alpha)R(\beta)
+  &=\begin{pmatrix}
+    \cos\alpha\cos\beta-\sin\alpha\sin\beta&
+    -\cos\alpha\sin\beta-\sin\alpha\cos\beta\\
+    \sin\alpha\cos\beta+\cos\alpha\sin\beta&
+    -\sin\alpha\sin\beta+\cos\alpha\cos\beta
+  \end{pmatrix}\\
+  &=\begin{pmatrix}
+    \cos(\alpha+\beta)&-\sin(\alpha+\beta)\\
+    \sin(\alpha+\beta)&\cos(\alpha+\beta)
+  \end{pmatrix}=R(\alpha+\beta).
+\end{align*}
+\end{proof}
+
+因为 $\alpha+\beta=\beta+\alpha$，这些平面旋转矩阵满足
+$R(\alpha)R(\beta)=R(\beta)R(\alpha)$。
+这依赖于此处旋转的特殊结构；一般矩阵乘法不满足交换律。
+
+\subsection{逆矩阵与长度保持}
+
+记 $I_2$ 为二阶单位矩阵。由式~\eqref{eq:rotation-matrix} 可知 $R(0)=I_2$，
+再由命题~\ref{prop:rotation-composition} 得
+\[
+  R(\theta)R(-\theta)=R(-\theta)R(\theta)=I_2.
+\]
+所以 $R(\theta)$ 总是可逆，且
+\begin{equation}
+  R(\theta)^{-1}=R(-\theta)=R(\theta)^{\mathsf T}.
+  \label{eq:rotation-inverse}
+\end{equation}
+几何上，逆变换就是按相反方向旋转同样的角度。
+
+满足 $Q^{\mathsf T}Q=I_2$ 的实二阶矩阵称为\keyterm{正交矩阵}（orthogonal matrix），
+因此 $R(\theta)$ 是正交矩阵。对任意向量 $v$，以
+$\|v\|=\sqrt{v^{\mathsf T}v}$ 表示其欧几里得长度，有
+\[
+  \|R(\theta)v\|^2
+  =v^{\mathsf T}R(\theta)^{\mathsf T}R(\theta)v
+  =v^{\mathsf T}v=\|v\|^2.
+\]
+这从代数上验证了旋转保持长度。此外，
+\[
+  \det R(\theta)=\cos^2\theta+\sin^2\theta=1.
+\]
+因此它也保持平面图形的面积与定向。
+
+\section{旋转矩阵的整数次幂}
+
+\subsection{幂的公式及其证明}
+
+对正整数 $k$，矩阵的 $k$ 次幂定义为 $k$ 个相同矩阵的乘积：
+\[
+  R(\theta)^k=\underbrace{R(\theta)\cdots R(\theta)}_{k\text{ 个因子}}.
+\]
+另外约定 $R(\theta)^0=I_2$；当 $k=-m$、$m$ 为正整数时，
+定义 $R(\theta)^{-m}=\bigl(R(\theta)^{-1}\bigr)^m$。
+
+\begin{theorem}[旋转矩阵的整数次幂]
+\label{thm:rotation-power}
+对任意 $\theta\in\mathbb R$ 和 $k\in\mathbb Z$，有
+\begin{equation}
+  \boxed{R(\theta)^k=R(k\theta)
+  =\begin{pmatrix}
+    \cos(k\theta)&-\sin(k\theta)\\
+    \sin(k\theta)&\cos(k\theta)
+  \end{pmatrix}.}
+  \label{eq:rotation-power}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+先对非负整数 $k$ 使用数学归纳法。当 $k=0$ 时，
+$R(\theta)^0=I_2=R(0)$，公式成立。
+若 $R(\theta)^k=R(k\theta)$，则由式~\eqref{eq:rotation-composition} 得
+\[
+  R(\theta)^{k+1}=R(k\theta)R(\theta)=R((k+1)\theta).
+\]
+因此公式对所有非负整数成立。
+当 $k=-m<0$ 时，由式~\eqref{eq:rotation-inverse} 及已证的正整数情形，得到
+\[
+  R(\theta)^k=\bigl(R(\theta)^{-1}\bigr)^m
+  =R(-\theta)^m=R(-m\theta)=R(k\theta).
+\]
+\end{proof}
+
+\subsection{几何含义与常见误解}
+
+定理~\ref{thm:rotation-power} 表明，\keyterm{矩阵连乘对应旋转的连续作用，因而使旋转角度累加}。
+当 $k>0$ 时，$R(\theta)^kv$ 是对 $v$ 连续实施 $k$ 次角度为 $\theta$ 的旋转；
+当 $k=0$ 时，向量不变；当 $k<0$ 时，实施 $|k|$ 次角度为 $-\theta$ 的逆旋转。
+统一地，结果都是将 $v$ 旋转 $k\theta$，而向量长度始终不变。
+
+矩阵幂采用矩阵乘法，不能对每个元素分别取幂。例如
+\[
+  R(\theta)^2
+  =\begin{pmatrix}
+    \cos^2\theta-\sin^2\theta&-2\sin\theta\cos\theta\\
+    2\sin\theta\cos\theta&\cos^2\theta-\sin^2\theta
+  \end{pmatrix}
+  =R(2\theta).
+\]
+右侧的 $\cos(2\theta)$ 来自矩阵乘法中的求和，通常不等于 $\cos^2\theta$。
+同样，$R(\theta)^k$ 与数乘 $kR(\theta)$ 也不同：后者使向量长度变为原来的 $|k|$ 倍。
+
+若从初始向量 $v_0=(x_0,y_0)^{\mathsf T}$ 出发，按照
+$v_{n+1}=R(\theta)v_n$（$n=0,1,2,\ldots$）逐次旋转，则
+\begin{equation}
+  v_n=R(n\theta)v_0
+  =\begin{pmatrix}
+    x_0\cos(n\theta)-y_0\sin(n\theta)\\
+    x_0\sin(n\theta)+y_0\cos(n\theta)
+  \end{pmatrix}.
+  \label{eq:rotation-orbit}
+\end{equation}
+所以各点都在以原点为圆心、半径为 $\|v_0\|$ 的圆上；若 $v_0=0$，则始终停留在原点。
+
+\section{计算例题与旋转的周期}
+
+\begin{example}[逆时针旋转直角]
+设 $A=\begin{pmatrix}0&-1\\1&0\end{pmatrix}$，求其整数次幂并解释其作用。
+\end{example}
+
+\begin{solve}
+由矩阵元素可识别出 $A=R(\pi/2)$。因此
+\[
+  A^2=R(\pi)=-I_2,\qquad
+  A^3=R(3\pi/2)=\begin{pmatrix}0&1\\-1&0\end{pmatrix},\qquad
+  A^4=R(2\pi)=I_2.
+\]
+例如，向量 $(1,0)^{\mathsf T}$ 依次变为
+$(0,1)^{\mathsf T}$、$(-1,0)^{\mathsf T}$、$(0,-1)^{\mathsf T}$，
+第四次回到 $(1,0)^{\mathsf T}$。
+对任意整数 $k$，写成 $k=4q+r$，其中 $q\in\mathbb Z$、$r\in\{0,1,2,3\}$，则
+$A^k=R(2q\pi+r\pi/2)=A^r$。这把任意整数次幂的计算归结为四种情形。
+\end{solve}
+
+\begin{example}[利用角度计算高次幂]
+设
+\[
+  B=\begin{pmatrix}
+    \frac12&-\frac{\sqrt3}{2}\\
+    \frac{\sqrt3}{2}&\frac12
+  \end{pmatrix},
+\]
+求 $B^{2026}$ 以及 $B^{2026}(1,0)^{\mathsf T}$。
+\end{example}
+
+\begin{solve}
+这里 $B=R(\pi/3)$，每次逆时针旋转 $60^\circ$，且 $B^6=I_2$。
+因为 $2026=6\cdot337+4$，所以
+\[
+  B^{2026}=R(4\pi/3)
+  =\begin{pmatrix}
+    -\frac12&\frac{\sqrt3}{2}\\
+    -\frac{\sqrt3}{2}&-\frac12
+  \end{pmatrix},\qquad
+  B^{2026}\begin{pmatrix}1\\0\end{pmatrix}
+  =\begin{pmatrix}-\frac12\\-\frac{\sqrt3}{2}\end{pmatrix}.
+\]
+完整转过的各圈不影响最终坐标，故最终效果等同于逆时针旋转 $240^\circ$。
+\end{solve}
+
+上述例题中的幂会周期性重复，但这并非对所有旋转角度都成立。
+三角函数的周期性给出 $R(\varphi+2\ell\pi)=R(\varphi)$（$\ell\in\mathbb Z$），并且
+\[
+  R(\varphi)=I_2
+  \quad\Longleftrightarrow\quad
+  \cos\varphi=1\ \text{且}\ \sin\varphi=0
+  \quad\Longleftrightarrow\quad
+  \varphi\in2\pi\mathbb Z.
+\]
+这里 $2\pi\mathbb Z$ 表示 $2\pi$ 的所有整数倍。
+
+\begin{proposition}[何时经过有限次旋转回到恒等变换]
+对给定的 $\theta\in\mathbb R$，存在正整数 $m$ 使 $R(\theta)^m=I_2$，
+当且仅当 $\theta/(2\pi)$ 是有理数。
+若 $\theta/(2\pi)=p/q$，其中 $p\in\mathbb Z$、$q$ 为正整数且 $p,q$ 互素，
+则满足该等式的最小正整数 $m$ 为 $q$。
+\end{proposition}
+
+\begin{proof}
+由式~\eqref{eq:rotation-power}，
+\[
+  R(\theta)^m=I_2
+  \quad\Longleftrightarrow\quad
+  m\theta=2\ell\pi\ \text{对某个}\ \ell\in\mathbb Z\ \text{成立}.
+\]
+若这样的正整数 $m$ 存在，则 $\theta/(2\pi)=\ell/m$ 是有理数。
+反之，若 $\theta/(2\pi)=p/q$ 为上述最简分数，则 $q\theta=2p\pi$，故 $R(\theta)^q=I_2$。
+对于任意满足条件的正整数 $m$，$mp/q$ 必须是整数，即 $q$ 整除 $mp$；
+由 $p,q$ 互素可知 $q$ 整除 $m$，故最小的正整数 $m$ 正是 $q$。
+\end{proof}
+
+对任意非零初始向量，旋转后回到原向量也要求总角度为 $2\pi$ 的整数倍，
+因而它的返回周期与上述矩阵的周期一致。若 $\theta/(2\pi)$ 为无理数，
+则非零向量不会在有限次旋转后精确回到起点；零向量始终保持不变。
+
+\end{document}
