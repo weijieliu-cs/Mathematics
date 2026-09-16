@@ -1,0 +1,1761 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\title{凸优化：统计估计}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{7\quad 统计估计}
+
+\subsection*{7.1\quad 参数分布估计}
+
+\subsection*{7.1.1\quad 最大似然估计}
+
+考虑 $\mathbb{R}^m$ 上的一族概率分布，每个概率分布对应一个向量 $x\in\mathbb{R}^n$，概率密度为 $p_x(\cdot)$。固定 $y\in\mathbb{R}^m$，$p_x(y)$ 可以看成 $x$ 的函数，称为似然函数。事实上，考虑似然函数的对数更为方便，我们称为对数-似然函数，用 $l$ 表示，即
+\[
+l(x)=\log p_x(y).
+\]
+通常对参数 $x$ 都有一些约束，可以作为 $x$ 的先验知识，或者是似然函数的定义域。这些约束可以显式给出，或者在似然函数中，若 $x$ 不满足先验信息约束则令 $p_x(y)=0$（对任意 $y$）。（因此，如果参数 $x$ 违背了先验信息约束，那么对数-似然函数的值为 $-\infty$。）
+
+现在考虑如下问题，根据观测到的服从分布的一个样本 $y$，估计参数 $x$ 的值。最大似然（ML）估计就是一种广为采用的方法，其中参数 $x$ 的估计为
+\[
+\hat{x}_{\mathrm{ml}}=\arg\max_x p_x(y)=\arg\max_x l(x),
+\]
+即选择使得似然（或者对数似然）函数在 $y$ 的观测值处最大的那个参数值作为 $x$ 的估计值。如果我们有关于 $x$ 的先验信息，比如说 $x\in C\subseteq\mathbb{R}^n$，我们可以显式添加约束 $x\in C$，或者隐式添加，当 $x\notin C$ 时，定义 $p_x(y)$ 为 $0$。
+
+求取参数向量 $x$ 的最大似然估计问题可以表述如下
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & l(x)=\log p_x(y)\\
+\text{subject to}\quad & x\in C,
+\end{aligned}
+\tag{7.1}
+\end{equation}
+其中 $x\in C$ 给出了参数向量 $x$ 的先验信息或者其他约束。在这个优化问题中，向量 $x\in\mathbb{R}^n$（在概率密度中是参数）是优化变量，向量 $y\in\mathbb{R}^m$（观测到的样本）是问题参数。
+
+对于 $y$ 的每个观测值，如果对数-似然函数 $l$ 都是凹的，且集合 $C$ 可以表述为线性等式约束以及凸不等式约束的组合，那么最大似然估计问题 (7.1) 是凸优化问题。事实上，很多这一类的估计问题都满足这个条件。对这些问题，可以通过凸优化确定 ML 估计。
+
+\noindent\textbf{附加了 IID 噪声的线性测量}\quad
+考虑线性测量模型，
+\[
+y_i=a_i^T x+v_i,\quad i=1,\cdots,m,
+\]
+其中 $x\in\mathbb{R}^n$ 是待估计参数向量，$y_i\in\mathbb{R}$ 是测量量或者观测量，$v_i$ 是测量误差或者噪声。假设 $v_i$ 独立同分布（IID），在 $\mathbb{R}$ 上具有概率密度 $p$。此时似然函数为
+\[
+p_x(y)=\prod_{i=1}^m p(y_i-a_i^T x),
+\]
+因此对数-似然函数为
+\[
+l(x)=\log p_x(y)=\sum_{i=1}^m \log p(y_i-a_i^T x).
+\]
+ML 估计是下面优化问题的任意一个最优点
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & \sum_{i=1}^m \log p(y_i-a_i^T x),
+\end{aligned}
+\tag{7.2}
+\end{equation}
+其中优化变量为 $x$。如果概率密度 $p$ 是对数-凹的，此优化问题是凸优化问题，且和罚函数逼近问题（第 288 页式 (6.2)）的形式一样，此时罚函数为 $-\log p$。
+
+\noindent\textbf{例 7.1}\quad
+噪声服从一些常见概率分布时的 ML 估计。
+
+\noindent\textbf{Gauss 噪声。}\quad
+当 $v_i$ 是 Gauss 噪声，均值为 $0$，方差为 $\sigma^2$ 时，概率密度函数为
+\[
+p(z)=(2\pi\sigma^2)^{-1/2}e^{-z^2/2\sigma^2},
+\]
+则对数-似然函数为
+\[
+l(x)=-(m/2)\log(2\pi\sigma^2)-\frac{1}{2\sigma^2}\|Ax-y\|_2^2,
+\]
+其中矩阵 $A$ 的行向量为 $a_1^T,\cdots,a_m^T$。因此 $x$ 的 ML 估计为 $x_{\mathrm{ml}}=\arg\min_x\|Ax-y\|_2^2$，也即最小二乘逼近问题的解。
+
+\noindent\textbf{Laplace 噪声。}\quad
+当 $v_i$ 服从 Laplace 分布时，即具有概率密度 $p(z)=(1/2a)e^{-|z|/a}$（其中 $a>0$），$x$ 的 ML 估计为 $\hat{x}=\arg\min_x\|Ax-y\|_1$，也即 $\ell_1$-范数逼近问题的解。
+
+\noindent\textbf{均匀分布。}\quad
+当 $v_i$ 服从 $[-a,a]$ 上的均匀分布时，若 $z\in[-a,a]$，有 $p(z)=1/(2a)$，$x$ 的 ML 估计为满足 $\|Ax-y\|_\infty\leq a$ 的任意 $x$。
+
+\noindent\textbf{罚函数逼近的 ML 解释}\quad
+反过来，我们可以将罚函数逼近问题
+\[
+\begin{aligned}
+\text{minimize}\quad & \sum_{i=1}^m \phi(b_i-a_i^T x)
+\end{aligned}
+\]
+理解为最大似然估计问题，其中噪声概率密度为
+\[
+p(z)=\frac{e^{-\phi(z)}}{\int e^{-\phi(u)}\,du},
+\]
+测量值为 $b$。上述结论给出了罚函数逼近问题的统计解释。例如，假设当 $z$ 值较大时罚函数 $\phi$ 增长很快，即对于大的残差我们附加较大的价值函数或是惩罚函数。相应的噪声概率密度函数 $p$ 具有很小的截尾，而最大似然估计将会避免（如果可能存在）具有较大残差的估计值，因为这对应着可能性很小的事件。
+
+我们也可以从最大似然估计的角度理解 $\ell_1$-范数逼近在大误差情况下的鲁棒性。可以将 $\ell_1$-范数逼近问题看成是噪声概率密度函数是 Laplace 函数的最大似然估计；$\ell_2$-范数逼近问题可以看成是噪声服从 Gauss 分布的最大似然估计。Laplace 密度函数比 Gauss 密度函数具有更大的截尾，即对于 Laplace 密度函数，$v_i$ 取值很大的概率远远大于 Gauss 密度函数的情况。因此，相应的最大似然估计方法将会接受更多大残差。
+
+\noindent\textbf{具有 Poisson 分布的计数问题}\quad
+在很多问题中，随机变量 $y$ 是非负整数变量，服从 Poisson 分布，均值 $\mu>0$：
+\[
+\mathbf{prob}(y=k)=\frac{e^{-\mu}\mu^k}{k!}.
+\]
+通常 $y$ 表示符合 Poisson 过程的某种事件（如光子到达，交通事故等）在一段时间内发生的次数。
+
+在一个简单的统计模型中，均值 $\mu$ 通常建模为向量 $u\in\mathbb{R}^n$ 的仿射函数：
+\[
+\mu=a^T u+b.
+\]
+这里 $u$ 称为解释变量向量，向量 $a\in\mathbb{R}^n$ 以及数 $b\in\mathbb{R}$ 称为模型参数。例如，若 $y$ 是某个区域一段时间内交通事故的发生次数，$u_1$ 可能是这段时间内此区域的总交通流，$u_2$ 可能是这段时间此区域的降雨量等。
+
+给定一系列观测值，即一系列数据对 $(u_i,y_i)$，$i=1,\cdots,m$，其中 $y_i$ 是对应解释变量 $u_i\in\mathbb{R}^n$ 的 $y$ 的观测值。我们所要做的是通过这些观测数据找到模型参数 $a\in\mathbb{R}^n$ 和 $b\in\mathbb{R}$ 的最大似然估计。
+
+似然函数的形式为
+\[
+\prod_{i=1}^m \frac{(a^T u_i+b)^{y_i}\exp(-(a^T u_i+b))}{y_i!},
+\]
+所以对数-似然函数为
+\[
+l(a,b)=\sum_{i=1}^m\left(y_i\log(a^T u_i+b)-(a^T u_i+b)-\log(y_i!)\right).
+\]
+为了得到 $a$ 和 $b$ 的 ML 估计，我们求解如下凸优化问题
+\[
+\begin{aligned}
+\text{maximize}\quad & \sum_{i=1}^m \left(y_i\log(a^T u_i+b)-(a^T u_i+b)\right),
+\end{aligned}
+\]
+其中变量为 $a$ 和 $b$。
+
+\noindent\textbf{Logistic 回归}\quad
+考虑随机变量 $y\in\{0,1\}$，其概率密度函数为
+\[
+\mathbf{prob}(y=1)=p,\qquad \mathbf{prob}(y=0)=1-p,
+\]
+其中 $p\in[0,1]$，假设其由解释变量 $u\in\mathbb{R}^n$ 决定。例如，$y=1$ 表示人群中有某个人感染某种疾病。假设感染这种疾病的概率是 $p$，它可以看成某些解释变量 $u$ 的函数，如体重，年龄，身高，血压以及其他医学上相关的变量。
+
+Logistic 模型具有如下形式
+\begin{equation}
+p=\frac{\exp(a^T u+b)}{1+\exp(a^T u+b)},
+\tag{7.3}
+\end{equation}
+其中 $a\in\mathbb{R}^n$ 和 $b\in\mathbb{R}$ 是模型参数，决定了概率 $p$ 和解释变量 $u$ 之间的函数关系。
+
+假定给定数据，包含解释变量 $u_1,\cdots,u_m\in\mathbb{R}^n$ 以及相应输出 $y_1,\cdots,y_m\in\{0,1\}$ 的一组值。我们所要做的是找到模型参数 $a\in\mathbb{R}^n$ 和 $b\in\mathbb{R}$ 的最大似然估计。有时称 $a$ 和 $b$ 的 ML 估计为 Logistic 回归。
+
+重新排列数据，使得对应 $u_1,\cdots,u_q$，输出值为 $y=1$，对应 $u_{q+1},\cdots,u_m$，输出为 $y=0$。似然函数因此具有形式
+\[
+\prod_{i=1}^q p_i\prod_{i=q+1}^m (1-p_i),
+\]
+其中 $p_i$ 由 Logistic 模型和解释变量 $u_i$ 决定。对数-似然函数具有如下形式
+\[
+\begin{aligned}
+l(a,b)
+&=\sum_{i=1}^q \log p_i+\sum_{i=q+1}^m\log(1-p_i)\\
+&=\sum_{i=1}^q \log\frac{\exp(a^T u_i+b)}{1+\exp(a^T u_i+b)}
++\sum_{i=q+1}^m \log\frac{1}{1+\exp(a^T u_i+b)}\\
+&=\sum_{i=1}^q (a^T u_i+b)-\sum_{i=1}^m \log(1+\exp(a^T u_i+b)).
+\end{aligned}
+\]
+因为 $l$ 是 $a$ 和 $b$ 的凹函数，Logistic 回归问题可以看做一个凸优化问题来求解。图 7.1 即为一个例子，其中 $u\in\mathbb{R}$。
+
+\noindent\textbf{Gauss 变量的协方差估计}\quad
+假定 $y\in\mathbb{R}^n$ 是 Gauss 随机变量，均值为 $0$，协方差矩阵为 $R=\mathbf{E}yy^T$，因此其概率密度函数为
+\[
+p_R(y)=(2\pi)^{-n/2}\det(R)^{-1/2}\exp(-y^T R^{-1}y/2),
+\]
+其中 $R\in\mathbf{S}_{++}^n$。基于服从 Gauss 分布的 $N$ 组独立采样样本 $y_1,\cdots,y_N\in\mathbb{R}^n$ 以及矩阵 $R$ 的先验知识，我们希望得到协方差矩阵 $R$ 的估计值。
+
+对数-似然函数具有如下形式
+\[
+\begin{aligned}
+l(R)
+&=\log p_R(y_1,\cdots,y_N)\\
+&=-(Nn/2)\log(2\pi)-(N/2)\log\det R-(1/2)\sum_{k=1}^N y_k^T R^{-1}y_k\\
+&=-(Nn/2)\log(2\pi)-(N/2)\log\det R-(N/2)\operatorname{tr}(R^{-1}Y),
+\end{aligned}
+\]
+其中
+\[
+Y=\frac{1}{N}\sum_{k=1}^N y_ky_k^T
+\]
+是 $y_1,\cdots,y_N$ 的样本协方差。对数-似然函数并不是 $R$ 的凹函数（尽管它在定义域 $\mathbf{S}_{++}^n$ 的一个子集上是凹的；见习题 7.4），但是通过变量变换可以得到凹的对数-似然函数。令 $S$ 表示协方差矩阵的逆，$S=R^{-1}$（称 $S$ 为信息矩阵）。采用 $S$ 代替 $R$ 作为新的参数，对数-似然函数具有形式
+\[
+l(S)=-(Nn/2)\log(2\pi)+(N/2)\log\det S-(N/2)\operatorname{tr}(SY),
+\]
+它是 $S$ 的凹函数。
+
+因此求解 $S$（也即 $R$）的 ML 估计可以表述为求解下列问题
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & \log\det S-\operatorname{tr}(SY)\\
+\text{subject to}\quad & S\in\mathcal{S}
+\end{aligned}
+\tag{7.4}
+\end{equation}
+其中 $\mathcal{S}$ 表征 $S=R^{-1}$ 的先验知识。（此外还有隐含的约束 $S\in\mathbf{S}_{++}^n$。）因为目标函数是凹的，因此如果集合 $\mathcal{S}$ 可以表示为一系列的线性等式以及凸的不等式约束，那么此问题为凸优化问题。
+
+首先考虑除了 $R\succ 0$，没有 $R$（也即 $S$）的其他先验假定的情形。在这种情况下，问题 (7.4) 可以解析求解。目标函数的梯度为 $S^{-1}-Y$，如果 $Y\in\mathbf{S}_{++}^n$，那么最优 $S$ 满足 $S^{-1}=Y$。（如果 $Y\notin\mathbf{S}_{++}^n$，则对数似然函数没有上界。）因此，如果 $R$ 不用满足先验假定，协方差矩阵的最大似然估计即为样本协方差：$\hat{R}_{\mathrm{ml}}=Y$。
+
+现在考虑 $R$ 的几种典型约束的例子，这些约束都可以写成信息矩阵 $S$ 的凸约束。我们可以将 $R$ 的上下（矩阵）界约束
+\[
+L\preceq R\preceq U
+\]
+表示为
+\[
+U^{-1}\preceq R^{-1}\preceq L^{-1},
+\]
+其中 $L$ 和 $U$ 是对称正定矩阵。
+
+再考虑 $R$ 的条件数约束
+\[
+\lambda_{\max}(R)\leq \kappa_{\max}\lambda_{\min}(R),
+\]
+它可以表述为
+\[
+\lambda_{\max}(S)\leq \kappa_{\max}\lambda_{\min}(S).
+\]
+这等价于存在 $u>0$，使得 $uI\preceq S\preceq \kappa_{\max}uI$。因此为了求解 $R$ 具有条件数约束的 ML 估计问题，我们可以求解凸优化问题
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & \log\det S-\operatorname{tr}(SY)\\
+\text{subject to}\quad & uI\preceq S\preceq \kappa_{\max}uI,
+\end{aligned}
+\tag{7.5}
+\end{equation}
+其中变量为 $S\in\mathbf{S}^n$ 以及 $u\in\mathbb{R}$。
+
+再考虑另一种约束的例子。假定随机向量 $y$ 的线性函数的方差有上界或者下界约束
+\[
+\mathbf{E}(c_i^T y)^2\leq \alpha_i,\quad i=1,\cdots,K.
+\]
+这种先验假定可以表述为
+\[
+\mathbf{E}(c_i^T y)^2=c_i^TRc_i=c_i^TS^{-1}c_i\leq \alpha_i,\quad i=1,\cdots,K.
+\]
+因为 $c_i^TS^{-1}c_i$ 是 $S$ 的凸函数（当 $S\succ 0$ 时成立，而此处满足条件），这些边界约束可以包含在 ML 估计问题中。
+
+\subsection*{7.1.2\quad 最大后验概率估计}
+
+最大后验概率（MAP）估计问题可以看成最大似然估计的 Bayes 形式，此时，假设未知参数 $x$ 服从某一预先设定的概率分布。假定 $x$（待估计向量）和 $y$（观测向量）是随机变量，其联合概率密度为 $p(x,y)$。这和统计估计的假设不同，在统计估计中，$x$ 是参数，而不是随机变量。
+
+$x$ 的先验概率密度为
+\[
+p_x(x)=\int p(x,y)\,dy.
+\]
+上述概率密度给出了向量 $x$ 可能取值的先验信息，这是独立于向量 $y$ 的观测值的。类似地，向量 $y$ 的先验概率密度为
+\[
+p_y(y)=\int p(x,y)\,dx.
+\]
+上述概率密度表征了向量 $y$ 可能的测量值或观测值。
+
+给定 $x$，$y$ 的条件概率密度可以表述如下
+\[
+p_{y|x}(x,y)=\frac{p(x,y)}{p_x(x)}.
+\]
+在 MAP 估计方法中，$p_{y|x}$ 扮演了最大似然估计中参数决定的概率密度 $p_x$ 的角色。给定 $y$，$x$ 的条件概率密度为
+\[
+p_{x|y}(x,y)=\frac{p(x,y)}{p_y(y)}=p_{y|x}(x,y)\frac{p_x(x)}{p_y(y)}.
+\]
+当我们将 $y$ 的观测值代入 $p_{x|y}$ 的表达式时，我们可以得到 $x$ 的后验概率密度。它表征了获得观测值后我们对 $x$ 的信息的了解程度。
+
+在 MAP 估计方法中，给定观测值 $y$，$x$ 的估计值为
+\[
+\begin{aligned}
+\hat{x}_{\mathrm{map}}
+&=\arg\max_x p_{x|y}(x,y)\\
+&=\arg\max_x p_{y|x}(x,y)p_x(x)\\
+&=\arg\max_x p(x,y).
+\end{aligned}
+\]
+换言之，给定 $y$ 的观测值，我们取使得 $x$ 的条件概率密度最大的 $x$ 作为 $x$ 的估计值。此估计和最大似然估计的唯一不同在于第二项 $p_x(x)$。这一项可以看成考虑 $x$ 的先验知识。注意到如果 $x$ 的先验概率密度在集合 $C$ 上服从均匀分布，那么寻找 MAP 估计和在约束条件 $x\in C$ 下极大化似然函数是一致的，而后者是 ML 估计问题 (7.1)。
+
+取对数，我们可以将 MAP 估计表述为
+\begin{equation}
+\hat{x}_{\mathrm{map}}=\arg\max_x\left(\log p_{y|x}(x,y)+\log p_x(x)\right).
+\tag{7.6}
+\end{equation}
+第一项和对数-似然函数本质上是一样的；第二项是根据先验概率密度对不太可能发生的 $x$（即 $p_x(x)$ 较小的 $x$）的惩罚项。
+
+抛开初始设置的不同，求取 MAP 估计（通过求解式 (7.6)）和 ML 估计（通过求解问题 (7.1)）的唯一不同是优化问题中添加的一项，而此添加项和 $x$ 的先验概率密度有关。因此，对任意具有凹的对数似然函数的最大似然估计问题，我们可以对 $x$ 添加对数-凹的先验概率密度，所得到的 MAP 估计问题是凸的。
+
+\noindent\textbf{具有 IID 噪声的线性测量}\quad
+设 $x\in\mathbb{R}^n$，$y\in\mathbb{R}^m$，二者具有函数关系
+\[
+y_i=a_i^T x+v_i,\quad i=1,\cdots,m,
+\]
+其中 $v_i$ 独立同分布，在 $\mathbb{R}$ 上具有概率密度 $p_v$，$x$ 在 $\mathbb{R}^n$ 上的先验概率密度为 $p_x$。$x$ 和 $y$ 的联合概率密度为
+\[
+p(x,y)=p_x(x)\prod_{i=1}^m p_v(y_i-a_i^T x),
+\]
+可以通过求解如下优化问题得到 MAP 估计
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & \log p_x(x)+\sum_{i=1}^m \log p_v(y_i-a_i^T x).
+\end{aligned}
+\tag{7.7}
+\end{equation}
+如果 $p_x$ 和 $p_v$ 是对数-凹的，上述优化问题是凸的。MAP 估计问题 (7.7) 和相应的 ML 估计问题 (7.2) 的唯一区别是添加项 $\log p_x(x)$。
+
+例如，如果 $v_i$ 在 $[-a,a]$ 上服从均匀分布且 $x$ 的先验概率分布为均值为 $\bar{x}$、协方差为 $\Sigma$ 的 Gauss 分布，可以通过求解下列二次规划得到 MAP 估计
+\[
+\begin{aligned}
+\text{minimize}\quad & (x-\bar{x})^T\Sigma^{-1}(x-\bar{x})\\
+\text{subject to}\quad & \|Ax-y\|_\infty\leq a,
+\end{aligned}
+\]
+其中优化变量为 $x$。
+
+\noindent\textbf{精确线性测量的 MAP 估计}\quad
+设 $x\in\mathbb{R}^n$ 为待估计向量，先验概率密度为 $p_x$。给定 $m$ 个精确（没有噪声，确定性的）线性测量，$y=Ax$。换言之，给定 $x$，$y$ 的条件概率密度分布在点 $Ax$ 取 $1$。可以通过求解下列问题得到 MAP 估计
+\[
+\begin{aligned}
+\text{maximize}\quad & \log p_x(x)\\
+\text{subject to}\quad & Ax=y.
+\end{aligned}
+\]
+如果 $p_x$ 是对数凹的，那么这是一个凸优化问题。
+
+如果进一步添加先验概率密度分布的假设，参数 $x_i$ 独立同分布，在 $\mathbb{R}$ 上具有概率密度 $p$，此时 MAP 估计问题为
+\[
+\begin{aligned}
+\text{maximize}\quad & \sum_{i=1}^n \log p(x_i)\\
+\text{subject to}\quad & Ax=y,
+\end{aligned}
+\]
+这是一个最小罚问题（见第 296 页，式 (6.6)），其中惩罚函数为 $\phi(u)=-\log p(u)$。
+
+反过来，我们可以将任意最小罚问题
+\[
+\begin{aligned}
+\text{minimize}\quad & \phi(x_1)+\cdots+\phi(x_n)\\
+\text{subject to}\quad & Ax=b
+\end{aligned}
+\]
+看成一个 MAP 估计问题，其具有 $m$ 个精确线性测量（即 $Ax=b$）且 $x_i$ 独立同分布，具有概率密度
+\[
+p(z)=\frac{e^{-\phi(z)}}{\int e^{-\phi(u)}\,du}.
+\]
+
+\subsection*{7.2\quad 非参数分布估计}
+
+设随机变量 $X$ 在有限集合 $\{\alpha_1,\cdots,\alpha_n\}\subseteq\mathbb{R}$ 上取值。（为了简单起见仅考虑 $\mathbb{R}$ 上的取值，$\mathbb{R}^k$ 上的情况可以类似考虑。）设 $X$ 的概率密度分布为 $p\in\mathbb{R}^n$，$\mathbf{prob}(X=\alpha_k)=p_k$。显然，$p$ 满足 $p\succeq 0$ 且 $\mathbf{1}^T p=1$。反过来，如果某一 $p\in\mathbb{R}^n$ 满足 $p\succeq 0$ 且 $\mathbf{1}^Tp=1$，令 $\mathbf{prob}(X=\alpha_k)=p_k$，则 $p$ 定义了某一随机变量 $X$ 的概率密度分布。因此，概率单纯形
+\[
+\{p\in\mathbb{R}^n\mid p\succeq 0,\mathbf{1}^Tp=1\}
+\]
+与在 $\{\alpha_1,\cdots,\alpha_n\}$ 中取值的随机变量 $X$ 的所有可能的概率密度分布是一一对应的关系。
+
+本节基于先验信息，可能还有观测值及测量值，讨论估计概率分布 $p$ 的方法。
+
+\noindent\textbf{先验信息}\quad
+很多种关于 $p$ 的先验信息可以表述为一系列线性等式或不等式约束。如果 $f:\mathbb{R}\to\mathbb{R}$ 是任意函数，那么
+\[
+\mathbf{E}f(X)=\sum_{i=1}^n p_i f(\alpha_i)
+\]
+是 $p$ 的线性函数。作为一种特殊的情形，如果 $C\subseteq\mathbb{R}$，那么 $\mathbf{prob}(X\in C)$ 是 $p$ 的线性函数：
+\[
+\mathbf{prob}(X\in C)=c^T p,\qquad
+c_i=
+\begin{cases}
+1 & \alpha_i\in C\\
+0 & \alpha_i\notin C.
+\end{cases}
+\]
+因此，已知随机变量的某个函数的期望值（如矩）以及在某个集合上的概率值的约束均可以表述为 $p\in\mathbb{R}^n$ 上的线性等式约束。期望值或概率值所满足的不等式约束可以表述为 $p\in\mathbb{R}^n$ 上的线性不等式约束。
+
+例如，假设已知 $X$ 具有均值 $\mathbf{E}X=\alpha$，二阶矩 $\mathbf{E}X^2=\beta$，且满足 $\mathbf{prob}(X\geq 0)\leq 0.3$。那么先验信息可以表述为
+\[
+\mathbf{E}X=\sum_{i=1}^n \alpha_i p_i=\alpha,\qquad
+\mathbf{E}X^2=\sum_{i=1}^n \alpha_i^2 p_i=\beta,\qquad
+\sum_{\alpha_i\geq 0}p_i\leq 0.3,
+\]
+这是 $p$ 的两个线性等式以及一个线性不等式。
+
+我们同样可以考虑包含 $p$ 的非线性函数的先验约束。例如，$X$ 的方差为
+\[
+\mathbf{var}(X)=\mathbf{E}X^2-(\mathbf{E}X)^2
+=\sum_{i=1}^n \alpha_i^2p_i-\left(\sum_{i=1}^n\alpha_i p_i\right)^2.
+\]
+第一项是 $p$ 的线性函数，第二项对 $p$ 是二次凹的，因此 $X$ 的方差是 $p$ 的凹函数。所以 $X$ 的方差的一个下界约束可以表述为 $p$ 的二次凸不等式。
+
+作为另一个例子，假设 $A$ 和 $B$ 是 $\mathbb{R}$ 上的子集，给定 $B$，考虑在 $A$ 上的条件概率密度
+\[
+\mathbf{prob}(X\in A\mid X\in B)=\frac{\mathbf{prob}(X\in A\cap B)}{\mathbf{prob}(X\in B)}.
+\]
+此函数是 $p\in\mathbb{R}^n$ 上的线性-分式函数：它可以描述为
+\[
+\mathbf{prob}(X\in A\mid X\in B)=c^Tp/d^Tp,
+\]
+其中
+\[
+c_i=
+\begin{cases}
+1 & \alpha_i\in A\cap B\\
+0 & \alpha_i\notin A\cap B,
+\end{cases}
+\qquad
+d_i=
+\begin{cases}
+1 & \alpha_i\in B\\
+0 & \alpha_i\notin B.
+\end{cases}
+\]
+因此我们可以将先验约束
+\[
+l\leq \mathbf{prob}(X\in A\mid X\in B)\leq u
+\]
+描述为 $p$ 的线性不等式约束
+\[
+ld^Tp\leq c^Tp\leq ud^Tp.
+\]
+
+还有其他一些类型的先验信息可以描述为非线性凸不等式的形式。例如，$X$ 的熵
+\[
+-\sum_{i=1}^n p_i\log p_i
+\]
+是 $p$ 的凹函数，所以熵的最小值约束可以看成 $p$ 的凸不等式约束。如果 $q$ 是另一个概率密度分布，即 $q\succeq 0$，$\mathbf{1}^Tq=1$，那么概率分布 $q$ 和概率分布 $p$ 的 Kullback-Leibler 散度为
+\[
+\sum_{i=1}^n p_i\log(p_i/q_i),
+\]
+它是 $p$ 的凸函数（亦是 $q$ 的凸函数，见第 84 页，例 3.19）。因此，可以添加概率分布 $p$ 和另一已知概率分布 $q$ 的 Kullback-Leibler 散度的最大值约束，所得约束是 $p$ 的凸不等式约束。
+
+在接下来的几个段落中，我们将分布 $p$ 的先验信息表示为 $p\in\mathcal{P}$。我们假设 $\mathcal{P}$ 可以描述为一系列线性等式约束和凸不等式约束，并将基本假设 $p\succeq 0$，$\mathbf{1}^Tp=1$ 包含于先验信息 $\mathcal{P}$ 中。
+
+\noindent\textbf{概率及期望值的界}\quad
+给定概率分布的先验信息，如 $p\in\mathcal{P}$，我们可以计算某个函数期望值的上下界，或者某一集合上概率的上下界。例如，为了确定函数 $\mathbf{E}f(X)$ 的一个下界，其中 $X$ 的概率密度分布满足先验信息 $p\in\mathcal{P}$，我们求解凸优化问题
+\[
+\begin{aligned}
+\text{minimize}\quad & \sum_{i=1}^n f(\alpha_i)p_i\\
+\text{subject to}\quad & p\in\mathcal{P}.
+\end{aligned}
+\]
+
+\noindent\textbf{最大似然估计}\quad
+基于分布的观测值，我们可以利用最大似然估计来估计 $p$。假定我们有 $N$ 组服从分布的独立采样点 $x_1,\cdots,x_N$。令 $k_i$ 表示这些采样点取值为 $\alpha_i$ 的次数，因此 $k_1+\cdots+k_n=N$，即采样点总数。对数-似然函数为
+\[
+l(p)=\sum_{i=1}^n k_i\log p_i,
+\]
+它是 $p$ 的凹函数。$p$ 的最大似然估计可以通过求解下列凸优化问题得到
+\[
+\begin{aligned}
+\text{maximize}\quad & l(p)=\sum_{i=1}^n k_i\log p_i\\
+\text{subject to}\quad & p\in\mathcal{P},
+\end{aligned}
+\]
+其中优化变量为 $p$。
+
+\noindent\textbf{最大熵}\quad
+满足先验信息的最大熵分布可以通过求解下列凸优化问题得到
+\[
+\begin{aligned}
+\text{minimize}\quad & \sum_{i=1}^n p_i\log p_i\\
+\text{subject to}\quad & p\in\mathcal{P}.
+\end{aligned}
+\]
+支持者认为最大熵分布是满足先验信息的最确定的或最随机的分布。
+
+\noindent\textbf{最小 Kullback-Leibler 散度}\quad
+在满足先验信息的条件下，为了找到和给定先验分布 $q$ 具有最小 Kullback-Leibler 散度的概率分布 $p$，可以求解下列凸优化问题
+\[
+\begin{aligned}
+\text{minimize}\quad & \sum_{i=1}^n p_i\log(p_i/q_i)\\
+\text{subject to}\quad & p\in\mathcal{P},
+\end{aligned}
+\]
+注意到当给定的先验分布是均匀分布时，即 $q=(1/n)\mathbf{1}$，上述问题简化为最大熵问题。
+
+\noindent\textbf{例 7.2}\quad
+考虑区间 $[-1,1]$ 上 100 个等间距点 $\alpha_i$ 上的概率分布。给定下列先验假设
+\begin{equation}
+\begin{aligned}
+\mathbf{E}X&\in[-0.1,0.1]\\
+\mathbf{E}X^2&\in[0.5,0.6]\\
+\mathbf{E}(3X^3-2X)&\in[-0.3,-0.2]\\
+\mathbf{prob}(X<0)&\in[0.3,0.4].
+\end{aligned}
+\tag{7.8}
+\end{equation}
+基本假设 $\mathbf{1}^Tp=1$，$p\succeq 0$ 同样需要满足。这些约束描述了概率分布的一个多面体。
+
+图 7.2 描述了满足这些约束的最大熵分布。最大熵分布满足
+\[
+\mathbf{E}X=0.056,\qquad
+\mathbf{E}X^2=0.5,\qquad
+\mathbf{E}(3X^3-2X)=-0.2,\qquad
+\mathbf{prob}(X<0)=0.4.
+\]
+
+为了说明概率的界，我们计算累积概率分布 $\mathbf{prob}(X\leq \alpha_i)$ 的上下界，$i=1,\cdots,100$。对任意 $i$，我们求解两个线性规划问题：第一个极大化 $\mathbf{prob}(X\leq \alpha_i)$；第二个极小化 $\mathbf{prob}(X\leq \alpha_i)$，定义域为满足先验假设 (7.8) 的所有分布。图 7.3 给出了结果。上面的曲线和下面的曲线分别为上下界，中间的曲线是最大熵分布的累积概率分布。
+
+\noindent\textbf{例 7.3}\quad
+边际分布已知的风险概率的界。假设 $X$ 和 $Y$ 是两个随机变量，表示两种投资的收益。设 $X$ 在 $\{\alpha_1,\cdots,\alpha_n\}\subseteq\mathbb{R}$ 中取值，$Y$ 在 $\{\beta_1,\cdots,\beta_m\}\subseteq\mathbb{R}$ 中取值，令 $p_{ij}=\mathbf{prob}(X=\alpha_i,Y=\beta_j)$。已知两种收益 $X$ 和 $Y$ 的边际分布，
+\begin{equation}
+\sum_{j=1}^m p_{ij}=r_i,\quad i=1,\cdots,n,\qquad
+\sum_{i=1}^n p_{ij}=q_j,\quad j=1,\cdots,m,
+\tag{7.9}
+\end{equation}
+除此之外，联合概率分布 $p$ 的其他信息并不知道。符合上述边界分布的所有概率分布构成了联合概率分布的一个多面体。
+
+假设两种投资均实施，总收益为随机变量 $X+Y$。我们感兴趣的是计算一定损失或者较低回报的概率，即 $\mathbf{prob}(X+Y<\gamma)$ 的上界。我们可以通过求解下面的线性规划问题得到此概率的一个紧的上界
+\[
+\begin{aligned}
+\text{maximize}\quad & \sum\{p_{ij}\mid \alpha_i+\beta_j<\gamma\}\\
+\text{subject to}\quad & (7.9),\quad p_{ij}\geq 0,\quad i=1,\cdots,n,\quad j=1,\cdots,m.
+\end{aligned}
+\]
+上述线性规划问题的最优值是损失概率的最大值。最优解 $p^\star$ 是满足已知边际分布，使得损失概率最大的联合概率分布。
+
+同样的方法可以应用到这两种投资的衍生资产。令 $R(X,Y)$ 表示衍生资产的收益，其中 $R:\mathbb{R}^2\to\mathbb{R}$。可以通过求解一个类似的线性规划问题得到 $\mathbf{prob}(R<\gamma)$ 的紧的上下界，线性规划的目标函数为
+\[
+\sum\{p_{ij}\mid R(\alpha_i,\beta_j)<\gamma\},
+\]
+对上述函数可以求极大和极小。
+
+\subsection*{7.3\quad 最优检测器设计及假设检验}
+
+假设 $X$ 是随机变量，在 $\{1,\cdots,n\}$ 中取值，其概率密度分布和参数 $\theta\in\{1,\cdots,m\}$ 的取值有关。对 $\theta$ 的 $m$ 个可能值，$X$ 的概率分布可以由矩阵 $P\in\mathbb{R}^{n\times m}$ 表征，其元素为
+\[
+p_{kj}=\mathbf{prob}(X=k\mid \theta=j).
+\]
+矩阵 $P$ 的第 $j$ 列为对应参数值 $\theta=j$ 的概率分布。
+
+考虑基于 $X$ 的观测样本估计 $\theta$ 的问题。换言之，样本 $X$ 来自于 $m$ 种可能的概率分布，我们需要确定是哪一个。$\theta$ 的 $m$ 个取值称为假设，我们从这些假设中猜想哪个是正确的（即产生观测样本 $X$ 的概率分布），这个问题称为假设检验。在很多情况下，某种假设对应一种常规情形，而其他假设均对应反常的事件。此时，假设检验可以看成观测到 $X$ 的某个取值，然后判断不寻常事件是否发生；如果发生了，是哪一个不寻常事件。因此，假设检验又称为检测。
+
+在很多情况下，假设的顺序对结果没有什么影响；对 $m$ 个不同的假设，将其任意标识为 $\theta=1,\cdots,m$。如果 $\hat{\theta}=\theta$，其中 $\hat{\theta}$ 表示 $\theta$ 的估计值，那么我们成功地猜想出了参数值 $\theta$。如果 $\hat{\theta}\neq\theta$，我们关于参数值 $\theta$ 的猜想不正确；我们误认为 $\theta$ 是 $\hat{\theta}$。在其他情况下，假设的顺序非常重要。在这种情况下，事件 $\hat{\theta}>\theta$，即我们关于 $\theta$ 的估计值偏大，对结果是有意义的。
+
+参数 $\theta$ 的取值也可以不取 $\{1,\cdots,m\}$，例如可以取 $\theta\in\{\theta_1,\cdots,\theta_m\}$，其中 $\theta_i$ 是（不同的）参数值。这些参数值要求是实数或者实向量，比如说，它们确定了第 $k$ 个概率分布的均值和方差。此时，参数估计误差的范数 $\|\hat{\theta}-\theta\|$ 是有意义的。
+
+\subsection*{7.3.1\quad 确定性和随机检测器}
+
+（确定性）估计器或检测器是从 $\{1,\cdots,n\}$（可能观测值的集合）到 $\{1,\cdots,m\}$（假设的集合）的函数 $\psi$。如果 $X$ 的观测值为 $k$，那么 $\theta$ 的猜想值为 $\hat{\theta}=\psi(k)$。一个显然的确定性检测器是最大似然检测器，由下式给出
+\begin{equation}
+\hat{\theta}=\psi_{\mathrm{ml}}(k)=\arg\max_j p_{kj}.
+\tag{7.10}
+\end{equation}
+当已知观测值 $X=k$ 时，所有可能的概率分布中使得观测事件 $X=k$ 发生的概率最大的那个分布对应的 $\theta$ 值是 $\theta$ 的最大似然估计。
+
+我们考虑确定性检测器的一个推广，此时给定 $X$ 的观测值，$\theta$ 的估计值是随机的。$\theta$ 的一个随机检测器是随机变量 $\hat{\theta}\in\{1,\cdots,m\}$，其分布取决于 $X$ 的观测值。随机检测器可以定义为一个矩阵 $T\in\mathbb{R}^{m\times n}$，其元素为
+\[
+t_{ik}=\mathbf{prob}(\hat{\theta}=i\mid X=k).
+\]
+可以这么理解上述定义：如果我们得到观测值 $X=k$，那么检测器以概率 $t_{ik}$ 给出估计值 $\hat{\theta}=i$。给定观测值 $X=k$，$T$ 的第 $k$ 列，我们用 $t_k$ 表示，给出了 $\hat{\theta}$ 的概率分布。如果 $T$ 的每一列都是单位向量，那么随机检测器是确定性检测器，即 $\hat{\theta}$ 是 $X$ 的观测值的一个（确定性）函数。
+
+初步看来，在估计或检测过程中引入随机因素似乎只会让估计效果更差。但是在后文我们给出例子，在例子中随机检测器比所有的确定性估计器效果都好。
+
+我们致力于寻找定义随机检测器的矩阵 $T$。显然，$T$ 的列 $t_k$ 必须满足（线性等式和不等式）约束
+\begin{equation}
+t_k\succeq 0,\qquad \mathbf{1}^Tt_k=1.
+\tag{7.11}
+\end{equation}
+
+\subsection*{7.3.2\quad 检测概率矩阵}
+
+对于由矩阵 $T$ 决定的随机检测器，定义检测概率矩阵为 $D=TP$。我们有
+\[
+D_{ij}=(TP)_{ij}=\mathbf{prob}(\hat{\theta}=i\mid \theta=j),
+\]
+因此，$D_{ij}$ 是当 $\theta=j$ 时，猜想为 $\hat{\theta}=i$ 的概率。$m\times m$ 检测概率矩阵 $D$ 衡量了由矩阵 $T$ 定义的随机检测器的性能。对角元素 $D_{ii}$ 是当 $\theta=i$ 时，猜想为 $\hat{\theta}=i$ 的概率，即正确地检测出 $\theta=i$ 的概率。非对角线元素 $D_{ij}$（$i\neq j$）是 $\theta=j$ 时误判为 $\theta=i$ 的概率，即事实上 $\theta=j$，而我们的猜想为 $\hat{\theta}=i$ 的概率。如果 $D=I$，检测器是理想的：无论参数 $\theta$ 的值如何，我们的猜想都是正确的，$\hat{\theta}=\theta$。
+
+$D$ 的对角线元素，排列成一个向量，称为检测概率，用 $P^d$ 表示，即
+\[
+P_i^d=D_{ii}=\mathbf{prob}(\hat{\theta}=i\mid \theta=i).
+\]
+错误概率是上面概率的补，用 $P^e$ 表示，即
+\[
+P_i^e=1-D_{ii}=\mathbf{prob}(\hat{\theta}\neq i\mid \theta=i).
+\]
+因为检测概率矩阵 $D$ 的每列和为 $1$，错误概率可以表示为
+\[
+P_i^e=\sum_{j\neq i}D_{ji}.
+\]
+
+\subsection*{7.3.3\quad 最优检测器设计}
+
+本节的检测器设计问题中有很大一部分目标函数是 $D$，也是 $T$（即优化变量）的线性、仿射或者凸分片线性函数。类似地，检测器设计问题中很多约束都可以表示成 $D$ 的线性不等式。因此，很多最优检测器设计问题都可以表述成线性规划。在 $\S 7.3.4$ 中，我们可以看到，一些这样的线性规划具有简单的解；本节只关注问题描述。
+
+\noindent\textbf{错误概率和检测概率的界}\quad
+我们可以对正确检测出第 $j$ 个假设的概率添加一个下界
+\[
+P_j^d=D_{jj}\geq L_j,
+\]
+它是 $D$（也即 $T$）的线性不等式。类似地，我们也可以对将 $\theta=j$ 误判为 $\theta=i$ 的概率添加一个上界
+\[
+D_{ij}\leq U_{ij},
+\]
+它也是 $T$ 的线性约束。我们可以极大化任意一个检测概率，或者极小化任意一个错误概率。
+
+\noindent\textbf{极小极大检测器设计}\quad
+也可以选择极小极大错误概率 $\max_j P_j^e$ 作为优化目标（极小化的），它是 $D$（也是 $T$）的分片-线性凸函数。可以将此函数作为唯一的目标函数，我们得到极小化最大检测错误概率的问题
+\[
+\begin{aligned}
+\text{minimize}\quad & \max_j P_j^e\\
+\text{subject to}\quad & t_k\succeq 0,\quad \mathbf{1}^Tt_k=1,\quad k=1,\cdots,n,
+\end{aligned}
+\]
+优化变量为 $t_1,\cdots,t_n\in\mathbb{R}^m$。上述问题可以描述为一个线性规划。极小极大检测器极小化所有的 $m$ 种假设中最坏情况（最大）的错误概率。
+
+当然，我们也可以对极小极大检测器设计问题添加更多约束。
+
+\noindent\textbf{Bayes 检测器设计}\quad
+在 Bayes 检测器设计中，用一个先验分布 $q\in\mathbb{R}^m$ 描述对参数的假设，其中
+\[
+q_i=\mathbf{prob}(\theta=i).
+\]
+在这种情况下，概率 $p_{ij}$ 可以理解为给定 $\theta$ 时，$X$ 的条件概率。检测器判断错误的概率为 $q^TP^e$，它是 $T$ 的仿射函数。Bayes 最优检测器是如下线性规划的解
+\[
+\begin{aligned}
+\text{minimize}\quad & q^TP^e\\
+\text{subject to}\quad & t_k\succeq 0,\quad \mathbf{1}^Tt_k=1,\quad k=1,\cdots,n.
+\end{aligned}
+\]
+在 $\S 7.3.4$ 中我们可以看到，这个问题可以得到简单的解析解。
+
+一个特殊的情形是 $q=(1/m)\mathbf{1}$。在这种情况下，Bayes 最优检测器使检测错误概率的平均值最小，其中求平均（无加权）是对所有假设而言。在 $\S 7.3.4$ 中，我们可以看到最大似然检测器 (7.10) 是此问题的最优解。
+
+\noindent\textbf{偏差，均方误差，以及其他统计量}\quad
+本节假设 $\theta$ 的取值的相对大小有意义，即当 $i>j$ 时，可以理解为参数取值 $\theta=i$ 大于参数取值 $\theta=j$。这种规定可能有用，例如，当 $\theta=i$ 对应发生了 $i$ 件事件的假设时，就可能是这种情况。此时我们可能会对下面的统计量感兴趣
+\[
+\mathbf{prob}(\hat{\theta}>\theta\mid \theta=i),
+\]
+即当 $\theta=i$ 时我们高估 $\theta$ 的概率。它是 $D$ 的仿射函数：
+\[
+\mathbf{prob}(\hat{\theta}>\theta\mid \theta=i)=\sum_{j>i}D_{ji},
+\]
+因此上述概率的最大值约束可以描述为 $D$（也即 $T$）的线性不等式。作为另一个例子，考虑当 $\theta=i$ 时，$\theta$ 的估计值与真实值之间的差值超过 $1$ 的概率，
+\[
+\mathbf{prob}(|\hat{\theta}-\theta|>1\mid \theta=i)=\sum_{|j-i|>1}D_{ji},
+\]
+它也是 $D$ 的线性函数。
+
+假设参数取值集合为 $\{\theta_1,\cdots,\theta_m\}\subseteq\mathbb{R}$。估计或检测（参数）误差为 $\hat{\theta}-\theta$，我们感兴趣的一系列统计量都可以表示成 $D$ 的线性函数。比如说：
+
+\noindent\textbf{偏差。}\quad
+检测器的偏差，当 $\theta=\theta_i$ 时，可以表述为下列线性函数
+\[
+\mathbf{E}_i(\hat{\theta}-\theta)=\sum_{j=1}^m(\theta_j-\theta_i)D_{ji},
+\]
+其中 $\mathbf{E}$ 的下标表示期望是关于假设 $\theta=\theta_i$ 的分布的。
+
+\noindent\textbf{均方误差。}\quad
+当 $\theta=\theta_i$ 时，检测器的均方误差可以由如下线性函数表示
+\[
+\mathbf{E}_i(\hat{\theta}-\theta)^2=\sum_{j=1}^m(\theta_j-\theta_i)^2D_{ji}.
+\]
+
+\noindent\textbf{平均绝对值误差。}\quad
+当 $\theta=\theta_i$ 时，检测器的平均绝对值误差可以由下面的线性函数表示
+\[
+\mathbf{E}_i|\hat{\theta}-\theta|=\sum_{j=1}^m|\theta_j-\theta_i|D_{ji}.
+\]
+
+\subsection*{7.3.4\quad 多准则表述及标量化}
+
+最优检测器设计问题可以看成一个多准则优化问题，约束为式 (7.11)，$m(m-1)$ 个目标由矩阵 $D$ 的非对角线元素给出，这些元素表征了不同类型的检测错误的概率：
+\begin{equation}
+\begin{aligned}
+\text{minimize (关于 $\mathbb{R}_+^{m(m-1)}$)}\quad & D_{ij},\quad i,j=1,\cdots,m,\quad i\neq j\\
+\text{subject to}\quad & t_k\succeq 0,\quad \mathbf{1}^Tt_k=1,\quad k=1,\cdots,n,
+\end{aligned}
+\tag{7.12}
+\end{equation}
+其中优化变量 $t_1,\cdots,t_n\in\mathbb{R}^m$。因为每个目标 $D_{ij}$ 都是优化变量的线性函数，这是一个多准则线性规划问题。
+
+为了将这个多准则优化问题标量化，引入权系数将目标函数加权求和，
+\[
+\sum_{i,j=1}^m W_{ij}D_{ij}=\operatorname{tr}(W^TD),
+\]
+其中权矩阵 $W\in\mathbb{R}^{m\times m}$ 满足
+\[
+W_{ii}=0,\quad i=1,\cdots,m,\qquad
+W_{ij}>0,\quad i,j=1,\cdots,m,\quad i\neq j.
+\]
+此时目标函数是 $m(m-1)$ 个误差概率的加权和。权系数 $W_{ij}$ 对应着下述事件，事实上 $\theta=j$ 但猜想为 $\hat{\theta}=i$。加权矩阵有时亦称为损失矩阵。
+
+为了找到多准则优化问题 (7.12) 的一个 Pareto 最优点，我们求解标量化问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \operatorname{tr}(W^TD)\\
+\text{subject to}\quad & t_k\succeq 0,\quad \mathbf{1}^Tt_k=1,\quad k=1,\cdots,n,
+\end{aligned}
+\tag{7.13}
+\end{equation}
+它是一个线性规划。这个线性规划对变量 $t_1,\cdots,t_n$ 是可分的。目标函数可以描述为一系列 $t_k$ 的（线性）函数的和
+\[
+\operatorname{tr}(W^TD)=\operatorname{tr}(W^TTP)=\operatorname{tr}(PW^TT)=\sum_{k=1}^n c_k^Tt_k,
+\]
+其中 $c_k$ 是 $WP^T$ 的第 $k$ 列。约束是可分的（即我们可以得到关于每个 $t_i$ 的可分的约束）。因此我们可以通过分别求解下面的线性规划来求解线性规划 (7.13)
+\[
+\begin{aligned}
+\text{minimize}\quad & c_k^Tt_k\\
+\text{subject to}\quad & t_k\succeq 0,\quad \mathbf{1}^Tt_k=1,
+\end{aligned}
+\]
+每个线性规划都有一个简单的解析解（见习题 4.8）。我们可以找到一个指标 $q$ 使得 $c_{kq}=\min_j c_{kj}$。令 $t_k^\star=e_q$。这个最优点对应一个确定性检测器：即当已知观测值 $X=k$ 时，我们的估计值为
+\begin{equation}
+\hat{\theta}=\arg\min_j(WP^T)_{jk}.
+\tag{7.14}
+\end{equation}
+因此，对每一个非对角线元素大于零的权矩阵 $W$ 我们可以找到一个确定性检测器，使得加权求和之后的目标函数最小。这似乎意味着随机检测器并没有意义，在后文中我们将看到事实并不是这样的。多目标优化问题 (7.12) 的 Pareto 最优权衡表面是分片线性的，式 (7.14) 描述的确定性检测器对应了 Pareto 最优权衡表面的顶点。
+
+\noindent\textbf{MAP 和 ML 检测器}\quad
+考虑 $q$ 的分布已知的 Bayes 检测器设计问题。我们定义权矩阵 $W$ 为
+\[
+W_{ij}=q_j,\quad i,j=1,\cdots,m,\quad i\neq j,\qquad
+W_{ii}=0,\quad i=1,\cdots,m,
+\]
+则平均错误概率为
+\[
+q^TP^e=\sum_{j=1}^m q_j\sum_{i\neq j}D_{ij}=\sum_{i,j=1}^m W_{ij}D_{ij}.
+\]
+因此，Bayes 最优检测器由确定性检测器 (7.14) 给出，其中
+\[
+(WP^T)_{jk}=\sum_{i\neq j}q_i p_{ki}=\sum_{i=1}^m q_i p_{ki}-q_jp_{kj}.
+\]
+上式中第一项和 $j$ 是独立的，所以最优检测器可以简单地表述为
+\[
+\hat{\theta}=\arg\max_j(p_{kj}q_j),
+\]
+其中 $X=k$ 是观测值。可以简单地理解这个最优解：因为 $p_{kj}q_j$ 是 $\theta=j$ 以及 $X=k$ 的概率，此检测器是一个最大后验概率（MAP）检测器。
+
+对于特殊的情形 $q=(1/m)\mathbf{1}$，即预先假定 $\theta$ 服从均匀分布，上述 MAP 检测器可以简化为一个最大似然（ML）检测器
+\[
+\hat{\theta}=\arg\max_j p_{kj}.
+\]
+因此，最大似然检测器使得（未加权）平均检测错误概率最小。
+
+\subsection*{7.3.5\quad 二值假设检验}
+
+作为一个例子，我们考虑 $m=2$ 的特殊情形，也称为二值假设检验。随机变量 $X$ 可能服从两种随机分布中的一种，为了简单起见，这两种随机分布用 $p\in\mathbb{R}^n$ 和 $q\in\mathbb{R}^n$ 表示。大部分情况下，假设 $\theta=1$ 对应一些常规的情形，$\theta=2$ 对应一些异常事件，而我们要检测出来这些异常事件。如果 $\hat{\theta}=1$，我们称检验是阴性的（即我们认为异常事件并没有发生）；如果 $\hat{\theta}=2$，我们称检验是阳性的（即我们认为异常事件发生了）。
+
+通常可以将检测概率矩阵 $D\in\mathbb{R}^{2\times 2}$ 表示为
+\[
+D=
+\begin{bmatrix}
+1-P_{\mathrm{fp}} & P_{\mathrm{fn}}\\
+P_{\mathrm{fp}} & 1-P_{\mathrm{fn}}
+\end{bmatrix}.
+\]
+这里 $P_{\mathrm{fn}}$ 是假阴性的概率（即检验是阴性的但事实上异常事件发生了），$P_{\mathrm{fp}}$ 是假阳性的概率（即检验是阳性的但事实上异常事件并没有发生），亦被称为误报概率。最优检测器设计问题是一个双准则优化问题，目标函数为 $P_{\mathrm{fn}}$ 和 $P_{\mathrm{fp}}$。
+
+$P_{\mathrm{fn}}$ 和 $P_{\mathrm{fp}}$ 的最优权衡曲线称为接收器工作特性（ROC），由 $p$ 和 $q$ 服从的概率分布决定。可以用 $\S 7.3.4$ 中的方法，标量化双准则问题并进行求解得到 ROC。给定权矩阵 $W$，最优检测器 (7.14) 为
+\[
+\hat{\theta}=
+\begin{cases}
+1 & W_{21}p_k>W_{12}q_k\\
+2 & W_{21}p_k\leq W_{12}q_k,
+\end{cases}
+\]
+其中观测值为 $X=k$。称这种检测器为似然比阈值检验：如果比值 $p_k/q_k$ 大于阈值 $W_{12}/W_{21}$，检验是阴性的（即 $\hat{\theta}=1$）；否则，检验是阳性的。通过选择不同的阈值，我们可以得到不同的（确定性）Pareto 最优检测器，这些检测器分别对应了不同水平的假阳性和假阴性错误概率。上述结论称为 Neyman-Pearson 引理。
+
+似然比检测器并没有给出所有的 Pareto 最优检测器，它们仅是最优权衡曲线的顶点，而曲线是分片线性的。
+
+\noindent\textbf{例 7.4}\quad
+考虑一个二值假设检验的例子，$n=4$，且
+\begin{equation}
+P=
+\begin{bmatrix}
+0.70 & 0.10\\
+0.20 & 0.10\\
+0.05 & 0.70\\
+0.05 & 0.10
+\end{bmatrix}.
+\tag{7.15}
+\end{equation}
+$P_{\mathrm{fn}}$ 和 $P_{\mathrm{fp}}$ 的最优权衡曲线，即接收器工作特性，如图 7.4 所示。
+
+左端点对应着结果总是阴性的检测器，而不管 $X$ 的观测值如何；右端点对应着结果总是阳性的检测器。标记为 1，2 和 3 的顶点分别对应着如下确定性检测器
+\[
+T^{(1)}=
+\begin{bmatrix}
+1 & 1 & 0 & 1\\
+0 & 0 & 1 & 0
+\end{bmatrix},
+\qquad
+T^{(2)}=
+\begin{bmatrix}
+1 & 1 & 0 & 0\\
+0 & 0 & 1 & 1
+\end{bmatrix},
+\qquad
+T^{(3)}=
+\begin{bmatrix}
+1 & 0 & 0 & 0\\
+0 & 1 & 1 & 1
+\end{bmatrix},
+\]
+
+标记为 4 的点对应着非确定性检测器
+\[
+T^{(4)}=
+\begin{bmatrix}
+1 & 2/3 & 0 & 0\\
+0 & 1/3 & 1 & 1
+\end{bmatrix},
+\]
+它是一个极小极大检测器。由极小极大检测器可以得到相等的假阳性和假阴性概率，在此例中为 $1/6$。每个确定性检测器中总有一个概率大于 $1/6$，可能是假阳性概率也可能是假阴性概率，所以在此例中，随机检测器的效果要优于每个确定性检测器。
+
+\subsection*{7.3.6\quad 鲁棒检测器}
+
+目前为止，我们都是假设对于参数 $\theta$ 的每个取值，随机变量 $X$ 服从的概率分布 $P$ 已知。本节考虑这些分布未知的情形，但是关于这些分布有一些先验信息。我们假设 $P\in\mathcal{P}$，其中 $\mathcal{P}$ 是可能的分布的集合。给定某矩阵 $T$，考虑由其决定的随机检测器，检测概率矩阵 $D$ 此时由 $P$ 的取值决定。我们用 $P\in\mathcal{P}$ 上最坏情况概率值来衡量错误概率。最坏情况检测概率矩阵 $D^{\mathrm{wc}}$ 定义为
+\[
+D_{ij}^{\mathrm{wc}}=\sup_{P\in\mathcal{P}}D_{ij},\quad i,j=1,\cdots,m,\quad i\neq j
+\]
+以及
+\[
+D_{ii}^{\mathrm{wc}}=\inf_{P\in\mathcal{P}}D_{ii},\quad i=1,\cdots,m.
+\]
+对所有的 $P\in\mathcal{P}$，非对角线元素给出了检测错误概率可能的最大值，主对角线元素给出了检测正确概率可能的最小值。注意到一般情况下 $\sum_{i=1}^nD_{ij}^{\mathrm{wc}}\neq 1$，即最坏情况检测概率矩阵的每列之和并不一定等于 $1$。
+
+我们定义最坏情况错误概率为
+\[
+P_i^{\mathrm{wce}}=1-D_{ii}^{\mathrm{wc}}.
+\]
+因此，$P_i^{\mathrm{wce}}$ 是当 $\theta=i$ 时，对所有的 $P\in\mathcal{P}$ 的错误概率的最大值。
+
+利用最坏情况检测概率矩阵，或者最坏情况错误概率向量，我们可以得到多种鲁棒检测器设计问题。作为鲁棒检测器设计问题的一个例子，在本节的后续部分，我们集中描述鲁棒极小极大检测器设计问题。
+
+我们定义在所有的假设中，使得最坏情况错误概率最小的那个检测器为鲁棒极小极大检测器，即极小化目标函数
+\[
+\max_i P_i^{\mathrm{wce}}=\max_{i=1,\cdots,m}\sup_{P\in\mathcal{P}}(1-(TP)_{ii})
+=1-\min_{i=1,\cdots,m}\inf_{P\in\mathcal{P}}(TP)_{ii}.
+\]
+鲁棒极小极大检测器使得对所有的 $m$ 种假设，所有的 $P\in\mathcal{P}$，错误概率可能的最大值最小。
+
+\noindent\textbf{$\mathcal{P}$ 有限时的鲁棒极小极大检测器}\quad
+当可能分布构成的集合是有限集时，鲁棒极小极大检测器设计问题可以表述为线性规划进行求解。设 $\mathcal{P}=\{P_1,\cdots,P_k\}$，可以通过求解下面的优化问题得到鲁棒极小极大检测器
+\[
+\begin{aligned}
+\text{maximize}\quad & \min_{i=1,\cdots,m}\inf_{P\in\mathcal{P}}(TP)_{ii}
+=\min_{i=1,\cdots,m}\min_{j=1,\cdots,k}(TP_j)_{ii}\\
+\text{subject to}\quad & t_i\succeq 0,\quad \mathbf{1}^Tt_i=1,\quad i=1,\cdots,n,
+\end{aligned}
+\]
+目标函数是分片线性凹函数，因此此问题可以描述为线性规划。注意到这里我们同样可以考虑 $\mathcal{P}$ 是多面体 $\operatorname{conv}\mathcal{P}$ 的情形；相应的最坏情况检测矩阵以及鲁棒极小极大检测器是一样的。
+
+\noindent\textbf{$\mathcal{P}$ 是多面体时的鲁棒极小极大检测器}\quad
+当 $\mathcal{P}$ 是由线性等式以及不等式约束描述的多面体时，我们同样可以将鲁棒极小极大检测器问题有效地表述为一个线性规划。这种表述没有上一节的问题直接，且依赖于 $\mathcal{P}$ 的对偶描述。
+
+为了简化讨论，假设 $\mathcal{P}$ 具有如下形式
+\begin{equation}
+\mathcal{P}=\{P=[p_1\ \cdots\ p_m]\mid A_kp_k=b_k,\ \mathbf{1}^Tp_k=1,\ p_k\succeq 0\}.
+\tag{7.16}
+\end{equation}
+换言之，对每个分布 $p_k$，其满足给定的期望值约束 $A_kp_k=b_k$。（可能是已知的矩，概率等。）期望值满足不等式的情形可以类似讨论。
+
+鲁棒极小极大设计问题为
+\[
+\begin{aligned}
+\text{maximize}\quad & \gamma\\
+\text{subject to}\quad & \inf\{\tilde{t}_i^Tp\mid A_ip=b_i,\ \mathbf{1}^Tp=1,\ p\succeq 0\}\geq \gamma,\quad i=1,\cdots,m\\
+& t_i\succeq 0,\quad \mathbf{1}^Tt_i=1,\quad i=1,\cdots,n,
+\end{aligned}
+\]
+其中 $\tilde{t}_i^T$ 表示矩阵 $T$ 的第 $i$ 行（因此 $(TP)_{ii}=\tilde{t}_i^Tp_i$）。根据线性规划对偶有
+\[
+\inf\{\tilde{t}_i^Tp\mid A_ip=b_i,\ \mathbf{1}^Tp=1,\ p\succeq 0\}
+=\sup\{\nu^Tb_i+\mu\mid A_i^T\nu+\mu\mathbf{1}\preceq \tilde{t}_i\}.
+\]
+基于此，鲁棒极小极大检测器设计问题可以表述为一个线性规划
+\[
+\begin{aligned}
+\text{maximize}\quad & \gamma\\
+\text{subject to}\quad & \nu_i^Tb_i+\mu_i\geq \gamma,\quad i=1,\cdots,m\\
+& A_i^T\nu_i+\mu_i\mathbf{1}\preceq \tilde{t}_i,\quad i=1,\cdots,m\\
+& t_i\succeq 0,\quad \mathbf{1}^Tt_i=1,\quad i=1,\cdots,n,
+\end{aligned}
+\]
+其中优化变量为 $\nu_1,\cdots,\nu_m$，$\mu_1,\cdots,\mu_m$ 和 $T$（其列为 $t_i$，行为 $\tilde{t}_i^T$）。
+
+\noindent\textbf{例 7.5}\quad
+鲁棒二值假设检验。设 $m=2$，式 (7.16) 中的集合 $\mathcal{P}$ 定义为
+\[
+A_1=A_2=A=
+\begin{bmatrix}
+a_1 & a_2 & \cdots & a_n\\
+a_1^2 & a_2^2 & \cdots & a_n^2
+\end{bmatrix},
+\qquad
+b_1=
+\begin{bmatrix}
+\alpha_1\\
+\alpha_2
+\end{bmatrix},
+\qquad
+b_2=
+\begin{bmatrix}
+\beta_1\\
+\beta_2
+\end{bmatrix}.
+\]
+基于此集合 $\mathcal{P}$ 设计一个鲁棒极小极大检测器可以看成一个二值假设检验问题：基于随机变量 $X\in\{a_1,\cdots,a_n\}$ 的一个观测值，在下面两种假设中选择一种：
+\[
+\begin{array}{ll}
+1. & \mathbf{E}X=\alpha_1,\quad \mathbf{E}X^2=\alpha_2,\\
+2. & \mathbf{E}X=\beta_1,\quad \mathbf{E}X^2=\beta_2.
+\end{array}
+\]
+令 $\tilde{t}^T$ 表示矩阵 $T$ 的第一行（因此 $(1-\tilde{t})^T$ 是第二行）。给定 $\tilde{t}$，最坏情况下正确检测的概率为
+\[
+\begin{aligned}
+D_{11}^{\mathrm{wc}}&=\inf\left\{\tilde{t}^Tp\mid \sum_{i=1}^n a_ip_i=\alpha_1,\ \sum_{i=1}^n a_i^2p_i=\alpha_2,\ \mathbf{1}^Tp=1,\ p\succeq 0\right\}\\
+D_{22}^{\mathrm{wc}}&=\inf\left\{(1-\tilde{t})^Tp\mid \sum_{i=1}^n a_ip_i=\beta_1,\ \sum_{i=1}^n a_i^2p_i=\beta_2,\ \mathbf{1}^Tp=1,\ p\succeq 0\right\}.
+\end{aligned}
+\]
+利用线性规划对偶，我们可以将 $D_{11}^{\mathrm{wc}}$ 描述成如下线性规划的最优值
+\[
+\begin{aligned}
+\text{maximize}\quad & z_0+z_1\alpha_1+z_2\alpha_2\\
+\text{subject to}\quad & z_0+a_iz_1+a_i^2z_2\leq \tilde{t}_i,\quad i=1,\cdots,n,
+\end{aligned}
+\]
+优化变量 $z_0,z_1,z_2\in\mathbb{R}$。类似地，$D_{22}^{\mathrm{wc}}$ 是下面线性规划的最优值
+\[
+\begin{aligned}
+\text{maximize}\quad & w_0+w_1\beta_1+w_2\beta_2\\
+\text{subject to}\quad & w_0+a_iw_1+a_i^2w_2\leq 1-\tilde{t}_i,\quad i=1,\cdots,n,
+\end{aligned}
+\]
+优化变量 $w_0,w_1,w_2\in\mathbb{R}$。为了得到极小极大检测器，我们极大化 $D_{11}^{\mathrm{wc}}$ 和 $D_{22}^{\mathrm{wc}}$ 之中较小的一个，即求解下列线性规划
+\[
+\begin{aligned}
+\text{maximize}\quad & \gamma\\
+\text{subject to}\quad & z_0+z_1\alpha_1+z_2\alpha_2\geq \gamma\\
+& w_0+\beta_1w_1+\beta_2w_2\geq \gamma\\
+& z_0+z_1a_i+z_2a_i^2\leq \tilde{t}_i,\quad i=1,\cdots,n\\
+& w_0+w_1a_i+w_2a_i^2\leq 1-\tilde{t}_i,\quad i=1,\cdots,n\\
+& 0\preceq \tilde{t}\preceq 1.
+\end{aligned}
+\]
+优化变量为 $z_0,z_1,z_2,w_0,w_1,w_2$ 和 $\tilde{t}$。
+
+\section*{7.4\quad Chebyshev 界和 Chernoff 界}
+
+在本节中，我们考虑集合上概率的两种经典界，这两种定界问题的一般化都可以看成凸优化问题。原经典定界问题对应简单的凸优化问题，具有解析解；一般化问题的凸优化表述可以给出更好的界，或者更复杂情形的界。
+
+\subsection*{7.4.1\quad Chebyshev 界}
+
+基于已知的某个函数的期望值（如均值和方差），Chebyshev 界给出了某个集合上概率的一个上界。最简单的例子是 Markov 不等式：如果 $X$ 是 $\mathbb{R}_+$ 上的随机变量，$\mathbf{E}X=\mu$，那么无论 $X$ 的分布如何，我们都有 $\operatorname{prob}(X\geq 1)\leq \mu$。另一个简单的例子是 Chebyshev 界：如果 $X$ 是 $\mathbb{R}$ 上的随机变量，$\mathbf{E}X=\mu$，$\mathbf{E}(X-\mu)^2=\sigma^2$，那么无论 $X$ 的分布如何，我们都有 $\operatorname{prob}(|X-\mu|\geq 1)\leq\sigma^2$。这些简单定界的思想可以推广到利用凸优化方法计算概率的界。
+
+令 $X$ 是 $S\subseteq\mathbb{R}^m$ 上的随机变量，$C\subseteq S$ 是集合，我们希望对集合上的概率 $\operatorname{prob}(X\in C)$ 定界。令 $\mathbf{1}_C$ 表示集合 $C$ 的 $0$-$1$ 示性函数，即如果 $z\in C$，$\mathbf{1}_C(z)=1$，如果 $z\notin C$，$\mathbf{1}_C(z)=0$。
+
+关于分布的先验知识包括随机变量的一些函数的期望值
+\[
+\mathbf{E}f_i(X)=a_i,\quad i=1,\cdots,n,
+\]
+其中 $f_i:\mathbb{R}^m\to\mathbb{R}$。设 $f_0$ 是值为 $1$ 的常函数，那么有 $\mathbf{E}f_0(X)=a_0=1$。考虑函数族 $f_i$ 的线性组合
+\[
+f(z)=\sum_{i=0}^n x_if_i(z),
+\]
+其中 $x_i\in\mathbb{R}$，$i=0,\cdots,n$。根据已知的 $\mathbf{E}f_i(X)$ 的表达式，我们有 $\mathbf{E}f(X)=a^Tx$。
+
+现在假设对任意 $z\in S$，$f$ 满足条件 $f(z)\geq \mathbf{1}_C(z)$，即 $f$（在 $S$ 上）任意一点都大于等于集合 $C$ 的示性函数。那么我们有
+\[
+\mathbf{E}f(X)=a^Tx\geq \mathbf{E}\mathbf{1}_C(X)=\operatorname{prob}(X\in C).
+\]
+换言之，对 $S$ 上的任意分布，$a^Tx$ 是 $\operatorname{prob}(X\in C)$ 的一个上界，其中，$\mathbf{E}f_i(X)=a_i$。
+
+我们也可以通过求解下面的优化问题推导 $\operatorname{prob}(X\in C)$ 的最好上界，
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & x_0+a_1x_1+\cdots+a_nx_n\\
+\text{subject to}\quad & f(z)=\sum_{i=0}^n x_if_i(z)\geq 1\quad \forall z\in C\\
+& f(z)=\sum_{i=0}^n x_if_i(z)\geq 0\quad \forall z\in S,\ z\notin C,
+\end{aligned}
+\tag{7.17}
+\end{equation}
+其中变量 $x\in\mathbb{R}^{n+1}$。此问题总是凸的，这是因为约束可以描述为
+\[
+g_1(x)=1-\inf_{z\in C}f(z)\leq 0,\qquad
+g_2(x)=-\inf_{z\in S\backslash C}f(z)\leq 0,
+\]
+（$g_1$ 和 $g_2$ 是凸的）。优化问题 (7.17) 也可以看成一个半无限线性规划问题，即此优化问题具有一个线性的目标函数，以及无穷多个线性不等式约束，每一个约束对应每个 $z\in S$。
+
+对一些简单的情形，我们可以解析求解优化问题 (7.17)。作为一个例子，我们选择 $S=\mathbb{R}_+$，$C=[1,\infty)$，$f_0(z)=1$ 和 $f_1(z)=z$，已知 $\mathbf{E}f_1(X)=\mathbf{E}X=\mu\leq 1$。对任意 $z\in S$，约束 $f(z)\geq 0$，可以简化为 $x_0\geq 0$，$x_1\geq 0$。对 $z\in C$，约束 $f(z)\geq 1$，即对所有 $z\geq 1$，$x_0+x_1z\geq 1$，可以简化为 $x_0+x_1\geq 1$。因此，优化问题 (7.17) 此时可以描述为
+\[
+\begin{aligned}
+\text{minimize}\quad & x_0+\mu x_1\\
+\text{subject to}\quad & x_0\geq 0,\quad x_1\geq 0\\
+& x_0+x_1\geq 1.
+\end{aligned}
+\]
+因为 $0\leq \mu\leq 1$，这个简单的线性规划的最优点为 $x_0=0$，$x_1=1$。它给出了经典的 Markov 界 $\operatorname{prob}(X\geq 1)\leq\mu$。
+
+在其他情况下，我们可以利用凸优化方法求解问题 (7.17)。
+
+\noindent\textbf{注释 7.1}\quad
+对偶性及 Chebyshev 界问题。对所有满足给定期望值约束的概率测度，Chebyshev 界问题 (7.17) 给出了概率 $\operatorname{prob}(X\in C)$ 的一个界。因此我们可以认为 Chebyshev 界问题 (7.17) 给出了如下无限维问题的最优值的界
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & \int_C \pi(dz)\\
+\text{subject to}\quad & \int_S f_i(z)\pi(dz)=a_i,\quad i=1,\cdots,n\\
+& \int_S \pi(dz)=1\\
+& \pi\succeq 0,
+\end{aligned}
+\tag{7.18}
+\end{equation}
+优化变量为测度 $\pi$，$\pi\succeq 0$ 表明测度是非负的。
+
+因为 Chebyshev 问题 (7.17) 给出了问题 (7.18) 的一个界，所以它们可以通过对偶联系起来并不令人惊讶。虽然半无限问题和无限维问题并不在本书的讨论范围内，我们仍然可以形式上构造问题 (7.17) 的对偶问题。引入拉格朗日乘子函数 $p:S\to\mathbb{R}$，其中 $p(z)$ 对应不等式约束 $f(z)\geq 1$（对任意 $z\in C$）或 $f(z)\geq 0$（对任意 $z\in S\backslash C$）。对应于有限维求和，此时关于 $z$ 求积分，我们得到问题 (7.17) 形式上的对偶问题
+\[
+\begin{aligned}
+\text{maximize}\quad & \int_C p(z)\,dz\\
+\text{subject to}\quad & \int_S f_i(z)p(z)\,dz=a_i,\quad i=1,\cdots,n\\
+& \int_S p(z)\,dz=1\\
+& p(z)\geq 0\quad \forall z\in S,
+\end{aligned}
+\]
+其中优化变量是函数 $p$。上述问题本质上和问题 (7.18) 是等价的。
+
+\noindent\textbf{已知一阶矩和二阶矩时概率的界}\quad
+作为一个例子，假设 $S=\mathbb{R}^m$，已知随机变量 $X$ 的一阶矩及二阶矩为
+\[
+\mathbf{E}X=a\in\mathbb{R}^m,\qquad
+\mathbf{E}XX^T=\Sigma\in\mathbf{S}^m.
+\]
+换言之，我们已知 $m$ 个函数 $z_i$ 的期望值，$i=1,\cdots,m$，以及 $m(m+1)/2$ 个函数 $z_iz_j$ 的期望值，$i,j=1,\cdots,m$，除此之外没有其他的信息。
+
+在这种情况下，我们可以将 $f$ 表述为一般的二次函数
+\[
+f(z)=z^TPz+2q^Tz+r,
+\]
+其中变量（即前文讨论的向量 $x$）为 $P\in\mathbf{S}^m$，$q\in\mathbb{R}^m$ 以及 $r\in\mathbb{R}$。由于已知一阶矩及二阶矩，我们有
+\[
+\begin{aligned}
+\mathbf{E}f(X)&=\mathbf{E}(z^TPz+2q^Tz+r)\\
+&=\mathbf{E}\operatorname{tr}(Pzz^T)+2\mathbf{E}q^Tz+r\\
+&=\operatorname{tr}(\Sigma P)+2q^Ta+r.
+\end{aligned}
+\]
+对任意 $z$，约束 $f(z)\geq 0$ 可以由下面的线性矩阵不等式描述
+\[
+\begin{bmatrix}
+P & q\\
+q^T & r
+\end{bmatrix}\succeq 0.
+\]
+特别地，我们有 $P\succeq 0$。
+
+现在假设集合 $C$ 是一个开多面体的补
+\[
+C=\mathbb{R}^m\backslash\mathcal{P},\qquad
+\mathcal{P}=\{z\mid a_i^Tz<b_i,\ i=1,\cdots,k\}.
+\]
+对任意 $z\in C$，约束条件 $f(z)\geq 1$ 等价于要求对任意 $i=1,\cdots,k$，下面的条件满足
+\[
+a_i^Tz\geq b_i\Longrightarrow z^TPz+2q^Tz+r\geq 1,
+\]
+而上述条件又可以描述为：存在 $\tau_1,\cdots,\tau_k\geq 0$，使得
+\[
+\begin{bmatrix}
+P & q\\
+q^T & r-1
+\end{bmatrix}\succeq
+\tau_i
+\begin{bmatrix}
+0 & a_i/2\\
+a_i^T/2 & -b_i
+\end{bmatrix},
+\quad i=1,\cdots,k.
+\]
+（见 $\S$B.2。）
+
+综合上面的讨论，Chebyshev 界问题 (7.17) 可以描述为
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \operatorname{tr}(\Sigma P)+2q^Ta+r\\
+\text{subject to}\quad &
+\begin{bmatrix}
+P & q\\
+q^T & r-1
+\end{bmatrix}\succeq
+\tau_i
+\begin{bmatrix}
+0 & a_i/2\\
+a_i^T/2 & -b_i
+\end{bmatrix},
+\quad i=1,\cdots,k\\
+& \tau_i\geq 0,\quad i=1,\cdots,k\\
+&
+\begin{bmatrix}
+P & q\\
+q^T & r
+\end{bmatrix}\succeq 0,
+\end{aligned}
+\tag{7.19}
+\end{equation}
+这是一个半定规划问题，优化变量为 $P,q,r$，以及 $\tau_1,\cdots,\tau_k$。上述问题的最优值，用 $\alpha$ 表示，是平均值为 $a$，二阶矩为 $\Sigma$ 的所有分布中 $\operatorname{prob}(X\in C)$ 的一个上界。反过来，$1-\alpha$ 是 $\operatorname{prob}(X\in\mathcal{P})$ 的一个下界。
+
+\noindent\textbf{注释 7.2}\quad
+对偶性和 Chebyshev 界问题。式 (7.19) 对应的对偶半定规划可以描述为
+\[
+\begin{aligned}
+\text{maximize}\quad & \sum_{i=1}^k \lambda_i\\
+\text{subject to}\quad & a_i^Tz_i\geq b_i\lambda_i,\quad i=1,\cdots,k\\
+& \sum_{i=1}^k
+\begin{bmatrix}
+Z_i & z_i\\
+z_i^T & \lambda_i
+\end{bmatrix}
+\preceq
+\begin{bmatrix}
+\Sigma & a\\
+a^T & 1
+\end{bmatrix}\\
+&
+\begin{bmatrix}
+Z_i & z_i\\
+z_i^T & \lambda_i
+\end{bmatrix}\succeq 0,\quad i=1,\cdots,k.
+\end{aligned}
+\]
+优化变量为 $Z_i\in\mathbf{S}^m$，$z_i\in\mathbb{R}^m$，以及 $\lambda_i\in\mathbb{R}$，$i=1,\cdots,k$。因为半定规划 (7.19) 是严格可行的，强对偶性成立，对偶最优值可以达到。
+
+我们可以给出对偶问题的一个有趣的概率解释。假设 $Z_i,z_i,\lambda_i$ 是对偶可行的，$\lambda$ 的前 $r$ 个元素是正的，其余的都是零。为了简单起见，假设 $\sum_{i=1}^k\lambda_i<1$。我们定义
+\[
+x_i=(1/\lambda_i)z_i,\quad i=1,\cdots,r,
+\]
+以及
+\[
+w_0=\frac{1}{\mu}\left(a-\sum_{i=1}^r\lambda_ix_i\right),
+\]
+\[
+W=\frac{1}{\mu}\left(\Sigma-\sum_{i=1}^r\lambda_ix_ix_i^T\right),
+\]
+其中 $\mu=1-\sum_{i=1}^k\lambda_i$。基于这些定义，对偶可行性约束可以描述为
+\[
+a_i^Tx_i\geq b_i,\quad i=1,\cdots,r
+\]
+以及
+\[
+\sum_{i=1}^r\lambda_i
+\begin{bmatrix}
+x_ix_i^T & x_i\\
+x_i^T & 1
+\end{bmatrix}
+\mu
+\begin{bmatrix}
+W & w_0\\
+w_0^T & 1
+\end{bmatrix}
+=
+\begin{bmatrix}
+\Sigma & a\\
+a^T & 1
+\end{bmatrix}.
+\]
+此外，根据对偶可行性有
+\[
+\begin{aligned}
+\mu
+\begin{bmatrix}
+W & w_0\\
+w_0^T & 1
+\end{bmatrix}
+&=
+\begin{bmatrix}
+\Sigma & a\\
+a^T & 1
+\end{bmatrix}
+-\sum_{i=1}^r\lambda_i
+\begin{bmatrix}
+x_ix_i^T & x_i\\
+x_i^T & 1
+\end{bmatrix}\\
+&=
+\begin{bmatrix}
+\Sigma & a\\
+a^T & 1
+\end{bmatrix}
+-\sum_{i=1}^r
+\begin{bmatrix}
+(1/\lambda_i)z_iz_i^T & z_i\\
+z_i^T & \lambda_i
+\end{bmatrix}\\
+&\succeq
+\begin{bmatrix}
+\Sigma & a\\
+a^T & 1
+\end{bmatrix}
+-\sum_{i=1}^r
+\begin{bmatrix}
+Z_i & z_i\\
+z_i^T & \lambda_i
+\end{bmatrix}
+\succeq 0.
+\end{aligned}
+\]
+因此，$W\succeq w_0w_0^T$，所以可以进行因式分解 $W-w_0w_0^T=\sum_{i=1}^s w_iw_i^T$。现在考虑服从下列分布的离散随机变量 $X$。即如果 $s\geq 1$，分布为
+\[
+\begin{array}{lll}
+X=x_i & \text{概率为 } \lambda_i, & i=1,\cdots,r\\
+X=w_0+\sqrt{s}w_i & \text{概率为 } \mu/(2s), & i=1,\cdots,s\\
+X=w_0-\sqrt{s}w_i & \text{概率为 } \mu/(2s), & i=1,\cdots,s.
+\end{array}
+\]
+如果 $s=0$，分布为
+\[
+\begin{array}{lll}
+X=x_i & \text{概率为 } \lambda_i, & i=1,\cdots,r\\
+X=w_0 & \text{概率为 } \mu.
+\end{array}
+\]
+不难验证 $\mathbf{E}X=a$ 以及 $\mathbf{E}XX^T=\Sigma$，即分布的矩满足给定的假设。进一步地，因为 $x_i\in C$，所以下式成立
+\[
+\operatorname{prob}(X\in C)\geq \sum_{i=1}^r\lambda_i.
+\]
+特别地，将此概率解释应用到对偶最优解，我们可以构造一个分布，以等式满足式 (7.19) 给出的 Chebyshev 界，说明此时 Chebyshev 界是可达的。
+
+\subsection*{7.4.2\quad Chernoff 界}
+
+设 $X$ 是 $\mathbb{R}$ 上的一个随机变量。Chernoff 界的含义为
+\[
+\operatorname{prob}(X\geq u)\leq \inf_{\lambda\geq 0}\mathbf{E}e^{\lambda(X-u)},
+\]
+它可以描述为
+\begin{equation}
+\log\operatorname{prob}(X\geq u)\leq \inf_{\lambda\geq 0}\{-\lambda u+\log\mathbf{E}e^{\lambda X}\}.
+\tag{7.20}
+\end{equation}
+我们以前提到（第 100 页，例 3.41），上式的右边项 $\log\mathbf{E}e^{\lambda X}$ 称为分布的累积量生成函数，它总是凸的，所以极小化的函数是凸的。当累积量生成函数有解析表达式且关于 $\lambda$ 极小化可以解析求解时，边界 (7.20) 尤其有用。
+
+例如，如果 $X$ 服从 Gauss 分布，均值为 $0$，方差为 $1$，累积量生成函数为
+\[
+\log\mathbf{E}e^{\lambda X}=\lambda^2/2,
+\]
+函数 $-\lambda u+\lambda^2/2$ 关于 $\lambda\geq 0$ 求极小在 $\lambda=u$（若 $u\geq 0$）处获得，所以 Chernoff 界为（若 $u\geq 0$）
+\[
+\operatorname{prob}(X\geq u)\leq e^{-u^2/2}.
+\]
+
+Chernoff 界的思想可以扩展到更一般的情形，其中凸优化方法用来计算随机变量在 $\mathbb{R}^m$ 上某个集合的概率的界。令 $C\subseteq\mathbb{R}^m$，和前面关于 Chebyshev 界的描述一样，引入集合 $C$ 的 $0$-$1$ 示性函数 $\mathbf{1}_C$。我们将会得到 $\operatorname{prob}(X\in C)$ 的一个上界。（原则上我们可以利用 Monte Carlo 模拟或者数值积分求得 $\operatorname{prob}(X\in C)$，但是这两种方法的计算量都很大，且这两种方法都不能产生需要的界。）
+
+令 $\lambda\in\mathbb{R}^m$，$\mu\in\mathbb{R}$，考虑函数 $f:\mathbb{R}^m\to\mathbb{R}$，
+\[
+f(z)=e^{\lambda^Tz+\mu}.
+\]
+和推导 Chebyshev 界的情形一样，如果对任意 $z$ 函数 $f$ 满足 $f(z)\geq\mathbf{1}_C(z)$，我们可以得到
+\[
+\operatorname{prob}(X\in C)=\mathbf{E}\mathbf{1}_C(X)\leq \mathbf{E}f(X).
+\]
+显然对任意 $z$ 有 $f(z)\geq 0$；$z\in C$ 时 $f(z)\geq 1$ 等价于对任意 $z\in C$，$\lambda^Tz+\mu\geq 0$，也即对任意 $z\in C$，$-\lambda^Tz\leq \mu$。因此，如果对任意 $z\in C$ 有 $-\lambda^Tz\leq \mu$，我们可以得到界
+\[
+\operatorname{prob}(X\in C)\leq \mathbf{E}\exp(\lambda^TX+\mu);
+\]
+对其求对数有
+\[
+\log\operatorname{prob}(X\in C)\leq \mu+\log\mathbf{E}\exp(\lambda^TX).
+\]
+因此我们得到了 Chernoff 界的一个一般形式
+\[
+\begin{aligned}
+\log\operatorname{prob}(X\in C)
+&\leq \inf\{\mu+\log\mathbf{E}\exp(\lambda^TX)\mid -\lambda^Tz\leq\mu\ \text{for all }z\in C\}\\
+&=\inf_\lambda\left(\sup_{z\in C}(-\lambda^Tz)+\log\mathbf{E}\exp(\lambda^TX)\right)\\
+&=\inf_\lambda\left(S_C(-\lambda)+\log\mathbf{E}\exp(\lambda^TX)\right),
+\end{aligned}
+\]
+其中 $S_C$ 是 $C$ 的支撑函数。注意到第二项，$\log\mathbf{E}\exp(\lambda^TX)$，是分布的累积量生成函数，总是凸的（见第 100 页例 3.41）。求得此上界的精确值一般而言是一个凸优化问题。
+
+\noindent\textbf{多面体上 Gauss 变量的 Chernoff 界}\quad
+作为一个具体的例子，假设 $X$ 是 $\mathbb{R}^m$ 上的 Gauss 随机向量，均值为 $0$，协方差为 $I$，所以其累积量生成函数为
+\[
+\log\mathbf{E}\exp(\lambda^TX)=\lambda^T\lambda/2.
+\]
+设 $C$ 是多面体，由下列不等式描述
+\[
+C=\{x\mid Ax\preceq b\},
+\]
+假设集合非空。
+
+在 Chernoff 界的应用中，我们利用支撑函数的对偶描述
+\[
+\begin{aligned}
+S_C(y)&=\sup\{y^Tx\mid Ax\preceq b\}\\
+&=-\inf\{-y^Tx\mid Ax\preceq b\}\\
+&=-\sup\{-b^Tu\mid A^Tu=y,\ u\succeq 0\}\\
+&=\inf\{b^Tu\mid A^Tu=y,\ u\succeq 0\},
+\end{aligned}
+\]
+其中第三行我们应用了线性规划对偶
+\[
+\inf\{c^Tx\mid Ax\preceq b\}=\sup\{-b^Tu\mid A^Tu+c=0,\ u\succeq 0\},
+\]
+在这里 $c=-y$。在 Chernoff 界中采用上式表达 $S_C$，我们可以得到
+\[
+\begin{aligned}
+\log\operatorname{prob}(X\in C)
+&\leq \inf_\lambda\left(S_C(-\lambda)+\log\mathbf{E}\exp(\lambda^TX)\right)\\
+&=\inf_\lambda\inf_u\{b^Tu+\lambda^T\lambda/2\mid u\succeq 0,\ A^Tu+\lambda=0\}.
+\end{aligned}
+\]
+因此，$\operatorname{prob}(X\in C)$ 的 Chernoff 上界是如下二次规划最优值的指数，
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & b^Tu+\lambda^T\lambda/2\\
+\text{subject to}\quad & u\succeq 0,\quad A^Tu+\lambda=0,
+\end{aligned}
+\tag{7.21}
+\end{equation}
+其中优化变量为 $u$ 和 $\lambda$。
+
+此问题的几何解释较为有趣。其等价于
+\[
+\begin{aligned}
+\text{minimize}\quad & b^Tu+(1/2)\|A^Tu\|_2^2\\
+\text{subject to}\quad & u\succeq 0,
+\end{aligned}
+\]
+而上述问题是下面问题的对偶问题
+\[
+\begin{aligned}
+\text{maximize}\quad & -(1/2)\|x\|_2^2\\
+\text{subject to}\quad & Ax\preceq b.
+\end{aligned}
+\]
+换言之，Chernoff 界为
+\begin{equation}
+\operatorname{prob}(X\in C)\leq \exp(-\operatorname{dist}(0,C)^2/2),
+\tag{7.22}
+\end{equation}
+其中 $\operatorname{dist}(0,C)$ 是原点到集合 $C$ 的 Euclid 距离。
+
+\noindent\textbf{注释 7.3}\quad
+界 (7.22) 也可以不通过 Chernoff 不等式得到。如果从 $0$ 到 $C$ 的距离是 $d$，那么存在一个半空间 $\mathcal{H}=\{z\mid a^Tz\geq d\}$，其中 $\|a\|_2=1$，包含 $C$。随机变量 $a^TX$ 服从分布 $\mathcal{N}(0,1)$，因此
+\[
+\operatorname{prob}(X\in C)\leq\operatorname{prob}(X\in\mathcal{H})=\Phi(-d),
+\]
+其中 $\Phi$ 是一个均值为 $0$，方差为 $1$ 的 Gauss 分布的累积分布函数。因为若 $d\geq 0$ 有 $\Phi(-d)\leq e^{-d^2/2}$，此界至少和 Chernoff 界 (7.22) 一样紧。
+
+\subsection*{7.4.3\quad 例子}
+
+本节用一个检测的例子说明 Chebyshev 和 Chernoff 概率界。给定 $m$ 种可能的符号或信号集合 $s\in\{s_1,s_2,\cdots,s_m\}\subseteq\mathbb{R}^n$，称为信号群。这些信号中的某个通过一个有噪声的信道进行传播。接收到的信号为 $x=s+v$，其中 $v$ 为噪声，将其建模为随机变量。假设 $\mathbf{E}v=0$ 且 $\mathbf{E}vv^T=\sigma^2I$，即每个噪声 $v_1,\cdots,v_n$ 均值为 $0$，不相关，方差为 $\sigma^2$。基于接收到的信号 $x=s+v$，接收器必须估计出传送的是哪个信号。最小距离检测器选择离 $x$ 最近（Euclid 距离）的符号 $s_k$ 作为估计值。（如果噪声 $v$ 服从 Gauss 分布，那么最小距离编码等价于最大似然编码。）
+
+如果传送的信号是 $s_k$，给定 $x$，当估计信号也为 $s_k$ 时，检测正确。而只有当 $s_k$ 和 $x$ 的距离比其他信号更小时，才能得出正确检测，即
+\[
+\|x-s_k\|_2<\|x-s_j\|_2,\quad j\neq k.
+\]
+因此，正确检测出 $s_k$ 的条件是随机变量 $v$ 满足如下线性不等式
+\[
+2(s_j-s_k)^T(s_k+v)<\|s_j\|_2^2-\|s_k\|_2^2,\quad j\neq k.
+\]
+上述不等式定义了信号群内 $s_k$ 的 Voronoi 区域 $V_k$，即到 $s_k$ 比到信号群中其他信号更近的点。正确检测出信号 $s_k$ 的概率为 $\operatorname{prob}(s_k+v\in V_k)$。
+
+图 7.5 给出了一个简单例子，信号个数为 $m=7$，维数为 $n=2$。
+
+\noindent\textbf{Chebyshev 界}\quad
+对三个信号 $s_1,s_2$ 和 $s_3$，半定规划界 (7.19) 给出了正确检测概率的一个下界，如图 7.6 所示，它是噪声标准差 $\sigma$ 的函数。对任意均值为 $0$，协方差为 $\sigma^2I$ 的噪声，这些
+边界都成立。当存在一个噪声分布，均值为 $0$ 且协方差为 $\Sigma=\sigma^2I$，达到下界时，上述边界是紧的。对第一个 Voronoi 集且 $\sigma=1$，图 7.7 描述了这种关系。
+
+\noindent\textbf{Chernoff 界}\quad
+利用同一个例子，我们来解释 Chernoff 界。这里假设噪声服从 Gauss 分布，即 $v\sim\mathcal{N}(0,\sigma^2I)$。如果传送信号 $s_k$，正确检测的概率为 $s_k+v\in V_k$ 的概率。为了给出此概率的一个下界，我们求解二次规划 (7.21) 来计算 ML 检测器选择信号
+$i$，$i=1,\cdots,m$，$i\neq k$ 的概率的上界。（每个上界都和 $s_k$ 到 Voronoi 集合 $V_i$ 的距离有关。）对误将 $s_k$ 判断为 $s_i$ 的概率上界进行求和，我们得到错误检测概率的上界，因此，得到了正确检测出信号 $s_k$ 的概率的一个下界。以信号 $s_1$ 为例，得到的下界如图 7.8 所示，此外，图中还给出了利用 Monte Carlo 分析得到的正确检测的概率。
+
+\section*{7.5\quad 实验设计}
+
+考虑通过测量或实验
+\[
+y_i=a_i^Tx+w_i,\quad i=1,\cdots,m,
+\]
+估计向量 $x\in\mathbb{R}^n$ 的问题，其中 $w_i$ 是测量噪声。假设 $w_i$ 是独立的 Gauss 随机变量，均值为 $0$，方差为 $1$，测量向量 $a_1,\cdots,a_m$ 张成了 $\mathbb{R}^n$ 空间。$x$ 的最大似然估计，也即最小方差估计，由如下最小二乘问题的解给出
+\[
+\hat{x}=\left(\sum_{i=1}^m a_ia_i^T\right)^{-1}\sum_{i=1}^m y_ia_i.
+\]
+相应的估计误差 $e=\hat{x}-x$ 均值为 $0$，协方差矩阵为
+\[
+E=\mathbf{E}ee^T=\left(\sum_{i=1}^m a_ia_i^T\right)^{-1}.
+\]
+矩阵 $E$ 刻画了估计精度或是实验的信息度。例如 $x$ 的 $\alpha$-置信水平椭圆为
+\[
+\mathcal{E}=\{z\mid (z-\hat{x})^TE^{-1}(z-\hat{x})\leq \beta\},
+\]
+其中 $\beta$ 是常数，由 $n$ 和 $\alpha$ 决定。
+
+假设刻画测量值的向量 $a_1,\cdots,a_m$ 可以从 $p$ 种可能的检验向量 $v_1,\cdots,v_p\in\mathbb{R}^n$ 中进行选择，即每个 $a_i$ 是 $v_j$ 中的一个。实验设计的目的是从所有可能的选择中选择向量 $a_i$，使得误差协方差 $E$ 较小（在某种意义上）。换言之，$m$ 次实验或测量的每一次都可以从包含 $p$ 种可能实验的固定列表中选择；我们的任务是找到测量的集合（总的），使得信息度最大。
+
+令 $m_j$ 表示 $a_i$ 选择值 $v_j$ 的实验次数，因此有
+\[
+m_1+\cdots+m_p=m.
+\]
+可以将误差协方差矩阵描述为
+\[
+E=\left(\sum_{i=1}^m a_ia_i^T\right)^{-1}
+=\left(\sum_{j=1}^p m_jv_jv_j^T\right)^{-1}.
+\]
+这说明了误差协方差矩阵只和选择每种类型实验的次数（即 $m_1,\cdots,m_p$）有关。
+
+基本的实验设计问题如下。给定可能的实验列表，即 $v_1,\cdots,v_p$，以及总实验次数 $m$，选择每种类型实验的次数，即 $m_1,\cdots,m_p$，使得误差协方差 $E$ 较小（在某种程度上）。变量 $m_1,\cdots,m_p$ 必须是整数，且它们的和为 $m$，即实验的总次数。实验设计问题可以表述为如下优化问题
+\begin{equation}
+\begin{aligned}
+\text{minimize (关于 $\mathbf{S}_+^n$)}\quad & E=\left(\sum_{j=1}^p m_jv_jv_j^T\right)^{-1}\\
+\text{subject to}\quad & m_i\geq 0,\quad m_1+\cdots+m_p=m\\
+& m_i\in\mathbb{Z},
+\end{aligned}
+\tag{7.23}
+\end{equation}
+优化变量为整数 $m_1,\cdots,m_p$。
+
+基本的实验设计问题 (7.23) 是半正定锥上的一个向量优化问题。如果某个实验设计方案得到误差协方差 $E$，而另一个方案得到 $\tilde{E}$，$E\preceq \tilde{E}$。那么第一种实验和第二种一样好或者更好。例如，第一种实验设计方案的置信椭圆（转换到原点做比较）在第二种实验方案的置信椭圆内。我们也可以说对任意向量 $q$，第一种实验设计方案比第二种方案能更好地估计 $q^Tx$（即具有更小的方差），这是因为第一种实验设计方案估计 $q^Tx$ 的方差为 $q^TEq$，而第二种的方差为 $q^T\tilde{E}q$。下面我们将会看到此问题的几种常见的标量化形式。
+
+\subsection*{7.5.1\quad 松弛实验设计问题}
+
+当总的实验样本数 $m$ 和 $n$ 相当时，基本的实验设计问题 (7.23) 是一个复杂的组合优化问题，因为在这种情况下，$m_i$ 都是小的整数。然而，当相对 $n$ 而言 $m$ 较大时，我们可以通过忽略或松弛 $m_i$ 为整数的约束，来得到式 (7.23) 的一个较好的近似解。令 $\lambda_i=m_i/m$，它表示 $a_i=v_i$ 的实验次数与总的实验次数的比值，亦可以说是实验 $i$ 的相对频率。我们可以将误差协方差表示为 $\lambda_i$ 的函数
+\begin{equation}
+E=\frac{1}{m}\left(\sum_{i=1}^p\lambda_iv_iv_i^T\right)^{-1}.
+\tag{7.24}
+\end{equation}
+向量 $\lambda\in\mathbb{R}^p$ 满足 $\lambda\succeq 0$，$\mathbf{1}^T\lambda=1$，且每个 $\lambda_i$ 都是 $1/m$ 的整数倍。忽略最后一个约束，我们得到如下优化问题
+\begin{equation}
+\begin{aligned}
+\text{minimize (关于 $\mathbf{S}_+^n$)}\quad & E=(1/m)\left(\sum_{i=1}^p\lambda_iv_iv_i^T\right)^{-1}\\
+\text{subject to}\quad & \lambda\succeq 0,\quad \mathbf{1}^T\lambda=1,
+\end{aligned}
+\tag{7.25}
+\end{equation}
+其中变量 $\lambda\in\mathbb{R}^p$。为了和原始的组合设计问题 (7.23) 区别，我们称上述问题为松弛的实验设计问题。松弛的实验设计问题 (7.25) 是一个凸优化问题，因为目标函数 $E$ 是 $\lambda$ 的一个 $\mathbf{S}_+^n$-凸函数。
+可以描述（组合）实验设计问题 (7.23) 和松弛问题 (7.25) 之间的联系。显然松弛问题的最优值给出了组合优化问题的最优值的一个下界，这是因为组合问题包含一个附加的约束。基于松弛问题 (7.25)，我们可以构造组合问题 (7.23) 的一个次优解。首先，应用简单的取整（四舍五入）我们得到
+\[
+m_i=\operatorname{round}(m\lambda_i),\quad i=1,\cdots,p.
+\]
+向量 $\tilde{\lambda}$ 对应上述选择 $m_1,\cdots,m_p$，
+\[
+\tilde{\lambda}_i=(1/m)\operatorname{round}(m\lambda_i),\quad i=1,\cdots,p.
+\]
+向量 $\tilde{\lambda}$ 满足每个分量都是 $1/m$ 的整数倍的约束。显然我们有 $|\lambda_i-\tilde{\lambda}_i|\leq 1/(2m)$，因此当 $m$ 较大时，$\lambda\approx\tilde{\lambda}$。这意味着当 $m$ 较大时，约束 $\mathbf{1}^T\tilde{\lambda}=1$ 近似满足，且 $\tilde{\lambda}$ 和 $\lambda$ 对应的误差协方差矩阵也近似相等。
+
+我们也可以给出松弛实验设计问题 (7.25) 的另一个解释。我们可以认为向量 $\lambda\in\mathbb{R}^p$ 定义了实验集 $v_1,\cdots,v_p$ 上的一个概率分布。我们对 $\lambda$ 的选择对应了一个随机实验：每次实验时 $a_i$ 等于 $v_j$ 的概率为 $\lambda_j$。
+
+在本节的其余部分，我们只考虑松弛的实验设计问题，因此在讨论中省略修饰词“松弛”。
+
+\subsection*{7.5.2\quad 标量化}
+
+作为半正定锥上的向量优化问题，实验设计问题 (7.25) 有几种标量化的形式。
+
+\noindent\textbf{$D$-最优设计}\quad
+应用最广泛的标量化形式称为 $D$-最优设计，在此设计问题中，我们极小化误差协方差矩阵 $E$ 的绝对值。即设计实验，极小化对应的置信椭球的体积（对一个给定的置信水平）。忽略 $E$ 中的常数因子 $1/m$，并对目标函数求对数，可以得到如下优化问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \log\det\left(\sum_{i=1}^p\lambda_iv_iv_i^T\right)^{-1}\\
+\text{subject to}\quad & \lambda\succeq 0,\quad \mathbf{1}^T\lambda=1,
+\end{aligned}
+\tag{7.26}
+\end{equation}
+它是一个凸优化问题。
+
+\noindent\textbf{$E$-最优设计}\quad
+在 $E$-最优设计中，我们极小化误差协方差矩阵的范数，即 $E$ 的最大特征值。因为置信椭球 $\mathcal{E}$ 的直径（长半轴的两倍）和 $\|E\|_2^{1/2}$ 成正比，极小化 $\|E\|_2$ 从几何上可以看成极小化置信椭球的直径。$E$-最优设计问题可以理解为对所有满足 $\|q\|_2=1$ 的 $q$，极小化 $q^Te$ 的最大方差。
+
+$E$-最优实验设计问题为
+\[
+\begin{aligned}
+\text{minimize}\quad & \left\|\left(\sum_{i=1}^p\lambda_iv_iv_i^T\right)^{-1}\right\|_2\\
+\text{subject to}\quad & \lambda\succeq 0,\quad \mathbf{1}^T\lambda=1.
+\end{aligned}
+\]
+目标函数是 $\lambda$ 的凸函数，因此这是一个凸优化问题。
+
+$E$-最优实验设计问题可以转换为一个半定规划
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & t\\
+\text{subject to}\quad & \sum_{i=1}^p\lambda_iv_iv_i^T\succeq tI\\
+& \lambda\succeq 0,\quad \mathbf{1}^T\lambda=1,
+\end{aligned}
+\tag{7.27}
+\end{equation}
+优化变量 $\lambda\in\mathbb{R}^p$，$t\in\mathbb{R}$。
+
+\noindent\textbf{$A$-最优设计}\quad
+在 $A$-最优实验设计中，我们极小化 $\operatorname{tr}E$，即协方差矩阵的迹。此目标为误差范数的平方的平均值，即
+\[
+\mathbf{E}\|e\|_2^2=\mathbf{E}\operatorname{tr}(ee^T)=\operatorname{tr}E.
+\]
+$A$-最优实验设计问题为
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \operatorname{tr}\left(\sum_{i=1}^p\lambda_iv_iv_i^T\right)^{-1}\\
+\text{subject to}\quad & \lambda\succeq 0,\quad \mathbf{1}^T\lambda=1.
+\end{aligned}
+\tag{7.28}
+\end{equation}
+这也是一个凸优化问题。和 $E$-最优实验设计问题类似，上述问题也可以转化为一个半定规划
+\[
+\begin{aligned}
+\text{minimize}\quad & \mathbf{1}^Tu\\
+\text{subject to}\quad &
+\begin{bmatrix}
+\sum_{i=1}^p\lambda_iv_iv_i^T & e_k\\
+e_k^T & u_k
+\end{bmatrix}\succeq 0,\quad k=1,\cdots,n\\
+& \lambda\succeq 0,\quad \mathbf{1}^T\lambda=1,
+\end{aligned}
+\]
+优化变量为 $u\in\mathbb{R}^n$ 和 $\lambda\in\mathbb{R}^p$，这里，$e_k$ 是单位向量，第 $k$ 个元素为 $1$。
+
+\noindent\textbf{最优实验设计及对偶}\quad
+三种标量化形式的拉格朗日对偶都有着有趣的几何解释。
+
+$D$-最优实验设计问题 (7.26) 的对偶问题可以描述为
+\[
+\begin{aligned}
+\text{maximize}\quad & \log\det W+n\log n\\
+\text{subject to}\quad & v_i^TWv_i\leq 1,\quad i=1,\cdots,p,
+\end{aligned}
+\]
+优化变量 $W\in\mathbf{S}^n$，定义域为 $\mathbf{S}_{++}^n$（参见习题 5.10）。此对偶问题有着一个简单的解释：最优解 $W^\star$ 决定了一个以原点为中心，包含点 $v_1,\cdots,v_p$ 的最小体积椭球
+\[
+\{x\mid x^TW^\star x\leq 1\}
+\]
+（亦可参见第 214 页的关于问题 (5.14) 的讨论）。根据互补松弛有
+\begin{equation}
+\lambda_i^\star(1-v_i^TW^\star v_i)=0,\quad i=1,\cdots,p,
+\tag{7.29}
+\end{equation}
+即最优实验设计仅仅使用了在最小体积椭球球面上的实验 $v_i$。
+
+$E$-最优和 $A$-最优设计问题的对偶问题可以类似理解。问题 (7.27) 和问题 (7.28) 的对偶问题可以分别描述为
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & \operatorname{tr}W\\
+\text{subject to}\quad & v_i^TWv_i\leq 1,\quad i=1,\cdots,p\\
+& W\succeq 0,
+\end{aligned}
+\tag{7.30}
+\end{equation}
+和
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & (\operatorname{tr}W^{1/2})^2\\
+\text{subject to}\quad & v_i^TWv_i\leq 1,\quad i=1,\cdots,p,
+\end{aligned}
+\tag{7.31}
+\end{equation}
+两个问题中的优化变量都为 $W\in\mathbf{S}^n$。在第二个问题中，有一个隐式的约束 $W\in\mathbf{S}_+^n$。（参见习题 5.40 和习题 5.10。）
+
+和 $D$-最优设计问题一样，最优解 $W^\star$ 定义了一个包含点 $v_1,\cdots,v_p$ 的最小椭球 $\{x\mid x^TW^\star x\leq 1\}$。此外 $W^\star$ 和 $\lambda^\star$ 满足互补松弛条件 (7.29)，即最优设计仅使用 $W^\star$ 定义的椭球球面上的实验 $v_i$。
+
+\noindent\textbf{实验设计的例子}\quad
+我们考虑一个问题，$x\in\mathbb{R}^2$，$p=20$。20 组备选测量向量 $a_i$ 如图 7.9 中的圆圈所示。原点用一个十字表示。
+
+$D$-最优实验只有两个非零的 $\lambda_i$，如图 7.9 中的实圆圈所示。$E$-最优实验有两个非零的 $\lambda_i$，如图 7.10 中的实圆圈所示。$A$-最优实验有三个非零的 $\lambda_i$，如图 7.11 中的实圆圈所示。此外，我们还给出了对偶最优解 $W^\star$ 对应的三个椭球 $\{x\mid x^TW^\star x\leq 1\}$。
+
+得到的三个 $90\%$ 置信椭圆如图 7.12 所示，此外还有“均匀”设计的置信椭圆，此时所有实验具有相等的权 $\lambda_i=1/p$。
+
+\subsection*{7.5.3\quad 扩展}
+
+\noindent\textbf{原料限制}\quad
+假设每一个实验都有一个成本 $c_i$，可能表示选择实验 $v_i$ 的经济成本，或者所需时间。总成本，或需要的时间为（如果实验是顺序连续进行的）
+\[
+m_1c_1+\cdots+m_pc_p=mc^T\lambda.
+\]
+在基本实验设计问题中，我们可以对总成本添加一个线性不等式约束，$mc^T\lambda\leq B$，其中 $B$ 是预算。我们可以添加多个线性不等式约束，表示对多个资源的约束。
+
+\noindent\textbf{每次实验选择多个测量向量}\quad
+我们也可以考虑一种推广，其中每次实验得到多个测量值。换言之，当我们进行一次实验时，我们得到多个测量值。为了对这种情况进行建模，我们使用和之前一样的符号，设 $v_i$ 是 $\mathbb{R}^{n\times k_i}$ 中的矩阵
+\[
+v_i=\begin{bmatrix}u_{i1}&\cdots&u_{ik_i}\end{bmatrix},
+\]
+其中 $k_i$ 是当进行实验 $v_i$ 时得到的测量值（标量）的个数。在这个复杂一些的问题中，误差协方差矩阵的形式和基本实验设计问题中一样。
+
+除了可以添加线性不等式约束表示对成本或时间的约束，我们还可以对同时得到多个测量值的问题的成本或时间节省量进行建模。例如，假设同时得到实验 $v_1$ 和 $v_2$ 所产生的测量值（数值）的成本比单独进行两个实验的成本之和更小。我们可以引入矩阵 $v_3$
+\[
+v_3=\begin{bmatrix}v_1&v_2\end{bmatrix}
+\]
+并对单独得到第一个测量值，单独得到第二个测量值，同时得到两个测量值的实验分别赋予成本 $c_1$，$c_2$ 和 $c_3$。
+
+当我们求解实验设计问题时，$\lambda_1$ 给出了应当单独进行第一种实验的次数所占总次数的比例，$\lambda_2$ 给出了应当单独进行第二种实验的次数的比例，$\lambda_3$ 是应当同时进行两种实验的次数的比例。（一般地，我们希望做出一种选择；我们并不希望得到 $\lambda_1>0$，$\lambda_2>0$，且 $\lambda_3>0$。）
+
+\section*{参考文献}
+
+ML 和 MAP 估计、假设检验以及检测在统计学、模式识别、统计信号处理以及通信的书中都有提到；例如，Bickel 和 Doksum [BD77]，Duda，Hart 和 Stork [DHS99]，Scharf [Sch91]，以及 Proakis [Pro01]。
+
+Hastie, Tibshirani 和 Friedman [HTF01, \S4.4] 讨论了 Logistic 回归。第 341 页中提到的协方差估计问题可以参见 Anderson [And70]。
+
+Chebyshev 不等式的扩展在 20 世纪 60 年代的研究较多，参见 Isii [Isi64]，Marshall 和 Olkin [MO60]，Karlin 和 Studden [KS66, chapter 12] 等。它和半定规划的联系最近由 Bertsimas 和 Sethuraman [BS00] 以及 Lasserre [Las02] 给出。
+
+\S7.5 中的术语（$A$-，$D$- 和 $E$- 最优性）是最优实验设计相关文献中的标准用语（如 Pukelsheim [Puk93]）。Titterington [Tit75] 讨论了对偶 $D$-最优设计问题的几何解释。
+
+\section*{习题}
+
+\noindent\textbf{估计}
+
+\noindent\textbf{7.1 噪声服从指数分布的线性测量。}\quad
+当噪声服从指数分布时，求解 ML 估计问题 (7.2)，其中概率密度分布为
+\[
+p(z)=
+\begin{cases}
+(1/a)e^{-z/a} & z\geq 0\\
+0 & z<0,
+\end{cases}
+\]
+其中 $a>0$。
+
+\noindent\textbf{7.2 ML 估计和 $\ell_\infty$-范数逼近。}\quad
+考虑第 338 页中的线性测量模型 $y=Ax+v$，噪声服从均匀分布
+\[
+p(z)=
+\begin{cases}
+1/(2\alpha) & |z|\leq \alpha\\
+0 & |z|>\alpha.
+\end{cases}
+\]
+根据第 338 页中的例 7.1，任意满足 $\|Ax-y\|_\infty\leq \alpha$ 的 $x$ 是一个 ML 估计。
+
+现在假设参数 $\alpha$ 未知，我们希望估计出 $\alpha$ 以及参数 $x$。证明通过求解下面的 $\ell_\infty$-范数逼近问题可以得到 $x$ 和 $\alpha$ 的 ML 估计，
+\[
+\text{minimize}\quad \|Ax-y\|_\infty,
+\]
+其中 $a_i^T$ 是 $A$ 的行向量。
+
+\noindent\textbf{7.3 Probit 模型。}\quad
+假设 $y\in\{0,1\}$ 是随机变量并可以由下式描述
+\[
+y=
+\begin{cases}
+1 & a^Tu+b+v\leq 0\\
+0 & a^Tu+b+v>0,
+\end{cases}
+\]
+其中向量 $u\in\mathbb{R}^n$ 是解释变量向量（和第 340 页中描述的 Logistic 模型定义的一样），$v$ 是 Gauss 随机变量，均值为 $0$，方差为 $1$。
+
+给定数据对 $(u_i,y_i)$，$i=1,\cdots,N$，将 $a$ 和 $b$ 的 ML 估计问题表述为一个凸优化问题。
+
+\noindent\textbf{7.4 多变量正态分布的协方差和均值估计。}\quad
+给定 $N$ 组独立样本 $y_1,y_2,\cdots,y_N\in\mathbb{R}^n$，考虑估计如下 Gauss 概率密度函数
+\[
+p_{R,a}(y)=(2\pi)^{-n/2}\det(R)^{-1/2}\exp\left(-(y-a)^TR^{-1}(y-a)/2\right)
+\]
+的协方差矩阵 $R$ 和均值 $a$ 的问题。
+
+(a) 首先考虑当 $R$ 和 $a$ 没有附加约束时的估计问题。令 $\mu$ 和 $Y$ 是采样均值和协方差，定义如下
+\[
+\mu=\frac{1}{N}\sum_{k=1}^N y_k,\quad
+Y=\frac{1}{N}\sum_{k=1}^N(y_k-\mu)(y_k-\mu)^T.
+\]
+证明对数似然函数
+\[
+l(R,a)=-(Nn/2)\log(2\pi)-(N/2)\log\det R-(1/2)\sum_{k=1}^N(y_k-a)^TR^{-1}(y_k-a)
+\]
+可以表述为
+\[
+l(R,a)=\frac{N}{2}\left(-n\log(2\pi)-\log\det R-\operatorname{tr}(R^{-1}Y)-(a-\mu)^TR^{-1}(a-\mu)\right).
+\]
+利用上面的表达式证明如果 $Y\succ 0$，那么 $R$ 和 $a$ 的 ML 估计唯一，并由下式给出
+\[
+a_{\rm ml}=\mu,\quad R_{\rm ml}=Y.
+\]
+
+(b) 对数-似然函数包括一项凸的项 $(-\log\det R)$，因此不易看出来它是凹的。证明在区域
+\[
+R\preceq 2Y
+\]
+内，$l$ 是 $R$ 和 $a$ 的凹函数。这说明只要包含凸约束 $R\preceq 2Y$，即估计值 $R$ 不超过无约束 ML 估计值的两倍，我们可以利用凸优化方法同时求解 $R$ 和 $a$ 的有约束 ML 估计。
+
+\noindent\textbf{7.5 Markov 链估计。}\quad
+考虑一个 Markov 链，状态个数为 $n$，转移概率矩阵 $P\in\mathbb{R}^{n\times n}$ 定义为
+\[
+P_{ij}=\operatorname{prob}(y(t+1)=i\mid y(t)=j).
+\]
+转移概率必须满足 $P_{ij}\geq 0$ 及 $\sum_{i=1}^nP_{ij}=1$，$j=1,\cdots,n$。给定观测样本序列 $y(1)=k_1$，$y(2)=k_2,\cdots,y(N)=k_N$，考虑估计转移概率的问题。
+
+(a) 证明如果 $P_{ij}$ 没有其他的先验约束，那么 ML 估计是经验转移频率：$\hat{P}_{ij}$ 是状态由 $j$ 转移到 $i$ 的次数与观测样本中状态 $j$ 的个数的比值。
+
+(b) 假设 Markov 链的一个平衡分布 $q$ 已知，即向量 $q\in\mathbb{R}_+^n$ 满足 $\mathbf{1}^Tq=1$ 和 $Pq=q$。证明当给定观测序列及 $q$ 的信息时，计算 $P$ 的 ML 估计问题可以表述为一个凸优化问题。
+
+\noindent\textbf{7.6 均值和方差的估计。}\quad
+考虑标准化的随机变量 $x\in\mathbb{R}$，概率密度为 $p$，均值为 $0$，方差为 $1$。考虑由 $x$ 的仿射变换给出的随机变量 $y=(x+b)/a$，其中 $a>0$。随机变量 $y$ 的期望为 $b$，方差为 $1/a^2$。当 $a$ 和 $b$ 分别在 $\mathbb{R}_{++}$ 和 $\mathbb{R}$ 上变化时，相应地，通过对 $p$ 进行伸缩和平移得到一系列概率密度，每个对应不同的均值和方差。
+
+证明如果 $p$ 是对数-凹的，那么给定 $y$ 的采样样本 $y_1,\cdots,y_n$，求解 $a$ 和 $b$ 的 ML 估计是一个凸问题。
+
+作为一个例子，假设 $p$ 是标准化的 Laplace 概率密度，即 $p(x)=e^{-2|x|}$，给出 $a$ 和 $b$ 的 ML 估计的解析解。
+
+\noindent\textbf{7.7 Poisson 分布的 ML 估计。}\quad
+设 $x_i$，$i=1,\cdots,n$ 是独立随机变量，服从如下 Poisson 分布
+\[
+\operatorname{prob}(x_i=k)=\frac{e^{-\mu_i}\mu_i^k}{k!},
+\]
+其中，均值 $\mu_i$ 未知。变量 $x_i$ 表示一定时期内 $n$ 种独立事件中某种发生的次数。例如，在发射断层造影术中，它们可以表示 $n$ 组发射源发射的光子的个数。
+
+考虑设计一个实验，确定均值 $\mu_i$。实验包含 $m$ 个检测器。如果事件 $i$ 发生，它可以由检测器 $j$ 以概率 $p_{ji}$ 检测到。假设概率 $p_{ji}$ 已知（其中 $p_{ji}\geq 0$，$\sum_{j=1}^m p_{ji}\leq 1$）。检测器 $j$ 检测到的事件总数用 $y_j$ 表示，
+\[
+y_j=\sum_{i=1}^n y_{ji},\quad j=1,\cdots,m.
+\]
+基于观测值 $y_j$，$j=1,\cdots,m$，将估计均值 $\mu_i$ 的 ML 估计问题表述为一个凸优化问题。
+
+\noindent\textbf{提示：}\quad
+随机变量 $y_{ji}$ 服从 Poisson 分布，其均值为 $p_{ji}\mu_i$，即，
+\[
+\operatorname{prob}(y_{ji}=k)=\frac{e^{-p_{ji}\mu_i}(p_{ji}\mu_i)^k}{k!}.
+\]
+如果 $n$ 个独立的 Poisson 变量分别有均值 $\lambda_1,\cdots,\lambda_n$，它们的和同样服从 Poisson 分布，均值为 $\lambda_1+\cdots+\lambda_n$。
+
+\noindent\textbf{7.8 利用符号测量的估计。}\quad
+考虑如下测量模型
+\[
+y_i=\operatorname{sign}(a_i^Tx+b_i+v_i),\quad i=1,\cdots,m,
+\]
+其中 $x\in\mathbb{R}^n$ 是待估计向量，$y_i\in\{-1,1\}$ 是测量值。向量 $a_i\in\mathbb{R}^n$ 和实数 $b_i\in\mathbb{R}$ 已知，$v_i$ 是 IID 噪声，其概率密度函数是对数-凹的。（可以假设事件 $a_i^Tx+b_i+v_i=0$ 不会发生。）证明 $x$ 的最大似然估计问题是一个凸优化问题。
+
+\noindent\textbf{7.9 传感器非线性未知的估计问题。}\quad
+考虑如下测量模型
+\[
+y_i=f(a_i^Tx+b_i+v_i),\quad i=1,\cdots,m,
+\]
+其中 $x\in\mathbb{R}^n$ 是待估计向量，$y_i\in\mathbb{R}$ 是测量值，$a_i\in\mathbb{R}^n$，$b_i\in\mathbb{R}$ 已知，$v_i$ 是 IID 噪声，概率密度函数是对数-凹的。函数 $f:\mathbb{R}\to\mathbb{R}$ 表征了测量非线性，它是未知的。然而，对所有 $t$ 有 $f'(t)\in[l,u]$，其中 $0<l<u$ 是给定的。
+
+如何利用凸优化方法得到 $x$ 以及函数 $f$ 的最大似然估计？（这是一个无限维的 ML 估计问题，但是在此问题的求解和说明中可以非正式描述。）
+
+\noindent\textbf{7.10 $\mathbb{R}^k$ 上的非参数分布。}\quad
+考虑随机变量 $x\in\mathbb{R}^k$，它的取值集合为有限集 $\{\alpha_1,\cdots,\alpha_n\}$，$x$ 服从如下分布
+\[
+p_i=\operatorname{prob}(x=\alpha_i),\quad i=1,\cdots,n.
+\]
+证明 $X$ 的协方差的一个下界约束
+\[
+S\preceq \mathbf{E}(X-\mathbf{E}X)(X-\mathbf{E}X)^T
+\]
+是 $p$ 的凸约束。
+
+\noindent\textbf{最优检测器设计}
+
+\noindent\textbf{7.11 随机检测器。}\quad
+证明任意随机检测器可以表述为一系列确定性检测器的凸组合；即如果
+\[
+T=\begin{bmatrix}t_1&t_2&\cdots&t_n\end{bmatrix}\in\mathbb{R}^{m\times n}
+\]
+满足 $t_k\succeq 0$ 且 $\mathbf{1}^Tt_k=1$，那么 $T$ 可以表述为
+\[
+T=\theta_1T_1+\cdots+\theta_NT_N,
+\]
+其中 $T_i$ 是一个 $0$-$1$ 矩阵：每列只有一个元素为 $1$，$\theta_i\geq 0$，$\sum_{i=1}^N\theta_i=1$。需要的确定性检测器的个数 $N$ 的最大值是多少？
+
+我们这样理解这个凸分解问题。随机检测器可以由 $N$ 个确定性检测器来实现。当有观测值 $X=k$ 时，估计器以概率 $\operatorname{prob}(j=i)=\theta_i$ 在集合 $\{1,\cdots,N\}$ 中随机选择一个指标，然后应用确定性检测器 $T_j$。
+
+\noindent\textbf{7.12 最优动作。}\quad
+在检测器设计中，给定矩阵 $P\in\mathbb{R}^{n\times m}$（它的每一列是概率分布），设计矩阵 $T\in\mathbb{R}^{m\times n}$（它的每一列也是概率分布），使得 $D=TP$ 的对角线元素较大（非对角线元素较小）。在本问题中我们考虑对偶问题：给定 $P$，寻找矩阵 $S\in\mathbb{R}^{m\times n}$（它的每一列亦是概率分布）使得 $\tilde{D}=PS\in\mathbb{R}^{n\times n}$ 具有大的对角线元素（小的非对角线元素）。具体而言，优化目标为最大化 $\tilde{D}$ 的对角线上的最小元素。
+
+可以将这个问题这么理解。有 $n$ 种结果，由（随机的）$m$ 个输入或我们采用的动作决定，即：$P_{ij}$ 是采用动作 $j$，结果 $i$ 发生的概率。我们的目标是找到一个（随机）策略，尽可能使得任意设定的结果发生。策略由矩阵 $S$ 给出：$S_{ji}$ 是我们采用动作 $j$ 并希望结果 $i$ 发生的概率。矩阵 $\tilde{D}$ 给出了动作错误概率矩阵：$\tilde{D}_{ij}$ 是当我们希望结果 $j$ 发生而结果 $i$ 发生的概率。特别地，$\tilde{D}_{ii}$ 是我们希望结果 $i$ 发生而其确实发生了的概率。
+
+证明这个问题有一个简单的解析解。证明（不同于相应的检测器问题）总有一个确定性的最优解。
+
+\noindent\textbf{提示：}\quad
+证明问题对 $S$ 的各列是可分的。
+
+\noindent\textbf{Chebyshev 界和 Chernoff 界}
+
+\noindent\textbf{7.13 有限集上的 Chebyshev-类型不等式。}\quad
+设 $X$ 是随机变量，在集合 $\{\alpha_1,\alpha_2,\cdots,\alpha_m\}$ 中取值，令 $S$ 是 $\{\alpha_1,\cdots,\alpha_m\}$ 的一个子集。$X$ 的分布未知，但是 $n$ 个函数 $f_i$ 的期望值已知：
+\begin{equation}
+\mathbf{E}f_i(X)=b_i,\quad i=1,\cdots,n.
+\tag{7.32}
+\end{equation}
+考虑如下线性规划
+\[
+\begin{aligned}
+\text{minimize}\quad & x_0+\sum_{i=1}^n b_ix_i\\
+\text{subject to}\quad & x_0+\sum_{i=1}^n f_i(\alpha)x_i\geq 1,\quad \alpha\in S\\
+& x_0+\sum_{i=1}^n f_i(\alpha)x_i\geq 0,\quad \alpha\notin S,
+\end{aligned}
+\]
+其中变量为 $x_0,\cdots,x_n$。证明对所有满足 (7.32) 的分布，此线性规划问题的最优值构成了 $\operatorname{prob}(X\in S)$ 的一个上界。证明总是存在一个分布达到上述上界。
+
+\end{document}

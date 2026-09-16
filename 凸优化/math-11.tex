@@ -1,0 +1,2443 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\title{凸优化：内点法}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{11\quad 内点法}
+
+\subsection*{11.1\quad 不等式约束的极小化问题}
+
+本章讨论求解含有不等式约束的凸优化问题的内点法，
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& Ax=b
+\end{aligned}
+\tag{11.1}
+\end{equation}
+其中 $f_0,\cdots,f_m:\mathbb{R}^n\to\mathbb{R}$ 是二次可微的凸函数，$A\in\mathbb{R}^{p\times n}$，$\operatorname{rank}A=p<n$。我们假定该问题可解，即存在最优的 $x^\star$。我们用 $p^\star$ 表示最优值 $f_0(x^\star)$。
+
+我们还假定该问题严格可行，即存在 $x\in\mathcal{D}$ 满足 $Ax=b$ 和 $f_i(x)<0$，$i=1,\cdots,m$。这意味着 Slater 约束品性成立，因此存在最优对偶 $\lambda^\star\in\mathbb{R}^m$，$\nu^\star\in\mathbb{R}^p$，它们和 $x^\star$ 一起满足 KKT 条件
+\begin{equation}
+\begin{gathered}
+Ax^\star=b,\qquad f_i(x^\star)\leq 0,\quad i=1,\cdots,m\\
+\lambda^\star\succeq 0\\
+\nabla f_0(x^\star)+\sum_{i=1}^m\lambda_i^\star\nabla f_i(x^\star)+A^T\nu^\star=0\\
+\lambda_i^\star f_i(x^\star)=0,\quad i=1,\cdots,m.
+\end{gathered}
+\tag{11.2}
+\end{equation}
+用内点法求解问题 (11.1)（或 KKT 条件 (11.2)），就是用 Newton 方法或者求解一系列等式约束问题，或者求解一系列 KKT 条件的修改形式。我们将集中讨论一种特殊的内点法，障碍法，并给出其收敛性证明和复杂性分析。我们也将描述一种简单的原对偶内点法（\S11.7），但不进行分析。
+
+我们可以把内点法视为凸优化算法递阶结构中新层次的方法。线性等式约束二次目标函数是最简单层次的问题。对于这些问题，KKT 条件是一组线性方程，可以得到解析解。Newton 方法处于这个递阶结构的下一个层次，它是求解线性等式约束二次可微目标函数优化问题的一种技术，该技术将所考虑的问题简化成一系列线性等式约束二次目标函数问题求解。内点法形成上述递阶结构的另外一个层次；它求解线性等式和不等式约束的优化问题，通过将其简化成一系列线性等式约束问题求解。
+
+\noindent\textbf{例子}\quad
+很多问题已经具有问题 (11.1) 的形式，并且满足目标函数和约束函数均二次可微的假设。显然，线性规划、二次规划、二次约束的二次规划以及凸几何规划都是这种例子；而下面的线性不等式约束熵最大化问题是另外一个例子，
+\[
+\begin{aligned}
+\text{minimize}\quad & \sum_{i=1}^n x_i\log x_i\\
+\text{subject to}\quad & Fx\preceq g\\
+& Ax=b
+\end{aligned}
+\]
+其定义域为 $\mathcal{D}=\mathbb{R}_{++}^n$。
+
+很多其他问题虽然不具备问题 (11.1) 所要求的形式，包括具有二次可微的目标函数和约束函数，但可以将其重新表示成所需要的形式。我们已经遇到过很多这样的例子，比如将无约束凸分片线性极小化问题
+\[
+\text{minimize}\quad \max_{i=1,\cdots,m}(a_i^Tx+b_i)
+\]
+（具有不可微的目标函数），转换成线性规划问题
+\[
+\begin{aligned}
+\text{minimize}\quad & t\\
+\text{subject to}\quad & a_i^Tx+b_i\leq t,\quad i=1,\cdots,m
+\end{aligned}
+\]
+（具有二次可微的目标函数和约束函数）。
+
+其他一些凸优化问题，比如二阶锥规划和半定规划，虽然不能轻易地转换成所需要的形式，但是可以采用针对广义不等式约束的扩展内点法处理，我们将在 \S11.6 进行介绍。
+
+\subsection*{11.2\quad 对数障碍函数和中心路径}
+
+我们试图将不等式约束问题 (11.1) 近似转换成等式约束问题，从而可应用 Newton 方法求解。我们第一步是重新表述问题 (11.1)，把不等式约束隐含在目标函数中：
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(x)+\sum_{i=1}^m I_-(f_i(x))\\
+\text{subject to}\quad & Ax=b
+\end{aligned}
+\tag{11.3}
+\end{equation}
+其中 $I_-:\mathbb{R}\to\mathbb{R}$ 是非正实数的示性函数，
+\[
+I_-(u)=
+\begin{cases}
+0 & u\leq 0\\
+\infty & u>0.
+\end{cases}
+\]
+问题 (11.3) 没有不等式约束，但是其目标函数（一般情况下）不可微，因此不能应用 Newton 方法。
+
+\subsection*{11.2.1\quad 对数障碍}
+
+障碍方法的基本思想是用以下函数近似示性函数 $I_-$，
+\[
+\hat{I}_-(u)=-(1/t)\log(-u),\qquad \operatorname{dom}\hat{I}_-=-\mathbb{R}_{++},
+\]
+其中 $t>0$ 是确定近似精度的参数。同 $I_-$ 一样，$\hat{I}_-$ 是凸的非减函数，并且（根据我们的惯例）当 $u\geq 0$ 时取值为 $\infty$。但是，和 $I_-$ 不一样，$\hat{I}_-$ 是可微闭函数：当 $u$ 趋于 $0$ 时它趋于 $\infty$。图 11.1 给出函数 $I_-$ 以及若干 $t$ 值对应的 $\hat{I}_-$。随着 $t$ 变大，近似精度逐渐增加。
+
+用 $\hat{I}_-$ 替换式 (11.3) 的 $I_-$ 可得以下近似
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(x)+\sum_{i=1}^m -(1/t)\log(-f_i(x))\\
+\text{subject to}\quad & Ax=b
+\end{aligned}
+\tag{11.4}
+\end{equation}
+由于 $-(1/t)\log(-u)$ 是 $u$ 的单增凸函数，上式中的目标函数是可微凸函数。假定恰当的闭性条件成立，则可用 Newton 方法求解该问题。
+
+我们将函数
+\begin{equation}
+\phi(x)=-\sum_{i=1}^m\log(-f_i(x)),
+\tag{11.5}
+\end{equation}
+$\operatorname{dom}\phi=\{x\in\mathbb{R}^n\mid f_i(x)<0,\ i=1,\cdots,m\}$ 称为问题 (11.1) 的对数障碍函数或对数障碍。其定义域是满足问题 (11.1) 的严格不等式约束的点集。不管正参数 $t$ 取什么值，对于任意 $i$，当 $f_i(x)\to 0$ 时，对数障碍函数将趋于无穷大。
+
+当然，问题 (11.4) 只是原问题 (11.3) 的近似，因此，马上要回答的一个问题是，用
+问题 (11.4) 的解近似原问题 (11.3) 的解效果如何。直觉表明，我们很快也将证实，其近似精度会随着参数 $t$ 增加而不断改进。
+
+另一方面，当参数 $t$ 很大时，很难用 Newton 方法极小化函数 $f_0+(1/t)\phi$；这是因为其 Hessian 矩阵在靠近可行集边界时会剧烈变动。我们将看到通过求解一系列形如问题 (11.4) 的优化问题可以规避上述困难，这一系列问题中的参数 $t$ 将逐渐增加（因而解的近似精度也逐渐增加），对每个问题应用 Newton 方法求解时可以用上个 $t$ 值对应问题的最优解为初始点开始迭代。
+
+为便于以后参考，这里我们给出对数障碍函数 $\phi$ 的梯度和 Hessian 矩阵
+\[
+\nabla\phi(x)=\sum_{i=1}^m \frac{1}{-f_i(x)}\nabla f_i(x),
+\]
+\[
+\nabla^2\phi(x)=\sum_{i=1}^m \frac{1}{f_i(x)^2}\nabla f_i(x)\nabla f_i(x)^T+\sum_{i=1}^m \frac{1}{-f_i(x)}\nabla^2 f_i(x).
+\]
+（见 \S A.4.2 和 \S A.4.4）。
+
+\subsection*{11.2.2\quad 中心路径}
+
+现在我们更详细地讨论如何极小化问题 (11.4)。为了以后简化符号，我们用 $t$ 乘目标函数，考虑等价问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & tf_0(x)+\phi(x)\\
+\text{subject to}\quad & Ax=b
+\end{aligned}
+\tag{11.6}
+\end{equation}
+两者最优解集相同。从现在开始我们假定问题 (11.6) 能够用 Newton 方法求解，并特别假定对任何 $t>0$ 存在唯一解。（我们将在 \S11.3.3 节更加仔细地讨论这个假定。）
+
+对任意 $t>0$，我们用 $x^\star(t)$ 表示问题 (11.6) 的解，称 $x^\star(t)$，$t>0$ 为中心点，将这些点的集合定义为问题 (11.1) 的中心路径。所有中心路径上的点由以下充要条件所界定：$x^\star(t)$ 是严格可行的，即满足
+\[
+Ax^\star(t)=b,\qquad f_i(x^\star(t))<0,\quad i=1,\cdots,m,
+\]
+并且存在 $\hat{\nu}\in\mathbb{R}^p$ 使
+\begin{equation}
+\begin{aligned}
+0&=t\nabla f_0(x^\star(t))+\nabla\phi(x^\star(t))+A^T\hat{\nu}\\
+&=t\nabla f_0(x^\star(t))+\sum_{i=1}^m\frac{1}{-f_i(x^\star(t))}\nabla f_i(x^\star(t))+A^T\hat{\nu}
+\end{aligned}
+\tag{11.7}
+\end{equation}
+成立。
+
+\noindent\textbf{例 11.1}\quad
+线性规划的不等式形式。不等式形式线性规划问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & Ax\preceq b
+\end{aligned}
+\tag{11.8}
+\end{equation}
+的对数障碍函数由下式给出
+\[
+\phi(x)=-\sum_{i=1}^m\log(b_i-a_i^Tx),\qquad \operatorname{dom}\phi=\{x\mid Ax\prec b\},
+\]
+其中 $a_1^T,\cdots,a_m^T$ 是 $A$ 的行向量。障碍函数的梯度和 Hessian 矩阵为
+\[
+\nabla\phi(x)=\sum_{i=1}^m\frac{1}{b_i-a_i^Tx}a_i,\qquad
+\nabla^2\phi(x)=\sum_{i=1}^m\frac{1}{(b_i-a_i^Tx)^2}a_ia_i^T;
+\]
+或者更紧凑地写成
+\[
+\nabla\phi(x)=A^Td,\qquad \nabla^2\phi(x)=A^T\operatorname{diag}(d)^2A,
+\]
+其中 $d\in\mathbb{R}^m$ 的分量为 $d_i=1/(b_i-a_i^Tx)$。由于 $x$ 是严格可行的，我们有 $d\succ 0$，因此当且仅当 $A$ 的秩为 $n$ 时 $\phi$ 的 Hessian 矩阵是非奇异的。
+
+中心条件 (11.7) 是
+\begin{equation}
+tc+\sum_{i=1}^m\frac{1}{b_i-a_i^Tx}a_i=tc+A^Td=0.
+\tag{11.9}
+\end{equation}
+我们可以对这个中心条件给出一个简单的几何解释。在中心路径上的任意点 $x^\star(t)$ 的梯度 $\nabla\phi(x^\star(t))$ 是 $\phi$ 的水平子集在 $x^\star(t)$ 处的法线，必须平行于 $-c$。换句话说，超平面 $c^Tx=c^Tx^\star(t)$ 是 $\phi$ 的水平子集在 $x^\star(t)$ 处的切平面。图 11.2 给出 $m=6$ 和 $n=2$ 的一个例子。
+
+\noindent\textbf{中心路径的对偶点}\quad
+从条件 (11.7) 可以导出中心路径的一个重要性质：每个中心点产生对偶可行解，因而给出最优值 $p^\star$ 的一个下界。更具体地说，定义
+\begin{equation}
+\lambda_i^\star(t)=-\frac{1}{tf_i(x^\star(t))},\quad i=1,\cdots,m,\qquad \nu^\star(t)=\hat{\nu}/t,
+\tag{11.10}
+\end{equation}
+我们要说明 $\lambda^\star(t)$ 和 $\nu^\star(t)$ 是对偶可行解。
+
+首先，由于 $f_i(x^\star(t))<0$，$i=1,\cdots,m$，显然有 $\lambda^\star(t)\succ 0$。将最优性条件 (11.7) 表示成
+\[
+\nabla f_0(x^\star(t))+\sum_{i=1}^m\lambda_i^\star(t)\nabla f_i(x^\star(t))+A^T\nu^\star(t)=0,
+\]
+可看出 $x^\star(t)$ 使 $\lambda=\lambda^\star(t)$，$\nu=\nu^\star(t)$ 时的 Lagrange 函数
+\[
+L(x,\lambda,\nu)=f_0(x)+\sum_{i=1}^m\lambda_if_i(x)+\nu^T(Ax-b)
+\]
+达到极小，这意味着 $\lambda^\star(t)$，$\nu^\star(t)$ 是对偶可行解。因此，对偶函数 $g(\lambda^\star(t),\nu^\star(t))$ 是有限的，并且
+\[
+\begin{aligned}
+g(\lambda^\star(t),\nu^\star(t))
+&=f_0(x^\star(t))+\sum_{i=1}^m\lambda_i^\star(t)f_i(x^\star(t))+\nu^\star(t)^T(Ax^\star(t)-b)\\
+&=f_0(x^\star(t))-m/t.
+\end{aligned}
+\]
+这表明 $x^\star(t)$ 和对偶可行解 $\lambda^\star(t),\nu^\star(t)$ 之间的对偶间隙就是 $m/t$。作为一个重要的结果，我们有
+\[
+f_0(x^\star(t))-p^\star\leq m/t,
+\]
+即 $x^\star(t)$ 是和最优值偏差在 $m/t$ 之内的次优解。这个结论证实了前面提到的直观想法：$x^\star(t)$ 随着 $t\to\infty$ 而收敛于最优解。
+
+\noindent\textbf{例 11.2}\quad
+不等式形式的线性规划问题。不等式形式的线性规划 (11.8) 的对偶问题是
+\[
+\begin{aligned}
+\text{maximize}\quad & -b^T\lambda\\
+\text{subject to}\quad & A^T\lambda+c=0\\
+& \lambda\succeq 0
+\end{aligned}
+\]
+从最优性条件 (11.9) 可以清楚看出
+\[
+\lambda_i^\star(t)=\frac{1}{t(b_i-a_i^Tx^\star(t))},\quad i=1,\cdots,m
+\]
+是对偶可行的，其对偶目标值为
+\[
+-b^T\lambda^\star(t)=c^Tx^\star(t)+(Ax^\star(t)-b)^T\lambda^\star(t)=c^Tx^\star(t)-m/t.
+\]
+
+\noindent\textbf{基于 KKT 条件的解释}\quad
+我们也可以将中心路径条件 (11.7) 解释为 KKT 最优性条件 (11.2) 的连续变形。
+点 $x$ 等于 $x^\star(t)$ 的充要条件是存在 $\lambda,\nu$ 满足
+\begin{equation}
+\begin{gathered}
+Ax=b,\qquad f_i(x)\leq 0,\quad i=1,\cdots,m\\
+\lambda\succeq 0\\
+\nabla f_0(x)+\sum_{i=1}^m\lambda_i\nabla f_i(x)+A^T\nu=0\\
+-\lambda_i f_i(x)=1/t,\quad i=1,\cdots,m.
+\end{gathered}
+\tag{11.11}
+\end{equation}
+KKT 条件 (11.2) 和中心条件 (11.11) 的唯一不同在于互补性条件 $-\lambda_i f_i(x)=0$ 被条件 $-\lambda_i f_i(x)=1/t$ 所替换。特别是，对于很大的 $t$，$x^\star(t)$ 和对应的对偶解 $\lambda^\star(t),\nu^\star(t)$ ``几乎'' 满足问题 (11.1) 的 KKT 最优性条件。
+
+\noindent\textbf{基于力场的解释}\quad
+对于中心路径，我们可以定义一种势场力，该力作用于在严格可行集 $C$ 内运动的某个粒子，据此给出一种简单的力学解释。为方便表述，我们假定没有等式约束。对每个约束我们用
+\[
+F_i(x)=-\nabla(-\log(-f_i(x)))=\frac{1}{f_i(x)}\nabla f_i(x)
+\]
+表示作用在 $x$ 处的某个粒子上的势场力。由所有约束产生的总的力场的势是对数障碍 $\phi$。当粒子向可行集的边界移动时，它受到约束产生的势场力的强烈排斥。
+
+现在我们设想作用在粒子上的另一个力，当粒子位置为 $x$ 时其大小为
+\[
+F_0(x)=-t\nabla f_0(x).
+\]
+这是向负梯度方向，即使 $f_0$ 变小的方向，拉动粒子的目标力场。参数 $t$ 决定目标力和约束力的相对强度。
+
+在中心点 $x^\star(t)$ 处，作用在粒子上的约束力和目标力达到精确平衡。当参数 $t$ 增加时，粒子被更加强烈的拉向最优点，但同时又总是被障碍势囚禁在 $C$ 内，因为后者当粒子趋近边界时会趋于无穷大。
+
+\noindent\textbf{例 11.3}\quad
+不等式形式线性规划问题的力场解释。由线性规划问题 (11.8) 的第 $i$ 个约束确定的力场是
+\[
+F_i(x)=\frac{-a_i}{b_i-a_i^Tx}.
+\]
+其方向为约束平面 $\mathcal{H}_i=\{x\mid a_i^Tx=b_i\}$ 向内的法线方向，大小和当前点距 $\mathcal{H}_i$ 之间的距离，即
+\[
+\|F_i(x)\|_2=\frac{\|a_i\|_2}{b_i-a_i^Tx}=\frac{1}{\operatorname{dist}(x,\mathcal{H}_i)},
+\]
+成反比。换句话说，每个约束平面确定了一个排斥力，其大小等于到超平面的距离的倒数。
+
+函数 $tc^Tx$ 是常数力 $-tc$ 作用在粒子上的势。该``目标力''推动粒子向低成本方向运动。因此，$x^\star(t)$ 是粒子同时受到和距离反比的约束力以及目标力 $-tc$ 作用时所达到的平衡位置。当 $t$ 很大时，粒子被推到非常接近最优点的位置。强目标力总能被反向的约束力所平衡，因为后者在粒子接近可行边界时会变得非常大。
+
+图 11.3 以一个 $n=2,m=5$ 的小线性规划问题为例说明了这种解释。左图标出 $t=1$ 的 $x^\star(t)$ 以及作用在该点的约束力，后者平衡了该点的目标力。右图标出 $t=3$ 的 $x^\star(t)$ 和相应的力。较大的目标力可推动粒子更加靠近最优点。
+
+\subsection*{11.3\quad 障碍方法}
+
+我们已经说明 $x^\star(t)$ 是和最优值偏差不大于 $m/t$ 的次优解，该精度由可行的对偶变量对 $\lambda^\star(t)$ 和 $\nu^\star(t)$ 给出。据此可提出能够保证达到预定精度 $\epsilon$ 的一种非常直接的求解原问题 (11.1) 的方法：简单地取 $t=m/\epsilon$ 然后采用 Newton 方法求解等式约束问题
+\[
+\begin{aligned}
+\text{minimize}\quad & (m/\epsilon)f_0(x)+\phi(x)\\
+\text{subject to}\quad & Ax=b.
+\end{aligned}
+\]
+该方法可以被称为无约束极小化方法，因为它使我们能够通过求解无约束或线性约束问题获得不等式约束问题 (11.1) 满足预定精度的解。尽管该方法对于小规模，具有好的初始点以及精度要求不是很高（即 $\epsilon$ 不是很小）的问题可以取得很好的效果，在其他情况下却不能有效工作。因此，该方法极少（如果有过）被采用。
+
+\subsection*{11.3.1\quad 障碍方法}
+
+对无约束极小化方法进行简单的扩充就可以取得很好的效果。这就是顺序求解一系列无约束（或线性约束）的极小化问题，每次用所获得的最新的点作为求解下一个问题的初始点。换句话说，我们对一系列逐渐增加的 $t$ 值计算相应的 $x^\star(t)$，直到 $t\geq m/\epsilon$，
+
+由此获得原问题的 $\epsilon$ 次优解。当 Fiacco 和 McCormick 在 20 世纪 60 年代首次提出这个方法时，它被称为序列无约束极小化技术（SUMT）。今天该方法通常被称为障碍方法或路径跟踪方法。下面是这个方法的一个简单版本。
+
+\noindent\textbf{算法 11.1}\quad
+障碍方法。
+
+给定严格可行点 $x$，$t:=t^{(0)}>0$，$\mu>1$，误差阈值 $\epsilon>0$。
+
+\noindent\textbf{重复进行}
+
+\noindent 1. 中心点步骤。
+
+\noindent\quad 从 $x$ 开始，在 $Ax=b$ 的约束下极小化 $tf_0+\phi$，最终确定 $x^\star(t)$。
+
+\noindent 2. 改进。$x:=x^\star(t)$。
+
+\noindent 3. 停止准则。如果 $m/t<\epsilon$ 则退出。
+
+\noindent 4. 增加 $t$。$t:=\mu t$。
+
+每步迭代中（除了第一步）我们都从上次获得的中心点开始计算当前中心点 $x^\star(t)$，然后通过乘比例因子 $\mu>1$ 增加 $t$。算法也能够给出对偶的 $\epsilon$ 次优解 $\lambda=\lambda^\star(t)$，$\nu=\nu^\star(t)$，或者对 $x$ 的最优性进行认证。
+
+我们将步骤 1 称为中心点步骤（计算中心点）或者外部迭代，将第一次执行中心点步骤（计算 $x^\star(t^{(0)})$）称为初始中心点步骤。（因此 $t^{(0)}=m/\epsilon$ 时算法最简单，仅包含初始中心点步骤。）尽管有很多处理线性约束的极小化方法可用于步骤 1，我们假定只应用 Newton 方法。我们将中心点步骤中的 Newton 迭代或步骤称为内部迭代。每次内部迭代我们都可以得到原问题可行解；但是仅在外部迭代（中心点步骤）结束时我们才有对偶可行解。
+
+\noindent\textbf{中心点精度}\quad
+对求解中心点问题的精度我们需要做些注释。精确计算 $x^\star(t)$ 并非必要，因为中心路径的作用仅是随着 $t\to\infty$ 将中心点引向原问题的最优解，此外没有其他意义；不精确的中心点计算方法同样能够产生收敛于最优点的点列 $x^{(k)}$。但是，不精确的中心点意味着由式 (11.10) 计算的 $\lambda^\star(t)$，$\nu^\star(t)$ 不是精确的对偶可行点。该问题可以通过对式 (11.10) 增加一个纠正项而加以克服，当 $x$ 在中心路径，即 $x^\star(t)$ 附近时，这种做法能够产生对偶可行解（见习题 11.9）。
+
+另一方面，计算 $tf_0+\phi$ 的一个极其精确的极小解，相对于计算 $tf_0+\phi$ 的一个好的极小解，其计算成本仅有微小的增加，即至多增加几次 Newton 迭代。由于这个原因，可以假定中心点步骤产生的都是精确的中心点。
+
+\noindent\textbf{$\mu$ 的选择}\quad
+参数 $\mu$ 的选择要同时兼顾所需要的内部迭代和外部迭代的次数。如果 $\mu$ 较小（即
+接近 1），每次外部迭代产生的 $x$，是一个很好的初始点，从而，计算下个迭代点所需要的 Newton 迭代次数将会比较少。因此，对于较小的 $\mu$ 可以期望每次外部迭代需要进行较少次数的 Newton 迭代，但是，由于每次外部迭代只减少了较小的间隙，所需要的外部迭代次数显然会比较多。在这种情况下，所得到的迭代点（也包括内部迭代产生的点）将紧密的跟踪中心路径移动。正是这个原因，这种方法也被称为路径跟踪方法。
+
+另一方面，当 $\mu$ 较大时相反的情况将会发生。如果每次外部迭代后 $t$ 值增加较多，当前迭代点就非常可能不是下个迭代点的很好的近似值。因此可预见内部迭代次数会很多。由于每次外部迭代可以使对偶间隙被较大的比例因子 $\mu$ 所压缩，这种对于 $t$ 值``过于进取''的改进确能减少外部迭代次数，但却会导致更多的内部迭代次数。对于较大的 $\mu$，迭代点在中心路径上的间距会比较大，而很多内部迭代点将偏离中心路径较远。
+
+上述 $\mu$ 的选择可能产生的双向影响不仅可以用实践的方法，我们将看到，同样也可以用理论分析方法所证实。实践表明，较小的 $\mu$ 值（即接近 1）会导致很多次的外部迭代，但每次外部迭代仅经过较少次数的 Newton 迭代就可以完成。对于比较大的 $\mu$，大约从 3 到 100 或附近，两种效应几乎平衡，此时总的 Newton 迭代的次数近似保持为一个常数。由此可见，$\mu$ 的选择对总的计算量并非特别敏感；取值从 10 到 20 或附近似乎都能获得较好的效果。如果以最坏情况下所需要的总的 Newton 迭代次数尽可能少为目标选择参数 $\mu$，那么可以采用接近 1 的 $\mu$ 值。
+
+\noindent\textbf{$t^{(0)}$ 的选择}\quad
+另一个重要问题是如何选择 $t$ 的初始值。这里要同时兼顾的问题很简单：如果 $t^{(0)}$ 太大，第一次外部迭代所需要的内部迭代次数会很多。如果 $t^{(0)}$ 很小，算法会进行额外的外部迭代，而第一次中心点步骤仍然可能进行很多次内部迭代。
+
+既然 $m/t^{(0)}$ 是第一次中心点步骤所产生的对偶间隙，一种合理的做法是选择 $t^{(0)}$ 使 $m/t^{(0)}$ 和 $f_0(x^{(0)})-p^\star$，或者 $\mu$ 和后者的乘积，具有近似相等的阶次。例如，如果已知对偶可行点 $\lambda,\nu$，其对偶间隙是 $\eta=f_0(x^{(0)})-g(\lambda,\nu)$，于是我们可以取 $t^{(0)}=m/\eta$。这样，在第一次外部迭代中我们简单求出一对具有相同对偶间隙的原对偶可行点。
+
+根据中心路径条件 (11.7) 可采用另外一种可能的选择方法。我们可以将
+\begin{equation}
+\inf_\nu\left\|t\nabla f_0(x^{(0)})+\nabla\phi(x^{(0)})+A^T\nu\right\|_2
+\tag{11.12}
+\end{equation}
+解释为对 $x^{(0)}$ 和 $x^\star(t)$ 之间偏差程度的一种测度，从而选择 $t^{(0)}$ 使式 (11.12) 达到极小。（求解一个最小二乘问题可以确定这样的 $t$ 值和 $\nu$。）
+
+这种方法的一种变形是用 $x$ 和 $x^\star(t)$ 之间偏差的一种仿射不变测度替换 Euclid 范数。这就是通过极小化
+\[
+\alpha(t,\nu)=\left(t\nabla f_0(x^{(0)})+\nabla\phi(x^{(0)})+A^T\nu\right)^TH_0^{-1}\left(t\nabla f_0(x^{(0)})+\nabla\phi(x^{(0)})+A^T\nu\right)
+\]
+选择 $t$ 和 $\nu$，其中
+\[
+H_0=t\nabla^2 f_0(x^{(0)})+\nabla^2\phi(x^{(0)}).
+\]
+（可以说明，$\inf_\nu\alpha(t,\nu)$ 等于 $tf_0+\phi$ 在 $x^{(0)}$ 处 Newton 减量的平方。）因为 $\alpha$ 是 $\nu$ 和 $t$ 的二次-线性分式函数，所以是凸函数。
+
+\noindent\textbf{不可行初始点 Newton 方法}\quad
+在障碍方法的一种变形中，不可行初始点 Newton 方法（见 \S10.3）被用于中心点步骤。此时，障碍方法的初始化步骤仅需要 $x^{(0)}$ 满足 $x^{(0)}\in\operatorname{dom} f_0$ 和 $f_i(x^{(0)})<0$，$i=1,\cdots,m$，不需要 $Ax^{(0)}=b$。假定问题是严格可行的，一旦在第一次中心点步骤的某个迭代点选取了完整的 Newton 步径，那么之后的所有迭代点都是原问题可行点，此时这种算法也将和（标准的）障碍方法完全吻合。
+
+\subsection*{11.3.2\quad 例子}
+
+\noindent\textbf{不等式形式的线性规划}\quad
+我们的第一个例子是一个不等式形式的小规模线性规划问题
+\[
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & Ax\preceq b
+\end{aligned}
+\]
+其中 $A\in\mathbb{R}^{100\times 50}$。采用随机方法产生数据，要求所产生的是严格的原对偶可行的问题，其最优目标值 $p^\star=1$。
+
+初始点 $x^{(0)}$ 在中心路径上，对应的对偶间隙等于 100。采用障碍方法求解该问题，当对偶间隙小于 $10^{-6}$ 时停止迭代。采用参数为 $\alpha=0.01$，$\beta=0.5$ 的回溯直线搜索的 Newton 方法求解中心点问题。Newton 方法的停止准则是 $\lambda(x)^2/2\leq 10^{-5}$，其中 $\lambda(x)$ 是函数 $tc^Tx+\phi(x)$ 的 Newton 减量。
+
+图 11.4 给出三条曲线，分别表示三个 $\mu$ 值对应的障碍方法迭代过程。上述曲线显示了障碍方法的若干典型特征。首先，这种方法能使对偶间隙近似线性地收敛于 0。产生这种效果的原因是，对于每个 $\mu$ 值，确定中心点所需要的 Newton 迭代的次数近似为常数。对于 $\mu=50$ 和 $\mu=150$，障碍方法解决问题所经历的总的 Newton 迭代次数在 35--40 之间。
+图 11.4 的曲线也清楚显示了改变 $\mu$ 值的不同效果。对于 $\mu=2$ 的曲线，每个台阶的底边较短；每计算一个中心点大约仅需要 2 至 3 次 Newton 迭代。但每个台阶的高度也较低，因为每次外部迭代只能使对偶间隙减少 $1/2$。在另一端，当 $\mu=150$ 时，每个台阶底边较长，典型长度约为 7 次 Newton 迭代，但每个台阶也高很多，因为每次外部迭代能使对偶间隙减少为原来的 $1/150$。
+
+图 11.5 进一步显示总迭代次数和 $\mu$ 值之间的关系。我们采用障碍方法求解一个线性规划问题，当对偶间隙小于 $10^{-3}$ 时终止迭代，选择 1.2 和 200 之间的 25 个 $\mu$ 值进行计算。曲线表示求解该问题所需要的总的 Newton 迭代次数关于参数 $\mu$ 的函数关系。可以看出，当 $\mu$ 在大约 3 到 200 之间变化时，障碍方法均能取得很好的效果。如果 $\mu$ 很小，由于所需要的外部迭代次数很多，总的 Newton 迭代次数将增加，这同我们的直觉吻合。一个有意义的现象是，当 $\mu$ 大于 3 或附近的数值后，总的 Newton 迭代次数很
+
+少变化。这说明，当 $\mu$ 超过上述范围后，外部迭代次数的减少将被每次外部迭代所增加的 Newton 迭代次数所抵消。对于更大的 $\mu$，障碍方法的性能将变得难以预测（即更加依赖具体实例的特性）。既然更大的 $\mu$ 值不能带来算法性能的改善，在 10--100 的范围内进行选择是合理的做法。
+
+\noindent\textbf{几何规划}\quad
+我们考虑凸的几何规划问题
+\[
+\begin{aligned}
+\text{minimize}\quad & \log\left(\sum_{k=1}^{K_0}\exp(a_{0k}^Tx+b_{0k})\right)\\
+\text{subject to}\quad & \log\left(\sum_{k=1}^{K_i}\exp(a_{ik}^Tx+b_{ik})\right)\leq 0,\quad i=1,\cdots,m
+\end{aligned}
+\]
+变量 $x\in\mathbb{R}^n$，相应的对数障碍为
+\[
+\phi(x)=-\sum_{i=1}^m\log\left(-\log\sum_{k=1}^{K_i}\exp(a_{ik}^Tx+b_{ik})\right).
+\]
+我们考虑 $n=50$ 个变量和 $m=100$ 个不等式的实例（如同上面考虑的小规模线性规划问题）。目标函数和约束函数均由 $K_i=5$ 项组成。具体实例的数据随机产生，要求其具有严格的原对偶可行性，最优目标值等于 1。
+
+我们从中心路径上一点 $x^{(0)}$ 开始迭代，其对偶间隙等于 100。分别采用参数 $\mu=2$，$\mu=50$ 和 $\mu=150$ 的障碍方法进行求解，当对偶间隙小于 $10^{-6}$ 时算法终止。采用 Newton 方法求解中心点问题，其参数设置和线性规划例子相同，即 $\alpha=0.01$，$\beta=0.5$，终止准则为 $\lambda(x)^2/2\leq 10^{-5}$。
+
+图 11.6 给出对偶间隙和累计 Newton 迭代次数之间的关系。该曲线和图 11.4 中的
+线性规划问题的曲线非常相似。特别是，每次中心点步骤所需要的 Newton 迭代次数近似为常数，因此对偶间隙近似线性收敛。
+
+当参数 $\mu$ 改变时，求解问题所需要的总的 Newton 迭代次数的变化情况和线性规划的例子非常相似。对于该几何规划问题，选择 10 到 200 之间的 $\mu$ 值，将对偶间隙减少到 $10^{-3}$ 以下所需要的总的 Newton 迭代次数在 30 附近（大约在 20 到 40 之间）。因此，同样，$\mu$ 的一个好的选择范围为 10--100。
+
+\noindent\textbf{一族标准形式的线性规划问题}\quad
+在上面的例子中，我们采用障碍方法求解随机产生的相同维数的线性规划和几何规划问题，考察了对偶间隙和累计 Newton 迭代次数之间的关系。两个例子的计算结果极其相似；随着 Newton 迭代次数的增加其对偶间隙都呈现近似线性的收敛性质。我们也考察了算法性能随参数 $\mu$ 的改变而发生的变化，发现两种情况下的结果本质上相同。对于大于 10 或附近数值的 $\mu$ 值，障碍方法能够很好地工作，大约经过 30 次左右的 Newton 迭代就可以把对偶间隙从 $10^2$ 减少到 $10^{-6}$。两种情况下，$\mu$ 的选择几乎都不影响所需要的总的 Newton 迭代次数（假定 $\mu$ 大于 10 或附近的数值）。
+
+本节我们进一步考察障碍方法的性能和问题维数之间的关系。我们考虑标准形式的线性规划问题
+\[
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & Ax=b,\quad x\succeq 0
+\end{aligned}
+\]
+其中 $A\in\mathbb{R}^{m\times n}$，并针对一族随机产生的实例，探讨所需要的总的 Newton 迭代次数和变量个数 $n$ 以及等式约束数目 $m$ 之间的函数关系。我们取 $n=2m$，即变量数是约束数目的两倍。
+
+我们采用以下方式产生问题实例。矩阵 $A$ 的元素彼此独立，都服从标准正态分布 $N(0,1)$。我们取 $b=Ax^{(0)}$，其中 $x^{(0)}$ 的元素亦彼此独立，都服从区间 $[0,1]$ 上的均匀分布。这样就可以保证所产生的原问题是严格可行的；因为 $x^{(0)}\succ 0$ 是可行的。为了构造成本向量 $c$，我们首先计算元素分布为 $N(0,1)$ 的向量 $z\in\mathbb{R}^m$ 和元素分布为区间 $[0,1]$ 上均匀分布的向量 $s\in\mathbb{R}^n$。然后取 $c=A^Tz+s$。这样就可以保证所产生的问题是严格对偶可行的，因为 $A^Tz\prec c$。
+
+我们采用 $\mu=100$ 的算法参数，中心点步骤的参数和上面的例子相同：回溯参数 $\alpha=0.01$，$\beta=0.5$，终止准则 $\lambda(x)^2/2\leq 10^{-5}$。初始点在中心路径上，对应的 $t^{(0)}=1$（即间隙为 $n$）。算法在初始对偶间隙减少为 $10^{-4}$ 分之一时，即在完成两次外部迭代后，停止。
+
+为了考察问题规模对 Newton 迭代次数的影响，我们在 $m=10$ 到 $m=1000$ 之间选择 20 个 $m$ 值，对每个产生 100 个实例。我们用障碍方法求解这 2000 问题，并记录每个问题所需要的 Newton 迭代次数。图 11.8 总结了计算结果，其中给出了每个 $m$ 所对应的 Newton 迭代次数的均值和标准差。我们的第一个注释是，标准差在 2 周围，并且似乎近似独立于问题的规模。由于所需迭代次数的均值在 25 附近，Newton 迭代次数仅在 $\pm 10\%$ 左右的范围变动。
+
+曲线表明，尽管问题的规模增加为初始规模的 100 倍，所需要的 Newton 迭代次数的增量却很小，仅仅从 21 附近增加到 27 左右。这是一般情况下应用障碍方法的典型现象：随着问题维数的增加，所需要的 Newton 迭代次数非常缓慢地增加，几乎总是围绕数十次的数量变动。当然，进行每次 Newton 迭代的计算量会随着问题规模的增加而同步增长。
+
+\subsection*{11.3.3\quad 收敛性分析}
+
+障碍方法的收敛性分析可以直接了当地进行。假定用 Newton 方法求解 $tf_0+\phi$ 的极小化问题，经过 $t=t^{(0)},\ \mu t^{(0)},\ \mu^2t^{(0)},\cdots$ 的初始中心点步骤和以后的 $k$ 次中心点步骤后，对偶间隙成为 $m/(\mu^k t^{(0)})$。因此，经过精确的
+\begin{equation}
+\left\lceil \frac{\log(m/(\epsilon t^{(0)}))}{\log \mu}\right\rceil
+\tag{11.13}
+\end{equation}
+次包括初始中心点步骤在内的中心点步骤后，算法能够达到所希望的 $\epsilon$ 的精度要求。
+
+由此可知，只要能够用 Newton 方法求解 $t\geq t^{(0)}$ 的中心点问题 (11.6)，就可以应用障碍方法。能够应用标准 Newton 方法的一组充分条件是，函数 $tf_0+\phi$ 对于 $t\geq t^{(0)}$ 满足 505 页 \S10.2.4 给出的条件：初始水平子集是闭的，相关的 KKT 矩阵之逆有界，并且 Hessian 矩阵满足 Lipschitz 条件。（基于自和谐性可以得到另一组充分条件，我们将在 \S11.5 详细讨论。）如果应用不可行初始点 Newton 方法解决中心点问题，在 512 页 \S10.3.3 中列出的条件可以保证收敛性。
+
+假定 $f_0,\cdots,f_m$ 是闭的，对原问题的一个简单的修改可以保证上述条件成立。通过对原问题增加形如 $\|x\|_2^2\leq R^2$ 的一个约束，可以推知对于任意的 $t>0$ 函数 $tf_0+\phi$ 是强凸的；特别是，能够保证用 Newton 方法求解中心点问题的收敛性。（见习题 11.4。）
+
+虽然上面的分析表明障碍方法确实收敛，但不能回答一个基本问题：随着 $t$ 的增加，中心点问题是否确实变得更难求解（因此需要越来越多的迭代）？数值计算结果显示对于一大类问题并非如此；求解中心点问题似乎仅需要固定次数的 Newton 迭代，即使 $t$ 不断增加也是一样。我们将（在 \S11.5 中）看到，当自和谐条件满足时这个问题是可以解决的。
+
+\subsection*{11.3.4\quad 修改的 KKT 方程的 Newton 步径}
+
+在障碍方法中，Newton 步径 $\Delta x_{\mathrm{nt}}$ 以及相关的对偶变量由以下线性方程确定，
+\begin{equation}
+\begin{bmatrix}
+t\nabla^2 f_0(x)+\nabla^2\phi(x) & A^T\\
+A & 0
+\end{bmatrix}
+\begin{bmatrix}
+\Delta x_{\mathrm{nt}}\\
+\nu_{\mathrm{nt}}
+\end{bmatrix}
+=-
+\begin{bmatrix}
+t\nabla f_0(x)+\nabla\phi(x)\\
+0
+\end{bmatrix}.
+\tag{11.14}
+\end{equation}
+本节将说明如何将求解中心点问题的这些 Newton 步径以一种特殊方式解释为直接求解下述修改的 KKT 方程的 Newton 步径，
+\begin{equation}
+\begin{gathered}
+\nabla f_0(x)+\sum_{i=1}^m \lambda_i\nabla f_i(x)+A^T\nu=0\\
+-\lambda_i f_i(x)=1/t,\quad i=1,\cdots,m\\
+Ax=b.
+\end{gathered}
+\tag{11.15}
+\end{equation}
+修改的 KKT 方程 (11.15) 是 $n+p+m$ 个变量 $x,\nu$ 和 $\lambda$ 的 $n+p+m$ 个非线性方程。为了求解这些方程，我们首先用 $\lambda_i=-1/(tf_i(x))$ 消去变量 $\lambda_i$。由此可得
+\begin{equation}
+\nabla f_0(x)+\sum_{i=1}^m\frac{1}{-tf_i(x)}\nabla f_i(x)+A^T\nu=0,\qquad Ax=b,
+\tag{11.16}
+\end{equation}
+这是 $n+p$ 个变量 $x$ 和 $\nu$ 的 $n+p$ 个方程。
+
+为了计算满足非线性方程组 (11.16) 的 Newton 步径，我们对第一个方程中的非线性项进行 Taylor 逼近。对于很小的 $v$，利用 Taylor 近似式可得
+\[
+\begin{aligned}
+&\nabla f_0(x+v)+\sum_{i=1}^m\frac{1}{-tf_i(x+v)}\nabla f_i(x+v)\\
+&\approx \nabla f_0(x)+\sum_{i=1}^m\frac{1}{-tf_i(x)}\nabla f_i(x)+\nabla^2 f_0(x)v\\
+&\quad +\sum_{i=1}^m\frac{1}{-tf_i(x)}\nabla^2 f_i(x)v
++\sum_{i=1}^m\frac{1}{tf_i(x)^2}\nabla f_i(x)\nabla f_i(x)^Tv.
+\end{aligned}
+\]
+用上述 Taylor 逼近代替方程 (11.16) 中的非线性项，就可得到计算 Newton 步径的线性方程组
+\begin{equation}
+Hv+A^T\nu=-g,\qquad Av=0,
+\tag{11.17}
+\end{equation}
+其中
+\[
+H=\nabla^2 f_0(x)+\sum_{i=1}^m\frac{1}{-tf_i(x)}\nabla^2 f_i(x)+\sum_{i=1}^m\frac{1}{tf_i(x)^2}\nabla f_i(x)\nabla f_i(x)^T,
+\]
+\[
+g=\nabla f_0(x)+\sum_{i=1}^m\frac{1}{-tf_i(x)}\nabla f_i(x).
+\]
+我们注意到
+\[
+H=\nabla^2 f_0(x)+(1/t)\nabla^2\phi(x),\qquad
+g=\nabla f_0(x)+(1/t)\nabla\phi(x).
+\]
+因此，由式 (11.14) 可知，障碍方法的中心点步骤中使用的 Newton 步径 $\Delta x_{\mathrm{nt}}$ 和 $\nu_{\mathrm{nt}}$ 满足
+\[
+tH\Delta x_{\mathrm{nt}}+A^T\nu_{\mathrm{nt}}=-tg,\qquad A\Delta x_{\mathrm{nt}}=0.
+\]
+将该式和式 (11.17) 比较，可以看出
+\[
+v=\Delta x_{\mathrm{nt}},\qquad \nu=(1/t)\nu_{\mathrm{nt}}.
+\]
+这表明，将对偶变量进行比例变换后，中心点问题 (11.6) 中的 Newton 步径可以解释为，求解修改后的 KKT 方程 (11.16) 的 Newton 步径。
+
+在这种处理方法中，我们首先从修改后的 KKT 方程消去变量 $\lambda$，然后应用 Newton 方法求解所产生的方程组。该方法的另一种变形是，不消去 $\lambda$，直接应用 Newton 方法求解 KKT 方程。这种做法将产生 \S11.7 讨论的所谓的原对偶搜索方向。
+
+\subsection*{11.4\quad 可行性和阶段 1 方法}
+
+障碍方法需要一个严格可行的初始点 $x^{(0)}$。如果不知道这样一个可行点，在应用障碍方法之前需要一个预备阶段，称为阶段 1，在此阶段要计算一个严格可行点（或者判定约束不可行）。阶段 1 确定的严格可行点然后被用做障碍方法的初始点，此后算法称为阶段 2。本节我们将描述几种阶段 1 方法。
+
+\subsection*{11.4.1\quad 基本的阶段 1 方法}
+
+我们考虑变量 $x\in\mathbb{R}^n$ 的一组不等式和等式方程
+\begin{equation}
+f_i(x)\leq 0,\quad i=1,\cdots,m,\qquad Ax=b,
+\tag{11.18}
+\end{equation}
+其中 $f_i:\mathbb{R}^n\to\mathbb{R}$ 是凸的，具有连续的二阶导数。我们假定给定一点 $x^{(0)}\in\operatorname{dom} f_1\cap\cdots\cap\operatorname{dom} f_m$ 满足 $Ax^{(0)}=b$。
+
+我们的目的是找到一个满足这些不等式和等式方程的严格可行解，或者确定这样的解不存在。为此构造下面的优化问题：
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & s\\
+\text{subject to}\quad & f_i(x)\leq s,\quad i=1,\cdots,m\\
+& Ax=b
+\end{aligned}
+\tag{11.19}
+\end{equation}
+其中变量为 $x\in\mathbb{R}^n$，$s\in\mathbb{R}$。变量 $s$ 可以解释为不等式约束的最大不可行值的上界；我们的目的就是迫使最大不可行值小于 0。
+
+该问题总是严格可行的，因为我们可以选择 $x^{(0)}$ 作为 $x$ 的初始可行点，而对于 $s$，则可以选择大于 $\max_{i=1,\cdots,m}f_i(x^{(0)})$ 的任意实数。因此，我们可以应用障碍方法求解问题 (11.19)，后者被称为和等式不等式系统 (11.19) 相关联的阶段 1 优化问题。
+
+我们可以根据问题 (11.19) 的最优目标值 $\bar{p}^\star$ 的符号区分三种情况。
+
+1. 如果 $\bar{p}^\star<0$，则式 (11.18) 有严格可行解。并且，只要 $(x,s)$ 满足问题 (11.19) 的约束和 $s<0$，$x$ 就满足 $f_i(x)<0$。这意味着求解优化问题 (11.19) 并不需要很高精度，只要 $s<0$ 即可停止。
+
+2. 如果 $\bar{p}^\star>0$，则式 (11.18) 是不可行的。同第一种情况一样，求解阶段 1 的优化问题 (11.19) 并不需要很高的精度；只要发现某个对偶可行点具有正的对偶目标值（说明 $\bar{p}^\star>0$），我们就可以停止计算。在这种情况下，我们可以利用对偶可行解证明式 (11.18) 是不可行的。
+
+3. 如果 $\bar{p}^\star=0$ 并且最小值在 $x^\star$ 和 $s^\star=0$ 处达到，则不等式组是可行的，但不存在严格可行解。如果 $\bar{p}^\star=0$ 但最小值不可达到，那么不等式组是不可行的。
+
+实践中不可能准确确定 $\bar{p}^\star=0$。实际做法是，当不等式 $|\bar{p}^\star|<\epsilon$ 对某个小正数 $\epsilon$ 成立时求解问题 (11.19) 的优化算法就会停止。此时我们可以断定不等式组 $f_i(x)\leq -\epsilon$ 不可行，但不等式组 $f_i(x)\leq \epsilon$ 是可行的。
+
+\noindent\textbf{不可行值之和}\quad
+对上面介绍的基本的阶段 1 方法存在很多种变形。一种做法是极小化不可行值之和，而不是不可行值的最大值。我们构造问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \mathbf{1}^Ts\\
+\text{subject to}\quad & f_i(x)\leq s_i,\quad i=1,\cdots,m\\
+& Ax=b\\
+& s\succeq 0
+\end{aligned}
+\tag{11.20}
+\end{equation}
+对于固定的 $x$，$s_i$ 的最优值是 $\max\{f_i(x),0\}$，因此以上问题是极小化不可行值之和。问题 (11.20) 的最优值为 0 且可达到的充要条件是，原始的等式和不等式组是可行的。
+
+如果等式和不等式系统 (11.19) 不可行时，采用不可行值之和的阶段 1 方法具有一个非常有意义的特性。在这种情况下，阶段 1 问题 (11.20) 的最优解往往只违反少数（假设为 $r$ 个）不等式约束。因此，我们可以确定能够满足很多 $(m-r)$ 个不等式的点，即可以辨识出大部分不等式是可行的。此时，和被严格满足的不等式相关的对偶变量等于 0，因此我们也可以证明一部分不等式是不可行的。这比发现 $m$ 个不等式合在一起是不可行的能够提供更多的信息。（该现象和用于确定稀疏近似解的 $\ell_1$-范数正规化或基筛选方法密切相关；见 \S6.1.2 和 \S6.5.4）。
+
+\noindent\textbf{例 11.4}\quad
+阶段 1 方法比较。我们对一组不可行不等式 $Ax\preceq b$，$m=100$，$n=50$ 应用两种阶段 1 方法。第一种是基本的阶段 1 方法
+\[
+\begin{aligned}
+\text{minimize}\quad & s\\
+\text{subject to}\quad & Ax\preceq b+\mathbf{1}s
+\end{aligned}
+\]
+该方法极小化最大不可行值。第二种方法极小化不可行值之和，即求解线性规划
+\[
+\begin{aligned}
+\text{minimize}\quad & \mathbf{1}^Ts\\
+\text{subject to}\quad & Ax\preceq b+s\\
+& s\succeq 0.
+\end{aligned}
+\]
+
+\noindent\textbf{在阶段 2 中心路径附近停止}\quad
+对采用障碍方法的基本的阶段 1 方法进行一点改变，就具有以下性质（当等式和不等式约束严格可行时），阶段 1 问题和原始优化问题 (11.1) 的中心路径彼此相交。
+
+假设给定点 $x^{(0)}\in D=\operatorname{dom} f_0\cap\operatorname{dom} f_1\cap\cdots\cap\operatorname{dom} f_m$ 满足 $Ax^{(0)}=b$。构造以下阶段 1 优化问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & s\\
+\text{subject to}\quad & f_i(x)\leq s,\quad i=1,\cdots,m\\
+& f_0(x)\leq M\\
+& Ax=b
+\end{aligned}
+\tag{11.21}
+\end{equation}
+其中 $M$ 选为大于 $\max\{f_0(x^{(0)}),p^\star\}$ 的常数。
+
+现在我们假定原始问题 (11.1) 是严格可行的，因此问题 (11.21) 的最优值 $\bar{p}^\star$ 是负数。问题 (11.21) 的中心路径由下式定义，
+\[
+\sum_{i=1}^m\frac{1}{s-f_i(x)}=\bar{t},\qquad
+\frac{1}{M-f_0(x)}\nabla f_0(x)+\sum_{i=1}^m\frac{1}{s-f_i(x)}\nabla f_i(x)+A^T\nu=0,
+\]
+其中 $\bar{t}$ 是参数。如果 $(x,s)$ 在中心路径上，并且 $s=0$，则 $x$ 和 $\nu$ 对于 $t=1/(M-f_0(x))$ 满足
+\[
+t\nabla f_0(x)+\sum_{i=1}^m\frac{1}{-f_i(x)}\nabla f_i(x)+A^T\nu=0.
+\]
+
+这意味着 $x$ 在原始优化问题 (11.1) 的中心路径上，相应的对偶间隙为
+\begin{equation}
+m(M-f_0(x))\leq m(M-p^\star).
+\tag{11.22}
+\end{equation}
+
+\subsection*{11.4.2\quad 采用不可行初始点 Newton 方法求解阶段 1 问题}
+
+我们也可以将不可行初始点 Newton 方法应用于原始问题
+\[
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& Ax=b
+\end{aligned}
+\]
+的一个修改版本，以解决阶段 1 问题。我们首先将问题表示成下述形式（显然等价），
+\[
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\leq s,\quad i=1,\cdots,m\\
+& Ax=b,\quad s=0,
+\end{aligned}
+\]
+其中附加变量 $s\in\mathbb{R}$。为了开始障碍方法，我们用不可行初始点 Newton 方法求解
+\[
+\begin{aligned}
+\text{minimize}\quad & t^{(0)}f_0(x)-\sum_{i=1}^m\log(s-f_i(x))\\
+\text{subject to}\quad & Ax=b,\quad s=0
+\end{aligned}
+\]
+其初始点可以选取任何 $x\in D$ 和 $s>\max_i f_i(x)$。如果原问题是严格可行的，不可行初始点 Newton 方法最终将选取无限长步长，从而达到 $s=0$，即 $x$ 是严格可行的。
+
+同样的技巧可以用于不能在函数的公共定义域 $D$ 确定一点的情况。我们简单地将不可行初始点 Newton 方法应用于问题
+\[
+\begin{aligned}
+\text{minimize}\quad & t^{(0)}f_0(x+z_0)-\sum_{i=1}^m\log(s-f_i(x+z_i))\\
+\text{subject to}\quad & Ax=b,\quad s=0,\quad z_0=0,\quad \cdots,\quad z_m=0
+\end{aligned}
+\]
+其中变量为 $x,z_0,\cdots,z_m$ 和 $s\in\mathbb{R}$。在初始化阶段不难选择 $z_i$ 满足 $x+z_i\in\operatorname{dom} f_i$。用这种方法解决阶段 1 问题的主要缺点是，当问题不可行时没有好的停止准则，此时残差不能收敛到 0。
+
+\subsection*{11.4.3\quad 例子}
+
+我们考虑一族线性可行性问题
+\[
+Ax\preceq b(\gamma),
+\]
+其中 $A\in\mathbb{R}^{50\times 20}$，$b(\gamma)=b+\gamma\Delta b$。选择数据使不等式组对 $\gamma>0$ 严格可行，对 $\gamma<0$ 不可行，对 $\gamma=0$ 可行但不严格可行。
+
+图 11.10 显示对于区间 $[-1,1]$ 的 40 个 $\gamma$ 值，得到严格可行点或判定不可行所需要的 Newton 迭代的次数。我们采用 \S11.4.1 的基本的阶段 1 方法，即对每个 $\gamma$ 值形成线性规划
+\[
+\begin{aligned}
+\text{minimize}\quad & s\\
+\text{subject to}\quad & Ax\preceq b(\gamma)+s\mathbf{1}
+\end{aligned}
+\]
+采用 $\mu=10$ 的障碍方法，初始点 $x=0$，$s=-\min_i b_i(\gamma)+1$。算法终止于或者得到满足 $s<0$ 的 $(x,s)$，或者得到对偶问题
+\[
+\begin{aligned}
+\text{maximize}\quad & -b(\gamma)^Tz\\
+\text{subject to}\quad & A^Tz=0\\
+& \mathbf{1}^Tz=1\\
+& z\succeq 0
+\end{aligned}
+\]
+满足 $-b(\gamma)^Tz>0$ 的可行解 $z$。
+
+图像表明，当不等式组可行且有一些裕量时，大约经过 25 次 Newton 迭代就可以得到严格可行点。反之，当不等式组不可行并且同样有一些裕量时，大约经过 35 次迭代就可以判定不可行性。随着不等式组靠近可行和不可行之间的边界，即 $\gamma$ 接近 0，阶段 1 的工作量逐渐增加。当 $\gamma$ 非常接近 0 时，不等式组非常靠近可行和不可行之间的边界，迭代次数大幅增加。图 11.11 显示 $\gamma$ 接近 0 时所需要的总的 Newton 迭代次数。图像表明，对于非常靠近可行和不可行之间边界的问题，检测可行性或验证不可行性所需要的迭代次数近似对数的增长。
+
+这个例子非常典型：用障碍方法求解一组凸的等式和不等式方程，只要不靠近可行区域和不可行区域之间的边界，其计算量不会很大，且近似为常数。当所求解的问题向上述边界靠近时，找到严格可行点或判定不可行所需要的 Newton 迭代次数会逐渐增长。如果所求解的问题精确位于严格可行区域和严格不可行区域的边界上，例如，可行但不是严格可行，计算成本为无穷大。
+
+\noindent\textbf{用不可行初始点 Newton 方法解决可行性问题}\quad
+我们也可以应用不可行初始点 Newton 方法求解问题
+\[
+\begin{aligned}
+\text{minimize}\quad & -\sum_{i=1}^m\log s_i\\
+\text{subject to}\quad & Ax+s=b(\gamma)
+\end{aligned}
+\]
+以得到相同的可行性问题的解。我们采用回溯参数 $\alpha=0.01$，$\beta=0.9$，初始点选为 $x^{(0)}=0$，$s^{(0)}=1$，$\nu^{(0)}=0$。我们只考虑可行问题（即 $\gamma>0$），一旦发现可行点就停止迭代。（我们不考虑不可行的问题，因为在那种情况下残差将收敛于一个正数。）图 11.12 给出了找到可行点所需要的 Newton 迭代次数和 $\gamma$ 的函数关系。
+
+图像表明，当 $\gamma$ 大于 $0.3$ 或附近的数值时，不超过 20 次 Newton 迭代就可以得到可行点。在这些情况下，现在的方法远比阶段 1 方法有效，后者需要 30 次左右的 Newton 迭代。对于较小的 $\gamma$ 值，所需要的 Newton 迭代次数显著增长，近似为 $1/\gamma$ 的关系。对于 $\gamma=0.01$，不可行初始点 Newton 方法需要数千次迭代才能找到可行点。在这个区域阶段 1 方法有效得多，仅需要 40 次左右的迭代。
+
+这些结果相当典型。如果不等式组是可行的，并且不很靠近可行区域和不可行区域之间的边界，那么不可行初始点 Newton 方法效果很好。但是当可行集仅仅勉强非空时（就像这个例子中 $\gamma$ 很小的情况），阶段 1 方法好得多。阶段 1 方法的另一个优点是可以很好地处理不可行情形；与之相对，不可行初始点 Newton 方法在这种情况下就不能收敛。
+
+图 11.12 对于由参数 $\gamma\in\mathbb{R}$ 控制的一组不等式 $Ax\preceq b+\gamma\Delta b$，找到严格可行点所需要的 Newton 迭代次数。所采用的是不可行初始点 Newton 方法，一旦找到可行点就停止迭代。对于 $\gamma=10$，初始点 $x^{(0)}=0$ 正好可行（因此迭代次数为 0）。
+
+\section*{11.5\quad 自和谐条件下的复杂性分析}
+
+利用自和谐函数 Newton 方法的复杂性分析（第 480 页 \S9.6.4 和第 507 页 \S10.2.4），我们可以给出障碍方法的复杂性分析。这种分析适用于很多普通问题，并可导出若干有意义的结论：对应用障碍方法解决问题所需要的 Newton 迭代的总次数给出一个严格的上界，证实中心点问题不会随着 $t$ 的增加而变得更加困难，后者是我们以前观察到的现象。
+
+\subsection*{11.5.1\quad 自和谐假设}
+
+我们提出以下两条假设。
+
+\begin{itemize}
+\item 对于所有的 $t\geq t^{(0)}$，$tf_0+\phi$ 是闭的自和谐性函数。
+\item 问题 (11.1) 的水平子集有界。
+\end{itemize}
+
+第 2 条假设意味着中心点问题的水平子集有界（见习题 11.3），并由此可知中心点问题是可解的。有界水平子集的假设也意味着 $tf_0+\phi$ 的 Hessian 矩阵是处处正定的（见习题 11.14）。虽然基于自和谐假设的复杂性分析仅适合一类特殊问题，但我们必须强调指出，无论自和谐假设是否成立，一般情况下障碍方法都能有效地工作。
+
+自和谐假设对很多问题成立，包括线性规划和二次规划问题。如果函数 $f_i$ 是线性或二次的，那么
+\[
+tf_0-\sum_{i=1}^m\log(-f_i)
+\]
+对所有的 $t\geq 0$ 都是自和谐的（见 \S9.6）。因此，下面给出的复杂性分析可应用于线性规划、二次规划和二次约束的二次规划问题。
+
+在其他一些情况下，有可能重新构造问题使自和谐假设成立。例如，考虑线性不等式约束的熵极大问题
+\[
+\begin{aligned}
+\text{minimize}\quad & \sum_{i=1}^n x_i\log x_i\\
+\text{subject to}\quad & Fx\preceq g\\
+& Ax=b
+\end{aligned}
+\]
+函数
+\[
+tf_0(x)+\phi(x)=t\sum_{i=1}^n x_i\log x_i-\sum_{i=1}^m\log(g_i-f_i^Tx),
+\]
+其中 $f_1^T,\cdots,f_m^T$ 是 $F$ 的行向量，它不是闭的（除非 $Fx\preceq g$ 蕴含着 $x\succeq 0$）或自和谐的。但是，我们可以加上多余的不等式约束 $x\succeq 0$ 得到等价问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \sum_{i=1}^n x_i\log x_i\\
+\text{subject to}\quad & Fx\preceq g\\
+& Ax=b\\
+& x\succeq 0
+\end{aligned}
+\tag{11.23}
+\end{equation}
+对这个问题我们有
+\[
+tf_0(x)+\phi(x)=t\sum_{i=1}^n x_i\log x_i-\sum_{i=1}^n\log x_i-\sum_{i=1}^m\log(g_i-f_i^Tx),
+\]
+它对于任意的 $t\geq 0$ 是自和谐和闭的。（函数 $ty\log y-\log y$ 在 $\mathbb{R}_{++}$ 上对所有的 $t\geq 0$ 都是自和谐的；见习题 11.13。）因此，可以将本节的复杂性分析应用于重新构造的线性不等式约束的熵极大问题 (11.23)。
+
+作为一个更特殊的例子，考虑几何规划问题
+\[
+\begin{aligned}
+\text{minimize}\quad & f_0(x)=\log\left(\sum_{k=1}^{K_0}\exp(a_{0k}^Tx+b_{0k})\right)\\
+\text{subject to}\quad & \log\left(\sum_{k=1}^{K_i}\exp(a_{ik}^Tx+b_{ik})\right)\leq 0,\quad i=1,\cdots,m.
+\end{aligned}
+\]
+我们并不清楚函数
+\[
+tf_0(x)+\phi(x)=t\log\left(\sum_{k=1}^{K_0}\exp(a_{0k}^Tx+b_{0k})\right)
+-\sum_{i=1}^m\log\left(-\log\sum_{k=1}^{K_i}\exp(a_{ik}^Tx+b_{ik})\right)
+\]
+是否满足自和谐假设，因此尽管障碍方法能够有效工作，本节的复杂性分析对其不一定成立。
+
+但是，我们可以重新构造几何规划问题使其肯定满足自和谐假设。对每个单项式 $\exp(a_{ik}^Tx+b_{ik})$ 引入新变量 $y_{ik}$ 用做上界，
+\[
+\exp(a_{ik}^Tx+b_{ik})\leq y_{ik}.
+\]
+利用这些新变量可以将几何规划问题表示成
+\[
+\begin{aligned}
+\text{minimize}\quad & \sum_{k=1}^{K_0}y_{0k}\\
+\text{subject to}\quad & \sum_{k=1}^{K_i}y_{ik}\leq 1,\quad i=1,\cdots,m\\
+& a_{ik}^Tx+b_{ik}-\log y_{ik}\leq 0,\quad i=0,\cdots,m,\quad k=1,\cdots,K_i\\
+& y_{ik}\geq 0,\quad i=0,\cdots,m,\quad k=1,\cdots,K_i
+\end{aligned}
+\]
+相应的对数障碍为
+\[
+\sum_{i=0}^m\sum_{k=1}^{K_i}\left(-\log y_{ik}-\log(\log y_{ik}-a_{ik}^Tx-b_{ik})\right)
+-\sum_{i=1}^m\log\left(1-\sum_{k=1}^{K_i}y_{ik}\right),
+\]
+这是闭的自和谐函数（第 477 页的例 9.8）。由此可知 $tf_0+\phi$ 对于任意的 $t$ 是闭和自和谐的，因为目标函数是线性的。
+
+\subsection*{11.5.2\quad 中心点步骤的 Newton 迭代次数}
+
+在 \S9.6.4（第 480 页）和 \S10.2.4（第 507 页）给出的自和谐函数 Newton 方法的复杂性理论表明，极小化一个闭的严格凸的自和谐函数 $f$ 所需要的 Newton 迭代次数存在以下上界
+\begin{equation}
+\frac{f(x)-p^\star}{\gamma}+c.
+\tag{11.24}
+\end{equation}
+这里 $x$ 是 Newton 方法的初始点，$p^\star=\inf_x f(x)$ 是最优值。常数 $\gamma$ 依赖于回溯参数 $\alpha$ 和 $\beta$，由下式确定
+\[
+\frac{1}{\gamma}=\frac{20-8\alpha}{\alpha\beta(1-2\alpha)^2}.
+\]
+常数 $c$ 只依赖误差阈值 $\epsilon_{\mathrm{nt}}$，
+\[
+c=\log_2\log_2(1/\epsilon_{\mathrm{nt}}),
+\]
+并能用 $c=6$ 合理的近似。表达式 (11.24) 给出的所需 Newton 迭代次数的上界相当保守，但本节关心的仅是建立一个复杂性上界，并着重分析它随着问题规模和算法参数的改变如何变化。
+
+本节我们用以上结果推导障碍方法一次外部迭代，即从 $x^\star(t)$ 出发计算 $x^\star(\mu t)$，所需要的 Newton 迭代次数的上界。为简化符号，我们用 $x$ 代替当前迭代点 $x^\star(t)$，用 $x^+$ 代替下一个迭代点 $x^\star(\mu t)$，并用 $\lambda$ 和 $\nu$ 分别代表 $\lambda^\star(t)$ 和 $\nu^\star(t)$。
+
+由自和谐假设可知
+\begin{equation}
+\frac{\mu t f_0(x)+\phi(x)-\mu t f_0(x^+)-\phi(x^+)}{\gamma}+c
+\tag{11.25}
+\end{equation}
+是从 $x=x^\star(t)$ 出发计算 $x^+=x^\star(\mu t)$ 所需要的 Newton 迭代次数的上界。不幸的是，如果不实际算出 $x^+$，即运行 Newton 算法（这样能知道计算 $x^\star(\mu t)$ 所需要的 Newton 迭代的精确次数，但不能达到我们的目的），我们不知道 $x^+$，因此不能确定上界 (11.25)。然而，我们可以导出式 (11.25) 的一个上界，如下所示：
+\[
+\begin{aligned}
+&\mu t f_0(x)+\phi(x)-\mu t f_0(x^+)-\phi(x^+)\\
+&=\mu t f_0(x)-\mu t f_0(x^+)+\sum_{i=1}^m\log(-\mu t\lambda_i f_i(x^+))-m\log\mu\\
+&\leq \mu t f_0(x)-\mu t f_0(x^+)-\mu t\sum_{i=1}^m\lambda_i f_i(x^+)-m-m\log\mu\\
+&=\mu t f_0(x)-\mu t\left(f_0(x^+)+\sum_{i=1}^m\lambda_i f_i(x^+)+\nu^T(Ax^+-b)\right)-m-m\log\mu\\
+&\leq \mu t f_0(x)-\mu t g(\lambda,\nu)-m-m\log\mu\\
+&=m(\mu-1-\log\mu).
+\end{aligned}
+\]
+以上推导需要一些解释。从第一行到第二行用了 $\lambda_i=-1/(tf_i(x))$。在导出第一个不等式时用了对 $a>0$ 成立 $\log a\leq a-1$。从第三行到第四行用了 $Ax^+=b$，因此多余项 $\nu^T(Ax^+-b)$ 等于 0。第二个不等式基于对偶函数的定义
+\[
+g(\lambda,\nu)=\inf_z\left(f_0(z)+\sum_{i=1}^m\lambda_i f_i(z)+\nu^T(Az-b)\right)
+\leq f_0(x^+)+\sum_{i=1}^m\lambda_i f_i(x^+)+\nu^T(Ax^+-b).
+\]
+最后一行用了 $g(\lambda,\nu)=f_0(x)-m/t$。
+
+最终结论是，
+\begin{equation}
+\frac{m(\mu-1-\log\mu)}{\gamma}+c
+\tag{11.26}
+\end{equation}
+是式 (11.25) 的上界，因此是障碍方法一次外部迭代所需要的 Newton 迭代次数的上界。图 11.13 给出了函数 $\mu-1-\log\mu$ 的曲线。对于较小的 $\mu$，它近似于二次函数；对于较大的 $\mu$，其增长近似线性。这和我们的下述直觉吻合：当 $\mu$ 在 1 附近时，中心点步骤所需要的 Newton 迭代次数较少，而对于较大的 $\mu$，其增长速度适中。
+
+图 11.13 函数 $\mu-1-\log\mu$ 和 $\mu$ 的关系。障碍方法一次外部迭代所需要的 Newton 迭代次数可用 $(m/\gamma)(\mu-1-\log\mu)+c$ 为上界。
+
+上界 (11.26) 表明，每次中心点步骤所需要的 Newton 迭代次数不会超过一个数值，该数值主要依赖用于修改障碍方法外部迭代步长 $t$ 值的因子 $\mu$，以及问题的不等式约束数目 $m$。它也较弱的依赖于内部迭代的直线搜索参数 $\alpha$ 和 $\beta$，此外还非常弱的依赖于终止内部迭代的误差阈值。一个有意义的现象是，它和变量维数 $n$，等式约束数目 $p$，或者问题数据的具体数值，即目标函数和约束函数（只要满足 \S11.5.1 的自和谐假设），都没有关系。最后，我们指出，上述上界不依赖 $t$；因此，当 $t\to\infty$ 时，它是每次外部迭代中 Newton 迭代次数的一致上界。
+
+\subsection*{11.5.3\quad 总的 Newton 迭代次数}
+
+不考虑初始中心点步骤（后面将作为阶段 1 的部分对此进行分析），我们现在可以对障碍方法中总的 Newton 迭代次数给出一个上界。我们用式 (11.13)（所需要的外部迭代次数）乘以式 (11.26)（每次外部迭代所需要的 Newton 迭代次数的上界）就得到所需要的总的 Newton 迭代次数的上界
+\begin{equation}
+N=\left\lceil\frac{\log(m/(t^{(0)}\epsilon))}{\log\mu}\right\rceil
+\left(\frac{m(\mu-1-\log\mu)}{\gamma}+c\right).
+\tag{11.27}
+\end{equation}
+该式表明，当自和谐假设成立时，我们可以对任何 $\mu>1$ 给出障碍方法所需要的 Newton 迭代次数的上界。
+
+如果固定 $\mu$ 和 $m$，上界 $N$ 正比于 $\log(m/(t^{(0)}\epsilon))$，这是初始对偶间隙 $m/t^{(0)}$ 和最终对偶间隙 $\epsilon$ 比值的对数，即所需要的对偶间隙压缩量的对数。因此，我们可以说，障碍方法至少是线性收敛的，因为达到给定精度所需要的迭代次数是精度倒数的对数增长函数。
+
+如果固定 $\mu$ 和所需要的对偶间隙压缩因子，上界 $N$ 是不等式数目 $m$（或者更准确地说，$m\log m$）的线性增长函数。上界 $N$ 独立于别的问题维数 $n$ 和 $p$，以及特殊的问题数据或函数。下面将看到，通过选择一个依赖于 $m$ 的特殊的 $\mu$，可以使 Newton 迭代次数的上界是 $\sqrt{m}$，而不是 $m$ 的增长函数。
+
+最后，我们分析上界 $N$ 和算法参数 $\mu$ 的函数关系。当 $\mu$ 靠近 1 时，$N$ 的第一项迅速增加，因此 $N$ 会很大。这和我们的直觉和观察结果相吻合，外部迭代次数会随着 $\mu$ 接近 1 而变得很大。当 $\mu$ 很大时，上界 $N$ 的增长和 $\mu/\log\mu$ 近似，此时每次外部迭代所需要的 Newton 迭代次数决定其增长。这也和我们的观察结果保持一致。由于上述两方面原因，上界 $N$ 作为 $\mu$ 的函数有一个最小值。
+
+图 11.14 显示上界随参数 $\mu$ 变动的情况，它给出了以下条件下上界 (11.27) 和参数 $\mu$ 之间的关系，
+\[
+c=6,\qquad \gamma=1/375,\qquad m/(t^{(0)}\epsilon)=10^5,\qquad m=100.
+\]
+定性地看，该上界和直觉以及我们的观察结果保持一致：当 $\mu$ 接近 1 时它变得很大，但对于较大的 $\mu$ 其增长却缓慢得多。上界 $N$ 在 $\mu\approx 1.02$ 时有一个最小值，此处总的 Newton 迭代次数的上界约为 8000。虽然 Newton 方法的复杂性分析是很保守的，但是 $\mu$ 值改变所产生的不同影响在图像中仍然得到了反映。（实践中，大得多的 $\mu$ 值，大约从 2 到 100，能够很有效地工作，所需要的总的 Newton 迭代次数仅是数十次的数量级。）
+
+\noindent\textbf{将 $\mu$ 选为 $m$ 的函数}\quad
+如果固定 $\mu$（以及所需要的对偶间隙压缩量），上界 (11.27) 是不等式数目 $m$ 的线性增长函数。我们将看到，如果把 $\mu$ 选为 $m$ 的某种函数，将能更好地说明 $m$ 的影响。假定我们选择
+\begin{equation}
+\mu=1+1/\sqrt{m}.
+\tag{11.28}
+\end{equation}
+则可以得到式 (11.27) 第二项的上界，
+\[
+\begin{aligned}
+\mu-1-\log\mu
+&=1/\sqrt{m}-\log(1+1/\sqrt{m})\\
+&\leq 1/\sqrt{m}-1/\sqrt{m}+1/(2m)\\
+&=1/(2m).
+\end{aligned}
+\]
+（利用 $a\geq 0$ 时成立 $-\log(1+a)\leq -a+a^2/2$。）利用对数函数的凹性又可得
+\[
+\log\mu=\log(1+1/\sqrt{m})\geq(\log 2)/\sqrt{m}.
+\]
+根据这些不等式可以导出总的 Newton 迭代次数的下述上界，
+\begin{equation}
+\begin{aligned}
+N&\leq \left\lceil\frac{\log(m/(t^{(0)}\epsilon))}{\log\mu}\right\rceil
+\left(\frac{m(\mu-1-\log\mu)}{\gamma}+c\right)\\
+&\leq \left\lceil\sqrt{m}\frac{\log(m/(t^{(0)}\epsilon))}{\log 2}\right\rceil
+\left(\frac{1}{2\gamma}+c\right)\\
+&=\left\lceil\sqrt{m}\log_2(m/(t^{(0)}\epsilon))\right\rceil
+\left(\frac{1}{2\gamma}+c\right)\\
+&\leq c_1+c_2\sqrt{m},
+\end{aligned}
+\tag{11.29}
+\end{equation}
+其中
+\[
+c_1=\frac{1}{2\gamma}+c,\qquad
+c_2=\log_2(m/(t^{(0)}\epsilon))\left(\frac{1}{2\gamma}+c\right).
+\]
+这里 $c_1$（仅仅很弱地）依赖于中心点 Newton 步骤的算法参数，而 $c_2$ 则依赖于自和谐参数以及所需要的对偶间隙压缩量。注意 $\log_2(m/(t^{(0)}\epsilon))$ 精确等于所需要的对偶间隙压缩量的比特数。对于固定的对偶间隙压缩量，上界 (11.29) 同 $\sqrt{m}$ 一样地增长，而当 $\mu$ 不变时式 (11.27) 中的 $N$ 同 $m$ 一样地增长。由于这个原因，采用参数 (11.28) 的障碍方法被称为 $\sqrt{m}$ 阶的方法。
+
+实践中，我们并不选用 $\mu=1+1/\sqrt{m}$，因为它太小了，甚至并不将 $\mu$ 简化为 $m$ 的函数。我们对这样的 $\mu$ 感兴趣的唯一原因是，它（近似的）极小化了我们对 Newton 迭代次数给出的（非常保守的）上界，并对总的增长速率给出了和 $\sqrt{m}$，而不是 $m$，成比例的估计。
+
+\subsection*{11.5.4\quad 可行性问题}
+
+本节分析 \S11.4.1 描述的基本阶段 1 方法的一种（次要的）变形的复杂性，该方法用于求解一组凸的不等式方程，
+\begin{equation}
+f_1(x)\leq 0,\quad \cdots,\quad f_m(x)\leq 0,
+\tag{11.30}
+\end{equation}
+其中 $f_1,\cdots,f_m$ 是具有二阶连续导数的凸函数。（我们将在后面考虑等式方程。）我们假定阶段 1 问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & s\\
+\text{subject to}\quad & f_i(x)\leq s,\quad i=1,\cdots,m
+\end{aligned}
+\tag{11.31}
+\end{equation}
+满足 \S11.5.1 的条件。特别是，假定不等式 (11.30) 的可行集（当然可以是空集）被一个半径为 $R$ 的球所包含：
+\[
+\{x\mid f_i(x)\leq 0,\ i=1,\cdots,m\}\subseteq \{x\mid \|x\|_2\leq R\}.
+\]
+我们可以将 $R$ 解释为不等式可行集中任意一点的范数的上界。该假设隐含着阶段 1 问题的水平子集有界。不失一般性，我们从 $x=0$ 开始阶段 1 方法。我们定义 $F=\max_i f_i(0)$，这是超出约束的最大值，并假定它是正数（否则 $x=0$ 满足不等式 (11.30)）。
+
+我们用 $\bar{p}^\star$ 表示阶段 1 优化问题 (11.31) 的最优值。不等式组 (11.30) 是否可行由 $\bar{p}^\star$ 的符号决定。而 $\bar{p}^\star$ 的大小也有意义。如果 $\bar{p}^\star$ 是正的大数（比如，在其能达到的最大值 $F$ 附近），说明不等式组非常不可行，其含义是，每个 $x$ 至少严重违反一个不等式（超出约束的部分至少为 $\bar{p}^\star$）。另一方面，如果 $\bar{p}^\star$ 是绝对值很大的负数，说明不等式组非常可行，其含义是，不仅存在 $x$ 使所有 $f_i(x)$ 为负数，而且存在 $x$ 使所有 $f_i(x)$ 负得很多（不会大于 $\bar{p}^\star$）。因此，$|\bar{p}^\star|$ 的大小是对不等式组可行或不可行的显著性的一种测度，从而和判定不等式组 (11.30) 的可行性的难度有关。特别是，如果 $|\bar{p}^\star|$ 很小，就说明相应问题靠近可行区域和不可行区域之间的边界。
+
+为了确定不等式组的可行性，我们采用基本的阶段 1 问题 (11.31) 的一种变形。我们增加一个多余的线性不等式 $a^Tx\leq 1$，得到以下问题，
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & s\\
+\text{subject to}\quad & f_i(x)\leq s,\quad i=1,\cdots,m\\
+& a^Tx\leq 1
+\end{aligned}
+\tag{11.32}
+\end{equation}
+其中 $a$ 将在下面说明，它满足 $\|a\|_2\leq 1/R$，因此 $\|x\|_2\leq R$ 隐含着 $a^Tx\leq 1$，即新加的约束是多余的。
+
+我们将选择 $a$ 和 $s_0$ 满足 $x=0$，$s=s_0$ 是问题 (11.32) 的中心路径上对应参数 $t^{(0)}$ 的点，即它们极小化
+\[
+t^{(0)}s-\sum_{i=1}^m\log(s-f_i(x))-\log(1-a^Tx).
+\]
+令上述目标函数关于 $s$ 的导数等于 0，可以得到
+\begin{equation}
+t^{(0)}=\sum_{i=1}^m\frac{1}{s_0-f_i(0)}.
+\tag{11.33}
+\end{equation}
+再令以上目标函数关于 $x$ 的导数等于 0，又可得到
+\begin{equation}
+a=-\sum_{i=1}^m\frac{1}{s_0-f_i(0)}\nabla f_i(0).
+\tag{11.34}
+\end{equation}
+因此这仍然是挑选参数 $s_0$ 的问题；一旦我们选定了 $s_0$，向量 $a$ 就由式 (11.34) 给定，而参数 $t^{(0)}$ 由式 (11.33) 给定。因为 $x=0$ 和 $s=s_0$ 必须是阶段 1 问题 (11.32) 的严格可行解，我们需要选择 $s_0>F$。
+
+我们也必须使 $s_0$ 满足 $\|a\|_2\leq 1/R$。由式 (11.34) 可得
+\[
+\|a\|_2\leq \sum_{i=1}^m\frac{1}{s_0-f_i(0)}\|\nabla f_i(0)\|\leq \frac{mG}{s_0-F},
+\]
+其中 $G=\max_i\|\nabla f_i(0)\|_2$。因此，我们可以取 $s_0=mGR+F$，它能保证 $\|a\|_2\leq 1/R$，从而使新增加的线性不等式是多余的约束。
+
+由于 $F=\max_i f_i(0)$，利用式 (11.33)，我们有
+\[
+t^{(0)}=\sum_{i=1}^m\frac{1}{mGR+F-f_i(0)}\geq \frac{1}{mGR}.
+\]
+因此 $x=0$，$s=s_0$ 确实在阶段 1 问题 (11.32) 的中心路径上，对应的初始对偶间隙为
+\[
+\frac{m+1}{t^{(0)}}\leq (m+1)mGR.
+\]
+
+为求解原始不等式组 (11.30)，我们需要确定 $\bar{p}^\star$ 的符号。只要原问题 (11.32) 的目标值为负，或者其对偶目标值为正，我们就可以停止。当问题 (11.32) 的对偶间隙小于 $|\bar{p}^\star|$ 时，上述两种情况之一必然会发生。
+
+我们从对偶间隙不大于 $(m+1)mGR$ 的一个中心点开始，采用障碍方法求解问题 (11.32)，并在对偶间隙小于 $|\bar{p}^\star|$ 时（或之前）停止。利用前节得到的结果，这种做法至多需要
+\begin{equation}
+\left\lceil\sqrt{m+1}\log_2\frac{m(m+1)GR}{|\bar{p}^\star|}\right\rceil
+\left(\frac{1}{2\gamma}+c\right)
+\tag{11.35}
+\end{equation}
+次 Newton 迭代。（这里我们取 $\mu=1+1/\sqrt{m+1}$；和固定的 $\mu$ 值相比，这种取法更好地说明了 $m$ 对复杂性的影响。）
+
+上界 (11.35) 的增长速率仅比 $\sqrt{m}$ 快一点，并较弱地依赖于中心点步骤中的算法参数。它近似地正比于 $\log_2((GR)/|\bar{p}^\star|)$，后者可以解释为对特殊的可行性问题的困难性的一种测度，或者反映靠近可行区域与不可行区域之间边界的程度。
+
+\noindent\textbf{具有等式约束的可行性问题}\quad
+对于包括等式约束的可行性问题，我们可以通过消去等式约束进行同样的分析。这种做法不影响问题的自和谐性，但所采用的 $G$ 和 $R$ 应该对应于简化的，或消去等式约束后的问题。
+
+\subsection*{11.5.5\quad 阶段 1 和阶段 2 结合在一起的复杂性}
+
+本节对采用（变形的）障碍方法求解问题
+\[
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& Ax=b
+\end{aligned}
+\]
+给出完整的复杂性分析。首先，我们要求解阶段 1 问题
+\[
+\begin{aligned}
+\text{minimize}\quad & s\\
+\text{subject to}\quad & f_i(x)\leq s,\quad i=1,\cdots,m\\
+& f_0(x)\leq M\\
+& Ax=b\\
+& a^Tx\leq 1
+\end{aligned}
+\]
+假定其满足 \S11.5.1 的自和谐与有界水平子集假设。这里我们对基本的阶段 1 问题增加了两个多余的不等式。加入约束 $f_0(x)\leq M$ 是为了保证阶段 1 的中心路径和阶段 2 的中心路径相交，如 \S11.4.1 节所述（见问题 (11.21)）。数 $M$ 是该问题最优值的一个先验上界。所增加的第二个约束是线性不等式 $a^Tx\leq 1$，其中 $a$ 的选择方式在 \S11.5.4 进行了介绍。我们采用 $\mu=1+1/\sqrt{m+2}$ 的障碍方法求解该问题，初始点为 $x=0$，$s=s_0$，后者在 \S11.5.4 给出。
+
+求解以上阶段 1 问题，即或者找到一个严格可行点，或者判定问题不可行，所需要的 Newton 迭代的次数不会超过
+\begin{equation}
+N_{\mathrm{I}}=\left\lceil\sqrt{m+2}\log_2\frac{(m+1)(m+2)GR}{|\bar{p}^\star|}\right\rceil
+\left(\frac{1}{2\gamma}+c\right),
+\tag{11.36}
+\end{equation}
+其中 $G$ 和 $R$ 在 \S11.5.4 给出。如果问题是不可行的，则停止计算；如果问题是可行的，阶段 1 就给出一点，它和 $s=0$ 一起位于下面的阶段 2 问题的中心路径上，
+\[
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& Ax=b\\
+& a^Tx\leq 1.
+\end{aligned}
+\]
+该初始点对应的初始对偶间隙不会大于 $(m+1)(M-p^\star)$（见式 (11.22)）。我们假定阶段 2 问题也满足 \S11.5.1 的自和谐和有界水平子集假设。
+
+现在我们进入阶段 2，并再次应用障碍方法。我们需要把对偶间隙从它的初始值（不超过 $(m+1)(M-p^\star)$）减少到某个误差阈值 $\epsilon>0$。为此只需至多进行
+\begin{equation}
+N_{\mathrm{II}}=\left\lceil\sqrt{m+1}\log_2\frac{(m+1)(M-p^\star)}{\epsilon}\right\rceil
+\left(\frac{1}{2\gamma}+c\right)
+\tag{11.37}
+\end{equation}
+次 Newton 迭代就可达到目的。
+
+因此，总的 Newton 迭代次数不会超过 $N_{\mathrm{I}}+N_{\mathrm{II}}$。这个上界近似于 $\sqrt{m}$ 那样随着不等式数目 $m$ 一起增长，并包含以下两项依赖问题数据的成分，
+\[
+\log_2\frac{GR}{|\bar{p}^\star|},\qquad \log_2\frac{M-p^\star}{\epsilon}.
+\]
+
+\subsection*{11.5.6\quad 总结}
+
+本节给出的复杂性分析主要具有理论方面的意义。特别是，我们提醒读者，讨论时采用的 $\mu=1+1/\sqrt{m}$ 在实践中是一个很不好的选择；它的唯一优点是可以导出和 $\sqrt{m}$，而不是 $m$，一样增长的上界。同样，我们也不推荐在实践中增加多余的不等式 $a^Tx\leq 1$。
+
+这里给出的分析得到的实际上界远远高于实际观察到的 Newton 迭代次数。甚至这个上界的阶数看上去也很保守。所得到的 Newton 迭代次数的最好上界同 $\sqrt{m}$ 一样增长，而实际经验表明 Newton 迭代次数很少随 $m$（实际上，也很少随任何其他参数）一起增长。
+
+此外，当自和谐条件成立时，我们可以对障碍方法中心点步骤所需要的 Newton 迭代次数给出一个一致上界，知道这一点令人欣慰。因为障碍方法存在一个明显的潜在隐患，这就是随着 $t$ 的增加，相应的中心点问题可能变得非常困难，所需要的 Newton 迭代次数可能增加很快。但实际情况并非如此，一致有界性使我们有信心上述隐患不会发生。
+
+最后，我们要指出，目前并不清楚构造一个问题使其满足自和谐条件是否有实际好处。我们可以说的只是，当自和谐条件满足时，障碍方法在实践中能有效工作，并可给出一个最坏情况下的复杂性上界。
+
+\section*{11.6\quad 广义不等式问题}
+
+本节说明如何应用障碍方法求解具有广义不等式的问题。考虑问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\preceq_{K_i}0,\quad i=1,\cdots,m\\
+& Ax=b
+\end{aligned}
+\tag{11.38}
+\end{equation}
+其中 $f_0:\mathbb{R}^n\to\mathbb{R}$ 是凸的，$f_i:\mathbb{R}^n\to\mathbb{R}^{k_i}$，$i=1,\cdots,k$，是 $K_i$-凸的，而 $K_i\subseteq\mathbb{R}^{k_i}$ 是正常锥。同 \S11.1 节一样，我们假定函数 $f_i$ 二阶连续可微，$A\in\mathbb{R}^{p\times n}$ 满足 $\operatorname{rank}A=p$，并且问题可解。
+
+问题 (11.38) 的 KKT 条件是
+\begin{equation}
+\begin{gathered}
+Ax^\star=b\\
+f_i(x^\star)\preceq_{K_i}0,\quad i=1,\cdots,m\\
+\lambda_i^\star\succeq_{K_i^\ast}0,\quad i=1,\cdots,m\\
+\nabla f_0(x^\star)+\sum_{i=1}^m Df_i(x^\star)^T\lambda_i^\star+A^T\nu^\star=0\\
+\lambda_i^{\star T}f_i(x^\star)=0,\quad i=1,\cdots,m.
+\end{gathered}
+\tag{11.39}
+\end{equation}
+其中 $Df_i(x^\star)\in\mathbb{R}^{k_i\times n}$ 是 $f_i$ 在 $x^\star$ 处的导数。我们假定问题 (11.38) 严格可行，因此 KKT 条件是 $x^\star$ 为最优解的充要条件。
+
+对以上问题研究求解方法的过程类似于针对标量约束的过程。一旦导出可以处理一般性正常锥的对数函数的广义形式，就可以定义问题 (11.38) 的对数障碍函数。此后的发展过程本质上和标量情况一样。尤其是中心路径，障碍方法以及复杂性分析都非常相似。
+
+\subsection*{11.6.1\quad 对数障碍和中心路径}
+
+\noindent\textbf{正常锥的广义对数}\quad
+我们首先对正常锥 $K\subseteq\mathbb{R}^q$ 定义和对数函数 $\log x$ 类似的函数。我们称 $\psi:\mathbb{R}^q\to\mathbb{R}$ 是 $K$ 的广义对数，如果
+
+\begin{itemize}
+\item $\psi$ 满足凹闭和二阶连续可微性，$\operatorname{dom}\psi=\operatorname{int}K$，对任意 $y\in\operatorname{int}K$ 有 $\nabla^2\psi(y)\prec 0$。
+\item 存在常数 $\theta>0$ 使对所有的 $y\succ_K0$ 和 $s>0$ 满足
+\[
+\psi(sy)=\psi(y)+\theta\log s.
+\]
+\end{itemize}
+
+换句话说，在锥 $K$ 的任何射线上，$\psi$ 和对数函数的性质相同。
+
+我们称常数 $\theta$ 为 $\psi$ 的度（因为 $\exp\psi$ 是度为 $\theta$ 的齐次函数）。注意广义对数定义适合常数相加运算；如果 $\psi$ 是 $K$ 的广义对数，则对任何 $a\in\mathbb{R}$，函数 $\psi+a$ 也是其广义对数。普通对数显然是 $\mathbb{R}_+$ 的广义对数。
+
+我们将要利用任何广义对数都具备的以下两个性质：如果 $y\succ_K0$，则
+\begin{equation}
+\nabla\psi(y)\succ_{K^\ast}0,
+\tag{11.40}
+\end{equation}
+它隐含着 $\psi$ 是 $K$-增加的（见 \S3.6.1），并且
+\[
+y^T\nabla\psi(y)=\theta.
+\]
+第一个性质的证明见习题 11.15。第二个性质可以通过对 $\psi(sy)=\psi(y)+\theta\log s$ 关于 $s$ 求导而直接得到。
+
+\noindent\textbf{例 11.5}\quad
+非负象限。函数 $\psi(x)=\sum_{i=1}^n\log x_i$ 是 $K=\mathbb{R}_+^n$ 的广义对数，度为 $n$。对于 $x\succ 0$，
+\[
+\nabla\psi(x)=(1/x_1,\cdots,1/x_n),
+\]
+因此 $\nabla\psi(x)\succ 0$，$x^T\nabla\psi(x)=n$。
+
+\noindent\textbf{例 11.6}\quad
+二阶锥。函数
+\[
+\psi(x)=\log\left(x_{n+1}^2-\sum_{i=1}^n x_i^2\right)
+\]
+是二阶锥
+\[
+K=\left\{x\in\mathbb{R}^{n+1}\mid \left(\sum_{i=1}^n x_i^2\right)^{1/2}\leq x_{n+1}\right\}
+\]
+的广义对数，度为 2。函数 $\psi$ 在 $x\in\operatorname{int}K$ 处的梯度由下式给出
+\[
+\frac{\partial\psi(x)}{\partial x_j}=
+\frac{-2x_j}{x_{n+1}^2-\sum_{i=1}^n x_i^2},\quad j=1,\cdots,n,
+\]
+\[
+\frac{\partial\psi(x)}{\partial x_{n+1}}=
+\frac{2x_{n+1}}{x_{n+1}^2-\sum_{i=1}^n x_i^2}.
+\]
+不难验证等式 $\nabla\psi(x)\in\operatorname{int}K^\ast=\operatorname{int}K$ 和 $x^T\nabla\psi(x)=2$。
+
+\noindent\textbf{例 11.7}\quad
+正半定锥。函数 $\psi(X)=\log\det X$ 是锥 $\mathbf{S}_+^p$ 的广义对数。其度为 $p$，因为对 $s>0$ 有
+\[
+\log\det(sX)=\log\det X+p\log s.
+\]
+函数 $\psi$ 在 $X\in\mathbf{S}_{++}^p$ 处的梯度等于
+\[
+\nabla\psi(X)=X^{-1}.
+\]
+因此，我们有 $\nabla\psi(X)=X^{-1}\succ 0$，并且 $X$ 和 $\nabla\psi(X)$ 的内积等于 $\operatorname{tr}(XX^{-1})=p$。
+
+\noindent\textbf{广义不等式的对数障碍函数}\quad
+回到问题 (11.38)，用 $\psi_1,\cdots,\psi_m$ 分别表示锥 $K_1,\cdots,K_m$ 的广义对数，度为 $\theta_1,\cdots,\theta_m$。将问题 (11.38) 的对数障碍函数定义为
+\[
+\phi(x)=-\sum_{i=1}^m\psi_i(-f_i(x)),\qquad
+\operatorname{dom}\phi=\{x\mid f_i(x)\prec_{K_i}0,\ i=1,\cdots,m\}.
+\]
+因为函数 $\psi_i$ 是 $K_i$-增加的，函数 $f_i$ 是 $K_i$-凸的，所以 $\phi$ 是凸函数（见 \S3.6.2 的复合规则）。
+
+\noindent\textbf{中心路径}\quad
+下一步工作是定义问题 (11.38) 的中心路径。对于 $t\geq 0$，我们将中心点 $x^\star(t)$ 定义为在 $Ax=b$ 的约束下使 $tf_0+\phi$ 达到最小的点，即以下问题的解，
+\[
+\begin{aligned}
+\text{minimize}\quad & tf_0(x)-\sum_{i=1}^m\psi_i(-f_i(x))\\
+\text{subject to}\quad & Ax=b
+\end{aligned}
+\]
+（假定其最优解存在并唯一）。中心点应该和某个 $\nu\in\mathbb{R}^p$ 一起满足以下最优性条件，
+\begin{equation}
+\begin{aligned}
+&t\nabla f_0(x)+\nabla\phi(x)+A^T\nu\\
+&=t\nabla f_0(x)+\sum_{i=1}^m Df_i(x)^T\nabla\psi_i(-f_i(x))+A^T\nu=0,
+\end{aligned}
+\tag{11.41}
+\end{equation}
+其中 $Df_i(x)$ 是 $f_i$ 在 $x$ 处的导数。
+
+\noindent\textbf{中心路径上的对偶点}\quad
+同标量情况一样，中心路径上的点也给出了问题 (11.38) 的对偶可行点。对于 $i=1,\cdots,m$，定义
+\begin{equation}
+\lambda_i^\star(t)=\frac{1}{t}\nabla\psi_i(-f_i(x^\star(t))),
+\tag{11.42}
+\end{equation}
+并令 $\nu^\star(t)=\nu/t$，其中 $\nu$ 是式 (11.41) 的最优对偶变量。我们将说明 $\lambda_1^\star(t),\cdots,\lambda_m^\star(t)$ 和 $\nu^\star(t)$ 一起构成原问题 (11.38) 的对偶可行解。
+
+首先，根据广义对数的单调性质 (11.40)，成立 $\lambda_i^\star(t)\succ_{K_i^\ast}0$。其次，由式 (11.41) 可知，变量 $x$ 在 $x=x^\star(t)$ 处使 Lagrange 函数
+\[
+L(x,\lambda^\star(t),\nu^\star(t))=f_0(x)+\sum_{i=1}^m\lambda_i^\star(t)^Tf_i(x)+\nu^\star(t)^T(Ax-b)
+\]
+达到最小。因此，对偶函数 $g$ 在 $(\lambda^\star(t),\nu^\star(t))$ 等于
+\[
+\begin{aligned}
+g(\lambda^\star(t),\nu^\star(t))
+&=f_0(x^\star(t))+\sum_{i=1}^m\lambda_i^\star(t)^Tf_i(x^\star(t))+\nu^\star(t)^T(Ax^\star(t)-b)\\
+&=f_0(x^\star(t))+(1/t)\sum_{i=1}^m\nabla\psi_i(-f_i(x^\star(t)))^Tf_i(x^\star(t))\\
+&=f_0(x^\star(t))-(1/t)\sum_{i=1}^m\theta_i,
+\end{aligned}
+\]
+其中 $\theta_i$ 是 $\psi_i$ 的度。在上面最后一行，我们利用了对任意的 $y\succ_{K_i}0$ 成立 $y^T\nabla\psi_i(y)=\theta_i$，从而得到
+\begin{equation}
+\lambda_i^\star(t)^Tf_i(x^\star(t))=-\theta_i/t,\quad i=1,\cdots,m.
+\tag{11.43}
+\end{equation}
+因此，如果定义
+\[
+\bar{\theta}=\sum_{i=1}^m\theta_i,
+\]
+那么原可行点 $x^\star(t)$ 和对偶可行点 $(\lambda^\star(t),\nu^\star(t))$ 之间的对偶间隙就等于 $\bar{\theta}/t$。这正好和标量情况一样，除了用 $\bar{\theta}$，相应锥的广义对数度之和，替换了不等式的数量 $m$。
+
+\noindent\textbf{例 11.8 二阶锥规划。} 我们考虑变量 $x\in\mathbb{R}^n$ 的二阶锥规划问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f^Tx\\
+\text{subject to}\quad & \|A_ix+b_i\|_2\leq c_i^Tx+d_i,\quad i=1,\cdots,m
+\end{aligned}
+\tag{11.44}
+\end{equation}
+其中 $A_i\in\mathbb{R}^{n_i\times n}$。我们已经在例 11.6 中看到，函数
+\[
+\psi(y)=\log\left(y_{p+1}^2-\sum_{i=1}^p y_i^2\right)
+\]
+是 $\mathbb{R}^{p+1}$ 中二阶锥的广义对数，度等于 2。相应的问题 (11.44) 的对数障碍函数是
+\begin{equation}
+\phi(x)=-\sum_{i=1}^m\log\left((c_i^Tx+d_i)^2-\|A_ix+b_i\|_2^2\right),
+\tag{11.45}
+\end{equation}
+\[
+\operatorname{dom}\phi=\{x\mid \|A_ix+b_i\|_2<c_i^Tx+d_i,\ i=1,\cdots,m\}.
+\]
+中心路径的最优性条件为 $tf+\nabla\phi(x^\star(t))=0$，其中
+\[
+\nabla\phi(x)=-2\sum_{i=1}^m
+\frac{1}{(c_i^Tx+d_i)^2-\|A_ix+b_i\|_2^2}
+\left((c_i^Tx+d_i)c_i-A_i^T(A_ix+b_i)\right).
+\]
+令 $\alpha_i=(c_i^Tx^\star(t)+d_i)^2-\|A_ix^\star(t)+b_i\|_2^2$，由上式可得
+\[
+z_i^\star(t)=-\frac{2}{t\alpha_i}(A_ix^\star(t)+b_i),\qquad
+w_i^\star(t)=\frac{2}{t\alpha_i}(c_i^Tx^\star(t)+d_i),\quad i=1,\cdots,m
+\]
+是对偶问题
+\[
+\begin{aligned}
+\text{maximize}\quad & -\sum_{i=1}^m(b_i^Tz_i+d_iw_i)\\
+\text{subject to}\quad & \sum_{i=1}^m(A_i^Tz_i+c_iw_i)=f\\
+& \|z_i\|_2\leq w_i,\quad i=1,\cdots,m
+\end{aligned}
+\]
+的严格可行点。而 $x^\star(t)$ 和 $(z^\star(t),w^\star(t))$ 的对偶间隙是
+\[
+\sum_{i=1}^m\left((A_ix^\star(t)+b_i)^Tz_i^\star(t)+(c_i^Tx^\star(t)+d_i)w_i^\star(t)\right)=\frac{2m}{t},
+\]
+这符合一般公式 $\bar{\theta}/t$，因为 $\theta_i=2$。
+
+\noindent\textbf{例 11.9 不等式形式的正半定规划。} 我们考虑变量 $x\in\mathbb{R}^n$ 的正半定规划问题
+\[
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & F(x)=x_1F_1+\cdots+x_nF_n+G\preceq 0,
+\end{aligned}
+\]
+其中 $G,F_1,\cdots,F_n\in\mathbf{S}^p$。对偶问题是
+\[
+\begin{aligned}
+\text{maximize}\quad & \operatorname{tr}(GZ)\\
+\text{subject to}\quad & \operatorname{tr}(F_iZ)+c_i=0,\quad i=1,\cdots,n\\
+& Z\succeq 0.
+\end{aligned}
+\]
+利用正半定锥 $\mathbf{S}_+^p$ 的广义对数 $\log\det X$，可以得到障碍函数（对于原问题）
+\[
+\phi(x)=\log\det(-F(x)^{-1}),
+\]
+\[
+\operatorname{dom}\phi=\{x\mid F(x)\prec 0\}.
+\]
+对于严格可行的 $x$，函数 $\phi$ 的梯度等于
+\[
+\frac{\partial\phi(x)}{\partial x_i}=\operatorname{tr}(-F(x)^{-1}F_i),\quad i=1,\cdots,n,
+\]
+据此可确定刻画中心点的最优性条件
+\[
+tc_i+\operatorname{tr}(-F(x^\star(t))^{-1}F_i)=0,\quad i=1,\cdots,n.
+\]
+因此矩阵
+\[
+Z^\star(t)=\frac{1}{t}(-F(x^\star(t)))^{-1}
+\]
+是严格对偶可行的，相应的 $x^\star(t)$ 和 $Z^\star(t)$ 的对偶间隙是 $p/t$。
+
+\subsection*{11.6.2 障碍方法}
+
+我们已经看到中心路径的关键性质可以推广到广义不等式问题。
+\begin{itemize}
+\item 计算中心路径上一点需要在等式约束下极小化一个二次可微的凸函数（可以采用 Newton 方法求解）。
+\item 对每个中心点 $x^\star(t)$ 可确定一个对偶可行解 $(\lambda^\star(t),\nu^\star(t))$ 及其相应的对偶间隙 $\bar{\theta}/t$。特别是，$x^\star(t)$ 至少是 $\bar{\theta}/t$-次优解。
+\end{itemize}
+这表明，我们可以完全采用 \S 11.3 描述的障碍方法求解问题 (11.38)。从 $x^\star(t^{(0)})$ 开始求得其对偶间隙为 $\epsilon$ 的中心点，所需要的外部迭代（或中心步骤）的总次数等于
+\[
+\left\lceil\frac{\log(\bar{\theta}/(t^{(0)}\epsilon))}{\log\mu}\right\rceil,
+\]
+加上一次初始中心化步骤。这个结果和标量情况相应结果之间的唯一差别在于用 $\bar{\theta}$ 代替 $m$。
+
+\noindent\textbf{阶段 1 和可行性问题}
+
+在 \S 11.4 描述的阶段 1 方法可以很容易地推广到广义不等式问题。对 $i=1,\cdots,m$，用 $e_i\succ_{K_i}0$ 表示给定的 $K_i$-正定向量。为了确定等式和广义不等式
+\[
+f_1(x)\preceq_{K_1}0,\quad \cdots,\quad f_m(x)\preceq_{K_m}0,\quad Ax=b
+\]
+的可行性，我们求解变量 $x$ 和 $s\in\mathbb{R}$ 的问题
+\[
+\begin{aligned}
+\text{minimize}\quad & s\\
+\text{subject to}\quad & f_i(x)\preceq_{K_i}se_i,\quad i=1,\cdots,m\\
+& Ax=b.
+\end{aligned}
+\]
+同普通不等式情况完全一样，上述等式和广义不等式的可行性由最优值 $\bar{p}^\star$ 决定。当 $\bar{p}^\star$ 为正数时，任何具有正目标函数值的对偶可行解都可以用以证明这组等式和广义不等式的不可行性（见第 232 页）。
+
+\subsection*{11.6.3 例子}
+
+\noindent\textbf{一个小规模的二阶锥规划问题}
+
+我们求解二阶锥规划问题
+\[
+\begin{aligned}
+\text{minimize}\quad & f^Tx\\
+\text{subject to}\quad & \|A_ix+b_i\|_2\leq c_i^Tx+d_i,\quad i=1,\cdots,m,
+\end{aligned}
+\]
+其中 $x\in\mathbb{R}^{50}$，$m=50$，$A_i\in\mathbb{R}^{5\times 50}$。在保证原对偶问题严格可行以及最优值 $p^\star=1$ 的前提下随机产生问题实例。从中心路径上其对偶间隙等于 100 的点 $x^{(0)}$ 开始。采用障碍方法求解问题，障碍函数为
+\[
+\phi(x)=-\sum_{i=1}^m\log\left((c_i^Tx+d_i)^2-\|A_ix+b_i\|_2^2\right).
+\]
+用 Newton 方法求解中心点问题，选择和 \S 11.3.2 节例子相同的算法参数：回溯参数 $\alpha=0.01$，$\beta=0.5$，停止准则 $\lambda(x)^2/2\leq 10^{-5}$。
+
+图 11.15 显示对偶间隙和累计 Newton 迭代次数之间的关系。这些曲线与图 11.4 和图 11.6 分别给出的线性规划和几何规划的同类曲线非常相似。我们看到，每次中心点步骤所需要的 Newton 迭代次数近似为常数，因此对偶间隙随迭代次数增加而近似线性地收敛。同样，对于这个例子，只要 $\mu$ 值不小于 10 或附近的数，那么 $\mu$ 的选择对总的 Newton 迭代次数就没有多少影响。同线性规划和几何规划的例子一样，$\mu$ 的合理选择是在 $10\sim 100$ 的范围内，相应的总的 Newton 迭代次数在 30 左右（见图 11.16）。
+
+\noindent\textbf{一个小规模的正半定规划问题}
+
+我们另一个例子是正半定规划
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & \sum_{i=1}^n x_iF_i+G\preceq 0,
+\end{aligned}
+\tag{11.46}
+\end{equation}
+其中变量 $x\in\mathbb{R}^{100}$，$F_i\in\mathbf{S}^{100}$，$G\in\mathbf{S}^{100}$。在保证原对偶问题严格可行以及最优值 $p^\star=1$ 的前提下随机产生问题实例。初始点在中心路径上，其对偶间隙等于 100。
+
+我们采用障碍方法求解该问题，对数障碍函数为
+\[
+\phi(x)=-\log\det\left(-\sum_{i=1}^n x_iF_i-G\right).
+\]
+
+图 11.17 显示分别采用三个 $\mu$ 值的障碍方法进展情况。注意该图曲线与图 11.4，图 11.6 和图 11.15 分别给出的针对线性规划，几何规划和二阶锥规划的曲线之间的相似性。同别的例子一样，只要参数 $\mu$ 不是太小，它对求解效率就没有多少影响。图 11.18 显示了将对偶间隙压缩到初始值的 $1/10^5$ 所需要的 Newton 迭代次数和 $\mu$ 之间的关系。
+
+\noindent\textbf{一族正半定规划问题}
+
+本节考察问题维数改变时障碍方法的性能变化情况。我们考虑下述形式的一族正半定规划问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \mathbf{1}^Tx\\
+\text{subject to}\quad & A+\operatorname{diag}(x)\succeq 0,
+\end{aligned}
+\tag{11.47}
+\end{equation}
+其中变量 $x\in\mathbb{R}^n$，参数 $A\in\mathbf{S}^n$。矩阵 $A$ 由以下方式产生。对 $i\geq j$，从独立的 $\mathcal{N}(0,1)$ 分布中随机产生系数 $A_{ij}$。对 $i<j$，我们令 $A_{ij}=A_{ji}$，因此 $A\in\mathbf{S}^n$。然后我们通过对 $A$ 规范化使其（谱）范数等于 1。
+
+算法参数为 $\mu=20$，中心点步骤参数和上面的例子一样：回溯参数 $\alpha=0.01$，$\beta=0.5$，停止准则 $\lambda(x)^2/2\leq 10^{-5}$。初始点为 $t^{(0)}=1$（即对偶间隙为 $n$）的中心点。当对偶间隙压缩到其初始值的 $1/8000$ 时，即在完成三次外部迭代后，算法终止。
+
+图 11.19 显示维数分别为 $n=50$、$n=500$ 和 $n=1000$ 的三个问题的对偶间隙和迭代次数之间的关系。这些曲线和其他例子的曲线非常相似，和线性规划问题的曲线也非常相似。
+
+为了考察问题规模变化对所需要的 Newton 迭代次数的影响，我们在 $n=10$ 到 $n=1000$ 之间选择 20 个 $n$ 值，对每个 $n$ 值随机生成 100 个问题实例。我们用障碍方法求解这 2000 个问题，并记录所需要的 Newton 迭代次数。计算结果总结在图 11.20 中，该图对每个 $n$ 给出了 Newton 迭代次数的均值和标准差。曲线和图 11.8 给出的线性规划的相应曲线非常相似。特别是，尽管问题维数增长为初始值的 100 倍，所需要的 Newton 迭代次数却增长得很慢，从大约 20 次迭代增加到 26 次左右。
+
+\subsection*{11.6.4 基于自和谐性质的复杂性分析}
+
+本节我们将普通不等式问题障碍方法的复杂性分析（见 \S 11.5 节）推广到广义不等式问题。我们已经看见外部迭代次数为
+\[
+\left\lceil\frac{\log(\bar{\theta}/t^{(0)}\epsilon)}{\log\mu}\right\rceil
+\]
+加一次初始中心点步骤。还要确定的是每次中心点步骤所需要的 Newton 迭代次数的上界，我们将利用自和谐函数 Newton 方法的复杂性理论解决该问题。为方便讨论，我们将把初始中心点步骤的计算量排除在外。
+
+我们提出和 \S 11.5 节相同的假设：对所有的 $t\geq t^{(0)}$，$tf_0+\phi$ 是闭的自和谐函数，并且问题 (11.38) 的水平子集有界。
+
+\noindent\textbf{例 11.10 二阶锥规划。} 函数
+\[
+-\psi(x)=-\log\left(x_{p+1}^2-\sum_{i=1}^p x_i^2\right),
+\]
+是自和谐的（见例 9.8），因此对数障碍函数 (11.45) 满足二阶锥规划 (11.44) 的闭和自和谐假设。
+
+\noindent\textbf{例 11.11 正半定规划。} 用 $\log\det X$ 作正半定锥的广义对数可以满足正半定规划的自和谐假设。例如，对于标准形式的正半定规划问题
+\[
+\begin{aligned}
+\text{minimize}\quad & \operatorname{tr}(CX)\\
+\text{subject to}\quad & \operatorname{tr}(A_iX)=b_i,\quad i=1,\cdots,p\\
+& X\succeq 0
+\end{aligned}
+\]
+其中变量为 $X\in\mathbf{S}^n$，对于任何 $t^{(0)}\geq 0$ 函数 $t^{(0)}\operatorname{tr}(CX)-\log\det X$ 是自和谐的（也是闭的）。
+
+我们将看到，和标量情况完全一样，有
+\begin{equation}
+\mu tf_0(x^\star(t))+\phi(x^\star(t))-\mu tf_0(x^\star(\mu t))-\phi(x^\star(\mu t))\leq \bar{\theta}(\mu-1-\log\mu).
+\tag{11.48}
+\end{equation}
+因此，当自和谐和有界水平子集条件成立时，每次中心点步骤所需要的 Newton 迭代次数不会超过
+\[
+\frac{\bar{\theta}(\mu-1-\log\mu)}{\gamma}+c,
+\]
+和应用障碍方法求解普通不等式问题一样。一旦建立了基本的上界 (11.48)，广义不等式问题的复杂性分析就和普通不等式问题的分析相同。唯一不同的一点是：$\bar{\theta}$ 是锥的度之和，而不是不等式的数目。
+
+\noindent\textbf{对偶锥的广义对数}
+
+我们利用共轭性证明上界 (11.48)。令 $\psi$ 为正常锥 $K$ 的广义对数，度为 $\theta$。函数 $-\psi$ 的共轭为
+\[
+(-\psi)^\ast(v)=\sup_u(v^Tu+\psi(u)).
+\]
+这是凸函数，定义域为 $-K^\ast=\{v\mid v\prec_{K^\ast}0\}$。定义 $\overline{\psi}$ 为
+\begin{equation}
+\overline{\psi}(v)=-(-\psi)^\ast(-v)=\inf_u(v^Tu-\psi(u)),\qquad
+\operatorname{dom}\overline{\psi}=\operatorname{int}K^\ast.
+\tag{11.49}
+\end{equation}
+函数 $\overline{\psi}$ 是凹的，它实际上是对偶锥 $K^\ast$ 的广义对数，具有相同的参数 $\theta$（见习题 11.17）。我们称 $\overline{\psi}$ 为广义对数 $\psi$ 的\textbf{对偶对数}。
+
+从式 (11.49) 可得到对任何 $u\succ_K0$，$v\succ_{K^\ast}0$ 都成立的不等式
+\begin{equation}
+\overline{\psi}(v)+\psi(u)\leq u^Tv,
+\tag{11.50}
+\end{equation}
+其等式成立的充要条件是 $\nabla\psi(u)=v$（或等价为 $\nabla\overline{\psi}(v)=u$）。（这个不等式就是 Young 不等式在凹函数情况下的变形。）
+
+\noindent\textbf{例 11.12 二阶锥。} 二阶锥有广义对数
+\[
+\psi(x)=\log\left(x_{p+1}^2-\sum_{i=1}^p x_i^2\right),\quad
+\operatorname{dom}\psi=\left\{x\in\mathbb{R}^{p+1}\mid x_{p+1}>\left(\sum_{i=1}^p x_i^2\right)^{1/2}\right\}.
+\]
+相应的对偶对数为
+\[
+\overline{\psi}(y)=\log\left(y_{p+1}^2-\sum_{i=1}^p y_i^2\right)+2-\log4,
+\]
+\[
+\operatorname{dom}\overline{\psi}=\left\{y\in\mathbb{R}^{p+1}\mid y_{p+1}>\left(\sum_{i=1}^p y_i^2\right)^{1/2}\right\}
+\]
+（见习题 3.36）。忽略常数项它和二阶锥的原广义对数相同。
+
+\noindent\textbf{例 11.13 正半定锥。} 定义域为 $\operatorname{dom}\psi=\mathbf{S}_{++}^p$ 的 $\psi(X)=\log\det X$ 的对偶对数是
+\[
+\overline{\psi}(Y)=\log\det Y+p,
+\]
+其定义域为 $\operatorname{dom}\overline{\psi}=\mathbf{S}_{++}^p$（见例 3.23）。再次看到，忽略常数项它是同样的广义对数。
+
+\noindent\textbf{导出基本上界}
+
+为简化符号，我们将 $x^\star(t)$，$x^\star(\mu t)$，$\lambda_i^\star(t)$ 和 $\nu^\star(t)$ 分别简写为 $x$，$x^+$，$\lambda_i$ 和 $\nu$。由 $t\lambda_i=\nabla\psi_i(-f_i(x))$（见式 (11.42)）和性质 (11.43) 可推得
+\begin{equation}
+\psi_i(-f_i(x))+\overline{\psi}_i(t\lambda_i)=-t\lambda_i^Tf_i(x)=\theta_i,
+\tag{11.51}
+\end{equation}
+即对于 $u=-f_i(x)$ 和 $v=t\lambda_i$，不等式 (11.50) 成为等式。对于 $u=-f_i(x^+)$ 和 $v=\mu t\lambda_i$，同样的不等式给出
+\[
+\psi_i(-f_i(x^+))+\overline{\psi}_i(\mu t\lambda_i)\leq -\mu t\lambda_i^Tf_i(x^+),
+\]
+利用 $\overline{\psi}_i$ 的对数齐次性，上式可变成
+\[
+\psi_i(-f_i(x^+))+\overline{\psi}_i(t\lambda_i)+\theta_i\log\mu\leq -\mu t\lambda_i^Tf_i(x^+).
+\]
+用该式减等式 (11.51) 可得
+\[
+-\psi_i(-f_i(x))+\psi_i(-f_i(x^+))+\theta_i\log\mu\leq -\theta_i-\mu t\lambda_i^Tf_i(x^+),
+\]
+再关于 $i$ 求和可产生
+\begin{equation}
+\phi(x)-\phi(x^+)+\bar{\theta}\log\mu\leq -\bar{\theta}-\mu t\sum_{i=1}^m\lambda_i^Tf_i(x^+).
+\tag{11.52}
+\end{equation}
+根据对偶函数的定义我们也有
+\[
+\begin{aligned}
+f_0(x)-\bar{\theta}/t=g(\lambda,\nu)
+&\leq f_0(x^+)+\sum_{i=1}^m\lambda_i^Tf_i(x^+)+\nu^T(Ax^+-b)\\
+&=f_0(x^+)+\sum_{i=1}^m\lambda_i^Tf_i(x^+).
+\end{aligned}
+\]
+用 $\mu t$ 乘这个不等式并将其和不等式 (11.52) 相加，可以得到
+\[
+\phi(x)-\phi(x^+)+\bar{\theta}\log\mu+\mu tf_0(x)-\mu\bar{\theta}\leq \mu tf_0(x^+)-\bar{\theta},
+\]
+将其重新排列可得
+\[
+\mu tf_0(x)+\phi(x)-\mu tf_0(x^+)-\phi(x^+)\leq \bar{\theta}(\mu-1-\log\mu),
+\]
+这就是我们所需要的不等式 (11.48)。
+
+\section*{11.7\quad 原对偶内点法}
+
+本节描述基本的原对偶内点法。该方法和障碍方法非常相似，但也有一些差别。
+\begin{itemize}
+\item 仅有一层迭代，即没有障碍方法的内部迭代和外部迭代的区分。每次迭代时同时更新原对偶变量。
+\item 通过将 Newton 方法应用于修改的 KKT 方程（即对数障碍中心点问题的最优性条件）确定原对偶内点法的搜索方向。原对偶搜索方向和障碍方法导出的搜索方向相似，但不完全相同。
+\item 在原对偶内点法中，原对偶迭代值不需要是可行的。
+\end{itemize}
+
+原对偶内点法经常比障碍方法更加有效，特别是需要高精度的场合，因为它们可以展现超线性收敛性质。对于若干类基本问题，比如线性规划，二次规划，二阶锥规划，几何规划以及正半定规划，特定的原对偶方法在性能上优于障碍方法。对于一般的非线性凸优化问题，原对偶内点法依然是一个很有希望的活跃的研究课题。原对偶内点法相对障碍方法所具有的另一个优点是，它们可以有效处理可行但不严格可行的问题（尽管我们不追求这样的能力）。
+
+本节我们将介绍求解问题 (11.1) 的基本的原对偶内点法，但不进行收敛性分析。读者可以阅读参考文献了解原对偶内点法及其收敛性分析的更详尽内容。
+
+\subsection*{11.7.1 原对偶搜索方向}
+
+如同障碍方法，我们从修改的 KKT 条件 (11.15) 开始，该条件可以表述为 $r_t(x,\lambda,\nu)=0$，其中
+\begin{equation}
+r_t(x,\lambda,\nu)=
+\begin{bmatrix}
+\nabla f_0(x)+Df(x)^T\lambda+A^T\nu\\
+-\operatorname{diag}(\lambda)f(x)-(1/t)\mathbf{1}\\
+Ax-b
+\end{bmatrix},
+\tag{11.53}
+\end{equation}
+并且 $t>0$。此处的 $f:\mathbb{R}^n\to\mathbb{R}^m$ 和它的导数矩阵 $Df$ 由下式给出，
+\[
+f(x)=
+\begin{bmatrix}
+f_1(x)\\
+\vdots\\
+f_m(x)
+\end{bmatrix},\qquad
+Df(x)=
+\begin{bmatrix}
+\nabla f_1(x)^T\\
+\vdots\\
+\nabla f_m(x)^T
+\end{bmatrix}.
+\]
+如果 $x,\lambda,\nu$ 满足 $r_t(x,\lambda,\nu)=0$（并且 $f_i(x)<0$），则 $x=x^\star(t)$，$\lambda=\lambda^\star(t)$，$\nu=\nu^\star(t)$。特别是，$x$ 是原可行的，$\lambda,\nu$ 是对偶可行的，对偶间隙为 $m/t$。我们将 $r_t$ 的第一块构件
+\[
+r_{\mathrm{dual}}=\nabla f_0(x)+Df(x)^T\lambda+A^T\nu
+\]
+称为对偶残差，将最后一块构件 $r_{\mathrm{pri}}=Ax-b$ 称为原残差。将中间构件
+\[
+r_{\mathrm{cent}}=-\operatorname{diag}(\lambda)f(x)-(1/t)\mathbf{1}
+\]
+称为中心残差，即修改的互补性条件。
+
+现在让我们固定 $t$，考虑从满足 $f(x)<0$，$\lambda\succ 0$ 的点 $(x,\lambda,\nu)$ 开始求解非线性方程 $r_t(x,\lambda,\nu)=0$ 的 Newton 步径（与 \S 11.3.4 不同，这里不首先消去 $\lambda$）。我们将当前点和 Newton 步径分别记为
+\[
+y=(x,\lambda,\nu),\qquad \Delta y=(\Delta x,\Delta\lambda,\Delta\nu).
+\]
+决定 Newton 步径的线性方程为
+\[
+r_t(y+\Delta y)\approx r_t(y)+Dr_t(y)\Delta y=0,
+\]
+即 $\Delta y=-Dr_t(y)^{-1}r_t(y)$。基于 $x$，$\lambda$ 和 $\nu$，我们有
+\begin{equation}
+\begin{bmatrix}
+\nabla^2 f_0(x)+\sum_{i=1}^m\lambda_i\nabla^2f_i(x) & Df(x)^T & A^T\\
+-\operatorname{diag}(\lambda)Df(x) & -\operatorname{diag}(f(x)) & 0\\
+A & 0 & 0
+\end{bmatrix}
+\begin{bmatrix}
+\Delta x\\
+\Delta\lambda\\
+\Delta\nu
+\end{bmatrix}
+=-
+\begin{bmatrix}
+r_{\mathrm{dual}}\\
+r_{\mathrm{cent}}\\
+r_{\mathrm{pri}}
+\end{bmatrix}.
+\tag{11.54}
+\end{equation}
+所谓原对偶搜索方向 $\Delta y_{\mathrm{pd}}=(\Delta x_{\mathrm{pd}},\Delta\lambda_{\mathrm{pd}},\Delta\nu_{\mathrm{pd}})$ 就是式 (11.54) 的解。
+
+原搜索方向和对偶搜索方向通过系数矩阵和残差而互相耦合。例如，原搜索方向 $\Delta x_{\mathrm{pd}}$ 依赖于对偶变量 $\lambda$ 和 $\nu$ 以及原变量 $x$ 的当前值。还要看到，如果 $x$ 满足 $Ax=b$，即原可行性残差 $r_{\mathrm{pri}}$ 等于 0，那么就有 $A\Delta x_{\mathrm{pd}}=0$，此时 $\Delta x_{\mathrm{pd}}$ 是一个（原）可行方向：对任何 $s$，$x+s\Delta x_{\mathrm{pd}}$ 都将满足 $A(x+s\Delta x_{\mathrm{pd}})=b$。
+
+\noindent\textbf{和障碍方法搜索方向比较}
+
+原对偶搜索方向和障碍方法搜索方向有紧密的联系，但并不相同。我们从定义原对偶搜索方向的线性方程 (11.54) 开始，利用下面的表达式消去变量 $\Delta\lambda_{\mathrm{pd}}$，
+\[
+\Delta\lambda_{\mathrm{pd}}=-\operatorname{diag}(f(x))^{-1}\operatorname{diag}(\lambda)Df(x)\Delta x_{\mathrm{pd}}+\operatorname{diag}(f(x))^{-1}r_{\mathrm{cent}},
+\]
+该表达式来自方程的第二部分。将上式代入方程的第一部分得到
+\begin{equation}
+\begin{bmatrix}
+H_{\mathrm{pd}} & A^T\\
+A & 0
+\end{bmatrix}
+\begin{bmatrix}
+\Delta x_{\mathrm{pd}}\\
+\Delta\nu_{\mathrm{pd}}
+\end{bmatrix}
+=-
+\begin{bmatrix}
+r_{\mathrm{dual}}+Df(x)^T\operatorname{diag}(f(x))^{-1}r_{\mathrm{cent}}\\
+r_{\mathrm{pri}}
+\end{bmatrix}
+=-
+\begin{bmatrix}
+\nabla f_0(x)+(1/t)\sum_{i=1}^m\frac{1}{-f_i(x)}\nabla f_i(x)+A^T\nu\\
+r_{\mathrm{pri}}
+\end{bmatrix},
+\tag{11.55}
+\end{equation}
+其中
+\begin{equation}
+H_{\mathrm{pd}}=\nabla^2 f_0(x)+\sum_{i=1}^m\lambda_i\nabla^2f_i(x)+\sum_{i=1}^m\frac{\lambda_i}{-f_i(x)}\nabla f_i(x)\nabla f_i(x)^T.
+\tag{11.56}
+\end{equation}
+我们可以将式 (11.55) 和方程 (11.14) 进行比较，后者定义了障碍方法中参数为 $t$ 的中心点问题的 Newton 步径。该方程可以写成
+\begin{equation}
+\begin{aligned}
+\begin{bmatrix}
+H_{\mathrm{bar}} & A^T\\
+A & 0
+\end{bmatrix}
+\begin{bmatrix}
+\Delta x_{\mathrm{bar}}\\
+\nu_{\mathrm{bar}}
+\end{bmatrix}
+&=-
+\begin{bmatrix}
+t\nabla f_0(x)+\nabla\phi(x)\\
+r_{\mathrm{pri}}
+\end{bmatrix}\\
+&=-
+\begin{bmatrix}
+t\nabla f_0(x)+\sum_{i=1}^m\frac{1}{-f_i(x)}\nabla f_i(x)\\
+r_{\mathrm{pri}}
+\end{bmatrix},
+\end{aligned}
+\tag{11.57}
+\end{equation}
+其中
+\begin{equation}
+H_{\mathrm{bar}}=t\nabla^2f_0(x)+\sum_{i=1}^m\frac{1}{-f_i(x)}\nabla^2f_i(x)+\sum_{i=1}^m\frac{1}{f_i(x)^2}\nabla f_i(x)\nabla f_i(x)^T.
+\tag{11.58}
+\end{equation}
+（这里我们给出的是不可行 Newton 步径一般表示；如果当前点 $x$ 是可行的，即 $r_{\mathrm{pri}}=0$，则 $\Delta x_{\mathrm{bar}}$ 和式 (11.14) 定义的可行的 Newton 步径 $\Delta x_{\mathrm{nt}}$ 一致。）
+
+我们首先看到，方程 (11.55) 和方程 (11.57) 这两个系统非常相似。式 (11.55) 和式 (11.57) 的系数矩阵有相同的结构：确实，矩阵 $H_{\mathrm{pd}}$ 和 $H_{\mathrm{bar}}$ 都是矩阵
+\[
+\nabla^2f_0(x),\qquad \nabla^2f_1(x),\cdots,\nabla^2f_m(x),\qquad
+\nabla f_1(x)\nabla f_1(x)^T,\cdots,\nabla f_m(x)\nabla f_m(x)^T
+\]
+的正的线性组合。这意味着可以采用同样的方法计算原对偶搜索方向和障碍方法 Newton 步径。
+
+原对偶方程 (11.55) 和障碍方法方程 (11.57) 之间还有更多的联系。假定我们用方程 (11.57) 的第一部分除 $t$，并定义变量 $\Delta\nu_{\mathrm{bar}}=(1/t)\nu_{\mathrm{bar}}-\nu$（其中 $\nu$ 是任意的），就可得到
+\[
+\begin{bmatrix}
+(1/t)H_{\mathrm{bar}} & A^T\\
+A & 0
+\end{bmatrix}
+\begin{bmatrix}
+\Delta x_{\mathrm{bar}}\\
+\Delta\nu_{\mathrm{bar}}
+\end{bmatrix}
+=-
+\begin{bmatrix}
+\nabla f_0(x)+(1/t)\sum_{i=1}^m\frac{1}{-f_i(x)}\nabla f_i(x)+A^T\nu\\
+r_{\mathrm{pri}}
+\end{bmatrix}.
+\]
+在这个形式中，右边项和原对偶方程（对于相同的 $x$，$\lambda$ 和 $\nu$）的右边项相同。系数矩阵只有 $1,1$ 块不同：
+\[
+H_{\mathrm{pd}}=\nabla^2f_0(x)+\sum_{i=1}^m\lambda_i\nabla^2f_i(x)+\sum_{i=1}^m\frac{\lambda_i}{-f_i(x)}\nabla f_i(x)\nabla f_i(x)^T,
+\]
+\[
+(1/t)H_{\mathrm{bar}}=\nabla^2f_0(x)+\sum_{i=1}^m\frac{1}{-tf_i(x)}\nabla^2f_i(x)+\sum_{i=1}^m\frac{1}{tf_i(x)^2}\nabla f_i(x)\nabla f_i(x)^T.
+\]
+当 $x$ 和 $\lambda$ 满足 $-f_i(x)\lambda_i=1/t$ 时，系数矩阵，从而搜索方向，完全相同。
+
+\subsection*{11.7.2 代理对偶间隙}
+
+在原对偶内点法中，迭代点 $x^{(k)}$，$\lambda^{(k)}$ 和 $\nu^{(k)}$ 在收敛到极限值以前不一定是可行的。这意味着我们不能像在障碍方法中（经过外部迭代）那样很容易地估计第 $k$ 次迭代后的对偶间隙 $\eta^{(k)}$。为此我们对任何满足 $f(x)\prec 0$ 和 $\lambda\succeq 0$ 的 $x$ 定义\textbf{代理对偶间隙}
+\begin{equation}
+\hat{\eta}(x,\lambda)=-f(x)^T\lambda.
+\tag{11.59}
+\end{equation}
+如果 $x$ 是原可行的，$\lambda,\nu$ 是对偶可行的，即如果 $r_{\mathrm{pri}}=0$ 和 $r_{\mathrm{dual}}=0$，那么代理对偶间隙 $\hat{\eta}$ 就是对偶间隙。注意对应于代理对偶间隙 $\hat{\eta}$ 的参数 $t$ 的数值是 $m/\hat{\eta}$。
+
+\subsection*{11.7.3 原对偶内点法}
+
+现在我们可以描述基本的原对偶内点算法。
+
+\noindent\textbf{算法 11.2 原对偶内点法。}
+
+给定 $x$ 满足 $f_1(x)<0,\cdots,f_m(x)<0$、$\lambda\succ 0$、$\mu>1$、$\epsilon_{\mathrm{feas}}>0$、$\epsilon>0$。
+
+重复
+\begin{enumerate}
+\item 确定 $t$。令 $t:=\mu m/\hat{\eta}$。
+\item 计算原对偶搜索方向 $\Delta y_{\mathrm{pd}}$。
+\item 直线搜索和更新。确定步长 $s>0$，令 $y:=y+s\Delta y_{\mathrm{pd}}$。
+\end{enumerate}
+直到 $\|r_{\mathrm{pri}}\|_2\leq\epsilon_{\mathrm{feas}}$、$\|r_{\mathrm{dual}}\|_2\leq\epsilon_{\mathrm{feas}}$ 和 $\hat{\eta}\leq\epsilon$。
+
+在步骤 1，参数 $t$ 被设置为因子 $\mu$ 乘以 $m/\hat{\eta}$，这是和当前的代理对偶间隙 $\hat{\eta}$ 对应的 $t$ 值。如果 $x,\lambda$ 和 $\nu$ 是参数 $t$ 对应的中心点（因此对偶间隙为 $m/t$），那么我们在步骤 1 将 $t$ 值增长为它的 $\mu$ 倍，这和障碍方法中的更新完全一样。参数 $\mu$ 的取值在 10 的数量级看上去能够很好地工作。
+
+原对偶内点算法的终止条件是，$x$ 是原可行的，$\lambda$ 和 $\nu$ 是对偶可行的（都在阈值 $\epsilon_{\mathrm{feas}}$ 的范围内），并且代理对偶间隙小于阈值 $\epsilon$。因为原对偶内点法经常具有超线性收敛性，通常选择较小的 $\epsilon_{\mathrm{feas}}$ 和 $\epsilon$。
+
+\noindent\textbf{直线搜索}
+
+原对偶内点法的直线搜索是标准的基于残差范数的回溯直线搜索，其中进行了一些修改以保证 $\lambda\succ 0$ 和 $f(x)\prec 0$。我们用 $x,\lambda$ 和 $\nu$ 表示当前迭代点，用 $x^+,\lambda^+$ 和 $\nu^+$ 表示下一个迭代点，即
+\[
+x^+=x+s\Delta x_{\mathrm{pd}},\qquad
+\lambda^+=\lambda+s\Delta\lambda_{\mathrm{pd}},\qquad
+\nu^+=\nu+s\Delta\nu_{\mathrm{pd}}.
+\]
+在 $y^+$ 处的残差用 $r^+$ 表示。
+
+我们首先计算满足 $\lambda^+\succeq 0$ 且不超过 1 的最大的正步长，即
+\[
+s^{\max}=\sup\{s\in[0,1]\mid \lambda+s\Delta\lambda\succeq0\}
+=\min\{1,\min\{-\lambda_i/\Delta\lambda_i\mid \Delta\lambda_i<0\}\}.
+\]
+我们从 $s=0.99s^{\max}$ 开始回溯，反复用 $\beta\in(0,1)$ 乘 $s$ 直到 $f(x^+)\prec0$。然后我们继续用 $\beta$ 乘 $s$ 直到
+\[
+\|r_t(x^+,\lambda^+,\nu^+)\|_2\leq (1-\alpha s)\|r_t(x,\lambda,\nu)\|_2.
+\]
+通常采用和 Newton 方法相同的回溯参数 $\alpha$ 和 $\beta$：$\alpha$ 的典型选择范围为 0.01 到 0.1，而 $\beta$ 的典型选择范围为 0.3 到 0.8。
+
+原对偶内点法的一次迭代和用不可行 Newton 方法求解 $r_t(x,\lambda,\nu)=0$ 的一次迭代相同，但是作了一些修改以保证 $\lambda\succ0$ 和 $f(x)\prec0$（或者，等价地说，将 $\operatorname{dom}r_t$ 限制于 $\lambda\succ0$ 和 $f(x)\prec0$）。采用证明不可行 Newton 方法收敛的同样理由，可以说明原对偶方法的直线搜索总会在有限次迭代后停止。
+
+\subsection*{11.7.4 例子}
+
+我们用 \S 11.3.2 节考虑的相同问题来说明原对偶内点法的性能。唯一不同的区别在于初始点选择不同。在 \S 11.3.2 节我们从中心路径上一点开始迭代。现在我们随机产生满足 $f(x)\prec0$ 的 $x^{(0)}$，并取 $\lambda_i^{(0)}=-1/f_i(x^{(0)})$，以此为起点开始原对偶内点法，相应的初始代理间隙等于 $\hat{\eta}=100$。我们在原对偶内点法中使用的参数为
+\[
+\mu=10,\qquad \beta=0.5,\qquad \epsilon=10^{-8},\qquad \alpha=0.01.
+\]
+
+\noindent\textbf{小规模线性规划和几何规划}
+
+我们首先考虑 \S 11.3.2 节的小规模线性规划问题，其不等式数目 $m=100$，变量数目 $n=50$。图 11.21 显示原对偶内点法的迭代过程。两个曲线表示：代理间隙 $\hat{\eta}$ 和原对偶残差范数
+\[
+r_{\mathrm{feas}}=\left(\|r_{\mathrm{pri}}\|_2^2+\|r_{\mathrm{dual}}\|_2^2\right)^{1/2}
+\]
+与迭代次数的关系。（初始点是原可行的，因此曲线表示的仅是对偶可行性残差范数。）曲线表明残差很快地收敛于 0，并在 24 次迭代后精确等于 0。和障碍方法相比，原对偶内点法更快，在要求高精度时更是如此。
+
+图 11.22 显示用原对偶内点法求解 \S 11.3.2 节考虑的几何规划问题的迭代过程。收敛情况同线性规划的例子类似。
+
+\noindent\textbf{一族线性规划问题}
+
+现在我们以 \S 11.3.2 节考虑的一族标准线性规划问题为对象，考察原对偶方法的性能和问题维数之间的函数关系。我们用原对偶内点法求解 2000 个实例，其中每个 $m$
+值对应 100 个实例。原对偶算法初始点为 $x^{(0)}=\mathbf{1}$，$\lambda^{(0)}=\mathbf{1}$，$\nu^{(0)}=0$，终止误差阈值 $\epsilon=10^{-8}$。图 11.23 显示每个 $m$ 值对应的迭代次数的均值和标准差。迭代次数从 15 增加到 35，近似为 $m$ 的对数。和图 11.8 显示的障碍方法的相应结果比较，虽然我们从不可行点开始迭代原对偶方法，并且问题的求解精度高很多，但迭代次数的增加却很少。
+
+\section*{11.8\quad 实现}
+
+障碍方法的主要工作是为中心点问题计算 Newton 步径，为此需要求解下述形式的一组线性方程，
+\begin{equation}
+\begin{bmatrix}
+H & A^T\\
+A & 0
+\end{bmatrix}
+\begin{bmatrix}
+\Delta x_{\mathrm{nt}}\\
+\nu_{\mathrm{nt}}
+\end{bmatrix}
+=-
+\begin{bmatrix}
+g\\
+0
+\end{bmatrix},
+\tag{11.60}
+\end{equation}
+其中
+\[
+H=t\nabla^2f_0(x)+\sum_{i=1}^m\frac{1}{f_i(x)^2}\nabla f_i(x)\nabla f_i(x)^T+\sum_{i=1}^m\frac{1}{-f_i(x)}\nabla^2f_i(x)
+\]
+\[
+g=t\nabla f_0(x)+\sum_{i=1}^m\frac{1}{-f_i(x)}\nabla f_i(x).
+\]
+原对偶方法的 Newton 方程具有完全相同的结构，因此本节的讨论也适用于原对偶方法。
+
+式 (11.60) 的系数矩阵具有 KKT 结构，因此 \S 9.7 节和 \S 10.4 节的讨论在这里都适用。特别是，可以用消元法求解方程，以及利用像稀疏性或对角加低秩这些结构。下面我们给出一些具有一般性的例子，对这些例子可以利用 KKT 方程的特殊结构更加有效地计算 Newton 步径。
+
+\noindent\textbf{稀疏问题}
+
+如果原问题是稀疏的，就是说目标函数和每个约束函数仅依赖较少数目的变量，那么目标函数和约束函数的梯度与 Hessian 矩阵都是稀疏的，因此系数矩阵 $A$ 也是这样。倘若 $m$ 不是太大，则矩阵 $H$ 很可能是稀疏的，从而可用稀疏矩阵方法计算 Newton 步径。当 KKT 矩阵仅有少数较稠密的行和列时，例如，等式约束很少而变量很多时就会发生这种情况，稀疏矩阵方法可能取得很好的效果。
+
+\noindent\textbf{可分目标函数和少数线性不等式约束}
+
+假设目标函数是可分的，并且仅有较少的线性等式和不等式约束。此时 $\nabla^2f_0(x)$ 是对角阵，而 $\nabla^2f_i(x)$ 不存在，因此矩阵 $H$ 是对角加低秩矩阵。由于很容易计算 $H$ 的逆矩阵，我们可以非常有效地求解 KKT 方程。只要 $\nabla^2f_0(x)$ 很容易求逆，例如，带状、稀疏或分块对角矩阵的情况，就可以应用同样的方法。
+
+\subsection*{11.8.1\quad 标准形式线性规划}
+
+我们首先讨论用障碍方法求解标准形式线性规划
+\[
+\begin{array}{ll}
+\text{minimize} & c^Tx\\
+\text{subject to} & Ax=b,\quad x\succeq 0
+\end{array}
+\]
+的实现问题，其中 $A\in\mathbb{R}^{m\times n}$。中心点问题
+\[
+\begin{array}{ll}
+\text{minimize} & tc^Tx-\displaystyle\sum_{i=1}^n\log x_i\\
+\text{subject to} & Ax=b
+\end{array}
+\]
+的 Newton 方程为
+\[
+\begin{bmatrix}
+\operatorname{diag}(x)^{-2} & A^T\\
+A & 0
+\end{bmatrix}
+\begin{bmatrix}
+\Delta x_{\mathrm{nt}}\\
+\nu_{\mathrm{nt}}
+\end{bmatrix}
+=
+\begin{bmatrix}
+-tc+\operatorname{diag}(x)^{-1}\mathbf{1}\\
+0
+\end{bmatrix}.
+\]
+通常通过消去 $\Delta x_{\mathrm{nt}}$ 求解该方程。从第一个等式可得
+\[
+\begin{aligned}
+\Delta x_{\mathrm{nt}}
+&=\operatorname{diag}(x)^2(-tc+\operatorname{diag}(x)^{-1}\mathbf{1}-A^T\nu_{\mathrm{nt}})\\
+&=-t\operatorname{diag}(x)^2c+x-\operatorname{diag}(x)^2A^T\nu_{\mathrm{nt}}.
+\end{aligned}
+\]
+将其代入第二个方程得到
+\[
+A\operatorname{diag}(x)^2A^T\nu_{\mathrm{nt}}
+=-tA\operatorname{diag}(x)^2c+b.
+\]
+根据假设 $\operatorname{rank}A=m$，所以稀疏矩阵是正定的。另外，如果 $A$ 是稀疏的，则 $A\operatorname{diag}(x)^2A^T$ 通常也是稀疏的，因此可利用稀疏矩阵的 Cholesky 因式分解求解。
+
+\subsection*{11.8.2\quad $\ell_1$-范数逼近}
+
+考虑 $\ell_1$-范数逼近问题
+\[
+\begin{array}{ll}
+\text{minimize} & \|Ax-b\|_1
+\end{array}
+\]
+其中 $A\in\mathbb{R}^{m\times n}$。我们将讨论 $m$ 和 $n$ 很大，但 $A$ 有特殊结构（例如稀疏矩阵）情况下的实现问题，并和对应的最小二乘问题
+\[
+\begin{array}{ll}
+\text{minimize} & \|Ax-b\|_2^2
+\end{array}
+\]
+的计算成本进行比较。
+
+我们首先引入辅助变量 $y\in\mathbb{R}^m$，将 $\ell_1$-范数逼近问题表述为线性规划问题
+\[
+\begin{array}{ll}
+\text{minimize} & \mathbf{1}^Ty\\
+\text{subject to} &
+\begin{bmatrix}
+A & -I\\
+-A & -I
+\end{bmatrix}
+\begin{bmatrix}
+x\\
+y
+\end{bmatrix}
+\preceq
+\begin{bmatrix}
+b\\
+-b
+\end{bmatrix}.
+\end{array}
+\]
+其中心点问题的 Newton 方程为
+\[
+\begin{bmatrix}
+A^T & -A^T\\
+-I & -I
+\end{bmatrix}
+\begin{bmatrix}
+D_1 & 0\\
+0 & D_2
+\end{bmatrix}
+\begin{bmatrix}
+A & -I\\
+-A & -I
+\end{bmatrix}
+\begin{bmatrix}
+\Delta x_{\mathrm{nt}}\\
+\Delta y_{\mathrm{nt}}
+\end{bmatrix}
+=-
+\begin{bmatrix}
+A^Tg_1\\
+g_2
+\end{bmatrix}
+\]
+其中
+\[
+D_1=\operatorname{diag}(b-Ax+y)^{-2},\qquad
+D_2=\operatorname{diag}(-b+Ax+y)^{-2}
+\]
+以及
+\[
+g_1=\operatorname{diag}(b-Ax+y)^{-1}\mathbf{1}
+-\operatorname{diag}(-b+Ax+y)^{-1}\mathbf{1}
+\]
+\[
+g_2=t\mathbf{1}-\operatorname{diag}(b-Ax+y)^{-1}\mathbf{1}
+-\operatorname{diag}(-b+Ax+y)^{-1}\mathbf{1}.
+\]
+如果把左边的系数矩阵相乘，可以将其简化为
+\[
+\begin{bmatrix}
+A^T(D_1+D_2)A & -A^T(D_1-D_2)\\
+-(D_1-D_2)A & D_1+D_2
+\end{bmatrix}
+\begin{bmatrix}
+\Delta x_{\mathrm{nt}}\\
+\Delta y_{\mathrm{nt}}
+\end{bmatrix}
+=-
+\begin{bmatrix}
+A^Tg_1\\
+g_2
+\end{bmatrix}.
+\]
+消去 $\Delta y_{\mathrm{nt}}$ 可以得到
+\begin{equation}
+A^TDA\Delta x_{\mathrm{nt}}=-A^Tg
+\tag{11.61}
+\end{equation}
+其中
+\[
+D=4D_1D_2(D_1+D_2)^{-1}
+=2\left(\operatorname{diag}(y)^2+\operatorname{diag}(b-Ax)^2\right)^{-1}
+\]
+以及
+\[
+g=g_1+(D_1-D_2)(D_1+D_2)^{-1}g_2.
+\]
+求得 $\Delta x_{\mathrm{nt}}$ 后，我们可以从
+\[
+\Delta y_{\mathrm{nt}}=(D_1+D_2)^{-1}(-g_2+(D_1-D_2)A\Delta x_{\mathrm{nt}})
+\]
+得到 $\Delta y_{\mathrm{nt}}$。值得注意的是，式 (11.61) 是加权最小二乘问题
+\[
+\begin{array}{ll}
+\text{minimize} & \|D^{1/2}(A\Delta x+D^{-1}g)\|_2
+\end{array}
+\]
+的正规方程。换句话说，求解 $\ell_1$-范数逼近问题的成本等于求解相同矩阵 $A$ 的规模较小的加权最小二乘问题，不过该问题的权在每次迭代后会发生变化。如果 $A$ 的结构使我们能够快速求解最小二乘问题（例如，利用稀疏性），那么我们就能够快速求解式 (11.61)。
+
+\subsection*{11.8.3\quad 不等式形式的正半定规划}
+
+我们考虑正半定规划问题
+\[
+\begin{array}{ll}
+\text{minimize} & c^Tx\\
+\text{subject to} & \displaystyle\sum_{i=1}^n x_iF_i+G\preceq 0
+\end{array}
+\]
+其中变量 $x\in\mathbb{R}^n$，参数 $F_1,\cdots,F_n,G\in\mathbf{S}^p$。采用对数-行列式障碍函数，相应的中心点问题是
+\[
+\begin{array}{ll}
+\text{minimize} & tc^Tx-\log\det\left(-\displaystyle\sum_{i=1}^n x_iF_i-G\right).
+\end{array}
+\]
+Newton 步径 $\Delta x_{\mathrm{nt}}$ 由等式 $H\Delta x_{\mathrm{nt}}=-g$ 确定，其中 Hessian 矩阵和梯度由下式给出，
+\[
+H_{ij}=\operatorname{tr}(S^{-1}F_iS^{-1}F_j),\quad i,j=1,\cdots,n
+\]
+\[
+g_i=tc_i+\operatorname{tr}(S^{-1}F_i),\quad i=1,\cdots,n,
+\]
+其中 $S=-\sum_{i=1}^n x_iF_i-G$。标准做法是先计算 $H$（和 $g$），然后通过 Cholesky 因式分解求解 Newton 方程。
+
+我们首先考虑无结构的情况，即假定所有矩阵是稠密的。我们将只分析浮点运算量关于问题维数 $n$ 和 $p$ 的阶数。我们首先计算 $S$，其成本为 $np^2$。然后对每个 $i$ 计算矩阵 $S^{-1}F_i$，具体做法是先对 $S$ 进行 Cholesky 因式分解，然后后向代入 $F_i$ 的各列求得所需矩阵（或者计算 $S^{-1}$ 再用 $F_i$ 相乘）。对每个 $i$，该计算量为 $p^3$，因此总成本为 $np^3$。最后，我们计算矩阵 $S^{-1}F_i$ 和 $S^{-1}F_j$ 的内积 $H_{ij}$，其成本为 $p^2$。因为我们要对 $n(n+1)/2$ 对矩阵进行计算，所以成本为 $n^2p^2$。计算 Newton 方向的成本为 $n^3$。所以主导阶数为 $\max\{np^3,n^2p^2,n^3\}$。
+
+一般情况下，即使矩阵 $F_i$ 和 $G$ 是稀疏的，也不太可能利用 $F_i$ 和 $G$ 的稀疏性，因为 $H$ 通常是稠密的。一种例外情况是 $F_i$ 和 $G$ 具有共同的分块对角结构，此时上面描述的所有运算可以分块进行。
+
+通常可以利用 $F_i$ 和 $G$ 的（共同的）稀疏性更有效地计算（稠密的）Hessian 矩阵 $H$。如果我们能够找到导致 $S$ 具有合理的稀疏 Cholesky 因子的次序，我们就可以有效地计算 $S^{-1}F_i$，从而用有效得多的方式计算 $H_{ij}$。
+
+经常出现的一个有意义的例子是具有下述矩阵不等式的正半定规划问题
+\[
+\operatorname{diag}(x)\preceq B.
+\]
+这对应于 $F_i=E_{ii}$，其中 $E_{ii}$ 是 $ii$ 元素为 1 其他元素为 0 的矩阵。这种情况下可以非常有效地确定矩阵 $H$：
+\[
+H_{ij}=(S^{-1})_{ij}^2,
+\]
+其中 $S=B-\operatorname{diag}(x)$。此时计算 $H$ 的成本等于计算 $S^{-1}$ 的成本，它至多（即没有其他结构可利用）是 $n^3$ 阶的。
+
+\subsection*{11.8.4\quad 网络比率优化}
+
+我们考虑 \S 10.4.3 节（第 526 页）描述的最优网络流问题的一种变形，有时被称为\textbf{网络比率优化问题}。我们用 $L$ 个弧或边组成的有向图描述网络。货物，或信息包，通过边在网络上移动。网络支持 $n$ 个流，它们的（非负的）比率 $x_1,\cdots,x_n$ 是优化变量。每个流沿着网络上一个固定的，或预先设定的道路（或线路）从源结点向目标结点移动。每条边可以支持多个流通过。每条边上的总交通量等于通过它的所有流量的比率之和。每条边有一个正的容量，这是在它上面能够通过的总交通量的最大值。
+
+我们可以用下面定义的流-边关联矩阵 $A\in\mathbb{R}^{L\times n}$ 描述这些边上的容量限制，
+\[
+A_{ij}=
+\begin{cases}
+1 & \text{流 }j\text{ 通过边 }i\\
+0 & \text{其他情况。}
+\end{cases}
+\]
+这样就可以将边 $i$ 上的总交通量写成 $(Ax)_i$，于是边容量约束可以用 $Ax\preceq c$ 表示，其中 $c_i$ 是边 $i$ 上的容量。通常每个道路只通过所有边中的一小部分，因此 $A$ 是稀疏矩阵。
+
+在网络比率问题中道路是固定的（并作为问题的参数记录在矩阵 $A$ 中）；变量是流的比率 $x_i$。目标是选择流的比率使下面的可分效用函数 $U$ 达到最大，
+\[
+U(x)=U_1(x_1)+\cdots+U_n(x_n).
+\]
+我们假定每个 $U_i$（从而 $U$）是凹和非减的。可以把 $U_i(x_i)$ 视为通过以比率 $x_i$ 支持第 $i$ 个流产生的收入；于是 $U(x)$ 是相应的流产生的总收入。网络比率优化问题可写成
+\begin{equation}
+\begin{array}{ll}
+\text{maximize} & U(x)\\
+\text{subject to} & Ax\preceq c,\quad x\succeq 0
+\end{array}
+\tag{11.62}
+\end{equation}
+这是一个凸优化问题。
+
+我们用障碍方法求解这个问题。每步迭代我们需要用 Newton 方法优化以下形式的函数，
+\[
+-tU(x)-\sum_{i=1}^L\log(c-Ax)_i-\sum_{j=1}^n\log x_j.
+\]
+确定 Newton 步径 $\Delta x_{\mathrm{nt}}$ 需要求解线性方程组
+\[
+(D_0+A^TD_1A+D_2)\Delta x_{\mathrm{nt}}=-g,
+\]
+其中
+\[
+D_0=-t\operatorname{diag}(U_1''(x),\cdots,U_n''(x))
+\]
+\[
+D_1=\operatorname{diag}(1/(c-Ax)_1^2,\cdots,1/(c-Ax)_L^2)
+\]
+\[
+D_2=\operatorname{diag}(1/x_1^2,\cdots,1/x_n^2)
+\]
+是对角矩阵，而 $g\in\mathbb{R}^n$。我们可以精确描述这个 $n\times n$ 系数矩阵的稀疏结构：当且仅当流 $i$ 和流 $j$ 共享一条边时才成立
+\[
+(D_0+A^TD_1A+D_2)_{ij}\neq 0.
+\]
+如果道路都比较短，而每条边只有较少的道路通过，那么这个矩阵就是稀疏的，因此其稀疏的 Cholesky 因式分解可以被利用。当 Newton 系统的某些（不是很多）行和列稠密时，我们也可以进行有效的求解。这种情况发生于仅有很少数的流和大量的流相交的时候，如果比较长的流很少就可能出现这种情况。
+
+我们也可以利用逆矩阵引理计算 Newton 步径，为此我们先求解具有 $L\times L$ 系数矩阵的系统
+\[
+(D_1^{-1}+A(D_0+D_2)^{-1}A^T)y=-A(D_0+D_2)^{-1}g,
+\]
+然后计算
+\[
+\Delta x_{\mathrm{nt}}=-(D_0+D_2)^{-1}(g+A^Ty).
+\]
+这里我们也能够精确描述稀疏模式：当且仅当存在一条通过边 $i$ 和边 $j$ 的道路才成立
+\[
+(D_1^{-1}+A(D_0+D_2)^{-1}A^T)_{ij}\neq 0.
+\]
+如果大多数道路很短，该矩阵就是稀疏的。如果仅有很少瓶颈，即很多流都通过的边，那么这个矩阵将是仅有少数稠密的行和列的稀疏矩阵。
+
+\section*{参考文献}
+
+Fiacco 和 McCormick [FM90, \S1.2] 详细描述了障碍法的早期历史。在 20 世纪 60 年代，该方法和一些密切相关的技术，如中心点方法 (Lieur 和 Huard [LH66]；也可参见习题 11.11)、罚函数（或外点）法 [FM90, \S4]，一起构成求解凸优化问题的常用方法。在 20 世纪 70 年代，由于担心 $t$ 很大时中心点问题 (11.6) 的牛顿方程的病态性质，对该方法的兴趣逐渐降低。
+
+在 20 世纪 80 年代，自 Gill，Murray，Saunders，Tomlin 和 Wright [GMS$^+$86] 指出障碍法与 Karmarkar 求解线性规划的多项式时间的投影算法 [Kar84] 的紧密联系后，该方法重新获得广泛关注。在整个 20 世纪 80 年代，研究焦点始终聚集在线性（少量推广到二次）规划问题，由此产生了基本内点法的不同变形以及对最坏情况复杂性结果的各种改进（见 Gonzaga [Gon92]）。原对偶内点法是实际实现中涌现出来的算法（见 Mehrotra [Meh92]，Lustig，Marsten 和 Shanno [LMS94]，Wright [Wri97]）。
+
+Nesterov 和 Nemirovski 在 1994 年的书中，利用自和谐函数牛顿法的收敛性理论，将线性规划内点法的复杂性理论推广到非线性凸优化问题。他们也发展了广义不等式约束问题的内点法，并且讨论了通过重新描述相应问题以满足自和谐假设的方式。例如，第 559 页对几何规划的重新描述就是取自 [NN94, \S6.3.1]。
+
+正如在 558 页提到的那样，复杂性分析表明，同人们的预期相反，随着 $t$ 的增加，障碍法的中心点问题并不变得更加难解，至少在精确计算方面是这样。实际经验表明，在求解牛顿系统时，其病态性质的影响远远没有早期预想的那么严峻，这一点也有理论结果的支持 (Forsgren，Gill 和 Wright [FGW02, \S4.3.2]，Nocedal 和 Wright [NW99, page 525])。
+
+近期对内点法的研究集中于将线性规划的原对偶法推广于非线性凸问题，同（原始的）障碍法相比，原对偶法收敛更快，并能达到更高的精度。除了遵循 \S11.7 描述的简单的原对偶法的路线，一种常用方法是基于对标准形式凸优化问题，即问题 (11.1)，的修改的 KKT 方程进行线性化。这种类型的更复杂的算法和算法 11.2 相比在 $t$ 的选择（这是取得超线性渐进收敛的关键）和直线搜索方面均不相同。详细内容和更多文献可参考 Wright [Wri97, chapter 8]，Ralph 和 Wright [RW97]，den Hertog [dH93]，Terlaky [Ter96] 以及 Forsgren，Gill 和 Wright [FGW02, \S5] 的综述。
+
+另外一些作者以锥规划框架为起点，将原对偶内点法从线性规划推广于凸优化（例如，见 Nesterov 和 Todd [NT98]）。这种方法产生了求解半定和二次规划的有效且精确的原对偶法（见 Todd [Tod01] 以及 Alizadeh 和 Goldfarb [AG03] 的综述）。
+
+同线性规划一样，半定规划的原对偶法通常描述为将牛顿法的变形应用于修改的 KKT 方程。但是，和线性规划不一样，可以用很多不同方式进行线性化，由此可产生不同的搜索方向和算法；见 Helmberg，Rendl，Vanderbei 和 Wolkowicz [HRVW96]，Kojima，Shindo 和 Harah [KSH97]，Monteiro [Mon97]，Nesterov 和 Todd [NT98]，Zhang [Zha98]，Alizadeh，Haeberly 和 Overton [AHO98] 以及 Todd，Toh 和 Tutuncü [TTT98]。
+
+在初始化和不可行检验方面也取得了很大进展。齐次自和谐描述对 \S11.4 中经典的两阶段法给出了一个精制而有效的替代方案；详细内容可见 Ye，Todd 和 Mizuno [YTM94]，Xu，Hung 和 Ye [XHY96]，Andersen 和 Ye [AY98] 以及 Luo，Sturm 和 Zhang [LSZ00]。
+
+半定和二阶锥规划的原对偶内点法已经实现在若干软件包中，包括 SeDuMi [Stu99]，SDPT3 [TTT02]，SDPA [FKN98]，CSDP [Bor02] 以及 DSDP [BY02]，YALMIP 提供了应用这些程序的用户友好的界面 [Löf04]。
+
+以下书籍详细记录了这个迅速发展的领域的最近进展：Vanderbei [Van96]，Wright [Wri97]，Roos，Terlaky 和 Vial [RTV97]，Ye [Ye97]，Wolkowicz，Saigal 和 Vandenberghe [WSV00]，Ben-Tal 和 Nemirovski，[BTN01]，Renegar [Ren01] 以及 Peng，Roos 和 Terlaky [PRT02]。
+
+\section*{习题}
+
+\noindent\textbf{障碍法}
+
+\noindent\textbf{11.1 障碍法例子。} 考虑简单问题
+\[
+\begin{array}{ll}
+\text{minimize} & x^2+1\\
+\text{subject to} & 2\leq x\leq 4
+\end{array}
+\]
+其可行集为 $[2,4]$，最优解为 $x^\star=2$。对 $t>0$ 的若干数值画出 $f_0$ 和 $tf_0+\phi$ 关于 $x$ 的图像，并标出 $x^\star(t)$。
+
+\noindent\textbf{11.2} 用障碍法求解下述线性规划问题会怎样？
+\[
+\begin{array}{ll}
+\text{minimize} & x_2\\
+\text{subject to} & x_1\leq x_2,\quad 0\leq x_2
+\end{array}
+\]
+其中 $x\in\mathbb{R}^2$。
+
+\noindent\textbf{11.3 中心点问题的有界性。} 假设问题 (11.1) 的下水平集
+\[
+\begin{array}{ll}
+\text{minimize} & f_0(x)\\
+\text{subject to} & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& Ax=b
+\end{array}
+\]
+有界。证明相应的中心点问题的下水平集
+\[
+\begin{array}{ll}
+\text{minimize} & tf_0(x)+\phi(x)\\
+\text{subject to} & Ax=b
+\end{array}
+\]
+也有界。
+
+\noindent\textbf{11.4 增加范数上界保证中心点问题的强凸性。} 假设对问题 (11.1) 增加约束 $x^Tx\leq R^2$：
+\[
+\begin{array}{ll}
+\text{minimize} & f_0(x)\\
+\text{subject to} & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& Ax=b\\
+& x^Tx\leq R^2
+\end{array}
+\]
+用 $\tilde{\phi}$ 表示修改后问题的对数障碍函数。确定 $a>0$ 使对所有可行的 $x$ 满足 $\nabla^2(tf_0(x)+\tilde{\phi}(x))\succeq aI$。
+
+\noindent\textbf{11.5 二阶锥规划的障碍法。} 考虑二阶锥规划（为简化问题不考虑等式约束）
+\begin{equation}
+\begin{array}{ll}
+\text{minimize} & f^Tx\\
+\text{subject to} & \|A_ix+b_i\|_2\leq c_i^Tx+d_i,\quad i=1,\cdots,m,
+\end{array}
+\tag{11.63}
+\end{equation}
+该问题的约束函数不可微（因为 Euclid 范数 $\|u\|_2$ 在 $u=0$ 处不可微），因此（标准）障碍法不能用。在 \S11.6 我们看到可以用处理广义不等式的扩展障碍法求解该问题。（见例子 11.8，第 572 页和第 574 页。）在这个习题中，我们说明如何用标准障碍法（针对标量约束函数）求解二阶锥规划。
+
+我们首先将二阶锥规划重新构造为
+\begin{equation}
+\begin{array}{ll}
+\text{minimize} & f^Tx\\
+\text{subject to} & \|A_ix+b_i\|_2^2/(c_i^Tx+d_i)\leq c_i^Tx+d_i,\quad i=1,\cdots,m\\
+& c_i^Tx+d_i\geq 0,\quad i=1,\cdots,m
+\end{array}
+\tag{11.64}
+\end{equation}
+约束函数
+\[
+f_i(x)=\frac{\|A_ix+b_i\|_2^2}{c_i^Tx+d_i}-c_i^Tx-d_i
+\]
+是二次-线性分式函数和仿射函数的复合函数，只要规定其定义域为 $\operatorname{dom} f_i=\{x\mid c_i^Tx+d_i>0\}$，该函数就二次可微（并且是凸的）。注意问题 (11.63) 和 (11.64) 并非完全等价。如果对于某个 $i$ 有 $c_i^Tx^\star+d_i=0$，其中 $x^\star$ 是二次规划 (11.63) 的最优解，那么重新构造的问题 (11.64) 是不可解的；因为 $x^\star$ 不在其定义域内。但是我们将看见，用障碍法求解问题 (11.64) 可以产生问题 (11.64) 的任意精度的次优解，因此也能够求解问题 (11.63)。
+
+(a) 对问题 (11.64) 形成对数障碍函数 $\phi$。用处理广义不等式的障碍法（在 \S11.6 中）求解二阶锥规划 (11.63)，并形成相应的对数障碍函数。然后将两者进行比较。
+
+(b) 说明如果极小化 $tf^Tx+\phi(x)$，最优解 $x^\star(t)$ 是问题 (11.63) 的 $2m/t$-次优解。由此可知，应用标准障碍法求解重新构造的问题 (11.64)，可以在获得任意精度的次优解的意义上求解二阶锥规划 (11.63)。这种情况下我们甚至可以不需要最优解 $x^\star$ 属于重新构造的问题 (11.64) 的定义域。
+
+\noindent\textbf{11.6 广义障碍。} 对数障碍函数是用 $-(1/t)\log(-u)$ 近似示性函数 $\hat{I}_-(u)$（见第 537 页的 \S11.2.1）。我们也可以通过其他近似来构造障碍函数，从而推广中心路径和障碍法。令 $h:\mathbb{R}\to\mathbb{R}$ 为闭的单调增加的二次可微凸函数，$\operatorname{dom}h=-\mathbb{R}_{++}$。（这意味着 $u\to 0$ 时有 $h(u)\to\infty$。）$h(u)=-\log(-u)$ 是这样一个函数；另一个例子是 $h(u)=-1/u$（对于 $u<0$）。
+
+现在考虑优化问题（为简化讨论没有加上等式约束）
+\[
+\begin{array}{ll}
+\text{minimize} & f_0(x)\\
+\text{subject to} & f_i(x)\leq 0,\quad i=1,\cdots,m,
+\end{array}
+\]
+其中 $f_i$ 是二次可微函数。对该问题我们定义 $h$-障碍为
+\[
+\phi_h(x)=\sum_{i=1}^m h(f_i(x))
+\]
+定义域为 $\{x\mid f_i(x)<0,\ i=1,\cdots,m\}$。当 $h(u)=-\log(-u)$ 时，这是常用的对数障碍函数；当 $h(u)=-1/u$ 时，$\phi_h$ 称为倒数障碍。我们定义 $h$-路径为
+\[
+x^\star(t)=\mathop{\rm argmin} tf_0(x)+\phi_h(x),
+\]
+其中 $t>0$ 是参数。（我们假定对每个 $t$，存在唯一的极小解。）
+
+(a) 说明为什么 $tf_0(x)+\phi_h(x)$ 对于每个 $t>0$ 是 $x$ 的凸函数。
+
+(b) 说明如何利用 $x^\star(t)$ 构造对偶可行解 $\lambda$。确定相应的对偶间隙。
+
+(c) 对于什么函数 $h$ 在 (b) 中确定的对偶间隙仅依赖 $t$ 和 $m$（和其他问题数据无关）？
+
+\noindent\textbf{11.7 中心路径的切线。} 本题考虑中心路径在点 $x^\star(t)$ 处的切线 $dx^\star(t)/dt$。为便于讨论，我们考虑没有等式约束的问题；所得到的结果很容易推广于等式约束问题。
+
+(a) 给出 $dx^\star(t)/dt$ 的显式表达式。提示：对中心点方程 (11.7) 关于 $t$ 求导。
+
+(b) 证明 $f_0(x^\star(t))$ 随着 $t$ 的增加而减少。因此，障碍法的目标函数随着参数 $t$ 的增加而减少。（我们已经知道对偶间隙 $m/t$ 随着 $t$ 的增加而减少。）
+
+\noindent\textbf{11.8 中心点问题的预估-纠正方法。} 在标准障碍法中，用 Newton 法计算 $x^\star(\mu t)$ 是从初始点 $x^\star(t)$ 开始。已经提出的一种替代方案是先确定 $x^\star(\mu t)$ 的近似或预估值 $\hat{x}$，然后从 $\hat{x}$ 开始用 Newton 法计算 $x^\star(\mu t)$。采用这种做法的想法是，既然 $\hat{x}$（大概）是比 $x^\star(t)$ 更好的初始点，从前者开始应该能够减少 Newton 迭代的次数。这种中心点方法被称为预估-纠正方法，因为它首先预估 $x^\star(\mu t)$ 的数值，然后利用 Newton 法纠正预估值。
+
+最常用的预估值是基于习题 11.7 给出的中心路径切线的一次预估值。该预估值由下式给出
+\[
+\hat{x}=x^\star(t)+\frac{dx^\star(t)}{dt}(\mu t-t).
+\]
+导出一次预估值 $\hat{x}$ 的表达式。将它和 Newton 更新值，即 $x^\star(t)+\Delta x_{\mathrm{nt}}$，进行比较，其中 $\Delta x_{\mathrm{nt}}$ 是 $\mu t f_0(x)+\phi(x)$ 在 $x^\star(t)$ 处的 Newton 步径。如果目标函数 $f_0$ 是线性函数能够得出什么结论？（为便于分析，可以考虑没有等式约束的问题。）
+
+\noindent\textbf{11.9 中心路径附近的对偶可行点。} 考虑问题
+\[
+\begin{array}{ll}
+\text{minimize} & f_0(x)\\
+\text{subject to} & f_i(x)\leq 0,\quad i=1,\cdots,m
+\end{array}
+\]
+变量为 $x\in\mathbb{R}^n$。我们假定 $f_i$ 是二次可微凸函数。（为简化问题假定没有等式约束。）已知（见 539 页 \S11.2.2）$\lambda_i=-1/(tf_i(x^\star(t)))$，$i=1,\cdots,m$ 是对偶可行解，并且 $x^\star(t)$ 实际上使 $L(x,\lambda)$ 达到最小。由此可确定 $\lambda$ 的对偶函数值，它就是 $g(\lambda)=f_0(x^\star(t))-m/t$。特别是，我们可以断定 $x^\star(t)$ 是 $m/t$-次优解。
+
+本题考虑当点 $x$ 接近 $x^\star(t)$ 但不在中心路径上时会发生什么问题。（当求中心点的步骤终止的较早或者没有达到充分的精度时就会出现这种情况。）当然，在这种情况下我们不能说 $\lambda_i=-1/(tf_i(x))$，$i=1,\cdots,m$ 是对偶可行解，或者 $x$ 是 $m/t$-次优解。但是，我们将看到，如果 $x$ 已经充分接近中心路径，用一个稍微复杂一点的公式就可以产生一个对偶可行解。
+
+令 $\Delta x_{\mathrm{nt}}$ 为以下中心点问题在 $x$ 处的 Newton 步径，
+\[
+\text{minimize}\quad tf_0(x)-\sum_{i=1}^m\log(-f_i(x)).
+\]
+当 $\Delta x_{\mathrm{nt}}$ 较小（即 $x$ 几乎为中心点）时，下述公式经常能给出对偶可行解，
+\[
+\lambda_i=\frac{1}{-tf_i(x)}\left(1+\frac{\nabla f_i(x)^T\Delta x_{\mathrm{nt}}}{-f_i(x)}\right),\quad i=1,\cdots,m.
+\]
+在这种情况下，向量 $x$ 并不能极小化 $L(x,\lambda)$，因此没有对偶函数在 $\lambda$ 处函数值 $g(\lambda)$ 的一般性公式。（但是，如果有对偶目标函数的解析表达式，就可以简单地计算 $g(\lambda)$。）
+
+对于二次约束的二次规划问题
+\[
+\begin{array}{ll}
+\text{minimize} & (1/2)x^TP_0x+q_0^Tx+r_0\\
+\text{subject to} & (1/2)x^TP_ix+q_i^Tx+r_i\leq 0,\quad i=1,\cdots,m
+\end{array}
+\]
+验证当 $\Delta x_{\mathrm{nt}}$ 充分小时，以上公式对 $\lambda$ 产生一个对偶可行解（即 $\lambda\succeq 0$ 且 $L(x,\lambda)$ 有下界）。
+
+提示：定义
+\[
+x_0=x+\Delta x_{\mathrm{nt}},\qquad x_i=x-\frac{1}{t\lambda_i f_i(x)}\Delta x_{\mathrm{nt}},\quad i=1,\cdots,m.
+\]
+证明
+\[
+\nabla f_0(x_0)+\sum_{i=1}^m \lambda_i\nabla f_i(x_i)=0.
+\]
+再利用 $f_i(z)\geq f_i(x_i)+\nabla f_i(x_i)^T(z-x_i)$，$i=0,\cdots,m$ 推导 $L(z,\lambda)$ 的下界。
+
+\noindent\textbf{11.10 中心路径的另外一种参数化方式。} 考虑问题 (11.1)，对应 $t>0$ 的中心路径 $x^\star(t)$ 是以下问题的解
+\[
+\begin{array}{ll}
+\text{minimize} & tf_0(x)-\displaystyle\sum_{i=1}^m\log(-f_i(x))\\
+\text{subject to} & Ax=b.
+\end{array}
+\]
+本题给出中心路径的另外一种参数化方式。
+
+对于 $u>p^\star$，用 $z^\star(u)$ 表示以下问题的解
+\[
+\begin{array}{ll}
+\text{minimize} & -\log(u-f_0(x))-\displaystyle\sum_{i=1}^m\log(-f_i(x))\\
+\text{subject to} & Ax=b.
+\end{array}
+\]
+证明对应 $u>p^\star$，曲线 $z^\star(u)$ 就是中心路径。（换句话说，对于每个 $u>p^\star$，存在 $t>0$ 满足 $x^\star(t)=z^\star(u)$，反之，对于每个 $t>0$，存在 $u>p^\star$ 满足 $z^\star(u)=x^\star(t)$。）
+
+\noindent\textbf{11.11 解析中心法。} 本题考虑障碍法的一种变形，该方法基于习题 11.10 描述的参数化中心路径。为便于讨论，我们考虑没有等式约束的问题
+\[
+\begin{array}{ll}
+\text{minimize} & f_0(x)\\
+\text{subject to} & f_i(x)\leq 0,\quad i=1,\cdots,m
+\end{array}
+\]
+解析中心法从任意一个严格可行的初始点 $x^{(0)}$ 和任意的 $u^{(0)}>f_0(x^{(0)})$ 开始，然后令
+\[
+u^{(1)}=\theta u^{(0)}+(1-\theta)f_0(x^{(0)}),
+\]
+其中 $\theta\in(0,1)$ 是算法参数（常取较小的数），然后计算下一个迭代点
+\[
+x^{(1)}=z^\star(u^{(1)})
+\]
+（采用 Newton 法，从 $x^{(0)}$ 开始迭代）。这里 $z^\star(s)$ 表示下述函数的极小解
+\[
+-\log(s-f_0(x))-\sum_{i=1}^m\log(-f_i(x)),
+\]
+我们假设其存在并唯一。然后重复进行以上过程。
+
+点 $z^\star(s)$ 是不等式组
+\[
+f_0(x)\leq s,\quad f_1(x)\leq 0,\cdots,f_m(x)\leq 0
+\]
+的解析中心，因此称该算法为解析中心法。
+
+证明以上中心点方法有效，即 $x^{(k)}$ 收敛于最优解。给出能够保证 $x$ 是 $\epsilon$-次优解的停止准则，其中 $\epsilon>0$。
+
+提示：点 $x^{(k)}$ 在中心路径上；见习题 11.10。利用该事实证明
+\[
+u^+-p^\star\leq \frac{m+\theta}{m+1}(u-p^\star),
+\]
+其中 $u$ 和 $u^+$ 是 $u$ 的相邻迭代值。
+
+\noindent\textbf{11.12 凸-凹对策的障碍法。} 考虑不等式约束的凸-凹对策
+\[
+\begin{array}{ll}
+\text{minimize}_w\ \text{maximize}_z & f_0(w,z)\\
+\text{subject to} & f_i(w)\leq 0,\quad i=1,\cdots,m\\
+& \tilde f_i(z)\leq 0,\quad i=1,\cdots,\tilde m
+\end{array}
+\]
+这里 $w\in\mathbb{R}^n$ 是极小化目标函数的变量，而 $z\in\mathbb{R}^{\tilde n}$ 是极大化目标函数的变量。约束函数 $f_i$ 和 $\tilde f_i$ 是可微凸函数，目标函数 $f_0$ 是可微的凸-凹函数，即对任意 $z$ 是 $w$ 的凸函数，但对任意 $w$ 是 $z$ 的凹函数。为便于讨论假定 $\operatorname{dom} f_0=\mathbb{R}^n\times\mathbb{R}^{\tilde n}$。
+
+该对策问题的一个解或鞍点是对任何可行的 $w$ 和 $z$ 满足
+\[
+f_0(w^\star,z)\leq f_0(w^\star,z^\star)\leq f_0(w,z^\star)
+\]
+的一对 $w^\star$ 和 $z^\star$。（有关凸-凹对策和相应函数的背景资料见 \S5.4.3，\S10.3.4 和习题 3.14、习题 5.24、习题 5.25、习题 10.10 以及习题 10.13。）本题将说明如何用扩充的障碍法和不可行初始点 Newton 法（见 \S10.3）求解该对策问题。
+
+(a) 令 $t>0$。说明为什么函数
+\[
+tf_0(w,z)-\sum_{i=1}^m\log(-f_i(w))+\sum_{i=1}^{\tilde m}\log(-\tilde f_i(z))
+\]
+是 $(w,z)$ 的凸-凹函数。我们假定它有唯一的鞍点 $(w^\star(t),z^\star(t))$，并可用不可行初始点 Newton 法求得。
+
+(b) 如同用障碍法求解凸优化问题，我们可以对 $(w^\star(t),z^\star(t))$ 的次优性推导一个简单的上界，它仅依赖于问题的维数，并将随着 $t$ 的增加而减少到零。用 $W$ 和 $Z$ 表示 $w$ 和 $z$ 的可行集，
+\[
+W=\{w\mid f_i(w)\leq 0,\ i=1,\cdots,m\},\qquad
+Z=\{z\mid \tilde f_i(z)\leq 0,\ i=1,\cdots,\tilde m\}.
+\]
+证明
+\[
+f_0(w^\star(t),z^\star(t))\leq \inf_{w\in W} f_0(w,z^\star(t))+\frac{m}{t},
+\]
+\[
+f_0(w^\star(t),z^\star(t))\geq \sup_{z\in Z} f_0(w^\star(t),z)-\frac{\tilde m}{t};
+\]
+因此
+\[
+\sup_{z\in Z} f_0(w^\star(t),z)-\inf_{w\in W} f_0(w,z^\star(t))\leq \frac{m+\tilde m}{t}.
+\]
+
+\subsection*{自和谐和复杂性分析}
+
+\noindent\textbf{11.13 自和谐和负熵。}
+
+(a) 证明负熵函数 $x\log x$（在 $\mathbb{R}_{++}$ 上）不是自和谐函数。
+
+(b) 证明对任意的 $t>0$，$tx\log x-\log x$ 是自和谐函数（在 $\mathbb{R}_{++}$ 上）。
+
+\noindent\textbf{11.14 自和谐和中心点问题。} 令 $\phi$ 为问题 (11.1) 的对数障碍函数。假定问题 (11.1) 的下水平集有界，并且 $tf_0+\phi$ 是闭的自和谐函数。证明 $t\nabla^2 f_0(x)+\nabla^2\phi(x)\succ 0$ 对所有的 $x\in\operatorname{dom}\phi$ 成立。提示：见习题 9.17 和习题 11.3。
+
+\subsection*{广义不等式的障碍法}
+
+\noindent\textbf{11.15 广义对数是 $K$-增加的。} 令 $\psi$ 为正常锥 $K$ 的广义对数。假设 $y\succ_K 0$。
+
+(a) 证明 $\nabla\psi(y)\succeq_{K^\ast} 0$，即 $\psi$ 是 $K$-非减的。提示：如果 $\nabla\psi(y)\not\succeq_{K^\ast}0$，则存在 $w\succ_K 0$ 满足 $w^T\nabla\psi(y)\leq 0$。再利用不等式 $\psi(sw)\leq \psi(y)+\nabla\psi(y)^T(sw-y)$ 对任意 $s>0$ 成立。
+
+(b) 证明 $\nabla\psi(y)\succ_{K^\ast}0$，即 $\psi$ 是 $K$-增加的。提示：证明 $\nabla^2\psi(y)\prec 0$，$\nabla\psi(y)\succeq_{K^\ast}0$ 意味着 $\nabla\psi(y)\succ_{K^\ast}0$。
+
+\noindent\textbf{11.16 [NN94, 41页] 广义对数的性质。} 令 $\psi$ 为正常锥 $K$ 的广义对数，度为 $\theta$。证明对任意 $y\succ_K0$ 成立下述性质。
+
+(a) $\nabla\psi(sy)=\nabla\psi(y)/s$ 对所有 $s>0$ 成立。
+
+(b) $\nabla\psi(y)=-\nabla^2\psi(y)y$。
+
+(c) $y^T\nabla^2\psi(y)y=-\theta$。
+
+(d) $\nabla\psi(y)^T\nabla^2\psi(y)^{-1}\nabla\psi(y)=-\theta$。
+
+\noindent\textbf{11.17 对偶广义对数。} 令 $\psi$ 为正常锥 $K$ 的广义对数，度为 $\theta$。证明式 (11.49) 定义的广义对数 $\overline{\psi}$ 对 $v\succ_{K^\ast}0$，$s>0$ 满足
+\[
+\overline{\psi}(sv)=\overline{\psi}(v)+\theta\log s.
+\]
+
+\noindent\textbf{11.18} 以下函数是否是 $\mathbb{R}^{n+1}$ 上的二阶锥的广义对数？
+\[
+\psi(y)=\log\left(y_{n+1}-\frac{\sum_{i=1}^n y_i^2}{y_{n+1}}\right),
+\]
+\[
+\operatorname{dom}\psi=\{y\in\mathbb{R}^{n+1}\mid y_{n+1}>\sqrt{\sum_{i=1}^n y_i^2}\}.
+\]
+
+\subsection*{实现}
+
+\noindent\textbf{11.19 计算 Newton 步径的另一种方法。} 障碍法的 Newton 步径是线性方程组 (11.14) 的解。证明它也是下述系数矩阵构成的更大的线性方程组的解
+\[
+\begin{bmatrix}
+t\nabla^2 f_0(x)+\displaystyle\sum_i\frac{1}{-f_i(x)}\nabla^2 f_i(x) & Df(x)^T & A^T\\
+Df(x) & -\operatorname{diag}(f(x))^2 & 0\\
+A & 0 & 0
+\end{bmatrix}
+\]
+其中 $f(x)=(f_1(x),\cdots,f_m(x))$。
+
+对于什么类型的问题结构求解这种更大的系统有意义？
+
+\noindent\textbf{11.20 利用对偶问题优化网络比率。} 本题研究用对偶方法求解 \S11.8.4 中的网络比率优化问题。为便于表述我们假定效用函数 $U_i$ 是严格凹函数，$\operatorname{dom}U_i=\mathbb{R}_{++}$，并且满足 $x_i\to 0$ 时有 $U_i'(x_i)\to\infty$，而 $x_i\to\infty$ 时有 $U_i'(x_i)\to 0$。
+
+(a) 用下面定义的共轭效用函数 $V_i=(-U_i)^\ast$ 表示对偶问题 (11.62)，
+\[
+V_i(\lambda)=\sup_{x>0}(\lambda x+U_i(x)).
+\]
+证明 $\operatorname{dom}V_i=-\mathbb{R}_{++}$，并且对每个 $\lambda<0$ 有唯一的 $x$ 满足 $U_i'(x)=-\lambda$。
+
+(b) 描述对偶问题的障碍法。将每次迭代的复杂性和 \S11.8.4 的方法的复杂性进行比较。同样区分 \S11.8.4 的两种情况（$A^TA$ 是稀疏的和 $AA^T$ 是稀疏的）。
+
+\subsection*{数值试验}
+
+\noindent\textbf{11.21 带有上下界的对数-Chebyshev 逼近。} 考虑逼近问题：确定满足上下界约束 $l\preceq x\preceq u$ 的 $x\in\mathbb{R}^n$ 使 $Ax\approx b$，其中 $b\in\mathbb{R}^m$。可以假设 $l\prec u$，$b\succ 0$（下面将给出理由）。用 $a_i^T$ 表示矩阵 $A$ 的第 $i$ 行向量。
+
+当 $Ax\succ 0$ 时，我们用下述最大分式偏差衡量 $Ax\approx b$ 的程度
+\[
+\max_{i=1,\cdots,m}\max\{(a_i^Tx)/b_i,\ b_i/(a_i^Tx)\}
+=
+\max_{i=1,\cdots,m}\frac{\max\{a_i^Tx,b_i\}}{\min\{a_i^Tx,b_i\}},
+\]
+如果 $Ax\not\succ 0$，我们定义最大分式偏差为 $\infty$。
+
+极小化最大分式偏差的问题被称为分式 Chebyshev 逼近问题，或者对数-Chebyshev 逼近问题，因为它等价于极小化目标函数
+\[
+\max_{i=1,\cdots,m}|\log a_i^Tx-\log b_i|.
+\]
+（可参见习题 6.3 的 (c) 部分。）
+
+(a) 将分式 Chebyshev 逼近问题（带变量上下界约束）表示为目标函数和约束函数二次可微的凸优化问题。
+
+(b) 实现求解分式 Chebyshev 逼近问题的障碍法。可以假定已知一个满足 $l\prec x^{(0)}\prec u$，$Ax^{(0)}\succ 0$ 的初始点 $x^{(0)}$。
+
+\noindent\textbf{11.22 多面体内部体积最大的矩形。} 考虑习题 8.16 描述的问题，即确定一组线性不等式定义的多面体 $P=\{x\mid Ax\preceq b\}$ 内部体积最大的矩形 $R=\{x\mid l\preceq x\preceq u\}$。实现求解该问题的障碍法。可以假设 $b\succ 0$，这意味着对很小的 $l\prec 0$ 和 $u\succ 0$，矩形 $R$ 在 $P$ 之内。
+
+用若干简单的例子测试你的实现。确定由以下参数定义的多面体内部最大体积的矩形
+\[
+A=\begin{bmatrix}
+0 & -1\\
+2 & -4\\
+2 & 1\\
+-4 & 4\\
+-4 & 0
+\end{bmatrix},\qquad b=\mathbf{1}.
+\]
+画出该多面体及其内部体积最大的矩形。
+
+\noindent\textbf{11.23 半定规划的下界和两分问题的启发式方法。} 本题考虑 195 页以及习题 5.39 描述的两分问题：
+\begin{equation}
+\begin{array}{ll}
+\text{minimize} & x^TWx\\
+\text{subject to} & x_i^2=1,\quad i=1,\cdots,n
+\end{array}
+\tag{11.65}
+\end{equation}
+变量 $x\in\mathbb{R}^n$。不失一般性，我们假定 $W\in\mathbb{S}^n$ 满足 $W_{ii}=0$。我们用 $p^\star$ 表示两分问题的最优值，用 $x^\star$ 表示最优划分。（注意 $-x^\star$ 也是最优划分。）
+
+两分问题 (11.65) 的 Lagrange 对偶由以下半定规划给出
+\begin{equation}
+\begin{array}{ll}
+\text{maximize} & -\mathbf{1}^T\nu\\
+\text{subject to} & W+\operatorname{diag}(\nu)\succeq 0
+\end{array}
+\tag{11.66}
+\end{equation}
+变量 $\nu\in\mathbb{R}^n$。半定规划的对偶为
+\begin{equation}
+\begin{array}{ll}
+\text{minimize} & \operatorname{tr}(WX)\\
+\text{subject to} & X\succeq 0\\
+& X_{ii}=1,\quad i=1,\cdots,n
+\end{array}
+\tag{11.67}
+\end{equation}
+变量 $X\in\mathbb{S}^n$。（该半定规划可以解释为两分问题 (11.65) 的一种松弛；见习题 5.39。）这两个半定规划的最优值相等，我们用 $d^\star$ 表示，它给出最优值 $p^\star$ 的一个下界。用 $\nu^\star$ 和 $X^\star$ 表示两个半定规划的最优解。
+
+(a) 给定权矩阵 $W$，实现求解半定规划 (11.66) 及其对偶 (11.67) 的障碍法。说明如何得到几乎最优的 $\nu$ 和 $X$，给出你的方法所需要的计算 Hessian 矩阵和梯度的公式，并说明如何计算 Newton 步径。用一些小的问题实例试验你的实现，将你得到的下界和最优值进行比较（后者可以通过计算所有 $2^n$ 种划分的目标值确定）。随机产生一个不能通过穷举搜索确定最优划分的足够大的问题实例（比如 $n=100$），用你的实现进行试验。
+
+(b) 一种启发式方法。 在习题 5.39 中已说明，如果 $X^\star$ 的秩为 1，那么它必可写成 $X^\star=x^\star(x^\star)^T$，其中 $x^\star$ 是两分问题的最优解。基于该性质可设计下述简单的启发式方法以确定一个好的（如果不是最好的）划分：求解上面的半定规划确定 $X^\star$（以及下界 $d^\star$）。用 $v$ 表示 $X^\star$ 的最大特征值对应的特征向量，并令 $\hat{x}=\operatorname{sign}(v)$。我们猜测向量 $\hat{x}$ 就是一个好的划分。
+
+对 (a) 中用过的小规模和大规模问题实例试验该启发式方法。并将所得到的启发式划分 $\hat{x}^TW\hat{x}$ 的目标值和下界 $d^\star$ 进行比较。
+
+(c) 一种随机方法。 基于随机性可以设计另外一种利用半定规划 (11.67) 的解 $X^\star$ 确定好的划分的启发式技术。这种方法很简单：我们从 $\mathbb{R}^n$ 上均值为零协方差矩阵为 $X^\star$ 的分布中产生样本 $x^{(1)},\cdots,x^{(K)}$。对每个样本我们考虑启发式近似解 $\hat{x}^{(k)}=\operatorname{sign}(x^{(k)})$。然后选择其中最好的解，即成本最小的解。对 (a) 中用过的小规模和大规模问题实例试验该程序。
+
+(d) 一种贪婪的启发式改进方法。 假定已知一个划分 $x$，即 $x_i\in\{-1,1\}$，$i=1,\cdots,n$。如果改变元素 $i$，即将 $x_i$ 变为 $-x_i$，目标值将如何改变？考虑下述简单的贪婪算法：给定一个初始划分 $x$，对能使目标值发生最大减少的元素进行变动。重复这个程序直到改变任何元素都不能减少目标函数时停止。
+
+对一些问题实例，包括大规模问题实例，试验这种启发式方法。从各种不同的初始划分开始进行试验，包括 $x=\mathbf{1}$，(b) 中得到的启发式近似解，以及 (c) 中随机产生的近似解。用这种贪婪改进方法能对 (b) 和 (c) 中得到的近似解作出多大改进？
+
+\noindent\textbf{11.24 二次规划的障碍法和原对偶内点法。} 分别实现求解下述二次规划（为简化问题没有加等式约束）的障碍法和原对偶内点法
+\[
+\begin{array}{ll}
+\text{minimize} & (1/2)x^TPx+q^Tx\\
+\text{subject to} & Ax\preceq b
+\end{array}
+\]
+其中 $A\in\mathbb{R}^{m\times n}$。可以假设已知一个严格可行的初始点。用若干例子检验你的程序。对障碍法，画出对偶间隙和 Newton 迭代次数之间的关系。对原对偶内点法，画出代理对偶间隙以及对偶残差的范数和迭代次数之间的关系。
+
+\end{document}

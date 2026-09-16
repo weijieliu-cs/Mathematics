@@ -1,0 +1,3441 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\title{凸优化：对偶}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{5\quad 对偶}
+
+\subsection*{5.1\quad Lagrange 对偶函数}
+
+\subsection*{5.1.1\quad Lagrange}
+
+考虑标准形式的优化问题 (4.1)：
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& h_i(x)=0,\quad i=1,\cdots,p,
+\end{aligned}
+\tag{5.1}
+\end{equation}
+其中，自变量 $x\in\mathbb{R}^n$。设问题的定义域
+\[
+D=\bigcap_{i=0}^m \mathbf{dom}\,f_i\cap \bigcap_{i=1}^p \mathbf{dom}\,h_i
+\]
+是非空集合，优化问题的最优值为 $p^\star$。注意到这里并没有假设问题 (5.1) 是凸优化问题。
+
+Lagrange 对偶的基本思想是在目标函数中考虑问题 (5.1) 的约束条件，即添加约束条件的加权和，得到增广的目标函数。定义问题 (5.1) 的 Lagrange 函数 $L:\mathbb{R}^n\times\mathbb{R}^m\times\mathbb{R}^p\to\mathbb{R}$ 为
+\[
+L(x,\lambda,\nu)=f_0(x)+\sum_{i=1}^m \lambda_i f_i(x)+\sum_{i=1}^p \nu_i h_i(x),
+\]
+其中定义域为 $\mathbf{dom}\,L=D\times\mathbb{R}^m\times\mathbb{R}^p$。$\lambda_i$ 称为第 $i$ 个不等式约束 $f_i(x)\leq 0$ 对应的 Lagrange 乘子；类似地，$\nu_i$ 称为第 $i$ 个等式约束 $h_i(x)=0$ 对应的 Lagrange 乘子。向量 $\lambda$ 和 $\nu$ 称为对偶变量或者是问题 (5.1) 的 Lagrange 乘子向量。
+
+\subsection*{5.1.2\quad Lagrange 对偶函数}
+
+定义 Lagrange 对偶函数（或对偶函数）$g:\mathbb{R}^m\times\mathbb{R}^p\to\mathbb{R}$ 为 Lagrange 函数关于 $x$ 取得的最小值：即对 $\lambda\in\mathbb{R}^m,\nu\in\mathbb{R}^p$，有
+\[
+g(\lambda,\nu)=\inf_{x\in D} L(x,\lambda,\nu)
+=\inf_{x\in D}\left(f_0(x)+\sum_{i=1}^m \lambda_i f_i(x)+\sum_{i=1}^p \nu_i h_i(x)\right).
+\]
+如果 Lagrange 函数关于 $x$ 无下界，则对偶函数取值为 $-\infty$。因为对偶函数是一族关于 $(\lambda,\nu)$ 的仿射函数的逐点下确界，所以即使原问题 (5.1) 不是凸的，对偶函数也是凹函数。
+
+\subsection*{5.1.3\quad 最优值的下界}
+
+对偶函数构成了原问题 (5.1) 最优值 $p^\star$ 的下界：即对任意 $\lambda\succeq 0$ 和 $\nu$ 下式成立
+\begin{equation}
+g(\lambda,\nu)\leq p^\star.
+\tag{5.2}
+\end{equation}
+可以很容易验证这个重要的性质。设 $\tilde{x}$ 是原问题 (5.1) 的一个可行点，即 $f_i(\tilde{x})\leq 0$ 且 $h_i(\tilde{x})=0$。根据假设，$\lambda\succeq 0$，我们有
+\[
+\sum_{i=1}^m \lambda_i f_i(\tilde{x})+\sum_{i=1}^p \nu_i h_i(\tilde{x})\leq 0,
+\]
+这是因为左边的第一项非正而第二项为零。根据上述不等式，有
+\[
+L(\tilde{x},\lambda,\nu)=f_0(\tilde{x})+\sum_{i=1}^m \lambda_i f_i(\tilde{x})+\sum_{i=1}^p \nu_i h_i(\tilde{x})\leq f_0(\tilde{x}).
+\]
+因此
+\[
+g(\lambda,\nu)=\inf_{x\in D}L(x,\lambda,\nu)\leq L(\tilde{x},\lambda,\nu)\leq f_0(\tilde{x}).
+\]
+由于每一个可行点 $\tilde{x}$ 都满足 $g(\lambda,\nu)\leq f_0(\tilde{x})$，因此不等式 (5.2) 成立。针对 $x\in\mathbb{R}$ 和具有一个不等式约束的某简单问题，图 5.1 描述了式 (5.2) 所给出的下界。
+
+虽然不等式 (5.2) 成立，但是当 $g(\lambda,\nu)=-\infty$ 时其意义不大。只有当 $\lambda\succeq 0$ 且 $(\lambda,\nu)\in\mathbf{dom}\,g$ 即 $g(\lambda,\nu)>-\infty$ 时，对偶函数才能给出 $p^\star$ 的一个非平凡下界。称满足 $\lambda\succeq 0$ 以及 $(\lambda,\nu)\in\mathbf{dom}\,g$ 的 $(\lambda,\nu)$ 是对偶可行的，后面很快就会看到这样定义的原因。
+
+\subsection*{5.1.4\quad 通过线性逼近来理解}
+
+可以通过对集合 $\{0\}$ 和 $-\mathbb{R}_+$ 的示性函数进行线性逼近来理解 Lagrange 函数和其给出下界的性质。首先将原问题 (5.1) 重新描述为一个无约束问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad
+& f_0(x)+\sum_{i=1}^m I_-(f_i(x))+\sum_{i=1}^p I_0(h_i(x)),
+\end{aligned}
+\tag{5.3}
+\end{equation}
+其中，$I_-:\mathbb{R}\to\mathbb{R}$ 是非正实数集的示性函数
+\[
+I_-(u)=
+\begin{cases}
+0 & u\leq 0\\
+\infty & u>0,
+\end{cases}
+\]
+类似地，$I_0$ 是集合 $\{0\}$ 的示性函数。在表达式 (5.3) 中，函数 $I_-(u)$ 可以理解为我们对约束函数值 $u=f_i(x)$ 的一种愤怒或不满：如果 $f_i(x)\leq 0$，$I_-(u)$ 为零，如果 $f_i(x)>0$，$I_-(u)$ 为 $\infty$。类似地，$I_0(u)$ 表达了我们对等式约束值 $u=h_i(x)$ 的不满。我们可以认为函数 $I_-$ 是一个``砖墙式''或``无限强硬''的不满意方程；即随着函数 $f_i(x)$ 从非正数变为正数，我们的不满意度从零升到无穷大。
+
+设在表达式 (5.3) 中，用线性函数 $\lambda_i u$ 替代函数 $I_-(u)$，其中 $\lambda_i\geq 0$，用函数 $\nu_i u$ 替代 $I_0(u)$。则目标函数变为 Lagrange 函数 $L(x,\lambda,\nu)$，且对偶函数值 $g(\lambda,\nu)$ 是问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad
+L(x,\lambda,\nu)=f_0(x)+\sum_{i=1}^m \lambda_i f_i(x)+\sum_{i=1}^p \nu_i h_i(x)
+\end{aligned}
+\tag{5.4}
+\end{equation}
+的最优值。在上述表达式中，我们用线性或者``软''的不满意函数替换了函数 $I_-$ 和 $I_0$。对于不等式约束，如果 $f_i(x)=0$，我们的不满意度为零，当 $f_i(x)>0$ 时，不满意度大于零（假设 $\lambda_i>0$）；随着约束``越来越被违背''，我们越来越不满意。在原始表达式 (5.3) 中，任意不大于零的 $f_i(x)$ 都是可接受的，而在软的表达式中，当约束有裕量时，我们会感到满意，例如当 $f_i(x)<0$ 时。
+
+显然，用线性函数 $\lambda_i u$ 去逼近 $I_-(u)$ 是远远不够的。然而，线性函数至少可以看成是示性函数的一个下估计。这是因为对任意 $u$，有 $\lambda_i u\leq I_-(u)$ 和 $\nu_i u\leq I_0(u)$，我们随之可以得到，对偶函数是原问题最优函数值的一个下界。
+
+用``软''约束代替``硬''约束的思想在后文考虑内点法时（$\S 11.2.1$）会再次提到。
+
+\subsection*{5.1.5\quad 例子}
+
+\noindent\textbf{线性方程组的最小二乘解}\quad
+考虑问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & x^T x\\
+\text{subject to}\quad & Ax=b,
+\end{aligned}
+\tag{5.5}
+\end{equation}
+其中 $A\in\mathbb{R}^{p\times n}$。这个问题没有不等式约束，有 $p$ 个（线性）等式约束。其 Lagrange 函数是
+\[
+L(x,\nu)=x^Tx+\nu^T(Ax-b),
+\]
+定义域为 $\mathbb{R}^n\times\mathbb{R}^p$。对偶函数是 $g(\nu)=\inf_x L(x,\nu)$。因为 $L(x,\nu)$ 是 $x$ 的二次凸函数，可以通过求解如下最优性条件得到函数的最小值，
+\[
+\nabla_x L(x,\nu)=2x+A^T\nu=0,
+\]
+在点 $x=-(1/2)A^T\nu$ 处 Lagrange 函数达到最小值。因此对偶函数为
+\[
+g(\nu)=L(-(1/2)A^T\nu,\nu)=-(1/4)\nu^TAA^T\nu-b^T\nu,
+\]
+它是一个二次凹函数，定义域为 $\mathbb{R}^p$。根据对偶函数给出原问题下界的性质 (5.2)，对任意 $\nu\in\mathbb{R}^p$，有
+\[
+-(1/4)\nu^TAA^T\nu-b^T\nu\leq \inf\{x^Tx\mid Ax=b\}.
+\]
+
+\noindent\textbf{标准形式的线性规划}\quad
+考虑标准形式的线性规划问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & c^T x\\
+\text{subject to}\quad & Ax=b\\
+& x\succeq 0,
+\end{aligned}
+\tag{5.6}
+\end{equation}
+其中，不等式约束函数为 $f_i(x)=-x_i,i=1,\cdots,n$。为了推导 Lagrange 函数，对 $n$ 个不等式约束引入 Lagrange 乘子 $\lambda_i$，对等式约束引入 Lagrange 乘子 $\nu_i$，我们得到
+\[
+L(x,\lambda,\nu)=c^Tx-\sum_{i=1}^n \lambda_i x_i+\nu^T(Ax-b)
+=-b^T\nu+(c+A^T\nu-\lambda)^T x.
+\]
+对偶函数为
+\[
+g(\lambda,\nu)=\inf_x L(x,\lambda,\nu)=-b^T\nu+\inf_x(c+A^T\nu-\lambda)^Tx,
+\]
+可以很容易确定对偶函数的解析表达式，因为线性函数只有恒为零时才有下界。因此，当 $c+A^T\nu-\lambda=0$ 时，$g(\lambda,\nu)=-b^T\nu$，其余情况下 $g(\lambda,\nu)=-\infty$，即
+\[
+g(\lambda,\nu)=
+\begin{cases}
+-b^T\nu & A^T\nu-\lambda+c=0\\
+-\infty & \text{其他情况}.
+\end{cases}
+\]
+注意到对偶函数 $g$ 只有在 $\mathbb{R}^m\times\mathbb{R}^p$ 上的一个正常仿射子集上才是有限值。后面我们将会看到这是一种常见的情况。
+
+只有当 $\lambda$ 和 $\nu$ 满足 $\lambda\succeq 0$ 和 $A^T\nu-\lambda+c=0$ 时，下界性质 (5.2) 才是非平凡的。在此情形下，$-b^T\nu$ 给出了线性规划问题 (5.6) 最优值的一个下界。
+
+\noindent\textbf{双向划分问题}\quad
+考虑（非凸）问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & x^T W x\\
+\text{subject to}\quad & x_i^2=1,\quad i=1,\cdots,n,
+\end{aligned}
+\tag{5.7}
+\end{equation}
+其中，$W\in\mathbf{S}^n$。约束条件要求 $x_i$ 的值为 $1$ 或者 $-1$，所以原问题等价于寻找这样的向量，其分量为 $\pm 1$，并使 $x^TWx$ 最小。可行集是有限的（包含 $2^n$ 个点），所以此问题本质上可以通过遍历所有可行点来求得最小值。然而，可行点的数量是指数增长的，所以，只有当问题规模较小（比如说 $n\leq 30$）时，遍历法才是可行的。一般而言（或当 $n$ 大于 50 时），问题 (5.7) 很难求解。
+
+我们可以将问题 (5.7) 看成 $n$ 个元素的集合（$\{1,\cdots,n\}$）上的双向划分问题：对任意可行点 $x$，其对应的划分为
+\[
+\{1,\cdots,n\}=\{i\mid x_i=-1\}\cup\{i\mid x_i=1\}.
+\]
+矩阵系数 $W_{ij}$ 可以看成分量 $i$ 和 $j$ 在同一分区内的成本，$-W_{ij}$ 可以看成分量 $i$ 和 $j$ 在不同分区内的成本。问题 (5.7) 中的目标函数是考虑分量间所有配对的成本，因此问题 (5.7) 也即寻找使得总成本最小的划分。
+
+下面来推导此问题的对偶函数。Lagrange 函数为
+\[
+L(x,\nu)=x^TWx+\sum_{i=1}^n \nu_i(x_i^2-1)
+=x^T(W+\mathbf{diag}(\nu))x-\mathbf{1}^T\nu.
+\]
+对 $x$ 求极小得到 Lagrange 对偶函数
+\[
+g(\nu)=\inf_x x^T(W+\mathbf{diag}(\nu))x-\mathbf{1}^T\nu
+=
+\begin{cases}
+-\mathbf{1}^T\nu & W+\mathbf{diag}(\nu)\succeq 0\\
+-\infty & \text{其他情况}.
+\end{cases}
+\]
+事实上，二次函数求下确界时或者是零（如果表达式是半正定的），或者是 $-\infty$（如果表达式不是半正定的），因此对偶函数具有上述形式。
+
+对偶函数构成了原本复杂的问题 (5.7) 的最优值的一个下界。例如，我们可以令对偶变量取值为
+\[
+\nu=-\lambda_{\min}(W)\mathbf{1},
+\]
+上述取值是对偶可行的，这是因为
+\[
+W+\mathbf{diag}(\nu)=W-\lambda_{\min}(W)I\succeq 0.
+\]
+由此我们得到了最优值 $p^\star$ 的一个下界
+\begin{equation}
+p^\star\geq -\mathbf{1}^T\nu=n\lambda_{\min}(W).
+\tag{5.8}
+\end{equation}
+
+\noindent\textbf{注释 5.1}\quad
+当然，也可以不用 Lagrange 对偶函数得到最优值 $p^\star$ 的下界。首先，将约束 $x_1^2=1,\cdots,x_n^2=1$ 用约束 $\sum_{i=1}^n x_i^2=n$ 替代，可以得到修改后的问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & x^T W x\\
+\text{subject to}\quad & \sum_{i=1}^n x_i^2=n.
+\end{aligned}
+\tag{5.9}
+\end{equation}
+若原问题的约束条件满足，则修改后的问题的约束条件满足，因此问题 (5.9) 的最优值构成了原问题 (5.7) 的最优值 $p^\star$ 的一个下界。但是修改后的问题 (5.9) 相对来说要容易求解得多，实际上，它可以当成是一个特征值问题来进行求解，其最优值为 $n\lambda_{\min}(W)$。
+
+\subsection*{5.1.6\quad Lagrange 对偶函数和共轭函数}
+
+回忆 $\S 3.3$ 中所提到的函数 $f:\mathbb{R}^n\to\mathbb{R}$ 的共轭函数 $f^\ast$ 为
+\[
+f^\ast(y)=\sup_{x\in\mathbf{dom}\,f}(y^Tx-f(x)).
+\]
+事实上，共轭函数和 Lagrange 对偶函数紧密相关。下面的问题说明了一个简单的联系，考虑问题
+\[
+\begin{aligned}
+\text{minimize}\quad & f(x)\\
+\text{subject to}\quad & x=0
+\end{aligned}
+\]
+（虽然此问题没有什么挑战性，目测就可以看出答案）。上述问题的 Lagrange 函数为
+\[
+L(x,\nu)=f(x)+\nu^Tx,
+\]
+其对偶函数为
+\[
+g(\nu)=\inf_x(f(x)+\nu^Tx)
+=-\sup_x((- \nu)^Tx-f(x))
+=-f^\ast(-\nu).
+\]
+
+更一般地（也更有用地），考虑一个优化问题，其具有线性不等式以及等式约束，
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & Ax\preceq b\\
+& Cx=d.
+\end{aligned}
+\tag{5.10}
+\end{equation}
+利用函数 $f_0$ 的共轭函数，我们可以将问题 (5.10) 的对偶函数表述为
+\begin{equation}
+\begin{aligned}
+g(\lambda,\nu)
+&=\inf_x\left(f_0(x)+\lambda^T(Ax-b)+\nu^T(Cx-d)\right)\\
+&=-b^T\lambda-d^T\nu+\inf_x\left(f_0(x)+(A^T\lambda+C^T\nu)^Tx\right)\\
+&=-b^T\lambda-d^T\nu-f_0^\ast(-A^T\lambda-C^T\nu).
+\end{aligned}
+\tag{5.11}
+\end{equation}
+函数 $g$ 的定义域也可以由函数 $f_0^\ast$ 的定义域得到，
+\[
+\mathbf{dom}\,g=\{(\lambda,\nu)\mid -A^T\lambda-C^T\nu\in\mathbf{dom}\,f_0^\ast\}.
+\]
+
+下面用例子来说明上述结论。
+
+\noindent\textbf{等式约束条件下的范数极小化}\quad
+考虑问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \|x\|\\
+\text{subject to}\quad & Ax=b,
+\end{aligned}
+\tag{5.12}
+\end{equation}
+其中 $\|\cdot\|$ 是任意范数。在之前的第 88 页中的例 3.26 曾提到过函数 $f_0=\|\cdot\|$ 的共轭函数为
+\[
+f_0^\ast(y)=
+\begin{cases}
+0 & \|y\|_\ast\leq 1\\
+\infty & \text{其他情况},
+\end{cases}
+\]
+可以看出此函数是对偶范数单位球的示性函数。
+
+利用上面提到的结论 (5.11) 可以得到问题 (5.12) 的对偶函数为
+\[
+g(\nu)=-b^T\nu-f_0^\ast(-A^T\nu)
+=
+\begin{cases}
+-b^T\nu & \|A^T\nu\|_\ast\leq 1\\
+-\infty & \text{其他情况}.
+\end{cases}
+\]
+
+\noindent\textbf{熵的最大化}\quad
+考虑熵的最大化问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(x)=\sum_{i=1}^n x_i\log x_i\\
+\text{subject to}\quad & Ax\preceq b\\
+& \mathbf{1}^Tx=1
+\end{aligned}
+\tag{5.13}
+\end{equation}
+其中 $\mathbf{dom}\,f_0=\mathbb{R}_{++}^n$。关于实变量 $u$ 的负熵函数 $u\log u$ 的共轭函数是 $e^{v-1}$（见第 86 页中的例 3.21）。因为函数 $f_0$ 是不同变量的负熵函数的和，其共轭函数为
+\[
+f_0^\ast(y)=\sum_{i=1}^n e^{y_i-1},
+\]
+其定义域为 $\mathbf{dom}\,f_0^\ast=\mathbb{R}^n$。根据上面的结论 (5.11)，问题 (5.13) 的对偶函数为
+\[
+g(\lambda,\nu)=-b^T\lambda-\nu-\sum_{i=1}^n e^{-a_i^T\lambda-\nu-1}
+=-b^T\lambda-\nu-e^{-\nu-1}\sum_{i=1}^n e^{-a_i^T\lambda},
+\]
+其中 $a_i$ 是矩阵 $A$ 的第 $i$ 列向量。
+
+\noindent\textbf{最小体积覆盖椭球}\quad
+考虑关于变量 $X\in\mathbf{S}^n$ 的问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(X)=\log\det X^{-1}\\
+\text{subject to}\quad & a_i^T X a_i\leq 1,\quad i=1,\cdots,m,
+\end{aligned}
+\tag{5.14}
+\end{equation}
+其中 $\mathbf{dom}\,f_0=\mathbf{S}_{++}^n$。问题 (5.14) 有着简单的几何意义。对于任意 $X\in\mathbf{S}_{++}^n$，我们将其与如下中心在原点的椭球联系起来，
+\[
+\mathcal{E}_X=\{z\mid z^T X z\leq 1\}.
+\]
+椭球的体积与 $(\det X^{-1})^{1/2}$ 成正比，所以问题 (5.14) 的目标函数实质上是椭球 $\mathcal{E}_X$ 体积的对数的两倍并加上一个常数附加项。问题 (5.14) 的约束条件可以写成 $a_i\in\mathcal{E}_X$。因此问题 (5.14) 等价于寻找能够包含点 $a_1,\cdots,a_m$ 的，并以原点为中心，具有最小体积的椭球。
+
+问题 (5.14) 的不等式约束是仿射的；它们可以表达为
+\[
+\mathbf{tr}\left((a_i a_i^T)X\right)\leq 1.
+\]
+在例 3.23（第 86 页）中我们曾得到函数 $f_0$ 的共轭函数为
+\[
+f_0^\ast(Y)=\log\det(-Y)^{-1}-n,
+\]
+其中定义域 $\mathbf{dom}\,f_0^\ast=-\mathbf{S}_{++}^n$。根据上面的结论式 (5.11)，问题 (5.14) 的对偶函数为
+\begin{equation}
+g(\lambda)=
+\begin{cases}
+\log\det\left(\sum_{i=1}^m \lambda_i a_i a_i^T\right)-\mathbf{1}^T\lambda+n
+& \displaystyle \sum_{i=1}^m \lambda_i a_i a_i^T\succ 0\\
+-\infty & \text{其他情况}.
+\end{cases}
+\tag{5.15}
+\end{equation}
+因此，对任意满足 $\sum_{i=1}^m\lambda_i a_i a_i^T\succ 0$ 和 $\lambda\succeq 0$ 的 $\lambda$，数值
+\[
+\log\det\left(\sum_{i=1}^m \lambda_i a_i a_i^T\right)-\mathbf{1}^T\lambda+n
+\]
+给出了问题 (5.14) 最优值的一个下界。
+
+\section*{5.2\quad Lagrange 对偶问题}
+
+对于任意一组 $(\lambda,\nu)$，其中 $\lambda\succeq 0$，Lagrange 对偶函数给出了优化问题 (5.1) 的最优值 $p^\star$ 的一个下界。因此，我们可以得到和参数 $\lambda,\nu$ 相关的一个下界。一个自然的问题是：从 Lagrange 函数能够得到的最好下界是什么？
+
+可以将这个问题表述为优化问题
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & g(\lambda,\nu)\\
+\text{subject to}\quad & \lambda\succeq 0.
+\end{aligned}
+\tag{5.16}
+\end{equation}
+上述问题称为问题 (5.1) 的 Lagrange 对偶问题。在本书中，原始问题 (5.1) 有时被称为原问题。前面提到的对偶可行的概念，即描述满足 $\lambda\succeq 0$ 和 $g(\lambda,\nu)>-\infty$ 的一组 $(\lambda,\nu)$，此时具有意义。它意味着，这样的一组 $(\lambda,\nu)$ 是对偶问题 (5.16) 的一个可行解。称解 $(\lambda^\star,\nu^\star)$ 是对偶最优解或者是最优 Lagrange 乘子，如果它是对偶问题 (5.16) 的最优解。
+
+Lagrange 对偶问题 (5.16) 是一个凸优化问题，这是因为极大化的目标函数是凹函数，且约束集合是凸集。因此，对偶问题的凸性和原问题 (5.1) 是否是凸优化问题无关。
+
+\subsection*{5.2.1\quad 显式表达对偶约束}
+
+前面提到的例子说明了对偶函数的定义域
+\[
+\mathbf{dom}\,g=\{(\lambda,\nu)\mid g(\lambda,\nu)>-\infty\}
+\]
+的维数一般都小于 $m+p$。事实上，很多情况下，我们可以求出 $\mathbf{dom}\,g$ 的仿射包并将其表示为一系列线性等式约束。粗略地讲，这说明我们可以识别出对偶问题 (5.16) 目标函数 $g$ 中``隐藏''或``隐含''的等式约束。这样处理之后我们可以得到一个等价的问题，在等价的问题中，这些等式约束都被显式地表达为优化问题的约束。下面的例子将说明这一点。
+
+\noindent\textbf{标准形式线性规划的 Lagrange 对偶}\quad
+在第 210 页中，标准形式线性规划
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & Ax=b\\
+& x\succeq 0
+\end{aligned}
+\tag{5.17}
+\end{equation}
+的 Lagrange 对偶函数为
+\[
+g(\lambda,\nu)=
+\begin{cases}
+-b^T\nu & A^T\nu-\lambda+c=0\\
+-\infty & \text{其他情况}.
+\end{cases}
+\]
+严格地讲，标准形式线性规划的对偶问题是在满足约束 $\lambda\succeq 0$ 的条件下极大化对偶函数 $g$，即
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & g(\lambda,\nu)=
+\begin{cases}
+-b^T\nu & A^T\nu-\lambda+c=0\\
+-\infty & \text{其他情况}
+\end{cases}\\
+\text{subject to}\quad & \lambda\succeq 0.
+\end{aligned}
+\tag{5.18}
+\end{equation}
+当且仅当 $A^T\nu-\lambda+c=0$ 时对偶函数 $g$ 有界。我们可以通过将此``隐含''的等式约束``显式''化来得到一个等价的问题
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & -b^T\nu\\
+\text{subject to}\quad & A^T\nu-\lambda+c=0\\
+& \lambda\succeq 0.
+\end{aligned}
+\tag{5.19}
+\end{equation}
+进一步地，这个问题可以表述为
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & -b^T\nu\\
+\text{subject to}\quad & A^T\nu+c\succeq 0.
+\end{aligned}
+\tag{5.20}
+\end{equation}
+这是一个不等式形式的线性规划。
+
+注意到这三个问题之间细微的差别。标准形式线性规划 (5.17) 的 Lagrange 对偶问题是问题 (5.18)，这个问题等价于问题 (5.19) 和 (5.20)（但是形式不同）。这里重复使用术语，称问题 (5.19) 和 (5.20) 都是标准形式线性规划 (5.17) 的 Lagrange 对偶问题。
+
+\noindent\textbf{不等式形式线性规划的 Lagrange 对偶}\quad
+类似地，我们可以写出不等式形式的线性规划问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & Ax\preceq b
+\end{aligned}
+\tag{5.21}
+\end{equation}
+的 Lagrange 对偶问题。Lagrange 函数为
+\[
+L(x,\lambda)=c^Tx+\lambda^T(Ax-b)=-b^T\lambda+(A^T\lambda+c)^Tx,
+\]
+所以对偶函数为
+\[
+g(\lambda)=\inf_x L(x,\lambda)=-b^T\lambda+\inf_x(A^T\lambda+c)^Tx.
+\]
+我们知道，若线性函数不是恒值，则线性函数的下确界是 $-\infty$，因此上述问题的对偶函数为
+\[
+g(\lambda)=
+\begin{cases}
+-b^T\lambda & A^T\lambda+c=0\\
+-\infty & \text{其他情况}.
+\end{cases}
+\]
+称对偶变量 $\lambda$ 是对偶可行的，如果 $\lambda\succeq 0$ 且 $A^T\lambda+c=0$。
+
+线性规划 (5.21) 的 Lagrange 对偶问题是对所有的 $\lambda\succeq 0$ 极大化 $g$。和前面一样，我们可以显式表达对偶可行的条件并作为约束来重新描述对偶问题
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & -b^T\lambda\\
+\text{subject to}\quad & A^T\lambda+c=0\\
+& \lambda\succeq 0,
+\end{aligned}
+\tag{5.22}
+\end{equation}
+而上述问题是一个标准形式的线性规划。
+
+我们注意到标准形式线性规划和不等式形式线性规划以及它们的对偶问题之间的有趣的对称性：标准形式线性规划的对偶问题是只含有不等式约束的线性规划问题，反之亦然。读者也可以证明，问题 (5.22) 的 Lagrange 对偶问题就是（等价于）原问题 (5.21)。
+
+\subsection*{5.2.2\quad 弱对偶性}
+
+Lagrange 对偶问题的最优值，我们用 $d^\star$ 表示，根据定义，这是通过 Lagrange 函数得到的原问题最优值 $p^\star$ 的最好下界。特别地，我们有下面简单但是非常重要的不等式
+\begin{equation}
+d^\star\leq p^\star,
+\tag{5.23}
+\end{equation}
+即使原问题不是凸问题，上述不等式亦成立。这个性质称为弱对偶性。
+
+即使当 $d^\star$ 和 $p^\star$ 无限时，弱对偶性不等式 (5.23) 也成立。例如，如果原问题无下界，即 $p^\star=-\infty$，为了保证弱对偶性成立，必须有 $d^\star=-\infty$，即 Lagrange 对偶问题不可行。反过来，若对偶问题无上界，即 $d^\star=\infty$，为了保证弱对偶性成立，必须有 $p^\star=\infty$，即原问题不可行。
+
+定义差值 $p^\star-d^\star$ 是原问题的最优对偶间隙。它给出了原问题最优值以及通过 Lagrange 对偶函数所能得到的最好（最大）下界之间的差值。最优对偶间隙总是非负的。
+
+当原问题很难求解时，弱对偶不等式 (5.23) 可以给出原问题最优值的一个下界，这是因为对偶问题总是凸问题，而且在很多情况下都可以进行有效的求解得到 $d^\star$。作为一个例子，考虑第 211 页提到的双向划分问题 (5.7)。其对偶问题是一个半定规划问题
+\[
+\begin{aligned}
+\text{maximize}\quad & -\mathbf{1}^T\nu\\
+\text{subject to}\quad & W+\mathbf{diag}(\nu)\succeq 0,
+\end{aligned}
+\]
+其中，变量 $\nu\in\mathbb{R}^n$。即使当 $n$ 取相对较大的值，例如 $n=1000$ 时，上述问题都可以进行有效求解。对偶问题的最优值给出了双向划分问题最优值的一个下界，而这个下界至少和根据 $\lambda_{\min}(W)$ 给出的下界 (5.8) 一样好。
+
+\subsection*{5.2.3\quad 强对偶性和 Slater 约束准则}
+
+如果等式
+\begin{equation}
+d^\star=p^\star
+\tag{5.24}
+\end{equation}
+成立，即最优对偶间隙为零，那么强对偶性成立。这说明从 Lagrange 对偶函数得到的最好下界是紧的。
+
+对于一般情况，强对偶性不成立。但是，如果原问题 (5.1) 是凸问题，即可以表述为如下形式
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& Ax=b,
+\end{aligned}
+\tag{5.25}
+\end{equation}
+其中，函数 $f_0,\cdots,f_m$ 是凸函数，强对偶性通常（但不总是）成立。有很多研究成果给出了强对偶性成立的条件（除了凸性条件以外）。这些条件称为约束准则。
+
+一个简单的约束准则是 Slater 条件：存在一点 $x\in\mathbf{relint}\,D$ 使得下式成立
+\begin{equation}
+f_i(x)<0,\quad i=1,\cdots,m,\qquad Ax=b.
+\tag{5.26}
+\end{equation}
+满足上述条件的点有时称为严格可行，这是因为不等式约束严格成立。Slater 定理说明，当 Slater 条件成立（且原问题是凸问题）时，强对偶性成立。
+
+当不等式约束函数 $f_i$ 中有一些是仿射函数时，Slater 条件可以进一步改进。如果最前面的 $k$ 个约束函数 $f_1,\cdots,f_k$ 是仿射的，则若下列弱化的条件成立，强对偶性成立。该条件为：存在一点 $x\in\mathbf{relint}\,D$ 使得
+\begin{equation}
+f_i(x)\leq 0,\quad i=1,\cdots,k,\qquad
+f_i(x)<0,\quad i=k+1,\cdots,m,\qquad
+Ax=b.
+\tag{5.27}
+\end{equation}
+换言之，仿射不等式不需要严格成立。注意到当所有约束条件都是线性等式或不等式且 $\mathbf{dom}\,f_0$ 是开集时，改进的 Slater 条件 (5.27) 就是可行性条件。
+
+若 Slater 条件（以及其改进形式 (5.27)）满足，不但对于凸问题强对偶性成立，也意味着当 $d^\star>-\infty$ 时对偶问题能够取得最优值，即存在一组对偶可行解 $(\lambda^\star,\nu^\star)$ 使得
+\[
+g(\lambda^\star,\nu^\star)=d^\star=p^\star.
+\]
+在 $\S 5.3.2$ 中，我们将证明当原问题是凸问题且 Slater 条件成立时，强对偶性成立。
+
+\subsection*{5.2.4\quad 例子}
+
+\noindent\textbf{线性方程组的最小二乘解}\quad
+再次考虑问题 (5.5)
+\[
+\begin{aligned}
+\text{minimize}\quad & x^T x\\
+\text{subject to}\quad & Ax=b.
+\end{aligned}
+\]
+其相应的对偶问题为
+\[
+\begin{aligned}
+\text{maximize}\quad & -(1/4)\nu^TAA^T\nu-b^T\nu,
+\end{aligned}
+\]
+它是一个凹二次函数的无约束极大化问题。
+
+Slater 条件此时即是原问题的可行性条件，所以如果 $b\in\mathcal{R}(A)$，即 $p^\star<\infty$，有 $p^\star=d^\star$。事实上，对于此问题，强对偶性通常成立，即使 $p^\star=\infty$ 亦如此。当 $p^\star=\infty$ 时，$b\notin\mathcal{R}(A)$，所以存在 $z$ 使得 $A^Tz=0,b^Tz\neq 0$。因此，对偶函数在直线 $\{tz\mid t\in\mathbb{R}\}$ 上无界，即对偶问题最优值也无界，$d^\star=\infty$。
+
+\noindent\textbf{线性规划的 Lagrange 对偶}\quad
+根据 Slater 条件的弱化形式，我们发现，对于任意线性规划问题（无论是标准形式还是不等式形式），只要原问题可行，强对偶性都成立。将此结论应用到对偶问题，我们得出结论，如果对偶问题可行，强对偶性成立。对线性规划问题，只有一种情况下强对偶性不成立：原问题和对偶问题均不可行。这种特殊的情况也会发生，见习题 5.23。
+
+\noindent\textbf{二次约束二次规划的 Lagrange 对偶}\quad
+考虑约束和目标函数都是二次函数的优化问题 QCQP
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & (1/2)x^TP_0x+q_0^Tx+r_0\\
+\text{subject to}\quad & (1/2)x^TP_ix+q_i^Tx+r_i\leq 0,\quad i=1,\cdots,m,
+\end{aligned}
+\tag{5.28}
+\end{equation}
+其中，$P_0\in\mathbf{S}_{++}^n$，$P_i\in\mathbf{S}_{++}^n,i=1,\cdots,m$。其 Lagrange 函数为
+\[
+L(x,\lambda)=(1/2)x^TP(\lambda)x+q(\lambda)^Tx+r(\lambda),
+\]
+其中
+\[
+P(\lambda)=P_0+\sum_{i=1}^m\lambda_iP_i,\qquad
+q(\lambda)=q_0+\sum_{i=1}^m\lambda_iq_i,\qquad
+r(\lambda)=r_0+\sum_{i=1}^m\lambda_i r_i.
+\]
+对于一般的 $\lambda$ 可以得到对偶函数 $g(\lambda)$ 的表达式，但是这样的推导非常复杂。但是，如果 $\lambda\succeq 0$，我们有 $P(\lambda)\succ 0$ 以及
+\[
+g(\lambda)=\inf_x L(x,\lambda)=-(1/2)q(\lambda)^TP(\lambda)^{-1}q(\lambda)+r(\lambda).
+\]
+因此，对偶问题可以表述为
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & -(1/2)q(\lambda)^TP(\lambda)^{-1}q(\lambda)+r(\lambda)\\
+\text{subject to}\quad & \lambda\succeq 0.
+\end{aligned}
+\tag{5.29}
+\end{equation}
+根据 Slater 条件，当二次不等式约束严格成立时，即存在一点 $x$ 使得
+\[
+(1/2)x^TP_ix+q_i^Tx+r_i<0,\quad i=1,\cdots,m.
+\]
+问题 (5.29) 和 (5.28) 之间强对偶性成立。
+
+\noindent\textbf{熵的最大化}\quad
+下一个问题是熵的最大化问题 (5.13)：
+\[
+\begin{aligned}
+\text{minimize}\quad & \sum_{i=1}^n x_i\log x_i\\
+\text{subject to}\quad & Ax\preceq b\\
+& \mathbf{1}^Tx=1,
+\end{aligned}
+\]
+其定义域为 $D=\mathbb{R}_+^n$。在第 213 页中我们曾经推导过这个问题的 Lagrange 对偶函数；对偶问题为
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & -b^T\lambda-\nu-e^{-\nu-1}\sum_{i=1}^n e^{-a_i^T\lambda}\\
+\text{subject to}\quad & \lambda\succeq 0,
+\end{aligned}
+\tag{5.30}
+\end{equation}
+其中，对偶变量 $\lambda\in\mathbb{R}^m,\nu\in\mathbb{R}$。对于问题 (5.13)，根据（弱化的）Slater 条件，我们知道如果存在一点 $x\succ 0$ 使得 $Ax\preceq b$ 以及 $\mathbf{1}^Tx=1$，最优对偶间隙为零。
+
+关于对偶变量 $\nu$ 解析求最大可以简化对偶问题 (5.30)。对于任意固定 $\lambda$，当目标函数对 $\nu$ 的导数为零时，即
+\[
+\nu=\log\sum_{i=1}^n e^{-a_i^T\lambda}-1,
+\]
+目标函数取最大值。将 $\nu$ 的最优值带入对偶问题可以得到
+\[
+\begin{aligned}
+\text{maximize}\quad & -b^T\lambda-\log\left(\sum_{i=1}^n e^{-a_i^T\lambda}\right)\\
+\text{subject to}\quad & \lambda\succeq 0,
+\end{aligned}
+\]
+这是一个非负约束的几何规划问题（凸优化问题）。
+
+\noindent\textbf{最小体积覆盖椭球}\quad
+考虑问题 (5.14)：
+\[
+\begin{aligned}
+\text{minimize}\quad & \log\det X^{-1}\\
+\text{subject to}\quad & a_i^T X a_i\leq 1,\quad i=1,\cdots,m,
+\end{aligned}
+\]
+其中，定义域为 $D=\mathbf{S}_{++}^n$。式 (5.15) 给出了其 Lagrange 对偶函数，所以对偶问题为
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & \log\det\left(\sum_{i=1}^m\lambda_i a_i a_i^T\right)-\mathbf{1}^T\lambda+n\\
+\text{subject to}\quad & \lambda\succeq 0.
+\end{aligned}
+\tag{5.31}
+\end{equation}
+我们规定当 $X\not\succ 0$ 时，$\log\det X=-\infty$。
+
+对于问题 (5.14)，（弱化的）Slater 条件为：存在一个矩阵 $X\in\mathbf{S}_{++}^n$ 使得对任意 $i=1,\cdots,m$ 有 $a_i^TXa_i\leq 1$。而这个条件总是满足的，所以问题 (5.14) 和对偶问题 (5.31) 之间的强对偶性总是成立。
+
+\noindent\textbf{具有强对偶性的一个非凸二次规划问题}\quad
+虽然不太常见，但是对于非凸问题，强对偶性也有成立的时候。作为一个重要的例子，我们考虑在单位球内极小化非凸二次函数的优化问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & x^TAx+2b^Tx\\
+\text{subject to}\quad & x^Tx\leq 1,
+\end{aligned}
+\tag{5.32}
+\end{equation}
+其中，$A\in\mathbf{S}^n,A\not\succeq 0$，且 $b\in\mathbb{R}^n$。因为 $A\not\succeq 0$，所以这不是一个凸优化问题。这个问题有时也称为信赖域问题，当在单位球内极小化一个函数的二阶逼近函数时会遇到此问题，此时的单位球即为假设二阶逼近近似有效的区域。
+
+Lagrange 函数为
+\[
+L(x,\lambda)=x^TAx+2b^Tx+\lambda(x^Tx-1)=x^T(A+\lambda I)x+2b^Tx-\lambda,
+\]
+因此对偶函数为
+\[
+g(\lambda)=
+\begin{cases}
+-b^T(A+\lambda I)^\dagger b-\lambda & A+\lambda I\succeq 0,\quad b\in\mathcal{R}(A+\lambda I)\\
+-\infty & \text{其他情况},
+\end{cases}
+\]
+其中，矩阵 $(A+\lambda I)^\dagger$ 是矩阵 $A+\lambda I$ 的伪逆。因此 Lagrange 对偶问题为
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & -b^T(A+\lambda I)^\dagger b-\lambda\\
+\text{subject to}\quad & A+\lambda I\succeq 0,\quad b\in\mathcal{R}(A+\lambda I),
+\end{aligned}
+\tag{5.33}
+\end{equation}
+
+其中，对偶变量 $\lambda\in\mathbb{R}$。虽然表达式看起来不明显，这是一个凸优化问题。事实上，对偶问题可以很容易地求解，可以将其写成
+\[
+\begin{aligned}
+\text{maximize}\quad & -\sum_{i=1}^n (q_i^Tb)^2/(\lambda_i+\lambda)-\lambda\\
+\text{subject to}\quad & \lambda\geq -\lambda_{\min}(A),
+\end{aligned}
+\]
+其中，$\lambda_i$ 和 $q_i$ 分别是矩阵 $A$ 的特征值和相应的（标准正交）特征向量；我们规定若 $q_i^Tb=0$，比值 $(q_i^Tb)^2/0$ 为零，其他情况该比值为 $\infty$。
+
+尽管原问题 (5.32) 不是凸问题，此问题的最优对偶间隙始终是零：问题 (5.32) 和问题 (5.33) 的最优解总是相同。事实上，存在一个更为一般的结论：如果 Slater 条件成立，对于具有二次目标函数和一个二次不等式约束的优化问题，强对偶性总是成立；参见 §B.1。
+
+\subsection*{5.2.5\quad 矩阵对策的混合策略}
+
+在本节中，我们利用强对偶性得出零和矩阵对策的一个基本结论。考虑二人对策。局中人 1 做出选择（或者移动）$k\in\{1,\cdots,n\}$，局中人 2 在 $l\in\{1,\cdots,m\}$ 中做出选择。然后，局中人 1 支付给局中人 2 $P_{kl}$，其中 $P\in\mathbb{R}^{n\times m}$ 是对策的支付矩阵。局中人 1 的目标是支付额越少越好，而局中人 2 的目标是极大化支付额。
+
+局中人采用随机或者混合策略；这意味着每个局中人根据某个概率分布随机做出选择，和其他局中人的选择无关，即
+\[
+\mathbf{prob}(k=i)=u_i,\quad i=1,\cdots,n,\qquad
+\mathbf{prob}(l=i)=v_i,\quad i=1,\cdots,m.
+\]
+这里，$u$ 和 $v$ 是两个局中人的选择所服从的概率分布，即他们的策略。局中人 1 支付给局中人 2 的支付额的期望为
+\[
+\sum_{k=1}^n\sum_{l=1}^m u_kv_lP_{kl}=u^TPv.
+\]
+局中人 1 希望通过选择 $u$ 来极小化 $u^TPv$，而局中人 2 则希望通过选择 $v$ 来极大化 $u^TPv$。
+
+首先我们从局中人 1 的角度来分析这个对策，假设其策略 $u$ 已经被局中人 2 知晓（这当然对局中人 2 是一个优势）。局中人 2 将会采取策略 $v$ 来极大化 $u^TPv$，此时支付额的期望为
+\[
+\sup\{u^TPv\mid v\succeq 0,\ \mathbf{1}^Tv=1\}
+=\max_{i=1,\cdots,m}(P^Tu)_i.
+\]
+局中人 1 所能尽的最大努力是选择 $u$ 来极小化上述最大支付额，即选择策略 $u$ 求解下列问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \max_{i=1,\cdots,m}(P^Tu)_i\\
+\text{subject to}\quad & u\succeq 0,\quad \mathbf{1}^Tu=1,
+\end{aligned}
+\tag{5.34}
+\end{equation}
+这是一个分片线性凸优化问题。设这个问题的最优值为 $p_1^\star$，这是在局中人 2 知道局中人 1 的策略后，给出了让自己利益最大化的选择时，局中人 1 所能给出的最小支付额期望。
+
+类似地，我们可以考虑当局中人 2 的策略 $v$ 被局中人 1 知晓时的情况（这对局中人 1 是个优势）。在这种情况下，局中人 1 选择策略 $u$ 极大化 $u^TPv$，得到如下期望支付额
+\[
+\inf\{u^TPv\mid u\succeq 0,\ \mathbf{1}^Tu=1\}
+=\min_{i=1,\cdots,n}(Pv)_i.
+\]
+局中人 2 选择策略 $v$ 来极大化上述期望支付额，即选择策略 $v$ 求解下列问题
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & \min_{i=1,\cdots,n}(Pv)_i\\
+\text{subject to}\quad & v\succeq 0,\quad \mathbf{1}^Tv=1,
+\end{aligned}
+\tag{5.35}
+\end{equation}
+这也是一个凸优化问题，目标函数是分片线性（凹）函数。设此问题的最优值为 $p_2^\star$。这是当局中人 1 知道局中人 2 的策略时，局中人 2 可以得到的最大支付额期望。
+
+直观地，知道对手的策略是一个优势（至少不是劣势），事实上，很容易就得出总是成立 $p_1^\star\geq p_2^\star$。我们可以将非负差值 $p_1^\star-p_2^\star$ 看成是知道对手策略所带来的优势。
+
+利用对偶性，我们得出一个乍看令人惊讶的结论：$p_1^\star=p_2^\star$。换言之，在采取混合策略的矩阵对策中，知道对手的策略没有优势。事实上，可以说明问题 (5.34) 和问题 (5.35) 互为 Lagrange 对偶问题，利用强对偶性，不难得到上述结论。
+
+首先，将问题 (5.34) 写成线性规划问题
+\[
+\begin{aligned}
+\text{minimize}\quad & t\\
+\text{subject to}\quad & u\succeq 0,\quad \mathbf{1}^Tu=1\\
+& P^Tu\preceq t\mathbf{1},
+\end{aligned}
+\]
+其中，附加变量 $t\in\mathbb{R}$。对约束 $P^Tu\preceq t\mathbf{1}$ 引入 Lagrange 乘子 $\lambda$，对约束 $u\succeq 0$ 引入 $\mu$，对等式约束 $\mathbf{1}^Tu=1$ 引入乘子 $\nu$，则 Lagrange 函数为
+\[
+t+\lambda^T(P^Tu-t\mathbf{1})-\mu^Tu+\nu(1-\mathbf{1}^Tu)
+=\nu+(1-\mathbf{1}^T\lambda)t+(P\lambda-\nu\mathbf{1}-\mu)^Tu,
+\]
+因此对偶函数为
+\[
+g(\lambda,\mu,\nu)=
+\begin{cases}
+\nu & \mathbf{1}^T\lambda=1,\quad P\lambda-\nu\mathbf{1}=\mu\\
+-\infty & \text{其他情况}.
+\end{cases}
+\]
+可以写出对偶问题
+\[
+\begin{aligned}
+\text{maximize}\quad & \nu\\
+\text{subject to}\quad & \lambda\succeq 0,\quad \mathbf{1}^T\lambda=1,\quad \mu\succeq 0\\
+& P\lambda-\nu\mathbf{1}=\mu.
+\end{aligned}
+\]
+消去 $\mu$ 得到关于变量 $\lambda$ 和 $\nu$ 的 Lagrange 对偶问题
+\[
+\begin{aligned}
+\text{maximize}\quad & \nu\\
+\text{subject to}\quad & \lambda\succeq 0,\quad \mathbf{1}^T\lambda=1\\
+& P\lambda\succeq \nu\mathbf{1},
+\end{aligned}
+\]
+上述问题很显然与问题 (5.35) 是等价的。因为线性规划问题可行，所以强对偶性成立；即优化问题 (5.34) 和 (5.35) 的最优值相等。
+
+\section*{§5.3\quad 几何解释}
+
+\subsection*{5.3.1\quad 通过函数值集合理解强弱对偶性}
+
+可以通过集合
+\begin{equation}
+\mathcal{G}=\{(f_1(x),\cdots,f_m(x),h_1(x),\cdots,h_p(x),f_0(x))\in\mathbb{R}^m\times\mathbb{R}^p\times\mathbb{R}\mid x\in D\},
+\tag{5.36}
+\end{equation}
+给出对偶函数的简单几何解释。事实上，此集合是约束函数和目标函数所取得的函数值。利用集合 $\mathcal{G}$，可以很容易地表达优化问题 (5.1) 的最优值 $p^\star$
+\[
+p^\star=\inf\{t\mid (u,v,t)\in\mathcal{G},\ u\preceq 0,\ v=0\}.
+\]
+为了求取以 $(\lambda,\nu)$ 为自变量的对偶函数，我们在 $(u,v,t)\in\mathcal{G}$ 上极小化仿射函数
+\[
+(\lambda,\nu,1)^T(u,v,t)=\sum_{i=1}^m\lambda_i u_i+\sum_{i=1}^p\nu_i v_i+t
+\]
+得到
+\[
+g(\lambda,\nu)=\inf\{(\lambda,\nu,1)^T(u,v,t)\mid (u,v,t)\in\mathcal{G}\}.
+\]
+特别地，如果下确界有限，则不等式
+\[
+(\lambda,\nu,1)^T(u,v,t)\geq g(\lambda,\nu)
+\]
+定义了集合 $\mathcal{G}$ 的一个支撑超平面。这个支撑超平面有时称为非竖直支撑超平面，这是因为法向量的最后一个分量不为零。
+
+假设 $\lambda\succeq 0$。显然，如果 $u\preceq 0$ 且 $v=0$，则成立 $t\geq(\lambda,\nu,1)^T(u,v,t)$。因此有
+\[
+\begin{aligned}
+p^\star
+&=\inf\{t\mid (u,v,t)\in\mathcal{G},\ u\preceq 0,\ v=0\}\\
+&\geq \inf\{(\lambda,\nu,1)^T(u,v,t)\mid (u,v,t)\in\mathcal{G},\ u\preceq 0,\ v=0\}\\
+&\geq \inf\{(\lambda,\nu,1)^T(u,v,t)\mid (u,v,t)\in\mathcal{G}\}\\
+&=g(\lambda,\nu),
+\end{aligned}
+\]
+即弱对偶性成立。针对只有一个不等式约束的简单问题，图 5.3 和图 5.4 描述了上述几何意义。
+
+\noindent\textbf{上境图变化}
+
+在本节中，我们以另一种方式理解对偶性的几何意义，同样也是基于集合 $\mathcal{G}$，通过这个理解，我们可以解释为什么对（大部分）凸问题，强对偶性总是成立。定义集合 $\mathcal{A}\subseteq\mathbb{R}^m\times\mathbb{R}^p\times\mathbb{R}$ 为
+\begin{equation}
+\mathcal{A}=\mathcal{G}+(\mathbb{R}_+^m\times\{0\}\times\mathbb{R}_+),
+\tag{5.37}
+\end{equation}
+或者更明确的，
+\[
+\mathcal{A}=\{(u,v,t)\mid \exists x\in D,\ f_i(x)\leq u_i,\ i=1,\cdots,m,\ h_i(x)=v_i,\ i=1,\cdots,p,\ f_0(x)\leq t\},
+\]
+我们可以认为 $\mathcal{A}$ 是 $\mathcal{G}$ 的一种上境图形式，因为 $\mathcal{A}$ 包含了 $\mathcal{G}$ 中的所有点以及一些“较坏”的点，即目标函数值或者不等式约束函数值较大的点。
+
+可以通过 $\mathcal{A}$ 来描述最优值
+\[
+p^\star=\inf\{t\mid (0,0,t)\in\mathcal{A}\}.
+\]
+为了得到当 $\lambda\succeq 0$ 时关于 $(\lambda,\nu)$ 的对偶函数，可以在 $\mathcal{A}$ 上极小化仿射函数 $(\lambda,\nu,1)^T(u,v,t)$：如果 $\lambda\succeq 0$，则
+\[
+g(\lambda,\nu)=\inf\{(\lambda,\nu,1)^T(u,v,t)\mid (u,v,t)\in\mathcal{A}\}.
+\]
+如果下确界有限，则
+\[
+(\lambda,\nu,1)^T(u,v,t)\geq g(\lambda,\nu)
+\]
+定义了 $\mathcal{A}$ 的一个非竖直的支撑超平面。
+
+特别地，因为 $(0,0,p^\star)\in\mathbf{bd}\,\mathcal{A}$，我们有
+\begin{equation}
+p^\star=(\lambda,\nu,1)^T(0,0,p^\star)\geq g(\lambda,\nu),
+\tag{5.38}
+\end{equation}
+即弱对偶性成立。强对偶性成立，当且仅当存在某些对偶可行变量 $(\lambda,\nu)$，使得式 (5.38) 取等号，即对集合 $\mathcal{A}$，存在一个在边界点 $(0,0,p^\star)$ 处的非竖直的支撑超平面。这种形式的几何解释见图 5.5。
+
+\subsection*{5.3.2\quad 在约束准则下强对偶性成立的证明}
+
+本节证明 Slater 约束准则可以保证对凸优化问题强对偶性成立（且对偶最优可以达到）。考虑原问题 (5.25)，其中函数 $f_0,\cdots,f_m$ 均为凸函数，假设 Slater 条件满足：即存在一点 $\tilde{x}\in\mathbf{relint}\,D$ 使得 $f_i(\tilde{x})<0$，$i=1,\cdots,m$ 且 $A\tilde{x}=b$。为了简化证明，附加两个假设条件：首先 $D$ 的内点集不为空集（即 $\mathbf{relint}\,D=\mathbf{int}\,D$），其次 $\mathbf{rank}\,A=p$。假设最优值 $p^\star$ 有限。（因为存在可行点，则 $p^\star=-\infty$ 或者 $p^\star$ 有限；如果 $p^\star=-\infty$，则根据弱对偶性，$d^\star=-\infty$。）
+
+如果原问题是凸问题，我们说明式 (5.37) 中定义的集合 $\mathcal{A}$ 是凸集。定义另一个凸集 $\mathcal{B}$ 为
+\[
+\mathcal{B}=\{(0,0,s)\in\mathbb{R}^m\times\mathbb{R}^p\times\mathbb{R}\mid s<p^\star\}.
+\]
+集合 $\mathcal{A}$ 和集合 $\mathcal{B}$ 不相交。为了说明这一点，设存在 $(u,v,t)\in\mathcal{A}\cap\mathcal{B}$。因为 $(u,v,t)\in\mathcal{B}$，我们有 $u=0$，$v=0$，以及 $t<p^\star$；而又因为 $(u,v,t)\in\mathcal{A}$，所以存在 $x$ 使得 $f_i(x)\leq 0$，$i=1,\cdots,m$，$Ax-b=0$，以及 $f_0(x)\leq t<p^\star$，而这与 $p^\star$ 是原问题的最优值矛盾。
+
+根据 §2.5.1 中的分离超平面定理，存在 $(\tilde{\lambda},\tilde{\nu},\mu)\neq 0$ 和 $\alpha$ 使得
+\begin{equation}
+(u,v,t)\in\mathcal{A}\Longrightarrow \tilde{\lambda}^Tu+\tilde{\nu}^Tv+\mu t\geq \alpha,
+\tag{5.39}
+\end{equation}
+和
+\begin{equation}
+(u,v,t)\in\mathcal{B}\Longrightarrow \tilde{\lambda}^Tu+\tilde{\nu}^Tv+\mu t\leq \alpha.
+\tag{5.40}
+\end{equation}
+根据式 (5.39)，我们有 $\tilde{\lambda}\succeq 0$ 和 $\mu\geq 0$。（否则 $\tilde{\lambda}^Tu+\mu t$ 在 $\mathcal{A}$ 上无下界，与式 (5.39) 矛盾。）条件 (5.40) 意味着对所有 $t<p^\star$ 有 $\mu t\leq \alpha$，因此 $\mu p^\star\leq \alpha$。结合式 (5.39)，对任意 $x\in D$，下式成立，
+\begin{equation}
+\sum_{i=1}^m \tilde{\lambda}_i f_i(x)+\tilde{\nu}^T(Ax-b)+\mu f_0(x)\geq \alpha\geq \mu p^\star.
+\tag{5.41}
+\end{equation}
+设 $\mu>0$，这样在不等式 (5.41) 两端除以 $\mu$，可得对任意 $x\in D$，下式成立
+\[
+L(x,\tilde{\lambda}/\mu,\tilde{\nu}/\mu)\geq p^\star.
+\]
+定义
+\[
+\lambda=\tilde{\lambda}/\mu,\qquad \nu=\tilde{\nu}/\mu,
+\]
+对 $x$ 求极小可以得到 $g(\lambda,\nu)\geq p^\star$。根据弱对偶性，我们有 $g(\lambda,\nu)\leq p^\star$，因此 $g(\lambda,\nu)=p^\star$。这说明当 $\mu>0$ 时强对偶性成立，且对偶问题能达到最优值。
+
+现在考虑当 $\mu=0$ 时的情形。根据式 (5.41)，对任意 $x\in D$，有
+\begin{equation}
+\sum_{i=1}^m \tilde{\lambda}_i f_i(x)+\tilde{\nu}^T(Ax-b)\geq 0.
+\tag{5.42}
+\end{equation}
+满足 Slater 条件的点 $\tilde{x}$ 同样满足式 (5.42)，因此有
+\[
+\sum_{i=1}^m \tilde{\lambda}_i f_i(\tilde{x})\geq 0.
+\]
+因为 $f_i(\tilde{x})<0$ 且 $\tilde{\lambda}_i\geq 0$，我们有 $\tilde{\lambda}=0$。因为 $(\tilde{\lambda},\tilde{\nu},\mu)\neq 0$ 且 $\tilde{\lambda}=0,\mu=0$，所以 $\tilde{\nu}\neq 0$。因此，式 (5.42) 表明对任意 $x\in D$ 有 $\tilde{\nu}^T(Ax-b)\geq 0$。又因为 $\tilde{x}$ 满足 $\tilde{\nu}^T(A\tilde{x}-b)=0$，且 $\tilde{x}\in\mathbf{int}\,D$，因此除了 $A^T\tilde{\nu}=0$ 的情况，总存在 $D$ 中的点使得 $\tilde{\nu}^T(Ax-b)<0$。而 $A^T\tilde{\nu}=0$ 显然与假设 $\mathbf{rank}\,A=p$ 矛盾。
+
+上述证明的几何意义如图 5.6 所示，图中的问题是具有一个不等式约束的简单问题。分离集合 $\mathcal{A}$ 和集合 $\mathcal{B}$ 的超平面在点 $(0,p^\star)$ 处定义了 $\mathcal{A}$ 的一个支撑超平面。根据 Slater 约束准则，分离的超平面必须是非竖直的（即存在一个形如 $(\lambda^\star,1)$ 的法向量）。（针对具有一个不等式约束的凸优化问题，强对偶性也有可能不成立，习题 5.21 给出了一个简单的例子。）
+
+\subsection*{5.3.3\quad 多准则解释}
+
+考虑没有等式约束的优化问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\leq 0,\quad i=1,\cdots,m,
+\end{aligned}
+\tag{5.43}
+\end{equation}
+其 Lagrange 对偶问题和（无约束）多准则优化问题
+\begin{equation}
+\text{minimize（关于 $\mathbb{R}_+^{m+1}$）}\quad
+F(x)=(f_1(x),\cdots,f_m(x),f_0(x))
+\tag{5.44}
+\end{equation}
+的标量化解法（见 §4.7.4）之间有着天然的联系。在标量化的过程中，选择一个正向量 $\tilde{\lambda}$，极小化标量函数 $\tilde{\lambda}^TF(x)$；任意最小点都是 Pareto 最优。由于可以将 $\tilde{\lambda}$ 以任意正比例缩放而不影响极小化问题，所以不失一般性，可以选择 $\tilde{\lambda}=(\lambda,1)$。因此，在标量化中，我们极小化函数
+\[
+\tilde{\lambda}^TF(x)=f_0(x)+\sum_{i=1}^m\lambda_i f_i(x),
+\]
+而这正是问题 (5.43) 的 Lagrange 函数。
+
+为了说明多准则凸优化问题的每个 Pareto 最优解都是给定某个非负权向量 $\tilde{\lambda}$ 时函数 $\tilde{\lambda}^TF(x)$ 的最小点，我们考虑式 (4.62) 定义的集合 $\mathcal{A}$，
+\[
+\mathcal{A}=\{t\in\mathbb{R}^{m+1}\mid \exists x\in D,\ f_i(x)\leq t_i,\ i=0,\cdots,m\},
+\]
+这和研究 Lagrange 对偶问题时式 (5.37) 中定义的集合 $\mathcal{A}$ 一样。此时，和前面一样，所需权向量也是集合在任意一个 Pareto 最优点处的支撑超平面。在多准则优化问题中，权向量的含义是目标函数的相对权重。当我们固定权向量的最后一个分量（和函数 $f_0$ 对应）为一时，其他权向量分量的含义是相对 $f_0$ 的成本，即相对于目标函数的成本。
+
+\section*{§5.4\quad 鞍点解释}
+
+本节给出 Lagrange 对偶的其他几种解释。本节的内容在后续章节中将不再出现。
+
+\subsection*{5.4.1\quad 强弱对偶性的极大极小描述}
+
+可以将原、对偶优化问题以一种更为对称的方式进行表达。为了简化讨论，假设没有等式约束；事实上，现有的结果可以很容易地扩展至有等式约束的情形。
+
+首先，我们注意到
+\[
+\sup_{\lambda\succeq 0}L(x,\lambda)
+=\sup_{\lambda\succeq 0}\left(f_0(x)+\sum_{i=1}^m\lambda_i f_i(x)\right)
+=
+\begin{cases}
+f_0(x) & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+\infty & \text{其他情况}.
+\end{cases}
+\]
+假设 $x$ 不可行，即存在某些 $i$ 使得 $f_i(x)>0$。选择 $\lambda_j=0$，$j\neq i$，以及 $\lambda_i\to\infty$，可以得出 $\sup_{\lambda\succeq 0}L(x,\lambda)=\infty$。反过来，如果 $x$ 可行，则有 $f_i(x)\leq 0$，$i=1,\cdots,m$，$\lambda$ 的最优选择为 $\lambda=0$，$\sup_{\lambda\succeq 0}L(x,\lambda)=f_0(x)$。这意味着我们可以将原问题的最优值写成如下形式
+\[
+p^\star=\inf_x\sup_{\lambda\succeq 0}L(x,\lambda).
+\]
+根据对偶函数的定义，有
+\[
+d^\star=\sup_{\lambda\succeq 0}\inf_x L(x,\lambda).
+\]
+因此弱对偶性可以表达为下述不等式
+\begin{equation}
+\sup_{\lambda\succeq 0}\inf_x L(x,\lambda)
+\leq
+\inf_x\sup_{\lambda\succeq 0}L(x,\lambda);
+\tag{5.45}
+\end{equation}
+强对偶性可以表示为下面的不等式
+\[
+\sup_{\lambda\succeq 0}\inf_x L(x,\lambda)
+=
+\inf_x\sup_{\lambda\succeq 0}L(x,\lambda).
+\]
+强对偶性意味着对 $x$ 求极小和对 $\lambda\succeq 0$ 求极大可以互换而不影响结果。
+
+事实上，不等式 (5.45) 是否成立和 $L$ 的性质无关：对任意 $f:\mathbb{R}^n\times\mathbb{R}^m\to\mathbb{R}$（以及任意 $W\subseteq\mathbb{R}^n$ 和 $Z\subseteq\mathbb{R}^m$），下式成立：
+\begin{equation}
+\sup_{z\in Z}\inf_{w\in W} f(w,z)\leq \inf_{w\in W}\sup_{z\in Z} f(w,z).
+\tag{5.46}
+\end{equation}
+这个一般性的不等式称为极大极小不等式。若等式成立，即
+\begin{equation}
+\sup_{z\in Z}\inf_{w\in W} f(w,z)=\inf_{w\in W}\sup_{z\in Z} f(w,z)
+\tag{5.47}
+\end{equation}
+我们称 $f$（以及 $W$ 和 $Z$）满足强极大极小性质或者鞍点性质。当然，强极大极小性质只在特殊情形下成立，例如，函数 $f:\mathbb{R}^n\times\mathbb{R}^m\to\mathbb{R}$ 是满足强对偶性问题的 Lagrange 函数，而 $W=\mathbb{R}^n$，$Z=\mathbb{R}_+^m$。
+
+\subsection*{5.4.2\quad 鞍点解释}
+
+我们称一对 $\tilde{w}\in W,\tilde{z}\in Z$ 是函数 $f$（以及 $W$ 和 $Z$）的鞍点，如果对任意 $w\in W$ 和 $z\in Z$ 下式成立
+\[
+f(\tilde{w},z)\leq f(\tilde{w},\tilde{z})\leq f(w,\tilde{z}).
+\]
+换言之，$f(w,z)$ 在 $\tilde{w}$ 处取得最小值（关于变量 $w\in W$），$f(\tilde{w},z)$ 在 $\tilde{z}$ 处取得最大值（关于变量 $z\in Z$）：
+\[
+f(\tilde{w},\tilde{z})=\inf_{w\in W} f(w,\tilde{z}),\qquad
+f(\tilde{w},\tilde{z})=\sup_{z\in Z} f(\tilde{w},z).
+\]
+上式意味着强极大极小性质 (5.47) 成立，且其共同值为 $f(\tilde{w},\tilde{z})$。
+
+回到我们关于 Lagrange 对偶的讨论，如果 $x^\star$ 和 $\lambda^\star$ 分别是原问题和对偶问题的最优点，且强对偶性成立，则它们是 Lagrange 函数的一个鞍点。反过来同样成立：如果 $(x,\lambda)$ 是 Lagrange 函数的一个鞍点，那么 $x$ 是原问题的最优解，$\lambda$ 是对偶问题的最优解，且最优对偶间隙为零。
+
+\subsection*{5.4.3\quad 对策解释}
+
+我们可以通过一个连续零和对策来理解极大极小不等式 (5.46)，极大极小等式 (5.47)，以及鞍点性质。如果第一个局中人选择 $w\in W$，第二个局中人选择 $z\in Z$，那么局中人 1 支付给局中人 2 $f(w,z)$。局中人 1 希望极小化 $f$，而局中人 2 希望极大化 $f$。（因为局中人的选择是向量并且非离散，所以这个对策称为连续的。）
+
+设局中人 1 首先做出选择，局中人 2 在知道局中人 1 的选择后，做出选择。局中人 2 希望极大化支付额 $f(w,z)$，因此选择 $z\in Z$ 来极大化 $f(w,z)$。所产生的支付额为 $\sup_{z\in Z} f(w,z)$，由第一个局中人的选择 $w$ 决定。（此时假设上确界可以达到；如果达不到，最优支付额可以无限接近 $\sup_{z\in Z} f(w,z)$。）局中人 1（假设）知道局中人 2 将采取此措施，因此将会选择 $w\in W$ 使得最坏情况下的支付额尽可能得小。因此局中人 1 选择
+\[
+\mathop{\mathrm{argmin}}_{w\in W}\sup_{z\in Z} f(w,z),
+\]
+这样局中人 1 付给局中人 2 的支付额为
+\[
+\inf_{w\in W}\sup_{z\in Z} f(w,z).
+\]
+现在假设对策的顺序反过来：局中人 2 先做出选择 $z\in Z$，局中人 1 随后选择 $w\in W$（已经知晓局中人 2 的选择 $z$）。通过类似的讨论，如果选择最优策略，局中人 2 必须选择 $z\in Z$ 来极大化 $\inf_{w\in W}f(w,z)$，这样局中人 1 需付给局中人 2 的支付额为
+\[
+\sup_{z\in Z}\inf_{w\in W} f(w,z).
+\]
+极大极小不等式 (5.46) 说明（直观上显然）这样一个事实，后选择的局中人具有优势，即如果在选择的时候已经知道对手的选择具有优势。换言之，如果局中人 1 必须先做出选择时，局中人 2 获得的支付额更大。当鞍点性质 (5.47) 成立时，做出选择的顺序对最后的支付额没有影响。
+
+如果 $(\tilde{w},\tilde{z})$ 是函数 $f$（在 $W$ 和 $Z$ 上）的一个鞍点，那么称它为对策的一个解；$\tilde{w}$ 称为局中人 1 的最优选择或对策，$\tilde{z}$ 称为局中人 2 的最优选择或对策。在这种情况下，后选择没有任何优势。
+
+现在考虑一种特殊的情况，支付额函数是 Lagrange 函数，$W=\mathbb{R}^n$，$Z=\mathbb{R}_+^m$。此时，局中人 1 选择原变量 $x$，局中人 2 选择对偶变量 $\lambda\succeq 0$。根据前面的讨论，如果局中人 2 必须先选择，其最优方案是任意对偶最优解 $\lambda^\star$，局中人 2 所获得的支付额此时为 $d^\star$。反过来，如果局中人 1 必须先选择，其最优选择是任意原问题的最优解 $x^\star$，相应的支付额为 $p^\star$。
+
+此问题的最优对偶间隙恰是后选择的局中人所具有的优势，即当知道对手的选择后再做出选择的优势。如果强对偶性成立，知晓对手的选择不会带来任何优势。
+
+\subsection*{5.4.4\quad 价格或税解释}
+
+Lagrange 对偶在经济学上有一个有意义的解释。设变量 $x$ 表示公司的一种运营策略，$f_0(x)$ 表示以方式 $x$ 运营的成本，即 $-f_0(x)$ 表示以方式 $x$ 运营获得的收益（比如说美元）。每个约束 $f_i(x)\leq 0$ 表示实际的一些限制，比如说资源的限制（如仓库容量，劳动力）或者常规限制（如环境限制）。考虑满足约束条件并使利润最大的运营策略可以通过求解下列问题得到
+\[
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\leq 0,\quad i=1,\cdots,m.
+\end{aligned}
+\]
+得到的最优利润是 $-p^\star$。
+
+现在假设另一个场景，约束可以被违背，被违背的部分必须支付一定的成本，与被违背的部分 $f_i$ 呈线性关系。因此，违背约束 $i$ 所需支付的成本为 $\lambda_i f_i(x)$。如果约束不是紧的，公司还会得到收益；如果 $f_i(x)<0$，公司得到的收益为 $\lambda_i f_i(x)$。系数 $\lambda_i$ 的含义是违背 $f_i(x)\leq 0$ 的价格；其单位为美元每单位违背（通过 $f_i$ 衡量）。公司亦可以以同样的价格卖出第 $i$ 个约束中“没有使用的”部分。假设 $\lambda_i\geq 0$，则公司必须为违背约束付出代价（如果约束不是紧的可以获得收益）。
+
+作为一个例子，假设原问题的第一个约束为 $f_1(x)\leq 0$，表示仓库容量的限制（比如说平方米）。在新的安排下，假设公司可以以每平方米 $\lambda_1$ 美元的价格租赁另外的仓库空间，也可以以同样的价格将不使用的空间租赁出去。
+
+以方式 $x$ 运营，约束价格为 $\lambda_i$，公司的总成本为 $L(x,\lambda)=f_0(x)+\sum_{i=1}^m\lambda_i f_i(x)$。显然，公司必须选择运营方式来极小化总成本 $L(x,\lambda)$，这样得到的成本为 $g(\lambda)$。对偶函数就表示公司的最优成本，是约束价格向量 $\lambda$ 的函数。对偶问题的最优值 $d^\star$ 即为公司在最不利的成本价格下所获得的最优收益。
+
+基于这个解释，我们可以这样描述弱对偶性：在第二种情况（约束可以被违背，有代价和收益）下公司的最优成本不大于第一种情形（约束不能被违背）公司的成本。这是显然的：如果 $x^\star$ 是第一种情况下的最优解，那么在第二种情况下以 $x^\star$ 进行运营时的成本小于 $f_0(x^\star)$，这是因为可以通过不紧的约束获得收益。最优对偶间隙是允许为违背的约束支付成本（以及通过不紧的约束获得收益）时公司可能获得的最小优势。
+
+现在假设强对偶性成立，对偶问题可以取得最优值。对偶问题最优解 $\lambda^\star$ 可以看成是这样的价格：公司允许以这样的价格支付被违背的约束（或者通过不紧的约束获得收益）时相比约束不能被违背时没有任何优势。因为这个原因，对偶问题最优解 $\lambda^\star$ 有时也称为原问题的影子价格。
+
+\section*{§5.5\quad 最优性条件}
+
+在此，我们再次提醒读者，如果不明确说明，并不假设问题 (5.1) 是凸问题。
+
+\subsection*{5.5.1\quad 次优解认证和终止准则}
+
+如果能够找到一个对偶可行解 $(\lambda,\nu)$，就对原问题的最优值建立了一个下界：$p^\star\geq g(\lambda,\nu)$。因此，对偶可行点 $(\lambda,\nu)$ 为表达式 $p^\star\geq g(\lambda,\nu)$ 的成立提供了一个证明或认证。强对偶性意味着存在任意好的认证。
+
+对偶可行点可以让我们在不知道 $p^\star$ 的确切值的情况下界定给定可行点的次优程度。事实上，如果 $x$ 是原问题可行解且 $(\lambda,\nu)$ 对偶可行，那么
+\[
+f_0(x)-p^\star\leq f_0(x)-g(\lambda,\nu).
+\]
+特别地，上式说明了 $x$ 是 $\epsilon$-次优，其中 $\epsilon=f_0(x)-g(\lambda,\nu)$。（这同样说明对对偶问题 $(\lambda,\nu)$ 是 $\epsilon$-次优。）
+
+定义原问题和对偶问题目标函数的差值
+\[
+f_0(x)-g(\lambda,\nu)
+\]
+为原问题可行解 $x$ 和对偶可行解 $(\lambda,\nu)$ 之间的对偶间隙。一对原对偶问题的可行点 $x,(\lambda,\nu)$ 将原问题（对偶问题）的最优值限制在一个区间上：
+\[
+p^\star\in[g(\lambda,\nu),f_0(x)],\qquad
+d^\star\in[g(\lambda,\nu),f_0(x)],
+\]
+区间的长度即为上面定义的对偶间隙。
+
+如果原对偶可行对 $x,(\lambda,\nu)$ 的对偶间隙为零，即 $f_0(x)=g(\lambda,\nu)$，那么 $x$ 是原问题最优解且 $(\lambda,\nu)$ 是对偶问题最优解。此时，我们可以认为 $(\lambda,\nu)$ 是证明 $x$ 为最优解的一个认证（类似地，也可以认为 $x$ 是证明 $(\lambda,\nu)$ 对偶最优的一个认证）。
+
+上述现象可以用在优化算法中给出非启发式停止准则。设某个算法给出一系列原问题可行解 $x^{(k)}$ 以及对偶问题可行解 $(\lambda^{(k)},\nu^{(k)})$，$k=1,2,\cdots$；给定要求的绝对精度 $\epsilon_{\mathrm{abs}}>0$，那么停止准则（即终止算法的条件）
+\[
+f_0(x^{(k)})-g(\lambda^{(k)},\nu^{(k)})\leq \epsilon_{\mathrm{abs}}
+\]
+保证当算法终止的时候，$x^{(k)}$ 是 $\epsilon_{\mathrm{abs}}$-次优。事实上，$(\lambda^{(k)},\nu^{(k)})$ 为此提供了一个认证。（当然，只有在强对偶性成立的条件下，此方法对任意小的 $\epsilon_{\mathrm{abs}}$ 才都可行。）
+
+给定相对精度 $\epsilon_{\mathrm{rel}}>0$，可以推导类似的条件保证 $\epsilon$-次优。如果
+\[
+g(\lambda^{(k)},\nu^{(k)})>0,\qquad
+\frac{f_0(x^{(k)})-g(\lambda^{(k)},\nu^{(k)})}{g(\lambda^{(k)},\nu^{(k)})}\leq \epsilon_{\mathrm{rel}}
+\]
+成立，或者
+\[
+f_0(x^{(k)})<0,\qquad
+\frac{f_0(x^{(k)})-g(\lambda^{(k)},\nu^{(k)})}{-f_0(x^{(k)})}\leq \epsilon_{\mathrm{rel}}
+\]
+成立，那么 $p^\star\neq 0$，且可以保证相对误差
+\[
+\frac{f_0(x^{(k)})-p^\star}{|p^\star|}
+\]
+小于等于 $\epsilon_{\mathrm{rel}}$。
+
+\subsection*{5.5.2\quad 互补松弛性}
+
+设原问题和对偶问题的最优值都可以达到且相等（即强对偶性成立）。令 $x^\star$ 是原问题的最优解，$(\lambda^\star,\nu^\star)$ 是对偶问题的最优解，这表明
+\[
+\begin{aligned}
+f_0(x^\star)
+&=g(\lambda^\star,\nu^\star)\\
+&=\inf_x\left(f_0(x)+\sum_{i=1}^m\lambda_i^\star f_i(x)+\sum_{i=1}^p\nu_i^\star h_i(x)\right)\\
+&\leq f_0(x^\star)+\sum_{i=1}^m\lambda_i^\star f_i(x^\star)+\sum_{i=1}^p\nu_i^\star h_i(x^\star)\\
+&\leq f_0(x^\star).
+\end{aligned}
+\]
+第一个等式说明最优对偶间隙为零，第二个等式是对偶函数的定义。第三个不等式是根据 Lagrange 函数关于 $x$ 求下确界小于等于其在 $x=x^\star$ 处的值得来。最后一个不等式的成立是因为 $\lambda_i^\star\geq 0$，$f_i(x^\star)\leq 0$，$i=1,\cdots,m$，以及 $h_i(x^\star)=0$，$i=1,\cdots,p$。因此，在上面的式子链中，两个不等式取等号。
+
+可以由此得出一些有意义的结论。例如，由于第三个不等式变为等式，我们知道 $L(x,\lambda^\star,\nu^\star)$ 关于 $x$ 求极小时在 $x^\star$ 处取得最小值。（Lagrange 函数 $L(x,\lambda^\star,\nu^\star)$ 也可以有其他最小点；$x^\star$ 只是其中一个最小点。）
+
+另外一个重要的结论是
+\[
+\sum_{i=1}^m\lambda_i^\star f_i(x^\star)=0.
+\]
+事实上，求和项的每一项都非正，因此有
+\begin{equation}
+\lambda_i^\star f_i(x^\star)=0,\quad i=1,\cdots,m.
+\tag{5.48}
+\end{equation}
+上述条件称为\textbf{互补松弛性}；它对任意原问题最优解 $x^\star$ 以及对偶问题最优解 $(\lambda^\star,\nu^\star)$ 都成立（当强对偶性成立时）。我们可以将互补松弛条件写成
+\[
+\lambda_i^\star>0\Longrightarrow f_i(x^\star)=0,
+\]
+或者等价地
+\[
+f_i(x^\star)<0\Longrightarrow \lambda_i^\star=0.
+\]
+粗略地讲，上式意味着在最优点处，除了第 $i$ 个约束起作用的情况，最优 Lagrange 乘子的第 $i$ 项都为零。
+
+\subsection*{5.5.3\quad KKT 最优性条件}
+
+现在假设函数 $f_0,\cdots,f_m,h_1,\cdots,h_p$ 可微（因此定义域是开集），但是并不假设这些函数是凸函数。
+
+\noindent\textbf{非凸问题的 KKT 条件}
+
+和前面一样，令 $x^\star$ 和 $(\lambda^\star,\nu^\star)$ 分别是原问题和对偶问题的某对最优解，对偶间隙为零。因为 $L(x,\lambda^\star,\nu^\star)$ 关于 $x$ 求极小在 $x^\star$ 处取得最小值，因此函数在 $x^\star$ 处的导数必须为零，即，
+\[
+\nabla f_0(x^\star)+\sum_{i=1}^m\lambda_i^\star\nabla f_i(x^\star)+\sum_{i=1}^p\nu_i^\star\nabla h_i(x^\star)=0.
+\]
+因此，我们有
+\begin{equation}
+\begin{aligned}
+& f_i(x^\star)\leq 0,\quad i=1,\cdots,m\\
+& h_i(x^\star)=0,\quad i=1,\cdots,p\\
+& \lambda_i^\star\geq 0,\quad i=1,\cdots,m\\
+& \lambda_i^\star f_i(x^\star)=0,\quad i=1,\cdots,m\\
+& \nabla f_0(x^\star)+\sum_{i=1}^m\lambda_i^\star\nabla f_i(x^\star)+\sum_{i=1}^p\nu_i^\star\nabla h_i(x^\star)=0.
+\end{aligned}
+\tag{5.49}
+\end{equation}
+我们称上式为 Karush-Kuhn-Tucker (KKT) 条件。
+
+总之，对于目标函数和约束函数可微的任意优化问题，如果强对偶性成立，那么任何一对原问题最优解和对偶问题最优解必须满足 KKT 条件 (5.49)。
+
+\noindent\textbf{凸问题的 KKT 条件}
+
+当原问题是凸问题时，满足 KKT 条件的点也是原、对偶最优解。换言之，如果函数 $f_i$ 是凸函数，$h_i$ 是仿射函数，$\tilde{x},\tilde{\lambda},\tilde{\nu}$ 是任意满足 KKT 条件的点，
+\[
+\begin{aligned}
+& f_i(\tilde{x})\leq 0,\quad i=1,\cdots,m\\
+& h_i(\tilde{x})=0,\quad i=1,\cdots,p\\
+& \tilde{\lambda}_i\geq 0,\quad i=1,\cdots,m\\
+& \tilde{\lambda}_i f_i(\tilde{x})=0,\quad i=1,\cdots,m\\
+& \nabla f_0(\tilde{x})+\sum_{i=1}^m\tilde{\lambda}_i\nabla f_i(\tilde{x})+\sum_{i=1}^p\tilde{\nu}_i\nabla h_i(\tilde{x})=0,
+\end{aligned}
+\]
+那么 $\tilde{x}$ 和 $(\tilde{\lambda},\tilde{\nu})$ 分别是原问题和对偶问题的最优解，对偶间隙为零。
+
+为了说明这一点，注意到前两个条件说明了 $\tilde{x}$ 是原问题的可行解。因为 $\tilde{\lambda}_i\geq 0$，$L(\tilde{x},\tilde{\lambda},\tilde{\nu})$ 是 $x$ 的凸函数；最后一个 KKT 条件说明在 $x=\tilde{x}$ 处，Lagrange 函数的导数为零。因此，$L(x,\tilde{\lambda},\tilde{\nu})$ 关于 $x$ 求极小在 $\tilde{x}$ 处取得最小值。我们得出结论
+\[
+\begin{aligned}
+g(\tilde{\lambda},\tilde{\nu})
+&=L(\tilde{x},\tilde{\lambda},\tilde{\nu})\\
+&=f_0(\tilde{x})+\sum_{i=1}^m\tilde{\lambda}_i f_i(\tilde{x})+\sum_{i=1}^p\tilde{\nu}_i h_i(\tilde{x})\\
+&=f_0(\tilde{x}),
+\end{aligned}
+\]
+最后一行成立是因为 $h_i(\tilde{x})=0$ 以及 $\tilde{\lambda}_i f_i(\tilde{x})=0$。这说明原问题的解 $\tilde{x}$ 和对偶问题的解 $(\tilde{\lambda},\tilde{\nu})$ 之间的对偶间隙为零，因此分别是原、对偶最优解。总之，对目标函数和约束函数可微的任意凸优化问题，任意满足 KKT 条件的点分别是原、对偶最优解，对偶间隙为零。
+
+若某个凸优化问题具有可微的目标函数和约束函数，且其满足 Slater 条件，那么 KKT 条件是最优性的充要条件：Slater 条件意味着最优对偶间隙为零且对偶最优解可以达到，因此 $x$ 是原问题最优解，当且仅当存在 $(\lambda,\nu)$，二者满足 KKT 条件。
+
+KKT 条件在优化领域有着重要的作用。在一些特殊的情形下，是可以解析求解 KKT 条件的（也因此可以求解优化问题）。更一般地，很多求解凸优化问题的方法可以认为或者理解为求解 KKT 条件的方法。
+
+\noindent\textbf{例 5.1}\quad 等式约束二次凸问题求极小。考虑问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & (1/2)x^TPx+q^Tx+r\\
+\text{subject to}\quad & Ax=b,
+\end{aligned}
+\tag{5.50}
+\end{equation}
+其中 $P\in\mathbf{S}_+^n$。此问题的 KKT 条件为
+\[
+Ax^\star=b,\qquad Px^\star+q+A^T\nu^\star=0,
+\]
+我们可以将其写成
+\[
+\begin{bmatrix}
+P & A^T\\
+A & 0
+\end{bmatrix}
+\begin{bmatrix}
+x^\star\\
+\nu^\star
+\end{bmatrix}
+=
+\begin{bmatrix}
+-q\\
+b
+\end{bmatrix}.
+\]
+求解变量 $x^\star,\nu^\star$ 的 $m+n$ 个方程，其中变量的维数为 $m+n$，可以得到优化问题 (5.50) 的最优原变量和对偶变量。
+
+\noindent\textbf{例 5.2}\quad 注水。考虑如下凸优化问题
+\[
+\begin{aligned}
+\text{minimize}\quad & -\sum_{i=1}^n\log(\alpha_i+x_i)\\
+\text{subject to}\quad & x\succeq 0,\quad \mathbf{1}^Tx=1,
+\end{aligned}
+\]
+其中 $\alpha_i>0$。上述问题源自信息论，将功率分配给 $n$ 个信道。变量 $x_i$ 表示分配给第 $i$ 个信道的发射功率，$\log(\alpha_i+x_i)$ 是信道的通信能力或者通信速率，因此上述问题即为将值为一的总功率分配给不同的信道，使得总的通信速率最大。
+
+对不等式约束 $x^\star\succeq 0$ 引入 Lagrange 乘子 $\lambda^\star\in\mathbb{R}^n$，对等式约束 $\mathbf{1}^Tx=1$ 引入一个乘子 $\nu^\star\in\mathbb{R}$，我们得到如下 KKT 条件
+\[
+x^\star\succeq 0,\qquad \mathbf{1}^Tx^\star=1,\qquad
+\lambda^\star\succeq 0,\qquad \lambda_i^\star x_i^\star=0,\quad i=1,\cdots,n,
+\]
+\[
+-1/(\alpha_i+x_i^\star)-\lambda_i^\star+\nu^\star=0,\quad i=1,\cdots,n.
+\]
+可以直接求解这些方程得到 $x^\star,\lambda^\star$，以及 $\nu^\star$。注意到 $\lambda^\star$ 在最后一个方程里是一个松弛变量，所以可以消去，得到
+\[
+x^\star\succeq 0,\qquad \mathbf{1}^Tx^\star=1,\qquad
+x_i^\star(\nu^\star-1/(\alpha_i+x_i^\star))=0,\quad i=1,\cdots,n,
+\]
+\[
+\nu^\star\geq 1/(\alpha_i+x_i^\star),\quad i=1,\cdots,n.
+\]
+如果 $\nu^\star<1/\alpha_i$，只有当 $x_i^\star>0$ 时最后一个条件才成立，而由第三个条件可知 $\nu^\star=1/(\alpha_i+x_i^\star)$。求解 $x_i^\star$，我们得出结论：当 $\nu^\star<1/\alpha_i$ 时，有 $x_i^\star=1/\nu^\star-\alpha_i$。如果 $\nu^\star\geq 1/\alpha_i$，那么 $x_i^\star>0$ 不会发生，这时因为如果 $x_i^\star>0$，那么 $\nu^\star\geq 1/\alpha_i>1/(\alpha_i+x_i^\star)$，违背了互补松弛条件。因此，如果 $\nu^\star\geq 1/\alpha_i$，那么 $x_i^\star=0$。所以有下式
+\[
+x_i^\star=
+\begin{cases}
+1/\nu^\star-\alpha_i & \nu^\star<1/\alpha_i\\
+0 & \nu^\star\geq 1/\alpha_i,
+\end{cases}
+\]
+或者，更简洁地，$x_i^\star=\max\{0,1/\nu^\star-\alpha_i\}$。将 $x_i^\star$ 的表达式代入条件 $\mathbf{1}^Tx^\star=1$ 我们得到
+\[
+\sum_{i=1}^n\max\{0,1/\nu^\star-\alpha_i\}=1.
+\]
+方程左端是 $1/\nu^\star$ 的分段线性增函数，分割点为 $\alpha_i$，因此上述方程有唯一确定的解。
+
+上述解决问题的方法称为\textbf{注水}。这是因为，我们可以将 $\alpha_i$ 看做第 $i$ 片区域的水平线，然后对整个区域注水，使其具有深度 $1/\nu^\star$，如图 5.7 所示。所需的总水量为 $\sum_{i=1}^n\max\{0,1/\nu^\star-\alpha_i\}$。不断注水，直至总水量为 1。第 $i$ 个区域的水位深度即为最优 $x_i^\star$。
+
+\subsection*{5.5.4\quad KKT 条件的力学解释}
+
+可以从力学角度（这其实也是最初提出 Lagrange 的动机）对 KKT 条件给出一个较好的解释。我们可以通过一个简单的例子描述这个想法。图 5.8 所示系统包含两个连在一起的模块，左右两端是墙，通过三段弹簧将它们连接在一起。模块的位置用 $x\in\mathbb{R}^2$ 描述，$x_1$ 是左边模块（中心点）的位移，$x_2$ 是右边模块的位移。左边墙的位置是 0，右边墙的位置是 $l$。
+
+弹性势能可以写成模块位置的函数
+\[
+f_0(x_1,x_2)=\frac{1}{2}k_1x_1^2+\frac{1}{2}k_2(x_2-x_1)^2+\frac{1}{2}k_3(l-x_2)^2,
+\]
+其中 $k_i>0$ 是弹簧的刚度系数。运动约束条件为
+\begin{equation}
+w/2-x_1\leq 0,\qquad w+x_1-x_2\leq 0,\qquad w/2-l+x_2\leq 0.
+\tag{5.51}
+\end{equation}
+系统平衡状态可以由下面的优化问题给出
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & (1/2)(k_1x_1^2+k_2(x_2-x_1)^2+k_3(l-x_2)^2)\\
+\text{subject to}\quad & w/2-x_1\leq 0\\
+& w+x_1-x_2\leq 0\\
+& w/2-l+x_2\leq 0.
+\end{aligned}
+\tag{5.52}
+\end{equation}
+这是一个二次规划问题。引入 Lagrange 乘子 $\lambda_1,\lambda_2,\lambda_3$，此问题的 KKT 条件包含运动约束 (5.51)，非负约束 $\lambda_i\geq 0$，互补松弛条件
+\begin{equation}
+\lambda_1(w/2-x_1)=0,\qquad
+\lambda_2(w-x_2+x_1)=0,\qquad
+\lambda_3(w/2-l+x_2)=0,
+\tag{5.53}
+\end{equation}
+以及零梯度条件
+\begin{equation}
+\begin{bmatrix}
+k_1x_1-k_2(x_2-x_1)\\
+k_2(x_2-x_1)-k_3(l-x_2)
+\end{bmatrix}
+\lambda_1\begin{bmatrix}-1\\0\end{bmatrix}
+\lambda_2\begin{bmatrix}1\\-1\end{bmatrix}
+\lambda_3\begin{bmatrix}0\\1\end{bmatrix}
+=0.
+\tag{5.54}
+\end{equation}
+
+方程 (5.54) 可以理解为两个模块间受力平衡方程，这里假设 Lagrange 乘子是模块之间、模块与墙之间的接触力，如图 5.9 所示。第一个方程表示第一个模块上的总受力为零：$-k_1x_1$ 是左边弹簧给左边模块的力，$k_2(x_2-x_1)$ 是中间弹簧施加在这个模块上的力，$\lambda_1$ 是左边墙施加在这个模块上的接触力，$-\lambda_2$ 是右边墙给的力。接触力的方向必须背离接触面（如约束 $\lambda_1\geq 0$ 和 $-\lambda_2\leq 0$ 所描述），当存在接触时接触力不为零（如前两个互补松弛条件 (5.53) 所描述）。类似地，式 (5.54) 中的第二个方程是第二个模块的受力平衡方程，式 (5.53) 中的最后一个条件表明除非右边模块接触墙，否则 $\lambda_3$ 为零。
+
+在这个例子中，弹性势能和运动约束方程都是凸函数，若 $2w\leq l$ 且 Slater 约束准则（改进的形式）成立，即墙之间有足够的空间安放两个模块，我们有：式 (5.52) 给出的平衡点能量表述和 KKT 条件给出的受力平衡表述具有一样的结果。
+
+\subsection*{5.5.5\quad 通过解对偶问题求解原问题}
+
+在 \S 5.5.3 的开始部分我们提到，如果强对偶性成立且存在一个对偶最优解 $(\lambda^\star,\nu^\star)$，那么任意原问题最优点也是 $L(x,\lambda^\star,\nu^\star)$ 的最优解。这个性质可以让我们从对偶最优方程中去求解原问题最优解。
+
+更精确地，假设强对偶性成立，对偶最优解 $(\lambda^\star,\nu^\star)$ 已知。假设 $L(x,\lambda^\star,\nu^\star)$ 的最小点，即下列问题的解
+\[
+\text{minimize}\quad f_0(x)+\sum_{i=1}^m\lambda_i^\star f_i(x)+\sum_{i=1}^p\nu_i^\star h_i(x),
+\tag{5.55}
+\]
+唯一。（对于凸问题，如果 $L(x,\lambda^\star,\nu^\star)$ 是 $x$ 的严格凸函数，就会发生这种情况。）那么如果问题 (5.55) 的解是原问题可行解，那么它就是原问题最优解；如果它不是原问题可行解，那么原问题不存在最优点，即原问题的最优解无法达到。当对偶问题比原问题更易求解时，比如说对偶问题可以解析求解或者有某些特殊的结构更易分析，上述方法很有意义。
+
+\noindent\textbf{例 5.3}\quad 熵的最大化。考虑熵的最大化问题
+\[
+\begin{aligned}
+\text{minimize}\quad & f_0(x)=\sum_{i=1}^n x_i\log x_i\\
+\text{subject to}\quad & Ax\preceq b\\
+& \mathbf{1}^Tx=1,
+\end{aligned}
+\]
+其中定义域为 $\mathbb{R}_{++}^n$，其对偶问题为
+\[
+\begin{aligned}
+\text{maximize}\quad & -b^T\lambda-\nu-e^{-\nu-1}\sum_{i=1}^n e^{-a_i^T\lambda}\\
+\text{subject to}\quad & \lambda\succeq 0.
+\end{aligned}
+\]
+（参见第 213 页以及第 220 页。）假设 Slater 条件的弱化形式成立，即存在 $x>0$ 使得 $Ax\preceq b$ 以及 $\mathbf{1}^Tx=1$，因此强对偶性成立，存在一个对偶最优解 $(\lambda^\star,\nu^\star)$。
+
+设对偶问题已经解出。$(\lambda^\star,\nu^\star)$ 处的 Lagrange 函数为
+\[
+L(x,\lambda^\star,\nu^\star)=\sum_{i=1}^n x_i\log x_i+\lambda^{\star T}(Ax-b)+\nu^\star(\mathbf{1}^Tx-1).
+\]
+它在 $\mathcal{D}$ 上严格凸且有下界，因此有一个唯一解 $x^\star$，
+\[
+x_i^\star=1/\exp(a_i^T\lambda^\star+\nu^\star+1),\quad i=1,\cdots,n,
+\]
+其中 $a_i$ 是矩阵 $A$ 的列向量。如果 $x^\star$ 是原问题可行解，则其必是原问题的最优解。如果 $x^\star$ 不是原问题可行解，那么我们可以说原问题的最优解不能达到。
+
+\noindent\textbf{例 5.4}\quad 在等式约束下极小化可分函数。考虑问题
+\[
+\begin{aligned}
+\text{minimize}\quad & f_0(x)=\sum_{i=1}^n f_i(x_i)\\
+\text{subject to}\quad & a^Tx=b,
+\end{aligned}
+\]
+其中 $a\in\mathbb{R}^n$，$b\in\mathbb{R}$，函数 $f_i:\mathbb{R}\to\mathbb{R}$ 是可微函数，严格凸。目标函数是可分的，因为它可以表示为一系列单变量 $x_1,\cdots,x_n$ 的函数的和的形式。假设函数 $f_0$ 的定义域与约束集有交集，即存在一点 $x_0\in\mathbf{dom}\,f_0$，使得 $a^Tx_0=b$。根据这样的假设，可知此问题有一个唯一的最优解 $x^\star$。
+
+其 Lagrange 函数为
+\[
+L(x,\nu)=\sum_{i=1}^n f_i(x_i)+\nu(a^Tx-b)=-b\nu+\sum_{i=1}^n(f_i(x_i)+\nu a_i x_i),
+\]
+其同样是可分函数，因此对偶函数为
+\[
+\begin{aligned}
+g(\nu)
+&=-b\nu+\inf_x\left(\sum_{i=1}^n(f_i(x_i)+\nu a_ix_i)\right)\\
+&=-b\nu+\sum_{i=1}^n\inf_{x_i}(f_i(x_i)+\nu a_ix_i)\\
+&=-b\nu-\sum_{i=1}^n f_i^\ast(-\nu a_i).
+\end{aligned}
+\]
+对偶问题为
+\[
+\text{maximize}\quad -b\nu-\sum_{i=1}^n f_i^\ast(-\nu a_i),
+\]
+其中，（实）变量 $\nu\in\mathbb{R}$。
+
+现在假设找到了一个对偶最优解 $\nu^\star$。（事实上，有很多简单的方法来求解一个实变量的凸问题，比如说二分法。）因为每个函数 $f_i$ 都是严格凸的，函数 $L(x,\nu^\star)$ 关于 $x$ 是严格凸的，因此具有唯一的最小点 $\tilde{x}$。然而，因为 $x^\star$ 是 $L(x,\nu^\star)$ 的最小点，因此我们有 $\tilde{x}=x^\star$。可以通过求解 $\nabla_x L(x,\nu^\star)=0$ 得到 $x^\star$，即求解方程组
+\[
+f_i'(x_i^\star)=-\nu^\star a_i.
+\]
+
+\section*{§5.6\quad 扰动及灵敏度分析}
+
+当强对偶性成立时，对原问题的约束进行扰动，对偶问题最优变量为原问题最优值的灵敏度分析提供了很多有用的信息。
+
+\subsection*{5.6.1\quad 扰动的问题}
+
+考虑对原优化问题 (5.1) 进行扰动之后的问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\leq u_i,\quad i=1,\cdots,m\\
+& h_i(x)=v_i,\quad i=1,\cdots,p,
+\end{aligned}
+\tag{5.56}
+\end{equation}
+其中，变量 $x\in\mathbb{R}^n$。当 $u=0$ 以及 $v=0$ 时，上述问题即为原问题 (5.1)。若 $u_i$ 大于零，则我们放松了第 $i$ 个不等式约束；当 $u_i$ 小于零时，则意味着我们加强此约束。因此扰动的问题 (5.56) 是在原问题 (5.1) 的基础上通过将不等式约束加强或放松 $u_i$，并将等式约束的右端变为 $v_i$ 得到。
+
+定义 $p^\star(u,v)$ 为扰动的问题 (5.56) 的最优值：
+\[
+p^\star(u,v)=\inf\{f_0(x)\mid \exists x\in\mathcal{D},\ f_i(x)\leq u_i,\ i=1,\cdots,m,\ h_i(x)=v_i,\ i=1,\cdots,p\}.
+\]
+有可能 $p^\star(u,v)=\infty$，这时对约束的扰动使得扰动后的问题不可行。注意到 $p^\star(0,0)=p^\star$，而 $p^\star$ 是没有被扰动的问题 (5.1) 的最优解。（我们希望符号的重复使用不至引起误解。）粗略地讲，函数 $p^\star:\mathbb{R}^m\times\mathbb{R}^p\to\mathbb{R}$ 给出了约束右端有扰动情况下的最优值。
+
+当原问题是凸问题时，函数 $p^\star$ 是 $u$ 和 $v$ 的凸函数；事实上，其上境图恰恰就是式 (5.37) 定义的集合 $\mathcal{A}$ 的闭包。
+
+\subsection*{5.6.2\quad 一个全局不等式}
+
+假设强对偶性成立且对偶问题最优值可以达到。（当原问题是凸问题且 Slater 条件满足时这种情形将会发生。）设 $(\lambda^\star,\nu^\star)$ 是未被扰动的问题的对偶问题 (5.16) 的最优解，则对所有的 $u$ 和 $v$，我们有
+\begin{equation}
+p^\star(u,v)\geq p^\star(0,0)-\lambda^{\star T}u-\nu^{\star T}v.
+\tag{5.57}
+\end{equation}
+为了建立此不等式，假设 $x$ 是扰动问题的任意可行解，即对 $i=1,\cdots,m$，有 $f_i(x)\leq u_i$ 且对 $i=1,\cdots,p$，有 $h_i(x)=v_i$。则根据强对偶性有
+\[
+\begin{aligned}
+p^\star(0,0)
+&=g(\lambda^\star,\nu^\star)\\
+&\leq f_0(x)+\sum_{i=1}^m\lambda_i^\star f_i(x)+\sum_{i=1}^p\nu_i^\star h_i(x)\\
+&\leq f_0(x)+\lambda^{\star T}u+\nu^{\star T}v.
+\end{aligned}
+\]
+（第一个不等式由 $g(\lambda^\star,\nu^\star)$ 的定义得到；第二个不等式由 $\lambda^\star\succeq 0$ 得到。）我们得出结论，对扰动问题的任意可行解 $x$，有
+\[
+f_0(x)\geq p^\star(0,0)-\lambda^{\star T}u-\nu^{\star T}v,
+\]
+而由上式可以直接得到式 (5.57)。
+
+\noindent\textbf{灵敏度解释}
+
+当强对偶性成立时，可以根据不等式 (5.57) 直接得到很多有关最优 Lagrange 变量的灵敏度解释。一些结论列举如下：
+\begin{itemize}
+\item 如果 $\lambda_i^\star$ 比较大，我们加强第 $i$ 个约束（即选择 $u_i<0$），则最优值 $p^\star(u,v)$ 必会大幅增加。
+\item 如果 $\nu_i^\star$ 较大且大于零，我们选择 $v_i<0$，或者如果 $\nu_i^\star$ 较大且小于零，我们选择 $v_i>0$，在这两种情况下最优值 $p^\star(u,v)$ 必会大幅增加。
+\item 如果 $\lambda_i^\star$ 较小，我们放松第 $i$ 个约束（$u_i>0$），那么最优值 $p^\star(u,v)$ 不会减小太多。
+\item 如果 $\nu_i^\star$ 较小且大于零，$v_i>0$ 或者如果 $\nu_i^\star$ 较小且小于零，$v_i<0$，那么最优值 $p^\star(u,v)$ 不会减小太多。
+\end{itemize}
+
+不等式 (5.57) 以及上面所列举的结论，给出了扰动之后最优值的一个下界，但是没有给出上界。因此，关于放松或者加强一个约束，上述结论不对称。例如，假设 $\lambda_i^\star$ 较大，我们稍稍放松第 $i$ 个约束（即选择 $u_i$ 较小且为正数）。在这种情况下，不等式 (5.57) 发挥不了作用；我们无法根据不等式 (5.57) 判断最优值是否会大幅度减小。
+
+不等式 (5.57) 的几何意义如图 5.10 所示；这是一个具有一个不等式约束的凸问题。根据不等式 (5.57)，仿射函数 $p^\star(0)-\lambda^\star u$ 给出了凸函数 $p^\star$ 的一个下界。
+
+\subsection*{5.6.3\quad 局部灵敏度分析}
+
+假设 $p^\star(u,v)$ 在 $u=0$ 和 $v=0$ 处可微。假设强对偶性成立，最优对偶变量 $\lambda^\star,\nu^\star$ 可以和 $p^\star$ 在 $u=0,v=0$ 处的梯度联系起来：
+\begin{equation}
+\lambda_i^\star=-\frac{\partial p^\star(0,0)}{\partial u_i},\qquad
+\nu_i^\star=-\frac{\partial p^\star(0,0)}{\partial v_i}.
+\tag{5.58}
+\end{equation}
+可以从图 5.10 的例子中看出此性质，因为 $-\lambda^\star$ 是 $p^\star$ 在 $u=0$ 处的斜率。
+
+因此，若 $p^\star(u,v)$ 在 $u=0,v=0$ 处可微，且强对偶性成立，那么最优 Lagrange 乘子就是最优值关于约束扰动的局部灵敏度。和不可微的情况不同，这种解释是对称的：稍稍加强第 $i$ 个不等式约束（即选择一数值较小且小于零的 $u_i$）会使得 $p^\star$ 增加大约 $-\lambda_i^\star u_i$；稍稍放松第 $i$ 个约束（即选择一数值较小且大于零的 $u_i$）会使得 $p^\star$ 减小大约 $\lambda_i^\star u_i$。
+
+为了说明式 (5.58) 是成立的，假设 $p^\star(u,v)$ 可微且强对偶性成立。对于扰动 $u=te_i,v=0$，其中 $e_i$ 是单位向量，它的第 $i$ 个分量为 1，我们有
+\[
+\lim_{t\to 0}\frac{p^\star(te_i,0)-p^\star}{t}
+=\frac{\partial p^\star(0,0)}{\partial u_i}.
+\]
+根据不等式 (5.57)，当 $t>0$ 时，下式成立
+\[
+\frac{p^\star(te_i,0)-p^\star}{t}\geq -\lambda_i^\star,
+\]
+当 $t<0$ 时我们有相反的不等式。取极限 $t\to 0$，当 $t>0$ 时有
+\[
+\frac{\partial p^\star(0,0)}{\partial u_i}\geq -\lambda_i^\star,
+\]
+而当 $t<0$ 时具有相反的不等式，因此我们得出结论
+\[
+\frac{\partial p^\star(0,0)}{\partial u_i}=-\lambda_i^\star.
+\]
+利用同样的方法，我们可以得到
+\[
+\frac{\partial p^\star(0,0)}{\partial v_i}=-\nu_i^\star.
+\]
+
+局部灵敏度结论 (5.58) 给出了最优解 $x^\star$ 附近的约束起作用的一种定量描述。如果 $f_i(x^\star)<0$，那么此约束不起作用，因此可以稍稍加强约束或者放松约束而不影响最优值。根据互补松弛性，相应的最优 Lagrange 乘子必然为零。考虑 $f_i(x^\star)=0$ 的情况，即第 $i$ 个约束在最优解处起作用。那么，通过最优 Lagrange 乘子的第 $i$ 个分量可以知道此约束起作用的程度：如果 $\lambda_i^\star$ 较小，那么我们可以稍稍放松或者加强此约束而对最优值没有大的影响；如果 $\lambda_i^\star$ 较大，那么即使稍微放松或者加强此约束，最优值都会受到很大的影响。
+
+\noindent\textbf{影子价格解释}
+
+我们也可以从经济学的角度对式 (5.58) 中的结论给出一个简单的几何解释。为了简单起见，考虑一个没有等式约束的凸问题，其满足 Slater 条件。变量 $x\in\mathbb{R}^n$ 描述了公司运营的策略，目标函数 $f_0$ 是成本，即 $-f_0$ 是盈利。每个约束 $f_i(x)\leq 0$ 描述了一些资源的限制，如劳动力，钢铁，或者仓库存储空间。经过扰动的最优（负）成本函数 $-p^\star(u)$ 可以给出当公司获得的每种资源增加或减少时，利润将会增加或减少的程度。如果函数 $-p^\star(u)$ 在 $u=0$ 附近可微，那么我们有
+\[
+\lambda_i^\star=-\frac{\partial p^\star(0)}{\partial u_i}.
+\]
+换言之，$\lambda_i^\star$ 反映了若资源 $i$ 的使用量稍稍增加时，公司大致可以多获得的利润。
+
+从上面的分析可以得知，在公司可以买卖资源 $i$ 的情况下，$\lambda_i^\star$ 是资源 $i$ 的自然或者平衡价格。假设，公司可以以少于 $\lambda_i^\star$ 的价格买卖资源 $i$。在这种情况下，公司肯定会购买一些资源，这样增加的利润将会大于购买资源所付出的成本。反之，如果资源的价格大于 $\lambda_i^\star$，公司将会卖出配给资源 $i$ 的一部分，这样就会净获利，因为卖出资源获得的收益将大于因减少资源而减少的利润。
+
+\section*{§5.7\quad 例子}
+
+本节通过一些例子说明，对一个问题进行简单的等价变形有可能得到非常不一样的对偶问题。考虑如下几种类型的变形：
+\begin{itemize}
+\item 引入新的变量以及相应的等式约束。
+\item 用原目标函数的增函数取代原目标函数。
+\item 将显式约束隐式表达，例如可以将其并入目标函数的定义域。
+\end{itemize}
+
+\subsection*{5.7.1\quad 引入新的变量以及相应的等式约束}
+
+考虑如下无约束问题
+\begin{equation}
+\text{minimize}\quad f_0(Ax+b).
+\tag{5.59}
+\end{equation}
+其 Lagrange 对偶函数是常数 $p^\star$。所以虽然强对偶性成立，即 $p^\star=d^\star$，但其 Lagrange 对偶问题没有什么意义和用途。
+
+现在变化问题 (5.59) 的形式
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(y)\\
+\text{subject to}\quad & Ax+b=y.
+\end{aligned}
+\tag{5.60}
+\end{equation}
+这里，我们引入了新的变量 $y$，以及新的等式约束 $Ax+b=y$。显然，问题 (5.59) 和 (5.60) 是等价的。
+
+变换之后的问题的 Lagrange 函数为
+\[
+L(x,y,\nu)=f_0(y)+\nu^T(Ax+b-y).
+\]
+为了得到对偶函数，关于 $x$ 和 $y$ 极小化 $L$。通过对 $x$ 极小化可以得到，除非 $A^T\nu=0$，否则 $g(\nu)=-\infty$。若 $A^T\nu=0$ 有
+\[
+g(\nu)=b^T\nu+\inf_y(f_0(y)-\nu^Ty)=b^T\nu-f_0^\ast(\nu),
+\]
+其中 $f_0^\ast$ 是 $f_0$ 的共轭函数。那么问题 (5.60) 的对偶问题可以描述为
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & b^T\nu-f_0^\ast(\nu)\\
+\text{subject to}\quad & A^T\nu=0.
+\end{aligned}
+\tag{5.61}
+\end{equation}
+因此，变换之后的问题 (5.60) 的对偶问题显然比原问题 (5.59) 的对偶问题有意义得多。
+
+\noindent\textbf{例 5.5}\quad 无约束几何规划。考虑无约束几何规划问题
+\[
+\text{minimize}\quad \log\left(\sum_{i=1}^m\exp(a_i^Tx+b_i)\right).
+\]
+我们通过引入新的变量和等式约束来对其进行变换：
+\[
+\begin{aligned}
+\text{minimize}\quad & f_0(y)=\log\left(\sum_{i=1}^m\exp y_i\right)\\
+\text{subject to}\quad & Ax+b=y,
+\end{aligned}
+\]
+其中 $a_i^T$ 是矩阵 $A$ 的行向量。
+
+指数和的对数函数的共轭函数为
+\[
+f_0^\ast(\nu)=
+\begin{cases}
+\sum_{i=1}^m\nu_i\log\nu_i & \nu\succeq 0,\ \mathbf{1}^T\nu=1\\
+\infty & \text{其他情况}
+\end{cases}
+\]
+（参见第 87 页中的例 3.25），因此变换之后的问题的对偶问题可以写成
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & b^T\nu-\sum_{i=1}^m\nu_i\log\nu_i\\
+\text{subject to}\quad & \mathbf{1}^T\nu=1\\
+& A^T\nu=0\\
+& \nu\succeq 0,
+\end{aligned}
+\tag{5.62}
+\end{equation}
+这是一个熵的最大化问题。
+
+\noindent\textbf{例 5.6}\quad 范数逼近问题。考虑如下无约束范数逼近问题
+\begin{equation}
+\text{minimize}\quad \|Ax-b\|,
+\tag{5.63}
+\end{equation}
+其中 $\|\cdot\|$ 是任意范数。对于此问题，Lagrange 对偶函数也是常数，即问题 (5.63) 的最优值，因此没有什么意义。
+
+我们也对此问题进行变换，得到
+\[
+\begin{aligned}
+\text{minimize}\quad & \|y\|\\
+\text{subject to}\quad & Ax-b=y.
+\end{aligned}
+\]
+根据式 (5.61)，变换后的问题的 Lagrange 对偶问题为
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & b^T\nu\\
+\text{subject to}\quad & \|\nu\|_\ast\leq 1\\
+& A^T\nu=0,
+\end{aligned}
+\tag{5.64}
+\end{equation}
+这里用到了范数的共轭函数是对偶范数单位球的示性函数的结论。
+
+引入新的等式约束的思想同样可以用在约束函数上面。例如，考虑问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(A_0x+b_0)\\
+\text{subject to}\quad & f_i(A_ix+b_i)\leq 0,\quad i=1,\cdots,m,
+\end{aligned}
+\tag{5.65}
+\end{equation}
+其中 $A_i\in\mathbb{R}^{k_i\times n}$，函数 $f_i:\mathbb{R}^{k_i}\to\mathbb{R}$ 是凸函数。（为了简单起见这里不包含等式约束。）对 $i=0,\cdots,m$，引入新的变量 $y_i\in\mathbb{R}^{k_i}$，将原问题重新描述为
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(y_0)\\
+\text{subject to}\quad & f_i(y_i)\leq 0,\quad i=1,\cdots,m\\
+& A_ix+b_i=y_i,\quad i=0,\cdots,m.
+\end{aligned}
+\tag{5.66}
+\end{equation}
+此问题的 Lagrange 函数为
+\[
+L(x,y_0,\cdots,y_m,\lambda,\nu_0,\cdots,\nu_m)
+=f_0(y_0)+\sum_{i=1}^m\lambda_i f_i(y_i)
++\sum_{i=0}^m\nu_i^T(A_ix+b_i-y_i).
+\]
+为了得到对偶函数，关于 $x$ 和 $y_i$ 求极小。除非
+\[
+\sum_{i=0}^m A_i^T\nu_i=0,
+\]
+否则关于 $x$ 求极小值为 $-\infty$。在上述情况下，对 $\lambda>0$ 有
+\[
+\begin{aligned}
+g(\lambda,\nu_0,\cdots,\nu_m)
+&=\sum_{i=0}^m\nu_i^Tb_i+\inf_{y_0,\cdots,y_m}
+\left(f_0(y_0)+\sum_{i=1}^m\lambda_i f_i(y_i)-\sum_{i=0}^m\nu_i^Ty_i\right)\\
+&=\sum_{i=0}^m\nu_i^Tb_i+\inf_{y_0}(f_0(y_0)-\nu_0^Ty_0)
++\sum_{i=1}^m\lambda_i\inf_{y_i}\left(f_i(y_i)-(\nu_i/\lambda_i)^Ty_i\right)\\
+&=\sum_{i=0}^m\nu_i^Tb_i-f_0^\ast(\nu_0)-\sum_{i=1}^m\lambda_i f_i^\ast(\nu_i/\lambda_i).
+\end{aligned}
+\]
+最后一个表达式包含了共轭函数的透视函数，因此关于对偶变量是凹函数。最后，考虑当 $\lambda\geq 0$ 但是一些 $\lambda_i$ 为零时的情况。如果 $\lambda_i=0$ 且 $\nu_i\neq 0$，那么对偶函数为 $-\infty$。如果 $\lambda_i=0$ 且 $\nu_i=0$，则包含 $y_i,\nu_i$ 以及 $\lambda_i$ 的项都为零。因此，如果当 $\lambda_i=0$ 以及 $\nu_i=0$ 时我们取 $\lambda_i f_i^\ast(\nu_i/\lambda_i)=0$，而当 $\lambda_i=0$ 及 $\nu_i\neq 0$ 时取 $\lambda_i f_i^\ast(\nu_i/\lambda_i)=\infty$，那么 $g$ 的表达式对所有 $\lambda\geq 0$ 都是有意义的。
+
+因此，我们可以将问题 (5.66) 的对偶问题描述为
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & \sum_{i=0}^m\nu_i^Tb_i-f_0^\ast(\nu_0)-\sum_{i=1}^m\lambda_i f_i^\ast(\nu_i/\lambda_i)\\
+\text{subject to}\quad & \lambda\succeq 0\\
+& \sum_{i=0}^m A_i^T\nu_i=0.
+\end{aligned}
+\tag{5.67}
+\end{equation}
+
+\noindent\textbf{例 5.7}\quad 不等式约束的几何规划问题。考虑不等式约束的几何规划问题
+\[
+\begin{aligned}
+\text{minimize}\quad & \log\left(\sum_{k=1}^{K_0}e^{a_{0k}^Tx+b_{0k}}\right)\\
+\text{subject to}\quad & \log\left(\sum_{k=1}^{K_i}e^{a_{ik}^Tx+b_{ik}}\right)\leq 0,\quad i=1,\cdots,m,
+\end{aligned}
+\]
+在式 (5.65) 中令 $f_i:\mathbb{R}^{K_i}\to\mathbb{R}$ 为 $f_i(y)=\log\left(\sum_{k=1}^{K_i}e^{y_k}\right)$ 即得到此问题。函数 $f_i$ 的共轭函数为
+\[
+f_i^\ast(\nu)=
+\begin{cases}
+\sum_{k=1}^{K_i}\nu_k\log\nu_k & \nu\succeq 0,\quad \mathbf{1}^T\nu=1\\
+\infty & \text{其他情况}.
+\end{cases}
+\]
+利用式 (5.67) 我们可以立即得到对偶问题为
+\[
+\begin{aligned}
+\text{maximize}\quad & b_0^T\nu_0-\sum_{k=1}^{K_0}\nu_{0k}\log\nu_{0k}
++\sum_{i=1}^m\left(b_i^T\nu_i-\sum_{k=1}^{K_i}\nu_{ik}\log(\nu_{ik}/\lambda_i)\right)\\
+\text{subject to}\quad & \nu_0\succeq 0,\quad \mathbf{1}^T\nu_0=1\\
+& \nu_i\succeq 0,\quad \mathbf{1}^T\nu_i=\lambda_i,\quad i=1,\cdots,m\\
+& \lambda_i\geq 0,\quad i=1,\cdots,m\\
+& \sum_{i=0}^m A_i^T\nu_i=0,
+\end{aligned}
+\]
+它可以进一步简化为
+\[
+\begin{aligned}
+\text{maximize}\quad & b_0^T\nu_0-\sum_{k=1}^{K_0}\nu_{0k}\log\nu_{0k}
++\sum_{i=1}^m\left(b_i^T\nu_i-\sum_{k=1}^{K_i}\nu_{ik}\log(\nu_{ik}/\mathbf{1}^T\nu_i)\right)\\
+\text{subject to}\quad & \nu_i\succeq 0,\quad i=0,\cdots,m\\
+& \mathbf{1}^T\nu_0=1\\
+& \sum_{i=0}^m A_i^T\nu_i=0.
+\end{aligned}
+\]
+
+\subsection*{5.7.2\quad 变换目标函数}
+
+如果我们将目标函数 $f_0$ 替换为 $f_0$ 的增函数，得到的问题与原问题显然是等价的（见 §4.1.3）。但是，等价问题的对偶问题可能和原问题的对偶问题大不相同。
+
+\noindent\textbf{例 5.8}\quad 再次考虑最小范数问题
+\[
+\text{minimize}\quad \|Ax-b\|,
+\]
+其中 $\|\cdot\|$ 是某种范数。我们将问题重新描述为
+\[
+\begin{aligned}
+\text{minimize}\quad & (1/2)\|y\|^2\\
+\text{subject to}\quad & Ax-b=y.
+\end{aligned}
+\]
+这里我们引入了新的变量，并将目标函数替换为其平方的二分之一。显然新问题和原问题等价。
+
+新问题的对偶问题为
+\[
+\begin{aligned}
+\text{maximize}\quad & -(1/2)\|\nu\|_\ast^2+b^T\nu\\
+\text{subject to}\quad & A^T\nu=0,
+\end{aligned}
+\]
+这里利用了 $(1/2)\|\cdot\|^2$ 的共轭函数是 $(1/2)\|\cdot\|_\ast^2$ 的结论（见第 88 页，例 3.27）。注意到这里的对偶问题和之前得到的对偶问题 (5.64) 并不一样。
+
+\subsection*{5.7.3\quad 隐式约束}
+
+接下来考虑一个简单的重新描述问题的方式，通过修改目标函数将约束包含到目标函数中，当约束被违背时，目标函数为无穷大。
+
+\noindent\textbf{例 5.9}\quad 具有框约束的线性规划问题。考虑如下线性规划问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & Ax=b\\
+& l\preceq x\preceq u
+\end{aligned}
+\tag{5.68}
+\end{equation}
+其中 $A\in\mathbb{R}^{p\times n}$ 且 $l\preceq u$。约束 $l\preceq x\preceq u$ 有时称为框约束或者变量的界。
+
+我们很容易得到此线性规划问题的对偶问题。对偶问题中，Lagrange 乘子 $\nu$ 对应等式约束，$\lambda_1$ 对应不等式约束 $x\preceq u$，而 $\lambda_2$ 对应不等式约束 $l\preceq x$。对偶问题为
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & -b^T\nu-\lambda_1^Tu+\lambda_2^Tl\\
+\text{subject to}\quad & A^T\nu+\lambda_1-\lambda_2+c=0\\
+& \lambda_1\succeq 0,\quad \lambda_2\succeq 0.
+\end{aligned}
+\tag{5.69}
+\end{equation}
+换一种做法，首先将原问题 (5.68) 重新描述为
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & Ax=b,
+\end{aligned}
+\tag{5.70}
+\end{equation}
+其中 $f_0(x)$ 定义为
+\[
+f_0(x)=
+\begin{cases}
+c^Tx & l\preceq x\preceq u\\
+\infty & \text{其他情况}.
+\end{cases}
+\]
+问题 (5.70) 显然等价于原问题 (5.68)；我们只是将显式描述的框约束隐式描述。问题 (5.70) 的对偶函数为
+\[
+\begin{aligned}
+g(\nu)
+&=\inf_{l\preceq x\preceq u}(c^Tx+\nu^T(Ax-b))\\
+&=-b^T\nu-u^T(A^T\nu+c)^-+l^T(A^T\nu+c)^+
+\end{aligned}
+\]
+其中 $y_i^+=\max\{y_i,0\}$，$y_i^-=\max\{-y_i,0\}$。所以此时我们可以得到函数 $g$ 的解析表达式，它是一个凹的分片线性函数。
+
+新问题的对偶问题是一个无约束问题
+\begin{equation}
+\text{maximize}\quad -b^T\nu-u^T(A^T\nu+c)^-+l^T(A^T\nu+c)^+;
+\tag{5.71}
+\end{equation}
+这和原问题的对偶问题的形式大不相同。
+
+（问题 (5.69) 和问题 (5.71) 关系非常密切，事实上，它们是等价的；参见习题 5.8。）
+
+\section*{5.8\quad 择一定理}
+
+\subsection*{5.8.1\quad 通过对偶函数建立弱择一性}
+
+本节应用 Lagrange 对偶理论来分析如下包含不等式和等式约束的系统的可行性
+\begin{equation}
+f_i(x)\leq 0,\quad i=1,\cdots,m,\qquad h_i(x)=0,\quad i=1,\cdots,p.
+\tag{5.72}
+\end{equation}
+假设不等式系统 (5.72) 的定义域 $D=\bigcap_{i=1}^m\mathbf{dom}\,f_i\cap\bigcap_{i=1}^p\mathbf{dom}\,h_i$ 非空。我们可以将式 (5.72) 表述为标准问题 (5.1)，其中目标函数 $f_0=0$，即
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & 0\\
+\text{subject to}\quad & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& h_i(x)=0,\quad i=1,\cdots,p.
+\end{aligned}
+\tag{5.73}
+\end{equation}
+此问题的最优值为
+\begin{equation}
+p^\star=
+\begin{cases}
+0 & \text{式 (5.72) 可行}\\
+\infty & \text{式 (5.72) 不可行},
+\end{cases}
+\tag{5.74}
+\end{equation}
+因此求解优化问题 (5.73) 和求解不等式系统 (5.72) 是等价的。
+
+\noindent\textbf{对偶函数}
+
+令不等式系统 (5.72) 的对偶函数为
+\[
+g(\lambda,\nu)=\inf_{x\in D}\left(\sum_{i=1}^m\lambda_i f_i(x)+\sum_{i=1}^p\nu_i h_i(x)\right),
+\]
+这和优化问题 (5.73) 的对偶函数是一样的。因为 $f_0=0$，对偶函数关于 $(\lambda,\nu)$ 是正齐次的：若 $\alpha>0$，$g(\alpha\lambda,\alpha\nu)=\alpha g(\lambda,\nu)$。问题 (5.73) 的对偶问题是在满足 $\lambda\succeq 0$ 的条件下极大化 $g(\lambda,\nu)$。因为 $g$ 是齐次的，对偶问题的最优值为
+\begin{equation}
+d^\star=
+\begin{cases}
+\infty & \lambda\succeq 0,\ g(\lambda,\nu)>0\ \text{可行}\\
+0 & \lambda\succeq 0,\ g(\lambda,\nu)>0\ \text{不可行}.
+\end{cases}
+\tag{5.75}
+\end{equation}
+根据弱对偶性有 $d^\star\leq p^\star$。结合式 (5.74) 和式 (5.75) 我们有如下结论：如果不等式系统
+\begin{equation}
+\lambda\succeq 0,\qquad g(\lambda,\nu)>0
+\tag{5.76}
+\end{equation}
+是可行的（此时 $d^\star=\infty$），那么不等式系统 (5.72) 是不可行的（因为此时 $p^\star=\infty$）。事实上，可以将不等式 (5.76) 的任意解 $(\lambda,\nu)$ 看成是系统 (5.72) 不可行的证明或认证。
+
+我们可以从原系统的可行性的角度重新阐述上述结论的含义：如果原不等式系统 (5.72) 是可行的，那么不等式系统 (5.76) 必然不可行。可以将满足不等式 (5.72) 的一个 $x$ 看做不等式系统 (5.76) 不可行的一个认证。
+
+称两个不等式（等式）系统为弱择一的，如果两个之中至多有一个可行。因此，系统 (5.72) 和系统 (5.76) 是弱择一的。无论不等式 (5.72) 是否是凸的（即 $f_i$ 是凸函数，$h_i$ 是仿射函数）上述结论都成立；此外，择一不等式系统 (5.76) 总是凸的（即函数 $g$ 是凹函数，约束 $\lambda_i\geq 0$ 是凸的）。
+
+\noindent\textbf{严格不等式}
+
+我们同样可以分析如下具有严格不等式系统的可行性
+\begin{equation}
+f_i(x)<0,\quad i=1,\cdots,m,\qquad h_i(x)=0,\quad i=1,\cdots,p.
+\tag{5.77}
+\end{equation}
+和非严格不等式系统的情形一样定义函数 $g$，我们得到择一不等式系统
+\begin{equation}
+\lambda\succeq 0,\qquad \lambda\neq 0,\qquad g(\lambda,\nu)\geq 0.
+\tag{5.78}
+\end{equation}
+可以直接说明系统 (5.77) 和系统 (5.78) 是弱择一的。假设存在一个 $\tilde{x}$，使得 $f_i(\tilde{x})<0$，$h_i(\tilde{x})=0$，那么对任意 $\lambda\succeq 0$，$\lambda\neq 0$ 以及 $\nu$，有
+\[
+\lambda_1f_1(\tilde{x})+\cdots+\lambda_m f_m(\tilde{x})+\nu_1h_1(\tilde{x})+\cdots+\nu_p h_p(\tilde{x})<0.
+\]
+因此
+\[
+\begin{aligned}
+g(\lambda,\nu)
+&=\inf_{x\in D}\left(\sum_{i=1}^m\lambda_i f_i(x)+\sum_{i=1}^p\nu_i h_i(x)\right)\\
+&\leq \sum_{i=1}^m\lambda_i f_i(\tilde{x})+\sum_{i=1}^p\nu_i h_i(\tilde{x})\\
+&<0.
+\end{aligned}
+\]
+
+所以，若系统 (5.77) 可行，那么不存在 $(\lambda,\nu)$ 满足不等式 (5.78)。
+
+这样，我们可以通过求得系统 (5.78) 的一个解得出系统 (5.77) 的不可行性；亦可以通过求得系统 (5.77) 的一个解得出系统 (5.78) 的不可行性。
+
+\subsection*{5.8.2\quad 强择一}
+
+当原不等式系统是凸的，即函数 $f_i$ 是凸函数，$h_i$ 是仿射函数，且某些类型的约束准则成立时，那么上述描述的弱择一的两个系统是强择一的，即恰有一个系统可行。换言之，两个不等式系统中的任意一个可行，当且仅当另一个不可行。
+
+在本节中，我们假设函数 $f_i$ 是凸函数，$h_i$ 是仿射函数，因此不等式系统 (5.72) 可以描述为
+\[
+f_i(x)\leq 0,\quad i=1,\cdots,m,\qquad Ax=b,
+\]
+其中 $A\in\mathbb{R}^{p\times n}$。
+
+\noindent\textbf{严格不等式}
+
+首先考虑具有严格不等式的系统
+\begin{equation}
+f_i(x)<0,\quad i=1,\cdots,m,\qquad Ax=b,
+\tag{5.79}
+\end{equation}
+以及其择一系统
+\begin{equation}
+\lambda\succeq 0,\qquad \lambda\neq 0,\qquad g(\lambda,\nu)\geq 0.
+\tag{5.80}
+\end{equation}
+我们需要一个技术条件：存在一点 $x\in\mathbf{relint}\,D$ 使得 $Ax=b$。换言之，我们不但假设线性等式约束是相容的，且假设存在一个解在 $\mathbf{relint}\,D$ 内。（很多情况下 $D=\mathbb{R}^n$，所以当等式约束相容时此假设即满足。）根据此条件，不等式系统 (5.79) 和 (5.80) 恰有一个是可行的。换言之，不等式系统 (5.79) 和 (5.80) 是强择一的。
+
+我们可以通过考虑相关的优化问题得到上述结论，即
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & s\\
+\text{subject to}\quad & f_i(x)-s\leq 0,\quad i=1,\cdots,m\\
+& Ax=b.
+\end{aligned}
+\tag{5.81}
+\end{equation}
+优化变量为 $x,s$，定义域为 $D\times\mathbb{R}$。当且仅当严格不等式系统 (5.79) 有解时，上述优化问题的最优值 $p^\star$ 小于零。
+
+优化问题 (5.81) 的 Lagrange 对偶函数为
+\[
+\inf_{x\in D,\ s}\left(s+\sum_{i=1}^m\lambda_i(f_i(x)-s)+\nu^T(Ax-b)\right)
+=
+\begin{cases}
+g(\lambda,\nu) & \mathbf{1}^T\lambda=1\\
+-\infty & \text{其他情况}.
+\end{cases}
+\]
+因此优化问题 (5.81) 的对偶问题可以描述为
+\[
+\begin{aligned}
+\text{maximize}\quad & g(\lambda,\nu)\\
+\text{subject to}\quad & \lambda\succeq 0,\quad \mathbf{1}^T\lambda=1.
+\end{aligned}
+\]
+下面说明，优化问题 (5.81) 满足 Slater 条件。根据假设，存在一点 $\tilde{x}\in\mathbf{relint}\,D$ 使得 $A\tilde{x}=b$。任选 $\tilde{s}>\max_i f_i(\tilde{x})$，则点 $(\tilde{x},\tilde{s})$ 是优化问题 (5.81) 的严格可行点。因此有 $d^\star=p^\star$，且对偶最优值 $d^\star$ 可以达到。换言之，存在 $(\lambda^\star,\nu^\star)$，使得
+\begin{equation}
+g(\lambda^\star,\nu^\star)=p^\star,\qquad \lambda^\star\succeq 0,\qquad \mathbf{1}^T\lambda^\star=1.
+\tag{5.82}
+\end{equation}
+现在假设严格不等式系统 (5.79) 不可行，即 $p^\star\geq 0$。则使得式 (5.82) 成立的 $(\lambda^\star,\nu^\star)$ 满足择一不等式系统 (5.80)。类似地，如果择一不等式系统 (5.80) 可行，那么 $d^\star=p^\star\geq 0$，即严格不等式系统 (5.79) 不可行。因此，不等式系统 (5.79) 和 (5.80) 是强择一的；其中的一个可行当且仅当另一个不可行。
+
+\noindent\textbf{非严格不等式}
+
+下面考虑非严格不等式系统
+\begin{equation}
+f_i(x)\leq 0,\quad i=1,\cdots,m,\qquad Ax=b,
+\tag{5.83}
+\end{equation}
+以及其择一系统
+\begin{equation}
+\lambda\succeq 0,\qquad g(\lambda,\nu)>0.
+\tag{5.84}
+\end{equation}
+我们将说明，如果下面的条件成立：即存在某点 $x\in\mathbf{relint}\,D$ 使得 $Ax=b$ 且优化问题 (5.81) 可以达到最优值 $p^\star$，这两个系统也是强择一的。例如，若 $D=\mathbb{R}^n$ 且当 $x\to\infty$ 时，$\max_i f_i(x)\to\infty$，则上述条件成立。根据假设，和严格不等式系统的情形一样，我们有 $p^\star=d^\star$，且原问题和对偶问题都能达到最优值。现在假设非严格不等式系统 (5.83) 是不可行的，这意味着 $p^\star>0$。（这里利用了原问题能达到最优值的假设。）那么使得式 (5.82) 成立的 $(\lambda^\star,\nu^\star)$ 满足择一不等式系统 (5.84)。因此，不等式系统 (5.83) 和 (5.84) 是强择一的，其中一个是可行的，当且仅当另一个不可行。
+
+\subsection*{5.8.3\quad 例子}
+
+\noindent\textbf{线性不等式}
+
+考虑具有线性不等式 $Ax\preceq b$ 的系统。它的对偶函数为
+\[
+g(\lambda)=\inf_x \lambda^T(Ax-b)=
+\begin{cases}
+-b^T\lambda & A^T\lambda=0\\
+-\infty & \text{其他情况}.
+\end{cases}
+\]
+因此，其择一不等式系统为
+\[
+\lambda\succeq 0,\qquad A^T\lambda=0,\qquad b^T\lambda<0.
+\]
+这两个系统是强择一的。事实上，由于相关问题 (5.81) 在有下界的情况下总能达到最优值，上述结论是显然的。
+
+现在考虑具有严格线性不等式 $Ax\prec b$ 的系统，其强择一系统为
+\[
+\lambda\succeq 0,\qquad \lambda\neq 0,\qquad A^T\lambda=0,\qquad b^T\lambda\leq 0.
+\]
+实际上，在 §2.5.1 就碰到了（证明过）这个结论，见式 (2.17) 和式 (2.18)（在第 45 页）。
+
+\noindent\textbf{椭球的交集}
+
+考虑 $m$ 个椭球，每个椭球可以由下式描述
+\[
+\mathcal{E}_i=\{x\mid f_i(x)\leq 0\},
+\]
+其中 $f_i(x)=x^TA_ix+2b_i^Tx+c_i,\ i=1,\cdots,m$，而 $A_i\in\mathbf{S}_{++}^n$。我们的问题是这些椭球的交集在何种情况下具有非空内部。这个问题等价于具有严格二次不等式集合的可行性，即
+\begin{equation}
+f_i(x)=x^TA_ix+2b_i^Tx+c_i<0,\quad i=1,\cdots,m.
+\tag{5.85}
+\end{equation}
+对偶函数 $g$ 为
+\[
+\begin{aligned}
+g(\lambda)
+&=\inf_x\left(x^TA(\lambda)x+2b(\lambda)^Tx+c(\lambda)\right)\\
+&=
+\begin{cases}
+-b(\lambda)^TA(\lambda)^\dagger b(\lambda)+c(\lambda) & A(\lambda)\succeq 0,\quad b(\lambda)\in\mathcal{R}(A(\lambda))\\
+-\infty & \text{其他情况},
+\end{cases}
+\end{aligned}
+\]
+其中
+\[
+A(\lambda)=\sum_{i=1}^m\lambda_i A_i,\qquad
+b(\lambda)=\sum_{i=1}^m\lambda_i b_i,\qquad
+c(\lambda)=\sum_{i=1}^m\lambda_i c_i.
+\]
+注意到若 $\lambda\succeq 0,\lambda\neq 0$，有 $A(\lambda)\succ 0$，因此，可以简化对偶函数的表达式
+\[
+g(\lambda)=-b(\lambda)^TA(\lambda)^{-1}b(\lambda)+c(\lambda).
+\]
+因此系统 (5.85) 的强择一系统为
+\begin{equation}
+\lambda\succeq 0,\qquad \lambda\neq 0,\qquad -b(\lambda)^TA(\lambda)^{-1}b(\lambda)+c(\lambda)\geq 0.
+\tag{5.86}
+\end{equation}
+可以对这对强择一系统给出一个简单的几何理解。对任意非零 $\lambda\succeq 0$，椭球（可能是空集）
+\[
+\mathcal{E}_\lambda=\{x\mid x^TA(\lambda)x+2b(\lambda)^Tx+c(\lambda)\leq 0\}
+\]
+包含 $\mathcal{E}_1\cap\cdots\cap\mathcal{E}_m$，这是因为 $f_i(x)\leq 0$ 可以导出 $\sum_{i=1}^m\lambda_i f_i(x)\leq 0$。而 $\mathcal{E}_\lambda$ 内部为空，当且仅当下式成立
+\[
+\inf_x\left(x^TA(\lambda)x+2b(\lambda)^Tx+c(\lambda)\right)
+=-b(\lambda)^TA(\lambda)^{-1}b(\lambda)+c(\lambda)\geq 0.
+\]
+因此，择一系统 (5.86) 意味着 $\mathcal{E}_\lambda$ 的内部为空。
+
+弱对偶性显然成立：如果式 (5.86) 成立，那么 $\mathcal{E}_\lambda$ 包含交集 $\mathcal{E}_1\cap\cdots\cap\mathcal{E}_m$ 且内部为空，那么自然地交集内部为空。根据两个系统是强择一系统，我们可以得到这样的结论（不是显然的）：如果交集 $\mathcal{E}_1\cap\cdots\cap\mathcal{E}_m$ 内部为空，那么可以构造出椭球 $\mathcal{E}_\lambda$ 包含这个交集且内部亦为空。
+
+\noindent\textbf{Farkas 引理}
+
+本节描述一对强择一系统，它们是由严格和非严格线性不等式组成的混合系统，这对系统可以用 Farkas 引理进行描述：不等式系统
+\begin{equation}
+Ax\preceq 0,\qquad c^Tx<0,
+\tag{5.87}
+\end{equation}
+其中 $A\in\mathbb{R}^{m\times n},c\in\mathbb{R}^n$，以及不等式系统
+\begin{equation}
+A^Ty+c=0,\qquad y\succeq 0,
+\tag{5.88}
+\end{equation}
+是强择一的。
+
+可以采用线性规划的对偶理论来直接证明 Farkas 引理。考虑线性规划
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & Ax\preceq 0,
+\end{aligned}
+\tag{5.89}
+\end{equation}
+它的对偶问题为
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & 0\\
+\text{subject to}\quad & A^Ty+c=0\\
+& y\succeq 0.
+\end{aligned}
+\tag{5.90}
+\end{equation}
+原线性规划问题 (5.89) 是齐次的，如果系统 (5.87) 是不可行的，那么其具有最优值 0，如果系统 (5.87) 是可行的，那么线性规划问题的最优值为 $-\infty$。对于对偶线性规划问题 (5.90)，如果系统 (5.88) 可行，则最优值为 0，若系统 (5.88) 不可行，那么最优值为 $-\infty$。
+
+对于问题 (5.89)，因为 $x=0$ 总是可行的，即对线性规划问题强对偶性成立，因此必有 $p^\star=d^\star$。根据上述分析，可以得出结论，系统 (5.87) 和系统 (5.88) 是强择一的。
+
+\noindent\textbf{例 5.10}\quad 无套利定价的界。考虑具有 $n$ 种资产的集合，在某个投资阶段开始时分别具有价格 $p_1,\cdots,p_n$。在投资结束时，资产的价值分别为 $v_1,\cdots,v_n$。用 $x_1,\cdots,x_n$ 表示对每种资产的初始投资额（若 $x_j<0$ 则表示对资产 $j$ 卖空），初始投资的成本为 $p^Tx$，资产的最终价值为 $v^Tx$。
+
+投资阶段结束后的资产价值 $v$ 是不确定的。可以假设只有 $m$ 种资产价值，即只有 $m$ 种投资结果。如果为第 $i$ 种结果，那么资产的最终价值为 $v^{(i)}$，因此，投资的总价值为 $v^{(i)T}x$。
+
+如果对于某个投资向量 $x$，其满足 $p^Tx<0$，对于所有的投资结果，最终资产价值都不小于零，即对任意 $i=1,\cdots,m$ 有 $v^{(i)T}x\geq 0$，那么我们说存在套利现象。条件 $p^Tx<0$ 意味着付钱给投资者，让其接受投资组合，而条件 $v^{(i)T}x\geq 0,\ i=1,\cdots,m$，说明无论何种结果，最终资产价值都是非负的，所以套利意味着一个稳赚不赔的投资策略。一般而言，总是假设价格和价值满足一定的条件，使得套利现象不存在。这就意味着不等式系统
+\[
+Vx\succeq 0,\qquad p^Tx<0
+\]
+不可行，其中 $V_{ij}=v_j^{(i)}$。
+
+根据 Farkas 引理，套利现象不存在，当且仅当存在 $y$，使得
+\[
+-V^Ty+p=0,\qquad y\succeq 0.
+\]
+我们可以利用无套利价格和价值的描述来求解一些有意义的问题。
+
+假设，价值 $V$ 已知，除了 $p_n$ 外其他价格也已知。为了保证无套利，价格 $p_n$ 的取值必须在一个区间内，这可以通过求解一对线性规划问题得到这个区间。考虑关于变量 $p_n$ 和 $y$ 的线性规划问题
+\[
+\begin{aligned}
+\text{minimize}\quad & p_n\\
+\text{subject to}\quad & V^Ty=p,\quad y\succeq 0,
+\end{aligned}
+\]
+其最优值给出了资产 $n$ 的最小可能无套利价格。求解相同的线性规划问题，只是将极小化换成极大化，可以得到资产 $n$ 的最大可能无套利价格。如果这两种价格相等，即根据无套利的假设我们得到资产 $n$ 的唯一价格，那么称市场是完备的。习题 5.38 给出了一个例子。
+
+若衍生资产或期权是基于其他标的资产的最终价值，即资产 $n$ 的价值或收益是其他资产价值的函数，可以用上述方法来确定衍生资产或期权的定价的界。
+
+\section*{5.9\quad 广义不等式}
+
+本节将 Lagrange 对偶理论扩展到具有广义不等式约束的问题，即
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\preceq_{K_i}0,\quad i=1,\cdots,m\\
+& h_i(x)=0,\quad i=1,\cdots,p,
+\end{aligned}
+\tag{5.91}
+\end{equation}
+其中 $K_i\subseteq\mathbb{R}^{k_i}$ 是正常锥。此时，并不假设问题 (5.91) 是凸的。假设问题 (5.91) 的定义域 $D=\bigcap_{i=0}^m\mathbf{dom}\,f_i\cap\bigcap_{i=1}^p\mathbf{dom}\,h_i$ 非空。
+
+\subsection*{5.9.1\quad Lagrange 对偶}
+
+对于问题 (5.91) 中的每个广义不等式 $f_i(x)\preceq_{K_i}0$，引入 Lagrange 乘子向量 $\lambda_i\in\mathbb{R}^{k_i}$ 并定义相关的 Lagrange 函数如下
+\[
+L(x,\lambda,\nu)=f_0(x)+\lambda_1^Tf_1(x)+\cdots+\lambda_m^Tf_m(x)+\nu_1h_1(x)+\cdots+\nu_ph_p(x),
+\]
+其中 $\lambda=(\lambda_1,\cdots,\lambda_m)$，$\nu=(\nu_1,\cdots,\nu_p)$。对偶函数的定义和原问题只有数值不等式的情形一样，
+\[
+g(\lambda,\nu)=\inf_{x\in D}L(x,\lambda,\nu)
+=\inf_{x\in D}\left(f_0(x)+\sum_{i=1}^m\lambda_i^Tf_i(x)+\sum_{i=1}^p\nu_i h_i(x)\right).
+\]
+因为 Lagrange 函数关于对偶变量 $(\lambda,\nu)$ 是仿射的，且对偶函数是 Lagrange 函数的逐点下确界，所以对偶函数是凹的。
+
+类似原问题只含数值不等式的情形，对偶函数给出了原问题 (5.91) 最优值 $p^\star$ 的下界。对于原问题只含数值不等式的情形，要求 $\lambda_i\geq 0$。此时，对偶变量的非负约束被替换成如下条件
+\[
+\lambda_i\succeq_{K_i^\ast}0,\quad i=1,\cdots,m,
+\]
+其中 $K_i^\ast$ 是 $K_i$ 的对偶锥。换言之，对应于广义不等式的 Lagrange 乘子必须是对偶非负的。
+
+从对偶锥的定义即可以得出弱对偶性。如果 $\lambda_i\succeq_{K_i^\ast}0$ 且 $f_i(\tilde{x})\preceq_{K_i}0$，那么 $\lambda_i^Tf_i(\tilde{x})\leq 0$。因此，对任意原问题的可行点 $\tilde{x}$ 以及任意 $\lambda_i\succeq_{K_i^\ast}0$，有
+\[
+f_0(\tilde{x})+\sum_{i=1}^m\lambda_i^Tf_i(\tilde{x})+\sum_{i=1}^p\nu_i h_i(\tilde{x})\leq f_0(\tilde{x}).
+\]
+关于 $\tilde{x}$ 求下确界可以得到 $g(\lambda,\nu)\leq p^\star$。
+
+Lagrange 对偶优化问题为
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & g(\lambda,\nu)\\
+\text{subject to}\quad & \lambda_i\succeq_{K_i^\ast}0,\quad i=1,\cdots,m.
+\end{aligned}
+\tag{5.92}
+\end{equation}
+无论原问题 (5.91) 是否为凸问题，弱对偶性总是成立，即 $d^\star\leq p^\star$，其中 $d^\star$ 表示对偶问题 (5.92) 的最优值。
+
+\noindent\textbf{Slater 条件和强对偶性}
+
+可以想象，在广义不等式的情况下，同样成立强对偶性（$d^\star=p^\star$），前提是原问题是凸的且满足合适的约束准则。例如，对于如下问题
+\[
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\preceq_{K_i}0,\quad i=1,\cdots,m\\
+& Ax=b,
+\end{aligned}
+\]
+其中，$f_0$ 是凸函数，函数 $f_i$ 是 $K_i$ 凸的，其广义 Slater 条件可以描述为：存在一点 $x\in\mathbf{relint}\,D$ 使得 $Ax=b$ 且 $f_i(x)\prec_{K_i}0,\ i=1,\cdots,m$。如果广义 Slater 条件成立，那么强对偶性成立（且可以达到对偶最优）。
+
+\noindent\textbf{例 5.11}\quad 半定规划问题的 Lagrange 对偶。考虑一个不等式形式的半定规划
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & x_1F_1+\cdots+x_nF_n+G\preceq 0
+\end{aligned}
+\tag{5.93}
+\end{equation}
+其中 $F_1,\cdots,F_n,G\in\mathbf{S}^k$。（此时，$f_1$ 是仿射的，锥 $K_1$ 为半正定锥 $\mathbf{S}_+^k$。）
+
+对约束引入一个对偶变量或者乘子 $Z\in\mathbf{S}^k$，因此 Lagrange 函数为
+\[
+\begin{aligned}
+L(x,Z)
+&=c^Tx+\mathbf{tr}((x_1F_1+\cdots+x_nF_n+G)Z)\\
+&=x_1(c_1+\mathbf{tr}(F_1Z))+\cdots+x_n(c_n+\mathbf{tr}(F_nZ))+\mathbf{tr}(GZ),
+\end{aligned}
+\]
+其对 $x$ 是仿射的。对偶函数可以描述为
+\[
+g(Z)=\inf_x L(x,Z)=
+\begin{cases}
+\mathbf{tr}(GZ) & \mathbf{tr}(F_iZ)+c_i=0,\quad i=1,\cdots,n\\
+-\infty & \text{其他情况}.
+\end{cases}
+\]
+所以对偶问题可以写成
+\[
+\begin{aligned}
+\text{maximize}\quad & \mathbf{tr}(GZ)\\
+\text{subject to}\quad & \mathbf{tr}(F_iZ)+c_i=0,\quad i=1,\cdots,n\\
+& Z\succeq 0.
+\end{aligned}
+\]
+（在这里我们用到了 $\mathbf{S}_+^k$ 是自对偶的性质，即 $(\mathbf{S}_+^k)^\ast=\mathbf{S}_+^k$；参见 §2.6。）
+
+若半定规划 (5.93) 是严格可行的，即存在一点 $x$ 满足下式
+\[
+x_1F_1+\cdots+x_nF_n+G\prec 0.
+\]
+则强对偶性成立。
+
+\noindent\textbf{例 5.12}\quad 标准形式锥规划的 Lagrange 对偶。考虑锥规划问题
+\[
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & Ax=b\\
+& x\succeq_K 0,
+\end{aligned}
+\]
+其中 $A\in\mathbb{R}^{m\times n}$，$b\in\mathbb{R}^m$，$K\subseteq\mathbb{R}^n$ 是一个正常锥。对等式约束引入乘子 $\nu\in\mathbb{R}^m$，对非负约束引入乘子 $\lambda\in\mathbb{R}^n$。则 Lagrange 函数为
+\[
+L(x,\lambda,\nu)=c^Tx-\lambda^Tx+\nu^T(Ax-b);
+\]
+因此对偶函数为
+\[
+g(\lambda,\nu)=\inf_x L(x,\lambda,\nu)=
+\begin{cases}
+-b^T\nu & A^T\nu-\lambda+c=0\\
+-\infty & \text{其他情况}.
+\end{cases}
+\]
+对偶问题可以描述为
+\[
+\begin{aligned}
+\text{maximize}\quad & -b^T\nu\\
+\text{subject to}\quad & A^T\nu+c=\lambda\\
+& \lambda\succeq_{K^\ast}0.
+\end{aligned}
+\]
+消去 $\lambda$ 并定义 $y=-\nu$，对偶问题可以简化为
+\[
+\begin{aligned}
+\text{maximize}\quad & b^Ty\\
+\text{subject to}\quad & A^Ty\preceq_{K^\ast}c,
+\end{aligned}
+\]
+这是一个不等式形式的锥规划，包含对偶广义不等式。
+
+如果 Slater 条件成立，即存在一点 $x$ 满足 $x\succ_K0$ 以及 $Ax=b$，则强对偶性成立。
+
+\subsection*{5.9.2\quad 最优性条件}
+
+§5.5 中的最优性条件可以很容易地扩展到包含广义不等式的问题。首先推导互补松弛条件。
+
+\noindent\textbf{互补松弛}
+
+假设原问题和对偶问题的最优值相等，并且在最优点 $x^\star,\lambda^\star,\nu^\star$ 处达到。和 §5.5.2 类似，由等式 $f_0(x^\star)=g(\lambda^\star,\nu^\star)$ 以及 $g$ 的定义可以直接得到互补松弛条件。由等式可知
+\[
+\begin{aligned}
+f_0(x^\star)=g(\lambda^\star,\nu^\star)
+&\leq f_0(x^\star)+\sum_{i=1}^m\lambda_i^{\star T}f_i(x^\star)+\sum_{i=1}^p\nu_i^\star h_i(x^\star)\\
+&\leq f_0(x^\star),
+\end{aligned}
+\]
+因此，Lagrange 函数 $L(x,\lambda^\star,\nu^\star)$ 在 $x^\star$ 处取得最小值，且第二行中两个求和项均为零。因为第二个求和项为零（这是因为 $x^\star$ 满足等式约束），所以我们有 $\sum_{i=1}^m\lambda_i^{\star T}f_i(x^\star)=0$。因为上述求和项中每一项都是非正的，我们得出结论
+\begin{equation}
+\lambda_i^{\star T}f_i(x^\star)=0,\quad i=1,\cdots,m,
+\tag{5.94}
+\end{equation}
+可以看出，上述条件将互补松弛条件 (5.48) 推广到了广义不等式的情形。由式 (5.94) 可得
+\[
+\lambda_i^\star\succ_{K_i^\ast}0\Longrightarrow f_i(x^\star)=0,\qquad
+f_i(x^\star)\prec_{K_i}0\Longrightarrow \lambda_i^\star=0.
+\]
+然而，和数值不等式问题不同，有可能存在 $\lambda_i^\star\neq 0$ 且 $f_i(x^\star)\neq 0$ 满足式 (5.94)。
+
+\noindent\textbf{KKT 条件}
+
+现在假设函数 $f_i,h_i$ 可微，将 §5.5.3 中提到的 KKT 条件扩展到包含广义不等式的问题。由于 $x^\star$ 是 $L(x,\lambda^\star,\nu^\star)$ 的极小点，因此 Lagrange 函数在 $x^\star$ 处关于 $x$ 的梯度为零，即
+\[
+\nabla f_0(x^\star)+\sum_{i=1}^m Df_i(x^\star)^T\lambda_i^\star+\sum_{i=1}^p\nu_i^\star\nabla h_i(x^\star)=0,
+\]
+其中 $Df_i(x^\star)\in\mathbb{R}^{k_i\times n}$ 是函数 $f_i$ 在 $x^\star$ 处的导数（参见 §A.4.1）。因此，如果强对偶性成立，任意原问题的最优解 $x^\star$ 和对偶问题最优解 $(\lambda^\star,\nu^\star)$ 必须满足最优性条件（或称 KKT 条件）
+\begin{equation}
+\begin{aligned}
+& f_i(x^\star)\preceq_{K_i}0,\quad i=1,\cdots,m\\
+& h_i(x^\star)=0,\quad i=1,\cdots,p\\
+& \lambda_i^\star\succeq_{K_i^\ast}0,\quad i=1,\cdots,m\\
+& \lambda_i^{\star T}f_i(x^\star)=0,\quad i=1,\cdots,m\\
+& \nabla f_0(x^\star)+\sum_{i=1}^m Df_i(x^\star)^T\lambda_i^\star+\sum_{i=1}^p\nu_i^\star\nabla h_i(x^\star)=0.
+\end{aligned}
+\tag{5.95}
+\end{equation}
+如果原问题是凸的，那么反过来亦成立，即条件 (5.95) 是 $x^\star,(\lambda^\star,\nu^\star)$ 最优的充分条件。
+
+\subsection*{5.9.3\quad 扰动及灵敏度分析}
+
+§5.6 中的结论可以扩展到包含广义不等式的问题。考虑相应的扰动之后的问题
+\[
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\preceq_{K_i}u_i,\quad i=1,\cdots,m\\
+& h_i(x)=v_i,\quad i=1,\cdots,p,
+\end{aligned}
+\]
+其中 $u_i\in\mathbb{R}^{k_i},v\in\mathbb{R}^p$。扰动后的问题的最优值定义为 $p^\star(u,v)$。和数值不等式的情形类似，如果原优化问题是凸的，那么 $p^\star$ 是凸函数。
+
+对于未扰动的原问题，假设不存在对偶间隙，设其对偶问题的最优解为 $(\lambda^\star,\nu^\star)$。那么对于任意 $u$ 和 $v$，有
+\[
+p^\star(u,v)\geq p^\star-\sum_{i=1}^m\lambda_i^{\star T}u_i-\nu^{\star T}v,
+\]
+这和全局灵敏度不等式 (5.57) 类似。局部灵敏度分析的结论同样成立：如果 $p^\star(u,v)$ 在 $u=0,v=0$ 处可微，那么最优对偶变量 $\lambda_i^\star$ 满足
+\[
+\lambda_i^\star=-\nabla_{u_i}p^\star(0,0),
+\]
+和式 (5.58) 类似。
+
+\noindent\textbf{例 5.13}\quad 不等式形式的半定规划。考虑在例 5.11 中提到的不等式形式的半定规划问题。原问题为
+\[
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & F(x)=x_1F_1+\cdots+x_nF_n+G\preceq 0,
+\end{aligned}
+\]
+其中变量 $x\in\mathbb{R}^n$（且 $F_1,\cdots,F_n,G\in\mathbf{S}^k$），其对偶问题为
+\[
+\begin{aligned}
+\text{maximize}\quad & \mathbf{tr}(GZ)\\
+\text{subject to}\quad & \mathbf{tr}(F_iZ)+c_i=0,\quad i=1,\cdots,n\\
+& Z\succeq 0,
+\end{aligned}
+\]
+变量 $Z\in\mathbf{S}^k$。
+
+假设 $x^\star$ 和 $Z^\star$ 分别是原问题和对偶问题的最优解，对偶间隙为零。互补松弛条件为 $\mathbf{tr}(F(x^\star)Z^\star)=0$。因为 $F(x^\star)\preceq 0$ 且 $Z^\star\succeq 0$，可以得出结论 $F(x^\star)Z^\star=0$。因此，互补松弛条件可以表述为
+\[
+\mathcal{R}(F(x^\star))\perp\mathcal{R}(Z^\star),
+\]
+即原矩阵和对偶矩阵的值空间正交。
+
+对上述半定规划问题进行扰动
+\[
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & F(x)=x_1F_1+\cdots+x_nF_n+G\preceq U.
+\end{aligned}
+\]
+设其最优解为 $p^\star(U)$。则对任意 $U$，有 $p^\star(U)\geq p^\star-\mathbf{tr}(Z^\star U)$。如果 $p^\star(U)$ 在 $U=0$ 处可微，则有
+\[
+\nabla p^\star(0)=-Z^\star.
+\]
+这意味着如果 $U$ 比较小，扰动的半定规划问题的最优值非常接近（下界）$p^\star-\mathbf{tr}(Z^\star U)$。
+
+\subsection*{5.9.4\quad 择一定理}
+
+对包含广义不等式以及等式的系统
+\begin{equation}
+f_i(x)\preceq_{K_i}0,\quad i=1,\cdots,m,\qquad h_i(x)=0,\quad i=1,\cdots,p,
+\tag{5.96}
+\end{equation}
+其中 $K_i\subseteq\mathbb{R}^{k_i}$ 是正常锥，我们同样可以推导出择一定理。和数值不等式的情形类似，我们亦会考虑严格广义不等式系统
+\begin{equation}
+f_i(x)\prec_{K_i}0,\quad i=1,\cdots,m,\qquad h_i(x)=0,\quad i=1,\cdots,p.
+\tag{5.97}
+\end{equation}
+为此，首先假设
+\[
+D=\bigcap_{i=0}^m \mathbf{dom}\,f_i\cap\bigcap_{i=1}^p \mathbf{dom}\,h_i
+\]
+非空。
+
+\noindent\textbf{弱择一}\quad
+对系统 (5.96) 和系统 (5.97) 引入对偶函数
+\[
+g(\lambda,\nu)=\inf_{x\in D}\left(\sum_{i=1}^m\lambda_i^Tf_i(x)+\sum_{i=1}^p\nu_i h_i(x)\right),
+\]
+其中 $\lambda=(\lambda_1,\cdots,\lambda_m)$，$\lambda_i\in\mathbb{R}^{k_i}$ 且 $\nu\in\mathbb{R}^p$。和系统 (5.76) 类似，我们指出系统
+\begin{equation}
+\lambda_i\succeq_{K_i^\ast}0,\quad i=1,\cdots,m,\qquad g(\lambda,\nu)>0
+\tag{5.98}
+\end{equation}
+是系统 (5.96) 的一个弱择一系统。为了说明这一点，假设存在某个 $x$ 满足式 (5.96) 且 $(\lambda,\nu)$ 满足式 (5.98)。那么可以得到如下矛盾
+\[
+0<g(\lambda,\nu)\leq \lambda_1^Tf_1(x)+\cdots+\lambda_m^Tf_m(x)+\nu_1h_1(x)+\cdots+\nu_ph_p(x)\leq 0.
+\]
+因此，系统 (5.96) 和系统 (5.98) 中至少有一个不可行，即这两个系统是弱择一的。
+
+类似地，我们可以证明系统 (5.97) 和系统
+\[
+\lambda_i\succeq_{K_i^\ast}0,\quad i=1,\cdots,m,\qquad \lambda\neq 0,\qquad g(\lambda,\nu)\geq 0
+\]
+是一对弱择一系统。
+
+\noindent\textbf{强择一}\quad
+现在假设函数 $f_i$ 是 $K_i$-凸的，且函数 $h_i$ 是仿射的。首先考虑具有严格不等式的系统
+\begin{equation}
+f_i(x)\prec_{K_i}0,\quad i=1,\cdots,m,\qquad Ax=b,
+\tag{5.99}
+\end{equation}
+以及其择一系统
+\begin{equation}
+\lambda_i\succeq_{K_i^\ast}0,\quad i=1,\cdots,m,\qquad \lambda\neq 0,\qquad g(\lambda,\nu)\geq 0.
+\tag{5.100}
+\end{equation}
+前面已经说明系统 (5.99) 和系统 (5.100) 是弱择一的。事实上，如果下面的约束准则成立：即存在一点 $\tilde{x}\in\mathbf{relint}\,D$ 使得 $A\tilde{x}=b$，它们也是强择一的。为了证明这一点，选择一组向量 $e_i\succ_{K_i}0$，并考虑如下问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & s\\
+\text{subject to}\quad & f_i(x)\preceq_{K_i}se_i,\quad i=1,\cdots,m\\
+& Ax=b
+\end{aligned}
+\tag{5.101}
+\end{equation}
+其中变量为 $x$ 以及 $s\in\mathbb{R}$。当 $\tilde{s}$ 足够大时，$(\tilde{x},\tilde{s})$ 满足严格不等式 $f_i(\tilde{x})\prec_{K_i}\tilde{s}e_i$，因此 Slater 条件成立。
+
+问题 (5.101) 的对偶问题为
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & g(\lambda,\nu)\\
+\text{subject to}\quad & \lambda_i\succeq_{K_i^\ast}0,\quad i=1,\cdots,m\\
+& \sum_{i=1}^m e_i^T\lambda_i=1
+\end{aligned}
+\tag{5.102}
+\end{equation}
+其中变量为 $\lambda=(\lambda_1,\cdots,\lambda_m)$ 和 $\nu$。
+
+若系统 (5.99) 不可行，那么优化问题 (5.101) 的最优值非负。因为 Slater 条件满足，所以强对偶性成立，对偶最优值可以达到。因此，存在 $(\tilde{\lambda},\tilde{\nu})$ 使得优化问题 (5.102) 的约束条件满足且 $g(\tilde{\lambda},\tilde{\nu})\geq 0$，即系统 (5.100) 有解。
+
+注意到和数值不等式的情形类似，存在一点 $x\in\mathbf{relint}\,D$ 使得 $Ax=b$ 并不能说明不等式系统
+\[
+f_i(x)\preceq_{K_i}0,\quad i=1,\cdots,m,\qquad Ax=b
+\]
+以及其择一系统
+\[
+\lambda_i\succeq_{K_i^\ast}0,\quad i=1,\cdots,m,\qquad g(\lambda,\nu)>0
+\]
+是强择一的。需要另外附加一个条件，即优化问题 (5.101) 的最优值能够达到。
+
+\noindent\textbf{例 5.14}\quad 线性矩阵不等式的可行性。系统
+\[
+F(x)=x_1F_1+\cdots+x_nF_n+G\prec 0,
+\]
+其中 $F_i,G\in\mathbf{S}^k$，和系统
+\[
+Z\succeq 0,\qquad Z\neq 0,\qquad \mathbf{tr}(GZ)\geq 0,\qquad \mathbf{tr}(F_iZ)=0,\quad i=1,\cdots,n,
+\]
+其中 $Z\in\mathbf{S}^k$，是强择一的。上述结论可以由本节描述的择一的一般结论得到，令 $K$ 为半正定锥 $\mathbf{S}_+^k$，对偶函数 $g(Z)$ 为
+\[
+g(Z)=\inf_x(\mathbf{tr}(F(x)Z))=
+\begin{cases}
+\mathbf{tr}(GZ) & \mathbf{tr}(F_iZ)=0,\quad i=1,\cdots,n\\
+-\infty & \text{其他情况}.
+\end{cases}
+\]
+对于非严格不等式的情形，强择一性的成立需要更多的条件，此时，需要对矩阵 $F_i$ 附加假设使得强择一性成立。一类这样的条件为
+\[
+\sum_{i=1}^n v_iF_i\succeq 0\Longrightarrow \sum_{i=1}^n v_iF_i=0.
+\]
+如果上述条件成立，则系统
+\[
+F(x)=x_1F_1+\cdots+x_nF_n+G\preceq 0
+\]
+和系统
+\[
+Z\succeq 0,\qquad \mathbf{tr}(GZ)>0,\qquad \mathbf{tr}(F_iZ)=0,\quad i=1,\cdots,n
+\]
+是强择一的（见习题 5.44）。
+
+\section*{参考文献}
+
+详细介绍 Lagrange 对偶理论的文献很多，如 Luenberger [Lue69, 第 8 章]，Rockafellar [Roc70, 第 VI 部分]，Whittle [Whi71]，Hiriart-Urruty 和 Lemaréchal [HUL93] 以及 Bertsekas, Nedić 和 Ozdaglar [Ber03]。Lagrange 对偶这个名字来源于利用 Lagrange 乘子法求解具有等式约束的优化问题，参见 Courant 和 Hilbert [CH53, 第 IV 章]。
+
+§5.2.5 中矩阵对策的极大极小结论的提出事实上是早于线性规划对偶理论的。von Neumann 和 Morgenstern [vNM53, 第 153 页] 通过一个择一定理证明了这个结论。第 219 页提到的关于线性规划的强对偶性的结论是基于 von Neumann [vN63] 以及 Gale, Kuhn 和 Tucker [GKT51] 的。非凸二次规划问题 (5.32) 的强对偶性是采用信赖域方法求解非线性优化的文献中的一个基本结论（Nocedal 和 Wright [NW99, 第 78 页]）。这和控制理论中的 S 过程也有关联，见附录 §B.1 中的讨论。将 §5.3.2 中强对偶性的证明扩展至改进的 Slater 条件可以参看文献 Rockafellar [Roc70, 第 277 页]。
+
+鞍点性质成立的条件 (5.47) 可以参看文献 Rockafellar [Roc70, 第 VII 部分] 以及 Bertsekas, Nedić 和 Ozdaglar [Ber03, 第 2 章]；习题 5.25 中亦有涉及。
+
+KKT 条件得名于 Karush（他在 1939 年未发表的硕士论文中提到了这个结论，文献 Kuhn [Kuh76] 对其进行了整理）以及 Kuhn 和 Tucker [KT51]。John [Joh85] 也推导了类似的最优性条件。例 5.2 中的注水算法在信息理论以及通信领域得到了应用（Cover 和 Thomas [CT91, 第 252 页]）。
+
+Farkas 引理由 Farkas [Far02] 提出。这个引理也是关于线性不等式和等式系统的择一性理论的最为知名的定理，事实上，关于这个定理还有很多不同的变化形式；参见 Mangasarian [Man94, §2.4]。Farkas 引理在资产定价（例 5.10）中的应用在文献 Bertsimas 和 Tsitsiklis [BT97, 第 167 页] 以及 Ross [Ros99] 中都有涉及。
+
+参考文献 Isii [Isi64]，Luenberger [Lue69, 第 8 章]，Berman [Ber73]，以及 Rockafellar [Roc89, 第 47 页] 中都提到了 Lagrange 对偶理论在广义不等式问题中的扩展。在文献 Nesterov 和 Nemirovski [NN94, §4.2] 以及 Ben-Tal 和 Nemirovski [BTN01, 第 2 讲] 中，这种扩展在锥规划问题中予以讨论。广义不等式的强择一定理在参考文献 Ben-Israel [BI69]，Berman 和 Ben-Israel [BBI71] 以及 Craven 和 Kohila [CK77] 中被提及。文献 Bellman 和 Fan [BF63]，Wolkowicz [Wol81]，以及 Lasserre [Las95] 给出了 Farkas 引理在线性矩阵不等式中的扩展。
+
+\section*{习题}
+
+\noindent\textbf{基本定义}
+
+\noindent\textbf{5.1 一个简单的例子。}\quad 考虑优化问题
+\[
+\begin{aligned}
+\text{minimize}\quad & x^2+1\\
+\text{subject to}\quad & (x-2)(x-4)\leq 0,
+\end{aligned}
+\]
+其中变量 $x\in\mathbb{R}$。
+
+(a) 分析原问题。求解可行集，最优值以及最优解。
+
+(b) Lagrange 函数以及对偶函数。绘制目标函数根据 $x$ 变化的图像。在同一幅图中，标出可行集，最优点及最优值，选择一些正的 Lagrange 乘子 $\lambda$，绘出 Lagrange 函数 $L(x,\lambda)$ 关于 $x$ 的变化曲线。利用图像，证明下界性质（对任意 $\lambda\geq 0$，$p^\star\geq\inf_x L(x,\lambda)$）。推导 Lagrange 对偶函数 $g$ 并大致描绘其图像。
+
+(c) Lagrange 对偶问题。描述对偶问题，证明它是一个凸极大化问题。求解对偶最优值以及对偶最优解 $\lambda^\star$。此时强对偶性是否成立？
+
+(d) 灵敏度分析。令 $p^\star(u)$ 为如下问题的最优值
+\[
+\begin{aligned}
+\text{minimize}\quad & x^2+1\\
+\text{subject to}\quad & (x-2)(x-4)\leq u,
+\end{aligned}
+\]
+它是参数 $u$ 的函数。描绘 $p^\star(u)$ 的曲线。证明 $dp^\star(0)/du=-\lambda^\star$。
+
+\noindent\textbf{5.2 无界问题及不可行问题的弱对偶性。}\quad 当 $d^\star=-\infty$ 或者 $p^\star=\infty$ 时，弱对偶性不等式 $d^\star\leq p^\star$ 显然成立。证明在另外两种情况下弱对偶性同样成立，即：若 $p^\star=-\infty$，则 $d^\star=-\infty$，且若 $d^\star=\infty$，有 $p^\star=\infty$。
+
+\noindent\textbf{5.3 具有一个不等式约束的问题。}\quad 考虑问题
+\[
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & f(x)\leq 0,
+\end{aligned}
+\]
+其中 $c\neq 0$。利用共轭 $f^\ast$ 表达对偶问题。我们不假设函数 $f$ 是凸的，证明对偶问题是凸的。
+
+\noindent\textbf{例子和应用}
+
+\noindent\textbf{5.4 通过松弛问题解释线性规划对偶。}\quad 考虑不等式形式的线性规划
+\[
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & Ax\preceq b,
+\end{aligned}
+\]
+其中 $A\in\mathbb{R}^{m\times n}, b\in\mathbb{R}^m$。在这个问题中，我们将给出线性规划对偶问题 (5.22) 的一个简单的几何解释。
+
+令 $w\in\mathbb{R}_+^m$。如果 $x$ 是线性规划的可行点，即 $Ax\preceq b$，那么 $x$ 也满足如下不等式
+\[
+w^TAx\leq w^Tb.
+\]
+几何上来讲，对于任意 $w\succeq 0$，半平面 $H_w=\{x\mid w^TAx\leq w^Tb\}$ 包含线性规划问题的可行域。因此，如果在半平面 $H_w$ 内极小化目标函数 $c^Tx$ 会得到 $p^\star$ 的一个下界。
+
+(a) 推导在半平面 $H_w$ 内极小化 $c^Tx$ 所得到的最小值的表达式（和 $w\succeq 0$ 的选择有关）。
+
+(b) 用数学语言描述如下问题：在所有 $w\succeq 0$ 中寻找给出最好下界的那个 $w$，即对所有的 $w\succeq 0$ 极大化所给出的下界。
+
+(c) 将 (a) 和 (b) 的结果与线性规划的 Lagrange 对偶问题 (5.22) 联系起来。
+
+\noindent\textbf{5.5 一般线性规划的对偶。}\quad 求解线性规划
+\[
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & Gx\preceq h\\
+& Ax=b
+\end{aligned}
+\]
+的对偶函数。给出对偶问题，并将隐式等式约束显式表达。
+
+\noindent\textbf{5.6 Chebyshev 逼近的最小二乘下界。}\quad 考虑 Chebyshev 或者 $\ell_\infty$-范数的逼近问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \|Ax-b\|_\infty,
+\end{aligned}
+\tag{5.103}
+\end{equation}
+其中 $A\in\mathbb{R}^{m\times n}$ 且 $\mathbf{rank}\,A=n$。令 $x_{\mathrm{ch}}$ 表示某个最优解（可能有多个最优解；$x_{\mathrm{ch}}$ 只是其中的一个）。
+
+Chebyshev 问题没有闭式解，但是相应的最小二乘问题有。定义
+\[
+x_{\mathrm{ls}}=\arg\min \|Ax-b\|_2=(A^TA)^{-1}A^Tb.
+\]
+考虑如下问题。假定对于某组 $A$ 和 $b$，我们已经有最小二乘问题的解 $x_{\mathrm{ls}}$（不是 $x_{\mathrm{ch}}$）。那么解 $x_{\mathrm{ls}}$ 对于 Chebyshev 问题的次优程度如何？换言之，$\|Ax_{\mathrm{ls}}-b\|_\infty$ 比 $\|Ax_{\mathrm{ch}}-b\|_\infty$ 大多少？
+
+(a) 证明下界不等式
+\[
+\|Ax_{\mathrm{ls}}-b\|_\infty\leq \sqrt{m}\|Ax_{\mathrm{ch}}-b\|_\infty,
+\]
+这里可以利用如下事实，即对于任意 $z\in\mathbb{R}^m$，有
+\[
+\frac{1}{\sqrt{m}}\|z\|_2\leq \|z\|_\infty\leq \|z\|_2.
+\]
+
+(b) 在例 5.6（第 246 页）中，我们曾经推导了一般的范数逼近问题的对偶问题。将结论应用到 $\ell_\infty$-范数的情况（其对偶形式为 $\ell_1$-范数），可以描述 Chebyshev 逼近问题的对偶问题：
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & b^T\nu\\
+\text{subject to}\quad & \|\nu\|_1\leq 1\\
+& A^T\nu=0.
+\end{aligned}
+\tag{5.104}
+\end{equation}
+
+任意可行的 $\nu$ 构成了 $\|Ax_{\mathrm{ch}}-b\|_\infty$ 的一个下界 $b^T\nu$。
+
+定义最小二乘的残差为 $r_{\mathrm{ls}}=b-Ax_{\mathrm{ls}}$。假设 $r_{\mathrm{ls}}\neq 0$，证明
+\[
+\hat{\nu}=-r_{\mathrm{ls}}/\|r_{\mathrm{ls}}\|_1,\qquad \tilde{\nu}=r_{\mathrm{ls}}/\|r_{\mathrm{ls}}\|_1
+\]
+都是问题 (5.104) 的可行解。根据对偶性，$b^T\hat{\nu}$ 和 $b^T\tilde{\nu}$ 都是 $\|Ax_{\mathrm{ch}}-b\|_\infty$ 的下界。哪个解给出的下界更好？和 (a) 中给出的下界相比呢？
+
+\noindent\textbf{5.7 分片线性极小化。}\quad 考虑凸的分片线性极小化问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \max_{i=1,\ldots,m}(a_i^Tx+b_i)
+\end{aligned}
+\tag{5.105}
+\end{equation}
+其中变量 $x\in\mathbb{R}^n$。
+
+(a) 考虑如下等价问题
+\[
+\begin{aligned}
+\text{minimize}\quad & \max_{i=1,\ldots,m}y_i\\
+\text{subject to}\quad & a_i^Tx+b_i=y_i,\quad i=1,\ldots,m,
+\end{aligned}
+\]
+其中变量 $x\in\mathbb{R}^n, y\in\mathbb{R}^m$。基于等价问题的对偶问题推导问题 (5.105) 的 Lagrange 对偶问题。
+
+(b) 将分片线性极小化问题 (5.105) 表达为一个线性规划，推导此线性规划的对偶问题。给出这个线性规划对偶问题和 (a) 中得到的对偶问题之间的联系。
+
+(c) 假设采用光滑函数
+\[
+f_0(x)=\log\left(\sum_{i=1}^m\exp(a_i^Tx+b_i)\right)
+\]
+逼近式 (5.105) 中的目标函数，求解无约束几何规划
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \log\left(\sum_{i=1}^m\exp(a_i^Tx+b_i)\right).
+\end{aligned}
+\tag{5.106}
+\end{equation}
+式 (5.62) 给出了上述问题的一个对偶问题。令 $p_{\mathrm{pwl}}^\star$ 和 $p_{\mathrm{gp}}^\star$ 分别表示式 (5.105) 和式 (5.106) 的最优解。证明如下不等式
+\[
+0\leq p_{\mathrm{gp}}^\star-p_{\mathrm{pwl}}^\star\leq \log m.
+\]
+
+(d) 类似地，推导 $p_{\mathrm{pwl}}^\star$ 和优化问题
+\[
+\begin{aligned}
+\text{minimize}\quad & (1/\gamma)\log\left(\sum_{i=1}^m\exp(\gamma(a_i^Tx+b_i))\right)
+\end{aligned}
+\]
+最优值之间的差的界，其中 $\gamma>0$ 是参数。如果增大 $\gamma$，将会怎样？
+
+\noindent\textbf{5.8 给出例 5.9 中得到的两个对偶问题之间的联系，见第 249 页。}
+
+\noindent\textbf{5.9 一个简单的覆盖椭球的次优性。}\quad 回忆确定最小体积椭球的问题，椭球的中心在原点，要求包含点 $a_1,\ldots,a_m\in\mathbb{R}^n$（第 214 页，问题 (5.14)）：
+\[
+\begin{aligned}
+\text{minimize}\quad & f_0(X)=\log\det(X^{-1})\\
+\text{subject to}\quad & a_i^TXa_i\leq 1,\quad i=1,\ldots,m,
+\end{aligned}
+\]
+其中 $\mathbf{dom}\,f_0=\mathbb{S}_{++}^n$。假设向量 $a_1,\ldots,a_m$ 张成了空间 $\mathbb{R}^n$（这意味着问题有下界）。
+
+(a) 证明矩阵
+\[
+X_{\mathrm{sim}}=\left(\sum_{k=1}^m a_ka_k^T\right)^{-1}
+\]
+可行。提示：先证明
+\[
+\begin{bmatrix}
+\sum_{k=1}^m a_ka_k^T & a_i\\
+a_i^T & 1
+\end{bmatrix}\succeq 0,
+\]
+然后利用 Schur 补 (§A.5.5) 证明对任意 $i=1,\ldots,m$ 有 $a_i^TXa_i\leq 1$。
+
+(b) 通过求解对偶问题
+\[
+\begin{aligned}
+\text{maximize}\quad & \log\det\left(\sum_{i=1}^m\lambda_i a_ia_i^T\right)-\mathbf{1}^T\lambda+n\\
+\text{subject to}\quad & \lambda\succeq 0
+\end{aligned}
+\]
+给出可行解 $X_{\mathrm{sim}}$ 的次优程度的一个界。对偶问题隐含了约束 $\sum_{i=1}^m\lambda_i a_ia_i^T\succ 0$。（此对偶问题的推导见第 214 页。）
+
+为了推导界，选择形如 $\lambda=t\mathbf{1}$ 的对偶变量，其中 $t>0$。（解析）求解 $t$ 的最优值并给出 $\lambda$ 取相应值时的对偶目标函数值。在此基础上，证明椭球 $\{u\mid u^TX_{\mathrm{sim}}u\leq 1\}$ 的体积不大于最小体积椭球的体积的 $(m/n)^{n/2}$ 倍。
+
+\noindent\textbf{5.10 最优实验设计。}\quad 下列问题出现于实验设计中（参见 §7.5）。
+
+(a) $D$-最优设计。
+\[
+\begin{aligned}
+\text{minimize}\quad & \log\det\left(\sum_{i=1}^p x_iv_iv_i^T\right)^{-1}\\
+\text{subject to}\quad & x\succeq 0,\quad \mathbf{1}^Tx=1.
+\end{aligned}
+\]
+
+(b) $A$-最优设计。
+\[
+\begin{aligned}
+\text{minimize}\quad & \mathbf{tr}\left(\sum_{i=1}^p x_iv_iv_i^T\right)^{-1}\\
+\text{subject to}\quad & x\succeq 0,\quad \mathbf{1}^Tx=1.
+\end{aligned}
+\]
+
+上述两个问题的定义域都是 $\{x\mid \sum_{i=1}^p x_iv_iv_i^T\succ 0\}$。变量是 $x\in\mathbb{R}^p$；向量 $v_1,\ldots,v_p\in\mathbb{R}^n$ 给定。
+
+通过引入一个新的变量 $X\in\mathbb{S}^n$ 和等式约束 $X=\sum_{i=1}^p x_iv_iv_i^T$ 并利用 Lagrange 对偶，给出这两个问题的对偶问题。尽可能地简化对偶问题。
+
+\noindent\textbf{5.11 推导问题}
+\[
+\begin{aligned}
+\text{minimize}\quad & \sum_{i=1}^N\|A_ix+b_i\|_2+(1/2)\|x-x_0\|_2^2
+\end{aligned}
+\]
+的对偶问题。原问题中，$A_i\in\mathbb{R}^{m_i\times n}, b_i\in\mathbb{R}^{m_i}$，且 $x_0\in\mathbb{R}^n$。先引入新的变量 $y_i\in\mathbb{R}^{m_i}$ 以及等式约束 $y_i=A_ix+b_i$。
+
+\noindent\textbf{5.12 解析中心。}\quad 考虑优化问题
+\[
+\begin{aligned}
+\text{minimize}\quad & -\sum_{i=1}^m\log(b_i-a_i^Tx)
+\end{aligned}
+\]
+其定义域为 $\{x\mid a_i^Tx<b_i,\ i=1,\ldots,m\}$，推导其对偶问题。先引入新的变量 $y_i$ 以及等式约束 $y_i=b_i-a_i^Tx$。
+
+（上述问题的解称为线性不等式组 $a_i^Tx\leq b_i,\ i=1,\ldots,m$ 的解析中心。解析中心有着几何应用（见 §8.5.3），并且在罚函数方法中至关重要（见第 11 章）。）
+
+\noindent\textbf{5.13 Boolean 线性规划的 Lagrange 松弛。}\quad Boolean 线性规划是如下形式的优化问题
+\[
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & Ax\preceq b\\
+& x_i\in\{0,1\},\quad i=1,\ldots,n,
+\end{aligned}
+\]
+一般而言，这个优化问题的求解非常困难。在习题 4.15 中，曾经考虑过这个问题的线性规划松弛
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & Ax\preceq b\\
+& 0\leq x_i\leq 1,\quad i=1,\ldots,n,
+\end{aligned}
+\tag{5.107}
+\end{equation}
+而松弛问题容易求解得多。松弛问题的解给出了原 Boolean 线性规划的最优值的一个下界。在本习题中，我们推导 Boolean 线性规划的另一个下界，并给出与习题 4.15 中的下界的联系。
+
+(a) Lagrange 松弛。Boolean 线性规划可以重新描述为如下问题
+\[
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & Ax\preceq b\\
+& x_i(1-x_i)=0,\quad i=1,\ldots,n,
+\end{aligned}
+\]
+此问题具有二次等式约束。求解此问题的 Lagrange 对偶问题。对偶问题（其为凸问题）的最优值给出了原 Boolean 线性规划最优值的一个下界。通过这样的方式求解原问题的最优值的下界称为 Lagrange 松弛。
+
+(b) 证明通过 Lagrange 松弛得到的下界和线性规划松弛 (5.107) 得到的下界是一样的。提示：求解线性规划松弛 (5.107) 的对偶问题。
+
+\noindent\textbf{5.14 等式约束的罚函数方法。}\quad 考虑问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & Ax=b,
+\end{aligned}
+\tag{5.108}
+\end{equation}
+其中 $f_0:\mathbb{R}^n\to\mathbb{R}$ 是凸函数并可微，且 $A\in\mathbb{R}^{m\times n}$，$\mathbf{rank}\,A=m$。
+
+在二次罚函数方法中，引入一个辅助函数
+\[
+\phi(x)=f_0(x)+\alpha\|Ax-b\|_2^2,
+\]
+其中 $\alpha>0$ 是参数。辅助函数包含目标函数以及附加的惩罚项 $\alpha\|Ax-b\|_2^2$。此方法的思想是辅助函数的极小点 $\tilde{x}$ 是原问题的一个近似解。直观上讲，罚的权值 $\alpha$ 越大，近似解 $\tilde{x}$ 与原问题的解越接近。
+
+设 $\tilde{x}$ 是 $\phi$ 的一个最小点。那么，基于 $\tilde{x}$，如何找到问题 (5.108) 的一个对偶可行点？求出此对偶可行点给出的原问题 (5.108) 最优值的下界。
+
+\noindent\textbf{5.15 考虑问题}
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\leq 0,\quad i=1,\ldots,m,
+\end{aligned}
+\tag{5.109}
+\end{equation}
+其中函数 $f_i:\mathbb{R}^n\to\mathbb{R}$ 是凸函数并可微。令 $h_1,\ldots,h_m:\mathbb{R}\to\mathbb{R}$ 为可微增函数，且是凸的。证明如下函数
+\[
+\phi(x)=f_0(x)+\sum_{i=1}^m h_i(f_i(x))
+\]
+是凸函数。设 $\phi$ 在 $\tilde{x}$ 处取极小值。基于 $\tilde{x}$，如何找到问题 (5.109) 的对偶问题的一个可行点？求出对偶可行点给出的原问题 (5.109) 最优值的下界。
+
+\noindent\textbf{5.16 不等式约束问题的精确罚函数方法。}\quad 考虑问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\leq 0,\quad i=1,\ldots,m,
+\end{aligned}
+\tag{5.110}
+\end{equation}
+其中 $f_i:\mathbb{R}^n\to\mathbb{R}$ 是可微凸函数。在精确罚函数方法中，求解下列辅助问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \phi(x)=f_0(x)+\alpha\max_{i=1,\ldots,m}\max\{0,f_i(x)\},
+\end{aligned}
+\tag{5.111}
+\end{equation}
+其中 $\alpha>0$ 是参数。函数 $\phi$ 中的第二项是对 $x$ 不可行的惩罚项。如果对于充分大的 $\alpha$，辅助问题的解也是原问题 (5.110) 的解，此方法称为精确罚函数方法。
+
+(a) 证明函数 $\phi$ 是凸函数。
+
+(b) 辅助问题可以描述为
+\[
+\begin{aligned}
+\text{minimize}\quad & f_0(x)+\alpha y\\
+\text{subject to}\quad & f_i(x)\leq y,\quad i=1,\ldots,m\\
+& 0\leq y
+\end{aligned}
+\]
+其中优化变量为 $x$ 和 $y\in\mathbb{R}$。求解此问题的 Lagrange 对偶问题，并利用问题 (5.110) 的 Lagrange 对偶函数 $g$ 进行表述。
+
+(c) 利用 (b) 中的结论证明如下性质。设 $\lambda^\star$ 是问题 (5.110) 的 Lagrange 对偶问题的一个最优解，并且强对偶性成立。如果 $\alpha>\mathbf{1}^T\lambda^\star$，那么辅助问题 (5.111) 的任意最优解也是原问题 (5.110) 的一个最优解。
+
+\noindent\textbf{5.17 具有多面体不确定性的鲁棒线性规划。}\quad 考虑鲁棒线性规划
+\[
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & \sup_{a\in\mathcal{P}_i}a^Tx\leq b_i,\quad i=1,\ldots,m,
+\end{aligned}
+\]
+其中变量 $x\in\mathbb{R}^n$ 且 $\mathcal{P}_i=\{a\mid C_ia\preceq d_i\}$。此问题的参数为 $c\in\mathbb{R}^n, C_i\in\mathbb{R}^{m_i\times n}, d_i\in\mathbb{R}^{m_i}$ 以及 $b\in\mathbb{R}^m$。假设凸多面体 $\mathcal{P}_i$ 非空。
+
+证明此问题和如下线性规划等价
+\[
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & d_i^Tz_i\leq b_i,\quad i=1,\ldots,m\\
+& C_i^Tz_i=x,\quad i=1,\ldots,m\\
+& z_i\succeq 0,\quad i=1,\ldots,m,
+\end{aligned}
+\]
+其中变量 $x\in\mathbb{R}^n, z_i\in\mathbb{R}^{m_i}, i=1,\ldots,m$。提示：求解在 $a_i\in\mathcal{P}_i$ 上极大化 $a_i^Tx$（变量为 $a_i$）的问题的对偶问题。
+
+\noindent\textbf{5.18 两个多面体的分离超平面。}\quad 考虑寻找一个分离超平面严格分离两个多面体的问题。设这两个多面体为
+\[
+\mathcal{P}_1=\{x\mid Ax\preceq b\},\qquad \mathcal{P}_2=\{x\mid Cx\preceq d\},
+\]
+寻找向量 $a\in\mathbb{R}^n$ 以及实数 $\gamma$ 使得下式成立
+\[
+a^Tx>\gamma\quad \forall x\in\mathcal{P}_1,\qquad a^Tx<\gamma\quad \forall x\in\mathcal{P}_2.
+\]
+可以假设 $\mathcal{P}_1$ 和 $\mathcal{P}_2$ 不相交。将上述优化问题表述成一个线性规划或者线性规划的可行性问题。提示：向量 $a$ 和实数 $\gamma$ 必须满足
+\[
+\inf_{x\in\mathcal{P}_1}a^Tx>\gamma>\sup_{x\in\mathcal{P}_2}a^Tx.
+\]
+利用线性规划对偶简化上述条件中的下确界和上确界。
+
+\noindent\textbf{5.19 向量中最大的若干元素求和。}\quad 定义函数 $f:\mathbb{R}^n\to\mathbb{R}$ 为
+\[
+f(x)=\sum_{i=1}^r x_{[i]},
+\]
+其中 $r$ 是 1 到 $n$ 之间的正数，且 $x_{[1]}\geq x_{[2]}\geq\cdots\geq x_{[r]}$ 是 $x$ 中的元素按降序排列。换言之，$f(x)$ 是向量 $x$ 中最大的 $r$ 个元素的和。在此问题中，我们考虑约束
+\[
+f(x)\leq \alpha.
+\]
+根据第 3 章，第 74 页中的讨论，这是一个凸约束，等价于一组个数为 $n!/(r!(n-r)!)$ 的线性不等式
+\[
+x_{i_1}+\cdots+x_{i_r}\leq \alpha,\quad 1\leq i_1<i_2<\cdots<i_r\leq n.
+\]
+这道习题的目的是找到一个更为紧凑的表示。
+
+(a) 给定向量 $x\in\mathbb{R}^n$，证明函数 $f(x)$ 等价于如下线性规划的最优值
+\[
+\begin{aligned}
+\text{maximize}\quad & x^Ty\\
+\text{subject to}\quad & 0\preceq y\preceq \mathbf{1}\\
+& \mathbf{1}^Ty=r
+\end{aligned}
+\]
+其中 $y\in\mathbb{R}^n$ 是优化变量。
+
+(b) 推导 (a) 中线性规划的对偶问题。证明其可以表述为
+\[
+\begin{aligned}
+\text{minimize}\quad & rt+\mathbf{1}^Tu\\
+\text{subject to}\quad & t\mathbf{1}+u\succeq x\\
+& u\succeq 0,
+\end{aligned}
+\]
+其中优化变量为 $t\in\mathbb{R}, u\in\mathbb{R}^n$。根据对偶理论，这个线性规划和 (a) 中的线性规划具有相同的最优值，即 $f(x)$。因此我们得出如下结论：$x$ 满足 $f(x)\leq \alpha$，当且仅当存在 $t\in\mathbb{R}, u\in\mathbb{R}^n$ 使得下式成立
+\[
+rt+\mathbf{1}^Tu\leq \alpha,\qquad t\mathbf{1}+u\succeq x,\qquad u\succeq 0.
+\]
+这些条件构成了 $2n+1$ 个线性不等式，变量为 $x,u,t$，变量个数为 $2n+1$。
+
+(c) 作为一个应用，我们考虑对第 4 章，148 页提到的经典的 Markowitz 投资组合优化问题
+\[
+\begin{aligned}
+\text{minimize}\quad & x^T\Sigma x\\
+\text{subject to}\quad & \bar{p}^Tx\geq r_{\min}\\
+& \mathbf{1}^Tx=1,\quad x\succeq 0
+\end{aligned}
+\]
+进行扩展。变量为投资组合 $x\in\mathbb{R}^n$；$\bar{p}$ 和 $\Sigma$ 分别是价格变化向量 $p$ 的期望矩阵和协方差矩阵。
+
+假设增加一个多样化约束，要求投资在任意 10\% 的资产上的投资额至多占总投资额的 80\%。此约束可以描述为
+\[
+\sum_{i=1}^{\lfloor 0.1n\rfloor}x_{[i]}\leq 0.8.
+\]
+将上述添加了多样化约束的投资组合优化问题表述为一个二次规划。
+
+\noindent\textbf{5.20 信道容量问题的对偶问题。}\quad 考虑问题
+\[
+\begin{aligned}
+\text{minimize}\quad & -c^Tx+\sum_{i=1}^m y_i\log y_i\\
+\text{subject to}\quad & Px=y\\
+& x\succeq 0,\quad \mathbf{1}^Tx=1,
+\end{aligned}
+\]
+其中 $P\in\mathbb{R}^{m\times n}$ 具有非负元素，且每列向量元素之和为 1（即 $P^T\mathbf{1}=\mathbf{1}$）。优化变量为 $x\in\mathbb{R}^n, y\in\mathbb{R}^m$。（若 $c_j=\sum_{i=1}^m p_{ij}\log p_{ij}$，则此问题的最优值不超过信道转移概率矩阵为 $P$ 的离散无记忆通道的容量的负数的 $\log 2$ 倍；参见习题 4.57。）推导这个问题的对偶问题。
+
+尽可能简化对偶问题。
+
+\noindent\textbf{强对偶性以及 Slater 条件}
+
+\noindent\textbf{5.21 强对偶性不成立的凸问题。}\quad 考虑优化问题
+\[
+\begin{aligned}
+\text{minimize}\quad & e^{-x}\\
+\text{subject to}\quad & x^2/y\leq 0
+\end{aligned}
+\]
+优化变量为 $x$ 和 $y$，定义域为 $\mathcal{D}=\{(x,y)\mid y>0\}$。
+
+(a) 证明这是一个凸优化问题。求解最优值。
+
+(b) 给出 Lagrange 对偶问题，求解对偶问题的最优解 $\lambda^\star$ 和最优值 $d^\star$。给出最优对偶间隙。
+
+(c) Slater 条件对此问题是否成立？
+
+(d) 将如下扰动问题的最优值
+\[
+\begin{aligned}
+\text{minimize}\quad & e^{-x}\\
+\text{subject to}\quad & x^2/y\leq u
+\end{aligned}
+\]
+表示为 $u$ 的函数 $p^\star(u)$。证明全局灵敏度不等式
+\[
+p^\star(u)\geq p^\star(0)-\lambda^\star u
+\]
+不成立。
+
+\noindent\textbf{5.22 对偶的几何解释。}\quad 对下面的每一个优化问题，图示集合
+\[
+\mathcal{G}=\{(u,t)\mid \exists x\in\mathcal{D},\ f_0(x)=t,\ f_1(x)=u\},
+\]
+\[
+\mathcal{A}=\{(u,t)\mid \exists x\in\mathcal{D},\ f_0(x)\leq t,\ f_1(x)\leq u\},
+\]
+给出对偶问题，并求解原问题和对偶问题。判断优化问题是否为凸问题？Slater 条件是否成立？强对偶性是否成立？
+
+对于下列优化问题，如果不特别说明，其定义域为 $\mathbb{R}$。
+
+(a) 极小化 $x$，约束为 $x^2\leq 1$。
+
+(b) 极小化 $x$，约束为 $x^2\leq 0$。
+
+(c) 极小化 $x$，约束为 $|x|\leq 0$。
+
+(d) 极小化 $x$，约束为 $f_1(x)\leq 0$。其中
+\[
+f_1(x)=
+\begin{cases}
+-x+2 & x\geq 1\\
+x & -1\leq x\leq 1\\
+-x-2 & x\leq -1.
+\end{cases}
+\]
+
+(e) 极小化 $x^3$，约束为 $-x+1\leq 0$。
+
+(f) 极小化 $x^3$，约束为 $-x+1\leq 0$，定义域为 $\mathcal{D}=\mathbb{R}_+$。
+
+\noindent\textbf{5.23 线性规划的强对偶性。}\quad 如果线性规划
+\[
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & Ax\preceq b
+\end{aligned}
+\]
+及其对偶问题
+\[
+\begin{aligned}
+\text{maximize}\quad & -b^Tz\\
+\text{subject to}\quad & A^Tz+c=0,\quad z\succeq 0
+\end{aligned}
+\]
+至少有一个可行，证明强对偶性成立。换言之，只有当 $p^\star=\infty$ 以及 $d^\star=-\infty$ 时，强对偶性才不成立。
+
+(a) 设 $p^\star$ 有界，$x^\star$ 是一个最优解。（对于线性规划问题，如果最优值有界，那么能达到。）令 $I\subseteq\{1,2,\ldots,m\}$ 表示 $x^\star$ 的紧的起作用约束指标集。即
+\[
+a_i^Tx^\star=b_i,\quad i\in I,\qquad a_i^Tx^\star<b_i,\quad i\notin I.
+\]
+证明存在 $z\in\mathbb{R}^m$ 使得下式成立
+\[
+z_i\geq 0,\quad i\in I,\qquad z_i=0,\quad i\notin I,\qquad \sum_{i\in I}z_i a_i+c=0.
+\]
+证明 $z$ 为对偶最优，对偶最优值为 $c^Tx^\star$。
+
+提示：设不存在这样的 $z$，即 $-c\notin\{\sum_{i\in I}z_i a_i\mid z_i\geq 0\}$。利用例 2.20 中提到的严格分离超平面定理，见第 44 页，推出矛盾。或者也可以应用 Farkas 引理（参见 §5.8.3）。
+
+(b) 设 $p^\star=\infty$ 且对偶问题可行。证明 $d^\star=\infty$。提示：证明存在非零 $v\in\mathbb{R}^m$ 使得 $A^Tv=0, v\succeq 0$ 且 $b^Tv<0$。如果对偶问题可行，它在方向 $v$ 上是无界的。
+
+(c) 考虑下面的例子
+\[
+\begin{aligned}
+\text{minimize}\quad & x\\
+\text{subject to}\quad &
+\begin{bmatrix}
+0\\
+1
+\end{bmatrix}x\preceq
+\begin{bmatrix}
+-1\\
+1
+\end{bmatrix}.
+\end{aligned}
+\]
+写出其对偶线性规划，并求解原问题和对偶问题。证明 $p^\star=\infty, d^\star=-\infty$。
+
+\noindent\textbf{5.24 弱极大极小不等式。}\quad 证明弱极大极小不等式
+\[
+\sup_{z\in Z}\inf_{w\in W}f(w,z)\leq \inf_{w\in W}\sup_{z\in Z}f(w,z)
+\]
+总是成立。函数 $f:\mathbb{R}^n\times\mathbb{R}^m\to\mathbb{R}$，$W\subseteq\mathbb{R}^n$，$Z\subseteq\mathbb{R}^m$ 任意。
+
+\noindent\textbf{5.25 [BL00, 第 95 页] 凸-凹函数以及鞍点性质。}\quad 推导鞍点性质成立的条件。鞍点性质可以表述如下
+\begin{equation}
+\sup_{z\in Z}\inf_{w\in W}f(w,z)=\inf_{w\in W}\sup_{z\in Z}f(w,z)
+\tag{5.112}
+\end{equation}
+其中 $f:\mathbb{R}^n\times\mathbb{R}^m\to\mathbb{R}, W\times Z\subseteq\mathbf{dom}\,f$，$W$ 和 $Z$ 非空。设函数
+\[
+g_z(w)=
+\begin{cases}
+f(w,z) & w\in W\\
+\infty & \text{其他}
+\end{cases}
+\]
+
+对任意 $z\in Z$ 都是闭且凸的，且函数
+\[
+h_w(z)=
+\begin{cases}
+-f(w,z) & z\in Z\\
+\infty & \text{其他}
+\end{cases}
+\]
+对任意 $w\in W$ 闭且凸。
+
+(a) 式 (5.112) 的右端可以看成 $p(0)$，其中
+\[
+p(u)=\inf_{w\in W}\sup_{z\in Z}(f(w,z)+u^Tz).
+\]
+证明 $p$ 是凸函数。
+
+(b) 证明函数 $p$ 的共轭可以表述为
+\[
+p^\ast(v)=
+\begin{cases}
+-\inf_{w\in W}f(w,v) & v\in Z\\
+\infty & \text{其他}.
+\end{cases}
+\]
+
+(c) 证明函数 $p^\ast$ 的共轭可以表述为
+\[
+p^{\ast\ast}(u)=\sup_{z\in Z}\inf_{w\in W}(f(w,z)+u^Tz).
+\]
+结合 (a)，可知极大极小等式 (5.112) 实质上可以表述为 $p^{\ast\ast}(0)=p(0)$。
+
+(d) 根据习题 3.28 和习题 3.39(d) 中的结论，可知若 $0\in\mathbf{int}\,\mathbf{dom}\,p$ 则 $p^{\ast\ast}(0)=p(0)$。证明若 $W$ 和 $Z$ 有界则 $0\in\mathbf{int}\,\mathbf{dom}\,p$。
+
+(e) 考虑习题 3.28 和习题 3.39 中的另一个结论，如果 $0\in\mathbf{dom}\,p$ 且 $p$ 是闭的，那么有 $p^{\ast\ast}(0)=p(0)$。证明如果函数 $g_z$ 的下水平集有界那么 $p$ 是闭的。
+
+\noindent\textbf{最优性条件}
+
+\noindent\textbf{5.26 考虑下列二次约束二次规划}
+\[
+\begin{aligned}
+\text{minimize}\quad & x_1^2+x_2^2\\
+\text{subject to}\quad & (x_1-1)^2+(x_2-1)^2\leq 1\\
+& (x_1-1)^2+(x_2+1)^2\leq 1,
+\end{aligned}
+\]
+变量 $x\in\mathbb{R}^2$。
+
+(a) 大致描绘可行集以及目标函数的水平集。标出最优点 $x^\star$ 以及最优值 $p^\star$。
+
+(b) 给出 KKT 条件。是否存在 Lagrange 乘子 $\lambda_1^\star$ 和 $\lambda_2^\star$ 能够证明 $x^\star$ 最优？
+
+(c) 给出并求解 Lagrange 对偶问题。此时强对偶性是否成立？
+
+\noindent\textbf{5.27 等式约束的最小二乘问题。}\quad 考虑等式约束的最小二乘问题
+\[
+\begin{aligned}
+\text{minimize}\quad & \|Ax-b\|_2^2\\
+\text{subject to}\quad & Gx=h.
+\end{aligned}
+\]
+其中 $A\in\mathbb{R}^{m\times n}, \mathbf{rank}\,A=n, G\in\mathbb{R}^{p\times n}, \mathbf{rank}\,G=p$。
+
+给出 KKT 条件，推导原问题最优解 $x^\star$ 以及对偶问题最优解 $\nu^\star$ 的表达式。
+
+\noindent\textbf{5.28 证明（不借助任何线性规划软件）下述线性规划问题}
+\[
+\begin{aligned}
+\text{minimize}\quad & 47x_1+93x_2+17x_3-93x_4\\
+\text{subject to}\quad &
+\begin{bmatrix}
+-1 & -6 & 1 & 3\\
+-1 & -2 & 7 & 1\\
+0 & 3 & -10 & -1\\
+-6 & -11 & -2 & 12\\
+1 & 6 & -1 & -3
+\end{bmatrix}
+\begin{bmatrix}
+x_1\\
+x_2\\
+x_3\\
+x_4
+\end{bmatrix}
+\preceq
+\begin{bmatrix}
+-3\\
+5\\
+-8\\
+-7\\
+4
+\end{bmatrix}
+\end{aligned}
+\]
+的最优解唯一，为 $x^\star=(1,1,1,1)$。
+
+\noindent\textbf{5.29 问题}
+\[
+\begin{aligned}
+\text{minimize}\quad & -3x_1^2+x_2^2+2x_3^2+2(x_1+x_2+x_3)\\
+\text{subject to}\quad & x_1^2+x_2^2+x_3^2=1,
+\end{aligned}
+\]
+是式 (5.32) 提到的问题的一个特例；因此即使此问题不是凸的，强对偶性亦成立。给出 KKT 条件。找出满足 KKT 条件的所有 $x,\nu$，并给出最优解。
+
+\noindent\textbf{5.30 考虑优化问题}
+\[
+\begin{aligned}
+\text{minimize}\quad & \mathbf{tr}\,X-\log\det X\\
+\text{subject to}\quad & Xs=y,
+\end{aligned}
+\]
+其中变量 $X\in\mathbb{S}^n$，定义域为 $\mathbb{S}_{++}^n$。$y\in\mathbb{R}^n$ 和 $s\in\mathbb{R}^n$ 已经给定，它们满足 $s^Ty=1$。推导 KKT 条件。证明最优解可以写成下述形式
+\[
+X^\star=I+yy^T-\frac{1}{s^Ts}ss^T.
+\]
+
+\noindent\textbf{5.31 KKT 条件的支撑超平面解释。}\quad 考虑没有等式约束的凸优化问题
+\[
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\leq 0,\quad i=1,\ldots,m.
+\end{aligned}
+\]
+设 $x^\star\in\mathbb{R}^n$ 和 $\lambda^\star\in\mathbb{R}^m$ 满足 KKT 条件
+\[
+f_i(x^\star)\leq 0,\quad i=1,\ldots,m,
+\]
+\[
+\lambda_i^\star\geq 0,\quad i=1,\ldots,m,
+\]
+\[
+\lambda_i^\star f_i(x^\star)=0,\quad i=1,\ldots,m,
+\]
+\[
+\nabla f_0(x^\star)+\sum_{i=1}^m\lambda_i^\star\nabla f_i(x^\star)=0.
+\]
+证明对任意可行点 $x$，有
+\[
+\nabla f_0(x^\star)^T(x-x^\star)\geq 0.
+\]
+换言之，KKT 条件可以导出 §4.2.3 中给出的简单的最优性准则。
+
+\noindent\textbf{扰动及灵敏度分析}
+
+\noindent\textbf{5.32 扰动问题的最优值。}\quad 令函数 $f_0,f_1,\ldots,f_m:\mathbb{R}^n\to\mathbb{R}$ 为凸函数。证明函数
+\[
+p^\star(u,v)=\inf\{f_0(x)\mid \exists x\in\mathcal{D},\ f_i(x)\leq u_i,\ i=1,\ldots,m,\ Ax-b=v\}
+\]
+是凸函数。上述函数是扰动问题的最优值，是扰动值 $u$ 和 $v$ 的函数（见 §5.6.1）。
+
+\noindent\textbf{5.33 参数化的 $\ell_1$-范数逼近。}\quad 考虑 $\ell_1$-范数的极小化问题
+\[
+\begin{aligned}
+\text{minimize}\quad & \|Ax+b+\epsilon d\|_1,
+\end{aligned}
+\]
+其中变量 $x\in\mathbb{R}^3$，且
+\[
+A=
+\begin{bmatrix}
+-2 & 7 & 1\\
+-5 & -1 & 3\\
+-7 & 3 & -5\\
+-1 & 4 & -4\\
+1 & 5 & 5\\
+2 & -5 & -1
+\end{bmatrix},\quad
+b=
+\begin{bmatrix}
+-4\\
+3\\
+9\\
+0\\
+-11\\
+5
+\end{bmatrix},\quad
+d=
+\begin{bmatrix}
+-10\\
+-13\\
+-27\\
+-10\\
+-7\\
+14
+\end{bmatrix}.
+\]
+将最优值表示成 $\epsilon$ 的函数 $p^\star(\epsilon)$。
+
+(a) 设 $\epsilon=0$。证明 $x^\star=\mathbf{1}$ 是最优解。还有其他的最优解么？
+
+(b) 证明 $p^\star(\epsilon)$ 在包含 $\epsilon=0$ 的区间上是仿射函数。
+
+\noindent\textbf{5.34 考虑原问题}
+\[
+\begin{aligned}
+\text{minimize}\quad & (c+\epsilon d)^Tx\\
+\text{subject to}\quad & Ax\preceq b+\epsilon f
+\end{aligned}
+\]
+和相应的对偶问题
+\[
+\begin{aligned}
+\text{maximize}\quad & -(b+\epsilon f)^Tz\\
+\text{subject to}\quad & A^Tz+c+\epsilon d=0\\
+& z\succeq 0,
+\end{aligned}
+\]
+其中
+\[
+A=
+\begin{bmatrix}
+-4 & 12 & -2 & 1\\
+-17 & 12 & 7 & 11\\
+1 & 0 & -6 & 1\\
+3 & 3 & 22 & -1\\
+-11 & 2 & -1 & -8
+\end{bmatrix},\quad
+b=
+\begin{bmatrix}
+8\\
+13\\
+-4\\
+27\\
+-18
+\end{bmatrix},\quad
+f=
+\begin{bmatrix}
+6\\
+15\\
+-13\\
+48\\
+8
+\end{bmatrix},
+\]
+\[
+c=(49,-34,-50,-5),\qquad d=(3,8,21,25),
+\]
+$\epsilon$ 是参数。
+
+(a) 证明当 $\epsilon=0$ 时点 $x^\star=(1,1,1,1)$ 是最优解。证明时构造对偶问题，找到对偶最优点 $z^\star$，使其函数值和 $x^\star$ 处的函数值相等。是否还有别的原对偶最优解？
+
+(b) 以 $\epsilon$ 为自变量，在包含 $\epsilon=0$ 的区间上，给出最优值 $p^\star(\epsilon)$ 的显式表达式。给出表达式成立的区间范围。在此区间上，以 $\epsilon$ 为自变量，给出原问题最优解 $x^\star(\epsilon)$ 以及对偶问题最优解 $z^\star(\epsilon)$ 的显式表达式。
+
+提示：首先假设当 $\epsilon$ 在 0 附近时，$\epsilon=0$ 时在最优解处起作用的原问题和对偶问题约束在此时的最优解处仍然起作用，计算 $x^\star(\epsilon)$ 和 $z^\star(\epsilon)$。再证明上述假设是正确的。
+
+\noindent\textbf{5.35 几何规划的灵敏度分析。}\quad 考虑一个几何规划
+\[
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\leq 1,\quad i=1,\ldots,m\\
+& h_i(x)=1,\quad i=1,\ldots,p,
+\end{aligned}
+\]
+其中 $f_0,\ldots,f_m$ 是正项式，$h_1,\ldots,h_p$ 是单项式，问题的定义域为 $\mathbb{R}_{++}^n$。定义扰动的几何规划为
+\[
+\begin{aligned}
+\text{minimize}\quad & f_0(x)\\
+\text{subject to}\quad & f_i(x)\leq e^{u_i},\quad i=1,\ldots,m\\
+& h_i(x)=e^{v_i},\quad i=1,\ldots,p,
+\end{aligned}
+\]
+设扰动的几何规划的最优值为 $p^\star(u,v)$。$u_i$ 和 $v_i$ 可以认为是对约束的相对扰动。例如，$u_1=-0.01$ 意味着加强第一个不等式约束，加强幅度（约为）1\%。
+
+对于下列凸形式的几何规划
+\[
+\begin{aligned}
+\text{minimize}\quad & \log f_0(y)\\
+\text{subject to}\quad & \log f_i(y)\leq 0,\quad i=1,\ldots,m\\
+& \log h_i(y)=0,\quad i=1,\ldots,p,
+\end{aligned}
+\]
+其中变量 $y_i=\log x_i$。令 $\lambda^\star$ 和 $\nu^\star$ 表示此问题的对偶问题的最优解。设 $p^\star(u,v)$ 在 $u=0, v=0$ 处可微，建立 $\lambda^\star$ 以及 $\nu^\star$ 和 $p^\star(u,v)$ 在 $u=0, v=0$ 处的导数之间的联系。验证下面的论断“当 $\alpha$ 较小时，第 $i$ 个约束放松百分之 $\alpha$ 将会使最优目标函数值降低约百分之 $\alpha\lambda_i^\star$。”
+
+\noindent\textbf{择一定理}
+
+\noindent\textbf{5.36 线性等式的择一。}\quad 考虑线性方程组 $Ax=b$，其中 $A\in\mathbb{R}^{m\times n}$。根据线性代数理论可知，上述方程组有解，当且仅当 $b\in\mathcal{R}(A)$，此条件亦等价于 $b\perp\mathcal{N}(A^T)$。换言之，$Ax=b$ 有解，当且仅当不存在 $y\in\mathbb{R}^m$ 使得 $A^Ty=0$ 且 $b^Ty\neq 0$。
+
+根据 §5.8.2 中的择一定理推出上述结论。
+
+\noindent\textbf{5.37 [BT97] 有限状态 Markov 链中平衡分布的存在性。}\quad 设矩阵 $P\in\mathbb{R}^{n\times n}$ 满足
+\[
+p_{ij}\geq 0,\quad i,j=1,\ldots,n,\qquad P^T\mathbf{1}=\mathbf{1},
+\]
+即矩阵元素非负且每列元素之和为 1。利用 Farkas 引理证明存在 $y\in\mathbb{R}^n$ 使得
+\[
+Py=y,\qquad y\succeq 0,\qquad \mathbf{1}^Ty=1.
+\]
+（可以将 $y$ 理解为具有 $n$ 个状态，转移概率矩阵为 $P$ 的 Markov 链的一个平衡分布。）
+
+\noindent\textbf{5.38 [BT97] 期权定价。}\quad 将第 256 页，例 5.10 中的结论应用到一个具有三种资产的简单问题：第一种资产无风险，在投资期间内有固定的回报率 $r>1$（比如说债券），第二种是一支股票，第三种是这支股票的期权。期权可以使我们在投资期结束时以预先设定的价格买进股票。
+
+考虑两种情形。在第一种情形中，股票价格从投资初期的 $S$ 涨到投资末期的 $Su$，其中 $u>r$。在这种情形中，只有当 $Su>K$ 时，我们才投资期权，此时获利 $Su-K$。否则，我们不购买期权，获利为零。在第一种情形中，投资期结束时，期权的价值为 $\max\{0,Su-K\}$。
+
+在第二种情形中，股票的价格从投资初期的 $S$ 降到投资末期的 $Sd$，其中 $d<1$。投资结束时，期权的价值为 $\max\{0,Sd-K\}$。
+
+采用例 5.10 中的符号表示
+\[
+V=
+\begin{bmatrix}
+r & uS & \max\{0,Su-K\}\\
+r & dS & \max\{0,Sd-K\}
+\end{bmatrix},\qquad p_1=1,\qquad p_2=S,\qquad p_3=C,
+\]
+其中 $C$ 是期权价格。
+
+给定 $r,S,K,u,d$，证明期权价格 $C$ 由无套利条件唯一决定。换言之，期权市场是完备的。
+
+\noindent\textbf{广义不等式}
+
+\noindent\textbf{5.39 双向划分问题的半定规划松弛。}\quad 考虑第 211 页提到的双向划分问题 (5.7)，
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & x^TWx\\
+\text{subject to}\quad & x_i^2=1,\quad i=1,\ldots,n,
+\end{aligned}
+\tag{5.113}
+\end{equation}
+其中，变量 $x\in\mathbb{R}^n$。此（非凸）问题的 Lagrange 对偶问题可以描述为下述半定规划
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & -\mathbf{1}^T\nu\\
+\text{subject to}\quad & W+\mathbf{diag}(\nu)\succeq 0,
+\end{aligned}
+\tag{5.114}
+\end{equation}
+其中，变量 $\nu\in\mathbb{R}^n$。此半定规划的最优值给出了原双向划分问题 (5.113) 的最优值的一个下界。在本习题中，我们考虑另一个半定规划，同样给出了原双向划分问题最优值的一个下界，并研究这两个半定规划之间的联系。
+
+(a) 矩阵形式的双向划分问题。证明双向划分问题可以表述为如下形式
+\[
+\begin{aligned}
+\text{minimize}\quad & \mathbf{tr}(WX)\\
+\text{subject to}\quad & X\succeq 0,\quad \mathbf{rank}\,X=1\\
+& X_{ii}=1,\quad i=1,\ldots,n,
+\end{aligned}
+\]
+其中，变量 $X\in\mathbb{S}^n$。提示：证明如果 $X$ 可行，则其具有形式 $X=xx^T$，其中 $x\in\mathbb{R}^n$ 满足 $x_i\in\{-1,1\}$（反过来也成立）。
+
+(b) 双向划分问题的半定规划松弛。利用 (a) 中的表达式，可以构造如下松弛问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \mathbf{tr}(WX)\\
+\text{subject to}\quad & X\succeq 0\\
+& X_{ii}=1,\quad i=1,\ldots,n,
+\end{aligned}
+\tag{5.115}
+\end{equation}
+其中，变量 $X\in\mathbb{S}^n$。这个问题是一个半定规划，因此可以有效地求解。为什么此半定规划能够给出原双向划分问题 (5.113) 最优值的一个下界？如果此半定规划的最优点 $X^\star$ 的秩为 1 说明了什么？
+
+(c) 上面提到的两个半定规划：(b) 中提到的半定规划松弛问题 (5.115) 以及双向划分问题的 Lagrange 对偶问题 (5.114)，均给出了原双向划分问题 (5.113) 的下界。这两个半定规划有什么联系？它们给出的下界有何联系？提示：通过对偶将两个半定规划联系起来。
+
+\noindent\textbf{5.40 $E$-最优实验设计。}\quad $E$-最优设计问题是习题 5.10 中提到的两个最优实验设计问题的另一种变化形式
+\[
+\begin{aligned}
+\text{minimize}\quad & \lambda_{\max}\left(\sum_{i=1}^p x_iv_iv_i^T\right)^{-1}\\
+\text{subject to}\quad & x\succeq 0,\quad \mathbf{1}^Tx=1.
+\end{aligned}
+\]
+（也可以参见 §7.5。）推导此问题的对偶问题，可以先将此问题描述为
+\[
+\begin{aligned}
+\text{minimize}\quad & 1/t\\
+\text{subject to}\quad & \sum_{i=1}^p x_iv_iv_i^T\succeq tI\\
+& x\succeq 0,\quad \mathbf{1}^Tx=1,
+\end{aligned}
+\]
+其中变量 $t\in\mathbb{R}, x\in\mathbb{R}^p$，定义域为 $\mathbb{R}_{++}\times\mathbb{R}^p$，应用 Lagrange 对偶得出对偶问题。尽可能地简化对偶问题。
+
+\noindent\textbf{5.41 最速混合 Markov 链问题的对偶。}\quad 在第 167 页，我们遇到如下半定规划
+\[
+\begin{aligned}
+\text{minimize}\quad & t\\
+\text{subject to}\quad & -tI\preceq P-(1/n)\mathbf{1}\mathbf{1}^T\preceq tI\\
+& P\mathbf{1}=\mathbf{1}\\
+& P_{ij}\geq 0,\quad i,j=1,\ldots,n\\
+& P_{ij}=0\quad \forall (i,j)\notin\mathcal{E},
+\end{aligned}
+\]
+其中变量 $t\in\mathbb{R}, P\in\mathbb{S}^n$。
+
+证明此问题的对偶问题可以描述为
+\[
+\begin{aligned}
+\text{maximize}\quad & \mathbf{1}^Tz-(1/n)\mathbf{1}^TY\mathbf{1}\\
+\text{subject to}\quad & \|Y\|_{2\ast}\leq 1\\
+& (z_i+z_j)\leq Y_{ij}\quad \forall (i,j)\in\mathcal{E},
+\end{aligned}
+\]
+
+其中变量 $z\in\mathbb{R}^n, Y\in\mathbb{S}^n$。范数 $\|\cdot\|_{2\ast}$ 是 $\mathbb{S}^n$ 上谱范数的对偶范数：$\|Y\|_{2\ast}=\sum_{i=1}^n|\lambda_i(Y)|$，即 $Y$ 的特征值的绝对值的和。（参见第 608 页 §A.1.6。）
+
+\noindent\textbf{5.42 不等式形式的锥形式问题的 Lagrange 对偶。}\quad 考虑不等式形式的锥形式问题
+\[
+\begin{aligned}
+\text{minimize}\quad & c^Tx\\
+\text{subject to}\quad & Ax\preceq_K b,
+\end{aligned}
+\]
+其中 $A\in\mathbb{R}^{m\times n}, b\in\mathbb{R}^m$，$K$ 是 $\mathbb{R}^m$ 中的一个正常锥。推导其 Lagrange 对偶问题。将所有的隐式等式约束显式描述。
+
+\noindent\textbf{5.43 二阶锥规划的对偶。}\quad 对于二阶锥规划
+\[
+\begin{aligned}
+\text{minimize}\quad & f^Tx\\
+\text{subject to}\quad & \|A_ix+b_i\|_2\leq c_i^Tx+d_i,\quad i=1,\ldots,m,
+\end{aligned}
+\]
+其中变量 $x\in\mathbb{R}^n$，证明其对偶问题可以描述为
+\[
+\begin{aligned}
+\text{maximize}\quad & \sum_{i=1}^m(b_i^Tu_i-d_iv_i)\\
+\text{subject to}\quad & \sum_{i=1}^m(A_i^Tu_i-c_iv_i)+f=0\\
+& \|u_i\|_2\leq v_i,\quad i=1,\ldots,m.
+\end{aligned}
+\]
+其中变量 $u_i\in\mathbb{R}^{n_i}, v_i\in\mathbb{R}, i=1,\ldots,m$。在这两个问题中，$f\in\mathbb{R}^n, A_i\in\mathbb{R}^{n_i\times n}, b_i\in\mathbb{R}^{n_i}, c_i\in\mathbb{R}$ 以及 $d_i\in\mathbb{R}, i=1,\ldots,m$。
+
+通过下面两种方式推导对偶问题。
+
+(a) 引入新的变量 $y_i\in\mathbb{R}^{n_i}, t_i\in\mathbb{R}$ 以及等式 $y_i=A_ix+b_i, t_i=c_i^Tx+d_i$，推导 Lagrange 对偶问题。
+
+(b) 从二阶锥规划的锥表示形式出发，利用锥对偶来推导 Lagrange 对偶问题。利用二阶锥是自对偶的结论。
+
+\noindent\textbf{5.44 非严格线性矩阵不等式的强择一。}\quad 在第 263 页的例 5.14 中，我们曾经提到，如果矩阵 $F_i$ 满足
+\begin{equation}
+\sum_{i=1}^n v_iF_i\succeq 0\Longrightarrow \sum_{i=1}^n v_iF_i=0,
+\tag{5.116}
+\end{equation}
+那么系统
+\begin{equation}
+Z\succeq 0,\qquad \mathbf{tr}(GZ)>0,\qquad \mathbf{tr}(F_iZ)=0,\quad i=1,\ldots,n
+\tag{5.117}
+\end{equation}
+是非严格线性矩阵不等式系统
+\begin{equation}
+F(x)=x_1F_1+\cdots+x_nF_n+G\preceq 0
+\tag{5.118}
+\end{equation}
+的一个强择一系统。在本习题中，我们证明上述结论，并给出一个例子说明上述两个系统并不总是强择一的。
+
+(a) 假设式 (5.116) 成立，且辅助半定规划
+\[
+\begin{aligned}
+\text{minimize}\quad & s\\
+\text{subject to}\quad & F(x)\preceq sI
+\end{aligned}
+\]
+的最优值大于零。证明最优值可以达到。这样根据 §5.9.4 中的讨论，系统 (5.118) 和系统 (5.117) 是强择一的。
+
+提示：可以这样来简化证明。不失一般性，假设矩阵 $F_1,\ldots,F_n$ 是独立的，那么式 (5.116) 可以简化为 $\sum_{i=1}^n v_iF_i\succeq 0\Longrightarrow v=0$。
+
+(b) 令 $n=1$，
+\[
+G=
+\begin{bmatrix}
+0 & 1\\
+1 & 0
+\end{bmatrix},\qquad
+F_1=
+\begin{bmatrix}
+0 & 0\\
+0 & 1
+\end{bmatrix}.
+\]
+证明系统 (5.118) 和系统 (5.117) 都不可行。
+
+\end{document}

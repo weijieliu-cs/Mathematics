@@ -1,0 +1,1431 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\graphicspath{{math/概率论/}}
+
+\title{第 9 章\quad 条件期望}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+读过前面几章之后，我们已经知道条件期望是什么：它就是期望，只不过使用的是条件概率。这个概念非常重要，原因与我们需要条件概率的原因类似。
+
+\begin{itemize}
+  \item 条件期望是计算期望的有力工具。利用“条件在我们希望知道的事情上”以及第一步分析等策略，我们常常能把复杂的期望问题分解成更简单的部分。
+
+  \item 条件期望本身也是一个重要量，它使我们可以基于当前已有的证据来预测或估计未知量。例如在统计中，我们常常希望根据解释变量（如做过的练习题数量、是否参加过职业培训项目）来预测响应变量（如考试成绩或收入）。
+\end{itemize}
+
+条件期望有两个不同但紧密相关的概念：
+
+\begin{itemize}
+  \item \textit{给定事件的条件期望 $E(Y\mid A)$：}设 $Y$ 是随机变量，$A$ 是事件。当知道 $A$ 已经发生时，我们对 $Y$ 的更新后期望记为 $E(Y\mid A)$。它的计算方式与 $E(Y)$ 类似，只是使用给定 $A$ 后的条件概率。
+
+  \item \textit{给定随机变量的条件期望 $E(Y\mid X)$：}若 $X,Y$ 都是随机变量，如何定义 $E(Y\mid X)$ 是一个更微妙的问题。直观上，$E(Y\mid X)$ 是仅利用 $X$ 中可获得的信息，对 $Y$ 作出的最佳预测的随机变量。
+\end{itemize}
+
+本章将讨论这两种条件期望的定义、性质、直觉与应用。
+
+\section*{9.1\quad 给定事件的条件期望}
+
+回忆离散随机变量 $Y$ 的期望 $E(Y)$ 是其所有可能取值的加权平均，其中权重是 PMF 值 $P(Y=y)$。当知道事件 $A$ 已经发生后，我们希望使用更新后的权重来反映这一新信息。$E(Y\mid A)$ 的定义只是把概率 $P(Y=y)$ 替换为条件概率 $P(Y=y\mid A)$。
+
+类似地，如果 $Y$ 是连续型随机变量，那么 $E(Y)$ 仍是 $Y$ 的可能取值的加权平均，只是用积分代替求和，用 PDF 值 $f(y)$ 代替 PMF 值。若知道 $A$ 已发生，则通过把 $f(y)$ 替换为条件 PDF $f(y\mid A)$，来更新对 $Y$ 的期望。
+
+\noindent\textbf{定义 9.1.1（给定事件的条件期望）}\quad 设 $A$ 是概率为正的事件。若 $Y$ 是离散随机变量，则\textbf{给定 $A$ 时 $Y$ 的条件期望}为
+\[
+  E(Y\mid A)=\sum_y yP(Y=y\mid A),
+\]
+其中求和遍历 $Y$ 的支撑集。若 $Y$ 是连续型随机变量，PDF 为 $f$，则
+\[
+  E(Y\mid A)=\int_{-\infty}^{\infty} y f(y\mid A)\,dy,
+\]
+其中条件 PDF $f(y\mid A)$ 定义为条件 CDF $F(y\mid A)=P(Y\le y\mid A)$ 的导数，也可以由混合形式的 Bayes 公式计算：
+\[
+  f(y\mid A)=\frac{P(A\mid Y=y)f(y)}{P(A)}.
+\]
+
+\noindent\textbf{直觉 9.1.2}\quad 为了理解 $E(Y\mid A)$，可以想象用模拟来近似它（或从频率学派视角，把同一个实验重复许多次）。假设我们生成实验的很多次重复，共 $n$ 次，且 $Y$ 是每次实验的一个数值摘要。于是得到 $Y$ 值 $y_1,\ldots,y_n$，并可近似
+\[
+  E(Y)\approx \frac1n\sum_{j=1}^n y_j.
+\]
+
+为了近似 $E(Y\mid A)$，我们只保留事件 $A$ 发生的那些重复实验，并只对这些 $Y$ 值取平均。这可写成
+\[
+  E(Y\mid A)\approx
+  \frac{\sum_{j=1}^n y_j I_j}{\sum_{j=1}^n I_j},
+\]
+其中 $I_j$ 是第 $j$ 次重复实验中事件 $A$ 是否发生的指示变量。如果模拟中 $A$ 从未发生，则上式没有定义；这是合理的，因为那时模拟数据没有告诉我们“$A$ 已发生”这一情形是什么样。我们希望 $n$ 足够大，使得 $A$ 发生很多次；若 $A$ 是罕见事件，则可能需要更精细的方法来近似 $E(Y\mid A)$。
+
+原则很简单：$E(Y\mid A)$ 近似等于大量模拟运行中，在 $A$ 发生的那些运行里 $Y$ 的平均值。
+
+\noindent\textbf{警示 9.1.3}\quad 混淆条件期望和无条件期望是危险的错误。更一般地，若不仔细分清“应该条件在什么上”和“实际条件在什么上”，就很容易出问题。
+
+作为前面警示的一个生死攸关的例子，考虑预期寿命。
+
+\noindent\textbf{例 9.1.4（预期寿命）}\quad Fred 今年 30 岁，他听说自己国家的平均预期寿命是 80 岁。他是否应该认为自己平均还剩 50 年可活？不能。这里有一个必须条件化的关键信息：他已经活到了 30 岁。令 $T$ 为 Fred 的寿命，则我们有一个令人欣慰的消息：
+\[
+  E(T)<E(T\mid T\ge 30).
+\]
+
+左边是 Fred 出生时的预期寿命（它隐含地条件在他已经出生这一事实上），右边是 Fred 已经活到 30 岁时的预期寿命。
+
+更难的问题是，如何决定估计 $E(T)$ 时应该使用哪些信息。只是用全国总体平均的 80 岁吗？几乎每个国家女性的平均寿命都比男性更长，所以把 Fred 是男性这一事实纳入条件是合理的。但还应该条件在他的出生城市上吗？应该条件在他父母的种族与财务信息上，或他出生的时辰上吗？直观上，我们希望估计既准确又与 Fred 相关，但这里存在一个权衡：条件化的特征越多，能匹配这些特征并用来估计寿命的数据就越少。
+
+现在看美国的一些具体数字。美国社会保障署的一项研究估计，1900 到 2000 年间，美国男性出生时的平均预期寿命从 46 岁增长到 74 岁，女性从 49 岁增长到 79 岁。这是巨大的进步！但其中很大一部分来自儿童死亡率的下降。对 1900 年一名 30 岁的人而言，平均剩余寿命男性为 35 年，女性为 36 年；到 2000 年，对应数字为男性 46 年，女性 50 年。
+
+获得这些估计还涉及一些微妙的统计问题。例如，如果不至少等到 2100 年，如何估计 2000 年出生者的预期寿命？估计生存分布是生物统计与精算科学中的重要主题。
+
+全概率公式允许我们通过切分样本空间，并在每一块上计算条件概率，来得到无条件概率。同样的思想也可用于计算无条件期望。
+
+\noindent\textbf{定理 9.1.5（全期望公式）}\quad 设 $A_1,\ldots,A_n$ 是样本空间的一个划分，且对所有 $i$ 有 $P(A_i)>0$。设 $Y$ 是该样本空间上的随机变量，则
+\[
+  E(Y)=\sum_{i=1}^n E(Y\mid A_i)P(A_i).
+\]
+
+事实上，由于所有概率都可以通过基本桥梁表示为期望，全概率公式是全期望公式的特殊情形。为看出这一点，令 $Y=I_B$，其中 $B$ 是事件，则上面的定理给出
+\[
+  P(B)=E(I_B)=\sum_{i=1}^n E(I_B\mid A_i)P(A_i)
+  =\sum_{i=1}^n P(B\mid A_i)P(A_i),
+\]
+这正是 LOTP。反过来，全期望公式又是一个更重要结果 Adam 公式（定理 9.3.7）的特殊情形，所以这里暂不证明。
+
+利用“愿望思维”把无条件期望拆成条件期望，有许多有趣例子。我们先从两个警示故事开始，它们说明条件化时必须小心，也不能无根据地丢失信息。
+
+\noindent\textbf{例 9.1.6（两个信封悖论）}\quad 一个陌生人给你两个外观完全相同、封好的信封，每个信封中都有一张金额为正的支票。你被告知，其中一个信封里的钱恰好是另一个的两倍。你可以任选一个信封。你更喜欢左边还是右边的信封？假设每个信封中金额的期望都是有限的；这在现实世界中当然是合理假设。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.52\textwidth]{9-1.png}
+  \caption{两个信封，其中一个含有另一个两倍的钱。要么 $Y=2X$，要么 $Y=X/2$，且二者概率相同。你会选择哪一个？}
+\end{figure}
+
+\noindent\textit{解.}\quad 令 $X,Y$ 分别为左、右信封中的金额。由对称性，没有理由偏好其中一个信封（这里假设没有先验信息表明陌生人是左撇子，也没有信息表明左撇子更喜欢把更多钱放在左边）。由对称性得到 $E(X)=E(Y)$，因此看起来你不必在意拿到哪一个。
+
+但当你想象信封里有什么时，另一个论证可能会浮现：假设左信封里有 100 美元，那么右信封里要么有 50 美元，要么有 200 美元。50 与 200 的平均是 125，所以右信封似乎更好。然而 100 美元并没有特殊之处：对左信封中任意金额 $x$，$2x$ 与 $x/2$ 的平均都大于 $x$，这似乎说明右信封更好。奇怪的是，这不仅与对称性论证矛盾，而且同样的推理也可以从右信封开始，从而导致永远来回更换！
+
+让我们把这个论证形式化，看看哪里出了问题。我们有 $Y=2X$ 或 $Y=X/2$，且概率相同。由定理 9.1.5，
+\[
+  E(Y)=E(Y\mid Y=2X)\cdot\frac12
+  +E(Y\mid Y=X/2)\cdot\frac12.
+\]
+有人可能进而认为这是
+\[
+  E(2X)\cdot\frac12+E(X/2)\cdot\frac12=\frac54E(X),
+\]
+从而说明从左信封换到右信封会带来 $25\%$ 的收益。但这个计算中的错误在于：
+\[
+  E(Y\mid Y=2X)=E(2X\mid Y=2X),
+\]
+把 $Y$ 替换成 $2X$ 后，并没有理由丢掉条件 $Y=2X$。
+
+换一种说法，令 $I$ 为事件 $Y=2X$ 的指示变量，则
+\[
+  E(Y\mid Y=2X)=E(2X\mid I=1).
+\]
+若我们知道 $X$ 与 $I$ 独立，那么可以丢掉条件 $I=1$。但事实上我们刚刚已经证明 $X$ 与 $I$ 不可能独立；若它们独立，就会得到悖论！令人意外的是，观察 $X$ 会提供关于“$X$ 是较大值还是较小值”的信息。如果知道 $X$ 非常大，我们可能猜测 $X$ 大于 $Y$，但什么才算非常大？$10^{12}$ 很大吗？若与 $10^{100}$ 相比，它甚至很小。两个信封悖论说明，无论 $X$ 的分布是什么，总有合理方式相对于该分布定义“非常大”。
+
+在习题 8 中，你会看到一个相关问题，其中两个信封中的金额是独立同分布随机变量。你将证明：如果允许先看一个信封里的金额，再决定是否交换，那么存在一种策略，使你超过 $50\%$ 的时间拿到更好的信封。
+
+下一个例子生动展示了条件在所有信息上的重要性。这里揭示的现象出现在许多现实中的购买与投资决策中。
+
+\noindent\textbf{例 9.1.7（神秘奖品）}\quad 另一个陌生人找到你，给你一个机会对含有神秘奖品的神秘盒子出价！奖品的价值完全未知，只知道至少为零，至多为一百万美元。因此奖品的真实价值 $V$ 被认为在 $[0,1]$ 上服从均匀分布（单位为百万美元）。
+
+你可以选择任意出价 $b$（单位为百万美元）。你有机会以远低于价值的价格得到奖品，但如果出价过高，也可能亏钱。具体来说，若 $b<2V/3$，则出价被拒绝，你没有任何收益或损失；若 $b\ge 2V/3$，则出价被接受，你的净收益为 $V-b$（因为你支付 $b$ 得到价值 $V$ 的奖品）。求最优出价 $b$，使期望收益最大。
+
+\noindent\textit{解.}\quad 你的出价 $b\ge0$ 必须是预先确定的常数（不能基于 $V$，因为 $V$ 是未知的）。为了求期望收益 $W$，条件在出价是否被接受上。若出价被接受，则收益为 $V-b$；若出价被拒绝，则收益为 $0$。因此
+\[
+\begin{aligned}
+  E(W)
+  &=E(W\mid b\ge 2V/3)P(b\ge 2V/3)
+    +E(W\mid b<2V/3)P(b<2V/3)\\
+  &=E(V-b\mid b\ge 2V/3)P(b\ge 2V/3)+0\\
+  &=\left(E(V\mid V\le 3b/2)-b\right)P(V\le 3b/2).
+\end{aligned}
+\]
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.62\textwidth]{9-2.png}
+  \caption{对未知资产出价时，要小心赢家诅咒，并条件在相关信息上。}
+\end{figure}
+
+当 $b\ge 2/3$ 时，事件 $V\le 3b/2$ 的概率为 $1$，所以上式右端为 $1/2-b$，这是负数。现在假设 $b<2/3$。则 $V\le 3b/2$ 的概率为 $3b/2$。给定 $V\le 3b/2$ 时，$V$ 的条件分布是在 $[0,3b/2]$ 上的均匀分布。因此
+\[
+  E(W)=\left(E(V\mid V\le 3b/2)-b\right)P(V\le 3b/2)
+  =(3b/4-b)(3b/2)=-\frac{3b^2}{8}.
+\]
+除 $b=0$ 外，上式均为负，因此最优出价是 $0$：你不该玩这个游戏！
+
+也可以改为条件在下列事件中哪一个发生：
+\[
+  A=\{V<b/2\},\qquad B=\{b/2\le V\le 3b/2\},\qquad C=\{V>3b/2\}.
+\]
+我们有
+\[
+  E(W\mid A)=E(V-b\mid A)<E(b/2-b\mid A)=-b/2\le0,
+\]
+\[
+  E(W\mid B)=E\left(\frac{b/2+3b/2}{2}-b\mid B\right)=0,
+\]
+\[
+  E(W\mid C)=0,
+\]
+所以应当直接令 $b=0$ 然后离开。
+
+这个故事的寓意是：要条件在全部信息上。在上面的计算中，使用 $E(V\mid V\le 3b/2)$ 而不是 $E(V)=1/2$ 至关重要；知道出价被接受，提供了关于神秘奖品价值的信息，所以不应丢弃这条信息。这个问题与所谓的\textbf{赢家诅咒}有关：在信息不完全的拍卖中，获胜者往往赚得比他们预期的少（除非他们真正理解概率）。原因是，在许多情形中，给定自己赢得竞拍后，所竞拍物品的期望价值小于他们原先想到的无条件期望价值。当 $b\ge 2/3$ 时，条件在 $V\le 3b/2$ 上没有作用，因为我们事先就知道 $V\le1$，但这样的出价荒谬地高。对任意 $b<2/3$，得知你的出价被接受都会降低你的期望：
+\[
+  E(V\mid V\le 3b/2)<E(V).
+\]
+
+本节余下例子使用第一步分析来计算无条件期望。首先，像第 4 章承诺过的那样，我们用第一步分析推导几何分布的期望。
+
+\noindent\textbf{例 9.1.8（再推几何分布期望）}\quad 设 $X\sim\operatorname{Geom}(p)$。把 $X$ 理解为在一串抛硬币中，第一次正面之前反面的个数，其中每次出现正面的概率为 $p$。为了求 $E(X)$，条件在第一次抛掷结果上：若第一次为正面，则 $X=0$，问题结束；若第一次为反面，则已经浪费了一次抛掷，并且由无记忆性又回到起点。因此
+\[
+\begin{aligned}
+  E(X)
+  &=E(X\mid \text{第一次为正面})\cdot p
+    +E(X\mid \text{第一次为反面})\cdot q\\
+  &=0\cdot p+(1+E(X))\cdot q,
+\end{aligned}
+\]
+于是 $E(X)=q/p$。
+
+下一个例子用两步条件化，为更复杂的模式推导期望等待时间。
+
+\noindent\textbf{例 9.1.9（等待 $HH$ 与等待 $HT$）}\quad 反复抛一枚公平硬币。模式 $HT$ 首次出现前的期望抛掷次数是多少？模式 $HH$ 首次出现前的期望抛掷次数又是多少？
+
+\noindent\textit{解.}\quad 令 $W_{HT}$ 为 $HT$ 出现前的抛掷次数。如图 9.3 所示，$W_{HT}$ 是等待第一个正面的时间（记为 $W_1$），加上第一个正面之后等待第一个反面的额外时间（记为 $W_2$）。由首次成功分布的故事，$W_1$ 与 $W_2$ 独立同分布为 $\operatorname{FS}(1/2)$，所以 $E(W_1)=E(W_2)=2$，从而 $E(W_{HT})=4$。
+
+求 $HH$ 的期望等待时间 $E(W_{HH})$ 更复杂。不能把同样逻辑套到 $E(W_{HT})$ 上：如图 9.4 所示，如果第一个正面后紧跟反面，我们的进度就被清空，必须重新开始。但这也给了解题进展，因为这种系统会被重置的事实提示我们使用第一步分析。先条件在第一次抛掷结果上：
+\[
+  E(W_{HH})
+  =E(W_{HH}\mid \text{第一次为 }H)\frac12
+  +E(W_{HH}\mid \text{第一次为 }T)\frac12.
+\]
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.62\textwidth]{9-3.png}
+  \caption{等待 $HT$ 的时间等于等待第一个正面的时间 $W_1$，加上之后等待下一个反面的时间 $W_2$。这里可以保存局部进度。}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.62\textwidth]{9-4.png}
+  \caption{等待 $HH$ 时，局部进度很容易被破坏。}
+\end{figure}
+
+第二项由无记忆性为
+\[
+  E(W_{HH}\mid \text{第一次为 }T)=1+E(W_{HH}).
+\]
+第一项则继续条件在第二次抛掷结果上。若第二次为正面，则已经在两次抛掷中得到 $HH$；若第二次为反面，则浪费了两次抛掷，并且必须完全重新开始。这给出
+\[
+  E(W_{HH}\mid \text{第一次为 }H)
+  =2\cdot\frac12+(2+E(W_{HH}))\cdot\frac12.
+\]
+因此
+\[
+  E(W_{HH})
+  =
+  \left(2\cdot\frac12+(2+E(W_{HH}))\cdot\frac12\right)\frac12
+  +(1+E(W_{HH}))\frac12.
+\]
+解得 $E(W_{HH})=6$。
+
+一开始这也许有些令人惊讶：$HH$ 的期望等待时间大于 $HT$ 的期望等待时间。如何把它与“两次抛掷中 $HH$ 与 $HT$ 都有 $1/4$ 的概率出现”这一事实协调起来？为什么平均等待时间不由对称性保证相同？
+
+在解题过程中，我们其实已经注意到一个重要的不对称性。等待 $HT$ 时，一旦得到第一个正面，我们就取得了不会被破坏的局部进展：若这个正面后面又跟着一个正面，我们仍处在与之前相同的位置；若后面跟着反面，就完成了。相反，等待 $HH$ 时，即使已经得到第一个正面，如果它后面跟着反面，我们也会回到起点。这说明 $HH$ 的平均等待时间应更长。对称性只说明 $HH$ 的平均等待时间等于 $TT$，$HT$ 的平均等待时间等于 $TH$，但并不说明 $HH$ 与 $HT$ 的平均等待时间相同。
+
+还可以通过考虑一长串抛硬币结果来获得更多直觉，如图 9.5 所示。我们马上会发现，$HH$ 的出现可以重叠，而 $HT$ 的出现必须互不相交。例如，$HHHHHH$ 中有 5 次 $HH$，但 $HTHTHT$ 中只有 3 次 $HT$。由于 $HH$ 与 $HT$ 的平均出现次数相同，但 $HH$ 有时会聚集在一起，所以 $HH$ 的平均等待时间必须大于 $HT$ 来补偿。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{9-5.png}
+  \caption{聚集现象。（a）$HH$ 的出现可以重叠。（b）$HT$ 的出现必须互不相交。}
+\end{figure}
+
+相关问题会出现在信息论中的消息压缩，以及遗传学中寻找 DNA 序列的重复模式（称为 motif）时。
+
+本节最后一个例子同时使用关于概率与期望的愿望思维，研究一个随机游走问题。
+
+\noindent\textbf{例 9.1.10（整数上的随机游走）}\quad 一个不死的醉汉在整数上随机游走。他从原点出发，每一步都以相等概率向右或向左移动 $1$ 个单位，且各步相互独立。令 $b$ 为一个 googolplex，即 $10^g$，其中 $g=10^{100}$ 是一个 googol。
+\begin{enumerate}
+  \item[(a)] 求醉汉在第一次回到原点之前访问 $b$ 的概率的一个简单表达式。
+  \item[(b)] 求醉汉在第一次回到原点之前访问 $b$ 的次数的期望。
+\end{enumerate}
+
+\noindent\textit{解.}\quad
+(a) 令 $B$ 为醉汉在第一次回到原点之前访问 $b$ 的事件，令 $L$ 为他的第一步向左的事件。由于从 $-1$ 到 $b$ 的任意路径都必须经过 $0$，所以 $P(B\mid L)=0$。对于 $P(B\mid L^c)$，我们正处在赌徒破产问题的情境中：玩家 A 从 $1$ 美元开始，玩家 B 从 $b-1$ 美元开始，且每轮公平。应用该结果，有
+\[
+  P(B)=P(B\mid L)P(L)+P(B\mid L^c)P(L^c)
+  =\frac1b\cdot\frac12=\frac{1}{2b}.
+\]
+
+(b) 令 $N$ 为第一次回到原点之前访问 $b$ 的次数，并令 $p=1/(2b)$ 为 (a) 中求出的概率。则
+\[
+  E(N)=E(N\mid N=0)P(N=0)+E(N\mid N\ge1)P(N\ge1)
+  =pE(N\mid N\ge1).
+\]
+给定 $N\ge1$ 时，$N$ 的条件分布为 $\operatorname{FS}(p)$：给定醉汉到达了 $b$，由对称性，在再次访问 $b$ 之前先回到原点的概率为 $p$（称为“成功”），在回到原点之前再次回到 $b$ 的概率为 $1-p$（称为“失败”）。注意这些试验相互独立，因为每次他位于 $b$ 时，情境都相同且与过去历史无关。因此 $E(N\mid N\ge1)=1/p$，于是
+\[
+  E(N)=pE(N\mid N\ge1)=p\cdot\frac1p=1.
+\]
+令人惊讶的是，这个结果不依赖于 $b$ 的值，而且我们的证明并不需要知道 $p$ 的值。
+
+\section*{9.2\quad 给定随机变量的条件期望}
+
+本节介绍给定随机变量的条件期望。也就是说，我们希望理解对随机变量 $X$ 写 $E(Y\mid X)$ 是什么意思。我们将看到，$E(Y\mid X)$ 本身是一个随机变量；在某种意义上，它是在知道 $X$ 的前提下，对 $Y$ 的最佳预测。
+
+理解 $E(Y\mid X)$ 的关键，是先理解 $E(Y\mid X=x)$。由于 $X=x$ 是一个事件，$E(Y\mid X=x)$ 就是给定该事件时 $Y$ 的条件期望，可用给定 $X=x$ 时 $Y$ 的条件分布计算。
+
+如果 $Y$ 离散，就用条件 PMF $P(Y=y\mid X=x)$ 代替无条件 PMF $P(Y=y)$：
+\[
+  E(Y\mid X=x)=\sum_y yP(Y=y\mid X=x).
+\]
+类似地，如果 $Y$ 连续，就用条件 PDF $f_{Y\mid X}(y\mid x)$ 代替无条件 PDF：
+\[
+  E(Y\mid X=x)=\int_{-\infty}^{\infty} y f_{Y\mid X}(y\mid x)\,dy.
+\]
+
+注意，由于我们对 $y$ 求和或积分，$E(Y\mid X=x)$ 只依赖于 $x$。可以给这个函数取名，例如令
+\[
+  g(x)=E(Y\mid X=x).
+\]
+我们把 $E(Y\mid X)$ 定义为这样一个随机变量：先求出函数 $g(x)$ 的形式，然后把 $X$ 代入 $x$。
+
+\noindent\textbf{定义 9.2.1（给定随机变量的条件期望）}\quad 令 $g(x)=E(Y\mid X=x)$。则\textbf{给定 $X$ 时 $Y$ 的条件期望}记为 $E(Y\mid X)$，定义为随机变量 $g(X)$。换言之，如果实验之后 $X$ 具体化为 $x$，那么 $E(Y\mid X)$ 就具体化为 $g(x)$。
+
+\noindent\textbf{警示 9.2.2}\quad 这个定义中的记号有时会造成混淆。它不是说“$g(x)=E(Y\mid X=x)$，所以 $g(X)=E(Y\mid X=X)$，而 $X=X$ 总为真，于是等于 $E(Y)$”。正确做法是先计算函数 $g(x)$，再把 $X$ 代入 $x$。例如，若 $g(x)=x^2$，则 $g(X)=X^2$。类似的警示见 5.3.2，那里讨论了均匀分布普适性中 $F(X)$ 的含义。
+
+\noindent\textbf{警示 9.2.3}\quad 按定义，$E(Y\mid X)$ 是 $X$ 的函数，所以它是随机变量。（这并不意味着不存在 $E(Y\mid X)$ 为常数的例子。常数是退化随机变量，也是 $X$ 的常数函数。例如，若 $X$ 与 $Y$ 独立，则 $E(Y\mid X)=E(Y)$，这是一个常数。）因此，计算 $E(E(Y\mid X))$ 与 $\operatorname{Var}(E(Y\mid X))$ 这样的量是有意义的，它们分别是随机变量 $E(Y\mid X)$ 的均值与方差。处理条件期望时很容易犯类别错误，所以要牢记：形如 $E(Y\mid A)$ 的条件期望是数，而形如 $E(Y\mid X)$ 的条件期望是随机变量。
+
+下面给出几个计算条件期望的快速例子。在这两个例子中，我们不需要通过求和或积分来得到 $E(Y\mid X=x)$，因为有更直接的做法。
+
+\noindent\textbf{例 9.2.4}\quad 一根长度为 $1$ 的木棍在随机选取的一点 $X$ 处折断。给定 $X=x$ 后，再在区间 $[0,x]$ 上均匀地选取另一断点 $Y$。求 $E(Y\mid X)$ 及其均值与方差。
+
+\noindent\textit{解.}\quad 由实验描述可知，$X\sim\operatorname{Unif}(0,1)$，且
+\[
+  Y\mid X=x\sim\operatorname{Unif}(0,x).
+\]
+于是 $E(Y\mid X=x)=x/2$，把 $X$ 代入 $x$ 得
+\[
+  E(Y\mid X)=X/2.
+\]
+随机变量 $E(Y\mid X)$ 的期望为
+\[
+  E(E(Y\mid X))=E(X/2)=1/4.
+\]
+下一节会说明条件期望的一般性质是 $E(E(Y\mid X))=E(Y)$，所以这也推出 $E(Y)=1/4$。其方差为
+\[
+  \operatorname{Var}(E(Y\mid X))=\operatorname{Var}(X/2)=1/48.
+\]
+
+\noindent\textbf{例 9.2.5}\quad 设 $X,Y\stackrel{\text{i.i.d.}}{\sim}\operatorname{Expo}(\lambda)$，求
+\[
+  E(\max(X,Y)\mid \min(X,Y)).
+\]
+
+\noindent\textit{解.}\quad 令 $M=\max(X,Y)$，$L=\min(X,Y)$。由无记忆性，$M-L$ 与 $L$ 独立，且 $M-L\sim\operatorname{Expo}(\lambda)$（见例 7.3.6）。因此
+\[
+  E(M\mid L=l)=E(L\mid L=l)+E(M-L\mid L=l)
+  =l+E(M-L)=l+\frac1\lambda,
+\]
+从而
+\[
+  E(M\mid L)=L+\frac1\lambda.
+\]
+
+\section*{9.3\quad 条件期望的性质}
+
+条件期望有一些非常有用的性质。
+
+\begin{itemize}
+  \item \textit{丢掉独立的量：}若 $X$ 与 $Y$ 独立，则 $E(Y\mid X)=E(Y)$。
+  \item \textit{提出已知的量：}对任意函数 $h$，有
+  \[
+    E(h(X)Y\mid X)=h(X)E(Y\mid X).
+  \]
+  \item \textit{线性性：}
+  \[
+    E(Y_1+Y_2\mid X)=E(Y_1\mid X)+E(Y_2\mid X),
+  \]
+  且对常数 $c$，
+  \[
+    E(cY\mid X)=cE(Y\mid X),
+  \]
+  后者也是“提出已知的量”的特殊情形。
+  \item \textit{Adam 公式：}
+  \[
+    E(E(Y\mid X))=E(Y).
+  \]
+  \item \textit{投影解释：}随机变量 $Y-E(Y\mid X)$ 称为用 $X$ 预测 $Y$ 后的残差；它与任意函数 $h(X)$ 都不相关。
+\end{itemize}
+
+下面逐一讨论这些性质。
+
+\noindent\textbf{定理 9.3.1（丢掉独立的量）}\quad 若 $X$ 与 $Y$ 独立，则
+\[
+  E(Y\mid X)=E(Y).
+\]
+
+这是因为独立性推出对所有 $x$ 都有 $E(Y\mid X=x)=E(Y)$，从而 $E(Y\mid X)=E(Y)$。直观上，若 $X$ 没有提供关于 $Y$ 的信息，那么即使知道了 $X$，我们对 $Y$ 的最佳猜测仍是无条件均值 $E(Y)$。不过，反命题是假的；例 9.3.3 会给出一个反例。
+
+\noindent\textbf{定理 9.3.2（提出已知的量）}\quad 对任意函数 $h$，
+\[
+  E(h(X)Y\mid X)=h(X)E(Y\mid X).
+\]
+
+直观上，给定 $X$ 求条件期望时，我们把 $X$ 当作已经具体化的已知常数。于是 $X$ 的任意函数，比如 $h(X)$，在条件于 $X$ 时也像已知常数一样。“提出已知的量”是无条件事实 $E(cY)=cE(Y)$ 的条件版本。区别在于，$E(cY)=cE(Y)$ 断言两个数相等，而“提出已知的量”断言两个随机变量相等。
+
+\noindent\textbf{例 9.3.3}\quad 设 $Z\sim\mathcal N(0,1)$，$Y=Z^2$。求 $E(Y\mid Z)$ 与 $E(Z\mid Y)$。
+
+\noindent\textit{解.}\quad 因为 $Y$ 是 $Z$ 的函数，由“提出已知的量”，
+\[
+  E(Y\mid Z)=E(Z^2\mid Z)=Z^2.
+\]
+为了求 $E(Z\mid Y)$，注意条件于 $Y=y$ 时，由标准正态分布的对称性，$Z$ 以相等概率取 $\sqrt y$ 与 $-\sqrt y$。因此
+\[
+  E(Z\mid Y=y)=0,\qquad E(Z\mid Y)=0.
+\]
+在这个例子中，虽然 $Y$ 提供了许多关于 $Z$ 的信息，把 $Z$ 的可能值缩小到两个，但 $Y$ 只告诉我们 $Z$ 的大小而不告诉符号。正因如此，尽管 $Z$ 与 $Y$ 相依，仍有 $E(Z\mid Y)=E(Z)$。这个例子说明定理 9.3.1 的反命题是假的。
+
+\noindent\textbf{定理 9.3.4（线性性）}\quad
+\[
+  E(Y_1+Y_2\mid X)=E(Y_1\mid X)+E(Y_2\mid X).
+\]
+
+这是无条件事实 $E(Y_1+Y_2)=E(Y_1)+E(Y_2)$ 的条件版本，成立是因为条件概率仍然是概率。
+
+\noindent\textbf{警示 9.3.5}\quad 写成
+\[
+  E(Y\mid X_1+X_2)=E(Y\mid X_1)+E(Y\mid X_2)
+\]
+是不正确的；线性性作用在条件竖线左边，而不是右边！
+
+\noindent\textbf{例 9.3.6}\quad 设 $X_1,\ldots,X_n$ 独立同分布，且 $S_n=X_1+\cdots+X_n$。求 $E(X_1\mid S_n)$。
+
+\noindent\textit{解.}\quad 由对称性，
+\[
+  E(X_1\mid S_n)=E(X_2\mid S_n)=\cdots=E(X_n\mid S_n),
+\]
+再由线性性，
+\[
+  E(X_1\mid S_n)+\cdots+E(X_n\mid S_n)=E(S_n\mid S_n)=S_n.
+\]
+因此
+\[
+  E(X_1\mid S_n)=S_n/n=\bar X_n,
+\]
+即 $X_j$ 的样本均值。这是一个直观结果：若有两个独立同分布随机变量 $X_1,X_2$，并知道 $X_1+X_2=10$，那么猜测 $X_1$ 为 $5$（占总和的一半）是合理的。类似地，若有 $n$ 个独立同分布随机变量，并知道它们的和，那么对其中任意一个的最佳猜测就是样本均值。
+
+下一个定理把条件期望与无条件期望联系起来。它有很多名字，包括全期望公式、迭代期望公式以及塔式性质。我们称它为 Adam 公式，因为它被频繁使用，值得拥有一个简洁名字；而且它常与稍后将遇到的另一个互补命名的公式一起使用。
+
+\noindent\textbf{定理 9.3.7（Adam 公式）}\quad 对任意随机变量 $X,Y$，
+\[
+  E(E(Y\mid X))=E(Y).
+\]
+
+\noindent\textit{证明.}\quad 这里证明 $X,Y$ 都离散的情形，其他情形类似。令 $E(Y\mid X)=g(X)$。用 LOTUS，展开 $g(x)$ 的定义得到双重求和，再交换求和顺序：
+\[
+\begin{aligned}
+  E(g(X))
+  &=\sum_x g(x)P(X=x)\\
+  &=\sum_x\left(\sum_y yP(Y=y\mid X=x)\right)P(X=x)\\
+  &=\sum_x\sum_y yP(X=x)P(Y=y\mid X=x)\\
+  &=\sum_y y\sum_x P(X=x,Y=y)\\
+  &=\sum_y yP(Y=y)=E(Y).
+\end{aligned}
+\]
+
+Adam 公式是全期望公式（定理 9.1.5）更紧凑、更一般的版本。对离散 $X$，陈述
+\[
+  E(Y)=\sum_x E(Y\mid X=x)P(X=x)
+\]
+与
+\[
+  E(Y)=E(E(Y\mid X))
+\]
+含义相同，因为若令 $E(Y\mid X=x)=g(x)$，则
+\[
+  E(E(Y\mid X))=E(g(X))
+  =\sum_x g(x)P(X=x)
+  =\sum_x E(Y\mid X=x)P(X=x).
+\]
+
+有了 Adam 公式，我们得到一个求期望 $E(Y)$ 的强大策略：条件在一个我们希望知道的随机变量 $X$ 上。先把 $X$ 当作已知来求 $E(Y\mid X)$，再对 $E(Y\mid X)$ 求期望。本章稍后会看到这种方法的各种例子。
+
+正如第 2 章讨论过带有额外条件的 Bayes 公式与 LOTP 一样，Adam 公式也有带额外条件的版本。
+
+\noindent\textbf{定理 9.3.8（带额外条件的 Adam 公式）}\quad 对任意随机变量 $X,Y,Z$，
+\[
+  E(E(Y\mid X,Z)\mid Z)=E(Y\mid Z).
+\]
+
+上式就是 Adam 公式，只是在各处额外插入了对 $Z$ 的条件。它成立是因为条件概率仍然是概率。因此，我们可以自由使用 Adam 公式来帮助求无条件期望和条件期望。
+
+利用 Adam 公式，还可以证明条件期望性质列表中的最后一项。
+
+\noindent\textbf{定理 9.3.9（投影解释）}\quad 对任意函数 $h$，随机变量 $Y-E(Y\mid X)$ 与 $h(X)$ 不相关。等价地，
+\[
+  E\left((Y-E(Y\mid X))h(X)\right)=0.
+\]
+这是等价的，因为由线性性与 Adam 公式，
+\[
+  E(Y-E(Y\mid X))=0.
+\]
+
+\noindent\textit{证明.}\quad 我们有
+\[
+\begin{aligned}
+  E((Y-E(Y\mid X))h(X))
+  &=E(h(X)Y)-E(h(X)E(Y\mid X))\\
+  &=E(h(X)Y)-E(E(h(X)Y\mid X)),
+\end{aligned}
+\]
+其中第二步使用定理 9.3.2（这里是在内层期望中“放回已知的量”）。由 Adam 公式，第二项等于 $E(h(X)Y)$。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.52\textwidth]{9-6.png}
+  \caption{条件期望 $E(Y\mid X)$ 是 $Y$ 到所有 $X$ 的函数构成的空间上的投影，这里把该空间画成一个平面。残差 $Y-E(Y\mid X)$ 与该平面正交：它垂直于（不相关于）任意 $X$ 的函数。}
+\end{figure}
+
+从几何角度看，定理 9.3.9 可以像图 9.6 那样可视化。在某种意义上，$E(Y\mid X)$ 是最接近 $Y$ 的 $X$ 的函数；我们说 $E(Y\mid X)$ 是 $Y$ 到所有 $X$ 的函数构成的空间上的投影。图中从 $Y$ 到 $E(Y\mid X)$ 的“线”与“平面”正交（垂直），因为从 $Y$ 到 $E(Y\mid X)$ 的任何其他路线都会更长。这种正交性正是定理 9.3.9 的几何解释。
+
+这一视角的细节将在下一节给出；因为它需要线性代数知识，所以加星号标记。但即使不深入线性代数，投影图像也给出了一些有用直觉。如前所述，我们可以把 $E(Y\mid X)$ 看成基于 $X$ 对 $Y$ 作出的预测。这是统计中极其常见的问题：基于数据预测或估计未来观测或未知参数。条件期望的投影解释说明，$E(Y\mid X)$ 是基于 $X$ 对 $Y$ 的\textbf{最佳预测}，其意义是：在所有 $X$ 的函数中，它具有最小的\textbf{均方误差}，也就是 $Y$ 与 $Y$ 的预测值之间平方差的期望最小。
+
+\noindent\textbf{例 9.3.10（线性回归）}\quad 统计中一个极其常用的数据分析方法是\textbf{线性回归}。在线性回归最基本的形式中，模型使用单个解释变量 $X$ 来预测响应变量 $Y$，并假设 $Y$ 的条件期望关于 $X$ 是线性的：
+\[
+  E(Y\mid X)=a+bX.
+\]
+\begin{enumerate}
+  \item[(a)] 说明这等价于写成
+  \[
+    Y=a+bX+\epsilon,
+  \]
+  其中 $\epsilon$ 是随机变量（称为误差），且 $E(\epsilon\mid X)=0$。
+  \item[(b)] 用 $E(X),E(Y),\operatorname{Cov}(X,Y)$ 与 $\operatorname{Var}(X)$ 表示常数 $a,b$。
+\end{enumerate}
+
+\noindent\textit{解.}\quad
+(a) 若 $Y=a+bX+\epsilon$，且 $E(\epsilon\mid X)=0$，则由线性性
+\[
+  E(Y\mid X)=E(a\mid X)+E(bX\mid X)+E(\epsilon\mid X)=a+bX.
+\]
+反过来，假设 $E(Y\mid X)=a+bX$，并定义
+\[
+  \epsilon=Y-(a+bX).
+\]
+则 $Y=a+bX+\epsilon$，且
+\[
+  E(\epsilon\mid X)=E(Y\mid X)-E(a+bX\mid X)=E(Y\mid X)-(a+bX)=0.
+\]
+
+(b) 首先，由 Adam 公式，对两边取期望得
+\[
+  E(Y)=a+bE(X).
+\]
+注意 $\epsilon$ 的均值为 $0$，并且 $X$ 与 $\epsilon$ 不相关，因为
+\[
+  E(\epsilon)=E(E(\epsilon\mid X))=E(0)=0,
+\]
+且
+\[
+  E(\epsilon X)=E(E(\epsilon X\mid X))=E(XE(\epsilon\mid X))=E(0)=0.
+\]
+对 $Y=a+bX+\epsilon$ 两边同时取与 $X$ 的协方差，得到
+\[
+  \operatorname{Cov}(X,Y)
+  =\operatorname{Cov}(X,a)+b\operatorname{Cov}(X,X)+\operatorname{Cov}(X,\epsilon)
+  =b\operatorname{Var}(X).
+\]
+因此
+\[
+  b=\frac{\operatorname{Cov}(X,Y)}{\operatorname{Var}(X)},
+\]
+并且
+\[
+  a=E(Y)-bE(X)
+  =E(Y)-\frac{\operatorname{Cov}(X,Y)}{\operatorname{Var}(X)}E(X).
+\]
+
+\section*{9.4\quad *条件期望的几何解释}
+
+本节使用线性代数中的一些概念，更详细地解释图 9.6 中展示的几何视角。考虑某个概率空间上所有方差有限的随机变量所组成的向量空间。这个空间中的每个向量或点都是一个随机变量（这里使用的是线性代数意义下的“向量”，不是第 7 章中随机向量的意思）。定义两个随机变量 $U,V$ 的内积为
+\[
+  \langle U,V\rangle=E(UV).
+\]
+为了让这个定义满足内积公理，我们需要约定：若两个随机变量以概率 $1$ 相等，则把它们视为同一个随机变量。
+
+随机变量 $X$ 的平方长度为
+\[
+  \|X\|^2=\langle X,X\rangle=EX^2,
+\]
+两个随机变量 $U,V$ 之间的平方距离为
+\[
+  \|U-V\|^2=E(U-V)^2.
+\]
+
+如果 $E(U)=E(V)=0$，这些解释尤其漂亮，因为此时：
+\begin{itemize}
+  \item $\|U\|^2=\operatorname{Var}(U)$，且 $\|U\|=\operatorname{SD}(U)$；
+  \item $\langle U,V\rangle=\operatorname{Cov}(U,V)$，且 $U,V$ 之间“夹角”的余弦为 $\operatorname{Corr}(U,V)$；
+  \item $U$ 与 $V$ 正交（即 $\langle U,V\rangle=0$）当且仅当它们不相关。
+\end{itemize}
+
+为了从几何上解释 $E(Y\mid X)$，考虑所有可以表示为 $X$ 的函数且方差有限的随机变量组成的空间。它是整个向量空间的子空间。在图 9.6 中，形如 $h(X)$ 的随机变量构成的子空间被表示为一个平面。为了得到 $E(Y\mid X)$，我们把 $Y$ 投影到这个平面上。于是残差 $Y-E(Y\mid X)$ 与所有函数 $h(X)$ 正交，而 $E(Y\mid X)$ 是最能预测 $Y$ 的 $X$ 的函数；这里的“最优”是指选取 $g(X)=E(Y\mid X)$ 时，均方误差 $E(Y-g(X))^2$ 最小。
+
+投影解释有助于理解条件期望的许多性质。例如，若 $Y=h(X)$ 本身就是 $X$ 的函数，那么 $Y$ 已经在平面中，所以它就是自己的投影；这解释了为什么
+\[
+  E(h(X)\mid X)=h(X).
+\]
+
+我们也可以把无条件期望看成一种投影：$E(Y)$ 可以理解为 $E(Y\mid 0)$，也就是把 $Y$ 投影到所有常数构成的空间上。事实上，$E(Y)$ 正是使 $E(Y-c)^2$ 最小的常数 $c$，这一点已经在定理 6.1.4 中证明过。
+
+现在也可以给 Adam 公式一个几何解释：$E(Y)$ 表示一步把 $Y$ 投影到所有常数构成的空间；$E(E(Y\mid X))$ 表示分两步完成，先投影到平面上，再把 $E(Y\mid X)$ 投影到所有常数构成的空间上，而后者是这个平面内的一条线。Adam 公式说明，一步法与两步法得到相同结果。
+
+下一节将介绍 Eve 公式。它对方差的作用，类似于 Adam 公式对期望的作用。作为预览，也为了进一步探索条件期望的几何解释，我们从本节视角看 $\operatorname{Var}(Y)$。假设 $E(Y)=0$；若 $E(Y)\ne0$，可以用 $Y-E(Y)$ 对 $Y$ 作中心化，这不会影响 $Y$ 的方差。
+
+我们可以把 $Y$ 分解成两个正交项：残差 $Y-E(Y\mid X)$ 与条件期望 $E(Y\mid X)$：
+\[
+  Y=(Y-E(Y\mid X))+E(Y\mid X).
+\]
+这两项正交，因为 $Y-E(Y\mid X)$ 与 $X$ 的任意函数不相关，而 $E(Y\mid X)$ 本身就是 $X$ 的函数。因此由勾股定理，
+\[
+  \|Y\|^2=\|Y-E(Y\mid X)\|^2+\|E(Y\mid X)\|^2.
+\]
+也就是说，
+\[
+  \operatorname{Var}(Y)
+  =\operatorname{Var}(Y-E(Y\mid X))+\operatorname{Var}(E(Y\mid X)).
+\]
+正如下一节将看到的，这个恒等式就是 Eve 公式的一种形式。因此，初看神秘的 Eve 公式，其实可以解释为一个“三角形”的勾股定理；三条边分别是向量 $Y-E(Y\mid X)$、$E(Y\mid X)$ 与 $Y$。
+
+\section*{9.5\quad 条件方差}
+
+一旦定义了给定随机变量的条件期望，就自然可以定义给定随机变量的条件方差：把无条件方差定义中所有 $E(\cdot)$ 替换为 $E(\cdot\mid X)$。
+
+\noindent\textbf{定义 9.5.1（条件方差）}\quad 给定 $X$ 时 $Y$ 的\textbf{条件方差}为
+\[
+  \operatorname{Var}(Y\mid X)=E((Y-E(Y\mid X))^2\mid X).
+\]
+它等价于
+\[
+  \operatorname{Var}(Y\mid X)=E(Y^2\mid X)-(E(Y\mid X))^2.
+\]
+
+\noindent\textbf{警示 9.5.2}\quad 和 $E(Y\mid X)$ 一样，$\operatorname{Var}(Y\mid X)$ 是随机变量，并且是 $X$ 的函数。
+
+由于条件方差是用条件期望定义的，我们可以用关于条件期望的结果来帮助计算条件方差。下面是一个例子。
+
+\noindent\textbf{例 9.5.3}\quad 设 $Z\sim\mathcal N(0,1)$，且 $Y=Z^2$。求 $\operatorname{Var}(Y\mid Z)$ 与 $\operatorname{Var}(Z\mid Y)$。
+
+\noindent\textit{解.}\quad 不用计算就能看出 $\operatorname{Var}(Y\mid Z)=0$：给定 $Z$ 后，$Y$ 是已知常数，而常数的方差为 $0$。同理，对任意函数 $h$，有
+\[
+  \operatorname{Var}(h(Z)\mid Z)=0.
+\]
+为了求 $\operatorname{Var}(Z\mid Y)$，使用定义：
+\[
+  \operatorname{Var}(Z\mid Z^2)=E(Z^2\mid Z^2)-(E(Z\mid Z^2))^2.
+\]
+第一项等于 $Z^2$。第二项由对称性等于 $0$，正如例 9.3.3 中求得的那样。因此
+\[
+  \operatorname{Var}(Z\mid Z^2)=Z^2,
+\]
+也可写为
+\[
+  \operatorname{Var}(Z\mid Y)=Y.
+\]
+
+下一个例子将在二元正态分布的语境中练习条件期望与条件方差。
+
+\noindent\textbf{例 9.5.4（二元正态中的条件期望与条件方差）}\quad 设 $(Z,W)$ 服从二元正态分布，$\operatorname{Corr}(Z,W)=\rho$，且 $Z,W$ 的边缘分布都是 $\mathcal N(0,1)$。求 $E(W\mid Z)$ 与 $\operatorname{Var}(W\mid Z)$。
+
+\noindent\textit{解.}\quad 可以假设 $(Z,W)$ 按例 7.5.10 中的方式构造，因为 $E(W\mid Z)$ 与 $\operatorname{Var}(W\mid Z)$ 只依赖于 $(Z,W)$ 的联合分布，而不依赖于构造 $(Z,W)$ 的具体方法。因此令
+\[
+  Z=X,\qquad W=\rho X+\sqrt{1-\rho^2}\,Y,
+\]
+其中 $X,Y$ 独立同分布为 $\mathcal N(0,1)$。这样就能漂亮地求解，而不必使用二元正态联合 PDF 做繁琐积分。条件期望为
+\[
+  E(W\mid Z)=E(W\mid X)
+  =\rho X+\sqrt{1-\rho^2}E(Y\mid X)
+  =\rho X+\sqrt{1-\rho^2}E(Y)=\rho Z,
+\]
+因为 $X$ 与 $Y$ 独立。条件方差为
+\[
+  \operatorname{Var}(W\mid Z)=\operatorname{Var}(W\mid X)
+  =\operatorname{Var}(\sqrt{1-\rho^2}Y\mid X)
+  =(1-\rho^2)\operatorname{Var}(Y)=1-\rho^2,
+\]
+因为给定 $X$ 时 $\rho X$ 像常数一样，而 $Y$ 与 $X$ 独立。
+
+有趣的是，把 $Z$ 与 $W$ 的角色互换，同样的论证说明
+\[
+  E(Z\mid W)=\rho W,\qquad \operatorname{Var}(Z\mid W)=1-\rho^2.
+\]
+也许有人会猜测，如果从观测到的 $Z$ 预测 $W$ 时要乘以 $\rho$，那么从观测到的 $W$ 预测 $Z$ 时就应该除以 $\rho$。但上面的结果说明，不管是用 $Z$ 预测 $W$，还是反过来，都是乘以同一个 $\rho$！这与相关系数的对称性
+\[
+  \operatorname{Corr}(Z,W)=\rho=\operatorname{Corr}(W,Z)
+\]
+密切相关，也与统计中一个重要概念\textbf{向均值回归}有关。
+
+上一节我们看到，Adam 公式把条件期望与无条件期望联系起来。Adam 公式的伴随结果是 Eve 公式，它把条件方差与无条件方差联系起来。
+
+\noindent\textbf{定理 9.5.5（Eve 公式）}\quad 对任意随机变量 $X,Y$，
+\[
+  \operatorname{Var}(Y)=E(\operatorname{Var}(Y\mid X))+\operatorname{Var}(E(Y\mid X)).
+\]
+
+右端 $E$ 与 $\operatorname{Var}$ 的顺序拼出 EVVE，因此得名 Eve 公式。Eve 公式也称为\textbf{全方差公式}或\textbf{方差分解公式}。
+
+\noindent\textit{证明.}\quad 令 $g(X)=E(Y\mid X)$。由 Adam 公式，$E(g(X))=E(Y)$。于是
+\[
+  E(\operatorname{Var}(Y\mid X))
+  =E(E(Y^2\mid X)-g(X)^2)
+  =E(Y^2)-E(g(X)^2),
+\]
+\[
+  \operatorname{Var}(E(Y\mid X))
+  =E(g(X)^2)-(Eg(X))^2
+  =E(g(X)^2)-(EY)^2.
+\]
+把这两个等式相加，即得 Eve 公式。
+
+为了可视化 Eve 公式，想象一个总体，每个人都有一个 $X$ 值和一个 $Y$ 值。可以把总体按 $X$ 的可能取值分成若干子总体。例如，如果 $X$ 表示年龄，$Y$ 表示身高，就可以按年龄把人分组。于是总体中身高的变异有两个来源。第一，在每个年龄组内部，人们身高不同；各年龄组内身高变异量的平均，就是组内变异 $E(\operatorname{Var}(Y\mid X))$。第二，不同年龄组之间的平均身高不同；各年龄组平均身高的方差，就是组间变异 $\operatorname{Var}(E(Y\mid X))$。Eve 公式说明，要得到 $Y$ 的总方差，只需把这两个变异来源相加。
+
+图 9.7 在有三个年龄组的简单情形中展示了 Eve 公式。三个组 $X=1,X=2,X=3$ 内的平均离散程度，是组内变异 $E(\operatorname{Var}(Y\mid X))$。组均值 $E(Y\mid X=1),E(Y\mid X=2),E(Y\mid X=3)$ 的方差，是组间变异 $\operatorname{Var}(E(Y\mid X))$。
+
+另一种理解 Eve 公式的方式是从预测角度出发。如果我们想只根据年龄预测某人的身高，理想情形是同一个年龄组内的所有人身高完全相同，而不同年龄组的身高不同。这样，给定某人的年龄后，我们就能完美预测身高。换言之，预测的理想情形是没有组内身高变异，因为组内变异不能由年龄差异解释。由于这个原因，组内变异也称为\textbf{未解释变异}，组间变异也称为\textbf{已解释变异}。Eve 公式说明，$Y$ 的总方差等于未解释变异与已解释变异之和。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.62\textwidth]{9-7.png}
+  \caption{Eve 公式说明，总方差等于组内变异与组间变异之和。}
+\end{figure}
+
+Eve 公式还可以写成
+\[
+  \operatorname{Var}(Y)
+  =\operatorname{Var}(Y-E(Y\mid X))+\operatorname{Var}(E(Y\mid X)),
+\]
+因为令 $W$ 为残差 $Y-E(Y\mid X)$，有
+\[
+  \operatorname{Var}(Y-E(Y\mid X))
+  =E(W^2)=E(E(W^2\mid X))=E(\operatorname{Var}(Y\mid X)).
+\]
+这同样说明，方差可以分解为组内变异加组间变异。
+
+\noindent\textbf{警示 9.5.6}\quad 设 $Y$ 是随机变量，$A$ 是事件。说
+\[
+  \operatorname{Var}(Y)=\operatorname{Var}(Y\mid A)P(A)
+  +\operatorname{Var}(Y\mid A^c)P(A^c)
+\]
+是错误的，虽然它看起来类似于全期望公式。（一个简单反例是：令 $Y\sim\operatorname{Bern}(1/2)$，$A$ 为事件 $Y=0$。则 $\operatorname{Var}(Y\mid A)$ 与 $\operatorname{Var}(Y\mid A^c)$ 都为 $0$，但 $\operatorname{Var}(Y)=1/4$。）
+
+相反，如果想条件在 $A$ 是否发生上，就应使用 Eve 公式。令 $I$ 为 $A$ 的指示变量，则
+\[
+  \operatorname{Var}(Y)=E(\operatorname{Var}(Y\mid I))+\operatorname{Var}(E(Y\mid I)).
+\]
+为了看这个式子与上面的“错误表达式”有什么关系，令
+\[
+  p=P(A),\quad q=P(A^c),\quad a=E(Y\mid A),\quad b=E(Y\mid A^c),
+  \quad v=\operatorname{Var}(Y\mid A),\quad w=\operatorname{Var}(Y\mid A^c).
+\]
+则 $E(Y\mid I)$ 以概率 $p$ 取 $a$、以概率 $q$ 取 $b$；$\operatorname{Var}(Y\mid I)$ 以概率 $p$ 取 $v$、以概率 $q$ 取 $w$。所以
+\[
+  E(\operatorname{Var}(Y\mid I))
+  =vp+wq=\operatorname{Var}(Y\mid A)P(A)+\operatorname{Var}(Y\mid A^c)P(A^c),
+\]
+这正是那个“错误表达式”；而 $\operatorname{Var}(Y)$ 还要加上
+\[
+  \operatorname{Var}(E(Y\mid I))=a^2p+b^2q-(ap+bq)^2.
+\]
+同时考虑组内变异与组间变异是至关重要的。
+
+\section*{9.6\quad Adam 与 Eve 示例}
+
+本章最后给出几个例子，展示 Adam 公式与 Eve 公式如何帮助我们求复杂随机变量的均值与方差，尤其是在存在多层随机性的情形中。
+
+第一个例子中，我们关心的随机变量是\textbf{随机和}：随机个数随机变量之和。因此这里有两层随机性：第一，和中的每一项都是随机变量；第二，和中的项数本身也是随机变量。
+
+\noindent\textbf{例 9.6.1（随机和）}\quad 一家商店一天收到 $N$ 名顾客，其中 $N$ 是均值和方差有限的随机变量。令 $X_j$ 为第 $j$ 名顾客在商店中的消费金额。假设每个 $X_j$ 的均值为 $\mu$，方差为 $\sigma^2$，且 $N$ 与所有 $X_j$ 彼此独立。求随机和
+\[
+  X=\sum_{j=1}^{N}X_j
+\]
+的均值与方差，即商店一天总收入的均值与方差，用 $\mu,\sigma^2,E(N),\operatorname{Var}(N)$ 表示。
+
+\noindent\textit{解.}\quad 由于 $X$ 是一个和，我们的第一反应也许是声称“由线性性，$E(X)=N\mu$”。可惜这是一个类别错误，因为 $E(X)$ 是数，而 $N\mu$ 是随机变量。关键在于 $X$ 不只是一个和，而是随机和：相加的项数本身是随机的；线性性直接适用于项数固定的和。
+
+不过，这个类别错误提示了正确策略：如果能把 $N$ 当成常数，线性性就可以使用。所以条件在 $N$ 上。由条件期望的线性性，
+\[
+  E(X\mid N)
+  =E\left(\sum_{j=1}^{N}X_j\mid N\right)
+  =\sum_{j=1}^{N}E(X_j\mid N)
+  =\sum_{j=1}^{N}E(X_j)=N\mu.
+\]
+这里使用了 $X_j$ 与 $N$ 的独立性，从而对所有 $j$ 有 $E(X_j\mid N)=E(X_j)$。注意，陈述 $E(X\mid N)=N\mu$ 不是类别错误，因为等式两边都是 $N$ 的函数所构成的随机变量。最后由 Adam 公式，
+\[
+  E(X)=E(E(X\mid N))=E(N\mu)=\mu E(N).
+\]
+这是一个令人满意的结果：平均总收入等于平均每名顾客消费金额乘以平均顾客数。
+
+对于 $\operatorname{Var}(X)$，我们再次条件在 $N$ 上，先求 $\operatorname{Var}(X\mid N)$：
+\[
+  \operatorname{Var}(X\mid N)
+  =\operatorname{Var}\left(\sum_{j=1}^{N}X_j\mid N\right)
+  =\sum_{j=1}^{N}\operatorname{Var}(X_j\mid N)
+  =\sum_{j=1}^{N}\operatorname{Var}(X_j)=N\sigma^2.
+\]
+于是 Eve 公式给出 $X$ 的无条件方差：
+\[
+\begin{aligned}
+  \operatorname{Var}(X)
+  &=E(\operatorname{Var}(X\mid N))+\operatorname{Var}(E(X\mid N))\\
+  &=E(N\sigma^2)+\operatorname{Var}(N\mu)\\
+  &=\sigma^2E(N)+\mu^2\operatorname{Var}(N).
+\end{aligned}
+\]
+
+下一个例子出现两层随机性，是因为实验分两阶段进行。我们先从一组城市中抽取一个城市，再从这个城市中抽取居民。这是一个\textbf{多层模型}的例子。
+
+\noindent\textbf{例 9.6.2（从随机城市中随机抽样）}\quad 为研究某县若干目标城市中一种疾病的流行情况，我们随机选取一个城市，然后从该城市中随机抽取 $n$ 个人。这是一种广泛使用的调查技术，称为\textbf{整群抽样}。
+
+令 $Q$ 为所选城市中患病者的比例，令 $X$ 为样本中患病者的人数。如图 9.8 所示（其中白点表示健康个体，黑点表示患病个体），不同城市可能具有非常不同的患病率。由于每个城市有自己的疾病流行率，$Q$ 是随机变量。假设 $Q\sim\operatorname{Unif}(0,1)$。还假设条件于 $Q$ 时，样本中每个个体独立地以概率 $Q$ 患病；如果我们从所选城市中有放回抽样，这是真的；如果无放回抽样但总体规模很大，这近似为真。求 $E(X)$ 与 $\operatorname{Var}(X)$。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.58\textwidth]{9-8.png}
+  \caption{某个椭圆形县有 4 个城市。每个城市都有健康者（白点）与患病者（黑点）。随机选取一个城市，然后从该城市中随机抽取 $n$ 个人。样本中患病者人数的变异有两个组成部分：不同城市患病率不同导致的变异，以及所选城市内部抽样随机性导致的变异。}
+\end{figure}
+
+\noindent\textit{解.}\quad 在上述假设下，$X\mid Q\sim\operatorname{Bin}(n,Q)$；这个记号表示，条件于知道所选城市的疾病流行率后，可以把 $Q$ 当成常数，并且每个被抽样个体都是成功概率为 $Q$ 的独立 Bernoulli 试验。利用二项分布的均值与方差，
+\[
+  E(X\mid Q)=nQ,\qquad \operatorname{Var}(X\mid Q)=nQ(1-Q).
+\]
+又由标准均匀分布的矩，$E(Q)=1/2$，$E(Q^2)=1/3$，且 $\operatorname{Var}(Q)=1/12$。现在应用 Adam 公式与 Eve 公式，得到 $X$ 的无条件均值与方差：
+\[
+  E(X)=E(E(X\mid Q))=E(nQ)=\frac n2,
+\]
+\[
+\begin{aligned}
+  \operatorname{Var}(X)
+  &=E(\operatorname{Var}(X\mid Q))+\operatorname{Var}(E(X\mid Q))\\
+  &=E(nQ(1-Q))+\operatorname{Var}(nQ)\\
+  &=nE(Q)-nE(Q^2)+n^2\operatorname{Var}(Q)\\
+  &=\frac n6+\frac{n^2}{12}.
+\end{aligned}
+\]
+
+注意，这个问题的结构与 Bayes 台球故事中的结构相同。因此，实际上我们知道的不只是 $X$ 的均值与方差，还知道它的分布：$X$ 在 $\{0,1,2,\ldots,n\}$ 上服从离散均匀分布。不过 Adam 与 Eve 方法也可用于 $Q$ 具有更复杂分布的情形，或者用于更多层的多层模型，无论是否能够求出 $X$ 的分布。例如，可以有人嵌套在城市中、城市嵌套在县中、县嵌套在州中、州嵌套在国家中。
+
+最后，我们回顾上一章故事 8.4.5 中的 Gamma-Poisson 问题。
+
+\noindent\textbf{例 9.6.3（再访 Gamma-Poisson）}\quad 回忆 Fred 为了了解 Blotchville 公交车 Poisson 过程的速率，在公交站等候 $t$ 小时并记录公交车数量 $Y$。然后他用数据更新先验分布 $\lambda\sim\operatorname{Gamma}(r_0,b_0)$。因此 Fred 使用的是两层模型
+\[
+  \lambda\sim\operatorname{Gamma}(r_0,b_0),\qquad
+  Y\mid \lambda\sim\operatorname{Pois}(\lambda t).
+\]
+我们已经发现，在 Fred 的模型下，$Y$ 的边缘分布是负二项分布，参数为 $r=r_0$ 与 $p=b_0/(b_0+t)$。特别地，
+\[
+  E(Y)=\frac{rq}{p}=\frac{r_0t}{b_0},
+\]
+\[
+  \operatorname{Var}(Y)=\frac{rq}{p^2}
+  =\frac{r_0t(b_0+t)}{b_0^2}.
+\]
+
+现在用 Adam 公式与 Eve 公式独立验证这一结果。由 Poisson 分布的性质，给定 $\lambda$ 时 $Y$ 的条件均值与条件方差为
+\[
+  E(Y\mid \lambda)=\operatorname{Var}(Y\mid \lambda)=\lambda t.
+\]
+由 Gamma 分布的性质，$\lambda$ 的边缘均值与方差为
+\[
+  E(\lambda)=\frac{r_0}{b_0},\qquad \operatorname{Var}(\lambda)=\frac{r_0}{b_0^2}.
+\]
+对 Adam 与 Eve 来说，这就是所需的一切：
+\[
+  E(Y)=E(E(Y\mid \lambda))=E(\lambda t)=\frac{r_0t}{b_0},
+\]
+\[
+\begin{aligned}
+  \operatorname{Var}(Y)
+  &=E(\operatorname{Var}(Y\mid \lambda))+\operatorname{Var}(E(Y\mid \lambda))\\
+  &=E(\lambda t)+\operatorname{Var}(\lambda t)\\
+  &=\frac{r_0t}{b_0}+\frac{r_0t^2}{b_0^2}
+  =\frac{r_0t(b_0+t)}{b_0^2},
+\end{aligned}
+\]
+这与前面的答案一致。区别在于，使用 Adam 与 Eve 时，我们不需要知道 $Y$ 是负二项分布！即使我们懒得推导 $Y$ 的边缘分布，或者没有那么幸运地让 $Y$ 具有一个有名分布，Adam 与 Eve 仍会给出 $Y$ 的均值与方差（但不给出 PMF）。
+
+最后，比较两层模型下 $Y$ 的均值与方差，与 Fred 对 $\lambda$ 的真实值完全确定时会得到的均值与方差。换言之，假设我们把 $\lambda$ 替换为它的均值 $E(\lambda)=r_0/b_0$，使 $\lambda$ 成为常数而不是随机变量。那么公交车数量的边缘分布（在新假设下记为 $\tilde Y$）只是参数为 $r_0t/b_0$ 的 Poisson 分布。因此
+\[
+  E(\tilde Y)=\frac{r_0t}{b_0},\qquad
+  \operatorname{Var}(\tilde Y)=\frac{r_0t}{b_0}.
+\]
+注意 $E(\tilde Y)=E(Y)$，但 $\operatorname{Var}(\tilde Y)<\operatorname{Var}(Y)$：Eve 公式中的额外项 $r_0t^2/b_0^2$ 消失了。直观上，当我们把 $\lambda$ 固定在其均值时，就消除了模型中的一层不确定性，从而降低了无条件方差。
+
+图 9.9 叠加展示了两个 PMF：灰色为 $Y\sim\operatorname{NBin}(r_0,b_0/(b_0+t))$，黑色为 $\tilde Y\sim\operatorname{Pois}(r_0t/b_0)$。参数取值任意选为 $r_0=5,b_0=1,t=2$。这两个 PMF 的质心相同，但 $Y$ 的 PMF 明显更分散。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.62\textwidth]{9-9.png}
+  \caption{灰色为 $Y\sim\operatorname{NBin}(r_0,b_0/(b_0+t))$ 的 PMF，黑色为 $\tilde Y\sim\operatorname{Pois}(r_0t/b_0)$ 的 PMF，其中 $r_0=5,b_0=1,t=2$。}
+\end{figure}
+
+\section*{9.7\quad 总结}
+
+为了计算无条件期望，可以把样本空间划分，并使用全期望公式
+\[
+  E(Y)=\sum_{i=1}^n E(Y\mid A_i)P(A_i),
+\]
+但必须小心，在后续步骤中不要破坏信息，例如在长计算中忘记条件在必须条件化的对象上。具有递归结构的问题中，也可以对期望使用第一步分析。
+
+条件期望 $E(Y\mid X)$ 与条件方差 $\operatorname{Var}(Y\mid X)$ 是随机变量，并且是 $X$ 的函数；它们通过把 $X$ 当作已知常数来获得。若 $X$ 与 $Y$ 独立，则
+\[
+  E(Y\mid X)=E(Y),\qquad \operatorname{Var}(Y\mid X)=\operatorname{Var}(Y).
+\]
+条件期望具有性质
+\[
+  E(h(X)Y\mid X)=h(X)E(Y\mid X),
+\]
+\[
+  E(Y_1+Y_2\mid X)=E(Y_1\mid X)+E(Y_2\mid X),
+\]
+它们分别类似于无条件期望中的性质 $E(cY)=cE(Y)$ 与
+$E(Y_1+Y_2)=E(Y_1)+E(Y_2)$。条件期望 $E(Y\mid X)$ 也是使残差 $Y-E(Y\mid X)$ 与任意 $X$ 的函数不相关的随机变量，因此可以在几何上把它解释为投影。
+
+最后，Adam 公式与 Eve 公式
+\[
+  E(Y)=E(E(Y\mid X)),
+\]
+\[
+  \operatorname{Var}(Y)=E(\operatorname{Var}(Y\mid X))+\operatorname{Var}(E(Y\mid X)),
+\]
+常帮助我们在包含多种或多层随机性的题目中计算 $E(Y)$ 与 $\operatorname{Var}(Y)$。
+
+图 9.10 说明了数 $E(Y\mid X=x)$ 如何与随机变量 $E(Y\mid X)$ 联系起来；后者的期望由 Adam 公式等于 $E(Y)$。此外，它也展示了 Eve 公式中的各个组成部分如何形成，并如何合在一起，把 $\operatorname{Var}(Y)$ 分解成条件在 $X$ 上的若干量。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{9-10.png}
+  \caption{我们常常观测随机变量 $X$，并希望基于关于 $X$ 的信息预测另一个随机变量 $Y$。若观测到 $X=x$，则可以条件在该事件上，并用 $E(Y\mid X=x)$ 作为预测。条件期望 $E(Y\mid X)$ 是一个随机变量，当 $X=x$ 时取值 $E(Y\mid X=x)$。Adam 公式使我们可以从条件期望 $E(Y\mid X)$ 出发计算无条件期望 $E(Y)$。类似地，Eve 公式使我们可以用条件在 $X$ 上的量来计算 $\operatorname{Var}(Y)$。}
+\end{figure}
+
+\section*{9.9\quad 习题}
+
+标有 $\circledS$ 的习题在 \texttt{http://stat110.net} 有详细解答。
+
+\subsection*{给定事件的条件期望}
+
+\begin{enumerate}
+  \item Fred 想从 Blotchville 前往 Blissville，正在三个选项之间选择（涉及不同路线或不同交通方式）。第 $j$ 个选项平均耗时 $\mu_j$ 小时，标准差为 $\sigma_j$ 小时。Fred 以相等概率随机选择这三个选项之一。令 $T$ 为他从 Blotchville 到 Blissville 所需的时间。
+  \begin{enumerate}
+    \item[(a)] 求 $E(T)$。它是否只是期望的平均值 $(\mu_1+\mu_2+\mu_3)/3$？
+    \item[(b)] 求 $\operatorname{Var}(T)$。它是否只是方差的平均值 $(\sigma_1^2+\sigma_2^2+\sigma_3^2)/3$？
+  \end{enumerate}
+
+  \item 某天晚上 Fred 睡觉时，有 $X$ 封正常邮件和 $Y$ 封垃圾邮件发给他。假设 $X$ 与 $Y$ 独立，且 $X\sim\operatorname{Pois}(10)$、$Y\sim\operatorname{Pois}(40)$。他醒来后发现收件箱里有 30 封新邮件。给定这个信息，他的新正常邮件数的期望是多少？
+
+  \item 一个医学研究中有 21 名女性和 14 名男性参加。每个人独立地以概率 $p$ 患有某种疾病。随后通过极其可靠的检测发现，恰有 5 人患有该病。给定这个信息，患病女性人数的期望是多少？
+
+  \item 研究犯罪的学者关心人们被逮捕的频率。令 $X\sim\operatorname{Pois}(\lambda)$ 表示随机选取的一个人在过去 10 年中被逮捕的次数。然而，该研究使用警方记录中的数据，而过去 10 年从未被逮捕的人不会出现在记录中。换言之，警方记录存在\textbf{选择偏差}：它们只包含过去 10 年中曾经被逮捕者的信息。
+
+  因此，对警方记录中人们的逮捕次数取平均，并不能直接估计 $E(X)$；更合理的想法是，把警方记录看成给出了条件分布的信息：给定某人在过去 10 年至少被逮捕一次，这个人被逮捕了多少次。给定 $X\ge1$ 时 $X$ 的条件分布称为\textbf{截断 Poisson 分布}。
+  \begin{enumerate}
+    \item[(a)] 求 $E(X\mid X\ge1)$。
+    \item[(b)] 求 $\operatorname{Var}(X\mid X\ge1)$。
+  \end{enumerate}
+
+  \item 反复掷一枚公平的 20 面骰子，直到赌徒决定停止。赌徒每掷一次支付 1 美元，并在停止时获得骰面点数对应的金额（例如，若骰子掷了 7 次，赌徒在最后一次掷出 18 并停止，则净收益为 $18-7=11$ 美元）。假设赌徒使用如下策略：一直掷到出现不小于 $m$ 的点数就停止，其中 $m$ 是 $1$ 到 $20$ 之间的固定整数。
+
+  求期望净收益。
+
+  \noindent 提示：连续整数 $a,a+1,\ldots,a+n$ 的平均值等于首尾两项的平均值。
+
+  \item 设 $X\sim\operatorname{Expo}(\lambda)$。用两种不同方法求 $E(X\mid X<1)$：
+  \begin{enumerate}
+    \item[(a)] 用微积分，直接使用给定 $X<1$ 时 $X$ 的条件 PDF；
+    \item[(b)] 不用微积分，而是用全期望公式展开 $E(X)$。
+  \end{enumerate}
+
+  \item 你有机会对装有神秘奖品的神秘盒子出价！奖品价值完全未知，只知道至少为 0、至多为 100 万美元。因此奖品真实价值 $V$ 被认为在 $[0,1]$ 上服从均匀分布（单位为百万美元）。
+
+  你可以选择任意非负出价 $b$（单位为百万美元）。若 $b<\frac14V$，则出价被拒绝，你没有任何收益或损失；若 $b\ge\frac14V$，则出价被接受，净收益为 $V-b$（因为你支付 $b$ 得到价值 $V$ 的奖品）。
+
+  求你的期望收益作为 $b$ 的函数（务必对所有 $b\ge0$ 给出说明）。然后求使期望收益最大的最优出价 $b$。
+
+  \item $\circledS$ 你可以在两个信封中选择一个，每个信封都含有一张金额为正的支票。与两个信封悖论不同，这里不假设一个信封中的金额是另一个的两倍。相反，假设两个金额独立地由正实数上的某个分布生成，但没有给出关于该分布的任何信息。
+
+  选定一个信封后，你可以打开它并看到其中的金额（记为 $x$），然后可以选择是否交换。由于没有给出分布信息，似乎不可能有超过 $50\%$ 的概率选到更好的信封。直观上，我们也许希望在 $x$ “小”时交换，在 $x$ “大”时不交换；但在所有可能分布的宏观尺度下，如何定义“小”和“大”？
+
+  考虑如下决定是否交换的策略。生成阈值 $T\sim\operatorname{Expo}(1)$，当且仅当观测值 $x$ 小于 $T$ 的取值时交换信封。证明这个策略以严格大于 $1/2$ 的概率选中金额更多的信封。
+
+  \noindent 提示：令 $t$ 为 $T$ 的取值。先解释为什么当 $t$ 恰好位于两个信封金额之间时策略表现很好，并且在任何情形下都不会造成伤害（即不存在策略成功概率严格小于 $1/2$ 的情形）。
+
+  \item 有两个信封，每个信封中都有一张金额服从 $\operatorname{Unif}(0,1)$ 的支票，单位为千美元。两个信封中的金额相互独立。你可以选择一个信封并打开它，然后可以保留该金额，或换到另一个信封并获得其中金额。
+
+  假设你使用如下策略：选择一个信封并打开。若观测到 $U$，则以概率 $U$ 保留该信封，以概率 $1-U$ 换到另一个信封。
+  \begin{enumerate}
+    \item[(a)] 求你获得两个金额中较大者的概率。
+    \item[(b)] 求你最终收到金额的期望。
+  \end{enumerate}
+
+  \item 假设 $n$ 个人正在对一个神秘奖品竞价。出价秘密提交，提交最高出价者赢得奖品。第 $i$ 个竞价者收到信号 $X_i$，其中 $X_1,\ldots,X_n$ 独立同分布。奖品价值 $V$ 定义为所有竞价者信号之和：
+  \[
+    V=X_1+\cdots+X_n.
+  \]
+  这在经济学中称为\textbf{钱包游戏}：可以想象这 $n$ 个人正在竞拍他们钱包中总金额，而每个人的信号就是自己钱包中的金额。当然，钱包只是一个比喻；这个游戏也可用于刻画公司收购，在其中两个公司各自竞价收购对方，而某个公司知道自身价值但不知道另一家公司的价值。本题中，假设 $X_i$ 独立同分布于 $\operatorname{Unif}(0,1)$。
+  \begin{enumerate}
+    \item[(a)] 在收到信号之前，竞价者 1 对 $V$ 的无条件期望是多少？
+    \item[(b)] 条件于收到信号 $X_1=x_1$，竞价者 1 对 $V$ 的期望是多少？
+    \item[(c)] 假设每个竞价者都提交等于自己对 $V$ 的条件期望的出价，即竞价者 $i$ 出价 $E(V\mid X_i=x_i)$。条件于收到信号 $X_1=x_1$ 且赢得拍卖，竞价者 1 对 $V$ 的期望是多少？直观解释为什么这个量总是小于 (b) 中计算的量。
+  \end{enumerate}
+
+  \item $\circledS$ 一枚正面概率为 $p$ 的硬币被反复抛掷。对 (a) 和 (b)，假设 $p$ 是已知常数，且 $0<p<1$。
+  \begin{enumerate}
+    \item[(a)] 直到模式 $HT$ 出现所需抛掷次数的期望是多少？
+    \item[(b)] 直到模式 $HH$ 出现所需抛掷次数的期望是多少？
+    \item[(c)] 现在假设 $p$ 未知，并且用 $\operatorname{Beta}(a,b)$ 先验表示我们对 $p$ 的不确定性（其中 $a,b$ 是已知常数且都大于 $2$）。用 $a,b$ 表示该设定下 (a) 与 (b) 的相应答案。
+  \end{enumerate}
+
+  \item 一枚正面概率为 $p$ 的硬币被反复抛掷，其中 $0<p<1$。结果序列可以分成若干\textbf{游程}（连续的 $H$ 块或连续的 $T$ 块）。例如，$HHHTTTTHTTTHH$ 可分成 $HHH,TTTT,H,TTT,HH$，共有 5 个游程，长度分别为 $3,4,1,3,2$。假设硬币至少被抛到第三个游程开始。
+  \begin{enumerate}
+    \item[(a)] 求第一个游程长度的期望。
+    \item[(b)] 求第二个游程长度的期望。
+  \end{enumerate}
+
+  \item 一枚公平的 6 面骰子掷一次。求还需要额外掷多少次，才能得到一个至少与第一次掷出的点数一样大的值，其期望是多少。
+
+  \item 一枚公平的 6 面骰子被反复掷。
+  \begin{enumerate}
+    \item[(a)] 求得到一个 $1$ 后紧接着得到一个 $2$ 所需掷骰次数的期望。
+
+    \noindent 提示：从条件在第一次掷骰是否为 $1$ 开始。
+
+    \item[(b)] 求得到连续两个 $1$ 所需掷骰次数的期望。
+    \item[(c)] 令 $a_n$ 为得到连续 $n$ 次同一值所需掷骰次数的期望（即得到某个未预先指定的值 $j$ 连续出现 $n$ 次）。求用 $a_n$ 表示 $a_{n+1}$ 的递推公式。
+
+    \noindent 提示：把直到出现连续 $n+1$ 次同一值的时间分成两段：直到出现连续 $n$ 次的时间，以及剩余时间。
+
+    \item[(d)] 求对所有 $n\ge1$ 成立的简单显式公式 $a_n$。$a_7$ 的数值是多少？
+  \end{enumerate}
+
+\subsection*{给定随机变量的条件期望}
+
+  \item $\circledS$ 设 $X_1,X_2$ 独立同分布，令 $\bar X=\frac12(X_1+X_2)$ 为样本均值。在许多统计问题中，求给定 $\bar X$ 的条件期望很有用也很重要。作为例子，求
+  \[
+    E(w_1X_1+w_2X_2\mid \bar X),
+  \]
+  其中 $w_1,w_2$ 是常数，且 $w_1+w_2=1$。
+
+  \item 设 $X_1,X_2,\ldots$ 是独立同分布随机变量，均值为 $0$，且 $S_n=X_1+\cdots+X_n$。如例 9.3.6 所示，给定前 $n$ 项之和时，第一项的期望为
+  \[
+    E(X_1\mid S_n)=\frac{S_n}{n}.
+  \]
+  推广这一结果：对所有正整数 $k,n$，求 $E(S_k\mid S_n)$。
+
+  \item $\circledS$ 某大学有 $n$ 对室友（因此共有 $2n$ 名学生）。这 $2n$ 名学生各自独立地随机决定是否选修某门课程，选修概率为 $p$（其中“成功”定义为选修该课程）。令 $N$ 为这 $2n$ 名学生中选修该课程的人数，令 $X$ 为一对室友中两人都选修该课程的室友对数。求 $E(X)$ 与 $E(X\mid N)$。
+
+  \item $\circledS$ 证明
+  \[
+    E((Y-E(Y\mid X))^2\mid X)=E(Y^2\mid X)-(E(Y\mid X))^2,
+  \]
+  因此 $\operatorname{Var}(Y\mid X)$ 的两个表达式一致。
+
+  \noindent 方差提示：加上常数（或起常数作用的量）不会影响方差。
+
+  \item 令 $X$ 为随机选取成年男性的身高，$Y$ 为其父亲的身高，其中 $X,Y$ 都已经标准化为均值 $0$、标准差 $1$。假设 $(X,Y)$ 服从二元正态分布，$X,Y\sim\mathcal N(0,1)$，且 $\operatorname{Corr}(X,Y)=\rho$。
+  \begin{enumerate}
+    \item[(a)] 令 $y=ax+b$ 为用 $X$ 预测 $Y$ 的最佳直线（以最小化均方误差为意义）。例如，如果观测到 $X=1.3$，则预测 $Y$ 为 $1.3a+b$。现在假设我们想用 $Y$ 预测 $X$，而不是用 $X$ 预测 $Y$。直观猜测并解释，用 $Y$ 预测 $X$ 的最佳直线斜率是多少。
+    \item[(b)] 求常数 $c$（用 $\rho$ 表示）与随机变量 $V$，使得 $Y=cX+V$，且 $V$ 与 $X$ 独立。
+
+    \noindent 提示：先找 $c$ 使得 $\operatorname{Cov}(X,Y-cX)=0$。
+
+    \item[(c)] 求常数 $d$（用 $\rho$ 表示）与随机变量 $W$，使得 $X=dY+W$，且 $W$ 与 $Y$ 独立。
+    \item[(d)] 求 $E(Y\mid X)$ 与 $E(X\mid Y)$。
+    \item[(e)] 若你在 (a) 中的直观猜测与 (d) 的结果不同，请调和二者。清楚、正确地直观解释“用 $X$ 预测 $Y$ 的最佳直线斜率”与“用 $Y$ 预测 $X$ 的最佳直线斜率”之间的关系。
+  \end{enumerate}
+
+  \item 设 $\mathbf X\sim\operatorname{Mult}_5(n,\mathbf p)$。
+  \begin{enumerate}
+    \item[(a)] 求 $E(X_1\mid X_2)$ 与 $\operatorname{Var}(X_1\mid X_2)$。
+    \item[(b)] 求 $E(X_1\mid X_2+X_3)$。
+  \end{enumerate}
+
+  \item 令 $Y$ 为离散随机变量，$A$ 为满足 $0<P(A)<1$ 的事件，$I_A$ 为 $A$ 的指示随机变量。
+  \begin{enumerate}
+    \item[(a)] 准确解释随机变量 $E(Y\mid I_A)$ 与数 $E(Y\mid A)$、$E(Y\mid A^c)$ 之间的关系。
+    \item[(b)] 直接从期望与条件期望的定义出发，证明
+    \[
+      E(Y\mid A)=\frac{E(YI_A)}{P(A)}.
+    \]
+
+    \noindent 提示：令 $X=YI_A$，然后写出 $X$ 的 PMF。
+
+    \item[(c)] 用 (b) 简短证明
+    \[
+      E(Y)=E(Y\mid A)P(A)+E(Y\mid A^c)P(A^c).
+    \]
+  \end{enumerate}
+
+  \item 证明如下版本的 LOTP（我们在第 7.1 节遇到过）也是 Adam 公式的结果：对任意事件 $A$ 与具有 PDF $f_X$ 的连续随机变量 $X$，
+  \[
+    P(A)=\int_{-\infty}^{\infty}P(A\mid X=x)f_X(x)\,dx.
+  \]
+
+  \noindent 提示：考虑 $E(I(A)\mid X=x)$。
+
+  \item $\circledS$ 设 $X,Y$ 是方差有限的随机变量，并令 $W=Y-E(Y\mid X)$。这是一个\textbf{残差}：它是真实值 $Y$ 与基于 $X$ 对 $Y$ 的预测值之间的差。
+  \begin{enumerate}
+    \item[(a)] 计算 $E(W)$ 与 $E(W\mid X)$。
+    \item[(b)] 在 $W\mid X\sim\mathcal N(0,X^2)$ 且 $X\sim\mathcal N(0,1)$ 的情形中，计算 $\operatorname{Var}(W)$。
+  \end{enumerate}
+
+  \item $\circledS$ 从帽子中随机取出两枚外观相同硬币中的一枚，其中一枚硬币正面概率为 $p_1$，另一枚正面概率为 $p_2$。令 $X$ 为选中硬币抛掷 $n$ 次后得到的正面数。求 $X$ 的均值与方差。
+
+  \item Kelly 进行一系列 $n$ 次下注，每次独立地以概率 $p$ 获胜。初始时她有 $x_0$ 美元。令 $X_j$ 为第 $j$ 次下注结算后她拥有的金额。令 $f$ 为 $(0,1)$ 中的常数，称为\textbf{下注比例}。每次下注时，Kelly 用其财富的比例 $f$ 下注，然后赢得或输掉该金额。例如，若她当前财富为 100 美元且 $f=0.25$，则下注 25 美元，并赢得或输掉该金额。（当 $p>1/2$ 时，一个著名选择是 $f=2p-1$，称为 Kelly 准则。）求 $E(X_n)$，用 $n,p,f,x_0$ 表示。
+
+  \noindent 提示：先求 $E(X_{j+1}\mid X_j)$。
+
+  \item 令 $N\sim\operatorname{Pois}(\lambda_1)$ 为明年上映电影的数量。假设每部电影售出的票数服从 $\operatorname{Pois}(\lambda_2)$，并且与其他电影及 $N$ 独立。求明年售出电影票总数的均值与方差。
+
+  \item 某晚聚会从 8:00 pm 持续到午夜，且将有 $N\sim\operatorname{Pois}(\lambda)$ 人到场。他们都会在聚会期间独立地、均匀随机地到达，且与 $N$ 独立。
+  \begin{enumerate}
+    \item[(a)] 给定至少有一人到场，求第一个人到达时间的期望。给出用 $\lambda$ 表示的精确答案（以 8:00 pm 后的分钟数计），并在 $\lambda=20$ 时给出四舍五入到最近分钟、用时刻表示的答案（例如 8:20 pm）。
+    \item[(b)] 给定至少有一人到场，求最后一个人到达时间的期望。与 (a) 一样，给出精确答案，并在 $\lambda=20$ 时给出四舍五入到最近分钟的答案。
+  \end{enumerate}
+
+  \item $\circledS$ 我们希望基于将要观测到的随机变量 $X$ 来估计未知参数 $\theta$。和 Bayes 观点一样，假设 $X$ 与 $\theta$ 有联合分布。令 $\hat\theta$ 为估计量（它是 $X$ 的函数）。若 $E(\hat\theta\mid \theta)=\theta$，则称 $\hat\theta$ 是无偏的；若 $E(\theta\mid X)=\hat\theta$，则称 $\hat\theta$ 是 Bayes 程序。
+  \begin{enumerate}
+    \item[(a)] 设 $\hat\theta$ 无偏。求 $E(\hat\theta-\theta)^2$（估计量与 $\theta$ 的真实值之间平方差的平均），用 $\hat\theta$ 与 $\theta$ 的边缘矩表示。
+
+    \noindent 提示：条件在 $\theta$ 上。
+
+    \item[(b)] 重做 (a)，但这一次假设 $\hat\theta$ 是 Bayes 程序，而不是假设它无偏。
+
+    \noindent 提示：条件在 $X$ 上。
+
+    \item[(c)] 证明：除了观测 $X$ 后能够完全知道 $\theta$ 的平凡问题外，$\hat\theta$ 不可能既是 Bayes 程序又无偏。
+
+    \noindent 提示：若 $Y$ 是非负随机变量且均值为 $0$，则 $P(Y=0)=1$。
+  \end{enumerate}
+
+  \item 证明：若 $E(Y\mid X)=c$ 是常数，则 $X$ 与 $Y$ 不相关。
+
+  \noindent 提示：用 Adam 公式求 $E(Y)$ 与 $E(XY)$。
+
+  \item 举例说明：可能存在不相关的 $X,Y$，使得 $E(Y\mid X)$ 不是常数。
+
+  \noindent 提示：考虑标准正态随机变量及其平方。
+
+  \item $\circledS$ 电子邮件一封一封到达收件箱。令 $T_n$ 为第 $n$ 封邮件到达的时刻（在从某个起点开始的连续时间尺度上测量）。假设相邻邮件之间的等待时间独立同分布为 $\operatorname{Expo}(\lambda)$，即 $T_1,T_2-T_1,T_3-T_2,\ldots$ 独立同分布为 $\operatorname{Expo}(\lambda)$。
+
+  每封邮件以概率 $p$ 为非垃圾邮件，以概率 $q=1-p$ 为垃圾邮件（与其他邮件以及等待时间独立）。令 $X$ 为第一封非垃圾邮件到达的时刻（因此若第 1 封邮件为非垃圾邮件，则 $X=T_1$；若第 1 封为垃圾邮件但第 2 封不是，则 $X=T_2$；依此类推）。
+  \begin{enumerate}
+    \item[(a)] 求 $X$ 的均值与方差。
+    \item[(b)] 求 $X$ 的 MGF。这说明 $X$ 服从哪个著名分布（务必说明参数值）？
+  \end{enumerate}
+
+  \noindent 两问提示：令 $N$ 为第一封非垃圾邮件之前的邮件数（包括这封非垃圾邮件），把 $X$ 写成 $N$ 项之和；然后条件在 $N$ 上。
+
+  \item 顾客按照速率为每小时 $\lambda$ 人的 Poisson 过程到达商店。每名顾客独立地以概率 $p$ 购买商品。给定某名顾客购买商品，其消费金额均值为 $\mu$（美元），方差为 $\sigma^2$。
+  \begin{enumerate}
+    \item[(a)] 求随机顾客消费金额的均值与方差（注意顾客可能什么都不买）。
+    \item[(b)] 利用 (a) 与本章结果，求商店在 8 小时时间段中收入的均值与方差。
+    \item[(c)] 利用鸡生蛋故事与本章结果，求商店在 8 小时时间段中收入的均值与方差。
+  \end{enumerate}
+
+  \item Fred 心爱的电脑会在 $\operatorname{Expo}(\lambda)$ 时间后发生故障。故障发生后，Fred 会尝试修理。以概率 $p$ 他能修好。如果修好，电脑又会像新的一样，并在额外的、独立的 $\operatorname{Expo}(\lambda)$ 时间后再次故障（届时他又以概率 $p$ 修好，依此类推）。若任何一次故障后 Fred 无法修好，他就会买一台新电脑。求 Fred 买新电脑之前的期望时间。（假设诊断、修理和购物所用时间可以忽略。）
+
+  \item 绿色骰子一直掷到第一次掷出 $1$ 为止。橙色骰子一直掷到第一次掷出 $6$ 为止。两枚骰子都是公平的 6 面骰子。令 $T_1$ 为绿色骰子所有点数之和（包括最后的 $1$），令 $T_6$ 为橙色骰子所有点数之和（包括最后的 $6$）。两名学生正在讨论 $E(T_1)=E(T_6)$ 还是 $E(T_1)<E(T_6)$。他们友好地允许引用自己的论证。
+
+  学生 A：我们有 $E(T_1)=E(T_6)$。由 Adam 公式，骰子点数和的期望等于掷骰次数的期望乘以一次掷骰点数的期望，而这两个因子对两枚骰子都是相同的。更具体地，令 $N_1$ 为绿色骰子的掷骰次数，$N_6$ 为橙色骰子的掷骰次数。由 Adam 公式和线性性，
+  \[
+    E(T_1)=E(E(T_1\mid N_1))=E(3.5N_1)=3.5E(N_1),
+  \]
+  而同样方法用于橙色骰子给出 $3.5E(N_6)$，它等于 $3.5E(N_1)$。
+
+  学生 B：实际上，$E(T_1)<E(T_6)$。我同意两枚骰子的期望掷骰次数相同，但关键区别是，我们知道绿色骰子的最后一次结果是 $1$，橙色骰子的最后一次结果是 $6$。不计各自最后一次掷骰时，两枚骰子的期望总和相同；再把最后一次掷骰算进去，就有 $E(T_1)<E(T_6)$。
+  \begin{enumerate}
+    \item[(a)] 用文字讨论学生 A 的论证在多大程度上令人信服且正确。
+    \item[(b)] 用文字讨论学生 B 的论证在多大程度上令人信服且正确。
+    \item[(c)] 仔细推导 $E(T_1)$ 与 $E(T_6)$。
+  \end{enumerate}
+
+  \item $\circledS$ Judit 职业生涯中总共参加 $N\sim\operatorname{Geom}(s)$ 个国际象棋锦标赛。假设在每个锦标赛中，她独立地以概率 $p$ 获胜。令 $T$ 为她职业生涯中赢得锦标赛的次数。
+  \begin{enumerate}
+    \item[(a)] 求 $T$ 的均值与方差。
+    \item[(b)] 求 $T$ 的 MGF。这个分布叫什么名字（并说明参数）？
+  \end{enumerate}
+
+  \item 在故事 8.4.5 中，我们证明了（除其他结果外）若 $\lambda\sim\operatorname{Gamma}(r_0,b_0)$ 且 $Y\mid\lambda\sim\operatorname{Pois}(\lambda)$，则 $Y$ 的边缘分布为 $\operatorname{NBin}(r_0,b_0/(b_0+1))$。用 Adam 公式与 MGF 推导这个结果。
+
+  \noindent 提示：考虑 $Y\mid\lambda$ 的条件 MGF。
+
+  \item 设 $X_1,\ldots,X_n$ 独立同分布，均值为 $\mu$，方差为 $\sigma^2$，且 $n\ge2$。$X_1,\ldots,X_n$ 的一个\textbf{自助样本}是由 $X_j$ 等概率有放回抽样得到的 $n$ 个随机变量 $X_1^*,\ldots,X_n^*$。令 $\bar X^*$ 为自助样本的样本均值：
+  \[
+    \bar X^*=\frac1n(X_1^*+\cdots+X_n^*).
+  \]
+  \begin{enumerate}
+    \item[(a)] 对每个 $j$，计算 $E(X_j^*)$ 与 $\operatorname{Var}(X_j^*)$。
+    \item[(b)] 计算 $E(\bar X^*\mid X_1,\ldots,X_n)$ 与 $\operatorname{Var}(\bar X^*\mid X_1,\ldots,X_n)$。
+
+    \noindent 提示：条件于 $X_1,\ldots,X_n$ 时，$X_j^*$ 相互独立，其 PMF 在 $X_1,\ldots,X_n$ 每一点上放置概率 $1/n$。作为检查，你的答案应是 $X_1,\ldots,X_n$ 的函数构成的随机变量。
+
+    \item[(c)] 计算 $E(\bar X^*)$ 与 $\operatorname{Var}(\bar X^*)$。
+    \item[(d)] 直观解释为什么 $\operatorname{Var}(\bar X)<\operatorname{Var}(\bar X^*)$。
+  \end{enumerate}
+
+  \item 某保险公司承保两个相邻区域 $R_1,R_2$ 中的灾害。令 $I_1,I_2$ 分别为 $R_1,R_2$ 是否遭受承保灾害的指示随机变量。指示变量 $I_1,I_2$ 可以相依。令 $p_j=E(I_j)$，$j=1,2$，且 $p_{12}=E(I_1I_2)$。
+
+  公司向这些区域赔付的总成本为
+  \[
+    C=I_1T_1+I_2T_2,
+  \]
+  其中 $T_j$ 的均值为 $\mu_j$、方差为 $\sigma_j^2$。假设 $T_1,T_2$ 相互独立，且 $(T_1,T_2)$ 与 $(I_1,I_2)$ 独立。
+  \begin{enumerate}
+    \item[(a)] 求 $E(C)$。
+    \item[(b)] 求 $\operatorname{Var}(C)$。
+  \end{enumerate}
+
+  \item $\circledS$ 某股票在一些日子波动率低，在另一些日子波动率高。假设低波动日的概率为 $p$，高波动日的概率为 $q=1-p$；低波动日中股票价格百分比变化服从 $\mathcal N(0,\sigma_1^2)$，高波动日中服从 $\mathcal N(0,\sigma_2^2)$，其中 $\sigma_1<\sigma_2$。
+
+  令 $X$ 为该股票某天的百分比变化。这个分布称为两个正态分布的\textbf{混合}。表示 $X$ 的一个方便方法是
+  \[
+    X=I_1X_1+I_2X_2,
+  \]
+  其中 $I_1$ 是低波动日的指示变量，$I_2=1-I_1$，$X_j\sim\mathcal N(0,\sigma_j^2)$，且 $I_1,X_1,X_2$ 相互独立。
+  \begin{enumerate}
+    \item[(a)] 用两种方法求 $\operatorname{Var}(X)$：一种使用 Eve 公式，另一种使用协方差性质计算
+    \[
+      \operatorname{Cov}(I_1X_1+I_2X_2,I_1X_1+I_2X_2).
+    \]
+    \item[(b)] 回忆第 6 章中，均值为 $\mu$、标准差为 $\sigma$ 的随机变量 $Y$ 的峰度定义为
+    \[
+      \operatorname{Kurt}(Y)=\frac{E(Y-\mu)^4}{\sigma^4}-3.
+    \]
+    求 $X$ 的峰度（用 $p,q,\sigma_1^2,\sigma_2^2$ 表示，并充分化简）。结果会说明，尽管任何正态分布的峰度为 $0$，$X$ 的峰度却为正，而且依参数取值可能非常大。
+  \end{enumerate}
+
+  \item 设 $X_1,X_2,Y$ 是随机变量，且 $Y$ 方差有限。令
+  \[
+    A=E(Y\mid X_1),\qquad B=E(Y\mid X_1,X_2).
+  \]
+  证明
+  \[
+    \operatorname{Var}(A)\le \operatorname{Var}(B).
+  \]
+  同时检查这个结论在两个极端情形下是否合理：$Y$ 与 $X_1$ 独立，以及 $Y=h(X_2)$ 对某个函数 $h$ 成立。
+
+  \noindent 提示：对 $B$ 使用 Eve 公式。
+
+  \item 证明对任意随机变量 $X,Y$，
+  \[
+    E(Y\mid E(Y\mid X))=E(Y\mid X).
+  \]
+  若把 $E(Y\mid X)$ 看作基于 $X$ 对 $Y$ 作出的预测，这有一个很好的直观解释：给定我们会用来根据 $X$ 预测 $Y$ 的预测值后，就不再需要知道 $X$ 来预测 $Y$，只需使用已经得到的预测值。例如，令 $E(Y\mid X)=g(X)$。若我们观测到 $g(X)=7$，则我们可能知道也可能不知道 $X$ 是什么（因为 $g$ 不一定是一一函数）；但即使不知道 $X$，我们也知道基于 $X$ 对 $Y$ 的预测值是 $7$。
+
+  \noindent 提示：使用带额外条件的 Adam 公式。
+
+  \item 一名研究者想知道针对 conditionitis 疾病的新疗法是否比标准疗法更有效。遗憾的是，无法进行随机实验，但研究者有接受新疗法与接受标准疗法患者的医疗记录。她担心医生倾向于把新疗法给更年轻、更健康的患者。如果确实如此，那么天真地比较两组患者的结局就像拿苹果和橙子比较。
+
+  假设每个患者有背景变量 $\mathbf X$，它可能包括年龄、身高、体重以及与既往健康状况有关的测量。令 $Z$ 为是否接受新疗法的指示变量。研究者担心 $Z$ 依赖于 $\mathbf X$，也就是说，给定 $Z=1$ 时 $\mathbf X$ 的分布不同于给定 $Z=0$ 时 $\mathbf X$ 的分布。
+
+  为了把苹果和苹果比较，研究者想把每个接受新疗法的患者与一个背景变量相似、接受标准疗法的患者配对。但 $\mathbf X$ 可能是高维随机向量，这通常使得寻找 $\mathbf X$ 取值相近的配对非常困难。
+
+  \textbf{倾向得分}把可能高维的背景变量向量压缩成一个数（于是将某人与倾向得分相近的人配对，比将某人与 $\mathbf X$ 取值相近的人配对容易得多）。背景特征为 $\mathbf X$ 的人的倾向得分定义为
+  \[
+    S=E(Z\mid \mathbf X).
+  \]
+  由基本桥梁，一个人的倾向得分就是给定其背景特征后接受治疗的概率。证明：条件于 $S$ 时，治疗指示变量 $Z$ 与背景变量 $\mathbf X$ 独立。
+
+  \noindent 提示：本题与上一题有关。证明
+  \[
+    P(Z=1\mid S,\mathbf X)=P(Z=1\mid S),
+  \]
+  这等价于证明 $E(Z\mid S,\mathbf X)=E(Z\mid S)$。
+
+  \item 本题建立一个有用的协方差恒等式，其精神类似于 Adam 公式之于期望、Eve 公式之于方差。先以类似条件方差的方式定义条件协方差：
+  \[
+    \operatorname{Cov}(X,Y\mid Z)
+    =E((X-E(X\mid Z))(Y-E(Y\mid Z))\mid Z).
+  \]
+  \begin{enumerate}
+    \item[(a)] 证明
+    \[
+      \operatorname{Cov}(X,Y\mid Z)
+      =E(XY\mid Z)-E(X\mid Z)E(Y\mid Z).
+    \]
+    这应当成立，因为它是事实
+    \[
+      \operatorname{Cov}(X,Y)=E(XY)-E(X)E(Y)
+    \]
+    的条件版本，而且条件概率仍是概率；但本题中应直接利用期望与条件期望性质来证明。
+
+    \item[(b)] ECCE，即\textbf{全协方差公式}，断言
+    \[
+      \operatorname{Cov}(X,Y)
+      =E(\operatorname{Cov}(X,Y\mid Z))
+      +\operatorname{Cov}(E(X\mid Z),E(Y\mid Z)).
+    \]
+    也就是说，$X$ 与 $Y$ 的协方差等于它们条件协方差的期望，加上它们条件期望的协方差，其中这些条件量都条件在 $Z$ 上。证明这个恒等式。
+
+    \noindent 提示：不妨假设 $E(X)=E(Y)=0$，因为给随机变量加常数不会影响它与任何随机变量的协方差。然后展开等式右边的协方差并应用 Adam 公式。
+  \end{enumerate}
+
+\subsection*{综合练习}
+
+  \item 一群 $n$ 个朋友经常一起外出吃晚餐。吃饭时，他们玩“信用卡轮盘”来决定谁付账。这意味着每次晚餐时，都从这群人中均匀随机选出一个人支付全部账单（且与其他晚餐中发生的事情独立）。
+  \begin{enumerate}
+    \item[(a)] 求在 $k$ 次晚餐中没有人需要付账超过一次的概率（当 $k\le n$ 时不必化简，但当 $k>n$ 时要充分化简）。
+    \item[(b)] 求为了让每个人都至少付过一次账所需晚餐次数的期望（答案可以保留为有限个简单项之和）。
+    \item[(c)] Alice 与 Bob 是其中两个朋友。求 $k$ 次晚餐中 Alice 付账次数与 Bob 付账次数之间的协方差。
+  \end{enumerate}
+
+  \item 与上一题一样，一群 $n$ 个朋友在晚餐时玩“信用卡轮盘”。本题中，令晚餐次数为 $\operatorname{Pois}(\lambda)$ 随机变量。
+  \begin{enumerate}
+    \item[(a)] Alice 是其中一名朋友。求 Alice 付账次数与 Alice 免费吃饭次数之间的相关系数。
+    \item[(b)] 晚餐花费独立同分布为 $\operatorname{Gamma}(a,b)$ 随机变量，并且与晚餐次数独立。求总花费的均值与方差。
+  \end{enumerate}
+
+  \item Joe 明年将阅读 $N\sim\operatorname{Pois}(\lambda)$ 本书。每本书的页数服从 $\operatorname{Pois}(\mu)$，书长彼此独立，并且与 $N$ 独立。
+  \begin{enumerate}
+    \item[(a)] 求 Joe 明年阅读书页数的期望。
+    \item[(b)] 求 Joe 明年阅读书页数的方差。
+    \item[(c)] 对这 $N$ 本书中的每一本，Joe 独立地以概率 $p$ 喜欢它、以概率 $1-p$ 不喜欢它。给定他恰好不喜欢其中 $d$ 本书，求他喜欢的书本数的条件分布。
+  \end{enumerate}
+
+  \item 公交车按照速率为 $\lambda$ 的 Poisson 过程到达某公交站。每辆车有 $n$ 个座位，并且到站瞬间乘客数服从 $\operatorname{Bin}(n,p)$。假设不同公交车上的乘客数相互独立，并且与公交车到达时间独立。
+
+  令 $N_t$ 为时间区间 $[0,t]$ 内到达的公交车数，令 $X_t$ 为时间区间 $[0,t]$ 内到达公交车上的总乘客数。
+  \begin{enumerate}
+    \item[(a)] 求 $N_t$ 的均值与方差。
+    \item[(b)] 求 $X_t$ 的均值与方差。
+    \item[(c)] 若一辆公交车到站时恰有 $n$ 名乘客，则称它是满员的。求在 $[0,t]$ 内恰有 $a+b$ 辆公交车到达，其中 $a$ 辆满员、$b$ 辆未满员的概率。
+  \end{enumerate}
+
+  \item Paul 与另外 $n$ 名跑者参加马拉松。所有人的完赛时间是相互独立的连续随机变量，CDF 为 $F$。
+  \begin{enumerate}
+    \item[(a)] 对 $j=1,2,\ldots,n$，令 $A_j$ 为匿名跑者 $j$ 比 Paul 更快完赛的事件。解释事件 $A_j$ 是否独立，以及给定 Paul 的完赛时间后它们是否条件独立。
+    \item[(b)] 本题余下部分令 $N$ 为比 Paul 更快完赛的跑者人数。求 $E(N)$。（答案应只依赖于 $n$，因为 Paul 的时间是随机变量。）
+    \item[(c)] 给定 Paul 的马拉松完赛时间为 $t$，求 $N$ 的条件分布。
+    \item[(d)] 求 $\operatorname{Var}(N)$。（答案应只依赖于 $n$，因为 Paul 的时间是随机变量。）
+
+    \noindent 提示：令 $T$ 为 Paul 的时间，并用 Eve 公式条件在 $T$ 上。也可以使用指示随机变量。
+  \end{enumerate}
+
+  \item 电子邮件按照速率为每小时 $\lambda$ 封的 Poisson 过程到达收件箱。
+  \begin{enumerate}
+    \item[(a)] 给定 8 小时时间段内恰好到达 $n$ 封邮件，求前 2 小时内到达邮件数的条件分布名称与参数。
+    \item[(b)] 每封邮件独立地以概率 $p$ 为正常邮件，以概率 $q=1-p$ 为垃圾邮件。给定 8 小时时间段内恰好到达 $s$ 封垃圾邮件，求该时间段内正常邮件数的条件分布名称与参数。
+    \item[(c)] 阅读一封邮件所需时间是随机的，均值为 $\mu$ 小时，标准差为 $\sigma$ 小时。这些阅读时间独立同分布，并且与邮件到达过程独立。求阅读 8 小时时间段内到达的所有邮件所需总时间的无条件均值与方差。
+  \end{enumerate}
+
+  \item 一名精算师想估计与 Fred 的保险索赔次数和索赔金额有关的若干量。假设 Fred 明年会提出 $N$ 次索赔，其中 $N\mid\lambda\sim\operatorname{Pois}(\lambda)$。但 $\lambda$ 未知，所以精算师采用 Bayes 方法，基于过去经验给 $\lambda$ 一个先验分布。具体地，先验为 $\lambda\sim\operatorname{Expo}(1)$。单次索赔金额服从参数为 $\mu,\sigma^2$ 的对数正态分布（这里 $\mu,\sigma^2$ 是底层正态分布的均值与方差），且 $\mu,\sigma^2$ 已知。各索赔金额独立同分布，并且与 $N$ 独立。
+  \begin{enumerate}
+    \item[(a)] 用条件期望性质求 $E(N)$ 与 $\operatorname{Var}(N)$（答案不应依赖于 $\lambda$，因为 $\lambda$ 未知且被当作随机变量处理）。
+    \item[(b)] 求全部索赔总金额的均值与方差。
+    \item[(c)] 求 $N$ 的分布。若它是我们学过的有名分布，给出其名称与参数。
+    \item[(d)] 给定观测到 Fred 明年提出 $N=n$ 次索赔，求 $\lambda$ 的后验分布。若它是我们学过的有名分布，给出其名称与参数。
+  \end{enumerate}
+
+  \item $\circledS$ 设 $X_1,X_2,X_3$ 相互独立，且 $X_i\sim\operatorname{Expo}(\lambda_i)$（速率可以不同）。回忆第 7 章中
+  \[
+    P(X_1<X_2)=\frac{\lambda_1}{\lambda_1+\lambda_2}.
+  \]
+  \begin{enumerate}
+    \item[(a)] 用 $\lambda_1,\lambda_2,\lambda_3$ 表示
+    \[
+      E(X_1+X_2+X_3\mid X_1>1,X_2>2,X_3>3).
+    \]
+    \item[(b)] 求 $P(X_1=\min(X_1,X_2,X_3))$，即三个指数随机变量中第一个最小的概率。
+
+    \noindent 提示：把它改写为关于 $X_1$ 与 $\min(X_2,X_3)$ 的问题。
+
+    \item[(c)] 在 $\lambda_1=\lambda_2=\lambda_3=1$ 的情形中，求 $\max(X_1,X_2,X_3)$ 的 PDF。这是我们学过的重要分布之一吗？
+  \end{enumerate}
+
+  \item $\circledS$ 一个任务被随机分配给两个人之一（每人概率 $1/2$）。若分给第一个人，完成任务所需时间为 $\operatorname{Expo}(\lambda_1)$ 小时；若分给第二个人，完成任务所需时间为 $\operatorname{Expo}(\lambda_2)$ 小时（与第一个人本来会花多久独立）。令 $T$ 为完成任务所需时间。
+  \begin{enumerate}
+    \item[(a)] 求 $T$ 的均值与方差。
+    \item[(b)] 现在假设任务同时分配给两个人，令 $X$ 为完成任务所需时间（由先完成者完成，两人独立工作）。观测到 24 小时后任务仍未完成。给定这个信息，$X$ 的期望是多少？
+  \end{enumerate}
+
+  \item 假设在本题中，“真实 IQ”是一个有意义的概念，而不是被实体化的社会构造。假设美国总体中的真实 IQ 服从均值为 100、标准差为 15 的正态分布。随机选取一个人参加 IQ 测试。测试是真实能力的有噪声测量：平均而言正确，但有标准差为 5 的正态测量误差。
+
+  令 $\mu$ 为这个人的真实 IQ，视为随机变量；令 $Y$ 为她在 IQ 测试中的分数。则
+  \[
+    Y\mid\mu\sim\mathcal N(\mu,5^2),\qquad
+    \mu\sim\mathcal N(100,15^2).
+  \]
+  \begin{enumerate}
+    \item[(a)] 求 $Y$ 的无条件均值与方差。
+    \item[(b)] 求 $Y$ 的边缘分布。一个方法是使用 MGF。
+    \item[(c)] 求 $\operatorname{Cov}(\mu,Y)$。
+  \end{enumerate}
+
+  \item $\circledS$ 研究某个可用数值测量的遗传特征。令 $X_1,X_2$ 为一对双胞胎男孩在该遗传特征上的取值。给定他们是同卵双胞胎时，$X_1=X_2$，且 $X_1$ 均值为 $0$、方差为 $\sigma^2$；给定他们是异卵双胞胎时，$X_1,X_2$ 均值为 $0$、方差为 $\sigma^2$、相关系数为 $\rho$。双胞胎为同卵的概率为 $1/2$。用 $\rho,\sigma^2$ 表示 $\operatorname{Cov}(X_1,X_2)$。
+
+  \item $\circledS$ Mass Cash 彩票每天从 $1,2,\ldots,35$ 中随机选出 5 个号码（一次选择的 5 个号码中不重复）。假设我们想知道直到所有号码都被选中过需要多久。令 $a_j$ 为还缺 $j$ 个号码时所需的额外天数的平均值（因此 $a_0=0$，$a_{35}$ 是收集齐全部 35 个号码所需天数的平均值）。求 $a_j$ 的递推公式。
+
+  \item 两名国际象棋棋手 Vishy 与 Magnus 进行一系列比赛。给定 $p$ 时，比赛结果独立同分布，Vishy 以概率 $p$ 获胜，Magnus 以概率 $q=1-p$ 获胜（假设每局一定由二者之一获胜）。但 $p$ 未知，所以我们把它当作随机变量。为反映对 $p$ 的不确定性，使用先验 $p\sim\operatorname{Beta}(a,b)$，其中 $a,b$ 是已知正整数且 $a\ge2$。
+  \begin{enumerate}
+    \item[(a)] 求 Vishy 赢得一局所需比赛场数（包括获胜那局）的期望。充分化简；最终答案不应使用阶乘或 $\Gamma$。
+    \item[(b)] 从独立性与条件独立性的角度，解释 (a) 的答案与 $1+E(G)$（其中 $G\sim\operatorname{Geom}(a/(a+b))$）之间不等式的方向。
+    \item[(c)] 给定 Vishy 在前 10 局中恰好赢了 7 局，求 $p$ 的条件分布。
+  \end{enumerate}
+
+  \item \textbf{Laplace 继承律}说：若给定 $p$ 时 $X_1,X_2,\ldots,X_{n+1}$ 是条件独立的 $\operatorname{Bern}(p)$ 随机变量，而 $p$ 具有 $\operatorname{Unif}(0,1)$ 先验来表示对其取值的无知，则
+  \[
+    P(X_{n+1}=1\mid X_1+\cdots+X_n=k)=\frac{k+1}{n+2}.
+  \]
+  例如，Laplace 讨论过这样的问题：给定有记录以来 $n$ 天中太阳每天都升起，预测明天太阳是否升起；上式给出明天太阳升起的概率为 $(n+1)/(n+2)$（当然，假设独立试验且 $p$ 不随时间改变，对日出问题可能是很不合理的模型）。
+  \begin{enumerate}
+    \item[(a)] 给定 $X_1=x_1,\ldots,X_n=x_n$，求 $p$ 的后验分布，并证明它只依赖于 $x_j$ 的和（也就是说，为了得到后验分布，只需要一维量 $x_1+\cdots+x_n$，而不需要所有 $n$ 个数据点）。
+    \item[(b)] 用全概率公式的一种形式证明 Laplace 继承律：通过条件在 $p$ 上求
+    \[
+      P(X_{n+1}=1\mid X_1+\cdots+X_n=k).
+    \]
+    下一题与此密切相关，涉及一个等价的 Adam 公式证明。
+  \end{enumerate}
+
+  \item 两支篮球队 $A$ 与 $B$ 进行 $n$ 场比赛。令 $X_j$ 为队伍 $A$ 赢得第 $j$ 场比赛的指示变量。给定 $p$ 时，随机变量 $X_1,\ldots,X_n$ 独立同分布，且 $X_j\mid p\sim\operatorname{Bern}(p)$。但 $p$ 未知，所以我们把它当作随机变量。令先验分布为 $p\sim\operatorname{Unif}(0,1)$，并令 $X$ 为队伍 $A$ 的获胜场数。
+  \begin{enumerate}
+    \item[(a)] 求 $E(X)$ 与 $\operatorname{Var}(X)$。
+    \item[(b)] 用 Adam 公式求：给定队伍 $A$ 在前 $j$ 场中恰好赢了 $a$ 场，第 $j+1$ 场队伍 $A$ 获胜的概率。上一题与此密切相关，给出一个等价的 LOTP 证明。
+
+    \noindent 提示：令 $C$ 为队伍 $A$ 在前 $j$ 场中恰好赢 $a$ 场的事件，
+    \[
+      P(X_{j+1}=1\mid C)=E(X_{j+1}\mid C)
+      =E(E(X_{j+1}\mid C,p)\mid C)=E(p\mid C).
+    \]
+    \item[(c)] 求 $X$ 的 PMF。（有多种做法，包括一种非常快、基于前面章节结果的做法。）
+    \item[(d)] 2002 年 Putnam 考试提出了如下问题：
+
+    \textit{Shanille O'Keal 在篮球场上罚球。她第一球命中，第二球未中。此后，她下一球命中的条件概率等于她到目前为止命中球数占已投球数的比例。她前 100 次投篮中恰好命中 50 次的概率是多少？}
+
+    利用 (c) 的结果解决这个 Putnam 问题。务必解释为什么可以应用该结果，尽管 Putnam 问题看起来并没有使用同一模型，例如它没有提到先验分布，更不用说 $\operatorname{Unif}(0,1)$ 先验。
+  \end{enumerate}
+
+  \item 设 $X\mid p\sim\operatorname{Bin}(n,p)$，且 $p\sim\operatorname{Beta}(a,b)$。于是 $X$ 服从 Beta-Binomial 分布，如故事 8.3.3 与例 8.5.3 中提到的那样。求 $E(X)$ 与 $\operatorname{Var}(X)$。
+
+  \item 正在举行一场选举。候选人有 $A$ 与 $B$ 两人，共有 $n$ 名选民。投给候选人 $A$ 的概率因城市而异。共有 $m$ 个城市，标号为 $1,2,\ldots,m$。第 $j$ 个城市有 $n_j$ 名选民，因此 $n_1+n_2+\cdots+n_m=n$。令 $X_j$ 为第 $j$ 个城市中投给候选人 $A$ 的人数，且
+  \[
+    X_j\mid p_j\sim\operatorname{Bin}(n_j,p_j).
+  \]
+  为反映对每个城市投票概率的不确定性，我们把 $p_1,\ldots,p_m$ 当作随机变量，先验分布断言它们独立同分布于 $\operatorname{Unif}(0,1)$。假设 $X_1,\ldots,X_m$ 无条件独立，且条件于 $p_1,\ldots,p_m$ 时也独立。令 $X$ 为投给候选人 $A$ 的总票数。
+  \begin{enumerate}
+    \item[(a)] 求 $X_1$ 的边缘分布与 $p_1\mid (X_1=k_1)$ 的后验分布。
+    \item[(b)] 用 $n$ 与 $s$ 表示 $E(X)$ 与 $\operatorname{Var}(X)$，其中
+    \[
+      s=n_1^2+n_2^2+\cdots+n_m^2.
+    \]
+  \end{enumerate}
+\end{enumerate}
+
+\end{document}

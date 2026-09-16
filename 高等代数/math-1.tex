@@ -1,0 +1,3423 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\title{第一章\quad 行列式}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{§1.1\quad 二阶行列式}
+
+我们在中学里曾经学过如何解二元一次方程组和三元一次方程组. 在许多实际问题中，我们还会遇到未知数更多的一次方程组，通常称之为线性方程组. 一般来说，具有下列形状的方程组称为 $n$ 元线性方程组的标准式：
+\begin{equation}
+\left\{
+\begin{array}{l}
+a_{11}x_1+a_{12}x_2+\cdots+a_{1n}x_n=b_1,\\
+a_{21}x_1+a_{22}x_2+\cdots+a_{2n}x_n=b_2,\\
+\hspace{4em}\cdots\cdots\cdots\cdots\\
+a_{m1}x_1+a_{m2}x_2+\cdots+a_{mn}x_n=b_m,
+\end{array}
+\right.
+\tag{1.1.1}
+\end{equation}
+其中 $a_{ij}, b_i\ (i=1,2,\cdots,m;\ j=1,2,\cdots,n)$ 都是常数，$x_j(j=1,2,\cdots,n)$ 是未知数，方程组中所有未知数都是一次的. 注意在一般的线性方程组中，$m$ 和 $n$ 可以不相等，即方程组中未知数个数和方程式个数可以不等. 凡是经过有限次移项、合并同类项可以变为 (1.1.1) 式形状的方程组都称为线性方程组. 求解线性方程组是线性代数的一个重要任务，我们在这一章中主要讨论当 $m=n$，即方程式个数等于未知数个数时如何来解上述线性方程组.
+
+我们首先回忆一下中学里学过的解二元一次方程组的方法. 先看一个简单的例子.
+
+\noindent\textbf{例 1.1.1}\quad 求解二元一次方程组：
+\begin{equation}
+\left\{
+\begin{array}{l}
+2x-y=5,\\
+3x+2y=11.
+\end{array}
+\right.
+\tag{1.1.2}
+\end{equation}
+
+\noindent\textbf{解}\quad 用代入消去法，在第一个方程式中解出 $y$ 用 $x$ 表示的式子：
+\[
+y=2x-5.
+\]
+代入第二个方程式中得到
+\[
+3x+2(2x-5)=11.
+\]
+整理后得
+\[
+7x=21.
+\]
+解得 $x=3$，代入 $y=2x-5$ 求得 $y=1$. 于是上述线性方程组有唯一一组解：
+\[
+\left\{
+\begin{array}{l}
+x=3,\\
+y=1.
+\end{array}
+\right.
+\]
+
+读者不难想象这种方法也可用来解一般的线性方程组. 比如对一个含 10 个未知数的方程组，利用一个方程式将第一个未知数用其他 9 个未知数表示出来以后分别代入其余方程式，于是原来的方程组就化为只含有 9 个未知数的方程组了. 再用同样的方法可以得到一个只含 8 个未知数的方程组，等等，一直做到只含 1 个未知数. 解出这个一元一次方程式并返回去求所有其他未知数. 这个办法在理论上似乎是可行的，但是当未知数个数很多时 (在许多实际问题中，未知数的个数可能有成千上万个)，运算将变得难以想象的复杂. 另外，用代入法无法得出一个规范化的公式，这对于从理论上分析线性方程组的解不能不说是个很大的缺陷. 我们现在希望给出线性方程组解的一个公式. 这样的公式真的存在吗？我们首先来考察二元一次方程组的解，设有二元一次方程组：
+\begin{equation}
+\left\{
+\begin{array}{l}
+a_{11}x_1+a_{12}x_2=b_1,\\
+a_{21}x_1+a_{22}x_2=b_2.
+\end{array}
+\right.
+\tag{1.1.3}
+\end{equation}
+用 $a_{22}$ 乘第一式的两边，用 $-a_{12}$ 乘第二式的两边得
+\[
+\left\{
+\begin{array}{l}
+a_{11}a_{22}x_1+a_{12}a_{22}x_2=b_1a_{22},\\
+-a_{12}a_{21}x_1-a_{12}a_{22}x_2=-b_2a_{12}.
+\end{array}
+\right.
+\]
+将这两个方程式两边相加得
+\[
+(a_{11}a_{22}-a_{12}a_{21})x_1=b_1a_{22}-b_2a_{12}.
+\]
+于是
+\[
+x_1=\frac{b_1a_{22}-b_2a_{12}}{a_{11}a_{22}-a_{12}a_{21}}.
+\]
+用类似的方法消去 $x_1$，解得
+\[
+x_2=\frac{a_{11}b_2-a_{21}b_1}{a_{11}a_{22}-a_{12}a_{21}}.
+\]
+
+注意到二元一次方程组的两个解都可以表示为分数的形状，其中分母仅和未知数的系数有关. 二元一次方程组解的公式是有了，但是这个公式不太好记忆.
+
+如果我们引进二阶行列式
+\[
+\left|\begin{array}{cc}
+a & b\\
+c & d
+\end{array}\right|=ad-bc,
+\]
+则上述解可用行列式表示：
+\begin{equation}
+x_1=
+\frac{\left|\begin{array}{cc}
+b_1 & a_{12}\\
+b_2 & a_{22}
+\end{array}\right|}
+{\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{21} & a_{22}
+\end{array}\right|},\quad
+x_2=
+\frac{\left|\begin{array}{cc}
+a_{11} & b_1\\
+a_{21} & b_2
+\end{array}\right|}
+{\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{21} & a_{22}
+\end{array}\right|}.
+\tag{1.1.4}
+\end{equation}
+在用行列式表示的解公式 (1.1.4) 中，我们发现解的表达有一定的规律：
+
+(1) $x_1$ 与 $x_2$ 的分母都是行列式 $\left|\begin{array}{cc}a_{11}&a_{12}\\a_{21}&a_{22}\end{array}\right|$，即只需将原方程组未知数前的系数按原顺序排成一个行列式即可.
+
+(2) $x_1$ 的分子行列式的第一列是原方程组的常数列，第二列由 $x_2$ 的系数组成，因此这个行列式可以看成是将 $x_1$ 与 $x_2$ 的分母行列式 $\left|\begin{array}{cc}a_{11}&a_{12}\\a_{21}&a_{22}\end{array}\right|$ 中的第一列换成常数项而得. 这个规则对 $x_2$ 的分子行列式也适用.
+
+显而易见，这样的解的公式一目了然而且很容易记忆. 我们自然希望用同样的公式来表示三元一次方程组的解乃至 $n$ 元线性方程组的解. 在做这件事之前，我们先来研究二阶行列式的性质，这将启发我们如何定义一般的 $n$ 阶行列式.
+
+设有二阶行列式
+\[
+|A|=\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+0 & a_{22}
+\end{array}\right|,
+\]
+$|A|$ 的值根据定义为 $a_{11}a_{22}$. 我们称上述行列式为上三角行列式，元素 $a_{11},a_{22}$ 为行列式的对角线元素 (或主对角元素)，于是我们得到行列式的第一个性质.
+
+\noindent\textbf{性质 1}\quad 上三角行列式的值等于其对角线元素之积.
+
+\noindent\textbf{性质 2}\quad 行列式某行或某列全为零，则行列式值等于零.
+
+比如若第一行全为零，则显然
+\[
+\left|\begin{array}{cc}
+0 & 0\\
+a_{21} & a_{22}
+\end{array}\right|=0.
+\]
+其他几种情形也类似可验证.
+
+\noindent\textbf{性质 3}\quad 用常数 $c$ 乘以行列式的某一行或某一列，得到的行列式的值等于原行列式值的 $c$ 倍.
+
+比如将 $c$ 乘以 $|A|$ 的第一行，有
+\[
+\left|\begin{array}{cc}
+ca_{11} & ca_{12}\\
+a_{21} & a_{22}
+\end{array}\right|
+=(ca_{11})a_{22}-(ca_{12})a_{21}=c|A|.
+\]
+其他几种情形读者可自己验证.
+
+\noindent\textbf{性质 4}\quad 交换行列式不同的两行 (列)，行列式的值改变符号.
+
+证明也很容易：
+\[
+\left|\begin{array}{cc}
+a_{21} & a_{22}\\
+a_{11} & a_{12}
+\end{array}\right|
+=a_{21}a_{12}-a_{11}a_{22}
+=-\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{21} & a_{22}
+\end{array}\right|.
+\]
+同理
+\[
+\left|\begin{array}{cc}
+a_{12} & a_{11}\\
+a_{22} & a_{21}
+\end{array}\right|
+=-\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{21} & a_{22}
+\end{array}\right|.
+\]
+
+\noindent\textbf{性质 5}\quad 若行列式两行或两列成比例，则行列式的值等于零. 特别，若行列式两行或两列相同，则行列式的值等于零.
+
+对列成比例的情形可证明如下：
+\[
+\left|\begin{array}{cc}
+a_{11} & ka_{11}\\
+a_{21} & ka_{21}
+\end{array}\right|
+=a_{11}ka_{21}-ka_{11}a_{21}=0.
+\]
+同理可证明行成比例的情形.
+
+\noindent\textbf{性质 6}\quad 若行列式中某行 (列) 元素均为两项之和，则行列式可表示为两个行列式之和.
+
+如
+\[
+\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+b_{21}+c_{21} & b_{22}+c_{22}
+\end{array}\right|
+=
+\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+b_{21} & b_{22}
+\end{array}\right|
++
+\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+c_{21} & c_{22}
+\end{array}\right|;
+\]
+\[
+\left|\begin{array}{cc}
+b_{11}+c_{11} & a_{12}\\
+b_{21}+c_{21} & a_{22}
+\end{array}\right|
+=
+\left|\begin{array}{cc}
+b_{11} & a_{12}\\
+b_{21} & a_{22}
+\end{array}\right|
++
+\left|\begin{array}{cc}
+c_{11} & a_{12}\\
+c_{21} & a_{22}
+\end{array}\right|.
+\]
+验证也非常容易，只需按照行列式定义计算等式两边的值即可. 需要注意的是下面的等式不成立：
+\[
+\left|\begin{array}{cc}
+a_{11}+b_{11} & a_{12}+b_{12}\\
+a_{21}+b_{21} & a_{22}+b_{22}
+\end{array}\right|
+=
+\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{21} & a_{22}
+\end{array}\right|
++
+\left|\begin{array}{cc}
+b_{11} & b_{12}\\
+b_{21} & b_{22}
+\end{array}\right|.
+\]
+请读者想一想为什么？上式左边的行列式应该等于什么？
+
+\noindent\textbf{性质 7}\quad 行列式的某一行 (列) 乘以某个数加到另一行 (列) 上，行列式的值不变.
+
+比如行列式
+\[
+\begin{aligned}
+\left|\begin{array}{cc}
+a_{11} & a_{12}+ka_{11}\\
+a_{21} & a_{22}+ka_{21}
+\end{array}\right|
+&=a_{11}(a_{22}+ka_{21})-a_{21}(a_{12}+ka_{11})\\
+&=a_{11}a_{22}-a_{21}a_{12}
+=\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{21} & a_{22}
+\end{array}\right|.
+\end{aligned}
+\]
+同理可证
+\[
+\left|\begin{array}{cc}
+a_{11}+ka_{12} & a_{12}\\
+a_{21}+ka_{22} & a_{22}
+\end{array}\right|
+=
+\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{21} & a_{22}
+\end{array}\right|;
+\]
+\[
+\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{21}+ka_{11} & a_{22}+ka_{12}
+\end{array}\right|
+=
+\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{21} & a_{22}
+\end{array}\right|;
+\]
+\[
+\left|\begin{array}{cc}
+a_{11}+ka_{21} & a_{12}+ka_{22}\\
+a_{21} & a_{22}
+\end{array}\right|
+=
+\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{21} & a_{22}
+\end{array}\right|.
+\]
+
+设有二阶行列式
+\[
+|A|=\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{21} & a_{22}
+\end{array}\right|,
+\]
+$|A|$ 的值根据定义为 $a_{11}a_{22}-a_{12}a_{21}$. 我们称下列行列式为 $|A|$ 的转置：
+\[
+\left|\begin{array}{cc}
+a_{11} & a_{21}\\
+a_{12} & a_{22}
+\end{array}\right|,
+\]
+记为 $|A|'$. 注意 $|A|'$ 的第一列就是 $|A|$ 的第一行，$|A|'$ 的第二列就是 $|A|$ 的第二行，根据定义 $|A|'=a_{11}a_{22}-a_{21}a_{12}$，发现它就等于行列式 $|A|$ 的值. 于是我们得到行列式的又一个性质.
+
+\noindent\textbf{性质 8}\quad 行列式和其转置具有相同的值.
+
+\noindent\textbf{注}\quad 从性质 1 到性质 7，我们发现行列式性质具有行和列的对称性，即对行成立的性质，对列也成立. 这是因为性质 8 在起作用. 转置将行变成了相应的列，既然行列式转置后值不改变，那么同样的性质对列也成立.
+
+现在我们试着用行列式的性质来解二元一次方程组 (1.1.3).
+
+将 $b_1,b_2$ 代入下面的行列式：
+\[
+\left|\begin{array}{cc}
+b_1 & a_{12}\\
+b_2 & a_{22}
+\end{array}\right|
+=
+\left|\begin{array}{cc}
+a_{11}x_1+a_{12}x_2 & a_{12}\\
+a_{21}x_1+a_{22}x_2 & a_{22}
+\end{array}\right|.
+\]
+由性质 7，在右边的行列式中用 $-x_2$ 乘以第二列加到第一列上，行列式值应该不变，即上式等于
+\[
+\left|\begin{array}{cc}
+a_{11}x_1+a_{12}x_2-a_{12}x_2 & a_{12}\\
+a_{21}x_1+a_{22}x_2-a_{22}x_2 & a_{22}
+\end{array}\right|
+=
+\left|\begin{array}{cc}
+a_{11}x_1 & a_{12}\\
+a_{21}x_1 & a_{22}
+\end{array}\right|.
+\]
+再由性质 3，
+\[
+\left|\begin{array}{cc}
+a_{11}x_1 & a_{12}\\
+a_{21}x_1 & a_{22}
+\end{array}\right|
+=x_1
+\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{21} & a_{22}
+\end{array}\right|.
+\]
+综上所述，
+\[
+x_1
+\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{21} & a_{22}
+\end{array}\right|
+=
+\left|\begin{array}{cc}
+b_1 & a_{12}\\
+b_2 & a_{22}
+\end{array}\right|,
+\]
+故
+\[
+x_1=
+\frac{
+\left|\begin{array}{cc}
+b_1 & a_{12}\\
+b_2 & a_{22}
+\end{array}\right|}
+{\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{21} & a_{22}
+\end{array}\right|}.
+\]
+同理，通过计算行列式
+\[
+\left|\begin{array}{cc}
+a_{11} & b_1\\
+a_{21} & b_2
+\end{array}\right|,
+\]
+我们得到
+\[
+x_2=
+\frac{
+\left|\begin{array}{cc}
+a_{11} & b_1\\
+a_{21} & b_2
+\end{array}\right|}
+{\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{21} & a_{22}
+\end{array}\right|}.
+\]
+从这里我们得到启发，既然用二阶行列式性质 (注意没有用到性质 8) 就可以求解二元一次方程组，那么只要从性质着手定义出一般的 $n$ 阶行列式，我们就可以求出 $n$ 元线性方程组的解.
+
+\section*{习题 1.1}
+
+1. 计算下列行列式：
+\[
+(1)\quad
+\left|\begin{array}{cc}
+1 & 2\\
+3 & 4
+\end{array}\right|;\qquad
+(2)\quad
+\left|\begin{array}{cc}
+0 & 1\\
+-1 & 0
+\end{array}\right|.
+\]
+
+2. 计算下面两个行列式并和性质 3 比较：
+\[
+(1)\quad
+\left|\begin{array}{cc}
+2 & 1\\
+-1 & 1
+\end{array}\right|,
+\left|\begin{array}{cc}
+2 & 1\\
+-4 & 4
+\end{array}\right|;\qquad
+(2)\quad
+\left|\begin{array}{cc}
+2 & 1\\
+-1 & 1
+\end{array}\right|,
+\left|\begin{array}{cc}
+2 & 3\\
+-1 & 3
+\end{array}\right|.
+\]
+
+3. 计算下面 3 个行列式并和性质 6 比较 (第一个行列式的第二行等于后两个行列式第二行之和)：
+\[
+\left|\begin{array}{cc}
+3 & 2\\
+4 & 3
+\end{array}\right|,
+\left|\begin{array}{cc}
+3 & 2\\
+3 & 1
+\end{array}\right|,
+\left|\begin{array}{cc}
+3 & 2\\
+1 & 2
+\end{array}\right|.
+\]
+
+4. 比较下列行列式的值：
+\[
+\left|\begin{array}{cc}
+5 & -2\\
+2 & 1
+\end{array}\right|,
+\left|\begin{array}{cc}
+-2 & 1\\
+5 & 2
+\end{array}\right|.
+\]
+
+5. 计算下面两个行列式并和性质 8 比较：
+\[
+\left|\begin{array}{cc}
+2 & 3\\
+-3 & 1
+\end{array}\right|,
+\left|\begin{array}{cc}
+2 & -3\\
+3 & 1
+\end{array}\right|.
+\]
+
+6. 举例说明下列等式不成立：
+\[
+\left|\begin{array}{cc}
+a_{11}+b_{11} & a_{12}+b_{12}\\
+a_{21}+b_{21} & a_{22}+b_{22}
+\end{array}\right|
+=
+\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{21} & a_{22}
+\end{array}\right|
++
+\left|\begin{array}{cc}
+b_{11} & b_{12}\\
+b_{21} & b_{22}
+\end{array}\right|,
+\]
+问：根据性质 6，行列式
+\[
+\left|\begin{array}{cc}
+a_{11}+b_{11} & a_{12}+b_{12}\\
+a_{21}+b_{21} & a_{22}+b_{22}
+\end{array}\right|
+\]
+应等于什么？
+
+\section*{§1.2\quad 三阶行列式}
+
+我们遵循上一节的思路来定义三阶行列式，设
+\begin{equation}
+|A|=
+\left|\begin{array}{ccc}
+a_{11} & a_{12} & a_{13}\\
+a_{21} & a_{22} & a_{23}\\
+a_{31} & a_{32} & a_{33}
+\end{array}\right|,
+\tag{1.2.1}
+\end{equation}
+称 $|A|$ 是一个三阶行列式. 我们要定义三阶行列式的值，使得行列式具有上节中所述的 8 个性质. 我们不妨倒过来，假设行列式已经定义且适合 8 个性质，那么行列式 $|A|$ 的值应该等于什么？
+
+根据行列式性质 6，上述行列式 $|A|$ 可以表示成为 3 个行列式之和：
+\[
+|A|=
+\left|\begin{array}{ccc}
+a_{11} & a_{12} & a_{13}\\
+0 & a_{22} & a_{23}\\
+0 & a_{32} & a_{33}
+\end{array}\right|
++
+\left|\begin{array}{ccc}
+0 & a_{12} & a_{13}\\
+a_{21} & a_{22} & a_{23}\\
+0 & a_{32} & a_{33}
+\end{array}\right|
++
+\left|\begin{array}{ccc}
+0 & a_{12} & a_{13}\\
+0 & a_{22} & a_{23}\\
+a_{31} & a_{32} & a_{33}
+\end{array}\right|.
+\]
+对于上述和式中的第二个行列式，利用性质 4，将其第二行和第一行对换，就可将它化为与和式中第一个行列式相同的类型. 同理，和式中第三个行列式也可以通过行对换化为和第一个行列式相同的类型. 因此，现在的问题是，行列式
+\[
+\left|\begin{array}{ccc}
+a_{11} & a_{12} & a_{13}\\
+0 & a_{22} & a_{23}\\
+0 & a_{32} & a_{33}
+\end{array}\right|
+\]
+应该等于什么？我们利用性质 7 可以将上面这个行列式化为上三角行列式：将 $-a_{22}^{-1}a_{32}$ 乘以第二行加到第三行上，由性质 7，行列式值不变，即
+\[
+\left|\begin{array}{ccc}
+a_{11} & a_{12} & a_{13}\\
+0 & a_{22} & a_{23}\\
+0 & a_{32} & a_{33}
+\end{array}\right|
+=
+\left|\begin{array}{ccc}
+a_{11} & a_{12} & a_{13}\\
+0 & a_{22} & a_{23}\\
+0 & 0 & a_{33}-a_{22}^{-1}a_{32}a_{23}
+\end{array}\right|.
+\]
+再根据性质 1，有
+\[
+\begin{aligned}
+\left|\begin{array}{ccc}
+a_{11} & a_{12} & a_{13}\\
+0 & a_{22} & a_{23}\\
+0 & 0 & a_{33}-a_{22}^{-1}a_{32}a_{23}
+\end{array}\right|
+&=a_{11}a_{22}(a_{33}-a_{22}^{-1}a_{32}a_{23})\\
+&=a_{11}(a_{22}a_{33}-a_{32}a_{23})\\
+&=a_{11}
+\left|\begin{array}{cc}
+a_{22} & a_{23}\\
+a_{32} & a_{33}
+\end{array}\right|.
+\end{aligned}
+\]
+于是
+\[
+\left|\begin{array}{ccc}
+a_{11} & a_{12} & a_{13}\\
+0 & a_{22} & a_{23}\\
+0 & a_{32} & a_{33}
+\end{array}\right|
+=a_{11}
+\left|\begin{array}{cc}
+a_{22} & a_{23}\\
+a_{32} & a_{33}
+\end{array}\right|.
+\]
+再由性质 4 和上面的结果，我们得到
+\[
+\left|\begin{array}{ccc}
+0 & a_{12} & a_{13}\\
+a_{21} & a_{22} & a_{23}\\
+0 & a_{32} & a_{33}
+\end{array}\right|
+=-a_{21}
+\left|\begin{array}{cc}
+a_{12} & a_{13}\\
+a_{32} & a_{33}
+\end{array}\right|,
+\]
+\[
+\left|\begin{array}{ccc}
+0 & a_{12} & a_{13}\\
+0 & a_{22} & a_{23}\\
+a_{31} & a_{32} & a_{33}
+\end{array}\right|
+=a_{31}
+\left|\begin{array}{cc}
+a_{12} & a_{13}\\
+a_{22} & a_{23}
+\end{array}\right|.
+\]
+
+现在我们引进几个名词. 如果将上述行列式 $|A|$ 划去某个元素 $a_{ij}(i,j=1,2,3)$ 所在的一行和一列，则剩下的元素按原来的次序组成一个二阶行列式，我们称这个二阶行列式为元素 $a_{ij}$ 的余子式，记为 $M_{ij}$.
+
+比如 $|A|$ 中元素 $a_{11}$ 的余子式为
+\[
+M_{11}=
+\left|\begin{array}{cc}
+a_{22} & a_{23}\\
+a_{32} & a_{33}
+\end{array}\right|,
+\]
+元素 $a_{12}$ 的余子式为
+\[
+M_{12}=
+\left|\begin{array}{cc}
+a_{21} & a_{23}\\
+a_{31} & a_{33}
+\end{array}\right|,
+\]
+元素 $a_{23}$ 的余子式为
+\[
+M_{23}=
+\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{31} & a_{32}
+\end{array}\right|,
+\]
+等等.
+根据上面的分析，我们有理由作出如下的定义.
+
+定义 (1.2.1) 式中行列式 $|A|$ 的值为
+\[
+|A|=a_{11}M_{11}-a_{21}M_{21}+a_{31}M_{31}.
+\]
+
+\noindent\textbf{例 1.2.1}\quad 计算下列三阶行列式：
+\[
+\left|\begin{array}{ccc}
+1 & -1 & 2\\
+2 & 0 & 3\\
+-1 & -3 & 2
+\end{array}\right|.
+\]
+
+\noindent\textbf{解}\quad 根据定义，行列式的值为
+\[
+1\times
+\left|\begin{array}{cc}
+0 & 3\\
+-3 & 2
+\end{array}\right|
+-2\times
+\left|\begin{array}{cc}
+-1 & 2\\
+-3 & 2
+\end{array}\right|
++(-1)\times
+\left|\begin{array}{cc}
+-1 & 2\\
+0 & 3
+\end{array}\right|
+=4.
+\]
+
+\noindent\textbf{例 1.2.2}\quad 计算下列行列式：
+\[
+\left|\begin{array}{ccc}
+a & a^2+a+1 & 1\\
+0 & -a & a-1\\
+1 & 0 & 0
+\end{array}\right|.
+\]
+
+\noindent\textbf{解}\quad 由定义得此行列式的值为
+\[
+a\times
+\left|\begin{array}{cc}
+-a & a-1\\
+0 & 0
+\end{array}\right|
+-0\times
+\left|\begin{array}{cc}
+a^2+a+1 & 1\\
+0 & 0
+\end{array}\right|
++1\times
+\left|\begin{array}{cc}
+a^2+a+1 & 1\\
+-a & a-1
+\end{array}\right|
+=a^3+a-1.
+\]
+从三阶行列式的定义，我们可以容易地证明所有三阶行列式都满足 §1.1 中的 8 条性质，但我们将这个任务交给读者来完成.
+
+现在我们要用三阶行列式的性质来解三元一次方程组. 设有下列三元一次方程组：
+\begin{equation}
+\left\{
+\begin{array}{l}
+a_{11}x_1+a_{12}x_2+a_{13}x_3=b_1,\\
+a_{21}x_1+a_{22}x_2+a_{23}x_3=b_2,\\
+a_{31}x_1+a_{32}x_2+a_{33}x_3=b_3.
+\end{array}
+\right.
+\tag{1.2.2}
+\end{equation}
+和第一节的做法类似，我们计算行列式
+\[
+\left|\begin{array}{ccc}
+b_1 & a_{12} & a_{13}\\
+b_2 & a_{22} & a_{23}\\
+b_3 & a_{32} & a_{33}
+\end{array}\right|
+=
+\left|\begin{array}{ccc}
+a_{11}x_1+a_{12}x_2+a_{13}x_3 & a_{12} & a_{13}\\
+a_{21}x_1+a_{22}x_2+a_{23}x_3 & a_{22} & a_{23}\\
+a_{31}x_1+a_{32}x_2+a_{33}x_3 & a_{32} & a_{33}
+\end{array}\right|.
+\]
+将上述右边行列式的第二列乘以 $-x_2$ 加到第一列上，再将第三列乘以 $-x_3$ 加到第一列上，根据行列式性质 7，得到的行列式的值等于原行列式的值，即
+\[
+\left|\begin{array}{ccc}
+b_1 & a_{12} & a_{13}\\
+b_2 & a_{22} & a_{23}\\
+b_3 & a_{32} & a_{33}
+\end{array}\right|
+=
+\left|\begin{array}{ccc}
+a_{11}x_1 & a_{12} & a_{13}\\
+a_{21}x_1 & a_{22} & a_{23}\\
+a_{31}x_1 & a_{32} & a_{33}
+\end{array}\right|.
+\]
+再由行列式性质 3，可将上式右边第一列中的 $x_1$ 提出来，即
+\[
+\left|\begin{array}{ccc}
+b_1 & a_{12} & a_{13}\\
+b_2 & a_{22} & a_{23}\\
+b_3 & a_{32} & a_{33}
+\end{array}\right|
+=x_1
+\left|\begin{array}{ccc}
+a_{11} & a_{12} & a_{13}\\
+a_{21} & a_{22} & a_{23}\\
+a_{31} & a_{32} & a_{33}
+\end{array}\right|,
+\]
+于是得到 $x_1$ 的解：
+\[
+x_1=
+\frac{
+\left|\begin{array}{ccc}
+b_1 & a_{12} & a_{13}\\
+b_2 & a_{22} & a_{23}\\
+b_3 & a_{32} & a_{33}
+\end{array}\right|}
+{\left|\begin{array}{ccc}
+a_{11} & a_{12} & a_{13}\\
+a_{21} & a_{22} & a_{23}\\
+a_{31} & a_{32} & a_{33}
+\end{array}\right|}.
+\]
+同理，可得
+\[
+x_2=
+\frac{
+\left|\begin{array}{ccc}
+a_{11} & b_1 & a_{13}\\
+a_{21} & b_2 & a_{23}\\
+a_{31} & b_3 & a_{33}
+\end{array}\right|}
+{\left|\begin{array}{ccc}
+a_{11} & a_{12} & a_{13}\\
+a_{21} & a_{22} & a_{23}\\
+a_{31} & a_{32} & a_{33}
+\end{array}\right|},\quad
+x_3=
+\frac{
+\left|\begin{array}{ccc}
+a_{11} & a_{12} & b_1\\
+a_{21} & a_{22} & b_2\\
+a_{31} & a_{32} & b_3
+\end{array}\right|}
+{\left|\begin{array}{ccc}
+a_{11} & a_{12} & a_{13}\\
+a_{21} & a_{22} & a_{23}\\
+a_{31} & a_{32} & a_{33}
+\end{array}\right|}.
+\]
+可见，三元一次方程组有着和二元一次方程组类似的公式解. 这里行列式
+\[
+\left|\begin{array}{ccc}
+a_{11} & a_{12} & a_{13}\\
+a_{21} & a_{22} & a_{23}\\
+a_{31} & a_{32} & a_{33}
+\end{array}\right|
+\]
+称为方程组 (1.2.2) 的系数行列式，即由未知数的系数组成的行列式.
+
+\section*{习题 1.2}
+
+1. 计算下列行列式：
+\[
+(1)\quad
+\left|\begin{array}{ccc}
+2 & 3 & -5\\
+0 & 2 & -1\\
+0 & 0 & -2
+\end{array}\right|;\qquad
+(2)\quad
+\left|\begin{array}{ccc}
+0 & 1 & 2\\
+2 & 1 & 1\\
+-1 & 3 & 1
+\end{array}\right|.
+\]
+
+2. 计算下列行列式：
+\[
+(1)\quad
+\left|\begin{array}{ccc}
+1 & 2 & 3\\
+2 & 4 & 6\\
+-3 & 7 & -2
+\end{array}\right|;\qquad
+(2)\quad
+\left|\begin{array}{ccc}
+0 & 2 & 4\\
+2 & 1 & 1\\
+-1 & 3 & 1
+\end{array}\right|.
+\]
+
+3. 计算下列行列式：
+\[
+(1)\quad
+\left|\begin{array}{ccc}
+x & y & z\\
+z & x & y\\
+y & z & x
+\end{array}\right|;\qquad
+(2)\quad
+\left|\begin{array}{ccc}
+x & x^2+1 & -1\\
+0 & -x & e^x\\
+1 & 0 & 0
+\end{array}\right|.
+\]
+
+4. 解下列方程：
+\[
+(1)\quad
+\left|\begin{array}{ccc}
+1 & 2 & 3\\
+1 & x & 3\\
+1 & 5 & -2
+\end{array}\right|=0;\qquad
+(2)\quad
+\left|\begin{array}{ccc}
+x-2 & 1 & -2\\
+2 & 2 & 1\\
+-1 & 1 & 1
+\end{array}\right|=0.
+\]
+
+5. 用行列式解下列三元一次方程组：
+\[
+(1)\quad
+\left\{
+\begin{array}{l}
+x_1-x_2+x_3=2,\\
+x_1+2x_2=1,\\
+x_1-x_3=4;
+\end{array}
+\right.
+\qquad
+(2)\quad
+\left\{
+\begin{array}{l}
+x+y+z=0,\\
+2x-5y-3z=10,\\
+4x+8y+2z=4.
+\end{array}
+\right.
+\]
+
+\section*{§1.3\quad $n$ 阶行列式}
+
+有了二阶行列式和三阶行列式的概念，定义 $n$ 阶行列式就不困难了. 我们先介绍 $n$ 阶行列式及其相关概念. 我们称下面用两条竖线围起来的由 $n$ 行 $n$ 列元素组成的式子为一个 $n$ 阶行列式：
+\begin{equation}
+|A|=
+\left|\begin{array}{cccc}
+a_{11} & a_{12} & \cdots & a_{1n}\\
+a_{21} & a_{22} & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{array}\right|.
+\tag{1.3.1}
+\end{equation}
+它由 $n$ 行 $n$ 列共 $n^2$ 个元素组成，第 $i$ 行上元素全体称为行列式 $|A|$ 的第 $i$ 行，第 $j$ 列上元素全体称为行列式 $|A|$ 的第 $j$ 列. 第 $i$ 行第 $j$ 列交点上的元素 $a_{ij}$ 称为行列式 $|A|$ 的第 $(i,j)$ 元素. 元素 $a_{11},a_{22},\cdots,a_{nn}$ 称为 $|A|$ 的主对角线，因为如果把行列式看成一个正方形，这些元素恰在正方形的对角线上.
+
+\noindent\textbf{定义 1.3.1}\quad 定义元素 $a_{ij}$ 的余子式 $M_{ij}$ 为由行列式 $|A|$ 中划去第 $i$ 行第 $j$ 列后剩下的 $n-1$ 行与 $n-1$ 列元素组成的行列式：
+\[
+M_{ij}=
+\left|\begin{array}{cccccc}
+a_{11} & \cdots & a_{1,j-1} & a_{1,j+1} & \cdots & a_{1n}\\
+\vdots & & \vdots & \vdots & & \vdots\\
+a_{i-1,1} & \cdots & a_{i-1,j-1} & a_{i-1,j+1} & \cdots & a_{i-1,n}\\
+a_{i+1,1} & \cdots & a_{i+1,j-1} & a_{i+1,j+1} & \cdots & a_{i+1,n}\\
+\vdots & & \vdots & \vdots & & \vdots\\
+a_{n1} & \cdots & a_{n,j-1} & a_{n,j+1} & \cdots & a_{nn}
+\end{array}\right|.
+\]
+我们注意到三阶行列式的值是用二阶行列式来定义的，因此 $n$ 阶行列式的值可以用 $n-1$ 阶行列式来定义. 即我们可以用归纳法来定义上述行列式 $|A|$ 的值.
+
+\noindent\textbf{定义 1.3.2}\quad 当 $n=1$ 时，(1.3.1) 式的值定义为 $|A|=a_{11}$. 现假设对 $n-1$ 阶行列式已经定义了它们的值，则对任意的 $i,j$，$M_{ij}$ 的值已经定义，定义 $n$ 阶行列式 $|A|$ 的值为
+\begin{equation}
+|A|=a_{11}M_{11}-a_{21}M_{21}+\cdots+(-1)^{n+1}a_{n1}M_{n1}.
+\tag{1.3.2}
+\end{equation}
+对于任一自然数 $n$，(1.3.2) 式给出了一个计算 $n$ 阶行列式的方法：将 $n$ 阶行列式化为 $n-1$ 阶行列式，再化 $n-1$ 阶行列式为 $n-2$ 阶，$\cdots\cdots$，最后便可求出 $|A|$ 的值. (1.3.2) 式又称为行列式 $|A|$ 按第一列展开的展开式.
+
+为了使 (1.3.2) 式的形状更好些，我们引进代数余子式的概念.
+
+\noindent\textbf{定义 1.3.3}\quad 在行列式 $|A|$ 中，$a_{ij}$ 的代数余子式定义为
+\[
+A_{ij}=(-1)^{i+j}M_{ij},
+\]
+其中 $M_{ij}$ 是 $a_{ij}$ 的余子式.
+
+用代数余子式，(1.3.2) 式可写为如下形状：
+\begin{equation}
+|A|=a_{11}A_{11}+a_{21}A_{21}+\cdots+a_{n1}A_{n1}.
+\tag{1.3.3}
+\end{equation}
+
+\noindent\textbf{注}\quad 我们的定义与二阶、三阶行列式的定义是一致的. 以二阶行列式为例，设有二阶行列式
+\[
+\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{21} & a_{22}
+\end{array}\right|,
+\]
+$a_{11}$ 的余子式 $M_{11}=a_{22}$，$a_{21}$ 的余子式 $M_{21}=a_{12}$，故 $A_{11}=(-1)^{1+1}a_{22}=a_{22}$，$A_{21}=(-1)^{2+1}a_{12}=-a_{12}$. 而
+\[
+\left|\begin{array}{cc}
+a_{11} & a_{12}\\
+a_{21} & a_{22}
+\end{array}\right|=a_{11}a_{22}-a_{12}a_{21},
+\]
+恰好和二阶行列式的定义一致.
+
+\noindent\textbf{例 1.3.1}\quad 设有五阶行列式
+\[
+|A|=
+\left|\begin{array}{ccccc}
+1 & 0 & -1 & 3 & 1\\
+0 & 2 & -5 & 4 & 1\\
+3 & -2 & -1 & 1 & 0\\
+0 & 0 & 2 & 1 & 3\\
+1 & 3 & -1 & 5 & 1
+\end{array}\right|.
+\]
+$|A|$ 的第 $(1,1)$ 元素 $a_{11}=1$，它的余子式为
+\[
+M_{11}=
+\left|\begin{array}{cccc}
+2 & -5 & 4 & 1\\
+-2 & -1 & 1 & 0\\
+0 & 2 & 1 & 3\\
+3 & -1 & 5 & 1
+\end{array}\right|.
+\]
+$a_{11}$ 的代数余子式为 $A_{11}=(-1)^{1+1}M_{11}=M_{11}$.
+
+$|A|$ 的第 $(3,4)$ 元素 $a_{34}=1$，它的余子式为
+\[
+M_{34}=
+\left|\begin{array}{cccc}
+1 & 0 & -1 & 1\\
+0 & 2 & -5 & 1\\
+0 & 0 & 2 & 3\\
+1 & 3 & -1 & 1
+\end{array}\right|.
+\]
+$a_{34}$ 的代数余子式 $A_{34}=(-1)^{3+4}M_{34}=-M_{34}$.
+
+$|A|$ 的第 $(4,1)$ 元素 $a_{41}=0$，它的余子式为
+\[
+M_{41}=
+\left|\begin{array}{cccc}
+0 & -1 & 3 & 1\\
+2 & -5 & 4 & 1\\
+-2 & -1 & 1 & 0\\
+3 & -1 & 5 & 1
+\end{array}\right|.
+\]
+$a_{41}$ 的代数余子式 $A_{41}=(-1)^{4+1}M_{41}=-M_{41}$.
+
+$n$ 阶行列式同样适合前二节中二阶行列式和三阶行列式适合的 8 条性质，因为我们是用归纳法定义的行列式，自然地，这些性质的证明也要用归纳法.
+
+\noindent\textbf{性质 1}\quad 若 $|A|$ 是一个 $n$ 阶行列式，且
+\[
+|A|=
+\left|\begin{array}{cccc}
+a_{11} & a_{12} & \cdots & a_{1n}\\
+0 & a_{22} & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+0 & 0 & \cdots & a_{nn}
+\end{array}\right|,
+\quad\text{或}\quad
+|A|=
+\left|\begin{array}{cccc}
+a_{11} & 0 & \cdots & 0\\
+a_{21} & a_{22} & \cdots & 0\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{array}\right|,
+\]
+则 $|A|=a_{11}a_{22}\cdots a_{nn}$.
+
+\noindent\textbf{证明}\quad 我们称上式中左边的行列式为上三角行列式 (这时 $a_{ij}=0$ 对一切 $i>j$ 成立)，称右边的行列式为下三角行列式 (这时 $a_{ij}=0$ 对一切 $i<j$ 成立).
+现在用归纳法分别证明上述结论. 当 $n=1$ 时结论显然成立. 对上三角行列式，由定义，有
+\[
+|A|=a_{11}M_{11}.
+\]
+但 $M_{11}$ 仍是一个上三角行列式，故由归纳假设 $M_{11}=a_{22}\cdots a_{nn}$，即知 $|A|=a_{11}a_{22}\cdots a_{nn}$.
+
+对于下三角行列式，由定义，有
+\begin{equation}
+|A|=a_{11}M_{11}-a_{21}M_{21}+\cdots+(-1)^{n+1}a_{n1}M_{n1}.
+\tag{1.3.4}
+\end{equation}
+对 $M_{i1}(i>1)$，它仍是一个下三角行列式且 $M_{i1}$ 主对角线上的元素至少有一个为 0，故由归纳假设 $M_{i1}=0(i>1)$. 对 $M_{11}$，由归纳假设等于 $a_{22}\cdots a_{nn}$，于是 $|A|=a_{11}a_{22}\cdots a_{nn}$.
+
+\noindent\textbf{性质 2}\quad 若 $n$ 阶行列式 $|A|$ 的某一行或某一列的元素全为 0，则 $|A|=0$.
+
+\noindent\textbf{证明}\quad 仍用数学归纳法. 当 $n=1$ 时显然正确. 假设结论对 $n-1$ 阶行列式成立. 先设 $|A|$ 中第 $i$ 行元素全为 0，则
+\[
+|A|=a_{11}M_{11}-a_{21}M_{21}+\cdots+(-1)^{n+1}a_{n1}M_{n1},
+\]
+其中每个 $M_{j1}(j\ne i)$ 都有一行元素全为 0，故由归纳假设 $M_{j1}=0(j\ne i)$. 另外，$a_{i1}=0$，故 $a_{i1}M_{i1}=0$，从而 $|A|=0$.
+
+再设 $|A|$ 中第 $i$ 列全为 0. 若 $i=1$，显然 $|A|=0$. 若 $i>1$，在展开式中每个 $M_{j1}$ 都有一列元素全为 0，由归纳假设 $M_{j1}=0$，故 $|A|=0$.
+
+\noindent\textbf{性质 3}\quad 将行列式 $|A|$ 的某一行或某一列乘以一个常数 $c$，则得到的行列式 $|B|=c|A|$.
+
+\noindent\textbf{证明}\quad 对行列式的阶用数学归纳法. 当 $n=1$ 时显然正确. 假设 $|B|$ 中第 $i$ 行的每个元素等于 $|A|$ 中第 $i$ 行的每个元素乘以 $c$，而其他行元素与 $|A|$ 完全相同. 由定义可知，
+\begin{equation}
+|B|=a_{11}N_{11}-\cdots+(-1)^{i+1}ca_{i1}N_{i1}+\cdots+(-1)^{n+1}a_{n1}N_{n1},
+\tag{1.3.5}
+\end{equation}
+其中 $N_{r1}$ 为 $|B|$ 的第 $r$ 行第一列元素的余子式. 由题意及归纳假设知道
+\[
+N_{r1}=cM_{r1}\ (r\ne i),\qquad N_{i1}=M_{i1},
+\]
+其中 $M_{r1},M_{i1}$ 均为 $|A|$ 相应的余子式. 由 (1.3.5) 式即知 $|B|=c|A|$.
+
+对列的情形也不难证明. 若 $|B|$ 的第一列元素都是 $|A|$ 的第一列元素的 $c$ 倍，则将 $|B|$ 按定义展开即知. 若 $|B|$ 的第 $i(i>1)$ 列元素是 $|A|$ 第 $i$ 列元素的 $c$ 倍，利用展开式及归纳假设即可得到结论.
+
+\noindent\textbf{性质 4}\quad 对换行列式 $|A|$ 的任意不同的两行，则行列式的值改变符号 (绝对值不变).
+
+\noindent\textbf{证明}\quad 对 $n$ 用归纳法，$n=2$ 时已知成立，假设结论对 $n-1$ 阶行列式也成立. 对 $n$ 阶行列式 $|A|$，先证明特殊情形，即对换行列式的相邻两行，其值改变符号. 设 $|B|$ 由 $|A|$ 对换第 $r$ 行及第 $r+1$ 行而得. 记 $N_{ij}$ 为 $|B|$ 的第 $i$ 行第 $j$ 列元素的余子式，将 $|B|$ 按行列式定义展开并注意到 $|B|$ 由 $|A|$ 对换第 $r$ 行及第 $r+1$ 行而得：
+\[
+\begin{aligned}
+|B|={}&a_{11}N_{11}-a_{21}N_{21}+\cdots+(-1)^{r+1}a_{r+1,1}N_{r1}\\
+&+(-1)^{r+2}a_{r,1}N_{r+1,1}+\cdots+(-1)^{n+1}a_{n1}N_{n1}.
+\end{aligned}
+\]
+若 $i\ne r,r+1$，则由归纳假设 $N_{i1}=-M_{i1}$，而 $N_{r1}=M_{r+1,1}$，$N_{r+1,1}=M_{r1}$，由此即知 $|B|=-|A|$.
+
+现来考虑一般情形. 要将 $|A|$ 的两行对换，不妨设所换两行为第 $i$ 行及第 $j$ 行，且 $j>i$. 我们可先将第 $i$ 行与第 $i+1$ 行对换，再与第 $i+2$ 行对换，一直到与第 $j$ 行对换，然后再将第 $j-1$ 行经过不断与相邻行的对换换到原来第 $i$ 行的位置. 这样一共换了 $2(j-i)-1$ 次，因此仍有 $|B|=-|A|$.
+
+\noindent\textbf{性质 5}\quad 若行列式 $|A|$ 的两行成比例，则 $|A|=0$. 特别，若行列式的两行相同，则行列式的值等于零.
+
+\noindent\textbf{证明}\quad 先证明特例，设行列式 $|A|$ 有两行相同，将这两行对换，则由性质 4 可得 $|A|=-|A|$，因此 $|A|=0$. 再证明一般情形，设 $|A|$ 有两行成比例，则由性质 3，将比例因子提出后得到的行列式有两行相同，值等于零，故 $|A|=0$.
+
+\noindent\textbf{性质 6}\quad 设 $|A|,|B|,|C|$ 是 3 个 $n$ 阶行列式，它们的第 $(i,j)$ 元素分别记为 $a_{ij},b_{ij},c_{ij}$. $|A|,|B|,|C|$ 的第 $r$ 行元素适合条件：
+\begin{equation}
+c_{rj}=a_{rj}+b_{rj}\quad (j=1,2,\cdots,n),
+\tag{1.3.6}
+\end{equation}
+而其他元素相同，即 $c_{ij}=a_{ij}=b_{ij}(i\ne r,\ j=1,2,\cdots,n)$，则
+\[
+|C|=|A|+|B|.
+\]
+
+\noindent\textbf{证明}\quad 对 $n$ 用数学归纳法，$n=1$ 时结论显然成立. 设结论对 $n-1$ 阶行列式成立. 将 $|C|$ 按定义展开：
+\begin{equation}
+\begin{aligned}
+|C|={}&a_{11}Q_{11}-a_{21}Q_{21}+\cdots+(-1)^{r+1}(a_{r1}+b_{r1})Q_{r1}\\
+&+\cdots+(-1)^{n+1}a_{n1}Q_{n1},
+\end{aligned}
+\tag{1.3.7}
+\end{equation}
+其中 $Q_{ij}$ 为 $|C|$ 的余子式. 若 $i\ne r$，则 $Q_{i1}$ 仍适合 (1.3.6) 式，由归纳假设得
+\[
+Q_{i1}=M_{i1}+N_{i1},
+\]
+这里 $M_{i1},N_{i1}$ 分别是 $|A|,|B|$ 的余子式. 若 $i=r$，则
+\[
+Q_{r1}=M_{r1}=N_{r1}.
+\]
+因此 (1.3.7) 式为
+\[
+\begin{aligned}
+|C|={}&a_{11}(M_{11}+N_{11})-a_{21}(M_{21}+N_{21})+\cdots\\
+&+(-1)^{r+1}(a_{r1}M_{r1}+b_{r1}N_{r1})+\cdots+(-1)^{n+1}a_{n1}(M_{n1}+N_{n1})\\
+={}&(a_{11}M_{11}-a_{21}M_{21}+\cdots+(-1)^{n+1}a_{n1}M_{n1})\\
+&+(a_{11}N_{11}-a_{21}N_{21}+\cdots+(-1)^{n+1}a_{n1}N_{n1})\\
+={}&|A|+|B|.
+\end{aligned}
+\]
+性质 6 可用行列式具体表示为如下：
+\[
+\left|\begin{array}{cccc}
+a_{11} & a_{12} & \cdots & a_{1n}\\
+\vdots & \vdots & & \vdots\\
+a_{r1}+b_{r1} & a_{r2}+b_{r2} & \cdots & a_{rn}+b_{rn}\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{array}\right|
+=
+\left|\begin{array}{cccc}
+a_{11} & a_{12} & \cdots & a_{1n}\\
+\vdots & \vdots & & \vdots\\
+a_{r1} & a_{r2} & \cdots & a_{rn}\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{array}\right|
++
+\left|\begin{array}{cccc}
+a_{11} & a_{12} & \cdots & a_{1n}\\
+\vdots & \vdots & & \vdots\\
+b_{r1} & b_{r2} & \cdots & b_{rn}\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{array}\right|.
+\]
+
+\noindent\textbf{性质 7}\quad 将行列式的一行乘以某个常数 $c$ 加到另一行上，行列式的值不变，即
+\[
+\left|\begin{array}{cccc}
+a_{11} & a_{12} & \cdots & a_{1n}\\
+\vdots & \vdots & & \vdots\\
+a_{i1} & a_{i2} & \cdots & a_{in}\\
+\vdots & \vdots & & \vdots\\
+a_{j1}+ca_{i1} & a_{j2}+ca_{i2} & \cdots & a_{jn}+ca_{in}\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{array}\right|
+=
+\left|\begin{array}{cccc}
+a_{11} & a_{12} & \cdots & a_{1n}\\
+\vdots & \vdots & & \vdots\\
+a_{i1} & a_{i2} & \cdots & a_{in}\\
+\vdots & \vdots & & \vdots\\
+a_{j1} & a_{j2} & \cdots & a_{jn}\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{array}\right|.
+\]
+
+\noindent\textbf{证明}\quad 由性质 6 可将上式左边分拆成两个行列式之和，一个等于右边的行列式，另一个由性质 5 知其值应为零.
+
+上面我们对行证明了性质 4 至性质 7. 实际上这些性质对列也成立.
+
+\noindent\textbf{性质 $5'$}\quad 若行列式 $|A|$ 的两列成比例，则 $|A|=0$. 特别，若行列式的两列相同，则行列式的值等于零.
+
+\noindent\textbf{证明}\quad 先证明若 $|A|$ 有两列相同，则值等于零. 假设 $|A|$ 中相同的两列都不是第一列，则将 $|A|$ 展开并用归纳法即可得 $|A|=0$. 因此我们不妨设 $|A|$ 的第一列与第 $r$ 列相同. 这时如果第一列元素全为 0，则 $|A|=0$. 故假设 $|A|$ 的第一列元素至少有一个不等于零，比如 $a_{s1}\ne0$. 将 $|A|$ 的第一行与第 $s$ 行对换，仅改变 $|A|$ 的符号，由于 $-|A|=0$ 即意味着 $|A|=0$，因此我们不妨设 $a_{11}\ne0$，这时 $|A|$ 的形状为
+\[
+\left|\begin{array}{ccccc}
+a_{11} & \cdots & a_{11} & \cdots\\
+a_{21} & \cdots & a_{21} & \cdots\\
+\vdots & & \vdots & \vdots\\
+a_{n1} & \cdots & a_{n1} & \cdots
+\end{array}\right|.
+\]
+将 $|A|$ 的第一行乘以 $-\dfrac{a_{i1}}{a_{11}}$ 加到第 $i$ 行上去 $(i=2,3,\cdots,n)$，则得到一个新的行列式 $|C|$，它的形状为
+\[
+\left|\begin{array}{ccccc}
+a_{11} & \cdots & a_{11} & \cdots\\
+0 & * & 0 & *\\
+\vdots & \vdots & \vdots & \vdots\\
+0 & * & 0 & *
+\end{array}\right|.
+\]
+由性质 7 知 $|C|=|A|$，将 $|C|$ 按定义展开，$|C|=a_{11}Q_{11}$. 而 $Q_{11}$ 是一个有一列全为 0 的 $n-1$ 阶行列式，故 $Q_{11}=0$，即有 $|C|=0$，于是 $|A|=0$. 一般情形的证明和行性质证明相同.
+
+\noindent\textbf{性质 $6'$}\quad $|A|,|B|,|C|$ 是 3 个 $n$ 阶行列式，$|C|$ 的第 $r$ 列元素等于 $|A|$ 的第 $r$ 列元素与 $|B|$ 的第 $r$ 列元素之和：
+\[
+c_{ir}=a_{ir}+b_{ir}\quad (i=1,2,\cdots,n),
+\]
+而其他元素相同，即 $c_{ij}=a_{ij}=b_{ij}(i=1,2,\cdots,n,\ j\ne r)$，则
+\[
+|C|=|A|+|B|.
+\]
+
+\noindent\textbf{证明}\quad 若 $r=1$，用行列式定义展开 $|C|$ 即可得到结论. 若 $r>1$，将 $|C|$ 展开：
+\[
+|C|=a_{11}Q_{11}-a_{21}Q_{21}+\cdots+(-1)^{n+1}a_{n1}Q_{n1},
+\]
+每个 $Q_{i1}$ 由归纳假设得
+\[
+Q_{i1}=M_{i1}+N_{i1},
+\]
+其中 $Q_{i1},M_{i1},N_{i1}$ 分别是 $|C|,|A|,|B|$ 的余子式. 代入可得
+\[
+|C|=|A|+|B|.
+\]
+
+\noindent\textbf{性质 $7'$}\quad 将行列式的一列乘以常数 $c$ 加到另一列上，行列式的值不变.
+
+\noindent\textbf{证明}\quad 类似性质 7 的证明. 利用性质 $6'$ 及性质 $5'$ 即可证明.
+
+\noindent\textbf{性质 $4'$}\quad 交换行列式的两列，行列式的值改变符号.
+
+\noindent\textbf{证明}\quad 设 $|B|$ 由 $|A|$ 交换第 $r$ 列及第 $s$ 列得到，即
+\[
+|A|=
+\left|\begin{array}{ccccccc}
+a_{11} & \cdots & a_{1r} & \cdots & a_{1s} & \cdots & a_{1n}\\
+a_{21} & \cdots & a_{2r} & \cdots & a_{2s} & \cdots & a_{2n}\\
+\vdots & & \vdots & & \vdots & & \vdots\\
+a_{n1} & \cdots & a_{nr} & \cdots & a_{ns} & \cdots & a_{nn}
+\end{array}\right|,
+\]
+\[
+|B|=
+\left|\begin{array}{ccccccc}
+a_{11} & \cdots & a_{1s} & \cdots & a_{1r} & \cdots & a_{1n}\\
+a_{21} & \cdots & a_{2s} & \cdots & a_{2r} & \cdots & a_{2n}\\
+\vdots & & \vdots & & \vdots & & \vdots\\
+a_{n1} & \cdots & a_{ns} & \cdots & a_{nr} & \cdots & a_{nn}
+\end{array}\right|.
+\]
+作行列式 $|C|$，它的第 $r$ 列及第 $s$ 列相同，都等于 $|A|$ 的第 $r$ 列及第 $s$ 列之和，则
+\[
+\begin{aligned}
+|C|
+&=|A|+
+\left|\begin{array}{ccccccc}
+a_{11} & \cdots & a_{1r} & \cdots & a_{1r} & \cdots & a_{1n}\\
+a_{21} & \cdots & a_{2r} & \cdots & a_{2r} & \cdots & a_{2n}\\
+\vdots & & \vdots & & \vdots & & \vdots\\
+a_{n1} & \cdots & a_{nr} & \cdots & a_{nr} & \cdots & a_{nn}
+\end{array}\right|\\
+&\quad+|B|+
+\left|\begin{array}{ccccccc}
+a_{11} & \cdots & a_{1s} & \cdots & a_{1s} & \cdots & a_{1n}\\
+a_{21} & \cdots & a_{2s} & \cdots & a_{2s} & \cdots & a_{2n}\\
+\vdots & & \vdots & & \vdots & & \vdots\\
+a_{n1} & \cdots & a_{ns} & \cdots & a_{ns} & \cdots & a_{nn}
+\end{array}\right|.
+\end{aligned}
+\]
+除 $|A|,|B|$ 外的两个行列式各自都有两列相同，因此值为 0. 而 $|C|$ 也有两列相同，值也等于 0. 于是 $|B|=-|A|$.
+
+行列式的第 8 个性质我们将在下一节证明.
+
+\section*{习题 1.3}
+
+1. 求下列行列式中第 $(1,2)$，第 $(3,1)$ 及第 $(3,3)$ 元素的余子式和代数余子式：
+\[
+(1)\quad
+\left|\begin{array}{rrrr}
+1 & -1 & 1 & 1\\
+-1 & 2 & -1 & 0\\
+1 & 1 & 2 & -1\\
+1 & -1 & 0 & -2
+\end{array}\right|;\qquad
+(2)\quad
+\left|\begin{array}{rrrr}
+3 & 1 & 0 & -1\\
+2 & 1 & 1 & 0\\
+-1 & 3 & 1 & 2\\
+0 & 6 & 5 & 1
+\end{array}\right|.
+\]
+
+2. 计算下列行列式的值：
+\[
+(1)\quad
+\left|\begin{array}{rrrr}
+1 & 2 & 3 & 4\\
+0 & -3 & -1 & 0\\
+0 & 0 & -2 & \sqrt{7}\\
+0 & 0 & 0 & 10
+\end{array}\right|;\qquad
+(2)\quad
+\left|\begin{array}{rrrr}
+2 & 0 & 0 & 0\\
+3 & -1 & 0 & 0\\
+-2 & 0 & 3 & 0\\
+9 & -1 & 2 & 1
+\end{array}\right|.
+\]
+
+3. 计算下列行列式的值：
+\[
+(1)\quad
+\left|\begin{array}{rrrr}
+1 & 1 & 0 & -1\\
+2 & 1 & 1 & 0\\
+2 & 2 & 0 & -2\\
+10 & 4 & 5 & 9
+\end{array}\right|;\qquad
+(2)\quad
+\left|\begin{array}{rrrr}
+1 & 0 & 0 & 0\\
+2 & 1 & -2 & 1\\
+5 & 0 & 1 & 3\\
+7 & -1 & 2 & 1
+\end{array}\right|.
+\]
+
+4. 计算下列行列式的值：
+\[
+(1)\quad
+\left|\begin{array}{cccc}
+a & 0 & 0 & e\\
+0 & b & f & 0\\
+0 & g & c & 0\\
+h & 0 & 0 & d
+\end{array}\right|;\qquad
+(2)\quad
+\left|\begin{array}{rrrr}
+0 & a & b & c\\
+-a & 0 & d & e\\
+-b & -d & 0 & f\\
+-c & -e & -f & 0
+\end{array}\right|.
+\]
+
+\section*{§1.4\quad 行列式的展开和转置}
+
+行列式的定义通常称为行列式按第一列展开的展开式，那么行列式是否也可以按其他列展开呢？
+
+我们可这样考虑 (仍用上一节中的行列式 $|A|$)：先交换第 $r$ 列与第 $r-1$ 列，再交换第 $r-1$ 列与第 $r-2$ 列，等等，经过 $r-1$ 次这样的交换便可将 $|A|$ 的第 $r$ 列换到第一列，再按定义展开行列式. 记 $|B|$ 是经过这样变换以后的行列式，则
+\[
+\begin{aligned}
+(-1)^{r-1}|A|=|B|
+&=a_{1r}N_{11}-a_{2r}N_{21}+\cdots+(-1)^{n+1}a_{nr}N_{n1}\\
+&=a_{1r}M_{1r}-a_{2r}M_{2r}+\cdots+(-1)^{n+1}a_{nr}M_{nr},
+\end{aligned}
+\]
+因此
+\begin{equation}
+|A|=(-1)^{1+r}a_{1r}M_{1r}+(-1)^{2+r}a_{2r}M_{2r}+\cdots+(-1)^{n+r}a_{nr}M_{nr}.
+\tag{1.4.1}
+\end{equation}
+上面 $N_{i1},M_{ir}$ 分别表示 $|B|$ 及 $|A|$ 的余子式. 利用代数余子式可将上式改写为
+\begin{equation}
+|A|=a_{1r}A_{1r}+a_{2r}A_{2r}+\cdots+a_{nr}A_{nr},
+\tag{1.4.2}
+\end{equation}
+其中 $A_{ir}=(-1)^{i+r}M_{ir}$ 是 $|A|$ 的代数余子式.
+
+\noindent\textbf{定理 1.4.1}\quad 设 $|A|$ 是 $n$ 阶行列式，第 $i$ 行第 $j$ 列元素 $a_{ij}$ 的代数余子式记为 $A_{ij}$，则对任意的 $r(r=1,2,\cdots,n)$ 有展开式：
+\begin{equation}
+|A|=a_{1r}A_{1r}+a_{2r}A_{2r}+\cdots+a_{nr}A_{nr}.
+\tag{1.4.3}
+\end{equation}
+又对任意的 $s\ne r$，有
+\begin{equation}
+a_{1r}A_{1s}+a_{2r}A_{2s}+\cdots+a_{nr}A_{ns}=0.
+\tag{1.4.4}
+\end{equation}
+
+\noindent\textbf{证明}\quad 只需证明后一结论. 注意下面的行列式，由于其第 $r$ 列与第 $s$ 列相同，其值应为零：
+\[
+\left|\begin{array}{ccccccc}
+a_{11} & \cdots & a_{1r} & \cdots & a_{1r} & \cdots & a_{1n}\\
+a_{21} & \cdots & a_{2r} & \cdots & a_{2r} & \cdots & a_{2n}\\
+\vdots & & \vdots & & \vdots & & \vdots\\
+a_{n1} & \cdots & a_{nr} & \cdots & a_{nr} & \cdots & a_{nn}
+\end{array}\right|=0.
+\]
+将这个行列式按第 $s$ 列展开便有
+\[
+a_{1r}A_{1s}+a_{2r}A_{2s}+\cdots+a_{nr}A_{ns}=0.
+\]
+
+定理 1.4.1 告诉我们行列式可以按任一列展开，那么是否也可以按任一行展开呢？我们先通过一个特例看看能否按第一行展开.
+
+\noindent\textbf{例 1.4.1}\quad
+\[
+|A|=
+\left|\begin{array}{ccccccc}
+0 & \cdots & 0 & a_{1s} & 0 & \cdots & 0\\
+a_{21} & \cdots & a_{2,s-1} & a_{2s} & a_{2,s+1} & \cdots & a_{2n}\\
+\vdots & & \vdots & \vdots & \vdots & & \vdots\\
+a_{n1} & \cdots & a_{n,s-1} & a_{ns} & a_{n,s+1} & \cdots & a_{nn}
+\end{array}\right|
+=a_{1s}A_{1s}.
+\]
+
+\noindent\textbf{证明}\quad 由定理 1.4.1 将上述行列式按第 $s$ 列展开，得
+\[
+|A|=a_{1s}A_{1s}+a_{2s}A_{2s}+\cdots+a_{ns}A_{ns}.
+\]
+除了 $A_{1s}$ 外，$A_{is}(i>1)$ 中都有一行等于零，因此 $A_{is}=0$. 此即 $|A|=a_{1s}A_{1s}$.
+
+\noindent\textbf{引理 1.4.1}\quad 若
+\begin{equation}
+|A|=
+\left|\begin{array}{cccc}
+a_{11} & a_{12} & \cdots & a_{1n}\\
+a_{21} & a_{22} & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{array}\right|,
+\tag{1.4.5}
+\end{equation}
+则
+\[
+|A|=a_{11}A_{11}+a_{12}A_{12}+\cdots+a_{1n}A_{1n}.
+\]
+
+\noindent\textbf{证明}\quad 由行列式的性质 6 及上面的结论得
+\[
+\begin{aligned}
+|A|={}&
+\left|\begin{array}{cccc}
+a_{11} & 0 & \cdots & 0\\
+a_{21} & a_{22} & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{array}\right|
++
+\left|\begin{array}{cccc}
+0 & a_{12} & \cdots & 0\\
+a_{21} & a_{22} & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{array}\right|+\cdots\\
+&+
+\left|\begin{array}{cccc}
+0 & 0 & \cdots & a_{1n}\\
+a_{21} & a_{22} & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{array}\right|\\
+={}&a_{11}A_{11}+a_{12}A_{12}+\cdots+a_{1n}A_{1n}.
+\end{aligned}
+\]
+
+\noindent\textbf{定理 1.4.2}\quad 设 $|A|$ 是如 (1.4.5) 式所示的行列式，则对任意的 $r(r=1,2,\cdots,n)$ 有展开式：
+\begin{equation}
+|A|=a_{r1}A_{r1}+a_{r2}A_{r2}+\cdots+a_{rn}A_{rn}.
+\tag{1.4.6}
+\end{equation}
+又对任意的 $s\ne r$，有
+\begin{equation}
+a_{r1}A_{s1}+a_{r2}A_{s2}+\cdots+a_{rn}A_{sn}=0.
+\tag{1.4.7}
+\end{equation}
+
+\noindent\textbf{证明}\quad 由引理 1.4.1 以及性质 4，采用与定理 1.4.1 的证明类似的方法即得.
+
+\noindent\textbf{定义 1.4.1}\quad 设 $|A|$ 是如 (1.4.5) 式所示的行列式，令
+\[
+|A'|=
+\left|\begin{array}{cccc}
+a_{11} & a_{21} & \cdots & a_{n1}\\
+a_{12} & a_{22} & \cdots & a_{n2}\\
+\vdots & \vdots & & \vdots\\
+a_{1n} & a_{2n} & \cdots & a_{nn}
+\end{array}\right|,
+\]
+即 $|A'|$ 的第一行为 $|A|$ 的第一列，$|A'|$ 的第二行为 $|A|$ 的第二列，$\cdots\cdots$，$|A'|$ 的第 $n$ 行为 $|A|$ 的第 $n$ 列，则称 $|A'|$ 是 $|A|$ 的转置. 换言之，$|A'|$ 可由 $|A|$ 将行变成列、列变成行得到.
+
+我们现在来证明行列式的性质 8.
+
+\noindent\textbf{性质 8}\quad 行列式转置后的值不变，即 $|A'|=|A|$.
+
+\noindent\textbf{证明}\quad 对行列式的阶用数学归纳法. 当 $n=1$ 时显然成立. 设 $M_{ij}$ 及 $N_{ij}$ 分别是 $|A|$ 及 $|A'|$ 的余子式，则 $N_{ij}$ 等于 $M_{ji}$ 的转置. 由归纳假设，$N_{ij}=M_{ji}$. 将 $|A'|$ 按第一行展开：
+\[
+\begin{aligned}
+|A'|
+&=a_{11}N_{11}-a_{21}N_{12}+\cdots+(-1)^{n+1}a_{n1}N_{1n}\\
+&=a_{11}M_{11}-a_{21}M_{21}+\cdots+(-1)^{n+1}a_{n1}M_{n1}\\
+&=|A|.
+\end{aligned}
+\]
+
+现在我们的任务是利用行列式性质，求出 $n$ 元线性方程组的公式解. 设有 $n$ 个未知数 $n$ 个方程式的线性方程组
+\begin{equation}
+\left\{
+\begin{array}{l}
+a_{11}x_1+a_{12}x_2+\cdots+a_{1n}x_n=b_1,\\
+a_{21}x_1+a_{22}x_2+\cdots+a_{2n}x_n=b_2,\\
+\hspace{4em}\cdots\cdots\cdots\cdots\\
+a_{n1}x_1+a_{n2}x_2+\cdots+a_{nn}x_n=b_n.
+\end{array}
+\right.
+\tag{1.4.8}
+\end{equation}
+记方程组的系数行列式为
+\[
+|A|=
+\left|\begin{array}{cccc}
+a_{11} & a_{12} & \cdots & a_{1n}\\
+a_{21} & a_{22} & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{array}\right|.
+\]
+行列式
+\[
+\begin{aligned}
+|A_1|
+&=
+\left|\begin{array}{cccc}
+b_1 & a_{12} & \cdots & a_{1n}\\
+b_2 & a_{22} & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+b_n & a_{n2} & \cdots & a_{nn}
+\end{array}\right|\\
+&=
+\left|\begin{array}{cccc}
+a_{11}x_1+a_{12}x_2+\cdots+a_{1n}x_n & a_{12} & \cdots & a_{1n}\\
+a_{21}x_1+a_{22}x_2+\cdots+a_{2n}x_n & a_{22} & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+a_{n1}x_1+a_{n2}x_2+\cdots+a_{nn}x_n & a_{n2} & \cdots & a_{nn}
+\end{array}\right|.
+\end{aligned}
+\]
+用 $-x_2$ 乘以右边行列式的第二列加到第一列上，再用 $-x_3$ 乘以第三列加到第一列上，$\cdots$，最后将 $-x_n$ 乘以第 $n$ 列加到第一列上，由行列式性质知道行列式的值不变，即
+\[
+|A_1|=
+\left|\begin{array}{cccc}
+a_{11}x_1 & a_{12} & \cdots & a_{1n}\\
+a_{21}x_1 & a_{22} & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+a_{n1}x_1 & a_{n2} & \cdots & a_{nn}
+\end{array}\right|
+=x_1
+\left|\begin{array}{cccc}
+a_{11} & a_{12} & \cdots & a_{1n}\\
+a_{21} & a_{22} & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{array}\right|.
+\]
+于是
+\[
+x_1=\frac{|A_1|}{|A|}
+=
+\frac{
+\left|\begin{array}{cccc}
+b_1 & a_{12} & \cdots & a_{1n}\\
+b_2 & a_{22} & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+b_n & a_{n2} & \cdots & a_{nn}
+\end{array}\right|}
+{\left|\begin{array}{cccc}
+a_{11} & a_{12} & \cdots & a_{1n}\\
+a_{21} & a_{22} & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{array}\right|}.
+\]
+同理，通过计算
+\[
+|A_2|=
+\left|\begin{array}{cccc}
+a_{11} & b_1 & \cdots & a_{1n}\\
+a_{21} & b_2 & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & b_n & \cdots & a_{nn}
+\end{array}\right|
+\]
+可得
+\[
+x_2=\frac{|A_2|}{|A|}
+=
+\frac{
+\left|\begin{array}{cccc}
+a_{11} & b_1 & \cdots & a_{1n}\\
+a_{21} & b_2 & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & b_n & \cdots & a_{nn}
+\end{array}\right|}
+{\left|\begin{array}{cccc}
+a_{11} & a_{12} & \cdots & a_{1n}\\
+a_{21} & a_{22} & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{array}\right|}.
+\]
+
+不断做下去，得
+\[
+x_n=\frac{|A_n|}{|A|}
+=
+\frac{
+\left|\begin{array}{cccc}
+a_{11} & a_{12} & \cdots & b_1\\
+a_{21} & a_{22} & \cdots & b_2\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & a_{n2} & \cdots & b_n
+\end{array}\right|}
+{\left|\begin{array}{cccc}
+a_{11} & a_{12} & \cdots & a_{1n}\\
+a_{21} & a_{22} & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{array}\right|}.
+\]
+
+上述结论通常称为 Cramer (克莱姆) 法则，我们把它写成如下定理.
+
+\noindent\textbf{定理 1.4.3 (Cramer 法则)}\quad 设有线性方程组
+\begin{equation}
+\left\{
+\begin{array}{l}
+a_{11}x_1+a_{12}x_2+\cdots+a_{1n}x_n=b_1,\\
+a_{21}x_1+a_{22}x_2+\cdots+a_{2n}x_n=b_2,\\
+\hspace{5em}\cdots\cdots\cdots\\
+a_{n1}x_1+a_{n2}x_2+\cdots+a_{nn}x_n=b_n.
+\end{array}
+\right.
+\tag{1.4.9}
+\end{equation}
+记这个方程组的系数行列式为 $|A|$，若 $|A|\ne 0$，则方程组有且仅有一组解：
+\begin{equation}
+x_1=\frac{|A_1|}{|A|},\quad
+x_2=\frac{|A_2|}{|A|},\cdots,\quad
+x_n=\frac{|A_n|}{|A|},
+\tag{1.4.10}
+\end{equation}
+其中 $|A_j|(j=1,2,\cdots,n)$ 是一个 $n$ 阶行列式，它由 $|A|$ 去掉第 $j$ 列换上方程组的常数项 $b_1,b_2,\cdots,b_n$ 组成的列而成.
+
+\noindent\textbf{证明}\quad 前面的讨论说明，如果线性方程组 (1.4.9) 有解，那么解一定是 (1.4.10) 的形式，因此我们只要验证 (1.4.10) 确实是线性方程组 (1.4.9) 的解即可.
+
+将 $|A_j|$ 按第 $j$ 列展开，得
+\[
+|A_j|=b_1A_{1j}+b_2A_{2j}+\cdots+b_nA_{nj},
+\]
+从而
+\[
+x_j=\frac{|A_j|}{|A|}
+=\frac{1}{|A|}(b_1A_{1j}+b_2A_{2j}+\cdots+b_nA_{nj}),
+\quad j=1,2,\cdots,n.
+\]
+因此对任意的 $1\le i\le n$，由定理 1.4.2 可得
+\[
+\begin{aligned}
+&a_{i1}x_1+a_{i2}x_2+\cdots+a_{in}x_n\\
+={}&
+\frac{a_{i1}}{|A|}(b_1A_{11}+b_2A_{21}+\cdots+b_nA_{n1})
++\cdots+
+\frac{a_{in}}{|A|}(b_1A_{1n}+b_2A_{2n}+\cdots+b_nA_{nn})\\
+={}&
+\frac{b_1}{|A|}(a_{i1}A_{11}+a_{i2}A_{12}+\cdots+a_{in}A_{1n})\\
+&+\cdots+
+\frac{b_n}{|A|}(a_{i1}A_{n1}+a_{i2}A_{n2}+\cdots+a_{in}A_{nn})\\
+={}&
+\frac{b_1}{|A|}\cdot 0+\cdots+\frac{b_i}{|A|}\cdot |A|
++\cdots+\frac{b_n}{|A|}\cdot 0=b_i,
+\end{aligned}
+\]
+即 (1.4.10) 是线性方程组 (1.4.9) 的解. \(\square\)
+
+\noindent\textbf{注}\quad 当系数行列式 $|A|=0$ 时，方程组的解比较复杂，我们将在第三章讨论这个问题.
+
+\section*{习题 1.4}
+
+1. 将下列行列式分别按第一行及第一列展开求值并比较其结果：
+\[
+(1)\quad
+\left|\begin{array}{ccc}
+1 & 0 & 0\\
+2 & 7 & 3\\
+5 & 2 & 2
+\end{array}\right|;
+\qquad
+(2)\quad
+\left|\begin{array}{ccc}
+1 & 0 & -5\\
+6 & 2 & -1\\
+5 & -11 & 6
+\end{array}\right|.
+\]
+
+2. 将下列行列式分别按第二行及第三列展开求值并比较其结果：
+\[
+(1)\quad
+\left|\begin{array}{ccc}
+2 & 3 & 5\\
+1 & 2 & 0\\
+0 & 3 & 8
+\end{array}\right|;
+\qquad
+(2)\quad
+\left|\begin{array}{ccc}
+3 & 2 & -2\\
+2 & -1 & 3\\
+9 & 6 & -7
+\end{array}\right|.
+\]
+
+3. 设 $|A|$ 是 $n$ 阶行列式，若 $|A|$ 的第 $(i,j)$ 元素 $a_{ij}$ 与第 $(j,i)$ 元素 $a_{ji}$ 适合关系式：
+\[
+a_{ij}=-a_{ji},
+\]
+则称 $|A|$ 是一个反对称行列式. 求证：当 $n$ 是奇数时，$n$ 阶反对称行列式的值等于零.
+
+4. 求证：$n$ 阶行列式
+\[
+\left|\begin{array}{ccccc}
+0 & 0 & \cdots & 0 & b_1\\
+0 & 0 & \cdots & b_2 & 0\\
+\vdots & \vdots & & \vdots & \vdots\\
+0 & b_{n-1} & \cdots & 0 & 0\\
+b_n & 0 & \cdots & 0 & 0
+\end{array}\right|
+=(-1)^{\frac{1}{2}n(n-1)}b_1b_2\cdots b_n.
+\]
+
+5. 求下列关于 $x$ 的多项式中一次项的系数：
+\[
+f(x)=
+\left|\begin{array}{cccc}
+2 & x & -5 & 3\\
+1 & 2 & 3 & 4\\
+-1 & 0 & -2 & -3\\
+-1 & 7 & -2 & -2
+\end{array}\right|.
+\]
+
+6. 用 Cramer 法则求下列线性方程组的解：
+\[
+\left\{
+\begin{array}{l}
+x_1+2x_2+3x_4=1,\\
+2x_1+5x_2-x_3+4x_4=2,\\
+3x_1+6x_2+x_3+10x_4=3,\\
+-x_1-2x_2-2x_4=4.
+\end{array}
+\right.
+\]
+
+\section*{§1.5\quad 行列式的计算}
+
+我们已经看到，线性方程组可以用行列式求解. 但是当未知数个数很多时，行列式的阶将很大，用行列式的定义来计算高阶行列式是非常麻烦的. 有没有好办法使得行列式的计算简单一些？这是本节要研究的问题.
+
+我们先来看下面一个例子.
+
+\noindent\textbf{例 1.5.1}\quad 设有行列式
+\[
+|A|=
+\left|\begin{array}{ccccc}
+a_{11} & a_{12} & \cdots & a_{1n}\\
+0 & a_{22} & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+0 & a_{n2} & \cdots & a_{nn}
+\end{array}\right|,
+\]
+即 $|A|$ 的第一列除了第一个元素外都等于零，则 $|A|=a_{11}M_{11}$.
+
+注意 $M_{11}$ 是一个 $n-1$ 阶行列式. 这个命题启发我们，如果能设法把一个行列式变成上例中行列式的形状，那么就可以将这个行列式“降阶处理”. 不断地重复这个过程，就可以将高阶行列式的值计算出来. 如何做到这一点？我们来看下面的例子.
+
+\noindent\textbf{例 1.5.2}\quad 计算下列行列式：
+\[
+|A|=
+\left|\begin{array}{cccc}
+1 & 0 & 2 & 1\\
+2 & -1 & 1 & 0\\
+1 & 0 & 0 & 3\\
+-1 & 0 & 2 & 1
+\end{array}\right|.
+\]
+
+\noindent\textbf{解}\quad 我们的目的首先是设法将 $|A|$ 的第一列中的第二、第三及第四行的元素变为零，为此，先将 $|A|$ 的第一行乘以 $-2$ 加到第二行上去，由性质 7 可知 $|A|$ 的值不变，我们用下列记号来表示这个过程：
+\[
+\left|\begin{array}{rrrr}
+1 & 0 & 2 & 1\\
+2 & -1 & 1 & 0\\
+1 & 0 & 0 & 3\\
+-1 & 0 & 2 & 1
+\end{array}\right|
+=
+\left|\begin{array}{rrrr}
+1 & 0 & 2 & 1\\
+0 & -1 & -3 & -2\\
+1 & 0 & 0 & 3\\
+-1 & 0 & 2 & 1
+\end{array}\right|.
+\]
+再将第一行乘以 $-1$ 加到第三行上，即
+\[
+\left|\begin{array}{rrrr}
+1 & 0 & 2 & 1\\
+0 & -1 & -3 & -2\\
+1 & 0 & 0 & 3\\
+-1 & 0 & 2 & 1
+\end{array}\right|
+=
+\left|\begin{array}{rrrr}
+1 & 0 & 2 & 1\\
+0 & -1 & -3 & -2\\
+0 & 0 & -2 & 2\\
+-1 & 0 & 2 & 1
+\end{array}\right|.
+\]
+再将第一行加到第四行上去：
+\[
+\left|\begin{array}{rrrr}
+1 & 0 & 2 & 1\\
+0 & -1 & -3 & -2\\
+0 & 0 & -2 & 2\\
+-1 & 0 & 2 & 1
+\end{array}\right|
+=
+\left|\begin{array}{rrrr}
+1 & 0 & 2 & 1\\
+0 & -1 & -3 & -2\\
+0 & 0 & -2 & 2\\
+0 & 0 & 4 & 2
+\end{array}\right|.
+\]
+这样就把 $|A|$ 的第一列除第一行外的元素全化为零，于是可将行列式降阶处理：
+\[
+|A|=1\cdot
+\left|\begin{array}{rrr}
+-1 & -3 & -2\\
+0 & -2 & 2\\
+0 & 4 & 2
+\end{array}\right|.
+\]
+在上面的三阶行列式中第一列元素除 $-1$ 外都是零，又可作降阶处理：
+\[
+|A|=(-1)\cdot
+\left|\begin{array}{rr}
+-2 & 2\\
+4 & 2
+\end{array}\right|.
+\]
+对二阶行列式可直接用定义计算出它的值：
+\[
+|A|=(-1)(-4-8)=12.
+\]
+
+我们详细分析了求 $|A|$ 值的过程. 在实际运算过程中，常把上述运算简写为
+\[
+\left|\begin{array}{rrrr}
+1 & 0 & 2 & 1\\
+2 & -1 & 1 & 0\\
+1 & 0 & 0 & 3\\
+-1 & 0 & 2 & 1
+\end{array}\right|
+=
+\left|\begin{array}{rrrr}
+1 & 0 & 2 & 1\\
+0 & -1 & -3 & -2\\
+0 & 0 & -2 & 2\\
+0 & 0 & 4 & 2
+\end{array}\right|
+=
+\left|\begin{array}{rrr}
+-1 & -3 & -2\\
+0 & -2 & 2\\
+0 & 4 & 2
+\end{array}\right|
+=-
+\left|\begin{array}{rr}
+-2 & 2\\
+4 & 2
+\end{array}\right|
+=-(-4-8)=12.
+\]
+上面的方法是基于行列式可按列展开这一事实. 同理，由于行列式也可按行展开，故可采用将第一行除第一个元素外都消为零的办法来求行列式的值. 仍以上面的行列式为例，采用行消去法：
+\[
+\left|\begin{array}{rrrr}
+1 & 0 & 2 & 1\\
+2 & -1 & 1 & 0\\
+1 & 0 & 0 & 3\\
+-1 & 0 & 2 & 1
+\end{array}\right|
+=
+\left|\begin{array}{rrrr}
+1 & 0 & 0 & 0\\
+2 & -1 & -3 & -2\\
+1 & 0 & -2 & 2\\
+-1 & 0 & 4 & 2
+\end{array}\right|
+=
+\left|\begin{array}{rrr}
+-1 & -3 & -2\\
+0 & -2 & 2\\
+0 & 4 & 2
+\end{array}\right|.
+\]
+这时再按列展开即可.
+
+究竟何时用行消去法，何时用列消去法，要具体分析，看用哪种方法能较顺利地降阶. 在计算一个行列式中可以交叉地使用这两种方法.
+
+有时会出现这样的情形，行列式的第一行第一列的元素等于零，这时可用其他非零元素来消去别的行或列，再将行列式降阶.
+
+\noindent\textbf{例 1.5.3}\quad 计算行列式：
+\[
+|A|=\left|\begin{array}{rrr}
+0 & -2 & 4\\
+2 & 5 & -1\\
+6 & 1 & 7
+\end{array}\right|.
+\]
+
+\noindent\textbf{解}\quad 这时可将第二行乘以 $-3$ 加到第三行上去再按定义展开：
+\[
+\begin{aligned}
+\left|\begin{array}{rrr}
+0 & -2 & 4\\
+2 & 5 & -1\\
+6 & 1 & 7
+\end{array}\right|
+&=
+\left|\begin{array}{rrr}
+0 & -2 & 4\\
+2 & 5 & -1\\
+0 & -14 & 10
+\end{array}\right|\\
+&=(-1)^{2+1}\cdot 2
+\left|\begin{array}{rr}
+-2 & 4\\
+-14 & 10
+\end{array}\right|\\
+&=-2(-20+56)=-72.
+\end{aligned}
+\]
+
+有时为了方便，我们不必拘泥于消去第一行或第一列的元素，看哪行 (列) 消为零方便就消去该行 (列).
+
+\noindent\textbf{例 1.5.4}\quad 计算行列式：
+\[
+|A|=
+\left|\begin{array}{rrrr}
+7 & 3 & 1 & -5\\
+2 & 6 & -3 & 0\\
+3 & 11 & -1 & 4\\
+-6 & 5 & 2 & -9
+\end{array}\right|.
+\]
+
+\noindent\textbf{解}\quad 这时若消去第一列将出现分数运算. 因此我们采用消去第三列的方法：
+\[
+\begin{aligned}
+|A|
+&=
+\left|\begin{array}{rrrr}
+7 & 3 & 1 & -5\\
+23 & 15 & 0 & -15\\
+10 & 14 & 0 & -1\\
+-20 & -1 & 0 & 1
+\end{array}\right|\\
+&=(-1)^{1+3}
+\left|\begin{array}{rrr}
+23 & 15 & -15\\
+10 & 14 & -1\\
+-20 & -1 & 1
+\end{array}\right|\\
+&=
+\left|\begin{array}{rrr}
+23 & 15 & 0\\
+10 & 14 & 13\\
+-20 & -1 & 0
+\end{array}\right|\\
+&=(-1)^{2+3}\cdot 13
+\left|\begin{array}{rr}
+23 & 15\\
+-20 & -1
+\end{array}\right|
+=-13(-23+300)=-3601.
+\end{aligned}
+\]
+
+如果一个行列式中某一行或某一列有公因子，则根据性质 3 可以将它提出来，这样往往能简化计算.
+
+\noindent\textbf{例 1.5.5}\quad 计算行列式：
+\[
+|A|=\left|\begin{array}{rrr}
+3 & 6 & 12\\
+2 & -3 & 0\\
+5 & 1 & 2
+\end{array}\right|.
+\]
+
+\noindent\textbf{解}\quad 先将第一行中的公因子提出：
+\[
+|A|=3
+\left|\begin{array}{rrr}
+1 & 2 & 4\\
+2 & -3 & 0\\
+5 & 1 & 2
+\end{array}\right|.
+\]
+再计算
+\[
+\left|\begin{array}{rrr}
+1 & 2 & 4\\
+2 & -3 & 0\\
+5 & 1 & 2
+\end{array}\right|
+=
+\left|\begin{array}{rrr}
+1 & 2 & 4\\
+0 & -7 & -8\\
+0 & -9 & -18
+\end{array}\right|
+=
+\left|\begin{array}{rr}
+-7 & -8\\
+-9 & -18
+\end{array}\right|=54,
+\]
+因此，$|A|=3\times 54=162$.
+
+上面详细介绍了计算行列式的方法. 在实际计算过程中不必拘于固定的步骤，可以根据不同的情况灵活运用行列式的性质，较快地计算出行列式的值. 其原则是尽可能多地使行列式的元素变为零，尽可能快地将行列式降阶处理.
+
+下面举几个文字行列式的例子.
+
+\noindent\textbf{例 1.5.6}\quad 计算 $n$ 阶 Vandermonde (范德蒙) 行列式：
+\[
+V_n=
+\left|\begin{array}{cccccc}
+1 & x_1 & x_1^2 & \cdots & x_1^{n-2} & x_1^{n-1}\\
+1 & x_2 & x_2^2 & \cdots & x_2^{n-2} & x_2^{n-1}\\
+\vdots & \vdots & \vdots & & \vdots & \vdots\\
+1 & x_{n-1} & x_{n-1}^2 & \cdots & x_{n-1}^{n-2} & x_{n-1}^{n-1}\\
+1 & x_n & x_n^2 & \cdots & x_n^{n-2} & x_n^{n-1}
+\end{array}\right|.
+\]
+
+\noindent\textbf{解}\quad 我们采用行消去法. 将第 $n-1$ 列乘以 $-x_n$ 后加到第 $n$ 列上，再将第 $n-2$ 列乘以 $-x_n$ 加到第 $n-1$ 列上. 这样一直做下去，直至将第一列乘以 $-x_n$ 加到第二列上为止. 每次这样变形后行列式的值不改变，于是
+\[
+V_n=
+\left|\begin{array}{cccccc}
+1 & x_1-x_n & x_1^2-x_1x_n & \cdots & x_1^{n-2}-x_1^{n-3}x_n & x_1^{n-1}-x_1^{n-2}x_n\\
+1 & x_2-x_n & x_2^2-x_2x_n & \cdots & x_2^{n-2}-x_2^{n-3}x_n & x_2^{n-1}-x_2^{n-2}x_n\\
+\vdots & \vdots & \vdots & & \vdots & \vdots\\
+1 & x_{n-1}-x_n & x_{n-1}^2-x_{n-1}x_n & \cdots & x_{n-1}^{n-2}-x_{n-1}^{n-3}x_n & x_{n-1}^{n-1}-x_{n-1}^{n-2}x_n\\
+1 & 0 & 0 & \cdots & 0 & 0
+\end{array}\right|.
+\]
+按最后一行展开，并将上式中各行公因子提出后得到的 $n-1$ 阶行列式恰好是一个 $x_1,x_2,\cdots,x_{n-1}$ 的 $n-1$ 阶 Vandermonde 行列式，我们记之为 $V_{n-1}$. 于是
+\[
+\begin{aligned}
+V_n
+&=(-1)^{n+1}
+\left|\begin{array}{ccccc}
+x_1-x_n & x_1(x_1-x_n) & \cdots & x_1^{n-3}(x_1-x_n) & x_1^{n-2}(x_1-x_n)\\
+x_2-x_n & x_2(x_2-x_n) & \cdots & x_2^{n-3}(x_2-x_n) & x_2^{n-2}(x_2-x_n)\\
+\vdots & \vdots & & \vdots & \vdots\\
+x_{n-1}-x_n & x_{n-1}(x_{n-1}-x_n) & \cdots & x_{n-1}^{n-3}(x_{n-1}-x_n) & x_{n-1}^{n-2}(x_{n-1}-x_n)
+\end{array}\right|\\
+&=(-1)^{n+1}(x_1-x_n)(x_2-x_n)\cdots(x_{n-1}-x_n)V_{n-1}\\
+&=(x_n-x_1)(x_n-x_2)\cdots(x_n-x_{n-1})V_{n-1}.
+\end{aligned}
+\]
+我们得到了递推公式：
+\[
+V_n=(x_n-x_1)(x_n-x_2)\cdots(x_n-x_{n-1})V_{n-1}.
+\]
+于是
+\[
+V_n=\prod_{1\le i<j\le n}(x_j-x_i),
+\]
+这里 $\prod$ 表示连乘积，$i,j$ 在保持 $i<j$ 的条件下遍历 $1$ 到 $n$. 例如，
+\[
+V_4=(x_4-x_1)(x_4-x_2)(x_4-x_3)(x_3-x_1)(x_3-x_2)(x_2-x_1),
+\]
+\[
+V_5=(x_5-x_1)(x_5-x_2)(x_5-x_3)(x_5-x_4)V_4.
+\]
+
+\noindent\textbf{例 1.5.7}\quad 求下列行列式的值：
+\[
+F_n=
+\left|\begin{array}{cccccc}
+\lambda & 0 & 0 & \cdots & 0 & a_n\\
+-1 & \lambda & 0 & \cdots & 0 & a_{n-1}\\
+0 & -1 & \lambda & \cdots & 0 & a_{n-2}\\
+\vdots & \vdots & \vdots & & \vdots & \vdots\\
+0 & 0 & 0 & \cdots & \lambda & a_2\\
+0 & 0 & 0 & \cdots & -1 & \lambda+a_1
+\end{array}\right|.
+\]
+
+\noindent\textbf{解}\quad 按第一行展开并注意到以下两点：一是 $a_n$ 的余子式是一个上三角行列式，故其值等于 $(-1)^{n-1}$；二是 $\lambda$ 的余子式是与 $F_n$ 相类似的 $n-1$ 阶行列式，我们记之为 $F_{n-1}$，于是
+\[
+F_n=\lambda F_{n-1}+(-1)^{1+n}(-1)^{n-1}a_n=\lambda F_{n-1}+a_n.
+\]
+利用递推关系不难求得
+\[
+F_n=\lambda^n+a_1\lambda^{n-1}+a_2\lambda^{n-2}+\cdots+a_n.
+\]
+
+\noindent\textbf{例 1.5.8}\quad 求证：
+\[
+|A|=
+\left|\begin{array}{ccc}
+ax+by & ay+bz & az+bx\\
+ay+bz & az+bx & ax+by\\
+az+bx & ax+by & ay+bz
+\end{array}\right|
+=(a^3+b^3)
+\left|\begin{array}{ccc}
+x & y & z\\
+y & z & x\\
+z & x & y
+\end{array}\right|.
+\]
+
+\noindent\textbf{证明}\quad 注意到行列式 $|A|$ 的每个元素都是两个数之和，根据行列式的性质 6，可依次将第一列、第二列、第三列拆分开，得到行列式 $|A|$ 是 8 个行列式之和. 注意到其中 6 个行列式都有两列成比例，从而值为零，最后可得
+\[
+|A|=
+\left|\begin{array}{ccc}
+ax & ay & az\\
+ay & az & ax\\
+az & ax & ay
+\end{array}\right|
++
+\left|\begin{array}{ccc}
+by & bz & bx\\
+bz & bx & by\\
+bx & by & bz
+\end{array}\right|
+=(a^3+b^3)
+\left|\begin{array}{ccc}
+x & y & z\\
+y & z & x\\
+z & x & y
+\end{array}\right|.
+\]
+\(\square\)
+
+\noindent\textbf{例 1.5.9}\quad 计算下列 $n$ 阶行列式：
+\[
+|A|=
+\left|\begin{array}{ccccc}
+x & a & a & \cdots & a\\
+a & x & a & \cdots & a\\
+a & a & x & \cdots & a\\
+\vdots & \vdots & \vdots & & \vdots\\
+a & a & a & \cdots & x
+\end{array}\right|.
+\]
+
+\noindent\textbf{解}\quad 将第二行、第三行直至第 $n$ 行都加到第一行上，$|A|$ 的值不变：
+\[
+\begin{aligned}
+|A|
+&=
+\left|\begin{array}{ccccc}
+x+(n-1)a & x+(n-1)a & x+(n-1)a & \cdots & x+(n-1)a\\
+a & x & a & \cdots & a\\
+a & a & x & \cdots & a\\
+\vdots & \vdots & \vdots & & \vdots\\
+a & a & a & \cdots & x
+\end{array}\right|\\
+&=(x+(n-1)a)
+\left|\begin{array}{ccccc}
+1 & 1 & 1 & \cdots & 1\\
+a & x & a & \cdots & a\\
+a & a & x & \cdots & a\\
+\vdots & \vdots & \vdots & & \vdots\\
+a & a & a & \cdots & x
+\end{array}\right|.
+\end{aligned}
+\]
+再将第一行乘以 $-a$ 分别加到第二行、第三行，直至第 $n$ 行上，得
+\[
+\begin{aligned}
+|A|
+&=(x+(n-1)a)
+\left|\begin{array}{ccccc}
+1 & 1 & 1 & \cdots & 1\\
+0 & x-a & 0 & \cdots & 0\\
+0 & 0 & x-a & \cdots & 0\\
+\vdots & \vdots & \vdots & & \vdots\\
+0 & 0 & 0 & \cdots & x-a
+\end{array}\right|\\
+&=(x+(n-1)a)(x-a)^{n-1}.
+\end{aligned}
+\]
+
+\noindent\textbf{例 1.5.10}\quad 计算
+\[
+|A|=
+\left|\begin{array}{rrrr}
+x & y & z & w\\
+y & x & w & z\\
+z & w & x & y\\
+w & z & y & x
+\end{array}\right|.
+\]
+
+\noindent\textbf{解}\quad 将第二列、第三列和第四列都加到第一列上，$|A|$ 的值不变：
+\[
+\begin{aligned}
+|A|
+&=
+\left|\begin{array}{rrrr}
+x+y+z+w & y & z & w\\
+x+y+z+w & x & w & z\\
+x+y+z+w & w & x & y\\
+x+y+z+w & z & y & x
+\end{array}\right|\\
+&=(x+y+z+w)
+\left|\begin{array}{rrrr}
+1 & y & z & w\\
+1 & x & w & z\\
+1 & w & x & y\\
+1 & z & y & x
+\end{array}\right|.
+\end{aligned}
+\]
+
+再将第一行乘以 $-1$ 分别加到第二行、第三行和第四行上，得
+\[
+\begin{aligned}
+|A|
+&=(x+y+z+w)
+\left|\begin{array}{rrrr}
+1 & y & z & w\\
+0 & x-y & w-z & z-w\\
+0 & w-y & x-z & y-w\\
+0 & z-y & y-z & x-w
+\end{array}\right|\\
+&=(x+y+z+w)
+\left|\begin{array}{rrr}
+x-y & w-z & z-w\\
+w-y & x-z & y-w\\
+z-y & y-z & x-w
+\end{array}\right|.
+\end{aligned}
+\]
+再将第二列分别加到第一列和第三列上，得
+\[
+\begin{aligned}
+|A|
+&=(x+y+z+w)
+\left|\begin{array}{rrr}
+x+w-y-z & w-z & 0\\
+x+w-y-z & x-z & x+y-z-w\\
+0 & y-z & x+y-z-w
+\end{array}\right|\\
+&=(x+y+z+w)(x+y-z-w)(x+w-y-z)
+\left|\begin{array}{rrr}
+1 & w-z & 0\\
+1 & x-z & 1\\
+0 & y-z & 1
+\end{array}\right|\\
+&=(x+y+z+w)(x+y-z-w)(x+z-y-w)(x+w-y-z).
+\end{aligned}
+\]
+
+一般来说，文字行列式的计算往往需要较高的技巧. 然而在实际问题中人们大量遇到的是数字行列式，这类行列式现在已可借助计算机进行计算，但是懂得行列式的计算原理及行列式的性质对正确应用计算机计算行列式是有益的.
+
+\section*{习题 1.5}
+
+1. 用行列式性质计算下列行列式的值：
+\[
+(1)\quad
+\left|\begin{array}{rrrr}
+1 & 2 & -1 & 2\\
+3 & 0 & 1 & 5\\
+1 & -2 & 0 & 3\\
+-2 & -4 & 1 & 6
+\end{array}\right|;
+\qquad
+(2)\quad
+\left|\begin{array}{rrrr}
+1 & -1 & 2 & -1\\
+-3 & 4 & 1 & -1\\
+2 & -5 & -3 & 8\\
+-2 & 6 & -4 & 1
+\end{array}\right|;
+\]
+\[
+(3)\quad
+\left|\begin{array}{rrrrr}
+0 & 1 & 1 & 1 & 1\\
+1 & 0 & 1 & 1 & 1\\
+1 & 1 & 0 & 1 & 1\\
+1 & 1 & 1 & 0 & 1\\
+1 & 1 & 1 & 1 & 0
+\end{array}\right|;
+\qquad
+(4)\quad
+\left|\begin{array}{rrrrr}
+1 & 2 & 3 & 4 & 5\\
+2 & 3 & 7 & 10 & 13\\
+3 & 5 & 11 & 16 & 21\\
+2 & -7 & 7 & 7 & 2\\
+1 & 4 & 5 & 3 & 10
+\end{array}\right|.
+\]
+
+2. 计算 $n$ 阶行列式的值：
+\[
+(1)\quad
+\left|\begin{array}{cccc}
+1 & 1 & \cdots & 1\\
+1 & C_2^1 & \cdots & C_n^1\\
+1 & C_3^2 & \cdots & C_{n+1}^2\\
+\vdots & \vdots & & \vdots\\
+1 & C_n^{n-1} & \cdots & C_{2n-2}^{n-1}
+\end{array}\right|;
+\qquad
+(2)\quad
+\left|\begin{array}{ccccc}
+1 & 2 & 3 & \cdots & n\\
+-1 & 0 & 3 & \cdots & n\\
+-1 & -2 & 0 & \cdots & n\\
+\vdots & \vdots & \vdots & & \vdots\\
+-1 & -2 & -3 & \cdots & 0
+\end{array}\right|;
+\]
+\[
+(3)\quad
+\left|\begin{array}{ccccc}
+a_1b_1 & a_1b_2 & a_1b_3 & \cdots & a_1b_n\\
+a_1b_2 & a_2b_2 & a_2b_3 & \cdots & a_2b_n\\
+a_1b_3 & a_2b_3 & a_3b_3 & \cdots & a_3b_n\\
+\vdots & \vdots & \vdots & & \vdots\\
+a_1b_n & a_2b_n & a_3b_n & \cdots & a_nb_n
+\end{array}\right|;
+\qquad
+(4)\quad
+\left|\begin{array}{ccccc}
+a & 0 & \cdots & 0 & 1\\
+0 & a & \cdots & 0 & 0\\
+\vdots & \vdots & & \vdots & \vdots\\
+0 & 0 & \cdots & a & 0\\
+1 & 0 & \cdots & 0 & a
+\end{array}\right|.
+\]
+
+3. 设 $b_{ij}=(a_{i1}+a_{i2}+\cdots+a_{in})-a_{ij}$，求证：
+\[
+\left|\begin{array}{ccc}
+b_{11} & \cdots & b_{1n}\\
+\vdots & & \vdots\\
+b_{n1} & \cdots & b_{nn}
+\end{array}\right|
+=(-1)^{n-1}(n-1)
+\left|\begin{array}{ccc}
+a_{11} & \cdots & a_{1n}\\
+\vdots & & \vdots\\
+a_{n1} & \cdots & a_{nn}
+\end{array}\right|.
+\]
+
+4. 利用 Vandermonde 行列式计算下列行列式的值：
+\[
+\left|\begin{array}{ccccc}
+a_1^{n-1} & a_1^{n-2}b_1 & \cdots & a_1b_1^{n-2} & b_1^{n-1}\\
+a_2^{n-1} & a_2^{n-2}b_2 & \cdots & a_2b_2^{n-2} & b_2^{n-1}\\
+\vdots & \vdots & & \vdots & \vdots\\
+a_n^{n-1} & a_n^{n-2}b_n & \cdots & a_nb_n^{n-2} & b_n^{n-1}
+\end{array}\right|.
+\]
+
+5. 设 $f_i(x)(i=1,2,\cdots,n)$ 是次数不超过 $n-2$ 的多项式，求证：对任意 $n$ 个数 $a_1,a_2,\cdots,a_n$，均有
+\[
+\left|\begin{array}{cccc}
+f_1(a_1) & f_1(a_2) & \cdots & f_1(a_n)\\
+f_2(a_1) & f_2(a_2) & \cdots & f_2(a_n)\\
+\vdots & \vdots & & \vdots\\
+f_n(a_1) & f_n(a_2) & \cdots & f_n(a_n)
+\end{array}\right|=0.
+\]
+提示：设法证明下列行列式的值恒为零：
+\[
+\left|\begin{array}{cccc}
+f_1(x) & f_1(a_2) & \cdots & f_1(a_n)\\
+f_2(x) & f_2(a_2) & \cdots & f_2(a_n)\\
+\vdots & \vdots & & \vdots\\
+f_n(x) & f_n(a_2) & \cdots & f_n(a_n)
+\end{array}\right|.
+\]
+
+6. 设 $t$ 是一个参数，
+\[
+|A(t)|=
+\left|\begin{array}{cccc}
+a_{11}+t & a_{12}+t & \cdots & a_{1n}+t\\
+a_{21}+t & a_{22}+t & \cdots & a_{2n}+t\\
+\vdots & \vdots & & \vdots\\
+a_{n1}+t & a_{n2}+t & \cdots & a_{nn}+t
+\end{array}\right|,
+\]
+求证：
+\[
+|A(t)|=|A(0)|+t\sum_{i,j=1}^n A_{ij},
+\]
+其中 $A_{ij}$ 是 $a_{ij}$ 在 $|A(0)|$ 中的代数余子式.
+
+\section*{§1.6\quad 行列式的等价定义}
+
+设有行列式
+\begin{equation}
+|A|=
+\left|\begin{array}{cccc}
+a_{11} & a_{12} & \cdots & a_{1n}\\
+a_{21} & a_{22} & \cdots & a_{2n}\\
+\vdots & \vdots & & \vdots\\
+a_{n1} & a_{n2} & \cdots & a_{nn}
+\end{array}\right|.
+\tag{1.6.1}
+\end{equation}
+我们已经知道如何用归纳法求它的值，但是读者也许仍觉得不满意. 能否将 $|A|$ 的值直接表示出来呢？我们可以这样考虑：利用行列式性质，将 $|A|$ 拆分成若干个简单的行列式之和，然后设法将这些简单的行列式计算出来再求和.
+
+为了得到具体的想法，我们先来看三阶行列式的情形. 设
+\[
+|A|=
+\left|\begin{array}{ccc}
+a_{11} & a_{12} & a_{13}\\
+a_{21} & a_{22} & a_{23}\\
+a_{31} & a_{32} & a_{33}
+\end{array}\right|.
+\]
+根据行列式性质 6，将 $|A|$ 的第一列拆分开，则 $|A|$ 可以表示成为 3 个行列式之和：
+\[
+|A|=
+\left|\begin{array}{ccc}
+a_{11} & a_{12} & a_{13}\\
+0 & a_{22} & a_{23}\\
+0 & a_{32} & a_{33}
+\end{array}\right|
++
+\left|\begin{array}{ccc}
+0 & a_{12} & a_{13}\\
+a_{21} & a_{22} & a_{23}\\
+0 & a_{32} & a_{33}
+\end{array}\right|
++
+\left|\begin{array}{ccc}
+0 & a_{12} & a_{13}\\
+0 & a_{22} & a_{23}\\
+a_{31} & a_{32} & a_{33}
+\end{array}\right|.
+\]
+继续将上述第一个行列式 (其余类似) 的第二列和第三列分别拆分开，则可得
+\[
+\begin{aligned}
+&\left|\begin{array}{ccc}
+a_{11} & a_{12} & a_{13}\\
+0 & a_{22} & a_{23}\\
+0 & a_{32} & a_{33}
+\end{array}\right|\\
+={}&
+\left|\begin{array}{ccc}a_{11}&a_{12}&a_{13}\\0&0&0\\0&0&0\end{array}\right|
++
+\left|\begin{array}{ccc}a_{11}&a_{12}&0\\0&0&a_{23}\\0&0&0\end{array}\right|
++
+\left|\begin{array}{ccc}a_{11}&a_{12}&0\\0&0&0\\0&0&a_{33}\end{array}\right|\\
+&+
+\left|\begin{array}{ccc}a_{11}&0&a_{13}\\0&a_{22}&0\\0&0&0\end{array}\right|
++
+\left|\begin{array}{ccc}a_{11}&0&0\\0&a_{22}&a_{23}\\0&0&0\end{array}\right|
++
+\left|\begin{array}{ccc}a_{11}&0&0\\0&a_{22}&0\\0&0&a_{33}\end{array}\right|\\
+&+
+\left|\begin{array}{ccc}a_{11}&0&a_{13}\\0&0&0\\0&a_{32}&0\end{array}\right|
++
+\left|\begin{array}{ccc}a_{11}&0&0\\0&0&a_{23}\\0&a_{32}&0\end{array}\right|
++
+\left|\begin{array}{ccc}a_{11}&0&0\\0&0&0\\0&a_{32}&a_{33}\end{array}\right|.
+\end{aligned}
+\]
+进一步，由行列式性质 3，将上述 9 个行列式每一列的公因子分别提出，则有
+\[
+\begin{aligned}
+&\left|\begin{array}{ccc}
+a_{11} & a_{12} & a_{13}\\
+0 & a_{22} & a_{23}\\
+0 & a_{32} & a_{33}
+\end{array}\right|\\
+={}&
+a_{11}a_{12}a_{13}\left|\begin{array}{ccc}1&1&1\\0&0&0\\0&0&0\end{array}\right|
++a_{11}a_{12}a_{23}\left|\begin{array}{ccc}1&1&0\\0&0&1\\0&0&0\end{array}\right|
++a_{11}a_{12}a_{33}\left|\begin{array}{ccc}1&1&0\\0&0&0\\0&0&1\end{array}\right|\\
+&+a_{11}a_{22}a_{13}\left|\begin{array}{ccc}1&0&1\\0&1&0\\0&0&0\end{array}\right|
++a_{11}a_{22}a_{23}\left|\begin{array}{ccc}1&0&0\\0&1&1\\0&0&0\end{array}\right|
++a_{11}a_{22}a_{33}\left|\begin{array}{ccc}1&0&0\\0&1&0\\0&0&1\end{array}\right|\\
+&+a_{11}a_{32}a_{13}\left|\begin{array}{ccc}1&0&1\\0&0&0\\0&1&0\end{array}\right|
++a_{11}a_{32}a_{23}\left|\begin{array}{ccc}1&0&0\\0&0&1\\0&1&0\end{array}\right|
++a_{11}a_{32}a_{33}\left|\begin{array}{ccc}1&0&0\\0&0&0\\0&1&1\end{array}\right|.
+\end{aligned}
+\]
+此时，所有的三阶行列式都具有十分简单的形式，即行列式的每一列只有一个元素为 1，其余元素全为 0. 注意到：如果有两个 1 处于同一行，则由行列式性质 5，此行列式的值为零；如果所有的 1 处于不同的行，则通过列之间的对换可将此行列式变为所有的 1 都在主对角线上的行列式，由行列式性质 4 可知此行列式的值等于 1 或 $-1$. 因此
+\[
+\left|\begin{array}{ccc}
+a_{11} & a_{12} & a_{13}\\
+0 & a_{22} & a_{23}\\
+0 & a_{32} & a_{33}
+\end{array}\right|
+=a_{11}a_{22}a_{33}-a_{11}a_{32}a_{23}.
+\]
+最后可得
+\[
+\left|\begin{array}{ccc}
+a_{11} & a_{12} & a_{13}\\
+a_{21} & a_{22} & a_{23}\\
+a_{31} & a_{32} & a_{33}
+\end{array}\right|
+=a_{11}a_{22}a_{33}+a_{21}a_{32}a_{13}+a_{31}a_{12}a_{23}
+-a_{11}a_{32}a_{23}-a_{21}a_{12}a_{33}-a_{31}a_{22}a_{13}.
+\]
+
+我们可以把上述讨论推广到 $n$ 阶行列式的情形. 为了叙述方便，我们先做一些约定. 行列式第 $j$ 列简记为 $\alpha_j(j=1,2,\cdots,n)$. $|A|$ 写为 $|\alpha_1,\alpha_2,\cdots,\alpha_n|$. 又用 $e_1$ 表示由 $n$ 个数组成的列，其中第一个数为 1，其余为零，即
+\[
+e_1=\left(\begin{array}{c}
+1\\
+0\\
+\vdots\\
+0
+\end{array}\right).
+\]
+为了防止混淆，我们把这一列数用括号括起来. 类似地定义 $e_i$ 为由 $n$ 个数组成的列，其第 $i$ 行为 1，其余行为 0. 定义一个数 $a$ 与 $e_i$ 的乘积仍为一个由 $n$ 个数组成的列，其第 $i$ 行元素为 $a$，其余为零. 定义 $ae_i+be_j$ 为这样的一个由 $n$ 个数组成的列：若 $i\ne j$，则第 $i$ 行为 $a$，第 $j$ 行为 $b$，其余为零；若 $i=j$，则第 $i$ 行为 $a+b$，其余行为零. 这样，行列式 $|A|$ 的第一列可写为
+\[
+\alpha_1=
+\left(\begin{array}{c}
+a_{11}\\
+a_{21}\\
+\vdots\\
+a_{n1}
+\end{array}\right)
+=a_{11}e_1+a_{21}e_2+\cdots+a_{n1}e_n
+=\sum_{i=1}^n a_{i1}e_i.
+\]
+同样，第 $j$ 列写为
+\[
+\alpha_j=a_{1j}e_1+a_{2j}e_2+\cdots+a_{nj}e_n
+=\sum_{i=1}^n a_{ij}e_i.
+\]
+由行列式性质 6 及性质 3，有
+\[
+\begin{aligned}
+|A|
+&=|\alpha_1,\alpha_2,\cdots,\alpha_n|
+=\left|\sum_{i=1}^n a_{i1}e_i,\alpha_2,\cdots,\alpha_n\right|\\
+&=\sum_{i=1}^n a_{i1}|e_i,\alpha_2,\cdots,\alpha_n|.
+\end{aligned}
+\]
+对行列式 $|e_i,\alpha_2,\cdots,\alpha_n|$，由 $\alpha_2=\sum_{k=1}^n a_{k2}e_k$ 得
+\[
+|e_i,\alpha_2,\cdots,\alpha_n|
+=\sum_{k=1}^n a_{k2}|e_i,e_k,\cdots,\alpha_n|.
+\]
+于是
+\[
+|A|=\sum_{i,k}a_{i1}a_{k2}|e_i,e_k,\cdots,\alpha_n|.
+\]
+不断做下去即可得
+\[
+|A|=\sum_{k_1,k_2,\cdots,k_n}
+a_{k_1 1}a_{k_2 2}\cdots a_{k_n n}
+|e_{k_1},e_{k_2},\cdots,e_{k_n}|.
+\]
+注意行列式 $|e_{k_1},e_{k_2},\cdots,e_{k_n}|$，当 $e_{k_i}=e_{k_j}$ 时其值为零. 因此不为零的行列式 $|e_{k_1},e_{k_2},\cdots,e_{k_n}|$ 必须适合条件：$k_i\ne k_j$，即 $(k_1,k_2,\cdots,k_n)$ 是数 $1,2,\cdots,n$ 的一个全排列或称 $(k_1,k_2,\cdots,k_n)$ 是 $1,2,\cdots,n$ 的一个置换. 这时候，行列式 $|e_{k_1},e_{k_2},\cdots,e_{k_n}|$ 是一个每一行和每一列都有且只有一个元素等于 1，其余元素都为零的行列式. 显然，经过若干次行或列的对换，这样的行列式可以化为下列形状：
+\[
+\left|\begin{array}{cccc}
+1 & 0 & \cdots & 0\\
+0 & 1 & \cdots & 0\\
+\vdots & \vdots & & \vdots\\
+0 & 0 & \cdots & 1
+\end{array}\right|.
+\]
+上面行列式的值等于 1，因此行列式 $|e_{k_1},e_{k_2},\cdots,e_{k_n}|$ 的值等于 1 或 $-1$. 故 $|A|$ 的展开式一共有 $n!$ 项，每一项的值为
+\[
+(-1)^\varepsilon a_{k_1 1}a_{k_2 2}\cdots a_{k_n n},
+\]
+其中 $\varepsilon$ 只与排列 $(k_1,k_2,\cdots,k_n)$ 有关.
+
+为了决定行列式中每一项的符号，我们引进逆序数的概念.
+
+\noindent\textbf{定义 1.6.1}\quad 我们称 $n$ 个数 $1,2,\cdots,n$ 的排列 $(1,2,\cdots,n)$ 为常序排列，即数字从小到大的排列为常序排列. 如果在一个排列中 $j$ 排在 $i$ 之前但是 $j>i$，则称这是一个逆序对. 一个排列的所有逆序对的总个数称为这个排列的逆序数.
+
+逆序数的求法是：设排列为 $(k_1,k_2,\cdots,k_n)$，先看 $k_1$ 后面有多少个数小于 $k_1$，不妨设为 $m_1$；再看 $k_2$ 后面有多少个数小于 $k_2$，不妨设为 $m_2$；$\cdots$；最后看 $k_{n-1}$ 后面有多少个数小于 $k_{n-1}$，不妨设为 $m_{n-1}$. 由定义，排列 $(k_1,k_2,\cdots,k_n)$ 的逆序数就等于 $m_1+m_2+\cdots+m_{n-1}$，通常记为 $N(k_1,k_2,\cdots,k_n)$. 例如，常序排列 $(1,2,\cdots,n)$ 的逆序数为零.
+
+\noindent\textbf{例 1.6.1}\quad 试确定 $(4,1,3,2)$ 的逆序数.
+
+\noindent\textbf{解}\quad $m_1=3,m_2=0,m_3=1$，故逆序数 $N(4,1,3,2)=3+0+1=4$.
+
+\noindent\textbf{定义 1.6.2}\quad 若排列 $(k_1,k_2,\cdots,k_n)$ 的逆序数是一个偶数 (包括零)，则称之为偶排列；若 $(k_1,k_2,\cdots,k_n)$ 的逆序数是一个奇数，则称之为奇排列.
+
+设 $S_n$ 为由 $1,2,\cdots,n$ 的所有全排列构成的集合，则 $S_n$ 的元素个数为 $n!$.
+
+\noindent\textbf{引理 1.6.1}\quad 设 $(k_1,k_2,\cdots,k_n)\in S_n$，若将其中 $k_i$ 与 $k_j$ 的位置对换，其余数不动，则排列的奇偶性改变. 即奇排列变为偶排列，偶排列变为奇排列.
+
+\noindent\textbf{证明}\quad 首先我们考虑相邻两个数的对换. 若 $k_i>k_{i+1}$，则对换后逆序数减少了 1；若 $k_i<k_{i+1}$，则对换后逆序数增加了 1，无论哪种情形，奇偶性都改变了. 再考虑一般情形. $k_i$ 与 $k_j$ 的对换可通过相邻两个数的对换来实现：不妨设 $i<j$，将 $k_i$ 与 $k_{i+1}$ 对换，再与 $k_{i+2}$ 对换，$\cdots$，最后与 $k_j$ 对换 (共换了 $j-i$ 次)；再将 $k_j$ 与 $k_{j-1}$ 对换，再与 $k_{j-2}$ 对换，$\cdots$，最后与 $k_{i+1}$ 对换 (共换了 $j-i-1$ 次)；此时 $k_j$ 到了 $k_i$ 原来的位置，$k_i$ 到了原来 $k_j$ 的位置. 这样一共换了 $2(j-i)-1$ 次，因此改变了奇偶性. \(\square\)
+
+\noindent\textbf{引理 1.6.2}\quad 设 $n\ge 2$，则 $S_n$ 中的奇排列与偶排列各占一半.
+
+\noindent\textbf{证明}\quad 设 $S_n$ 中的奇排列有 $p$ 个，偶排列有 $q$ 个. 由于 $n\ge 2$，故可将每个奇排列的头两个数对换一下，则所有的奇排列变成了互不相同的偶排列，因此 $p\le q$. 同理可证 $q\le p$，故 $p=q$. \(\square\)
+
+逆序数的实际意义是，它给出了任一排列与常序排列之间相互转换的关系.
+
+\noindent\textbf{引理 1.6.3}\quad 设 $(k_1,k_2,\cdots,k_n)\in S_n$，则通过 $N(k_1,k_2,\cdots,k_n)$ 次相邻对换，可将 $(k_1,k_2,\cdots,k_n)$ 变为常序排列 $(1,2,\cdots,n)$.
+
+\noindent\textbf{证明}\quad 对 $n$ 进行归纳. $n=1$ 时结论显然成立，设对 $1,2,\cdots,n-1$ 的任一排列结论成立. 设 $n$ 在排列 $(k_1,k_2,\cdots,k_n)$ 的第 $i$ 位置，即 $k_i=n$，其逆序数为 $m_i$ (这时 $m_i=n-i$). 将 $k_i$ 与 $k_{i+1}$ 对换，再与 $k_{i+2}$ 对换，$\cdots$，最后与 $k_n$ 对换 (共换了 $m_i$ 次)，此时 $n$ 就到了最末一位. 注意到
+\[
+N(k_1,k_2,\cdots,k_n)=m_i+N(k_1,\cdots,k_{i-1},k_{i+1},\cdots,k_n),
+\]
+且 $(k_1,\cdots,k_{i-1},k_{i+1},\cdots,k_n)\in S_{n-1}$，由归纳假设知 $(k_1,\cdots,k_{i-1},k_{i+1},\cdots,k_n)$ 经过 $N(k_1,\cdots,k_{i-1},k_{i+1},\cdots,k_n)$ 次相邻对换可变为常序排列 $(1,2,\cdots,n-1)$，因此由上面的讨论知 $(k_1,k_2,\cdots,k_n)$ 经过 $N(k_1,k_2,\cdots,k_n)$ 次相邻对换可变为常序排列 $(1,2,\cdots,n)$. \(\square\)
+
+\noindent\textbf{例 1.6.2}\quad 试通过相邻对换将 $(4,1,3,2)$ 变为常序排列 $(1,2,3,4)$.
+
+\noindent\textbf{解}\quad
+\[
+(4,1,3,2)\xrightarrow{\text{将 4 相邻对换 3 次}}(1,3,2,4)
+\xrightarrow{\text{将 3 相邻对换 1 次}}(1,2,3,4).
+\]
+
+现在我们来计算行列式 $|e_{k_1},e_{k_2},\cdots,e_{k_n}|$. 由引理 1.6.3 知，$(k_1,k_2,\cdots,k_n)$ 经过 $N(k_1,k_2,\cdots,k_n)$ 次相邻对换可变为常序排列 $(1,2,\cdots,n)$. 因此，行列式 $|e_{k_1},e_{k_2},\cdots,e_{k_n}|$ 经过 $N(k_1,k_2,\cdots,k_n)$ 次相邻列对换可变为行列式 $|e_1,e_2,\cdots,e_n|$. 因此 $|e_{k_1},e_{k_2},\cdots,e_{k_n}|$ 的值等于 $(-1)^{N(k_1,k_2,\cdots,k_n)}$，这样就求得了行列式的值.
+
+\noindent\textbf{定理 1.6.1}\quad 设 $|A|$ 是如 (1.6.1) 式所示的 $n$ 阶行列式，则
+\begin{equation}
+|A|=\sum_{(k_1,k_2,\cdots,k_n)\in S_n}
+(-1)^{N(k_1,k_2,\cdots,k_n)}
+a_{k_1 1}a_{k_2 2}\cdots a_{k_n n}.
+\tag{1.6.2}
+\end{equation}
+
+\noindent\textbf{注}\quad 我们也可以将上式作为行列式值的定义，从而推出行列式的诸性质. 事实上，有不少教科书就是采用这种方法来定义行列式的. 读者不妨自己作一尝试.
+
+\section*{习题 1.6}
+
+1. 证明行列式的值还可以这样定义：
+\begin{equation}
+|A|=\sum_{(k_1,k_2,\cdots,k_n)\in S_n}
+(-1)^{N(k_1,k_2,\cdots,k_n)}
+a_{1k_1}a_{2k_2}\cdots a_{nk_n}.
+\tag{1.6.3}
+\end{equation}
+
+2. 试用 (1.6.2) 式或 (1.6.3) 式作为行列式值的定义来证明行列式的诸性质.
+
+3. 试求 (1.6.2) 式中单项 $a_{1n}a_{2,n-1}a_{3,n-2}\cdots a_{n1}$ 所带的符号.
+
+4. 若一个 $n$ 阶行列式中零元素的个数超过 $n^2-n$ 个，证明：这个行列式的值等于零.
+
+5. 设 $f_{ij}(t)$ 是可微函数，
+\[
+F(t)=
+\left|\begin{array}{cccc}
+f_{11}(t) & f_{12}(t) & \cdots & f_{1n}(t)\\
+f_{21}(t) & f_{22}(t) & \cdots & f_{2n}(t)\\
+\vdots & \vdots & & \vdots\\
+f_{n1}(t) & f_{n2}(t) & \cdots & f_{nn}(t)
+\end{array}\right|,
+\]
+求证：
+\[
+\frac{d}{dt}F(t)=\sum_{j=1}^n F_j(t),
+\]
+其中
+\[
+F_j(t)=
+\left|\begin{array}{ccccccc}
+f_{11}(t) & f_{12}(t) & \cdots & \dfrac{d}{dt}f_{1j}(t) & \cdots & f_{1n}(t)\\
+f_{21}(t) & f_{22}(t) & \cdots & \dfrac{d}{dt}f_{2j}(t) & \cdots & f_{2n}(t)\\
+\vdots & \vdots & & \vdots & & \vdots\\
+f_{n1}(t) & f_{n2}(t) & \cdots & \dfrac{d}{dt}f_{nj}(t) & \cdots & f_{nn}(t)
+\end{array}\right|.
+\]
+
+6. 设
+\[
+f(x)=
+\left|\begin{array}{cccc}
+x-a_{11} & -a_{12} & \cdots & -a_{1n}\\
+-a_{21} & x-a_{22} & \cdots & -a_{2n}\\
+\vdots & \vdots & & \vdots\\
+-a_{n1} & -a_{n2} & \cdots & x-a_{nn}
+\end{array}\right|,
+\]
+其中 $x$ 是未知数，$a_{ij}$ 是常数. 证明：$f(x)$ 是一个最高次项系数为 1 的 $n$ 次多项式，且其 $n-1$ 次项的系数等于 $-(a_{11}+a_{22}+\cdots+a_{nn})$.
+
+\section*{* §1.7\quad Laplace 定理}
+
+我们已经知道，行列式可以按任一列或任一行展开. 现在我们要将这个结论作进一步的推广. 首先引进 $k$ 阶子式的概念.
+
+\noindent\textbf{定义 1.7.1}\quad 设 $|A|$ 是一个 $n$ 阶行列式，$k<n$. 又 $i_1,i_2,\cdots,i_k$ 及 $j_1,j_2,\cdots,j_k$ 是两组自然数且适合条件：
+\[
+1\le i_1<i_2<\cdots<i_k\le n;\quad
+1\le j_1<j_2<\cdots<j_k\le n.
+\]
+取行列式 $|A|$ 中第 $i_1$ 行，第 $i_2$ 行，$\cdots$，第 $i_k$ 行以及第 $j_1$ 列，第 $j_2$ 列，$\cdots$，第 $j_k$ 列交点上的元素，按原来 $|A|$ 中的相对位置构成一个 $k$ 阶行列式. 我们称之为 $|A|$ 的一个 $k$ 阶子式，记为
+\begin{equation}
+A\left(\begin{array}{cccc}
+i_1 & i_2 & \cdots & i_k\\
+j_1 & j_2 & \cdots & j_k
+\end{array}\right).
+\tag{1.7.1}
+\end{equation}
+把这个子式写出来就是：
+\[
+\left|\begin{array}{cccc}
+a_{i_1j_1} & a_{i_1j_2} & \cdots & a_{i_1j_k}\\
+a_{i_2j_1} & a_{i_2j_2} & \cdots & a_{i_2j_k}\\
+\vdots & \vdots & & \vdots\\
+a_{i_kj_1} & a_{i_kj_2} & \cdots & a_{i_kj_k}
+\end{array}\right|.
+\]
+在行列式 $|A|$ 中去掉第 $i_1$ 行，第 $i_2$ 行，$\cdots$，第 $i_k$ 行以及第 $j_1$ 列，第 $j_2$ 列，$\cdots$，第 $j_k$ 列以后剩下的元素按原来的相对位置构成一个 $n-k$ 阶行列式. 这个行列式称为子式 (1.7.1) 的余子式，记为
+\begin{equation}
+M\left(\begin{array}{cccc}
+i_1 & i_2 & \cdots & i_k\\
+j_1 & j_2 & \cdots & j_k
+\end{array}\right).
+\tag{1.7.2}
+\end{equation}
+若令 $p=i_1+i_2+\cdots+i_k,\ q=j_1+j_2+\cdots+j_k$，记
+\begin{equation}
+\widehat{A}\left(\begin{array}{cccc}
+i_1 & i_2 & \cdots & i_k\\
+j_1 & j_2 & \cdots & j_k
+\end{array}\right)
+=(-1)^{p+q}
+M\left(\begin{array}{cccc}
+i_1 & i_2 & \cdots & i_k\\
+j_1 & j_2 & \cdots & j_k
+\end{array}\right),
+\tag{1.7.3}
+\end{equation}
+称之为子式 (1.7.1) 的代数余子式.
+
+我们这一节主要证明如下的 Laplace (拉普拉斯) 定理.
+
+\noindent\textbf{定理 1.7.1 (Laplace 定理)}\quad 设 $|A|$ 是 $n$ 阶行列式，在 $|A|$ 中任取 $k$ 行 (列)，那么含于这 $k$ 行 (列) 的全部 $k$ 阶子式与它们所对应的代数余子式的乘积之和等于 $|A|$. 即若取定 $k$ 个行：$1\le i_1<i_2<\cdots<i_k\le n$，则
+\begin{equation}
+|A|=
+\sum_{1\le j_1<j_2<\cdots<j_k\le n}
+A\left(\begin{array}{cccc}
+i_1 & i_2 & \cdots & i_k\\
+j_1 & j_2 & \cdots & j_k
+\end{array}\right)
+\widehat{A}\left(\begin{array}{cccc}
+i_1 & i_2 & \cdots & i_k\\
+j_1 & j_2 & \cdots & j_k
+\end{array}\right).
+\tag{1.7.4}
+\end{equation}
+同样若取定 $k$ 个列：$1\le j_1<j_2<\cdots<j_k\le n$，则
+\begin{equation}
+|A|=
+\sum_{1\le i_1<i_2<\cdots<i_k\le n}
+A\left(\begin{array}{cccc}
+i_1 & i_2 & \cdots & i_k\\
+j_1 & j_2 & \cdots & j_k
+\end{array}\right)
+\widehat{A}\left(\begin{array}{cccc}
+i_1 & i_2 & \cdots & i_k\\
+j_1 & j_2 & \cdots & j_k
+\end{array}\right).
+\tag{1.7.5}
+\end{equation}
+
+在证明 Laplace 定理之前，我们先举一个例子以弄清子式、代数余子式的含义以及 Laplace 定理的内容. 例如，设有下列四阶行列式：
+\[
+\left|\begin{array}{rrrr}
+1 & 2 & -1 & 3\\
+7 & 0 & 5 & 2\\
+-2 & 4 & 6 & 1\\
+2 & 3 & 1 & 4
+\end{array}\right|.
+\]
+
+若固定其第二、第三行，则共有 $C_4^2(=6)$ 个二阶子式：
+\[
+\begin{array}{lll}
+A\left(\begin{array}{cc}2&3\\1&2\end{array}\right)=
+\left|\begin{array}{cc}7&0\\-2&4\end{array}\right|,
+&
+A\left(\begin{array}{cc}2&3\\1&3\end{array}\right)=
+\left|\begin{array}{cc}7&5\\-2&6\end{array}\right|,
+\\[1.2em]
+A\left(\begin{array}{cc}2&3\\1&4\end{array}\right)=
+\left|\begin{array}{cc}7&2\\-2&1\end{array}\right|,
+&
+A\left(\begin{array}{cc}2&3\\2&3\end{array}\right)=
+\left|\begin{array}{cc}0&5\\4&6\end{array}\right|,
+\\[1.2em]
+A\left(\begin{array}{cc}2&3\\2&4\end{array}\right)=
+\left|\begin{array}{cc}0&2\\4&1\end{array}\right|,
+&
+A\left(\begin{array}{cc}2&3\\3&4\end{array}\right)=
+\left|\begin{array}{cc}5&2\\6&1\end{array}\right|.
+\end{array}
+\]
+这 6 个子式相对应的代数余子式为
+\[
+\begin{array}{rl}
+\widehat{A}\left(\begin{array}{cc}2&3\\1&2\end{array}\right)
+&=(-1)^{2+3+1+2}\left|\begin{array}{cc}-1&3\\1&4\end{array}\right|
+=\left|\begin{array}{cc}-1&3\\1&4\end{array}\right|,\\[1.2em]
+\widehat{A}\left(\begin{array}{cc}2&3\\1&3\end{array}\right)
+&=(-1)^{2+3+1+3}\left|\begin{array}{cc}2&3\\3&4\end{array}\right|
+=-\left|\begin{array}{cc}2&3\\3&4\end{array}\right|,\\[1.2em]
+\widehat{A}\left(\begin{array}{cc}2&3\\1&4\end{array}\right)
+&=(-1)^{2+3+1+4}\left|\begin{array}{cc}2&-1\\3&1\end{array}\right|
+=\left|\begin{array}{cc}2&-1\\3&1\end{array}\right|,\\[1.2em]
+\widehat{A}\left(\begin{array}{cc}2&3\\2&3\end{array}\right)
+&=(-1)^{2+3+2+3}\left|\begin{array}{cc}1&3\\2&4\end{array}\right|
+=\left|\begin{array}{cc}1&3\\2&4\end{array}\right|,\\[1.2em]
+\widehat{A}\left(\begin{array}{cc}2&3\\2&4\end{array}\right)
+&=(-1)^{2+3+2+4}\left|\begin{array}{cc}1&-1\\2&1\end{array}\right|
+=-\left|\begin{array}{cc}1&-1\\2&1\end{array}\right|,\\[1.2em]
+\widehat{A}\left(\begin{array}{cc}2&3\\3&4\end{array}\right)
+&=(-1)^{2+3+3+4}\left|\begin{array}{cc}1&2\\2&3\end{array}\right|
+=\left|\begin{array}{cc}1&2\\2&3\end{array}\right|.
+\end{array}
+\]
+于是 Laplace 定理说
+\[
+\begin{aligned}
+|A|={}&
+\left|\begin{array}{cc}7&0\\-2&4\end{array}\right|
+\left|\begin{array}{cc}-1&3\\1&4\end{array}\right|
+-
+\left|\begin{array}{cc}7&5\\-2&6\end{array}\right|
+\left|\begin{array}{cc}2&3\\3&4\end{array}\right|
++
+\left|\begin{array}{cc}7&2\\-2&1\end{array}\right|
+\left|\begin{array}{cc}2&-1\\3&1\end{array}\right|\\
+&+
+\left|\begin{array}{cc}0&5\\4&6\end{array}\right|
+\left|\begin{array}{cc}1&3\\2&4\end{array}\right|
+-
+\left|\begin{array}{cc}0&2\\4&1\end{array}\right|
+\left|\begin{array}{cc}1&-1\\2&1\end{array}\right|
++
+\left|\begin{array}{cc}5&2\\6&1\end{array}\right|
+\left|\begin{array}{cc}1&2\\2&3\end{array}\right|\\
+= {}& 28\times(-7)-52\times(-1)+11\times5+(-20)\times(-2)\\
+&-(-8)\times3+(-7)\times(-1)\\
+= {}& -18.
+\end{aligned}
+\]
+通过行列式计算，我们也得到原行列式的值为 $-18$. 读者还可固定其列，比如第三、第四列来验证 Laplace 定理.
+
+为了证明 Laplace 定理，我们可这样考虑：$n$ 阶行列式按照 (1.6.2) 式共有 $n!$ 项，其中每一项如不考虑符号都由 $n$ 个元素的积组成，$|A|$ 中的每一行及每一列有且仅有一个元素在这一项中. 若固定 $|A|$ 的 $k$ 行 (或列)，则一共有 $C_n^k$ 个不同的子式，每一个子式完全展开后均含有 $k!$ 项，相应的余子式完全展开后均含有 $(n-k)!$ 项. 因此在 Laplace 定理中 (1.7.4) 式 (或 (1.7.5) 式) 右端一共有
+\[
+C_n^k\cdot k!(n-k)!=n!
+\]
+项，所以如果我们能够证明每个 $k$ 阶子式与其代数余子式之积中的每一项都互不相同且都属于 $|A|$ 的展开式，那么就证明了 Laplace 定理.
+
+\noindent\textbf{引理 1.7.1}\quad $n$ 阶行列式 $|A|$ 的任一 $k$ 阶子式与其代数余子式之积的展开式中的每一项都属于 $|A|$ 的展开式.
+
+\noindent\textbf{证明}\quad 先证明一个特殊情形：$i_1=1,i_2=2,\cdots,i_k=k;\ j_1=1,j_2=2,\cdots,j_k=k$. 这时 $|A|$ 可写为
+\begin{equation}
+\left|\begin{array}{cc}
+A_1&*\\
+*&A_2
+\end{array}\right|,
+\tag{1.7.6}
+\end{equation}
+其中
+\begin{equation}
+|A_1|=A\left(\begin{array}{cccc}
+1&2&\cdots&k\\
+1&2&\cdots&k
+\end{array}\right)
+=
+\left|\begin{array}{ccc}
+a_{11}&\cdots&a_{1k}\\
+\vdots&&\vdots\\
+a_{k1}&\cdots&a_{kk}
+\end{array}\right|,
+\tag{1.7.7}
+\end{equation}
+\begin{equation}
+|A_2|=\widehat{A}\left(\begin{array}{cccc}
+1&2&\cdots&k\\
+1&2&\cdots&k
+\end{array}\right)
+=
+\left|\begin{array}{ccc}
+a_{k+1,k+1}&\cdots&a_{k+1,n}\\
+\vdots&&\vdots\\
+a_{n,k+1}&\cdots&a_{nn}
+\end{array}\right|.
+\tag{1.7.8}
+\end{equation}
+(1.7.7) 式中的任一项具有形式：
+\[
+(-1)^{N(j_1,j_2,\cdots,j_k)}a_{1j_1}a_{2j_2}\cdots a_{kj_k},
+\]
+其中 $N(j_1,j_2,\cdots,j_k)$ 是排列 $(j_1,j_2,\cdots,j_k)$ 的逆序数. (1.7.8) 式中的任一项具有形式：
+\[
+(-1)^{N(j_{k+1},j_{k+2},\cdots,j_n)}a_{k+1,j_{k+1}}a_{k+2,j_{k+2}}\cdots a_{n,j_n},
+\]
+所以
+\[
+A\left(\begin{array}{cccc}
+1&2&\cdots&k\\
+1&2&\cdots&k
+\end{array}\right)
+\widehat{A}\left(\begin{array}{cccc}
+1&2&\cdots&k\\
+1&2&\cdots&k
+\end{array}\right)
+\]
+中的任一项具有下列形式：
+\begin{equation}
+(-1)^\sigma a_{1j_1}a_{2j_2}\cdots a_{kj_k}a_{k+1,j_{k+1}}\cdots a_{n,j_n},
+\tag{1.7.9}
+\end{equation}
+其中 $\sigma=N(j_1,\cdots,j_k)+N(j_{k+1},\cdots,j_n)$. 注意 $(j_1,\cdots,j_k)$ 是 $(1,\cdots,k)$ 的一个排列，$(j_{k+1},\cdots,j_n)$ 是 $(k+1,\cdots,n)$ 的一个排列，因此 $(j_1,\cdots,j_k,j_{k+1},\cdots,j_n)$ 是 $(1,2,\cdots,n)$ 的一个排列且
+\[
+N(j_1,\cdots,j_k,j_{k+1},\cdots,j_n)=N(j_1,\cdots,j_k)+N(j_{k+1},\cdots,j_n).
+\]
+这就是说 (1.7.9) 式是 $|A|$ 中的某一项.
+
+再对一般情况进行证明，设
+\[
+1\le i_1<i_2<\cdots<i_k\le n,\quad 1\le j_1<j_2<\cdots<j_k\le n.
+\]
+显然，经过 $i_1-1$ 次相邻两行的对换，可把第 $i_1$ 行调至第一行. 同理，经过 $i_2-2$ 次对换，可把第 $i_2$ 行调至第二行，$\cdots\cdots$，经过 $(i_1+\cdots+i_k)-\dfrac{1}{2}k(k+1)$ 次对换即可把第 $i_1,i_2,\cdots,i_k$ 行调至前 $k$ 行. 同理，经过 $(j_1+\cdots+j_k)-\dfrac{1}{2}k(k+1)$ 次对换，可把第 $j_1,j_2,\cdots,j_k$ 列调至前 $k$ 列. 因此，$|A|$ 经过 $(i_1+\cdots+i_k)+(j_1+\cdots+j_k)-k(k+1)$ 次行列的对换，得到了一个新的行列式：
+\[
+|C|=\left|\begin{array}{cc}
+D&*\\
+*&B
+\end{array}\right|,
+\]
+其中
+\[
+|D|=A\left(\begin{array}{cccc}
+i_1&i_2&\cdots&i_k\\
+j_1&j_2&\cdots&j_k
+\end{array}\right).
+\]
+显然 $|C|=(-1)^{p+q}|A|,\ p=i_1+\cdots+i_k,\ q=j_1+\cdots+j_k$. $|B|$ 是子式 $|D|$ 在 $|C|$ 中的余子式 (也是代数余子式). 由刚才讨论过的情形知道 $|D||B|$ 中的任一项都是 $|C|$ 中的项. 但是显然
+\[
+\widehat{A}\left(\begin{array}{cccc}
+i_1&i_2&\cdots&i_k\\
+j_1&j_2&\cdots&j_k
+\end{array}\right)=(-1)^{p+q}|B|,
+\]
+因此
+\begin{equation}
+A\left(\begin{array}{cccc}
+i_1&i_2&\cdots&i_k\\
+j_1&j_2&\cdots&j_k
+\end{array}\right)
+\widehat{A}\left(\begin{array}{cccc}
+i_1&i_2&\cdots&i_k\\
+j_1&j_2&\cdots&j_k
+\end{array}\right)
+=(-1)^{p+q}|D||B|
+\tag{1.7.10}
+\end{equation}
+中的任一项都是 $(-1)^{p+q}|C|=|A|$ 中的项. $\Box$
+
+现在我们来完成 Laplace 定理的证明.
+
+\noindent\textbf{证明}\quad 只需证明 (1.7.4) 式，(1.7.5) 式同理可得. 由引理 1.7.1 可知，(1.7.10) 式中的任一项均属于 $|A|$ 的展开式. 容易验证当 $i_1,i_2,\cdots,i_k$ 固定时，对不同的 $1\le j_1<j_2<\cdots<j_k\le n$，由 (1.7.10) 式展开得到的项是没有重复的，且一共有 $n!$ 项. 又 $|A|$ 的展开式中也有 $n!$ 项，因此 (1.7.4) 式成立. $\Box$
+
+Laplace 定理通常用来做理论分析，也可以用来计算一些特殊的行列式. 下面就是两个简单的例子.
+
+\noindent\textbf{例 1.7.1}\quad 计算行列式：
+\[
+|A|=
+\left|\begin{array}{rrrrr}
+-1&1&1&2&-1\\
+0&-1&0&1&2\\
+2&1&1&3&-1\\
+1&2&2&1&0\\
+0&3&0&1&3
+\end{array}\right|.
+\]
+
+\noindent\textbf{解}\quad 因为第一、第三列含有较多的零，因此在这两列上作 Laplace 展开，得
+\[
+\begin{aligned}
+|A|={}&
+\left|\begin{array}{rr}-1&1\\2&1\end{array}\right|
+\cdot(-1)^{1+3+1+3}
+\left|\begin{array}{rrr}-1&1&2\\2&1&0\\3&1&3\end{array}\right|\\
+&+
+\left|\begin{array}{rr}-1&1\\1&2\end{array}\right|
+\cdot(-1)^{1+4+1+3}
+\left|\begin{array}{rrr}-1&1&2\\1&3&-1\\3&1&3\end{array}\right|\\
+&+
+\left|\begin{array}{rr}2&1\\1&2\end{array}\right|
+\cdot(-1)^{3+4+1+3}
+\left|\begin{array}{rrr}1&2&-1\\-1&1&2\\3&1&3\end{array}\right|\\
+= {}& (-3)\times(-11)+(-3)\times32+3\times(-23)\\
+= {}& -132.
+\end{aligned}
+\]
+
+\noindent\textbf{例 1.7.2}\quad 设 $n$ 阶行列式前 $k$ 行和后 $n-k$ 列的交点上的元素都是零，即
+\[
+|A|=
+\left|\begin{array}{cccccc}
+a_{11}&\cdots&a_{1k}&0&\cdots&0\\
+\vdots&&\vdots&\vdots&&\vdots\\
+a_{k1}&\cdots&a_{kk}&0&\cdots&0\\
+a_{k+1,1}&\cdots&a_{k+1,k}&a_{k+1,k+1}&\cdots&a_{k+1,n}\\
+\vdots&&\vdots&\vdots&&\vdots\\
+a_{n1}&\cdots&a_{nk}&a_{n,k+1}&\cdots&a_{nn}
+\end{array}\right|,
+\]
+计算其值.
+
+\noindent\textbf{解}\quad 由 Laplace 定理 (按前 $k$ 行展开) 立即得到
+\[
+|A|=
+\left|\begin{array}{ccc}
+a_{11}&\cdots&a_{1k}\\
+\vdots&&\vdots\\
+a_{k1}&\cdots&a_{kk}
+\end{array}\right|
+\left|\begin{array}{ccc}
+a_{k+1,k+1}&\cdots&a_{k+1,n}\\
+\vdots&&\vdots\\
+a_{n,k+1}&\cdots&a_{nn}
+\end{array}\right|.
+\]
+
+\begin{center}
+习\quad 题\quad 1.7
+\end{center}
+
+1. 写出下列行列式第一、第三行的所有子式及相应的代数余子式，并用 Laplace 定理计算其值：
+\[
+\begin{array}{ll}
+(1)\quad
+\left|\begin{array}{rrrr}
+1&2&0&1\\
+-1&0&2&1\\
+3&1&-1&-1\\
+1&-1&1&-1
+\end{array}\right|;
+&
+(2)\quad
+\left|\begin{array}{rrrr}
+3&-1&0&-3\\
+0&2&7&-2\\
+5&0&2&1\\
+1&-1&2&3
+\end{array}\right|.
+\end{array}
+\]
+
+2. 设 $\omega$ 是 1 的虚立方根，即
+\[
+\omega=-\frac{1}{2}+\frac{\sqrt{3}}{2}\mathrm{i},
+\]
+试求下列行列式的值：
+\[
+\left|\begin{array}{cccccc}
+1&1&0&0&1&0\\
+1&\omega&0&0&\omega^2&0\\
+a_1&b_1&1&1&c_1&1\\
+a_2&b_2&1&\omega^2&c_2&\omega\\
+a_3&b_3&1&\omega&c_3&\omega^2\\
+1&\omega^2&0&0&\omega&0
+\end{array}\right|.
+\]
+
+3. 证明：在确定代数余子式的符号时，可以不利用该子式的行和列的号码和，而利用该子式的余子式的号码和.
+
+4. 利用行列式及 Laplace 定理，证明下列恒等式：
+\[
+(ab'-a'b)(cd'-c'd)-(ac'-a'c)(bd'-b'd)+(ad'-a'd)(bc'-b'c)=0.
+\]
+
+5. 求 $2n$ 阶行列式的值 (空缺处都是零)：
+\[
+\left|\begin{array}{ccccccc}
+a&&&&&&b\\
+&\ddots&&&&\reflectbox{$\ddots$}&\\
+&&a&b&&&\\
+&&b&a&&&\\
+&\reflectbox{$\ddots$}&&&&\ddots&\\
+b&&&&&&a
+\end{array}\right|.
+\]
+
+\section*{历史与展望}
+
+对线性代数而言，最原始的驱动问题就是线性方程组的求解. 早在 4000 年前，古巴比伦人就知道如何求解二元线性方程组. 公元前 200 年，著名的《九章算术》一书中记载了中国人如何求解三元线性方程组. 这些求解方法是矩阵方法的原型，与 2000 年后 Gauss (高斯) 和其他人给出的消元法有着类似之处. 行列式和矩阵都是为解决线性方程组的求解问题所创建的新理论，然而从历史上看，行列式却先于矩阵出现.
+
+线性方程组求解理论的近代研究起源于 Leibniz (莱布尼茨)，他在 1693 年给出了行列式的概念，并应用于线性方程组的求解，但这些研究在当时并不为人所知. 1674 年日本数学家关孝和在著作《解伏题元法》中也提出了行列式的概念与算法.
+
+1750 年，Cramer 把代数曲线问题的研究转化为线性方程组求解问题的研究，并利用行列式给出了 $n$ 个未定元 $n$ 个方程的线性方程组有解的判定准则，后称之为 Cramer 法则. 稍后，Bezout (贝祖) 将确定行列式每一单项符号的方法进行了系统化，利用系数行列式的概念指出了如何判断一个齐次线性方程组有非零解. 总之，在很长一段时间内，行列式只是作为求解线性方程组的一种工具被使用，并没有人意识到它可以独立于线性方程组之外，单独形成一门理论加以研究.
+
+在行列式的发展史上，第一个对行列式理论做出连贯的逻辑的阐述，即把行列式理论与线性方程组求解相分离的人是 Vandermonde. 他给出了用二阶子式和它们的余子式来展开行列式的法则，就行列式本身来说，Vandermonde 是这门理论的奠基人. 1772 年，Laplace 在一篇论文中证明了 Vandermonde 提出的一些规则，推广了展开行列式的方法.
+
+继 Vandermonde 之后，在行列式理论方面，又一位做出突出贡献的数学家是 Cauchy (柯西). 1815 年 Cauchy 给出了行列式的第一个系统的、几乎是近代的处理. 他给出了行列式的许多性质，例如行列式的乘法定理等，这些工作为数学家们研究 $n$ 维代数、几何和分析提供了强有力的工具. 例如，1843 年 Cayley (凯莱) 以行列式为基本工具发展了 $n$ 维解析几何；1870 年 Dedekind (戴德金) 利用行列式证明了代数整数的和与乘积仍为代数整数等重要结论.
+
+19 世纪的半个多世纪中，对行列式理论研究始终不渝的数学家是 Sylvester (西尔维斯特). 他的重要成就之一是改进了从一个 $m$ 次和一个 $n$ 次多项式中消去未定元的方法 (他称之为配析法)，并给出了形成的行列式等于零是这两个多项式有公共根的充分必要条件这一结果.
+
+继 Cauchy 之后，在行列式理论方面最多产的数学家是 Jacobi (雅可比)，他引进了函数行列式，即 ``Jacobi 行列式''，指出函数行列式在多重积分的变量代换中的作用，给出了函数行列式的导数公式. Jacobi 的著名论文《论行列式的形成和性质》标志着行列式理论系统的建成.
+
+行列式理论在 19 世纪得到了极大的发展. 整个 19 世纪都有行列式的新结果出现，除了一般行列式的大量定理之外，还相继得到许多关于特殊行列式的定理. 19 世纪 60 年代，Weierstrass (魏尔斯特拉斯) 和 Kronecker (克罗内克) 分别给出了行列式的公理化定义. 20 世纪初随着数学公理化浪潮的兴起，这些工作才逐渐被世人知晓.
+
+行列式理论有着广泛的应用. 在后续章节可以看到，除了线性方程组的求解，行列式还能应用于矩阵非异性的判定，矩阵秩的计算，矩阵特征值的计算，二次型的化简，实对称矩阵正定性的判定等. 另外，行列式理论在微分方程组的求解和天体力学等领域也有着重要的应用. 虽然从现代数学的角度来看，行列式理论已经十分成熟，没有进一步发展的空间，但它的确是一种强有力的计算工具.
+
+\section*{复习题一}
+
+1. 计算下列 $n$ 阶行列式的值，其中 $a_i\ne0\ (2\le i\le n)$：
+\[
+|A|=
+\left|\begin{array}{ccccc}
+a_1&b_2&b_3&\cdots&b_n\\
+c_2&a_2&0&\cdots&0\\
+c_3&0&a_3&\cdots&0\\
+\vdots&\vdots&\vdots&&\vdots\\
+c_n&0&0&\cdots&a_n
+\end{array}\right|.
+\]
+
+2. 计算下列 $n$ 阶行列式的值，其中 $a_i\ne0\ (1\le i\le n)$：
+\[
+|A|=
+\left|\begin{array}{ccccc}
+x_1-a_1&x_2&x_3&\cdots&x_n\\
+x_1&x_2-a_2&x_3&\cdots&x_n\\
+x_1&x_2&x_3-a_3&\cdots&x_n\\
+\vdots&\vdots&\vdots&&\vdots\\
+x_1&x_2&x_3&\cdots&x_n-a_n
+\end{array}\right|.
+\]
+
+3. 设 $|A|=|a_{ij}|$ 是一个 $n$ 阶行列式，$A_{ij}$ 是它的第 $(i,j)$ 元素的代数余子式，求证：
+\[
+\left|\begin{array}{ccccc}
+a_{11}&a_{12}&\cdots&a_{1n}&x_1\\
+a_{21}&a_{22}&\cdots&a_{2n}&x_2\\
+\vdots&\vdots&&\vdots&\vdots\\
+a_{n1}&a_{n2}&\cdots&a_{nn}&x_n\\
+y_1&y_2&\cdots&y_n&z
+\end{array}\right|
+=z|A|-\sum_{i=1}^n\sum_{j=1}^n A_{ij}x_iy_j.
+\]
+
+4. 计算下列 $n$ 阶行列式的值：
+\[
+|A|=
+\left|\begin{array}{ccccc}
+a_1+b&a_2&a_3&\cdots&a_n\\
+a_1&a_2+b&a_3&\cdots&a_n\\
+a_1&a_2&a_3+b&\cdots&a_n\\
+\vdots&\vdots&\vdots&&\vdots\\
+a_1&a_2&a_3&\cdots&a_n+b
+\end{array}\right|.
+\]
+
+5. 计算下列 $n$ 阶行列式的值：
+\[
+|A|=
+\left|\begin{array}{cccccc}
+1&2&3&\cdots&n-1&n\\
+n&1&2&\cdots&n-2&n-1\\
+n-1&n&1&\cdots&n-3&n-2\\
+\vdots&\vdots&\vdots&&\vdots&\vdots\\
+3&4&5&\cdots&1&2\\
+2&3&4&\cdots&n&1
+\end{array}\right|.
+\]
+
+6. 计算下列 $n$ 阶行列式的值 $(bc\ne0)$：
+\[
+|A|=
+\left|\begin{array}{cccccc}
+a&b&&&&\\
+c&a&b&&&\\
+&c&a&b&&\\
+&&\ddots&\ddots&\ddots&\\
+&&&c&a&b\\
+&&&&c&a
+\end{array}\right|.
+\]
+
+7. 求证：$n$ 阶行列式
+\[
+\left|\begin{array}{cccccccc}
+\cos x&1&0&0&\cdots&0&0\\
+1&2\cos x&1&0&\cdots&0&0\\
+0&1&2\cos x&1&\cdots&0&0\\
+\vdots&\vdots&\vdots&\vdots&&\vdots&\vdots\\
+0&0&0&0&\cdots&1&2\cos x&1\\
+0&0&0&0&\cdots&0&1&2\cos x
+\end{array}\right|=\cos nx.
+\]
+
+8. 计算下列 $n$ 阶行列式的值：
+\[
+|A|=
+\left|\begin{array}{cccccc}
+x_1&y&y&\cdots&y&y\\
+z&x_2&y&\cdots&y&y\\
+z&z&x_3&\cdots&y&y\\
+\vdots&\vdots&\vdots&&\vdots&\vdots\\
+z&z&z&\cdots&x_{n-1}&y\\
+z&z&z&\cdots&z&x_n
+\end{array}\right|.
+\]
+
+9. 计算下列 $n$ 阶行列式的值：
+\[
+|A|=
+\left|\begin{array}{ccccccc}
+1-a_1&a_2&0&0&\cdots&0&0\\
+-1&1-a_2&a_3&0&\cdots&0&0\\
+0&-1&1-a_3&a_4&\cdots&0&0\\
+\vdots&\vdots&\vdots&\vdots&&\vdots&\vdots\\
+0&0&0&0&\cdots&-1&1-a_n
+\end{array}\right|.
+\]
+
+10. 计算下列 $n$ 阶行列式的值：
+\[
+|A|=
+\left|\begin{array}{cccc}
+(a_1+b_1)^{-1}&(a_1+b_2)^{-1}&\cdots&(a_1+b_n)^{-1}\\
+(a_2+b_1)^{-1}&(a_2+b_2)^{-1}&\cdots&(a_2+b_n)^{-1}\\
+\vdots&\vdots&&\vdots\\
+(a_n+b_1)^{-1}&(a_n+b_2)^{-1}&\cdots&(a_n+b_n)^{-1}
+\end{array}\right|.
+\]
+
+11. 设 $n$ 阶行列式
+\[
+|A|=
+\left|\begin{array}{ccccccc}
+a_0+a_1&a_1&0&0&\cdots&0&0\\
+a_1&a_1+a_2&a_2&0&\cdots&0&0\\
+0&a_2&a_2+a_3&a_3&\cdots&0&0\\
+\vdots&\vdots&\vdots&\vdots&&\vdots&\vdots\\
+0&0&0&0&\cdots&a_{n-1}&a_{n-1}+a_n
+\end{array}\right|,
+\]
+求证：
+\[
+|A|=a_0a_1\cdots a_n\left(\frac{1}{a_0}+\frac{1}{a_1}+\cdots+\frac{1}{a_n}\right).
+\]
+
+12. 设 $n(n>2)$ 阶行列式 $|A|$ 的所有元素或为 1 或为 $-1$，求证：$|A|$ 的绝对值小于等于 $\dfrac{2}{3}n!$.
+
+13. 计算下列 $n$ 阶行列式的值：
+\[
+|A|=
+\left|\begin{array}{cccc}
+a&b&\cdots&b\\
+c&a&\cdots&b\\
+\vdots&\vdots&&\vdots\\
+c&c&\cdots&a
+\end{array}\right|.
+\]
+
+14. 解方程
+\[
+\left|\begin{array}{cccc}
+1&1&1&1\\
+1&2&4&8\\
+1&-2&4&-8\\
+1&x&x^2&x^3
+\end{array}\right|=0.
+\]
+
+15. 设 $f_k(x)=x^k+a_{k1}x^{k-1}+a_{k2}x^{k-2}+\cdots+a_{kk}$，求下列行列式的值：
+\[
+\left|\begin{array}{ccccc}
+1&f_1(x_1)&f_2(x_1)&\cdots&f_{n-1}(x_1)\\
+1&f_1(x_2)&f_2(x_2)&\cdots&f_{n-1}(x_2)\\
+\vdots&\vdots&\vdots&&\vdots\\
+1&f_1(x_n)&f_2(x_n)&\cdots&f_{n-1}(x_n)
+\end{array}\right|.
+\]
+
+16. 计算下列行列式的值：
+\[
+|A|=
+\left|\begin{array}{ccccc}
+1&\cos\theta_1&\cos2\theta_1&\cdots&\cos(n-1)\theta_1\\
+1&\cos\theta_2&\cos2\theta_2&\cdots&\cos(n-1)\theta_2\\
+\vdots&\vdots&\vdots&&\vdots\\
+1&\cos\theta_n&\cos2\theta_n&\cdots&\cos(n-1)\theta_n
+\end{array}\right|.
+\]
+
+17. 计算下列行列式的值：
+\[
+|A|=
+\left|\begin{array}{cccc}
+\sin\theta_1&\sin2\theta_1&\cdots&\sin n\theta_1\\
+\sin\theta_2&\sin2\theta_2&\cdots&\sin n\theta_2\\
+\vdots&\vdots&&\vdots\\
+\sin\theta_n&\sin2\theta_n&\cdots&\sin n\theta_n
+\end{array}\right|.
+\]
+
+18. 计算下列行列式的值：
+\[
+|A|=
+\left|\begin{array}{cccc}
+1+x_1&1+x_1^2&\cdots&1+x_1^n\\
+1+x_2&1+x_2^2&\cdots&1+x_2^n\\
+\vdots&\vdots&&\vdots\\
+1+x_n&1+x_n^2&\cdots&1+x_n^n
+\end{array}\right|.
+\]
+
+19. 计算下列 $n$ 阶行列式的值 $(1\le i\le n-1)$：
+\[
+|A|=
+\left|\begin{array}{ccccccc}
+1&x_1&\cdots&x_1^{i-1}&x_1^{i+1}&\cdots&x_1^n\\
+1&x_2&\cdots&x_2^{i-1}&x_2^{i+1}&\cdots&x_2^n\\
+\vdots&\vdots&&\vdots&\vdots&&\vdots\\
+1&x_n&\cdots&x_n^{i-1}&x_n^{i+1}&\cdots&x_n^n
+\end{array}\right|.
+\]
+
+20. 计算行列式的值：
+\[
+|A|=
+\left|\begin{array}{rrrr}
+1&1&2&3\\
+1&2-x^2&2&3\\
+2&3&1&5\\
+2&3&1&9-x^2
+\end{array}\right|.
+\]
+
+21. 计算行列式的值：
+\[
+|A|=
+\left|\begin{array}{rrrr}
+0&x&y&z\\
+x&0&z&y\\
+y&z&0&x\\
+z&y&x&0
+\end{array}\right|.
+\]
+
+22. 计算行列式的值：
+\[
+\left|\begin{array}{rrrr}
+1+x&1&1&1\\
+1&1-x&1&1\\
+1&1&1+y&1\\
+1&1&1&1-y
+\end{array}\right|.
+\]
+
+23. 计算行列式的值：
+\[
+|A|=
+\left|\begin{array}{ccc}
+(a+b)^2&c^2&c^2\\
+a^2&(b+c)^2&a^2\\
+b^2&b^2&(c+a)^2
+\end{array}\right|.
+\]
+
+24. 计算下列 $n$ 阶行列式的值：
+\[
+|A|=
+\left|\begin{array}{cccc}
+(x-a_1)^2&a_2^2&\cdots&a_n^2\\
+a_1^2&(x-a_2)^2&\cdots&a_n^2\\
+\vdots&\vdots&&\vdots\\
+a_1^2&a_2^2&\cdots&(x-a_n)^2
+\end{array}\right|.
+\]
+
+25. 设 $n$ 阶行列式 $|A|=|a_{ij}|,\ A_{ij}$ 是元素 $a_{ij}$ 的代数余子式，求证：
+\[
+\left|\begin{array}{ccccc}
+a_{11}-a_{12}&a_{12}-a_{13}&\cdots&a_{1,n-1}-a_{1n}&1\\
+a_{21}-a_{22}&a_{22}-a_{23}&\cdots&a_{2,n-1}-a_{2n}&1\\
+a_{31}-a_{32}&a_{32}-a_{33}&\cdots&a_{3,n-1}-a_{3n}&1\\
+\vdots&\vdots&&\vdots&\vdots\\
+a_{n1}-a_{n2}&a_{n2}-a_{n3}&\cdots&a_{n,n-1}-a_{nn}&1
+\end{array}\right|
+=\sum_{i,j=1}^n A_{ij}.
+\]
+
+\end{document}

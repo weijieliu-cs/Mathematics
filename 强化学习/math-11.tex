@@ -1,0 +1,597 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\graphicspath{{tex/强化学习/figures/math-11/}}
+
+\title{强化学习：带近似的同策略控制}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{第 10 章\quad 带近似的同策略控制}
+
+在本章中，我们回到控制问题，现在使用动作价值函数的参数化近似
+$\hat q(s,a,\mathbf{w})\approx q_*(s,a)$，其中 $\mathbf{w}\in\mathbb{R}^d$ 是有限维权重向量。
+我们继续把注意力限制在同策略情形，把离策略方法留到第 11 章。
+本章的重点是半梯度 Sarsa 算法，它是半梯度 TD(0)（上一章）向动作价值和同策略控制的自然扩展。
+在分幕情形中，这种扩展是直接的；但在持续情形中，我们必须退后几步，重新考察自己怎样使用折扣来定义最优策略。
+有些出人意料的是，一旦我们使用真正的函数近似，就必须放弃折扣，转而采用控制问题的一种新的“平均奖励”表述，并使用新的“差分”价值函数。
+
+我们先从分幕情形开始，把上一章给出的函数近似思想从状态价值扩展到动作价值。
+然后，我们按照同策略 GPI 的一般模式，把它们扩展到控制，并使用 $\varepsilon$-贪心方法进行动作选择。
+我们会给出山地车问题上线性 $n$ 步 Sarsa 的结果。
+随后，我们转向持续情形，并在具有差分价值的平均奖励情形中重复发展这些思想。
+
+\subsection*{10.1\quad 分幕半梯度控制}
+
+把第 9 章中的半梯度预测方法扩展到动作价值是直接的。
+在这种情况下，被表示为带权重向量 $\mathbf{w}$ 的参数化函数形式的是近似动作价值函数 $\hat q\approx q_\pi$。
+以前我们考虑的是形如 $S_t\mapsto U_t$ 的随机训练样本；现在我们考虑的是形如 $S_t,A_t\mapsto U_t$ 的样本。
+更新目标 $U_t$ 可以是 $q_\pi(S_t,A_t)$ 的任何近似，包括通常的备份值，例如完整的蒙特卡洛回报 $G_t$，或者任何 $n$ 步 Sarsa 回报（7.4）。
+动作价值预测的一般梯度下降更新为
+\begin{equation}
+\mathbf{w}_{t+1}\doteq \mathbf{w}_t+\alpha\left[U_t-\hat q(S_t,A_t,\mathbf{w}_t)\right]\nabla\hat q(S_t,A_t,\mathbf{w}_t).
+\tag{10.1}
+\end{equation}
+例如，一步 Sarsa 方法的更新为
+\begin{equation}
+\mathbf{w}_{t+1}\doteq \mathbf{w}_t+\alpha\left[R_{t+1}+\gamma\hat q(S_{t+1},A_{t+1},\mathbf{w}_t)-\hat q(S_t,A_t,\mathbf{w}_t)\right]\nabla\hat q(S_t,A_t,\mathbf{w}_t).
+\tag{10.2}
+\end{equation}
+我们把这个方法称为\textbf{分幕半梯度一步 Sarsa}。
+对于固定策略，这个方法以与 TD(0) 相同的方式收敛，并具有同类误差界（9.14）。
+
+为了形成控制方法，我们需要把这样的动作价值预测方法与策略改进和动作选择技术耦合起来。
+适用于连续动作或大规模离散动作集合的合适技术，仍是一个尚无明确解答的研究课题。
+另一方面，如果动作集合是离散的而且不太大，那么我们可以使用前几章已经发展出的技术。
+也就是说，对于当前状态 $S_t$ 中可用的每个可能动作 $a$，我们可以计算 $\hat q(S_t,a,\mathbf{w}_t)$，然后找到贪心动作
+\[
+A_t^*=\arg\max_a\hat q(S_t,a,\mathbf{w}_t).
+\]
+随后，在本章处理的同策略情形中，通过把估计策略改成贪心策略的软近似来完成策略改进，例如改成 $\varepsilon$-贪心策略。
+动作也按照同一个策略选择。
+完整算法的伪代码如下框所示。
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{分幕半梯度 Sarsa，用于估计 $\hat q\approx q_*$}
+
+\vspace{0.4em}
+\noindent 输入：可微动作价值函数参数化 $\hat q:\mathcal{S}\times\mathcal{A}\times\mathbb{R}^d\to\mathbb{R}$。
+
+\noindent 算法参数：步长 $\alpha>0$，小的 $\varepsilon>0$。
+
+\noindent 任意初始化价值函数权重 $\mathbf{w}\in\mathbb{R}^d$（例如 $\mathbf{w}=0$）。
+
+\vspace{0.4em}
+\noindent 对每一幕循环：
+
+\quad $S,A\leftarrow$ 该幕的初始状态和动作（例如按 $\varepsilon$-贪心选择）。
+
+\quad 对该幕的每一步循环：
+
+\qquad 采取动作 $A$，观察 $R,S'$。
+
+\qquad 如果 $S'$ 是终止状态：
+
+\qquad\quad $\mathbf{w}\leftarrow \mathbf{w}+\alpha\left[R-\hat q(S,A,\mathbf{w})\right]\nabla\hat q(S,A,\mathbf{w})$。
+
+\qquad\quad 进入下一幕。
+
+\qquad 选择 $A'$，作为 $\hat q(S',\cdot,\mathbf{w})$ 的函数（例如 $\varepsilon$-贪心）。
+
+\qquad $\mathbf{w}\leftarrow \mathbf{w}+\alpha\left[R+\gamma\hat q(S',A',\mathbf{w})-\hat q(S,A,\mathbf{w})\right]\nabla\hat q(S,A,\mathbf{w})$。
+
+\qquad $S\leftarrow S'$。
+
+\qquad $A\leftarrow A'$。
+\end{minipage}}
+\end{center}
+
+\noindent\textbf{例 10.1：山地车任务}
+考虑把一辆动力不足的车开上一条陡峭山路的任务，如图 10.1 左上角的示意图所示。
+困难在于，重力比车的发动机更强，即使油门全开，车也无法沿着陡坡直接加速上去。
+唯一的办法是先远离目标，驶上左侧相反的斜坡。
+然后，车在全油门下可以积累足够惯性，把它带上陡坡，尽管整个过程中它一直在减速。
+这是一个简单的连续控制任务例子：从某种意义上说，事情必须先变糟（离目标更远），然后才能变好。
+除非人类设计者显式提供帮助，许多控制方法在这类任务上都会遇到很大困难。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{figure-10-1.png}
+\caption*{\textbf{图 10.1：}山地车任务（左上面板）以及一次运行中学到的待行代价函数（$-\max_a\hat q(s,a,\mathbf{w})$）。}
+\end{figure}
+
+这个问题中的奖励在所有时间步上都是 $-1$，直到车越过山顶处的目标位置为止，此时该幕结束。
+有三个可能动作：向前全油门（$+1$）、向后全油门（$-1$）和零油门（$0$）。
+车按简化物理规律运动。
+其位置 $x_t$ 和速度 $\dot x_t$ 按如下方式更新：
+\[
+x_{t+1}\doteq bound\left[x_t+\dot x_{t+1}\right],
+\]
+\[
+\dot x_{t+1}\doteq bound\left[\dot x_t+0.001A_t-0.0025\cos(3x_t)\right],
+\]
+其中 $bound$ 操作强制满足 $-1.2\le x_{t+1}\le0.5$ 且 $-0.07\le\dot x_{t+1}\le0.07$。
+此外，当 $x_{t+1}$ 到达左边界时，$\dot x_{t+1}$ 被重置为 0。
+当它到达右边界时，目标被达到，该幕终止。
+每一幕都从随机位置 $x_t\in[-0.6,-0.4]$ 和零速度开始。
+为了把两个连续状态变量转换成二值特征，我们使用了图 9.9 中那样的网格铺片。
+我们使用 8 个铺片，每个瓦片在每个维度上覆盖有界距离的 $1/8$，并使用第 9.5.4 节所描述的非对称偏移。\footnote{具体地说，我们使用了 tile-coding 软件，以 \texttt{tiles(iht,8,[8*x/(0.5+1.2),} \texttt{8*xdot/(0.07+0.07)],A)} 取得特征向量中为 1 的索引。}
+由瓦片编码产生的特征向量 $\mathbf{x}(s,a)$ 再与参数向量线性组合，以近似动作价值函数：
+\begin{equation}
+\hat q(s,a,\mathbf{w})\doteq \mathbf{w}^\top\mathbf{x}(s,a)=\sum_{i=1}^d w_i\cdot x_i(s,a),
+\tag{10.3}
+\end{equation}
+对每一个状态 $s$ 和动作 $a$ 的配对都是如此。
+
+图 10.1 展示了用这种函数近似形式学习解决该任务时通常会发生什么。\footnote{这些数据实际上来自“半梯度 Sarsa($\lambda$)”算法；我们要到第 12 章才会遇到它，但半梯度 Sarsa 的行为类似。}
+图中显示的是单次运行中学到的价值函数的相反数，也就是待行代价函数。
+初始动作价值全为零；这在本任务中是乐观的（所有真实价值都是负的），因此即使探索参数 $\varepsilon$ 为 0，也会引发大量探索。
+这可以在图中上方中间、标为“Step 428”的面板中看到。
+此时还没有完成任何一幕，但车已经在谷底来回摆动，在状态空间中沿着环状轨迹运动。
+所有经常访问的状态都被估得比尚未探索的状态更差，因为实际奖励比（不现实地）期望的奖励更差。
+这会不断把智能体从它已经到过的地方驱赶开，使它探索新状态，直到找到解法。
+
+图 10.2 展示了在这个问题上，使用不同步长的半梯度 Sarsa 的若干学习曲线。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.78\textwidth]{figure-10-2.png}
+\caption*{\textbf{图 10.2：}山地车任务上，带瓦片编码函数近似和 $\varepsilon$-贪心动作选择的半梯度 Sarsa 学习曲线。}
+\end{figure}
+
+\subsection*{10.2\quad 半梯度 $n$ 步 Sarsa}
+
+通过在半梯度 Sarsa 更新式（10.1）中使用 $n$ 步回报作为更新目标，我们可以得到分幕半梯度 Sarsa 的 $n$ 步版本。
+$n$ 步回报可以立即从它的表格形式（7.4）推广到函数近似形式：
+\begin{equation}
+G_{t:t+n}\doteq R_{t+1}+\gamma R_{t+2}+\cdots+\gamma^{n-1}R_{t+n}+\gamma^n\hat q(S_{t+n},A_{t+n},\mathbf{w}_{t+n-1}),\quad t+n<T,
+\tag{10.4}
+\end{equation}
+并且像往常一样，当 $t+n\ge T$ 时令 $G_{t:t+n}\doteq G_t$。
+$n$ 步更新方程为
+\begin{equation}
+\mathbf{w}_{t+n}\doteq \mathbf{w}_{t+n-1}+\alpha\left[G_{t:t+n}-\hat q(S_t,A_t,\mathbf{w}_{t+n-1})\right]\nabla\hat q(S_t,A_t,\mathbf{w}_{t+n-1}),\quad 0\le t<T.
+\tag{10.5}
+\end{equation}
+完整伪代码如下框所示。
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{分幕半梯度 $n$ 步 Sarsa，用于估计 $\hat q\approx q_*$ 或 $q_\pi$}
+
+\vspace{0.4em}
+\noindent 输入：可微动作价值函数参数化 $\hat q:\mathcal{S}\times\mathcal{A}\times\mathbb{R}^d\to\mathbb{R}$。
+
+\noindent 输入：策略 $\pi$（若估计 $q_\pi$）。
+
+\noindent 算法参数：步长 $\alpha>0$，小的 $\varepsilon>0$，正整数 $n$。
+
+\noindent 任意初始化价值函数权重 $\mathbf{w}\in\mathbb{R}^d$（例如 $\mathbf{w}=0$）。
+
+\noindent 所有存储和访问操作（$S_t,A_t,R_t$）的索引均可对 $n+1$ 取模。
+
+\vspace{0.4em}
+\noindent 对每一幕循环：
+
+\quad 初始化并存储 $S_0\ne$ 终止状态。
+
+\quad 选择并存储动作 $A_0\sim\pi(\cdot|S_0)$，或相对于 $\hat q(S_0,\cdot,\mathbf{w})$ 采用 $\varepsilon$-贪心。
+
+\quad $T\leftarrow\infty$。
+
+\quad 对 $t=0,1,2,\ldots$ 循环：
+
+\qquad 若 $t<T$：
+
+\qquad\quad 采取动作 $A_t$。
+
+\qquad\quad 观察并存储下一奖励为 $R_{t+1}$，下一状态为 $S_{t+1}$。
+
+\qquad\quad 若 $S_{t+1}$ 为终止状态，则 $T\leftarrow t+1$。
+
+\qquad\quad 否则，选择并存储 $A_{t+1}\sim\pi(\cdot|S_{t+1})$，或相对于 $\hat q(S_{t+1},\cdot,\mathbf{w})$ 采用 $\varepsilon$-贪心。
+
+\qquad $\tau\leftarrow t-n+1$（$\tau$ 是其估计将被更新的时刻）。
+
+\qquad 若 $\tau\ge0$：
+
+\qquad\quad $G\leftarrow \sum_{i=\tau+1}^{\min(\tau+n,T)}\gamma^{i-\tau-1}R_i$。
+
+\qquad\quad 若 $\tau+n<T$，则 $G\leftarrow G+\gamma^n\hat q(S_{\tau+n},A_{\tau+n},\mathbf{w})$。
+
+\qquad\quad $\mathbf{w}\leftarrow \mathbf{w}+\alpha\left[G-\hat q(S_\tau,A_\tau,\mathbf{w})\right]\nabla\hat q(S_\tau,A_\tau,\mathbf{w})$。
+
+\quad 直到 $\tau=T-1$。
+\end{minipage}}
+\end{center}
+
+正如我们以前看到的那样，如果使用中等程度的自举，性能最好，这对应于大于 1 的 $n$。
+图 10.3 展示了在山地车任务上，该算法在 $n=8$ 时往往比在 $n=1$ 时学习更快，并获得更好的渐近性能。
+图 10.4 展示了更细致地考察参数 $\alpha$ 和 $n$ 对该任务学习速度影响的结果。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.78\textwidth]{figure-10-3.png}
+\caption*{\textbf{图 10.3：}山地车任务上，一步与 8 步半梯度 Sarsa 的性能比较。这里使用了较好的步长：$n=1$ 时 $\alpha=0.5/8$，$n=8$ 时 $\alpha=0.3/8$。}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.82\textwidth]{figure-10-4.png}
+\caption*{\textbf{图 10.4：}$\alpha$ 和 $n$ 对山地车任务中 $n$ 步半梯度 Sarsa 与瓦片编码函数近似早期性能的影响。像往常一样，中等程度的自举（$n=4$）表现最好。结果对应若干选定的 $\alpha$ 值；横轴用对数尺度，并用直线连接。标准误从 $n=1$ 时约 $0.5$（小于线宽）到 $n=16$ 时约 $4$，因此主要影响都具有统计显著性。}
+\end{figure}
+
+\noindent\textbf{练习 10.1}
+本章并没有显式考虑或给出任何蒙特卡洛方法的伪代码。
+它们会是什么样的？
+为什么不给出它们的伪代码是合理的？
+它们在山地车任务上的表现会怎样？
+
+\noindent\textbf{练习 10.2}
+给出用于控制的半梯度一步 Expected Sarsa 的伪代码。
+
+\noindent\textbf{练习 10.3}
+为什么图 10.4 中的结果在较大 $n$ 处比在较小 $n$ 处具有更高的标准误？
+
+\subsection*{10.3\quad 平均奖励：持续任务的一种新问题设定}
+
+现在，我们引入第三种经典设定；它与分幕设定和折扣设定并列，用于表述马尔可夫决策问题（MDP）中的目标。
+像折扣设定一样，\textbf{平均奖励设定}适用于持续问题，也就是智能体与环境之间的交互永远继续、没有终止状态或起始状态的问题。
+不过，与折扣设定不同，这里没有折扣；智能体关心延迟奖励的程度与关心即时奖励一样多。
+平均奖励设定是动态规划经典理论中常被考虑的主要设定之一，而在强化学习中则相对不那么常见。
+正如下一节所讨论的，折扣设定在函数近似下会有问题，因此需要用平均奖励设定来替代它。
+
+在平均奖励设定中，策略 $\pi$ 的质量被定义为遵循该策略时的平均奖励率，或简称\textbf{平均奖励}，记为 $r(\pi)$：
+\begin{align}
+r(\pi)
+&\doteq \lim_{h\to\infty}\frac{1}{h}\sum_{t=1}^h \mathbb{E}\left[R_t\mid S_0,A_{0:t-1}\sim\pi\right] \tag{10.6}\\
+&= \lim_{t\to\infty}\mathbb{E}\left[R_t\mid S_0,A_{0:t-1}\sim\pi\right] \tag{10.7}\\
+&= \sum_s \mu_\pi(s)\sum_a\pi(a|s)\sum_{s',r}p(s',r|s,a)r.
+\end{align}
+这里，期望都以初始状态 $S_0$ 以及随后动作 $A_0,A_1,\ldots,A_{t-1}$ 按 $\pi$ 采取为条件。
+$\mu_\pi$ 是稳态分布，
+\[
+\mu_\pi(s)\doteq \lim_{t\to\infty}\Pr\{S_t=s\mid A_{0:t-1}\sim\pi\},
+\]
+并假定它对任意 $\pi$ 都存在且与 $S_0$ 无关。
+关于 MDP 的这个假设称为\textbf{遍历性}。
+它的含义是：MDP 从哪里开始，或智能体早期做出的任何决策，都只能产生暂时影响；从长远来看，处于某个状态的期望只取决于策略和 MDP 转移概率。
+遍历性足以保证上述方程中的极限存在。
+
+在无折扣持续情形中，可以对不同类型的最优性作出细微区分。
+尽管如此，对大多数实际目的而言，仅仅按照每时间步平均奖励来排序策略，也就是按照它们的 $r(\pi)$ 来排序，可能就已经足够。
+如（10.7）所暗示的，这个量本质上就是在 $\pi$ 下的平均奖励。
+特别地，我们把所有达到 $r(\pi)$ 最大值的策略都看作最优策略。
+
+注意，稳态分布是一种特殊分布：如果你按照 $\pi$ 选择动作，那么你仍停留在同一个分布中。
+也就是说，它满足
+\begin{equation}
+\sum_s\mu_\pi(s)\sum_a\pi(a|s)p(s'|s,a)=\mu_\pi(s').
+\tag{10.8}
+\end{equation}
+
+在平均奖励设定中，回报通过奖励与平均奖励之间的差来定义：
+\begin{equation}
+G_t\doteq R_{t+1}-r(\pi)+R_{t+2}-r(\pi)+R_{t+3}-r(\pi)+\cdots.
+\tag{10.9}
+\end{equation}
+这称为\textbf{差分回报}，相应的价值函数称为\textbf{差分价值函数}。
+它们的定义方式相同，我们也沿用一直以来的记号：
+\[
+v_\pi(s)\doteq \mathbb{E}_\pi[G_t|S_t=s],\qquad
+q_\pi(s,a)\doteq \mathbb{E}_\pi[G_t|S_t=s,A_t=a],
+\]
+对 $v_*$ 和 $q_*$ 也类似。
+差分价值函数也有贝尔曼方程，只是与我们以前见过的方程略有不同。
+我们只需去掉所有 $\gamma$，并把所有奖励替换为奖励与真实平均奖励之差：
+\[
+v_\pi(s)=\sum_a\pi(a|s)\sum_{r,s'}p(s',r|s,a)\left[r-r(\pi)+v_\pi(s')\right],
+\]
+\[
+q_\pi(s,a)=\sum_{r,s'}p(s',r|s,a)\left[r-r(\pi)+\sum_{a'}\pi(a'|s')q_\pi(s',a')\right],
+\]
+\[
+v_*(s)=\max_a\sum_{r,s'}p(s',r|s,a)\left[r-\max_\pi r(\pi)+v_*(s')\right],
+\]
+\[
+q_*(s,a)=\sum_{r,s'}p(s',r|s,a)\left[r-\max_\pi r(\pi)+\max_{a'}q_*(s',a')\right].
+\]
+这分别对应（3.14）、练习 3.17、（3.19）和（3.20）。
+
+两个 TD 误差也有差分形式：
+\begin{equation}
+\delta_t\doteq R_{t+1}-\bar R_{t+1}+\hat v(S_{t+1},\mathbf{w}_t)-\hat v(S_t,\mathbf{w}_t),
+\tag{10.10}
+\end{equation}
+以及
+\begin{equation}
+\delta_t\doteq R_{t+1}-\bar R_{t+1}+\hat q(S_{t+1},A_{t+1},\mathbf{w}_t)-\hat q(S_t,A_t,\mathbf{w}_t),
+\tag{10.11}
+\end{equation}
+其中 $\bar R_t$ 是时刻 $t$ 对平均奖励 $r(\pi)$ 的估计。
+采用这些替代定义之后，我们的大多数算法以及许多理论结果都可以不加改变地延伸到平均奖励设定。
+
+例如，半梯度 Sarsa 的平均奖励版本与（10.2）中定义的方式相同，只是使用 TD 误差的差分版本。
+也就是说，
+\begin{equation}
+\mathbf{w}_{t+1}\doteq \mathbf{w}_t+\alpha\delta_t\nabla\hat q(S_t,A_t,\mathbf{w}_t),
+\tag{10.12}
+\end{equation}
+其中 $\delta_t$ 由（10.11）给出。
+完整算法的伪代码如下框所示。
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{差分半梯度 Sarsa，用于估计 $\hat q\approx q_*$}
+
+\vspace{0.4em}
+\noindent 输入：可微动作价值函数参数化 $\hat q:\mathcal{S}\times\mathcal{A}\times\mathbb{R}^d\to\mathbb{R}$。
+
+\noindent 算法参数：步长 $\alpha,\beta>0$。
+
+\noindent 任意初始化价值函数权重 $\mathbf{w}\in\mathbb{R}^d$（例如 $\mathbf{w}=0$）。
+
+\noindent 任意初始化平均奖励估计 $\bar R\in\mathbb{R}$（例如 $\bar R=0$）。
+
+\vspace{0.4em}
+\noindent 初始化状态 $S$ 和动作 $A$。
+
+\noindent 对每一步循环：
+
+\quad 采取动作 $A$，观察 $R,S'$。
+
+\quad 选择 $A'$，作为 $\hat q(S',\cdot,\mathbf{w})$ 的函数（例如 $\varepsilon$-贪心）。
+
+\quad $\delta\leftarrow R-\bar R+\hat q(S',A',\mathbf{w})-\hat q(S,A,\mathbf{w})$。
+
+\quad $\bar R\leftarrow \bar R+\beta\delta$。
+
+\quad $\mathbf{w}\leftarrow \mathbf{w}+\alpha\delta\nabla\hat q(S,A,\mathbf{w})$。
+
+\quad $S\leftarrow S'$。
+
+\quad $A\leftarrow A'$。
+\end{minipage}}
+\end{center}
+
+\noindent\textbf{练习 10.4}
+给出半梯度 Q-learning 的差分版本伪代码。
+
+\noindent\textbf{练习 10.5}
+除了（10.10）以外，还需要哪些方程才能指定 TD(0) 的差分版本？
+
+\noindent\textbf{练习 10.6}
+考虑一个由三个状态 A、B 和 C 构成的马尔可夫奖励过程，状态转移确定性地沿环前进。
+到达 A 时得到奖励 $+1$，否则奖励为 0。
+这三个状态的差分价值是多少？
+
+\noindent\textbf{例 10.2：接入控制排队任务}
+这是一个决策任务，涉及对一组 10 台服务器的接入控制。
+四种不同优先级的顾客到达一个单队列。
+如果被允许接入服务器，顾客会根据其优先级向服务器支付 1、2、4 或 8 的奖励；优先级越高，支付越多。
+在每个时间步，队首顾客要么被接受（分配给某台服务器），要么被拒绝（从队列中移除，奖励为 0）。
+无论哪种情况，下一时间步都会考虑队列中的下一个顾客。
+队列永不为空，并且队列中顾客的优先级等概率随机分布。
+当然，如果没有空闲服务器，顾客就不能被服务；在这种情况下，顾客总是被拒绝。
+每台忙碌服务器在每个时间步以概率 $p=0.06$ 变为空闲。
+虽然为了明确起见我们刚才描述了到达和离开的统计规律，但假设这些统计规律是未知的。
+任务是在每一步根据顾客优先级和空闲服务器数量，决定接受还是拒绝下一位顾客，以便在无折扣情形中最大化长期奖励。
+
+在这个例子中，我们考虑该问题的表格解。
+虽然状态之间没有泛化，但仍可以在一般的函数近似设定中看待它，因为函数近似设定包含表格设定作为特例。
+因此，对每一对状态（空闲服务器数与队首顾客优先级）和动作（接受或拒绝），我们都有一个差分动作价值估计。
+图 10.5 展示了用差分半梯度 Sarsa 找到的解；参数为 $\alpha=0.01$、$\beta=0.01$、$\varepsilon=0.1$。
+初始动作价值和 $\bar R$ 都为零。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.74\textwidth]{figure-10-5.png}
+\caption*{\textbf{图 10.5：}在接入控制排队任务上，差分半梯度一步 Sarsa 经过 200 万步后找到的策略和价值函数。图右侧的下降很可能是数据不足造成的；这些状态中有许多从未经历过。学到的 $\bar R$ 约为 $2.31$。}
+\end{figure}
+
+\noindent\textbf{练习 10.7}
+假设有一个 MDP，在任何策略下都会产生确定性的奖励序列 $+1,0,+1,0,+1,0,\ldots$，并且永远持续。
+严格地说，这是不允许的，因为它违反遍历性；不存在平稳极限分布 $\mu_\pi$，并且极限（10.7）不存在。
+然而，平均奖励（10.6）是定义良好的；它是多少？
+现在考虑这个 MDP 中的两个状态。
+从 A 出发，奖励序列正如上面所述，以 $+1$ 开始；而从 B 出发，奖励序列以 0 开始，然后继续为 $+1,0,+1,0,\ldots$。
+对于这种情形，差分回报（10.9）定义不好，因为极限不存在。
+为修复这一点，可以改为把状态价值定义为
+\begin{equation}
+v_\pi(s)\doteq \lim_{\gamma\to1}\lim_{h\to\infty}\sum_{t=0}^{h}\gamma^t\left(\mathbb{E}_\pi[R_{t+1}|S_0=s]-r(\pi)\right).
+\tag{10.13}
+\end{equation}
+在这个定义下，状态 A 和 B 的价值是多少？
+
+\noindent\textbf{练习 10.8}
+第 251 页框中的伪代码用 $\delta_t$ 作为误差来更新 $\bar R_{t+1}$，而不是简单使用 $R_{t+1}-\bar R_{t+1}$。
+两种误差都能工作，但使用 $\delta_t$ 更好。
+要理解原因，请考虑练习 10.6 中由三个状态组成的环形 MRP。
+平均奖励的估计应趋向于其真实值 $1/3$。
+假设它已经达到该值并保持在那里。
+$R_t-\bar R_t$ 误差序列会是什么？
+使用（10.10）时，$\delta_t$ 误差序列会是什么？
+如果允许平均奖励估计根据误差而改变，哪一个误差序列会产生更稳定的平均奖励估计？
+为什么？
+
+\subsection*{10.4\quad 不推荐折扣设定}
+
+持续折扣问题表述在表格情形中非常有用，因为每个状态的回报都可以被单独识别并求平均。
+但在近似情形中，是否还应使用这种问题表述就值得怀疑。
+为了看出原因，考虑一个没有起点或终点、也没有清晰识别状态的无限回报序列。
+状态可能只由特征向量表示，而这些特征向量也许几乎不能区分状态。
+作为一种特殊情形，所有特征向量都可能相同。
+于是，人们实际上只有奖励序列（以及动作），性能必须完全根据这些来评价。
+该怎样做呢？
+一种方法是在一个很长的时间区间上平均奖励；这正是平均奖励设定的思想。
+折扣又该怎样使用呢？
+可以这样：在每个时间步上都测量折扣回报。
+有些回报小，有些回报大，因此我们又必须在足够长的时间区间上对它们求平均。
+在持续设定中，没有起点和终点，也没有特殊时间步，所以除此以外没有别的事情可做。
+然而，如果这样做，就会发现折扣回报的平均值与平均奖励成正比。
+事实上，对于策略 $\pi$，折扣回报的平均值总是 $r(\pi)/(1-\gamma)$；也就是说，它本质上就是平均奖励 $r(\pi)$。
+特别地，在平均折扣回报设定中，所有策略的排序会与平均奖励设定中的排序完全相同。
+因此，折扣率 $\gamma$ 对问题表述没有影响。
+它甚至可以为零，而排序仍然不变。
+
+这个令人惊讶的事实在下一页的框中得到证明，但基本思想可以通过一个对称性论证看出来。
+每个时间步与其他所有时间步完全相同。
+在有折扣时，每个奖励都会在某个回报中的每一个位置恰好出现一次。
+第 $t$ 个奖励会在第 $t-1$ 个回报中不打折出现，在第 $t-2$ 个回报中被折扣一次，并在第 $t-1000$ 个回报中被折扣 999 次。
+因此，第 $t$ 个奖励的权重是
+\[
+1+\gamma+\gamma^2+\gamma^3+\cdots=\frac{1}{1-\gamma}.
+\]
+因为所有状态都相同，它们全都由这个因子加权，所以回报的平均值就是平均奖励乘以这个因子，也就是 $r(\pi)/(1-\gamma)$。
+
+这个例子以及框中的更一般论证表明，如果我们在同策略分布上优化折扣价值，那么效果就等同于优化无折扣平均奖励；$\gamma$ 的实际取值没有影响。
+这强烈表明，在带函数近似的控制问题定义中，折扣没有应当扮演的角色。
+不过，人们仍然可以在求解方法中继续使用折扣。
+这时，折扣参数 $\gamma$ 会从问题参数变成求解方法参数。
+然而遗憾的是，在这种情况下，我们将不能保证优化平均奖励（或在同策略分布上的等价折扣价值）。
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{持续问题中折扣的无用性}
+
+\vspace{0.4em}
+也许可以通过选择如下目标来拯救折扣：在策略下状态出现的分布上，对折扣价值求和：
+\begin{align*}
+J(\pi)
+&= \sum_s\mu_\pi(s)v_\pi^\gamma(s)
+\qquad \text{（其中 $v_\pi^\gamma$ 是折扣价值函数）}\\
+&= \sum_s\mu_\pi(s)\sum_a\pi(a|s)\sum_{s'}\sum_r p(s',r|s,a)\left[r+\gamma v_\pi^\gamma(s')\right]
+\qquad \text{（贝尔曼方程）}\\
+&= r(\pi)+\sum_s\mu_\pi(s)\sum_a\pi(a|s)\sum_{s'}\sum_r p(s',r|s,a)\gamma v_\pi^\gamma(s')
+\qquad \text{（由 (10.7)）}\\
+&= r(\pi)+\gamma\sum_{s'}v_\pi^\gamma(s')\sum_s\mu_\pi(s)\sum_a\pi(a|s)p(s'|s,a)
+\qquad \text{（由 (3.4)）}\\
+&= r(\pi)+\gamma\sum_{s'}v_\pi^\gamma(s')\mu_\pi(s')
+\qquad \text{（由 (10.8)）}\\
+&= r(\pi)+\gamma J(\pi)\\
+&= r(\pi)+\gamma r(\pi)+\gamma^2J(\pi)\\
+&= r(\pi)+\gamma r(\pi)+\gamma^2r(\pi)+\gamma^3r(\pi)+\cdots\\
+&= \frac{1}{1-\gamma}r(\pi).
+\end{align*}
+所提出的折扣目标与无折扣（平均奖励）目标对策略给出完全相同的排序。
+折扣率 $\gamma$ 不影响排序。
+\end{minipage}}
+\end{center}
+
+折扣控制设定困难的根源在于：有了函数近似之后，我们失去了策略改进定理（第 4.2 节）。
+如果改变策略以改进某个状态的折扣价值，那么这不再保证整体策略在任何有用意义上得到改进。
+这个保证曾是我们强化学习控制方法理论的关键。
+在函数近似下，我们已经失去了它。
+
+事实上，缺少策略改进定理也是全分幕设定和平均奖励设定中的一个理论空缺。
+一旦引入函数近似，我们就无法再保证任何设定中的改进。
+第 13 章会引入另一类基于参数化策略的强化学习算法；在那里，我们有一个称为“策略梯度定理”的理论保证，它起到与策略改进定理相似的作用。
+但对于学习动作价值的方法，我们目前似乎没有局部改进保证（Perkins 和 Precup（2003）的方法也许提供了答案的一部分）。
+我们确实知道，$\varepsilon$-贪心化有时可能导致较差策略，因为策略可能在多个好策略之间震荡，而不是收敛（Gordon, 1996a）。
+这是一个仍有许多开放理论问题的领域。
+
+\subsection*{10.5\quad 差分半梯度 $n$ 步 Sarsa}
+
+为了推广到 $n$ 步自举，我们需要一个 $n$ 步版本的 TD 误差。
+我们先把 $n$ 步回报（7.4）推广到带函数近似的差分形式：
+\begin{equation}
+G_{t:t+n}\doteq R_{t+1}-\bar R_{t+1}+R_{t+2}-\bar R_{t+2}+\cdots+R_{t+n}-\bar R_{t+n}+\hat q(S_{t+n},A_{t+n},\mathbf{w}_{t+n-1}),
+\tag{10.14}
+\end{equation}
+其中 $\bar R$ 是 $r(\pi)$ 的估计，$n\ge1$，且 $t+n<T$。
+如果 $t+n\ge T$，则像往常一样定义 $G_{t:t+n}\doteq G_t$。
+$n$ 步 TD 误差于是为
+\begin{equation}
+\delta_t\doteq G_{t:t+n}-\hat q(S_t,A_t,\mathbf{w}),
+\tag{10.15}
+\end{equation}
+之后就可以应用通常的半梯度 Sarsa 更新（10.12）。
+完整算法的伪代码如下框所示。
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{差分半梯度 $n$ 步 Sarsa，用于估计 $\hat q\approx q_\pi$ 或 $q_*$}
+
+\vspace{0.4em}
+\noindent 输入：可微函数 $\hat q:\mathcal{S}\times\mathcal{A}\times\mathbb{R}^d\to\mathbb{R}$，策略 $\pi$。
+
+\noindent 任意初始化价值函数权重 $\mathbf{w}\in\mathbb{R}^d$（例如 $\mathbf{w}=0$）。
+
+\noindent 任意初始化平均奖励估计 $\bar R\in\mathbb{R}$（例如 $\bar R=0$）。
+
+\noindent 算法参数：步长 $\alpha,\beta>0$，正整数 $n$。
+
+\noindent 所有存储和访问操作（$S_t,A_t,R_t$）的索引均可对 $n+1$ 取模。
+
+\vspace{0.4em}
+\noindent 初始化并存储 $S_0$ 和 $A_0$。
+
+\noindent 对每一步 $t=0,1,2,\ldots$ 循环：
+
+\quad 采取动作 $A_t$。
+
+\quad 观察并存储下一奖励为 $R_{t+1}$，下一状态为 $S_{t+1}$。
+
+\quad 选择并存储动作 $A_{t+1}\sim\pi(\cdot|S_{t+1})$，或相对于 $\hat q(S_{t+1},\cdot,\mathbf{w})$ 采用 $\varepsilon$-贪心。
+
+\quad $\tau\leftarrow t-n+1$（$\tau$ 是其估计将被更新的时刻）。
+
+\quad 若 $\tau\ge0$：
+
+\qquad $\delta\leftarrow \sum_{i=\tau+1}^{\tau+n}(R_i-\bar R)+\hat q(S_{\tau+n},A_{\tau+n},\mathbf{w})-\hat q(S_\tau,A_\tau,\mathbf{w})$。
+
+\qquad $\bar R\leftarrow \bar R+\beta\delta$。
+
+\qquad $\mathbf{w}\leftarrow \mathbf{w}+\alpha\delta\nabla\hat q(S_\tau,A_\tau,\mathbf{w})$。
+\end{minipage}}
+\end{center}
+
+\noindent\textbf{练习 10.9}
+在差分半梯度 $n$ 步 Sarsa 算法中，平均奖励上的步长参数 $\beta$ 需要相当小，使得 $\bar R$ 成为平均奖励的良好长期估计。
+遗憾的是，这样一来，$\bar R$ 会在许多步中受到其初始值的偏置影响，这可能使学习低效。
+另一种做法是用观测奖励的样本平均作为 $\bar R$。
+这在初期会迅速适应，但长期来看也会适应缓慢。
+随着策略缓慢改变，$\bar R$ 也会改变；这种长期非平稳性的可能性使样本平均方法并不合适。
+事实上，平均奖励上的步长参数正适合使用练习 2.7 中的无偏常数步长技巧。
+请描述为了在差分半梯度 $n$ 步 Sarsa 的框中算法中使用这个技巧，需要作出的具体改变。
+
+\subsection*{10.6\quad 小结}
+
+在本章中，我们把上一章引入的参数化函数近似和半梯度下降思想扩展到了控制。
+对于分幕情形，这种扩展是直接的；但对于持续情形，我们必须引入一种全新的问题表述：以最大化每时间步的\textbf{平均奖励设定}为基础。
+令人意外的是，在存在近似时，折扣表述不能直接延伸到控制。
+在近似情形中，多数策略不能由一个价值函数表示。
+剩下那些任意策略仍需要被排序，而标量平均奖励 $r(\pi)$ 提供了实现这一点的有效方式。
+
+平均奖励表述涉及价值函数、贝尔曼方程和 TD 误差的新\textbf{差分}版本，但所有这些都与旧版本平行，概念上的改变很小。
+对于平均奖励情形，也有一组新的、与旧算法平行的差分算法。
+
+\section*{文献与历史评注}
+
+\noindent\textbf{10.1}
+带函数近似的半梯度 Sarsa 最早由 Rummery 和 Niranjan（1994）探索。
+带 $\varepsilon$-贪心动作选择的线性半梯度 Sarsa 并不按通常意义收敛，但会进入最佳解附近的一个有界区域（Gordon, 1996a, 2001）。
+Precup 和 Perkins（2003）展示了在可微动作选择设定下的收敛性。
+另见 Perkins 和 Pendrith（2002）以及 Melo、Meyn 和 Ribeiro（2008）。
+山地车例子基于 Moore（1990）研究过的类似任务，但这里使用的精确形式来自 Sutton（1996）。
+
+\noindent\textbf{10.2}
+分幕 $n$ 步半梯度 Sarsa 基于 van Seijen（2016）的前向 Sarsa($\lambda$) 算法。
+这里给出的经验结果是本书第二版中新加入的。
+
+\noindent\textbf{10.3}
+平均奖励表述已经在动态规划中被描述过（例如 Puterman, 1994），也从强化学习角度被描述过（Mahadevan, 1996；Tadepalli 和 Ok, 1994；Bertsekas 和 Tsitsiklis, 1996；Tsitsiklis 和 Van Roy, 1999）。
+这里描述的算法是 Schwartz（1993）提出的“R-learning”算法的同策略对应物。
+R-learning 这个名字大概是想作为 Q-learning 的字母顺序后继者，但我们更愿意把它看作是指差分或相对价值的学习。
+接入控制排队例子受 Carlström 和 Nordström（1997）的工作启发。
+
+\noindent\textbf{10.4}
+把折扣作为带函数近似的强化学习问题表述时存在局限；作者们在本书第一版出版后不久就意识到了这一点。
+Singh、Jaakkola 和 Jordan（1994）可能是最早在印刷文献中观察到这一点的人。
+
+\end{document}

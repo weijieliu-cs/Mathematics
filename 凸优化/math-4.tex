@@ -1,0 +1,3488 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\title{第四章\quad 凸优化问题}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{§4.1\quad 优化问题}
+
+\subsection*{4.1.1\quad 基本术语}
+
+我们用
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)\\
+\mathrm{subject\ to} & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& h_i(x)=0,\quad i=1,\cdots,p
+\end{array}
+\tag{4.1}
+\end{equation}
+描述在所有满足 $f_i(x)\leq 0,\ i=1,\cdots,m$ 及 $h_i(x)=0,\ i=1,\cdots,p$ 的 $x$ 中寻找极小化 $f_0(x)$ 的 $x$ 的问题。我们称 $x\in\mathbb{R}^n$ 为优化变量，称函数 $f_0:\mathbb{R}^n\to\mathbb{R}$ 为目标函数或费用函数。不等式 $f_i(x)\leq 0$ 称为不等式约束，相应的函数 $f_i:\mathbb{R}^n\to\mathbb{R}$ 称为不等式约束函数。方程组 $h_i(x)=0$ 称为等式约束，相应的函数 $h_i:\mathbb{R}^n\to\mathbb{R}$ 称为等式约束函数。如果没有约束（即 $m=p=0$），我们称问题 (4.1) 为无约束问题。
+
+对目标和所有约束函数有定义的点的集合，
+\[
+\mathcal{D}=\bigcap_{i=0}^{m}\operatorname{dom} f_i\cap\bigcap_{i=1}^{p}\operatorname{dom} h_i,
+\]
+称为优化问题 (4.1) 的定义域。当点 $x\in\mathcal{D}$ 满足约束 $f_i(x)\leq 0,\ i=1,\cdots,m$ 和 $h_i(x)=0,\ i=1,\cdots,p$ 时，$x$ 是可行的。当问题 (4.1) 至少有一个可行点时，我们称为可行的，否则称为不可行。所有可行点的集合称为可行集或约束集。
+
+问题 (4.1) 的最优值 $p^\star$ 定义为
+\[
+p^\star=\inf\{f_0(x)\mid f_i(x)\leq 0,\ i=1,\cdots,m,\ h_i(x)=0,\ i=1,\cdots,p\}.
+\]
+我们允许 $p^\star$ 取值为 $\pm\infty$。如果问题不可行，我们有 $p^\star=\infty$（按惯例，空集的下确界为 $\infty$）。如果存在可行解 $x_k$ 满足：当 $k\to\infty$ 时，$f_0(x_k)\to-\infty$，那么，$p^\star=-\infty$ 并且我们称问题 (4.1) 无下界。
+
+\noindent\textbf{最优点与局部最优点}
+
+如果 $x^\star$ 是可行的并且 $f_0(x^\star)=p^\star$，我们称 $x^\star$ 为最优点，或 $x^\star$ 解决了问题 (4.1)。所有最优解的集合称为最优集，记为
+\[
+X_{\mathrm{opt}}=\{x\mid f_i(x)\leq 0,\ i=1,\cdots,m,\ h_i(x)=0,\ i=1,\cdots,p,\ f_0(x)=p^\star\}.
+\]
+如果问题 (4.1) 存在最优解，我们称最优值是可得或可达的，称问题可解。如果 $X_{\mathrm{opt}}$ 是空集，我们称最优值是不可得或不可达的（这种情况常在问题无下界时发生）。满足 $f_0(x)\leq p^\star+\epsilon$（其中 $\epsilon>0$）的可行解 $x$ 称为 $\epsilon$-次优。所有 $\epsilon$-次优解的集合称为问题 (4.1) 的 $\epsilon$-次优集。
+
+我们称可行解 $x$ 为局部最优，如果存在 $R>0$ 使得
+\[
+f_0(x)=\inf\{f_0(z)\mid f_i(z)\leq 0,\ i=1,\cdots,m,\ h_i(z)=0,\ i=1,\cdots,p,\ \|z-x\|_2\leq R\},
+\]
+或换言之，$x$ 是关于 $z$ 的优化问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(z)\\
+\mathrm{subject\ to} & f_i(z)\leq 0,\quad i=1,\cdots,m\\
+& h_i(z)=0,\quad i=1,\cdots,p\\
+& \|z-x\|_2\leq R
+\end{array}
+\]
+的解。粗略地讲，这意味着 $x$ 在可行集内一个点的周围极小化了 $f_0$。“全局最优”常被用来代替“最优”以区分“局部最优”和“最优”。不过，在本书中，最优意味着全局最优。
+
+如果 $x$ 可行且 $f_i(x)=0$，我们称约束 $f_i(x)\leq 0$ 的第 $i$ 个不等式在 $x$ 处起作用。如果 $f_i(x)<0$，则约束 $f_i(x)\leq 0$ 不起作用。（对于所有可行解，等式约束总是起作用的。）我们称约束是冗余的，如果去掉它不改变可行集。
+
+\noindent\textbf{例 4.1}\quad 我们用几个关于 $x\in\mathbb{R}$ 的简单的无约束优化问题来表示上述概念，这里 $\operatorname{dom} f_0=\mathbb{R}_{++}$。
+\[
+\begin{array}{ll}
+\bullet\quad f_0(x)=1/x: & p^\star=0,\ \text{但最优值不可达。}\\
+\bullet\quad f_0(x)=-\log x: & p^\star=-\infty,\ \text{所以该问题无下界。}\\
+\bullet\quad f_0(x)=x\log x: & p^\star=-1/e\ \text{在（唯一的）最优解 }x^\star=1/e\text{ 处达到。}
+\end{array}
+\]
+
+\noindent\textbf{可行性问题}
+
+如果目标函数恒等于零，那么其最优解要么是零（如果可行集非空），要么是 $\infty$（如果可行集是空集）。我们称其为可行性问题，有些时候将其写作
+\[
+\begin{array}{ll}
+\mathop{\mathrm{find}} & x\\
+\mathrm{subject\ to} & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& h_i(x)=0,\quad i=1,\cdots,p.
+\end{array}
+\]
+因此，可行性问题可以用来判断约束是否一致，如是，则找到一个满足它们的点。
+
+\subsection*{4.1.2\quad 问题的标准表示}
+
+我们称 (4.1) 为优化问题的标准形式。在标准形式问题中，我们按照惯例设不等式和等式约束的右端为零。这一点总可以通过对任何非零右端进行减法得到：例如，我们将约束 $g_i(x)=\tilde{g}_i(x)$ 表示为 $h_i(x)=0$，其中 $h_i(x)=g_i(x)-\tilde{g}_i(x)$。类似地，我们将 $f_i(x)\geq 0$ 表示为 $-f_i(x)\leq 0$。
+
+\noindent\textbf{例 4.2}\quad 框约束。考虑优化问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)\\
+\mathrm{subject\ to} & l_i\leq x_i\leq u_i,\quad i=1,\cdots,n,
+\end{array}
+\]
+其中 $x\in\mathbb{R}^n$ 为优化变量。这些约束称为变量的界（因为它们给出了每一个 $x_i$ 的上下界）或框约束（因为可行集是一个方框）。
+
+我们可以将该问题表示为标准形式，
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)\\
+\mathrm{subject\ to} & l_i-x_i\leq 0,\quad i=1,\cdots,n\\
+& x_i-u_i\leq 0,\quad i=1,\cdots,n.
+\end{array}
+\]
+这里有 $2n$ 个不等式约束函数：
+\[
+f_i(x)=l_i-x_i,\quad i=1,\cdots,n,
+\]
+及
+\[
+f_i(x)=x_{i-n}-u_{i-n},\quad i=n+1,\cdots,2n.
+\]
+
+\noindent\textbf{极大化问题}
+
+按习惯，我们主要考虑极小化问题。极大化问题
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{maximize}} & f_0(x)\\
+\mathrm{subject\ to} & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& h_i(x)=0,\quad i=1,\cdots,p
+\end{array}
+\tag{4.2}
+\end{equation}
+可以通过在同样的约束下极小化 $-f_0$ 得到求解。相应地，我们可以对极大化问题 (4.2) 进行前述所有的定义。例如 (4.2) 的最优值定义为
+\[
+p^\star=\sup\{f_0(x)\mid f_i(x)\leq 0,\ i=1,\cdots,m,\ h_i(x)=0,\ i=1,\cdots,p\},
+\]
+并且可行解 $x$ 是 $\epsilon$-次优的，如果 $f_0(x)\geq p^\star-\epsilon$。当考虑极大化问题时，目标函数有时又称为效用或满意度而不是费用。
+
+\subsection*{4.1.3\quad 等价问题}
+
+在本书中，我们将非正式地使用优化问题等价的概念。如果从一个问题的解，很容易得到另一个问题的解，并且反之亦然，我们称两个问题是等价的。（可以给出等价的正式定义，但比较复杂。）
+
+作为一个简单例子，考虑问题
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \tilde{f}(x)=\alpha_0f_0(x)\\
+\mathrm{subject\ to} & \tilde{f}_i(x)=\alpha_i f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& \tilde{h}_i(x)=\beta_i h_i(x)=0,\quad i=1,\cdots,p,
+\end{array}
+\tag{4.3}
+\end{equation}
+其中 $\alpha_i>0,\ i=0,\cdots,m$ 且 $\beta_i\neq 0,\ i=1,\cdots,p$。这个问题是通过将标准形式问题 (4.1) 的目标和不等式约束函数乘以正的常数，将等式约束函数乘以非零常数得到的。于是，问题 (4.3) 的可行集与原问题 (4.1) 是相同的。$x$ 对原问题 (4.1) 是最优的当且仅当它对于伸缩后的问题 (4.3) 也是最优的，因此，我们称这两个问题是等价的。但是，两个问题 (4.1) 和问题 (4.3) 是不同的（除非 $\alpha_i$ 和 $\beta_i$ 都是 1），因为目标函数和约束函数都不同。
+
+下面我们介绍一些产生等价问题的变换。
+
+\noindent\textbf{变量变换}
+
+设 $\phi:\mathbb{R}^n\to\mathbb{R}^n$ 是一一映射，其象包含了问题的定义域 $\mathcal{D}$，即 $\phi(\operatorname{dom}\phi)\supseteq\mathcal{D}$。我们定义函数 $\tilde{f}_i$ 和 $\tilde{h}_i$ 为
+\[
+\tilde{f}_i(z)=f_i(\phi(z)),\quad i=0,\cdots,m,\qquad
+\tilde{h}_i(z)=h_i(\phi(z)),\quad i=1,\cdots,p.
+\]
+下面考虑关于 $z$ 的问题
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \tilde{f}_0(z)\\
+\mathrm{subject\ to} & \tilde{f}_i(z)\leq 0,\quad i=1,\cdots,m\\
+& \tilde{h}_i(z)=0,\quad i=1,\cdots,p,
+\end{array}
+\tag{4.4}
+\end{equation}
+我们称标准形式问题 (4.1) 和问题 (4.4) 通过变量变换或变量代换 $x=\phi(z)$ 所联系。这两个问题显然等价：如果 $x$ 解决了问题 (4.1)，那么 $z=\phi^{-1}(x)$ 也求解了问题 (4.4)；如果 $z$ 是问题 (4.4) 的解，那么 $x=\phi(z)$ 是问题 (4.1) 的解。
+
+\noindent\textbf{目标函数和约束函数的变换}
+
+设 $\psi_0:\mathbb{R}\to\mathbb{R}$ 单增；$\psi_1,\cdots,\psi_m:\mathbb{R}\to\mathbb{R}$ 满足：当且仅当 $u\leq 0$ 时 $\psi_i(u)\leq 0$；$\psi_{m+1},\cdots,\psi_{m+p}:\mathbb{R}\to\mathbb{R}$ 满足：当且仅当 $u=0$ 时 $\psi_i(u)=0$。我们定义函数 $\tilde{f}_i$ 和 $\tilde{h}_i$ 为复合函数
+\[
+\tilde{f}_i(x)=\psi_i(f_i(x)),\quad i=0,\cdots,m,\qquad
+\tilde{h}_i(x)=\psi_{m+i}(h_i(x)),\quad i=1,\cdots,p.
+\]
+显然，问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \tilde{f}_0(x)\\
+\mathrm{subject\ to} & \tilde{f}_i(x)\leq 0,\quad i=1,\cdots,m\\
+& \tilde{h}_i(x)=0,\quad i=1,\cdots,p
+\end{array}
+\]
+与标准形式问题 (4.1) 等价；事实上，其可行集相同，最优解也相同。（前例 (4.3) 是 $\psi_i$ 为线性函数时的一个特例，其中的目标函数和约束函数均被合适的常数所数乘。）
+
+\noindent\textbf{例 4.3}\quad 最小函数和最小范数平方问题。作为一个简单的例子，考虑无约束的 Euclid 范数极小化问题
+\begin{equation}
+\mathop{\mathrm{minimize}}\quad \|Ax-b\|_2,
+\tag{4.5}
+\end{equation}
+其变量为 $x\in\mathbb{R}^n$。因为范数总是非负的，所以我们可以只求解问题
+\begin{equation}
+\mathop{\mathrm{minimize}}\quad \|Ax-b\|_2^2=(Ax-b)^T(Ax-b),
+\tag{4.6}
+\end{equation}
+在这里，我们极小化 Euclid 范数的平方。问题 (4.5) 和问题 (4.6) 显然等价；最优解相同。但是，这两个问题是不同的。例如问题 (4.5) 的目标函数在任意满足 $Ax-b=0$ 的 $x$ 处都是不可微的，而问题 (4.6) 的目标函数对所有的 $x$ 都是可微的（事实上，它是二次的）。
+
+\noindent\textbf{松弛变量}
+
+通过观察可以得到一个简单的变换，即 $f_i(x)\leq 0$ 等价于存在一个 $s_i\geq 0$ 满足 $f_i(x)+s_i=0$。利用这个变换，我们可以得到问题
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)\\
+\mathrm{subject\ to} & s_i\geq 0,\quad i=1,\cdots,m\\
+& f_i(x)+s_i=0,\quad i=1,\cdots,m\\
+& h_i(x)=0,\quad i=1,\cdots,p,
+\end{array}
+\tag{4.7}
+\end{equation}
+其中 $x\in\mathbb{R}^n,\ s\in\mathbb{R}^m$。这个问题有 $n+m$ 个变量，$m$ 个不等式约束（关于 $s_i$ 的非负约束）和 $m+p$ 个等式约束。新的变量 $s_i$ 称为对应原不等式约束 $f_i(x)\leq 0$ 的松弛变量。通过引入松弛变量，可以将每个不等式约束替换为一个等式和一个非负约束。
+
+问题 (4.7) 与原标准形式问题 (4.1) 是等价的。事实上，如果 $(x,s)$ 对问题 (4.7) 是可行的，那么 $x$ 是原问题的可行解，因为 $s_i=-f_i(x)\geq 0$。反之，如果 $x$ 对于原问题是可行的，那么 $(x,s)$ 是问题 (4.7) 的可行解，其中我们取 $s_i=-f_i(x)$。类似地，$x$ 是原问题 (4.1) 的最优解当且仅当 $(x,s)$ 是问题 (4.7) 的最优解，其中 $s_i=-f_i(x)$。
+
+\noindent\textbf{消除等式约束}
+
+如果我们可以用一些参数 $z\in\mathbb{R}^k$ 来显式地参数化等式约束
+\begin{equation}
+h_i(x)=0,\quad i=1,\cdots,p
+\tag{4.8}
+\end{equation}
+的解，那么我们可以从原问题中消除等式约束，如下所示。设函数 $\phi:\mathbb{R}^k\to\mathbb{R}^n$ 是这样的函数：$x$ 满足式 (4.8) 等价于存在一些 $z\in\mathbb{R}^k$ 使得 $x=\phi(z)$。那么，优化问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \tilde{f}_0(z)=f_0(\phi(z))\\
+\mathrm{subject\ to} & \tilde{f}_i(z)=f_i(\phi(z))\leq 0,\quad i=1,\cdots,m
+\end{array}
+\]
+与原问题 (4.1) 等价。转换后的问题含有变量 $z\in\mathbb{R}^k$，$m$ 个不等式约束而没有等式约束。如果 $z$ 是转换后问题的最优解，那么 $x=\phi(z)$ 是原问题的最优解。反之，如果 $x$ 是原问题的最优解，那么（因为 $x$ 是可行解）存在至少一个 $z$ 使得 $x=\phi(z)$。任意这样的 $z$ 均是转换后的问题的最优解。
+
+\noindent\textbf{消除线性等式约束}
+
+如果等式约束均是线性的，即 $Ax=b$，那么可以更清晰地描述消除变量的过程，并且简单地进行数值计算。如果 $Ax=b$ 不相容，即 $b\notin\mathcal{R}(A)$，那么原问题无可行解。假设不是这种情况，令 $x_0$ 表示等式约束的任意可行解。令 $F\in\mathbb{R}^{n\times k}$ 为满足 $\mathcal{R}(F)=\mathcal{N}(A)$ 的矩阵，那么线性方程 $Ax=b$ 的通解可以表示为 $Fz+x_0$，其中 $z\in\mathbb{R}^k$。（我们可以选择 $F$ 为满秩矩阵，如此的话，我们有 $k=n-\operatorname{rank} A$。）
+
+将 $x=Fz+x_0$ 代入原问题可以得到关于 $z$ 的问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(Fz+x_0)\\
+\mathrm{subject\ to} & f_i(Fz+x_0)\leq 0,\quad i=1,\cdots,m,
+\end{array}
+\]
+它与原问题等价，不含有等式约束并且减少了 $\operatorname{rank}A$ 个变量。
+
+\noindent\textbf{引入等式约束}
+
+我们也可在问题中引入等式约束和新的变量。一般情况的讨论比较复杂且不直观，所以这里我们给出一个典型的例子，这个例子在后面的讨论中也十分有用。考虑问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(A_0x+b_0)\\
+\mathrm{subject\ to} & f_i(A_ix+b_i)\leq 0,\quad i=1,\cdots,m\\
+& h_i(x)=0,\quad i=1,\cdots,p,
+\end{array}
+\]
+其中 $x\in\mathbb{R}^n,\ A_i\in\mathbb{R}^{k_i\times n},\ f_i:\mathbb{R}^{k_i}\to\mathbb{R}$。这个问题的目标函数和约束函数由函数 $f_i$ 和仿射变换 $A_ix+b_i$ 的复合给出。
+
+我们引入新的变量 $y_i\in\mathbb{R}^{k_i}$ 和新的等式约束 $y_i=A_ix+b_i,\ i=0,\cdots,m$，从而构造等价问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(y_0)\\
+\mathrm{subject\ to} & f_i(y_i)\leq 0,\quad i=1,\cdots,m\\
+& y_i=A_ix+b_i,\quad i=0,\cdots,m\\
+& h_i(x)=0,\quad i=1,\cdots,p.
+\end{array}
+\]
+该问题含有 $k_0+\cdots+k_m$ 个新变量：
+\[
+y_0\in\mathbb{R}^{k_0},\quad \cdots,\quad y_m\in\mathbb{R}^{k_m},
+\]
+及 $k_0+\cdots+k_m$ 个新的等式约束：
+\[
+y_0=A_0x+b_0,\quad \cdots,\quad y_m=A_mx+b_m,
+\]
+其目标函数与等式约束是独立的，即它们各自包含不同的优化变量。
+
+\noindent\textbf{优化部分变量}
+
+我们总有
+\[
+\inf_{x,y} f(x,y)=\inf_x \tilde{f}(x),
+\]
+其中 $\tilde{f}(x)=\inf_y f(x,y)$。换言之，我们总可以通过先优化一部分变量再优化另一部分变量来达到优化一个函数的目的。这个简单而普适的原则可以用来将问题转换为其等价形式。对于一般形式，其描述冗长而不直观，因此，我们这里只用一个例子来进行说明。
+
+设变量 $x\in\mathbb{R}^n$ 被分为 $x=(x_1,x_2)$，其中 $x_1\in\mathbb{R}^{n_1},\ x_2\in\mathbb{R}^{n_2}$，并且 $n_1+n_2=n$。考虑问题
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x_1,x_2)\\
+\mathrm{subject\ to} & f_i(x_1)\leq 0,\quad i=1,\cdots,m_1\\
+& \tilde{f}_i(x_2)\leq 0,\quad i=1,\cdots,m_2,
+\end{array}
+\tag{4.9}
+\end{equation}
+其约束相互独立，也就是说每个约束函数只与 $x_1$ 或 $x_2$ 相关。我们首先优化 $x_2$。定义 $x_1$ 的函数 $\tilde{f}_0$ 为
+\[
+\tilde{f}_0(x_1)=\inf\{f_0(x_1,z)\mid \tilde{f}_i(z)\leq 0,\ i=1,\cdots,m_2\}.
+\]
+则问题 (4.9) 等价于
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \tilde{f}_0(x_1)\\
+\mathrm{subject\ to} & f_i(x_1)\leq 0,\quad i=1,\cdots,m_1.
+\end{array}
+\tag{4.10}
+\end{equation}
+
+\noindent\textbf{例 4.4}\quad 在约束下优化二次函数的部分变量。考虑具有严格凸的二次目标的问题，其中某些变量不受约束：
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & x_1^T P_{11}x_1+2x_1^T P_{12}x_2+x_2^T P_{22}x_2\\
+\mathrm{subject\ to} & f_i(x_1)\leq 0,\quad i=1,\cdots,m.
+\end{array}
+\]
+这里，我们可以解析地优化 $x_2$：
+\[
+\inf_{x_2}\left(x_1^T P_{11}x_1+2x_1^T P_{12}x_2+x_2^T P_{22}x_2\right)
+=x_1^T\left(P_{11}-P_{12}P_{22}^{-1}P_{12}^T\right)x_1
+\]
+（参见 §A.5.5）。因此，原问题等价于
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & x_1^T\left(P_{11}-P_{12}P_{22}^{-1}P_{12}^T\right)x_1\\
+\mathrm{subject\ to} & f_i(x_1)\leq 0,\quad i=1,\cdots,m.
+\end{array}
+\]
+
+\noindent\textbf{上境图问题形式}
+
+标准问题 (4.1) 的上境图形式为
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & t\\
+\mathrm{subject\ to} & f_0(x)-t\leq 0\\
+& f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& h_i(x)=0,\quad i=1,\cdots,p,
+\end{array}
+\tag{4.11}
+\end{equation}
+其优化变量为 $x\in\mathbb{R}^n$ 及 $t\in\mathbb{R}$。容易看出这个问题与原问题是等价的：$(x,t)$ 是问题 (4.11) 的最优解当且仅当 $x$ 是问题 (4.1) 的最优解并且 $t=f_0(x)$。需要注意的是，上境图形式的目标函数是变量 $x$ 和 $t$ 的线性函数。
+
+上境图形式问题 (4.11) 可以几何地解释为“图像空间” $(x,t)$ 中的一个优化问题：在对 $x$ 的约束下，我们在 $f_0$ 的上境图中极小化 $t$，参见图 4.1。
+
+\noindent\textbf{隐式与显式约束}
+
+采用 §3.1.2 所提到的简单技巧，我们可以通过改变定义域将任何约束隐式地表达在目标函数中。作为一个极端的例子，标准形式问题可以表示为如下一个无约束问题
+\begin{equation}
+\mathop{\mathrm{minimize}}\quad F(x),
+\tag{4.12}
+\end{equation}
+其中，我们用 $f_0$ 定义 $F$，但其定义域被限定在可行集中
+\[
+\operatorname{dom} F=\{x\in\operatorname{dom} f_0\mid f_i(x)\leq 0,\ i=1,\cdots,m,\ h_i(x)=0,\ i=1,\cdots,p\}.
+\]
+对于 $x\in\operatorname{dom} F$，$F(x)=f_0(x)$。（等价地，我们可以定义 $F(x)$ 在不可行的 $x$ 处取值为 $\infty$。）问题 (4.1) 和问题 (4.12) 显然等价：它们有相同的可行集、最优解和最优值。
+
+当然这种变换仅仅是一种符号游戏。将约束变为隐式不会为问题的分析和求解带来丝毫的好处，虽然问题 (4.12) 至少在名义上是无约束的。有些情况下，这种变换会使得问题更加难以求解。例如，设目标函数 $f_0$ 是可微的，那么其定义域是开集。而受约束的函数 $F$ 很有可能是不可微的，因为其定义域很有可能不是开的。
+
+反之，我们也会碰到含有隐式约束的问题，对此我们可以将其显示化。作为一个简单的例子，考虑问题
+\begin{equation}
+\mathop{\mathrm{minimize}}\quad f(x),
+\tag{4.13}
+\end{equation}
+其中的函数 $f$ 由下式给出
+\[
+f(x)=
+\begin{cases}
+x^Tx, & Ax=b\\
+\infty, & \text{其他情况}.
+\end{cases}
+\]
+在仿射集合 $Ax=b$ 中，目标函数等于二次型 $x^Tx$，而在此仿射集合外，目标函数等于 $\infty$。因为我们显然可以只关注于满足 $Ax=b$ 的点，所以，称问题 (4.13) 在目标函数中含有隐式的等式约束 $Ax=b$。我们可以构造等价问题
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & x^Tx\\
+\mathrm{subject\ to} & Ax=b.
+\end{array}
+\tag{4.14}
+\end{equation}
+将这个隐式的等式约束显式化。问题 (4.13) 和问题 (4.14) 显然是等价而不相同的。问题 (4.13) 是无约束问题但其目标函数不可微。而问题 (4.14) 含有等式约束但其目标函数和约束函数均是可微的。
+
+\subsection*{4.1.4\quad 参数与谕示问题描述}
+
+对于标准形式的问题 (4.1)，仍然存在如何确定目标及约束函数的问题。在很多情况下，这些函数具有解析或闭式表达式，即由含有变量 $x$ 和一些参数的公式或表达式给出。例如，设目标函数是二次的，则它具有 $f_0(x)=(1/2)x^TPx+q^Tx+r$ 的形式。为确定这个目标函数，我们给出系数（也称作问题参数或问题数据）$P\in\mathbf{S}^n$、$q\in\mathbb{R}^n$ 和 $r\in\mathbb{R}$。我们称其为参数问题描述，因为这个待解决的特定问题（即问题实例）被出现在目标和约束函数表达式中的函数参数所给定。
+
+在其他情况下，目标函数和约束函数为谕示模型（也称为黑箱或子程序模型）所描述。在一个谕示模型中，我们无法显式地知道 $f$ 但对于任意 $x\in\operatorname{dom} f$，可以计算得到 $f(x)$（通常还有一些导数）。这个过程称为询问谕示，这通常需要一些成本，例如时间。我们也会得到函数的一些先验知识，例如其凸性和函数值的界。作为一个具体的谕示模型的例子，我们考虑极小化函数 $f$ 的无约束优化问题。函数值 $f(x)$ 及导数值 $\nabla f(x)$ 可以通过子程序计算得到。可以对任意 $x\in\operatorname{dom} f$ 调用子函数但无法得到其源程序。用参数 $x$ 调用子程序（当子程序返回时）得到 $f(x)$ 和 $\nabla f(x)$。注意，在谕示模型中，我们永远无法真正得知函数；仅仅能通过询问谕示模型来得知某些点的函数值（及导数）。（我们也可以知道函数的某些先验信息，例如可微性和凸性。）
+
+在实践中，参数问题和谕示问题的差别不是很大。如果给出一个参数问题描述，我们可以为其构造一个谕示问题，它仅在被查询时计算所需函数的值及其导数。我们在第 III 部分讨论的大部分算法都可用于谕示模型的求解，但在限定于解决一族特定的参数化问题时，可以使它们变得更加有效。
+
+\section*{§4.2\quad 凸优化}
+
+\subsection*{4.2.1\quad 标准形式的凸优化问题}
+
+凸优化问题是形如
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)\\
+\mathrm{subject\ to} & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& a_i^Tx=b_i,\quad i=1,\cdots,p
+\end{array}
+\tag{4.15}
+\end{equation}
+的问题，其中 $f_0,\cdots,f_m$ 为凸函数。对比问题 (4.15) 和一般的标准形式问题 (4.1)，凸优化问题有三个附加的要求：
+\[
+\bullet\quad \text{目标函数必须是凸的，}
+\]
+\[
+\bullet\quad \text{不等式约束函数必须是凸的，}
+\]
+\[
+\bullet\quad \text{等式约束函数 }h_i(x)=a_i^Tx-b_i\text{ 必须是仿射的。}
+\]
+我们立即注意到一个重要的性质：凸优化问题的可行集是凸的，因为它是问题定义域
+\[
+\mathcal{D}=\bigcap_{i=0}^{m}\operatorname{dom} f_i
+\]
+（这是一个凸集），$m$ 个（凸的）下水平集 $\{x\mid f_i(x)\leq 0\}$ 以及 $p$ 个超平面 $\{x\mid a_i^Tx=b_i\}$ 的交集。（我们可以不失一般性地假设 $a_i\neq 0$：如果对于某些 $i$ 有 $a_i=0$ 且 $b_i=0$，那么可以删去第 $i$ 个等式约束；如果 $a_i=0$ 但 $b_i\neq 0$，那么第 $i$ 个等式约束是矛盾的，问题不可行。）因此，在一个凸优化问题中，我们是在一个凸集上极小化一个凸的目标函数。
+
+如果 $f_0$ 是拟凸而非凸的，我们称问题 (4.15) 为（标准形式的）拟凸优化问题。因为凸或拟凸函数的下水平集都是凸集，可知对于凸或拟凸的优化问题，其 $\epsilon$-次优集是凸的。特别地，其最优集是凸的。如果目标函数是严格凸的，那么最优集包含至多一个点。
+
+\noindent\textbf{凹最大化问题}
+
+稍稍改变符号，我们也称
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{maximize}} & f_0(x)\\
+\mathrm{subject\ to} & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& a_i^Tx=b_i,\quad i=1,\cdots,p
+\end{array}
+\tag{4.16}
+\end{equation}
+为凸优化问题，如果目标函数 $f_0$ 是凹的而不等式约束函数 $f_1,\cdots,f_m$ 是凸的。这个凹最大化问题可以简单地通过极小化凸目标函数 $-f_0$ 得以求解。对于极小化问题的所有结果、结论及算法都可以简单地转换用于解决最大化问题。类似地，如果 $f_0$ 是拟凹的，那么最大化问题 (4.16) 被称为拟凹的。
+
+\noindent\textbf{凸优化问题的抽象形式}
+
+重要的是，需要注意到我们定义凸优化问题时的一些细节。考虑 $x\in\mathbb{R}^2$ 的一个例子，
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)=x_1^2+x_2^2\\
+\mathrm{subject\ to} & f_1(x)=x_1/(1+x_2^2)\leq 0\\
+& h_1(x)=(x_1+x_2)^2=0,
+\end{array}
+\tag{4.17}
+\end{equation}
+这是该问题的标准形式 (4.1)，但不是凸优化问题的标准形式，因为其等式约束 $h_1$ 不是仿射的，而不等式约束 $f_1$ 不是凸的。尽管如此，其可行集 $\{x\mid x_1\leq 0,\ x_1+x_2=0\}$ 是凸的。所以，虽然这个问题是在凸集上极小化凸函数 $f_0$，但它不是我们所定义的凸优化问题。
+
+当然，这个问题可以简单地变形为
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)=x_1^2+x_2^2\\
+\mathrm{subject\ to} & \tilde{f}_1(x)=x_1\leq 0\\
+& \tilde{h}_1(x)=x_1+x_2=0.
+\end{array}
+\tag{4.18}
+\end{equation}
+这是标准的凸优化形式，因为 $f_0$ 和 $\tilde{f}_1$ 是凸的，$\tilde{h}_1$ 是仿射的。
+
+一些作者用抽象的凸优化问题的概念来描述（抽象的）在凸集上极小化凸函数的问题。用这一术语，问题 (4.17) 是一个抽象的凸优化问题。但我们不在本书中使用这一术语。对于我们而言，凸优化问题不仅仅是在凸集上极小化凸函数的问题，同时也要求其可行集特定地被一组凸函数不等式和一组线性等式约束所描述。问题 (4.17) 不是凸优化问题，而问题 (4.18) 是一个凸优化问题。（但是，这两个问题是等价的。）
+
+我们采用这种对凸优化问题的严格定义不会在实践中带来太多的麻烦。为求解抽象的在凸集上极小化凸函数的问题，我们需要用一组凸的不等式和线性的等式约束来表示其集合。如上例所示，这一般是不复杂的。
+
+\subsection*{4.2.2\quad 局部最优解与全局最优解}
+
+凸优化问题的一个基础性质是其任意局部最优解也是（全局）最优解。为理解这点，设 $x$ 是凸优化问题的局部最优解，即 $x$ 是可行的并且对于某些 $R>0$，有
+\begin{equation}
+f_0(x)=\inf\{f_0(z)\mid z\ \text{可行},\ \|z-x\|_2\leq R\},
+\tag{4.19}
+\end{equation}
+现在假设 $x$ 不是全局最优解，即存在一个可行的 $y$ 使得 $f_0(y)<f_0(x)$。显然 $\|y-x\|_2>R$，因为否则的话有 $f_0(x)\leq f_0(y)$。考虑由
+\[
+z=(1-\theta)x+\theta y,\quad \theta=\frac{R}{2\|y-x\|_2}
+\]
+给出的点 $z$，我们有 $\|z-x\|_2=R/2<R$。根据可行集的凸性，$z$ 是可行的。根据 $f_0$ 的凸性，我们有
+\[
+f_0(z)\leq (1-\theta)f_0(x)+\theta f_0(y)<f_0(x),
+\]
+这与式 (4.19) 矛盾。因此不存在满足 $f_0(y)<f_0(x)$ 的可行解 $y$，即 $x$ 是全局最优解。
+
+对于拟凸优化问题，局部最优解是全局最优解这一性质不成立，参见 §4.2.5。
+
+\subsection*{4.2.3\quad 可微函数 $f_0$ 的最优性准则}
+
+设凸优化问题的目标函数 $f_0$ 是可微的，对于所有的 $x,y\in\operatorname{dom} f_0$ 有
+\begin{equation}
+f_0(y)\geq f_0(x)+\nabla f_0(x)^T(y-x)
+\tag{4.20}
+\end{equation}
+（参见 §3.1.3）。令 $X$ 表示其可行集，即
+\[
+X=\{x\mid f_i(x)\leq 0,\ i=1,\cdots,m,\ h_i(x)=0,\ i=1,\cdots,p\}.
+\]
+那么，$x$ 是最优解，当且仅当 $x\in X$ 且
+\begin{equation}
+\nabla f_0(x)^T(y-x)\geq 0,\quad \forall y\in X.
+\tag{4.21}
+\end{equation}
+这个最优性准则可以从几何上进行理解：如果 $\nabla f_0(x)\neq 0$，那么意味着 $-\nabla f_0(x)$ 在 $x$ 处定义了可行集的一个支撑超平面。
+
+\noindent\textbf{最优性条件的证明}
+
+首先假设 $x\in X$ 满足式 (4.21)。那么，如果 $y\in X$，根据式 (4.20)，我们有 $f_0(y)\geq f_0(x)$。这表明 $x$ 是问题 (4.1) 的一个最优解。
+
+反之，设 $x$ 是最优解但条件 (4.21) 不成立，即对于某些 $y\in X$，有
+\[
+\nabla f_0(x)^T(y-x)<0.
+\]
+考虑点 $z(t)=ty+(1-t)x$，其中 $t\in[0,1]$ 为参数。因为 $z(t)$ 在 $x$ 和 $y$ 之间的线段上，而可行集是凸集，因此 $z(t)$ 可行。我们可断言对于小正数 $t$，有 $f_0(z(t))<f_0(x)$，这证明了 $x$ 不是最优的。为说明这一点，注意
+\[
+\left.\frac{d}{dt}f_0(z(t))\right|_{t=0}
+=\nabla f_0(x)^T(y-x)<0,
+\]
+所以，对于小正数 $t$，我们有 $f_0(z(t))<f_0(x)$。
+
+我们将在第 5 章中深入探讨最优性条件；而在这里考虑几个简单的例子。
+
+\noindent\textbf{无约束问题}
+
+对于无约束优化问题（即 $m=p=0$），条件 (4.21) 可以简化为一个众所周知的 $x$ 是最优解的充要条件
+\begin{equation}
+\nabla f_0(x)=0.
+\tag{4.22}
+\end{equation}
+我们都知道这个最优性条件，有必要考察一下它是如何从条件 (4.21) 中得到的。设 $x$ 为可行解，即 $x\in\operatorname{dom} f_0$，并且对于所有可行的 $y$，都有 $\nabla f_0(x)^T(y-x)\geq 0$。因为 $f_0$ 可微，其定义域是开的，因此所有充分靠近 $x$ 的点都是可行的。我们取 $y=x-t\nabla f_0(x)$，其中 $t\in\mathbb{R}$ 为参数。当 $t$ 为小的正数时，$y$ 是可行的，因此
+\[
+\nabla f_0(x)^T(y-x)=-t\|\nabla f_0(x)\|_2^2\geq 0,
+\]
+从中可知 $\nabla f_0(x)=0$。
+
+根据式 (4.22) 解的数量，有几种可能的情况。如果式 (4.22) 无解，那么没有最优点；问题无下界或最优值有限但不可达。这里我们需要区分两种情况：问题无下界，或者最优值有界但不可达。另一方面，我们有可能得到式 (4.22) 的多个解，每一个这样的解都极小化了 $f_0$。
+
+\noindent\textbf{例 4.5\quad 无约束二次规划。}\quad 考虑极小化二次函数
+\[
+f_0(x)=(1/2)x^TPx+q^Tx+r,
+\]
+其中，$P\in\mathbf{S}_+^n$（保证了 $f_0$ 为凸函数）。$x$ 为 $f_0$ 的最小解的充要条件是：
+\[
+\nabla f_0(x)=Px+q=0.
+\]
+根据这个（线性）方程无解、有唯一解或有多解的不同，有几种可能的情况
+\[
+\bullet\quad \text{如果 }q\notin\mathcal{R}(P),\text{ 则无解。此类情况 } f_0\text{ 无下界。}
+\]
+\[
+\bullet\quad \text{如果 }P\succ 0\text{（意味着 }f_0\text{ 严格凸），则存在唯一的最小解 }x^\star=-P^{-1}q。
+\]
+\[
+\bullet\quad \text{如果 }P\text{ 奇异但 }q\in\mathcal{R}(P),\text{ 则最优解集合为（仿射）集合 }X_{\mathrm{opt}}=-P^\dagger q+\mathcal{N}(P),
+\]
+其中 $P^\dagger$ 表示 $P$ 的伪逆（参见 §A.5.4）。
+
+\noindent\textbf{例 4.6\quad 解析中心。}\quad 考虑（无约束的）极小化（凸）函数 $f_0:\mathbb{R}^n\to\mathbb{R}$ 的问题，
+\[
+f_0(x)=-\sum_{i=1}^{m}\log(b_i-a_i^Tx),\quad \operatorname{dom} f_0=\{x\mid Ax<b\},
+\]
+其中 $a_1^T,\cdots,a_m^T$ 表示 $A$ 的行向量。函数 $f_0$ 可微，因此 $x$ 是最优解的充要条件为
+\begin{equation}
+Ax<b,\quad \nabla f_0(x)=\sum_{i=1}^{m}\frac{1}{b_i-a_i^Tx}a_i=0.
+\tag{4.23}
+\end{equation}
+（条件 $Ax<b$ 即是 $x\in\operatorname{dom} f_0$。）如果 $Ax<b$ 不可行，则 $f_0$ 的定义域为空。假设 $Ax<b$ 可行，存在几种可能的情况（参见习题 4.2）：
+\[
+\bullet\quad \text{式 (4.23) 无解，则问题无最优解。这种情况当且仅当 }f_0\text{ 无下界时发生。}
+\]
+\[
+\bullet\quad \text{式 (4.23) 有多解。在这种情况下，可以证明其解构成一个仿射集合。}
+\]
+\[
+\bullet\quad \text{式 (4.23) 有唯一解，即 }f_0\text{ 有唯一的极小值。这种情况当且仅当开多面体 }\{x\mid Ax<b\}\text{ 有界非空时发生。}
+\]
+
+\noindent\textbf{只含等式约束的问题}
+
+考虑只含等式约束而没有不等式约束的问题，即
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)\\
+\mathrm{subject\ to} & Ax=b,
+\end{array}
+\]
+其可行集是仿射的。我们假设定义域非空，否则问题不可行。可行解 $x$ 的最优性条件为：对任意满足 $Ay=b$ 的 $y$，
+\[
+\nabla f_0(x)^T(y-x)\geq 0
+\]
+都成立。因为 $x$ 可行，每个可行解 $y$ 都可以写作 $y=x+v$ 的形式，其中 $v\in\mathcal{N}(A)$。因此，最优性条件可表示为
+\[
+\nabla f_0(x)^Tv\geq 0,\quad \forall v\in\mathcal{N}(A).
+\]
+如果一个线性函数在子空间中非负，则它在子空间上必恒等于零。因此，对于任意 $v\in\mathcal{N}(A)$，我们有 $\nabla f_0(x)^Tv=0$，换言之
+\[
+\nabla f_0(x)\perp \mathcal{N}(A).
+\]
+利用 $\mathcal{N}(A)^\perp=\mathcal{R}(A^T)$，最优性条件可以表示为 $\nabla f_0(x)\in\mathcal{R}(A^T)$，即存在 $\nu\in\mathbb{R}^p$，使得
+\[
+\nabla f_0(x)+A^T\nu=0.
+\]
+同时考虑 $Ax=b$ 的要求（即要求 $x$ 可行），这是经典的 Lagrange 乘子最优性条件，我们将在第 5 章中仔细地研究这个条件。
+
+\noindent\textbf{非负象限中的极小化}
+
+作为另一个例子，我们考虑问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)\\
+\mathrm{subject\ to} & x\succeq 0,
+\end{array}
+\]
+这里唯一的不等式约束是变量的非负约束。
+
+于是，最优性条件 (4.21) 为
+\[
+x\succeq 0,\quad \nabla f_0(x)^T(y-x)\geq 0,\quad \forall y\succeq 0.
+\]
+$\nabla f_0(x)^Ty$ 是 $y$ 的线性函数并且在 $y\succeq 0$ 上无下界，除非我们有 $\nabla f_0(x)\succeq 0$。于是，这个条件简化为 $-\nabla f_0(x)^Tx\geq 0$。但是 $x\succeq 0$ 且 $\nabla f_0(x)\succeq 0$，所以必须有 $\nabla f_0(x)^Tx=0$，即
+\[
+\sum_{i=1}^{n}(\nabla f_0(x))_i x_i=0.
+\]
+这里求和中的每一项都是两个非负数的乘积，因此可知每一项都必须为零，即对于 $i=1,\cdots,n$，有 $(\nabla f_0(x))_i x_i=0$。
+
+因此，最优性条件可以表示为
+\[
+x\succeq 0,\quad \nabla f_0(x)\succeq 0,\quad x_i(\nabla f_0(x))_i=0,\quad i=1,\cdots,n.
+\]
+最后一个条件称为互补性，因为它意味着向量 $x$ 和 $\nabla f_0(x)$ 的稀疏模式（即非零分量对应的索引集合）是互补的（即交集为空）。我们将在第 5 章中再次深入地讨论互补条件。
+
+\subsection*{4.2.4\quad 等价的凸问题}
+
+研究 §4.1.3 描述的变换中哪些保凸是很有用的。
+
+\noindent\textbf{消除等式约束}
+
+一个凸问题的等式约束必须是线性的，即具有 $Ax=b$ 的形式。在这种情况下，可以通过寻找 $Ax=b$ 的一个特解 $x_0$ 和域为 $A$ 的零空间的矩阵 $F$ 来消除这些等式约束，从而得到关于 $z$ 的问题，
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(Fz+x_0)\\
+\mathrm{subject\ to} & f_i(Fz+x_0)\leq 0,\quad i=1,\cdots,m,
+\end{array}
+\]
+因为凸函数和仿射函数的复合依然是凸的，消除等式约束可以保持问题的凸性。而且消除等式约束的过程（以及从变换后问题的解重构出原问题的解）只需利用标准的线性代数运算。
+
+至少在理论上，这意味着我们可以集中精力于不含有等式约束的凸优化问题。但是，在很多情况下，由于消除等式约束会使得问题更难理解和求解，甚至使得求解它的算法失效，因此最好在问题中保留等式约束。例如，当变量 $x$ 维数很高时，消除等式约束确实有可能破坏问题的稀疏性或其他有用的结构。
+
+\noindent\textbf{引入等式约束}
+
+我们可以在凸优化问题中引入新的变量和等式约束，前提是等式约束是线性的，所得的优化问题仍然是凸的。例如，如果目标函数或约束函数具有 $f_i(A_ix+b_i)$ 的形式，其中 $A_i\in\mathbb{R}^{k_i\times n}$。我们可以引入新的变量 $y_i\in\mathbb{R}^{k_i}$，用 $f_i(y_i)$ 替换 $f_i(A_ix+b_i)$ 并添加线性等式约束 $y_i=A_ix+b_i$。
+
+\noindent\textbf{松弛变量}
+
+通过引入松弛变量，我们可以得到新的等式约束 $f_i(x)+s_i=0$。因为凸优化问题中的等式约束必须是仿射的，所以 $f_i$ 需为仿射的。换言之，为线性不等式引入松弛变量保持问题的凸性不变。
+
+\noindent\textbf{上境图问题形式}
+
+凸优化问题 (4.15) 的上境图形式为
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & t\\
+\mathrm{subject\ to} & f_0(x)-t\leq 0\\
+& f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& a_i^Tx=b_i,\quad i=1,\cdots,p.
+\end{array}
+\]
+目标函数是线性的（因而也是凸的）并且新的约束函数 $f_0(x)-t$ 也是 $(x,t)$ 上的凸函数，所以上境图问题也是凸的。
+
+有时也称线性目标函数对凸优化问题是普适的，因为任何凸优化问题都可以轻易地转换为具有线性目标函数的问题。凸优化问题的上境图形式具有一些实际的用途。通过假设凸优化问题的目标函数为线性，我们可以简化理论分析。也可以用于简化算法，因为通过上述变换，每个解决线性目标的凸优化问题的算法都可以用来解决任意的凸优化问题（前提是它可以处理约束 $f_0(x)-t\leq 0$）。
+
+\noindent\textbf{极小化部分变量}
+
+极小化凸函数的部分变量将保持凸性不变。因此，如果问题 (4.9) 中的 $f_0$ 是 $x_1$ 和 $x_2$ 上的联合凸函数，并且 $f_i,\ i=1,\cdots,m_1$ 和 $\tilde{f}_i,\ i=1,\cdots,m_2$ 都是凸函数，那么其等价问题 (4.10) 是凸的。
+
+\subsection*{4.2.5\quad 拟凸优化}
+
+回想拟凸优化问题的标准形式
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)\\
+\mathrm{subject\ to} & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& Ax=b,
+\end{array}
+\tag{4.24}
+\end{equation}
+其中，不等式约束函数 $f_1,\cdots,f_m$ 是凸的，而目标函数 $f_0$ 是拟凸的（而不是凸优化问题中的凸目标函数）。（拟凸约束函数可以等价地替换为凸约束函数，即具有相同 $0$-下水平集的凸函数，如 §3.4.5 中所示。）
+
+本节将指出凸优化与拟凸优化问题本质上的不同，同时也将说明拟凸优化问题可以归结为求解一系列的凸优化问题。
+
+\noindent\textbf{局部最优解与最优性条件}
+
+凸优化与拟凸优化问题最重要的不同在于拟凸优化问题可能有不是（全局）最优的局部最优解。这一现象通过简单的在 $\mathbb{R}$ 上极小化无约束拟凸函数的例子就可以观察到，比如图 4.3 就显示了这样一个例子。
+
+尽管如此，§4.2.3 给出的最优性条件 (4.21) 的一个变形对于具有可微目标函数的拟凸优化问题依然成立。令 $X$ 表示拟凸优化问题 (4.24) 的可行集。从拟凸性的一阶条件 (3.20) 出发，可知 $x$ 是最优的，如果
+\begin{equation}
+x\in X,\quad \nabla f_0(x)^T(y-x)>0,\quad \forall y\in X\setminus\{x\}.
+\tag{4.25}
+\end{equation}
+这一性质与凸优化问题 (4.21) 的类似性质有两个重要的不同：
+\[
+\bullet\quad \text{条件 (4.25) 仅仅是最优性的充分条件；简单的例子就可以说明对于最优解这个条件并不必需成立。相比而言，条件 (4.21) 是 }x\text{ 为凸问题解的充要条件。}
+\]
+\[
+\bullet\quad \text{条件 (4.25) 要求 }f_0\text{ 的梯度非零，而条件 (4.21) 并不需要。事实上，对于凸问题，当 }\nabla f_0(x)=0\text{ 时，条件 (4.21) 被满足且 }x\text{ 是最优解。}
+\]
+
+\noindent\textbf{通过凸可行性问题求解拟凸优化问题}
+
+可以通过一族凸不等式来表示拟凸函数的下水平集，如 §3.4.5 所示，这是解决拟凸优化问题的一般方法。令 $\phi_t:\mathbb{R}^n\to\mathbb{R}$，$t\in\mathbb{R}$，为满足
+\[
+f_0(x)\leq t\Longleftrightarrow \phi_t(x)\leq 0
+\]
+的一族凸函数，并且对于每个 $x$，$\phi_t(x)$ 都是 $t$ 的非增函数，即对任意 $s\geq t$ 总有 $\phi_s(x)\leq \phi_t(x)$。
+
+用 $p^\star$ 表示拟凸优化问题 (4.24) 的最优值。如果可行性问题
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{find}} & x\\
+\mathrm{subject\ to} & \phi_t(x)\leq 0\\
+& f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& Ax=b
+\end{array}
+\tag{4.26}
+\end{equation}
+是可行的，我们有 $p^\star\leq t$。反之，如果问题 (4.26) 不可行，我们可知 $p^\star\geq t$。问题 (4.26) 是一个凸的可行性问题，因为所有不等式约束函数都是凸的，而等式约束都是线性的。因此，我们可以通过求解凸可行性问题 (4.26) 来判断拟凸优化问题的最优值 $p^\star$ 大于或小于给定值 $t$。如果凸可行性问题是可行的，则有 $p^\star\leq t$，并且任意可行解 $x$ 也是拟凸问题的可行解并满足 $f_0(x)\leq t$。如果凸可行性问题不可行，那么我们知道 $p^\star\geq t$。
+
+上面的想法可以用来构造解决拟凸优化问题 (4.24) 的一个简单算法：使用二分法并在每步中求解凸可行性问题。我们设问题可行，并从已知包含最优解 $p^\star$ 的区间 $[l,u]$ 开始求解。然后在中点 $t=(l+u)/2$ 求解凸可行性问题，判断最优解是在区间的上半或下半部分，并据此更新区间。于是产生了一个新的区间，仍然包含最优值但宽度仅有原区间的一半。重复这一过程直至区间宽度足够小：
+
+\noindent\textbf{算法 4.1\quad 求解拟凸优化的二分法。}
+
+给定 $l\leq p^\star$，$u\geq p^\star$，容忍度 $\epsilon>0$。
+
+重复
+\[
+\begin{array}{ll}
+1. & t:=(l+u)/2.\\
+2. & \text{求解凸可行性问题 (4.26).}\\
+3. & \text{如果 (4.26) 可行，}u:=t;\quad \text{其他情况 }l:=t.
+\end{array}
+\]
+直至 $u-l\leq\epsilon$。
+
+可以保证区间 $[l,u]$ 一定包含 $p^\star$，即在每一步中总有 $l\leq p^\star\leq u$。在迭代中，区间被分为两部分，即二分法，因此 $k$ 次迭代后区间的长度为 $2^{-k}(u-l)$，其中 $u-l$ 是初始区间的长度。可以精确地知道，在算法终止前需要 $\lceil\log_2((u-l)/\epsilon)\rceil$ 步迭代。每次迭代包含一个凸可行性问题 (4.26) 的求解。
+
+\section*{§4.3\quad 线性规划问题}
+
+当目标函数和约束函数都是仿射时，问题称作线性规划（LP）。一般的线性规划具有以下形式
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx+d\\
+\mathrm{subject\ to} & Gx\preceq h\\
+& Ax=b,
+\end{array}
+\tag{4.27}
+\end{equation}
+其中 $G\in\mathbb{R}^{m\times n}$，$A\in\mathbb{R}^{p\times n}$。当然，线性规划是凸优化问题。
+
+常将目标函数中的常数 $d$ 省略，因为它不影响最优解（以及可行解）集合。由于我们总可以将极大化目标函数 $c^Tx+d$ 转化为极小化 $-c^Tx-d$（仍然是凸的），所以我们也称具有仿射目标函数和约束函数的最大化问题为线性规划。
+
+线性规划的几何解释可见图 4.4，线性规划 (4.27) 的可行集是多面体 $\mathcal{P}$；这一问题是在 $\mathcal{P}$ 上极小化仿射函数 $c^Tx+d$（或者，等价地，极小化线性函数 $c^Tx$）。
+
+\noindent\textbf{线性规划的标准形式和不等式形式}
+
+线性规划 (4.27) 的两种特殊情况已经被广泛深入地研究，以至于分别被赋予了特殊的名称。在标准形式线性规划中仅有的不等式都是分量的非负约束 $x\succeq 0$：
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & Ax=b\\
+& x\succeq 0.
+\end{array}
+\tag{4.28}
+\end{equation}
+如果线性规划问题没有等式约束，则称为不等式形式线性规划，常写作
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & Ax\preceq b.
+\end{array}
+\tag{4.29}
+\end{equation}
+
+\noindent\textbf{将线性规划转换为标准形式}
+
+有时（例如，为使用标准形式线性规划的算法）需要将一般的线性规划 (4.27) 转换为标准形式 (4.28)。第一步是为不等式引入松弛变量 $s_i$，得到
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx+d\\
+\mathrm{subject\ to} & Gx+s=h\\
+& Ax=b\\
+& s\succeq 0.
+\end{array}
+\]
+第二步是将变量 $x$ 表示为两个非负变量 $x^+$ 和 $x^-$ 的差，即 $x=x^+-x^-$，$x^+,x^-\succeq 0$，从而得到问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx^+-c^Tx^-+d\\
+\mathrm{subject\ to} & Gx^+-Gx^-+s=h\\
+& Ax^+-Ax^-=b\\
+& x^+\succeq 0,\quad x^-\succeq 0,\quad s\succeq 0,
+\end{array}
+\]
+这是标准形式的线性规划，其优化变量是 $x^+$、$x^-$ 和 $s$。（这个问题与原问题 (4.27) 的等价性参见习题 4.10。）
+
+这些实现技巧（以及我们在例子和习题中将看到的其他很多技巧）可以用来将很多问题构造为线性规划。在非正式的情况下，我们常将一个可以转换为线性规划的问题称为线性规划，即使它本身并不具有线性规划 (4.27) 的形式。
+
+\subsection*{4.3.1\quad 例子}
+
+线性规划出现在非常多的领域和应用中，这里我们给出一些典型的例子。
+
+\noindent\textbf{食谱问题}
+
+一份健康的饮食包含 $m$ 种不同的营养，每种至少需要 $b_1,\cdots,b_m$。我们可以从 $n$ 种食物中选择非负的量 $x_1,\cdots,x_n$ 以构成一份食谱。单位第 $j$ 种食品含有营养 $i$ 的量为 $a_{ij}$，而价格为 $c_j$。我们希望设计出一份最便宜的满足营养需求的食谱。这一问题可以描述为线性规划
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & Ax\succeq b\\
+& x\succeq 0.
+\end{array}
+\]
+此问题的一些变化仍然可以构造为线性规划。例如我们可以要求营养的精确量（这将给出一个等式约束）。我们也可以如前给出下界那样，规定每种营养的上界。
+
+\noindent\textbf{多面体的 Chebyshev 中心}
+
+考虑在多面体中寻找最大 Euclid 球的问题，多面体由线性不等式表示为
+\[
+\mathcal{P}=\{x\in\mathbb{R}^n\mid a_i^Tx\leq b_i,\ i=1,\cdots,m\}.
+\]
+（最优球的中心称为多面体的 Chebyshev 中心；它是多面体内部最深的点，即离边界最远的点；参见 §8.5.1。）将这个球重新表述为
+\[
+\mathcal{B}=\{x_c+u\mid \|u\|_2\leq r\}.
+\]
+这个问题中的变量是球的中心 $x_c\in\mathbb{R}^n$ 和半径 $r$；我们希望在 $\mathcal{B}\subseteq\mathcal{P}$ 的约束下极大化 $r$。
+
+我们从较为简单的约束开始考虑：$\mathcal{B}$ 在半空间 $a_i^Tx\leq b_i$ 中，即
+\begin{equation}
+\|u\|_2\leq r\Longrightarrow a_i^T(x_c+u)\leq b_i.
+\tag{4.30}
+\end{equation}
+因为
+\[
+\sup\{a_i^Tu\mid \|u\|_2\leq r\}=r\|a_i\|_2,
+\]
+所以，我们可以将式 (4.30) 写作
+\begin{equation}
+a_i^Tx_c+r\|a_i\|_2\leq b_i,
+\tag{4.31}
+\end{equation}
+这是 $x_c$ 和 $r$ 的线性不等式。换言之，决定球在半空间 $a_i^Tx\leq b_i$ 的约束可以写为一个线性不等式。
+
+因此，$\mathcal{B}\subseteq\mathcal{P}$ 当且仅当对于所有 $i=1,\cdots,m$，式 (4.31) 均成立。所以，Chebyshev 中心可以通过求解关于 $r$ 和 $x_c$ 的线性规划问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{maximize}} & r\\
+\mathrm{subject\ to} & a_i^Tx_c+r\|a_i\|_2\leq b_i,\quad i=1,\cdots,m
+\end{array}
+\]
+得到。（更多关于 Chebyshev 中心的讨论，参见 §8.5.1。）
+
+\noindent\textbf{动态活动计划}
+
+我们考虑在 $N$ 个时间段内选择或计划 $n$ 种活动或经济部门的活动水平的问题。用 $x_j(t)\geq 0$，$t=1,\cdots,N$ 表示 $t$ 时段 $j$ 的活动级别。活动消耗和制造的货物或商品的量正比于其活动水平。单位活动 $j$ 制造的商品 $i$ 的量由 $a_{ij}$ 给出。类似地，单位活动 $j$ 消耗的商品 $i$ 的量为 $b_{ij}$。在时段 $t$ 内制造的商品总量由 $Ax(t)\in\mathbb{R}^m$ 给出，而消耗的商品总量为 $Bx(t)\in\mathbb{R}^m$。（虽然我们称制成品为“商品”，但它们也可以包括一些不想要的产物，例如污染物。）
+
+一个时段内消耗的商品不能超过前一个周期的生产量：必须满足 $Bx(t+1)\preceq Ax(t)$，$t=1,\cdots,N$。给定初始商品向量 $g_0\in\mathbb{R}^m$，用以约束第一个周期的活动水平：$Bx(1)\preceq g_0$。没有被活动消耗的超出部分的产品（向量）由
+\[
+s(0)=g_0-Bx(1)
+\]
+\[
+s(t)=Ax(t)-Bx(t+1),\quad t=1,\cdots,N-1,
+\]
+\[
+s(N)=Ax(N)
+\]
+给出。目标是最大化这些超出商品的折扣总价值：
+\[
+c^Ts(0)+\gamma c^Ts(1)+\cdots+\gamma^N c^Ts(N);
+\]
+其中，$c\in\mathbb{R}^m$ 给出了商品的价值，$\gamma>0$ 为折扣因子。（如果第 $i$ 种产品是我们不想要的，例如污染物，$c_i$ 的值为负；此时，$|c_i|$ 为清除单位产品的花费。）
+
+综合这些讨论，我们得到关于变量 $x(1),\cdots,x(N),s(0),\cdots,s(N)$ 的线性规划
+\[
+\begin{array}{ll}
+\mathop{\mathrm{maximize}} & c^Ts(0)+\gamma c^Ts(1)+\cdots+\gamma^N c^Ts(N)\\
+\mathrm{subject\ to} & x(t)\succeq 0,\quad t=1,\cdots,N\\
+& s(t)\succeq 0,\quad t=0,\cdots,N\\
+& s(0)=g_0-Bx(1)\\
+& s(t)=Ax(t)-Bx(t+1),\quad t=1,\cdots,N-1\\
+& s(N)=Ax(N).
+\end{array}
+\]
+这是标准形式的线性规划；变量 $s(t)$ 是与约束 $Bx(t+1)\preceq Ax(t)$ 相关联的松弛变量。
+
+\noindent\textbf{Chebyshev 不等式}
+
+考虑含有 $n$ 个元素的集合 $\{u_1,\cdots,u_n\}\subseteq\mathbb{R}$ 上的离散随机变量 $x$ 的概率分布。我们用向量 $p\in\mathbb{R}^n$ 来描述 $x$ 的分布：
+\[
+p_i=\operatorname{prob}(x=u_i),
+\]
+因此 $p$ 满足 $p\succeq 0$ 和 $\mathbf{1}^Tp=1$。反之，如果 $p$ 满足 $p\succeq 0$ 及 $\mathbf{1}^Tp=1$，那么它定义了 $x$ 的一个概率分布。我们设 $u_i$ 是已知和不变的，但分布 $p$ 未知。
+
+如果 $f$ 是 $x$ 的函数，那么
+\[
+\mathbf{E}f=\sum_{i=1}^{n}p_i f(u_i)
+\]
+是关于 $p$ 的线性函数。如果 $S$ 是 $\mathbb{R}$ 的子集，那么
+\[
+\operatorname{prob}(x\in S)=\sum_{u_i\in S}p_i
+\]
+是关于 $p$ 的线性函数。
+
+尽管不知道 $p$，我们有以下形式的先验知识：我们知道某些关于 $x$ 的函数的期望的上下界，以及 $\mathbb{R}$ 的一些子集的概率。这些先验知识可以表示为 $p$ 的线性不等式约束，
+\[
+\alpha_i\leq a_i^Tp\leq \beta_i,\quad i=1,\cdots,m.
+\]
+我们要给出 $\mathbf{E}f_0(x)=a_0^Tp$ 的上下界，其中 $f_0$ 是 $x$ 的函数。
+
+为找到下界，我们求解关于 $p$ 的线性规划
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & a_0^Tp\\
+\mathrm{subject\ to} & p\succeq 0,\quad \mathbf{1}^Tp=1\\
+& \alpha_i\leq a_i^Tp\leq \beta_i,\quad i=1,\cdots,m,
+\end{array}
+\]
+这个线性规划的最优值给出了任意满足先验知识的分布下 $\mathbf{E}f_0(X)$ 的最小可能值。并且，这个界是严格的：最优解给出了满足先验知识并能达到这个下界的分布。类似地，我们可以在相同的约束下极大化 $a_0^Tp$，从而得到上界。（我们将在 §7.4.1 中更加详细地讨论 Chebyshev 不等式。）
+
+\noindent\textbf{分片线性极小化}
+
+考虑极小化（无约束的）分片线性凸函数的问题
+\[
+f(x)=\max_{i=1,\cdots,m}(a_i^Tx+b_i).
+\]
+这个问题可以首先通过构造上境图问题等价地转化为线性规划
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & t\\
+\mathrm{subject\ to} & \max_{i=1,\cdots,m}(a_i^Tx+b_i)\leq t,
+\end{array}
+\]
+并将不等式表示为 $m$ 个分开的不等式：
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & t\\
+\mathrm{subject\ to} & a_i^Tx+b_i\leq t,\quad i=1,\cdots,m.
+\end{array}
+\]
+这是关于变量 $x$ 和 $t$ 的（不等式形式的）线性规划。
+
+\subsection*{4.3.2\quad 线性分式规划}
+
+在多面体上极小化仿射函数之比的问题称为线性分式规划：
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)\\
+\mathrm{subject\ to} & Gx\preceq h\\
+& Ax=b,
+\end{array}
+\tag{4.32}
+\end{equation}
+其目标函数由
+\[
+f_0(x)=\frac{c^Tx+d}{e^Tx+f},\quad
+\operatorname{dom} f_0=\{x\mid e^Tx+f>0\}
+\]
+给出。这个目标函数是拟凸的（事实上是拟线性的），因此线性分式规划是一个拟凸优化问题。
+
+\noindent\textbf{转换为线性规划}
+
+如果可行集
+\[
+\{x\mid Gx\preceq h,\ Ax=b,\ e^Tx+f>0\}
+\]
+非空，线性分式规划 (4.32) 可以转换为等价的线性规划
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Ty+dz\\
+\mathrm{subject\ to} & Gy-hz\preceq 0\\
+& Ay-bz=0\\
+& e^Ty+fz=1\\
+& z\geq 0,
+\end{array}
+\tag{4.33}
+\end{equation}
+其优化变量为 $y,z$。
+
+为显示这个等价性，我们首先说明如果 $x$ 是 (4.32) 的可行解，那么
+\[
+y=\frac{x}{e^Tx+f},\quad z=\frac{1}{e^Tx+f}
+\]
+是 (4.33) 的可行解，并且具有相同的目标函数值 $c^Ty+dz=f_0(x)$。从而可知 (4.32) 的最优值大于或等于 (4.33) 的最优值。
+
+反之，如果 $(y,z)$ 是 (4.33) 的可行解，并且 $z\neq 0$，那么 $x=y/z$ 是 (4.32) 的可行解，并且有相同的目标函数值 $f_0(x)=c^Ty+dz$。如果 $(y,z)$ 是 (4.33) 的可行解，$z=0$，并且 $x_0$ 是 (4.32) 的可行解，那么对于所有 $t\geq 0$，$x=x_0+ty$ 都是 (4.32) 的可行解。并且 $\lim_{t\to\infty}f_0(x_0+ty)=c^Ty+dz$，因此我们可以找到 (4.32) 的可行解使其目标函数值任意接近 $(y,z)$ 的目标函数值。由此，我们可以得知 (4.32) 的最优解小于或等于 (4.33) 的最优解。
+
+\noindent\textbf{广义线性分式规划}
+
+线性分式规划的一个推广是广义线性分式规划，其中
+\[
+f_0(x)=\max_{i=1,\cdots,r}\frac{c_i^Tx+d_i}{e_i^Tx+f_i},\quad
+\operatorname{dom} f_0=\{x\mid e_i^Tx+f_i>0,\ i=1,\cdots,r\}.
+\]
+这个目标函数是 $r$ 个拟凸函数的最大值，因此是拟凸的，所以这个问题本身是拟凸的。当 $r=1$ 时，问题退化为标准的线性分式规划。
+
+\noindent\textbf{例 4.7\quad Von Neumann 增长问题。}\quad 考虑具有 $n$ 个部门的经济活动，当前时段的活动水平为 $x_i>0$，下一时段为 $x_i^+>0$。（在本问题中，我们仅考虑一个时段。）通过活动，$m$ 种商品被消耗和制造：活动水平 $x$ 消耗商品 $Bx\in\mathbb{R}^m$，制造商品 $Ax$。在下一个时段消耗的商品量不能超过当前时段制造的量，即 $Bx^+\preceq Ax$。经历整个时段，部门 $i$ 的增长率由 $x_i^+/x_i$ 给出。
+
+Von Neumann 增长问题是试图寻找活动水平向量 $x$ 以极大化整个经济过程的所有部门的最小增长率。这个问题可以被表述为广义线性分式问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{maximize}} & \min_{i=1,\cdots,n} x_i^+/x_i\\
+\mathrm{subject\ to} & x^+\succeq 0\\
+& Bx^+\preceq Ax,
+\end{array}
+\]
+其定义域为 $\{(x,x^+)\mid x\succ 0\}$。注意到这个问题关于 $x$ 和 $x^+$ 是齐次的，所以我们可以将隐含约束 $x\succ 0$ 替换为显式约束 $x\succeq \mathbf{1}$。
+
+\section*{§4.4\quad 二次优化问题}
+
+当凸优化问题 (4.15) 的目标函数是（凸）二次型并且约束函数为仿射时，该问题称为二次规划（QP）。二次规划可以表述为
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & (1/2)x^TPx+q^Tx+r\\
+\mathrm{subject\ to} & Gx\preceq h\\
+& Ax=b
+\end{array}
+\tag{4.34}
+\end{equation}
+的形式，其中 $P\in\mathbf{S}_+^n$，$G\in\mathbb{R}^{m\times n}$ 并且 $A\in\mathbb{R}^{p\times n}$。在二次规划问题中，我们在多面体上极小化一个凸二次函数。
+
+如果在 (4.15) 中，不仅目标函数，其不等式约束也是（凸）二次型，例如
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & (1/2)x^TP_0x+q_0^Tx+r_0\\
+\mathrm{subject\ to} & (1/2)x^TP_ix+q_i^Tx+r_i\leq 0,\quad i=1,\cdots,m\\
+& Ax=b,
+\end{array}
+\tag{4.35}
+\end{equation}
+
+其中 $P_i\in \mathbf{S}_+^n,\ i=0,1,\cdots,m$。这一问题称为二次约束二次规划 (QCQP)。在 QCQP 中，(当 $P_i\succ 0$ 时) 我们在椭圆的交集构成的可行集上极小化凸二次函数。
+
+线性规划是二次规划的特例，即在 (4.34) 中取 $P=0$。二次规划（因此也包括线性规划）是二次约束二次规划的特例，通过在 (4.35) 中令 $P_i=0,\ i=1,\cdots,m$ 可得。
+
+\subsection*{4.4.1\quad 例子}
+
+\noindent\textbf{最小二乘及回归}\quad
+极小化凸二次函数
+\[
+\|Ax-b\|_2^2=x^TA^TAx-2b^TAx+b^Tb
+\]
+的问题是一个（无约束的）二次规划。在很多领域都会遇到这个问题并有很多的名字，例如回归分析或最小二乘逼近。这个问题很简单，有著名的解析解 $x=A^\dagger b$，其中，$A^\dagger$ 是 $A$ 的伪逆（参见 \S A.5.4）。
+
+增加线性不等式约束后的问题称为约束回归或约束最小二乘。此问题不再有简单的解析解。作为一个例子，我们考虑具有变量上下界约束的回归问题，即
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \|Ax-b\|_2^2\\
+\mathrm{subject\ to} & l_i\leq x_i\leq u_i,\quad i=1,\cdots,n,
+\end{array}
+\]
+这是一个二次规划。（我们将在第 6 章和第 7 章中更加广泛和深入地研究最小二乘和回归问题。）
+
+\noindent\textbf{多面体间距离}\quad
+$\mathbb{R}^n$ 上多面体 $\mathcal{P}_1=\{x\mid A_1x\preceq b_1\}$ 和 $\mathcal{P}_2=\{x\mid A_2x\preceq b_2\}$ 的 (Euclid) 距离定义为
+\[
+\operatorname{dist}(\mathcal{P}_1,\mathcal{P}_2)=\inf\{\|x_1-x_2\|_2\mid x_1\in\mathcal{P}_1,\ x_2\in\mathcal{P}_2\}.
+\]
+如果多面体相交，距离为零。
+
+为得到 $\mathcal{P}_1$ 和 $\mathcal{P}_2$ 间的距离，我们求解关于变量 $x_1,x_2\in\mathbb{R}^n$ 的二次规划
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \|x_1-x_2\|_2^2\\
+\mathrm{subject\ to} & A_1x_1\preceq b_1,\quad A_2x_2\preceq b_2,
+\end{array}
+\]
+这一问题无可行解的充要条件是，其中一个多面体是空的。其最优解为零的充要条件是，多面体相交，这种情况下，最优的 $x_1$ 和 $x_2$ 是相等的（并且是交集 $\mathcal{P}_1\cap\mathcal{P}_2$ 中的点）。否则最优的 $x_1$ 和 $x_2$ 分别在 $\mathcal{P}_1$ 和 $\mathcal{P}_2$ 中，并且是最接近的。（我们将在第 8 章中更加详细地讨论涉及距离的几何问题。）
+
+\noindent\textbf{方差定界}\quad
+我们再次考虑 Chebyshev 不等式的例子（第 142 页），其变量是由 $p\in\mathbb{R}^n$ 给出的未知概率分布，并且我们对其有一些先验知识。随机变量 $f(x)$ 的方差由
+\[
+\mathbf{E}f^2-(\mathbf{E}f)^2=\sum_{i=1}^n f_i^2p_i-\left(\sum_{i=1}^n f_ip_i\right)^2
+\]
+给出（其中，$f_i=f(u_i)$），这是 $p$ 的凹二次函数。
+
+由此可知，我们可以在给定的先验知识的约束下，通过求解下面的二次规划来最大化 $f(x)$ 的方差
+\[
+\begin{array}{ll}
+\mathop{\mathrm{maximize}} & \displaystyle\sum_{i=1}^n f_i^2p_i-\left(\sum_{i=1}^n f_ip_i\right)^2\\
+\mathrm{subject\ to} & p\succeq 0,\quad \mathbf{1}^Tp=1\\
+& \alpha_i\leq a_i^Tp\leq \beta_i,\quad i=1,\cdots,m.
+\end{array}
+\]
+该问题的最优值给出了满足先验知识的分布下 $f(x)$ 的最大可能方差；最优解 $p$ 给出了达到最大方差的分布。
+
+\noindent\textbf{关于随机费用的线性规划}\quad
+我们考虑线性规划
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & Gx\preceq h\\
+& Ax=b,
+\end{array}
+\]
+其优化变量为 $x\in\mathbb{R}^n$。我们设费用函数（向量）$c\in\mathbb{R}^n$ 是随机的，其均值为 $\bar c$，协方差为 $\mathbf{E}(c-\bar c)(c-\bar c)^T=\Sigma$。（为简洁起见，我们设问题的其他参数是确定的。）对于给定的 $x\in\mathbb{R}^n$，费用 $c^Tx$ 是（标量）随机变量，其均值为 $\mathbf{E}c^Tx=\bar c^Tx$，方差为
+\[
+\operatorname{var}(c^Tx)=\mathbf{E}(c^Tx-\mathbf{E}c^Tx)^2=x^T\Sigma x.
+\]
+
+一般地，在小的费用期望和小的费用方差之间有一个权衡。考虑方差的一种方法是极小化费用的期望和方差的线性组合，即
+\[
+\mathbf{E}c^Tx+\gamma\operatorname{var}(c^Tx),
+\]
+这个函数称为风险敏感费用。系数 $\gamma\geq 0$ 称为风险回避参数，因为它设置了费用的方差和期望之间的关系。（当 $\gamma>0$ 时，我们将愿意增加一些期望费用以使得费用方差有充分的下降。）
+
+为极小化风险敏感费用，我们求解二次规划
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \bar c^Tx+\gamma x^T\Sigma x\\
+\mathrm{subject\ to} & Gx\preceq h\\
+& Ax=b.
+\end{array}
+\]
+
+\noindent\textbf{Markowitz 投资组合优化}\quad
+我们考虑在一时期内持有 $n$ 种资产或股票的经典的投资组合问题。我们用 $x_i$ 表示在这个时期内持有资产 $i$ 的数量，$x_i$ 以美元为单位，用开始时的价格进行度量。一般地，资产 $i$ 的多头对应于 $x_i>0$，资产 $i$ 的空头（即在期末购买资产的契约）对应于 $x_i<0$。我们用 $p_i$ 表示资产在整个时期内的相对价格变动，即其整个时期内的资产变动除以其在开始时的价格。投资总回报为 $r=p^Tx$（以美元给出）。优化变量为投资组合向量 $x\in\mathbb{R}^n$。
+
+可以考虑对于投资组合的各种约束。最简单的约束是 $x_i\geq 0$（即没有空头）和 $\mathbf{1}^Tx=B$（即总投资预算为 $B$，$B$ 常取为 1）。
+
+我们用随机模型来描述价格变动：$p\in\mathbb{R}^n$ 为随机变量，其均值 $\bar p$ 和协方差 $\Sigma$ 已知。所以，对于投资组合 $x\in\mathbb{R}^n$，其回报 $r$ 是（标量）随机变量，均值为 $\bar p^Tx$，方差为 $x^T\Sigma x$。投资组合 $x$ 的选择需要考虑平均回报和方差之间的权衡。
+
+由 Markowitz 引入的经典的投资组合优化问题是二次规划
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & x^T\Sigma x\\
+\mathrm{subject\ to} & \bar p^Tx\geq r_{\min}\\
+& \mathbf{1}^Tx=1,\quad x\succeq 0,
+\end{array}
+\]
+其中，投资组合 $x$ 是变量。这里我们在达到最小可接受平均回报率 $r_{\min}$ 的约束下寻找极小化回报方差（与投资的风险相关），同时要求满足投资预算和无空头约束。
+
+这个问题有很多可能的扩展。例如，一个标准的扩展是允许空头，即 $x_i<0$。为此，我们引入变量 $x_{\mathrm{long}}$，$x_{\mathrm{short}}$，以及
+\[
+x_{\mathrm{long}}\succeq 0,\qquad
+x_{\mathrm{short}}\succeq 0,\qquad
+x=x_{\mathrm{long}}-x_{\mathrm{short}},\qquad
+\mathbf{1}^Tx_{\mathrm{short}}\leq \eta\mathbf{1}^Tx_{\mathrm{long}}.
+\]
+最后一个约束将在时段开始时总空头与总多头的比例限制为 $\eta$。
+
+作为另一个扩展，我们可以在投资优化问题中考虑线性交易成本。从给定的初始投资 $x_{\mathrm{init}}$ 出发，我们购买或销售资产以得到投资 $x$，然后在前述的时期内持有它。购买和销售资产时，我们将被收取交易费用，它正比于买卖的量。为解决这个问题，引入变量 $u_{\mathrm{buy}}$ 和 $u_{\mathrm{sell}}$，它们决定了时段开始前的资产买卖量。我们有约束
+\[
+x=x_{\mathrm{init}}+u_{\mathrm{buy}}-u_{\mathrm{sell}},\qquad
+u_{\mathrm{buy}}\succeq 0,\qquad
+u_{\mathrm{sell}}\succeq 0.
+\]
+将简单的预算约束 $\mathbf{1}^Tx=1$ 替换为初始买卖和交易费用之和的净现金为零：
+\[
+(1-f_{\mathrm{sell}})\mathbf{1}^Tu_{\mathrm{sell}}=(1+f_{\mathrm{buy}})\mathbf{1}^Tu_{\mathrm{buy}}.
+\]
+这里左端为卖出资产减去卖出的交易费用，右端为总花费，包括了购买资产的交易费用。常数 $f_{\mathrm{buy}}\geq 0$ 和 $f_{\mathrm{sell}}\geq 0$ 是购买和卖出的交易费率（为简单起见，假设对各个资产都一样）。
+
+这个在最小平均回报以及预算和交易约束下，极小化平均回报方差的问题是关于变量 $x,u_{\mathrm{buy}},u_{\mathrm{sell}}$ 的二次规划。
+
+\subsection*{4.4.2\quad 二阶锥规划}
+
+一个与二次规划紧密相关的问题是二阶锥规划 (SOCP):
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f^Tx\\
+\mathrm{subject\ to} & \|A_ix+b_i\|_2\leq c_i^Tx+d_i,\quad i=1,\cdots,m\\
+& Fx=g,
+\end{array}
+\tag{4.36}
+\end{equation}
+其中，$x\in\mathbb{R}^n$ 为优化变量，$A_i\in\mathbb{R}^{n_i\times n}$ 且 $F\in\mathbb{R}^{p\times n}$。我们称这种形式中的约束
+\[
+\|Ax+b\|_2\leq c^Tx+d,
+\]
+其中 $A\in\mathbb{R}^{k\times n}$，为二阶锥约束，因为这等同于要求仿射函数 $(Ax+b,c^Tx+d)$ 在 $\mathbb{R}^{k+1}$ 的二阶锥中。
+
+当 $c_i=0,\ i=1,\cdots,m$ 时，SOCP (4.36) 等同于 QCQP（可通过将每个约束平方得到）。类似地，如果 $A_i=0,\ i=1,\cdots,m$，SOCP (4.36) 退化为（一般的）线性规划。但是，二阶锥规划比 QCQP（当然也比线性规划）更一般。
+
+\noindent\textbf{鲁棒线性规划}\quad
+考虑不等式形式的线性规划
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & a_i^Tx\leq b_i,\quad i=1,\cdots,m,
+\end{array}
+\]
+其中的参数 $c,a_i$ 和 $b_i$ 含有一些不确定性或变化。为简洁起见，我们假设 $c$ 和 $b_i$ 是固定的，并且知道 $a_i$ 在给定的椭球中：
+\[
+a_i\in\mathcal{E}_i=\{\bar a_i+P_iu\mid \|u\|_2\leq 1\},
+\]
+其中 $P_i\in\mathbb{R}^{n\times n}$。（如果 $P_i$ 是奇异的，我们得到的是 $\operatorname{rank}P_i$ 维的“扁平”的椭球；$P_i=0$ 表示 $a_i$ 是完全知道的。）
+
+我们要求对于参数 $a_i$ 的所有可能值，这些约束都必须满足，那么可以得到鲁棒线性规划
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & a_i^Tx\leq b_i,\quad \forall a_i\in\mathcal{E}_i,\quad i=1,\cdots,m.
+\end{array}
+\tag{4.37}
+\end{equation}
+对于所有 $a_i\in\mathcal{E}_i$ 都有 $a_i^Tx\leq b_i$ 这一鲁棒线性约束可以表示为
+\[
+\sup\{a_i^Tx\mid a_i\in\mathcal{E}_i\}\leq b_i.
+\]
+其左端可以表示为
+\[
+\begin{aligned}
+\sup\{a_i^Tx\mid a_i\in\mathcal{E}_i\}
+&=\bar a_i^Tx+\sup\{u^TP_i^Tx\mid \|u\|_2\leq 1\}\\
+&=\bar a_i^Tx+\|P_i^Tx\|_2.
+\end{aligned}
+\]
+因此，鲁棒线性约束可以表示为
+\[
+\bar a_i^Tx+\|P_i^Tx\|_2\leq b_i;
+\]
+这显然是一个二阶锥约束。因此，鲁棒线性规划 (4.37) 可以表示为 SOCP
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & \bar a_i^Tx+\|P_i^Tx\|_2\leq b_i,\quad i=1,\cdots,m.
+\end{array}
+\]
+注意这里附加的范数项发挥了正则化项的作用；它们可以避免 $x$ 在参数 $a_i$ 的值得考虑的不确定性方向上变得过大。
+
+\noindent\textbf{随机约束下的线性规划}\quad
+也可以在统计的框架下考虑上述鲁棒线性规划。这里我们设参数 $a_i$ 是独立 Gauss 随机变量，均值为 $\bar a_i$，协方差为 $\Sigma_i$。我们要求每一个约束 $a_i^Tx\leq b_i$ 成立的概率（或信心）超过 $\eta$，这里 $\eta\geq 0.5$，即
+\begin{equation}
+\operatorname{prob}(a_i^Tx\leq b_i)\geq \eta.
+\tag{4.38}
+\end{equation}
+我们将证明这个概率约束可以表示为二阶锥约束。
+
+令 $u=a_i^Tx$，用 $\sigma^2$ 表示方差，则约束可以写为
+\[
+\operatorname{prob}\left(\frac{u-\bar u}{\sigma}\leq \frac{b_i-\bar u}{\sigma}\right)\geq \eta.
+\]
+因为 $(u-\bar u)/\sigma$ 是具有零均值和单位方差的 Gauss 变量，上述概率等于 $\Phi((b_i-\bar u)/\sigma)$，其中
+\[
+\Phi(z)=\frac{1}{\sqrt{2\pi}}\int_{-\infty}^z e^{-t^2/2}\,dt
+\]
+为零均值单位方差 Gauss 随机变量的累积分布函数。因此概率约束 (4.38) 可以表示为
+\[
+\frac{b_i-\bar u}{\sigma}\geq \Phi^{-1}(\eta),
+\]
+或者，等价地，
+\[
+\bar u+\Phi^{-1}(\eta)\sigma\leq b_i.
+\]
+由 $\bar u=\bar a_i^Tx$ 和 $\sigma=(x^T\Sigma_i x)^{1/2}$，我们可得
+\[
+\bar a_i^Tx+\Phi^{-1}(\eta)\|\Sigma_i^{1/2}x\|_2\leq b_i.
+\]
+根据我们的假设 $\eta\geq 1/2$，有 $\Phi^{-1}(\eta)\geq 0$，所以这个约束是二阶锥约束。
+
+总之，问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & \operatorname{prob}(a_i^Tx\leq b_i)\geq \eta,\quad i=1,\cdots,m
+\end{array}
+\]
+可以表示为 SOCP
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & \bar a_i^Tx+\Phi^{-1}(\eta)\|\Sigma_i^{1/2}x\|_2\leq b_i,\quad i=1,\cdots,m.
+\end{array}
+\]
+（我们将在第 6 章更加深入地考虑鲁棒凸优化问题。参见习题 4.13、4.28 和 4.59。）
+
+\noindent\textbf{例 4.8\quad 损失风险约束下的投资组合优化。}\quad
+我们再次考虑前面描述过的经典的 Markowitz 投资组合优化问题（参见第 148 页）。在这里，我们假设价格变化向量 $p\in\mathbb{R}^n$ 是一个均值为 $\bar p$，协方差为 $\Sigma$ 的 Gauss 随机变量。因此，收益 $r$ 是 Gauss 随机变量，其均值为 $\bar r=\bar p^Tx$，方差为 $\sigma_r^2=x^T\Sigma x$。
+
+考虑具有下列形式的损失风险约束
+\begin{equation}
+\operatorname{prob}(r\leq \alpha)\leq \beta,
+\tag{4.39}
+\end{equation}
+其中，$\alpha$ 为给定的要避免的收益水平（例如，大的损失），$\beta$ 为给定的最大概率。
+
+如前述的鲁棒线性规划的随机解释，我们可以用单位 Gauss 分布随机变量的累积分布函数 $\Phi$ 来表示这个约束。不等式 (4.39) 等价于
+\[
+\bar p^Tx+\Phi^{-1}(\beta)\|\Sigma^{1/2}x\|_2\geq \alpha.
+\]
+给定 $\beta\leq 1/2$（即 $\Phi^{-1}(\beta)\leq 0$），这个损失风险约束是二阶锥约束。（如果 $\beta>1/2$，损失风险约束对于 $x$ 将是非凸的。）
+
+因此，在损失风险（并且 $\beta\leq 1/2$）的界限约束下极大化期望收益的问题可以视为具有二阶锥约束的 SOCP:
+\[
+\begin{array}{ll}
+\mathop{\mathrm{maximize}} & \bar p^Tx\\
+\mathrm{subject\ to} & \bar p^Tx+\Phi^{-1}(\beta)\|\Sigma^{1/2}x\|_2\geq \alpha\\
+& x\succeq 0,\quad \mathbf{1}^Tx=1.
+\end{array}
+\]
+对于这个问题有很多的扩展。例如，我们可以加入一些损失风险约束，即
+\[
+\operatorname{prob}(r\leq \alpha_i)\leq \beta_i,\quad i=1,\cdots,k,
+\]
+（其中 $\beta_i\leq 1/2$），这表示了对不同损失水平 $(\alpha_i)$，我们愿意接受的风险 $(\beta_i)$。
+
+\noindent\textbf{极小表面}\quad
+考虑可微函数 $f:\mathbb{R}^2\to\mathbb{R}$，并且 $\operatorname{dom}f=C$，其图像的表面积由
+\[
+A=\int_C\sqrt{1+\|\nabla f(x)\|_2^2}\,dx=\int_C\|(\nabla f(x),1)\|_2\,dx
+\]
+给出，这是 $f$ 的凸函数。极小表面问题是在某些约束下，例如在 $C$ 的边界上给定 $f$ 的某些值，寻找 $f$ 以极小化 $A$。
+
+我们可以通过离散化 $f$ 来逼近这个问题。令 $C=[0,1]\times[0,1]$，用 $f_{ij},\ i,j=0,\cdots,K$ 表示 $f$ 在 $(i/K,j/K)$ 的值。在 $x=(i/K,j/K)$ 点 $f$ 的导数的近似表达式可以由前向差分得到：
+\[
+\nabla f(x)\approx K
+\begin{bmatrix}
+f_{i+1,j}-f_{ij}\\
+f_{i,j+1}-f_{ij}
+\end{bmatrix}.
+\]
+将其代入区域的图中并用求和逼近积分，我们可以得到图的表面积的近似
+\[
+A\approx A_{\mathrm{disc}}=\frac{1}{K^2}\sum_{i,j=0}^{K-1}
+\left\|
+\begin{bmatrix}
+K(f_{i+1,j}-f_{ij})\\
+K(f_{i,j+1}-f_{ij})\\
+1
+\end{bmatrix}
+\right\|_2.
+\]
+离散化的近似面积 $A_{\mathrm{disc}}$ 是 $f_{ij}$ 的凸函数。
+
+我们考虑 $f_{ij}$ 的各种约束，例如对其任意元素或矩阵的等式或不等式约束（例如，元素值的界）。作为一个例子，我们考虑在正方形左右边界的值固定的情况下，寻找最小区域表面的问题：
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & A_{\mathrm{disc}}\\
+\mathrm{subject\ to} & f_{0j}=l_j,\quad j=0,\cdots,K\\
+& f_{Kj}=r_j,\quad j=0,\cdots,K,
+\end{array}
+\tag{4.40}
+\end{equation}
+其中，$f_{ij},\ i,j=0,\cdots,K$ 为优化变量，$l_j,r_j$ 为正方形左右边界上的给定值。
+
+我们可以通过引入新变量 $t_{ij},\ i,j=0,\cdots,K-1$ 将问题 (4.40) 转换为 SOCP:
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & (1/K^2)\displaystyle\sum_{i,j=0}^{K-1}t_{ij}\\
+\mathrm{subject\ to} &
+\left\|
+\begin{bmatrix}
+K(f_{i+1,j}-f_{ij})\\
+K(f_{i,j+1}-f_{ij})\\
+1
+\end{bmatrix}
+\right\|_2\leq t_{ij},\quad i,j=0,\cdots,K-1\\
+& f_{0j}=l_j,\quad j=0,\cdots,K\\
+& f_{Kj}=r_j,\quad j=0,\cdots,K.
+\end{array}
+\]
+
+\section*{§4.5\quad 几何规划}
+
+本节将描述一类优化问题，它们的自然形式并不是凸的。但通过变量替换或目标函数、约束函数的变换，可以将它们转换为凸优化问题。
+
+\subsection*{4.5.1\quad 单项式与正项式}
+
+函数 $f:\mathbb{R}_{++}^n\to\mathbb{R}$，$\operatorname{dom}f=\mathbb{R}_{++}^n$ 定义为
+\begin{equation}
+f(x)=cx_1^{a_1}x_2^{a_2}\cdots x_n^{a_n},
+\tag{4.41}
+\end{equation}
+其中 $c>0,\ a_i\in\mathbb{R}$。它被称为单项式函数或简称为单项式。单项式的指数 $a_i$ 可以是任意实数，包括分数或负数，但系数 $c$ 必须非负。（“单项式”与代数中的标准定义矛盾，在那里指数必须是非负整数，但这个矛盾不会有任何混淆。）单项式的和，即具有下列形式的函数称为正项式函数（具有 $K$ 项），或简称为正项式
+\begin{equation}
+f(x)=\sum_{k=1}^K c_k x_1^{a_{1k}}x_2^{a_{2k}}\cdots x_n^{a_{nk}},
+\tag{4.42}
+\end{equation}
+其中 $c_k\geq 0$。
+
+正项式对于加法，数乘和非负的伸缩变换是封闭的。单项式对于数乘和除是封闭的。如果将正项式乘以一个单项式，其结果是一个正项式；类似地，将正项式除以一个单项式，其结果仍为正项式。
+
+\subsection*{4.5.2\quad 几何规划}
+
+具有下列形式的优化问题
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)\\
+\mathrm{subject\ to} & f_i(x)\leq 1,\quad i=1,\cdots,m\\
+& h_i(x)=1,\quad i=1,\cdots,p
+\end{array}
+\tag{4.43}
+\end{equation}
+被称为几何规划 (GP)，其中 $f_0,\cdots,f_m$ 为正项式，$h_1,\cdots,h_p$ 为单项式。这个问题的定义域为 $D=\mathbb{R}_{++}^n$；约束 $x\succ 0$ 是隐式的。
+
+\noindent\textbf{几何规划的扩展}\quad
+很容易处理这一问题的一些扩展。如果 $f$ 是一个正项式而 $h$ 为单项式，那么可以通过将约束 $f(x)\leq h(x)$ 表示为 $f(x)/h(x)\leq 1$（因为 $f/h$ 为正项式）来处理。这包括了约束为 $f(x)\leq a$ 的特殊情况，其中 $f$ 为正项式且 $a>0$。类似地，如果 $h_1$ 和 $h_2$ 均是非零单项式函数，那么我们处理等式约束 $h_1(x)=h_2(x)$ 时，可以将其表示为 $h_1(x)/h_2(x)=1$（因为 $h_1/h_2$ 为正项式）。我们极大化一个非零单项式函数，可以通过极小化其倒数（也是一个单项式）来实现。
+
+例如，考虑下面的问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{maximize}} & x/y\\
+\mathrm{subject\ to} & 2\leq x\leq 3\\
+& x^2+3y/z\leq \sqrt{y}\\
+& x/y=z^2,
+\end{array}
+\]
+其优化变量为 $x,y,z\in\mathbb{R}$（隐含约束为 $x,y,z>0$）。用前述简单的转换，我们得到等价的标准形式 GP:
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & x^{-1}y\\
+\mathrm{subject\ to} & 2x^{-1}\leq 1,\quad (1/3)x\leq 1\\
+& x^2y^{-1/2}+3y^{1/2}z^{-1}\leq 1\\
+& xy^{-1}z^{-2}=1.
+\end{array}
+\]
+我们也称类似这样的问题为 GP，它可以很容易地转换为等价的标准形式 GP (4.43)。（如同我们称可以轻易转换为线性规划的问题为线性规划一样。）
+
+\subsection*{4.5.3\quad 凸形式的几何规划}
+
+几何规划（一般）不是凸优化问题，但是通过变量代换以及目标、约束函数的转换，它们可以被转换为凸问题。
+
+我们用 $y_i=\log x_i$ 定义变量，因此 $x_i=e^{y_i}$。如果 $f$ 是由 (4.41) 给出的 $x$ 的单项式函数，即
+\[
+f(x)=cx_1^{a_1}x_2^{a_2}\cdots x_n^{a_n},
+\]
+那么，
+\[
+\begin{aligned}
+f(x)&=f(e^{y_1},\cdots,e^{y_n})\\
+&=c(e^{y_1})^{a_1}\cdots(e^{y_n})^{a_n}\\
+&=e^{a^Ty+b},
+\end{aligned}
+\]
+其中 $b=\log c$。变量变换 $y_i=\log x_i$ 将一个单项式函数转换为以仿射函数为指数的函数。
+
+类似地，如果 $f$ 是由 (4.42) 给出的正项式，即
+\[
+f(x)=\sum_{k=1}^K c_k x_1^{a_{1k}}x_2^{a_{2k}}\cdots x_n^{a_{nk}},
+\]
+于是
+\[
+f(x)=\sum_{k=1}^K e^{a_k^Ty+b_k},
+\]
+其中 $a_k=(a_{1k},\cdots,a_{nk})$ 而 $b_k=\log c_k$。经过变量变换，正项式转换为以仿射函数为指数的函数的和。
+
+几何规划 (4.43) 可以用新变量 $y$ 的形式表示为
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \displaystyle\sum_{k=1}^{K_0}e^{a_{0k}^Ty+b_{0k}}\\
+\mathrm{subject\ to} & \displaystyle\sum_{k=1}^{K_i}e^{a_{ik}^Ty+b_{ik}}\leq 1,\quad i=1,\cdots,m\\
+& e^{g_i^Ty+h_i}=1,\quad i=1,\cdots,p,
+\end{array}
+\]
+其中 $a_{ik}\in\mathbb{R}^n,\ i=0,\cdots,m$，包含了以正项式为指数的不等式约束；$g_i\in\mathbb{R}^n,\ i=1,\cdots,p$，包含了原几何规划中以单项式为指数的等式约束。
+
+现在我们采用对数函数将目标函数和约束函数进行转换，从而得到问题
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \tilde f_0(y)=\log\left(\displaystyle\sum_{k=1}^{K_0}e^{a_{0k}^Ty+b_{0k}}\right)\\
+\mathrm{subject\ to} & \tilde f_i(y)=\log\left(\displaystyle\sum_{k=1}^{K_i}e^{a_{ik}^Ty+b_{ik}}\right)\leq 0,\quad i=1,\cdots,m\\
+& \tilde h_i(y)=g_i^Ty+h_i=0,\quad i=1,\cdots,p.
+\end{array}
+\tag{4.44}
+\end{equation}
+因为函数 $\tilde f_i$ 是凸的，$\tilde h_i$ 是仿射的，所以该问题是一个凸优化问题。我们称其为凸形式的几何规划。为将其与原始的几何规划相区别，我们称 (4.43) 为正项式形式的几何规划。
+
+需要注意的是，正项式形式的几何规划 (4.43) 与凸形式的几何规划 (4.44) 之间的转换并不涉及任何运算；两个问题的数据是相同的。需要改变的仅仅是目标函数和约束函数的形式。
+
+如果正项式目标函数和所有约束的数都只含有一项，即都是单项式，那么凸形式的几何规划 (4.44) 将退化为（一般的）线性规划。因此，我们将几何规划视为线性规划的一个推广或扩展。
+
+\subsection*{4.5.4\quad 例子}
+
+\noindent\textbf{Frobenius 范数的对角化伸缩}\quad
+考虑矩阵 $M\in\mathbb{R}^{n\times n}$ 和相应的将 $u$ 映射到 $y=Mu$ 的线性函数。我们对坐标进行伸缩变换，即将变量转换为 $\tilde u=Du,\ \tilde y=Dy$，其中 $D$ 是对角矩阵且 $D_{ii}>0$。在新的坐标下，线性函数由 $\tilde y=DMD^{-1}\tilde u$ 给出。
+
+现在我们试图选择伸缩尺度以使矩阵 $DMD^{-1}$ 较小。我们用 Frobenius 范数（的平方）来度量矩阵的尺寸：
+\[
+\begin{aligned}
+\|DMD^{-1}\|_F^2
+&=\operatorname{tr}\left((DMD^{-1})^T(DMD^{-1})\right)\\
+&=\sum_{i,j=1}^n (DMD^{-1})_{ij}^2\\
+&=\sum_{i,j=1}^n M_{ij}^2d_i^2/d_j^2,
+\end{aligned}
+\]
+其中 $D=\operatorname{diag}(d)$。因为这是 $d$ 的正项式，选择尺度 $d$ 以极小化 Frobenius 范数的问题是一个无约束几何规划，
+\[
+\mathop{\mathrm{minimize}}\quad \sum_{i,j=1}^n M_{ij}^2d_i^2/d_j^2,
+\]
+其优化变量为 $d$。这个几何规划问题的指数只有 $0,2$ 和 $-2$。
+
+\noindent\textbf{悬臂梁的设计}\quad
+考虑悬臂梁的设计问题，它包含 $N$ 段，从右至左依次标号为 $1,\cdots,N$，如图 4.6 所示。每一段都有单位长度和矩形截面，截面宽为 $w_i$，高度为 $h_i$。一个垂直负载（力）$F$ 被施加于梁的右端。这个负载将使梁（向下）偏转，并且在梁的各段上产生压力。我们设挠度很小，并且材料是线性弹性的，其杨氏模量为 $E$。
+
+这个问题中待设计的变量是 $N$ 段的宽度 $w_i$ 和高度 $h_i$。我们在一些设计要求的约束下，试图极小化梁的总体积
+\[
+w_1h_1+\cdots+w_Nh_N;
+\]
+添加每段的宽度和高度的上下界
+\[
+w_{\min}\leq w_i\leq w_{\max},\qquad
+h_{\min}\leq h_i\leq h_{\max},\quad i=1,\cdots,N,
+\]
+以及形状比例约束
+\[
+S_{\min}\leq h_i/w_i\leq S_{\max}.
+\]
+此外，材料每段上承受的最大压力和梁末端的垂直挠度均有限制。
+
+我们首先考虑最大压力约束。第 $i$ 段的最大压力，记为 $\sigma_i$，由 $\sigma_i=6iF/(w_ih_i^2)$ 给出。我们利用约束
+\[
+\frac{6iF}{w_ih_i^2}\leq \sigma_{\max},\quad i=1,\cdots,N,
+\]
+以确保压力不超过梁上任意处可允许的最大值 $\sigma_{\max}$。
+
+最后一个约束是梁末端垂直挠度的限制，记为 $y_1$:
+\[
+y_1\leq y_{\max}.
+\]
+挠度 $y_1$ 可由梁上各段的挠度和斜度，从 $v_{N+1}=y_{N+1}=0$ 开始按 $i=N,N-1,\cdots,1$ 依次递归求得：
+\begin{equation}
+v_i=12(i-1/2)\frac{F}{Ew_ih_i^3}+v_{i+1},\qquad
+y_i=6(i-1/3)\frac{F}{Ew_ih_i^3}+v_{i+1}+y_{i+1}.
+\tag{4.45}
+\end{equation}
+在这个递归式中，$y_i$ 是在 $i$ 段右端的挠度，$v_i$ 为同一点的斜度。由递归式 (4.45)，我们可以证明，这些挠度和斜度量事实上都是变量 $w$ 和 $h$ 的正项式函数。首先，我们注意到 $v_{N+1}$ 和 $y_{N+1}$ 均是零，因此是正项式。现在假设 $v_{i+1}$ 和 $y_{i+1}$ 是 $w$ 和 $h$ 的正项式。那么 (4.45) 左侧的等式表明 $v_i$ 是单项式和一个正项式（即 $v_{i+1}$）的和，因此，是一个正项式。从 (4.45) 右侧的等式，我们可以看出挠度 $y_i$ 是一个单项式和两个正项式（$v_{i+1}$ 和 $y_{i+1}$）的和，所以是一个正项式。特别地，梁末端的挠度 $y_1$ 是一个正项式。
+
+于是，问题为
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \displaystyle\sum_{i=1}^N w_ih_i\\
+\mathrm{subject\ to} & w_{\min}\leq w_i\leq w_{\max},\quad i=1,\cdots,N\\
+& h_{\min}\leq h_i\leq h_{\max},\quad i=1,\cdots,N\\
+& S_{\min}\leq h_i/w_i\leq S_{\max},\quad i=1,\cdots,N\\
+& 6iF/(w_ih_i^2)\leq \sigma_{\max},\quad i=1,\cdots,N\\
+& y_1\leq y_{\max},
+\end{array}
+\tag{4.46}
+\end{equation}
+其中，$w$ 和 $h$ 为优化变量。这是一个几何规划，因为其目标函数是正项式并且约束都可以表示为正项式不等式。（事实上，除了挠度限制是复杂的正项式不等式外，其他约束都可以表示为单项式不等式。）
+
+当段数 $N$ 很大时，在正项式 $y_1$ 中出现的单项式项的数目近似以 $N^2$ 增长。在习题 4.31 中，我们将探讨这个问题的另一表述，它通过引入 $v_1,\cdots,v_N$ 和 $y_1,\cdots,y_N$ 作为变量并包含改进的递归式作为约束集而得到。该表达避免了单项式数目的快速增长。
+
+\noindent\textbf{通过 Perron-Frobenius 定理极小化谱半径}\quad
+设矩阵 $A\in\mathbb{R}^{n\times n}$ 的元素非负，即对于 $i,j=1,\cdots,n$，$A_{ij}\geq 0$，并且不可约简，这表明矩阵 $(I+A)^{n-1}$ 的元素非负。Perron-Frobenius 定理表明，$A$ 具有等于其谱半径，即特征值的最大幅值，的正实数特征根 $\lambda_{\mathrm{pf}}$。Perron-Frobenius 特征值 $\lambda_{\mathrm{pf}}$ 决定了当 $k\to\infty$ 时 $A^k$ 增长或消退的渐进速率。事实上，矩阵 $((1/\lambda_{\mathrm{pf}})A)^k$ 收敛。粗略地讲，这表明当 $k\to\infty$ 时，若 $\lambda_{\mathrm{pf}}>1$，$A^k$ 按 $\lambda_{\mathrm{pf}}^k$ 增长，若 $\lambda_{\mathrm{pf}}<1$，$A^k$ 则按 $\lambda_{\mathrm{pf}}^k$ 衰减。
+
+非负矩阵理论的一个基本结果表明 Perron-Frobenius 特征值由
+\[
+\lambda_{\mathrm{pf}}=\inf\{\lambda\mid Av\preceq \lambda v\ \text{对某些 }v\succ 0\}
+\]
+给出（并且极限是可达的）。不等式 $Av\preceq \lambda v$ 可以表示为
+\begin{equation}
+\sum_{j=1}^n A_{ij}v_j/(\lambda v_i)\leq 1,\quad i=1,\cdots,n,
+\tag{4.47}
+\end{equation}
+这是变量 $A_{ij},v_i$ 和 $\lambda$ 的正项式不等式。因此，条件 $\lambda_{\mathrm{pf}}\leq \lambda$ 可以表示为 $A,v$ 和 $\lambda$ 的一组正项式不等式。这使得我们可以利用几何规划来求解一些关于 Perron-Frobenius 特征值的优化问题。
+
+设矩阵 $A$ 的元素为某些基本变量 $x$ 的正项式函数。在这种情况下，不等式 (4.47) 是关于变量 $x\in\mathbb{R}^k,\ v\in\mathbb{R}^n$ 和 $\lambda\in\mathbb{R}$ 的正项式不等式。我们考虑选择 $x$ 以极小化 $A$ 的 Perron-Frobenius 特征值（或谱半径）的问题，对 $x$ 可能有正项式不等式约束：
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \lambda_{\mathrm{pf}}(A(x))\\
+\mathrm{subject\ to} & f_i(x)\leq 1,\quad i=1,\cdots,p,
+\end{array}
+\]
+其中 $f_i$ 为正项式。利用前述特征，我们可以将这个问题表示为 GP:
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \lambda\\
+\mathrm{subject\ to} & \displaystyle\sum_{j=1}^n A_{ij}v_j/(\lambda v_i)\leq 1,\quad i=1,\cdots,n\\
+& f_i(x)\leq 1,\quad i=1,\cdots,p,
+\end{array}
+\]
+其中的优化变量为 $x,v$ 和 $\lambda$。
+
+作为特定的例子，我们考虑一个描述细菌数量动态特性的简单模型，时间或周期以小时为单位，记为 $t=0,1,2,\cdots$。向量 $p(t)\in\mathbb{R}_+^4$ 描述了 $t$ 时刻的年龄数量分布：$p_1(t)$ 为年龄在 0 至 1 小时间的细菌的总数；$p_2(t)$ 为年龄在 1 至 2 小时间的细菌的总数，依此类推。我们（任意地）假设没有任何细菌的生存时间超过 4 个小时。其总数在每一时刻按 $p(t+1)=Ap(t)$ 繁殖，其中
+\[
+A=
+\begin{bmatrix}
+b_1 & b_2 & b_3 & b_4\\
+s_1 & 0 & 0 & 0\\
+0 & s_2 & 0 & 0\\
+0 & 0 & s_3 & 0
+\end{bmatrix}.
+\]
+此处，$b_i$ 是处于年龄组 $i$ 的细菌的繁殖率，$s_i$ 是处于年龄组 $i$ 的细菌生存到 $i+1$ 年龄的存活率。我们假设 $b_i>0,\ 0<s_i<1$，这也保证了矩阵 $A$ 不可约简。
+
+$A$ 的 Perron-Frobenius 特征值决定了细菌数量增长或衰减的渐进速率。如果 $\lambda_{\mathrm{pf}}<1$，数量按类似 $\lambda_{\mathrm{pf}}^t$ 收敛到零，因此数量减半的时间为 $-1/\log_2\lambda_{\mathrm{pf}}$ 小时。如果 $\lambda_{\mathrm{pf}}>1$，数量按类似 $\lambda_{\mathrm{pf}}^t$ 几何增长，经过 $1/\log_2\lambda_{\mathrm{pf}}$ 其数量增倍。极小化 $A$ 的谱半径对应于寻找最快的衰减速率，或者最慢的增长速率。
+
+我们选择 $c_1$ 和 $c_2$ 为决定矩阵 $A$ 的基本变量，它们是环境中影响细菌出生率和存活率的两种化学物质的含量。我们用这两种浓度的单项式函数对出生率和生存率进行建模：
+\[
+b_i=b_i^{\mathrm{nom}}(c_1/c_1^{\mathrm{nom}})^{\alpha_i}(c_2/c_2^{\mathrm{nom}})^{\beta_i},\quad i=1,\cdots,4,
+\]
+\[
+s_i=s_i^{\mathrm{nom}}(c_1/c_1^{\mathrm{nom}})^{\gamma_i}(c_2/c_2^{\mathrm{nom}})^{\delta_i},\quad i=1,\cdots,3.
+\]
+这里 $b_i^{\mathrm{nom}}$ 为标称出生率，$s_i^{\mathrm{nom}}$ 为标称存活率，$c_i^{\mathrm{nom}}$ 为化学物质 $i$ 的标称浓度。常数 $\alpha_i,\beta_i,\gamma_i$ 和 $\delta_i$ 在化学物质浓度远离标称值时对出生率和存活率产生影响。例如 $\alpha_2=-0.3$ 和 $\gamma_1=0.5$ 表示当超过其标称浓度时，化学物质 1 浓度的增加将导致年龄在 1 到 2 小时间的细菌的出生率降低，同时将使得年龄在 0 和 1 小时间的细菌生存率增加。
+
+假设可以独立地增加或减少浓度 $c_1$ 和 $c_2$（例如，在 2 倍范围内），于是，我们可以构建寻找药物组合的问题，以最大化数量衰减速率（即极小化 $\lambda_{\mathrm{pf}}(A)$）。利用之前讨论的方法，这一问题可以写为 GP 的形式：
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \lambda\\
+\mathrm{subject\ to} & b_1v_1+b_2v_2+b_3v_3+b_4v_4\leq \lambda v_1\\
+& s_1v_1\leq \lambda v_2\\
+& s_2v_2\leq \lambda v_3\\
+& s_3v_3\leq \lambda v_4\\
+& 1/2\leq c_i/c_i^{\mathrm{nom}}\leq 2,\quad i=1,2\\
+& b_i=b_i^{\mathrm{nom}}(c_1/c_1^{\mathrm{nom}})^{\alpha_i}(c_2/c_2^{\mathrm{nom}})^{\beta_i},\quad i=1,\cdots,4\\
+& s_i=s_i^{\mathrm{nom}}(c_1/c_1^{\mathrm{nom}})^{\gamma_i}(c_2/c_2^{\mathrm{nom}})^{\delta_i},\quad i=1,\cdots,3,
+\end{array}
+\]
+其中的优化变量为 $b_i,s_i,c_i,v_i$ 和 $\lambda$。
+
+\section*{§4.6\quad 广义不等式约束}
+
+通过将不等式约束函数扩展为向量并使用广义不等式，可以得到标准形式凸优化问题 (4.15) 的一个非常有用的推广：
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)\\
+\mathrm{subject\ to} & f_i(x)\preceq_{K_i}0,\quad i=1,\cdots,m\\
+& Ax=b,
+\end{array}
+\tag{4.48}
+\end{equation}
+其中 $f_0:\mathbb{R}^n\to\mathbb{R}$，$K_i\subseteq\mathbb{R}^{k_i}$ 为正常锥，$f_i:\mathbb{R}^n\to\mathbb{R}^{k_i}$ 为 $K_i$-凸的。我们称此问题为（标准形式的）广义不等式意义下的凸优化问题。问题 (4.15) 是当 $K_i=\mathbb{R}_+,\ i=1,\cdots,m$ 时的特殊情况。
+
+常规凸优化问题的很多结论对于广义不等式下的问题也是成立的。下面是一些例子：
+
+\[
+\bullet\quad \text{可行集，任意下水平集和最优集都是凸的。}
+\]
+\[
+\bullet\quad \text{问题 (4.48) 的任意局部最优解都是全局最优的。}
+\]
+\[
+\bullet\quad \text{在 \S 4.2.3 中给出的对于可微函数 }f_0\text{ 的最优性条件不加改变地成立。}
+\]
+
+（在第 11 章中）我们也可以看到广义不等式约束下的凸优化问题常常可以简单地按照常规凸优化问题进行求解。
+
+\subsection*{4.6.1\quad 锥形式问题}
+
+在广义不等式的凸优化问题中，最简单的是锥形式问题（或称为锥规划），它有线性目标函数和一个不等式约束函数，该函数是仿射的（因此是 $K$-凸的）：
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & Fx+g\preceq_K 0\\
+& Ax=b.
+\end{array}
+\tag{4.49}
+\end{equation}
+当 $K$ 是非负象限时，锥形式问题退化为线性规划。我们可以将锥形式问题视为线性规划的推广，其中的分量不等式被替换为广义线性不等式。
+
+仿照线性规划，我们称锥形式问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & x\succeq_K 0\\
+& Ax=b
+\end{array}
+\]
+为标准形式的锥形式问题。类似地，问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & Fx+g\preceq_K 0
+\end{array}
+\]
+称为不等式形式的锥形式问题。
+
+\subsection*{4.6.2\quad 半定规划}
+
+当 $K$ 为 $\mathbf{S}_+^k$，即 $k\times k$ 半正定矩阵锥时，相应的锥形式问题称为半定规划（SDP），并具有如下形式，
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & x_1F_1+\cdots+x_nF_n+G\preceq 0\\
+& Ax=b,
+\end{array}
+\tag{4.50}
+\end{equation}
+其中 $G,F_1,\cdots,F_n\in\mathbf{S}^k,\ A\in\mathbb{R}^{p\times n}$。这里的不等式是线性矩阵不等式（LMI，参见例 2.10）。
+
+如果矩阵 $G,F_1,\cdots,F_n$ 都是对角阵，那么 (4.50) 中的 LMI 等价于 $n$ 个线性不等式，SDP (4.50) 退化为线性规划。
+
+\noindent\textbf{标准和不等式形式的半定规划}
+
+仿照线性规划的分析，标准形式的 SDP 具有对变量 $X\in\mathbf{S}^n$ 的线性等式约束和（矩阵）非负约束：
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \operatorname{tr}(CX)\\
+\mathrm{subject\ to} & \operatorname{tr}(A_iX)=b_i,\quad i=1,\cdots,p\\
+& X\succeq 0,
+\end{array}
+\tag{4.51}
+\end{equation}
+其中 $C,A_1,\cdots,A_p\in\mathbf{S}^n$。（注意 $\operatorname{tr}(CX)=\sum_{i,j=1}^n C_{ij}X_{ij}$ 是 $\mathbf{S}^n$ 上一般实值线性函数的形式。）将这一形式与标准形式的线性规划 (4.28) 进行比较。在线性规划（LP）和 SDP 的标准形式中，我们在变量的 $p$ 个线性等式约束和变量非负约束下极小化变量的线性函数。
+
+如同不等式形式的 LP (4.29)，不等式形式的 SDP 不含有等式约束但具有一个 LMI:
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & x_1A_1+\cdots+x_nA_n\preceq B,
+\end{array}
+\]
+其优化变量为 $x\in\mathbb{R}^n$，参数为 $B,A_1,\cdots,A_n\in\mathbf{S}^k,\ c\in\mathbb{R}^n$。
+
+\noindent\textbf{多 LMI 与线性不等式}
+
+对于具有线性目标、等式、不等式约束及多个 LMI 约束的问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & F^{(i)}(x)=x_1F_1^{(i)}+\cdots+x_nF_n^{(i)}+G^{(i)}\preceq 0,\quad i=1,\cdots,K\\
+& Gx\preceq h,\quad Ax=b,
+\end{array}
+\]
+仍然经常称其为 SDP。从单个 LMI 和线性不等式可以构造具有大的对角块的 LMI，从而可以容易地将这样的问题转换为一个 SDP
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & \operatorname{diag}(Gx-h,F^{(1)}(x),\cdots,F^{(K)}(x))\preceq 0\\
+& Ax=b.
+\end{array}
+\]
+
+\subsection*{4.6.3\quad 例子}
+
+\noindent\textbf{二阶锥规划}
+
+SOCP (4.36) 可以表示为锥形式问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & -(A_ix+b_i,c_i^Tx+d_i)\preceq_{K_i}0,\quad i=1,\cdots,m\\
+& Fx=g,
+\end{array}
+\]
+其中
+\[
+K_i=\{(y,t)\in\mathbb{R}^{n_i+1}\mid \|y\|_2\leq t\},
+\]
+即 $\mathbb{R}^{n_i+1}$ 中的二阶锥。这解释了为何优化问题 (4.36) 被称为二阶锥规划。
+
+\noindent\textbf{矩阵范数的极小化}
+
+令 $A(x)=A_0+x_1A_1+\cdots+x_nA_n$，其中 $A_i\in\mathbb{R}^{p\times q}$。考虑无约束问题
+\[
+\mathop{\mathrm{minimize}}\quad \|A(x)\|_2,
+\]
+其中 $\|\cdot\|_2$ 表示其谱范数（最大奇异值），$x\in\mathbb{R}^n$ 为优化变量。这是一个凸问题，因为 $\|A(x)\|_2$ 是 $x$ 的凸函数。
+
+利用 $\|A\|_2\leq s$ 当且仅当 $A^TA\preceq s^2I$（且 $s\geq 0$）这一事实，我们可以将问题表示为下面的形式
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & s\\
+\mathrm{subject\ to} & A(x)^TA(x)\preceq sI,
+\end{array}
+\]
+其优化变量为 $x$ 和 $s$。因为函数 $A(x)^TA(x)-sI$ 在 $(x,s)$ 上是矩阵凸的，所以这是具有一个 $q\times q$ 矩阵不等式约束的凸优化问题。
+
+利用
+\[
+A^TA\preceq t^2I\ (\text{并且 }t\geq 0)\quad\Longleftrightarrow\quad
+\begin{bmatrix}
+tI & A\\
+A^T & tI
+\end{bmatrix}\succeq 0
+\]
+的事实（参见 \S A.5.5），我们也可以用一个大小为 $(p+q)\times(p+q)$ 的矩阵不等式对问题进行构建。其结果是关于变量 $x$ 和 $t$ 的 SDP
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & t\\
+\mathrm{subject\ to} &
+\begin{bmatrix}
+tI & A(x)\\
+A(x)^T & tI
+\end{bmatrix}\succeq 0.
+\end{array}
+\]
+
+\noindent\textbf{矩问题}
+
+令 $t$ 为 $\mathbb{R}$ 上的随机变量。期望值 $\mathbf{E}t^k$（假设存在）称为分布 $t$ 的（力）矩。下面的经典结果给出了矩序列的性质。
+
+如果存在 $\mathbb{R}$ 上的概率分布使得 $x_k=\mathbf{E}t^k,\ k=0,\cdots,2n$，那么 $x_0=1$ 并且
+\begin{equation}
+H(x_0,\cdots,x_{2n})=
+\begin{bmatrix}
+x_0 & x_1 & x_2 & \cdots & x_{n-1} & x_n\\
+x_1 & x_2 & x_3 & \cdots & x_n & x_{n+1}\\
+x_2 & x_3 & x_4 & \cdots & x_{n+1} & x_{n+2}\\
+\vdots & \vdots & \vdots & & \vdots & \vdots\\
+x_{n-1} & x_n & x_{n+1} & \cdots & x_{2n-2} & x_{2n-1}\\
+x_n & x_{n+1} & x_{n+2} & \cdots & x_{2n-1} & x_{2n}
+\end{bmatrix}\succeq 0.
+\tag{4.52}
+\end{equation}
+（矩阵 $H$ 称为关于 $x_0,\cdots,x_{2n}$ 的 Hankel 矩阵。）容易看出：令 $x_i=\mathbf{E}t^i,\ i=0,\cdots,2n$ 为某些分布的矩，并令 $y=(y_0,y_1,\cdots,y_n)\in\mathbb{R}^{n+1}$。那么，我们有
+\[
+y^TH(x_0,\cdots,x_{2n})y=\sum_{i,j=0}^n y_iy_j\mathbf{E}t^{i+j}
+=\mathbf{E}(y_0+y_1t^1+\cdots+y_nt^n)^2\geq 0.
+\]
+
+下面的部分逆命题不那么明显：如果 $x_0=1,\ H(x)\succeq 0$，那么存在 $\mathbb{R}$ 上的一个概率分布使得 $x_i=\mathbf{E}t^i,\ i=0,\cdots,2n$。（其证明参见习题 2.37。）现在假设 $x_0=1,\ H(x)\succeq 0$（但有可能 $H(x)\not\succ 0$），即线性不等式 (4.52) 成立，但可能不严格。在这种情况下，存在 $\mathbb{R}$ 上的分布序列，其矩收敛于 $x$。总结可知：$x_0,\cdots,x_{2n}$ 为 $\mathbb{R}$ 上某些分布的矩（或分布系列的矩的极限）这一条件可以表达为变量 $x$ 的线性矩阵不等式 (4.52) 及线性等式 $x_0=1$。利用这一事实，我们可以将一些关于矩的有趣的问题转化为 SDP。
+
+设 $t$ 为 $\mathbb{R}$ 上的随机变量。我们不知道其分布但知道其矩的界，即
+\[
+\underline{\mu}_k\leq \mathbf{E}t^k\leq \overline{\mu}_k,\quad k=1,\cdots,2n,
+\]
+（特殊地，它包括一些矩已知的情况）。令 $p(t)=c_0+c_1t+\cdots+c_{2n}t^{2n}$ 为 $t$ 的一个给定的多项式。$p(t)$ 的期望关于矩 $\mathbf{E}t^i$ 是线性的：
+\[
+\mathbf{E}p(t)=\sum_{i=0}^{2n} c_i\mathbf{E}t^i=\sum_{i=0}^{2n}c_ix_i.
+\]
+我们可以计算所有满足给定矩的界的概率分布 $\mathbf{E}p(t)$ 的上、下界
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}}\ (\mathop{\mathrm{maximize}}) & \mathbf{E}p(t)\\
+\mathrm{subject\ to} & \underline{\mu}_k\leq \mathbf{E}t^k\leq \overline{\mu}_k,\quad k=1,\cdots,2n,
+\end{array}
+\]
+这可以通过求解下面的 SDP 得到
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}}\ (\mathop{\mathrm{maximize}}) & c_1x_1+\cdots+c_{2n}x_{2n}\\
+\mathrm{subject\ to} & \underline{\mu}_k\leq x_k\leq \overline{\mu}_k,\quad k=1,\cdots,2n\\
+& H(1,x_1,\cdots,x_{2n})\succeq 0,
+\end{array}
+\]
+其优化变量为 $x_1,\cdots,x_{2n}$。对于所有满足已知矩约束的概率分布，它给出了 $\mathbf{E}p(t)$ 的界。这些界是紧的，即存在分布序列满足给定的矩界，并且这些序列的 $\mathbf{E}p(t)$ 收敛于 SDP 得到的上、下界。
+
+\noindent\textbf{不完全协方差信息下的投资组合风险界定}
+
+我们再次考虑经典的 Markowitz 投资组合问题（参见第 148 页）。我们有 $n$ 项资产或股票组成的投资组合，用 $x_i$ 表示在一定投资周期内持有的资产 $i$ 的量，$p_i$ 表示在这个期间内资产 $i$ 的相对价值变化。资产总价值的变化为 $p^Tx$。价值变化向量 $p$ 建模为一个随机变量，其均值和协方差为
+\[
+\overline{p}=\mathbf{E}p,\qquad \Sigma=\mathbf{E}(p-\overline{p})(p-\overline{p})^T.
+\]
+因此，资产价值是随机变量，其均值为 $\overline{p}^Tx$，标准差为 $\sigma=(x^T\Sigma x)^{1/2}$。大的损失（即资产变化显著小于期望值）的风险直接与标准差 $\sigma$ 相关并随之增加。因此，标准差（或方差 $\sigma^2$）被用来作为投资组合风险的一个度量。
+
+在经典的投资组合优化问题中，投资组合 $x$ 是优化变量；我们在最小平均收益和其他约束条件下极小化风险。价值变化的统计量 $\overline{p}$ 及 $\Sigma$ 是问题的已知参数。对于此处所考虑的风险界定问题，我们将问题转换为：假设投资组合已知，但关于协方差矩阵 $\Sigma$，我们仅有部分信息。例如，我们也许知道每一项的上、下界
+\[
+L_{ij}\leq \Sigma_{ij}\leq U_{ij},\quad i,j=1,\cdots,n,
+\]
+其中，$L$ 和 $U$ 给定。现在，我们提出这样的问题：在满足给定界的所有协方差矩阵中，我们投资的最大风险是多少？我们定义投资组合的最坏情况的方差为
+\[
+\sigma_{\mathrm{wc}}^2=\sup\{x^T\Sigma x\mid L_{ij}\leq \Sigma_{ij}\leq U_{ij},\ i,j=1,\cdots,n,\ \Sigma\succeq 0\}.
+\]
+当然，协方差矩阵必须满足附加条件 $\Sigma\succeq 0$。
+
+我们可以通过求解下面的 SDP 找到 $\sigma_{\mathrm{wc}}$，
+\[
+\begin{array}{ll}
+\mathop{\mathrm{maximize}} & x^T\Sigma x\\
+\mathrm{subject\ to} & L_{ij}\leq \Sigma_{ij}\leq U_{ij},\quad i,j=1,\cdots,n\\
+& \Sigma\succeq 0,
+\end{array}
+\]
+其变量为 $\Sigma\in\mathbf{S}^n$（问题参数为 $x,L$ 和 $U$）。最优的 $\Sigma$ 是每项均满足我们给定的界的最坏情况的协方差矩阵，这里的“最坏”意味着（给定的）投资组合 $x$ 的最大风险。从 SDP 的最优解 $\Sigma$ 出发，我们容易构造满足给定的界并达到最坏情况下的方差的 $p$ 的分布。例如，我们可以取 $p=\overline{p}+\Sigma^{1/2}v$，其中 $v$ 是满足 $\mathbf{E}v=0$ 和 $\mathbf{E}vv^T=I$ 的任意随机变量。
+
+显然，对任何关于 $\Sigma$ 的凸的先验信息，我们可以用相同的方法确定 $\sigma_{\mathrm{wc}}$。在这里列出一些例子。
+
+\[
+\bullet\quad \textbf{已知特定投资组合的方差。}\ \text{我们也许有等式约束，如}
+\]
+\[
+u_k^T\Sigma u_k=\sigma_k^2,
+\]
+其中 $u_k$ 和 $\sigma_k$ 给定。这对应着关于特定的已知投资组合（由 $u_k$ 给出）有已知（或非常精确的估计）方差的先验知识。
+\[
+\bullet\quad \textbf{包含估计误差的影响。}\ \text{如果协方差 }\Sigma\text{ 是通过经验数据估计而得的，估计方法可以给出 }\hat{\Sigma}\text{ 以及一些可靠性信息的估计，例如信赖椭球。这可以表示为}
+\]
+\[
+C(\Sigma-\hat{\Sigma})\leq \alpha,
+\]
+其中 $C$ 是 $\mathbf{S}^n$ 上的正定二次型，而常数 $\alpha$ 决定了信赖程度。
+\[
+\bullet\quad \textbf{影响因素模型。}\ \text{协方差可能具有如下形式}
+\]
+\[
+\Sigma=F\Sigma_{\mathrm{factor}}F^T+D,
+\]
+其中 $F\in\mathbb{R}^{n\times k},\ \Sigma_{\mathrm{factor}}\in\mathbf{S}^k$ 并且 $D$ 是对角的。这对应着具有下列形式的价格改变模型
+\[
+p=Fz+d,
+\]
+其中 $z$ 是随机变量（影响价格变动的基本因素），而 $d_i$ 是独立的（对于每种资产价格的可加波动）。我们假设这些因素是已知的。因为 $\Sigma$ 与 $\Sigma_{\mathrm{factor}},D$ 线性相关，所以我们可以构造关于它们（表示了先验信息）的任意凸约束，并且仍然用凸优化计算 $\sigma_{\mathrm{wc}}$。
+
+\[
+\bullet\quad \textbf{关于相关系数的信息。}\ \text{在最简单的情况下，}\Sigma\text{ 的对角元素（即每种资产价格的变动）已知，并且价格变动的相关系数的界已知}
+\]
+\[
+l_{ij}\leq \rho_{ij}=\frac{\Sigma_{ij}}{\Sigma_{ii}^{1/2}\Sigma_{jj}^{1/2}}\leq u_{ij},\quad i,j=1,\cdots,n.
+\]
+因为 $\Sigma_{ii}$ 已知，而 $\Sigma_{ij},\ i\neq j$ 未知，所以，这是线性不等式。
+
+\noindent\textbf{图的最速混合 Markov 链}
+
+我们考虑一个无向图，其结点为 $1,\cdots,n$，边集合为
+\[
+\mathcal{E}\subseteq \{1,\cdots,n\}\times\{1,\cdots,n\}.
+\]
+这里 $(i,j)\in\mathcal{E}$ 表示结点 $i$ 和 $j$ 由一条边所连接。因为图是无向的，$\mathcal{E}$ 是对称的：$(i,j)\in\mathcal{E}$ 当且仅当 $(j,i)\in\mathcal{E}$。允许自环的可能性，即我们可以有 $(i,i)\in\mathcal{E}$。
+
+我们如下定义 Markov 链，其状态为 $X(t)\in\{1,\cdots,n\},\ t\in\mathbb{Z}_+$（非负整数集合）。边 $(i,j)\in\mathcal{E}$ 对应概率 $P_{ij}$，即 $X$ 在结点 $i$ 和 $j$ 之间的转移概率。状态转移仅在边上发生；对于 $(i,j)\notin\mathcal{E}$，我们有 $P_{ij}=0$。边对应的概率必须非负，并且对于每个结点，与它相关的边（包括自环，如果有的话）的概率之和必须等于一。
+
+Markov 链的转移状态矩阵为
+\[
+P_{ij}=\operatorname{prob}(X(t+1)=i\mid X(t)=j),\quad i,j=1,\cdots,n.
+\]
+这个矩阵必须满足
+\begin{equation}
+P_{ij}\geq 0,\quad i,j=1,\cdots,n,\qquad \mathbf{1}^TP=\mathbf{1}^T,\qquad P=P^T,
+\tag{4.53}
+\end{equation}
+并且
+\begin{equation}
+P_{ij}=0\quad \text{对于 }(i,j)\notin\mathcal{E}.
+\tag{4.54}
+\end{equation}
+因为 $P$ 是对称的并且 $\mathbf{1}^TP=\mathbf{1}^T$，我们可得 $P\mathbf{1}=\mathbf{1}$，所以均匀分布 $(1/n)\mathbf{1}$ 是 Markov 链的一个平衡分布。$X(t)$ 的分布收敛到 $(1/n)\mathbf{1}$ 的情况由 $P$ 的第二大（幅度）特征值，即 $r=\max\{\lambda_2,-\lambda_n\}$ 决定，其中
+\[
+1=\lambda_1\geq \lambda_2\geq\cdots\geq \lambda_n
+\]
+为 $P$ 的特征值。我们称 $r$ 为 Markov 链的混合速率。如果 $r=1$，那么 $X(t)$ 的分布不必收敛到 $(1/n)\mathbf{1}$（这意味着 Markov 链不是混合的）。当 $r<1$ 时，随着 $t\to\infty$，$X(t)$ 的分布渐进地以 $r^t$ 逼近 $(1/n)\mathbf{1}$。因此，小的 $r$ 使得 Markov 链更快地混合。
+
+最速混合 Markov 链问题是在约束 (4.53) 和 (4.54) 下寻找 $P$ 以极小化 $r$。（问题的数据是图，即 $\mathcal{E}$。）我们将证明这个问题可以构建为一个 SDP。
+
+因为特征值 $\lambda_1=1$ 对应于特征向量 $\mathbf{1}$，我们可以将混合速率表示为限制在子空间 $\mathbf{1}^{\perp}$ 上的矩阵 $P$ 的范数：$r=\|QPQ\|_2$，其中 $Q=I-(1/n)\mathbf{1}\mathbf{1}^T$ 表示 $\mathbf{1}^{\perp}$ 上的正交投影矩阵。利用性质 $P\mathbf{1}=\mathbf{1}$，我们有
+\[
+\begin{array}{rl}
+r&=\|QPQ\|_2\\
+&=\|(I-(1/n)\mathbf{1}\mathbf{1}^T)P(I-(1/n)\mathbf{1}\mathbf{1}^T)\|_2\\
+&=\|P-(1/n)\mathbf{1}\mathbf{1}^T\|_2.
+\end{array}
+\]
+这表明混合速率 $r$ 是 $P$ 的凸函数，因此，最速混合 Markov 链问题可以转换为凸优化问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \|P-(1/n)\mathbf{1}\mathbf{1}^T\|_2\\
+\mathrm{subject\ to} & P\mathbf{1}=\mathbf{1}\\
+& P_{ij}\geq 0,\quad i,j=1,\cdots,n\\
+& P_{ij}=0\quad \text{对于 }(i,j)\notin\mathcal{E},
+\end{array}
+\]
+其变量为 $P\in\mathbf{S}^n$。我们可以通过引入标量变量 $t$ 来界定 $P-(1/n)\mathbf{1}\mathbf{1}^T$ 的范数，从而将问题表述为 SDP
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & t\\
+\mathrm{subject\ to} & -tI\preceq P-(1/n)\mathbf{1}\mathbf{1}^T\preceq tI\\
+& P\mathbf{1}=\mathbf{1}\\
+& P_{ij}\geq 0,\quad i,j=1,\cdots,n\\
+& P_{ij}=0\quad \text{对于 }(i,j)\notin\mathcal{E}.
+\end{array}
+\tag{4.55}
+\end{equation}
+
+\section*{§4.7\quad 向量优化}
+
+\subsection*{4.7.1\quad 广义和凸的向量优化问题}
+
+在 \S 4.6 中，我们扩展标准形式问题 (4.1) 使其包含了向量约束函数。本节研究向量目标函数的意义。我们将广义向量优化问题记为
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}}\ (\text{关于 }K) & f_0(x)\\
+\mathrm{subject\ to} & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& h_i(x)=0,\quad i=1,\cdots,p.
+\end{array}
+\tag{4.56}
+\end{equation}
+这里 $x\in\mathbb{R}^n$ 为优化变量，$K\subseteq\mathbb{R}^q$ 为正常锥，$f_0:\mathbb{R}^n\to\mathbb{R}^q$ 为目标函数，$f_i:\mathbb{R}^n\to\mathbb{R}$ 为不等式约束函数，$h_i:\mathbb{R}^n\to\mathbb{R}$ 为等式约束函数。这个问题与标准优化问题 (4.1) 的唯一区别在于此处的目标函数在 $\mathbb{R}^q$ 中取值，并且问题说明中含有用来比较目标值的正常锥 $K$。在讨论向量优化的内容中，标准优化问题 (4.1) 有时也称为标量优化问题。
+
+我们称向量优化问题 (4.56) 为凸向量优化问题，如果其目标函数 $f_0$ 是 $K$-凸的，不等式约束函数 $f_1,\cdots,f_m$ 是凸的并且等式约束函数 $h_1,\cdots,h_p$ 是仿射的。（如同标量的情况一样，我们常将等式约束表示为 $Ax=b$，其中 $A\in\mathbb{R}^{p\times n}$。）
+
+对于向量优化问题 (4.56)，我们可以赋予什么样的含义呢？设 $x$ 和 $y$ 是两个可行点（即它们满足约束）。相应的目标值 $f_0(x)$ 和 $f_0(y)$ 可用广义不等式 $\preceq_K$ 进行比较。我们将 $f_0(x)\preceq_K f_0(y)$ 解释为 $x$ 比 $y$ “更好或相等”（在 $K$ 的意义下，以目标函数 $f_0$ 进行比较）。向量优化令人困惑之处在于两个目标函数值 $f_0(x)$ 和 $f_0(y)$ 不一定可以比较：我们可以既没有 $f_0(x)\preceq_K f_0(y)$，也没有 $f_0(y)\preceq_K f_0(x)$，即没有一个比另一个好。而这在标量目标优化问题中不可能发生。
+
+\subsection*{4.7.2\quad 最优解与值}
+
+我们首先考虑一个特殊情况，在这里，向量优化问题的意义是明确的。考虑可行点的目标值的集合
+\[
+\mathcal{O}=\{f_0(x)\mid \exists x\in\mathcal{D},\ f_i(x)\leq 0,\ i=1,\cdots,m,\ h_i(x)=0,\ i=1,\cdots,p\}\subseteq\mathbb{R}^q,
+\]
+称为可达目标值集合。如果这个集合有最小元（参见 \S 2.4.2），即有可行解 $x$ 使得对于所有可行的 $y$ 都有 $f_0(x)\preceq_K f_0(y)$，那么我们称 $x$ 对于问题 (4.56) 是最优的，并且称 $f_0(x)$ 为该问题的最优值。（当向量优化问题有最优值时，该值唯一。）如果 $x^\star$ 是最优解，那么在 $x^\star$ 处的目标值 $f_0(x^\star)$ 可以与可行集内任意一点的目标值相比较，并且比它们好或相等。粗略地，$x^\star$ 是可行集中 $x$ 的明确的最好选择。
+
+点 $x^\star$ 是最优的，当且仅当它是可行的并且
+\begin{equation}
+\mathcal{O}\subseteq f_0(x^\star)+K
+\tag{4.57}
+\end{equation}
+（参见 \S 2.4.2）。集合 $f_0(x^\star)+K$ 可以解释为比 $f_0(x^\star)$ 差或相等的值的集合；条件 (4.57) 表述了每一个可达的值都落在这个集合中。这可用图 4.7 表示。大部分向量优化问题不含有最优解和最优值，但确实会在某些特殊情况下发生。
+
+\noindent\textbf{例 4.9\quad 最优线性无偏估计。}\quad
+设 $y=Ax+v$，其中 $v\in\mathbb{R}^m$ 为测量误差，$y\in\mathbb{R}^m$ 为观测向量，$x\in\mathbb{R}^n$ 为给定观测值 $y$ 时的估计向量。我们假设 $A$ 的秩为 $n$，并且测量误差满足 $\mathbf{E}v=0$ 及 $\mathbf{E}vv^T=I$，即分量零均值且不相关。
+
+$x$ 的线性估计具有 $\hat{x}=Fy$ 的形式。估计称为无偏的，如果对于所有的 $x$，我们有 $\mathbf{E}\hat{x}=x$，即如果 $FA=I$。无偏估计的误差方差为
+\[
+\mathbf{E}(\hat{x}-x)(\hat{x}-x)^T=\mathbf{E}Fvv^TF^T=FF^T.
+\]
+我们的目标是寻找具有“小的”误差方差矩阵的无偏估计。我们可以用矩阵不等式，即关于 $\mathbf{S}_+^n$ 的不等式，比较误差方差。它具有下面的解释：设 $\hat{x}_1=F_1y,\ \hat{x}_2=F_2y$ 为两个无偏估计。那么第一个估计至少与第二个一样好，即 $F_1F_1^T\preceq F_2F_2^T$，的充要条件是，对于所有的 $c$，
+\[
+\mathbf{E}(c^T\hat{x}_1-c^Tx)^2\leq \mathbf{E}(c^T\hat{x}_2-c^Tx)^2.
+\]
+换言之，对于 $x$ 的任意线性函数，估计 $F_1$ 可以得到至少与 $F_2$ 一样好的估计量。
+
+我们可以将寻找 $x$ 的无偏估计的问题表示为向量优化问题
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}}\ (\text{关于 }\mathbf{S}_+^n) & FF^T\\
+\mathrm{subject\ to} & FA=I,
+\end{array}
+\tag{4.58}
+\end{equation}
+其变量为 $F\in\mathbb{R}^{n\times m}$。目标函数 $FF^T$ 关于 $\mathbf{S}_+^n$ 是凸的，因此问题 (4.58) 是一个凸向量优化问题。一个简单的判断方法是观察到 $v^TFF^Tv=\|F^Tv\|^2$ 对于任意固定的 $v$ 是 $F$ 的凸函数。
+
+问题 (4.58) 有一个著名的结论：它有最优解，这个最优解就是最小二乘估计，或伪逆
+\[
+F^\star=A^\dagger=(A^TA)^{-1}A^T.
+\]
+对于任意满足 $FA=I$ 的 $F$，我们有 $FF^T\succeq F^\star F^{\star T}$。矩阵
+\[
+F^\star F^{\star T}=A^\dagger A^{\dagger T}=(A^TA)^{-1}
+\]
+是问题 (4.58) 的最优值。
+
+\subsection*{4.7.3\quad Pareto 最优解与值}
+
+现在，我们考虑可达目标值集合不含最小元的情况（这是在大部分我们感兴趣的向量优化问题中发生的情况），因此问题不含有最优解和最优值。在这种情况下，可达值集合的极小元发挥了重要的作用。如果 $f_0(x)$ 是可达集合 $\mathcal{O}$ 的极小元，我们称可行解 $x$ 为 Pareto 最优（或有效的）。在这种情况下，我们称 $f_0(x)$ 为向量优化问题 (4.56) 的一个 Pareto 最优值。因此，点 $x$ 是 Pareto 最优的，如果它是可行的并且对于任意 $y$，由 $f_0(y)\preceq_K f_0(x)$ 可得出 $f_0(y)=f_0(x)$。换言之，任何比 $x$ 好或相等的可行解 $y$（即 $f_0(y)\preceq_K f_0(x)$）均与 $x$ 有完全相同的目标值。
+
+点 $x$ 是 Pareto 最优的，当且仅当它是可行的，并且
+\begin{equation}
+(f_0(x)-K)\cap\mathcal{O}=\{f_0(x)\}
+\tag{4.59}
+\end{equation}
+（参见 \S 2.4.2）。集合 $f_0(x)-K$ 可以解释为比 $f_0(x)$ 好或相等的值的集合，因此条件 (4.59) 表述了唯一比 $f_0(x)$ 好或相等的可达值就是 $f_0(x)$ 本身。这可由图 4.8 说明。
+
+一个向量优化问题可以有很多 Pareto 最优值（和解）。Pareto 最优值的集合记为 $\mathcal{P}$，它满足
+\[
+\mathcal{P}\subseteq \mathcal{O}\cap\operatorname{bd}\mathcal{O},
+\]
+即每一个 Pareto 最优值都是位于可达目标值集合边界上的可达目标值（参见习题 4.52）。
+
+\subsection*{4.7.4\quad 标量化}
+
+标量化是寻找向量问题 Pareto 最优（或最优）解的标准技术，这基于 \S 2.6.3 给出的对偶广义不等式的极小和最小点的特征。选择任意 $\lambda\succ_K 0$，即任意在对偶广义不等式中为正的向量，考虑标量优化问题
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \lambda^Tf_0(x)\\
+\mathrm{subject\ to} & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& h_i(x)=0,\quad i=1,\cdots,p,
+\end{array}
+\tag{4.60}
+\end{equation}
+并令 $x$ 为最优解。那么，$x$ 对于向量优化问题 (4.56) 是 Pareto 最优的。这从 \S 2.6.3 给出的极小元的对偶不等式性质可以得出，这一点也容易直接看出。如果 $x$ 不是 Pareto 最优的，那么存在可行的 $y$ 满足 $f_0(y)\preceq_K f_0(x)$ 和 $f_0(x)\neq f_0(y)$。因为 $f_0(x)-f_0(y)\succeq_K 0$ 并且非零，我们有 $\lambda^T(f_0(x)-f_0(y))>0$，即 $\lambda^Tf_0(x)>\lambda^Tf_0(y)$。这与假设 $x$ 是标量问题 (4.60) 的最优解相矛盾。
+
+利用标量化，我们可以通过求解普通的标量优化问题 (4.60)，寻找任意向量优化问题的 Pareto 最优解。向量 $\lambda$，有时也称为权向量，必须满足 $\lambda\succ_{K^\ast}0$。权向量是一个自由参数；通过改变它，我们（有可能）得到向量优化问题 (4.56) 的不同的 Pareto 最优解。这由图 4.9 说明。这个图也给出了例子，显示了某些 Pareto 最优点不能由任何权向量 $\lambda\succ_{K^\ast}0$ 的标量化得到。
+
+可以从几何角度解释标量化方法。点 $x$ 是标量化的问题的最优解，即在可行集上极小化了 $\lambda^Tf_0$，当且仅当对于所有可行的 $y$ 有 $\lambda^T(f_0(y)-f_0(x))\geq 0$。而这也相当于说 $\{u\mid -\lambda^T(u-f_0(x))=0\}$ 是可达目标值集合 $\mathcal{O}$ 在 $f_0(x)$ 点的支撑超平面；特别地，
+\begin{equation}
+\{u\mid \lambda^T(u-f_0(x))<0\}\cap\mathcal{O}=\emptyset.
+\tag{4.61}
+\end{equation}
+（参见图 4.9）因此，一旦找到标量化问题的一个最优解，我们不仅找到了原向量优化问题的一个 Pareto 最优解，而且也由 (4.61) 得到了 $\mathbb{R}^q$ 上一个完整的目标值不可达的半空间。
+
+\noindent\textbf{凸向量优化问题的标量化}
+
+现在设向量优化问题 (4.56) 是凸的。那么标量化的问题 (4.60) 也是凸的，因为 $\lambda^Tf_0$ 是（标量值）凸函数（由 \S 3.6 中的结果可知）。这意味着我们可以通过求解凸标量优化问题找到凸向量优化问题的 Pareto 最优解。对于权向量 $\lambda\succ_{K^\ast}0$ 的每个选择，我们都可以得到（通常是不同的）Pareto 最优解。
+
+对于凸向量优化问题，我们有一个部分逆命题：对于每一个 Pareto 最优解 $x^{\mathrm{po}}$，有非零 $\lambda\succeq_{K^\ast}0$ 使得 $x^{\mathrm{po}}$ 是标量化问题 (4.60) 的解。因此，粗略地，对于凸优化问题，当权向量 $\lambda$ 遍历 $K^\ast$-非负的非零向量，标量化方法可以得到所有 Pareto 最优解。这里，我们必须注意，这并不是说对于 $\lambda\succeq_{K^\ast}0$ 和 $\lambda\neq 0$ 的标量化问题的每一个解都是向量问题的 Pareto 最优解。（相对地，每个 $\lambda\succ_{K^\ast}0$ 的标量化问题的解都是 Pareto 最优的。）
+
+在某些情况下，我们可以利用这个部分逆定理来寻找凸向量优化问题的所有 Pareto 最优解。$\lambda\succ_{K^\ast}0$ 的标量化给出了 Pareto 最优解的一个集合（对于非凸的向量优化问题也一样）。为找到其他 Pareto 最优解，我们需要考虑满足 $\lambda\succeq_{K^\ast}0$ 的非零权向量 $\lambda$。对于每个这样的权向量，我们首先得到标量化问题的所有解。在这些解中，我们必须判定它们是否确实是向量问题的 Pareto 最优解。“极限” Pareto 解也可以通过对由正的权向量求得的 Pareto 最优解取极限得到。
+
+为得到这个部分逆命题，我们考虑集合
+\begin{equation}
+\mathcal{A}=\mathcal{O}+K=\{t\in\mathbb{R}^q\mid f_0(x)\preceq_K t\ \text{对于某些可行的 }x\},
+\tag{4.62}
+\end{equation}
+它由所有比一些可达目标值差或相等（关于 $\preceq_K$）的值组成。当问题凸时，集合 $\mathcal{A}$ 是凸集，而可达目标集合 $\mathcal{O}$ 不一定是凸的。并且，$\mathcal{A}$ 的极小元与可达值集合 $\mathcal{O}$ 的极小元完全相同，即它们都是 Pareto 最优值。（参见习题 4.53。）现在，利用 \S 2.6.3 的结果，我们可知 $\mathcal{A}$ 的任意极小元都在 $\mathcal{A}$ 上对某些 $\lambda\succeq_{K^\ast}0$ 极小化了 $\lambda^Tz$。这意味着，向量优化问题的每个 Pareto 最优解对于某些非零向量 $\lambda\succeq_{K^\ast}0$ 的标量化问题都是最优的。
+
+\noindent\textbf{例 4.10\quad 矩阵集合的极小上界。}\quad
+我们考虑关于半正定锥的（凸）向量优化问题，
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}}\ (\text{关于 }\mathbf{S}_+^n) & X\\
+\mathrm{subject\ to} & X\succeq A_i,\quad i=1,\cdots,m,
+\end{array}
+\tag{4.63}
+\end{equation}
+其中，$A_i\in\mathbf{S}^n,\ i=1,\cdots,m$ 给定。约束表示 $X$ 是给定矩阵 $A_1,\cdots,A_m$ 的上界；问题 (4.63) 的 Pareto 最优解是这些集合的极小上界。
+
+为找到 Pareto 最优解，我们使用标量化：选择任意 $W\in\mathbf{S}_{++}^n$ 并构造问题
+\begin{equation}
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \operatorname{tr}(WX)\\
+\mathrm{subject\ to} & X\succeq A_i,\quad i=1,\cdots,m,
+\end{array}
+\tag{4.64}
+\end{equation}
+这是一个 SDP。一般地，$W$ 的不同选择会给出不同的极小解。
+
+部分逆命题告诉我们，如果 $X$ 对于向量问题 (4.63) 是 Pareto 最优的，那么对于某个非零权矩阵 $W\succeq 0$，它是 (4.64) 的最优解。（但是，在这种情况下，不是说 (4.64) 的每个解都是向量优化问题的 Pareto 最优解。）
+
+我们可以给出此问题一个简单的几何解释。我们将每一个 $A\in\mathbf{S}_{++}^n$ 与一个中心在原点的椭圆相关联，椭圆由
+\[
+\mathcal{E}_A=\{u\mid u^TA^{-1}u\leq 1\}
+\]
+给出，所以 $A\preceq B$ 当且仅当 $\mathcal{E}_A\subseteq\mathcal{E}_B$。问题 (4.63) 的 Pareto 最优解 $X$ 对应于包含所有与 $A_1,\cdots,A_m$ 相关联的椭圆的极小椭圆。图 4.10 显示了这样的一个例子。
+
+\subsection*{4.7.5\quad 多准则优化}
+
+当向量优化函数关于锥 $K=\mathbb{R}_+^q$ 时，它称为多准则或多目标优化问题。$f_0$ 的分量，即 $F_1,\cdots,F_q$，可以解释为 $q$ 个不同的标量目标，每一个都希望被极小化。我们称 $F_i$ 为问题的第 $i$ 个目标。多准则优化问题是凸的，如果 $f_1,\cdots,f_m$ 是凸的，$h_1,\cdots,h_p$ 是仿射的，并且 $F_1,\cdots,F_q$ 是凸的。
+
+因为多准则优化问题是向量优化问题，\S 4.7.1--\S 4.7.4 中所有的结论都适用。尽管如此，对于多准则优化问题的解释，我们可以更加具体一些。如果 $x$ 可行，我们将 $F_i(x)$ 视为根据第 $i$ 个目标的得分或价值。如果 $x$ 和 $y$ 都可行，$F_i(x)\leq F_i(y)$ 意味着在第 $i$ 个目标上 $x$ 至少与 $y$ 一样好。如果 $x$ 和 $y$ 都可行，对于 $i=1,\cdots,q$ 都有 $F_i(x)\leq F_i(y)$，并且对于至少一个 $j$，有 $F_j(x)<F_j(y)$，我们称 $x$ 比 $y$ 更优，或 $x$ 支配 $y$。粗略地，如果 $x$ 在所有目标上能够与 $y$ 比拟或击败 $y$，并且在至少一个目标上击败 $y$，就称 $x$ 比 $y$ 更优。
+
+在多准则问题中，最优解 $x^\star$ 满足：对于可行的 $y$ 都有
+\[
+F_i(x^\star)\leq F_i(y),\quad i=1,\cdots,q,
+\]
+换言之，$x^\star$ 同时是下述所有 $j=1,\cdots,q$ 标量优化问题的最优解：
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & F_j(x)\\
+\mathrm{subject\ to} & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& h_i(x)=0,\quad i=1,\cdots,p.
+\end{array}
+\]
+当最优解存在时，我们称目标是非竞争的，因为不需要在目标间做出折中；每个目标函数都能达到忽略其他约束时的最小值。
+
+Pareto 最优解 $x^{\mathrm{po}}$ 满足：如果 $y$ 可行，并且对于 $i=1,\cdots,q$ 有 $F_i(y)\leq F_i(x^{\mathrm{po}})$，那么 $F_i(x^{\mathrm{po}})=F_i(y),\ i=1,\cdots,q$。这点可以重新表述为：一个解是 Pareto 最优的当且仅当它是可行的并且没有比它更好的可行解。特别地，如果可行解不是 Pareto 最优的，那么，存在至少一个其他的点比它更优。因此，在寻找好的解的过程中，我们显然可以将搜索限制于 Pareto 最优解集之中。
+
+\noindent\textbf{权衡分析}
+
+现在设 $x$ 和 $y$ 是 Pareto 最优解，并且
+\[
+F_i(x)<F_i(y),\quad i\in A
+\]
+\[
+F_i(x)=F_i(y),\quad i\in B
+\]
+\[
+F_i(x)>F_i(y),\quad i\in C,
+\]
+其中 $A\cup B\cup C=\{1,\cdots,q\}$。换言之，$A$ 是 $x$ 胜过 $y$ 的目标（的索引）的集合；$B$ 是点 $x$ 和 $y$ 相等的目标的集合；$C$ 是 $y$ 胜过 $x$ 的目标的集合。如果 $A$ 和 $C$ 是空集，那么两个点 $x$ 和 $y$ 有完全一样的目标值。如果不是这种情况，那么 $A$ 和 $C$ 必须都非空。换言之，当比较两个 Pareto 最优点时，它们或者有完全一样的表现（即所有目标值都相等），或者至少在一个目标上胜过另一个。
+
+当将 $x$ 与 $y$ 相比较时，我们说我们在更好的 $i\in A$ 的目标值和较差的 $i\in C$ 的目标值之间进行了交易或权衡。最优权衡分析（或简称为权衡分析）是研究我们需要在一个或多个目标上牺牲多少以取得其他目标的改进，或者更一般地，研究什么样的目标值集合是可达的。
+
+作为一个例子，考虑双准则（即有两个准则的）问题。设 $x$ 是一个 Pareto 最优解，其目标为 $F_1(x)$ 和 $F_2(x)$。我们会问 $F_2(z)$ 需要变大多少，才能得到可行的 $z$，使得 $F_1(z)\leq F_1(x)-a$，其中 $a>0$ 为常数。粗略地，我们会问为获得第一个目标提高 $a$，我们必须在第二个目标上付出多少代价。如果必须接受 $F_2$ 上的大的增长才能实现 $F_1$ 上的小量减少，我们称目标之间在 Pareto 最优值 $(F_1(x),F_2(x))$ 附近，存在强权衡。另一方面，如果 $F_1$ 上大的减少仅通过 $F_2$ 上较小的增长就可以实现，我们称（在 Pareto 最优值 $(F_1(x),F_2(x))$ 附近）目标间的权衡是较弱。
+
+我们也可以考虑用第一个目标上更差的表现来得到第二个目标改善的情况。这里，我们寻找 $F_2(z)$ 可以减少多少，以得到可行的 $z$，使得 $F_1(z)\leq F_1(x)+a$，其中 $a>0$ 为常数。在这种情况下，我们在第二个目标上获得了利益，即 $F_2$ 相对 $F_2(x)$ 有减少。如果这种收益大（即通过 $F_1$ 上小的增加，我们可以获得 $F_2$ 上大的减少），我们称目标显示了强权衡性。如果收益小，我们称（在 Pareto 最优值 $(F_1(x),F_2(x))$ 附近）目标弱权衡。
+
+\noindent\textbf{最优权衡曲面}
+
+多准则问题的 Pareto 最优值集合称为最优权衡曲面（一般地，当 $q>2$ 时）或者最优权衡曲线（当 $q=2$）。（因为接受任何非 Pareto 最优的解都是愚蠢的，我们的权衡分析将集中精力于 Pareto 最优点。）权衡分析有时又称作搜索最优权衡曲面。（最优权衡曲面通常是，但不总是，平常意义下的曲面。例如，如果问题有一个最优解，最优权衡表面由一个点，即最优值组成。）
+
+容易解释最优权衡曲线。第 177 页上的图 4.11 显示了（凸）双准则问题的一个例子。从曲线中我们可以容易想到和理解两个目标间的权衡。
+
+\[
+\bullet\quad \text{右边的端点显示了完全不考虑 }F_1\text{ 的 }F_2\text{ 的最小可能值。}
+\]
+\[
+\bullet\quad \text{左边的端点显示了完全不考虑 }F_2\text{ 的 }F_1\text{ 的最小可能值。}
+\]
+\[
+\bullet\quad \text{通过寻找曲线与 }F_1=\alpha\text{ 处的垂线的交点，我们可以看出 }F_2\text{ 需要多大以达到 }F_1\leq \alpha\text{。}
+\]
+\[
+\bullet\quad \text{通过寻找曲线与 }F_2=\beta\text{ 处的水平线的交点，我们可以看出 }F_1\text{ 需要多大以达到 }F_2\leq \beta\text{。}
+\]
+\[
+\bullet\quad \text{曲线上一点（即 Pareto 最优值）处最优权衡曲线的斜率显示了两个目标间的局部最优权衡。在斜率陡峭处，}F_1\text{ 上小的改变伴随着 }F_2\text{ 的大的改变。}
+\]
+\[
+\bullet\quad \text{曲率大的点表明一个目标上小的减少只有通过另一个大的增加才能达到。这是众所周知的权衡曲线的拐点，在很多应用中，它都表示了一个好的折中解。}
+\]
+
+尽管高于三维的曲面的可视化很困难，以上这些结果在权衡曲面上都有简单的推广。
+
+\noindent\textbf{标量化多准则问题}
+
+当我们通过下面的加权和目标来标量化多准则问题时，
+\[
+\lambda^Tf_0(x)=\sum_{i=1}^q\lambda_iF_i(x),
+\]
+其中 $\lambda\succ 0$，可以将 $\lambda_i$ 解释为我们添加给第 $i$ 个目标上的权。权 $\lambda_i$ 可视为对于使得 $F_i$ 变小的愿望（或者对于较大的 $F_i$ 的厌恶）的定量化。特别地，如果希望 $F_i$ 小，我们应当对 $\lambda_i$ 取大值；如果我们不太关心 $F_i$，可以取 $\lambda_i$ 为小值。我们可以将比例 $\lambda_i/\lambda_j$ 理解为第 $i$ 个目标相对于第 $j$ 个目标的相对权或相对重要性。或者，我们可以将 $\lambda_i/\lambda_j$ 视为两个目标间的转换比率，因为在目标的加权和中，（比如）$F_j$ 上减少 $\alpha$ 可等同地视为 $F_i$ 上的增加量为 $(\lambda_i/\lambda_j)\alpha$。
+
+这些解释给出了直观的印象，告诉我们在最优权衡曲面上搜索时，如何设置或改变权。例如，设权向量 $\lambda\succ 0$ 得到 Pareto 最优解 $x^{\mathrm{po}}$，其目标值为 $F_1(x^{\mathrm{po}}),\cdots,F_q(x^{\mathrm{po}})$。为了找到一个（可能的）新的 Pareto 最优值，它可以获得更好的（例如）第 $k$ 个目标值，这是通过其他目标值（可能的）恶化达到的，我们构造新的权向量，满足
+\[
+\tilde{\lambda}_k>\lambda_k,\qquad \tilde{\lambda}_j=\lambda_j,\quad j\neq k,\quad j=1,\cdots,q,
+\]
+即我们增加第 $k$ 个目标上的权值。得到一个新的 Pareto 最优解 $\tilde{x}^{\mathrm{po}}$ 使得 $F_k(\tilde{x}^{\mathrm{po}})\leq F_k(x^{\mathrm{po}})$（并且通常 $F_k(\tilde{x}^{\mathrm{po}})<F_k(x^{\mathrm{po}})$），即新的 Pareto 最优解在第 $k$ 个目标有所提高。
+
+我们也可以看出在最优权衡曲面上光滑部分的任意一点，$\lambda$ 给出了相应 Pareto 最优解处的曲面的向内法向量。特别地，当我们选择一个权向量 $\lambda$ 进行标量化时，可以得到一个 Pareto 最优解，而 $\lambda$ 给出了目标间的局部权衡。
+
+在实践中，可以基于上述直观的想法特定地调整权值，从而搜索最优权衡曲面。稍后（在第 5 章）我们将看到标量化的基本想法，即极小化加权和目标并调整权值以获得合适的解，的对偶实质。
+
+\subsection*{4.7.6\quad 例子}
+
+\noindent\textbf{正则化最小二乘}
+
+给定 $A\in\mathbb{R}^{m\times n}$ 和 $b\in\mathbb{R}^m$，我们希望在考虑以下两个二次目标的情况下寻找 $x\in\mathbb{R}^n$。
+\[
+\bullet\quad F_1(x)=\|Ax-b\|_2^2=x^TA^TAx-2b^TAx+b^Tb\text{ 是 }Ax\text{ 和 }b\text{ 间不匹配的一种度量；}
+\]
+\[
+\bullet\quad F_2(x)=\|x\|_2^2=x^Tx\text{ 为 }x\text{ 规模的度量。}
+\]
+我们的目标是找到 $x$ 以给出好的逼近（即小的 $F_1$）并且不太大（即小的 $F_2$）。我们可以将这个问题写成关于锥 $\mathbb{R}_+^2$ 的向量优化问题，即（无约束的）双准则问题：
+\[
+\mathop{\mathrm{minimize}}\ (\text{关于 }\mathbb{R}_+^2)\quad f_0(x)=(F_1(x),F_2(x)).
+\]
+通过选择 $\lambda_1>0$ 和 $\lambda_2>0$，我们可以将这个问题标量化，然后极小化标量的加权和目标
+\[
+\lambda^Tf_0(x)=\lambda_1F_1(x)+\lambda_2F_2(x)
+\]
+\[
+=x^T(\lambda_1A^TA+\lambda_2I)x-2\lambda_1b^TAx+\lambda_1b^Tb,
+\]
+从而得到
+\[
+x(\mu)=(\lambda_1A^TA+\lambda_2I)^{-1}\lambda_1A^Tb=(A^TA+\mu I)^{-1}A^Tb,
+\]
+其中 $\mu=\lambda_2/\lambda_1$。对于任意 $\mu>0$，这个点对于双准则问题都是 Pareto 最优的。我们可以将 $\mu=\lambda_2/\lambda_1$ 理解为我们赋予的 $F_2$ 相对于 $F_1$ 的权。
+
+这个方法可以得到所有 Pareto 最优解，除了对应于极限 $\mu\to\infty$ 和 $\mu\to 0$ 的两个值。在第一种情况下，我们有 Pareto 最优解 $x=0$，它可以通过用 $\lambda=(0,1)$ 进行标量化得到。在另一种极端情况下，我们有 Pareto 最优解 $A^\dagger b$，这里 $A^\dagger$ 为 $A$ 的伪逆。这一 Pareto 最优解可以由标量化问题 $\mu\to 0$，即 $\lambda\to(1,0)$ 的极限得到。（我们将在 \S 6.3.2 再次遇到正则化最小二乘问题。）
+
+图 4.11 显示了问题数据 $A\in\mathbb{R}^{100\times 10},\ b\in\mathbb{R}^{100}$ 的正则化最小二乘问题的最优权衡曲线和可达值集合。（更多的讨论参见习题 4.50。）
+
+\noindent\textbf{投资组合优化中风险-回报的权衡}
+
+第 148 页描述的经典 Markowitz 投资组合优化问题可以自然地表达为一个双准则问题，其目标为负的平均收益（因为我们希望最大化平均收益）和收益的方差：
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}}\ (\text{关于 }\mathbb{R}_+^2) & (F_1(x),F_2(x))=(-\overline{p}^Tx,x^T\Sigma x)\\
+\mathrm{subject\ to} & \mathbf{1}^Tx=1,\quad x\succeq 0.
+\end{array}
+\]
+在构建相应的标量化问题时，我们可以（不失一般性地）取 $\lambda_1=1$ 和 $\lambda_2=\mu>0$：
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & -\overline{p}^Tx+\mu x^T\Sigma x\\
+\mathrm{subject\ to} & \mathbf{1}^Tx=1,\quad x\succeq 0,
+\end{array}
+\]
+这是一个二次规划。在这个例子中，我们也可以得到所有的 Pareto 最优投资组合，除了对应于 $\mu\to 0$ 和 $\mu\to\infty$ 两个极限情况外。粗略地讲，在第一种情况下，我们得到不考虑收益方差的最大平均收益；在第二种情况下，我们得到不考虑平均收益的最小收益方差。假设对于 $i\neq k$ 都有 $\overline{p}_k>\overline{p}_i$，即资产 $k$ 是唯一具有最大平均收益的资产，那么，$x=e_k$ 是唯一对应于 $\mu\to 0$ 的投资组合。（换言之，我们完全关注于具有最大平均收益的资产。）在很多投资组合问题中，资产 $n$ 对应于一个无风险投资，具有（确定的）收益 $r_{\mathrm{rf}}$。假设 $\Sigma$ 在去掉最后一行和列（均为零）后是满秩的，那么，另一个极端 Pareto 最优投资是 $x=e_n$，即投资完全关注于无风险资产。
+
+作为特定的例子，我们考虑一个简单的具有 4 个资产的投资组合优化问题，其价格变动的平均值和标准差由下面的表格给出。
+\[
+\begin{array}{c|cc}
+\text{资产} & \overline{p}_i & \Sigma_{ii}^{1/2}\\
+\hline
+1 & 12\% & 20\%\\
+2 & 10\% & 10\%\\
+3 & 7\% & 5\%\\
+4 & 3\% & 0\%
+\end{array}
+\]
+资产 4 是无风险资产，具有（固定的）$3\%$ 收益。资产 3、2、1 具有递增的平均收益，范围为 $7\%$ 至 $12\%$；同时，它们也具有递增的标准差，其范围为 $5\%$ 至 $20\%$。资产间的相关系数为 $\rho_{12}=30\%,\ \rho_{13}=-40\%,\ \rho_{23}=0\%$。
+
+图 4.12 显示了这个投资组合优化问题的最优权衡曲线。图由常规方式给出：横坐标表示标准差（即，方差的平方根），纵坐标表示期望的收益。下面一幅图显示了各个 Pareto 最优点的最优资产分配向量 $x$。
+
+这个简单例子的结果与我们的直观相一致。对于小的风险，最优分配主要由无风险资产组成，混有较少其他数量的资产。注意资产 3 和资产 1，它们负相关，这给出了对冲方法，即在给定的平均收益水平上降低了方差。在权衡曲线的另一端，我们可以看到，积极追求增长（即具有较大平均收益）的投资关注于资产 1 和 2，它们具有最大的收益（和方差）。
+
+\section*{参考文献}
+
+自 20 世纪 40 年代以来，线性规划已被广泛地研究，并且是很多极好的书的主题，包括 Dantzig 的 [Dan63]，Luenberger 的 [Lue84]，Schrijver 的 [Sch86]，Papadimitriou 和 Steiglitz 的 [PS98]，Bertsimas 和 Tsitsiklis 的 [BT97]，Vanderbei 的 [Van96] 以及 Roos、Terlaky 和 Vial 的 [RTV97]。Dantzig 和 Schrijver 也给出了线性规划的详细讨论。最近的综述参见 Todd 的 [Tod02]。
+
+Schaible [Sch82, Sch83] 给出了分式规划的概述，其中包含了线性分式问题及其扩展，例如凸-凹分式问题（参见习题 4.7）。例 4.7 中的经济增长模型出现在 von Neumann 的文献 [vN46] 中。
+
+关于二次规划问题的研究开始于 20 世纪 50 年代（例如，Frank 和 Wolfe 的 [FW56]，Markowitz 的 [Mar56]，Hildreth 的 [Hil57]）。其研究的动机是第 148 页讨论的投资组合优化问题（Markowitz 的 [Mar52]）和第 147 页讨论的随机损失的线性规划问题（参见 Freund 的 [Fre56]）。对于二阶锥规划的兴趣要晚一些，是从 Nesterov 和 Nemirovski 的 [NN94, \S 6.2.3] 才开始的。关于 SOCPs 理论和应用的综述由 Alizadeh 和 Goldfarb 的 [AG03]，Ben-Tal 和 Nemirovski 的 [BTN01, 第 3 讲]（在那里，问题称为锥二次规划），以及 Lobo、Vandenberghe、Boyd 和 Lebret 的 [LVBL98] 给出。
+
+鲁棒线性规划和广义的鲁棒凸规划，由 Ben-Tal 和 Nemirovski 的 [BTN98, BTN99] 以及 El Ghaoui 和 Lebret 的 [EL97] 提出。Goldfarb 和 Iyengar 的 [GI03a, GI03b] 讨论了鲁棒 QCQPs 及其在投资优化中的应用。El Ghaoui、Oustry 和 Lebret 的 [EOL98] 则关注于鲁棒半定规划。
+
+几何规划问题自 20 世纪 60 年代起为人所知。其在工程设计领域的应用首先由 Duffin、Peterson 和 Zener 的 [DPZ67] 以及 Zener 的 [Zen71] 提出。Peterson 的 [Pet76] 以及 Ecker 的 [Eck80] 描述了七十年代取得的进展。这些文章和书籍包括了应用在工程，特别是在化学和土木工程中的例子。Fishburn 和 Dunlop 的 [FD85]，Sapatnekar、Rao、Vaidya 和 Kang 的 [SRVK93] 以及 Hershenson、Boyd 和 Lee 的 [HBL01] 将几何规划应用于集成电路的设计问题。关于悬臂梁设计的例子（第 156 页）来源于 Vanderplaats [Van84, 第 147 页]。关于 Perron-Frobenius 特征值的不同性质（第 158 页），Berman 和 Plemmons 在 [BP94, 第 31 页] 中给出了证明。
+
+Nesterov 和 Nemirovski 的 [NN94, 第 4 章] 引入了锥形式问题 (4.49) 作为非线性凸优化的标准问题形式。随后 Ben-Tal 和 Nemirovski 的 [BTN01] 发展了锥规划方法，并给出了许多应用。Alizadeh [Ali91] 以及 Nesterov 和 Nemirovski 的 [NN94, \S 6.4] 首次对半定规划进行了系统的研究，并且指出了其在凸优化领域的广泛应用。20 世纪 90 年代半定规划的持续研究受到多方面应用的激励，如组合优化（Goemans 和 Williamson 的 [GW95]），控制（Boyd、El Ghaoui、Feron 和 Balakrishnan 的 [BEFB94]；Scherer、Gahinet 和 Chilali 的 [SGC97]；Dullerud 和 Paganini 的 [DP00]），通信与信号处理（Luo 的 [Luo03]，Davidson、Luo、Wong 和 Ma 的 [DLW00, MDW$^+$02]）以及其他工程领域。由 Wolkowicz、Saigal 和 Vandenberghe 编著的书 [WSV00] 以及 Todd 的 [Tod01]，Lewis 和 Overton 的 [LO96]，Vandenberghe 和 Boyd 的 [VB95] 等文章提供了综述和扩展的文献。关于 SDP 和矩问题的联系，我们在第 163 页给出了一个简单的例子，而 Bertsimas 和 Sethuraman 的 [BS00]，Nesterov 的 [Nes00] 及 Lasserre 的 [Las02] 对其进行了细致的研究。最速混合 Markov 链问题来自于 Boyd、Diaconis 和 Xiao 的 [BDX04]。
+
+多准则问题和 Pareto 最优性是经济学的基础工具，参见 Pareto 的 [Par71]；Debreu 的 [Deb59] 及 Luenberger 的 [Lue95]。例 4.9 的结论被称为 Gauss-Markov 定理而为人所知（Kailath、Sayed 和 Hassibi 的 [KSH00, 第 97 页]）。
+
+\section*{习题}
+
+\noindent\textbf{基本术语与最优性条件}
+
+\noindent\textbf{4.1}\quad 考虑优化问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x_1,x_2)\\
+\mathrm{subject\ to} & 2x_1+x_2\geq 1\\
+& x_1+3x_2\geq 1\\
+& x_1\geq 0,\quad x_2\geq 0.
+\end{array}
+\]
+对其可行集进行概述。对下面的每个目标函数，给出最优集和最优值。
+
+\[
+\text{(a)}\quad f_0(x_1,x_2)=x_1+x_2.
+\]
+\[
+\text{(b)}\quad f_0(x_1,x_2)=-x_1-x_2.
+\]
+\[
+\text{(c)}\quad f_0(x_1,x_2)=x_1.
+\]
+\[
+\text{(d)}\quad f_0(x_1,x_2)=\max\{x_1,x_2\}.
+\]
+\[
+\text{(e)}\quad f_0(x_1,x_2)=x_1^2+9x_2^2.
+\]
+
+\noindent\textbf{4.2\quad 考虑优化问题}
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)=-\sum_{i=1}^m\log(b_i-a_i^Tx),
+\end{array}
+\]
+其定义域为 $\operatorname{dom} f_0=\{x\mid Ax\prec b\}$，其中 $A\in\mathbb{R}^{m\times n}$（其行为 $a_i^T$）。我们假设 $\operatorname{dom} f_0$ 非空。
+
+证明下面的事实（这里包含了第 134 页引用但未证明的结论）。
+
+(a) $\operatorname{dom} f_0$ 无界的充要条件是，存在 $v\neq0$ 满足 $Av\preceq0$。
+
+(b) $f_0$ 下无界的充要条件是，存在 $v$ 及 $Av\preceq0,\ Av\neq0$。提示：存在 $v$ 满足 $Av\preceq0,\ Av\neq0$ 的充要条件是，不存在 $z\succ0$ 使得 $A^Tz=0$。这可由第 45 页例子中的择一定理得到。
+
+(c) 如果 $f_0$ 有下界，那么其极小值可达，即存在 $x$ 满足最优性条件 (4.23)。
+
+(d) 最优集是仿射的：$X_{\mathrm{opt}}=\{x^\star+v\mid Av=0\}$，其中 $x^\star$ 为任意最优解。
+
+\noindent\textbf{4.3}\quad 证明 $x^\star=(1,1/2,-1)$ 是优化问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & (1/2)x^TPx+q^Tx+r\\
+\mathrm{subject\ to} & -1\leq x_i\leq1,\quad i=1,2,3
+\end{array}
+\]
+的最优解，其中
+\[
+P=\begin{bmatrix}
+13 & 12 & -2\\
+12 & 17 & 6\\
+-2 & 6 & 12
+\end{bmatrix},
+\qquad
+q=\begin{bmatrix}
+-22.0\\
+-14.5\\
+13.0
+\end{bmatrix},
+\qquad
+r=1.
+\]
+
+\noindent\textbf{4.4\quad [P. Parrilo] 对称矩阵与凸优化。}\quad 设 $\mathcal{G}=\{Q_1,\ldots,Q_k\}\subseteq\mathbb{R}^{n\times n}$ 为一个群，即在乘积和求逆下封闭。如果对于所有 $x$ 和 $i=1,\ldots,k$，$f(Q_ix)=f(x)$ 都成立，我们称函数 $f:\mathbb{R}^n\to\mathbb{R}$ 是 $\mathcal{G}$-不变或关于 $\mathcal{G}$ 对称。我们定义 $\overline{x}=(1/k)\sum_{i=1}^k Q_ix$，它是 $x$ 在其 $\mathcal{G}$-轨道上的平均值。我们定义 $\mathcal{G}$ 的不变子空间为
+\[
+\mathcal{F}=\{x\mid Q_ix=x,\ i=1,\ldots,k\}.
+\]
+
+(a) 证明对于任意 $x\in\mathbb{R}^n$，我们有 $\overline{x}\in\mathcal{F}$。
+
+(b) 证明如果 $f:\mathbb{R}^n\to\mathbb{R}$ 是凸且为 $\mathcal{G}$-不变的，那么 $f(\overline{x})\leq f(x)$。
+
+(c) 我们称优化问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)\\
+\mathrm{subject\ to} & f_i(x)\leq0,\quad i=1,\ldots,m
+\end{array}
+\]
+为 $\mathcal{G}$-不变，如果目标函数 $f_0$ 是 $\mathcal{G}$-不变的，且可行集是 $\mathcal{G}$-不变的，即对于 $i=1,\ldots,k$ 有
+\[
+f_1(x)\leq0,\ldots,f_m(x)\leq0
+\quad\Longrightarrow\quad
+f_1(Q_ix)\leq0,\ldots,f_m(Q_ix)\leq0.
+\]
+证明如果问题是凸和 $\mathcal{G}$-不变的，且存在最优点，那么在 $\mathcal{F}$ 中存在最优解。换言之，我们可以不失一般性地向问题添加等式约束 $x\in\mathcal{F}$。
+
+(d) 作为一个例子，设 $f$ 是凸并且对称的，即对于每个扰动 $P$ 都有 $f(Px)=f(x)$。证明如果 $f$ 有极小解，那么它有形如 $\alpha\mathbf{1}$ 的极小解。（这意味着为在 $x\in\mathbb{R}^n$ 中极小化 $f$，我们只在 $t\in\mathbb{R}$ 中极小化 $f(t\mathbf{1})$ 即可。）
+
+\noindent\textbf{4.5\quad 等价凸问题。}\quad 说明下列三个凸问题等价。仔细解释每个问题的解如何从其他问题的解得到。问题数据为矩阵 $A\in\mathbb{R}^{m\times n}$（行为 $a_i^T$），向量 $b\in\mathbb{R}^m$ 和常数 $M>0$。
+
+(a) 鲁棒最小二乘问题
+\[
+\mathop{\mathrm{minimize}}\quad \sum_{i=1}^m\phi(a_i^Tx-b_i),
+\]
+其变量为 $x\in\mathbb{R}^n$，其中 $\phi:\mathbb{R}\to\mathbb{R}$ 定义为
+\[
+\phi(u)=
+\begin{cases}
+u^2 & |u|\leq M\\
+M(2|u|-M) & |u|>M.
+\end{cases}
+\]
+（这个函数被称为 Huber 罚函数而为人所知，参见 \S6.1.2。）
+
+(b) 变权重最小二乘问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \displaystyle\sum_{i=1}^m(a_i^Tx-b_i)^2/(w_i+1)+M^2\mathbf{1}^Tw\\
+\mathrm{subject\ to} & w\succeq0,
+\end{array}
+\]
+其变量为 $x\in\mathbb{R}^n$ 和 $w\in\mathbb{R}^m$，定义域为 $D=\{(x,w)\in\mathbb{R}^n\times\mathbb{R}^m\mid w\succ-\mathbf{1}\}$。
+
+提示：假设 $x$ 固定，优化 $w$ 以建立与问题 (a) 的关系。
+
+（这个问题可以解释为加权最小二乘问题，其第 $i$ 个残差的权重可以调整。如果 $w_i=0$，其权为一，并随着 $w_i$ 的增加而减小。目标函数的第二项惩罚了较大的 $w$ 值，即对权值的大的调整量。）
+
+(c) 二次规划
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \displaystyle\sum_{i=1}^m(u_i^2+2Mv_i)\\
+\mathrm{subject\ to} & -u-v\preceq Ax-b\preceq u+v\\
+& 0\preceq u\preceq M\mathbf{1}\\
+& v\succeq0.
+\end{array}
+\]
+
+\noindent\textbf{4.6\quad 处理凸等式约束。}\quad 凸优化问题只能含有线性等式约束函数。但是，在一些特殊的情况下，有可能处理凸等式约束函数，即具有 $h(x)=0$ 形式的约束，其中 $h$ 是凸的。我们将在这个问题中研究这一思想。
+
+考虑优化问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)\\
+\mathrm{subject\ to} & f_i(x)\leq0,\quad i=1,\ldots,m\\
+& h(x)=0,
+\end{array}
+\tag{4.65}
+\]
+其中 $f_i$ 和 $h$ 是定义域为 $\mathbb{R}^n$ 的凸函数。除非 $h$ 是仿射的，这不是一个凸优化问题。考虑相关的问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)\\
+\mathrm{subject\ to} & f_i(x)\leq0,\quad i=1,\ldots,m,\\
+& h(x)\leq0,
+\end{array}
+\tag{4.66}
+\]
+其中，凸等式约束已经被放松为凸不等式。当然，这个问题是凸的。
+
+假设我们可以保证凸问题 (4.66) 的任意最优解 $x^\star$ 都有 $h(x^\star)=0$，即不等式 $h(x)\leq0$ 在解处总是起作用的。那么，我们可以通过求解凸问题 (4.66) 来求解（非凸）问题 (4.65)。
+
+说明下标 $r$ 满足
+\[
+\begin{array}{l}
+\bullet\quad f_0\text{ 关于 }x_r\text{ 单调递增}\\
+\bullet\quad f_1,\ldots,f_m\text{ 关于 }x_r\text{ 非减}\\
+\bullet\quad h\text{ 关于 }x_r\text{ 单调递减}
+\end{array}
+\]
+时，就会发生这种情况。我们将在习题 4.31 和习题 4.58 中看到具体的例子。
+
+\noindent\textbf{4.7\quad 凸-凹分式问题。}\quad 考虑具有下面形式的问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)/(c^Tx+d)\\
+\mathrm{subject\ to} & f_i(x)\leq0,\quad i=1,\ldots,m\\
+& Ax=b,
+\end{array}
+\]
+其中 $f_0,f_1,\ldots,f_m$ 为凸，而目标函数的定义域为 $\{x\in\operatorname{dom} f_0\mid c^Tx+d>0\}$。
+
+(a) 证明这是一个拟凸优化问题。
+
+(b) 证明这个问题等价于
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & g_0(y,t)\\
+\mathrm{subject\ to} & g_i(y,t)\leq0,\quad i=1,\ldots,m\\
+& Ay=bt\\
+& c^Ty+dt=1,
+\end{array}
+\]
+其中 $g_i$ 是 $f_i$ 的透视（参见 \S2.2.6）。其变量是 $y\in\mathbb{R}^n$ 和 $t\in\mathbb{R}$。说明这个问题是凸的。
+
+(c) 通过类似的讨论，导出下面的凸-凹分式问题的凸形式，
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)/h(x)\\
+\mathrm{subject\ to} & f_i(x)\leq0,\quad i=1,\ldots,m\\
+& Ax=b,
+\end{array}
+\]
+其中，$f_0,f_1,\ldots,f_m$ 是凸的，$h$ 是凹的，且目标函数的定义域为 $\{x\in\operatorname{dom} f_0\cap\operatorname{dom} h\mid h(x)>0\}$，并且在各处都有 $f_0(x)\geq0$。
+
+作为一个例子，将你的技术应用于（无约束）问题
+\[
+f_0(x)=(\operatorname{tr}F(x))/m,\qquad h(x)=\det(F(x))^{1/m},
+\]
+其定义域为 $\operatorname{dom}(f_0/h)=\{x\mid F(x)\succ0\}$，其中，$F(x)=F_0+x_1F_1+\cdots+x_nF_n$，这里 $F_i\in\mathbb{S}^m$ 给定。在这个问题中，我们极小化仿射矩阵函数 $F(x)$ 的特征值的算术平均与几何平均的比值。
+
+\noindent\textbf{线性优化问题}
+
+\noindent\textbf{4.8\quad 一些简单的线性规划。}\quad 给出下面每个线性规划 (LP) 的显式解。
+
+(a) 在仿射集合上极小化线性函数。
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & Ax=b.
+\end{array}
+\]
+
+(b) 在半空间上极小化线性函数。
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & a^Tx\leq b,
+\end{array}
+\]
+其中 $a\neq0$。
+
+(c) 在矩形上极小化线性函数。
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & l\preceq x\preceq u,
+\end{array}
+\]
+其中，$l$ 和 $u$ 满足 $l\preceq u$。
+
+(d) 在概率单纯形上极小化线性函数。
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & \mathbf{1}^Tx=1,\quad x\succeq0.
+\end{array}
+\]
+当等式约束被替换为不等式 $\mathbf{1}^Tx\leq1$ 时，会有什么变化？
+
+我们可以将这个 LP 理解为简单的投资组合优化问题。向量 $x$ 表示总预算在不同资产上的配额，$x_i$ 表示投资资产 $i$ 的比例。每个投资的收益率 $-c_i$ 是固定和给定的，所以我们的总收益（我们希望极大化它）为 $-c^Tx$。如果我们将预算约束 $\mathbf{1}^Tx=1$ 替换为 $\mathbf{1}^Tx\leq1$，那么，我们有一个选项，对总预算中的一部分不进行投资。
+
+(e) 总预算约束下在单位框中极小化线性函数。
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & \mathbf{1}^Tx=\alpha,\quad 0\preceq x\preceq\mathbf{1},
+\end{array}
+\]
+其中，$\alpha$ 是 $0$ 和 $n$ 之间的一个整数。如果 $\alpha$ 不是整数（但满足 $0\leq\alpha\leq n$）将发生什么？如果我们将等式变为不等式 $\mathbf{1}^Tx\leq\alpha$ 将发生什么？
+
+(f) 加权预算约束下在单位框上极小化线性函数。
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & d^Tx=\alpha,\quad 0\preceq x\preceq\mathbf{1},
+\end{array}
+\]
+其中 $d\succ0,\ 0\leq\alpha\leq\mathbf{1}^Td$。
+
+\noindent\textbf{4.9\quad 正方 LP。}\quad 考虑线性规划
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & Ax\preceq b,
+\end{array}
+\]
+其中 $A$ 是方阵且不奇异。说明其最优值由
+\[
+p^\star=
+\begin{cases}
+c^TA^{-1}b & A^{-T}c\preceq0\\
+-\infty & \text{其他情况}
+\end{cases}
+\]
+给出。
+
+\noindent\textbf{4.10\quad 一般线性规划向标准形式的转换。}\quad 仔细完成 \S4.3 中第 140 页的例子。详细解释标准形式 LP 和原 LP 之间可行集、最优解、最优值之间的关系。
+
+\noindent\textbf{4.11\quad 涉及 $\ell_1$-和 $\ell_\infty$-范数的问题。}\quad 将下面的问题建模为线性规划。详细解释每个问题的最优解与等价的线性规划解之间的关系。
+
+(a) 极小化 $\|Ax-b\|_\infty$（$\ell_\infty$-范数逼近）。
+
+(b) 极小化 $\|Ax-b\|_1$（$\ell_1$-范数逼近）。
+
+(c) 在 $\|x\|_\infty\leq1$ 约束下极小化 $\|Ax-b\|_1$。
+
+(d) 在 $\|Ax-b\|_\infty\leq1$ 约束下极小化 $\|x\|_1$。
+
+(e) 极小化 $\|Ax-b\|_1+\|x\|_\infty$。
+
+在每个问题中，$A\in\mathbb{R}^{m\times n}$ 和 $b\in\mathbb{R}^m$ 是给定的。（更多关于逼近和约束下逼近的问题，参见 \S6.1。）
+
+\noindent\textbf{4.12\quad 网络流问题。}\quad 考虑 $n$ 个结点的网络，每对结点间由有向边相联系。问题的变量为每个边上的流量：$x_{ij}$ 表示从结点 $i$ 到结点 $j$ 的流量。从结点 $i$ 到结点 $j$ 的边上的流量的费用由 $c_{ij}x_{ij}$ 给出，其中 $c_{ij}$ 为给定的常数。整个网络总费用为
+\[
+C=\sum_{i,j=1}^n c_{ij}x_{ij}.
+\]
+每个边流量 $x_{ij}$ 同时受给定下界 $l_{ij}$（通常假设为非负）和上界 $u_{ij}$ 的约束。
+
+结点 $i$ 处的外部供给由 $b_i$ 给出，这里，$b_i>0$ 意味着外部流从结点 $i$ 进入网络，$b_i<0$ 意味着 $|b_i|$ 的流量从结点 $i$ 流出网络。我们假设 $\mathbf{1}^Tb=0$，即总外部供给等于总外部需求。每个结点流量守恒：沿着边进入结点 $i$ 的总流量及外部供给之和，减去流出边的总流量，等于零。
+
+问题是在满足上述约束下，极小化穿过网络的流量的总费用。将这个问题建模为一个线性规划。
+
+\noindent\textbf{4.13\quad 考虑区间系数的鲁棒线性规划。}\quad 考虑关于变量 $x\in\mathbb{R}^n$ 的问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & Ax\preceq b,\quad \forall A\in\mathcal{A},
+\end{array}
+\]
+其中 $\mathcal{A}\subseteq\mathbb{R}^{m\times n}$ 为集合
+\[
+\mathcal{A}=\{A\in\mathbb{R}^{m\times n}\mid \overline{A}_{ij}-V_{ij}\leq A_{ij}\leq\overline{A}_{ij}+V_{ij},\ i=1,\ldots,m,\ j=1,\ldots,n\}.
+\]
+（矩阵 $\overline{A}$ 和 $V$ 已知。）这个问题可以解释为一个线性规划，但只知道 $A$ 的每个系数落入一个区间，我们要求对于所有可能的系数值，$x$ 都必须满足约束。
+
+将这个问题表示为线性规划。你构造的 LP 应该是有效的，即其维数不应关于 $n$ 或 $m$ 指数增长。
+
+\noindent\textbf{4.14\quad 无穷范数下对矩阵的逼近。}\quad 由 $\ell_\infty$-导出的矩阵 $A\in\mathbb{R}^{m\times n}$ 的范数记为 $\|A\|_\infty$，由
+\[
+\|A\|_\infty=\sup_{x\neq0}\frac{\|Ax\|_\infty}{\|x\|_\infty}=\max_{i=1,\ldots,m}\sum_{j=1}^n |a_{ij}|
+\]
+给出。出于显然的原因，这个范数有时也被称为最大行和范数（参见 \S A.1.5）。
+
+考虑在最大行和范数下，用矩阵的线性组合逼近矩阵的问题。也就是给定 $k+1$ 个矩阵 $A_0,\ldots,A_k\in\mathbb{R}^{m\times n}$，寻找 $x\in\mathbb{R}^k$ 以极小化
+\[
+\|A_0+x_1A_1+\cdots+x_kA_k\|_\infty.
+\]
+将这个问题表述为线性规划。解释你的 LP 中每个附加变量的意义。仔细解释你的线性规划如何求解这个问题，例如，你的可行集与原问题可行集之间有何关系？
+
+\noindent\textbf{4.15\quad Boolean 线性规划的松弛。}\quad 在 Boolean 线性规划中，变量 $x$ 被限制为含有等于 0 或 1 的分量：
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & Ax\preceq b\\
+& x_i\in\{0,1\},\quad i=1,\ldots,n.
+\end{array}
+\tag{4.67}
+\]
+一般地，这类问题非常难以求解，虽然其可行集是有限的（包含至多 $2^n$ 个点）。
+
+在一般的被称为松弛的方法中，$x_i$ 为 0 或 1 的约束被替换为线性不等式 $0\leq x_i\leq1$：
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & Ax\preceq b\\
+& 0\leq x_i\leq1,\quad i=1,\ldots,n.
+\end{array}
+\tag{4.68}
+\]
+我们称这一问题为 Boolean 线性规划 (4.67) 的线性规划松弛。LP 松弛远比原 Boolean 线性规划易于求解。
+
+(a) 证明 LP 松弛 (4.68) 的最优值是 Boolean 线性规划 (4.67) 最优值的一个下界。如果线性规划松弛是不可行的，我们能够得到什么关于 Boolean 线性规划的结论？
+
+(b) 某些时候，会发生 LP 松弛的解满足 $x_i\in\{0,1\}$ 的情况。对于这种情况，你有什么结论？
+
+\noindent\textbf{4.16\quad 最少燃料最优控制。}\quad 考虑具有状态 $x(t)\in\mathbb{R}^n,\ t=0,\ldots,N$ 的线性动态系统，其执行器或输入信号为 $u(t)\in\mathbb{R},\ t=0,\ldots,N-1$。系统的动态特性由线性递归
+\[
+x(t+1)=Ax(t)+bu(t),\quad t=0,\ldots,N-1
+\]
+给出，其中 $A\in\mathbb{R}^{n\times n}$ 和 $b\in\mathbb{R}^n$ 已知。我们假设初始状态为零，即 $x(0)=0$。最少燃料最优控制问题是选择输入 $u(0),\ldots,u(N-1)$ 以极小化由
+\[
+F=\sum_{t=0}^{N-1} f(u(t)),
+\]
+给出的总消耗燃料。同时需要满足约束 $x(N)=x_{\mathrm{des}}$，其中 $N$ 为（给定的）时间长度，$x_{\mathrm{des}}\in\mathbb{R}^n$ 为（给定的）需要的最终结果或目标状态。函数 $f:\mathbb{R}\to\mathbb{R}$ 为执行器的燃料消耗图，用执行器信号幅度的函数给出了燃料消耗量。在这个问题中，我们使用
+\[
+f(a)=
+\begin{cases}
+|a| & |a|\leq1\\
+2|a|-1 & |a|>1.
+\end{cases}
+\]
+这意味着，对于处于 $-1$ 和 $1$ 之间的信号，燃料消耗正比于执行器信号的绝对值；对于更大的执行器信号，燃料的边际效率减半。
+
+将最少燃料最优控制问题建模为一个线性规划。
+
+\noindent\textbf{4.17\quad 最优活动水平。}\quad 考虑 $n$ 种非负活动水平，记为 $x_1,\ldots,x_n$。这些活动消耗 $m$ 种有限的资源。活动 $j$ 消耗数量为 $A_{ij}x_j$ 的资源 $i$，这里 $A_{ij}$ 给定。总资源消耗是加性的，所以消耗的资源 $i$ 的总量为 $c_i=\sum_{j=1}^n A_{ij}x_j$。（通常，我们有 $A_{ij}>0$，即活动 $j$ 消耗资源 $i$。但是，我们也允许 $A_{ij}<0$ 的可能，这意味着活动 $j$ 事实上产生了资源 $i$ 作为副产品。）每种资源的消耗是有限制的：我们必须有 $c_i\leq c_i^{\max}$，其中 $c_i^{\max}$ 给定。每个活动产生收益，它是活动水平的分片线性凹函数
+\[
+r_j(x_j)=
+\begin{cases}
+p_jx_j & 0\leq x_j\leq q_j\\
+p_jq_j+p_j^{\mathrm{disc}}(x_j-q_j) & x_j\geq q_j.
+\end{cases}
+\]
+这里 $p_j>0$ 是活动 $j$（生产的产品）的基本价格，$q_j>0$ 为折扣数量水平，$p_j^{\mathrm{disc}}$ 为折扣价格。（我们有 $0<p_j^{\mathrm{disc}}<p_j$。）总收益是关于每个活动的收益之和，即 $\sum_{j=1}^n r_j(x_j)$。目标是选择活动水平，在考虑资源限制情况下，极大化总收益。说明如何将这个问题建模为线性规划。
+
+\noindent\textbf{4.18\quad 分离超平面与球面。}\quad 设给定 $\mathbb{R}^n$ 中的两个点集 $\{v^1,v^2,\ldots,v^K\}$ 和 $\{w^1,w^2,\ldots,w^L\}$。将下面两个问题建模为线性规划可行性问题。
+
+(a) 确定分离两个集合的超平面，即寻找 $a\in\mathbb{R}^n\ (a\neq0)$ 和 $b\in\mathbb{R}$，使得
+\[
+a^Tv^i\leq b,\quad i=1,\ldots,K,\qquad a^Tw^i\geq b,\quad i=1,\ldots,L.
+\]
+注意，我们要求 $a\neq0$，所以你需要确定你的式子排除了平凡解 $a=0,\ b=0$。你可以假设
+\[
+\operatorname{rank}\begin{bmatrix}
+v^1 & v^2 & \cdots & v^K & w^1 & w^2 & \cdots & w^L\\
+1 & 1 & \cdots & 1 & 1 & 1 & \cdots & 1
+\end{bmatrix}=n+1
+\]
+（即 $K+L$ 个点的仿射包具有维数 $n$）。
+
+(b) 确定分离两个集合的球面，即寻找 $x_c\in\mathbb{R}^n$ 和 $R\geq0$ 使得
+\[
+\|v^i-x_c\|_2\leq R,\quad i=1,\ldots,K,\qquad \|w^i-x_c\|_2\geq R,\quad i=1,\ldots,L.
+\]
+（这里 $x_c$ 为球的中心；$R$ 为其半径。）
+
+（更多分离超平面、分离球及其相关话题，参见第 8 章。）
+
+\noindent\textbf{4.19\quad 考虑问题}
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \|Ax-b\|_1/(c^Tx+d)\\
+\mathrm{subject\ to} & \|x\|_\infty\leq1,
+\end{array}
+\]
+其中 $A\in\mathbb{R}^{m\times n},\ b\in\mathbb{R}^m,\ c\in\mathbb{R}^n,\ d\in\mathbb{R}$。我们假设 $d>\|c\|_1$，这表明对于所有可行的 $x$ 有 $c^Tx+d>0$。
+
+(a) 证明它是一个拟凸优化问题。
+
+(b) 证明它等价于凸优化问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \|Ay-bt\|_1\\
+\mathrm{subject\ to} & \|y\|_\infty\leq t\\
+& c^Ty+dt=1,
+\end{array}
+\]
+其变量为 $y\in\mathbb{R}^n,\ t\in\mathbb{R}$。
+
+\noindent\textbf{4.20\quad 无线通讯系统的功率配置。}\quad 考虑将 $n$ 个发射器的功率 $p_1,\ldots,p_n\geq0$ 传递给 $n$ 个接收器。这些功率是问题的优化变量。我们用 $G\in\mathbb{R}^{n\times n}$ 表示从发射器到接收器的路径增益矩阵：$G_{ij}\geq0$ 为从发射器 $j$ 到接收器 $i$ 的路径增益。于是，在接收器 $i$ 处的信号功率为 $S_i=G_{ii}p_i$，而在接收器 $i$ 处的干扰功率为 $I_i=\sum_{k\neq i}G_{ik}p_k$。在接收器 $i$ 处的信号-干扰加噪声比由 $S_i/(I_i+\sigma_i)$ 给出，记为 SINR，其中 $\sigma_i>0$ 为接收器 $i$ 的（自有）噪声功率。这个问题的目标是极大化所有接收器中最小的 SINR 比例，即最大化
+\[
+\min_{i=1,\ldots,n}\frac{S_i}{I_i+\sigma_i}.
+\]
+除了显然的约束 $p_i\geq0$，还有很多对于功率的约束需要满足。首先是每个发射器的最大允许功率，即 $p_i\leq P_i^{\max}$，其中 $P_i^{\max}>0$ 给定。另外，发射器被分为几组，每组共用相同的电源，因此，对于每组发射器的功率之和存在限制。更精确地，我们有 $\{1,\ldots,n\}$ 的子集 $K_1,\ldots,K_m$，满足 $K_1\cup\cdots\cup K_m=\{1,\ldots,n\}$ 并且如果 $j\neq l$，那么 $K_j\cap K_l=\emptyset$。对于每组 $K_l$，相关的发射器的总功率不能超过 $P_l^{\mathrm{gp}}>0$：
+\[
+\sum_{k\in K_l}p_k\leq P_l^{\mathrm{gp}},\quad l=1,\ldots,m.
+\]
+最后，对每个接收器的总接收功率有限制 $P_i^{\mathrm{rc}}>0$：
+\[
+\sum_{k=1}^n G_{ik}p_k\leq P_i^{\mathrm{rc}},\quad i=1,\ldots,n.
+\]
+（这一约束反映了接收器在总接收功率过大的情况下会饱和的事实。）
+
+将 SINR 最大化问题建模为广义的线性分式规划。
+
+\noindent\textbf{二次优化问题}
+
+\noindent\textbf{4.21\quad 一些简单的 QCQP。}\quad 对下面的二次约束二次规划 (QCQP)，给出显式解。
+
+(a) 在以原点为中心的椭球上极小化线性函数。
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & x^TAx\leq1,
+\end{array}
+\]
+其中 $A\in\mathbb{S}_{++}^n,\ c\neq0$。如果问题不是凸的（$A\notin\mathbb{S}_+^n$），其解是什么？
+
+(b) 在椭球上极小化线性函数。
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & (x-x_c)^TA(x-x_c)\leq1,
+\end{array}
+\]
+其中 $A\in\mathbb{S}_{++}^n$ 而 $c\neq0$。
+
+(c) 在以原点为中心的椭球上极小化二次型。
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & x^TBx\\
+\mathrm{subject\ to} & x^TAx\leq1,
+\end{array}
+\]
+其中 $A\in\mathbb{S}_{++}^n,\ B\in\mathbb{S}_+^n$。同时，也请考虑 $B\notin\mathbb{S}_+^n$ 时的非凸扩展问题。（参见 \S B.1.8。）
+
+\noindent\textbf{4.22\quad 考虑 QCQP}
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & (1/2)x^TPx+q^Tx+r\\
+\mathrm{subject\ to} & x^Tx\leq1,
+\end{array}
+\]
+其中 $P\in\mathbb{S}_{++}^n$。说明 $x^\star=-(P+\lambda I)^{-1}q$，其中 $\lambda=\max\{0,\overline{\lambda}\}$；$\overline{\lambda}$ 为非线性不等式
+\[
+q^T(P+\lambda I)^{-2}q=1
+\]
+的最大解。
+
+\noindent\textbf{4.23\quad 通过 QCQP 的 $\ell_4$-范数逼近。}\quad 将 $\ell_4$-范数逼近问题
+\[
+\mathop{\mathrm{minimize}}\quad \|Ax-b\|_4=\left(\sum_{i=1}^m(a_i^Tx-b_i)^4\right)^{1/4}
+\]
+建模为一个 QCQP。矩阵 $A\in\mathbb{R}^{m\times n}$（行向量为 $a_i^T$）及向量 $b\in\mathbb{R}^m$ 给定。
+
+\noindent\textbf{4.24\quad 复 $\ell_1$-, $\ell_2$- 和 $\ell_\infty$-范数逼近。}\quad 考虑问题
+\[
+\mathop{\mathrm{minimize}}\quad \|Ax-b\|_p,
+\]
+其中 $A\in\mathbb{C}^{m\times n},\ b\in\mathbb{C}^m$，而变量为 $x\in\mathbb{C}^n$。对于 $p\geq1$，复 $\ell_p$-范数定义为
+\[
+\|y\|_p=\left(\sum_{i=1}^m |y_i|^p\right)^{1/p},
+\]
+而 $\|y\|_\infty=\max_{i=1,\ldots,m}|y_i|$。对于 $p=1,2$ 和 $\infty$，将复 $\ell_p$-范数逼近问题表示为关于实变量和实数据的 QCQP 或二阶锥规划 (SOCP)。
+
+\noindent\textbf{4.25\quad 两个椭球集合的线性分离。}\quad 设给定 $K+L$ 个椭球
+\[
+\mathcal{E}_i=\{P_iu+q_i\mid \|u\|_2\leq1\},\quad i=1,\ldots,K+L,
+\]
+其中 $P_i\in\mathbb{S}^n$。我们有兴趣找到一个超平面，将 $\mathcal{E}_1,\ldots,\mathcal{E}_K$ 与 $\mathcal{E}_{K+1},\ldots,\mathcal{E}_{K+L}$ 严格分离开来，即我们希望计算得到 $a\in\mathbb{R}^n,\ b\in\mathbb{R}$ 使得
+\[
+a^Tx+b>0\text{ 对于 }x\in\mathcal{E}_1\cup\cdots\cup\mathcal{E}_K,\qquad
+a^Tx+b<0\text{ 对于 }x\in\mathcal{E}_{K+1}\cup\cdots\cup\mathcal{E}_{K+L},
+\]
+或者证明不存在这样的超平面。将这个问题表述为一个 SOCP 可行性问题。
+
+\noindent\textbf{4.26\quad 作为二阶锥约束的双曲约束。}\quad 验证 $x\in\mathbb{R}^n,\ y,z\in\mathbb{R}$ 满足
+\[
+x^Tx\leq yz,\quad y\geq0,\quad z\geq0
+\]
+的充要条件是：
+\[
+\left\|\begin{bmatrix}2x\\ y-z\end{bmatrix}\right\|_2\leq y+z,\quad y\geq0,\quad z\geq0.
+\]
+利用这个结果，将下列问题表示为 SOCP。
+
+(a) 极大化调和平均。
+\[
+\mathop{\mathrm{maximize}}\quad \left(\sum_{i=1}^m 1/(a_i^Tx-b_i)\right)^{-1},
+\]
+其中 $a_i^T$ 为 $A$ 的第 $i$ 行，而定义域为 $\{x\mid Ax\succ b\}$。
+
+(b) 极大化几何平均。
+\[
+\mathop{\mathrm{maximize}}\quad \left(\prod_{i=1}^m(a_i^Tx-b_i)\right)^{1/m},
+\]
+其中 $a_i^T$ 为 $A$ 的第 $i$ 行，而定义域为 $\{x\mid Ax\succ b\}$。
+
+\noindent\textbf{4.27\quad 利用 SOCP 进行矩阵分式极小化。}\quad 将下面关于变量 $x\in\mathbb{R}^n$ 的问题表示为 SOCP：
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & (Ax+b)^T(I+B\operatorname{diag}(x)B^T)^{-1}(Ax+b)\\
+\mathrm{subject\ to} & x\succeq0,
+\end{array}
+\]
+其中 $A\in\mathbb{R}^{m\times n},\ b\in\mathbb{R}^m,\ B\in\mathbb{R}^{m\times n}$。
+
+提示：首先说明该问题等价于
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & v^Tv+w^T\operatorname{diag}(x)^{-1}w\\
+\mathrm{subject\ to} & v+Bw=Ax+b\\
+& x\succeq0,
+\end{array}
+\]
+其变量为 $v\in\mathbb{R}^m,\ w,x\in\mathbb{R}^n$。（如果 $x_i=0$，当 $w_i=0$ 时我们将 $w_i^2/x_i$ 解释为 0，其他情况视其为 $\infty$。）然后利用习题 4.26 的结果。
+
+\noindent\textbf{4.28\quad 鲁棒二次规划。}\quad 在 \S4.4.2 中，我们将鲁棒线性规划作为二阶锥规划的应用进行了讨论。在这个问题中，我们将考虑（凸）二次规划 (QP)
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & (1/2)x^TPx+q^Tx+r\\
+\mathrm{subject\ to} & Ax\preceq b
+\end{array}
+\]
+的类似的鲁棒变形。为简单起见，我们假设只有 $P$ 受到误差影响，而其他参数 $(q,r,A,b)$ 确切已知。鲁棒二次规划定义为
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \sup_{P\in\mathcal{E}}\left((1/2)x^TPx+q^Tx+r\right)\\
+\mathrm{subject\ to} & Ax\preceq b,
+\end{array}
+\]
+其中 $\mathcal{E}$ 为 $P$ 的可能矩阵的集合。
+
+对于下面每种集合 $\mathcal{E}$，将鲁棒 QP 表述为一个凸问题。尽可能详细。如果可以的话，将问题表述为标准形式（例如，QP, QCQP, SOCP, SDP）。
+
+(a) 有限个矩阵的集合：$\mathcal{E}=\{P_1,\ldots,P_K\}$，其中 $P_i\in\mathbb{S}_+^n,\ i=1,\ldots,K$。
+
+(b) 由名义值 $P_0\in\mathbb{S}_+^n$ 和偏差 $P-P_0$ 的特征值的界所给定的集合：
+\[
+\mathcal{E}=\{P\in\mathbb{S}^n\mid -\gamma I\preceq P-P_0\preceq\gamma I\},
+\]
+其中 $\gamma\in\mathbb{R},\ P_0\in\mathbb{S}_+^n$。
+
+(c) 矩阵的椭圆：
+\[
+\mathcal{E}=\left\{P_0+\sum_{i=1}^K P_iu_i\mid \|u\|_2\leq1\right\}.
+\]
+你可以假设 $P_i\in\mathbb{S}_+^n,\ i=0,\ldots,K$。
+
+\noindent\textbf{4.29\quad 极大化满足线性不等式的概率。}\quad 令 $c$ 为 $\mathbb{R}^n$ 中的一个随机变量，服从以 $\overline{c}$ 为均值，以 $R$ 为协方差矩阵的正态分布。考虑问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{maximize}} & \operatorname{prob}(c^Tx\geq\alpha)\\
+\mathrm{subject\ to} & Fx\preceq g,\quad Ax=b.
+\end{array}
+\]
+假设存在可行解 $\overline{x}$ 使得 $\overline{c}^T\overline{x}\geq\alpha$。说明这个问题等价于一个凸或拟凸优化问题。（如果问题是凸的）将其建模为 QP, QCQP 或 SOCP；（如果问题是拟凸的）解释该问题如何通过一系列 QP, QCQP 或 SOCP 可行性问题得到求解。
+
+\noindent\textbf{几何规划}
+
+\noindent\textbf{4.30}\quad 加热到 $T$（高于环境温度）的流体在长度固定、截面半径为 $r$ 的圆形管道中流动。管道外有一层厚度 $w\ll r$ 的绝热涂层以减少透过管壁的热损失。这个问题的设计变量为 $T,\ r$ 和 $w$。
+
+热量损失（近似）正比于 $Tr/w$，所以在固定的使用期限内，由热量损失带来的能量损耗由 $\alpha_1Tr/w$ 给出。具有固定管壁厚度的管道的成本近似正比于总材料，由 $\alpha_2r$ 给出。涂层的成本也近似正比于总的涂料，即 $\alpha_3rw$（利用 $w\ll r$）。总成本是这三种成本之和。
+
+管道中流过的热量完全取决于流体的流量（流体具有固定的流度），由 $\alpha_4Tr^2$ 给出。如同变量 $T,\ r$ 和 $w$ 一样，常数 $\alpha_i$ 为正。
+
+现在的问题是：在总成本限制 $C_{\max}$ 和约束
+\[
+T_{\min}\leq T\leq T_{\max},\quad r_{\min}\leq r\leq r_{\max},\quad w_{\min}\leq w\leq w_{\max},\quad w\leq0.1r
+\]
+下，极大化管道运输的总热量。将这个问题表示为一个几何规划 (GP)。
+
+\noindent\textbf{4.31\quad 最佳梁设计问题的递归形式。}\quad 证明 GP (4.46) 等价于 GP
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \displaystyle\sum_{i=1}^N w_ih_i\\
+\mathrm{subject\ to} & w_i/w_{\max}\leq1,\quad w_{\min}/w_i\leq1,\quad i=1,\ldots,N\\
+& h_i/h_{\max}\leq1,\quad h_{\min}/h_i\leq1,\quad i=1,\ldots,N\\
+& h_i/(w_iS_{\max})\leq1,\quad S_{\min}w_i/h_i\leq1,\quad i=1,\ldots,N\\
+& 6iF/(\sigma_{\max}w_ih_i^2)\leq1,\quad i=1,\ldots,N\\
+& (2i-1)d_i/v_i+v_{i+1}/v_i\leq1,\quad i=1,\ldots,N\\
+& (i-1/3)d_i/y_i+v_{i+1}/y_i+y_{i+1}/y_i\leq1,\quad i=1,\ldots,N\\
+& y_1/y_{\max}\leq1\\
+& Ew_ih_i^3d_i/(6F)=1,\quad i=1,\ldots,N,
+\end{array}
+\]
+其变量为 $w_i,h_i,v_i,d_i,y_i,\ i=1,\ldots,N$。
+
+\noindent\textbf{4.32\quad 函数的单项式逼近。}\quad 设函数 $f:\mathbb{R}^n\to\mathbb{R}$ 在 $x_0\succ0$ 处可微且 $f(x_0)>0$。你如何寻找一个单项式函数 $\hat f:\mathbb{R}^n\to\mathbb{R}$，使得 $f(x_0)=\hat f(x_0)$ 并且对于 $x_0$ 附近的 $x$，$\hat f(x)$ 非常接近 $f(x)$？
+
+\noindent\textbf{4.33\quad 将下面的问题表示为凸优化问题。}
+
+(a) 极小化 $\max\{p(x),q(x)\}$，其中 $p$ 和 $q$ 为正项式。
+
+(b) 极小化 $\exp(p(x))+\exp(q(x))$，其中 $p$ 和 $q$ 为正项式。
+
+(c) 在 $r(x)>q(x)$ 的约束下极小化 $p(x)/(r(x)-q(x))$，其中 $p$ 和 $q$ 为正项式，$r$ 为单项式。
+
+\noindent\textbf{4.34\quad Perron-Frobenius 特征值的对数凸性。}\quad 令 $A\in\mathbb{R}^{n\times n}$ 是一个元素为正的矩阵，即 $A_{ij}>0$。（这个问题的结论对不可约的非负矩阵也成立。）用 $\lambda_{\mathrm{pf}}(A)$ 表示其 Perron-Frobenius 特征值，即具有最大幅度的特征值。（定义和例子参见第 158 页。）说明 $\log\lambda_{\mathrm{pf}}(A)$ 是关于 $\log A_{ij}$ 的凸函数。这意味着，例如，我们有不等式
+\[
+\lambda_{\mathrm{pf}}(C)\leq(\lambda_{\mathrm{pf}}(A)\lambda_{\mathrm{pf}}(B))^{1/2},
+\]
+其中 $C_{ij}=(A_{ij}B_{ij})^{1/2}$，$A$ 和 $B$ 均为元素为正的矩阵。
+
+提示：利用 (4.47) 中 Perron-Frobenius 特征值的性质，或者，利用性质
+\[
+\log\lambda_{\mathrm{pf}}(A)=\lim_{k\to\infty}(1/k)\log(\mathbf{1}^TA^k\mathbf{1}).
+\]
+
+\noindent\textbf{4.35\quad 符号式与几何规划。}\quad 符号式是一些正变量 $x_1,\ldots,x_n$ 的单项式的线性组合。符号式比正项式更为广泛一些，正项式是系数全部为正的符号式。符号式规划是形如
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)\\
+\mathrm{subject\ to} & f_i(x)\leq0,\quad i=1,\ldots,m\\
+& h_i(x)=0,\quad i=1,\ldots,p
+\end{array}
+\]
+的优化问题，其中 $f_0,\ldots,f_m$ 和 $h_1,\ldots,h_p$ 均为符号式。一般地，符号式规划非常难以求解。
+
+一些符号式规划可以被转化为 GP，因此可以得到有效求解。说明如何对下面形式的符号式规划做到这一点：
+\[
+\begin{array}{l}
+\bullet\quad \text{目标符号式 }f_0\text{ 是一个正项式，即它只含有系数为正的项。}\\
+\bullet\quad \text{每个不等式约束符号式 }f_1,\ldots,f_m\text{ 只含有一个系数为负的项：}f_i=p_i-q_i,\text{ 其中 }p_i\text{ 为正项式，而 }q_i\text{ 为单项式。}\\
+\bullet\quad \text{每个等式约束符号式 }h_1,\ldots,h_p\text{ 含有一个系数为正的项和一个系数为负的项：}h_i=r_i-s_i\text{ 其中 }r_i\text{ 和 }s_i\text{ 为单项式。}
+\end{array}
+\]
+
+\noindent\textbf{4.36}\quad 解释如何将一般的 GP 重构为一个等价的 GP，使其（目标和约束中的）每一个正项式含有至多两个单项式项。提示：将（单项式的）和表示为单项式两两相加的和。
+
+\noindent\textbf{4.37\quad 广义正项式与几何规划。}\quad 令 $x_1,\ldots,x_n$ 为正变量，设函数 $f_i:\mathbb{R}^n\to\mathbb{R},\ i=1,\ldots,k$ 为 $x_1,\ldots,x_n$ 的正项式。如果 $\phi:\mathbb{R}^k\to\mathbb{R}$ 为具有非负系数的多项式，那么其复合
+\[
+h(x)=\phi(f_1(x),\ldots,f_k(x))
+\tag{4.69}
+\]
+是一个正项式，因为正项式在乘积、求和及非负数乘下封闭。例如，设 $f_1$ 和 $f_2$ 为正项式，考虑（具有非负系数的）多项式 $\phi(z_1,z_2)=3z_1^2z_2+2z_1+3z_2^3$。那么，$h=3f_1^2f_2+2f_1+f_2^3$ 是一个正项式。
+
+在这个问题中，我们考虑这一思想的扩展，$\phi$ 被允许为一个正项式，即可以有分数指数。具体地，设 $\phi:\mathbb{R}^k\to\mathbb{R}$ 为一个正项式，其指数非负。在这个情况下，我们称在 (4.69) 中定义的函数为广义正项式。作为一个例子，设 $f_1$ 和 $f_2$ 为正项式，考虑（具有非负指数的）正项式 $\phi(z_1,z_2)=2z_1^{0.3}z_2^{1.2}+z_1z_2^{0.5}+2$。那么，函数
+\[
+h(x)=2f_1(x)^{0.3}f_2(x)^{1.2}+f_1(x)f_2(x)^{0.5}+2
+\]
+是一个广义正项式。注意这不是一个正项式（除非 $f_1$ 和 $f_2$ 是单项式或常数）。
+
+广义几何规划 (GGP) 是形如
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & h_0(x)\\
+\mathrm{subject\ to} & h_i(x)\leq1,\quad i=1,\ldots,m\\
+& g_i(x)=1,\quad i=1,\ldots,p
+\end{array}
+\tag{4.70}
+\]
+的优化问题，其中 $g_1,\ldots,g_p$ 为单项式，$h_0,\ldots,h_m$ 为广义正项式。说明如何将广义几何规划表示为等价的几何规划问题。解释你引入的每个新变量，并解释你的 GP 如何等价于 GGP (4.70)。
+
+\noindent\textbf{半定规划与锥形式问题}
+
+\noindent\textbf{4.38\quad 单变量的线性矩阵不等式 (LMI) 和半定规划 (SDP)。}\quad 矩阵对 $(A,B)$（$A,B\in\mathbb{S}^n$）的广义特征值定义为多项式 $\det(\lambda B-A)$ 的根（参见 \S A.5.3）。
+
+设 $B$ 是非奇异的，$A$ 和 $B$ 可以同时被同余变换对角化，即存在非奇异的 $R\in\mathbb{R}^{n\times n}$ 使得
+\[
+R^TAR=\operatorname{diag}(a),\qquad R^TBR=\operatorname{diag}(b),
+\]
+其中 $a,b\in\mathbb{R}^n$。（假设成立的一个充分条件是存在 $t_1,t_2$ 使得 $t_1A+t_2B\succ0$。）
+
+(a) 证明 $(A,B)$ 的广义特征值是实数，由 $\lambda_i=a_i/b_i,\ i=1,\ldots,n$ 给出。
+
+(b) 用 $a$ 和 $b$ 表示关于变量 $t\in\mathbb{R}$ 的 SDP
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & ct\\
+\mathrm{subject\ to} & tB\preceq A
+\end{array}
+\]
+的解。
+
+\noindent\textbf{4.39\quad SDP 及同余变换。}\quad 考虑 SDP
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & x_1F_1+x_2F_2+\cdots+x_nF_n+G\preceq0,
+\end{array}
+\]
+其中 $F_i,G\in\mathbb{S}^k,\ c\in\mathbb{R}^n$。
+
+(a) 设 $R\in\mathbb{R}^{k\times k}$ 非奇异。证明这个 SDP 等价于 SDP
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & c^Tx\\
+\mathrm{subject\ to} & x_1\widetilde F_1+x_2\widetilde F_2+\cdots+x_n\widetilde F_n+\widetilde G\preceq0,
+\end{array}
+\]
+其中 $\widetilde F_i=R^TF_iR,\ \widetilde G=R^TGR$。
+
+(b) 设存在非奇异矩阵 $R$ 使得 $\widetilde F_i$ 和 $\widetilde G$ 是对角阵。证明这个 SDP 等价于一个线性规划。
+
+(c) 设存在非奇异矩阵 $R$ 使得 $\widetilde F_i$ 和 $\widetilde G$ 具有形式
+\[
+\widetilde F_i=\begin{bmatrix}\alpha_iI&a_i\\a_i^T&\alpha_i\end{bmatrix},\quad i=1,\ldots,n,\qquad
+\widetilde G=\begin{bmatrix}\beta I&b\\b^T&\beta\end{bmatrix},
+\]
+其中 $\alpha_i,\beta\in\mathbb{R},\ a_i,b\in\mathbb{R}^{k-1}$。证明这个 SDP 等价于具有一个二阶锥约束的 SOCP。
+
+\noindent\textbf{4.40\quad LPs, QPs, QCQPs 及 SOCPs 与 SDPs。}\quad 将下列问题表示为 SDP。
+
+(a) LP (4.27)。
+
+(b) QP (4.34), QCQP (4.35) 及 SOCP (4.36)。提示：设 $A\in\mathbb{S}_{++}^s,\ C\in\mathbb{S}^s,\ B\in\mathbb{R}^{r\times s}$。于是
+\[
+\begin{bmatrix}A&B\\B^T&C\end{bmatrix}\succeq0\Longleftrightarrow C-B^TA^{-1}B\succeq0.
+\]
+应用于奇异 $A$ 的更复杂的表示和证明，参见 \S A.5.5。
+
+\noindent\textbf{4.41\quad 谱正矩阵和 $P_0$-矩阵的 LMI 检验。}\quad 矩阵 $A\in\mathbb{S}^n$ 被称为谱正，如果对于所有 $x\succeq0$ 都有 $x^TAx\geq0$（参见习题 2.35）。矩阵 $A\in\mathbb{R}^{n\times n}$ 被称为 $P_0$-矩阵，如果对于所有 $x$ 都有 $\max_{i=1,\ldots,n}x_i(Ax)_i\geq0$。一般地，确定一个矩阵是否谱正或是 $P_0$-矩阵是非常困难的。但是，存在一些有用的、可以利用半定规划验证的充分条件。
+
+(a) 证明 $A$ 是谱正的，如果它可以被分解为一个半正定矩阵和一个元素非负的矩阵的和：
+\[
+A=B+C,\qquad B\succeq0,\qquad C_{ij}\geq0,\quad i,j=1,\ldots,n.
+\tag{4.71}
+\]
+将寻找满足 (4.71) 的 $B$ 和 $C$ 的问题表示为 SDP 可行性问题。
+
+(b) 证明 $A$ 是一个 $P_0$ 矩阵，如果存在正的对角矩阵 $D$ 满足
+\[
+DA+A^TD\succeq0.
+\tag{4.72}
+\]
+将寻找满足 (4.72) 的 $D$ 的问题表示为 SDP 可行性问题。
+
+\noindent\textbf{4.42\quad 复 LMI 和 SDP。}\quad 复 LMI 具有下列形式
+\[
+x_1F_1+\cdots+x_nF_n+G\preceq0,
+\]
+其中，$F_1,\ldots,F_n,G$ 为复 $n\times n$ Hermitian 矩阵，即 $F_i^H=F_i,\ G^H=G$，$x\in\mathbb{R}^n$ 为实变量。复 SDP 是在复 LMI 约束下极小化 $x$ 的（实）线性函数的问题。
+
+可以将复 LMI 和 SDP 转换为实 LMI 和 SDP，这需要利用
+\[
+X\succeq0\Longleftrightarrow
+\begin{bmatrix}
+\Re X&-\Im X\\
+\Im X&\Re X
+\end{bmatrix}\succeq0,
+\]
+其中，$\Re X\in\mathbb{R}^{n\times n}$ 为复 Hermitian 矩阵 $X$ 的实部，而 $\Im X\in\mathbb{R}^{n\times n}$ 为 $X$ 的虚部。验证这一结果，并说明如何将一个复 SDP 表达为实 SDP。
+
+\noindent\textbf{4.43\quad 通过 SDP 优化特征值。}\quad 设 $A:\mathbb{R}^n\to\mathbb{S}^m$ 是仿射的，即
+\[
+A(x)=A_0+x_1A_1+\cdots+x_nA_n,
+\]
+其中 $A_i\in\mathbb{S}^m$。令 $\lambda_1(x)\geq\lambda_2(x)\geq\cdots\geq\lambda_m(x)$ 表示 $A(x)$ 的特征值。说明如何将下列问题表述为 SDP。
+
+(a) 极小化最大特征值 $\lambda_1(x)$。
+
+(b) 极小化特征值的分布区间 $\lambda_1(x)-\lambda_m(x)$。
+
+(c) 在 $A(x)\succ0$ 约束下，极小化 $A(x)$ 的条件数。条件数定义为 $\kappa(A(x))=\lambda_1(x)/\lambda_m(x)$，其定义域为 $\{x\mid A(x)\succ0\}$。你可以假设至少存在一个 $x$ 满足 $A(x)\succ0$。
+提示：你需要在
+\[
+0\prec\gamma I\preceq A(x)\preceq\lambda I
+\]
+约束下极小化 $\lambda/\gamma$。将变量替换为 $y=x/\gamma,\ t=\lambda/\gamma,\ s=1/\gamma$。
+
+(d) 极小化特征值绝对值之和，$|\lambda_1(x)|+\cdots+|\lambda_m(x)|$。
+
+提示：将 $A(x)$ 表示为 $A(x)=A_+-A_-$，其中 $A_+\succeq0,\ A_-\succeq0$。
+
+\noindent\textbf{4.44\quad 多项式中的优化。}\quad 将下面问题表述为 SDP。寻找多项式 $p:\mathbb{R}\to\mathbb{R}$，
+\[
+p(t)=x_1+x_2t+\cdots+x_{2k+1}t^{2k},
+\]
+在特定的 $m$ 个点 $t_i$ 上满足给定的界 $l_i\leq p(t_i)\leq u_i$，并在所有满足这些界的多项式中具有最大的最小值：
+\[
+\begin{array}{ll}
+\mathop{\mathrm{maximize}} & \inf_t p(t)\\
+\mathrm{subject\ to} & l_i\leq p(t_i)\leq u_i,\quad i=1,\ldots,m,
+\end{array}
+\]
+其变量为 $x\in\mathbb{R}^{2k+1}$。
+
+提示：利用习题 2.37 (b) 中导出的非负多项式的 LMI 特性。
+
+\noindent\textbf{4.45\quad 利用 LMI 的平方和表达式。}\quad 考虑 $2k$ 阶的多项式 $p:\mathbb{R}^n\to\mathbb{R}$。如果对于所有 $x\in\mathbb{R}^n$，都有 $p(x)\geq0$，则称该多项式为半正定 (PSD) 的。除了一些特殊的情况（例如，$n=1$ 或 $k=1$），判断一个给定的多项式是否 PSD 是极其困难的；更不要说在 $p$ 为 PSD 的约束下，求解以 $p$ 的系数为变量的优化问题。
+
+多项式为 PSD 的一个著名的充分条件是它具有形式
+\[
+p(x)=\sum_{i=1}^r q_i(x)^2,
+\]
+$q_i$ 为一些阶次不超过 $k$ 的多项式。具有这样平方和形式的多项式 $p$ 被称为 SOS。多项式 $p$ 是 SOS 的条件（视为对于其系数的约束）可以转化为一个等价的 LMI，因此，很多以 SOS 为约束的优化问题可以被表述为 SDP。你将在这个问题中研究这些思想。
+
+(a) 令 $f_1,\ldots,f_s$ 为阶次等于或小于 $k$ 的所有单项式（这里，我们指标准意义下的单项式，即 $x_1^{m_1}\cdots x_n^{m_n}$，其中 $m_i\in\mathbb{Z}_+$，而不是几何规划中的单项式）。说明：如果 $p$ 可以被表示为半正定二次型 $p=f^TVf$，其中 $V\in\mathbb{S}_+^s$，那么 $p$ 是 SOS。反之，说明如果 $p$ 是 SOS，那么它可以表述为单项式的半正定二次型，即对某些 $V\in\mathbb{S}_+^s$，$p=f^TVf$。
+
+(b) 说明条件 $p=f^TVf$ 是关于 $p$ 的系数和矩阵 $V$ 的线性等式约束。结合前述 (a) 部分的结论，这表明 $p$ 为 SOS 的条件等价于关于 $p$ 的系数和 $V$ 的一组线性等式和矩阵不等式 $V\succeq0$。
+
+(c) 对于 $p$ 为两个变量的四阶多项式的情况，显式地给出 SOS 的 LMI 条件。
+
+\noindent\textbf{4.46\quad 多维矩。}\quad $\mathbb{R}^2$ 空间中随机变量 $t$ 的矩定义为 $\mu_{ij}=\mathbf{E}t_1^it_2^j$，其中 $i,j$ 为非负整数。在这个问题中，我们将导出一组数 $\mu_{ij},\ 0\leq i,j\leq 2k,\ i+j\leq2k$ 是 $\mathbb{R}^2$ 上一个分布的矩的必要条件。
+
+令 $p:\mathbb{R}^2\to\mathbb{R}$ 为度为 $k$ 的多项式，其系数为 $c_{ij}$，
+\[
+p(t)=\sum_{i=0}^k\sum_{j=0}^{k-i}c_{ij}t_1^it_2^j,
+\]
+令 $t$ 为随机变量，矩为 $\mu_{ij}$。设 $c\in\mathbb{R}^{(k+1)(k+2)/2}$ 以特定的顺序包含了系数 $c_{ij}$，而 $\mu\in\mathbb{R}^{(k+1)(2k+1)}$ 以同样的顺序包含了矩 $\mu_{ij}$。证明 $\mathbf{E}p(t)^2$ 可以被表达为 $c$ 的二次型：
+\[
+\mathbf{E}p(t)^2=c^TH(\mu)c,
+\]
+其中 $H:\mathbb{R}^{(k+1)(2k+1)}\to\mathbb{S}^{(k+1)(k+2)/2}$ 是 $\mu$ 的线性函数。从中得出结论，$\mu$ 必须满足 LMI $H(\mu)\succeq0$。
+
+\noindent\textbf{备注：}\quad 对于 $\mathbb{R}$ 中的随机变量，矩阵 $H$ 可以取为 (4.52) 定义的 Hankel 矩阵。在这种情况下，$H(\mu)\succeq0$ 是 $\mu$ 为一个分布的矩或矩序列的极限的充分必要条件。但是，在 $\mathbb{R}^2$ 中，这个 LMI 仅是必要条件。
+
+\noindent\textbf{4.47\quad 半正定矩阵的最大行列式完全化。}\quad 我们考虑矩阵 $A\in\mathbb{S}^n$，其部分元素已确定，而其他尚未确定。半正定矩阵完全化问题试图确定矩阵未定元素的值使之满足 $A\succeq0$（或判定这样的完全化不存在）。
+
+(a) 解释为什么我们可以不失一般性地假设 $A$ 的对角元素是确定的。
+
+(b) 证明如何将半正定矩阵补充问题建模为 SDP 可行性问题。
+
+(c) 假设 $A$ 具有至少一个正定的完全化，并且 $A$ 的对角元素是给定的（即，固定的）。具有最大行列式的正定完全化称为最大行列式完全化。证明最大行列式完全化是唯一的。说明，如果 $A^\star$ 是最大行列式完全化，那么 $(A^\star)^{-1}$ 在原矩阵未定元素位置上均为 0。提示：函数 $f(X)=\log\det X$ 的导数为 $\nabla f(X)=X^{-1}$（参见 \S A.4.1）。
+
+(d) 设 $A$ 的三对角位置是确定的，即给定 $A_{11},\ldots,A_{nn}$ 以及 $A_{12},\ldots,A_{n-1,n}$。证明如果存在 $A$ 的正定完全化，那么存在一个正定完全化，其逆是三对角的。
+
+\noindent\textbf{4.48\quad 广义特征值极小化。}\quad 回顾例 3.37 或 \S A.5.3，矩阵对 $(A,B)\in\mathbb{S}^k\times\mathbb{S}_{++}^k$ 的最大广义特征值由
+\[
+\lambda_{\max}(A,B)=\sup_{u\neq0}\frac{u^TAu}{u^TBu}=\max\{\lambda\mid \det(\lambda B-A)=0\}
+\]
+给出。我们已经知道，（如果取 $\mathbb{S}^k\times\mathbb{S}_{++}^k$ 为其定义域）这个函数是拟凸的。考虑问题
+\[
+\mathop{\mathrm{minimize}}\quad \lambda_{\max}(A(x),B(x)),
+\tag{4.73}
+\]
+其中 $A,B:\mathbb{R}^n\to\mathbb{S}^k$ 为仿射函数，定义为
+\[
+A(x)=A_0+x_1A_1+\cdots+x_nA_n,\qquad B(x)=B_0+x_1B_1+\cdots+x_nB_n,
+\]
+其中 $A_i,B_i\in\mathbb{S}^k$。
+
+(a) 给出一族凸函数 $\phi_t:\mathbb{S}^k\times\mathbb{S}^k\to\mathbb{R}$，它们对所有 $(A,B)\in\mathbb{S}^k\times\mathbb{S}_{++}^k$ 都满足
+\[
+\lambda_{\max}(A,B)\leq t\Longleftrightarrow \phi_t(A,B)\leq0.
+\]
+说明这使得我们可以通过一系列凸可行性问题来求解 (4.73)。
+
+(b) 给出一族矩阵凸函数 $\Phi_t:\mathbb{S}^k\times\mathbb{S}^k\to\mathbb{S}^k$，它们对所有 $(A,B)\in\mathbb{S}^k\times\mathbb{S}_{++}^k$ 满足
+\[
+\lambda_{\max}(A,B)\leq t\Longleftrightarrow \Phi_t(A,B)\preceq0.
+\]
+说明这使得我们可以通过一系列带有 LMI 约束的凸可行性问题来求解 (4.73)。
+
+(c) 设 $B(x)=(a^Tx+b)I$，其中 $a\neq0$。证明 (4.73) 等价于凸问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \lambda_{\max}(sA_0+y_1A_1+\cdots+y_nA_n)\\
+\mathrm{subject\ to} & a^Ty+bs=1\\
+& s\geq0,
+\end{array}
+\]
+其变量为 $y\in\mathbb{R}^n,\ s\in\mathbb{R}$。
+
+\noindent\textbf{4.49\quad 广义分式规划。}\quad 令 $K\in\mathbb{R}^m$ 为一个正常锥。证明由
+\[
+f_0(x)=\inf\{t\mid Cx+d\preceq_K t(Fx+g)\},\qquad \operatorname{dom} f_0=\{x\mid Fx+g\succ_K0\}
+\]
+定义的函数 $f_0:\mathbb{R}^n\to\mathbb{R}$ 是拟凸的，其中 $C,F\in\mathbb{R}^{m\times n},\ d,g\in\mathbb{R}^m$。具有此类形式目标函数的拟凸优化问题称为广义分式规划。将第 145 页的广义线性分式规划和广义特征值极小化问题 (4.73) 表示为广义分式规划。
+
+\noindent\textbf{向量与多准则优化}
+
+\noindent\textbf{4.50\quad 双准则优化。}\quad 图 4.11 显示了对于某组 $A\in\mathbb{R}^{100\times10},\ b\in\mathbb{R}^{100}$ 的双准则优化问题
+\[
+\mathop{\mathrm{minimize}}\quad (\|Ax-b\|^2,\|x\|^2)\quad \text{(关于 }\mathbb{R}_+^2\text{)}
+\]
+的最优权衡曲线和可达值集合。利用图中的信息，回答下面的问题。我们记最小二乘问题
+\[
+\mathop{\mathrm{minimize}}\quad \|Ax-b\|_2^2
+\]
+的解为 $x_{\mathrm{ls}}$。
+
+(a) $\|x_{\mathrm{ls}}\|_2$ 是多少？
+
+(b) $\|Ax_{\mathrm{ls}}-b\|_2$ 是多少？
+
+(c) $\|b\|_2$ 是多少？
+
+(d) 给出问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \|Ax-b\|_2^2\\
+\mathrm{subject\ to} & \|x\|_2^2=1
+\end{array}
+\]
+的最优值。
+
+(e) 给出问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \|Ax-b\|_2^2\\
+\mathrm{subject\ to} & \|x\|_2^2\leq1
+\end{array}
+\]
+的最优值。
+
+(f) 给出问题
+\[
+\mathop{\mathrm{minimize}}\quad \|Ax-b\|_2^2+\|x\|_2^2
+\]
+的最优值。
+
+(g) $A$ 的秩是多少？
+
+\noindent\textbf{4.51\quad 向量优化中的目标单调变换。}\quad 考虑向量优化问题 (4.56)。我们将目标函数 $f_0$ 替换为 $\phi\circ f_0$ 得到一个新的向量优化问题，其中 $\phi:\mathbb{R}^q\to\mathbb{R}^q$ 满足
+\[
+u\preceq_K v,\ u\neq v\Longrightarrow \phi(u)\preceq_K\phi(v),\ \phi(u)\neq\phi(v).
+\]
+证明点 $x$ 是一个问题 Pareto 最优（或最优）的充要条件是，它也是另一个问题的 Pareto 最优（最优），从而两个问题等价。特别地，将多准则问题的每个目标与一个递增函数进行复合，将不影响 Pareto 最优点。
+
+\noindent\textbf{4.52\quad Pareto 最优点与可达值集合的边界。}\quad 考虑关于锥 $K$ 的向量优化问题。令 $\mathcal{P}$ 表示 Pareto 最优解值集合，$\mathcal{O}$ 表示可达目标值集合。证明 $\mathcal{P}\subseteq\mathcal{O}\cap\operatorname{bd}\mathcal{O}$，即每个 Pareto 最优值都是一个可达目标值并且落在可达目标值集合的边界上。
+
+\noindent\textbf{4.53}\quad 设向量优化问题 (4.56) 是凸的。证明集合
+\[
+\mathcal{A}=\mathcal{O}+K=\{t\in\mathbb{R}^q\mid f_0(x)\preceq_K t\text{ 对某些可行的 }x\}
+\]
+是凸集。同时证明 $\mathcal{A}$ 的极小元与 $\mathcal{O}$ 的极小点相同。
+
+\noindent\textbf{4.54\quad 标量化与最优点。}\quad 设一个向量优化问题（不必要是凸的）具有最优解 $x^\star$。证明 $x^\star$ 是对应于任意 $\lambda\succ_{K^\ast}0$ 的标量化问题的最优解。同时证明其逆命题：如果 $x$ 是对应于任意 $\lambda\succ_{K^\ast}0$ 的标量化问题的解，那么，它是向量优化问题（不必要是凸的）的最优点。
+
+\noindent\textbf{4.55\quad 加权和标量化的推广。}\quad 在 \S4.7.4 中，我们显示了如何通过将向量目标 $f_0:\mathbb{R}^n\to\mathbb{R}^q$ 替换为标量目标 $\lambda^Tf_0$，其中 $\lambda\succ_{K^\ast}0$，用以得到向量优化问题的 Pareto 最优解。令 $\psi:\mathbb{R}^q\to\mathbb{R}$ 为一个 $K$-递增函数，即满足
+\[
+u\preceq_K v,\ u\neq v\Longrightarrow \psi(u)<\psi(v).
+\]
+证明问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \psi(f_0(x))\\
+\mathrm{subject\ to} & f_i(x)\leq0,\quad i=1,\ldots,m\\
+& h_i(x)=0,\quad i=1,\ldots,p
+\end{array}
+\]
+的任意解关于向量优化问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}}\text{（关于 }K\text{）} & f_0(x)\\
+\mathrm{subject\ to} & f_i(x)\leq0,\quad i=1,\ldots,m\\
+& h_i(x)=0,\quad i=1,\ldots,p
+\end{array}
+\]
+都是 Pareto 最优。注意 $\psi(u)=\lambda^Tu$，其中 $\lambda\succ_{K^\ast}0$，是一个特殊的情况。
+
+作为一个相应的例子，证明在多准则优化问题（即具有 $f_0=F:\mathbb{R}^n\to\mathbb{R}^q$ 和 $K=\mathbb{R}_+^q$ 的向量优化问题）中，标量优化问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \max_{i=1,\ldots,q}F_i(x)\\
+\mathrm{subject\ to} & f_i(x)\leq0,\quad i=1,\ldots,m\\
+& h_i(x)=0,\quad i=1,\ldots,p
+\end{array}
+\]
+的唯一解是 Pareto 最优的。
+
+\noindent\textbf{其他各种问题}
+
+\noindent\textbf{4.56\quad [P. Parrilo]}\quad 我们考虑在凸集并集的凸包 $\operatorname{conv}(\bigcup_{i=1}^q C_i)$ 上极小化凸函数 $f_0:\mathbb{R}^n\to\mathbb{R}$ 的问题。这些集合由凸不等式描述
+\[
+C_i=\{x\mid f_{ij}(x)\leq0,\ j=1,\ldots,k_i\},
+\]
+其中 $f_{ij}:\mathbb{R}^n\to\mathbb{R}$ 是凸的。我们的目标是将其构造为一个凸优化问题。一个显然的方法是引入变量 $x_1,\ldots,x_q\in\mathbb{R}^n$（$x_i\in C_i$），$\theta\in\mathbb{R}^q$（$\theta\succeq0,\ \mathbf{1}^T\theta=1$）和 $x\in\mathbb{R}^n$（$x=\theta_1x_1+\cdots+\theta_qx_q$）。等式约束关于变量不是仿射的，因此这个方法得不到凸问题。
+
+一个更巧妙的式子由
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & f_0(x)\\
+\mathrm{subject\ to} & s_if_{ij}(z_i/s_i)\leq0,\quad i=1,\ldots,q,\ j=1,\ldots,k_i\\
+& \mathbf{1}^Ts=1,\quad s\succeq0\\
+& x=z_1+\cdots+z_q
+\end{array}
+\]
+给出，其变量为 $z_1,\ldots,z_q\in\mathbb{R}^n,\ x\in\mathbb{R}^n$ 和 $s_1,\ldots,s_q\in\mathbb{R}$。（当 $s_i=0$ 时，如果 $z_i=0$，我们取 $s_if_{ij}(z_i/s_i)$ 为 0；如果 $z_i\neq0$，取为 $\infty$。）解释为什么这个问题是凸的，并且等价于原问题。
+
+\noindent\textbf{4.57\quad 信道容量。}\quad 我们考虑一个信道，其输入为 $X(t)\in\{1,\ldots,n\}$，输出为 $Y(t)\in\{1,\ldots,m\}$，$t=1,2,\ldots$（例如，秒）。输入输出之间的关系由
+\[
+p_{ij}=\operatorname{prob}(Y(t)=i\mid X(t)=j),\quad i=1,\ldots,m,\quad j=1,\ldots,n
+\]
+统计地给出。矩阵 $P\in\mathbb{R}^{m\times n}$ 称为信道转移矩阵，这个信道称为离散无记忆信道。Shannon 一个著名的结论表明以比特每秒为单位，用小于被称为信道容量的数 $C$ 的任意速率，将能够以任意小的错误概率通过信道发送信息。Shannon 也指出离散无记忆信道的容量可以通过求解一个优化问题得到。设 $X$ 具有记为 $x\in\mathbb{R}^n$ 的概率分布，即
+\[
+x_j=\operatorname{prob}(X=j),\quad j=1,\ldots,n.
+\]
+$X$ 和 $Y$ 之间的互信息由
+\[
+I(X;Y)=\sum_{i=1}^m\sum_{j=1}^n x_jp_{ij}\log_2\frac{p_{ij}}{\sum_{k=1}^n x_kp_{ik}}
+\]
+给出。那么，信道容量 $C$ 由
+\[
+C=\sup_x I(X;Y)
+\]
+给出，这里的极大是在输入 $X$ 的所有可能概率分布，即在 $x\succeq0,\ \mathbf{1}^Tx=1$，上求取的。说明如何利用凸优化计算信道容量。
+
+提示：引入变量 $y=Px$，它给出了输出 $Y$ 的概率分布，证明互信息可以表述为
+\[
+I(X;Y)=c^Tx-\sum_{i=1}^m y_i\log_2y_i,
+\]
+其中 $c_j=\sum_{i=1}^m p_{ij}\log_2p_{ij},\ j=1,\ldots,n$。
+
+\noindent\textbf{4.58\quad 最优消费。}\quad 在这个问题中，我们考虑在一段时间内消费（或花费）初始的一笔钱（或其他资产）$k_0$ 的最优方法。变量为 $c_0,\ldots,c_T$，这里 $c_t\geq0$ 表示在时段 $t$ 内的消费。从消费水平 $c$ 中得到的效用由 $u(c)$ 给出，其中 $u:\mathbb{R}\to\mathbb{R}$ 是一个递增凹函数。从消费中得到的当前效用值为
+\[
+U=\sum_{t=1}^T\beta^tu(c_t),
+\]
+其中 $0<\beta<1$ 为折扣因子。
+
+令 $k_t$ 表示在时段 $t$ 可供投资的总资产。假设它获得的资产回报为 $f(k_t)$，其中 $f:\mathbb{R}\to\mathbb{R}$ 为一个递增的、凹的投资回报函数，满足 $f(0)=0$。例如，如果资金在每个时段获得单利 $R$ 个百分点，我们有 $f(a)=(R/100)a$。消费额，即 $c_t$，在时段末扣除，因此我们有递归式
+\[
+k_{t+1}=k_t+f(k_t)-c_t,\quad t=0,\ldots,T.
+\]
+给定初始总数 $k_0>0$。我们要求 $k_t\geq0,\ t=1,\ldots,T+1$（但是，也可以考虑允许 $k_t<0$ 的更加复杂的模型）。
+
+显示如何将极大化 $U$ 的问题建模为一个凸优化问题。解释你建立的问题为何等价于原问题，以及两者如何联系在一起。
+
+提示：说明我们可以将前述给出的 $k_t$ 的递归式，替换为不等式
+\[
+k_{t+1}\leq k_t+f(k_t)-c_t,\quad t=0,\ldots,T.
+\]
+（解释：不等式给出了一个选项，使得你可以在每个周期扔掉一些资金。）这个技巧的更多版本，参见习题 4.6。
+
+\noindent\textbf{4.59\quad 鲁棒优化。}\quad 在一些优化问题中，由于参数和某些因素未知或超出我们的控制，使得目标和约束函数具有不确定性或发生变化的可能。我们可以通过构建关于优化变量 $x\in\mathbb{R}^n$ 和未知或变化的参数向量 $u\in\mathbb{R}^k$ 的目标和约束函数来对这种情况进行建模。在随机优化方法中，参数向量 $u$ 被建模为已知分布的随机变量，而我们则对期望值 $\mathbf{E}_u f_i(x,u)$ 进行处理。在最坏情况分析方法中，我们给定 $u$ 所处的已知区间 $U$，然后考虑其最大或最坏情况的值 $\sup_{u\in U} f_i(x,u)$。为讨论简单起见，我们假设不存在等式约束。
+
+(a) \textbf{随机优化。}\quad 我们考虑问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \mathbf{E}f_0(x,u)\\
+\mathrm{subject\ to} & \mathbf{E}f_i(x,u)\leq0,\quad i=1,\ldots,m,
+\end{array}
+\]
+这里的期望是关于 $u$ 的。证明如果 $f_i$ 对于每个 $u$ 都是 $x$ 的凸函数，那么这个随机优化问题是凸的。
+
+(b) \textbf{最坏情况优化。}\quad 我们考虑问题
+\[
+\begin{array}{ll}
+\mathop{\mathrm{minimize}} & \sup_{u\in U} f_0(x,u)\\
+\mathrm{subject\ to} & \sup_{u\in U} f_i(x,u)\leq0,\quad i=1,\ldots,m.
+\end{array}
+\]
+证明如果 $f_i$ 对于每个 $u$ 都是 $x$ 的凸函数，那么这个最坏情况优化问题是凸的。
+
+(c) \textbf{有限的参数可能值集合。}\quad 当对期望值 $\mathbf{E}f_i(x,u)$ 或最坏情况值 $\sup_{u\in U}f_i(x,u)$ 有解析式或易于计算的表达式时，(a) 和 (b) 部分的结论是最有用的。
+
+设给定的参数可能值集合是有限的，即我们有 $u\in\{u_1,\ldots,u_N\}$。对于随机的情况，我们也可以给出取得每个值的概率 $\operatorname{prob}(u=u_i)=p_i$，其中 $p\in\mathbb{R}^N,\ p\succeq0,\ \mathbf{1}^Tp=1$。对于最坏情况的式子，我们简单地取 $U\in\{u_1,\ldots,u_N\}$。
+
+说明如何显式地建立最坏情况和随机最优问题（即给出 $\sup_{u\in U}f_i$ 和 $\mathbf{E}_u f_i$ 的显式表达式）。
+
+\noindent\textbf{4.60\quad 对数最优投资策略。}\quad 我们考虑在 $N$ 个时段持有 $n$ 种资产的收益问题。我们在每个时段之始重新投资所有的总财富，用一种固定不变的分配策略 $x\in\mathbb{R}^n$，其中 $x\succeq0,\ \mathbf{1}^Tx=1$，将财富重新分配到 $n$ 种资产上。换言之，如果 $W(t-1)$ 是 $t$ 时段开始时的财富，那么在时段 $t$，我们向资产 $i$ 投资 $x_iW(t-1)$。用 $\lambda(t)$ 表示时段 $t$ 内的总回报，即 $\lambda(t)=W(t)/W(t-1)$。在 $N$ 个时段结束时，我们的财富的倍乘因子为 $\prod_{t=1}^N\lambda(t)$。我们称
+\[
+\frac{1}{N}\sum_{t=1}^N\log\lambda(t)
+\]
+为资产经过 $N$ 个时段的增长率。我们感兴趣如何确定分配策略 $x$。在 $N$ 很大的情况下，极大化我们的总资产的增长。
+
+我们用离散随机模型来度量收益的不确定性。假设在每个时段中，有 $m$ 种可能的情况，每种的概率为 $\pi_j,\ j=1,\ldots,m$。在情况 $j$ 下，资产 $i$ 经历一个时段的回报由 $p_{ij}$ 给出。所以，我们资产在时段 $t$ 的收益 $\lambda(t)$ 是一个随机变量，具有 $m$ 种可能值 $p_1^Tx,\ldots,p_m^Tx$，其分布为
+\[
+\pi_j=\operatorname{prob}(\lambda(t)=p_j^Tx),\quad j=1,\ldots,m.
+\]
+我们假设每个周期具有相同的情况，独立（同）分布。根据大数定理，我们有
+\[
+\lim_{N\to\infty}\frac{1}{N}\log\left(\frac{W(N)}{W(0)}\right)
+=\lim_{N\to\infty}\frac{1}{N}\sum_{t=1}^N\log\lambda(t)
+=\mathbf{E}\log\lambda(t)=\sum_{j=1}^m\pi_j\log(p_j^Tx).
+\]
+换言之，投资策略 $x$ 的长期增长率由
+\[
+R_{\mathrm{lt}}=\sum_{j=1}^m\pi_j\log(p_j^Tx)
+\]
+给出。最大化这个量的投资策略 $x$ 称为对数最优投资策略，它可以通过求解关于 $x\in\mathbb{R}^n$ 的优化问题得到，
+\[
+\begin{array}{ll}
+\mathop{\mathrm{maximize}} & \displaystyle\sum_{j=1}^m\pi_j\log(p_j^Tx)\\
+\mathrm{subject\ to} & x\succeq0,\quad \mathbf{1}^Tx=1.
+\end{array}
+\]
+证明这是一个凸优化问题。
+
+\noindent\textbf{4.61\quad Logistic 模型的优化。}\quad 随机变量 $X\in\{0,1\}$ 满足
+\[
+\operatorname{prob}(X=1)=p=\frac{\exp(a^Tx+b)}{1+\exp(a^Tx+b)},
+\]
+其中 $x\in\mathbb{R}^n$ 为影响其概率的向量变量，$a$ 和 $b$ 为已知参数。我们可以认为 $X=1$ 是消费者购买商品的事件，将 $x$ 视为影响这种概率的向量变量，例如广告效应、零售价格、折扣价格、包装费用和其他因素。我们优化的变量 $x$ 受到线性约束 $Fx\preceq g$ 的限制。将下面的问题建模为凸优化问题。
+
+(a) \textbf{最大化购买概率。}\quad 其目标是选择 $x$ 以极大化 $p$。
+
+(b) \textbf{最大化预期利润。}\quad 令 $c^Tx+d$ 为销售商品所得的利润，假设对于任意可行的 $x$ 均为正。目标是极大化预期利润 $p(c^Tx+d)$。
+
+\noindent\textbf{4.62\quad Gauss 广播信道的最优功率与带宽配置。}\quad 考虑一个中心结点向 $n$ 个接收器发送消息的通信系统。（“Gauss” 指的是干扰传输的噪声的类别。）每个接收器信道由其（传输）功率水平 $P_i\geq0$ 和带宽 $W_i\geq0$ 描述。接收器信道的功率和带宽决定了其比特率（信息可以传输的速率）
+\[
+R_i=\alpha_iW_i\log(1+\beta_iP_i/W_i),
+\]
+其中 $\alpha_i$ 和 $\beta_i$ 为已知的正常数。对于 $W_i=0$，我们取 $R_i=0$（这可以通过取极限 $W_i\to0$ 得到）。
+
+功率必须满足总功率约束，它具有下面的形式
+\[
+P_1+\cdots+P_n=P_{\mathrm{tot}},
+\]
+其中 $P_{\mathrm{tot}}>0$ 为给定的可以分配给各个信道的总可能功率。类似地，带宽必须满足
+\[
+W_1+\cdots+W_n=W_{\mathrm{tot}},
+\]
+其中 $W_{\mathrm{tot}}>0$ 为（给定的）总可用带宽。这个问题的优化变量是功率及带宽，$P_1,\ldots,P_n,\ W_1,\ldots,W_n$。
+
+目标是极大化总效用
+\[
+\sum_{i=1}^n u_i(R_i),
+\]
+其中 $u_i:\mathbb{R}\to\mathbb{R}$ 是第 $i$ 个接收器的效用函数。（你可以将 $u_i(R_i)$ 视为由于向接收器 $i$ 提供比特率 $R_i$ 而得到的收益，因此，目标是极大化总收益。）你可以假设效用函数 $u_i$ 是非减和凹的。
+
+将这个问题表述为一个凸优化问题。
+
+\noindent\textbf{4.63\quad 制造成本和产出间的最优权衡。}\quad 向量 $x\in\mathbb{R}^n$ 表示一个制造过程的名义参数。过程的产出，即生产的产品被接受的比例，由 $Y(x)$ 给出。我们假设 $Y(x)$ 是对数凹的（这是常见的情况，参见例 3.43）。生产产品的单位成本为 $c^Tx$，其中 $c\in\mathbb{R}^n$。可接受的单位成本为 $c^Tx/Y(x)$。我们希望在一些关于 $x$ 的凸约束下，例如线性不等式 $Ax\preceq b$，极小化 $c^Tx/Y(x)$。（你可以假设，在可行集上有 $c^Tx>0,\ Y(x)>0$。）
+
+这个问题不是凸或拟凸优化问题，但可以利用凸优化和一维直线搜索得到求解。下面给出基本的思想；你必须提供所有的细节和理由。
+
+(a) 证明函数 $f:\mathbb{R}\to\mathbb{R}$
+\[
+f(a)=\sup\{Y(x)\mid Ax\preceq b,\ c^Tx=a\}
+\]
+是对数凹的，这个函数给出了关于成本的最大产出。这意味着，通过求解（关于 $x$ 的）凸优化问题，我们可以计算函数 $f$。
+
+(b) 设我们得到了函数 $f$ 在足够多的 $a$ 上的值足以给出其在感兴趣区间上的一个很好的逼近。解释如何利用这些数据（近似地）求解极小化优质产品单位成本的问题。
+
+\noindent\textbf{4.64\quad 关于情景依赖的优化。}\quad 带有情景依赖的优化问题又称为两阶段优化。在这样的问题中，费用函数和约束不仅仅取决于我们对变量的选择，也取决于离散随机变量 $s\in\{1,\ldots,S\}$，它可以被解释为描述 $S$ 种情景中哪一个发生的变量。情景随机变量 $s$ 具有已知的分布 $\pi:\pi_i=\operatorname{prob}(s=i),\ i=1,\ldots,S$。
+
+在两阶段优化中，我们将选取两组变量的值 $x\in\mathbb{R}^n$ 和 $z\in\mathbb{R}^q$。变量 $x$ 必须在知道特定的情景 $s$ 之前选取；而变量 $z$ 是在情景随机变量的值已知的情况下选择的。换言之，$z$ 是情景随机变量 $s$ 的一个函数。为描述对 $z$ 的选择，我们列出在不同情境下的取值，即列出向量
+\[
+z_1,\ldots,z_S\in\mathbb{R}^q.
+\]
+这里的 $z_3$ 是当 $s=3$ 发生时我们的选择，其他相同。集合
+\[
+x\in\mathbb{R}^n,\qquad z_1,\ldots,z_S\in\mathbb{R}^q
+\]
+称为策略，因为它告诉我们对 $x$ 如何做出选择（独立于发生的情景），同时告诉我们在每种可能的情景下，如何选择 $z$。
+
+变量 $z$ 称为依赖变量（或第二阶段变量），因为它允许我们在知道哪种情景发生之后再做出动作或选择。相反的，我们对 $x$（称为第一阶段变量）的选择必须在没有关于情景的知识情况下做出。
+
+为简单起见，我们考虑不含约束的情况。费用函数由
+\[
+f:\mathbb{R}^n\times\mathbb{R}^q\times\{1,\ldots,S\}\to\mathbb{R}
+\]
+给出，其中 $f(x,z,i)$ 给出了第一阶段选择 $x$，第二阶段选择 $z$ 并且情景 $i$ 发生时的费用。我们在所有策略中极小化的总目标取为期望费用
+\[
+\mathbf{E}f(x,z_s,s)=\sum_{i=1}^S\pi_if(x,z_i,i).
+\]
+设 $f$ 对于每个情景 $i=1,\ldots,S$ 都是 $(x,z)$ 的凸函数。解释如何利用凸优化寻找最优策略，即所有策略中极小化期望费用的一个。
+
+\noindent\textbf{4.65\quad 混合汽车的最优操作。}\quad 混合汽车具有一台内置的内燃机，一台与电池相连的发动机/发电机以及一个传统的（摩擦）刹车装置。在这个习题中，我们考虑一个（高度简化的）并行混合汽车模型，其中发动机/发电机和引擎直接与驱动轮相连接。引擎可以为轮子提供动力，而刹车消耗轮子的能量并将其转化为热能。当利用储存在电池中的能量来驱动轮子时，发动机/发电机可像发动机一样工作；当它获取轮子或引擎中的能量并用于电池充电时，它又可以像发电机一样工作。当发电机从轮子中获取能量并对电池充电时，称为再生刹车；不像普通的摩擦制动，轮子的能量被储存起来了，并可以稍后再利用。通过在已知的、固定的测试跑道上驾驶车辆，可以评估其燃料效率。
+
+下图显示了混合汽车中能量的流动。箭头表示了正能量流动的方向。例如，当引擎发出能量时，引擎能量 $p_{\mathrm{eng}}$ 为正；当它从轮子处获取能量，刹车能量 $p_{\mathrm{br}}$ 为正。能量 $p_{\mathrm{req}}$ 为轮子需要的能量。当轮子需要能量（如车辆加速、爬山或在水平地面上行驶）时，它为正。当车辆必须迅速或下山时，轮子需要的能量为负。
+
+所有这些能量都是时间的函数，我们将时间以 1 秒为区间离散化为 $t=1,2,\ldots,T$。轮子所需能量 $p_{\mathrm{req}}(1),\ldots,p_{\mathrm{req}}(T)$ 已知。（车辆在路径上的速度已知，道路的斜度信息、空气动力和其他损失已知，因此轮子所需能量可以被计算出来。）
+
+能量是守恒的，意味着我们有
+\[
+p_{\mathrm{req}}(t)=p_{\mathrm{eng}}(t)+p_{\mathrm{mg}}(t)-p_{\mathrm{br}}(t),\quad t=1,\ldots,T.
+\]
+刹车只能消耗能量，因此，对于任意时间 $t$ 我们有 $p_{\mathrm{br}}(t)\geq0$。引擎只能提供能量，并且只能达到一个给定的限制 $P_{\mathrm{eng}}^{\max}$，即我们有
+\[
+0\leq p_{\mathrm{eng}}(t)\leq P_{\mathrm{eng}}^{\max},\quad t=1,\ldots,T.
+\]
+发动机/发电机的能量也是受限的：$p_{\mathrm{mg}}$ 必须满足
+\[
+P_{\mathrm{mg}}^{\min}\leq p_{\mathrm{mg}}(t)\leq P_{\mathrm{mg}}^{\max},\quad t=1,\ldots,T.
+\]
+这里 $P_{\mathrm{mg}}^{\max}>0$ 为发动机最大能量，而 $-P_{\mathrm{mg}}^{\min}>0$ 为发电机最大能量。
+
+电池在时间 $t$ 的充放电记为 $E(t),\ t=1,\ldots,T+1$。电池能量满足
+\[
+E(t+1)=E(t)-p_{\mathrm{mg}}(t)-\eta|p_{\mathrm{mg}}(t)|,\quad t=1,\ldots,T,
+\]
+其中 $\eta>0$ 为已知参数。（$-p_{\mathrm{mg}}(t)$ 代表忽略损失情况下，由发动机/发电机从电池中带走或加入的能量。$-\eta|p_{\mathrm{mg}}(t)|$ 表示在电池或发动机/发电机损失的无效能量。）
+
+在所有时间内，电池能量必须在 0（空）和 $E_{\mathrm{batt}}^{\max}$（满）之间。（如果 $E(t)=0$，电池已经完全放电，不能再从中提取任何能量；当 $E(t)=E_{\mathrm{batt}}^{\max}$，电池已经充满不能再进行充电。）为与非混合汽车进行比较，我们将初始和最终的电池能量固定，所以这个路程的净电池储量为零：$E(1)=E(T+1)$。我们不特别指定初始（和最终）的电池储量。
+
+这个问题的目标是引擎消耗的总燃料
+\[
+F_{\mathrm{total}}=\sum_{t=1}^T F(p_{\mathrm{eng}}(t)),
+\]
+其中 $F:\mathbb{R}\to\mathbb{R}$ 为引擎的燃料利用特性。我们假设 $F$ 是正的、递增和凸的。
+
+将问题建模成关于变量 $p_{\mathrm{eng}}(t),\ p_{\mathrm{mg}}(t),\ p_{\mathrm{br}}(t),\ t=1,\ldots,T$ 以及 $E(t),\ t=1,\ldots,T+1$ 的凸优化问题。解释为什么你的式子等价于前述描述的问题。
+
+\end{document}

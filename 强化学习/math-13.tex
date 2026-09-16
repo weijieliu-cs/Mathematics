@@ -1,0 +1,492 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\graphicspath{{tex/强化学习/figures/math-13/}}
+
+\title{强化学习：资格迹}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{第 12 章\quad 资格迹}
+
+资格迹是强化学习中的一种基本机制。
+例如，在流行的 TD($\lambda$) 算法中，$\lambda$ 指的就是资格迹的使用。
+几乎所有时序差分（TD）方法，例如 Q-learning 或 Sarsa，都可以同资格迹结合，得到一种更一般、并且可能学习得更高效的方法。
+
+资格迹统一并推广了 TD 方法和蒙特卡洛方法。
+当 TD 方法加入资格迹后，它们产生的是一族方法：这一族方法横跨一个谱系，一端是蒙特卡洛方法（$\lambda=1$），另一端是一步 TD 方法（$\lambda=0$）。
+在二者之间的是一些中间方法，它们往往比任何一个极端方法都更好。
+资格迹还提供了一种方式，使蒙特卡洛方法可以在线实现，并且可以用于没有幕划分的持续问题。
+
+当然，我们已经见过一种统一 TD 和蒙特卡洛方法的方式：第 7 章的 $n$ 步 TD 方法。
+资格迹在此之外所提供的，是一种优雅的算法机制，并且具有显著的计算优势。
+这个机制是一个短期记忆向量，即资格迹 $\mathbf{z}_t\in\mathbb{R}^d$，它与长期权重向量 $\mathbf{w}_t\in\mathbb{R}^d$ 平行。
+粗略地说，每当 $\mathbf{w}_t$ 的某个分量参与产生一个估计值时，$\mathbf{z}_t$ 中相应的分量就会被提高，随后开始衰减。
+如果在该迹降回零之前出现了非零 TD 误差，那么学习就会发生在 $\mathbf{w}_t$ 的该分量上。
+迹衰减参数 $\lambda\in[0,1]$ 决定迹下降的速度。
+
+与 $n$ 步方法相比，资格迹的主要计算优势在于，它只需要一个迹向量，而不需要保存最近 $n$ 个特征向量。
+学习也会在时间上连续而均匀地发生，而不是延迟到一幕结束再追赶。
+此外，学习可以在一个状态被遇到后立刻发生并影响行为，而不是延迟 $n$ 步。
+
+资格迹说明，学习算法有时可以换一种方式实现，以取得计算优势。
+许多算法最自然的表述，是把一个状态的价值更新看作基于该状态之后多个未来时间步上发生的事件。
+例如，蒙特卡洛方法（第 5 章）基于所有未来奖励来更新一个状态，而 $n$ 步 TD 方法（第 7 章）基于未来接下来的 $n$ 个奖励以及 $n$ 步之后的状态来更新。
+这种从被更新状态向前看的表述称为\textbf{前向视角}。
+前向视角实现起来总是有些复杂，因为更新依赖于当时尚不可得的后续事件。
+然而，本章将说明，常常可以使用当前 TD 误差、借助资格迹向后看最近访问过的状态，从而得到几乎相同的更新，有时甚至完全相同。
+这些观察和实现学习算法的替代方式称为\textbf{后向视角}。
+前向视角与后向视角之间的变换，以及二者之间的等价性，可以追溯到时序差分学习刚被提出的时期；但自 2014 年以来，它们已经变得强大和精细得多。
+这里我们介绍现代视角的基础。
+
+像往常一样，我们先对状态价值和预测问题充分展开这些思想，然后再扩展到动作价值和控制。
+我们先处理同策略情形，再扩展到离策略学习。
+我们的处理特别关注线性函数近似，因为资格迹在线性函数近似中的结果更强。
+这些结果也适用于表格型情形和状态聚合情形，因为它们都是线性函数近似的特例。
+
+\subsection*{12.1\quad $\lambda$-回报}
+
+在第 7 章中，我们把 $n$ 步回报定义为前 $n$ 个奖励，加上 $n$ 步后到达状态的估计价值，并对各项作适当折扣（7.1）。
+对于任意参数化函数近似器，该式的一般形式为
+\begin{equation}
+G_{t:t+n}\doteq R_{t+1}+\gamma R_{t+2}+\cdots+\gamma^{n-1}R_{t+n}
++\gamma^n\hat v(S_{t+n},\mathbf{w}_{t+n-1}),\quad 0\le t\le T-n,
+\tag{12.1}
+\end{equation}
+其中 $\hat v(s,\mathbf{w})$ 是给定权重向量 $\mathbf{w}$ 时状态 $s$ 的近似价值，$T$ 是幕终止时间（如果存在）。
+第 7 章已经指出，每一个 $n$ 步回报（$n\ge 1$）都是表格型学习更新的有效目标，也同样是近似随机梯度更新（如 9.7）的有效目标。
+
+现在我们注意到，有效更新不仅可以朝向任意一个 $n$ 步回报，也可以朝向不同 $n$ 的 $n$ 步回报的任意平均。
+例如，一个更新可以朝向这样一个目标：二步回报的一半加四步回报的一半，即 $\frac12G_{t:t+2}+\frac12G_{t:t+4}$。
+任意一组 $n$ 步回报都可以这样平均，只要各分量回报上的权重为正且和为 1。
+这种复合回报具有类似单个 $n$ 步回报（7.3）的误差缩减性质，因此可用于构造有保证收敛性质的更新。
+取平均会产生一大类新的算法。
+例如，我们可以平均一步回报和无穷步回报，从而得到另一种把 TD 方法和蒙特卡洛方法联系起来的方式。
+原则上，也可以把基于经验的更新同 DP 更新平均，得到经验方法和基于模型方法的简单组合。
+
+把较简单的分量更新平均而成的更新称为\textbf{复合更新}。
+复合更新的备份图由各个分量更新的备份图组成，上方用一条水平线连起，下方写出权重分数。
+例如，本节开头提到的“二步回报一半、四步回报一半”的复合更新，其备份图可画在右侧。
+复合更新只有在最长的分量更新完成后才能进行。
+在该例中，右侧的更新只能在 $t+4$ 时刻，对时刻 $t$ 形成的估计进行。
+一般来说，我们希望限制最长分量更新的长度，因为它决定了更新的延迟。
+
+TD($\lambda$) 算法可以理解为对 $n$ 步更新取平均的一种特殊方式。
+这个平均包含所有 $n$ 步更新，其中每个更新的权重与 $\lambda^{n-1}$ 成比例（$\lambda\in[0,1]$），并用因子 $1-\lambda$ 归一化，使权重和为 1。
+所得更新的目标称为 \textbf{$\lambda$-回报}，其基于状态的形式定义为
+\begin{equation}
+G_t^\lambda\doteq (1-\lambda)\sum_{n=1}^{\infty}\lambda^{n-1}G_{t:t+n}.
+\tag{12.2}
+\end{equation}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.76\textwidth]{figure-12-1.png}
+\caption*{\textbf{图 12.1：}TD($\lambda$) 的备份图。若 $\lambda=0$，整体更新退化为第一个分量，即一步 TD 更新；若 $\lambda=1$，整体更新退化为最后一个分量，即蒙特卡洛更新。}
+\end{figure}
+
+图 12.2 进一步说明了 $\lambda$-回报中各个 $n$ 步回报的权重。
+一步回报具有最大的权重 $1-\lambda$；二步回报具有第二大的权重 $(1-\lambda)\lambda$；三步回报具有权重 $(1-\lambda)\lambda^2$；依此类推。
+每增加一步，权重都按因子 $\lambda$ 衰减。
+一旦到达终止状态，所有后续 $n$ 步回报都等于通常的回报 $G_t$。
+如果想要，可以把终止之后的回报同前面的项分开，从而得到
+\begin{equation}
+G_t^\lambda=(1-\lambda)\sum_{n=1}^{T-t-1}\lambda^{n-1}G_{t:t+n}
++\lambda^{T-t-1}G_t.
+\tag{12.3}
+\end{equation}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.72\textwidth]{figure-12-2.png}
+\caption*{\textbf{图 12.2：}$\lambda$-回报中各个 $n$ 步回报的权重。}
+\end{figure}
+
+如第 7 章一样，把 $\lambda$-回报代入更新目标，可以得到相应的学习算法。
+最简单的离线形式等到一幕结束后，再对该幕中所有状态进行更新：
+\begin{equation}
+\mathbf{w}_{t+1}\doteq \mathbf{w}_t+\alpha\left[G_t^\lambda-\hat v(S_t,\mathbf{w}_t)\right]
+\nabla\hat v(S_t,\mathbf{w}_t),\quad t=0,\ldots,T-1.
+\tag{12.4}
+\end{equation}
+这个算法称为\textbf{离线 $\lambda$-回报算法}。
+它是前向视角算法，因为 $t$ 时刻的更新由从 $t$ 往后看的整个未来奖励序列决定。
+它通常比一步 TD 更稳健，也比纯蒙特卡洛更早地利用自举信息。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.82\textwidth]{figure-12-3.png}
+\caption*{\textbf{图 12.3：}19 状态随机游走例子上不同 $\lambda$ 的离线 $\lambda$-回报算法和 $n$ 步 TD 方法的表现。}
+\end{figure}
+
+\subsection*{12.2\quad TD($\lambda$)}
+
+TD($\lambda$) 是一种既经典又被广泛使用的资格迹算法。
+它可以看作离线 $\lambda$-回报算法的一种后向视角、在线实现。
+与前向视角不同，后向视角在每一步只使用当前的 TD 误差和一个资格迹向量。
+这使更新可以立即进行，而不必等到后续奖励全部出现。
+
+先定义一步 TD 误差
+\begin{equation}
+\delta_t\doteq R_{t+1}+\gamma\hat v(S_{t+1},\mathbf{w}_t)-\hat v(S_t,\mathbf{w}_t),
+\tag{12.5}
+\end{equation}
+以及资格迹向量 $\mathbf{z}_t$。
+在函数近似形式下，累积迹通常写为
+\begin{equation}
+\mathbf{z}_t\doteq \gamma\lambda\mathbf{z}_{t-1}
++\nabla\hat v(S_t,\mathbf{w}_t),\quad \mathbf{z}_{-1}=\mathbf{0}.
+\tag{12.6}
+\end{equation}
+然后，TD($\lambda$) 的权重更新为
+\begin{equation}
+\mathbf{w}_{t+1}\doteq \mathbf{w}_t+\alpha\delta_t\mathbf{z}_t.
+\tag{12.7}
+\end{equation}
+这三个式子构成了 TD($\lambda$) 的核心。
+资格迹把最近访问过并参与当前估计的特征保留下来，并按因子 $\gamma\lambda$ 衰减。
+当当前 TD 误差出现时，更新会沿着所有仍有资格的方向传播。
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{半梯度 TD($\lambda$)，用于估计 $\hat v\approx v_\pi$}
+
+\vspace{0.4em}
+\noindent 输入：策略 $\pi$，可微状态价值函数 $\hat v:\mathcal{S}\times\mathbb{R}^d\to\mathbb{R}$。
+
+\noindent 算法参数：步长 $\alpha>0$，迹衰减参数 $\lambda\in[0,1]$。
+
+\noindent 任意初始化 $\mathbf{w}\in\mathbb{R}^d$，并令 $\hat v(\text{terminal},\mathbf{w})=0$。
+
+\vspace{0.4em}
+\noindent 对每一幕循环：
+
+\quad 初始化 $S$。
+
+\quad $\mathbf{z}\leftarrow\mathbf{0}$。
+
+\quad 对该幕的每一步循环：
+
+\qquad 按 $\pi$ 采取动作，观察 $R,S'$。
+
+\qquad $\delta\leftarrow R+\gamma\hat v(S',\mathbf{w})-\hat v(S,\mathbf{w})$。
+
+\qquad $\mathbf{z}\leftarrow\gamma\lambda\mathbf{z}+\nabla\hat v(S,\mathbf{w})$。
+
+\qquad $\mathbf{w}\leftarrow\mathbf{w}+\alpha\delta\mathbf{z}$。
+
+\qquad $S\leftarrow S'$。
+\end{minipage}}
+\end{center}
+
+TD($\lambda$) 的后向视角可以通过图 12.5 来理解。
+当前 TD 误差像一个信号一样向后广播给过去的状态。
+每个过去状态接收到的强度，由从该状态到当前时刻之间的资格迹衰减决定。
+如果某个状态刚被访问，它的迹较大；如果它很久以前被访问，它的迹则已经接近零。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.74\textwidth]{figure-12-5.png}
+\caption*{\textbf{图 12.5：}TD($\lambda$) 的后向视角。每个状态依照它对当前 TD 误差的资格迹强度被更新。}
+\end{figure}
+
+\subsection*{12.3\quad $n$ 步截断的 $\lambda$-回报方法}
+
+离线 $\lambda$-回报算法要等到一幕结束才能形成全部目标。
+在持续任务中，或者在长幕中，这种等待并不方便。
+一种折中办法是使用\textbf{截断的 $\lambda$-回报}，也就是只向前看固定的 $n$ 步。
+其目标可以写为
+\begin{equation}
+G_{t:t+n}^{\lambda}\doteq
+(1-\lambda)\sum_{i=1}^{n-1}\lambda^{i-1}G_{t:t+i}
++\lambda^{n-1}G_{t:t+n}.
+\tag{12.8}
+\end{equation}
+最后一项收集了所有未显式展开的剩余权重。
+当 $n$ 很大并且最终跨过终止时刻时，它接近完整的 $\lambda$-回报；当 $n=1$ 时，它就是一步 TD 目标。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.7\textwidth]{figure-12-7.png}
+\caption*{\textbf{图 12.7：}截断 TD($\lambda$) 的备份图。}
+\end{figure}
+
+使用截断目标可以形成在线但有延迟的前向视角算法。
+在时刻 $t+n$ 时，我们已经拥有了构造 $G_{t:t+n}^{\lambda}$ 所需的信息，于是可以更新时刻 $t$ 的状态。
+这种算法与第 7 章的 $n$ 步方法非常相似，只是目标变成了多个短期回报的指数加权平均。
+
+\subsection*{12.4\quad 重做更新：在线 $\lambda$-回报算法}
+
+另一种得到在线前向视角的方法是\textbf{重做更新}。
+其思想是，在每一步到来时，重新计算目前为止所有可用的截断 $\lambda$-回报，并重做早先的更新。
+这样，在一幕结束时，得到的结果与离线 $\lambda$-回报算法相同；而在中间时刻，权重已经不断被修正。
+这个做法计算量更大，但它为理解真正在线 TD($\lambda$) 提供了概念桥梁。
+
+在线 $\lambda$-回报的第 $h$ 时刻视角，把目标写成 $G_{t:h}^{\lambda}$。
+当 $h$ 增大时，同一个过去状态 $S_t$ 的目标会不断变得更精确。
+因而算法可以在每次获得新奖励后，把过去的估计从旧目标移动到新目标。
+重做更新的前向视角清楚地说明了“在线”不必意味着只做近似；只要愿意付出更多计算，就可以保持与离线目标的一致性。
+
+\subsection*{12.5\quad 真正在线 TD($\lambda$)}
+
+真正在线 TD($\lambda$) 目前是本章中表现最好的时序差分资格迹算法之一。
+在实际问题中，经典的离线 $\lambda$-回报算法往往过于复杂，而传统 TD($\lambda$) 虽然简单，却只能近似在线 $\lambda$-回报。
+真正在线 TD($\lambda$) 在计算上仍然高效，同时与一种在线前向视角严格等价。
+这就是它名字中“真正在线”的含义。
+
+在线性函数近似下，令
+\[
+\hat v(s,\mathbf{w})\doteq \mathbf{w}^{\top}\mathbf{x}(s),
+\]
+其中 $\mathbf{x}(s)$ 是状态特征向量。
+真正在线 TD($\lambda$) 使用\textbf{荷兰迹}：
+\begin{equation}
+\mathbf{z}_t\doteq \gamma\lambda\mathbf{z}_{t-1}
++\left(1-\alpha\gamma\lambda\mathbf{z}_{t-1}^{\top}\mathbf{x}_t\right)\mathbf{x}_t.
+\tag{12.9}
+\end{equation}
+权重更新为
+\begin{equation}
+\mathbf{w}_{t+1}\doteq \mathbf{w}_t+\alpha(\delta_t+V_t-V_{t-1})\mathbf{z}_t
+-\alpha(V_t-V_{t-1})\mathbf{x}_t,
+\tag{12.10}
+\end{equation}
+其中 $V_t\doteq\mathbf{w}_t^\top\mathbf{x}_t$，$V_{t-1}$ 表示上一步在当前更新公式中需要保存的旧估计，且
+\[
+\delta_t\doteq R_{t+1}+\gamma V_{t+1}-V_t.
+\]
+荷兰迹把累积迹和替换迹的优点结合起来。
+当 $\lambda=0$ 时，该算法退化为一步 TD；当步长趋近于零时，它接近传统 TD($\lambda$)。
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{真正在线 TD($\lambda$)，用于估计 $\hat v\approx v_\pi$}
+
+\vspace{0.4em}
+\noindent 输入：策略 $\pi$，特征函数 $\mathbf{x}:\mathcal{S}\to\mathbb{R}^d$。
+
+\noindent 算法参数：步长 $\alpha>0$，迹衰减参数 $\lambda\in[0,1]$。
+
+\noindent 初始化 $\mathbf{w}$。
+
+\vspace{0.4em}
+\noindent 对每一幕循环：
+
+\quad 初始化 $S$，$\mathbf{x}\leftarrow\mathbf{x}(S)$。
+
+\quad $\mathbf{z}\leftarrow\mathbf{0}$，$V_{\mathrm{old}}\leftarrow0$。
+
+\quad 对该幕的每一步循环：
+
+\qquad 采取动作，观察 $R,S'$，令 $\mathbf{x}'\leftarrow\mathbf{x}(S')$。
+
+\qquad $V\leftarrow\mathbf{w}^{\top}\mathbf{x}$，$V'\leftarrow\mathbf{w}^{\top}\mathbf{x}'$。
+
+\qquad $\delta\leftarrow R+\gamma V'-V$。
+
+\qquad $\mathbf{z}\leftarrow\gamma\lambda\mathbf{z}+(1-\alpha\gamma\lambda\mathbf{z}^{\top}\mathbf{x})\mathbf{x}$。
+
+\qquad $\mathbf{w}\leftarrow\mathbf{w}+\alpha(\delta+V-V_{\mathrm{old}})\mathbf{z}-\alpha(V-V_{\mathrm{old}})\mathbf{x}$。
+
+\qquad $V_{\mathrm{old}}\leftarrow V'$，$\mathbf{x}\leftarrow\mathbf{x}'$，$S\leftarrow S'$。
+\end{minipage}}
+\end{center}
+
+\subsection*{12.6\quad 蒙特卡洛学习中的“荷兰迹”}
+
+虽然资格迹通常同 TD 学习联系在一起，但它们也能用于蒙特卡洛方法。
+如果令 $\lambda=1$，迹不再按 $\lambda$ 截断，而是把整幕中的相关特征都保留下来。
+这可以看成一种在线实现的蒙特卡洛预测方法。
+真正在线的构造在这里同样有意义：它保证在每一步进行的增量更新，与前向视角中不断改进的蒙特卡洛目标相匹配。
+
+这一节的关键教训是，资格迹不只是 TD 的附属技术。
+它们是把“未来回报的前向描述”转换成“当前误差向过去传播”的一般机制。
+不同的目标、不同的参数化和不同的在线要求，会导出不同形式的迹。
+
+\subsection*{12.7\quad Sarsa($\lambda$)}
+
+现在把资格迹从状态价值预测扩展到动作价值和控制。
+对于动作价值，近似函数写作 $\hat q(s,a,\mathbf{w})$，线性情形下写作 $\mathbf{w}^{\top}\mathbf{x}(s,a)$。
+一步 TD 误差变为
+\begin{equation}
+\delta_t\doteq R_{t+1}+\gamma\hat q(S_{t+1},A_{t+1},\mathbf{w}_t)
+-\hat q(S_t,A_t,\mathbf{w}_t).
+\tag{12.11}
+\end{equation}
+资格迹则由当前状态--动作对的特征或梯度更新。
+在控制中，策略通常根据当前动作价值估计改进，例如使用 $\varepsilon$-贪心策略。
+
+Sarsa($\lambda$) 有多种迹形式。
+累积迹简单地把每次访问的特征加到迹中；替换迹则把被访问特征的迹重置到 1，从而避免重复访问同一特征时迹无限增长。
+在二值稀疏特征（例如瓦片编码）中，替换迹通常更稳定。
+对于真正在线版本，则使用动作价值版本的荷兰迹。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.76\textwidth]{figure-12-9.png}
+\caption*{\textbf{图 12.9：}Sarsa($\lambda$) 的备份图。}
+\end{figure}
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{Sarsa($\lambda$)，带二值特征和线性函数近似，用于估计 $\hat q\approx q_*$}
+
+\vspace{0.4em}
+\noindent 输入：特征函数 $\mathbf{x}:\mathcal{S}\times\mathcal{A}\to\mathbb{R}^d$。
+
+\noindent 算法参数：步长 $\alpha>0$，迹衰减参数 $\lambda\in[0,1]$，小的 $\varepsilon>0$。
+
+\noindent 初始化 $\mathbf{w}$。
+
+\vspace{0.4em}
+\noindent 对每一幕循环：
+
+\quad 初始化 $S$，按 $\hat q$ 的 $\varepsilon$-贪心策略选取 $A$。
+
+\quad $\mathbf{z}\leftarrow\mathbf{0}$。
+
+\quad 对该幕的每一步循环：
+
+\qquad 采取 $A$，观察 $R,S'$。
+
+\qquad 若 $S'$ 不是终止状态，则按 $\varepsilon$-贪心选取 $A'$。
+
+\qquad $\delta\leftarrow R+\gamma\hat q(S',A',\mathbf{w})-\hat q(S,A,\mathbf{w})$。
+
+\qquad 更新资格迹（累积迹或替换迹）。
+
+\qquad $\mathbf{w}\leftarrow\mathbf{w}+\alpha\delta\mathbf{z}$。
+
+\qquad $S\leftarrow S'$，$A\leftarrow A'$。
+\end{minipage}}
+\end{center}
+
+\noindent\textbf{例 12.1：方格世界中的迹}
+资格迹能够显著提高动作价值学习中的效率。
+在许多任务中，某个奖励只在很晚之后才出现；没有迹时，学习信号必须一步一步向前传播。
+有了迹，当前 TD 误差可以立即影响到最近多个状态--动作对。
+这在需要把延迟奖励分配给较早决策的问题中特别重要。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{figure-12-10.png}
+\caption*{\textbf{图 12.10：}山地车任务中，Sarsa($\lambda$) 在不同 $\lambda$ 下的表现。}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.78\textwidth]{figure-12-11.png}
+\caption*{\textbf{图 12.11：}山地车任务中累积迹与替换迹的比较。}
+\end{figure}
+
+\subsection*{12.8\quad 变量 $\lambda$ 和 $\gamma$}
+
+到目前为止，我们把 $\lambda$ 和 $\gamma$ 都当作常数。
+在一般情况下，它们都可以随时间、状态或状态--动作对而变化。
+变化的折扣 $\gamma_t$ 可以表示状态相关的终止概率，也可以在持续任务中表达不同时间的有效规划范围。
+变化的迹衰减参数 $\lambda_t$ 则允许算法在某些状态之后保留更长记忆，而在另一些状态之后快速截断。
+
+在这种表述下，$n$ 步和 $\lambda$-回报仍然可以定义，只是权重中的 $\gamma$ 和 $\lambda$ 被对应时刻的 $\gamma_t$ 与 $\lambda_t$ 替代。
+后向视角的迹更新也相应变为
+\[
+\mathbf{z}_t\doteq \gamma_t\lambda_t\mathbf{z}_{t-1}
++\nabla\hat v(S_t,\mathbf{w}_t),
+\]
+或其线性、真正在线版本。
+这种灵活性在后面处理离策略学习和兴趣函数时尤其重要。
+
+\subsection*{12.9\quad 带控制变量的离策略迹}
+
+离策略学习的困难在于：行为策略 $b$ 产生数据，而目标策略 $\pi$ 是我们想要评估或改进的策略。
+在基于采样的前向视角中，需要用重要性采样比率
+\[
+\rho_t\doteq \frac{\pi(A_t|S_t)}{b(A_t|S_t)}
+\]
+修正分布差异。
+资格迹的后向视角同样可以包含这些比率。
+最直接的方式是让迹在每一步乘以 $\rho_t$，从而只有在行为与目标相容时，过去状态才继续保持资格。
+
+然而，简单的重要性采样迹可能具有很高方差。
+为了得到更稳定的算法，可以引入\textbf{控制变量}。
+控制变量的思想是，在保持期望不变的情况下，加入某个均值为零的校正项，以降低方差。
+在资格迹中，这会改变迹的衰减方式和更新目标，使算法在偏差与方差之间取得更好的平衡。
+
+\subsection*{12.10\quad Watkins 的 Q($\lambda$) 到 Tree-Backup($\lambda$)}
+
+Sarsa($\lambda$) 是同策略控制算法。
+要把资格迹用于离策略控制，一种经典方法是 Watkins 的 Q($\lambda$)。
+它结合 Q-learning 的离策略自举目标和资格迹。
+当行为动作与目标贪心动作一致时，迹可以继续传播；一旦采取了非贪心动作，迹就被截断。
+这种截断保证了更新仍然指向贪心目标，但也可能丢失很多有用的信用分配信息。
+
+Tree-Backup($\lambda$) 提供了一种更平滑的替代。
+它不是用重要性采样比率选择或截断整条路径，而是沿着动作树按目标策略概率分配权重。
+这样，非采样动作也通过它们在目标策略下的概率进入期望备份。
+Watkins 的 Q($\lambda$) 可以看作这一思想在贪心目标策略下的极端情形。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.76\textwidth]{figure-12-12.png}
+\caption*{\textbf{图 12.12：}Watkins 的 Q($\lambda$) 的备份图。}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.72\textwidth]{figure-12-13.png}
+\caption*{\textbf{图 12.13：}Tree-Backup($\lambda$) 的备份图。}
+\end{figure}
+
+\subsection*{12.11\quad 带迹的稳定离策略方法}
+
+许多离策略资格迹方法可以用统一形式表示。
+关键是选择迹的递推方式，使得算法在函数近似下仍然稳定。
+在离策略学习中，仅仅把同策略 TD($\lambda$) 加上重要性采样比率，往往不足以保证稳定，尤其在线性函数近似之外更是如此。
+
+梯度 TD 方法和 emphatic TD 方法提供了稳定的替代。
+它们通过引入辅助权重、兴趣函数以及强调权重，重新调整各状态更新的重要性。
+在这种框架中，资格迹不仅记录最近访问的特征，还携带关于目标策略、行为策略和状态关注程度的信息。
+这些方法的形式更复杂，但它们解决了离策略学习中长期存在的发散问题。
+
+\subsection*{12.12\quad 实现问题}
+
+资格迹看似要求在每一步更新一个长度为 $d$ 的向量。
+如果 $d$ 很大，这可能很昂贵。
+但在许多实用函数近似方法中，特征向量是稀疏的，例如瓦片编码中每个状态只激活少数几个特征。
+这时可以只存储非零迹分量，并在其衰减到足够小时删除。
+这样，资格迹的实际计算开销可以保持很低。
+
+另一个实现问题是迹的类型。
+累积迹实现简单，但在重复访问同一特征时可能使迹过大。
+替换迹更适合二值特征。
+荷兰迹则是实现真正在线算法所需的形式，尤其在线性函数近似中具有清晰的前向--后向等价性。
+
+在并行或经验回放设置中，资格迹需要更加小心。
+迹依赖于时间顺序，因此如果打乱样本顺序，就不能直接保留普通的后向视角。
+这也是为什么资格迹最自然地适用于在线学习和按时间顺序处理的轨迹。
+
+\subsection*{12.13\quad 小结}
+
+资格迹是一种紧凑而高效的机制，用来把多步回报的前向视角转换成在线、逐步的后向更新。
+它们统一了 TD 和蒙特卡洛方法，并通过参数 $\lambda$ 在二者之间形成连续谱系。
+当 $\lambda=0$ 时，方法退化为一步 TD；当 $\lambda=1$ 时，它接近蒙特卡洛学习；中间值常常在偏差、方差和学习速度之间取得更好的折中。
+
+本章首先从 $\lambda$-回报出发，说明了复合更新和前向视角。
+随后，我们介绍了 TD($\lambda$) 的后向视角、截断的 $\lambda$-回报、在线 $\lambda$-回报，以及真正在线 TD($\lambda$)。
+之后，我们把资格迹扩展到动作价值和控制，得到 Sarsa($\lambda$) 及其变体。
+最后，我们讨论了变量 $\lambda$ 与 $\gamma$、离策略资格迹、Watkins 的 Q($\lambda$)、Tree-Backup($\lambda$)、稳定离策略方法以及实现问题。
+
+资格迹的核心思想很简单：最近参与预测的特征在一段时间内保持“资格”，从而让随后的 TD 误差能够立即影响它们。
+这种思想不仅改善了信用分配，也使许多前向定义的学习目标可以在线实现。
+在现代强化学习中，资格迹仍然是连接一步学习、多步学习、蒙特卡洛学习和在线函数近似的重要工具。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.78\textwidth]{figure-12-14.png}
+\caption*{\textbf{图 12.14：}不同任务上，带资格迹的若干学习算法的经验表现比较。}
+\end{figure}
+
+\end{document}

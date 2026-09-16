@@ -1,0 +1,1113 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\graphicspath{{tex/强化学习/figures/math-12/}}
+
+\title{强化学习：带近似的离策略方法}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{第 11 章\quad 带近似的离策略方法}
+
+从第 5 章开始，本书主要把同策略学习方法和离策略学习方法看成两种替代方式，用来处理广义策略迭代学习形式中开发与探索之间固有的冲突。
+前两章已经处理了带函数近似的同策略情形，而在本章中，我们处理带函数近似的离策略情形。
+事实表明，对离策略学习来说，推广到函数近似要比对同策略学习明显不同，也明显更困难。
+第 6 章和第 7 章中发展出的表格型离策略方法，可以直接推广为半梯度算法；但是这些算法不像它们在同策略训练下那样稳健地收敛。
+在本章中，我们将探讨这些收敛问题，更仔细地考察线性函数近似的理论，引入可学习性的概念，然后讨论一些新的、在离策略情形下具有强收敛保证的算法。
+到最后，我们会得到改进的方法，但是理论结果不会像同策略学习那样强，经验结果也不会像同策略学习那样令人满意。
+在这个过程中，我们还会对强化学习中的近似有更深的理解，这种理解既适用于同策略学习，也适用于离策略学习。
+
+回忆一下，在离策略学习中，给定由另一个行为策略 $b$ 产生的数据，我们试图学习目标策略 $\pi$ 的价值函数。
+在预测情形中，两个策略都是静态且给定的，我们要学习状态价值 $\hat v\approx v_\pi$，或者学习动作价值 $\hat q\approx q_\pi$。
+在控制情形中，学习的是动作价值，而且两个策略通常都会在学习过程中改变：$\pi$ 是关于 $\hat q$ 的贪心策略，而 $b$ 则是更具探索性的策略，例如关于 $\hat q$ 的 $\varepsilon$-贪心策略。
+
+离策略学习的挑战可以分成两部分：一部分在表格型情形中就会出现，另一部分只有在使用函数近似时才会出现。
+挑战的第一部分与更新目标有关（不要与目标策略混淆），第二部分与更新的分布有关。
+第 5 章和第 7 章中发展出的重要性采样相关技术处理的是第一部分；这些技术可能会增大方差，但在所有成功的表格型和近似型算法中都是必需的。
+这些技术向函数近似的推广，会在本章第一节中很快处理。
+
+对于带函数近似的离策略学习挑战的第二部分，还需要更多东西，因为离策略情形中的更新分布并不服从同策略分布。
+同策略分布对于半梯度方法的稳定性是重要的。
+已有两种一般思路被探索用来处理这一点。
+一种是再次使用重要性采样方法，这一次是为了把更新分布扭回同策略分布，使半梯度方法在（线性情形下）保证收敛。
+另一种是发展真正的梯度方法，它们不依赖任何特殊分布来保证稳定性。
+我们将介绍基于这两种思路的方法。
+这是一个前沿研究领域，目前还不清楚这些思路中哪一种在实践中最有效。
+
+\subsection*{11.1\quad 半梯度方法}
+
+我们先说明，早前各章中为离策略情形发展出的方法，怎样能够直接推广为带函数近似的半梯度方法。
+这些方法处理了离策略学习挑战的第一部分（改变更新目标），但没有处理第二部分（改变更新分布）。
+因此，这些方法在某些情形中可能发散；从这个意义上说，它们并不健全，不过它们仍然经常被成功使用。
+请记住，在表格型情形中，这些方法确实保证稳定，并且在渐近意义上无偏；而表格型情形本身对应于函数近似的一个特殊情形。
+所以，仍然有可能把它们与特征选择方法结合起来，使组合后的系统能够保证稳定。
+无论如何，这些方法很简单，因此是一个很好的起点。
+
+在第 7 章中，我们描述了多种表格型离策略算法。
+要把它们转换成半梯度形式，我们只需把对数组（$V$ 或 $Q$）的更新，替换成对权重向量（$\mathbf{w}$）的更新，并使用近似价值函数（$\hat v$ 或 $\hat q$）及其梯度。
+这些算法中的许多都使用逐步重要性采样比：
+\begin{equation}
+\rho_t\doteq\rho_{t:t}=\frac{\pi(A_t|S_t)}{b(A_t|S_t)}.
+\tag{11.1}
+\end{equation}
+例如，一步状态价值算法是半梯度离策略 TD(0)，除了增加了 $\rho_t$ 之外，它与对应的同策略算法（第 203 页）完全一样：
+\begin{equation}
+\mathbf{w}_{t+1}\doteq \mathbf{w}_t+\alpha\rho_t\delta_t\nabla\hat v(S_t,\mathbf{w}_t),
+\tag{11.2}
+\end{equation}
+其中 $\delta_t$ 要根据问题是分幕折扣情形，还是使用平均奖励的持续无折扣情形，作相应定义：
+\begin{equation}
+\delta_t\doteq R_{t+1}+\gamma\hat v(S_{t+1},\mathbf{w}_t)-\hat v(S_t,\mathbf{w}_t),
+\tag{11.3}
+\end{equation}
+或者
+\begin{equation}
+\delta_t\doteq R_{t+1}-\bar R_t+\hat v(S_{t+1},\mathbf{w}_t)-\hat v(S_t,\mathbf{w}_t).
+\tag{11.4}
+\end{equation}
+
+对于动作价值，一步算法是半梯度期望 Sarsa：
+\begin{equation}
+\mathbf{w}_{t+1}\doteq \mathbf{w}_t+\alpha\delta_t\nabla\hat q(S_t,A_t,\mathbf{w}_t),
+\quad\text{其中}
+\tag{11.5}
+\end{equation}
+\[
+\delta_t\doteq R_{t+1}+\gamma\sum_a\pi(a|S_{t+1})\hat q(S_{t+1},a,\mathbf{w}_t)-\hat q(S_t,A_t,\mathbf{w}_t),
+\quad \text{（分幕）}
+\]
+\[
+\delta_t\doteq R_{t+1}-\bar R_t+\sum_a\pi(a|S_{t+1})\hat q(S_{t+1},a,\mathbf{w}_t)-\hat q(S_t,A_t,\mathbf{w}_t).
+\quad \text{（持续）}
+\]
+注意，这个算法没有使用重要性采样。
+在表格型情形中，这样做显然是合适的，因为唯一的样本动作是 $A_t$，而在学习它的价值时，我们不必考虑任何其他动作。
+在函数近似下，这一点就不那么清楚了，因为一旦不同的状态--动作对都对同一个整体近似有贡献，我们可能就希望以不同方式给它们加权。
+要恰当地解决这个问题，还需要更深入地理解强化学习中函数近似的理论。
+
+在这些算法的多步推广中，状态价值算法和动作价值算法都会涉及重要性采样。
+例如，半梯度期望 Sarsa 的 $n$ 步版本是
+\begin{equation}
+\mathbf{w}_{t+n}\doteq \mathbf{w}_{t+n-1}
++\alpha\rho_{t+1}\cdots\rho_{t+n-1}\left[G_{t:t+n}-\hat q(S_t,A_t,\mathbf{w}_{t+n-1})\right]\nabla\hat q(S_t,A_t,\mathbf{w}_{t+n-1}),
+\tag{11.6}
+\end{equation}
+其中
+\[
+G_{t:t+n}\doteq R_{t+1}+\cdots+\gamma^{n-1}R_{t+n}
++\gamma^n\hat q(S_{t+n},A_{t+n},\mathbf{w}_{t+n-1}),\quad \text{（分幕）}
+\]
+\[
+G_{t:t+n}\doteq R_{t+1}-\bar R_t+\cdots+R_{t+n}-\bar R_{t+n-1}
++\hat q(S_{t+n},A_{t+n},\mathbf{w}_{t+n-1}).\quad \text{（持续）}
+\]
+这里，在处理幕的结束时，我们略微非正式。
+在第一个方程中，对 $k\ge T$（其中 $T$ 是该幕的最后时间步）的 $\rho_k$ 应取为 1；并且若 $t+n\ge T$，则 $G_{t:n}$ 应取为 $G_t$。
+
+还要回忆，我们在第 7 章中也介绍过一个完全不涉及重要性采样的离策略算法：$n$ 步树备份算法。
+下面是它的半梯度版本：
+\begin{equation}
+\mathbf{w}_{t+n}\doteq \mathbf{w}_{t+n-1}
++\alpha\left[G_{t:t+n}-\hat q(S_t,A_t,\mathbf{w}_{t+n-1})\right]\nabla\hat q(S_t,A_t,\mathbf{w}_{t+n-1}),
+\tag{11.7}
+\end{equation}
+\begin{equation}
+G_{t:t+n}\doteq \hat q(S_t,A_t,\mathbf{w}_{t-1})
++\sum_{k=t}^{t+n-1}\delta_k\prod_{i=t+1}^{k}\gamma\pi(A_i|S_i),
+\tag{11.8}
+\end{equation}
+其中 $\delta_t$ 按本页顶部期望 Sarsa 的定义。
+我们还在第 7 章中定义过一个统一所有动作价值算法的算法：$n$ 步 $Q(\sigma)$。
+我们把这个算法的半梯度形式，以及 $n$ 步状态价值算法的半梯度形式，留作读者练习。
+
+\noindent\textbf{练习 11.1}
+把 $n$ 步离策略 TD（7.9）的方程转换成半梯度形式。
+给出分幕情形和持续情形中相应回报的定义。
+
+\noindent\textbf{练习 11.2}
+把 $n$ 步 $Q(\sigma)$（7.11 和 7.17）的方程转换成半梯度形式。
+给出同时覆盖分幕情形和持续情形的定义。
+
+\subsection*{11.2\quad 离策略发散的例子}
+
+在本节中，我们开始讨论带函数近似的离策略学习挑战的第二部分，也就是更新分布与同策略分布不匹配这一点。
+我们将描述几个有启发性的离策略学习反例，在这些例子中，半梯度算法和其他简单算法是不稳定的，并会发散。
+
+为了建立直觉，最好先考虑一个非常简单的例子。
+假设，也许作为一个更大 MDP 的一部分，有两个状态，它们的估计价值分别具有函数形式 $w$ 和 $2w$，其中参数向量 $\mathbf{w}$ 只有一个分量 $w$。
+在线性函数近似下，如果两个状态的特征向量都只是简单的数（单分量向量），在这里分别是 1 和 2，那么这种情形就会出现。
+在第一个状态中，只有一个动作可用，并且它确定性地转移到第二个状态，奖励为 0：
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.18\textwidth]{simple-w-2w.png}
+\end{figure}
+
+其中两个圆圈中的表达式表示两个状态的价值。
+假设初始时 $w=10$。
+于是，这个转移将从估计价值为 10 的状态，转移到估计价值为 20 的状态。
+它看起来像一个好的转移，因而 $w$ 会被增大，以提高第一个状态的估计价值。
+如果 $\gamma$ 接近 1，那么 TD 误差将接近 10；并且如果 $\alpha=0.1$，那么为了降低 TD 误差，$w$ 将被增大到接近 11。
+然而，第二个状态的估计价值也会被增大到接近 22。
+如果这个转移再次发生，那么它将从估计价值约为 11 的状态，转移到估计价值约为 22 的状态，TD 误差约为 11，比以前更大，而不是更小。
+这时看起来更像是第一个状态被低估了，因此它的价值会再次被提高，这一次提高到约 12.1。
+这看起来很糟；事实上，随着进一步更新，$w$ 会发散到无穷大。
+
+为了确切看出这一点，我们必须更仔细地考察更新序列。
+两个状态之间转移上的 TD 误差是
+\[
+\delta_t=R_{t+1}+\gamma\hat v(S_{t+1},\mathbf{w}_t)-\hat v(S_t,\mathbf{w}_t)
+=0+\gamma 2w_t-w_t=(2\gamma-1)w_t,
+\]
+而离策略半梯度 TD(0) 更新（来自（11.2））是
+\[
+w_{t+1}=w_t+\alpha\rho_t\delta_t\nabla\hat v(S_t,w_t)
+=w_t+\alpha\cdot 1\cdot(2\gamma-1)w_t\cdot 1
+=\left(1+\alpha(2\gamma-1)\right)w_t.
+\]
+注意，在这个转移上，重要性采样比 $\rho_t$ 为 1，因为第一个状态中只有一个动作可用，所以它在目标策略和行为策略下被采取的概率都必定是 1。
+在上面的最后一个更新式中，新参数等于旧参数乘以一个标量常数 $1+\alpha(2\gamma-1)$。
+如果这个常数大于 1，那么系统就是不稳定的，并且 $w$ 将根据其初始值趋向正无穷或负无穷。
+这里，只要 $\gamma>0.5$，这个常数就大于 1。
+注意，只要 $\alpha>0$，稳定性就不依赖具体步长。
+更小或更大的步长会影响 $w$ 趋向无穷的速度，但不会影响它是否趋向无穷。
+
+这个例子的关键在于，这一个转移反复发生，而 $w$ 没有在其他转移上被更新。
+在离策略训练下，这是可能的，因为行为策略可能在那些其他转移上选择目标策略绝不会选择的动作。
+对于这些转移，$\rho_t$ 将为零，因此不会进行更新。
+然而，在同策略训练下，$\rho_t$ 总是 1。
+每当存在一个从 $w$ 状态到 $2w$ 状态、从而增大 $w$ 的转移时，也必定存在一个离开 $2w$ 状态的转移。
+除非这个转移到达一个价值更高的状态（因为 $\gamma<1$），否则它会降低 $2w$，于是那个状态必须再被一个价值甚至更高的状态跟随，否则 $w$ 会再次被降低。
+每个状态只有通过建立更高的期望，才能支撑前一个状态。
+最终这笔账必须偿还。
+在同策略情形中，未来奖励的承诺必须兑现，系统因而受到约束。
+但在离策略情形中，可以先作出一个承诺，然后在采取目标策略绝不会采取的动作之后，把它遗忘并免除。
+
+这个简单例子传达了离策略训练为什么会导致发散的大部分原因，但它并不完全令人信服，因为它并不完整，只是一个完整 MDP 的片段。
+真的会存在一个不稳定的完整系统吗？
+一个简单而完整的发散例子是 Baird 反例。
+考虑图 11.1 所示的分幕七状态、二动作 MDP。
+虚线动作以相等概率把系统带到六个上方状态之一，而实线动作把系统带到第七个状态。
+行为策略 $b$ 以概率 $\frac{6}{7}$ 和 $\frac{1}{7}$ 分别选择虚线动作和实线动作，因此在它之下的下一状态分布是均匀的（对所有非终止状态都相同），这也就是每一幕的起始分布。
+目标策略 $\pi$ 总是采取实线动作，因此 $\pi$ 的同策略分布集中在第七个状态。
+所有转移上的奖励都是零。
+折扣率为 $\gamma=0.99$。
+
+考虑在每个状态圆圈中的表达式所指示的线性参数化下估计状态价值。
+例如，最左边状态的估计价值为 $2w_1+w_8$，其中下标对应于整体权重向量 $\mathbf{w}\in\mathbb{R}^8$ 的分量；这对应于第一个状态的特征向量
+$\mathbf{x}(1)=(2,0,0,0,0,0,0,1)^\top$。
+所有转移上的奖励都是零，因此真实价值函数为 $v_\pi(s)=0$，对所有 $s$ 都成立；如果 $\mathbf{w}=\mathbf{0}$，它就可以被精确近似。
+事实上，解有很多，因为权重向量的分量数（8）多于非终止状态数（7）。
+此外，特征向量集合 $\{\mathbf{x}(s):s\in\mathcal{S}\}$ 是线性无关集。
+从所有这些方面看，这个任务似乎都是线性函数近似的有利情形。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.82\textwidth]{figure-11-1.png}
+\caption*{\textbf{图 11.1：}Baird 反例。这个马尔可夫过程的近似状态价值函数，具有每个状态中线性表达式所示的形式。实线动作通常导致第七个状态，而虚线动作通常以相等概率导致其他六个状态之一。奖励总是为零。}
+\end{figure}
+
+如果把半梯度 TD(0) 应用于这个问题（11.2），那么权重会发散到无穷，如图 11.2 左图所示。
+这种不稳定性会在任何正步长下发生，无论步长多么小。
+事实上，即使像动态规划（DP）那样进行期望更新，它也会发生，如图 11.2 右图所示。
+也就是说，如果权重向量 $\mathbf{w}_k$ 使用 DP（基于期望的）目标，以半梯度方式同时对所有状态更新：
+\begin{equation}
+\mathbf{w}_{k+1}\doteq \mathbf{w}_k+\frac{\alpha}{|\mathcal{S}|}\sum_s
+\left(\mathbb{E}_\pi\!\left[R_{t+1}+\gamma\hat v(S_{t+1},\mathbf{w}_k)\mid S_t=s\right]-\hat v(s,\mathbf{w}_k)\right)\nabla\hat v(s,\mathbf{w}_k).
+\tag{11.9}
+\end{equation}
+在这个情形中，没有随机性，也没有异步性，就像经典 DP 更新一样。
+除了使用半梯度函数近似外，这个方法是常规的。
+然而，系统仍然是不稳定的。
+
+如果在 Baird 反例中仅仅改变 DP 更新的分布，把它从均匀分布改为同策略分布（这通常要求异步更新），那么就保证收敛到一个误差由（9.14）界定的解。
+这个例子之所以醒目，是因为所用的 TD 和 DP 方法可以说是最简单、理解最充分的自举方法；所用的线性半下降方法也可以说是最简单、理解最充分的一类函数近似。
+这个例子说明，即使是自举和函数近似最简单的组合，如果更新不按照同策略分布来做，也可能是不稳定的。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.86\textwidth]{figure-11-2.png}
+\caption*{\textbf{图 11.2：}Baird 反例上不稳定性的展示。图中显示了两个半梯度算法的参数向量 $\mathbf{w}$ 各分量的演化。步长为 $\alpha=0.01$，初始权重为 $\mathbf{w}=(1,1,1,1,1,1,10,1)^\top$。}
+\end{figure}
+
+还有一些类似于 Baird 反例的反例，显示 $Q$ 学习也会发散。
+这令人担忧，因为否则 $Q$ 学习具有所有控制方法中最好的收敛保证。
+人们已经投入大量努力，试图找到对这一问题的补救，或者得到某种较弱但仍可用的保证。
+例如，只要行为策略足够接近目标策略，也许就能保证 $Q$ 学习收敛，比如当行为策略是 $\varepsilon$-贪心策略时。
+据我们所知，在这种情况下从未发现 $Q$ 学习发散，但还没有理论分析。
+在本节余下部分，我们介绍已经被探索过的另外几个想法。
+
+假设不只是在每次迭代时朝期望一步回报迈出一步，像 Baird 反例中那样，而是真的把价值函数一路改到最好的最小二乘近似。
+这会解决不稳定问题吗？
+当然，如果特征向量集合 $\{\mathbf{x}(s):s\in\mathcal{S}\}$ 构成线性无关集，就会解决，正如它们在 Baird 反例中那样，因为那时每次迭代都能精确近似，方法退化为标准表格型 DP。
+但这里的重点当然是考虑不存在精确解的情形。
+在这种情形中，即使每次迭代都形成最佳近似，稳定性也没有保证，如下面例子所示。
+
+\noindent\textbf{例 11.1：Tsitsiklis 和 Van Roy 的反例}
+这个例子表明，即使每一步都找到最小二乘解，线性函数近似也不一定能与 DP 配合工作。
+这个反例是通过给本节前面的 $w$ 到 $2w$ 例子增加一个终止状态构成的，如右图所示。
+和以前一样，第一个状态的估计价值为 $w$，第二个状态的估计价值为 $2w$。
+所有转移上的奖励都是零，因此两个状态的真实价值都是零，这可以用 $w=0$ 精确表示。
+如果我们在每一步设置 $w_{k+1}$，使估计价值与期望一步回报之间的 $\overline{\mathrm{VE}}$ 最小，那么有
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.27\textwidth]{example-11-1.png}
+\end{figure}
+\begin{equation}
+\begin{aligned}
+w_{k+1}
+&=\arg\min_{w\in\mathbb{R}}\sum_{s\in\mathcal{S}}
+\left(\hat v(s,w)-\mathbb{E}_\pi\!\left[R_{t+1}+\gamma\hat v(S_{t+1},w_k)\mid S_t=s\right]\right)^2\\
+&=\arg\min_{w\in\mathbb{R}}\left(w-\gamma 2w_k\right)^2+\left(2w-(1-\varepsilon)\gamma 2w_k\right)^2\\
+&=\frac{6-4\varepsilon}{5}\gamma w_k .
+\end{aligned}
+\tag{11.10}
+\end{equation}
+当 $\gamma>\frac{5}{6-4\varepsilon}$ 且 $w_0\ne0$ 时，序列 $\{w_k\}$ 发散。
+
+另一种试图防止不稳定性的方法，是对函数近似使用特殊方法。
+特别地，如果函数近似方法不会从观测目标外推，那么稳定性可以得到保证。
+这些方法称为\textbf{平均器}，包括最近邻方法和局部加权回归，但不包括瓦片编码和人工神经网络（ANN）这类流行方法。
+
+\noindent\textbf{练习 11.3（编程）}
+把一步半梯度 $Q$ 学习应用于 Baird 反例，并凭经验显示其权重会发散。
+
+\subsection*{11.3\quad 致命三元组}
+
+到目前为止，我们的讨论可以总结为：只要我们把下面三个元素全部结合起来，就会出现不稳定和发散的危险；这三个元素构成了我们所说的\textbf{致命三元组}：
+
+\noindent\textbf{函数近似}
+一种强大且可扩展的方式，用于从一个远大于内存和计算资源的状态空间进行泛化（例如线性函数近似或 ANN）。
+
+\noindent\textbf{自举}
+更新目标包含已有估计（如动态规划或 TD 方法中那样），而不是完全依赖实际奖励和完整回报（如 MC 方法中那样）。
+
+\noindent\textbf{离策略训练}
+在不是由目标策略产生的转移分布上进行训练。
+像动态规划中那样扫描整个状态空间并均匀更新所有状态，并不遵守目标策略，因此也是离策略训练的一个例子。
+
+特别要注意，危险并非来自控制或广义策略迭代。
+这些情形分析起来更复杂，但只要包含致命三元组的全部三个元素，不稳定性就会在更简单的预测情形中出现。
+危险也不是来自学习本身，或来自环境的不确定性，因为它同样强烈地发生在规划方法中，例如动态规划；在这类方法中，环境是完全已知的。
+
+如果致命三元组中任意两个元素存在，但不是三个都存在，那么不稳定性可以避免。
+因此，自然的做法是逐一考察这三个元素，看看是否有哪一个可以放弃。
+
+在这三个元素中，函数近似最明显不能放弃。
+我们需要能够扩展到大问题、具有强表达能力的方法。
+我们至少需要带有许多特征和参数的线性函数近似。
+状态聚合或复杂度随数据增长的非参数方法，要么太弱，要么太昂贵。
+像 LSTD 这样的最小二乘方法具有二次复杂度，因此对大问题来说太昂贵。
+
+放弃自举是可能的，但代价是计算效率和数据效率。
+也许最重要的是计算效率上的损失。
+蒙特卡洛（非自举）方法需要内存来保存每次预测和最终获得回报之间发生的所有事情，并且它们的全部计算都在获得最终回报之后进行。
+这些计算问题的代价在串行冯·诺依曼计算机上并不明显，但在专用硬件上会很明显。
+有了自举和资格迹（第 12 章），数据可以在生成的时间和地点被处理，之后就不必再使用。
+自举所带来的通信和内存节省非常大。
+
+放弃自举造成的数据效率损失也很显著。
+我们已经反复看到这一点，例如第 7 章（图 7.2）和第 9 章（图 9.2）中，在随机游走预测任务上，某种程度的自举明显优于蒙特卡洛方法；在第 10 章中，同样的现象出现在山地车控制任务上（图 10.4）。
+许多其他问题也显示，自举会带来快得多的学习（例如见图 12.14）。
+自举通常导致更快学习，因为它让学习能够利用状态性质，也就是在回到某个状态时识别该状态的能力。
+另一方面，在状态表示很差、会导致糟糕泛化的问题上，自举会损害学习（例如，俄罗斯方块似乎就是这种情况；见 Şimşek、Algorta 和 Kothiyal，2016）。
+糟糕的状态表示也会导致偏差；这就是自举方法在渐近近似质量上具有较差界（方程 9.14）的原因。
+总的来说，自举能力必须被认为极有价值。
+人们有时可以通过选择长 $n$ 步更新（或大的自举参数 $\lambda\approx1$；见第 12 章）来不用它；但自举通常会大大提高效率。
+这是一种我们非常希望保留在工具箱中的能力。
+
+最后，还有离策略学习；我们能放弃它吗？
+同策略方法常常已经足够。
+对于无模型强化学习，可以简单地使用 Sarsa 而不是 $Q$ 学习。
+离策略方法把行为从目标策略中解放出来。
+这可以被看作一种有吸引力的便利，但不是必需品。
+然而，对于另外一些预期用途，离策略学习是必不可少的；这些用途在本书中还没有提到，但对于创造强大智能体这一更大目标可能很重要。
+
+在这些用途中，智能体学习的不只是单个价值函数和单个策略，而是大量价值函数和策略，并行地学习。
+有大量心理学证据表明，人和动物会学习预测许多不同的感觉事件，而不只是奖励。
+我们会对不寻常事件感到惊讶，并修正关于它们的预测，即使这些事件的效价是中性的（既不好也不坏）。
+这种预测大概支撑着规划中使用的世界预测模型。
+我们会预测眼动之后将看到什么、走回家要花多久、投篮命中的概率，以及接手一个新项目会得到的满足感。
+在所有这些情形中，我们想预测的事件都依赖于我们以某种方式行动。
+要并行学习所有这些预测，就需要从同一条经验流中学习。
+目标策略有很多，因此一个行为策略不可能等于所有目标策略。
+然而，并行学习在概念上是可能的，因为行为策略可能与许多目标策略部分重叠。
+要充分利用这一点，就需要离策略学习。
+
+\subsection*{11.4\quad 线性价值函数几何}
+
+为了更好地理解离策略学习中的稳定性挑战，把价值函数近似想得更抽象一些，并与学习如何进行暂时分开，是有帮助的。
+我们可以想象所有可能的状态价值函数组成的空间，即所有从状态到实数的函数 $v:\mathcal{S}\to\mathbb{R}$。
+这些价值函数中的大多数并不对应于任何策略。
+对我们来说更重要的是，大多数价值函数不能由函数近似器表示；按设计，函数近似器的参数远少于状态数。
+
+给定状态空间的枚举 $\mathcal{S}=\{s_1,s_2,\ldots,s_{|\mathcal{S}|}\}$，任何价值函数 $v$ 都对应于一个向量，它按顺序列出每个状态的价值
+$[v(s_1),v(s_2),\ldots,v(s_{|\mathcal{S}|})]^\top$。
+一个价值函数的这种向量表示，具有与状态数同样多的分量。
+在大多数我们想使用函数近似的情形中，用显式方式表示这个向量会有太多分量。
+尽管如此，这个向量的思想在概念上是有用的。
+下文中，我们会把价值函数与它的向量表示互换使用。
+
+为了发展直觉，考虑具有三个状态 $\mathcal{S}=\{s_1,s_2,s_3\}$ 和两个参数 $\mathbf{w}=(w_1,w_2)^\top$ 的情形。
+于是，我们可以把所有价值函数/向量看作三维空间中的点。
+参数则在一个二维子空间上提供另一套坐标系统。
+任意权重向量 $\mathbf{w}=(w_1,w_2)^\top$ 是这个二维子空间中的一个点，因此也给出一个完整的价值函数 $v_{\mathbf{w}}$，为所有三个状态赋值。
+在一般函数近似下，完整空间与可表示函数子空间之间的关系可能很复杂；但在线性价值函数近似的情形中，这个子空间就是一个简单平面，如图 11.3 所示。
+
+现在考虑一个固定策略 $\pi$。
+我们假设它的真实价值函数 $v_\pi$ 过于复杂，无法被近似器精确表示。
+因此 $v_\pi$ 不在子空间中；在图中，它被画在可表示函数的平面子空间上方。
+
+如果 $v_\pi$ 无法被精确表示，那么哪个可表示价值函数离它最近？
+事实表明，这是一个微妙的问题，有多个答案。
+首先，我们需要一个度量两个价值函数之间距离的方式。
+给定两个价值函数 $v_1$ 和 $v_2$，我们可以谈论它们之间的向量差 $v=v_1-v_2$。
+如果 $v$ 很小，那么两个价值函数彼此接近。
+但我们怎样度量这个差向量的大小？
+常规欧氏范数并不合适，因为正如第 9.2 节讨论的，有些状态比其他状态更重要，因为它们更频繁出现，或者因为我们对它们更感兴趣（第 9.11 节）。
+和第 9.2 节一样，让我们使用分布 $\mu:\mathcal{S}\to[0,1]$ 来指定我们关心不同状态被准确估值的程度（通常取为同策略分布）。
+于是，可以用如下范数定义价值函数之间的距离：
+\begin{equation}
+\|v\|_\mu^2\doteq \sum_{s\in\mathcal{S}}\mu(s)v(s)^2.
+\tag{11.11}
+\end{equation}
+注意，第 9.2 节中的 $\overline{\mathrm{VE}}$ 可以用这个范数简单写成
+$\overline{\mathrm{VE}}(\mathbf{w})=\|v_{\mathbf{w}}-v_\pi\|_\mu^2$。
+对于任意价值函数 $v$，在可表示价值函数子空间中寻找离它最近的价值函数，就是一个投影操作。
+我们定义
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{figure-11-3.png}
+\caption*{\textbf{图 11.3：}线性价值函数近似的几何。图中显示的是三个状态上所有价值函数组成的三维空间，而平面是参数为 $\mathbf{w}=(w_1,w_2)^\top$ 的线性函数近似器能够表示的所有价值函数子空间。真实价值函数 $v_\pi$ 位于更大的空间中，可以通过投影算子 $\Pi$ 向下投影（进入子空间），得到价值误差（VE）意义下的最佳近似。Bellman 误差（BE）、投影 Bellman 误差（PBE）和时序差分误差（TDE）意义下的最佳近似一般都可能不同，图中在右下方显示。（VE、BE 和 PBE 在图中都作为对应向量处理。）Bellman 算子把平面中的一个价值函数带到外部的某个函数，后者可以再被投影回来。如果在空间外部反复应用 Bellman 算子（如上方灰色所示），会像常规动态规划那样到达真实价值函数。相反，如果每一步都投影回子空间，如下方灰色步骤所示，那么固定点就是向量 PBE 为零的点。}
+\end{figure}
+
+投影算子 $\Pi$，它把任意价值函数映到在我们的范数中离它最近的可表示函数：
+\begin{equation}
+\Pi v\doteq v_{\mathbf{w}}
+\quad \text{其中}\quad
+\mathbf{w}=\arg\min_{\mathbf{w}\in\mathbb{R}^d}\|v-v_{\mathbf{w}}\|_\mu^2.
+\tag{11.12}
+\end{equation}
+因此，离真实价值函数 $v_\pi$ 最近的可表示价值函数就是它的投影 $\Pi v_\pi$，如图 11.3 所示。
+这是蒙特卡洛方法渐近找到的解，尽管通常非常慢。
+投影操作在下一页的框中会更完整地讨论。
+
+TD 方法会找到不同的解。
+为了理解它们的理由，回忆价值函数 $v_\pi$ 的 Bellman 方程：
+\begin{equation}
+v_\pi(s)=\sum_a\pi(a|s)\sum_{s',r}p(s',r|s,a)\left[r+\gamma v_\pi(s')\right],
+\quad \text{对所有 }s\in\mathcal{S}.
+\tag{11.13}
+\end{equation}
+
+\begin{center}
+\fbox{\begin{minipage}{0.9\textwidth}
+\noindent\textbf{投影矩阵}
+
+\medskip
+对于线性函数近似器，投影操作是线性的，这意味着它可以表示为一个 $|\mathcal{S}|\times|\mathcal{S}|$ 矩阵：
+\begin{equation}
+\Pi\doteq \mathbf{X}\left(\mathbf{X}^\top\mathbf{D}\mathbf{X}\right)^{-1}\mathbf{X}^\top\mathbf{D},
+\tag{11.14}
+\end{equation}
+其中，如第 9.4 节中那样，$\mathbf{D}$ 表示一个 $|\mathcal{S}|\times|\mathcal{S}|$ 对角矩阵，对角线元素为 $\mu(s)$；$\mathbf{X}$ 表示一个 $|\mathcal{S}|\times d$ 矩阵，其各行是特征向量 $\mathbf{x}(s)^\top$，每个状态 $s$ 一行。
+如果（11.14）中的逆不存在，则替换为伪逆。
+使用这些矩阵，向量的平方范数可以写成
+\begin{equation}
+\|v\|_\mu^2=v^\top\mathbf{D}v,
+\tag{11.15}
+\end{equation}
+而近似线性价值函数可以写成
+\begin{equation}
+v_{\mathbf{w}}=\mathbf{X}\mathbf{w}.
+\tag{11.16}
+\end{equation}
+\end{minipage}}
+\end{center}
+
+真实价值函数 $v_\pi$ 是唯一精确解出（11.13）的价值函数。
+如果把近似价值函数 $v_{\mathbf{w}}$ 代入 $v_\pi$ 的位置，那么修改后方程右侧与左侧的差，可以用来度量 $v_{\mathbf{w}}$ 离 $v_\pi$ 有多远。
+我们把它称为状态 $s$ 处的 \textbf{Bellman 误差}：
+\begin{equation}
+\bar\delta_{\mathbf{w}}(s)\doteq
+\left(\sum_a\pi(a|s)\sum_{s',r}p(s',r|s,a)\left[r+\gamma v_{\mathbf{w}}(s')\right]\right)-v_{\mathbf{w}}(s)
+\tag{11.17}
+\end{equation}
+\begin{equation}
+=\mathbb{E}_\pi\left[R_{t+1}+\gamma v_{\mathbf{w}}(S_{t+1})-v_{\mathbf{w}}(S_t)\mid S_t=s,A_t\sim\pi\right],
+\tag{11.18}
+\end{equation}
+这清楚显示了 Bellman 误差与 TD 误差（11.3）的关系。
+Bellman 误差就是 TD 误差的期望。
+
+所有状态上的全部 Bellman 误差组成的向量 $\bar\delta_{\mathbf{w}}\in\mathbb{R}^{|\mathcal{S}|}$，称为 \textbf{Bellman 误差向量}（在图 11.3 中记作 BE）。
+这个向量在范数下的整体大小，是价值函数误差的一个整体度量，称为\textbf{均方 Bellman 误差}：
+\begin{equation}
+\overline{\mathrm{BE}}(\mathbf{w})=\|\bar\delta_{\mathbf{w}}\|_\mu^2.
+\tag{11.19}
+\end{equation}
+一般来说，不可能把 $\overline{\mathrm{BE}}$ 降到零（那一点上 $v_{\mathbf{w}}=v_\pi$）；但对于线性函数近似，存在唯一的 $\mathbf{w}$ 值使 $\overline{\mathrm{BE}}$ 最小。
+可表示函数子空间中的这一点（图 11.3 中标为 $\min\overline{\mathrm{BE}}$）一般不同于使 $\overline{\mathrm{VE}}$ 最小的点（显示为 $\Pi v_\pi$）。
+寻找最小化 $\overline{\mathrm{BE}}$ 的方法将在接下来的两节讨论。
+
+图 11.3 中把 Bellman 误差向量显示为把 Bellman 算子
+$B_\pi:\mathbb{R}^{|\mathcal{S}|}\to\mathbb{R}^{|\mathcal{S}|}$ 应用于近似价值函数的结果。
+Bellman 算子定义为
+\begin{equation}
+(B_\pi v)(s)\doteq \sum_a\pi(a|s)\sum_{s',r}p(s',r|s,a)\left[r+\gamma v(s')\right],
+\tag{11.20}
+\end{equation}
+对所有 $s\in\mathcal{S}$ 和 $v:\mathcal{S}\to\mathbb{R}$ 都成立。
+价值函数 $v$ 的 Bellman 误差向量可以写成
+$\bar\delta_{\mathbf{w}}=B_\pi v_{\mathbf{w}}-v_{\mathbf{w}}$。
+
+如果把 Bellman 算子应用于可表示子空间中的一个价值函数，那么一般而言，它会产生一个在子空间之外的新价值函数，如图中所示。
+在动态规划中（没有函数近似），这个算子反复应用于可表示空间之外的那些点，如图 11.3 顶部灰色箭头所示。
+最终，这个过程会收敛到真实价值函数 $v_\pi$，也就是 Bellman 算子的唯一不动点、唯一满足
+\begin{equation}
+v_\pi=B_\pi v_\pi
+\tag{11.21}
+\end{equation}
+的价值函数；这只是策略 $\pi$ 的 Bellman 方程（11.13）的另一种写法。
+
+然而，在函数近似下，落在子空间之外的中间价值函数无法被表示。
+图 11.3 上部的灰色箭头无法被跟随，因为第一次更新（黑线）之后，价值函数必须被投影回某个可表示函数。
+下一次迭代从子空间内部开始；价值函数再次被 Bellman 算子带到子空间之外，然后由投影算子映回，如图中下方灰色箭头和线所示。
+沿着这些箭头进行，就是一种带近似的类 DP 过程。
+
+在这种情形中，我们感兴趣的是把 Bellman 误差向量投影回可表示空间。
+这就是投影 Bellman 误差向量 $\Pi\bar\delta_{\mathbf{w}}$，在图 11.3 中记为 PBE。
+这个向量在范数下的大小，是近似价值函数误差的另一种度量。
+对于任意近似价值函数 $v$，我们把\textbf{均方投影 Bellman 误差}定义为
+\begin{equation}
+\overline{\mathrm{PBE}}(\mathbf{w})=\|\Pi\bar\delta_{\mathbf{w}}\|_\mu^2.
+\tag{11.22}
+\end{equation}
+在线性函数近似下，总存在一个（子空间内的）近似价值函数，其 PBE 为零；这就是第 9.4 节中介绍过的 TD 不动点 $\mathbf{w}_{\mathrm{TD}}$。
+正如我们已经看到的，在半梯度 TD 方法和离策略训练下，这个点并不总是稳定。
+如图所示，这个价值函数通常不同于使 $\overline{\mathrm{VE}}$ 或 $\overline{\mathrm{BE}}$ 最小的价值函数。
+保证收敛到它的方法将在第 11.7 节和第 11.8 节中讨论。
+
+\subsection*{11.5\quad Bellman 误差中的梯度下降}
+
+有了对价值函数近似及其各种目标的更好理解，现在我们回到离策略学习中的稳定性挑战。
+我们希望应用随机梯度下降（SGD，第 9.3 节）这一思路，其中所作更新在期望意义上等于某个目标函数的负梯度。
+这些方法总是（在期望中）沿着目标下降，因此通常稳定，并具有优良的收敛性质。
+在本书到目前为止研究过的算法中，只有蒙特卡洛方法是真正的 SGD 方法。
+这些方法在同策略训练和离策略训练下，以及对一般非线性（可微）函数近似器，都能稳健收敛；不过它们通常比带自举的半梯度方法更慢，而后者不是真正的 SGD 方法。
+如本章前面已经看到的，半梯度方法在离策略训练下可能发散；在非线性函数近似的构造性例子中也可能发散（Tsitsiklis 和 Van Roy，1997）。
+使用真正的 SGD 方法时，这样的发散不可能发生。
+
+SGD 的吸引力如此强，以至于人们付出了大量努力，试图找到一种在强化学习中实际利用它的方法。
+所有这类努力的起点，都是选择要优化的误差或目标函数。
+在本节和下一节中，我们考察最流行的一种候选目标函数的来源和局限，也就是基于上一节所引入 Bellman 误差的目标。
+尽管这是一条流行且有影响的思路，但我们在这里得到的结论是：它是一次误入歧途，并不会产生好的学习算法。
+另一方面，这条思路以一种有趣的方式失败了，从而让我们看见什么才可能构成好的方法。
+
+首先，让我们考虑的不是 Bellman 误差，而是某种更直接、更朴素的东西。
+时序差分学习由 TD 误差驱动。
+为什么不把 TD 误差平方的期望最小化作为目标呢？
+在一般函数近似情形中，带折扣的一步 TD 误差是
+\[
+\delta_t=R_{t+1}+\gamma\hat v(S_{t+1},\mathbf{w}_t)-\hat v(S_t,\mathbf{w}_t).
+\]
+那么，一个可能的目标函数就是可称为\textbf{均方 TD 误差}的量：
+\[
+\begin{aligned}
+\overline{\mathrm{TDE}}(\mathbf{w})
+&=\sum_{s\in\mathcal{S}}\mu(s)\mathbb{E}\left[\delta_t^2\mid S_t=s,A_t\sim\pi\right]\\
+&=\sum_{s\in\mathcal{S}}\mu(s)\mathbb{E}\left[\rho_t\delta_t^2\mid S_t=s,A_t\sim b\right]\\
+&=\mathbb{E}_b[\rho_t\delta_t^2]\qquad
+\text{（如果 $\mu$ 是在 $b$ 下遇到的分布）}.
+\end{aligned}
+\]
+最后一个方程具有 SGD 所需的形式；它把目标给成一个可以从经验中采样的期望（记住，经验由行为策略 $b$ 产生）。
+因此，按照标准 SGD 思路，可以根据这个期望值的样本推导出逐步更新：
+\begin{equation}
+\begin{aligned}
+\mathbf{w}_{t+1}
+&=\mathbf{w}_t-\frac{1}{2}\alpha\nabla(\rho_t\delta_t^2)\\
+&=\mathbf{w}_t-\alpha\rho_t\delta_t\nabla\delta_t\\
+&=\mathbf{w}_t+\alpha\rho_t\delta_t\left(\nabla\hat v(S_t,\mathbf{w}_t)-\gamma\nabla\hat v(S_{t+1},\mathbf{w}_t)\right),
+\end{aligned}
+\tag{11.23}
+\end{equation}
+你会认出，除了最后多出的那一项之外，它与半梯度 TD 算法（11.2）相同。
+这一项补全了梯度，使它成为一个真正的 SGD 算法，并具有很好的收敛保证。
+我们把这个算法称为\textbf{朴素残差梯度算法}（源自 Baird，1995）。
+尽管朴素残差梯度算法稳健收敛，但它不一定收敛到一个理想的位置。
+
+\noindent\textbf{例 11.2：A 分裂例子，显示朴素残差梯度算法的朴素性}
+
+考虑右图所示的三状态分幕 MRP。
+每一幕从状态 A 开始，然后随机“分裂”：一半时间到达 B（然后总是继续终止并得到奖励 1），另一半时间到达状态 C（然后总是终止并得到奖励 0）。
+从 A 出发的第一步转移的奖励总是零，无论这一幕走向哪边。
+由于这是一个分幕问题，我们可以取 $\gamma=1$。
+我们还假设同策略训练，因此 $\rho_t$ 总是 1，并假设使用表格型函数近似，使学习算法可以给三个状态任意、独立的价值。
+因此，这应该是一个简单问题。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.28\textwidth]{example-11-2.png}
+\end{figure}
+
+这些价值应该是多少？
+从 A 出发，一半时间回报为 1，另一半时间回报为 0；A 的价值应为 $\frac{1}{2}$。
+从 B 出发，回报总是 1，所以它的价值应为 1；类似地，从 C 出发，回报总是 0，所以它的价值应为 0。
+这些是真实价值；而且由于这是一个表格型问题，此前介绍过的所有方法都会精确收敛到它们。
+
+然而，朴素残差梯度算法会为 B 和 C 找到不同的价值。
+它收敛到 B 的价值为 $\frac{3}{4}$、C 的价值为 $\frac{1}{4}$（A 正确收敛到 $\frac{1}{2}$）。
+事实上，这些正是使 $\overline{\mathrm{TDE}}$ 最小的价值。
+
+让我们计算这些价值的 $\overline{\mathrm{TDE}}$。
+每一幕的第一步转移，要么从 A 的 $\frac{1}{2}$ 向上到 B 的 $\frac{3}{4}$，变化为 $\frac{1}{4}$；要么从 A 的 $\frac{1}{2}$ 向下到 C 的 $\frac{1}{4}$，变化为 $-\frac{1}{4}$。
+由于这些转移上的奖励为零，并且 $\gamma=1$，这些变化就是 TD 误差，因此第一步转移上的 TD 误差平方总是 $\frac{1}{16}$。
+第二步转移也类似：要么从 B 的 $\frac{3}{4}$ 向上到奖励 1（并且终止状态价值为 0），要么从 C 的 $\frac{1}{4}$ 向下到奖励 0（同样终止状态价值为 0）。
+因此，TD 误差总是 $\pm\frac{1}{4}$，第二步上的平方误差也是 $\frac{1}{16}$。
+所以，对于这组价值，两步上的 $\overline{\mathrm{TDE}}$ 都是 $\frac{1}{16}$。
+
+现在计算真实价值的 $\overline{\mathrm{TDE}}$（B 为 1，C 为 0，A 为 $\frac{1}{2}$）。
+此时第一步转移要么从 $\frac{1}{2}$ 向上到 B 处的 1，要么从 $\frac{1}{2}$ 向下到 C 处的 0；两种情况下绝对误差都是 $\frac{1}{2}$，平方误差为 $\frac{1}{4}$。
+第二步转移没有误差，因为无论转移来自 B 还是 C，起始价值（分别为 1 或 0）都总是与即时奖励加回报完全匹配。
+因此，第一步转移的 TD 误差平方为 $\frac{1}{4}$，第二步为 0，两步上的平均为 $\frac{1}{8}$。
+由于 $\frac{1}{8}$ 大于 $\frac{1}{16}$，根据 $\overline{\mathrm{TDE}}$，这个解更差。
+在这个简单问题上，真实价值并不具有最小 $\overline{\mathrm{TDE}}$。
+
+A 分裂例子使用的是表格型表示，因此真实状态价值可以被精确表示；然而朴素残差梯度算法找到的是不同价值，而且这些价值的 TDE 低于真实价值。
+最小化 TDE 是朴素的；它通过惩罚所有 TD 误差，得到的更像是时间平滑，而不是准确预测。
+
+一个看起来更好的想法，是最小化 Bellman 误差。
+如果学到了精确价值，那么 Bellman 误差处处为零。
+因此，Bellman 误差最小化算法在 A 分裂例子上应该没有困难。
+一般而言，我们不能期望达到零 Bellman 误差，因为那将涉及找到真实价值函数，而我们假定它位于可表示价值函数空间之外。
+但接近这个理想目标看起来是自然的。
+正如我们已经看到的，Bellman 误差也与 TD 误差紧密相关。
+某个状态的 Bellman 误差就是该状态中 TD 误差的期望。
+因此，让我们用期望 TD 误差重复上面的推导（这里所有期望都隐含地以 $S_t$ 为条件）：
+\[
+\begin{aligned}
+\mathbf{w}_{t+1}
+&=\mathbf{w}_t-\frac{1}{2}\alpha\nabla\left(\mathbb{E}_\pi[\delta_t]\right)^2\\
+&=\mathbf{w}_t-\frac{1}{2}\alpha\nabla\left(\mathbb{E}_b[\rho_t\delta_t]\right)^2\\
+&=\mathbf{w}_t-\alpha\mathbb{E}_b[\rho_t\delta_t]\nabla\mathbb{E}_b[\rho_t\delta_t]\\
+&=\mathbf{w}_t-\alpha\mathbb{E}_b[\rho_t(R_{t+1}+\gamma\hat v(S_{t+1},\mathbf{w})-\hat v(S_t,\mathbf{w}))]\mathbb{E}_b[\rho_t\nabla\delta_t]\\
+&=\mathbf{w}_t+\alpha\left[\mathbb{E}_b[\rho_t(R_{t+1}+\gamma\hat v(S_{t+1},\mathbf{w}))]-\hat v(S_t,\mathbf{w})\right]
+\left[\nabla\hat v(S_t,\mathbf{w})-\gamma\mathbb{E}_b[\rho_t\nabla\hat v(S_{t+1},\mathbf{w})]\right].
+\end{aligned}
+\]
+这个更新以及对它的各种采样方式被称为\textbf{残差梯度算法}。
+如果在所有期望中都简单使用样本值，那么上面的方程几乎完全退化为（11.23），也就是朴素残差梯度算法。\footnote{对于状态价值，重要性采样比 $\rho_t$ 的处理仍有一个小差异。在类似的动作价值情形中（这是控制算法更重要的情形），残差梯度算法会精确退化为朴素版本。}
+但这正是朴素之处，因为上面的方程包含下一状态 $S_{t+1}$，它出现在两个相乘的期望中。
+为了得到乘积的无偏样本，需要两个独立的下一状态样本；但在与外部环境的正常交互中，只会得到一个。
+可以对其中一个期望采样，或对另一个期望采样，但不能同时对两者采样。
+
+有两种方式可以让残差梯度算法工作。
+一种是在确定性环境中。
+如果转移到下一状态是确定的，那么两个样本必然相同，朴素算法就是有效的。
+另一种方式是获得从 $S_t$ 出发的两个独立下一状态样本 $S_{t+1}$，一个用于第一个期望，另一个用于第二个期望。
+在与真实环境交互时，这似乎不可能；但在与模拟环境交互时，这是可能的。
+只需回滚到前一状态，获得一个备选下一状态，然后再从第一个下一状态继续向前。
+在这两种情形中的任意一种，残差梯度算法都保证在通常的步长条件下收敛到 $\overline{\mathrm{BE}}$ 的一个最小值。
+作为真正的 SGD 方法，这种收敛是稳健的，适用于线性和非线性函数近似器。
+在线性情形中，它总是收敛到使 $\overline{\mathrm{BE}}$ 最小的唯一 $\mathbf{w}$。
+
+然而，残差梯度方法的收敛至少还有三个方面令人不满意。
+第一，在经验上它很慢，远慢于半梯度方法。
+事实上，这个方法的支持者曾提出，先把它与更快的半梯度方法结合以提高速度，然后逐渐切换到残差梯度以获得收敛保证（Baird 和 Moore，1999）。
+第二，残差梯度算法似乎仍然会收敛到错误价值。
+在所有表格型情形中，例如 A 分裂例子，它确实会得到正确价值，因为这些情形中 Bellman 方程存在精确解。
+但如果考察真正带函数近似的例子，那么残差梯度算法，实际上还有 $\overline{\mathrm{BE}}$ 目标本身，似乎都会找到错误的价值函数。
+最能说明这一点的例子之一，是前一页所示 A 分裂例子的变体，称为 A 预分裂例子；在这个例子中，残差梯度算法找到与朴素版本同样糟糕的解。
+这个例子直观地表明，最小化 $\overline{\mathrm{BE}}$（残差梯度算法确实会这样做）也许并不是一个理想目标。
+
+\noindent\textbf{例 11.3：A 预分裂例子，$\overline{\mathrm{BE}}$ 的反例}
+
+考虑右图所示的三状态分幕 MRP。
+每一幕以相等概率从 A1 或 A2 开始。
+对于函数近似器来说，这两个状态看起来完全一样，就像一个单一状态 A；它的特征表示与另外两个状态 B 和 C 的特征表示不同且无关，而 B 和 C 也彼此不同。
+具体来说，函数近似器的参数有三个分量，一个给出状态 B 的价值，一个给出状态 C 的价值，一个同时给出状态 A1 和 A2 的价值。
+除了初始状态的选择外，系统是确定性的。
+如果从 A1 开始，它以奖励 0 转移到 B，然后以奖励 1 终止。
+如果从 A2 开始，它转移到 C，然后终止，两个奖励都是零。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.3\textwidth]{example-11-3.png}
+\end{figure}
+
+对于只看到特征的学习算法，这个系统看起来与 A 分裂例子完全相同。
+系统似乎总是从 A 开始，然后以相等概率到达 B 或 C，接着根据前一个状态确定性地以 1 或 0 终止。
+像 A 分裂例子一样，B 和 C 的真实价值是 1 和 0；由对称性，A1 和 A2 的最佳共享价值为 $\frac{1}{2}$。
+
+由于这个问题从外部看与 A 分裂例子相同，我们已经知道算法会找到什么价值。
+半梯度 TD 收敛到刚才提到的理想价值，而朴素残差梯度算法会让 B 和 C 分别收敛到 $\frac{3}{4}$ 和 $\frac{1}{4}$。
+所有状态转移都是确定性的，因此非朴素残差梯度算法也会收敛到这些价值（在这种情况下它是同一个算法）。
+由此可知，这个“朴素”解也必然是最小化 $\overline{\mathrm{BE}}$ 的解；事实也确实如此。
+在确定性问题上，Bellman 误差与 TD 误差完全相同，因此 $\overline{\mathrm{BE}}$ 总是等于 $\overline{\mathrm{TDE}}$。
+在这个例子上优化 $\overline{\mathrm{BE}}$，会导致与 A 分裂例子上朴素残差梯度算法相同的失败模式。
+
+如果 Bellman 方程存在精确解，那么这种解是可能的。
+但如果考察真正带函数近似的例子，那么残差梯度算法，实际上还有 $\overline{\mathrm{BE}}$ 目标，似乎都会找到错误的价值函数。
+第三种残差梯度算法收敛不令人满意的方式，会在下一节解释。
+和第二种一样，第三种也是 $\overline{\mathrm{BE}}$ 目标本身的问题，而不是实现该目标的某个具体算法的问题。
+
+\subsection*{11.6\quad Bellman 误差不可学习}
+
+本节引入的可学习性概念，与机器学习中常用的概念不同。
+在那里，如果一个假设可以被有效学习，即能够用多项式而非指数数量的样本学到，就说它是“可学习的”。
+这里我们以更基本的方式使用这个术语，意思是：是否能用任意数量的经验学到。
+事实表明，强化学习中许多看似有意义的量，即使有无限量的经验数据，也无法学到。
+这些量定义良好，并且若知道环境内部结构就可以计算；但不能从观测到的特征向量、动作和奖励序列中计算或估计。\footnote{当然，如果观测到的是状态序列而不只是对应的特征向量，那么它们可以被估计。}
+我们说它们不可学习。
+事实将表明，前两节引入的 Bellman 误差目标（$\overline{\mathrm{BE}}$）在这个意义上不可学习。
+Bellman 误差目标不能从可观测数据中学习，也许是不要追求它的最强理由。
+
+为了使可学习性概念清楚，我们从一些简单例子开始。
+考虑下面图示的两个马尔可夫奖励过程\footnote{所有 MRP 都可以看作所有状态中只有一个动作的 MDP；我们这里关于 MRP 得出的结论同样适用于 MDP。}（MRP）：
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.65\textwidth]{learnability-mrps.png}
+\end{figure}
+
+当一个状态有两条边离开时，假定两种转移以相等概率发生，数字表示收到的奖励。
+所有状态看起来都一样：它们都产生相同的单分量特征向量 $x=1$，并且近似价值都是 $w$。
+因此，数据轨迹中唯一变化的部分是奖励序列。
+左侧 MRP 保持在同一个状态，并随机发出无穷序列的 0 和 2，各自概率为 0.5。
+右侧 MRP 在每一步要么停留在当前状态，要么切换到另一个状态，概率相等。
+在这个 MRP 中，奖励是确定性的：从一个状态总是得到 0，从另一个状态总是得到 2；但因为每一步上每个状态都同样可能，所以可观测数据再次是随机的 0 和 2 无穷序列，与左侧 MRP 产生的数据完全相同。
+（可以假设右侧 MRP 以相等概率随机从两个状态之一开始。）
+因此，即使给定无限量的数据，也不可能分辨这两个 MRP 中哪一个在生成数据。
+特别地，我们无法判断 MRP 是一个状态还是两个状态，是随机的还是确定性的。
+这些东西不可学习。
+
+这一对 MRP 还说明，$\overline{\mathrm{VE}}$ 目标（9.1）不可学习。
+如果 $\gamma=0$，那么三个状态的真实价值（在两个 MRP 中从左到右）分别为 1、0 和 2。
+假设 $w=1$。
+于是左侧 MRP 的 $\overline{\mathrm{VE}}$ 为 0，而右侧 MRP 的 $\overline{\mathrm{VE}}$ 为 1。
+因为两个问题中的 $\overline{\mathrm{VE}}$ 不同，而生成的数据具有相同分布，所以 $\overline{\mathrm{VE}}$ 无法被学习。
+$\overline{\mathrm{VE}}$ 不是数据分布的唯一函数。
+如果它不能被学习，那么 $\overline{\mathrm{VE}}$ 又怎么可能作为学习目标有用呢？
+
+如果一个目标不能被学习，确实会使它的效用受到质疑。
+不过，在 $\overline{\mathrm{VE}}$ 的情形中，有一个出路。
+注意，同一个解 $w=1$ 对上面的两个 MRP 都是最优的（假设右侧 MRP 中两个不可区分状态的 $\mu$ 相同）。
+这是巧合，还是一般地说，所有具有相同数据分布的 MDP 也具有相同的最优参数向量？
+如果这是真的，下一步我们将说明它确实为真，那么 $\overline{\mathrm{VE}}$ 仍然是一个可用目标。
+$\overline{\mathrm{VE}}$ 不可学习，但优化它的参数是可学习的。
+
+为了理解这一点，引入另一个自然目标函数是有用的，这次是一个显然可学习的目标。
+一种始终可观测的误差，是每个时刻的价值估计与该时刻之后回报之间的误差。
+\textbf{均方回报误差}，记为 $\overline{\mathrm{RE}}$，是在 $\mu$ 下这个误差平方的期望。
+在同策略情形中，$\overline{\mathrm{RE}}$ 可以写为
+\begin{equation}
+\begin{aligned}
+\overline{\mathrm{RE}}(\mathbf{w})
+&=\mathbb{E}\left[\left(G_t-\hat v(S_t,\mathbf{w})\right)^2\right]\\
+&=\overline{\mathrm{VE}}(\mathbf{w})+\mathbb{E}\left[\left(G_t-v_\pi(S_t)\right)^2\right].
+\end{aligned}
+\tag{11.24}
+\end{equation}
+因此，两个目标只相差一个不依赖参数向量的方差项。
+于是，两个目标必然具有相同的最优参数值 $\mathbf{w}^*$。
+这些整体关系总结在图 11.4 左侧。
+
+\noindent\textbf{练习 11.4}
+证明（11.24）。
+提示：把 $\overline{\mathrm{RE}}$ 写成对可能状态 $s$ 的期望，再写成在给定 $S_t=s$ 下平方误差的期望。
+然后在误差中加减状态 $s$ 的真实价值（在平方之前），把减去的真实价值与回报归在一起，把加上的真实价值与估计价值归在一起。
+接着，如果展开平方，最复杂的一项最终会变成零，留下（11.24）。
+
+现在回到 $\overline{\mathrm{BE}}$。
+$\overline{\mathrm{BE}}$ 与 $\overline{\mathrm{VE}}$ 类似，都可以从 MDP 知识中计算，但不能从数据中学习。
+但它不像 $\overline{\mathrm{VE}}$，因为它的最小解不是可学习的。
+下一页的框给出一个反例：两个 MRP 生成相同的数据分布，但其最小化参数向量不同，从而证明最优参数向量并不是数据分布的函数。
+
+\noindent\textbf{例 11.4：Bellman 误差可学习性的反例}
+
+为了显示各种可能性，我们需要一对比前面考虑过的例子稍微复杂的马尔可夫奖励过程（MRP）。
+考虑下面两个 MRP：
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.72\textwidth]{example-11-4.png}
+\end{figure}
+当一个状态有两条边离开时，假定两种转移以相等概率发生，数字表示收到的奖励。
+左侧 MRP 有两个被不同表示的状态。
+右侧 MRP 有三个状态，其中两个 B 和 B' 看起来相同，因而必须赋予相同的近似价值。
+具体地说，$\mathbf{w}$ 有两个分量，状态 A 的价值由第一个分量给出，B 和 B' 的价值由第二个分量给出。
+第二个 MRP 被设计成在所有三个状态中花费相同时间，因此可取所有 $s$ 上 $\mu(s)=\frac{1}{3}$。
+
+注意，对两个 MRP 来说，可观测数据分布是相同的。
+在两种情形中，智能体都会看到 A 单次出现并跟随奖励 0，然后若干个表面上的 B，每个都跟随 $-1$，只有最后一个跟随 1，然后再次从单个 A 和 0 重新开始，等等。
+所有统计细节也相同；在两个 MRP 中，长度为 $k$ 的 B 串的概率都是 $2^{-k}$。
+
+现在假设 $\mathbf{w}=\mathbf{0}$。
+在第一个 MRP 中，这是一个精确解，$\overline{\mathrm{BE}}$ 为零。
+在第二个 MRP 中，这个解在 B 和 B' 上都产生平方误差 1，因此
+$\overline{\mathrm{BE}}=\mu(B)1+\mu(B')1=\frac{2}{3}$。
+这两个 MRP 生成相同的数据分布，却具有不同的 $\overline{\mathrm{BE}}$；$\overline{\mathrm{BE}}$ 不可学习。
+
+此外（不同于前面的 $\overline{\mathrm{VE}}$ 例子），对两个 MRP 来说，使 $\overline{\mathrm{BE}}$ 最小的 $\mathbf{w}$ 也不同。
+对于第一个 MRP，任意 $\gamma$ 下都是 $\mathbf{w}=\mathbf{0}$ 最小化 $\overline{\mathrm{BE}}$。
+对于第二个 MRP，最小化的 $\mathbf{w}$ 是 $\gamma$ 的一个复杂函数；但在 $\gamma\to1$ 的极限中，它是 $(-\frac{1}{2},0)^\top$。
+因此，仅靠数据无法估计最小化 $\overline{\mathrm{BE}}$ 的解；需要知道数据中没有揭示出来的 MRP 信息。
+在这个意义上，把 $\overline{\mathrm{BE}}$ 作为学习目标在原则上是不可能的。
+
+在第二个 MRP 中，使 $\overline{\mathrm{BE}}$ 最小的 A 价值离零如此之远，可能令人惊讶。
+回忆一下，A 有一个专用权重，因此它的价值不受函数近似约束。
+A 后面跟着奖励 0，并转移到价值接近 0 的状态，这暗示 $v_{\mathbf{w}}(A)$ 应为 0；为什么它的最优价值会显著为负而不是 0？
+答案是，让 $v_{\mathbf{w}}(A)$ 为负，会减少从 B 到达 A 时的误差。
+这个确定性转移上的奖励为 1，这意味着 B 的价值应比 A 大 1。
+因为 B 的价值约为 0，所以 A 的价值被推向 $-1$。
+A 的 $\overline{\mathrm{BE}}$ 最小化价值约为 $-\frac{1}{2}$，是在减小离开 A 与进入 A 的误差之间作出的折中。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.86\textwidth]{figure-11-4.png}
+\caption*{\textbf{图 11.4：}数据分布、MDP 和各种目标之间的因果关系。\textbf{左：蒙特卡洛目标。}两个不同的 MDP 可以产生相同的数据分布，却产生不同的 $\overline{\mathrm{VE}}$，这证明 $\overline{\mathrm{VE}}$ 不能由数据确定，因此不可学习。然而，所有这样的 $\overline{\mathrm{VE}}$ 必须有同一个最优参数向量 $\mathbf{w}^*$。此外，这个相同的 $\mathbf{w}^*$ 可以由另一个目标 $\overline{\mathrm{RE}}$ 确定，而 $\overline{\mathrm{RE}}$ 由数据分布唯一确定。因此，即使 $\overline{\mathrm{VE}}$ 不可学习，$\mathbf{w}^*$ 和 $\overline{\mathrm{RE}}$ 也是可学习的。\textbf{右：自举目标。}两个不同的 MDP 可以产生相同的数据分布，却产生不同的 $\overline{\mathrm{BE}}$，并且具有不同的最小化参数向量；这些都不能从数据分布中学习。PBE 和 TDE 目标以及它们（不同的）最小值可以直接由数据确定，因此是可学习的。}
+\end{figure}
+
+数据，因此不能从数据中学习。
+我们已经考虑的其他自举目标，即 PBE 和 TDE，可以由数据确定（是可学习的），并且决定的最优解一般不同于彼此，也不同于 $\overline{\mathrm{BE}}$ 的最小值。
+一般情形总结在图 11.4 右侧。
+
+因此，$\overline{\mathrm{BE}}$ 不可学习；它不能由特征向量和其他可观测数据估计。
+这把 $\overline{\mathrm{BE}}$ 限制在基于模型的设置中。
+如果不能访问特征向量之外的底层 MDP 状态，就不可能存在最小化 $\overline{\mathrm{BE}}$ 的算法。
+残差梯度算法之所以能够最小化 $\overline{\mathrm{BE}}$，只是因为它被允许从同一个状态进行双采样；这里说的不是具有相同特征向量的状态，而是保证为同一个底层状态的状态。
+现在我们可以看到，这一点无法绕开。
+最小化 $\overline{\mathrm{BE}}$ 需要某种对此类名义上的底层 MDP 的访问。
+这是 $\overline{\mathrm{BE}}$ 的一个重要限制，超出了第 273 页 A 预分裂例子中指出的限制。
+所有这些都把更多注意力引向 PBE。
+
+\subsection*{11.7\quad 梯度 TD 方法}
+
+现在我们考虑最小化 $\overline{\mathrm{PBE}}$ 的 SGD 方法。
+作为真正的 SGD 方法，这些\textbf{梯度 TD 方法}即使在离策略训练和非线性函数近似下，也具有稳健的收敛性质。
+回忆一下，在线性情形中，总存在一个精确解，也就是 TD 不动点 $\mathbf{w}_{\mathrm{TD}}$，在那里 $\overline{\mathrm{PBE}}$ 为零。
+这个解可以用最小二乘方法找到（第 9.8 节），但这些方法在参数个数上只有二次复杂度 $O(d^2)$。
+我们转而寻找一种 SGD 方法，它应当是 $O(d)$ 的，并具有稳健的收敛性质。
+梯度 TD 方法接近实现这些目标，代价是计算复杂度大致翻倍。
+
+为了推导 $\overline{\mathrm{PBE}}$ 的 SGD 方法（假设线性函数近似），我们先用矩阵形式展开并重写目标（11.22）：
+\begin{equation}
+\begin{aligned}
+\overline{\mathrm{PBE}}(\mathbf{w})
+&=\|\Pi\bar\delta_{\mathbf{w}}\|_\mu^2\\
+&=(\Pi\bar\delta_{\mathbf{w}})^\top\mathbf{D}\Pi\bar\delta_{\mathbf{w}}\\
+&=\bar\delta_{\mathbf{w}}^\top\Pi^\top\mathbf{D}\Pi\bar\delta_{\mathbf{w}}\\
+&=\bar\delta_{\mathbf{w}}^\top\mathbf{D}\mathbf{X}(\mathbf{X}^\top\mathbf{D}\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{D}\bar\delta_{\mathbf{w}}
+\end{aligned}
+\tag{11.25}
+\end{equation}
+（使用（11.14）和恒等式
+$\Pi^\top\mathbf{D}\Pi=\mathbf{D}\mathbf{X}(\mathbf{X}^\top\mathbf{D}\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{D}$）
+\begin{equation}
+=\left(\mathbf{X}^\top\mathbf{D}\bar\delta_{\mathbf{w}}\right)^\top
+\left(\mathbf{X}^\top\mathbf{D}\mathbf{X}\right)^{-1}
+\left(\mathbf{X}^\top\mathbf{D}\bar\delta_{\mathbf{w}}\right).
+\tag{11.26}
+\end{equation}
+关于 $\mathbf{w}$ 的梯度为
+\[
+\nabla\overline{\mathrm{PBE}}(\mathbf{w})
+=2\nabla\left[\mathbf{X}^\top\mathbf{D}\bar\delta_{\mathbf{w}}\right]^\top
+\left(\mathbf{X}^\top\mathbf{D}\mathbf{X}\right)^{-1}
+\left(\mathbf{X}^\top\mathbf{D}\bar\delta_{\mathbf{w}}\right).
+\]
+
+要把它变成 SGD 方法，我们必须在每个时间步上采样某个量，使它的期望值等于这个量。
+令 $\mu$ 为行为策略下访问状态的分布。
+于是，上面的三个因子都可以写成这个分布下的期望。
+例如，最后一个因子可写成
+\[
+\mathbf{X}^\top\mathbf{D}\bar\delta_{\mathbf{w}}
+=\sum_s\mu(s)\mathbf{x}(s)\bar\delta_{\mathbf{w}}(s)
+=\mathbb{E}[\rho_t\delta_t\mathbf{x}_t],
+\]
+这正是半梯度 TD(0) 更新（11.2）的期望。
+第一个因子是这个更新的梯度的转置：
+\[
+\begin{aligned}
+\nabla\mathbb{E}[\rho_t\delta_t\mathbf{x}_t]^\top
+&=\mathbb{E}\left[\rho_t\nabla\delta_t^\top\mathbf{x}_t^\top\right]\\
+&=\mathbb{E}\left[\rho_t\nabla(R_{t+1}+\gamma\mathbf{w}^\top\mathbf{x}_{t+1}-\mathbf{w}^\top\mathbf{x}_t)^\top\mathbf{x}_t^\top\right]\\
+&=\mathbb{E}\left[\rho_t(\gamma\mathbf{x}_{t+1}-\mathbf{x}_t)\mathbf{x}_t^\top\right].
+\end{aligned}
+\]
+最后，中间因子是特征向量期望外积矩阵的逆：
+\[
+\mathbf{X}^\top\mathbf{D}\mathbf{X}
+=\sum_s\mu(s)\mathbf{x}_s\mathbf{x}_s^\top
+=\mathbb{E}[\mathbf{x}_t\mathbf{x}_t^\top].
+\]
+把这些期望代入 PBE 梯度表达式中的三个因子，我们得到
+\begin{equation}
+\nabla\overline{\mathrm{PBE}}(\mathbf{w})
+=2\mathbb{E}\left[\rho_t(\gamma\mathbf{x}_{t+1}-\mathbf{x}_t)\mathbf{x}_t^\top\right]
+\mathbb{E}\left[\mathbf{x}_t\mathbf{x}_t^\top\right]^{-1}
+\mathbb{E}\left[\rho_t\delta_t\mathbf{x}_t\right].
+\tag{11.27}
+\end{equation}
+把梯度写成这种形式，并不显然代表我们取得了进展。
+它是三个表达式的乘积，而第一个和最后一个并不独立。
+它们都依赖下一特征向量 $\mathbf{x}_{t+1}$；我们不能简单地同时采样这两个期望再把样本相乘。
+这样会给出有偏的梯度估计，就像朴素残差梯度算法一样。
+
+另一种想法是分别估计这三个期望，然后把它们组合起来，以产生梯度的无偏估计。
+这可以工作，但会需要大量计算资源，特别是要存储前两个期望；它们都是 $d\times d$ 矩阵，并且还要计算第二个矩阵的逆。
+这个想法可以改进。
+如果三个期望中有两个被估计并存储，那么第三个就可以被采样，并与两个已存储的量结合使用。
+例如，可以存储后两个量的估计（使用第 9.8 节中的增量逆更新技术），然后采样第一个表达式。
+遗憾的是，整体算法仍然具有二次复杂度（阶为 $O(d^2)$）。
+
+把某些估计单独存储起来，再与样本结合使用，是一个好想法，梯度 TD 方法也使用了这个想法。
+梯度 TD 方法估计并存储（11.27）中后两个因子的乘积。
+这些因子是一个 $d\times d$ 矩阵和一个 $d$ 维向量，因此它们的乘积只是一个 $d$ 维向量，就像 $\mathbf{w}$ 本身一样。
+我们把第二个学到的向量记为 $\mathbf{v}$：
+\begin{equation}
+\mathbf{v}\approx
+\mathbb{E}\left[\mathbf{x}_t\mathbf{x}_t^\top\right]^{-1}\mathbb{E}\left[\rho_t\delta_t\mathbf{x}_t\right].
+\tag{11.28}
+\end{equation}
+这个形式对线性监督学习的学生来说很熟悉。
+它是一个线性最小二乘问题的解，该问题试图由特征近似 $\rho_t\delta_t$。
+用来增量寻找向量 $\mathbf{v}$ 的标准 SGD 方法，使期望平方误差 $(\mathbf{v}^\top\mathbf{x}_t-\rho_t\delta_t)^2$ 最小，称为最小均方（LMS）规则（这里用重要性采样比扩展）：
+\[
+\mathbf{v}_{t+1}\doteq \mathbf{v}_t+\beta\rho_t(\delta_t-\mathbf{v}_t^\top\mathbf{x}_t)\mathbf{x}_t,
+\]
+其中 $\beta>0$ 是另一个步长参数。
+我们可以用这个方法，以 $O(d)$ 存储和逐步计算有效实现（11.28）。
+
+给定一个已存储的估计 $\mathbf{v}_t$ 来近似（11.28），我们可以使用基于（11.27）的 SGD 方法更新主参数向量 $\mathbf{w}_t$。
+最简单的规则是
+\begin{equation}
+\begin{aligned}
+\mathbf{w}_{t+1}
+&=\mathbf{w}_t-\frac{1}{2}\alpha\nabla\overline{\mathrm{PBE}}(\mathbf{w}_t) \qquad \text{（一般 SGD 规则）}\\
+&=\mathbf{w}_t-\frac{1}{2}\alpha 2\mathbb{E}\left[\rho_t(\gamma\mathbf{x}_{t+1}-\mathbf{x}_t)\mathbf{x}_t^\top\right]\mathbb{E}\left[\mathbf{x}_t\mathbf{x}_t^\top\right]^{-1}\mathbb{E}\left[\rho_t\delta_t\mathbf{x}_t\right]\\
+&=\mathbf{w}_t+\alpha\mathbb{E}\left[\rho_t(\mathbf{x}_t-\gamma\mathbf{x}_{t+1})\mathbf{x}_t^\top\right]\mathbb{E}\left[\mathbf{x}_t\mathbf{x}_t^\top\right]^{-1}\mathbb{E}\left[\rho_t\delta_t\mathbf{x}_t\right]\\
+&\approx\mathbf{w}_t+\alpha\mathbb{E}\left[\rho_t(\mathbf{x}_t-\gamma\mathbf{x}_{t+1})\mathbf{x}_t^\top\right]\mathbf{v}_t\\
+&\approx\mathbf{w}_t+\alpha\rho_t(\mathbf{x}_t-\gamma\mathbf{x}_{t+1})\mathbf{x}_t^\top\mathbf{v}_t .
+\end{aligned}
+\tag{11.29}
+\end{equation}
+这个算法称为 GTD2。
+注意，如果最后的内积 $(\mathbf{x}_t^\top\mathbf{v}_t)$ 先计算，那么整个算法复杂度为 $O(d)$。
+
+在代入 $\mathbf{v}_t$ 之前多做几步分析，可以得到一个稍好一点的算法。
+从（11.29）继续：
+\[
+\begin{aligned}
+\mathbf{w}_{t+1}
+&=\mathbf{w}_t+\alpha\mathbb{E}\left[\rho_t(\mathbf{x}_t-\gamma\mathbf{x}_{t+1})\mathbf{x}_t^\top\right]\mathbb{E}\left[\mathbf{x}_t\mathbf{x}_t^\top\right]^{-1}\mathbb{E}\left[\rho_t\delta_t\mathbf{x}_t\right]\\
+&=\mathbf{w}_t+\alpha\left(\mathbb{E}[\rho_t\mathbf{x}_t\mathbf{x}_t^\top]-\gamma\mathbb{E}[\rho_t\mathbf{x}_{t+1}\mathbf{x}_t^\top]\right)\mathbb{E}\left[\mathbf{x}_t\mathbf{x}_t^\top\right]^{-1}\mathbb{E}\left[\rho_t\delta_t\mathbf{x}_t\right]\\
+&=\mathbf{w}_t+\alpha\left(\mathbb{E}[\mathbf{x}_t\mathbf{x}_t^\top]-\gamma\mathbb{E}[\rho_t\mathbf{x}_{t+1}\mathbf{x}_t^\top]\right)\mathbb{E}\left[\mathbf{x}_t\mathbf{x}_t^\top\right]^{-1}\mathbb{E}\left[\rho_t\delta_t\mathbf{x}_t\right]\\
+&=\mathbf{w}_t+\alpha\left(\mathbb{E}[\mathbf{x}_t\rho_t\delta_t]-\gamma\mathbb{E}[\rho_t\mathbf{x}_{t+1}\mathbf{x}_t^\top]\mathbb{E}\left[\mathbf{x}_t\mathbf{x}_t^\top\right]^{-1}\mathbb{E}\left[\rho_t\delta_t\mathbf{x}_t\right]\right)\\
+&\approx \mathbf{w}_t+\alpha\left(\mathbb{E}[\mathbf{x}_t\rho_t\delta_t]-\gamma\mathbb{E}[\rho_t\mathbf{x}_{t+1}\mathbf{x}_t^\top]\mathbf{v}_t\right)\\
+&\approx \mathbf{w}_t+\alpha\rho_t\left(\delta_t\mathbf{x}_t-\gamma\mathbf{x}_{t+1}\mathbf{x}_t^\top\mathbf{v}_t\right),
+\end{aligned}
+\]
+如果先计算最后的乘积 $(\mathbf{x}_t^\top\mathbf{v}_t)$，它同样是 $O(d)$。
+这个算法称为带梯度修正的 TD(0)（TDC），或者称为 GTD(0)。
+
+图 11.5 显示了 TDC 在 Baird 反例上的一次样本运行和期望行为。
+如预期那样，$\overline{\mathrm{PBE}}$ 降为零；但注意，参数向量的各个分量并没有接近零。
+事实上，这些值仍然远离最优解 $\hat v(s)=0$（对所有 $s$），为了得到这个解，$\mathbf{w}$ 必须与 $(1,1,1,1,1,1,4,-2)^\top$ 成比例。
+1000 次迭代后，我们仍然离最优解很远，这可以从 $\sqrt{\overline{\mathrm{VE}}}$ 看出，它仍几乎为 2。
+系统实际上正在收敛到一个最优解，但进展极慢，因为 $\overline{\mathrm{PBE}}$ 已经如此接近零。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.82\textwidth]{figure-11-5.png}
+\caption*{\textbf{图 11.5：}TDC 算法在 Baird 反例上的行为。左图显示一次典型单次运行，右图显示如果同步更新（类似于（11.9），但具有两个 TDC 参数向量）时该算法的期望行为。步长为 $\alpha=0.005$ 和 $\beta=0.05$。}
+\end{figure}
+
+GTD2 和 TDC 都涉及两个学习过程，一个主过程学习 $\mathbf{w}$，一个次过程学习 $\mathbf{v}$。
+主学习过程的逻辑依赖于次学习过程已经完成，至少近似完成；而次学习过程在不受第一个过程影响的情况下进行。
+我们把这种非对称依赖称为\textbf{级联}。
+在级联中，我们常常假设次学习过程进行得更快，因此总是处于其渐近值，准备好并且准确地辅助主学习过程。
+这些方法的收敛证明常常显式作出这个假设。
+这称为\textbf{双时间尺度}证明。
+快时间尺度属于次学习过程，慢时间尺度属于主学习过程。
+如果 $\alpha$ 是主学习过程的步长，$\beta$ 是次学习过程的步长，那么这些收敛证明通常要求在极限中 $\beta\to0$ 且 $\frac{\alpha}{\beta}\to0$。
+
+梯度 TD 方法目前是理解得最充分、使用最广泛的稳定离策略方法。
+它们已经被扩展到动作价值和控制（GQ，Maei 等，2010）、资格迹（GTD($\lambda$) 和 GQ($\lambda$)，Maei，2011；Maei 和 Sutton，2010）以及非线性函数近似（Maei 等，2009）。
+也有人提出了介于半梯度 TD 和梯度 TD 之间的混合算法（Hackman，2012；White 和 White，2016）。
+混合 TD 算法在目标策略和行为策略差异很大的状态中表现得像梯度 TD 算法，而在目标策略和行为策略相同的状态中表现得像半梯度算法。
+最后，梯度 TD 思想还与近端方法和控制变量思想结合，产生了更高效的方法（Mahadevan 等，2014；Du 等，2017）。
+
+\subsection*{11.8\quad 强调 TD 方法}
+
+现在转向第二种主要策略；人们已经广泛探索这种策略，以获得便宜而高效的、带函数近似的离策略学习方法。
+回忆一下，在线性半梯度 TD 方法中，如果在同策略分布下训练，那么它们是高效且稳定的；而且我们在第 9.4 节中说明，这与矩阵 $\mathbf{A}$（9.11）\footnote{在离策略情形中，矩阵 $\mathbf{A}$ 一般定义为 $\mathbb{E}_{s\sim b}[\mathbf{x}(s)\mathbb{E}[\mathbf{x}(S_{t+1})^\top\mid S_t=s,A_t\sim\pi]]$。}的正定性有关，也与同策略状态分布 $\mu_\pi$ 和目标策略下的状态转移概率 $p(s'|s,a)$ 之间的匹配有关。
+在离策略学习中，我们使用重要性采样重新加权状态转移，使它们适合于学习目标策略，但状态分布仍然是行为策略的状态分布。
+这里存在一种不匹配。
+一个自然想法是也重新加权状态，强调一些状态、弱化另一些状态，从而把更新分布带回同策略分布。
+这样就会匹配起来，稳定性和收敛性也会由已有结果推出。
+这就是
+强调 TD 方法的思想，它们最初在第 9.11 节中为同策略训练引入。
+
+实际上，“同策略分布”这个概念并不完全准确，因为同策略分布有许多个，其中任意一个都足以保证稳定。
+考虑一个无折扣分幕问题。
+幕如何终止完全由转移概率决定，但幕可以有几种不同开始方式。
+不过，一旦幕开始，如果所有状态转移都来自目标策略，那么由此产生的状态分布就是同策略分布。
+你可能从接近终止状态的地方开始，并在幕结束前以高概率只访问少数状态。
+也可能从很远处开始，并在终止前经过许多状态。
+两者都是同策略分布，用线性半梯度方法在两者上训练都保证稳定。
+无论过程如何开始，只要直到终止前所有遇到的状态都被更新，就会产生一个同策略分布。
+
+如果存在折扣，那么为了这些目的，可以把它看作部分终止或概率终止。
+如果 $\gamma=0.9$，那么可以认为每个时间步上过程以概率 0.1 终止，然后立即在转移到的状态重新开始。
+折扣问题就是每一步都以概率 $1-\gamma$ 不断终止和重启的问题。
+这种看待折扣的方式，是更一般的\textbf{伪终止}概念的一个例子：终止不影响状态转移序列，但会影响学习过程和被学习的量。
+这种伪终止对离策略学习很重要，因为重启是可选的；请记住，我们可以用任何想要的方式开始；而终止免除了持续把遇到状态纳入同策略分布的需要。
+也就是说，如果不把新状态看作重启，那么折扣很快就只会给出一个有限的同策略分布。
+
+用于学习分幕状态价值的一步强调 TD 算法定义如下：
+\[
+\delta_t=R_{t+1}+\gamma\hat v(S_{t+1},\mathbf{w}_t)-\hat v(S_t,\mathbf{w}_t),
+\]
+\[
+\mathbf{w}_{t+1}=\mathbf{w}_t+\alpha M_t\rho_t\delta_t\nabla\hat v(S_t,\mathbf{w}_t),
+\]
+\[
+M_t=\gamma\rho_{t-1}M_{t-1}+I_t,
+\]
+其中 $I_t$ 是\textbf{兴趣}，可以任意指定；$M_t$ 是\textbf{强调量}，初始化为 $M_{t-1}=0$。
+这个算法在 Baird 反例上表现如何？
+图 11.6 显示了参数向量各分量在期望中的轨迹（对应 $I_t=1$ 对所有 $t$ 成立的情形）。
+存在一些振荡，但最终一切都收敛，$\overline{\mathrm{VE}}$ 趋于零。
+这些轨迹是通过迭代计算参数向量轨迹的期望得到的，没有由转移和奖励采样带来的方差。
+我们没有展示直接应用强调 TD 算法的结果，因为在 Baird 反例上它的方差太高，几乎不可能在计算实验中得到一致结果。
+理论上，这个算法在这个问题上会收敛到最优解；但在实践中不会。
+下一节我们转向降低所有这些算法方差的问题。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.75\textwidth]{figure-11-6.png}
+\caption*{\textbf{图 11.6：}一步强调 TD 算法在 Baird 反例上的期望行为。步长为 $\alpha=0.03$。}
+\end{figure}
+
+\subsection*{11.9\quad 降低方差}
+
+离策略学习本来就比同策略学习有更大方差。
+这并不令人意外；如果你收到的数据与某个策略关系不那么密切，就应当预期自己对该策略价值学到的东西更少。
+在极端情形中，甚至可能什么也学不到。
+例如，你不能指望通过做晚饭来学会开车。
+只有当目标策略和行为策略相关、访问相似状态并采取相似动作时，离策略训练才应当能取得显著进展。
+
+另一方面，任何策略都有许多邻居，也就是许多相似策略；它们在访问状态和选择动作上有大量重叠，但并不完全相同。
+离策略学习存在的理由，就是使我们能够泛化到这大量相关但不相同的策略。
+问题仍然是怎样最好地利用经验。
+既然我们现在已经有一些在期望值上稳定的方法（如果步长设置正确），注意力自然转向降低估计方差。
+可能的想法很多，在这本入门教材中我们只能略微触及其中几个。
+
+为什么控制方差对基于重要性采样的离策略方法尤其关键？
+正如我们已经看到的，重要性采样常常涉及策略比的乘积。
+这些比的期望总是 1（5.13），但实际值可能很高，也可能低至零。
+连续的比是不相关的，因此它们的乘积在期望中也总是 1，但可以具有很高方差。
+回忆一下，在 SGD 方法中，这些比会乘到步长上，因此高方差意味着所采取步骤的大小变化很大。
+这对 SGD 来说是有问题的，因为偶尔出现的非常大步。
+这些步不能大到把参数带到空间中梯度完全不同的区域。
+SGD 方法依赖于对多个步骤进行平均，以获得对梯度的良好感觉；如果它们从单个样本作出很大移动，就会变得不可靠。
+如果步长参数设置得足够小以防止这一点，那么期望步长最终可能非常小，导致学习非常慢。
+动量（Derthick，1984）、Polyak--Ruppert 平均（Polyak，1990；Ruppert，1988；Polyak 和 Juditsky，1992）的概念，或者这些思想的进一步扩展，可能会有显著帮助。
+为参数向量的不同分量自适应设置不同步长的方法也很相关（例如 Jacobs，1988；Sutton，1992b, c），Karamapatzakis 和 Langford（2010）的“重要性权重感知”更新也是如此。
+
+在第 5 章中我们看到，加权重要性采样比普通重要性采样表现好得多，其更新方差更低。
+然而，把加权重要性采样适配到函数近似是有挑战性的，并且也许只能以 $O(d)$ 复杂度近似完成（Mahmood 和 Sutton，2015）。
+
+树备份算法（第 7.5 节）表明，可以在不使用重要性采样的情况下进行某些离策略学习。
+这个想法已经被扩展到离策略情形，以产生稳定且更高效的方法，相关工作来自 Munos、Stepleton、Harutyunyan 和 Bellemare（2016）以及 Mahmood、Yu 和 Sutton（2017）。
+
+另一种互补策略，是允许目标策略部分地由行为策略决定，使它绝不会与行为策略相差到产生巨大重要性采样比。
+例如，目标策略可以通过参照行为策略来定义，就像 Precup 等（2006）提出的“识别器”那样。
+
+\subsection*{11.10\quad 小结}
+
+离策略学习是一个诱人的挑战，考验我们设计稳定而高效学习算法的创造力。
+表格型 $Q$ 学习让离策略学习看起来很容易，而且它自然推广到期望 Sarsa 和树备份算法。
+但是，正如我们在本章看到的，把这些思想推广到显著的函数近似，即使是线性函数近似，也会带来新的挑战，并迫使我们加深对强化学习算法的理解。
+
+为什么要费这么大力气？
+寻求离策略算法的一个原因，是在处理探索与开发之间的权衡时获得灵活性。
+另一个原因，是把行为从学习中解放出来，避免目标策略的专制。
+TD 学习似乎提供了这样一种可能：并行学习多个东西，或者使用一条经验流同时解决许多任务。
+我们当然可以在特殊情形中做到这一点，只是不是在每个我们想做的情形中都能做到，或者不能像我们希望的那样高效。
+
+在本章中，我们把离策略学习的挑战分成两部分。
+第一部分是修正行为策略下学习目标的问题，它可以用早前为表格型情形设计出的技术直接处理，尽管代价是增大更新方差，从而减慢学习。
+高方差很可能永远是离策略学习的挑战。
+
+离策略学习挑战的第二部分，表现为涉及自举的半梯度 TD 方法的不稳定性。
+我们寻求强大的函数近似、离策略学习以及 TD 方法中自举的效率和灵活性，但要在一个算法中组合这个\textbf{致命三元组}的全部三个方面，同时不引入不稳定的可能性，是很有挑战性的。
+已有若干尝试。
+最流行的一种，是试图在 Bellman 误差（又称 Bellman 残差）中执行真正的随机梯度下降（SGD）。
+然而，我们的分析得出结论：在许多情形中，这并不是一个有吸引力的目标，而且无论如何也不可能通过一个学习算法来实现；$\overline{\mathrm{BE}}$ 的梯度无法从只揭示特征向量而不揭示底层状态的经验中学习。
+另一种方法，即梯度 TD 方法，在投影 Bellman 误差中执行 SGD。
+$\overline{\mathrm{PBE}}$ 的梯度可以用 $O(d)$ 复杂度学习，但代价是需要第二个参数向量和第二个步长。
+最新一类方法，即强调 TD 方法，改进了一个关于重新加权更新的旧思想，强调一些更新并弱化另一些。
+通过这种方式，它们恢复了那些使同策略学习能够用计算简单的半梯度方法保持稳定的特殊性质。
+
+整个离策略学习领域相对较新，也尚未稳定下来。
+哪些方法最好，甚至哪些方法足够好，还不清楚。
+本章末尾引入的新方法的复杂性真的有必要吗？
+它们中哪些能够与方差降低方法有效结合？
+离策略学习的潜力仍然诱人，而实现它的最佳方式仍然是一个谜。
+
+\section*{文献与历史备注}
+
+\noindent\textbf{11.1}
+第一个半梯度方法是线性 TD($\lambda$)（Sutton，1988）。
+“半梯度”这个名称更近一些（Sutton，2015a）。
+带一般重要性采样比的半梯度离策略 TD(0)，可能直到 Sutton、Mahmood 和 White（2016）才被明确陈述；但动作价值形式由 Precup、Sutton 和 Singh（2000）引入，他们也做了这些算法的资格迹形式（见第 12 章）。
+它们的持续无折扣形式尚未被充分探索。
+这里给出的 $n$ 步形式是新的。
+
+\noindent\textbf{11.2}
+最早的 $w$ 到 $2w$ 例子由 Tsitsiklis 和 Van Roy（1996）给出；他们还引入了第 263 页框中的具体反例。
+Baird 反例来自 Baird（1995），不过我们这里呈现的版本略有修改。
+用于函数近似的平均方法由 Gordon（1995，1996b）发展。
+Boyan 和 Moore（1995）给出了离策略 DP 方法和更复杂函数近似方法中不稳定性的其他例子。
+Bradtke（1993）给出了一个例子，其中在线性二次调节问题上使用线性函数近似的 $Q$ 学习收敛到一个使系统不稳定的策略。
+
+\noindent\textbf{11.3}
+致命三元组最早由 Sutton（1995b）指出，并由 Tsitsiklis 和 Van Roy（1997）作了深入分析。
+“致命三元组”这个名称来自 Sutton（2015a）。
+
+\noindent\textbf{11.4}
+这类线性分析由 Tsitsiklis 和 Van Roy（1996；1997）开创，其中包括动态规划算子。
+像图 11.3 这样的图由 Lagoudakis 和 Parr（2003）引入。
+
+我们称为 Bellman 算子并记为 $B_\pi$ 的东西，更常记为 $T^\pi$，称为“动态规划算子”；而其广义形式记为 $T^{(\lambda)}$，称为“TD($\lambda$) 算子”（Tsitsiklis 和 Van Roy，1996，1997）。
+
+\noindent\textbf{11.5}
+$\overline{\mathrm{BE}}$ 最早由 Schweitzer 和 Seidmann（1985）提出，作为动态规划的一个目标函数。
+Baird（1995，1999）把它扩展到基于随机梯度下降的 TD 学习。
+在文献中，$\overline{\mathrm{BE}}$ 最小化常称为 Bellman 残差最小化。
+
+最早的 A 分裂例子来自 Dayan（1992）。
+这里给出的两种形式由 Sutton 等（2009a）引入。
+
+\noindent\textbf{11.6}
+本节内容是本书新加入的。
+
+\noindent\textbf{11.7}
+梯度 TD 方法由 Sutton、Szepesvári 和 Maei（2009b）引入。
+本节重点介绍的方法由 Sutton 等（2009a）和 Mahmood 等（2014）引入。
+Mahadevan 等（2014）发展了对近端 TD 方法的重要扩展。
+迄今为止，对梯度 TD 及相关方法最敏感的经验研究来自 Geist 和 Scherrer（2014）、Dann、Neumann 和 Peters（2014）、White（2015），以及 Ghiassian、White、White 和 Sutton（筹备中）。
+Yu（2017）给出了梯度 TD 方法理论的近期发展。
+
+\noindent\textbf{11.8}
+强调 TD 方法由 Sutton、Mahmood 和 White（2016）引入。
+完整收敛证明和其他理论后来由 Yu（2015；2016；Yu、Mahmood 和 Sutton，2017）、Hallak、Tamar 和 Mannor（2015）以及 Hallak、Tamar、Munos 和 Mannor（2016）建立。
+
+\end{document}

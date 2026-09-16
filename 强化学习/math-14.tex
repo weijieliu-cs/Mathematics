@@ -1,0 +1,738 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\graphicspath{{tex/强化学习/figures/math-14/}}
+
+\title{强化学习：策略梯度方法}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{第 13 章\quad 策略梯度方法}
+
+在本章中，我们考虑一些新的内容。
+到目前为止，本书中几乎所有方法都是\textbf{动作价值方法}；它们学习动作的价值，然后根据估计的动作价值来选择动作；如果没有动作价值估计，它们的策略甚至不会存在。\footnote{唯一的例外是第 2.8 节的梯度赌博机算法。事实上，那一节在单状态赌博机情形中经历了许多与本章在完整 MDP 中相同的步骤。复习那一节将有助于充分理解本章。}
+在本章中，我们考虑另一类方法：它们直接学习一个\textbf{参数化策略}，该策略可以在不查询价值函数的情况下选择动作。
+价值函数仍然可以用来学习策略参数，但动作选择并不一定需要价值函数。
+我们用记号 $\boldsymbol{\theta}\in\mathbb{R}^{d'}$ 表示策略的参数向量。
+于是，我们写
+\[
+\pi(a|s,\boldsymbol{\theta})=\Pr\{A_t=a\mid S_t=s,\boldsymbol{\theta}_t=\boldsymbol{\theta}\}
+\]
+表示：在时刻 $t$，若环境处于状态 $s$ 且参数为 $\boldsymbol{\theta}$，则采取动作 $a$ 的概率。
+如果某个方法还使用一个学到的价值函数，那么与往常一样，价值函数的权重向量记为 $\mathbf{w}\in\mathbb{R}^d$，例如写作 $\hat v(s,\mathbf{w})$。
+
+本章考察的是根据某个标量性能度量 $J(\boldsymbol{\theta})$ 关于策略参数的梯度来学习策略参数的方法。
+这些方法试图最大化性能，因此它们的更新近似于对 $J$ 做梯度上升：
+\begin{equation}
+\boldsymbol{\theta}_{t+1}=\boldsymbol{\theta}_t+\alpha \widehat{\nabla J(\boldsymbol{\theta}_t)},
+\tag{13.1}
+\end{equation}
+其中 $\widehat{\nabla J(\boldsymbol{\theta}_t)}\in\mathbb{R}^{d'}$ 是一个随机估计，其期望近似于性能度量关于其自变量 $\boldsymbol{\theta}_t$ 的梯度。
+凡是遵循这一一般模式的方法，我们都称为\textbf{策略梯度方法}，无论它们是否同时学习一个近似价值函数。
+同时学习策略函数和价值函数近似的方法通常称为\textbf{演员--评论家方法}；其中“演员”指学到的策略，而“评论家”指学到的价值函数，通常是状态价值函数。
+我们首先处理分幕情形，在其中性能被定义为参数化策略下起始状态的价值；随后再考虑持续情形，在其中性能被定义为平均奖励率，如第 10.3 节所述。
+最后，我们将能够用非常相似的形式表达这两种情形下的算法。
+
+\subsection*{13.1\quad 策略近似及其优点}
+
+在策略梯度方法中，策略可以用任何方式参数化，只要 $\pi(a|s,\boldsymbol{\theta})$ 关于其参数可微即可。
+也就是说，只要 $\nabla\pi(a|s,\boldsymbol{\theta})$，即 $\pi(a|s,\boldsymbol{\theta})$ 关于 $\boldsymbol{\theta}$ 各分量的偏导数组成的列向量，对所有 $s\in\mathcal{S}$、$a\in\mathcal{A}(s)$ 和 $\boldsymbol{\theta}\in\mathbb{R}^{d'}$ 都存在且有限即可。
+在实践中，为了保证探索，我们通常要求策略永远不会变成确定性的；也就是说，对所有 $s,a,\boldsymbol{\theta}$，都有 $\pi(a|s,\boldsymbol{\theta})\in(0,1)$。
+本节介绍离散动作空间中最常见的参数化，并指出它相对于动作价值方法的优点。
+基于策略的方法也提供了处理连续动作空间的有用方式，我们将在第 13.7 节描述。
+
+如果动作空间是离散的且不太大，那么一种自然且常见的参数化，是为每个状态--动作对形成参数化的数值偏好 $h(s,a,\boldsymbol{\theta})\in\mathbb{R}$。
+在每个状态中，偏好最高的动作被赋予最高的选择概率；例如，可以采用动作偏好上的指数 soft-max 分布：
+\begin{equation}
+\pi(a|s,\boldsymbol{\theta})\doteq
+\frac{e^{h(s,a,\boldsymbol{\theta})}}
+{\sum_b e^{h(s,b,\boldsymbol{\theta})}},
+\tag{13.2}
+\end{equation}
+其中 $e\approx2.71828$ 是自然对数的底。
+注意，这里的分母正是为了使每个状态中的动作概率之和为 $1$。
+我们把这种策略参数化称为\textbf{动作偏好上的 soft-max}。
+
+动作偏好本身可以任意参数化。
+例如，它们可以由一个深层人工神经网络计算，$\boldsymbol{\theta}$ 是该网络所有连接权重组成的向量，如第 16.6 节描述的 AlphaGo 系统。
+或者，偏好也可以只是特征的线性函数：
+\begin{equation}
+h(s,a,\boldsymbol{\theta})=\boldsymbol{\theta}^\top \mathbf{x}(s,a),
+\tag{13.3}
+\end{equation}
+其中 $\mathbf{x}(s,a)\in\mathbb{R}^{d'}$ 是用第 9 章描述的任意方法构造的特征向量。
+
+按动作偏好上的 soft-max 来参数化策略的一个优点是，近似策略可以趋近于确定性策略；而在基于动作价值的 $\varepsilon$-贪心动作选择中，总是有 $\varepsilon$ 的概率选择随机动作。
+当然，也可以根据动作价值上的 soft-max 分布来选择动作，但仅靠这一点并不能使策略趋近于确定性策略。
+相反，动作价值估计会收敛到相应的真实价值；这些真实价值之间只相差有限量，从而转化为既不是 $0$ 也不是 $1$ 的特定概率。
+如果 soft-max 分布包含温度参数，那么可以随时间降低温度以趋近确定性；但在实践中，如果不假定我们拥有比愿意假定的更多关于真实动作价值的先验知识，就很难选择降低温度的日程，甚至很难选择初始温度。
+动作偏好则不同，因为它们并不趋近某些特定数值；相反，它们被驱动去产生最优随机策略。
+如果最优策略是确定性的，那么在参数化允许的情况下，最优动作的偏好会被推到比所有次优动作无限高。
+
+按动作偏好上的 soft-max 来参数化策略的第二个优点是，它允许用任意概率选择动作。
+在具有显著函数近似的问题中，最好的近似策略可能是随机的。
+例如，在具有不完全信息的纸牌游戏中，最优玩法通常是以特定概率做两件不同的事情，例如扑克中的诈唬。
+动作价值方法没有自然方式找到随机最优策略，而策略近似方法可以做到，如例 13.1 所示。
+
+\noindent\textbf{例 13.1\quad 动作互换的短走廊}
+
+考虑下图中小型走廊网格世界。
+和往常一样，每一步的奖励为 $-1$。
+在三个非终止状态中的每个状态下，只有两个动作：右和左。
+在第一个和第三个状态中，这些动作具有通常的后果（在第一个状态中，向左不会移动）；但在第二个状态中，动作被反转，即向右会向左移动，向左会向右移动。
+这个问题困难之处在于，在函数近似下所有状态看起来完全相同。
+具体来说，对所有 $s$，定义 $\mathbf{x}(s,\mathrm{right})=[1,0]^\top$，$\mathbf{x}(s,\mathrm{left})=[0,1]^\top$。
+采用 $\varepsilon$-贪心动作选择的动作价值方法被迫只在两种策略之间选择：在所有时间步以高概率 $1-\varepsilon/2$ 选择向右，或者在所有时间步以同样高的概率选择向左。
+若 $\varepsilon=0.1$，则如图所示，这两种策略在起始状态处取得的价值分别小于 $-44$ 和 $-82$。
+如果一个方法能够学习一个特定的向右选择概率，那么它可以显著做得更好。
+最优概率大约是 $0.59$，取得的价值大约是 $-11.6$。
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{example-13-1-short-corridor.png}
+\end{figure}
+
+也许，相对于动作价值参数化，策略参数化可能拥有的最简单优点，是策略本身可能是一个更容易近似的函数。
+不同问题中策略和动作价值函数的复杂程度各不相同。
+对某些问题，动作价值函数更简单，因此更容易近似。
+对另一些问题，策略更简单。
+在后一种情形中，基于策略的方法通常会学习得更快，并得到更好的渐近策略（例如俄罗斯方块；见 Şimşek、Algórta 和 Kothiyal，2016）。
+
+最后，我们注意到，选择策略参数化有时也是把关于期望策略形式的先验知识注入强化学习系统的一种好方法。
+这常常是使用基于策略的学习方法的最重要原因。
+
+\noindent\textbf{练习 13.1}\quad 利用你对该网格世界及其动态的了解，确定例 13.1 中选择向右动作的最优概率的精确符号表达式。
+
+\subsection*{13.2\quad 策略梯度定理}
+
+除了相对于 $\varepsilon$-贪心动作选择的实践优点，策略参数化还具有一个重要的理论优点。
+在连续策略参数化下，动作概率作为学到的参数的函数会平滑变化；而在 $\varepsilon$-贪心选择中，如果一个任意小的估计动作价值变化导致另一个动作取得最大值，那么动作概率可能发生剧烈变化。
+很大程度上正因为这一点，策略梯度方法比动作价值方法拥有更强的收敛保证。
+特别地，正是策略对参数依赖关系的连续性，使策略梯度方法能够近似梯度上升（13.1）。
+
+分幕情形和持续情形对性能度量 $J(\boldsymbol{\theta})$ 的定义不同，因此在某种程度上必须分别处理。
+尽管如此，我们仍会尽量用统一方式呈现这两种情形，并发展一种记号，使主要理论结果可以用同一组方程来描述。
+
+本节处理分幕情形；在这种情形中，我们把性能度量定义为该幕起始状态的价值。
+为了在不失去有意义的一般性的前提下简化记号，我们假设每一幕都从某个特定的非随机状态 $s_0$ 开始。
+于是，在分幕情形中，性能定义为
+\begin{equation}
+J(\boldsymbol{\theta})\doteq v_{\pi_{\boldsymbol{\theta}}}(s_0),
+\tag{13.4}
+\end{equation}
+其中 $v_{\pi_{\boldsymbol{\theta}}}$ 是由 $\boldsymbol{\theta}$ 确定的策略 $\pi_{\boldsymbol{\theta}}$ 的真实价值函数。
+从这里开始，在讨论分幕情形时我们假设没有折扣（$\gamma=1$），尽管为了完整性，在框中算法里仍保留折扣的可能性。
+
+在函数近似下，似乎很难以一种保证改进的方式改变策略参数。
+问题在于，性能既依赖于动作选择，也依赖于这些动作选择发生在其中的状态分布，而这两者都会受到策略参数的影响。
+给定一个状态，策略参数对动作以及奖励的影响，可以通过参数化知识以相对直接的方式计算。
+但是，策略对状态分布的影响是环境的函数，而环境通常未知。
+当梯度依赖于策略变化对状态分布的未知影响时，我们如何估计性能关于策略参数的梯度？
+
+幸运的是，这个挑战有一个极好的理论答案，即\textbf{策略梯度定理}。
+它给出了性能关于策略参数的解析表达式，也就是我们为了梯度上升（13.1）所需要近似的量，而且这个表达式不涉及状态分布的导数。
+分幕情形下的策略梯度定理表明
+\begin{equation}
+\nabla J(\boldsymbol{\theta})\propto
+\sum_s \mu(s)\sum_a q_\pi(s,a)\nabla\pi(a|s,\boldsymbol{\theta}),
+\tag{13.5}
+\end{equation}
+其中梯度是关于 $\boldsymbol{\theta}$ 各分量的偏导数组成的列向量，$\pi$ 表示对应于参数向量 $\boldsymbol{\theta}$ 的策略。
+这里的符号 $\propto$ 表示“正比于”。
+在分幕情形中，比例常数是一个幕的平均长度；在持续情形中，比例常数为 $1$，因此关系实际上是等式。
+这里的分布 $\mu$（如第 9 章和第 10 章中一样）是策略 $\pi$ 下的同策略分布（见第 199 页）。
+分幕情形的策略梯度定理证明如下。
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{策略梯度定理的证明（分幕情形）}
+
+\vspace{0.4em}
+仅用初等微积分和项的重排，就可以从第一性原理证明策略梯度定理。
+为保持记号简单，我们在所有地方都隐含 $\pi$ 是 $\boldsymbol{\theta}$ 的函数，所有梯度也都默认是关于 $\boldsymbol{\theta}$ 的梯度。
+首先注意，状态价值函数的梯度可以用动作价值函数写成
+\begin{align*}
+\nabla v_\pi(s)
+&=\nabla\left[\sum_a \pi(a|s)q_\pi(s,a)\right]\\
+&=\sum_a\left[\nabla\pi(a|s)q_\pi(s,a)+\pi(a|s)\nabla q_\pi(s,a)\right]\\
+&=\sum_a\left[\nabla\pi(a|s)q_\pi(s,a)+\pi(a|s)\sum_{s'}p(s'|s,a)\nabla v_\pi(s')\right]\\
+&=\sum_{x\in\mathcal{S}}\sum_{k=0}^{\infty}\Pr(s\to x,k,\pi)\sum_a\nabla\pi(a|x)q_\pi(x,a),
+\end{align*}
+其中 $\Pr(s\to x,k,\pi)$ 是在策略 $\pi$ 下从状态 $s$ 经 $k$ 步转移到状态 $x$ 的概率。
+于是立即得到
+\begin{align*}
+\nabla J(\boldsymbol{\theta})
+&=\nabla v_\pi(s_0)\\
+&=\sum_s\sum_{k=0}^{\infty}\Pr(s_0\to s,k,\pi)\sum_a\nabla\pi(a|s)q_\pi(s,a)\\
+&=\sum_s\eta(s)\sum_a\nabla\pi(a|s)q_\pi(s,a)\\
+&\propto\sum_s\mu(s)\sum_a\nabla\pi(a|s)q_\pi(s,a).
+\end{align*}
+证毕。
+\end{minipage}}
+\end{center}
+
+\subsection*{13.3\quad REINFORCE：蒙特卡洛策略梯度}
+
+现在我们已经准备好推导第一个策略梯度学习算法。
+回忆我们的总体策略是随机梯度上升（13.1），它需要一种方式来获得样本，使样本梯度的期望与性能度量作为参数函数时的真实梯度成正比。
+样本梯度只需要与梯度成正比，因为任何比例常数都可以吸收到步长 $\alpha$ 中，而 $\alpha$ 本来就是任意的。
+策略梯度定理给出了一个与梯度成正比的精确表达式；所需的只是某种采样方式，使其期望等于或近似该表达式。
+注意，策略梯度定理右端是对状态求和，并按这些状态在目标策略 $\pi$ 下出现的频率加权；如果遵循 $\pi$，那么状态就会按这些比例被遇到。
+因此
+\begin{align}
+\nabla J(\boldsymbol{\theta})
+&\propto \sum_s \mu(s)\sum_a q_\pi(s,a)\nabla\pi(a|s,\boldsymbol{\theta})\notag\\
+&=\mathbb{E}_\pi\left[\sum_a q_\pi(S_t,a)\nabla\pi(a|S_t,\boldsymbol{\theta})\right].
+\tag{13.6}
+\end{align}
+我们可以在这里停下，并把随机梯度上升算法（13.1）实例化为
+\begin{equation}
+\boldsymbol{\theta}_{t+1}\doteq \boldsymbol{\theta}_t+\alpha\sum_a \hat q(S_t,a,\mathbf{w})\nabla\pi(a|S_t,\boldsymbol{\theta}),
+\tag{13.7}
+\end{equation}
+其中 $\hat q$ 是对 $q_\pi$ 的某个学到的近似。
+这个算法被称为\textbf{全动作方法}，因为它的更新涉及所有动作；它很有前途，也值得进一步研究。
+不过，我们当前关注的是经典的 REINFORCE 算法（Williams，1992），其时刻 $t$ 的更新只涉及 $A_t$，也就是时刻 $t$ 实际采取的那个动作。
+
+我们继续推导 REINFORCE，方式与在（13.6）中引入 $S_t$ 相同：把对随机变量可能取值的求和替换为在 $\pi$ 下的期望，然后对该期望采样。
+式（13.6）中有一个对动作的适当求和，但每一项并没有按 $\pi(a|S_t,\boldsymbol{\theta})$ 加权，而这是形成 $\pi$ 下期望所需的。
+因此，我们通过对求和项同时乘以并除以 $\pi(a|S_t,\boldsymbol{\theta})$ 来引入这样的加权，而不改变等式。
+从（13.6）继续，有
+\begin{align*}
+\nabla J(\boldsymbol{\theta})
+&=\mathbb{E}_\pi\left[\sum_a \pi(a|S_t,\boldsymbol{\theta})q_\pi(S_t,a)
+\frac{\nabla\pi(a|S_t,\boldsymbol{\theta})}{\pi(a|S_t,\boldsymbol{\theta})}\right]\\
+&=\mathbb{E}_\pi\left[q_\pi(S_t,A_t)
+\frac{\nabla\pi(A_t|S_t,\boldsymbol{\theta})}{\pi(A_t|S_t,\boldsymbol{\theta})}\right]\\
+&=\mathbb{E}_\pi\left[G_t
+\frac{\nabla\pi(A_t|S_t,\boldsymbol{\theta})}{\pi(A_t|S_t,\boldsymbol{\theta})}\right],
+\end{align*}
+其中 $G_t$ 像往常一样是回报。
+方括号中的最后表达式正是所需的量：它可以在每个时间步采样，其期望等于梯度。
+用这个样本实例化通用随机梯度上升算法（13.1），得到 REINFORCE 更新：
+\begin{equation}
+\boldsymbol{\theta}_{t+1}\doteq \boldsymbol{\theta}_t+\alpha G_t
+\frac{\nabla\pi(A_t|S_t,\boldsymbol{\theta}_t)}{\pi(A_t|S_t,\boldsymbol{\theta}_t)}.
+\tag{13.8}
+\end{equation}
+
+这个更新具有直观吸引力。
+每次增量都正比于一个回报 $G_t$ 与一个向量的乘积；这个向量是实际采取动作的概率的梯度，再除以采取该动作的概率。
+该向量是在参数空间中最能提高未来访问状态 $S_t$ 时重复动作 $A_t$ 概率的方向。
+更新沿这个方向增加参数向量，且增加量与回报成正比，与动作概率成反比。
+前者是合理的，因为它使参数在偏向产生最高回报动作的方向上移动最多。
+后者也是合理的，因为否则被频繁选择的动作将占优势（更新更常朝它们的方向发生），即使它们并不产生最高回报，也可能胜出。
+
+注意，REINFORCE 使用从时刻 $t$ 开始直到幕结束的完整回报。
+在这个意义上，REINFORCE 是一个蒙特卡洛算法，并且只在分幕情形下有明确定义，所有更新都在一幕结束后回顾性地完成（类似第 5 章中的蒙特卡洛算法）。
+下面的框中明确展示了这一点。
+还要注意，伪代码最后一行中的更新看起来与 REINFORCE 更新规则（13.8）很不同。
+一个差异是伪代码使用紧凑表达式 $\nabla\ln\pi(A_t|S_t,\boldsymbol{\theta}_t)$ 表示（13.8）中的分式向量。
+这两个向量表达式等价，来自恒等式 $\nabla\ln x=\nabla x/x$。
+这个向量在文献中有若干名称和记号；我们将简单地称它为\textbf{资格向量}。
+注意，它是算法中唯一出现策略参数化的地方。
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{REINFORCE：蒙特卡洛策略梯度控制（分幕），用于 $\pi_*$}
+
+\vspace{0.4em}
+\noindent 输入：可微策略参数化 $\pi(a|s,\boldsymbol{\theta})$。
+
+\noindent 算法参数：步长 $\alpha>0$。
+
+\noindent 初始化策略参数 $\boldsymbol{\theta}\in\mathbb{R}^{d'}$（例如为 $0$）。
+
+\vspace{0.4em}
+\noindent 不断循环（对每一幕）：
+
+\quad 生成一幕 $S_0,A_0,R_1,\ldots,S_{T-1},A_{T-1},R_T$，遵循 $\pi(\cdot|\cdot,\boldsymbol{\theta})$。
+
+\quad 对该幕每一步 $t=0,1,\ldots,T-1$ 循环：
+
+\qquad $G\leftarrow \sum_{k=t+1}^{T}\gamma^{k-t-1}R_k$。
+
+\qquad $\boldsymbol{\theta}\leftarrow \boldsymbol{\theta}+\alpha\gamma^t G\nabla\ln\pi(A_t|S_t,\boldsymbol{\theta})$。
+\end{minipage}}
+\end{center}
+
+伪代码更新和 REINFORCE 更新方程（13.8）之间的第二个差异，是前者包含一个因子 $\gamma^t$。
+这是因为，如前所述，正文中我们处理的是非折扣情形（$\gamma=1$），而框中算法给出的是一般折扣情形。
+所有思想在折扣情形下通过适当调整仍然成立（包括对第 199 页框的调整），但这会引入额外复杂性，分散对主要思想的注意。
+
+\noindent\textbf{练习 13.2}\quad 推广第 199 页的框、策略梯度定理（13.5）、策略梯度定理的证明（第 325 页）以及导向 REINFORCE 更新方程（13.8）的步骤，使（13.8）最终带有一个 $\gamma^t$ 因子，从而与伪代码中给出的一般算法一致。
+
+图 13.1 展示了 REINFORCE 在例 13.1 的短走廊网格世界上的表现。
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.82\textwidth]{figure-13-1.png}
+\caption*{\textbf{图 13.1：}REINFORCE 在短走廊网格世界（例 13.1）上的表现。使用好的步长时，每幕总奖励会接近起始状态的最优价值。}
+\end{figure}
+
+作为一种随机梯度方法，REINFORCE 具有良好的理论收敛性质。
+按构造，一幕上的期望更新与性能梯度方向相同。
+这保证了当 $\alpha$ 足够小时期望性能会改善，并且在标准随机近似条件下，若 $\alpha$ 递减，则会收敛到一个局部最优。
+然而，作为蒙特卡洛方法，REINFORCE 的方差可能很高，因此学习可能很慢。
+
+\noindent\textbf{练习 13.3}\quad 在第 13.1 节中，我们考虑了使用动作偏好上的 soft-max（13.2）并采用线性动作偏好（13.3）的策略参数化。
+对这种参数化，利用定义和初等微积分证明资格向量为
+\begin{equation}
+\nabla\ln\pi(a|s,\boldsymbol{\theta})
+=\mathbf{x}(s,a)-\sum_b\pi(b|s,\boldsymbol{\theta})\mathbf{x}(s,b).
+\tag{13.9}
+\end{equation}
+
+\subsection*{13.4\quad 带基线的 REINFORCE}
+
+策略梯度定理（13.5）可以推广为包含动作价值与任意基线 $b(s)$ 的比较：
+\begin{equation}
+\nabla J(\boldsymbol{\theta})\propto
+\sum_s\mu(s)\sum_a\bigl(q_\pi(s,a)-b(s)\bigr)\nabla\pi(a|s,\boldsymbol{\theta}).
+\tag{13.10}
+\end{equation}
+基线可以是任何函数，甚至可以是随机变量，只要它不随 $a$ 改变即可；该方程仍然有效，因为被减去的量为零：
+\[
+\sum_a b(s)\nabla\pi(a|s,\boldsymbol{\theta})
+=b(s)\nabla\sum_a\pi(a|s,\boldsymbol{\theta})
+=b(s)\nabla 1=0.
+\]
+
+带基线的策略梯度定理（13.10）可以用与上一节类似的步骤推导出更新规则。
+最终得到的是一个包含一般基线的新版本 REINFORCE：
+\begin{equation}
+\boldsymbol{\theta}_{t+1}\doteq
+\boldsymbol{\theta}_t+\alpha\bigl(G_t-b(S_t)\bigr)
+\frac{\nabla\pi(A_t|S_t,\boldsymbol{\theta}_t)}
+{\pi(A_t|S_t,\boldsymbol{\theta}_t)}.
+\tag{13.11}
+\end{equation}
+因为基线可以恒为零，所以这个更新严格推广了 REINFORCE。
+一般而言，基线不改变更新的期望值，但会显著影响更新的方差。
+例如，我们在第 2.8 节看到，类似的基线可以显著降低梯度赌博机算法的方差，从而加快学习。
+在赌博机算法中，基线只是一个数，即目前为止见到的奖励平均值；但对 MDP 来说，基线应当随状态而变化。
+在某些状态中，所有动作都有高价值，我们需要一个高基线来区分价值更高和价值较低的动作；在另一些状态中，所有动作价值都低，因此低基线才合适。
+
+基线的一个自然选择是状态价值的估计 $\hat v(S_t,\mathbf{w})$，其中 $\mathbf{w}\in\mathbb{R}^d$ 是由前几章介绍的某个方法学到的权重向量。
+因为 REINFORCE 是一种用于学习策略参数 $\boldsymbol{\theta}$ 的蒙特卡洛方法，所以也自然地使用蒙特卡洛方法来学习状态价值权重 $\mathbf{w}$。
+下面的框给出了完整伪代码：它用这样一个学到的状态价值函数作为基线，实现带基线的 REINFORCE。
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{带基线的 REINFORCE（分幕），用于估计 $\pi_{\boldsymbol{\theta}}\approx\pi_*$}
+
+\vspace{0.4em}
+\noindent 输入：可微策略参数化 $\pi(a|s,\boldsymbol{\theta})$。
+
+\noindent 输入：可微状态价值函数参数化 $\hat v(s,\mathbf{w})$。
+
+\noindent 算法参数：步长 $\alpha^\theta>0$，$\alpha^w>0$。
+
+\noindent 初始化策略参数 $\boldsymbol{\theta}\in\mathbb{R}^{d'}$ 和状态价值权重 $\mathbf{w}\in\mathbb{R}^d$（例如为 $0$）。
+
+\vspace{0.4em}
+\noindent 不断循环（对每一幕）：
+
+\quad 生成一幕 $S_0,A_0,R_1,\ldots,S_{T-1},A_{T-1},R_T$，遵循 $\pi(\cdot|\cdot,\boldsymbol{\theta})$。
+
+\quad 对该幕每一步 $t=0,1,\ldots,T-1$ 循环：
+
+\qquad $G\leftarrow \sum_{k=t+1}^{T}\gamma^{k-t-1}R_k$。
+
+\qquad $\delta\leftarrow G-\hat v(S_t,\mathbf{w})$。
+
+\qquad $\mathbf{w}\leftarrow \mathbf{w}+\alpha^w\delta\nabla\hat v(S_t,\mathbf{w})$。
+
+\qquad $\boldsymbol{\theta}\leftarrow \boldsymbol{\theta}+\alpha^\theta\gamma^t\delta\nabla\ln\pi(A_t|S_t,\boldsymbol{\theta})$。
+\end{minipage}}
+\end{center}
+
+这个算法有两个步长，记为 $\alpha^\theta$ 和 $\alpha^w$（其中 $\alpha^\theta$ 是（13.11）中的 $\alpha$）。
+为价值选择步长（这里是 $\alpha^w$）相对容易；在线性情形中，我们有设置它的经验规则，例如 $\alpha^w=0.1/\mathbb{E}\left[\|\nabla\hat v(S_t,\mathbf{w})\|_\mu^2\right]$（见第 9.6 节）。
+相比之下，如何设置策略参数的步长 $\alpha^\theta$ 要不清楚得多；其最佳值依赖于奖励变化范围和策略参数化。
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.82\textwidth]{figure-13-2.png}
+\caption*{\textbf{图 13.2：}给 REINFORCE 加入基线可以使它学习快得多。这里展示的是短走廊网格世界（例 13.1）上的结果。普通 REINFORCE 使用的步长是其表现最好的步长（精确到最接近的 $2$ 的幂；见图 13.1）。}
+\end{figure}
+
+图 13.2 比较了在短走廊网格世界（例 13.1）上，有无基线时 REINFORCE 的行为。
+这里作为基线使用的近似状态价值函数是 $\hat v(s,\mathbf{w})=w$。
+也就是说，$\mathbf{w}$ 只有一个分量 $w$。
+
+\subsection*{13.5\quad 演员--评论家方法}
+
+虽然带基线的 REINFORCE 同时学习策略和状态价值函数，但我们并不把它看作演员--评论家方法，因为它的状态价值函数只被用作基线，而不是用作评论家。
+也就是说，它并不用于自举（用后续状态的估计价值来更新某个状态的价值估计），而只是作为被更新状态的基线。
+这是一个有用的区分，因为只有通过自举，我们才引入偏差以及对函数近似质量的渐近依赖。
+正如我们已经看到的，通过自举和对状态表示的依赖引入的偏差往往是有益的，因为它降低方差并加速学习。
+带基线的 REINFORCE 是无偏的，并会渐近收敛到局部最优；但像所有蒙特卡洛方法一样，它往往学习缓慢（产生高方差估计），而且不便于在线实现或用于持续问题。
+如本书前面所见，通过时序差分方法可以消除这些不便，并通过多步方法灵活选择自举程度。
+为了在策略梯度方法中获得这些优势，我们使用带自举评论家的演员--评论家方法。
+
+首先考虑一步演员--评论家方法，它类似于第 6 章介绍的 TD(0)、Sarsa(0) 和 Q-learning 等 TD 方法。
+一步方法的主要吸引力在于，它们完全在线且增量式，同时避免了资格迹的复杂性。
+它们是资格迹方法的特例，没有那么一般，但更容易理解。
+一步演员--评论家方法把 REINFORCE（13.11）中的完整回报替换为一步回报，并使用学到的状态价值函数作为基线：
+\begin{align}
+\boldsymbol{\theta}_{t+1}
+&\doteq \boldsymbol{\theta}_t+\alpha\bigl(G_{t:t+1}-\hat v(S_t,\mathbf{w})\bigr)
+\frac{\nabla\pi(A_t|S_t,\boldsymbol{\theta}_t)}{\pi(A_t|S_t,\boldsymbol{\theta}_t)}
+\tag{13.12}\\
+&=\boldsymbol{\theta}_t+\alpha\bigl(R_{t+1}+\hat v(S_{t+1},\mathbf{w})-\hat v(S_t,\mathbf{w})\bigr)
+\frac{\nabla\pi(A_t|S_t,\boldsymbol{\theta}_t)}{\pi(A_t|S_t,\boldsymbol{\theta}_t)}
+\tag{13.13}\\
+&=\boldsymbol{\theta}_t+\alpha\delta_t
+\frac{\nabla\pi(A_t|S_t,\boldsymbol{\theta}_t)}{\pi(A_t|S_t,\boldsymbol{\theta}_t)}.
+\tag{13.14}
+\end{align}
+与之自然配对的状态价值函数学习方法是半梯度 TD(0)。
+完整算法的伪代码见下一页上方的框。
+注意，它现在是一个完全在线、增量式算法；状态、动作和奖励在发生时被处理，之后不再回看。
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{一步演员--评论家（分幕），用于估计 $\pi_{\boldsymbol{\theta}}\approx\pi_*$}
+
+\vspace{0.4em}
+\noindent 输入：可微策略参数化 $\pi(a|s,\boldsymbol{\theta})$。
+
+\noindent 输入：可微状态价值函数参数化 $\hat v(s,\mathbf{w})$。
+
+\noindent 参数：步长 $\alpha^\theta>0$，$\alpha^w>0$。
+
+\noindent 初始化策略参数 $\boldsymbol{\theta}\in\mathbb{R}^{d'}$ 和状态价值权重 $\mathbf{w}\in\mathbb{R}^d$（例如为 $0$）。
+
+\vspace{0.4em}
+\noindent 不断循环（对每一幕）：
+
+\quad 初始化 $S$（该幕的第一个状态）。
+
+\quad $I\leftarrow 1$。
+
+\quad 当 $S$ 非终止时循环（对每个时间步）：
+
+\qquad $A\sim\pi(\cdot|S,\boldsymbol{\theta})$。
+
+\qquad 采取动作 $A$，观察 $S',R$。
+
+\qquad $\delta\leftarrow R+\hat v(S',\mathbf{w})-\hat v(S,\mathbf{w})$（若 $S'$ 终止，则 $\hat v(S',\mathbf{w})=0$）。
+
+\qquad $\mathbf{w}\leftarrow \mathbf{w}+\alpha^w\delta\nabla\hat v(S,\mathbf{w})$。
+
+\qquad $\boldsymbol{\theta}\leftarrow \boldsymbol{\theta}+\alpha^\theta I\delta\nabla\ln\pi(A|S,\boldsymbol{\theta})$。
+
+\qquad $I\leftarrow \gamma I$。
+
+\qquad $S\leftarrow S'$。
+\end{minipage}}
+\end{center}
+
+推广到 $n$ 步方法的前向视图，再推广到 $\lambda$-回报算法，都是直接的。
+只需把（13.12）中的一步回报替换为 $G_{t:t+n}$ 或 $G_t^\lambda$。
+$\lambda$-回报算法的后向视图也很直接：分别为演员和评论家使用独立资格迹，每个资格迹都遵循第 12 章中的相应模式。
+完整算法的伪代码如下。
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{带资格迹的演员--评论家（分幕），用于估计 $\pi_{\boldsymbol{\theta}}\approx\pi_*$}
+
+\vspace{0.4em}
+\noindent 输入：可微策略参数化 $\pi(a|s,\boldsymbol{\theta})$。
+
+\noindent 输入：可微状态价值函数参数化 $\hat v(s,\mathbf{w})$。
+
+\noindent 参数：迹衰减率 $\lambda^\theta,\lambda^w\in[0,1]$；步长 $\alpha^\theta>0,\alpha^w>0$。
+
+\noindent 初始化策略参数 $\boldsymbol{\theta}\in\mathbb{R}^{d'}$ 和状态价值权重 $\mathbf{w}\in\mathbb{R}^d$（例如为 $0$）。
+
+\vspace{0.4em}
+\noindent 不断循环（对每一幕）：
+
+\quad 初始化 $S$（该幕的第一个状态）。
+
+\quad $\mathbf{z}^\theta\leftarrow \mathbf{0}$（$d'$ 分量资格迹向量）。
+
+\quad $\mathbf{z}^w\leftarrow \mathbf{0}$（$d$ 分量资格迹向量）。
+
+\quad $I\leftarrow 1$。
+
+\quad 当 $S$ 非终止时循环（对每个时间步）：
+
+\qquad $A\sim\pi(\cdot|S,\boldsymbol{\theta})$。
+
+\qquad 采取动作 $A$，观察 $S',R$。
+
+\qquad $\delta\leftarrow R+\hat v(S',\mathbf{w})-\hat v(S,\mathbf{w})$（若 $S'$ 终止，则 $\hat v(S',\mathbf{w})=0$）。
+
+\qquad $\mathbf{z}^w\leftarrow \gamma\lambda^w\mathbf{z}^w+\nabla\hat v(S,\mathbf{w})$。
+
+\qquad $\mathbf{z}^\theta\leftarrow \gamma\lambda^\theta\mathbf{z}^\theta+I\nabla\ln\pi(A|S,\boldsymbol{\theta})$。
+
+\qquad $\mathbf{w}\leftarrow \mathbf{w}+\alpha^w\delta\mathbf{z}^w$。
+
+\qquad $\boldsymbol{\theta}\leftarrow \boldsymbol{\theta}+\alpha^\theta\delta\mathbf{z}^\theta$。
+
+\qquad $I\leftarrow \gamma I$。
+
+\qquad $S\leftarrow S'$。
+\end{minipage}}
+\end{center}
+
+\subsection*{13.6\quad 持续问题的策略梯度}
+
+如第 10.3 节所讨论的，对没有幕边界的持续问题，我们需要把性能定义为每时间步奖励的平均率：
+\begin{align}
+J(\boldsymbol{\theta})
+&\doteq r(\pi)\doteq \lim_{h\to\infty}\frac{1}{h}\sum_{t=1}^{h}\mathbb{E}[R_t\mid S_0,A_{0:t-1}\sim\pi]\notag\\
+&=\lim_{t\to\infty}\mathbb{E}[R_t\mid S_0,A_{0:t-1}\sim\pi]\notag\\
+&=\sum_s\mu(s)\sum_a\pi(a|s)\sum_{s',r}p(s',r|s,a)r,
+\tag{13.15}
+\end{align}
+其中 $\mu$ 是 $\pi$ 下的稳态分布，$\mu(s)\doteq \lim_{t\to\infty}\Pr\{S_t=s\mid A_{0:t}\sim\pi\}$；这里假设该分布存在且与 $S_0$ 无关（遍历性假设）。
+记住，这是一个特殊分布：如果你按 $\pi$ 选择动作，就会保持在同一分布中：
+\begin{equation}
+\sum_s\mu(s)\sum_a\pi(a|s,\boldsymbol{\theta})p(s'|s,a)=\mu(s'),\quad \text{对所有 }s'\in\mathcal{S}.
+\tag{13.16}
+\end{equation}
+
+持续情形下演员--评论家算法（后向视图）的完整伪代码如下。
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{带资格迹的演员--评论家（持续），用于估计 $\pi_{\boldsymbol{\theta}}\approx\pi_*$}
+
+\vspace{0.4em}
+\noindent 输入：可微策略参数化 $\pi(a|s,\boldsymbol{\theta})$。
+
+\noindent 输入：可微状态价值函数参数化 $\hat v(s,\mathbf{w})$。
+
+\noindent 算法参数：$\lambda^w,\lambda^\theta\in[0,1]$，$\alpha^w>0$，$\alpha^\theta>0$，$\alpha^{\bar R}>0$。
+
+\noindent 初始化 $\bar R\in\mathbb{R}$（例如为 $0$）。
+
+\noindent 初始化状态价值权重 $\mathbf{w}\in\mathbb{R}^d$ 和策略参数 $\boldsymbol{\theta}\in\mathbb{R}^{d'}$（例如为 $0$）。
+
+\noindent 初始化 $S\in\mathcal{S}$（例如为 $s_0$）。
+
+\noindent $\mathbf{z}^w\leftarrow \mathbf{0}$（$d$ 分量资格迹向量）。
+
+\noindent $\mathbf{z}^\theta\leftarrow \mathbf{0}$（$d'$ 分量资格迹向量）。
+
+\vspace{0.4em}
+\noindent 不断循环（对每个时间步）：
+
+\quad $A\sim\pi(\cdot|S,\boldsymbol{\theta})$。
+
+\quad 采取动作 $A$，观察 $S',R$。
+
+\quad $\delta\leftarrow R-\bar R+\hat v(S',\mathbf{w})-\hat v(S,\mathbf{w})$。
+
+\quad $\bar R\leftarrow \bar R+\alpha^{\bar R}\delta$。
+
+\quad $\mathbf{z}^w\leftarrow \lambda^w\mathbf{z}^w+\nabla\hat v(S,\mathbf{w})$。
+
+\quad $\mathbf{z}^\theta\leftarrow \lambda^\theta\mathbf{z}^\theta+\nabla\ln\pi(A|S,\boldsymbol{\theta})$。
+
+\quad $\mathbf{w}\leftarrow \mathbf{w}+\alpha^w\delta\mathbf{z}^w$。
+
+\quad $\boldsymbol{\theta}\leftarrow \boldsymbol{\theta}+\alpha^\theta\delta\mathbf{z}^\theta$。
+
+\quad $S\leftarrow S'$。
+\end{minipage}}
+\end{center}
+
+自然地，在持续情形中，我们根据差分回报定义价值：
+\[
+v_\pi(s)\doteq\mathbb{E}_\pi[G_t\mid S_t=s],\qquad
+q_\pi(s,a)\doteq\mathbb{E}_\pi[G_t\mid S_t=s,A_t=a],
+\]
+其中
+\begin{equation}
+G_t\doteq R_{t+1}-r(\pi)+R_{t+2}-r(\pi)+R_{t+3}-r(\pi)+\cdots.
+\tag{13.17}
+\end{equation}
+采用这些替代定义后，为分幕情形给出的策略梯度定理（13.5）在持续情形中仍然成立。
+证明如下；前向视图和后向视图方程也保持不变。
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{策略梯度定理的证明（持续情形）}
+
+\vspace{0.4em}
+持续情形的策略梯度定理证明与分幕情形类似。
+同样，我们在所有地方都隐含 $\pi$ 是 $\boldsymbol{\theta}$ 的函数，梯度都是关于 $\boldsymbol{\theta}$ 的。
+回忆持续情形中 $J(\boldsymbol{\theta})=r(\pi)$（13.15），而 $v_\pi$ 和 $q_\pi$ 表示相对于差分回报（13.17）的价值。
+对任意 $s\in\mathcal{S}$，状态价值函数的梯度可写为
+\begin{align*}
+\nabla v_\pi(s)
+&=\nabla\left[\sum_a\pi(a|s)q_\pi(s,a)\right]\\
+&=\sum_a\left[\nabla\pi(a|s)q_\pi(s,a)+\pi(a|s)\nabla q_\pi(s,a)\right]\\
+&=\sum_a\left[\nabla\pi(a|s)q_\pi(s,a)+\pi(a|s)\nabla\sum_{s',r}p(s',r|s,a)(r-r(\pi)+v_\pi(s'))\right]\\
+&=\sum_a\left[\nabla\pi(a|s)q_\pi(s,a)+\pi(a|s)\left(-\nabla r(\pi)+\sum_{s'}p(s'|s,a)\nabla v_\pi(s')\right)\right].
+\end{align*}
+重排后得到
+\[
+\nabla r(\pi)=
+\sum_a\left[\nabla\pi(a|s)q_\pi(s,a)+\pi(a|s)\sum_{s'}p(s'|s,a)\nabla v_\pi(s')\right]
+-\nabla v_\pi(s).
+\]
+左端可写为 $\nabla J(\boldsymbol{\theta})$，且不依赖于 $s$。
+因此右端也不依赖于 $s$，于是可以安全地对所有 $s\in\mathcal{S}$ 按 $\mu(s)$ 加权求和而不改变它。
+利用稳态关系（13.16），第二项和最后一项相互抵消，得到
+\[
+\nabla J(\boldsymbol{\theta})
+=\sum_s\mu(s)\sum_a\nabla\pi(a|s)q_\pi(s,a).
+\]
+证毕。
+\end{minipage}}
+\end{center}
+
+\subsection*{13.7\quad 连续动作的策略参数化}
+
+基于策略的方法提供了处理大动作空间的实用方式，甚至可以处理包含无限多个动作的连续空间。
+我们不是为许多动作中的每一个计算学到的概率，而是学习概率分布的统计量。
+例如，动作集合可以是实数，而动作从一个正态（高斯）分布中选择。
+
+正态分布的概率密度函数通常写为
+\begin{equation}
+p(x)\doteq \frac{1}{\sigma\sqrt{2\pi}}
+\exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right),
+\tag{13.18}
+\end{equation}
+其中这里的 $\mu$ 和 $\sigma$ 分别是正态分布的均值和标准差；当然，这里的 $\pi$ 只是数 $\pi\approx3.14159$。
+右图给出了若干不同均值和标准差下的概率密度函数。
+$p(x)$ 的值是 $x$ 处的概率\textbf{密度}，而不是概率。
+它可以大于 $1$；必须等于 $1$ 的是 $p(x)$ 曲线下方的总面积。
+一般而言，对任意 $x$ 值区间，可以对 $p(x)$ 在该区间上积分，以得到 $x$ 落在该区间内的概率。
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.62\textwidth]{gaussian-density.png}
+\end{figure}
+
+为了产生策略参数化，可以把策略定义为实值标量动作上的正态概率密度，其均值和标准差由依赖于状态的参数化函数近似器给出。
+也就是说，
+\begin{equation}
+\pi(a|s,\boldsymbol{\theta})\doteq
+\frac{1}{\sigma(s,\boldsymbol{\theta})\sqrt{2\pi}}
+\exp\left(-\frac{(a-\mu(s,\boldsymbol{\theta}))^2}{2\sigma(s,\boldsymbol{\theta})^2}\right),
+\tag{13.19}
+\end{equation}
+其中 $\mu:\mathcal{S}\times\mathbb{R}^{d'}\to\mathbb{R}$ 和 $\sigma:\mathcal{S}\times\mathbb{R}^{d'}\to\mathbb{R}^+$ 是两个参数化函数近似器。
+
+为了完成这个例子，我们只需给出这些近似器的一种形式。
+为此，把策略参数向量分成两部分，$\boldsymbol{\theta}=[\boldsymbol{\theta}_\mu,\boldsymbol{\theta}_\sigma]^\top$；一部分用于近似均值，一部分用于近似标准差。
+均值可以近似为线性函数。
+标准差必须始终为正，因此更适合近似为线性函数的指数。
+于是
+\begin{equation}
+\mu(s,\boldsymbol{\theta})\doteq \boldsymbol{\theta}_\mu^\top\mathbf{x}_\mu(s),
+\qquad
+\sigma(s,\boldsymbol{\theta})\doteq \exp\bigl(\boldsymbol{\theta}_\sigma^\top\mathbf{x}_\sigma(s)\bigr),
+\tag{13.20}
+\end{equation}
+其中 $\mathbf{x}_\mu(s)$ 和 $\mathbf{x}_\sigma(s)$ 是状态特征向量，或许由第 9 章描述的方法之一构造。
+有了这些定义，本章其余部分描述的所有算法都可以应用于学习选择实值动作。
+
+\noindent\textbf{练习 13.4}\quad 证明对高斯策略参数化（13.19），资格向量有以下两部分：
+\[
+\nabla\ln\pi(a|s,\boldsymbol{\theta}_\mu)
+=\frac{\nabla\pi(a|s,\boldsymbol{\theta}_\mu)}{\pi(a|s,\boldsymbol{\theta})}
+=\frac{1}{\sigma(s,\boldsymbol{\theta})^2}
+\bigl(a-\mu(s,\boldsymbol{\theta})\bigr)\mathbf{x}_\mu(s),
+\]
+以及
+\[
+\nabla\ln\pi(a|s,\boldsymbol{\theta}_\sigma)
+=\frac{\nabla\pi(a|s,\boldsymbol{\theta}_\sigma)}{\pi(a|s,\boldsymbol{\theta})}
+=\left(\frac{\bigl(a-\mu(s,\boldsymbol{\theta})\bigr)^2}{\sigma(s,\boldsymbol{\theta})^2}-1\right)\mathbf{x}_\sigma(s).
+\]
+
+\noindent\textbf{练习 13.5}\quad Bernoulli-logistic 单元是一种在某些人工神经网络中使用的随机神经元式单元（第 9.6 节）。
+它在时刻 $t$ 的输入是特征向量 $\mathbf{x}(S_t)$；它的输出 $A_t$ 是一个随机变量，取值为 $0$ 或 $1$，且 $\Pr\{A_t=1\}=P_t$、$\Pr\{A_t=0\}=1-P_t$（伯努利分布）。
+令 $h(s,0,\boldsymbol{\theta})$ 和 $h(s,1,\boldsymbol{\theta})$ 为给定策略参数 $\boldsymbol{\theta}$ 时，该单元两个动作在状态 $s$ 中的偏好。
+假设动作偏好之差由该单元输入向量的加权和给出，即假设
+\[
+h(s,1,\boldsymbol{\theta})-h(s,0,\boldsymbol{\theta})=\boldsymbol{\theta}^\top\mathbf{x}(s),
+\]
+其中 $\boldsymbol{\theta}$ 是该单元的权重向量。
+
+（a）证明如果使用指数 soft-max 分布（13.2）把动作偏好转换为策略，则
+\[
+P_t=\pi(1|S_t,\boldsymbol{\theta}_t)=\frac{1}{1+\exp\bigl(-\boldsymbol{\theta}_t^\top\mathbf{x}(S_t)\bigr)}
+\]
+（logistic 函数）。
+
+（b）在收到回报 $G_t$ 时，$\boldsymbol{\theta}_t$ 到 $\boldsymbol{\theta}_{t+1}$ 的蒙特卡洛 REINFORCE 更新是什么？
+
+（c）通过计算梯度，用 $a$、$\mathbf{x}(s)$ 和 $\pi(a|s,\boldsymbol{\theta})$ 表示 Bernoulli-logistic 单元的资格 $\nabla\ln\pi(a|s,\boldsymbol{\theta})$。
+
+提示：对每个动作分别先计算对数关于 $P_t=\pi(a|s,\boldsymbol{\theta}_t)$ 的导数，把两个结果合并为一个依赖于 $a$ 和 $P_t$ 的表达式，然后使用链式法则，并注意 logistic 函数 $f(x)$ 的导数为 $f(x)(1-f(x))$。
+
+\subsection*{13.8\quad 小结}
+
+在本章之前，本书关注的是动作价值方法，即学习动作价值并用它们决定动作选择的方法。
+与之相反，本章考虑的是学习参数化策略的方法；这种策略允许在不查询动作价值估计的情况下采取动作。
+特别地，我们考察了\textbf{策略梯度方法}，即每一步都沿着性能关于策略参数的梯度估计方向来更新策略参数的方法。
+
+学习并存储策略参数的方法有许多优点。
+它们可以学习采取动作的具体概率。
+它们可以学习适当的探索水平，并渐近趋近确定性策略。
+它们可以自然处理连续动作空间。
+这些事情对基于策略的方法来说容易，但对 $\varepsilon$-贪心方法以及一般动作价值方法来说笨拙甚至不可能。
+此外，在某些问题中，策略本身比价值函数更容易参数化表示；这些问题更适合参数化策略方法。
+
+参数化策略方法相对于动作价值方法还有一个重要理论优点，即策略梯度定理。
+该定理给出一个精确公式，说明性能如何受策略参数影响，而且不涉及状态分布的导数。
+这个定理为所有策略梯度方法提供了理论基础。
+
+REINFORCE 方法直接来自策略梯度定理。
+把状态价值函数作为基线加入，可以在不引入偏差的情况下降低 REINFORCE 的方差。
+使用状态价值函数进行自举会引入偏差，但它往往是可取的，原因与自举 TD 方法常常优于蒙特卡洛方法相同：方差显著降低。
+状态价值函数为策略的动作选择分配信用，也就是对其进行“评论”；因此前者称为评论家，后者称为演员，整体方法称为演员--评论家方法。
+
+总体而言，策略梯度方法提供了一组与动作价值方法显著不同的优势和弱点。
+今天，人们在某些方面对它们的理解还不如动作价值方法充分，但它们也是令人兴奋并持续研究的主题。
+
+\section*{文献与历史评注}
+
+我们现在认为与策略梯度有关的方法，实际上是强化学习中最早被研究的一批方法（Witten，1977；Barto、Sutton 和 Anderson，1983；Sutton，1984；Williams，1987，1992），在其前身领域中也有相关研究（Phansalkar 和 Thathachar，1995）。
+在 20 世纪 90 年代，它们在很大程度上被本书其他章节重点讨论的动作价值方法取代。
+然而，近年来，注意力又重新回到演员--评论家方法以及一般的策略梯度方法上。
+除本章覆盖的内容之外，进一步发展还包括自然梯度方法（Amari，1998；Kakade，2002；Peters、Vijayakumar 和 Schaal，2005；Peters 和 Schaal，2008；Park、Kim 和 Kang，2005；Bhatnagar、Sutton、Ghavamzadeh 和 Lee，2009；另见 Grondman、Busoniu、Lopes 和 Babuska，2012）、确定性策略梯度方法（Silver 等，2014）、离策略策略梯度方法（Degris、White 和 Sutton，2012；Maei，2018）以及熵正则化（见 Schulman、Chen 和 Abbeel，2017）。
+主要应用包括杂技直升机自动驾驶和 AlphaGo（第 16.6 节）。
+
+本章的呈现主要基于 Sutton、McAllester、Singh 和 Mansour（2000）的工作，他们引入了“策略梯度方法”这一术语。
+Bhatnagar 等（2009）提供了有用综述。
+最早的相关工作之一是 Aleksandrov、Sysoyev 和 Shemeneva（1968）。
+Thomas（2014）首先意识到，在折扣分幕问题中，需要本章框中算法所规定的 $\gamma^t$ 因子。
+
+\noindent\textbf{13.1}\quad 例 13.1 以及本章中与它相关的结果是与 Eric Graves 共同发展出来的。
+
+\noindent\textbf{13.2}\quad 本章这里以及第 334 页上的策略梯度定理，最早由 Marbach 和 Tsitsiklis（1998，2001）得到，随后由 Sutton 等（2000）独立得到。
+Cao 和 Chen（1997）得到过一个类似表达式。
+其他早期结果来自 Konda 和 Tsitsiklis（2000，2003）、Baxter 和 Bartlett（2001）以及 Baxter、Bartlett 和 Weaver（2001）。
+Sutton、Singh 和 McAllester（2000）还发展了若干附加结果。
+
+\noindent\textbf{13.3}\quad REINFORCE 归功于 Williams（1987，1992）。
+Phansalkar 和 Thathachar（1995）为 REINFORCE 算法的修改版本证明了局部和全局收敛定理。
+全动作算法最早出现在一篇未发表但广泛流传的不完整论文中（Sutton、Singh 和 McAllester，2000），之后由 Ciosek 和 Whiteson（2017，2018）进一步发展，并称为“期望策略梯度”；Asadi、Allen、Roderick、Mohamed、Konidaris 和 Littman（2017）称其为“平均演员--评论家”。
+
+\noindent\textbf{13.4}\quad 基线由 Williams（1987，1992）的原始工作引入。
+Greensmith、Bartlett 和 Baxter（2004）分析了一个可以说更好的基线（见 Dick，2015）。
+Thomas 和 Brunskill（2017）认为，可以使用依赖动作的基线而不产生偏差。
+
+\noindent\textbf{13.5--6}\quad 演员--评论家方法是强化学习中最早被研究的方法之一（Witten，1977；Barto、Sutton 和 Anderson，1983；Sutton，1984）。
+这里给出的算法基于 Degris、White 和 Sutton（2012）的工作。
+在文献中，演员--评论家方法有时也称为优势演员--评论家方法。
+
+\noindent\textbf{13.7}\quad 最早展示如何以这种方式处理连续动作的人似乎是 Williams（1987，1992）。
+第 335 页上的图改编自 Wikipedia。
+
+\end{document}

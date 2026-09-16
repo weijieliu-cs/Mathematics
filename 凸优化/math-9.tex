@@ -1,0 +1,2107 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\title{凸优化：无约束优化}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{9\quad 无约束优化}
+
+\subsection*{9.1\quad 无约束优化问题}
+
+本章讨论下述无约束优化问题的求解方法
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f(x)
+\end{aligned}
+\tag{9.1}
+\end{equation}
+其中 $f:\mathbb{R}^n\to\mathbb{R}$ 是二次可微凸函数（这意味着 $\operatorname{dom} f$ 是开集）。我们假定该问题可解，即存在最优点 $x^\star$。（更准确地说，本章后面用到的假定意味着 $x^\star$ 不仅存在，并且唯一。）我们用 $p^\star$ 表示最优值 $\inf_x f(x)=f(x^\star)$。
+
+既然 $f$ 是可微凸函数，最优点 $x^\star$ 应满足下述充要条件
+\begin{equation}
+\nabla f(x^\star)=0,
+\tag{9.2}
+\end{equation}
+（参见 \S4.2.3）。因此，求解无约束优化问题 (9.1) 等价于求解 $n$ 个变量 $x_1,\cdots,x_n$ 的 $n$ 个方程 (9.2)。在一些特殊情况下，我们可以通过解析求解最优性方程 (9.2) 确定优化问题 (9.1) 的解，但一般情况下，必须采用迭代算法求解方程 (9.2)，即计算点列 $x^{(0)},x^{(1)},\cdots\in\operatorname{dom} f$ 使得 $k\to\infty$ 时 $f(x^{(k)})\to p^\star$。这样的点列被称为优化问题 (9.1) 的极小化点列。当 $f(x^{(k)})-p^\star\leq \epsilon$ 时算法将终止，其中 $\epsilon>0$ 是设定的容许误差值。
+
+\noindent\textbf{初始点和下水平集}\quad
+本章介绍的方法需要一个适当的初始点 $x^{(0)}$，该初始点必须属于 $\operatorname{dom} f$，并且下水平集
+\begin{equation}
+S=\{x\in\operatorname{dom} f\mid f(x)\leq f(x^{(0)})\}
+\tag{9.3}
+\end{equation}
+必须是闭集。如果 $f$ 是闭函数，即它的所有下水平集是闭集，上述条件对所有的 $x^{(0)}\in\operatorname{dom} f$ 均能满足（参见 \S A.3.3）。因为 $\operatorname{dom} f=\mathbb{R}^n$ 的连续函数是闭函数，所以如果 $\operatorname{dom} f=\mathbb{R}^n$，任何 $x^{(0)}$ 均能满足初始下水平集条件。另一类重要的闭函数是其定义域为开集的连续函数，这类 $f(x)$ 将随着 $x$ 趋近 $\operatorname{bd}\operatorname{dom} f$ 而趋于无穷。
+
+\subsection*{9.1.1\quad 例子}
+
+\noindent\textbf{二次优化和最小二乘}\quad
+一般性的二次凸优化问题具有下述形式
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & (1/2)x^TPx+q^Tx+r
+\end{aligned}
+\tag{9.4}
+\end{equation}
+其中 $P\in\mathbf{S}_+^n,q\in\mathbb{R}^n,r\in\mathbb{R}$。求解一组线性方程描述的最优性条件 $Px^\star+q=0$ 可以获得该问题的最优解。当 $P\succ0$ 时，存在唯一解 $x^\star=-P^{-1}q$。在最一般的情况下，$P$ 不是正定矩阵，此时如果 $Px^\star=-q$ 有解，任何解都是优化问题 (9.4) 的最优解；如果 $Px^\star=-q$ 无解，优化问题 (9.4) 无下界（参见习题 9.1）。对二次优化问题 (9.4) 的这种解析解法构成了 \S9.5 将要介绍的 Newton 方法的基础，而 Newton 方法是求解无约束优化问题最有效的算法。
+
+二次优化问题的一个特例就是经常遇到的最小二乘问题
+\[
+\begin{aligned}
+\text{minimize}\quad & \|Ax-b\|_2^2=x^T(A^TA)x-2(A^Tb)^Tx+b^Tb
+\end{aligned}
+\]
+其最优性条件
+\[
+A^TAx^\star=A^Tb
+\]
+被称为最小二乘问题的正规方程。
+
+\noindent\textbf{无约束几何规划}\quad
+作为第二个例子，我们考虑凸的无约束几何规划问题
+\[
+\begin{aligned}
+\text{minimize}\quad & f(x)=\log\left(\sum_{i=1}^m \exp(a_i^Tx+b_i)\right)
+\end{aligned}
+\]
+其最优性条件为
+\[
+\nabla f(x^\star)=
+\frac{1}{\sum_{j=1}^m\exp(a_j^Tx^\star+b_j)}
+\sum_{i=1}^m \exp(a_i^Tx^\star+b_i)a_i=0.
+\]
+一般情况下该方程组没有解析解，因此我们必须采用迭代算法。由于 $\operatorname{dom} f=\mathbb{R}^n$，任何点都可以用作初始点 $x^{(0)}$。
+
+\noindent\textbf{线性不等式的解析中心}\quad
+我们考虑优化问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f(x)=-\sum_{i=1}^m\log(b_i-a_i^Tx)
+\end{aligned}
+\tag{9.5}
+\end{equation}
+其中 $f$ 的定义域是开集
+\[
+\operatorname{dom} f=\{x\mid a_i^Tx<b_i,\ i=1,\cdots,m\}.
+\]
+该问题的目标函数 $f$ 被称为不等式 $a_i^Tx\leq b_i$ 的对数障碍。如果问题 (9.5) 的解存在，它就是相应不等式的解析中心。此问题初始点 $x^{(0)}$ 必须满足严格不等式 $a_i^Tx^{(0)}<b_i,\ i=1,\cdots,m$。由于 $f$ 是闭的，任何点的下水平集 $S$ 也是闭的。
+
+\noindent\textbf{线性矩阵不等式的解析中心}\quad
+和上述问题密切相关的一个问题是
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & f(x)=\log\det F(x)^{-1}
+\end{aligned}
+\tag{9.6}
+\end{equation}
+其中 $F:\mathbb{R}^n\to\mathbf{S}^p$ 是仿射的，即
+\[
+F(x)=F_0+x_1F_1+\cdots+x_nF_n,
+\]
+并且 $F_i\in\mathbf{S}^p$。此处 $f$ 的定义域是
+\[
+\operatorname{dom} f=\{x\mid F(x)\succ0\}.
+\]
+该问题的目标函数 $f$ 被称为线性矩阵不等式 $F(x)\succeq0$ 的对数障碍，而不等式的解（如果存在）就是线性矩阵不等式的解析中心。此问题初始点 $x^{(0)}$ 必须满足严格矩阵不等式 $F(x^{(0)})\succ0$。如同前一个例子，由于 $f$ 是闭的，任何这种初始点的下水平集都是闭的。
+
+\subsection*{9.1.2\quad 强凸性及其含义}
+
+在本章大部分内容中（除了 \S9.6），我们都假设目标函数在 $S$ 上是强凸的，这是指存在 $m>0$ 使得
+\begin{equation}
+\nabla^2 f(x)\succeq mI
+\tag{9.7}
+\end{equation}
+对任意的 $x\in S$ 都成立。强凸性能导致若干有意义的结果。对于 $x,y\in S$，我们有
+\[
+f(y)=f(x)+\nabla f(x)^T(y-x)+\frac{1}{2}(y-x)^T\nabla^2 f(z)(y-x),
+\]
+其中 $z$ 属于线段 $[x,y]$。利用强凸性假设 (9.7)，上式右边最后一项不会小于 $(m/2)\|y-x\|_2^2$，因此不等式
+\begin{equation}
+f(y)\geq f(x)+\nabla f(x)^T(y-x)+\frac{m}{2}\|y-x\|_2^2
+\tag{9.8}
+\end{equation}
+对 $S$ 中任意的 $x$ 和 $y$ 都成立。当 $m=0$ 时，上式变回描述凸性的基本不等式；当 $m>0$ 时，对 $f(y)$ 的下界我们可以得到比单独利用凸性更好的结果。
+
+我们首先说明不等式 (9.8) 可以用来界定 $f(x)-p^\star$，所得上界可表明 $x$ 是其目标值和最优目标值的偏差正比于 $\|\nabla f(x)\|_2$ 的次优解。对任意固定的 $x$，式 (9.8) 的右边是 $y$ 的二次凸函数。令其关于 $y$ 的导数等于零，可以得到该二次函数的最优解 $\bar{y}=x-(1/m)\nabla f(x)$。因此，我们有
+\[
+\begin{aligned}
+f(y)&\geq f(x)+\nabla f(x)^T(y-x)+\frac{m}{2}\|y-x\|_2^2\\
+&\geq f(x)+\nabla f(x)^T(\bar{y}-x)+\frac{m}{2}\|\bar{y}-x\|_2^2\\
+&=f(x)-\frac{1}{2m}\|\nabla f(x)\|_2^2.
+\end{aligned}
+\]
+既然该式对任意的 $y\in S$ 成立，我们又可以得到
+\begin{equation}
+p^\star\geq f(x)-\frac{1}{2m}\|\nabla f(x)\|_2^2.
+\tag{9.9}
+\end{equation}
+由此可见，任何梯度足够小的点都是近似最优解。不等式 (9.9) 是最优性条件 (9.2) 的推广。由于
+\begin{equation}
+\|\nabla f(x)\|_2\leq(2m\epsilon)^{1/2}\Longrightarrow f(x)-p^\star\leq\epsilon,
+\tag{9.10}
+\end{equation}
+我们可以将其解释为次优性条件。
+
+对于 $x$ 和任意最优解 $x^\star$ 之间的距离 $\|x-x^\star\|_2$，也可以建立正比于 $\|\nabla f(x)\|_2$ 的上界
+\begin{equation}
+\|x-x^\star\|_2\leq\frac{2}{m}\|\nabla f(x)\|_2.
+\tag{9.11}
+\end{equation}
+为了获得该不等式，我们首先将 $y=x^\star$ 代入式 (9.8)，由此可得
+\[
+\begin{aligned}
+p^\star=f(x^\star)
+&\geq f(x)+\nabla f(x)^T(x^\star-x)+\frac{m}{2}\|x^\star-x\|_2^2\\
+&\geq f(x)-\|\nabla f(x)\|_2\|x^\star-x\|_2+\frac{m}{2}\|x^\star-x\|_2^2,
+\end{aligned}
+\]
+其中导出第二个不等式时用了 Cauchy-Schwarz 不等式。因为 $p^\star\leq f(x)$，必须成立
+\[
+-\|\nabla f(x)\|_2\|x^\star-x\|_2+\frac{m}{2}\|x^\star-x\|_2^2\leq0.
+\]
+由此可直接得到式 (9.11)。从式 (9.11) 可以看出，最优解 $x^\star$ 是唯一的。
+
+\noindent\textbf{关于 $\nabla^2 f(x)$ 的上界}\quad
+不等式 (9.8) 表明，$S$ 所包含的所有下水平集都有界，因此，$S$ 本身作为一个下水平集也有界。由于 $\nabla^2 f(x)$ 的最大特征值是 $x$ 在 $S$ 上的连续函数，所以它在 $S$ 上有界，即存在常数 $M$ 使得
+\begin{equation}
+\nabla^2 f(x)\preceq MI
+\tag{9.12}
+\end{equation}
+对所有 $x\in S$ 都成立。关于 Hessian 矩阵的这个上界意味着对任意的 $x,y\in S$，
+\begin{equation}
+f(y)\leq f(x)+\nabla f(x)^T(y-x)+\frac{M}{2}\|y-x\|_2^2,
+\tag{9.13}
+\end{equation}
+该式和式 (9.8) 类似。在上式两边关于 $y$ 求极小，又可得到
+\begin{equation}
+p^\star\leq f(x)-\frac{1}{2M}\|\nabla f(x)\|_2^2,
+\tag{9.14}
+\end{equation}
+这是式 (9.9) 的对应不等式。
+
+\noindent\textbf{下水平集的条件数}\quad
+从强凸性不等式 (9.7) 和不等式 (9.12) 可以看出，对任意的 $x\in S$ 都成立
+\begin{equation}
+mI\preceq\nabla^2 f(x)\preceq MI.
+\tag{9.15}
+\end{equation}
+因此，比值 $\kappa=M/m$ 是矩阵 $\nabla^2 f(x)$ 的条件数（其最大特征值和最小特征值之比）的上界。对于式 (9.15)，我们也可以基于 $f$ 的下水平集给出一个几何解释。
+
+对任意满足 $\|q\|_2=1$ 的方向向量 $q$，我们定义凸集 $C\subseteq\mathbb{R}^n$ 的宽度如下
+\[
+W(C,q)=\sup_{z\in C}q^Tz-\inf_{z\in C}q^Tz.
+\]
+再定义 $C$ 的最小宽度和最大宽度
+\[
+W_{\min}=\inf_{\|q\|_2=1}W(C,q),\qquad
+W_{\max}=\sup_{\|q\|_2=1}W(C,q).
+\]
+于是，凸集 $C$ 的条件数可以表示成
+\[
+\operatorname{cond}(C)=\frac{W_{\max}^2}{W_{\min}^2},
+\]
+即最大宽度和最小宽度的平方比值。该式说明，$C$ 的条件数给出了各向异性或离心率的一种测度。如果 $C$ 的条件数小（比如接近 1），说明集合在所有方向上的宽度近似相同，即几乎是一个球体。如果 $C$ 的条件数大，说明集合在某些方向上的宽度远比其他一些方向上的宽度大。
+
+\noindent\textbf{例 9.1}\quad
+椭球的条件数。用 $\mathcal{E}$ 表示椭球
+\[
+\mathcal{E}=\{x\mid (x-x_0)^TA^{-1}(x-x_0)\leq1\},
+\]
+其中 $A\in\mathbf{S}_{++}^n$。给定任意方向 $q$，集合 $\mathcal{E}$ 的宽度是
+\[
+\begin{aligned}
+\sup_{z\in\mathcal{E}}q^Tz-\inf_{z\in\mathcal{E}}q^Tz
+&=(\|A^{1/2}q\|_2+q^Tx_0)-(-\|A^{1/2}q\|_2+q^Tx_0)\\
+&=2\|A^{1/2}q\|_2.
+\end{aligned}
+\]
+于是，其最小宽度和最大宽度分别为
+\[
+W_{\min}=2\lambda_{\min}(A)^{1/2},\qquad
+W_{\max}=2\lambda_{\max}(A)^{1/2}.
+\]
+相应的条件数等于
+\[
+\operatorname{cond}(\mathcal{E})=\frac{\lambda_{\max}(A)}{\lambda_{\min}(A)}=\kappa(A).
+\]
+其中 $\kappa(A)$ 表示矩阵 $A$ 的条件数，即其最大奇异值和最小奇异值之比。由此看出椭球 $\mathcal{E}$ 的条件数和定义它的矩阵 $A$ 的条件数相同。
+
+现在假定对所有的 $x\in S$，$f$ 满足 $mI\preceq\nabla^2 f(x)\preceq MI$。下面将对 $\alpha$-下水平集
+\[
+C_\alpha=\{x\mid f(x)\leq\alpha\}
+\]
+的条件数建立一个上界，其中 $p^\star<\alpha\leq f(x^{(0)})$。将 $x=x^\star$ 代入式 (9.13) 和式 (9.8) 可得
+\[
+p^\star+(M/2)\|y-x^\star\|_2^2\geq f(y)\geq p^\star+(m/2)\|y-x^\star\|_2^2.
+\]
+该式意味着 $B_{\mathrm{inner}}\subseteq C_\alpha\subseteq B_{\mathrm{outer}}$，其中
+\[
+\begin{aligned}
+B_{\mathrm{inner}}&=\{y\mid \|y-x^\star\|_2\leq (2(\alpha-p^\star)/M)^{1/2}\},\\
+B_{\mathrm{outer}}&=\{y\mid \|y-x^\star\|_2\leq (2(\alpha-p^\star)/m)^{1/2}\}.
+\end{aligned}
+\]
+换言之，$\alpha$-下水平集包含 $B_{\mathrm{inner}}$，但被 $B_{\mathrm{outer}}$ 所包含，它们分别是具有下述半径的球
+\[
+(2(\alpha-p^\star)/M)^{1/2},\qquad (2(\alpha-p^\star)/m)^{1/2}.
+\]
+其平方半径的比值给出了 $C_\alpha$ 的条件数的一个上界：
+\[
+\operatorname{cond}(C_\alpha)\leq\frac{M}{m}.
+\]
+我们也可以对最优解处 Hessian 矩阵的条件数 $\kappa(\nabla^2 f(x^\star))$ 给出一种几何解释。根据 $f$ 在 $x^\star$ 处的 Taylor 展开
+\[
+f(y)\approx p^\star+\frac{1}{2}(y-x^\star)^T\nabla^2 f(x^\star)(y-x^\star),
+\]
+可以看出，对于充分靠近 $p^\star$ 的 $\alpha$，
+\[
+C_\alpha\approx \{y\mid (y-x^\star)^T\nabla^2 f(x^\star)(y-x^\star)\leq 2(\alpha-p^\star)\},
+\]
+即中心为 $x^\star$ 的椭球可以很好地逼近下水平集。因此
+\[
+\lim_{\alpha\to p^\star}\operatorname{cond}(C_\alpha)=\kappa(\nabla^2 f(x^\star)).
+\]
+我们将发现，对于一些常用的无约束优化算法，$f$ 的下水平集的条件数（上界为 $M/m$）是影响其计算效率的重要因素。
+
+\noindent\textbf{强凸性常数}\quad
+必须记住，只有在很少情况下才可能知道常数 $m$ 和 $M$，因此不等式 (9.10) 并不能用作算法停止准则。我们只能把它视为一个概念上的停止准则；它表明只要 $f$ 在 $x$ 处的梯度足够小，$f(x)$ 和 $p^\star$ 之间的偏差就会变小。如果我们在 $\|\nabla f(x^{(k)})\|_2\leq\eta$ 时终止算法，其中 $\eta$ 是选定的（非常可能）小于 $(m\epsilon)^{1/2}$ 的充分小的数，那么我们就（非常可能）得到 $f(x^{(k)})-p^\star\leq\epsilon$。
+
+在以下几节中我们要给出一些算法的收敛性证明，其中包括对算法满足 $f(x^{(k)})-p^\star\leq\epsilon$ 之前的迭代次数给出上界，其中 $\epsilon$ 是正的误差阈值。很多这些上界含有（通常未知的）常数 $m$ 和 $M$，因此上面的说明同样有效。这些结果至少在概念上是有用的，即使对算法达到预定精度所需迭代次数建立的上界依赖于未知常数，我们仍然能够利用它们确定算法的收敛性。
+
+对于上述情况存在一个非常重要的特例。在 \S9.6 我们将研究一类特殊的凸函数，称为自和谐函数，对于这种函数我们将针对 Newton 方法给出不依赖任何未知常数的完整的收敛性分析。
+
+\subsection*{9.2\quad 下降方法}
+
+本章描述的算法将产生一个优化点列 $x^{(k)},\ k=1,\cdots$，其中
+\[
+x^{(k+1)}=x^{(k)}+t^{(k)}\Delta x^{(k)},
+\]
+并且 $t^{(k)}>0$（除非 $x^{(k)}$ 已经是最优点）。此处 $\Delta$ 和 $x$ 的串联符号 $\Delta x$ 表示 $\mathbb{R}^n$ 的一个向量，被称为步径或搜索方向（尽管它不需要具有单位范数），而 $k=0,1,\cdots$ 表示迭代次数。标量 $t^{(k)}\geq0$ 被称为第 $k$ 次迭代的步进或步长（尽管只有 $\|\Delta x^{(k)}\|=1$ 时它才等于 $\|x^{(k+1)}-x^{(k)}\|$）。虽然“搜索方向”和“步长”这些术语被广泛使用，但对它们更准确的命名应该是“搜索步径”和“比例因子”。当讨论一个算法的一次迭代时，我们有时会省略上标，用 $x^+=x+t\Delta x$ 或 $x:=x+t\Delta x$ 这些简略的符号代替 $x^{(k+1)}=x^{(k)}+t^{(k)}\Delta x^{(k)}$。
+
+我们讨论的所有方法都是下降方法，只要 $x^{(k)}$ 不是最优点就成立
+\[
+f(x^{(k+1)})<f(x^{(k)}).
+\]
+这意味着对所有的 $k$ 都有 $x^{(k)}\in S$，后者是初始下水平集，特别是我们有 $x^{(k)}\in\operatorname{dom} f$。由凸性可知，$\nabla f(x^{(k)})^T(y-x^{(k)})\geq0$ 意味着 $f(y)\geq f(x^{(k)})$，因此一个下降方法中的搜索方向必须满足
+\[
+\nabla f(x^{(k)})^T\Delta x^{(k)}<0,
+\]
+即它和负梯度方向的夹角必须是锐角。我们称这样的方向为下降方向（对于 $x^{(k)}$ 处的 $f$）。
+
+下降方法由交替进行的两个步骤构成：确定下降方向 $\Delta x$，选择步长 $t$。其一般框架如下。
+
+\noindent\textbf{算法 9.1}\quad
+通用下降方法。
+
+给定 初始点 $x\in\operatorname{dom} f$。
+
+重复进行
+\begin{enumerate}
+\item 确定下降方向 $\Delta x$。
+\item 直线搜索。选择步长 $t>0$。
+\item 修改。$x:=x+t\Delta x$。
+\end{enumerate}
+直到 满足停止准则。
+
+上述第二步选定的 $t$ 将决定从直线 $\{x+t\Delta x\mid t\in\mathbb{R}_+\}$ 上哪一点开始下一步迭代，因此被称为直线搜索。（准确的术语可能是射线搜索。）实用的下降方法均有相同的结构，但组织方式可能不同。例如，一般在计算下降方向 $\Delta x$ 的同时或之后检验停止准则。停止准则通常根据次优性条件 (9.9) 采用 $\|\nabla f(x)\|_2\leq\eta$，其中 $\eta$ 是小正数。
+
+\noindent\textbf{精确直线搜索}\quad
+实践中有时采用被称为精确直线搜索的直线搜索方法，其中 $t$ 是通过沿着射线 $\{x+t\Delta x\mid t\geq0\}$ 优化 $f$ 而确定：
+\begin{equation}
+t=\arg\min_{s\geq0} f(x+s\Delta x).
+\tag{9.16}
+\end{equation}
+当求解式 (9.16) 中的单变量优化问题的成本，同计算搜索方向的成本相比，比较低时，适合进行精确直线搜索。一般情况下可以有效的求解该优化问题，特殊情况下可以用解析方法确定其最优解。（我们将在 \S9.7.1 中讨论该问题。）
+
+\noindent\textbf{回溯直线搜索}\quad
+实践中主要采用非精确直线搜索方法：沿着射线 $\{x+t\Delta x\mid t\geq0\}$ 近似优化 $f$ 确定步长，甚至只要 $f$ 有“足够的”减少即可。业已提出了很多非精确直线搜索方法，其中回溯方法既非常简单又相当有效。它取决于满足 $0<\alpha<0.5,\ 0<\beta<1$ 的两个常数 $\alpha,\beta$。
+
+\noindent\textbf{算法 9.2}\quad
+回溯直线搜索。
+
+给定 $f$ 在 $x\in\operatorname{dom} f$ 处的下降方向 $\Delta x$，参数 $\alpha\in(0,0.5),\ \beta\in(0,1)$。
+
+$t:=1$。
+
+如果 $f(x+t\Delta x)>f(x)+\alpha t\nabla f(x)^T\Delta x$，令 $t:=\beta t$。
+
+正如其名称所示，回溯搜索从单位步长开始，按比例逐渐减小，直到满足停止条件
+\[
+f(x+t\Delta x)\leq f(x)+\alpha t\nabla f(x)^T\Delta x.
+\]
+由于 $\Delta x$ 是下降方向，$\nabla f(x)^T\Delta x<0$，所以只要 $t$ 足够小，就一定有
+\[
+f(x+t\Delta x)\approx f(x)+t\nabla f(x)^T\Delta x<f(x)+\alpha t\nabla f(x)^T\Delta x,
+\]
+因此回溯直线搜索方法最终会停止。常数 $\alpha$ 表示可以接受的 $f$ 的减小量占基于线性外推预测的减小量的比值。（关于要求 $\alpha$ 小于 $0.5$ 的理由将在后面给出。）
+
+可以看出，回溯终止不等式 $f(x+t\Delta x)\leq f(x)+\alpha t\nabla f(x)^T\Delta x$ 将在区间 $(0,t_0]$ 中的某个 $t\geq0$ 处被满足。因此，回溯搜索方法停止时步长 $t$ 将满足
+\[
+t=1,\qquad \text{或者}\qquad t\in(\beta t_0,t_0].
+\]
+当步长 $t=1$ 满足回溯条件，即 $1\leq t_0$ 时，第一种情况会发生。特别是，可以断定，由回溯直线搜索方法确定的步长将满足
+\[
+t\geq\min\{1,\beta t_0\}.
+\]
+
+如果 $\operatorname{dom} f$ 不等于 $\mathbb{R}^n$，对于回溯直线搜索中的条件 $f(x+t\Delta x)\leq f(x)+\alpha t\nabla f(x)^T\Delta x$ 需要进行仔细的解释。按照我们的约定，$f$ 在其定义域之外等于无穷大，所以上述不等式意味着 $x+t\Delta x\in\operatorname{dom} f$。在实际计算中，我们首先用 $\beta$ 乘 $t$ 直到 $x+t\Delta x\in\operatorname{dom} f$；然后才开始检验不等式 $f(x+t\Delta x)\leq f(x)+\alpha t\nabla f(x)^T\Delta x$ 是否成立。
+
+参数 $\alpha$ 的正常取值在 $0.01$ 和 $0.3$ 之间，表示我们可以接受的 $f$ 的减少量在基于线性外推预测的减少量的 $1\%$ 和 $30\%$ 之间。参数 $\beta$ 的正常取值在 $0.1$（对应于非常粗糙的搜索）和 $0.8$（对应于不太粗糙的搜索）之间。
+
+\subsection*{9.3\quad 梯度下降方法}
+
+用负梯度作搜索方向，即令 $\Delta x=-\nabla f(x)$，是一种自然的选择。相应的方法被称为梯度方法或梯度下降方法。
+
+\noindent\textbf{算法 9.3}\quad
+梯度下降方法。
+
+给定 初始点 $x\in\operatorname{dom} f$。
+
+重复进行
+\begin{enumerate}
+\item $\Delta x:=-\nabla f(x)$。
+\item 直线搜索。通过精确或回溯直线搜索方法确定步长 $t$。
+\item 修改。$x:=x+t\Delta x$。
+\end{enumerate}
+直到 满足停止准则。
+
+停止准则通常取为 $\|\nabla f(x)\|_2\leq\eta$，其中 $\eta$ 是小正数。大部分情况下，步骤 1 完成后就检验停止条件，而不是在修改后才检验。
+
+\subsection*{9.3.1\quad 收敛性分析}
+
+本节我们对梯度方法给出一个简单的收敛性分析，为书写方便，用 $x^+=x+t\Delta x$ 代替 $x^{(k+1)}=x^{(k)}+t^{(k)}\Delta x^{(k)}$，其中 $\Delta x=-\nabla f(x)$。我们假定 $f$ 是 $S$ 上的强凸函数，因此存在正数 $m$ 和 $M$ 使得 $mI\preceq\nabla^2 f(x)\preceq MI$ 对所有 $x\in S$ 成立。定义 $\tilde{f}:\mathbb{R}\to\mathbb{R}$ 为 $\tilde{f}(t)=f(x-t\nabla f(x))$，它是 $f$ 在负梯度方向上以步长 $t$ 为变量的函数。在以下讨论中，我们只考虑满足 $x-t\nabla f(x)\in S$ 的 $t$。将 $y=x-t\nabla f(x)$ 代入不等式 (9.13)，可以得到 $\tilde{f}$ 的二次型上界：
+\begin{equation}
+\tilde{f}(t)\leq f(x)-t\|\nabla f(x)\|_2^2+\frac{Mt^2}{2}\|\nabla f(x)\|_2^2.
+\tag{9.17}
+\end{equation}
+
+\noindent\textbf{采用精确直线搜索的分析}\quad
+假定采用精确直线搜索方法，在不等式 (9.17) 两边同时关于 $t$ 求最小。左边等于 $\tilde{f}(t_{\mathrm{exact}})$，其中 $t_{\mathrm{exact}}$ 是使 $\tilde{f}$ 最小的步长。右边是一个简单的二次型函数，其最小解为 $t=1/M$，最小值为 $f(x)-(1/(2M))\|\nabla f(x)\|_2^2$。因此我们有
+\[
+f(x^+)=\tilde{f}(t_{\mathrm{exact}})\leq f(x)-\frac{1}{2M}\|\nabla f(x)\|_2^2.
+\]
+从该式两边同时减去 $p^\star$，我们得到
+\[
+f(x^+)-p^\star\leq f(x)-p^\star-\frac{1}{2M}\|\nabla f(x)\|_2^2.
+\]
+将该式与 $\|\nabla f(x)\|_2^2\geq 2m(f(x)-p^\star)$（从式 (9.9) 导出）相结合，可以断定
+\[
+f(x^+)-p^\star\leq (1-m/M)(f(x)-p^\star).
+\]
+
+重复应用以上不等式，可以看出
+\begin{equation}
+f(x^{(k)})-p^\star\leq c^k(f(x^{(0)})-p^\star),
+\tag{9.18}
+\end{equation}
+其中 $c=1-m/M<1$，由此可知当 $k\to\infty$ 时 $f(x^{(k)})$ 将收敛于 $p^\star$。特别是，至多经过
+\begin{equation}
+\frac{\log((f(x^{(0)})-p^\star)/\epsilon)}{\log(1/c)}
+\tag{9.19}
+\end{equation}
+次迭代，一定可以得到 $f(x^{(k)})-p^\star\leq\epsilon$。
+
+以上关于迭代次数的上界，尽管比较粗糙，仍然可以揭示梯度方法的一些本质特性。其中分子
+\[
+\log((f(x^{(0)})-p^\star)/\epsilon)
+\]
+可以解释为初始次优性（即 $f(x^{(0)})$ 和 $p^\star$ 之间的缺口）和最终次优性（即小于或等于 $\epsilon$）的比值的对数。它表明所需要的迭代次数依赖于初始点的质量和对最终解的精度要求。
+
+上界 (9.19) 的分母 $\log(1/c)$ 是 $M/m$ 的函数，而后者已经说明是 $\nabla^2 f(x)$ 在 $S$ 上的条件数的上界，或者是下水平集 $\{z\mid f(z)\leq\alpha\}$ 的条件数的上界。对于较大的条件数上界 $M/m$，我们有
+\[
+\log(1/c)=-\log(1-m/M)\approx m/M.
+\]
+因此所需迭代次数的上界将随着 $M/m$ 增大而近似线性的增长。
+
+我们将看到当 $x^\star$ 附近 $f$ 的 Hessian 矩阵具有很大的条件数时，实际上确实需要进行很多次迭代。反之，当 $f$ 的下水平集相对而言各向同性较好时，可以选择相对较小的条件数上界 $M/m$，此时由上界 (9.18) 可知收敛速度将比较快，因为 $c$ 比较小，或者至少不会非常接近 1。
+
+上界 (9.18) 表明，误差 $f(x^{(k)})-p^\star$ 将至少像几何级数那样快的收敛于零。按照迭代数值方法的术语，这种情况被称为线性收敛，因为误差位于误差和迭代次数的对数线性坐标图中一根直线的下方。
+
+\noindent\textbf{采用回溯直线搜索的分析}\quad
+现在考虑在梯度下降方法中采用回溯直线搜索的情况。我们将说明，只要 $0\leq t\leq 1/M$，就能满足回溯停止条件
+\[
+\tilde{f}(t)\leq f(x)-\alpha t\|\nabla f(x)\|_2^2.
+\]
+首先注意到
+\[
+0\leq t\leq 1/M\Longrightarrow -t+\frac{Mt^2}{2}\leq -t/2.
+\]
+（从 $-t+Mt^2/2$ 的凸性导出。）由于 $\alpha<1/2$，利用上述结果和上界 (9.17)，可以对 $0\leq t\leq1/M$ 得到
+\[
+\begin{aligned}
+\tilde{f}(t)
+&\leq f(x)-t\|\nabla f(x)\|_2^2+\frac{Mt^2}{2}\|\nabla f(x)\|_2^2\\
+&\leq f(x)-(t/2)\|\nabla f(x)\|_2^2\\
+&\leq f(x)-\alpha t\|\nabla f(x)\|_2^2.
+\end{aligned}
+\]
+因此，回溯直线搜索将终止于 $t=1$ 或者 $t\geq \beta/M$。这为目标函数的减少提供了一个下界。在第一种情况下我们有
+\[
+f(x^+)\leq f(x)-\alpha\|\nabla f(x)\|_2^2.
+\]
+而在第二种情况下可以得到
+\[
+f(x^+)\leq f(x)-(\beta\alpha/M)\|\nabla f(x)\|_2^2.
+\]
+将它们结合在一起，任何情况下总是成立
+\[
+f(x^+)\leq f(x)-\min\{\alpha,\beta\alpha/M\}\|\nabla f(x)\|_2^2.
+\]
+现在可以完全类似精确直线搜索的情况进行分析。对上式两边同时减去 $p^\star$ 可得
+\[
+f(x^+)-p^\star\leq f(x)-p^\star-\min\{\alpha,\beta\alpha/M\}\|\nabla f(x)\|_2^2.
+\]
+与 $\|\nabla f(x)\|_2^2\geq 2m(f(x)-p^\star)$ 结合又可导出
+\[
+f(x^+)-p^\star\leq (1-\min\{2m\alpha,2\beta\alpha m/M\})(f(x)-p^\star).
+\]
+由此可知
+\[
+f(x^{(k)})-p^\star\leq c^k(f(x^{(0)})-p^\star),
+\]
+其中
+\[
+c=1-\min\{2m\alpha,2\beta\alpha m/M\}<1.
+\]
+特别是，$f(x^{(k)})$（至少是其中的一部分）将至少像几何数列那样快的收敛于 $p^\star$，其收敛指数依赖于条件数上界 $M/m$。按照迭代方法的术语，这种收敛至少是线性的。
+
+\subsection*{9.3.2\quad 例子}
+
+\noindent\textbf{$\mathbb{R}^2$ 空间的二次问题}\quad
+我们的第一个例子非常简单。考虑 $\mathbb{R}^2$ 上的二次目标函数
+\[
+f(x)=\frac{1}{2}(x_1^2+\gamma x_2^2),
+\]
+其中 $\gamma>0$。显然，最优点是 $x^\star=0$，最优值是 $0$。由于 $f$ 的 Hessian 矩阵是常数，其特征值为 $1$ 和 $\gamma$，因此 $f$ 的所有下水平集的条件数都等于
+\[
+\frac{\max\{1,\gamma\}}{\min\{1,\gamma\}}=\max\{\gamma,1/\gamma\}.
+\]
+对强凸性常数 $m$ 和 $M$ 最紧致的选择为
+\[
+m=\min\{1,\gamma\},\qquad M=\max\{1,\gamma\}.
+\]
+我们采用精确直线搜索的梯度下降方法，选取初始点 $x^{(0)}=(\gamma,1)$。在当前情况下对迭代过程中的每个 $x^{(k)}$ 及其函数值我们可以导出下述封闭形式的表达式（习题 9.6）：
+\[
+x_1^{(k)}=\gamma\left(\frac{\gamma-1}{\gamma+1}\right)^k,\qquad
+x_2^{(k)}=\left(-\frac{\gamma-1}{\gamma+1}\right)^k
+\]
+和
+\[
+f(x^{(k)})=\frac{\gamma(\gamma+1)}{2}\left(\frac{\gamma-1}{\gamma+1}\right)^{2k}
+=\left(\frac{\gamma-1}{\gamma+1}\right)^{2k}f(x^{(0)}).
+\]
+图 9.2 显示了 $\gamma=10$ 的情况。
+
+对于这个简单的例子，收敛性是精确线性的，即误差是一个精确的几何级数，每次迭代的收缩因子为 $|(\gamma-1)/(\gamma+1)|^2$。对于 $\gamma=1$，一次迭代就可以得到精确解；对于 $\gamma$ 离 $1$ 不远的情况（比如在 $1/3$ 和 $3$ 之间），收敛速度很快。如果 $\gamma\gg1$ 或 $\gamma\ll1$，收敛速度将会很慢。
+
+我们可以将实际收敛情况和 \S9.3.1 导出的上界进行比较。使用最不保守的数值 $m=\min\{1,\gamma\}$ 和 $M=\max\{1,\gamma\}$，上界 (9.18) 保证每次迭代均能使误差收缩 $c=(1-m/M)$ 倍。而实际情况是每次迭代使误差收缩的倍数为
+\[
+\left(\frac{1-m/M}{1+m/M}\right)^2.
+\]
+对于小的 $m/M$，对应于大的条件数，上界 (9.19) 表明达到给定精度所需要的迭代次数至多如 $M/m$ 一样增长。对于这个例子，准确的所需迭代次数大约如 $(M/m)/4$ 一样增长，这仅相当于上界的四分之一。这表明对这个简单的例子，由我们的简单分析导出的迭代次数的上界约有四倍的保守性（使用最不保守的 $m$ 和 $M$ 的数值）。特别是，收敛比率（及其上界）非常依赖于下水平集的条件数。
+
+\noindent\textbf{$\mathbb{R}^2$ 空间的非二次型问题}\quad
+我们现在考虑 $\mathbb{R}^2$ 的一个非二次型的例子，其中
+\begin{equation}
+f(x_1,x_2)=e^{x_1+3x_2-0.1}+e^{x_1-3x_2-0.1}+e^{-x_1-0.1}.
+\tag{9.20}
+\end{equation}
+我们采用回溯直线搜索的梯度方法，选取 $\alpha=0.1,\ \beta=0.7$。图 9.3 显示了 $f$ 的一些等值曲线，以及由梯度方法产生的迭代点 $x^{(k)}$（用小圆圈表示）。连接相邻点的线段表示步径
+\[
+x^{(k+1)}-x^{(k)}=-t^{(k)}\nabla f(x^{(k)}).
+\]
+
+图 9.4 显示误差 $f(x^{(k)})-p^\star$ 和迭代次数 $k$ 之间的关系。图像显示误差类似于几何数列收敛于零，即近似线性收敛。本例中，经过 20 次迭代误差大约从 $10$ 减少到 $10^{-7}$，因此每次迭代的收缩因子约为 $10^{-8/20}\approx0.4$。这种较快的收敛和收敛分析预测的结果相吻合，由于 $f$ 的下水平集条件数不太坏，所以可选择不太大的 $M/m$。
+
+为了和回溯直线搜索方法相比，我们采用精确直线搜索的梯度方法从同样的初始点开始解决同样的问题。相应结果在图 9.5 和图 9.4 中给出。可以看出精确直线搜索方法也是近似线性收敛，收敛速度大约是回溯直线搜索方法的 2 倍。经过 15 次迭代误差减少到大约 $10^{-11}$，每次迭代的收缩因子约为 $10^{-11/15}\approx0.2$。
+
+\noindent\textbf{$\mathbb{R}^{100}$ 空间的一个问题}\quad
+下面考虑下式给出的大规模问题，
+\begin{equation}
+f(x)=c^Tx-\sum_{i=1}^m\log(b_i-a_i^Tx),
+\tag{9.21}
+\end{equation}
+其中项数 $m=500$，变量维数 $n=100$。
+
+采用回溯直线搜索的梯度方法，选取参数 $\alpha=0.1,\ \beta=0.5$，图 9.6 给出了收敛过程。对这个例子可以看见，最初的 20 次迭代以较快的近似线性的速度收敛，随后的收敛仍然近似线性，但速度较慢。总体上，经过约 175 次迭代误差减少到大约 $10^{-6}$，平均每次迭代的收缩因子约等于 $10^{-6/175}\approx0.92$。其中最初 20 次迭代平均每次收缩因子约为 $0.8$；此后较慢的收敛过程平均每次迭代的收缩因子约为 $0.94$。
+
+图 9.6 也显示了用精确直线搜索的梯度方法的收敛过程。收敛速度仍然近似线性，总体上平均每次迭代的收缩因子约等于 $10^{-6/140}\approx0.91$。只比回溯直线搜索方法快一点。
+
+最后，我们改变回溯直线搜索的参数 $\alpha$ 和 $\beta$，通过确定满足 $f(x^{(k)})-p^\star\leq10^{-5}$ 所需要的迭代次数，来考察这些参数对收敛速度的影响。在第一个试验中，我们固定 $\beta=0.5$，将 $\alpha$ 从 $0.05$ 变到 $0.5$。所需迭代次数从大约 $80$（对应于 $0.2\sim0.5$ 之间的 $\alpha$ 值）变动到 $170$ 左右（对应于较小的 $\alpha$ 值）。这个试验（加上别的一些试验）表明，选取较大的（$0.2\sim0.5$ 之间）$\alpha$ 值，相应的梯度方法能够产生较好的结果。
+
+类似地，我们固定 $\alpha=0.1$，将 $\beta$ 从 $0.05$ 变到 $0.95$，考察改变 $\beta$ 的效果。同样，总的迭代次数变动不大，从大约 $80$（对应于 $\beta\approx0.5$）到 $200$ 左右（对应于 $1$ 附近或较小的 $\beta$）。这个试验（加上别的一些试验）表明，$\beta\approx0.5$ 是较好的选择。从试验结果看，回溯搜索的参数取值对收敛性影响不大，不会超过两倍因子左右。
+
+\noindent\textbf{梯度方法和条件数}\quad
+我们的最后一个试验将说明 $\nabla^2 f(x)$（或者下水平集）的条件数对梯度方法收敛性的重要性。我们从式 (9.21) 给出的函数开始，但是用 $x=T\bar{x}$ 替换式中的 $x$，其中
+\[
+T=\operatorname{diag}(1,\gamma^{1/n},\gamma^{2/n},\ldots,\gamma^{(n-1)/n}),
+\]
+即优化
+\begin{equation}
+\bar{f}(\bar{x})=c^TT\bar{x}-\sum_{i=1}^m\log(b_i-a_i^TT\bar{x}).
+\tag{9.22}
+\end{equation}
+这样就给了我们一族依赖于 $\gamma$ 的优化问题，其具体取值可以影响问题的条件数。
+
+图 9.7 给出 $\gamma$ 改变时满足 $\bar{f}(\bar{x}^{(k)})-\bar{p}^\star<10^{-5}$ 所需要的迭代次数，直线搜索采用 $\alpha=0.3$ 和 $\beta=0.7$ 的回溯方法。图像表明，对于 $10:1$（即 $\gamma=10$）这样小的对角比值，迭代次数已增长到大于 $1000$；当对角比值大于 $20$ 时，梯度方法已经慢到实际上没有用处的程度。
+
+图 9.8 给出了 Hessian 矩阵 $\nabla^2\bar{f}(\bar{x}^\star)$ 在最优点处的条件数。对于较大和较小的 $\gamma$，条件数大约以 $\max\{\gamma^2,1/\gamma^2\}$ 的速度增长，与迭代次数对 $\gamma$ 的依赖关系非常相似。这再次表明条件数和收敛速度之间的关系是客观的现象，而不是基于分析的主观产物。
+
+\noindent\textbf{结论}\quad
+根据数值例子和其他结果，我们可以得到以下结论。
+\begin{itemize}
+\item 梯度方法通常呈现近似线性收敛性质，即误差 $f(x^{(k)})-p^\star$ 以类似于几何数列的方式收敛于零。
+\item 回溯参数 $\alpha$ 和 $\beta$ 的取值对收敛性有明显的影响，但不会产生戏剧性的效果。精确直线搜索有时可以改善梯度方法的收敛性，但效果不是很大（或许不能抵消进行精确直线搜索增加的计算量）。
+\item 收敛速度强烈依赖于 Hessian 矩阵，或者下水平集的条件数。即使问题的条件数不是太坏（比如条件数等于 $100$），收敛速度也可能很慢。如果条件数很大（比如等于 $1000$ 或更大），梯度方法已经慢得失去实用价值。
+\end{itemize}
+
+梯度方法的主要优势是比较简单，主要缺陷是其收敛速度非常强烈的依赖于 Hessian 矩阵和下水平集的条件数。
+
+\subsection*{9.4\quad 最速下降方法}
+
+对 $f(x+v)$ 在 $x$ 处进行一阶 Taylor 展开，
+\[
+f(x+v)\approx \hat{f}(x+v)=f(x)+\nabla f(x)^Tv,
+\]
+其中右边第二项 $\nabla f(x)^Tv$ 是 $f$ 在 $x$ 处沿方向 $v$ 的方向导数。它近似给出了 $f$ 沿小的步径 $v$ 会发生的变化。如果其方向导数是负数，步径 $v$ 就是下降方向。
+
+我们现在讨论如何选择 $v$ 使其方向导数尽可能小。由于方向导数 $\nabla f(x)^Tv$ 是 $v$ 的线性函数，只要我们将 $v$ 取得充分大，就可以使其方向导数充分小（在 $v$ 是下降方向的前提下，即 $\nabla f(x)^Tv<0$）。为了使问题有意义，我们还必须限制 $v$ 的大小，或者规范 $v$ 的长度。
+
+令 $\|\cdot\|$ 为 $\mathbb{R}^n$ 上的任意范数。我们定义一个规范化的最速下降方向（相对于范数 $\|\cdot\|$）如下
+\begin{equation}
+\Delta x_{\mathrm{nsd}}=\arg\min\{\nabla f(x)^Tv\mid \|v\|=1\}.
+\tag{9.23}
+\end{equation}
+（我们说“一个”最速下降方向是因为上述优化问题可能有多个最优解。）一个规范化的最速下降方向 $\Delta x_{\mathrm{nsd}}$ 是一个能使 $f$ 的线性近似下降最多的具有单位范数的步径。
+
+对于一个规范化的最速下降方向可以进行下述几何解释。我们同样可以将 $\Delta x_{\mathrm{nsd}}$ 定义为
+\[
+\Delta x_{\mathrm{nsd}}=\arg\min\{\nabla f(x)^Tv\mid \|v\|\leq1\}.
+\]
+因此一个规范化的最速下降方向就是 $\|\cdot\|$ 的单位球体中在 $-\nabla f(x)$ 的方向上投影最长的方向。
+
+我们也可以将规范化的最速下降方向乘以一个特殊的比例因子，从而考虑下述非规范化的最速下降方向 $\Delta x_{\mathrm{sd}}$：
+\begin{equation}
+\Delta x_{\mathrm{sd}}=\|\nabla f(x)\|_\ast\Delta x_{\mathrm{nsd}},
+\tag{9.24}
+\end{equation}
+其中 $\|\cdot\|_\ast$ 表示对偶范数。对于这种最速下降步径，我们有
+\[
+\nabla f(x)^T\Delta x_{\mathrm{sd}}
+=\|\nabla f(x)\|_\ast\nabla f(x)^T\Delta x_{\mathrm{nsd}}
+=-\|\nabla f(x)\|_\ast^2.
+\]
+（参见习题 9.7）。最速下降方法使用最速下降方向作为直线搜索方向。
+
+\noindent\textbf{算法 9.4}\quad
+最速下降方法。
+
+给定 初始点 $x\in\operatorname{dom} f$。
+
+重复进行
+\begin{enumerate}
+\item 计算最速下降方向 $\Delta x_{\mathrm{sd}}$。
+\item 直线搜索。采用回溯或精确直线搜索方法选择 $t$。
+\item 改进。$x:=x+t\Delta x_{\mathrm{sd}}$。
+\end{enumerate}
+直到 满足停止准则。
+
+如果采用精确直线搜索方法，下降方向的比例因子不起作用；因此规范化或非规范化的方向都能用。
+
+\subsection*{9.4.1\quad 采用 Euclid 范数和二次范数的最速下降方法}
+
+\noindent\textbf{采用 Euclid 范数的最速下降方法}\quad
+如果我们将 $\|\cdot\|$ 取为 Euclid 范数，可以看出最速下降方向就是负梯度方向，即 $\Delta x_{\mathrm{sd}}=-\nabla f(x)$。因此，采用 Euclid 范数的最速下降方法就是梯度下降法。
+
+\noindent\textbf{采用二次范数的最速下降方法}\quad
+我们考虑二次范数
+\[
+\|z\|_P=(z^TPz)^{1/2}=\|P^{1/2}z\|_2,
+\]
+其中 $P\in\mathbf{S}_{++}^n$。规范化的最速下降方向由下式给出
+\[
+\Delta x_{\mathrm{nsd}}=-(\nabla f(x)^TP^{-1}\nabla f(x))^{-1/2}P^{-1}\nabla f(x),
+\]
+其对偶范数为 $\|z\|_\ast=\|P^{-1/2}z\|_2$，因此采用 $\|\cdot\|_P$ 的最速下降步径为
+\begin{equation}
+\Delta x_{\mathrm{sd}}=-P^{-1}\nabla f(x).
+\tag{9.25}
+\end{equation}
+图 9.9 给出了相应的规范化的最速下降方向。
+
+\noindent\textbf{基于坐标变换的解释}\quad
+对于最速下降方向 $\Delta x_{\mathrm{sd}}$，我们可以通过坐标变换给出另一个有意义的解释：它是对原问题进行某种坐标变换后的梯度下降方向。定义 $\bar{u}=P^{1/2}u$，因此 $\|u\|_P=\|\bar{u}\|_2$。采用这种坐标变换，原目标函数 $f$ 的极小化问题可以等价转换为极小化下式给出的目标函数 $\bar{f}:\mathbb{R}^n\to\mathbb{R}$，
+\[
+\bar{f}(\bar{u})=f(P^{-1/2}\bar{u})=f(u).
+\]
+如果我们采用梯度方法优化 $\bar{f}$，在点 $\bar{x}$（对应于原问题的点 $x=P^{-1/2}\bar{x}$）处的直线搜索方向为
+\[
+\Delta\bar{x}=-\nabla\bar{f}(\bar{x})=-P^{-1/2}\nabla f(P^{-1/2}\bar{x})=-P^{-1/2}\nabla f(x).
+\]
+该梯度方向对应于原变量 $x$ 处的直线搜索方向
+\[
+\Delta x=P^{-1/2}(-P^{-1/2}\nabla f(x))=-P^{-1}\nabla f(x).
+\]
+换言之，二次范数 $\|\cdot\|_P$ 下的最速下降方向可以理解为对原问题进行坐标变换 $\bar{x}=P^{1/2}x$ 后的梯度方向。
+
+\subsection*{9.4.2\quad 采用 $\ell_1$-范数的最速下降方向}
+
+作为另外一个例子，我们考虑 $\ell_1$-范数下的最速下降方向。可以很容易地刻画这种范数下的一个规范化的最速下降方向
+\[
+\Delta x_{\mathrm{nsd}}=\arg\min\{\nabla f(x)^Tv\mid \|v\|_1\leq1\}.
+\]
+令 $i$ 是满足下式的任意下标，$\|\nabla f(x)\|_\infty=|(\nabla f(x))_i|$。于是，$\ell_1$-范数下的一个规范化的最速下降方向 $\Delta x_{\mathrm{nsd}}$ 由下式给出，
+\[
+\Delta x_{\mathrm{nsd}}=-\operatorname{sign}\left(\frac{\partial f(x)}{\partial x_i}\right)e_i,
+\]
+其中 $e_i$ 表示第 $i$ 个标准基向量。相应的非规范化的最速下降步径是
+\[
+\Delta x_{\mathrm{sd}}=\Delta x_{\mathrm{nsd}}\|\nabla f(x)\|_\infty
+=-\frac{\partial f(x)}{\partial x_i}e_i.
+\]
+因此，$\ell_1$-范数下的规范化的最速下降步径总能选为某个标准基向量（或者某个负的标准基向量）。它是能够使 $f$ 的近似下降达到最大的坐标轴方向。图 9.10 对此进行了说明。
+
+采用 $\ell_1$-范数的最速下降算法有一个非常自然的解释：每步迭代我们选择 $\nabla f(x)$ 的绝对值最大的分量，然后根据 $(\nabla f(x))_i$ 的符号减少或增加 $x$ 的对应分量。由于该算法每次迭代只有 $x$ 的一个分量被修改，所以有时被称为坐标下降算法。这种方法能够极大的简化，甚至省略，直线搜索。
+
+\noindent\textbf{例 9.2}\quad
+Frobenius 范数伸缩。在 \S4.5.4 我们遇到无约束几何规划
+\[
+\begin{aligned}
+\text{minimize}\quad & \sum_{i,j=1}^n M_{ij}^2d_i^2/d_j^2
+\end{aligned}
+\]
+其中 $M\in\mathbb{R}^{n\times n}$ 给定，变量是 $d\in\mathbb{R}^n$。利用变量变换 $x_i=2\log d_i$ 我们可以将此几何规划表示成凸规划形式
+\[
+\begin{aligned}
+\text{minimize}\quad & f(x)=\log\left(\sum_{i,j=1}^n M_{ij}^2e^{x_i-x_j}\right)
+\end{aligned}
+\]
+此时很容易每次优化 $f$ 的一个变量。固定第 $k$ 个变量以外的所有变量，我们可以将目标函数写成 $f(x)=\log(\alpha_k+\beta_ke^{-x_k}+\gamma_ke^{x_k})$，其中
+\[
+\alpha_k=M_{kk}^2+\sum_{i,j\neq k}M_{ij}^2e^{x_i-x_j},\qquad
+\beta_k=\sum_{i\neq k}M_{ik}^2e^{x_i},\qquad
+\gamma_k=\sum_{j\neq k}M_{kj}^2e^{-x_j}.
+\]
+将 $f(x)$ 视为 $x_k$ 的函数，使其达到最小值的点为 $x_k=\log(\beta_k/\gamma_k)/2$。对于该问题，可以采用简单的解析公式计算精确直线搜索的解。
+
+采用精确直线搜索的 $\ell_1$-最速下降算法由以下步骤重复构成。
+\begin{enumerate}
+\item 计算梯度
+\[
+(\nabla f(x))_i=\frac{-\beta_ie^{-x_i}+\gamma_ie^{x_i}}{\alpha_i+\beta_ie^{-x_i}+\gamma_ie^{x_i}},\quad i=1,\cdots,n.
+\]
+\item 选择 $\nabla f(x)$ 的绝对值最大的分量：$|\nabla f(x)|_\ell=\|\nabla f(x)\|_\infty$。
+\item 计算使 $f$ 关于标量 $x_k$ 达到最小的解 $x_k=\log(\beta_k/\gamma_k)/2$。
+\end{enumerate}
+
+\subsection*{9.4.3\quad 收敛性分析}
+
+本节我们将回溯直线搜索梯度方法的收敛性分析扩展到采用任意范数的下降方法。我们将利用以下事实：任意范数可以用 Euclid 范数进行界定，即存在常数 $\gamma\in(0,1]$ 使得
+\[
+\|x\|_\ast\geq\gamma\|x\|_2.
+\]
+（参见 \S A.1.4）。
+
+我们再次假定 $f$ 在初始下水平集 $S$ 上是强凸的。上界 $\nabla^2 f(x)\preceq MI$ 意味着 $f(x+t\Delta x_{\mathrm{sd}})$ 作为 $t$ 的函数存在以下上界：
+\begin{equation}
+\begin{aligned}
+f(x+t\Delta x_{\mathrm{sd}})
+&\leq f(x)+t\nabla f(x)^T\Delta x_{\mathrm{sd}}+\frac{M\|\Delta x_{\mathrm{sd}}\|_2^2}{2}t^2\\
+&\leq f(x)+t\nabla f(x)^T\Delta x_{\mathrm{sd}}+\frac{M\|\Delta x_{\mathrm{sd}}\|^2}{2\gamma^2}t^2\\
+&=f(x)-t\|\nabla f(x)\|_\ast^2+\frac{M}{2\gamma^2}t^2\|\nabla f(x)\|_\ast^2.
+\end{aligned}
+\tag{9.26}
+\end{equation}
+由于 $\alpha<1/2$，$\nabla f(x)^T\Delta x_{\mathrm{sd}}=-\|\nabla f(x)\|_\ast^2$，步长 $\hat{t}=\gamma^2/M$（使二次上界 (9.26) 达到最小）满足回溯直线搜索的终止条件
+\begin{equation}
+f(x+\hat{t}\Delta x_{\mathrm{sd}})\leq f(x)-\frac{\gamma^2}{2M}\|\nabla f(x)\|_\ast^2
+\leq f(x)+\frac{\alpha\gamma^2}{M}\nabla f(x)^T\Delta x_{\mathrm{sd}}.
+\tag{9.27}
+\end{equation}
+因此，直线搜索产生的步长满足 $t\geq\min\{1,\beta\gamma^2/M\}$，我们有
+\[
+\begin{aligned}
+f(x^+)=f(x+t\Delta x_{\mathrm{sd}})
+&\leq f(x)-\alpha\min\{1,\beta\gamma^2/M\}\|\nabla f(x)\|_\ast^2\\
+&\leq f(x)-\alpha\gamma^2\min\{1,\beta\gamma^2/M\}\|\nabla f(x)\|_2^2.
+\end{aligned}
+\]
+从上式两边减去 $p^\star$，同时利用式 (9.9)，我们得到
+\[
+f(x^+)-p^\star\leq c(f(x)-p^\star),
+\]
+其中
+\[
+c=1-2m\alpha\gamma^2\min\{1,\beta\gamma^2/M\}<1.
+\]
+因此我们有
+\[
+f(x^{(k)})-p^\star\leq c^k(f(x^{(0)})-p^\star).
+\]
+即和梯度方法完全一样的线性收敛性。
+
+\subsection*{9.4.4\quad 讨论和例子}
+
+\noindent\textbf{最速下降方法的范数选择}\quad
+选择恰当的范数定义最速下降方向可能对收敛速度产生极其显著的效果。为便于讨论，我们考虑采用二次 $P$-范数的最速下降方法的情况。在 \S9.4.1 我们曾说明，采用二次 $P$-范数的最速下降方法等同于对问题进行坐标变换 $\bar{x}=P^{1/2}x$ 后的梯度下降方法。我们知道，梯度方法在下水平集（或最优点附近的 Hessian 矩阵）的条件数适中时能很好地工作，但这些条件数很大时效果很差。由此可知，若进行坐标变换 $\bar{x}=P^{1/2}x$ 后有关下水平集的条件数适中，最速下降方法将取得良好的效果。
+
+上述讨论为选择 $P$ 提供了依据：经过 $P^{-1/2}$ 的变换后，$f$ 的下水平集应该具有良好的条件数。例如，如果知道最优点处 Hessian 矩阵 $H(x^\star)$ 的近似矩阵 $\hat{H}$，令 $P=\hat{H}$ 是对 $P$ 的一种很好的选择，因为 $\bar{f}$ 在最优点的 Hessian 矩阵将变成
+\[
+\hat{H}^{-1/2}\nabla^2 f(x^\star)\hat{H}^{-1/2}\approx I,
+\]
+因此很可能具有小的条件数。
+
+上述想法无需借助于坐标变换实现。我们说采用坐标变换 $\bar{x}=P^{1/2}x$ 后的下水平集具有小的条件数，等价于说椭圆
+\[
+\mathcal{E}=\{x\mid x^TPx\leq1\}
+\]
+能够近似相应的下水平集的形状。（换言之，经过适当的比例和平移变换后能给出好的近似。）
+
+这种收敛速度对 $P$ 的依赖具有两面性。从乐观的角度看，对任何问题总存在能使最速下降方法有效工作的 $P$。所面临的挑战当然是找到这样的 $P$。从悲观的角度看，对任何问题也存在大量的能使最速下降方法失效的 $P$。总之，我们可以说，如果能够找到使变换后问题的条件数适中的 $P$，最速下降方法将能有效的工作。
+
+\noindent\textbf{例子}\quad
+本节我们用目标函数为式 (9.20) 的 $\mathbb{R}^2$ 中的非二次问题说明有关想法。我们应用以下两个二次范数导出的最速下降方法求解该问题，
+\[
+P_1=\begin{bmatrix}2&0\\0&8\end{bmatrix},\qquad
+P_2=\begin{bmatrix}8&0\\0&2\end{bmatrix},
+\]
+对两种情况我们都采用 $\alpha=0.1,\ \beta=0.7$ 的回溯直线搜索方法。
+
+图 9.11 和图 9.12 分别给出采用范数 $\|\cdot\|_{P_1}$ 和 $\|\cdot\|_{P_2}$ 的最速下降方法的迭代次数。图 9.13 显示两种范数下误差和迭代次数的对应关系。图 9.13 表明范数的选择对收敛性有强烈的影响。采用范数 $\|\cdot\|_{P_1}$ 的收敛速度比梯度方法略快一点，而采用范数 $\|\cdot\|_{P_2}$ 的收敛速度却远慢于梯度方法。
+
+对坐标变换 $\bar{x}=P_1^{1/2}x$ 和 $\bar{x}=P_2^{1/2}x$ 后的问题进行分析，可以很好地解释上述结果。图 9.14 和图 9.15 分别给出坐标变换后的问题。采用 $P_1$ 的坐标变换所产生的下水平集具有适中的条件数，因此其收敛速度较快。而采用 $P_2$ 的坐标变换所产生的下水平集条件数很差，因此其收敛速度很慢。
+
+\section*{9.5\quad Newton 方法}
+
+\subsection*{9.5.1\quad Newton 步径}
+
+对于 $x\in\operatorname{dom} f$，我们称向量
+\[
+\Delta x_{\mathrm{nt}}=-\nabla^2f(x)^{-1}\nabla f(x)
+\]
+为（$f$ 在 $x$ 处的）Newton 步径。由 $\nabla^2 f(x)$ 的正定性可知，除非 $\nabla f(x)=0$，否则就有
+\[
+\nabla f(x)^T\Delta x_{\mathrm{nt}}=-\nabla f(x)^T\nabla^2 f(x)^{-1}\nabla f(x)<0.
+\]
+因此 Newton 步径是下降方向（除非 $x$ 是最优点）。我们可以用不同的方式解释和导出 Newton 步径。
+
+\noindent\textbf{二阶近似的最优解}\quad
+函数 $f$ 在 $x$ 处的二阶 Taylor 近似（或模型）$\hat{f}$ 为
+\begin{equation}
+\hat{f}(x+v)=f(x)+\nabla f(x)^Tv+\frac{1}{2}v^T\nabla^2 f(x)v.
+\tag{9.28}
+\end{equation}
+这是 $v$ 的二次凸函数，在 $v=\Delta x_{\mathrm{nt}}$ 处达到最小值。因此，将 $x$ 加上 Newton 步径 $\Delta x_{\mathrm{nt}}$ 能够极小化 $f$ 在 $x$ 处的二阶近似。图 9.16 显示了该性质。
+
+上述解释揭示了 Newton 步径的一些本质。如果函数 $f$ 是二次的，则 $x+\Delta x_{\mathrm{nt}}$ 是 $f$ 的精确最优解。如果函数 $f$ 近似二次，直观上 $x+\Delta x_{\mathrm{nt}}$ 应该是 $f$ 的最优解，即 $x^\star$，的很好的估计值。既然 $f$ 是二次可微的，当 $x$ 靠近 $x^\star$ 时 $f$ 的二次模型应该非常准确。由此可知，当 $x$ 靠近 $x^\star$ 时点 $x+\Delta x_{\mathrm{nt}}$ 应该是 $x^\star$ 的很好的估计值。我们将会看到这个直观上的认识是正确的。
+
+\noindent\textbf{Hessian 范数下的最速下降方向}\quad
+Newton 步径也是 $x$ 处采用 Hessian 矩阵 $\nabla^2f(x)$ 定义的二次范数，即
+\[
+\|u\|_{\nabla^2 f(x)}=(u^T\nabla^2f(x)u)^{1/2}
+\]
+导出的最速下降方法。这从另一个角度揭示了为什么 Newton 步径应该是好的搜索方向，特别是当 $x$ 靠近 $x^\star$ 时是很好的搜索方向。
+
+在讨论最速下降方法时曾经提到，若采用二次范数 $\|\cdot\|_P$，当坐标变换后 Hessian 矩阵的条件数较小时，收敛速度将很快。特别是，在 $x^\star$ 附近，令 $P=\nabla^2f(x^\star)$ 是一个很好的选择。当 $x$ 靠近 $x^\star$ 时，我们有 $\nabla^2f(x)\approx\nabla^2f(x^\star)$，这就解释了为什么 Newton 步径是搜索方向的很好选择。图 9.17 对此进行了说明。
+
+\noindent\textbf{线性化最优性条件的解}\quad
+如果我们在 $x$ 附近对最优性条件 $\nabla f(x^\star)=0$ 进行线性化，可以得到
+\[
+\nabla f(x+v)\approx\nabla f(x)+\nabla^2f(x)v=0.
+\]
+这是 $v$ 的线性方程，其解为 $v=\Delta x_{\mathrm{nt}}$。因此在 $x$ 处加上 Newton 步径 $\Delta x_{\mathrm{nt}}$ 就能满足线性化的最优性条件。这再一次表明对于 $x^\star$ 附近的 $x$（此时最优性条件接近成立），修正量 $x+\Delta x_{\mathrm{nt}}$ 应该是 $x^\star$ 的很好近似值。
+
+若 $n=1$，即 $f:\mathbb{R}\to\mathbb{R}$，这种解释尤其简单。极小化问题的解 $x^\star$ 由 $f'(x^\star)=0$ 定义，即它是导数 $f'$ 的过零点，而 $f$ 是凸函数时后者是单调增加的函数。给定当前的近似解 $x$，我们生成 $f'$ 在 $x$ 处的一阶 Taylor 近似。这个仿射近似的过零点就是 $x+\Delta x_{\mathrm{nt}}$。图 9.18 显示了这种解释。
+
+\noindent\textbf{Newton 步径的仿射不变性}\quad
+Newton 步径的一个重要特点是对坐标的线性（或仿射）变换的独立性。假定
+$T\in\mathbb{R}^{n\times n}$ 是非奇异的，定义 $\bar{f}(y)=f(Ty)$。我们有
+\[
+\nabla\bar{f}(y)=T^T\nabla f(x),\qquad \nabla^2\bar{f}(y)=T^T\nabla^2f(x)T,
+\]
+其中 $x=Ty$。因此，$\bar{f}$ 在 $y$ 处的 Newton 步径是
+\[
+\begin{aligned}
+\Delta y_{\mathrm{nt}}
+&=-(T^T\nabla^2f(x)T)^{-1}(T^T\nabla f(x))\\
+&=-T^{-1}\nabla^2f(x)^{-1}\nabla f(x)\\
+&=T^{-1}\Delta x_{\mathrm{nt}},
+\end{aligned}
+\]
+其中 $\Delta x_{\mathrm{nt}}$ 是 $f$ 在 $x$ 处的 Newton 步径。于是，$f$ 和 $\bar{f}$ 的 Newton 步径由相同的线性变换相联系，并且
+\[
+x+\Delta x_{\mathrm{nt}}=T(y+\Delta y_{\mathrm{nt}}).
+\]
+
+\noindent\textbf{Newton 减量}\quad
+我们将
+\[
+\lambda(x)=\left(\nabla f(x)^T\nabla^2 f(x)^{-1}\nabla f(x)\right)^{1/2}
+\]
+称为 $x$ 处的 Newton 减量。我们将看到 Newton 减量在 Newton 方法的分析中有重要作用，并且也可用于设计停止准则。我们可以将 Newton 减量和 $f(x)-\inf_y\hat{f}(y)$ 以下述方式联系在一起：
+\[
+f(x)-\inf_y\hat{f}(y)=\hat{f}(x)-\hat{f}(x+\Delta x_{\mathrm{nt}})=\frac{1}{2}\lambda(x)^2,
+\]
+其中 $\hat{f}$ 是 $f$ 在 $x$ 处的二阶近似。因此，$\lambda^2/2$ 是基于 $f$ 在 $x$ 处的二阶近似对 $f(x)-p^\star$ 作出的估计值。
+
+我们也可以将 Newton 减量表示为
+\begin{equation}
+\lambda(x)=\left(\Delta x_{\mathrm{nt}}^T\nabla^2f(x)\Delta x_{\mathrm{nt}}\right)^{1/2}.
+\tag{9.29}
+\end{equation}
+该式表明 $\lambda$ 是 Newton 步径的二次范数，该范数由 Hessian 矩阵定义，即
+\[
+\|u\|_{\nabla^2 f(x)}=(u^T\nabla^2f(x)u)^{1/2}.
+\]
+Newton 减量也出现在回溯直线搜索中，因为我们有
+\begin{equation}
+\nabla f(x)^T\Delta x_{\mathrm{nt}}=-\lambda(x)^2.
+\tag{9.30}
+\end{equation}
+这是在回溯直线搜索中使用的常数，可以被解释为 $f$ 在 $x$ 处沿 Newton 步径方向的方向导数：
+\[
+-\lambda(x)^2=\nabla f(x)^T\Delta x_{\mathrm{nt}}=\left.\frac{d}{dt}f(x+\Delta x_{\mathrm{nt}}t)\right|_{t=0}.
+\]
+最后我们指出，同 Newton 步径一样，Newton 减量也是仿射不变的。换言之，对于非奇异的 $T$，$\bar{f}(y)=f(Ty)$ 在 $y$ 处的 Newton 减量和 $f$ 在 $x=Ty$ 处的 Newton 减量完全相同。
+
+\subsection*{9.5.2\quad Newton 方法}
+
+下面描述的 Newton 方法有时被称为阻尼 Newton 方法或者谨慎 Newton 方法，以别于步长 $t=1$ 的纯 Newton 方法。
+
+\noindent\textbf{算法 9.5}\quad
+Newton 方法。
+
+给定 初始点 $x\in\operatorname{dom} f$，误差阈值 $\epsilon>0$。
+
+重复进行
+\begin{enumerate}
+\item 计算 Newton 步径和减量。
+\[
+\Delta x_{\mathrm{nt}}:=-\nabla^2f(x)^{-1}\nabla f(x);\qquad
+\lambda^2:=\nabla f(x)^T\nabla^2f(x)^{-1}\nabla f(x).
+\]
+\item 停止准则。如果 $\lambda^2/2\leq\epsilon$，退出。
+\item 直线搜索。通过回溯直线搜索确定步长 $t$。
+\item 改进。$x:=x+t\Delta x_{\mathrm{nt}}$。
+\end{enumerate}
+
+这实际上是 \S9.2 中描述的通用下降方法，只是在这里采用 Newton 步径为搜索方向。唯一的区别（非常次要）在于停止准则的检验在计算搜索方向之后，而不是在改进迭代点之后。
+
+\subsection*{9.5.3\quad 收敛性分析}
+
+同以前一样，我们假定 $f$ 二次连续可微，并且具有常数为 $m$ 的强凸性，即对于所有的 $x\in S$，$\nabla^2f(x)\succeq mI$。我们已经知道该假设意味着存在 $M>0$ 使得对于所有的 $x\in S$，$\nabla^2f(x)\preceq MI$。
+
+此外，我们假定 $f$ 的 Hessian 矩阵是 $S$ 上以 $L$ 为常数的 Lipschitz 连续的，即
+\begin{equation}
+\|\nabla^2f(x)-\nabla^2f(y)\|_2\leq L\|x-y\|_2
+\tag{9.31}
+\end{equation}
+对所有的 $x,y\in S$ 成立。系数 $L$ 可以被解释为 $f$ 的三阶导数的界，对于二次函数可以等于零。更一般地说，$L$ 是对 $f$ 与其二次模型之间近似程度的一种度量，因此可以期望 Lipschitz 常数 $L$ 将对 Newton 方法的性能起关键作用。直观上看，如果一个函数的二次模型变化缓慢（即 $L$ 较小），Newton 方法应该比较有效。
+
+\noindent\textbf{收敛性证明的思想和轮廓}\quad
+我们首先给出收敛性证明的思想和轮廓，以及主要结论，然后给出详细证明。我们将说明存在满足 $0<\eta\leq m^2/L$ 和 $\gamma>0$ 的 $\eta$ 和 $\gamma$ 使下式成立。
+\begin{itemize}
+\item 如果 $\|\nabla f(x^{(k)})\|_2\geq\eta$，则
+\begin{equation}
+f(x^{(k+1)})-f(x^{(k)})\leq-\gamma.
+\tag{9.32}
+\end{equation}
+\item 如果 $\|\nabla f(x^{(k)})\|_2<\eta$，则回溯直线搜索产生 $t^{(k)}=1$，并且
+\begin{equation}
+\frac{L}{2m^2}\|\nabla f(x^{(k+1)})\|_2
+\leq\left(\frac{L}{2m^2}\|\nabla f(x^{(k)})\|_2\right)^2.
+\tag{9.33}
+\end{equation}
+\end{itemize}
+
+让我们分析一下第二个条件的含义。假定它在迭代次数等于某个 $k$ 时成立，即 $\|\nabla f(x^{(k)})\|_2<\eta$。既然 $\eta\leq m^2/L$，我们有 $\|\nabla f(x^{(k+1)})\|_2<\eta$，即第二个条件也被 $k+1$ 满足。如此继续可以推断，一旦第二个条件成立，它将在以后的所有迭代中成立，即对于所有的 $l\geq k$，我们有 $\|\nabla f(x^{(l)})\|_2<\eta$。因此，对于所有的 $l\geq k$，算法都会取完整的 Newton 步径 $t=1$，并且
+\begin{equation}
+\frac{L}{2m^2}\|\nabla f(x^{(l+1)})\|_2
+\leq\left(\frac{L}{2m^2}\|\nabla f(x^{(l)})\|_2\right)^2.
+\tag{9.34}
+\end{equation}
+重复应用这个不等式，我们发现对任意的 $l\geq k$，
+\[
+\frac{L}{2m^2}\|\nabla f(x^{(l)})\|_2
+\leq\left(\frac{L}{2m^2}\|\nabla f(x^{(k)})\|_2\right)^{2^{l-k}}
+\leq\left(\frac{1}{2}\right)^{2^{l-k}}.
+\]
+于是
+\begin{equation}
+f(x^{(l)})-p^\star
+\leq\frac{1}{2m}\|\nabla f(x^{(l)})\|_2^2
+\leq\frac{2m^3}{L^2}\left(\frac{1}{2}\right)^{2^{l-k+1}}.
+\tag{9.35}
+\end{equation}
+上述最后一个不等式表明，一旦第二个条件满足，收敛将会极其迅速。该现象被称为二次收敛。粗糙地说，不等式 (9.35) 意味着，在足够多次的迭代以后，每次迭代都能使正确数字的位数翻番。
+
+以上分析表明，Newton 方法的迭代过程可以自然地分为两个阶段。第二个阶段开始于条件 $\|\nabla f(x)\|_2\leq\eta$ 被首次满足，称为二次收敛阶段。相应地我们将第一个阶段命名为阻尼 Newton 阶段，因为算法始终选择步长 $t<1$。二次收敛阶段也可称为纯 Newton 阶段，因为在这个阶段每次迭代步长总是取 $t=1$。
+
+现在我们可以估计总的复杂性。首先我们推导阻尼 Newton 阶段迭代次数的上界。既然每次迭代 $f$ 至少减少 $\gamma$，阻尼 Newton 阶段迭代次数不可能超过
+\[
+\frac{f(x^{(0)})-p^\star}{\gamma},
+\]
+否则 $f$ 将小于 $p^\star$，这是不可能的。
+
+我们可以利用不等式 (9.35) 界定二次收敛阶段的迭代次数。它意味着在二次收敛阶段不超过
+\[
+\log_2\log_2(\epsilon_0/\epsilon)
+\]
+次迭代后，我们一定有 $f(x)-p^\star\leq\epsilon$，其中 $\epsilon_0=2m^3/L^2$。
+
+因此，能够满足 $f(x)-p^\star\leq\epsilon$ 的总迭代次数不会超过下述上界
+\begin{equation}
+\frac{f(x^{(0)})-p^\star}{\gamma}+\log_2\log_2(\epsilon_0/\epsilon).
+\tag{9.36}
+\end{equation}
+该式中二次收敛阶段迭代次数的上界 $\log_2\log_2(\epsilon_0/\epsilon)$ 随着误差阈值 $\epsilon$ 的减小极其缓慢地增长，因此从实用目的出发可以视为常数，比如 5 或 6。（二次收敛阶段的 6 次迭代可达到 $\epsilon\approx5\cdot10^{-20}\epsilon_0$ 的精度。）
+
+于是，极小化 $f$ 所需要的 Newton 迭代次数大体上可以用下式为上界
+\begin{equation}
+\frac{f(x^{(0)})-p^\star}{\gamma}+6.
+\tag{9.37}
+\end{equation}
+更严格地说，获得一个极好的近似最优解所需要的迭代次数大体上不会超过上界 (9.37)。
+
+\noindent\textbf{阻尼 Newton 阶段}\quad
+我们现在推导不等式 (9.32)。假定 $\|\nabla f(x)\|_2\geq\eta$。我们首先对直线搜索的步长建立一个下界。强凸性意味着在 $S$ 上 $\nabla^2f(x)\preceq MI$，因此
+\[
+\begin{aligned}
+f(x+t\Delta x_{\mathrm{nt}})
+&\leq f(x)+t\nabla f(x)^T\Delta x_{\mathrm{nt}}+\frac{M\|\Delta x_{\mathrm{nt}}\|_2^2}{2}t^2\\
+&\leq f(x)-t\lambda(x)^2+\frac{M}{2m}t^2\lambda(x)^2,
+\end{aligned}
+\]
+其中我们利用了式 (9.30) 和
+\[
+\lambda(x)^2=\Delta x_{\mathrm{nt}}^T\nabla^2f(x)\Delta x_{\mathrm{nt}}\geq m\|\Delta x_{\mathrm{nt}}\|_2^2.
+\]
+由于步长 $\hat{t}=m/M$ 满足
+\[
+f(x+\hat{t}\Delta x_{\mathrm{nt}})\leq f(x)-\frac{m}{2M}\lambda(x)^2\leq f(x)-\alpha\hat{t}\lambda(x)^2,
+\]
+符合直线搜索的退出条件，所以直线搜索确定的步长满足 $t\geq\beta m/M$，由此可知目标函数的减少量为
+\[
+\begin{aligned}
+f(x^+)-f(x)
+&\leq -\alpha t\lambda(x)^2\\
+&\leq -\alpha\beta\frac{m}{M}\lambda(x)^2\\
+&\leq -\alpha\beta\frac{m}{M^2}\|\nabla f(x)\|_2^2\\
+&\leq -\alpha\beta\eta^2\frac{m}{M^2},
+\end{aligned}
+\]
+其中我们利用了
+\[
+\lambda(x)^2=\nabla f(x)^T\nabla^2f(x)^{-1}\nabla f(x)\geq(1/M)\|\nabla f(x)\|_2^2.
+\]
+因此，式 (9.32) 能被下式满足，
+\begin{equation}
+\gamma=\alpha\beta\eta^2\frac{m}{M^2}.
+\tag{9.38}
+\end{equation}
+
+\noindent\textbf{二次收敛阶段}\quad
+现在我们推导不等式 (9.33)。假定 $\|\nabla f(x)\|_2<\eta$。我们首先说明，如果
+\[
+\eta\leq 3(1-2\alpha)\frac{m^2}{L},
+\]
+回溯直线搜索的步长就是单位步长。根据 Lipschitz 条件 (9.31)，对于 $t\geq0$，我们有
+\[
+\|\nabla^2f(x+t\Delta x_{\mathrm{nt}})-\nabla^2f(x)\|_2
+\leq tL\|\Delta x_{\mathrm{nt}}\|_2.
+\]
+于是
+\[
+\left|\Delta x_{\mathrm{nt}}^T(\nabla^2f(x+t\Delta x_{\mathrm{nt}})-\nabla^2f(x))\Delta x_{\mathrm{nt}}\right|
+\leq tL\|\Delta x_{\mathrm{nt}}\|_2^3.
+\]
+令 $\tilde{f}(t)=f(x+t\Delta x_{\mathrm{nt}})$，我们有 $\tilde{f}''(t)=\Delta x_{\mathrm{nt}}^T\nabla^2f(x+t\Delta x_{\mathrm{nt}})\Delta x_{\mathrm{nt}}$，因此上面的不等式是
+\[
+|\tilde{f}''(t)-\tilde{f}''(0)|\leq tL\|\Delta x_{\mathrm{nt}}\|_2^3.
+\]
+我们将利用这个不等式确定 $\tilde{f}(t)$ 的一个上界。我们从下式开始
+\[
+\tilde{f}''(t)\leq\tilde{f}''(0)+tL\|\Delta x_{\mathrm{nt}}\|_2^3
+\leq\lambda(x)^2+t\frac{L}{m^{3/2}}\lambda(x)^3,
+\]
+其中利用了 $\tilde{f}''(0)=\lambda(x)^2$ 和 $\lambda(x)^2\geq m\|\Delta x_{\mathrm{nt}}\|_2^2$。对上式积分，利用 $\tilde{f}'(0)=-\lambda(x)^2$ 可得
+\[
+\begin{aligned}
+\tilde{f}'(t)
+&\leq \tilde{f}'(0)+t\lambda(x)^2+t^2\frac{L}{2m^{3/2}}\lambda(x)^3\\
+&=-\lambda(x)^2+t\lambda(x)^2+t^2\frac{L}{2m^{3/2}}\lambda(x)^3.
+\end{aligned}
+\]
+再次积分又可得到
+\[
+\tilde{f}(t)\leq\tilde{f}(0)-t\lambda(x)^2+t^2\frac{1}{2}\lambda(x)^2+t^3\frac{L}{6m^{3/2}}\lambda(x)^3.
+\]
+最后，取 $t=1$ 得到
+\begin{equation}
+f(x+\Delta x_{\mathrm{nt}})
+\leq f(x)-\frac{1}{2}\lambda(x)^2+\frac{L}{6m^{3/2}}\lambda(x)^3.
+\tag{9.39}
+\end{equation}
+现在，假定 $\|\nabla f(x)\|_2\leq\eta\leq3(1-2\alpha)m^2/L$，由强凸性可知
+\[
+\lambda(x)\leq 3(1-2\alpha)m^{3/2}/L.
+\]
+利用式 (9.39) 我们有
+\[
+\begin{aligned}
+f(x+\Delta x_{\mathrm{nt}})
+&\leq f(x)-\lambda(x)^2\left(\frac{1}{2}-\frac{L\lambda(x)}{6m^{3/2}}\right)\\
+&\leq f(x)-\alpha\lambda(x)^2\\
+&=f(x)+\alpha\nabla f(x)^T\Delta x_{\mathrm{nt}}.
+\end{aligned}
+\]
+该式表明 $t=1$ 满足回溯直线搜索退出条件。
+
+现在我们分析收敛速度。应用 Lipschitz 条件，我们有
+\[
+\begin{aligned}
+\|\nabla f(x^+)\|_2
+&=\|\nabla f(x+\Delta x_{\mathrm{nt}})-\nabla f(x)-\nabla^2f(x)\Delta x_{\mathrm{nt}}\|_2\\
+&=\left\|\int_0^1(\nabla^2f(x+t\Delta x_{\mathrm{nt}})-\nabla^2f(x))\Delta x_{\mathrm{nt}}\,dt\right\|_2\\
+&\leq \frac{L}{2}\|\Delta x_{\mathrm{nt}}\|_2^2\\
+&=\frac{L}{2}\|\nabla^2f(x)^{-1}\nabla f(x)\|_2^2\\
+&\leq \frac{L}{2m^2}\|\nabla f(x)\|_2^2,
+\end{aligned}
+\]
+即不等式 (9.33)。
+
+综上所述，如果 $\|\nabla f(x^{(k)})\|_2<\eta$，算法将选择单位步长，并能满足条件 (9.33)，其中
+\[
+\eta=\min\{1,3(1-2\alpha)\}\frac{m^2}{L}.
+\]
+将上述上界和式 (9.38) 代入式 (9.37)，我们看到总的迭代次数不会超过上界
+\begin{equation}
+6+\frac{M^2L^2/m^5}{\alpha\beta\min\{1,9(1-2\alpha)^2\}}(f(x^{(0)})-p^\star).
+\tag{9.40}
+\end{equation}
+
+\subsection*{9.5.4\quad 例子}
+
+\noindent\textbf{$\mathbb{R}^2$ 中的例子}\quad
+我们首先采用回溯直线搜索的 Newton 方法优化测试函数 (9.20)，直线搜索参数选择 $\alpha=0.1,\ \beta=0.7$。图 9.19 显示最初两次 ($k=0,1$) 的 Newton 迭代以及椭圆
+\[
+\{x\mid \|x-x^{(k)}\|_{\nabla^2f(x^{(k)})}\leq1\}.
+\]
+由于这些椭圆很好地近似了下水平集的形状，因此 Newton 方法能够很好地工作。
+
+图 9.20 给出同一例子的误差和迭代次数的关系。图像显示仅仅经过了 5 次迭代就收敛到了很高的精度。二次收敛性非常明显：最后一次迭代误差大约从 $10^{-5}$ 收敛到 $10^{-10}$。
+
+\noindent\textbf{$\mathbb{R}^{100}$ 中的例子}\quad
+图 9.21 显示分别用回溯直线搜索和精确直线搜索的 Newton 方法求解 $\mathbb{R}^{100}$ 中的一个问题的收敛情况。目标函数在式 (9.21) 中给出，采用图 9.6 使用的同样数据和同样的初始点。回溯直线搜索的图像显示经过 8 次迭代就获得了很高的精度。如同 $\mathbb{R}^2$ 中的例子一样，二次收敛性在大约 3 次迭代后就表现得非常明显。精确直线搜索的 Newton 方法的迭代次数只比回溯直线搜索的少一次。这也是典型情况。采用 Newton 方法时，精确直线搜索通常只对收敛速度有很小的改进。图 9.22 给出了该例中的迭代步长。在两次阻尼步长后，回溯直线搜索就采用完全步长，即 $t=1$。
+
+对于这个例子（以及其他例子），关于回溯直线搜索参数 $\alpha$ 和 $\beta$ 取值的试验揭示它们对 Newton 方法性能的影响很小。将 $\alpha$ 固定在 $0.01$，让 $\beta$ 取值在 $0.2$ 和 $1$ 之间变动，所需要的迭代次数在 $8$ 和 $12$ 之间变动。将 $\beta$ 固定在 $0.5$，让 $\alpha$ 在 $0.005$ 和 $0.5$ 之间变动时，迭代次数都是 $8$。由于这些原因，大多数实际应用中对回溯直线搜索都采用一个较小的 $\alpha$，如 $0.01$，和一个较大的 $\beta$，如 $0.5$。
+
+\noindent\textbf{$\mathbb{R}^{10000}$ 中的例子}\quad
+最后我们考虑一个大规模的例子；目标函数具有下述形式
+\[
+\begin{aligned}
+\text{minimize}\quad & -\sum_{i=1}^n\log(1-x_i^2)-\sum_{i=1}^m\log(b_i-a_i^Tx).
+\end{aligned}
+\]
+我们取 $m=100000$ 和 $n=10000$。问题的数据 $a_i$ 为随机产生的稀疏向量。图 9.23 显示采用 $\alpha=0.01,\ \beta=0.5$ 的回溯直线搜索的 Newton 方法的收敛情况。对该例的求解性能和前面的收敛图像非常相似。最初的线性收敛阶段大约迭代了 13 次，随后的二次收敛阶段再经过 4 或 5 次迭代就获得了非常高的精度。
+
+\noindent\textbf{Newton 方法的仿射不变性}\quad
+Newton 方法一个非常重要的特点是它独立于坐标的线性（或仿射）变换。令 $x^{(k)}$ 是将 Newton 方法应用于 $f:\mathbb{R}^n\to\mathbb{R}$ 的第 $k$ 次迭代值。假定 $T\in\mathbb{R}^{n\times n}$ 是非奇异的，定义 $\bar{f}(y)=f(Ty)$。如果我们应用 Newton 方法（采用相同的回溯直线搜索参数）从 $y^{(0)}=T^{-1}x^{(0)}$ 开始极小化 $\bar{f}$，对于所有的 $k$ 我们有
+\[
+Ty^{(k)}=x^{(k)}.
+\]
+换言之，Newton 方法迭代过程一样：两种坐标下的迭代点由坐标变换相联系。由于 $\bar{f}$ 在 $y^{(k)}$ 处的 Newton 减量和 $f$ 在 $x^{(k)}$ 处的 Newton 减量相同，因此停止准则也是一样的。这一点和梯度（或最速下降）方法全然不同，后者受坐标变换的强烈影响。
+
+作为一个例子，考虑式 (9.22) 给出的一族问题，其可变参数为 $\gamma$，它能够影响下水平集的条件数。我们已经看到（在图 9.7 和图 9.8 中），当 $\gamma$ 小于 $0.05$ 或大于 $20$ 时，梯度方法慢到完全无用的程度。与之相对，Newton 方法（采用 $\alpha=0.01,\ \beta=0.5$）对 $10^{-10}$ 和 $10^{10}$ 之间的所有 $\gamma$，均能经过 9 次迭代解决问题（实际上，所得精度远高于梯度方法的精度）。
+
+实际应用时，由于计算精度有限，Newton 方法并非精确独立于坐标仿射变换，或者下水平集的条件数。但我们可以说，即使条件数增加到很大的值，比如 $10^{10}$，都不会对 Newton 方法的实际应用产生不利的影响。而应用梯度方法时只能容忍小得多的条件数。虽然坐标选择（或下水平集条件数）是梯度和最速下降方法头等重要的问题，它对 Newton 方法却是次要问题，只在数值线性代数方面对 Newton 方向的计算有影响。
+
+\noindent\textbf{总结}\quad
+Newton 方法与梯度和最速下降方法相比有若干非常重要的优点：
+\begin{itemize}
+\item 一般情况下 Newton 方法收敛很快，在 $x^\star$ 附近二次收敛。一旦进入二次收敛阶段，至多再经过 6 次左右的迭代就可以产生具有很高精度的解。
+\item Newton 方法具有仿射不变性。它对坐标选择或者目标函数的下水平集不敏感。
+\item Newton 方法和问题规模有很好的比例关系。它求解 $\mathbb{R}^{10000}$ 中问题的性能和 $\mathbb{R}^{10}$ 中问题的性能相似，在所需要的迭代次数上只有不大的增加。
+\item Newton 方法的良好的性能并不依赖于算法参数的选择。与之相对，最速下降方法的范数选择对性能有至关重要的影响。
+\end{itemize}
+
+Newton 方法的主要缺点是计算和存储 Hessian 矩阵以及计算 Newton 方向（要求解一组线性方程）需要较高的成本。在 \S9.7 我们将会看到，很多情况下有可能利用问题的结构大量减少 Newton 方向的计算量。
+
+一族被称为拟 Newton 方法的无约束优化算法提供了另外一种可供选择的方案。这些方法构造搜索方向所需要的计算量较少，但它们享有 Newton 方法的一些重要优点，比如在 $x^\star$ 附近的快速收敛性。由于拟 Newton 方法不在本书主要框架内，而且很多书中均有介绍，因此本书不考虑这方面的内容。
+
+\section*{9.6\quad 自和谐}
+
+在 \S9.5.3 给出的 Newton 方法的经典的收敛性分析有两个主要缺点。第一个是实用性方面的。前文所导出的复杂性估计包含 $m$，$M$ 和 $L$ 这三个实践中几乎不可能知道的常数。因此，Newton 方法所需迭代次数的上界 (9.40) 几乎不可能具体确定，因为它依赖于这三个通常无法知道的常数。当然，收敛性分析和复杂性估计在概念上仍然是有用的。
+
+第二个缺点如下：尽管 Newton 方法是仿射不变的，Newton 方法的经典分析过多的依赖于所采用的坐标系。如果改变坐标系，参数 $m$，$M$ 和 $L$ 均会发生变化。即使只为更加精致的理由，我们也应该追寻一种在仿射变换不变性方面和 Newton 方法本身保持一致的分析手段。换言之，我们要寻找下述假设的替代内容，
+\[
+mI\preceq\nabla^2f(x)\preceq MI,\qquad
+\|\nabla^2f(x)-\nabla^2f(y)\|_2\leq L\|x-y\|_2,
+\]
+它既独立于坐标的仿射变换，又使我们能够分析 Newton 方法。
+
+Nesterov 和 Nemirovski 发现了一个能够达到这个目的的简单且精致的假定，他们将其命名为自和谐条件。有若干理由说明自和谐函数的重要性。
+\begin{itemize}
+\item 它们包含很多对数障碍函数，这些函数在求解凸优化问题的内点法中起重要作用。
+\item 自和谐函数的 Newton 方法分析不依赖任何未知常数。
+\item 自和谐具有仿射不变性，即如果对一个自和谐函数的变量进行线性变换，仍然得到一个自和谐函数。因此将 Newton 方法应用于自和谐函数时导出的复杂性估计独立于坐标的仿射变换。
+\end{itemize}
+
+\subsection*{9.6.1\quad 定义和例子}
+
+\noindent\textbf{$\mathbb{R}$ 中的自和谐函数}\quad
+我们从 $\mathbb{R}$ 中的函数开始。如果一个凸函数 $f:\mathbb{R}\to\mathbb{R}$ 对所有 $x\in\operatorname{dom} f$ 满足
+\begin{equation}
+|f'''(x)|\leq2f''(x)^{3/2},
+\tag{9.41}
+\end{equation}
+它就是自和谐的。既然线性和（凸的）二次函数的三阶导数为零，它们显然是自和谐的。下面给出其他一些有意义的例子。
+
+\noindent\textbf{例 9.3}\quad
+对数和熵。
+\begin{itemize}
+\item 负对数。函数 $f(x)=-\log x$ 是自和谐的。使用 $f''(x)=1/x^2$，$f'''(x)=-2/x^3$，我们发现
+\[
+\frac{|f'''(x)|}{2f''(x)^{3/2}}=\frac{2/x^3}{2(1/x^2)^{3/2}}=1.
+\]
+因此定义不等式 (9.41) 作为等式成立。
+\item 负熵加负对数。函数 $f(x)=x\log x-\log x$ 是自和谐的。为了验证这一点，我们利用
+\[
+f''(x)=\frac{x+1}{x^2},\qquad f'''(x)=-\frac{x+2}{x^3}
+\]
+得到
+\[
+\frac{|f'''(x)|}{2f''(x)^{3/2}}=\frac{x+2}{2(x+1)^{3/2}}.
+\]
+右边的函数当 $x=0$ 时在 $\mathbb{R}_{++}$ 中取得最大值 1。
+
+负熵函数本身不是自和谐的；参见习题 11.13。
+\end{itemize}
+
+对自和谐定义 (9.41) 我们要给出两个重要的注释。第一个和出现在定义中的神秘常数 2 有关。实际上，选择这个常数是为了方便简化后面的公式；它可以被任何其他的正数所代替。例如，假设凸函数 $f:\mathbb{R}\to\mathbb{R}$ 满足
+\begin{equation}
+|f'''(x)|\leq kf''(x)^{3/2},
+\tag{9.42}
+\end{equation}
+其中 $k$ 是某个正常数。则函数 $\tilde{f}(x)=(k^2/4)f(x)$ 满足
+\[
+|\tilde{f}'''(x)|=(k^2/4)|f'''(x)|
+\leq (k^3/4)f''(x)^{3/2}
+= (k^3/4)\left((4/k^2)\tilde{f}''(x)\right)^{3/2}
+=2\tilde{f}''(x)^{3/2},
+\]
+因此是自和谐的。这表明如果一个函数对某个正数 $k$ 满足式 (9.42)，那么一定可以通过比例变换满足标准的自和谐不等式 (9.41)。因此重要的是函数的三阶导数存在一个和其二阶导数的 $3/2$ 次方成比例的上界。通过对函数进行恰当的比例变换，我们总能将相应倍数变成常数 2。
+
+第二个注释是说明自和谐重要性的一个简单计算：它是仿射不变的。假设我们定义函数 $\tilde{f}$ 为 $\tilde{f}(y)=f(ay+b)$，其中 $a\neq0$。则当且仅当 $f$ 是自和谐函数时，$\tilde{f}$ 是自和谐函数。为了说明这一点，我们将
+\[
+\tilde{f}''(y)=a^2f''(x),\qquad \tilde{f}'''(y)=a^3f'''(x)
+\]
+代入 $\tilde{f}$ 的自和谐不等式，即 $|\tilde{f}'''(y)|\leq2\tilde{f}''(y)^{3/2}$，其中 $x=ay+b$，由此得到
+\[
+|a^3f'''(x)|\leq2(a^2f''(x))^{3/2},
+\]
+这是（除以 $a^3$ 后）$f$ 的自和谐不等式。粗略地说，自和谐条件 (9.41) 是限制函数的三阶导数的一种方式，该方式独立于仿射坐标变换。
+
+\noindent\textbf{$\mathbb{R}^n$ 中的自和谐函数}\quad
+我们现在考虑 $n>1$ 时 $\mathbb{R}^n$ 中的函数。我们称一个函数 $f:\mathbb{R}^n\to\mathbb{R}$ 是自和谐的如果它在其定义域内任何一条直线上都是自和谐的，即如果函数 $\tilde{f}(t)=f(x+tv)$ 对于所有的 $x\in\operatorname{dom} f$ 和所有的 $v$ 都是 $t$ 的自和谐函数。
+
+\subsection*{9.6.2\quad 自和谐计算}
+
+\noindent\textbf{比例和求和}\quad
+自和谐性对大于 1 的因子相乘能够保持不变：如果 $f$ 是自和谐的，$a\geq1$，则 $af$ 也是自和谐的。自和谐性对加法也能保持不变：如果 $f_1$，$f_2$ 是自和谐的，则 $f_1+f_2$ 也是自和谐的。为说明这一点，只需考虑函数 $f_1,f_2:\mathbb{R}\to\mathbb{R}$。我们有
+\[
+\begin{aligned}
+|f_1'''(x)+f_2'''(x)|
+&\leq |f_1'''(x)|+|f_2'''(x)|\\
+&\leq 2(f_1''(x)^{3/2}+f_2''(x)^{3/2})\\
+&\leq 2(f_1''(x)+f_2''(x))^{3/2},
+\end{aligned}
+\]
+在最后一步我们用了不等式
+\[
+(u^{3/2}+v^{3/2})^{2/3}\leq u+v,
+\]
+它对 $u,v\geq0$ 成立。
+
+\noindent\textbf{仿射函数的复合}\quad
+如果 $f:\mathbb{R}^n\to\mathbb{R}$ 是自和谐的，$A\in\mathbb{R}^{n\times m}$，$b\in\mathbb{R}^n$，则 $f(Ax+b)$ 也是自和谐的。
+
+\noindent\textbf{例 9.4}\quad
+线性不等式的对数障碍。函数
+\[
+f(x)=-\sum_{i=1}^m\log(b_i-a_i^Tx)
+\]
+在 $\operatorname{dom} f=\{x\mid a_i^Tx<b_i,\ i=1,\cdots,m\}$ 上是自和谐的。每个 $-\log(b_i-a_i^Tx)$ 是 $-\log y$ 和仿射变换 $y=b_i-a_i^Tx$ 的复合函数，是自和谐的，所以所有项的和也是自和谐的。
+
+\noindent\textbf{例 9.5}\quad
+对数-行列式。函数 $f(X)=-\log\det X$ 在 $\operatorname{dom} f=\mathbf{S}_{++}^n$ 上是自和谐的。为说明这一点，我们考虑函数 $\tilde{f}(t)=f(X+tV)$，其中 $X\succ0$，$V\in\mathbf{S}^n$。可以将其表示成
+\[
+\begin{aligned}
+\tilde{f}(t)
+&=-\log\det\left(X^{1/2}(I+tX^{-1/2}VX^{-1/2})X^{1/2}\right)\\
+&=-\log\det X-\log\det(I+tX^{-1/2}VX^{-1/2})\\
+&=-\log\det X-\sum_{i=1}^n\log(1+t\lambda_i),
+\end{aligned}
+\]
+其中 $\lambda_i$ 是 $X^{-1/2}VX^{-1/2}$ 的特征值。每个 $-\log(1+t\lambda_i)$ 是 $t$ 的自和谐函数，所以它们的和 $\tilde{f}$ 是自和谐的。由此可知 $f$ 是自和谐的。
+
+\noindent\textbf{例 9.6}\quad
+凹的二次函数的对数。函数
+\[
+f(x)=-\log(x^TPx+q^Tx+r)
+\]
+在
+\[
+\operatorname{dom} f=\{x\mid x^TPx+q^Tx+r>0\}
+\]
+上是自和谐的，其中 $P\in-\mathbf{S}_+^n$。为了说明这一点，只需考虑 $n=1$ 的情况（因为把 $f$ 限制于直线上就将一般情况转换为 $n=1$ 的情况）。我们可以将 $f$ 表示成
+\[
+f(x)=-\log(px^2+qx+r)=-\log(-p(x-a)(b-x)),
+\]
+其中 $\operatorname{dom} f=(a,b)$（即 $a$ 和 $b$ 是 $px^2+qx+r$ 的根）。利用这个表达式，我们有
+\[
+f(x)=-\log(-p)-\log(x-a)-\log(b-x),
+\]
+由此可看出自和谐性。
+
+\noindent\textbf{对数复合}\quad
+令 $g:\mathbb{R}\to\mathbb{R}$ 为一个凸函数，$\operatorname{dom} g=\mathbb{R}_{++}$，并且对所有的 $x$ 成立
+\begin{equation}
+|g'''(x)|\leq 3\frac{g''(x)}{x},
+\tag{9.43}
+\end{equation}
+则
+\[
+f(x)=-\log(-g(x))-\log x
+\]
+在 $\{x\mid x>0,\ g(x)<0\}$ 上是自和谐的。（证明见习题 9.14。）
+
+条件 (9.43) 是齐次的，并且对加法保持不变。它被所有（凸的）二次函数（即具有 $ax^2+bx+c$ 的形式并且 $a\geq0$）所满足。因此，如果式 (9.43) 对函数 $g$ 成立，它就对所有满足 $a\geq0$ 的函数 $g(x)+ax^2+bx+c$ 都成立。
+
+\noindent\textbf{例 9.7}\quad
+下述函数 $g$ 均满足条件 (9.43)。
+\begin{itemize}
+\item $g(x)=-x^p,\ 0<p\leq1$。
+\item $g(x)=-\log x$。
+\item $g(x)=x\log x$。
+\item $g(x)=x^p,\ -1\leq p\leq0$。
+\item $g(x)=(ax+b)^2/x$。
+\end{itemize}
+进一步可知，每种情况下，函数 $f(x)=-\log(-g(x))-\log x$ 都是自和谐的。更一般的情况，只要 $a\geq0$，函数
+\[
+f(x)=-\log(-(g(x)+ax^2+bx+c))-\log x
+\]
+在定义域
+\[
+\{x\mid x>0,\ g(x)+ax^2+bx+c<0\}
+\]
+上也是自和谐的。
+
+\noindent\textbf{例 9.8}\quad
+利用对数复合规则可以说明以下函数都是自和谐的。
+\begin{itemize}
+\item $f(x,y)=-\log(y^2-x^Tx)$，定义域为 $\{(x,y)\mid \|x\|_2<y\}$。
+\item $f(x,y)=-2\log y-\log(y^{2/p}-x^2)$，$p\geq1$，定义域为 $\{(x,y)\in\mathbb{R}^2\mid |x|^p<y\}$。
+\item $f(x,y)=-\log y-\log(\log y-x)$，定义域为 $\{(x,y)\mid e^x<y\}$。
+\end{itemize}
+我们将详细证明留作习题（习题 9.15）。
+
+\subsection*{9.6.3\quad 自和谐函数的性质}
+
+在 \S9.1.2 我们利用强凸性导出了点 $x$ 基于 $x$ 处梯度范数的次优性上界。对于严格凸的自和谐函数，我们可以导出基于下述 Newton 减量的类似上界
+\[
+\lambda(x)=\left(\nabla f(x)^T\nabla^2 f(x)^{-1}\nabla f(x)\right)^{1/2}.
+\]
+（可以说明，一个严格凸的自和谐函数的 Hessian 矩阵处处正定；见习题 9.17。）同基于梯度范数的上界不同，基于 Newton 减量的上界不受坐标仿射变换的影响。
+
+为便于以后参考，我们指出 Newton 减量也可以表示成
+\[
+\lambda(x)=\sup_{v\neq0}\frac{-v^T\nabla f(x)}{(v^T\nabla^2 f(x)v)^{1/2}}.
+\]
+（见习题 9.9。）换言之，对于任何非零的 $v$，我们有
+\begin{equation}
+\frac{-v^T\nabla f(x)}{(v^T\nabla^2 f(x)v)^{1/2}}\leq\lambda(x),
+\tag{9.44}
+\end{equation}
+而等式只在 $v=\Delta x_{\rm nt}$ 时成立。
+
+\noindent\textbf{二阶导数的上下界}\quad
+假定 $f:\mathbb{R}\to\mathbb{R}$ 是严格凸的自和谐函数。我们可以将自和谐不等式 (9.41) 写成对于所有的 $t\in\operatorname{dom} f$ 成立
+\begin{equation}
+\left|\frac{d}{dt}\left(f''(t)^{-1/2}\right)\right|\leq1.
+\tag{9.45}
+\end{equation}
+（见习题 9.16。）假设 $t\geq0$，并且 $0$ 和 $t$ 之间的区间属于 $\operatorname{dom} f$，通过从 $0$ 到 $t$ 对式 (9.45) 积分可以得到
+\[
+-t\leq \int_0^t\frac{d}{d\tau}\left(f''(\tau)^{-1/2}\right)\,d\tau\leq t,
+\]
+即 $-t\leq f''(t)^{-1/2}-f''(0)^{-1/2}\leq t$。由此可得 $f''(t)$ 的上下界：
+\begin{equation}
+\frac{f''(0)}{(1+tf''(0)^{1/2})^2}\leq f''(t)\leq
+\frac{f''(0)}{(1-tf''(0)^{1/2})^2}.
+\tag{9.46}
+\end{equation}
+下界对所有非负的 $t\in\operatorname{dom} f$ 有效；上界当 $t\in\operatorname{dom} f$ 和 $0\leq t<f''(0)^{-1/2}$ 时有效。
+
+\noindent\textbf{次优性的界}\quad
+令 $f:\mathbb{R}^n\to\mathbb{R}$ 为严格凸的自和谐函数，$v$ 是一个下降方向（即任何满足 $v^T\nabla f(x)<0$ 的方向，不要求一定是 Newton 方向）。定义 $\tilde{f}:\mathbb{R}\to\mathbb{R}$ 为 $\tilde{f}(t)=f(x+tv)$。按照定义，函数 $\tilde{f}$ 是自和谐的。
+
+对式 (9.46) 的下界积分产生 $\tilde{f}'(t)$ 的一个下界：
+\begin{equation}
+\tilde{f}'(t)\geq \tilde{f}'(0)+\tilde{f}''(0)^{1/2}-
+\frac{\tilde{f}''(0)^{1/2}}{1+t\tilde{f}''(0)^{1/2}}.
+\tag{9.47}
+\end{equation}
+再次积分产生 $\tilde{f}(t)$ 的一个下界：
+\begin{equation}
+\tilde{f}(t)\geq \tilde{f}(0)+t\tilde{f}'(0)+t\tilde{f}''(0)^{1/2}
+-\log(1+t\tilde{f}''(0)^{1/2}).
+\tag{9.48}
+\end{equation}
+右边项在
+\[
+\bar{t}=\frac{-\tilde{f}'(0)}{\tilde{f}''(0)+\tilde{f}''(0)^{1/2}\tilde{f}'(0)}
+\]
+时达到最小值，估算 $\tilde{f}$ 在 $\bar{t}$ 处的取值可产生下述下界：
+\[
+\begin{aligned}
+\inf_{t\geq0}\tilde{f}(t)
+&\geq \tilde{f}(0)+\bar{t}\tilde{f}'(0)+\bar{t}\tilde{f}''(0)^{1/2}
+-\log(1+\bar{t}\tilde{f}''(0)^{1/2})\\
+&=\tilde{f}(0)-\tilde{f}'(0)\tilde{f}''(0)^{-1/2}
++\log(1+\tilde{f}'(0)\tilde{f}''(0)^{-1/2}).
+\end{aligned}
+\]
+不等式 (9.44) 可以表示成
+\[
+\lambda(x)\geq -\tilde{f}'(0)\tilde{f}''(0)^{-1/2},
+\]
+（等式在 $v=\Delta x_{\rm nt}$ 时成立，）因为我们有
+\[
+\tilde{f}'(0)=v^T\nabla f(x),\qquad
+\tilde{f}''(0)=v^T\nabla^2 f(x)v.
+\]
+现在利用上述不等式以及 $u+\log(1-u)$ 是 $u$ 单减函数的性质，我们得到
+\[
+\inf_{t\geq0}\tilde{f}(t)\geq \tilde{f}(0)+\lambda(x)+\log(1-\lambda(x)).
+\]
+该不等式对任何下降方向 $v$ 成立。因此，只要 $\lambda(x)<1$，就有
+\begin{equation}
+p^\star\geq f(x)+\lambda(x)+\log(1-\lambda(x)).
+\tag{9.49}
+\end{equation}
+图 9.24 给出了函数 $-(\lambda+\log(1-\lambda))$ 的图像。它对小的 $\lambda$ 满足
+\[
+-(\lambda+\log(1-\lambda))\approx \lambda^2/2,
+\]
+并且当 $\lambda\leq0.68$ 时成立
+\[
+-(\lambda+\log(1-\lambda))\leq \lambda^2.
+\]
+于是，次优性上界
+\begin{equation}
+p^\star\geq f(x)-\lambda(x)^2
+\tag{9.50}
+\end{equation}
+对 $\lambda(x)\leq0.68$ 有效。
+
+前面提到过，$\lambda(x)^2/2$ 是基于 $x$ 的二次模型对 $f(x)-p^\star$ 的估值；不等式 (9.50) 表明对于自和谐函数，加倍该估值就可得到一个可证明的上界。特别是，它表明对于自和谐函数，我们可以采用停止准则
+\[
+\lambda(x)^2\leq\epsilon,
+\]
+（其中 $\epsilon<0.68^2$），并且保证算法停止时有 $f(x)-p^\star\leq\epsilon$。
+
+\subsection*{9.6.4\quad 自和谐函数的 Newton 方法分析}
+
+我们现在针对严格凸的自和谐函数 $f$ 分析采用回溯直线搜索的 Newton 方法。同以前一样，我们假定已知初始点 $x^{(0)}$，下水平集 $S=\{x\mid f(x)\leq f(x^{(0)})\}$ 是闭的。我们也假定 $f$ 有下界。（这意味着 $f$ 有极小解 $x^\star$；见习题 9.19。）
+
+分析过程和 \S9.5.2 给出的经典分析非常相似，不同之处在于采用自和谐的基本假设代替 Hessian 矩阵的强凸性和 Lipschitz 条件，从而 Newton 减量将起到梯度范数的作用。我们将说明存在只依赖直线搜索参数 $\alpha$ 和 $\beta$ 的 $\eta$ 和 $\gamma>0$，$0<\eta\leq1/4$，它们能使下式成立：
+\begin{itemize}
+\item 如果 $\lambda(x^{(k)})>\eta$，则
+\begin{equation}
+f(x^{(k+1)})-f(x^{(k)})\leq-\gamma.
+\tag{9.51}
+\end{equation}
+\item 如果 $\lambda(x^{(k)})\leq\eta$，回溯直线搜索将选择 $t=1$，并且
+\begin{equation}
+2\lambda(x^{(k+1)})\leq \left(2\lambda(x^{(k)})\right)^2.
+\tag{9.52}
+\end{equation}
+\end{itemize}
+这些结果与式 (9.32) 和式 (9.33) 相似。同 \S9.5.3 中一样，第二个条件可以递推使用，因此可以断定，对所有的 $l\geq k$ 有 $\lambda(x^{(l)})\leq\eta$，以及
+\[
+2\lambda(x^{(l)})\leq \left(2\lambda(x^{(k)})\right)^{2^{l-k}}
+\leq (2\eta)^{2^{l-k}}\leq \left(\frac{1}{2}\right)^{2^{l-k}}.
+\]
+由此可得，对所有的 $l\geq k$，
+\[
+f(x^{(l)})-p^\star\leq \lambda(x^{(l)})^2
+\leq \frac{1}{4}\left(\frac{1}{2}\right)^{2^{l-k+1}}
+\leq \left(\frac{1}{2}\right)^{2^{l-k+1}}.
+\]
+因此，如果 $l-k\geq\log_2\log_2(1/\epsilon)$，就有 $f(x^{(l)})-p^\star\leq\epsilon$。
+
+第一个不等式意味着阻尼阶段迭代次数不可能超过 $(f(x^{(0)})-p^\star)/\gamma$。因此从 $x^{(0)}$ 出发达到精度 $f(x)-p^\star\leq\epsilon$ 所需要的总的迭代次数不会超过上界
+\begin{equation}
+\frac{f(x^{(0)})-p^\star}{\gamma}+\log_2\log_2(1/\epsilon).
+\tag{9.53}
+\end{equation}
+这是和 Newton 方法经典分析中的上界 (9.36) 相似的结果。
+
+\noindent\textbf{阻尼 Newton 阶段}\quad
+令 $\tilde{f}(t)=f(x+t\Delta x_{\rm nt})$，我们有
+\[
+\tilde{f}'(0)=-\lambda(x)^2,\qquad \tilde{f}''(0)=\lambda(x)^2.
+\]
+如果对式 (9.46) 中的上界积分两次，就可得到 $\tilde{f}(t)$ 的一个上界：
+\begin{equation}
+\begin{aligned}
+\tilde{f}(t)
+&\leq \tilde{f}(0)+t\tilde{f}'(0)-t\tilde{f}''(0)^{1/2}
+-\log\left(1-t\tilde{f}''(0)^{1/2}\right)\\
+&=\tilde{f}(0)-t\lambda(x)^2-t\lambda(x)-\log(1-t\lambda(x)).
+\end{aligned}
+\tag{9.54}
+\end{equation}
+它对 $0\leq t<1/\lambda(x)$ 有效。
+
+我们可以用这个上界说明回溯直线搜索产生的步长总满足 $t\geq\beta/(1+\lambda(x))$。为证明这一点，我们指出 $\hat{t}=1/(1+\lambda(x))$ 满足直线搜索的终止条件：
+\[
+\begin{aligned}
+\tilde{f}(\hat{t})
+&\leq \tilde{f}(0)-\hat{t}\lambda(x)^2-\hat{t}\lambda(x)-\log(1-\hat{t}\lambda(x))\\
+&=\tilde{f}(0)-\lambda(x)+\log(1+\lambda(x))\\
+&\leq \tilde{f}(0)-\alpha\frac{\lambda(x)^2}{1+\lambda(x)}\\
+&=\tilde{f}(0)-\alpha\lambda(x)^2\hat{t}.
+\end{aligned}
+\]
+第二个不等式来自以下事实：$x\geq0$ 时有
+\[
+-x+\log(1+x)+\frac{x^2}{2(1+x)}\leq0.
+\]
+既然 $t\geq\beta/(1+\lambda(x))$，我们有
+\[
+\tilde{f}(t)-\tilde{f}(0)\leq-\alpha\beta\frac{\lambda(x)^2}{1+\lambda(x)},
+\]
+因此式 (9.51) 对
+\[
+\gamma=\alpha\beta\frac{\eta^2}{1+\eta}
+\]
+成立。
+
+\noindent\textbf{二次收敛阶段}\quad
+我们将说明可以取
+\[
+\eta=(1-2\alpha)/4,
+\]
+（它满足 $0<\eta<1/4$，因为 $0<\alpha<1/2$。）即如果 $\lambda(x^{(k)})\leq(1-2\alpha)/4$，回溯直线搜索将选择单位步长，并且式 (9.52) 成立。
+
+我们首先指出上界 (9.54) 意味着当 $\lambda(x)<1$ 时单位步长 $t=1$ 将产生属于 $\operatorname{dom} f$ 的点。不仅如此，如果 $\lambda(x)\leq(1-2\alpha)/2$，利用式 (9.54) 可得
+\[
+\begin{aligned}
+\tilde{f}(1)
+&\leq \tilde{f}(0)-\lambda(x)^2-\lambda(x)-\log(1-\lambda(x))\\
+&\leq \tilde{f}(0)-\frac{1}{2}\lambda(x)^2+\lambda(x)^3\\
+&\leq \tilde{f}(0)-\alpha\lambda(x)^2.
+\end{aligned}
+\]
+因此单位步长满足充分减少的条件。（第二行利用了对所有的 $0\leq x\leq0.81$ 有 $-x-\log(1-x)\leq x^2/2+x^3$ 的性质。）
+
+不等式 (9.52) 来自下述事实，证明见习题 9.18。如果 $\lambda(x)<1$，并且 $x^+=x-\nabla^2 f(x)^{-1}\nabla f(x)$，则有
+\begin{equation}
+\lambda(x^+)\leq \frac{\lambda(x)^2}{(1-\lambda(x))^2}.
+\tag{9.55}
+\end{equation}
+特别是，如果 $\lambda(x)\leq1/4$，
+\[
+\lambda(x^+)\leq2\lambda(x)^2.
+\]
+它证明了当 $\lambda(x^{(k)})\leq\eta$ 时式 (9.52) 成立。
+
+\noindent\textbf{最终的复杂性上界}\quad
+将已有结果结合在一起，Newton 迭代次数的上界 (9.53) 变成
+\begin{equation}
+\frac{f(x^{(0)})-p^\star}{\gamma}+\log_2\log_2(1/\epsilon)
+=\frac{20-8\alpha}{\alpha\beta(1-2\alpha)^2}(f(x^{(0)})-p^\star)
++\log_2\log_2(1/\epsilon).
+\tag{9.56}
+\end{equation}
+该表达式仅依赖直线搜索参数 $\alpha$ 和 $\beta$ 以及最终的精度 $\epsilon$。并且，含有 $\epsilon$ 的项可以相当安全的用常数 6 代替，因此这个上界实际上只依赖 $\alpha$ 和 $\beta$。对于 $\alpha$ 和 $\beta$ 的典型取值，和 $f(x^{(0)})-p^\star$ 成比例的常数在数百的数量级。例如，对于 $\alpha=0.1,\ \beta=0.8$，比例因子是 375。当误差阈值 $\epsilon=10^{-10}$ 时，所得到的上界等于
+\begin{equation}
+375(f(x^{(0)})-p^\star)+6.
+\tag{9.57}
+\end{equation}
+我们将会看到这个上界相当保守，但确实反映了最坏情况下所需 Newton 迭代次数的一般形式。更精细的分析，比如 Nesterov 和 Nemirovski 给出的原始分析，所建立的上界具有相似的形式，但和 $f(x^{(0)})-p^\star$ 成比例的常数要小得多。
+
+\subsection*{9.6.5\quad 讨论和数值例子}
+
+\noindent\textbf{一族自和谐函数}\quad
+将上界 (9.57) 和优化自和谐函数的实际迭代次数对比很有意义。我们考虑一族下述形式的问题
+\[
+f(x)=-\sum_{i=1}^m\log(b_i-a_i^Tx).
+\]
+该问题的数据 $a_i$ 和 $b_i$ 由以下方式产生。对每个实例，系数 $a_i$ 产生于均值为 0 方差为 1 的独立正态分布，而系数 $b_i$ 则产生于 $[0,1]$ 上的均匀分布。所产生的无解实例
+均不选用。对于每个问题我们首先计算 $x^\star$。然后选择一个随机方向 $v$，并取初始点 $x^{(0)}=x^\star+sv$，其中 $s$ 的选取要满足 $f(x^{(0)})-p^\star$ 的取值在预先规定好的 0 和 35 之间。（需要指出初始点满足 $f(x^{(0)})-p^\star=10$ 或更大的数值实际上非常靠近多面体的边界。）然后我们采用回溯直线搜索的 Newton 方法极小化函数，参数 $\alpha=0.1,\ \beta=0.8$，误差阈值为 $\epsilon=10^{-10}$。
+
+图 9.25 给出 150 个问题实例所需要的 Newton 迭代次数和 $f(x^{(0)})-p^\star$ 的关系。圆圈表示 $m=100,\ n=50$ 的 50 个问题；方块表示 $m=1000,\ n=500$ 的 50 个问题；菱形表示 $m=1000,\ n=50$ 的 50 个问题。
+
+对于所采用的回溯直线搜索参数，上述复杂性上界是
+\begin{equation}
+375(f(x^{(0)})-p^\star)+6.
+\tag{9.58}
+\end{equation}
+显然这是比所需要的迭代次数大得多的数（对这 150 个实例而言）。图像表明存在具有相同形式的有效上界，但和 $f(x^{(0)})-p^\star$ 成比例的常数要小得多（比如，1.5 左右）。确实，表达式
+\[
+f(x^{(0)})-p^\star+6
+\]
+是所需要的 Newton 迭代次数的不坏的粗略预测，尽管比例因子显然不唯一。首先，有大量问题实例其中 Newton 迭代次数较小，我们猜测这些实例对应于“幸运的”初始点。还要注意到对于 500 个变量的较大问题（用方块表示），似乎有更多的实例其中 Newton 迭代次数异乎寻常的小。
+
+这里需要提到我们所研究的问题族不仅仅是自和谐的，实际上是最低程度自和谐的，该术语表示如果 $\alpha<1$ 那么 $\alpha f$ 就不是自和谐的。因此，上界 (9.58) 不能通过简单
+的对 $f$ 乘以某个比值而改进。（函数 $f(x)=-20\log x$ 是个例子，它是自和谐的，但不是最低程度自和谐的，因为 $(1/20)f$ 也是自和谐的。）
+
+\noindent\textbf{自和谐的实际重要性}\quad
+我们已经看到对于强凸的目标函数 Newton 方法通常能够很好地工作。我们可以采用经验方式验证这个模糊的论断，也可以通过对 Newton 方法进行经典的分析达到目的，后者可以产生一个复杂性上界，但该上界依赖于若干几乎总是未知的常数。
+
+对自和谐函数我们可以多说一些。我们有一个完全明确的复杂性上界，它不依赖任何未知常数。经验方式的研究表明该上界可以较大幅度的收紧，但它的一般形式，一个小常数加上 $f(x^{(0)})-p^\star$ 的若干倍，似乎能够（至少粗略地）预测优化一个近似最低程度自和谐的函数所需要的 Newton 迭代次数。
+
+我们仍然不清楚实践中自和谐函数是否比非自和谐函数更容易被 Newton 方法所优化。（我们甚至不清楚怎样准确的阐述这句话。）当前我们能够说的是，关于用 Newton 方法优化自和谐函数的复杂性，相对于优化非自和谐函数而言，我们可以说得更多。
+
+\section*{9.7\quad 实现}
+
+本节我们讨论实现无约束优化算法时会遇到的一些问题。读者可以参考附录 C 获得关于数值代数更详细的资料。
+
+\subsection*{9.7.1\quad 直线搜索的预先计算}
+
+在直线搜索的最简单的实现方式中，对每个 $t$ 确定 $f(x+t\Delta x)$ 是以相同的方式对任何 $z\in\operatorname{dom} f$ 计算 $f(z)$。但在一些情况下，利用所需计算 $f$（在精确直线搜索时包括它的导数）的很多点均在射线 $\{x+t\Delta x\mid t\geq0\}$ 上的事实，可以减少总的计算量。为此往往需要一些预先计算，其计算量和在任何点确定 $f$ 的计算量相当，但利用预先计算结果可以沿着相应射线更有效地确定 $f$（及其导数）。
+
+假定 $x\in\operatorname{dom} f$，$\Delta x\in\mathbb{R}^n$，定义 $\tilde{f}$ 为 $f$ 限制在 $x$ 和 $\Delta x$ 确定的直线或射线上的函数，即 $\tilde{f}(t)=f(x+t\Delta x)$。在回溯直线搜索时我们必须对若干，可能很多，个 $t$ 值确定 $\tilde{f}$；在精确直线搜索中我们必须对一些 $t$ 值确定 $\tilde{f}$ 及其 1 阶或高阶导数。在上面描述的简单方法中，我们确定 $\tilde{f}(t)$ 的方式是先形成 $z=x+t\Delta x$ 再计算 $f(z)$。同样，为了确定 $\tilde{f}'(t)$，我们先形成 $z=x+t\Delta x$，然后计算 $\nabla f(z)$，然后再计算 $\tilde{f}'(t)=\nabla f(z)^T\Delta x$。在下面的一些代表性例子中我们将说明如何更有效地计算 $\tilde{f}$ 在若干 $t$ 上的值。
+
+\noindent\textbf{复合仿射函数}\quad
+预先计算可以加快直线搜索过程的一种非常一般的情形是目标函数具有 $f(x)=\phi(Ax+b)$ 的形式，其中 $A\in\mathbb{R}^{p\times n}$，$\phi$ 容易计算（例如是可分的）。使用简单方式确定
+\[
+\tilde{f}(t)=f(x+t\Delta x)
+\]
+在 $k$ 个 $t$ 上的值时，我们先对每个 $t$ 形成 $A(x+t\Delta x)+b$（约 $2kpn$ 次浮点运算），然后对每个 $t$ 计算 $\phi(A(x+t\Delta x)+b)$。更有效的方法是，先计算 $Ax+b$ 和 $A\Delta x$（$4pn$ 次浮点运算），然后对每个 $t$ 利用
+\[
+A(x+t\Delta x)+b=(Ax+b)+t(A\Delta x)
+\]
+形成 $A(x+t\Delta x)+b$，需 $2kp$ 次浮点运算。总的计算成本，只统计主导项，是 $4pn+2kp$ 次浮点运算，相应的简单方式是 $2kpn$ 次。
+
+\noindent\textbf{线性矩阵不等式的解析中心}\quad
+这里给出一个更具体也更完全的例子。我们考虑计算线性矩阵不等式解析中心的问题 (9.6)，即极小化 $\log\det F(x)^{-1}$，其中 $x\in\mathbb{R}^n$，$F:\mathbb{R}^n\to\mathbf{S}^p$ 是仿射的。在 $x$ 处沿方向 $\Delta x$ 有
+\[
+\tilde{f}(t)=\log\det(F(x+t\Delta x))^{-1}=-\log\det(A+tB),
+\]
+其中
+\[
+A=F(x),\qquad B=\Delta x_1F_1+\cdots+\Delta x_nF_n\in\mathbf{S}^p.
+\]
+因为 $A\succ0$，所以有 Cholesky 因式分解 $A=LL^T$，其中 $L$ 是下三角非奇异矩阵。因此我们可以将 $\tilde{f}$ 表示为
+\begin{equation}
+\tilde{f}(t)=-\log\det\left(L(I+tL^{-1}BL^{-T})L^T\right)
+=-\log\det A-\sum_{i=1}^p\log(1+t\lambda_i),
+\tag{9.59}
+\end{equation}
+其中 $\lambda_1,\ldots,\lambda_p$ 是 $L^{-1}BL^{-T}$ 的特征值。一旦求出这些特征值，利用式 (9.59) 右边的公式，就可以用 $4p$ 次简单的算术运算对任何 $t$ 求出 $\tilde{f}(t)$。同样，利用公式
+\[
+\tilde{f}'(t)=-\sum_{i=1}^p\frac{\lambda_i}{1+t\lambda_i},
+\]
+我们可以用 $4p$ 次运算求出 $\tilde{f}'(t)$（类似地，求出任何高阶导数）。
+
+让我们对两种实现直线搜索的方法进行比较，假设需要对 $k$ 个 $t$ 值计算 $f(x+t\Delta x)$。采用简单方式时，对每个 $t$，我们先要形成 $F(x+t\Delta x)$，然后计算 $-\log\det F(x+t\Delta x)$ 确定 $f(x+t\Delta x)$。例如，我们可以先确定 Cholesky 因式分解 $F(x+t\Delta x)=LL^T$，然后计算
+\[
+-\log\det F(x+t\Delta x)=-2\sum_{i=1}^p\log L_{ii}.
+\]
+形成 $F(x+t\Delta x)$ 的成本是 $np^2$，加上 Cholesky 因式分解的 $(1/3)p^3$。因此直线搜索的总成本是
+\[
+k(np^2+(1/3)p^3)=knp^2+(1/3)kp^3.
+\]
+采用上面描述的方式，我们先形成 $A$，成本为 $np^2$，然后对其因式分解，成本为 $(1/3)p^3$。我们同样先形成 $B$（成本 $np^2$），再得到 $L^{-1}BL^{-T}$，成本为 $2p^3$。然后计算矩阵特征值，成本约为 $(4/3)p^3$。该预先计算所需要的总成本为 $2np^2+(11/3)p^3$。完成了这些预先计算，我们就可以以 $4p$ 的成本对每个 $t$ 计算 $\tilde{f}(t)$。这样总的成本为
+\[
+2np^2+(11/3)p^3+4kp.
+\]
+假定 $k$ 相对 $p(2n+(11/3)p)$ 较小，上式意味着进行直线搜索的工作量和计算 $f$ 的相当。它相对于简单方式节约的计算量依赖于 $k$，$p$ 和 $n$ 的具体数值，可以和 $k$ 同步增长。
+
+\subsection*{9.7.2\quad 计算 Newton 方向}
+
+本节我们简单描述实现 Newton 方法时会遇到的一些问题。大多数情况下，计算 Newton 方向 $\Delta x_{\rm nt}$ 的工作量和直线搜索相比占主导地位。为了计算 Newton 方向 $\Delta x_{\rm nt}$，我们首先要确定 Hessian 矩阵 $H=\nabla^2 f(x)$ 和 $x$ 处的梯度 $g=\nabla f(x)$。然后求解线性方程组 $H\Delta x_{\rm nt}=-g$ 得到 Newton 方向。这组方程有时被称为 Newton 系统（因为它的解给出 Newton 方向）或正规方程，因为求解最小二乘问题时会遇到同样类型的方程组（见 \S9.1.1）。
+
+虽然可以应用求解线性方程组的一般方法，但更好的做法是利用 $H$ 具有正定性和对称性的优点。最常用的方法是先确定 $H$ 的 Cholesky 因式分解，即计算满足 $LL^T=H$ 的下三角矩阵 $L$（见 \S C.3.2），然后通过前向代入得到 $Lw=-g$ 的解 $w=-L^{-1}g$；然后再用后向代入的方式得到 $L^T\Delta x_{\rm nt}=w$ 的解
+\[
+\Delta x_{\rm nt}=L^{-T}w=-L^{-T}L^{-1}g=-H^{-1}g.
+\]
+对于 Newton 减量，我们可以利用 $\lambda^2=-\Delta x_{\rm nt}^Tg$ 或者下述公式进行计算，
+\[
+\lambda^2=g^TH^{-1}g=\|L^{-1}g\|_2^2=\|w\|_2^2.
+\]
+如果 Cholesky 因式分解是稠密的（无结构），Cholesky 因式分解的成本相比前后向代入占主导地位，约为 $(1/3)n^3$。因此计算 Newton 方向 $\Delta x_{\rm nt}$ 的总成本为 $F+(1/3)n^3$，其中 $F$ 是形成 $H$ 和 $g$ 的成本。
+
+对于 Newton 系统 $H\Delta x_{\rm nt}=-g$，常常可以利用 $H$ 的特殊结构，比如带状结构或稀疏性，设计更有效的求解方法。这里所说的“$H$ 的结构”是指对所有的 $x$ 相同的结构。例如，当我们说“$H$ 是三对角的”矩阵时，我们是指对所有的 $x\in\operatorname{dom} f$，矩阵 $\nabla^2 f(x)$ 都是三对角的。
+
+\noindent\textbf{带状结构}\quad
+如果 $H$ 是带宽为 $k$ 的带状矩阵，即对所有的 $|i-j|>k$ 都有 $H_{ij}=0$，那么就
+可以采用带状 Cholesky 因式分解以及带状前后向代入方法。此时计算 Newton 方向 $\Delta x_{\rm nt}=-H^{-1}g$ 的成本是 $F+nk^2$（假定 $k\ll n$），而对应的稠密情况下的因式分解和代入方法的成本为 $F+(1/3)n^3$。
+
+Hessian 矩阵对所有 $x\in\operatorname{dom} f$ 的带状结构条件
+\[
+\nabla^2 f(x)_{ij}=\frac{\partial^2 f(x)}{\partial x_i\partial x_j}=0\quad \text{对于 } |i-j|>k
+\]
+有一个基于目标函数 $f$ 的有意义的解释。粗略地说，它意味着在目标函数中，每个变量 $x_i$ 只和 $2k+1$ 个变量 $x_j$，$j=i-k,\ldots,i+k$ 存在非线性耦合关系。这发生于 $f$ 具有部分可分的形式
+\[
+f(x)=\psi_1(x_1,\ldots,x_{k+1})+\psi_2(x_2,\ldots,x_{k+2})+\cdots+\psi_{n-k}(x_{n-k},\ldots,x_n),
+\]
+其中 $\psi_i:\mathbb{R}^{k+1}\to\mathbb{R}$。换言之，$f$ 可以表示成一些函数之和，每个这样的函数仅和 $k$ 个连贯的变量相关。
+
+\noindent\textbf{例 9.9}\quad
+考虑极小化 $f:\mathbb{R}^n\to\mathbb{R}$ 的问题，其中
+\[
+f(x)=\psi_1(x_1,x_2)+\psi_2(x_2,x_3)+\cdots+\psi_{n-1}(x_{n-1},x_n),
+\]
+而 $\psi_i:\mathbb{R}^2\to\mathbb{R}$ 是二次可微的凸函数。因为对任意的 $|i-j|>1$ 都有 $\partial^2 f/\partial x_i\partial x_j=0$，所以 Hessian 矩阵 $\nabla^2 f$ 是三对角的。（反之，如果一个函数的 Hessian 矩阵对所有的 $x$ 都是三对角的，那么它一定具有上述形式。）
+
+利用三对角矩阵的 Cholesky 因式分解及前后向代入算法，对此类问题可以用和 $n$ 成比例的成本求解 Newton 系统。与此相比，如果不利用 $f$ 的特殊结构，相应的计算量和 $n^3$ 成比例。
+
+\noindent\textbf{稀疏结构}\quad
+在求解 Newton 系统时可以利用 Hessian 矩阵 $H$ 更一般的稀疏结构。只要每个变量 $x_i$ 只和其他少数几个变量有非线性耦合，或者等价地说，只要目标函数可以表示成一些函数之和，每个这样的函数只依赖少数几个变量，并且每个变量只出现在少数几个这样的函数中，那么就存在可以利用的稀疏结构。
+
+求解系数矩阵 $H$ 决定的方程 $H\Delta x=-g$ 时，可利用稀疏的 Cholesky 因式分解计算满足下式的交换矩阵 $P$ 和下三角矩阵 $L$
+\[
+H=PLL^TP^T.
+\]
+该因式分解的成本依赖于特殊的稀疏模式，但通常远小于 $(1/3)n^3$；经验上常见的复杂性和 $n$ 成比例（对于大 $n$）。前后向代入和没有交换的基本方法非常相似。我们先利用
+前向代入求解 $Lw=-P^Tg$，然后利用后向代入确定 $L^Tv=w$ 的解
+\[
+v=L^{-T}w=-L^{-T}L^{-1}P^Tg,
+\]
+然后得到 Newton 方向 $\Delta x=Pv$。
+
+因为 $x$ 变动不改变 $H$ 的稀疏模式（或者更准确地说，因为我们只利用和 $x$ 取值无关的稀疏性），我们可以对每个 Newton 方向应用同样的交换矩阵 $P$。在整个 Newton 迭代的过程中，只需执行一次确定交换矩阵 $P$（称为符号因式分解）的步骤。
+
+\noindent\textbf{对角加低秩}\quad
+很多其他类型的结构也可以用于加快 Newton 系统 $H\Delta x_{\rm nt}=-g$ 的求解。这里我们简单介绍其中一种类型，读者可以从附录 C 获得更详细的资料。假定 Hessian 矩阵 $H$ 可以表示成一个对角矩阵加上一个低秩（例如 $p$）矩阵。当目标函数 $f$ 具有下述形式时就会发生这种情况，
+\begin{equation}
+f(x)=\sum_{i=1}^n\psi_i(x_i)+\psi_0(Ax+b),
+\tag{9.60}
+\end{equation}
+其中 $A\in\mathbb{R}^{p\times n}$，$\psi_1,\ldots,\psi_n:\mathbb{R}\to\mathbb{R}$，$\psi_0:\mathbb{R}^p\to\mathbb{R}$。换言之，$f$ 是一个可分函数加上依赖 $x$ 的一个低维仿射函数的某个函数。
+
+为了确定式 (9.60) 的 Newton 方向 $\Delta x_{\rm nt}$，我们必须求解 Newton 系统 $H\Delta x_{\rm nt}=-g$，其中
+\[
+H=D+A^TH_0A.
+\]
+这里 $D=\operatorname{diag}(\psi_1''(x_1),\ldots,\psi_n''(x_n))$ 是对角阵，$H_0=\nabla^2\psi_0(Ax+b)$ 是 $\psi_0$ 的 Hessian 矩阵。如果我们不利用特殊结构计算 Newton 方向，求解 Newton 系统的成本是 $(1/3)n^3$。
+
+用 $H_0=L_0L_0^T$ 表示 $H_0$ 的 Cholesky 因式分解。我们引入临时变量 $w=L_0^TA\Delta x_{\rm nt}\in\mathbb{R}^p$，将 Newton 系统表示为
+\[
+D\Delta x_{\rm nt}+A^TL_0w=-g,\qquad w=L_0^TA\Delta x_{\rm nt}.
+\]
+将 $\Delta x_{\rm nt}=-D^{-1}(A^TL_0w+g)$（来自第一个方程）代入第二个方程，我们得到
+\begin{equation}
+(I+L_0^TAD^{-1}A^TL_0)w=-L_0^TAD^{-1}g,
+\tag{9.61}
+\end{equation}
+这是 $p$ 个线性方程。
+
+现在我们按以下步骤计算 Newton 方向 $\Delta x_{\rm nt}$。我们首先计算 $H_0$ 的 Cholesky 因式分解，成本为 $(1/3)p^3$。然后形成式 (9.61) 左边的稠密正定对称矩阵，成本为 $2p^2n$。然后利用 Cholesky 因式分解及前后向代入方法求解式 (9.61) 确定 $w$，成本为 $(1/3)p^3$。最后，我们利用 $\Delta x_{\rm nt}=-D^{-1}(A^TL_0w+g)$ 计算 $\Delta x_{\rm nt}$，成本为 $2np$。总的计算 $\Delta x_{\rm nt}$ 的成本（仅保留主导项）是 $2p^2n$，当 $p\ll n$ 时远小于 $(1/3)n^3$。
+
+\section*{参考文献}
+
+Dennis 和 Schnabel [DS96] 与 Ortega 和 Rheinboldt [OR00] 是两篇关于无约束优化算法和非线性方程组求解算法的标准文献。在 Hessian 矩阵的强凸性和 Lipschitz 连续性的假设下获得的二次收敛的结果，源自 Kantorovich [Kan52]。关于含有未知常数的收敛分析结果的作用，比如在 \S9.5.3 推导出的结果，Polyak [Pol87, \S1.6] 给出了有深刻见解的注释。
+
+自和谐函数由 Nesterov 和 Nemirovski [NN94] 引入。我们在 \S9.6 以及习题 9.14～习题 9.20 中的所有结果可以在他们的书中找到，只不过经常会具有更一般的形式或者采用了不同的符号。Renegar [Ren01] 对自和谐函数及其在分析原对偶内点算法中的作用给出了准确和精致的陈述。Peng, Roos 和 Terlaky [PRT02] 从自正则函数（和自和谐函数相似但不相同的一类函数）的观点对内点方法进行了研究。关于 \S9.7 中有关资料的参考文献列在附录 C 的后面。
+
+\section*{习题}
+
+\noindent\textbf{无约束极小化}
+
+\noindent\textbf{9.1 极小化二次函数。}\quad
+考虑二次函数极小化问题
+\[
+\begin{array}{ll}
+\mbox{minimize} & f(x)=(1/2)x^TPx+q^Tx+r
+\end{array}
+\]
+其中 $P\in\mathbf{S}^n$（但我们不假定 $P\succeq0$）。
+\begin{enumerate}
+\item[(a)] 证明如果 $P\nsucceq0$，即目标函数 $f$ 非凸，则该问题无下界。
+\item[(b)] 如果 $P\succeq0$（因此目标函数是凸函数），但最优性条件 $Px^\star=-q$ 无解，证明该问题无下界。
+\end{enumerate}
+
+\noindent\textbf{9.2 极小化二次-线性分式函数。}\quad
+考虑极小化 $f:\mathbb{R}^n\to\mathbb{R}$ 的问题，其中
+\[
+f(x)=\frac{\|Ax-b\|_2^2}{c^Tx+d},\qquad
+\operatorname{dom} f=\{x\mid c^Tx+d>0\}.
+\]
+我们假定 $\operatorname{rank} A=n,\ b\notin\mathcal{R}(A)$。
+\begin{enumerate}
+\item[(a)] 证明 $f$ 是闭的。
+\item[(b)] 证明 $f$ 的最小解 $x^\star$ 由下式给出，
+\[
+x^\star=x_1+tx_2,
+\]
+其中 $x_1=(A^TA)^{-1}A^Tb$，$x_2=(A^TA)^{-1}c$，并且 $t\in\mathbb{R}$ 可以通过解一个二次方程确定。
+\end{enumerate}
+
+\noindent\textbf{9.3 初始点和下水平集条件。}\quad
+考虑函数 $f(x)=x_1^2+x_2^2$，定义域 $\operatorname{dom} f=\{(x_1,x_2)\mid x_1>1\}$。
+\begin{enumerate}
+\item[(a)] $p^\star$ 是什么？
+\item[(b)] 对 $x^{(0)}=(2,2)$ 画出下水平集 $S=\{x\mid f(x)\leq f(x^{(0)})\}$。$S$ 是闭集吗？$f$ 是 $S$ 上的
+强凸函数吗？
+\item[(c)] 如果我们从 $x^{(0)}$ 开始应用回溯直线搜索的梯度方法，将发生什么情况？$f(x^{(k)})$ 收敛于 $p^\star$ 吗？
+\end{enumerate}
+
+\noindent\textbf{9.4}\quad
+你是否同意以下推理？向量 $x\in\mathbb{R}^m$ 的 $\ell_1$-范数可以表示为
+\[
+\|x\|_1=(1/2)\inf_{y>0}\left(\sum_{i=1}^m x_i^2/y_i+\mathbf{1}^Ty\right).
+\]
+因此，$\ell_1$-范数逼近问题
+\[
+\begin{array}{ll}
+\mbox{minimize} & \|Ax-b\|_1
+\end{array}
+\]
+等价于极小化问题
+\begin{equation}
+\begin{array}{ll}
+\mbox{minimize} & f(x,y)=\sum_{i=1}^m(a_i^Tx-b_i)^2/y_i+\mathbf{1}^Ty
+\end{array}
+\tag{9.62}
+\end{equation}
+相应的 $\operatorname{dom} f=\{(x,y)\in\mathbb{R}^n\times\mathbb{R}^m\mid y>0\}$，其中 $a_i^T$ 是 $A$ 的第 $i$ 行。既然 $f$ 是二次可微的凸函数，我们可以通过对式 (9.62) 应用 Newton 方法求解 $\ell_1$-范数逼近问题。
+
+\noindent\textbf{9.5 回溯直线搜索。}\quad
+假设 $f$ 是满足 $mI\preceq\nabla^2 f(x)\preceq MI$ 的强凸函数。令 $\Delta x$ 为 $x$ 处的下降方向。证明对于
+\[
+0<t\leq -\frac{\nabla f(x)^T\Delta x}{M\|\Delta x\|_2^2}
+\]
+回溯终止条件能够满足。利用该结果建立回溯迭代次数的上界。
+
+\noindent\textbf{梯度和最速下降法}
+
+\noindent\textbf{9.6 $\mathbb{R}^2$ 中的二次问题。}\quad
+验证 \S9.3.2 中第一个例子的迭代点 $x^{(k)}$ 的表示式。
+
+\noindent\textbf{9.7}\quad
+令 $\Delta x_{\rm nsd}$ 和 $\Delta x_{\rm sd}$ 为 $x$ 处对应于范数 $\|\cdot\|$ 的规范化和未规范化的最速下降方向。证明下述等式。
+\begin{enumerate}
+\item[(a)] $\nabla f(x)^T\Delta x_{\rm nsd}=-\|\nabla f(x)\|_\ast$。
+\item[(b)] $\nabla f(x)^T\Delta x_{\rm sd}=-\|\nabla f(x)\|_\ast^2$。
+\item[(c)] $\Delta x_{\rm sd}=\operatorname*{argmin}_v(\nabla f(x)^Tv+(1/2)\|v\|^2)$。
+\end{enumerate}
+
+\noindent\textbf{9.8 $\ell_\infty$-范数的最速下降方向。}\quad
+说明如何确定 $\ell_\infty$-范数的最速下降方向，并给出简单的解释。
+
+\noindent\textbf{Newton 方法}
+
+\noindent\textbf{9.9 Newton 减量。}\quad
+证明 Newton 减量 $\lambda(x)$ 满足
+\[
+\lambda(x)=\sup_{v^T\nabla^2 f(x)v=1}(-v^T\nabla f(x))
+=\sup_{v\neq0}\frac{-v^T\nabla f(x)}{(v^T\nabla^2 f(x)v)^{1/2}}.
+\]
+
+\noindent\textbf{9.10 纯 Newton 方法。}\quad
+如果初始点不太接近 $x^\star$，固定步长 $t=1$ 的 Newton 法可能发散。在这里我们考虑两个例子。
+\begin{enumerate}
+\item[(a)] $f(x)=\log(e^x+e^{-x})$ 有一个唯一的最小解 $x^\star=0$。从 $x^{(0)}=1$ 和 $x^{(0)}=1.1$ 开始运行固定步长 $t=1$ 的 Newton 方法。
+\item[(b)] $f(x)=-\log x+x$ 有一个唯一的最小解 $x^\star=1$。从 $x^{(0)}=3$ 开始运行固定步长 $t=1$ 的 Newton 方法。
+\end{enumerate}
+画出 $f$ 和 $f'$，并标出最初几次迭代点。
+
+\noindent\textbf{9.11 复合函数的梯度法和 Newton 方法。}\quad
+假设 $\phi:\mathbb{R}\to\mathbb{R}$ 是单增凸函数，$f:\mathbb{R}^n\to\mathbb{R}$ 是凸函数，因此 $g(x)=\phi(f(x))$ 是凸函数。（我们假定 $f$ 和 $g$ 二次可微。）极小化 $f$ 和极小化 $g$ 显然是等价问题。
+
+比较用梯度法和 Newton 方法求解 $f$ 和 $g$ 的情况。对应的搜索方向有何联系？如果采用精确直线搜索这两种方法有何联系？提示：利用逆矩阵引理（见 \S C.4.3）。
+
+\noindent\textbf{9.12 信赖域 Newton 方法。}\quad
+如果 $\nabla^2 f(x)$ 奇异（或者严重病态），那么对 Newton 步径 $\Delta x_{\rm nt}=-\nabla^2 f(x)^{-1}\nabla f(x)$ 没有严格定义。此时可以将搜索方向 $\Delta x_{\rm tr}$ 定义为下述问题的解，
+\[
+\begin{array}{ll}
+\mbox{minimize} & (1/2)v^THv+g^Tv\\
+\mbox{subject to} & \|v\|_2\leq\gamma
+\end{array}
+\]
+其中 $H=\nabla^2 f(x)$，$g=\nabla f(x)$，而 $\gamma$ 是一个正的常数。点 $x+\Delta x_{\rm tr}$ 在约束 $\|(x+\Delta x_{\rm tr})-x\|_2\leq\gamma$ 下极小化 $f$ 在 $x$ 处的二阶近似。集合 $\{v\mid \|v\|_2\leq\gamma\}$ 称为信赖域。参数 $\gamma$ 是信赖域的尺度，反映我们对二次模型的信心。
+
+证明 $\Delta x_{\rm tr}$ 对于某些 $\hat{\beta}$ 极小化
+\[
+(1/2)v^THv+g^Tv+\hat{\beta}\|v\|^2.
+\]
+该二次函数可以解释为 $f$ 在 $x$ 附近经过调整的二次模型。
+
+\noindent\textbf{自和谐}
+
+\noindent\textbf{9.13 自和谐与倒数障碍函数。}
+\begin{enumerate}
+\item[(a)] 证明定义域为 $(0,8/9)$ 的 $f(x)=1/x$ 是自和谐函数。
+\item[(b)] 证明定义域为 $\operatorname{dom} f=\{x\in\mathbb{R}^n\mid a_i^Tx<b_i,\ i=1,\ldots,m\}$ 的函数
+\[
+f(x)=\alpha\sum_{i=1}^m\frac{1}{b_i-a_i^Tx}
+\]
+当 $\operatorname{dom} f$ 有界且满足下述条件时是自和谐函数，
+\[
+\alpha>(9/8)\max_{i=1,\ldots,m}\sup_{x\in\operatorname{dom} f}(b_i-a_i^Tx).
+\]
+\end{enumerate}
+
+\noindent\textbf{9.14 对数复合函数。}\quad
+令 $g:\mathbb{R}\to\mathbb{R}$ 是定义域为 $\operatorname{dom} g=\mathbb{R}_{++}$ 的凸函数，并且对所有 $x$ 成立
+\[
+|g'''(x)|\leq3\frac{g''(x)}{x}.
+\]
+证明 $f(x)=-\log(-g(x))-\log x$ 是 $\{x\mid x>0,\ g(x)<0\}$ 上的自和谐函数。提示：利用对满足 $p^2+q^2+r^2=1$ 的 $p,q,r\in\mathbb{R}_+$ 均成立的不等式
+\[
+\frac{3}{2}rp^2+q^3+\frac{3}{2}p^2q+r^3\leq1.
+\]
+
+\noindent\textbf{9.15}\quad
+证明下述函数都是自和谐函数。在证明中，将函数限制在直线上，并利用对数复合函数的性质。
+\begin{enumerate}
+\item[(a)] $f(x,y)=-\log(y^2-x^Tx)$，定义域为 $\{(x,y)\mid \|x\|_2<y\}$。
+\item[(b)] $f(x,y)=-2\log y-\log(y^{2/p}-x^2)$，$p\geq1$，定义域为 $\{(x,y)\in\mathbb{R}^2\mid |x|^p<y\}$。
+\item[(c)] $f(x,y)=-\log y-\log(\log y-x)$，定义域为 $\{(x,y)\mid e^x<y\}$。
+\end{enumerate}
+
+\noindent\textbf{9.16}\quad
+令 $f:\mathbb{R}\to\mathbb{R}$ 为自和谐函数。
+\begin{enumerate}
+\item[(a)] 假设 $f''(x)\neq0$。证明自和谐条件 (9.41) 可以表示为
+\[
+\left|\frac{d}{dx}\left(f''(x)^{-1/2}\right)\right|\leq1.
+\]
+找出单变量``极端''自和谐函数，即函数 $f$ 和 $\tilde f$ 分别满足
+\[
+\frac{d}{dx}\left(f''(x)^{-1/2}\right)=1,\qquad
+\frac{d}{dx}\left(\tilde f''(x)^{-1/2}\right)=-1.
+\]
+\item[(b)] 证明或者对所有 $x\in\operatorname{dom} f$ 满足 $f''(x)=0$，或者对所有 $x\in\operatorname{dom} f$ 满足 $f''(x)>0$。
+\end{enumerate}
+
+\noindent\textbf{9.17 关于自和谐函数 Hessian 矩阵的上下界。}
+\begin{enumerate}
+\item[(a)] 令 $f:\mathbb{R}^2\to\mathbb{R}$ 为自和谐函数。证明对所有 $x\in\operatorname{dom} f$ 成立
+\[
+\left|\frac{\partial^3 f(x)}{\partial x_i^3}\right|\leq2\left(\frac{\partial^2 f(x)}{\partial x_i^2}\right)^{3/2},
+\qquad i=1,2,
+\]
+\[
+\left|\frac{\partial^3 f(x)}{\partial x_i^2\partial x_j}\right|\leq
+2\frac{\partial^2 f(x)}{\partial x_i^2}\left(\frac{\partial^2 f(x)}{\partial x_j^2}\right)^{1/2},
+\qquad i\neq j.
+\]
+提示：如果 $h:\mathbb{R}^2\times\mathbb{R}^2\times\mathbb{R}^2\to\mathbb{R}$ 是对称三线性形式，即
+\[
+\begin{aligned}
+h(u,v,w)={}&a_1u_1v_1w_1+a_2(u_1v_1w_2+u_1v_2w_1+u_2v_1w_1)\\
+&{}+a_3(u_1v_2w_2+u_2v_1w_2+u_2v_2w_1)+a_4u_2v_2w_2,
+\end{aligned}
+\]
+则
+\[
+\sup_{u,v,w\neq0}\frac{h(u,v,w)}{\|u\|_2\|v\|_2\|w\|_2}
+=\sup_{u\neq0}\frac{h(u,u,u)}{\|u\|_2^3}.
+\]
+\item[(b)] 令 $f:\mathbb{R}^n\to\mathbb{R}$ 为自和谐函数。证明 $\nabla^2 f(x)$ 的零空间独立于 $x$。证明如果 $f$ 是严格凸函数，则对于所有的 $x\in\operatorname{dom} f$，$\nabla^2 f(x)$ 非奇异。
+
+提示：证明如果对于某些 $x\in\operatorname{dom} f$ 成立 $w^T\nabla^2 f(x)w=0$，则对于所有的 $y\in\operatorname{dom} f$ 成立 $w^T\nabla^2 f(y)w=0$。为证明该结论，可对自和谐函数 $\tilde f(t,s)=f(x+t(y-x)+sw)$ 应用 (a) 的结果。
+\item[(c)] 令 $f:\mathbb{R}^n\to\mathbb{R}$ 为自和谐函数。假定 $x\in\operatorname{dom} f$，$v\in\mathbb{R}^n$。证明对于 $x+tv\in\operatorname{dom} f$，$0\leq t<\alpha$ 成立
+\[
+(1-t\alpha)^2\nabla^2 f(x)\preceq\nabla^2 f(x+tv)\preceq
+\frac{1}{(1-t\alpha)^2}\nabla^2 f(x),
+\]
+其中 $\alpha=(v^T\nabla^2 f(x)v)^{1/2}$。
+\end{enumerate}
+
+\noindent\textbf{9.18 二次收敛。}\quad
+令 $f:\mathbb{R}^n\to\mathbb{R}$ 为严格凸的自和谐函数。假定 $\lambda(x)<1$，定义 $x^+=x-\nabla^2 f(x)^{-1}\nabla f(x)$。证明 $\lambda(x^+)\leq\lambda(x)^2/(1-\lambda(x))^2$。提示：利用习题 9.17 的 (c) 的不等式。
+
+\noindent\textbf{9.19 与最优解之间距离的上界。}\quad
+令 $f:\mathbb{R}^n\to\mathbb{R}$ 为严格凸的自和谐函数。
+\begin{enumerate}
+\item[(a)] 假设 $\lambda(\bar x)<1$，下水平集 $\{x\mid f(x)\leq f(\bar x)\}$ 是闭集。证明 $f$ 的最小值可达到，并且
+\[
+\left((\bar x-x^\star)^T\nabla^2 f(\bar x)(\bar x-x^\star)\right)^{1/2}
+\leq\frac{\lambda(\bar x)}{1-\lambda(\bar x)}.
+\]
+\item[(b)] 证明如果 $f$ 有一个闭的下水平集，并且有下界，则其最小值可达到。
+\end{enumerate}
+
+\noindent\textbf{9.20 自和谐函数的共轭性。}\quad
+假设 $f:\mathbb{R}^n\to\mathbb{R}$ 是闭的严格凸的自和谐函数。我们证明其共轭（或 Legendre 变换）$f^\ast$ 是自和谐函数。
+\begin{enumerate}
+\item[(a)] 证明对每个 $y\in\operatorname{dom} f^\ast$，有唯一的 $x\in\operatorname{dom} f$ 满足 $y=\nabla f(x)$。提示：参考习题 9.19 的结果。
+\item[(b)] 假设 $\bar y=\nabla f(\bar x)$。定义
+\[
+g(t)=f(\bar x+tv),\qquad h(t)=f^\ast(\bar y+tw),
+\]
+其中 $v\in\mathbb{R}^n$，$w=\nabla^2 f(\bar x)v$。证明
+\[
+g''(0)=h''(0),\qquad g'''(0)=-h'''(0).
+\]
+利用这个等式证明 $f^\ast$ 是自和谐函数。
+\end{enumerate}
+
+\noindent\textbf{9.21 直线搜索的最优参数。}\quad
+考虑极小化严格凸的自和谐函数所需要的 Newton 迭代次数的上界 (9.56)。如果我们优化 $\alpha$ 和 $\beta$，该上界的最小值是多少？
+
+\noindent\textbf{9.22}\quad
+假设 $f$ 是满足式 (9.42) 的严格凸函数。给出从 $x^{(0)}$ 开始在 $\epsilon$ 的误差范围内确定 $p^\star$ 所需要的 Newton 迭代次数的上界。
+
+\noindent\textbf{实现}
+
+\noindent\textbf{9.23 直线搜索的预处理。}\quad
+对下述每个函数，说明如何通过预处理减少直线搜索的计算量。给出预处理的计算成本，以及采用或不采用预处理方法计算 $g(t)=f(x+t\Delta x)$ 和 $g'(t)$ 的成本。
+\begin{enumerate}
+\item[(a)] $f(x)=-\sum_{i=1}^m\log(b_i-a_i^Tx)$。
+\item[(b)] $f(x)=\log\left(\sum_{i=1}^m\exp(a_i^Tx+b_i)\right)$。
+\item[(c)] $f(x)=(Ax-b)^T(P_0+x_1P_1+\cdots+x_nP_n)^{-1}(Ax-b)$，其中 $P_i\in\mathbf{S}^m$，$A\in\mathbb{R}^{m\times n}$，$b\in\mathbb{R}^m$，
+\[
+\operatorname{dom} f=\left\{x\mid P_0+\sum_{i=1}^n x_iP_i\succ0\right\}.
+\]
+\end{enumerate}
+
+\noindent\textbf{9.24 利用 Newton 系统的分块结构。}\quad
+假设凸函数 $f$ 的 Hessian 矩阵 $\nabla^2 f(x)$ 是分块对角阵。在计算 Newton 步径时如何利用这种结构？相应的 $f$ 具有什么性质？
+
+\noindent\textbf{9.25 对给定数据的光滑拟合。}\quad
+考虑问题
+\[
+\begin{array}{ll}
+\mbox{minimize} & f(x)=\displaystyle\sum_{i=1}^n\psi(x_i-y_i)+\lambda\sum_{i=1}^{n-1}(x_{i+1}-x_i)^2,
+\end{array}
+\]
+其中 $\lambda>0$ 是光滑参数，$\psi$ 是凸的罚函数，$x\in\mathbb{R}^n$ 是变量。我们可以将 $x$ 解释为向量 $y$ 的光滑拟合。
+\begin{enumerate}
+\item[(a)] $f$ 的 Hessian 矩阵有什么结构？
+\item[(b)] 推广到二维数据光滑拟合问题，即极小化函数
+\[
+\sum_{i,j=1}^n\psi(x_{ij}-y_{ij})+\lambda\left(
+\sum_{i=1}^{n-1}\sum_{j=1}^n(x_{i+1,j}-x_{ij})^2+
+\sum_{i=1}^n\sum_{j=1}^{n-1}(x_{i,j+1}-x_{ij})^2\right),
+\]
+其中 $X\in\mathbb{R}^{n\times n}$ 为变量，$Y\in\mathbb{R}^{n\times n}$ 和 $\lambda>0$ 为给定数据。
+\end{enumerate}
+
+\noindent\textbf{9.26 线性结构的 Newton 方程。}\quad
+考虑下述形式的函数的极小化问题
+\begin{equation}
+f(x)=\sum_{i=1}^N\psi_i(A_ix+b_i),
+\tag{9.63}
+\end{equation}
+其中 $A_i\in\mathbb{R}^{m_i\times n}$，$b_i\in\mathbb{R}^{m_i}$，$\psi_i:\mathbb{R}^{m_i}\to\mathbb{R}$ 是二次可微凸函数。函数 $f$ 在 $x$ 处的 Hessian 矩阵 $H$ 和梯度 $g$ 由下式给出，
+\begin{equation}
+H=\sum_{i=1}^N A_i^T H_i A_i,\qquad
+g=\sum_{i=1}^N A_i^T g_i.
+\tag{9.64}
+\end{equation}
+其中 $H_i=\nabla^2\psi_i(A_ix+b_i)$，$g_i=\nabla\psi_i(A_ix+b_i)$。
+
+说明如何实现极小化 $f$ 的 Newton 方法。假定 $n\gg m_i$，矩阵 $A_i$ 非常稀疏，但 Hessian 矩阵 $H$ 是稠密的。
+
+\noindent\textbf{9.27 具有变量上下界约束的线性不等式解析中心。}\quad
+给出计算下述函数 Newton 步径的最有效方法，
+\[
+f(x)=-\sum_{i=1}^n\log(x_i+1)-\sum_{i=1}^n\log(1-x_i)-\sum_{i=1}^m\log(b_i-a_i^Tx),
+\]
+\[
+\operatorname{dom} f=\{x\in\mathbb{R}^n\mid -1\prec x\prec1,\ Ax\prec b\},
+\]
+其中 $a_i^T$ 是 $A$ 的第 $i$ 行向量。假定 $A$ 是稠密的，分别考虑以下两种情况：$m\geq n$ 和 $m\leq n$。（参考习题 9.30。）
+
+\noindent\textbf{9.28 二次不等式解析中心。}\quad
+给出计算下述函数 Newton 步径的有效方法
+\[
+f(x)=-\sum_{i=1}^m\log(-x^TA_ix-b_i^Tx-c_i),
+\]
+\[
+\operatorname{dom} f=\{x\mid x^TA_ix+b_i^Tx+c_i<0,\ i=1,\ldots,m\}.
+\]
+假设矩阵 $A_i\in\mathbf{S}_{++}^n$ 均为稀疏大矩阵，并且 $m\ll n$。
+
+提示：$f$ 在 $x$ 处的 Hessian 矩阵和梯度由下式给出，
+\[
+H=\sum_{i=1}^m(2\alpha_iA_i+\alpha_i^2(2A_ix+b_i)(2A_ix+b_i)^T),
+\qquad
+g=\sum_{i=1}^m\alpha_i(2A_ix+b_i),
+\]
+其中 $\alpha_i=1/(-x^TA_ix-b_i^Tx-c_i)$。
+
+\noindent\textbf{9.29 利用两阶段优化问题的结构。}\quad
+本习题是习题 4.64 的继续，后者描述了依赖情景的优化问题，或两阶段优化问题。我们采用习题 4.64 的符号和假设，并另外假设对每个情景 $i=1,\ldots,S$，成本函数 $f_i$ 是 $(x,z_i)$ 的二次可微函数。
+
+说明对于策略优化问题如何有效计算 Newton 步径。如何比较你的方法和一般方法（不利用结构的方法）的近似计算量，并将其表示为情景个数 $S$ 的函数？
+
+\noindent\textbf{数值试验}
+
+\noindent\textbf{9.30 梯度法和 Newton 方法。}\quad
+考虑无约束问题
+\[
+\begin{array}{ll}
+\mbox{minimize} & f(x)=-\displaystyle\sum_{i=1}^m\log(1-a_i^Tx)-\sum_{i=1}^n\log(1-x_i^2),
+\end{array}
+\]
+变量 $x\in\mathbb{R}^n$，
+\[
+\operatorname{dom} f=\{x\mid a_i^Tx<1,\ i=1,\ldots,m,\ |x_i|<1,\ i=1,\ldots,n\}.
+\]
+这是计算下述线性不等式组解析中心的问题，
+\[
+a_i^Tx\leq1,\quad i=1,\ldots,m,\qquad |x_i|\leq1,\quad i=1,\ldots,n.
+\]
+可以选择 $x^{(0)}=0$ 作为初始点。你可以通过从 $\mathbb{R}^n$ 的某种分布中选择 $a_i$ 来生成该问题的实例。
+\begin{enumerate}
+\item[(a)] 用梯度法求解该问题，合理选择回溯参数，采用 $\|\nabla f(x)\|_2\leq\eta$ 类型的停止准则。画出目标函数和步长关于迭代次数的图像。（一旦你以很高精度逼近 $p^\star$，也可以画出 $f-p^\star$ 关于迭代次数的图像。）实验中可改变回溯参数 $\alpha$ 和 $\beta$ 的数值以观察它们对所需要的迭代次数的影响。对不同规模的多个实例进行上述实验。
+\item[(b)] 用 Newton 方法重复上述实验，停止准则基于 Newton 减量 $\lambda^2$。观察二次收敛性。不需要像习题 9.27 那样用有效的方法计算 Newton 步径；你可以采用针对稠密矩阵的通用求解软件，当然最好采用基于 Cholesky 因式分解的方法。
+\end{enumerate}
+提示：采用链式规则确定 $\nabla f(x)$ 和 $\nabla^2 f(x)$ 的表达式。
+
+\noindent\textbf{9.31 近似 Newton 方法。}\quad
+Newton 方法的计算成本主要为计算 Hessian 矩阵 $\nabla^2 f(x)$ 和求解 Newton 系统的成本。对于大规模问题，用一个正定矩阵近似 Hessian 矩阵以便于确定搜索步径，有时是非常有用的。在这里我们基于这种想法研究一些常规例子。
+
+对于下面描述的每个近似 Newton 方法，用习题 9.30 给出的解析中心问题的一些实例进行试验，并和 Newton 方法及梯度方法比较计算结果。
+\begin{enumerate}
+\item[(a)] 重复使用 Hessian 矩阵。我们只在每 $N$ 步迭代后计算 Hessian 矩阵，并对其进行因式分解，其中 $N>1$，每次搜索步径仍采用 $\Delta x=-H^{-1}\nabla f(x)$，其中 $H$ 是最近计算的 Hessian 矩阵。（我们需要每经过 $N$ 次迭代就计算一次 Hessian 矩阵，并对其进行因式分解；对于其他次数的迭代，只需采用后向和前向代入来确定搜索方向。）
+\item[(b)] 对角化近似。我们用 Hessian 矩阵的对角元素代替它自身，因此仅需要计算 $n$ 个二阶导数 $\partial^2 f(x)/\partial x_i^2$，此时搜索步径也很容易计算。
+\end{enumerate}
+
+\noindent\textbf{9.32 凸的非线性最小二乘问题的 Gauss-Newton 方法。}\quad
+我们考虑（非线性）最小二乘问题，极小化函数的形式为
+\[
+f(x)=\frac{1}{2}\sum_{i=1}^m f_i(x)^2,
+\]
+其中 $f_i$ 是二次可微函数。$f$ 在 $x$ 处的梯度和 Hessian 矩阵由下式给出，
+\[
+\nabla f(x)=\sum_{i=1}^m f_i(x)\nabla f_i(x),\qquad
+\nabla^2 f(x)=\sum_{i=1}^m(\nabla f_i(x)\nabla f_i(x)^T+f_i(x)\nabla^2 f_i(x)).
+\]
+我们考虑 $f$ 是凸函数的情况。例如，如果每个 $f_i$ 或者是非负凸函数，或者是非正的凹函数，或者是仿射函数，就会出现这种情况。
+
+\noindent\textbf{Gauss-Newton 方法。}\quad
+采用以下搜索方向，
+\[
+\Delta x_{\rm gn}=-\left(\sum_{i=1}^m\nabla f_i(x)\nabla f_i(x)^T\right)^{-1}
+\left(\sum_{i=1}^m f_i(x)\nabla f_i(x)\right).
+\]
+（这里我们假设逆矩阵存在，即向量 $\nabla f_1(x),\ldots,\nabla f_m(x)$ 张成 $\mathbb{R}^n$。）这个搜索方向可以视为近似的 Newton 方向（参考习题 9.31），通过在 $f$ 的 Hessian 矩阵中剔除二阶导数得到。
+
+我们可以对 Gauss-Newton 搜索方向 $\Delta x_{\rm gn}$ 给出另一个简单的解释。利用一阶近似 $f_i(x+v)\approx f_i(x)+\nabla f_i(x)^Tv$ 可以得到近似式
+\[
+f(x+v)\approx\frac{1}{2}\sum_{i=1}^m(f_i(x)+\nabla f_i(x)^Tv)^2.
+\]
+Gauss-Newton 搜索步径 $\Delta x_{\rm gn}$ 就是使 $f$ 的这个近似式达到最小的 $v$ 值。（此外，可以通过求解线性最小二乘问题确定 $\Delta x_{\rm gn}$。）
+
+用下述问题的实例试验 Gauss-Newton 方法；
+\[
+f_i(x)=(1/2)x^TA_ix+b_i^Tx+1,
+\]
+其中 $A_i\in\mathbf{S}_{++}^n$，$b_i^TA_i^{-1}b_i\leq2$（由此可保证 $f$ 是凸函数）。
+
+\end{document}

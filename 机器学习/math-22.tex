@@ -1,0 +1,114 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\graphicspath{{math/机器学习/}}
+
+\title{第 22 章\quad 无监督学习方法总结}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{22.1\quad 无监督学习方法的关系和特点}
+
+第 2 篇详细介绍了八种常用的统计机器学习方法，即聚类方法（包括层次聚类与 $k$ 均值聚类）、奇异值分解（SVD）、主成分分析（PCA）、潜在语义分析（LSA）、概率潜在语义分析（PLSA）、马尔可夫链蒙特卡罗法（MCMC，包括 Metropolis-Hastings 算法和吉布斯抽样）、潜在狄利克雷分配（LDA）、PageRank 算法。此外，还简单介绍了另外三种常用的统计机器学习方法，即非负矩阵分解（NMF）、变分推理、幂法。这些方法通常用于无监督学习的聚类、降维、话题分析以及图分析。
+
+\subsection*{22.1.1\quad 各种方法之间的关系}
+
+图 22.1 总结一些机器学习方法之间的关系，包括第 1 篇、第 2 篇介绍的方法，分别用深灰色与浅灰色表示。图中上面是无监督学习方法，下面是基础机器学习方法。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{22-1.png}
+\end{figure}
+
+无监督学习用于聚类、降维、话题分析、图分析。聚类的方法有层次聚类、$k$ 均值聚类、高斯混合模型，降维的方法有 PCA，话题分析的方法包括 LSA、PLSA、LDA，图分析的方法有 PageRank。
+
+基础方法不涉及具体的机器学习模型。基础方法不仅可以用于无监督学习，也可以用于监督学习、半监督学习。基础方法分为矩阵分解，矩阵特征值求解，含有隐变量的概率模型估计，前两者是线性代数问题，后者是概率统计问题。矩阵分解的方法有 SVD 和 NMF，矩阵特征值求解的方法有幂法，含有隐变量的概率模型学习的方法有 EM 算法、变分推理、MCMC。
+
+\subsection*{22.1.2\quad 无监督学习方法}
+
+聚类有硬聚类和软聚类，层次聚类与 $k$ 均值聚类是硬聚类方法。高斯混合模型是软聚类方法。层次聚类基于启发式算法，$k$ 均值聚类基于迭代算法，高斯混合模型学习通常基于 EM 算法。
+
+降维有线性降维和非线性降维，PCA 是线性降维方法。PCA 基于 SVD。
+
+话题分析兼有聚类和降维特点，有非概率模型、概率模型。LSA、NMF 是非概率模型，PLSA、LDA 是概率模型。PLSA 不假设模型具有先验分布，学习基于极大似然估计；LDA 假设模型具有先验分布，学习基于贝叶斯学习，具体地后验概率估计。LSA 的学习基于 SVD，NMF 可以直接用于话题分析。PLSA 的学习基于 EM 算法，LDA 的学习基于吉布斯抽样或变分推理。
+
+图分析的一个问题是链接分析，即结点的重要度计算。PageRank 是链接分析的一个方法。PageRank 通常基于幂法。
+
+表 22.1 总结了无监督学习方法的模型、策略、算法。
+
+\begin{table}[htbp]
+\centering
+\includegraphics[width=\textwidth]{table-22-1.png}
+\end{table}
+
+\subsection*{22.1.3\quad 基础机器学习方法}
+
+矩阵分解基于不同假设：SVD 基于正交假设，即分解得到的左右矩阵是正交矩阵，中间矩阵是非负对角矩阵；非负矩阵分解基于非负假设，即分解得到的左右矩阵皆是非负矩阵。
+
+含有隐变量的概率模型的学习有两种方法：迭代计算方法、随机抽样方法。EM 算法和变分推理（包括变分 EM 算法）属于迭代计算方法，吉布斯抽样属于随机抽样方法。变分 EM 算法是 EM 算法的推广。
+
+矩阵的特征值与特征向量求解方法中，幂法是常用的算法。
+
+表 22.2 总结了含隐变量概率模型的学习方法的特点。
+
+\begin{table}[htbp]
+\centering
+\includegraphics[width=\textwidth]{table-22-2.png}
+\end{table}
+
+\section*{22.2\quad 话题模型之间的关系和特点}
+
+本书介绍的四种话题模型 LSA、NMF、PLSA 和 LDA，前两者是非概率模型，后两者是概率模型。下面讨论它们之间的关系（细节可参考文献 [1,2]）。
+
+可以从矩阵分解的统一框架看 LSA、NMF 和 PLSA。在这个框架下，通过最小化一般化 Bregman 散度进行有约束的矩阵分解 $D=UV$，得到这三个话题模型：
+\[
+\min_{U,V} B(D\|UV)
+\]
+这里 $B(D\|UV)$ 表示 $D$ 和 $UV$ 之间的一般化 Bregman 散度（generalized Bregman divergence），当且仅当两者相等时取值为 0。一般化 Bregman 散度包含平方损失、KL 散度等。三个话题模型拥有三种不同的具体形式。表 22.3 给出了三个话题模型的损失函数和约束的公式，其中 PLSA 的矩阵 $D$ 需要进行归一化 $\sum_{m,n}d_{mn}=1$。
+
+\begin{table}[htbp]
+\centering
+\caption*{表 22.3\quad 矩阵分解的角度看话题模型}
+\begin{tabular}{c C{0.28\textwidth} C{0.24\textwidth} C{0.24\textwidth}}
+\toprule
+方法 & 一般损失函数 $B(D\|UV)$ & 矩阵 $U$ 的约束条件 & 矩阵 $V$ 的约束条件\\
+\midrule
+LSA & $\|D-UV\|_F^2$ & $U^{\mathrm{T}}U=I$ & $VV^{\mathrm{T}}=\Lambda^2$\\
+NMF & $\|D-UV\|_F^2$ & $u_{mk}\geqslant 0$ & $v_{kn}\geqslant 0$\\
+PLSA & $\displaystyle\sum_{m,n}d_{mn}\log\frac{d_{mn}}{(UV)_{mn}}$ & $U^{\mathrm{T}}\mathbf{1}=1,\ u_{mk}\geqslant 0$ & $V^{\mathrm{T}}\mathbf{1}=1,\ v_{kn}\geqslant 0$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+话题模型 LSA、NMF 是非概率模型，但也有概率模型解释。可以从概率图模型的统一框架看 LSA、NMF、PLSA 和 LDA。在这个框架下，认为文本由概率模型生成，基于不同的假设得到四个不同的话题模型。四个话题模型有不同的概率图模型定义。LSA 和 NMF，每个文本 $d_n$ 由高斯分布 $P(d_n\mid U,v_n)\propto \exp(-\|d_n-Uv_n\|^2)$ 生成，其参数是 $U$ 和 $v_n$，共有 $N$ 个文本，如图 22.2 所示。两个话题模型有不同的约束条件，表 22.4 给出约束条件的公式。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.56\textwidth]{22-2.png}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption*{表 22.4\quad 话题模型 LSA 和 NMF 的约束条件}
+\begin{tabular}{c C{0.38\textwidth} C{0.38\textwidth}}
+\toprule
+方法 & 变量 $u_k$ 的约束条件 & 变量 $v_n$ 的约束条件\\
+\midrule
+LSA & 正交 & 正交\\
+NMF & $u_{mk}\geqslant 0$ & $v_{kn}\geqslant 0$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{参考文献}
+
+\begin{enumerate}
+  \item Singh A P, Gordon G J. A unified view of matrix factorization models. In: Daelemans W, Goethals B, Morik K. (eds) Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2008. Lecture Notes in Computer Science, vol 5212. Berlin: Springer, 2008.
+  \item Wang Q, Xu J, Li H, et al. Regularized latent semantic indexing: a new approach to large-scale topic modeling. ACM Transactions on Information Systems (TOIS), 2013, 31(1), 5.
+\end{enumerate}
+
+\end{document}

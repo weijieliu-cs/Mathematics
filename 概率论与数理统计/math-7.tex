@@ -1,0 +1,2234 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+\newcommand{\biohazard}{\ensuremath{\ast}}
+
+\graphicspath{{math/概率论/}}
+
+\title{第 7 章\quad 联合分布}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+当我们在第 3 章第一次介绍随机变量及其分布时，我们已经注意到，两个随机变量各自的分布并不能告诉我们它们是独立还是相依的。例如，两个 $\operatorname{Bern}(1/2)$ 随机变量 $X$ 和 $Y$，若分别表示两次不同抛硬币是否为正面，则可以是独立的；若分别表示同一次抛硬币是否为正面和反面，则可以是相依的。因此，虽然 $X$ 的 PMF 是关于 $X$ 的完整蓝图，$Y$ 的 PMF 是关于 $Y$ 的完整蓝图，但这些单变量 PMF 缺少关于两个随机变量如何相互关联的重要信息。
+
+当然，在现实生活中，我们通常关心同一实验中多个随机变量之间的关系。下面给出几个例子：
+\begin{itemize}
+  \item \textit{医学：}为了评价某种治疗的有效性，我们可能对每位患者作多项测量；血压、心率和胆固醇读数合在一起，往往比把这些测量逐个分开考虑更有信息量。
+  \item \textit{遗传学：}为了研究各种遗传标记与某种疾病之间的关系，如果只分别查看每个遗传标记的分布，就可能无法发现标记之间的相互作用是否与疾病有关。
+  \item \textit{时间序列：}为了研究某个量如何随时间演化，我们常常会随时间作一系列测量，然后把整个序列作为整体研究。这类序列有许多应用，例如全球气温、股票价格或全国失业率。联合考虑这些测量序列，有助于推断趋势并预测未来测量值。
+\end{itemize}
+
+本章研究\textbf{联合分布}，也称为\textbf{多元分布}，它刻画多个随机变量如何相互作用。我们将引入 CDF、PMF 和 PDF 的多元对应物，以完整描述多个随机变量之间的关系。在这些基础建立之后，我们会研究几个著名的多元分布，它们把二项分布和正态分布推广到更高维。
+
+\section*{7.1\quad 联合、边缘与条件}
+
+本节有三个关键词：\textbf{联合}、\textbf{边缘}与\textbf{条件}分布。回忆单个随机变量 $X$ 的分布提供了关于 $X$ 落入实线上任意子集的概率的完整信息。类似地，两个随机变量 $X$ 和 $Y$ 的联合分布提供了向量 $(X,Y)$ 落入平面中任意子集的概率的完整信息。$X$ 的边缘分布是 $X$ 自身的分布，它忽略 $Y$ 的取值；而给定 $Y=y$ 时 $X$ 的条件分布，则是在观察到 $Y=y$ 之后，对 $X$ 的分布作出的更新。我们先在离散情形中讨论这些概念，再推广到连续情形。
+
+\subsection*{7.1.1\quad 离散情形}
+
+两个随机变量联合分布最一般的描述是\textbf{联合 CDF}，它同时适用于离散和连续随机变量。
+
+\noindent\textbf{定义 7.1.1（联合 CDF）}\quad 随机变量 $X$ 和 $Y$ 的\textbf{联合 CDF} 是函数 $F_{X,Y}$，定义为
+\[
+  F_{X,Y}(x,y)=P(X\le x,Y\le y).
+\]
+$n$ 个随机变量的联合 CDF 可类似定义。
+
+不过，离散随机变量的联合 CDF 并不是一个很好处理的函数；正如一维情形一样，它由跳跃和平坦区域组成。因此，对离散随机变量，我们通常使用\textbf{联合 PMF}，它同样决定联合分布，而且更容易可视化。
+
+\noindent\textbf{定义 7.1.2（联合 PMF）}\quad 离散随机变量 $X$ 和 $Y$ 的\textbf{联合 PMF} 是函数 $p_{X,Y}$，定义为
+\[
+  p_{X,Y}(x,y)=P(X=x,Y=y).
+\]
+$n$ 个离散随机变量的联合 PMF 可类似定义。
+
+正如一维 PMF 必须非负且总和为 $1$ 一样，合法的联合 PMF 也必须非负且总和为 $1$，其中求和遍历 $X$ 和 $Y$ 的所有可能取值：
+\[
+  \sum_x\sum_y P(X=x,Y=y)=1.
+\]
+
+联合 PMF 决定分布，因为对于 $(X,Y)$ 支撑集中的任意点集 $A$，我们可以用它求事件 $(X,Y)\in A$ 的概率：只需在 $A$ 上对联合 PMF 求和，
+\[
+  P((X,Y)\in A)=\sum_{(x,y)\in A} P(X=x,Y=y).
+\]
+
+图 7.1 画出了两个离散随机变量的联合 PMF 可能具有的形状。在点 $(x,y)$ 处竖直条的高度表示概率 $P(X=x,Y=y)$。为了使联合 PMF 合法，所有竖直条的总高度必须为 $1$。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.58\textwidth]{7-1.png}
+  \caption{离散随机变量 $X$ 和 $Y$ 的联合 PMF。}
+\end{figure}
+
+从 $X$ 和 $Y$ 的联合分布出发，我们可以通过对 $Y$ 的可能取值求和，得到单独关于 $X$ 的分布。这给出了我们在前几章已经见过的 $X$ 的 PMF。在联合分布的语境中，我们称它为 $X$ 的\textbf{边缘分布}或\textbf{无条件分布}，以强调它指的是 $X$ 本身的分布，而不考虑 $Y$ 的取值。
+
+\noindent\textbf{定义 7.1.3（边缘 PMF）}\quad 对离散随机变量 $X$ 和 $Y$，$X$ 的\textbf{边缘 PMF} 为
+\[
+  P(X=x)=\sum_y P(X=x,Y=y).
+\]
+
+$X$ 的边缘 PMF 就是把 $X$ 单独看待时的 PMF，而不是把它与 $Y$ 联合看待。上式来自概率公理，因为我们是在对互不相交的情形求和。为了把联合 PMF 转换为 $X$ 的边缘 PMF，需要对 $Y$ 的可能取值求和，这个操作称为\textbf{把 $Y$ 边缘化掉}。
+
+图 7.2 展示了如何从联合 PMF 得到边缘 PMF。这里从俯视角观察联合 PMF，以便看得更清楚：联合 PMF 的每一列对应一个固定的 $x$，每一行对应一个固定的 $y$。对任意 $x$，概率 $P(X=x)$ 是联合 PMF 中对应列所有竖直条高度之和；可以想象把这一列中的所有竖直条堆叠起来，得到边缘概率。对所有 $x$ 重复这一过程，就得到图中用粗线表示的边缘 PMF。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.62\textwidth]{7-2.png}
+  \caption{从图 7.1 的联合 PMF 俯视。边缘 PMF $P(X=x)$ 通过在 $y$ 方向上对联合 PMF 求和得到。}
+\end{figure}
+
+类似地，$Y$ 的边缘 PMF 通过对 $X$ 的所有可能取值求和得到。因此，给定联合 PMF，我们可以把 $Y$ 边缘化掉而得到 $X$ 的 PMF，也可以把 $X$ 边缘化掉而得到 $Y$ 的 PMF。但如果只知道 $X$ 和 $Y$ 的边缘 PMF，在没有进一步假设的情况下，就无法恢复联合 PMF。图 7.2 中如何堆叠竖直条是清楚的；但一旦堆叠之后，如何把它们拆回原来的样子则非常不清楚。
+
+另一种从联合分布得到边缘分布的方法，是使用联合 CDF。此时我们取极限而不是求和：$X$ 的边缘 CDF 为
+\[
+  F_X(x)=P(X\le x)=\lim_{y\to\infty} P(X\le x,Y\le y)
+  =\lim_{y\to\infty} F_{X,Y}(x,y).
+\]
+不过如前所述，在离散情形中通常使用联合 PMF 更方便。
+
+现在假设我们观察到了 $X$ 的值，并希望根据这一信息更新 $Y$ 的分布。此时不应再使用不包含任何 $X$ 信息的边缘 PMF $P(Y=y)$，而应使用一个以事件 $X=x$ 为条件的 PMF，其中 $x$ 是我们观察到的 $X$ 的取值。这自然引出了条件 PMF。
+
+\noindent\textbf{定义 7.1.4（条件 PMF）}\quad 对离散随机变量 $X$ 和 $Y$，给定 $X=x$ 时 $Y$ 的\textbf{条件 PMF} 为
+\[
+  P(Y=y\mid X=x)=\frac{P(X=x,Y=y)}{P(X=x)}.
+\]
+这里把它看作固定 $x$ 时关于 $y$ 的函数。
+
+注意，对于固定的 $x$，条件 PMF 本身是一个合法 PMF。因此可以用与定义 $E(Y)$ 相同的方式定义给定 $X=x$ 时 $Y$ 的条件期望，记为 $E(Y\mid X=x)$；区别只是把 $Y$ 的 PMF 换成 $Y$ 的条件 PMF。第 9 章将专门讨论条件期望。
+
+图 7.3 说明了条件 PMF 的定义。为了以事件 $X=x$ 为条件，我们先取联合 PMF，并只关注其中 $X$ 取值为 $x$ 的竖直条；在图中这些竖直条以粗线显示。其他所有竖直条都无关，因为它们与已经发生 $X=x$ 的信息不相容。粗线竖直条的总高度是边缘概率 $P(X=x)$，于是我们通过除以 $P(X=x)$ 对条件 PMF 重新归一化，使其总和为 $1$。因此，条件 PMF 确实是 PMF，正如条件概率仍然是概率一样。注意，对 $X$ 的每一个可能取值，都有一个不同的 $Y$ 的条件 PMF；图 7.3 只突出显示其中一个。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{7-3.png}
+  \caption{给定 $X=x$ 时 $Y$ 的条件 PMF。条件 PMF $P(Y=y\mid X=x)$ 是通过对联合 PMF 中与事件 $X=x$ 相容的那一列重新归一化得到的。}
+\end{figure}
+
+我们也可以用贝叶斯规则，把给定 $X=x$ 时 $Y$ 的条件分布与给定 $Y=y$ 时 $X$ 的条件分布联系起来：
+\[
+  P(Y=y\mid X=x)=\frac{P(X=x\mid Y=y)P(Y=y)}{P(X=x)}.
+\]
+
+利用全概率公式，还可以得到边缘 PMF 的另一种表达：$X$ 的边缘 PMF 是条件 PMF $P(X=x\mid Y=y)$ 的加权平均，权重是概率 $P(Y=y)$：
+\[
+  P(X=x)=\sum_y P(X=x\mid Y=y)P(Y=y).
+\]
+
+\noindent\textbf{例 7.1.5（$2\times 2$ 表）}\quad 一个离散联合分布最简单的例子，是 $X$ 和 $Y$ 都是 Bernoulli 随机变量的情形。此时联合 PMF 完全由四个数
+\[
+  P(X=1,Y=1),\quad P(X=0,Y=1),\quad P(X=1,Y=0),\quad P(X=0,Y=0)
+\]
+指定，所以可以用一个 $2\times 2$ 表表示 $X$ 和 $Y$ 的联合 PMF。
+
+这个极其简单的情形在统计学中其实很重要，因为所谓的\textbf{列联表}常用于研究某种治疗是否与某个特定结果有关。在这样的情形中，$X$ 可以表示是否接受治疗，而 $Y$ 可以表示是否出现我们关心的结果。
+
+例如，假设我们从美国成年男性总体中随机抽取一人。令 $X$ 表示被抽中的个体是否为当前吸烟者，令 $Y$ 表示他一生中某个时刻是否患肺癌。假设联合 PMF 如下（这些数值只是为了说明，并非由真实数据估计）：
+\[
+\begin{array}{c|cc}
+ & Y=1 & Y=0\\ \hline
+X=1 & \frac{5}{100} & \frac{20}{100}\\
+X=0 & \frac{3}{100} & \frac{72}{100}
+\end{array}
+\]
+
+为了得到边缘概率 $P(Y=1)$，我们把表中 $Y=1$ 那一列的两个单元格概率相加。对 $P(Y=0)$、$P(X=1)$ 和 $P(X=0)$ 也类似，并把这些概率写在表的边缘：
+\[
+\begin{array}{c|cc|c}
+ & Y=1 & Y=0 & \text{Total}\\ \hline
+X=1 & \frac{5}{100} & \frac{20}{100} & \frac{25}{100}\\
+X=0 & \frac{3}{100} & \frac{72}{100} & \frac{75}{100}\\ \hline
+\text{Total} & \frac{8}{100} & \frac{92}{100} & \frac{100}{100}
+\end{array}
+\]
+
+这说明 $X$ 的边缘分布是 $\operatorname{Bern}(0.25)$，$Y$ 的边缘分布是 $\operatorname{Bern}(0.08)$。也就是说，这个人无条件地为当前吸烟者的概率是 $0.25$，无条件地患肺癌的概率是 $0.08$。
+
+现在假设我们观察到 $X=1$，即该个体是当前吸烟者。于是可以更新我们对其肺癌风险的认识：
+\[
+  P(Y=1\mid X=1)
+  =\frac{P(X=1,Y=1)}{P(X=1)}
+  =\frac{5/100}{25/100}=0.2.
+\]
+因此，给定 $X=1$ 时 $Y$ 的条件分布是 $\operatorname{Bern}(0.2)$。类似计算可得，给定 $X=0$ 时 $Y$ 的条件分布是 $\operatorname{Bern}(0.04)$。这告诉我们，当前吸烟者患肺癌的概率是 $0.2$，而非吸烟者只有 $0.04$。
+
+\noindent\textbf{$\biohazard$ 7.1.6}\quad “边缘”一词在经济学和统计学中含义相反。在经济学中，它指某种导数，例如边际收益是收益对销售数量的导数。在统计学中，它指积分或求和；直观地说，就是像上面的例子那样，把合计数写在表格的边缘。
+
+理解了联合、边缘与条件分布之后，我们可以重新审视第 3 章引入的独立性定义。
+
+\noindent\textbf{定义 7.1.7（离散随机变量的独立性）}\quad 随机变量 $X$ 和 $Y$ 称为\textbf{独立}，如果对所有 $x,y$，
+\[
+  F_{X,Y}(x,y)=F_X(x)F_Y(y).
+\]
+若 $X$ 和 $Y$ 是离散的，这等价于对所有 $x,y$，
+\[
+  P(X=x,Y=y)=P(X=x)P(Y=y),
+\]
+也等价于对所有满足 $P(X=x)>0$ 的 $x,y$，
+\[
+  P(Y=y\mid X=x)=P(Y=y).
+\]
+
+用本章术语来说，独立随机变量的联合 CDF 可以分解为边缘 CDF 的乘积，联合 PMF 可以分解为边缘 PMF 的乘积。要记住，一般而言，边缘分布并不能决定联合分布，这也正是我们一开始想研究联合分布的原因。但在独立这个特殊情形下，边缘分布就足以指定联合分布；我们可以通过相乘边缘 PMF 得到联合 PMF。
+
+理解独立性的另一种方式是：所有条件 PMF 都与边缘 PMF 相同。也就是说，从 $Y$ 的边缘 PMF 出发，无论以 $X=x$ 为条件时 $x$ 是什么，都不需要更新。
+
+\noindent\textbf{例 7.1.8（$2\times 2$ 表中的独立性）}\quad 回到上一个例子的表格，可以用上述两种独立性观点解释为什么 $X$ 和 $Y$ 不独立：
+\[
+\begin{array}{c|cc|c}
+ & Y=1 & Y=0 & \text{Total}\\ \hline
+X=1 & \frac{5}{100} & \frac{20}{100} & \frac{25}{100}\\
+X=0 & \frac{3}{100} & \frac{72}{100} & \frac{75}{100}\\ \hline
+\text{Total} & \frac{8}{100} & \frac{92}{100} & \frac{100}{100}
+\end{array}
+\]
+首先，联合 PMF 不是边缘 PMF 的乘积。例如
+\[
+  P(X=1,Y=1)\ne P(X=1)P(Y=1).
+\]
+只要找到一对 $x,y$ 使得
+\[
+  P(X=x,Y=y)\ne P(X=x)P(Y=y),
+\]
+就足以排除独立性。
+
+其次，我们发现 $Y$ 的边缘分布是 $\operatorname{Bern}(0.08)$，但给定 $X=1$ 时 $Y$ 的条件分布是 $\operatorname{Bern}(0.2)$，给定 $X=0$ 时 $Y$ 的条件分布是 $\operatorname{Bern}(0.04)$。由于以 $X$ 的取值为条件会改变 $Y$ 的分布，$X$ 和 $Y$ 不独立：知道被抽中的个体是否为当前吸烟者，会提供关于他患肺癌概率的信息。
+
+虽然我们发现 $X$ 和 $Y$ 相依，但仅凭这种关联不能得出吸烟导致肺癌的结论。正如我们从 Simpson 悖论中学到的，如果未能考虑混杂变量，误导性的关联也可能出现。
+
+\noindent\textbf{故事 7.1.9（孵化与未孵化）}\quad 设一次产下的蛋数 $N$ 是随机的，且 $N\sim \operatorname{Pois}(\lambda)$。每个蛋独立地以概率 $p$ 孵化，以概率 $q=1-p$ 不孵化。令 $X$ 为孵化的个数，$Y$ 为未孵化的个数，所以 $X+Y=N$。$X$ 和 $Y$ 的联合 PMF 是什么？
+
+\noindent\textbf{解}\quad 我们要求非负整数 $i,j$ 上的联合 PMF $P(X=i,Y=j)$。给定总数 $N$ 后，各个蛋是以成功概率 $p$ 独立进行的 Bernoulli 试验，所以由二项分布故事，条件分布为
+\[
+  X\mid N=n\sim \operatorname{Bin}(n,p),\qquad
+  Y\mid N=n\sim \operatorname{Bin}(n,q).
+\]
+若能知道总数 $N$，事情会更容易。因此使用条件化并应用全概率公式：
+\[
+  P(X=i,Y=j)=\sum_{n=0}^{\infty}P(X=i,Y=j\mid N=n)P(N=n).
+\]
+求和遍历 $n$ 的所有可能值，而 $i,j$ 固定。但除非 $n=i+j$，否则不可能同时有 $X=i$ 和 $Y=j$。例如，若有 $5$ 个孵化、$6$ 个未孵化，则总数只能是 $11$。因此
+\[
+  P(X=i,Y=j\mid N=n)=0
+\]
+除非 $n=i+j$，于是和式中其他项都可以去掉：
+\[
+  P(X=i,Y=j)=P(X=i,Y=j\mid N=i+j)P(N=i+j).
+\]
+
+给定 $N=i+j$ 时，事件 $X=i$ 与 $Y=j$ 实际上是同一件事，二者同时保留是冗余的。保留 $X=i$ 即可；把二项 PMF 代入得到 $P(X=i\mid N=i+j)$，把 Poisson PMF 代入得到 $P(N=i+j)$。于是
+\[
+\begin{aligned}
+  P(X=i,Y=j)
+  &=P(X=i\mid N=i+j)P(N=i+j)\\
+  &=\binom{i+j}{i}p^i q^j\cdot \frac{e^{-\lambda}\lambda^{i+j}}{(i+j)!}\\
+  &=\frac{e^{-\lambda p}(\lambda p)^i}{i!}\cdot
+    \frac{e^{-\lambda q}(\lambda q)^j}{j!}.
+\end{aligned}
+\]
+
+联合 PMF 分解为 $\operatorname{Pois}(\lambda p)$ 的 PMF（作为 $i$ 的函数）与 $\operatorname{Pois}(\lambda q)$ 的 PMF（作为 $j$ 的函数）的乘积。这告诉我们两个漂亮的事实：第一，$X$ 和 $Y$ 独立，因为它们的联合 PMF 是边缘 PMF 的乘积；第二，$X\sim \operatorname{Pois}(\lambda p)$ 且 $Y\sim \operatorname{Pois}(\lambda q)$。
+
+乍看之下，$X$ 与 $Y$ 独立可能非常违反直觉。知道有很多蛋孵化了，难道不意味着未孵化的蛋可能没那么多吗？如果蛋的总数固定，这种独立性确实不可能：知道孵化个数会完全决定未孵化个数。但在这个例子中，蛋的总数本身是随机的，并且服从 Poisson 分布；这种随机性恰好足以使 $X$ 和 $Y$ 无条件独立。这是 Poisson 分布一个非常特殊的性质。
+
+这个故事补充了第 4 章中的下述结果。
+
+\noindent\textbf{定理 7.1.10}\quad 若 $X\sim \operatorname{Pois}(\lambda p)$、$Y\sim \operatorname{Pois}(\lambda q)$，且 $X$ 与 $Y$ 独立，则 $N=X+Y\sim \operatorname{Pois}(\lambda)$，并且 $X\mid N=n\sim \operatorname{Bin}(n,p)$。
+
+由上面的故事，我们现在得到了这个定理的逆命题。
+
+\noindent\textbf{定理 7.1.11}\quad 若 $N\sim \operatorname{Pois}(\lambda)$ 且 $X\mid N=n\sim \operatorname{Bin}(n,p)$，则
+\[
+  X\sim \operatorname{Pois}(\lambda p),\qquad
+  Y=N-X\sim \operatorname{Pois}(\lambda q),
+\]
+并且 $X$ 与 $Y$ 独立。
+
+\noindent\textbf{$\biohazard$ 7.1.12}\quad 在上面的故事中，不能说
+\[
+  P(X=x\mid N=n)=P(X=x\mid X+Y=n)=P(X=x\mid Y=n-x),
+\]
+因为在 $P(X=x\mid N=n)$ 中，我们并没有以 $X=x$ 为条件。事实上，$P(X=x\mid N=n)$ 是 $\operatorname{Bin}(n,p)$ 的 PMF，而 $P(X=x\mid Y=n-x)=P(X=x)$ 是 $\operatorname{Pois}(\lambda p)$ 的 PMF。把条件竖线右侧的 $X$ 直接代成 $x$，说明仔细区分 $X$ 与 $x$、条件竖线左侧与右侧有多么重要。
+
+\subsection*{7.1.2\quad 连续情形}
+
+一旦掌握了离散联合分布，连续联合分布并不难处理。我们只需作现在已经熟悉的替换：用积分代替求和，用 PDF 代替 PMF，并记住任何单个点的概率都是 $0$。
+
+形式上，为了使 $X$ 和 $Y$ 具有连续联合分布，我们要求联合 CDF
+\[
+  F_{X,Y}(x,y)=P(X\le x,Y\le y)
+\]
+关于 $x$ 和 $y$ 可微。对 $x$ 和 $y$ 求偏导得到的函数称为\textbf{联合 PDF}。联合 PDF 和联合 CDF 一样决定联合分布。
+
+\noindent\textbf{定义 7.1.13（联合 PDF）}\quad 若 $X$ 和 $Y$ 是具有联合 CDF $F_{X,Y}$ 的连续随机变量，则它们的\textbf{联合 PDF} 是联合 CDF 对 $x$ 和 $y$ 的导数：
+\[
+  f_{X,Y}(x,y)=\frac{\partial^2}{\partial x\partial y}F_{X,Y}(x,y).
+\]
+
+合法的联合 PDF 必须非负且积分为 $1$：
+\[
+  f_{X,Y}(x,y)\ge 0,\qquad
+  \int_{-\infty}^{\infty}\int_{-\infty}^{\infty} f_{X,Y}(x,y)\,dx\,dy=1.
+\]
+
+在一维情形中，PDF 是用来积分得到区间概率的函数。类似地，两个随机变量的联合 PDF 是用来积分得到二维区域概率的函数。例如
+\[
+  P(X<3,1<Y<4)=\int_1^4\int_{-\infty}^{3} f_{X,Y}(x,y)\,dx\,dy.
+\]
+对于一般区域 $A\subseteq \mathbb{R}^2$，
+\[
+  P((X,Y)\in A)=\iint_A f_{X,Y}(x,y)\,dx\,dy.
+\]
+
+图 7.4 画出了两个随机变量的联合 PDF 可能具有的形状。和连续随机变量的一维情形一样，需要牢记：曲面在单个点处的高度 $f_{X,Y}(x,y)$ 并不代表概率。平面中任意特定点的概率都是 $0$；现在升高到二维以后，平面中任意直线或曲线的概率也都是 $0$。获得非零概率的唯一方式，是在 $xy$ 平面中对一个具有正面积的区域积分。
+
+当我们在区域 $A$ 上对联合 PDF 积分时，计算的是联合 PDF 曲面下方、区域 $A$ 上方的体积。因此，概率由\textbf{联合 PDF 下方的体积}表示。合法联合 PDF 下方的总体积为 $1$。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.58\textwidth]{7-4.png}
+  \caption{连续随机变量 $X$ 和 $Y$ 的联合 PDF。}
+\end{figure}
+
+在离散情形中，我们通过对联合 PMF 中 $Y$ 的所有可能取值求和，得到 $X$ 的边缘 PMF。在连续情形中，我们通过对联合 PDF 中 $Y$ 的所有可能取值积分，得到 $X$ 的\textbf{边缘 PDF}。
+
+\noindent\textbf{定义 7.1.14（边缘 PDF）}\quad 对具有联合 PDF $f_{X,Y}$ 的连续随机变量 $X$ 和 $Y$，$X$ 的\textbf{边缘 PDF} 为
+\[
+  f_X(x)=\int_{-\infty}^{\infty} f_{X,Y}(x,y)\,dy.
+\]
+这是单独看待 $X$、而不是把 $X$ 与 $Y$ 联合看待时 $X$ 的 PDF。
+
+为了简化记号，我们主要考察两个随机变量的联合分布，而不是 $n$ 个随机变量的联合分布；但边缘化对任意多个变量都类似。例如，如果有 $X,Y,Z,W$ 的联合 PDF，而想得到 $X,W$ 的联合 PDF，只需对 $Y$ 和 $Z$ 的所有可能取值积分：
+\[
+  f_{X,W}(x,w)=\int_{-\infty}^{\infty}\int_{-\infty}^{\infty}
+  f_{X,Y,Z,W}(x,y,z,w)\,dy\,dz.
+\]
+概念上这很简单：把不想要的变量积分掉，就得到想要变量的联合 PDF；但实际计算未必容易。
+
+回到两个随机变量 $X$ 和 $Y$ 的联合分布。现在考虑在观察到 $X$ 的取值之后，如何用\textbf{条件 PDF} 更新 $Y$ 的分布。
+
+\noindent\textbf{定义 7.1.15（条件 PDF）}\quad 对具有联合 PDF $f_{X,Y}$ 的连续随机变量 $X$ 和 $Y$，给定 $X=x$ 时 $Y$ 的\textbf{条件 PDF} 为
+\[
+  f_{Y\mid X}(y\mid x)=\frac{f_{X,Y}(x,y)}{f_X(x)},
+\]
+其中 $f_X(x)>0$。这里把它看作固定 $x$ 时关于 $y$ 的函数。作为约定，为了使 $f_{Y\mid X}(y\mid x)$ 对所有实数 $x$ 都有定义，若 $f_X(x)=0$，则令 $f_{Y\mid X}(y\mid x)=0$。
+
+\noindent\textbf{记号 7.1.16}\quad 放在各个 $f$ 上的下标只是提醒我们正在处理三个不同函数。也可以写成 $g(y\mid x)=f(x,y)/h(x)$，其中 $f$ 是联合 PDF，$h$ 是 $X$ 的边缘 PDF，$g$ 是给定 $X=x$ 时 $Y$ 的条件 PDF；但这样更难记住每个字母代表哪个函数。
+
+图 7.5 说明了条件 PDF 的定义。我们取联合 PDF 中对应于观察值 $X=x$ 的一个垂直切片。由于这个切片下方的总面积是 $f_X(x)$，所以再除以 $f_X(x)$，以保证条件 PDF 的面积为 $1$。因此，对 $X$ 支撑集中的任意 $x$，给定 $X=x$ 时 $Y$ 的条件 PDF 都满足合法 PDF 的性质。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{7-5.png}
+  \caption{给定 $X=x$ 时 $Y$ 的条件 PDF。条件 PDF $f_{Y\mid X}(y\mid x)$ 通过对联合 PDF 在固定值 $x$ 处的切片重新归一化得到。}
+\end{figure}
+
+\noindent\textbf{$\biohazard$ 7.1.17}\quad 当 $X$ 是连续随机变量时，事件 $X=x$ 的概率为 $0$，我们怎么还能说“以 $X=x$ 为条件”？严格地说，我们实际上是在以 $X$ 落入包含 $x$ 的小区间为条件，例如 $X\in(x-\epsilon,x+\epsilon)$，然后令 $\epsilon$ 从右侧趋近于 $0$。我们不会纠缠这个技术细节；幸运的是，许多重要结果（如贝叶斯规则）在连续情形中正如人们希望的那样成立。
+
+注意，如果我们有条件 PDF $f_{Y\mid X}$ 以及相应的边缘 PDF $f_X$，就可以恢复联合 PDF $f_{X,Y}$：
+\[
+  f_{X,Y}(x,y)=f_{Y\mid X}(y\mid x)f_X(x).
+\]
+类似地，如果有 $f_{X\mid Y}$ 和 $f_Y$，也可以恢复联合 PDF：
+\[
+  f_{X,Y}(x,y)=f_{X\mid Y}(x\mid y)f_Y(y).
+\]
+这使我们能够发展连续版的贝叶斯规则和全概率公式。连续版本与离散版本完全类似，只是用概率密度函数代替概率，用积分代替求和。
+
+\noindent\textbf{定理 7.1.18（贝叶斯规则与全概率公式的连续形式）}\quad 对连续随机变量 $X$ 和 $Y$，贝叶斯规则的连续形式为
+\[
+  f_{Y\mid X}(y\mid x)=\frac{f_{X\mid Y}(x\mid y)f_Y(y)}{f_X(x)},\qquad f_X(x)>0.
+\]
+全概率公式的连续形式为
+\[
+  f_X(x)=\int_{-\infty}^{\infty} f_{X\mid Y}(x\mid y)f_Y(y)\,dy.
+\]
+
+\noindent\textbf{证明}\quad 由条件 PDF 的定义，
+\[
+  f_{Y\mid X}(y\mid x)f_X(x)=f_{X,Y}(x,y)=f_{X\mid Y}(x\mid y)f_Y(y).
+\]
+两边除以 $f_X(x)$，立即得到连续版贝叶斯规则。对 $y$ 积分，立即得到连续版全概率公式：
+\[
+  f_X(x)=\int_{-\infty}^{\infty} f_{X,Y}(x,y)\,dy
+  =\int_{-\infty}^{\infty} f_{X\mid Y}(x\mid y)f_Y(y)\,dy.
+\]
+
+顺便看一下，如果在全概率公式的证明中代入 $f_{X,Y}(x,y)$ 的另一个表达式，会发生什么：
+\[
+  f_X(x)=\int_{-\infty}^{\infty} f_{X,Y}(x,y)\,dy
+  =\int_{-\infty}^{\infty} f_{Y\mid X}(y\mid x)f_X(x)\,dy
+  =f_X(x)\int_{-\infty}^{\infty} f_{Y\mid X}(y\mid x)\,dy.
+\]
+这只是说明，对任意满足 $f_X(x)>0$ 的 $x$，
+\[
+  \int_{-\infty}^{\infty} f_{Y\mid X}(y\mid x)\,dy=1,
+\]
+即条件 PDF 必须积分为 $1$。
+
+现在我们已经有了两个离散随机变量、两个连续随机变量的贝叶斯规则和全概率公式。更好的是，当一个随机变量离散、另一个连续时，也有相应版本。理解离散版本后，其他版本很容易记住和使用：适当时把概率换成 PDF，把求和换成积分。例如，若 $X$ 离散而 $Y$ 连续，则全概率公式为
+\[
+  P(X=x)=\int_{-\infty}^{\infty}P(X=x\mid Y=y)f_Y(y)\,dy.
+\]
+令 $X$ 为事件 $A$ 的指示随机变量并取 $x=1$，可得到一个通过对连续随机变量 $Y$ 条件化来表示一般概率 $P(A)$ 的公式：
+\[
+  P(A)=\int_{-\infty}^{\infty}P(A\mid Y=y)f_Y(y)\,dy.
+\]
+
+四个版本的贝叶斯规则可以汇总如下：
+\[
+\begin{array}{c|cc}
+ & Y\ \text{离散} & Y\ \text{连续}\\ \hline
+X\ \text{离散} &
+P(Y=y\mid X=x)=\dfrac{P(X=x\mid Y=y)P(Y=y)}{P(X=x)} &
+f_Y(y\mid X=x)=\dfrac{P(X=x\mid Y=y)f_Y(y)}{P(X=x)}
+\\[1.1em]
+X\ \text{连续} &
+P(Y=y\mid X=x)=\dfrac{f_X(x\mid Y=y)P(Y=y)}{f_X(x)} &
+f_{Y\mid X}(y\mid x)=\dfrac{f_{X\mid Y}(x\mid y)f_Y(y)}{f_X(x)}
+\end{array}
+\]
+
+四个版本的全概率公式可以汇总如下。第一行给出 $P(X=x)$ 的表达式，第二行给出 $f_X(x)$ 的表达式：
+\[
+\begin{array}{c|cc}
+ & Y\ \text{离散} & Y\ \text{连续}\\ \hline
+X\ \text{离散} &
+\sum_y P(X=x\mid Y=y)P(Y=y) &
+\int_{-\infty}^{\infty}P(X=x\mid Y=y)f_Y(y)\,dy
+\\[1.1em]
+X\ \text{连续} &
+\sum_y f_X(x\mid Y=y)P(Y=y) &
+\int_{-\infty}^{\infty}f_{X\mid Y}(x\mid y)f_Y(y)\,dy
+\end{array}
+\]
+
+最后讨论连续随机变量的独立性定义，然后转向具体例子。与离散情形一样，连续随机变量的独立性可以从两个角度理解。其一是联合 CDF 可分解为边缘 CDF 的乘积，或者联合 PDF 可分解为边缘 PDF 的乘积；其二是给定 $X=x$ 时 $Y$ 的条件 PDF 与 $Y$ 的边缘 PDF 相同，也就是说，以 $X$ 为条件不会提供关于 $Y$ 的信息。
+
+\noindent\textbf{定义 7.1.19（连续随机变量的独立性）}\quad 随机变量 $X$ 和 $Y$ 称为\textbf{独立}，如果对所有 $x,y$，
+\[
+  F_{X,Y}(x,y)=F_X(x)F_Y(y).
+\]
+若 $X$ 和 $Y$ 是具有联合 PDF $f_{X,Y}$ 的连续随机变量，这等价于对所有 $x,y$，
+\[
+  f_{X,Y}(x,y)=f_X(x)f_Y(y),
+\]
+也等价于对所有满足 $f_X(x)>0$ 的 $x,y$，
+\[
+  f_{Y\mid X}(y\mid x)=f_Y(y).
+\]
+
+\noindent\textbf{$\biohazard$ 7.1.20}\quad $Y$ 的边缘 PDF $f_Y(y)$ 只是 $y$ 的函数，绝不可能以任何方式依赖 $x$。而条件 PDF $f_{Y\mid X}(y\mid x)$ 一般可以依赖于 $x$。只有在独立这个特殊情形下，$f_{Y\mid X}(y\mid x)$ 才不含 $x$。
+
+有时我们会遇到一个 $X$ 和 $Y$ 的联合 PDF，它可以分解为一个 $x$ 的函数乘以一个 $y$ 的函数，但我们事先不知道这些函数是否就是边缘 PDF，甚至也不知道它们是否是合法 PDF。下一个结果处理这种情况。
+
+\noindent\textbf{命题 7.1.21}\quad 假设 $X$ 和 $Y$ 的联合 PDF $f_{X,Y}$ 可分解为
+\[
+  f_{X,Y}(x,y)=g(x)h(y)
+\]
+对所有 $x,y$ 成立，其中 $g$ 和 $h$ 都是非负函数。则 $X$ 与 $Y$ 独立。此外，如果 $g$ 或 $h$ 中有一个是合法 PDF，那么另一个也是合法 PDF，并且 $g$ 与 $h$ 分别是 $X$ 和 $Y$ 的边缘 PDF。（离散情形中也有类似结果。）
+
+\noindent\textbf{证明}\quad 令
+\[
+  c=\int_{-\infty}^{\infty}h(y)\,dy.
+\]
+通过乘以并除以 $c$，可写成
+\[
+  f_{X,Y}(x,y)=c g(x)\cdot \frac{h(y)}{c}.
+\]
+这样做的要点是 $h(y)/c$ 是一个合法 PDF。于是 $X$ 的边缘 PDF 为
+\[
+  f_X(x)=\int_{-\infty}^{\infty} f_{X,Y}(x,y)\,dy
+  =c g(x)\int_{-\infty}^{\infty}\frac{h(y)}{c}\,dy
+  =c g(x).
+\]
+因为边缘 PDF 必须是合法 PDF，所以
+\[
+  \int_{-\infty}^{\infty} c g(x)\,dx=1.
+\]
+这样，由 $h$ 的积分免费得到了 $g$ 的积分。进而 $Y$ 的边缘 PDF 为
+\[
+  f_Y(y)=\int_{-\infty}^{\infty} f_{X,Y}(x,y)\,dx
+  =\frac{h(y)}{c}\int_{-\infty}^{\infty}c g(x)\,dx
+  =\frac{h(y)}{c}.
+\]
+因此，$X$ 和 $Y$ 独立，其 PDF 分别为 $c g(x)$ 与 $h(y)/c$。如果 $g$ 或 $h$ 已经是合法 PDF，则 $c=1$，所以另一个也合法。
+
+\noindent\textbf{$\biohazard$ 7.1.22}\quad 在上面的命题中，我们需要联合 PDF 在整个平面 $\mathbb{R}^2$ 上分解为一个 $x$ 的函数乘以一个 $y$ 的函数，而不只是对满足 $f_{X,Y}(x,y)>0$ 的点 $(x,y)$ 如此。原因会在下一个例子中说明。
+
+连续联合分布的一个简单情形，是联合 PDF 在平面中的某个区域上为常数。下面的例子把一个在正方形上为常数的联合 PDF，与一个在圆盘上为常数的联合 PDF 作比较。
+
+\noindent\textbf{例 7.1.23（平面区域上的均匀分布）}\quad 令 $(X,Y)$ 为正方形 $\{(x,y):x,y\in[0,1]\}$ 中完全随机的一点，也就是说，$X$ 和 $Y$ 的联合 PDF 在该正方形上为常数，在正方形外为 $0$：
+\[
+  f_{X,Y}(x,y)=
+  \begin{cases}
+    1, & x,y\in[0,1],\\
+    0, & \text{其他情形}.
+  \end{cases}
+\]
+常数 $1$ 的选择使联合 PDF 积分为 $1$。这个分布称为正方形上的均匀分布。
+
+直观上，$X$ 和 $Y$ 的边缘分布应当都是 $\operatorname{Unif}(0,1)$。可计算验证：
+\[
+  f_X(x)=\int_0^1 f_{X,Y}(x,y)\,dy=\int_0^1 1\,dy=1.
+\]
+同理 $f_Y(y)=1$。进一步，$X$ 和 $Y$ 独立，因为联合 PDF 分解为边缘 PDF 的乘积。这在这里退化为 $1=1\cdot 1$，但重要的是，$X$ 的取值并不限制 $Y$ 的可能取值。因此，无论 $x$ 是什么，给定 $X=x$ 时 $Y$ 的条件分布都是 $\operatorname{Unif}(0,1)$。
+
+现在令 $(X,Y)$ 为单位圆盘
+\[
+  \{(x,y):x^2+y^2\le 1\}
+\]
+中的完全随机点，其联合 PDF 为
+\[
+  f_{X,Y}(x,y)=
+  \begin{cases}
+    \frac{1}{\pi}, & x^2+y^2\le 1,\\
+    0, & \text{其他情形}.
+  \end{cases}
+\]
+同样，常数 $1/\pi$ 的选择是为了使联合 PDF 积分为 $1$；这是因为在平面某个区域上对 $1$ 积分，得到的就是该区域的面积。
+
+注意 $X$ 与 $Y$ 不独立，因为一般而言，知道 $X$ 的取值会限制 $Y$ 的可能取值：$|X|$ 越大，$Y$ 的可取范围越小。若只因为在圆盘内 $f_{X,Y}(x,y)=g(x)h(y)$，其中 $g(x)=1/\pi$、$h(y)=1$ 都是常数，就断定独立，那正落入 $\biohazard$ 7.1.22 的陷阱。直接从定义也能看出 $X$ 与 $Y$ 不独立：例如 $f_{X,Y}(0.9,0.9)=0$，因为 $(0.9,0.9)$ 不在单位圆盘内；但 $f_X(0.9)f_Y(0.9)\ne 0$，因为 $0.9$ 同时位于 $X$ 和 $Y$ 的支撑中。
+
+现在 $X$ 的边缘分布为
+\[
+  f_X(x)=\int_{-\sqrt{1-x^2}}^{\sqrt{1-x^2}}\frac{1}{\pi}\,dy
+  =\frac{2}{\pi}\sqrt{1-x^2},\qquad -1\le x\le 1.
+\]
+由对称性，$f_Y(y)=\frac{2}{\pi}\sqrt{1-y^2}$。注意 $X$ 和 $Y$ 的边缘分布并不是 $[-1,1]$ 上的均匀分布；相反，$X$ 和 $Y$ 更可能落在 $0$ 附近，而不是 $\pm 1$ 附近。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.52\textwidth]{7-6.png}
+  \caption{单位圆盘上均匀联合 PDF 的俯视图。给定 $X=x$ 时，$Y$ 被限制在区间 $[-\sqrt{1-x^2},\sqrt{1-x^2}]$ 内。}
+\end{figure}
+
+假设我们观察到 $X=x$。如图 7.6 所示，这会把 $Y$ 限制在区间
+\[
+  [-\sqrt{1-x^2},\sqrt{1-x^2}]
+\]
+内。具体地，给定 $X=x$ 时 $Y$ 的条件分布为
+\[
+  f_{Y\mid X}(y\mid x)=\frac{f_{X,Y}(x,y)}{f_X(x)}
+  =\frac{1/\pi}{(2/\pi)\sqrt{1-x^2}}
+  =\frac{1}{2\sqrt{1-x^2}},
+\]
+其中 $-\sqrt{1-x^2}\le y\le \sqrt{1-x^2}$，其他情形为 $0$。这个条件 PDF 作为 $y$ 的函数是常数，这说明 $Y$ 的条件分布是区间 $[-\sqrt{1-x^2},\sqrt{1-x^2}]$ 上的均匀分布。条件 PDF 依赖于 $x$，再次确认 $X$ 和 $Y$ 不独立。
+
+一般地，对平面中的区域 $R$，$R$ 上的均匀分布定义为：联合 PDF 在 $R$ 内为常数，在 $R$ 外为 $0$；这个常数是 $R$ 面积的倒数。如果 $R$ 是矩形 $\{(x,y):a\le x\le b,\ c\le y\le d\}$，则 $X$ 与 $Y$ 独立，因为矩形的垂直切片都一样。若区域中 $X$ 的取值会限制 $Y$ 的可能取值，或反过来，则 $X$ 与 $Y$ 不独立。
+
+\noindent\textbf{例 7.1.24（比较不同速率的指数分布）}\quad 令 $T_1\sim \operatorname{Expo}(\lambda_1)$，$T_2\sim \operatorname{Expo}(\lambda_2)$，且二者独立。求 $P(T_1<T_2)$。例如，$T_1$ 可以是一台冰箱的寿命，$T_2$ 可以是一台炉子的寿命（如果我们愿意假设它们服从指数分布）；那么 $P(T_1<T_2)$ 就是冰箱先坏的概率。第 5 章已经说明 $\min(T_1,T_2)\sim \operatorname{Expo}(\lambda_1+\lambda_2)$，它告诉我们第一个设备何时失效；但我们可能还想知道哪个设备先失效。
+
+\noindent\textbf{解}\quad 只需在合适区域上积分 $T_1$ 和 $T_2$ 的联合 PDF。这个区域由 $t_1>0,t_2>0$ 且 $t_1<t_2$ 的点组成。因此
+\[
+\begin{aligned}
+  P(T_1<T_2)
+  &=\int_0^\infty\int_0^{t_2}\lambda_1 e^{-\lambda_1 t_1}\lambda_2 e^{-\lambda_2 t_2}\,dt_1\,dt_2\\
+  &=\int_0^\infty (1-e^{-\lambda_1 t_2})\lambda_2 e^{-\lambda_2 t_2}\,dt_2\\
+  &=1-\int_0^\infty \lambda_2 e^{-(\lambda_1+\lambda_2)t_2}\,dt_2\\
+  &=1-\frac{\lambda_2}{\lambda_1+\lambda_2}
+  =\frac{\lambda_1}{\lambda_1+\lambda_2}.
+\end{aligned}
+\]
+若把 $\lambda_1$ 和 $\lambda_2$ 解释为速率，这个结果很直观。例如，如果冰箱的失效率是炉子的两倍，那么冰箱先坏的赔率就是 $2:1$。作为简单检查，当 $\lambda_1=\lambda_2$ 时答案化为 $1/2$，这由对称性也必须成立。
+
+另一种得到同一结果的方法，是用全概率公式对 $T_1$（或 $T_2$）条件化。第三种方法利用 Poisson 过程的故事，将在第 13 章出现。
+
+本节最后一个例子展示如何用 $X$ 和 $Y$ 的联合分布，推导 $X$ 和 $Y$ 的函数的分布。
+
+\noindent\textbf{例 7.1.25（Cauchy PDF）}\quad 令 $X$ 和 $Y$ 独立同分布于 $\mathcal{N}(0,1)$，并令 $T=X/Y$。（当 $Y=0$ 时可以任意定义 $T$；该选择不影响 $T$ 的分布，因为 $P(Y=0)=0$。）$T$ 的分布是一个著名分布，称为 \textbf{Cauchy 分布}，后续章节还会再次遇到它。求 $T$ 的 PDF。
+
+\noindent\textbf{解}\quad 先求 $T$ 的 CDF，再求导得到 PDF。我们可以写成
+\[
+  F_T(t)=P(T\le t)=P\left(\frac{X}{Y}\le t\right)
+  =P\left(\frac{X}{|Y|}\le t\right),
+\]
+因为由标准正态分布的对称性，$X/Y$ 与 $X/|Y|$ 同分布。现在 $|Y|$ 非负，所以两边同乘 $|Y|$ 不会改变不等号方向。因此我们要计算
+\[
+  F_T(t)=P(X\le t|Y|).
+\]
+通过在区域 $X\le t|Y|$ 上对 $X$ 与 $Y$ 的联合 PDF 积分，可得
+\[
+\begin{aligned}
+  F_T(t)
+  &=\int_{-\infty}^{\infty}\int_{-\infty}^{t|y|}
+    \frac{1}{\sqrt{2\pi}}e^{-x^2/2}\frac{1}{\sqrt{2\pi}}e^{-y^2/2}\,dx\,dy\\
+  &=\int_{-\infty}^{\infty}\frac{1}{\sqrt{2\pi}}e^{-y^2/2}
+    \left(\int_{-\infty}^{t|y|}\frac{1}{\sqrt{2\pi}}e^{-x^2/2}\,dx\right)dy\\
+  &=\sqrt{\frac{2}{\pi}}\int_0^\infty e^{-y^2/2}\Phi(ty)\,dy.
+\end{aligned}
+\]
+这里内层积分限（关于 $x$ 的限）依赖于 $y$，而外层积分限（关于 $y$ 的限）不能依赖于 $x$。
+
+或者，不做二重积分，也可以用全概率公式的某个版本得到同一表达。令 $I$ 为事件 $X\le t|Y|$ 的指示随机变量，则
+\[
+\begin{aligned}
+  P(I=1)
+  &=\int_{-\infty}^{\infty}P(I=1\mid Y=y)f_Y(y)\,dy\\
+  &=\int_{-\infty}^{\infty}\frac{1}{\sqrt{2\pi}}e^{-y^2/2}\Phi(t|y|)\,dy.
+\end{aligned}
+\]
+此时我们似乎卡在一个不会计算的积分上。幸运的是，题目要求的是 PDF 而不是 CDF，所以不必计算这个积分，只需对 $t$ 求导（而不是对虚变量 $y$ 求导）。在温和的技术条件下，可以交换积分与微分的次序，这里这些条件满足。于是
+\[
+\begin{aligned}
+  f_T(t)=F_T'(t)
+  &=\sqrt{\frac{2}{\pi}}\int_0^\infty \frac{\partial}{\partial t}
+    \left(e^{-y^2/2}\Phi(ty)\right)\,dy\\
+  &=\sqrt{\frac{2}{\pi}}\int_0^\infty y e^{-y^2/2}\varphi(ty)\,dy\\
+  &=\frac{1}{\pi}\int_0^\infty y e^{-(1+t^2)y^2/2}\,dy\\
+  &=\frac{1}{\pi(1+t^2)},
+\end{aligned}
+\]
+最后一步使用代换 $u=(1+t^2)y^2/2$，$du=(1+t^2)y\,dy$。所以 $T$ 的 PDF 为
+\[
+  f_T(t)=\frac{1}{\pi(1+t^2)},\qquad t\in\mathbb{R}.
+\]
+由于
+\[
+  \int_{-\infty}^{\infty}\frac{1}{1+t^2}\,dt
+  =\arctan(\infty)-\arctan(-\infty)=\pi,
+\]
+这确实是一个合法 PDF。若还想得到 CDF，只需在适当区间上对 PDF 积分：
+\[
+  F_T(t)=\int_{-\infty}^t\frac{1}{\pi(1+u^2)}\,du
+  =\frac{1}{\pi}\arctan(t)+\frac{1}{2}.
+\]
+
+如前所述，$T$ 的分布称为 Cauchy 分布。Cauchy PDF 的形状类似正态钟形曲线，但尾部衰减到 $0$ 的速度更慢。图 7.7 将 Cauchy 和标准正态 PDF 叠加在一起；可以明显看到 Cauchy PDF 更重的尾部。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.62\textwidth]{7-7.png}
+  \caption{Cauchy PDF（深色）与 $\mathcal{N}(0,1)$ PDF（浅色）。Cauchy 分布的尾部比正态分布重得多。}
+\end{figure}
+
+Cauchy 分布有一个有趣事实：虽然 PDF 关于 $0$ 对称，但其期望不存在，因为积分
+\[
+  \int_{-\infty}^{\infty}\frac{t}{\pi(1+t^2)}\,dt
+\]
+发散；注意当 $t$ 很大时，$t/(1+t^2)\approx 1/t$，而 $\int_1^\infty (1/t)\,dt=\infty$。若写成
+\[
+  E\left(\frac{X}{Y}\right)=E(X)E\left(\frac{1}{Y}\right)=0\cdot E\left(\frac{1}{Y}\right)=0,
+\]
+就是错误的，因为 $E(1/Y)$ 也不存在。
+
+\subsection*{7.1.3\quad 混合情形}
+
+我们也可能关心一个离散随机变量和一个连续随机变量的联合分布。前面讨论四种贝叶斯规则和全概率公式时已经提到过这种情形。概念上它与其他情形类似，但记号可能有些微妙，所以我们通过一个例子来说明。
+
+\noindent\textbf{例 7.1.26（灯泡由哪家公司制造？）}\quad 一个灯泡由两家公司之一制造。公司 0 生产的灯泡寿命服从 $\operatorname{Expo}(\lambda_0)$，公司 1 生产的灯泡寿命服从 $\operatorname{Expo}(\lambda_1)$，其中 $\lambda_0<\lambda_1$。我们关心的灯泡以概率 $p_0$ 由公司 0 制造，以概率 $p_1=1-p_0$ 由公司 1 制造，但通过观察灯泡本身并不知道它由哪个公司制造。
+
+令 $T$ 为灯泡寿命，$I$ 为它由公司 1 制造的指示变量。
+\begin{enumerate}
+  \item 求 $T$ 的 CDF 和 PDF。
+  \item $T$ 是否具有无记忆性？
+  \item 求给定 $T=t$ 时 $I$ 的条件分布。当 $t\to\infty$ 时会发生什么？
+\end{enumerate}
+
+\noindent\textbf{解}\quad 因为 $T$ 是连续随机变量而 $I$ 是离散随机变量，$T$ 和 $I$ 的联合分布是混合型的，如图 7.8 所示。对两个连续随机变量的联合 PDF，可以取无穷多个垂直切片，每个切片对应不同的条件 PDF；这里 $T$ 的条件 PDF 只有两个，
+一个对应 $I=0$，一个对应 $I=1$。按题设，给定 $I=0$ 时 $T$ 的条件分布是 $\operatorname{Expo}(\lambda_0)$，给定 $I=1$ 时 $T$ 的条件分布是 $\operatorname{Expo}(\lambda_1)$。$I$ 的边缘分布是 $\operatorname{Bern}(p_1)$。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.62\textwidth]{7-8.png}
+  \caption{$T$ 和 $I$ 的混合联合分布。}
+\end{figure}
+
+也就是说，我们得到的 $T$ 与 $I$ 的联合分布，是由（1）$I$ 的边缘分布和（2）给定 $I$ 时 $T$ 的条件分布来描述的。题目要求我们反过来，求（1）$T$ 的边缘分布和（2）给定 $T$ 时 $I$ 的条件分布。这样表述后，很清楚全概率公式和贝叶斯规则会派上用场。
+
+\begin{enumerate}
+  \item 这一部分要求推出 $T$ 的边缘分布。对 CDF，我们以 $I$ 为条件使用全概率公式：
+  \[
+  \begin{aligned}
+    F_T(t)&=P(T\le t)=P(T\le t\mid I=0)p_0+P(T\le t\mid I=1)p_1\\
+    &=(1-e^{-\lambda_0 t})p_0+(1-e^{-\lambda_1 t})p_1\\
+    &=1-p_0e^{-\lambda_0 t}-p_1e^{-\lambda_1 t},
+  \end{aligned}
+  \]
+  其中 $t>0$。边缘 PDF 是 CDF 的导数：
+  \[
+    f_T(t)=p_0\lambda_0 e^{-\lambda_0 t}+p_1\lambda_1 e^{-\lambda_1 t},\qquad t>0.
+  \]
+
+  \item 因为 $\lambda_0\ne\lambda_1$，上面的 PDF 不能化为 $\lambda e^{-\lambda t}$ 的形式。所以 $T$ 的分布不是指数分布，从而不具有无记忆性。这个分布称为两个指数分布的混合。
+
+  \item 使用混合形式的贝叶斯规则，即表中“$X$ 连续、$Y$ 离散”的版本，有
+  \[
+    P(I=1\mid T=t)=\frac{f_T(t\mid I=1)P(I=1)}{f_T(t)}.
+  \]
+  这里 $f_T(t\mid I=1)$ 是给定 $I=1$ 时 $T$ 的条件 PDF 在 $t$ 处的取值。利用 $T\mid I=1\sim \operatorname{Expo}(\lambda_1)$ 以及（a）中得到的边缘 PDF，
+  \[
+    P(I=1\mid T=t)
+    =\frac{p_1\lambda_1 e^{-\lambda_1 t}}
+    {p_0\lambda_0 e^{-\lambda_0 t}+p_1\lambda_1 e^{-\lambda_1 t}}
+    =\frac{p_1\lambda_1}{p_0\lambda_0 e^{(\lambda_1-\lambda_0)t}+p_1\lambda_1}.
+  \]
+  因此，给定 $T=t$ 时 $I$ 的条件分布是以该概率为成功概率的 Bernoulli 分布。随着 $t\to\infty$，这个概率趋于 $0$。这很符合直觉：灯泡寿命越长，我们越有信心认为它由公司 0 制造，因为公司 0 的灯泡失效率 $\lambda$ 更低、期望寿命 $1/\lambda$ 更高。
+\end{enumerate}
+
+\section*{7.2\quad 二维 LOTUS}
+
+二维版 LOTUS 使我们能够利用 $X$ 和 $Y$ 的联合分布，计算一个由两个随机变量 $X$ 和 $Y$ 组成的函数的期望。
+
+\noindent\textbf{定理 7.2.1（二维 LOTUS）}\quad 令 $g$ 为从 $\mathbb{R}^2$ 到 $\mathbb{R}$ 的函数。若 $X$ 和 $Y$ 是离散随机变量，则
+\[
+  E(g(X,Y))=\sum_x\sum_y g(x,y)P(X=x,Y=y).
+\]
+若 $X$ 和 $Y$ 是具有联合 PDF $f_{X,Y}$ 的连续随机变量，则
+\[
+  E(g(X,Y))=\int_{-\infty}^{\infty}\int_{-\infty}^{\infty}
+  g(x,y)f_{X,Y}(x,y)\,dx\,dy.
+\]
+
+和一维 LOTUS 一样，二维 LOTUS 让我们不必先求出 $g(X,Y)$ 的分布，就能计算它的期望。只要知道 $X$ 和 $Y$ 的联合 PMF 或联合 PDF 即可。
+
+二维 LOTUS 的一个用途是求两个随机变量之间的期望距离。
+
+\noindent\textbf{例 7.2.2（两个均匀随机变量的期望距离）}\quad 令 $X$ 和 $Y$ 独立同分布于 $\operatorname{Unif}(0,1)$。求 $E(|X-Y|)$。
+
+\noindent\textbf{解}\quad 由于联合 PDF 在单位正方形 $\{(x,y):x,y\in[0,1]\}$ 上为 $1$，由二维 LOTUS，
+\[
+\begin{aligned}
+  E(|X-Y|)
+  &=\int_0^1\int_0^1 |x-y|\,dx\,dy\\
+  &=\int_0^1\int_y^1 (x-y)\,dx\,dy
+    +\int_0^1\int_0^y (y-x)\,dx\,dy\\
+  &=2\int_0^1\int_y^1 (x-y)\,dx\,dy=\frac{1}{3}.
+\end{aligned}
+\]
+第一步把积分分成两部分，以去掉绝对值；然后使用对称性。
+
+顺便说，通过求解这个问题，我们也得到了 $M=\max(X,Y)$ 和 $L=\min(X,Y)$ 的期望。因为 $M+L$ 与 $X+Y$ 是同一个随机变量，$M-L$ 与 $|X-Y|$ 是同一个随机变量，
+\[
+  E(M+L)=E(X+Y)=1,\qquad
+  E(M-L)=E(|X-Y|)=\frac{1}{3}.
+\]
+这是两个方程、两个未知量，解得 $E(M)=2/3$、$E(L)=1/3$。作为检查，$E(M)$ 应当大于 $E(L)$；并且由对称性，它们到 $1/2$ 的距离应当相同。
+
+\noindent\textbf{例 7.2.3（两个正态随机变量的期望距离）}\quad 对 $X,Y$ 独立同分布于 $\mathcal{N}(0,1)$，求 $E(|X-Y|)$。
+
+\noindent\textbf{解}\quad 可以再次使用二维 LOTUS：
+\[
+  E(|X-Y|)=\int_{-\infty}^{\infty}\int_{-\infty}^{\infty}
+  |x-y|\frac{1}{\sqrt{2\pi}}e^{-x^2/2}
+  \frac{1}{\sqrt{2\pi}}e^{-y^2/2}\,dx\,dy.
+\]
+但更简单的方法是使用独立正态变量之和或差仍为正态这一事实。因此
+\[
+  X-Y\sim \mathcal{N}(0,2),
+\]
+所以可写成 $X-Y=\sqrt{2}Z$，其中 $Z\sim \mathcal{N}(0,1)$。于是
+\[
+  E(|X-Y|)=\sqrt{2}\,E|Z|.
+\]
+例 5.4.7 中已经说明
+\[
+  E|Z|=\sqrt{\frac{2}{\pi}},
+\]
+所以
+\[
+  E(|X-Y|)=\frac{2}{\sqrt{\pi}}.
+\]
+
+也可以用二维 LOTUS 再次证明期望的线性性。
+
+\noindent\textbf{例 7.2.4（用二维 LOTUS 证明线性性）}\quad 令 $X$ 和 $Y$ 为连续随机变量（离散情形也可类似处理）。由二维 LOTUS，
+\[
+\begin{aligned}
+  E(X+Y)
+  &=\int_{-\infty}^{\infty}\int_{-\infty}^{\infty}
+  (x+y)f_{X,Y}(x,y)\,dx\,dy\\
+  &=\int_{-\infty}^{\infty}\int_{-\infty}^{\infty}
+  x f_{X,Y}(x,y)\,dx\,dy
+  +\int_{-\infty}^{\infty}\int_{-\infty}^{\infty}
+  y f_{X,Y}(x,y)\,dx\,dy\\
+  &=E(X)+E(Y).
+\end{aligned}
+\]
+这是期望线性性的一个简短证明。最后一步使用二维 LOTUS，以及 $X$ 可以看作 $X,Y$ 的一个函数（这个函数退化地不涉及 $Y$），$Y$ 也类似。另一种得到最后一步的方法是写出
+\[
+  \int_{-\infty}^{\infty}\int_{-\infty}^{\infty}y f_{X,Y}(x,y)\,dx\,dy
+  =\int_{-\infty}^{\infty}y\int_{-\infty}^{\infty}f_{X,Y}(x,y)\,dx\,dy
+  =\int_{-\infty}^{\infty}y f_Y(y)\,dy=E(Y),
+\]
+其中在内层对 $x$ 积分时，$y$ 保持常数，所以可以提出积分号；随后识别出 $Y$ 的边缘 PDF。对 $E(X)$ 项，可以先交换积分次序，从 $dx\,dy$ 换成 $dy\,dx$，再应用同样论证。
+
+\section*{7.3\quad 协方差与相关}
+
+正如均值和方差为单个随机变量的分布提供单数摘要，协方差也为两个随机变量的联合分布提供单数摘要。粗略地说，协方差度量两个随机变量相对于各自均值共同上升或共同下降的倾向：$X$ 与 $Y$ 的正协方差表示当 $X$ 上升时 $Y$ 也倾向于上升；负协方差表示当 $X$ 上升时 $Y$ 倾向于下降。精确定义如下。
+
+\noindent\textbf{定义 7.3.1（协方差）}\quad 随机变量 $X$ 与 $Y$ 之间的\textbf{协方差}为
+\[
+  \operatorname{Cov}(X,Y)=E((X-EX)(Y-EY)).
+\]
+将其展开并使用线性性，可得等价表达式
+\[
+  \operatorname{Cov}(X,Y)=E(XY)-E(X)E(Y).
+\]
+
+直观理解这个定义：如果 $X$ 和 $Y$ 倾向于朝同一方向变化，那么 $X-EX$ 与 $Y-EY$ 往往同为正或同为负，于是 $(X-EX)(Y-EY)$ 平均为正，给出正协方差。如果 $X$ 和 $Y$ 倾向于朝相反方向变化，那么 $X-EX$ 与 $Y-EY$ 往往符号相反，给出负协方差。
+
+若 $X$ 和 $Y$ 独立，则它们的协方差为 $0$。协方差为 $0$ 的随机变量称为\textbf{不相关}。
+
+\noindent\textbf{定理 7.3.2}\quad 若 $X$ 和 $Y$ 独立，则它们不相关。
+
+\noindent\textbf{证明}\quad 我们在 $X$ 和 $Y$ 为连续随机变量、PDF 分别为 $f_X$ 和 $f_Y$ 的情形下证明。由于 $X$ 和 $Y$ 独立，联合 PDF 是边缘 PDF 的乘积。由二维 LOTUS，
+\[
+\begin{aligned}
+  E(XY)
+  &=\int_{-\infty}^{\infty}\int_{-\infty}^{\infty}
+  xy f_X(x)f_Y(y)\,dx\,dy\\
+  &=\int_{-\infty}^{\infty} y f_Y(y)
+    \left(\int_{-\infty}^{\infty}x f_X(x)\,dx\right)dy\\
+  &=\left(\int_{-\infty}^{\infty}x f_X(x)\,dx\right)
+    \left(\int_{-\infty}^{\infty}y f_Y(y)\,dy\right)\\
+  &=E(X)E(Y).
+\end{aligned}
+\]
+离散情形证明相同，只需把 PDF 换成 PMF。
+
+该定理的逆命题是假的：$X$ 和 $Y$ 不相关并不意味着它们独立。例如，令 $X\sim \mathcal{N}(0,1)$，并令 $Y=X^2$。则
+\[
+  E(XY)=E(X^3)=0,
+\]
+因为标准正态分布的奇数阶矩由对称性为 $0$。于是 $X$ 与 $Y$ 不相关：
+\[
+  \operatorname{Cov}(X,Y)=E(XY)-E(X)E(Y)=0-0=0.
+\]
+但它们显然不独立：$Y$ 是 $X$ 的函数，所以知道 $X$ 就给出了关于 $Y$ 的完整信息。协方差度量的是\textbf{线性}关联，因此随机变量可以以非线性方式相依，却仍有零协方差。图 7.9 右下角的图展示了这个例子中 $X$ 和 $Y$ 联合分布的样本点；其他三幅图分别展示正相关、负相关和独立。
+
+协方差具有以下关键性质：
+\begin{enumerate}
+  \item $\operatorname{Cov}(X,X)=\operatorname{Var}(X)$。
+  \item $\operatorname{Cov}(X,Y)=\operatorname{Cov}(Y,X)$。
+  \item 对任意常数 $c$，$\operatorname{Cov}(X,c)=0$。
+  \item 对任意常数 $a$，$\operatorname{Cov}(aX,Y)=a\operatorname{Cov}(X,Y)$。
+  \item $\operatorname{Cov}(X+Y,Z)=\operatorname{Cov}(X,Z)+\operatorname{Cov}(Y,Z)$。
+  \item $\operatorname{Cov}(X+Y,Z+W)=\operatorname{Cov}(X,Z)+\operatorname{Cov}(X,W)+\operatorname{Cov}(Y,Z)+\operatorname{Cov}(Y,W)$。
+  \item
+  \[
+    \operatorname{Var}(X+Y)=\operatorname{Var}(X)+\operatorname{Var}(Y)+2\operatorname{Cov}(X,Y).
+  \]
+  对 $n$ 个随机变量 $X_1,\ldots,X_n$，
+  \[
+    \operatorname{Var}(X_1+\cdots+X_n)
+    =\operatorname{Var}(X_1)+\cdots+\operatorname{Var}(X_n)
+    +2\sum_{i<j}\operatorname{Cov}(X_i,X_j).
+  \]
+\end{enumerate}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.86\textwidth]{7-9.png}
+  \caption{在不同相依结构下从 $(X,Y)$ 的联合分布抽取的样本点。左上：$X$ 和 $Y$ 正相关。右上：$X$ 和 $Y$ 负相关。左下：$X$ 和 $Y$ 独立，因此不相关。右下：$Y$ 是 $X$ 的确定性函数，但 $X$ 和 $Y$ 不相关。}
+\end{figure}
+
+前五条性质可由定义和期望的基本性质直接推出。性质 6 由性质 2 和性质 5 推得，展开为
+\[
+\begin{aligned}
+  \operatorname{Cov}(X+Y,Z+W)
+  &=\operatorname{Cov}(X,Z+W)+\operatorname{Cov}(Y,Z+W)\\
+  &=\operatorname{Cov}(Z+W,X)+\operatorname{Cov}(Z+W,Y)\\
+  &=\operatorname{Cov}(Z,X)+\operatorname{Cov}(W,X)
+    +\operatorname{Cov}(Z,Y)+\operatorname{Cov}(W,Y)\\
+  &=\operatorname{Cov}(X,Z)+\operatorname{Cov}(X,W)
+    +\operatorname{Cov}(Y,Z)+\operatorname{Cov}(Y,W).
+\end{aligned}
+\]
+性质 7 来自把随机变量的方差写成它与自身的协方差（由性质 1），再反复使用性质 6。
+
+现在我们兑现第 4 章中的承诺：对独立随机变量，和的方差等于方差之和：
+\[
+  \operatorname{Var}\left(\sum_{j=1}^{n}X_j\right)
+  =\sum_{j=1}^{n}\operatorname{Var}(X_j),
+  \quad\text{若 }X_1,\ldots,X_n\text{ 独立}.
+\]
+由定理 7.3.2，独立随机变量不相关，所以性质 7 中所有协方差项都消失。
+
+\noindent\textbf{$\biohazard$ 7.3.3}\quad 若 $X$ 和 $Y$ 独立，则协方差的性质给出
+\[
+  \operatorname{Var}(X-Y)=\operatorname{Var}(X)+\operatorname{Var}(-Y)
+  =\operatorname{Var}(X)+\operatorname{Var}(Y).
+\]
+常见错误是声称
+\[
+  \operatorname{Var}(X-Y)=\operatorname{Var}(X)-\operatorname{Var}(Y);
+\]
+这是范畴错误，因为 $\operatorname{Var}(X)-\operatorname{Var}(Y)$ 可能为负。一般地，
+\[
+  \operatorname{Var}(X-Y)=\operatorname{Var}(X)+\operatorname{Var}(Y)-2\operatorname{Cov}(X,Y).
+\]
+
+协方差依赖于 $X$ 和 $Y$ 的计量单位；如果决定用厘米而不是米来度量 $X$，协方差就会乘以 $100$。因此，一个无量纲的协方差版本更容易解释，它称为相关。
+
+\noindent\textbf{定义 7.3.4（相关）}\quad 随机变量 $X$ 与 $Y$ 之间的\textbf{相关}为
+\[
+  \operatorname{Corr}(X,Y)
+  =\frac{\operatorname{Cov}(X,Y)}
+  {\sqrt{\operatorname{Var}(X)\operatorname{Var}(Y)}}.
+\]
+在退化情形 $\operatorname{Var}(X)=0$ 或 $\operatorname{Var}(Y)=0$ 中，上式没有定义。
+
+注意，对 $X$ 和 $Y$ 平移和缩放不会影响它们的相关。平移不影响 $\operatorname{Cov}(X,Y)$、$\operatorname{Var}(X)$ 或 $\operatorname{Var}(Y)$，所以相关不变。至于缩放，由于我们除以 $X$ 和 $Y$ 的标准差，缩放因子会抵消：
+\[
+  \operatorname{Corr}(cX,Y)
+  =\frac{\operatorname{Cov}(cX,Y)}
+  {\sqrt{\operatorname{Var}(cX)\operatorname{Var}(Y)}}
+  =\frac{c\operatorname{Cov}(X,Y)}
+  {\sqrt{c^2\operatorname{Var}(X)\operatorname{Var}(Y)}}
+  =\operatorname{Corr}(X,Y).
+\]
+相关便于解释，因为它不依赖于计量单位，并且总是在 $-1$ 和 $1$ 之间。
+
+\noindent\textbf{定理 7.3.5（相关界）}\quad 对任意随机变量 $X$ 和 $Y$，
+\[
+  -1\le \operatorname{Corr}(X,Y)\le 1.
+\]
+
+\noindent\textbf{证明}\quad 不失一般性，可以假设 $X$ 和 $Y$ 的方差都是 $1$，因为缩放不改变相关。令
+\[
+  \rho=\operatorname{Corr}(X,Y)=\operatorname{Cov}(X,Y).
+\]
+利用方差非负以及协方差性质 7，有
+\[
+  \operatorname{Var}(X+Y)
+  =\operatorname{Var}(X)+\operatorname{Var}(Y)+2\operatorname{Cov}(X,Y)
+  =2+2\rho\ge 0,
+\]
+\[
+  \operatorname{Var}(X-Y)
+  =\operatorname{Var}(X)+\operatorname{Var}(Y)-2\operatorname{Cov}(X,Y)
+  =2-2\rho\ge 0.
+\]
+因此 $-1\le \rho\le 1$。
+
+下面给出一个计算协方差和相关的例子。
+
+\noindent\textbf{例 7.3.6（指数最大值与最小值）}\quad 设 $X$ 和 $Y$ 是独立同分布的 $\operatorname{Expo}(1)$ 随机变量。求 $\max(X,Y)$ 与 $\min(X,Y)$ 之间的相关。
+
+\noindent\textbf{解}\quad 令 $M=\max(X,Y)$，$L=\min(X,Y)$。由无记忆性以及第 5 章的结果可知
+\[
+  L\sim \operatorname{Expo}(2),\qquad
+  M-L\sim \operatorname{Expo}(1),
+\]
+并且 $M-L$ 与 $L$ 独立（见例 5.6.5）。因此
+\[
+\begin{aligned}
+  \operatorname{Cov}(M,L)
+  &=\operatorname{Cov}(M-L+L,L)\\
+  &=\operatorname{Cov}(M-L,L)+\operatorname{Cov}(L,L)
+  =0+\operatorname{Var}(L)=\frac14,
+\end{aligned}
+\]
+\[
+  \operatorname{Var}(M)
+  =\operatorname{Var}(M-L+L)
+  =\operatorname{Var}(M-L)+\operatorname{Var}(L)
+  =1+\frac14=\frac54,
+\]
+所以
+\[
+  \operatorname{Corr}(M,L)
+  =\frac{\operatorname{Cov}(M,L)}
+  {\sqrt{\operatorname{Var}(M)\operatorname{Var}(L)}}
+  =\frac{1/4}{\sqrt{(5/4)(1/4)}}=\frac{1}{\sqrt5}.
+\]
+
+\noindent\textbf{$\biohazard$ 7.3.7}\quad 在上例中，相关为正是合理的，因为 $M$ 必须至少和 $L$ 一样大。下面的论证是错误的：“要么 $M=X,L=Y$，要么 $M=Y,L=X$，所以要么 $\operatorname{Cov}(M,L)=\operatorname{Cov}(X,Y)$，要么 $\operatorname{Cov}(M,L)=\operatorname{Cov}(Y,X)$。但 $\operatorname{Cov}(Y,X)=\operatorname{Cov}(X,Y)$，所以总有 $\operatorname{Cov}(M,L)=\operatorname{Cov}(X,Y)=0$。”确实，要么 $M=X,L=Y$ 发生，要么 $M=Y,L=X$ 发生；但这些是\textbf{事件}，不是确定性的情形。如果认真用条件概率来写，这个论证就会崩溃。
+
+协方差性质也可以帮助寻找方差，尤其是在我们关心的随机变量是相依随机变量之和时。下一个例子使用协方差性质推出超几何分布的方差。如果做过第 4 章的习题 48，可以比较这两种推导。
+
+\noindent\textbf{例 7.3.8（超几何方差）}\quad 对 $X\sim \operatorname{HGeom}(w,b,n)$，求 $\operatorname{Var}(X)$。
+
+\noindent\textbf{解}\quad 把 $X$ 解释为从一个含有 $w$ 个白球和 $b$ 个黑球的盒子中抽取大小为 $n$ 的样本时白球的个数。可以把 $X$ 写成指标随机变量之和：
+\[
+  X=I_1+\cdots+I_n,
+\]
+其中 $I_j$ 是样本中第 $j$ 个球为白球的指标。每个 $I_j$ 的均值为 $p=w/(w+b)$，方差为 $p(1-p)$。但由于 $I_j$ 之间相依，不能简单相加它们的方差。改用协方差性质：
+\[
+\begin{aligned}
+  \operatorname{Var}(X)
+  &=\operatorname{Var}\left(\sum_{j=1}^{n}I_j\right)\\
+  &=\operatorname{Var}(I_1)+\cdots+\operatorname{Var}(I_n)
+    +2\sum_{i<j}\operatorname{Cov}(I_i,I_j)\\
+  &=np(1-p)+2{n\choose 2}\operatorname{Cov}(I_1,I_2),
+\end{aligned}
+\]
+其中最后一步使用对称性：所有 ${n\choose 2}$ 对指标变量都有相同协方差。现在只需找 $\operatorname{Cov}(I_1,I_2)$。由基本桥梁，
+\[
+\begin{aligned}
+  \operatorname{Cov}(I_1,I_2)
+  &=E(I_1I_2)-E(I_1)E(I_2)\\
+  &=P(\text{第 1 个和第 2 个球都是白球})
+    -P(\text{第 1 个球为白球})P(\text{第 2 个球为白球})\\
+  &=\frac{w}{w+b}\cdot \frac{w-1}{w+b-1}-p^2.
+\end{aligned}
+\]
+把它代入上式并化简，最终得到
+\[
+  \operatorname{Var}(X)=\frac{N-n}{N-1}np(1-p),
+\]
+其中 $N=w+b$。这与二项方差 $np(1-p)$ 相差一个因子 $(N-n)/(N-1)$，称为\textbf{有限总体修正}。差异来自这样一个事实：在二项故事中，我们有放回抽样，所以同一个球可以被抽到多次；而在超几何故事中，我们无放回抽样，所以每个球在样本中至多出现一次。
+
+若把 $N$ 看作盒子的“总体大小”，则当 $N$ 相对于样本量 $n$ 很大时，在有放回抽样中重复抽到同一个球的可能性极小。因此当 $N\to\infty$ 且 $n$ 固定时，有放回抽样与无放回抽样在极限中变得等价，有限总体修正趋近于 $1$。
+
+另一种有放回抽样和无放回抽样等价的情形，是只从盒中抽取一个球的简单情形；事实上，当 $n=1$ 时，有限总体修正也等于 $1$。
+
+本章最后两节介绍多项分布和多元正态分布。多项分布是最著名的离散多元分布，多元正态分布是最著名的连续多元分布。
+
+\section*{7.4\quad 多项分布}
+
+多项分布是二项分布的推广。二项分布计数固定次数试验中的成功次数，其中每次试验只能归类为成功或失败；而多项分布追踪试验落入多个类别的结果，例如优秀、合格、较差，或红、黄、绿、蓝。
+
+\noindent\textbf{故事 7.4.1（多项分布）}\quad 将 $n$ 个对象独立地放入 $k$ 个类别之一。一个对象以概率 $p_j$ 被放入第 $j$ 类，其中 $p_j$ 非负且 $\sum_{j=1}^{k}p_j=1$。令 $X_1$ 为第 1 类中的对象个数，$X_2$ 为第 2 类中的对象个数，依此类推，所以 $X_1+\cdots+X_k=n$。则
+\[
+  \mathbf{X}=(X_1,\ldots,X_k)
+\]
+称为服从参数为 $n$ 和 $\mathbf{p}=(p_1,\ldots,p_k)$ 的\textbf{多项分布}，记作
+\[
+  \mathbf{X}\sim \operatorname{Mult}_k(n,\mathbf{p}).
+\]
+
+我们称 $\mathbf{X}$ 为\textbf{随机向量}，因为它是随机变量的向量。$\mathbf{X}$ 的联合 PMF 可以从故事推出。
+
+\noindent\textbf{定理 7.4.2（多项联合 PMF）}\quad 若 $\mathbf{X}\sim \operatorname{Mult}_k(n,\mathbf{p})$，则 $\mathbf{X}$ 的联合 PMF 为
+\[
+  P(X_1=n_1,\ldots,X_k=n_k)
+  =\frac{n!}{n_1!n_2!\cdots n_k!}p_1^{n_1}p_2^{n_2}\cdots p_k^{n_k},
+\]
+其中 $n_1,\ldots,n_k$ 满足 $n_1+\cdots+n_k=n$。
+
+\noindent\textbf{证明}\quad 若 $n_1,\ldots,n_k$ 的和不是 $n$，则事件 $\{X_1=n_1,\ldots,X_k=n_k\}$ 不可能：每个对象都必须去某个地方，也不会凭空出现新对象。若 $n_1,\ldots,n_k$ 的和是 $n$，则把 $n_1$ 个对象放入第 1 类、$n_2$ 个对象放入第 2 类、依此类推的任何一种具体方式，都有概率
+\[
+  p_1^{n_1}p_2^{n_2}\cdots p_k^{n_k},
+\]
+而这样的方式数为
+\[
+  \frac{n!}{n_1!n_2!\cdots n_k!},
+\]
+这与例 1.4.18 中重排 STATISTICS 的字母时讨论的计数相同。因此联合 PMF 如上。
+
+既然已经给出了 $\mathbf{X}$ 的联合分布，我们就有足够信息来确定边缘分布和条件分布，以及 $\mathbf{X}$ 任意两个分量之间的协方差。
+
+我们逐一来看，首先看 $X_j$ 的边缘分布，它是 $\mathbf{X}$ 的第 $j$ 个分量。若盲目套用定义，就必须对除 $X_j$ 之外的 $\mathbf{X}$ 的所有分量在联合 PMF 上求和。至少可以说，$k-1$ 重求和并不令人愉快。幸运的是，如果改用多项分布的故事，就可以避免繁琐计算：$X_j$ 是第 $j$ 类中对象的个数，而 $n$ 个对象中的每一个都以概率 $p_j$ 独立地属于第 $j$ 类。把落入第 $j$ 类定义为成功。于是我们只有 $n$ 次独立 Bernoulli 试验，所以 $X_j$ 的边缘分布是 $\operatorname{Bin}(n,p_j)$。
+
+\noindent\textbf{定理 7.4.3（多项分布的边缘）}\quad 多项分布的边缘分布是二项分布。具体地，若 $\mathbf{X}\sim \operatorname{Mult}_k(n,\mathbf{p})$，则
+\[
+  X_j\sim \operatorname{Bin}(n,p_j).
+\]
+
+更一般地，只要把一个多项随机向量中的多个类别合并，就会得到另一个多项随机向量。例如，假设我们在一个有 5 个政党的国家中随机抽取 $n$ 个人。（如果是不放回抽样，那么 $n$ 次试验并不独立；但只要总体相对于样本很大，独立性就是很好的近似，正如定理 3.9.3 和例 7.3.8 中讨论的那样。）令
+\[
+  \mathbf{X}=(X_1,\ldots,X_5)\sim \operatorname{Mult}_5(n,(p_1,\ldots,p_5))
+\]
+表示样本中的政党支持情况，也就是说，$X_j$ 是样本中支持第 $j$ 个政党的人数。
+
+假设政党 1 和政党 2 是主要政党，而政党 3 到 5 是小型第三党。如果我们决定不追踪所有 5 个政党，而只想计数支持政党 1、政党 2 或“其他”的人数，那么可以定义一个新随机向量，把所有第三党合并为一类：
+\[
+  \mathbf{Y}=(X_1,X_2,X_3+X_4+X_5).
+\]
+由多项分布故事，
+\[
+  \mathbf{Y}\sim \operatorname{Mult}_3(n,(p_1,p_2,p_3+p_4+p_5)).
+\]
+当然，这个思想适用于任意多项分布中的类别合并，而不只适用于政党背景。
+
+\noindent\textbf{定理 7.4.4（多项分布的合并）}\quad 若 $\mathbf{X}\sim \operatorname{Mult}_k(n,\mathbf{p})$，则对任意不同的 $i$ 和 $j$，
+\[
+  X_i+X_j\sim \operatorname{Bin}(n,p_i+p_j).
+\]
+由合并类别 $i$ 和 $j$ 得到的计数随机向量仍为多项分布。例如，合并类别 1 和 2 给出
+\[
+  (X_1+X_2,X_3,\ldots,X_k)
+  \sim \operatorname{Mult}_{k-1}(n,(p_1+p_2,p_3,\ldots,p_k)).
+\]
+
+现在讨论条件分布。假设观察到了 $X_1$，即第 1 类中的对象个数，并希望更新其他类别 $(X_2,\ldots,X_k)$ 的分布。一种做法是直接使用条件 PMF 的定义：
+\[
+  P(X_2=n_2,\ldots,X_k=n_k\mid X_1=n_1)
+  =\frac{P(X_1=n_1,X_2=n_2,\ldots,X_k=n_k)}{P(X_1=n_1)}.
+\]
+分子是多项分布的联合 PMF，分母是 $X_1$ 的边缘 PMF，二者都已经推导过。不过我们更愿意用多项分布故事来无代数地推断 $(X_2,\ldots,X_k)$ 的条件分布。给定第 1 类中有 $n_1$ 个对象后，剩下的 $n-n_1$ 个对象彼此独立地落入第 2 类到第 $k$ 类。由贝叶斯规则，落入第 $j$ 类的条件概率为
+\[
+  P(\text{在第 }j\text{ 类}\mid \text{不在第 }1\text{ 类})
+  =\frac{P(\text{在第 }j\text{ 类})}{P(\text{不在第 }1\text{ 类})}
+  =\frac{p_j}{p_2+\cdots+p_k},
+\]
+其中 $j=2,\ldots,k$。这很符合直觉：更新后的概率与原概率 $(p_2,\ldots,p_k)$ 成比例，但必须重新归一化成合法的概率向量。合在一起得到如下结果。
+
+\noindent\textbf{定理 7.4.5（多项分布的条件化）}\quad 若 $\mathbf{X}\sim \operatorname{Mult}_k(n,\mathbf{p})$，则
+\[
+  (X_2,\ldots,X_k)\mid X_1=n_1
+  \sim \operatorname{Mult}_{k-1}(n-n_1,(p'_2,\ldots,p'_k)),
+\]
+其中
+\[
+  p'_j=\frac{p_j}{p_2+\cdots+p_k}.
+\]
+
+最后，我们知道多项随机向量的分量之间相依，因为它们受约束 $X_1+\cdots+X_k=n$。为了求 $X_i$ 与 $X_j$ 之间的协方差，可以使用刚讨论过的边缘性质和合并性质。
+
+\noindent\textbf{定理 7.4.6（多项分布中的协方差）}\quad 设
+\[
+  (X_1,\ldots,X_k)\sim \operatorname{Mult}_k(n,\mathbf{p}),
+  \qquad \mathbf{p}=(p_1,\ldots,p_k).
+\]
+对 $i\ne j$，
+\[
+  \operatorname{Cov}(X_i,X_j)=-np_ip_j.
+\]
+
+\noindent\textbf{证明}\quad 为具体起见，令 $i=1,j=2$。由合并性质和多项分布的边缘分布可知
+\[
+  X_1+X_2\sim \operatorname{Bin}(n,p_1+p_2),\quad
+  X_1\sim \operatorname{Bin}(n,p_1),\quad
+  X_2\sim \operatorname{Bin}(n,p_2).
+\]
+因此
+\[
+  \operatorname{Var}(X_1+X_2)
+  =\operatorname{Var}(X_1)+\operatorname{Var}(X_2)+2\operatorname{Cov}(X_1,X_2)
+\]
+变为
+\[
+  n(p_1+p_2)(1-(p_1+p_2))
+  =np_1(1-p_1)+np_2(1-p_2)+2\operatorname{Cov}(X_1,X_2).
+\]
+解出 $\operatorname{Cov}(X_1,X_2)$ 得
+\[
+  \operatorname{Cov}(X_1,X_2)=-np_1p_2.
+\]
+同理，对 $i\ne j$ 有 $\operatorname{Cov}(X_i,X_j)=-np_ip_j$。
+
+这些分量负相关，正如我们所预期：如果知道第 $i$ 类中有很多对象，那么能留给第 $j$ 类的对象就没有那么多了。习题 65 要求用指标变量给出该结果的另一种证明。
+
+\noindent\textbf{$\biohazard$ 7.4.7（独立试验但相依分量）}\quad 多项分布的 $k$ 个分量相依，但多项分布故事中的 $n$ 个对象是独立分类的。在极端情形 $k=2$ 中，一个 $\operatorname{Mult}_k(n,\mathbf{p})$ 随机向量看起来像 $(X,n-X)$，其中 $X\sim \operatorname{Bin}(n,p_1)$；可以把它理解为（成功次数，失败次数），其中“成功”定义为落入第 1 类。成功次数与失败次数完全负相关，即使各次试验是独立的。
+
+我们用一个较长的例子结束本节，它把多项分布中许多最重要的概念联系在一起。
+
+\noindent\textbf{例 7.4.8（Statwoman）}\quad 超级英雄 Statwoman 使用概率和统计与犯罪作斗争。她曾与无数敌人战斗，有时甚至同时对付几个敌人。为简单起见，假设她每一场战斗都恰好面对以下敌人之一：Confounder、Extrapolator 和 Overfitter。
+
+假设 Statwoman 明年会有 $n$ 场战斗（$n$ 为正整数），并且每场战斗独立地以概率 $p_1$ 面对 Confounder，以概率 $p_2$ 面对 Extrapolator，以概率 $p_3$ 面对 Overfitter。这里 $p_1,p_2,p_3$ 非负且和为 $1$。令 $X_1,X_2,X_3$ 分别为 Statwoman 明年与 Confounder、Extrapolator 和 Overfitter 战斗的次数。
+
+\begin{enumerate}
+  \item[(a)] 求 $X_1,X_2,X_3$ 的联合分布。
+  \item[(b)] 求 $X_1$ 与 $X_2$ 之间的相关。
+  \item[(c)] 仅本小问假设：Extrapolator 和 Overfitter 原来一直在共同策划邪恶计划，因此研究他们与 Statwoman 冲突的合计次数是有意义的。令 $X_{23}=X_2+X_3$。求 $X_1,X_{23}$ 的联合分布。
+  \item[(d)] 仅本小问假设：参数 $p_1,p_2,p_3$ 未知，$n=360$，并且观察到 Statwoman 的战斗中恰好有 36 场是与 Overfitter 进行的。估计 $p_3$ 的自然方式是使用 $36/360=0.1$。\textbf{最大似然估计}（MLE）是使观测数据 $X_3=36$ 尽可能可能的 $p_3$ 值；也就是说，MLE 是使 $P(X_3=36)$ 最大的 $p_3$ 值。证明 MLE 就是自然估计 $0.1$。
+  \item[(e)] 仅本小问假设：Overfitter 已经在英雄般的努力下被抓获！所以假设 Statwoman 明年的所有战斗都只会与另外两个敌人之一发生。求在给定 $X_3=0$ 时 $X_1,X_2$ 的联合 PMF。
+  \item[(f)] 现在假设战斗次数不是常数 $n$，而是 $N\sim \operatorname{Pois}(\lambda)$。求 $X_1,X_2,X_3$ 的联合分布。
+\end{enumerate}
+
+\noindent\textbf{解}\quad
+\begin{enumerate}
+  \item[(a)] 由多项分布故事，
+  \[
+    (X_1,X_2,X_3)\sim \operatorname{Mult}_3(n,(p_1,p_2,p_3)).
+  \]
+  \item[(b)] 我们有 $X_1\sim \operatorname{Bin}(n,p_1)$，$X_2\sim \operatorname{Bin}(n,p_2)$，且 $\operatorname{Cov}(X_1,X_2)=-np_1p_2$，所以
+  \[
+    \operatorname{Corr}(X_1,X_2)
+    =\frac{\operatorname{Cov}(X_1,X_2)}{\operatorname{SD}(X_1)\operatorname{SD}(X_2)}
+    =\frac{-np_1p_2}{\sqrt{np_1(1-p_1)np_2(1-p_2)}}
+    =-\sqrt{\frac{p_1p_2}{(1-p_1)(1-p_2)}}.
+  \]
+  \item[(c)] 由多项分布的合并性质，
+  \[
+    (X_1,X_{23})\sim \operatorname{Mult}_2(n,(p_1,p_2+p_3)).
+  \]
+  \item[(d)] 一般地，若 $X\sim \operatorname{Bin}(n,p)$ 且观察到 $X=x$，则 $p$ 的 MLE 是使函数
+  \[
+    L(p)={n\choose x}p^x(1-p)^{n-x}
+  \]
+  最大的 $p$ 值。
+
+  函数 $L$ 在统计学中称为\textbf{似然函数}。它是数据的概率，但把数据视为固定，把参数视为自变量。
+
+  像处理正数乘积时常见的那样，取对数很有帮助。寻找使
+  \[
+    \log L(p)=\log {n\choose x}+x\log p+(n-x)\log(1-p)
+  \]
+  最大的 $\hat p$ 是等价的，因为 $\log$ 是连续、严格递增函数。令 $\log L(p)$ 对 $p$ 的导数（保持 $x$ 为常数）等于 $0$，得到
+  \[
+    \frac{x}{\hat p}-\frac{n-x}{1-\hat p}=0,
+  \]
+  从而 $\hat p=x/n$。这确实是最大值，因为 $\log L(p)$ 的二阶导数为
+  \[
+    -\frac{x}{p^2}-\frac{n-x}{(1-p)^2}<0.
+  \]
+  因此 $p_3$ 的 MLE 是
+  \[
+    \hat p_3=\frac{36}{360}=0.1.
+  \]
+  \item[(e)] 由多项分布条件化的结果，
+  \[
+    (X_1,X_2)\mid (X_3=0)
+    \sim \operatorname{Mult}_2\left(n,\left(\frac{p_1}{p_1+p_2},\frac{p_2}{p_1+p_2}\right)\right).
+  \]
+  \item[(f)] 按孵化与未孵化故事中的思路，
+  \[
+    P(X_1=x_1,X_2=x_2,X_3=x_3)
+    =\sum_{n=0}^{\infty}
+    P(X_1=x_1,X_2=x_2,X_3=x_3\mid N=n)P(N=n),
+  \]
+  其中除了 $n=x_1+x_2+x_3$ 的项外，其余求和项均为 $0$。对这个 $n$，
+  \[
+  \begin{aligned}
+    P(X_1=x_1,X_2=x_2,X_3=x_3)
+    &=P(X_1=x_1,X_2=x_2,X_3=x_3\mid N=n)P(N=n)\\
+    &=\frac{n!}{x_1!x_2!x_3!}p_1^{x_1}p_2^{x_2}p_3^{x_3}\cdot e^{-\lambda}\frac{\lambda^n}{n!}\\
+    &=\frac{e^{-\lambda p_1}(\lambda p_1)^{x_1}}{x_1!}
+      \cdot \frac{e^{-\lambda p_2}(\lambda p_2)^{x_2}}{x_2!}
+      \cdot \frac{e^{-\lambda p_3}(\lambda p_3)^{x_3}}{x_3!},
+  \end{aligned}
+  \]
+  对所有非负整数 $x_1,x_2,x_3$ 成立。因此 $X_1,X_2,X_3$ 独立，且
+  \[
+    X_j\sim \operatorname{Pois}(\lambda p_j).
+  \]
+  这是孵化与未孵化故事的多项推广。
+\end{enumerate}
+
+\section*{7.5\quad 多元正态}
+
+多元正态分布是把正态分布推广到更高维的连续多元分布。我们不会处理多元正态那相当笨重的联合 PDF，而是用它与普通正态分布之间的关系来定义多元正态。
+
+\noindent\textbf{定义 7.5.1（多元正态分布）}\quad 一个 $k$ 维随机向量
+\[
+  \mathbf{X}=(X_1,\ldots,X_k)
+\]
+称为服从\textbf{多元正态}（MVN）分布，如果 $X_j$ 的每个线性组合都服从正态分布。也就是说，对任意常数 $t_1,\ldots,t_k$，要求
+\[
+  t_1X_1+\cdots+t_kX_k
+\]
+服从正态分布。如果 $t_1X_1+\cdots+t_kX_k$ 是常数（例如所有 $t_i=0$ 时），我们也把它看作一个正态分布，不过是方差为 $0$ 的退化正态分布。一个重要特例是 $k=2$；此分布称为\textbf{二元正态}（BVN）。
+
+若 $(X_1,\ldots,X_k)$ 是 MVN，则 $X_1$ 的边缘分布是正态分布，因为可以取 $t_1=1$ 且所有其他 $t_j=0$。类似地，每个 $X_j$ 的边缘分布都是正态分布。然而，逆命题是假的：可以有正态分布的随机变量 $X_1,\ldots,X_k$，但 $(X_1,\ldots,X_k)$ 并不是多元正态。
+
+\noindent\textbf{例 7.5.2（MVN 的反例）}\quad 下面是一个例子，其中两个随机变量的边缘分布都是正态，但它们的联合分布不是二元正态。令 $X\sim \mathcal{N}(0,1)$，并令
+\[
+  S=
+  \begin{cases}
+    1, & \text{概率为 }1/2,\\
+    -1, & \text{概率为 }1/2
+  \end{cases}
+\]
+为一个与 $X$ 独立的随机符号。则由正态分布的对称性，$Y=SX$ 是标准正态随机变量（见第 5 章习题 30）。然而，$(X,Y)$ 不是二元正态，因为
+\[
+  P(X+Y=0)=P(S=-1)=\frac12,
+\]
+这意味着 $X+Y$ 不可能是正态分布（甚至不可能有任何连续分布）。由于 $X+Y$ 是 $X$ 和 $Y$ 的线性组合，但并不服从正态分布，$(X,Y)$ 不是二元正态。
+
+\noindent\textbf{例 7.5.3（真正的 MVN）}\quad 若
+\[
+  Z,W \stackrel{\text{i.i.d.}}{\sim}\mathcal{N}(0,1),
+\]
+则 $(Z,W)$ 是二元正态，因为独立正态之和仍为正态。而且 $(Z+2W,3Z+5W)$ 也是二元正态，因为任意线性组合
+\[
+  t_1(Z+2W)+t_2(3Z+5W)
+\]
+也可以写成 $Z$ 和 $W$ 的线性组合：
+\[
+  (t_1+3t_2)Z+(2t_1+5t_2)W,
+\]
+因此服从正态分布。
+
+上例表明，若从一个多元正态出发，并取其分量的线性组合，就会形成新的多元正态。接下来的两个定理说明，我们也可以通过取子向量和拼接，从旧的 MVN 产生新的 MVN。
+
+\noindent\textbf{定理 7.5.4}\quad 若 $(X_1,X_2,X_3)$ 是多元正态，则子向量 $(X_1,X_2)$ 也是多元正态。
+
+\noindent\textbf{证明}\quad 任意线性组合 $t_1X_1+t_2X_2$ 都可以看作 $X_1,X_2,X_3$ 的线性组合，其中 $X_3$ 的系数为 $0$。所以对所有 $t_1,t_2$，$t_1X_1+t_2X_2$ 都是正态分布，这说明 $(X_1,X_2)$ 是 MVN。
+
+\noindent\textbf{定理 7.5.5}\quad 若
+\[
+  \mathbf{X}=(X_1,\ldots,X_n),\qquad
+  \mathbf{Y}=(Y_1,\ldots,Y_m)
+\]
+是多元正态随机向量，且 $\mathbf{X}$ 与 $\mathbf{Y}$ 独立，则拼接随机向量
+\[
+  \mathbf{W}=(X_1,\ldots,X_n,Y_1,\ldots,Y_m)
+\]
+是多元正态。
+
+\noindent\textbf{证明}\quad 任意线性组合
+\[
+  s_1X_1+\cdots+s_nX_n+t_1Y_1+\cdots+t_mY_m
+\]
+都是正态分布，因为
+\[
+  s_1X_1+\cdots+s_nX_n
+  \quad\text{和}\quad
+  t_1Y_1+\cdots+t_mY_m
+\]
+分别是正态分布（由 MVN 定义），且二者独立，所以它们的和是正态分布（如第 6 章用 MGF 所示）。
+
+一个多元正态分布完全由各分量的均值、各分量的方差，以及任意两个分量之间的协方差或相关来指定。换句话说，MVN 随机向量 $(X_1,\ldots,X_k)$ 的参数如下：
+\begin{itemize}
+  \item \textit{均值向量} $(\mu_1,\ldots,\mu_k)$，其中 $E(X_j)=\mu_j$；
+  \item \textit{协方差矩阵}，即分量之间协方差组成的 $k\times k$ 矩阵，其第 $i$ 行第 $j$ 列元素为 $\operatorname{Cov}(X_i,X_j)$。
+\end{itemize}
+
+例如，为了完全指定 $(X,Y)$ 的二元正态分布，需要知道五个参数：
+\begin{itemize}
+  \item 均值 $E(X),E(Y)$；
+  \item 方差 $\operatorname{Var}(X),\operatorname{Var}(Y)$；
+  \item 相关 $\operatorname{Corr}(X,Y)$。
+\end{itemize}
+
+我们将在例 8.1.10 中说明，具有 $\mathcal{N}(0,1)$ 边缘分布且相关 $\rho\in(-1,1)$ 的二元正态 $(X,Y)$ 的联合 PDF 为
+\[
+  f_{X,Y}(x,y)=\frac{1}{2\pi\tau}
+  \exp\left(-\frac{1}{2\tau^2}(x^2+y^2-2\rho xy)\right),
+\]
+其中 $\tau=\sqrt{1-\rho^2}$。图 7.10 画出了两个不同二元正态分布的联合 PDF 及对应的等高线图，它们的边缘分布都是 $\mathcal{N}(0,1)$。左侧 $X$ 和 $Y$ 不相关，所以联合 PDF 的水平曲线是圆；右侧 $X$ 和 $Y$ 的相关为 $0.75$，所以水平曲线呈椭圆形，反映出 $X$ 大时 $Y$ 也倾向于较大。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.86\textwidth]{7-10.png}
+  \caption{两个二元正态分布的联合 PDF 及相应的等高线图。左侧 $X$ 和 $Y$ 的边缘分布均为 $\mathcal{N}(0,1)$ 且相关为 $0$。右侧 $X$ 和 $Y$ 的边缘分布均为 $\mathcal{N}(0,1)$ 且相关为 $0.75$。}
+\end{figure}
+
+正如一个随机变量的分布由它的 CDF、PMF/PDF 或 MGF 决定，一个随机向量的联合分布也由它的联合 CDF、联合 PMF/PDF 或\textbf{联合 MGF} 决定。现在定义联合 MGF。
+
+\noindent\textbf{定义 7.5.6（联合 MGF）}\quad 随机向量 $\mathbf{X}=(X_1,\ldots,X_k)$ 的\textbf{联合矩母函数}（联合 MGF）是函数 $M$，定义为
+\[
+  M(\mathbf{t})=E(e^{\mathbf{t}'\mathbf{X}})
+  =E\left(e^{t_1X_1+\cdots+t_kX_k}\right),
+\]
+其中 $\mathbf{t}=(t_1,\ldots,t_k)\in \mathbb{R}^k$。我们要求该期望在包含 $\mathbb{R}^k$ 原点的一个盒子中有限；否则称联合 MGF 不存在。
+
+对一个多元正态随机向量，联合 MGF 特别好用，因为指数中的项
+\[
+  t_1X_1+\cdots+t_kX_k
+\]
+按定义是正态随机变量。这意味着我们可以用已知的一元正态 MGF 来求多元正态的联合 MGF。回忆若 $W$ 为任意正态随机变量，则
+\[
+  E(e^W)=e^{E(W)+\frac12\operatorname{Var}(W)}.
+\]
+因此，多元正态 $(X_1,\ldots,X_k)$ 的联合 MGF 为
+\[
+  E\left(e^{t_1X_1+\cdots+t_kX_k}\right)
+  =\exp\left(t_1E(X_1)+\cdots+t_kE(X_k)
+  +\frac12\operatorname{Var}(t_1X_1+\cdots+t_kX_k)\right).
+\]
+其中方差项可以用协方差性质展开。
+
+一般而言，独立比零相关更强；随机变量可以不相关但不独立。多元正态分布的一个特殊性质是：对联合分布为 MVN 的随机变量，独立和零相关是等价条件。
+
+\noindent\textbf{定理 7.5.7}\quad 在一个 MVN 随机向量中，不相关蕴含独立。也就是说，若 $\mathbf{X}\sim \operatorname{MVN}$ 可以写成
+\[
+  \mathbf{X}=(\mathbf{X}_1,\mathbf{X}_2),
+\]
+其中 $\mathbf{X}_1$ 和 $\mathbf{X}_2$ 是子向量，且 $\mathbf{X}_1$ 的每个分量都与 $\mathbf{X}_2$ 的每个分量不相关，则 $\mathbf{X}_1$ 与 $\mathbf{X}_2$ 独立。\footnote{随机向量的独立性与随机变量的独立性类似。特别地，若 $\mathbf{X}_i$ 有联合 PDF $f_{\mathbf{X}_i}$，则独立性意味着对所有 $\mathbf{x}_1,\mathbf{x}_2$，$f_{\mathbf{X}}(\mathbf{x}_1,\mathbf{x}_2)=f_{\mathbf{X}_1}(\mathbf{x}_1)f_{\mathbf{X}_2}(\mathbf{x}_2)$。}
+
+特别地，若 $(X,Y)$ 是二元正态且 $\operatorname{Corr}(X,Y)=0$，则 $X$ 和 $Y$ 独立。
+
+\noindent\textbf{证明}\quad 我们在二元正态情形下证明该定理；高维情形的证明类似。设 $(X,Y)$ 是二元正态，且
+\[
+  E(X)=\mu_1,\quad E(Y)=\mu_2,\quad
+  \operatorname{Var}(X)=\sigma_1^2,\quad
+  \operatorname{Var}(Y)=\sigma_2^2,\quad
+  \operatorname{Corr}(X,Y)=\rho.
+\]
+联合 MGF 为
+\[
+\begin{aligned}
+  M_{X,Y}(s,t)
+  &=E(e^{sX+tY})
+  =\exp\left(s\mu_1+t\mu_2+\frac12\operatorname{Var}(sX+tY)\right)\\
+  &=\exp\left(s\mu_1+t\mu_2
+  +\frac12(s^2\sigma_1^2+t^2\sigma_2^2+2st\sigma_1\sigma_2\rho)\right).
+\end{aligned}
+\]
+若 $\rho=0$，联合 MGF 化为
+\[
+  M_{X,Y}(s,t)
+  =\exp\left(s\mu_1+t\mu_2+\frac12(s^2\sigma_1^2+t^2\sigma_2^2)\right).
+\]
+但这也是 $(Z,W)$ 的联合 MGF，其中
+\[
+  Z\sim \mathcal{N}(\mu_1,\sigma_1^2),\qquad
+  W\sim \mathcal{N}(\mu_2,\sigma_2^2),
+\]
+且 $Z$ 与 $W$ 独立。由于联合 MGF 决定联合分布，必有 $(X,Y)$ 与 $(Z,W)$ 具有相同的联合分布。因此 $X$ 与 $Y$ 独立。
+
+该定理不适用于例 7.5.2。在那个例子中，可以验证 $X$ 与 $Y$ 不相关且不独立，但这并不与定理矛盾，因为 $(X,Y)$ 不是 BVN。下面两个例子展示该定理确实适用的情形。
+
+\noindent\textbf{例 7.5.8（和与差的独立性）}\quad 设
+\[
+  X,Y\stackrel{\text{i.i.d.}}{\sim}\mathcal{N}(0,1).
+\]
+求 $(X+Y,X-Y)$ 的联合分布。
+
+\noindent\textbf{解}\quad 由于 $(X+Y,X-Y)$ 是二元正态，且
+\[
+  \operatorname{Cov}(X+Y,X-Y)
+  =\operatorname{Var}(X)-\operatorname{Cov}(X,Y)+\operatorname{Cov}(Y,X)-\operatorname{Var}(Y)=0,
+\]
+所以 $X+Y$ 与 $X-Y$ 独立。此外，二者独立同分布为 $\mathcal{N}(0,2)$。用同样方法可知：若 $X\sim \mathcal{N}(\mu_1,\sigma^2)$ 与 $Y\sim \mathcal{N}(\mu_2,\sigma^2)$ 独立（方差相同），则 $X+Y$ 与 $X-Y$ 独立。
+
+可以证明，和与差的独立性是正态分布的一个独特刻画！也就是说，若 $X$ 和 $Y$ 独立同分布且 $X+Y$ 与 $X-Y$ 独立，则 $X$ 和 $Y$ 必须服从正态分布。在习题 72 中，你会把本例推广到 $X$ 和 $Y$ 是具有一般相关 $\rho$ 的二元正态的情形。
+
+\noindent\textbf{例 7.5.9（样本均值与样本方差的独立性）}\quad 设 $X_1,\ldots,X_n$ 独立同分布于 $\mathcal{N}(\mu,\sigma^2)$，其中 $n\ge 2$。定义
+\[
+  \bar X_n=\frac1n(X_1+\cdots+X_n),
+\]
+\[
+  S_n^2=\frac{1}{n-1}\sum_{j=1}^{n}(X_j-\bar X_n)^2.
+\]
+如第 6 章所示，样本均值 $\bar X_n$ 的期望为 $\mu$（真均值），样本方差 $S_n^2$ 的期望为 $\sigma^2$（真方差）。通过对
+\[
+  (\bar X_n,X_1-\bar X_n,\ldots,X_n-\bar X_n)
+\]
+应用 MVN 思想，证明 $\bar X_n$ 与 $S_n^2$ 独立。
+
+\noindent\textbf{解}\quad 向量
+\[
+  (\bar X_n,X_1-\bar X_n,\ldots,X_n-\bar X_n)
+\]
+是 MVN，因为其分量的任意线性组合都可以写成 $X_1,\ldots,X_n$ 的线性组合。此外，由线性性，
+\[
+  E(X_j-\bar X_n)=0.
+\]
+现在计算 $\bar X_n$ 与 $X_j-\bar X_n$ 的协方差：
+\[
+  \operatorname{Cov}(\bar X_n,X_j-\bar X_n)
+  =\operatorname{Cov}(\bar X_n,X_j)-\operatorname{Cov}(\bar X_n,\bar X_n).
+\]
+对 $\operatorname{Cov}(\bar X_n,X_j)$，展开 $\bar X_n$，并利用独立性使多数项消失：
+\[
+  \operatorname{Cov}(\bar X_n,X_j)
+  =\operatorname{Cov}\left(\frac1nX_1+\cdots+\frac1nX_n,X_j\right)
+  =\operatorname{Cov}\left(\frac1nX_j,X_j\right)
+  =\frac1n\operatorname{Var}(X_j)
+  =\frac{\sigma^2}{n}.
+\]
+对 $\operatorname{Cov}(\bar X_n,\bar X_n)$，使用方差性质：
+\[
+  \operatorname{Cov}(\bar X_n,\bar X_n)
+  =\operatorname{Var}(\bar X_n)
+  =\frac{1}{n^2}\left(\operatorname{Var}(X_1)+\cdots+\operatorname{Var}(X_n)\right)
+  =\frac{\sigma^2}{n}.
+\]
+因此
+\[
+  \operatorname{Cov}(\bar X_n,X_j-\bar X_n)=0,
+\]
+这意味着 $\bar X_n$ 与 $(X_1-\bar X_n,\ldots,X_n-\bar X_n)$ 的每个分量都不相关。由于在 MVN 向量中不相关蕴含独立，$\bar X_n$ 独立于向量 $(X_1-\bar X_n,\ldots,X_n-\bar X_n)$。而 $S_n^2$ 是 $(X_1-\bar X_n,\ldots,X_n-\bar X_n)$ 的函数，所以 $\bar X_n$ 也独立于 $S_n^2$。
+
+可以证明，样本均值与样本方差的独立性是正态分布的另一个独特刻画！如果 $X_j$ 服从任何其他分布，那么 $\bar X_n$ 与 $S_n^2$ 将相依。
+
+\noindent\textbf{例 7.5.10（二元正态生成）}\quad 假设我们可以使用独立同分布的随机变量
+\[
+  X,Y\sim \mathcal{N}(0,1),
+\]
+但希望生成一个二元正态随机向量 $(Z,W)$，其中 $\operatorname{Corr}(Z,W)=\rho$，并且 $Z,W$ 的边缘分布都是 $\mathcal{N}(0,1)$，用于运行模拟。如何由 $X$ 和 $Y$ 的线性组合构造 $Z$ 和 $W$？
+
+\noindent\textbf{解}\quad 由多元正态的定义，任意形如
+\[
+  Z=aX+bY,\qquad W=cX+dY
+\]
+的 $(Z,W)$ 都是二元正态。因此尝试寻找合适的 $a,b,c,d$。均值已经是 $0$。令方差等于 $1$ 得
+\[
+  a^2+b^2=1,\qquad c^2+d^2=1.
+\]
+令 $Z$ 与 $W$ 的协方差等于 $\rho$ 得
+\[
+  ac+bd=\rho.
+\]
+未知数多于方程，我们只需要一个解。为简化，寻找满足 $b=0$ 的解。于是 $a^2=1$，取 $a=1$。现在 $ac+bd=\rho$ 化为 $c=\rho$，再用 $c^2+d^2=1$ 找到合适的 $d$。合在一起，可以生成
+\[
+  Z=X,\qquad W=\rho X+\sqrt{1-\rho^2}Y.
+\]
+注意在极端情形 $\rho=1$（称为完全正相关）中，这表示取 $W=Z\sim \mathcal{N}(0,1)$；在极端情形 $\rho=-1$（称为完全负相关）中，这表示取 $W=-Z$ 且 $Z\sim \mathcal{N}(0,1)$；在简单情形 $\rho=0$ 中，这只是取 $(Z,W)=(X,Y)$。
+
+\section*{7.6\quad 总结}
+
+联合分布让我们能够描述来自同一实验的多个随机变量的行为。与联合分布有关的重要函数包括联合 CDF、联合 PMF/PDF、边缘 PMF/PDF 和条件 PMF/PDF。下一页的表格总结了两个离散随机变量和两个连续随机变量情形下的这些定义。联合分布也可以是离散与连续的混合；在这种情形下，我们混合使用 PMF 和 PDF。
+
+协方差是两个随机变量同向变化倾向的单数摘要。如果两个随机变量独立，则它们不相关，但逆命题不成立。相关是协方差的无量纲标准化版本，总在 $-1$ 和 $1$ 之间。
+
+两个重要的具名多元分布是多项分布和多元正态分布。多项分布是二项分布的推广；一个 $\operatorname{Mult}_k(n,\mathbf{p})$ 随机向量计数 $n$ 个对象中落入 $k$ 个类别各自的对象数，其中 $\mathbf{p}$ 是这 $k$ 个类别的概率向量。
+
+多元正态分布是正态分布的推广；若一个随机向量各分量的任意线性组合都服从正态分布，则它被定义为 MVN。MVN 分布的一个关键性质是：在一个 MVN 随机向量内部，不相关蕴含独立。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\textwidth]{7-11.png}
+  \caption{多元分布情形下概率的基本对象。联合分布由联合 CDF、联合 PMF/PDF 或联合 MGF 决定。随机向量 $(X,Y)$ 产生许多有用的联合、边缘与条件量。利用二维 LOTUS，可以求 $X$ 和 $Y$ 的函数的期望。对联合 PMF 关于所有 $y$ 求和，或对联合 PDF 关于所有 $y$ 积分，给出 $X$ 的边缘分布，从而把我们带回一维分布情形。}
+\end{figure}
+
+图 7.11 把概率的基本对象图推广到多元情形（为简化记号，图中取二元情形）。联合分布可以用来生成随机向量 $(X,Y)$。随后可以研究各种联合、边缘和条件量。对联合 PMF 关于所有 $y$ 求和，或对联合 PDF 关于所有 $y$ 积分，给出 $X$ 的边缘分布，从而把我们带回一维世界。
+
+\section*{7.8\quad 习题}
+
+标有 $\circledS$ 的习题在原书配套网站给出详细解答。
+
+\subsection*{联合、边缘与条件分布}
+
+\noindent\textbf{1.}\quad Alice 和 Bob 约好某天中午一起吃午饭。然而两人都不以准时著称。他们当天都会在中午到下午 1 点之间独立地、均匀随机地到达。每个人都愿意最多等对方 15 分钟。求他们当天能一起吃午饭的概率。
+
+\noindent\textbf{2.}\quad Alice、Bob 和 Carl 约好某天一起吃午饭。他们在下午 1 点到 1 点 30 分之间独立地、均匀随机地到达。
+\begin{enumerate}
+  \item[(a)] Carl 第一个到达的概率是多少？
+\end{enumerate}
+本题余下部分，假设 Carl 第一个到达，时间是下午 1 点 10 分，并以此为条件。
+\begin{enumerate}
+  \item[(b)] Carl 独自等待超过 10 分钟的概率是多少？
+  \item[(c)] Carl 需要等待超过 10 分钟直到所有人到齐的概率是多少？
+  \item[(d)] 第二个到达的人需要等待超过 5 分钟直到第三个人到达的概率是多少？
+\end{enumerate}
+
+\noindent\textbf{3.}\quad 两位医生 Dr. Hibbert 和 Dr. Nick 中的一位被要求完成一系列 $n$ 台手术。令 $H$ 为 Dr. Hibbert 做这些手术的指标随机变量，并假设 $E(H)=p$。给定 Dr. Hibbert 做手术，每台手术独立地以概率 $a$ 成功；给定 Dr. Nick 做手术，每台手术独立地以概率 $b$ 成功。令 $X$ 为成功手术的次数。
+\begin{enumerate}
+  \item[(a)] 求 $H$ 和 $X$ 的联合 PMF。
+  \item[(b)] 求 $X$ 的边缘 PMF。
+  \item[(c)] 求给定 $X=k$ 时 $H$ 的条件 PMF。
+\end{enumerate}
+
+\noindent\textbf{4.}\quad 公平硬币抛两次。令 $X$ 为两次抛掷中正面出现的次数，令 $Y$ 为两次抛掷结果相同的指标随机变量。
+\begin{enumerate}
+  \item[(a)] 求 $X$ 和 $Y$ 的联合 PMF。
+  \item[(b)] 求 $X$ 和 $Y$ 的边缘 PMF。
+  \item[(c)] $X$ 和 $Y$ 独立吗？
+  \item[(d)] 求给定 $X=x$ 时 $Y$ 的条件 PMF，以及给定 $Y=y$ 时 $X$ 的条件 PMF。
+\end{enumerate}
+
+\noindent\textbf{5.}\quad 掷一个公平骰子，然后把正面概率为 $p$ 的硬币抛掷与骰子点数相同的次数。例如，若骰子结果为 3，则硬币抛 3 次。令 $X$ 为骰子结果，$Y$ 为硬币正面出现的次数。
+\begin{enumerate}
+  \item[(a)] 求 $X$ 和 $Y$ 的联合 PMF。它们独立吗？
+  \item[(b)] 求 $X$ 和 $Y$ 的边缘 PMF。
+  \item[(c)] 求给定 $X=x$ 时 $Y$ 的条件 PMF，以及给定 $Y=y$ 时 $X$ 的条件 PMF。
+\end{enumerate}
+
+\noindent\textbf{6.}\quad 从 $n$ 名女性和 $m$ 名男性组成的群体中选出一个大小为 $k$ 的委员会。所有大小为 $k$ 的委员会等可能。令 $X$ 和 $Y$ 分别为委员会中女性和男性的人数。
+\begin{enumerate}
+  \item[(a)] 求 $X$ 和 $Y$ 的联合 PMF，并明确说明支撑集。
+  \item[(b)] 用两种不同方式求 $X$ 的边缘 PMF：一种是用联合 PMF 计算，另一种是用故事。
+  \item[(c)] 求给定 $X=x$ 时 $Y$ 的条件 PMF。
+\end{enumerate}
+
+\noindent\textbf{7.}\quad 一根长度为 $L$（正的常数）的木棍在均匀随机点 $X$ 处折断。给定 $X=x$，另一个断点 $Y$ 在区间 $[0,x]$ 上均匀选取。
+\begin{enumerate}
+  \item[(a)] 求 $X$ 和 $Y$ 的联合 PDF，并明确说明支撑集。
+  \item[(b)] 我们已经知道 $X$ 的边缘分布是 $\operatorname{Unif}(0,L)$。检验从联合 PDF 中边缘化掉 $Y$ 得到的边缘分布与此相符。
+  \item[(c)] 我们已经知道给定 $X=x$ 时 $Y$ 的条件分布是 $\operatorname{Unif}(0,x)$。检验用条件 PDF 的定义（通过联合 PDF 和边缘 PDF）得到的结果与此相符。
+  \item[(d)] 求 $Y$ 的边缘 PDF。
+  \item[(e)] 求给定 $Y=y$ 时 $X$ 的条件 PDF。
+\end{enumerate}
+
+\noindent\textbf{8.}\quad
+\begin{enumerate}
+  \item[(a)] 从一副标准扑克牌中有放回地逐张随机抽取 5 张牌。令 $X,Y,Z$ 分别为抽到的皇后、国王和其他牌的张数。求 $X,Y,Z$ 的联合 PMF。
+  \item[(b)] 求 $X$ 和 $Y$ 的联合 PMF。
+\end{enumerate}
+提示：在对 $X,Y,Z$ 的联合 PMF 关于 $Z$ 的可能取值求和时，注意到由于抽取牌数为 5 的约束，大多数项都是 $0$。
+\begin{enumerate}
+  \item[(c)] 现在改为无放回抽样（所有 5 张手牌等可能）。求 $X,Y,Z$ 的联合 PMF。
+\end{enumerate}
+提示：使用朴素概率定义。
+
+\noindent\textbf{9.}\quad 设 $X$ 和 $Y$ 独立同分布于 $\operatorname{Geom}(p)$，并令 $N=X+Y$。
+\begin{enumerate}
+  \item[(a)] 求 $X,Y,N$ 的联合 PMF。
+  \item[(b)] 求 $X$ 和 $N$ 的联合 PMF。
+  \item[(c)] 求给定 $N=n$ 时 $X$ 的条件 PMF，并用文字简单描述这个结果。
+\end{enumerate}
+
+\noindent\textbf{10.}\quad 设 $X$ 和 $Y$ 独立同分布于 $\operatorname{Expo}(\lambda)$，并令 $T=X+Y$。
+\begin{enumerate}
+  \item[(a)] 求给定 $X=x$ 时 $T$ 的条件 CDF。务必说明它在哪里为 $0$。
+  \item[(b)] 求条件 PDF $f_{T\mid X}(t\mid x)$，并验证它是合法 PDF。
+  \item[(c)] 求条件 PDF $f_{X\mid T}(x\mid t)$，并验证它是合法 PDF。
+\end{enumerate}
+提示：这可以用贝叶斯规则完成，而不必知道 $T$ 的边缘 PDF；只需先识别条件 PDF 到归一化常数为止的形式，然后归一化常数必须是使条件 PDF 合法所需的值。
+\begin{enumerate}
+  \item[(d)] 在例 8.2.4 中，我们将说明 $T$ 的边缘 PDF 为 $f_T(t)=\lambda^2te^{-\lambda t}$，其中 $t>0$。基于前几部分和贝叶斯规则，给出这一事实的一个简短替代证明。
+\end{enumerate}
+
+\noindent\textbf{11.}\quad 设 $X,Y,Z$ 为随机变量，满足 $X\sim \mathcal{N}(0,1)$，并且给定 $X=x$ 时，$Y$ 和 $Z$ 独立同分布于 $\mathcal{N}(x,1)$。
+\begin{enumerate}
+  \item[(a)] 求 $X,Y,Z$ 的联合 PDF。
+  \item[(b)] 按定义，给定 $X$ 时 $Y$ 和 $Z$ 条件独立。直观讨论 $Y$ 和 $Z$ 是否也无条件独立。
+  \item[(c)] 求 $Y$ 和 $Z$ 的联合 PDF。答案可以保留为积分形式，不过该积分可以用一些代数（如配方）和正态分布事实算出。
+\end{enumerate}
+
+\noindent\textbf{12.}\quad 设 $X\sim \operatorname{Expo}(\lambda)$，并令 $c$ 为正的常数。
+\begin{enumerate}
+  \item[(a)] 如果你记得无记忆性，那么已经知道给定 $X>c$ 时 $X$ 的条件分布与 $c+X$ 的分布相同（想象先等 $c$ 分钟等到一次“成功”，然后再有一个新的 $\operatorname{Expo}(\lambda)$ 额外等待时间）。通过另一种方式推导这一点：求给定 $X>c$ 时 $X$ 的条件 CDF 和条件 PDF。
+  \item[(b)] 求给定 $X<c$ 时 $X$ 的条件 CDF 和条件 PDF。
+\end{enumerate}
+
+\noindent\textbf{13.}\quad 设 $X$ 和 $Y$ 独立同分布于 $\operatorname{Expo}(\lambda)$。用两种不同方式求给定 $X<Y$ 时 $X$ 的条件分布：
+\begin{enumerate}
+  \item[(a)] 用微积分求条件 PDF；
+  \item[(b)] 不用微积分，而是论证给定 $X<Y$ 时 $X$ 的条件分布与 $\min(X,Y)$ 的无条件分布相同，然后应用前面关于独立指数随机变量最小值的结果。
+\end{enumerate}
+
+\noindent\textbf{14.}\quad $\circledS$
+\begin{enumerate}
+  \item[(a)] 通过在一根木棍上独立且均匀地选取两个点，并在这两个点处折断木棍，将一根木棍折成三段。三段能组成三角形的概率是多少？
+\end{enumerate}
+提示：长度为 $a,b,c$ 的三条线段能组成三角形，当且仅当 $a,b,c\in(0,1/2)$。该概率可以几何地解释为平面上某个区域的面积成比例，因而不需要微积分；但要确保随机点在平面上的分布是在某个区域上的均匀分布。
+\begin{enumerate}
+  \item[(b)] 三条桌腿独立且均匀地放在一张圆桌的周长上。桌子能站稳的概率是多少？
+\end{enumerate}
+
+\noindent\textbf{15.}\quad 设 $X$ 和 $Y$ 是连续随机变量，联合 CDF 为 $F(x,y)$。证明 $(X,Y)$ 落入矩形 $[a_1,a_2]\times [b_1,b_2]$ 的概率为
+\[
+  F(a_2,b_2)-F(a_1,b_2)+F(a_1,b_1)-F(a_2,b_1).
+\]
+
+\noindent\textbf{16.}\quad 设 $X$ 和 $Y$ 的联合 PDF 为
+\[
+  f_{X,Y}(x,y)=x+y,\quad 0<x<1,\ 0<y<1.
+\]
+\begin{enumerate}
+  \item[(a)] 检验这是合法的联合 PDF。
+  \item[(b)] $X$ 和 $Y$ 独立吗？
+  \item[(c)] 求 $X$ 和 $Y$ 的边缘 PDF。
+  \item[(d)] 求给定 $X=x$ 时 $Y$ 的条件 PDF。
+\end{enumerate}
+
+\noindent\textbf{17.}\quad 设 $X$ 和 $Y$ 的联合 PDF 为
+\[
+  f_{X,Y}(x,y)=cxy,\quad 0<x<y<1.
+\]
+\begin{enumerate}
+  \item[(a)] 求使其成为合法联合 PDF 的 $c$。
+  \item[(b)] $X$ 和 $Y$ 独立吗？
+  \item[(c)] 求 $X$ 和 $Y$ 的边缘 PDF。
+  \item[(d)] 求给定 $X=x$ 时 $Y$ 的条件 PDF。
+\end{enumerate}
+
+\noindent\textbf{18.}\quad $\circledS$ 设 $(X,Y)$ 是平面中顶点为 $(0,0),(0,1),(1,0)$ 的三角形内均匀随机选取的点。求 $X$ 和 $Y$ 的联合 PDF、$X$ 的边缘 PDF，以及给定 $Y$ 时 $X$ 的条件 PDF。
+
+\noindent\textbf{19.}\quad $\circledS$ 在球
+\[
+  B=\{(x,y,z):x^2+y^2+z^2\le 1\}
+\]
+中均匀随机选取一点 $(X,Y,Z)$。
+\begin{enumerate}
+  \item[(a)] 求 $X,Y,Z$ 的联合 PDF。
+  \item[(b)] 求 $X,Y$ 的联合 PDF。
+  \item[(c)] 给出 $X$ 的边缘 PDF 的积分表达式。
+\end{enumerate}
+
+\noindent\textbf{20.}\quad $\circledS$ 设 $U_1,U_2,U_3$ 独立同分布于 $\operatorname{Unif}(0,1)$，并令
+\[
+  L=\min(U_1,U_2,U_3),\qquad M=\max(U_1,U_2,U_3).
+\]
+\begin{enumerate}
+  \item[(a)] 求 $M$ 的边缘 CDF 和边缘 PDF，以及 $L,M$ 的联合 CDF 和联合 PDF。
+\end{enumerate}
+提示：对后者，先考虑 $P(L\ge l,M\le m)$。
+\begin{enumerate}
+  \item[(b)] 求给定 $L$ 时 $M$ 的条件 PDF。
+\end{enumerate}
+
+\noindent\textbf{21.}\quad 求二次多项式 $Ax^2+Bx+1$ 至少有一个实根的概率，其中系数 $A$ 和 $B$ 由独立同分布的 $\operatorname{Unif}(0,1)$ 随机变量给出。
+
+提示：由二次公式，多项式 $ax^2+bx+c$ 有实根当且仅当 $b^2-4ac\ge 0$。
+
+\noindent\textbf{22.}\quad 设 $X$ 和 $Y$ 各自边缘支撑集为 $(0,\infty)$，并假设 $X$ 和 $Y$ 的联合 PDF $f_{X,Y}$ 在 $0<x<y$ 时为正，在其他地方为 $0$。
+\begin{enumerate}
+  \item[(a)] 给定 $X=x$ 时 $Y$ 的条件 PDF 的支撑集是什么？
+  \item[(b)] 证明 $X$ 和 $Y$ 不可能独立。
+\end{enumerate}
+
+\noindent\textbf{23.}\quad $n$ 维欧氏空间 $\mathbb{R}^n$ 中一个区域的体积，是函数 $1$ 在该区域上的积分。$\mathbb{R}^n$ 中的单位球为
+\[
+  \{(x_1,\ldots,x_n):x_1^2+\cdots+x_n^2\le 1\},
+\]
+即以 $0$ 为中心、半径为 $1$ 的球。如数学附录 A.7 节所述，$n$ 维单位球的体积为
+\[
+  v_n=\frac{\pi^{n/2}}{\Gamma(n/2+1)},
+\]
+其中 $\Gamma$ 是著名的 gamma 函数，定义为
+\[
+  \Gamma(a)=\int_0^\infty x^a e^{-x}\frac{dx}{x},\quad a>0.
+\]
+它将在下一章中扮演重要角色。关于 gamma 函数可以使用的若干事实是：对任意 $a>0$，
+\[
+  \Gamma(a+1)=a\Gamma(a),
+\]
+且 $\Gamma(1)=1$、$\Gamma(1/2)=\sqrt{\pi}$。利用这些事实可知，正整数 $n$ 满足 $\Gamma(n)=(n-1)!$，并且当 $n$ 为非负整数时也能求出 $\Gamma(n+1/2)$。作为练习，验证
+\[
+  v_2=\pi,\qquad v_3=\frac43\pi.
+\]
+设 $U_1,U_2,\ldots,U_n$ 独立同分布于 $\operatorname{Unif}(-1,1)$。
+\begin{enumerate}
+  \item[(a)] 求 $(U_1,U_2,\ldots,U_n)$ 落入 $\mathbb{R}^n$ 中单位球的概率。
+  \item[(b)] 对 $n=1,2,\ldots,10$ 数值计算 (a) 的结果并作图。上面关于 gamma 函数的事实足以使你不做任何积分也能完成。
+  \item[(c)] 令 $c$ 为满足 $0<c<1$ 的常数，令 $X_n$ 计数有多少个 $U_j$ 满足 $|U_j|>c$。$X_n$ 的分布是什么？
+  \item[(d)] 对 $c=1/\sqrt2$，用 (c) 的结果给出一个简单、简短的推导，说明当 $n\to\infty$ 时 (a) 中的概率发生什么。
+\end{enumerate}
+
+\noindent\textbf{24.}\quad $\circledS$ 两名学生 $A$ 和 $B$ 独立完成作业。学生 $A$ 完成作业需要 $Y_1\sim \operatorname{Expo}(\lambda_1)$ 小时，学生 $B$ 需要 $Y_2\sim \operatorname{Expo}(\lambda_2)$ 小时。
+\begin{enumerate}
+  \item[(a)] 求 $Y_1/Y_2$ 的 CDF 和 PDF，即他们解题时间之比的分布。
+  \item[(b)] 求 $A$ 比 $B$ 先完成作业的概率。
+\end{enumerate}
+
+\noindent\textbf{25.}\quad 两家公司，公司 1 和公司 2，刚刚成立。股市崩盘按照速率为 $\lambda_0$ 的 Poisson 过程发生；这样的崩盘会使两家公司都倒闭。对 $j\in\{1,2\}$，可能发生类型 $j$ 的不利事件，它会使公司 $j$ 倒闭（如果还没倒闭），但不影响另一家公司；这类事件按照速率为 $\lambda_j$ 的 Poisson 过程发生。如果还没有股市崩盘或类型 $j$ 的不利事件发生，则公司 $j$ 仍在营业。这三个 Poisson 过程相互独立。令 $X_1$ 和 $X_2$ 分别为公司 1 和公司 2 维持营业的时长。
+\begin{enumerate}
+  \item[(a)] 求 $X_1$ 和 $X_2$ 的边缘分布。
+  \item[(b)] 求 $P(X_1>x_1,X_2>x_2)$，并用它求 $X_1$ 和 $X_2$ 的联合 CDF。
+\end{enumerate}
+
+\noindent\textbf{26.}\quad $\circledS$ Blissville 的公交公司决定在 Blotchville 开通服务，因为它看到了很有前景的商业机会。与此同时，Fred 搬回了 Blotchville。现在 Fred 到达公交站时，两个独立公交线路之一都有可能来车（它们都能把他带回家）。Blissville 公司的公交到达时间恰好相隔 10 分钟，而 Blotchville 公司相邻两班公交之间的时间服从 $\operatorname{Expo}(1/10)$。Fred 在某天的一个均匀随机时刻到达。
+\begin{enumerate}
+  \item[(a)] Blotchville 公司公交先到的概率是多少？
+\end{enumerate}
+提示：一个好办法是使用连续型全概率公式。
+\begin{enumerate}
+  \item[(b)] Fred 等待公交时间的 CDF 是什么？
+\end{enumerate}
+
+\noindent\textbf{27.}\quad 对 $n$ 对已婚 hobbit 夫妇进行寿命研究。令 $p$ 为单个 hobbit 至少活到 111 岁生日的概率，并假设不同 hobbit 的寿命相互独立。令 $N_0,N_1,N_2$ 分别为两人都没活到 111 岁、恰有一人活到 111 岁、两人都活到 111 岁的夫妇数。
+\begin{enumerate}
+  \item[(a)] 求 $N_0,N_1,N_2$ 的联合 PMF。
+\end{enumerate}
+本题余下部分，假设观察到该群体中恰好有 $h$ 个 hobbit 活到 111 岁生日。
+\begin{enumerate}
+  \item[(b)] 利用 (a) 和条件概率定义，求在给定上述信息时 $N_2$ 的条件 PMF，到归一化常数为止即可；也就是说，不需要找归一化常数，只需给出一个与条件 PMF 成比例的简化表达式。为简单起见，本部分可以并且应该忽略乘法常数；这包括作为 $h$ 的函数的乘法因子，因为现在把 $h$ 视为已知常数。
+  \item[(c)] 现在用直接计数论证得到 $N_2$ 的条件 PMF，并包括使其成为合法条件 PMF 所需的归一化常数。
+  \item[(d)] 直观讨论 $p$ 是否应该出现在 (c) 的答案中。
+  \item[(e)] 给定上述信息时，$N_2$ 的条件期望是多少（充分化简）？这可以不做繁杂求和完成。
+\end{enumerate}
+
+\noindent\textbf{28.}\quad 一个购物中心中有 $n$ 家商店，编号为 $1$ 到 $n$。令 $X_i$ 为某个月访问第 $i$ 家商店的顾客数，并假设 $X_1,X_2,\ldots,X_n$ 独立同分布，PMF 为 $p(x)=P(X_i=x)$。令 $I\sim \operatorname{DUnif}(1,2,\ldots,n)$ 为随机选取商店的标签，所以 $X_I$ 是随机选取商店的顾客数。
+\begin{enumerate}
+  \item[(a)] 对 $i\ne j$，用含 PMF $p(x)$ 的和式表示 $P(X_i=X_j)$。
+  \item[(b)] 求 $I$ 和 $X_I$ 的联合 PMF。它们独立吗？
+  \item[(c)] $X_I$（随机商店的顾客数）是否与 $X_1$（第 1 家商店的顾客数）具有相同边缘分布？
+  \item[(d)] 令 $J\sim \operatorname{DUnif}(1,2,\ldots,n)$ 也是随机选取商店的标签，且 $I$ 和 $J$ 独立。用含 PMF $p(x)$ 的和式表示 $P(X_I=X_J)$。与固定 $i,j$ 且 $i\ne j$ 时的 $P(X_i=X_j)$ 相比如何？
+\end{enumerate}
+
+\noindent\textbf{29.}\quad 设 $X$ 和 $Y$ 独立同分布于 $\operatorname{Geom}(p)$，$L=\min(X,Y)$，$M=\max(X,Y)$。
+\begin{enumerate}
+  \item[(a)] 求 $L$ 和 $M$ 的联合 PMF。它们独立吗？
+  \item[(b)] 用两种方式求 $L$ 的边缘分布：用联合 PMF，以及用故事。
+  \item[(c)] 求 $E(M)$。
+\end{enumerate}
+提示：一个快捷方法是使用 (b) 以及事实 $L+M=X+Y$。
+\begin{enumerate}
+  \item[(d)] 求 $L$ 和 $M-L$ 的联合 PMF。它们独立吗？
+\end{enumerate}
+
+\noindent\textbf{30.}\quad 设 $X,Y$ 的联合 CDF 为
+\[
+  F(x,y)=1-e^{-x}-e^{-y}+e^{-(x+y+\theta xy)},\quad x>0,\ y>0,
+\]
+在其他地方 $F(x,y)=0$，其中参数 $\theta\in[0,1]$。
+\begin{enumerate}
+  \item[(a)] 求 $X,Y$ 的联合 PDF。对哪些 $\theta$ 值（如果有）它们独立？
+  \item[(b)] 解释为什么要求 $\theta\in[0,1]$。
+  \item[(c)] 直接从 (a) 的联合 PDF 出发求 $X$ 和 $Y$ 的边缘 PDF。积分时不要用分部积分或计算机辅助；而应与我们已知的著名分布矩事实作模式匹配。
+  \item[(d)] 直接从联合 CDF 求 $X$ 和 $Y$ 的边缘 CDF。
+\end{enumerate}
+
+\subsection*{二维 LOTUS}
+
+\noindent\textbf{31.}\quad $\circledS$ 设 $X$ 和 $Y$ 独立同分布于 $\operatorname{Unif}(0,1)$。求 $X$ 与 $Y$ 之间距离的标准差。
+
+\noindent\textbf{32.}\quad $\circledS$ 设 $X,Y$ 独立同分布于 $\operatorname{Expo}(\lambda)$。用两种不同方式求 $E|X-Y|$： (a) 使用二维 LOTUS；(b) 不用微积分，而用无记忆性。
+
+\noindent\textbf{33.}\quad Alice 走进一家有 2 名柜员的邮局。两名柜员都正在服务顾客，而 Alice 是队列中的下一位。左边柜员服务一名顾客需要 $\operatorname{Expo}(\lambda_1)$ 时间，右边柜员服务一名顾客需要 $\operatorname{Expo}(\lambda_2)$ 时间。令 $T$ 为 Alice 等到轮到自己的时间。
+\begin{enumerate}
+  \item[(a)] 写出 $T$ 的均值和方差的双重积分表达式（不需要计算）。
+  \item[(b)] 不用微积分，求 $T$ 的分布、均值和方差。
+\end{enumerate}
+
+\noindent\textbf{34.}\quad 设 $(X,Y)$ 是平面中顶点为 $(0,0),(0,1),(1,0)$ 的三角形内均匀随机选取的点。求 $\operatorname{Cov}(X,Y)$。（习题 18 讨论了该情形下的联合、边缘和条件 PDF。）
+
+\noindent\textbf{35.}\quad 在单位圆盘 $\{(x,y):x^2+y^2\le 1\}$ 中均匀随机选取一点。令 $R$ 为其到原点的距离。
+\begin{enumerate}
+  \item[(a)] 用二维 LOTUS 求 $E(R)$。
+\end{enumerate}
+提示：为了计算积分，转换为极坐标（见数学附录）。
+\begin{enumerate}
+  \item[(b)] 不用微积分，利用均匀分布在某区域上时概率与区域面积成正比这一事实，求 $R^2$ 和 $R$ 的 CDF。随后得到 $R^2$ 和 $R$ 的 PDF，并再用两种方式求 $E(R)$：一种使用期望定义，另一种把 $R$ 看作 $R^2$ 的函数并使用一维 LOTUS。
+\end{enumerate}
+
+\noindent\textbf{36.}\quad 设 $X$ 和 $Y$ 是离散随机变量。
+\begin{enumerate}
+  \item[(a)] 用二维 LOTUS（不假设线性性）证明 $E(X+Y)=E(X)+E(Y)$。
+  \item[(b)] 现在假设 $X$ 和 $Y$ 独立。用二维 LOTUS 证明它们不相关，即 $E(XY)=E(X)E(Y)$。
+\end{enumerate}
+
+\noindent\textbf{37.}\quad 设 $X$ 和 $Y$ 是独立同分布的连续随机变量，PDF 为 $f$，均值为 $\mu$，方差为 $\sigma^2$。我们知道 $X$ 到其均值的期望平方距离为 $\sigma^2$，$Y$ 也类似；本题讨论 $X$ 到 $Y$ 的期望平方距离。
+\begin{enumerate}
+  \item[(a)] 用二维 LOTUS 把 $E(X-Y)^2$ 表示为双重积分。
+  \item[(b)] 通过展开 $(x-y)^2=x^2-2xy+y^2$ 并计算 (a) 中的双重积分，证明
+  \[
+    E(X-Y)^2=2\sigma^2.
+  \]
+  \item[(c)] 基于加减 $\mu$ 的技巧，给出 (b) 中结果的另一个证明：
+  \[
+    (X-Y)^2=(X-\mu+\mu-Y)^2=(X-\mu)^2-2(X-\mu)(Y-\mu)+(Y-\mu)^2.
+  \]
+\end{enumerate}
+
+\subsection*{协方差}
+
+\noindent\textbf{38.}\quad $\circledS$ 设 $X$ 和 $Y$ 为随机变量。说
+\[
+  \max(X,Y)+\min(X,Y)=X+Y
+\]
+是否正确？说
+\[
+  \operatorname{Cov}(\max(X,Y),\min(X,Y))=\operatorname{Cov}(X,Y)
+\]
+是否正确，理由是最大值要么是 $X$ 且最小值是 $Y$，要么相反，并且协方差是对称的？请解释。
+
+\noindent\textbf{39.}\quad $\circledS$ 掷两个公平六面骰子（一个绿色、一个橙色），令 $X$ 和 $Y$ 分别为绿色骰子和橙色骰子的结果。
+\begin{enumerate}
+  \item[(a)] 计算 $X+Y$ 与 $X-Y$ 的协方差。
+  \item[(b)] $X+Y$ 与 $X-Y$ 独立吗？
+\end{enumerate}
+
+\noindent\textbf{40.}\quad 设 $X$ 和 $Y$ 独立同分布于 $\operatorname{Unif}(0,1)$。
+\begin{enumerate}
+  \item[(a)] 计算 $X+Y$ 与 $X-Y$ 的协方差。
+  \item[(b)] $X+Y$ 与 $X-Y$ 独立吗？
+\end{enumerate}
+
+\noindent\textbf{41.}\quad $\circledS$ 设 $X$ 和 $Y$ 是标准化随机变量（即边缘上均值均为 $0$，方差均为 $1$），相关为 $\rho\in(-1,1)$。求 $a,b,c,d$（用 $\rho$ 表示），使得
+\[
+  Z=aX+bY,\qquad W=cX+dY
+\]
+不相关但仍然标准化。
+
+\noindent\textbf{42.}\quad $\circledS$ 令 $X$ 为 110 人群体中不同生日的数量（即一年中至少有一人在该群体中生日落在那一天的天数）。在通常假设下（没有 2 月 29 日，其余 365 天等可能，且一个人的生日与其他人的生日独立），求 $X$ 的均值和方差。
+
+\noindent\textbf{43.}\quad
+\begin{enumerate}
+  \item[(a)] 设 $X$ 和 $Y$ 是 Bernoulli 随机变量，参数可以不同。证明若 $X$ 和 $Y$ 不相关，则它们独立。
+  \item[(b)] 给出三个 Bernoulli 随机变量的例子，使得它们任意一对都不相关，但三个随机变量相依。
+\end{enumerate}
+
+\noindent\textbf{44.}\quad 求在例 4.3.12（优惠券收集问题）中，为凑齐完整一套所需玩具数量的方差，并将其表示为一个和式。
+
+\noindent\textbf{45.}\quad 以某种方式形成一个随机三角形，使得所有角的成对联合分布相同。两个角之间的相关是多少（假设角的方差非零）？
+
+\noindent\textbf{46.}\quad $n\ge 2$ 个人各自在一张纸条上写下自己的名字（没有两人同名）。纸条在帽子里洗匀，然后每个人抽一张（每一步均匀随机、无放回）。求抽到自己名字的人数的标准差。
+
+\noindent\textbf{47.}\quad 如例 4.4.7，盒中有 $w$ 个白球和 $b$ 个黑球。球被一个接一个无放回抽取，直到抽到第 $r$ 个白球。令 $X\sim \operatorname{NHGeom}(w,b,r)$ 为抽到第 $r$ 个白球前抽到的黑球数。本题将推导 $\operatorname{Var}(X)$。
+
+如例 4.4.7 中解释的，我们可以假设继续抽取直到盒子为空。把黑球标记为 $1,2,\ldots,b$，并写
+\[
+  X=\sum_{j=1}^{b}I_j,
+\]
+其中 $I_j$ 是黑球 $j$ 在第 $r$ 个白球之前被抽到的指标。
+\begin{enumerate}
+  \item[(a)] 证明
+  \[
+    E(I_j)=\frac{r}{w+1}.
+  \]
+  \item[(b)] 对 $i\ne j$，直观解释 $I_i$ 和 $I_j$ 是正相关、不相关还是负相关。
+  \item[(c)] 证明对 $i\ne j$，
+  \[
+    E(I_iI_j)=\frac{{r+1\choose 2}}{{w+2\choose 2}}
+    =\frac{(r+1)r}{(w+2)(w+1)}.
+  \]
+\end{enumerate}
+提示：想象有 $w+2$ 个位置，其中要放入黑球 $i$、黑球 $j$ 和 $w$ 个白球。这 $w+2$ 个球的所有排列等可能。
+\begin{enumerate}
+  \item[(d)] 求 $\operatorname{Var}(X)$ 的表达式。经过一些代数（不需要你做），该表达式应化简为
+  \[
+    \operatorname{Var}(X)=\frac{rb(w+b+1)(w-r+1)}{(w+1)^2(w+2)}.
+  \]
+\end{enumerate}
+
+\noindent\textbf{48.}\quad $\circledS$ 运动员逐个参加跳高比赛。令 $X_j$ 为第 $j$ 名跳高运动员跳出的高度，且 $X_1,X_2,\ldots$ 独立同分布于某个连续分布。如果 $X_j$ 大于所有 $X_{j-1},\ldots,X_1$，则称第 $j$ 名运动员创造了一个\textbf{纪录}。
+
+求前 $n$ 名运动员中纪录数的方差（表示为和式）。当 $n\to\infty$ 时，该方差会怎样？
+
+\noindent\textbf{49.}\quad $\circledS$ 一只鸡产下 $N\sim \operatorname{Pois}(\lambda)$ 个蛋。每个蛋独立地以概率 $p$ 孵出小鸡。令 $X$ 为孵化的蛋数，因此
+\[
+  X\mid N=n\sim \operatorname{Bin}(n,p).
+\]
+求 $N$（蛋数）与 $X$（孵化蛋数）之间的相关。化简；最终答案应是 $p$ 的简单函数（$\lambda$ 应该抵消）。
+
+\noindent\textbf{50.}\quad 设 $X_1,\ldots,X_n$ 是随机变量，且对所有 $i\ne j$，
+\[
+  \operatorname{Corr}(X_i,X_j)=\rho.
+\]
+证明
+\[
+  \rho\ge -\frac{1}{n-1}.
+\]
+这是一组随机变量之间彼此能有多强负相关的界。
+
+提示：不失一般性，可假设 $\operatorname{Var}(X_i)=1$ 对所有 $i$ 成立，因为缩放两个随机变量不影响它们之间的相关。然后使用
+\[
+  \operatorname{Var}(X_1+\cdots+X_n)\ge 0.
+\]
+
+\noindent\textbf{51.}\quad 设 $X$ 和 $Y$ 独立。证明
+\[
+  \operatorname{Var}(XY)=\operatorname{Var}(X)\operatorname{Var}(Y)+(EX)^2\operatorname{Var}(Y)+(EY)^2\operatorname{Var}(X).
+\]
+提示：处理二阶矩 $E(T^2)$ 时，经常有用的是把它写成 $\operatorname{Var}(T)+(ET)^2$。
+
+\noindent\textbf{52.}\quad Stat 110 的衬衫有小、中、大三种尺码。每种尺码有 $n$ 件衬衫（其中 $n\ge 2$）。有 $3n$ 名学生；对每种尺码，$n$ 名学生穿这个尺码最合适。这个情况很理想。但假设不是给每个学生正确尺码的衬衫，而是完全随机地给每个学生一件衬衫（所有把衬衫分配给学生的方式，每名学生一件，都等可能）。令 $X$ 为拿到合适尺码衬衫的学生数。
+\begin{enumerate}
+  \item[(a)] 求 $E(X)$。
+  \item[(b)] 给每名学生一个从 $1$ 到 $3n$ 的 ID，使得学生 $1$ 到 $n$ 的正确尺码为小号，学生 $n+1$ 到 $2n$ 的正确尺码为中号，学生 $2n+1$ 到 $3n$ 的正确尺码为大号。令 $A_j$ 为学生 $j$ 拿到正确尺码衬衫的事件。求 $P(A_1,A_2)$ 和 $P(A_1,A_{n+1})$。
+  \item[(c)] 求 $\operatorname{Var}(X)$。
+\end{enumerate}
+
+\noindent\textbf{53.}\quad $\circledS$ 一个醉汉在一个大空间中随机游荡。每一步，他等概率地向北、南、东或西移动一个单位。选取坐标，使其初始位置为 $(0,0)$；若某时刻他位于 $(x,y)$，则一步之后他位于 $(x,y+1),(x,y-1),(x+1,y)$ 或 $(x-1,y)$。令 $(X_n,Y_n)$ 和 $R_n$ 分别为他在 $n$ 步后的坐标和到原点的距离。
+
+总体提示：注意 $X_n$ 是可能取值为 $-1,0,1$ 的随机变量之和，$Y_n$ 也类似；但全题都要小心独立性。
+\begin{enumerate}
+  \item[(a)] 判断 $X_n$ 是否独立于 $Y_n$。
+  \item[(b)] 求 $\operatorname{Cov}(X_n,Y_n)$。
+  \item[(c)] 求 $E(R_n^2)$。
+\end{enumerate}
+
+\noindent\textbf{54.}\quad $\circledS$ 一位科学家做了两次测量，认为它们是独立标准正态随机变量。求两个测量值中较大者与较小者之间的相关。
+
+提示：注意 $\max(x,y)+\min(x,y)=x+y$，且 $\max(x,y)-\min(x,y)=|x-y|$。
+
+\noindent\textbf{55.}\quad 设 $U\sim \operatorname{Unif}(-1,1)$，$V=2|U|-1$。
+\begin{enumerate}
+  \item[(a)] 求 $V$ 的分布（给出 PDF；若是我们学过的具名分布，给出名称和参数）。
+\end{enumerate}
+提示：先找 $V$ 的支撑集，再把 $P(V\le v)$ 化为关于 $U$ 的概率计算，从而求出 $V$ 的 CDF。
+\begin{enumerate}
+  \item[(b)] 证明 $U$ 和 $V$ 不相关但不独立。这也是另一个例子，说明只知道两个随机变量的边缘分布并不能决定联合分布。
+\end{enumerate}
+
+\noindent\textbf{56.}\quad $\circledS$ 考虑如下构造二元 Poisson 的方法（即两个边缘分布都是 Poisson 的随机变量的联合分布）。令
+\[
+  X=V+W,\qquad Y=V+Z,
+\]
+其中 $V,W,Z$ 独立同分布于 $\operatorname{Pois}(\lambda)$。
+\begin{enumerate}
+  \item[(a)] 求 $\operatorname{Cov}(X,Y)$。
+  \item[(b)] $X$ 和 $Y$ 独立吗？给定 $V$ 时它们条件独立吗？
+  \item[(c)] 求 $X,Y$ 的联合 PMF（表示为和式）。
+\end{enumerate}
+
+\noindent\textbf{57.}\quad 你正在玩一局刺激的 Battleship 游戏。对手秘密地把船放在一个 $10\times 10$ 网格上，你尝试猜测船的位置。如果猜中的位置有船就是命中，否则就是未命中。
+
+游戏刚开始，对手有 3 艘船：battleship（长度 4）、submarine（长度 3）和 destroyer（长度 2）。通常开始时有 5 艘船；为简化计算，这里只考虑 3 艘。你玩的变体允许一次齐射，即同时作出 5 个猜测。假设你的 5 个猜测是从 100 个网格位置中抽出的简单随机样本，即所有 5 个网格位置集合等可能。
+
+求齐射中命中的不同船只数量的均值和方差。（请给出用二项式系数或阶乘表示的精确答案，并给出用计算工具算出的数值。）
+
+提示：先从未命中的船只数量入手，把它表示为指标随机变量之和。然后使用基本桥梁和朴素概率定义。
+
+\noindent\textbf{58.}\quad 本题探讨协方差的一个视觉解释。收集 $n$ 个个体的数据，对每个个体测量两个变量（例如身高和体重）。假设个体之间独立（例如第 1 个人的变量不给出关于其他人的信息），但个体内部不一定独立（例如一个人的身高和体重可能相关）。
+
+令 $(x_1,y_1),\ldots,(x_n,y_n)$ 为 $n$ 个数据点，其中 $n\ge 2$。这里把数据看作固定的已知数，也就是进行实验后观察到的值。想象在平面中画出所有点 $(x_i,y_i)$，并对每一对点画出它们决定的矩形。例如，点 $(1,3)$ 和 $(4,6)$ 决定顶点为 $(1,3),(1,6),(4,6),(4,3)$ 的矩形。
+
+由 $(x_i,y_i)$ 和 $(x_j,y_j)$ 贡献的\textbf{带符号面积}定义为：若两点连线斜率为正，则取它们决定的矩形面积；若斜率为负，则取该面积的相反数。（若 $x_i=x_j$ 或 $y_i=y_j$，则矩形退化，定义带符号面积为 $0$。）因此，对一对点，较大的 $x$ 值伴随较大的 $y$ 值时带符号面积为正，否则为负。假设所有 $x_i$ 互异，所有 $y_i$ 互异。
+\begin{enumerate}
+  \item[(a)] 数据的\textbf{样本协方差}定义为
+  \[
+    r=\frac1n\sum_{i=1}^{n}(x_i-\bar x)(y_i-\bar y),
+  \]
+  其中
+  \[
+    \bar x=\frac1n\sum_{i=1}^{n}x_i,\qquad
+    \bar y=\frac1n\sum_{i=1}^{n}y_i
+  \]
+  是样本均值。（样本协方差定义中除以 $n-1$ 还是 $n$ 有不同约定，但这里不用关心。）令 $(X,Y)$ 为从这些 $(x_i,y_i)$ 对中均匀随机选取的一对。精确确定 $\operatorname{Cov}(X,Y)$ 与样本协方差之间的关系。
+  \item[(b)] 令 $(X,Y)$ 如 (a)，并令 $(\tilde X,\tilde Y)$ 为同一分布的一个独立抽样。也就是说，$(X,Y)$ 和 $(\tilde X,\tilde Y)$ 独立地从 $n$ 个点中随机选择，因此同一个点可能被选两次。把所有矩形的总带符号面积表示为常数乘以 $E((X-\tilde X)(Y-\tilde Y))$。然后证明数据的样本协方差是所有矩形总带符号面积的常数倍。
+\end{enumerate}
+提示：用两种方式考虑 $E((X-\tilde X)(Y-\tilde Y))$：一方面它是由 $(X,Y)$ 和 $(\tilde X,\tilde Y)$ 形成的随机矩形的平均带符号面积；另一方面用期望性质把它与 $\operatorname{Cov}(X,Y)$ 联系起来。对前者，考虑点 $(X,Y)$ 和点 $(\tilde X,\tilde Y)$ 的 $n^2$ 种可能选择；注意其中 $n$ 种选择会产生退化矩形。
+\begin{enumerate}
+  \item[(c)] 基于 (b) 中的解释，对任意随机变量 $W_1,W_2,W_3$ 和常数 $a_1,a_2$，给出直观解释说明协方差为何有如下性质：
+  \[
+  \begin{gathered}
+    \operatorname{Cov}(W_1,W_2)=\operatorname{Cov}(W_2,W_1),\\
+    \operatorname{Cov}(a_1W_1,a_2W_2)=a_1a_2\operatorname{Cov}(W_1,W_2),\\
+    \operatorname{Cov}(W_1+a_1,W_2+a_2)=\operatorname{Cov}(W_1,W_2),\\
+    \operatorname{Cov}(W_1,W_2+W_3)=\operatorname{Cov}(W_1,W_2)+\operatorname{Cov}(W_1,W_3).
+  \end{gathered}
+  \]
+\end{enumerate}
+
+\noindent\textbf{59.}\quad 一位统计学家试图基于一些数据估计未知参数 $\theta$。她有两个独立估计量 $\hat\theta_1$ 和 $\hat\theta_2$ 可用（估计量是数据的函数，用来估计参数）。例如，$\hat\theta_1$ 可以是某个数据子集的样本均值，$\hat\theta_2$ 可以是另一个与前者不交的数据子集的样本均值。假设这两个估计量都是无偏的，即 $E(\hat\theta_j)=\theta$。
+
+统计学家不想要许多分开的估计量，而想要一个合并估计量。给 $\hat\theta_1$ 和 $\hat\theta_2$ 相同权重未必合理，因为其中一个可能比另一个可靠得多，所以她考虑形如
+\[
+  \hat\theta=w_1\hat\theta_1+w_2\hat\theta_2
+\]
+的合并估计量，即两个估计量的加权组合。权重 $w_1,w_2$ 非负且满足 $w_1+w_2=1$。
+\begin{enumerate}
+  \item[(a)] 检验 $\hat\theta$ 也是无偏的，即 $E(\hat\theta)=\theta$。
+  \item[(b)] 确定最优权重 $w_1,w_2$，其中“最优”指使均方误差 $E(\hat\theta-\theta)^2$ 最小。答案用 $\hat\theta_1$ 和 $\hat\theta_2$ 的方差表示。最优权重称为 Fisher 权重。
+\end{enumerate}
+提示：如第 5 章习题 53 所讨论，均方误差等于方差加偏差平方，所以本题中 $\hat\theta$ 的均方误差就是 $\operatorname{Var}(\hat\theta)$。注意这里不需要多元微积分，因为 $w_2=1-w_1$。
+\begin{enumerate}
+  \item[(c)] 若数据为独立同分布随机变量 $X_1,\ldots,X_n,Y_1,\ldots,Y_m$，$\hat\theta_1$ 是 $X_1,\ldots,X_n$ 的样本均值，$\hat\theta_2$ 是 $Y_1,\ldots,Y_m$ 的样本均值，则用简单语言描述 (b) 中得到的估计量是什么。
+\end{enumerate}
+
+\subsection*{孵化与未孵化}
+
+\noindent\textbf{60.}\quad $\circledS$ 某次选举中投票人数服从 $\operatorname{Pois}(\lambda)$。每个投票者独立地以概率 $p$ 投给候选人 $A$，以概率 $q=1-p$ 投给候选人 $B$。令 $V$ 为票数差，即 $A$ 的票数减去 $B$ 的票数。
+\begin{enumerate}
+  \item[(a)] 求 $E(V)$。
+  \item[(b)] 求 $\operatorname{Var}(V)$。
+\end{enumerate}
+
+\noindent\textbf{61.}\quad 一名旅行者在长途旅程中迷路 $N\sim \operatorname{Pois}(\lambda)$ 次。迷路时，旅行者以概率 $p$ 向某人问路。令 $X$ 为旅行者迷路并问路的次数，$Y$ 为旅行者迷路但不问路的次数。
+\begin{enumerate}
+  \item[(a)] 求 $N,X,Y$ 的联合 PMF。它们独立吗？
+  \item[(b)] 求 $N,X$ 的联合 PMF。它们独立吗？
+  \item[(c)] 求 $X,Y$ 的联合 PMF。它们独立吗？
+\end{enumerate}
+
+\noindent\textbf{62.}\quad 一天中访问 Leftorium 商店的人数服从 $\operatorname{Pois}(100)$。假设 $10\%$ 的顾客是左撇子，$90\%$ 是右撇子。左撇子顾客中有一半会购买，而右撇子顾客中只有三分之一会购买。不同人的特征和行为相互独立，概率如上所述。某天有 42 人到店但未购买。给定此信息，当天购买顾客数的条件 PMF 是什么？
+
+\noindent\textbf{63.}\quad 一只鸡产下 $n$ 个蛋。每个蛋独立地以概率 $p$ 孵化。对每个孵化出的蛋，小鸡独立地以概率 $s$ 存活。令 $N\sim \operatorname{Bin}(n,p)$ 为孵化的蛋数，$X$ 为存活小鸡数，$Y$ 为未存活小鸡数（所以 $X+Y=N$）。求 $X$ 的边缘 PMF，以及 $X$ 和 $Y$ 的联合 PMF。$X$ 和 $Y$ 独立吗？
+
+\noindent\textbf{64.}\quad 某学校明年将开设 $X\sim \operatorname{Pois}(\lambda)$ 门课程。
+\begin{enumerate}
+  \item[(a)] 如果时间冲突时允许同时选课，求选择 4 门课程的期望数量（用 $\lambda$ 表示，充分化简）。
+  \item[(b)] 现在假设不允许同时选课。大多数教师只想在周二和周四上课，大多数学生只想选上午 10 点或更晚开始的课程；因此只有四个可能的时间段：上午 10 点、上午 11:30、下午 1 点、下午 2:30（每门课周二、周四各上一个半小时，从这些时间之一开始）。学校不试图避免严重冲突，而是完全随机排课：明年课程清单确定后，每门课独立地以概率 $1/4$ 被分配到每个时间段。
+
+  令 $X_{\rm am}$ 和 $X_{\rm pm}$ 分别为明年上午和下午课程数（其中“上午”指中午前开始）。求 $X_{\rm am}$ 和 $X_{\rm pm}$ 的联合 PMF，即对所有 $a,b$ 求 $P(X_{\rm am}=a,X_{\rm pm}=b)$。
+  \item[(c)] 继续 (b) 的设定，令 $X_1,X_2,X_3,X_4$ 分别为明年上午 10 点、上午 11:30、下午 1 点、下午 2:30 的课程数。$X_1,X_2,X_3,X_4$ 的联合分布是什么？用它求不冲突地选择 4 门课程的期望数量（用 $\lambda$ 表示，充分化简）。这个期望与 (a) 中期望的比是多少？
+\end{enumerate}
+
+\subsection*{多项分布}
+
+\noindent\textbf{65.}\quad $\circledS$ 设 $(X_1,\ldots,X_k)$ 服从参数为 $n$ 和 $(p_1,\ldots,p_k)$ 的多项分布。用指标随机变量证明：对 $i\ne j$，
+\[
+  \operatorname{Cov}(X_i,X_j)=-np_ip_j.
+\]
+
+\noindent\textbf{66.}\quad $\circledS$ 考虑 100 人的生日。假设生日相互独立，且一年中的 365 天（排除 2 月 29 日）等可能。求出生在 1 月 1 日的人数与出生在 1 月 2 日的人数之间的协方差和相关。
+
+\noindent\textbf{67.}\quad 某课程有 $a$ 名一年级学生、$b$ 名二年级学生、$c$ 名三年级学生和 $d$ 名四年级学生。令 $X$ 为一年级和二年级学生的总数，$Y$ 为三年级学生数，$Z$ 为大小为 $n$ 的随机样本中的四年级学生数；其中 (a) 中抽样有放回，(b) 中抽样无放回（两部分中每一步允许的选择都等可能）。
+\begin{enumerate}
+  \item[(a)] 求有放回抽样时 $X,Y,Z$ 的联合 PMF。
+  \item[(b)] 求无放回抽样时 $X,Y,Z$ 的联合 PMF。
+\end{enumerate}
+
+\noindent\textbf{68.}\quad $\circledS$ 一组 $n\ge 2$ 人决定玩一局刺激的石头剪刀布。回忆：石头赢剪刀，剪刀赢布，布赢石头。通常这个游戏由 2 人玩，但可以如下推广到更多人。如果恰好出现 3 个选择中的 2 个，且每个人都展示自己的选择，设这些选择为 $a,b\in\{\text{石头},\text{布},\text{剪刀}\}$，其中 $a$ 胜 $b$，则游戏有决定性结果：选择 $a$ 的玩家赢，选择 $b$ 的玩家输。否则游戏没有决定性结果，玩家重来。
+
+例如，有 5 名玩家时，若 1 人选石头、2 人选剪刀、2 人选布，则该轮没有决定性结果，需要重来；但若 3 人选石头、2 人选剪刀，则选石头的玩家赢，选剪刀的玩家输。
+
+假设 $n$ 名玩家独立且等概率地在石头、剪刀、布之间随机选择。令 $X,Y,Z$ 分别为一局中选择石头、剪刀、布的人数。
+\begin{enumerate}
+  \item[(a)] 求 $X,Y,Z$ 的联合 PMF。
+  \item[(b)] 求游戏有决定性结果的概率。化简答案。
+  \item[(c)] 当 $n=5$ 时，游戏有决定性结果的概率是多少？当 $n\to\infty$ 时，一局游戏有决定性结果的极限概率是多少？简要解释为什么答案合理。
+\end{enumerate}
+
+\noindent\textbf{69.}\quad $\circledS$ 电子邮件按照速率为 $\lambda$ 的 Poisson 过程到达收件箱（所以长度为 $t$ 的时间区间内邮件数服从 $\operatorname{Pois}(\lambda t)$，且不相交时间区间内到达的邮件数独立）。令 $X,Y,Z$ 分别为某天上午 9 点到中午、中午到下午 6 点、下午 6 点到午夜到达的邮件数。
+\begin{enumerate}
+  \item[(a)] 求 $X,Y,Z$ 的联合 PMF。
+  \item[(b)] 求给定 $X+Y+Z=36$ 时 $X,Y,Z$ 的条件联合 PMF。
+  \item[(c)] 求给定 $X+Y+Z=36$ 时 $X+Y$ 的条件 PMF。
+  \item[(d)] 求 $E(X+Y\mid X+Y+Z=36)$ 和 $\operatorname{Var}(X+Y\mid X+Y+Z=36)$。（给定事件的条件期望和条件方差定义方式与普通期望和方差相同，只是用给定事件后的条件分布代替无条件分布；这些概念将在第 9 章中进一步探讨。）
+\end{enumerate}
+
+\noindent\textbf{70.}\quad 令 $X$ 为某大学 2030 届统计专业人数，视为随机变量。每名统计专业学生在两个方向中选择一个：统计原理与方法的普通方向，或数量金融方向。假设每名统计专业学生独立地以概率 $p$ 选择普通方向。令 $Y$ 为选择普通方向的统计专业学生人数，$Z$ 为选择数量金融方向的统计专业学生人数。
+\begin{enumerate}
+  \item[(a)] 假设 $X\sim \operatorname{Pois}(\lambda)$。（现实中这并不精确，因为 Poisson 无界，但可能是很好的近似。）求 $X$ 与 $Y$ 之间的相关。
+  \item[(b)] 令 $n$ 为 2030 届总人数，其中 $n$ 是已知常数。对本小问及下一小问，不再假设 $X$ 为 Poisson，而是假设这 $n$ 名学生各自独立地以概率 $r$ 选择成为统计专业学生。求 $Y,Z$ 以及非统计专业人数的联合分布，并求它们的边缘分布。
+  \item[(c)] 继续 (b)，求 $X$ 与 $Y$ 之间的相关。
+\end{enumerate}
+
+\noindent\textbf{71.}\quad 在人类（以及许多其他生物）中，基因成对出现。考虑一个感兴趣的基因，它有两种类型（等位基因）：类型 $a$ 和类型 $A$。一个人在该基因上的基因型是这一对基因的类型：$AA,Aa$ 或 $aa$（$aA$ 等同于 $Aa$）。根据 Hardy--Weinberg 定律，在平衡总体中，对某个 $0<p<1$，$AA,Aa,aa$ 的频率分别为 $p^2,2p(1-p),(1-p)^2$。假设 Hardy--Weinberg 定律成立，并且从总体中独立随机抽取 $n$ 人。令 $X_1,X_2,X_3$ 分别为样本中基因型为 $AA,Aa,aa$ 的人数。
+\begin{enumerate}
+  \item[(a)] $X_1,X_2,X_3$ 的联合 PMF 是什么？
+  \item[(b)] 样本中基因型含有 $A$ 的人数服从什么分布？
+  \item[(c)] 样本中 $2n$ 个基因里有多少个 $A$ 服从什么分布？
+  \item[(d)] 现在假设 $p$ 未知，必须用观测数据 $X_1,X_2,X_3$ 估计。$p$ 的最大似然估计（MLE）是使观测数据尽可能可能的 $p$ 值。求 $p$ 的 MLE。
+  \item[(e)] 现在假设 $p$ 未知，且我们的观测无法区分 $AA$ 和 $Aa$。因此，对样本中每个人，只知道此人是否为 $aa$（遗传学术语中，$AA$ 和 $Aa$ 具有相同表型，我们只能观察表型而不能观察基因型）。求 $p$ 的 MLE。
+\end{enumerate}
+
+\subsection*{多元正态}
+
+\noindent\textbf{72.}\quad $\circledS$ 设 $(X,Y)$ 是二元正态，且 $X$ 和 $Y$ 的边缘分布都是 $\mathcal{N}(0,1)$，二者相关为 $\rho$。
+\begin{enumerate}
+  \item[(a)] 证明 $(X+Y,X-Y)$ 也是二元正态。
+  \item[(b)] 在 $-1<\rho<1$ 的假设下，不用微积分，求 $X+Y$ 和 $X-Y$ 的联合 PDF。
+\end{enumerate}
+
+\noindent\textbf{73.}\quad 设 $X$ 和 $Y$ 的联合 PDF 为
+\[
+  f_{X,Y}(x,y)=c\exp\left(-\frac{x^2}{2}-\frac{y^2}{2}\right)
+\]
+对所有 $x,y$ 成立，其中 $c$ 是常数。
+\begin{enumerate}
+  \item[(a)] 求使其成为合法联合 PDF 的 $c$。
+  \item[(b)] $X$ 和 $Y$ 的边缘分布是什么？$X$ 和 $Y$ 独立吗？
+  \item[(c)] $(X,Y)$ 是二元正态吗？
+\end{enumerate}
+
+\noindent\textbf{74.}\quad 设 $X$ 和 $Y$ 的联合 PDF 为
+\[
+  f_{X,Y}(x,y)=c\exp\left(-\frac{x^2}{2}-\frac{y^2}{2}\right),\quad xy>0,
+\]
+其中 $c$ 是常数（当 $xy\le 0$ 时联合 PDF 为 $0$）。
+\begin{enumerate}
+  \item[(a)] 求使其成为合法联合 PDF 的 $c$。
+  \item[(b)] $X$ 和 $Y$ 的边缘分布是什么？$X$ 和 $Y$ 独立吗？
+  \item[(c)] $(X,Y)$ 是二元正态吗？
+\end{enumerate}
+
+\noindent\textbf{75.}\quad 设 $X,Y,Z$ 独立同分布于 $\mathcal{N}(0,1)$。求
+\[
+  (X+2Y,\ 3X+4Z,\ 5Y+6Z)
+\]
+的联合 MGF。
+
+\noindent\textbf{76.}\quad 设 $X$ 和 $Y$ 独立同分布于 $\mathcal{N}(0,1)$，并令 $S$ 为与 $(X,Y)$ 独立、等概率取 $1$ 或 $-1$ 的随机符号。
+\begin{enumerate}
+  \item[(a)] 判断 $(X,Y,X+Y)$ 是否为多元正态。
+  \item[(b)] 判断 $(X,Y,SX+SY)$ 是否为多元正态。
+  \item[(c)] 判断 $(SX,SY)$ 是否为多元正态。
+\end{enumerate}
+
+\noindent\textbf{77.}\quad 设 $(X,Y)$ 是二元正态，边缘分布为 $X\sim \mathcal{N}(0,\sigma_1^2)$、$Y\sim \mathcal{N}(0,\sigma_2^2)$，且 $\operatorname{Corr}(X,Y)=\rho$。求常数 $c$，使 $Y-cX$ 独立于 $X$。
+
+提示：先求 $c$（用 $\rho,\sigma_1,\sigma_2$ 表示），使 $Y-cX$ 与 $X$ 不相关。
+
+\noindent\textbf{78.}\quad 一位母亲和一位父亲有 6 个孩子。这个家庭中的 8 个身高（单位：英寸）都是 $\mathcal{N}(\mu,\sigma^2)$ 随机变量（分布相同，但不一定独立）。
+\begin{enumerate}
+  \item[(a)] 仅本小问假设所有身高相互独立。平均而言，有多少个孩子比父母两人都高？
+  \item[(b)] 令 $X_1$ 为母亲身高，$X_2$ 为父亲身高，$Y_1,\ldots,Y_6$ 为孩子身高。假设 $(X_1,X_2,Y_1,\ldots,Y_6)$ 是多元正态，边缘分布均为 $\mathcal{N}(\mu,\sigma^2)$，且 $\operatorname{Corr}(X_1,Y_j)=\rho$ 对 $1\le j\le 6$ 成立，其中 $\rho<1$。平均而言，有多少个孩子比母亲高超过 1 英寸？
+\end{enumerate}
+
+\subsection*{混合练习}
+
+\noindent\textbf{79.}\quad 汽车按照速率为 $\lambda$ 辆/分钟的 Poisson 过程经过道路上的某一点。令 $N_t\sim \operatorname{Pois}(\lambda t)$ 为时间区间 $[0,t]$ 内经过该点的汽车数，其中 $t$ 以分钟为单位。
+\begin{enumerate}
+  \item[(a)] 某个设备能够数出经过的汽车数，但不记录到达时间。时间 $0$ 时，设备计数器置为 $0$。时间 3 分钟时，观察该设备，发现恰有 1 辆车经过。给定此信息，求那辆车到达时间的条件 CDF。并用文字描述结果含义。
+  \item[(b)] 在傍晚，你正在计数蓝色汽车。每辆经过的汽车独立地以概率 $b$ 为蓝色。求 10 分钟内经过该点的蓝色汽车数和非蓝色汽车数的联合 PMF 及边缘 PMF。
+\end{enumerate}
+
+\noindent\textbf{80.}\quad 在一次美国选举中，登记选民数为 $V\sim \operatorname{Pois}(\lambda)$。假设每名登记选民独立地以概率 $p$ 为登记民主党人，以概率 $1-p$ 为登记共和党人。此外，每名登记选民独立地以概率 $s$ 前往投票站，以概率 $1-s$ 留在家中；这与其他选民及其自身党派归属都独立。本题关注 $X$，即实际投票的登记民主党人数。
+\begin{enumerate}
+  \item[(a)] 在不知道登记选民人数之前，$X$ 的分布是什么？
+  \item[(b)] 假设得知 $V=v$，即有 $v$ 人登记投票。给定此信息时 $X$ 的条件分布是什么？
+  \item[(c)] 假设得知有 $d$ 名登记民主党人和 $r$ 名登记共和党人（其中 $d+r=v$）。给定此信息时 $X$ 的条件分布是什么？
+  \item[(d)] 最后，在上述所有信息之外，还得知选举日有 $n$ 人前往投票站。给定此信息时 $X$ 的条件分布是什么？
+\end{enumerate}
+
+\noindent\textbf{81.}\quad 某大学有 $m$ 名一年级学生、$m$ 名二年级学生、$m$ 名三年级学生和 $m$ 名四年级学生。该大学某门课由大小为 $n$ 的学生简单随机样本组成，即从 $4m$ 名学生中选出 $n$ 人的所有集合等可能。令 $X_1,\ldots,X_4$ 分别为班上一年级、二年级、三年级、四年级学生的人数。
+\begin{enumerate}
+  \item[(a)] 求 $X_1,X_2,X_3,X_4$ 的联合 PMF。
+  \item[(b)] 对 (a) 中的分布是否为多项分布，给出直观解释和数学证明。
+  \item[(c)] 求 $\operatorname{Cov}(X_1,X_3)$，充分化简。
+\end{enumerate}
+提示：对等式 $X_1+X_2+X_3+X_4=n$ 两边取方差。
+
+\noindent\textbf{82.}\quad 设 $X\sim \operatorname{Expo}(\lambda)$，$Y$ 为非负随机变量，可以是离散或连续的，且其 MGF $M$ 在所有地方有限。证明对某个需要说明的 $c$，
+\[
+  P(Y<X)=M(c).
+\]
+
+\noindent\textbf{83.}\quad 一家出版社雇了两位校对员 Prue 和 Frida。Prue 校对一本书时，对每个错字独立地以概率 $p$ 发现，以概率 $q=1-p$ 漏掉。Frida 校对一本书时，对每个错字独立地以概率 $f$ 发现，以概率 $g=1-f$ 漏掉。
+\begin{enumerate}
+  \item[(a)] 某本书稿有 $n$ 个错字。公司等概率随机把它交给两位校对员之一。求被发现错字数的分布。
+  \item[(b)] 另一本书正在写作。该书初稿完成时会有 $\operatorname{Pois}(\lambda)$ 个错字，并会交给 Prue 校对。已知她恰好漏掉 $m$ 个错字，求她恰好发现 $k$ 个错字的概率。
+\end{enumerate}
+
+\noindent\textbf{84.}\quad 两位作者 Bob 和 Martha 即将开始合写一部史诗式合著书 \textit{The Adventures of Aaron the Aardwolf}。他们需要 $A$ 年写完。完成后，他们会立即开始各自单独创作的新书。Bob 将花 $X$ 年写 \textit{The Bilinear Bonanza of Bonnie the Butterfly}，Martha 将独立地花 $Y$ 年写 \textit{Memoirs of Maude the Magnificent Mangabey}。假设 $A,X,Y$ 独立同分布于 $\operatorname{Expo}(\lambda)$。在时间轴上，把时间 $0$ 定义为他们开始合作的时刻，考虑如下量：
+\[
+\begin{array}{ll}
+  A: & \textit{The Adventures of Aaron the Aardwolf} \text{ 完成的时刻};\\
+  B: & \textit{The Bilinear Bonanza of Bonnie the Butterfly} \text{ 完成的时刻};\\
+  M: & \textit{Memoirs of Maude the Magnificent Mangabey} \text{ 完成的时刻};\\
+  T: & \text{这三本书中最后一本完成的时刻}.
+\end{array}
+\]
+\begin{enumerate}
+  \item[(a)] 求 $B$ 的分布（这也是 $M$ 的分布）。
+  \item[(b)] 求 $\operatorname{Cov}(A,B)$。
+  \item[(c)] 求 $E(T)$。
+\end{enumerate}
+
+\noindent\textbf{85.}\quad DNA 序列可以表示为字母序列，其中字母表有 4 个字母：A,C,G,T。假设长度为 $n\ge 4$ 的随机 DNA 序列通过逐个独立生成字母而形成，A,C,G,T 的概率分别为 $p_A,p_C,p_G,p_T$，其中 $p_A+p_C+p_G+p_T=1$。
+\begin{enumerate}
+  \item[(a)] 求序列中 A 的个数与 C 的个数之间的协方差。
+  \item[(b)] 观察到序列中恰好有 $a$ 个 A、$c$ 个 C、$g$ 个 G 和 $t$ 个 T，其中 $a+c+g+t=n$ 且 $a\ge 2$。给定此信息，求序列中第一个 A 后面紧接另一个 A 的概率。
+\end{enumerate}
+提示：本小问与第 2 章习题 74 有何关系？
+\begin{enumerate}
+  \item[(c)] 给定 (b) 中关于各字母出现次数的信息，求序列中表达式 CAT 出现次数的期望。
+\end{enumerate}
+
+\noindent\textbf{86.}\quad 为检测某种疾病，测量血液中某种物质的水平。令 $T$ 为该测量值，视为连续随机变量。若 $T>t_0$，则患者检测为阳性（即被判定患病）；若 $T\le t_0$，则检测为阴性，其中 $t_0$ 是预先决定的阈值。令 $D$ 为患病的指标。如例 2.3.9 所讨论，检验的敏感性是给定患者患病时检测为阳性的概率，特异性是给定患者未患病时检测为阴性的概率。
+\begin{enumerate}
+  \item[(a)] 该检验的 ROC（receiver operator characteristic）曲线是敏感性对 $1$ 减特异性的图，其中把敏感性（纵轴）和 $1$ 减特异性（横轴）视为阈值 $t_0$ 的函数。ROC 曲线在医学和工程中广泛用于研究将个体分成两组的程序表现（在本例中，两组为“患病者”和“未患病者”）。
+
+  给定 $D=1$ 时，$T$ 的 CDF 为 $G$、PDF 为 $g$；给定 $D=0$ 时，$T$ 的 CDF 为 $H$、PDF 为 $h$。这里 $g$ 和 $h$ 在区间 $[a,b]$ 上为正，在该区间外为 $0$。证明 ROC 曲线下的面积等于随机选取的患病者具有比随机选取的未患病者更高 $T$ 值的概率。
+  \item[(b)] 解释为什么 (a) 的结果在两个极端情形下合理：当 $g=h$ 时，以及当存在阈值 $t_0$ 使得 $P(T>t_0\mid D=1)$ 和 $P(T\le t_0\mid D=0)$ 都非常接近 $1$ 时。
+\end{enumerate}
+
+\noindent\textbf{87.}\quad 令 $J$ 在 $\{1,2,\ldots,n\}$ 上离散均匀。
+\begin{enumerate}
+  \item[(a)] 使用数学附录 A.8 节的结果，求 $E(J)$ 和 $\operatorname{Var}(J)$，充分化简。
+  \item[(b)] 直观讨论 (a) 中结果是否应分别近似等于某个区间上均匀分布的均值和方差。
+  \item[(c)] 令 $X_1,\ldots,X_n$ 独立同分布于 $\mathcal{N}(0,1)$，令 $R_1,\ldots,R_n$ 为它们的秩（最小的 $X_i$ 秩为 $1$，下一个秩为 $2$，依此类推，最大的秩为 $n$）。解释为什么
+  \[
+    R_n=1+\sum_{j=1}^{n-1}I_j,
+  \]
+  其中 $I_j=I(X_n>X_j)$。然后直接用对称性、线性性、基本桥梁和协方差性质求 $E(R_n)$ 和 $\operatorname{Var}(R_n)$。
+  \item[(d)] 解释 (a) 和 (c) 的结果如何相关。随后通过给出概率解释，证明恒等式
+  \[
+    \sum_{j=1}^{n}j=\frac{n(n+1)}{2},\qquad
+    \sum_{j=1}^{n}j^2=\frac{n(n+1)(2n+1)}{6}.
+  \]
+\end{enumerate}
+
+\noindent\textbf{88.}\quad $\circledS$ 一个网络由 $n$ 个节点组成，每一对节点之间可能有边也可能没有边。例如，一个社交网络可以被建模为一组 $n$ 个节点（代表人），其中节点 $i$ 和 $j$ 之间有边表示他们彼此认识。假设网络是无向的，并且没有从一个节点到自身的边。大小为 $k$ 的团是 $k$ 个节点的集合，其中每个节点都与其他每个节点有边。大小为 $k$ 的反团是 $k$ 个节点的集合，其中任意两点之间都没有边。比如，下图展示了一个节点标记为 $1,2,\ldots,7$ 的网络，其中 $\{1,2,3,4\}$ 是大小为 $4$ 的团，$\{3,5,7\}$ 是大小为 $3$ 的反团。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.62\textwidth]{7-11-1.png}
+\end{figure}
+
+\begin{enumerate}
+  \item[(a)] 通过对每一对 $\{x,y\}$ 独立抛公平硬币来决定它们之间是否有边，从而形成一个含 $n$ 个节点的随机网络。求大小为 $k$ 的团的期望数量（用 $n$ 和 $k$ 表示）。
+  \item[(b)] 三角形是大小为 $3$ 的团。对 (a) 中的随机网络，求三角形数量的方差（用 $n$ 表示）。
+\end{enumerate}
+提示：求每个可能团的指标随机变量之间的协方差。这样的指标随机变量有 ${n\choose 3}$ 个，其中某些成对相依。
+\begin{enumerate}
+  \item[(c)] 假设
+  \[
+    {n\choose k}<2^{ {k\choose 2}-1 }.
+  \]
+  证明存在一个含 $n$ 个节点的网络，它既不含大小为 $k$ 的团，也不含大小为 $k$ 的反团。
+\end{enumerate}
+提示：解释为什么只需证明对一个含 $n$ 个节点的随机网络，所需性质发生的概率为正；然后考虑其补事件。
+
+\noindent\textbf{89.}\quad $\circledS$ Shakespeare 在其已知作品中总共写了 884647 个词。当然，许多词会被使用不止一次；根据一次计算，Shakespeare 已知作品中不同词的数量为 31534。这给出了 Shakespeare 词汇量的下界，但他很可能知道一些没有在这些已知作品中使用过的词。
+
+更具体地，假设发现了一首新的 Shakespeare 诗，并考虑如下（看似不可能的）问题：很好地预测新诗中未出现在 Shakespeare 先前已知作品中的词的数量。
+
+Ronald Thisted 和 Bradley Efron 在论文 [8] 和 [9] 中研究了这个问题，发展了理论和方法，并把这些方法用于判断 1985 年一位 Shakespeare 学者发现的一首诗是否由 Shakespeare 所作。下面的问题发展出其方法的一个简化版本。该方法最初由 Alan Turing（计算机科学奠基人）和 I.J. Good 发明，是二战期间破译德国 Enigma 密码努力的一部分。
+
+令 $N$ 为 Shakespeare 知道的不同词数，并假设这些词编号为 $1$ 到 $N$。为简单起见，假设 Shakespeare 只写了两部戏剧 $A$ 和 $B$。两部戏剧都相当长且长度相同。令 $X_j$ 为第 $j$ 个词在戏剧 $A$ 中出现的次数，$Y_j$ 为它在戏剧 $B$ 中出现的次数，其中 $1\le j\le N$。
+\begin{enumerate}
+  \item[(a)] 解释为什么把 $X_j$ 建模为 Poisson，并把 $Y_j$ 建模为与 $X_j$ 参数相同的 Poisson，是合理的。
+  \item[(b)] 令词 “eyeball”（由 Shakespeare 创造）在两部戏剧中的出现次数为独立的 $\operatorname{Pois}(\lambda)$ 随机变量。证明 “eyeball” 在戏剧 $B$ 中使用但未在戏剧 $A$ 中使用的概率为
+  \[
+    e^{-\lambda}\left(\lambda-\frac{\lambda^2}{2!}+\frac{\lambda^3}{3!}-\frac{\lambda^4}{4!}+\cdots\right).
+  \]
+  \item[(c)] 现在假设 (b) 中的 $\lambda$ 未知，并且它本身被视为一个随机变量以反映这种不确定性。令 $\lambda$ 的 PDF 为 $f_0$。令 $X$ 为 “eyeball” 在戏剧 $A$ 中出现的次数，$Y$ 为戏剧 $B$ 中对应次数。假设给定 $\lambda$ 时，$X,Y$ 的条件分布为独立 $\operatorname{Pois}(\lambda)$ 随机变量。证明 “eyeball” 在戏剧 $B$ 中使用但未在戏剧 $A$ 中使用的概率为交错级数
+  \[
+    P(X=1)-P(X=2)+P(X=3)-P(X=4)+\cdots.
+  \]
+\end{enumerate}
+提示：以 $\lambda$ 为条件并使用 (b)。
+\begin{enumerate}
+  \item[(d)] 假设每个词在 $A$ 和 $B$ 中的出现次数都按 (c) 中方式分布，其中不同词的 $\lambda$ 可以不同，但 $f_0$ 固定。令 $W_j$ 为在戏剧 $A$ 中恰好出现 $j$ 次的词数。证明出现在戏剧 $B$ 但未出现在戏剧 $A$ 中的不同词的期望数量为
+  \[
+    E(W_1)-E(W_2)+E(W_3)-E(W_4)+\cdots.
+  \]
+\end{enumerate}
+这表明 $W_1-W_2+W_3-W_4+\cdots$ 是出现在戏剧 $B$ 但未出现在戏剧 $A$ 中的不同词数的无偏预测量：平均而言它是正确的。而且，它只需要已观察到戏剧 $A$ 就能计算，不需要知道 $f_0$ 或任何 $\lambda_j$。该方法可以通过多种方式推广，用于基于已观察文本预测未观察文本。
+\end{document}

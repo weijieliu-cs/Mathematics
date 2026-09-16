@@ -1,0 +1,1225 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\graphicspath{{math/概率论/}}
+
+\title{第 6 章\quad 矩}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+随机变量 $X$ 的第 $n$ 阶矩是 $E(X^n)$。本章研究随机变量的矩如何揭示其分布。我们已经看到，前两个矩很有用，因为它们给出了均值 $E(X)$ 和方差 $E(X^2)-(EX)^2$，这两个量分别概括了 $X$ 的平均取值以及分布的离散程度。但一个分布所包含的信息远不止均值和方差。我们将看到，第三、第四阶矩能告诉我们分布的\textbf{不对称性}以及\textbf{尾部}或极端值的行为；这些性质不能由均值和方差捕捉。介绍矩之后，我们还将讨论\textbf{矩母函数}（MGF），它不仅帮助我们计算矩，也提供了刻画分布的另一种有用方式。
+
+\section*{6.1\quad 分布的摘要}
+
+均值称为一种\textbf{集中趋势度量}，因为它告诉我们分布中心的某些信息，更具体地说，是分布的质心。统计中常用的其他集中趋势度量还有\textbf{中位数}和\textbf{众数}，下面给出定义。
+
+\noindent\textbf{定义 6.1.1（中位数）}\quad 若随机变量 $X$ 满足
+\[
+  P(X\le c)\ge \frac12,\qquad P(X\ge c)\ge \frac12,
+\]
+则称 $c$ 是 $X$ 的一个中位数。最简单的情形是 $X$ 的 CDF 在 $c$ 处恰好达到 $1/2$；不过有些 CDF 存在跳跃，所以需要上面的定义。
+
+\noindent\textbf{定义 6.1.2（众数）}\quad 对离散随机变量 $X$，若 $c$ 使 PMF 最大，即对所有 $x$ 都有
+\[
+  P(X=c)\ge P(X=x),
+\]
+则称 $c$ 是 $X$ 的一个众数。对 PDF 为 $f$ 的连续随机变量 $X$，若 $c$ 使 PDF 最大，即对所有 $x$ 都有
+\[
+  f(c)\ge f(x),
+\]
+则称 $c$ 是 $X$ 的一个众数。
+
+与均值一样，随机变量的中位数和众数只依赖于它的分布。因此，我们可以谈论一个分布的均值、中位数或众数，而不必指定某个服从该分布的随机变量。例如，若 $Z\sim\mathcal{N}(0,1)$，则 $Z$ 的中位数为 $0$（由对称性 $\Phi(0)=1/2$），也可以说标准正态分布的中位数为 $0$。
+
+直观地说，中位数是这样一个值 $c$：分布的质量有一半落在 $c$ 的两侧（对于离散随机变量，则尽可能接近一半）。众数是在随机变量支撑集上概率质量或密度最大的取值。若 CDF $F$ 连续且严格递增，则 $F^{-1}(1/2)$ 是中位数，而且唯一。
+
+注意，一个分布可以有多个中位数，也可以有多个众数。中位数必须连续成片出现；众数则可以分布在各处。图 6.1 展示了一个支撑集为 $[-5,-1]\cup[1,5]$ 的分布，它有两个众数和无穷多个中位数。其 PDF 在 $-1$ 到 $1$ 之间为 $0$，因此区间 $[-1,1]$ 中的所有值都是中位数，因为分布质量有一半落在其左侧，另一半落在其右侧。两个众数位于 $-3$ 和 $3$。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.58\textwidth]{6-1.png}
+  \caption{一个具有两个众数（$-3$ 和 $3$）以及无穷多个中位数（区间 $[-1,1]$ 中的所有 $x$）的分布。}
+\end{figure}
+
+\noindent\textbf{例 6.1.3（工资的均值、中位数和众数）}\quad 某公司有 $100$ 名员工。设 $s_1,s_2,\ldots,s_{100}$ 是他们的工资，按递增顺序排列（即使有些工资相同也可以这样排列）。令 $X$ 表示从这些员工中等可能随机选出一人的工资。数据集 $s_1,s_2,\ldots,s_{100}$ 的均值、中位数和众数定义为 $X$ 的相应量。
+
+什么是“典型”工资？工资数据最有用的单个数字摘要是什么？答案常常是：这取决于目标。不同摘要揭示数据的不同特征，因此很难只选择一个数；而且通常也没有必要只给一个数，因为我们可以同时提供多个摘要（并画出数据图）。这里简要比较均值、中位数和众数，不过在许多情况下同时报告三者（以及其他摘要）是合理的。
+
+若所有工资都不同，则众数不能给出有用的单个数字摘要，因为此时有 $100$ 个众数。若公司中只有少数几种可能工资，众数会更有用。但即使这样，也可能出现如下情况：$34$ 人工资为 $a$，$33$ 人工资为 $b$，$33$ 人工资为 $c$。那么 $a$ 是唯一众数；可是若只报告 $a$，就忽略了 $b$ 和 $c$，它们几乎也是众数，并且合起来占据了将近 $2/3$ 的数据。
+
+再考虑中位数。这里有两个“中间”数 $s_{50}$ 和 $s_{51}$。事实上，任何满足
+\[
+  s_{50}\le m\le s_{51}
+\]
+的数 $m$ 都是中位数，因为被选员工工资落在 $\{s_1,\ldots,s_{50}\}$ 中的概率至少为 $50\%$，即工资至多为 $m$ 的概率至少为 $50\%$；同时工资落在 $\{s_{51},\ldots,s_{100}\}$ 中的概率也至少为 $50\%$，即工资至少为 $m$ 的概率至少为 $50\%$。通常约定取
+\[
+  m=\frac{s_{50}+s_{51}}{2},
+\]
+也就是两个中间数的平均。如果员工人数为奇数，则不会出现这个问题；那时有唯一中位数，即把所有工资递增排列后正中间的那个数。
+
+与均值相比，中位数对极端值不那么敏感。例如，如果 CEO 的工资从“略高于其他人”变为“远高于其他所有人”，这可能会显著影响均值，却不会影响中位数。这种稳健性使中位数有时比均值更适合作为“典型工资”的摘要。另一方面，若我们想知道公司支付给员工工资的总成本，仅知道众数或中位数无法提取这个信息；若知道均值，则只需乘以 $100$ 即可。
+
+设我们试图猜测一个尚未观测到的随机变量 $X$ 的取值，用 $c$ 作为预测。均值和中位数似乎都可以作为 $c$ 的自然猜测，但哪个更好？这取决于如何定义“更好”。评估 $c$ 好坏的两个自然方式是\textbf{均方误差} $E(X-c)^2$ 和\textbf{平均绝对误差} $E|X-c|$。下面的结果说明在这两种情形下最优猜测分别是什么。
+
+\noindent\textbf{定理 6.1.4}\quad 设随机变量 $X$ 的均值为 $\mu$，$m$ 是 $X$ 的一个中位数。
+\begin{itemize}
+  \item 使均方误差 $E(X-c)^2$ 最小的 $c$ 为 $c=\mu$。
+  \item 使平均绝对误差 $E|X-c|$ 最小的一个 $c$ 为 $c=m$。
+\end{itemize}
+
+\noindent\textbf{证明}\quad 先证明一个有用恒等式：
+\[
+  E(X-c)^2=\operatorname{Var}(X)+(\mu-c)^2.
+\]
+它可以通过展开验证；更快的方法是利用“加上常数不改变方差”这一事实：
+\[
+  \operatorname{Var}(X)=\operatorname{Var}(X-c)
+  =E(X-c)^2-\bigl(E(X-c)\bigr)^2
+  =E(X-c)^2-(\mu-c)^2.
+\]
+于是 $c=\mu$ 是使 $E(X-c)^2$ 最小的唯一选择，因为此时 $(\mu-c)^2=0$，而其他选择使 $(\mu-c)^2>0$。
+
+接下来考虑平均绝对误差。设 $a\ne m$。只需证明
+\[
+  E|X-m|\le E|X-a|,
+\]
+这等价于
+\[
+  E\bigl(|X-a|-|X-m|\bigr)\ge0.
+\]
+先假设 $m<a$（情形 $m>a$ 可类似处理）。若 $X\le m$，则
+\[
+  |X-a|-|X-m|=a-X-(m-X)=a-m;
+\]
+若 $X>m$，则
+\[
+  |X-a|-|X-m|\ge X-a-(X-m)=m-a.
+\]
+令
+\[
+  Y=|X-a|-|X-m|.
+\]
+可按事件 $X\le m$ 是否发生，将 $E(Y)$ 的定义分成两部分。设 $I$ 是事件 $X\le m$ 的示性随机变量，则 $1-I$ 是事件 $X>m$ 的示性随机变量。于是
+\begin{align*}
+  E(Y)
+  &=E(YI)+E(Y(1-I))\\
+  &\ge (a-m)E(I)+(m-a)E(1-I)\\
+  &=(a-m)P(X\le m)+(m-a)P(X>m)\\
+  &=(a-m)P(X\le m)-(a-m)(1-P(X\le m))\\
+  &=(a-m)\bigl(2P(X\le m)-1\bigr).
+\end{align*}
+由中位数定义，有 $2P(X\le m)-1\ge0$。因此 $E(Y)\ge0$，从而 $E|X-m|\le E|X-a|$。
+\qed
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.58\textwidth]{6-2.png}
+  \caption{两个均值为 $2$、方差为 $12$ 的 PDF。浅色曲线是正态且对称的；深色曲线是对数正态且右偏的。}
+\end{figure}
+
+在具体应用中，无论使用哪一种集中趋势度量，了解分布的\textbf{离散程度}通常也很重要，例如方差。不过，分布还有一些主要特征无法由均值和方差捕捉。图 6.2 中的两个 PDF 都有均值 $2$、方差 $12$。浅色曲线是 $\mathcal{N}(2,12)$ 的 PDF，深色曲线属于对数正态分布族（本章后面会定义对数正态分布）。正态曲线关于 $2$ 对称，因此它的均值、中位数和众数全都是 $2$。相反，对数正态分布严重右偏；这意味着它的右尾相对于左尾非常长。它的均值为 $2$，但中位数为 $1$，众数为 $0.25$。仅从均值和方差无法捕捉对数正态分布的不对称性与正态分布对称性之间的差异。
+
+现在考虑图 6.3。左图是 $\operatorname{Bin}(10,0.9)$ 随机变量的 PMF，右图是 $8+\operatorname{Bin}(10,0.1)$ 的 PMF。这两个分布的均值、中位数和众数都等于 $9$，方差都等于 $0.9$，但图像看起来截然不同。我们称左图的 PMF 为左偏，右图的 PMF 为右偏。本章将学习：分布不对称性的一种标准度量基于第三阶矩。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{6-3.png}
+  \caption{左：$\operatorname{Bin}(10,0.9)$ 是左偏的。右：$\operatorname{Bin}(10,0.1)$ 向右平移 $8$ 后是右偏的，但与 $\operatorname{Bin}(10,0.9)$ 有相同的均值、中位数、众数和方差。}
+\end{figure}
+
+前两个例子讨论了不对称分布，但均值和方差相同的对称分布也可以看起来很不一样。图 6.4 左图显示两个均值为 $0$、方差为 $1$ 的对称 PDF。浅色曲线是 $\mathcal{N}(0,1)$ 的 PDF，深色曲线是 $t_3$ 的 PDF，并缩放到方差为 $1$（第 10 章将定义 $t_3$ 分布）。深色曲线比浅色曲线有更尖的峰和更重的尾。右图放大了尾部行为，可以清楚看到深色曲线衰减到 $0$ 的速度慢得多，因此在尾部远处的取值比浅色曲线更可能出现。本章将看到，分布尾部厚重程度的一种标准度量基于第四阶矩。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{6-4.png}
+  \caption{左：$\mathcal{N}(0,1)$ PDF（浅色）与缩放后的 $t_3$ PDF（深色）。二者均值都为 $0$、方差都为 $1$，但后者峰更尖、尾更重。右：右尾行为的放大图。}
+\end{figure}
+
+\section*{6.2\quad 矩的解释}
+
+\noindent\textbf{定义 6.2.1（矩的类型）}\quad 设随机变量 $X$ 的均值为 $\mu$，方差为 $\sigma^2$。对任意正整数 $n$，$X$ 的第 $n$ 阶矩是
+\[
+  E(X^n),
+\]
+第 $n$ 阶中心矩是
+\[
+  E\bigl((X-\mu)^n\bigr),
+\]
+第 $n$ 阶标准化矩是
+\[
+  E\left(\left(\frac{X-\mu}{\sigma}\right)^n\right).
+\]
+在上述说法中，我们都默认“若该矩存在”。
+
+特别地，均值是第一阶矩，方差是第二阶中心矩。术语“矩”借自物理。设 $X$ 是离散随机变量，其不同可能取值为 $x_1,\ldots,x_n$。想象在数轴上每个 $x_j$ 处放一颗质量为 $m_j=P(X=x_j)$ 的小石子，如图 6.5 所示。在物理中，
+\[
+  E(X)=\sum_{j=1}^n m_jx_j
+\]
+称为该系统的质心，而
+\[
+  \operatorname{Var}(X)=\sum_{j=1}^n m_j\bigl(x_j-E(X)\bigr)^2
+\]
+称为相对于质心的转动惯量。
+
+下面定义偏度。偏度是描述不对称性的单个数字摘要，如前所述，它基于第三阶矩。事实上，偏度定义为第三阶标准化矩。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.48\textwidth]{6-5.png}
+  \caption{矩的物理解释。随机变量的均值（第一阶矩）对应一组小石子的质心，方差（第二阶中心矩）对应关于质心的转动惯量。}
+\end{figure}
+
+\noindent\textbf{定义 6.2.2（偏度）}\quad 均值为 $\mu$、方差为 $\sigma^2$ 的随机变量 $X$ 的\textbf{偏度}是 $X$ 的第三阶标准化矩：
+\[
+  \operatorname{Skew}(X)
+  =
+  E\left(\frac{X-\mu}{\sigma}\right)^3.
+\]
+
+先标准化再定义 $\operatorname{Skew}(X)$，可使偏度不依赖于 $X$ 的位置或尺度；这是合理的，因为 $\mu$ 和 $\sigma$ 已经提供了位置与尺度的信息。此外，先标准化还带来一个好性质：$X$ 的计量单位（例如英寸或米）不会影响偏度。
+
+为了理解偏度如何度量不对称性，先讨论随机变量对称是什么意思。
+
+\noindent\textbf{定义 6.2.3（随机变量的对称性）}\quad 若 $X-\mu$ 与 $\mu-X$ 有相同分布，则称随机变量 $X$ 关于 $\mu$ 有对称分布。也说 $X$ 是对称的，或 $X$ 的分布是对称的；这些说法含义相同。
+
+上面定义中的 $\mu$ 若存在均值，则必须为 $E(X)$。这是因为
+\[
+  E(X)-\mu=E(X-\mu)=E(\mu-X)=\mu-E(X),
+\]
+化简得 $E(X)=\mu$。因此，常把“$X$ 是对称的”简写为“$X$ 关于其均值对称”（若均值存在）。数 $\mu$ 也是该分布的一个中位数，因为若 $X-\mu$ 与 $\mu-X$ 同分布，则
+\[
+  P(X-\mu\le0)=P(\mu-X\le0),
+\]
+于是
+\[
+  P(X\le\mu)=P(X\ge\mu),
+\]
+从而
+\[
+  P(X\le\mu)=1-P(X>\mu)\ge1-P(X\ge\mu)=1-P(X\le\mu),
+\]
+这说明 $P(X\le\mu)\ge1/2$ 且 $P(X\ge\mu)\ge1/2$。
+
+\noindent\textbf{注 6.2.4}\quad 有时人们说“$X$ 是对称的”，是指“$X$ 关于 $0$ 对称”。注意若 $X$ 关于 $\mu$ 对称，则 $X-\mu$ 关于 $0$ 对称。关于 $0$ 对称特别方便，因为此时 $-X$ 与 $X$ 同分布；若 $X$ 连续，则 $X$ 的 PDF 是偶函数。
+
+直观地说，对称性意味着 $X$ 的 PDF 在 $\mu$ 左侧的部分是 $\mu$ 右侧部分的镜像（对连续 $X$ 而言；离散 $X$ 的 PMF 也类似）。例如，我们已经看到 $X\sim\mathcal{N}(\mu,\sigma^2)$ 是对称的；按定义，这是因为 $X-\mu$ 与 $\mu-X$ 都服从 $\mathcal{N}(0,\sigma^2)$。由推论 3.3.8 还知道，若 $X\sim\operatorname{Bin}(n,p)$ 且 $p=1/2$，则 $X$ 是对称的。
+
+我们也可以用代数方式描述对称连续随机变量的 PDF 形状。
+
+\noindent\textbf{命题 6.2.5（用 PDF 表述对称性）}\quad 设连续随机变量 $X$ 的 PDF 为 $f$。则 $X$ 关于 $\mu$ 对称当且仅当
+\[
+  f(x)=f(2\mu-x)
+\]
+对所有 $x$ 成立。
+
+\noindent\textbf{证明}\quad 设 $F$ 为 $X$ 的 CDF。若对称性成立，则
+\[
+  F(x)=P(X-\mu\le x-\mu)
+  =P(\mu-X\le x-\mu)
+  =P(X\ge2\mu-x)=1-F(2\mu-x).
+\]
+两边求导得 $f(x)=f(2\mu-x)$。
+
+反过来，设对所有 $x$ 都有 $f(x)=f(2\mu-x)$。两边积分可得
+\[
+  P(X-\mu\le t)=P(X\le\mu+t)
+  =\int_{-\infty}^{\mu+t}f(x)\,dx
+  =\int_{-\infty}^{\mu+t}f(2\mu-x)\,dx.
+\]
+作代换 $w=2\mu-x$，上式变为
+\[
+  \int_{\mu-t}^{\infty}f(w)\,dw
+  =P(X\ge\mu-t)=P(\mu-X\le t).
+\]
+故 $X-\mu$ 与 $\mu-X$ 同分布。
+\qed
+
+奇数阶中心矩能给出关于对称性的一些信息。
+
+\noindent\textbf{命题 6.2.6（对称分布的奇数阶中心矩）}\quad 设 $X$ 关于其均值 $\mu$ 对称。则对任意奇数 $m$，若第 $m$ 阶中心矩存在，则
+\[
+  E(X-\mu)^m=0.
+\]
+
+\noindent\textbf{证明}\quad 由于 $X-\mu$ 与 $\mu-X$ 同分布，它们的第 $m$ 阶矩（若存在）相同：
+\[
+  E(X-\mu)^m=E(\mu-X)^m.
+\]
+令 $Y=(X-\mu)^m$。则
+\[
+  (\mu-X)^m=(-X+\mu)^m=(-1)^mY=-Y,
+\]
+所以上式说明 $E(Y)=-E(Y)$。因此 $E(Y)=0$。
+\qed
+
+这引导我们使用奇数阶标准化矩作为分布偏斜程度的度量。第一阶标准化矩总是 $0$，所以取第三阶标准化矩作为偏度的定义。正偏度表示右尾相对左尾较长，负偏度表示相反情形。（不过上述命题的逆命题不成立：存在非对称分布，其所有奇数阶中心矩都为 $0$。）
+
+为什么不用第五阶标准化矩而用第三阶呢？一个原因是第三阶标准化矩通常更容易计算。另一个原因是，我们可能希望从数据集中估计偏度，而较低阶矩通常比高阶矩更容易稳定估计；例如，一个很大的噪声观测会有非常大、非常不稳定的五次方。不过，正如均值不是唯一有用的平均概念、方差不是唯一有用的离散程度概念一样，第三阶标准化矩也不是唯一有用的偏斜度量。
+
+分布的另一个重要描述特征是尾部有多重。给定方差时，变异性更多是由少数罕见的极端事件解释，还是由中等数量、偏离均值适中的事件解释？这是金融风险管理中的重要问题：对许多金融资产而言，收益分布有由罕见但严重危机事件导致的重左尾；若不考虑这些罕见事件，可能造成灾难性后果，2008 年金融危机就是例证。
+
+与度量偏度一样，没有单一度量能够完美捕捉尾部行为，但有一个广泛使用的摘要基于第四阶标准化矩。
+
+\noindent\textbf{定义 6.2.7（峰度）}\quad 均值为 $\mu$、方差为 $\sigma^2$ 的随机变量 $X$ 的\textbf{峰度}是 $X$ 第四阶标准化矩平移后的版本：
+\[
+  \operatorname{Kurt}(X)
+  =
+  E\left(\frac{X-\mu}{\sigma}\right)^4-3.
+\]
+
+\noindent\textbf{注 6.2.8}\quad 减去 $3$ 的原因是这样可使任意正态分布的峰度为 $0$（见第 6.5 节），便于比较。不过，有些资料把不减 $3$ 的量称为峰度；在这种术语下，本书的版本称为“超额峰度”。
+
+图 6.6 展示了三个有名称的分布，并列出它们各自的偏度和峰度。$\operatorname{Expo}(1)$ 和 $\operatorname{Pois}(4)$ 分布（左图与中图）都有正偏度和正峰度，表示它们右偏，而且尾部比正态分布更重。$\operatorname{Unif}(0,1)$ 分布（右图）偏度为 $0$、峰度为负：偏度为 $0$ 是因为该分布关于均值对称，峰度为负是因为它没有尾部。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{6-6.png}
+  \caption{若干有名称分布的偏度和峰度。左：$\operatorname{Expo}(1)$ PDF，偏度 $=2$，峰度 $=6$。中：$\operatorname{Pois}(4)$ PMF，偏度 $=0.5$，峰度 $=0.25$。右：$\operatorname{Unif}(0,1)$ PDF，偏度 $=0$，峰度 $=-1.2$。}
+\end{figure}
+
+\section*{6.3\quad 样本矩}
+
+统计推断中的一个核心问题，是如何用数据估计分布的未知参数，或未知参数的函数。人们尤其常常希望估计一个分布的均值和方差。若数据是独立同分布随机变量 $X_1,\ldots,X_n$，且均值 $E(X_j)$ 未知，那么估计均值最显然的方法，就是把这些 $X_j$ 取平均，即取算术平均。
+
+例如，若观测数据为 $3,1,1,5$，那么估计生成这些数据的分布均值的一个简单自然方法，是使用
+\[
+  \frac{3+1+1+5}{4}=2.5.
+\]
+这称为\textbf{样本均值}。类似地，若要估计生成数据 $3,1,1,5$ 的分布的第二阶矩，一个简单自然的方法是使用
+\[
+  \frac{3^2+1^2+1^2+5^2}{4}=9.
+\]
+这称为\textbf{样本第二阶矩}。一般地，样本矩定义如下。
+
+\noindent\textbf{定义 6.3.1（样本矩）}\quad 设 $X_1,\ldots,X_n$ 为独立同分布随机变量。第 $k$ 阶样本矩是随机变量
+\[
+  M_k=\frac1n\sum_{j=1}^n X_j^k.
+\]
+样本均值 $\bar X_n$ 是第一阶样本矩：
+\[
+  \bar X_n=\frac1n\sum_{j=1}^n X_j.
+\]
+相对地，\textbf{总体均值}或\textbf{真实均值}是 $E(X_j)$，即抽取 $X_j$ 的分布均值。
+
+大数定律（第 10 章证明）表明，独立同分布随机变量 $X_1,\ldots,X_n$ 的第 $k$ 阶样本矩会在 $n\to\infty$ 时收敛到第 $k$ 阶矩 $E(X_1^k)$。此外，第 $k$ 阶样本矩的期望正是第 $k$ 阶矩。在统计术语中，我们说第 $k$ 阶样本矩是估计第 $k$ 阶矩的\textbf{无偏}估计量。由线性性可直接验证：
+\[
+  E\left(\frac1n\sum_{j=1}^nX_j^k\right)
+  =
+  \frac1n\left(E(X_1^k)+\cdots+E(X_n^k)\right)
+  =
+  E(X_1^k).
+\]
+
+样本均值的均值和方差经常需要用到，而且有很好的表达式。
+
+\noindent\textbf{定理 6.3.2（样本均值的均值与方差）}\quad 设 $X_1,\ldots,X_n$ 是独立同分布随机变量，均值为 $\mu$，方差为 $\sigma^2$。则样本均值 $\bar X_n$ 是估计 $\mu$ 的无偏估计量，即
+\[
+  E(\bar X_n)=\mu.
+\]
+并且
+\[
+  \operatorname{Var}(\bar X_n)=\frac{\sigma^2}{n}.
+\]
+
+\noindent\textbf{证明}\quad $E(\bar X_n)=\mu$ 已由上面对第 $k$ 阶样本矩无偏性的说明得到。对方差，我们使用下一章将说明的事实：独立随机变量和的方差等于方差之和。因此
+\[
+  \operatorname{Var}(\bar X_n)
+  =
+  \frac1{n^2}\operatorname{Var}(X_1+\cdots+X_n)
+  =
+  \frac{n}{n^2}\operatorname{Var}(X_1)
+  =
+  \frac{\sigma^2}{n}.
+\]
+\qed
+
+为了估计独立同分布随机变量 $X_1,\ldots,X_n$ 所来自分布的方差，一个建立在上述概念上的自然方法，是模仿公式
+\[
+  \operatorname{Var}(X)=E(X^2)-(EX)^2,
+\]
+取第二阶样本矩再减去样本均值的平方。这个方法有其优点，不过更常用的方法如下。
+
+\noindent\textbf{定义 6.3.3（样本方差与样本标准差）}\quad 设 $X_1,\ldots,X_n$ 为独立同分布随机变量。样本方差是随机变量
+\[
+  S_n^2=\frac1{n-1}\sum_{j=1}^n(X_j-\bar X_n)^2.
+\]
+样本标准差是样本方差的平方根。
+
+上述定义的思想是模仿公式
+\[
+  \operatorname{Var}(X)=E\bigl(X-E(X)\bigr)^2,
+\]
+即把 $X_j$ 到样本均值的平方距离作平均；不同之处是分母使用 $n-1$ 而不是 $n$。这样做的动机是使样本方差 $S_n^2$ 成为估计 $\sigma^2$ 的无偏估计量，也就是说它平均而言是正确的。不过样本标准差 $S_n$ 并不是估计 $\sigma$ 的无偏估计量；第 10 章会看到不等式朝哪个方向成立。无论如何，无偏性只是评判估计过程的若干标准之一。例如在某些问题中，允许一点偏差可以换来更小的均方误差，这种权衡可能是值得的。
+
+\noindent\textbf{定理 6.3.4（样本方差的无偏性）}\quad 设 $X_1,\ldots,X_n$ 是独立同分布随机变量，均值为 $\mu$，方差为 $\sigma^2$。则样本方差 $S_n^2$ 是估计 $\sigma^2$ 的无偏估计量，即
+\[
+  E(S_n^2)=\sigma^2.
+\]
+
+\noindent\textbf{证明}\quad 证明的关键是恒等式
+\[
+  \sum_{j=1}^n(X_j-c)^2
+  =
+  \sum_{j=1}^n(X_j-\bar X_n)^2+n(\bar X_n-c)^2,
+\]
+它对所有 $c$ 都成立。为了验证它，在左边和式中加减 $\bar X_n$：
+\begin{align*}
+  \sum_{j=1}^n(X_j-c)^2
+  &=
+  \sum_{j=1}^n\bigl((X_j-\bar X_n)+(\bar X_n-c)\bigr)^2\\
+  &=
+  \sum_{j=1}^n(X_j-\bar X_n)^2
+  +2\sum_{j=1}^n(X_j-\bar X_n)(\bar X_n-c)
+  +\sum_{j=1}^n(\bar X_n-c)^2\\
+  &=
+  \sum_{j=1}^n(X_j-\bar X_n)^2+n(\bar X_n-c)^2.
+\end{align*}
+最后一行用到 $\bar X_n-c$ 不依赖于 $j$，以及
+\[
+  \sum_{j=1}^n(X_j-\bar X_n)
+  =
+  \sum_{j=1}^nX_j-\sum_{j=1}^n\bar X_n
+  =
+  n\bar X_n-n\bar X_n=0.
+\]
+现在应用该恒等式，取 $c=\mu$。两边取期望得
+\[
+  nE(X_1-\mu)^2
+  =
+  E\left(\sum_{j=1}^n(X_j-\bar X_n)^2\right)
+  +nE(\bar X_n-\mu)^2.
+\]
+由方差定义，$E(X_1-\mu)^2=\operatorname{Var}(X_1)=\sigma^2$，且
+\[
+  E(\bar X_n-\mu)^2=\operatorname{Var}(\bar X_n)=\frac{\sigma^2}{n}.
+\]
+代入并化简，即得 $E(S_n^2)=\sigma^2$。
+\qed
+
+类似地，可定义样本偏度为
+\[
+  \frac{\frac1n\sum_{j=1}^n(X_j-\bar X_n)^3}{S_n^3},
+\]
+样本峰度为
+\[
+  \frac{\frac1n\sum_{j=1}^n(X_j-\bar X_n)^4}{S_n^4}-3.
+\]
+
+超过第四阶矩后，用图形解释矩会迅速变得更难；若这些矩未知，也更难从数据中良好估计它们。不过，本章其余部分将说明，知道一个分布的所有矩仍然可能很有用。我们还会研究一种计算矩的方法，它常常比 LOTUS 更容易。矩的有用性和计算都与一个称为\textbf{矩母函数}的蓝图密切相关，本章剩余大部分内容都围绕它展开。
+
+\section*{6.4\quad 矩母函数}
+
+\begin{quote}
+生成函数是一根晾衣绳，我们把一列数挂在上面展示。-- Herbert Wilf
+\end{quote}
+
+生成函数是组合数学和概率论中的强大工具，它在数列与微积分世界之间架起桥梁。在概率论中，它们对研究离散分布和连续分布都有用。生成函数背后的基本思想如下：从一列数开始，构造一个连续函数，即生成函数，来编码这列数。于是我们便可以使用微积分的全部工具来操纵这个生成函数。
+
+顾名思义，矩母函数是一种编码分布矩的生成函数。下面先给出定义，再看几个例子。
+
+\noindent\textbf{定义 6.4.1（矩母函数）}\quad 随机变量 $X$ 的\textbf{矩母函数}（MGF）是
+\[
+  M(t)=E(e^{tX}),
+\]
+把它看成 $t$ 的函数；要求它在包含 $0$ 的某个开区间 $(-a,a)$ 上有限。否则称 $X$ 的 MGF 不存在。
+
+此时一个自然问题是：“$t$ 的解释是什么？”答案是：$t$ 没有什么特别解释；它只是为了能用微积分处理矩序列而引入的记账装置。
+
+注意，对任意有效的 MGF $M$，都有 $M(0)=1$。每当计算出一个 MGF 时，把 $0$ 代进去看看是否得到 $1$，这是一个快速检查。
+
+\noindent\textbf{例 6.4.2（Bernoulli 分布的 MGF）}\quad 若 $X\sim\operatorname{Bern}(p)$，则 $e^{tX}$ 以概率 $p$ 取值 $e^t$，以概率 $q$ 取值 $1$，所以
+\[
+  M(t)=E(e^{tX})=pe^t+q.
+\]
+由于它对所有 $t$ 都有限，MGF 定义在整个实线上。
+
+\noindent\textbf{例 6.4.3（几何分布的 MGF）}\quad 若 $X\sim\operatorname{Geom}(p)$，则
+\[
+  M(t)=E(e^{tX})
+  =
+  \sum_{k=0}^{\infty}e^{tk}q^kp
+  =
+  p\sum_{k=0}^{\infty}(qe^t)^k
+  =
+  \frac{p}{1-qe^t},
+\]
+其中要求 $qe^t<1$，即 $t\in(-\infty,\log(1/q))$，这是一个包含 $0$ 的开区间。
+
+\noindent\textbf{例 6.4.4（均匀分布的 MGF）}\quad 设 $U\sim\operatorname{Unif}(a,b)$。则 $U$ 的 MGF 为
+\[
+  M(t)=E(e^{tU})
+  =
+  \frac1{b-a}\int_a^b e^{tu}\,du
+  =
+  \frac{e^{tb}-e^{ta}}{t(b-a)}
+\]
+（$t\ne0$），且 $M(0)=1$。
+
+接下来的三个定理给出 MGF 重要的三个原因。第一，MGF 编码随机变量的矩。第二，随机变量的 MGF 决定其分布，类似于 CDF 与 PMF/PDF。第三，MGF 使我们容易求独立随机变量和的分布。下面逐一讨论。
+
+\noindent\textbf{定理 6.4.5（由 MGF 的导数求矩）}\quad 给定 $X$ 的 MGF，可通过在 $0$ 处计算 MGF 的第 $n$ 阶导数得到 $X$ 的第 $n$ 阶矩：
+\[
+  E(X^n)=M^{(n)}(0).
+\]
+
+\noindent\textbf{证明}\quad 注意 $M(t)$ 在 $0$ 附近的 Taylor 展开为
+\[
+  M(t)=\sum_{n=0}^{\infty}M^{(n)}(0)\frac{t^n}{n!}.
+\]
+另一方面，
+\[
+  M(t)=E(e^{tX})
+  =
+  E\left(\sum_{n=0}^{\infty}X^n\frac{t^n}{n!}\right).
+\]
+由于满足某些技术条件（这里正是用到 $E(e^{tX})$ 在 $0$ 附近某区间内有限的条件），允许交换期望与无穷和，因此
+\[
+  M(t)=\sum_{n=0}^{\infty}E(X^n)\frac{t^n}{n!}.
+\]
+比较两个展开式的系数，得 $E(X^n)=M^{(n)}(0)$。
+\qed
+
+上面的定理令人惊喜：对连续随机变量 $X$ 而言，计算矩似乎需要用 LOTUS 做积分；但有了 MGF，就可以通过求导而不是积分来找到矩。
+
+\noindent\textbf{定理 6.4.6（MGF 决定分布）}\quad 随机变量的 MGF 决定其分布：若两个随机变量有相同的 MGF，则它们必有相同分布。事实上，只要存在一个包含 $0$ 的小区间 $(-a,a)$，两个 MGF 在该区间上相等，那么这两个随机变量就必有相同分布。
+
+上述定理是分析中的一个困难结果，这里不作证明。
+
+\noindent\textbf{定理 6.4.7（独立随机变量和的 MGF）}\quad 若 $X$ 与 $Y$ 独立，则 $X+Y$ 的 MGF 等于二者 MGF 的乘积：
+\[
+  M_{X+Y}(t)=M_X(t)M_Y(t).
+\]
+
+这是因为当 $X$ 与 $Y$ 独立时，
+\[
+  E(e^{t(X+Y)})=E(e^{tX})E(e^{tY}).
+\]
+利用这一事实，我们可以得到二项分布和负二项分布的 MGF，因为它们分别是独立 Bernoulli 随机变量之和与独立几何随机变量之和。
+
+\noindent\textbf{例 6.4.8（二项分布的 MGF）}\quad $\operatorname{Bern}(p)$ 随机变量的 MGF 为 $pe^t+q$，所以 $\operatorname{Bin}(n,p)$ 随机变量的 MGF 为
+\[
+  M(t)=(pe^t+q)^n.
+\]
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.58\textwidth]{6-7.png}
+  \caption{$\operatorname{Bin}(2,1/2)$ 的 MGF，$M(t)=\left(\frac12e^t+\frac12\right)^2$。MGF 在 $t=0$ 处的斜率为 $1$，所以分布均值为 $1$；MGF 在 $t=0$ 处的曲率或二阶导数为 $3/2$，所以分布第二阶矩为 $3/2$。}
+\end{figure}
+
+图 6.7 画出了 $\operatorname{Bin}(2,1/2)$ 分布的 MGF
+\[
+  M(t)=\left(\frac12e^t+\frac12\right)^2
+\]
+在 $t=-1$ 到 $t=1$ 之间的图像。与所有 MGF 一样，$t=0$ 处的函数值为 $1$。该分布的第一、第二阶矩是 MGF 在 $t=0$ 处的一阶、二阶导数；在图中分别对应 $t=0$ 处曲线的斜率和曲率。这两个导数为 $1$ 和 $3/2$，对应于 $\operatorname{Bin}(2,1/2)$ 的均值为 $1$、方差为 $3/2-1^2=1/2$。
+
+\noindent\textbf{例 6.4.9（负二项分布的 MGF）}\quad 已知 $\operatorname{Geom}(p)$ 随机变量的 MGF 为
+\[
+  \frac{p}{1-qe^t}
+\]
+（当 $qe^t<1$ 时），所以 $X\sim\operatorname{NBin}(r,p)$ 的 MGF 为
+\[
+  M(t)=\left(\frac{p}{1-qe^t}\right)^r,\qquad qe^t<1.
+\]
+
+\noindent\textbf{注 6.4.10}\quad 并非所有随机变量都有 MGF。有些随机变量 $X$ 甚至没有 $E(X)$，或某个 $n>1$ 时没有 $E(X^n)$，这时 MGF 显然不存在。但即使 $X$ 的所有矩都存在，若矩增长得太快，MGF 也可能不存在。幸运的是，有一种方法可以修补这一点：插入一个虚数！函数
+\[
+  \psi(t)=E(e^{itX}),\qquad i=\sqrt{-1},
+\]
+被统计学家称为\textbf{特征函数}，被其他人称为\textbf{Fourier 变换}。事实证明，特征函数总是存在。本书将重点讨论 MGF 而不是特征函数，以避免处理虚数。
+
+正如上一章所见，位置与尺度变换是从初始分布构造分布族的基本方式。例如，从 $Z\sim\mathcal{N}(0,1)$ 出发，可通过乘以 $\sigma$ 再平移 $\mu$ 得到
+\[
+  X=\mu+\sigma Z\sim\mathcal{N}(\mu,\sigma^2).
+\]
+一般地，若随机变量 $X$ 的均值为 $\mu$、标准差为 $\sigma>0$，就可以构造标准化版本 $(X-\mu)/\sigma$，反之亦然。方便的是，这类变换下两个随机变量的 MGF 很容易联系起来。
+
+\noindent\textbf{命题 6.4.11（位置尺度变换的 MGF）}\quad 若 $X$ 的 MGF 为 $M(t)$，则 $a+bX$ 的 MGF 为
+\[
+  E(e^{t(a+bX)})=e^{at}E(e^{btX})=e^{at}M(bt).
+\]
+
+例如，可用这个命题帮助求正态分布与指数分布的 MGF。
+
+\noindent\textbf{例 6.4.12（正态分布的 MGF）}\quad 标准正态随机变量 $Z$ 的 MGF 为
+\[
+  M_Z(t)=E(e^{tZ})
+  =
+  \int_{-\infty}^{\infty}
+  e^{tz}\frac1{\sqrt{2\pi}}e^{-z^2/2}\,dz.
+\]
+配方后得到
+\[
+  M_Z(t)
+  =
+  e^{t^2/2}
+  \int_{-\infty}^{\infty}
+  \frac1{\sqrt{2\pi}}e^{-(z-t)^2/2}\,dz
+  =
+  e^{t^2/2},
+\]
+因为 $\mathcal{N}(t,1)$ 的 PDF 积分为 $1$。因此，$X=\mu+\sigma Z\sim\mathcal{N}(\mu,\sigma^2)$ 的 MGF 为
+\[
+  M_X(t)
+  =
+  e^{\mu t}M_Z(\sigma t)
+  =
+  e^{\mu t}e^{(\sigma t)^2/2}
+  =
+  e^{\mu t+\frac12\sigma^2t^2}.
+\]
+
+\noindent\textbf{例 6.4.13（指数分布的 MGF）}\quad 若 $X\sim\operatorname{Expo}(1)$，则
+\[
+  M(t)=E(e^{tX})
+  =
+  \int_0^{\infty}e^{tx}e^{-x}\,dx
+  =
+  \int_0^{\infty}e^{-x(1-t)}\,dx
+  =
+  \frac1{1-t},\qquad t<1.
+\]
+因此，$Y=X/\lambda\sim\operatorname{Expo}(\lambda)$ 的 MGF 为
+\[
+  M_Y(t)=M_X\left(\frac{t}{\lambda}\right)
+  =
+  \frac{\lambda}{\lambda-t},\qquad t<\lambda.
+\]
+
+\section*{6.5\quad 用 MGF 生成矩}
+
+现在给出一些使用 MGF 求矩的例子。定理 6.4.5 表明，我们可以对 MGF 求导并在 $0$ 处取值来得到矩，而不用通过 LOTUS 做复杂的求和或积分。更好的是，在某些情形下，我们可以通过 Taylor 展开同时找到一个分布的所有矩，而不必反复求导。
+
+\noindent\textbf{例 6.5.1（指数分布的矩）}\quad 本例说明如何用指数分布的 MGF 同时得到指数分布的所有矩。设 $X\sim\operatorname{Expo}(1)$。$X$ 的 MGF 为
+\[
+  M(t)=\frac1{1-t},\qquad t<1.
+\]
+按定理 6.4.5，可通过对 MGF 求导并在 $0$ 处取值得到矩。不过在本例中，可以把 $1/(1-t)$ 识别为几何级数；在 $0$ 附近，当 $|t|<1$ 时，
+\[
+  M(t)=\frac1{1-t}
+  =
+  \sum_{n=0}^{\infty}t^n
+  =
+  \sum_{n=0}^{\infty}n!\frac{t^n}{n!}.
+\]
+另一方面，$E(X^n)$ 是 $M(t)$ 的 Taylor 展开中含 $t^n$ 项的系数：
+\[
+  M(t)=\sum_{n=0}^{\infty}E(X^n)\frac{t^n}{n!}.
+\]
+因此比较系数可得，对所有 $n$，
+\[
+  E(X^n)=n!.
+\]
+我们不仅不必做 LOTUS 积分，也不必例如为了得到第十阶矩而求十次导数；所有矩一次得到。
+
+若要求 $Y\sim\operatorname{Expo}(\lambda)$ 的矩，可用尺度变换。可写 $Y=X/\lambda$，其中 $X\sim\operatorname{Expo}(1)$。于是 $Y^n=X^n/\lambda^n$，从而
+\[
+  E(Y^n)=\frac{n!}{\lambda^n}.
+\]
+特别地，得到 $Y$ 的均值和方差：
+\[
+  E(Y)=\frac1\lambda,\qquad
+  \operatorname{Var}(Y)=E(Y^2)-(EY)^2
+  =
+  \frac2{\lambda^2}-\frac1{\lambda^2}
+  =
+  \frac1{\lambda^2}.
+\]
+
+\noindent\textbf{例 6.5.2（标准正态分布的矩）}\quad 本例求标准正态分布的所有矩。设 $Z\sim\mathcal{N}(0,1)$。可使用同样的技巧，比较 Taylor 展开的系数：
+\[
+  M(t)=e^{t^2/2}
+  =
+  \sum_{n=0}^{\infty}\frac{(t^2/2)^n}{n!}
+  =
+  \sum_{n=0}^{\infty}\frac{t^{2n}}{2^n n!}
+  =
+  \sum_{n=0}^{\infty}\frac{(2n)!}{2^n n!}\frac{t^{2n}}{(2n)!}.
+\]
+因此
+\[
+  E(Z^{2n})=\frac{(2n)!}{2^n n!},
+\]
+而 $Z$ 的奇数阶矩都等于 $0$，这也必须由标准正态分布的对称性成立。由例 1.5.4 中关于配对的故事证明可知，$(2n)!/(2^n n!)$ 是从 $1$ 到 $2n-1$ 的所有奇数的乘积，所以
+\[
+  E(Z^2)=1,\quad E(Z^4)=1\cdot3,\quad E(Z^6)=1\cdot3\cdot5,\ldots.
+\]
+
+这个结果还说明，正态随机变量的峰度为 $0$。若 $X\sim\mathcal{N}(\mu,\sigma^2)$，则
+\[
+  \operatorname{Kurt}(X)
+  =
+  E\left(\frac{X-\mu}{\sigma}\right)^4-3
+  =
+  E(Z^4)-3=3-3=0.
+\]
+
+\noindent\textbf{例 6.5.3（对数正态分布的矩）}\quad 现在考虑对数正态分布。若 $Y=e^X$，其中 $X\sim\mathcal{N}(\mu,\sigma^2)$，则称 $Y$ 是参数为 $\mu,\sigma^2$ 的对数正态分布，记为
+\[
+  Y\sim\mathcal{LN}(\mu,\sigma^2).
+\]
+
+\noindent\textbf{注 6.5.4}\quad 对数正态并不是“正态的对数”，因为正态随机变量可以取负值。对数正态的含义是“对数是正态的”。需要区分对数正态分布的均值、方差与其底层正态分布的均值、方差。这里把 $\mu$ 和 $\sigma^2$ 定义为底层正态分布的均值和方差，这是最常见的约定。
+
+有趣的是，对数正态分布的 MGF 不存在，因为对所有 $t>0$，$E(e^{tY})$ 都是无穷大。考虑 $Y=e^Z$、$Z\sim\mathcal{N}(0,1)$ 的情形。由 LOTUS，
+\[
+  E(e^{tY})=E(e^{te^Z})
+  =
+  \int_{-\infty}^{\infty}
+  e^{te^z}\frac1{\sqrt{2\pi}}e^{-z^2/2}\,dz
+  =
+  \int_{-\infty}^{\infty}
+  \frac1{\sqrt{2\pi}}e^{te^z-z^2/2}\,dz.
+\]
+对任意 $t>0$，当 $z$ 增大时 $te^z-z^2/2\to\infty$，所以上述积分发散。由于 $E(e^{tY})$ 在 $0$ 附近任意开区间内都不是有限的，$Y$ 的 MGF 不存在。一般对数正态分布也可用同样理由说明其 MGF 不存在。
+
+不过，即使对数正态分布的 MGF 不存在，仍然可以用正态分布的 MGF 得到对数正态分布的所有矩。若 $Y=e^X$ 且 $X\sim\mathcal{N}(\mu,\sigma^2)$，则
+\[
+  E(Y^n)=E(e^{nX})=M_X(n)=e^{n\mu+\frac12n^2\sigma^2}.
+\]
+换句话说，对数正态的第 $n$ 阶矩就是底层正态分布的 MGF 在 $t=n$ 处的取值。令
+\[
+  m=E(Y)=e^{\mu+\frac12\sigma^2},
+\]
+经过一些代数化简，有
+\[
+  \operatorname{Var}(Y)=E(Y^2)-m^2=m^2(e^{\sigma^2}-1).
+\]
+
+所有对数正态分布都是右偏的。例如，图 6.2 中深色曲线是均值 $2$、方差 $12$ 的对数正态 PDF。这是 $e^X$ 的分布，其中 $X\sim\mathcal{N}(0,2\log2)$，显然右偏。为了量化这一点，计算 $Y=e^X$（其中 $X\sim\mathcal{N}(0,\sigma^2)$）的偏度。令
+\[
+  m=E(Y)=e^{\frac12\sigma^2}.
+\]
+则 $E(Y^n)=m^{n^2}$ 且 $\operatorname{Var}(Y)=m^2(m^2-1)$，第三阶中心矩为
+\begin{align*}
+  E(Y-m)^3
+  &=E(Y^3-3mY^2+3m^2Y-m^3)\\
+  &=E(Y^3)-3mE(Y^2)+2m^3\\
+  &=m^9-3m^5+2m^3.
+\end{align*}
+因此偏度为
+\[
+  \operatorname{Skew}(Y)
+  =
+  \frac{E(Y-m)^3}{\operatorname{SD}^3(Y)}
+  =
+  \frac{m^9-3m^5+2m^3}{m^3(m^2-1)^{3/2}}
+  =
+  (m^2+2)\sqrt{m^2-1}.
+\]
+最后一步中分解了
+\[
+  m^6-3m^2+2=(m^2+2)(m-1)^2(m+1)^2.
+\]
+由于 $m>1$，偏度为正；并且当 $\sigma$ 增大时，偏度增长很快。
+
+下一个例子介绍 Weibull 分布，它是生存分析中最常用的分布之一。生存分析研究直到某事件发生所需的时间，例如建模某种疾病患者能存活多长时间。
+
+\noindent\textbf{例 6.5.5（Weibull 分布）}\quad 如上一章所述，指数分布具有无记忆性，这使它在建模人类寿命等问题时不现实。值得注意的是，仅仅把指数随机变量取一个幂，就能显著提高分布的灵活性和适用性。
+
+令
+\[
+  T=X^{1/\gamma},\qquad X\sim\operatorname{Expo}(\lambda),\quad \lambda,\gamma>0.
+\]
+称 $T$ 的分布为 Weibull 分布，记为
+\[
+  T\sim\operatorname{Wei}(\lambda,\gamma).
+\]
+这推广了指数分布；当 $\gamma=1$ 时退化回指数分布。
+
+Weibull 分布在生物统计学、流行病学和工程中广泛使用；甚至有一本 800 页的专著研究它。$T$ 的 PDF 为
+\[
+  f(t)=\gamma\lambda e^{-\lambda t^\gamma}t^{\gamma-1},\qquad t>0,
+\]
+这可通过把 $T$ 的 CDF 与 $X$ 的 CDF 联系起来，或使用第 8 章的变换结果得到。PDF 看起来稍复杂，但处理 Weibull 随机变量时，经常可以先把它变换回指数随机变量。
+
+为简单具体，考虑一个特定的 Weibull 分布，令 $\lambda=1,\gamma=1/3$。
+
+\begin{enumerate}
+  \item 求 $P(T>s+t\mid T>s)$，其中 $s,t>0$。$T$ 是否具有无记忆性？
+  \item 求 $T$ 的均值和方差，以及 $n=1,2,\ldots$ 时的第 $n$ 阶矩 $E(T^n)$。
+  \item 判断 $T$ 的 MGF 是否存在。
+\end{enumerate}
+
+\noindent\textbf{解}\quad
+\begin{enumerate}
+  \item $T$ 的 CDF 为
+  \[
+    P(T\le t)=P(X^3\le t)=P(X\le t^{1/3})=1-e^{-t^{1/3}},\qquad t>0.
+  \]
+  因此
+  \[
+    P(T>s+t\mid T>s)
+    =
+    \frac{P(T>s+t)}{P(T>s)}
+    =
+    \frac{e^{-(s+t)^{1/3}}}{e^{-s^{1/3}}},
+  \]
+  这并不等于 $P(T>t)=e^{-t^{1/3}}$。所以 $T$ 不具有无记忆性；它也不可能有，因为它不是指数分布。
+  \item 例 6.5.1 表明 $X$ 的矩为 $E(X^n)=n!$。这使我们无需额外工作就可得到 $T$ 的矩：
+  \[
+    E(T^n)=E(X^{3n})=(3n)!.
+  \]
+  $T$ 的均值和方差为
+  \[
+    E(T)=3!=6,\qquad \operatorname{Var}(T)=6!-6^2=684.
+  \]
+  \item 由 LOTUS，
+  \[
+    E(e^{tT})=E(e^{tX^3})=\int_0^{\infty}e^{tx^3-x}\,dx.
+  \]
+  当 $t>0$ 时，此积分发散，因为 $tx^3$ 项支配 $x$；更精确地说，当 $x$ 充分大（具体地，$x>\sqrt{2/t}$）时，有 $tx^3-x>x$，于是该积分可与发散积分 $\int_0^{\infty}e^x\,dx$ 比较而知发散。因此 $T$ 的 MGF 不存在，尽管 $T$ 的所有矩都存在。
+\end{enumerate}
+
+\noindent\textbf{注 6.5.6}\quad Weibull 分布常见若干不同参数化。例如，我们这里先在指数分布中放入一个尺度，再取幂；也常见先取 $\operatorname{Expo}(1)$ 的幂再重新缩放。因此阅读资料时需要小心：总要检查使用的是哪一种约定。这里的参数化在医学统计中被广泛采用，也便于计算，因为只是把一个 $\operatorname{Expo}(\lambda)$ 随机变量取幂。
+
+\section*{6.6\quad 通过 MGF 求独立随机变量和}
+
+由于独立随机变量和的 MGF 只是各个 MGF 的乘积，现在我们有了寻找独立随机变量和的分布的新策略：把各个 MGF 相乘，看乘积是否可识别为某个有名称分布的 MGF。下面两个例子说明这一策略。
+
+\noindent\textbf{例 6.6.1（独立 Poisson 之和）}\quad 使用 MGF，可以容易证明独立 Poisson 随机变量之和仍为 Poisson。先求 $X\sim\operatorname{Pois}(\lambda)$ 的 MGF：
+\[
+  E(e^{tX})
+  =
+  \sum_{k=0}^{\infty}e^{tk}e^{-\lambda}\frac{\lambda^k}{k!}
+  =
+  e^{-\lambda}\sum_{k=0}^{\infty}\frac{(\lambda e^t)^k}{k!}
+  =
+  e^{-\lambda}e^{\lambda e^t}
+  =
+  e^{\lambda(e^t-1)}.
+\]
+令 $Y\sim\operatorname{Pois}(\mu)$ 且与 $X$ 独立。则 $X+Y$ 的 MGF 为
+\[
+  E(e^{tX})E(e^{tY})
+  =
+  e^{\lambda(e^t-1)}e^{\mu(e^t-1)}
+  =
+  e^{(\lambda+\mu)(e^t-1)},
+\]
+这正是 $\operatorname{Pois}(\lambda+\mu)$ 的 MGF。由于 MGF 决定分布，得
+\[
+  X+Y\sim\operatorname{Pois}(\lambda+\mu).
+\]
+与第 4 章定理 4.8.1 中使用全概率公式并对 $X$ 的所有可能取值求和的证明相比，MGF 证明简洁得多。
+
+\noindent\textbf{注 6.6.2}\quad 上例中 $X$ 与 $Y$ 独立很重要。为了看出原因，考虑一种极端相依：$X=Y$。此时 $X+Y=2X$，不可能服从 Poisson 分布，因为它的取值总是偶数。
+
+\noindent\textbf{例 6.6.3（独立正态之和）}\quad 若
+\[
+  X_1\sim\mathcal{N}(\mu_1,\sigma_1^2),\qquad
+  X_2\sim\mathcal{N}(\mu_2,\sigma_2^2)
+\]
+且二者独立，则 $X_1+X_2$ 的 MGF 为
+\[
+  M_{X_1+X_2}(t)
+  =
+  M_{X_1}(t)M_{X_2}(t)
+  =
+  e^{\mu_1t+\frac12\sigma_1^2t^2}
+  e^{\mu_2t+\frac12\sigma_2^2t^2}
+  =
+  e^{(\mu_1+\mu_2)t+\frac12(\sigma_1^2+\sigma_2^2)t^2}.
+\]
+这是 $\mathcal{N}(\mu_1+\mu_2,\sigma_1^2+\sigma_2^2)$ 的 MGF。因此
+\[
+  X_1+X_2\sim\mathcal{N}(\mu_1+\mu_2,\sigma_1^2+\sigma_2^2).
+\]
+于是独立正态随机变量之和仍为正态，且均值与方差都相加。
+
+\noindent\textbf{例 6.6.4（和为正态）}\quad 上一个例子的逆命题也成立：若 $X_1$ 与 $X_2$ 独立且 $X_1+X_2$ 为正态，则 $X_1$ 与 $X_2$ 必须都是正态。这称为 Cramér 定理。一般情形的证明较难；但当 $X_1$ 与 $X_2$ 独立同分布且 MGF 为 $M(t)$ 时，证明会容易许多。不失一般性，假设
+\[
+  X_1+X_2\sim\mathcal{N}(0,1).
+\]
+则其 MGF 为
+\[
+  e^{t^2/2}
+  =
+  E(e^{t(X_1+X_2)})
+  =
+  E(e^{tX_1})E(e^{tX_2})
+  =
+  (M(t))^2.
+\]
+所以
+\[
+  M(t)=e^{t^2/4},
+\]
+这是 $\mathcal{N}(0,1/2)$ 的 MGF。因此 $X_1,X_2\sim\mathcal{N}(0,1/2)$。
+
+第 8 章将讨论一种更一般的技术，用来求随机变量和的分布；它适用于单个 MGF 不存在，或各个 MGF 的乘积无法识别、而我们希望得到 PMF/PDF 的情形。
+
+\section*{6.7\quad 概率生成函数}
+
+本节讨论\textbf{概率生成函数}，它类似于 MGF，但对非负整数值随机变量保证存在。我们先用 PGF 解决一个看似难以处理的计数问题。然后证明非负整数值随机变量的 PGF 决定其分布；这一点在更一般的 MGF 设置中我们略去了证明。
+
+\noindent\textbf{定义 6.7.1（概率生成函数）}\quad 非负整数值随机变量 $X$ 的\textbf{概率生成函数}（PGF）是其 PMF $p_k=P(X=k)$ 的生成函数。由 LOTUS，
+\[
+  E(t^X)=\sum_{k=0}^{\infty}p_kt^k.
+\]
+由于 $\sum_{k=0}^{\infty}p_k=1$，且当 $|t|\le1$ 时 $|p_kt^k|\le p_k$，所以 PGF 对所有 $t\in[-1,1]$ 都收敛到 $[-1,1]$ 中的一个值。
+
+当 MGF 和 PGF 都存在时，二者密切相关：对 $t>0$，
+\[
+  E(t^X)=E(e^{X\log t}),
+\]
+即 PGF 等于 MGF 在 $\log t$ 处的取值。
+
+\noindent\textbf{例 6.7.2（生成骰子概率）}\quad Harvard 统计系创始人 Frederick Mosteller 曾回忆过下面这个改变人生的时刻。
+
+他在大二的一门课上遇到这样的问题：掷三个骰子，点数和为 $10$ 的概率是多少？课上学生都很优秀，但大家基本上还是靠手指数数得到答案。后来上课时，他对老师说：“答案我们算出来了，这当然很好；可是如果问的是六个骰子点数和为 $18$ 的概率，我们可能还在家里数。这样的问题到底该怎么做？”老师说：“我不知道，不过我认识一个大概知道的人，我会去问他。”
+
+有一天，Mosteller 在图书馆里，数学系的 Edwin G. Olds 教授走进来，大声对他说：“我听说你对三个骰子问题感兴趣。”他声音很大，而图书馆又很安静，Mosteller 感到尴尬。Olds 说：“来找我，我会给你讲。”Mosteller 心里想自己绝不会去。然后 Olds 又问：“你现在在做什么？”Mosteller 给他看了看。Olds 说：“这不重要，我们现在走。”
+
+于是他们去了 Olds 的办公室。Olds 给他展示了生成函数。Mosteller 说，那是他此前在数学中见过最奇妙的东西：它使用的数学在此之前他一直以为只是数学家为了给高中生和大学生出作业而发明出来的；但 Olds 用它的方式如此出人意料，完全重新翻译了数字的意义。
+
+令 $X$ 为掷 $6$ 个公平骰子的总点数，$X_1,\ldots,X_6$ 为各个骰子的点数。求 $P(X=18)$。事实证明，点数和为 $18$ 的方式有 $3431$ 种，所以概率为
+\[
+  \frac{3431}{6^6}\approx0.0735.
+\]
+逐一列出所有可能非常繁琐，而且还要担心漏掉某种情形。若费力列出全部 $3431$ 种情形后，又被要求求 $P(X=19)$，就更麻烦。
+
+$X$ 的 PGF 让我们系统地计数。$X_1$ 的 PGF 为
+\[
+  E(t^{X_1})=\frac16(t+t^2+\cdots+t^6).
+\]
+由于 $X_j$ 独立同分布，$X$ 的 PGF 为
+\[
+  E(t^X)=E(t^{X_1}\cdots t^{X_6})
+  =
+  E(t^{X_1})\cdots E(t^{X_6})
+  =
+  \frac{t^6}{6^6}(1+t+\cdots+t^5)^6.
+\]
+按定义，PGF 中 $t^{18}$ 的系数就是 $P(X=18)$。因此，得到点数和 $18$ 的方式数，是 $t^6(1+t+\cdots+t^5)^6$ 中 $t^{18}$ 的系数，也就是 $(1+t+\cdots+t^5)^6$ 中 $t^{12}$ 的系数。手工展开仍然繁琐，但已经远比列出 $3431$ 种情形容易，也可以轻松交给计算机完成。
+
+更好的是，利用 $1+t+\cdots+t^5$ 是几何级数，可写
+\[
+  (1+t+\cdots+t^5)^6=\frac{(1-t^6)^6}{(1-t)^6}.
+\]
+假设 $|t|<1$。上式只是代数，因为我们有记账装置 $t$；若一切还停留在序列记号中，就难以看出这一点。由二项定理，分子为
+\[
+  (1-t^6)^6=\sum_{j=0}^6\binom{6}{j}(-1)^jt^{6j}.
+\]
+对分母，写作
+\[
+  \frac1{(1-t)^6}=(1+t+t^2+\cdots)^6=\sum_{k=0}^{\infty}a_kt^k.
+\]
+这里 $a_k$ 是从六个因子 $(1+t+t^2+\cdots)$ 中各选一项，使次数之和为 $k$ 的方法数。例如当 $k=20$ 时，一种可能是分别选 $t^3,1,t^2,t^{10},1,t^5$，因为这些选择在展开乘积时贡献一个 $t^{20}$ 项。因此，$a_k$ 是方程
+\[
+  y_1+y_2+\cdots+y_6=k
+\]
+的非负整数解数。第 1 章中已经知道这个数是 Bose--Einstein 值：
+\[
+  a_k=\binom{6+k-1}{k}=\binom{k+5}{5}.
+\]
+所以
+\[
+  \frac1{(1-t)^6}=\sum_{k=0}^{\infty}\binom{k+5}{5}t^k.
+\]
+对 $0<t<1$，还可把该恒等式写为
+\[
+  \sum_{k=0}^{\infty}\binom{k+5}{5}(1-t)^6t^k=1,
+\]
+这也说明它成立，因为左边是 $\operatorname{NBin}(6,1-t)$ 的 PMF 总和。（$(1-t)^{-6}$ 的恒等式是二项定理推广到负整数幂的例子；这也解释了为什么负二项分布既不是“负”的也不是“二项”的，却叫作负二项。）
+
+综合上述结果，只需在
+\[
+  \left(\sum_{j=0}^{2}\binom{6}{j}(-1)^jt^{6j}\right)
+  \left(\sum_{k=0}^{12}\binom{k+5}{5}t^k\right)
+\]
+中找 $t^{12}$ 的系数。两个因子的求和只需分别到 $j=2$ 和 $k=12$，因为之后的项不会贡献 $t^{12}$ 的系数。于是 $3431$ 种情形被化为三种情形：$(j,k)$ 为 $(0,12),(1,6),(2,0)$。$t^{12}$ 的系数为
+\[
+  \binom{17}{5}-6\binom{11}{5}+\binom{6}{2}=3431.
+\]
+例如，当 $j=1,k=6$ 时，得到项
+\[
+  -\binom61t^6\binom{6+5}{5}t^6=-6\binom{11}{5}t^{12}.
+\]
+因此
+\[
+  P(X=18)=\frac{3431}{6^6}.
+\]
+
+由于 PGF 只是 PMF 的方便记账装置，所以它完全决定非负整数值随机变量的分布。下面的定理说明如何从 PGF 这根“晾衣绳”上取下 PMF 的各个值。
+
+\noindent\textbf{定理 6.7.3}\quad 设 $X$ 和 $Y$ 是非负整数值随机变量，PGF 分别为 $g_X$ 和 $g_Y$。若存在 $0<a<1$，使得对所有 $t\in(-a,a)$ 都有
+\[
+  g_X(t)=g_Y(t),
+\]
+则 $X$ 与 $Y$ 有相同分布，而且其 PMF 可由 $g_X$ 求导恢复：
+\[
+  P(X=k)=P(Y=k)=\frac{g_X^{(k)}(0)}{k!}.
+\]
+
+\noindent\textbf{证明}\quad 写
+\[
+  g_X(t)=\sum_{k=0}^{\infty}p_kt^k.
+\]
+则 $g_X(0)=p_0$，于是 $P(X=0)$ 已被恢复；也就是说，从函数 $g_X$ 可提取 $P(X=0)$ 的值。导数为
+\[
+  g'_X(t)=\sum_{k=1}^{\infty}kp_kt^{k-1},
+\]
+因此 $g'_X(0)=p_1$（交换求导与无穷和可由实分析结果保证）。这样 $P(X=1)$ 也被恢复。继续下去，便可通过求导恢复整个 PMF。
+\qed
+
+\noindent\textbf{例 6.7.4}\quad 设 $X\sim\operatorname{Bin}(n,p)$。$\operatorname{Bern}(p)$ 随机变量的 PGF 为 $pt+q$，其中 $q=1-p$，所以 $X$ 的 PGF 为
+\[
+  g(t)=(pt+q)^n.
+\]
+上面的定理说明，任何具有该 PGF 的随机变量实际上都必须是二项分布。此外，可以通过计算
+\[
+  g(0)=q^n,\qquad
+  g'(0)=npq^{n-1},\qquad
+  \frac{g''(0)}{2!}=\binom{n}{2}p^2q^{n-2},\ldots
+\]
+恢复 PMF。
+
+也可以不用求导，而是由二项定理写出
+\[
+  g(t)=(pt+q)^n=\sum_{k=0}^{n}\binom{n}{k}p^kq^{n-k}t^k,
+\]
+从而直接读出二项分布的 PMF。
+
+既然正在使用二项分布的 PGF，顺便看它如何用于求二项分布的矩。令 $p_k=P(X=k)$，则
+\[
+  g'(t)=np(pt+q)^{n-1}=\sum_{k=1}^n kp_kt^{k-1}.
+\]
+所以
+\[
+  g'(1)=np=\sum_{k=1}^{n}kp_k=E(X).
+\]
+再求一次导数，
+\[
+  g''(t)=n(n-1)p^2(pt+q)^{n-2}
+  =
+  \sum_{k=2}^{n}k(k-1)p_kt^{k-2},
+\]
+故
+\[
+  E(X(X-1))=g''(1)=n(n-1)p^2.
+\]
+整理这些结果可得到 $\operatorname{Var}(X)=npq$ 的另一种证明。继续这样做，就计算出了二项分布的\textbf{阶乘矩}：
+\[
+  E\bigl(X(X-1)\cdots(X-k+1)\bigr)=k!\binom{n}{k}p^k.
+\]
+两边同除以 $k!$，得
+\[
+  E\binom{X}{k}=\binom{n}{k}p^k.
+\]
+这也可用故事证明看到：$\binom{X}{k}$ 是从 $X$ 次成功的 Bernoulli 试验中选出 $k$ 次成功的方法数，也就是从原来的 $n$ 次试验中选出 $k$ 次且这 $k$ 次全都成功的方法数。对每个大小为 $k$ 的子集构造一个示性随机变量，再用线性性即可得到结论。
+
+\section*{6.8\quad 回顾}
+
+研究分布的一个有用方式是研究它的\textbf{矩}。前 $4$ 个矩被广泛用作定量描述分布形状的基础，尽管还存在许多其他描述方式。特别地，第一阶矩是均值，第二阶中心矩是方差，第三阶标准化矩度量偏斜（不对称性），第四阶标准化矩减去 $3$ 则度量尾部有多重。
+
+矩的用途远不止研究分布的位置和形状，尤其当矩母函数（MGF）存在时更是如此。注意，MGF 存在比“所有矩都存在”更强。随机变量 $X$ 的 MGF 是函数 $M$：
+\[
+  M(t)=E(e^{tX}),
+\]
+要求它在包含 $0$ 的某个开区间中对所有 $t$ 有限。若 MGF 存在，则
+\[
+  M(0)=1,\quad M'(0)=E(X),\quad M''(0)=E(X^2),\quad M'''(0)=E(X^3),\ldots.
+\]
+
+MGF 有三个主要用途：计算矩（作为 LOTUS 的替代方法）、研究独立随机变量之和，以及完整决定分布，从而作为分布的另一种蓝图。
+
+本章还介绍了对数正态分布和 Weibull 分布，它们在实践中都被广泛使用。对数正态分布与正态分布相连，Weibull 分布与指数分布相连，二者都通过简单变换得到。对数正态随机变量的对数是正态的；把 $\operatorname{Wei}(\lambda,\gamma)$ 随机变量提升到 $\gamma$ 次方会得到 $\operatorname{Expo}(\lambda)$ 随机变量。研究对数正态分布时，最好的方式常常是把它变换回正态；研究 Weibull 分布与指数分布时也类似。第 8 章将更详细讨论如何使用变换。
+
+图 6.8 扩展了我们关于概率论基本对象之间联系的地图。若 $X$ 的 MGF 存在，则矩序列
+\[
+  E(X),\ E(X^2),\ E(X^3),\ldots
+\]
+原则上提供了足够的信息来决定 $X$ 的分布。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{6-8.png}
+  \caption{对随机变量 $X$，可以研究其矩 $E(X),E(X^2),\ldots$。这些矩可用 LOTUS 计算，也可在 MGF 存在时由 MGF 计算。若 MGF 存在，它决定分布，使我们回到完整的分布蓝图。}
+\end{figure}
+
+\section*{6.10\quad 习题}
+
+标有 $\circledS$ 的习题在 \texttt{http://stat110.net} 有详细解答。
+
+\subsection*{均值、中位数、众数与矩}
+
+\noindent\textbf{1.}\quad 设 $U\sim\operatorname{Unif}(a,b)$。求 $U$ 的中位数和众数。
+
+\noindent\textbf{2.}\quad 设 $X\sim\operatorname{Expo}(\lambda)$。求 $X$ 的中位数和众数。
+
+\noindent\textbf{3.}\quad 设 $X$ 服从参数 $a>0$ 的 Pareto 分布；也就是说，$X$ 的 PDF 为
+\[
+  f(x)=\frac{a}{x^{a+1}},\qquad x\ge1,
+\]
+在其他地方为 $0$。求 $X$ 的中位数和众数。
+
+\noindent\textbf{4.}\quad 设 $X\sim\operatorname{Bin}(n,p)$。
+
+\noindent (a)\quad 当 $n=5,\ p=1/3$ 时，求 $X$ 的所有中位数和所有众数。它们与均值相比如何？
+
+\noindent (b)\quad 当 $n=6,\ p=1/3$ 时，求 $X$ 的所有中位数和所有众数。它们与均值相比如何？
+
+\noindent\textbf{5.}\quad 设 $X$ 在 $1,2,\ldots,n$ 上服从离散均匀分布。求 $X$ 的所有中位数和所有众数（答案可以依赖于 $n$ 是奇数还是偶数）。
+
+\noindent\textbf{6.}\quad 假设我们有一个城市某一年每天降雨量的数据。我们希望给出有用且有信息量的摘要，描述该城市这一年有多“多雨”。这一年中的大多数天，该城市完全没有下雨。请讨论并比较以下六种摘要：从这一年中随机选一天，其降雨量的均值、中位数和众数；以及从这一年中随机选一个雨天，其降雨量的均值、中位数和众数（这里“雨天”指该城市当天确实下雨）。
+
+\noindent\textbf{7.}\quad 设 $a,b$ 为正常数。参数为 $a,b$ 的 Beta 分布（第 8 章将详细介绍）的 PDF 在 $0<x<1$ 上正比于
+\[
+  x^{a-1}(1-x)^{b-1},
+\]
+在该区间之外为 $0$。证明：当 $a>1,\ b>1$ 时，该分布的众数为
+\[
+  \frac{a-1}{a+b-2}.
+\]
+
+\noindent\textbf{提示}\quad 先取 PDF 的对数（这不会影响最大值在哪里取得）。
+
+\noindent\textbf{8.}\quad 求参数为 $a=3,\ b=1$ 的 Beta 分布的中位数（可参考上一题中关于 Beta 分布的信息）。
+
+\noindent\textbf{9.}\quad 设 $Y$ 为参数 $\mu,\sigma^2$ 的对数正态分布，即 $Y=e^X$，其中 $X\sim\mathcal{N}(\mu,\sigma^2)$。三名学生正在讨论 $Y$ 的中位数和众数。判断并解释下列论证是否正确。
+
+\noindent (a)\quad 学生 A：$Y$ 的中位数是 $e^\mu$，因为 $X$ 的中位数是 $\mu$，且指数函数连续并严格递增，所以事件 $Y\le e^\mu$ 与事件 $X\le\mu$ 相同。
+
+\noindent (b)\quad 学生 B：$Y$ 的众数是 $e^\mu$，因为 $X$ 的众数是 $\mu$，而 $Y=e^X$ 中 $\mu$ 对应 $e^\mu$。
+
+\noindent (c)\quad 学生 C：$Y$ 的众数是 $\mu$，因为 $X$ 的众数是 $\mu$，且指数函数连续并严格递增，所以最大化 $X$ 的 PDF 等价于最大化 $Y=e^X$ 的 PDF。
+
+\noindent\textbf{10.}\quad 一个分布称为\textbf{对称单峰}，若它关于某点对称且有唯一众数。例如，任意正态分布都是对称单峰的。设连续随机变量 $X$ 具有对称单峰分布，且均值存在。证明：$X$ 的均值、中位数和众数全都相等。
+
+\noindent\textbf{11.}\quad 设 $X_1,\ldots,X_n$ 独立同分布，均值为 $\mu$，方差为 $\sigma^2$，偏度为 $\gamma$。
+
+\noindent (a)\quad 令
+\[
+  Z_j=\frac{X_j-\mu}{\sigma}
+\]
+来标准化 $X_j$。设 $\bar X_n$ 与 $\bar Z_n$ 分别为 $X_j$ 与 $Z_j$ 的样本均值。证明：$Z_j$ 与 $X_j$ 有相同偏度，且 $\bar Z_n$ 与 $\bar X_n$ 有相同偏度。
+
+\noindent (b)\quad 证明样本均值 $\bar X_n$ 的偏度为 $\gamma/\sqrt n$。可使用第 7 章将说明的事实：若 $X$ 与 $Y$ 独立，则 $E(XY)=E(X)E(Y)$。
+
+\noindent\textbf{提示}\quad 由 (a) 可不失一般性地假设 $\mu=0,\sigma^2=1$；若 $X_j$ 最初未标准化，可先标准化。展开 $(X_1+X_2+\cdots+X_n)^3$ 时，有三类项：形如 $X_1^3$ 的项、形如 $3X_1^2X_2$ 的项，以及形如 $6X_1X_2X_3$ 的项。
+
+\noindent (c)\quad 当 $n$ 很大时，(b) 的结果对 $\bar X_n$ 的分布意味着什么？
+
+\noindent\textbf{12.}\quad 设 $c$ 是真空中的光速。假设 $c$ 未知，科学家希望估计它；更进一步，为了使用著名公式 $E=mc^2$，他们希望估计 $c^2$。
+
+通过精细实验，他们得到独立同分布测量值
+\[
+  X_1,\ldots,X_n\sim\mathcal{N}(c,\sigma^2).
+\]
+利用这些数据，有多种估计 $c^2$ 的方法。两个自然方法是：先用 $X_j$ 的平均估计 $c$，再把估计值平方；或者直接平均 $X_j^2$。令
+\[
+  \bar X_n=\frac1n\sum_{j=1}^n X_j,
+\]
+并考虑两个估计量
+\[
+  T_1=\bar X_n^2,\qquad
+  T_2=\frac1n\sum_{j=1}^nX_j^2.
+\]
+注意，$T_1$ 是第一阶样本矩的平方，$T_2$ 是第二阶样本矩。
+
+\noindent (a)\quad 求 $P(T_1<T_2)$。
+
+\noindent\textbf{提示}\quad 当 $x_1,\ldots,x_n$ 是一些数时，比较
+\[
+  \left(\frac1n\sum_{j=1}^n x_j\right)^2
+  \quad\text{与}\quad
+  \frac1n\sum_{j=1}^n x_j^2,
+\]
+可考虑一个可能取值为 $x_1,\ldots,x_n$ 的离散随机变量。
+
+\noindent (b)\quad 当随机变量 $T$ 用来估计未知参数 $\theta$ 时，估计量 $T$ 的偏差定义为 $E(T)-\theta$。求 $T_1$ 和 $T_2$ 的偏差。
+
+\noindent\textbf{提示}\quad 先求 $\bar X_n$ 的分布。一般地，求随机变量 $Y$ 的 $E(Y^2)$ 时，常常可写成
+\[
+  E(Y^2)=\operatorname{Var}(Y)+(EY)^2.
+\]
+
+\subsection*{矩母函数}
+
+\noindent\textbf{13.}\quad $\circledS$ 公平骰子掷两次，第一次结果为 $X$，第二次结果为 $Y$。求 $X+Y$ 的矩母函数 $M_{X+Y}(t)$（答案应为 $t$ 的函数，可包含未化简的有限和）。
+
+\noindent\textbf{14.}\quad $\circledS$ 设 $U_1,U_2,\ldots,U_{60}$ 独立同分布为 $\operatorname{Unif}(0,1)$，且
+\[
+  X=U_1+U_2+\cdots+U_{60}.
+\]
+求 $X$ 的 MGF。
+
+\noindent\textbf{15.}\quad 设 $W=X^2+Y^2$，其中 $X,Y$ 独立同分布为 $\mathcal{N}(0,1)$。已知 $X^2$ 的 MGF 为 $(1-2t)^{-1/2}$（$t<1/2$）。
+
+\noindent (a)\quad 求 $W$ 的 MGF。
+
+\noindent (b)\quad $W$ 服从我们已经学过的哪个著名分布（除名称外还需说明参数）？事实上，$W$ 的分布也是后面章节将学习的另外两个著名分布的特殊情形。
+
+\noindent\textbf{16.}\quad 设 $X\sim\operatorname{Expo}(\lambda)$。求 $X$ 的偏度，并解释为什么它为正以及为什么它不依赖于 $\lambda$。
+
+\noindent\textbf{提示}\quad 回忆 $\lambda X\sim\operatorname{Expo}(1)$，且 $\operatorname{Expo}(1)$ 随机变量的第 $n$ 阶矩对所有 $n$ 都是 $n!$。
+
+\noindent\textbf{17.}\quad 设 $X_1,\ldots,X_n$ 独立同分布，均值为 $\mu$，方差为 $\sigma^2$，MGF 为 $M$。令
+\[
+  Z_n=\sqrt n\left(\frac{\bar X_n-\mu}{\sigma}\right).
+\]
+
+\noindent (a)\quad 证明 $Z_n$ 是标准化量，即它均值为 $0$、方差为 $1$。
+
+\noindent (b)\quad 用每个 $X_j$ 的 MGF $M$ 表示 $Z_n$ 的 MGF。
+
+\noindent\textbf{18.}\quad 用 $\operatorname{Geom}(p)$ 分布的 MGF 另证该分布的均值为 $q/p$、方差为 $q/p^2$，其中 $q=1-p$。
+
+\noindent\textbf{19.}\quad 若 $X$ 与 $Y$ 独立同分布为 $\operatorname{Pois}(\lambda)$，用 MGF 判断 $X+2Y$ 是否服从 Poisson 分布。
+
+\noindent\textbf{20.}\quad $\circledS$ 设 $X\sim\operatorname{Pois}(\lambda)$，$M(t)$ 是 $X$ 的 MGF。\textbf{累积量生成函数}定义为
+\[
+  g(t)=\log M(t).
+\]
+把 $g(t)$ 展开为 Taylor 级数：
+\[
+  g(t)=\sum_{j=1}^{\infty}\frac{c_j}{j!}t^j
+\]
+（求和从 $j=1$ 开始，因为 $g(0)=0$）。系数 $c_j$ 称为 $X$ 的第 $j$ 个累积量。求所有 $j\ge1$ 时 $X$ 的第 $j$ 个累积量。
+
+\noindent\textbf{21.}\quad $\circledS$ 设对所有 $n\ge1$，$X_n\sim\operatorname{Bin}(n,p_n)$，其中 $np_n$ 是常数 $\lambda>0$（即 $p_n=\lambda/n$）。设 $X\sim\operatorname{Pois}(\lambda)$。证明 $X_n$ 的 MGF 收敛到 $X$ 的 MGF。（这给出另一种看法：当 $n$ 大、$p$ 小且 $\lambda=np$ 适中时，$\operatorname{Bin}(n,p)$ 分布可由 $\operatorname{Pois}(\lambda)$ 很好近似。）
+
+\noindent\textbf{22.}\quad 考虑一个适合 Poisson 近似的情形：$A_1,\ldots,A_n$ 是独立罕见事件，$n$ 很大且 $p_j=P(A_j)$ 对所有 $j$ 都很小。令
+\[
+  X=I(A_1)+\cdots+I(A_n)
+\]
+表示罕见事件发生的个数，并令 $\lambda=E(X)$。
+
+\noindent (a)\quad 求 $X$ 的 MGF。
+
+\noindent (b)\quad 若用近似
+\[
+  1+x\approx e^x
+\]
+（当 $x$ 很接近 $0$ 时是好近似，但当 $x$ 不接近 $0$ 时很差）把 $X$ 的 MGF 中每个因子写成 $e$ 的某个幂，会发生什么？请解释为什么该结果在直觉上合理。
+
+\noindent\textbf{23.}\quad 设 $U_1,U_2$ 独立同分布为 $\operatorname{Unif}(0,1)$。第 8 章例 8.2.5 表明 $U_1+U_2$ 服从三角分布，其 PDF 为
+\[
+  f(t)=
+  \begin{cases}
+    t,&0<t\le1,\\
+    2-t,&1<t<2.
+  \end{cases}
+\]
+例 8.2.5 中的方法有用，但常常会导致困难积分，所以有替代方法很重要。请通过证明二者有相同 MGF，说明 $U_1+U_2$ 服从三角分布。
+
+\noindent\textbf{24.}\quad 设 $X,Y$ 独立同分布为 $\operatorname{Expo}(1)$，且 $L=X-Y$。Laplace 分布的 PDF 为
+\[
+  f(x)=\frac12e^{-|x|},\qquad x\in\mathbb{R}.
+\]
+用 MGF 证明 $L$ 的分布是 Laplace 分布。
+
+\noindent\textbf{25.}\quad 设 $Z\sim\mathcal{N}(0,1)$，且 $Y=|Z|$。则 $Y$ 服从折叠正态分布（见例 5.4.7）。求 $Y$ 的 MGF 的两个未化简积分表达式：一个基于 $Y$ 的 PDF，另一个基于 $Z$ 的 PDF。
+
+\noindent\textbf{26.}\quad 设 $X,Y,Z,W$ 独立同分布为 $\mathcal{N}(0,1)$。
+
+\noindent (a)\quad 将 $E(\Phi(Z)e^Z)$ 表示为一个未化简积分。
+
+\noindent (b)\quad 求 $E(\Phi(Z))$ 和 $E(e^Z)$ 的完全化简数值。
+
+\end{document}

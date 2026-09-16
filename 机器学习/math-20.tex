@@ -1,0 +1,955 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\graphicspath{{math/机器学习/}}
+
+\title{第 20 章\quad 潜在狄利克雷分配}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+潜在狄利克雷分配（latent Dirichlet allocation, LDA），作为基于贝叶斯学习的话题模型，是潜在语义分析、概率潜在语义分析的扩展，于 2002 年由 Blei 等提出。LDA 在文本数据挖掘、图像处理、生物信息处理等领域被广泛使用。
+
+LDA 模型是文本集合的生成概率模型。假设每个文本由话题的一个多项分布表示，每个话题由单词的一个多项分布表示，特别假设文本的话题分布的先验分布是狄利克雷分布，话题的单词分布的先验分布也是狄利克雷分布。先验分布的导入使 LDA 能够更好地应对话题模型学习中的过拟合现象。
+
+LDA 的文本集合的生成过程如下：首先随机生成一个文本的话题分布，之后在该文本的每个位置，依据该文本的话题分布随机生成一个话题，然后在该位置依据该话题的单词分布随机生成一个单词，直至文本的最后一个位置，生成整个文本。重复以上过程生成所有文本。
+
+LDA 模型是含有隐变量的概率图模型。模型中，每个话题的单词分布，每个文本的话题分布，文本的每个位置的话题是隐变量；文本的每个位置的单词是观测变量。LDA 模型的学习与推理无法直接求解，通常使用吉布斯抽样（Gibbs sampling）和变分 EM 算法（variational EM algorithm），前者是蒙特卡罗法，而后者是近似算法。
+
+本章 20.1 节介绍狄利克雷分布，20.2 节阐述潜在狄利克雷分配模型，20.3 节和 20.4 节叙述模型的算法，包括吉布斯抽样和变分 EM 算法。
+
+\section*{20.1\quad 狄利克雷分布}
+
+\subsection*{20.1.1\quad 分布定义}
+
+首先介绍作为 LDA 模型基础的多项分布和狄利克雷分布。
+
+\noindent\textbf{1. 多项分布}
+
+多项分布（multinomial distribution）是一种多元离散随机变量的概率分布，是二项分布（binomial distribution）的扩展。
+
+假设重复进行 $n$ 次独立随机试验，每次试验可能出现的结果有 $k$ 种，第 $i$ 种结果出现的概率为 $p_i$，第 $i$ 种结果出现的次数为 $n_i$。如果用随机变量 $X=(X_1,X_2,\cdots,X_k)$ 表示试验所有可能结果的次数，其中 $X_i$ 表示第 $i$ 种结果出现的次数，那么随机变量 $X$ 服从多项分布。
+
+\noindent\textbf{定义 20.1（多项分布）}\quad 若多元离散随机变量 $X=(X_1,X_2,\cdots,X_k)$ 的概率质量函数为
+\begin{equation}
+\begin{aligned}
+P(X_1=n_1,X_2=n_2,\cdots,X_k=n_k)
+&=\frac{n!}{n_1!n_2!\cdots n_k!}p_1^{n_1}p_2^{n_2}\cdots p_k^{n_k}\\
+&=\frac{n!}{\prod_{i=1}^k n_i!}\prod_{i=1}^k p_i^{n_i}
+\end{aligned}
+\tag{20.1}
+\end{equation}
+其中 $p=(p_1,p_2,\cdots,p_k)$，$p_i\geq 0$，$i=1,2,\cdots,k$，$\sum_{i=1}^k p_i=1$，$\sum_{i=1}^k n_i=n$，则称随机变量 $X$ 服从参数为 $(n,p)$ 的多项分布，记作 $X\sim \mathrm{Mult}(n,p)$。
+
+当试验的次数 $n$ 为 1 时，多项分布变成类别分布（categorical distribution）。类别分布表示试验可能出现的 $k$ 种结果的概率。显然多项分布包含类别分布。
+
+\noindent\textbf{2. 狄利克雷分布}
+
+狄利克雷分布（Dirichlet distribution）是一种多元连续随机变量的概率分布，是贝塔分布（beta distribution）的扩展。在贝叶斯学习中，狄利克雷分布常作为多项分布的先验分布使用。
+
+\noindent\textbf{定义 20.2（狄利克雷分布）}\quad 若多元连续随机变量 $\theta=(\theta_1,\theta_2,\cdots,\theta_k)$ 的概率密度函数为
+\begin{equation}
+p(\theta\mid \alpha)=\frac{\Gamma\left(\sum_{i=1}^k \alpha_i\right)}{\prod_{i=1}^k\Gamma(\alpha_i)}\prod_{i=1}^k \theta_i^{\alpha_i-1}
+\tag{20.2}
+\end{equation}
+其中 $\sum_{i=1}^k\theta_i=1$，$\theta_i\geq 0$，$\alpha=(\alpha_1,\alpha_2,\cdots,\alpha_k)$，$\alpha_i>0$，$i=1,2,\cdots,k$，则称随机变量 $\theta$ 服从参数为 $\alpha$ 的狄利克雷分布，记作 $\theta\sim \mathrm{Dir}(\alpha)$。
+
+式中 $\Gamma(s)$ 是伽马函数，定义为
+\[
+\Gamma(s)=\int_0^\infty x^{s-1}e^{-x}\mathrm{d}x,\quad s>0
+\]
+具有性质
+\[
+\Gamma(s+1)=s\Gamma(s)
+\]
+当 $s$ 是自然数时，有
+\[
+\Gamma(s+1)=s!
+\]
+由于满足条件
+\[
+\theta_i\geq 0,\quad \sum_{i=1}^k\theta_i=1
+\]
+所以狄利克雷分布 $\theta$ 存在于 $(k-1)$ 维单纯形上。图 20.1 为二维单纯形上的狄利克雷分布（详见文前彩图）。$\theta_1+\theta_2+\theta_3=1$，$\theta_1,\theta_2,\theta_3\geq 0$。图中狄利克雷分布的参数为 $\alpha=(3,3,3)$，$\alpha=(7,7,7)$，$\alpha=(20,20,20)$，$\alpha=(2,6,11)$，$\alpha=(14,9,5)$，$\alpha=(6,2,6)$。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.72\textwidth]{20-1.png}
+\caption*{图 20.1\quad 狄利克雷分布例（见彩图）}
+\end{figure}
+
+令
+\begin{equation}
+B(\alpha)=\frac{\prod_{i=1}^k\Gamma(\alpha_i)}{\Gamma\left(\sum_{i=1}^k\alpha_i\right)}
+\tag{20.3}
+\end{equation}
+则狄利克雷分布的密度函数可以写成
+\begin{equation}
+p(\theta\mid \alpha)=\frac{1}{B(\alpha)}\prod_{i=1}^k\theta_i^{\alpha_i-1}
+\tag{20.4}
+\end{equation}
+$B(\alpha)$ 是规范化因子，称为多元贝塔函数（或扩展的贝塔函数）。由密度函数的性质
+\[
+\int \frac{\Gamma\left(\sum_{i=1}^k \alpha_i\right)}{\prod_{i=1}^k\Gamma(\alpha_i)}
+\prod_{i=1}^k\theta_i^{\alpha_i-1}\mathrm{d}\theta
+=\frac{\Gamma\left(\sum_{i=1}^k \alpha_i\right)}{\prod_{i=1}^k\Gamma(\alpha_i)}
+\int \prod_{i=1}^k\theta_i^{\alpha_i-1}\mathrm{d}\theta=1
+\]
+得
+\begin{equation}
+B(\alpha)=\int \prod_{i=1}^k\theta_i^{\alpha_i-1}\mathrm{d}\theta
+\tag{20.5}
+\end{equation}
+所以式（20.5）是多元贝塔函数的积分表示。
+
+\noindent\textbf{3. 二项分布和贝塔分布}
+
+二项分布是多项分布的特殊情况，贝塔分布是狄利克雷分布的特殊情况。
+
+二项分布是指如下概率分布。$X$ 为离散随机变量，取值为 $m$，其概率质量函数为
+\begin{equation}
+P(X=m)=\binom{n}{m}p^m(1-p)^{n-m},\quad m=0,1,2,\cdots,n
+\tag{20.6}
+\end{equation}
+其中 $n$ 和 $p$（$0\leq p\leq 1$）是参数。
+
+贝塔分布是指如下概率分布，$X$ 为连续随机变量，取值范围为 $[0,1]$，其概率密度函数为
+\begin{equation}
+p(x)=
+\begin{cases}
+\dfrac{1}{B(s,t)}x^{s-1}(1-x)^{t-1}, & 0\leq x\leq 1\\
+0, & \text{其他}
+\end{cases}
+\tag{20.7}
+\end{equation}
+其中 $s>0$ 和 $t>0$ 是参数，$B(s,t)=\dfrac{\Gamma(s)\Gamma(t)}{\Gamma(s+t)}$ 是贝塔函数，定义为
+\begin{equation}
+B(s,t)=\int_0^1 x^{s-1}(1-x)^{t-1}\mathrm{d}x
+\tag{20.8}
+\end{equation}
+当 $s,t$ 是自然数时，
+\begin{equation}
+B(s,t)=\frac{(s-1)!(t-1)!}{(s+t-1)!}
+\tag{20.9}
+\end{equation}
+当 $n$ 为 1 时，二项分布变成伯努利分布（Bernoulli distribution）或 0-1 分布。伯努利分布表示试验可能出现的 2 种结果的概率。显然二项分布包含伯努利分布。图 20.2 给出几种概率分布的关系。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.78\textwidth]{20-2.png}
+\caption*{图 20.2\quad 概率分布之间的关系}
+\end{figure}
+
+\subsection*{20.1.2\quad 共轭先验}
+
+狄利克雷分布有一些重要性质：（1）狄利克雷分布属于指数分布族；（2）狄利克雷分布是多项分布的共轭先验（conjugate prior）。
+
+贝叶斯学习中常使用共轭分布。如果后验分布与先验分布属于同类，则先验分布与后验分布称为共轭分布（conjugate distributions），先验分布称为共轭先验（conjugate prior）。如果多项分布的先验分布是狄利克雷分布，则其后验分布也为狄利克雷分布，两者构成共轭分布。作为先验分布的狄利克雷分布的参数又称为超参数。使用共轭分布的好处是便于从先验分布计算后验分布。
+
+设 $W=\{w_1,w_2,\cdots,w_k\}$ 是由 $k$ 个元素组成的集合。随机变量 $X$ 服从 $W$ 上的多项分布，$X\sim \mathrm{Mult}(n,\theta)$，其中 $n=(n_1,n_2,\cdots,n_k)$ 和 $\theta=(\theta_1,\theta_2,\cdots,\theta_k)$ 是参数。参数 $n$ 为从 $W$ 中重复独立抽取样本的次数，$n_i$ 为样本中 $w_i$ 出现的次数（$i=1,2,\cdots,k$）；参数 $\theta_i$ 为 $w_i$ 出现的概率（$i=1,2,\cdots,k$）。
+
+将样本数据表示为 $D$，目标是计算在样本数据 $D$ 给定条件下参数 $\theta$ 的后验概率 $p(\theta\mid D)$。对于给定的样本数据 $D$，似然函数是
+\begin{equation}
+p(D\mid \theta)=\theta_1^{n_1}\theta_2^{n_2}\cdots \theta_k^{n_k}
+=\prod_{i=1}^k\theta_i^{n_i}
+\tag{20.10}
+\end{equation}
+假设随机变量 $\theta$ 服从狄利克雷分布 $p(\theta\mid\alpha)$，其中 $\alpha=(\alpha_1,\alpha_2,\cdots,\alpha_k)$ 为参数。则 $\theta$ 的先验分布为
+\begin{equation}
+p(\theta\mid \alpha)=\frac{\Gamma\left(\sum_{i=1}^k\alpha_i\right)}{\prod_{i=1}^k\Gamma(\alpha_i)}
+\prod_{i=1}^k\theta_i^{\alpha_i-1}
+=\frac{1}{B(\alpha)}\prod_{i=1}^k\theta_i^{\alpha_i-1}
+=\mathrm{Dir}(\theta\mid\alpha),\quad \alpha_i>0
+\tag{20.11}
+\end{equation}
+
+根据贝叶斯规则，在给定样本数据 $D$ 和参数 $\alpha$ 条件下，$\theta$ 的后验概率分布是
+\begin{equation}
+\begin{aligned}
+p(\theta\mid D,\alpha)
+&=\frac{p(D\mid \theta)p(\theta\mid\alpha)}{p(D\mid\alpha)}\\
+&=\frac{\prod_{i=1}^k\theta_i^{n_i}\frac{1}{B(\alpha)}\theta_i^{\alpha_i-1}}
+{\int \prod_{i=1}^k\theta_i^{n_i}\frac{1}{B(\alpha)}\theta_i^{\alpha_i-1}\mathrm{d}\theta}\\
+&=\frac{1}{B(\alpha+n)}\prod_{i=1}^k\theta_i^{\alpha_i+n_i-1}\\
+&=\mathrm{Dir}(\theta\mid\alpha+n)
+\end{aligned}
+\tag{20.12}
+\end{equation}
+可以看出先验分布（20.11）和后验分布（20.12）都是狄利克雷分布，两者有不同的参数，所以狄利克雷分布是多项分布的共轭先验。狄利克雷后验分布的参数等于狄利克雷先验分布参数 $\alpha=(\alpha_1,\alpha_2,\cdots,\alpha_k)$ 加上多项分布的观测计数 $n=(n_1,n_2,\cdots,n_k)$，好像试验之前就已经观察到计数 $\alpha=(\alpha_1,\alpha_2,\cdots,\alpha_k)$，因此也把 $\alpha$ 叫做先验伪计数（prior pseudo-counts）。
+
+\section*{20.2\quad 潜在狄利克雷分配模型}
+
+\subsection*{20.2.1\quad 基本想法}
+
+潜在狄利克雷分配（LDA）是文本集合的生成概率模型。模型假设话题由单词的多项分布表示，文本由话题的多项分布表示，单词分布和话题分布的先验分布都是狄利克雷分布。文本内容的不同是由于它们的话题分布不同。（严格意义上说，这里的多项分布都是类别分布，在机器学习与自然语言处理中，有时对两者不作严格区分。）
+
+LDA 模型表示文本集合的自动生成过程：首先，基于单词分布的先验分布（狄利克雷分布）生成多个单词分布，即决定多个话题内容；之后，基于话题分布的先验分布（狄利克雷分布）生成多个话题分布，即决定多个文本内容；然后，基于每一个话题分布生成话题序列，针对每一个话题，基于话题的单词分布生成单词，整体构成一个单词序列，即生成文本，重复这个过程生成所有文本。文本的单词序列是观测变量，文本的话题序列是隐变量，文本的话题分布和话题的单词分布也是隐变量。图 20.3 示意 LDA 的文本生成过程（详见文前彩图）。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.78\textwidth]{20-3.png}
+\caption*{图 20.3\quad LDA 的文本生成过程（见彩图）}
+\end{figure}
+
+LDA 模型是概率图模型，其特点是以狄利克雷分布为多项分布的先验分布，学习就是给定文本集合，通过后验概率分布的估计，推断模型的所有参数。利用 LDA 进行话题分析，就是对给定文本集合，学习到每个文本的话题分布，以及每个话题的单词分布。
+
+可以认为 LDA 是 PLSA（概率潜在语义分析）的扩展，相同点是两者都假设话题是单词的多项分布，文本是话题的多项分布。不同点是 LDA 使用狄利克雷分布作为先验分布，而 PLSA 不使用先验分布（或者说假设先验分布是均匀分布），两者对文本生成过程有不同假设；学习过程 LDA 基于贝叶斯学习，而 PLSA 基于极大似然估计。LDA 的优点是，使用先验概率分布，可以防止学习过程中产生的过拟合（over-fitting）。
+
+\subsection*{20.2.2\quad 模型定义}
+
+本书采用常用 LDA 模型的定义，与原始文献中提出的模型略有不同。
+
+\noindent\textbf{1. 模型要素}
+
+潜在狄利克雷分配（LDA）使用三个集合：一是单词集合 $W=\{w_1,\cdots,w_v,\cdots,w_V\}$，其中 $w_v$ 是第 $v$ 个单词，$v=1,2,\cdots,V$，$V$ 是单词的个数。二是文本集合 $D=\{\mathbf{w}_1,\cdots,\mathbf{w}_m,\cdots,\mathbf{w}_M\}$，其中 $\mathbf{w}_m$ 是第 $m$ 个文本，$m=1,2,\cdots,M$，$M$ 是文本的个数。文本 $\mathbf{w}_m$ 是一个单词序列 $\mathbf{w}_m=(w_{m1},\cdots,w_{mn},\cdots,w_{mN_m})$，其中 $w_{mn}$ 是文本 $\mathbf{w}_m$ 的第 $n$ 个单词，$n=1,2,\cdots,N_m$，$N_m$ 是文本 $\mathbf{w}_m$ 中单词的个数。三是话题集合 $Z=\{z_1,\cdots,z_k,\cdots,z_K\}$，其中 $z_k$ 是第 $k$ 个话题，$k=1,2,\cdots,K$，$K$ 是话题的个数。
+
+每一个话题 $z_k$ 由一个单词的条件概率分布 $p(w\mid z_k)$ 决定，$w\in W$。分布 $p(w\mid z_k)$ 服从多项分布（严格意义上类别分布），其参数为 $\varphi_k$。参数 $\varphi_k$ 服从狄利克雷分布（先验分布），其超参数为 $\beta$。参数 $\varphi_k$ 是一个 $V$ 维向量 $\varphi_k=(\varphi_{k1},\varphi_{k2},\cdots,\varphi_{kV})$，其中 $\varphi_{kv}$ 表示话题 $z_k$ 生成单词 $w_v$ 的概率。所有话题的参数向量构成一个 $K\times V$ 矩阵 $\varphi=\{\varphi_k\}_{k=1}^K$。超参数 $\beta$ 也是一个 $V$ 维向量 $\beta=(\beta_1,\beta_2,\cdots,\beta_V)$。
+
+每一个文本 $\mathbf{w}_m$ 由一个话题的条件概率分布 $p(z\mid \mathbf{w}_m)$ 决定，$z\in Z$。分布 $p(z\mid \mathbf{w}_m)$ 服从多项分布（严格意义上类别分布），其参数为 $\theta_m$。参数 $\theta_m$ 服从狄利克雷分布（先验分布），其超参数为 $\alpha$。参数 $\theta_m$ 是一个 $K$ 维向量 $\theta_m=(\theta_{m1},\theta_{m2},\cdots,\theta_{mK})$，其中 $\theta_{mk}$ 表示文本 $\mathbf{w}_m$ 生成话题 $z_k$ 的概率。所有文本的参数向量构成一个 $M\times K$ 矩阵 $\theta=\{\theta_m\}_{m=1}^M$。超参数 $\alpha$ 也是一个 $K$ 维向量 $\alpha=(\alpha_1,\alpha_2,\cdots,\alpha_K)$。
+
+每一个文本 $\mathbf{w}_m$ 中的每一个单词 $w_{mn}$ 由该文本的话题分布 $p(z\mid \mathbf{w}_m)$ 以及所有话题的单词分布 $p(w\mid z_k)$ 决定。
+
+\noindent\textbf{2. 生成过程}
+
+LDA 文本集合的生成过程如下：
+
+给定单词集合 $W$，文本集合 $D$，话题集合 $Z$，狄利克雷分布的超参数 $\alpha$ 和 $\beta$。
+
+（1）生成话题的单词分布
+
+随机生成 $K$ 个话题的单词分布。具体过程如下，按照狄利克雷分布 $\mathrm{Dir}(\beta)$ 随机生成一个参数向量 $\varphi_k$，$\varphi_k\sim \mathrm{Dir}(\beta)$，作为话题 $z_k$ 的单词分布 $p(w\mid z_k)$，$w\in W$，$k=1,2,\cdots,K$。
+
+（2）生成文本的话题分布
+
+随机生成 $M$ 个文本的话题分布。具体过程如下：按照狄利克雷分布 $\mathrm{Dir}(\alpha)$ 随机生成一个参数向量 $\theta_m$，$\theta_m\sim \mathrm{Dir}(\alpha)$，作为文本 $\mathbf{w}_m$ 的话题分布 $p(z\mid \mathbf{w}_m)$，$m=1,2,\cdots,M$。
+
+（3）生成文本的单词序列
+
+随机生成 $M$ 个文本的 $N_m$ 个单词。文本 $\mathbf{w}_m$（$m=1,2,\cdots,M$）的单词 $w_{mn}$（$n=1,2,\cdots,N_m$）的生成过程如下：
+
+（3-1）首先按照多项分布 $\mathrm{Mult}(\theta_m)$ 随机生成一个话题 $z_{mn}$，$z_{mn}\sim \mathrm{Mult}(\theta_m)$。
+
+（3-2）然后按照多项分布 $\mathrm{Mult}(\varphi_{z_{mn}})$ 随机生成一个单词 $w_{mn}$，$w_{mn}\sim \mathrm{Mult}(\varphi_{z_{mn}})$。
+
+文本 $\mathbf{w}_m$ 本身是单词序列 $\mathbf{w}_m=(w_{m1},w_{m2},\cdots,w_{mN_m})$，对应着隐式的话题序列 $\mathbf{z}_m=(z_{m1},z_{m2},\cdots,z_{mN_m})$。
+
+总结 LDA 生成文本的算法如下。
+
+\noindent\textbf{算法 20.1（LDA 的文本生成算法）}
+
+（1）对于话题 $z_k$（$k=1,2,\cdots,K$）：
+
+生成多项分布参数 $\varphi_k\sim \mathrm{Dir}(\beta)$，作为话题的单词分布 $p(w\mid z_k)$；
+
+（2）对于文本 $\mathbf{w}_m$（$m=1,2,\cdots,M$）：
+
+生成多项分布参数 $\theta_m\sim \mathrm{Dir}(\alpha)$，作为文本的话题分布 $p(z\mid \mathbf{w}_m)$；
+
+（3）对于文本 $\mathbf{w}_m$ 的单词 $w_{mn}$（$m=1,2,\cdots,M$，$n=1,2,\cdots,N_m$）：
+
+（a）生成话题 $z_{mn}\sim \mathrm{Mult}(\theta_m)$，作为单词对应的话题；
+
+（b）生成单词 $w_{mn}\sim \mathrm{Mult}(\varphi_{z_{mn}})$。
+
+LDA 的文本生成过程中，假定话题个数 $K$ 给定，实际通常通过实验选定。狄利克雷分布的超参数 $\alpha$ 和 $\beta$ 通常也是事先给定的。在没有其他先验知识的情况下，可以假设向量 $\alpha$ 和 $\beta$ 的所有分量均为 1，这时的文本的话题分布 $\theta_m$ 是对称的，话题的单词分布 $\varphi_k$ 也是对称的。
+
+\subsection*{20.2.3\quad 概率图模型}
+
+LDA 模型本质是一种概率图模型（probabilistic graphical model）。图 20.4 为 LDA 作为概率图模型的板块表示（plate notation）。图中结点表示随机变量，实心结点是观测变量，空心结点是隐变量；有向边表示概率依存关系；矩形（板块）表示重复，板块内数字表示重复的次数。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.58\textwidth]{20-4.png}
+\caption*{图 20.4\quad LDA 的板块表示}
+\end{figure}
+
+图 20.4 中的 LDA 板块表示，结点 $\alpha$ 和 $\beta$ 是模型的超参数，结点 $\varphi_k$ 表示话题的单词分布的参数，结点 $\theta_m$ 表示文本的话题分布的参数，结点 $z_{mn}$ 表示话题，结点 $w_{mn}$ 表示单词。结点 $\beta$ 指向结点 $\varphi_k$，重复 $K$ 次，表示根据超参数 $\beta$ 生成 $K$ 个话题的单词分布的参数 $\varphi_k$；结点 $\alpha$ 指向结点 $\theta_m$，重复 $M$ 次，表示根据超参数 $\alpha$ 生成 $M$ 个文本的话题分布的参数 $\theta_m$；结点 $\theta_m$ 指向结点 $z_{mn}$，重复 $N_m$ 次，表示根据文本的话题分布 $\theta_m$ 生成 $N_m$ 个话题 $z_{mn}$；结点 $z_{mn}$ 指向结点 $w_{mn}$，同时 $K$ 个结点 $\varphi_k$ 也指向结点 $w_{mn}$，表示根据话题 $z_{mn}$ 以及 $K$ 个话题的单词分布 $\varphi_k$ 生成单词 $w_{mn}$。
+
+板块表示的优点是简洁，板块表示展开之后，成为普通的有向图表示（图 20.5）。有向图中结点表示随机变量，有向边表示概率依存关系。可以看出 LDA 是相同随机变量被重复多次使用的概率图模型。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.78\textwidth]{20-5.png}
+\caption*{图 20.5\quad LDA 的展开图模型表示}
+\end{figure}
+
+\subsection*{20.2.4\quad 随机变量序列的可交换性}
+
+一个有限的随机变量序列是可交换的（exchangeable），是指随机变量的联合概率分布对随机变量的排列不变。
+\begin{equation}
+P(x_1,x_2,\cdots,x_N)=P(x_{\pi(1)},x_{\pi(2)},\cdots,x_{\pi(N)})
+\tag{20.13}
+\end{equation}
+这里 $\pi(1),\pi(2),\cdots,\pi(N)$ 代表自然数 $1,2,\cdots,N$ 的任意一个排列。一个无限的随机变量序列是无限可交换（infinitely exchangeable）的，是指它的任意一个有限子序列都是可交换的。
+
+如果一个随机变量序列 $X_1,X_2,\cdots,X_N,\cdots$ 是独立同分布的，那么它们是无限可交换的。反之不然。
+
+随机变量序列可交换的假设在贝叶斯学习中经常使用。根据 De Finetti 定理，任意一个无限可交换的随机变量序列对一个随机参数是条件独立同分布的。即任意一个无限可交换的随机变量序列 $X_1,X_2,\cdots,X_i,\cdots$ 的基于一个随机参数 $Y$ 的条件概率，等于基于这个随机参数 $Y$ 的各个随机变量 $X_1,X_2,\cdots,X_i,\cdots$ 的条件概率的乘积。
+\begin{equation}
+P(X_1,X_2,\cdots,X_i,\cdots\mid Y)=P(X_1\mid Y)P(X_2\mid Y)\cdots P(X_i\mid Y)\cdots
+\tag{20.14}
+\end{equation}
+
+LDA 假设文本由无限可交换的话题序列组成。由 De Finetti 定理知，实际是假设文本中的话题对一个随机参数是条件独立同分布的。所以在参数给定的条件下，文本中的话题的顺序可以忽略。作为对比，概率潜在语义模型假设文本中的话题是独立同分布的，文本中的话题的顺序也可以忽略。
+
+\subsection*{20.2.5\quad 概率公式}
+
+LDA 模型整体是由观测变量和隐变量组成的联合概率分布，可以表示为
+\begin{equation}
+p(\mathbf{w},\mathbf{z},\theta,\varphi\mid\alpha,\beta)=\prod_{k=1}^K p(\varphi_k\mid\beta)\prod_{m=1}^M p(\theta_m\mid\alpha)\prod_{n=1}^{N_m}p(z_{mn}\mid\theta_m)p(w_{mn}\mid z_{mn},\varphi)
+\tag{20.15}
+\end{equation}
+其中观测变量 $\mathbf{w}$ 表示所有文本中的单词序列，隐变量 $\mathbf{z}$ 表示所有文本中的话题序列，隐变量 $\theta$ 表示所有文本的话题分布的参数，隐变量 $\varphi$ 表示所有话题的单词分布的参数，$\alpha$ 和 $\beta$ 是超参数。式中 $p(\varphi_k\mid\beta)$ 表示超参数 $\beta$ 给定条件下第 $k$ 个话题的单词分布的参数 $\varphi_k$ 的生成概率，$p(\theta_m\mid\alpha)$ 表示超参数 $\alpha$ 给定条件下第 $m$ 个文本的话题分布的参数 $\theta_m$ 的生成概率，$p(z_{mn}\mid\theta_m)$ 表示第 $m$ 个文本的话题分布 $\theta_m$ 给定条件下文本的第 $n$ 个位置的话题 $z_{mn}$ 的生成概率，$p(w_{mn}\mid z_{mn},\varphi)$ 表示在第 $m$ 个文本的第 $n$ 个位置的话题 $z_{mn}$ 及所有话题的单词分布的参数 $\varphi$ 给定条件下第 $m$ 个文本的第 $n$ 个位置的单词 $w_{mn}$ 的生成概率。参见图 20.5。
+
+第 $m$ 个文本的联合概率分布可以表示为
+\begin{equation}
+p(\mathbf{w}_m,\mathbf{z}_m,\theta_m,\varphi\mid\alpha,\beta)=\prod_{k=1}^K p(\varphi_k\mid\beta)p(\theta_m\mid\alpha)\prod_{n=1}^{N_m}p(z_{mn}\mid\theta_m)p(w_{mn}\mid z_{mn},\varphi)
+\tag{20.16}
+\end{equation}
+其中 $\mathbf{w}_m$ 表示该文本中的单词序列，$\mathbf{z}_m$ 表示该文本的话题序列，$\theta_m$ 表示该文本的话题分布参数。
+
+LDA 模型的联合分布含有隐变量，对隐变量进行积分得到边缘分布。
+
+参数 $\theta_m$ 和 $\varphi$ 给定条件下第 $m$ 个文本的生成概率是
+\begin{equation}
+p(\mathbf{w}_m\mid\theta_m,\varphi)=\prod_{n=1}^{N_m}\left[\sum_{k=1}^K p(z_{mn}=k\mid\theta_m)p(w_{mn}\mid\varphi_k)\right]
+\tag{20.17}
+\end{equation}
+超参数 $\alpha$ 和 $\beta$ 给定条件下第 $m$ 个文本的生成概率是
+\begin{equation}
+p(\mathbf{w}_m\mid\alpha,\beta)=\prod_{k=1}^K \int p(\varphi_k\mid\beta)\left[\int p(\theta_m\mid\alpha)\prod_{n=1}^{N_m}\left[\sum_{l=1}^K p(z_{mn}=l\mid\theta_m)p(w_{mn}\mid\varphi_l)\right]\mathrm{d}\theta_m\right]\mathrm{d}\varphi_k
+\tag{20.18}
+\end{equation}
+超参数 $\alpha$ 和 $\beta$ 给定条件下所有文本的生成概率是
+\begin{equation}
+p(\mathbf{w}\mid\alpha,\beta)=\prod_{k=1}^K \int p(\varphi_k\mid\beta)\left[\prod_{m=1}^M \int p(\theta_m\mid\alpha)\prod_{n=1}^{N_m}\left[\sum_{l=1}^K p(z_{mn}=l\mid\theta_m)p(w_{mn}\mid\varphi_l)\right]\mathrm{d}\theta_m\right]\mathrm{d}\varphi_k
+\tag{20.19}
+\end{equation}
+
+\section*{20.3\quad LDA 的吉布斯抽样算法}
+
+潜在狄利克雷分配（LDA）的学习（参数估计）是一个复杂的最优化问题，很难精确求解，只能近似求解。常用的近似求解方法有吉布斯抽样（Gibbs sampling）和变分推理（variational inference）。本节讲述吉布斯抽样，下节讲述变分推理算法。吉布斯抽样的优点是实现简单，缺点是迭代次数可能较多。
+
+\subsection*{20.3.1\quad 基本想法}
+
+LDA 模型的学习，给定文本（单词序列）的集合 $D=\{\mathbf{w}_1,\cdots,\mathbf{w}_m,\cdots,\mathbf{w}_M\}$，其中 $\mathbf{w}_m$ 是第 $m$ 个文本（单词序列），$\mathbf{w}_m=(w_{m1},\cdots,w_{mn},\cdots,w_{mN_m})$，以 $\mathbf{w}$ 表示文本集合的单词序列，即 $\mathbf{w}=(w_{11},w_{12},\cdots,w_{1N_1},w_{21},w_{22},\cdots,w_{2N_2},\cdots,w_{M1},w_{M2},\cdots,w_{MN_M})$（参考图 20.5）；超参数 $\alpha$ 和 $\beta$ 已知。目标是要推断：（1）话题序列的集合 $\mathbf{z}=\{\mathbf{z}_1,\cdots,\mathbf{z}_m,\cdots,\mathbf{z}_M\}$ 的后验概率分布，其中 $\mathbf{z}_m$ 是第 $m$ 个文本的话题序列，$\mathbf{z}_m=(z_{m1},\cdots,z_{mn},\cdots,z_{mN_m})$；（2）参数 $\theta=\{\theta_1,\cdots,\theta_m,\cdots,\theta_M\}$，其中 $\theta_m$ 是文本 $\mathbf{w}_m$ 的话题分布的参数；（3）参数 $\varphi=\{\varphi_1,\cdots,\varphi_k,\cdots,\varphi_K\}$，其中 $\varphi_k$ 是话题 $z_k$ 的单词分布的参数。也就是说，要对联合概率分布 $p(\mathbf{w},\mathbf{z},\theta,\varphi\mid\alpha,\beta)$ 进行估计，其中 $\mathbf{w}$ 是观测变量，而 $\mathbf{z},\theta,\varphi$ 是隐变量。
+
+第 19 章讲述了吉布斯抽样，这是一种常用的马尔可夫链蒙特卡罗法。为了估计多元随机变量 $x$ 的联合分布 $p(x)$，吉布斯抽样法选择 $x$ 的一个分量，固定其他分量，按照其条件概率分布进行随机抽样，依次循环对每一个分量执行这个操作，得到联合分布 $p(x)$ 的一个随机样本，重复这个过程，在燃烧期之后，得到联合概率分布 $p(x)$ 的样本集合。
+
+LDA 模型的学习通常采用收缩的吉布斯抽样（collapsed Gibbs sampling）方法\footnote{原理上也可以考虑整体吉布斯抽样（full Gibbs sampling），但算法更加复杂。}，基本想法是，通过对隐变量 $\theta$ 和 $\varphi$ 积分，得到边缘概率分布 $p(\mathbf{w},\mathbf{z}\mid\alpha,\beta)$（也是联合分布），其中变量 $\mathbf{w}$ 是可观测的，变量 $\mathbf{z}$ 是不可观测的；对后验概率分布 $p(\mathbf{z}\mid\mathbf{w},\alpha,\beta)$ 进行吉布斯抽样，得到分布 $p(\mathbf{z}\mid\mathbf{w},\alpha,\beta)$ 的样本集合；再利用这个样本集合对参数 $\theta$ 和 $\varphi$ 进行估计，最终得到 LDA 模型 $p(\mathbf{w},\mathbf{z},\theta,\varphi\mid\alpha,\beta)$ 的所有参数估计。
+
+\subsection*{20.3.2\quad 算法的主要部分}
+
+根据上面的分析，问题转化为对后验概率分布 $p(\mathbf{z}\mid\mathbf{w},\alpha,\beta)$ 的吉布斯抽样，该分布表示在所有文本的单词序列给定条件下所有可能话题序列的条件概率。这里先给出该分布的表达式，之后给出该分布的满条件分布表达式。
+
+\noindent\textbf{1. 抽样分布的表达式}
+
+首先有关系
+\begin{equation}
+p(\mathbf{z}\mid\mathbf{w},\alpha,\beta)=\frac{p(\mathbf{w},\mathbf{z}\mid\alpha,\beta)}{p(\mathbf{w}\mid\alpha,\beta)}\propto p(\mathbf{w},\mathbf{z}\mid\alpha,\beta)
+\tag{20.20}
+\end{equation}
+这里变量 $\mathbf{w},\alpha$ 和 $\beta$ 已知，分母相同，可以不予考虑。联合分布 $p(\mathbf{w},\mathbf{z}\mid\alpha,\beta)$ 的表达式可以进一步分解为
+\begin{equation}
+p(\mathbf{w},\mathbf{z}\mid\alpha,\beta)=p(\mathbf{w}\mid\mathbf{z},\alpha,\beta)p(\mathbf{z}\mid\alpha,\beta)=p(\mathbf{w}\mid\mathbf{z},\beta)p(\mathbf{z}\mid\alpha)
+\tag{20.21}
+\end{equation}
+两个因子可以分别处理。
+
+推导第一个因子 $p(\mathbf{w}\mid\mathbf{z},\beta)$ 的表达式。首先
+\begin{equation}
+p(\mathbf{w}\mid\mathbf{z},\varphi)=\prod_{k=1}^K\prod_{v=1}^V \varphi_{kv}^{n_{kv}}
+\tag{20.22}
+\end{equation}
+其中 $\varphi_{kv}$ 是第 $k$ 个话题生成单词集合第 $v$ 个单词的概率，$n_{kv}$ 是数据中第 $k$ 个话题生成第 $v$ 个单词的次数。于是
+\begin{equation}
+\begin{aligned}
+p(\mathbf{w}\mid\mathbf{z},\beta)
+&=\int p(\mathbf{w}\mid\mathbf{z},\varphi)p(\varphi\mid\beta)\mathrm{d}\varphi\\
+&=\int \prod_{k=1}^K \frac{1}{B(\beta)}\prod_{v=1}^V \varphi_{kv}^{n_{kv}+\beta_v-1}\mathrm{d}\varphi\\
+&=\prod_{k=1}^K \frac{1}{B(\beta)}\int \prod_{v=1}^V \varphi_{kv}^{n_{kv}+\beta_v-1}\mathrm{d}\varphi\\
+&=\prod_{k=1}^K \frac{B(n_k+\beta)}{B(\beta)}
+\end{aligned}
+\tag{20.23}
+\end{equation}
+其中 $n_k=\{n_{k1},n_{k2},\cdots,n_{kV}\}$。
+
+第二个因子 $p(\mathbf{z}\mid\alpha)$ 的表达式可以类似推导。首先
+\begin{equation}
+p(\mathbf{z}\mid\theta)=\prod_{m=1}^M\prod_{k=1}^K \theta_{mk}^{n_{mk}}
+\tag{20.24}
+\end{equation}
+其中 $\theta_{mk}$ 是第 $m$ 个文本生成第 $k$ 个话题的概率，$n_{mk}$ 是数据中第 $m$ 个文本生成第 $k$ 个话题的次数。于是
+\begin{equation}
+\begin{aligned}
+p(\mathbf{z}\mid\alpha)
+&=\int p(\mathbf{z}\mid\theta)p(\theta\mid\alpha)\mathrm{d}\theta\\
+&=\int \prod_{m=1}^M \frac{1}{B(\alpha)}\prod_{k=1}^K \theta_{mk}^{n_{mk}+\alpha_k-1}\mathrm{d}\theta\\
+&=\prod_{m=1}^M \frac{1}{B(\alpha)}\int \prod_{k=1}^K \theta_{mk}^{n_{mk}+\alpha_k-1}\mathrm{d}\theta\\
+&=\prod_{m=1}^M \frac{B(n_m+\alpha)}{B(\alpha)}
+\end{aligned}
+\tag{20.25}
+\end{equation}
+其中 $n_m=\{n_{m1},n_{m2},\cdots,n_{mK}\}$。由式（20.23）和式（20.25）得
+\begin{equation}
+p(\mathbf{z},\mathbf{w}\mid\alpha,\beta)=\prod_{k=1}^K \frac{B(n_k+\beta)}{B(\beta)}\cdot \prod_{m=1}^M \frac{B(n_m+\alpha)}{B(\alpha)}
+\tag{20.26}
+\end{equation}
+故由式（20.20）和式（20.26），得收缩的吉布斯抽样分布的公式
+\begin{equation}
+p(\mathbf{z}\mid\mathbf{w},\alpha,\beta)\propto \prod_{k=1}^K \frac{B(n_k+\beta)}{B(\beta)}\cdot \prod_{m=1}^M \frac{B(n_m+\alpha)}{B(\alpha)}
+\tag{20.27}
+\end{equation}
+
+\noindent\textbf{2. 满条件分布的表达式}
+
+分布 $p(\mathbf{z}\mid\mathbf{w},\alpha,\beta)$ 的满条件分布可以写成
+\begin{equation}
+p(z_i\mid\mathbf{z}_{-i},\mathbf{w},\alpha,\beta)=\frac{1}{Z_{z_i}}p(\mathbf{z}\mid\mathbf{w},\alpha,\beta)
+\tag{20.28}
+\end{equation}
+这里 $w_i$ 表示所有文本的单词序列的第 $i$ 个位置的单词，$z_i$ 表示单词 $w_i$ 对应的话题，$i=(m,n)$，$i=1,2,\cdots,I$，$\mathbf{z}_{-i}=\{z_j:j\ne i\}$，$Z_{z_i}$ 表示分布 $p(\mathbf{z}\mid\mathbf{w},\alpha,\beta)$ 对变量 $z_i$ 的边缘化因子。式（20.28）是在所有文本单词序列、其他位置话题序列给定条件下第 $i$ 个位置的话题的条件概率分布。由式（20.27）和式（20.28）可以推出
+\begin{equation}
+p(z_i\mid\mathbf{z}_{-i},\mathbf{w},\alpha,\beta)\propto \frac{n_{kv}+\beta_v}{\sum_{v=1}^V(n_{kv}+\beta_v)}\cdot \frac{n_{mk}+\alpha_k}{\sum_{k=1}^K(n_{mk}+\alpha_k)}
+\tag{20.29}
+\end{equation}
+其中第 $m$ 个文本的第 $n$ 个位置的单词 $w_i$ 是单词集合的第 $v$ 个单词，其话题 $z_i$ 是话题集合的第 $k$ 个话题，$n_{kv}$ 表示第 $k$ 个话题中第 $v$ 个单词的计数，但减去当前单词的计数，$n_{mk}$ 表示第 $m$ 个文本中第 $k$ 个话题的计数，但减去当前单词的话题的计数。
+
+\subsection*{20.3.3\quad 算法的后处理}
+
+通过吉布斯抽样得到的分布 $p(\mathbf{z}\mid\mathbf{w},\alpha,\beta)$ 的样本，可以得到变量 $\mathbf{z}$ 的分配值，也可以估计变量 $\theta$ 和 $\varphi$。
+
+\noindent\textbf{1. 参数 $\theta=\{\theta_m\}$ 的估计}
+
+根据 LDA 模型的定义，后验概率满足
+\begin{equation}
+p(\theta_m\mid\mathbf{z}_m,\alpha)=\frac{1}{Z_{\theta_m}}\prod_{n=1}^{N_m}p(z_{mn}\mid\theta_m)p(\theta_m\mid\alpha)=\mathrm{Dir}(\theta_m\mid n_m+\alpha)
+\tag{20.30}
+\end{equation}
+这里 $n_m=\{n_{m1},n_{m2},\cdots,n_{mK}\}$ 是第 $m$ 个文本的话题的计数，$Z_{\theta_m}$ 表示分布 $p(\theta_m,\mathbf{z}_m\mid\alpha)$ 对变量 $\theta_m$ 的边缘化因子。于是得到参数 $\theta=\{\theta_m\}$ 的估计式
+\begin{equation}
+\theta_{mk}=\frac{n_{mk}+\alpha_k}{\sum_{k=1}^K(n_{mk}+\alpha_k)},\quad m=1,2,\cdots,M;\quad k=1,2,\cdots,K
+\tag{20.31}
+\end{equation}
+
+\noindent\textbf{2. 参数 $\varphi=\{\varphi_k\}$ 的估计}
+
+后验概率满足
+\begin{equation}
+p(\varphi_k\mid\mathbf{w},\mathbf{z},\beta)=\frac{1}{Z_{\varphi_k}}\prod_{i=1}^I p(w_i\mid\varphi_k)p(\varphi_k\mid\beta)=\mathrm{Dir}(\varphi_k\mid n_k+\beta)
+\tag{20.32}
+\end{equation}
+这里 $n_k=\{n_{k1},n_{k2},\cdots,n_{kV}\}$ 是第 $k$ 个话题的单词的计数，$Z_{\varphi_k}$ 表示分布 $p(\varphi_k,\mathbf{w}\mid\mathbf{z},\beta)$ 对变量 $\varphi_k$ 的边缘化因子，$I$ 是文本集合单词序列 $\mathbf{w}$ 的单词总数。于是得到参数的估计式
+\begin{equation}
+\varphi_{kv}=\frac{n_{kv}+\beta_v}{\sum_{v=1}^V(n_{kv}+\beta_v)},\quad k=1,2,\cdots,K;\quad v=1,2,\cdots,V
+\tag{20.33}
+\end{equation}
+
+\subsection*{20.3.4\quad 算法}
+
+总结 LDA 的吉布斯抽样的具体算法。
+
+对给定的所有文本的单词序列 $\mathbf{w}$，每个位置上随机指派一个话题，整体构成所有文本的话题序列 $\mathbf{z}$。然后循环执行以下操作。
+
+在每一个位置上计算在该位置上的话题的满条件概率分布，然后进行随机抽样，得到该位置的新的话题，分派给这个位置。
+\[
+p(z_i\mid\mathbf{z}_{-i},\mathbf{w},\alpha,\beta)\propto \frac{n_{kv}+\beta_v}{\sum_{v=1}^V(n_{kv}+\beta_v)}\cdot \frac{n_{mk}+\alpha_k}{\sum_{k=1}^K(n_{mk}+\alpha_k)}
+\]
+这个条件概率分布由两个因子组成，第一个因子表示话题生成该位置的单词的概率，第二个因子表示该位置的文本生成话题的概率。
+
+整体准备两个计数矩阵：话题-单词矩阵 $N_{K\times V}=[n_{kv}]$ 和文本-话题矩阵 $N_{M\times K}=[n_{mk}]$。在每一个位置，对两个矩阵中该位置的已有话题的计数减 1，计算满条件概率分布，然后进行抽样，得到该位置的新话题，之后对两个矩阵中该位置的新话题的计数加 1。计算移到下一个位置。
+
+在燃烧期之后得到的所有文本的话题序列就是条件概率分布 $p(\mathbf{z}\mid\mathbf{w},\alpha,\beta)$ 的样本。
+
+\noindent\textbf{算法 20.2（LDA 吉布斯抽样算法）}
+
+输入：文本的单词序列 $\mathbf{w}=\{\mathbf{w}_1,\cdots,\mathbf{w}_m,\cdots,\mathbf{w}_M\}$，$\mathbf{w}_m=(w_{m1},\cdots,w_{mn},\cdots,w_{mN_m})$；
+
+输出：文本的话题序列 $\mathbf{z}=\{\mathbf{z}_1,\cdots,\mathbf{z}_m,\cdots,\mathbf{z}_M\}$，$\mathbf{z}_m=(z_{m1},\cdots,z_{mn},\cdots,z_{mN_m})$ 的后验概率分布 $p(\mathbf{z}\mid\mathbf{w},\alpha,\beta)$ 的样本计数，模型的参数 $\varphi$ 和 $\theta$ 的估计值；
+
+参数：超参数 $\alpha$ 和 $\beta$，话题个数 $K$。
+
+（1）设所有计数矩阵的元素 $n_{mk},n_{kv}$，计数向量的元素 $n_m,n_k$ 初值为 0；
+
+（2）对所有文本 $\mathbf{w}_m$，$m=1,2,\cdots,M$
+
+\quad 对第 $m$ 个文本中的所有单词 $w_{mn}$，$n=1,2,\cdots,N_m$
+
+\quad （a）抽样话题 $z_{mn}=z_k\sim \mathrm{Mult}\left(\frac{1}{K}\right)$；
+
+\quad 增加文本-话题计数 $n_{mk}=n_{mk}+1$，
+
+\quad 增加文本-话题和计数 $n_m=n_m+1$，
+
+\quad 增加话题-单词计数 $n_{kv}=n_{kv}+1$，
+
+\quad 增加话题-单词和计数 $n_k=n_k+1$；
+
+（3）循环执行以下操作，直到进入燃烧期
+
+\quad 对所有文本 $\mathbf{w}_m$，$m=1,2,\cdots,M$
+
+\quad 对第 $m$ 个文本中的所有单词 $w_{mn}$，$n=1,2,\cdots,N_m$
+
+\quad （a）当前的单词 $w_{mn}$ 是第 $v$ 个单词，话题指派 $z_{mn}$ 是第 $k$ 个话题；
+
+\quad 减少计数 $n_{mk}=n_{mk}-1$，$n_m=n_m-1$，$n_{kv}=n_{kv}-1$，$n_k=n_k-1$；
+
+\quad （b）按照满条件分布进行抽样
+\[
+p(z_i\mid\mathbf{z}_{-i},\mathbf{w},\alpha,\beta)\propto \frac{n_{kv}+\beta_v}{\sum_{v=1}^V(n_{kv}+\beta_v)}\cdot \frac{n_{mk}+\alpha_k}{\sum_{k=1}^K(n_{mk}+\alpha_k)}
+\]
+\quad 得到新的第 $k'$ 个话题，分配给 $z_{mn}$；
+
+\quad （c）增加计数 $n_{mk'}=n_{mk'}+1$，$n_m=n_m+1$，$n_{k'v}=n_{k'v}+1$，$n_{k'}=n_{k'}+1$；
+
+\quad （d）得到更新的两个计数矩阵 $N_{K\times V}=[n_{kv}]$ 和 $N_{M\times K}=[n_{mk}]$，表示后验概率分布 $p(\mathbf{z}\mid\mathbf{w},\alpha,\beta)$ 的样本计数；
+
+（4）利用得到的样本计数，计算模型参数
+\[
+\theta_{mk}=\frac{n_{mk}+\alpha_k}{\sum_{k=1}^K(n_{mk}+\alpha_k)}
+\]
+\[
+\varphi_{kv}=\frac{n_{kv}+\beta_v}{\sum_{v=1}^V(n_{kv}+\beta_v)}
+\]
+
+\section*{20.4\quad LDA 的变分 EM 算法}
+
+本节首先介绍变分推理，然后介绍变分 EM 算法，最后介绍将变分 EM 算法应用到 LDA 模型学习的具体算法。LDA 的变分 EM 算法具有推理与学习效率高的优点。
+
+\subsection*{20.4.1\quad 变分推理}
+
+变分推理（variational inference）是贝叶斯学习中常用的、含有隐变量模型的学习和推理方法。变分推理和马尔可夫链蒙特卡罗法（MCMC）属于不同的技巧。MCMC 通过随机抽样的方法近似地计算模型的后验概率，变分推理则通过解析的方法计算模型的后验概率的近似值。
+
+变分推理的基本想法如下。假设模型是联合概率分布 $p(x,z)$，其中 $x$ 是观测变量（数据），$z$ 是隐变量，包括参数。目标是学习模型的后验概率分布 $p(z\mid x)$，用模型概率分布 $q(z)$ 近似条件概率分布 $p(z\mid x)$，用 KL 散度 $D(q(z)\|p(z\mid x))$ 计算两者的相似度，$q(z)$ 称为变分分布（variational distribution）。如果能找到与 $p(z\mid x)$ 在 KL 散度意义下最近的分布 $q^*(z)$，则可以用这个分布近似 $p(z\mid x)$。
+\begin{equation}
+p(z\mid x)\approx q^*(z)
+\tag{20.34}
+\end{equation}
+
+图 20.6 给出了 $q^*(z)$ 与 $p(z\mid x)$ 的关系。KL 散度的定义见附录 E。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.56\textwidth]{20-6.png}
+\caption*{图 20.6\quad 变分推理的原理}
+\end{figure}
+
+KL 散度可以写成以下形式
+\begin{equation}
+\begin{aligned}
+D(q(z)\|p(z\mid x))
+&=E_q[\log q(z)]-E_q[\log p(z\mid x)]\\
+&=E_q[\log q(z)]-E_q[\log p(x,z)]+\log p(x)\\
+&=\log p(x)-\{E_q[\log p(x,z)]-E_q[\log q(z)]\}
+\end{aligned}
+\tag{20.35}
+\end{equation}
+注意到 KL 散度大于等于零，当且仅当两个分布一致时为零，由此可知式（20.35）右端第一项与第二项满足关系
+\begin{equation}
+\log p(x)\geq E_q[\log p(x,z)]-E_q[\log q(z)]
+\tag{20.36}
+\end{equation}
+不等式右端是左端的下界，左端称为证据（evidence），右端称为证据下界（evidence lower bound, ELBO），证据下界记作
+\begin{equation}
+L(q)=E_q[\log p(x,z)]-E_q[\log q(z)]
+\tag{20.37}
+\end{equation}
+KL 散度（20.35）的最小化可以通过证据下界（20.37）的最大化实现，因为目标是求 $q(z)$ 使 KL 散度最小化，这时 $\log p(x)$ 是常量。因此，变分推理变成求解证据下界最大化的问题。
+
+变分推理可以从另一个角度理解。目标是通过证据 $\log p(x)$ 的最大化，估计联合概率分布 $p(x,z)$。因为含有隐变量 $z$，直接对证据进行最大化困难，转而根据式（20.36）对证据下界进行最大化。
+
+对变分分布 $q(z)$ 要求是具有容易处理的形式，通常假设 $q(z)$ 对 $z$ 的所有分量都是互相独立的（实际是条件独立于参数），即满足
+\begin{equation}
+q(z)=q(z_1)q(z_2)\cdots q(z_n)
+\tag{20.38}
+\end{equation}
+这时的变分分布称为平均场（mean filed）\footnote{平均场的概念最初来自物理学。}。KL 散度的最小化或证据下界最大化实际是在平均场的集合，即满足独立假设的分布集合 $Q=\left\{q(z)\middle|q(z)=\prod_{i=1}^n q(z_i)\right\}$ 之中进行的。
+
+总结起来，变分推理有以下几个步骤：定义变分分布 $q(z)$；推导其证据下界表达式；用最优化方法对证据下界进行优化，如坐标上升，得到最优分布 $q^*(z)$，作为后验分布 $p(z\mid x)$ 的近似。
+
+\subsection*{20.4.2\quad 变分 EM 算法}
+
+变分推理中，可以通过迭代的方法最大化证据下界，这时算法是 EM 算法的推广，称为变分 EM 算法。
+
+假设模型是联合概率分布 $p(x,z\mid\theta)$，其中 $x$ 是观测变量，$z$ 是隐变量，$\theta$ 是参数。目标是通过观测数据的概率（证据）$\log p(x\mid\theta)$ 的最大化，估计模型的参数 $\theta$。使用变分推理，导入平均场 $q(z)=\prod_{i=1}^n q(z_i)$，定义证据下界
+\begin{equation}
+L(q,\theta)=E_q[\log p(x,z\mid\theta)]-E_q[\log q(z)]
+\tag{20.39}
+\end{equation}
+通过迭代，分别以 $q$ 和 $\theta$ 为变量对证据下界进行最大化，就得到变分 EM 算法。
+
+\noindent\textbf{算法 20.3（变分 EM 算法）}
+
+循环执行以下 E 步和 M 步，直到收敛。
+
+（1）E 步：固定 $\theta$，求 $L(q,\theta)$ 对 $q$ 的最大化。
+
+（2）M 步：固定 $q$，求 $L(q,\theta)$ 对 $\theta$ 的最大化。
+
+给出模型参数 $\theta$ 的估计值。
+
+根据变分推理原理，观测数据的概率和证据下界满足
+\begin{equation}
+\log p(x\mid\theta)-L(q,\theta)=D(q(z)\|p(z\mid x,\theta))\geq 0
+\tag{20.40}
+\end{equation}
+变分 EM 算法的迭代过程中，以下关系成立：
+\begin{equation}
+\log p(x\mid\theta^{(t-1)})=L(q^{(t)},\theta^{(t-1)})\leq L(q^{(t)},\theta^{(t)})\leq \log p(x\mid\theta^{(t)})
+\tag{20.41}
+\end{equation}
+其中上角标 $t-1$ 和 $t$ 表示迭代次数，左边的等式基于 E 步计算和变分推理原理，中间的不等式基于 M 步计算，右边的不等式基于变分推理原理。说明每次迭代都保证观测数据的概率不递减。因此，变分 EM 算法一定收敛，但可能收敛到局部最优。
+
+EM 算法实际也是对证据下界进行最大化。不妨对照 9.4 节 EM 算法的推广，EM 算法的推广是求 F 函数的极大-极大算法，其中的 F 函数就是证据下界。EM 算法假设 $q(z)=p(z\mid x)$ 且 $p(z\mid x)$ 容易计算，而变分 EM 算法则考虑一般情况使用容易计算的平均场 $q(z)=\prod_{i=1}^n q(z_i)$。当模型复杂时，EM 算法未必可用，但变分 EM 算法仍然可以使用。
+
+\subsection*{20.4.3\quad 算法推导}
+
+将变分 EM 算法应用到图 20.7 的 LDA 模型的学习上，是图 20.4 的 LDA 模型的简化。首先定义具体的变分分布，推导证据下界的表达式，接着推导变分分布的参数和 LDA 模型的参数的估计式，最后给出 LDA 模型的变分 EM 算法。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.5\textwidth]{20-7.png}
+\caption*{图 20.7\quad LDA 模型}
+\end{figure}
+
+\noindent\textbf{1. 证据下界的定义}
+
+为简单起见，一次只考虑一个文本，记作 $\mathbf{w}$。文本的单词序列 $\mathbf{w}=(w_1,\cdots,w_n,\cdots,w_N)$，对应的话题序列 $\mathbf{z}=(z_1,\cdots,z_n,\cdots,z_N)$，以及话题分布 $\theta$，随机变量 $\mathbf{w},\mathbf{z}$ 和 $\theta$ 的联合分布是
+\begin{equation}
+p(\theta,\mathbf{z},\mathbf{w}\mid\alpha,\varphi)=p(\theta\mid\alpha)\prod_{n=1}^N p(z_n\mid\theta)p(w_n\mid z_n,\varphi)
+\tag{20.42}
+\end{equation}
+其中 $\mathbf{w}$ 是可观测变量，$\theta$ 和 $\mathbf{z}$ 是隐变量，$\alpha$ 和 $\varphi$ 是参数。
+
+定义基于平均场的变分分布
+\begin{equation}
+q(\theta,\mathbf{z}\mid\gamma,\eta)=q(\theta\mid\gamma)\prod_{n=1}^N q(z_n\mid\eta_n)
+\tag{20.43}
+\end{equation}
+其中 $\gamma$ 是狄利克雷分布参数，$\eta=(\eta_1,\eta_2,\cdots,\eta_n)$ 是多项分布参数，变量 $\theta$ 和 $\mathbf{z}$ 的各个分量都是条件独立的。目标是求 KL 散度意义下最相近的变分分布 $q(\theta,\mathbf{z}\mid\gamma,\eta)$，以近似 LDA 模型的后验分布 $p(\theta,\mathbf{z}\mid\mathbf{w},\alpha,\varphi)$。
+
+图 20.8 是变分分布的板块表示。LDA 模型中隐变量 $\theta$ 和 $\mathbf{z}$ 之间存在依存关系，变分分布中这些依存关系被去掉，变量 $\theta$ 和 $\mathbf{z}$ 条件独立。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.43\textwidth]{20-8.png}
+\caption*{图 20.8\quad 基于平均场的变分分布}
+\end{figure}
+
+由此得到一个文本的证据下界
+\begin{equation}
+L(\gamma,\eta,\alpha,\varphi)=E_q[\log p(\theta,\mathbf{z},\mathbf{w}\mid\alpha,\varphi)]-E_q[\log q(\theta,\mathbf{z}\mid\gamma,\eta)]
+\tag{20.44}
+\end{equation}
+其中数学期望是对分布 $q(\theta,\mathbf{z}\mid\gamma,\eta)$ 定义的，为了方便写作 $E_q[\cdot]$。$\gamma$ 和 $\eta$ 是变分分布的参数，$\alpha$ 和 $\varphi$ 是 LDA 模型的参数。
+
+所有文本的证据下界为
+\begin{equation}
+L_{\mathbf{w}}(\gamma,\eta,\alpha,\varphi)=\sum_{m=1}^M \{E_{q_m}[\log p(\theta_m,\mathbf{z}_m,\mathbf{w}_m\mid\alpha,\varphi)]-E_{q_m}[\log q(\theta_m,\mathbf{z}_m\mid\gamma_m,\eta_m)]\}
+\tag{20.45}
+\end{equation}
+
+为求解证据下界 $L(\gamma,\eta,\alpha,\varphi)$ 的最大化，首先写出证据下界的表达式。为此展开证据下界式（20.44）
+\begin{equation}
+\begin{aligned}
+L(\gamma,\eta,\alpha,\varphi)
+&=E_q[\log p(\theta\mid\alpha)]+E_q[\log p(\mathbf{z}\mid\theta)]+E_q[\log p(\mathbf{w}\mid\mathbf{z},\varphi)]\\
+&\quad -E_q[\log q(\theta\mid\gamma)]-E_q[\log q(\mathbf{z}\mid\eta)]
+\end{aligned}
+\tag{20.46}
+\end{equation}
+根据变分参数 $\gamma$ 和 $\eta$，模型参数 $\alpha$ 和 $\varphi$ 继续展开，并将展开式的每一项写成一行
+\begin{equation}
+\begin{aligned}
+L(\gamma,\eta,\alpha,\varphi)
+&=\log\Gamma\left(\sum_{l=1}^K\alpha_l\right)-\sum_{k=1}^K\log\Gamma(\alpha_k)
++\sum_{k=1}^K(\alpha_k-1)\left[\Psi(\gamma_k)-\Psi\left(\sum_{l=1}^K\gamma_l\right)\right]\\
+&\quad +\sum_{n=1}^N\sum_{k=1}^K\eta_{nk}\left[\Psi(\gamma_k)-\Psi\left(\sum_{l=1}^K\gamma_l\right)\right]\\
+&\quad +\sum_{n=1}^N\sum_{k=1}^K\sum_{v=1}^V \eta_{nk}w_n^v\log\varphi_{kv}\\
+&\quad -\log\Gamma\left(\sum_{l=1}^K\gamma_l\right)+\sum_{k=1}^K\log\Gamma(\gamma_k)
+-\sum_{k=1}^K(\gamma_k-1)\left[\Psi(\gamma_k)-\Psi\left(\sum_{l=1}^K\gamma_l\right)\right]\\
+&\quad -\sum_{n=1}^N\sum_{k=1}^K\eta_{nk}\log\eta_{nk}
+\end{aligned}
+\tag{20.47}
+\end{equation}
+式中 $\Psi(\alpha_k)$ 是对数伽马函数的导数，即
+\begin{equation}
+\Psi(\alpha_k)=\frac{\mathrm{d}}{\mathrm{d}\alpha_k}\log\Gamma(\alpha_k)
+\tag{20.48}
+\end{equation}
+
+第一项推导，求 $E_q[\log p(\theta\mid\alpha)]$，是关于分布 $q(\theta,\mathbf{z}\mid\gamma,\eta)$ 的数学期望。
+\begin{equation}
+E_q[\log p(\theta\mid\alpha)]=\sum_{k=1}^K(\alpha_k-1)E_q[\log\theta_k]+\log\Gamma\left(\sum_{l=1}^K\alpha_l\right)-\sum_{k=1}^K\log\Gamma(\alpha_k)
+\tag{20.49}
+\end{equation}
+其中 $\theta\sim\mathrm{Dir}(\theta\mid\gamma)$，所以利用附录 E 式（E.7）有
+\begin{equation}
+E_{q(\theta\mid\gamma)}[\log\theta_k]=\Psi(\gamma_k)-\Psi\left(\sum_{l=1}^K\gamma_l\right)
+\tag{20.50}
+\end{equation}
+故得
+\begin{equation}
+E_q[\log p(\theta\mid\alpha)]=\log\Gamma\left(\sum_{l=1}^K\alpha_l\right)-\sum_{k=1}^K\log\Gamma(\alpha_k)+\sum_{k=1}^K(\alpha_k-1)\left[\Psi(\gamma_k)-\Psi\left(\sum_{l=1}^K\gamma_l\right)\right]
+\tag{20.51}
+\end{equation}
+式中 $\alpha_k$ 和 $\gamma_k$ 表示第 $k$ 个话题的狄利克雷分布参数。
+
+第二项推导，求 $E_q[\log p(\mathbf{z}\mid\theta)]$，是关于分布 $q(\theta,\mathbf{z}\mid\gamma,\eta)$ 的数学期望。
+\begin{equation}
+\begin{aligned}
+E_q[\log p(\mathbf{z}\mid\theta)]
+&=\sum_{n=1}^N E_q[\log p(z_n\mid\theta)]\\
+&=\sum_{n=1}^N E_{q(\theta,z_n\mid\gamma,\eta)}[\log(z_n\mid\theta)]\\
+&=\sum_{n=1}^N\sum_{k=1}^K q(z_{nk}\mid\eta)E_{q(\theta\mid\gamma)}[\log\theta_k]\\
+&=\sum_{n=1}^N\sum_{k=1}^K \eta_{nk}\left[\Psi(\gamma_k)-\Psi\left(\sum_{l=1}^K\gamma_l\right)\right]
+\end{aligned}
+\tag{20.52}
+\end{equation}
+式中 $\eta_{nk}$ 表示文档第 $n$ 个位置的单词由第 $k$ 个话题产生的概率，$\gamma_k$ 表示第 $k$ 个话题的狄利克雷分布参数。最后一步用到附录 E 式（E.4）。
+
+第三项推导，求 $E_q[\log p(\mathbf{w}\mid\mathbf{z},\varphi)]$，是关于分布 $q(\theta,\mathbf{z}\mid\gamma,\eta)$ 的数学期望。
+\begin{equation}
+\begin{aligned}
+E_q[\log p(\mathbf{w}\mid\mathbf{z},\varphi)]
+&=\sum_{n=1}^N E_q[\log p(w_n\mid z_n,\varphi)]\\
+&=\sum_{n=1}^N E_{q(z_n\mid\eta)}[\log p(w_n\mid z_n,\varphi)]\\
+&=\sum_{n=1}^N\sum_{k=1}^K q(z_{nk}\mid\eta)\log p(w_n\mid z_{nk},\varphi)\\
+&=\sum_{n=1}^N\sum_{k=1}^K\sum_{v=1}^V \eta_{nk}w_n^v\log\varphi_{kv}
+\end{aligned}
+\tag{20.53}
+\end{equation}
+式中 $\eta_{nk}$ 表示文档第 $n$ 个位置的单词由第 $k$ 个话题产生的概率，$w_n^v$ 在第 $n$ 个位置的单词是单词集合的第 $v$ 个单词时取值为 1，否则取值为 0，$\varphi_{kv}$ 表示第 $k$ 个话题生成单词集合中第 $v$ 个单词的概率。
+
+第四项推导，求 $E_q[\log q(\theta\mid\gamma)]$，是关于分布 $q(\theta,\mathbf{z}\mid\gamma,\eta)$ 的数学期望。由于 $\theta\sim\mathrm{Dir}(\gamma)$，类似式（20.50）可以得到
+\begin{equation}
+E_q[\log q(\theta\mid\gamma)]=\log\Gamma\left(\sum_{l=1}^K\gamma_l\right)-\sum_{k=1}^K\log\Gamma(\gamma_k)+\sum_{k=1}^K(\gamma_k-1)\left[\Psi(\gamma_k)-\Psi\left(\sum_{l=1}^K\gamma_l\right)\right]
+\tag{20.54}
+\end{equation}
+式中 $\gamma_k$ 表示第 $k$ 个话题的狄利克雷分布参数。
+
+第五项公式推导，求 $E_q[\log q(\mathbf{z}\mid\eta)]$，是关于分布 $q(\theta,\mathbf{z}\mid\gamma,\eta)$ 的数学期望。
+\begin{equation}
+\begin{aligned}
+E_q[\log q(\mathbf{z}\mid\eta)]
+&=\sum_{n=1}^N E_q[\log q(z_n\mid\eta)]\\
+&=\sum_{n=1}^N E_{q(z_n\mid\eta)}[\log q(z_n\mid\eta)]\\
+&=\sum_{n=1}^N\sum_{k=1}^K q(z_{nk}\mid\eta)\log q(z_{nk}\mid\eta)\\
+&=\sum_{n=1}^N\sum_{k=1}^K \eta_{nk}\log\eta_{nk}
+\end{aligned}
+\tag{20.55}
+\end{equation}
+式中 $\eta_{nk}$ 表示文档第 $n$ 个位置的单词由第 $k$ 个话题产生的概率，$\gamma_k$ 表示第 $k$ 个话题的狄利克雷分布参数。
+
+\noindent\textbf{2. 变分参数 $\gamma$ 和 $\eta$ 的估计}
+
+首先通过证据下界最优化估计参数 $\eta$。$\eta_{nk}$ 表示第 $n$ 个位置的单词是由第 $k$ 个话题生成的概率。考虑式（20.47）关于 $\eta_{nk}$ 的最大化，$\eta_{nk}$ 满足约束条件 $\sum_{l=1}^K\eta_{nl}=1$。包含 $\eta_{nk}$ 的约束最优化问题拉格朗日函数为
+\begin{equation}
+L_{[\eta_{nk}]}=\eta_{nk}\left[\Psi(\gamma_k)-\Psi\left(\sum_{l=1}^K\gamma_l\right)\right]+\eta_{nk}\log\varphi_{kv}-\eta_{nk}\log\eta_{nk}+\lambda_n\left(\sum_{l=1}^K\eta_{nl}-1\right)
+\tag{20.56}
+\end{equation}
+这里 $\varphi_{kv}$ 是（在第 $n$ 个位置）由第 $k$ 个话题生成第 $v$ 个单词的概率。
+
+对 $\eta_{nk}$ 求偏导数得
+\begin{equation}
+\frac{\partial L}{\partial \eta_{nk}}=\Psi(\gamma_k)-\Psi\left(\sum_{l=1}^K\gamma_l\right)+\log\varphi_{kv}-\log\eta_{nk}-1+\lambda_n
+\tag{20.57}
+\end{equation}
+令偏导数为零，得到参数 $\eta_{nk}$ 的估计值
+\begin{equation}
+\eta_{nk}\propto \varphi_{kv}\exp\left(\Psi(\gamma_k)-\Psi\left(\sum_{l=1}^K\gamma_l\right)\right)
+\tag{20.58}
+\end{equation}
+
+接着通过证据下界最优化估计参数 $\gamma$。$\gamma_k$ 是第 $k$ 个话题的狄利克雷分布参数。考虑式（20.47）关于 $\gamma_k$ 的最大化
+\begin{equation}
+\begin{aligned}
+L_{[\gamma_k]}
+&=\sum_{k=1}^K(\alpha_k-1)\left[\Psi(\gamma_k)-\Psi\left(\sum_{l=1}^K\gamma_l\right)\right]
++\sum_{n=1}^N\sum_{k=1}^K \eta_{nk}\left[\Psi(\gamma_k)-\Psi\left(\sum_{l=1}^K\gamma_l\right)\right]\\
+&\quad -\log\Gamma\left(\sum_{l=1}^K\gamma_l\right)+\log\Gamma(\gamma_k)
+-\sum_{k=1}^K(\gamma_k-1)\left[\Psi(\gamma_k)-\Psi\left(\sum_{l=1}^K\gamma_l\right)\right]
+\end{aligned}
+\tag{20.59}
+\end{equation}
+简化为
+\begin{equation}
+L_{[\gamma_k]}=\sum_{k=1}^K\left[\Psi(\gamma_k)-\Psi\left(\sum_{l=1}^K\gamma_l\right)\right]\left(\alpha_k+\sum_{n=1}^N\eta_{nk}-\gamma_k\right)-\log\Gamma\left(\sum_{l=1}^K\gamma_l\right)+\log\Gamma(\gamma_k)
+\tag{20.60}
+\end{equation}
+对 $\gamma_k$ 求偏导数得
+\begin{equation}
+\frac{\partial L}{\partial \gamma_k}=\left[\Psi'(\gamma_k)-\Psi'\left(\sum_{l=1}^K\gamma_l\right)\right]\left(\alpha_k+\sum_{n=1}^N\eta_{nk}-\gamma_k\right)
+\tag{20.61}
+\end{equation}
+令偏导数为零，求解得到参数 $\gamma_k$ 的估计值
+\begin{equation}
+\gamma_k=\alpha_k+\sum_{n=1}^N\eta_{nk}
+\tag{20.62}
+\end{equation}
+
+据此，得到由坐标上升算法估计变分参数的方法，具体算法如下。
+
+\noindent\textbf{算法 20.4（LDA 的变分参数估计算法）}
+
+（1）初始化：对所有 $k$ 和 $n$，$\eta_{nk}^{(0)}=1/K$
+
+（2）初始化：对所有 $k$，$\gamma_k=\alpha_k+N/K$
+
+（3）重复
+
+（4）\quad 对 $n=1$ 到 $N$
+
+（5）\quad\quad 对 $k=1$ 到 $K$
+
+（6）\quad\quad $\eta_{nk}^{(t+1)}=\varphi_{kv}\exp\left[\Psi(\gamma_k^{(t)})-\Psi\left(\sum_l^K\gamma_l^{(t)}\right)\right]$
+
+（7）\quad\quad 规范化 $\eta_{nk}^{(t+1)}$ 使其和为 1
+
+（8）\quad $\gamma^{(t+1)}=\alpha+\sum_{n=1}^N \eta_n^{(t+1)}$
+
+（9）直到收敛
+
+\noindent\textbf{3. 模型参数 $\alpha$ 和 $\varphi$ 的估计}
+
+给定一个文本集合 $D=\{\mathbf{w}_1,\cdots,\mathbf{w}_m,\cdots,\mathbf{w}_M\}$，模型参数估计对所有文本同时进行。
+
+首先通过证据下界的最大化估计 $\varphi$。$\varphi_{kv}$ 表示第 $k$ 个话题生成单词集合第 $v$ 个单词的概率。将式（20.47）扩展到所有文本，并考虑关于 $\varphi$ 的最大化。满足 $K$ 个约束条件
+\[
+\sum_{v=1}^V \varphi_{kv}=1,\quad k=1,2,\cdots,K
+\]
+约束最优化问题的拉格朗日函数为
+\begin{equation}
+L_{[\varphi]}=\sum_{m=1}^M\sum_{n=1}^{N_m}\sum_{k=1}^K\sum_{v=1}^V \eta_{mnk}w_{mn}^v\log\varphi_{kv}+\sum_{k=1}^K\lambda_k\left(\sum_{v=1}^V\varphi_{kv}-1\right)
+\tag{20.63}
+\end{equation}
+对 $\varphi_{kv}$ 求偏导数并令其为零，归一化求解，得到参数 $\varphi_{kv}$ 的估计值
+\begin{equation}
+\varphi_{kv}=\sum_{m=1}^M\sum_{n=1}^{N_m}\eta_{mnk}w_{mn}^v
+\tag{20.64}
+\end{equation}
+其中 $\eta_{mnk}$ 为第 $m$ 个文本的第 $n$ 个单词属于第 $k$ 个话题的概率，$w_{mn}^v$ 在第 $m$ 个文本的第 $n$ 个单词是单词集合的第 $v$ 个单词时取值为 1，否则为 0。
+
+接着通过证据下界的最大化估计参数 $\alpha$。$\alpha_k$ 表示第 $k$ 个话题的狄利克雷分布参数。将式（20.47）扩展到所有文本，并考虑关于 $\alpha$ 的最大化
+\begin{equation}
+L_{[\alpha]}=\sum_{m=1}^M\left\{\log\Gamma\left(\sum_{l=1}^K\alpha_l\right)-\sum_{k=1}^K\log\Gamma(\alpha_k)+\sum_{k=1}^K(\alpha_k-1)\left[\Psi(\gamma_{mk})-\Psi\left(\sum_{l=1}^K\gamma_{ml}\right)\right]\right\}
+\tag{20.65}
+\end{equation}
+对 $\alpha_k$ 求偏导数得
+\begin{equation}
+\frac{\partial L}{\partial\alpha_k}=M\left[\Psi\left(\sum_{l=1}^K\alpha_l\right)-\Psi(\alpha_k)\right]+\sum_{m=1}^M\left[\Psi(\gamma_{mk})-\Psi\left(\sum_{l=1}^K\gamma_{ml}\right)\right]
+\tag{20.66}
+\end{equation}
+再对 $\alpha_l$ 求偏导数得
+\begin{equation}
+\frac{\partial^2 L}{\partial\alpha_k\partial\alpha_l}=M\left[\Psi'\left(\sum_{l=1}^K\alpha_l\right)-\delta(k,l)\Psi'(\alpha_k)\right]
+\tag{20.67}
+\end{equation}
+这里 $\delta(k,l)$ 是 delta 函数。
+
+式（20.65）和式（20.66）分别是函数（20.64）对变量 $\alpha$ 的梯度 $g(\alpha)$ 和 Hessian 矩阵 $H(\alpha)$。应用牛顿法（又称为牛顿-拉弗森方法）求该函数的最大化\footnote{牛顿法的介绍可参照附录 B。}。用以下公式迭代，得到参数 $\alpha$ 的估计值。
+\begin{equation}
+\alpha_{\mathrm{new}}=\alpha_{\mathrm{old}}-H(\alpha_{\mathrm{old}})^{-1}g(\alpha_{\mathrm{old}})
+\tag{20.68}
+\end{equation}
+
+据此，得到估计参数 $\alpha$ 的算法。
+
+\subsection*{20.4.4\quad 算法总结}
+
+根据上面的推导给出 LDA 的变分 EM 算法。
+
+\noindent\textbf{算法 20.5（LDA 的变分 EM 算法）}
+
+输入：给定文本集合 $D=\{\mathbf{w}_1,\cdots,\mathbf{w}_m,\cdots,\mathbf{w}_M\}$；
+
+输出：变分参数 $\gamma,\eta$，模型参数 $\alpha,\varphi$。
+
+交替迭代 E 步和 M 步，直到收敛。
+
+（1）E 步
+
+固定模型参数 $\alpha,\varphi$，通过关于变分参数 $\gamma,\eta$ 的证据下界的最大化，估计变分参数 $\gamma,\eta$。具体见算法 20.4。
+
+（2）M 步
+
+固定变分参数 $\gamma,\eta$，通过关于模型参数 $\alpha,\varphi$ 的证据下界的最大化，估计模型参数 $\alpha,\varphi$。具体算法见式（20.63）和式（20.67）。
+
+根据变分参数 $(\gamma,\eta)$ 可以估计模型参数 $\theta=(\theta_1,\cdots,\theta_m,\cdots,\theta_M),\mathbf{z}=(\mathbf{z}_1,\cdots,\mathbf{z}_m,\cdots,\mathbf{z}_M)$。
+
+以上介绍的是图 20.7 中简化 LDA 模型的变分 EM 算法，图 20.4 中完整 LDA 模型的变分 EM 算法作为推广可以类似的导出。
+
+\section*{本章概要}
+
+1. 狄利克雷分布的概率密度函数为
+\[
+p(\theta\mid\alpha)=\frac{\Gamma\left(\sum_{i=1}^k\alpha_i\right)}{\prod_{i=1}^k\Gamma(\alpha_i)}\prod_{i=1}^k\theta_i^{\alpha_i-1}
+\]
+其中 $\sum_{i=1}^k\theta_i=1$，$\theta_i\geq 0$，$\alpha=(\alpha_1,\alpha_2,\cdots,\alpha_k)$，$\alpha_i>0$，$i=1,2,\cdots,k$。狄利克雷分布是多项分布的共轭先验。
+
+2. 潜在狄利克雷分配（LDA）是文本集合的生成概率模型。模型假设话题由单词的多项分布表示，文本由话题的多项分布表示，单词分布和话题分布的先验分布都是狄利克雷分布。LDA 模型属于概率图模型，可以由板块表示法表示。LDA 模型中，每个话题的单词分布、每个文本的话题分布、文本的每个位置的话题是隐变量，文本的每个位置的单词是观测变量。
+
+3. LDA 生成文本集合的生成过程如下：
+
+（1）话题的单词分布：随机生成所有话题的单词分布，话题的单词分布是多项分布，其先验分布是狄利克雷分布。
+
+（2）文本的话题分布：随机生成所有文本的话题分布，文本的话题分布是多项分布，其先验分布是狄利克雷分布。
+
+（3）文本的内容：随机生成所有文本的内容。在每个文本的每个位置，按照文本的话题分布随机生成一个话题，再按照该话题的单词分布随机生成一个单词。
+
+4. LDA 模型的学习与推理不能直接求解。通常采用的方法是吉布斯抽样算法和变分 EM 算法，前者是蒙特卡罗法而后者是近似算法。
+
+5. LDA 的收缩的吉布斯抽样算法的基本想法如下。目标是对联合概率分布 $p(\mathbf{w},\mathbf{z},\theta,\varphi\mid\alpha,\beta)$ 进行估计。通过积分求和将隐变量 $\theta$ 和 $\varphi$ 消掉，得到边缘概率分布 $p(\mathbf{w},\mathbf{z}\mid\alpha,\beta)$；对概率分布 $p(\mathbf{w}\mid\mathbf{z},\alpha,\beta)$ 进行吉布斯抽样，得到分布 $p(\mathbf{w}\mid\mathbf{z},\alpha,\beta)$ 的随机样本；再利用样本对变量 $\mathbf{z},\theta$ 和 $\varphi$ 的概率进行估计，最终得到 LDA 模型 $p(\mathbf{w},\mathbf{z},\theta,\varphi\mid\alpha,\beta)$ 的参数估计。具体算法如下。对给定的文本单词序列，每个位置上随机指派一个话题，整体构成话题系列。然后循环执行以下操作。对整个文本序列进行扫描，在每一个位置上计算在该位置上的话题的满条件概率分布，然后进行随机抽样，得到该位置的新的话题，指派给这个位置。
+
+6. 变分推理的基本想法如下。假设模型是联合概率分布 $p(x,z)$，其中 $x$ 是观测变量（数据），$z$ 是隐变量。目标是学习模型的后验概率分布 $p(z\mid x)$。考虑用变分分布 $q(z)$ 近似条件概率分布 $p(z\mid x)$，用 KL 散度计算两者的相似性找到与 $p(z\mid x)$ 在 KL 散度意义下最近的 $q^*(z)$，用这个分布近似 $p(z\mid x)$。假设 $q(z)$ 中的 $z$ 的所有分量都是互相独立的。利用 Jensen 不等式，得到 KL 散度的最小化可以通过证据下界的最大化实现。因此，变分推理变成求解以下证据下界最大化问题：
+\[
+L(q,\theta)=E_q[\log p(x,z\mid\theta)]-E_q[\log q(z)]
+\]
+
+7. LDA 的变分 EM 算法如下。针对 LDA 模型，定义变分分布，应用变分 EM 算法。目标是对证据下界 $L(\gamma,\eta,\alpha,\varphi)$ 进行最大化，其中 $\alpha$ 和 $\varphi$ 是模型参数，$\gamma$ 和 $\eta$ 是变分参数。交替迭代 E 步和 M 步，直到收敛。
+
+（1）E 步：固定模型参数 $\alpha,\varphi$，通过关于变分参数 $\gamma,\eta$ 的证据下界的最大化，估计变分参数 $\gamma,\eta$。
+
+（2）M 步：固定变分参数 $\gamma,\eta$，通过关于模型参数 $\alpha,\varphi$ 的证据下界的最大化，估计模型参数 $\alpha,\varphi$。
+
+\section*{继续阅读}
+
+LDA 的原始论文是文献 [1, 2]，LDA 的吉布斯抽样算法见文献 [3--5]，变分 EM 算法见文献 [2]。变分推理的介绍可参考文献 [6]。LDA 的分布式学习算法有文献 [7]，快速学习算法有文献 [8]，在线学习算法有文献 [9]。
+
+\section*{习题}
+
+\noindent\textbf{20.1}\quad 推导狄利克雷分布数学期望公式。
+
+\noindent\textbf{20.2}\quad 针对 17.2.2 的文本例子，使用 LDA 模型进行话题分析。
+
+\noindent\textbf{20.3}\quad 找出 LDA 的吉布斯抽样算法、变分 EM 算法中利用到狄利克雷分布的部分，思考 LDA 中使用狄利克雷分布的重要性。
+
+\noindent\textbf{20.4}\quad 给出 LDA 的吉布斯抽样算法和变分 EM 算法的算法复杂度。
+
+\noindent\textbf{20.5}\quad 证明变分 EM 算法收敛。
+
+\section*{参考文献}
+
+\noindent [1]\quad Blei D M, Ng A Y, Jordan M I. Latent Dirichlet allocation. In: Advances in Neural Information Processing Systems 14. MIT Press, 2002.
+
+\noindent [2]\quad Blei D M, Ng A Y, Jordan M I. Latent Dirichlet allocation. Journal of Machine Learning Research, 2003, 3: 933--1022.
+
+\noindent [3]\quad Griffiths T L, Steyvers M. Finding scientific topics. Proceedings of the National Academy of Science, 2004, 101: 5228--5235.
+
+\noindent [4]\quad Steyvers M, Griffiths T. Probabilistic topic models. In: Landauer T, McNamara D, Dennis S, et al. (eds.) Handbook of Latent Semantic Analysis, Psychology Press, 2014.
+
+\noindent [5]\quad Gregor Heinrich. Parameter estimation for text analysis. Technical note, 2004.
+
+\noindent [6]\quad Blei D M, Kucukelbir A, McAuliffe J D. Variational inference: a review for statisticians. Journal of the American Statistical Association, 2017, 112(518).
+
+\noindent [7]\quad Newman D, Smyth P, Welling M, Asuncion A U. Distributed inference for latent Dirichlet allocation. In: Advances in Neural Information Processing Systems, 2008: 1081--1088.
+
+\noindent [8]\quad Porteous I, Newman D, Ihler A, et al. Fast collapsed Gibbs sampling for latent Dirichlet allocation. Proceedings of the 14th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, 2008: 569--577.
+
+\noindent [9]\quad Hoffman M, Bach F R, Blei D M. Online learning for latent Dirichlet allocation. In: Advances in Neural Information Processing Systems, 2010: 856--864.
+
+\end{document}

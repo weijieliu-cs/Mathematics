@@ -1,0 +1,648 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+\newcommand{\biohazard}{\ensuremath{\ast}}
+
+\graphicspath{{math/概率论/}}
+
+\title{第 12 章\quad 马尔可夫链蒙特卡罗}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+在本书中我们已经多次看到，\textbf{模拟}是概率论中的强大方法。若无法说服朋友在 Monty Hall 问题中换门是好主意，只要用一秒钟模拟几千次游戏，就可以看到换门大约有 $2/3$ 的概率成功。若不确定如何计算随机变量 $X$ 的均值和方差，但知道如何从它的分布中生成独立同分布的随机抽样 $X_1,X_2,\ldots,X_n$，就可以用这些模拟抽样的样本均值与样本方差近似真均值与真方差：
+\[
+  E(X)\approx \frac1n(X_1+\cdots+X_n)=\bar X_n,
+\]
+\[
+  \operatorname{Var}(X)\approx
+  \frac{1}{n-1}\sum_{j=1}^{n}(X_j-\bar X_n)^2.
+\]
+
+大数定律告诉我们，当 $n$ 很大时，这些近似会很好。只要让计算机运行更久，我们就能通过增大 $n$ 得到越来越好的近似，而不必去处理可能很难算的求和或积分。正如第 10 章所说，这种通过生成随机值来近似某个量的模拟方法称为 \textbf{Monte Carlo 方法}。
+
+不过，上述 Monte Carlo 思想有一个主要限制：我们需要知道如何生成 $X_1,X_2,\ldots,X_n$，而且最好能高效生成，因为我们希望 $n$ 很大。例如，假设我们想从一个连续分布中模拟随机抽样，其 PDF $f$ 满足
+\[
+  f(x)\propto x^{3.1}(1-x)^{4.2},\qquad 0<x<1,
+\]
+而在其他地方为 $0$。仅仅从密度函数出发，并不能立刻看出如何生成具有该密度的随机变量。这个例子中，我们会认出它是 $\operatorname{Beta}(4.1,5.2)$ 分布的 PDF；若能够使用 $\operatorname{Unif}(0,1)$ 随机变量，就可以理论上用均匀分布的普适性来生成它。但遗憾的是，Beta 分布 CDF 本身就很难求，更不用说求 CDF 的反函数。关于 Beta 模拟问题，见例 12.1.4。
+
+当然，真实应用中的分布往往比 Beta 分布复杂得多。对 Beta 分布，我们至少知道归一化常数可以用 gamma 函数表示；但对许多有科学意义的分布，PDF 或 PMF 中的归一化常数未知，甚至超出了最快计算机与最巧妙数学技巧的能力范围。
+
+本章介绍 \textbf{Markov 链 Monte Carlo}（MCMC）。这是一类强大的算法，它们利用 Markov 链，使我们能够从复杂分布中模拟。MCMC 的发展极大地扩展了统计计算的范围，使许多高维联合分布也可以被模拟。基本思想是：\textbf{构造自己的 Markov 链}，使目标分布成为这条链的平稳分布。
+
+上一章中，我们研究的是转移矩阵 $Q$ 已经给定的 Markov 链，并试图求出它的平稳分布 $\mathbf s$。本章反过来：从一个想要模拟的分布 $\mathbf s$ 出发，构造一条以 $\mathbf s$ 为平稳分布的 Markov 链。若把这条构造出的 Markov 链运行很久，链的分布就会接近目标分布 $\mathbf s$。
+
+问题是：是否可以构造一个转移矩阵 $Q$，使它具有我们想要的平稳分布？即便可以，这是否真的比从目标分布直接模拟更容易？MCMC 的惊人之处在于，它非常一般地说明：确实可以用一种容易描述的方法构造一条 Markov 链，使其平稳分布为目标分布，而且不需要知道该分布的归一化常数。
+
+MCMC 已经应用于生物、自然与物理科学中的大量问题，也发展出许多不同算法。这里我们介绍两种最重要、最常用的 MCMC 算法：\textbf{Metropolis-Hastings 算法}与 \textbf{Gibbs 抽样}。
+
+\section*{12.1\quad Metropolis-Hastings}
+
+Metropolis-Hastings 算法是一种一般方法。它允许我们从状态空间上的任意不可约 Markov 链出发，把它改造成一条新的 Markov 链，使新链具有指定的平稳分布。这种修改的关键，是在原链中加入某种“选择性”：移动先按照原链被\textbf{提议}出来，但这个提议可能被\textbf{接受}，也可能被拒绝。例如，假设原链位于名为 Boston 的状态，提议转移到 San Francisco。新链要么接受提议并移动到 San Francisco，要么拒绝提议并在下一步仍留在 Boston。只要恰当地选择接受概率，这个简单修改就能保证新链具有目标平稳分布。
+
+\noindent\textbf{算法 12.1.1（Metropolis-Hastings）}\quad 设 $\mathbf s=(s_1,\ldots,s_M)$ 是状态空间 $\{1,\ldots,M\}$ 上的目标平稳分布，并且对所有 $i$ 有 $s_i>0$。设 $P=(p_{ij})$ 是一条在状态空间 $\{1,\ldots,M\}$ 上的 Markov 链的转移矩阵。直观上，$P$ 是一条我们知道如何运行、但没有目标平稳分布 $\mathbf s$ 的 Markov 链。
+
+我们的目标是修改 $P$，构造一条 Markov 链 $X_0,X_1,\ldots$，使其平稳分布为 $\mathbf s$。任取初始状态 $X_0$，并假设新链当前位于 $X_n$。为了让新链移动一步，按如下方式操作：
+\begin{enumerate}
+  \item 若 $X_n=i$，则用原转移矩阵 $P$ 的第 $i$ 行转移概率提议一个新状态 $j$。
+  \item 计算接受概率
+  \[
+    a_{ij}=\min\left(\frac{s_jp_{ji}}{s_ip_{ij}},1\right).
+  \]
+  \item 抛一枚以概率 $a_{ij}$ 为正面的硬币。
+  \item 若硬币为正面，则接受提议，转到 $j$，即令 $X_{n+1}=j$；否则拒绝提议，留在 $i$，即令 $X_{n+1}=i$。
+\end{enumerate}
+
+也就是说，Metropolis-Hastings 链使用原转移概率 $p_{ij}$ 来\textbf{提议}下一步去哪里，然后以概率 $a_{ij}$ 接受提议；在拒绝时留在当前状态。这个算法的一个特别好的特性是：$\mathbf s$ 的归一化常数不需要知道，因为它在 $s_j/s_i$ 中会抵消。于是，在某些问题中，我们只要知道 $\mathbf s\propto(1,1,\ldots,1)$，就能计算 $a_{ij}$，而不必知道状态数 $M$。
+
+算法运行时，$a_{ij}$ 分母中的 $p_{ij}$ 不会为 $0$，因为若 $p_{ij}=0$，原链根本不会提议从 $i$ 到 $j$。同样，若 $p_{ij}>0$，但 $p_{ji}=0$，那么 $q_{ij}=0$；从 $i$ 到 $j$ 的提议虽然可能出现，但总会被拒绝。还可能出现提议 $j$ 等于当前状态 $i$ 的情形；此时无论接受还是拒绝，新链都留在 $i$。
+
+下面证明 Metropolis-Hastings 链是可逆的，并且平稳分布为 $\mathbf s$。
+
+\noindent\textit{证明.}\quad 设 $Q$ 为 Metropolis-Hastings 链的转移矩阵。只需验证可逆性条件
+\[
+  s_iq_{ij}=s_jq_{ji}
+\]
+对所有 $i,j$ 成立。若 $i=j$，结论显然；以下设 $i\ne j$。若 $q_{ij}>0$，则原链一定能提议从 $i$ 到 $j$，所以 $p_{ij}>0$；类似地，若 $q_{ji}>0$，则 $p_{ji}>0$。可以假设 $q_{ij}$ 与 $q_{ji}$ 二者均非零。于是
+\[
+  q_{ij}=p_{ij}a_{ij},
+\]
+因为从 $i$ 出发到达 $j$ 的唯一方式，是先提议到 $j$，再接受该提议。先考虑 $s_jp_{ji}<s_ip_{ij}$ 的情形，则
+\[
+  a_{ij}=\frac{s_jp_{ji}}{s_ip_{ij}},\qquad a_{ji}=1.
+\]
+所以
+\[
+  s_iq_{ij}
+  =s_ip_{ij}a_{ij}
+  =s_ip_{ij}\frac{s_jp_{ji}}{s_ip_{ij}}
+  =s_jp_{ji}
+  =s_jp_{ji}a_{ji}
+  =s_jq_{ji}.
+\]
+若 $s_jp_{ji}>s_ip_{ij}$，交换 $i$ 与 $j$ 的角色，完全类似可得 $s_iq_{ij}=s_jq_{ji}$。因此可逆性条件成立，$\mathbf s$ 是转移矩阵 $Q$ 的平稳分布。$\blacksquare$
+
+\noindent\textbf{$\biohazard$ 12.1.2}\quad Metropolis-Hastings 算法是一种非常一般的方法，用来构造具有目标平稳分布的 Markov 链。在上面的表述中，$\mathbf s$ 与 $P$ 都很一般，也没有规定二者之间必须有什么关系（除了在同一状态空间上）。不过在实践中，提议分布的选择非常重要，因为它会极大影响链收敛到平稳分布的速度。
+
+如何选择好的提议分布是一个复杂主题，这里不作详细讨论。直观上，接受率很低的提议分布收敛很慢，因为链很少移动；但接受率很高也不一定理想，因为这可能说明链只会提出很小的移动。在较大的状态空间中，这样的链可能需要很久才能探索整个空间。
+
+下面给出几个例子，说明如何用 Metropolis-Hastings 算法从分布中模拟。
+
+\noindent\textbf{例 12.1.3（Zipf 分布模拟）}\quad 设 $M\ge2$ 为整数。随机变量 $X$ 服从参数 $a>0$ 的 \textbf{Zipf 分布}，若其 PMF 为
+\[
+  P(X=k)=\frac{1/k^a}{\sum_{j=1}^{M}(1/j^a)},
+  \qquad k=1,2,\ldots,M,
+\]
+并且在其他地方为 $0$。这种分布常用于语言学中研究词频。
+
+构造一条 Markov 链 $X_0,X_1,\ldots$，使其平稳分布为 Zipf 分布，并且对所有 $n$ 都有 $|X_{n+1}-X_n|\le1$。答案应当给出每一步如何由 $X_n$ 转移到 $X_{n+1}$ 的清楚描述。
+
+\noindent\textit{解.}\quad 可以使用 Metropolis-Hastings 算法。提议分布有很多选择，一个简单选择是在 $\{1,2,\ldots,M\}$ 上作如下随机游走：若当前状态为 $i$ 且 $i\ne1,M$，则以概率 $1/2$ 移动到 $i-1$，以概率 $1/2$ 移动到 $i+1$；若处于状态 $1$，则以概率 $1/2$ 留在 $1$，以概率 $1/2$ 移动到 $2$；若处于状态 $M$，则以概率 $1/2$ 留在 $M$，以概率 $1/2$ 移动到 $M-1$。这条链如下图所示。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{12-1.png}
+  \caption{Zipf 分布模拟的提议链。}
+\end{figure}
+
+设 $P$ 为这条提议链的转移矩阵。由于 $P$ 是对称矩阵，命题 11.4.3 说明 $P$ 的平稳分布为均匀分布。Metropolis-Hastings 算法会把 $P$ 改造成一条以 Zipf 分布为平稳分布的链。
+
+任取初始状态 $X_0$，并按如下方式生成链 $X_0,X_1,\ldots$。若当前状态为 $i$：
+\begin{enumerate}
+  \item 按提议链 $P$ 生成一个候选状态 $j$。
+  \item 以概率
+  \[
+    \min\left(\frac{i^a}{j^a},1\right)
+  \]
+  接受提议。若接受，则转到 $j$；否则留在 $i$。
+\end{enumerate}
+这条链容易实现，一次移动所需计算很少；注意，归一化常数 $\sum_{j=1}^{M}(1/j^a)$ 并不需要用来运行这条链。
+
+\noindent\textbf{例 12.1.4（Beta 模拟）}\quad 回到本章开头提到的 Beta 模拟问题。假设我们想生成 $W\sim\operatorname{Beta}(a,b)$。
+
+\begin{enumerate}
+  \item[(a)] 若 $a,b$ 是正整数，如何利用一个故事和均匀分布的普适性精确生成 $W$？
+  \item[(b)] 若 $a,b$ 是任意正实数，如何借助状态空间 $(0,1)$ 上的一条 Markov 链，近似生成 $W\sim\operatorname{Beta}(a,b)$？
+\end{enumerate}
+
+\noindent\textit{解.}\quad (a) 直接对 Beta 分布使用均匀分布的普适性并不容易，所以先使用银行--邮局故事：若
+\[
+  X\sim\operatorname{Gamma}(a,1),\qquad
+  Y\sim\operatorname{Gamma}(b,1)
+\]
+独立，则
+\[
+  \frac{X}{X+Y}\sim\operatorname{Beta}(a,b).
+\]
+因此，如果能模拟 Gamma 分布，就能模拟 Beta 分布。
+
+为了模拟 $X\sim\operatorname{Gamma}(a,1)$，可以取
+\[
+  X_1+X_2+\cdots+X_a,
+\]
+其中 $X_j$ 独立同分布为 $\operatorname{Expo}(1)$；类似地，可以把 $Y\sim\operatorname{Gamma}(b,1)$ 模拟成 $b$ 个独立 $\operatorname{Expo}(1)$ 随机变量之和。最后，由 $\operatorname{Expo}(1)$ 的 CDF 取反函数并应用均匀分布的普适性，若 $U\sim\operatorname{Unif}(0,1)$，则
+\[
+  -\log(1-U)\sim\operatorname{Expo}(1).
+\]
+于是我们可以容易地构造任意多个 $\operatorname{Expo}(1)$ 随机变量。
+
+(b) 使用 Metropolis-Hastings 算法。前面只在有限状态空间上介绍了 Metropolis-Hastings，但在无限状态空间上思想类似。一个简单可用的提议链，是每一步独立生成一个 $\operatorname{Unif}(0,1)$ 随机变量。也就是说，区间 $(0,1)$ 上的提议状态总是一个新的 $\operatorname{Unif}(0,1)$ 值，并且与当前状态独立。由此得到的 Metropolis-Hastings 链称为 \textbf{independence sampler}。
+
+任取初始状态 $W_0$，并按如下方式生成链 $W_0,W_1,\ldots$。若当前状态为 $w$：
+\begin{enumerate}
+  \item 生成一个 $\operatorname{Unif}(0,1)$ 随机变量，作为提议值 $u$。
+  \item 以概率
+  \[
+    \min\left(
+      \frac{u^{a-1}(1-u)^{b-1}}{w^{a-1}(1-w)^{b-1}},
+      1
+    \right)
+  \]
+  接受提议。若接受，则转到 $u$；否则留在 $w$。
+\end{enumerate}
+
+同样，运行这条链不需要归一化常数。求接受概率时，$\operatorname{Beta}(a,b)$ 的 PDF 扮演目标分布 $\mathbf s$ 的角色，而 $\operatorname{Unif}(0,1)$ 的 PDF 扮演 $p_{ij}$ 与 $p_{ji}$ 的角色，因为提议值都是与当前状态独立的 $\operatorname{Unif}(0,1)$ 随机变量。
+
+运行这条 Markov 链后，当 $n$ 很大时，$W_n,W_{n+1},W_{n+2},\ldots$ 近似服从 $\operatorname{Beta}(a,b)$。注意，它们是\textbf{相关}随机变量，而不是独立同分布抽样。
+
+\noindent\textbf{$\biohazard$ 12.1.5（MCMC 会产生相关样本）}\quad 在用 Markov 链 $X_0,X_1,\ldots$ 作 Monte Carlo 计算时，一个重要问题是链应该运行多久。原因之一是，通常很难知道时刻 $n$ 时链的分布离平稳分布有多近。另一个问题是，一般来说 $X_0,X_1,\ldots$ 是相关的。有些链倾向于卡在状态空间的某些区域，而不是探索整个空间；如果链很容易卡住，那么 $X_n$ 与 $X_{n+1}$ 可能高度正相关。
+
+\textbf{滞后 $k$ 的自相关}是指当 $n$ 增大时，$X_n$ 与 $k$ 步之后的值 $X_{n+k}$ 之间的相关性。理想情况下，滞后 $k$ 的自相关应随着 $k$ 增大而迅速趋近于 $0$。高自相关通常意味着 Monte Carlo 近似的方差较高。
+
+如何判断一条链需要运行多久，以及如何诊断链是否已经运行足够久，是活跃的研究领域。一些通用建议是：让链运行非常多步，并尝试从不同初始点运行多条链，观察结果是否稳定。
+
+Metropolis-Hastings 即使在巨大状态空间中也常常有用。它甚至可以用于一些初看起来似乎与模拟分布无关的问题，例如破译。
+
+\noindent\textbf{例 12.1.6（破译）}\quad Markov 链近年来已被用于破译；本例介绍其中一种做法。一个\textbf{替换密码}是字母 $a$ 到 $z$ 的一个排列 $g$，通过把每个字母 $\alpha$ 替换为 $g(\alpha)$ 来加密消息。例如，若 $g$ 由下列排列给出：
+\begin{verbatim}
+abcdefghijklmnopqrstuvwxyz
+zyxwvutsrqponmlkjihgfedcba
+\end{verbatim}
+其中第二行列出 $g(a),g(b),\ldots,g(z)$，那么单词 ``statistics'' 会被加密为 ``hgzgrhgrxh''。状态空间是字母 $a$ 到 $z$ 的全部 $26!\approx4\cdot10^{26}$ 个排列。这是一个极大的空间：即使每纳秒能尝试一种排列，穷举所有排列也要超过 120 亿年。因此，逐个尝试所有排列的暴力方法不可行；我们转而考虑随机排列。
+
+\begin{enumerate}
+  \item[(a)] 考虑如下 Markov 链：在 $1$ 到 $26$ 中随机选取两个不同坐标，并交换第二行中对应的两个条目。例如，若选中 $7$ 和 $20$，则
+\begin{verbatim}
+abcdefghijklmnopqrstuvwxyz
+zyxwvutsrqponmlkjihgfedcba
+\end{verbatim}
+变为
+\begin{verbatim}
+abcdefghijklmnopqrstuvwxyz
+zyxwvugsrqponmlkjihtfedcba
+\end{verbatim}
+求从排列 $g$ 一步转移到排列 $h$ 的概率（对所有 $g,h$），并求这条链的平稳分布。
+
+  \item[(b)] 假设有一个系统会给每个排列 $g$ 指派一个正的“分数” $s(g)$。直观上，这可以衡量在 $g$ 是实际密码的条件下，观测到这段密文的可能性有多大。用 Metropolis-Hastings 算法构造一条 Markov 链，使其平稳分布与所有分数 $s(g)$ 成正比。
+\end{enumerate}
+
+\noindent\textit{解.}\quad (a) 从 $g$ 一步转移到 $h$ 的概率为 $0$，除非 $h$ 可以通过交换第二行中的两个条目由 $g$ 得到。若 $h$ 可以这样得到，则转移概率为
+\[
+  \frac{1}{\binom{26}{2}},
+\]
+因为共有 $\binom{26}{2}$ 种这样的交换，并且每种交换等可能。
+
+这条 Markov 链不可约，因为通过足够多次交换，可以从任一排列到达任一排列。注意 $p(g,h)=p(h,g)$，其中 $p(g,h)$ 是从 $g$ 到 $h$ 的转移概率。因此转移矩阵是对称的，平稳分布是在全部 $26!$ 个排列上的均匀分布。
+
+(b) 以 (a) 中的链作为提议链。从任意状态 $g$ 出发，用 (a) 中的链生成一个提议排列 $h$。然后抛一枚以概率
+\[
+  \min\left(\frac{s(h)}{s(g)},1\right)
+\]
+为正面的硬币；若为正面，则转到 $h$，若为反面，则留在 $g$。
+
+为了证明这条链具有所需平稳分布，可以引用算法 12.1.1 的一般证明，也可以直接验证可逆性条件。这里作后者：需要证明
+\[
+  s(g)q(g,h)=s(h)q(h,g)
+\]
+对所有 $g,h$ 成立，其中 $q(g,h)$ 是修改后链中从 $g$ 到 $h$ 的转移概率。若 $g=h$ 或 $q(g,h)=0$，等式显然成立；以下设 $g\ne h$ 且 $q(g,h)\ne0$。令 $p(g,h)$ 为 (a) 中提议链的转移概率，即在 $g$ 处提议 $h$ 的概率。
+
+先考虑 $s(g)\le s(h)$ 的情形。此时 $q(g,h)=p(g,h)$，并且
+\[
+  q(h,g)=p(h,g)\frac{s(g)}{s(h)}
+  =p(g,h)\frac{s(g)}{s(h)}
+  =q(g,h)\frac{s(g)}{s(h)}.
+\]
+所以 $s(g)q(g,h)=s(h)q(h,g)$。若 $s(h)<s(g)$，由对称论证（交换 $g$ 与 $h$ 的角色）可得同样结论。因此，状态 $g$ 的平稳概率与其分数 $s(g)$ 成正比。
+
+换句话说，利用 Metropolis-Hastings 算法，我们从一条长期看来会等可能访问所有密码的 Markov 链出发，构造出一条平稳分布会按照分数排序密码的 Markov 链；长期看来，最有希望的密码被访问得最频繁。
+
+下面再看一个状态空间巨大的 MCMC 例子。它乍看也不太像是在模拟一个分布。这个例子说明，MCMC 不仅可用于抽样，也可用于\textbf{优化}。
+
+\noindent\textbf{例 12.1.7（背包问题）}\quad Bilbo 发现了 $m$ 件宝物。他正在决定偷走（或者说取回，这取决于观察者立场）哪些宝物；他不能一次带走所有宝物，因为他最多只能携带 $w$ 磅重量。把宝物标号为 $1$ 到 $m$，设第 $j$ 件宝物价值 $g_j$ 枚金币、重量 $w_j$ 磅。于是 Bilbo 必须选择一个向量
+\[
+  x=(x_1,\ldots,x_m),
+\]
+其中若他拿走第 $j$ 件宝物，则 $x_j=1$，否则 $x_j=0$；并且所有被拿走宝物的总重量不能超过 $w$。令 $C$ 为所有这类向量组成的空间，即 $C$ 包含所有满足
+\[
+  \sum_{j=1}^{m}x_jw_j\le w
+\]
+的二元向量 $(x_1,\ldots,x_m)$。
+
+Bilbo 希望使所拿宝物的总价值最大。寻找最优解通常极其困难，这就是计算机科学中有悠久历史的\textbf{背包问题}。一般而言，暴力搜索完全不可行，所以 Bilbo 决定改用 MCMC 探索空间 $C$。
+
+\begin{enumerate}
+  \item[(a)] 考虑如下 Markov 链。从 $(0,0,\ldots,0)$ 开始。若当前状态为 $x=(x_1,\ldots,x_m)$，在 $\{1,2,\ldots,m\}$ 中均匀随机选取 $J$，并把 $x_J$ 替换为 $1-x_J$，从而得到 $y$。也就是说，切换是否拿走第 $J$ 件宝物。若 $y\notin C$，则留在 $x$；若 $y\in C$，则转到 $y$。证明 $C$ 上的均匀分布是这条链的平稳分布。
+
+  \item[(b)] 证明 (a) 中的链不可约，并且它可能非周期，也可能不是非周期的，这取决于 $w,w_1,\ldots,w_m$。
+
+  \item[(c)] (a) 中的链可以用来获得近似均匀的可行解，但 Bilbo 更关心价值较高的解。本部分的目标是构造一条 Markov 链，使其平稳分布对任一高价值解赋予的概率远高于任一低价值解。具体地，设我们想从分布
+  \[
+    s(x)\propto e^{\beta V(x)}
+  \]
+  中模拟，其中
+  \[
+    V(x)=\sum_{j=1}^{m}x_jg_j
+  \]
+  是 $x$ 的金币价值，$\beta$ 是正的常数。这个分布的想法是，以指数方式让高价值解比低价值解获得更大概率。构造一条具有该平稳分布的 Markov 链。
+\end{enumerate}
+
+\noindent\textit{解.}\quad (a) 转移矩阵是对称的，因为对 $x\ne y$，从 $x$ 到 $y$ 与从 $y$ 到 $x$ 的转移概率要么都为 $0$，要么都为 $1/m$。因此平稳分布是 $C$ 上的均匀分布。
+
+(b) 可以从任意 $x\in C$ 出发，一次丢下一件宝物，到达 $(0,0,\ldots,0)$；也可以从 $(0,0,\ldots,0)$ 出发，一次拿起一件宝物，到达任意 $y\in C$。合起来看，可以从任意状态到任意状态，所以这条链不可约。
+
+为了研究周期性，看几个简单情形。先考虑
+\[
+  w_1+\cdots+w_m<w
+\]
+的情形，即 Bilbo 可以同时携带所有宝物。此时所有长度为 $m$ 的二元向量都允许。因此 $(0,0,\ldots,0)$ 的周期为 $2$：从该状态出发，要想回到该状态，Bilbo 必须先拿起一件宝物，再放下一件宝物。事实上，若从 $(0,0,\ldots,0)$ 出发，经过任意奇数步后，他会携带奇数件宝物。
+
+现在考虑 $w_1>w$ 的情形，即第一件宝物对 Bilbo 来说太重。对任意 $x\in C$，链都有 $1/m$ 的概率尝试拿起第一件宝物；若发生这种尝试，链会留在 $x$。因此每个状态的周期都是 $1$。
+
+(c) 可以用 (a) 中的链作为提议链，应用 Metropolis-Hastings 算法。从 $(0,0,\ldots,0)$ 开始。若当前状态为 $x=(x_1,\ldots,x_m)$：
+\begin{enumerate}
+  \item 在 $\{1,2,\ldots,m\}$ 中均匀随机选取 $J$，并把 $x_J$ 替换为 $1-x_J$，从而得到 $y$。
+  \item 若 $y\notin C$，则留在 $x$。若 $y\in C$，则抛一枚以概率
+  \[
+    \min\left(1,e^{\beta(V(y)-V(x))}\right)
+  \]
+  为正面的硬币。若为正面，则转到 $y$；否则留在 $x$。
+\end{enumerate}
+
+这条链会收敛到所需平稳分布。但是应该如何选择 $\beta$？若 $\beta$ 很大，最优解会被赋予很高的概率，但链可能很慢才收敛到平稳分布，因为它很容易卡在\textbf{局部众数}：链可能处在一个虽非全局最优、但比一步可达的其他状态都更好的状态，于是拒绝转到别处的提议的概率可能很高。另一方面，若 $\beta$ 接近 $0$，链很容易探索空间，但也没有太大动力去发现好解。
+
+一种称为\textbf{模拟退火}的优化技术，可以避免只选定一个 $\beta$ 值。做法是指定一列 $\beta$ 值，使 $\beta$ 随时间逐渐增大。起初 $\beta$ 很小，空间 $C$ 可以被广泛探索；随着 $\beta$ 越来越大，平稳分布越来越集中在最优解上。“模拟退火”这个名称来自与金属退火的类比：金属先被加热到高温，再逐渐冷却，直到达到强而稳定的状态；$\beta$ 对应温度的倒数。
+
+正如例 12.1.4 所示，Metropolis-Hastings 算法也可以用于连续状态空间，此时使用 PDF 而不是 PMF。这在 Bayes 推断中特别有用，因为我们常常希望研究未知参数的后验分布。这个后验分布可能很难解析处理，而且可能有未知的归一化常数。
+
+MCMC 的做法是，从一条以该后验分布为平稳分布的 Markov 链中获得大量抽样。然后用这些抽样近似真实后验分布。例如，可以用这些抽样的样本均值估计后验均值，用这些抽样的样本中位数估计后验中位数。
+
+\noindent\textbf{例 12.1.8（Normal--Normal 共轭）}\quad 设
+\[
+  Y\mid\theta\sim\mathcal N(\theta,\sigma^2),
+\]
+其中 $\sigma^2$ 已知而 $\theta$ 未知。在 Bayes 框架下，把 $\theta$ 视为随机变量，并取先验分布
+\[
+  \theta\sim\mathcal N(\mu,\tau^2),
+\]
+其中 $\mu,\tau^2$ 是已知常数。这意味着我们有二层模型
+\[
+  \theta\sim\mathcal N(\mu,\tau^2),
+  \qquad
+  Y\mid\theta\sim\mathcal N(\theta,\sigma^2).
+\]
+说明如何用 Metropolis-Hastings 算法，在观测到 $Y$ 的值之后求 $\theta$ 的后验均值和方差。
+
+\noindent\textit{解.}\quad 观测到 $Y=y$ 后，可以用 Bayes 规则更新我们对 $\theta$ 的先验不确定性。由于我们关心 $\theta$ 的后验分布，所有不依赖于 $\theta$ 的项都可以并入归一化常数。因此
+\[
+  f_{\theta\mid Y}(\theta\mid y)
+  \propto
+  f_{Y\mid\theta}(y\mid\theta)f_\theta(\theta)
+  \propto
+  e^{-\frac{1}{2\sigma^2}(y-\theta)^2}
+  e^{-\frac{1}{2\tau^2}(\theta-\mu)^2}.
+\]
+因为指数中关于 $\theta$ 是二次函数，可以认出 $\theta$ 的后验 PDF 仍是 Normal PDF。也就是说，后验分布仍留在 Normal 分布族中，这说明 \textbf{Normal 是 Normal 的共轭先验}。事实上，通过配方（这里略去繁琐计算）可以得到 $\theta$ 的后验分布的显式公式：
+\[
+  \theta\mid Y=y
+  \sim
+  \mathcal N\left(
+    \frac{\frac{1}{\sigma^2}}{\frac{1}{\sigma^2}+\frac{1}{\tau^2}}y
+    +
+    \frac{\frac{1}{\tau^2}}{\frac{1}{\sigma^2}+\frac{1}{\tau^2}}\mu,
+    \frac{1}{\frac{1}{\sigma^2}+\frac{1}{\tau^2}}
+  \right).
+\]
+
+这个公式可以这样理解：
+\begin{itemize}
+  \item 后验均值 $E(\theta\mid Y=y)$ 是先验均值 $\mu$ 与观测数据 $y$ 的加权平均。权重由我们在得到数据之前对 $\theta$ 有多确定，以及数据本身测得有多精确来决定。若先验已经非常确定，则 $\tau^2$ 很小、$1/\tau^2$ 很大，因此先验均值 $\mu$ 得到很大权重。另一方面，若数据非常精确，则 $\sigma^2$ 很小、$1/\sigma^2$ 很大，因此数据 $y$ 得到很大权重。
+  \item 对后验方差而言，若把\textbf{精度}定义为方差的倒数，则结果简单地说：$\theta$ 的后验精度等于先验精度 $1/\tau^2$ 与数据精度 $1/\sigma^2$ 之和。
+\end{itemize}
+
+上面的解析推导很好，但假设我们不知道如何配方，或者想用具体的 $y,\sigma^2,\mu,\tau^2$ 数值检查计算。可以通过从 $\theta$ 的后验分布模拟来完成这件事，具体做法是用 Metropolis-Hastings 算法构造一条平稳分布为 $f_{\theta\mid Y}(\theta\mid y)$ 的 Markov 链。同样的方法也可用于许多比 Normal 分布更难解析处理的分布。生成 $\theta_0,\theta_1,\ldots$ 的一个 Metropolis-Hastings 算法如下。
+
+\begin{enumerate}
+  \item 若 $\theta_n=x$，按照某个转移规则提议新状态 $x'$。在连续状态空间中，一种做法是生成均值为 $0$ 的 Normal 随机变量 $\epsilon_n$，并加到当前状态上得到提议状态。也就是说，对某个常数 $d$，生成
+  \[
+    \epsilon_n\sim\mathcal N(0,d^2),
+  \]
+  然后令 $x'=x+\epsilon_n$。这是连续状态空间中转移矩阵的类比。唯一额外细节是选择 $d$；实践中通常选择一个既不太大也不太小的适中值。
+
+  \item 接受概率为
+  \[
+    a(x,x')=\min\left(
+      \frac{s(x')p(x',x)}{s(x)p(x,x')},
+      1
+    \right),
+  \]
+  其中 $s$ 是目标平稳 PDF（离散情形中是 PMF），$p(x,x')$ 是从 $x$ 提议 $x'$ 的概率密度（离散情形中对应 $p_{ij}$）。
+\end{enumerate}
+
+在本问题中，目标平稳 PDF 是 $f_{\theta\mid Y}$，所以把它作为 $s$。至于 $p(x,x')$，从 $x$ 提议 $x'$ 等价于 $\epsilon_n=x'-x$，所以在 $x'-x$ 处计算 $\epsilon_n$ 的 PDF，得到
+\[
+  p(x,x')=\frac{1}{\sqrt{2\pi}d}
+  e^{-\frac{1}{2d^2}(x'-x)^2}.
+\]
+不过，由于 $p(x',x)=p(x,x')$，这些项在接受概率中抵消，留下
+\[
+  a(x,x')=
+  \min\left(
+    \frac{f_{\theta\mid Y}(x'\mid y)}{f_{\theta\mid Y}(x\mid y)},
+    1
+  \right).
+\]
+再一次，归一化常数在接受概率的分子与分母中抵消。
+
+\begin{enumerate}
+  \item[3.] 抛一枚以概率 $a(x,x')$ 为正面的硬币，并且与 Markov 链独立。
+  \item[4.] 若硬币为正面，则接受提议，令 $\theta_{n+1}=x'$；否则留在原处，令 $\theta_{n+1}=x$。
+\end{enumerate}
+
+用参数 $Y=3,\mu=0,\sigma^2=1,\tau^2=4,d=1$ 运行该算法 $10^4$ 次，图 12.2 显示了得到的 $\theta$ 后验抽样直方图。后验分布确实看起来像一条 Normal 曲线。可以用样本均值和样本方差估计后验均值与方差。在得到的抽样中，样本均值为 $2.4$，样本方差为 $0.8$。这些数值与理论值很接近：
+\[
+  E(\theta\mid Y=3)
+  =
+  \frac{\frac{1}{\sigma^2}}{\frac{1}{\sigma^2}+\frac{1}{\tau^2}}y
+  +
+  \frac{\frac{1}{\tau^2}}{\frac{1}{\sigma^2}+\frac{1}{\tau^2}}\mu
+  =
+  \frac{1}{1+\frac14}\cdot3
+  +
+  \frac{\frac14}{1+\frac14}\cdot0
+  =2.4,
+\]
+\[
+  \operatorname{Var}(\theta\mid Y=3)
+  =
+  \frac{1}{\frac{1}{\sigma^2}+\frac{1}{\tau^2}}
+  =
+  \frac{1}{1+\frac14}
+  =0.8.
+\]
+由于 $\tau^2$ 大于 $\sigma^2$，先验不确定性相对较高，所以后验均值更靠近观测数据而不是先验均值。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{12-2.png}
+  \caption{$Y=3,\mu=0,\sigma^2=1,\tau^2=4$ 时，用 Metropolis-Hastings 得到的 $\theta$ 后验分布的 $10^4$ 次抽样直方图。样本均值为 $2.4$，样本方差为 $0.8$，与理论值一致。}
+\end{figure}
+
+为了帮助诊断 Markov 链是否充分探索了状态空间，可以作\textbf{迹图}，即把抽样值 $\theta_n$ 画成迭代次数 $n$ 的函数。图 12.3 给出三条迹图，对应提议标准差 $d$ 的三种选择：$d=100,d=1,d=0.01$。$d=100$ 的迹图有许多平坦区域，链停在原地不动，说明 $d$ 太大，提议经常被拒绝。另一方面，$d=0.01$ 太小；从迹图中可以看出链只迈很小的步子，无法远离起点。$d=1$ 刚好较合适，既没有 $d=100$ 链的低接受率，也没有 $d=0.01$ 链的受限移动性。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{12-3.png}
+  \caption{$d=100,1,0.01$ 时，$\theta_n$ 随迭代次数 $n$ 变化的迹图。}
+\end{figure}
+
+本例中，$\theta$ 的后验分布可以解析得到，所以我们只是为了说明而使用 MCMC，展示 MCMC 结果与理论结果一致。但同样的技术也适用于先验不共轭、后验不是命名分布的问题。
+
+\section*{12.2\quad Gibbs 抽样}
+
+Gibbs 抽样是一种 MCMC 算法，用来从联合分布中获得近似抽样。它基于逐个条件分布抽样：每一步更新一个变量，并保持所有其他变量固定，从该变量在给定其他变量时的条件分布中抽样。当这些条件分布容易处理时，这种方法尤其有用。
+
+先在二元情形中说明 Gibbs 抽样的工作方式，其中目标平稳分布是离散随机变量 $X$ 和 $Y$ 的联合 PMF。Gibbs sampler 有若干形式，取决于更新顺序。这里介绍两种主要形式：\textbf{systematic scan}，即按确定性顺序扫过各分量；以及 \textbf{random scan}，即每一步随机选择一个分量更新。
+
+\noindent\textbf{算法 12.2.1（Systematic scan Gibbs sampler）}\quad 设 $X$ 和 $Y$ 是离散随机变量，联合 PMF 为
+\[
+  p_{X,Y}(x,y)=P(X=x,Y=y).
+\]
+我们希望构造一条二维 Markov 链 $(X_n,Y_n)$，使其平稳分布为 $p_{X,Y}$。Systematic scan Gibbs sampler 交替更新 $X$ 分量与 $Y$ 分量。若当前状态为 $(X_n,Y_n)=(x_n,y_n)$，则在保持 $Y$ 分量固定时更新 $X$ 分量，再在保持 $X$ 分量固定时更新 $Y$ 分量：
+\begin{enumerate}
+  \item 从给定 $Y=y_n$ 时 $X$ 的条件分布中抽取 $x_{n+1}$，并令 $X_{n+1}=x_{n+1}$。
+  \item 从给定 $X=x_{n+1}$ 时 $Y$ 的条件分布中抽取 $y_{n+1}$，并令 $Y_{n+1}=y_{n+1}$。
+\end{enumerate}
+不断重复步骤 1 和 2，链
+\[
+  (X_0,Y_0),(X_1,Y_1),(X_2,Y_2),\ldots
+\]
+的平稳分布就是 $p_{X,Y}$。
+
+\noindent\textbf{算法 12.2.2（Random scan Gibbs sampler）}\quad 同样设 $X$ 和 $Y$ 是离散随机变量，联合 PMF 为 $p_{X,Y}(x,y)$。我们希望构造一条二维 Markov 链 $(X_n,Y_n)$，使其平稳分布为 $p_{X,Y}$。Random scan Gibbs sampler 的每一步会等概率随机选择一个分量，并根据给定另一个分量时的条件分布更新它：
+\begin{enumerate}
+  \item 等概率选择要更新的分量。
+  \item 若选中了 $X$ 分量，则从给定 $Y=y_n$ 时 $X$ 的条件分布中抽取 $x_{n+1}$，并令 $X_{n+1}=x_{n+1},Y_{n+1}=y_n$。类似地，若选中了 $Y$ 分量，则从给定 $X=x_n$ 时 $Y$ 的条件分布中抽取 $y_{n+1}$，并令 $X_{n+1}=x_n,Y_{n+1}=y_{n+1}$。
+\end{enumerate}
+不断重复步骤 1 和 2，链
+\[
+  (X_0,Y_0),(X_1,Y_1),(X_2,Y_2),\ldots
+\]
+的平稳分布就是 $p_{X,Y}$。
+
+Gibbs 抽样可以自然推广到更高维。若要从 $d$ 维联合分布中抽样，所构造的 Markov 链就是一列 $d$ 维随机向量。每一步选择向量的一个分量更新，并从该分量在给定其他分量最新取值时的条件分布中抽样。既可以按确定性顺序循环经过向量的各个分量，也可以每次随机选择一个分量更新。
+
+Gibbs sampler 比 Metropolis-Hastings 算法灵活性低，因为我们不能选择提议分布；但这也使它更简单，因为我们不需要选择提议分布。Gibbs 与 Metropolis-Hastings 的味道很不同：Gibbs 强调条件分布，Metropolis-Hastings 强调接受概率。不过这两个算法密切相关，如下所示。
+
+\noindent\textbf{定理 12.2.3（Random scan Gibbs 是 Metropolis-Hastings）}\quad Random scan Gibbs sampler 是 Metropolis-Hastings 算法的一个特例，其中提议总是被接受。特别地，random scan Gibbs sampler 的平稳分布如所期望。
+
+\noindent\textit{证明.}\quad 我们在二维情形中证明；任意维情形类似。设离散随机变量 $X$ 和 $Y$ 的联合 PMF 是目标平稳分布。使用如下提议分布来理解 Metropolis-Hastings 算法：从 $(x,y)$ 出发，随机选择一个坐标，并运行 random scan Gibbs sampler 的一步来更新它。
+
+为简化记号，写作
+\[
+  P(X=x,Y=y)=p(x,y),\qquad
+  P(Y=y\mid X=x)=p(y\mid x),\qquad
+  P(X=x\mid Y=y)=p(x\mid y).
+\]
+更严格地说，为了避免像 $p(5\mid3)$ 表示什么这样的疑问，应写成 $p_{Y\mid X}(y\mid x)$ 而不是 $p(y\mid x)$；但在此证明中，简写不会造成歧义。
+
+下面计算从 $(x,y)$ 到
+$(x',y')$ 的 Metropolis-Hastings 接受概率。状态 $(x,y)$ 与 $(x',y')$ 至少有一个分量相同，因为提议只更新一个分量。假设 $x=x'$（情形 $y=y'$ 对称），则接受概率为
+\[
+  \frac{p(x,y')p(y\mid x)\frac12}{p(x,y)p(y'\mid x)\frac12}
+  =
+  \frac{p(x)p(y'\mid x)p(y\mid x)}{p(x)p(y\mid x)p(y'\mid x)}
+  =1.
+\]
+因此，这个 Metropolis-Hastings 算法总是接受提议；它就是原封不动地运行 random scan Gibbs sampler。$\blacksquare$
+
+下面研究几个 Gibbs sampler 的具体例子。
+
+\noindent\textbf{例 12.2.4（图着色）}\quad 设 $G$ 是一个网络，也称为一个图：它有 $n$ 个节点，且任意两个不同节点之间可以有边，也可以没有边。我们有 $k$ 种颜色。例如，当 $k=7$ 时，颜色集合可以是
+\[
+  \{\text{red},\text{orange},\text{yellow},\text{green},\text{blue},\text{indigo},\text{violet}\}.
+\]
+图 $G$ 的一个 \textbf{$k$-着色}，是给每个节点指定一种颜色，使得由边相连的两个节点不能有相同颜色。图 12.4 展示了一个网络的 $3$-着色。图着色是计算机科学中的重要主题，有任务调度、数独等广泛应用。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.60\textwidth]{12-4.png}
+  \caption{一个网络的 $3$-着色。}
+\end{figure}
+
+假设 $G$ 可以被 $k$-着色。考虑所有 $G$ 的 $k$-着色组成的状态空间，并在其上构造如下 Markov 链：从 $G$ 的一个 $k$-着色出发，均匀随机选择一个节点，找出该节点的所有合法颜色，然后把该节点重新涂成一个均匀随机的合法颜色（注意这个随机颜色可能与当前颜色相同）。证明这条 Markov 链可逆，并求其平稳分布。
+
+\noindent\textit{解.}\quad 令 $C$ 为 $G$ 的所有 $k$-着色构成的集合。对 $C$ 中任意两个 $k$-着色 $i,j$，令 $q_{ij}$ 为从 $i$ 转到 $j$ 的转移概率。我们证明 $q_{ij}=q_{ji}$，这将推出平稳分布是 $C$ 上的均匀分布。
+
+对任意 $k$-着色 $i$ 与节点 $v$，令 $L(i,v)$ 为保持 $i$ 中所有其他节点颜色不变时，节点 $v$ 的合法颜色数。若 $i$ 与 $j$ 在超过一个节点处不同，则
+\[
+  q_{ij}=0=q_{ji}.
+\]
+若 $i=j$，显然 $q_{ij}=q_{ji}$。若 $i$ 与 $j$ 恰好在一个节点 $v$ 处不同，则 $L(i,v)=L(j,v)$，所以
+\[
+  q_{ij}=\frac1n\frac{1}{L(i,v)}
+  =
+  \frac1n\frac{1}{L(j,v)}
+  =q_{ji}.
+\]
+因此转移矩阵对称，平稳分布是在状态空间上的均匀分布。
+
+这为什么是 Gibbs 抽样的例子？可以把图中的每个节点看作一个离散随机变量，它可以取 $k$ 个可能值。各节点有一个联合分布，而相邻节点不能有相同颜色这一约束，在节点之间施加了复杂依赖结构。
+
+我们想从整张图的随机 $k$-着色中抽样，也就是从所有节点的联合分布中抽样。由于这很困难，改为对除一个节点以外的所有节点作条件化。若联合分布是所有合法着色上的均匀分布，那么给定所有其他节点时，某一节点的条件分布就是其合法颜色上的均匀分布。因此，在算法的每一步，我们都是从一个节点在给定所有其他节点时的条件分布中抽样；这正是在运行 random scan Gibbs sampler。
+
+\noindent\textbf{例 12.2.5（Darwin 的雀）}\quad Charles Darwin 访问 Galápagos 群岛时，记录了他在每个岛上观察到的雀类物种。表 12.1 总结了这些数据，每一行对应一个物种，每一列对应一个岛。表中 $(i,j)$ 位置为 $1$ 表示物种 $i$ 在岛 $j$ 上被观察到。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{table-12-1.png}
+  \caption{13 种雀类（行）在 17 个岛（列）上的出现情况。$(i,j)$ 处为 $1$ 表示物种 $i$ 在岛 $j$ 上被观察到。}
+\end{figure}
+
+给定这些数据，我们可能关心表中观测到的 $0$ 与 $1$ 的模式是否有某种异常。例如，行与列之间是否看起来有依赖？某些物种对是否经常共同出现在同一个岛上，比偶然情形下预期的更频繁？这些模式可能揭示物种间合作或竞争的动态。检验这类模式的一种方法，是观察许多与观测表具有相同行和列和的随机表，并比较观测表与随机表。这是统计学中常见的\textbf{拟合优度检验}思想。
+
+但如何生成与表 12.1 有相同行和列和的随机表？满足这些约束的表数量不可能逐个枚举。MCMC 可以帮忙：构造一条 Markov 链，状态空间为所有具有这些行和列和的表，其平稳分布是在所有这类表上的均匀分布。
+
+为了构造 Markov 链，需要一种从一个表转到另一个表的方法，而且不能改变行和列和。从观测表出发，随机选择两行与两列。若它们交叉处的四个条目具有下列两种模式之一：
+\[
+  \begin{matrix}0&1\\1&0\end{matrix}
+  \qquad\text{或}\qquad
+  \begin{matrix}1&0\\0&1\end{matrix},
+\]
+则以概率 $1/2$ 切换到相反模式；否则留在原处。例如，若选择第 $1$ 行和第 $3$ 行、第 $1$ 列和第 $17$ 列，则以概率 $1/2$ 把四个交叉条目从
+\[
+  \begin{matrix}0&1\\1&0\end{matrix}
+  \quad\text{切换为}\quad
+  \begin{matrix}1&0\\0&1\end{matrix}.
+\]
+这是一个对称转移规则：对所有表 $t,t'$，从 $t$ 到 $t'$ 的转移概率等于从 $t'$ 到 $t$ 的转移概率。转移不会改变行和列和，并且可以证明这样定义的 Markov 链不可约。因此，平稳分布是在具有给定行和列和的所有表上的均匀分布。
+
+若把这个过程解释为 Gibbs sampler，可以考虑在给定表中除了所选两行两列交叉处四个条目以外的所有条目时，这四个条目的条件分布。若平稳分布是在具有给定行和列和的所有表上的均匀分布，那么这四个条目的条件分布必须是在所有不改变行和列和的构型上均匀分布，也就是在
+\[
+  \begin{matrix}0&1\\1&0\end{matrix}
+  \quad\text{与}\quad
+  \begin{matrix}1&0\\0&1\end{matrix}
+\]
+上均匀分布。因此，在每一步中，我们都是从给定其余所有条目时这四个条目的条件分布中抽样。
+
+和 Metropolis-Hastings 一样，Gibbs 抽样也适用于连续分布，此时把条件 PMF 换成条件 PDF。
+
+\noindent\textbf{例 12.2.6（未知参数的鸡蛋孵化问题）}\quad 一只鸡下 $N$ 个蛋，其中
+\[
+  N\sim\operatorname{Pois}(\lambda).
+\]
+每个蛋以概率 $p$ 孵化，其中 $p$ 未知；设
+\[
+  p\sim\operatorname{Beta}(a,b).
+\]
+常数 $\lambda,a,b$ 已知。关键是：我们无法观测到 $N$，只观测到孵化的蛋数 $X$。说明如何使用 Gibbs 抽样来求
+\[
+  E(p\mid X=x),
+\]
+即观测到 $x$ 个蛋孵化之后 $p$ 的后验均值。
+
+\noindent\textit{解.}\quad 由鸡蛋孵化故事，给定 $p$ 时 $X$ 的分布为 $\operatorname{Pois}(\lambda p)$。$p$ 的后验 PDF 满足
+\[
+  f(p\mid X=x)
+  \propto
+  P(X=x\mid p)f(p)
+  \propto
+  e^{-\lambda p}(\lambda p)^x p^{a-1}q^{b-1},
+\]
+其中 $q=1-p$，并且已删去所有不依赖于 $p$ 的项。
+
+这不是一个命名分布，所以看起来似乎陷入困境；但可以通过条件化摆脱困境。我们希望知道什么？总蛋数。若观测到 $N=n$ 且知道 $p$ 的真值，那么 $X$ 的分布为 $\operatorname{Bin}(n,p)$。对总蛋数条件化后，可以恢复 $p$ 与 $X$ 之间的 Beta--Binomial 共轭性，由故事 8.3.3 可直接写出
+\[
+  p\mid X=x,N=n\sim\operatorname{Beta}(x+a,n-x+b).
+\]
+
+条件化于 $N$ 会让问题变得更好，这启发我们用 Gibbs 抽样。我们在给定 $N$ 时抽取 $p$，再在给定 $p$ 时抽取 $N$；整个过程中还必须条件化于 $X=x$，因为我们想根据证据学习参数的后验分布。
+
+先为 $p$ 与 $N$ 给一个初始猜测，然后反复迭代以下步骤：
+\begin{enumerate}
+  \item 给定 $N=n$ 与 $X=x$，从
+  \[
+    \operatorname{Beta}(x+a,n-x+b)
+  \]
+  分布中抽取新的 $p$。
+  \item 给定 $p$ 与 $X=x$，未孵化蛋数 $Y$ 由鸡蛋孵化故事满足
+  \[
+    Y\sim\operatorname{Pois}(\lambda(1-p)).
+  \]
+  因此从 $\operatorname{Pois}(\lambda(1-p))$ 中抽取 $Y$，并把新的 $N$ 设为 $N=x+Y$。
+\end{enumerate}
+
+经过很多次迭代后，我们同时得到 $p$ 与 $N$ 的抽样。如果只关心 $p$，可以忽略 $N$ 的抽样，因为 $N$ 只是帮助我们抽取 $p$ 的辅助变量。图 12.5 显示了当 $\lambda=10,a=b=1$（对应 $p$ 上的 $\operatorname{Unif}(0,1)$ 先验）且观测到 $X=7$ 个蛋孵化时，$p$ 与 $N$ 的后验抽样直方图。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.90\textwidth]{12-5.png}
+  \caption{$\lambda=10,a=1,b=1$ 且观测到 $X=7$ 时，$p$ 与 $N$ 后验分布的 $10^4$ 次抽样直方图。}
+\end{figure}
+
+对于题目原本要求的后验均值 $E(p\mid X=x)$，可以取 $p$ 抽样的样本均值作为良好近似。在这个例子中，样本均值为 $0.68$。本题的关键策略是把未观测到的蛋数 $N$ 加入模型中，使条件分布变得好处理，从而可以方便地使用 Gibbs 抽样。
+
+\section*{12.3\quad 小结}
+
+Markov 链 Monte Carlo 允许我们利用 Markov 链从复杂分布中抽样。近年来，MCMC 已被应用到非常广泛的问题中。MCMC 算法的主要思想，是构造一条 Markov 链，使其平稳分布等于我们希望抽样的目标分布。运行这条 Markov 链很久之后，链取到的值可以作为来自目标分布的抽样。
+
+本章讨论了两个 MCMC 算法：Metropolis-Hastings 与 Gibbs 抽样。Metropolis-Hastings 算法使用状态空间上的任意不可约 Markov 链来生成提议，然后接受或拒绝这些提议，从而得到一条以目标分布为平稳分布的修改后 Markov 链。此外，所得链是可逆的。实践中，提议分布的选择极其重要，因为不好的提议分布可能导致链很慢才收敛到平稳分布。
+
+Gibbs 抽样是一种从 $d$ 维联合分布中抽样的方法。它每次更新 $d$ 维 Markov 链的一个分量，并条件化于所有其他分量。更新可以通过 \textbf{systematic scan} 完成，即按固定顺序确定性地循环经过各分量；也可以通过 \textbf{random scan} 完成，即每一步随机选择要更新的分量。
+
+\section*{12.5\quad 习题}
+
+\begin{enumerate}
+  \item 设 $p(x,y)$ 是两个离散随机变量 $X$ 与 $Y$ 的联合 PMF。沿用 Gibbs 抽样中的简写记号，令 $p(x)$ 与 $p(y)$ 分别为 $X$ 与 $Y$ 的边际 PMF，令 $p(x\mid y)$ 与 $p(y\mid x)$ 分别为给定 $Y$ 时 $X$、给定 $X$ 时 $Y$ 的条件 PMF。假设 $Y$ 的支撑集与条件分布 $Y\mid X$ 的支撑集相同。
+
+  \begin{enumerate}
+    \item[(a)] 利用恒等式
+    \[
+      p(x)p(y\mid x)=p(y)p(x\mid y)
+    \]
+    求出用条件 PMF $p(x\mid y)$ 与 $p(y\mid x)$ 表示边际 PMF $p(y)$ 的表达式。
+
+    提示：把恒等式改写为
+    \[
+      \frac{p(x)}{p(y)}=\frac{p(x\mid y)}{p(y\mid x)}
+    \]
+    并求和。
+
+    \item[(b)] 解释为什么两个条件分布 $p(x\mid y)$ 与 $p(y\mid x)$ 能决定联合分布 $p(x,y)$，并说明这一事实与 Gibbs 抽样有什么关系。
+  \end{enumerate}
+
+  \item 设有一个网络 $G$，它有 $n$ 个节点以及若干条边。$G$ 的每个节点都可以为空，也可以被占据。我们希望在 $G$ 的节点上放置粒子，并使粒子不要太拥挤。因此，定义一个可行构型为一种粒子放置方式：每个节点至多被一个粒子占据，并且被占据节点的任一邻居都不能被占据。
+
+  构造一条 Markov 链，使其平稳分布是在所有可行构型上的均匀分布。请清楚说明这条 Markov 链的转移规则，并解释为什么其平稳分布是均匀分布。
+
+  \item 本题考虑 MCMC 技术在图像分析中的一个应用。设有一幅二维图像，由一个 $L\times L$ 的黑白像素网格组成。令 $Y_j$ 表示第 $j$ 个像素为白色的指示变量，其中 $j=1,\ldots,L^2$。把像素看成网络中的节点时，一个像素的邻居是在其正上方、正下方、正左方与正右方的像素（边界情形除外）。
+
+  记 $i\sim j$ 表示“$i$ 与 $j$ 是邻居”。向量 $\mathbf Y=(Y_1,\ldots,Y_{L^2})$ 的联合 PMF 的一个常用模型是
+  \[
+    P(\mathbf Y=\mathbf y)\propto
+    \exp\left(
+      \beta\sum_{(i,j):\,i\sim j} I(y_i=y_j)
+    \right).
+  \]
+  若 $\beta$ 为正，这表示相邻像素倾向于具有相同颜色。该联合 PMF 的归一化常数需要对所有 $2^{L^2}$ 个可能构型求和，因此计算上可能非常困难。这促使我们用 MCMC 从该模型中模拟。
+
+  \begin{enumerate}
+    \item[(a)] 假设要在某个已知的 $\beta$ 值下，从 $\mathbf Y$ 的联合 PMF 中模拟随机抽样。说明如何用 Gibbs 抽样完成此事，其中像素按一个固定顺序逐个循环更新。
+
+    \item[(b)] 现在给出一个用于本问题的 Metropolis-Hastings 算法，其中提议为：均匀随机选取一个位置，并把该位置的取值翻转。
+  \end{enumerate}
+\end{enumerate}
+
+\end{document}

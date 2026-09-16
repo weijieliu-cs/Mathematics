@@ -1,0 +1,421 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\title{Jensen's Inequality：Jensen 不等式}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+Jensen 不等式是凸函数理论中最常用的不等式之一. 它的核心思想可以概括为一句话：
+\[
+  \text{先平均再代入凸函数，不超过先代入凸函数再平均.}
+\]
+也就是说，凸函数会把``分散''放大；若数据围绕同一个均值波动，凸函数值的平均通常会比均值处的函数值更大. 对凹函数，方向相反.
+
+这条不等式同时统一了许多熟悉结论，例如算术--几何平均不等式、均方不小于平方均值、KL 散度非负、变分推理中的证据下界等. 因此，理解 Jensen 不等式，实际上就是理解``凸性怎样进入平均过程''.
+
+\section*{一、凸函数的基本概念}
+
+\noindent\textbf{定义}\quad 设 $I$ 是 $\mathbb R$ 中的区间，函数 $f:I\to\mathbb R$ 称为\textbf{凸函数}，如果对任意 $x,y\in I$ 及任意 $\lambda\in[0,1]$，都有
+\[
+  f\bigl(\lambda x+(1-\lambda)y\bigr)
+  \le
+  \lambda f(x)+(1-\lambda)f(y).
+\]
+若上式在 $x\ne y$ 且 $\lambda\in(0,1)$ 时总是严格不等式，则称 $f$ 为\textbf{严格凸函数}.
+
+若 $-f$ 是凸函数，则称 $f$ 为\textbf{凹函数}. 等价地，$f$ 是凹函数当且仅当
+\[
+  f\bigl(\lambda x+(1-\lambda)y\bigr)
+  \ge
+  \lambda f(x)+(1-\lambda)f(y).
+\]
+
+从图像上看，凸函数图像上任意两点之间的弦都在图像上方；凹函数则相反，弦在图像下方. 因此，凸性并不是说函数一定单调，也不是说函数值一定为正，而是说函数图像对线性插值的弯曲方向.
+
+\noindent\textbf{二阶导数判别}\quad 若 $f$ 在区间 $I$ 的内部二阶可导，则
+\[
+  f''(x)\ge0\quad(x\in I)
+\]
+通常是判断凸性的最直接方法. 若 $f''(x)>0$ 恒成立，则 $f$ 严格凸. 类似地，若 $f''(x)\le0$，则 $f$ 凹；若 $f''(x)<0$，则 $f$ 严格凹.
+
+\noindent\textbf{例}\quad 下列函数在相应定义域上具有常用的凸凹性：
+\[
+\begin{array}{c|c|c}
+  \text{函数} & \text{定义域} & \text{性质}\\ \hline
+  e^x & \mathbb R & \text{严格凸}\\
+  x^2 & \mathbb R & \text{严格凸}\\
+  -\ln x & (0,+\infty) & \text{严格凸}\\
+  \ln x & (0,+\infty) & \text{严格凹}\\
+  x^p & (0,+\infty) & p\ge1\text{ 或 }p\le0\text{ 时凸}\\
+  x^p & (0,+\infty) & 0<p<1\text{ 时严格凹}\\
+  x\ln x & [0,+\infty) & \text{凸，其中约定 }0\ln0=0
+\end{array}
+\]
+
+\section*{二、Jensen 不等式的有限形式}
+
+\noindent\textbf{定理（Jensen 不等式，有限加权形式）}\quad 设 $f:I\to\mathbb R$ 是区间 $I$ 上的凸函数，$x_1,x_2,\cdots,x_n\in I$，权重满足
+\[
+  w_i\ge0,\qquad \sum_{i=1}^n w_i=1.
+\]
+则
+\[
+  f\left(\sum_{i=1}^n w_i x_i\right)
+  \le
+  \sum_{i=1}^n w_i f(x_i).
+\]
+若 $f$ 是凹函数，则不等号方向反向：
+\[
+  f\left(\sum_{i=1}^n w_i x_i\right)
+  \ge
+  \sum_{i=1}^n w_i f(x_i).
+\]
+
+特别地，当 $w_1=w_2=\cdots=w_n=1/n$ 时，有
+\[
+  f\left(\frac{x_1+x_2+\cdots+x_n}{n}\right)
+  \le
+  \frac{f(x_1)+f(x_2)+\cdots+f(x_n)}{n}.
+\]
+
+\noindent\textbf{等号条件}\quad 若 $f$ 严格凸，并且所有正权重点 $x_i$ 不全相等，则 Jensen 不等式为严格不等式：
+\[
+  f\left(\sum_{i=1}^n w_i x_i\right)
+  <
+  \sum_{i=1}^n w_i f(x_i).
+\]
+因此，在 $f$ 严格凸且 $w_i>0$ 的情形下，等号成立当且仅当
+\[
+  x_1=x_2=\cdots=x_n.
+\]
+若 $f$ 不是严格凸，则还可能出现另一种等号情形：所有 $x_i$ 落在 $f$ 的某个线性区间内.
+
+\section*{三、为什么它成立}
+
+\subsection*{由二点凸性推出多点 Jensen}
+
+\noindent\textbf{证明}\quad 当 $n=2$ 时，Jensen 不等式正是凸函数定义：
+\[
+  f(w_1x_1+w_2x_2)
+  \le
+  w_1f(x_1)+w_2f(x_2),
+  \qquad w_1+w_2=1.
+\]
+
+假设结论对 $n-1$ 个点成立. 对 $n$ 个点，令
+\[
+  s=w_1+w_2+\cdots+w_{n-1}.
+\]
+若 $s=0$，则 $w_n=1$，结论显然成立. 若 $s>0$，设
+\[
+  y=\frac{1}{s}\sum_{i=1}^{n-1}w_i x_i.
+\]
+于是
+\[
+  \sum_{i=1}^n w_i x_i=sy+w_nx_n,\qquad s+w_n=1.
+\]
+由二点凸性，
+\[
+  f\left(\sum_{i=1}^n w_i x_i\right)
+  =f(sy+w_nx_n)
+  \le
+  sf(y)+w_nf(x_n).
+\]
+再由归纳假设，
+\[
+  f(y)
+  =
+  f\left(\sum_{i=1}^{n-1}\frac{w_i}{s}x_i\right)
+  \le
+  \sum_{i=1}^{n-1}\frac{w_i}{s}f(x_i).
+\]
+代回即得
+\[
+  f\left(\sum_{i=1}^n w_i x_i\right)
+  \le
+  \sum_{i=1}^{n-1}w_if(x_i)+w_nf(x_n)
+  =
+  \sum_{i=1}^n w_if(x_i).
+\]
+归纳完成.
+
+\subsection*{用切线观点证明}
+
+若 $f$ 是可微凸函数，则图像位于任意切线之上，即对任意 $a,x\in I$，
+\[
+  f(x)\ge f(a)+f'(a)(x-a).
+\]
+令
+\[
+  \bar x=\sum_{i=1}^n w_i x_i.
+\]
+对每个 $x_i$ 应用上式，并取 $a=\bar x$，得到
+\[
+  f(x_i)\ge f(\bar x)+f'(\bar x)(x_i-\bar x).
+\]
+两边乘以 $w_i$ 后求和：
+\[
+  \sum_{i=1}^n w_if(x_i)
+  \ge
+  f(\bar x)\sum_{i=1}^n w_i
+  +f'(\bar x)\sum_{i=1}^n w_i(x_i-\bar x).
+\]
+由于
+\[
+  \sum_{i=1}^n w_i=1,\qquad
+  \sum_{i=1}^n w_i(x_i-\bar x)=0,
+\]
+所以
+\[
+  \sum_{i=1}^n w_if(x_i)\ge f(\bar x).
+\]
+这正是 Jensen 不等式. 这个证明说明了 Jensen 不等式的几何本质：凸函数在均值点的切线支撑住整个函数图像，平均以后，偏差项彼此抵消，只留下函数值的比较.
+
+\section*{四、概率形式、积分形式与多元形式}
+
+\noindent\textbf{概率形式}\quad 设 $X$ 是取值于区间 $I$ 的随机变量，$f$ 是 $I$ 上的凸函数，且有关期望存在. 则
+\[
+  f\bigl(\mathbb E X\bigr)\le \mathbb E f(X).
+\]
+若 $f$ 是凹函数，则
+\[
+  f\bigl(\mathbb E X\bigr)\ge \mathbb E f(X).
+\]
+有限加权 Jensen 正是离散随机变量的概率形式：令
+\[
+  \mathbb P(X=x_i)=w_i,
+\]
+则 $\mathbb E X=\sum_iw_ix_i$，$\mathbb Ef(X)=\sum_iw_if(x_i)$.
+
+\noindent\textbf{条件期望形式}\quad 更一般地，若 $f$ 凸，则
+\[
+  f\bigl(\mathbb E[X\mid\mathcal G]\bigr)
+  \le
+  \mathbb E[f(X)\mid\mathcal G].
+\]
+它可以理解为：在已经知道信息 $\mathcal G$ 的条件下，``条件平均以后再代入凸函数''仍不超过``先代入凸函数再作条件平均''.
+
+\noindent\textbf{积分形式}\quad 设 $g$ 在区间 $[a,b]$ 上取值于 $I$，$f$ 是 $I$ 上的凸函数，则
+\[
+  f\left(\frac{1}{b-a}\int_a^b g(t)\,dt\right)
+  \le
+  \frac{1}{b-a}\int_a^b f(g(t))\,dt.
+\]
+若带权函数 $\rho(t)\ge0$，且 $\int_a^b\rho(t)\,dt>0$，则
+\[
+  f\left(\frac{\int_a^b \rho(t)g(t)\,dt}{\int_a^b\rho(t)\,dt}\right)
+  \le
+  \frac{\int_a^b \rho(t)f(g(t))\,dt}{\int_a^b\rho(t)\,dt}.
+\]
+
+\noindent\textbf{多元形式}\quad 设 $C\subseteq\mathbb R^d$ 是凸集，$f:C\to\mathbb R$ 是凸函数，$x_i\in C$，$w_i\ge0$ 且 $\sum_iw_i=1$. 则
+\[
+  f\left(\sum_{i=1}^n w_ix_i\right)
+  \le
+  \sum_{i=1}^n w_if(x_i).
+\]
+这里 $\sum_iw_ix_i$ 是点 $x_i$ 的凸组合，仍然属于凸集 $C$.
+
+\section*{五、典型应用}
+
+\subsection*{算术--几何平均不等式}
+
+函数 $\ln x$ 在 $(0,+\infty)$ 上严格凹. 对正数 $x_1,\cdots,x_n$ 应用凹函数形式的 Jensen 不等式，得到
+\[
+  \ln\left(\frac{x_1+x_2+\cdots+x_n}{n}\right)
+  \ge
+  \frac{\ln x_1+\ln x_2+\cdots+\ln x_n}{n}.
+\]
+两边取指数，得
+\[
+  \frac{x_1+x_2+\cdots+x_n}{n}
+  \ge
+  \sqrt[n]{x_1x_2\cdots x_n}.
+\]
+这就是算术--几何平均不等式. 等号成立当且仅当
+\[
+  x_1=x_2=\cdots=x_n.
+\]
+
+带权形式同样成立：
+\[
+  \sum_{i=1}^n w_ix_i
+  \ge
+  \prod_{i=1}^n x_i^{w_i}.
+\]
+
+\subsection*{均方不小于平方均值}
+
+函数 $f(x)=x^2$ 在 $\mathbb R$ 上严格凸. 因此
+\[
+  \left(\sum_{i=1}^n w_ix_i\right)^2
+  \le
+  \sum_{i=1}^n w_ix_i^2.
+\]
+当 $w_i=1/n$ 时，
+\[
+  \left(\frac{x_1+x_2+\cdots+x_n}{n}\right)^2
+  \le
+  \frac{x_1^2+x_2^2+\cdots+x_n^2}{n}.
+\]
+若 $x_i\ge0$，则进一步得到
+\[
+  \frac{x_1+x_2+\cdots+x_n}{n}
+  \le
+  \sqrt{\frac{x_1^2+x_2^2+\cdots+x_n^2}{n}},
+\]
+即算术平均不超过平方平均.
+
+\subsection*{调和平均不超过算术平均}
+
+函数 $f(x)=1/x$ 在 $(0,+\infty)$ 上严格凸. 对正数 $x_i$ 应用 Jensen 不等式：
+\[
+  \frac{1}{\sum_{i=1}^n w_ix_i}
+  \le
+  \sum_{i=1}^n \frac{w_i}{x_i}.
+\]
+两边取倒数，方向反向，得到
+\[
+  \left(\sum_{i=1}^n \frac{w_i}{x_i}\right)^{-1}
+  \le
+  \sum_{i=1}^n w_ix_i.
+\]
+左端是带权调和平均，右端是带权算术平均.
+
+\subsection*{指数函数与对数和}
+
+函数 $e^x$ 严格凸，因此
+\[
+  \exp\left(\sum_{i=1}^n w_ix_i\right)
+  \le
+  \sum_{i=1}^n w_ie^{x_i}.
+\]
+取对数得到
+\[
+  \sum_{i=1}^n w_ix_i
+  \le
+  \ln\left(\sum_{i=1}^n w_ie^{x_i}\right).
+\]
+这个不等式常用于分析 $\log$-$\operatorname{sum}$-$\exp$ 函数. 它说明 $\ln(\sum_iw_ie^{x_i})$ 至少不小于 $x_i$ 的加权平均.
+
+\subsection*{KL 散度非负}
+
+设 $p_i>0,q_i>0$，且
+\[
+  \sum_{i=1}^n p_i=\sum_{i=1}^n q_i=1.
+\]
+由于 $\ln x$ 是凹函数，由 Jensen 不等式可得
+\[
+  \sum_{i=1}^n p_i\ln\frac{q_i}{p_i}
+  \le
+  \ln\left(\sum_{i=1}^n p_i\frac{q_i}{p_i}\right)
+  =
+  \ln\left(\sum_{i=1}^n q_i\right)
+  =0.
+\]
+于是
+\[
+  D_{\mathrm{KL}}(p\|q)
+  =
+  \sum_{i=1}^n p_i\ln\frac{p_i}{q_i}
+  \ge0.
+\]
+当 $p_i=q_i$ 对所有 $i$ 成立时等号成立；若所有 $p_i>0$，则这是唯一的等号情形.
+
+\subsection*{机器学习中的下界构造}
+
+设 $z_1,\cdots,z_n>0$，$q_i\ge0$ 且 $\sum_iq_i=1$. 因为 $\ln x$ 是凹函数，
+\[
+  \ln\left(\sum_{i=1}^n z_i\right)
+  =
+  \ln\left(\sum_{i=1}^n q_i\frac{z_i}{q_i}\right)
+  \ge
+  \sum_{i=1}^n q_i\ln\frac{z_i}{q_i},
+\]
+其中约定 $q_i=0$ 的项按极限理解. 这就是许多变分下界、EM 算法和混合模型推导中常见的 Jensen 步骤. 通过引入可自由选择的分布 $q$，把难处理的 $\ln\sum_i z_i$ 转化为较容易优化的下界.
+
+\section*{六、常见用法模板}
+
+\noindent\textbf{模板 1：看到均值处的函数值}\quad 若目标中出现
+\[
+  f\left(\sum_iw_ix_i\right)
+\]
+并且 $f$ 是凸函数，就可以尝试估计为
+\[
+  f\left(\sum_iw_ix_i\right)\le\sum_iw_if(x_i).
+\]
+若 $f$ 是凹函数，则方向反过来.
+
+\noindent\textbf{模板 2：证明平均数链}\quad 若要比较两类平均数，常常先选择合适的凸函数或凹函数. 例如
+\[
+  \ln x\quad\text{给出}\quad G\le A,
+\]
+\[
+  x^2\quad\text{给出}\quad A\le Q,
+\]
+\[
+  1/x\quad\text{给出}\quad H\le A.
+\]
+这些不等式看似不同，本质上都来自凸性或凹性.
+
+\noindent\textbf{模板 3：把复杂函数移出期望}\quad 在概率论中，若需要比较
+\[
+  f(\mathbb EX)\quad\text{和}\quad \mathbb E f(X),
+\]
+第一反应应当是判断 $f$ 的凸凹性. 例如
+\[
+  (\mathbb EX)^2\le\mathbb EX^2,\qquad
+  e^{\mathbb EX}\le\mathbb Ee^X,\qquad
+  \ln(\mathbb EX)\ge\mathbb E\ln X.
+\]
+
+\section*{七、易错点}
+
+\noindent\textbf{1. 权重必须非负且和为 $1$}\quad Jensen 不等式中的 $w_i$ 是凸组合系数. 若权重中出现负数，或权重和不等于 $1$，就不能直接使用 Jensen 不等式. 若权重和为正但不是 $1$，应先归一化.
+
+\noindent\textbf{2. 定义域必须容纳凸组合}\quad 凸函数要定义在区间或凸集上，这样
+\[
+  \sum_iw_ix_i
+\]
+仍落在定义域内. 例如 $\ln x$ 只能用于正数；若平均过程中出现非正数，就不能直接使用 $\ln x$ 的 Jensen 不等式.
+
+\noindent\textbf{3. 凸函数与凹函数方向相反}\quad $x^2,e^x,-\ln x$ 是凸函数，方向是
+\[
+  f(\text{平均})\le \text{平均 }f.
+\]
+而 $\ln x,\sqrt x,x^p(0<p<1)$ 是凹函数，方向是
+\[
+  f(\text{平均})\ge \text{平均 }f.
+\]
+
+\noindent\textbf{4. 严格凸不自动推出严格不等式}\quad 如果所有参与平均的点相同，即 $x_1=\cdots=x_n$，即使 $f$ 严格凸，仍然有等号. 若某些权重为 $0$，这些点不影响平均，也不影响等号判断.
+
+\noindent\textbf{5. Jensen 给的是整体比较，不是逐项比较}\quad 从
+\[
+  f\left(\sum_iw_ix_i\right)\le\sum_iw_if(x_i)
+\]
+不能推出 $f(\sum_iw_ix_i)\le f(x_i)$ 对每个 $i$ 都成立. Jensen 比较的是平均后的整体量.
+
+\section*{八、总结}
+
+Jensen 不等式可以看成凸函数定义的多点版本：
+\[
+  \boxed{
+  f\left(\sum_iw_ix_i\right)\le\sum_iw_if(x_i)
+  }
+\]
+其中 $f$ 凸，$w_i\ge0$，$\sum_iw_i=1$. 对凹函数，不等号反向. 它的实质是：凸函数会惩罚离散程度，随机性或波动性经过凸函数后会使平均值上升；凹函数则会使平均值下降.
+
+在实际使用中，最关键的三步是：
+\[
+  \text{确定平均结构}\quad\longrightarrow\quad
+  \text{判断凸凹性}\quad\longrightarrow\quad
+  \text{检查等号条件}.
+\]
+掌握这三步，Jensen 不等式就会从一个抽象定理变成处理平均、期望、对数和与变分下界的基本工具.
+
+\end{document}

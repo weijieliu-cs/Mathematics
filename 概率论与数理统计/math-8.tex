@@ -1,0 +1,1336 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\graphicspath{{math/概率论/}}
+
+\title{第 8 章\quad 变换}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+本章的主题是随机变量与随机向量的\textbf{变换}。对随机变量 $X$ 或随机向量 $\mathbf X$ 施加一个函数之后，我们的目标是求出变换后随机变量的分布，或变换后随机向量的联合分布。
+
+随机变量的变换在统计中随处可见。下面先列出几个例子，用来预览本章将要讨论的几类变换。
+
+\begin{itemize}
+  \item \textit{单位换算：}在一维情形中，我们已经看到标准化以及位置--尺度变换如何成为理解一整个分布族的有用工具。位置--尺度变换是线性的，它把随机变量 $X$ 变为随机变量 $Y=aX+b$，其中 $a,b$ 为常数，且 $a>0$。
+
+  也有许多场合需要考虑非线性变换。例如，把美元兑日元汇率变换成日元兑美元汇率；又如，把“Janet 昨天清醒的时间包括 8 小时工作、4 小时拜访朋友、4 小时上网”这样的信息，变换成“Janet 昨天清醒了 16 小时，其中 $\frac12$ 的时间在工作，$\frac14$ 的时间在拜访朋友，$\frac14$ 的时间在上网”这样的形式。本章的第一个结果，变量替换公式，会说明随机向量被变换时，分布会发生什么变化。
+
+  \item \textit{作为摘要的和与平均数：}在统计中，我们常常用 $n$ 个观测的和或样本平均数来摘要这些观测。把 $X_1,\ldots,X_n$ 变为和
+  \[
+    T=X_1+\cdots+X_n
+  \]
+  或样本均值 $\bar X_n=T/n$，就是从 $\mathbb R^n$ 到 $\mathbb R$ 的一个变换。
+
+  独立随机变量之和对应的术语是\textbf{卷积}。我们已经遇到过故事法与矩母函数，它们是处理卷积的两种方法。本章中，基于全概率公式的卷积和与卷积积分，会给出求随机变量之和分布的另一种方式。
+
+  \item \textit{极值：}在许多情境中，我们关心最极端观测的分布。例如，在灾害准备中，政府机构可能关心 100 年周期内最极端的洪水或地震；在金融中，重视风险管理的投资组合经理会想知道投资组合收益中最差的 $1\%$ 或 $5\%$。在这些应用中，我们关心的是一组观测的最大值或最小值。把观测排序，将 $X_1,\ldots,X_n$ 变为次序统计量
+  \[
+    \min(X_1,\ldots,X_n),\ldots,\max(X_1,\ldots,X_n),
+  \]
+  是从 $\mathbb R^n$ 到 $\mathbb R^n$ 的一个不可逆变换。次序统计量将在本章最后一节讨论。
+\end{itemize}
+
+此外，理解变换对我们尤其重要，因为我们学习命名分布时一直采用这种思路。从少数基本分布出发，我们把其他分布定义为这些基本构件的变换，以便理解这些命名分布之间如何彼此关联。这里我们会继续沿着这种精神，引入两个新的分布：Beta 分布与 Gamma 分布，它们分别推广了均匀分布与指数分布。
+
+我们已经有不少处理变换的工具，先简单回顾一下。首先，如果我们只想求 $g(X)$ 的期望，LOTUS 就告诉了我们办法：只要知道 $X$ 的 PMF 或 PDF，就足以计算 $E(g(X))$。正如上一章所学，LOTUS 也适用于若干随机变量的函数。
+
+如果需要的是 $g(X)$ 的完整分布，而不只是期望，那么做法取决于 $X$ 是离散的还是连续的。
+
+\begin{itemize}
+  \item 在离散情形中，我们通过把事件 $g(X)=y$ 翻译成关于 $X$ 的等价事件，来得到 $g(X)$ 的 PMF。也就是说，寻找所有满足 $g(x)=y$ 的 $x$；只要 $X$ 等于这些 $x$ 中的任何一个，事件 $g(X)=y$ 就会发生。因此
+  \[
+    P(g(X)=y)=\sum_{x:g(x)=y}P(X=x).
+  \]
+  若 $g$ 是一一函数，情形特别简单，因为只有一个 $x$ 使得 $g(x)=y$，即 $x=g^{-1}(y)$。于是
+  \[
+    P(g(X)=y)=P(X=g^{-1}(y)).
+  \]
+  这可用来在 $X$ 与 $g(X)$ 的 PMF 之间转换，正如第 3.7 节也讨论过的那样。例如，在几何分布与首次成功分布之间转换就非常容易。
+
+  \item 在连续情形中，一个通用做法是从 $g(X)$ 的 CDF 出发，把事件 $g(X)\le y$ 翻译成关于 $X$ 的等价事件。对一般的 $g$，如何把 $g(X)\le y$ 表达成关于 $X$ 的条件可能需要仔细思考，并没有一个可以直接套用的简单公式。但当 $g$ 连续且严格递增时，翻译很容易：$g(X)\le y$ 等价于 $X\le g^{-1}(y)$，所以
+  \[
+    F_{g(X)}(y)=P(g(X)\le y)=P(X\le g^{-1}(y))=F_X(g^{-1}(y)).
+  \]
+  然后对 $y$ 求导，就得到 $g(X)$ 的 PDF。这给出了一维版本的变量替换公式；它会推广到多维可逆变换。
+\end{itemize}
+
+\section*{8.1\quad 变量替换}
+
+\noindent\textbf{定理 8.1.1（一维变量替换）}\quad 设 $X$ 是连续型随机变量，PDF 为 $f_X$。令 $Y=g(X)$，其中 $g$ 可微且严格递增（或严格递减）。则 $Y$ 的 PDF 为
+\[
+  f_Y(y)=f_X(x)\left|\frac{dx}{dy}\right|,
+\]
+其中 $x=g^{-1}(y)$。$Y$ 的支撑集由所有 $g(x)$ 组成，其中 $x$ 遍历 $X$ 的支撑集。
+
+\noindent\textit{证明.}\quad 先设 $g$ 严格递增。$Y$ 的 CDF 为
+\[
+  F_Y(y)=P(Y\le y)=P(g(X)\le y)=P(X\le g^{-1}(y))
+  =F_X(g^{-1}(y))=F_X(x).
+\]
+由链式法则，$Y$ 的 PDF 为
+\[
+  f_Y(y)=f_X(x)\frac{dx}{dy}.
+\]
+当 $g$ 严格递减时证明类似。此时 PDF 会成为 $-f_X(x)\frac{dx}{dy}$，这是非负的，因为若 $g$ 严格递减，则 $\frac{dx}{dy}<0$。因此定理中的 $\left|\frac{dx}{dy}\right|$ 覆盖了两种情形。$\blacksquare$
+
+应用变量替换公式时，可以选择计算 $\frac{dx}{dy}$，也可以计算 $\frac{dy}{dx}$ 后取倒数。由链式法则，这两种做法给出相同结果，所以哪一个更容易就用哪一个。
+
+\noindent\textbf{注意 8.1.2}\quad 求 $Y$ 的分布时，要注意：
+\begin{itemize}
+  \item 如果想应用变量替换定理，要仔细检查其假设；若定理不适用，一个好策略是从 $Y$ 的 CDF 出发。
+  \item 把 $Y$ 的 PDF 的最终答案写成 $y$ 的函数。
+  \item 说明 $Y$ 的支撑集。
+\end{itemize}
+
+在 $g$ 严格递增的情形下，变量替换公式可以写成
+\[
+  f_Y(y)\,dy=f_X(x)\,dx,
+\]
+这个形式具有令人愉快的对称性。若从单位角度理解，这个公式也很自然。例如，设 $X$ 是以英寸为单位的测量值，$Y=2.54X$ 是转换成厘米后的测量值。则 $f_X(x)$ 的单位是 $\text{英寸}^{-1}$，$f_Y(y)$ 的单位是 $\text{厘米}^{-1}$，所以说 $f_Y(y)=f_X(x)$ 是荒谬的。但 $dx$ 用英寸计量，$dy$ 用厘米计量，因而 $f_Y(y)dy$ 与 $f_X(x)dx$ 都是无量纲量，把它们相等是合理的。更好的是，$f_X(x)dx$ 与 $f_Y(y)dy$ 都有概率解释：回想第 5 章，$f_X(x)dx$ 本质上是 $X$ 落在以 $x$ 为中心、长度为 $dx$ 的微小区间中的概率。这使我们更容易直观理解变量替换公式在说什么。
+
+接下来的两个例子会推导两个随机变量的 PDF，它们都被定义为标准正态随机变量的变换。第一个例子中可以应用变量替换公式，第二个例子中则不能。
+
+\noindent\textbf{例 8.1.3（对数正态 PDF）}\quad 设 $X\sim\mathcal N(0,1)$，$Y=e^X$。在第 6 章中，我们把 $Y$ 的分布命名为对数正态分布，并用正态分布的 MGF 求出了它的所有矩。现在可以用变量替换公式求 $Y$ 的 PDF，因为 $g(x)=e^x$ 严格递增。令 $y=e^x$，于是 $x=\log y$ 且 $dy/dx=e^x$。因此
+\[
+  f_Y(y)=f_X(x)\left|\frac{dx}{dy}\right|
+  =\varphi(x)\frac{1}{e^x}
+  =\varphi(\log y)\frac{1}{y},\qquad y>0.
+\]
+注意，在应用变量替换公式之后，我们要把右端全部写成 $y$ 的函数，并说明分布的支撑集。为了确定支撑集，只需观察当 $x$ 从 $-\infty$ 到 $\infty$ 变化时，$e^x$ 从 $0$ 到 $\infty$ 变化。
+
+也可以从 CDF 的定义得到同样的结果，把事件 $Y\le y$ 翻译成关于 $X$ 的等价事件。对 $y>0$，
+\[
+  F_Y(y)=P(Y\le y)=P(e^X\le y)=P(X\le \log y)=\Phi(\log y),
+\]
+所以 PDF 仍为
+\[
+  f_Y(y)=\frac{d}{dy}\Phi(\log y)=\varphi(\log y)\frac{1}{y},\qquad y>0.
+\]
+
+\noindent\textbf{例 8.1.4（卡方 PDF）}\quad 设 $X\sim\mathcal N(0,1)$，$Y=X^2$。$Y$ 的分布是卡方分布的一个例子，卡方分布将在第 10 章正式介绍。为了求 $Y$ 的 PDF，不能再应用变量替换公式，因为 $g(x)=x^2$ 不是一一函数；于是从 CDF 出发。
+
+画出 $y=x^2$ 的图像可以看出，事件 $X^2\le y$ 等价于 $-\sqrt y\le X\le \sqrt y$。因此
+\[
+  F_Y(y)=P(X^2\le y)=P(-\sqrt y\le X\le \sqrt y)
+  =\Phi(\sqrt y)-\Phi(-\sqrt y)=2\Phi(\sqrt y)-1,
+\]
+所以
+\[
+  f_Y(y)=2\varphi(\sqrt y)\cdot \frac12 y^{-1/2}
+  =\varphi(\sqrt y)y^{-1/2},\qquad y>0.
+\]
+
+下面的例子展示了一个出人意料的非正态分布的出现。
+
+\noindent\textbf{例 8.1.5（灯塔）}\quad 海岸上的一座灯塔以随机角度 $U$ 向海面照射光线，角度用弧度计量，其中
+\[
+  U\sim\operatorname{Unif}\left(-\frac{\pi}{2},\frac{\pi}{2}\right).
+\]
+考虑一条与海岸平行且离海岸 1 英里的直线，如图 8.1 所示。角度为 $0$ 表示光线垂直于海岸；角度为 $\pi/2$ 表示光线沿着海岸，从图中的视角看向右方照射。
+
+令 $X$ 为光线打到这条直线上的点，其中直线的原点是这条线上距离灯塔最近的点。求 $X$ 的分布。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.62\textwidth]{8-1.png}
+  \caption{一座灯塔以随机角度 $U$ 照射光线的俯视图。}
+\end{figure}
+
+\noindent\textit{解.}\quad 观察图 8.1 中的直角三角形，角 $U$ 的对边长度除以邻边长度为 $X/1=X$，所以
+\[
+  X=\tan(U).
+\]
+图中画的是 $U>0$，对应 $X>0$ 的情形；当 $U\le 0$ 时，同样的关系仍然成立。令 $x$ 为 $X$ 的一个可能取值，$u$ 为对应的 $U$ 的可能取值，则
+\[
+  x=\tan(u),\qquad u=\arctan(x).
+\]
+由于 $\tan$ 在 $(-\pi/2,\pi/2)$ 上可微且严格递增，可以应用变量替换公式：
+\[
+  f_X(x)=f_U(u)\frac{du}{dx}
+  =\frac1\pi\cdot\frac{1}{1+x^2},
+\]
+这说明 $X$ 服从 Cauchy 分布。特别地，这意味着 $E|X|$ 是无穷的（因为 Cauchy 分布的期望不存在），所以平均来看，$X$ 离这条直线的原点无限远！
+
+Cauchy 分布这个结论，也可以从均匀分布的普适性来理解。正如例 7.1.25 所示，Cauchy 分布的 CDF 为
+\[
+  F(x)=\frac1\pi\arctan(x)+0.5.
+\]
+其反函数是 $F^{-1}(v)=\tan(\pi(v-0.5))$，所以若 $V\sim\operatorname{Unif}(0,1)$，则
+\[
+  F^{-1}(V)=\tan(\pi(V-0.5))\sim\text{Cauchy}.
+\]
+这与前面的结果一致，因为 $\pi(V-0.5)\sim\operatorname{Unif}(-\pi/2,\pi/2)$。
+
+我们还可以用变量替换公式求位置--尺度变换的 PDF。
+
+\noindent\textbf{例 8.1.6（位置--尺度变换的 PDF）}\quad 设 $X$ 的 PDF 为 $f_X$，令 $Y=a+bX$，其中 $b\ne0$。令 $y=a+bx$，以对应 $Y$ 与 $X$ 之间的关系。于是 $dy/dx=b$，所以 $Y$ 的 PDF 为
+\[
+  f_Y(y)=f_X(x)\left|\frac{dx}{dy}\right|
+  =f_X\left(\frac{y-a}{b}\right)\frac{1}{|b|}.
+\]
+
+变量替换公式可以推广到 $n$ 维。它告诉我们如何用随机向量 $\mathbf X$ 的联合 PDF，求变换后随机向量 $\mathbf Y=g(\mathbf X)$ 的联合 PDF。这个公式类似于一维版本，但涉及导数的多元推广，称为 \textbf{Jacobian 矩阵}；关于 Jacobian 的更多内容可参见数学附录 A.6 与 A.7 节。
+
+\noindent\textbf{定理 8.1.7（变量替换）}\quad 设 $\mathbf X=(X_1,\ldots,X_n)$ 是连续型随机向量，联合 PDF 为 $f_{\mathbf X}$。设 $g:A_0\to B_0$ 是可逆函数，其中 $A_0,B_0$ 是 $\mathbb R^n$ 中的开集\footnote{集合 $C\subset\mathbb R^n$ 称为开集，是指对每个 $\mathbf x\in C$，存在 $\epsilon>0$，使得所有到 $\mathbf x$ 的距离小于 $\epsilon$ 的点都包含在 $C$ 中。有时可取 $A_0=B_0=\mathbb R^n$，但常常希望对 $g$ 的定义域和值域保留更多灵活性。例如当 $n=2$ 且 $X_1,X_2$ 的支撑集为 $(0,\infty)$ 时，可以在开集 $A_0=(0,\infty)\times(0,\infty)$ 上工作，而不必取整个 $\mathbb R^2$。}，$A_0$ 包含 $\mathbf X$ 的支撑集，$B_0$ 是 $g$ 的值域。
+
+令 $\mathbf Y=g(\mathbf X)$，并用 $\mathbf y=g(\mathbf x)$ 对应这一关系。由于 $g$ 可逆，也有 $\mathbf X=g^{-1}(\mathbf Y)$ 与 $\mathbf x=g^{-1}(\mathbf y)$。
+
+假设所有偏导数 $\partial x_i/\partial y_j$ 都存在且连续，于是可以形成 Jacobian 矩阵
+\[
+  \frac{\partial \mathbf x}{\partial \mathbf y}
+  =
+  \begin{pmatrix}
+    \frac{\partial x_1}{\partial y_1} & \frac{\partial x_1}{\partial y_2} & \cdots & \frac{\partial x_1}{\partial y_n}\\
+    \vdots & \vdots & & \vdots\\
+    \frac{\partial x_n}{\partial y_1} & \frac{\partial x_n}{\partial y_2} & \cdots & \frac{\partial x_n}{\partial y_n}
+  \end{pmatrix}.
+\]
+再假设这个 Jacobian 矩阵的行列式处处不为 $0$。则 $\mathbf Y$ 的联合 PDF 为
+\[
+  f_{\mathbf Y}(\mathbf y)
+  =
+  f_{\mathbf X}\left(g^{-1}(\mathbf y)\right)
+  \cdot
+  \left|\frac{\partial \mathbf x}{\partial \mathbf y}\right|,
+  \qquad \mathbf y\in B_0,
+\]
+否则为 $0$。这里内层竖线表示取 Jacobian 的行列式，外层竖线表示取绝对值。
+
+也就是说，为了把 $f_{\mathbf X}(\mathbf x)$ 转换成 $f_{\mathbf Y}(\mathbf y)$，先把 $f_{\mathbf X}(\mathbf x)$ 中的 $\mathbf x$ 用 $\mathbf y$ 表示，然后乘以 Jacobian $\partial\mathbf x/\partial\mathbf y$ 的行列式绝对值。
+
+和一维情形一样，
+\[
+  \left|\frac{\partial\mathbf x}{\partial\mathbf y}\right|
+  =
+  \left|\frac{\partial\mathbf y}{\partial\mathbf x}\right|^{-1},
+\]
+所以可以计算两个 Jacobian 中更容易的那个，最后再把 $\mathbf Y$ 的联合 PDF 表达成 $\mathbf y$ 的函数。
+
+这里不证明变量替换公式，但其思想是应用多元微积分中的变量替换公式，并注意到若 $A$ 是 $A_0$ 中的区域，$B=\{g(\mathbf x):\mathbf x\in A\}$ 是 $B_0$ 中对应的区域，则 $\mathbf X\in A$ 等价于 $\mathbf Y\in B$，二者是同一个事件。因此 $P(\mathbf X\in A)=P(\mathbf Y\in B)$，也就是
+\[
+  \int_A f_{\mathbf X}(\mathbf x)\,d\mathbf x
+  =
+  \int_B f_{\mathbf Y}(\mathbf y)\,d\mathbf y.
+\]
+然后对左边的积分应用多元微积分中的变量替换公式，并作代换 $\mathbf x=g^{-1}(\mathbf y)$。
+
+\noindent\textbf{注意 8.1.8}\quad 离散型随机变量的变换与连续型随机变量的变换之间，有一个关键的概念差异：离散情形不需要 Jacobian，而连续情形需要 Jacobian。例如，设 $X$ 是正随机变量，$Y=X^3$。若 $X$ 离散，则
+\[
+  P(Y=y)=P(X=y^{1/3})
+\]
+即可在 PMF 之间转换。但若 $X$ 连续，则需要 Jacobian（一维中就是导数）来在 PDF 之间转换：
+\[
+  f_Y(y)=f_X(x)\frac{dx}{dy}
+  =f_X(y^{1/3})\frac{1}{3y^{2/3}}.
+\]
+习题 23 会作为一个警示故事，说明在需要 Jacobian 时遗漏它会造成什么问题。
+
+接下来的两个例子应用二维变量替换公式。
+
+\noindent\textbf{例 8.1.9（Box--Muller）}\quad 设 $U\sim\operatorname{Unif}(0,2\pi)$，$T\sim\operatorname{Expo}(1)$，且 $T$ 与 $U$ 独立。定义
+\[
+  X=\sqrt{2T}\cos U,\qquad Y=\sqrt{2T}\sin U.
+\]
+求 $(X,Y)$ 的联合 PDF。它们是否独立？边缘分布是什么？
+
+\noindent\textit{解.}\quad $U$ 与 $T$ 的联合 PDF 为
+\[
+  f_{U,T}(u,t)=\frac{1}{2\pi}e^{-t},
+\]
+其中 $u\in(0,2\pi)$ 且 $t>0$。把 $(X,Y)$ 看作平面上的点，则
+\[
+  X^2+Y^2=2T(\cos^2U+\sin^2U)=2T
+\]
+是到原点距离的平方，而 $U$ 是角度；也就是说，$(\sqrt{2T},U)$ 是 $(X,Y)$ 的极坐标表示。
+
+由于可以从 $(X,Y)$ 恢复 $(U,T)$，这个变换是可逆的。Jacobian 矩阵
+\[
+  \frac{\partial(x,y)}{\partial(u,t)}
+  =
+  \begin{pmatrix}
+    -\sqrt{2t}\sin u & \frac{1}{\sqrt{2t}}\cos u\\
+    \sqrt{2t}\cos u & \frac{1}{\sqrt{2t}}\sin u
+  \end{pmatrix}
+\]
+存在，元素连续，且行列式的绝对值为
+\[
+  |-\sin^2u-\cos^2u|=1,
+\]
+它从不为 $0$。令 $x=\sqrt{2t}\cos u,\ y=\sqrt{2t}\sin u$ 对应从 $(U,T)$ 到 $(X,Y)$ 的变换，则
+\[
+\begin{aligned}
+  f_{X,Y}(x,y)
+  &=f_{U,T}(u,t)\cdot\left|\frac{\partial(u,t)}{\partial(x,y)}\right|\\
+  &=\frac{1}{2\pi}e^{-t}\cdot 1\\
+  &=\frac{1}{2\pi}e^{-\frac12(x^2+y^2)}\\
+  &=\frac{1}{\sqrt{2\pi}}e^{-x^2/2}\cdot
+    \frac{1}{\sqrt{2\pi}}e^{-y^2/2},
+\end{aligned}
+\]
+对所有实数 $x,y$ 成立。
+
+联合 PDF $f_{X,Y}$ 分解成一个关于 $x$ 的函数乘以一个关于 $y$ 的函数，所以 $X$ 与 $Y$ 独立。并且我们认出该联合 PDF 是两个标准正态 PDF 的乘积，因此 $X,Y$ 是独立同分布的 $\mathcal N(0,1)$ 随机变量。这个结果称为生成正态随机变量的 Box--Muller 方法。
+
+\noindent\textbf{例 8.1.10（二元正态联合 PDF）}\quad 在第 7 章中，我们看到过二元正态分布的一些性质，并求出了它的联合 MGF。现在来求它的联合 PDF。
+
+设 $(Z,W)$ 为二元正态随机向量，边缘分布均为 $\mathcal N(0,1)$，且 $\operatorname{Corr}(Z,W)=\rho$。如果边缘分布不是标准正态，可以分别对两个分量标准化，然后使用下面的结果。假设 $-1<\rho<1$，否则分布退化（$Z$ 与 $W$ 完全相关）。
+
+正如例 7.5.10 所示，可以把 $(Z,W)$ 构造为
+\[
+  Z=X,\qquad W=\rho X+\tau Y,
+\]
+其中 $\tau=\sqrt{1-\rho^2}$，且 $X,Y$ 独立同分布为 $\mathcal N(0,1)$。还需要反变换。由 $Z=X$ 得 $X=Z$，代入 $W=\rho X+\tau Y$ 并解出 $Y$，得到
+\[
+  X=Z,\qquad Y=-\frac{\rho}{\tau}Z+\frac1{\tau}W.
+\]
+Jacobian 为
+\[
+  \frac{\partial(x,y)}{\partial(z,w)}
+  =
+  \begin{pmatrix}
+    1 & 0\\
+    -\frac{\rho}{\tau} & \frac1{\tau}
+  \end{pmatrix},
+\]
+其行列式绝对值为 $1/\tau$。由变量替换公式，
+\[
+\begin{aligned}
+  f_{Z,W}(z,w)
+  &=f_{X,Y}(x,y)\cdot
+    \left|\frac{\partial(x,y)}{\partial(z,w)}\right|\\
+  &=\frac{1}{2\pi\tau}\exp\left(-\frac12(x^2+y^2)\right)\\
+  &=\frac{1}{2\pi\tau}\exp\left(
+    -\frac12\left(z^2+\left(-\frac{\rho}{\tau}z+\frac1{\tau}w\right)^2\right)\right)\\
+  &=\frac{1}{2\pi\tau}\exp\left(
+    -\frac{1}{2\tau^2}(z^2+w^2-2\rho zw)\right),
+\end{aligned}
+\]
+对所有实数 $z,w$ 成立。最后一步中，我们展开并利用了 $\rho^2+\tau^2=1$。
+
+\section*{8.2\quad 卷积}
+
+\textbf{卷积}是独立随机变量之和。前面提到过，我们经常把独立随机变量相加，因为和是实验的有用摘要（例如在 $n$ 次 Bernoulli 试验中，也许只关心成功总数），而和又会导出平均数，平均数同样有用（例如在 $n$ 次 Bernoulli 试验中，成功比例就是平均数）。
+
+本节的主要任务是求
+\[
+  T=X+Y
+\]
+的分布，其中 $X,Y$ 是相互独立且分布已知的随机变量。前几章中，我们已经看到故事法和 MGF 如何帮助完成这一任务。例如，我们用故事法说明了具有相同成功概率的独立二项随机变量之和仍为二项分布，独立同分布几何随机变量之和为负二项分布；也用 MGF 说明了独立正态随机变量之和仍为正态分布。
+
+求 $T$ 的分布还有第三种方法，即使用卷积和或卷积积分。公式如下定理所示。正如我们将看到的，卷积和不过是全概率公式：对 $X$ 或 $Y$ 的取值进行条件化；卷积积分则是类似的连续版本。
+
+\noindent\textbf{定理 8.2.1（卷积和与卷积积分）}\quad 设 $X,Y$ 是独立随机变量，$T=X+Y$。若 $X,Y$ 离散，则 $T$ 的 PMF 为
+\[
+  P(T=t)=\sum_x P(Y=t-x)P(X=x)
+  =\sum_y P(X=t-y)P(Y=y).
+\]
+若 $X,Y$ 连续，则 $T$ 的 PDF 为
+\[
+  f_T(t)=\int_{-\infty}^{\infty} f_Y(t-x)f_X(x)\,dx
+  =\int_{-\infty}^{\infty} f_X(t-y)f_Y(y)\,dy.
+\]
+
+\noindent\textit{证明.}\quad 对离散情形，用 LOTP 并对 $X$ 条件化：
+\[
+\begin{aligned}
+  P(T=t)
+  &=\sum_x P(X+Y=t\mid X=x)P(X=x)\\
+  &=\sum_x P(Y=t-x\mid X=x)P(X=x)\\
+  &=\sum_x P(Y=t-x)P(X=x).
+\end{aligned}
+\]
+若改为对 $Y$ 条件化，就得到 $T$ 的 PMF 的第二个公式。
+
+\noindent\textbf{注意 8.2.2}\quad 最后一步中，我们使用 $X,Y$ 独立这一假设，才能从 $P(Y=t-x\mid X=x)$ 得到 $P(Y=t-x)$。只有当给定 $X=x$ 时 $Y$ 的条件分布与 $Y$ 的边缘分布相同，也就是 $X,Y$ 独立时，去掉条件 $X=x$ 才是合理的。一个常见错误是以为把 $x$ 代入 $X$ 之后，就已经“用掉了”$X=x$ 这条信息；事实上，需要独立性假设才能去掉条件，否则就是没有根据地丢弃信息。
+
+在连续情形中，由于 PDF 在单点处的值不是概率，我们先求 CDF，再求导得到 PDF。由 LOTP，
+\[
+\begin{aligned}
+  F_T(t)
+  &=P(X+Y\le t)
+    =\int_{-\infty}^{\infty}P(X+Y\le t\mid X=x)f_X(x)\,dx\\
+  &=\int_{-\infty}^{\infty}P(Y\le t-x)f_X(x)\,dx\\
+  &=\int_{-\infty}^{\infty}F_Y(t-x)f_X(x)\,dx.
+\end{aligned}
+\]
+同样，这里需要独立性来去掉条件 $X=x$。为了得到 PDF，再对 $t$ 求导，并交换积分与微分的次序，得到
+\[
+  f_T(t)=\int_{-\infty}^{\infty}f_Y(t-x)f_X(x)\,dx.
+\]
+若改为对 $Y$ 条件化，就得到 $f_T$ 的第二个公式。
+
+另一种推导使用二维变量替换公式。唯一的麻烦是，变量替换公式要求从 $\mathbb R^2$ 到 $\mathbb R^2$ 的可逆变换，而 $(X,Y)\mapsto X+Y$ 是从 $\mathbb R^2$ 到 $\mathbb R$ 的映射，不可逆。解决办法是给变换添加一个冗余分量，使它变成可逆变换。因此考虑
+\[
+  (X,Y)\mapsto (X+Y,X)
+\]
+（使用 $(X,Y)\mapsto (X+Y,Y)$ 也同样可以）。一旦得到 $X+Y$ 与 $X$ 的联合 PDF，再把 $X$ 积掉，就得到 $X+Y$ 的边缘 PDF。
+
+令 $T=X+Y,\ W=X$，并令 $t=x+y,\ w=x$。把 $X$ 重新命名为 $W$ 看起来有些冗余，但这能更容易区分变换前变量与变换后变量：我们是在把 $(X,Y)$ 变换为 $(T,W)$。于是
+\[
+  \frac{\partial(t,w)}{\partial(x,y)}
+  =
+  \begin{pmatrix}
+    1 & 1\\
+    1 & 0
+  \end{pmatrix}
+\]
+的行列式绝对值为 $1$，所以 $\left|\partial(x,y)/\partial(t,w)\right|$ 也为 $1$。于是 $T,W$ 的联合 PDF 为
+\[
+  f_{T,W}(t,w)=f_{X,Y}(x,y)=f_X(x)f_Y(y)=f_X(w)f_Y(t-w),
+\]
+而 $T$ 的边缘 PDF 为
+\[
+  f_T(t)=\int_{-\infty}^{\infty}f_{T,W}(t,w)\,dw
+  =\int_{-\infty}^{\infty}f_X(x)f_Y(t-x)\,dx,
+\]
+这与上面的结果一致。$\blacksquare$
+
+\noindent\textbf{注意 8.2.3}\quad 通过从
+\[
+  P(T=t)=\sum_x P(Y=t-x)P(X=x)
+\]
+类比到
+\[
+  f_T(t)=\int_{-\infty}^{\infty}f_Y(t-x)f_X(x)\,dx,
+\]
+并不难记住卷积积分公式。但仍然要小心。例如，习题 23 会说明，一个看起来类似的公式若用于两个独立连续随机变量乘积的 PDF，其实是错误的：那里需要 Jacobian。对卷积而言，Jacobian 行列式绝对值为 $1$，所以在卷积积分公式中不明显。
+
+由于卷积和本质上就是全概率公式，我们在前几章已经使用过它们，只是没有提到“卷积”这个词。例如，定理 3.8.9 关于独立二项分布之和的第一个也是最繁琐的证明，以及定理 4.8.1 关于独立 Poisson 分布之和的证明，都是如此。下面的例子中，我们用卷积积分求指数分布之和与均匀分布之和的分布。
+
+\noindent\textbf{例 8.2.4（指数卷积）}\quad 设 $X,Y\overset{\text{i.i.d.}}{\sim}\operatorname{Expo}(\lambda)$。求 $T=X+Y$ 的分布。
+
+\noindent\textit{解.}\quad 对 $t>0$，卷积公式给出
+\[
+  f_T(t)=\int_{-\infty}^{\infty}f_Y(t-x)f_X(x)\,dx
+  =\int_0^t \lambda e^{-\lambda(t-x)}\lambda e^{-\lambda x}\,dx,
+\]
+这里把积分区间限制为 $0$ 到 $t$，因为要使积分中的 PDF 非零，必须有 $t-x>0$ 且 $x>0$。化简得
+\[
+  f_T(t)=\lambda^2\int_0^t e^{-\lambda t}\,dx
+  =\lambda^2 t e^{-\lambda t},\qquad t>0.
+\]
+这称为 $\operatorname{Gamma}(2,\lambda)$ 分布。第 8.4 节将详细介绍 Gamma 分布。
+
+\noindent\textbf{例 8.2.5（均匀卷积）}\quad 设 $X,Y\overset{\text{i.i.d.}}{\sim}\operatorname{Unif}(0,1)$。求 $T=X+Y$ 的分布。
+
+\noindent\textit{解.}\quad $X$（以及 $Y$）的 PDF 为
+\[
+  g(x)=
+  \begin{cases}
+    1, & x\in(0,1),\\
+    0, & \text{其他}.
+  \end{cases}
+\]
+卷积公式给出
+\[
+  f_T(t)=\int_{-\infty}^{\infty}f_Y(t-x)f_X(x)\,dx
+  =\int_{-\infty}^{\infty}g(t-x)g(x)\,dx.
+\]
+被积函数等于 $1$ 当且仅当 $0<t-x<1$ 且 $0<x<1$；这是一个平行四边形形状的约束。等价地，约束为
+\[
+  \max(0,t-1)<x<\min(t,1).
+\]
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.62\textwidth]{8-2.png}
+  \caption{$(t,x)$ 平面中使 $g(t-x)g(x)=1$ 的区域。}
+\end{figure}
+
+由图 8.2 可见，当 $0<t\le1$ 时，$x$ 被限制在 $(0,t)$；当 $1<t<2$ 时，$x$ 被限制在 $(t-1,1)$。因此 $T$ 的 PDF 是分段线性函数：
+\[
+  f_T(t)=
+  \begin{cases}
+    \displaystyle\int_0^t dx=t, & 0<t\le1,\\[1ex]
+    \displaystyle\int_{t-1}^{1} dx=2-t, & 1<t<2.
+  \end{cases}
+\]
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.62\textwidth]{8-3.png}
+  \caption{$T=X+Y$ 的 PDF，其中 $X,Y$ 独立同分布为 $\operatorname{Unif}(0,1)$。}
+\end{figure}
+
+图 8.3 画出了 $T$ 的 PDF。它像一个顶点位于 $0,1,2$ 的三角形，因此称为 $\operatorname{Triangle}(0,1,2)$ 分布。
+
+从直觉上看，$T$ 更可能取中间附近的值，而不是极端值，这是合理的：接近 $1$ 的值可以来自 $X,Y$ 都适中，也可以来自 $X$ 大而 $Y$ 小，或 $Y$ 大而 $X$ 小。相比之下，接近 $2$ 的值只有在 $X,Y$ 都很大时才可能出现。回想例 3.2.5，两个骰子点数之和的 PMF 也具有三角形形状。单个骰子的点数在 $1$ 到 $6$ 的整数上服从离散均匀分布，所以那个问题考察的是两个离散均匀分布的卷积；这里得到的 PDF 形状相似，也是合乎情理的。
+
+\section*{8.3\quad Beta 分布}
+
+在本节和下一节中，我们将介绍两个连续分布：Beta 分布与 Gamma 分布。它们与我们已经学过的若干命名分布有关，也会通过一个共同故事彼此联系起来。这看似暂时离开了“变换”这一主题，但最终我们会用变量替换把 Beta 分布与 Gamma 分布联系起来。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{8-4.png}
+  \caption{不同 $a,b$ 取值下的 Beta PDF。按顺时针方向从左上开始分别为：$\operatorname{Beta}(0.5,0.5)$、$\operatorname{Beta}(2,1)$、$\operatorname{Beta}(5,5)$、$\operatorname{Beta}(2,8)$。}
+\end{figure}
+
+Beta 分布是定义在区间 $(0,1)$ 上的连续分布。它推广了 $\operatorname{Unif}(0,1)$ 分布，允许 PDF 在 $(0,1)$ 上不是常数。
+
+\noindent\textbf{定义 8.3.1（Beta 分布）}\quad 若随机变量 $X$ 的 PDF 为
+\[
+  f(x)=\frac{1}{\beta(a,b)}x^{a-1}(1-x)^{b-1},\qquad 0<x<1,
+\]
+其中 $a>0,b>0$，常数 $\beta(a,b)$ 选取为使 PDF 积分为 $1$，则称 $X$ 服从参数为 $a,b$ 的 Beta 分布，记为
+\[
+  X\sim\operatorname{Beta}(a,b).
+\]
+
+取 $a=b=1$ 时，$\operatorname{Beta}(1,1)$ 的 PDF 在 $(0,1)$ 上为常数，所以 $\operatorname{Beta}(1,1)$ 与 $\operatorname{Unif}(0,1)$ 是同一个分布。改变 $a,b$ 的值，可以得到各种形状的 PDF；图 8.4 展示了四个例子。下面是两个一般规律：
+\begin{itemize}
+  \item 若 $a<1$ 且 $b<1$，PDF 呈 U 形并向上开口；若 $a>1$ 且 $b>1$，PDF 向下开口。
+  \item 若 $a=b$，PDF 关于 $1/2$ 对称；若 $a>b$，PDF 更偏向大于 $1/2$ 的值；若 $a<b$，PDF 更偏向小于 $1/2$ 的值。
+\end{itemize}
+
+按照定义，常数 $\beta(a,b)$ 满足
+\[
+  \beta(a,b)=\int_0^1 x^{a-1}(1-x)^{b-1}\,dx.
+\]
+
+这种形式的积分称为 \textbf{Beta 积分}。我们需要做一些微积分，才能推出 $\beta(a,b)$ 的一般公式。但在特殊情形中，也就是 $a,b$ 为正整数时，Thomas Bayes 找到了一种不靠微积分、而靠故事证明来计算这个积分的方法。
+
+\noindent\textbf{故事 8.3.2（Bayes 台球）}\quad 不使用微积分，说明对任意整数 $k,n$，若 $0\le k\le n$，则
+\[
+  \int_0^1 {n\choose k}x^k(1-x)^{n-k}\,dx=\frac{1}{n+1}.
+\]
+
+\noindent\textit{解.}\quad 通过讲两个故事，我们将说明左右两边都等于 $P(X=k)$，其中 $X$ 是将要构造的随机变量。
+
+\textit{故事 1：}从 $n+1$ 个球开始，其中 $n$ 个白球，$1$ 个灰球。把每个球随机扔到单位区间 $[0,1]$ 上，且各球位置独立同分布为 $\operatorname{Unif}(0,1)$。令 $X$ 为灰球左侧白球的个数；$X$ 是一个离散随机变量，可能取值为 $0,1,\ldots,n$。图 8.5 展示了这个实验的设置。
+
+为了求事件 $X=k$ 的概率，使用 LOTP，对灰球的位置条件化，记灰球位置为 $B$。给定 $B=p$，落在 $p$ 左侧的白球个数服从 $\operatorname{Bin}(n,p)$ 分布，因为可以把每个白球看成一次独立 Bernoulli 试验，成功定义为落在 $p$ 左侧。设 $f$ 为 $B$ 的 PDF；由于 $B\sim\operatorname{Unif}(0,1)$，所以 $f(p)=1$。于是
+\[
+  P(X=k)=\int_0^1 P(X=k\mid B=p)f(p)\,dp
+  =\int_0^1 {n\choose k}p^k(1-p)^{n-k}\,dp.
+\]
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.62\textwidth]{8-5.png}
+  \caption{Bayes 台球。这里把 $n=6$ 个白球和一个灰球扔到单位区间上，并观察到灰球左侧有 $X=2$ 个白球。}
+\end{figure}
+
+\textit{故事 2：}从 $n+1$ 个球开始，它们全是白球。把每个球随机扔到单位区间上；然后随机选择一个球并把它涂成灰色。仍令 $X$ 为灰球左侧白球的个数。由对称性，$n+1$ 个球中的任意一个都同样可能被涂成灰色，所以
+\[
+  P(X=k)=\frac{1}{n+1},\qquad k=0,1,\ldots,n.
+\]
+
+关键在于：两个故事中的 $X$ 具有相同分布。先涂灰球再扔，还是先扔再涂灰球，并不影响结果。因此 $P(X=k)$ 在故事 1 与故事 2 中相同，于是
+\[
+  \int_0^1 {n\choose k}p^k(1-p)^{n-k}\,dp=\frac{1}{n+1},
+\]
+其中 $k=0,1,\ldots,n$。虽然被积函数中有 $k$，积分值却不依赖于 $k$。令 $k=a-1$、$n-k=b-1$，便说明对正整数 $a,b$，
+\[
+  \beta(a,b)=\frac{1}{(a+b-1){a+b-2\choose a-1}}
+  =\frac{(a-1)!(b-1)!}{(a+b-1)!}.
+\]
+本章稍后会学习一般 $a,b$ 下的 $\beta(a,b)$。
+
+Beta 分布是在 $(0,1)$ 上很灵活的一族分布，并且有许多故事。其中一个故事是，Beta 随机变量常被用来表示\textbf{未知概率}。也就是说，我们可以对未知概率本身赋予概率！
+
+\noindent\textbf{故事 8.3.3（Beta--Binomial 共轭）}\quad 我们有一枚硬币，它以概率 $p$ 出现正面，但不知道 $p$ 是多少。目标是在观察 $n$ 次抛硬币的结果后推断 $p$ 的值。$n$ 越大，应当越能准确估计 $p$。
+
+有几种方法可以处理这个问题。一个主要方法是\textbf{贝叶斯推断}，它把所有未知量都看作随机变量。在贝叶斯方法中，我们会把未知概率 $p$ 看作随机变量，并给 $p$ 一个分布。这称为\textbf{先验分布}，反映在观察硬币抛掷之前我们对 $p$ 真值的不确定性。实验完成并得到数据之后，用 Bayes 公式更新先验分布，得到\textbf{后验分布}，它反映我们关于 $p$ 的新信念。
+
+看看当 $p$ 的先验分布是 Beta 分布时会发生什么。设
+\[
+  p\sim\operatorname{Beta}(a,b),
+\]
+其中 $a,b$ 为已知常数；令 $X$ 为 $n$ 次抛硬币中正面的个数。若已知 $p$ 的真实值，则这些抛掷只是成功概率为 $p$ 的独立 Bernoulli 试验，所以
+\[
+  X\mid p\sim\operatorname{Bin}(n,p).
+\]
+注意，$X$ 的边缘分布并不是二项分布；它是在给定 $p$ 时条件地服从二项分布。$X$ 的边缘分布称为 \textbf{Beta--Binomial 分布}。为了得到 $p$ 的后验分布，使用 Bayes 公式（这里是混合形式，因为 $X$ 离散而 $p$ 连续）。令 $f(p)$ 为先验 PDF，$f(p\mid X=k)$ 为观察到 $k$ 个正面后的后验 PDF，则
+\[
+\begin{aligned}
+  f(p\mid X=k)
+  &=\frac{P(X=k\mid p)f(p)}{P(X=k)}\\
+  &=\frac{{n\choose k}p^k(1-p)^{n-k}\cdot
+  \frac{1}{\beta(a,b)}p^{a-1}(1-p)^{b-1}}{P(X=k)}.
+\end{aligned}
+\]
+分母是 $X$ 的边缘 PMF：
+\[
+  P(X=k)=\int_0^1 P(X=k\mid p)f(p)\,dp
+  =\int_0^1 {n\choose k}p^k(1-p)^{n-k}f(p)\,dp.
+\]
+
+当 $a=b=1$ 时，$p$ 的先验分布为 $\operatorname{Unif}(0,1)$。在 Bayes 台球故事中我们已经说明
+\[
+  P(X=k)=\frac{1}{n+1},
+\]
+也就是说，$X$ 在 $\{0,1,\ldots,n\}$ 上服从离散均匀分布。对任意正整数 $a,b$，也可以再次用 Bayes 台球求 $P(X=k)$；有趣的是，此时 $X$ 服从负超几何分布（其故事和 PMF 见例 4.4.7）。
+
+但对于一般实数 $a,b$，直接求 $P(X=k)$ 似乎并不容易。相关地，我们也还没有求出一般的 $\beta(a,b)$。我们卡住了吗？
+
+事实上，计算比一开始看起来容易得多。条件 PDF $f(p\mid X=k)$ 是 $p$ 的函数，这意味着一切不依赖于 $p$ 的量都只是常数。我们可以丢掉这些常数，只求出 PDF 到一个乘法常数为止；随后归一化常数自然就是使 PDF 积分为 $1$ 所需的常数。于是
+\[
+  f(p\mid X=k)\propto p^{a+k-1}(1-p)^{b+n-k-1},
+\]
+这正是 $\operatorname{Beta}(a+k,b+n-k)$ 的 PDF，差一个乘法常数。因此 $p$ 的后验分布为
+\[
+  p\mid X=k\sim\operatorname{Beta}(a+k,b+n-k).
+\]
+观察到 $X=k$ 后，$p$ 的后验分布仍然是 Beta 分布！这就是 Beta 分布与二项分布之间的一种特殊关系，称为\textbf{共轭}：若 $p$ 的先验分布为 Beta，数据在给定 $p$ 时条件地服从二项分布，那么从先验到后验时不会离开 Beta 分布族。我们说 Beta 是二项分布的共轭先验。
+
+此外，注意更新 $p$ 的分布有一个非常简单的公式：把观察到的成功次数 $k$ 加到 Beta 分布的第一个参数上，把观察到的失败次数 $n-k$ 加到第二个参数上。因此在这个语境下，至少当 $a,b$ 为正整数时，$a,b$ 有具体解释：可把 $a-1$ 看成先前实验中的先验成功次数，把 $b-1$ 看成先验失败次数（这些先前实验可以是真实的，也可以是想象的）。把当前实验中的 $k$ 次成功与 $n-k$ 次失败加进去之后，就有 $a+k-1$ 次成功与 $b+n-k-1$ 次失败，$\operatorname{Beta}(a,b)$ 先验更新为 $\operatorname{Beta}(a+k,b+n-k)$ 后验。
+
+正如第 2.6 节中那样，随着获得越来越多的证据，可以顺序更新我们的信念：从一个先验分布出发，更新成后验分布；这个后验分布成为新的先验分布，再更新成新的后验分布，如此继续。这里的美妙之处在于，所有这些都可以在 Beta 分布族内部完成，并且参数更新只需统计观察到的成功和失败次数。
+
+具体来说，图 8.6 展示了先验为 $\operatorname{Beta}(1,1)$ 的情形。前面提到，这等价于 $\operatorname{Unif}(0,1)$；现在观察到 $n=5$ 次抛硬币且全为正面，于是后验为 $\operatorname{Beta}(6,1)$，它画在图 8.6 的右半部分。注意后验分布如何吸收抛硬币的证据：较大的 $p$ 值具有更高密度，这与我们观察到全是正面的事实一致。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{8-6.png}
+  \caption{Beta 是二项分布的共轭先验。左：先验为 $\operatorname{Unif}(0,1)$。右：观察到 5 次抛掷中 5 次正面后，后验为 $\operatorname{Beta}(6,1)$。}
+\end{figure}
+
+这个模型是例 2.3.7 的连续类比，后者是我们第一个 Bayes 公式例子。在那个例子中，同样有一枚正面概率 $p$ 未知的硬币，但先验信息让我们相信 $p$ 只能取两个可能值：$1/2$ 或 $3/4$。因此 $p$ 的先验分布（虽然当时没有这样称呼）是离散的。具体地，先验 PMF 为
+\[
+  P(p=1/2)=1/2,\qquad P(p=3/4)=1/2.
+\]
+连续观察到三次正面后，我们更新这个 PMF 得到后验 PMF，它赋予 $p=1/2$ 的概率为 $0.23$，赋予 $p=3/4$ 的概率为 $0.77$。本章的例子使用相同逻辑，只是现在给 $p$ 一个连续先验分布；如果我们相信 $p$ 可能取 $0$ 与 $1$ 之间的任意值，这就是合适的。
+
+本节最后给出两个例子，说明 Beta--Binomial 共轭与 Bayes 台球如何使一些看似复杂的问题变得容易得多。
+
+\noindent\textbf{例 8.3.4（Bayes 血清）}\quad 针对 conditionitis 这种疾病，一种新疗法 Bayes 血清刚刚被开发出来。即将进行一项临床试验，研究该疗法的有效性。Bayes 血清会用于 $n$ 名患有 conditionitis 的病人。给定 $p$ 时，病人的治疗结果相互独立，每个病人以概率 $p$ 被治愈。但 $p$ 未知。为了量化我们关于 $p$ 的不确定性，把 $p$ 建模为随机变量，先验分布为
+\[
+  p\sim\operatorname{Unif}(0,1).
+\]
+\begin{enumerate}
+  \item[(a)] 求恰有 $k$ 名病人被治疗治愈的概率（无条件概率，不给定 $p$）。
+  \item[(b)] 现在假设治疗在临床试验中极其有效：所有 $n$ 名病人都被治愈。给定这一信息，求 $p$ 超过 $1/2$ 的概率。答案应完全化简，并只用 $n$ 表示。
+\end{enumerate}
+
+\noindent\textit{解.}\quad
+(a) 由 LOTP，再用 Bayes 台球，或与 Beta PDF 形式匹配，所求概率为
+\[
+  \int_0^1 {n\choose k}p^k(1-p)^{n-k}\,dp=\frac{1}{n+1}.
+\]
+
+(b) 由 Beta--Binomial 共轭，给定数据后 $p$ 的后验分布为 $\operatorname{Beta}(1+n,1)$，其 PDF 为 $(n+1)p^n$，$0<p<1$。因此
+\[
+  P\left(p>\frac12\right)
+  =\int_{1/2}^1 (n+1)p^n\,dp
+  =p^{n+1}\bigg|_{1/2}^{1}
+  =1-\frac{1}{2^{n+1}}.
+\]
+
+\noindent\textbf{例 8.3.5}\quad 一名篮球运动员明天比赛中要投 $N\sim\operatorname{Pois}(\lambda)$ 个罚球。令 $X_j$ 为她第 $j$ 次罚球命中的指示变量，$X=X_1+\cdots+X_N$ 为她在比赛中命中的罚球总数（所以若 $N=0$，则 $X=0$）。为了刻画我们对她罚球能力的不确定性，设
+\[
+  p\sim\operatorname{Beta}(a,b).
+\]
+给定 $p$ 时，她以概率 $p$ 命中罚球，以概率 $q=1-p$ 罚失。假设在给定 $p$ 时，$X_1,X_2,\ldots$ 条件独立，并且 $N$ 与 $p,X_1,X_2,\ldots$ 独立。
+
+\begin{enumerate}
+  \item[(a)] 求给定 $N,p$ 时 $X$ 的条件分布。
+  \item[(b)] 求给定 $p$ 时 $X$ 的条件分布。
+  \item[(c)] 当 $a=b=1$ 时，求给定 $N$ 时 $X$ 的条件分布。
+  \item[(d)] 求给定 $X,N$ 时 $p$ 的条件分布。
+\end{enumerate}
+
+\noindent\textit{解.}\quad
+\begin{enumerate}
+  \item[(a)] 由二项分布的故事，
+  \[
+    X\mid(N,p)\sim\operatorname{Bin}(N,p).
+  \]
+
+  \item[(b)] 由鸡生蛋故事，
+  \[
+    X\mid p\sim\operatorname{Pois}(\lambda p).
+  \]
+
+  \item[(c)] 对 $k=0,1,\ldots,n$，由 LOTP 与 Bayes 台球，
+  \[
+    P(X=k\mid N=n)
+    =\int_0^1 {n\choose k}p^k(1-p)^{n-k}\,dp
+    =\frac{1}{n+1}.
+  \]
+  因此给定 $N$ 时，$X$ 在 $\{0,1,\ldots,N\}$ 上服从离散均匀分布。
+
+  \item[(d)] 由 Beta--Binomial 共轭，
+  \[
+    p\mid(X,N)\sim\operatorname{Beta}(a+X,b+N-X).
+  \]
+\end{enumerate}
+
+\section*{8.4\quad Gamma 分布}
+
+Gamma 分布是正实轴上的连续分布，它推广了指数分布。指数随机变量表示无记忆条件下等待第一次成功的时间；我们将看到，Gamma 随机变量表示等待多次成功的总时间。
+
+在写出 PDF 之前，先介绍 \textbf{gamma 函数}。它是数学中非常著名的函数，把阶乘函数推广到非负整数之外。
+
+\noindent\textbf{定义 8.4.1（Gamma 函数）}\quad gamma 函数 $\Gamma$ 定义为
+\[
+  \Gamma(a)=\int_0^\infty x^a e^{-x}\frac{dx}{x},
+\]
+其中 $a>0$。
+
+也可以约去一个 $x$，把被积函数写成 $x^{a-1}e^{-x}$；但保留 $\frac{dx}{x}$ 常常很方便，因为我们经常作 $u=cx$ 形式的变换，此时有 $\frac{du}{u}=\frac{dx}{x}$。下面是 gamma 函数的两个重要性质。
+
+\begin{itemize}
+  \item 对所有 $a>0$，
+  \[
+    \Gamma(a+1)=a\Gamma(a).
+  \]
+  这可由分部积分得到：
+  \[
+    \Gamma(a+1)=\int_0^\infty x^a e^{-x}\,dx
+    =-x^a e^{-x}\bigg|_0^\infty
+    +a\int_0^\infty x^{a-1}e^{-x}\,dx
+    =a\Gamma(a).
+  \]
+
+  \item 若 $n$ 为正整数，则
+  \[
+    \Gamma(n)=(n-1)!.
+  \]
+  这可从 $n=1$ 开始，用递推关系 $\Gamma(a+1)=a\Gamma(a)$ 归纳证明。因此在正整数处计算 gamma 函数时，我们恢复了阶乘函数，只是平移了 $1$。
+\end{itemize}
+
+现在不妨把上述定义两边同时除以 $\Gamma(a)$。于是
+\[
+  1=\int_0^\infty \frac{1}{\Gamma(a)}x^ae^{-x}\frac{dx}{x},
+\]
+所以积分中的函数是支撑在 $(0,\infty)$ 上的合法 PDF。这就是 Gamma 分布 PDF 的定义。具体地，如果 $X$ 的 PDF 为
+\[
+  f_X(x)=\frac{1}{\Gamma(a)}x^ae^{-x}\frac1x,\qquad x>0,
+\]
+则称 $X$ 服从参数为 $a$ 与 $1$ 的 Gamma 分布，记为 $X\sim\operatorname{Gamma}(a,1)$。
+
+从 $\operatorname{Gamma}(a,1)$ 分布出发，可以通过尺度变换得到一般 Gamma 分布：若 $X\sim\operatorname{Gamma}(a,1)$ 且 $\lambda>0$，则 $Y=X/\lambda$ 的分布称为 $\operatorname{Gamma}(a,\lambda)$ 分布。由变量替换公式，令 $x=\lambda y$ 且 $dx/dy=\lambda$，$Y$ 的 PDF 为
+\[
+  f_Y(y)=f_X(x)\left|\frac{dx}{dy}\right|
+  =\frac{1}{\Gamma(a)}(\lambda y)^a e^{-\lambda y}\frac{1}{\lambda y}\lambda
+  =\frac{1}{\Gamma(a)}(\lambda y)^a e^{-\lambda y}\frac1y,\qquad y>0.
+\]
+这总结为如下定义。
+
+\noindent\textbf{定义 8.4.2（Gamma 分布）}\quad 若随机变量 $Y$ 的 PDF 为
+\[
+  f(y)=\frac{1}{\Gamma(a)}(\lambda y)^a e^{-\lambda y}\frac1y,\qquad y>0,
+\]
+其中 $a>0,\lambda>0$，则称 $Y$ 服从参数为 $a,\lambda$ 的 Gamma 分布，记为
+\[
+  Y\sim\operatorname{Gamma}(a,\lambda).
+\]
+
+取 $a=1$ 时，$\operatorname{Gamma}(1,\lambda)$ 的 PDF 为 $f(y)=\lambda e^{-\lambda y}$，$y>0$，所以 $\operatorname{Gamma}(1,\lambda)$ 与 $\operatorname{Expo}(\lambda)$ 是同一个分布。额外参数 $a$ 使 Gamma PDF 具有更多形状。图 8.7 展示了四个 Gamma PDF。$a$ 较小时，PDF 偏斜；随着 $a$ 增大，PDF 开始看起来更对称、更像钟形。第 10 章会解释其原因。增大 $\lambda$ 会把 PDF 压向较小的值；比较 $\operatorname{Gamma}(3,1)$ 与 $\operatorname{Gamma}(3,0.5)$ 的 PDF 即可看出。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{8-7.png}
+  \caption{不同 $a,\lambda$ 取值下的 Gamma PDF。按顺时针方向从左上开始分别为：$\operatorname{Gamma}(3,1)$、$\operatorname{Gamma}(3,0.5)$、$\operatorname{Gamma}(5,0.5)$、$\operatorname{Gamma}(10,1)$。}
+\end{figure}
+
+下面求 Gamma 分布的均值、方差和其他矩。先从 $X\sim\operatorname{Gamma}(a,1)$ 开始。我们会使用 gamma 函数的性质，以及“通过模式识别做积分”的技巧。对均值，写出 $E(X)$ 的定义：
+\[
+  E(X)=\int_0^\infty \frac{1}{\Gamma(a)}x^{a+1}e^{-x}\frac{dx}{x}.
+\]
+与其进行繁重的分部积分，不如认出在提出 $1/\Gamma(a)$ 之后，剩下的正是 gamma 函数在 $a+1$ 处的值。因此
+\[
+  E(X)=\frac{\Gamma(a+1)}{\Gamma(a)}
+  =\frac{a\Gamma(a)}{\Gamma(a)}=a.
+\]
+类似地，对于方差，LOTUS 给出二阶矩的积分表达：
+\[
+  E(X^2)=\int_0^\infty \frac{1}{\Gamma(a)}x^{a+2}e^{-x}\frac{dx}{x},
+\]
+我们认出 gamma 函数在 $a+2$ 处的值。因此
+\[
+  E(X^2)=\frac{\Gamma(a+2)}{\Gamma(a)}
+  =\frac{(a+1)a\Gamma(a)}{\Gamma(a)}=(a+1)a,
+\]
+于是
+\[
+  \operatorname{Var}(X)=(a+1)a-a^2=a.
+\]
+所以若 $X\sim\operatorname{Gamma}(a,1)$，则
+\[
+  E(X)=\operatorname{Var}(X)=a.
+\]
+
+第 $c$ 阶矩并不比二阶矩更难；只需使用 LOTUS 并认出 $\Gamma(a+c)$ 的定义，得到
+\[
+  E(X^c)=\int_0^\infty \frac{1}{\Gamma(a)}x^{a+c}e^{-x}\frac{dx}{x}
+  =\frac{\Gamma(a+c)}{\Gamma(a)},
+\]
+对所有使积分收敛的实数 $c$ 成立，也就是 $c>-a$。
+
+现在变换到 $Y=X/\lambda\sim\operatorname{Gamma}(a,\lambda)$，得到
+\[
+  E(Y)=\frac1\lambda E(X)=\frac{a}{\lambda},
+\]
+\[
+  \operatorname{Var}(Y)=\frac1{\lambda^2}\operatorname{Var}(X)=\frac{a}{\lambda^2},
+\]
+\[
+  E(Y^c)=\frac1{\lambda^c}E(X^c)
+  =\frac1{\lambda^c}\cdot\frac{\Gamma(a+c)}{\Gamma(a)},\qquad c>-a.
+\]
+回看 Gamma PDF 的图像，这与我们发现的均值和方差随 $a$ 增大、随 $\lambda$ 减小而增大是一致的。
+
+到目前为止，我们一直通过 PDF 学习 Gamma 分布，这使我们能从 PDF 图像中辨认一般规律，并推导均值与方差。但 PDF 并没有让我们清楚地理解为什么会使用 Gamma 分布，也没有给出参数 $a,\lambda$ 的太多解释。为此，需要通过故事把 Gamma 分布与其他命名分布联系起来。本节其余部分专门讨论 Gamma 分布的故事。
+
+在 $a$ 为整数的特殊情形中，可以把 $\operatorname{Gamma}(a,\lambda)$ 随机变量表示为独立同分布 $\operatorname{Expo}(\lambda)$ 随机变量之和（卷积）。
+
+\noindent\textbf{定理 8.4.3}\quad 设 $X_1,\ldots,X_n$ 独立同分布为 $\operatorname{Expo}(\lambda)$。则
+\[
+  X_1+\cdots+X_n\sim\operatorname{Gamma}(n,\lambda).
+\]
+
+\noindent\textit{证明.}\quad $\operatorname{Expo}(\lambda)$ 的 MGF 为 $\lambda/(\lambda-t)$，$t<\lambda$，所以 $X_1+\cdots+X_n$ 的 MGF 为
+\[
+  M_n(t)=\left(\frac{\lambda}{\lambda-t}\right)^n,\qquad t<\lambda.
+\]
+令 $Y\sim\operatorname{Gamma}(n,\lambda)$。我们证明 $Y$ 的 MGF 与 $X_1+\cdots+X_n$ 的 MGF 相同。由 LOTUS，
+\[
+  E(e^{tY})=\int_0^\infty e^{ty}\frac{1}{\Gamma(n)}(\lambda y)^n e^{-\lambda y}\frac{dy}{y}.
+\]
+仍然用模式识别来做积分。只需要做代数变形，直到积分内剩下一个可识别的 Gamma PDF：
+\[
+\begin{aligned}
+  E(e^{tY})
+  &=\int_0^\infty e^{ty}\frac{1}{\Gamma(n)}(\lambda y)^n e^{-\lambda y}\frac{dy}{y}\\
+  &=\frac{\lambda^n}{(\lambda-t)^n}
+    \int_0^\infty \frac1{\Gamma(n)}e^{-(\lambda-t)y}((\lambda-t)y)^n\frac{dy}{y}.
+\end{aligned}
+\]
+我们把 $\lambda^n$ 提出积分，再在积分内乘以 $(\lambda-t)^n$、积分外除以它。此时积分内的表达式是 $\operatorname{Gamma}(n,\lambda-t)$ 的 PDF，假设 $t<\lambda$。由于 PDF 积分为 $1$，
+\[
+  E(e^{tY})=\left(\frac{\lambda}{\lambda-t}\right)^n,
+\]
+其中 $t<\lambda$；若 $t\ge\lambda$，积分不收敛。
+
+于是 $X_1+\cdots+X_n$ 与 $Y\sim\operatorname{Gamma}(n,\lambda)$ 具有相同 MGF。由于 MGF 决定分布，
+\[
+  X_1+\cdots+X_n\sim\operatorname{Gamma}(n,\lambda).
+\]
+
+也可以用卷积积分进行归纳计算。只需考虑 $\lambda=1$ 的情形，因为完成该情形后，可以通过重新缩放随机变量得到一般 $\lambda$ 的结果。令 $T_n=X_1+\cdots+X_n$。用归纳法证明对所有 $n\ge1$，$T_n\sim\operatorname{Gamma}(n,1)$。当 $n=1$ 时结论成立，因为 $\operatorname{Gamma}(1,1)$ 的 PDF 为 $e^{-x}$（$x>0$），与 $\operatorname{Expo}(1)$ 的 PDF 相同。现假设 $T_n\sim\operatorname{Gamma}(n,1)$，证明 $T_{n+1}\sim\operatorname{Gamma}(n+1,1)$。$T_{n+1}=T_n+X_{n+1}$ 的 PDF 由卷积积分给出：
+\[
+  \int_0^\infty f_{T_n}(x)f_{X_{n+1}}(t-x)\,dx
+  =
+  \frac{1}{\Gamma(n)}\int_0^t x^{n-1}e^{-x}e^{-(t-x)}\,dx
+  =
+  \frac{e^{-t}}{\Gamma(n)}\int_0^t x^{n-1}\,dx
+  =
+  \frac{t^n e^{-t}}{\Gamma(n+1)}
+\]
+对 $t>0$ 成立，从而完成归纳。$\blacksquare$
+
+因此，若 $Y\sim\operatorname{Gamma}(a,\lambda)$ 且 $a$ 为整数，就可以把 $Y$ 表示为独立同分布 $\operatorname{Expo}(\lambda)$ 随机变量之和
+\[
+  X_1+\cdots+X_a,
+\]
+并立即得到均值与方差：
+\[
+  E(Y)=E(X_1+\cdots+X_a)=aE(X_1)=\frac{a}{\lambda},
+\]
+\[
+  \operatorname{Var}(Y)=\operatorname{Var}(X_1+\cdots+X_a)=a\operatorname{Var}(X_1)=\frac{a}{\lambda^2}.
+\]
+这与我们前面对一般 $a$ 推导出的结果一致。
+
+定理 8.4.3 还让我们能够把 Gamma 分布与 Poisson 过程的故事联系起来。第 5 章中我们说明过，在速率为 $\lambda$ 的 Poisson 过程中，到达间隔时间独立同分布为 $\operatorname{Expo}(\lambda)$。而第 $n$ 次到达的总等待时间 $T_n$ 是前 $n$ 个到达间隔时间之和；例如图 8.8 展示了 $T_3$ 如何等于 3 个到达间隔时间 $X_1,X_2,X_3$ 之和。因此由定理知
+\[
+  T_n\sim\operatorname{Gamma}(n,\lambda).
+\]
+Poisson 过程中的到达间隔时间是指数随机变量，而原始到达时间是 Gamma 随机变量。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.66\textwidth]{8-8.png}
+  \caption{Poisson 过程。到达间隔时间 $X_j$ 独立同分布为 $\operatorname{Expo}(\lambda)$，而原始到达时间 $T_j$ 服从 $\operatorname{Gamma}(j,\lambda)$。}
+\end{figure}
+
+\noindent\textbf{注意 8.4.4}\quad 与 $X_j$ 不同，$T_j$ 并不独立，因为它们被约束为递增；它们也不同分布。
+
+至此，我们终于有了对 $\operatorname{Gamma}(a,\lambda)$ 分布参数的解释。在 Poisson 过程故事中，$a$ 是我们等待的成功次数，$\lambda$ 是成功到达的速率；$Y\sim\operatorname{Gamma}(a,\lambda)$ 是速率为 $\lambda$ 的 Poisson 过程中第 $a$ 次到达的总等待时间。
+
+这个故事的一个推论是，具有相同 $\lambda$ 的 Gamma 分布的卷积仍为 Gamma 分布。习题 29 会从几个角度探讨这一事实。
+
+引入指数分布时，我们把它看成几何分布的连续类比：几何分布等待离散时间中的第一次成功，指数分布等待连续时间中的第一次成功。类似地，现在可以说 Gamma 分布是负二项分布的连续类比：负二项分布是若干几何等待时间之和，而 Gamma 分布是若干指数等待时间之和。在习题 54 中，你会用 MGF 说明 Gamma 分布可以作为负二项分布的连续极限得到。
+
+关于 Gamma 分布的最后一个故事是，它与 Poisson 分布之间有一种特殊关系，类似于 Beta 分布与二项分布之间的关系：Gamma 是 Poisson 的共轭先验。前面看到，Beta 分布可以表示一个未知成功概率，因为它的支撑集是 $(0,1)$。另一方面，Gamma 分布可以表示 Poisson 过程中的未知速率，因为它的支撑集是 $(0,\infty)$。
+
+为了考察这一点，回到 Blotchville。那里公共汽车以速率 $\lambda$ 按 Poisson 过程到达。以前假设 $\lambda=1/10$，所以两辆车之间的时间独立同分布为均值 10 分钟的指数分布；现在假设 Fred 不知道公共汽车到达的速率 $\lambda$，需要把它推断出来。Fred 将采用贝叶斯方法，把未知速率看作随机变量。
+
+\noindent\textbf{故事 8.4.5（Gamma--Poisson 共轭）}\quad 在 Blotchville，某个公交站的公交车按照速率为 $\lambda$ 辆/小时的 Poisson 过程到达，其中 $\lambda$ 未知。基于他在 Blotchville 令人难忘的经历，Fred 用先验分布
+\[
+  \lambda\sim\operatorname{Gamma}(r_0,b_0)
+\]
+来量化自己关于 $\lambda$ 的不确定性，其中 $r_0,b_0$ 是已知正数，且 $r_0$ 为整数。
+
+为了更好地理解公交系统，Fred 想进一步了解 $\lambda$。他非常有耐心，决定坐在公交站 $t$ 小时，并数这段时间内有多少辆公交车到达。令 $Y$ 为这段时间内到达的公交车数，并假设 Fred 观察到 $Y=y$。
+
+\begin{enumerate}
+  \item[(a)] 求 Fred 关于 $Y$ 与 $\lambda$ 的混合联合分布。
+  \item[(b)] 求 Fred 关于 $Y$ 的边缘分布。
+  \item[(c)] 求 Fred 关于 $\lambda$ 的后验分布，即给定数据 $y$ 后 $\lambda$ 的条件分布。
+  \item[(d)] 求 Fred 的后验均值 $E(\lambda\mid Y=y)$ 与后验方差 $\operatorname{Var}(\lambda\mid Y=y)$。
+\end{enumerate}
+
+\noindent\textit{解.}\quad 注意这个问题的结构与例 7.1.26 中的混合联合分布很相似。我们知道 $\lambda\sim\operatorname{Gamma}(r_0,b_0)$ 为边缘分布；并且由 Poisson 过程定义，若已知真实速率 $\lambda$，长度为 $t$ 的区间内的公交车数服从 $\operatorname{Pois}(\lambda t)$。换言之，给定的是
+\[
+  \lambda\sim\operatorname{Gamma}(r_0,b_0),\qquad
+  Y\mid \lambda\sim\operatorname{Pois}(\lambda t).
+\]
+现在需要反过来：求 $Y$ 的边缘分布以及给定 $Y=y$ 时 $\lambda$ 的条件分布，也就是后验分布。这正是贝叶斯推断的典型特征：我们有未知参数的先验分布（这里是 $\lambda$ 的 Gamma 分布），也有给定未知参数时数据的模型（这里是给定 $\lambda$ 时 $Y$ 的 Poisson 分布），然后用 Bayes 公式求给定观测数据时未知量的分布。现在开始计算。
+
+(a) 设 $f_0$ 为 $\lambda$ 的先验 PDF。$Y$ 与 $\lambda$ 的混合联合分布为
+\[
+  f(y,\lambda)
+  =P(Y=y\mid \lambda)f_0(\lambda)
+  =
+  \frac{e^{-\lambda t}(\lambda t)^y}{y!}
+  \frac{(b_0\lambda)^{r_0}e^{-b_0\lambda}}{\lambda\Gamma(r_0)},
+\]
+其中 $y=0,1,2,\ldots$ 且 $\lambda>0$。图 8.9 画出了这个混合联合分布：对每个 $\lambda$ 值都有一个 $Y$ 的条件 PMF，对每个 $Y$ 值也都有一个 $\lambda$ 的条件 PDF。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{8-9.png}
+  \caption{$Y$ 与 $\lambda$ 的混合联合分布。（a）给定某个 $\lambda$ 值时，相对高度形成 Poisson PMF。（b）从另一个方向看，给定 $Y=y$ 后得到 $\lambda$ 的后验分布。}
+\end{figure}
+
+(b) 为得到 $Y$ 的边缘 PMF，从混合联合分布中把 $\lambda$ 积掉；这也是 LOTP 的一种形式。于是
+\[
+\begin{aligned}
+  P(Y=y)
+  &=\int_0^\infty P(Y=y\mid\lambda)f_0(\lambda)\,d\lambda\\
+  &=\int_0^\infty
+    \frac{e^{-\lambda t}(\lambda t)^y}{y!}
+    \frac{(b_0\lambda)^{r_0}e^{-b_0\lambda}}{\Gamma(r_0)}
+    \frac{d\lambda}{\lambda}.
+\end{aligned}
+\]
+用模式识别来做这个积分，关注被积函数中涉及 $\lambda$ 的项。我们看到其中潜藏着 $\lambda^{r_0+y}$ 与 $e^{-(b_0+t)\lambda}$，这提示我们匹配 $\operatorname{Gamma}(r_0+y,b_0+t)$ 的 PDF。把所有不依赖于 $\lambda$ 的项提出，再乘上得到所需 PDF 的因子，同时记得在外面乘上其倒数：
+\[
+\begin{aligned}
+  P(Y=y)
+  &=
+  \frac{t^y b_0^{r_0}}{y!\Gamma(r_0)}
+  \int_0^\infty e^{-(b_0+t)\lambda}\lambda^{r_0+y}\frac{d\lambda}{\lambda}\\
+  &=
+  \frac{\Gamma(r_0+y)}{y!\Gamma(r_0)}
+  \frac{t^y b_0^{r_0}}{(b_0+t)^{r_0+y}}
+  \int_0^\infty
+  \frac{1}{\Gamma(r_0+y)}
+  e^{-(b_0+t)\lambda}((b_0+t)\lambda)^{r_0+y}
+  \frac{d\lambda}{\lambda}\\
+  &=
+  \frac{(r_0+y-1)!}{(r_0-1)!y!}
+  \left(\frac{t}{b_0+t}\right)^y
+  \left(\frac{b_0}{b_0+t}\right)^{r_0}.
+\end{aligned}
+\]
+最后一步使用了 $\Gamma(n)=(n-1)!$，这适用是因为 $r_0$ 为整数。这是 $\operatorname{NBin}(r_0,b_0/(b_0+t))$ 的 PMF，所以 $Y$ 的边缘分布为参数 $r_0$ 与 $b_0/(b_0+t)$ 的负二项分布。
+
+(c) 由 Bayes 公式，$\lambda$ 的后验 PDF 为
+\[
+  f_1(\lambda\mid y)
+  =
+  \frac{P(Y=y\mid \lambda)f_0(\lambda)}{P(Y=y)}.
+\]
+上一部分已经求出了 $P(Y=y)$，但它不依赖于 $\lambda$，所以可以把它视为归一化常数的一部分。把它以及其他不依赖于 $\lambda$ 的乘法因子吸收到归一化常数中，得到
+\[
+  f_1(\lambda\mid y)
+  \propto e^{-\lambda t}\lambda^y\lambda^{r_0}e^{-b_0\lambda}\frac1\lambda
+  =
+  e^{-(b_0+t)\lambda}\lambda^{r_0+y}\frac1\lambda,
+\]
+这说明 $\lambda$ 的后验分布为
+\[
+  \lambda\mid Y=y\sim\operatorname{Gamma}(r_0+y,b_0+t).
+\]
+从先验到后验时，$\lambda$ 的分布仍留在 Gamma 分布族中，所以 Gamma 的确是 Poisson 的共轭先验。
+
+既然已经有了 $\lambda$ 的后验 PDF，也可以用更优雅的方法解 (b)。重排 Bayes 公式，$Y$ 的边缘 PMF 为
+\[
+  P(Y=y)=\frac{P(Y=y\mid \lambda)f_0(\lambda)}{f_1(\lambda\mid y)}.
+\]
+分子由题设给出，分母由刚才的计算给出。代入这些量并化简，同样得到
+\[
+  Y\sim\operatorname{NBin}\left(r_0,\frac{b_0}{b_0+t}\right).
+\]
+
+(d) 条件 PDF 本身就是 PDF，所以完全可以相对于后验分布计算 $\lambda$ 的期望和方差。$\operatorname{Gamma}(r_0+y,b_0+t)$ 分布的均值与方差给出
+\[
+  E(\lambda\mid Y=y)=\frac{r_0+y}{b_0+t},
+  \qquad
+  \operatorname{Var}(\lambda\mid Y=y)=\frac{r_0+y}{(b_0+t)^2}.
+\]
+
+这个例子给出了 Gamma 参数在作为共轭先验使用时的另一种解释。Fred 的 $\operatorname{Gamma}(r_0,b_0)$ 先验在观察到 $t$ 小时内有 $y$ 次到达后，更新为 $\operatorname{Gamma}(r_0+y,b_0+t)$ 后验。可以想象，过去 Fred 在 $b_0$ 小时内观察到 $r_0$ 辆车到达；新数据加入后，他一共在 $b_0+t$ 小时内观察到 $r_0+y$ 辆车到达。因此可以把 $r_0$ 解释为先验到达次数，把 $b_0$ 解释为这些先验到达所需的总时间。
+
+\section*{8.5\quad Beta--Gamma 联系}
+
+本节将用一个共同故事把 Beta 分布与 Gamma 分布统一起来。作为额外收获，这个故事会给出 Beta$(a,b)$ PDF 的归一化常数关于 gamma 函数的表达式，并让我们容易地求出 Beta$(a,b)$ 分布的期望。
+
+\noindent\textbf{故事 8.5.1（银行--邮局）}\quad 你在办事时需要先去银行，再去邮局。令
+\[
+  X\sim\operatorname{Gamma}(a,\lambda)
+\]
+为你在银行排队的等待时间，令
+\[
+  Y\sim\operatorname{Gamma}(b,\lambda)
+\]
+为你在邮局排队的等待时间（两者具有相同的 $\lambda$）。假设 $X,Y$ 独立。令
+\[
+  T=X+Y
+\]
+为你在银行和邮局的总等待时间，令
+\[
+  W=\frac{X}{X+Y}
+\]
+为你在银行等待的时间占总等待时间的比例。求 $T,W$ 的联合分布。
+
+\noindent\textit{解.}\quad 通过二维变量替换求 $T,W$ 的联合 PDF。令
+\[
+  t=x+y,\qquad w=\frac{x}{x+y}.
+\]
+于是
+\[
+  x=tw,\qquad y=t(1-w),
+\]
+并且
+\[
+  \frac{\partial(x,y)}{\partial(t,w)}
+  =
+  \begin{pmatrix}
+    w & t\\
+    1-w & -t
+  \end{pmatrix},
+\]
+其行列式绝对值为 $t$。因此
+\[
+\begin{aligned}
+  f_{T,W}(t,w)
+  &=f_{X,Y}(x,y)\cdot
+    \left|\frac{\partial(x,y)}{\partial(t,w)}\right|\\
+  &=f_X(x)f_Y(y)\cdot t\\
+  &=\frac{1}{\Gamma(a)}(\lambda x)^a e^{-\lambda x}\frac1x
+    \cdot
+    \frac{1}{\Gamma(b)}(\lambda y)^b e^{-\lambda y}\frac1y
+    \cdot t\\
+  &=\frac{1}{\Gamma(a)}(\lambda tw)^a e^{-\lambda tw}\frac1{tw}
+    \cdot
+    \frac{1}{\Gamma(b)}(\lambda t(1-w))^b e^{-\lambda t(1-w)}
+    \frac1{t(1-w)}\cdot t.
+\end{aligned}
+\]
+把所有涉及 $w$ 的项放在一起，所有涉及 $t$ 的项放在一起：
+\[
+\begin{aligned}
+  f_{T,W}(t,w)
+  &=
+  \frac{1}{\Gamma(a)\Gamma(b)}
+  w^{a-1}(1-w)^{b-1}
+  (\lambda t)^{a+b}e^{-\lambda t}\frac1t\\
+  &=
+  \left(\frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}
+  w^{a-1}(1-w)^{b-1}\right)
+  \left(\frac1{\Gamma(a+b)}(\lambda t)^{a+b}e^{-\lambda t}\frac1t\right),
+\end{aligned}
+\]
+其中 $0<w<1$ 且 $t>0$。联合 PDF 的形式结合命题 7.1.21 告诉我们几件事：
+\begin{enumerate}
+  \item 由于联合 PDF 分解成一个关于 $t$ 的函数乘以一个关于 $w$ 的函数，所以 $T$ 与 $W$ 独立：总等待时间与在银行等待的时间比例相互独立。
+  \item 我们认出 $T$ 的边缘 PDF，从而推出
+  \[
+    T\sim\operatorname{Gamma}(a+b,\lambda).
+  \]
+  \item $W$ 的 PDF 为
+  \[
+    f_W(w)=\frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}w^{a-1}(1-w)^{b-1},
+    \qquad 0<w<1,
+  \]
+  这可由命题 7.1.21 得到，也可直接从 $T,W$ 的联合 PDF 中把 $T$ 积掉得到。这个 PDF 与 $\operatorname{Beta}(a,b)$ 的 PDF 成比例，所以它正是 $\operatorname{Beta}(a,b)$ 的 PDF。注意，作为刚才计算的副产物，我们求出了 Beta 分布的归一化常数：
+  \[
+    \frac{1}{\beta(a,b)}=\frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}.
+  \]
+\end{enumerate}
+
+总结一下，银行--邮局故事告诉我们：当我们把具有相同速率 $\lambda$ 的独立 Gamma 随机变量 $X,Y$ 相加时，总和 $X+Y$ 服从 Gamma 分布，比例 $X/(X+Y)$ 服从 Beta 分布，并且总和与比例相互独立。
+
+可以用这个结果在完全不做微积分的情况下求出 $W\sim\operatorname{Beta}(a,b)$ 的均值。
+
+\noindent\textbf{例 8.5.2（Beta 期望）}\quad 沿用上面的记号。由于 $T$ 与 $W$ 独立，它们不相关：
+\[
+  E(TW)=E(T)E(W).
+\]
+把这写成 $X,Y$ 的形式，得到
+\[
+  E\left((X+Y)\cdot\frac{X}{X+Y}\right)
+  =
+  E(X+Y)E\left(\frac{X}{X+Y}\right),
+\]
+即
+\[
+  E(X)=E(X+Y)E\left(\frac{X}{X+Y}\right),
+\]
+从而
+\[
+  \frac{E(X)}{E(X+Y)}
+  =
+  E\left(\frac{X}{X+Y}\right).
+\]
+通常，最后这个等式会是严重错误：面对 $E(X/(X+Y))$ 这样的期望，一般不能随意把 $E$ 移到分子和分母上。但在这里，银行--邮局故事证明了这一步是合理的，所以求 $W$ 的期望愉快地化为求 $X$ 与 $X+Y$ 的期望：
+\[
+  E(W)=E\left(\frac{X}{X+Y}\right)
+  =
+  \frac{E(X)}{E(X+Y)}
+  =
+  \frac{a/\lambda}{a/\lambda+b/\lambda}
+  =
+  \frac{a}{a+b}.
+\]
+
+另一种做法是从期望定义出发：
+\[
+  E(W)=\int_0^1 \frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}
+  w^a(1-w)^{b-1}\,dw.
+\]
+通过模式识别，被积函数是 $\operatorname{Beta}(a+1,b)$ 的 PDF，差一个归一化常数。得到 PDF 的精确匹配之后，应用 gamma 函数性质：
+\[
+\begin{aligned}
+  E(W)
+  &=
+  \frac{\Gamma(a+b)}{\Gamma(a)}
+  \frac{\Gamma(a+1)}{\Gamma(a+b+1)}
+  \int_0^1 \frac{\Gamma(a+b+1)}{\Gamma(a+1)\Gamma(b)}
+  w^a(1-w)^{b-1}\,dw\\
+  &=
+  \frac{\Gamma(a+b)}{\Gamma(a)}
+  \frac{a\Gamma(a)}{(a+b)\Gamma(a+b)}
+  =
+  \frac{a}{a+b}.
+\end{aligned}
+\]
+习题 30 会让你用这种方法求 Beta 分布的方差与其他矩。
+
+既然已经知道 Beta 归一化常数，也可以很快得到 Beta--Binomial 分布的 PMF。
+
+\noindent\textbf{例 8.5.3（Beta--Binomial PMF）}\quad 设 $X\mid p\sim\operatorname{Bin}(n,p)$，且 $p\sim\operatorname{Beta}(a,b)$。正如故事 8.3.3 所说，$X$ 服从 Beta--Binomial 分布。求 $X$ 的边缘分布。
+
+\noindent\textit{解.}\quad 令 $f(p)$ 为 $\operatorname{Beta}(a,b)$ 的 PDF。则
+\[
+\begin{aligned}
+  P(X=k)
+  &=\int_0^1 P(X=k\mid p)f(p)\,dp\\
+  &=\frac1{\beta(a,b)}
+    \int_0^1 {n\choose k}p^k(1-p)^{n-k}p^{a-1}(1-p)^{b-1}\,dp\\
+  &=\frac{{n\choose k}}{\beta(a,b)}
+    \int_0^1 p^{a+k-1}(1-p)^{b+n-k-1}\,dp\\
+  &={n\choose k}\frac{\beta(a+k,b+n-k)}{\beta(a,b)},
+\end{aligned}
+\]
+其中 $k=0,1,\ldots,n$。
+
+\section*{8.6\quad 次序统计量}
+
+本章要考察的最后一种变换，是把 $n$ 个随机变量 $X_1,\ldots,X_n$ 排序，得到变换后的随机变量
+\[
+  \min(X_1,\ldots,X_n),\ldots,\max(X_1,\ldots,X_n).
+\]
+这些变换后的随机变量称为\textbf{次序统计量}\footnote{这个术语有时会造成混淆。在统计学中，数据的任意函数都称为一个统计量。如果 $X_1,\ldots,X_n$ 是数据，则 $\min(X_1,\ldots,X_n)$ 是统计量，$\max(X_1,\ldots,X_n)$ 也是统计量。它们称为次序统计量，是因为它们通过把数据从小到大排序得到。}。当我们关心极值的分布时，次序统计量很有用，这一点前面已经提到过。
+
+此外，像样本均值 $\bar X_n$ 一样，次序统计量也可作为实验的有用摘要，因为可以用它们确定最差 $5\%$、最差 $25\%$、最好 $25\%$ 等观测的分界点（这类分界点称为样本的分位数）。
+
+\noindent\textbf{定义 8.6.1（次序统计量）}\quad 对随机变量 $X_1,X_2,\ldots,X_n$，其次序统计量是随机变量 $X_{(1)},X_{(2)},\ldots,X_{(n)}$，其中
+\[
+  X_{(1)}=\min(X_1,\ldots,X_n),
+\]
+$X_{(2)}$ 是 $X_1,\ldots,X_n$ 中第二小的值，依此类推，
+\[
+  X_{(n-1)}
+\]
+是 $X_1,\ldots,X_n$ 中第二大的值，而
+\[
+  X_{(n)}=\max(X_1,\ldots,X_n).
+\]
+
+注意，按定义有
+\[
+  X_{(1)}\le X_{(2)}\le\cdots\le X_{(n)}.
+\]
+称 $X_{(j)}$ 为第 $j$ 个次序统计量。若 $n$ 为奇数，则 $X_{((n+1)/2)}$ 称为 $X_1,\ldots,X_n$ 的样本中位数。
+
+\noindent\textbf{注意 8.6.2}\quad 次序统计量 $X_{(1)},\ldots,X_{(n)}$ 是随机变量，且每个 $X_{(j)}$ 都是 $X_1,\ldots,X_n$ 的函数。即使原始随机变量相互独立，次序统计量也是相依的：如果知道 $X_{(1)}=100$，那么 $X_{(n)}$ 被迫至少为 $100$。
+
+我们将把注意力集中在 $X_1,\ldots,X_n$ 独立同分布且连续的情形。原因是：离散随机变量可能以正概率出现并列值；连续随机变量出现并列的概率恰为 $0$，这使问题简单得多。因此，在本节余下部分，假设 $X_1,\ldots,X_n$ 独立同分布且连续，CDF 为 $F$，PDF 为 $f$。我们将推导每个单独次序统计量 $X_{(j)}$ 的边缘 CDF 与 PDF，以及 $(X_{(1)},\ldots,X_{(n)})$ 的联合 PDF。
+
+立即遇到的一个复杂点是，变换到次序统计量并不可逆：若从 $\min(X,Y)=3$ 与 $\max(X,Y)=5$ 出发，无法知道原始的 $X,Y$ 分别是 $3,5$，还是 $5,3$。因此，从 $\mathbb R^n$ 到 $\mathbb R^n$ 的变量替换公式不能直接应用。我们将采取直接方法，必要时用图形辅助。
+
+先从
+\[
+  X_{(n)}=\max(X_1,\ldots,X_n)
+\]
+的 CDF 开始。由于 $X_{(n)}\le x$ 当且仅当所有 $X_j$ 都不超过 $x$，所以
+\[
+\begin{aligned}
+  F_{X_{(n)}}(x)
+  &=P(\max(X_1,\ldots,X_n)\le x)\\
+  &=P(X_1\le x,\ldots,X_n\le x)\\
+  &=P(X_1\le x)\cdots P(X_n\le x)\\
+  &=(F(x))^n,
+\end{aligned}
+\]
+其中 $F$ 是单个 $X_i$ 的 CDF。类似地，$X_{(1)}=\min(X_1,\ldots,X_n)$ 超过 $x$ 当且仅当所有 $X_j$ 都超过 $x$，所以 $X_{(1)}$ 的 CDF 为
+\[
+\begin{aligned}
+  F_{X_{(1)}}(x)
+  &=1-P(\min(X_1,\ldots,X_n)>x)\\
+  &=1-P(X_1>x,\ldots,X_n>x)\\
+  &=1-(1-F(x))^n.
+\end{aligned}
+\]
+
+同样的逻辑可以求 $X_{(j)}$ 的 CDF。事件 $X_{(j)}\le x$ 发生，需要至少 $j$ 个 $X_i$ 落在 $x$ 左侧。图 8.10 展示了这一点。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.66\textwidth]{8-10.png}
+  \caption{事件 $X_{(j)}\le x$ 等价于“至少有 $j$ 个 $X_i$ 落在 $x$ 左侧”。}
+\end{figure}
+
+由于 $x$ 左侧的 $X_i$ 个数会很重要，定义一个新的随机变量 $N$ 来记录它：令 $N$ 为落在 $x$ 左侧的 $X_i$ 个数。每个 $X_i$ 独立地以概率 $F(x)$ 落在 $x$ 左侧。如果把“落在 $x$ 左侧”定义为成功，那么我们有 $n$ 次独立 Bernoulli 试验，每次成功概率为 $F(x)$，所以
+\[
+  N\sim\operatorname{Bin}(n,F(x)).
+\]
+于是由二项 PMF，
+\[
+\begin{aligned}
+  P(X_{(j)}\le x)
+  &=P(\text{至少 }j\text{ 个 }X_i\text{ 在 }x\text{ 左侧})\\
+  &=P(N\ge j)\\
+  &=\sum_{k=j}^{n}{n\choose k}F(x)^k(1-F(x))^{n-k}.
+\end{aligned}
+\]
+由此得到 $X_{(j)}$ 的 CDF。
+
+\noindent\textbf{定理 8.6.3（次序统计量的 CDF）}\quad 设 $X_1,\ldots,X_n$ 独立同分布且连续，CDF 为 $F$。则第 $j$ 个次序统计量 $X_{(j)}$ 的 CDF 为
+\[
+  P(X_{(j)}\le x)
+  =
+  \sum_{k=j}^{n}{n\choose k}F(x)^k(1-F(x))^{n-k}.
+\]
+
+为了得到 $X_{(j)}$ 的 PDF，可以对 CDF 关于 $x$ 求导，但得到的表达式很丑（虽然可以化简）。我们改用更直接的方法。考虑 $f_{X_{(j)}}(x)dx$，即第 $j$ 个次序统计量落在 $x$ 附近长度为 $dx$ 的无穷小区间内的概率。这件事发生的唯一方式如图 8.11 所示：需要一个 $X_i$ 落在 $x$ 附近的无穷小区间内，并且需要恰好 $j-1$ 个 $X_i$ 落在 $x$ 左侧，剩下的 $n-j$ 个落在 $x$ 右侧。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.70\textwidth]{8-11.png}
+  \caption{为了让 $X_{(j)}$ 落在 $x$ 的一个小区间内，需要一个 $X_i$ 落在这个小区间内，且恰好 $j-1$ 个落在 $x$ 左侧。}
+\end{figure}
+
+这个非常具体的事件的概率是多少？把实验分成两个阶段。
+\begin{itemize}
+  \item 首先，选择哪一个 $X_i$ 落在 $x$ 附近的无穷小区间中。有 $n$ 种选择，每一种以概率 $f(x)dx$ 发生，其中 $f$ 是单个 $X_i$ 的 PDF。
+  \item 接着，从剩下的 $n-1$ 个中，恰好选择 $j-1$ 个落在 $x$ 左侧。有 ${n-1\choose j-1}$ 种选择，每一种的概率为 $F(x)^{j-1}(1-F(x))^{n-j}$，这来自 $\operatorname{Bin}(n,F(x))$ 的 PMF。
+\end{itemize}
+把两个阶段的概率相乘，得到
+\[
+  f_{X_{(j)}}(x)dx
+  =
+  n f(x)dx {n-1\choose j-1}F(x)^{j-1}(1-F(x))^{n-j}.
+\]
+两边去掉 $dx$，就得到所需 PDF。
+
+\noindent\textbf{定理 8.6.4（次序统计量的 PDF）}\quad 设 $X_1,\ldots,X_n$ 独立同分布且连续，CDF 为 $F$，PDF 为 $f$。则第 $j$ 个次序统计量 $X_{(j)}$ 的边缘 PDF 为
+\[
+  f_{X_{(j)}}(x)
+  =
+  n{n-1\choose j-1}f(x)F(x)^{j-1}(1-F(x))^{n-j}.
+\]
+
+一般来说，$X_1,\ldots,X_n$ 的次序统计量不服从命名分布，但标准均匀分布的次序统计量是一个例外。
+
+\noindent\textbf{例 8.6.5（均匀分布的次序统计量）}\quad 设 $U_1,\ldots,U_n$ 独立同分布为 $\operatorname{Unif}(0,1)$。于是当 $0\le x\le1$ 时，$f(x)=1$ 且 $F(x)=x$，所以 $U_{(j)}$ 的 PDF 为
+\[
+  f_{U_{(j)}}(x)
+  =
+  n{n-1\choose j-1}x^{j-1}(1-x)^{n-j}.
+\]
+这是 $\operatorname{Beta}(j,n-j+1)$ 的 PDF。因此
+\[
+  U_{(j)}\sim\operatorname{Beta}(j,n-j+1),
+  \qquad
+  E(U_{(j)})=\frac{j}{n+1}.
+\]
+
+简单情形 $n=2$ 与例 7.2.2 一致；在那里我们用二维 LOTUS 说明，若 $U_1,U_2$ 独立同分布为 $\operatorname{Unif}(0,1)$，则
+\[
+  E(\max(U_1,U_2))=2/3,\qquad
+  E(\min(U_1,U_2))=1/3.
+\]
+现在既然知道 $\max(U_1,U_2)$ 与 $\min(U_1,U_2)$ 服从 Beta 分布，Beta 分布期望公式也确认了前面的结果。$\blacksquare$
+
+\section*{8.7\quad 总结}
+
+本章讨论了三大类变换：
+\begin{itemize}
+  \item 连续型随机向量的可逆变换 $\mathbf Y=g(\mathbf X)$；在一些技术条件下，尤其是偏导数 $\partial x_i/\partial y_j$ 存在且连续时，可以用变量替换公式处理；
+  \item 卷积；对于卷积，我们可以用故事、MGF 或卷积和/卷积积分来确定分布，这里按偏好程度从高到低排列；
+  \item 独立同分布连续型随机变量到其次序统计量的变换。
+\end{itemize}
+
+图 8.12 展示了原随机向量 $(X,Y)$ 与变换后随机向量 $(Z,W)=g(X,Y)$ 之间的联系，其中 $g$ 是满足某些技术条件的可逆变换。变量替换公式用 Jacobian 让我们可以在 $(X,Y)$ 的联合 PDF 与 $(Z,W)$ 的联合 PDF 之间来回转换。
+
+令 $A$ 为 $(X,Y)$ 支撑集中的一个区域，令
+\[
+  B=\{g(x,y):(x,y)\in A\}
+\]
+为 $(Z,W)$ 支撑集中对应的区域。于是 $(X,Y)\in A$ 与 $(Z,W)\in B$ 是同一个事件，所以
+\[
+  P((X,Y)\in A)=P((Z,W)\in B).
+\]
+为了求这个概率，我们既可以把 $(X,Y)$ 的联合 PDF 在 $A$ 上积分，也可以把 $(Z,W)$ 的联合 PDF 在 $B$ 上积分。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.86\textwidth]{8-12.png}
+  \caption{设 $(Z,W)=g(X,Y)$，其中 $g$ 是满足某些技术条件的可逆变换。变量替换公式让我们可以在 $(X,Y)$ 与 $(Z,W)$ 的联合 PDF 之间来回转换。}
+\end{figure}
+
+在本章中，和许多其他章节一样，我们大量使用了 Bayes 公式与全概率公式，尤其是在连续型或混合型形式下。我们也经常使用“通过模式识别积分”的策略。由于任何合法 PDF 的积分必须为 $1$，而现在我们已经知道许多合法 PDF，所以除了用微积分帮助我们做概率之外，我们也常常能用概率帮助我们做微积分。
+
+本章引入的两个新分布是 Beta 分布与 Gamma 分布，它们带有许多故事，并与其他分布相联系。Beta 分布是 $\operatorname{Unif}(0,1)$ 分布的推广，它有以下故事。
+\begin{itemize}
+  \item \textit{均匀分布的次序统计量：} $n$ 个独立同分布 $\operatorname{Unif}(0,1)$ 随机变量的第 $j$ 个次序统计量服从 $\operatorname{Beta}(j,n-j+1)$。
+  \item \textit{未知概率，Binomial 的共轭先验：} 若 $p\sim\operatorname{Beta}(a,b)$ 且 $X\mid p\sim\operatorname{Bin}(n,p)$，则
+  \[
+    p\mid X=k\sim\operatorname{Beta}(a+k,b+n-k).
+  \]
+  在用 Binomial 数据更新之后，$p$ 的后验分布仍留在 Beta 分布族中，这个性质称为共轭性。参数 $a,b$ 可以分别解释为先验成功次数与先验失败次数。
+\end{itemize}
+
+Gamma 分布是指数分布的推广，它有以下故事。
+\begin{itemize}
+  \item \textit{Poisson 过程：} 在速率为 $\lambda$ 的 Poisson 过程中，等待 $n$ 次到达的总等待时间服从 $\operatorname{Gamma}(n,\lambda)$。因此 Gamma 分布是负二项分布的连续对应物。
+  \item \textit{未知速率，Poisson 的共轭先验：} 若 $\lambda\sim\operatorname{Gamma}(r_0,b_0)$ 且 $Y\mid\lambda\sim\operatorname{Pois}(\lambda t)$，则
+  \[
+    \lambda\mid Y=y\sim\operatorname{Gamma}(r_0+y,b_0+t).
+  \]
+  在用 Poisson 数据更新之后，$\lambda$ 的后验分布仍留在 Gamma 分布族中。参数 $r_0,b_0$ 可以分别解释为先验观测到的成功次数与这些成功对应的总等待时间。
+\end{itemize}
+
+Beta 分布与 Gamma 分布还通过银行--邮局故事相互联系：若 $X\sim\operatorname{Gamma}(a,\lambda)$、$Y\sim\operatorname{Gamma}(b,\lambda)$ 且二者独立，则
+\[
+  X+Y\sim\operatorname{Gamma}(a+b,\lambda),
+  \qquad
+  \frac{X}{X+Y}\sim\operatorname{Beta}(a,b),
+\]
+并且 $X+Y$ 与 $\frac{X}{X+Y}$ 独立。
+
+由此，分布之间的联系图可以更新，把 Beta 分布与 Gamma 分布包含进去。括号中列出的分布，是括号外分布的特殊情形。
+
+\end{document}

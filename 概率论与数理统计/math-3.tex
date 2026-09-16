@@ -1,0 +1,553 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\graphicspath{{math/概率论/}}
+
+\title{第 3 章\quad 随机变量及其分布}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+在本章中，我们介绍随机变量。随机变量是一种极其有用的概念，它把概率空间中的结果映射为数值，从而使我们能够用数的语言来刻画实验结果。随机变量同时也是统计学的核心对象；虽然本书并不系统讲授统计学，但在概率中逐步建立随机变量的直觉，对理解统计推断很重要。
+
+\section*{3.1\quad 随机变量}
+
+为了说明随机变量怎样把复杂结果压缩成数值，考虑一个简单问题：假设 100 位选民正在两位候选人之间作选择，我们想知道某一候选人是否会获胜。实验的完整结果可以看作一个长度为 100 的序列，其中每一项表示一个选民的选择。虽然样本空间巨大，但我们常常只关心“某候选人获得多少票”这一个数。
+
+这就是随机变量的作用。它并不是“会随机变化的变量”这种含混说法，而是定义在样本空间上的函数。随机性来自实验结果本身；一旦实验结果确定，随机变量的值也随之确定。
+
+设 $X_j$ 表示第 $j$ 位选民是否投给某候选人，若投给则 $X_j=1$，否则 $X_j=0$。则
+\[
+  X=X_1+\cdots+X_{100}
+\]
+就是该候选人获得的票数。这里 $X$ 是随机变量，因为它对每一个可能的投票结果都给出一个数。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{3-1.png}
+  \caption{随机变量把样本空间中的结果映射到实数轴上。}
+\end{figure}
+
+\noindent\textbf{定义 3.1.1（随机变量）}\quad 给定样本空间 $S$，一个\textbf{随机变量}是从 $S$ 到实数集 $\mathbb{R}$ 的函数。随机变量通常用大写字母表示，如 $X,Y,Z$。
+
+随机变量的定义很抽象，但非常重要。它允许我们把对样本空间中复杂对象的讨论，转化为对数值的讨论。许多时候，同一个样本空间上可以定义多个随机变量；这些随机变量可能关注同一实验的不同方面。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{3-2.png}
+  \caption{同一个样本空间上可以定义多个随机变量。}
+\end{figure}
+
+\noindent\textbf{例 3.1.2（抛硬币）}\quad 连续抛一枚硬币两次，样本空间为
+\[
+  S=\{HH,HT,TH,TT\}.
+\]
+令 $X$ 为正面出现的次数。则
+\[
+  X(HH)=2,\quad X(HT)=1,\quad X(TH)=1,\quad X(TT)=0.
+\]
+若令 $Y$ 为反面出现的次数，则 $Y=2-X$。若令 $I$ 表示第一次是否为正面，则
+\[
+  I(HH)=I(HT)=1,\qquad I(TH)=I(TT)=0.
+\]
+
+随机变量可以是离散的，也可以是连续的。本章主要讨论离散随机变量，也就是其可能取值有限或可数无穷的随机变量。
+
+\section*{3.2\quad 分布与概率质量函数}
+
+随机变量的\textbf{分布}描述它取各个值的概率。对于离散随机变量，最直接的描述方式是概率质量函数。
+
+\noindent\textbf{定义 3.2.1（离散随机变量）}\quad 如果随机变量 $X$ 的可能取值集合是有限的或可数无穷的，则称 $X$ 为\textbf{离散随机变量}。
+
+若 $X$ 是离散随机变量，则 $X$ 的\textbf{支撑集}是所有满足 $P(X=x)>0$ 的 $x$ 的集合。
+
+\noindent\textbf{定义 3.2.2（概率质量函数）}\quad 离散随机变量 $X$ 的\textbf{概率质量函数}（probability mass function，PMF）是函数
+\[
+  p_X(x)=P(X=x).
+\]
+若不致混淆，也写作 $p(x)$。PMF 满足
+\[
+  p_X(x)\ge 0,\qquad \sum_x p_X(x)=1,
+\]
+其中求和遍历 $X$ 的所有可能取值。
+
+\noindent\textbf{例 3.2.3（两次抛硬币）}\quad 抛两次公平硬币，令 $X$ 为正面次数。则
+\[
+  P(X=0)=\frac14,\qquad P(X=1)=\frac12,\qquad P(X=2)=\frac14.
+\]
+若令 $Y=2X-3$，则 $Y$ 的可能取值为 $-3,-1,1$，相应概率仍为
+\[
+  P(Y=-3)=\frac14,\quad P(Y=-1)=\frac12,\quad P(Y=1)=\frac14.
+\]
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{3-3.png}
+  \caption{两个抛硬币随机变量的 PMF。}
+\end{figure}
+
+\noindent\textbf{例 3.2.4（独立同分布的伯努利和）}\quad 设 $X_1,\ldots,X_n$ 是独立的 $0$--$1$ 随机变量，且 $P(X_j=1)=p$。令
+\[
+  T=X_1+\cdots+X_n.
+\]
+则 $T$ 表示成功次数。若 $n=10$，$p=1/2$，则
+\[
+  P(T=k)=\binom{10}{k}\left(\frac12\right)^{10},\qquad k=0,1,\ldots,10.
+\]
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.66\textwidth]{3-4.png}
+  \caption{$n=10,p=1/2$ 时成功次数的 PMF。}
+\end{figure}
+
+\noindent\textbf{例 3.2.5（盒中取球）}\quad 一个盒中有若干编号球，从中随机取球。令 $X$ 表示取到球的编号，或令 $T$ 表示若干次取球中满足某条件的次数，都可以得到离散随机变量。确定其 PMF 的关键，是先清楚列出样本空间，再把产生同一随机变量取值的样本点的概率相加。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.66\textwidth]{3-5.png}
+  \caption{某个离散随机变量的 PMF。}
+\end{figure}
+
+\noindent\textbf{定理 3.2.6（PMF 合法性的判别）}\quad 若函数 $p$ 定义在某个有限或可数集合上，并满足
+\[
+  p(x)\ge 0,\qquad \sum_x p(x)=1,
+\]
+则它可以作为某个离散随机变量的 PMF。
+
+\noindent\textbf{证明}\quad 构造样本空间为所有可能取值的集合，并令每个样本点 $x$ 的概率为 $p(x)$。在这个概率空间上定义随机变量 $X(x)=x$，则 $P(X=x)=p(x)$。
+
+\section*{3.3\quad 伯努利分布与二项分布}
+
+最常见的离散分布之一是伯努利分布，它描述一次只有成功与失败两种结果的实验。
+
+\noindent\textbf{定义 3.3.1（伯努利分布）}\quad 若随机变量 $X$ 只取 $0$ 与 $1$ 两个值，且
+\[
+  P(X=1)=p,\qquad P(X=0)=1-p,
+\]
+则称 $X$ 服从参数为 $p$ 的\textbf{伯努利分布}，记作
+\[
+  X\sim \operatorname{Bern}(p).
+\]
+也就是说，
+\[
+  P(X=x)=p^x(1-p)^{1-x},\qquad x=0,1.
+\]
+
+伯努利随机变量可以看作一次试验是否成功的指标变量。把若干个独立同分布的伯努利随机变量相加，就得到二项分布。
+
+\noindent\textbf{定义 3.3.2（二项分布）}\quad 若
+\[
+  X=X_1+\cdots+X_n,
+\]
+其中 $X_1,\ldots,X_n$ 独立同分布且 $X_j\sim\operatorname{Bern}(p)$，则称 $X$ 服从参数为 $n,p$ 的\textbf{二项分布}，记作
+\[
+  X\sim\operatorname{Bin}(n,p).
+\]
+
+\noindent\textbf{定理 3.3.3（二项分布的 PMF）}\quad 若 $X\sim\operatorname{Bin}(n,p)$，则
+\[
+  P(X=k)=\binom{n}{k}p^k(1-p)^{n-k},\qquad k=0,1,\ldots,n.
+\]
+
+\noindent\textbf{证明}\quad 要使 $X=k$，需要 $n$ 次独立试验中恰有 $k$ 次成功。成功位置有 $\binom{n}{k}$ 种选择；每一种具体排列的概率都是 $p^k(1-p)^{n-k}$。相加即得公式。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{3-6.png}
+  \caption{不同参数下的二项分布 PMF。}
+\end{figure}
+
+\noindent\textbf{例 3.3.4（硬币）}\quad 抛一枚公平硬币 $n$ 次，正面次数服从 $\operatorname{Bin}(n,1/2)$。因此恰有 $k$ 次正面的概率为
+\[
+  \binom{n}{k}2^{-n}.
+\]
+
+\section*{3.4\quad 超几何分布}
+
+二项分布对应“有放回”或独立重复试验；若从有限总体中不放回抽样，则成功次数通常服从超几何分布。
+
+\noindent\textbf{定义 3.4.1（超几何分布）}\quad 一个盒中有 $w$ 个白球和 $b$ 个黑球，不放回地抽取 $n$ 个球。令 $X$ 为抽到的白球个数。则称
+\[
+  X\sim\operatorname{HGeom}(w,b,n),
+\]
+即 $X$ 服从参数为 $w,b,n$ 的\textbf{超几何分布}。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{3-7.png}
+  \caption{不放回抽样的示意图。}
+\end{figure}
+
+\noindent\textbf{定理 3.4.2（超几何分布的 PMF）}\quad 若 $X\sim\operatorname{HGeom}(w,b,n)$，则
+\[
+  P(X=k)=\frac{\binom{w}{k}\binom{b}{n-k}}{\binom{w+b}{n}},
+\]
+其中 $k$ 必须满足
+\[
+  0\le k\le w,\qquad 0\le n-k\le b.
+\]
+
+\noindent\textbf{证明}\quad 样本空间可以看作从 $w+b$ 个球中等可能地选出 $n$ 个球，所以总数为 $\binom{w+b}{n}$。若恰有 $k$ 个白球，则从 $w$ 个白球中选 $k$ 个、从 $b$ 个黑球中选 $n-k$ 个，共有 $\binom{w}{k}\binom{b}{n-k}$ 种。
+
+\noindent\textbf{例 3.4.3（标签重捕）}\quad 为估计湖中鱼的总数，先捕获 $100$ 条鱼并打上标签后放回。随后再捕获 $50$ 条，若其中有 $5$ 条带标签，则可以用超几何模型描述第二次样本中带标签鱼的数量。若湖中共有 $N$ 条鱼，则
+\[
+  X\sim\operatorname{HGeom}(100,N-100,50),
+\]
+观测到 $X=5$ 的概率为
+\[
+  \frac{\binom{100}{5}\binom{N-100}{45}}{\binom{N}{50}}.
+\]
+
+\noindent\textbf{定理 3.4.4（Vandermonde 恒等式）}\quad 对非负整数 $w,b,n$，
+\[
+  \sum_k \binom{w}{k}\binom{b}{n-k}=\binom{w+b}{n},
+\]
+其中求和遍历使组合数有意义的 $k$。
+
+\noindent\textbf{证明}\quad 等式右边是在 $w+b$ 个对象中选 $n$ 个的方式数。若把对象分为两类，第一类有 $w$ 个，第二类有 $b$ 个，并按从第一类中选出 $k$ 个分类计数，就得到左边。
+
+\section*{3.5\quad 离散均匀分布}
+
+当有限集合中的所有取值等可能时，就得到离散均匀分布。
+
+\noindent\textbf{定义 3.5.1（离散均匀分布）}\quad 若有限集合 $C$ 中每个元素被取到的概率都相同，且 $X$ 只取 $C$ 中的值，则称 $X$ 服从 $C$ 上的\textbf{离散均匀分布}，记作
+\[
+  X\sim\operatorname{DUnif}(C).
+\]
+于是
+\[
+  P(X=x)=\frac1{|C|},\qquad x\in C.
+\]
+
+\noindent\textbf{例 3.5.2（编号纸条）}\quad 从写有 $1,\ldots,100$ 的纸条中随机抽取一张，所得数字 $X$ 服从 $\operatorname{DUnif}\{1,\ldots,100\}$。例如，
+\[
+  P(X>90)=\frac{10}{100},\qquad P(X\text{ 为偶数})=\frac{50}{100}.
+\]
+
+离散均匀分布常常是其他分布的基础。例如二项分布可以从所有长度为 $n$ 的成功失败序列的等可能性推出；超几何分布可以从所有固定大小子集的等可能性推出。
+
+\section*{3.6\quad 累积分布函数}
+
+除了 PMF，另一种描述随机变量分布的重要函数是累积分布函数。CDF 不只适用于离散随机变量，也适用于后面会讨论的连续随机变量。
+
+\noindent\textbf{定义 3.6.1（累积分布函数）}\quad 随机变量 $X$ 的\textbf{累积分布函数}（cumulative distribution function，CDF）定义为
+\[
+  F_X(x)=P(X\le x),\qquad -\infty<x<\infty.
+\]
+
+\noindent\textbf{例 3.6.2}\quad 若 $X\sim\operatorname{Bin}(4,1/2)$，则 $X$ 的 PMF 在 $0,1,2,3,4$ 上取正值，而 CDF 是阶梯函数：
+\[
+  F_X(x)=\sum_{k\le x}\binom{4}{k}2^{-4}.
+\]
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{3-8.png}
+  \caption{二项随机变量的 PMF 与 CDF。}
+\end{figure}
+
+\noindent\textbf{定理 3.6.3（CDF 的性质）}\quad 任意随机变量 $X$ 的 CDF $F$ 满足：
+\begin{enumerate}
+  \item $F$ 单调不减；
+  \item $\lim_{x\to-\infty}F(x)=0$，$\lim_{x\to\infty}F(x)=1$；
+  \item $F$ 右连续；
+  \item 对任意 $a\le b$，
+  \[
+    P(a<X\le b)=F(b)-F(a).
+  \]
+\end{enumerate}
+
+对于离散随机变量，PMF 和 CDF 可以相互转换：
+\[
+  F_X(x)=\sum_{t\le x}p_X(t),
+\]
+而若 $x$ 是 $X$ 的一个可能取值，并且可能取值按从小到大排列，则在该点处 CDF 的跳跃大小就是 $p_X(x)$。
+
+\section*{3.7\quad 随机变量的函数}
+
+随机变量的函数仍然是随机变量。若 $X$ 是随机变量，$g$ 是一个函数，则
+\[
+  Y=g(X)
+\]
+也是随机变量。重要的是，$Y$ 的分布通常可以由 $X$ 的分布推出。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{3-9.png}
+  \caption{由 $X$ 进一步得到 $g(X)$。}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.62\textwidth]{3-10.png}
+  \caption{随机变量 $X$ 与函数 $g(X)$ 在同一样本空间上的取值。}
+\end{figure}
+
+\noindent\textbf{定理 3.7.1（随机变量函数的 PMF）}\quad 设 $X$ 是离散随机变量，$Y=g(X)$。则
+\[
+  P(Y=y)=\sum_{x:g(x)=y} P(X=x).
+\]
+
+\noindent\textbf{例 3.7.2}\quad 若 $X\sim\operatorname{Bin}(3,1/2)$，令 $Y=(X-1)^2$。则 $Y$ 的可能取值为 $0,1,4$。由 $X=1$ 得 $Y=0$，由 $X=0$ 或 $X=2$ 得 $Y=1$，由 $X=3$ 得 $Y=4$，所以
+\[
+  P(Y=0)=\frac38,\qquad
+  P(Y=1)=\frac18+\frac38=\frac12,\qquad
+  P(Y=4)=\frac18.
+\]
+
+\noindent\textbf{定义 3.7.3（联合 PMF）}\quad 两个离散随机变量 $X,Y$ 的\textbf{联合概率质量函数}定义为
+\[
+  p_{X,Y}(x,y)=P(X=x,Y=y).
+\]
+边缘 PMF 可由联合 PMF 求得：
+\[
+  p_X(x)=\sum_y p_{X,Y}(x,y),\qquad
+  p_Y(y)=\sum_x p_{X,Y}(x,y).
+\]
+
+\noindent\textbf{例 3.7.4（两个骰子）}\quad 掷两个公平骰子，令 $X$ 为第一个骰子的点数，$Y$ 为第二个骰子的点数。则
+\[
+  P(X=x,Y=y)=\frac1{36},\qquad x,y\in\{1,\ldots,6\}.
+\]
+若令 $T=\max(X,Y)$，则
+\[
+  P(T\le t)=\left(\frac{t}{6}\right)^2,\qquad t=1,\ldots,6,
+\]
+所以
+\[
+  P(T=t)=P(T\le t)-P(T\le t-1)=\frac{t^2-(t-1)^2}{36}=\frac{2t-1}{36}.
+\]
+
+\noindent\textbf{例 3.7.5（随机变量的合并）}\quad 若 $X$ 与 $Y$ 是随机变量，则 $X+Y$、$XY$、$\max(X,Y)$、$\min(X,Y)$ 都是随机变量。求这些随机变量的分布时，基本策略是把所有导致同一取值的样本点或联合取值合并。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{3-11.png}
+  \caption{$X$ 与 $2X$ 的 PMF。}
+\end{figure}
+
+\section*{3.8\quad 随机变量的独立性}
+
+事件的独立性可以推广到随机变量。直观地说，如果知道 $X$ 的值不能改变我们对 $Y$ 的分布的判断，则 $X$ 与 $Y$ 独立。
+
+\noindent\textbf{定义 3.8.1（两个随机变量独立）}\quad 随机变量 $X$ 与 $Y$ 独立，若对所有 $x,y$，
+\[
+  P(X=x,Y=y)=P(X=x)P(Y=y).
+\]
+
+\noindent\textbf{定义 3.8.2（多个随机变量独立）}\quad 随机变量 $X_1,\ldots,X_n$ 独立，若对所有 $x_1,\ldots,x_n$，
+\[
+  P(X_1=x_1,\ldots,X_n=x_n)
+  =P(X_1=x_1)\cdots P(X_n=x_n).
+\]
+
+独立随机变量的函数仍保持独立。
+
+\noindent\textbf{定理 3.8.3}\quad 若 $X$ 与 $Y$ 独立，则对任意函数 $g,h$，随机变量 $g(X)$ 与 $h(Y)$ 也独立。
+
+\noindent\textbf{例 3.8.4（独立不意味着函数独立于自身）}\quad 若 $X$ 是一个非退化随机变量，则 $X$ 与 $X$ 一般不独立，因为知道一个 $X$ 的值会完全确定另一个 $X$ 的值。只有当 $X$ 几乎必然为常数时，$X$ 才与自身独立。
+
+\noindent\textbf{例 3.8.5（两次抽牌）}\quad 从一副牌中有放回地抽两次，令 $X$、$Y$ 分别表示两次是否抽到红心，则 $X,Y$ 独立。若不放回抽取，则第一次结果会改变第二次的概率，$X,Y$ 不独立。
+
+\noindent\textbf{定义 3.8.6（独立同分布）}\quad 若随机变量 $X_1,\ldots,X_n$ 相互独立，且具有同一分布，则称它们\textbf{独立同分布}，常简写为 i.i.d.
+
+\noindent\textbf{例 3.8.7}\quad 抛一枚硬币 $n$ 次，若 $X_j$ 表示第 $j$ 次是否为正面，则 $X_1,\ldots,X_n$ 是独立同分布的伯努利随机变量。
+
+\noindent\textbf{定理 3.8.8（二项分布的可加性）}\quad 若 $X\sim\operatorname{Bin}(n,p)$，$Y\sim\operatorname{Bin}(m,p)$，且 $X,Y$ 独立，则
+\[
+  X+Y\sim\operatorname{Bin}(n+m,p).
+\]
+
+\noindent\textbf{证明}\quad 可把 $X$ 看作前 $n$ 次独立伯努利试验中的成功次数，把 $Y$ 看作后 $m$ 次独立伯努利试验中的成功次数。总成功次数就是 $n+m$ 次独立伯努利试验中的成功次数。
+
+\noindent\textbf{定义 3.8.9（条件独立）}\quad 给定事件或随机变量的信息后，若两个随机变量在该条件下独立，则称它们条件独立。例如给定 $Z=z$ 时，若
+\[
+  P(X=x,Y=y\mid Z=z)=P(X=x\mid Z=z)P(Y=y\mid Z=z),
+\]
+则称在给定 $Z=z$ 时 $X$ 与 $Y$ 条件独立。
+
+需要注意，独立不一定推出条件独立，条件独立也不一定推出独立。
+
+\section*{3.9\quad 二项分布与超几何分布的联系}
+
+二项分布和超几何分布都描述成功次数。差别在于：二项分布通常对应独立试验或有放回抽样；超几何分布对应不放回抽样。
+
+\noindent\textbf{例 3.9.1（疾病检测）}\quad 设总体中有 $N$ 人，其中 $m$ 人患病。随机抽取 $n$ 人，令 $X$ 为样本中患病人数。若抽样不放回，则
+\[
+  X\sim\operatorname{HGeom}(m,N-m,n).
+\]
+若总体很大而样本相对很小，则每次抽到患病者的概率近似不变，$X$ 可近似看作
+\[
+  \operatorname{Bin}\left(n,\frac{m}{N}\right).
+\]
+
+\noindent\textbf{定理 3.9.2}\quad 当总体规模很大、抽样比例很小时，超几何分布可由相应的二项分布近似。
+
+更具体地，若 $X\sim\operatorname{HGeom}(w,b,n)$，令 $p=w/(w+b)$。当 $w+b$ 很大而 $n$ 相对较小时，
+\[
+  P(X=k)\approx \binom{n}{k}p^k(1-p)^{n-k}.
+\]
+
+\noindent\textbf{定理 3.9.3}\quad 若 $X\sim\operatorname{HGeom}(w,b,n)$，在 $w,b\to\infty$ 且 $w/(w+b)\to p$、$n$ 固定时，
+\[
+  X\ \xrightarrow{d}\ \operatorname{Bin}(n,p).
+\]
+
+\noindent\textbf{证明要点}\quad 从超几何 PMF
+\[
+  \frac{\binom{w}{k}\binom{b}{n-k}}{\binom{w+b}{n}}
+\]
+出发，把各组合数展开。由于 $n,k$ 固定，随着总体规模趋于无穷，各项比例趋于 $p^k(1-p)^{n-k}$，从而得到二项分布的 PMF。
+
+\section*{3.10\quad 小结}
+
+随机变量是从样本空间到实数的函数。它让我们能够把概率问题转化为数值问题。离散随机变量的分布可以用 PMF 描述，也可以用 CDF 描述。PMF 给出各个点的概率质量；CDF 给出 $P(X\le x)$。
+
+本章的几个重要分布如下：
+\begin{itemize}
+  \item $\operatorname{Bern}(p)$：一次成功概率为 $p$ 的成功失败试验；
+  \item $\operatorname{Bin}(n,p)$：$n$ 次独立伯努利试验中的成功次数；
+  \item $\operatorname{HGeom}(w,b,n)$：从 $w$ 个白球、$b$ 个黑球中不放回抽取 $n$ 个时的白球数；
+  \item $\operatorname{DUnif}(C)$：有限集合 $C$ 上的等可能取值。
+\end{itemize}
+
+若 $Y=g(X)$，则 $Y$ 的 PMF 可由所有满足 $g(x)=y$ 的 $x$ 的概率相加得到。多个随机变量的联合分布刻画它们之间的关系；若联合 PMF 分解为边缘 PMF 的乘积，则随机变量独立。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.88\textwidth]{3-12.png}
+  \caption{本章概念之间的关系。}
+\end{figure}
+
+\section*{3.12\quad 练习}
+
+\subsection*{PMF 与 CDF}
+
+\noindent\textbf{练习 1}\quad 假设一个 4 人小组中每个人独立地以概率 $p$ 支持某项提案。令 $X$ 为支持人数。写出 $X$ 的 PMF 和 CDF。
+
+\noindent\textbf{练习 2}\quad 一个袋中有编号为 $1,\ldots,n$ 的球，随机取出一个。令 $X$ 为取到的编号。求 $X$ 的 PMF 与 CDF。
+
+\noindent\textbf{练习 3}\quad 设 $X$ 的 PMF 为
+\[
+  P(X=j)=cj,\qquad j=1,2,\ldots,5.
+\]
+求常数 $c$，并求 $P(X\le 3)$。
+
+\noindent\textbf{练习 4}\quad 若 $X$ 的 CDF 为
+\[
+  F(x)=
+  \begin{cases}
+    0,&x<0,\\
+    1/4,&0\le x<1,\\
+    3/4,&1\le x<2,\\
+    1,&x\ge 2,
+  \end{cases}
+\]
+求 $X$ 的 PMF。
+
+\noindent\textbf{练习 5}\quad 设 $X\sim\operatorname{Bin}(n,p)$。用二项分布的 PMF 说明
+\[
+  \sum_{k=0}^n \binom{n}{k}p^k(1-p)^{n-k}=1.
+\]
+
+\subsection*{命名分布}
+
+\noindent\textbf{练习 6}\quad 设 $X\sim\operatorname{Bern}(p)$。求 $X$ 的 CDF，并画出 $p=1/3$ 时的图形。
+
+\noindent\textbf{练习 7}\quad 抛一枚公平硬币 $10$ 次。令 $X$ 为正面次数，求 $P(X=5)$、$P(X\ge 8)$。
+
+\noindent\textbf{练习 8}\quad 某学生参加 $20$ 道独立选择题，每题猜对概率为 $1/4$。令 $X$ 为答对题数。写出 $X$ 的分布，并求至少答对 $10$ 题的概率表达式。
+
+\noindent\textbf{练习 9}\quad 一个盒中有 $7$ 个红球和 $5$ 个蓝球，不放回抽取 $4$ 个。令 $X$ 为红球个数。写出 $X$ 的分布与 PMF。
+
+\noindent\textbf{练习 10}\quad 从 $1,\ldots,100$ 中随机选一个整数。求它能被 $3$ 整除但不能被 $5$ 整除的概率。
+
+\noindent\textbf{练习 11}\quad 设 $X\sim\operatorname{DUnif}\{1,\ldots,n\}$。求 $P(X\le k)$，其中 $1\le k\le n$。
+
+\noindent\textbf{练习 12}\quad 解释为什么当总体很大、抽样数量相对很小时，超几何分布可以用二项分布近似。
+
+\subsection*{随机变量的函数}
+
+\noindent\textbf{练习 13}\quad 设 $X$ 的 PMF 为 $P(X=-1)=1/4$、$P(X=0)=1/2$、$P(X=2)=1/4$。令 $Y=X^2$。求 $Y$ 的 PMF。
+
+\noindent\textbf{练习 14}\quad 掷两个公平骰子，令 $X$ 为两点数之和。求 $X$ 的 PMF。
+
+\noindent\textbf{练习 15}\quad 掷两个公平骰子，令 $M=\max(X_1,X_2)$。求 $M$ 的 PMF。
+
+\noindent\textbf{练习 16}\quad 设 $X\sim\operatorname{Bin}(n,p)$，令 $Y=n-X$。求 $Y$ 的分布。
+
+\noindent\textbf{练习 17}\quad 设 $X\sim\operatorname{DUnif}\{-2,-1,0,1,2\}$，令 $Y=|X|$。求 $Y$ 的 PMF。
+
+\noindent\textbf{练习 18}\quad 设 $X,Y$ 的联合 PMF 已知。说明如何由联合 PMF 求 $X+Y$ 的 PMF。
+
+\subsection*{随机变量的独立性}
+
+\noindent\textbf{练习 19}\quad 给出两个独立随机变量的例子，并验证联合 PMF 等于边缘 PMF 的乘积。
+
+\noindent\textbf{练习 20}\quad 给出两个不独立随机变量的例子，并说明知道其中一个的值怎样改变另一个的分布。
+
+\noindent\textbf{练习 21}\quad 设 $X,Y$ 独立，且 $X\sim\operatorname{Bern}(p)$、$Y\sim\operatorname{Bern}(q)$。求 $P(X+Y=1)$。
+
+\noindent\textbf{练习 22}\quad 若 $X,Y$ 独立，证明 $g(X)$ 与 $h(Y)$ 独立。
+
+\noindent\textbf{练习 23}\quad 设 $X\sim\operatorname{Bin}(n,p)$、$Y\sim\operatorname{Bin}(m,p)$ 且独立。用伯努利试验解释为什么 $X+Y\sim\operatorname{Bin}(n+m,p)$。
+
+\noindent\textbf{练习 24}\quad 设 $X$ 为 $10$ 次公平抛硬币中的正面次数。求 $X$ 的 PMF，并求至少出现两次正面的条件下，正面次数不少于 $5$ 的条件概率。
+
+\noindent\textbf{练习 25}\quad Alice 抛一枚公平硬币 $n$ 次，Bob 也抛同一枚公平硬币 $n+1$ 次。求 Bob 的正面次数严格多于 Alice 的概率。
+
+\noindent\textbf{练习 26}\quad 若 $X\sim\operatorname{HGeom}(w,b,n)$，求 $n-X$ 的分布。
+
+\noindent\textbf{练习 27}\quad 回忆蒙提霍尔问题：参赛者先选一扇门，主持人在剩下门中打开一扇有山羊的门。用条件概率解释为什么换门更优。
+
+\noindent\textbf{练习 28}\quad 一个袋中有 $w$ 个白球、$b$ 个黑球，不放回抽取直到第一次取到白球。写出等待次数的 PMF。
+
+\noindent\textbf{练习 29}\quad 假设某实验有 $n$ 个等可能结果。若事件 $A$ 有 $a$ 个结果，事件 $B$ 有 $b$ 个结果，且 $A\cap B$ 有 $c$ 个结果，写出 $P(A)$、$P(B)$、$P(A\cap B)$，并给出 $A,B$ 独立的条件。
+
+\noindent\textbf{练习 30}\quad 一家公司发放优惠券。每位顾客独立地以概率 $p$ 使用优惠券。若有 $n$ 位顾客，写出使用优惠券人数的分布；若公司只准备了 $m$ 份赠品，写出赠品不足的概率表达式。
+
+\noindent\textbf{练习 31}\quad 一位统计学家被告知一位女士有两个孩子，且至少一个是女孩。求两个都是女孩的概率；若被告知“较年长的孩子是女孩”，概率又是多少？
+
+\noindent\textbf{练习 32}\quad 在某历史课上，从 $100$ 年中随机选出 $10$ 年作为考试年份。学生已经复习了其中 $r$ 年。写出考试中被复习年份个数的分布。
+
+\noindent\textbf{练习 33}\quad 一个盒中有 $n$ 张票，编号 $1,\ldots,n$。不放回抽取若干张。讨论抽到最大编号所在位置的分布。
+
+\noindent\textbf{练习 34}\quad 某学校中有 $n$ 名学生，每人独立选择统计学作为专业的概率为 $p$。随机抽取 $m$ 人。分别在有放回和不放回模型下描述样本中统计学专业人数的分布。
+
+\noindent\textbf{练习 35}\quad 两名玩家轮流回答问题，每题答对概率分别为 $p$ 与 $q$。先答对者获胜。写出第一名玩家获胜的概率表达式。
+
+\noindent\textbf{练习 36}\quad 某选举中两名候选人的得票数相同的概率，可用二项分布或随机游走思想表达。写出适当的概率表达式。
+
+\noindent\textbf{练习 37}\quad 一条信息通过若干节点传递，每个节点独立地以概率 $p$ 使信息出错。求最终信息出错的概率，并尝试化简。
+
+\noindent\textbf{练习 38}\quad 给出独立随机变量 $X,Y$ 的例子，使 $P(X<Y)=1$。
+
+\noindent\textbf{练习 39}\quad 给出独立随机变量 $X,Y$ 的例子，使 $P(X<Y)=1/2$。
+
+\noindent\textbf{练习 40}\quad 若 $X,Y$ 是离散随机变量且 $P(X=Y)=1$，说明 $X,Y$ 是否必然独立。
+
+\noindent\textbf{练习 41}\quad 若 $X,Y,Z$ 两两独立，是否一定相互独立？给出例子或证明。
+
+\noindent\textbf{练习 42}\quad 设 $X$ 为一周中随机一天的编号，$Y$ 表示该日是否为工作日，$Z$ 表示该日是否为周末。判断若干由 $X,Y,Z$ 构造的随机变量是否独立。
+
+\noindent\textbf{练习 43}\quad 若 $X$ 与 $Y$ 的分布函数完全相同，是否必然有 $P(X=Y)=1$？给出例子。
+
+\noindent\textbf{练习 44}\quad 设 $X_1,\ldots,X_n$ 独立同分布且 $X_j\sim\operatorname{Bern}(1/2)$。令
+\[
+  Y_j=X_j+X_{j+1}\pmod 2,\qquad j=1,\ldots,n-1.
+\]
+研究 $Y_1,\ldots,Y_{n-1}$ 的独立性。
+
+\subsection*{综合练习}
+
+\noindent\textbf{练习 45}\quad 一种新疗法正在与标准疗法比较。已知新疗法和标准疗法的样本规模、治愈人数及先验信息时，用条件概率写出新疗法更优的后验概率表达式。
+
+\noindent\textbf{练习 46}\quad 独立伯努利试验不断进行，直到连续出现若干次成功或失败。建立状态并写出相应概率方程。
+
+\noindent\textbf{练习 47}\quad 一台复印机随机把页面送入两个托盘。若一份文件有 $n$ 页，令 $X$ 为第一个托盘中的页数。求 $X$ 的分布，并估计让每个托盘都至少有一页的概率。
+
+\end{document}

@@ -1,0 +1,542 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\title{强化学习：$n$ 步自举}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{第 7 章\quad $n$ 步自举}
+
+在本章中，我们统一蒙特卡洛（MC）方法与上一章介绍的一步时序差分（TD）方法。
+这些方法之间存在一组中间方法：$n$ 步 TD 方法。
+它们跨过若干时间步向前看。
+也就是说，它们所用的回报不只是一步奖励，也不是直到终止的全部奖励，而是介于二者之间的若干步奖励。
+和一步 TD 方法一样，$n$ 步方法会从后继状态的估计价值进行自举。
+和蒙特卡洛方法一样，它们又可以向前使用多个实际观察到的奖励。
+
+$n$ 步方法的重要性有两方面。
+从实际角度看，它们常常比一步方法学得更快，也比蒙特卡洛方法方差更小。
+从概念角度看，它们揭示了 TD 与 MC 并不是彼此孤立的两类算法，而是同一个谱系上的两个端点。
+本章先讨论预测问题，再讨论同策略控制、离策略控制，以及把若干动作价值方法统一起来的 $Q(\sigma)$ 算法。
+
+\subsection*{7.1\quad $n$ 步 TD 预测}
+
+蒙特卡洛方法与 TD 方法之间的中间方法空间是什么样的？
+考虑用策略 $\pi$ 生成的样本幕来估计 $v_\pi$。
+蒙特卡洛方法对某个状态的更新，基于从该状态开始直到本幕结束所观察到的整段奖励序列。
+相比之下，一步 TD 方法的更新只基于下一步奖励，并把一步之后状态的价值当作剩余奖励的替代量进行自举。
+因此，一类中间方法可以基于中等数量的奖励来更新：多于一个奖励，但少于一直到终止为止的全部奖励。
+例如，两步更新会基于前两个奖励以及两步之后状态的估计价值。
+类似地，我们可以有三步更新、四步更新，依此类推。
+图 7.1 展示了用于 $v_\pi$ 的 $n$ 步更新谱系的备份图；最左边是一步 TD 更新，最右边是一直更新到终止的蒙特卡洛更新。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.86\textwidth]{tex/强化学习/images/rl8-fig-7-1.png}
+\caption{$n$ 步方法的备份图。这些方法构成一个谱系，从一步 TD 方法一直到蒙特卡洛方法。}
+\end{figure}
+
+使用 $n$ 步更新的方法仍然是 TD 方法，因为它们仍然根据较晚估计与较早估计之间的差异来改变较早的估计。
+现在这个较晚估计不是一步之后，而是 $n$ 步之后。
+时序差分跨越 $n$ 步的方法称为 $n$ 步 TD 方法。
+上一章介绍的 TD 方法都使用一步更新，因此我们称它们为一步 TD 方法。
+
+更形式化地说，考虑由于状态--奖励序列
+\[
+S_t,R_{t+1},S_{t+1},R_{t+2},\ldots,R_T,S_T
+\]
+而对状态 $S_t$ 的估计价值进行更新的情形，这里省略动作。
+在蒙特卡洛更新中，$v_\pi(S_t)$ 的估计会朝向完整回报
+\[
+G_t \doteq R_{t+1}+\gamma R_{t+2}+\gamma^2R_{t+3}+\cdots+\gamma^{T-t-1}R_T
+\]
+移动。
+我们把这个量称为更新目标。
+一步 TD 的目标是
+\[
+G_{t:t+1}\doteq R_{t+1}+\gamma V_t(S_{t+1}),
+\]
+其中 $V_t$ 是在时间 $t$ 对 $v_\pi$ 的估计。
+对应地，两步更新的目标是
+\[
+G_{t:t+2}\doteq R_{t+1}+\gamma R_{t+2}+\gamma^2 V_{t+1}(S_{t+2}).
+\]
+三步更新的目标是
+\[
+G_{t:t+3}\doteq R_{t+1}+\gamma R_{t+2}+\gamma^2R_{t+3}+\gamma^3V_{t+2}(S_{t+3}).
+\]
+一般地，$n$ 步回报定义为
+\begin{equation}
+G_{t:t+n}\doteq R_{t+1}+\gamma R_{t+2}+\cdots+\gamma^{n-1}R_{t+n}
+        +\gamma^n V_{t+n-1}(S_{t+n}),
+\tag{7.1}
+\end{equation}
+其中 $n\ge 1$ 且 $0\le t<T-n$。
+如果 $t+n\ge T$，则所有缺失的自举项都消失，此时
+\[
+G_{t:t+n}\doteq G_t.
+\]
+因此，蒙特卡洛回报可以看作跨越到终止时刻的 $n$ 步回报。
+
+$n$ 步 TD 方法用 $n$ 步回报作为更新目标：
+\begin{equation}
+V_{t+n}(S_t)\doteq V_{t+n-1}(S_t)
+ +\alpha\left[G_{t:t+n}-V_{t+n-1}(S_t)\right],
+\quad 0\le t<T,
+\tag{7.2}
+\end{equation}
+其他所有状态的价值保持不变。
+这里下标 $t+n$ 表明，直到观察到 $R_{t+n}$ 和 $S_{t+n}$ 之后，才能完成对时间 $t$ 状态的更新。
+也就是说，$n$ 步方法通常会延迟 $n$ 个时间步才更新。
+若本幕已经在那之前终止，则更新可以更早完成。
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{$n$ 步 TD，用于估计 $V\approx v_\pi$}
+
+\medskip
+\noindent 输入：策略 $\pi$。
+
+\noindent 算法参数：步长 $\alpha\in(0,1]$，正整数 $n$。
+
+\noindent 对所有 $s\in\mathcal{S}$ 任意初始化 $V(s)$。
+
+\noindent 对 $S_t$ 与 $R_t$ 的存取可用模 $n+1$ 的下标。
+
+\medskip
+\noindent 对每一幕循环：
+
+\quad 初始化并存储 $S_0\ne\mathrm{terminal}$。
+
+\quad $T\leftarrow\infty$。
+
+\quad 对 $t=0,1,2,\ldots$ 循环：
+
+\qquad 若 $t<T$：
+
+\qquad\quad 按照 $\pi(\cdot|S_t)$ 采取动作。
+
+\qquad\quad 观察并存储下一奖励 $R_{t+1}$ 与下一状态 $S_{t+1}$。
+
+\qquad\quad 若 $S_{t+1}$ 为终止状态，则 $T\leftarrow t+1$。
+
+\qquad $\tau\leftarrow t-n+1$，其中 $\tau$ 是要更新其状态估计的时刻。
+
+\qquad 若 $\tau\ge 0$：
+
+\qquad\quad $G\leftarrow\sum_{i=\tau+1}^{\min(\tau+n,T)}\gamma^{i-\tau-1}R_i$。
+
+\qquad\quad 若 $\tau+n<T$，则 $G\leftarrow G+\gamma^nV(S_{\tau+n})$。
+
+\qquad\quad $V(S_\tau)\leftarrow V(S_\tau)+\alpha\left[G-V(S_\tau)\right]$。
+
+\quad 直到 $\tau=T-1$。
+\end{minipage}}
+\end{center}
+
+\noindent\textbf{练习 7.1}
+在 $n$ 步 TD 的更新中，若用 $V_{t+n-1}(S_t)$ 代替 (7.2) 中误差项里的 $V_{t+n-1}(S_t)$ 所对应的当前估计，会实际得到一个略有不同的算法。
+这个算法会更好吗，还是更差？
+设计并编写一个小实验，从经验上回答这个问题。
+
+$n$ 步回报使用价值函数 $V_{t+n-1}$ 来校正 $R_{t+n}$ 之后缺失的奖励。
+$n$ 步回报的一个重要性质是，从最坏情形看，它们的期望一定比 $V_{t+n-1}$ 本身更接近 $v_\pi$。
+也就是说，对所有 $n\ge 1$，
+\begin{equation}
+\max_s\left|\mathbb{E}_\pi\!\left[G_{t:t+n}\mid S_t=s\right]-v_\pi(s)\right|
+\le
+\gamma^n\max_s\left|V_{t+n-1}(s)-v_\pi(s)\right|.
+\tag{7.3}
+\end{equation}
+这称为 $n$ 步回报的\textbf{误差缩减性质}。
+由于这个性质，在适当的技术条件下可以形式化证明，所有 $n$ 步 TD 方法都会收敛到正确预测。
+因此，$n$ 步 TD 方法构成了一族可靠方法，一步 TD 方法和蒙特卡洛方法是其中的两个极端成员。
+
+\noindent\textbf{例 7.1：随机游走上的 $n$ 步 TD 方法}
+考虑在例 6.2 的五状态随机游走任务上使用 $n$ 步 TD 方法。
+假设第一幕从中间状态 C 直接向右走，经过 D 和 E，然后在右端终止并得到回报 1。
+回忆所有状态的估计值一开始都是中间值 $V(s)=0.5$。
+在这次经验之后，一步方法只会把最后一个状态 $V(E)$ 的估计朝观察到的回报 1 增加。
+相比之下，两步方法会把终止前两个状态 $V(D)$ 和 $V(E)$ 的估计都朝 1 增加。
+三步方法，或者任意 $n>2$ 的 $n$ 步方法，则会把三个被访问状态的价值都朝 1 增加，且增加量相同。
+
+哪个 $n$ 的取值更好？
+图 7.2 给出一个简单经验检验的结果。
+任务使用更大的随机游走过程：不是 5 个状态，而是 19 个状态；左端结果为 $-1$，所有价值初始化为 0。
+这个任务将在本章中作为贯穿示例。
+图中展示了一系列 $n$ 和 $\alpha$ 取值下的 $n$ 步 TD 方法结果。
+每个参数设置的性能度量显示在纵轴上：它是在 19 个状态上、每幕结束时预测值与真实值之间均方误差的平方根，再对前 10 幕和整个实验的 100 次重复取平均。
+所有参数设置使用同一组随机游走。
+注意，中间大小的 $n$ 表现最好。
+这说明，把 TD 方法和蒙特卡洛方法推广为 $n$ 步方法，可能优于任一极端方法。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.78\textwidth]{tex/强化学习/images/rl8-fig-7-2.png}
+\caption{在 19 状态随机游走任务上，$n$ 步 TD 方法随 $\alpha$ 变化的性能；不同曲线对应不同的 $n$（例 7.1）。}
+\end{figure}
+
+\noindent\textbf{练习 7.2}
+你认为本章的例子为什么使用更大的随机游走任务，也就是 19 个状态而不是 5 个状态？
+更小的随机游走是否会把优势转移到另一个 $n$ 值？
+把左端结果从 0 改为 $-1$ 又会怎样？
+你认为这会改变最佳 $n$ 的取值吗？
+
+\subsection*{7.2\quad $n$ 步 Sarsa}
+
+$n$ 步方法怎样不仅用于预测，也用于控制？
+本节说明如何把 $n$ 步方法与 Sarsa 直接结合，得到一种同策略 TD 控制方法。
+我们把 Sarsa 的 $n$ 步版本称为 $n$ 步 Sarsa。
+上一章给出的原始版本从现在起称为一步 Sarsa，或 Sarsa(0)。
+
+主要思想只是把状态换成动作，也就是状态--动作对，然后使用 $\varepsilon$-贪心策略。
+图 7.3 中 $n$ 步 Sarsa 的备份图和图 7.1 中的 $n$ 步 TD 图类似，都是状态与动作交替出现的链。
+不同的是，Sarsa 的备份图以动作开始，也以动作结束，而不是以状态开始或结束。
+我们用估计的动作价值重新定义 $n$ 步回报（更新目标）：
+\begin{equation}
+G_{t:t+n}\doteq R_{t+1}+\gamma R_{t+2}+\cdots+\gamma^{n-1}R_{t+n}
+\gamma^nQ_{t+n-1}(S_{t+n},A_{t+n}),
+\tag{7.4}
+\end{equation}
+其中 $n\ge1$ 且 $0\le t<T-n$；若 $t+n\ge T$，则 $G_{t:t+n}\doteq G_t$。
+自然的算法于是为
+\begin{equation}
+Q_{t+n}(S_t,A_t)\doteq Q_{t+n-1}(S_t,A_t)
+\alpha\left[G_{t:t+n}-Q_{t+n-1}(S_t,A_t)\right],
+\quad 0\le t<T,
+\tag{7.5}
+\end{equation}
+所有其他状态--动作对的价值保持不变。
+这就是 $n$ 步 Sarsa。
+伪代码见下框；图 7.4 给出它为什么可能比一步方法学得更快的例子。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{tex/强化学习/images/rl8-fig-7-3.png}
+\caption{状态--动作价值的 $n$ 步方法谱系的备份图。它们从 Sarsa(0) 的一步更新，到蒙特卡洛方法一直更新到终止的更新；中间是基于 $n$ 步实际奖励和第 $n$ 个后继状态--动作对估计价值的 $n$ 步更新。最右侧是 $n$ 步期望 Sarsa 的备份图。}
+\end{figure}
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{$n$ 步 Sarsa，用于估计 $Q\approx q_*$ 或 $q_\pi$}
+
+\medskip
+\noindent 对所有 $s\in\mathcal{S},a\in\mathcal{A}$ 任意初始化 $Q(s,a)$。
+
+\noindent 将 $\pi$ 初始化为关于 $Q$ 的 $\varepsilon$-贪心策略，或初始化为给定的固定策略。
+
+\noindent 算法参数：步长 $\alpha\in(0,1]$，小的 $\varepsilon>0$，正整数 $n$。
+
+\noindent 对 $S_t,A_t,R_t$ 的存取可用模 $n+1$ 的下标。
+
+\medskip
+\noindent 对每一幕循环：
+
+\quad 初始化并存储 $S_0\ne\mathrm{terminal}$。
+
+\quad 选择并存储 $A_0\sim\pi(\cdot|S_0)$。
+
+\quad $T\leftarrow\infty$。
+
+\quad 对 $t=0,1,2,\ldots$ 循环：
+
+\qquad 若 $t<T$：
+
+\qquad\quad 采取动作 $A_t$。
+
+\qquad\quad 观察并存储 $R_{t+1}$ 与 $S_{t+1}$。
+
+\qquad\quad 若 $S_{t+1}$ 为终止状态，则 $T\leftarrow t+1$。
+
+\qquad\quad 否则选择并存储 $A_{t+1}\sim\pi(\cdot|S_{t+1})$。
+
+\qquad $\tau\leftarrow t-n+1$。
+
+\qquad 若 $\tau\ge0$：
+
+\qquad\quad $G\leftarrow\sum_{i=\tau+1}^{\min(\tau+n,T)}\gamma^{i-\tau-1}R_i$。
+
+\qquad\quad 若 $\tau+n<T$，则 $G\leftarrow G+\gamma^nQ(S_{\tau+n},A_{\tau+n})$。
+
+\qquad\quad $Q(S_\tau,A_\tau)\leftarrow Q(S_\tau,A_\tau)+\alpha[G-Q(S_\tau,A_\tau)]$。
+
+\qquad\quad 若正在学习 $\pi$，则保证 $\pi(\cdot|S_\tau)$ 关于 $Q$ 为 $\varepsilon$-贪心。
+
+\quad 直到 $\tau=T-1$。
+\end{minipage}}
+\end{center}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{tex/强化学习/images/rl8-fig-7-4.png}
+\caption{网格世界例子，展示由于使用 $n$ 步方法而带来的策略学习加速。左图是一幕中智能体走过的路径，并在标为 G 的高奖励位置结束。中图和右图的箭头表示，一步 Sarsa 与 10 步 Sarsa 分别会因这条路径而增强哪些动作价值。一步方法只增强通向高奖励的动作序列中的最后一个动作，而 $n$ 步方法会增强最后 $n$ 个动作，因此一幕中能学到更多。}
+\end{figure}
+
+期望 Sarsa 的 $n$ 步形式也可以类似得到。
+区别只在最后一步：不是使用实际选择的动作 $A_{t+n}$ 的动作价值，而是对 $S_{t+n}$ 下目标策略的动作价值求期望。
+相应回报为
+\begin{equation}
+G_{t:t+n}\doteq R_{t+1}+\cdots+\gamma^{n-1}R_{t+n}
+\gamma^n\bar V_{t+n-1}(S_{t+n}),
+\tag{7.6}
+\end{equation}
+其中
+\begin{equation}
+\bar V_t(s)\doteq \sum_a\pi(a|s)Q_t(s,a).
+\tag{7.7}
+\end{equation}
+若 $t+n\ge T$，仍令 $G_{t:t+n}\doteq G_t$。
+期望 Sarsa 由于对末端动作取期望，常比 Sarsa 方差更小。
+
+\subsection*{7.3\quad 离策略学习的 $n$ 步方法}
+
+回忆离策略学习中有两个策略。
+目标策略 $\pi$ 是我们要学习其价值函数的策略，行为策略 $b$ 则用于生成数据。
+在一步情况下，如果行为策略与目标策略不同，我们可以用重要性采样比来校正采样分布差异。
+在 $n$ 步情况下，校正必须覆盖用于更新目标的整段动作序列。
+
+对状态价值预测来说，$n$ 步回报中从 $t$ 之后到自举之前的动作都由行为策略产生。
+为了把这些动作序列的分布校正为目标策略的分布，我们使用重要性采样比
+\begin{equation}
+\rho_{t:h}\doteq \prod_{k=t}^{\min(h,T-1)}
+\frac{\pi(A_k|S_k)}{b(A_k|S_k)}.
+\tag{7.8}
+\end{equation}
+因此，离策略 $n$ 步 TD 的更新可写作
+\[
+V(S_t)\leftarrow V(S_t)+\alpha \rho_{t:t+n-1}
+\left[G_{t:t+n}-V(S_t)\right].
+\]
+如果某个行为策略选择了目标策略不可能选择的动作，则相应比值为 0，这次经验不会改变目标策略的估计。
+如果行为策略比目标策略更少选择某些动作，则比值可能很大，从而带来高方差。
+这是离策略学习反复出现的核心困难。
+
+对动作价值预测来说，若更新的是 $Q(S_t,A_t)$，则起始动作 $A_t$ 已经被条件化为给定动作，不需要对它进行校正。
+因此重要性采样比通常从下一步动作开始：
+\begin{equation}
+\rho_{t+1:t+n-1}\doteq \prod_{k=t+1}^{\min(t+n-1,T-1)}
+\frac{\pi(A_k|S_k)}{b(A_k|S_k)}.
+\tag{7.9}
+\end{equation}
+用这个比值乘以 $n$ 步 Sarsa 的 TD 误差，就得到离策略 $n$ 步 Sarsa 的基本形式。
+
+\subsection*{7.4\quad 每决策重要性采样与控制变量}
+
+普通重要性采样把整段回报乘以一个总比值。
+这种做法概念简单，但方差可能很大，因为一个很大的比值会同时放大整段回报。
+更细致的做法是\textbf{每决策重要性采样}：每一个奖励项只乘以到产生该奖励为止所需的比值。
+这样可以把某些无关的随机性从估计中去掉，通常能降低方差。
+
+一个相关思想是使用\textbf{控制变量}。
+如果我们知道某个随机变量的期望，就可以把它的随机偏差加入估计中，以降低方差而不改变期望。
+在 $n$ 步离策略回报中，后续动作若偏离目标策略，会使重要性采样比变成 0。
+此时，与其让整个后续回报消失，不如用当前的价值估计补回其期望部分。
+这会得到如下递归形式：
+\begin{equation}
+G_{t:h}\doteq R_{t+1}+\gamma\left(\rho_{t+1}G_{t+1:h}
+ +(1-\rho_{t+1})V_{h-1}(S_{t+1})\right),
+\tag{7.10}
+\end{equation}
+其中 $h=t+n$ 表示视界。
+这个形式把采样得到的后续回报与当前估计结合起来。
+当 $\rho_{t+1}=1$ 时，它完全使用采样回报；当 $\rho_{t+1}=0$ 时，它退回到价值估计。
+这种写法在动作价值情形中也有对应版本，并为后面的树备份和 $Q(\sigma)$ 方法提供了线索。
+
+\subsection*{7.5\quad 不用重要性采样的离策略学习：$n$ 步树备份算法}
+
+离策略学习能不能不使用重要性采样？
+第 6 章中的 Q-learning 与期望 Sarsa 在一步情形下做到了这一点。
+是否存在对应的多步算法？
+本节给出这样一种 $n$ 步方法，称为\textbf{树备份算法}。
+
+这个算法的思想由右侧所示的三步树备份图提示。
+沿着中央主干，图中标出三个样本状态和奖励，以及两个样本动作。
+这些随机变量表示初始状态--动作对 $S_t,A_t$ 之后发生的事件。
+每个状态两侧悬挂的是未被选择的动作。
+对于最后一个状态，所有动作都被看作还没有被选择。
+由于我们没有未选择动作的样本数据，所以对这些动作的价值估计进行自举，并把这些估计用于构成更新目标。
+这稍稍扩展了备份图的思想。
+到目前为止，我们总是把图顶部节点的估计价值朝向一个目标移动；这个目标结合了沿途奖励以及底部节点的估计价值。
+在树备份更新中，目标还包括所有层级上从两侧悬挂出来的动作节点的估计价值。
+这就是它称为树备份更新的原因：它是从整棵估计动作价值树进行更新。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[height=0.32\textheight]{tex/强化学习/images/rl8-tree-backup-3step.png}
+\caption{三步树备份更新的备份图。}
+\end{figure}
+
+更准确地说，更新来自树的叶节点的估计动作价值。
+内部的动作节点对应实际采取的动作，并不直接贡献。
+每个叶节点以一个与它在目标策略 $\pi$ 下发生概率成正比的权重贡献给目标。
+因此，第一层的每个动作 $a$ 以权重 $\pi(a|S_{t+1})$ 贡献，但实际采取的动作 $A_{t+1}$ 不直接贡献。
+它的概率 $\pi(A_{t+1}|S_{t+1})$ 被用于给第二层动作价值加权。
+类似地，第二层未选择动作的权重包含 $\pi(A_{t+1}|S_{t+1})\pi(a'|S_{t+2})$。
+第三层动作的权重继续乘上 $\pi(A_{t+2}|S_{t+2})$，以此类推。
+
+树备份回报可以递归定义。
+令
+\[
+\bar V_t(s)\doteq\sum_a\pi(a|s)Q_t(s,a).
+\]
+若 $t+1<T$，则
+\begin{equation}
+G_{t:h}\doteq R_{t+1}
+\gamma\left(\sum_{a\ne A_{t+1}}\pi(a|S_{t+1})Q_{h-1}(S_{t+1},a)
+\pi(A_{t+1}|S_{t+1})G_{t+1:h}\right),
+\tag{7.11}
+\end{equation}
+若 $t+1=T$，则 $G_{t:h}\doteq R_T$。
+等价地，它也可写为
+\begin{equation}
+G_{t:h}\doteq R_{t+1}
+\gamma\bar V_{h-1}(S_{t+1})
+\gamma\pi(A_{t+1}|S_{t+1})
+\left[G_{t+1:h}-Q_{h-1}(S_{t+1},A_{t+1})\right].
+\tag{7.12}
+\end{equation}
+这个递归形式显示，树备份算法像期望 Sarsa 一样对未采样动作取期望，同时沿着实际采样的动作继续向下展开。
+它不需要重要性采样比；目标策略只通过动作概率出现在期望权重中。
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{$n$ 步树备份，用于估计 $Q\approx q_*$ 或 $q_\pi$}
+
+\medskip
+\noindent 对所有 $s,a$ 任意初始化 $Q(s,a)$。
+将 $\pi$ 初始化为关于 $Q$ 的贪心策略，或初始化为给定固定策略。
+算法参数为步长 $\alpha\in(0,1]$ 与正整数 $n$。
+
+\medskip
+\noindent 对每一幕循环，按行为方式产生状态、动作与奖励。
+当时刻 $\tau=t+1-n$ 可更新时，若本幕已终止则令 $G\leftarrow R_T$；否则令
+\[
+G\leftarrow R_{t+1}+\gamma\sum_a\pi(a|S_{t+1})Q(S_{t+1},a).
+\]
+然后对 $k=\min(t,T-1),\min(t,T-1)-1,\ldots,\tau+1$ 逆向循环：
+\[
+G\leftarrow R_k+\gamma\sum_{a\ne A_k}\pi(a|S_k)Q(S_k,a)
+  +\gamma\pi(A_k|S_k)G.
+\]
+最后更新
+\[
+Q(S_\tau,A_\tau)\leftarrow Q(S_\tau,A_\tau)
+ +\alpha\left[G-Q(S_\tau,A_\tau)\right].
+\]
+若正在学习 $\pi$，则令 $\pi(\cdot|S_\tau)$ 关于 $Q$ 保持贪心。
+\end{minipage}}
+\end{center}
+
+\subsection*{7.6\quad 一个统一算法：$n$ 步 $Q(\sigma)$}
+
+到目前为止，本章考虑了三类动作价值算法，它们对应图 7.5 中前三个备份图。
+$n$ 步 Sarsa 对所有转移都采样。
+树备份算法对所有状态到动作的转移完全分支取期望，不进行采样。
+$n$ 步期望 Sarsa 则除最后一个状态到动作的转移使用期望外，其余转移都采样。
+这些算法可以统一到什么程度？
+
+一种统一思路由图 7.5 的第四个备份图提示。
+也就是说，我们可以逐步决定，在某个状态上是像 Sarsa 那样采样一个动作，还是像树备份那样考虑所有动作的期望。
+如果每一步都选择采样，就得到 Sarsa。
+如果每一步都不采样，就得到树备份算法。
+如果除最后一步之外都采样，就得到期望 Sarsa。
+当然，还可以有许多其他可能性。
+为了进一步扩展可能性，我们考虑采样与期望之间的连续变化。
+令 $\sigma_t\in[0,1]$ 表示时间 $t$ 的采样程度，其中 $\sigma=1$ 表示完全采样，$\sigma=0$ 表示纯期望、不采样。
+随机变量 $\sigma_t$ 可以是时间 $t$ 的状态、动作或状态--动作对的函数。
+我们把这个新算法称为 $n$ 步 $Q(\sigma)$。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.82\textwidth]{tex/强化学习/images/rl8-fig-7-5.png}
+\caption{本章到目前为止考虑的三类 $n$ 步动作价值更新的备份图（四步情形），以及把它们统一起来的第四类更新的备份图。图中的 $\rho$ 表示在离策略情形下需要重要性采样的半转移。第四类更新通过逐状态选择是否采样（$\sigma_t=1$）或不采样（$\sigma_t=0$）来统一其他方法。}
+\end{figure}
+
+现在推导 $n$ 步 $Q(\sigma)$ 的方程。
+先把树备份的 $n$ 步回报按视界 $h=t+n$ 写出，再使用期望近似价值
+\[
+\bar V_t(s)\doteq\sum_a\pi(a|s)Q_t(s,a).
+\]
+树备份回报可写作
+\[
+G_{t:h}=R_{t+1}+\gamma\pi(A_{t+1}|S_{t+1})
+\left(G_{t+1:h}-Q_{h-1}(S_{t+1},A_{t+1})\right)
+\gamma\bar V_{h-1}(S_{t+1}).
+\]
+这与带控制变量的 Sarsa $n$ 步回报形式完全类似，只是把重要性采样比 $\rho_{t+1}$ 换成了动作概率 $\pi(A_{t+1}|S_{t+1})$。
+因此，对 $Q(\sigma)$，我们在这两种情况之间线性滑动：
+\begin{equation}
+G_{t:h}\doteq R_{t+1}
+\gamma\left(\sigma_{t+1}\rho_{t+1}
+ +(1-\sigma_{t+1})\pi(A_{t+1}|S_{t+1})\right)
+\left(G_{t+1:h}-Q_{h-1}(S_{t+1},A_{t+1})\right)
+\gamma\bar V_{h-1}(S_{t+1}).
+\tag{7.13}
+\end{equation}
+当 $\sigma_{t+1}=1$ 时，这退化为采样型的 Sarsa 更新。
+当 $\sigma_{t+1}=0$ 时，它退化为树备份更新。
+中间值则在采样与期望之间连续折中。
+
+\begin{center}
+\fbox{\begin{minipage}{0.92\textwidth}
+\noindent\textbf{离策略 $n$ 步 $Q(\sigma)$，用于估计 $Q\approx q_*$ 或 $q_\pi$}
+
+\medskip
+\noindent 初始化 $Q$ 与目标策略 $\pi$。
+给定行为策略 $b$，算法参数为 $\alpha$、$n$，以及每步的 $\sigma_t\in[0,1]$。
+每一幕中，按 $b$ 选择动作并观察奖励与状态。
+当可更新时，按递归式 (7.13) 逆向构造 $G$，并令
+\[
+Q(S_\tau,A_\tau)\leftarrow Q(S_\tau,A_\tau)
+\alpha\left[G-Q(S_\tau,A_\tau)\right].
+\]
+若正在学习控制策略，则持续让 $\pi$ 关于 $Q$ 保持贪心或 $\varepsilon$-贪心。
+\end{minipage}}
+\end{center}
+
+\subsection*{7.7\quad 小结}
+
+本章发展了一系列时序差分学习方法。
+这些方法位于上一章的一步 TD 方法与再前一章的蒙特卡洛方法之间。
+含有中间数量自举的方法很重要，因为它们通常会比两个极端方法表现更好。
+
+本章的重点是 $n$ 步方法，它们向前看接下来的 $n$ 个奖励、状态和动作。
+右侧两个四步备份图共同概括了本章介绍的大多数方法。
+状态价值更新对应带重要性采样的 $n$ 步 TD。
+动作价值更新对应 $n$ 步 $Q(\sigma)$，它推广了期望 Sarsa 和 Q-learning。
+所有 $n$ 步方法在更新前都会延迟 $n$ 个时间步，因为只有那时所需的未来事件才全部已知。
+另一个缺点是，它们每个时间步需要的计算多于前面的一步方法。
+与一步方法相比，$n$ 步方法还需要更多内存，用来记录最近 $n$ 个时间步中的状态、动作、奖励，有时还包括其他变量。
+第 12 章将说明，多步 TD 方法可以用资格迹以很小的内存和计算复杂度实现。
+不过，相比一步方法，总会有一些额外计算。
+为了摆脱单个时间步的限制，这些代价常常值得付出。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[height=0.36\textheight]{tex/强化学习/images/rl8-summary-backups.png}
+\caption{小结中的两个四步备份图：左侧为四步 TD，右侧为四步 $Q(\sigma)$。}
+\end{figure}
+
+虽然 $n$ 步方法比使用资格迹的方法更复杂，但它们最大的好处是概念清楚。
+我们利用这一点，在 $n$ 步情形下发展了两种离策略学习方法。
+一种基于重要性采样，概念上简单，但可能具有很高方差。
+如果目标策略与行为策略差异很大，它在变得高效实用之前可能还需要新的算法思想。
+另一种基于树备份更新，是 Q-learning 在多步情形以及随机目标策略下的自然扩展。
+它不需要重要性采样；但如果目标策略与行为策略有显著差异，即使 $n$ 很大，自举也可能只延伸很少几步。
+
+最后，我们给出了 $n$ 步 $Q(\sigma)$，它把 Sarsa、期望 Sarsa、树备份以及 Q-learning 式思想放在同一个公式中。
+参数 $\sigma$ 控制每一步更偏向采样还是更偏向期望。
+这种统一视角不仅有助于理解已有算法，也提示了新的算法设计空间。
+
+\subsection*{书目与历史说明}
+
+本章介绍的备份图源于强化学习中用于表示更新结构的传统。
+$n$ 步 TD 方法可看作 TD 学习早期思想的直接推广。
+多步回报、重要性采样、树备份以及 $Q(\sigma)$ 的发展，分别连接了蒙特卡洛估计、离策略学习和资格迹等主题。
+本章中的经验例子用于说明这些方法在偏差、方差、计算量和学习速度之间的取舍。
+
+\end{document}

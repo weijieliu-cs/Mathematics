@@ -1,0 +1,1844 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+\newcommand{\biohazard}{\ensuremath{\ast}}
+
+\graphicspath{{math/概率论/}}
+
+\title{第 4 章\quad 期望}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{4.1\quad 期望的定义}
+
+上一章中，我们介绍了随机变量的\textbf{分布}。分布给出了随机变量落入任意特定集合的概率的完整信息。例如，我们可以说随机变量超过 $1000$ 的可能性有多大，它等于 $5$ 的可能性有多大，或者它落在区间 $[0,7]$ 中的可能性有多大。不过，要管理这么多概率往往很笨重，因此我们常常只想要一个数，用来概括随机变量的“平均”取值。
+
+“平均”这个词有几种不同含义，但最常用的是随机变量的\textbf{均值}，也称为它的\textbf{期望值}。此外，统计学很大一部分内容都在理解世界中的\textbf{变异性}，因此知道一个分布有多“分散”常常很重要；我们将用\textbf{方差}和\textbf{标准差}把这一点形式化。正如我们会看到的，方差和标准差也是用期望值定义的，所以期望值的用途远不止计算平均数。
+
+给定一列数 $x_1,x_2,\ldots,x_n$，我们熟悉的求平均方式是把它们加起来再除以 $n$。这称为\textbf{算术平均数}，定义为
+\[
+  \bar{x}=\frac{1}{n}\sum_{j=1}^n x_j.
+\]
+更一般地，可以定义 $x_1,\ldots,x_n$ 的\textbf{加权平均数}为
+\[
+  \operatorname{weighted\mbox{-}mean}(x)=\sum_{j=1}^n x_jp_j,
+\]
+其中权重 $p_1,\ldots,p_n$ 是预先给定的非负数，并且总和为 $1$（所以当所有 $j$ 都有 $p_j=1/n$ 时，就得到不加权的平均数 $\bar{x}$）。
+
+离散随机变量期望的定义正是受一列数的加权平均数启发，其中权重由概率给出。
+
+\noindent\textbf{定义 4.1.1（离散随机变量的期望）}\quad 设离散随机变量 $X$ 的所有不同可能取值为 $x_1,x_2,\ldots$。则 $X$ 的\textbf{期望值}（也称\textbf{期望}或\textbf{均值}）定义为
+\[
+  E(X)=\sum_{j=1}^{\infty}x_jP(X=x_j).
+\]
+若支撑集有限，则上式改为有限和。我们也可以写成
+\[
+  E(X)=\sum_x xP(X=x),
+\]
+其中求和遍历 $X$ 的支撑集（无论如何，对不在支撑集中的 $x$，都有 $xP(X=x)=0$）。若
+\[
+  \sum_{j=1}^{\infty}|x_j|P(X=x_j)
+\]
+发散，则期望未定义，因为此时 $E(X)$ 的级数发散，或者它的值依赖于 $x_j$ 的列举顺序。
+
+用文字说，$X$ 的期望值就是 $X$ 可能取值的加权平均，权重为相应的概率。下面用几个简单例子检查这个定义是否合理。
+
+\begin{enumerate}
+  \item 令 $X$ 为掷一颗公平六面骰的结果，所以 $X$ 以相等概率取值 $1,2,3,4,5,6$。直观上，我们应该能通过把这些数加起来再除以 $6$ 来得到平均数。由定义，
+  \[
+    E(X)=\frac{1}{6}(1+2+\cdots+6)=3.5,
+  \]
+  这正是预期结果。注意，在这个例子中 $X$ 从不等于它的均值。这类似于某个国家每户儿童平均数可能是 $1.8$，但这并不意味着一个典型家庭有 $1.8$ 个孩子。
+
+  \item 令 $X\sim\operatorname{Bern}(p)$，并记 $q=1-p$。则
+  \[
+    E(X)=1p+0q=p.
+  \]
+  这在直观上也合理，因为它位于 $X$ 的两个可能取值 $0$ 与 $1$ 之间，并按照二者可能性的大小折中。图 4.1 给出了 $p<1/2$ 的情形：两颗鹅卵石在跷跷板上保持平衡。为了平衡，支点（图中三角形）必须位于 $p$，这在物理上就是\textbf{质心}。
+
+  频率学派的解释是，考虑大量相互独立的 Bernoulli 试验，每次成功概率为 $p$。把成功记为 $1$、失败记为 $0$，从长期看，我们会预期数据是一列 $0$ 和 $1$，其中 $1$ 的比例非常接近 $p$。而一列 $0$ 和 $1$ 的平均数正是 $1$ 的比例。
+
+  \item 令 $X$ 有 $3$ 个不同可能取值 $a_1,a_2,a_3$，相应概率分别为 $p_1,p_2,p_3$。设想做一次模拟，从 $X$ 的分布中独立生成 $n$ 个结果。当 $n$ 很大时，我们预期大约会有 $p_1n$ 个 $a_1$，$p_2n$ 个 $a_2$，以及 $p_3n$ 个 $a_3$。（在第 10 章学习大数定律时，我们会看到这个例子的一个更数学化版本。）如果模拟结果接近这些预期数目，那么模拟结果的算术平均数近似为
+  \[
+    \frac{p_1n\cdot a_1+p_2n\cdot a_2+p_3n\cdot a_3}{n}
+    =p_1a_1+p_2a_2+p_3a_3=E(X).
+  \]
+\end{enumerate}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.58\textwidth]{4-1.png}
+  \caption{两颗鹅卵石的质心，说明若 $X\sim\operatorname{Bern}(p)$，则 $E(X)=p$。这里 $q$ 和 $p$ 表示两颗鹅卵石的质量。}
+\end{figure}
+
+注意，$E(X)$ 只依赖于 $X$ 的分布。这直接来自定义，但由于它很基本，值得明确记录下来。
+
+\noindent\textbf{命题 4.1.2}\quad 若 $X$ 与 $Y$ 是具有相同分布的离散随机变量，则
+\[
+  E(X)=E(Y)
+\]
+（只要等式任一边存在）。
+
+\noindent\textbf{证明}\quad 在 $E(X)$ 的定义中，我们只需要知道 $X$ 的概率质量函数。 \qed
+
+上述命题的逆命题不成立，因为期望值只是一个单数概括，远不足以刻画整个分布；它度量“中心”在哪里，但不能决定分布有多分散，或随机变量为正的可能性有多大。图 4.2 展示了两个不同的概率质量函数具有相同期望值（平衡点）的例子。
+
+\noindent\textbf{$\biohazard$ 4.1.3（用期望替换随机变量）}\quad 对任意离散随机变量 $X$，期望值 $E(X)$ 是一个数（如果存在）。一个常见错误是在没有理由的情况下用期望替换随机变量。这在数学上是错误的（$X$ 是函数，而 $E(X)$ 是常数），在统计上也是错误的（它忽略了 $X$ 的变异性），除非在退化情形下 $X$ 本身为常数。
+
+\noindent\textbf{记号 4.1.4}\quad 我们常把 $E(X)$ 简写为 $EX$。类似地，也常把 $E(X^2)$ 简写为 $EX^2$，把 $E(X^n)$ 简写为 $EX^n$。
+
+\noindent\textbf{$\biohazard$ 4.1.5}\quad 在处理期望时，注意运算顺序至关重要。如上所述，$EX^2$ 是随机变量 $X^2$ 的期望，而不是数 $EX$ 的平方。除非括号明确表示别的含义，否则对于一个随机变量的幂的期望，我们先取幂，再取期望。例如，$E(X-1)^4$ 表示 $E((X-1)^4)$，而不是 $(E(X-1))^4$。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.7\textwidth]{4-2.png}
+  \caption{期望值不能决定分布：不同的概率质量函数可以具有相同的平衡点。}
+\end{figure}
+
+\section*{4.2\quad 期望的线性性}
+
+期望最重要的性质是\textbf{线性性}：随机变量之和的期望等于各个随机变量期望之和。
+
+\noindent\textbf{定理 4.2.1（期望的线性性）}\quad 对任意随机变量 $X,Y$ 和任意常数 $c$，
+\[
+  E(X+Y)=E(X)+E(Y),\qquad E(cX)=cE(X).
+\]
+
+第二个等式说的是，常数因子可以从期望中提出来；这在直觉上合理，也很容易由定义验证。第一个等式 $E(X+Y)=E(X)+E(Y)$ 在 $X$ 与 $Y$ 独立时似乎也合理。令人惊讶的是，即使 $X$ 与 $Y$ 相依，它仍然成立。为了建立直觉，考虑极端情形：$X$ 总是等于 $Y$。则 $X+Y=2X$，而 $E(X+Y)=E(X)+E(Y)$ 的两边都等于 $2E(X)$，因此即使在最极端的相依情形下，线性性仍然成立。
+
+线性性对所有随机变量都成立，不限于离散随机变量；不过本章只对离散随机变量证明它。在证明线性性之前，先回忆关于平均数的一些基本事实。若有一列数，例如 $(1,1,1,1,1,3,3,5)$，可以把所有值加起来并除以列表长度来求均值，也就是让列表中每个元素的权重都是 $1/8$：
+\[
+  \frac{1}{8}(1+1+1+1+1+3+3+5)=2.
+\]
+但还有另一种计算均值的方法：把所有 $1$、所有 $3$、所有 $5$ 分组，然后对 $1,3,5$ 作加权平均，权重分别为它们出现的比例：
+\[
+  \frac{5}{8}\cdot 1+\frac{2}{8}\cdot 3+\frac{1}{8}\cdot 5=2.
+\]
+
+这个观察——平均数可以用不分组或分组两种方式计算——就是证明线性性所需要的一切。回忆 $X$ 是一个函数，它给样本空间中的每个结果 $s$ 指派一个实数。随机变量 $X$ 可能给多个样本结果指派相同的值。发生这种情况时，我们对期望的定义会把所有这些结果合并为一颗“超级鹅卵石”，它的权重 $P(X=x)$ 是组成它的那些鹅卵石的总权重。图 4.3 对一个取值于 $\{0,1,2\}$ 的假想随机变量说明了这一分组过程。因此，期望的定义对应的是分组后的求平均方式。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.66\textwidth]{4-3.png}
+  \caption{左：$X$ 给样本空间中的每颗鹅卵石指派一个数。右：按 $X$ 指派的值对鹅卵石分组，$9$ 颗鹅卵石变成 $3$ 颗超级鹅卵石。超级鹅卵石的权重是组成它的鹅卵石权重之和。}
+\end{figure}
+
+这个定义的优点是，它让我们能够直接处理 $X$ 的分布，而不必回到样本空间。缺点在于，当我们要证明类似线性性的定理时，如果同一个样本空间上还有另一个随机变量 $Y$，那么 $Y$ 所产生的超级鹅卵石通常不同于 $X$ 所产生的超级鹅卵石，权重 $P(Y=y)$ 也不同；这使得组合
+\[
+  \sum_x xP(X=x)
+  \quad\text{与}\quad
+  \sum_y yP(Y=y)
+\]
+变得困难。
+
+幸运的是，我们知道还有另一种同样有效的求平均方式：可以对每一颗原始鹅卵石所对应的值作加权平均。换言之，如果 $X(s)$ 是 $X$ 指派给鹅卵石 $s$ 的值，那么可以取加权平均
+\[
+  E(X)=\sum_s X(s)P(\{s\}),
+\]
+其中 $P(\{s\})$ 是鹅卵石 $s$ 的权重。这对应于不分组的求平均方式。这个定义的优点是，它把样本空间分解为最小可能单位，因此对定义在同一样本空间上的每个随机变量，我们都使用相同的权重 $P(\{s\})$。
+
+若 $Y$ 是另一个随机变量，则
+\[
+  E(Y)=\sum_s Y(s)P(\{s\}).
+\]
+于是可以合并 $\sum_s X(s)P(\{s\})$ 与 $\sum_s Y(s)P(\{s\})$，得到
+\[
+  E(X)+E(Y)
+  =\sum_s X(s)P(\{s\})+\sum_s Y(s)P(\{s\})
+  =\sum_s (X+Y)(s)P(\{s\})
+  =E(X+Y).
+\]
+
+期望线性性的另一种直观理解来自\textbf{模拟}。如果我们从 $X$ 的分布中模拟很多很多次，那么模拟值的直方图会很像 $X$ 的真实概率质量函数。特别地，模拟值的算术平均会非常接近 $E(X)$ 的真实值（这种收敛的精确性质由大数定律描述；这是第 10 章会详细讨论的重要定理）。
+
+令 $X$ 与 $Y$ 是概括某个实验的随机变量。假设我们把实验重复 $n$ 次，其中 $n$ 很大，并在每次实验中记录 $X$ 与 $Y$ 的实现值。每次重复都会得到一个 $X$ 值、一个 $Y$ 值，以及二者相加得到的 $X+Y$ 值。在图 4.4 中，每一行代表一次实验重复。左列是 $X$ 的抽样值，中列是 $Y$ 的抽样值，右列是 $X+Y$ 的抽样值。
+
+计算最后一列所有数之和有两种方式。直接的方法是把最后一列的所有数相加。但另一种同样有效的方法是，把第一列所有数相加，把第二列所有数相加，然后把两个列和相加。
+
+两边都除以 $n$，上述论证说明下面两个过程是等价的：
+\begin{itemize}
+  \item 对最后一列所有数取算术平均。由大数定律，这非常接近 $E(X+Y)$。
+  \item 分别对第一列和第二列取算术平均，再把两个列平均数相加。由大数定律，这非常接近 $E(X)+E(Y)$。
+\end{itemize}
+
+因此，期望的线性性只是一个简单的算术事实：我们不过是在用两种不同顺序相加。注意，在这个论证中，我们从未依赖 $X$ 与 $Y$ 是否独立。事实上，在图 4.4 中，$X$ 与 $Y$ 看起来是相依的：$X$ 大时 $Y$ 往往也大，$X$ 小时 $Y$ 往往也小（用第 7 章的语言说，$X$ 与 $Y$ 正相关）。但这种相依性无关紧要；重新打乱 $Y$ 的抽样值可能完全改变 $X$ 与 $Y$ 的相依结构，却不会影响列和。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.55\textwidth]{4-4.png}
+  \caption{期望线性性的直观图像。每一行代表实验的一次重复，三列分别是 $X,Y,X+Y$ 的实现值。把最后一列的所有数相加，等价于先分别加第一列和第二列，再把两个列和相加。因此最后一列的均值等于前两列均值之和，这就是期望的线性性。}
+\end{figure}
+
+线性性是计算期望值的极其方便的工具，常常让我们完全绕开期望值的定义。下面用线性性求二项分布和超几何分布的期望。
+
+\noindent\textbf{例 4.2.2（二项期望）}\quad 设 $X\sim\operatorname{Bin}(n,p)$。我们用两种方法求 $E(X)$。由期望定义，
+\[
+  E(X)=\sum_{k=0}^n kP(X=k)
+  =\sum_{k=0}^n k\binom{n}{k}p^kq^{n-k}.
+\]
+由例 1.5.2，$k\binom{n}{k}=n\binom{n-1}{k-1}$，所以
+\[
+\begin{aligned}
+  \sum_{k=0}^n k\binom{n}{k}p^kq^{n-k}
+  &=n\sum_{k=0}^n \binom{n-1}{k-1}p^kq^{n-k} \\
+  &=np\sum_{k=1}^n \binom{n-1}{k-1}p^{k-1}q^{n-k} \\
+  &=np\sum_{j=0}^{n-1}\binom{n-1}{j}p^jq^{n-1-j} \\
+  &=np.
+\end{aligned}
+\]
+倒数第二行中的和为 $1$，因为它是 $\operatorname{Bin}(n-1,p)$ 的概率质量函数之和（也可由二项定理得到）。因此 $E(X)=np$。
+
+这个证明要求我们记住组合恒等式并操作二项系数。用期望线性性可以更快得到同样结论。把 $X$ 写成 $n$ 个独立 $\operatorname{Bern}(p)$ 随机变量之和：
+\[
+  X=I_1+\cdots+I_n,
+\]
+其中每个 $I_j$ 的期望为 $E(I_j)=1p+0q=p$。由线性性，
+\[
+  E(X)=E(I_1)+\cdots+E(I_n)=np. \qed
+\]
+
+\noindent\textbf{例 4.2.3（超几何期望）}\quad 设 $X\sim\operatorname{HGeom}(w,b,n)$，解释为从有 $w$ 个白球和 $b$ 个黑球的坛子中不放回抽取 $n$ 个球时抽到的白球数。与二项情形一样，我们可以把 $X$ 写成 Bernoulli 随机变量之和：
+\[
+  X=I_1+\cdots+I_n,
+\]
+其中若样本中第 $j$ 个球是白球，则 $I_j=1$，否则 $I_j=0$。由对称性，$I_j\sim\operatorname{Bern}(p)$，其中 $p=w/(w+b)$，因为无条件地看，第 $j$ 个抽出的球等可能是所有球中的任意一个。
+
+与二项情形不同，$I_j$ 并不独立，因为抽样是不放回的：已知样本中某个球是白球，会降低样本中另一个球是白球的机会。然而，线性性对相依随机变量仍然成立。因此
+\[
+  E(X)=\frac{nw}{w+b}. \qed
+\]
+
+作为线性性威力的另一个例子，我们可以快速证明“更大的随机变量有更大的期望”这一直观想法。
+
+\noindent\textbf{命题 4.2.4（期望的单调性）}\quad 设 $X,Y$ 是随机变量，且以概率 $1$ 有 $X\ge Y$。则 $E(X)\ge E(Y)$；等号成立当且仅当以概率 $1$ 有 $X=Y$。
+
+\noindent\textbf{证明}\quad 这个结果对所有随机变量都成立，但本章聚焦离散随机变量，所以只证明离散情形。随机变量 $Z=X-Y$ 以概率 $1$ 非负，所以 $E(Z)\ge 0$，因为 $E(Z)$ 被定义为非负项之和。由线性性，
+\[
+  E(X)-E(Y)=E(X-Y)\ge 0,
+\]
+这就是所需结论。若 $E(X)=E(Y)$，则由线性性也有 $E(Z)=0$，这推出 $P(X=Y)=P(Z=0)=1$，因为若定义 $E(Z)$ 的和中有任何一项为正，则整个和为正。 \qed
+
+\section*{4.3\quad 几何分布与负二项分布}
+
+现在介绍另外两个著名的离散分布：几何分布和负二项分布，并计算它们的期望。
+
+\noindent\textbf{故事 4.3.1（几何分布）}\quad 考虑一列相互独立的 Bernoulli 试验，每次成功概率相同，为 $p\in(0,1)$，并一直试验到第一次成功为止。令 $X$ 为第一次成功前失败的次数。则 $X$ 服从参数为 $p$ 的\textbf{几何分布}，记为 $X\sim\operatorname{Geom}(p)$。 \qed
+
+例如，若不断抛一枚公平硬币，直到第一次出现正面为止，那么第一次正面之前出现反面的次数服从 $\operatorname{Geom}(1/2)$。
+
+为了从故事得到几何分布的概率质量函数，把 Bernoulli 试验想象成一串 $0$（失败），最后以一个 $1$（成功）结束。每个 $0$ 的概率为 $q=1-p$，最后的 $1$ 的概率为 $p$，所以 $k$ 次失败后接一次成功的字符串概率为 $q^kp$。
+
+\noindent\textbf{定理 4.3.2（几何分布的 PMF）}\quad 若 $X\sim\operatorname{Geom}(p)$，则 $X$ 的概率质量函数为
+\[
+  P(X=k)=q^kp,\qquad k=0,1,2,\ldots,
+\]
+其中 $q=1-p$。
+
+这是一个合法的概率质量函数，因为对几何级数求和，有
+\[
+  \sum_{k=0}^{\infty}q^kp=p\sum_{k=0}^{\infty}q^k
+  =p\cdot\frac{1}{1-q}=1.
+\]
+正如二项定理说明二项分布的 PMF 合法一样，几何级数说明几何分布的 PMF 合法。几何级数也可用来得到几何分布的 CDF。
+
+\noindent\textbf{定理 4.3.3（几何分布的 CDF）}\quad 若 $X\sim\operatorname{Geom}(p)$，则 $X$ 的 CDF 为
+\[
+  F(x)=
+  \begin{cases}
+    1-q^{\lfloor x\rfloor+1}, & x\ge 0,\\
+    0, & x<0,
+  \end{cases}
+\]
+其中 $q=1-p$，$\lfloor x\rfloor$ 是小于或等于 $x$ 的最大整数。
+
+\noindent\textbf{证明}\quad 令 $F$ 为 $X$ 的 CDF。先求 $x<0$ 的情形，再求 $x$ 为非负整数的情形，最后求 $x$ 为非负实数的情形。若 $x<0$，则 $F(x)=0$，因为 $X$ 不可能为负。对非负整数 $n$，
+\[
+  F(n)=\sum_{k=0}^n P(X=k)
+  =p\sum_{k=0}^n q^k
+  =p\cdot\frac{1-q^{n+1}}{1-q}
+  =1-q^{n+1}.
+\]
+也可以由事件 $X\ge n+1$ 表示前 $n+1$ 次试验均失败这一事实得到同样结果：
+\[
+  F(n)=1-P(X>n)=1-P(X\ge n+1)=1-q^{n+1}.
+\]
+对实数 $x\ge 0$，
+\[
+  F(x)=P(X\le x)=P(X\le \lfloor x\rfloor),
+\]
+因为 $X$ 总是取整数值。例如，
+\[
+  P(X\le 3.7)=P(X\le 3)+P(3<X\le 3.7)=P(X\le 3).
+\]
+于是 $F$ 如定理所述。 \qed
+
+图 4.5 展示了 $\operatorname{Geom}(0.5)$ 从 $0$ 到 $6$ 的 PMF 与 CDF。所有几何分布的 PMF 都有相似形状；成功概率 $p$ 越大，PMF 衰减到 $0$ 的速度越快。
+
+\noindent\textbf{$\biohazard$ 4.3.4（几何分布的约定）}\quad 几何分布的定义有不同约定；有些资料把几何分布定义为总试验次数，包括成功那一次。本书中的几何分布不包括成功那一次，而 First Success 分布包括成功那一次。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{4-5.png}
+  \caption{$\operatorname{Geom}(0.5)$ 的 PMF 与 CDF。}
+\end{figure}
+
+\noindent\textbf{定义 4.3.5（First Success 分布）}\quad 在一列相互独立、成功概率为 $p$ 的 Bernoulli 试验中，令 $Y$ 为直到第一次成功为止所需的试验次数，包括成功那一次。则 $Y$ 服从参数为 $p$ 的 \textbf{First Success 分布}，记为 $Y\sim\operatorname{FS}(p)$。
+
+在两个约定之间来回转换很容易，但必须小心当前使用的是哪一种。若 $Y\sim\operatorname{FS}(p)$，则 $Y-1\sim\operatorname{Geom}(p)$，并且可以通过
+\[
+  P(Y=k)=P(Y-1=k-1)
+\]
+在 $Y$ 与 $Y-1$ 的概率质量函数之间转换。反过来，若 $X\sim\operatorname{Geom}(p)$，则 $X+1\sim\operatorname{FS}(p)$。
+
+\noindent\textbf{例 4.3.6（几何期望）}\quad 令 $X\sim\operatorname{Geom}(p)$。由定义，
+\[
+  E(X)=\sum_{k=0}^{\infty}kq^kp,
+\]
+其中 $q=1-p$。这个和看起来不太友好；它不是几何级数，因为每一项多乘了一个 $k$。但注意每一项都和 $kq^{k-1}$ 类似，而后者是 $q^k$ 关于 $q$ 的导数，所以从这里开始：
+\[
+  \sum_{k=0}^{\infty}q^k=\frac{1}{1-q}.
+\]
+因为 $0<q<1$，这个几何级数收敛。两边对 $q$ 求导，得到
+\[
+  \sum_{k=0}^{\infty}kq^{k-1}=\frac{1}{(1-q)^2}.
+\]
+最后两边乘以 $pq$，便得到我们原来想求的和：
+\[
+  E(X)=\sum_{k=0}^{\infty}kq^kp
+  =pq\sum_{k=0}^{\infty}kq^{k-1}
+  =pq\frac{1}{(1-q)^2}
+  =\frac{q}{p}.
+\]
+在例 9.1.8 中，我们会用首步分析给出同一结论的故事证明：对 $X$ 的故事解释中第一次试验的结果作条件分析。若第一次试验成功，则 $X=0$；若失败，则浪费了一次试验，然后又回到起点。 \qed
+
+\noindent\textbf{例 4.3.7（First Success 期望）}\quad 因为可将 $Y\sim\operatorname{FS}(p)$ 写为 $Y=X+1$，其中 $X\sim\operatorname{Geom}(p)$，所以
+\[
+  E(Y)=E(X+1)=\frac{q}{p}+1=\frac{1}{p}. \qed
+\]
+
+负二项分布推广了几何分布：我们不再只等待一次成功，而是可以等待任意预先指定的成功次数 $r$。
+
+\noindent\textbf{故事 4.3.8（负二项分布）}\quad 在一列相互独立、成功概率为 $p$ 的 Bernoulli 试验中，若 $X$ 是第 $r$ 次成功之前失败的次数，则称 $X$ 服从参数为 $r,p$ 的\textbf{负二项分布}，记为 $X\sim\operatorname{NBin}(r,p)$。 \qed
+
+二项分布和负二项分布都基于相互独立的 Bernoulli 试验；它们的不同在于停止规则以及所计数的对象。二项分布计数的是固定试验次数中的成功次数；负二项分布计数的是直到固定成功次数为止的失败次数。
+
+鉴于这些相似之处，负二项 PMF 的推导与二项分布的相应推导相似并不令人意外。
+
+\noindent\textbf{定理 4.3.9（负二项 PMF）}\quad 若 $X\sim\operatorname{NBin}(r,p)$，则 $X$ 的概率质量函数为
+\[
+  P(X=n)=\binom{n+r-1}{r-1}p^rq^n,\qquad n=0,1,2,\ldots,
+\]
+其中 $q=1-p$。
+
+\noindent\textbf{证明}\quad 设想由 $0$ 和 $1$ 组成的字符串，其中 $1$ 表示成功。任意一个具体的、含 $n$ 个 $0$ 和 $r$ 个 $1$ 的字符串，其概率是 $p^rq^n$。这样的字符串有多少个？因为一旦达到第 $r$ 次成功就停止，所以字符串必须以 $1$ 结尾。在其余 $n+r-1$ 个位置中，选择 $r-1$ 个位置放剩下的 $1$。因此第 $r$ 次成功前恰有 $n$ 次失败的总概率为
+\[
+  P(X=n)=\binom{n+r-1}{r-1}p^rq^n,\qquad n=0,1,2,\ldots. \qed
+\]
+
+正如二项随机变量可以表示为独立同分布 Bernoulli 随机变量之和，负二项随机变量也可以表示为独立同分布几何随机变量之和。
+
+\noindent\textbf{定理 4.3.10}\quad 设 $X\sim\operatorname{NBin}(r,p)$，把它看作一列成功概率为 $p$ 的独立 Bernoulli 试验中第 $r$ 次成功之前失败的次数。则可以写成
+\[
+  X=X_1+\cdots+X_r,
+\]
+其中 $X_i$ 独立同分布，且 $X_i\sim\operatorname{Geom}(p)$。
+
+\noindent\textbf{证明}\quad 令 $X_1$ 为第一次成功之前失败的次数，$X_2$ 为第一次成功和第二次成功之间失败的次数；一般地，令 $X_i$ 为第 $i-1$ 次成功和第 $i$ 次成功之间失败的次数。
+
+由几何分布的故事，$X_1\sim\operatorname{Geom}(p)$。第一次成功之后，到下一次成功之前额外失败的次数仍然服从几何分布，所以 $X_2\sim\operatorname{Geom}(p)$，所有 $X_i$ 同理。此外，$X_i$ 相互独立，因为所有试验相互独立。把这些 $X_i$ 相加，就得到第 $r$ 次成功之前失败的总次数，也就是 $X$。 \qed
+
+利用线性性，负二项分布的期望不需要额外计算便可得到。
+
+\noindent\textbf{例 4.3.11（负二项期望）}\quad 设 $X\sim\operatorname{NBin}(r,p)$。由上一定理，可写
+\[
+  X=X_1+\cdots+X_r,
+\]
+其中 $X_i$ 独立同分布为 $\operatorname{Geom}(p)$。由线性性，
+\[
+  E(X)=E(X_1)+\cdots+E(X_r)=r\cdot\frac{q}{p}. \qed
+\]
+
+下一个例子是概率论中的著名问题，也是几何分布和 First Success 分布的一个有启发性的应用。它通常表述为收集优惠券的问题，因此得名；不过这里用玩具代替优惠券来叙述。
+
+\noindent\textbf{例 4.3.12（优惠券收集者）}\quad 假设有 $n$ 种玩具，你想一个一个收集，目标是集齐一套。收集玩具时，玩具类型是随机的（例如谷物盒或儿童套餐中附赠的玩具有时就是这样）。假设每次收集一个玩具时，它等可能是 $n$ 种类型中的任意一种。直到集齐一套为止，所需玩具数的期望是多少？
+
+\noindent\textbf{解}\quad 令 $N$ 为所需玩具数；我们要求 $E(N)$。策略是把 $N$ 分解为更简单的随机变量之和，以便使用线性性。写作
+\[
+  N=N_1+N_2+\cdots+N_n,
+\]
+其中 $N_1$ 是直到第一个此前没见过的玩具类型出现为止所需的玩具数（总是 $1$，因为第一个玩具必然是新类型），$N_2$ 是直到第二个此前没见过的玩具类型出现为止额外需要的玩具数，依此类推。图 4.6 用 $n=3$ 种玩具说明了这些定义。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.55\textwidth]{4-6.png}
+  \caption{优惠券收集者，$n=3$。这里 $N_1$ 是直到第一个新玩具类型出现为止的时间（收集到的玩具数），$N_2$ 是直到第二个新类型出现为止的额外时间，$N_3$ 是直到第三个新类型出现为止的额外时间。集齐一套的总玩具数是 $N_1+N_2+N_3$。}
+\end{figure}
+
+由 FS 分布的故事，
+\[
+  N_2\sim\operatorname{FS}\left(\frac{n-1}{n}\right):
+\]
+收集到第一种玩具后，有 $1/n$ 的概率得到已有玩具（失败），有 $(n-1)/n$ 的概率得到新玩具（成功）。类似地，$N_3$，即直到第三种新玩具类型出现为止额外需要的玩具数，服从 $\operatorname{FS}((n-2)/n)$。一般地，
+\[
+  N_j\sim\operatorname{FS}\left(\frac{n-j+1}{n}\right).
+\]
+由线性性，
+\[
+\begin{aligned}
+  E(N)
+  &=E(N_1)+E(N_2)+E(N_3)+\cdots+E(N_n) \\
+  &=1+\frac{n}{n-1}+\frac{n}{n-2}+\cdots+n \\
+  &=n\sum_{j=1}^n\frac{1}{j}.
+\end{aligned}
+\]
+当 $n$ 很大时，这非常接近 $n(\log n+0.577)$。
+
+离开这个例子之前，把它与定理 4.3.10 的证明联系起来看一下：后者把负二项表示为独立同分布几何随机变量之和。在两个问题中，我们都在等待指定次数的成功，并通过考虑成功之间的间隔来处理问题。主要有两点区别：
+\begin{itemize}
+  \item 在定理 4.3.10 中，我们排除了成功本身，所以两次成功之间的失败次数服从几何分布。在优惠券收集者问题中，我们把成功也计入，因为要计算玩具总数，所以得到的是 First Success 随机变量。
+  \item 在定理 4.3.10 中，每次试验的成功概率从不改变，所以总失败次数是独立同分布几何随机变量之和。在优惠券收集者问题中，每次成功之后成功概率都会下降，因为越来越难找到此前没有见过的新玩具类型；因此 $N_j$ 虽然相互独立，但并不同分布。
+\end{itemize}
+
+\noindent\textbf{$\biohazard$ 4.3.13（随机变量非线性函数的期望）}\quad 期望是线性的，但一般而言，对任意函数 $g$，并不一定有
+\[
+  E(g(X))=g(E(X)).
+\]
+当 $g$ 非线性时，必须小心不要随意移动 $E$。下一个例子展示了 $E(g(X))$ 与 $g(E(X))$ 可能非常不同的情形。
+
+\noindent\textbf{例 4.3.14（圣彼得堡悖论）}\quad 假设一位富有的陌生人提出和你玩下面的游戏。你不断抛一枚公平硬币，直到第一次出现正面；如果游戏持续 $1$ 轮，你得到 $2$ 美元，持续 $2$ 轮则得到 $4$ 美元，持续 $3$ 轮则得到 $8$ 美元，一般地，若游戏持续 $n$ 轮，则得到 $2^n$ 美元。这个游戏的公平价值（期望收益）是多少？你愿意为玩一次这个游戏支付多少钱？
+
+\noindent\textbf{解}\quad 令 $X$ 为你玩这个游戏的收益。由定义，$X=2^N$，其中 $N$ 是游戏持续的轮数。于是 $X$ 以概率 $1/2$ 取 $2$，以概率 $1/4$ 取 $4$，以概率 $1/8$ 取 $8$，依此类推，所以
+\[
+  E(X)=\frac{1}{2}\cdot 2+\frac{1}{4}\cdot 4+\frac{1}{8}\cdot 8+\cdots=\infty.
+\]
+期望收益为无穷大。另一方面，游戏持续的轮数 $N$ 是直到第一次正面为止的抛掷次数，所以 $N\sim\operatorname{FS}(1/2)$，且 $E(N)=2$。因此 $E(2^N)=\infty$，而 $2^{E(N)}=4$。无穷大当然不等于 $4$，这说明当 $g$ 非线性时，混淆 $E(g(X))$ 与 $g(E(X))$ 是危险的。
+
+这个问题通常被视为悖论，因为尽管游戏的期望收益为无穷大，大多数人并不愿意付很多钱来玩这个游戏（即使他们承受得起亏损）。一种解释是注意到现实世界中的货币总量是有限的。假设如果游戏持续超过 $40$ 轮，这位富有的陌生人就逃离国家，你什么也得不到。由于 $2^{40}\approx 1.1\times 10^{12}$，这仍然给了你赚取超过一万亿美元的潜在机会，而且游戏持续超过 $40$ 轮本来就极不可能。但在这种设定下，你的期望值是
+\[
+  E(X)=\sum_{n=1}^{40}\frac{1}{2^n}\cdot 2^n
+  +\sum_{n=41}^{\infty}\frac{1}{2^n}\cdot 0
+  =40.
+\]
+这种剧烈下降是因为富有的陌生人可能逃跑吗？换一种假设：富有的陌生人把你的收益封顶为 $2^{40}$，所以若游戏持续超过 $40$ 轮，你会得到这个数额，而不是空手而归。此时你的期望值为
+\[
+  E(X)=\sum_{n=1}^{40}\frac{1}{2^n}\cdot 2^n
+  +\sum_{n=41}^{\infty}\frac{1}{2^n}\cdot 2^{40}
+  =40+1=41,
+\]
+只比前一种情形增加 $1$ 美元。圣彼得堡悖论中的 $\infty$ 来自无限“尾部”：极其罕见但收益极大的事件。在现实世界中，把这条尾部在某处截断是合理的，而这会显著降低游戏的期望价值。 \qed
+
+\section*{4.4\quad 指示随机变量与基本桥梁}
+
+本节专门讨论\textbf{指示随机变量}。上一章已经遇到过它们，这里会更详细地研究。特别地，我们会说明指示随机变量是计算期望值的极有用工具。
+
+回忆上一章：事件 $A$ 的指示随机变量 $I_A$（或 $I(A)$）定义为：若 $A$ 发生则为 $1$，否则为 $0$。因此 $I_A$ 是一个 Bernoulli 随机变量，其中“成功”定义为“$A$ 发生”，“失败”定义为“$A$ 不发生”。下面总结指示随机变量的一些有用性质。
+
+\noindent\textbf{定理 4.4.1（指示随机变量的性质）}\quad 设 $A$ 与 $B$ 是事件，则有：
+\begin{enumerate}
+  \item 对任意正整数 $k$，$(I_A)^k=I_A$。
+  \item $I_{A^c}=1-I_A$。
+  \item $I_{A\cap B}=I_AI_B$。
+  \item $I_{A\cup B}=I_A+I_B-I_AI_B$。
+\end{enumerate}
+
+\noindent\textbf{证明}\quad 性质 1 成立，因为对任意正整数 $k$，$0^k=0$ 且 $1^k=1$。性质 2 成立，因为 $1-I_A$ 在 $A$ 不发生时为 $1$，在 $A$ 发生时为 $0$。性质 3 成立，因为 $I_AI_B$ 在 $I_A$ 与 $I_B$ 都为 $1$ 时为 $1$，否则为 $0$。性质 4 成立，因为
+\[
+  I_{A\cup B}
+  =1-I_{A^c\cap B^c}
+  =1-I_{A^c}I_{B^c}
+  =1-(1-I_A)(1-I_B)
+  =I_A+I_B-I_AI_B. \qed
+\]
+
+指示随机变量提供了概率与期望之间的联系；我们把这一事实称为\textbf{基本桥梁}。
+
+\noindent\textbf{定理 4.4.2（概率与期望之间的基本桥梁）}\quad 事件与指示随机变量之间存在一一对应，并且事件 $A$ 的概率就是其指示随机变量 $I_A$ 的期望：
+\[
+  P(A)=E(I_A).
+\]
+
+\noindent\textbf{证明}\quad 对任意事件 $A$，都有一个指示随机变量 $I_A$。这是一一对应，因为 $A$ 唯一决定 $I_A$，反之亦然（要从 $I_A$ 回到 $A$，可用 $A=\{s\in S:I_A(s)=1\}$）。由于 $I_A\sim\operatorname{Bern}(p)$，其中 $p=P(A)$，所以 $E(I_A)=P(A)$。 \qed
+
+基本桥梁把事件与它们的指示随机变量联系起来，并允许我们把任意概率表示为期望。作为例子，我们用指示随机变量给出容斥公式以及一个相关不等式（称为 Boole 不等式或 Bonferroni 不等式）的简短证明。
+
+\noindent\textbf{例 4.4.3（Boole、Bonferroni 与容斥）}\quad 设 $A_1,A_2,\ldots,A_n$ 是事件。注意
+\[
+  I(A_1\cup\cdots\cup A_n)\le I(A_1)+\cdots+I(A_n),
+\]
+因为若左边为 $0$，不等式显然成立；若左边为 $1$，则右边至少有一项必须为 $1$。两边取期望，并使用线性性与基本桥梁，得到
+\[
+  P(A_1\cup\cdots\cup A_n)\le P(A_1)+\cdots+P(A_n),
+\]
+这称为 Boole 不等式或 Bonferroni 不等式。为了证明 $n=2$ 的容斥公式，可以对定理 4.4.1 的性质 4 两边取期望。对一般 $n$，可如下使用指示随机变量性质：
+\[
+\begin{aligned}
+  1-I(A_1\cup\cdots\cup A_n)
+  &=I(A_1^c\cap\cdots\cap A_n^c) \\
+  &=(1-I(A_1))\cdots(1-I(A_n)) \\
+  &=1-\sum_i I(A_i)+\sum_{i<j}I(A_i)I(A_j)-\cdots
+    +(-1)^n I(A_1)\cdots I(A_n).
+\end{aligned}
+\]
+两边取期望，由基本桥梁即得容斥定理。 \qed
+
+反过来，在许多期望值问题中，基本桥梁也极其有用。我们常常可以把一个分布未知、复杂的离散随机变量表示为指示随机变量之和，而指示随机变量非常简单。基本桥梁让我们求出这些指示变量的期望；再利用线性性，就得到原随机变量的期望。这个策略非常有用且灵活。事实上，本章前面推导二项分布和超几何分布的期望时，已经用过它。
+
+识别适合这种策略的问题，并定义合适的指示随机变量，需要练习。因此研究许多例子、解许多问题很重要。当把这一策略用于计数某类对象个数的随机变量时，应当为每一个潜在对象设置一个指示变量。这个对象可以是人、地点或物；下面会看到三类例子。
+
+我们先回到第 1 章的两个问题：de Montmort 匹配问题和生日问题。
+
+\noindent\textbf{例 4.4.4（匹配问题续）}\quad 有一副充分洗乱的 $n$ 张牌，标号为 $1$ 到 $n$。若一张牌在牌堆中的位置与牌的标号相同，则称这张牌匹配。令 $X$ 为匹配张数，求 $E(X)$。
+
+\noindent\textbf{解}\quad 先检查 $X$ 是否可能服从我们已经学过的某个有名分布。因为 $X$ 必须是 $0$ 到 $n$ 之间的整数，候选只有二项分布和超几何分布。但二者都没有正确的支撑集，因为 $X$ 不能取 $n-1$：若 $n-1$ 张牌都匹配，则第 $n$ 张牌也必然匹配。所以 $X$ 不服从我们学过的任何有名分布。不过用指示随机变量很容易求均值。写
+\[
+  X=I_1+I_2+\cdots+I_n,
+\]
+其中
+\[
+  I_j=
+  \begin{cases}
+    1, & \text{若牌堆中第 }j\text{ 张牌匹配},\\
+    0, & \text{否则}.
+  \end{cases}
+\]
+换言之，$I_j$ 是事件 $A_j$ 的指示变量，其中 $A_j$ 表示牌堆中第 $j$ 张牌匹配。可以想象每个 $I_j$ 在其对应牌匹配时“举手”表示被计数；把所有举起的手相加，就得到总匹配数 $X$。
+
+由基本桥梁，
+\[
+  E(I_j)=P(A_j)=\frac{1}{n}
+\]
+对所有 $j$ 都成立。因此由线性性，
+\[
+  E(X)=E(I_1)+\cdots+E(I_n)=n\cdot\frac{1}{n}=1.
+\]
+匹配张数的期望为 $1$，与 $n$ 无关。尽管 $I_j$ 以复杂方式相依，使得 $X$ 的分布既不是二项也不是超几何，线性性仍然成立。 \qed
+
+\noindent\textbf{例 4.4.5（不同生日与生日匹配）}\quad 在通常的生日假设下，一组 $n$ 人中不同生日数的期望是多少？也就是说，至少有一个人出生的日期的期望个数是多少？生日匹配数的期望又是多少？也就是说，同生日的人对数的期望是多少？
+
+\noindent\textbf{解}\quad 令 $X$ 为不同生日数，写
+\[
+  X=I_1+\cdots+I_{365},
+\]
+其中
+\[
+  I_j=
+  \begin{cases}
+    1, & \text{若第 }j\text{ 天有人生日},\\
+    0, & \text{否则}.
+  \end{cases}
+\]
+我们为一年中的每一天设置一个指示变量，因为 $X$ 计数的是一年中被代表到的天数。由基本桥梁，
+\[
+  E(I_j)=P(\text{第 }j\text{ 天有人生日})
+  =1-P(\text{无人出生在第 }j\text{ 天})
+  =1-\left(\frac{364}{365}\right)^n
+\]
+对所有 $j$ 都成立。于是由线性性，
+\[
+  E(X)=365\left(1-\left(\frac{364}{365}\right)^n\right).
+\]
+
+现在令 $Y$ 为生日匹配数。把这 $n$ 个人标为 $1,2,\ldots,n$，并把 $\binom{n}{2}$ 对人按某个确定顺序排列。于是可写
+\[
+  Y=J_1+\cdots+J_{\binom{n}{2}},
+\]
+其中 $J_i$ 是第 $i$ 对人生日相同的指示变量。我们为每一对人设置一个指示变量，因为 $Y$ 计数的是生日相同的人对数。任意两个人生日相同的概率是 $1/365$，所以再次由基本桥梁和线性性，
+\[
+  E(Y)=\frac{\binom{n}{2}}{365}. \qed
+\]
+
+除基本桥梁和线性性之外，前两个例子还用到一种基本对称性，从而大大简化计算：在每个指示变量和中，每个指示变量都有相同的期望。例如，在匹配问题中，第 $j$ 张牌匹配的概率不依赖于 $j$，所以只需把第一个指示变量的期望乘以 $n$。
+
+当其他形式的对称性可用时，也会非常有帮助。下面两个例子展示了一种来自等可能排列的对称性。注意，对称性、线性性和基本桥梁如何一起使用，使看似很难的问题变得可处理。
+
+\noindent\textbf{例 4.4.6（Putnam 问题）}\quad 排列 $a_1,a_2,\ldots,a_n$ 是 $1,2,\ldots,n$ 的一个排列。若 $a_j>a_{j-1}$ 且 $a_j>a_{j+1}$，则称在 $j$ 处有一个局部极大值（$2\le j\le n-1$）；对 $j=1$，局部极大值表示 $a_1>a_2$；对 $j=n$，表示 $a_n>a_{n-1}$。例如，$4,2,5,3,6,1$ 有 $3$ 个局部极大值，位于位置 $1,3,5$。2006 年 Putnam 考试问了如下问题：对 $n\ge 2$，在 $1,2,\ldots,n$ 的随机排列中，所有 $n!$ 个排列等可能，局部极大值的平均个数是多少？
+
+\noindent\textbf{解}\quad 这个问题可用指示随机变量、对称性和基本桥梁快速解决。令 $I_1,\ldots,I_n$ 为指示随机变量，其中若位置 $j$ 处有局部极大值，则 $I_j=1$，否则为 $0$。我们关心
+\[
+  E\left(\sum_{j=1}^n I_j\right).
+\]
+对 $1<j<n$，有 $EI_j=1/3$，因为 $j$ 处有局部极大值等价于 $a_j$ 是 $a_{j-1},a_j,a_{j+1}$ 中最大的，而三种相对顺序等可能。对 $j=1$ 或 $j=n$，有 $EI_j=1/2$，因为此时只有一个邻居。因此由线性性，
+\[
+  E\left(\sum_{j=1}^n I_j\right)
+  =2\cdot\frac{1}{2}+(n-2)\cdot\frac{1}{3}
+  =\frac{n+1}{3}. \qed
+\]
+
+下一个例子介绍\textbf{负超几何分布}，它补全了如下四类抽样方案：抽样可分为有放回与无放回，停止规则可分为固定抽取次数与固定成功次数。相应地，有放回且固定次数得到二项分布，无放回且固定次数得到超几何分布；有放回且固定成功次数得到负二项分布，无放回且固定成功次数得到负超几何分布。
+
+\noindent\textbf{例 4.4.7（负超几何分布）}\quad 一个坛子中有 $w$ 个白球和 $b$ 个黑球，从中逐个不放回随机抽球，直到得到 $r$ 个白球为止。在抽到第 $r$ 个白球之前抽到的黑球数服从参数为 $w,b,r$ 的\textbf{负超几何分布}，记为 $\operatorname{NHGeom}(w,b,r)$。当然，假设 $r\le w$。例如，若洗乱一副牌并逐张发牌，则翻到第一张 A 之前发出的牌数服从 $\operatorname{NHGeom}(4,48,1)$。
+
+再举一例，假设一所大学提供 $g$ 门好课和 $b$ 门差课（“好”与“差”按某种标准定义），某学生想找到 $4$ 门好课来上。由于不知道哪些课是好课，这名学生随机逐门尝试，直到得到 $4$ 门好课为止。则该学生尝试过的差课数服从 $\operatorname{NHGeom}(g,b,4)$。
+
+可以这样得到 $X\sim\operatorname{NHGeom}(w,b,r)$ 的 PMF：在坛子语境中，$X=k$ 表示被选中的第 $r+k$ 个球是白球，并且前 $r+k-1$ 个被选球中恰有 $r-1$ 个白球。这给出
+\[
+  P(X=k)=
+  \frac{\binom{w}{r-1}\binom{b}{k}}{\binom{w+b}{r+k-1}}
+  \cdot
+  \frac{w-r+1}{w+b-r-k+1},
+\]
+其中 $k=0,1,\ldots,b$（其他 $k$ 的概率为 $0$）。
+
+另一种方法是设想我们继续抽球直到坛子被抽空；这样做是合法的，因为在得到第 $r$ 个白球之后是否继续抽球，并不影响 $X$。把 $w+b$ 个球想象成按随机顺序排成一列，也就是抽取顺序。
+
+则 $X=k$ 表示前 $r+k-1$ 个球中恰有 $r-1$ 个白球，接着有一个白球，然后最后 $w+b-r-k$ 个球中恰有 $w-r$ 个白球。白球在这一列中位置的全部 $\binom{w+b}{w}$ 种可能都等可能。因此由朴素概率定义，PMF 可写成稍简单的形式：
+\[
+  P(X=k)=
+  \frac{\binom{r+k-1}{r-1}\binom{w+b-r-k}{w-r}}{\binom{w+b}{w}},
+\]
+其中 $k=0,1,\ldots,b$（其他 $k$ 的概率为 $0$）。
+
+直接由期望定义求负超几何随机变量的期望，会得到复杂的和式。但答案很简单：若 $X\sim\operatorname{NHGeom}(w,b,r)$，则
+\[
+  E(X)=\frac{rb}{w+1}.
+\]
+下面用指示随机变量证明这一点。如上所述，可以假设我们继续抽球直到坛子为空。先考虑 $r=1$ 的情形。把黑球标为 $1,2,\ldots,b$，令 $I_j$ 为黑球 $j$ 在任何白球被抽出之前被抽出的指示变量。则
+\[
+  P(I_j=1)=\frac{1}{w+1},
+\]
+因为若只列出黑球 $j$ 与所有白球被抽出的相对顺序（忽略其他球），由对称性所有顺序等可能，而 $I_j=1$ 等价于黑球 $j$ 在这个列表中排第一。于是由线性性，
+\[
+  E\left(\sum_{j=1}^b I_j\right)
+  =\sum_{j=1}^b E(I_j)
+  =\frac{b}{w+1}.
+\]
+
+\noindent\textbf{健全性检查}\quad 这个答案是合理的：它随 $b$ 增大而增大，随 $w$ 增大而减小；在极端情形 $b=0$ 和 $w=0$ 下也是正确的。此外，$b/(w+1)$ 看起来类似于但严格小于 $b/w$，而 $b/w$ 是 $\operatorname{Geom}(w/(w+b))$ 随机变量的期望。不放回抽样的期望等待时间小于有放回抽样是合理的。
+
+对一般 $r$，写
+\[
+  X=X_1+X_2+\cdots+X_r,
+\]
+其中 $X_1$ 是第一个白球之前的黑球数，$X_2$ 是第一个白球之后、第二个白球之前的黑球数，依此类推。用与 $r=1$ 情形本质相同的论证可知，对每个 $j$ 都有 $E(X_j)=b/(w+1)$。所以由线性性，
+\[
+  E(X)=\frac{rb}{w+1}. \qed
+\]
+
+与指示随机变量密切相关的，是非负整数值随机变量期望的另一种表达式。与其把 $X$ 的取值乘以 PMF 的取值再相加，我们可以把形如 $P(X>n)$ 的概率（称为\textbf{尾概率}）对非负整数 $n$ 求和。
+
+\noindent\textbf{定理 4.4.8（通过生存函数求期望）}\quad 令 $X$ 为非负整数值随机变量。令 $F$ 为 $X$ 的 CDF，并令 $G(x)=1-F(x)=P(X>x)$。函数 $G$ 称为 $X$ 的\textbf{生存函数}。则
+\[
+  E(X)=\sum_{n=0}^{\infty}G(n).
+\]
+也就是说，可以通过对生存函数求和来得到 $X$ 的期望；换言之，就是对分布的尾概率求和。
+
+\noindent\textbf{证明}\quad 为简单起见，只证明 $X$ 有界的情形，即存在非负整数 $b$ 使得 $X$ 总是不超过 $b$。可把 $X$ 表示为指示随机变量之和：
+\[
+  X=I_1+I_2+\cdots+I_b,
+\]
+其中 $I_n=I(X\ge n)$。例如，若 $X=7$ 发生，则 $I_1$ 到 $I_7$ 都等于 $1$，其余指示变量都等于 $0$。
+
+由线性性、基本桥梁以及事件 $\{X\ge k\}$ 与 $\{X>k-1\}$ 相同这一事实，
+\[
+  E(X)=\sum_{k=1}^b E(I_k)
+  =\sum_{k=1}^b P(X\ge k)
+  =\sum_{n=0}^{b-1}P(X>n)
+  =\sum_{n=0}^{\infty}G(n). \qed
+\]
+
+\noindent\textbf{例 4.4.9（几何期望再推导）}\quad 令 $X\sim\operatorname{Geom}(p)$，并记 $q=1-p$。由几何分布的故事，$\{X>n\}$ 是前 $n+1$ 次试验全都失败的事件。因此由定理 4.4.8，
+\[
+  E(X)=\sum_{n=0}^{\infty}P(X>n)
+  =\sum_{n=0}^{\infty}q^{n+1}
+  =\frac{q}{1-q}
+  =\frac{q}{p},
+\]
+这确认了我们已知的几何分布均值。 \qed
+
+\section*{4.5\quad 无意识统计学家定律（LOTUS）}
+
+正如在圣彼得堡悖论中看到的，若 $g$ 非线性，一般并没有 $E(g(X))=g(E(X))$。那么应该如何正确计算 $E(g(X))$？由于 $g(X)$ 是一个随机变量，一种方法是先求 $g(X)$ 的分布，再使用期望定义。也许令人惊讶的是，事实证明可以直接使用 $X$ 的分布来求 $E(g(X))$，而不必先求 $g(X)$ 的分布。这就是\textbf{无意识统计学家定律}，简称 LOTUS。
+
+\noindent\textbf{定理 4.5.1（LOTUS）}\quad 若 $X$ 是离散随机变量，$g:\mathbb{R}\to\mathbb{R}$ 是函数，则
+\[
+  E(g(X))=\sum_x g(x)P(X=x),
+\]
+其中求和遍历 $X$ 的所有可能取值。
+
+这意味着，只要知道 $P(X=x)$，也就是 $X$ 的 PMF，就可以得到 $g(X)$ 的期望；不需要知道 $g(X)$ 的 PMF。这个名称来自这样一个事实：从 $E(X)$ 走到 $E(g(X))$ 时，人们很想在定义中机械地把 $x$ 改成 $g(x)$，仿佛在无意识状态中也能做到。再想一想，不必求 $g(X)$ 的分布似乎好得难以置信，但 LOTUS 说这是真的。
+
+在一般性证明 LOTUS 之前，先看一些特殊情形为什么成立。设 $X$ 的支撑为 $0,1,2,\ldots$，概率为 $p_0,p_1,p_2,\ldots$，即 $P(X=n)=p_n$。则 $X^3$ 的支撑为 $0^3,1^3,2^3,\ldots$，概率仍为 $p_0,p_1,p_2,\ldots$，因此
+\[
+  E(X)=\sum_{n=0}^{\infty}np_n,\qquad
+  E(X^3)=\sum_{n=0}^{\infty}n^3p_n.
+\]
+正如 LOTUS 所说，要把 $E(X)$ 的表达式改成 $E(X^3)$ 的表达式，只需把 $p_n$ 前面的 $n$ 改为 $n^3$。这是容易例子，因为 $g(x)=x^3$ 是一一函数。但 LOTUS 更一般地成立。证明一般 $g$ 所需的关键洞察，与证明线性性时相同：$g(X)$ 的期望可以写成不分组形式
+\[
+  E(g(X))=\sum_s g(X(s))P(\{s\}),
+\]
+其中求和遍历样本空间中的所有鹅卵石；但也可以按照 $X$ 指派给鹅卵石的值，把鹅卵石分成超级鹅卵石。在超级鹅卵石 $X=x$ 内，$g(X)$ 总是取值 $g(x)$。因此
+\[
+\begin{aligned}
+  E(g(X))
+  &=\sum_s g(X(s))P(\{s\})\\
+  &=\sum_x \sum_{s:X(s)=x} g(X(s))P(\{s\})\\
+  &=\sum_x g(x)\sum_{s:X(s)=x}P(\{s\})\\
+  &=\sum_x g(x)P(X=x).
+\end{aligned}
+\]
+最后一步中，我们用到 $\sum_{s:X(s)=x}P(\{s\})$ 是超级鹅卵石 $X=x$ 的权重。
+
+\section*{4.6\quad 方差}
+
+LOTUS 的一个重要应用是求随机变量的\textbf{方差}。与期望值一样，方差是随机变量分布的单数概括。期望值告诉我们分布的质心在哪里，而方差告诉我们分布有多分散。
+
+\noindent\textbf{定义 4.6.1（方差与标准差）}\quad 随机变量 $X$ 的\textbf{方差}为
+\[
+  \operatorname{Var}(X)=E(X-EX)^2.
+\]
+方差的平方根称为\textbf{标准差}（SD）：
+\[
+  \operatorname{SD}(X)=\sqrt{\operatorname{Var}(X)}.
+\]
+
+回忆当我们写 $E(X-EX)^2$ 时，意思是随机变量 $(X-EX)^2$ 的期望，而不是 $(E(X-EX))^2$（后者由线性性为 $0$）。
+
+$X$ 的方差度量 $X$ 平均而言离其均值多远，但我们不是简单地取 $X$ 与其均值 $EX$ 的平均差，而是取平均平方差。原因是，平均偏差 $E(X-EX)$ 由线性性总是等于 $0$；正偏差与负偏差会相互抵消。通过平方偏差，可以确保正、负偏差都对总体变异性作出贡献。不过，因为方差是平均平方距离，它的单位不对：若 $X$ 以美元计，则 $\operatorname{Var}(X)$ 以平方美元计。为了回到原始单位，我们取平方根；这就得到标准差。
+
+人们可能会问，为什么方差不定义为 $E|X-EX|$？这样既能统计正负偏差，又保持与 $X$ 相同的单位。由于多种原因，这个变异性度量远不如 $E(X-EX)^2$ 常用。尤其是，绝对值函数在 $0$ 处不可微，而平方函数处处可微，并且在勾股定理等许多基本数学结果中居于中心位置。
+
+方差的一个等价表达式是 $\operatorname{Var}(X)=E(X^2)-(EX)^2$。实际计算时，这个公式常常更容易使用。由于后面会反复使用它，单独列为定理。
+
+\noindent\textbf{定理 4.6.2}\quad 对任意随机变量 $X$，
+\[
+  \operatorname{Var}(X)=E(X^2)-(EX)^2.
+\]
+
+\noindent\textbf{证明}\quad 令 $\mu=EX$。展开 $(X-\mu)^2$ 并使用线性性，$X$ 的方差为
+\[
+  E(X-\mu)^2=E(X^2-2\mu X+\mu^2)
+  =E(X^2)-2\mu EX+\mu^2
+  =E(X^2)-\mu^2. \qed
+\]
+
+方差有如下性质。前两个很容易由定义验证，第三个将在后面章节中处理，最后一个在列出后立即证明。
+\begin{itemize}
+  \item 对任意常数 $c$，$\operatorname{Var}(X+c)=\operatorname{Var}(X)$。
+  \item 对任意常数 $c$，$\operatorname{Var}(cX)=c^2\operatorname{Var}(X)$。
+  \item 若 $X$ 与 $Y$ 独立，则 $\operatorname{Var}(X+Y)=\operatorname{Var}(X)+\operatorname{Var}(Y)$。若 $X$ 与 $Y$ 相依，它一般不成立。例如在极端情形 $X$ 总是等于 $Y$，且 $\operatorname{Var}(X)>0$ 时，
+  \[
+    \operatorname{Var}(X+Y)=\operatorname{Var}(2X)=4\operatorname{Var}(X)
+    >2\operatorname{Var}(X)=\operatorname{Var}(X)+\operatorname{Var}(Y).
+  \]
+  \item $\operatorname{Var}(X)\ge 0$；等号成立当且仅当对某个常数 $a$ 有 $P(X=a)=1$。
+\end{itemize}
+
+为了证明最后一个性质，注意 $\operatorname{Var}(X)$ 是非负随机变量 $(X-EX)^2$ 的期望，所以 $\operatorname{Var}(X)\ge 0$。若对某个常数 $a$ 有 $P(X=a)=1$，则 $E(X)=a$ 且 $E(X^2)=a^2$，所以 $\operatorname{Var}(X)=0$。反过来，若 $\operatorname{Var}(X)=0$，则 $E(X-EX)^2=0$，这说明 $(X-EX)^2=0$ 以概率 $1$ 成立，从而 $X$ 以概率 $1$ 等于其均值。
+
+\noindent\textbf{$\biohazard$ 4.6.3（方差不是线性的）}\quad 与期望不同，方差不是线性的。在 $\operatorname{Var}(cX)=c^2\operatorname{Var}(X)$ 中，常数是平方后提出来的；若随机变量相依，随机变量之和的方差也未必等于方差之和。
+
+\noindent\textbf{例 4.6.4（几何分布与负二项分布的方差）}\quad 在本例中，我们用 LOTUS 计算几何分布的方差。
+
+令 $X\sim\operatorname{Geom}(p)$。已知 $E(X)=q/p$。由 LOTUS，
+\[
+  E(X^2)=\sum_{k=0}^{\infty}k^2P(X=k)
+  =\sum_{k=0}^{\infty}k^2pq^k
+  =\sum_{k=1}^{\infty}k^2pq^k.
+\]
+使用与求期望类似的方法，从几何级数
+\[
+  \sum_{k=0}^{\infty}q^k=\frac{1}{1-q}
+\]
+开始并求导。对 $q$ 求一次导后得到
+\[
+  \sum_{k=1}^{\infty}kq^{k-1}=\frac{1}{(1-q)^2}.
+\]
+和式从 $k=1$ 开始，因为 $k=0$ 项本来就是 $0$。若再求一次导，会得到 $k(k-1)$ 而不是想要的 $k^2$，所以先两边乘以 $q$。这给出
+\[
+  \sum_{k=1}^{\infty}kq^k=\frac{q}{(1-q)^2}.
+\]
+现在再求一次导：
+\[
+  \sum_{k=1}^{\infty}k^2q^{k-1}=\frac{1+q}{(1-q)^3},
+\]
+因此
+\[
+  E(X^2)=\sum_{k=1}^{\infty}k^2pq^k
+  =pq\frac{1+q}{(1-q)^3}
+  =\frac{q(1+q)}{p^2}.
+\]
+
+最后，
+\[
+  \operatorname{Var}(X)
+  =E(X^2)-(EX)^2
+  =\frac{q(1+q)}{p^2}-\left(\frac{q}{p}\right)^2
+  =\frac{q}{p^2}.
+\]
+这也是 First Success 分布的方差，因为加上常数不会影响方差。
+
+由定理 4.3.10，$\operatorname{NBin}(r,p)$ 随机变量可表示为 $r$ 个独立同分布 $\operatorname{Geom}(p)$ 随机变量之和；又因为独立随机变量的方差可加，所以 $\operatorname{NBin}(r,p)$ 分布的方差为
+\[
+  r\cdot\frac{q}{p^2}. \qed
+\]
+
+LOTUS 是计算任意 $g$ 下 $E(g(X))$ 的通用工具，但它通常会导致复杂求和，所以应当作为最后手段。对方差计算，有时可以用可靠的指示随机变量代替 LOTUS，如下例所示。
+
+\noindent\textbf{例 4.6.5（二项方差）}\quad 用指示随机变量求 $X\sim\operatorname{Bin}(n,p)$ 的方差，以避免繁琐求和。表示为
+\[
+  X=I_1+I_2+\cdots+I_n,
+\]
+其中 $I_j$ 是第 $j$ 次试验成功的指示变量。每个 $I_j$ 的方差为
+\[
+  \operatorname{Var}(I_j)=E(I_j^2)-(E(I_j))^2=p-p^2=p(1-p),
+\]
+这里用到 $I_j^2=I_j$，所以 $E(I_j^2)=E(I_j)=p$。由于 $I_j$ 相互独立，可以把方差相加：
+\[
+  \operatorname{Var}(X)
+  =\operatorname{Var}(I_1)+\cdots+\operatorname{Var}(I_n)
+  =np(1-p).
+\]
+
+也可以先求 $E\binom{X}{2}$ 来求 $E(X^2)$。后者听起来更复杂，但实际上更简单，因为 $\binom{X}{2}$ 是成功试验对数。对每一对试验设置指示变量，有
+\[
+  E\binom{X}{2}=\binom{n}{2}p^2.
+\]
+于是
+\[
+  n(n-1)p^2=E(X(X-1))=E(X^2)-E(X)=E(X^2)-np,
+\]
+这再次给出
+\[
+  \operatorname{Var}(X)=E(X^2)-(EX)^2
+  =(n(n-1)p^2+np)-(np)^2=np(1-p).
+\]
+练习 48 会用这一策略求超几何分布的方差。 \qed
+
+\section*{4.7\quad Poisson 分布}
+
+本章要介绍的最后一个离散分布是 Poisson 分布。它是用于建模离散数据的极常用分布。我们先介绍它的 PMF、均值和方差，然后再更详细地讨论它的故事。
+
+\noindent\textbf{定义 4.7.1（Poisson 分布）}\quad 若随机变量 $X$ 的 PMF 为
+\[
+  P(X=k)=\frac{e^{-\lambda}\lambda^k}{k!},\qquad k=0,1,2,\ldots,
+\]
+其中 $\lambda>0$，则称 $X$ 服从参数为 $\lambda$ 的 \textbf{Poisson 分布}，记为 $X\sim\operatorname{Pois}(\lambda)$。
+
+这是一个合法的 PMF，因为 Taylor 级数给出
+\[
+  \sum_{k=0}^{\infty}\frac{\lambda^k}{k!}=e^\lambda.
+\]
+
+\noindent\textbf{例 4.7.2（Poisson 期望与方差）}\quad 令 $X\sim\operatorname{Pois}(\lambda)$。我们将说明均值与方差都等于 $\lambda$。对均值，
+\[
+\begin{aligned}
+  E(X)
+  &=e^{-\lambda}\sum_{k=0}^{\infty}k\frac{\lambda^k}{k!}\\
+  &=e^{-\lambda}\sum_{k=1}^{\infty}k\frac{\lambda^k}{k!}\\
+  &=\lambda e^{-\lambda}\sum_{k=1}^{\infty}\frac{\lambda^{k-1}}{(k-1)!}\\
+  &=\lambda e^{-\lambda}e^\lambda=\lambda.
+\end{aligned}
+\]
+我们先去掉 $k=0$ 项，因为它为 $0$；然后把一个 $\lambda$ 提出和号，使剩下的正好是 $e^\lambda$ 的 Taylor 级数。
+
+为了得到方差，先求 $E(X^2)$。由 LOTUS，
+\[
+  E(X^2)=\sum_{k=0}^{\infty}k^2P(X=k)
+  =e^{-\lambda}\sum_{k=0}^{\infty}k^2\frac{\lambda^k}{k!}.
+\]
+从熟悉的级数
+\[
+  \sum_{k=0}^{\infty}\frac{\lambda^k}{k!}=e^\lambda
+\]
+开始，对 $\lambda$ 求导并补回一个 $\lambda$：
+\[
+  \sum_{k=1}^{\infty}k\frac{\lambda^{k-1}}{k!}=e^\lambda,\qquad
+  \sum_{k=1}^{\infty}k\frac{\lambda^k}{k!}=\lambda e^\lambda.
+\]
+重复这一过程：
+\[
+  \sum_{k=1}^{\infty}k^2\frac{\lambda^{k-1}}{k!}=e^\lambda+\lambda e^\lambda=e^\lambda(1+\lambda),
+\]
+所以
+\[
+  \sum_{k=1}^{\infty}k^2\frac{\lambda^k}{k!}
+  =e^\lambda\lambda(1+\lambda).
+\]
+最后，
+\[
+  E(X^2)=e^{-\lambda}\sum_{k=0}^{\infty}k^2\frac{\lambda^k}{k!}
+  =e^{-\lambda}e^\lambda\lambda(1+\lambda)=\lambda(1+\lambda),
+\]
+因此
+\[
+  \operatorname{Var}(X)=E(X^2)-(EX)^2
+  =\lambda(1+\lambda)-\lambda^2=\lambda.
+\]
+所以 $\operatorname{Pois}(\lambda)$ 随机变量的均值和方差都等于 $\lambda$。 \qed
+
+图 4.7 展示了 $\operatorname{Pois}(2)$ 与 $\operatorname{Pois}(5)$ 从 $k=0$ 到 $k=10$ 的 PMF 与 CDF。可以看出 $\operatorname{Pois}(2)$ 的均值约为 $2$，$\operatorname{Pois}(5)$ 的均值约为 $5$，与上面的结论一致。$\operatorname{Pois}(2)$ 的 PMF 高度偏斜，但随着 $\lambda$ 增大，偏斜度降低，PMF 变得更像钟形。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.78\textwidth]{4-7.png}
+  \caption{上：$\operatorname{Pois}(2)$ 的 PMF 与 CDF。下：$\operatorname{Pois}(5)$ 的 PMF 与 CDF。}
+\end{figure}
+
+Poisson 分布常用于这样的情形：我们在特定区域或时间区间中计数成功次数，并且试验次数很多、每次试验成功概率很小。例如，下面这些随机变量可以近似服从 Poisson 分布。
+\begin{itemize}
+  \item 一小时内收到的电子邮件数。潜在地有很多人可以在这一小时内给你发邮件，但任意特定人在这一小时内真正给你发邮件的概率很小。也可以想象把一小时细分成毫秒；一小时中有 $3.6\times 10^6$ 毫秒，而在任意特定毫秒内收到邮件都不太可能。
+  \item 一块巧克力曲奇中的巧克力豆数。想象把曲奇分成很多小立方体；单个立方体中有巧克力豆的概率很小，但立方体数很多。
+  \item 世界某个区域一年内的地震次数。在任意给定时间和地点，地震概率很小，但一年中地震可能发生的时间和地点非常多。
+\end{itemize}
+
+参数 $\lambda$ 被解释为这些稀有事件发生的\textbf{速率}；在上面的例子中，$\lambda$ 可以是 $20$（每小时邮件数）、$10$（每块曲奇中的巧克力豆数）和 $2$（每年地震数）。\textbf{Poisson 范式}说，在类似上述的应用中，可以用 Poisson 分布近似事件发生次数的分布。
+
+\noindent\textbf{近似 4.7.3（Poisson 范式）}\quad 设 $A_1,\ldots,A_n$ 是事件，$p_j=P(A_j)$，其中 $n$ 很大，$p_j$ 很小，且 $A_j$ 独立或弱相依。令
+\[
+  X=\sum_{j=1}^n I(A_j)
+\]
+计数有多少个 $A_j$ 发生。则 $X$ 近似服从 $\operatorname{Pois}(\lambda)$，其中
+\[
+  \lambda=\sum_{j=1}^n p_j.
+\]
+
+证明这个近似很好并不容易，需要先精确定义弱相依以及好的近似。有一个重要定理说，若 $A_j$ 独立，$N\sim\operatorname{Pois}(\lambda)$，且 $B$ 是任意非负整数集合，则
+\[
+  |P(X\in B)-P(N\in B)|
+  \le \min\left(1,\frac{1}{\lambda}\right)\sum_{j=1}^n p_j^2.
+\]
+这给出了使用 Poisson 近似所带来的误差上界，也更精确地说明 $p_j$ 应该有多小：我们希望 $\sum_{j=1}^n p_j^2$ 很小，或者至少相对于 $\lambda$ 很小。这个结果可用称为 Stein--Chen 方法的高级技巧证明。
+
+Poisson 范式也称为\textbf{稀有事件定律}。“稀有”的意思是 $p_j$ 很小，而不是 $\lambda$ 很小。例如，在电子邮件例子中，某个特定人在特定一小时内给你发邮件的概率很低，但这会被可能在那一小时内给你发邮件的人数很多所抵消。
+
+在上面给出的例子中，事件发生次数并不\textbf{精确}服从 Poisson 分布，因为 Poisson 随机变量没有上界，而 $A_1,\ldots,A_n$ 中发生的个数最多为 $n$，曲奇中可塞入的巧克力豆数也有限。不过，Poisson 分布常常给出很好的近似。注意，Poisson 范式的条件相当灵活：$n$ 次试验可以有不同成功概率，试验也不必完全独立，虽然不应高度相依。因此，很多情形都可以用 Poisson 范式表述，这使 Poisson 分布成为非负整数值数据（统计学中称为计数数据）的常用模型或起点。
+
+\noindent\textbf{例 4.7.4（盒中放球）}\quad 有 $k$ 个可区分球和 $n$ 个可区分盒。球被随机放入盒中，所有 $n^k$ 种可能都等可能。这类问题称为占位问题，是计算机科学中许多常用算法的核心。
+
+\begin{enumerate}
+  \item[(a)] 求空盒数的期望（完全化简，不要写成和式）。
+  \item[(b)] 求至少有一个盒为空的概率。把答案表示为至多 $n$ 项的和。
+  \item[(c)] 令 $n=1000,k=5806$。此时空盒数的期望约为 $3$。求至少有一个盒为空的概率的一个良好小数近似。可用事实 $e^3\approx 20$。
+\end{enumerate}
+
+\noindent\textbf{解}\quad (a) 令 $I_j$ 为第 $j$ 个盒为空的指示随机变量。则
+\[
+  E(I_j)=P(I_j=1)=\left(1-\frac{1}{n}\right)^k.
+\]
+由线性性，
+\[
+  E\left(\sum_{j=1}^n I_j\right)
+  =\sum_{j=1}^nE(I_j)
+  =n\left(1-\frac{1}{n}\right)^k.
+\]
+
+(b) 若 $k<n$，概率为 $1$。一般地，令 $A_j$ 为盒 $j$ 为空的事件。由容斥公式，
+\[
+\begin{aligned}
+  P(A_1\cup A_2\cup\cdots\cup A_n)
+  &=\sum_{j=1}^n(-1)^{j+1}\binom{n}{j}P(A_1\cap A_2\cap\cdots\cap A_j)\\
+  &=\sum_{j=1}^{n-1}(-1)^{j+1}\binom{n}{j}\left(1-\frac{j}{n}\right)^k.
+\end{aligned}
+\]
+
+(c) 空盒数 $X$ 近似服从 $\operatorname{Pois}(3)$，因为盒子很多，但任意一个特定盒为空的概率都很小；事实上
+\[
+  \left(1-\frac{1}{n}\right)^k=\frac{1}{n}E(X)\approx 0.003.
+\]
+所以
+\[
+  P(X\ge 1)=1-P(X=0)\approx 1-e^{-3}\approx 1-\frac{1}{20}=0.95. \qed
+\]
+
+Poisson 近似可以大大简化生日问题及其变体的近似计算，这些问题若精确求解往往比较麻烦。
+
+\noindent\textbf{例 4.7.5（生日问题续）}\quad 若有 $m$ 个人，并作通常的生日问题假设，则每一对人生日相同的概率为 $p=1/365$，共有 $\binom{m}{2}$ 对人。由 Poisson 范式，生日匹配数 $X$ 的分布近似为 $\operatorname{Pois}(\lambda)$，其中
+\[
+  \lambda=\binom{m}{2}\frac{1}{365}.
+\]
+于是至少有一对生日相同的概率为
+\[
+  P(X\ge 1)=1-P(X=0)\approx 1-e^{-\lambda}.
+\]
+当 $m=23$ 时，$\lambda=253/365$，且 $1-e^{-\lambda}\approx 0.500002$，这与第 1 章中“23 个人时生日匹配概率约为一半”的结论相符。
+
+注意，虽然 $m=23$ 本身不大，但这里真正相关的量是 $\binom{m}{2}$，即可能出现生日匹配的“试验”总数，所以 Poisson 近似仍然表现很好。 \qed
+
+\noindent\textbf{例 4.7.6（近生日问题）}\quad 如果我们想知道需要多少人，才能有约 $50\%$ 的机会使两个人的生日相差不超过一天（即同一天或相邻一天）呢？与原生日问题不同，精确答案不容易直接得到，但 Poisson 范式仍可使用。任意两个人生日相差不超过一天的概率为 $3/365$；先选定第一个人的生日，第二个人需要出生在当天、前一天或后一天。仍然有 $\binom{m}{2}$ 对人，所以近生日匹配数近似服从 $\operatorname{Pois}(\lambda)$，其中
+\[
+  \lambda=\binom{m}{2}\frac{3}{365}.
+\]
+与上例相同的计算表明，需要 $m=14$ 或更多人。这个近似很快，而事实上 $m=14$ 正是精确答案。 \qed
+
+\noindent\textbf{例 4.7.7（出生分钟与出生小时）}\quad 某学院有 $1600$ 名二年级学生。本例中沿用生日问题的通常假设。
+\begin{enumerate}
+  \item[(a)] 求一个 Poisson 近似，估计存在两名二年级学生不仅生日相同，而且出生在同一小时同一分钟的概率。
+  \item[(b)] 在 (a) 的假设下，求存在四名二年级学生不仅生日相同，而且出生在同一小时的概率。给出两种不同的 Poisson 近似：一种为每四人组建立一个指示随机变量，另一种为每一个可能的“日期-小时”建立一个指示随机变量。你认为哪一种更准确？
+\end{enumerate}
+
+\noindent\textbf{解}\quad (a) 这是生日问题，只是类别数从 $365$ 变为
+\[
+  c=365\cdot 24\cdot 60=525600.
+\]
+令 $n=1600$。若为每一对二年级学生建立一个指示随机变量，则由线性性，同一“日期-小时-分钟”出生的学生对数的期望为
+\[
+  \lambda_1=\binom{n}{2}\frac{1}{c}.
+\]
+由 Poisson 近似，至少出现一次匹配的概率约为
+\[
+  1-\exp(-\lambda_1)\approx 0.9122.
+\]
+
+(b) 现在有
+\[
+  b=365\cdot 24=8760
+\]
+个“日期-小时”类别。我们比较两种 Poisson 近似。
+
+\noindent\textit{方法 1}\quad 为每一组 $4$ 名二年级学生建立一个指示随机变量。由线性性，同一“日期-小时”出生的四人组数的期望为
+\[
+  \lambda_2=\binom{n}{4}\frac{1}{b^3}.
+\]
+Poisson 近似给出所求概率约为
+\[
+  1-\exp(-\lambda_2)\approx 0.333.
+\]
+
+\noindent\textit{方法 2}\quad 为每一个可能的“日期-小时”建立一个指示随机变量。令 $I_j$ 表示至少有 $4$ 人出生在一年中按时间排序的第 $j$ 个“日期-小时”，其中 $1\le j\le b$。令 $p=1/b$，$q=1-p$。则
+\[
+\begin{aligned}
+  E(I_j)&=P(I_j=1)\\
+  &=1-P(\text{至多 }3\text{ 人出生在第 }j\text{ 个日期-小时})\\
+  &=1-q^n-npq^{n-1}-\binom{n}{2}p^2q^{n-2}-\binom{n}{3}p^3q^{n-3}.
+\end{aligned}
+\]
+至少有 $4$ 名二年级学生出生的“日期-小时”个数的期望为
+\[
+  \lambda_3=bE(I_1),
+\]
+其中 $E(I_1)$ 如上。因此 Poisson 近似为
+\[
+  1-\exp(-\lambda_3)\approx 0.295.
+\]
+
+正确答案约为 $0.296$，所以方法 2 比方法 1 更准确。直观原因是，方法 1 中的指示随机变量之间有更强的相依性。例如，若已知学生 $1,2,3,4$ 出生在同一个“日期-小时”，则学生 $1,2,3,5$ 也出生在同一“日期-小时”的机会大大增加。相比之下，已知某个特定“日期-小时”至少有 $4$ 人出生，几乎不会影响另一个特定“日期-小时”是否至少有 $4$ 人出生。 \qed
+
+\section*{4.8\quad Poisson 分布与二项分布的联系}
+
+Poisson 分布与二项分布密切相关，这种关系恰好平行于上一章中二项分布与超几何分布之间的关系：可以通过条件化从 Poisson 分布得到二项分布，也可以通过取极限从二项分布得到 Poisson 分布。
+
+我们将用到如下事实：独立 Poisson 随机变量之和仍为 Poisson 随机变量，正如独立二项随机变量之和仍为二项随机变量一样。这里先用全概率定律证明；在第 6 章中，我们会学习一种更快的方法，即矩母函数。
+
+\noindent\textbf{定理 4.8.1（独立 Poisson 之和）}\quad 若 $X\sim\operatorname{Pois}(\lambda_1)$，$Y\sim\operatorname{Pois}(\lambda_2)$，且 $X$ 与 $Y$ 独立，则
+\[
+  X+Y\sim\operatorname{Pois}(\lambda_1+\lambda_2).
+\]
+
+\noindent\textbf{证明}\quad 为求 $X+Y$ 的 PMF，对 $X$ 条件化并使用全概率定律：
+\[
+\begin{aligned}
+  P(X+Y=k)
+  &=\sum_{j=0}^k P(X+Y=k\mid X=j)P(X=j)\\
+  &=\sum_{j=0}^k P(Y=k-j)P(X=j)\\
+  &=\sum_{j=0}^k
+    \frac{e^{-\lambda_2}\lambda_2^{k-j}}{(k-j)!}
+    \frac{e^{-\lambda_1}\lambda_1^j}{j!}\\
+  &=\frac{e^{-(\lambda_1+\lambda_2)}}{k!}
+    \sum_{j=0}^k\binom{k}{j}\lambda_1^j\lambda_2^{k-j}\\
+  &=\frac{e^{-(\lambda_1+\lambda_2)}(\lambda_1+\lambda_2)^k}{k!}.
+\end{aligned}
+\]
+最后一步使用二项定理。我们已经得到 $\operatorname{Pois}(\lambda_1+\lambda_2)$ 的 PMF，故 $X+Y\sim\operatorname{Pois}(\lambda_1+\lambda_2)$。
+
+Poisson 分布的故事也给出直观解释：若两类事件以速率 $\lambda_1$ 与 $\lambda_2$ 独立发生，那么总事件发生速率就是 $\lambda_1+\lambda_2$。 \qed
+
+\noindent\textbf{定理 4.8.2（给定 Poisson 之和时的 Poisson）}\quad 若 $X\sim\operatorname{Pois}(\lambda_1)$，$Y\sim\operatorname{Pois}(\lambda_2)$，且 $X$ 与 $Y$ 独立，则在给定 $X+Y=n$ 时，$X$ 的条件分布为
+\[
+  \operatorname{Bin}\left(n,\frac{\lambda_1}{\lambda_1+\lambda_2}\right).
+\]
+
+\noindent\textbf{证明}\quad 与二项分布和超几何分布之间相应结论的证明完全类似，用 Bayes 公式计算条件 PMF：
+\[
+\begin{aligned}
+  P(X=k\mid X+Y=n)
+  &=\frac{P(X+Y=n\mid X=k)P(X=k)}{P(X+Y=n)}\\
+  &=\frac{P(Y=n-k)P(X=k)}{P(X+Y=n)}\\
+  &=\frac{\left(\frac{e^{-\lambda_2}\lambda_2^{n-k}}{(n-k)!}\right)
+    \left(\frac{e^{-\lambda_1}\lambda_1^k}{k!}\right)}
+    {\frac{e^{-(\lambda_1+\lambda_2)}(\lambda_1+\lambda_2)^n}{n!}}\\
+  &=\binom{n}{k}\frac{\lambda_1^k\lambda_2^{n-k}}{(\lambda_1+\lambda_2)^n}\\
+  &=\binom{n}{k}
+    \left(\frac{\lambda_1}{\lambda_1+\lambda_2}\right)^k
+    \left(\frac{\lambda_2}{\lambda_1+\lambda_2}\right)^{n-k},
+\end{aligned}
+\]
+这正是 $\operatorname{Bin}(n,\lambda_1/(\lambda_1+\lambda_2))$ 的 PMF。 \qed
+
+反过来，若令二项分布 $\operatorname{Bin}(n,p)$ 中 $n\to\infty$、$p\to 0$，并保持 $np$ 固定，就会得到 Poisson 分布。这给出了\textbf{用 Poisson 近似二项分布}的基础。
+
+\noindent\textbf{定理 4.8.3（Poisson 近似二项分布）}\quad 若 $X\sim\operatorname{Bin}(n,p)$，并令 $n\to\infty$、$p\to 0$，使得 $\lambda=np$ 保持固定，则 $X$ 的 PMF 收敛到 $\operatorname{Pois}(\lambda)$ 的 PMF。更一般地，只要 $n\to\infty$、$p\to 0$ 且 $np$ 收敛到某个常数 $\lambda$，结论仍成立。
+
+这是 Poisson 范式的一个特殊情形，其中事件 $A_j$ 独立并具有相同概率，使得 $\sum_{j=1}^n I(A_j)$ 服从二项分布。在这个特殊情形下，我们只需取二项 PMF 的极限就能证明 Poisson 近似合理。
+
+\noindent\textbf{证明}\quad 只证明 $\lambda=np$ 固定且 $n\to\infty,p\to 0$ 的情形。对 $0\le k\le n$，
+\[
+\begin{aligned}
+  P(X=k)
+  &=\binom{n}{k}p^k(1-p)^{n-k}\\
+  &=\frac{n(n-1)\cdots(n-k+1)}{k!}
+    \left(\frac{\lambda}{n}\right)^k
+    \left(1-\frac{\lambda}{n}\right)^n
+    \left(1-\frac{\lambda}{n}\right)^{-k}\\
+  &=\frac{\lambda^k}{k!}
+    \frac{n(n-1)\cdots(n-k+1)}{n^k}
+    \left(1-\frac{\lambda}{n}\right)^n
+    \left(1-\frac{\lambda}{n}\right)^{-k}.
+\end{aligned}
+\]
+令 $n\to\infty$ 且 $k$ 固定，则
+\[
+  \frac{n(n-1)\cdots(n-k+1)}{n^k}\to 1,\qquad
+  \left(1-\frac{\lambda}{n}\right)^n\to e^{-\lambda},\qquad
+  \left(1-\frac{\lambda}{n}\right)^{-k}\to 1.
+\]
+所以
+\[
+  P(X=k)\to \frac{e^{-\lambda}\lambda^k}{k!},
+\]
+这正是 $\operatorname{Pois}(\lambda)$ 的 PMF。 \qed
+
+这个定理说明，当 $n$ 很大、$p$ 很小且 $np$ 适中时，可以用 $\operatorname{Pois}(np)$ 近似 $\operatorname{Bin}(n,p)$ 的 PMF。这里最重要的是 $p$ 要小；事实上，Poisson 范式后的误差界在这个情形中说明，对于 $X\sim\operatorname{Bin}(n,p)$、$N\sim\operatorname{Pois}(np)$，用 $P(N\in B)$ 近似 $P(X\in B)$ 的误差至多为 $\min(p,np^2)$。
+
+\noindent\textbf{例 4.8.4（网站访问者）}\quad 某网站站长正在研究网站每天访问者数的分布。每天有一百万人独立决定是否访问该网站，每个人访问的概率为 $p=2\times 10^{-6}$。求某一天至少有 $3$ 名访问者的概率的一个良好近似。
+
+\noindent\textbf{解}\quad 令 $X\sim\operatorname{Bin}(n,p)$ 表示访问者数，其中 $n=10^6$。由于 $n$ 很大而 $p$ 很小，直接精确计算容易出现数值困难；而 $np=2$ 适中，所以 $\operatorname{Pois}(2)$ 是很好的近似。于是
+\[
+  P(X\ge 3)=1-P(X<3)\approx
+  1-e^{-2}-2e^{-2}-\frac{2^2}{2!}e^{-2}
+  =1-5e^{-2}\approx 0.3233,
+\]
+这个近似非常准确。 \qed
+
+\section*{4.9\quad 用概率和期望证明存在性}
+
+一个令人惊讶而优美的事实是，我们可以用概率和期望来证明某些满足特定性质的对象\textbf{存在}。这种技巧称为\textbf{概率方法}，它基于两个简单但很有力量的思想。假设我们想证明某个集合中存在具有某种性质的对象。乍看之下，这似乎与概率没有关系；我们也许可以逐个检查集合中的对象，直到找到一个满足性质的对象。
+
+概率方法则避免这种繁琐检查：从集合中随机选一个对象，并证明随机对象具有所需性质的概率为正。我们不需要精确计算这个概率，只要证明它大于 $0$。一旦这个概率为正，就必然存在至少一个对象具有该性质，即使我们并不知道如何显式构造它。
+
+类似地，假设每个对象都有一个分数，而我们想证明存在一个分数“好”的对象，也就是分数超过某个阈值。我们随机选一个对象并考虑它的分数 $X$。集合中必然有一个对象的分数至少为 $E(X)$，因为不可能所有对象都低于平均数。因此，若 $E(X)$ 已经达到好分数，就能证明存在一个好对象。
+
+把这两个思想形式化如下。
+\begin{itemize}
+  \item \textbf{可能性原理}：令 $A$ 为从集合中随机选出的对象具有某性质的事件。若 $P(A)>0$，则存在具有该性质的对象。
+  \item \textbf{好分数原理}：令 $X$ 为从集合中随机选出的对象的分数。若 $E(X)\ge c$，则存在一个对象的分数至少为 $c$。
+\end{itemize}
+
+可能性原理的逆否命题是：如果没有对象具有所需性质，那么随机选出的对象具有该性质的概率为 $0$。好分数原理的逆否命题则是：如果所有对象的分数都小于 $c$，那么平均分数也小于 $c$。概率方法并不告诉我们如何找到所需对象；它只保证对象存在。
+
+\noindent\textbf{例 4.9.1}\quad 有 $100$ 个人被分配到 $15$ 个委员会中，每个委员会有 $20$ 人，并且每个人参加 $3$ 个委员会。证明存在两个委员会至少有 $3$ 个人重合。
+
+\noindent\textbf{解}\quad 直接枚举所有委员会分配并不可取。概率方法让我们通过计算任意分配中随机选出的两个委员会的平均重合人数来绕开暴力计算。
+
+随机选两个委员会，令 $X$ 为同时属于这两个委员会的人数。写成
+\[
+  X=I_1+I_2+\cdots+I_{100},
+\]
+其中若第 $j$ 个人同时属于这两个委员会，则 $I_j=1$，否则 $I_j=0$。由对称性，所有指示随机变量的期望相同，所以
+\[
+  E(X)=100E(I_1).
+\]
+由基本桥，$E(I_1)$ 等于第 $1$ 个人同时属于两个随机选出的委员会的概率。对这个人来说，他参加的 $3$ 个委员会可看成 $15$ 个委员会中的 $3$ 个“被标记”对象，而随机选出的两个委员会是不放回抽出的 $2$ 个对象。由超几何分布，
+\[
+  E(I_1)=\frac{\binom{3}{2}\binom{12}{0}}{\binom{15}{2}}=\frac{1}{35}.
+\]
+因此
+\[
+  E(X)=\frac{100}{35}=\frac{20}{7}.
+\]
+好分数原理说明存在两个委员会的重合人数至少为 $20/7$。由于重合人数必须是整数，至少为 $20/7$ 就意味着至少为 $3$。 \qed
+
+\subsection*{4.9.1\quad 有噪声信道上的通信}
+
+概率方法的另一个重要应用出现在\textbf{信息论}中。信息论研究如何在有噪声的信道上实现可靠通信。假设要发送的信息表示为二进制向量 $x\in\{0,1\}^k$，并且希望使用编码来提高信息成功传输的概率。
+
+\noindent\textbf{定义 4.9.2（码与速率）}\quad 给定正整数 $k,n$，一个\textbf{码}是一个函数 $c$，它给每个输入信息 $x\in\{0,1\}^k$ 指派一个码字 $c(x)\in\{0,1\}^n$。该码的\textbf{速率}为 $k/n$，即每个输出位承载的输入位数。发送 $c(x)$ 后，解码器拿到接收信息；该信息可能是 $c(x)$ 的被污染版本。解码器试图恢复正确的 $x$。
+
+一个显然的编码方式是重复发送，例如把 $x$ 连续发送 $m$ 次（$m$ 为奇数），这称为\textbf{重复码}。接收者可按多数原则解码。不过，这种码可能很低效：为了让失败概率很小，可能需要重复许多次，使通信速率低至 $1/m$。
+
+Shannon 证明了一个惊人的结果：即使信道噪声很大，也存在能以不趋于 $0$ 的速率进行可靠通信的码。他的证明研究的是完全随机的码，并通过平均意义上的表现证明存在好码。这正是概率方法的力量。
+
+我们证明 Shannon 结果的一个版本。考虑这样一个信道：每个传输的比特都以概率 $p$ 独立翻转。先给出两个定义。
+
+\noindent\textbf{定义 4.9.3（Hamming 距离）}\quad 对两个等长二进制向量 $v,w$，它们的 \textbf{Hamming 距离} $d(v,w)$ 是二者不同位置的个数。也可写为
+\[
+  d(v,w)=\sum_i |v_i-w_i|.
+\]
+
+\noindent\textbf{定义 4.9.4（二元熵函数）}\quad 对 $0<p<1$，\textbf{二元熵函数} $H$ 定义为
+\[
+  H(p)=-p\log_2p-(1-p)\log_2(1-p).
+\]
+另外定义 $H(0)=H(1)=0$。
+
+在信息论中，$H(p)$ 可解释为观察一个 $\operatorname{Bern}(p)$ 随机变量所得到的信息量。$H(1/2)=1$ 表示公平抛硬币给出 $1$ 比特信息，而 $H(1)=0$ 表示若硬币总是正面，则观察结果不会带来新信息。
+
+现在考虑每个传输比特都以概率 $p$ 独立翻转的信道。直觉上 $p$ 越小越好；但注意 $p=1/2$ 是最坏情形，此时输出与输入独立，无法传递信息。下面证明，当 $0<p<1/2$ 时，可以以非常接近 $1-H(p)$ 的速率进行可靠通信。
+
+\noindent\textbf{定理 4.9.5（Shannon）}\quad 考虑一个信道，其中每个传输比特都以概率 $p$ 独立翻转。设 $0<p<1/2$ 且 $\epsilon>0$。则存在速率至少为 $1-H(p)-\epsilon$ 的码，使解码错误概率小于 $\epsilon$。
+
+\noindent\textbf{证明}\quad 可假设 $1-H(p)-\epsilon>0$，否则对速率没有限制。令 $n$ 是足够大的正整数，并取
+\[
+  k=\lceil n(1-H(p)-\epsilon)\rceil+1.
+\]
+取 $p'\in(p,1/2)$，使
+\[
+  |H(p')-H(p)|<\epsilon/2,
+\]
+这可由 $H$ 的连续性保证。现在研究随机码 $C$ 的表现。对每个 $x\in\{0,1\}^k$，独立地令 $C(x)$ 为 $\{0,1\}^n$ 中均匀随机的向量。因此 $C(x)$ 可看成由 $n$ 个独立 $\operatorname{Bern}(1/2)$ 随机变量组成的向量。按定义，速率 $k/n$ 超过 $1-H(p)-\epsilon$。
+
+令 $x\in\{0,1\}^k$ 为输入信息，$C(x)$ 为编码信息，$Y\in\{0,1\}^n$ 为接收信息。暂时把 $x$ 当成固定的，但 $C(x)$ 由于随机选码字而随机，$Y$ 也由于信道噪声而随机。我们希望 $C(x)$ 与 $Y$ 在 Hamming 距离上接近，而对所有 $z\ne x$，$C(z)$ 与 $Y$ 都远离。于是按如下规则解码：
+\[
+  \text{若存在唯一的 }z\in\{0,1\}^k\text{ 使 }d(C(z),Y)\le np',
+  \text{则把 }Y\text{ 解码为 }z;\text{否则宣告失败。}
+\]
+
+我们将说明，对足够大的 $n$，解码器不能恢复正确 $x$ 的概率小于 $\epsilon$。可能失败的情形有两种：
+\[
+  \text{(a) }d(C(x),Y)>np',
+  \qquad
+  \text{(b) 存在冒名者 }z\ne x\text{ 使 }d(C(z),Y)\le np'.
+\]
+
+注意，$d(C(x),Y)$ 是随机变量，因此 $d(C(x),Y)>np'$ 是事件。对 (a)，可表示为
+\[
+  d(C(x),Y)=B_1+\cdots+B_n\sim\operatorname{Bin}(n,p),
+\]
+其中 $B_i$ 是第 $i$ 个比特被翻转的指示随机变量。由大数定律，当 $n$ 增大时，$d(C(x),Y)/n$ 会非常接近 $p$，因此超过 $p'$ 的概率趋于 $0$：
+\[
+  P(d(C(x),Y)>np')
+  =P\left(\frac{B_1+\cdots+B_n}{n}>p'\right)\to 0.
+\]
+于是可取 $n$ 足够大，使
+\[
+  P(d(C(x),Y)>np')<\epsilon/4.
+\]
+
+对 (b)，注意当 $z\ne x$ 时，$d(C(z),Y)\sim\operatorname{Bin}(n,1/2)$，因为 $C(z)$ 的 $n$ 个比特是独立 $\operatorname{Bern}(1/2)$，并且独立于 $Y$。令 $B\sim\operatorname{Bin}(n,1/2)$。由 Boole 不等式，
+\[
+  P(d(C(z),Y)\le np'\text{ for some }z\ne x)
+  \le (2^k-1)P(B\le np').
+\]
+为简化记号，假设 $np'$ 为整数。用“项数乘以最大项”粗略上界一个和，并用
+\[
+  \binom{n}{j}\le r^{-j}(1-r)^{-(n-j)},\qquad 0<r<1,
+\]
+粗略上界二项系数，得到
+\[
+  P(B\le np')
+  =\frac{1}{2^n}\sum_{j=0}^{np'}\binom{n}{j}
+  \le \frac{np'+1}{2^n}\binom{n}{np'}
+  \le (np'+1)2^{nH(p')-n}.
+\]
+其中使用了
+\[
+  (p')^{-np'}(q')^{-nq'}=2^{nH(p')},\qquad q'=1-p'.
+\]
+因此
+\[
+  2^kP(B\le np')
+  \le (np'+1)2^{n(1-H(p)-\epsilon)+2+n(H(p)+\epsilon/2)-n}
+  =4(np'+1)2^{-n\epsilon/2}\to 0.
+\]
+故可取 $n$ 足够大，使
+\[
+  P(d(C(z),Y)\le np'\text{ for some }z\ne x)<\epsilon/4.
+\]
+
+设 $k,n$ 已按上述方式选定，并令 $F(c,x)$ 表示使用码 $c$ 发送输入信息 $x$ 时发生失败的事件。合并上面的估计可得：对随机码 $C$ 和任意固定的 $x$，
+\[
+  P(F(C,x))<\epsilon/2.
+\]
+现在令 $X$ 为 $\{0,1\}^k$ 中均匀随机的输入信息，并且独立于 $C$。由全概率定律，
+\[
+  P(F(C,X))=\sum_x P(F(C,x))P(X=x)<\epsilon/2.
+\]
+再次使用全概率定律，这次对 $C$ 条件化，有
+\[
+  \sum_c P(F(c,X))P(C=c)=P(F(C,X))<\epsilon/2.
+\]
+因此存在一个码 $c$，使得
+\[
+  P(F(c,X))<\epsilon/2,
+\]
+也就是说，对随机输入信息 $X$，码 $c$ 的失败概率小于 $\epsilon/2$。
+
+最后，我们通过删去最差的一半输入来改进 $c$，得到一个对所有输入都好用的码。具体地，把失败概率最高的 $2^{k-1}$ 个 $x$ 从合法输入中删去。对所有剩余的 $x$，都有 $P(F(c,x))<\epsilon$；否则超过一半的输入会有超过平均失败概率两倍的失败概率。把剩余输入重新标号为 $\{0,1\}^{k-1}$ 中的向量，得到一个码
+\[
+  c':\{0,1\}^{k-1}\to\{0,1\}^n
+\]
+其速率满足
+\[
+  \frac{k-1}{n}\ge 1-H(p)-\epsilon,
+\]
+并且对所有输入信息的失败概率都小于 $\epsilon$。 \qed
+
+上述定理也有逆定理：若要求速率至少为 $1-H(p)+\epsilon$，就不可能找到能让错误概率任意小的码。因此 $1-H(p)$ 称为该信道的\textbf{容量}。Shannon 还对更一般的信道得到了类似结果。这些结果给出了可达到性能的理论界限，但并不直接说明应该使用哪些具体码。后来的大量工作都致力于发展实践中好用的具体码，使它们接近 Shannon 界，并允许高效编码与解码。
+
+\section*{4.10\quad 本章回顾}
+
+离散随机变量 $X$ 的期望为
+\[
+  E(X)=\sum_x xP(X=x).
+\]
+一种等价的“不分组”计算方式是
+\[
+  E(X)=\sum_s X(s)P(\{s\}),
+\]
+其中求和遍历样本空间中的基本结果。期望是一个单数，用来概括分布的质心。方差则是概括分布分散程度的单数，定义为
+\[
+  \operatorname{Var}(X)=E(X-EX)^2=E(X^2)-(EX)^2.
+\]
+方差的平方根称为标准差。
+
+期望是线性的：
+\[
+  E(cX)=cE(X),\qquad E(X+Y)=E(X)+E(Y),
+\]
+无论 $X$ 与 $Y$ 是否独立。方差则\textbf{不是}线性的：
+\[
+  \operatorname{Var}(cX)=c^2\operatorname{Var}(X),
+\]
+并且一般来说
+\[
+  \operatorname{Var}(X+Y)\ne \operatorname{Var}(X)+\operatorname{Var}(Y),
+\]
+一个重要例外是 $X$ 与 $Y$ 独立时。
+
+计算离散随机变量 $X$ 的期望时，一个非常重要的策略是把它表示为若干指示随机变量之和，然后使用线性性和基本桥。这个技巧尤其强大，因为这些指示随机变量不需要独立。可以概括为三步：
+\begin{enumerate}
+  \item 把随机变量 $X$ 表示为指示随机变量之和。决定如何定义这些指示随机变量时，要思考 $X$ 正在计数什么。
+  \item 用基本桥计算每个指示随机变量的期望。适用时，对称性在这一步常常很有帮助。
+  \item 由期望的线性性，把各指示随机变量的期望相加得到 $E(X)$。
+\end{enumerate}
+
+另一个计算期望的工具是 LOTUS，它说明可以只用 $X$ 的 PMF 来计算 $g(X)$ 的期望：
+\[
+  E(g(X))=\sum_x g(x)P(X=x).
+\]
+如果 $g$ 非线性，试图交换 $E$ 与 $g$ 来计算 $E(g(X))$ 是严重错误。
+
+本章加入了四个新的离散分布：几何分布、负二项分布、负超几何分布和 Poisson 分布。$\operatorname{Geom}(p)$ 随机变量是独立 Bernoulli 试验中第一次成功前的失败次数；$\operatorname{NBin}(r,p)$ 随机变量是第 $r$ 次成功前的失败次数。负超几何分布与负二项分布类似，只是在抽球模型中，负超几何分布是不放回抽样，而负二项分布是有放回抽样。我们还引入了首次成功分布，它只是把几何分布平移，使成功本身也被计入。
+
+Poisson 随机变量常用于近似成功次数，这些成功发生在许多独立或弱相依试验中，并且每次试验的成功概率都很小。在二项分布的故事中，所有试验有相同成功概率 $p$；而在 Poisson 近似中，不同试验可以有不同的、小的成功概率 $p_j$。
+
+Poisson、二项和超几何分布可通过条件化与取极限相互联系，如图 4.8 所示。在后续章节中，我们会继续引入新的命名分布，并把它们加入这个分布家族中。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.62\textwidth]{4-8.png}
+  \caption{Poisson、二项与超几何分布之间的关系。}
+\end{figure}
+
+图 4.9 扩展了上一章中的相应图示，进一步探索本书已经考虑过的四类基本对象之间的联系：分布、随机变量、事件和数。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{4-9.png}
+  \caption{概率中的四类基本对象：分布、随机变量、事件和数。由随机变量 $X$ 可以通过取函数生成许多其他随机变量，并可用 LOTUS 求它们的期望。$X$ 的均值、方差和标准差刻画 $X$ 的分布的平均水平和分散程度；特别地，它们只依赖于分布 $F$，而不直接依赖于 $X$ 本身。}
+\end{figure}
+
+\section*{4.12\quad 习题}
+
+标有 $\circledS$ 的习题在原书配套网站有详细解答。
+
+\subsection*{期望与方差}
+
+\noindent\textbf{练习 1}\quad 第 2 章中的变形虫 Bobo 现在独自生活在池塘中。一分钟后，Bobo 会以相同概率死亡、分裂成两个变形虫，或保持不变。求一分钟后池塘中变形虫个数的期望和方差。
+
+\noindent\textbf{练习 2}\quad 在 Gregorian 历法中，每年有 $365$ 天（平年）或 $366$ 天（闰年）。随机选一年，设平年的概率为 $3/4$，闰年的概率为 $1/4$。求该年天数的均值和方差。
+
+\noindent\textbf{练习 3}\quad (a) 掷一颗公平骰子，求点数的期望。 (b) 掷四颗公平骰子，求点数总和的期望。
+
+\noindent\textbf{练习 4}\quad 掷一颗公平骰子若干次。你可以选择在第 $1$、第 $2$ 或第 $3$ 次之后停止，且决定可以依赖已经出现的点数。你的奖金为最后一次掷出的点数（美元）。求使期望奖金最大的最优策略，并求该策略的期望奖金。提示：先考虑最多只掷 $2$ 次的简化版本。
+
+\noindent\textbf{练习 5}\quad 求取值于 $1,2,\ldots,n$ 的离散均匀随机变量的均值和方差。
+
+\noindent\textbf{练习 6}\quad 两队进行七局四胜制比赛。每局必有一队胜、一队负，各队每局胜率相同，且各局独立。求比赛局数的均值和方差。
+
+\noindent\textbf{练习 7}\quad 某小镇有 $100$ 个家庭，其中 $30$ 个家庭有 $1$ 个孩子，$50$ 个家庭有 $2$ 个孩子，$20$ 个家庭有 $3$ 个孩子。孩子的出生排行为 $1,2,3$，分别表示老大、老二、老三。
+\begin{enumerate}
+  \item[(a)] 随机选一个家庭，再在该家庭中随机选一个孩子。求所选孩子出生排行的 PMF、均值和方差。
+  \item[(b)] 在全镇所有孩子中随机选一个孩子。求所选孩子出生排行的 PMF、均值和方差。
+\end{enumerate}
+
+\noindent\textbf{练习 8}\quad 某国有北、东、南、西四个地区，人口分别为 $3,4,5,8$ 百万。北部有 $4$ 个城市，东部有 $3$ 个，南部有 $2$ 个，西部有 $1$ 个。每个人恰好住在这些城市之一。
+\begin{enumerate}
+  \item[(a)] 该国城市的平均规模是多少？也就是把所有城市等可能随机选取时，城市人口的期望。提示：给城市贴上名称标签。
+  \item[(b)] 说明若没有更多信息，就无法求等可能随机选出的城市人口的方差；方差依赖于每个地区内人口如何分配到城市。
+  \item[(c)] 若先等可能随机选一个地区，再在该地区内等可能随机选一个城市，求所选城市人口的期望。
+  \item[(d)] 直观解释为什么 (c) 的答案大于 (a) 的答案。
+\end{enumerate}
+
+\noindent\textbf{练习 9}\quad 考虑一个简化版的“谁想成为百万富翁”游戏。选手 Fred 已答对 $9$ 题，现在面对第 $10$ 题。第 $10$、第 $11$ 题都是四选一，他不知道答案。他有一次求助机会，可把某题选项从 $4$ 个缩小到 $2$ 个。他有三种选择：
+\begin{enumerate}
+  \item[(a)] 直接带走 $\$16000$。
+  \item[(b)] 在第 $10$ 题使用求助并作答；若错，带走 $\$1000$；若对，进入第 $11$ 题。第 $11$ 题若错，带走 $\$32000$；若对，带走 $\$64000$。
+  \item[(c)] 与 (b) 相同，但第 $10$ 题不使用求助；若答对第 $10$ 题，则在第 $11$ 题使用求助。
+\end{enumerate}
+求三种选择的期望收益。哪一种期望最高？哪一种方差最小？
+
+\noindent\textbf{练习 10}\quad 考虑 St. Petersburg 悖论的变体：若游戏持续 $n$ 轮，则收益为 $\$n$，而不是 $\$2^n$。这个游戏的公平价值是多少？若收益为 $\$n^2$ 呢？
+
+\noindent\textbf{练习 11}\quad Martin 听到一种赌博策略：押 $\$1$ 赌公平硬币为正面；若赢则停止，若输则下一次押 $\$2$，再输则押 $\$4$，如此每次翻倍，直到赢一次即停止。每个单次赌注都是公平的。因为
+\[
+  1+2+2^2+\cdots+2^n=2^{n+1}-1,
+\]
+所以赌徒一旦赢一次就净赚 $\$1$。Martin 只有 $\$31$，因此可能破产而无法继续翻倍。平均来看，Martin 会赢多少钱？
+
+\noindent\textbf{练习 12}\quad 设离散随机变量 $X$ 的支撑集为 $-n,-n+1,\ldots,0,\ldots,n-1,n$，其中 $n$ 为正整数。若 $X$ 的 PMF 满足对所有整数 $k$ 都有
+\[
+  P(X=-k)=P(X=k),
+\]
+求 $E(X)$。
+
+\noindent\textbf{练习 13 $\circledS$}\quad 是否存在离散随机变量 $X,Y$，使得 $E(X)>100E(Y)$，但 $Y$ 以至少 $0.99$ 的概率大于 $X$？
+
+\noindent\textbf{练习 14}\quad 设 $X$ 的 PMF 为
+\[
+  P(X=k)=\frac{cp^k}{k},\qquad k=1,2,\ldots,
+\]
+其中 $0<p<1$，$c$ 是归一化常数。由 Taylor 级数
+\[
+  -\log(1-p)=p+\frac{p^2}{2}+\frac{p^3}{3}+\cdots
+\]
+可知 $c=-1/\log(1-p)$。这个分布称为\textbf{对数分布}。求 $X$ 的均值和方差。
+
+\noindent\textbf{练习 15}\quad 玩家 A 在 $1$ 到 $100$ 中随机选一个整数，选择 $j$ 的概率为 $p_j$。玩家 B 猜 A 选的数，若猜中则从 A 处得到该数值的美元数，否则得 $0$。
+\begin{enumerate}
+  \item[(a)] 若 B 知道所有 $p_j$，求 B 使期望收益最大的策略。
+  \item[(b)] 证明：若双方都按与 $1/j$ 成正比的概率选择数字 $j$，则在对方策略固定时，任一方都没有改变策略的动机。这就是一个 Nash 均衡。
+  \item[(c)] 求 B 采用 (b) 中策略时的期望收益。把答案写成简单项的和，并给出数值近似。该值是否依赖 A 的策略？
+\end{enumerate}
+
+\noindent\textbf{练习 16}\quad Blotchville 大学校长声称该校平均班级规模为 $20$。但多数学生的体验很不同：他们常在大课中上课。为简化，假设每个学生每学期只上一门课。
+\begin{enumerate}
+  \item[(a)] 若有 $16$ 门小班课，每门 $10$ 人，以及 $2$ 门大课，每门 $100$ 人，求校长视角的平均班级规模（班级规模的简单平均）和学生视角的平均班级规模（随机调查学生并询问其班级人数所得到的平均）。直观解释差异。
+  \item[(b)] 证明：对任意一组班级规模，除非所有班级规模完全相同，否则校长视角的平均班级规模严格小于学生视角的平均班级规模。提示：联系方差非负。
+\end{enumerate}
+
+\noindent\textbf{练习 17}\quad 社会学家 Elizabeth Wrigley-Field 提出如下谜题：二战前后，美国生育率剧烈波动。大萧条期间家庭规模最小，战后婴儿潮期间家庭规模最大。然而，大萧条期间出生的孩子却来自比婴儿潮期间出生的孩子更大的家庭。这怎么可能？
+
+对某个时代，令 $n_k$ 为恰有 $k$ 个孩子的美国家庭数。为简化，假设历史可清楚分成若干时代，每个时代都有明确定义的家庭集合和孩子集合。对每个 $j\ge 0$，令
+\[
+  m_j=\sum_{k=0}^{\infty} k^j n_k.
+\]
+\begin{enumerate}
+  \item[(a)] 在该时代所有家庭中等可能随机选一个家庭，求该家庭孩子数的期望，只用 $m_j$ 表示。
+  \item[(b)] 在该时代所有孩子中等可能随机选一个孩子，求该孩子所在家庭孩子数的期望，只用 $m_j$ 表示。
+  \item[(c)] 直观说明 (a) 与 (b) 的答案哪个更大，或是否相等，并解释这与 Wrigley-Field 谜题的关系。
+\end{enumerate}
+
+\subsection*{命名分布}
+
+\noindent\textbf{练习 18 $\circledS$}\quad 反复抛一枚公平硬币，直到至少出现过一次正面且至少出现过一次反面。求抛掷次数的期望。
+
+\noindent\textbf{练习 19 $\circledS$}\quad 反复抛一枚硬币，直到第一次出现正面。令 $X$ 为所需抛掷次数（包括出现正面的那次），正面概率为 $p$，即 $X\sim\operatorname{FS}(p)$。求 $X$ 的 CDF，并在 $p=1/2$ 时画出图像。
+
+\noindent\textbf{练习 20}\quad 设 $X\sim\operatorname{Bin}(100,0.9)$。对下列每部分，构造例子说明是否可能，并解释原因。这里 $Y$ 与 $X$ 定义在同一概率空间上，不必独立。
+\begin{enumerate}
+  \item[(a)] 是否可能有 $Y\sim\operatorname{Pois}(0.01)$ 且 $P(X\ge Y)=1$？
+  \item[(b)] 是否可能有 $Y\sim\operatorname{Bin}(100,0.5)$ 且 $P(X\ge Y)=1$？
+  \item[(c)] 是否可能有 $Y\sim\operatorname{Bin}(100,0.5)$ 且 $P(X\le Y)=1$？
+\end{enumerate}
+
+\noindent\textbf{练习 21 $\circledS$}\quad 设 $X\sim\operatorname{Bin}(n,1/2)$，$Y\sim\operatorname{Bin}(n+1,1/2)$，且二者独立。
+\begin{enumerate}
+  \item[(a)] 令 $V=\min(X,Y)$，$W=\max(X,Y)$。求 $E(V)+E(W)$。
+  \item[(b)] 证明在 (a) 的记号下，$E|X-Y|=E(W)-E(V)$。
+  \item[(c)] 用两种不同方法计算 $\operatorname{Var}(n-X)$。
+\end{enumerate}
+
+\noindent\textbf{练习 22 $\circledS$}\quad 雨滴以平均每平方英寸每分钟 $20$ 滴的速率下落。对面积为 $5$ 平方英寸的区域，在 $t$ 分钟内落入该区域的雨滴数，使用什么分布较合理？为什么？用所选分布计算某个 $3$ 秒时间间隔内该区域没有雨滴的概率。
+
+\noindent\textbf{练习 23 $\circledS$}\quad Alice 和 Bob 刚认识，想知道他们是否有共同朋友。他们各自有 $50$ 个朋友，这些朋友来自镇上另外 $1000$ 人。他们认为共同朋友应很少，因为“我们各自只和这里 $5\%$ 的人是朋友，所以两个 $5\%$ 不太可能重叠”。假设 Alice 的 $50$ 个朋友是在这 $1000$ 人中等可能随机抽出的 $50$ 人，Bob 也类似；并且知道 Alice 的朋友是谁不会给出关于 Bob 的朋友是谁的信息。
+\begin{enumerate}
+  \item[(a)] 求 Alice 与 Bob 共同朋友数的期望。
+  \item[(b)] 令 $X$ 为共同朋友数，求 $X$ 的 PMF。
+  \item[(c)] $X$ 的分布是否是我们学过的重要分布之一？若是，是哪一个？
+\end{enumerate}
+
+\noindent\textbf{练习 24}\quad 设 $X\sim\operatorname{Bin}(n,p)$，$Y\sim\operatorname{NBin}(r,p)$。用 Bernoulli 试验序列的故事证明
+\[
+  P(X<r)=P(Y>n-r).
+\]
+
+\noindent\textbf{练习 25 $\circledS$}\quad Calvin 和 Hobbes 进行一系列比赛，Calvin 每局独立地以概率 $p$ 获胜。采用“净胜两局”规则：第一个比对手多赢两局的人赢得整场比赛。求比赛局数的期望。提示：把前两局看成一组，再把后两局看成一组，依此类推。
+
+\noindent\textbf{练习 26}\quad Nick 和 Penny 独立地进行独立 Bernoulli 试验。具体地，Nick 抛一枚正面概率为 $p_1$ 的硬币，Penny 抛一枚正面概率为 $p_2$ 的硬币。令 $X_1,X_2,\ldots$ 为 Nick 的结果，$Y_1,Y_2,\ldots$ 为 Penny 的结果，其中 $X_i\sim\operatorname{Bern}(p_1)$，$Y_j\sim\operatorname{Bern}(p_2)$。
+\begin{enumerate}
+  \item[(a)] 求他们首次同时成功的时刻的分布和期望，也就是最小的 $n$ 使 $X_n=Y_n=1$。
+  \item[(b)] 求直到至少一人成功为止的期望时间（包括成功那次）。
+  \item[(c)] 当 $p_1=p_2$ 时，求他们首次成功同时发生的概率，并由此求 Nick 的首次成功早于 Penny 的概率。
+\end{enumerate}
+
+\noindent\textbf{练习 27 $\circledS$}\quad 令 $X,Y$ 都服从 $\operatorname{Pois}(\lambda)$，并令 $T=X+Y$。假设 $X,Y$ 不独立，事实上 $X=Y$。证明或反驳在此情形下 $T\sim\operatorname{Pois}(2\lambda)$。
+
+\noindent\textbf{练习 28}\quad William 正在寻宝。有 $t$ 件宝物，每件藏在 $n$ 个地点之一。William 不放回地逐个搜索地点，直到找到所有宝物。假设每个地点至多有一件宝物，且只要搜索到藏有宝物的地点就一定找到它。令 $X$ 为 William 在寻宝中搜索的地点数。求 $X$ 的分布和 $E(X)$。
+
+\noindent\textbf{练习 29}\quad 设 $X\sim\operatorname{Geom}(p)$，并定义函数 $f$ 为 $f(x)=P(X=x)$（对所有实数 $x$）。求 $E(f(X))$。注意，$f(X)$ 的意思是先把 $f(x)$ 写成关于 $p,x$ 的函数，再把 $X$ 代入 $x$；不能说 $f(X)=P(X=X)=1$。
+
+\noindent\textbf{练习 30}\quad (a) 用 LOTUS 证明：若 $X\sim\operatorname{Pois}(\lambda)$，则对任意函数 $g$，
+\[
+  E(Xg(X))=\lambda E(g(X+1)),
+\]
+只要两边存在。这个恒等式称为 Poisson 的 Stein--Chen 恒等式。
+
+(b) 用 (a) 中的恒等式和一些代数化简，结合 $X$ 的均值与方差都为 $\lambda$，求 $X\sim\operatorname{Pois}(\lambda)$ 的三阶矩 $E(X^3)$。
+
+\noindent\textbf{练习 31}\quad 在许多计数数据建模问题中，数据中的零值远多于 Poisson 模型所能解释的数量。零膨胀 Poisson 分布是对 Poisson 分布的修改，用来更自然地处理大量零值。带参数 $p,\lambda$ 的零膨胀 Poisson 随机变量 $X$ 可这样生成：先抛一枚正面概率为 $p$ 的硬币；若正面，则 $X=0$；若反面，则 $X\sim\operatorname{Pois}(\lambda)$。因此，若 $X=0$，可能是硬币为正面导致的结构零，也可能是硬币为反面但 Poisson 随机变量恰好为零。
+\begin{enumerate}
+  \item[(a)] 求零膨胀 Poisson 随机变量 $X$ 的 PMF。
+  \item[(b)] 解释为什么 $X$ 与 $(1-I)Y$ 同分布，其中 $I\sim\operatorname{Bern}(p)$，$Y\sim\operatorname{Pois}(\lambda)$，且二者独立。
+  \item[(c)] 用两种方法求 $X$ 的均值：直接用 $X$ 的 PMF，以及用 (b) 中的表示。
+  \item[(d)] 求 $X$ 的方差。
+\end{enumerate}
+
+\noindent\textbf{练习 32 $\circledS$}\quad 若分布满足：对服从该分布的随机变量 $X$，任意非负整数 $j,k$ 都有
+\[
+  P(X\ge j+k\mid X\ge j)=P(X\ge k),
+\]
+则称该离散分布具有\textbf{无记忆性}。
+\begin{enumerate}
+  \item[(a)] 若 $X$ 具有无记忆性，CDF 为 $F$，PMF 为 $p_i=P(X=i)$，求 $P(X\ge j+k)$ 关于 $F(j),F(k),p_j,p_k$ 的表达式。
+  \item[(b)] 给出一个具有无记忆性的离散分布，并用文字解释或计算说明你的答案。
+\end{enumerate}
+
+\noindent\textbf{练习 33}\quad 找到 $w,b,r$，使参数为 $w,b,r$ 的负超几何分布退化为 $\{0,1,\ldots,n\}$ 上的离散均匀分布。分别用负超几何分布的故事和 PMF 说明你的答案。
+
+\subsection*{指示随机变量}
+
+\noindent\textbf{练习 34 $\circledS$}\quad 将 $k$ 个可区分球随机放入 $n$ 个可区分盒中，所有可能等可能。求空盒数的期望。
+
+\noindent\textbf{练习 35 $\circledS$}\quad $50$ 个人比较生日。按通常假设，生日独立且没有 2 月 29 日。求生日相同的人对数的期望，以及一年中至少有两人出生的日期数的期望。
+
+\noindent\textbf{练习 36 $\circledS$}\quad $n\ge4$ 个人比较生日。令 $I_{ij}$ 表示第 $i$ 与第 $j$ 个人生日相同（$i<j$）。$I_{12}$ 与 $I_{34}$ 是否独立？$I_{12}$ 与 $I_{13}$ 是否独立？所有 $I_{ij}$ 是否相互独立？
+
+\noindent\textbf{练习 37 $\circledS$}\quad $20$ 包软糖随机分给 $20$ 名学生，每包由随机学生获得，且各包归属独立。求前三名学生总共获得软糖包数的期望，以及至少获得一包软糖的学生人数的期望。
+
+\noindent\textbf{练习 38}\quad $n\ge2$ 个人把自己的名字写在纸条上（名字互不相同）。纸条洗匀放入帽子中，每个人依次不放回地随机抽一张。求抽到自己名字的人数的期望。
+
+\noindent\textbf{练习 39}\quad 两名研究者独立地从大小为 $N$ 的总体中抽取简单随机样本，样本量分别为 $m$ 和 $n$（每个研究者都不放回抽样，且指定大小的所有样本等可能）。求两个样本重叠大小的期望。
+
+\noindent\textbf{练习 40}\quad 在 $n$ 次独立公平抛硬币序列中，模式 $HTH$（连续出现）的期望出现次数是多少？允许重叠，例如 $HTHTH$ 包含两个重叠的 $HTH$。
+
+\noindent\textbf{练习 41}\quad 一副洗匀的 $52$ 张牌中，平均有多少对相邻牌都是红牌？
+
+\noindent\textbf{练习 42}\quad 有 $n$ 种玩具，你逐个收集。每次收集到的玩具等可能是 $n$ 种之一。收集 $t$ 个玩具后，已拥有的不同玩具种类数的期望是多少？假设在此之前你一定会收集 $t$ 个玩具，无论是否已经集齐。
+
+\noindent\textbf{练习 43}\quad 一栋楼有 $n$ 层，编号 $1,2,\ldots,n$。在第 $1$ 层有 $k$ 人进入电梯，电梯上行且进来前为空。每个人独立决定去 $2,3,\ldots,n$ 中哪一层，并按下对应按钮（若尚未有人按）。
+\begin{enumerate}
+  \item[(a)] 若每个人去 $2,3,\ldots,n$ 中各层的概率相等，求电梯在这些楼层停靠次数的期望。
+  \item[(b)] 推广到去 $2,3,\ldots,n$ 各层的概率分别为 $p_2,\ldots,p_n$ 的情形；答案可保留为有限和。
+\end{enumerate}
+
+\noindent\textbf{练习 44 $\circledS$}\quad 盒中有 $100$ 根鞋带。每一步随机选两个自由端并把它们系在一起。若两端来自不同鞋带，会得到更长的鞋带；若来自同一根鞋带，会形成一个环。求所有鞋带都变成环所需步数的期望，以及最终环数的期望。提示：对每一步建立是否形成环的指示随机变量，并注意每一步后自由端数减少 $2$。
+
+\noindent\textbf{练习 45}\quad 证明对任意事件 $A_1,\ldots,A_n$，
+\[
+  P(A_1\cap A_2\cap\cdots\cap A_n)\ge \sum_{j=1}^n P(A_j)-n+1.
+\]
+提示：先证明一个关于指示随机变量的类似命题。
+
+\noindent\textbf{练习 46}\quad 一副洗匀的 $52$ 张牌逐张翻开且不放回。第一张 A 出现前，非 A 牌数的期望是多少？第一张 A 与第二张 A 之间，非 A 牌数的期望是多少？
+
+\noindent\textbf{练习 47}\quad 你正在接受超能力测试。假设你没有超能力。一副标准扑克牌洗匀后逐张背面朝下发牌。每发一张后，你说出任意一张牌作为预测。令 $X$ 为你预测正确的牌数。
+\begin{enumerate}
+  \item[(a)] 若你得不到任何反馈，证明无论采取什么策略，$E(X)$ 都相同，并求该值。另一方面，不同策略的方差可能很不同；例如每次都说“黑桃 A”会使方差为 $0$。
+  \item[(b)] 若你得到部分反馈：每次预测后立即知道是否正确，但牌不翻开。若采用策略“反复说某张牌，直到被告知正确；然后换另一张牌继续”，求 $E(X)$，并说明它非常接近 $e-1$。
+  \item[(c)] 若你得到完全反馈：每次预测后牌会被翻开。称某策略“愚蠢”，若它允许在黑桃 A 已经翻开后仍猜“黑桃 A”这类行为。证明任何非愚蠢策略都给出相同的 $E(X)$，并求该值。
+\end{enumerate}
+
+\noindent\textbf{练习 48 $\circledS$}\quad 设 $X\sim\operatorname{HGeom}(w,b,n)$。
+\begin{enumerate}
+  \item[(a)] 不用复杂计算，思考求出 $E\binom{X}{2}$。
+  \item[(b)] 用 (a) 求 $X$ 的方差，应得到
+  \[
+    \operatorname{Var}(X)=\frac{N-n}{N-1}npq,
+  \]
+  其中 $N=w+b$，$p=w/N$，$q=1-p$。
+\end{enumerate}
+
+\noindent\textbf{练习 49}\quad 有 $n$ 个奖品，价值分别为 $\$1,\$2,\ldots,\$n$。你不放回地随机选择 $k$ 个奖品。求你所得奖品总价值的期望。
+
+\noindent\textbf{练习 50}\quad 独立随机选取圆的 $10$ 条弦。每条弦由圆上两个独立均匀随机点确定。平均有多少对弦相交？提示：考虑两条随机弦；等价地，可取圆上四个独立均匀随机点，再随机配对。
+
+\noindent\textbf{练习 51 $\circledS$}\quad 一个哈希表用于存储 $k$ 个人的电话号码，每个人的号码独立均匀存到 $1$ 到 $n$ 的某个位置。求没有电话号码的位置数的期望、恰有一个电话号码的位置数的期望，以及多于一个电话号码的位置数的期望。这些量是否应相加为 $n$？
+
+\noindent\textbf{练习 52}\quad 一枚正面概率为 $p$ 的硬币抛 $n$ 次。结果序列可分成若干 run（连续的正面块或反面块），例如 $HHHTTHTTTH$ 有 $5$ 个 run。求 run 数的期望。提示：先求从第二次开始，结果与前一次不同的次数的期望。
+
+\noindent\textbf{练习 53}\quad 一枚正面概率为 $p$ 的硬币抛 $4$ 次。令 $X$ 为模式 $HH$ 出现的次数（例如 $THHT$ 有 $1$ 次，$HHHH$ 有 $3$ 次）。求 $E(X)$ 与 $\operatorname{Var}(X)$。
+
+\noindent\textbf{练习 54}\quad 总体有 $N$ 个人，编号 $1,\ldots,N$。令 $y_j$ 为第 $j$ 个人某个数值变量的值，并令
+\[
+  \bar{y}=\frac{1}{N}\sum_{j=1}^N y_j
+\]
+为总体平均值。研究者无法测量所有 $y_j$，于是通过不放回地等可能抽取大小为 $n$ 的样本。令 $W_j$ 为样本中第 $j$ 个人的数值，使用样本平均
+\[
+  \bar{W}=\frac{1}{n}\sum_{j=1}^n W_j
+\]
+估计 $\bar{y}$。用两种方法证明 $E(\bar{W})=\bar{y}$：
+\begin{enumerate}
+  \item[(a)] 由对称性直接计算 $E(W_j)$；
+  \item[(b)] 写成
+  \[
+    \bar{W}=\frac{1}{n}\sum_{j=1}^N I_jy_j,
+  \]
+  其中 $I_j$ 表示第 $j$ 个人被纳入样本，然后用线性性和基本桥。
+\end{enumerate}
+
+\noindent\textbf{练习 55 $\circledS$}\quad 考虑冒泡排序算法，用于把 $n$ 个互异数字组成的随机排列排成递增顺序。算法比较第 $1,2$ 位并在需要时交换，再比较第 $2,3$ 位，依此直到一趟结束。第一趟后最大数在末尾；第二趟只需处理前 $n-1$ 个位置，依此类推，直到完成 $n-1$ 趟或某一趟没有发生交换。
+\begin{enumerate}
+  \item[(a)] 一个\textbf{逆序}是指一对顺序颠倒的数字。求初始列表中逆序数的期望。
+  \item[(b)] 证明比较次数的期望介于 $\frac12\binom{n}{2}$ 和 $\binom{n}{2}$ 之间。提示：一个界考虑若做满 $n-1$ 趟会有多少次比较，另一个界使用 (a)。
+\end{enumerate}
+
+\noindent\textbf{练习 56}\quad 某篮球运动员反复练习罚球，每次投篮独立，命中概率为 $p$。
+\begin{enumerate}
+  \item[(a)] 在 $n$ 次投篮中，连续 $7$ 次命中的 streak 的期望个数是多少？注意，连续命中 $9$ 次算作 $3$ 个这样的 streak。
+  \item[(b)] 现在假设该运动员一直投到首次连续命中 $7$ 次为止。令 $X$ 为总投篮次数，证明 $E(X)\le 7/p^7$。提示：把前 $7$ 次看成一块，再把接下来的 $7$ 次看成一块，依此类推。
+\end{enumerate}
+
+\noindent\textbf{练习 57 $\circledS$}\quad 一个坛子中有红、绿、蓝三色球。有放回地随机抽球，每次记录颜色后放回。令 $r,g,b$ 分别为抽到红、绿、蓝球的概率，且 $r+g+b=1$。
+\begin{enumerate}
+  \item[(a)] 求第一次抽到红球前抽取的球数的期望（不包括红球本身）。
+  \item[(b)] 求第一次抽到红球前出现过的不同颜色数的期望。
+  \item[(c)] 在抽取 $n$ 个球且至少有一个红球的条件下，求至少有两个红球的条件概率。
+\end{enumerate}
+
+\noindent\textbf{练习 58 $\circledS$}\quad 求职者 $C_1,C_2,\ldots$ 依次面试，面试官不断更新已面试者的排名。假设候选人数无限，对任意 $n$，$C_1,\ldots,C_n$ 的到达顺序等可能，且面试排名无并列。令 $X$ 为第一个排名优于 $C_1$ 的候选者的编号。求 $E(X)$。提示：先求 $P(X>n)$，再使用本章关于非负整数值随机变量期望的结果。
+
+\noindent\textbf{练习 59}\quad 人们逐个到达聚会，并比较生日。令 $X$ 为首次出现生日匹配所需人数，即在第 $X$ 个人到达前没有任何两人生日相同，而第 $X$ 个人到达时出现匹配。假设一年有 $365$ 天且等可能。第 1 章的生日问题表明，$23$ 个人时至少一对生日相同的概率约为 $50.7\%$，但这涉及的是 $X$ 的中位数；本题要求 $X$ 的均值。
+\begin{enumerate}
+  \item[(a)] 随机变量 $Y$ 的一个中位数是满足 $P(Y\le m)\ge 1/2$ 且 $P(Y\ge m)\ge 1/2$ 的值 $m$。证明 $23$ 是 $X$ 的唯一中位数。
+  \item[(b)] 证明
+  \[
+    X=I_1+I_2+\cdots+I_{366},
+  \]
+  其中 $I_j$ 是事件 $X\ge j$ 的指示随机变量。进而用
+  \[
+    p_1=p_2=1,\qquad
+    p_j=\left(1-\frac{1}{365}\right)\left(1-\frac{2}{365}\right)\cdots
+    \left(1-\frac{j-2}{365}\right),\quad 3\le j\le 366
+  \]
+  表示 $E(X)$。
+  \item[(c)] 数值计算 $E(X)$。
+  \item[(d)] 用 $p_j$ 表示并数值计算 $X$ 的方差。提示：利用 $I_i^2=I_i$ 以及 $i<j$ 时 $I_iI_j=I_j$。
+\end{enumerate}
+生日问题在计算机科学中也有许多应用，例如密码学中的生日攻击。可以证明，如果一年有 $n$ 天且 $n$ 很大，则
+\[
+  E(X)\approx \sqrt{\frac{\pi n}{2}}+\frac{2}{3}.
+\]
+
+\noindent\textbf{练习 60}\quad 某森林中有 $N$ 只麋鹿。先捕获并标记一个大小为 $n$ 的简单随机样本，然后放回总体，再抽取新样本。这称为捕获-再捕获方法。假设第二次不是固定样本量，而是不放回逐只抽取，直到重新捕获到 $m$ 只已标记麋鹿为止，其中 $1\le m\le n\le N$。
+\begin{enumerate}
+  \item[(a)] 求新样本中未标记麋鹿数 $X$ 的 PMF，以及新样本总数 $Y$ 的 PMF。
+  \item[(b)] 用对称性、线性性和指示随机变量求期望样本量 $EY$。
+  \item[(c)] 若 $m,n,N$ 使 $EY$ 为整数。若改为固定抽取 $EY$ 只麋鹿，而不是恰好抽到 $m$ 只已标记麋鹿为止，求样本中已标记麋鹿数的期望。对于 $n<N$，它小于、等于还是大于 $m$？
+\end{enumerate}
+
+\subsection*{LOTUS}
+
+\noindent\textbf{练习 61 $\circledS$}\quad 若 $X\sim\operatorname{Pois}(\lambda)$，求 $E(X!)$，若它有限。
+
+\noindent\textbf{练习 62}\quad 若 $X\sim\operatorname{Pois}(\lambda)$，求 $E(2^X)$，若它有限。
+
+\noindent\textbf{练习 63}\quad 若 $X\sim\operatorname{Geom}(p)$，求 $E(2^X)$ 与 $E(2^{-X})$，若它们有限。对每一个期望，明确说明哪些 $p$ 值使其有限。
+
+\noindent\textbf{练习 64 $\circledS$}\quad 设 $X\sim\operatorname{Geom}(p)$，$t$ 为常数。求 $E(e^{tX})$ 作为 $t$ 的函数。这称为矩母函数。
+
+\noindent\textbf{练习 65 $\circledS$}\quad 某湖中鱼的数量服从 $\operatorname{Pois}(\lambda)$。统计学家担心湖中可能没有鱼，于是往湖中加入一条鱼。令 $Y$ 为加入后的鱼数，所以 $Y=1+X$，其中 $X\sim\operatorname{Pois}(\lambda)$。
+\begin{enumerate}
+  \item[(a)] 求 $E(Y^2)$。
+  \item[(b)] 求 $E(1/Y)$。
+\end{enumerate}
+
+\noindent\textbf{练习 66 $\circledS$}\quad 设 $X\sim\operatorname{Pois}(\lambda)$，其中 $\lambda$ 固定但未知。令 $\theta=e^{-3\lambda}$，希望基于观测到的 $X$ 估计 $\theta$。估计量 $g(X)$ 的偏差定义为 $E(g(X))-\theta$；若偏差为 $0$，称估计量无偏。
+\begin{enumerate}
+  \item[(a)] 对估计 $\lambda$，$X$ 本身是无偏估计量。计算估计量 $T=e^{-3X}$ 的偏差。它是否是 $\theta$ 的无偏估计量？
+  \item[(b)] 证明 $g(X)=(-2)^X$ 是 $\theta$ 的无偏估计量。
+  \item[(c)] 解释为什么尽管 (b) 成立，$g(X)$ 仍是估计 $\theta$ 的糟糕选择；并找出一个估计量 $h(X)$，使它总是至少和 $g(X)$ 一样好，有时严格更好，即
+  \[
+    |h(X)-\theta|\le |g(X)-\theta|,
+  \]
+  且有时严格小于。
+\end{enumerate}
+
+\subsection*{Poisson 近似}
+
+\noindent\textbf{练习 67 $\circledS$}\quad 法学院课程常指定座位。假设有 $100$ 名一年级法学生，每人修同两门课：侵权法与合同法。两门课都在同一间有 $100$ 个座位的教室上课，且两门课座位安排独立、均匀随机。
+\begin{enumerate}
+  \item[(a)] 求没有人两门课坐同一座位的精确概率（答案可保留为和）。
+  \item[(b)] 求一个简单而准确的近似，估计没有人两门课坐同一座位的概率。
+  \item[(c)] 求一个简单而准确的近似，估计至少有两名学生两门课坐同一座位的概率。
+\end{enumerate}
+
+\noindent\textbf{练习 68 $\circledS$}\quad $n$ 个人玩“秘密圣诞老人”：每个人把名字放入帽子，不放回地随机抽一个名字，并给那个人买礼物。他们忘了避免抽到自己。假设 $n\ge2$。
+\begin{enumerate}
+  \item[(a)] 求抽到自己名字的人数 $X$ 的期望。
+  \item[(b)] 求互相抽中对数的期望，即无序对 $\{A,B\}$ 满足 $A$ 抽中 $B$ 且 $B$ 抽中 $A$。
+  \item[(c)] 当 $n$ 很大时，$X$ 的近似分布是什么？参数是多少？$P(X=0)$ 在 $n\to\infty$ 时收敛到什么？
+\end{enumerate}
+
+\noindent\textbf{练习 69}\quad 某城市有 $10^6$ 人。通过有放回、等可能地随机抽取该城市居民，得到大小为 $1000$ 的样本。求一个简单而准确的近似，估计至少有一人被抽到超过一次的概率。提示：可使用 $999\approx 1000$。
+
+\noindent\textbf{练习 70 $\circledS$}\quad 一千万人参加某种彩票。每个人独立中奖的概率为一千万分之一。
+\begin{enumerate}
+  \item[(a)] 求中奖人数 PMF 的一个简单良好近似。
+  \item[(b)] 假设你中奖了。除你之外的中奖人数为 $W\sim\operatorname{Pois}(1)$，若中奖者超过一人，奖金在所有中奖者中随机给一个人。给定这些信息，求你得到奖金的概率。
+\end{enumerate}
+
+\noindent\textbf{练习 71}\quad 在 $90$ 人中，求一个简单良好的近似，估计存在至少一对人，使这两人生日相同且他们的生母生日也相同的概率。假设这 $90$ 人中没有人是另一个人的生母，且任意两人的生母不同。可使用 $365\approx 360$、$89\approx90$ 和 $e^x\approx1+x$（$x\approx0$）简化计算，并把答案写成 $a/b$，其中 $b\le100$。
+
+\noindent\textbf{练习 72}\quad 用 Poisson 近似研究下列巧合类型，采用生日问题的通常假设。
+\begin{enumerate}
+  \item[(a)] 需要多少人，才有约 $50\%$ 的机会使至少一人与\textbf{你}生日相同？
+  \item[(b)] 需要多少人，才有约 $50\%$ 的机会使至少一对人不仅生日相同，而且出生在同一小时？
+  \item[(c)] 既然生日相同的一对人中只有 $1/24$ 会出生在同一小时，为什么 (b) 的答案不是大约 $24\cdot 23$？
+  \item[(d)] 对 $100$ 人，至少存在一组三人生日相同的概率约为 $64\%$。给出两个不同的 Poisson 近似：一种为每个三人组建立指示随机变量，另一种为一年中每一天建立指示随机变量。哪一种更准确？
+\end{enumerate}
+
+\noindent\textbf{练习 73}\quad 一个国际象棋比赛有 $100$ 名选手。第一轮随机配对，进行 $50$ 局。第二轮重新随机配对，独立于第一轮。两轮中所有配对都等可能。令 $X$ 为两轮中对手相同的人数。
+\begin{enumerate}
+  \item[(a)] 求 $E(X)$。
+  \item[(b)] 解释为什么 $X$ 不近似服从 Poisson 分布。
+  \item[(c)] 通过考虑第二轮中与第一轮相同的一局，求 $P(X=0)$ 与 $P(X=2)$ 的良好近似。
+\end{enumerate}
+
+\subsection*{存在性}
+
+\noindent\textbf{练习 74 $\circledS$}\quad $111$ 个人分别从 $11$ 部电影中说出自己最喜欢的 $5$ 部。
+\begin{enumerate}
+  \item[(a)] Alice 和 Bob 是其中两人。仅在本小问中，假设 Alice 的 $5$ 部电影是从 $11$ 部中等可能随机选出的 $5$ 部，Bob 也类似且独立。求 Alice 与 Bob 片单中共同电影数的期望。
+  \item[(b)] 证明存在两部电影，使至少 $21$ 个人都把这两部电影列为最喜欢的电影。
+\end{enumerate}
+
+\noindent\textbf{练习 75 $\circledS$}\quad 一个圆周被红、蓝两色染色，其中 $2/3$ 的圆周为红色，$1/3$ 为蓝色。证明无论染色方式多复杂，都可以在圆内作一个内接正方形，使该正方形至少三个顶点落在红色圆弧上。
+
+\noindent\textbf{练习 76 $\circledS$}\quad $100$ 名学生参加一场包含 $8$ 道题的考试，每道题至少有 $65$ 名学生答对。证明存在两名学生，使他们合起来答对了所有题；也就是说，对每一道题，两人中至少一人答对。
+
+\noindent\textbf{练习 77 $\circledS$}\quad 平面上给定 $10$ 个点。你有 $10$ 枚同半径圆形硬币。证明可以把硬币放在平面上且不重叠，使所有 $10$ 个点都被覆盖。提示：考虑蜂窝状平铺，并使用几何事实：若圆内接于正六边形，则圆面积与六边形面积之比为 $\pi/(2\sqrt3)>0.9$。
+
+\noindent\textbf{练习 78 $\circledS$}\quad 令 $S$ 是长度为 $n$ 的二进制串 $a_1\cdots a_n$ 的集合。若对任意 $1\le i_1<\cdots<i_k\le n$ 和任意长度为 $k$ 的二进制串 $b_1\cdots b_k$，都存在 $S$ 中某个串 $s_1\cdots s_n$ 使 $s_{i_1}s_{i_2}\cdots s_{i_k}=b_1b_2\cdots b_k$，则称 $S$ 是 $k$-完备的。证明：若
+\[
+  \binom{n}{k}2^k(1-2^{-k})^m<1,
+\]
+则存在一个大小至多为 $m$ 的 $k$-完备集合。
+
+\subsection*{综合练习}
+
+\noindent\textbf{练习 79}\quad 黑客试图随机猜测某个受密码保护网站的密码。令 $m$ 为可能密码数。
+\begin{enumerate}
+  \item[(a)] 若黑客有放回地等可能随机猜测，求猜中正确密码所需猜测次数的平均值（包括成功那次）。
+  \item[(b)] 若黑客不放回地随机猜测，求猜中正确密码所需猜测次数的平均值。提示：使用对称性。
+  \item[(c)] 证明除退化情形 $m=1$ 外，(a) 的答案大于 (b)，并直观解释原因。
+  \item[(d)] 若网站在 $n$ 次错误密码尝试后锁定用户，因此黑客最多能猜 $n$ 次。求黑客猜测次数的 PMF，分别考虑有放回和不放回抽样。
+\end{enumerate}
+
+\noindent\textbf{练习 80}\quad 反复掷一颗公平 $20$ 面骰，直到赌徒决定停止。停止时，赌徒获得骰面点数对应金额。赌徒事先决定：一直掷到出现至少为 $m$ 的值时停止，其中 $m$ 是满足 $1\le m\le20$ 的固定整数。
+\begin{enumerate}
+  \item[(a)] 掷骰次数的期望是多少？请化简。
+  \item[(b)] 掷骰次数平方根的期望是多少？答案可写成和式。
+\end{enumerate}
+
+\noindent\textbf{练习 81 $\circledS$}\quad $360$ 人将被分成 $120$ 个三人队伍（队伍之间顺序和队内顺序都不重要）。
+\begin{enumerate}
+  \item[(a)] 有多少种分法？
+  \item[(b)] 假设这 $360$ 人由 $180$ 对夫妻组成。从所有分法中等可能随机选择一种，求包含夫妻的队伍数的期望。
+\end{enumerate}
+
+\noindent\textbf{练习 82 $\circledS$}\quad de Mere 问 Pascal：掷一颗骰子 $4$ 次至少出现一次 $6$，与掷两颗骰子 $24$ 次至少出现一次双 $6$，哪一个更可能？延续这个模式，设一组 $n$ 颗公平骰子被掷 $4\cdot 6^{n-1}$ 次。
+\begin{enumerate}
+  \item[(a)] 求“全为 $6$”出现次数的期望。
+  \item[(b)] 当 $n$ 很大时，给出至少出现一次“全为 $6$”的简单准确近似，用 $e$ 表示但不含 $n$。
+  \item[(c)] de Mere 觉得重掷许多骰子很麻烦。于是先正常掷一次 $n$ 颗骰子；从一次掷骰到下一次，有概率 $6/7$ 保持原配置，有概率 $1/7$ 重新随机掷。与 (a) 相比，“全为 $6$”出现次数的期望保持不变、增加还是减少？给出简短清楚的解释。
+\end{enumerate}
+
+\noindent\textbf{练习 83 $\circledS$}\quad $5$ 个人刚赢得 $\$100$ 奖金，并决定如何分配。假设只使用整美元，并且例如第一个人得 $\$50$、第二个人得 $\$10$ 与反过来不同。
+\begin{enumerate}
+  \item[(a)] 若每人至少得 $\$10$，有多少种分法？
+  \item[(b)] 若从 (a) 的所有可能分法中等可能随机选择一种，求第一个人所得金额的期望。
+  \item[(c)] 令 $A_j$ 为第 $j$ 个人所得金额多于第一个人的事件（$2\le j\le5$）。在 (b) 的随机分配下，$A_2$ 与 $A_3$ 是否独立？
+\end{enumerate}
+
+\noindent\textbf{练习 84 $\circledS$}\quad Joe 的播放器中有 $500$ 首不同歌曲，来自 $50$ 张专辑，每张 $10$ 首。他独立等可能随机播放 $11$ 首歌，允许重复。
+\begin{enumerate}
+  \item[(a)] 这 $11$ 首歌中来自他最喜欢专辑的歌曲数的 PMF 是什么？
+  \item[(b)] 这 $11$ 首歌中至少有两首来自同一专辑的概率是多少？
+  \item[(c)] 若两首歌来自同一专辑，则称这对歌匹配。若第 $1,3,7$ 首歌来自同一专辑，则算作 $3$ 个匹配。在这 $11$ 首歌中，匹配对数的期望是多少？
+\end{enumerate}
+
+\noindent\textbf{练习 85 $\circledS$}\quad Massachusetts 的 Mass Cash 彩票每天从 $1$ 到 $35$ 中不放回随机选出 $5$ 个整数。
+\begin{enumerate}
+  \item[(a)] 玩这种彩票时，在已知至少猜中 $1$ 个号码的条件下，恰好猜中 $3$ 个号码的概率是多少？
+  \item[(b)] 求一个精确表达式，表示需要多少天才能使所有 $\binom{35}{5}$ 种可能开奖结果都出现过的期望天数。
+  \item[(c)] 近似计算：彩票开奖 $50$ 天后，$1$ 到 $35$ 中每个号码都至少被选中过一次的概率。
+\end{enumerate}
+
+\noindent\textbf{练习 86}\quad 某国有三个政党 $A,B,C$。每个成年人恰好属于其中一个政党。全国有 $n$ 个成年人，其中 $n_A,n_B,n_C$ 分别属于三党，且均为正整数，$n_A+n_B+n_C=n$。从成年人中不放回地等可能随机抽取大小为 $m$ 的简单随机样本。令 $X,Y,Z$ 分别为样本中 $A,B,C$ 党成员数。
+\begin{enumerate}
+  \item[(a)] 对非负整数 $x,y,z$ 且 $x+y+z=m$，求 $P(X=x,Y=y,Z=z)$。
+  \item[(b)] 求 $E(X)$。
+  \item[(c)] 求 $\operatorname{Var}(X)$，并简要解释你的答案在极端情形 $m=1$ 与 $m=n$ 下为什么合理。
+\end{enumerate}
+
+\noindent\textbf{练习 87}\quad 美国参议院有 $100$ 名参议员，每州 $2$ 名。参议院中有 $d$ 名民主党人。从所有大小为 $c$ 的参议员子集中等可能随机选一个委员会。
+\begin{enumerate}
+  \item[(a)] 求委员会中民主党人数的期望。
+  \item[(b)] 求委员会中被代表的州数的期望（至少有一名该州参议员入选）。
+  \item[(c)] 求两名参议员都入选的州数的期望。
+  \item[(d)] 每个州都有一名资深参议员和一名资浅参议员。若等可能随机选一个大小为 $20$ 的委员会，求委员会中资浅参议员人数的分布和期望。
+  \item[(e)] 对 (d) 中的委员会，求两名参议员都入选的州数的期望。
+\end{enumerate}
+
+\noindent\textbf{练习 88}\quad 某学院有 $g$ 门好课和 $b$ 门差课，其中 $g,b$ 为正整数。Alice 希望找到一门好课，于是不放回地随机逐门试听，直到找到一门好课。
+\begin{enumerate}
+  \item[(a)] 求 Alice 在找到好课前试听的差课数的期望，用 $g,b$ 的简单表达式表示。
+  \item[(b)] (a) 的答案应小于、等于还是大于 $b/g$？用几何分布的性质解释。
+\end{enumerate}
+
+\noindent\textbf{练习 89}\quad DNA 序列可表示为字母序列，字母表为 $A,C,T,G$。假设序列随机生成，各位置独立，且四个字母的概率分别为 $p_A,p_C,p_T,p_G$。
+\begin{enumerate}
+  \item[(a)] 长度为 $115$ 的 DNA 序列中，字母 $C$ 出现次数的方差是多少？
+  \item[(b)] 长度为 $115$ 的 DNA 序列中，片段 CATCAT 出现次数的期望是多少？注意，例如 CATCATCAT 算作 $2$ 次出现。
+  \item[(c)] 长度为 $6$ 的 DNA 序列中，片段 CAT 至少出现一次的概率是多少？
+\end{enumerate}
+
+\noindent\textbf{练习 90}\quad Alice 在人口为 $1000$ 的小镇中调查，抽取一个大小为 $100$ 的简单随机样本；Bob 也在该镇调查，独立地抽取一个大小为 $20$ 的简单随机样本。令 $A$ 为 Alice 样本中的人集合，$B$ 为 Bob 样本中的人集合。
+\begin{enumerate}
+  \item[(a)] 求 $A\cap B$ 中人数的期望。
+  \item[(b)] 求 $A\cup B$ 中人数的期望。
+  \item[(c)] 这 $1000$ 人由 $500$ 对夫妻组成。求 Bob 样本中夫妻双方都被抽中的夫妻数的期望。
+\end{enumerate}
+
+\noindent\textbf{练习 91}\quad Wilcoxon 秩和检验常用于判断两组观测是否来自同一分布。设第一组为独立同分布的 $X_1,\ldots,X_m$，CDF 为 $F$；第二组为独立同分布的 $Y_1,\ldots,Y_n$，CDF 为 $G$；所有随机变量相互独立，并假设任意两个观测相等的概率为 $0$。把 $m+n$ 个观测按递增顺序排列并赋予秩 $1,\ldots,m+n$。令 $R_j$ 为 $X_j$ 在所有观测中的秩，$R=\sum_{j=1}^m R_j$。
+\begin{enumerate}
+  \item[(a)] 零假设是 $F=G$。证明若零假设为真，则
+  \[
+    E(R)=\frac{m(m+n+1)}{2}.
+  \]
+  \item[(b)] 对本小问不假设 $F=G$。令 $p=P(X_1>Y_1)$。用 $m,n,p$ 表示 $E(R)$。提示：把 $R_j$ 写成若干指示随机变量之和。
+\end{enumerate}
+
+\noindent\textbf{练习 92}\quad 物理学家 Richard Feynman 和《费曼物理学讲义》的两位编辑提出了一个餐馆点菜问题。你计划在某个从未去过的餐馆吃 $m$ 顿饭，每次点一道菜。菜单上有 $n$ 道菜，且 $n\ge m$。假设如果你尝过所有菜，就会对它们有从 $1$（最不喜欢）到 $n$（最喜欢）的确定排名；若知道最喜欢哪道菜，你会一直点它。
+
+在去餐馆之前，这个排名对你完全未知。尝过一些菜之后，你可以在尝过的菜之间排序，但不知道它们与未尝过的菜相比如何。因此存在探索-利用权衡：应该尝试新菜，还是点此前吃过的菜中最喜欢的？
+
+一种自然策略是把用餐分为两个阶段：探索阶段中每次尝试不同菜；利用阶段中总是点探索阶段中吃到的最好菜。令 $k$ 为探索阶段长度，则 $m-k$ 是利用阶段长度。目标是最大化所吃菜品真实排名之和的期望。证明最优选择为
+\[
+  k=\sqrt{2(m+1)}-1,
+\]
+必要时向上或向下取整。按以下步骤完成：
+\begin{enumerate}
+  \item[(a)] 令 $X$ 为探索阶段中找到的最好菜的排名。用 $k,n,E(X)$ 表示两阶段所吃菜品真实排名之和的期望。
+  \item[(b)] 求 $X$ 的 PMF，用二项系数给出简单表达式。
+  \item[(c)] 证明
+  \[
+    E(X)=\frac{k(n+1)}{k+1}.
+  \]
+  \item[(d)] 用微积分求最优的 $k$。
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,660 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\graphicspath{{math/概率论/}}
+
+\title{第 13 章\quad Poisson 过程}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+Poisson 过程为发生在时间或空间中的事件提供了一个简单模型：一维中，可以描述经过公路检查点的汽车；二维中，可以描述草地中的花；三维中，可以描述银河系中某一区域内的恒星。Poisson 过程是更复杂的时间与空间过程的基本构件，而这些复杂过程是空间统计学这个统计分支的研究重点。
+
+Poisson 过程在概率论中也很有用，因为它把许多命名分布联系在一起，并且能为一些本来推导起来相当繁琐的结果给出富有洞察力的故事证明。这也带来一种新的解题策略：即使一个问题没有提到 Poisson 过程，有时也可以假装相关随机变量来自某个 Poisson 过程，从而使用便利的 Poisson 过程性质。
+
+本章中，我们先回顾一维 Poisson 过程的定义，推导并讨论一维 Poisson 过程的三个重要性质，然后把这些性质推广到高维 Poisson 过程。
+
+\section*{13.1\quad 一维 Poisson 过程}
+
+在第 5.6 节中，我们定义了一维 Poisson 过程，并说明相邻到达时间是独立同分布的指数随机变量。在第 8 章中，我们说明第 $j$ 次到达时刻（相对于某个固定起始时刻）服从 Gamma 分布。下面回顾这些结果，并采用有助于推广到高维的记号。
+
+\noindent\textbf{定义 13.1.1（一维 Poisson 过程）}\quad 连续时间中的一列到达构成速率为 $\lambda$ 的 \textbf{Poisson 过程}，如果满足以下条件：
+\begin{enumerate}
+  \item 长度为 $t$ 的区间中的到达次数服从 $\operatorname{Pois}(\lambda t)$。
+  \item 不相交时间区间中的到达次数相互独立。
+\end{enumerate}
+
+通常假设时间轴从 $t=0$ 开始，此时得到 $(0,\infty)$ 上的 Poisson 过程；如果希望时间轴向两个方向无限延伸，也可以用同样条件定义 $(-\infty,\infty)$ 上的 Poisson 过程。
+
+考虑 $(0,\infty)$ 上的 Poisson 过程。与前面章节的记号略有不同，令 $N(t)$ 表示区间 $(0,t]$ 中的到达次数。于是 $(t_1,t_2]$ 中的到达次数为 $N(t_2)-N(t_1)$，其中 $0<t_1<t_2$。令 $T_j$ 为第 $j$ 次到达时刻。由于 $T_1>t$ 与 $N(t)=0$ 是同一事件（这是第 5.6 节讨论过的计数--时间对偶性），
+\[
+  P(T_1>t)=P(N(t)=0)=e^{-\lambda t},
+\]
+所以 $T_1\sim\operatorname{Expo}(\lambda)$。接下来以第一次到达时间 $T_1$ 为条件，考察从 $T_1$ 到第二次到达的额外等待时间 $T_2-T_1$。则
+\[
+  (T_2-T_1)\mid T_1 \sim \operatorname{Expo}(\lambda),
+\]
+理由与上面相同：从 $T_1$ 起又有一个新的 Poisson 过程。由于 $(T_2-T_1)\mid T_1$ 的条件分布不依赖于 $T_1$，可知 $T_2-T_1$ 与 $T_1$ 独立，并且无条件地也有
+\[
+  T_2-T_1\sim\operatorname{Expo}(\lambda).
+\]
+如此继续下去，相邻到达时间 $T_j-T_{j-1}$ 相互独立，且
+\[
+  T_j-T_{j-1}\sim\operatorname{Expo}(\lambda).
+\]
+因此，Poisson 过程可以用对偶方式描述：它既是到达计数服从 Poisson 分布的过程，也是相邻到达时间服从指数分布的过程。还要注意，由于 $T_j$ 是 $j$ 个独立同分布 $\operatorname{Expo}(\lambda)$ 随机变量之和，
+\[
+  T_j\sim\operatorname{Gamma}(j,\lambda).
+\]
+
+指数分布的联系给出了一种简单方法，可以从 Poisson 过程中生成 $n$ 个到达时刻。
+
+\noindent\textbf{故事 13.1.2（一维 Poisson 过程的生成故事）}\quad 为了从 $(0,\infty)$ 上速率为 $\lambda$ 的 Poisson 过程中生成 $n$ 个到达时刻：
+\begin{enumerate}
+  \item 生成 $n$ 个独立同分布 $\operatorname{Expo}(\lambda)$ 随机变量 $X_1,\ldots,X_n$。
+  \item 对 $j=1,\ldots,n$，令 $T_j=X_1+\cdots+X_j$。
+\end{enumerate}
+于是可以把 $T_1,\ldots,T_n$ 作为到达时刻。\qed
+
+图 13.1 展示了速率分别为 $1,2,5$ 的三个一维 Poisson 过程实现，它们都画到时间 $10$ 为止。在三个情形中都可以看到，由于相邻到达时间独立同分布，到达点并不是均匀隔开的。相反，相邻到达时间有很大变异，从而产生了到达点的聚集。这种现象称为 \textbf{Poisson 聚集}。观察到若干次到达在时间上彼此非常接近，乍看似乎很巧，但 Poisson 聚集说明这种聚类在 Poisson 过程中是常见的。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.86\textwidth]{13-1.png}
+  \caption{一维 Poisson 过程的模拟，$\lambda=1,2,5$。到达点远非均匀间隔；事实上，它们有时会聚集在一起。}
+\end{figure}
+
+\section*{13.2\quad 条件化、叠加与稀疏化}
+
+理解 Poisson 过程最重要的三个性质是条件化、叠加与稀疏化。它们对应于我们已经见过的 Poisson 分布性质，因此应当是可信的。
+
+\subsection*{13.2.1\quad 条件化}
+
+如果取一个 Poisson 过程，并以某个区间中的事件总数为条件，会发生什么？第一个结果说明：在给定子区间中，总事件数关于整个区间中总事件数的条件分布是 Binomial 分布。这来自定理 4.8.2，那里我们说明可以通过条件化从 Poisson 分布得到 Binomial 分布。
+
+\noindent\textbf{定理 13.2.1（条件计数）}\quad 设 $\{N(t):t>0\}$ 是速率为 $\lambda$ 的 Poisson 过程，且 $t_1<t_2$。在给定 $N(t_2)=n$ 的条件下，$N(t_1)$ 的条件分布为
+\[
+  N(t_1)\mid N(t_2)=n \sim \operatorname{Bin}\left(n,\frac{t_1}{t_2}\right).
+\]
+
+\noindent\textit{证明.}\quad 图 13.2 展示了这一设置。结论是：在给定 $(0,t_2]$ 中共有 $n$ 次到达的条件下，$(0,t_1]$ 中的到达次数服从参数为 $n$、成功概率为 $t_1/t_2$ 的 Binomial 分布。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{13-2.png}
+  \caption{条件化。给定 $(0,t_2]$ 中发生了 $n$ 次到达，$(0,t_1]$ 中到达次数的条件分布为参数 $n$ 和 $t_1/t_2$ 的 Binomial 分布。}
+\end{figure}
+
+由于 $(0,t_1]$ 与 $(t_1,t_2]$ 不相交，$N(t_1)$ 与 $N(t_2)-N(t_1)$ 独立。前者服从 $\operatorname{Pois}(\lambda t_1)$，后者服从 $\operatorname{Pois}(\lambda(t_2-t_1))$，二者之和是 $(0,t_2]$ 中的到达次数，即 $N(t_2)$。由定理 4.8.2，
+\[
+  N(t_1)\mid N(t_2)=n
+  \sim \operatorname{Bin}\left(n,\frac{\lambda t_1}{\lambda t_1+\lambda(t_2-t_1)}\right),
+\]
+这正是要证明的结论。$\blacksquare$
+
+进一步沿着“以到达次数为条件”的想法，可以得到如下惊人结果：在给定 $N(t)=n$ 的条件下，到达时刻的分布就像从 $n$ 个独立同分布 $\operatorname{Unif}(0,t)$ 点投掷下来一样。
+
+先看只有一次到达的简单情形。
+
+\noindent\textbf{命题 13.2.2}\quad 在速率为 $\lambda$ 的 Poisson 过程中，给定 $N(t)=1$，第一次到达时刻 $T_1$ 服从 $\operatorname{Unif}(0,t)$ 分布。
+
+\noindent\textit{证明.}\quad 令 $0<s<t$。由计数--时间对偶性的一种形式，
+\[
+\begin{aligned}
+  P(T_1\le s\mid N(t)=1)
+  &=\frac{P(T_1\le s,\,N(t)=1)}{P(N(t)=1)}\\
+  &=\frac{P(N(s)=1,\,N(t)-N(s)=0)}{P(N(t)=1)}\\
+  &=\frac{(e^{-\lambda s}\lambda s)(e^{-\lambda(t-s)})}{e^{-\lambda t}\lambda t}\\
+  &=\frac{s}{t}.
+\end{aligned}
+\]
+因此，在给定 $N(t)=1$ 的条件下，$T_1$ 的条件 CDF 是 $\operatorname{Unif}(0,t)$ 的 CDF。$\blacksquare$
+
+更一般地，给定 $N(t)=n$ 时，到达时刻 $T_j$ 的分布就像 $n$ 个独立同分布 $\operatorname{Unif}(0,t)$ 随机变量的次序统计量。我们省略证明，因为第 8 章介绍次序统计量时已经在边际分布的推导中用过同样思路。
+
+\noindent\textbf{定理 13.2.3（条件时刻）}\quad 在速率为 $\lambda$ 的 Poisson 过程中，给定 $N(t)=n$，到达时刻 $T_1,\ldots,T_n$ 的联合分布与 $n$ 个独立同分布 $\operatorname{Unif}(0,t)$ 随机变量的次序统计量的联合分布相同。
+
+由第 8 章可知，$\operatorname{Unif}(0,1)$ 随机变量的次序统计量服从 Beta 分布。因此，$T_j$ 的条件分布是缩放后的 Beta 分布；也就是说，只要把 $T_j$ 除以 $t$，使支撑集变为 $(0,1)$，就有
+\[
+  t^{-1}T_j\mid N(t)=n \sim \operatorname{Beta}(j,n-j+1).
+\]
+
+现在又有一种生成 Poisson 过程的方法，这一次是在一个指定区间中生成，而不是生成指定数量的到达。
+
+\noindent\textbf{故事 13.2.4（Poisson 过程的生成故事，第二版）}\quad 为了从区间 $(0,t]$ 上速率为 $\lambda$ 的 Poisson 过程中生成到达时刻：
+\begin{enumerate}
+  \item 生成区间中的总事件数，$N(t)\sim\operatorname{Pois}(\lambda t)$。
+  \item 给定 $N(t)=n$，生成 $n$ 个独立同分布 $\operatorname{Unif}(0,t)$ 随机变量 $U_1,\ldots,U_n$。
+  \item 对 $j=1,\ldots,n$，令 $T_j=U_{(j)}$。
+\end{enumerate}
+\qed
+
+这其实就是我们用来生成图 13.1 的故事，因为我们知道想在区间 $(0,10]$ 上做模拟。
+
+\noindent\textbf{例 13.2.5（网站用户）}\quad 用户按照速率为 $\lambda_1$ 的 Poisson 过程访问某个网站，其中某个时刻的“到达”表示那一时刻有人开始浏览网站。用户到达网站后，会停留一段 $\operatorname{Expo}(\lambda_2)$ 的时间，然后离开，且停留时间彼此独立，也独立于其他用户。
+
+假设在时刻 $0$ 没有人正在使用网站。令 $N_t$ 为区间 $(0,t]$ 中到达的用户数，令 $C_t$ 为时刻 $t$ 正在浏览网站的用户数。
+
+\begin{enumerate}
+  \item 令 $X$ 为在区间 $(0,t]$ 中均匀到达的某个用户的到达时刻，$Y$ 为该用户的离开时刻。求 $X,Y$ 的联合 PDF。
+  \item 令 $p_t$ 表示在 $(0,t]$ 中均匀时刻到达的某个用户到时刻 $t$ 仍在浏览网站的概率。求 $p_t$。
+  \item 用 $\lambda_1,\lambda_2,t$ 表示 $C_t$ 的分布。
+  \item Little 定律是一个非常一般的结果，它说：
+\end{enumerate}
+
+\noindent\textit{稳定系统中的长期平均顾客数，等于长期平均到达率乘以顾客在系统中花费的平均时间。}
+
+解释当 $t$ 很大时 $E(C_t)$ 会发生什么，并说明这如何从 Little 定律角度理解。
+
+\noindent\textit{解.}\quad
+\begin{enumerate}
+  \item 我们有 $X\sim\operatorname{Unif}(0,t)$。给定 $X=x$，$Y$ 是一个平移后从 $x$ 开始的 $\operatorname{Expo}(\lambda_2)$ 随机变量，即 $(Y-x)\mid (X=x)\sim\operatorname{Expo}(\lambda_2)$。因此 $X,Y$ 的联合 PDF 为
+  \[
+    f(x,y)=f_X(x)f_{Y\mid X}(y\mid x)
+    =\frac{\lambda_2}{t}e^{-\lambda_2(y-x)},\qquad 0<x<t,\ x<y.
+  \]
+\item 沿用 (a) 中的记号，我们要求
+\[
+  p_t=P(Y>t).
+\]
+这可以通过在所有满足 $y>t$ 的 $(x,y)$ 上对联合 PDF 积分得到：
+\[
+\begin{aligned}
+  P(Y>t)
+  &=\frac1t\int_0^t\int_t^\infty \lambda_2 e^{-\lambda_2(y-x)}\,dy\,dx\\
+  &=\frac1t\int_0^t e^{\lambda_2 x}
+    \left(\int_t^\infty \lambda_2 e^{-\lambda_2 y}\,dy\right)dx\\
+  &=\frac{e^{-\lambda_2 t}}{t}\int_0^t e^{\lambda_2 x}\,dx\\
+  &=\frac{1-e^{-\lambda_2 t}}{\lambda_2 t}.
+\end{aligned}
+\]
+
+\item 由定理 13.2.3，给定 $N_t=n$ 时，$n$ 个到达时刻在 $(0,t]$ 中是独立同分布均匀的。因此，由上面求得的 $p_t$，
+\[
+  C_t\mid N_t\sim \operatorname{Bin}(N_t,p_t),
+\]
+且 $N_t\sim\operatorname{Pois}(\lambda_1 t)$。由鸡生蛋故事（故事 7.1.9），
+\[
+  C_t\sim\operatorname{Pois}(\lambda_1tp_t).
+\]
+也就是说，
+\[
+  C_t\sim \operatorname{Pois}\left(\frac{\lambda_1(1-e^{-\lambda_2t})}{\lambda_2}\right).
+\]
+
+\item 当 $t\to\infty$ 时，$E(C_t)\to\lambda_1/\lambda_2$。这与 Little 定律一致，因为它说系统中长期平均用户数等于用户到达速率 $\lambda_1$ 乘以一个用户浏览一次网站的平均时间 $1/\lambda_2$。
+\end{enumerate}
+
+\subsection*{13.2.2\quad 叠加}
+
+接下来考察的性质是\textbf{叠加}：如果取两个独立 Poisson 过程并把它们叠在一起，就得到另一个 Poisson 过程。组合过程本身是一个 Poisson 过程，不过我们可以想象，每个到达都带有标签，表示它来自哪个底层过程。
+
+\noindent\textbf{定理 13.2.6（叠加）}\quad 设 $\{N_1(t):t>0\}$ 与 $\{N_2(t):t>0\}$ 是两个独立 Poisson 过程，速率分别为 $\lambda_1$ 与 $\lambda_2$。则组合过程
+\[
+  N(t)=N_1(t)+N_2(t)
+\]
+是速率为 $\lambda_1+\lambda_2$ 的 Poisson 过程。
+
+\noindent\textit{证明.}\quad 验证 Poisson 过程定义中的两个性质。
+
+\begin{enumerate}
+  \item 对所有 $t>0$，$N_1(t)\sim\operatorname{Pois}(\lambda_1t)$ 且 $N_2(t)\sim\operatorname{Pois}(\lambda_2t)$，并且二者独立。因此由定理 4.8.1，
+  \[
+    N(t)\sim\operatorname{Pois}((\lambda_1+\lambda_2)t).
+  \]
+  同样论证适用于任意长度为 $t$ 的区间，而不仅是 $(0,t]$ 形式的区间。
+
+  \item 组合过程在不相交区间中的到达次数相互独立，因为在两个单独过程中它们相互独立，而两个单独过程也彼此独立。
+\end{enumerate}
+$\blacksquare$
+
+有一种很自然的方式生成叠加过程。
+
+\noindent\textbf{故事 13.2.7（叠加的生成故事）}\quad 为了生成两个独立 Poisson 过程 $\{N_1(t):t>0\}$ 与 $\{N_2(t):t>0\}$ 的叠加，其中速率分别为 $\lambda_1$ 与 $\lambda_2$：
+\begin{enumerate}
+  \item 从 Poisson 过程 $\{N_1(t):t>0\}$ 生成到达。
+  \item 从 Poisson 过程 $\{N_2(t):t>0\}$ 生成到达。
+  \item 叠加第 1 步和第 2 步的结果。
+\end{enumerate}
+\qed
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.84\textwidth]{13-3.png}
+  \caption{叠加。独立 Poisson 过程的叠加仍是 Poisson 过程，速率相加。上方两条时间线是相互独立的 Poisson 过程，速率均为 $0.5$；底部时间线是上方两个 Poisson 过程的叠加，本身是速率为 $1$ 的 Poisson 过程。}
+\end{figure}
+
+图 13.3 展示了一个由 $\times$ 与 $\diamond$ 组成的叠加 Poisson 过程。把 $\times$ 称为“1 型事件”，把 $\diamond$ 称为“2 型事件”。一个自然问题是：观察到 1 型事件早于 2 型事件的概率是多少？
+
+\noindent\textbf{定理 13.2.8（1 型事件早于 2 型事件的概率）}\quad 考虑两个独立 Poisson 过程：一个是 1 型到达过程，速率为 $\lambda_1$；另一个是 2 型到达过程，速率为 $\lambda_2$。在这两个过程的叠加中，第一次到达为 1 型的概率为 $\lambda_1/(\lambda_1+\lambda_2)$。
+
+\noindent\textit{证明.}\quad 令 $T$ 为第一次 1 型事件之前的等待时间，令 $V$ 为第一次 2 型事件之前的等待时间。我们要求 $P(T\le V)$。可以用二维 LOTUS 完成这个计算：在平面中对 $T,V$ 的联合 PDF 在感兴趣区域上积分。但事实上可以完全避免微积分。
+
+我们有 $T\sim\operatorname{Expo}(\lambda_1)$ 且 $V\sim\operatorname{Expo}(\lambda_2)$，二者独立。重新缩放，令
+\[
+  \tilde T=\lambda_1T,\qquad \tilde V=\lambda_2V.
+\]
+则 $\tilde T,\tilde V$ 独立同分布为 $\operatorname{Expo}(1)$。令 $U=\tilde T/(\tilde T+\tilde V)$，则
+\[
+\begin{aligned}
+  P(T\le V)
+  &=P\left(\frac{\tilde T}{\lambda_1}\le \frac{\tilde V}{\lambda_2}\right)\\
+  &=P\left(\frac{\tilde T}{\tilde T+\tilde V}
+    \le
+    \frac{\tilde V}{\tilde T+\tilde V}\cdot\frac{\lambda_1}{\lambda_2}\right)\\
+  &=P\left(U\le (1-U)\cdot\frac{\lambda_1}{\lambda_2}\right)\\
+  &=P\left(U\le \frac{\lambda_1}{\lambda_1+\lambda_2}\right).
+\end{aligned}
+\]
+由于 $\tilde T,\tilde V\sim\operatorname{Expo}(1)$，银行--邮局故事告诉我们 $U\sim\operatorname{Beta}(1,1)$。换句话说，$U$ 是标准均匀的。因此
+\[
+  P(T\le V)=\frac{\lambda_1}{\lambda_1+\lambda_2}.
+\]
+注意，当 $\lambda_1=\lambda_2$ 时，这化为 $1/2$，正如对称性所要求的。$\blacksquare$
+
+上面的结果适用于组合 Poisson 过程中的第一次到达。第一次到达之后，同样的推理可用于第二次到达：由无记忆性，到下一次 1 型事件的时间为 $\operatorname{Expo}(\lambda_1)$，到下一次 2 型事件的时间为 $\operatorname{Expo}(\lambda_2)$，且与过去独立。因此第二次到达以概率 $\lambda_1/(\lambda_1+\lambda_2)$ 为 1 型，并且独立于第一次到达。类似地，所有到达类型都可以看作独立同分布的抛硬币，其中正面概率为 $\lambda_1/(\lambda_1+\lambda_2)$，正面表示 1 型。
+
+这给出了两个独立 Poisson 过程叠加的另一种生成故事：先生成一个 $\operatorname{Expo}(\lambda_1+\lambda_2)$ 随机变量决定下一次到达何时发生，再独立地抛一枚正面概率为 $\lambda_1/(\lambda_1+\lambda_2)$ 的硬币，决定它是哪一类到达。
+
+\noindent\textbf{故事 13.2.9（叠加的生成故事，第二版）}\quad 为了生成两个独立 Poisson 过程的叠加，其中速率分别为 $\lambda_1$ 与 $\lambda_2$：
+\begin{enumerate}
+  \item 生成独立同分布 $\operatorname{Expo}(\lambda_1+\lambda_2)$ 随机变量 $X_1,X_2,\ldots$，令第 $j$ 次到达时刻为 $T_j=X_1+\cdots+X_j$。
+  \item 生成独立同分布随机变量 $I_1,I_2,\ldots\sim\operatorname{Bern}(\lambda_1/(\lambda_1+\lambda_2))$，它们独立于 $X_1,X_2,\ldots$。若 $I_j=1$，则第 $j$ 次到达为 1 型；否则为 2 型。
+\end{enumerate}
+\qed
+
+这个故事给出了一个称为\textbf{竞争风险定理}的结果的快速证明。这个结果单独表述时像是一个令人惊讶的独立性结论，但从 Poisson 过程角度看就很直观。
+
+\noindent\textbf{例 13.2.10（竞争风险）}\quad Fred 的冰箱寿命为 $Y_1\sim\operatorname{Expo}(\lambda_1)$，洗碗机寿命为 $Y_2\sim\operatorname{Expo}(\lambda_2)$，且 $Y_1$ 与 $Y_2$ 独立。证明 $\min(Y_1,Y_2)$，即第一次电器故障的时间，独立于 $I(Y_1<Y_2)$，即冰箱先坏的指标。这可能看起来很意外。
+
+例如，如果冰箱的平均寿命为 15 年、洗碗机的平均寿命为 7 年，而这两个电器之一在 7 年后坏掉，那么自然会猜测坏掉的是洗碗机。但事实上，我们将说明知道第一次电器故障的时间并不提供哪一个电器故障的信息。
+
+\noindent\textit{解.}\quad 我们使用嵌入策略：虽然这个问题完全没有提到 Poisson 过程，但仍使用 Poisson 过程思想。把随机变量 $Y_1,Y_2$ 嵌入一个 Poisson 过程，以便利用 Poisson 过程的性质。设想存在一个速率为 $\lambda_1$ 的冰箱故障 Poisson 过程，以及一个速率为 $\lambda_2$ 的洗碗机故障 Poisson 过程。
+
+可以把 $Y_1$ 解释为冰箱过程的第一次到达等待时间，把 $Y_2$ 解释为洗碗机过程的第一次到达等待时间。这个做法是有效的，因为 $\min(Y_1,Y_2)$ 与 $I(Y_1<Y_2)$ 都是 $(Y_1,Y_2)$ 的函数；因此，关键只在于 $(Y_1,Y_2)$ 的联合分布，而我们构造 $(Y_1,Y_2)$ 的方式确实给出了正确的联合分布。
+
+进一步，$\min(Y_1,Y_2)$ 是两个 Poisson 过程叠加中的第一次到达等待时间，而 $I(Y_1<Y_2)$ 是这次到达为 1 型事件的指标。但在上面的生成故事中，叠加 Poisson 过程中的到达时间与事件类型完全独立生成。因此 $\min(Y_1,Y_2)$ 与 $I(Y_1<Y_2)$ 独立，并且
+\[
+  \min(Y_1,Y_2)\sim\operatorname{Expo}(\lambda_1+\lambda_2),\qquad
+  I(Y_1<Y_2)\sim\operatorname{Bern}\left(\frac{\lambda_1}{\lambda_1+\lambda_2}\right).
+\]
+\qed
+
+故事 13.2.9 的一个直接结果是：如果把一个叠加 Poisson 过程投影到离散时间，也就是只保留 1 型与 2 型到达的序列而不保留到达时刻本身，就会得到独立同分布的 Bernoulli 随机变量 $I_1,I_2,\ldots$，其中 $I_j$ 是第 $j$ 次到达是否为 1 型的指标。图 13.4 说明了从 Poisson 过程中去掉连续时间信息意味着什么；定理 13.2.11 正式陈述这一结果。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.78\textwidth]{13-4.png}
+  \caption{投影到离散时间。从叠加 Poisson 过程中去掉连续时间信息，会得到一列独立同分布指标，表示事件为 1 型还是 2 型。这里 $\times$ 表示 1 型事件，$\diamond$ 表示 2 型事件。}
+\end{figure}
+
+\noindent\textbf{定理 13.2.11（叠加投影到离散时间）}\quad 考虑两个独立 Poisson 过程的叠加 $\{N(t):t>0\}$，二者速率分别为 $\lambda_1$ 与 $\lambda_2$。对 $j=1,2,\ldots$，令 $I_j$ 为第 $j$ 次事件来自速率为 $\lambda_1$ 的 Poisson 过程的指标。则
+\[
+  I_j\stackrel{\text{i.i.d.}}{\sim}\operatorname{Bern}\left(\frac{\lambda_1}{\lambda_1+\lambda_2}\right).
+\]
+
+利用这个结果，我们可以用故事证明 Gamma 混合 Poisson 是负二项分布。这个结论最早在 Fred 的 Blotchville 冒险中学过（故事 8.4.5）。先考虑一个特殊情形。
+
+\noindent\textbf{定理 13.2.12（指数混合 Poisson 是几何分布）}\quad 设
+\[
+  X\sim\operatorname{Expo}(\lambda),\qquad Y\mid X=x\sim\operatorname{Pois}(x).
+\]
+则
+\[
+  Y\sim\operatorname{Geom}\left(\frac{\lambda}{\lambda+1}\right).
+\]
+
+\noindent\textit{证明.}\quad 与竞争风险定理一样，把 $X$ 与 $Y$ 嵌入 Poisson 过程。考虑两个独立 Poisson 过程：一个失败过程的速率为 $1$，另一个成功过程的速率为 $\lambda$。令 $X$ 为第一次成功的时间，则 $X\sim\operatorname{Expo}(\lambda)$。令 $Y$ 为第一次成功之前的失败次数。由速率为 $1$ 的 Poisson 过程的定义，$Y\mid X=x\sim\operatorname{Pois}(x)$。因此 $X,Y$ 满足定理中的条件。
+
+为了得到 $Y$ 的边际分布，去掉连续时间信息。在离散时间中，我们有独立同分布 Bernoulli 试验，成功概率为 $\lambda/(\lambda+1)$，而 $Y$ 被定义为第一次成功之前的失败次数。因此由几何分布的故事，
+\[
+  Y\sim\operatorname{Geom}\left(\frac{\lambda}{\lambda+1}\right).
+\]
+$\blacksquare$
+
+一般情形的推理类似。
+
+\noindent\textbf{定理 13.2.13（Gamma 混合 Poisson 是负二项分布）}\quad 设
+\[
+  X\sim\operatorname{Gamma}(r,\lambda),\qquad Y\mid X=x\sim\operatorname{Pois}(x).
+\]
+则
+\[
+  Y\sim\operatorname{NBin}\left(r,\frac{\lambda}{\lambda+1}\right).
+\]
+
+\noindent\textit{证明.}\quad 考虑两个独立 Poisson 过程：一个失败过程的速率为 $1$，另一个成功过程的速率为 $\lambda$。令 $X$ 为第 $r$ 次成功的时间，则 $X\sim\operatorname{Gamma}(r,\lambda)$。令 $Y$ 为第 $r$ 次成功之前的失败次数。由速率为 $1$ 的 Poisson 过程的定义，$Y\mid X=x\sim\operatorname{Pois}(x)$。因此 $Y$ 是一列独立同分布 Bernoulli 试验中第 $r$ 次成功之前的失败次数，其中成功概率为 $\lambda/(\lambda+1)$，所以
+\[
+  Y\sim\operatorname{NBin}\left(r,\frac{\lambda}{\lambda+1}\right).
+\]
+$\blacksquare$
+
+\subsection*{13.2.3\quad 稀疏化}
+
+最后要讨论的 Poisson 过程性质是\textbf{稀疏化}：取一个 Poisson 过程，对每一次到达都独立抛一枚硬币，以决定它是 1 型事件还是 2 型事件，最终得到两个独立 Poisson 过程。
+
+\noindent\textbf{定理 13.2.14（稀疏化）}\quad 设 $\{N(t):t>0\}$ 是速率为 $\lambda$ 的 Poisson 过程，并且把每一次到达独立地分类为 1 型事件或 2 型事件，其中 1 型概率为 $p$，2 型概率为 $1-p$，分类结果彼此独立，也独立于到达时刻。则 1 型事件构成速率为 $\lambda p$ 的 Poisson 过程，2 型事件构成速率为 $\lambda(1-p)$ 的 Poisson 过程，并且这两个过程相互独立。
+
+\noindent\textit{证明.}\quad 令 $\lambda_1=\lambda p$，$\lambda_2=\lambda(1-p)$，于是 $\lambda=\lambda_1+\lambda_2$ 且 $p=\lambda_1/(\lambda_1+\lambda_2)$。此时我们正处在故事 13.2.9 的情形中。故事 13.2.7 与故事 13.2.9 是同一个过程的两种等价生成方式：
+它们是叠加的等价生成故事！输出的两个故事具有相同概率结构。若把故事 13.2.7 中来自 $\{N_i(t):t>0\}$ 的到达看作 $i$ 型到达，那么可以改用故事 13.2.9 生成这个过程。因此从一开始就知道 1 型过程独立于 2 型过程。$\blacksquare$
+
+于是，我们既可以叠加独立 Poisson 过程得到一个组合 Poisson 过程，也可以把一个 Poisson 过程拆分为若干独立 Poisson 过程。图 13.5 是稀疏化的说明。我们只是把图 13.3 上下翻转；这很合适，因为稀疏化就是叠加的反面。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.84\textwidth]{13-5.png}
+  \caption{稀疏化。从单个 Poisson 过程出发，若令每次到达以概率 $p$ 为 1 型、以概率 $1-p$ 为 2 型，就得到两个相互独立的 Poisson 过程，速率分别为 $\lambda p$ 与 $\lambda(1-p)$。这里 $\times$ 表示 1 型事件，$\diamond$ 表示 2 型事件，并取 $p=0.5$。}
+\end{figure}
+
+稀疏化是 Poisson 过程版本的鸡生蛋故事。设我们像定理 13.2.14 中那样稀疏化速率为 $\lambda$ 的 Poisson 过程 $\{N(t):t>0\}$，并令 $\{N_i(t):t>0\}$ 为 $i$ 型到达过程。把 1 型到达看作孵化出的蛋，由鸡生蛋故事可立即得到
+\[
+  N_1(t)\sim\operatorname{Pois}(\lambda pt),\qquad
+  N_2(t)\sim\operatorname{Pois}(\lambda(1-p)t),
+\]
+且 $N_1(t)$ 与 $N_2(t)$ 独立。
+
+作为练习，也作为稀疏化优雅性的例子，下面用两种方式求一个随机和的分布：一种用 MGF 与条件期望，另一种用稀疏化。
+
+\noindent\textbf{例 13.2.15（指数随机变量的首次成功和）}\quad 设 $X_1,X_2,\ldots$ 独立同分布为 $\operatorname{Expo}(\lambda)$，且 $N\sim\operatorname{FS}(p)$，$N$ 独立于所有 $X_j$。求随机和
+\[
+  Y=\sum_{j=1}^{N}X_j
+\]
+的分布。
+
+\noindent\textit{解.}\quad 我们会解两遍。第一遍使用第 9 章的工具；第二遍使用带有稀疏化的 Poisson 过程故事。对第一种方法，注意 $Y$ 是随机个数随机变量之和，因此可在给定 $N$ 的条件下，用 Adam 定律求 $Y$ 的 MGF。回忆 $\operatorname{Expo}(\lambda)$ 分布的 MGF 为 $\lambda/(\lambda-t)$，其中 $t<\lambda$，于是
+\[
+\begin{aligned}
+  E(e^{tY})
+  &=E\left(E\left(e^{t\sum_{j=1}^{N}X_j}\mid N\right)\right)\\
+  &=E\left(E(e^{tX_1})E(e^{tX_2})\cdots E(e^{tX_N})\mid N\right)\\
+  &=E\left(E(e^{tX_1})^N\right)\\
+  &=E\left(\left(\frac{\lambda}{\lambda-t}\right)^N\right).
+\end{aligned}
+\]
+现在对 $\operatorname{FS}(p)$ 的 PMF 使用 LOTUS：
+\[
+  P(N=k)=q^{k-1}p,\qquad k=1,2,\ldots
+\]
+其中 $q=1-p$。LOTUS 的和为
+\[
+  E\left(\left(\frac{\lambda}{\lambda-t}\right)^N\right)
+  =
+  \sum_{k=1}^{\infty}
+  \left(\frac{\lambda}{\lambda-t}\right)^kq^{k-1}p.
+\]
+对 $t<\lambda p$，经过代数化简并求几何级数，可得 $\lambda p/(\lambda p-t)$。这是 $\operatorname{Expo}(\lambda p)$ 的 MGF，所以 $Y\sim\operatorname{Expo}(\lambda p)$。
+
+现在看 Poisson 过程如何让我们免去代数，并同时给出为什么 $Y$ 是指数分布的洞察。使用嵌入策略。由于 $X_j$ 独立同分布为 $\operatorname{Expo}(\lambda)$，可以把 $X_j$ 看作速率为 $\lambda$ 的 Poisson 过程中的相邻到达时间。设想有这样一个 Poisson 过程，并进一步设想每一次到达都以概率 $p$ 独立地成为一个特殊到达。那么 $N$ 可以解释为直到第一次特殊到达为止的到达次数，$Y$ 可以解释为直到第一次特殊到达为止的等待时间。由稀疏化性质，特殊到达形成速率为 $\lambda p$ 的 Poisson 过程。因此第一次特殊到达的等待时间服从 $\operatorname{Expo}(\lambda p)$。 \qed
+
+稀疏化可以类似地用于超过两种类型的情形。在这个设置下，稀疏化有时称为\textbf{染色定理}。
+
+\noindent\textbf{定理 13.2.16（染色）}\quad 设 $\{N(t):t>0\}$ 是速率为 $\lambda$ 的 Poisson 过程，$C$ 是有限的“颜色”集合，标记为 $1$ 到 $c$。假设每次到达被随机指定为 $C$ 中的一种颜色，其中颜色 $i$ 的概率为 $p_i$；颜色指定彼此独立，也独立于到达时刻。令 $\{N_i(t):t>0\}$ 为颜色 $i$ 的过程，即 $N_i(t)$ 是 $(0,t]$ 中颜色为 $i$ 的到达次数。则 $\{N_i(t):t>0\}$ 是速率为 $\lambda p_i$ 的 Poisson 过程，$i=1,2,\ldots,c$，并且这些过程相互独立。
+
+\noindent\textit{证明.}\quad 对 $c$ 归纳。$c=1$ 时没有需要证明的内容；$c=2$ 时正是已经证明的稀疏化定理。现在假设结论对 $c$ 种颜色成立，并证明 $c+1$ 种颜色的情形。把颜色 1 称为绿色。先用稀疏化把每次到达以概率 $p_1$ 指定为绿色，以概率 $1-p_1$ 指定为非绿色。这把 Poisson 过程拆分为两个独立过程：一个速率为 $\lambda p_1$ 的绿色过程，以及一个速率为 $\lambda(1-p_1)$ 的非绿色过程。由归纳假设，可以把非绿色过程进一步拆分为 $c$ 个独立过程，分别对应颜色 $2,3,\ldots,c+1$，其中颜色 $j$ 现在获得的概率为
+\[
+  \tilde p_j=\frac{p_j}{1-p_1}
+  =
+  \frac{p_j}{p_2+p_3+\cdots+p_{c+1}},
+  \qquad j=2,3,\ldots,c+1.
+\]
+于是共有 $c+1$ 个独立 Poisson 过程，每种颜色一个，并且颜色 $j$ 的过程速率为 $\lambda p_j$，$j=1,2,\ldots,c+1$。$\blacksquare$
+
+下一个例子说明，染色如何帮助我们把一个复杂的 Poisson 过程分解为更容易处理的组成部分。
+
+\noindent\textbf{例 13.2.17（公路上的汽车）}\quad 汽车按照速率为 $\lambda$ 的 Poisson 过程从一个共同入口驶入一条单向公路。第 $i$ 辆车速度为 $V_i$，并且永远以该速度行驶；当一辆车超过另一辆车时，不损失时间。假设 $V_i$ 独立同分布，是取有限多个正值的离散随机变量。过程从时刻 $0$ 开始，并把公路入口位置设为 $0$。
+
+固定公路上的位置 $a,b$，其中 $0<a<b$。令 $Z_t$ 为时刻 $t$ 位于区间 $[a,b]$ 中的汽车数。（例如，在一条自西向东穿过美国中西部的州际公路上，$a$ 可以是 Kansas City，$b$ 可以是 St. Louis；于是 $Z_t$ 表示时刻 $t$ 位于 Missouri 州内的汽车数。）图 13.6 展示了问题设置与 $Z_t$ 的定义。
+
+假设 $t$ 足够大，使得对 $V_i$ 的所有可能取值都有 $t>b/V_i$。证明 $Z_t$ 服从均值为
+\[
+  \lambda(b-a)E(V_i^{-1})
+\]
+的 Poisson 分布。
+
+\noindent\textit{解.}\quad 由于 $V_i$ 是具有有限支撑集的离散随机变量，可以把可能速度记为 $v_1,\ldots,v_m$，对应概率为 $p_1,\ldots,p_m$。这样一来，进入公路的汽车由 $m$ 种类型组成，每种类型对应一种速度。这提示我们按汽车速度给 Poisson 过程染色，从而把总体 Poisson 过程拆成更简单的过程：速度为 $v_1$ 的汽车形成速率为 $\lambda p_1$ 的 Poisson 过程，速度为 $v_2$ 的汽车形成速率为 $\lambda p_2$ 的 Poisson 过程，依此类推。
+
+对这 $m$ 个独立 Poisson 过程中的每一个，我们都可以问：在什么时间区间内，来自该过程的汽车必须进入公路，才能在时刻 $t$ 位于 $[a,b]$ 中？这是物理问题而不是统计问题：
+\[
+  \text{距离}=\text{速度}\cdot\text{时间},
+\]
+所以一辆在时刻 $s$ 以速度 $v$ 进入公路的汽车，在时刻 $t$ 的位置为 $(t-s)v$。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{13-6.png}
+  \caption{汽车驶入公路。它们的进入时刻构成 Poisson 过程，并在时间轴上用 $\times$ 表示。第 $i$ 辆车速度为 $V_i$，在图中由从第 $i$ 个 $\times$ 符号发出的直线斜率表示。我们关心 $Z_t$，即时刻 $t$ 位于区间 $[a,b]$ 中的汽车数。这里观察到 $Z_t=3$，由三个星号表示。}
+\end{figure}
+
+因此，为了让汽车位置位于 $a$ 与 $b$ 之间，其到达时刻必须介于 $t-b/v$ 与 $t-a/v$ 之间。（由假设 $t$ 足够大，不必担心 $t-b/v$ 为负。）如果汽车早于 $t-b/v$ 到达，那么到时刻 $t$ 它已经经过 $b$；如果汽车晚于 $t-a/v$ 到达，那么到时刻 $t$ 它还没有到达 $a$。
+
+于是对每个单独的 Poisson 过程都有答案。在速度为 $v_j$ 的汽车过程内，于 $t-b/v_j$ 与 $t-a/v_j$ 之间到达的汽车数记为 $Z_{tj}$，则
+\[
+  Z_{tj}\sim\operatorname{Pois}\left(\lambda p_j\frac{b-a}{v_j}\right),
+\]
+因为该过程速率为 $\lambda p_j$，而时间区间长度为
+\[
+  [t-a/v_j]-[t-b/v_j]=\frac{b-a}{v_j}.
+\]
+由于各单独过程相互独立，$Z_{t1},\ldots,Z_{tm}$ 是独立 Poisson 随机变量。因此
+\[
+  Z_t=Z_{t1}+\cdots+Z_{tm}
+  \sim
+  \operatorname{Pois}\left(\lambda(b-a)\sum_{j=1}^{m}\frac{p_j}{v_j}\right),
+\]
+而 $\sum_{j=1}^{m}p_j/v_j$ 由 LOTUS 正是 $E(V_i^{-1})$。这就是要证明的结论。\qed
+
+作为本节总结，下表描述了 Poisson 过程性质与 Poisson 分布性质之间的对应关系。第二列中，$Y_1\sim\operatorname{Pois}(\lambda_1)$ 与 $Y_2\sim\operatorname{Pois}(\lambda_2)$ 相互独立。
+
+\[
+\begin{array}{c|c}
+\text{Poisson 过程} & \text{Poisson 分布}\\
+\hline
+\text{条件化} &
+Y_1\mid Y_1+Y_2=n\sim
+\operatorname{Bin}\left(n,\frac{\lambda_1}{\lambda_1+\lambda_2}\right)\\
+\text{叠加} & Y_1+Y_2\sim\operatorname{Pois}(\lambda_1+\lambda_2)\\
+\text{稀疏化} & \text{鸡生蛋故事}
+\end{array}
+\]
+
+\section*{13.3\quad 多维 Poisson 过程}
+
+多维 Poisson 过程的定义与一维情形类似：只需把长度的概念替换为面积或体积。为了具体起见，下面定义二维 Poisson 过程；之后如何定义高维 Poisson 过程应当是清楚的。
+
+\noindent\textbf{定义 13.3.1（二维 Poisson 过程）}\quad 平面 $\mathbb R^2$ 中的事件构成强度为 $\lambda$ 的\textbf{二维 Poisson 过程}，如果满足以下条件：
+\begin{enumerate}
+  \item 区域 $A$ 中的事件数服从 $\operatorname{Pois}(\lambda\cdot\operatorname{area}(A))$。
+  \item 不相交区域中的事件数相互独立。
+\end{enumerate}
+
+正如可以猜到的那样，条件化、叠加与稀疏化性质也适用于二维 Poisson 过程。令 $N(A)$ 表示区域 $A$ 中的事件数，并令 $B\subseteq A$。给定 $N(A)=n$ 时，$N(B)$ 的条件分布为 Binomial：
+\[
+  N(B)\mid N(A)=n
+  \sim
+  \operatorname{Bin}\left(n,\frac{\operatorname{area}(B)}{\operatorname{area}(A)}\right).
+\]
+在给定较大区域 $A$ 中总事件数的条件下，某个事件落在子区域中的概率等于该子区域面积占总区域面积的比例；事件位置在条件下均匀分布。因此，可以先生成 $A$ 中的事件数
+\[
+  N(A)\sim\operatorname{Pois}(\lambda\cdot\operatorname{area}(A)),
+\]
+再把这些事件均匀随机地放在 $A$ 中，从而生成区域 $A$ 中的二维 Poisson 过程。图 13.7 展示了在正方形 $[0,5]\times[0,5]$ 中，对强度 $\lambda=1,2,5$ 模拟得到的二维 Poisson 过程。
+
+和一维情形一样，独立二维 Poisson 过程的叠加仍是二维 Poisson 过程，并且强度相加。也可以稀疏化一个二维 Poisson 过程，从而得到独立的二维 Poisson 过程。
+
+一维 Poisson 过程中有一个尚未说明高维类比的性质，即计数--时间对偶性。下一个例子，也是本章最后一个例子，将引向空间类比：计数--距离对偶性。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.88\textwidth]{13-7.png}
+  \caption{在正方形 $[0,5]\times[0,5]$ 中模拟的二维 Poisson 过程，$\lambda=1,2,5$。}
+\end{figure}
+
+\noindent\textbf{例 13.3.2（最近的恒星）}\quad 某个宇宙中的恒星按照强度为 $\lambda$ 的三维 Poisson 过程分布。如果你生活在这个宇宙中，那么从你到最近恒星的距离服从什么分布？
+
+\noindent\textit{解.}\quad 在强度为 $\lambda$ 的三维 Poisson 过程中，空间区域 $V$ 中的事件数服从均值为 $\lambda\cdot\operatorname{volume}(V)$ 的 Poisson 分布。令 $R$ 为从你到最近恒星的距离。为了让事件 $R>r$ 发生，半径为 $r$、以你为中心的球内必须没有恒星；事实上，这两个事件等价。对任意 $r>0$，令 $N_r$ 为与你距离小于 $r$ 的事件数，则
+\[
+  N_r\sim\operatorname{Pois}\left(\lambda\cdot\frac43\pi r^3\right).
+\]
+于是有计数--距离对偶性：
+\[
+  R>r \quad \text{与} \quad N_r=0
+\]
+是同一事件。因此
+\[
+  P(R>r)=P(N_r=0)=e^{-\frac43\lambda\pi r^3},
+\]
+从而 $R$ 的 CDF 为
+\[
+  P(R\le r)=1-e^{-\frac43\lambda\pi r^3},
+\]
+其中 $r>0$（否则为 $0$）。这是 Weibull 分布（见例 6.5.5）。具体地，
+\[
+  R\sim\operatorname{Wei}\left(\frac{4\pi\lambda}{3},3\right).
+\]
+\qed
+
+Poisson 过程有许多扩展，其中一些会在习题中探索。可以允许 $\lambda$ 随时间或空间变化，而不是保持常数；这称为\textbf{非齐次 Poisson 过程}。也可以允许 $\lambda$ 本身为随机变量；这称为 \textbf{Cox 过程}。最后，还可以允许速率在每一次连续到达之后增加 $\lambda$；这称为 \textbf{Yule 过程}。
+
+\section*{13.4\quad 总结}
+
+一维 Poisson 过程是一列到达，使得任意区间中的到达次数服从 Poisson 分布（均值与区间长度成正比），且不相交区间中的到达次数相互独立。有些操作可以对 Poisson 过程进行：条件化、叠加和稀疏化。以一个区间中的总到达次数为条件，可以把到达时刻看作该区间上的独立均匀随机变量。叠加和稀疏化互为补充，可以在方便时拆分或合并 Poisson 过程。所有这些性质在高维中都有类比。
+
+Poisson 过程把本书中学习过的许多命名分布联系在一起：
+\begin{itemize}
+  \item 到达计数对应 Poisson 分布；
+  \item 相邻到达时间与到达时刻对应指数分布和 Gamma 分布；
+  \item 条件计数对应 Binomial 分布；
+  \item 条件到达时刻对应 Uniform 分布和缩放后的 Beta 分布；
+  \item 特殊到达的离散等待时间对应 Geometric 分布和 Negative Binomial 分布。
+\end{itemize}
+
+Poisson 过程也特别适合故事证明。本章多次使用的一种解题策略是：把随机变量嵌入 Poisson 过程，希望找到一个故事证明，即使原问题看起来与 Poisson 过程无关。
+
+Poisson 过程以自然方式把本书的两个重要主题，命名分布与故事，结合在一起。用这样一个主题收尾是合适的，因为它把贯穿全书的故事线索编织在一起。
+
+\section*{13.6\quad 习题}
+
+\begin{enumerate}
+  \item 乘客按照速率为 $\lambda$ 的 Poisson 过程到达公交站。公交车的到达恰好相隔 $t$ 分钟。证明一位乘客的等待时间之和为 $\frac12\lambda t^2$。
+
+  \item 地震随时间按照速率为 $\lambda$ 的 Poisson 过程发生。第 $j$ 次地震的强度为 $Z_j$，其中 $Z_j$ 独立同分布，均值为 $\mu$、方差为 $\sigma^2$。求截至时刻 $t$ 的所有地震强度总和的均值与方差。
+
+  \item Alice 按照速率为 $\lambda$ 的 Poisson 过程接到电话。不幸的是，她把手机充电器弄丢了。手机剩余电量是随机变量 $T$，均值为 $\mu$、方差为 $\sigma^2$。令 $N(T)$ 为电池耗尽之前她接到的电话数。求 $E(N(T))$、$\operatorname{Var}(N(T))$ 与 $\operatorname{Cov}(T,N(T))$。
+
+  \item Bob 的邮箱按照速率为 $\lambda$ 的 Poisson 过程收到邮件，速率单位为每小时邮件数。每封邮件以概率 $p$ 与工作有关，以概率 $1-p$ 为私人邮件。回复一封工作邮件所需时间是均值 $\mu_W$、方差 $\sigma_W^2$ 的随机变量，回复一封私人邮件所需时间是均值 $\mu_P$、方差 $\sigma_P^2$ 的随机变量，并且不同邮件的回复时间相互独立。
+
+  在一个 $t$ 小时区间中，Bob 平均要花多少时间回复所有到达的邮件？这个量的方差是多少？
+
+  \item 一场无尽的足球赛中，进球按照速率为 $\lambda$ 的 Poisson 过程发生。每个进球以概率 $p$ 由 A 队打进，以概率 $1-p$ 由 B 队打进。对 $j>1$，若第 $j$ 个进球由不同于第 $(j-1)$ 个进球的球队打进，则称第 $j$ 个进球为一次\textbf{反转}；例如，在序列 AABBA$\cdots$ 中，第 3 个和第 5 个进球是反转。
+  \begin{enumerate}
+    \item 在 $n$ 个进球中，反转次数的期望是多少？
+    \item 若一次 A 到 B 的反转刚刚发生，则到下一次 B 到 A 的反转为止的期望时间是多少？
+  \end{enumerate}
+
+  \item 令 $N_t$ 为速率为 $\lambda$ 的 Poisson 过程到时刻 $t$ 为止的到达次数，令 $T_n$ 为第 $n$ 次到达时刻。考虑形如
+  \[
+    P(N_t \le_1 n)=P(T_n \le_2 t)
+  \]
+  的命题，其中 $\le_1$ 与 $\le_2$ 用列表 $<,\le,\ge,>$ 中的符号替换。哪些命题为真？
+
+  \item 对某保险公司的索赔按照速率 $\lambda>0$ 的 Poisson 过程发生。在两个不相交的时间段中共收到 $N$ 个索赔，两个时间段的长度分别为 $t=t_1+t_2$，其中 $t_i$ 是第 $i$ 个时间段的长度。
+  \begin{enumerate}
+    \item 给定这些信息，推导 $N_1$ 的条件概率分布，其中 $N_1$ 是第一时段中的索赔数。
+    \item 第 $i$ 次索赔的赔付金额为 $X_i$，其中 $X_1,X_2,\ldots$ 独立同分布，并且独立于索赔过程。令 $E(X_i)=\mu$、$\operatorname{Var}(X_i)=\sigma^2$，$i=1,\ldots,N$。给定 $N$，求第一时段中总赔付金额的均值和方差。也就是说，求
+    \[
+      W_1=\sum_{i=1}^{N_1}X_i
+    \]
+    的这两个条件矩，其中约定若 $N_1=0$，则 $W_1=0$。
+  \end{enumerate}
+
+  \item 在某个问答网站上，明天会发布 $N\sim\operatorname{Pois}(\lambda_1)$ 个问题，其中 $\lambda_1$ 以每天问题数计量。给定 $N$，发布时间独立同分布，并且在一天中均匀分布（一天从午夜开始，到午夜结束）。一个问题发布后，其回答等待时间服从 $\operatorname{Expo}(\lambda_2)$（单位为天），并且与其他问题独立。
+  \begin{enumerate}
+    \item 求明天随机均匀时刻发布的一个问题，在当天结束时仍未被回答的概率。
+    \item 求明天发布的问题中，到当天结束时已回答与未回答问题数的联合分布。
+  \end{enumerate}
+
+  \item 一维\textbf{非齐次 Poisson 过程}是指其速率不为常数，而是时间的非负函数 $\lambda(t)$ 的 Poisson 过程。形式上，我们要求区间 $[t_1,t_2]$ 中的到达次数服从均值为
+  \[
+    \int_{t_1}^{t_2}\lambda(t)\,dt
+  \]
+  的 Poisson 分布，并且不相交区间中的到达次数相互独立。当 $\lambda(t)$ 为常数时，这就化为通常的齐次 Poisson 过程定义。
+  \begin{enumerate}
+    \item 证明可以用如下过程生成区间 $[t_1,t_2]$ 中非齐次 Poisson 过程的到达时刻：
+    \begin{enumerate}
+      \item 令 $\lambda_{\max}$ 为 $\lambda(t)$ 在区间 $[t_1,t_2]$ 上的最大值。作二维矩形 $[t_1,t_2]\times[0,\lambda_{\max}]$，并在其中画出函数 $\lambda(t)$。
+      \item 生成 $N\sim\operatorname{Pois}(\lambda_{\max}(t_2-t_1))$，并把 $N$ 个点均匀随机地放在该矩形中。
+      \item 对每个点：若该点落在曲线 $\lambda(t)$ 下方，则接受它作为过程中的到达，并取它的横坐标为到达时刻；若该点落在曲线 $\lambda(t)$ 上方，则拒绝它。
+    \end{enumerate}
+    提示：验证定义中的两个条件。
+
+    \item 假设有一个速率函数为 $\lambda(t)$ 的非齐次 Poisson 过程。令
+    $N(t)$ 为截至时刻 $t$ 的到达次数，令 $T_j$ 为第 $j$ 次到达时刻。解释为什么 $N(t)$ 与 $T_1,\ldots,T_{N(t)}$ 的混合联合 PDF，即截至时刻 $t$ 观察到的所有数据，为
+    \[
+      f(n,t_1,\ldots,t_n)
+      =
+      \frac{e^{-\lambda_{\text{total}}}\lambda_{\text{total}}^n}{n!}
+      \cdot n!\cdot
+      \frac{\lambda(t_1)\cdots\lambda(t_n)}{\lambda_{\text{total}}^n}
+      =
+      e^{-\lambda_{\text{total}}}\lambda(t_1)\cdots\lambda(t_n),
+    \]
+    其中 $0<t_1<t_2<\cdots<t_n$，$n$ 为非负整数，且
+    \[
+      \lambda_{\text{total}}=\int_0^t\lambda(u)\,du.
+    \]
+  \end{enumerate}
+
+  \item \textbf{Cox 过程}是 Poisson 过程的一种推广，其中速率 $\lambda$ 是一个随机变量。也就是说，先按照 $(0,\infty)$ 上的某个分布生成 $\lambda$，然后在给定 $\lambda$ 的条件下，生成速率为 $\lambda$ 的 Poisson 过程。
+  \begin{enumerate}
+    \item 直观解释为什么一维 Cox 过程中，不相交区间内的到达次数并不独立。
+    \item 在一维 Cox 过程中，若 $\lambda\sim\operatorname{Gamma}(\alpha,\beta)$，求区间 $[0,t)$ 中到达次数与区间 $[t,t+s)$ 中到达次数的协方差。提示：以 $\lambda$ 为条件。
+  \end{enumerate}
+
+  \item 在速率为 $\lambda$ 的 \textbf{Yule 过程}中，每次新到达之后，到达速率都会增加。因此第一次到达时间服从 $\operatorname{Expo}(\lambda)$，第 $(j-1)$ 次到达与第 $j$ 次到达之间的时间服从 $\operatorname{Expo}(j\lambda)$，$j=2,3,\ldots$。因此相邻到达时间相互独立但不同分布。
+  \begin{enumerate}
+    \item 证明两个独立 Yule 过程的叠加，若二者速率相同，仍是一个 Yule 过程；不过相邻到达时间整体平移了一位，依次为
+    \[
+      \operatorname{Expo}(2\lambda),\operatorname{Expo}(3\lambda),
+      \operatorname{Expo}(4\lambda),\ldots
+    \]
+    而不是
+    \[
+      \operatorname{Expo}(\lambda),\operatorname{Expo}(2\lambda),
+      \operatorname{Expo}(3\lambda),\ldots.
+    \]
+
+    \item 证明如果把 (a) 中的过程投影到离散时间，那么得到的 1 型与 2 型到达序列等价于如下离散时间过程：
+    \begin{enumerate}
+      \item 从一个含有两个球的盒子开始，球的标签分别为 1 和 2。
+      \item 从盒子中随机抽出一个球，记下它的编号，然后把它放回，并额外加入一个编号相同的球。
+      \item 不断重复第 2 步。
+    \end{enumerate}
+  \end{enumerate}
+
+  \item 考虑优惠券收集问题：有 $n$ 种玩具，每次从玩具类型集合中有放回地随机抽取一种，逐个收集玩具。第 4 章中，我们在假设所有类型等可能的情况下解决了这个问题。现在假设在每个阶段，第 $j$ 种玩具被收集到的概率为 $p_j$，其中 $p_j$ 不必相等。令 $N$ 为收集齐一套玩具所需玩具数；希望求 $E(N)$。本题给出一种嵌入方法来计算 $E(N)$。
+  \begin{enumerate}
+    \item 假设玩具按照速率为 $1$ 的 Poisson 过程到达，因此相邻到达时间独立同分布为 $\operatorname{Expo}(1)$。对 $j=1,\ldots,n$，令 $X_j\sim\operatorname{Expo}(1)$ 为到第一个第 $j$ 种玩具为止的等待时间。$Y_j$ 服从什么分布？$Y_j$ 是否独立？
+    \item 解释为什么
+    \[
+      T=\max(Y_1,\ldots,Y_n),
+    \]
+    即收集齐所有玩具类型之前的等待时间，也可以写成
+    \[
+      X_1+\cdots+X_N,
+    \]
+    其中 $X_j$ 如 (a) 中定义。用这一点证明 $E(T)=E(N)$。
+    \item 证明 $E(T)$，从而 $E(N)$，可以通过计算积分
+    \[
+      \int_0^\infty
+      \left(1-\prod_{j=1}^{n}(1-e^{-p_jt})\right)\,dt
+    \]
+    得到。
+
+    提示：使用恒等式 $E(T)=\int_0^\infty P(T>t)\,dt$，它已在例 5.3.8 中证明。
+  \end{enumerate}
+\end{enumerate}
+
+\end{document}

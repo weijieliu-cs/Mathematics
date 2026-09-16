@@ -1,0 +1,1074 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\graphicspath{{math/概率论/}}
+
+\title{第 10 章\quad 不等式与极限定理}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+“如果我不能精确计算一个概率或期望，该怎么办？”几乎每个使用概率的人都会不时遇到这个问题。不要慌。我们有一些强有力的策略：模拟它、界定它，或者近似它。
+
+\begin{itemize}
+  \item \textit{用 Monte Carlo 模拟：}我们已经看过很多模拟的例子。Monte Carlo 的意思只是用随机数来做模拟。
+
+  Monte Carlo 模拟是一种极其强大的技术，而且在许多问题中，它是目前唯一合理可行的方法。可是为什么不总是直接模拟呢？原因包括：
+  \begin{enumerate}
+    \item 模拟可能需要运行极长时间，即使在很快的计算机上也是如此。第 12 章将介绍的 Markov chain Monte Carlo 极大扩展了 Monte Carlo 模拟能够处理的问题范围，但即便如此，模拟仍可能需要运行一段漫长且未知的时间，才能给出还不错的答案。
+    \item 我们可能希望得到对问题参数所有取值都适用的好答案。例如，在优惠券收集问题（例 4.3.12）中，我们看到若有 $n$ 种玩具，平均大约需要 $n\log n$ 个玩具才能集齐一套。这是一个简单、好记的答案。对某个具体的 $n$ 做模拟并不难，例如令 $n=20$，可能得到约 $60$ 的答案；但这并不能让我们容易看出一般的 $n\log n$ 结论。
+    \item 模拟结果很容易受到质疑：怎样知道运行得足够久？怎样知道结果接近真值？“接近”又该多接近？我们有时想要的是可证明的保证。
+  \end{enumerate}
+
+  \item \textit{用不等式给出界：}概率的界给出一种可证明的保证，说明概率位于某个范围内。本章前半部分会介绍概率论中若干重要不等式。这些不等式常常让我们缩小精确答案可能位于的范围，也就是确定上界和下界。界本身未必给出很好的近似；例如，若我们知道某个概率位于 $[0.2,0.6]$，则精确答案仍可能在这个区间中的任何位置。但至少我们知道精确答案保证落在这些界之间。
+
+  \item \textit{用极限定理近似：}本章后面会讨论概率论中最著名的两个定理：大数定律和中心极限定理。二者都告诉我们，当取得越来越多数据时，样本均值会发生什么。极限定理使我们在数据点很多时能够作出通常效果很好的近似。本章最后会用极限定理研究统计中若干重要的命名分布。
+\end{itemize}
+
+\section*{10.1\quad 不等式}
+
+\subsection*{10.1.1\quad Cauchy--Schwarz：用边缘量界定联合期望}
+
+Cauchy--Schwarz 不等式是整个数学中最著名的不等式之一。在概率论中，它有如下形式。
+
+\noindent\textbf{定理 10.1.1（Cauchy--Schwarz）}\quad 对任意方差有限的随机变量 $X$ 和 $Y$，
+\[
+  |E(XY)|\le \sqrt{E(X^2)E(Y^2)}.
+\]
+
+\noindent\textit{证明.}\quad 对任意 $t$，
+\[
+  0\le E(Y-tX)^2=E(Y^2)-2tE(XY)+t^2E(X^2).
+\]
+这里引入 $t$ 的想法是：对每个 $t$ 得到一个不等式，于是有无穷多个不等式，然后用微积分找出给出最佳不等式的 $t$。对右端关于 $t$ 求导并令其等于 $0$，可知 $t=E(XY)/E(X^2)$ 使右端最小。把这个 $t$ 代入，就得到 Cauchy--Schwarz 不等式。$\blacksquare$
+
+若 $X$ 与 $Y$ 不相关，则 $E(XY)=E(X)E(Y)$，它只依赖于边缘期望 $E(X)$ 与 $E(Y)$。但一般来说，精确计算 $E(XY)$ 需要知道 $X$ 与 $Y$ 的联合分布。Cauchy--Schwarz 不等式使我们能够用边缘二阶矩 $E(X^2)$ 与 $E(Y^2)$ 来界定 $E(XY)$。
+
+若 $X$ 和 $Y$ 均值为 $0$，则 Cauchy--Schwarz 已经有一个非常熟悉的统计解释：它说二者的相关系数位于 $-1$ 与 $1$ 之间。
+
+\noindent\textbf{例 10.1.2}\quad 设 $E(X)=E(Y)=0$。于是
+\[
+  E(XY)=\operatorname{Cov}(X,Y),\qquad
+  E(X^2)=\operatorname{Var}(X),\qquad
+  E(Y^2)=\operatorname{Var}(Y),
+\]
+所以 Cauchy--Schwarz 化为
+\[
+  |\operatorname{Corr}(X,Y)|\le 1.
+\]
+当然，我们已经从定理 7.3.5 知道这一点。现在去掉均值为 $0$ 的假设，把 Cauchy--Schwarz 应用于中心化后的随机变量 $X-E(X)$ 与 $Y-E(Y)$，仍可得到 $|\operatorname{Corr}(X,Y)|\le 1$。$\square$
+
+Cauchy--Schwarz 常常能以很有创造性的方式使用。例如，若写成 $X=X\cdot 1$，则 Cauchy--Schwarz 给出
+\[
+  |E(X\cdot 1)|\le \sqrt{E(X^2)E(1^2)},
+\]
+从而化为 $E(X^2)\ge (EX)^2$。这给出了方差非负的一个快速新证明。再如，我们可以给出非负随机变量等于 $0$ 的概率的一个上界。
+
+\noindent\textbf{例 10.1.3（第二矩方法）}\quad 设 $X$ 是非负随机变量，并且我们想给出 $P(X=0)$ 的上界。例如，$X$ 可以是 Fred 在考试中答错的题目数，此时 $P(X=0)$ 是 Fred 得满分的概率；或者 $X$ 可以是聚会中生日相同的人对数，此时 $P(X=0)$ 是没有生日配对的概率。注意
+\[
+  X=XI(X>0),
+\]
+其中 $I(X>0)$ 是事件 $X>0$ 的指示变量。这是真的，因为若 $X=0$，两边都是 $0$；若 $X>0$，两边都是 $X$。由 Cauchy--Schwarz，
+\[
+  E(X)=E(XI(X>0))\le \sqrt{E(X^2)E(I(X>0))}.
+\]
+整理并使用基本桥梁，得到
+\[
+  P(X>0)\ge \frac{(EX)^2}{E(X^2)},
+\]
+或者等价地，
+\[
+  P(X=0)\le \frac{\operatorname{Var}(X)}{E(X^2)}.
+\]
+应用这个界有时称为\textbf{第二矩方法}。例如，设
+\[
+  X=I_1+\cdots+I_n,
+\]
+其中 $I_j$ 是互不相关的指示随机变量。令 $p_j=E(I_j)$。于是
+\[
+  \operatorname{Var}(X)=\sum_{j=1}^n\operatorname{Var}(I_j)
+  =\sum_{j=1}^n(p_j-p_j^2)
+  =\sum_{j=1}^n p_j-\sum_{j=1}^n p_j^2
+  =\mu-c,
+\]
+其中 $\mu=E(X)$，$c=\sum_{j=1}^n p_j^2$。又
+\[
+  E(X^2)=\operatorname{Var}(X)+(EX)^2=\mu^2+\mu-c.
+\]
+因此
+\[
+  P(X=0)\le \frac{\operatorname{Var}(X)}{E(X^2)}
+  =\frac{\mu-c}{\mu^2+\mu-c}\le \frac{1}{\mu+1},
+\]
+最后一个不等式可由交叉相乘直接验证。一般来说，不能说“如果 $X$ 有较大的均值，那么 $X$ 等于 $0$ 的概率就小”，因为可能 $X$ 通常为 $0$，只是以很小概率取极大值。但在当前设定下，我们有一个简单、定量的方法说明：$X$ 的均值大确实意味着 $X$ 不太可能为 $0$。
+
+例如，假设房间里有 $14$ 个人。出现两个人生日相同或生日只差一天的概率有多大？这比普通生日问题更难精确求解，所以例 4.7.6 中用了 Poisson 近似。但我们也许想要来自界的保证，而不是担心 Poisson 近似是否足够好。令 $X$ 为“近生日”人对的数目。使用指示随机变量，有
+\[
+  E(X)=\binom{14}{2}\frac{3}{365}.
+\]
+所以
+\[
+  P(X=0)\le \frac{1}{E(X)+1}<0.573.
+\]
+$P(X=0)$ 的真实答案约为 $0.46$（保留两位小数），与这个界一致。$\square$
+
+Cauchy--Schwarz 还使我们能够从边缘 MGF 的存在性推出联合 MGF 的存在性；这也是用边缘分布量界定联合分布量的一个例子。
+
+\noindent\textbf{例 10.1.4（联合 MGF 的存在性）}\quad 设 $X_1$ 与 $X_2$ 具有联合分布，不必独立或同分布。证明：若 $X_1$ 与 $X_2$ 各自的边缘 MGF 都存在，则随机向量 $(X_1,X_2)$ 有联合 MGF。
+
+\noindent\textit{解.}\quad 回忆第 7 章，联合 MGF 定义为
+\[
+  M(s,t)=E(e^{sX_1+tX_2}),
+\]
+并且若该期望在原点附近的某个盒子中有限，则称其存在。边缘 MGF 是 $E(e^{sX_1})$ 与 $E(e^{tX_2})$；每个都要求在原点附近的某个区间中有限。
+
+设 $X_1$ 与 $X_2$ 的 MGF 在 $(-a,a)$ 上有限。固定 $s,t\in(-a/2,a/2)$。由 Cauchy--Schwarz，
+\[
+  E(e^{sX_1+tX_2})\le \sqrt{E(e^{2sX_1})E(e^{2tX_2})}.
+\]
+右端由假设有限，所以 $E(e^{sX_1+tX_2})$ 在盒子
+\[
+  \{(s,t):s,t\in(-a/2,a/2)\}
+\]
+中有限。因此 $(X_1,X_2)$ 的联合 MGF 存在。$\square$
+
+\subsection*{10.1.2\quad Jensen：关于凸性的一个不等式}
+
+在例 4.3.13 中，我们讨论过，对于非线性函数 $g$，$E(g(X))$ 可能与 $g(E(X))$ 非常不同。若 $g$ 是凸函数或凹函数，Jensen 不等式会准确告诉我们 $E(g(X))$ 与 $g(E(X))$ 哪一个更大。关于凸函数与凹函数的知识可参见数学附录。通常可以用二阶导数检验凸性或凹性：若 $g''$ 存在，则 $g$ 为凸函数等价于 $g''(x)\ge 0$ 在定义域中处处成立；$g$ 为凹函数等价于 $g''(x)\le 0$ 在定义域中处处成立。
+
+\noindent\textbf{定理 10.1.5（Jensen）}\quad 设 $X$ 是随机变量。若 $g$ 是凸函数，则
+\[
+  E(g(X))\ge g(E(X)).
+\]
+若 $g$ 是凹函数，则
+\[
+  E(g(X))\le g(E(X)).
+\]
+在两种情形中，等号成立的唯一方式是存在常数 $a,b$，使得 $g(X)=a+bX$ 以概率 $1$ 成立。
+
+\noindent\textit{证明.}\quad 若 $g$ 为凸函数，则 $g$ 的所有切线都位于 $g$ 的图像下方（见图 10.1）。特别地，令 $\mu=E(X)$，考虑点 $(\mu,g(\mu))$ 处的切线。（若 $g$ 在 $\mu$ 处可导，则切线唯一；否则任选 $\mu$ 处的一条支撑切线。）把这条切线记为 $a+bx$，由凸性有
+\[
+  g(x)\ge a+bx
+\]
+对所有 $x$ 成立，所以 $g(X)\ge a+bX$。两边取期望，得到
+\[
+  E(g(X))\ge E(a+bX)=a+bE(X)=a+b\mu=g(\mu)=g(E(X)).
+\]
+若 $g$ 为凹函数，则 $h=-g$ 为凸函数，对 $h$ 应用刚证明的结论，可知 $g$ 的不等式方向相反。
+
+最后，假设凸情形中等号成立。令
+\[
+  Y=g(X)-a-bX.
+\]
+则 $Y$ 是非负随机变量，且 $E(Y)=0$，所以 $P(Y=0)=1$（否则只要有极小的非零概率使 $Y>0$，就会有 $E(Y)>0$）。因此等号成立当且仅当
+\[
+  P(g(X)=a+bX)=1.
+\]
+凹情形可用 $Y=a+bX-g(X)$ 作同样论证。$\blacksquare$
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.50\textwidth]{10-1.png}
+  \caption{由于 $g$ 为凸函数，切线位于曲线下方。特别地，点 $(\mu,g(\mu))$ 处的切线位于曲线下方。}
+\end{figure}
+
+我们在几个简单的已知情形中检查 Jensen 不等式。
+
+\begin{itemize}
+  \item 因为 $g(x)=x^2$ 为凸函数（二阶导数为 $2$），Jensen 不等式说明
+  \[
+    E(X^2)\ge (EX)^2,
+  \]
+  这正是我们已经由方差非负性（或 Cauchy--Schwarz）知道的事实。
+
+  \item 在第 4 章的圣彼得堡悖论中，我们发现 $E(2^N)>2^{EN}$，其中 $N\sim\operatorname{FS}(1/2)$。Jensen 不等式与此一致，因为 $g(x)=2^x$ 是凸函数（为了求 $g''(x)$，可写成 $2^x=e^{x\log 2}$）。
+\end{itemize}
+
+这个不等式的方向不依赖于 $N$ 的分布；除非 $N$ 以概率 $1$ 为常数，否则不等式严格成立。
+
+如果忘记了 Jensen 不等式的方向，这些简单例子可以帮助恢复正确方向。下面还有几个快速例子：
+\begin{itemize}
+  \item $E|X|\ge |EX|$；
+  \item 对正随机变量 $X$，$E(1/X)\ge 1/(EX)$；
+  \item 对正随机变量 $X$，$E(\log X)\le \log(EX)$。
+\end{itemize}
+
+再举一个例子：若我们用数据集的样本标准差来估计未知标准差，则可以用 Jensen 不等式判断偏差的方向。
+
+\noindent\textbf{例 10.1.6（样本标准差的偏差）}\quad 设 $X_1,\ldots,X_n$ 是独立同分布随机变量，方差为 $\sigma^2$。回忆定理 6.3.4，样本方差 $S_n^2$ 是 $\sigma^2$ 的无偏估计，也就是 $E(S_n^2)=\sigma^2$。然而，我们常常更关心估计标准差 $\sigma$。$\sigma$ 的一个自然估计量是样本标准差 $S_n$。
+
+Jensen 不等式说明，$S_n$ 作为 $\sigma$ 的估计量是有偏的，并且还告诉我们偏差方向：
+\[
+  E(S_n)=E\left(\sqrt{S_n^2}\right)\le \sqrt{E(S_n^2)}=\sigma.
+\]
+因此样本标准差倾向于低估真实标准差。偏差大小依赖于分布，因此没有一个适用于所有分布的通用修正方式；这与在样本方差定义中用 $n-1$ 作分母可使其对所有分布无偏形成对比。幸运的是，当样本量较大时，这个偏差通常很小。$\square$
+
+Jensen 不等式重要的一个领域是\textbf{信息论}，即研究如何量化信息。信息论原理已经成为通信与压缩中的基本工具。下面给出几个 Jensen 不等式的应用例子。
+
+\noindent\textbf{例 10.1.7（熵）}\quad 得知一个概率为 $p$ 的事件发生时，其\textbf{惊讶度}定义为 $\log_2(1/p)$，单位称为 bit。低概率事件具有高惊讶度，而概率为 $1$ 的事件惊讶度为 $0$。取对数的原因是：若观察到两个独立事件 $A$ 与 $B$，总惊讶度应等于观察到 $A\cap B$ 的惊讶度。对数底为 $2$ 是为了让概率为 $1/2$ 的事件发生时惊讶度为 $1$，对应获得 $1$ bit 信息。
+
+设 $X$ 是离散随机变量，其不同可能取值为 $a_1,a_2,\ldots,a_n$，对应概率分别为 $p_1,p_2,\ldots,p_n$（所以 $p_1+\cdots+p_n=1$）。$X$ 的\textbf{熵}定义为得知 $X$ 的值时的平均惊讶度：
+\[
+  H(X)=\sum_{j=1}^n p_j\log_2(1/p_j).
+\]
+注意，$X$ 的熵只依赖于概率 $p_j$，而不依赖于取值 $a_j$。例如，$H(X^3)=H(X)$，因为 $X^3$ 的不同可能取值为 $a_1^3,a_2^3,\ldots,a_n^3$，对应概率仍为 $p_1,p_2,\ldots,p_n$。
+
+用 Jensen 不等式证明：当 $X$ 在 $a_1,a_2,\ldots,a_n$ 上服从均匀分布，也就是所有 $j$ 都有 $p_j=1/n$ 时，$X$ 的熵达到最大。这在直觉上合理：当 $X$ 等可能取到任一值时，得知 $X$ 的值平均传递的信息最多；若 $X$ 是常数，则传递的信息最少。
+
+\noindent\textit{解.}\quad 若 $X\sim\operatorname{DUnif}(a_1,\ldots,a_n)$，则
+\[
+  H(X)=\sum_{j=1}^n \frac1n\log_2(n)=\log_2(n).
+\]
+令 $Y$ 为一个随机变量，它以概率 $p_j$ 取值 $1/p_j$（若某些 $1/p_j$ 重复，则自然地把对应概率相加）。由 LOTUS，$H(Y)=E(\log_2 Y)$，且 $E(Y)=n$。所以由 Jensen 不等式，
+\[
+  H(Y)=E(\log_2 Y)\le \log_2(EY)=\log_2(n)=H(X).
+\]
+由于随机变量的熵只依赖于概率 $p_j$，不依赖于其具体取值，把 $Y$ 的支撑从 $1/p_1,\ldots,1/p_n$ 改为 $a_1,\ldots,a_n$ 不会改变熵。因此，在 $a_1,\ldots,a_n$ 上均匀分布的 $X$ 的熵不小于任何其他同支撑随机变量的熵。$\square$
+
+\noindent\textbf{例 10.1.8（Kullback--Leibler 散度）}\quad 设 $\mathbf p=(p_1,\ldots,p_n)$ 与 $\mathbf r=(r_1,\ldots,r_n)$ 是概率向量（每个分量非负且总和为 $1$）。可以把它们各自看作某个支撑含有 $n$ 个不同值的随机变量的 PMF。$\mathbf p$ 与 $\mathbf r$ 之间的\textbf{Kullback--Leibler 散度}定义为
+\[
+  D(\mathbf p,\mathbf r)
+  =\sum_{j=1}^n p_j\log_2(1/r_j)
+  -\sum_{j=1}^n p_j\log_2(1/p_j).
+\]
+这表示：实际概率为 $\mathbf p$，但我们却按 $\mathbf r$ 来工作时的平均惊讶度，与按正确概率 $\mathbf p$ 工作时的平均惊讶度之差。证明 Kullback--Leibler 散度非负。
+
+\noindent\textit{解.}\quad 利用对数性质，
+\[
+  D(\mathbf p,\mathbf r)
+  =-\sum_{j=1}^n p_j\log_2\left(\frac{r_j}{p_j}\right).
+\]
+令 $Y$ 为一个随机变量，它以概率 $p_j$ 取值 $r_j/p_j$，于是由 LOTUS，
+\[
+  D(\mathbf p,\mathbf r)=-E(\log_2 Y).
+\]
+由 Jensen 不等式，
+\[
+  D(\mathbf p,\mathbf r)
+  =-E(\log_2 Y)\ge -\log_2(EY)=-\log_2(1)=0,
+\]
+等号成立当且仅当 $\mathbf p=\mathbf r$。这个结果说明，若我们使用错误概率，平均而言会比使用正确概率更惊讶。$\square$
+
+\noindent\textbf{例 10.1.9（对数概率评分）}\quad 想象在一次选择题考试中，你不是只圈出一个答案，而是要给每个选项指定一个“正确”的概率。某一题的得分是你给正确答案分配的概率的对数。某题的最高分为 $0$，最低分为 $-\infty$，当你给正确答案分配 $0$ 概率时达到最低分。\footnote{这种评分规则会强烈惩罚把正确答案赋为 $0$ 概率的做法；任何带正权重的平均分一旦包含 $-\infty$，总分也会变成 $-\infty$。}
+
+假设你对 $n$ 个选项各自正确的主观概率为 $p_1,\ldots,p_n$，其中 $p_j$ 都为正且总和为 $1$。证明：在一题上的期望得分，当你报告真实概率 $p_j$ 而不是任何其他概率时达到最大。换言之，在对数概率评分下，如果目标是最大化期望得分，你没有动机谎报自己的信念，假装比真实情况更自信或更不自信。
+
+\noindent\textit{解.}\quad 这个例子与前一个例子同构。若报告真实概率 $\mathbf p$，期望得分为 $\sum_{j=1}^n p_j\log p_j$；若报告虚假概率 $\mathbf r$，期望得分为 $\sum_{j=1}^n p_j\log r_j$。二者之差正是 $\mathbf p$ 与 $\mathbf r$ 之间的 Kullback--Leibler 散度。它总是非负的，如前例所证。因此，当报告真实概率时，期望得分最大。$\square$
+
+\subsection*{10.1.3\quad Markov、Chebyshev、Chernoff：尾概率的界}
+
+本节中的不等式给出随机变量落在分布右尾或左尾的“极端”取值处的概率上界。
+
+\noindent\textbf{定理 10.1.10（Markov）}\quad 对任意随机变量 $X$ 与常数 $a>0$，
+\[
+  P(|X|\ge a)\le \frac{E|X|}{a}.
+\]
+
+\noindent\textit{证明.}\quad 令 $Y=|X|/a$。我们需要证明 $P(Y\ge 1)\le E(Y)$。注意
+\[
+  I(Y\ge 1)\le Y,
+\]
+因为若 $I(Y\ge 1)=0$，不等式化为 $Y\ge 0$；若 $I(Y\ge 1)=1$，则由指示变量的含义可知 $Y\ge 1$。两边取期望，就得到 Markov 不等式。$\blacksquare$
+
+一个直观解释是：令 $X$ 为从总体中随机选出一人的收入。取 $a=2E(X)$，Markov 不等式说明
+\[
+  P(X\ge 2E(X))\le \frac12,
+\]
+也就是说，不可能有超过一半的人收入至少为平均收入的两倍。这显然为真，因为若超过一半的人收入至少为平均收入的两倍，平均收入就会更高。类似地，
+\[
+  P(X\ge 3E(X))\le \frac13;
+\]
+不可能超过三分之一的人收入至少为平均收入的三倍，因为这些人已经会把平均收入推高到当前水平之上。
+
+Markov 不等式是一个很粗糙的界，因为它几乎不要求对 $X$ 作任何假设。不等式右端可能大于 $1$，甚至为无穷；当我们本来就知道待界定的数位于 $0$ 与 $1$ 之间时，这并不很有用。令人惊讶的是，下面两个不等式几乎不需额外工作就可由 Markov 不等式推出，却常常能给出远好于 Markov 的界。
+
+\noindent\textbf{定理 10.1.11（Chebyshev）}\quad 设 $X$ 的均值为 $\mu$，方差为 $\sigma^2$。则对任意 $a>0$，
+\[
+  P(|X-\mu|\ge a)\le \frac{\sigma^2}{a^2}.
+\]
+
+\noindent\textit{证明.}\quad 由 Markov 不等式，
+\[
+  P(|X-\mu|\ge a)=P((X-\mu)^2\ge a^2)
+  \le \frac{E(X-\mu)^2}{a^2}
+  =\frac{\sigma^2}{a^2}.
+\]
+$\blacksquare$
+
+把 $a$ 代为 $c\sigma$，其中 $c>0$，可得 Chebyshev 不等式的等价形式：
+\[
+  P(|X-\mu|\ge c\sigma)\le \frac{1}{c^2}.
+\]
+这给出了随机变量偏离均值超过 $c$ 个标准差的概率上界。例如，偏离均值 $2$ 个或更多标准差的概率不可能超过 $25\%$。
+
+从 Markov 推出 Chebyshev 的想法是：先平方 $|X-\mu|$，然后再应用 Markov。类似地，在应用 Markov 之前作其他变换也常常有用。工程中广泛使用的 Chernoff 界，就是用指数函数实现这一想法。
+
+\noindent\textbf{定理 10.1.12（Chernoff）}\quad 对任意随机变量 $X$ 以及常数 $a>0,t>0$，
+\[
+  P(X\ge a)\le \frac{E(e^{tX})}{e^{ta}}.
+\]
+
+\noindent\textit{证明.}\quad 令 $g(x)=e^{tx}$。该变换可逆且严格递增。所以由 Markov 不等式，
+\[
+  P(X\ge a)=P(e^{tX}\ge e^{ta})\le \frac{E(e^{tX})}{e^{ta}}.
+\]
+$\blacksquare$
+
+乍看之下，Chernoff 界相对 Markov 不等式的优势并不明显，但它有两个很好的特征：
+\begin{enumerate}
+  \item 右端可以关于 $t$ 优化，从而给出最紧的上界，类似于 Cauchy--Schwarz 证明中的做法。
+  \item 若 $X$ 的 MGF 存在，则界中的分子正是 MGF，于是可以调用 MGF 的若干有用性质。
+\end{enumerate}
+
+现在把刚讨论的三个界应用到一个真值已知的简单例子，从而比较它们。
+
+\noindent\textbf{例 10.1.13（正态尾概率的界）}\quad 设 $Z\sim\mathcal N(0,1)$。由 $68$-$95$-$99.7\%$ 规则可知，$P(|Z|>3)$ 约为 $0.003$；精确值是 $2\Phi(-3)$。下面分别看看 Markov、Chebyshev 和 Chernoff 不等式给出怎样的上界。
+
+\begin{itemize}
+  \item Markov：在第 5 章中我们得到 $E|Z|=\sqrt{2/\pi}$。因此
+  \[
+    P(|Z|>3)\le \frac{E|Z|}{3}
+    =\frac13\sqrt{\frac2\pi}\approx 0.27.
+  \]
+
+  \item Chebyshev：
+  \[
+    P(|Z|>3)\le \frac19\approx 0.11.
+  \]
+
+  \item Chernoff（使用正态分布的对称性后）：
+  \[
+    P(|Z|>3)=2P(Z>3)\le 2e^{-3t}E(e^{tZ})
+    =2e^{-3t}\cdot e^{t^2/2},
+  \]
+  其中使用了标准正态分布的 MGF。
+\end{itemize}
+
+右端在 $t=3$ 处取得最小值；令导数为 $0$ 即可得到这一点，也可以先取对数再求导，因为取对数不影响最小化位置。
+代入 $t=3$，得到
+\[
+  P(|Z|>3)\le 2e^{-9/2}\approx 0.022.
+\]
+这些上界全都是正确的，但 Chernoff 界远远最好。这个例子也说明了界与近似的区别，正如本章引言中解释过的那样。Markov 不等式告诉我们尾概率 $P(|Z|>3)$ 至多为 $0.27$，但若说 $P(|Z|>3)$ 约为 $0.27$，那就是很大的错误，因为真实值相差约 $100$ 倍。$\square$
+
+\section*{10.2\quad 大数定律}
+
+接下来转向两个定理：大数定律和中心极限定理。它们描述独立同分布随机变量的样本均值在样本量增长时的行为。本节和下一节中，假设有独立同分布随机变量 $X_1,X_2,X_3,\ldots$，其均值有限为 $\mu$，方差有限为 $\sigma^2$。对所有正整数 $n$，令
+\[
+  \bar X_n=\frac{X_1+\cdots+X_n}{n}
+\]
+为 $X_1$ 到 $X_n$ 的样本均值。样本均值本身也是随机变量，其均值为 $\mu$，方差为 $\sigma^2/n$：
+\[
+  E(\bar X_n)=\frac1nE(X_1+\cdots+X_n)
+  =\frac1n(E(X_1)+\cdots+E(X_n))=\mu,
+\]
+\[
+  \operatorname{Var}(\bar X_n)
+  =\frac1{n^2}\operatorname{Var}(X_1+\cdots+X_n)
+  =\frac1{n^2}(\operatorname{Var}(X_1)+\cdots+\operatorname{Var}(X_n))
+  =\frac{\sigma^2}{n}.
+\]
+
+\textbf{大数定律}（LLN）说，当 $n$ 增大时，样本均值 $\bar X_n$ 收敛到真实均值 $\mu$（收敛意义如下说明）。大数定律有两个版本：“强”大数定律（SLLN）和“弱”大数定律（WLLN），它们使用略有不同的随机变量序列收敛到一个数的定义。我们会陈述两个版本，并用 Chebyshev 不等式证明第二个版本。
+
+\noindent\textbf{定理 10.2.1（强大数定律）}\quad 样本均值 $\bar X_n$ 逐点收敛到真实均值 $\mu$，且概率为 $1$。回忆随机变量是从样本空间 $S$ 到 $\mathbb R$ 的函数，这种收敛形式表示：除去某个例外集合 $B_0$（只要 $P(B_0)=0$）之外，对每个点 $s\in S$ 都有 $\bar X_n(s)\to\mu$。简写为
+\[
+  P(\bar X_n\to\mu)=1.
+\]
+
+\noindent\textbf{定理 10.2.2（弱大数定律）}\quad 对所有 $\epsilon>0$，
+\[
+  P(|\bar X_n-\mu|>\epsilon)\to 0,\qquad n\to\infty.
+\]
+这种收敛形式称为\textbf{依概率收敛}。
+
+\noindent\textit{证明.}\quad 固定 $\epsilon>0$。由 Chebyshev 不等式，
+\[
+  P(|\bar X_n-\mu|>\epsilon)\le \frac{\sigma^2}{n\epsilon^2}.
+\]
+当 $n\to\infty$ 时，右端趋于 $0$，因此左端也必须趋于 $0$。$\blacksquare$
+
+大数定律对于模拟、统计与科学都是基本的。设想从某个实验的大量独立重复中生成“数据”，这些重复可以由计算机模拟完成，也可以来自现实世界。每当我们用某个量在重复实验中的平均值近似其理论平均值时，其实都在隐含地调用大数定律。
+
+\noindent\textbf{例 10.2.3（正面比例的运行值）}\quad 令 $X_1,X_2,\ldots$ 独立同分布且服从 $\operatorname{Bern}(1/2)$。把 $X_j$ 解释为公平硬币投掷序列中第 $j$ 次是否为正面的指示变量，则 $\bar X_n$ 是前 $n$ 次投掷后正面的比例。强大数定律说，以概率 $1$，当随机变量序列 $\bar X_1,\bar X_2,\bar X_3,\ldots$ 凝固为一列数时，这列数将收敛到 $1/2$。从数学上说，确实存在一些奇异结果，例如 $HHHHHH\cdots$ 与 $HHTHHTHHTHHT\cdots$，但它们合起来发生的概率为 $0$。弱大数定律说，对任意 $\epsilon>0$，通过让 $n$ 增大，可以使 $\bar X_n$ 距离 $1/2$ 超过 $\epsilon$ 的概率任意小。
+
+作为说明，可以模拟六条公平硬币投掷序列，并对每条序列把 $\bar X_n$ 作为 $n$ 的函数计算出来。现实中当然不能模拟无穷多次投掷，所以这里停在 $300$ 次。图 10.2 画出了每条序列中 $\bar X_n$ 随 $n$ 的变化。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{10-2.png}
+  \caption{六条公平硬币投掷序列中的正面运行比例。虚线 $0.6$ 与 $0.4$ 作为参考线。随着投掷次数增加，正面比例接近 $1/2$。}
+\end{figure}
+
+一开始，正面运行比例有相当大的波动。然而，随着硬币投掷次数增加，$\operatorname{Var}(\bar X_n)$ 越来越小，$\bar X_n$ 接近 $1/2$。$\square$
+
+\noindent\textbf{注 10.2.4（大数定律不违背硬币无记忆性）}\quad 在上例中，大数定律说明正面比例收敛到 $1/2$，但这并不意味着在连续出现很长一串正面之后，硬币就“该”出现反面来平衡。相反，收敛是通过\textbf{淹没}发生的：过去的投掷会被未来无穷多次尚未发生的投掷淹没。
+
+独立同分布 Bernoulli 序列是大数定律最简单的例子，但这个简单情形构成了统计中许多极其有用方法的基础，下面的例子会说明这一点。
+
+\noindent\textbf{例 10.2.5（Monte Carlo 积分）}\quad 设 $f$ 是一个复杂函数，我们想近似积分 $\int_a^b f(x)\,dx$。假设 $0\le f(x)\le c$，于是知道积分有限。表面上看，这个问题不涉及概率，因为 $\int_a^b f(x)\,dx$ 只是一个数。但在没有随机性的地方，我们可以自己创造随机性。Monte Carlo 积分使用随机样本来近似定积分，适用于精确积分方法不可用的情形。
+
+令 $A$ 为 $(x,y)$ 平面中的矩形 $a\le x\le b$ 且 $0\le y\le c$。令 $B$ 为曲线 $y=f(x)$ 下方（并在 $x$ 轴上方）且 $a\le x\le b$ 的区域，所以所需积分就是区域 $B$ 的面积。策略是从 $A$ 中随机取样，然后计算也落在区域 $B$ 中的样本比例。图 10.3 描绘了这一点：$B$ 中的点为黑色，不在 $B$ 中的点为空心。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.58\textwidth]{10-3.png}
+  \caption{Monte Carlo 积分。为了近似 $x=a$ 到 $x=b$ 间 $f(x)$ 下方的面积，在矩形 $[a,b]\times[0,c]$ 中生成随机点，并用落在曲线下方的点的比例乘以矩形总面积来近似该面积。}
+\end{figure}
+
+为了说明其有效性，假设我们在矩形 $A$ 中独立同分布地均匀选取点
+\[
+  (X_1,Y_1),(X_2,Y_2),\ldots,(X_n,Y_n).
+\]
+定义指示随机变量 $I_1,\ldots,I_n$，令 $I_j=1$ 表示 $(X_j,Y_j)$ 落在 $B$ 中，否则 $I_j=0$。于是 $I_j$ 是 Bernoulli 随机变量，其成功概率正好是 $B$ 的面积与 $A$ 的面积之比。令 $p=E(I_j)$，则
+\[
+  p=E(I_j)=P(I_j=1)=\frac{\int_a^b f(x)\,dx}{c(b-a)}.
+\]
+可以用 $\frac1n\sum_{j=1}^n I_j$ 来估计 $p$，进而估计目标积分：
+\[
+  \int_a^b f(x)\,dx\approx c(b-a)\frac1n\sum_{j=1}^n I_j.
+\]
+由于 $I_j$ 独立同分布且均值为 $p$，由大数定律可知，当点数趋于无穷时，这个估计以概率 $1$ 收敛到积分的真实值。$\square$
+
+\noindent\textbf{例 10.2.6（经验 CDF 的收敛）}\quad 令 $X_1,\ldots,X_n$ 是独立同分布随机变量，CDF 为 $F$。对每个数 $x$，令 $R_n(x)$ 表示 $X_1,\ldots,X_n$ 中小于等于 $x$ 的个数，即
+\[
+  R_n(x)=\sum_{j=1}^n I(X_j\le x).
+\]
+由于指示变量 $I(X_j\le x)$ 独立同分布，成功概率为 $F(x)$，所以 $R_n(x)$ 服从参数为 $n$ 与 $F(x)$ 的二项分布。
+
+$X_1,\ldots,X_n$ 的\textbf{经验 CDF} 定义为
+\[
+  \hat F_n(x)=\frac{R_n(x)}{n},
+\]
+它被看作 $x$ 的函数。在观察到 $X_1,\ldots,X_n$ 之前，对每个 $x$，$\hat F_n(x)$ 都是随机变量。观察到 $X_1,\ldots,X_n$ 之后，$\hat F_n(x)$ 在每个 $x$ 处凝固为一个具体值，因此 $\hat F_n$ 凝固为一个具体 CDF，可用来在未知真实 CDF $F$ 时估计它。
+
+例如，假设 $n=4$，并观察到 $X_1=x_1,X_2=x_2,X_3=x_3,X_4=x_4$。则 $R_4(x)/4$ 的图像从 $0$ 开始，每遇到一个 $x_j$ 就向上跳 $1/4$。换言之，$R_4(x)/4$ 是一个离散随机变量的 CDF，该随机变量取值为 $x_1,\ldots,x_4$，且每个值的概率为 $1/4$。这在图 10.4 中展示。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.54\textwidth]{10-4.png}
+  \caption{观察到 $X_1=x_1,X_2=x_2,X_3=x_3,X_4=x_4$ 后的经验 CDF。每达到一个 $x_j$，图像就向上跳 $1/4$。}
+\end{figure}
+
+现在可以问，当 $n\to\infty$ 时 $\hat F_n$ 会怎样？如果我们用 $\hat F_n$ 估计真实的 $F$，这是一个自然问题：这个近似在极限中表现好吗？大数定律给出答案：对每个 $x$，$R_n(x)$ 是 $n$ 个独立同分布 $\operatorname{Bern}(p)$ 随机变量之和，其中 $p=F(x)$。因此由强大数定律，当 $n\to\infty$ 时，$\hat F_n(x)\to F(x)$ 以概率 $1$ 成立。
+
+经验 CDF 常用于\textbf{非参数统计}。非参数统计试图在不对随机样本来源分布族作强假设的情况下理解随机样本。例如，不假设 $X_1,\ldots,X_n\sim\mathcal N(\mu,\sigma^2)$，非参数方法允许 $X_1,\ldots,X_n\sim F$，其中 $F$ 是任意 CDF，然后用经验 CDF 作为 $F$ 的近似。大数定律保证了这种近似在收集越来越多样本时在极限中有效：在每个 $x$ 处，经验 CDF 都收敛到真实 CDF。$\square$
+
+\section*{10.3\quad 中心极限定理}
+
+如上一节一样，令 $X_1,X_2,X_3,\ldots$ 独立同分布，均值为 $\mu$，方差为 $\sigma^2$。大数定律说，当 $n\to\infty$ 时，$\bar X_n$ 收敛到常数 $\mu$（以概率 $1$）。但在它成为常数的途中，它的分布是什么？这由\textbf{中心极限定理}（CLT）回答；顾名思义，它是统计中居于核心地位的极限定理。
+
+中心极限定理说，对大的 $n$，$\bar X_n$ 标准化后的分布接近标准正态分布。这里标准化指的是减去 $\bar X_n$ 的均值 $\mu$，再除以 $\bar X_n$ 的标准差 $\sigma/\sqrt n$。
+
+\noindent\textbf{定理 10.3.1（中心极限定理）}\quad 当 $n\to\infty$ 时，
+\[
+  \sqrt n\left(\frac{\bar X_n-\mu}{\sigma}\right)\to\mathcal N(0,1)
+\]
+依分布收敛。
+
+换句话说，这表示左端的 CDF 收敛到 $\Phi$，即标准正态分布的 CDF。
+
+\noindent\textit{证明.}\quad 我们在假设 $X_j$ 的 MGF 存在的条件下证明 CLT，虽然该定理更一般地也成立。令
+\[
+  M(t)=E(e^{tX_j}),
+\]
+并且不妨设 $\mu=0,\sigma^2=1$（既然定理中最终要标准化 $\bar X_n$，一开始就可把 $X_j$ 标准化）。于是
+\[
+  M(0)=1,\qquad M'(0)=\mu=0,\qquad M''(0)=\sigma^2=1.
+\]
+
+我们希望证明
+\[
+  \sqrt n\,\bar X_n=\frac{X_1+\cdots+X_n}{\sqrt n}
+\]
+的 MGF 收敛到 $\mathcal N(0,1)$ 的 MGF，即 $e^{t^2/2}$。这是一个可行策略，因为有一个定理说：若随机变量 $Z_1,Z_2,\ldots$ 的 MGF 收敛到某个连续随机变量 $Z$ 的 MGF，则 $Z_n$ 的 CDF 收敛到 $Z$ 的 CDF。这里省略该结果的证明，因为它需要较难的分析；不过鉴于随机变量的 MGF 决定其分布，这个结果至少应当显得合理。
+
+由 MGF 的性质，
+\[
+\begin{aligned}
+  E\left(e^{t(X_1+\cdots+X_n)/\sqrt n}\right)
+  &=E(e^{tX_1/\sqrt n})E(e^{tX_2/\sqrt n})\cdots E(e^{tX_n/\sqrt n})\\
+  &=\left(M\left(\frac{t}{\sqrt n}\right)\right)^n.
+\end{aligned}
+\]
+令 $n\to\infty$ 会得到不定式 $1^\infty$，所以改为先取对数的极限
+\[
+  n\log M\left(\frac{t}{\sqrt n}\right),
+\]
+最后再取指数。令 $y=1/\sqrt n$，则
+\[
+\begin{aligned}
+  \lim_{n\to\infty}n\log M\left(\frac{t}{\sqrt n}\right)
+  &=\lim_{y\to 0}\frac{\log M(yt)}{y^2}\\
+  &=\lim_{y\to 0}\frac{tM'(yt)}{2yM(yt)} \qquad \text{（L'Hôpital 法则）}\\
+  &=\frac{t}{2}\lim_{y\to 0}\frac{M'(yt)}{y}\qquad \text{（因为 $M(yt)\to 1$）}\\
+  &=\frac{t^2}{2}\lim_{y\to 0}M''(yt)\qquad \text{（L'Hôpital 法则）}\\
+  &=\frac{t^2}{2}.
+\end{aligned}
+\]
+因此
+\[
+  \left(M\left(\frac{t}{\sqrt n}\right)\right)^n
+\]
+也就是 $\sqrt n\,\bar X_n$ 的 MGF，趋于 $e^{t^2/2}$，即 $\mathcal N(0,1)$ 的 MGF。$\blacksquare$
+
+CLT 是一个\textbf{渐近}结果，它告诉我们当 $n\to\infty$ 时 $\bar X_n$ 的极限分布；但当 $n$ 很大但有限时，它也给出了 $\bar X_n$ 分布的一个近似。
+
+\noindent\textbf{近似 10.3.2（中心极限定理，近似形式）}\quad 对大的 $n$，$\bar X_n$ 的分布近似为
+\[
+  \mathcal N\left(\mu,\frac{\sigma^2}{n}\right).
+\]
+
+\noindent\textit{证明.}\quad 把 CLT 中的箭头改成近似分布符号：
+\[
+  \sqrt n\left(\frac{\bar X_n-\mu}{\sigma}\right)\dot\sim \mathcal N(0,1).
+\]
+再作位置--尺度变换，得到
+\[
+  \bar X_n\dot\sim\mathcal N\left(\mu,\frac{\sigma^2}{n}\right).
+\]
+$\blacksquare$
+
+当然，由期望与方差的性质我们已经知道 $\bar X_n$ 的均值为 $\mu$、方差为 $\sigma^2/n$；中心极限定理额外告诉我们，$\bar X_n$ 近似正态，且具有上述均值与方差。
+
+值得稍停片刻欣赏这个结果的一般性。单个 $X_j$ 的分布可以是任何东西，只要均值和方差有限：可以是二项分布这样的离散分布，可以是 Beta 分布这样的有界分布，可以是对数正态这样的偏斜分布，也可以是带有多个峰谷的分布。无论如何，取平均这个操作都会导致正态性出现。图 10.5 展示了四种不同初始分布下、$n=1,5,30,100$ 时 $\bar X_n$ 分布的直方图。随着 $n$ 增大，无论 $X_j$ 的分布如何，$\bar X_n$ 的分布都开始看起来像正态分布。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.80\textwidth]{10-5.png}
+  \caption{中心极限定理。不同 $X_j$ 初始分布（行）与递增的 $n$（列）下 $\bar X_n$ 分布的直方图。每个直方图基于 $10000$ 个模拟出的 $\bar X_n$ 值。无论 $X_j$ 的初始分布如何，随着 $n$ 增大，$\bar X_n$ 的分布都接近正态分布。}
+\end{figure}
+
+不过，这并不意味着 $X_j$ 的分布无关紧要。若 $X_j$ 具有高度偏斜或多峰分布，可能需要很大的 $n$，正态近似才变得准确；另一方面，若 $X_j$ 本来就是独立同分布正态随机变量，则对所有 $n$，$\bar X_n$ 的分布都精确为 $\mathcal N(\mu,\sigma^2/n)$。由于现实世界中没有无穷数据集，有限 $n$ 时正态近似的质量是一个重要考虑。
+
+\noindent\textbf{例 10.3.3（正面运行比例，再访）}\quad 与例 10.2.3 一样，令 $X_1,X_2,\ldots$ 独立同分布且服从 $\operatorname{Bern}(1/2)$。之前，我们用大数定律得出 $\bar X_n\to 1/2$。现在，用中心极限定理可以说得更多：
+\[
+  E(\bar X_n)=\frac12,\qquad \operatorname{Var}(\bar X_n)=\frac{1}{4n},
+\]
+所以对大的 $n$，
+\[
+  \bar X_n\dot\sim \mathcal N\left(\frac12,\frac{1}{4n}\right).
+\]
+这条额外信息使我们能够量化给定 $n$ 时偏离均值多大算典型。例如，当 $n=100$ 时，$\operatorname{SD}(\bar X_n)=1/20=0.05$，所以若正态近似有效，由 $68$-$95$-$99.7\%$ 规则可知，$\bar X_n$ 有 $95\%$ 的概率落在区间 $[0.40,0.60]$ 中。$\square$
+
+CLT 说样本均值 $\bar X_n$ 近似正态。由于和
+\[
+  W_n=X_1+\cdots+X_n=n\bar X_n
+\]
+只是 $\bar X_n$ 的缩放版本，CLT 也推出 $W_n$ 近似正态。若 $X_j$ 的均值为 $\mu$、方差为 $\sigma^2$，则 $W_n$ 的均值为 $n\mu$、方差为 $n\sigma^2$。于是 CLT 说明，对大的 $n$，
+\[
+  W_n\dot\sim\mathcal N(n\mu,n\sigma^2).
+\]
+这与 $\bar X_n$ 的近似完全等价，但把它写成这种形式有时很有用，因为我们学过的许多命名分布都可看成独立同分布随机变量之和。下面给出三个简短例子。
+
+\noindent\textbf{例 10.3.4（Poisson 收敛到正态）}\quad 令 $Y\sim\operatorname{Pois}(n)$。由定理 4.8.1，可把 $Y$ 看作 $n$ 个独立同分布 $\operatorname{Pois}(1)$ 随机变量之和。因此，对大的 $n$，
+\[
+  Y\dot\sim\mathcal N(n,n).
+\]
+$\square$
+
+\noindent\textbf{例 10.3.5（Gamma 收敛到正态）}\quad 令 $Y\sim\operatorname{Gamma}(n,\lambda)$。由定理 8.4.3，可把 $Y$ 看作 $n$ 个独立同分布 $\operatorname{Expo}(\lambda)$ 随机变量之和。因此，对大的 $n$，
+\[
+  Y\dot\sim\mathcal N\left(\frac n\lambda,\frac n{\lambda^2}\right).
+\]
+$\square$
+
+\noindent\textbf{例 10.3.6（二项分布收敛到正态）}\quad 令 $Y\sim\operatorname{Bin}(n,p)$。由定理 3.8.8，可把 $Y$ 看作 $n$ 个独立同分布 $\operatorname{Bern}(p)$ 随机变量之和。因此，对大的 $n$，
+\[
+  Y\dot\sim\mathcal N(np,np(1-p)).
+\]
+这大概是统计中使用最广泛的正态近似。为了考虑 $Y$ 的离散性，我们把概率 $P(Y=k)$ 写成
+\[
+  P(k-1/2<Y<k+1/2),
+\]
+因为在正态近似下 $P(Y=k)$ 本身会精确为 $0$，而上述事件变成一个非零宽度区间。再对后者应用正态近似。这称为\textbf{连续性修正}，并给出 $Y$ 的 PMF 的如下近似：
+\[
+  P(Y=k)=P(k-1/2<Y<k+1/2)
+  \approx
+  \Phi\left(\frac{k+1/2-np}{\sqrt{np(1-p)}}\right)
+  -\Phi\left(\frac{k-1/2-np}{\sqrt{np(1-p)}}\right).
+\]
+二项分布的正态近似与第 4 章讨论的 Poisson 近似互为补充。Poisson 近似在 $p$ 很小时效果最好，而正态近似在 $n$ 很大且 $p$ 接近 $1/2$、从而 $Y$ 的分布对称或近似对称时效果最好。$\square$
+
+最后以一个同时使用大数定律和中心极限定理的例子收尾。
+
+\noindent\textbf{例 10.3.7（波动剧烈的股票）}\quad 某只波动很大的股票每天以相等概率上涨 $70\%$ 或下跌 $50\%$，且不同天之间相互独立。令 $Y_n$ 为 $n$ 天后的股价，初始值为 $Y_0=100$。
+
+\begin{enumerate}
+  \item 解释为什么当 $n$ 很大时 $\log Y_n$ 近似正态，并给出参数。
+  \item 当 $n\to\infty$ 时，$E(Y_n)$ 会怎样？
+  \item 用大数定律求出当 $n\to\infty$ 时 $Y_n$ 会怎样。
+\end{enumerate}
+
+\noindent\textit{解.}\quad
+\begin{enumerate}
+  \item 可写
+  \[
+    Y_n=Y_0(0.5)^{n-U_n}(1.7)^{U_n},
+  \]
+  其中 $U_n\sim\operatorname{Bin}(n,1/2)$ 是前 $n$ 天中股票上涨的次数。因此
+  \[
+    \log Y_n=\log Y_0-n\log 2+U_n\log 3.4,
+  \]
+  这是 $U_n$ 的位置--尺度变换。由 CLT，对大的 $n$，$U_n$ 近似为 $\mathcal N(n/2,n/4)$，所以 $\log Y_n$ 近似正态，其均值为
+  \[
+    E(\log Y_n)=\log 100-n\log 2+(\log 3.4)E(U_n)
+    \approx \log 100-0.081n,
+  \]
+  方差为
+  \[
+    \operatorname{Var}(\log Y_n)=(\log 3.4)^2\operatorname{Var}(U_n)
+    \approx 0.374n.
+  \]
+
+  \item 有 $E(Y_1)=(170+50)/2=110$。类似地，
+  \[
+    E(Y_{n+1}\mid Y_n)=\frac12(1.7Y_n)+\frac12(0.5Y_n)=1.1Y_n,
+  \]
+  所以
+  \[
+    E(Y_{n+1})=E(E(Y_{n+1}\mid Y_n))=1.1E(Y_n).
+  \]
+  因此
+  \[
+    E(Y_n)=1.1^nE(Y_0)=100\cdot 1.1^n,
+  \]
+  当 $n\to\infty$ 时趋于 $\infty$。
+
+  \item 如 (a) 中一样，令 $U_n\sim\operatorname{Bin}(n,1/2)$ 为前 $n$ 天中股票上涨的次数。注意，即使 $E(Y_n)\to\infty$，若股票某天上涨 $70\%$ 后次日下跌 $50\%$，总体仍下跌 $15\%$，因为 $1.7\cdot 0.5=0.85$。所以许多天之后，若约一半时间上涨 $70\%$，约一半时间下跌 $50\%$，则 $Y_n$ 会很小；而大数定律保证这确实会发生。为了应用大数定律，把 $Y_n$ 写成 $U_n/n$ 的形式：
+  \[
+    Y_n=Y_0(0.5)^{n-U_n}(1.7)^{U_n}
+    =Y_0\left(\frac{(3.4)^{U_n/n}}{2}\right)^n.
+  \]
+  由于 $U_n/n\to 0.5$ 以概率 $1$ 成立，$(3.4)^{U_n/n}\to\sqrt{3.4}<2$ 也以概率 $1$ 成立，所以 $Y_n\to 0$ 以概率 $1$ 成立。
+\end{enumerate}
+
+看似矛盾的是，$E(Y_n)\to\infty$，但 $Y_n\to 0$ 以概率 $1$ 成立。为了获得直觉，可以考虑一个极端例子：一名赌徒初始有 $100$ 美元，每天要么资产翻四倍，要么输光所有钱，两种情况概率相等。于是平均而言，赌徒的财富每天翻倍，听起来不错，直到我们注意到终究会有一天赌徒破产。赌徒的实际财富以概率 $1$ 趋于 $0$，而期望值由于极小概率下获得极大金额而趋于无穷，这与圣彼得堡悖论类似。$\square$
+
+\noindent\textbf{注 10.3.8（邪恶的 Cauchy）}\quad 中心极限定理要求 $X_j$ 的均值与方差有限；我们对 WLLN 的证明也依赖同样条件。例 7.1.25 中介绍的 Cauchy 分布没有均值或方差，因此 Cauchy 分布既不服从大数定律，也不服从中心极限定理。可以证明，$n$ 个 Cauchy 随机变量的样本均值仍然服从 Cauchy 分布，无论 $n$ 多大。因此样本均值从不接近正态分布，这与 CLT 中看到的行为相反；也不存在可供 $\bar X_n$ 收敛的真实均值，所以 LLN 同样不适用。
+
+\section*{习题}
+
+\subsection*{不等式}
+
+\begin{enumerate}
+  \item 在一次全国调查中，随机抽取若干人并询问他们是否支持某项政策。假设总体中每个人在每一步被抽到的机会相等，并且抽样是有放回的（无放回抽样通常更现实，但当样本量相对总体很小时，有放回抽样会是很好的近似）。令 $n$ 为样本量，$\hat p$ 与 $p$ 分别为样本中支持该政策者的比例和总体中支持该政策者的比例。证明：对每个 $c>0$，
+  \[
+    P(|\hat p-p|>c)\le \frac{1}{4nc^2}.
+  \]
+
+  \item 对均值为 $\mu$、方差为 $\sigma^2$ 的独立同分布随机变量 $X_1,\ldots,X_n$，给出 $n$ 的一个具体数值，使得样本均值落在真实均值 $\mu$ 的 $2$ 个标准差以内的概率至少为 $99\%$。
+
+  \item 证明：对任意两个正随机变量 $X$ 与 $Y$，若二者都不是另一个的常数倍，则
+  \[
+    E(X/Y)E(Y/X)>1.
+  \]
+
+  \item 著名的\textbf{算术平均--几何平均不等式}说，对任意正数 $a_1,a_2,\ldots,a_n$，
+  \[
+    \frac{a_1+a_2+\cdots+a_n}{n}\ge (a_1a_2\cdots a_n)^{1/n}.
+  \]
+  通过考虑某个随机变量 $X$ 的 $E\log(X)$，说明该不等式可由 Jensen 不等式推出，其中 $X$ 的可能取值为 $a_1,\ldots,a_n$（你应说明 $X$ 的 PMF；若愿意，可以假设 $a_j$ 互不相同，但如果这样假设，需要说明）。
+
+  \item 令 $X$ 为离散随机变量，其不同可能取值为 $x_0,x_1,\ldots$，并令 $p_k=P(X=x_k)$。$X$ 的熵为
+  \[
+    H(X)=\sum_{k=0}^{\infty}p_k\log_2(1/p_k).
+  \]
+  \begin{enumerate}
+    \item 求 $X\sim\operatorname{Geom}(p)$ 时的 $H(X)$。
+    \item 令 $X$ 与 $Y$ 为独立同分布离散随机变量。证明
+    \[
+      P(X=Y)\ge 2^{-H(X)}.
+    \]
+  \end{enumerate}
+  提示：在 (a) 中使用对数性质，并把和式的一部分解释为期望；在 (b) 中考虑 $E(\log_2 W)$，其中 $W$ 以概率 $p_k$ 取值 $p_k$。
+
+  \item 令 $X$ 为均值为 $\mu$、方差为 $\sigma^2$ 的随机变量。证明
+  \[
+    E(X-\mu)^4\ge \sigma^4,
+  \]
+  并据此说明 $X$ 的峰度至少为 $-2$。
+\end{enumerate}
+
+\subsection*{填空不等式}
+
+\begin{enumerate}
+  \setcounter{enumi}{6}
+  \item 令 $X$ 与 $Y$ 为独立同分布正随机变量，并令 $c>0$。对下面每一项，在空白处填入合适的等号或不等号：若两边总相等，写 $=$；若左边小于或等于右边，写 $\le$（但不必总相等）；类似地可写 $\ge$。若一般情形下不存在关系，写 $?$。
+  \begin{enumerate}
+    \item $E(\log X)\ \underline{\hspace{1.5cm}}\ \log(EX)$。
+    \item $E(X)\ \underline{\hspace{1.5cm}}\ \sqrt{E(X^2)}$。
+    \item $E(\sin^2 X)+E(\cos^2 X)\ \underline{\hspace{1.5cm}}\ 1$。
+    \item $E(|X|)\ \underline{\hspace{1.5cm}}\ \sqrt{E(X^2)}$。
+    \item $P(X>c)\ \underline{\hspace{1.5cm}}\ E(X^3)/c^3$。
+    \item $P(X\le Y)\ \underline{\hspace{1.5cm}}\ P(X\ge Y)$。
+    \item $E(XY)\ \underline{\hspace{1.5cm}}\ \sqrt{E(X^2)E(Y^2)}$。
+    \item $P(X+Y>10)\ \underline{\hspace{1.5cm}}\ P(X>5\text{ or }Y>5)$。
+    \item $E(\min(X,Y))\ \underline{\hspace{1.5cm}}\ \min(EX,EY)$。
+    \item $E(X/Y)\ \underline{\hspace{1.5cm}}\ EX/EY$。
+    \item $E(X^2(X^2+1))\ \underline{\hspace{1.5cm}}\ E(X^2(Y^2+1))$。
+    \item $E\left(\frac{X^3}{X^3+Y^3}\right)\ \underline{\hspace{1.5cm}}\ E\left(\frac{Y^3}{X^3+Y^3}\right)$。
+  \end{enumerate}
+
+  \item 对下面每一项，在空白处填入最合适的 $\le,\ge,=$ 或 $?$（其中 $?$ 表示一般情形下不存在关系）。在 (c) 到 (f) 中，$X$ 与 $Y$ 是独立同分布正随机变量。假设出现的期望都存在。
+  \begin{enumerate}
+    \item 两枚公平骰子点数和为 $9$ 的概率 \ \underline{\hspace{1.5cm}}\ 两枚公平骰子点数和为 $10$ 的概率。
+    \item $20$ 次公平抛硬币中至少 $65\%$ 为正面的概率 \ \underline{\hspace{1.5cm}}\ $2000$ 次公平抛硬币中至少 $65\%$ 为正面的概率。
+    \item $E(\sqrt X)\ \underline{\hspace{1.5cm}}\ \sqrt{E(X)}$。
+    \item $E(\sin X)\ \underline{\hspace{1.5cm}}\ \sin(EX)$。
+    \item $P(X+Y>4)\ \underline{\hspace{1.5cm}}\ P(X>2)P(Y>2)$。
+    \item $E((X+Y)^2)\ \underline{\hspace{1.5cm}}\ 2E(X^2)+2(EX)^2$。
+  \end{enumerate}
+
+  \item 令 $X$ 与 $Y$ 为独立同分布连续随机变量。假设下面各表达式都存在。对每一项，在空白处填入最合适的 $\le,\ge,=$ 或 $?$。
+  \begin{enumerate}
+    \item $e^{-E(X)}\ \underline{\hspace{1.5cm}}\ E(e^{-X})$。
+    \item $P(X>Y+3)\ \underline{\hspace{1.5cm}}\ P(Y>X+3)$。
+    \item $P(X>Y+3)\ \underline{\hspace{1.5cm}}\ P(X>Y-3)$。
+    \item $E(X^4)\ \underline{\hspace{1.5cm}}\ (E(XY))^2$。
+    \item $\operatorname{Var}(Y)\ \underline{\hspace{1.5cm}}\ E(\operatorname{Var}(Y\mid X))$。
+    \item $P(|X+Y|>3)\ \underline{\hspace{1.5cm}}\ E|X|$。
+  \end{enumerate}
+
+  \item 令 $X$ 与 $Y$ 为正随机变量，不必独立。假设下面各期望都存在。对每一项，在空白处填入最合适的 $\le,\ge,=$ 或 $?$。
+  \begin{enumerate}
+    \item $(E(XY))^2\ \underline{\hspace{1.5cm}}\ E(X^2)E(Y^2)$。
+    \item $P(|X+Y|>2)\ \underline{\hspace{1.5cm}}\ \frac1{10}E((X+Y)^4)$。
+    \item $E(\log(X+3))\ \underline{\hspace{1.5cm}}\ \log(E(X+3))$。
+    \item $E(X^2e^X)\ \underline{\hspace{1.5cm}}\ E(X^2)E(e^X)$。
+    \item $P(X+Y=2)\ \underline{\hspace{1.5cm}}\ P(X=1)P(Y=1)$。
+    \item $P(X+Y=2)\ \underline{\hspace{1.5cm}}\ P(\{X\ge 1\}\cup\{Y\ge 1\})$。
+  \end{enumerate}
+
+  \item 令 $X$ 与 $Y$ 为正随机变量，不必独立。假设下面各期望都存在。对每一项，在空白处填入最合适的 $\le,\ge,=$ 或 $?$。
+  \begin{enumerate}
+    \item $E(X^3)\ \underline{\hspace{1.5cm}}\ \sqrt{E(X^2)E(X^4)}$。
+    \item $P(|X+Y|>2)\ \underline{\hspace{1.5cm}}\ \frac1{16}E((X+Y)^4)$。
+    \item $E(\sqrt{X+3})\ \underline{\hspace{1.5cm}}\ \sqrt{E(X+3)}$。
+    \item $E(\sin^2 X)+E(\cos^2 X)\ \underline{\hspace{1.5cm}}\ 1$。
+    \item $E(Y\mid X+3)\ \underline{\hspace{1.5cm}}\ E(Y\mid X)$。
+    \item $E(E(Y^2\mid X))\ \underline{\hspace{1.5cm}}\ (EY)^2$。
+  \end{enumerate}
+
+  \item 令 $X$ 与 $Y$ 为正随机变量，不必独立。假设下面各表达式都存在。对每一项，在空白处填入最合适的 $\le,\ge,=$ 或 $?$。
+  \begin{enumerate}
+    \item $P(X+Y>2)\ \underline{\hspace{1.5cm}}\ (EX+EY)/2$。
+    \item $P(X+Y>3)\ \underline{\hspace{1.5cm}}\ P(X>3)$。
+    \item $E(\cos X)\ \underline{\hspace{1.5cm}}\ \cos(EX)$。
+    \item $E(X^{1/3})\ \underline{\hspace{1.5cm}}\ (EX)^{1/3}$。
+    \item $E(X^Y)\ \underline{\hspace{1.5cm}}\ (EX)^{EY}$。
+    \item $E(E(X\mid Y)+E(Y\mid X))\ \underline{\hspace{1.5cm}}\ EX+EY$。
+  \end{enumerate}
+
+  \item 令 $X$ 与 $Y$ 为独立同分布正随机变量。假设下面各表达式都存在。对每一项，在空白处填入最合适的 $\le,\ge,=$ 或 $?$。
+  \begin{enumerate}
+    \item $E(e^{X+Y})\ \underline{\hspace{1.5cm}}\ e^{2E(X)}$。
+    \item $E(X^2e^X)\ \underline{\hspace{1.5cm}}\ \sqrt{E(X^4)E(e^{2X})}$。
+    \item $E(X\mid 3X)\ \underline{\hspace{1.5cm}}\ E(X\mid 2X)$。
+    \item $E(X^7Y)\ \underline{\hspace{1.5cm}}\ E(X^7E(Y\mid X))$。
+    \item $E(X/Y+Y/X)\ \underline{\hspace{1.5cm}}\ 2$。
+    \item $P(|X-Y|>2)\ \underline{\hspace{1.5cm}}\ \operatorname{Var}(X)/2$。
+  \end{enumerate}
+
+  \item 令 $X$ 与 $Y$ 服从 $\operatorname{Gamma}(1/2,1/2)$，且 $Z\sim\mathcal N(0,1)$（注意 $X$ 与 $Z$ 可以相关，$Y$ 与 $Z$ 也可以相关）。对 (a)、(b)、(c)，在空白处填入最合适的 $<,>,=$ 或 $?$；对 (d)、(e)、(f)，在空白处填入最合适的 $\le,\ge,=$ 或 $?$。
+  \begin{enumerate}
+    \item $P(X<Y)\ \underline{\hspace{1.5cm}}\ 1/2$。
+    \item $P(X=Z^2)\ \underline{\hspace{1.5cm}}\ 1$。
+    \item $P\left(Z\ge \frac1{X^4+Y^4+7}\right)\ \underline{\hspace{1.5cm}}\ 1$。
+    \item $E\left(\frac{X}{X+Y}\right)E((X+Y)^2)\ \underline{\hspace{1.5cm}}\ E(X^2)+(E(X))^2$。
+    \item $E(X^2Z^2)\ \underline{\hspace{1.5cm}}\ \sqrt{E(X^4)E(X^2)}$。
+    \item $E((X+2Y)^4)\ \underline{\hspace{1.5cm}}\ 3^4$。
+  \end{enumerate}
+
+  \item 令 $X,Y,Z$ 为独立同分布的 $\mathcal N(0,1)$ 随机变量。对每一项，在空白处填入最合适的 $\le,\ge,=$ 或 $?$。
+  \begin{enumerate}
+    \item $P(X^2+Y^2+Z^2>6)\ \underline{\hspace{1.5cm}}\ 1/2$。
+    \item $P(X^2<1)\ \underline{\hspace{1.5cm}}\ 2/3$。
+    \item $E\left(\frac{X^2}{X^2+Y^2+Z^2}\right)\ \underline{\hspace{1.5cm}}\ 1/4$。
+    \item $\operatorname{Var}(\Phi(X)+\Phi(Y)+\Phi(Z))\ \underline{\hspace{1.5cm}}\ 1/4$。
+    \item $E(e^{-X})\ \underline{\hspace{1.5cm}}\ E(e^X)$。
+    \item $E(|X|e^X)\ \underline{\hspace{1.5cm}}\ \sqrt{E(e^{2X})}$。
+  \end{enumerate}
+
+  \item 令 $X,Y,Z,W$ 为独立同分布的正随机变量，CDF 为 $F$，且 $E(X)=1$。对每一项，在空白处填入最合适的 $\le,\ge,=$ 或 $?$。
+  \begin{enumerate}
+    \item $F(3)\ \underline{\hspace{1.5cm}}\ 2/3$。
+    \item $(F(3))^3\ \underline{\hspace{1.5cm}}\ P(X+Y+Z\le 9)$。
+    \item $E\left(\frac{X^2}{X^2+Y^2+Z^2+W^2}\right)\ \underline{\hspace{1.5cm}}\ 1/4$。
+    \item $E(XYZW)\ \underline{\hspace{1.5cm}}\ E(X^4)$。
+    \item $\operatorname{Var}(E(Y\mid X))\ \underline{\hspace{1.5cm}}\ \operatorname{Var}(Y)$。
+    \item $\operatorname{Cov}(X+Y,X-Y)\ \underline{\hspace{1.5cm}}\ 0$。
+  \end{enumerate}
+
+  \item 令 $X,Y,Z$ 为独立同分布且具有连续分布的随机变量。对每一项，在空白处填入最合适的 $\le,\ge,=$ 或 $?$。
+  \begin{enumerate}
+    \item $P(X<Y<Z)\ \underline{\hspace{1.5cm}}\ 1/6$。
+    \item $P(X>1)\ \underline{\hspace{1.5cm}}\ E(X)$。
+    \item $P\left(\sum_{k=0}^{2015}\left(\frac{X^2+1}{X^2+2}\right)^k>3\right)\ \underline{\hspace{1.5cm}}\ P(X^2>1)$。
+    \item $E(\sqrt{X^2+Y^2})\ \underline{\hspace{1.5cm}}\ \sqrt{E(X^2)+E(Y^2)}$。
+    \item $\operatorname{Var}(Y^2\mid Z)\ \underline{\hspace{1.5cm}}\ \operatorname{Var}(X^2\mid X)$。
+    \item $\operatorname{Var}(X-2Y+3Z)\ \underline{\hspace{1.5cm}}\ 14\operatorname{Var}(X)$。
+  \end{enumerate}
+
+  \item 令 $X,Y,Z\sim\operatorname{Bin}(n,p)$ 独立同分布。对每一项，在空白处填入最合适的 $\le,\ge,=$ 或 $?$。
+  \begin{enumerate}
+    \item $P(X<Y<Z)\ \underline{\hspace{1.5cm}}\ 1/6$。
+    \item $P(X+Y+Z>n)\ \underline{\hspace{1.5cm}}\ 3p$。
+    \item $P\left(\sum_{n=0}^{2016}\frac{(X^2+1)^n}{n!}>e^5\right)\ \underline{\hspace{1.5cm}}\ P(X>2)$。
+    \item $E(e^X)\ \underline{\hspace{1.5cm}}\ (pe+1-p)^n$。
+    \item $\operatorname{Var}(X+Y)\ \underline{\hspace{1.5cm}}\ n/2$。
+    \item $E(X\mid X+Y=n)\ \underline{\hspace{1.5cm}}\ n/2$。
+  \end{enumerate}
+\end{enumerate}
+\begin{enumerate}
+  \setcounter{enumi}{18}
+  \item 令 $X,Y,Z,W\sim\mathcal N(c,c^2)$ 独立同分布，其中 $c>0$。对每一项，在空白处填入最合适的 $\le,\ge,=$ 或 $?$。
+  \begin{enumerate}
+    \item $P(X+Y\le Z-W)\ \underline{\hspace{1.5cm}}\ \Phi(-1)$。
+    \item $P(X^4-Y^8\le Z^4-W^8)\ \underline{\hspace{1.5cm}}\ \Phi(-1)$。
+    \item $E(X-c)^2\ \underline{\hspace{1.5cm}}\ c$。
+    \item $E(X-c)^3\ \underline{\hspace{1.5cm}}\ c$。
+    \item $E(\frac14X^2+X)\ \underline{\hspace{1.5cm}}\ \frac12c^2+c$。
+    \item $\log(E(e^X))\ \underline{\hspace{1.5cm}}\ \frac12c^2+c$。
+  \end{enumerate}
+
+  \item 令 $X,Y\sim\operatorname{Pois}(\lambda)$ 独立同分布，其中 $\lambda>1$。对每一项，在空白处填入最合适的 $\le,\ge,=$ 或 $?$。
+  \begin{enumerate}
+    \item $P(X\le Y)\ \underline{\hspace{1.5cm}}\ 1/2$。
+    \item $P(X+Y\le 1)\ \underline{\hspace{1.5cm}}\ 3e^{-2\lambda}$。
+    \item $E(e^{X+Y})\ \underline{\hspace{1.5cm}}\ e^{2\lambda}$。
+    \item $E(X\mid X+Y=4)\ \underline{\hspace{1.5cm}}\ 2$。
+    \item $\operatorname{Var}(X\mid X+Y=4)\ \underline{\hspace{1.5cm}}\ 1$。
+    \item $E(X^2-Y)\ \underline{\hspace{1.5cm}}\ \lambda^2$。
+  \end{enumerate}
+\end{enumerate}
+
+\subsection*{大数定律与中心极限定理}
+
+\begin{enumerate}
+  \setcounter{enumi}{20}
+  \item 令 $X_1,X_2,\ldots$ 为独立同分布正随机变量，均值为 $2$。令 $Y_1,Y_2,\ldots$ 为独立同分布正随机变量，均值为 $3$。证明
+  \[
+    \frac{X_1+X_2+\cdots+X_n}{Y_1+Y_2+\cdots+Y_n}\to \frac23
+  \]
+  以概率 $1$ 成立。$X_i$ 是否独立于 $Y_j$ 会影响结论吗？
+
+  \item 令 $U_1,U_2,\ldots,U_{60}$ 独立同分布为 $\operatorname{Unif}(0,1)$，并令
+  \[
+    X=U_1+U_2+\cdots+U_{60}.
+  \]
+  \begin{enumerate}
+    \item $X$ 的分布非常接近哪个重要分布？请说明参数，并指出选择该分布的定理依据。
+    \item 给出 $P(X>17)$ 的一个简单而准确的近似，并简要说明理由。
+  \end{enumerate}
+
+  \item 令 $V_n\sim\chi_n^2$，且 $T_n\sim t_n$，对所有正整数 $n$ 成立。
+  \begin{enumerate}
+    \item 求数列 $a_n$ 与 $b_n$，使得 $a_n(V_n-b_n)$ 依分布收敛到 $\mathcal N(0,1)$。
+    \item 不用微积分，证明 $T_n^2/(n+T_n^2)$ 服从 Beta 分布。
+  \end{enumerate}
+
+  \item 令 $T_1,T_2,\ldots$ 为独立同分布的 Student-$t$ 随机变量，自由度为 $m\ge 3$。求常数 $a_n$ 与 $b_n$（用 $m$ 和 $n$ 表示），使得当 $n\to\infty$ 时，$a_n(T_1+T_2+\cdots+T_n-b_n)$ 依分布收敛到 $\mathcal N(0,1)$。
+
+  \item
+  \begin{enumerate}
+    \item 令 $Y=e^X$，其中 $X\sim\operatorname{Expo}(3)$。求 $Y$ 的均值与方差。
+    \item 对独立同分布且与 (a) 中 $Y$ 同分布的 $Y_1,\ldots,Y_n$，当 $n$ 很大时，样本均值
+    \[
+      \bar Y_n=\frac1n\sum_{j=1}^n Y_j
+    \]
+    的近似分布是什么？
+  \end{enumerate}
+
+  \item
+  \begin{enumerate}
+    \item 说明为什么当 $n$ 是很大的正整数时，$\operatorname{Pois}(n)$ 分布近似为正态分布，并说明正态分布的参数。
+    \item Stirling 公式是阶乘的一个惊人准确的近似：
+    \[
+      n!\approx \sqrt{2\pi n}\left(\frac ne\right)^n,
+    \]
+    事实上两边之比在 $n\to\infty$ 时趋于 $1$。利用 (a)，通过把 Poisson 分布近似为正态分布，给出 Stirling 公式的一个快速启发式推导。需要使用连续性修正，先写
+    \[
+      P(N=n)=P(n-1/2<N<n+1/2),
+    \]
+    其中 $N\sim\operatorname{Pois}(n)$。
+  \end{enumerate}
+
+  \item
+  \begin{enumerate}
+    \item 考虑独立同分布的 $\operatorname{Pois}(\lambda)$ 随机变量 $X_1,X_2,\ldots$。$X_j$ 的 MGF 为
+    \[
+      M(t)=e^{\lambda(e^t-1)}.
+    \]
+    求样本均值
+    \[
+      \bar X_n=\frac1n\sum_{j=1}^n X_j
+    \]
+    的 MGF $M_n(t)$。
+    \item 求 $n\to\infty$ 时 $M_n(t)$ 的极限。（你几乎可以不计算而直接使用一个相关定理；也可以使用 (a) 以及当 $x$ 很小时 $e^x\approx 1+x$ 的事实。）
+  \end{enumerate}
+
+  \item 令 $X_n\sim\operatorname{Pois}(n)$，对所有正整数 $n$ 成立。不调用 CLT，用 MGF 证明 $X_n$ 的标准化形式的分布在 $n\to\infty$ 时收敛到正态分布。
+
+  \item 频率派统计中的一个重要概念是\textbf{置信区间}（confidence interval, CI）。假设从带有参数 $\theta$ 的分布中观察到数据 $X$。与 Bayesian 统计不同，$\theta$ 被看作一个固定但未知的常数；它没有先验分布。一个 $95\%$ 置信区间由下界 $L(X)$ 与上界 $U(X)$ 组成，并且对 $\theta$ 的所有可能取值都有
+  \[
+    P(L(X)<\theta<U(X))=0.95.
+  \]
+  注意在上述陈述中，$L(X)$ 与 $U(X)$ 是随机变量，因为它们是随机变量 $X$ 的函数，而 $\theta$ 是常数。定义说随机区间 $(L(X),U(X))$ 有 $95\%$ 的概率包含 $\theta$ 的真实值。
+
+  想象世界各地有一支频率派大军，他们各自独立地生成 $95\%$ 置信区间。第 $j$ 个频率派观察数据 $X_j$，并为参数 $\theta_j$ 构造一个置信区间。证明：若有 $n$ 个这样的频率派，则当 $n\to\infty$ 时，他们的区间中包含对应参数的比例趋近于 $0.95$。
+
+  提示：考虑指示随机变量
+  \[
+    I_j=I(L(X_j)<\theta_j<U(X_j)).
+  \]
+
+  \item 本题把例 10.3.7 推广到更一般的情形。仍假设一只波动很大的股票每天以相等概率上涨 $70\%$ 或下跌 $50\%$，并且不同天之间相互独立。
+  \begin{enumerate}
+    \item 假设某对冲基金经理每天总把当前财富的一半投入该股票。令 $Y_n$ 为她 $n$ 天后的财富，初始财富为 $Y_0=100$。当 $n\to\infty$ 时，$Y_n$ 会怎样？
+    \item 更一般地，假设该基金经理每天总把当前财富的比例 $\alpha$ 投入该股票（在 (a) 中取的是 $\alpha=1/2$）。沿用 (a) 中 $Y_0$ 与 $Y_n$ 的定义，求函数 $g(\alpha)$，使得
+    \[
+      \frac{\log Y_n}{n}\to g(\alpha)
+    \]
+    以概率 $1$ 成立，并证明 $g(\alpha)$ 在 $\alpha=2/7$ 处取到最大值。
+  \end{enumerate}
+\end{enumerate}
+
+\subsection*{综合练习}
+
+\begin{enumerate}
+  \setcounter{enumi}{30}
+  \item 如第 3 章习题 36，某个即将举行选举的国家有 $n$ 名选民，其中 $n$ 是一个很大的偶数。有两名候选人 A 与 B。每个选民独立且以相等概率随机选择投票对象。
+  \begin{enumerate}
+    \item 使用正态近似（带连续性修正），用 $\Phi$ 表示平局概率的近似。
+    \item 对 (a) 中的近似作一阶 Taylor 展开（线性近似），说明平局概率近似为 $1/\sqrt{cn}$，其中 $c$ 是一个需要说明的常数。
+  \end{enumerate}
+
+  \item Cassie 带着 $X_0=1$ 美元进入赌场，并反复玩如下游戏：以概率 $1/3$，她拥有的钱数乘以 $3$；以概率 $2/3$，她拥有的钱数除以 $3$。令 $X_n$ 为玩了 $n$ 次之后她拥有的钱数。例如，$X_1$ 以概率 $1/3$ 等于 $3$，以概率 $2/3$ 等于 $3^{-1}$。
+  \begin{enumerate}
+    \item 计算 $E(X_1)$、$E(X_2)$，以及一般的 $E(X_n)$。
+    \item 当 $n\to\infty$ 时，$E(X_n)$ 会怎样？
+    \item 令 $Y_n$ 为前 $n$ 次游戏中 Cassie 的钱数变为三倍的次数。当 $n\to\infty$ 时，$Y_n/n$ 会怎样？
+    \item 当 $n\to\infty$ 时，$X_n$ 会怎样？
+  \end{enumerate}
+
+  \item 统计和生活中有一个方便的经验法则：
+
+  \[
+    \text{条件化常常会让事情变得更好。}
+  \]
+
+  本题探讨上述经验法则如何用于估计未知参数。令 $\theta$ 为我们希望基于数据 $X_1,X_2,\ldots,X_n$ 估计的未知参数（这些在观测前是随机变量，实验后则“凝固”为数据）。在本题中，$\theta$ 被看作未知常数，而不像 Bayesian 方法中那样被看作随机变量。令 $T_1$ 为 $\theta$ 的一个估计量（这意味着 $T_1$ 是 $X_1,\ldots,X_n$ 的函数，用来估计 $\theta$）。
+
+  一种改进 $T_1$ 的策略如下。假设存在随机变量 $R$，使得 $T_2=E(T_1\mid R)$ 是 $X_1,\ldots,X_n$ 的函数（一般地，$E(T_1\mid R)$ 可能涉及未知量如 $\theta$，那样就不能作为估计量）。还假设 $P(T_1=T_2)<1$，且 $E(T_1^2)$ 有限。
+  \begin{enumerate}
+    \item 用 Jensen 不等式证明，$T_2$ 比 $T_1$ 更好，意义是均方误差更小：
+    \[
+      E(T_2-\theta)^2<E(T_1-\theta)^2.
+    \]
+    提示：对右端使用 Adam 公式。
+    \item 估计量 $T$ 对 $\theta$ 的\textbf{偏差}定义为 $b(T)=E(T)-\theta$。统计中的一个重要恒等式，即\textbf{偏差--方差权衡}的一种形式，说均方误差等于方差加偏差平方：
+    \[
+      E(T-\theta)^2=\operatorname{Var}(T)+(b(T))^2.
+    \]
+    使用这个恒等式和 Eve 公式，给出 (a) 结论的另一种证明。
+    \item 现在假设 $X_1,X_2,\ldots$ 独立同分布，均值为 $\theta$，并考虑特殊情形
+    \[
+      T_1=X_1,\qquad R=\sum_{j=1}^n X_j.
+    \]
+    求 $T_2$ 的简化形式，并检查当 $n\ge 2$ 时它的均方误差低于 $T_1$。还要说明当 $n\to\infty$ 时，$T_1$ 与 $T_2$ 分别会怎样。
+  \end{enumerate}
+
+  \item 一本 $n$ 页的书中，每页的错别字数服从 $\operatorname{Pois}(\lambda)$，其中 $\lambda$ 未知（但不被看作随机变量）。不同页面上的错别字数相互独立。因此有独立同分布的 $X_1,\ldots,X_n\sim\operatorname{Pois}(\lambda)$，其中 $X_j$ 表示第 $j$ 页的错别字数。我们感兴趣的是估计一页没有错别字的概率
+  \[
+    \theta=P(X_j=0)=e^{-\lambda}.
+  \]
+  \begin{enumerate}
+    \item 令
+    \[
+      \bar X_n=\frac1n(X_1+\cdots+X_n).
+    \]
+    证明估计量 $T_n=e^{-\bar X_n}$ 对 $\theta$ 有偏，即证明 $E(T_n)\ne\theta$。估计量与偏差的定义见上一题。
+    \item 证明当 $n\to\infty$ 时，$T_n\to\theta$ 以概率 $1$ 成立。
+    \item 证明
+    \[
+      W=\frac1n(I(X_1=0)+\cdots+I(X_n=0))
+    \]
+    是 $\theta$ 的无偏估计。利用事实 $X_1\mid(X_1+\cdots+X_n=s)\sim\operatorname{Bin}(s,1/n)$，求 $E(W\mid X_1+\cdots+X_n)$。估计量
+    \[
+      \widetilde W=E(W\mid X_1+\cdots+X_n)
+    \]
+    是否也对 $\theta$ 无偏？
+    \item 用 Eve 公式或其他方法证明，$\widetilde W$ 的方差低于 $W$ 的方差，并把这一点与上一题联系起来。
+  \end{enumerate}
+
+  \item 某个二元序列由某种过程生成（随机或确定性均可）。你需要依次预测每个新数字，即先预测下一个数是 $0$ 还是 $1$，然后观察它，再预测下一个数，依此类推。你的每次预测都可以基于该序列到目前为止的全部历史。
+  \begin{enumerate}
+    \item 本小题假设二元序列由独立同分布的 $\operatorname{Bern}(p)$ 随机变量组成，且 $p$ 已知。为了最大化每次预测正确的概率，你的最优策略是什么？使用该策略时，猜对第 $n$ 个值的概率是多少？
+    \item 现在假设二元序列由独立同分布的 $\operatorname{Bern}(p)$ 随机变量组成，但 $p$ 未知。考虑如下策略：第一次预测 $1$；此后，若目前为止 $1$ 的比例至少为 $1/2$，就预测 $1$，否则预测 $0$。求当 $n\to\infty$ 时猜对第 $n$ 个值的概率极限（用 $p$ 表示）。
+    \item 现在假设你采用 (b) 中的策略，但二元序列由一个知道你策略的恶意实体生成。该实体可以怎样做，使你的猜测尽可能经常出错？
+  \end{enumerate}
+
+  \item 令 $X$ 与 $Y$ 为独立标准正态随机变量，并令 $R^2=X^2+Y^2$（其中 $R>0$ 是点 $(X,Y)$ 到原点的距离）。
+  \begin{enumerate}
+    \item $R^2$ 的分布是我们见过的三个重要分布的例子。说明 $R^2$ 是哪三个分布的特例，并给出参数。
+    \item 求 $R$ 的 PDF。
+    \item 用标准正态 CDF $\Phi$ 表示 $P(X>2Y+3)$。
+    \item 计算 $\operatorname{Cov}(R^2,X)$。$R^2$ 与 $X$ 独立吗？
+  \end{enumerate}
+
+  \item 令 $Z_1,\ldots,Z_n\sim\mathcal N(0,1)$ 独立同分布。
+  \begin{enumerate}
+    \item 作为 $Z_1$ 的函数，构造一个 $\operatorname{Expo}(1)$ 随机变量 $X$（答案也可以涉及标准正态 CDF $\Phi$）。
+    \item 令 $Y=e^{-R}$，其中
+    \[
+      R=\sqrt{Z_1^2+\cdots+Z_n^2}.
+    \]
+    写出（但不必计算）$E(Y)$ 的一个积分表达式。
+    \item 令 $X_1=3Z_1-2Z_2$，$X_2=4Z_1+6Z_2$。判断 $X_1$ 与 $X_2$ 是否独立，并说明使用了哪些结果。
+  \end{enumerate}
+
+  \item 令 $X_1,X_2,\ldots$ 为独立同分布正随机变量，均值为 $\mu$，并令
+  \[
+    W_n=\frac{X_1}{X_1+\cdots+X_n}.
+  \]
+  \begin{enumerate}
+    \item 求 $E(W_n)$。
+
+    提示：考虑
+    \[
+      \frac{X_1}{X_1+\cdots+X_n}
+      +\frac{X_2}{X_1+\cdots+X_n}
+      +\cdots+
+      \frac{X_n}{X_1+\cdots+X_n}.
+    \]
+    \item 当 $n\to\infty$ 时，$nW_n$ 以概率 $1$ 收敛到哪个随机变量？
+    \item 若 $X_j\sim\operatorname{Expo}(\lambda)$，求 $W_n$ 的分布，最好不用微积分。（若它是本书中学过的命名分布之一，请给出名称并说明参数；否则给出 PDF。）
+  \end{enumerate}
+
+  \item 令 $X_1,X_2,\ldots$ 独立同分布为 $\operatorname{Expo}(1)$。
+  \begin{enumerate}
+    \item 令
+    \[
+      N=\min\{n:X_n\ge 1\}
+    \]
+    为第一个超过 $1$ 的 $X_j$ 的下标。求 $N-1$ 的分布（给出名称和参数），并据此求 $E(N)$。
+    \item 令
+    \[
+      M=\min\{n:X_1+X_2+\cdots+X_n\ge 10\}
+    \]
+    为观察到的 $X_j$ 个数，直到它们的和首次超过 $10$。求 $M-1$ 的分布（给出名称和参数），并据此求 $E(M)$。
+
+    提示：考虑 Poisson 过程。
+    \item 令
+    \[
+      \bar X_n=\frac{X_1+\cdots+X_n}{n}.
+    \]
+    求 $\bar X_n$ 的精确分布（给出名称和参数），以及当 $n$ 很大时 $\bar X_n$ 的近似分布（给出名称和参数）。
+  \end{enumerate}
+\end{enumerate}
+
+\end{document}

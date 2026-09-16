@@ -1,0 +1,766 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\title{机器学习}
+\author{}
+\date{}
+
+\renewcommand{\thefigure}{6.\arabic{figure}}
+
+\begin{document}
+
+\maketitle
+
+\section*{第 6 章\quad 逻辑斯谛回归与最大熵模型}
+
+逻辑斯谛回归（logistic regression）是统计学习中的经典分类方法。最大熵是概率模型学习的一个准则，将其推广到分类问题得到最大熵模型（maximum entropy model）。逻辑斯谛回归模型与最大熵模型都属于对数线性模型。本章首先介绍逻辑斯谛回归模型，然后介绍最大熵模型，最后讲述逻辑斯谛回归与最大熵模型的学习算法，包括改进的迭代尺度算法和拟牛顿法。
+
+\subsection*{6.1\quad 逻辑斯谛回归模型}
+
+\subsection*{6.1.1\quad 逻辑斯谛分布}
+
+首先介绍逻辑斯谛分布（logistic distribution）。
+
+\noindent\textbf{定义 6.1（逻辑斯谛分布）}\quad
+设 $X$ 是连续随机变量，$X$ 服从逻辑斯谛分布是指 $X$ 具有下列分布函数和密度函数：
+\begin{equation}
+F(x)=P(X\leq x)=\frac{1}{1+e^{-(x-\mu)/\gamma}}
+\tag{6.1}
+\end{equation}
+\begin{equation}
+f(x)=F'(x)=\frac{e^{-(x-\mu)/\gamma}}{\gamma(1+e^{-(x-\mu)/\gamma})^2}
+\tag{6.2}
+\end{equation}
+式中，$\mu$ 为位置参数，$\gamma>0$ 为形状参数。
+
+逻辑斯谛分布的密度函数 $f(x)$ 和分布函数 $F(x)$ 的图形如图 6.1 所示。分布函数属于逻辑斯谛函数，其图形是一条 S 形曲线（sigmoid curve）。该曲线以点 $\left(\mu,\frac{1}{2}\right)$ 为中心对称，即满足
+\[
+F(-x+\mu)-\frac{1}{2}=-F(x+\mu)+\frac{1}{2}
+\]
+曲线在中心附近增长速度较快，在两端增长速度较慢。形状参数 $\gamma$ 的值越小，曲线在中心附近增长得越快。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.68\textwidth]{math/机器学习/6-1.png}
+\caption{逻辑斯谛分布的密度函数与分布函数}
+\end{figure}
+
+\subsection*{6.1.2\quad 二项逻辑斯谛回归模型}
+
+二项逻辑斯谛回归模型（binomial logistic regression model）是一种分类模型，由条件概率分布 $P(Y|X)$ 表示，形式为参数化的逻辑斯谛分布。这里，随机变量 $X$ 取值为实数，随机变量 $Y$ 取值为 1 或 0。我们通过监督学习的方法来估计模型参数。
+
+\noindent\textbf{定义 6.2（逻辑斯谛回归模型）}\quad
+二项逻辑斯谛回归模型是如下的条件概率分布：
+\begin{equation}
+P(Y=1|x)=\frac{\exp(w\cdot x+b)}{1+\exp(w\cdot x+b)}
+\tag{6.3}
+\end{equation}
+\begin{equation}
+P(Y=0|x)=\frac{1}{1+\exp(w\cdot x+b)}
+\tag{6.4}
+\end{equation}
+这里，$x\in\mathbf{R}^n$ 是输入，$Y\in\{0,1\}$ 是输出，$w\in\mathbf{R}^n$ 和 $b\in\mathbf{R}$ 是参数，$w$ 称为权值向量，$b$ 称为偏置，$w\cdot x$ 为 $w$ 和 $x$ 的内积。
+
+对于给定的输入实例 $x$，按照式（6.3）和式（6.4）可以求得 $P(Y=1|x)$ 和 $P(Y=0|x)$。逻辑斯谛回归比较两个条件概率值的大小，将实例 $x$ 分到概率值较大的那一类。
+
+有时为了方便，将权值向量和输入向量加以扩充，仍记作 $w,x$，即 $w=(w^{(1)},w^{(2)},\cdots,w^{(n)},b)^{\mathrm{T}}$，$x=(x^{(1)},x^{(2)},\cdots,x^{(n)},1)^{\mathrm{T}}$。这时，逻辑斯谛回归模型如下：
+\begin{equation}
+P(Y=1|x)=\frac{\exp(w\cdot x)}{1+\exp(w\cdot x)}
+\tag{6.5}
+\end{equation}
+\begin{equation}
+P(Y=0|x)=\frac{1}{1+\exp(w\cdot x)}
+\tag{6.6}
+\end{equation}
+
+现在考查逻辑斯谛回归模型的特点。一个事件的几率（odds）是指该事件发生的概率与该事件不发生的概率的比值。如果事件发生的概率是 $p$，那么该事件的几率是 $\frac{p}{1-p}$，该事件的对数几率（log odds）或 logit 函数是
+\[
+\operatorname{logit}(p)=\log\frac{p}{1-p}
+\]
+对逻辑斯谛回归而言，由式（6.5）与式（6.6）得
+\[
+\log\frac{P(Y=1|x)}{1-P(Y=1|x)}=w\cdot x
+\]
+这就是说，在逻辑斯谛回归模型中，输出 $Y=1$ 的对数几率是输入 $x$ 的线性函数。或者说，输出 $Y=1$ 的对数几率是由输入 $x$ 的线性函数表示的模型，即逻辑斯谛回归模型。
+
+换一个角度看，考虑对输入 $x$ 进行分类的线性函数 $w\cdot x$，其值域为实数域。注意，这里 $x\in\mathbf{R}^{n+1}$，$w\in\mathbf{R}^{n+1}$。通过逻辑斯谛回归模型定义式（6.5）可以将线性函数 $w\cdot x$ 转换为概率：
+\[
+P(Y=1|x)=\frac{\exp(w\cdot x)}{1+\exp(w\cdot x)}
+\]
+这时，线性函数的值越接近正无穷，概率值就越接近 1；线性函数的值越接近负无穷，概率值就越接近 0（如图 6.1 所示）。这样的模型就是逻辑斯谛回归模型。
+
+\subsection*{6.1.3\quad 模型参数估计}
+
+逻辑斯谛回归模型学习时，对于给定的训练数据集 $T=\{(x_1,y_1),(x_2,y_2),\cdots,(x_N,y_N)\}$，其中，$x_i\in\mathbf{R}^n$，$y_i\in\{0,1\}$，可以应用极大似然估计法估计模型参数，从而得到逻辑斯谛回归模型。
+
+设：
+\[
+P(Y=1|x)=\pi(x),\qquad P(Y=0|x)=1-\pi(x)
+\]
+似然函数为
+\[
+\prod_{i=1}^N[\pi(x_i)]^{y_i}[1-\pi(x_i)]^{1-y_i}
+\]
+对数似然函数为
+\[
+\begin{aligned}
+L(w)&=\sum_{i=1}^N[y_i\log\pi(x_i)+(1-y_i)\log(1-\pi(x_i))]\\
+&=\sum_{i=1}^N\left[y_i\log\frac{\pi(x_i)}{1-\pi(x_i)}+\log(1-\pi(x_i))\right]\\
+&=\sum_{i=1}^N[y_i(w\cdot x_i)-\log(1+\exp(w\cdot x_i))]
+\end{aligned}
+\]
+对 $L(w)$ 求极大值，得到 $w$ 的估计值。
+
+这样，问题就变成了以对数似然函数为目标函数的最优化问题。逻辑斯谛回归学习中通常采用的方法是梯度下降法及拟牛顿法。
+
+假设 $w$ 的极大似然估计值是 $\hat{w}$，那么学到的逻辑斯谛回归模型为
+\[
+P(Y=1|x)=\frac{\exp(\hat{w}\cdot x)}{1+\exp(\hat{w}\cdot x)}
+\]
+\[
+P(Y=0|x)=\frac{1}{1+\exp(\hat{w}\cdot x)}
+\]
+
+\subsection*{6.1.4\quad 多项逻辑斯谛回归}
+
+上面介绍的逻辑斯谛回归模型是二项分类模型，用于二类分类。可以将其推广为多项逻辑斯谛回归模型（multi-nominal logistic regression model），用于多类分类。假设离散型随机变量 $Y$ 的取值集合是 $\{1,2,\cdots,K\}$，那么多项逻辑斯谛回归模型是
+\begin{equation}
+P(Y=k|x)=\frac{\exp(w_k\cdot x)}{1+\sum_{k=1}^{K-1}\exp(w_k\cdot x)},\quad k=1,2,\cdots,K-1
+\tag{6.7}
+\end{equation}
+\begin{equation}
+P(Y=K|x)=\frac{1}{1+\sum_{k=1}^{K-1}\exp(w_k\cdot x)}
+\tag{6.8}
+\end{equation}
+这里，$x\in\mathbf{R}^{n+1}$，$w_k\in\mathbf{R}^{n+1}$。
+
+二项逻辑斯谛回归的参数估计法也可以推广到多项逻辑斯谛回归。
+
+\subsection*{6.2\quad 最大熵模型}
+
+最大熵模型（maximum entropy model）由最大熵原理推导实现。这里首先叙述一般的最大熵原理，然后讲解最大熵模型的推导，最后给出最大熵模型学习的形式。
+
+\subsection*{6.2.1\quad 最大熵原理}
+
+最大熵原理是概率模型学习的一个准则。最大熵原理认为，学习概率模型时，在所有可能的概率模型（分布）中，熵最大的模型是最好的模型。通常用约束条件来确定概率模型的集合，所以，最大熵原理也可以表述为在满足约束条件的模型集合中选取熵最大的模型。
+
+假设离散随机变量 $X$ 的概率分布是 $P(X)$，则其熵（参照 5.2.2 节）是
+\begin{equation}
+H(P)=-\sum_x P(x)\log P(x)
+\tag{6.9}
+\end{equation}
+熵满足下列不等式：
+\[
+0\leq H(P)\leq \log |X|
+\]
+式中，$|X|$ 是 $X$ 的取值个数，当且仅当 $X$ 的分布是均匀分布时右边的等号成立。这就是说，当 $X$ 服从均匀分布时，熵最大。
+
+直观地，最大熵原理认为要选择的概率模型首先必须满足已有的事实，即约束条件。在没有更多信息的情况下，那些不确定的部分都是“等可能的”。最大熵原理通过熵的最大化来表示等可能性。“等可能”不容易操作，而熵则是一个可优化的数值指标。
+
+首先，通过一个简单的例子来介绍一下最大熵原理\footnote{此例来自参考文献 [1]。}。
+
+\noindent\textbf{例 6.1}\quad
+假设随机变量 $X$ 有 5 个取值 $\{A,B,C,D,E\}$，要估计取各个值的概率 $P(A),P(B),P(C),P(D),P(E)$。
+
+\noindent\textbf{解}\quad
+这些概率值满足以下约束条件：
+\[
+P(A)+P(B)+P(C)+P(D)+P(E)=1
+\]
+满足这个约束条件的概率分布有无穷多个。如果没有任何其他信息，仍要对概率分布进行估计，一个办法就是认为这个分布中取各个值的概率是相等的：
+\[
+P(A)=P(B)=P(C)=P(D)=P(E)=\frac{1}{5}
+\]
+等概率表示了对事实的无知。因为没有更多的信息，这种判断是合理的。
+
+有时，能从一些先验知识中得到一些对概率值的约束条件，例如：
+\[
+P(A)+P(B)=\frac{3}{10}
+\]
+\[
+P(A)+P(B)+P(C)+P(D)+P(E)=1
+\]
+满足这两个约束条件的概率分布仍然有无穷多个。在缺少其他信息的情况下，可以认为 $A$ 与 $B$ 是等概率的，$C,D$ 与 $E$ 是等概率的，于是，
+\[
+P(A)=P(B)=\frac{3}{20}
+\]
+\[
+P(C)=P(D)=P(E)=\frac{7}{30}
+\]
+如果还有第 3 个约束条件：
+\[
+P(A)+P(C)=\frac{1}{2}
+\]
+\[
+P(A)+P(B)=\frac{3}{10}
+\]
+\[
+P(A)+P(B)+P(C)+P(D)+P(E)=1
+\]
+可以继续按照满足约束条件下求等概率的方法估计概率分布。这里不再继续讨论。以上概率模型学习的方法正是遵循了最大熵原理。
+
+图 6.2 提供了用最大熵原理进行概率模型选择的几何解释。概率模型集合 $\mathcal{P}$ 可由欧氏空间中的单纯形（simplex）\footnote{单纯形是在 $n$ 维欧氏空间中的 $n+1$ 个仿射无关的点的集合的凸包。}表示，如左图的三角形（2-单纯形）。一个点代表一个模型，整个单纯形代表模型集合。右图上的一条直线对应于一个约束条件，直线的交集对应于满足所有约束条件的模型集合。一般地，这样的模型仍有无穷多个。学习的目的是在可能的模型集合中选择最优模型，而最大熵原理则给出最优模型选择的一个准则。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.68\textwidth]{math/机器学习/6-2.png}
+\caption{概率模型集合}
+\end{figure}
+
+\subsection*{6.2.2\quad 最大熵模型的定义}
+
+最大熵原理是统计学习的一般原理，将它应用到分类得到最大熵模型。
+
+假设分类模型是一个条件概率分布 $P(Y|X)$，$X\in\mathcal{X}\subseteq\mathbf{R}^n$ 表示输入，$Y\in\mathcal{Y}$ 表示输出，$\mathcal{X}$ 和 $\mathcal{Y}$ 分别是输入和输出的集合。这个模型表示的是对于给定的输入 $X$，以条件概率 $P(Y|X)$ 输出 $Y$。
+
+给定一个训练数据集
+\[
+T=\{(x_1,y_1),(x_2,y_2),\cdots,(x_N,y_N)\}
+\]
+学习的目标是用最大熵原理选择最好的分类模型。
+
+首先考虑模型应该满足的条件。给定训练数据集，可以确定联合分布 $P(X,Y)$ 的经验分布和边缘分布 $P(X)$ 的经验分布，分别以 $\tilde{P}(X,Y)$ 和 $\tilde{P}(X)$ 表示。这里，
+\[
+\tilde{P}(X=x,Y=y)=\frac{\nu(X=x,Y=y)}{N}
+\]
+\[
+\tilde{P}(X=x)=\frac{\nu(X=x)}{N}
+\]
+其中，$\nu(X=x,Y=y)$ 表示训练数据中样本 $(x,y)$ 出现的频数，$\nu(X=x)$ 表示训练数据中输入 $x$ 出现的频数，$N$ 表示训练样本容量。
+
+用特征函数（feature function）$f(x,y)$ 描述输入 $x$ 和输出 $y$ 之间的某一个事实。其定义是
+\[
+f(x,y)=
+\begin{cases}
+1, & x\text{ 与 }y\text{ 满足某一事实}\\
+0, & \text{否则}
+\end{cases}
+\]
+它是一个二值函数\footnote{一般地，特征函数可以是任意实值函数。}，当 $x$ 和 $y$ 满足这个事实时取值为 1，否则取值为 0。
+
+特征函数 $f(x,y)$ 关于经验分布 $\tilde{P}(X,Y)$ 的期望值，用 $E_{\tilde{P}}(f)$ 表示：
+\[
+E_{\tilde{P}}(f)=\sum_{x,y}\tilde{P}(x,y)f(x,y)
+\]
+特征函数 $f(x,y)$ 关于模型 $P(Y|X)$ 与经验分布 $\tilde{P}(X)$ 的期望值，用 $E_P(f)$ 表示：
+\[
+E_P(f)=\sum_{x,y}\tilde{P}(x)P(y|x)f(x,y)
+\]
+如果模型能够获取训练数据中的信息，那么就可以假设这两个期望值相等，即
+\begin{equation}
+E_P(f)=E_{\tilde{P}}(f)
+\tag{6.10}
+\end{equation}
+或
+\begin{equation}
+\sum_{x,y}\tilde{P}(x)P(y|x)f(x,y)=\sum_{x,y}\tilde{P}(x,y)f(x,y)
+\tag{6.11}
+\end{equation}
+我们将式（6.10）或式（6.11）作为模型学习的约束条件。假如有 $n$ 个特征函数 $f_i(x,y)$，$i=1,2,\cdots,n$，那么就有 $n$ 个约束条件。
+
+\noindent\textbf{定义 6.3（最大熵模型）}\quad
+假设满足所有约束条件的模型集合为
+\begin{equation}
+C\equiv\{P\in\mathcal{P}\mid E_P(f_i)=E_{\tilde{P}}(f_i),\ i=1,2,\cdots,n\}
+\tag{6.12}
+\end{equation}
+定义在条件概率分布 $P(Y|X)$ 上的条件熵为
+\begin{equation}
+H(P)=-\sum_{x,y}\tilde{P}(x)P(y|x)\log P(y|x)
+\tag{6.13}
+\end{equation}
+则模型集合 $C$ 中条件熵 $H(P)$ 最大的模型称为最大熵模型。式中的对数为自然对数。
+
+\subsection*{6.2.3\quad 最大熵模型的学习}
+
+最大熵模型的学习过程就是求解最大熵模型的过程。最大熵模型的学习可以形式化为约束最优化问题。
+
+对于给定的训练数据集 $T=\{(x_1,y_1),(x_2,y_2),\cdots,(x_N,y_N)\}$ 以及特征函数 $f_i(x,y)$，$i=1,2,\cdots,n$，最大熵模型的学习等价于约束最优化问题：
+\[
+\begin{aligned}
+\max_{P\in C}\quad &H(P)=-\sum_{x,y}\tilde{P}(x)P(y|x)\log P(y|x)\\
+\mathrm{s.t.}\quad &E_P(f_i)=E_{\tilde{P}}(f_i),\quad i=1,2,\cdots,n\\
+&\sum_y P(y|x)=1
+\end{aligned}
+\]
+按照最优化问题的习惯，将求最大值问题改写为等价的求最小值问题：
+\begin{equation}
+\min_{P\in C}\ -H(P)=\sum_{x,y}\tilde{P}(x)P(y|x)\log P(y|x)
+\tag{6.14}
+\end{equation}
+\begin{equation}
+\mathrm{s.t.}\quad E_P(f_i)-E_{\tilde{P}}(f_i)=0,\quad i=1,2,\cdots,n
+\tag{6.15}
+\end{equation}
+\begin{equation}
+\sum_y P(y|x)=1
+\tag{6.16}
+\end{equation}
+求解约束最优化问题（6.14）--（6.16），所得出的解，就是最大熵模型学习的解。下面给出具体推导。
+
+这里，将约束最优化的原始问题转换为无约束最优化的对偶问题\footnote{参阅附录 C。}。通过求解对偶问题求解原始问题。
+
+首先，引进拉格朗日乘子 $w_0,w_1,w_2,\cdots,w_n$，定义拉格朗日函数 $L(P,w)$：
+\begin{equation}
+\begin{aligned}
+L(P,w)\equiv{}& -H(P)+w_0\left(1-\sum_y P(y|x)\right)+\sum_{i=1}^n w_i\left(E_{\tilde{P}}(f_i)-E_P(f_i)\right)\\
+={}& \sum_{x,y}\tilde{P}(x)P(y|x)\log P(y|x)+w_0\left(1-\sum_y P(y|x)\right)\\
+&+\sum_{i=1}^n w_i\left(\sum_{x,y}\tilde{P}(x,y)f_i(x,y)-\sum_{x,y}\tilde{P}(x)P(y|x)f_i(x,y)\right)
+\end{aligned}
+\tag{6.17}
+\end{equation}
+最优化的原始问题是
+\begin{equation}
+\min_{P\in C}\max_w L(P,w)
+\tag{6.18}
+\end{equation}
+对偶问题是
+\begin{equation}
+\max_w\min_{P\in C}L(P,w)
+\tag{6.19}
+\end{equation}
+由于拉格朗日函数 $L(P,w)$ 是 $P$ 的凸函数，原始问题（6.18）的解与对偶问题（6.19）的解是等价的。这样，可以通过求解对偶问题（6.19）来求解原始问题（6.18）。
+
+首先，求解对偶问题（6.19）内部的极小化问题 $\min_{P\in C}L(P,w)$。$\min_{P\in C}L(P,w)$ 是 $w$ 的函数，将其记作
+\begin{equation}
+\Psi(w)=\min_{P\in C}L(P,w)=L(P_w,w)
+\tag{6.20}
+\end{equation}
+$\Psi(w)$ 称为对偶函数。同时，将其解记作
+\begin{equation}
+P_w=\arg\min_{P\in C}L(P,w)=P_w(y|x)
+\tag{6.21}
+\end{equation}
+具体地，求 $L(P,w)$ 对 $P(y|x)$ 的偏导数
+\[
+\begin{aligned}
+\frac{\partial L(P,w)}{\partial P(y|x)}
+&=\sum_{x,y}\tilde{P}(x)(\log P(y|x)+1)-\sum_y w_0-\sum_{x,y}\left(\tilde{P}(x)\sum_{i=1}^n w_i f_i(x,y)\right)\\
+&=\sum_{x,y}\tilde{P}(x)\left(\log P(y|x)+1-w_0-\sum_{i=1}^n w_i f_i(x,y)\right)
+\end{aligned}
+\]
+令偏导数等于 0，在 $\tilde{P}(x)>0$ 的情况下，解得
+\[
+P(y|x)=\exp\left(\sum_{i=1}^n w_i f_i(x,y)+w_0-1\right)
+=\frac{\exp\left(\sum_{i=1}^n w_i f_i(x,y)\right)}{\exp(1-w_0)}
+\]
+由于 $\sum_y P(y|x)=1$，得
+\begin{equation}
+P_w(y|x)=\frac{1}{Z_w(x)}\exp\left(\sum_{i=1}^n w_i f_i(x,y)\right)
+\tag{6.22}
+\end{equation}
+其中，
+\begin{equation}
+Z_w(x)=\sum_y\exp\left(\sum_{i=1}^n w_i f_i(x,y)\right)
+\tag{6.23}
+\end{equation}
+$Z_w(x)$ 称为规范化因子；$f_i(x,y)$ 是特征函数；$w_i$ 是特征的权值。由式（6.22）、式（6.23）表示的模型 $P_w=P_w(y|x)$ 就是最大熵模型。这里，$w$ 是最大熵模型中的参数向量。
+
+之后，求解对偶问题外部的极大化问题
+\begin{equation}
+\max_w\Psi(w)
+\tag{6.24}
+\end{equation}
+将其解记为 $w^*$，即
+\begin{equation}
+w^*=\arg\max_w\Psi(w)
+\tag{6.25}
+\end{equation}
+这就是说，可以应用最优化算法求对偶函数 $\Psi(w)$ 的极大化，得到 $w^*$，用来表示 $P^*\in C$。这里，$P^*=P_{w^*}=P_{w^*}(y|x)$ 是学习到的最优模型（最大熵模型）。也就是说，最大熵模型的学习归结为对偶函数 $\Psi(w)$ 的极大化。
+
+\noindent\textbf{例 6.2}\quad
+学习例 6.1 中的最大熵模型。
+
+\noindent\textbf{解}\quad
+为了方便，分别以 $y_1,y_2,y_3,y_4,y_5$ 表示 $A,B,C,D$ 和 $E$，于是最大熵模型学习的最优化问题是
+\[
+\begin{aligned}
+\min\quad &-H(P)=\sum_{i=1}^5 P(y_i)\log P(y_i)\\
+\mathrm{s.t.}\quad &P(y_1)+P(y_2)=\tilde{P}(y_1)+\tilde{P}(y_2)=\frac{3}{10}\\
+&\sum_{i=1}^5 P(y_i)=\sum_{i=1}^5\tilde{P}(y_i)=1
+\end{aligned}
+\]
+引进拉格朗日乘子 $w_0,w_1$，定义拉格朗日函数
+\[
+L(P,w)=\sum_{i=1}^5P(y_i)\log P(y_i)+w_1\left(P(y_1)+P(y_2)-\frac{3}{10}\right)
++w_0\left(\sum_{i=1}^5P(y_i)-1\right)
+\]
+根据拉格朗日对偶性，可以通过求解对偶最优化问题得到原始最优化问题的解，所以求解
+\[
+\max_w\min_P L(P,w)
+\]
+首先求解 $L(P,w)$ 关于 $P$ 的极小化问题。为此，固定 $w_0,w_1$，求偏导数：
+\[
+\frac{\partial L(P,w)}{\partial P(y_1)}=1+\log P(y_1)+w_1+w_0
+\]
+\[
+\frac{\partial L(P,w)}{\partial P(y_2)}=1+\log P(y_2)+w_1+w_0
+\]
+\[
+\frac{\partial L(P,w)}{\partial P(y_3)}=1+\log P(y_3)+w_0
+\]
+\[
+\frac{\partial L(P,w)}{\partial P(y_4)}=1+\log P(y_4)+w_0
+\]
+\[
+\frac{\partial L(P,w)}{\partial P(y_5)}=1+\log P(y_5)+w_0
+\]
+令各偏导数等于 0，解得
+\[
+P(y_1)=P(y_2)=e^{-w_1-w_0-1}
+\]
+\[
+P(y_3)=P(y_4)=P(y_5)=e^{-w_0-1}
+\]
+于是，
+\[
+\min_P L(P,w)=L(P_w,w)=-2e^{-w_1-w_0-1}-3e^{-w_0-1}-\frac{3}{10}w_1-w_0
+\]
+再求解 $L(P_w,w)$ 关于 $w$ 的极大化问题：
+\[
+\max_w L(P_w,w)=-2e^{-w_1-w_0-1}-3e^{-w_0-1}-\frac{3}{10}w_1-w_0
+\]
+分别求 $L(P_w,w)$ 对 $w_0,w_1$ 的偏导数并令其为 0，得到
+\[
+e^{-w_1-w_0-1}=\frac{3}{20}
+\]
+\[
+e^{-w_0-1}=\frac{7}{30}
+\]
+于是得到所要求的概率分布为
+\[
+P(y_1)=P(y_2)=\frac{3}{20}
+\]
+\[
+P(y_3)=P(y_4)=P(y_5)=\frac{7}{30}
+\]
+
+\subsection*{6.2.4\quad 极大似然估计}
+
+从以上最大熵模型学习中可以看出，最大熵模型是由式（6.22）、式（6.23）表示的条件概率分布。下面证明对偶函数的极大化等价于最大熵模型的极大似然估计。
+
+已知训练数据的经验概率分布 $\tilde{P}(X,Y)$，条件概率分布 $P(Y|X)$ 的对数似然函数表示为
+\[
+L_{\tilde{P}}(P_w)=\log\prod_{x,y}P(y|x)^{\tilde{P}(x,y)}
+=\sum_{x,y}\tilde{P}(x,y)\log P(y|x)
+\]
+当条件概率分布 $P(y|x)$ 是最大熵模型（6.22）和（6.23）时，对数似然函数 $L_{\tilde{P}}(P_w)$ 为
+\begin{equation}
+\begin{aligned}
+L_{\tilde{P}}(P_w)
+&=\sum_{x,y}\tilde{P}(x,y)\log P(y|x)\\
+&=\sum_{x,y}\tilde{P}(x,y)\sum_{i=1}^n w_i f_i(x,y)-\sum_{x,y}\tilde{P}(x,y)\log Z_w(x)\\
+&=\sum_{x,y}\tilde{P}(x,y)\sum_{i=1}^n w_i f_i(x,y)-\sum_x\tilde{P}(x)\log Z_w(x)
+\end{aligned}
+\tag{6.26}
+\end{equation}
+再看对偶函数 $\Psi(w)$。由式（6.17）及式（6.20）可得
+\begin{equation}
+\begin{aligned}
+\Psi(w)
+={}&\sum_{x,y}\tilde{P}(x)P_w(y|x)\log P_w(y|x)\\
+&+\sum_{i=1}^n w_i\left(\sum_{x,y}\tilde{P}(x,y)f_i(x,y)-\sum_{x,y}\tilde{P}(x)P_w(y|x)f_i(x,y)\right)\\
+={}&\sum_{x,y}\tilde{P}(x,y)\sum_{i=1}^n w_i f_i(x,y)
++\sum_{x,y}\tilde{P}(x)P_w(y|x)\left(\log P_w(y|x)-\sum_{i=1}^n w_i f_i(x,y)\right)\\
+={}&\sum_{x,y}\tilde{P}(x,y)\sum_{i=1}^n w_i f_i(x,y)-\sum_{x,y}\tilde{P}(x)P_w(y|x)\log Z_w(x)\\
+={}&\sum_{x,y}\tilde{P}(x,y)\sum_{i=1}^n w_i f_i(x,y)-\sum_x\tilde{P}(x)\log Z_w(x)
+\end{aligned}
+\tag{6.27}
+\end{equation}
+最后一步用到 $\sum_y P(y|x)=1$。
+
+比较式（6.26）和式（6.27），可得
+\[
+\Psi(w)=L_{\tilde{P}}(P_w)
+\]
+既然对偶函数 $\Psi(w)$ 等价于对数似然函数 $L_{\tilde{P}}(P_w)$，于是证明了最大熵模型学习中的对偶函数极大化等价于最大熵模型的极大似然估计这一事实。
+
+这样，最大熵模型的学习问题就转换为具体求解对数似然函数极大化或对偶函数极大化的问题。
+
+可以将最大熵模型写成更一般的形式。
+\begin{equation}
+P_w(y|x)=\frac{1}{Z_w(x)}\exp\left(\sum_{i=1}^n w_i f_i(x,y)\right)
+\tag{6.28}
+\end{equation}
+其中，
+\begin{equation}
+Z_w(x)=\sum_y\exp\left(\sum_{i=1}^n w_i f_i(x,y)\right)
+\tag{6.29}
+\end{equation}
+这里，$x\in\mathbf{R}^n$ 为输入，$y\in\{1,2,\cdots,K\}$ 为输出，$w\in\mathbf{R}^n$ 为权值向量，$f_i(x,y)$，$i=1,2,\cdots,n$ 为任意实值特征函数。
+
+最大熵模型与逻辑斯谛回归模型有类似的形式，它们又称为对数线性模型（log linear model）。模型学习就是在给定的训练数据条件下对模型进行极大似然估计或正则化的极大似然估计。
+
+\subsection*{6.3\quad 模型学习的最优化算法}
+
+逻辑斯谛回归模型、最大熵模型学习归结为以似然函数为目标函数的最优化问题，通常通过迭代算法求解。从最优化的观点看，这时的目标函数具有很好的性质。它是光滑的凸函数，因此多种最优化的方法都适用，保证能找到全局最优解。常用的方法有改进的迭代尺度法、梯度下降法、牛顿法或拟牛顿法。牛顿法或拟牛顿法一般收敛速度更快。
+
+下面介绍基于改进的迭代尺度法与拟牛顿法的最大熵模型学习算法。梯度下降法参阅附录 A。
+
+\subsection*{6.3.1\quad 改进的迭代尺度法}
+
+改进的迭代尺度法（improved iterative scaling，IIS）是一种最大熵模型学习的最优化算法。
+
+已知最大熵模型为
+\[
+P_w(y|x)=\frac{1}{Z_w(x)}\exp\left(\sum_{i=1}^n w_i f_i(x,y)\right)
+\]
+其中，
+\[
+Z_w(x)=\sum_y\exp\left(\sum_{i=1}^n w_i f_i(x,y)\right)
+\]
+对数似然函数为
+\[
+L(w)=\sum_{x,y}\tilde{P}(x,y)\sum_{i=1}^n w_i f_i(x,y)-\sum_x\tilde{P}(x)\log Z_w(x)
+\]
+目标是通过极大似然估计学习模型参数，即求对数似然函数的极大值 $\hat{w}$。
+
+IIS 的想法是：假设最大熵模型当前的参数向量是 $w=(w_1,w_2,\cdots,w_n)^{\mathrm{T}}$，我们希望找到一个新的参数向量 $w+\delta=(w_1+\delta_1,w_2+\delta_2,\cdots,w_n+\delta_n)^{\mathrm{T}}$，使得模型的对数似然函数值增大。如果能有这样一种参数向量更新的方法 $\tau:w\to w+\delta$，那么就可以重复使用这一方法，直至找到对数似然函数的最大值。
+
+对于给定的经验分布 $\tilde{P}(x,y)$，模型参数从 $w$ 到 $w+\delta$，对数似然函数的改变量是
+\[
+\begin{aligned}
+L(w+\delta)-L(w)
+&=\sum_{x,y}\tilde{P}(x,y)\log P_{w+\delta}(y|x)-\sum_{x,y}\tilde{P}(x,y)\log P_w(y|x)\\
+&=\sum_{x,y}\tilde{P}(x,y)\sum_{i=1}^n\delta_i f_i(x,y)-\sum_x\tilde{P}(x)\log\frac{Z_{w+\delta}(x)}{Z_w(x)}
+\end{aligned}
+\]
+利用不等式
+\[
+-\log\alpha\geq 1-\alpha,\qquad \alpha>0
+\]
+建立对数似然函数改变量的下界：
+\[
+\begin{aligned}
+L(w+\delta)-L(w)
+&\geq \sum_{x,y}\tilde{P}(x,y)\sum_{i=1}^n\delta_i f_i(x,y)+1-\sum_x\tilde{P}(x)\frac{Z_{w+\delta}(x)}{Z_w(x)}\\
+&=\sum_{x,y}\tilde{P}(x,y)\sum_{i=1}^n\delta_i f_i(x,y)+1
+-\sum_x\tilde{P}(x)\sum_y P_w(y|x)\exp\sum_{i=1}^n\delta_i f_i(x,y)
+\end{aligned}
+\]
+将右端记为
+\[
+A(\delta|w)=\sum_{x,y}\tilde{P}(x,y)\sum_{i=1}^n\delta_i f_i(x,y)+1
+-\sum_x\tilde{P}(x)\sum_y P_w(y|x)\exp\sum_{i=1}^n\delta_i f_i(x,y)
+\]
+于是有
+\[
+L(w+\delta)-L(w)\geq A(\delta|w)
+\]
+即 $A(\delta|w)$ 是对数似然函数改变量的一个下界。
+
+如果能找到适当的 $\delta$ 使下界 $A(\delta|w)$ 提高，那么对数似然函数也会提高。然而，函数 $A(\delta|w)$ 中的 $\delta$ 是一个向量，含有多个变量，不易同时优化。IIS 试图一次只优化其中一个变量 $\delta_i$，而固定其他变量 $\delta_j$，$i\neq j$。
+
+为达到这一目的，IIS 进一步降低下界 $A(\delta|w)$。具体地，IIS 引进一个量 $f^\#(x,y)$，
+\[
+f^\#(x,y)=\sum_i f_i(x,y)
+\]
+因为 $f_i$ 是二值函数，故 $f^\#(x,y)$ 表示所有特征在 $(x,y)$ 出现的次数。这样，$A(\delta|w)$ 可以改写为
+\begin{equation}
+\begin{aligned}
+A(\delta|w)={}&\sum_{x,y}\tilde{P}(x,y)\sum_{i=1}^n\delta_i f_i(x,y)+1\\
+&-\sum_x\tilde{P}(x)\sum_y P_w(y|x)\exp\left(f^\#(x,y)\sum_{i=1}^n\delta_i\frac{f_i(x,y)}{f^\#(x,y)}\right)
+\end{aligned}
+\tag{6.30}
+\end{equation}
+利用指数函数的凸性以及对任意 $i$，有 $\frac{f_i(x,y)}{f^\#(x,y)}\geq 0$ 且 $\sum_{i=1}^n\frac{f_i(x,y)}{f^\#(x,y)}=1$ 这一事实，根据 Jensen 不等式，得到
+\[
+\exp\left(\sum_{i=1}^n\frac{f_i(x,y)}{f^\#(x,y)}\delta_i f^\#(x,y)\right)
+\leq \sum_{i=1}^n\frac{f_i(x,y)}{f^\#(x,y)}\exp(\delta_i f^\#(x,y))
+\]
+于是式（6.30）可改写为
+\begin{equation}
+\begin{aligned}
+A(\delta|w)\geq{}& \sum_{x,y}\tilde{P}(x,y)\sum_{i=1}^n\delta_i f_i(x,y)+1\\
+&-\sum_x\tilde{P}(x)\sum_y P_w(y|x)\sum_{i=1}^n\left(\frac{f_i(x,y)}{f^\#(x,y)}\right)\exp(\delta_i f^\#(x,y))
+\end{aligned}
+\tag{6.31}
+\end{equation}
+记不等式（6.31）右端为
+\[
+B(\delta|w)=\sum_{x,y}\tilde{P}(x,y)\sum_{i=1}^n\delta_i f_i(x,y)+1
+-\sum_x\tilde{P}(x)\sum_y P_w(y|x)\sum_{i=1}^n\left(\frac{f_i(x,y)}{f^\#(x,y)}\right)\exp(\delta_i f^\#(x,y))
+\]
+于是得到
+\[
+L(w+\delta)-L(w)\geq B(\delta|w)
+\]
+这里，$B(\delta|w)$ 是对数似然函数改变量的一个新的（相对不紧的）下界。
+
+求 $B(\delta|w)$ 对 $\delta_i$ 的偏导数：
+\begin{equation}
+\frac{\partial B(\delta|w)}{\partial\delta_i}
+=\sum_{x,y}\tilde{P}(x,y)f_i(x,y)
+-\sum_x\tilde{P}(x)\sum_y P_w(y|x)f_i(x,y)\exp(\delta_i f^\#(x,y))
+\tag{6.32}
+\end{equation}
+在式（6.32）里，除 $\delta_i$ 外不含任何其他变量。令偏导数为 0 得到
+\begin{equation}
+\sum_{x,y}\tilde{P}(x)P_w(y|x)f_i(x,y)\exp(\delta_i f^\#(x,y))=E_{\tilde{P}}(f_i)
+\tag{6.33}
+\end{equation}
+于是，依次对 $\delta_i$ 求解方程（6.33）可以求出 $\delta$。
+
+这就给出了一种求 $w$ 的最优解的迭代算法，即改进的迭代尺度算法 IIS。
+
+\noindent\textbf{算法 6.1（改进的迭代尺度算法 IIS）}\quad
+
+输入：特征函数 $f_1,f_2,\cdots,f_n$；经验分布 $\tilde{P}(X,Y)$，模型 $P_w(y|x)$；
+
+输出：最优参数值 $w_i^*$；最优模型 $P_{w^*}$。
+
+（1）对所有 $i\in\{1,2,\cdots,n\}$，取初值 $w_i=0$。
+
+（2）对每一 $i\in\{1,2,\cdots,n\}$
+
+\quad (a) 令 $\delta_i$ 是方程
+\[
+\sum_{x,y}\tilde{P}(x)P(y|x)f_i(x,y)\exp(\delta_i f^\#(x,y))=E_{\tilde{P}}(f_i)
+\]
+的解，这里，
+\[
+f^\#(x,y)=\sum_{i=1}^n f_i(x,y)
+\]
+
+\quad (b) 更新 $w_i$ 值：$w_i\leftarrow w_i+\delta_i$。
+
+（3）如果不是所有 $w_i$ 都收敛，重复步（2）。
+
+这一算法关键的一步是（a），即求解方程（6.33）中的 $\delta_i$。如果 $f^\#(x,y)$ 是常数，即对任何 $x,y$，有 $f^\#(x,y)=M$，那么 $\delta_i$ 可以显式地表示成
+\begin{equation}
+\delta_i=\frac{1}{M}\log\frac{E_{\tilde{P}}(f_i)}{E_P(f_i)}
+\tag{6.34}
+\end{equation}
+如果 $f^\#(x,y)$ 不是常数，那么必须通过数值计算求 $\delta_i$。简单有效的方法是牛顿法。
+
+以 $g(\delta_i)=0$ 表示方程（6.33），牛顿法通过迭代求得 $\delta_i^*$，使得 $g(\delta_i^*)=0$。迭代公式是
+\begin{equation}
+\delta_i^{(k+1)}=\delta_i^{(k)}-\frac{g(\delta_i^{(k)})}{g'(\delta_i^{(k)})}
+\tag{6.35}
+\end{equation}
+只要适当选取初始值 $\delta_i^{(0)}$，由于 $\delta_i$ 的方程（6.33）有单根，因此牛顿法恒收敛，而且收敛速度很快。
+
+\subsection*{6.3.2\quad 拟牛顿法}
+
+最大熵模型学习还可以应用牛顿法或拟牛顿法。参阅附录 B。
+
+对于最大熵模型而言，
+\[
+P_w(y|x)=\frac{\exp\left(\sum_{i=1}^n w_i f_i(x,y)\right)}
+{\sum_y\exp\left(\sum_{i=1}^n w_i f_i(x,y)\right)}
+\]
+目标函数：
+\[
+\min_{w\in\mathbf{R}^n} f(w)
+=\sum_x\tilde{P}(x)\log\sum_y\exp\left(\sum_{i=1}^n w_i f_i(x,y)\right)
+-\sum_{x,y}\tilde{P}(x,y)\sum_{i=1}^n w_i f_i(x,y)
+\]
+梯度：
+\[
+g(w)=\left(\frac{\partial f(w)}{\partial w_1},\frac{\partial f(w)}{\partial w_2},\cdots,\frac{\partial f(w)}{\partial w_n}\right)^{\mathrm{T}}
+\]
+其中
+\[
+\frac{\partial f(w)}{\partial w_i}
+=\sum_{x,y}\tilde{P}(x)P_w(y|x)f_i(x,y)-E_{\tilde{P}}(f_i),
+\qquad i=1,2,\cdots,n
+\]
+相应的拟牛顿法 BFGS 算法如下。
+
+\noindent\textbf{算法 6.2（最大熵模型学习的 BFGS 算法）}\quad
+
+输入：特征函数 $f_1,f_2,\cdots,f_n$；经验分布 $\tilde{P}(x,y)$，目标函数 $f(w)$，梯度 $g(w)=\nabla f(w)$，精度要求 $\varepsilon$；
+
+输出：最优参数值 $w^*$；最优模型 $P_{w^*}(y|x)$。
+
+（1）选定初始点 $w^{(0)}$，取 $B_0$ 为正定对称矩阵，置 $k=0$；
+
+（2）计算 $g_k=g(w^{(k)})$。若 $\|g_k\|<\varepsilon$，则停止计算，得 $w^*=w^{(k)}$；否则转（3）；
+
+（3）由 $B_k p_k=-g_k$ 求出 $p_k$；
+
+（4）一维搜索：求 $\lambda_k$ 使得
+\[
+f(w^{(k)}+\lambda_k p_k)=\min_{\lambda\geq 0} f(w^{(k)}+\lambda p_k)
+\]
+
+（5）置 $w^{(k+1)}=w^{(k)}+\lambda_k p_k$；
+
+（6）计算 $g_{k+1}=g(w^{(k+1)})$，若 $\|g_{k+1}\|<\varepsilon$，则停止计算，得 $w^*=w^{(k+1)}$；否则，按下式求出 $B_{k+1}$：
+\[
+B_{k+1}=B_k+\frac{y_k y_k^{\mathrm{T}}}{y_k^{\mathrm{T}}\delta_k}
+-\frac{B_k\delta_k\delta_k^{\mathrm{T}}B_k}{\delta_k^{\mathrm{T}}B_k\delta_k}
+\]
+其中，
+\[
+y_k=g_{k+1}-g_k,\qquad \delta_k=w^{(k+1)}-w^{(k)}
+\]
+
+（7）置 $k=k+1$，转（3）。
+
+\section*{本章概要}
+
+1. 逻辑斯谛回归模型是由以下条件概率分布表示的分类模型。逻辑斯谛回归模型可以用于二类或多类分类。
+\[
+P(Y=k|x)=\frac{\exp(w_k\cdot x)}
+{1+\sum_{k=1}^{K-1}\exp(w_k\cdot x)},\qquad k=1,2,\cdots,K-1
+\]
+\[
+P(Y=K|x)=\frac{1}{1+\sum_{k=1}^{K-1}\exp(w_k\cdot x)}
+\]
+这里，$x$ 为输入特征，$w$ 为特征的权值。
+
+逻辑斯谛回归模型源自逻辑斯谛分布，其分布函数 $F(x)$ 是 S 形函数。逻辑斯谛回归模型是由输入的线性函数表示的输出的对数几率模型。
+
+2. 最大熵模型是由以下条件概率分布表示的分类模型。最大熵模型也可以用于二类或多类分类。
+\[
+P_w(y|x)=\frac{1}{Z_w(x)}\exp\left(\sum_{i=1}^n w_i f_i(x,y)\right)
+\]
+\[
+Z_w(x)=\sum_y\exp\left(\sum_{i=1}^n w_i f_i(x,y)\right)
+\]
+其中，$Z_w(x)$ 是规范化因子，$f_i$ 为特征函数，$w_i$ 为特征的权值。
+
+3. 最大熵模型可以由最大熵原理推导得出。最大熵原理是概率模型学习或估计的一个准则。最大熵原理认为在所有可能的概率模型（分布）的集合中，熵最大的模型是最好的模型。
+
+最大熵原理应用到分类模型的学习中，有以下约束最优化问题：
+\[
+\begin{aligned}
+\min\quad &-H(P)=\sum_{x,y}\tilde{P}(x)P(y|x)\log P(y|x)\\
+\mathrm{s.t.}\quad &P(f_i)-\tilde{P}(f_i)=0,\qquad i=1,2,\cdots,n\\
+&\sum_y P(y|x)=1
+\end{aligned}
+\]
+求解此最优化问题的对偶问题得到最大熵模型。
+
+4. 逻辑斯谛回归模型与最大熵模型都属于对数线性模型。
+
+5. 逻辑斯谛回归模型及最大熵模型学习一般采用极大似然估计，或正则化的极大似然估计。逻辑斯谛回归模型及最大熵模型学习可以形式化为无约束最优化问题。求解该最优化问题的算法有改进的迭代尺度法、梯度下降法、拟牛顿法。
+
+\section*{继续阅读}
+
+逻辑斯谛回归的介绍参见文献 [1]，最大熵模型的介绍参见文献 [2,3]。逻辑斯谛回归模型与朴素贝叶斯模型的关系参见文献 [4]，逻辑斯谛回归模型与 AdaBoost 的关系参见文献 [5]，逻辑斯谛回归模型与核函数的关系参见文献 [6]。
+
+\section*{习题}
+
+\noindent\textbf{6.1}\quad 确认逻辑斯谛分布属于指数分布族。
+
+\noindent\textbf{6.2}\quad 写出逻辑斯谛回归模型学习的梯度下降算法。
+
+\noindent\textbf{6.3}\quad 写出最大熵模型学习的 DFP 算法。（关于一般的 DFP 算法参见附录 B）
+
+\section*{参考文献}
+
+[1] Berger A, Della Pietra S D, Pietra V D. A maximum entropy approach to natural language processing. Computational Linguistics, 1996, 22(1): 39--71.
+
+[2] Berger A. The improved iterative scaling algorithm: a gentle introduction. http://www.cs.cmu.edu/afs/cs/user/aberger/www/ps/scaling.ps.
+
+[3] Hastie T, Tibshirani R, Friedman J. The elements of statistical learning: data mining, inference, and prediction. Springer-Verlag, 2001.（中译本：统计学习基础——数据挖掘、推理与预测. 范明，柴玉梅，詹红英等译. 北京：电子工业出版社，2004.）
+
+[4] Mitchell T M. Machine learning. McGraw-Hill Companies, Inc. 1997.（中译本：机器学习. 北京：机械工业出版社，2003.）
+
+[5] Collins M, Schapire R E, Singer Y. Logistic regression, AdaBoost and Bregman distances. Machine Learning, 2002, 48(1--3): 253--285.
+
+[6] Canu S, Smola A J. Kernel method and exponential family. Neurocomputing, 2005, 69: 714--720.
+
+\end{document}

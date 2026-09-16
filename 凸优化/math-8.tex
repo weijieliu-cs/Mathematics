@@ -1,0 +1,2047 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\title{凸优化：几何问题}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{8\quad 几何问题}
+
+\subsection*{8.1\quad 向集合投影}
+
+在范数 $\|\cdot\|$ 意义下，点 $x_0\in\mathbb{R}^n$ 到闭集合 $C\subseteq\mathbb{R}^n$ 的距离定义为
+\[
+\operatorname{dist}(x_0,C)=\inf\{\|x_0-x\|\mid x\in C\}.
+\]
+这里的极小总是可达的。我们称 $C$ 中每一个最接近 $x_0$ 的点 $z$，即满足 $\|z-x_0\|=\operatorname{dist}(x_0,C)$，为 $x_0$ 在 $C$ 上的投影。一般地，$x_0$ 在 $C$ 中可能有多于一个的投影，即 $C$ 中有多个点都最接近 $x_0$。
+
+在一些特殊情况下，我们可以知道点向集合的投影是唯一的。例如，如果 $C$ 是闭且凸的，而范数严格凸（例如，Euclid 范数），那么，对于任意 $x_0$，正好存在一个 $z\in C$ 与 $x_0$ 最接近。作为一个有趣的逆命题，我们有下面的结果：如果对于每一个 $x_0$，在 $C$ 中都只有唯一的 Euclid 投影，那么 $C$ 是闭和凸的（参见习题 8.2）。
+
+我们用符号 $P_C:\mathbb{R}^n\to\mathbb{R}^n$ 表示函数：$P_C(x_0)$ 为 $x_0$ 在 $C$ 上的投影，即对于所有 $x_0$，
+\[
+P_C(x_0)\in C,\qquad \|x_0-P_C(x_0)\|=\operatorname{dist}(x_0,C).
+\]
+换言之，我们有
+\[
+P_C(x_0)=\arg\min\{\|x-x_0\|\mid x\in C\}.
+\]
+我们称 $P_C$ 为向 $C$ 的投影。
+
+\noindent\textbf{例 8.1}\quad
+向 $\mathbb{R}^2$ 中单位矩形的投影。考虑 $\mathbb{R}^2$ 中的单位矩形（的边界），即 $C=\{x\in\mathbb{R}^2\mid \|x\|_\infty=1\}$。我们取 $x_0=0$。
+
+在 $\ell_1$-范数下，$(1,0)$，$(0,-1)$，$(-1,0)$ 和 $(0,1)$ 四个点最接近 $x_0=0$，其距离为 $1$，因此，在 $\ell_1$-范数下，我们有 $\operatorname{dist}(x_0,C)=1$。相同的结论对 $\ell_2$-范数也成立。
+
+在 $\ell_\infty$-范数下，$C$ 中所有点均处在与 $x_0$ 距离为 $1$ 的位置上，并且 $\operatorname{dist}(x_0,C)=1$。
+
+\noindent\textbf{例 8.2}\quad
+向秩为 $k$ 的矩阵投影。考虑秩小于或等于 $k$ 的 $m\times n$ 矩阵集合，
+\[
+C=\{X\in\mathbb{R}^{m\times n}\mid \operatorname{rank}X\leq k\},
+\]
+其中 $k\leq \min\{m,n\}$，并令 $X_0\in\mathbb{R}^{m\times n}$。我们可以通过奇异值分解，在（谱或最大奇异值）范数 $\|\cdot\|_2$ 下找到 $X_0$ 向 $C$ 的投影。令
+\[
+X_0=\sum_{i=1}^r\sigma_i u_i v_i^T
+\]
+为 $X_0$ 的奇异值分解，其中 $r=\operatorname{rank}X_0$。那么，矩阵 $Y=\sum_{i=1}^{\min\{k,r\}}\sigma_i u_i v_i^T$ 是 $X_0$ 向 $C$ 的投影。
+
+\subsection*{8.1.1\quad 点向凸集投影}
+
+如果 $C$ 是凸的，那么，我们可以通过凸优化问题计算投影 $P_C(x_0)$ 及距离 $\operatorname{dist}(x_0,C)$。我们将集合 $C$ 表示为一组线性等式和凸不等式，
+\begin{equation}
+Ax=b,\qquad f_i(x)\leq 0,\quad i=1,\cdots,m,
+\tag{8.1}
+\end{equation}
+然后通过求解关于变量 $x$ 的问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \|x-x_0\|\\
+\text{subject to}\quad & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& Ax=b,
+\end{aligned}
+\tag{8.2}
+\end{equation}
+找到 $x_0$ 向 $C$ 的投影。当且仅当 $C$ 非空时，这个问题可行；当它可行时，其最优值为 $\operatorname{dist}(x_0,C)$，并且任意最优解都是 $x_0$ 向 $C$ 的投影。
+
+\noindent\textbf{多面体上的 Euclid 投影}\quad
+$x_0$ 向由线性不等式 $Ax\preceq b$ 描述的多面体上的投影可以通过求解二次规划
+\[
+\begin{aligned}
+\text{minimize}\quad & \|x-x_0\|_2^2\\
+\text{subject to}\quad & Ax\preceq b
+\end{aligned}
+\]
+得到。一些特殊情况有简单的解析解。
+
+\begin{itemize}
+\item $x_0$ 在平面 $C=\{x\mid a^T x=b\}$ 上的 Euclid 投影由
+\[
+P_C(x_0)=x_0+(b-a^Tx_0)a/\|a\|^2
+\]
+给出。
+
+\item $x_0$ 在半空间 $C=\{x\mid a^T x\leq b\}$ 的 Euclid 投影由
+\[
+P_C(x_0)=
+\begin{cases}
+x_0+(b-a^Tx_0)a/\|a\|^2 & a^Tx_0>b\\
+x_0 & a^Tx_0\leq b
+\end{cases}
+\]
+给出。
+
+\item $x_0$ 在矩形 $C=\{x\mid l\preceq x\preceq u\}$（其中 $l\prec u$）上的 Euclid 投影由
+\[
+P_C(x_0)_k=
+\begin{cases}
+l_k & x_{0k}\leq l_k\\
+x_{0k} & l_k\leq x_{0k}\leq u_k\\
+u_k & x_{0k}\geq u_k
+\end{cases}
+\]
+给出。
+\end{itemize}
+
+\noindent\textbf{正常锥上的 Euclid 投影}\quad
+用 $x=P_K(x_0)$ 表示点 $x_0$ 在正常锥 $K$ 上的 Euclid 投影。
+\[
+\begin{aligned}
+\text{minimize}\quad & \|x-x_0\|^2\\
+\text{subject to}\quad & x\succeq_K 0
+\end{aligned}
+\]
+的 KKT 条件由
+\[
+x\succeq_K 0,\qquad x-x_0=z,\qquad z\succeq_{K^\ast}0,\qquad z^Tx=0
+\]
+给出。引入记号 $x_+=x$ 和 $x_-=z$，我们可以将这些条件表述为
+\[
+x_0=x_+-x_-,\qquad x_+\succeq_K0,\qquad x_-\succeq_{K^\ast}0,\qquad x_+^Tx_-=0.
+\]
+换言之，通过将 $x_0$ 向锥 $K$ 进行投影，我们将其分解为两个正交的元素之差：一个关于 $K$ 非负（并且是 $x_0$ 在 $K$ 上的投影），而另一个关于 $K^\ast$ 非负。
+
+一些特殊的例子：
+
+\begin{itemize}
+\item 对于 $K=\mathbb{R}_+^n$，我们有 $P_K(x_0)_k=\max\{x_{0k},0\}$。通过将每个负分量替换为 $0$，可以找到向量向非负象限的 Euclid 投影。
+
+\item 对于 $K=\mathbf{S}_+^n$ 和 Euclid（或 Frobenius）范数 $\|\cdot\|_F$，我们有 $P_K(X_0)=\sum_{i=1}^n \max\{0,\lambda_i\}v_iv_i^T$，其中 $X_0=\sum_{i=1}^n \lambda_i v_iv_i^T$ 为 $X_0$ 的特征值分解。为了将一个对称矩阵向半正定锥投影，我们将其进行特征值展开，然后舍弃与负特征值相关的项。这个矩阵同时也是在 $\ell_2$-或谱范数下向半正定锥的投影。
+\end{itemize}
+
+\subsection*{8.1.2\quad 将点与凸集分离}
+
+设 $C$ 是由等式和不等式 (8.1) 描述的闭凸集。如果 $x_0\in C$，那么 $\operatorname{dist}(x_0,C)=0$ 并且问题 (8.2) 的最优点即是 $x_0$。如果 $x_0\notin C$，那么 $\operatorname{dist}(x_0,C)>0$ 并且问题 (8.2) 的最优值为正。在这种情况下，我们将看到任意对偶最优解提供了一个点 $x_0$ 与集合 $C$ 的分离超平面。
+
+（当点不属于集合时）将点向凸集投影与寻找分离它们的超平面之间的联系应当不令人惊讶。事实上，我们在 \S 2.5.1 中给出的超平面分离定理的证明即有赖于找到两个集合之间的 Euclid 距离。如果 $P_C(x_0)$ 表示 $x_0$ 向 $C$ 的 Euclid 投影，其中 $x_0\notin C$，那么超平面
+\[
+(P_C(x_0)-x_0)^T\left(x-(1/2)(x_0+P_C(x_0))\right)=0
+\]
+将 $x_0$ 与 $C$（严格地）分离，如图 8.1 所示。对于其他范数，Lagrange 对偶是投影问题与分离超平面问题之间最清晰的联系。
+
+首先将 (8.2) 表示为
+\[
+\begin{aligned}
+\text{minimize}\quad & \|y\|\\
+\text{subject to}\quad & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& Ax=b\\
+& x_0-x=y,
+\end{aligned}
+\]
+其变量为 $x$ 和 $y$。这个问题的 Lagrange 为
+\[
+L(x,y,\lambda,\mu,\nu)=\|y\|+\sum_{i=1}^m\lambda_i f_i(x)+\nu^T(Ax-b)+\mu^T(x_0-x-y),
+\]
+对偶函数为
+\[
+g(\lambda,\mu,\nu)=
+\begin{cases}
+\displaystyle\inf_x\left(\sum_{i=1}^m\lambda_i f_i(x)+\nu^T(Ax-b)+\mu^T(x_0-x)\right) & \|\mu\|_\ast\leq 1\\
+-\infty & \text{其他情况}.
+\end{cases}
+\]
+于是，我们得到对偶问题
+\[
+\begin{aligned}
+\text{maximize}\quad & \mu^T x_0+\inf_x\left(\sum_{i=1}^m\lambda_i f_i(x)+\nu^T(Ax-b)-\mu^T x\right)\\
+\text{subject to}\quad & \lambda\succeq 0\\
+& \|\mu\|_\ast\leq 1,
+\end{aligned}
+\]
+其变量为 $\lambda$，$\mu$，$\nu$。对于这个对偶问题，我们可以解释如下。设 $\lambda$，$\mu$，$\nu$ 对偶可行并且具有正的对偶目标值，即 $\lambda\succeq 0$，$\|\mu\|_\ast\leq 1$，并且对于所有 $x$，
+\[
+\mu^T x_0-\mu^T x+\sum_{i=1}^m\lambda_i f_i(x)+\nu^T(Ax-b)>0.
+\]
+这表明对于 $x\in C$ 有 $\mu^Tx_0>\mu^Tx$，因此，$\mu$ 定义了一个严格的分离超平面。特别地，假设 (8.2) 严格可行，强对偶成立。如果 $x_0\notin C$，其最优解是正的，并且任意对偶最优解定义了一个严格分离超平面。
+
+注意，通过对偶构造分离超平面的方法对任意范数有效，但前述这种简单的构造仅针对 Euclid 范数。
+
+\noindent\textbf{将点与多面体分离}\quad
+\[
+\begin{aligned}
+\text{minimize}\quad & \|y\|\\
+\text{subject to}\quad & Ax\preceq b\\
+& x_0-x=y
+\end{aligned}
+\]
+的对偶问题是
+\[
+\begin{aligned}
+\text{maximize}\quad & \mu^T x_0-b^T\lambda\\
+\text{subject to}\quad & A^T\lambda=\mu\\
+& \|\mu\|_\ast\leq 1\\
+& \lambda\succeq 0.
+\end{aligned}
+\]
+可以进一步简化为
+\[
+\begin{aligned}
+\text{maximize}\quad & (Ax_0-b)^T\lambda\\
+\text{subject to}\quad & \|A^T\lambda\|_\ast\leq 1\\
+& \lambda\succeq 0.
+\end{aligned}
+\]
+容易验证，如果对偶目标是正的，那么 $A^T\lambda$ 是分离超平面的法向量：如果 $Ax\preceq b$，那么
+\[
+(A^T\lambda)^Tx=\lambda^T(Ax)\leq \lambda^Tb<\lambda^TAx_0.
+\]
+因此，$\mu=A^T\lambda$ 定义了一个分离超平面。
+
+\subsection*{8.1.3\quad 通过示性函数和支撑函数的投影与分离}
+
+可以将 \S\S 8.1.1 和 \S\S 8.1.2 所描述的想法表示在紧凑形式中，这需要利用集合 $C$ 的示性函数 $I_C$ 和支撑函数 $S_C$，定义为
+\[
+S_C(x)=\sup_{y\in C}x^Ty,\qquad
+I_C(x)=
+\begin{cases}
+0 & x\in C\\
++\infty & x\notin C.
+\end{cases}
+\]
+将 $x_0$ 向闭凸集 $C$ 投影的问题可以紧凑表示为
+\[
+\begin{aligned}
+\text{minimize}\quad & \|x-x_0\|\\
+\text{subject to}\quad & I_C(x)\leq 0,
+\end{aligned}
+\]
+或者，等价地，
+\[
+\begin{aligned}
+\text{minimize}\quad & \|y\|\\
+\text{subject to}\quad & I_C(x)\leq 0\\
+& x_0-x=y,
+\end{aligned}
+\]
+其中变量为 $x$ 和 $y$。这一问题的对偶函数为
+\[
+\begin{aligned}
+g(z,\lambda)
+&=\inf_{x,y}\left(\|y\|+\lambda I_C(x)+z^T(x_0-x-y)\right)\\
+&=
+\begin{cases}
+z^Tx_0+\inf_x(-z^Tx+I_C(x)) & \|z\|_\ast\leq 1,\quad \lambda\geq 0\\
+-\infty & \text{其他情况}
+\end{cases}\\
+&=
+\begin{cases}
+z^Tx_0-S_C(z) & \|z\|_\ast\leq 1,\quad \lambda\geq 0\\
+-\infty & \text{其他情况}.
+\end{cases}
+\end{aligned}
+\]
+因此，我们得到对偶问题
+\[
+\begin{aligned}
+\text{maximize}\quad & z^Tx_0-S_C(z)\\
+\text{subject to}\quad & \|z\|_\ast\leq 1.
+\end{aligned}
+\]
+如果 $z$ 对偶最优并有正的目标值，那么，对于任意 $x\in C$，都有 $z^Tx_0>z^Tx$，即 $z$ 定义了一个分离超平面。
+
+\subsection*{8.2\quad 集合间的距离}
+
+范数 $\|\cdot\|$ 意义下，两个集合 $C$ 和 $D$ 之间的距离定义为
+\[
+\operatorname{dist}(C,D)=\inf\{\|x-y\|\mid x\in C,\ y\in D\}.
+\]
+如果 $\operatorname{dist}(C,D)>0$，那么两个集合 $C$ 和 $D$ 不相交。如果 $\operatorname{dist}(C,D)=0$ 并且定义中的极小是可达的（例如，一种情况是如果集合是闭的，并且其中一个是有界的），那么它们相交。
+
+集合间的距离可以用点到集合的距离进行表示，
+\[
+\operatorname{dist}(C,D)=\operatorname{dist}(0,D-C),
+\]
+因此，可以应用前一节的结论。但是，本节将对集合间距离的问题针对性地推导出一些结果。这将使得我们可以深入研究集合 $C-D$ 的结构并使之更加容易理解。
+
+\subsection*{8.2.1\quad 计算凸集间的距离}
+
+设 $C$ 和 $D$ 由两个凸不等式组描述，
+\[
+C=\{x\mid f_i(x)\leq 0,\ i=1,\cdots,m\},\qquad
+D=\{x\mid g_i(x)\leq 0,\ i=1,\cdots,p\}.
+\]
+（可以包含线性等式，但为简单起见，在这里忽略它们。）我们可以通过求解下述凸规划问题找到 $\operatorname{dist}(C,D)$，
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \|x-y\|\\
+\text{subject to}\quad & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& g_i(y)\leq 0,\quad i=1,\cdots,p.
+\end{aligned}
+\tag{8.3}
+\end{equation}
+
+\noindent\textbf{多面体间的 Euclid 距离}\quad
+令 $C$ 和 $D$ 是分别由线性不等式 $A_1x\preceq b_1$ 和 $A_2x\preceq b_2$ 描述的两个多面体。$C$ 和 $D$ 之间的距离是最接近的一对点之间的距离，其中一个在 $C$ 中，另一个属于 $D$，如图 8.2 所示。它们之间的距离是问题
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \|x-y\|_2\\
+\text{subject to}\quad & A_1x\preceq b_1\\
+& A_2y\preceq b_2
+\end{aligned}
+\tag{8.4}
+\end{equation}
+的最优值。我们可以将目标函数平方以得到等价的二次规划。
+
+\subsection*{8.2.2\quad 凸集分离}
+
+对于寻找两个凸集间距离的问题 (8.3) 的对偶问题，我们可以基于集合间的分离超平面给出有趣的几何解释。首先将问题表述为下面的等价形式：
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \|w\|\\
+\text{subject to}\quad & f_i(x)\leq 0,\quad i=1,\cdots,m\\
+& g_i(y)\leq 0,\quad i=1,\cdots,p\\
+& x-y=w.
+\end{aligned}
+\tag{8.5}
+\end{equation}
+对偶函数为
+\[
+\begin{aligned}
+g(\lambda,z,\mu)
+&=\inf_{x,y,w}\left(\|w\|+\sum_{i=1}^m\lambda_i f_i(x)+\sum_{i=1}^p\mu_i g_i(y)+z^T(x-y-w)\right)\\
+&=
+\begin{cases}
+\displaystyle\inf_x\left(\sum_{i=1}^m\lambda_i f_i(x)+z^Tx\right)
++\inf_y\left(\sum_{i=1}^p\mu_i g_i(y)-z^Ty\right) & \|z\|_\ast\leq 1\\
+-\infty & \text{其他情况},
+\end{cases}
+\end{aligned}
+\]
+从而可以得到对偶问题
+\begin{equation}
+\begin{aligned}
+\text{maximize}\quad & \displaystyle\inf_x\left(\sum_{i=1}^m\lambda_i f_i(x)+z^Tx\right)
++\inf_y\left(\sum_{i=1}^p\mu_i g_i(y)-z^Ty\right)\\
+\text{subject to}\quad & \|z\|_\ast\leq 1\\
+& \lambda\succeq 0,\quad \mu\succeq 0.
+\end{aligned}
+\tag{8.6}
+\end{equation}
+我们可以从几何角度将其解释如下。如果 $\lambda$，$\mu$ 是具有正目标值的对偶可行解，那么，对于所有 $x$ 和 $y$，
+\[
+\sum_{i=1}^m\lambda_i f_i(x)+z^Tx+\sum_{i=1}^p\mu_i g_i(y)-z^Ty>0.
+\]
+特别地，对于 $x\in C$ 和 $y\in D$，我们有 $z^Tx-z^Ty>0$，由此可以看出 $z$ 定义了一个严格分离 $C$ 和 $D$ 的超平面。
+
+所以，如果问题 (8.5) 和 (8.6) 之间的强对偶性成立（也就是当 (8.5) 严格可行时），我们可以得到下面结论。如果两个集合之间的距离是正的，那么它们可以被超平面严格地分离。
+
+\noindent\textbf{多面体分离}\quad
+将这些对偶理论应用于由线性不等式 $A_1x\preceq b_1$ 和 $A_2x\preceq b_2$ 定义的集合时，我们可以得到对偶问题
+\[
+\begin{aligned}
+\text{maximize}\quad & -b_1^T\lambda-b_2^T\mu\\
+\text{subject to}\quad & A_1^T\lambda+z=0\\
+& A_2^T\mu-z=0\\
+& \|z\|_\ast\leq 1\\
+& \lambda\succeq 0,\quad \mu\succeq 0.
+\end{aligned}
+\]
+如果 $\lambda$，$\mu$ 和 $z$ 对偶可行，那么，对所有 $x\in C$，$y\in D$ 都有
+\[
+z^Tx=-\lambda^TA_1x\geq -\lambda^Tb_1,\qquad
+z^Ty=\mu^TA_2y\leq \mu^Tb_2,
+\]
+并且，如果对偶目标值是正的，那么
+\[
+z^Tx-z^Ty\geq -\lambda^Tb_1-\mu^Tb_2>0,
+\]
+即 $z$ 定义了一个分离超平面。
+
+\subsection*{8.2.3\quad 利用示性函数和支撑函数的距离和分离}
+
+利用示性函数和支撑函数，可以将在 \S 8.2.1 和 \S 8.2.2 中讨论的想法表示为紧凑形式。寻找两个凸集之间距离的问题可以表述为凸问题
+\[
+\begin{aligned}
+\text{minimize}\quad & \|x-y\|\\
+\text{subject to}\quad & I_C(x)\leq 0\\
+& I_D(y)\leq 0,
+\end{aligned}
+\]
+它等价于
+\[
+\begin{aligned}
+\text{minimize}\quad & \|w\|\\
+\text{subject to}\quad & I_C(x)\leq 0\\
+& I_D(y)\leq 0\\
+& x-y=w.
+\end{aligned}
+\]
+这个问题的对偶是
+\[
+\begin{aligned}
+\text{maximize}\quad & -S_C(-z)-S_D(z)\\
+\text{subject to}\quad & \|z\|_\ast\leq 1.
+\end{aligned}
+\]
+如果 $z$ 对偶可行并具有正的目标值，那么 $S_D(z)<-S_C(-z)$，即
+\[
+\sup_{x\in D}z^Tx<\inf_{x\in C}z^Tx.
+\]
+换言之，$z$ 定义了一个严格分离 $C$ 和 $D$ 的超平面。
+
+\subsection*{8.3\quad Euclid 距离和角度问题}
+
+设 $a_1,\cdots,a_n$ 为 $\mathbb{R}^n$ 中的一个向量集合，（此处）我们假设已知它们的 Euclid 长度
+\[
+l_1=\|a_1\|_2,\qquad \cdots,\qquad l_n=\|a_n\|_2.
+\]
+我们称这个向量集合为配置，或者，当它们独立时，称为基。在本节中，我们考虑关于配置的各种几何性质的优化问题，例如，向量间的 Euclid 距离，向量间的角度以及基的条件的各种几何度量。
+
+\subsection*{8.3.1\quad Gram 矩阵与可实现性}
+
+长度、距离和角度可以用关于向量 $a_1,\cdots,a_n$ 的 Gram 矩阵进行表达。Gram 矩阵由
+\[
+G=A^TA,\qquad A=\begin{bmatrix}a_1&\cdots&a_n\end{bmatrix}
+\]
+给出，因此，$G_{ij}=a_i^Ta_j$。$G$ 的对角元素为
+\[
+G_{ii}=l_i^2,\quad i=1,\cdots,n.
+\]
+此处假设它们是已知和固定的。$a_i$ 和 $a_j$ 之间的距离 $d_{ij}$ 是
+\[
+\begin{aligned}
+d_{ij}
+&=\|a_i-a_j\|_2\\
+&=(l_i^2+l_j^2-2a_i^Ta_j)^{1/2}\\
+&=(l_i^2+l_j^2-2G_{ij})^{1/2}.
+\end{aligned}
+\]
+反之，也可以将 $G_{ij}$ 用 $d_{ij}$ 表示为
+\[
+G_{ij}=\frac{l_i^2+l_j^2-d_{ij}^2}{2}.
+\]
+为后续讨论，我们在这里指出，$G_{ij}$ 是 $d_{ij}^2$ 的仿射函数。
+
+（非零的）$a_i$ 和 $a_j$ 之间的相关系数 $\rho_{ij}$ 由
+\[
+\rho_{ij}=\frac{a_i^Ta_j}{\|a_i\|_2\|a_j\|_2}=\frac{G_{ij}}{l_il_j}
+\]
+给出，因此，$G_{ij}=l_il_j\rho_{ij}$ 是 $\rho_{ij}$ 的线性函数。（非零的）$a_i$ 和 $a_j$ 之间的角度 $\theta_{ij}$ 由
+\[
+\theta_{ij}=\arccos\rho_{ij}=\arccos(G_{ij}/(l_il_j))
+\]
+给出，其中我们取 $\arccos\rho\in[0,\pi]$。所以，我们有 $G_{ij}=l_il_j\cos\theta_{ij}$。
+
+长度、距离和角度在正交变换下不变：如果 $Q\in\mathbb{R}^{n\times n}$ 是正交的，那么向量集合 $Qa_i,\cdots,Qa_n$ 具有同样的 Gram 矩阵，因此，也有相同的长度、距离和角度。
+
+\noindent\textbf{可实现性}\quad
+当然，Gram 矩阵 $G=A^TA$ 是对称和半正定的。其逆命题是线性代数的一个基本结论：矩阵 $G\in\mathbf{S}^n$ 是一个向量集合 $a_1,\cdots,a_n$ 的 Gram 矩阵的充要条件是 $G\succeq 0$。当 $G\succeq 0$ 时，我们可以通过寻找满足 $A^TA=G$ 的矩阵 $A$ 构造一个以 $G$ 为 Gram 矩阵的配置。这个方程的一个解是对称平方根 $A=G^{1/2}$。当 $G\succ 0$ 时，我们可以通过 $G$ 的 Cholesky 因式分解找到这样的解：如果 $LL^T=G$，那么可以取 $A=L^T$。而且，通过正交变换，可以从一个已知解构造出给定 Gram 矩阵 $G$ 的所有配置；对于任意满足 $\tilde{A}^T\tilde{A}=G$ 的解，都有正交矩阵 $Q$ 使得 $\tilde{A}=QA$。
+
+所以，一个长度、距离和角度（或相关系数）集合可实现，即它们是某些配置（的长度、距离和角度）的充要条件是，相关的 Gram 矩阵 $G$ 半正定并具有对角元素 $l_1^2,\cdots,l_n^2$。
+
+我们可以利用这一事实将一些几何问题表述为以 $G\in\mathbf{S}^n$ 为优化变量的凸优化问题。可实现性要求 $G\succeq 0$ 及 $G_{ii}=l_i^2$，$i=1,\cdots,n$；我们在下面列出其他一些凸的约束和目标。
+
+\noindent\textbf{角度与距离约束}\quad
+可以通过线性等式约束 $G_{ij}=l_il_j\cos\alpha$ 将角度固定为定值 $\theta_{ij}=\alpha$。更一般地，可以对角度规定上下界：$\alpha\leq\theta_{ij}\leq\beta$，这通过约束
+\[
+l_il_j\cos\alpha\geq G_{ij}\geq l_il_j\cos\beta
+\]
+做到，这是对 $G$ 的一对线性不等式约束。（这里我们用到了 $\arccos$ 是单调减函数的性质。）我们可以通过极小或极大化 $G_{ij}$ 来极大或极小化特定的角度 $\theta_{ij}$（再次利用了 $\arccos$ 的单调性）。
+
+通过类似的方法，我们可以对距离添加约束。要求 $d_{ij}$ 处于一个区间，我们使用
+\[
+d_{\min}\leq d_{ij}\leq d_{\max}\Longleftrightarrow d_{\min}^2\leq d_{ij}^2\leq d_{\max}^2
+\]
+\[
+\Longleftrightarrow d_{\min}^2\leq l_i^2+l_j^2-2G_{ij}\leq d_{\max}^2,
+\]
+这是关于 $G$ 的一对线性不等式。极小或极大化一个距离，我们可以极小或极大化其平方，那是 $G$ 的一个仿射函数。
+
+作为一个简单的例子，设给定某些角度和距离的范围（例如，可能取值的区间）。于是，我们可以通过求解两个半定规划（SDP），在所有配置中找到其他某些角度或距离的最小和最大可能值。我们可以通过将得到的最优 Gram 矩阵进行分解，重构出两个极端配置。
+
+\noindent\textbf{奇异值与条件数约束}\quad
+$A$ 的奇异值 $\sigma_1\geq\cdots\geq\sigma_n$ 是 $G$ 的特征值 $\lambda_1\geq\cdots\geq\lambda_n$ 的平方根。所以，$\sigma_1^2$ 是 $G$ 的凸函数而 $\sigma_n^2$ 是 $G$ 的凹函数。因此我们可以规定 $A$ 的最大奇异值的上界，或极小化它；我们也可以规定最小奇异值的下界，或极大化它。$A$ 的条件数 $\sigma_1/\sigma_n$ 是 $G$ 的拟凸函数，因此我们可以规定它的最大允许值，或者通过拟凸优化，在满足其他几何约束的所有配置中极小化它。
+
+粗略地，我们可以向 $G$ 添加凸约束以要求 $a_1,\cdots,a_n$ 成为一个良态基。
+
+\noindent\textbf{对偶基}\quad
+当 $G\succ 0$ 时，$a_1,\cdots,a_n$ 构成 $\mathbb{R}^n$ 的一个基。与其相关的对偶基为 $b_1,\cdots,b_n$，这里
+\[
+b_i^Ta_j=
+\begin{cases}
+1 & i=j\\
+0 & i\neq j.
+\end{cases}
+\]
+简单地，对偶基向量是矩阵 $A^{-1}$ 的行。一个结果是，对应于对偶基的 Gram 矩阵为 $G^{-1}$。
+
+我们可以将对偶基的一些几何条件表示为 $G$ 的凸约束。对偶基向量的（平方）长度
+\[
+\|b_i\|_2^2=e_i^TG^{-1}e_i
+\]
+是 $G$ 的凸函数，因此可以被极小化。$G$ 的另一个凸函数 $G^{-1}$ 的迹给出了对偶基向量的平方和（这是良态基的另一种度量）。
+
+\noindent\textbf{椭球和单纯形体积}\quad
+椭球 $\{Au\mid \|u\|_2\leq 1\}$ 的体积
+\[
+\gamma(\det(A^TA))^{1/2}=\gamma(\det G)^{1/2},
+\]
+给出了基良好程度的另一种度量，其中 $\gamma$ 为 $\mathbb{R}^n$ 中单位球的体积。因此，体积的对数为 $\log\gamma+(1/2)\log\det G$，这是 $G$ 的一个凹函数。所以，我们可以通过极大化 $\log\det G$，在配置的凸集中极大化这个镜像椭球的体积。
+
+对于 $\mathbb{R}^n$ 中的任意集合有类似的结论。在 $A$ 的镜像下的体积是其体积乘以系数 $(\det G)^{1/2}$。例如，考虑单位单纯形 $\operatorname{conv}\{0,e_1,\cdots,e_n\}$ 在 $A$ 下的镜像，即单纯形 $\operatorname{conv}\{0,a_1,\cdots,a_n\}$。这个单纯形的体积由 $\bar{\gamma}(\det G)^{1/2}$ 给出，其中 $\bar{\gamma}$ 为 $\mathbb{R}^n$ 中单位单纯形的体积。我们可以通过极大化 $\log\det G$ 来极大化这个单纯形的体积。
+
+\subsection*{8.3.2\quad 仅关注角度的问题}
+
+设我们仅仅关心向量之间的角度（或者相关系数），而不在意长度或它们之间的距离。在这种情况下，直观易见，我们可以简单地假设向量具有长度 $l_i=1$。可以很容易地验证：Gram 矩阵具有 $G=\operatorname{diag}(l)C\operatorname{diag}(l)$ 的形式，其中 $l$ 为向量的长度，$C$ 为相关矩阵，即 $C_{ij}=\cos\theta_{ij}$。继而可知，如果对于任一正长度集合有 $G\succeq 0$，那么对于所有正长度集合均有 $G\succeq 0$。特别地，当且仅当 $C\succeq 0$（这等同于假设所有长度均为一）时，这种情况发生。因此，角度集合 $\theta_{ij}\in[0,\pi]$，$i,j=1,\cdots,n$ 是可实现的，当且仅当 $C\succeq 0$。这是一个关于相关系数的线性矩阵不等式。
+
+作为一个例子，假设给定一些角度的上下界（相当于规定相关系数的上下界）。于是，我们可以通过求解两个 SDP，在所有配置中找到其他角度的最大、最小可能值。
+
+\noindent\textbf{例 8.3}\quad
+对相关系数定界。考虑 $\mathbb{R}^4$ 中的一个例子，给定
+\begin{equation}
+\begin{aligned}
+0.6\leq \rho_{12}\leq 0.9,\qquad &0.8\leq \rho_{13}\leq 0.9,\\
+0.5\leq \rho_{24}\leq 0.7,\qquad &-0.8\leq \rho_{34}\leq -0.4.
+\end{aligned}
+\tag{8.7}
+\end{equation}
+为求取 $\rho_{14}$ 的最小和最大可能值，我们求解两个 SDP
+\[
+\begin{aligned}
+\text{minimize/maximize}\quad & \rho_{14}\\
+\text{subject to}\quad & (8.7)\\
+& \begin{bmatrix}
+1 & \rho_{12} & \rho_{13} & \rho_{14}\\
+\rho_{12} & 1 & \rho_{23} & \rho_{24}\\
+\rho_{13} & \rho_{23} & 1 & \rho_{34}\\
+\rho_{14} & \rho_{24} & \rho_{34} & 1
+\end{bmatrix}\succeq 0,
+\end{aligned}
+\]
+其变量为 $\rho_{12},\rho_{13},\rho_{14},\rho_{23},\rho_{24},\rho_{34}$。最小、最大值（精确到小数点后两位）为 $-0.39$ 和 $0.23$。相应的相关矩阵为
+\[
+\begin{bmatrix}
+1.00 & 0.60 & 0.87 & -0.39\\
+0.60 & 1.00 & 0.33 & 0.50\\
+0.87 & 0.33 & 1.00 & -0.55\\
+-0.39 & 0.50 & -0.55 & 1.00
+\end{bmatrix},
+\qquad
+\begin{bmatrix}
+1.00 & 0.71 & 0.80 & 0.23\\
+0.71 & 1.00 & 0.31 & 0.59\\
+0.80 & 0.31 & 1.00 & -0.40\\
+0.23 & 0.59 & -0.40 & 1.00
+\end{bmatrix}.
+\]
+
+\subsection*{8.3.3\quad Euclid 距离问题}
+
+在 Euclid 距离问题中，我们仅仅关心向量之间的距离 $d_{ij}$，而忽略向量的长度和它们之间的角度。当然，这些距离在正交变换下并不是不变的，但是在下面这种变换下不变：对于任意 $b\in\mathbb{R}^n$，配置 $\tilde{a}_1=a_1+b,\cdots,\tilde{a}_n=a_n+b$ 与原配置具有相同的距离。特别地，选择
+\[
+b=-(1/n)\sum_{i=1}^n a_i=-(1/n)A\mathbf{1},
+\]
+我们可以看出 $\tilde{a}_i$ 与原配置具有相同的距离，同时满足 $\sum_{i=1}^n \tilde{a}_i=0$。继而，在 Euclid 距离问题中，我们可以不失一般性地假设向量 $a_1,\cdots,a_n$ 的平均值为零，即 $A\mathbf{1}=0$。
+
+通过将长度（它无法出现在 Euclid 距离问题的目标和约束中）作为优化问题中的自由变量，我们可以求解 Euclid 距离问题。这里我们需要：存在距离为 $d_{ij}\geq 0$ 的配置的充要条件是，存在长度 $l_1,\cdots,l_n$ 使得 $G\succeq 0$，其中 $G_{ij}=(l_i^2+l_j^2-d_{ij}^2)/2$。
+
+将 $z\in\mathbb{R}^n$ 定义为 $z_i=l_i^2$，将 $D\in\mathbf{S}^n$ 定义为 $D_{ij}=d_{ij}^2$（当然，$D_{ii}=0$）。对于长度选择的条件 $G\succeq 0$ 可以被表述为
+\begin{equation}
+G=(z\mathbf{1}^T+\mathbf{1}z^T-D)/2\succeq 0\quad \text{对某些 } z\succeq 0,
+\tag{8.8}
+\end{equation}
+这是 $D$ 和 $z$ 上的线性矩阵不等式。具有非负元素、零对角线并且满足 (8.8) 的矩阵 $D\in\mathbf{S}^n$ 被称为 Euclid 距离矩阵。一个矩阵是 Euclid 距离矩阵，当且仅当其元素是某些配置向量间距离的平方。（给定一个 Euclid 距离矩阵 $D$ 和相关的长度平方向量 $z$，我们可以用上述办法重构出一个或全部具有给定距离的配置。）
+
+条件 (8.8) 等价于一个更简单的条件：$D$ 在 $\mathbf{1}^\perp$ 上半正定，即
+\[
+(8.8)\Longleftrightarrow u^TDu\leq 0\quad \text{对所有满足 } \mathbf{1}^Tu=0 \text{ 的 } u
+\]
+\[
+\Longleftrightarrow (I-(1/n)\mathbf{1}\mathbf{1}^T)D(I-(1/n)\mathbf{1}\mathbf{1}^T)\preceq 0.
+\]
+这一简单的矩阵不等式和 $D_{ij}\geq 0$，$D_{ii}=0$ 是 Euclid 距离矩阵的经典特征。为看出这个等价性，回顾我们的假设 $A\mathbf{1}=0$，这表明 $\mathbf{1}^TG\mathbf{1}=\mathbf{1}^TA^TA\mathbf{1}=0$。继而 $G\succeq 0$，当且仅当 $G$ 在 $\mathbf{1}^\perp$ 上半正定，即
+\[
+0\preceq (I-(1/n)\mathbf{1}\mathbf{1}^T)G(I-(1/n)\mathbf{1}\mathbf{1}^T)
+\]
+\[
+=(1/2)(I-(1/n)\mathbf{1}\mathbf{1}^T)(z\mathbf{1}^T+\mathbf{1}z^T-D)(I-(1/n)\mathbf{1}\mathbf{1}^T)
+\]
+\[
+=-(1/2)(I-(1/n)\mathbf{1}\mathbf{1}^T)D(I-(1/n)\mathbf{1}\mathbf{1}^T),
+\]
+这是简化了的条件。
+
+总结起来，矩阵 $D\in\mathbf{S}^n$ 是一个 Euclid 距离矩阵（即给出了 $\mathbb{R}^n$ 空间 $n$ 个向量的集合中的平方距离）的充要条件是
+\[
+D_{ii}=0,\quad i=1,\cdots,n,\qquad D_{ij}\geq 0,\quad i,j=1,\cdots,n,
+\]
+\[
+(I-(1/n)\mathbf{1}\mathbf{1}^T)D(I-(1/n)\mathbf{1}\mathbf{1}^T)\preceq 0.
+\]
+这是线性等式、线性不等式加上 $D$ 上的线性矩阵不等式。因此，我们可以将在平方距离下凸的 Euclid 距离问题表示为以 $D\in\mathbf{S}^n$ 为变量的凸问题。
+
+\subsection*{8.4\quad 极值体积椭球}
+
+设 $C\subseteq\mathbb{R}^n$ 有界并且内部非空。本节将考虑寻找 $C$ 中的最大体积椭球和覆盖 $C$ 的最小体积椭球的问题。这两个问题都可以建模为凸优化问题，但只在特殊情况下易解。
+
+\subsection*{8.4.1\quad Löwner-John 椭球}
+
+包含集合 $C$ 的最小体积椭球被称为集合 $C$ 的 Löwner-John 椭球，记为 $\mathcal{E}_{\mathrm{lj}}$。为方便描述 $\mathcal{E}_{\mathrm{lj}}$ 的特征，将一般的椭球参数化为
+\begin{equation}
+\mathcal{E}=\{v\mid \|Av+b\|_2\leq 1\},
+\tag{8.9}
+\end{equation}
+即 Euclid 单位球在仿射映射下的原像。可以不失一般性地假设 $A\in\mathbf{S}_{++}^n$，此类情况下，$\mathcal{E}$ 的体积正比于 $\det A^{-1}$。计算包含 $C$ 的最小体积椭球的问题可以表述为
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \log\det A^{-1}\\
+\text{subject to}\quad & \sup_{v\in C}\|Av+b\|_2\leq 1,
+\end{aligned}
+\tag{8.10}
+\end{equation}
+其中的变量为 $A\in\mathbf{S}^n$ 和 $b\in\mathbb{R}^n$，并且有一个隐含的约束 $A\succ 0$。目标和约束函数均是 $A$ 和 $b$ 的凸函数，因此问题 (8.10) 是凸的。但是，(8.10) 中约束函数的计算涉及凸极大化问题的求解，只在一些特定情况下是容易的。
+
+\noindent\textbf{覆盖有限集合的最小体积椭球}\quad
+我们考虑寻找包含有限集合 $C=\{x_1,\cdots,x_m\}\subseteq\mathbb{R}^n$ 的最小体积椭球的问题。一个椭球覆盖 $C$ 当且仅当覆盖其凸包，因此寻找覆盖 $C$ 的最小体积椭球等价于寻找包含多面体 $\operatorname{conv}\{x_1,\cdots,x_m\}$ 的最小体积椭球。应用 (8.10)，我们可以将此问题写为
+\begin{equation}
+\begin{aligned}
+\text{minimize}\quad & \log\det A^{-1}\\
+\text{subject to}\quad & \|Ax_i+b\|_2\leq 1,\quad i=1,\cdots,m,
+\end{aligned}
+\tag{8.11}
+\end{equation}
+其变量为 $A\in\mathbf{S}^n$ 和 $b\in\mathbb{R}^n$，并且有隐含约束 $A\succ 0$。范数约束 $\|Ax_i+b\|_2\leq 1$，$i=1,\cdots,m$ 是变量 $A$ 和 $b$ 的凸不等式。它们可以被替换为平方的形式，$\|Ax_i+b\|_2^2\leq 1$，这是 $A$ 和 $b$ 的凸二次不等式。
+
+\noindent\textbf{覆盖椭球并集的最小体积椭球}\quad
+对于由二次不等式定义的特定集合 $C$，也可以有效计算其最小覆盖椭球体积。特别地，可以计算一些椭球的并集或其和的 Löwner-John 椭球。
+
+作为一个例子，考虑寻找最小体积椭球以包含 $\mathcal{E}_1,\cdots,\mathcal{E}_m$（因此，也包含其并集的凸包）的问题。椭球 $\mathcal{E}_1,\cdots,\mathcal{E}_m$ 由（凸）二次不等式描述为
+\[
+\mathcal{E}_i=\{x\mid x^TA_ix+2b_i^Tx+c_i\leq 0\},\quad i=1,\cdots,m,
+\]
+其中 $A_i\in\mathbf{S}_{++}^n$。我们将椭球 $\mathcal{E}_{\mathrm{lj}}$ 参数化为
+\[
+\mathcal{E}_{\mathrm{lj}}=\{x\mid \|Ax+b\|_2\leq 1\}
+=\{x\mid x^TA^TAx+2(A^Tb)^Tx+b^Tb-1\leq 0\},
+\]
+其中 $A\in\mathbf{S}^n$，$b\in\mathbb{R}^n$。现在利用 \S B.2 中的结果，即 $\mathcal{E}_i\subseteq\mathcal{E}_{\mathrm{lj}}$ 的充要条件是，存在 $\tau\geq 0$ 使得
+\[
+\begin{bmatrix}
+A^2-\tau A_i & Ab-\tau b_i\\
+(Ab-\tau b_i)^T & b^Tb-1-\tau c_i
+\end{bmatrix}\preceq 0.
+\]
+$\mathcal{E}_{\mathrm{lj}}$ 的体积正比于 $\det A^{-1}$，因此，我们可以通过求解下面的问题寻找包含 $\mathcal{E}_1,\cdots,\mathcal{E}_m$ 的最小体积椭球，
+\[
+\begin{aligned}
+\text{minimize}\quad & \log\det A^{-1}\\
+\text{subject to}\quad & \tau_1\geq 0,\cdots,\tau_m\geq 0\\
+& \begin{bmatrix}
+A^2-\tau_i A_i & Ab-\tau_i b_i\\
+(Ab-\tau_i b_i)^T & b^Tb-1-\tau_i c_i
+\end{bmatrix}\preceq 0,\quad i=1,\cdots,m,
+\end{aligned}
+\]
+或者，将变量 $b$ 替换为 $\tilde{b}=Ab$，
+\[
+\begin{aligned}
+\text{minimize}\quad & \log\det A^{-1}\\
+\text{subject to}\quad & \tau_1\geq 0,\cdots,\tau_m\geq 0\\
+& \begin{bmatrix}
+A^2-\tau_i A_i & \tilde{b}-\tau_i b_i & 0\\
+(\tilde{b}-\tau_i b_i)^T & -1-\tau_i c_i & \tilde{b}^T\\
+0 & \tilde{b} & -A^2
+\end{bmatrix}\preceq 0,\quad i=1,\cdots,m,
+\end{aligned}
+\]
+它关于变量 $A^2\in\mathbf{S}^n$，$\tilde{b}$，$\tau_1,\cdots,\tau_m$ 是凸的。
+
+\noindent\textbf{Löwner-John 椭球逼近的效率}
+
+令 $\mathcal{E}_{\rm lj}$ 是有界且内部非空的凸集 $C\subseteq\mathbf{R}^n$ 的 Löwner-John 椭球，$x_0$ 是其中心。如果我们将 Löwner-John 椭球向其中心收缩比例 $n$，我们可以得到一个位于 $C$ 中的椭球：
+\[
+x_0+\frac{1}{n}(\mathcal{E}_{\rm lj}-x_0)\subseteq C\subseteq \mathcal{E}_{\rm lj}.
+\]
+换言之，Löwner-John 椭球用仅与维数 $n$ 相关的比例逼近了任意一个凸集合。图 8.3 展示了一个简单的例子。
+
+没有对 $C$ 的附加假设，无法改进比例 $1/n$。例如，$\mathbf{R}^n$ 中的任一单纯形具有这样的性质，即其 Löwner-John 椭球必须以比例 $n$ 收缩，才能够进入其中（参见习题 8.13）。
+
+对于特殊情况 $C=\operatorname{conv}\{x_1,\ldots,x_m\}$，我们将证明关于其效率的结果。对 (8.11) 中的约束进行平方并引入变量 $\tilde{A}=A^2$ 和 $\tilde{b}=Ab$ 以得到问题
+\[
+\begin{array}{ll}
+\mbox{minimize} & \log\det \tilde{A}^{-1}\\
+\mbox{subject to} & x_i^T\tilde{A}x_i-2\tilde{b}^Tx_i+\tilde{b}^T\tilde{A}^{-1}\tilde{b}\leq 1,\quad i=1,\ldots,m.
+\end{array}
+\tag{8.12}
+\]
+这个问题的 KKT 条件是
+\[
+\sum_i \lambda_i(x_i x_i^T-\tilde{A}^{-1}\tilde{b}\tilde{b}^T\tilde{A}^{-1})=\tilde{A}^{-1},\quad
+\sum_i \lambda_i(x_i-\tilde{A}^{-1}\tilde{b})=0,
+\]
+\[
+\lambda_i\geq 0,\quad x_i^T\tilde{A}x_i-2\tilde{b}^Tx_i+\tilde{b}^T\tilde{A}^{-1}\tilde{b}\leq 1,\quad i=1,\ldots,m,
+\]
+\[
+\lambda_i(1-x_i^T\tilde{A}x_i+2\tilde{b}^Tx_i-\tilde{b}^T\tilde{A}^{-1}\tilde{b})=0,\quad i=1,\ldots,m.
+\]
+通过对坐标的适当变换，我们可以假设 $\tilde{A}=I$，$\tilde{b}=0$，即最小体积椭球是以原点为中心的单位球。于是，KKT 条件化简为
+\[
+\sum_i \lambda_i x_i x_i^T=I,\quad
+\sum_i \lambda_i x_i=0,\quad
+\lambda_i(1-x_i^Tx_i)=0,\quad i=1,\ldots,m,
+\]
+并加入可行性条件 $\|x_i\|_2\leq 1$ 和 $\lambda_i\geq 0$。对第一个等式左右取迹并利用互补松弛条件，还可以得到 $\sum_i\lambda_i=n$。
+
+在新的坐标系下，收缩后的椭球是以原点为中心，以 $1/n$ 为半径的球。我们需要说明
+\[
+\|x\|_2\leq 1/n\quad\Longrightarrow\quad x\in C=\operatorname{conv}\{x_1,\ldots,x_m\}.
+\]
+设 $\|x\|_2\leq 1/n$，从 KKT 条件，我们可以看出
+\[
+x=\sum_i \lambda_i(x^Tx_i)x_i
+=\sum_i \lambda_i(x^Tx_i+1/n)x_i
+=\sum_i \mu_i x_i,
+\tag{8.13}
+\]
+其中 $\mu_i=\lambda_i(x^Tx_i+1/n)$。由 Cauchy-Schwartz 不等式，我们注意到
+\[
+\mu_i=\lambda_i(x^Tx_i+1/n)\geq
+\lambda_i(-\|x\|_2\|x_i\|_2+1/n)\geq
+\lambda_i(-1/n+1/n)=0.
+\]
+进一步，
+\[
+\sum_i \mu_i=\sum_i\lambda_i(x^Tx_i+1/n)=\sum_i\lambda_i/n=1.
+\]
+这与 (8.13) 一起，说明了 $x$ 是 $x_1,\ldots,x_m$ 的凸组合，因此 $x\in C$。
+
+\noindent\textbf{对称集合的 Löwner-John 椭球逼近效率}
+
+如果集合 $C$ 关于点 $x_0$ 对称，那么比例 $1/n$ 可以收紧为 $1/\sqrt{n}$：
+\[
+x_0+\frac{1}{\sqrt{n}}(\mathcal{E}_{\rm lj}-x_0)\subseteq C\subseteq \mathcal{E}_{\rm lj}.
+\]
+并且，比例 $1/\sqrt{n}$ 是紧的。立方体
+\[
+C=\{x\in\mathbf{R}^n\mid -1\preceq x\preceq 1\}
+\]
+的 Löwner-John 椭球是以 $\sqrt{n}$ 为半径的球。将其按比例 $1/\sqrt{n}$ 缩减将得到一个球，内接于 $C$ 并在 $x=\pm e_i$ 处达到其边界。
+
+\noindent\textbf{用二次范数逼近一个范数}
+
+令 $\|\cdot\|$ 为 $\mathbf{R}^n$ 上的任意范数，$C=\{x\mid \|x\|\leq 1\}$ 为其单位球。令 $\mathcal{E}_{\rm lj}=\{x\mid x^TAx\leq 1\}$，其中 $A\in\mathbf{S}_{++}^n$ 为 $C$ 的 Löwner-John 单位球。因为 $C$ 关于原点对称，前述结果告诉我们 $(1/\sqrt{n})\mathcal{E}_{\rm lj}\subseteq C\subseteq \mathcal{E}_{\rm lj}$。用 $\|\cdot\|_{\rm lj}$ 表示二次范数
+\[
+\|z\|_{\rm lj}=(z^TAz)^{1/2},
+\]
+其单位球为 $\mathcal{E}_{\rm lj}$。包含关系 $(1/\sqrt{n})\mathcal{E}_{\rm lj}\subseteq C\subseteq \mathcal{E}_{\rm lj}$ 等价于对于所有 $z\in\mathbf{R}^n$ 的不等式
+\[
+\|z\|_{\rm lj}\leq \|z\|\leq \sqrt{n}\|z\|_{\rm lj}.
+\]
+换言之，二次范数 $\|\cdot\|_{\rm lj}$ 以 $\sqrt{n}$ 范围内的比例逼近了范数 $\|\cdot\|$。特别地，我们看到 $\mathbf{R}^n$ 上的任意范数可以被二次范数以 $\sqrt{n}$ 内的比例逼近。
+
+\subsection*{8.4.2 最大体积内接椭球}
+
+现在，我们考虑寻找凸集 $C$ 中具有最大体积的椭球的问题。我们假设 $C$ 有界并有非空内部。为描述此问题，我们将椭球参数化为单位球在仿射变换下的像，即
+\[
+\mathcal{E}=\{Bu+d\mid \|u\|_2\leq 1\}.
+\]
+再一次，可以假设 $B\in\mathbf{S}_{++}^n$，于是体积正比于 $\det B$。我们可以通过求解关于变量 $B\in\mathbf{S}^n$ 和 $d\in\mathbf{R}^n$ 的凸优化问题
+\[
+\begin{array}{ll}
+\mbox{maximize} & \log\det B\\
+\mbox{subject to} & \sup_{\|u\|_2\leq 1} I_C(Bu+d)\leq 0,
+\end{array}
+\tag{8.14}
+\]
+其隐含约束为 $B\succ 0$，找到 $C$ 中的最大体积椭球。
+
+\noindent\textbf{多面体内的最大体积椭球}
+
+考虑 $C$ 是由线性不等式
+\[
+C=\{x\mid a_i^Tx\leq b_i,\quad i=1,\ldots,m\}
+\]
+所描述的多面体的情况。应用 (8.14)，我们首先将约束表示为更为方便的形式，
+\[
+\sup_{\|u\|_2\leq 1} I_C(Bu+d)\leq 0
+\Longleftrightarrow
+\sup_{\|u\|_2\leq 1} a_i^T(Bu+d)\leq b_i,\quad i=1,\ldots,m
+\]
+\[
+\Longleftrightarrow \|Ba_i\|_2+a_i^Td\leq b_i,\quad i=1,\ldots,m.
+\]
+于是，我们可以将 (8.14) 构建为一个关于 $B$ 和 $d$ 的凸优化问题：
+\[
+\begin{array}{ll}
+\mbox{minimize} & \log\det B^{-1}\\
+\mbox{subject to} & \|Ba_i\|_2+a_i^Td\leq b_i,\quad i=1,\ldots,m.
+\end{array}
+\tag{8.15}
+\]
+
+\noindent\textbf{椭球交集中的最大体积椭球}
+
+我们也可以找到处于 $m$ 个椭球 $\mathcal{E}_1,\ldots,\mathcal{E}_m$ 的交集中的最大体积椭球。我们将 $\mathcal{E}$ 描述为 $\mathcal{E}=\{Bu+d\mid \|u\|_2\leq 1\}$，其中 $B\in\mathbf{S}_{++}^n$，并用凸二次不等式表示其他椭球
+\[
+\mathcal{E}_i=\{x\mid x^TA_ix+2b_i^Tx+c_i\leq 0\},\quad i=1,\ldots,m,
+\]
+其中 $A_i\in\mathbf{S}_{++}^n$。我们首先得出 $\mathcal{E}\subseteq \mathcal{E}_i$ 的条件。$\mathcal{E}\subseteq \mathcal{E}_i$ 当且仅当
+\[
+\begin{split}
+&\sup_{\|u\|_2\leq 1}((d+Bu)^TA_i(d+Bu)+2b_i^T(d+Bu)+c_i)\\
+&=d^TA_id+2b_i^Td+c_i
++\sup_{\|u\|_2\leq 1}(u^TBA_iBu+2(A_id+b_i)^TBu)\leq 0.
+\end{split}
+\]
+根据 \S B.1，
+\[
+\sup_{\|u\|_2\leq 1}(u^TBA_iBu+2(A_id+b_i)^TBu)
+\leq -(d^TA_id+2b_i^Td+c_i)
+\]
+当且仅当存在 $\lambda_i\geq 0$ 使得
+\[
+\begin{bmatrix}
+-\lambda_i-d^TA_id-2b_i^Td-c_i & (A_id+b_i)^TB\\
+B(A_id+b_i) & \lambda_i I-BA_iB
+\end{bmatrix}\succeq 0.
+\]
+所以，可以通过求解下面关于变量 $B\in\mathbf{S}^n$，$d\in\mathbf{R}^n$ 和 $\lambda\in\mathbf{R}^m$ 的问题找到被 $\mathcal{E}_1,\ldots,\mathcal{E}_m$ 包含的最大体积椭球，
+\[
+\begin{array}{ll}
+\mbox{minimize} & \log\det B^{-1}\\
+\mbox{subject to} &
+\begin{bmatrix}
+-\lambda_i-d^TA_id-2b_i^Td-c_i & (A_id+b_i)^TB\\
+B(A_id+b_i) & \lambda_i I-BA_iB
+\end{bmatrix}\succeq 0,\quad i=1,\ldots,m,
+\end{array}
+\]
+或者，等价地，
+\[
+\begin{array}{ll}
+\mbox{minimize} & \log\det B^{-1}\\
+\mbox{subject to} &
+\begin{bmatrix}
+-\lambda_i-c_i+b_i^TA_i^{-1}b_i & 0 & (d+A_i^{-1}b_i)^T\\
+0 & \lambda_i I & B\\
+d+A_i^{-1}b_i & B & A_i^{-1}
+\end{bmatrix}\succeq 0,\quad i=1,\ldots,m.
+\end{array}
+\]
+
+\noindent\textbf{椭球内逼近的效率}
+
+与 Löwner-John 椭球相类似，也有对于最大体积内接椭球逼近效率的结果。如果 $C\subseteq\mathbf{R}^n$ 是凸、有界并且内部非空的，那么将最大体积内接椭球对其中心扩展 $n$ 倍将覆盖集合 $C$。如果 $C$ 关于一点是对称的，那么倍数 $n$ 可以收紧为 $\sqrt{n}$。图 8.4 显示了一个例子。
+
+\subsection*{8.4.3 极值体积椭球的仿射不变性}
+
+Löwner-John 椭球和最大体积内接椭球都是仿射不变的。如果 $\mathcal{E}_{\rm lj}$ 是 $C$ 的 Löwner-John 椭球，$T\in\mathbf{R}^{n\times n}$ 非奇异，那么 $TC$ 的 Löwner-John 椭球是 $T\mathcal{E}_{\rm lj}$。对于最大体积内接椭球，相似的结论也成立。
+
+为得到这个结果，令 $\mathcal{E}$ 为任意覆盖 $C$ 的椭球。那么 $T\mathcal{E}$ 覆盖 $TC$。逆命题也是正确的：每个覆盖 $TC$ 的椭球都具有形式 $T\mathcal{E}$，其中 $\mathcal{E}$ 为覆盖 $C$ 的一个椭球。换言之，关系 $\tilde{\mathcal{E}}=T\mathcal{E}$ 给出了覆盖 $TC$ 和 $C$ 的椭球之间一一对应的关系。并且，相应椭球的体积都与 $|\det T|$ 成比例，因此，特别地，如果 $\mathcal{E}$ 在所有覆盖 $C$ 的椭圆中具有最小的体积，那么 $T\mathcal{E}$ 则在所有覆盖 $TC$ 的椭圆中有最小体积。
+
+\subsection*{8.5 中心}
+
+\subsection*{8.5.1 Chebyshev 中心}
+
+令 $C\subseteq\mathbf{R}^n$ 有界且有非空内部，$x\in C$。点 $x\in C$ 的深度定义为
+\[
+\operatorname{depth}(x;C)=\operatorname{dist}(x,\mathbf{R}^n\backslash C),
+\]
+即与 $C$ 的外部最近点的距离。深度给出了以 $x$ 为中心的、位于 $C$ 中的最大球的半径。集合 $C$ 的 Chebyshev 中心定义为 $C$ 中具有最大深度的点：
+\[
+x_{\rm cheb}(C)=\mathop{\rm argmax}\operatorname{depth}(x,C)
+=\mathop{\rm argmax}\operatorname{dist}(x,\mathbf{R}^n\backslash C).
+\]
+Chebyshev 中心是 $C$ 中距离 $C$ 的外部最远的点；它也是位于 $C$ 中的最大球的中心。图 8.5 显示了这样的一个例子，其中 $C$ 为多面体，范数为 Euclid 范数。
+
+\noindent\textbf{凸集的 Chebyshev 中心}
+
+当集合 $C$ 为凸集时，深度是 $x\in C$ 的凹函数；因此计算其 Chebyshev 中心是一个凸优化问题（参见习题 8.5）。更具体地，设 $C\subseteq\mathbf{R}^n$ 由凸不等式组
+\[
+C=\{x\mid f_1(x)\leq 0,\ldots,f_m(x)\leq 0\}
+\]
+定义。我们可以通过求解下面的问题找到 Chebyshev 中心，
+\[
+\begin{array}{ll}
+\mbox{maximize} & R\\
+\mbox{subject to} & g_i(x,R)\leq 0,\quad i=1,\ldots,m,
+\end{array}
+\tag{8.16}
+\]
+其中 $g_i$ 定义为
+\[
+g_i(x,R)=\sup_{\|u\|\leq 1} f_i(x+Ru).
+\]
+问题 (8.16) 是凸优化问题，因为每个函数 $g_i$ 是一组关于 $x$ 和 $R$ 的凸函数的逐点最大，因此也是凸的。但是，计算 $g_i$ 涉及凸最大化问题，（在数值和解析上）这非常困难。特别地，我们可以对某些 $g_i$ 易于计算的例子找到 Chebyshev 中心。
+
+\noindent\textbf{多面体的 Chebyshev 中心}
+
+设 $C$ 由线性不等式组 $a_i^Tx\leq b_i,\ i=1,\ldots,m$ 定义。我们有，如果 $R\geq 0$，那么
+\[
+g_i(x,R)=\sup_{\|u\|\leq 1} a_i^T(x+Ru)-b_i
+=a_i^Tx+R\|a_i\|_*-b_i,
+\]
+所以，Chebyshev 中心可以通过求解线性规划
+\[
+\begin{array}{ll}
+\mbox{maximize} & R\\
+\mbox{subject to} & a_i^Tx+R\|a_i\|_*\leq b_i,\quad i=1,\ldots,m\\
+& R\geq 0
+\end{array}
+\]
+得到，其变量为 $x$ 和 $R$。
+
+\noindent\textbf{椭圆交集的 Euclid Chebyshev 中心}
+
+令 $C$ 是 $m$ 个由二次不等式
+\[
+C=\{x\mid x^TA_ix+2b_i^Tx+c_i\leq 0,\ i=1,\ldots,m\}
+\]
+所定义的椭圆的交集，其中 $A_i\in\mathbf{S}_{++}^n$。我们有
+\[
+\begin{split}
+g_i(x,R)
+&=\sup_{\|u\|_2\leq 1}\left((x+Ru)^TA_i(x+Ru)+2b_i^T(x+Ru)+c_i\right)\\
+&=x^TA_ix+2b_i^Tx+c_i
++\sup_{\|u\|_2\leq 1}\left(R^2u^TA_iu+2R(A_ix+b_i)^Tu\right).
+\end{split}
+\]
+
+根据 \S B.1，$g_i(x,R)\leq 0$ 当且仅当存在 $\lambda_i$ 使得矩阵不等式
+\[
+\begin{bmatrix}
+-x^TA_ix-2b_i^Tx-c_i-\lambda_i & R(A_ix+b_i)^T\\
+R(A_ix+b_i) & \lambda_i I-R^2A_i
+\end{bmatrix}\succeq 0
+\tag{8.17}
+\]
+成立。利用这一结果，我们可以将 Chebyshev 中心问题表述为
+\[
+\begin{array}{ll}
+\mbox{maximize} & R\\
+\mbox{subject to} &
+\begin{bmatrix}
+-\lambda_i-c_i+b_i^TA_i^{-1}b_i & 0 & (x+A_i^{-1}b_i)^T\\
+0 & \lambda_i I & RI\\
+x+A_i^{-1}b_i & RI & A_i^{-1}
+\end{bmatrix}\succeq 0,\quad i=1,\ldots,m,
+\end{array}
+\]
+这是一个关于变量 $R$、$\lambda$ 和 $x$ 的 SDP。注意，在这个线性矩阵不等式约束中，$A_i^{-1}$ 的 Schur 补与 (8.17) 的左端相等。
+
+\subsection*{8.5.2 最大体积椭球中心}
+
+集合 $C\subseteq\mathbf{R}^n$ 的 Chebyshev 中心 $x_{\rm cheb}$ 是位于 $C$ 中的最大球的中心。作为对这一想法的扩展，我们定义 $C$ 中具有最大体积的椭球的中心为 $C$ 的最大体积椭球中心，记为 $x_{\rm mve}$。图 8.6 显示了一个例子，其中 $C$ 是一个多面体。
+
+当 $C$ 由线性不等式组定义时，可以很容易地通过求解问题 (8.15) 得到了最大体积椭球中心。（变量 $d\in\mathbf{R}^n$ 的最优值即是 $x_{\rm mve}$。）因为 $C$ 中的最大体积椭球仿射不变，因此，最大体积椭球中心同样如此。
+
+\subsection*{8.5.3 不等式组的解析中心}
+
+一组凸不等式和线性方程
+\[
+f_i(x)\leq 0,\quad i=1,\ldots,m,\qquad Fx=g
+\]
+的解析中心 $x_{\rm ac}$ 定义为（凸）问题
+\[
+\begin{array}{ll}
+\mbox{minimize} & -\displaystyle\sum_{i=1}^m \log(-f_i(x))\\
+\mbox{subject to} & Fx=g
+\end{array}
+\tag{8.18}
+\]
+的最优解，这里的优化变量是 $x\in\mathbf{R}^n$，并有隐含约束 $f_i(x)<0,\ i=1,\ldots,m$。问题 (8.18) 中的目标被称为与不等式相关的对数障碍。这里，我们假设对数障碍的定义域与等式所定义的仿射空间相交，即严格不等式系统
+\[
+f_i(x)<0,\quad i=1,\ldots,m,\qquad Fx=g
+\]
+是可行的。对数障碍在其可行集
+\[
+C=\{x\mid f_i(x)<0,\ i=1,\ldots,m,\ Fx=g\}
+\]
+上有下界，如果 $C$ 有界。
+
+当 $x$ 严格可行时，即 $Fx=g$ 且 $f_i(x)<0,\ i=1,\ldots,m$，我们可以将 $-f_i(x)$ 解释为第 $i$ 个不等式的余地或松弛。解析中心 $x_{\rm ac}$ 是在等式约束 $Fx=g$ 和隐含约束 $f_i(x)<0$ 下极大化这些松弛或余地的积（或几何平均）的点。
+
+解析中心不是由不等式和等式所描述的集合的函数；两组不等式和等式可能定义了相同的集合，但有不同的解析中心。不过，仍然会经常非正式地使用“集合 $C$ 的解析中心”来代表定义这个集合的特定的等式和不等式组的解析中心。
+
+但是，解析中心关于坐标系的仿射变换是独立的。它在不等式函数的（正）伸缩变换和等式约束的任何再参数化下也是不变的。换言之，如果 $\alpha_1,\ldots,\alpha_m>0$，并且 $Fx=g$ 的充要条件是 $\tilde F x=\tilde g$，那么
+\[
+\alpha_i f_i(x)\leq 0,\quad i=1,\ldots,m,\qquad \tilde F x=\tilde g
+\]
+的解析中心与
+\[
+f_i(x)\leq 0,\quad i=1,\ldots,m,\qquad Fx=g
+\]
+的解析中心相同（参见习题 8.17）。
+
+\noindent\textbf{线性不等式组的解析中心}
+
+线性不等式组
+\[
+a_i^Tx\leq b_i,\quad i=1,\ldots,m
+\]
+的解析中心是下面无约束极小化问题的解
+\[
+\mbox{minimize}\quad -\sum_{i=1}^m \log(b_i-a_i^Tx),
+\tag{8.19}
+\]
+其隐含约束为 $b_i-a_i^Tx>0,\ i=1,\ldots,m$。如果线性不等式定义的多面体有界，那么对数障碍有下界并且严格凸，因此，其解析中心唯一。（参见习题 4.2。）
+
+我们可以对线性不等式组的解析中心给予几何解释（参见图 8.7）。因为解析中心对约束函数的正伸缩变换独立，我们可以不失一般性地假设 $\|a_i\|_2=1$。在这种情况下，$b_i-a_i^Tx$ 的松弛是到超平面 $\mathcal{H}_i=\{x\mid a_i^Tx=b_i\}$ 的距离。所以，解析中心 $x_{\rm ac}$ 是这样的一个点，它最大化了到所定义的超平面的距离的乘积。
+
+\noindent\textbf{从线性不等式解析中心得到的内部和外部椭球}
+
+线性不等式组的解析中心隐含地定义了内接和覆盖椭圆，它们由对数障碍函数
+\[
+-\sum_{i=1}^m \log(b_i-a_i^Tx)
+\]
+在解析中心的 Hessian 矩阵，即
+\[
+H=\sum_{i=1}^m d_i^2 a_i a_i^T,\qquad d_i=\frac{1}{b_i-a_i^Tx_{\rm ac}},\quad i=1,\ldots,m
+\]
+所定义。我们有 $\mathcal{E}_{\rm inner}\subseteq\mathcal{P}\subseteq\mathcal{E}_{\rm outer}$，其中
+\[
+\begin{split}
+\mathcal{P}&=\{x\mid a_i^Tx\leq b_i,\ i=1,\ldots,m\},\\
+\mathcal{E}_{\rm inner}&=\{x\mid (x-x_{\rm ac})^TH(x-x_{\rm ac})\leq 1\},\\
+\mathcal{E}_{\rm outer}&=\{x\mid (x-x_{\rm ac})^TH(x-x_{\rm ac})\leq m(m-1)\}.
+\end{split}
+\]
+与最大体积内接椭球相比，这是一个较弱的结果；最大体积内接椭球扩展 $n$ 倍时将覆盖多面体。相对地，通过对数障碍的 Hessian 矩阵定义的内部和外部椭球则与比例因子 $(m(m-1))^{1/2}$ 相关，而它总是至少等于 $n$ 的。
+
+为说明 $\mathcal{E}_{\rm inner}\subseteq\mathcal{P}$，设 $x\in\mathcal{E}_{\rm inner}$，即
+\[
+(x-x_{\rm ac})^TH(x-x_{\rm ac})
+=\sum_{i=1}^m\left(d_ia_i^T(x-x_{\rm ac})\right)^2\leq 1.
+\]
+这意味着
+\[
+a_i^T(x-x_{\rm ac})\leq 1/d_i=b_i-a_i^Tx_{\rm ac},\quad i=1,\ldots,m,
+\]
+并且因此，对于 $i=1,\ldots,m$ 有 $a_i^Tx\leq b_i$。（我们还没有利用 $x_{\rm ac}$ 是解析中心的事实，因此，将 $x_{\rm ac}$ 换做任意严格可行点，这个结论都成立。）
+
+为建立 $\mathcal{P}\subseteq\mathcal{E}_{\rm outer}$，我们需要用到 $x_{\rm ac}$ 是解析中心的事实，因此，对数障碍的导数等于零：
+\[
+\sum_{i=1}^m d_i a_i=0.
+\]
+现在假设 $x\in\mathcal{P}$，于是
+\[
+\begin{split}
+(x-x_{\rm ac})^TH(x-x_{\rm ac})
+&=\sum_{i=1}^m\left(d_i a_i^T(x-x_{\rm ac})\right)^2\\
+&=\sum_{i=1}^m d_i^2\left(1/d_i-a_i^T(x-x_{\rm ac})\right)^2-m\\
+&=\sum_{i=1}^m d_i^2(b_i-a_i^Tx)^2-m\\
+&\leq \left(\sum_{i=1}^m d_i(b_i-a_i^Tx)\right)^2-m\\
+&=\left(\sum_{i=1}^m d_i(b_i-a_i^Tx_{\rm ac})+\sum_{i=1}^m d_i a_i^T(x_{\rm ac}-x)\right)^2-m\\
+&=m^2-m,
+\end{split}
+\]
+这表明了 $x\in\mathcal{E}_{\rm outer}$。（第二个等号是从 $\sum_{i=1}^m d_i a_i=0$ 得到的。不等号是因为对于 $y\geq 0$ 有 $\sum_{i=1}^m y_i^2\leq (\sum_{i=1}^m y_i)^2$。最后一个等号从 $\sum_{i=1}^m d_i a_i=0$ 和 $d_i$ 的定义可知。）
+
+\noindent\textbf{线性矩阵不等式的解析中心}
+
+如果我们定义锥 $K$ 上的对数，解析中心的定义可以扩展到由关于 $K$ 的广义不等式所定义的集合。例如，矩阵不等式
+\[
+x_1A_1+x_2A_2+\cdots+x_nA_n\preceq B
+\]
+的解析中心定义为
+\[
+\mbox{minimize}\quad -\log\det(B-x_1A_1-\cdots-x_nA_n)
+\]
+的解。
+
+\section*{8.6\quad 分类}
+
+在模式识别和分类问题中，给定 $\mathbf{R}^n$ 中的两个点集 $\{x_1,\ldots,x_N\}$ 和 $\{y_1,\ldots,y_M\}$，我们希望（从给定的函数族中）找到一个函数 $f:\mathbf{R}^n\to\mathbf{R}$ 在第一个集合中为正而在第二个中为负，即
+\[
+f(x_i)>0,\quad i=1,\ldots,N,\qquad f(y_i)<0,\quad i=1,\ldots,M.
+\]
+如果这些不等式成立，我们称 $f$，或其 0-水平集 $\{x\mid f(x)=0\}$ 分离、分类或判别了两个点集。我们有时也考虑弱分离，在这种情况下，只需要弱不等式成立。
+
+\subsection*{8.6.1\quad 线性判别}
+
+在线性判别中，我们寻找仿射函数 $f(x)=a^Tx-b$ 用以区分这些点，即
+\[
+a^Tx_i-b>0,\quad i=1,\ldots,N,\qquad a^Ty_i-b<0,\quad i=1,\ldots,M.
+\tag{8.20}
+\]
+在几何意义上，我们是在寻找分离两个点集的超平面。因为严格不等式 (8.20) 对于 $a$ 和 $b$ 是齐次的，所以，它们是可行的，当且仅当（关于变量 $a$ 和 $b$ 的）非严格不等式组
+\[
+a^Tx_i-b\geq 1,\quad i=1,\ldots,N,\qquad a^Ty_i-b\leq -1,\quad i=1,\ldots,M
+\tag{8.21}
+\]
+是可行的。图 8.8 显示了两个点集及线性判别函数的例子。
+
+\noindent\textbf{线性判别的择一}
+
+严格不等式 (8.20) 的强择一是满足下式的 $\lambda$、$\tilde\lambda$ 的存在性
+\[
+\lambda\succeq 0,\qquad \tilde\lambda\succeq 0,\qquad
+(\lambda,\tilde\lambda)\neq 0,\qquad
+\sum_{i=1}^N \lambda_i x_i=\sum_{i=1}^M \tilde\lambda_i y_i,\qquad
+\mathbf{1}^T\lambda=\mathbf{1}^T\tilde\lambda.
+\tag{8.22}
+\]
+（参见 \S 5.8.3）。利用第三和最后一个条件，可以将择一条件表示为
+\[
+\lambda\succeq 0,\qquad \mathbf{1}^T\lambda=1,\qquad
+\tilde\lambda\succeq 0,\qquad \mathbf{1}^T\tilde\lambda=1,\qquad
+\sum_{i=1}^N \lambda_i x_i=\sum_{i=1}^M \tilde\lambda_i y_i.
+\]
+（同除以正的 $\mathbf{1}^T\lambda$，然后用相同的符号表示归一化了的 $\lambda$ 和 $\tilde\lambda$。）这些条件有一个很简单的几何解释：它们表明存在 $\{x_1,\ldots,x_N\}$ 和 $\{y_1,\ldots,y_M\}$ 的凸包上的点。换言之：两个点集可以被线性判别（即被仿射函数判别），当且仅当它们的凸包不相交。我们在前面已经多次看到了这个结果。
+
+\noindent\textbf{鲁棒线性判别}
+
+仿射分类函数 $f(x)=a^Tx-b$ 的存在性等价于以定义 $f$ 的 $a$ 和 $b$ 为变量的一组线性不等式是否有解。如果两个集合可以被线性判别，那么，存在一个可以分离它们的仿射函数的多面体，于是，我们可以从中选择某些稳健度量下最优的一个。例如，我们可以寻找给出在 $x_i$ 上的（正）值和 $y_i$ 上的（负）值之间最大可能“间距”的函数。为此，我们需要对 $a$ 和 $b$ 进行归一化，因为，不这样做的话，我们可以用正常数对 $a$ 和 $b$ 进行伸缩变换而使得数值上的间距任意地大。这样就得到了关于变量 $a$、$b$ 和 $t$ 的问题
+\[
+\begin{array}{ll}
+\mbox{maximize} & t\\
+\mbox{subject to} & a^Tx_i-b\geq t,\quad i=1,\ldots,N\\
+& a^Ty_i-b\leq -t,\quad i=1,\ldots,M\\
+& \|a\|_2\leq 1,
+\end{array}
+\tag{8.23}
+\]
+这个凸问题（线性目标、线性和二次不等式）的最优值 $t^*$ 为正，当且仅当两个点集可以线性分离。在这种情况下，不等式 $\|a\|_2\leq 1$ 在最优解处总是紧的，即我们有 $\|a^*\|_2=1$。（参见习题 8.23。）
+
+我们可以对鲁棒线性判别问题 (8.23) 给出一个简单的几何解释。如果 $\|a\|_2=1$（在任意最优解处的情况），那么 $a^Tx_i-b$ 是点 $x_i$ 到分离超平面 $\mathcal{H}=\{z\mid a^Tz=b\}$ 的 Euclid 距离。类似地，$b-a^Ty_i$ 是点 $y_i$ 到这个超平面的距离。因此，问题 (8.23) 找到了一个分离两个点集的超平面，并且具有到集合的最大距离。换言之，它找到了分离两个集合的最宽的带。
+
+如图 8.9 所示例子，最优值 $t^*$（即带宽的一半）是两个点集的凸包间距离的一半。从鲁棒线性判别问题 (8.23) 的对偶形式可以更清晰地看到这点。（极小化 $-t$ 问题
+的）Lagrange 为
+\[
+-t+\sum_{i=1}^N u_i(t+b-a^Tx_i)+\sum_{i=1}^M v_i(t-b+a^Ty_i)+\lambda(\|a\|_2-1).
+\]
+在 $b$ 和 $t$ 上极小化得到条件 $\mathbf{1}^Tu=1/2$，$\mathbf{1}^Tv=1/2$。当它们成立时，我们有
+\[
+\begin{split}
+g(u,v,\lambda)
+&=\inf_a\left(a^T\left(\sum_{i=1}^M v_i y_i-\sum_{i=1}^N u_i x_i\right)+\lambda\|a\|_2-\lambda\right)\\
+&=
+\begin{cases}
+-\lambda & \left\|\displaystyle\sum_{i=1}^M v_i y_i-\sum_{i=1}^N u_i x_i\right\|_2\leq \lambda\\
+-\infty & \mbox{其他情况}.
+\end{cases}
+\end{split}
+\]
+于是，这个对偶问题可以写为
+\[
+\begin{array}{ll}
+\mbox{maximize} & -\left\|\displaystyle\sum_{i=1}^M v_i y_i-\sum_{i=1}^N u_i x_i\right\|_2\\
+\mbox{subject to} & u\succeq 0,\quad \mathbf{1}^Tu=1/2\\
+& v\succeq 0,\quad \mathbf{1}^Tv=1/2.
+\end{array}
+\]
+我们可以将 $2\sum_{i=1}^N u_i x_i$ 解释为 $\{x_1,\ldots,x_N\}$ 的凸包上的一点，而 $2\sum_{i=1}^M v_i y_i$ 是 $\{y_1,\ldots,y_M\}$ 的凸包上的一点。对偶目标是极小化这两个点之间的（半）距离，即寻找两个集合的凸包之间的（半）距离。
+
+\noindent\textbf{支持向量分类器}
+
+当两个点集不能被线性判别时，我们会去寻找仿射函数近似地对这些点进行分类；例如，寻找极小化错分点数的函数。不幸的是，这通常是一个复杂的组合优化问题。近似线性判别的一个启发式算法是基于支持向量分类器的，我们将在本节讨论。
+
+我们从可行性问题 (8.21) 入手。首先引入非负变量 $u_1,\ldots,u_N$ 和 $v_1,\ldots,v_M$ 来松弛约束，构造不等式
+\[
+a^Tx_i-b\geq 1-u_i,\quad i=1,\ldots,N,\qquad
+a^Ty_i-b\leq -(1-v_i),\quad i=1,\ldots,M.
+\tag{8.24}
+\]
+当 $u=v=0$，我们恢复到原始约束；而取 $u$ 和 $v$ 足够大时，总能使得这些不等式可行。我们可以将 $u_i$ 视为约束 $a^Tx_i-b\geq 1$ 违反程度的一种度量，$v_i$ 也可以类似地理解。我们的目标是寻找到 $a$、$b$ 和稀疏的非负 $u$ 和 $v$ 以满足不等式 (8.24)。作为此问题的一个启发式算法，我们可以求解线性规划
+\[
+\begin{array}{ll}
+\mbox{minimize} & \mathbf{1}^Tu+\mathbf{1}^Tv\\
+\mbox{subject to} & a^Tx_i-b\geq 1-u_i,\quad i=1,\ldots,N\\
+& a^Ty_i-b\leq -(1-v_i),\quad i=1,\ldots,M\\
+& u\succeq 0,\quad v\succeq 0
+\end{array}
+\tag{8.25}
+\]
+来极小化变量 $u_i$ 和 $v_i$ 的和。图 8.10 显示了一个例子。在这个例子中，仿射函数 $a^Tz-b$ 错分了 100 个点中的 1 个。但是，需要注意，当 $0<u_i<1$ 时，点 $x_i$ 被仿射函数
+$a^Tz-b$ 正确地分类，但违反了不等式 $a^Tx_i-b\geq 1$，对 $y_i$ 有类似的情况。线性规划 (8.25) 的目标函数可以解释为违反 $a^Tx_i-b\geq 1$ 的 $x_i$ 的点数加上违反 $a^Ty_i-b\leq -1$ 的 $y_i$ 的点数的一种松弛。换言之，它是对函数 $a^Tz-b$ 的错分点数及虽然分类正确但落入由 $-1<a^Tz-b<1$ 定义的带的点数之和的一种松弛。
+
+更一般地，我们可以考虑在错分点数和由 $2/\|a\|_2$ 给出的 $\{z\mid -1\leq a^Tz-b\leq 1\}$ 的带宽之间进行权衡。点集 $\{x_1,\ldots,x_N\}$，$\{y_1,\ldots,y_M\}$ 的标准支持向量分类器定义为
+\[
+\begin{array}{ll}
+\mbox{minimize} & \|a\|_2+\gamma(\mathbf{1}^Tu+\mathbf{1}^Tv)\\
+\mbox{subject to} & a^Tx_i-b\geq 1-u_i,\quad i=1,\ldots,N\\
+& a^Ty_i-b\leq -(1-v_i),\quad i=1,\ldots,M\\
+& u\succeq 0,\quad v\succeq 0
+\end{array}
+\]
+的解。第一项正比于 $-1\leq a^Tz-b\leq 1$ 所定义的带的宽度的倒数。第二项具有与前述相同的意义，即它是对错分（包括落入带中的点）点数的凸松弛。正参数 $\gamma$ 给出了错分点数（我们希望极小化）对于带宽（我们希望极大化）的相对权重。图 8.11 显示了一个例子。
+
+\noindent\textbf{利用 Logistic 模型的线性分离}
+
+对线性不可分的点集，另一种寻找进行近似分类的仿射函数的方法是基于 7.1.1 节中讨论的 Logistic 模型的。我们从利用 Logistic 模型拟合两个集合入手。设 $z$ 是取值为 $0$ 或 $1$ 的随机变量，其分布取决于指数变量 $u\in\mathbf{R}^n$，即形如
+\[
+\begin{split}
+\operatorname{prob}(z=1)&=\frac{\exp(a^Tu-b)}{1+\exp(a^Tu-b)}\\
+\operatorname{prob}(z=0)&=\frac{1}{1+\exp(a^Tu-b)}
+\end{split}
+\tag{8.26}
+\]
+的 Logistic 模型。
+
+现在我们假设给定的点集 $\{x_1,\ldots,x_N\}$，$\{y_1,\ldots,y_M\}$ 是从 Logistic 模型中采样得到的。具体地，$\{x_1,\ldots,x_N\}$ 为 $N$ 个 $z=1$ 的 $u$ 的样本值，而 $\{y_1,\ldots,y_M\}$ 为 $M$ 个 $z=0$ 的 $u$ 的样本值。（允许存在 $x_i=y_j$；这将排除两个点集可分的可能性。在 Logistic 模型中，这仅仅意味着我们得到了具有同样的指数变量但有不同输出的两个样本。）
+
+可以从观察样本中通过最大似然估计确定 $a$ 和 $b$，这是通过求解下面的凸优化问题得到的，
+\[
+\mbox{minimize}\quad -l(a,b),
+\tag{8.27}
+\]
+其变量为 $a$、$b$，其中 $l$ 为对数似然函数
+\[
+l(a,b)=\sum_{i=1}^N(a^Tx_i-b)
+-\sum_{i=1}^N\log(1+\exp(a^Tx_i-b))
+-\sum_{i=1}^M\log(1+\exp(a^Ty_i-b))
+\]
+（参见 \S 7.1.1）。如果两个点集可以被线性分离，即存在满足 $a^Tx_i>b$ 和 $a^Ty_i<b$ 的 $a$ 和 $b$，那么优化问题 (8.27) 无下界。
+
+一旦找到了 $a$ 和 $b$ 的最大似然值，我们可以构造两个点集的线性分类器 $f(x)=a^Tx-b$。这个分类器具有下面的性质：假设事实上，数据点是从以 $a$ 和 $b$ 为参数的 Logistic 模型中得到的，那么它在所有线性分类器中具有最小的错分概率。超平面 $a^Tu=b$ 对应于 $\operatorname{prob}(z=1)=1/2$ 的点，即两种输出是等可能的。图 8.12 中显示了一个例子。
+
+\noindent\textbf{注释 8.1}\quad
+Bayes 解释。令 $x$ 和 $z$ 为两个随机变量，分别在 $\mathbf{R}^n$ 和 $\{0,1\}$ 中取值。我们假设
+\[
+\operatorname{prob}(z=1)=\operatorname{prob}(z=0)=1/2,
+\]
+并分别用 $p_0(x)$ 和 $p_1(x)$ 表示给定 $z=0$ 和 $z=1$ 情况下的条件密度。假设 $p_0$ 和 $p_1$ 对某些 $a$ 和 $b$ 满足
+\[
+\frac{p_1(x)}{p_0(x)}=e^{a^Tx-b}.
+\]
+很多常见的分布满足这个性质。例如，$p_0$ 和 $p_1$ 可以是 $\mathbf{R}^n$ 上具有相同协方差矩阵但均值不同的两个正态密度，或者它们可以是 $\mathbf{R}_+^n$ 上的两个指数密度。
+
+根据 Bayes 准则，可得
+\[
+\begin{split}
+\operatorname{prob}(z=1\mid x=u)&=\frac{p_1(u)}{p_1(u)+p_0(u)}\\
+\operatorname{prob}(z=0\mid x=u)&=\frac{p_0(u)}{p_1(u)+p_0(u)},
+\end{split}
+\]
+从中，我们得到
+\[
+\begin{split}
+\operatorname{prob}(z=1\mid x=u)&=\frac{\exp(a^Tu-b)}{1+\exp(a^Tu-b)}\\
+\operatorname{prob}(z=0\mid x=u)&=\frac{1}{1+\exp(a^Tu-b)}.
+\end{split}
+\]
+所以，Logistic 模型 (8.26) 可以解释为给定 $x=u$ 情况下 $z$ 的后验分布。
+
+\subsection*{8.6.2\quad 非线性判别}
+
+也可以从给定函数子空间中寻找非线性函数，在一个集合中为正，在另一个中为负：
+\[
+f(x_i)>0,\quad i=1,\ldots,N,\qquad f(y_i)<0,\quad i=1,\ldots,M.
+\]
+假定 $f$ 关于定义它的参数是线性（或仿射）的，这些不等式可以通过与线性判别完全相同的方法得到求解。在本节中，我们研究一些有趣的特殊情况。
+
+\noindent\textbf{二次判别}
+
+假设我们取 $f$ 为二次函数：$f(x)=x^TPx+q^Tx+r$。参数 $P\in\mathbf{S}^n$、$q\in\mathbf{R}^n$、$r\in\mathbf{R}$ 必须满足不等式
+\[
+x_i^TPx_i+q^Tx_i+r>0,\quad i=1,\ldots,N
+\]
+\[
+y_i^TPy_i+q^Ty_i+r<0,\quad i=1,\ldots,M,
+\]
+这是一组关于变量 $P$、$q$、$r$ 的严格线性不等式。如同线性判别的情况，注意到 $f$ 对于 $P$、$q$、$r$ 是齐次的，因此，我们可以通过求解不严格可行性问题
+\[
+x_i^TPx_i+q^Tx_i+r\geq 1,\quad i=1,\ldots,N
+\]
+\[
+y_i^TPy_i+q^Ty_i+r\leq -1,\quad i=1,\ldots,M
+\]
+找到严格不等式的解。
+
+分离曲面 $\{z\mid z^TPz+q^Tz+r=0\}$ 为二次曲面，两个分类区域
+\[
+\{z\mid z^TPz+q^Tz+r\leq 0\},\qquad
+\{z\mid z^TPz+q^Tz+r\geq 0\}
+\]
+由二次不等式所定义。于是，求解二次判别问题等同于确定两个点集是否可以被二次曲面所分离。
+
+可以通过增加 $P$、$q$ 和 $r$ 的约束来对分离曲面或分类区间的形状加以限制。例如，我们可以要求 $P\prec 0$，这意味着分离曲面为椭球面。更精确地，这意味着我们在寻找包含所有 $x_1,\ldots,x_N$，但不包含任何 $y_1,\ldots,y_M$ 的椭球。这个二次判别问题可以通过半定规划可行性问题得到求解，
+\[
+\begin{array}{ll}
+\mbox{find} & P,\ q,\ r\\
+\mbox{subject to} & x_i^TPx_i+q^Tx_i+r\geq 1,\quad i=1,\ldots,N\\
+& y_i^TPy_i+q^Ty_i+r\leq -1,\quad i=1,\ldots,M\\
+& P\preceq -I,
+\end{array}
+\]
+其变量为 $P\in\mathbf{S}^n$、$q\in\mathbf{R}^n$ 和 $r\in\mathbf{R}$。（这里我们利用 $P$、$q$、$r$ 的齐次性将 $P\prec 0$ 表示为 $P\preceq -I$。）图 8.13 显示了一个例子。
+
+\noindent\textbf{多项式判别}
+
+考虑 $\mathbf{R}^n$ 上阶次小于或等于 $d$ 的多项式集合，
+\[
+f(x)=\sum_{i_1+\cdots+i_n\leq d} a_{i_1\cdots i_d}x_1^{i_1}\cdots x_n^{i_n}.
+\]
+通过求解关于变量 $a_{i_1\cdots i_d}$ 的线性不等式组，我们可以确定两个点集 $\{x_1,\ldots,x_N\}$ 和 $\{y_1,\ldots,y_M\}$ 是否可以被这样的多项式所分离。几何意义上，我们在检验两个集合是否能被（由阶次小于或等于 $d$ 的多项式定义的）代数曲面所分离。
+
+作为扩展，在 $\mathbf{R}^n$ 上，确定能够区分两个点集的多项式的最小阶次问题可以通过拟凸规划得到解决，因为多项式的阶次是系数的拟凸函数。这可以通过对 $d$ 进行二分法得到求解，并在每一步中考虑线性可行性问题。图 8.14 显示了一个例子。
+
+\subsection*{8.7\quad 布局与定位}
+
+本节讨论下面问题的一些变形。我们有 $\mathbf{R}^2$ 或 $\mathbf{R}^3$ 中的 $N$ 个点以及必须通过边联系在一起的点对列表。$N$ 个点中某些点的位置是固定的，我们的任务是确定剩余点的位置，即放置剩余的点。目标是在一些对于位置的附加约束下，放置这些点使得总的边长的某些度量极小。作为一个应用的例子，我们可以将点视为公司中设备或货栈的位置，将边视为货物运输必经的路径。目标是寻找极小化总运输成本的位置。作为另一个例子，点代表集成电路中模块或单元的位置，边代表连接每组单元的导线。这里的目标是放置单元使得用来连接单元的导线长度最小。
+
+这个问题可以用 $N$ 个结点（代表 $N$ 个点）的无向图进行描述。我们将结点与变量 $x_i\in\mathbf{R}^k$（$k=2$ 或 $k=3$）相联系用以表示位置或方位。问题是极小化
+\[
+\sum_{(i,j)\in\mathcal A} f_{ij}(x_i,x_j),
+\]
+其中 $\mathcal A$ 为图中所有边的集合，$f_{ij}:\mathbf{R}^k\times\mathbf{R}^k\to\mathbf{R}$ 为与边 $(i,j)$ 相关的费用函数。（或者，我们可以简单地令 $i$ 和 $j$ 不相连时的 $f_{ij}=0$，然后对所有 $i$ 和 $j$ 求和，或者只对 $i<j$ 求和。）某些坐标向量 $x_i$ 是给定的，优化变量是剩余的坐标。在给定函数 $f_{ij}$ 是凸的情况下，这是一个凸优化问题。
+
+\subsection*{8.7.1\quad 线性设备定位问题}
+
+在这个问题的最简单的情况中，与边 $(i,j)$ 相关的费用是点 $i$ 和 $j$ 之间的距离 $f_{ij}(x_i,x_j)=\|x_i-x_j\|$，即极小化
+\[
+\sum_{(i,j)\in\mathcal A}\|x_i-x_j\|.
+\]
+我们可以用任意的范数，但大多数常见的应用都是关于 Euclid 范数或 $\ell_1$-范数。例如，在电路设计中，常常沿分片线性路径来布置导线，即每一段是水平或竖直的。（这被称为 Manhattan 路径，因为在具有矩形网格的城市中，每条街道都是沿着两个垂直的坐标中的一个布置，从而沿着街道的路径是分片线性的。）在这种情况下，连接单元 $i$ 和单元 $j$ 的导线长度由 $\|x_i-x_j\|_1$ 给出。
+
+我们可以包含非负权值用以反映不同边上不同的单位距离费用：
+\[
+\sum_{(i,j)\in\mathcal A} w_{ij}\|x_i-x_j\|.
+\]
+通过对未连接在一起的结点对赋以权值 $w_{ij}=0$，我们可以更简单地使用目标
+\[
+\sum_{i<j} w_{ij}\|x_i-x_j\|.
+\tag{8.28}
+\]
+这个放置问题是凸的。
+
+\noindent\textbf{例 8.4}\quad
+单自由点。考虑仅有一个自由点 $(u,v)\in\mathbf{R}^2$ 的情形，我们极小化到固定点 $(u_1,v_1),\ldots,(u_K,v_K)$ 的距离之和。
+
+\begin{itemize}
+\item $\ell_1$-范数。我们可以解析地找到一个点以极小化
+\[
+\sum_{i=1}^K(|u-u_i|+|v-v_i|).
+\]
+最优点是固定点中的任意一个中位点。换言之，$u$ 可以取点 $\{u_1,\ldots,u_K\}$ 的任一中位点，而 $v$ 可以取点 $\{v_1,\ldots,v_K\}$ 的任一中位点。（如果 $K$ 是奇数，最小解唯一；如果 $K$ 是偶数，将有一个最优解的矩形。）
+
+\item Euclid 范数。极小化 Euclid 距离之和
+\[
+\sum_{i=1}^K\left((u-u_i)^2+(v-v_i)^2\right)^{1/2}
+\]
+的点 $(u,v)$ 被称为给定固定点的 Weber 点。
+\end{itemize}
+
+\subsection*{8.7.2\quad 放置约束}
+
+下面列出一些有趣的约束，它们可以添加到基本的放置问题中，并保持凸性。我们可以要求某些位置 $x_i$ 处于特定的凸集中，例如特定的直线、区间、长方形或椭球。我们可以约束一点关于其他一点或多点的相对位置，例如，通过限制点对之间的距离。我们可以规定相对位置约束，例如，某点必须处于另一点的左边。
+
+一组点的边界框是包含这些点的最小矩形。（例如，）添加关于附加变量 $u$、$v$ 的约束
+\[
+u\preceq x_i\preceq v,\quad i=1,\ldots,p,\qquad
+2\mathbf{1}^T(v-u)\leq P_{\max},
+\]
+我们可以规定点 $x_1,\ldots,x_p$ 处于周长不超过 $P_{\max}$ 的边界框之中。
+
+\subsection*{8.7.3\quad 非线性设备定位问题}
+
+更一般地，可以将边上的费用与长度的非线性递增函数相关联，即
+\[
+\mbox{minimize}\quad \sum_{i<j} w_{ij}h(\|x_i-x_j\|),
+\]
+其中 $h$ 是（$\mathbf{R}_+$ 上的）递增凸函数，并且 $w_{ij}\geq 0$。我们称其为非线性放置或非线性设备定位问题。
+
+常用的例子是使用 Euclid 范数，其函数为 $h(z)=z^2$，我们极小化
+\[
+\sum_{i<j}w_{ij}\|x_i-x_j\|_2^2.
+\]
+这被称为二次配置问题。当仅有线性等式约束时，二次配置问题可以解析求解；当约束为线性等式、不等式时，它可以通过二次规划得到求解。
+
+\noindent\textbf{例 8.5}\quad
+单自由点。考虑只有一个点 $x$ 自由的情况，我们极小化它到固定点 $x_1,\ldots,x_K$ 的 Euclid 距离平方和，
+\[
+\|x-x_1\|_2^2+\|x-x_2\|_2^2+\cdots+\|x-x_K\|_2^2.
+\]
+通过求导可知，最优的 $x$ 由下式给出，
+\[
+\frac{1}{K}(x_1+x_2+\cdots+x_K),
+\]
+即固定点的平均值。
+
+其他一些有趣的可能是考虑“死区”函数 $h$（死区宽度 $2\gamma$），定义如下
+\[
+h(z)=
+\begin{cases}
+0 & |z|\leq \gamma\\
+|z-\gamma| & |z|\geq \gamma,
+\end{cases}
+\]
+以及“二次-线性”函数 $h$，定义如下
+\[
+h(z)=
+\begin{cases}
+z^2 & |z|\leq \gamma\\
+2\gamma |z|-\gamma^2 & |z|\geq \gamma.
+\end{cases}
+\]
+
+\noindent\textbf{例 8.6}\quad
+考虑 $\mathbf{R}^2$ 中有 6 个自由点，8 个固定点，27 条边的配置问题。图 8.15～图 8.17 显示了对应于下面准则的最优解，
+\[
+\sum_{(i,j)\in\mathcal A}\|x_i-x_j\|_2,\qquad
+\sum_{(i,j)\in\mathcal A}\|x_i-x_j\|_2^2,\qquad
+\sum_{(i,j)\in\mathcal A}\|x_i-x_j\|_2^4,
+\]
+即利用罚函数 $h(z)=z$，$h(z)=z^2$ 和 $h(z)=z^4$。图上也显示了所得的边的长度分布。
+
+对比所得结果，我们可知线性配置将自由点集中于一个小的区域，二次及四次配置将点散布于较大的区域。线性配置包含了很多非常短的边和一些非常长的边（3 条长度小于 0.2；2 条长度大于 1.5）。相对于较短的长度，二次罚函数对大的长度给予较大的惩罚，而几乎忽略了小于 0.1 的长度。其结果是最大长度很短（小于 1.4），但短边也少了。四阶函数对大的长度给予了更为严厉的惩罚，并有了更长的被忽略的区间（零和大约 0.4 之间）。结果是最大长度比二次配置更短，但也有更多接近最大值的长度。
+
+\subsection*{8.7.4\quad 带有路径约束的定位问题}
+
+\noindent\textbf{路径约束}
+
+用结点序列 $i_0,\ldots,i_p\in\{1,\ldots,N\}$ 描述通过点 $x_1,\ldots,x_N$ 的 $p$-边路径。路径的长度由
+\[
+\|x_{i_1}-x_{i_0}\|+\|x_{i_2}-x_{i_1}\|+\cdots+\|x_{i_p}-x_{i_{p-1}}\|
+\]
+给出，这是 $x_1,\ldots,x_N$ 的凸函数，因此，对路径长度添加的上界约束是凸的。一些有趣的配置问题涉及路径约束，或者有基于路径长度的目标。我们将描述一个典型的例子，其目标函数是基于路径集合中最大的路径长度的。
+
+\noindent\textbf{极小极大延误配置}
+
+我们考虑关于 $1,\ldots,N$ 的有向无环图，其弧或边由有序对集合 $\mathcal A$ 表示：当且仅当存在一条从 $i$ 指向 $j$ 的边时，$(i,j)\in\mathcal A$。如果 $\mathcal A$ 中没有边指向结点 $i$，我们称其为源结点；如果 $\mathcal A$ 中没有边从它发出，我们称其为汇结点或目的结点。我们对图中从源结点开始止于汇结点的最大路径感兴趣。
+
+图中的边可以用来对结点处于位置 $x_1,\ldots,x_N$ 的网络中的某些流进行建模，例如货物或信息。流起始于源结点，然后依次通过路径上的各个点，终止于汇或目的结点。我们用相邻点之间的距离对结点间货物的传播时间或运输时间进行建模；一条路径上的总延误或传播时间（正比于）顺序结点之间的距离之和。
+
+现在我们可以描述极小极大延迟配置问题。某些结点的位置是固定的，而其他是自由的，即为优化变量。目标是选择自由结点的位置以极小化从源结点到汇结点所有路径中的最大总延误。显然，这是一个凸问题，因为目标
+\[
+T_{\max}=\max\{\|x_{i_1}-x_{i_0}\|+\cdots+\|x_{i_p}-x_{i_{p-1}}\|\mid i_0,\ldots,i_p\ \mbox{是一条源--汇路径}\}
+\tag{8.29}
+\]
+是关于位置 $x_1,\ldots,x_N$ 的凸函数。
+
+虽然极小化 (8.29) 的问题是凸的，但源--汇路径的数量可能非常庞大，关于结点或边的数量是指数的。为此，需要重新表达这个问题以避免穷举所有汇--源路径。
+
+首先，我们解释如何计算最大延误 $T_{\max}$ 才能比穷举每条源--汇路径的延误然后再取最大有效得多。令 $\tau_k$ 为从结点 $k$ 到汇结点的任意路径中的最大总延误。显然，当 $k$ 为汇结点时，$\tau_k=0$。考虑结点 $k$，它具有向结点 $j_1,\ldots,j_p$ 发出的边。对于从结点 $k$ 出发终止于汇结点的路径，其第一个边必然指向结点 $j_1,\ldots,j_p$ 中的一个。如果这个路径首先取指向 $j_i$ 的边，然后从那里开始取到汇结点最长的路径，那么，总长度为
+\[
+\|x_{j_i}-x_k\|+\tau_{j_i},
+\]
+即到 $j_i$ 的边长加上从 $j_i$ 到汇结点的最长路径的总长度。从中可知，从结点 $k$ 出发指向汇结点的最大延误路径满足
+\[
+\tau_k=\max\{\|x_{j_1}-x_k\|+\tau_{j_1},\ldots,\|x_{j_p}-x_k\|+\tau_{j_p}\}.
+\tag{8.30}
+\]
+（这是一个简单的动态规划。）
+
+等式 (8.30) 给出了寻找从任意点出发的最大延误的递推公式：我们从汇结点（具有零最大延误）出发，利用等式 (8.30) 后向计算，直至到达所有源结点。于是，遍历所有路径的最大延误即是所有 $\tau_k$ 的最大值，它将在其中一个结点达到。这个动态规划递归显示了如何计算任意源--汇路径中的最大延误，而不用枚举所有路径。这个递归计算需要的算术操作数近似等于边数。
+
+现在，我们说明如何利用基于 (8.30) 的递归来描述极小极大延迟放置问题。我们可以将问题表述为
+\[
+\begin{array}{ll}
+\mbox{minimize} & \max\{\tau_k\mid k\mbox{ 是一个源结点}\}\\
+\mbox{subject to} & \tau_k=0,\quad k\mbox{ 是一个汇结点}\\
+& \tau_k=\max\{\|x_j-x_k\|+\tau_j\mid \mbox{存在从 }k\mbox{ 到 }j\mbox{ 的边}\},
+\end{array}
+\]
+其变量为 $\tau_1,\ldots,\tau_N$ 和自由位置。这个问题非凸，但我们可以通过用不等式代替等式约束，将其表示为一个等价的凸形式。引入新变量 $T_1,\ldots,T_N$，它们分别是 $\tau_1,\ldots,\tau_N$ 的上界。对于所有汇结点，取 $T_k=0$；代入 (8.30) 我们得到不等式
+\[
+T_k\geq \max\{\|x_{j_1}-x_k\|+T_{j_1},\ldots,\|x_{j_p}-x_k\|+T_{j_p}\}.
+\]
+如果这些不等式被满足，那么 $T_k\geq \tau_k$。现在我们构建问题
+\[
+\begin{array}{ll}
+\mbox{minimize} & \max\{T_k\mid k\mbox{ 是一个源结点}\}\\
+\mbox{subject to} & T_k=0,\quad k\mbox{ 是一个汇结点}\\
+& T_k\geq \max\{\|x_j-x_k\|+T_j\mid \mbox{存在一条从 }k\mbox{ 到 }j\mbox{ 的边}\}.
+\end{array}
+\]
+这个关于变量 $T_1,\ldots,T_N$ 和自由位置的问题是凸的，并且解决了极小极大延迟定位问题。
+
+\subsection*{8.8\quad 平面布置}
+
+在放置问题中，变量代表了点的最优位置的坐标。平面布置问题可以视为放置问题在两个方面的扩展：
+
+\begin{itemize}
+\item 被放置的物体是与坐标轴对齐的矩形或框（与点的情况相反），并且不能重叠。
+\item 在某些限制下，每个矩形或框都可以被重新配置。例如，我们可以固定每个矩形的面积，但不分别固定其长度和高度。
+\end{itemize}
+
+目标常常是极小化边界框，即包含所有待配置和待放置的框的最小框，的尺寸（例如，面积、体积、周长）。
+
+不重叠约束使得一般的平面布置问题成为非常复杂的组合优化问题或矩形装箱问题。但是，如果框的相对位置比较特殊，某些平面布置问题可以建模为凸优化问题。本节将研究这样一些问题。我们将考虑二维情况，并（在结论不显然时）对高维的扩展做一些注释。
+
+我们有 $N$ 个待配置和待放置的单元或模块 $C_1,\ldots,C_N$，它们将放置于一个宽为 $W$、高为 $H$、左下角在点 $(0,0)$ 的矩形中。第 $i$ 个单元的几何特性和位置由其宽度 $w_i$、高度 $h_i$ 和左下角的坐标 $(x_i,y_i)$ 所规定。这些在图 8.18 中作了说明。
+
+这个问题中的变量为 $x_i$、$y_i$、$w_i$、$h_i$，$i=1,\ldots,N$，以及边界矩形的宽度 $W$、高度 $H$。在所有平面布置问题中，我们都要求单元落入边界矩形内，即
+\[
+x_i\geq 0,\qquad y_i\geq 0,\qquad x_i+w_i\leq W,\qquad y_i+h_i\leq H,\quad i=1,\ldots,N.
+\tag{8.31}
+\]
+我们也要求除了边界外，单元互不重叠：
+\[
+\operatorname{int}(C_i\cap C_j)=\emptyset \quad \mbox{对于 } i\neq j.
+\]
+（也有可能要求单元之间有一个正的最小间隙。）不重叠条件 $\operatorname{int}(C_i\cap C_j)=\emptyset$ 成立，当且仅当对于 $i\neq j$ 有，
+\[
+C_i\mbox{ 在 }C_j\mbox{ 之左，或 }C_i\mbox{ 在 }C_j\mbox{ 之右，或 }C_i\mbox{ 在 }C_j\mbox{ 之下，或 }C_i\mbox{ 在 }C_j\mbox{ 之上。}
+\]
+
+这四个几何条件对应于要求对于每对 $i\neq j$，不等式
+\[
+x_i+w_i\leq x_j,\quad \mbox{或 } x_j+w_j\leq x_i,\quad \mbox{或 } y_i+h_i\leq y_j,\quad \mbox{或 } y_j+h_j\leq y_i
+\tag{8.32}
+\]
+中至少有一个成立。注意到这些约束的组合本质：对于每对 $i\neq j$，上述四个不等式中至少有一个成立。
+
+\subsection*{8.8.1\quad 相对位置约束}
+
+相对位置约束用来指定每对单元之间四种可能的相对位置条件中的一个，即左、右、上或下。一个简单的指定这些约束的方法是给出 $\{1,\ldots,N\}$ 上的两个关系：$\mathcal L$（意味着“在 $\cdots$ 之左”）和 $\mathcal B$（意味着“在 $\cdots$ 之下”）。于是，如果 $(i,j)\in\mathcal L$，我们添加了要求 $C_i$ 在 $C_j$ 之左的约束；如果 $(i,j)\in\mathcal B$，我们添加了 $C_i$ 在 $C_j$ 之下的约束。于是，得到对所有 $i,j=1,\ldots,N$ 的约束
+\[
+x_i+w_i\leq x_j \mbox{ 对于 } (i,j)\in\mathcal L,\qquad
+y_i+h_i\leq y_j \mbox{ 对于 } (i,j)\in\mathcal B.
+\tag{8.33}
+\]
+为保证关系 $\mathcal L$ 和 $\mathcal B$ 指定了每一对单元之间的相对位置，我们要求，对于 $i\neq j$ 的每对 $(i,j)$，下面的式子至少成立一个：
+\[
+(i,j)\in\mathcal L,\qquad (j,i)\in\mathcal L,\qquad (i,j)\in\mathcal B,\qquad (j,i)\in\mathcal B,
+\]
+并且 $(i,i)\notin\mathcal L$，$(i,i)\notin\mathcal B$。不等式组 (8.33) 是 $N(N-1)/2$ 个关于变量的线性不等式的集合。这些不等式隐含表示了非覆盖不等式 (8.32)；它是四个线性不等式得到的 $N(N-1)/2$ 个“或”的集合。
+
+我们可以假设关系 $\mathcal L$ 和 $\mathcal B$ 是反对称的（即 $(i,j)\in\mathcal L\Rightarrow (j,i)\notin\mathcal L$）和可传递的（即 $(i,j)\in\mathcal L$，$(j,k)\in\mathcal L\Rightarrow (i,k)\in\mathcal L$）。（如果不是这种情况，那么相对位置约束显然不可行。）传递性对应于显然的条件：如果单元 $C_i$ 在 $C_j$ 的左边，而 $C_j$ 又在单元 $C_k$ 之左，那么单元 $C_i$ 一定在单元 $C_k$ 之左。在这种情况下，对应于 $(i,k)\in\mathcal L$ 的不等式是冗余的；它可以由其他两个得到。通过研究关系 $\mathcal L$ 和 $\mathcal B$ 的传递性，我们可以移除冗余约束，得到相对位置不等式的紧集。
+
+相对位置约束的最小集可以方便地用两个有向带圈图 $\mathcal H$ 和 $\mathcal V$（对水平和竖直方向）进行表示。两个图都含有 $N$ 个结点，对应平面布置问题的 $N$ 个单元。图 $\mathcal H$ 产生关系 $\mathcal L$ 如下：我们有 $(i,j)\in\mathcal L$，当且仅当在 $\mathcal H$ 中存在从 $i$ 到 $j$ 的（有向）路径。类似地，图 $\mathcal V$ 产生关系 $\mathcal B$：$(i,j)\in\mathcal B$ 当且仅当 $\mathcal V$ 中存在从 $i$ 到 $j$ 的（有向）路径。为给定每对单元的相对位置约束，我们要求：对于每对单元，图中均有从一点指向另一点的有向路径。
+
+显而易见，仅需要添加对应于图 $\mathcal H$ 和 $\mathcal V$ 中边的集合的不等式；其他由传递性可得。我们得到了不等式组
+\[
+x_i+w_i\leq x_j \mbox{ 对于 } (i,j)\in\mathcal H,\qquad
+y_i+h_i\leq y_j \mbox{ 对于 } (i,j)\in\mathcal V,
+\tag{8.34}
+\]
+这是线性不等式，每个对应于 $\mathcal H$ 和 $\mathcal V$ 的一条边。不等式集合 (8.34) 是不等式集合 (8.33) 的子集并且等价。
+
+通过类似的办法，$4N$ 个不等式 (8.31) 可以简化为一个最小的等价集合。仅需要对最左边的单元，即关系 $\mathcal L$ 中极小的 $i$，添加约束 $x_i\geq 0$。这些对应于图 $\mathcal H$ 中的源，即没有指向它们的边的结点。类似地，只需要对最右边的单元添加不等式 $x_i+w_i\leq W$。同样地，竖直边界框不等式可以剪枝为一个最小集。这将得到水平边界框不等式的最小等价集合
+\[
+\begin{array}{ll}
+x_i\geq 0 \mbox{ 对于 } \mathcal L \mbox{ 中极小的 } i, & x_i+w_i\leq W \mbox{ 对于 } \mathcal L \mbox{ 中极大的 } i,\\
+y_i\geq 0 \mbox{ 对于 } \mathcal B \mbox{ 中极小的 } i, & y_i+h_i\leq H \mbox{ 对于 } \mathcal B \mbox{ 中极大的 } i.
+\end{array}
+\tag{8.35}
+\]
+
+图 8.19 显示了一个简单的例子。在此例中，$\mathcal L$ 中最小，或最左边，的单元为 $C_1$、$C_2$ 和 $C_4$，最右边的单元只有 $C_5$。规定水平相对位置的不等式的最小集合由
+\[
+x_1\geq 0,\qquad x_2\geq 0,\qquad x_4\geq 0,\qquad x_5+w_5\leq W,\qquad x_1+w_1\leq x_3,
+\]
+\[
+x_2+w_2\leq x_3,\qquad x_3+w_3\leq x_5,\qquad x_4+w_4\leq x_5
+\]
+给出。规定竖直相对位置的不等式的最小集合由
+\[
+y_2\geq 0,\qquad y_3\geq 0,\qquad y_5\geq 0,\qquad y_4+h_4\leq H,\qquad y_5+h_5\leq H,
+\]
+\[
+y_2+h_2\leq y_1,\qquad y_1+h_1\leq y_4,\qquad y_3+h_3\leq y_4
+\]
+给出。
+
+\subsection*{8.8.2\quad 通过凸优化的平面布置}
+
+在这个式子中，变量为边界框的宽度和高度 $W$、$H$ 以及单元的宽度、高度和位置 $w_i$、$h_i$、$x_i$、$y_i$，$i=1,\ldots,N$。我们添加边界框约束 (8.35) 和相对位置约束 (8.34)，它们都是线性不等式。我们取框的周长，即 $2(W+H)$，为目标；它是变量的线性函数。我们现在列出一些可以表达为变量的凸不等式或线性等式的约束。
+
+\noindent\textbf{最小间隙}
+
+我们可以要求单元间具有最小间隙 $\rho>0$，这可以通过将对于 $(i,j)\in\mathcal H$ 的相对位置约束从 $x_i+w_i\leq x_j$ 改变为 $x_i+w_i+\rho\leq x_j$ 以及对竖直集合的类似操作做到。我们还可以要求 $\mathcal H$ 和 $\mathcal V$ 的每条边具有不同的最小间隙。另一种可能性是固定 $W$ 和 $H$，然后将最小间隙 $\rho$ 作为目标进行极大化。
+
+\noindent\textbf{最小单元面积}
+
+对于每个单元，我们可以规定一个最小面积，即要求 $w_ih_i\geq A_i$，其中 $A_i>0$。最小单元面积约束可以通过一些方法表示为凸不等式，例如 $w_i\geq A_i/h_i$，$(w_ih_i)^{1/2}\geq A_i^{1/2}$，或 $\log w_i+\log h_i\geq \log A_i$。
+
+\noindent\textbf{纵横比约束}
+
+可以对每个单元的纵横比给出上下界，即
+\[
+l_i\leq h_i/w_i\leq u_i.
+\]
+同乘以 $w_i$ 可以将这些约束转变为线性不等式。也可以固定单元的纵横比，这将得到线性等式约束。
+
+\noindent\textbf{对准约束}
+
+可以向待配置的两个单元的两条边或者中心线添加约束。例如，当
+\[
+y_i+w_i/2=y_j+w_j
+\]
+时，单元 $i$ 的水平中心线与 $j$ 的顶端对准。这些是线性等式约束。用类似的方法，我们还可以要求单元与边界框的边界齐平。
+
+\noindent\textbf{对称约束}
+
+可以要求一对单元关于一条水平或竖直轴是对称的，这个轴本身可以是固定或浮动的（即，其位置可以固定或不固定）。例如，为规定单元 $i$ 和 $j$ 关于竖直轴 $x=x_{\rm axis}$ 对称，我们可以添加线性等式约束
+\[
+x_{\rm axis}-(x_i+w_i/2)=x_j+w_j/2-x_{\rm axis}.
+\]
+通过添加这些等式约束并引入新变量 $x_{\rm axis}$，我们可以要求多对单元关于一条不特定的竖直轴对称。
+
+\noindent\textbf{相似约束}
+
+可以通过等式约束 $w_i=aw_j$，$h_i=ah_j$ 要求单元 $i$ 是单元 $j$ 的一个 $a$-伸缩变换。这里的伸缩因子 $a$ 必须是固定的。仅添加其中一个约束，我们可以要求一个单元的宽度（或高度）是另一个单元宽度（或高度）的给定倍。
+
+\noindent\textbf{包含约束}
+
+可以要求特定的单元包含给定点，这将添加两个线性不等式。通过增加线性不等式，也可以要求特定的单元落入给定的多面体中。
+
+\noindent\textbf{距离约束}
+
+可以增加多种约束以限制单元对之间的距离。最简单的情况，可以限制单元 $i$ 和 $j$ 的中心点（或者任意单元上的固定点，例如左下角）的距离。例如，为限制 $i$ 和 $j$ 中心点间的距离，利用（凸）不等式
+\[
+\left\|(x_i+w_i/2,y_i+h_i/2)-(x_j+w_j/2,y_j+h_j/2)\right\|\leq D_{ij}.
+\]
+如同放置问题一样，我们可以限制总距离，或者用总距离作为目标。
+
+我们也可以限制单元 $i$ 和单元 $j$ 之间的距离 $\operatorname{dist}(C_i,C_j)$，即单元 $i$ 的中点与单元 $j$ 的中点的最小距离。为限制在 $\|\cdot\|$ 下单元 $i$ 和 $j$ 的距离，我们引入四个新的变量 $u_i$，$v_i$，$u_j$，$v_j$。变量对 $(u_i,v_i)$ 将表示 $C_i$ 中的点，而 $(u_j,v_j)$ 将表示 $C_j$ 中的点，为此，我们添加线性不等式
+\[
+x_i\leq u_i\leq x_i+w_i,\qquad y_i\leq v_i\leq y_i+h_i,
+\]
+对单元 $j$ 类似。最终，为限制 $\operatorname{dist}(C_i,C_j)$，我们增加凸不等式
+\[
+\left\|(u_i,v_i)-(u_j,v_j)\right\|\leq D_{ij}.
+\]
+
+在很多特定的情况下，通过研究相对位置限制或推导出更为直观的表达式，可以更加有效地表示这些距离约束。作为一个例子，考虑 $\ell_\infty$-范数，并（通过相对位置约束）设单元 $i$ 处于单元 $j$ 的左边。两个单元之间的水平间距为 $x_j-(x_i+w_i)$。于是，我们有 $\operatorname{dist}(C_i,C_j)\leq D_{ij}$，当且仅当
+\[
+x_j-(x_i+w_i)\leq D_{ij},\qquad y_j-(y_i+h_i)\leq D_{ij},\qquad y_i-(y_j+h_j)\leq D_{ij}.
+\]
+第一个不等式表示单元 $i$ 右边到单元 $j$ 左边的水平间距不超过 $D_{ij}$。第二个不等式要求单元 $j$ 的底部在 $i$ 的顶部以上不超过 $D_{ij}$ 之内，而第三个不等式要求单元 $i$ 的底部在 $j$ 的顶部以上不超过 $D_{ij}$ 之内。这三个不等式一起，等价于 $\operatorname{dist}(C_i,C_j)\leq D_{ij}$。在这个例子中，我们不需要引入新的变量。
+
+可以类似地限制两个单元之间的 $\ell_1$-（或 $\ell_2$-）距离。这里引入一个新变量 $d_y$，它将作为单元间竖直距离的界。为限制 $\ell_1$-距离，我们添加约束
+\[
+y_j-(y_i+h_i)\leq d_y,\qquad y_i-(y_j+h_j)\leq d_y,\qquad d_y\geq 0
+\]
+和
+\[
+x_j-(x_i+w_i)+d_y\leq D_{ij}.
+\]
+（第一项是水平间距，而第二项是竖直间距的上界。）为限制单元间的 Euclid 距离，我们将最后一个条件替换为
+\[
+\left(x_j-(x_i+w_i)\right)^2+d_y^2\leq D_{ij}^2.
+\]
+
+\noindent\textbf{例 8.7}
+图 8.20 显示了有 5 个单元的例子，使用了图 8.19 中的顺序约束以及四个不同的约束集。对于每个情况，我们加以相同的最小空间约束，相同的相对比例约束 $1/5\leq w_i/h_i\leq 5$。四种情况所要求的单元面积 $A_i$ 不同。对每个例子，$A_i$ 的取值使得所要求的最小面积之和 $\sum_{i=1}^5A_i$ 相同。
+
+\subsection*{8.8.3\quad 基于几何规划的平面布置}
+
+平面布置问题也可以建模为关于变量 $x_i$，$y_i$，$w_i$，$h_i$，$W$，$H$ 的几何规划。这种模式中可以处理的目标和约束与凸优化式子中所能表达的有所不同。
+
+首先，我们注意到边界框约束 (8.35) 和相对位置约束 (8.34) 是正项式不等式，因为其左端是变量的和，而右端是单变量，因此是单项式。同除以右端，将得到标准的正项式不等式。
+
+在几何规划式子中，我们可以极小化边界框的面积，因为 $WH$ 是单项式，从而也是正项式。我们还可以精确地规定每个单元的面积，因为 $w_ih_i=A_i$ 是一个单项式等式
+约束。另一方面，几何规划无法处理对齐、对称性和距离约束。但是，可以处理相似性，事实上，可以要求一个单元与另一个相似，而不规定尺度因子（它可以仅仅被视为另一个变量而得到处理）。
+
+\section*{参考文献}
+
+\S 8.3.3 中 Euclid 距离矩阵的性质出现在 Schoenberg 的 [Sch35]；也可参见 Gower 的 [Gow85]。我们关于 Löwner-John 椭球的说法遵从 Grötschel、Lovász 和 Schrijver 的 [GLS88, 第 69 页]。\S 8.4 中关于椭球逼近效率的结果由 John 在 [Joh85] 中证明。Boyd、El Ghaoui、Feron 和 Balakrishnan 在 [BEFB94, \S 3.7] 中给出了一些涉及椭球的并、交或和的椭球逼近问题的凸形式。
+
+\S 8.5 中定义的不同中心在中心设计（参见，例如 Seifi、Ponnambalam 和 Vlach 的 [SPV99]）、切平面方法（Elzinga 和 Moore 的 [EM75]，Tarasov、Khachiyan 和 Erlikh 的 [TKE88]，以及 Ye 的 [Ye97, 第 8 章]）中得到了应用。由对数障碍函数的 Hessian 矩阵定义的内椭球（第 404 页）有时也被称为 Dikin 椭球，它是线性和二次规划的 Dikin's 算法的基础 [Dik67]。解析中心的外椭圆的表达式由 Sonnevend 在 [Son86] 中给出。对于非多项式凸集的扩展，参见 Boyd 和 El Ghaoui 的 [BE93]，Jarre 的 [Jar94] 以及 Nesterov 和 Nemirovski 的 [NN94, 第 34 页]。
+
+从二十世纪六十年代开始，凸规划已经被应用于线性和非线性分类问题中；参见 Mangasarian 的 [Man65] 以及 Rosen 的 [Ros65]。经典的讨论模式分类问题的文献包括 Duda、Hart 和 Stork
+的 [DHS99] 以及 Hastie、Tibshirani 和 Friedman 的 [HTF01]。对于支持向量分类器的详细讨论参见 Vapnik 的 [Vap00] 或者 Schölkopf 和 Smola 的 [SS01]。
+
+例 8.4 中定义的 Weber 点是在 Weber 的文章 [Web71] 之后命名的。线性和二次配置问题在电路设计得到了应用（Kleinhaus、Sigl、Johannes 和 Antreich 的 [KSJA91, SDJ91]）。Sherwani 的 [She99] 是最近的一篇关于 VLSI 电路设计中的配置、布局、平面布置和其他几何优化的算法的概述。
+
+\section*{习题}
+
+\noindent\textbf{向集合投影}
+
+\noindent\textbf{8.1\quad 投影的唯一性。}
+证明如果 $C\subseteq\mathbf{R}^n$ 为非空的有界闭凸集，范数 $\|\cdot\|$ 严格凸，那么对于每一个 $x_0$，都正好有一个 $x\in C$ 与 $x_0$ 最接近。换言之，$x_0$ 向 $C$ 的投影是唯一的。
+
+\noindent\textbf{8.2\quad [Web94, Val64] 凸性的 Chebyshev 特征。}
+集合 $C\in\mathbf{R}^n$ 被称为 Chebyshev 集合，如果对于每个 $x_0\in\mathbf{R}^n$，都存在 $C$ 中唯一的一点（在 Euclid 范数下）最接近 $x_0$。由习题 8.1 可知每个非空闭凸集是 Chebyshev 集合。在这个问题中，我们证明其逆命题，即大家所知的 Motzkin 定理。
+
+令 $C\in\mathbf{R}^n$ 为 Chebyshev 集合。
+
+(a) 证明 $C$ 是非空且闭的。
+
+(b) 证明 $C$ 上的 Euclid 投影 $P_C$ 是连续的。
+
+(c) 设 $x_0\notin C$。证明对于所有 $x=\theta x_0+(1-\theta)P_C(x_0)$，其中 $0\leq\theta\leq 1$，都有 $P_C(x)=P_C(x_0)$。
+
+(d) 设 $x_0\notin C$。证明对于所有 $x=\theta x_0+(1-\theta)P_C(x_0)$，其中 $\theta\geq 1$ 都有 $P_C(x)=P_C(x_0)$。
+
+(e) 结合 (c) 和 (d)，可以断定所有在以 $P_C(x_0)$ 为端点以 $x_0-P_C(x_0)$ 为方向的射线上的点都具有投影 $P_C(x_0)$。证明这意味着 $C$ 是凸集。
+
+\noindent\textbf{8.3\quad 向正常锥的 Euclid 投影。}
+
+(a) \textbf{非负象限。} 证明第 383 页给出的向非负象限的 Euclid 投影公式。
+
+(b) \textbf{半正定锥。} 证明第 383 页给出的向半正定锥的 Euclid 投影公式。
+
+(c) \textbf{二次锥。} 证明 $(x_0,t_0)$ 向二次锥
+\[
+K=\{(x,t)\in\mathbf{R}^{n+1}\mid \|x\|_2\leq t\}
+\]
+的 Euclid 投影由
+\[
+P_K(x_0,t_0)=
+\begin{cases}
+0, & \|x_0\|_2\leq -t_0,\\
+(x_0,t_0), & \|x_0\|_2\leq t_0,\\
+(1/2)(1+t_0/\|x_0\|_2)(x_0,\|x_0\|_2), & \|x_0\|_2\geq |t_0|
+\end{cases}
+\]
+给出。
+
+\noindent\textbf{8.4\quad 点向凸集的 Euclid 投影得到一个简单的分离平面}
+\[
+\left(P_C(x_0)-x_0\right)^T\left(x-(1/2)(x_0+P_C(x_0))\right)=0.
+\]
+寻找一个反例以说明这种构造方法对于一般的范数无效。
+
+\noindent\textbf{8.5\quad [HUL93, 第 1 卷，第 154 页] 深度函数及到边界的有符号距离。}
+令 $C\subseteq\mathbf{R}^n$ 为非空凸集，令 $\operatorname{dist}(x,C)$ 为某一范数下 $x$ 到 $C$ 的距离。我们已经知道 $\operatorname{dist}(x,C)$ 是 $x$ 的凸函数。
+
+(a) 证明深度函数
+\[
+\operatorname{depth}(x,C)=\operatorname{dist}(x,\mathbf{R}^n\backslash C)
+\]
+关于 $x\in C$ 是凹的。
+
+(b) 到 $C$ 的边界的有符号距离定义为
+\[
+s(x)=
+\begin{cases}
+\operatorname{dist}(x,C), & x\notin C,\\
+-\operatorname{depth}(x,C), & x\in C.
+\end{cases}
+\]
+因此，$s(x)$ 在 $C$ 外为正，在边界上为零，而在其内部为负。证明 $s$ 是一个凸函数。
+
+\noindent\textbf{集合间距离}
+
+\noindent\textbf{8.6}
+令 $C$，$D$ 为凸集。
+
+(a) 证明 $\operatorname{dist}(C,x+D)$ 是 $x$ 的凸函数。
+
+(b) 证明 $t>0$ 时，$\operatorname{dist}(tC,x+tD)$ 是 $(x,t)$ 的凸函数。
+
+\noindent\textbf{8.7\quad 椭球的分离。}
+令 $\mathcal E_1$ 和 $\mathcal E_2$ 为由下式定义的两个椭球，
+\[
+\mathcal E_1=\{x\mid (x-x_1)^TP_1^{-1}(x-x_1)\leq 1\},\qquad
+\mathcal E_2=\{x\mid (x-x_2)^TP_2^{-1}(x-x_2)\leq 1\},
+\]
+其中 $P_1,P_2\in\mathbf{S}_{++}^n$。证明 $\mathcal E_1\cap\mathcal E_2=\emptyset$ 当且仅当存在 $a\in\mathbf{R}^n$ 满足
+\[
+\left\|P_2^{1/2}a\right\|_2+\left\|P_1^{1/2}a\right\|_2<a^T(x_1-x_2).
+\]
+
+\noindent\textbf{8.8\quad 多面体的交集与包含。}
+设 $\mathcal P_1$ 和 $\mathcal P_2$ 是两个由
+\[
+\mathcal P_1=\{x\mid Ax\preceq b\},\qquad \mathcal P_2=\{x\mid Fx\preceq g\},
+\]
+定义的多面体，其中 $A\in\mathbf{R}^{m\times n}$，$b\in\mathbf{R}^m$，$F\in\mathbf{R}^{p\times n}$，$g\in\mathbf{R}^p$。对下面的问题分别构建一个或一组线性规划可行性问题。
+
+(a) 寻找交集 $\mathcal P_1\cap\mathcal P_2$ 中的一点。
+
+(b) 确定 $\mathcal P_1\subseteq\mathcal P_2$ 是否成立。
+
+对于每个问题，推导出构成强择一的线性不等式和等式，并给出择一的几何解释。
+
+对由
+\[
+\mathcal P_1=\operatorname{conv}\{v_1,\ldots,v_K\},\qquad
+\mathcal P_2=\operatorname{conv}\{w_1,\ldots,w_L\}
+\]
+定义的多面体重新讨论上面的问题。
+
+\noindent\textbf{Euclid 距离与角度问题}
+
+\noindent\textbf{8.9\quad 矩阵到给定数据的最近 Euclid 距离。}
+给定数据 $\hat d_{ij}$，$i,j=1,\ldots,n$，它们可以解释为 $\mathbf{R}^k$ 中向量间的 Euclid 距离
+\[
+\hat d_{ij}=\|x_i-x_j\|_2+v_{ij},\qquad i,j=1,\ldots,n,
+\]
+其中 $v_{ij}$ 为噪声或错误。这些数据对所有 $i,j$ 均满足 $\hat d_{ij}\geq 0$ 和 $\hat d_{ij}=\hat d_{ji}$，其维数 $k$ 不是特定的。
+
+说明如何利用凸优化求解下列问题。寻找维数 $k$ 和 $x_1,\ldots,x_n\in\mathbf{R}^k$，使得 $\sum_{i,j=1}^n(d_{ij}-\hat d_{ij})^2$ 最小，其中 $d_{ij}=\|x_i-x_j\|_2$，$i,j=1,\ldots,n$。换言之，你将用给定的近似 Euclid 距离数据，找到最小二乘意义下最接近实际 Euclid 距离的集合。
+
+\noindent\textbf{8.10\quad 极小极大角度拟合。}
+设 $y_1,\ldots,y_m\in\mathbf{R}^k$ 为变量 $x\in\mathbf{R}^n$ 的仿射函数：
+\[
+y_i=A_ix+b_i,\qquad i=1,\ldots,m,
+\]
+$z_1,\ldots,z_m\in\mathbf{R}^k$ 为给定的非零向量。我们希望在一些凸约束（例如，线性不等式）下，选择变量 $x$ 以极小化 $y_i$ 和 $z_i$ 之间的最大角度，
+\[
+\max\{\angle(y_1,z_1),\ldots,\angle(y_m,z_m)\}.
+\]
+两个非零向量之间的角度定义如常，即
+\[
+\angle(u,v)=\arccos\left(\frac{u^Tv}{\|u\|_2\|v\|_2}\right),
+\]
+其中，我们取 $\arccos(a)\in[0,\pi]$。我们只关心最优目标值不超过 $\pi/2$ 的情况。将这一问题表述为凸或拟凸优化问题。当对 $x$ 的约束是线性不等式时，你将需要求解哪类问题？
+
+\noindent\textbf{8.11\quad 包含给定点的最小 Euclid 锥。}
+在 $\mathbf{R}^n$ 中，我们用中心方向 $c\neq 0$ 及满足 $0\leq\theta\leq\pi/2$ 的角度半径来定义 Euclid 锥如下
+\[
+\{x\in\mathbf{R}^n\mid \angle(c,x)\leq\theta\}.
+\]
+（Euclid 锥是一个二次锥，即它可以表示为二次锥在非奇异线性映射下的像。）
+
+令 $a_1,\ldots,a_m\in\mathbf{R}^n$。你如何找到一个具有最小角度半径并且包含 $a_1,\ldots,a_m$ 的 Euclid 锥。（特别地，你需要解释如何求解可行性问题，即如何确定是否存在包含这些点的 Euclid 锥。）
+
+\noindent\textbf{极值体积椭球}
+
+\noindent\textbf{8.12}
+证明一个集合中的最大体积椭球是唯一的。证明一个集合的 Löwner-John 椭球是唯一的。
+
+\noindent\textbf{8.13\quad 单纯形的 Löwner-John 椭球。}
+在本习题中，我们将证明 $\mathbf{R}^n$ 中单纯形的 Löwner-John 椭球，必须以因子 $n$ 缩小才能处于单纯形的内部。因为 Löwner-John 椭球是仿射不变的，所以，对一个特定的单纯形进行说明就足以得出这一结果。
+
+推导单纯形 $C=\operatorname{conv}\{0,e_1,\ldots,e_n\}$ 的 Löwner-John 椭球 $\mathcal E_{\rm lj}$。证明 $\mathcal E_{\rm lj}$ 必须缩小为 $1/n$ 才能落入单纯形中。
+
+\noindent\textbf{8.14\quad 椭球内逼近的效率。}
+令 $C$ 为 $\mathbf{R}^n$ 中的多面体，由 $C=\{x\mid Ax\preceq b\}$ 描述，并设 $\{x\mid Ax\prec b\}$ 非空。
+
+(a) 证明 $C$ 中的最大体积椭球以因子 $n$ 关于其中心扩展，可以得到一个包含 $C$ 的椭球。
+
+(b) 证明如果 $C$ 关于原点是对称的，即具有 $C=\{x\mid -\mathbf{1}\preceq Ax\preceq \mathbf{1}\}$ 的形式，那么将最大体积内接椭球以因子 $\sqrt n$ 扩展，将给出一个包含 $C$ 的椭球。
+
+\noindent\textbf{8.15\quad 覆盖椭球并集的最小体积椭球。}
+将下面问题建模为凸优化问题。寻找包含 $K$ 个给定椭球
+\[
+\mathcal E_i=\{x\mid x^TA_ix+2b_i^Tx+c_i\leq 0\},\qquad i=1,\ldots,K
+\]
+的最小体积椭球 $\mathcal E=\{x\mid (x-x_0)^TA^{-1}(x-x_0)\leq 1\}$。
+
+提示：参见附录 B。
+
+\noindent\textbf{8.16\quad 多面体中的最大体积矩形。}
+将下面的问题建模为凸优化问题。寻找多面体 $\mathcal P=\{x\mid Ax\preceq b\}$ 中具有最小体积的矩形
+\[
+\mathcal R=\{x\in\mathbf{R}^n\mid l\preceq x\preceq u\},
+\]
+其变量为 $l,u\in\mathbf{R}^n$。你的式子中不应包含指数数量的约束。
+
+\noindent\textbf{中心}
+
+\noindent\textbf{8.17\quad 解析中心的仿射不变性。}
+证明一组不等式的解析中心是仿射不变的。证明它对于不等式的正伸缩变换是不变的。
+
+\noindent\textbf{8.18\quad 解析中心与冗余不等式。}
+描述同样多面体的两组不同的线性不等式可以有不同的解析中心。证明：通过添加冗余不等式，我们可以使得单纯形
+\[
+\mathcal P=\{x\in\mathbf{R}^n\mid Ax\preceq b\}
+\]
+中的任意内点 $x_0$ 成为解析中心。更具体地，设 $A\in\mathbf{R}^{m\times n}$ 并且 $Ax_0\prec b$。说明存在 $c\in\mathbf{R}^n$，$\gamma\in\mathbf{R}$ 和正整数 $q$，使得 $\mathcal P$ 是 $m+q$ 个不等式
+\[
+Ax\preceq b,\qquad c^Tx\leq \gamma,\qquad c^Tx\leq \gamma,\quad \cdots,\quad c^Tx\leq \gamma
+\tag{8.36}
+\]
+的解集（其中，不等式 $c^Tx\leq \gamma$ 被添加 $q$ 次），而 $x_0$ 是 (8.36) 的解析中心。
+
+\noindent\textbf{8.19}
+令 $x_{\rm ac}$ 为线性不等式组
+\[
+a_i^Tx\leq b_i,\qquad i=1,\ldots,m
+\]
+的解析中心，定义 $H$ 为对数障碍函数在 $x_{\rm ac}$ 处的 Hessian 矩阵：
+\[
+H=\sum_{i=1}^m\frac{1}{(b_i-a_i^Tx_{\rm ac})^2}a_ia_i^T.
+\]
+证明：如果
+\[
+b_k-a_k^Tx_{\rm ac}\geq m(a_k^TH^{-1}a_k)^{1/2},
+\]
+那么，第 $k$ 个不等式是冗余的（即它可以被删去而可行集不变）。
+
+\noindent\textbf{8.20\quad 基于线性矩阵不等式解析中心的椭球逼近。}
+令 $C$ 为 LMI
+\[
+x_1A_1+x_2A_2+\cdots+x_nA_n\preceq B,
+\]
+的解集，其中 $A_i,B\in\mathbf{S}^m$ 并且 $x_{\rm ac}$ 为其解析中心。证明
+\[
+\mathcal E_{\rm inner}\subseteq C\subseteq \mathcal E_{\rm outer},
+\]
+其中，
+\[
+\mathcal E_{\rm inner}=\{x\mid (x-x_{\rm ac})^TH(x-x_{\rm ac})\leq 1\},
+\]
+\[
+\mathcal E_{\rm outer}=\{x\mid (x-x_{\rm ac})^TH(x-x_{\rm ac})\leq m(m-1)\},
+\]
+而 $H$ 为在 $x_{\rm ac}$ 处计算的对数障碍函数的 Hessian 矩阵
+\[
+-\log\det(B-x_1A_1-x_2A_2-\cdots-x_nA_n).
+\]
+
+\noindent\textbf{8.21\quad [BYT99] 解析中心的最大似然解释。}
+使用第 312 页的线性测量模型
+\[
+y=Ax+v,
+\]
+其中 $A\in\mathbf{R}^{m\times n}$。设噪声分量 $v_i$ 在 $[-1,1]$ 上独立同分布。与测量值 $y\in\mathbf{R}^m$ 相容的参数 $x$ 的集合是由线性不等式
+\[
+-\mathbf{1}+y\preceq Ax\preceq \mathbf{1}+y
+\tag{8.37}
+\]
+定义的多面体。设 $v_i$ 的概率密度函数具有
+\[
+p(v)=
+\begin{cases}
+\alpha_r(1-v^2)^r, & -1\leq v\leq 1\\
+0, & \mbox{其他情况}
+\end{cases}
+\]
+的形式，其中 $r\geq 1$，$\alpha_r>0$。证明 $x$ 的最大似然估计值是 (8.37) 的解析中心。
+
+\noindent\textbf{8.22\quad 重心。}
+具有非空内部的集合 $C\subseteq\mathbf{R}^n$ 的重心定义为
+\[
+x_{\rm cg}=\frac{\int_C u\,du}{\int_C 1\,du}.
+\]
+重心是仿射不变的，并且（显然）是集合 $C$ 而不是其具体描述的函数。但是，与本章所描述的中心不同，重心是非常难于计算的，除了一些简单的情况（例如，椭球、球、单纯形）。证明重心 $x_{\rm cg}$ 是凸函数
+\[
+f(x)=\int_C\|u-x\|_2^2\,du
+\]
+的极小值点。
+
+\noindent\textbf{分类}
+
+\noindent\textbf{8.23\quad 鲁棒线性判别。}
+考虑 (8.23) 给出的鲁棒线性判别问题，
+
+(a) 证明最优解值 $t^\star$ 为正，当且仅当两个点集可以被线性分离。当两个点集可以被线性分离时，证明 $\|a\|_2\leq 1$ 是紧的，即对于所有最优 $a^\star$ 有 $\|a^\star\|_2=1$。
+
+(b) 利用变量代换 $\tilde a=a/t$，$\tilde b=b/t$ 证明问题 (8.23) 等价于二次规划
+\[
+\begin{array}{ll}
+\mbox{minimize} & \|\tilde a\|_2\\
+\mbox{subject to} & \tilde a^Tx_i-\tilde b\geq 1,\quad i=1,\ldots,N\\
+& \tilde a^Ty_i-\tilde b\leq -1,\quad i=1,\ldots,M.
+\end{array}
+\]
+
+\noindent\textbf{8.24\quad 对于权重误差的最鲁棒线性判别。}
+设 $\mathbf{R}^n$ 中给定的两个点集 $\{x_1,\ldots,x_N\}$ 和 $\{y_1,\ldots,y_M\}$ 可以被线性分离。在 \S 8.6.1 中，我们说明了如何寻找仿射函数来区分集合，并给出函数值的最大间隙。我们也可以考虑对于向量 $a$ 的变化的鲁棒性，$a$ 有时也被称为权重向量。对于给定的分离两个凸集的 $f(x)=a^Tx-b$ 的 $a$ 和 $b$，我们定义权重误差裕量为使得仿射函数 $(a+u)^Tx-b$ 不再分离两个点集的最小的 $u\in\mathbf{R}^n$ 的范数值。换言之，权重误差裕量是使所有符合 $\|u\|_2\leq\rho$ 的 $u$ 都满足
+\[
+(a+u)^Tx_i\geq b,\quad i=1,\ldots,N,\qquad
+(a+u)^Ty_i\leq b,\quad i=1,\ldots,M,
+\]
+的最大的 $\rho$。
+
+说明如何在归一化约束 $\|a\|_2\leq 1$ 下寻找 $a$ 和 $b$ 以最大化权重误差裕量。
+
+\noindent\textbf{8.25\quad 最接近球的分离椭球。}
+给定两组向量 $x_1,\ldots,x_N\in\mathbf{R}^n$ 和 $y_1,\ldots,y_M\in\mathbf{R}^n$，我们希望找到具有最小偏心率的椭球（即其定义矩阵具有最小条件数）以包含点 $x_1,\ldots,x_N$，但不包含点 $y_1,\ldots,y_M$。将其建模为一个凸优化问题。
+
+\noindent\textbf{配置与平面布置}
+
+\noindent\textbf{8.26\quad 二次配置。}
+考虑 $\mathbf{R}^2$ 上的二次配置问题，它由含有 $N$ 个结点的无向图 $\mathcal A$ 定义，并具有二次费用：
+\[
+\begin{array}{ll}
+\mbox{minimize} & \displaystyle\sum_{(i,j)\in\mathcal A}\|x_i-x_j\|_2^2.
+\end{array}
+\]
+变量为位置 $x_i\in\mathbf{R}^2$，$i=1,\ldots,M$，而位置 $x_i$，$i=M+1,\ldots,N$ 已经给定。通过
+\[
+u=(x_{11},x_{21},\ldots,x_{M1}),\qquad v=(x_{12},x_{22},\ldots,x_{M2})
+\]
+定义两个向量 $u,v\in\mathbf{R}^M$，它们分别包含了自由结点的第一和第二维分量。
+
+说明 $u$ 和 $v$ 可以通过求解两组线性不等式
+\[
+Cu=d_1,\qquad Cv=d_2
+\]
+得到，其中 $C\in\mathbf{S}^M$。用图 $\mathcal A$ 的形式，给出 $C$ 系数的简单表达式。
+
+\noindent\textbf{8.27\quad 包含最小距离约束的问题。}
+我们考虑关于变量 $x_1,\ldots,x_N\in\mathbf{R}^k$ 的问题。目标函数 $f_0(x_1,\ldots,x_N)$ 是凸的，且约束
+\[
+f_i(x_1,\ldots,x_N)\leq 0,\qquad i=1,\ldots,m
+\]
+是凸的（即函数 $f_i:\mathbf{R}^{Nk}\to\mathbf{R}$ 凸）。此外，我们有最小距离约束
+
+\[
+\|x_i-x_j\|_2\geq D_{\min},\qquad i\neq j,\quad i,j=1,\ldots,N.
+\]
+一般情况下，这是一个困难的非凸问题。
+
+按照平面布置中采用的方法，可以得到这个问题的一个凸限制，即一个凸的问题，但具有较小的可行集。（因此，求解限制问题简单，并且其任何解都可以保证是非凸问题的可行解。）令对于 $i<j$，$i,j=1,\ldots,N$，$a_{ij}\in\mathbf{R}^k$ 满足 $\|a_{ij}\|_2=1$。
+
+证明限制问题
+\[
+\begin{array}{ll}
+\mbox{minimize} & f_0(x_1,\ldots,x_N)\\
+\mbox{subject to} & f_i(x_1,\ldots,x_N)\leq 0,\quad i=1,\ldots,m\\
+& a_{ij}^T(x_i-x_j)\geq D_{\min},\quad i<j,\quad i,j=1,\ldots,N
+\end{array}
+\]
+是凸的，并且其每个可行解都满足最小距离约束。
+
+注释：有很多好的启发式算法用以选择方向 $a_{ij}$。一个简单方法是从近似解 $\hat x_1,\ldots,\hat x_N$（它们不一定满足最小距离约束）出发，然后设 $a_{ij}=(\hat x_i-\hat x_j)/\|\hat x_i-\hat x_j\|_2$。
+
+\noindent\textbf{其他问题}
+
+\noindent\textbf{8.28}
+令 $\mathcal P_1$ 和 $\mathcal P_2$ 为由
+\[
+\mathcal P_1=\{x\mid Ax\preceq b\},\qquad
+\mathcal P_2=\{x\mid -\mathbf{1}\preceq Cx\preceq \mathbf{1}\}
+\]
+描述的两个多面体，其中 $A\in\mathbf{R}^{m\times n}$，$C\in\mathbf{R}^{p\times n}$，$b\in\mathbf{R}^m$。多面体 $\mathcal P_2$ 关于原点对称。对于 $t\geq 0$ 及 $x_c\in\mathbf{R}^n$，我们用 $t\mathcal P_2+x_c$ 表示多面体
+\[
+t\mathcal P_2+x_c=\{tx+x_c\mid x\in\mathcal P_2\},
+\]
+它是通过首先将 $\mathcal P_2$ 关于原点伸缩变换 $t$ 倍，然后将其中心平移到 $x_c$ 得到的。说明如何通过一个或一组线性规划求解下面两个问题。
+
+(a) 找到处于 $\mathcal P_1$ 中的最大多面体 $t\mathcal P_2+x_c$，即
+\[
+\begin{array}{ll}
+\mbox{maximize} & t\\
+\mbox{subject to} & t\mathcal P_2+x_c\subseteq\mathcal P_1\\
+& t\geq 0.
+\end{array}
+\]
+
+(b) 找到包含 $\mathcal P_1$ 的最小多面体 $t\mathcal P_2+x_c$，即
+\[
+\begin{array}{ll}
+\mbox{minimize} & t\\
+\mbox{subject to} & \mathcal P_1\subseteq t\mathcal P_2+x_c\\
+& t\geq 0.
+\end{array}
+\]
+这两个问题的变量都是 $t\in\mathbf{R}$ 和 $x_c\in\mathbf{R}^n$。
+
+\noindent\textbf{8.29\quad 外部多面体逼近。}
+令 $\mathcal P=\{x\in\mathbf{R}^n\mid Ax\preceq b\}$ 为一个多面体，$C\subseteq\mathbf{R}^n$ 为给定集合（不必要是凸的）。利用支撑函数 $S_C$ 将下面的问题构建为线性规划：
+\[
+\begin{array}{ll}
+\mbox{minimize} & t\\
+\mbox{subject to} & C\subseteq t\mathcal P+x\\
+& t\geq 0.
+\end{array}
+\]
+这里 $t\mathcal P+x=\{tu+x\mid u\in\mathcal P\}$，即将 $\mathcal P$ 关于原点伸缩变换 $t$ 倍然后平移 $x$。这个问题的变量为 $t\in\mathbf{R}$ 和 $x\in\mathbf{R}^n$。
+
+\noindent\textbf{8.30\quad 分片弧度曲线插值。}
+给定点列 $a_1,\ldots,a_n\in\mathbf{R}^2$，我们构造依次穿过这些点的曲线，它在相邻点之间是一段弧（例如，圆的一部分）或者一条线段（我们可以将其视为具有无穷半径的圆的弧）。有很多连接 $a_i$ 和 $a_{i+1}$ 的弧；我们通过给出它们在 $a_i$ 处的切线与线段 $[a_i,a_{i+1}]$ 的夹角将这些弧参数化。因此，$\theta_i=0$ 表明 $a_i$ 和 $a_{i+1}$ 之间的弧实际上就是线段 $[a_i,a_{i+1}]$；$\theta_i=\pi/2$ 表明 $a_i$ 和 $a_{i+1}$ 之间的弧是（线段 $[a_1,a_2]$ 之上的）半圆；$\theta_i=-\pi/2$ 表明 $a_i$ 和 $a_{i+1}$ 之间的弧是（线段 $[a_1,a_2]$ 之下的）半圆，如下所示。
+
+我们的曲线完全由角度 $\theta_1,\ldots,\theta_n$ 所规定，它们可以在 $(-\pi,\pi)$ 中取值。$\theta_i$ 的选取将影响曲线的一些性质，例如，总长度 $L$，或下面所描述的链接角度的不连续性。
+
+在每个点 $a_i$，$i=2,\ldots,n-1$，两条弧相交，其中一个从前一个点而来，另一个发往下一个点。如果这两个弧的切线恰好相反，曲线在 $a_i$ 处可微，那么我们称在 $a_i$ 处没有链接角度的不连续性。一般地，我们定义 $a_i$ 处的链接角度不连续性为 $|\theta_{i-1}+\theta_i+\psi_i|$，其中 $\psi_i$ 为线段 $[a_i,a_{i+1}]$ 和线段 $[a_{i-1},a_i]$ 之间的夹角，即 $\psi_i=\angle(a_i-a_{i+1},a_{i-1}-a_i)$，如下所示。注意，角度 $\psi_i$ 是已知的（因为 $a_i$ 已知）。
+
+我们定义总链接角度不连续性为
+\[
+D=\sum_{i=2}^n|\theta_{i+1}+\theta_i+\psi_i|.
+\]
+
+将极小化总弧长 $L$ 和总链接角度不连续性 $D$ 的问题建模为双准则凸优化问题。解释你如何找到最优权衡曲线上的端点。
+
+\end{document}

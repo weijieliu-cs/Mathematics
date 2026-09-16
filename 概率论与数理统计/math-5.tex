@@ -1,0 +1,1308 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\graphicspath{{math/概率论/}}
+
+\title{第 5 章\quad 连续随机变量}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+到目前为止，我们一直研究离散随机变量，其可能取值可以写成一个列表。本章将研究连续随机变量，它可以取某个区间（可能长度无限）中的任意实数值，例如 $(0,1)$ 或整条实数轴。前四节介绍连续型随机变量的概念；一般正态分布、均匀分布和指数分布也会在其中出现。第 5 节说明如何把一种分布变换为另一种。第 6 节介绍两个很重要的随机变量：正态分布和 Poisson 分布。
+
+\section*{5.1\quad 概率密度函数}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{5-1.png}
+  \caption{离散型随机变量与连续型随机变量。左图：离散随机变量的 CDF 在每个概率质量点处跳跃。右图：连续随机变量的 CDF 是连续的。}
+\end{figure}
+
+回忆第 3 章的内容，任意点 $x$ 处的 CDF 跳跃大小恰好等于 $x$ 处的质量。左连续性要求这些跳跃不能被平滑化；相反，连续型随机变量的 CDF 是连续的。
+
+\noindent\textbf{定义 5.1.1（连续型随机变量）}\quad 若随机变量 $X$ 的 CDF 可微，则称 $X$ 为连续型随机变量。也允许 CDF 在有限多个点处不可微，但要求 CDF 连续，并且除有限多个点外处处可微。连续型随机变量的 CDF 没有跳跃，因此每个单点的概率质量都为 $0$。
+
+对离散型随机变量，CDF 是由 PMF 的值决定的；对连续型随机变量，CDF 由一个连续函数（其中没有单个点带有质量）决定。这个连续函数称为概率密度函数，简称 PDF。
+
+\noindent\textbf{定义 5.1.2（概率密度函数）}\quad 连续型随机变量 $X$ 的\textbf{概率密度函数}（PDF）是 CDF 的导数：
+\[
+  f(x)=F'(x).
+\]
+若 CDF 在有限多个点不可微，则可在这些点任意定义 $f(x)$。
+
+一个重要原因是：如果 $X$ 的值恰好等于某个给定点 $x$，这种事件概率为 $0$，所以 $f(x)$ 在有限多个点的取值不影响 $X$ 的分布。若 CDF 在某些点有跳跃，则 $X$ 不是连续型随机变量；在这种情形中，需要用 PMF 来描述这些跳跃。
+
+PDF 是 PMF 在许多方面的类比，但二者有一些差别。若 $X$ 的可能取值为 $x_1,x_2,\ldots$，则其 PMF 是一个函数，它在 $x_i$ 处给出概率 $P(X=x_i)$。若某个取值 $x_i$ 不可能，则 PMF 在该点为 $0$。对连续型随机变量而言，单个点都不带有概率，因此不能把 PDF 当成概率本身来解释。
+
+\noindent\textbf{命题 5.1.3（PDF 到 CDF）}\quad 设 $X$ 是连续型随机变量，PDF 为 $f$。则 CDF $F$ 满足
+\[
+  F(x)=\int_{-\infty}^x f(t)\,dt.
+\]
+
+\noindent\textbf{证明}\quad 由 PDF 的定义，$F$ 是 $f$ 的一个原函数。因此由微积分基本定理，
+\[
+  \int_{-\infty}^x f(t)\,dt=F(x)-F(-\infty)=F(x).
+\]
+\qed
+
+上面的结果类似于“离散型随机变量的 PMF 求和可得 CDF”：若 $X$ 是离散型的，则在 $x$ 处的 CDF 是所有不超过 $x$ 的 PMF 值之和。对连续型随机变量，由于 PDF 不是概率质量函数，而是一种密度，我们把求和替换为积分即可。PDF 与 CDF 的互补关系为：微分 CDF 得到 PDF，积分 PDF 得到 CDF。
+
+由于 PDF 决定分布，所以它应当能告诉我们如何求概率。下面的命题说明，区间落入概率等于 PDF 在该区间上的积分；这应与“密度”一词的含义相吻合。沿用第 3 章关于 CDF 的记号，对 $x<y$ 有
+\[
+  P(x<X\le y)=P(x<X<y)=P(x\le X<y)=P(x\le X\le y).
+\]
+
+\noindent\textbf{命题 5.1.4（用 PDF 求概率）}\quad 对任意 $x<y$，
+\[
+  P(x<X\le y)=F(y)-F(x)=\int_x^y f(t)\,dt.
+\]
+因此，要计算 $X$ 落在区间 $[x,y]$、$(x,y)$、$[x,y)$ 或 $(x,y]$ 中的概率，只需把 PDF 从 $x$ 积分到 $y$。区间端点是否包含不影响概率。
+
+\noindent\textbf{证明}\quad 由 CDF 的定义和微积分基本定理，
+\[
+  P(x<X\le y)=F(y)-F(x)=\int_x^y f(t)\,dt.
+\]
+\qed
+
+总之：
+\[
+  \text{为了得到概率，把 PDF 在适当区间上积分。}
+\]
+正如有效 PMF 必须非负且和为 $1$，有效 PDF 也必须非负并且积分为 $1$。
+
+\noindent\textbf{定理 5.1.5（有效 PDF）}\quad 若函数 $f$ 满足
+\[
+  f(x)\ge 0,\qquad \int_{-\infty}^{\infty} f(x)\,dx=1,
+\]
+则它就是某个连续型随机变量的有效 PDF。
+
+\noindent\textbf{证明}\quad 定义 $F(x)=\int_{-\infty}^{x} f(t)\,dt$。则 $F$ 单调不减；当 $x\to -\infty$ 时 $F(x)\to0$，当 $x\to\infty$ 时 $F(x)\to1$。再由微积分基本定理可知，$F$ 是一个有效 CDF，而其导数正是 $f$。若 $F$ 只在有限多个点不可微，可在这些点任意定义 $f$。
+\qed
+
+反过来，任意连续型随机变量的 PDF 也必须满足这些性质，因为 $f$ 是 CDF 的导数。重要的是，我们不仅要从 CDF 推出 PDF，也能从任意非负且积分为 $1$ 的函数出发，把它看作某个连续型随机变量的 PDF。
+
+下面先看若干具体例子。本章特别关注均匀分布、正态分布、Logistic 分布和 Rayleigh 分布；后续章节还会不断遇到它们。指数分布将在第 5.6 节中介绍，高斯分布将在第 6 章进一步研究。
+
+\noindent\textbf{例 5.1.6（Logistic 分布）}\quad Logistic 分布的 CDF 为
+\[
+  F(x)=\frac{1}{1+e^{-x}},\qquad x\in\mathbb{R}.
+\]
+因此其 PDF 是 CDF 的导数：
+\[
+  f(x)=\frac{e^{-x}}{(1+e^{-x})^2},\qquad x\in\mathbb{R}.
+\]
+令 $X\sim\operatorname{Logistic}$。若要求 $P(-2<X<2)$，把 PDF 从 $-2$ 积分到 $2$ 得到
+\[
+  P(-2<X<2)=\int_{-2}^{2}\frac{e^{-x}}{(1+e^{-x})^2}\,dx
+  =F(2)-F(-2)\approx 0.76.
+\]
+积分有时也可以直接计算；令 $u=1+e^{-x}$，则
+\[
+  \int_{-2}^{2}\frac{e^{-x}}{(1+e^{-x})^2}\,dx
+  =\int_{1+e^2}^{1+e^{-2}}\frac{-1}{u^2}\,du
+  =\left[\frac{1}{u}\right]_{1+e^2}^{1+e^{-2}}.
+\]
+图 5.2 显示 Logistic PDF 的图像，并在 $[-2,2]$ 上用阴影表示上述概率；同时也画出了 Logistic CDF。这个例子说明，若已知 CDF，计算区间概率往往最方便的方式是直接用 CDF 的差，而 PDF 或 CDF 都可以用来确认答案是否合理。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{5-2.png}
+  \caption{Logistic PDF 与 CDF。左图阴影面积表示 $P(-2<X<2)$；右图用虚线说明同一概率等于 $F(2)-F(-2)$。}
+\end{figure}
+
+\noindent\textbf{例 5.1.7（均匀分布）}\quad 均匀分布的 CDF 为
+\[
+  F(x)=x,\qquad 0<x<1.
+\]
+为了得到 PDF，在 CDF 可导处求导即可：
+\[
+  f(x)=1,\qquad 0<x<1.
+\]
+若 $x\le0$，则 CDF 和 PDF 均为 $0$；若 $x\ge1$，则 CDF 为 $1$ 而 PDF 为 $0$。设 $X\sim\operatorname{Unif}(0,1)$。若要求 $P(X>0.3)$，由 CDF 得
+\[
+  P(X>0.3)=1-F(0.3)=0.7.
+\]
+同一概率也可由积分得到：
+\[
+  P(X>0.3)=\int_{0.3}^1 f(x)\,dx=\int_{0.3}^1 1\,dx=0.7.
+\]
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{5-3.png}
+  \caption{均匀分布的 PDF 与 CDF。左图阴影面积表示 $P(X>0.3)$；右图用虚线表示同一概率等于 $1-F(0.3)$。}
+\end{figure}
+
+虽然图 5.3 左侧的高度只有 $1$，但这是概率密度而不是概率质量；连续型随机变量在任意单点处的概率为 $0$。均匀分布的一个基本性质是：落在任意长度为 $\ell$ 的子区间中的概率就是 $\ell$。
+
+对离散型、连续型或混合型分布，CDF 都是最普遍的语言。只要知道 CDF，就能得到任意区间概率。PDF 是连续分布特有的工具，它给出的是局部概率密度而不是单点概率。
+
+\noindent\textbf{例 5.1.8（伪分布）}\quad 考虑一个直观上很像概率密度的函数 $f$，它处处非负，但总面积并不等于 $1$。若把这样的函数当作 PDF，就会得到错误的概率。有效 PDF 必须经过归一化，使总面积为 $1$。这也是为什么常数倍十分重要：若 $g$ 是非负函数且
+\[
+  \int_{-\infty}^{\infty}g(x)\,dx=c
+\]
+其中 $0<c<\infty$，则 $g/c$ 才是有效 PDF。
+
+\noindent\textbf{例 5.1.9（光滑的 PDF）}\quad 设某连续型随机变量的 PDF 如图 5.4 所示。图中阴影面积表示 $P(0\le X\le1)$，即
+\[
+  \int_0^1 f(x)\,dx.
+\]
+若竖直轴上没有标出尺度，我们仍然可以理解“概率等于面积”这一原则，但无法计算具体数值；要得到数值，需要知道 PDF 的实际高度。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.68\textwidth]{5-4.png}
+  \caption{一个复杂的 PDF。竖直方向的密度刻度决定阴影面积的数值；阴影面积表示 $P(0\le X\le1)$。}
+\end{figure}
+
+概率与 PDF 下的面积相对应，而不是与曲线高度相对应。把 PDF 想象成地形图时，曲线高的地方说明随机变量更容易落在那里附近，但“附近”必须用一个区间来表达。
+
+连续型随机变量的定义要求 CDF 连续，并在有限多个点之外可微；对应的 PDF 可以在有限多个点处没有定义或取任意值。
+
+\noindent\textbf{定义 5.1.10（期望）}\quad 设 $X$ 是连续型随机变量，PDF 为 $f$。若积分绝对收敛，则 $X$ 的期望定义为
+\[
+  E(X)=\int_{-\infty}^{\infty}x f(x)\,dx.
+\]
+
+与离散情形一样，期望是分布的中心位置。直观上，若 PDF 被看作一块薄板的密度，那么 $E(X)$ 就是这块薄板在水平轴上的平衡点。若积分不绝对收敛，则期望不存在。
+
+均值不一定是随机变量最可能取值的位置；它只是分布质量的平衡点。对于偏斜分布，均值可能被长尾拉向一侧。图 5.5 的例子中，密度在左侧较高，但右侧尾部较长，平衡点位于 $1$ 附近。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.46\textwidth]{5-5.png}
+  \caption{连续型随机变量的期望是 PDF 的平衡点。}
+\end{figure}
+
+连续型随机变量的方差、标准差和矩也与离散情形完全平行，只需把求和替换为积分即可。若 $X$ 的 PDF 为 $f$，则
+\[
+  \operatorname{Var}(X)=E\{(X-E(X))^2\}
+  =\int_{-\infty}^{\infty}(x-E(X))^2 f(x)\,dx.
+\]
+
+\noindent\textbf{定理 5.1.11（LOTUS，连续型）}\quad 若 $X$ 是连续型随机变量，PDF 为 $f$，而 $g$ 是函数，则
+\[
+  E\{g(X)\}=\int_{-\infty}^{\infty}g(x)f(x)\,dx.
+\]
+
+现在已经掌握了本章会不断使用的基本语言：CDF、PDF、区间概率、期望、方差和 LOTUS。接下来先研究均匀分布。
+
+\section*{5.2\quad 均匀分布}
+
+直观地说，若一个随机变量在区间 $(a,b)$ 上是均匀的，那么它完全随机地从这个区间中选择一个实数。均匀分布是连续情形中“所有位置等可能”的基本模型；它也是许多模拟方法的起点。
+
+\noindent\textbf{定义 5.2.1（均匀分布）}\quad 若连续型随机变量 $U$ 的密度为
+\[
+  f(x)=\frac{1}{b-a},\qquad a<x<b,
+\]
+并且在区间外为 $0$，则称 $U$ 服从区间 $(a,b)$ 上的均匀分布，记作
+\[
+  U\sim\operatorname{Unif}(a,b).
+\]
+
+记号中的区间也常写成 $[a,b]$；端点是否包含并不影响连续型随机变量的分布。PDF 是一个矩形，高为 $1/(b-a)$，宽为 $b-a$，所以总面积为 $1$。特别地，
+\[
+  U\sim\operatorname{Unif}(0,1)
+\]
+时，PDF 为
+\[
+  f(x)=
+  \begin{cases}
+    1, & 0<x<1,\\
+    0, & \text{其他}.
+  \end{cases}
+\]
+
+由对 PDF 积分可得，$U\sim\operatorname{Unif}(0,1)$ 的 CDF 为
+\[
+  F(x)=
+  \begin{cases}
+    0, & x\le0,\\
+    x, & 0<x<1,\\
+    1, & x\ge1.
+  \end{cases}
+\]
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{5-6.png}
+  \caption{$\operatorname{Unif}(0,1)$ 的 PDF 与 CDF。}
+\end{figure}
+
+\noindent\textbf{证明}\quad 由于 CDF 是 PDF 从 $-\infty$ 到 $x$ 的积分，对 $x\le0$ 积分区域没有密度，故 $F(x)=0$；对 $0<x<1$，面积为从 $0$ 到 $x$ 的矩形面积，即 $x$；对 $x\ge1$，面积为整个矩形面积，即 $1$。
+
+均匀分布的基本性质是：任意子区间的概率只与其长度成正比。对 $U\sim\operatorname{Unif}(a,b)$，若 $a\le c<d\le b$，则
+\[
+  P(c\le U\le d)=\frac{d-c}{b-a}.
+\]
+因此当 $U\sim\operatorname{Unif}(0,1)$ 时，任意长度为 $\ell$ 的子区间都有概率 $\ell$。
+
+\noindent\textbf{命题 5.2.2}\quad 若 $U\sim\operatorname{Unif}(a,b)$，则其 CDF 为
+\[
+  F(x)=\frac{x-a}{b-a},\qquad a<x<b,
+\]
+并且 $x\le a$ 时 $F(x)=0$，$x\ge b$ 时 $F(x)=1$。
+
+\noindent\textbf{证明}\quad 对 $a<x<b$，条件概率和矩形面积给出
+\[
+  F(x)=P(U\le x)=\frac{x-a}{b-a}.
+\]
+也可直接对 PDF 积分：
+\[
+  F(x)=\int_a^x\frac{1}{b-a}\,dt=\frac{x-a}{b-a}.
+\]
+\qed
+
+\noindent\textbf{例 5.2.4}\quad 设 $U\sim\operatorname{Unif}(0,1)$。事件 $U\le0.75$ 的概率为 $0.75$，而 $0.23<U<0.87$ 的概率为 $0.87-0.23=0.64$。若已知 $U>0.4$，则在此条件下 $U$ 位于 $0.4$ 与 $0.75$ 之间的概率为
+\[
+  P(U<0.75\mid U>0.4)=\frac{P(0.4<U<0.75)}{P(U>0.4)}
+  =\frac{0.35}{0.6}=\frac{7}{12}.
+\]
+这说明在给定 $U>0.4$ 后，$U$ 在剩余区间 $(0.4,1)$ 上仍然是均匀的。
+
+接着推导 $\operatorname{Unif}(a,b)$ 的均值和方差。直觉上，均值应当是区间的中点；计算给出
+\[
+  E(U)=\int_a^b x\frac{1}{b-a}\,dx
+  =\frac{b^2-a^2}{2(b-a)}
+  =\frac{a+b}{2}.
+\]
+由 LOTUS，
+\[
+  E(U^2)=\int_a^b x^2\frac{1}{b-a}\,dx
+  =\frac{b^3-a^3}{3(b-a)}
+  =\frac{a^2+ab+b^2}{3}.
+\]
+于是
+\[
+  \operatorname{Var}(U)=E(U^2)-\{E(U)\}^2
+  =\frac{a^2+ab+b^2}{3}-\frac{(a+b)^2}{4}
+  =\frac{(b-a)^2}{12}.
+\]
+
+现在把这个结果与标准均匀分布联系起来。设 $U\sim\operatorname{Unif}(0,1)$。由于
+\[
+  E(U)=\frac12,\qquad \operatorname{Var}(U)=\frac1{12},
+\]
+若 $X=a+(b-a)U$，则 $X\sim\operatorname{Unif}(a,b)$，并且
+\[
+  E(X)=a+(b-a)E(U)=\frac{a+b}{2},
+\]
+\[
+  \operatorname{Var}(X)=(b-a)^2\operatorname{Var}(U)=\frac{(b-a)^2}{12}.
+\]
+这说明一般均匀分布只是标准均匀分布经过平移和缩放后的结果。
+
+以上推导也给出一个重要直觉：一旦我们能产生 $\operatorname{Unif}(0,1)$ 随机变量，就能通过变换产生许多其他分布。本章稍后会系统研究这种思想。
+
+\section*{5.3\quad 均匀分布的普适性}
+
+在本节中，我们讨论均匀分布一个极其有用的性质。若 $U$ 是标准均匀随机变量，并且 $g$ 是适当函数，则 $g(U)$ 能产生许多其他分布。反过来，若 $X$ 有连续 CDF $F$，则 $F(X)$ 是标准均匀的。这两个方向合起来说明，均匀分布在连续随机变量中具有一种普适性。
+
+先看最重要的形式。设 $F$ 是连续且严格递增的 CDF，记它的反函数为 $F^{-1}$。若 $U\sim\operatorname{Unif}(0,1)$，则
+\[
+  X=F^{-1}(U)
+\]
+的 CDF 正是 $F$。因此，只要能生成均匀随机变量，就能通过 CDF 的反函数生成具有目标 CDF 的随机变量。
+
+\noindent\textbf{定理 5.3.1（均匀分布的普适性）}\quad 设 $F$ 是连续且严格递增的 CDF，它对应的随机变量具有分布 $F$。则：
+\begin{enumerate}
+  \item 若 $U\sim\operatorname{Unif}(0,1)$，且 $X=F^{-1}(U)$，则 $X$ 的 CDF 为 $F$。
+  \item 若 $X$ 的 CDF 为 $F$，则 $F(X)\sim\operatorname{Unif}(0,1)$。
+\end{enumerate}
+
+\noindent\textbf{证明}\quad 对第一部分，令 $x$ 为实数。由于 $F$ 严格递增，
+\[
+  P(X\le x)=P(F^{-1}(U)\le x)=P(U\le F(x))=F(x),
+\]
+其中最后一步使用了 $U$ 的均匀性。
+
+对第二部分，设 $0<y<1$。由于 $F$ 严格递增且连续，存在 $x=F^{-1}(y)$。于是
+\[
+  P(F(X)\le y)=P(X\le F^{-1}(y))=F(F^{-1}(y))=y.
+\]
+这正是 $\operatorname{Unif}(0,1)$ 的 CDF。
+\qed
+
+该定理的直觉是：CDF 把原来的分布“拉直”为均匀分布，而反 CDF 把均匀分布“弯曲”为目标分布。第一部分也称为\textbf{反变换抽样}。如果随机数发生器能产生近似均匀的随机数，那么取 $F^{-1}$ 就能模拟目标分布。
+
+\noindent\textbf{例 5.3.3（通过反 CDF 生成 Logistic）}\quad Logistic CDF 为
+\[
+  F(x)=\frac{1}{1+e^{-x}}.
+\]
+为了求反函数，令 $u=F(x)$，则
+\[
+  u=\frac{1}{1+e^{-x}}
+  \quad\Longleftrightarrow\quad
+  e^{-x}=\frac{1-u}{u}
+  \quad\Longleftrightarrow\quad
+  x=\log\frac{u}{1-u}.
+\]
+因此若 $U\sim\operatorname{Unif}(0,1)$，则
+\[
+  \log\frac{U}{1-U}
+\]
+服从 Logistic 分布。
+
+图 5.7 上方展示了若干个 $\operatorname{Unif}(0,1)$ 模拟值的直方图，并将其与均匀 PDF 比较；下方展示把这些值通过 Logistic 反 CDF 变换之后的直方图，并与 Logistic PDF 比较。随着模拟次数增大，直方图会越来越贴近对应的 PDF。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.74\textwidth]{5-7.png}
+  \caption{反变换抽样。上方：$\operatorname{Unif}(0,1)$ 的模拟直方图和 PDF；下方：将均匀随机数变换为 Logistic 随机数后的直方图和 Logistic PDF。}
+\end{figure}
+
+反 CDF 方法不仅用于 Logistic 分布，也能用于许多其他分布。下面给出 Rayleigh 分布的例子。
+
+\noindent\textbf{例 5.3.5（通过反 CDF 生成 Rayleigh）}\quad Rayleigh 分布的 CDF 为
+\[
+  F(x)=1-e^{-x^2/2},\qquad x>0.
+\]
+求反函数。令 $u=F(x)$，则
+\[
+  u=1-e^{-x^2/2}
+  \quad\Longleftrightarrow\quad
+  x=\sqrt{-2\log(1-u)}.
+\]
+如果 $U\sim\operatorname{Unif}(0,1)$，则
+\[
+  \sqrt{-2\log(1-U)}
+\]
+服从 Rayleigh 分布。由于 $1-U$ 与 $U$ 同分布，也常写作
+\[
+  \sqrt{-2\log U}.
+\]
+
+图 5.8 展示了同样的思想：上方是 $\operatorname{Unif}(0,1)$ 模拟样本与均匀 PDF，下方是把样本通过 Rayleigh 反 CDF 变换后得到的直方图和 Rayleigh PDF。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.74\textwidth]{5-8.png}
+  \caption{用反 CDF 从均匀随机数生成 Rayleigh 随机数。}
+\end{figure}
+
+反方向也同样重要：若 $X$ 有连续严格递增的 CDF $F$，则 $F(X)\sim\operatorname{Unif}(0,1)$。直观地说，CDF 把低密度区域拉长，把高密度区域压缩，使得变换后的变量在 $(0,1)$ 上均匀分布。
+
+如果 $F$ 不是严格递增的，或者包含平坦区间，则需要使用更一般的反函数概念；本书大多数时候会在连续严格递增的情形下使用这一结果。对于离散随机变量，CDF 有跳跃，$F(X)$ 并不是均匀分布。图 5.9 说明了这种差别：离散变量的 CDF 把可能取值映到有限个点上，而不是填满整个区间。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{5-9.png}
+  \caption{离散情形中，CDF 的跳跃会把随机变量映到有限多个点，因此 $F(X)$ 不是均匀分布。}
+\end{figure}
+
+均匀分布的普适性、LOTUS 以及随机变量的函数之间有紧密联系。若 $X$ 是连续型随机变量，$Y=g(X)$，可以通过先求 $Y$ 的 CDF 再微分来得到 $Y$ 的 PDF；也可以直接利用 LOTUS 计算 $E\{g(X)\}$，而不必先求 $Y$ 的分布。
+
+\noindent\textbf{定义 5.3.7（一般 LOTUS）}\quad 设 $X$ 是 CDF 为 $F$ 的随机变量，$g$ 是函数。若相应积分存在，则
+\[
+  E\{g(X)\}=\int_{-\infty}^{\infty}g(x)\,dF(x).
+\]
+当 $X$ 是连续型且 PDF 为 $f$ 时，这化为
+\[
+  E\{g(X)\}=\int_{-\infty}^{\infty}g(x)f(x)\,dx.
+\]
+当 $X$ 是离散型时，则化为对 PMF 的求和。
+
+我们可以用这一观点得到一个有用的期望公式。若 $X$ 是非负连续型随机变量，CDF 为 $F$，则
+\[
+  E(X)=\int_0^\infty P(X>x)\,dx.
+\]
+证明如下：
+\[
+  E(X)=\int_0^\infty x f(x)\,dx
+  =\int_0^\infty\left(\int_0^x dt\right)f(x)\,dx.
+\]
+交换积分次序，得到
+\[
+  E(X)=\int_0^\infty\int_t^\infty f(x)\,dx\,dt
+  =\int_0^\infty P(X>t)\,dt.
+\]
+图 5.10 用阴影面积说明了这一恒等式：曲线 $1-F(x)$ 下的面积就是期望。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.68\textwidth]{5-10.png}
+  \caption{非负随机变量的期望可以写成尾概率曲线下的面积：$E(X)=\int_0^\infty P(X>x)\,dx$。}
+\end{figure}
+
+对非负整数值随机变量，类似公式为
+\[
+  E(X)=\sum_{n=1}^{\infty}P(X\ge n),
+\]
+它可以看作连续尾积分公式的离散版本。
+
+\section*{5.4\quad 正态分布}
+
+正态分布是最著名的连续分布，它具有钟形 PDF。它的重要性来自许多原因：许多实际测量误差和自然变异可近似用正态分布描述；许多随机量的和或平均值近似正态；正态分布在数学上也具有非常好的性质。本节先介绍标准正态分布，下一章会进一步解释它为何如此普遍。
+
+\noindent\textbf{定义 5.4.1（标准正态分布）}\quad 连续型随机变量 $Z$ 的 PDF 为
+\[
+  \varphi(z)=\frac{1}{\sqrt{2\pi}}e^{-z^2/2},\qquad -\infty<z<\infty,
+\]
+则称 $Z$ 服从\textbf{标准正态分布}，记作
+\[
+  Z\sim N(0,1).
+\]
+记号中的 $0$ 和 $1$ 分别表示均值和方差。
+
+标准正态 CDF 通常记为
+\[
+  \Phi(z)=\int_{-\infty}^{z}\frac{1}{\sqrt{2\pi}}e^{-t^2/2}\,dt.
+\]
+这个积分没有初等函数形式，因此实际计算中通常使用表格或计算软件。标准正态密度关于 $0$ 对称，因此 $E(Z)=0$。还可以证明 $\operatorname{Var}(Z)=1$。
+
+\noindent\textbf{记号 5.4.2}\quad 希腊字母 $\Phi$ 用于标准正态 CDF，$\varphi$ 用于标准正态 PDF。它们满足
+\[
+  \Phi'(z)=\varphi(z).
+\]
+标准正态 PDF 和 CDF 见图 5.11。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{5-11.png}
+  \caption{标准正态分布的 PDF 与 CDF。}
+\end{figure}
+
+标准正态分布有几个重要对称性：
+\begin{enumerate}
+  \item PDF 是偶函数，即
+  \[
+    \varphi(-z)=\varphi(z).
+  \]
+  因此密度关于 $0$ 对称。
+
+  \item CDF 满足
+  \[
+    \Phi(-z)=1-\Phi(z).
+  \]
+  这是因为左侧 $(-\infty,-z]$ 的面积等于右侧 $[z,\infty)$ 的面积。
+
+  \item 对任意 $a<b$，
+  \[
+    P(a<Z<b)=\Phi(b)-\Phi(a).
+  \]
+  结合上一条，许多正态概率都可以化为标准正态 CDF 的值。
+\end{enumerate}
+
+标准正态密度中的常数 $1/\sqrt{2\pi}$ 是为了让 PDF 的总面积等于 $1$。也就是说需要证明
+\[
+  \int_{-\infty}^{\infty} e^{-z^2/2}\,dz=\sqrt{2\pi}.
+\]
+经典证明是把积分平方，转化为平面上的二重积分：
+\[
+  \left(\int_{-\infty}^{\infty} e^{-x^2/2}\,dx\right)
+  \left(\int_{-\infty}^{\infty} e^{-y^2/2}\,dy\right)
+  =
+  \int_{\mathbb{R}^2}e^{-(x^2+y^2)/2}\,dx\,dy.
+\]
+改用极坐标，右侧为
+\[
+  \int_0^{2\pi}\int_0^\infty e^{-r^2/2}r\,dr\,d\theta
+  =2\pi.
+\]
+因此原积分等于 $\sqrt{2\pi}$。
+
+下面验证标准正态的均值和方差。由于 PDF 关于 $0$ 对称，
+\[
+  E(Z)=\int_{-\infty}^{\infty}z\varphi(z)\,dz=0.
+\]
+由 LOTUS，
+\[
+  E(Z^2)=\frac{1}{\sqrt{2\pi}}\int_{-\infty}^{\infty}z^2e^{-z^2/2}\,dz.
+\]
+对该积分分部积分，或利用上面的高斯积分，可得 $E(Z^2)=1$。因此
+\[
+  \operatorname{Var}(Z)=E(Z^2)-\{E(Z)\}^2=1.
+\]
+
+\noindent\textbf{定义 5.4.3（正态分布）}\quad 若随机变量 $X$ 可以写成
+\[
+  X=\mu+\sigma Z,
+\]
+其中 $Z\sim N(0,1)$ 且 $\sigma>0$，则称 $X$ 服从均值为 $\mu$、方差为 $\sigma^2$ 的正态分布，记作
+\[
+  X\sim N(\mu,\sigma^2).
+\]
+于是
+\[
+  E(X)=\mu,\qquad \operatorname{Var}(X)=\sigma^2.
+\]
+反过来，若 $X\sim N(\mu,\sigma^2)$，则
+\[
+  \frac{X-\mu}{\sigma}\sim N(0,1).
+\]
+这个变换称为\textbf{标准化}。
+
+\noindent\textbf{定理 5.4.4}\quad 若 $X\sim N(\mu,\sigma^2)$，则其 CDF 和 PDF 分别为
+\[
+  F_X(x)=\Phi\left(\frac{x-\mu}{\sigma}\right),
+\]
+\[
+  f_X(x)=\frac{1}{\sigma}\varphi\left(\frac{x-\mu}{\sigma}\right)
+  =\frac{1}{\sigma\sqrt{2\pi}}
+  \exp\left\{-\frac{(x-\mu)^2}{2\sigma^2}\right\}.
+\]
+
+\noindent\textbf{证明}\quad 由标准化，
+\[
+  F_X(x)=P(X\le x)
+  =P\left(\frac{X-\mu}{\sigma}\le \frac{x-\mu}{\sigma}\right)
+  =\Phi\left(\frac{x-\mu}{\sigma}\right).
+\]
+对 CDF 求导即可得到 PDF。
+\qed
+
+正态分布的概率通常通过标准化后查标准正态 CDF 来计算。一个常用近似称为 $68$-$95$-$99.7$ 规则：
+\[
+  P(|Z|\le1)\approx0.68,\qquad
+  P(|Z|\le2)\approx0.95,\qquad
+  P(|Z|\le3)\approx0.997.
+\]
+换成一般正态分布，就是大约 $68\%$ 的概率落在 $\mu\pm\sigma$ 内，$95\%$ 落在 $\mu\pm2\sigma$ 内，$99.7\%$ 落在 $\mu\pm3\sigma$ 内。
+
+\noindent\textbf{例 5.4.6（用标准正态 CDF 计算）}\quad 设 $X\sim N(-1,4)$。求 $P(|X|\le3)$。标准化得
+\[
+  P(-3\le X\le3)
+  =
+  P\left(\frac{-3+1}{2}\le Z\le \frac{3+1}{2}\right)
+  =
+  P(-1\le Z\le2).
+\]
+因此
+\[
+  P(|X|\le3)=\Phi(2)-\Phi(-1)=\Phi(2)+\Phi(1)-1\approx0.8185.
+\]
+
+\noindent\textbf{例 5.4.7（Folded Normal）}\quad 设 $Y=|Z|$，其中 $Z\sim N(0,1)$。随机变量 $Y$ 称为 Folded Normal，因为它把标准正态分布的负半轴折叠到正半轴。
+
+由于 $Y\ge0$，对 $y<0$ 有 $F_Y(y)=0$。对 $y\ge0$，
+\[
+  F_Y(y)=P(Y\le y)=P(|Z|\le y)=P(-y\le Z\le y)
+  =\Phi(y)-\Phi(-y)=2\Phi(y)-1.
+\]
+因此
+\[
+  f_Y(y)=2\varphi(y),\qquad y>0.
+\]
+由 LOTUS，
+\[
+  E(Y)=E(|Z|)
+  =2\int_0^\infty z\varphi(z)\,dz
+  =\sqrt{\frac{2}{\pi}}.
+\]
+又因为 $Y^2=Z^2$，所以 $E(Y^2)=1$，从而
+\[
+  \operatorname{Var}(Y)=1-\frac{2}{\pi}.
+\]
+
+若 $y>0$，则 $Y$ 的 CDF 为 $2\Phi(y)-1$；若 $y<0$，则为 $0$。因此 Folded Normal 的密度在正半轴上是标准正态密度的两倍，在负半轴上为 $0$。
+
+\section*{5.5\quad 指数分布}
+
+指数分布是连续时间中几何分布的类比。回忆几何分布描述的是直到第一次成功所需的试验次数，而指数分布描述的是在连续时间中等待某个事件发生所需的时间。它经常用于刻画等待时间、寿命、排队时间等。
+
+\noindent\textbf{定义 5.5.1（指数分布）}\quad 若连续型随机变量 $X$ 的 PDF 为
+\[
+  f(x)=\lambda e^{-\lambda x},\qquad x>0,
+\]
+并且 $x\le0$ 时 $f(x)=0$，其中 $\lambda>0$，则称 $X$ 服从参数为 $\lambda$ 的指数分布，记作
+\[
+  X\sim\operatorname{Expo}(\lambda).
+\]
+对应的 CDF 为
+\[
+  F(x)=1-e^{-\lambda x},\qquad x>0,
+\]
+并且 $x\le0$ 时 $F(x)=0$。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{5-12.png}
+  \caption{$\operatorname{Expo}(1)$ 的 PDF 与 CDF。}
+\end{figure}
+
+参数 $\lambda$ 称为\textbf{率}。率越大，等待时间越短；率越小，等待时间越长。若 $X\sim\operatorname{Expo}(\lambda)$，则
+\[
+  P(X>y)=e^{-\lambda y},\qquad y>0.
+\]
+因此指数分布的尾概率呈指数衰减。
+
+用 LOTUS 计算均值与二阶矩：
+\[
+  E(X)=\int_0^\infty x\lambda e^{-\lambda x}\,dx=\frac1\lambda,
+\]
+\[
+  E(X^2)=\int_0^\infty x^2\lambda e^{-\lambda x}\,dx=\frac{2}{\lambda^2}.
+\]
+所以
+\[
+  \operatorname{Var}(X)=E(X^2)-\{E(X)\}^2=\frac{1}{\lambda^2}.
+\]
+也就是说指数分布的均值和标准差都等于 $1/\lambda$。
+
+\noindent\textbf{定义 5.5.2（无记忆性）}\quad 连续型分布称为\textbf{无记忆的}，如果对所有 $s,t\ge0$，
+\[
+  P(X>s+t\mid X>s)=P(X>t).
+\]
+指数分布具有无记忆性。事实上，若 $X\sim\operatorname{Expo}(\lambda)$，则
+\[
+  P(X>s+t\mid X>s)
+  =\frac{P(X>s+t)}{P(X>s)}
+  =\frac{e^{-\lambda(s+t)}}{e^{-\lambda s}}
+  =e^{-\lambda t}
+  =P(X>t).
+\]
+
+这说明，若已经等待了 $s$ 个时间单位而事件还没有发生，那么还需要再等待超过 $t$ 个时间单位的概率，与一开始等待超过 $t$ 个时间单位的概率相同。等待时间“忘记”了已经过去多久。
+
+\noindent\textbf{定理 5.5.3（连续无记忆分布的唯一性）}\quad 指数分布是唯一的连续无记忆分布。也就是说，若非负连续型随机变量 $X$ 满足无记忆性，并且尾函数 $G(x)=P(X>x)$ 连续，则存在 $\lambda>0$ 使得
+\[
+  G(x)=e^{-\lambda x},
+\]
+从而 $X\sim\operatorname{Expo}(\lambda)$。
+
+\noindent\textbf{证明}\quad 无记忆性给出
+\[
+  G(s+t)=G(s)G(t),\qquad s,t\ge0.
+\]
+连续且满足该乘法方程的非平凡函数必为指数函数形式。令 $G(1)=e^{-\lambda}$，则
+\[
+  G(n)=G(1)^n=e^{-\lambda n}
+\]
+对正整数 $n$ 成立。类似地可得到对有理数成立；再由连续性推广到所有正实数。因此 $G(x)=e^{-\lambda x}$。
+\qed
+
+几何分布是离散时间中唯一的无记忆分布，指数分布是连续时间中唯一的无记忆分布。二者都描述“直到第一次发生”的等待时间，只是前者以试验次数计量，后者以连续时间计量。
+
+\noindent\textbf{例 5.5.4（放射性衰变）}\quad 假设某种放射性原子的寿命服从指数分布，平均寿命为 $10$ 年。则参数为 $\lambda=1/10$。该原子在 $3$ 年内衰变的概率为
+\[
+  P(X\le3)=1-e^{-3/10}.
+\]
+如果已经存活了 $5$ 年，那么再存活至少 $3$ 年的概率仍为
+\[
+  P(X>3)=e^{-3/10},
+\]
+这正是无记忆性的含义。
+
+指数分布常用于寿命建模。若元件寿命 $T\sim\operatorname{Expo}(\lambda)$，则平均寿命为 $1/\lambda$；在已经工作一段时间的条件下，剩余寿命的分布仍与原分布相同。这个性质有时与现实不完全吻合：很多机器会老化，人类寿命也显然不是无记忆的。但对某些“失效率近似恒定”的情形，指数模型非常有用。
+
+\noindent\textbf{例 5.5.6（灯泡寿命）}\quad 假设灯泡寿命服从平均值为 $5$ 年的指数分布，即 $T\sim\operatorname{Expo}(1/5)$。则
+\[
+  P(T\ge2)=e^{-2/5}.
+\]
+若灯泡已经使用了 $1$ 年，则再至少使用 $2$ 年的概率仍然是
+\[
+  P(T\ge3\mid T\ge1)=P(T\ge2)=e^{-2/5}.
+\]
+若观察 $100$ 个相互独立的灯泡，每个在接下来 $10$ 年内是否失效可以看成独立事件，其失效概率为 $1-e^{-2}$；因此失效个数服从相应的二项分布。
+
+\section*{5.6\quad Poisson 过程}
+
+指数分布与 Poisson 分布密切相关。几何分布是 Bernoulli 试验序列中等待第一次成功的时间，而指数分布是 Poisson 过程中等待第一次到达的时间。Poisson 过程是用于建模随机到达时间的基本模型，例如电话呼入、放射性衰变、顾客到达等。
+
+\noindent\textbf{定义 5.6.1（Poisson 过程）}\quad 参数为 $\lambda>0$ 的 Poisson 过程是在连续时间中随机发生的到达过程，满足：
+\begin{enumerate}
+  \item 任意长度为 $t$ 的时间区间内，到达数服从 $\operatorname{Pois}(\lambda t)$；
+  \item 不相交时间区间中的到达数相互独立。
+\end{enumerate}
+参数 $\lambda$ 称为到达率。
+
+设 $N_t$ 表示区间 $[0,t]$ 中的到达数，则
+\[
+  N_t\sim\operatorname{Pois}(\lambda t),
+\]
+并且对不相交区间，计数相互独立。图 5.13 展示了一条时间轴上的到达点。相邻到达之间的时间间隔记为 $T_1,T_2,\ldots$。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.74\textwidth]{5-13.png}
+  \caption{Poisson 过程。到达点沿时间轴随机出现，相邻到达之间的等待时间为 $T_1,T_2,\ldots$。}
+\end{figure}
+
+第一次到达时间 $T_1$ 的分布可以由“没有到达”事件得到：
+\[
+  P(T_1>t)=P(N_t=0)=e^{-\lambda t}.
+\]
+因此
+\[
+  T_1\sim\operatorname{Expo}(\lambda).
+\]
+同样地，Poisson 过程的相邻等待时间 $T_1,T_2,\ldots$ 是独立同分布的 $\operatorname{Expo}(\lambda)$ 随机变量。
+
+\noindent\textbf{定理 5.6.2}\quad 在参数为 $\lambda$ 的 Poisson 过程中，相邻到达时间间隔
+\[
+  T_1,T_2,\ldots
+\]
+是独立同分布的 $\operatorname{Expo}(\lambda)$ 随机变量。
+
+反过来，如果 $T_1,T_2,\ldots$ 是独立同分布的 $\operatorname{Expo}(\lambda)$ 随机变量，并把
+\[
+  S_n=T_1+\cdots+T_n
+\]
+看作第 $n$ 次到达时间，则由这些到达时间构造出的计数过程就是参数为 $\lambda$ 的 Poisson 过程。
+
+\noindent\textbf{定理 5.6.4（独立指数间隔的最小值）}\quad 若 $T_1,\ldots,T_n$ 相互独立，且
+\[
+  T_j\sim\operatorname{Expo}(\lambda_j),
+\]
+则
+\[
+  \min(T_1,\ldots,T_n)\sim\operatorname{Expo}(\lambda_1+\cdots+\lambda_n).
+\]
+这是因为
+\[
+  P(\min_j T_j>t)=\prod_{j=1}^nP(T_j>t)
+  =\exp\left\{-(\lambda_1+\cdots+\lambda_n)t\right\}.
+\]
+此外，最先发生的是第 $j$ 个时钟的概率为
+\[
+  \frac{\lambda_j}{\lambda_1+\cdots+\lambda_n}.
+\]
+
+\noindent\textbf{例 5.6.5（指数比赛）}\quad 三个独立任务的完成时间分别服从
+\[
+  X_1\sim\operatorname{Expo}(2),\qquad
+  X_2\sim\operatorname{Expo}(3),\qquad
+  X_3\sim\operatorname{Expo}(5).
+\]
+第一个完成的时间
+\[
+  L=\min(X_1,X_2,X_3)
+\]
+服从 $\operatorname{Expo}(10)$。第一个完成的是任务 $1,2,3$ 的概率分别为
+\[
+  \frac{2}{10},\qquad \frac{3}{10},\qquad \frac{5}{10}.
+\]
+若还关心完成顺序，可以在第一次完成后利用无记忆性继续分析剩余任务。
+
+\section*{5.7\quad 独立同分布连续随机变量的对称性}
+
+连续型随机变量没有并列的概率，这使得许多对称性论证特别简洁。若 $X_1,\ldots,X_n$ 是独立同分布的连续随机变量，则它们几乎必然互不相等；每一种相对顺序都同样可能。因此，任意一个变量成为最大值、最小值或第 $j$ 大的概率都由对称性直接给出。
+
+\noindent\textbf{命题 5.7.1}\quad 设 $X_1,\ldots,X_n$ 是独立同分布的连续随机变量。则对每个 $j$，
+\[
+  P(X_j=\max\{X_1,\ldots,X_n\})=\frac1n,
+\]
+并且
+\[
+  P(X_j=\min\{X_1,\ldots,X_n\})=\frac1n.
+\]
+
+\noindent\textbf{证明}\quad 由于连续性，并列概率为 $0$。事件“$X_j$ 是最大值”对所有 $j$ 完全对称，且这些事件互斥并覆盖样本空间（忽略概率为 $0$ 的并列情形），所以每个事件概率都为 $1/n$。最小值的情形同理。
+\qed
+
+\noindent\textbf{命题 5.7.2}\quad 设 $X_1,\ldots,X_n$ 是独立同分布的连续随机变量。则任意给定排列
+\[
+  X_{\pi(1)}<X_{\pi(2)}<\cdots<X_{\pi(n)}
+\]
+发生的概率为
+\[
+  \frac1{n!}.
+\]
+
+例如，当 $n=3$ 时，六种相对顺序
+\[
+  X_1<X_2<X_3,\quad X_1<X_3<X_2,\quad \ldots
+\]
+都具有概率 $1/6$。这类结论常常可以避免冗长积分。
+
+\noindent\textbf{例 5.7.4（记录）}\quad 假设一系列独立同分布的连续随机变量 $X_1,X_2,\ldots$ 依次出现。若 $X_j$ 大于之前所有观测值，则称第 $j$ 次观测创造了一个\textbf{新纪录}。由于 $X_1,\ldots,X_j$ 中每一个成为最大值的概率都相同，所以第 $j$ 次观测创造新纪录的概率为
+\[
+  P(X_j=\max\{X_1,\ldots,X_j\})=\frac1j.
+\]
+令 $I_j$ 为第 $j$ 次观测是否创造新纪录的指标变量。前 $n$ 次观测中新纪录个数为
+\[
+  I_1+\cdots+I_n,
+\]
+其期望为
+\[
+  E(I_1+\cdots+I_n)=\sum_{j=1}^nE(I_j)=\sum_{j=1}^n\frac1j.
+\]
+这就是第 $n$ 个调和数，约为 $\log n$。
+
+\section*{5.8\quad 回顾}
+
+连续型随机变量可以取区间中的任意实数值。它的 CDF
+\[
+  F(x)=P(X\le x)
+\]
+仍然是最基本的对象；若 $X$ 是连续型，则 PDF 为
+\[
+  f(x)=F'(x).
+\]
+概率通过对 PDF 积分得到：
+\[
+  P(a<X\le b)=F(b)-F(a)=\int_a^b f(x)\,dx.
+\]
+连续型随机变量在单点处概率为 $0$，因此区间端点是否包含不会影响概率。
+
+期望与 LOTUS 的连续型形式分别为
+\[
+  E(X)=\int_{-\infty}^{\infty}x f(x)\,dx,
+\]
+\[
+  E\{g(X)\}=\int_{-\infty}^{\infty}g(x)f(x)\,dx.
+\]
+这些公式与离散情形完全平行，只是把求和换成了积分。
+
+本章引入了几类重要连续分布：
+\begin{itemize}
+  \item $U\sim\operatorname{Unif}(a,b)$，其中 $E(U)=(a+b)/2$，$\operatorname{Var}(U)=(b-a)^2/12$。
+  \item $Z\sim N(0,1)$，其 PDF 为 $\varphi(z)=\frac1{\sqrt{2\pi}}e^{-z^2/2}$，CDF 为 $\Phi$。
+  \item $X\sim N(\mu,\sigma^2)$ 当且仅当 $(X-\mu)/\sigma\sim N(0,1)$。
+  \item $X\sim\operatorname{Expo}(\lambda)$，其 PDF 为 $\lambda e^{-\lambda x}$（$x>0$），均值为 $1/\lambda$，并具有无记忆性。
+\end{itemize}
+
+均匀分布具有普适性：若 $U\sim\operatorname{Unif}(0,1)$，且 $F$ 是连续严格递增 CDF，则 $F^{-1}(U)$ 的 CDF 为 $F$；反过来，若 $X$ 的 CDF 为 $F$，则 $F(X)\sim\operatorname{Unif}(0,1)$。Poisson 过程把 Poisson 分布和指数分布联系起来：到达数服从 Poisson 分布，而相邻到达间隔服从指数分布。
+
+图 5.14 总结了本书到目前为止的几个基本对象：分布、随机变量、事件、期望、PDF/PMF、CDF 与 LOTUS 之间的关系。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{5-14.png}
+  \caption{概率中的基本对象及其关系。}
+\end{figure}
+
+\section*{5.10\quad 习题}
+
+标有 $\circledS$ 的习题在原书配套网站给出详细解答。
+
+\subsection*{PDF 与 CDF}
+
+\begin{enumerate}
+  \item Rayleigh 分布的 PDF 为
+  \[
+    f(x)=xe^{-x^2/2},\qquad x>0.
+  \]
+  设 $X$ 服从 Rayleigh 分布。
+  \begin{enumerate}
+    \item 求 $P(1<X<3)$。
+    \item 求 $X$ 的第一四分位数、中位数和第三四分位数，即求 $q_1,q_2,q_3$，使得 $P(X\le q_j)=j/4$，$j=1,2,3$。
+  \end{enumerate}
+
+  \item 
+  \begin{enumerate}
+    \item 构造一个 PDF $f$，并给出一个合理应用，使得在某个区间上对所有 $x$ 都有 $f(x)>1$。
+    \item 证明：若 PDF $f$ 在某个区间上处处大于 $1$，则该区间长度必须小于 $1$。
+  \end{enumerate}
+
+  \item 设 $F$ 是连续随机变量的 CDF，$f=F'$ 是其 PDF。
+  \begin{enumerate}
+    \item 证明 $g(x)=2F(x)f(x)$ 也是有效 PDF。
+    \item 证明 $h(x)=\frac12 f(-x)+\frac12 f(x)$ 也是有效 PDF。
+  \end{enumerate}
+
+  \item 设 $X$ 是连续随机变量，CDF 为 $F$，PDF 为 $f$。
+  \begin{enumerate}
+    \item 求在 $X>c$ 条件下 $X$ 的条件 CDF，其中常数 $c$ 满足 $P(X>c)\ne0$。也就是说，用 $F$ 表示所有 $x$ 下的 $P(X\le x\mid X>c)$。
+    \item 求在 $X>c$ 条件下 $X$ 的条件 PDF。
+    \item 直接验证 (b) 中的条件 PDF 非负且积分为 $1$。
+  \end{enumerate}
+
+  \item 半径 $R\sim\operatorname{Unif}(0,1)$ 的圆被随机生成。令 $A$ 为它的面积。
+  \begin{enumerate}
+    \item 不先求 $A$ 的 CDF 或 PDF，求 $A$ 的均值和方差。
+    \item 求 $A$ 的 CDF 和 PDF。
+  \end{enumerate}
+
+  \item 正态分布有 $68$-$95$-$99.7\%$ 规则，即随机变量落在均值的 $1,2,3$ 个标准差内的近似概率。对下列分布推导类似规则：
+  \begin{enumerate}
+    \item $\operatorname{Unif}(0,1)$；
+    \item $\operatorname{Expo}(1)$；
+    \item $\operatorname{Expo}(1/2)$。讨论是否存在一个适用于所有指数分布的统一规则，就像 $68$-$95$-$99.7\%$ 规则适用于所有正态分布一样。
+  \end{enumerate}
+
+  \item 令
+  \[
+    F(x)=\frac{2}{\pi}\sin^{-1}(\sqrt{x}),\qquad 0<x<1,
+  \]
+  并令 $x\le0$ 时 $F(x)=0$，$x\ge1$ 时 $F(x)=1$。
+  \begin{enumerate}
+    \item 验证 $F$ 是有效 CDF，并求对应 PDF $f$。这个分布称为 arcsine 分布，也称为 $\operatorname{Beta}(1/2,1/2)$。
+    \item 解释为什么即使当 $x$ 从右侧趋近 $0$、从左侧趋近 $1$ 时 $f(x)\to\infty$，$f$ 仍然可以是有效 PDF。
+  \end{enumerate}
+
+  \item 参数为 $a=3,b=2$ 的 Beta 分布具有 PDF
+  \[
+    f(x)=12x^2(1-x),\qquad 0<x<1.
+  \]
+  设 $X$ 服从此分布。
+  \begin{enumerate}
+    \item 求 $X$ 的 CDF。
+    \item 求 $P(0<X<1/2)$。
+    \item 不引用 Beta 分布的已知结论，求 $X$ 的均值和方差。
+  \end{enumerate}
+
+  \item Cauchy 分布的 PDF 为
+  \[
+    f(x)=\frac{1}{\pi(1+x^2)},\qquad -\infty<x<\infty.
+  \]
+  求具有该 PDF 的随机变量的 CDF。提示：$\arctan(x)$ 的导数为 $1/(1+x^2)$。
+\end{enumerate}
+
+\subsection*{均匀分布与均匀分布的普适性}
+
+\begin{enumerate}
+  \setcounter{enumi}{9}
+  \item 设 $U\sim\operatorname{Unif}(0,8)$。
+  \begin{enumerate}
+    \item 不使用微积分，求 $P(U\in(0,2)\cup(3,7))$。
+    \item 求在 $U\in(3,7)$ 条件下 $U$ 的条件分布。
+  \end{enumerate}
+
+  \item $\circledS$ 设 $U$ 是区间 $(-1,1)$ 上的均匀随机变量。
+  \begin{enumerate}
+    \item 计算 $E(U)$、$\operatorname{Var}(U)$ 和 $E(U^4)$。
+    \item 求 $U^2$ 的 CDF 和 PDF。$U^2$ 是否服从 $(0,1)$ 上的均匀分布？
+  \end{enumerate}
+
+  \item $\circledS$ 一根木棍在均匀随机位置折成两段。求较长一段长度的 CDF 和平均值。
+
+  \item 长度为 $1$ 的木棍在均匀随机位置折断成两段。令 $X$ 和 $Y$ 分别为较短段和较长段的长度，令 $R=X/Y$。
+  \begin{enumerate}
+    \item 求 $R$ 的 CDF 和 PDF。
+    \item 求 $E(R)$，若其存在。
+    \item 求 $E(1/R)$，若其存在。
+  \end{enumerate}
+
+  \item 设 $U_1,\ldots,U_n$ 独立同分布于 $\operatorname{Unif}(0,1)$，且 $X=\max(U_1,\ldots,U_n)$。求 $X$ 的 PDF 与 $E(X)$。提示：先把事件 $X\le x$ 翻译为关于 $U_1,\ldots,U_n$ 的事件。
+
+  \item 设 $U\sim\operatorname{Unif}(0,1)$。利用 $U$ 构造 $X\sim\operatorname{Expo}(\lambda)$。
+
+  \item $\circledS$ 设 $U\sim\operatorname{Unif}(0,1)$，且
+  \[
+    X=\log\left(\frac{U}{1-U}\right).
+  \]
+  则 $X$ 服从 Logistic 分布。
+  \begin{enumerate}
+    \item 写出（但不计算）一个给出 $E(X^2)$ 的积分。
+    \item 不使用微积分，求 $E(X)$。
+  \end{enumerate}
+  提示：$1-U$ 与 $U$ 同分布。
+
+  \item 设 $U\sim\operatorname{Unif}(0,1)$。把 $X$ 写成 $U$ 的函数，使其 CDF 为
+  \[
+    F(x)=1-e^{-x^3},\qquad x>0.
+  \]
+
+  \item 参数 $a>0$ 的 Pareto 分布具有 PDF
+  \[
+    f(x)=\frac{a}{x^{a+1}},\qquad x\ge1,
+  \]
+  其他地方为 $0$。
+  \begin{enumerate}
+    \item 求 Pareto 随机变量的 CDF，并验证它是有效 CDF。
+    \item 若要模拟独立同分布的 $\operatorname{Pareto}(a)$ 随机变量，而计算机只能生成独立同分布的 $\operatorname{Unif}(0,1)$ 随机变量，说明如何完成模拟。
+  \end{enumerate}
+\end{enumerate}
+
+\subsection*{正态分布}
+
+\begin{enumerate}
+  \setcounter{enumi}{18}
+  \item 设 $Z\sim N(0,1)$。把 $Y\sim N(1,4)$ 构造为 $Z$ 的一个简单函数，并检查 $Y$ 的均值与方差正确。
+
+  \item 工程中有时使用误差函数
+  \[
+    \operatorname{erf}(z)=\frac{2}{\sqrt{\pi}}\int_0^z e^{-x^2}\,dx
+  \]
+  而不是标准正态 CDF $\Phi$。
+  \begin{enumerate}
+    \item 证明对所有 $z$，
+    \[
+      \Phi(z)=\frac12+\frac12\operatorname{erf}\left(\frac{z}{\sqrt2}\right).
+    \]
+    \item 证明 $\operatorname{erf}$ 是奇函数，即 $\operatorname{erf}(-z)=-\operatorname{erf}(z)$。
+  \end{enumerate}
+
+  \item 
+  \begin{enumerate}
+    \item 求 $N(0,1)$ PDF $\varphi$ 的拐点，即曲线从凸变凹或从凹变凸的位置。
+    \item 利用 (a) 和位置尺度变换，求 $N(\mu,\sigma^2)$ PDF 的拐点。
+  \end{enumerate}
+
+  \item 两点之间的真实距离为 $10$ 米，但测量误差使观测值为 $10+\epsilon$，其中 $\epsilon\sim N(0,0.04)$。求观测距离位于真实距离 $0.4$ 米范围内的概率。答案需给出用 $\Phi$ 表示的精确形式和近似数值。
+
+  \item Alice 通过有噪声信道向 Bob 传递一个是/否答案。她把“是”编码为 $1$，“否”编码为 $0$，但 Bob 接收到的是 Alice 发送值加上一个独立的 $N(0,\sigma^2)$ 噪声项。若 Bob 收到的值大于 $1/2$，他解释为“是”，否则解释为“否”。
+  \begin{enumerate}
+    \item 求 Bob 正确理解 Alice 的概率。
+    \item 当 $\sigma$ 很小或很大时，(a) 的结果会怎样？解释直觉。
+  \end{enumerate}
+
+  \item 一位孕妇预产期为 2020 年 1 月 10 日。以该日开始的瞬间为时间 $0$。假设分娩时间 $T$ 服从以 $0$ 为中心、标准差为 $8$ 天的正态分布。求她恰好在预产日分娩的概率，用 $\Phi$ 表示并化简。
+
+  \item 若 $X_1,X_2$ 独立且 $X_i\sim N(\mu_i,\sigma_i^2)$，则 $X_1+X_2\sim N(\mu_1+\mu_2,\sigma_1^2+\sigma_2^2)$。利用此结论求独立的 $X\sim N(a,b)$、$Y\sim N(c,d)$ 满足 $P(X<Y)$ 的表达式。提示：写成 $P(X-Y<0)$ 并标准化。
+
+  \item Walter 和 Carl 同时从 A 地前往 B 地。Walter 步行，旅行时间服从均值 $w$、标准差 $\sigma$ 的正态分布；Carl 开车，旅行时间服从均值 $c$、标准差 $2\sigma$ 的正态分布。二者旅行时间相互独立。
+  \begin{enumerate}
+    \item 用 $\Phi$ 和参数表示 Carl 先到的概率。
+    \item 给出一个不含 $\Phi$ 的简化条件，使 Carl 先到的概率超过 $50\%$ 当且仅当该条件成立。
+    \item 若会议在出发后 $w+10$ 分钟开始，给出一个不含 $\Phi$ 的简化条件，使 Carl 比 Walter 更可能准时到会当且仅当该条件成立。
+  \end{enumerate}
+
+  \item 设 $Z\sim N(0,1)$。已知 $Z$ 落在 $(-1,1)$ 内的概率约为 $68\%$。给出一个区间 $(a,b)$，它比 $(-1,1)$ 短，但包含 $Z$ 的概率至少与 $(-1,1)$ 一样大，并作直观解释。
+
+  \item 设 $Y\sim N(\mu,\sigma^2)$。利用 $P(|Y-\mu|<1.96\sigma)\approx0.95$ 构造一个随机区间 $(a(Y),b(Y))$，使得 $\mu$ 落在该区间中的概率约为 $0.95$。这个区间称为 $\mu$ 的置信区间。
+
+  \item 设 $Y=|X|$，其中 $X\sim N(\mu,\sigma^2)$。
+  \begin{enumerate}
+    \item 用 $\Phi$ 表示 $Y$ 的 CDF，并说明所有取值范围。
+    \item 求 $Y$ 的 PDF。
+    \item $Y$ 的 PDF 在 $0$ 处连续吗？若不连续，用 PDF 求概率时这是否会造成问题？
+  \end{enumerate}
+
+  \item $\circledS$ 设 $Z\sim N(0,1)$，$S$ 是与 $Z$ 独立的随机符号，取 $1$ 和 $-1$ 的概率各为 $1/2$。证明 $SZ\sim N(0,1)$。
+
+  \item $\circledS$ 设 $Z\sim N(0,1)$。不使用 LOTUS，求 $E(\Phi(Z))$，其中 $\Phi$ 是 $Z$ 的 CDF。
+
+  \item $\circledS$ 设 $Z\sim N(0,1)$，$X=Z^2$。则 $X$ 的分布称为自由度为 $1$ 的卡方分布。
+  \begin{enumerate}
+    \item 不查询正态 CDF 数值，利用正态分布事实近似求 $P(1\le X\le4)$。
+    \item 设 $\Phi,\varphi$ 分别为 $Z$ 的 CDF 和 PDF。证明对任意 $t>0$，
+    \[
+      I(Z>t)\le \frac{Z}{t}I(Z>t).
+    \]
+    利用它和 LOTUS 推出 Mills 不等式：
+    \[
+      \Phi(t)\ge 1-\frac{\varphi(t)}{t}.
+    \]
+  \end{enumerate}
+
+  \item 设 $Z\sim N(0,1)$，CDF 为 $\Phi$。已知 $Z^2$ 的 PDF 为
+  \[
+    g(w)=\frac{1}{\sqrt{2\pi w}}e^{-w/2},\qquad w>0,
+  \]
+  且 $w\le0$ 时 $g(w)=0$。
+  \begin{enumerate}
+    \item 用两种方式写出 $E(Z^4)$ 的积分表达式：一种基于 $Z$ 的 PDF，一种基于 $Z^2$ 的 PDF。
+    \item 求 $E(Z^2+Z+\Phi(Z))$。
+  \end{enumerate}
+
+  \item $\circledS$ 设 $Z\sim N(0,1)$。测量设备只能处理正值，若 $Z\le0$ 则读数为 $0$；即观测的是 $X=ZI_{Z>0}$。求 $E(X)$ 和 $\operatorname{Var}(X)$。
+
+  \item 设 $Z\sim N(0,1)$，$c$ 为非负常数。用标准正态 CDF $\Phi$ 和 PDF $\varphi$ 表示
+  \[
+    E(\max(Z-c,0)).
+  \]
+  提示：使用 LOTUS，并把最大值通过积分下限处理。
+\end{enumerate}
+
+\subsection*{指数分布}
+
+\begin{enumerate}
+  \setcounter{enumi}{35}
+  \item $\circledS$ 某邮局有两个柜员。Alice 到达时，Bob 和 Claire 正在被两个柜员服务，Alice 排在下一位。假设柜员服务一个顾客所需时间服从 $\operatorname{Expo}(\lambda)$。
+  \begin{enumerate}
+    \item Alice 是三人中最后完成服务者的概率是多少？
+    \item Alice 在邮局总共需要花费的时间的期望是多少？
+  \end{enumerate}
+
+  \item 设 $T$ 为某放射性粒子衰变前的时间，且 $T\sim\operatorname{Expo}(\lambda)$。
+  \begin{enumerate}
+    \item 半衰期定义为粒子有 $50\%$ 概率已经衰变的时间，即 $T$ 的中位数。求半衰期。
+    \item 对很小的正数 $\epsilon$，证明在已存活到时间 $t$ 的条件下，粒子在区间 $[t,t+\epsilon]$ 内衰变的概率与 $t$ 无关，且近似正比于 $\epsilon$。
+    \item 设有 $n$ 个独立粒子，衰变时间 $T_1,\ldots,T_n\sim\operatorname{Expo}(\lambda)$。令 $L$ 为第一次发生衰变的时间。求 $L$ 的 CDF、$E(L)$ 和 $\operatorname{Var}(L)$。
+    \item 继续 (c)，不使用微积分，求
+    \[
+      M=\max(T_1,\ldots,T_n)
+    \]
+    的均值和方差。
+  \end{enumerate}
+
+  \item $\circledS$ Fred 想卖车，并决定把车卖给第一个出价至少为 \$18,000 的人。假设报价相互独立且服从均值 \$12,000 的指数分布，且 Fred 能持续收到报价直到条件满足。
+  \begin{enumerate}
+    \item 求 Fred 将收到报价数的期望。
+    \item 求 Fred 卖车所得金额的期望。
+  \end{enumerate}
+
+  \item 与上一题一样，Fred 想卖车，报价独立同分布且为均值 \$12,000 的指数随机变量。现在他会等到收到 $3$ 个报价后，接受其中最高的报价。求 Fred 卖车所得金额的期望。
+
+  \item
+  \begin{enumerate}
+    \item Fred 在 Blotchville 等公交。公交到达间隔独立同分布为均值 $10$ 分钟的指数分布。Fred 到达公交站后，记录下一辆公交与上一辆公交之间的时间间隔。平均而言，他看到的公交间隔长度是多少？
+    \item 在 Blunderville，公交到达间隔也独立且平均为 $10$ 分钟，但 Fred 平均要等超过 $1$ 小时。解释为什么 Fred 到公交时间的平均值可能大于公交间隔的平均值，并构造一个离散分布说明这种可能性。
+  \end{enumerate}
+
+  \item Fred 和 Gretchen 在 Blotchville 公交站等车。线路 $i$ 的公交按速率 $\lambda_i$ 辆/分钟的 Poisson 过程到达，两个过程相互独立。Fred 等线路 1，Gretchen 等线路 2。
+  \begin{enumerate}
+    \item 已知 Fred 已经等了 $20$ 分钟，平均还要再等多久？
+    \item 求第一辆线路 2 公交到达前，至少有 $n$ 辆线路 1 公交经过的概率。
+    \item 仅本问假设 $\lambda_1=\lambda_2=\lambda$。求直到 Fred 和 Gretchen 都坐上车所需时间的期望。
+  \end{enumerate}
+
+  \item $\circledS$ Joe 等待一本名为 \textit{The Winds of Winter} 的书发布。设新闻发布前的等待时间 $T$（单位年）服从参数 $\lambda=1/5$ 的指数分布。Joe 每天结束时检查一次网站，只观察新闻在哪一天发布。令 $X$ 为该测量值，$X=0$ 表示第一天内发布，$X=1$ 表示第二天发布，依此类推（假设一年 $365$ 天）。求 $X$ 的 PMF。这是我们学过的有名称分布吗？
+
+  \item 指数分布是连续时间中几何分布的类比。设 Bernoulli 试验在时间点 $0,\Delta t,2\Delta t,\ldots$ 进行，每次成功概率为 $\lambda\Delta t$。令 $G$ 为第一次成功前的失败次数，$T$ 为第一次成功的连续时间。
+  \begin{enumerate}
+    \item 写出 $G$ 与 $T$ 的简单关系。
+    \item 求 $T$ 的 CDF。提示：先求 $P(T>t)$。
+    \item 证明当 $\Delta t\to0$ 时，$T$ 的 CDF 在每个固定 $t\ge0$ 处收敛到 $\operatorname{Expo}(\lambda)$ 的 CDF。
+  \end{enumerate}
+
+  \item Laplace 分布的 PDF 为
+  \[
+    f(x)=\frac12 e^{-|x|},\qquad -\infty<x<\infty.
+  \]
+  它也称为对称化指数分布。用以下两种方式解释这一点：
+  \begin{enumerate}
+    \item 画出相关 PDF，并说明它们如何对应。
+    \item 设 $X\sim\operatorname{Expo}(1)$，$S$ 是取 $1$ 和 $-1$ 概率相等的随机符号，且 $S$ 与 $X$ 独立。求 $SX$ 的 PDF，并与 Laplace PDF 比较。
+  \end{enumerate}
+
+  \item 邮件按每小时 $20$ 封的速率以 Poisson 过程到达。令 $T$ 为固定起点之后第 $3$ 封邮件到达的时间，单位为小时。不使用微积分求 $P(T>0.1)$。
+
+  \item 设 $T$ 为某人的寿命，CDF 为 $F$，PDF 为 $f$。$T$ 的 hazard function 定义为
+  \[
+    h(t)=\frac{f(t)}{1-F(t)}.
+  \]
+  \begin{enumerate}
+    \item 解释为什么 $h$ 称为风险函数，特别是为什么 $h(t)$ 是在已存活到 $t$ 的条件下，于时间 $t$ 死亡的概率密度。
+    \item 证明指数随机变量具有常数风险函数；反过来，若 $T$ 的风险函数为常数，则 $T$ 必为某个 $\operatorname{Expo}(\lambda)$。
+  \end{enumerate}
+
+  \item 设 $T$ 为寿命，CDF 为 $F$，PDF 为 $f$，风险函数为 $h$。
+  \begin{enumerate}
+    \item 证明 CDF 与风险函数满足
+    \[
+      F(t)=1-\exp\left(-\int_0^t h(s)\,ds\right),\qquad t>0.
+    \]
+    \item 证明 PDF 与风险函数满足
+    \[
+      f(t)=h(t)\exp\left(-\int_0^t h(s)\,ds\right),\qquad t>0.
+    \]
+  \end{enumerate}
+
+  \item $\circledS$ 设 $X\sim\operatorname{Expo}(\lambda)$。利用 LOTUS、$E(X)=1/\lambda$、$\operatorname{Var}(X)=1/\lambda^2$，并至多一次分部积分，求 $E(X^3)$。
+
+  \item $\circledS$ Gumbel 分布定义为 $-\log X$ 的分布，其中 $X\sim\operatorname{Expo}(1)$。
+  \begin{enumerate}
+    \item 求 Gumbel 分布的 CDF。
+    \item 设 $X_1,X_2,\ldots$ 独立同分布于 $\operatorname{Expo}(1)$，令 $M_n=\max(X_1,\ldots,X_n)$。证明 $M_n-\log n$ 依分布收敛到 Gumbel 分布，即当 $n\to\infty$ 时，$M_n-\log n$ 的 CDF 收敛到 Gumbel CDF。
+  \end{enumerate}
+\end{enumerate}
+
+\subsection*{混合练习}
+
+\begin{enumerate}
+  \setcounter{enumi}{49}
+  \item 直观解释为什么若 $X,Y$ 独立同分布，则 $P(X<Y)=P(Y<X)$；但若 $X,Y$ 不独立或不同分布，该等式未必成立。
+
+  \item 设 $X$ 是随机变量（离散或连续），且总有 $0\le X\le1$。令 $\mu=E(X)$。
+  \begin{enumerate}
+    \item 证明
+    \[
+      \operatorname{Var}(X)\le \mu-\mu^2\le \frac14.
+    \]
+    提示：以概率 $1$ 有 $X^2\le X$。
+    \item 证明只有一种可能的分布使得 $\operatorname{Var}(X)=1/4$。这个分布叫什么名字？
+  \end{enumerate}
+
+  \item Rayleigh 分布的 PDF 为
+  \[
+    f(x)=xe^{-x^2/2},\qquad x>0.
+  \]
+  设 $X$ 服从 Rayleigh 分布。
+  \begin{enumerate}
+    \item 不使用太多微积分，通过把积分解释为正态分布的已知结果，求 $E(X)$。
+    \item 求 $E(X^2)$。
+  \end{enumerate}
+
+  \item $\circledS$ 考虑一个实验：观察随机变量 $X$ 的值，并用某个随机量 $T=g(X)$ 来估计未知常数 $\theta$。称 $T$ 为估计量。估计量 $T$ 对 $\theta$ 的偏差定义为
+  \[
+    b(T)=E(T)-\theta,
+  \]
+  均方误差定义为
+  \[
+    \operatorname{MSE}(T)=E(T-\theta)^2.
+  \]
+  证明
+  \[
+    \operatorname{MSE}(T)=\operatorname{Var}(T)+\{b(T)\}^2.
+  \]
+  这说明在固定 MSE 下，降低偏差只能以增加方差为代价，反之亦然；这称为偏差-方差权衡。
+
+  \item $\circledS$
+  \begin{enumerate}
+    \item 假设我们有世界各国人口列表。先不查看数据，猜测有多少百分比的国家人口数以数字 $1$ 开头。
+    \item 查看数据后，统计以 $1$ 开头的国家比例。Benford 定律断言，在许多大型真实数据集中，首位数字 $D$ 近似服从
+    \[
+      P(D=j)=\log_{10}\left(\frac{j+1}{j}\right),\qquad j=1,2,\ldots,9.
+    \]
+    比较数据比例与 Benford 定律预测值。
+    \item 将某随机值写成科学记数法 $X\times10^N$，其中 $N$ 为非负整数且 $1\le X<10$。假设 $X$ 是连续随机变量，PDF 为
+    \[
+      f(x)=\frac{c}{x},\qquad 1\le x\le10,
+    \]
+    其他地方为 $0$。求常数 $c$。令 $Y=aX$，$a>0$，求 $Y$ 的 PDF（说明其非零区间）。
+    \item 证明若科学记数法中的 $X$ 具有 (c) 中的 PDF，则首位数字具有 Benford 定律的 PMF。
+  \end{enumerate}
+
+  \item $\circledS$
+  \begin{enumerate}
+    \item 设 $X_1,X_2,\ldots$ 是独立的 $N(0,4)$ 随机变量，令 $J$ 为第一个满足 $X_j>4$ 的下标。用 $\Phi$ 表示 $E(J)$。
+    \item 设 $f,g$ 是 PDF，且对所有 $x$ 有 $f(x)>0,g(x)>0$。令 $X$ 的 PDF 为 $f$。求
+    \[
+      R=\frac{g(X)}{f(X)}
+    \]
+    的期望。
+    \item 定义
+    \[
+      F(x)=e^{-e^{-x}}.
+    \]
+    这是一个连续严格递增的 CDF。令 $X$ 的 CDF 为 $F$，并定义 $W=F(X)$。求 $W$ 的均值和方差。
+  \end{enumerate}
+
+  \item 设 $X,Y,Z\sim N(0,1)$ 独立同分布。
+  \begin{enumerate}
+    \item 写出 $E(Z^2\Phi(Z))$ 的积分表达式。
+    \item 求 $P(\Phi(Z)<2/3)$。
+    \item 求 $P(X<Y<Z)$。
+  \end{enumerate}
+
+  \item 设 $X,Y,Z\sim N(0,1)$ 独立同分布，且 $W=(\Phi(Z))^2$。
+  \begin{enumerate}
+    \item 求 $W$ 的 CDF 和 PDF。
+    \item 设 $f_W$ 为 $W$ 的 PDF，$\varphi$ 为 $Z$ 的 PDF。用两种不同方式写出 $E(W^3)$ 的未化简积分表达式：一种基于 $f_W$，一种基于 $\varphi$。
+    \item 用 $\Phi$ 表示 $P(X+2Y<2Z+3)$。
+  \end{enumerate}
+
+  \item 设 $Z\sim N(0,1)$，$Y=\max(Z,0)$。
+  \begin{enumerate}
+    \item 写出 $E(Y)$ 的积分表达式。
+    \item 设 $Y_1,Y_2,\ldots$ 独立同分布且与 $Y$ 同分布。令 $N=\min\{n:Y_n=0\}$。求 $E(N)$。
+    \item 用 $\Phi$ 表示 $Y$ 的 CDF，并说明所有实数处的取值。
+  \end{enumerate}
+
+  \item 单位圆 $\{(x,y):x^2+y^2=1\}$ 上独立均匀地选取三个点 $A,B,C$，把圆分成三段弧。令 $L$ 为包含点 $(1,0)$ 的那段弧长。求 $E(L)$。
+  \begin{enumerate}
+    \item 解释下面论证的问题：“三段弧总长为 $2\pi$，由对称性和线性性，每段平均长度为 $2\pi/3$；指定包含 $(1,0)$ 的弧只是指定其中一段，所以 $E(L)=2\pi/3$。”
+    \item 将包含 $(1,0)$ 的弧分成逆时针和顺时针两段，长度分别为 $L_1,L_2$。求 $L_1$ 的 CDF、PDF 和期望。
+    \item 利用 (b) 求 $E(L)$。
+  \end{enumerate}
+
+  \item $\circledS$ 运动员依次参加跳高。令 $X_j$ 为第 $j$ 个运动员跳过的高度，且 $X_1,X_2,\ldots$ 独立同分布于某连续分布。若第 $j$ 个运动员比前两个运动员都跳得高（$j\ge3$），则称其为“近期最佳”。
+  \begin{enumerate}
+    \item 求第 $3$ 个到第 $n$ 个运动员中近期最佳人数的期望。
+    \item 令 $A_j$ 为第 $j$ 个运动员是近期最佳的事件。求 $P(A_3)$、$P(A_4)$ 和 $P(A_3\cap A_4)$。$A_3$ 与 $A_4$ 独立吗？
+  \end{enumerate}
+
+  \item Tyrion、Cersei 和另外 $n$ 位客人独立地在 $[0,1]$ 上连续分布的时间到达聚会，并待到结束。聚会在没有 Tyrion 和 Cersei 时无聊，恰有一人时有趣，两人都在时尴尬。
+  \begin{enumerate}
+    \item 平均而言，另外 $n$ 位客人中有多少人在聚会有趣时到达？
+    \item Jaime 和 Robert 是另外两位客人。通过计算独立性定义两边，判断“Jaime 在有趣时到达”和“Robert 在有趣时到达”是否独立。
+    \item 给出清晰直观解释： (b) 中两个事件是否独立？在给定除 Jaime 和 Robert 之外所有人的到达时间后，它们是否条件独立？
+  \end{enumerate}
+
+  \item 设 $X_1,X_2,\ldots$ 分别为 Boston 在 2101、2102、……年的年降雨量，且独立同分布于某连续分布。若某年降雨量高于之前所有年份，则称为纪录高；若低于之前所有年份，则称为纪录低。
+  \begin{enumerate}
+    \item 在 22 世纪（2101 到 2200 年，含端点）中，求出现纪录高或纪录低的年份数的期望。
+    \item 平均而言，22 世纪中有多少年份出现纪录低且下一年出现纪录高？只要求纪录低在 22 世纪内。
+    \item 按定义，2101 年既是纪录高也是纪录低。令 $N$ 为得到一个新纪录高所需年份数。求所有正整数 $n$ 下的 $P(N>n)$，并由此求 $N$ 的 PMF。
+    \item 用上面的记号证明 $E(N)=\infty$。
+  \end{enumerate}
+\end{enumerate}
+
+\end{document}
+\end{enumerate}

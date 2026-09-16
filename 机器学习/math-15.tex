@@ -1,0 +1,1188 @@
+\documentclass[UTF8, 12pt, fontset=fandol, oneside]{ctexart}
+\usepackage{researchnotes}
+
+\graphicspath{{math/机器学习/}}
+
+\title{第 15 章\quad 奇异值分解}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+奇异值分解（singular value decomposition, SVD）是一种矩阵因子分解方法，是线性代数的概念，但在统计学习中被广泛使用，成为其重要工具。本书介绍的主成分分析、潜在语义分析都用到奇异值分解。
+
+任意一个 $m\times n$ 矩阵，都可以表示为三个矩阵的乘积（因子分解）形式，分别是 $m$ 阶正交矩阵、由降序排列的非负的对角线元素组成的 $m\times n$ 矩形对角矩阵和 $n$ 阶正交矩阵，称为该矩阵的奇异值分解。矩阵的奇异值分解一定存在，但不唯一。奇异值分解可以看作是矩阵数据压缩的一种方法，即用因子分解的方式近似地表示原始矩阵，这种近似是在平方损失意义下的最优近似。
+
+15.1 节讲述矩阵奇异值分解的定义与基本定理，叙述奇异值分解的紧凑和截断形式、几何解释、主要性质；15.2 节讲述奇异值分解的算法；15.3 节论述奇异值分解是矩阵的一种最优近似方法。
+
+\section*{15.1\quad 奇异值分解的定义与性质}
+
+\subsection*{15.1.1\quad 定义与定理}
+
+\noindent\textbf{定义 15.1（奇异值分解）}\quad 矩阵的奇异值分解是指，将一个非零的 $m\times n$ 实矩阵 $A$，$A\in\mathbf{R}^{m\times n}$，表示为以下三个实矩阵乘积形式的运算\footnote{奇异值分解可以更一般地定义在复数矩阵上，这里并不涉及。}，即进行矩阵的因子分解：
+\begin{equation}
+A=U\Sigma V^{\mathrm{T}}
+\tag{15.1}
+\end{equation}
+其中 $U$ 是 $m$ 阶正交矩阵（orthogonal matrix），$V$ 是 $n$ 阶正交矩阵，$\Sigma$ 是由降序排列的非负的对角线元素组成的 $m\times n$ 矩形对角矩阵（rectangular diagonal matrix），满足
+\[
+UU^{\mathrm{T}}=I
+\]
+\[
+VV^{\mathrm{T}}=I
+\]
+\[
+\Sigma=\operatorname{diag}(\sigma_1,\sigma_2,\cdots,\sigma_p)
+\]
+\[
+\sigma_1\geqslant\sigma_2\geqslant\cdots\geqslant\sigma_p\geqslant0
+\]
+\[
+p=\min(m,n)
+\]
+$U\Sigma V^{\mathrm{T}}$ 称为矩阵 $A$ 的奇异值分解（singular value decomposition, SVD），$\sigma_i$ 称为矩阵 $A$ 的奇异值（singular value），$U$ 的列向量称为左奇异向量（left singular vector），$V$ 的列向量称为右奇异向量（right singular vector）。
+
+注意奇异值分解不要求矩阵 $A$ 是方阵，事实上矩阵的奇异值分解可以看作是方阵的对角化的推广。
+
+下面看一个奇异值分解的例子。
+
+\noindent\textbf{例 15.1}\quad 给定一个 $5\times4$ 矩阵 $A$
+\[
+A=
+\begin{bmatrix}
+1&0&0&0\\
+0&0&0&4\\
+0&3&0&0\\
+0&0&0&0\\
+2&0&0&0
+\end{bmatrix}
+\]
+它的奇异值分解由三个矩阵的乘积 $U\Sigma V^{\mathrm{T}}$ 给出，矩阵 $U,\Sigma,V^{\mathrm{T}}$ 分别为
+\[
+U=
+\begin{bmatrix}
+0&0&\sqrt{0.2}&0&\sqrt{0.8}\\
+1&0&0&0&0\\
+0&1&0&0&0\\
+0&0&0&1&0\\
+0&0&\sqrt{0.8}&0&-\sqrt{0.2}
+\end{bmatrix},
+\quad
+\Sigma=
+\begin{bmatrix}
+4&0&0&0\\
+0&3&0&0\\
+0&0&\sqrt5&0\\
+0&0&0&0\\
+0&0&0&0
+\end{bmatrix},
+\]
+\[
+V^{\mathrm{T}}=
+\begin{bmatrix}
+0&0&0&1\\
+0&1&0&0\\
+1&0&0&0\\
+0&0&1&0
+\end{bmatrix}
+\]
+矩阵 $\Sigma$ 是对角矩阵，对角线外的元素都是 0，对角线上的元素非负，按降序排列。矩阵 $U$ 和 $V$ 是正交矩阵，它们与各自的转置矩阵相乘是单位矩阵，即
+\[
+UU^{\mathrm{T}}=I_5,\quad VV^{\mathrm{T}}=I_4
+\]
+
+矩阵的奇异值分解不是唯一的。在此例中如果选择 $U$ 为
+\[
+U=
+\begin{bmatrix}
+0&0&\sqrt{0.2}&\sqrt{0.4}&-\sqrt{0.4}\\
+1&0&0&0&0\\
+0&1&0&0&0\\
+0&0&0&\sqrt{0.5}&\sqrt{0.5}\\
+0&0&\sqrt{0.8}&-\sqrt{0.1}&\sqrt{0.1}
+\end{bmatrix}
+\]
+而 $\Sigma$ 与 $V$ 不变，那么 $U\Sigma V^{\mathrm{T}}$ 也是 $A$ 的一个奇异值分解。
+
+任意给定一个实矩阵，其奇异值分解是否一定存在呢？答案是肯定的，下面的奇异值分解的基本定理给予保证。
+
+\noindent\textbf{定理 15.1（奇异值分解基本定理）}\quad 若 $A$ 为一个 $m\times n$ 实矩阵，$A\in\mathbf{R}^{m\times n}$，则 $A$ 的奇异值分解存在
+\begin{equation}
+A=U\Sigma V^{\mathrm{T}}
+\tag{15.2}
+\end{equation}
+其中 $U$ 是 $m$ 阶正交矩阵，$V$ 是 $n$ 阶正交矩阵，$\Sigma$ 是 $m\times n$ 矩形对角矩阵，其对角线元素非负，且按降序排列。
+
+\noindent\textbf{证明}\quad 证明是构造性的，对给定的矩阵 $A$，构造出其奇异值分解的各个矩阵。为了方便，不妨假设 $m\geqslant n$，如果 $m<n$ 证明仍然成立。证明由三步完成。\footnote{线性代数的基本知识可参见本章的参考文献。}
+
+（1）确定 $V$ 和 $\Sigma$。
+
+首先构造 $n$ 阶正交实矩阵 $V$ 和 $m\times n$ 矩形对角实矩阵 $\Sigma$。
+
+矩阵 $A$ 是 $m\times n$ 实矩阵，则矩阵 $A^{\mathrm{T}}A$ 是 $n$ 阶实对称矩阵。因而 $A^{\mathrm{T}}A$ 的特征值都是实数，并且存在一个 $n$ 阶正交实矩阵 $V$ 实现 $A^{\mathrm{T}}A$ 的对角化，使得 $V^{\mathrm{T}}(A^{\mathrm{T}}A)V=\Lambda$ 成立，其中 $\Lambda$ 是 $n$ 阶对角矩阵，其对角线元素由 $A^{\mathrm{T}}A$ 的特征值组成。
+
+而且，$A^{\mathrm{T}}A$ 的特征值都是非负的。事实上，令 $\lambda$ 是 $A^{\mathrm{T}}A$ 的一个特征值，$x$ 是对应的特征向量，则
+\[
+\|Ax\|^2=x^{\mathrm{T}}A^{\mathrm{T}}Ax=\lambda x^{\mathrm{T}}x=\lambda\|x\|^2
+\]
+于是
+\begin{equation}
+\lambda=\frac{\|Ax\|^2}{\|x\|^2}\geqslant0
+\tag{15.3}
+\end{equation}
+
+可以假设正交矩阵 $V$ 的列的排列使得对应的特征值形成降序排列
+\[
+\lambda_1\geqslant\lambda_2\geqslant\cdots\geqslant\lambda_n\geqslant0
+\]
+计算特征值的平方根（实际就是矩阵 $A$ 的奇异值）
+\[
+\sigma_j=\sqrt{\lambda_j},\quad j=1,2,\cdots,n
+\]
+
+设矩阵 $A$ 的秩是 $r$，$\operatorname{rank}(A)=r$，则矩阵 $A^{\mathrm{T}}A$ 的秩也是 $r$。由于 $A^{\mathrm{T}}A$ 是对称矩阵，它的秩等于正的特征值的个数，所以
+\begin{equation}
+\lambda_1\geqslant\lambda_2\geqslant\cdots\geqslant\lambda_r>0,\quad
+\lambda_{r+1}=\lambda_{r+2}=\cdots=\lambda_n=0
+\tag{15.4}
+\end{equation}
+对应地有
+\begin{equation}
+\sigma_1\geqslant\sigma_2\geqslant\cdots\geqslant\sigma_r>0,\quad
+\sigma_{r+1}=\sigma_{r+2}=\cdots=\sigma_n=0
+\tag{15.5}
+\end{equation}
+
+令
+\[
+V_1=[v_1\ v_2\ \cdots\ v_r],\quad
+V_2=[v_{r+1}\ v_{r+2}\ \cdots\ v_n]
+\]
+其中 $v_1,\cdots,v_r$ 为 $A^{\mathrm{T}}A$ 的正特征值对应的特征向量，$v_{r+1},\cdots,v_n$ 为 0 特征值对应的特征向量，则
+\begin{equation}
+V=[V_1\ V_2]
+\tag{15.6}
+\end{equation}
+这就是矩阵 $A$ 的奇异值分解中的 $n$ 阶正交矩阵 $V$。
+
+令
+\[
+\Sigma_1=
+\begin{bmatrix}
+\sigma_1&&\\
+&\sigma_2&\\
+&&\ddots\\
+&&&\sigma_r
+\end{bmatrix}
+\]
+则 $\Sigma_1$ 是 $r$ 阶对角矩阵，其对角线元素为按降序排列的正的 $\sigma_1,\cdots,\sigma_r$，于是 $m\times n$ 矩形对角矩阵 $\Sigma$ 可以表示为
+\begin{equation}
+\Sigma=
+\begin{bmatrix}
+\Sigma_1&0\\
+0&0
+\end{bmatrix}
+\tag{15.7}
+\end{equation}
+这就是矩阵 $A$ 的奇异值分解中的 $m\times n$ 矩形对角矩阵 $\Sigma$。
+
+下面推出后面要用到的一个公式。在式（15.6）中，$V_2$ 的列向量是 $A^{\mathrm{T}}A$ 对应于特征值为 0 的特征向量。因此
+\begin{equation}
+A^{\mathrm{T}}Av_j=0,\quad j=r+1,\cdots,n
+\tag{15.8}
+\end{equation}
+于是，$V_2$ 的列向量构成了 $A^{\mathrm{T}}A$ 的零空间 $N(A^{\mathrm{T}}A)$，而 $N(A^{\mathrm{T}}A)=N(A)$。所以 $V_2$ 的列向量构成 $A$ 的零空间的一组标准正交基。因此，
+\begin{equation}
+AV_2=0
+\tag{15.9}
+\end{equation}
+由于 $V$ 是正交矩阵，由式（15.6）可得
+\begin{equation}
+I=VV^{\mathrm{T}}=V_1V_1^{\mathrm{T}}+V_2V_2^{\mathrm{T}}
+\tag{15.10}
+\end{equation}
+\begin{equation}
+A=AI=AV_1V_1^{\mathrm{T}}+AV_2V_2^{\mathrm{T}}=AV_1V_1^{\mathrm{T}}
+\tag{15.11}
+\end{equation}
+
+（2）确定 $U$。
+
+接着构造 $m$ 阶正交实矩阵 $U$。
+
+令
+\begin{equation}
+u_j=\frac{1}{\sigma_j}Av_j,\quad j=1,2,\cdots,r
+\tag{15.12}
+\end{equation}
+\begin{equation}
+U_1=[u_1\ u_2\ \cdots\ u_r]
+\tag{15.13}
+\end{equation}
+则有
+\begin{equation}
+AV_1=U_1\Sigma_1
+\tag{15.14}
+\end{equation}
+
+$U_1$ 的列向量构成了一组标准正交集，因为
+\begin{equation}
+u_i^{\mathrm{T}}u_j
+=\left(\frac{1}{\sigma_i}v_i^{\mathrm{T}}A^{\mathrm{T}}\right)\left(\frac{1}{\sigma_j}Av_j\right)
+=\frac{1}{\sigma_i\sigma_j}v_i^{\mathrm{T}}(A^{\mathrm{T}}Av_j)
+=\frac{\sigma_j}{\sigma_i}v_i^{\mathrm{T}}v_j
+=\delta_{ij},\quad i,j=1,2,\cdots,r
+\tag{15.15}
+\end{equation}
+由式（15.12）和式（15.15）可知，$u_1,u_2,\cdots,u_r$ 构成 $A$ 的列空间的一组标准正交基，列空间的维数为 $r$。如果将 $A$ 看成是从 $\mathbf{R}^n$ 到 $\mathbf{R}^m$ 的线性变换，则 $A$ 的列空间和 $A$ 的值域 $R(A)$ 是相同的。因此 $u_1,u_2,\cdots,u_r$ 也是 $R(A)$ 的一组标准正交基。
+
+设 $R(A)^\perp$ 表示 $R(A)$ 的正交补，则有 $R(A)$ 维数为 $r$，$R(A)^\perp$ 的维数为 $m-r$，两者的维数之和等于 $m$。而且有 $R(A)^\perp=N(A^{\mathrm{T}})$ 成立。\footnote{参照附录 D。}
+
+令 $\{u_{r+1},u_{r+2},\cdots,u_m\}$ 为 $N(A^{\mathrm{T}})$ 的一组标准正交基，并令
+\[
+U_2=[u_{r+1}\ u_{r+2}\ \cdots\ u_m]
+\]
+\begin{equation}
+U=[U_1\ U_2]
+\tag{15.16}
+\end{equation}
+则 $u_1,u_2,\cdots,u_m$ 构成 $\mathbf{R}^m$ 的一组标准正交基。因此，$U$ 是 $m$ 阶正交矩阵，这就是矩阵 $A$ 的奇异值分解中的 $m$ 阶正交矩阵。
+
+（3）证明 $U\Sigma V^{\mathrm{T}}=A$。
+
+由式（15.6）、式（15.7）、式（15.11）、式（15.14）和式（15.16）得
+\begin{equation}
+\begin{aligned}
+U\Sigma V^{\mathrm{T}}
+&=[U_1\ U_2]\begin{bmatrix}\Sigma_1&0\\0&0\end{bmatrix}
+\begin{bmatrix}V_1^{\mathrm{T}}\\V_2^{\mathrm{T}}\end{bmatrix}\\
+&=U_1\Sigma_1V_1^{\mathrm{T}}\\
+&=AV_1V_1^{\mathrm{T}}\\
+&=A
+\end{aligned}
+\tag{15.17}
+\end{equation}
+至此证明了矩阵 $A$ 存在奇异值分解。
+
+\subsection*{15.1.2\quad 紧奇异值分解与截断奇异值分解}
+
+定理 15.1 给出的奇异值分解
+\[
+A=U\Sigma V^{\mathrm{T}}
+\]
+又称为矩阵的完全奇异值分解（full singular value decomposition）。实际常用的是奇异值分解的紧凑形式和截断形式。紧奇异值分解是与原始矩阵等秩的奇异值分解，截断奇异值分解是比原始矩阵低秩的奇异值分解。
+
+\noindent\textbf{1. 紧奇异值分解}
+
+\noindent\textbf{定义 15.2}\quad 设 $A$ 为 $m\times n$ 实矩阵，矩阵 $A$ 的秩 $\operatorname{rank}(A)=r$，$r<\min(m,n)$，称 $U_r\Sigma_rV_r^{\mathrm{T}}$ 为 $A$ 的紧奇异值分解（compact singular value decomposition），即
+\begin{equation}
+A=U_r\Sigma_rV_r^{\mathrm{T}}
+\tag{15.18}
+\end{equation}
+其中 $U_r$ 是 $m\times r$ 矩阵，$V_r$ 是 $n\times r$ 矩阵，$\Sigma_r$ 是 $r$ 阶对角矩阵，其中 $U_r$ 由完全奇异值分解中 $U$ 的前 $r$ 列、矩阵 $V_r$ 由 $V$ 的前 $r$ 列、$\Sigma_r$ 由 $\Sigma$ 的前 $r$ 个对角线元素得到。紧奇异值分解的对角矩阵 $\Sigma_r$ 的秩与原始矩阵 $A$ 的秩相等。
+
+\noindent\textbf{例 15.2}\quad 由例 15.1 给出的矩阵 $A$ 的秩 $r=3$，
+\[
+A=
+\begin{bmatrix}
+1&0&0&0\\
+0&0&0&4\\
+0&3&0&0\\
+0&0&0&0\\
+2&0&0&0
+\end{bmatrix}
+\]
+$A$ 的紧奇异值分解是
+\[
+A=U_r\Sigma_rV_r^{\mathrm{T}}
+\]
+其中
+\[
+U_r=
+\begin{bmatrix}
+0&0&\sqrt{0.2}\\
+1&0&0\\
+0&1&0\\
+0&0&0\\
+0&0&\sqrt{0.8}
+\end{bmatrix},
+\quad
+\Sigma_r=
+\begin{bmatrix}
+4&0&0\\
+0&3&0\\
+0&0&\sqrt5
+\end{bmatrix},
+\quad
+V_r^{\mathrm{T}}=
+\begin{bmatrix}
+0&0&0&1\\
+0&1&0&0\\
+1&0&0&0
+\end{bmatrix}
+\]
+
+\noindent\textbf{2. 截断奇异值分解}
+
+在矩阵的奇异值分解中，只取最大的 $k$ 个奇异值（$k<r$，$r$ 为矩阵的秩）对应的部分，就得到矩阵的截断奇异值分解。实际应用中提到矩阵的奇异值分解时，通常指截断奇异值分解。
+
+\noindent\textbf{定义 15.3}\quad 设 $A$ 为 $m\times n$ 实矩阵，其秩 $\operatorname{rank}(A)=r$，且 $0<k<r$，则称 $U_k\Sigma_kV_k^{\mathrm{T}}$ 为矩阵 $A$ 的截断奇异值分解（truncated singular value decomposition）
+\begin{equation}
+A\approx U_k\Sigma_kV_k^{\mathrm{T}}
+\tag{15.19}
+\end{equation}
+其中 $U_k$ 是 $m\times k$ 矩阵，$V_k$ 是 $n\times k$ 矩阵，$\Sigma_k$ 是 $k$ 阶对角矩阵；矩阵 $U_k$ 由完全奇异值分解中 $U$ 的前 $k$ 列、矩阵 $V_k$ 由 $V$ 的前 $k$ 列、$\Sigma_k$ 由 $\Sigma$ 的前 $k$ 个对角线元素得到。矩阵 $A$ 的截断奇异值分解的秩比原始矩阵 $A$ 的秩低。
+
+\noindent\textbf{例 15.3}\quad 由例 15.1 所给出的矩阵 $A$
+\[
+A=
+\begin{bmatrix}
+1&0&0&0\\
+0&0&0&4\\
+0&3&0&0\\
+0&0&0&0\\
+2&0&0&0
+\end{bmatrix}
+\]
+的秩为 3，若取 $k=2$ 则其截断奇异值分解是
+\[
+A\approx A_2=U_2\Sigma_2V_2^{\mathrm{T}}
+\]
+其中
+\[
+U_2=
+\begin{bmatrix}
+0&0\\
+1&0\\
+0&1\\
+0&0\\
+0&0
+\end{bmatrix},
+\quad
+\Sigma_2=
+\begin{bmatrix}
+4&0\\
+0&3
+\end{bmatrix},
+\quad
+V_2^{\mathrm{T}}=
+\begin{bmatrix}
+0&0&0&1\\
+0&1&0&0
+\end{bmatrix}
+\]
+\[
+A_2=U_2\Sigma_2V_2^{\mathrm{T}}=
+\begin{bmatrix}
+0&0&0&0\\
+0&0&0&4\\
+0&3&0&0\\
+0&0&0&0\\
+0&0&0&0
+\end{bmatrix}
+\]
+这里的 $U_2,V_2$ 是例 15.1 中 $U,V$ 的前 2 列，$\Sigma_2$ 是 $\Sigma$ 的前 2 行前 2 列。$A_2$ 与 $A$ 比较，$A$ 的元素 1 和 2 在 $A_2$ 中均变成 0。
+
+在实际应用中，常常需要对矩阵的数据进行压缩，将其近似表示，奇异值分解提供了一种方法。后面将要叙述，奇异值分解是在平方损失（弗罗贝尼乌斯范数）意义下对矩阵的最优近似。紧奇异值分解对应着无损压缩，截断奇异值分解对应着有损压缩。
+
+\subsection*{15.1.3\quad 几何解释}
+
+从线性变换的角度理解奇异值分解，$m\times n$ 矩阵 $A$ 表示从 $n$ 维空间 $\mathbf{R}^n$ 到 $m$ 维空间 $\mathbf{R}^m$ 的一个线性变换，
+\[
+x\mapsto Ax
+\]
+其中 $x\in\mathbf{R}^n$，$Ax\in\mathbf{R}^m$，$x$ 与 $Ax$ 分别是各自空间的向量。线性变换可以分解为三个简单的变换：一个坐标系的旋转或反射变换、一个坐标轴的缩放变换、另一个坐标系的旋转或反射变换。奇异值定理保证这种分解一定存在。这就是奇异值分解的几何解释。
+
+对矩阵 $A$ 进行奇异值分解，得到 $A=U\Sigma V^{\mathrm{T}}$，$V$ 和 $U$ 都是正交矩阵，所以 $V$ 的列向量 $v_1,v_2,\cdots,v_n$ 构成 $\mathbf{R}^n$ 空间的一组标准正交基，表示 $\mathbf{R}^n$ 中的正交坐标系的旋转或反射变换；$U$ 的列向量 $u_1,u_2,\cdots,u_m$ 构成 $\mathbf{R}^m$ 空间的一组标准正交基，表示 $\mathbf{R}^m$ 中的正交坐标系的旋转或反射变换；$\Sigma$ 的对角元素 $\sigma_1,\sigma_2,\cdots,\sigma_n$ 是一组非负实数，表示 $\mathbf{R}^n$ 中的原始正交坐标系坐标轴的 $\sigma_1,\sigma_2,\cdots,\sigma_n$ 倍的缩放变换。
+
+任意一个向量 $x\in\mathbf{R}^n$，经过基于 $A=U\Sigma V^{\mathrm{T}}$ 的线性变换，等价于经过坐标系的旋转或反射变换 $V^{\mathrm{T}}$，坐标轴的缩放变换 $\Sigma$，以及坐标系的旋转或反射变换 $U$，得到向量 $Ax\in\mathbf{R}^m$。图 15.1 给出直观的几何解释（见文前彩图）。原始空间的标准正交基（红色与黄色），经过坐标系的旋转变换 $V^{\mathrm{T}}$、坐标轴的缩放变换（黑色 $\sigma_1,\sigma_2$）、坐标系的旋转变换 $U$，得到和经过线性变换 $A$ 等价的结果。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.5\textwidth]{15-1.png}
+\caption*{图 15.1\quad 奇异值分解的几何解释（见彩图）}
+\end{figure}
+
+下面通过一个例子直观地说明奇异值分解的几何意义。
+
+\noindent\textbf{例 15.4}\quad 给定一个 2 阶矩阵
+\[
+A=
+\begin{bmatrix}
+3&1\\
+2&1
+\end{bmatrix}
+\]
+其奇异值分解为
+\[
+A=
+\begin{bmatrix}
+0.8174&0.5760\\
+0.5760&-0.8174
+\end{bmatrix}
+\begin{bmatrix}
+3.6170&0\\
+0&0.2588
+\end{bmatrix}
+\begin{bmatrix}
+0.9327&0.3606\\
+-0.3606&0.9327
+\end{bmatrix}
+\]
+观察基于矩阵 $A$ 的奇异值分解将 $\mathbf{R}^2$ 的标准正交基
+\[
+e_1=\begin{bmatrix}1\\0\end{bmatrix},\quad
+e_2=\begin{bmatrix}0\\1\end{bmatrix}
+\]
+进行线性转换的情况。
+
+首先，$V^{\mathrm{T}}$ 表示一个旋转变换，将标准正交基 $e_1,e_2$ 旋转，得到向量 $V^{\mathrm{T}}e_1,V^{\mathrm{T}}e_2$：
+\[
+V^{\mathrm{T}}e_1=\begin{bmatrix}0.9327\\-0.3606\end{bmatrix},\quad
+V^{\mathrm{T}}e_2=\begin{bmatrix}0.3606\\0.9327\end{bmatrix}
+\]
+其次，$\Sigma$ 表示一个缩放变换，将向量 $V^{\mathrm{T}}e_1,V^{\mathrm{T}}e_2$ 在坐标轴方向缩放 $\sigma_1$ 倍和 $\sigma_2$ 倍，得到向量 $\Sigma V^{\mathrm{T}}e_1,\Sigma V^{\mathrm{T}}e_2$：
+\[
+\Sigma V^{\mathrm{T}}e_1=\begin{bmatrix}3.6042\\-0.0933\end{bmatrix},\quad
+\Sigma V^{\mathrm{T}}e_2=\begin{bmatrix}1.3935\\0.2414\end{bmatrix}
+\]
+最后，$U$ 表示一个旋转变换，再将向量 $\Sigma V^{\mathrm{T}}e_1,\Sigma V^{\mathrm{T}}e_2$ 旋转，得到向量 $U\Sigma V^{\mathrm{T}}e_1,U\Sigma V^{\mathrm{T}}e_2$，也就是向量 $Ae_1$ 和 $Ae_2$：
+\[
+Ae_1=U\Sigma V^{\mathrm{T}}e_1=\begin{bmatrix}3\\2\end{bmatrix},\quad
+Ae_2=U\Sigma V^{\mathrm{T}}e_2=\begin{bmatrix}1\\1\end{bmatrix}
+\]
+综上，矩阵的奇异值分解也可以看作是将其对应的线性变换分解为旋转变换、缩放变换及旋转变换的组合。根据定理 15.1，这个变换的组合一定存在。
+
+\subsection*{15.1.4\quad 主要性质}
+
+（1）设矩阵 $A$ 的奇异值分解为 $A=U\Sigma V^{\mathrm{T}}$，则以下关系成立：
+\begin{equation}
+A^{\mathrm{T}}A=(U\Sigma V^{\mathrm{T}})^{\mathrm{T}}(U\Sigma V^{\mathrm{T}})
+=V(\Sigma^{\mathrm{T}}\Sigma)V^{\mathrm{T}}
+\tag{15.20}
+\end{equation}
+\begin{equation}
+AA^{\mathrm{T}}=(U\Sigma V^{\mathrm{T}})(U\Sigma V^{\mathrm{T}})^{\mathrm{T}}
+=U(\Sigma\Sigma^{\mathrm{T}})U^{\mathrm{T}}
+\tag{15.21}
+\end{equation}
+也就是说，矩阵 $A^{\mathrm{T}}A$ 和 $AA^{\mathrm{T}}$ 的特征分解存在，且可以由矩阵 $A$ 的奇异值分解的矩阵表示。$V$ 的列向量是 $A^{\mathrm{T}}A$ 的特征向量，$U$ 的列向量是 $AA^{\mathrm{T}}$ 的特征向量，$\Sigma$ 的奇异值是 $A^{\mathrm{T}}A$ 和 $AA^{\mathrm{T}}$ 的特征值的平方根。
+
+（2）在矩阵 $A$ 的奇异值分解中，奇异值、左奇异向量和右奇异向量之间存在对应关系。
+
+由 $A=U\Sigma V^{\mathrm{T}}$ 易知
+\[
+AV=U\Sigma
+\]
+比较这一等式两端的第 $j$ 列，得到
+\begin{equation}
+Av_j=\sigma_ju_j,\quad j=1,2,\cdots,n
+\tag{15.22}
+\end{equation}
+这是矩阵 $A$ 的右奇异向量和奇异值、左奇异向量的关系。
+
+类似地，由
+\[
+A^{\mathrm{T}}U=V\Sigma^{\mathrm{T}}
+\]
+得到
+\begin{equation}
+A^{\mathrm{T}}u_j=\sigma_jv_j,\quad j=1,2,\cdots,n
+\tag{15.23}
+\end{equation}
+\begin{equation}
+A^{\mathrm{T}}u_j=0,\quad j=n+1,n+2,\cdots,m
+\tag{15.24}
+\end{equation}
+这是矩阵 $A$ 的左奇异向量和奇异值、右奇异向量的关系。
+
+（3）矩阵 $A$ 的奇异值分解中，奇异值 $\sigma_1,\sigma_2,\cdots,\sigma_n$ 是唯一的，而矩阵 $U$ 和 $V$ 不是唯一的。
+
+（4）矩阵 $A$ 和 $A^{\mathrm{T}}A$ 的秩相等，等于正奇异值 $\sigma_i$ 的个数（包含重复的奇异值）。
+
+（5）矩阵 $A$ 的 $r$ 个右奇异向量 $v_1,v_2,\cdots,v_r$ 构成 $A^{\mathrm{T}}$ 的值域 $R(A^{\mathrm{T}})$ 的一组标准正交基。因为矩阵 $A^{\mathrm{T}}$ 是从 $\mathbf{R}^m$ 映射到 $\mathbf{R}^n$ 的线性变换，则 $A^{\mathrm{T}}$ 的值域 $R(A^{\mathrm{T}})$ 和 $A^{\mathrm{T}}$ 的列空间是相同的，$v_1,v_2,\cdots,v_r$ 是 $A^{\mathrm{T}}$ 的一组标准正交基，因而也是 $R(A^{\mathrm{T}})$ 的一组标准正交基。\footnote{参照附录 D。}
+
+矩阵 $A$ 的 $n-r$ 个右奇异向量 $v_{r+1},v_{r+2},\cdots,v_n$ 构成 $A$ 的零空间 $N(A)$ 的一组标准正交基。
+
+矩阵 $A$ 的 $r$ 个左奇异向量 $u_1,u_2,\cdots,u_r$ 构成值域 $R(A)$ 的一组标准正交基。
+
+矩阵 $A$ 的 $m-r$ 个左奇异向量 $u_{r+1},u_{r+2},\cdots,u_m$ 构成 $A^{\mathrm{T}}$ 的零空间 $N(A^{\mathrm{T}})$ 的一组标准正交基。
+
+\section*{15.2\quad 奇异值分解的计算}
+
+奇异值分解基本定理证明的过程蕴含了奇异值分解的计算方法。矩阵 $A$ 的奇异值分解可以通过求对称矩阵 $A^{\mathrm{T}}A$ 的特征值和特征向量得到。$A^{\mathrm{T}}A$ 的特征向量构成正交矩阵 $V$ 的列；$A^{\mathrm{T}}A$ 的特征值 $\lambda_j$ 的平方根为奇异值 $\sigma_j$，即
+\[
+\sigma_j=\sqrt{\lambda_j},\quad j=1,2,\cdots,n
+\]
+对其由大到小排列作为对角线元素，构成对角矩阵 $\Sigma$；求正奇异值对应的左奇异向量，再求扩充的 $A^{\mathrm{T}}$ 的标准正交基，构成正交矩阵 $U$ 的列。从而得到 $A$ 的奇异值分解 $A=U\Sigma V^{\mathrm{T}}$。
+
+给定 $m\times n$ 矩阵 $A$，可以按照上面的叙述写出矩阵奇异值分解的计算过程。
+
+（1）首先求 $A^{\mathrm{T}}A$ 的特征值和特征向量。
+
+计算对称矩阵
+\[
+W=A^{\mathrm{T}}A
+\]
+求解特征方程
+\[
+(W-\lambda I)x=0
+\]
+得到特征值 $\lambda$，并将特征值由大到小排列
+\[
+\lambda_1\geqslant\lambda_2\geqslant\cdots\geqslant\lambda_n\geqslant0
+\]
+将特征值 $\lambda_i$（$i=1,2,\cdots,n$）代入特征方程求得对应的特征向量。
+
+（2）求 $n$ 阶正交矩阵 $V$。
+
+将特征向量单位化，得到单位特征向量 $v_1,v_2,\cdots,v_n$，构成 $n$ 阶正交矩阵 $V$：
+\[
+V=[v_1\ v_2\ \cdots\ v_n]
+\]
+
+（3）求 $m\times n$ 对角矩阵 $\Sigma$。
+
+计算 $A$ 的奇异值
+\[
+\sigma_i=\sqrt{\lambda_i},\quad i=1,2,\cdots,n
+\]
+构造 $m\times n$ 矩形对角矩阵 $\Sigma$，主对角线元素是奇异值，其余元素是零，
+\[
+\Sigma=\operatorname{diag}(\sigma_1,\sigma_2,\cdots,\sigma_n)
+\]
+
+（4）求 $m$ 阶正交矩阵 $U$。
+
+对 $A$ 的前 $r$ 个正奇异值，令
+\[
+u_j=\frac{1}{\sigma_j}Av_j,\quad j=1,2,\cdots,r
+\]
+得到
+\[
+U_1=[u_1\ u_2\ \cdots\ u_r]
+\]
+取 $A^{\mathrm{T}}$ 的零空间的一组标准正交基 $\{u_{r+1},u_{r+2},\cdots,u_m\}$ 为
+\[
+U_2=[u_{r+1}\ u_{r+2}\ \cdots\ u_m]
+\]
+并令
+\[
+U=[U_1\ U_2]
+\]
+
+（5）得到奇异值分解
+\[
+A=U\Sigma V^{\mathrm{T}}
+\]
+
+下面通过一个简单的例题，说明奇异值分解的算法。
+
+\noindent\textbf{例 15.5}\quad 求矩阵
+\[
+A=
+\begin{bmatrix}
+1&1\\
+2&2\\
+0&0
+\end{bmatrix}
+\]
+的奇异值分解。
+
+\noindent\textbf{解}\quad （1）求矩阵 $A^{\mathrm{T}}A$ 的特征值和特征向量。
+
+求对称矩阵
+\[
+A^{\mathrm{T}}A=
+\begin{bmatrix}
+5&5\\
+5&5
+\end{bmatrix}
+\]
+特征值 $\lambda$ 和特征向量 $x$ 满足特征方程
+\[
+(A^{\mathrm{T}}A-\lambda I)x=0
+\]
+得到齐次线性方程组
+\[
+\begin{cases}
+(5-\lambda)x_1+5x_2=0\\
+5x_1+(5-\lambda)x_2=0
+\end{cases}
+\]
+该方程组有非零解的充要条件是
+\[
+\begin{vmatrix}
+5-\lambda&5\\
+5&5-\lambda
+\end{vmatrix}=0
+\]
+即
+\[
+\lambda^2-10\lambda=0
+\]
+解此方程，得矩阵 $A^{\mathrm{T}}A$ 的特征值 $\lambda_1=10$ 和 $\lambda_2=0$。
+
+将特征值 $\lambda_1=10$ 代入线性方程组，得到对应的单位特征向量
+\[
+v_1=\begin{bmatrix}\frac{1}{\sqrt2}\\[2mm]\frac{1}{\sqrt2}\end{bmatrix}
+\]
+同样得到特征值 $\lambda_2=0$ 对应的单位特征向量
+\[
+v_2=\begin{bmatrix}\frac{1}{\sqrt2}\\[2mm]-\frac{1}{\sqrt2}\end{bmatrix}
+\]
+
+（2）求正交矩阵 $V$。
+
+构造正交矩阵 $V$：
+\[
+V=[v_1\ v_2]=
+\begin{bmatrix}
+\frac{1}{\sqrt2}&\frac{1}{\sqrt2}\\[2mm]
+\frac{1}{\sqrt2}&-\frac{1}{\sqrt2}
+\end{bmatrix}
+\]
+
+（3）求对角矩阵 $\Sigma$。
+
+奇异值为 $\sigma_1=\sqrt{\lambda_1}=\sqrt{10}$ 和 $\sigma_2=0$。构造对角矩阵
+\[
+\Sigma=
+\begin{bmatrix}
+\sqrt{10}&0\\
+0&0\\
+0&0
+\end{bmatrix}
+\]
+注意在 $\Sigma$ 中要加上零行向量，使得 $\Sigma$ 能够与 $U,V$ 进行矩阵乘法运算。
+
+（4）求正交矩阵 $U$。
+
+基于 $A$ 的正奇异值计算得到列向量 $u_1$
+\[
+u_1=\frac{1}{\sigma_1}Av_1=
+\frac{1}{\sqrt{10}}
+\begin{bmatrix}
+1&1\\
+2&2\\
+0&0
+\end{bmatrix}
+\begin{bmatrix}
+\frac{1}{\sqrt2}\\[2mm]
+\frac{1}{\sqrt2}
+\end{bmatrix}
+=
+\begin{bmatrix}
+\frac{1}{\sqrt5}\\[2mm]
+\frac{2}{\sqrt5}\\[2mm]
+0
+\end{bmatrix}
+\]
+列向量 $u_2,u_3$ 是 $A^{\mathrm{T}}$ 的零空间 $N(A^{\mathrm{T}})$ 的一组标准正交基。为此，求解以下线性方程组
+\[
+\begin{bmatrix}
+1&2&0\\
+1&2&0
+\end{bmatrix}
+\begin{bmatrix}
+x_1\\x_2\\x_3
+\end{bmatrix}
+=
+\begin{bmatrix}
+0\\0
+\end{bmatrix}
+\]
+即
+\[
+x_1+2x_2+0x_3=0
+\]
+\[
+x_1=-2x_2+0x_3
+\]
+分别取 $(x_2,x_3)$ 为 $(1,0)$ 和 $(0,1)$，得到 $N(A^{\mathrm{T}})$ 的基
+\[
+(-2,1,0)^{\mathrm{T}},\quad(0,0,1)^{\mathrm{T}}
+\]
+$N(A^{\mathrm{T}})$ 的一组标准正交基是
+\[
+u_2=\begin{bmatrix}-\frac{2}{\sqrt5}\\[2mm]\frac{1}{\sqrt5}\\[2mm]0\end{bmatrix},\quad
+u_3=\begin{bmatrix}0\\0\\1\end{bmatrix}
+\]
+构造正交矩阵 $U$
+\[
+U=
+\begin{bmatrix}
+\frac{1}{\sqrt5}&-\frac{2}{\sqrt5}&0\\[2mm]
+\frac{2}{\sqrt5}&\frac{1}{\sqrt5}&0\\[2mm]
+0&0&1
+\end{bmatrix}
+\]
+最后
+\[
+A=U\Sigma V^{\mathrm{T}}
+\]
+即
+\[
+\begin{bmatrix}
+1&1\\
+2&2\\
+0&0
+\end{bmatrix}
+=
+\begin{bmatrix}
+\frac{1}{\sqrt5}&-\frac{2}{\sqrt5}&0\\[2mm]
+\frac{2}{\sqrt5}&\frac{1}{\sqrt5}&0\\[2mm]
+0&0&1
+\end{bmatrix}
+\begin{bmatrix}
+\sqrt{10}&0\\
+0&0\\
+0&0
+\end{bmatrix}
+\begin{bmatrix}
+\frac{1}{\sqrt2}&\frac{1}{\sqrt2}\\[2mm]
+\frac{1}{\sqrt2}&-\frac{1}{\sqrt2}
+\end{bmatrix}
+\]
+
+上面的算法和例题只是为了说明计算的过程，并不是实际应用中的算法。可以看出，奇异值分解算法关键在于 $A^{\mathrm{T}}A$ 的特征值的计算。实际应用的奇异值分解算法是通过求 $A^{\mathrm{T}}A$ 的特征值进行，但不直接计算 $A^{\mathrm{T}}A$。按照这个思路产生了许多矩阵奇异值分解的有效算法，这里不予介绍，读者可以参考文献 [3, 4]。
+
+\section*{15.3\quad 奇异值分解与矩阵近似}
+
+\subsection*{15.3.1\quad 弗罗贝尼乌斯范数}
+
+奇异值分解也是一种矩阵近似的方法，这个近似是在弗罗贝尼乌斯范数（Frobenius norm）意义下的近似。矩阵的弗罗贝尼乌斯范数是向量的 $L_2$ 范数的直接推广，对应着机器学习中的平方损失函数。
+
+\noindent\textbf{定义 15.4（弗罗贝尼乌斯范数）}\quad 设矩阵 $A\in\mathbf{R}^{m\times n}$，$A=[a_{ij}]_{m\times n}$，定义矩阵 $A$ 的弗罗贝尼乌斯范数为
+\begin{equation}
+\|A\|_F=\left(\sum_{i=1}^m\sum_{j=1}^n |a_{ij}|^2\right)^{\frac12}
+\tag{15.25}
+\end{equation}
+
+\noindent\textbf{引理 15.1}\quad 设矩阵 $A\in\mathbf{R}^{m\times n}$，$A$ 的奇异值分解为 $U\Sigma V^{\mathrm{T}}$，其中 $\Sigma=\operatorname{diag}(\sigma_1,\sigma_2,\cdots,\sigma_n)$，则
+\begin{equation}
+\|A\|_F=(\sigma_1^2+\sigma_2^2+\cdots+\sigma_n^2)^{\frac12}
+\tag{15.26}
+\end{equation}
+
+\noindent\textbf{证明}\quad 一般地，若 $Q$ 是 $m$ 阶正交矩阵，则有
+\begin{equation}
+\|QA\|_F=\|A\|_F
+\tag{15.27}
+\end{equation}
+因为
+\[
+\|QA\|_F^2=\|(Qa_1,Qa_2,\cdots,Qa_n)\|_F^2
+=\sum_{i=1}^n\|Qa_i\|^2
+=\sum_{i=1}^n\|a_i\|^2
+=\|A\|_F^2
+\]
+同样，若 $P$ 是 $n$ 阶正交矩阵，则有
+\begin{equation}
+\|AP^{\mathrm{T}}\|_F=\|A\|_F
+\tag{15.28}
+\end{equation}
+故
+\begin{equation}
+\|A\|_F=\|U\Sigma V^{\mathrm{T}}\|_F=\|\Sigma\|_F
+\tag{15.29}
+\end{equation}
+即
+\begin{equation}
+\|A\|_F=(\sigma_1^2+\sigma_2^2+\cdots+\sigma_n^2)^{\frac12}
+\tag{15.30}
+\end{equation}
+
+\subsection*{15.3.2\quad 矩阵的最优近似}
+
+奇异值分解是在平方损失（弗罗贝尼乌斯范数）意义下对矩阵的最优近似，即数据压缩。
+
+\noindent\textbf{定理 15.2}\quad 设矩阵 $A\in\mathbf{R}^{m\times n}$，矩阵的秩 $\operatorname{rank}(A)=r$，并设 $M$ 为 $\mathbf{R}^{m\times n}$ 中所有秩不超过 $k$ 的矩阵集合，$0<k<r$，则存在一个秩为 $k$ 的矩阵 $X\in M$，使得
+\begin{equation}
+\|A-X\|_F=\min_{S\in M}\|A-S\|_F
+\tag{15.31}
+\end{equation}
+称矩阵 $X$ 为矩阵 $A$ 在弗罗贝尼乌斯范数意义下的最优近似。
+
+本书不证明这一定理，将应用这个结果，通过 $A$ 的奇异值分解求出近似矩阵。
+
+\noindent\textbf{定理 15.3}\quad 设 $A\in\mathbf{R}^{m\times n}$，矩阵的秩 $\operatorname{rank}(A)=r$，$A$ 的奇异值分解 $A=U\Sigma V^{\mathrm{T}}$，并设 $M$ 为 $\mathbf{R}^{m\times n}$ 中所有秩不超过 $k$ 的矩阵的集合，$0<k<r$，若矩阵 $X\in M$ 满足
+\begin{equation}
+\|A-X\|_F=\min_{S\in M}\|A-S\|_F
+\tag{15.32}
+\end{equation}
+则
+\begin{equation}
+\|A-X\|_F=(\sigma_{k+1}^2+\sigma_{k+2}^2+\cdots+\sigma_r^2)^{\frac12}
+\tag{15.33}
+\end{equation}
+特别地，若 $A'=U\Sigma'V^{\mathrm{T}}$，其中
+\[
+\Sigma'=
+\begin{bmatrix}
+\sigma_1&&&&\\
+&\ddots&&&\\
+&&\sigma_k&&\\
+&&&0&\\
+&&&&\ddots
+\end{bmatrix}
+\]
+则
+\begin{equation}
+\|A-A'\|_F=(\sigma_{k+1}^2+\sigma_{k+2}^2+\cdots+\sigma_r^2)^{\frac12}
+=\min_{S\in M}\|A-S\|_F
+\tag{15.34}
+\end{equation}
+
+\noindent\textbf{证明}\quad 设 $X\in M$ 为满足式（15.32）的一个矩阵。由于
+\begin{equation}
+\|A-X\|_F\leqslant\|A-A'\|_F
+=(\sigma_{k+1}^2+\sigma_{k+2}^2+\cdots+\sigma_r^2)^{\frac12}
+\tag{15.35}
+\end{equation}
+下面证明
+\[
+\|A-X\|_F\geqslant(\sigma_{k+1}^2+\sigma_{k+2}^2+\cdots+\sigma_r^2)^{\frac12}
+\]
+于是式（15.33）成立。
+
+设 $X$ 的奇异值分解为 $Q\Omega P^{\mathrm{T}}$，其中
+\[
+\Omega=
+\begin{bmatrix}
+\omega_1&&&\\
+&\ddots&&\\
+&&\omega_k&\\
+&&&0
+\end{bmatrix}
+\]
+令 $B=Q^{\mathrm{T}}AP$，则 $A=QBP^{\mathrm{T}}$。由此得到
+\begin{equation}
+\|A-X\|_F=\|Q(B-\Omega)P^{\mathrm{T}}\|_F=\|B-\Omega\|_F
+\tag{15.36}
+\end{equation}
+
+依 $\Omega$ 分块方法对 $B$ 分块
+\[
+B=
+\begin{bmatrix}
+B_{11}&B_{12}\\
+B_{21}&B_{22}
+\end{bmatrix}
+\]
+其中 $B_{11}$ 是 $k\times k$ 子矩阵，$B_{12}$ 是 $k\times(n-k)$ 子矩阵，$B_{21}$ 是 $(m-k)\times k$ 子矩阵，$B_{22}$ 是 $(m-k)\times(n-k)$ 子矩阵。可得
+\begin{equation}
+\|A-X\|_F^2=\|B-\Omega\|_F^2
+=\|B_{11}-\Omega_1\|_F^2+\|B_{12}\|_F^2+\|B_{21}\|_F^2+\|B_{22}\|_F^2
+\tag{15.37}
+\end{equation}
+先证明 $B_{12}=0,B_{21}=0$。用反证法。若 $B_{12}\neq0$，令
+\[
+Y=Q
+\begin{bmatrix}
+\Omega_1&B_{12}\\
+0&0
+\end{bmatrix}
+P^{\mathrm{T}}
+\]
+则 $Y\in M$，且
+\begin{equation}
+\|A-Y\|_F^2=\|B_{21}\|_F^2+\|B_{22}\|_F^2<\|A-X\|_F^2
+\tag{15.38}
+\end{equation}
+这与 $X$ 的定义式（15.35）矛盾，证明了 $B_{12}=0$。同样可证 $B_{21}=0$。于是
+\begin{equation}
+\|A-X\|_F^2=\|B_{11}-\Omega_1\|_F^2+\|B_{22}\|_F^2
+\tag{15.39}
+\end{equation}
+
+再证 $B_{11}=\Omega_1$。若
+\[
+Z=Q
+\begin{bmatrix}
+B_{11}&0\\
+0&0
+\end{bmatrix}
+P^{\mathrm{T}}
+\]
+则 $Z\in M$，且
+\begin{equation}
+\|A-Z\|_F^2=\|B_{22}\|_F^2<\|B_{11}-\Omega_1\|_F^2+\|B_{22}\|_F^2=\|A-X\|_F^2
+\tag{15.40}
+\end{equation}
+由式（15.35）知，$\|B_{11}-\Omega_1\|_F=0$，即 $B_{11}=\Omega_1$。
+
+最后看 $B_{22}$。设 $(m-k)\times(n-k)$ 子矩阵 $B_{22}$ 有奇异值分解 $U_2\Lambda V_2^{\mathrm{T}}$，则
+\begin{equation}
+\|A-X\|_F=\|B_{22}\|_F=\|\Lambda\|_F
+\tag{15.41}
+\end{equation}
+证明 $\Lambda$ 的对角线元素为 $A$ 的奇异值。为此，令
+\[
+U=
+\begin{bmatrix}
+I_k&0\\
+0&U_2
+\end{bmatrix},\quad
+V=
+\begin{bmatrix}
+I_k&0\\
+0&V_2
+\end{bmatrix}
+\]
+其中 $I_k$ 是 $k$ 阶单位矩阵，$U_2,V_2$ 的分块与 $B$ 的分块一致。注意到 $B$ 及 $B_{22}$ 的奇异值分解，即得
+\begin{equation}
+U^{\mathrm{T}}Q^{\mathrm{T}}APV=
+\begin{bmatrix}
+\Omega_1&0\\
+0&\Lambda
+\end{bmatrix}
+\tag{15.42}
+\end{equation}
+所以
+\begin{equation}
+A=(QU)
+\begin{bmatrix}
+\Omega_1&0\\
+0&\Lambda
+\end{bmatrix}
+(PV)^{\mathrm{T}}
+\tag{15.43}
+\end{equation}
+由此可知 $\Lambda$ 的对角线元素为 $A$ 的奇异值。故有
+\begin{equation}
+\|A-X\|_F=\|\Lambda\|_F\geqslant
+(\sigma_{k+1}^2+\sigma_{k+2}^2+\cdots+\sigma_r^2)^{\frac12}
+\tag{15.44}
+\end{equation}
+于是证明了
+\[
+\|A-X\|_F=(\sigma_{k+1}^2+\sigma_{k+2}^2+\cdots+\sigma_r^2)^{\frac12}
+=\|A-A'\|_F
+\]
+
+定理 15.3 表明，在秩不超过 $k$ 的 $m\times n$ 矩阵的集合中，存在矩阵 $A$ 的弗罗贝尼乌斯范数意义下的最优近似矩阵 $X$。$A'=U\Sigma'V^{\mathrm{T}}$ 是达到最优值的一个矩阵。
+
+前面定义了矩阵的紧奇异值分解与截断奇异值分解。事实上紧奇异值分解是在弗罗贝尼乌斯范数意义下的无损压缩，截断奇异值分解是有损压缩。截断奇异值分解得到的矩阵的秩为 $k$，通常远小于原始矩阵的秩，所以是由低秩矩阵实现了对原始矩阵的近似。
+
+\subsection*{15.3.3\quad 矩阵的外积展开式}
+
+下面介绍利用外积展开式对矩阵 $A$ 的近似。矩阵 $A$ 的奇异值分解 $U\Sigma V^{\mathrm{T}}$ 也可以由外积形式表示。事实上，若将 $A$ 的奇异值分解看成矩阵 $U\Sigma$ 与 $V^{\mathrm{T}}$ 的乘积，将 $U\Sigma$ 按列向量分块，将 $V^{\mathrm{T}}$ 按行向量分块，即得
+\[
+U\Sigma=[\sigma_1u_1\ \sigma_2u_2\ \cdots\ \sigma_nu_n]
+\]
+\[
+V^{\mathrm{T}}=
+\begin{bmatrix}
+v_1^{\mathrm{T}}\\
+v_2^{\mathrm{T}}\\
+\vdots\\
+v_n^{\mathrm{T}}
+\end{bmatrix}
+\]
+则
+\begin{equation}
+A=\sigma_1u_1v_1^{\mathrm{T}}+\sigma_2u_2v_2^{\mathrm{T}}+\cdots+\sigma_nu_nv_n^{\mathrm{T}}
+\tag{15.45}
+\end{equation}
+式（15.45）称为矩阵 $A$ 的外积展开式，其中 $u_iv_i^{\mathrm{T}}$ 为 $m\times n$ 矩阵，是列向量 $u_i$ 和行向量 $v_i^{\mathrm{T}}$ 的外积，其第 $k$ 行第 $j$ 列元素为 $u_i$ 的第 $k$ 个元素与 $v_i$ 的第 $j$ 个元素的乘积。即
+\[
+u_iv_i^{\mathrm{T}}=
+\begin{bmatrix}
+u_{1i}\\
+u_{2i}\\
+\vdots\\
+u_{mi}
+\end{bmatrix}
+\begin{bmatrix}
+v_{1i}&v_{2i}&\cdots&v_{ni}
+\end{bmatrix}
+=
+\begin{bmatrix}
+u_{1i}v_{1i}&u_{1i}v_{2i}&\cdots&u_{1i}v_{ni}\\
+u_{2i}v_{1i}&u_{2i}v_{2i}&\cdots&u_{2i}v_{ni}\\
+\vdots&\vdots&&\vdots\\
+u_{mi}v_{1i}&u_{mi}v_{2i}&\cdots&u_{mi}v_{ni}
+\end{bmatrix}
+\]
+
+$A$ 的外积展开式也可以写成下面的形式
+\begin{equation}
+A=\sum_{i=1}^n A_i,\quad A_i=\sigma_iu_iv_i^{\mathrm{T}}
+\tag{15.46}
+\end{equation}
+其中 $A_i=\sigma_iu_iv_i^{\mathrm{T}}$ 是 $m\times n$ 矩阵。式（15.46）将矩阵 $A$ 分解为矩阵的有序加权和。
+
+由矩阵 $A$ 的外积展开式知，若 $A$ 的秩为 $n$，则
+\begin{equation}
+A=\sigma_1u_1v_1^{\mathrm{T}}+\sigma_2u_2v_2^{\mathrm{T}}+\cdots+\sigma_nu_nv_n^{\mathrm{T}}
+\tag{15.47}
+\end{equation}
+设矩阵
+\[
+A_{n-1}=\sigma_1u_1v_1^{\mathrm{T}}+\sigma_2u_2v_2^{\mathrm{T}}+\cdots+\sigma_{n-1}u_{n-1}v_{n-1}^{\mathrm{T}}
+\]
+则 $A_{n-1}$ 的秩为 $n-1$，并且 $A_{n-1}$ 是秩为 $n-1$ 矩阵在弗罗贝尼乌斯范数意义下 $A$ 的最优近似矩阵。
+
+类似地，设矩阵
+\[
+A_{n-2}=\sigma_1u_1v_1^{\mathrm{T}}+\sigma_2u_2v_2^{\mathrm{T}}+\cdots+\sigma_{n-2}u_{n-2}v_{n-2}^{\mathrm{T}}
+\]
+则 $A_{n-2}$ 的秩为 $n-2$，并且 $A_{n-2}$ 是秩为 $n-2$ 矩阵中在弗罗贝尼乌斯范数意义下 $A$ 的最优近似矩阵。以此类推。最后，矩阵
+\[
+A_k=\sigma_1u_1v_1^{\mathrm{T}}+\sigma_2u_2v_2^{\mathrm{T}}+\cdots+\sigma_ku_kv_k^{\mathrm{T}}
+\]
+的秩为 $k$，并且 $A_k$ 是秩为 $k$ 的矩阵中在弗罗贝尼乌斯范数意义下 $A$ 的最优近似矩阵。矩阵 $A_k$ 就是 $A$ 的截断奇异值分解。
+
+由于通常奇异值 $\sigma_i$ 递减很快，所以取很小 $k$ 值时，$A_k$ 也可以对 $A$ 有很好的近似。
+
+\noindent\textbf{例 15.6}\quad 由例 15.1 给出的矩阵
+\[
+A=
+\begin{bmatrix}
+1&0&0&0\\
+0&0&0&4\\
+0&3&0&0\\
+0&0&0&0\\
+2&0&0&0
+\end{bmatrix}
+\]
+的秩为 3，求 $A$ 的秩为 2 的最优近似。
+
+\noindent\textbf{解}\quad 由例 15.3 可知
+\[
+u_1=
+\begin{bmatrix}
+0\\1\\0\\0\\0
+\end{bmatrix},\quad
+u_2=
+\begin{bmatrix}
+0\\0\\1\\0\\0
+\end{bmatrix},\quad
+v_1=
+\begin{bmatrix}
+0\\0\\0\\1
+\end{bmatrix},\quad
+v_2=
+\begin{bmatrix}
+0\\1\\0\\0
+\end{bmatrix}
+\]
+\[
+\sigma_1=4,\quad\sigma_2=3
+\]
+于是得到
+\[
+A_2=\sigma_1u_1v_1^{\mathrm{T}}+\sigma_2u_2v_2^{\mathrm{T}}
+=
+\begin{bmatrix}
+0&0&0&0\\
+0&0&0&4\\
+0&3&0&0\\
+0&0&0&0\\
+0&0&0&0
+\end{bmatrix}
+\]
+以此矩阵作为 $A$ 的最优近似。
+
+\section*{本章概要}
+
+1. 矩阵的奇异值分解是指将 $m\times n$ 实矩阵 $A$ 表示为以下三个实矩阵乘积形式的运算
+\[
+A=U\Sigma V^{\mathrm{T}}
+\]
+其中 $U$ 是 $m$ 阶正交矩阵，$V$ 是 $n$ 阶正交矩阵，$\Sigma$ 是 $m\times n$ 矩形对角矩阵
+\[
+\Sigma=\operatorname{diag}(\sigma_1,\sigma_2,\cdots,\sigma_p),\quad p=\min\{m,n\}
+\]
+其对角线元素非负，且满足
+\[
+\sigma_1\geqslant\sigma_2\geqslant\cdots\geqslant\sigma_p\geqslant0
+\]
+
+2. 任意给定一个实矩阵，其奇异值分解一定存在，但并不唯一。
+
+3. 奇异值分解包括紧奇异值分解和截断奇异值分解。紧奇异值分解是与原始矩阵等秩的奇异值分解，截断奇异值分解是比原始矩阵低秩的奇异值分解。
+
+4. 奇异值分解有明确的几何解释。奇异值分解对应三个连续的线性变换：一个旋转变换、一个缩放变换和另一个旋转变换。第一个和第三个旋转变换分别基于空间的标准正交基进行。
+
+5. 设矩阵 $A$ 的奇异值分解为 $A=U\Sigma V^{\mathrm{T}}$，则
+\[
+A^{\mathrm{T}}A=V(\Sigma^{\mathrm{T}}\Sigma)V^{\mathrm{T}}
+\]
+\[
+AA^{\mathrm{T}}=U(\Sigma\Sigma^{\mathrm{T}})U^{\mathrm{T}}
+\]
+即对称矩阵 $A^{\mathrm{T}}A$ 和 $AA^{\mathrm{T}}$ 的特征分解可以由矩阵 $A$ 的奇异值分解矩阵表示。
+
+6. 矩阵 $A$ 的奇异值分解可以通过求矩阵 $A^{\mathrm{T}}A$ 的特征值和特征向量得到：$A^{\mathrm{T}}A$ 的特征向量构成正交矩阵 $V$ 的列；从 $A^{\mathrm{T}}A$ 的特征值 $\lambda_j$ 的平方根得到奇异值 $\sigma_j$，即
+\[
+\sigma_j=\sqrt{\lambda_j},\quad j=1,2,\cdots,n
+\]
+对其由大到小排列，作为对角线元素，构成对角矩阵 $\Sigma$；求正奇异值对应的左奇异向量，再求扩充的 $A^{\mathrm{T}}$ 的标准正交基，构成正交矩阵 $U$ 的列。
+
+7. 矩阵 $A=[a_{ij}]$ 的弗罗贝尼乌斯范数定义为
+\[
+\|A\|_F=\left(\sum_i\sum_j |a_{ij}|^2\right)^{\frac12}
+\]
+在秩不超过 $k$ 的 $m\times n$ 矩阵的集合中，存在矩阵 $A$ 的弗罗贝尼乌斯范数意义下的最优近似矩阵 $X$。矩阵 $A$ 的截断奇异值分解得到的矩阵 $A_k$ 能够达到这个最优值。奇异值分解是弗罗贝尼乌斯范数意义下，也就是平方损失意义下的矩阵最优近似。
+
+8. 任意一个实矩阵 $A$ 可以由其外积展开式表示
+\[
+A=\sigma_1u_1v_1^{\mathrm{T}}+\sigma_2u_2v_2^{\mathrm{T}}+\cdots+\sigma_nu_nv_n^{\mathrm{T}}
+\]
+其中 $u_kv_k^{\mathrm{T}}$ 为 $m\times n$ 矩阵，是列向量 $u_k$ 和行向量 $v_k^{\mathrm{T}}$ 的外积，$\sigma_k$ 为奇异值，$u_k,v_k,\sigma_k$ 通过矩阵 $A$ 的奇异值分解得到。
+
+要进一步了解奇异值分解及相关内容可以参考线性代数教材，例如文献 [1, 2]，也可以观看网上公开课程，例如 “MIT 18.06SC Linear Algebra”，文献 [2] 为其教科书。在计算机上奇异值分解通常用数值计算方法进行，奇异值分解的数值计算方法，可参阅文献 [3, 4]。本章介绍的奇异值分解是定义在矩阵上的，奇异值分解可以扩展到张量（tensor），有两种不同的定义，张量奇异值分解详见文献 [5]。
+
+\section*{习题}
+
+\noindent\textbf{15.1}\quad 求矩阵
+\[
+A=
+\begin{bmatrix}
+1&2&0\\
+1&0&1
+\end{bmatrix}
+\]
+的奇异值分解。
+
+\noindent\textbf{15.2}\quad 求矩阵
+\[
+A=
+\begin{bmatrix}
+2&4\\
+1&3\\
+0&0\\
+0&0
+\end{bmatrix}
+\]
+的奇异值分解并写出其外积展开式。
+
+\noindent\textbf{15.3}\quad 比较矩阵的奇异值分解与对称矩阵的对角化的异同。
+
+\noindent\textbf{15.4}\quad 证明任何一个秩为 1 的矩阵可写成两个向量的外积形式，并给出实例。
+
+\noindent\textbf{15.5}\quad 搜索中的点击数据记录用户搜索时提交的查询语句，点击的网页 URL，以及点击的次数，构成一个二部图，其中一个结点集合 $\{q_i\}$ 表示查询，另一个结点集合 $\{u_j\}$ 表示 URL，边表示点击关系，边上的权重表示点击次数。图 15.2 是一个简化的点击数据例。点击数据可以由矩阵表示，试对该矩阵进行奇异值分解，并解释得到的三个矩阵所表示的内容。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.35\textwidth]{15-2.png}
+\caption*{图 15.2\quad 搜索点击数据例}
+\end{figure}
+
+\section*{参考文献}
+
+[1]\quad Leon S J. Linear algebra with applications. Pearson, 2009.（中译本：线性代数. 张文博，张丽静译. 北京：机械工业出版社，2007.）
+
+[2]\quad Strang G. Introduction to linear algebra. Fourth Edition. Wellesley-Cambridge Press, 2009.
+
+[3]\quad Cline A K, Dhillon I S. Computation of the singular value decomposition, Handbook of linear algebra. CRC Press, 2006.
+
+[4]\quad 徐树方. 矩阵计算的理论与方法. 北京：北京大学出版社，1995.
+
+[5]\quad Kolda T G, Bader B W. Tensor decompositions and applications. SIAM Review, 2009, 51(3): 455--500.
+
+\end{document}
