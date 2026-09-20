@@ -1,0 +1,221 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{三角行列式的性质与证明}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{问题与性质}
+
+一般的行列式由许多带符号的乘积项组成，但当主对角线的一侧全为零时，
+其值只由主对角线元素决定。原因在于：\impo{每个乘积项都必须从每行、每列各取一个元素，}
+而三角结构使主对角线以外的所有选取方式都含有零因子。
+下面先从行列式的排列定义证明这一点，再给出按行、列展开的归纳证明。
+
+全文设 $n$ 为正整数，$\mathbb F=\mathbb R$ 或 $\mathbb C$，
+$A=(a_{ij})\in\mathbb F^{n\times n}$，其中 $a_{ij}$ 表示第 $i$ 行、第 $j$ 列的元素。
+矩阵 $A$ 的\keyterm{行列式}（determinant）记为 $\det A$，也记为 $|A|$；
+这里的竖线表示行列式，不表示绝对值。
+
+\begin{definition}[三角矩阵]
+元素 $a_{11},a_{22},\ldots,a_{nn}$ 所在的位置构成
+\keyterm{主对角线}（main diagonal）。
+若 $i>j$ 时 $a_{ij}=0$，则称 $A$ 为\keyterm{上三角矩阵}（upper triangular matrix）；
+若 $i<j$ 时 $a_{ij}=0$，则称 $A$ 为\keyterm{下三角矩阵}（lower triangular matrix）。
+两者统称为\keyterm{三角矩阵}（triangular matrix），其行列式称为三角行列式。
+\end{definition}
+
+上、下三角矩阵分别具有下列形式：
+\[
+  \begin{pmatrix}
+    a_{11}&a_{12}&\cdots&a_{1n}\\
+    0&a_{22}&\cdots&a_{2n}\\
+    \vdots&\ddots&\ddots&\vdots\\
+    0&\cdots&0&a_{nn}
+  \end{pmatrix},
+  \qquad
+  \begin{pmatrix}
+    a_{11}&0&\cdots&0\\
+    a_{21}&a_{22}&\ddots&\vdots\\
+    \vdots&\vdots&\ddots&0\\
+    a_{n1}&a_{n2}&\cdots&a_{nn}
+  \end{pmatrix}.
+\]
+主对角线及另一侧的元素不受限制，也允许为零。
+
+\begin{theorem}[三角行列式的值]
+\label{thm:triangular-determinant}
+若 $A$ 是上三角矩阵或下三角矩阵，则
+\begin{equation}
+  \det A=\prod_{i=1}^{n}a_{ii}=a_{11}a_{22}\cdots a_{nn}.
+  \label{eq:triangular-product}
+\end{equation}
+该结论不要求主对角线元素非零。
+\end{theorem}
+
+\section{证明一：从排列定义出发}
+\label{sec:permutation-proof}
+
+\subsection{展开式中的每一项如何选取元素}
+
+记 $S_n$ 为集合 $\{1,2,\ldots,n\}$ 的所有\keyterm{排列}（permutation）组成的集合。
+一个排列 $\sigma$ 是该集合到自身的双射，因此
+$\sigma(1),\ldots,\sigma(n)$ 恰好是 $1,\ldots,n$ 的一种排列。
+其\keyterm{逆序数}（inversion number）定义为
+\[
+  \tau(\sigma)
+  =\#\{(i,j):1\leq i<j\leq n,\ \sigma(i)>\sigma(j)\},
+\]
+其中 $\#$ 表示集合中元素的个数。由行列式的定义，
+\begin{equation}
+  \det A
+  =\sum_{\sigma\in S_n}(-1)^{\tau(\sigma)}
+    \prod_{i=1}^{n}a_{i,\sigma(i)}.
+  \label{eq:leibniz-formula}
+\end{equation}
+乘积 $\prod_{i=1}^{n}a_{i,\sigma(i)}$ 从第 $i$ 行取第 $\sigma(i)$ 列的元素。
+因为所有 $\sigma(i)$ 互不相同，所以它恰好从每行、每列各取一个元素。
+
+对上三角矩阵，可以先从最后一行理解零因子的作用：
+最后一行只有第 $n$ 列的元素可能非零，因此要使乘积非零，就必须选 $a_{nn}$。
+第 $n$ 列被占用后，倒数第二行只能选 $a_{n-1,n-1}$；如此逐行向上，
+只有主对角线的选法可能留下。下三角矩阵则可以从第一行开始作同样的判断。
+下面用一个关于排列的引理把这一思路写成严格证明。
+
+\subsection{排列的约束与完整证明}
+
+\begin{lemma}
+\label{lem:one-sided-permutation}
+设 $\sigma\in S_n$。若对所有 $i$ 都有 $\sigma(i)\geq i$，
+或者对所有 $i$ 都有 $\sigma(i)\leq i$，则 $\sigma(i)=i$ 对所有 $i$ 成立。
+\end{lemma}
+
+\begin{proof}
+因为 $\sigma(1),\ldots,\sigma(n)$ 是 $1,\ldots,n$ 的重排，所以
+\[
+  \sum_{i=1}^{n}\bigl(\sigma(i)-i\bigr)
+  =\sum_{i=1}^{n}\sigma(i)-\sum_{i=1}^{n}i=0.
+\]
+若各差值都是非负整数，只要其中一个为正，总和就为正，故它们必须全部为零。
+若各差值都是非正整数，只要其中一个为负，总和就为负，故也必须全部为零。
+两种情形均得 $\sigma(i)=i$。
+\end{proof}
+
+\begin{proof}[定理~\ref{thm:triangular-determinant} 的排列证明]
+\textbf{上三角情形。}
+设 $A$ 为上三角矩阵。对于任意不是恒等排列的 $\sigma$，
+由引理~\ref{lem:one-sided-permutation}，不可能对所有 $i$ 都有 $\sigma(i)\geq i$。
+因此至少存在一个 $i$ 使 $\sigma(i)<i$。
+此时 $a_{i,\sigma(i)}$ 位于主对角线下方，等于 $0$，从而
+\[
+  \prod_{i=1}^{n}a_{i,\sigma(i)}=0.
+\]
+所以式~\eqref{eq:leibniz-formula} 中，除恒等排列外的各项全部为零。
+恒等排列 $\operatorname{id}$ 满足 $\operatorname{id}(i)=i$，其逆序数为 $0$，
+故该项的符号为 $(-1)^0=1$，于是
+\[
+  \det A=a_{11}a_{22}\cdots a_{nn}.
+\]
+
+\textbf{下三角情形。}
+设 $A$ 为下三角矩阵。对于任意不是恒等排列的 $\sigma$，
+引理~\ref{lem:one-sided-permutation} 保证至少存在一个 $i$ 使 $\sigma(i)>i$。
+此时 $a_{i,\sigma(i)}$ 位于主对角线上方，等于 $0$，所以对应的乘积项也为零。
+展开式仍然只剩下恒等排列对应的项，得到同一公式。
+\end{proof}
+
+这里“只剩下”是指其他项都已证明为零，并不表示主对角线项一定非零。
+若某个 $a_{ii}=0$，那么最后保留的这一项也等于 $0$，证明仍然有效。
+
+\section{证明二：按行、列展开与数学归纳法}
+
+若已经学过行列式的按行、列展开公式，还可以通过降阶证明该性质。
+当 $n\geq2$ 时，记 $M_{ij}$ 为从 $A$ 中删去第 $i$ 行和第 $j$ 列后所得的
+$(n-1)$ 阶行列式，称为元素 $a_{ij}$ 的\keyterm{余子式}（minor）。
+按第一列、第一行展开的公式分别为
+\begin{align}
+  \det A&=\sum_{i=1}^{n}(-1)^{i+1}a_{i1}M_{i1},
+  \label{eq:first-column-expansion}\\
+  \det A&=\sum_{j=1}^{n}(-1)^{1+j}a_{1j}M_{1j}.
+  \label{eq:first-row-expansion}
+\end{align}
+本节以这两个展开公式为已知结论；第~\ref{sec:permutation-proof} 节的证明不依赖它们。
+
+\begin{proof}[定理~\ref{thm:triangular-determinant} 的归纳证明]
+对矩阵的阶数 $n$ 作\keyterm{数学归纳法}（mathematical induction）。
+当 $n=1$ 时，$\det(a_{11})=a_{11}$，结论成立。
+
+设 $n\geq2$，并假设结论对所有 $n-1$ 阶上三角矩阵和下三角矩阵均成立。
+令 $B$ 为删去 $A$ 的第一行、第一列后所得的矩阵，因此 $M_{11}=\det B$。
+
+若 $A$ 为上三角矩阵，则第一列除 $a_{11}$ 外全为零。
+由式~\eqref{eq:first-column-expansion}，
+\[
+  \det A=(-1)^{1+1}a_{11}M_{11}=a_{11}\det B.
+\]
+此时 $B$ 仍为上三角矩阵，主对角线元素依次为 $a_{22},\ldots,a_{nn}$，
+故由归纳假设得 $\det B=a_{22}\cdots a_{nn}$，从而得到式~\eqref{eq:triangular-product}。
+
+若 $A$ 为下三角矩阵，则第一行除 $a_{11}$ 外全为零。
+由式~\eqref{eq:first-row-expansion}，同样有 $\det A=a_{11}\det B$。
+此时 $B$ 仍为下三角矩阵，归纳假设仍给出 $\det B=a_{22}\cdots a_{nn}$。
+因此下三角情形的结论也成立，归纳完成。
+\end{proof}
+
+这一证明每次只是把 $a_{11}$ 乘在余子式前面，没有除以 $a_{11}$，
+因此即使 $a_{11}=0$，降阶等式仍成立，无须另作非零假设。
+
+\section{例题与使用要点}
+
+\begin{example}[非对角元素不影响三角行列式的值]
+对任意 $x,y,z\in\mathbb F$，计算
+\[
+  D=\begin{vmatrix}
+    2&x&y\\
+    0&-3&z\\
+    0&0&4
+  \end{vmatrix}.
+\]
+\end{example}
+
+\begin{solve}
+这是上三角行列式，由式~\eqref{eq:triangular-product}，
+$D=2\cdot(-3)\cdot4=-24$。
+只要保持主对角线下方全为零，改变 $x,y,z$ 就不会改变行列式的值。
+\end{solve}
+
+\begin{example}[对角元素可以为零]
+计算
+\[
+  D=\begin{vmatrix}
+    1&0&0\\
+    2&0&0\\
+    3&4&5
+  \end{vmatrix}.
+\]
+\end{example}
+
+\begin{solve}
+这是下三角行列式，故 $D=1\cdot0\cdot5=0$。
+虽然没有一整行或一整列全为零，行列式仍然可以为零。
+\end{solve}
+
+对三角矩阵，由式~\eqref{eq:triangular-product} 及实数、复数乘积的性质可知：
+行列式非零当且仅当每个主对角线元素都非零。
+使用这一公式的前提是先确认矩阵具有三角结构；对一般矩阵，不能只乘主对角线元素。
+例如
+\[
+  \begin{vmatrix}1&2\\3&4\end{vmatrix}
+  =1\cdot4-2\cdot3=-2\ne1\cdot4.
+\]
+其中非主对角线项没有零因子，因而不能从展开式中略去。
+
+\end{document}

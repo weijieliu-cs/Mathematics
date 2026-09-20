@@ -1,0 +1,643 @@
+\documentclass[UTF8]{ctexart}
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../../}{../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{圆和球的面积与体积公式推导}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{引言：公式中的常数从哪里来}
+\label{sec:cs-introduction}
+
+半径为 $r$ 的圆和球分别满足
+\[
+  C=2\pi r,\qquad A=\pi r^2,\qquad
+  S=4\pi r^2,\qquad V=\frac43\pi r^3.
+\]
+这些公式不仅给出计算方法，还提出了几个值得追问的问题：圆的周长与面积为什么含有同一个 $\pi$？球面为什么恰好有四个大圆那么大的面积？球的体积为什么是外切圆柱体积的三分之二？本笔记通过可以逐步核查的几何推导回答这些问题。
+
+\subsection{先分清研究对象}
+
+在严格的几何用语中，\keyterm{圆周}（circle）是平面内到定点距离等于 $r$ 的点组成的曲线，\keyterm{圆盘}（disk）则包含圆周及其内部。通常所说的“圆的面积”，实际指圆盘的面积。同样，\keyterm{球面}（sphere）是空间中到定点距离等于 $r$ 的点组成的曲面，\keyterm{球体}（ball）则包含球面及其内部。“球的面积”指球面的表面积，“球的体积”指球体的体积。
+
+全文约定 $r>0$，定点称为圆心或球心，并采用下列记号。
+\begin{center}
+\begin{tabular}{c c c c}
+\toprule
+记号 & 测量对象 & 所求几何量 & 量纲 \\
+\midrule
+$C(r)$ & 圆周 & 周长 & 长度 \\
+$A(r)$ & 圆盘 & 面积 & 长度的平方 \\
+$S(r)$ & 球面 & 表面积 & 长度的平方 \\
+$V(r)$ & 球体 & 体积 & 长度的立方 \\
+\bottomrule
+\end{tabular}
+\end{center}
+上下文明确时简写为 $C,A,S,V$。圆盘是平面图形，本文不为它另设一个三维体积公式；球面只是球体的边界，也不能把表面积与内部体积混为一谈。
+
+\subsection{学习路线与所需基础}
+
+几何推导按下列依赖顺序展开：
+\begin{enumerate}
+  \item 用正多边形逼近圆周，解释 $\pi$ 和 $C=2\pi r$ 的关系。
+  \item 把正多边形分成三角形，由面积夹逼推出 $A=\pi r^2$。
+  \item 从圆盘面积出发，求圆柱和圆锥的体积，再用等高截面积比较求球体积。
+  \item 先求圆台侧面积，再用一串圆台侧面逼近球面，独立求出球面面积。
+\end{enumerate}
+第~\ref{sec:cs-calculus}~节补充微积分写法。主线只需三角形面积、勾股定理、相似三角形和有限求和；涉及曲线、曲面时，还需要理解极限：误差可以随着细分任意缩小，才可从有限近似得到精确公式。
+
+本文以通常的长度、面积和体积理论为基础，使用全等不改变量值、有限可加性、包含关系下的单调性，以及适当逼近下的连续性。例如，若一个圆盘被面积分别为 $L_n$、$U_n$ 的内外多边形夹住，且两者趋于同一个数，这个数就是圆盘面积。这里不从公理重新构造全部测量理论，而会说明每次逼近的对象、上下界及其误差。
+
+把图形的所有长度放大到原来的 $\lambda>0$ 倍，长度、面积和体积分别变为原来的 $\lambda$、$\lambda^2$、$\lambda^3$ 倍。因此，相似性已预示四个量分别具有
+\[
+  C(r)=c_1r,\qquad A(r)=c_2r^2,\qquad
+  S(r)=c_3r^2,\qquad V(r)=c_4r^3
+\]
+的形式，其中 $c_1,c_2,c_3,c_4$ 与半径无关。不过，相似性只能确定半径的次数，不能单独确定这些常数。
+
+\section{圆周长：圆周率与多边形逼近}
+\label{sec:cs-circumference}
+
+\subsection{用折线给曲线确定长度}
+
+圆周不能直接看成若干条有限线段的拼接。一个自然的测长方法是先在圆上取点，用相邻点之间的弦代替圆弧，再不断细分。对于圆，可以采用正方形、正八边形、正十六边形等内接正多边形。
+
+取 $n=4\cdot2^k$，其中 $k=0,1,2,\ldots$。记内接正 $n$ 边形的边长、周长和\keyterm{边心距}（apothem，圆心到边的垂直距离）分别为
+\[
+  b_n,\qquad p_n=nb_n,\qquad a_n.
+\]
+以各边所对小圆弧的中点为切点作外切正 $n$ 边形，记其周长为 $q_n$。内、外正多边形的对应边平行，关于圆心相似；前者的边心距为 $a_n$，后者的边心距为 $r$，所以
+\begin{equation}\label{eq:cs-polygon-perimeters}
+  q_n=\frac{r}{a_n}p_n.
+\end{equation}
+
+每条内接边与圆心连线组成等腰三角形。从圆心向边作垂线，得到
+\begin{equation}\label{eq:cs-apothem}
+  a_n^2+\left(\frac{b_n}{2}\right)^2=r^2.
+\end{equation}
+这两个有限图形中的精确等式，是下面极限论证的依据。
+
+\subsection{为什么内外周长趋于同一个数}
+
+增加每条小圆弧的中点后，一条弦变成两条弦。由三角不等式，两条新弦的长度之和不小于原弦长，因此
+\[
+  p_n\leq p_{2n}.
+\]
+还需要证明周长有上界。把圆心置于直角坐标原点，并让四个坐标轴方向的圆周点都是多边形顶点。任一条边的长度满足
+\[
+  \sqrt{(\Delta x)^2+(\Delta y)^2}
+  \leq |\Delta x|+|\Delta y|.
+\]
+沿凸多边形绕行一周，横坐标的总变化量为 $4r$，纵坐标的总变化量也为 $4r$。把各边的不等式相加，得到 $p_n\leq8r$。于是，递增且有界的数列 $p_n$ 有有限极限。
+
+另一方面，$b_n=p_n/n\leq8r/n\to0$。由式~\eqref{eq:cs-apothem}，$a_n\to r$，再由式~\eqref{eq:cs-polygon-perimeters}，
+\[
+  q_n-p_n=p_n\left(\frac{r}{a_n}-1\right)\longrightarrow0.
+\]
+所以内接和外切正多边形的周长趋于同一个数。用这种越来越细的折线逼近确定圆周长，便有
+\begin{equation}\label{eq:cs-perimeter-limit}
+  C(r)=\lim_{k\to\infty}p_{4\cdot2^k}
+      =\lim_{k\to\infty}q_{4\cdot2^k}.
+\end{equation}
+这一过程解释了“把圆周分得足够细”所指的数学操作，而不是把某一个有限多边形当成圆。
+
+\subsection{圆周率是一个与大小无关的比值}
+
+任意两个圆都相似。半径从 $r$ 变成 $\lambda r$ 时，对应多边形的每条边都变为原来的 $\lambda$ 倍，取极限后仍有
+\[
+  C(\lambda r)=\lambda C(r).
+\]
+所以周长与直径的比值不依赖半径。
+
+\begin{definition}[圆周率]
+\keyterm{圆周率}（pi）是任意圆的周长与直径的比值，记为
+\begin{equation}\label{eq:cs-pi-definition}
+  \pi=\frac{C(r)}{2r}.
+\end{equation}
+\end{definition}
+
+按这一定义，圆周长公式就是
+\begin{equation}\label{eq:cs-circumference}
+  \boxed{C(r)=2\pi r}.
+\end{equation}
+这里应区分两件事：相似性保证比值是同一个常数，而 $\pi$ 是这个常数的名称。公式本身并不等于计算出了 $\pi$ 的小数展开；如果要估算 $\pi$，可以继续计算内外正多边形周长，把 $\pi$ 夹在相应的数值之间。
+
+\section{圆面积：从三角形面积到圆盘面积}
+\label{sec:cs-circle-area}
+
+\subsection{内接与外切正多边形的面积}
+
+把内接正 $n$ 边形的所有顶点与圆心相连，得到 $n$ 个底为 $b_n$、高为 $a_n$ 的三角形。记这个多边形的面积为 $L_n$，则
+\[
+  L_n=n\cdot\frac12b_na_n=\frac12p_na_n.
+\]
+外切正 $n$ 边形也可以分成 $n$ 个三角形，每个三角形的高都等于 $r$。记其面积为 $U_n$，则
+\[
+  U_n=\frac12q_nr.
+\]
+内接多边形包含于圆盘，圆盘又包含于外切多边形，因此
+\begin{equation}\label{eq:cs-area-squeeze}
+  \frac12p_na_n\leq A(r)\leq\frac12q_nr.
+\end{equation}
+
+\begin{theorem}[圆盘面积]
+半径为 $r>0$ 的圆盘面积满足
+\begin{equation}\label{eq:cs-circle-area}
+  \boxed{A(r)=\frac12rC(r)=\pi r^2}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+沿 $n=4\cdot2^k\to\infty$ 取极限。第~\ref{sec:cs-circumference}~节已证明 $p_n\to C(r)$、$q_n\to C(r)$ 以及 $a_n\to r$，故式~\eqref{eq:cs-area-squeeze} 的左右两端都趋于 $rC(r)/2$。由夹逼原理，$A(r)=rC(r)/2$。再代入 $C(r)=2\pi r$，得到 $A(r)=\pi r^2$。
+\end{proof}
+
+这个推导没有预先使用扇形面积，也没有用到三角函数的极限。圆面积中出现与周长相同的 $\pi$，原因就在 $A=rC/2$：三角形面积中的“底边总长”趋于圆周长，“共同的高”趋于半径。
+
+\subsection{扇形拼接图像说明了什么}
+
+常见的直观解释是把圆盘分成偶数个相等的窄扇形，再交错排列，使它们看起来越来越像一个长方形。排列后，上、下两边各由一半圆周上的小弧组成，极限中的底边长为 $C/2$，高为 $r$，因而预示
+\[
+  A=\frac C2\,r.
+\]
+这种拼接很适合帮助理解，但有限个扇形拼出的边界仍有圆弧，不能直接称为精确的长方形。前一小节的内外多边形夹逼给出了相同结论所需的误差控制。
+
+\subsection{扇形与圆环公式作为推论}
+
+\keyterm{扇形}（sector）是两条半径与它们之间的一段圆弧围成的区域。如果圆心角为 $\theta$ 弧度，其中 $0\leq\theta\leq2\pi$，相应弧长记为 $s$，则
+\[
+  s=r\theta.
+\]
+这里\keyterm{弧度}（radian）按“弧长除以半径”定义，所以整周角为 $C/r=2\pi$。
+
+等分圆心角得到的扇形彼此全等，所以当扇形占整周的比例是有理数时，它的面积占圆盘的比例相同。对任意角度，用有理数比例从两侧逼近，并利用面积的单调性，就得到
+\begin{equation}\label{eq:cs-sector}
+  A_{\mathrm{sector}}
+  =\frac{\theta}{2\pi}\,\pi r^2
+  =\frac12r^2\theta
+  =\frac12rs.
+\end{equation}
+因此，扇形面积公式在这里是圆面积公式的推论，并未被用作圆面积证明的前提。
+
+\keyterm{圆环}（annulus）是两个同心圆之间的区域。若外、内半径分别为 $R$、$r$，其中 $0<r<R$，由面积相减可得
+\begin{equation}\label{eq:cs-annulus}
+  A_{\mathrm{annulus}}=\pi(R^2-r^2)=\pi(R+r)(R-r).
+\end{equation}
+后一个形式可解释为“内外圆周长的平均值乘以宽度”：
+\[
+  A_{\mathrm{annulus}}=\frac{2\pi R+2\pi r}{2}(R-r).
+\]
+这是精确等式；只取其中一条圆周长乘以宽度，一般只是近似。
+
+\section{球体积的准备：截面积、圆柱与圆锥}
+\label{sec:cs-solid-preparation}
+
+\subsection{为什么可以用截面积比较体积}
+
+在空间中选定竖直方向，以 $z$ 表示高度。用平面 $z=\text{常数}$ 截一个立体，所得平面区域称为\keyterm{截面}（cross-section），其面积记为 $F(z)$。
+
+把立体所在的高度区间分成许多小段，每一段内的立体称为一个薄层。如果这一段的厚度为 $\Delta z$，并能用底面积分别为 $m$、$M$ 的柱体把薄层从内外夹住，那么这一层的体积介于 $m\Delta z$ 与 $M\Delta z$ 之间。逐层求和便得到整个体积的上下界。当细分后两界之差趋于零时，体积就是这些和的共同极限。
+
+\begin{theorem}[等高截面积比较]
+两个立体位于同一高度区间。若它们适用上述切片极限方法，即随着分割变细，体积的上下估计之差趋于零，并且每一高度处对应的截面积都相等，那么它们的体积相等。这称为\keyterm{卡瓦列里原理}（Cavalieri's principle），也称\keyterm{祖暅原理}。
+\end{theorem}
+
+\begin{proof}[原理的切片解释]
+体积由截面积乘以厚度的和取极限得到。两个立体的截面积函数相同，对任意共同分割，选取相同高度得到的这类和也相同，因而极限相同。对本文涉及的圆锥、半球以及圆柱挖去圆锥后的立体，截面是连续变化且彼此嵌套的圆盘或圆环，可以直接用内外薄柱体建立所需上下界。后文还会写出半球切片的具体误差。
+\end{proof}
+
+这个原理比较的是\keyterm{同一方向、同一高度处}的截面积；只有总高度相同、底面积相同，不能推出两个任意立体的体积相同。
+
+\subsection{圆柱体积}
+
+底面半径为 $r$、高为 $H>0$ 的\keyterm{直圆柱}（right circular cylinder），每一个水平截面都是面积为 $\pi r^2$ 的圆盘。把圆柱分成任意多层，每层截面积都不变，因此
+\begin{equation}\label{eq:cs-cylinder-volume}
+  V_{\mathrm{cylinder}}=\pi r^2H.
+\end{equation}
+也可以把内接、外切正多边形沿垂直底面的方向拉伸成棱柱，以“棱柱体积等于底面积乘高”为基础夹逼：
+\[
+  L_nH\leq V_{\mathrm{cylinder}}\leq U_nH.
+\]
+利用 $L_n,U_n\to\pi r^2$，就得到同一结论。
+
+\subsection{圆锥体积中的三分之一从哪里来}
+
+考虑底面半径为 $r$、高为 $H$ 的\keyterm{直圆锥}（right circular cone）。把顶点置于 $z=0$，底面置于 $z=H$。由相似三角形，高度 $z$ 处截面圆的半径为
+\[
+  \rho(z)=\frac rH z,\qquad 0\leq z\leq H,
+\]
+所以截面积为
+\begin{equation}\label{eq:cs-cone-section}
+  F(z)=\pi\rho(z)^2=\pi r^2\frac{z^2}{H^2}.
+\end{equation}
+半径随高度成正比，面积便随高度的平方成正比。系数 $1/3$ 将由这些平方的平均值产生。
+
+将高度等分为 $n$ 段，每段厚度为 $H/n$。因为 $F(z)$ 递增，在第 $i$ 段内用左、右端点截面作底的圆柱，分别给出内、外体积估计。于是
+\begin{equation}\label{eq:cs-cone-squeeze}
+  \frac{\pi r^2H}{n^3}\sum_{i=0}^{n-1}i^2
+  \leq V_{\mathrm{cone}}
+  \leq\frac{\pi r^2H}{n^3}\sum_{i=1}^{n}i^2.
+\end{equation}
+
+所需的平方和公式为
+\begin{equation}\label{eq:cs-square-sum}
+  \sum_{i=1}^{n}i^2=\frac{n(n+1)(2n+1)}6.
+\end{equation}
+为说明它的来源，把恒等式
+\[
+  (i+1)^3-i^3=3i^2+3i+1
+\]
+从 $i=1$ 到 $i=n$ 相加。左侧中间项相消，右侧使用 $\sum_{i=1}^n i=n(n+1)/2$，得到
+\[
+  (n+1)^3-1=3\sum_{i=1}^{n}i^2+\frac32n(n+1)+n.
+\]
+解出平方和即为式~\eqref{eq:cs-square-sum}。
+
+把它代入式~\eqref{eq:cs-cone-squeeze}，上下界分别为
+\[
+  \pi r^2H\left(\frac13-\frac1{2n}+\frac1{6n^2}\right),
+  \qquad
+  \pi r^2H\left(\frac13+\frac1{2n}+\frac1{6n^2}\right).
+\]
+两界之差为 $\pi r^2H/n\to0$，共同极限是 $\pi r^2H/3$。因此
+\begin{equation}\label{eq:cs-cone-volume}
+  \boxed{V_{\mathrm{cone}}=\frac13\pi r^2H}.
+\end{equation}
+这样，圆锥体积公式也已得到推导，而不是作为一个未经说明的结论用于后面的球体积计算。
+
+\section{球体积：半球与圆柱挖去圆锥的比较}
+\label{sec:cs-sphere-volume}
+
+\subsection{计算半球在每个高度的截面积}
+
+把半径为 $r$ 的球心置于原点，以 $z$ 轴为竖直轴。球面方程为
+\[
+  x^2+y^2+z^2=r^2.
+\]
+先研究位于 $0\leq z\leq r$ 的上半球体。高度 $z$ 处的截面是圆盘，设其半径为 $\rho$。球的半径、竖直线段及截面半径组成直角三角形，所以
+\[
+  \rho^2+z^2=r^2.
+\]
+因此，截面积为
+\begin{equation}\label{eq:cs-hemisphere-section}
+  F_{\mathrm{hemisphere}}(z)=\pi(r^2-z^2),
+  \qquad 0\leq z\leq r.
+\end{equation}
+在赤道平面 $z=0$，截面积为 $\pi r^2$；到顶部 $z=r$，截面退化为一个点，面积为零。
+
+\subsection{寻找一个截面积相同、体积容易求的立体}
+
+式~\eqref{eq:cs-hemisphere-section} 是两个面积的差：$\pi r^2-\pi z^2$。这提示我们构造以下立体：在高度区间 $0\leq z\leq r$ 内，取底面半径为 $r$、高为 $r$ 的圆柱，再挖去一个同轴圆锥。圆锥的顶点在底面中心 $z=0$，底面在圆柱顶面 $z=r$，其底面半径也为 $r$。
+
+由于这个圆锥的底面半径等于高，由相似三角形，它在高度 $z$ 处的截面半径就是 $z$。故圆柱剩余部分的截面是外半径为 $r$、内半径为 $z$ 的圆环，截面积为
+\[
+  F_{\mathrm{remainder}}(z)=\pi r^2-\pi z^2.
+\]
+各部分的对应关系可以整理为下表。表中的高度均从半球的赤道平面、圆柱的底面开始计算。
+\begin{center}
+\begin{tabular}{c c c}
+\toprule
+立体 & 高度 $z$ 处的截面 & 截面积 \\
+\midrule
+上半球体 & 半径 $\sqrt{r^2-z^2}$ 的圆盘 & $\pi(r^2-z^2)$ \\
+圆柱 & 半径 $r$ 的圆盘 & $\pi r^2$ \\
+被挖去的圆锥 & 半径 $z$ 的圆盘 & $\pi z^2$ \\
+圆柱剩余部分 & 内外半径为 $z,r$ 的圆环 & $\pi(r^2-z^2)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+半球截面是圆盘，比较立体的截面是圆环；形状不同，但每个高度的面积完全相同，而体积比较只需要后一个条件。
+
+\begin{theorem}[球体积]
+半径为 $r>0$ 的球体体积为
+\begin{equation}\label{eq:cs-sphere-volume}
+  \boxed{V(r)=\frac43\pi r^3}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+根据等高截面积比较，上半球体积等于圆柱体积减去圆锥体积。应用式~\eqref{eq:cs-cylinder-volume} 和式~\eqref{eq:cs-cone-volume}，得到
+\[
+  V_{\mathrm{hemisphere}}
+  =\pi r^2\cdot r-\frac13\pi r^2\cdot r
+  =\frac23\pi r^3.
+\]
+上下两半球全等，且只在体积为零的赤道圆盘上重合，因此整个球体的体积为
+\[
+  V(r)=2V_{\mathrm{hemisphere}}=\frac43\pi r^3.
+\]
+\end{proof}
+
+这就说明了系数 $4/3$ 的组成：一个半球对应“一个圆柱减去其中三分之一的圆锥”，再乘以两个半球。
+
+\subsection{把切片误差直接写出来}
+
+如果希望直接检查半球切片，而不只援引比较原理，可以把 $[0,r]$ 等分成 $n$ 段。半球的截面积随 $z$ 递减，因此内、外圆柱薄层给出的界为
+\begin{align*}
+  L_n^{\mathrm{half}}
+  &=\frac{\pi r^3}{n}\sum_{i=1}^{n}
+    \left(1-\frac{i^2}{n^2}\right),\\
+  U_n^{\mathrm{half}}
+  &=\frac{\pi r^3}{n}\sum_{i=0}^{n-1}
+    \left(1-\frac{i^2}{n^2}\right).
+\end{align*}
+这里 $L_n^{\mathrm{half}}\leq V_{\mathrm{hemisphere}}\leq U_n^{\mathrm{half}}$，且
+\[
+  U_n^{\mathrm{half}}-L_n^{\mathrm{half}}=\frac{\pi r^3}{n}\longrightarrow0.
+\]
+利用平方和公式，两界都趋于 $2\pi r^3/3$。因此，切片过程给出的确实是精确体积；任意有限的薄层圆柱之和仍只是有上下界保证的近似。
+
+\section{球面面积：用圆台侧面逼近球带}
+\label{sec:cs-sphere-area}
+
+球体积公式不能直接充当球面面积公式。为独立求面积，我们先把球面分成许多窄的\keyterm{球带}（spherical zone），即球面夹在两个平行平面之间的部分，再用圆台侧面近似每一条球带。
+
+这一方法的关键是求曲面的面积，而不是求它向水平面投影后的面积。靠近球顶时，水平截面的圆周变短，但沿球面的宽度与竖直高度的比例也发生变化，二者必须一起考虑。
+
+\subsection{圆锥与圆台的侧面积}
+
+\keyterm{母线}（generatrix）是旋转生成圆锥侧面的线段，其长度称为\keyterm{斜高}（slant height）。设圆锥底面半径为 $b$，斜高为 $L$。沿一条母线剪开侧面并在平面上展开，得到半径为 $L$、弧长为底面周长 $2\pi b$ 的扇形。
+
+这种展开保持侧面上各小片的面积，且不包括底面圆盘。由扇形面积公式~\eqref{eq:cs-sector}，圆锥侧面积为
+\begin{equation}\label{eq:cs-cone-lateral-area}
+  S_{\mathrm{cone,lateral}}=\frac12L\cdot2\pi b=\pi bL.
+\end{equation}
+
+\keyterm{圆台}（conical frustum）由直圆锥被平行于底面的平面截去顶部后得到。设它的上、下底面半径为 $a,b$，其中 $0<a<b$，斜高为 $\ell$。把它的母线向小底一侧延长到圆锥顶点，记大、小圆锥的斜高分别为 $L_b,L_a$。相似性给出
+\[
+  \frac{L_a}{L_b}=\frac ab,\qquad L_b-L_a=\ell,
+\]
+因而
+\[
+  L_b=\frac{b\ell}{b-a},\qquad L_a=\frac{a\ell}{b-a}.
+\]
+两个圆锥的侧面积相减，得到
+\begin{equation}\label{eq:cs-frustum-area}
+  S_{\mathrm{frustum,lateral}}
+  =\pi bL_b-\pi aL_a
+  =\boxed{\pi(a+b)\ell}.
+\end{equation}
+当 $a=0$ 时退化为圆锥，公式仍成立；当 $a=b$ 时成为圆柱侧面，展开为长 $2\pi a$、宽 $\ell$ 的长方形，面积为 $2\pi a\ell$，也符合该公式。上下底的位置对调不改变结果。
+
+\subsection{一段球面与一个圆台的精确关系}
+\label{subsec:cs-zone-frustum}
+
+取一个通过球心的竖直平面，用 $(\rho,z)$ 表示这个平面右半部的坐标，其中 $\rho\geq0$ 是到旋转轴的距离。球面的右侧\keyterm{经线}（meridian）是半圆
+\[
+  \rho^2+z^2=r^2,\qquad \rho\geq0.
+\]
+取这条半圆上的两个不同点 $P,Q$，其中 $P$ 比 $Q$ 高，且两点之间的弧小于半圆。记它们到旋转轴的距离为 $\rho_P,\rho_Q$，高度差为 $h=z_P-z_Q>0$，弦长为 $\ell=|PQ|$。
+
+把弦 $PQ$ 绕 $z$ 轴旋转，就得到连接两个纬圆的圆台侧面；一端在极点时是圆锥侧面，弦平行于轴时是圆柱侧面。由式~\eqref{eq:cs-frustum-area}，其面积为
+\[
+  T=\pi(\rho_P+\rho_Q)\ell.
+\]
+
+设 $M$ 是弦 $PQ$ 的中点，$O$ 是球心，并记 $d=|OM|$。中点到轴的距离为
+\[
+  \rho_M=\frac{\rho_P+\rho_Q}{2}.
+\]
+因为 $OP=OQ=r$，等腰三角形的中线 $OM$ 垂直于弦 $PQ$。由勾股定理，
+\begin{equation}\label{eq:cs-chord-distance}
+  d=\sqrt{r^2-\frac{\ell^2}{4}}.
+\end{equation}
+又因为 $OM\perp PQ$，由这两条线段的水平、竖直分量组成的直角三角形相似，得到
+\begin{equation}\label{eq:cs-chord-height}
+  \frac{h}{\ell}=\frac{\rho_M}{d},\qquad
+  \rho_M\ell=dh.
+\end{equation}
+这里使用的是分量的长度，即非负值。若弦恰好竖直，$OM$ 就水平，等式直接化为 $h=\ell$、$\rho_M=d$，同样成立。
+
+把式~\eqref{eq:cs-chord-height} 代入圆台侧面积，得到一个完全属于有限图形的恒等式：
+\begin{equation}\label{eq:cs-zone-frustum}
+  \boxed{T=2\pi\rho_M\ell=2\pi dh}.
+\end{equation}
+同样高为 $h$、半径为 $r$ 的圆柱侧面面积是 $2\pi rh$。因此，这个圆台侧面的面积是相应圆柱侧面积的 $d/r$ 倍。弦越短，$d$ 越接近 $r$，这个比例就越接近 $1$。
+
+\subsection{细分球带并控制面积误差}
+
+考虑高度从 $z=u$ 到 $z=v$ 的球带，其中 $-r\leq u<v\leq r$，记其高度为 $H=v-u$。沿对应经线弧取分点，并用连接相邻分点的弦绕轴旋转，形成一串相接的圆台侧面。只计侧面积，不加入分割处的圆盘。
+
+设第 $i$ 段弦的长度、竖直高度和球心到弦的距离分别为 $\ell_i,h_i,d_i$，所有弦中最长的长度记为
+\[
+  \eta=\max_i\ell_i.
+\]
+取分割使 $\eta<2r$。由于各段的竖直高度相加恰为整个球带的高度，
+\[
+  \sum_i h_i=H.
+\]
+由式~\eqref{eq:cs-chord-distance}，
+\[
+  \sqrt{r^2-\frac{\eta^2}{4}}\leq d_i\leq r.
+\]
+将各圆台侧面积 $2\pi d_ih_i$ 相加，记总和为 $T_{\eta}$，便得到
+\begin{equation}\label{eq:cs-zone-squeeze}
+  2\pi H\sqrt{r^2-\frac{\eta^2}{4}}
+  \leq T_{\eta}\leq2\pi rH.
+\end{equation}
+更明确地说，
+\[
+  0\leq2\pi rH-T_{\eta}
+  \leq2\pi H\left(r-\sqrt{r^2-\frac{\eta^2}{4}}\right)
+  \longrightarrow0\qquad(\eta\to0).
+\]
+因此，只要最长的弦趋于零，无论各段是否等长，圆台侧面积总和都有同一个极限。
+
+这里采用光滑旋转曲面的标准面积构造：在经线上作越来越细的内接折线，把相应旋转曲面的侧面积之和取极限。上面的估计直接验证了球带情形的极限存在，并且不依赖具体分割。它并不是声称任意方式拼接的小平面都一定给出正确曲面面积，也不需要用“一个立体包含于另一个立体”推断表面积大小。
+
+\begin{theorem}[球带面积与球面面积]
+半径为 $r>0$ 的球面上，任意两个平行平面截出的高度为 $H$ 的球带，其曲面面积为
+\begin{equation}\label{eq:cs-zone-area}
+  \boxed{S_{\mathrm{zone}}=2\pi rH},\qquad 0<H\leq2r.
+\end{equation}
+特别地，整个球面高度为 $2r$，故
+\begin{equation}\label{eq:cs-sphere-area}
+  \boxed{S(r)=2\pi r\cdot2r=4\pi r^2}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+对给定球带，让经线分割的最长弦长 $\eta$ 趋于零。式~\eqref{eq:cs-zone-squeeze} 的上下界都趋于 $2\pi rH$，因而球带面积等于这个值。令 $H=2r$，即得到整个球面面积。
+\end{proof}
+
+\subsection{公式的几何含义与常见误解}
+
+公式~\eqref{eq:cs-zone-area} 表明，同一个球面上的\keyterm{等高球带面积相等}，不论它们靠近赤道还是靠近两极。这里的“高”指平行截平面之间的垂直距离，不是沿经线测得的弧长。窄球带在靠近极点时纬圆周长较小，但同样的竖直高度对应较长的经线弧，两种变化在面积极限中恰好补偿。式~\eqref{eq:cs-zone-frustum} 给出了这种补偿的精确有限版本。
+
+因此，球面面积也等于半径为 $r$、高为 $2r$ 的外切圆柱的\keyterm{侧面积}。这是一条面积相等的结论，不表示球面可以像圆柱侧面一样无伸缩地展开成一个长方形。
+
+通过球心的平面与球面的交线称为\keyterm{大圆}（great circle），它的半径等于球半径 $r$。球面面积恰为大圆所围圆盘面积的四倍：
+\[
+  S(r)=4A(r).
+\]
+这并非把球面实际分成四个平面圆盘，而是独立求出两种面积后的数值关系。
+
+\keyterm{球冠}（spherical cap）是球面位于一个截平面一侧的部分，可以看成一端达到极点的球带。高度为 $h$ 的球冠面积为
+\begin{equation}\label{eq:cs-cap-area}
+  S_{\mathrm{cap}}=2\pi rh,\qquad 0\leq h\leq2r.
+\end{equation}
+例如，一个半球面的曲面面积为 $2\pi r^2$；若问题询问的是封闭半球体的总表面积，还要计入面积为 $\pi r^2$ 的底面圆盘，结果为 $3\pi r^2$。
+
+\section{微积分补充：把细分求和写成积分}
+\label{sec:cs-calculus}
+
+本节假定读者已经知道定积分、导数和微积分基本定理。尚未学习微积分时，可以跳过本节，前面的几何推导已经完整。这里的目的，是看清积分符号如何概括已经出现的细分、求和与取极限，而不是把“无限薄的一片”直接当作有限柱体或长方形。
+
+\subsection{圆面积与同心圆环}
+
+把半径区间 $[0,r]$ 分为
+\[
+  0=t_0<t_1<\cdots<t_n=r,
+\]
+并记 $\Delta t_i=t_i-t_{i-1}$。由圆环面积公式，第 $i$ 个圆环的面积满足
+\[
+  2\pi t_{i-1}\Delta t_i
+  \leq\pi(t_i^2-t_{i-1}^2)
+  \leq2\pi t_i\Delta t_i.
+\]
+求和后，当最长小区间趋于零时，左右两端都趋于连续函数 $2\pi t$ 的积分，因此
+\begin{equation}\label{eq:cs-area-integral}
+  A(r)=\int_0^r2\pi t\,\mathrm{d}t=\pi r^2.
+\end{equation}
+这可简记为“周长乘以径向厚度，再从圆心累加到边缘”。由于这里的圆环等式来自已经证明的圆面积公式，这段计算是几何结论的积分表达，不另算作一份独立证明。
+
+\subsection{球体积与水平圆盘}
+
+球体在高度 $z$ 处的截面积为 $\pi(r^2-z^2)$，它在闭区间 $[-r,r]$ 上连续。切片体积求和的极限就是
+\begin{align}
+  V(r)
+  &=\int_{-r}^{r}\pi(r^2-z^2)\,\mathrm{d}z\notag\\
+  &=\pi\left[r^2z-\frac{z^3}{3}\right]_{-r}^{r}
+   =\frac43\pi r^3.
+  \label{eq:cs-volume-integral}
+\end{align}
+这里的三分之一来自 $z^2$ 的原函数 $z^3/3$，与圆锥推导中平方和的极限完全对应。
+
+\subsection{球面面积与旋转曲面公式}
+
+设一段经线写成 $\rho=\rho(z)\geq0$，且 $\rho$ 在闭区间 $[u,v]$ 上连续可微。用细小弦段近似曲线时，弦长与竖直高度之比趋于
+\[
+  \sqrt{1+\rho'(z)^2}.
+\]
+由圆台侧面积公式，局部面积近似为“两个端点圆周长的平均值乘以弦长”。把各段相加取极限，就得到\keyterm{旋转曲面}（surface of revolution）的面积公式
+\begin{equation}\label{eq:cs-revolution-area}
+  S=2\pi\int_u^v\rho(z)\sqrt{1+\rho'(z)^2}\,\mathrm{d}z.
+\end{equation}
+连续可微的条件使上述局部近似可以转化为收敛的积分和。
+
+对于球面，在 $-r<z<r$ 内有
+\[
+  \rho(z)=\sqrt{r^2-z^2},\qquad
+  \rho'(z)=-\frac{z}{\sqrt{r^2-z^2}}.
+\]
+于是
+\begin{equation}\label{eq:cs-area-compensation}
+  \rho(z)\sqrt{1+\rho'(z)^2}
+  =\sqrt{r^2-z^2}\,\frac{r}{\sqrt{r^2-z^2}}
+  =r.
+\end{equation}
+这正是“纬圆周长缩小”与“经线方向倾斜加大”的补偿关系。
+
+由于 $\rho'(z)$ 在两极无界，不能不加说明地把闭区间上的连续可微条件套到 $[-r,r]$。先在 $[-r+\varepsilon,r-\varepsilon]$ 上计算，其中 $0<\varepsilon<r$，再令 $\varepsilon\to0^+$，得到
+\begin{equation}\label{eq:cs-surface-integral}
+  S(r)=\lim_{\varepsilon\to0^+}
+  2\pi\int_{-r+\varepsilon}^{r-\varepsilon}r\,\mathrm{d}z
+  =4\pi r^2.
+\end{equation}
+这个反常积分的极限存在；几何上，被暂时删去的两个球冠面积总和为 $4\pi r\varepsilon\to0$，与前面已经证明的球冠公式一致。
+
+\subsection{为什么面积或体积对半径求导会出现边界的量}
+
+对已经独立证明的公式求导，可以核对
+\begin{equation}\label{eq:cs-radius-derivatives}
+  A'(r)=2\pi r=C(r),\qquad
+  V'(r)=4\pi r^2=S(r).
+\end{equation}
+其几何意义来自半径增加时新添的一圈或一层。设增加量为 $\delta>0$，则精确地有
+\begin{align*}
+  A(r+\delta)-A(r)
+  &=2\pi r\delta+\pi\delta^2,\\
+  V(r+\delta)-V(r)
+  &=4\pi r^2\delta+4\pi r\delta^2+\frac43\pi\delta^3.
+\end{align*}
+除以 $\delta$ 后，后面的误差项随 $\delta\to0^+$ 消失，分别留下圆周长和球面面积。圆周或球面沿法线向外移动时，位移恰好等于半径增量，因此边界的量出现在一阶项中。
+
+这并不意味着对于任意参数 $t$ 都有 $\mathrm{d}V/\mathrm{d}t=S$。例如，如果球的半径依赖时间 $t$，则链式法则给出
+\[
+  \frac{\mathrm{d}}{\mathrm{d}t}V(r(t))
+  =S(r(t))\,r'(t).
+\]
+还必须计入半径随时间变化的速度。另一方面，如果先用 $V=rS/3$ 求出球体积，再用 $V'(r)=S(r)$ 来证明最初所用的球面面积，就会形成循环论证；本笔记的两条几何证明没有这种依赖。
+
+\section{例题、公式之间的联系与自检}
+\label{sec:cs-examples}
+
+\begin{example}[相同半径下四个量的区别]
+圆盘和球体的半径均为 $3\,\mathrm{cm}$，分别求圆周长、圆盘面积、球面面积和球体积。
+\end{example}
+\begin{solve}
+先按对象选择公式，再代入半径：
+\[
+  C=6\pi\,\mathrm{cm},\qquad A=9\pi\,\mathrm{cm}^2,
+  \qquad S=36\pi\,\mathrm{cm}^2,\qquad V=36\pi\,\mathrm{cm}^3.
+\]
+本题中球面面积与球体积在所选单位下有相同的数值 $36\pi$，但单位和几何意义不同，不能写成 $S=V$。
+\end{solve}
+
+\begin{example}[球与外切圆柱]
+一个半径为 $r$ 的球恰好放在半径为 $r$、高为 $2r$ 的直圆柱中。比较两者的体积，并比较球面面积与圆柱侧面积、圆柱总表面积。
+\end{example}
+\begin{solve}
+圆柱体积为 $2\pi r^3$，所以
+\[
+  \frac{V_{\mathrm{sphere}}}{V_{\mathrm{cylinder}}}
+  =\frac{(4/3)\pi r^3}{2\pi r^3}=\frac23.
+\]
+圆柱侧面积为 $2\pi r\cdot2r=4\pi r^2$，恰好等于球面面积。若把圆柱上下两个底面也计入，则其总表面积为 $6\pi r^2$，此时球面面积与圆柱总表面积之比为 $2/3$。因此，“球面与外切圆柱面积相等”必须明确指圆柱的侧面积。
+\end{solve}
+
+\begin{example}[球冠的曲面面积与截面圆盘面积]
+半径为 $5\,\mathrm{cm}$ 的球，被一个平面截出高为 $2\,\mathrm{cm}$ 的顶部球冠。求球冠曲面面积及截面圆盘面积。
+\end{example}
+\begin{solve}
+球冠曲面面积为
+\[
+  S_{\mathrm{cap}}=2\pi rh=20\pi\,\mathrm{cm}^2.
+\]
+截平面到球心的距离为 $r-h=3\,\mathrm{cm}$，故截面半径的平方为
+\[
+  \rho^2=r^2-(r-h)^2=(5^2-3^2)\,\mathrm{cm}^2=16\,\mathrm{cm}^2.
+\]
+截面圆盘面积为 $16\pi\,\mathrm{cm}^2$。如果所求是被切下的小球体部分的完整边界面积，才需要把两者相加，得到 $36\pi\,\mathrm{cm}^2$。
+\end{solve}
+
+四个基本公式及其推导中的关键关系可整理如下，供回顾时对照。
+\begin{center}
+\begin{tabular}{c c c}
+\toprule
+几何量 & 公式 & 推导中的关键关系 \\
+\midrule
+圆周长 & $C=2\pi r$ & 相似性与 $\pi=C/(2r)$ \\
+圆盘面积 & $A=\pi r^2$ & 多边形三角剖分给出 $A=rC/2$ \\
+球体积 & $V=\frac43\pi r^3$ & 半球与圆柱减圆锥的截面积相等 \\
+球面面积 & $S=4\pi r^2$ & 高为 $H$ 的球带面积为 $2\pi rH$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+从球的两个公式还可得到
+\[
+  V(r)=\frac13rS(r).
+\]
+它常被解释为“从球心向球面各小片连出许多细锥体”。这个图像提示了体积与面积的关系，但曲面小片不是平面锥底，有限近似的高也不全恰好等于 $r$。要把这种思路作为严格证明，仍须另行控制逼近误差；在这里，该关系直接由已经分别证明的两个公式得到。
+
+阅读后可以用三个问题检查是否理解了推导：圆面积证明中的上下界分别来自哪两个有限图形？半球比较立体中的圆锥顶点为什么放在底面中心？球面面积计算为什么必须使用圆台的斜高？它们分别对应曲线逼近、体积切片和曲面倾斜这三个关键环节。
+
+\end{document}

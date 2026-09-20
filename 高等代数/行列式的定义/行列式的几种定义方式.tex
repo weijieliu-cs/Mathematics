@@ -1,0 +1,676 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{行列式的几种定义方式}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{引言：不同的定义为什么得到同一个对象}
+
+行列式可以从带符号的排列和出发定义，也可以由若干基本性质唯一刻画，
+还可以利用低阶行列式递归定义。不同教材采用不同起点，
+往往是为了配合已经介绍的知识和后续论述的需要。
+这些定义并非彼此无关的计算规则，而是对同一个函数的不同刻画。
+
+\keyterm{定义}（definition）规定研究对象是什么；
+\keyterm{等价刻画}（equivalent characterization）则说明另一组条件确定的对象与它相同。
+选定一种定义后，其他表述必须经过证明才能使用。
+例如，从排列公式定义行列式时，按行展开公式是需要证明的定理；
+从固定一行的展开式递归定义时，排列公式以及改按其他行展开的合法性都需要证明。
+
+本文详细介绍三条代数路线，分别说明其定义是否合法、需要证明哪些性质，
+并证明它们相互等价。随后借助有向体积解释实矩阵行列式的几何意义。
+阅读前三条路线只需了解矩阵、有限求和、排列和数学归纳法；
+几何部分还使用正交矩阵与格拉姆--施密特正交化。
+
+全文在 $\mathbb F=\mathbb R$ 或 $\mathbb C$ 上讨论，
+$n$ 为正整数，$A=(a_{ij})\in\mathbb F^{n\times n}$。
+$a_{ij}$ 表示第 $i$ 行、第 $j$ 列的元素，$I_n$ 表示单位矩阵，
+$A^{\mathsf T}$ 表示转置矩阵。
+第 $j$ 个标准列向量记为 $\mathbf e_j$，其第 $j$ 个分量为 $1$，其余为 $0$；
+对应的标准行向量为 $\mathbf e_j^{\mathsf T}$。
+\keyterm{行列式}（determinant）记为 $\det A$，有时也记为 $|A|$；
+后一个记号中的竖线不表示绝对值。
+
+为了比较定义，暂用 $P_n$ 表示排列公式给出的函数，
+用 $F$ 表示满足指定性质的函数，用 $R_n$ 表示递归定义的函数。
+最终将证明它们的值总是相同。
+
+\section{第一种定义：带符号的排列和}
+\label{sec:permutation-definition}
+
+\subsection{排列、逆序数与符号}
+
+集合 $\{1,\ldots,n\}$ 到自身的双射称为一个\keyterm{排列}（permutation）。
+所有这类排列组成的集合记为 $S_n$。
+若 $\sigma\in S_n$，则 $\sigma(1),\ldots,\sigma(n)$ 恰好是 $1,\ldots,n$ 的重排。
+其\keyterm{逆序数}（inversion number）定义为
+\[
+  \tau(\sigma)
+  =\#\{(i,j):1\leq i<j\leq n,\ \sigma(i)>\sigma(j)\},
+\]
+其中 $\#$ 表示集合中元素的个数。
+排列的\keyterm{符号}（sign）定义为
+\[
+  \operatorname{sgn}(\sigma)=(-1)^{\tau(\sigma)}.
+\]
+逆序数为偶数时符号为 $1$，为奇数时符号为 $-1$。
+例如，排列 $(2,3,1)$ 的逆序对为 $(1,3)$ 和 $(2,3)$，所以其符号为 $1$；
+排列 $(2,1,3)$ 只有一个逆序对，所以其符号为 $-1$。
+
+\begin{lemma}[排列符号的两个事实]
+\label{lem:permutation-sign}
+交换一个排列中任意两个位置的数，排列的符号变号。
+此外，逆排列 $\sigma^{-1}$ 与原排列具有相同的逆序数，因而
+$\operatorname{sgn}(\sigma^{-1})=\operatorname{sgn}(\sigma)$。
+\end{lemma}
+
+\begin{proof}
+先交换相邻位置的两个数。它们彼此之间的大小顺序被颠倒，贡献的逆序数改变 $1$；
+对其余任意一个数，它与这两个数构成的逆序对总数不变。
+因此逆序数的奇偶性改变，符号变号。
+交换第 $p$、第 $q$ 个位置的数，其中 $p<q$，可以这样实现：
+先把原来第 $p$ 个数向右移到第 $q$ 个位置，共作 $q-p$ 次相邻交换；
+再把原来第 $q$ 个数从第 $q-1$ 个位置向左移到第 $p$ 个位置，
+共作 $q-p-1$ 次相邻交换。
+其他数恢复原位，总交换次数 $2(q-p)-1$ 为奇数，故符号变号。
+
+若 $(i,j)$ 是 $\sigma$ 的逆序对，则 $i<j$ 且 $\sigma(i)>\sigma(j)$。
+令 $u=\sigma(j)$、$v=\sigma(i)$，便有
+$u<v$ 且 $\sigma^{-1}(u)=j>i=\sigma^{-1}(v)$。
+因此 $(u,v)$ 是 $\sigma^{-1}$ 的逆序对。
+这个对应可以反向恢复，故两者的逆序对一一对应，逆序数相等。
+\end{proof}
+
+\subsection{排列公式及低阶情形}
+
+\begin{definition}[排列公式定义]
+\label{def:permutation-determinant}
+对 $A\in\mathbb F^{n\times n}$，定义
+\begin{equation}
+  P_n(A)=\sum_{\sigma\in S_n}\operatorname{sgn}(\sigma)
+  \prod_{i=1}^{n}a_{i,\sigma(i)}.
+  \label{eq:permutation-definition}
+\end{equation}
+采用这条路线时，规定 $\det A=P_n(A)$。
+式~\eqref{eq:permutation-definition} 通常称为\keyterm{莱布尼茨公式}（Leibniz formula）。
+\end{definition}
+
+乘积 $\prod_{i=1}^{n}a_{i,\sigma(i)}$ 从每一行取一个元素；
+又因为 $\sigma(1),\ldots,\sigma(n)$ 互不相同，所以也恰好从每一列取一个元素。
+共有 $n!$ 种选取方式，每一种都由对应排列的符号决定正负。
+这个定义是有限次加法和乘法，因此对每个给定矩阵都直接给出唯一的数。
+
+当 $n=1$ 时，只有恒等排列，故 $P_1((a))=a$。
+当 $n=2$ 时，两个排列分别是 $(1,2)$ 和 $(2,1)$，所以
+\begin{equation}
+  P_2\!\begin{pmatrix}a&b\\c&d\end{pmatrix}=ad-bc.
+  \label{eq:two-by-two}
+\end{equation}
+当 $n=3$ 时，逐一列出六个排列得到
+\[
+  P_3\!\begin{pmatrix}a&b&c\\d&e&f\\g&h&i\end{pmatrix}
+  =aei+bfg+cdh-ceg-bdi-afh.
+\]
+三阶的六项公式来自排列定义。三阶计算中常用的对角线记忆方法不能直接推广到更高阶，
+因为高阶的项仍应由全部排列给出。
+
+\subsection{按行与按列书写为什么等价}
+
+有的教材固定行指标写成 $a_{1,\sigma(1)}\cdots a_{n,\sigma(n)}$，
+有的教材固定列指标写成 $a_{\sigma(1),1}\cdots a_{\sigma(n),n}$。
+这两种写法之间可以直接换元，并不是两个不同的函数。
+
+令 $\rho=\sigma^{-1}$。由于 $j=\sigma(i)$ 等价于 $i=\rho(j)$，
+乘法的交换律给出
+\[
+  \prod_{i=1}^{n}a_{i,\sigma(i)}
+  =\prod_{j=1}^{n}a_{\rho(j),j}.
+\]
+由引理~\ref{lem:permutation-sign}，两排列的符号相同；
+当 $\sigma$ 遍历 $S_n$ 时，$\rho$ 也恰好遍历 $S_n$，所以
+\begin{equation}
+  P_n(A)=\sum_{\rho\in S_n}\operatorname{sgn}(\rho)
+  \prod_{j=1}^{n}a_{\rho(j),j}.
+  \label{eq:column-permutation}
+\end{equation}
+将转置矩阵的元素 $(A^{\mathsf T})_{ij}=a_{ji}$ 代入排列公式，立即得到
+\begin{equation}
+  P_n(A^{\mathsf T})=P_n(A).
+  \label{eq:transpose-invariance}
+\end{equation}
+这里转置不改变行列式是从定义推出的结论，而不是未经证明的前提。
+
+\section{第二种定义：由基本性质唯一刻画}
+\label{sec:axiomatic-definition}
+
+\subsection{三个条件分别要求什么}
+
+把矩阵 $A$ 的各行记为 $r_1,\ldots,r_n\in\mathbb F^{1\times n}$。
+对于矩阵上的函数 $F$，也用 $F(r_1,\ldots,r_n)$ 表示它在以这些向量为行的矩阵上的值。
+
+\begin{definition}[归一化的交替多重线性函数]
+\label{def:axioms}
+函数 $F:\mathbb F^{n\times n}\to\mathbb F$ 满足下列三个条件时，
+称其为按行的归一化交替多重线性函数。
+\begin{enumerate}
+  \item \keyterm{多重线性}（multilinearity）：固定其余各行后，对任意行位置 $k$、
+  行向量 $u,v$ 和标量 $\alpha,\beta\in\mathbb F$，有
+  \begin{equation}
+    F(r_1,\ldots,\alpha u+\beta v,\ldots,r_n)
+    =\alpha F(r_1,\ldots,u,\ldots,r_n)
+     +\beta F(r_1,\ldots,v,\ldots,r_n).
+    \label{eq:row-multilinearity}
+  \end{equation}
+  \item \keyterm{交替性}（alternation）：只要有两行相同，函数值就是 $0$。
+  \item \keyterm{归一化}（normalization）：$F(I_n)=1$。
+\end{enumerate}
+公理化定义行列式的路线，是把满足这三个条件的唯一函数称为行列式。
+这一说法要成为合法定义，必须证明这样的函数存在且唯一。
+\end{definition}
+
+“对每一行分别线性”不表示“对整个矩阵线性”。
+例如 $n=2$ 时，若把整个矩阵乘以 $t$，就是把两行分别乘以 $t$，
+故 $F(tA)=t^2F(A)$；一般为 $F(tA)=t^nF(A)$。
+若把两个矩阵相加后同时对所有行展开，通常还会出现混合项，
+所以不能据此断言 $F(A+B)=F(A)+F(B)$。
+
+\begin{proposition}[交换两行变号]
+\label{prop:row-swap}
+任何满足多重线性和交替性的函数，在交换任意两行后都变号。
+\end{proposition}
+
+\begin{proof}
+固定其他行，只把待交换的两个位置写出来。
+交替性和多重线性给出
+\begin{align*}
+  0&=F(\ldots,u+v,\ldots,u+v,\ldots)\\
+   &=F(\ldots,u,\ldots,u,\ldots)
+    +F(\ldots,u,\ldots,v,\ldots)\\
+   &\quad+F(\ldots,v,\ldots,u,\ldots)
+    +F(\ldots,v,\ldots,v,\ldots).
+\end{align*}
+第一项和最后一项由于两行相同而为零，因此中间两项互为相反数。
+\end{proof}
+
+在实数或复数范围内，反过来也成立：若交换两行变号，当两行相同时交换不改变矩阵，
+便有 $F(A)=-F(A)$，从而 $F(A)=0$。
+因此在本文范围内，可以用“交换两行变号”替代交替性。
+
+\subsection{存在性：排列公式满足三个条件}
+
+\begin{theorem}[存在性]
+\label{thm:axiomatic-existence}
+排列公式给出的 $P_n$ 满足定义~\ref{def:axioms} 的三个条件。
+\end{theorem}
+
+\begin{proof}
+\textbf{多重线性。}
+固定第 $k$ 行以外的各行。排列公式中的每个乘积项，恰好包含一个第 $k$ 行的元素
+$a_{k,\sigma(k)}$。把这一行写成 $\alpha u+\beta v$，
+每项都按分配律分成相应的两项；有限求和后即得式~\eqref{eq:row-multilinearity}。
+
+\textbf{交替性。}
+若第 $p$ 行与第 $q$ 行相同，其中 $p\ne q$，
+把每个排列 $\sigma$ 与交换 $\sigma(p),\sigma(q)$ 后的排列 $\widetilde\sigma$ 配对。
+两者不同，且再交换一次便回到原排列，因此所有排列被分成互不重叠的两两配对。
+两行相同意味着
+\[
+  a_{p,\sigma(p)}a_{q,\sigma(q)}
+  =a_{p,\sigma(q)}a_{q,\sigma(p)}.
+\]
+其余因子不变，而由引理~\ref{lem:permutation-sign}，两个排列的符号相反。
+于是每一对项相消，得到 $P_n(A)=0$。当 $n=1$ 时不存在两个不同的行位置，
+交替性条件自动满足。
+
+\textbf{归一化。}
+对于 $I_n$，只有恒等排列对应的乘积可能非零，该乘积为 $1$，符号也为 $1$。
+其他排列至少选到一个非对角线的零元素，故 $P_n(I_n)=1$。
+\end{proof}
+
+\subsection{唯一性：三个条件迫使排列公式出现}
+
+\begin{theorem}[交替多重线性函数的唯一性]
+\label{thm:axiomatic-uniqueness}
+设 $F:\mathbb F^{n\times n}\to\mathbb F$ 满足按行的多重线性和交替性。
+那么对所有 $A$，都有
+\begin{equation}
+  F(A)=F(I_n)P_n(A).
+  \label{eq:uniqueness-factor}
+\end{equation}
+特别地，若再要求 $F(I_n)=1$，则 $F(A)=P_n(A)$，因此该函数唯一。
+\end{theorem}
+
+\begin{proof}
+第 $i$ 行可写成 $r_i=\sum_{j=1}^{n}a_{ij}\mathbf e_j^{\mathsf T}$。
+逐行使用多重线性，得到
+\begin{equation}
+  F(A)=\sum_{j_1=1}^{n}\cdots\sum_{j_n=1}^{n}
+  a_{1j_1}\cdots a_{nj_n}
+  F(\mathbf e_{j_1}^{\mathsf T},\ldots,\mathbf e_{j_n}^{\mathsf T}).
+  \label{eq:basis-expansion}
+\end{equation}
+若 $j_1,\ldots,j_n$ 中有重复，则括号中的矩阵有两行相同，该项由交替性变为零。
+若没有重复，那么这些指标就是 $1,\ldots,n$ 的一个排列，
+存在唯一的 $\sigma\in S_n$ 使得 $j_i=\sigma(i)$。
+
+把 $\sigma(1),\ldots,\sigma(n)$ 通过相邻逆序对的交换排成递增顺序。
+每次交换使逆序数减少 $1$；当逆序数为 $0$ 时，序列只能是 $1,\ldots,n$。
+所以这一过程恰好作 $\tau(\sigma)$ 次交换。
+由命题~\ref{prop:row-swap}，每次对应的行交换都使 $F$ 变号，故
+\[
+  F(\mathbf e_{\sigma(1)}^{\mathsf T},\ldots,
+    \mathbf e_{\sigma(n)}^{\mathsf T})
+  =(-1)^{\tau(\sigma)}F(I_n).
+\]
+代回式~\eqref{eq:basis-expansion}，便得到式~\eqref{eq:uniqueness-factor}。
+\end{proof}
+
+存在性保证三个条件能够同时满足；唯一性保证它们不会给出多个不同函数。
+归一化也不能省略：例如 $2P_n$ 与恒零函数都满足多重线性和交替性，
+但它们在 $I_n$ 上的值分别是 $2$ 和 $0$。
+
+\begin{example}[由性质推导二阶公式]
+设 $F$ 满足定义~\ref{def:axioms} 的三个条件。计算
+$F\!\begin{pmatrix}a&b\\c&d\end{pmatrix}$。
+\end{example}
+
+\begin{solve}
+将两行分别展开为标准行向量的线性组合，得
+\begin{align*}
+  F(a\mathbf e_1^{\mathsf T}+b\mathbf e_2^{\mathsf T},
+    c\mathbf e_1^{\mathsf T}+d\mathbf e_2^{\mathsf T})
+  &=acF(\mathbf e_1^{\mathsf T},\mathbf e_1^{\mathsf T})
+    +adF(\mathbf e_1^{\mathsf T},\mathbf e_2^{\mathsf T})\\
+  &\quad+bcF(\mathbf e_2^{\mathsf T},\mathbf e_1^{\mathsf T})
+    +bdF(\mathbf e_2^{\mathsf T},\mathbf e_2^{\mathsf T})\\
+  &=0+ad-bc+0=ad-bc.
+\end{align*}
+两个重复行项由交替性消失，标准顺序项由归一化取 $1$，
+交换顺序项由命题~\ref{prop:row-swap} 取 $-1$。
+因此二阶公式中的减号由交替性决定，并非额外约定。
+\end{solve}
+
+也可以把定义~\ref{def:axioms} 中的“行”全部改成“列”。
+事实上，$P_n(A)=P_n(A^{\mathsf T})$，所以它也满足按列的三个条件；
+若 $G$ 满足按列的三个条件，则 $A\mapsto G(A^{\mathsf T})$ 满足按行的三个条件，
+由唯一性可知 $G(A^{\mathsf T})=P_n(A)$，从而 $G(A)=P_n(A)$。
+因此按行刻画和按列刻画得到同一个行列式。
+
+\section{第三种定义：固定展开位置的递归定义}
+\label{sec:recursive-definition}
+
+\subsection{先固定规则，再证明可以改变展开位置}
+
+\keyterm{递归定义}（recursive definition）用规模较小的对象定义规模较大的对象。
+这里的规模是矩阵的阶数。记 $A_{\widehat i\widehat j}$ 为删去 $A$ 的第 $i$ 行、
+第 $j$ 列后得到的矩阵，其余行与列保持原来的相对顺序。
+
+\begin{definition}[按第一行递归定义]
+\label{def:recursive-determinant}
+对唯一的 $0\times0$ 空矩阵，约定 $R_0=1$。
+对 $n\geq1$ 和 $A\in\mathbb F^{n\times n}$，定义
+\begin{equation}
+  R_n(A)=\sum_{j=1}^{n}(-1)^{1+j}a_{1j}
+  R_{n-1}(A_{\widehat1\widehat j}).
+  \label{eq:recursive-definition}
+\end{equation}
+采用这条路线时，规定 $\det A=R_n(A)$。
+\end{definition}
+
+这里的空矩阵约定只是为了统一公式：当 $n=1$ 时，定义给出
+$R_1((a))=(-1)^2aR_0=a$。
+也可以直接以 $R_1((a))=a$ 为起点，只对 $n\geq2$ 使用递推式，两者完全一致。
+
+递推式的右端只含 $n-1$ 阶的函数值。
+因此从初值出发，按阶数递增依次定义，每个矩阵都得到唯一的函数值，
+不存在“为了定义本阶又先使用本阶”的循环。
+但是，\keyterm{此时只规定了按第一行展开}；改按第二行、最后一列或其他位置展开，
+是否得到同一个结果，还必须证明。
+
+例如，该定义直接给出
+\[
+  R_2\!\begin{pmatrix}a&b\\c&d\end{pmatrix}
+  =aR_1((d))-bR_1((c))=ad-bc.
+\]
+
+\subsection{递归定义与排列定义的等价性}
+
+\begin{theorem}[排列公式满足第一行展开式]
+\label{thm:first-row-expansion}
+约定 $P_0=1$。对所有 $n\geq1$，有
+\begin{equation}
+  P_n(A)=\sum_{j=1}^{n}(-1)^{1+j}a_{1j}
+  P_{n-1}(A_{\widehat1\widehat j}).
+  \label{eq:permutation-first-row}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+当 $n=1$ 时，右端为 $a_{11}P_0=a_{11}=P_1(A)$。
+以下设 $n\geq2$，按第一行选取的列号 $j=\sigma(1)$ 对排列公式中的项分组。
+
+固定 $j$，把除 $j$ 外的列号按递增顺序记为
+$b_1<b_2<\cdots<b_{n-1}$。
+每个满足 $\sigma(1)=j$ 的排列，唯一确定一个 $\rho\in S_{n-1}$，使得
+\[
+  \sigma(k+1)=b_{\rho(k)},\qquad 1\leq k\leq n-1.
+\]
+反过来，每个这样的 $\rho$ 也唯一恢复一个 $\sigma$。
+
+计算 $\sigma$ 的逆序数时，与第一个位置有关的逆序对恰好对应数
+$1,\ldots,j-1$，共有 $j-1$ 个。
+其余逆序对只取决于后面 $n-1$ 个数的相对大小；
+把递增列号 $b_1,\ldots,b_{n-1}$ 换成 $1,\ldots,n-1$ 不改变大小关系，
+故这部分逆序数就是 $\tau(\rho)$。因此
+\[
+  \tau(\sigma)=j-1+\tau(\rho),\qquad
+  \operatorname{sgn}(\sigma)=(-1)^{1+j}\operatorname{sgn}(\rho).
+\]
+后一个等式使用了 $j-1$ 与 $j+1$ 相差 $2$、具有相同奇偶性。
+
+又有
+\[
+  \prod_{i=1}^{n}a_{i,\sigma(i)}
+  =a_{1j}\prod_{k=1}^{n-1}a_{k+1,b_{\rho(k)}}.
+\]
+右侧后一个乘积正是子矩阵 $A_{\widehat1\widehat j}$ 对应于 $\rho$ 的乘积项。
+对所有 $\rho$ 求和，固定 $j$ 的这一组便等于
+$(-1)^{1+j}a_{1j}P_{n-1}(A_{\widehat1\widehat j})$。
+最后再对 $j$ 求和，即得式~\eqref{eq:permutation-first-row}。
+\end{proof}
+
+\begin{corollary}[三种代数定义一致]
+\label{cor:equivalent-definitions}
+对任意 $n\geq1$ 和 $A\in\mathbb F^{n\times n}$，
+\[
+  R_n(A)=P_n(A)=F(A),
+\]
+其中 $F$ 是定义~\ref{def:axioms} 中的唯一函数。
+\end{corollary}
+
+\begin{proof}
+定理~\ref{thm:axiomatic-existence} 和定理~\ref{thm:axiomatic-uniqueness}
+已经证明 $F=P_n$。
+对于 $R_n=P_n$，以阶数作归纳。零阶约定相同；
+若所有 $n-1$ 阶矩阵上二者相等，
+则式~\eqref{eq:recursive-definition} 与式~\eqref{eq:permutation-first-row}
+的每一项都相等，从而 $n$ 阶也相等。
+\end{proof}
+
+从现在起，将这三个相同的函数统一记为 $\det$，并沿用零阶行列式等于 $1$ 的约定。
+等价性证明以后，不论最初选取哪一种定义，三条路线已经证明的性质都可以使用。
+
+\subsection{任意一行或一列的展开公式}
+
+元素 $a_{ij}$ 的\keyterm{余子式}（minor）与\keyterm{代数余子式}（cofactor）分别记为
+\[
+  M_{ij}=\det(A_{\widehat i\widehat j}),\qquad
+  C_{ij}=(-1)^{i+j}M_{ij}.
+\]
+应区分删行删列得到的矩阵 $A_{\widehat i\widehat j}$、
+该矩阵的行列式 $M_{ij}$，以及带符号的数 $C_{ij}$。
+
+\begin{theorem}[按任意行或列展开]
+\label{thm:cofactor-expansion}
+对任意固定的行号 $r$ 和列号 $s$，都有
+\begin{align}
+  \det A&=\sum_{j=1}^{n}a_{rj}C_{rj},
+  \label{eq:arbitrary-row-expansion}\\
+  \det A&=\sum_{i=1}^{n}a_{is}C_{is}.
+  \label{eq:arbitrary-column-expansion}
+\end{align}
+\end{theorem}
+
+\begin{proof}
+把第 $r$ 行通过 $r-1$ 次相邻行交换移到第一行，其他行保持相对顺序，得到矩阵 $B$。
+由命题~\ref{prop:row-swap}，有 $\det B=(-1)^{r-1}\det A$。
+对 $B$ 按第一行展开，注意删去它的第一行、第 $j$ 列后正好得到
+$A_{\widehat r\widehat j}$，所以
+\[
+  \det A
+  =(-1)^{r-1}\det B
+  =\sum_{j=1}^{n}(-1)^{r-1}(-1)^{1+j}a_{rj}M_{rj}
+  =\sum_{j=1}^{n}a_{rj}C_{rj}.
+\]
+按第 $s$ 列展开，等价于对 $A^{\mathsf T}$ 按第 $s$ 行展开。
+转置不改变行列式；对应子矩阵也互为转置，所以余子式相同。
+由已证的按行展开公式，即得按列展开公式。
+\end{proof}
+
+因此，在定义时先固定第一行，足以建立整个理论。
+若一开始说“任选一行或一列来定义”，则需要额外证明选择不影响结果，
+不能把这一独立性包含在“任选”二字中而略去。
+
+\begin{example}[不同展开位置给出相同结果]
+计算
+\[
+  \det A,\qquad
+  A=\begin{pmatrix}1&2&3\\0&1&4\\5&6&0\end{pmatrix}.
+\]
+\end{example}
+
+\begin{solve}
+按定义时固定的第一行展开，得
+\[
+  \det A
+  =1(1\cdot0-4\cdot6)
+   -2(0\cdot0-4\cdot5)
+   +3(0\cdot6-1\cdot5)
+  =-24+40-15=1.
+\]
+定理~\ref{thm:cofactor-expansion} 允许改按含有零元素的第二行展开：
+\[
+  \det A
+  =1\begin{vmatrix}1&3\\5&0\end{vmatrix}
+   -4\begin{vmatrix}1&2\\5&6\end{vmatrix}
+  =-15-4(-4)=1.
+\]
+两个结果一致的理由是展开定理；这个数值例子用于核对符号和步骤，
+不能替代对任意阶矩阵的等价性证明。
+\end{solve}
+
+\section{不同定义如何帮助证明性质}
+\label{sec:using-definitions}
+
+\subsection{三角行列式：排列限制与递归降阶}
+
+设 $A$ 为\keyterm{上三角矩阵}（upper triangular matrix），即 $i>j$ 时 $a_{ij}=0$。
+从排列公式看，若一个乘积项没有选到这些规定为零的位置，
+则其排列满足 $\sigma(i)\geq i$ 对所有 $i$ 成立。
+但 $\sum_i\sigma(i)=\sum_i i$，所以所有非负整数 $\sigma(i)-i$ 的和为零，
+迫使 $\sigma(i)=i$ 对所有 $i$ 成立。
+因此只有恒等排列的项可能非零，得到
+\begin{equation}
+  \det A=a_{11}a_{22}\cdots a_{nn}.
+  \label{eq:triangular-product}
+\end{equation}
+
+从展开公式看，第一列除 $a_{11}$ 外全为零，因而
+$\det A=a_{11}\det(A_{\widehat1\widehat1})$。
+余下的矩阵仍为上三角矩阵，反复降阶就得到同一结论。
+注意这里按第一列展开，使用的是已经证明的定理~\ref{thm:cofactor-expansion}，
+不是原来仅按第一行规定的递归式本身。
+\keyterm{下三角矩阵}（lower triangular matrix）定义为 $i<j$ 时 $a_{ij}=0$；
+将其转置即得到上三角矩阵，再用转置不变性，也得到式~\eqref{eq:triangular-product}。
+
+这两种证明都不需要除以主对角线元素，所以允许其中有零。
+它们说明：等价定义成立以后，可以根据矩阵结构选择更简洁的论证路线。
+
+\subsection{乘积公式：唯一性避免复杂展开}
+
+\begin{theorem}[行列式的乘积公式]
+\label{thm:multiplicativity}
+对任意同阶方阵 $A,B\in\mathbb F^{n\times n}$，有
+\begin{equation}
+  \det(AB)=\det A\det B.
+  \label{eq:multiplicativity}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+固定 $B$，把 $H(A)=\det(AB)$ 看成关于 $A$ 的函数。
+若 $A$ 的各行为 $r_1,\ldots,r_n$，则 $AB$ 的各行为 $r_1B,\ldots,r_nB$。
+映射 $r\mapsto rB$ 是线性的，所以 $H$ 对 $A$ 的每一行分别线性；
+若 $A$ 有两行相同，$AB$ 的对应两行也相同，因此 $H$ 具有交替性。
+由定理~\ref{thm:axiomatic-uniqueness} 的一般形式，
+\[
+  H(A)=H(I_n)\det A=\det B\det A.
+\]
+这就是所求公式。证明没有除以 $\det B$，因此也覆盖 $\det B=0$ 的情形。
+\end{proof}
+
+排列公式提供了明确的构造，但直接展开 $\det(AB)$ 会产生很多项。
+性质刻画则把问题转化为验证两个结构条件和一个基准值，
+这正是保留不同等价表述的一个用途。
+
+\section{几何刻画：有向体积的缩放因子}
+\label{sec:geometry}
+
+\subsection{普通体积与行列式的区别}
+
+本节限定 $A\in\mathbb R^{n\times n}$。
+设其列向量为 $c_1,\ldots,c_n$，它们张成的平行多面体为
+\[
+  \mathcal P(A)
+  =\left\{\sum_{j=1}^{n}t_jc_j:0\leq t_j\leq1\right\}.
+\]
+在线性变换 $x\mapsto Ax$ 下，标准单位立方体恰好变成 $\mathcal P(A)$。
+普通的 $n$ 维欧氏体积记为 $\operatorname{Vol}_n$，总是非负；
+\keyterm{有向体积}（oriented volume）还记录有序列向量组的\keyterm{取向}（orientation），
+因而可以为负。
+
+例如，在二维中，$I_2$ 与 $\begin{pmatrix}-1&0\\0&1\end{pmatrix}$
+都把单位正方形变成面积为 $1$ 的图形，
+但后者包含一次反射。由代数定义，两者的行列式分别为 $1$ 和 $-1$。
+因此普通体积对应 $|\det A|$，不能在一般情况下直接等同于 $\det A$。
+这里 $|\det A|$ 才表示实数 $\det A$ 的绝对值。
+
+\subsection{体积公式为何成立}
+
+\begin{theorem}[平行多面体的体积]
+\label{thm:volume}
+对任意实矩阵 $A\in\mathbb R^{n\times n}$，有
+\begin{equation}
+  \operatorname{Vol}_n(\mathcal P(A))=|\det A|.
+  \label{eq:volume}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+\textbf{列向量线性相关的情形。}
+若 $c_1,\ldots,c_n$ 线性相关，则它们张成的空间维数小于 $n$，
+$\mathcal P(A)$ 的 $n$ 维体积为零。
+从一个非平凡线性关系中，取非零系数对应的列，将它表示为其他列的线性组合。
+按这一列使用多重线性，每一项都有两列相同，故由按列的交替性得到 $\det A=0$。
+如果该列是零向量，则直接由对该列的线性性得到同一结论。
+
+\textbf{列向量线性无关的情形。}
+对这些列作\keyterm{格拉姆--施密特正交化}（Gram--Schmidt orthogonalization）：
+依次从 $c_j$ 中减去它在先前方向上的正交投影，得到
+\[
+  u_j=c_j-\sum_{i=1}^{j-1}(q_i^{\mathsf T}c_j)q_i,
+  \qquad
+  q_j=\frac{u_j}{\|u_j\|},\qquad 1\leq j\leq n.
+\]
+其中 $j=1$ 时求和为空，$\|\cdot\|$ 为欧氏范数。
+列向量线性无关保证所有 $u_j\ne0$，故这些除法合法。
+令 $Q=(q_1,\ldots,q_n)$，并令上三角矩阵 $T=(t_{ij})$ 的元素为
+\[
+  t_{ij}=\begin{cases}
+    q_i^{\mathsf T}c_j,&i\leq j,\\
+    0,&i>j.
+  \end{cases}
+\]
+由上述投影分解可知 $A=QT$，其中 $Q^{\mathsf T}Q=I_n$，
+且 $t_{jj}=\|u_j\|>0$。
+
+由乘积公式与转置不变性，
+\[
+  1=\det(Q^{\mathsf T}Q)=(\det Q)^2,
+\]
+所以 $|\det Q|=1$。再用三角行列式公式，得到
+\[
+  |\det A|=|\det Q|\,|\det T|=\prod_{j=1}^{n}\|u_j\|.
+\]
+另一方面，欧氏平行多面体的体积按“底的体积乘以垂直高度”逐维计算。
+第 $j$ 步的高度，是 $c_j$ 到前 $j-1$ 个向量张成空间的距离，恰为 $\|u_j\|$。
+因此 $\operatorname{Vol}_n(\mathcal P(A))=\prod_{j=1}^{n}\|u_j\|$，得到所求等式。
+\end{proof}
+
+这个证明以欧氏体积的底乘高性质和低维集合的 $n$ 维体积为零为几何基础，
+并以此前建立的代数结论说明它与行列式的联系。
+对线性无关的列向量组，相对于标准有序基，称 $\det A>0$ 时取向为正，
+$\det A<0$ 时取向为负；线性相关时体积为零，不构成一个基。
+据此赋予体积相应的正负号，就得到数值等于 $\det A$ 的有向体积。
+
+\subsection{几何说法能否独立作为定义}
+
+可以从几何出发建立行列式，但必须先独立建立体积与取向的概念，
+再证明相应的有向体积对各向量分别线性、具有交替性，并在标准基上取值为 $1$。
+一旦这三项成立，按列版本的唯一性定理就保证它等于代数行列式。
+
+本节采用的是相反顺序：先建立代数行列式，再用它定义取向的正负并证明体积关系。
+因此这里的几何解释不是一个独立于前三节的新存在性证明。
+若已经用 $\det A$ 的符号定义取向，就不能反过来以这种取向下的有向体积，
+声称无须任何代数证明便完成了行列式的定义。
+
+对复矩阵，行列式可能是非实数，不能直接解释为实空间中的正负体积。
+前三条代数定义在 $\mathbb C$ 上仍然成立；本节的正负取向与欧氏体积解释限定在实数情形。
+
+\section{如何选择定义与组织证明}
+
+\subsection{三条路线的起点和证明责任}
+
+下表比较三条代数路线。表中的“需要证明”指尚未把其他路线的结论引入时，
+该路线为建立完整理论需要补足的论证。
+\begin{center}
+  \begin{tabularx}{\textwidth}{@{}lYY@{}}
+    \toprule
+    路线 & 作为定义的起点 & 随后需要证明的内容\\
+    \midrule
+    排列公式 & 全部排列对应的带符号乘积之和
+      & 多重线性、交替性，以及按行或列展开公式\\
+    性质刻画 & 多重线性、交替性与单位阵归一化
+      & 满足条件的函数存在且唯一，并导出具体公式\\
+    递归展开 & 初值与固定按第一行的降阶规则
+      & 与排列公式一致，因而可改按其他行或列展开\\
+    \bottomrule
+  \end{tabularx}
+\end{center}
+
+本文的证明依赖关系是：
+先用排列公式构造 $P_n$，验证三个性质，再证明这三个性质唯一确定 $P_n$；
+随后直接对排列分组，推出第一行展开式，并以归纳法证明 $R_n=P_n$。
+最后由行交换和转置性质得到任意行、列的展开公式。
+每一步所用的结论都已在前文建立，没有互相依赖而未落到起点的循环。
+
+\subsection{定义、计算方法和几何意义各自回答什么}
+
+定义回答“所研究的函数究竟是什么”；
+计算方法回答“给定矩阵后，怎样有效求出它的值”；
+几何解释回答“这个值描述了线性变换的什么特征”。
+它们可以相互支持，但承担的任务不同。
+
+例如，排列定义含有 $n!$ 个乘积项，并不意味着实际计算必须逐一列举这些项。
+利用已经证明的性质，可以对矩阵作消元，再计算三角行列式。
+这是一种求值方法，而不是在引入一个新的行列式函数。
+其中，将一行的倍数加到另一行不改变行列式，是因为对被替换的行使用多重线性后，
+新增的一项有两行成比例，可再由多重线性和交替性证明它为零；
+交换两行或将一行乘以标量时，则必须分别记录变号或相应的倍数。
+
+学习时应先识别教材采用的定义，再检查某一步所用的性质是否已经证明。
+只要等价性已经建立，就可以在同一问题中选择最合适的表述：
+用排列公式追踪项与符号，用性质刻画证明结构结论，用展开公式降阶计算，
+并用有向体积理解实矩阵行列式的大小、正负和退化情形。
+
+\end{document}
