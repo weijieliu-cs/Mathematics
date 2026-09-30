@@ -1,0 +1,104 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
+
+% 支持从项目根目录、深度学习目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{类型安全决策模型与Jev}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{从文本生成到类型化决策}
+\label{sec:jev-motivation}
+
+退款分类、工单路由等任务需要程序可直接使用的判断。若仅用提示词要求大语言模型
+（large language model, LLM）输出 JSON，仍可能出现额外说明、括号缺失或非法枚举值。
+\keyterm{自回归生成}（autoregressive generation）逐个预测词元（token），
+词元并不等于单个汉字；提示词中的格式要求也不自动成为生成约束。
+不过，\keyterm{约束解码}（constrained decoding）可以在生成时排除不符合规则的词元，
+因此不能把格式错误说成所有 LLM 结构化输出的必然缺陷，参见
+\href{https://openai.com/index/introducing-structured-outputs-in-the-api/}{结构化输出技术说明}。
+
+TypeSafe 将 Jev 定位为\keyterm{类型安全决策模型}：输入业务状态与问题，
+直接返回预先规定类型的值及概率，不自由生成自然语言答案。
+\href{https://typesafe.ai/blog/introducing-system-one-models-and-jev}{官方发布说明}
+强调并行输出与面向校准决策的训练方法；这支持其接口定位，但不足以断言未公开的解码头结构。
+API 中仍可出现 JSON 字段名和预设选项字符串，它们不等于模型自由撰写的文本。
+
+\section{三种输出原语及其含义}
+\label{sec:jev-primitives}
+
+\keyterm{原语}（primitive）是可由程序组合的基本判断单元。下表概括三类原语，
+具体限制以官方文档为准。
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lYY@{}}
+\toprule
+原语 & 判断目标 & 输出及边界 \\
+\midrule
+\href{https://docs.typesafe.ai/primitives/noul}{Noul}
+& 命题是否为真 & 返回 $[0,1]$ 内的概率；无单独的置信度字段。 \\
+\href{https://docs.typesafe.ai/primitives/choice}{Choice}
+& 从给定类别中选择一项 & 最多 255 个选项；返回所选项、完整概率分布及置信度。 \\
+\href{https://docs.typesafe.ai/primitives/score}{Score}
+& 按有序量表评定程度 & 定义 2--10 个档位；返回分数、档位说明、概率分布及置信度。 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+设 $x$ 为输入状态，$q$ 为包含判定标准的问题。
+Noul 可记为 $p_\theta(Y=1\mid x,q)$，其中 $Y\in\{0,1\}$ 表示命题真假，
+$\theta$ 表示模型参数。这是模型的条件概率估计，不能直接视为真实后验概率。
+例如 $0.82$ 表示模型给“真”分配的概率，并非“满足条件的程度为 82\%”。
+
+Choice 在有限集合 $\mathcal C=\{c_1,\ldots,c_K\}$ 上给出概率 $p_k$，
+满足 $p_k\geq0$、$\sum_k p_k=1$，并返回概率最大的选项。
+它实现\keyterm{闭集分类}（closed-set classification）；类别不完备时应设“其他”选项。
+Score 的档位编号为 $0,\ldots,m-1$，其档位概率记为 $r_j$，满足
+$r_j\geq0$、$\sum_j r_j=1$。返回分数为
+\begin{equation}
+  s=\sum_{j=0}^{m-1}j\,r_j\in[0,m-1].
+  \label{eq:jev-score}
+\end{equation}
+所以档位离散，但分数不必为整数。例如档位概率为 $(0.1,0.3,0.6)$ 时，
+$s=1.5$。这是档位编号的加权均值，并不自动具有物理量的等距含义。
+
+\section{类型安全与业务正确性}
+\label{sec:jev-reliability}
+
+\keyterm{类型安全}（type safety）保证输出属于约定范围，不能保证选对类别、
+读懂政策或输入资料真实。官方的 \texttt{confidence} 是由概率分布计算的集中程度指标，
+不能直接当作“答案正确的概率”，参见
+\href{https://docs.typesafe.ai/confidence}{置信度说明}。
+\keyterm{概率校准}（probability calibration）要求在大量预测中，
+获得相近预测概率的事件，其实际发生频率与该概率相近；它需要在目标业务数据上检验。
+
+以退货分流为例，可让 Noul 判断用户是否仅因改变主意而退货，
+让 Choice 区分质量问题、个人偏好和其他原因，让 Score 评估材料完整程度。
+程序再结合订单期限等确定性规则决定处理路径，并将不确定案例转人工复核。
+只依赖同一输入的问题可并行提交；依赖前一答案的问题需另行调用。
+这样可以减少自由文本修复和重复生成的开销，但仍需评估误判、延迟和异常处理成本。
+
+\section{如何阅读成本与准确率评测}
+\label{sec:jev-evaluation}
+
+截至 2026 年 9 月 29 日，\href{https://evals.typesafe.ai/}{官方工作流评测}
+涵盖安全事件、智能体运行记录分析、发票处理和客户服务。
+总览对四类工作流等权平均，显示 Jev 约为每例 0.0004 美元、67.8\% 准确率，
+平均用时约 0.4 秒；原材料中的 0.0003 美元不宜作为固定单价。
+同图 Terra 的成本约为 0.0304 美元、准确率为 67.9\%，
+说明此配置下的成本优势接近两个数量级，而非对所有 GPT、Claude 调用都成立。
+
+参考标签来自 GPT-6 Astra 与 Claude Fable 5.1 在高思考设置下的回答共识，
+其余模型使用服务商默认推理设置。因此，该指标反映与参考共识的一致程度，
+不能等同于独立人工真值准确率，也不能统称为与“关闭思考的轻量模型”比较。
+若横轴为成本、纵轴为准确率，\keyterm{帕累托前沿}（Pareto frontier）
+由不存在另一配置成本不更高且准确率不更低、并至少一项严格更优的点组成。
+Jev 位于图中前沿的低成本端，并非准确率最高点；实际选型仍取决于业务误判代价。
+
+\end{document}
