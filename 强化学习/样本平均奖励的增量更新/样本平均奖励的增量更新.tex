@@ -1,0 +1,87 @@
+\documentclass[UTF8]{ctexart}
+
+% 支持从项目根目录、强化学习目录或当前文档目录读取共享样式。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{样本平均奖励的增量更新}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{从求平均到利用旧结果}
+\label{sec:incremental-mean-example}
+
+在多臂赌博机问题中，一根拉杆的奖励具有随机性。若其奖励分布固定且期望存在，
+可以用多次实际奖励的\keyterm{样本平均值}（sample mean）估计期望奖励。
+样本平均值是根据观测数据算出的估计，并不一定恰好等于真实期望。
+\keyterm{增量更新}（incremental update）仍然计算“奖励总和除以次数”，只是利用旧结果避免重新求和。
+
+先固定一根拉杆。假设前三次奖励为 $2,4,6$，第四次奖励为 $12$，则
+\[
+  Q_3=\frac{2+4+6}{3}=4,
+  \qquad
+  Q_4=\frac{2+4+6+12}{4}=6.
+\]
+这里 $Q_3,Q_4$ 分别表示前三次、前四次的平均奖励。
+既然已知前三次的平均值为 $4$，就知道旧总和为 $3\times4$，
+因此也可以直接算 $Q_4=(3\times4+12)/4=6$。
+关键是：\keyterm{旧平均值乘以旧次数，就能还原旧总和}。
+
+\section{一般推导与直观含义}
+\label{sec:incremental-mean-derivation}
+
+记这根拉杆第 $i$ 次实际得到的奖励为 $r_i$，前 $k$ 次的平均值为 $Q_k$，其中 $k\geq1$。按定义，
+\begin{equation}
+  Q_k=\frac{1}{k}\sum_{i=1}^{k}r_i.
+  \label{eq:incremental-sample-mean}
+\end{equation}
+当 $k\geq2$ 时，前 $k-1$ 次的总和是 $(k-1)Q_{k-1}$。
+先把新奖励 $r_k$ 从总和中分出来，再代入旧总和，得到
+\begin{equation}
+  \begin{aligned}
+    Q_k
+    &=\frac{r_k+\sum_{i=1}^{k-1}r_i}{k}
+     =\frac{r_k+(k-1)Q_{k-1}}{k}\\
+    &=\frac{r_k+kQ_{k-1}-Q_{k-1}}{k}\\
+    &=Q_{k-1}+\frac{1}{k}\bigl(r_k-Q_{k-1}\bigr).
+  \end{aligned}
+  \label{eq:incremental-mean-update}
+\end{equation}
+第二行只是把 $(k-1)Q_{k-1}$ 展开；第三行把 $kQ_{k-1}$ 除以 $k$ 后单独提出。
+因此式\eqref{eq:incremental-mean-update}与式\eqref{eq:incremental-sample-mean}完全等价。
+
+更新式可以读成：\keyterm{新平均值等于旧平均值，加上“新奖励与旧平均值之差”的 $1/k$}。
+在前面的例子中，$Q_3=4$、$r_4=12$，故 $Q_4=4+(12-4)/4=6$。
+新奖励比旧平均值高，就把平均值向上拉；比它低，就向下拉。
+已有数据越多，单个新奖励在新平均值中的权重 $1/k$ 就越小。
+
+\section{多臂赌博机中的更新算法}
+\label{sec:incremental-mean-algorithm}
+
+设拉杆集合为 $\mathcal A$。对每根拉杆 $a\in\mathcal A$，
+用 $N(a)$ 保存选择次数，用 $\hat Q(a)$ 保存平均奖励估计，初始化为 $N(a)=0$、$\hat Q(a)=0$。
+第 $t$ 轮选择拉杆 $a_t$，得到实际奖励 $\rho_t$ 后，\keyterm{按先后顺序}执行
+\begin{align}
+  N(a_t)&\leftarrow N(a_t)+1,\notag\\
+  \hat Q(a_t)&\leftarrow\hat Q(a_t)
+    +\frac{\rho_t-\hat Q(a_t)}{N(a_t)}.
+  \label{eq:incremental-bandit-assignment}
+\end{align}
+箭头表示先读取右侧的值，再把结果存入左侧。
+更新平均值时，右侧的 $\hat Q(a_t)$ 是旧平均值，而 $N(a_t)$ 已经包含本次选择；其他拉杆的记录不变。
+
+若本次是该拉杆第 $k$ 次被选择，则更新后的 $N(a_t)=k$，而 $\rho_t$ 就是前文的 $r_k$。
+因此式\eqref{eq:incremental-bandit-assignment}正是在逐次执行式\eqref{eq:incremental-mean-update}。
+分母是\keyterm{这根拉杆自己的次数}：总共进行了 $100$ 轮，但它只被选过 $4$ 次，分母就是 $4$。
+
+第一次选择时，$N(a)=1$，更新得到 $0+(r_1-0)/1=r_1$，恰好是一个数据的平均值。
+初始值 $0$ 只是计算的起点，并不是额外的一次奖励观测。
+每根拉杆只需保存两个数，每次更新耗时 $O(1)$；保存“累计总和与次数”也能做到这一点。
+只有每次重新遍历该拉杆的全部 $k$ 条历史奖励求和，更新耗时才是 $O(k)$。
+
+\end{document}

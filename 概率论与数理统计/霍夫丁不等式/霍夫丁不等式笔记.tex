@@ -1,0 +1,400 @@
+\documentclass[UTF8]{ctexart}
+
+% 支持从项目根目录、概率论与数理统计目录或当前笔记目录读取共享样式。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{霍夫丁不等式笔记}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{引言：算出平均值以后，它有多可靠}
+\label{sec:hoeffding-introduction}
+
+反复抛硬币，可以用正面出现的比例估计正面概率；反复选择同一根老虎机拉杆，可以用平均奖励估计它的期望奖励。
+两种情形都需要回答：样本平均值与真实期望之间，可能相差多大？
+\keyterm{霍夫丁不等式}（Hoeffding's inequality）是一条\keyterm{集中不等式}（concentration inequality），
+它对独立、有界的观测给出误差概率的上界：样本平均值明显偏离其期望的概率，可以随样本量增加而迅速减小。
+
+本文先解释不等式的含义和用法，再给出一般形式与完整证明，最后讨论适用条件及其与强化学习的联系。
+理解前半部分只需平均值、概率、期望以及指数和对数；证明还会用到独立性、凸函数和二阶泰勒公式。
+全文的 $\ln$ 表示自然对数，$e$ 是自然对数的底数。
+
+\subsection{随机变量、观测值与真实期望}
+
+先考虑独立同分布的随机变量 $X_1,\ldots,X_n$，其中正整数 $n$ 是事先固定的样本量。
+\keyterm{独立同分布}（independent and identically distributed，i.i.d.）表示各次观测相互独立，且服从同一个概率分布。
+设已知常数 $a<b$ 满足 $\Pr(a\leq X_i\leq b)=1$，并记共同期望为 $\mu=\mathbb E[X_i]$。
+由于随机变量有界，期望一定存在且有限。
+
+\keyterm{样本平均值}（sample mean）是随机变量
+\begin{equation}
+  \overline X_n=\frac1n\sum_{i=1}^{n}X_i,
+  \qquad \mathbb E[\overline X_n]=\mu.
+  \label{eq:hoeffding-sample-mean}
+\end{equation}
+实际获得数据 $x_1,\ldots,x_n$ 后，算出的数值是
+$\overline x_n=(x_1+\cdots+x_n)/n$。
+这里 $\mu$ 是由分布决定的固定参数；$\overline X_n$ 会随抽样变化，$\overline x_n$ 是某次抽样后的具体结果。
+式\eqref{eq:hoeffding-sample-mean}中的期望相等，并不表示每次抽样都有 $\overline x_n=\mu$。
+
+\subsection{计算平均值与评价误差是两个问题}
+
+对 $n\geq2$，平均值可以逐次计算：
+\[
+  \overline X_n=\overline X_{n-1}
+  +\frac1n\bigl(X_n-\overline X_{n-1}\bigr).
+\]
+这一恒等式解决的是\keyterm{怎样利用旧结果计算新平均值}，对任意一组数据都成立。
+霍夫丁不等式解决的则是\keyterm{在给定抽样假设下，这个平均值有多可靠}。
+仅凭更新公式，无法得到关于误差概率的保证。
+
+\section{先读懂最常用的形式}
+\label{sec:hoeffding-common-form}
+
+\begin{theorem}[共同有界区间下的霍夫丁不等式]
+\label{thm:hoeffding-common}
+设 $X_1,\ldots,X_n$ 相互独立，且对每个 $i$ 都有 $\Pr(a\leq X_i\leq b)=1$，其中 $a<b$。
+如果它们具有共同期望 $\mu$，则对任意 $\varepsilon>0$，
+\begin{align}
+  \Pr(\overline X_n-\mu\geq\varepsilon)
+  &\leq \exp\!\left(-\frac{2n\varepsilon^2}{(b-a)^2}\right),
+  \label{eq:hoeffding-upper}\\
+  \Pr(\mu-\overline X_n\geq\varepsilon)
+  &\leq \exp\!\left(-\frac{2n\varepsilon^2}{(b-a)^2}\right),
+  \label{eq:hoeffding-lower}\\
+  \Pr\!\left(\lvert\overline X_n-\mu\rvert\geq\varepsilon\right)
+  &\leq 2\exp\!\left(-\frac{2n\varepsilon^2}{(b-a)^2}\right).
+  \label{eq:hoeffding-two-sided}
+\end{align}
+\end{theorem}
+
+式\eqref{eq:hoeffding-upper}控制估计偏高的概率，式\eqref{eq:hoeffding-lower}控制估计偏低的概率；
+式\eqref{eq:hoeffding-two-sided}同时控制两个方向，称为\keyterm{双侧界}（two-sided bound）。
+前两个式子各称为\keyterm{单侧界}（one-sided bound）。
+这里其实不要求同分布：\keyterm{独立、共同有界区间和共同期望}已经足够。
+第\ref{sec:hoeffding-general}节还会去掉共同区间与共同期望的要求。
+
+\subsection{把概率公式读成一句话}
+
+给定误差阈值 $\varepsilon>0$，事件
+$\lvert\overline X_n-\mu\rvert\geq\varepsilon$
+表示“样本平均值与真实期望相差至少 $\varepsilon$”。
+式\eqref{eq:hoeffding-two-sided}给出\keyterm{发生这种较大误差的概率上界}，而不是误差本身的大小，也不是该概率的精确值。
+
+三个量的作用可以直接从公式中读出：固定其余量时，样本量 $n$ 越大，上界越小；
+允许的误差 $\varepsilon$ 越大，超过它越不容易；取值区间宽度 $b-a$ 越大，同样样本量下的保证越弱。
+当右边大于 $1$ 时，不等式仍然成立，但没有提供比“概率至多为 $1$”更强的信息。
+必要时可把右边替换为它与 $1$ 的较小者。
+
+\subsection{零一奖励的特殊情形}
+
+若每次奖励 $X_i$ 只取 $0$ 或 $1$，且 $\Pr(X_i=1)=p$，则
+$X_i$ 服从\keyterm{伯努利分布}（Bernoulli distribution），期望为
+$\mathbb E[X_i]=1\cdot p+0\cdot(1-p)=p$。
+在独立抽样的条件下，取 $a=0$、$b=1$，得到
+\begin{equation}
+  \Pr\!\left(\lvert\overline X_n-p\rvert\geq\varepsilon\right)
+  \leq 2e^{-2n\varepsilon^2}.
+  \label{eq:hoeffding-bernoulli}
+\end{equation}
+其中 $\overline X_n$ 就是成功次数占总次数的比例。
+同一个式子也适用于取值在 $[0,1]$ 中的其他独立、同均值观测，并不要求观测只能取两个值。
+
+\section{怎样用它计算误差范围与样本量}
+\label{sec:hoeffding-applications}
+
+\subsection{给定失败概率，求误差范围}
+
+选定 $\delta\in(0,1)$，希望较大误差发生的概率至多为 $\delta$。
+$\delta$ 称为\keyterm{失败概率}（failure probability）；例如 $\delta=0.05$ 表示把失败概率控制在 $5\%$ 以内。
+令双侧界的右边等于 $\delta$，有
+\[
+  2\exp\!\left(-\frac{2n\varepsilon^2}{(b-a)^2}\right)=\delta
+  \quad\Longleftrightarrow\quad
+  \frac{2n\varepsilon^2}{(b-a)^2}=\ln\frac{2}{\delta}.
+\]
+因此定义\keyterm{置信半径}（confidence radius）
+\begin{equation}
+  c_n(\delta)=(b-a)\sqrt{\frac{\ln(2/\delta)}{2n}},
+  \label{eq:hoeffding-confidence-radius}
+\end{equation}
+便有
+\begin{equation}
+  \Pr\!\left(\mu\in
+    [\overline X_n-c_n(\delta),\,\overline X_n+c_n(\delta)]\right)
+  \geq1-\delta.
+  \label{eq:hoeffding-confidence-interval}
+\end{equation}
+这个随机区间是覆盖率至少为 $1-\delta$ 的\keyterm{置信区间}（confidence interval）。
+它的含义是：反复进行同样的抽样并按同一规则构造区间，区间覆盖固定参数 $\mu$ 的概率至少为 $1-\delta$。
+数据给定以后，参数和算出的区间都是固定的；上述结论并没有为 $\mu$ 指定一个后验概率分布。
+由于 $\mu\in[a,b]$，还可将区间与 $[a,b]$ 取交集。
+
+\begin{example}[估计一根拉杆的成功概率]
+预先决定对同一根拉杆进行 $1000$ 次独立尝试，每次成功奖励为 $1$、失败奖励为 $0$，成功概率 $p$ 保持不变。
+若实际成功 $620$ 次，使用 $\delta=0.05$ 的霍夫丁置信区间估计 $p$。
+\end{example}
+\begin{solve}
+样本成功比例为 $\overline x_{1000}=620/1000=0.62$。由式\eqref{eq:hoeffding-confidence-radius}，
+\[
+  c_{1000}(0.05)=\sqrt{\frac{\ln40}{2000}}
+  \approx0.042947<0.043.
+\]
+将半径保守地向上取为 $0.043$，得到区间
+$[0.62-0.043,\,0.62+0.043]=[0.577,\,0.663]$。
+这种区间构造方法的覆盖率至少为 $95\%$。它表达估计的不确定性，并不说明 $p$ 恰好等于 $0.62$。
+\end{solve}
+
+\subsection{给定精度与失败概率，求足够的样本量}
+
+若事先指定误差阈值 $\varepsilon>0$ 和失败概率 $\delta\in(0,1)$，
+只需使式\eqref{eq:hoeffding-two-sided}的右边不超过 $\delta$。逐步取对数得到
+\begin{align*}
+  2\exp\!\left(-\frac{2n\varepsilon^2}{(b-a)^2}\right)\leq\delta
+  &\quad\Longleftrightarrow\quad
+  -\frac{2n\varepsilon^2}{(b-a)^2}\leq\ln\frac{\delta}{2}\\
+  &\quad\Longleftrightarrow\quad
+  n\geq\frac{(b-a)^2}{2\varepsilon^2}\ln\frac{2}{\delta}.
+\end{align*}
+取满足条件的整数样本量，即
+\begin{equation}
+  n\geq\left\lceil
+    \frac{(b-a)^2}{2\varepsilon^2}\ln\frac{2}{\delta}
+  \right\rceil,
+  \label{eq:hoeffding-sample-size}
+\end{equation}
+其中 $\lceil x\rceil$ 表示不小于 $x$ 的最小整数。
+这是一个\keyterm{充分的样本量要求}，并不声称它是所有方法都必需的最小样本量。
+
+\begin{example}[允许误差为五个百分点]
+对成功概率固定的伯努利试验，希望估计误差至少为 $0.05$ 的概率不超过 $0.05$。
+按霍夫丁不等式，预先进行多少次独立试验就足够？
+\end{example}
+\begin{solve}
+代入 $b-a=1$、$\varepsilon=0.05$、$\delta=0.05$，得到
+\[
+  n\geq\left\lceil\frac{\ln40}{2(0.05)^2}\right\rceil
+   =\lceil737.7759\ldots\rceil=738.
+\]
+因此，预先安排 $738$ 次独立试验即可获得所要求的概率保证。
+这里 $\varepsilon=0.05$ 是成功概率的绝对误差，即五个百分点；
+$\delta=0.05$ 则是出现较大误差的概率，两者含义不同。
+固定 $\delta$ 与区间宽度，把允许误差减半，会使式\eqref{eq:hoeffding-sample-size}中取整前的样本量要求变为原来的四倍。
+\end{solve}
+
+\section{一般形式：独立有界随机变量之和}
+\label{sec:hoeffding-general}
+
+实际问题中，各次观测可能具有不同的分布、期望和取值范围。
+此时要研究的是\keyterm{总和偏离其自身期望}的程度。
+下面的定理是更一般的霍夫丁不等式形式\cite{hoeffding1963}。
+
+\begin{theorem}[独立有界随机变量的霍夫丁不等式]
+\label{thm:hoeffding-general}
+设 $n\geq1$，随机变量 $X_1,\ldots,X_n$ 相互独立。
+对每个 $i$，存在有限常数 $a_i\leq b_i$，使 $\Pr(a_i\leq X_i\leq b_i)=1$。
+记
+\[
+  S_n=\sum_{i=1}^{n}X_i,
+  \qquad D_n=\sum_{i=1}^{n}(b_i-a_i)^2.
+\]
+若 $D_n>0$，则对任意 $u>0$，
+\begin{align}
+  \Pr(S_n-\mathbb E[S_n]\geq u)&\leq e^{-2u^2/D_n},
+  \label{eq:hoeffding-sum-upper}\\
+  \Pr(\mathbb E[S_n]-S_n\geq u)&\leq e^{-2u^2/D_n},
+  \label{eq:hoeffding-sum-lower}\\
+  \Pr\!\left(\lvert S_n-\mathbb E[S_n]\rvert\geq u\right)&\leq2e^{-2u^2/D_n}.
+  \label{eq:hoeffding-sum-two-sided}
+\end{align}
+若 $D_n=0$，则 $S_n=\mathbb E[S_n]$ 以概率 $1$ 成立，上述三个偏差事件的概率均为 $0$。
+\end{theorem}
+
+取 $a_i=a$、$b_i=b$，则 $D_n=n(b-a)^2$。
+再令 $u=n\varepsilon$，得到样本平均值相对其期望的界。
+若各变量具有共同期望 $\mu$，便有 $\mathbb E[S_n]=n\mu$，从而得到定理\ref{thm:hoeffding-common}。
+若均值不同，则样本平均值的中心应写成
+$n^{-1}\sum_{i=1}^{n}\mathbb E[X_i]$，不能任意替换为某个固定的共同均值。
+
+\section{证明：先控制指数，再控制偏差概率}
+\label{sec:hoeffding-proof}
+
+证明的目标是控制 $\Pr(S_n-\mathbb E[S_n]\geq u)$。
+直接处理这个事件不方便，但指数函数能把和变成积，而独立性允许把积的期望拆开。
+下面依次准备概率工具、单个变量的指数界，再把它们用于总和。
+共同区间下的定理及指数方法也可参见讲义\cite{duchi-hoeffding}；以下给出所需引理的完整证明。
+
+\subsection{第一步：马尔可夫不等式与指数变换}
+
+\begin{lemma}[马尔可夫不等式]
+\label{lem:hoeffding-markov}
+若随机变量 $Z\geq0$，且 $\mathbb E[Z]<\infty$，则对任意 $c>0$，
+\[
+  \Pr(Z\geq c)\leq\frac{\mathbb E[Z]}{c}.
+\]
+\end{lemma}
+\begin{proof}
+记 $\mathbf 1_{\{Z\geq c\}}$ 为事件 $Z\geq c$ 的示性函数：事件发生时取 $1$，否则取 $0$。
+逐点有 $Z\geq c\mathbf 1_{\{Z\geq c\}}$，两边取期望即得
+$\mathbb E[Z]\geq c\Pr(Z\geq c)$。
+\end{proof}
+
+令 $Y=S_n-\mathbb E[S_n]$。对任意 $\lambda>0$，指数函数严格递增，因而
+\begin{equation}
+  \Pr(Y\geq u)
+  =\Pr(e^{\lambda Y}\geq e^{\lambda u})
+  \leq e^{-\lambda u}\mathbb E[e^{\lambda Y}].
+  \label{eq:hoeffding-exponential-markov}
+\end{equation}
+这里 $Y$ 有界，所以右边的期望有限，满足引理\ref{lem:hoeffding-markov}的条件。
+这一处理通常称为\keyterm{切尔诺夫方法}（Chernoff method）。
+参数 $\lambda$ 由证明者选择；稍后会挑选使右侧上界最小的值。
+
+\subsection{第二步：霍夫丁引理}
+
+\begin{lemma}[霍夫丁引理]
+\label{lem:hoeffding-mgf}
+若 $\Pr(a\leq X\leq b)=1$，其中 $a\leq b$ 是有限常数，则对所有 $\lambda\in\mathbb R$，
+\begin{equation}
+  \mathbb E\!\left[e^{\lambda(X-\mathbb E[X])}\right]
+  \leq\exp\!\left(\frac{\lambda^2(b-a)^2}{8}\right).
+  \label{eq:hoeffding-lemma}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+若 $a=b$，则 $X=a$ 以概率 $1$ 成立，等式两侧均为 $1$。以下设 $a<b$。
+记 $m=\mathbb E[X]$、$\theta=(m-a)/(b-a)\in[0,1]$，并令 $v=\lambda(b-a)$。
+
+函数 $x\mapsto e^{\lambda x}$ 的二阶导数为 $\lambda^2e^{\lambda x}\geq0$，故它是凸函数。
+凸函数在两个端点之间的图像不高于连接端点的线段，因此对 $x\in[a,b]$，
+\[
+  e^{\lambda x}\leq
+  \frac{b-x}{b-a}e^{\lambda a}
+  +\frac{x-a}{b-a}e^{\lambda b}.
+\]
+代入 $X$ 并取期望，再乘以 $e^{-\lambda m}$，得到
+\begin{align*}
+  \mathbb E[e^{\lambda(X-m)}]
+  &\leq (1-\theta)e^{-\theta v}+\theta e^{(1-\theta)v}\\
+  &=\exp\!\left(\ln(1-\theta+\theta e^v)-\theta v\right).
+\end{align*}
+于是只需证明括号中的量至多为 $v^2/8$。
+定义实函数
+\[
+  h(w)=\ln(1-\theta+\theta e^w)-\theta w,
+  \qquad q(w)=\frac{\theta e^w}{1-\theta+\theta e^w}.
+\]
+分母对所有 $w\in\mathbb R$ 都为正，且 $0\leq q(w)\leq1$。求导得
+\[
+  h(0)=0,\qquad h'(w)=q(w)-\theta,\qquad h'(0)=0,
+  \qquad h''(w)=q(w)(1-q(w))\leq\frac14.
+\]
+最后一个不等式来自 $q(1-q)=1/4-(q-1/2)^2\leq1/4$。
+对 $v\ne0$，由二阶泰勒公式，存在位于 $0$ 与 $v$ 之间的 $\xi$，使
+\[
+  h(v)=h(0)+h'(0)v+\frac12h''(\xi)v^2\leq\frac{v^2}{8}.
+\]
+当 $v=0$ 时也成立。因此
+$\mathbb E[e^{\lambda(X-m)}]\leq e^{v^2/8}
+=e^{\lambda^2(b-a)^2/8}$，引理得证。
+\end{proof}
+
+\subsection{第三步：用独立性处理总和并选择参数}
+
+\begin{proof}[定理\ref{thm:hoeffding-general}的证明]
+先设 $D_n>0$。令 $Y_i=X_i-\mathbb E[X_i]$，则 $Y=\sum_{i=1}^{n}Y_i$。
+因为 $X_i$ 相互独立，$e^{\lambda Y_i}$ 也相互独立；这些变量有界，所有期望有限。
+因此由引理\ref{lem:hoeffding-mgf}，
+\begin{align*}
+  \mathbb E[e^{\lambda Y}]
+  &=\mathbb E\!\left[\prod_{i=1}^{n}e^{\lambda Y_i}\right]
+   =\prod_{i=1}^{n}\mathbb E[e^{\lambda Y_i}]\\
+  &\leq\prod_{i=1}^{n}
+    \exp\!\left(\frac{\lambda^2(b_i-a_i)^2}{8}\right)
+   =\exp\!\left(\frac{\lambda^2D_n}{8}\right).
+\end{align*}
+代入式\eqref{eq:hoeffding-exponential-markov}，得到对任意 $\lambda>0$ 都成立的上界
+\[
+  \Pr(Y\geq u)\leq
+  \exp\!\left(-\lambda u+\frac{\lambda^2D_n}{8}\right).
+\]
+为使这个上界尽可能小，配方得
+\[
+  -\lambda u+\frac{\lambda^2D_n}{8}
+  =\frac{D_n}{8}\left(\lambda-\frac{4u}{D_n}\right)^2
+   -\frac{2u^2}{D_n}.
+\]
+由于 $u>0$、$D_n>0$，选择允许范围内的 $\lambda=4u/D_n$，即得式\eqref{eq:hoeffding-sum-upper}。
+将每个 $X_i$ 换成 $-X_i$，有界区间宽度不变，便得到式\eqref{eq:hoeffding-sum-lower}。
+
+最后，事件 $|Y|\geq u$ 是 $Y\geq u$ 与 $Y\leq-u$ 的并集。
+由\keyterm{联合界}（union bound），并集的概率不超过各事件概率之和，故双侧界多出系数 $2$。
+联合界不要求事件独立；它可由并集的示性函数不大于各示性函数之和、再取期望得到。
+
+若 $D_n=0$，每个非负项 $(b_i-a_i)^2$ 都为 $0$，从而各 $X_i=a_i$ 以概率 $1$ 成立。
+所以总和没有随机偏差，定理的退化情形也成立。
+\end{proof}
+
+\section{使用条件及其与强化学习的联系}
+\label{sec:hoeffding-scope}
+
+\subsection{独立性与有界性不能省略}
+
+独立性在证明中用于把积的期望拆成期望的积。
+例如，令 $B$ 以各 $1/2$ 的概率取 $0$ 和 $1$，再设 $X_1=\cdots=X_n=B$。
+每个变量都落在 $[0,1]$，均值都为 $1/2$，但它们是同一个随机结果的重复。
+此时 $\overline X_n=B$，所以对所有 $n$，
+\[
+  \Pr\!\left(\left|\overline X_n-\frac12\right|\geq\frac14\right)=1.
+\]
+误差概率没有随 $n$ 减小。因而不能把同一条观测重复抄写 $n$ 次，当成 $n$ 次独立试验。
+
+有界性要求事先有确定的区间，随机变量以概率 $1$ 落在其中。
+\keyterm{样本中出现的最小值和最大值，不自动构成总体取值范围}。
+例如，正态随机变量没有有限的确定上下界，不能直接代入本文定理；需要利用其他分布条件推导相应的界。
+
+\subsection{固定样本量的保证与多次查看数据}
+
+定理首先保证的是\keyterm{一个事先固定的样本量 $n$}下的偏差概率。
+如果看过数据以后才决定何时停止，最终样本量也具有随机性，不能直接把它代入固定样本量公式就认为保证自动成立。
+若要同时控制多个样本量下的误差，可以给每个样本量分配失败概率，再使用联合界控制总失败概率。
+这与只在一个预先选定的样本量上计算区间，是不同的保证。
+
+\subsection{它怎样帮助理解多臂赌博机}
+
+在常见的平稳多臂赌博机模型中，假设对某根拉杆依次获得的奖励独立同分布，取值在 $[0,1]$，均值为 $\mu_a$。
+对这根拉杆预先固定的 $k$ 次观测，记平均奖励为 $\widehat\mu_{a,k}$，则式\eqref{eq:hoeffding-confidence-interval}说明
+\[
+  \Pr\!\left(\mu_a\leq
+    \widehat\mu_{a,k}+\sqrt{\frac{\ln(2/\delta)}{2k}}\right)\geq1-\delta.
+\]
+这里的上界由“当前估计”加“反映不确定性的余量”组成。
+观测少的拉杆余量较大，值得进一步了解；观测多的拉杆余量较小，估计更精确。
+这解释了\keyterm{置信上界}（upper confidence bound，UCB）方法中探索奖励的一种来源。
+
+不过，自适应选择拉杆时，各根拉杆的累计选择次数通常是随机的。
+若要证明某个 UCB 算法在多个拉杆、多个时刻上的保证，还需要处理这种随机计数并控制所有相关事件，
+不能只引用一个固定 $k$ 的结论。这里的公式用于说明统计依据，并不是完整的算法性能证明。
+
+\begin{thebibliography}{9}
+\bibitem{hoeffding1963}
+Wassily Hoeffding.
+\newblock Probability Inequalities for Sums of Bounded Random Variables.
+\newblock \emph{Journal of the American Statistical Association}, 58(301):13--30, 1963.
+\newblock \href{https://doi.org/10.1080/01621459.1963.10500830}{doi:10.1080/01621459.1963.10500830}.
+
+\bibitem{duchi-hoeffding}
+John Duchi.
+\newblock \emph{CS229 Supplemental Lecture Notes: Hoeffding's Inequality}.
+\newblock Stanford University.
+\newblock \href{https://cs229.stanford.edu/notes_archive/cs229-notes-all/hoeffding.pdf}{课程讲义在线版本}.
+\end{thebibliography}
+
+\end{document}
