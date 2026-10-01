@@ -1,0 +1,54 @@
+\documentclass[UTF8]{ctexart}
+
+% 支持从项目根目录、强化学习目录或当前文档目录读取共享样式。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{多臂赌博机与强化学习}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{共同目标：通过反馈学习决策}
+\label{sec:bandit-rl-objective}
+
+\keyterm{强化学习}（reinforcement learning）研究如何通过行动获得反馈，学习使累计奖励更高的决策方式。
+\keyterm{多臂赌博机}（multi-armed bandit）保留了这一机制，并简化了环境状态变化与延迟奖励问题。
+以下讨论经典的平稳随机多臂赌博机。
+
+设有 $K$ 根拉杆，第 $t$ 轮选择 $A_t\in\{1,\ldots,K\}$，随后观察随机奖励 $R_t$。
+给定本轮选择后，奖励分布只由所选拉杆决定，不随时间或过去记录变化，且期望有限；这些分布事先未知。
+\keyterm{策略}（policy）$\pi$ 根据此前的选择与奖励记录决定下一次行动，目标是在给定的 $T$ 轮中实现
+\begin{equation}
+  \max_{\pi}\;\mathbb{E}_{\pi}\!\left[\sum_{t=1}^{T}R_t\right].
+  \label{eq:bandit-rl-return}
+\end{equation}
+期望同时考虑奖励的随机性与策略可能采用的随机选择。
+
+\section{简化之处：没有动作引起的状态变化}
+\label{sec:bandit-rl-simplification}
+
+在一般强化学习中，动作既影响当前奖励，也可能改变下一状态，从而影响后续收益。
+例如，机器人为了绕过障碍，可能暂时远离出口；当前没有收益的动作，也可能为最终成功创造条件。
+\keyterm{时间信用分配}（temporal credit assignment）就是判断过去哪些动作应当为后来的结果负责。
+
+多臂赌博机每轮结束后仍面对相同的拉杆及其奖励分布，本轮奖励直接对应本轮选择，
+无需沿环境状态序列追溯延迟奖励。因此，它可建模为\keyterm{只有一个状态的马尔可夫决策过程}
+（Markov decision process，MDP）：拉杆对应动作，每次行动后都回到同一状态。
+
+\section{保留的难点：探索与利用}
+\label{sec:bandit-rl-exploration}
+
+\keyterm{利用}（exploitation）是选择目前估计收益最高的拉杆；
+\keyterm{探索}（exploration）是尝试了解较少的拉杆，以判断它是否更好。
+探索可能牺牲当前奖励，却改善后续决策，因此只追求眼前估计收益最高，并不一定使式\eqref{eq:bandit-rl-return}最大。
+
+\keyterm{行动不改变拉杆，却会改变决策者对拉杆的认识}。
+所以，一个环境状态并不意味着各轮决策彼此独立：历史反馈仍会影响下一次选择。
+多臂赌博机的简单之处在于省去了复杂的状态转移，同时保留了通过试错学习以及权衡探索与利用的核心问题。
+
+\end{document}
