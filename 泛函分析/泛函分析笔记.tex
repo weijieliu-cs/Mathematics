@@ -1,0 +1,1747 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexbook}
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{泛函分析笔记}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\chapter{绪论与全书课程大纲}
+\label{chap:fa-introduction}
+
+\section{研究对象与基本问题}
+
+\keyterm{泛函分析（functional analysis）}研究带有拓扑、范数或内积结构的线性空间，以及这些空间上的函数与算子。它将有限维线性代数中的向量、矩阵和线性方程推广到函数空间，使微分方程、积分方程、函数逼近与变分问题能够在共同的框架中讨论。
+
+全书以三个问题组织内容：首先，如何选择容纳未知函数的空间，并保证极限仍留在该空间中；其次，怎样判断一个方程是否有解、解是否唯一，以及解对数据是否连续依赖；最后，当有限维的紧性与对角化方法失效时，如何借助弱收敛、紧算子和谱理论恢复可用的结构。
+
+本书采用紧凑的本科教材写法：定义交代对象与条件，核心定理给出证明，例题说明方法的使用，习题检验概念与推理。一般拓扑、测度论及进阶谱论中超出本科主线的结果，会明确注明引用或仅给证明思路；阅读这些专题不影响基础部分的学习。
+
+\section{课程层次与先修知识}
+
+本书面向学过数学分析与高等代数的读者，主体定位为本科高年级课程。先修知识包括极限、连续性、函数列、级数、线性空间、线性映射、内积与有限维特征值理论。涉及可测函数空间时，需要补充测度与 Lebesgue 积分；涉及一般谱理论时，需要复分析中的解析函数与 Liouville 定理。
+
+\begin{description}
+  \item[入门基础] 第\ref{chap:fa-metric}章至第\ref{chap:fa-baire}章建立度量空间、Banach 空间、Hilbert 空间及基本定理，是第一次学习的重点。
+  \item[核心理论] 第\ref{chap:fa-weak}章至第\ref{chap:fa-compact-spectral}章讨论弱拓扑、弱紧性、算子谱与紧算子，构成完整基础课程的后半部分。
+  \item[应用专题] 第\ref{chap:fa-variational}、\ref{chap:fa-fixed-point}章将抽象理论用于变分问题、弱解和非线性方程，可按课程需要选读。
+  \item[进阶专题] 第\ref{chap:fa-unbounded}章至第\ref{chap:fa-semigroups}章介绍无界算子、一般谱定理和算子半群，作为进一步学习的入口。
+\end{description}
+
+附录\ref{app:fa-measure}补充测度与积分，附录\ref{app:fa-topology}补充一般拓扑与集合论，附录\ref{app:fa-complex}补充复分析工具。尚未学习实分析的读者，可先用连续函数空间与数列空间理解主体概念，再结合附录进入可测函数空间。
+
+\section{全书章节总览}
+
+以下顺序兼顾知识依赖与学习动机。首次学习以基础与核心部分为主，应用部分择要阅读，进阶部分用于了解后续方向。
+
+\begin{longtable}{L{0.08\textwidth}L{0.32\textwidth}L{0.48\textwidth}}
+\toprule
+章节 & 主题 & 核心问题 \\
+\midrule
+\endhead
+\ref{chap:fa-introduction} & 绪论与全书课程大纲 & 从有限维到无限维，哪些方法仍然有效？ \\
+\ref{chap:fa-metric} & 度量空间、完备性与紧性 & 极限何时存在，序列何时能够提取收敛子列？ \\
+\ref{chap:fa-banach} & 赋范线性空间与 Banach 空间 & 怎样选择函数空间，怎样识别无限维现象？ \\
+\ref{chap:fa-operators} & 有界线性算子与对偶空间 & 如何用范数控制线性映射，如何用标量观测向量？ \\
+\ref{chap:fa-hilbert} & Hilbert 空间与正交展开 & 投影、最佳逼近和正交坐标如何推广？ \\
+\ref{chap:fa-hahn-banach} & Hahn--Banach 定理与凸集分离 & 局部定义的泛函如何延拓，如何分离点与凸集？ \\
+\ref{chap:fa-baire} & Baire 纲定理与算子基本定理 & 完备性怎样产生一致估计和逆映射的连续性？ \\
+\ref{chap:fa-weak} & 弱拓扑、弱星拓扑与收敛 & 放宽收敛要求以后，哪些线性结构仍被保留？ \\
+\ref{chap:fa-reflexive} & 弱紧性与自反空间 & 何时能从有界序列中提取弱收敛子列？ \\
+\ref{chap:fa-spectrum} & 有界算子的谱理论 & 无限维中的不可逆性为何不限于特征值？ \\
+\ref{chap:fa-compact} & 紧算子与 Fredholm 理论 & 哪些无限维方程仍具有有限维式的可解性结构？ \\
+\ref{chap:fa-compact-spectral} & 紧自伴算子的谱分解 & 哪些算子能按正交特征向量展开？ \\
+\ref{chap:fa-variational} & 变分方法与方程的弱解 & 如何由能量、弱紧性与强制性证明解的存在？ \\
+\ref{chap:fa-fixed-point} & 不动点方法与非线性方程 & 非线性方程何时可由压缩性或紧性求解？ \\
+\ref{chap:fa-unbounded} & 无界算子与定义域 & 微分算子的定义域为何是算子的一部分？ \\
+\ref{chap:fa-general-spectral} & 一般谱定理与函数演算 & 无法用离散特征向量表示时，如何进行谱分解？ \\
+\ref{chap:fa-semigroups} & 算子半群与演化方程 & 如何把矩阵指数推广为无限维时间演化？ \\
+\bottomrule
+\end{longtable}
+
+\section{学习路线与贯穿全书的例子}
+
+基本路线依次是空间结构、连续线性映射、基本存在性定理、弱收敛与紧性、算子谱及应用。Hilbert 空间的几何方法可以先于一般对偶理论学习；Hahn--Banach 定理与 Baire 纲定理各有独立的证明来源，不能将二者混为一条推导链。
+
+全书反复使用连续函数空间、数列空间、可积函数空间，以及移位算子、对角算子、积分算子和微分算子。第一次出现时给出定义，此后在新的结构下重新考察同一对象。这样能够具体比较：同一线性映射换用范数后可能失去连续性；同一有界序列在弱拓扑下可能收敛；同一微分表达式采用不同边界条件会给出不同算子。
+
+每章习题按概念辨析、证明训练、计算与应用组织。解题时先写清空间、标量域、范数或拓扑，再检查所用定理的假设。反例与正面结论同样重要，尤其要追踪完备性、闭性、有限维性、紧性和自反性分别用在何处。
+
+\section{记号与约定}
+
+标量域记为 $\mathbb K$，取 $\mathbb R$ 或 $\mathbb C$。一般赋范线性空间记为 $X,Y$，Hilbert 空间记为 $H$，零向量记为 $0$。$\|x\|_X$ 表示 $X$ 中向量 $x$ 的范数；上下文明确时省略下标。$B_X$ 表示闭单位球 $\{x\in X:\|x\|_X\leq 1\}$。对集合 $M\subset X$，$\overline M$ 默认表示范数闭包，$\operatorname{span}M$ 表示有限线性组合的集合。
+
+连续线性映射 $T:X\to Y$ 的全体记为 $\mathcal B(X,Y)$，并令 $\mathcal B(X)=\mathcal B(X,X)$；其核与值域分别记为 $\ker T$、$\operatorname{Ran}T$。连续线性泛函构成的对偶空间记为 $X^*$，双对偶记为 $X^{**}$。恒等算子记为 $I$。
+
+复内积 $\langle x,y\rangle$ 约定对第一个变量线性、对第二个变量共轭线性。Banach 空间算子的对偶算子记为 $T':Y^*\to X^*$，Hilbert 空间算子的伴随记为 $T^*$，以免混淆两种构造。涉及弱星拓扑时使用 $\sigma(X^*,X)$，涉及弱拓扑时使用 $\sigma(X,X^*)$；完整定义见第\ref{chap:fa-weak}章。
+
+\section{参考资源与本书的组织方式}
+
+核心主题的覆盖范围参考 MIT 的泛函分析入门课程大纲\cite{mit-syllabus}，相关公开讲义可由课程阅读页\cite{mit-notes}获取。本书采用自己的章节顺序，将弱紧性与自反空间单列，并另设应用和进阶部分。章节总览用于组织知识，不等同于任何一门课程的考试范围。
+
+\chapter{度量空间、完备性与紧性}
+\label{chap:fa-metric}
+
+函数列可以逐点收敛，也可以一致收敛；同一列函数在不同意义下可能具有不同的极限性质。度量把“接近”变成可以估计的数值，完备性保证 Cauchy 逼近有极限，紧性则保证从任意序列中选出收敛子列。
+
+\section{度量与基本拓扑概念}
+\begin{definition}
+集合 $M$ 上的\keyterm{度量（metric）}是映射 $d:M\times M\to[0,\infty)$，满足对所有 $x,y,z\in M$，
+\[
+ d(x,y)=0\iff x=y,\qquad d(x,y)=d(y,x),\qquad
+ d(x,z)\leq d(x,y)+d(y,z).
+\]
+二元组 $(M,d)$ 称为度量空间。开球记为 $B(x,r)=\{y:d(x,y)<r\}$，其中 $r>0$。
+\end{definition}
+集合 $U$ 开，是指每个 $x\in U$ 都有某个开球 $B(x,r)\subset U$；集合 $F$ 闭，是指 $M\setminus F$ 开。集合 $A$ 的闭包 $\overline A$ 由所有满足 $B(x,r)\cap A\ne\varnothing$（对每个 $r>0$）的点组成。若 $\overline A=M$，称 $A$ 稠密；存在可数稠密子集的空间称为\keyterm{可分空间（separable space）}。
+
+度量空间中，$x\in\overline A$ 当且仅当存在 $a_n\in A$ 使 $d(a_n,x)\to0$：一个方向由三角不等式得到，另一个方向在每个 $B(x,1/n)$ 中选择一点即可。因此，闭集恰是包含其所有收敛序列极限的集合。
+
+\begin{example}
+在 $C([0,1])$ 上，$d_\infty(f,g)=\max_{t\in[0,1]}|f(t)-g(t)|$ 给出一致收敛。另一个度量 $d_1(f,g)=\int_0^1|f-g|\,\mathrm dt$ 给出不同的收敛：$f_n(t)=t^n$ 满足 $d_1(f_n,0)=1/(n+1)\to0$，但 $d_\infty(f_n,0)=1$。
+\end{example}
+
+\section{连续性与完备性}
+映射 $F:(M,d)\to(N,\rho)$ 在 $x$ 连续，是指对每个 $\varepsilon>0$ 存在 $\delta>0$，使 $d(x,y)<\delta$ 蕴含 $\rho(Fx,Fy)<\varepsilon$。若 $\delta$ 可对所有 $x$ 统一选择，则称一致连续。用半径 $1/n$ 选择反例可证明：度量空间中的连续性等价于保持序列极限。
+
+\begin{definition}
+若对每个 $\varepsilon>0$，存在 $N$ 使 $m,n\geq N$ 时 $d(x_m,x_n)<\varepsilon$，则称 $(x_n)$ 为 Cauchy 序列。每个 Cauchy 序列都在空间内收敛时，称空间\keyterm{完备（complete）}。
+\end{definition}
+收敛序列必为 Cauchy 序列，因为 $d(x_m,x_n)\leq d(x_m,x)+d(x_n,x)$。逆命题需要空间本身的性质：有理数列可以在实数中趋于 $\sqrt2$，却在 $\mathbb Q$ 中没有极限。
+
+\begin{proposition}\label{prop:fa-closed-complete}
+完备度量空间的子集在诱导度量下完备，当且仅当它闭。任意度量空间中的完备子集都是闭集。
+\end{proposition}
+\begin{proof}
+闭子集中的 Cauchy 序列先在完备环境中收敛，再由闭性知极限仍在子集中。反之，若子集 $A$ 完备且 $x\in\overline A$，取 $a_n\in A$ 收敛到 $x$。此列为 Cauchy 序列，故在 $A$ 中有极限；度量极限唯一，因而 $x\in A$。
+\end{proof}
+
+\begin{example}[一致极限与完备性]
+$C([0,1])$ 在 $d_\infty$ 下完备。
+\end{example}
+\begin{proof}
+若 $(f_n)$ 为一致距离下的 Cauchy 序列，则对每个 $t$，$(f_n(t))$ 在 $\mathbb K$ 中收敛，记极限为 $f(t)$。在 $|f_n(t)-f_m(t)|<\varepsilon$ 中令 $m\to\infty$，得到对所有 $t$ 同时成立的 $|f_n(t)-f(t)|\leq\varepsilon$，故收敛一致。给定 $t_0$，将 $|f(t)-f(t_0)|$ 分解为两个一致逼近误差与 $|f_n(t)-f_n(t_0)|$，即知 $f$ 连续。
+\end{proof}
+
+\section{完备化与连续延拓}
+\begin{theorem}[完备化]
+每个度量空间 $M$ 都可等距嵌入一个完备空间 $\widehat M$，且其像稠密。这样的完备化在保持原空间嵌入的等距同构意义下唯一。
+\end{theorem}
+\begin{proof}
+在 $M$ 的 Cauchy 序列之间规定 $(x_n)\sim(y_n)$ 当且仅当 $d(x_n,y_n)\to0$，并令
+\[
+ \widehat d([x_n],[y_n])=\lim_n d(x_n,y_n).
+\]
+三角不等式保证右侧存在、与代表元无关，并使其成为等价类集合上的度量。常值序列给出等距嵌入 $\iota$；由于 $\iota(x_n)\to[x_n]$，其像稠密。
+
+若 $(\xi_n)$ 为 $\widehat M$ 中的 Cauchy 序列，由稠密性取 $z_n\in M$ 使 $\widehat d(\iota(z_n),\xi_n)<1/n$。于是 $(z_n)$ 为 Cauchy 序列，而 $\xi_n\to[z_n]$，所以 $\widehat M$ 完备。在另一完备化中，把 $[x_n]$ 映为嵌入序列的极限；这个映射良定义、保距且满射，给出唯一性。
+\end{proof}
+
+若 $A$ 在 $M$ 中稠密，$F:A\to N$ 一致连续且 $N$ 完备，则令 $\overline F(x)=\lim_nF(a_n)$，其中 $a_n\to x$，可得唯一的一致连续延拓。存在性来自一致连续映射将 Cauchy 序列映为 Cauchy 序列；两种逼近序列交错排列即可验证极限无关性。仅有连续性通常不足，例如 $x\mapsto1/x$ 不能从 $(0,1)$ 连续延拓到 $[0,1]$。
+
+\section{紧性、列紧性与全有界性}
+\begin{definition}
+度量空间称为\keyterm{紧的（compact）}，若每个开覆盖都有有限子覆盖；称为\keyterm{列紧的（sequentially compact）}，若每个序列都有收敛子列；称为\keyterm{全有界的（totally bounded）}，若对每个 $\varepsilon>0$，有限多个半径为 $\varepsilon$ 的开球就能覆盖整个空间。
+\end{definition}
+\begin{theorem}\label{thm:fa-metric-compactness}
+对度量空间，紧、列紧、完备且全有界三者等价。
+\end{theorem}
+\begin{proof}
+紧空间必全有界，因为全体半径 $\varepsilon$ 的球构成开覆盖。若一个序列没有收敛子列，每个点都有仅包含有限多个序列指标的邻域；否则可逐次选点得到收敛子列。这些邻域的有限子覆盖不可能覆盖所有指标，故紧空间列紧。
+
+列紧空间完备，因为 Cauchy 序列一旦有收敛子列，整个序列就收敛。若不全有界，可递归构造点列，使任意两点距离至少为某个 $\varepsilon>0$，与列紧性矛盾。
+
+完备且全有界时，对半径 $2^{-k}$ 的有限覆盖逐次保留含无穷多项的球，抽得 Cauchy 子列，故列紧。最后，列紧空间的任意开覆盖具有 Lebesgue 数：存在 $\delta>0$，每个半径 $\delta$ 的球都包含于某个覆盖成员。否则选择 $x_n$ 使 $B(x_n,1/n)$ 不被任何成员包含，取 $x_n$ 的收敛子列，在极限点附近的一个覆盖成员内即得矛盾。再取有限个半径 $\delta/2$ 的球覆盖空间，得到有限子覆盖。
+\end{proof}
+完备与有界并不保证紧。例如无穷集合上的离散度量 $d(x,y)=1$（$x\ne y$）完备且有界，但半径 $1/2$ 的球都是单点，故不全有界。
+
+\section{压缩映射原理}
+\begin{theorem}[Banach 不动点定理]\label{thm:fa-contraction}
+设 $(M,d)$ 非空且完备，$F:M\to M$ 满足 $d(Fx,Fy)\leq qd(x,y)$，其中 $0\leq q<1$。则 $F$ 有唯一不动点 $x_*$。任取 $x_0\in M$，迭代 $x_{n+1}=F(x_n)$ 收敛到 $x_*$，且
+\[
+ d(x_n,x_*)\leq\frac{q^n}{1-q}d(x_1,x_0),\qquad
+ d(x_n,x_*)\leq\frac{q}{1-q}d(x_n,x_{n-1})\quad(n\geq1).
+\]
+\end{theorem}
+\begin{proof}
+归纳得 $d(x_{n+1},x_n)\leq q^nd(x_1,x_0)$。对相邻距离求和可知 $(x_n)$ 为 Cauchy 序列，故有极限 $x_*$。压缩条件蕴含连续性，因此 $F(x_*)=x_*$。若 $y_*$ 也是不动点，则 $d(x_*,y_*)\leq qd(x_*,y_*)$，只能有 $x_*=y_*$。将上述尾部几何级数求和即得两项误差估计。
+\end{proof}
+
+\section{例题与习题}
+\begin{example}
+方程 $x=\cos x$ 在 $[0,1]$ 中有唯一解，迭代 $x_{n+1}=\cos x_n$ 对任意 $x_0\in[0,1]$ 收敛。
+\end{example}
+\begin{solve}
+$F([0,1])\subset[0,1]$，且由中值定理 $|F(x)-F(y)|\leq(\sin1)|x-y|$。区间完备且 $\sin1<1$，故可用定理\ref{thm:fa-contraction}。若希望误差不超过 $\varepsilon$，可在 $\frac{\sin1}{1-\sin1}|x_n-x_{n-1}|\leq\varepsilon$ 时停止。
+\end{solve}
+\begin{enumerate}
+ \item 证明 Cauchy 序列有界，并证明它若有收敛子列则整个序列收敛。
+ \item 比较 $(0,1)$、$[0,1]$、$\mathbb R$ 的完备性、全有界性和紧性。
+ \item 证明紧度量空间上的连续映射一致连续。
+ \item 给出 $q=1$ 时不动点不存在或不唯一的例子。
+\end{enumerate}
+
+\chapter{赋范线性空间与 Banach 空间}
+\label{chap:fa-banach}
+
+在向量空间中，极限还必须与加法、数乘相容。范数同时描述向量的大小和向量间的距离，是建立无限维线性分析的基本结构。
+
+\section{范数、半范数与等价范数}
+\begin{definition}
+$\mathbb K$ 上线性空间 $X$ 的\keyterm{范数（norm）}是映射 $\|\cdot\|:X\to[0,\infty)$，满足
+\[
+ \|x\|=0\iff x=0,\qquad \|\alpha x\|=|\alpha|\|x\|,\qquad
+ \|x+y\|\leq\|x\|+\|y\|.
+\]
+不要求第一项的正定性时称为半范数（seminorm）。范数诱导度量 $d(x,y)=\|x-y\|$；此度量完备时，$X$ 称为\keyterm{Banach 空间（Banach space）}。
+\end{definition}
+反三角不等式 $|\|x\|-\|y\||\leq\|x-y\|$ 表明范数连续。若 $x_n\to x$、$y_n\to y$、$\alpha_n\to\alpha$，则三角不等式以及 $(x_n)$ 的有界性给出 $x_n+y_n\to x+y$ 和 $\alpha_nx_n\to\alpha x$。
+
+同一空间的两个范数 $\|\cdot\|_a,\|\cdot\|_b$ 称为等价，若存在 $c,C>0$ 使
+\[
+ c\|x\|_a\leq\|x\|_b\leq C\|x\|_a\quad(x\in X).
+\]
+两侧估计表明等价范数有相同的收敛序列、Cauchy 序列和开集，因而完备性也相同。反过来，若两个范数给出相同的拓扑，则两个恒等映射在零点连续，利用线性缩放就得到上述估计。
+
+\section{数列空间与连续函数空间}
+对 $1\leq p<\infty$ 定义
+\[
+ \ell^p=\left\{x=(x_j)_{j\geq1}:\sum_{j=1}^\infty|x_j|^p<\infty\right\},
+ \qquad \|x\|_p=\left(\sum_{j=1}^\infty|x_j|^p\right)^{1/p}.
+\]
+另令 $\ell^\infty=\{x:\sup_j|x_j|<\infty\}$，$\|x\|_\infty=\sup_j|x_j|$；$c_0$ 为其中趋于零的数列，$c_{00}$ 为仅有限个坐标非零的数列。$\ell^p$ 的三角不等式是 Minkowski 不等式，见附录\ref{app:fa-measure}；计数测度将积分形式化为求和形式。
+
+\begin{proposition}\label{prop:fa-sequence-complete}
+$\ell^p$（$1\leq p\leq\infty$）和配备上确界范数的 $c_0$ 都是 Banach 空间。若 $K$ 为非空紧度量空间，则 $C(K)$ 在一致范数 $\|f\|_\infty=\max_{t\in K}|f(t)|$ 下也是 Banach 空间。
+\end{proposition}
+\begin{proof}
+先设 $p<\infty$，$(x^{(n)})$ 为 $\ell^p$ 中的 Cauchy 序列。由 $|x_j^{(n)}-x_j^{(m)}|\leq\|x^{(n)}-x^{(m)}\|_p$，每个坐标收敛，记极限为 $x_j$。若 $n,m\geq N$ 时范数差小于 $\varepsilon$，则先对有限个坐标求和并令 $m\to\infty$，再令坐标数趋于无穷，得到
+\[
+ \sum_j|x_j^{(n)}-x_j|^p\leq\varepsilon^p\quad(n\geq N).
+\]
+因此 $x-x^{(N)}\in\ell^p$，从而 $x\in\ell^p$ 且 $x^{(n)}\to x$。$p=\infty$ 时，逐坐标取极限后保留同一上界即可。$c_0$ 在 $\ell^\infty$ 中闭：先用一个趋零数列一致逼近极限数列，再控制其尾部。$C(K)$ 的证明与上一章 $C([0,1])$ 的一致极限证明相同。
+\end{proof}
+截断前 $N$ 个坐标表明，$c_{00}$ 在每个 $\ell^p$（$p<\infty$）和 $c_0$ 中稠密。用实部、虚部为有理数的有限支撑数列逼近，可见这些空间可分；$\ell^\infty$ 不可分，因为所有零一数列构成不可数集，任意两项的距离为一。
+
+\section{可测函数空间与积分范数}
+给定测度空间 $(\Omega,\mathcal A,\mu)$，$L^p(\mu)$ 的元素是几乎处处相等的可测函数的等价类。对 $1\leq p<\infty$ 令
+\[
+ \|f\|_p=\left(\int_\Omega|f|^p\,\mathrm d\mu\right)^{1/p},
+ \qquad
+ \|f\|_\infty=\inf\{C\geq0:|f|\leq C\ \text{几乎处处}\}.
+\]
+只保留范数有限的等价类。取等价类是必要的：在原函数集合上，积分范数为零并不意味着处处为零。
+
+\begin{theorem}\label{thm:fa-lp-complete}
+对任意测度空间及 $1\leq p\leq\infty$，$L^p(\mu)$ 是 Banach 空间。
+\end{theorem}
+\begin{proof}
+设 $p<\infty$。从 Cauchy 序列 $(f_n)$ 选取子列，使 $\|f_{n_{k+1}}-f_{n_k}\|_p\leq2^{-k}$。令 $g_k=|f_{n_{k+1}}-f_{n_k}|$。Minkowski 不等式和单调收敛定理给出 $\|\sum_kg_k\|_p\leq\sum_k2^{-k}<\infty$，故该和几乎处处有限。于是函数级数绝对收敛，定义
+\[
+ f=f_{n_1}+\sum_{k=1}^{\infty}(f_{n_{k+1}}-f_{n_k})
+ \quad\text{几乎处处}.
+\]
+尾项的 $L^p$ 范数不超过相应几何级数尾和，故子列在范数下趋于 $f\in L^p$，原 Cauchy 序列也趋于 $f$。当 $p=\infty$ 时，去掉控制各对差的可数个零测集后，序列在剩余集合上一致 Cauchy，逐点极限便给出 $L^\infty$ 极限。
+\end{proof}
+范数收敛不要求原序列逐点收敛。例如在 $[0,1)$ 上依次列出各级二进区间的示性函数，其 $L^p$ 范数在 $p<\infty$ 时趋于零，但每个点都被无穷多个区间包含，也被无穷多个区间排除。
+
+\section{子空间、商空间与级数判别}
+Banach 空间的线性子空间完备当且仅当它闭，这是命题\ref{prop:fa-closed-complete}的直接应用。若 $M\subset X$ 为闭线性子空间，在商空间 $X/M$ 上定义
+\begin{equation}
+ \|x+M\|_{X/M}=\inf_{m\in M}\|x-m\|_X.
+ \label{eq:fa-quotient-norm}
+\end{equation}
+右侧也记为 $\operatorname{dist}(x,M)$，即点到集合的距离。更换代表元不会改变右侧；齐次性和三角不等式由取近似极小元得到。范数为零等价于 $x\in\overline M=M$，所以闭性保证正定性。
+
+\begin{proposition}\label{prop:fa-series-complete}
+赋范空间完备当且仅当每个满足 $\sum_n\|x_n\|<\infty$ 的级数 $\sum_nx_n$ 都收敛。Banach 空间对闭线性子空间取商后仍为 Banach 空间。
+\end{proposition}
+\begin{proof}
+完备空间中，绝对可和级数的部分和为 Cauchy 序列。反之，对任意 Cauchy 序列 $(y_n)$ 选子列使 $\|y_{n_{k+1}}-y_{n_k}\|\leq2^{-k}$；差分级数收敛，所以子列及原序列均收敛。
+
+设 $\sum_n\|\xi_n\|_{X/M}<\infty$。对每个商类 $\xi_n$ 选择代表元 $x_n$ 使 $\|x_n\|\leq\|\xi_n\|_{X/M}+2^{-n}$。则 $\sum_nx_n$ 在 $X$ 中收敛，连续商映射把其和映为 $\sum_n\xi_n$ 的极限。由刚证的级数判别，$X/M$ 完备。
+\end{proof}
+赋范空间的度量完备化可通过代表序列逐项相加、数乘，赋予唯一延续原运算的 Banach 空间结构；范数定义为原序列范数的极限。
+
+\section{有限维定理与 Riesz 引理}
+\begin{theorem}\label{thm:fa-finite-dimension}
+有限维线性空间上的所有范数等价；有限维赋范空间完备，其闭有界集紧；任意赋范空间的有限维线性子空间闭。
+\end{theorem}
+\begin{proof}
+取基 $e_1,\ldots,e_d$，写 $x=\sum_ja_je_j$。三角不等式给出 $\|x\|\leq C\|a\|_2$，故 $a\mapsto\|\sum_ja_je_j\|$ 在欧氏单位球面上连续且正，存在正最小值 $c$。由齐次性得 $c\|a\|_2\leq\|x\|$，从而任意范数等价于坐标欧氏范数。完备与紧性由欧氏空间转移；有限维子空间完备，因而在环境空间中闭。
+\end{proof}
+\begin{lemma}[Riesz 引理]\label{lem:fa-riesz}
+若 $M$ 是赋范空间 $X$ 的真闭线性子空间，$0<\alpha<1$，则存在单位向量 $x$ 满足 $\inf_{m\in M}\|x-m\|>\alpha$。
+\end{lemma}
+\begin{proof}
+取 $y\notin M$，令 $d=\inf_{m\in M}\|y-m\|>0$，选 $m_0\in M$ 使 $\|y-m_0\|<d/\alpha$。令 $x=(y-m_0)/\|y-m_0\|$，则对任意 $m\in M$，$\|x-m\|\geq d/\|y-m_0\|>\alpha$。
+\end{proof}
+\begin{corollary}\label{cor:fa-unit-ball}
+赋范空间的闭单位球紧当且仅当空间有限维。
+\end{corollary}
+\begin{proof}
+无限维时，对逐步生成的有限维子空间反复使用引理\ref{lem:fa-riesz}，得到单位向量 $x_n$，任意两项距离大于 $1/2$，因而闭单位球不列紧。有限维方向由定理\ref{thm:fa-finite-dimension}得到。
+\end{proof}
+
+\section{例题与习题}
+\begin{example}[不同范数的作用]
+$C([0,1])$ 上的 $\|f\|_1=\int_0^1|f|$ 与 $\|f\|_\infty$ 不等价。
+\end{example}
+\begin{solve}
+虽有 $\|f\|_1\leq\|f\|_\infty$，但取 $f_n(t)=\max(1-nt,0)$，则 $\|f_n\|_\infty=1$、$\|f_n\|_1=1/(2n)$，反向统一估计不可能成立。这说明在无限维空间中，改变范数可能改变收敛与连续性。
+\end{solve}
+\begin{enumerate}
+ \item 证明 $c_{00}$ 在 $\ell^\infty$ 中的闭包为 $c_0$。
+ \item 证明 $\ell^p\subset\ell^q$ 且 $\|x\|_q\leq\|x\|_p$，其中 $1\leq p<q\leq\infty$。
+ \item 在 $\mathbb R^2$ 的欧氏范数下，计算对 $x$ 轴取商后的范数。
+ \item 构造在积分范数下为 Cauchy 序列、却没有连续极限代表的连续函数列，证明 $C([0,1])$ 在 $\|\cdot\|_1$ 下不完备。
+\end{enumerate}
+
+\chapter{有界线性算子与对偶空间}
+\label{chap:fa-operators}
+
+有限维线性映射由矩阵决定，而且自动连续。无限维空间中，线性本身不控制极限；需要一个与向量无关的估计，才能把线性代数与分析连接起来。
+
+\section{连续性与有界性}
+\begin{theorem}\label{thm:fa-bounded-continuous}
+赋范空间间的线性映射 $T:X\to Y$ 连续，当且仅当它在零点连续，当且仅当存在 $C\geq0$ 使 $\|Tx\|_Y\leq C\|x\|_X$ 对所有 $x\in X$ 成立。
+\end{theorem}
+\begin{proof}
+若 $T$ 在零点连续，取 $\delta>0$ 使 $\|u\|<\delta$ 时 $\|Tu\|<1$。对 $x\ne0$ 令 $u=\delta x/(2\|x\|)$，得到 $\|Tx\|\leq2\|x\|/\delta$。反之，统一估计给出 $\|Tx-Ty\|\leq C\|x-y\|$，即处处连续。
+\end{proof}
+满足上述估计的线性映射称为\keyterm{有界线性算子（bounded linear operator）}，其范数为
+\begin{equation}
+ \|T\|=\sup_{\|x\|_X\leq1}\|Tx\|_Y.
+ \label{eq:fa-operator-norm}
+\end{equation}
+它等于估计中最小的常数。这里“有界”指有界集的像有界；非零线性映射在整个空间上的像不可能有界，因为 $T(nx)=nTx$。
+
+\section{算子空间与稠密延拓}
+$\mathcal B(X,Y)$ 在逐点运算及算子范数下是赋范空间。若 $S\in\mathcal B(Y,Z)$，则 $\|ST\|\leq\|S\|\|T\|$。
+\begin{proposition}\label{prop:fa-operator-complete}
+若 $Y$ 为 Banach 空间，则 $\mathcal B(X,Y)$ 完备，无须假定 $X$ 完备。
+\end{proposition}
+\begin{proof}
+若 $(T_n)$ 在算子范数下 Cauchy，则对每个 $x$，$(T_nx)$ 在 $Y$ 中 Cauchy。定义 $Tx=\lim_nT_nx$，逐点取极限可知 $T$ 线性。由 $\sup_n\|T_n\|<\infty$ 得 $T$ 有界；在 $\|(T_n-T_m)x\|\leq\varepsilon\|x\|$ 中令 $m\to\infty$，得到 $\|T_n-T\|\leq\varepsilon$。
+\end{proof}
+若 $D\subset X$ 是稠密线性子空间，$Y$ 完备，且 $T:D\to Y$ 有界，则
+\[
+ \widetilde T x=\lim_nTx_n\quad(x_n\in D,\ x_n\to x)
+\]
+给出唯一有界线性延拓，且 $\|\widetilde T\|=\|T\|$。极限的存在与无关性由 $\|Tx_n-Ty_n\|\leq\|T\|\|x_n-y_n\|$ 保证，线性和范数估计在极限下保持。
+
+\section{连续对偶与双对偶}
+\begin{definition}
+线性映射 $f:X\to\mathbb K$ 称为线性泛函（linear functional）。所有连续线性泛函组成\keyterm{对偶空间（dual space）}$X^*=\mathcal B(X,\mathbb K)$；所有线性泛函组成的代数对偶通常更大。
+\end{definition}
+由于标量域完备，命题\ref{prop:fa-operator-complete}说明 $X^*$ 总是 Banach 空间。对每个 $x\in X$，规定
+\[
+ (Jx)(f)=f(x)\quad(f\in X^*).
+\]
+则 $Jx\in X^{**}$ 且 $\|Jx\|\leq\|x\|$。第\ref{chap:fa-hahn-banach}章将证明等号成立；这意味着全部连续线性观测能够恢复向量的范数。
+
+\begin{example}[点值与积分]
+在 $C([0,1])$ 的一致范数下，$\delta_t(f)=f(t)$ 与 $I(f)=\int_0^1f(s)\,\mathrm ds$ 均为范数一的泛函。
+\end{example}
+\begin{solve}
+两者绝对值都不超过 $\|f\|_\infty$，故范数至多一；取常值函数 $f=1$ 达到一。若改用积分范数，点值泛函不连续：在 $t$ 附近取高度一、支撑长度趋零的连续尖峰函数即可。
+\end{solve}
+
+\section{数列空间的对偶表示}
+\begin{theorem}\label{thm:fa-sequence-dual}
+设 $1\leq p<\infty$、$1/p+1/q=1$，其中 $p=1$ 时 $q=\infty$。每个 $f\in(\ell^p)^*$ 唯一表示为
+\[
+ f(x)=\sum_{j=1}^{\infty}a_jx_j,\qquad a\in\ell^q,
+ \qquad\|f\|=\|a\|_q.
+\]
+此外，$c_0^*$ 通过同一配对等距同构于 $\ell^1$。复数情形这里采用不带共轭的双线性配对。
+\end{theorem}
+\begin{proof}
+Hölder 不等式先说明每个 $a\in\ell^q$ 都给出范数至多 $\|a\|_q$ 的泛函。反之，令 $a_j=f(e_j)$，其中 $e_j$ 是第 $j$ 个标准单位向量。有限支撑向量上已有所需公式。
+
+若 $1<p<\infty$，对前 $N$ 项令 $x_j=|a_j|^{q-1}\overline{a_j}/|a_j|$，零坐标取零。记 $A_N=\sum_{j\leq N}|a_j|^q$，则 $A_N=f(x)\leq\|f\|A_N^{1/p}$，所以 $A_N^{1/q}\leq\|f\|$。令 $N\to\infty$ 得 $a\in\ell^q$ 及范数的反向估计。$p=1$ 时由 $|a_j|\leq\|f\|$ 即可。最后由 $c_{00}$ 的稠密性延拓表示式。
+
+对 $c_0$，取前 $N$ 个坐标为 $\overline{a_j}/|a_j|$ 的向量，得到 $\sum_{j\leq N}|a_j|\leq\|f\|$。因此 $a\in\ell^1$；再由稠密性得到表示及范数相等。各坐标值决定 $a$，故表示唯一。
+\end{proof}
+在 $\sigma$ 有限测度空间上，对 $1\leq p<\infty$ 同样有 $(L^p)^*\cong L^q$，配对为 $f\mapsto\int af\,\mathrm d\mu$。这项测度论表示使用 Radon--Nikodym 定理，本书作为补充结果引用，见附录\ref{app:fa-measure}。不能把 $p=\infty$ 代入而断言 $(L^\infty)^*=L^1$；类似地，$(\ell^\infty)^*$ 一般大于由 $\ell^1$ 配对给出的部分。
+
+\section{核、值域与对偶算子}
+有界线性算子的核是闭子空间，因为它是闭集 $\{0\}$ 的逆像。值域却未必闭。
+\begin{example}\label{ex:fa-diagonal-range}
+在 $\ell^2$ 上令 $T(x_j)=(x_j/j)$。则 $\|T\|=1$，$T$ 单射，其值域稠密但不闭。
+\end{example}
+\begin{solve}
+范数估计由 $1/j\leq1$ 得到，取 $e_1$ 达到等号。值域包含所有有限支撑数列，故稠密；但 $y=(1/j)$ 属于 $\ell^2$，其唯一可能原像为 $(1,1,\ldots)$，不在 $\ell^2$，所以值域不是全空间，因而不闭。截断的 $y$ 给出值域中的序列收敛到值域外的点。
+\end{solve}
+
+对 $T\in\mathcal B(X,Y)$，其\keyterm{对偶算子（dual operator）}定义为 $T':Y^*\to X^*$，$T'f=f\circ T$。直接估计给出 $\|T'\|\leq\|T\|$。对 $M\subset X$，定义零化子 $M^\perp=\{f\in X^*:f|_M=0\}$，则
+\[
+ \ker T'=(\operatorname{Ran}T)^\perp.
+\]
+这是一条代数与连续性共同作用的关系：值域上的所有观测为零，恰好表示泛函经 $T$ 拉回后为零。第\ref{chap:fa-hahn-banach}章将据此刻画值域稠密性。
+
+\section{例题与习题}
+\begin{example}[求导与定义域范数]
+求导映射 $D:C^1([0,1])\to C([0,1])$ 在定义域使用一致范数时无界；使用 $\|f\|_{C^1}=\|f\|_\infty+\|f'\|_\infty$ 时有界。
+\end{example}
+\begin{solve}
+取 $f_n(t)=\sin(nt)$，则 $\|f_n\|_\infty\leq1$ 而 $\|Df_n\|_\infty=n$，不存在统一估计。换用 $C^1$ 范数后，$\|Df\|_\infty\leq\|f\|_{C^1}$。由此可见，算子的连续性需要同时指定定义域与值域的范数。
+\end{solve}
+\begin{enumerate}
+ \item 对 $\ell^p$ 上左右移位 $L(x_1,x_2,\ldots)=(x_2,x_3,\ldots)$、$R(x)=(0,x_1,x_2,\ldots)$，计算范数、核与值域。
+ \item 证明有界线性算子在某个稠密子集上的值决定整个算子。
+ \item 证明 $(ST)'=T'S'$，并注明各映射的定义域和值域。
+ \item 对有界数列 $(a_j)$，求 $T(x_j)=(a_jx_j)$ 在 $\ell^p$ 上的算子范数。
+\end{enumerate}
+
+\chapter{Hilbert 空间与正交展开}
+\label{chap:fa-hilbert}
+
+内积把长度、角度与正交性放在同一结构中。完备内积空间保留了有限维最小二乘的几何，同时允许用无穷多个正交坐标描述一个向量。
+
+\section{内积及其诱导范数}
+\begin{definition}
+线性空间 $H$ 上的\keyterm{内积（inner product）}$\langle x,y\rangle$ 对第一个变量线性，满足 $\langle x,y\rangle=\overline{\langle y,x\rangle}$，且 $\langle x,x\rangle\geq0$，等号仅当 $x=0$。由内积定义的范数为 $\|x\|=\sqrt{\langle x,x\rangle}$；此范数完备时称 $H$ 为\keyterm{Hilbert 空间（Hilbert space）}。
+\end{definition}
+\begin{proposition}[Cauchy--Schwarz 不等式]
+$|\langle x,y\rangle|\leq\|x\|\|y\|$，且等号成立当且仅当 $x,y$ 线性相关。
+\end{proposition}
+\begin{proof}
+当 $y\ne0$ 时，展开 $\|x-\langle x,y\rangle y/\|y\|^2\|^2\geq0$，即得 $\|x\|^2-|\langle x,y\rangle|^2/\|y\|^2\geq0$。等号等价于该差向量为零；$y=0$ 的情形直接成立。
+\end{proof}
+这一不等式给出范数的三角不等式。内积还满足平行四边形恒等式
+\[
+ \|x+y\|^2+\|x-y\|^2=2\|x\|^2+2\|y\|^2.
+\]
+在复空间中可由范数恢复内积：
+\[
+ \langle x,y\rangle=\tfrac14\bigl(\|x+y\|^2-\|x-y\|^2
+ +\mathrm i\|x+\mathrm iy\|^2-\mathrm i\|x-\mathrm iy\|^2\bigr).
+\]
+这是极化恒等式（polarization identity）。并非任意范数都来自内积；例如 $\mathbb R^2$ 的最大值范数不满足平行四边形恒等式。$\ell^2$ 与 $L^2(\mu)$ 的内积分别为 $\sum_jx_j\overline{y_j}$ 与 $\int f\overline g\,\mathrm d\mu$，其完备性已在上一部分证明。
+
+\section{最佳逼近与正交投影}
+集合 $C$ 凸，是指 $u,v\in C$ 及 $0\leq t\leq1$ 时 $(1-t)u+tv\in C$。记 $x\perp y$ 表示 $\langle x,y\rangle=0$；对 $M\subset H$，其正交补为 $M^\perp=\{x\in H:\langle x,m\rangle=0\text{ 对所有 }m\in M\}$。这里的正交补由 $H$ 中的向量组成，与一般对偶空间中的零化子通过 Riesz 表示相联系。
+\begin{theorem}[投影定理]\label{thm:fa-projection}
+设 $C$ 是 Hilbert 空间 $H$ 的非空闭凸子集。对每个 $x\in H$，存在唯一 $p\in C$ 使 $\|x-p\|=\inf_{z\in C}\|x-z\|$。该点由
+\[
+ \operatorname{Re}\langle x-p,z-p\rangle\leq0\quad(z\in C)
+\]
+刻画。若 $C=M$ 是闭线性子空间，则 $x-p\perp M$，从而 $H=M\oplus M^\perp$。
+\end{theorem}
+\begin{proof}
+记距离下确界为 $d$，取 $z_n\in C$ 使 $\|x-z_n\|\to d$。由凸性，中点在 $C$，平行四边形恒等式给出
+\[
+ \|z_n-z_m\|^2\leq2\|x-z_n\|^2+2\|x-z_m\|^2-4d^2\to0.
+\]
+完备性与闭性给出 $z_n\to p\in C$，且 $\|x-p\|=d$。同一不等式用于两个极小点即得唯一性。将 $p+t(z-p)$ 代入最小性，展开平方、除以 $t>0$ 并令 $t\downarrow0$，得到所述不等式；反之展开 $\|x-z\|^2$ 即知它保证最小性。
+
+若 $C=M$，可令 $z=p+tv$，其中 $t$ 取正负实数，复空间中还可取纯虚数，故 $\langle x-p,v\rangle=0$。分解唯一，因为 $M\cap M^\perp=\{0\}$。
+\end{proof}
+记最近点为 $P_Mx$。由分解唯一性，$P_M$ 线性；由勾股恒等式 $\|x\|^2=\|P_Mx\|^2+\|x-P_Mx\|^2$，$\|P_M\|\leq1$，当 $M\ne\{0\}$ 时等号成立。闭性不能删除：若 $M$ 稠密而不闭，则 $x\notin M$ 到 $M$ 的距离为零，却无最近点。
+
+\section{Riesz 表示定理}
+\begin{theorem}\label{thm:fa-riesz-representation}
+对每个 $f\in H^*$，存在唯一 $y\in H$ 使 $f(x)=\langle x,y\rangle$ 对所有 $x\in H$ 成立，且 $\|f\|=\|y\|$。
+\end{theorem}
+\begin{proof}
+$f=0$ 时取 $y=0$。否则 $M=\ker f$ 为真闭子空间，选单位向量 $e\in M^\perp$。有 $f(e)\ne0$，而 $x-f(x)e/f(e)\in M$，故 $\langle x,e\rangle=f(x)/f(e)$。取 $y=\overline{f(e)}e$ 即得表示。若两个向量给出同一泛函，将它们的差代入即知差为零。Cauchy--Schwarz 给出范数上界，取 $x=y/\|y\|$ 得到等号。
+\end{proof}
+复数情形中，$y\mapsto\langle\,\cdot\,,y\rangle$ 是共轭线性等距对应；它不是复线性映射。内积的变量约定将影响伴随及 Fourier 系数的写法。
+
+\section{正交系与 Fourier 展开}
+标准正交系 $(e_j)$ 满足 $\langle e_j,e_k\rangle=\delta_{jk}$，其中 $\delta_{jk}$ 在 $j=k$ 时为一，否则为零。对有限部分，正交投影为 $P_Nx=\sum_{j=1}^N\langle x,e_j\rangle e_j$，勾股恒等式给出 Bessel 不等式
+\[
+ \sum_{j=1}^{\infty}|\langle x,e_j\rangle|^2\leq\|x\|^2.
+\]
+因此 $P_Nx$ 为 Cauchy 序列，其极限是 $x$ 在 $\overline{\operatorname{span}\{e_j\}}$ 上的正交投影。若此闭包为 $H$，称 $(e_j)$ 为标准正交基（orthonormal basis），并有
+\begin{equation}
+ x=\sum_{j=1}^{\infty}\langle x,e_j\rangle e_j,
+ \qquad \|x\|^2=\sum_{j=1}^{\infty}|\langle x,e_j\rangle|^2.
+ \label{eq:fa-parseval}
+\end{equation}
+后一等式称为 Parseval 恒等式。可分 Hilbert 空间取可数稠密集，逐次进行 Gram--Schmidt 正交化并略去相关向量，即得到有限或可数正交基。Hamel 基只允许有限线性组合，不能与这里允许范数收敛级数的正交基混同。
+
+在 $L^2(0,2\pi)$ 中，$e_k(t)=(2\pi)^{-1/2}e^{\mathrm ikt}$（$k\in\mathbb Z$）构成标准正交基；完备性是 Fourier 分析中的三角多项式稠密定理，这里引用该结果，参见\cite{teschl-ra}的 Fourier 级数部分。式\eqref{eq:fa-parseval}保证 $L^2$ 展开，不自动保证逐点或一致收敛。
+
+\section{伴随与特殊算子}
+对 $T\in\mathcal B(H)$ 和固定 $y$，泛函 $x\mapsto\langle Tx,y\rangle$ 连续。Riesz 表示给出唯一 $T^*y$ 满足
+\[
+ \langle Tx,y\rangle=\langle x,T^*y\rangle.
+\]
+由唯一性可知 $T^*$ 线性，且 $\|T^*y\|\leq\|T\|\|y\|$。逐一在内积中检验可得
+\[
+ (ST)^*=T^*S^*,\quad (T^*)^*=T,\quad
+ (\alpha T)^*=\overline\alpha T^*,\quad\|T^*\|=\|T\|.
+\]
+此外，$\|Tx\|^2=\langle x,T^*Tx\rangle\leq\|T^*T\|\|x\|^2$，结合次乘性得到 $\|T^*T\|=\|T\|^2$。由伴随定义，$T^*y=0$ 当且仅当 $\langle Tx,y\rangle=0$ 对所有 $x$ 成立，故 $\ker T^*=(\operatorname{Ran}T)^\perp$；再取正交补，得到 $\overline{\operatorname{Ran}T}=(\ker T^*)^\perp$。
+
+$T=T^*$ 时称自伴（self-adjoint）；$T^*T=TT^*$ 时称正规（normal）；$T^*T=TT^*=I$ 时称酉（unitary）；自伴且 $\langle Tx,x\rangle\geq0$ 时称正算子（positive operator）。正交投影恰是自伴幂等算子：正交分解直接给出 $P_M^*=P_M$；反之 $P^2=P=P^*$ 保证 $Px\perp x-Px$，且 $\operatorname{Ran}P=\ker(I-P)$ 闭。
+
+\section{例题与习题}
+\begin{example}[最佳一次逼近]
+在 $L^2(0,1)$ 中，$t^2$ 的最佳一次多项式逼近是 $t-1/6$。
+\end{example}
+\begin{solve}
+设投影为 $a+bt$。误差与 $1,t$ 正交，因此
+\[
+ a+\tfrac12b=\tfrac13,\qquad \tfrac12a+\tfrac13b=\tfrac14.
+\]
+解得 $a=-1/6$、$b=1$。这两个方程就是最小二乘的正规方程；投影定理同时保证所得解为唯一全局最佳逼近。
+\end{solve}
+\begin{enumerate}
+ \item 证明 $\ell^2$ 中左右移位互为伴随，右移保持范数但不是酉算子。
+ \item 证明无限标准正交序列的任意两项距离为 $\sqrt2$。
+ \item 证明 $M^{\perp\perp}=\overline M$，其中 $M$ 是线性子空间。
+ \item 证明 $\ker T^*=(\operatorname{Ran}T)^\perp$，并推得 $\overline{\operatorname{Ran}T}=(\ker T^*)^\perp$。
+\end{enumerate}
+
+\chapter{Hahn--Banach 定理与凸集分离}
+\label{chap:fa-hahn-banach}
+
+连续线性泛函可以看作对向量的标量测量。Hahn--Banach 定理说明，在子空间上已知的线性测量能够保持原有控制而延拓，从而保证对偶空间足够丰富。
+
+\section{受次线性泛函控制的延拓}
+实线性空间上的函数 $p:X\to\mathbb R$ 称为次线性泛函（sublinear functional），若 $p(x+y)\leq p(x)+p(y)$ 且 $p(tx)=tp(x)$ 对 $t\geq0$ 成立。
+\begin{theorem}[实 Hahn--Banach 定理]\label{thm:fa-hahn-banach-real}
+设 $M\subset X$ 为实线性子空间，$p$ 次线性，$f:M\to\mathbb R$ 线性且 $f(x)\leq p(x)$。则存在全空间线性泛函 $F$，使 $F|_M=f$ 且 $F\leq p$。
+\end{theorem}
+\begin{proof}
+先增加一个方向 $z\notin M$，令 $g(x+tz)=f(x)+tc$。当 $t>0$ 或 $t<0$ 时，要求 $g\leq p$ 分别等价于
+\[
+ \sup_{x\in M}\{f(x)-p(x-z)\}\leq c
+ \leq\inf_{y\in M}\{p(y+z)-f(y)\}.
+\]
+左侧不超过右侧，因为
+\[
+ f(x)+f(y)=f(x+y)\leq p(x+y)\leq p(x-z)+p(y+z).
+\]
+两端分别具有有限上界和有限下界，故可选 $c$，完成一步延拓。
+
+将所有受 $p$ 控制、延拓 $f$ 的线性泛函按“定义域包含且数值一致”排序。任一链上的泛函之并仍是受控线性泛函，因而是链的上界。Zorn 引理（附录\ref{app:fa-topology}）给出极大延拓。若其定义域不是 $X$，一步延拓又能扩大定义域，与极大性矛盾。
+\end{proof}
+
+\section{保范延拓与复数情形}
+\begin{corollary}\label{cor:fa-norm-preserving-extension}
+若 $M$ 是实或复赋范空间 $X$ 的线性子空间，每个 $f\in M^*$ 都有延拓 $F\in X^*$，满足 $\|F\|=\|f\|$。$M$ 无须闭，$X$ 无须完备。
+\end{corollary}
+\begin{proof}
+实情形取 $p(x)=\|f\|\|x\|$。所得 $F\leq p$ 同时应用于 $-x$，得 $|F(x)|\leq\|f\|\|x\|$；限制到 $M$ 又给出范数反向估计。
+
+复情形先将 $\operatorname{Re}f$ 作为实线性泛函延拓为 $u$，再令 $F(x)=u(x)-\mathrm i u(\mathrm ix)$。由实线性可检验 $F(\mathrm ix)=\mathrm iF(x)$，故 $F$ 复线性，且 $F|_M=f$。选择 $|\alpha|=1$ 使 $\alpha F(x)=|F(x)|$，便有 $|F(x)|=u(\alpha x)\leq\|f\|\|x\|$。
+\end{proof}
+这一结论针对标量值泛函；它不保证任意向量值有界算子都能保范延拓。
+
+\section{支撑泛函与范数的对偶刻画}
+\begin{proposition}\label{prop:fa-norming-functional}
+对每个非零 $x\in X$，存在 $f\in X^*$ 使 $\|f\|=1$ 且 $f(x)=\|x\|$。因此
+\begin{equation}
+ \|x\|=\sup_{\|f\|\leq1}|f(x)|.
+ \label{eq:fa-dual-norm}
+\end{equation}
+\end{proposition}
+\begin{proof}
+在一维子空间上定义 $f_0(\alpha x)=\alpha\|x\|$，其范数为一。由推论\ref{cor:fa-norm-preserving-extension}延拓即可。上确界不超过 $\|x\|$ 来自对偶范数定义，上述泛函给出相反不等式。
+\end{proof}
+由式\eqref{eq:fa-dual-norm}，典范映射 $J:X\to X^{**}$ 为线性等距嵌入。此外，对任意 $T\in\mathcal B(X,Y)$，
+\[
+ \|T\|=\sup_{\|x\|\leq1}\sup_{\|g\|\leq1}|g(Tx)|=\|T'\|.
+\]
+注意，此处为给定向量选择一个达到其范数的泛函，并不声称每个给定泛函都在单位球上达到自己的范数。
+
+\section{凸集的分离}
+\begin{theorem}[点与闭凸集的严格分离]\label{thm:fa-separation}
+设 $C$ 是实赋范空间 $X$ 的非空闭凸子集，$x_0\notin C$。则存在 $f\in X^*$ 及实数 $a$，使
+\[
+ \sup_{c\in C}f(c)<a<f(x_0).
+\]
+在复空间中用 $\operatorname{Re}f$ 代替 $f$，结论仍成立。
+\end{theorem}
+\begin{proof}
+先考虑含零的开凸集 $U$。其 Minkowski 泛函定义为 $p_U(x)=\inf\{t>0:x\in tU\}$。由于 $U$ 含一个零点邻域，它吸收每个向量，故 $p_U$ 有限；由凸性验证次线性，且 $U=\{x:p_U(x)<1\}$。若 $z\notin U$，则 $p_U(z)\geq1$。在 $\mathbb Rz$ 上令 $h(tz)=tp_U(z)$；当 $t<0$ 时，由 $p_U(z)+p_U(-z)\geq0$ 仍有 $h(tz)\leq p_U(tz)$。Hahn--Banach 定理给出 $h$ 的延拓 $f\leq p_U$。若 $B(0,r)\subset U$，则 $|f(x)|\leq\|x\|/r$，所以 $f$ 连续，且 $f(u)<1\leq f(z)$。
+
+回到原问题，选 $r>0$ 使 $x_0\notin C+B(0,r)$，再将此开凸集平移为含零的开凸集。上一步给出非零连续泛函，使 $f(c+v)<f(x_0)$ 对 $c\in C$、$\|v\|<r$ 成立。对 $v$ 取上确界，得 $f(c)+r\|f\|\leq f(x_0)$，从而具有严格正间隙。复空间先在底层实空间分离，再以 $F(x)=f(x)-\mathrm if(\mathrm ix)$ 恢复复线性泛函。
+\end{proof}
+两个不交非空凸集若其中一个开，同样可通过对其差集分离零点，得到非零连续实线性泛函的非严格分离。没有开性或正距离等条件时，不能任意要求统一的严格间隙。
+
+\section{距离、闭包与零化子}
+\begin{proposition}\label{prop:fa-distance-dual}
+若 $M$ 是闭线性子空间，则
+\[
+ \operatorname{dist}(x,M)=
+ \sup\{|f(x)|:f\in X^*,\ \|f\|\leq1,\ f|_M=0\}.
+\]
+\end{proposition}
+\begin{proof}
+对右侧每个 $f$，$|f(x)|=|f(x-m)|\leq\|x-m\|$，故上确界不超过距离。反向在商空间 $X/M$ 的向量 $x+M$ 上应用命题\ref{prop:fa-norming-functional}，再与商映射复合，即得到所需泛函；$x\in M$ 时两侧均为零。
+\end{proof}
+于是对任意线性子空间 $M$，向量 $x$ 属于 $\overline M$ 当且仅当所有在 $M$ 上消失的连续泛函也在 $x$ 上消失。特别地，
+\[
+ \overline{\operatorname{Ran}T}=Y\quad\Longleftrightarrow\quad\ker T'=\{0\}.
+\]
+
+\section{例题与习题}
+\begin{example}[支撑泛函可以不唯一]
+在 $\mathbb R^2$ 的 $\ell^1$ 范数下，$x=(1,0)$ 的范数为一，而 $f_a(u,v)=u+av$ 对每个 $|a|\leq1$ 都满足 $\|f_a\|=1$、$f_a(x)=1$。
+\end{example}
+\begin{solve}
+$|u+av|\leq|u|+|v|$ 给出范数上界；在 $(1,0)$ 处达到一。这说明延拓存在性不包含唯一性，支撑泛函的几何性质还取决于范数。
+\end{solve}
+\begin{enumerate}
+ \item 证明有限维真子空间总可以被一个非零连续泛函零化。
+ \item 在欧氏平面中分离原点与闭球 $\{x:\|x-(2,0)\|_2\leq1\}$。
+ \item 证明赋范空间中任意两个不同向量可被连续线性泛函区分。
+ \item 证明在 $\ell^1$ 上，$f(x)=\sum_{j\geq1}(1-1/(j+1))x_j$ 的范数为一，却不在闭单位球上达到模为一的值。
+\end{enumerate}
+
+\chapter{Baire 纲定理与算子基本定理}
+\label{chap:fa-baire}
+
+完备性不仅保证给定 Cauchy 序列收敛，还能把逐点信息转化为统一估计。本章的三个基本工具分别回答：一族算子是否统一有界，满射是否把开集映成开集，以及闭图像是否足以保证连续。
+
+\section{Baire 纲定理}
+集合 $A$ 称为无处稠密（nowhere dense），若 $\overline A$ 的内部为空；可数个无处稠密集之并称为第一纲集（meagre set）。
+\begin{theorem}[Baire 纲定理]\label{thm:fa-baire}
+非空完备度量空间中，可数个稠密开集的交仍然稠密。因此，该空间不能表示为可数个无处稠密集之并。
+\end{theorem}
+\begin{proof}
+设 $U_n$ 稠密且开，$V$ 为任意非空开集。在 $V\cap U_1$ 中选择正半径闭球 $\overline B(x_1,r_1)$；再在 $B(x_1,r_1)\cap U_2$ 中选闭球，以此递归，使
+\[
+ \overline B(x_{n+1},r_{n+1})\subset B(x_n,r_n)\cap U_{n+1},
+ \qquad0<r_n\leq2^{-n}.
+\]
+球心构成 Cauchy 序列，完备性给出极限 $x$。每个闭球均包含足够后面的球心，故 $x$ 属于所有闭球，从而 $x\in V\cap\bigcap_nU_n$。由于 $V$ 任意，交集稠密。对无处稠密集闭包的补集应用这一结论，即得后一断言。
+\end{proof}
+“第一纲”是拓扑概念，“零测”是测度概念，二者不能替代。
+
+\section{一致有界原理}
+\begin{theorem}[Banach--Steinhaus]\label{thm:fa-uniform-boundedness}
+设 $X$ 为 Banach 空间，$Y$ 为赋范空间，$\mathcal T\subset\mathcal B(X,Y)$。若对每个 $x\in X$，$\sup_{T\in\mathcal T}\|Tx\|<\infty$，则 $\sup_{T\in\mathcal T}\|T\|<\infty$。
+\end{theorem}
+\begin{proof}
+令 $E_n=\{x:\sup_{T\in\mathcal T}\|Tx\|\leq n\}$，每个 $E_n$ 闭且 $X=\bigcup_nE_n$。Baire 定理保证某个 $E_N$ 含球 $B(x_0,r)$。当 $\|h\|<r$ 时，$x_0,x_0+h\in E_N$，所以 $\|Th\|\leq2N$ 对所有 $T$ 成立。取 $h=(r/2)x$、$\|x\|\leq1$，即得 $\|T\|\leq4N/r$。
+\end{proof}
+这里逐点有界的上界原本可随 $x$ 改变，结论却产生一个控制所有单位向量的常数。值域 $Y$ 不需要完备。
+
+\begin{example}[缺少完备性时]
+在 $c_{00}$ 的上确界范数下，令 $T_nx=nx_n$。对每个 $x\in c_{00}$，$\sup_n|T_nx|<\infty$，但 $\|T_n\|=n$。
+\end{example}
+每个向量仅有有限个非零坐标，因此逐点有界；取 $x=e_n$ 得到算子范数。定义域不完备正是定理不能应用的原因。
+
+\section{开映射与有界逆}
+\begin{theorem}[开映射定理]\label{thm:fa-open-mapping}
+Banach 空间间的有界线性满射 $T:X\to Y$ 将开集映成开集。因而有界线性双射的逆也有界。
+\end{theorem}
+\begin{proof}
+用 $B_X,B_Y$ 表示闭单位球。满射性给出 $Y=\bigcup_{n\geq1}T(nB_X)$，因而这些像的闭包覆盖 $Y$。由 Baire 定理，某个 $\overline{T(nB_X)}$ 包含开球。取该球中两点之差并使用线性性，得到某个 $\delta>0$ 满足
+\[
+ \delta B_Y\subset\overline{T(B_X)}.
+\]
+必要时缩小 $\delta$，可把开球中的包含改写为这一闭球包含。
+
+现在消去闭包。对 $\|y\|\leq\delta/2$，由缩放后的包含选择 $\|x_1\|\leq1/2$ 使 $\|y-Tx_1\|\leq\delta/4$。递归选 $\|x_k\|\leq2^{-k}$，使第 $k$ 次残差不超过 $\delta2^{-k-1}$。级数 $x=\sum_kx_k$ 在 $X$ 中收敛，$\|x\|\leq1$，连续性给出 $Tx=y$。于是 $(\delta/2)B_Y\subset T(B_X)$。再缩放一次可用定义域中的开球容纳所需原像，故 $T$ 在零点开；平移给出处处开。双射的逆因此连续，由定理\ref{thm:fa-bounded-continuous}有界。
+\end{proof}
+满射性控制解的存在；单射性控制唯一性；有界逆定理则在 Banach 框架下保证解对数据连续依赖。这是三个不同的判断。
+
+\section{闭图像定理}
+\begin{theorem}\label{thm:fa-closed-graph}
+设 $X,Y$ 为 Banach 空间，线性映射 $T:X\to Y$ 定义在整个 $X$ 上。则 $T$ 有界当且仅当图像 $G(T)=\{(x,Tx):x\in X\}$ 在 $X\times Y$ 中闭。
+\end{theorem}
+\begin{proof}
+有界性保证 $x_n\to x$、$Tx_n\to y$ 时 $y=Tx$，故图像闭。反之，$X\times Y$ 在范数 $\|(x,y)\|=\|x\|+\|y\|$ 下完备，闭子空间 $G(T)$ 也完备。投影 $P:G(T)\to X$，$P(x,Tx)=x$，为有界线性双射。其逆有界，故 $\|x\|+\|Tx\|\leq C\|x\|$，得到 $T$ 有界。
+\end{proof}
+实际应用时，不必事先证明 $Tx_n$ 收敛；只需证明“若 $x_n\to x$ 且 $Tx_n\to y$，则 $y=Tx$”。不过，定义域必须是整个 Banach 空间；真子空间上定义的闭微分算子并不因此有界。
+
+\section{如何选择定理}
+对一族算子从逐点估计求统一范数界，用一致有界原理；对连续线性满射求开性，用开映射定理；对双射估计逆，用有界逆定理；对难以直接估计的处处定义线性算子，可验证闭图像。除一致有界原理的值域外，这些定理中出现的空间均须满足相应完备性假设。
+
+\begin{proposition}
+若 $X,Y$ 为 Banach 空间，$T_n\in\mathcal B(X,Y)$，且每个 $x$ 上 $T_nx$ 收敛，则逐点极限 $Tx=\lim_nT_nx$ 为有界线性算子。
+\end{proposition}
+\begin{proof}
+逐点收敛给出逐点有界，一致有界原理给出 $M=\sup_n\|T_n\|<\infty$。线性运算与极限相容，且 $\|Tx\|\leq M\|x\|$。
+\end{proof}
+
+\section{例题与习题}
+\begin{example}[两个完备范数的等价性]
+若 $X$ 上的两个范数均完备，且 $\|x\|_a\leq C\|x\|_b$，则二者等价。
+\end{example}
+\begin{solve}
+恒等映射 $I:(X,\|\cdot\|_b)\to(X,\|\cdot\|_a)$ 为有界线性双射，故其逆有界，提供另一侧范数估计。若缺少完备性，这个结论会失败，例如连续函数空间上的积分范数与一致范数。
+\end{solve}
+\begin{enumerate}
+ \item 证明无限维 Banach 空间不可能有可数 Hamel 基。
+ \item 若 $T_n$ 在某稠密线性子空间上逐点收敛，且 $\sup_n\|T_n\|<\infty$，证明在 Banach 值域中它在整个定义域上逐点收敛。
+ \item 对例\ref{ex:fa-diagonal-range}的对角算子解释其逆在值域的诱导范数下为何无界，这与有界逆定理是否矛盾？
+ \item 证明一个可数完备度量空间必有孤立点。
+\end{enumerate}
+
+\chapter{弱拓扑、弱星拓扑与收敛}
+\label{chap:fa-weak}
+
+无限维闭单位球通常不紧。一个自然的补救是只要求每个连续线性观测收敛，而不要求误差在所有观测上同时趋于零。这种收敛较弱，却与线性方程和凸优化相容。
+
+\section{弱拓扑与弱星拓扑}
+\begin{definition}
+$X$ 的\keyterm{弱拓扑（weak topology）}$\sigma(X,X^*)$ 是使所有 $f\in X^*$ 连续的最弱拓扑。点 $x$ 的基本邻域为
+\[
+ U(x;f_1,\ldots,f_m;\varepsilon)=
+ \{y\in X:|f_j(y-x)|<\varepsilon,\ 1\leq j\leq m\},
+\]
+其中 $m$ 有限且 $\varepsilon>0$。$X^*$ 上使所有取值映射 $f\mapsto f(x)$ 连续的最弱拓扑称为\keyterm{弱星拓扑（weak-star topology）}$\sigma(X^*,X)$。
+\end{definition}
+弱邻域只限制有限个泛函。范数小则这些观测都小，故弱拓扑弱于范数拓扑。命题\ref{prop:fa-norming-functional}保证不同点能被泛函区分，所以弱拓扑是 Hausdorff 的。
+
+\section{序列收敛及其例子}
+由基本邻域定义，
+\begin{align}
+ x_n\rightharpoonup x
+ &\iff f(x_n)\to f(x)\quad\text{对每个 }f\in X^*,
+ \label{eq:fa-weak-convergence}\\
+ f_n\overset{*}{\rightharpoonup}f
+ &\iff f_n(x)\to f(x)\quad\text{对每个 }x\in X.
+ \label{eq:fa-weak-star-convergence}
+\end{align}
+$X^*$ 自身的弱拓扑是 $\sigma(X^*,X^{**})$，比弱星拓扑使用更多测试对象。一般弱拓扑不必可度量化，序列不能完整刻画其中的闭包和紧性；一般表述需要附录\ref{app:fa-topology}中的网。
+
+\begin{example}\label{ex:fa-weak-unit-vectors}
+$\ell^2$ 中 $e_n\rightharpoonup0$，但 $\|e_n\|_2=1$。把 $\ell^1$ 视为 $c_0^*$ 时，同样的 $e_n$ 弱星趋于零，却不在 $\ell^1$ 中弱趋于零。
+\end{example}
+\begin{solve}
+$\ell^2$ 的任意泛函由一个平方可和数列表示，其第 $n$ 个坐标趋零，故 $f(e_n)\to0$。对 $c_0$ 的任意元素 $x$，$e_n(x)=x_n\to0$，得到弱星收敛。但 $\ell^1$ 上的连续泛函 $f(x)=\sum_jx_j$ 对所有 $e_n$ 取值一，排除弱收敛到零。
+\end{solve}
+
+\section{有界性与下半连续性}
+\begin{proposition}\label{prop:fa-weak-bounds}
+弱收敛序列范数有界，且 $x_n\rightharpoonup x$ 时
+\[
+ \|x\|\leq\liminf_n\|x_n\|.
+\]
+若 $X$ 为 Banach 空间，则 $X^*$ 中的弱星收敛序列也范数有界。
+\end{proposition}
+\begin{proof}
+将 $Jx_n$ 视为完备空间 $X^*$ 上的连续泛函。弱收敛保证它们逐点有界，由一致有界原理及 $\|Jx_n\|=\|x_n\|$ 得到范数有界；这一步不需要 $X$ 本身完备。对任意 $\|f\|\leq1$，有 $|f(x)|=\lim_n|f(x_n)|\leq\liminf_n\|x_n\|$，再对 $f$ 取上确界。弱星情形直接把 $f_n$ 作为 $X$ 上的泛函使用一致有界原理，此时需要 $X$ 完备。
+\end{proof}
+有界线性算子弱到弱连续，因为对 $g\in Y^*$，$g(Tx_n)=(T'g)(x_n)\to(T'g)(x)$。因此线性约束能够在弱极限中保持。
+
+在 Hilbert 空间中，弱收敛与范数收敛可以组合为强收敛：若 $x_n\rightharpoonup x$ 且 $\|x_n\|\to\|x\|$，则
+\[
+ \|x_n-x\|^2=\|x_n\|^2+\|x\|^2-2\operatorname{Re}\langle x_n,x\rangle\to0.
+\]
+
+\section{凸集的闭包与 Mazur 引理}
+\begin{theorem}\label{thm:fa-convex-weak-closure}
+赋范空间中，凸集的范数闭包与弱闭包相同。特别地，范数闭凸集弱闭。
+\end{theorem}
+\begin{proof}
+由于弱拓扑较弱，范数闭包包含于弱闭包。若 $x$ 不在凸集 $C$ 的范数闭包中，定理\ref{thm:fa-separation}给出 $f\in X^*$ 和 $a$，使 $\sup_C\operatorname{Re}f<a<\operatorname{Re}f(x)$。集合 $\{y:\operatorname{Re}f(y)>a\}$ 是与 $C$ 不交的弱开邻域，所以 $x$ 也不在弱闭包中。
+\end{proof}
+集合 $A$ 的凸包 $\operatorname{conv}A$ 由所有有限凸组合 $\sum_{j=1}^ma_jx_j$ 组成，其中 $x_j\in A$、$a_j\geq0$、$\sum_ja_j=1$。
+\begin{corollary}[Mazur 引理]\label{cor:fa-mazur}
+若 $x_n\rightharpoonup x$，则存在每个尾部的有限凸组合 $y_n\in\operatorname{conv}\{x_k:k\geq n\}$，使 $\|y_n-x\|\to0$。
+\end{corollary}
+\begin{proof}
+$x$ 属于每个尾部的弱闭包，因此属于该尾部凸包的弱闭包，也就属于范数闭包。选择 $y_n$ 使 $\|y_n-x\|<1/n$ 即可。
+\end{proof}
+这里使用凸组合，并不保证原序列存在强收敛子列。例\ref{ex:fa-weak-unit-vectors}的 $e_n$ 没有强收敛子列，但 $n^{-1}(e_1+\cdots+e_n)$ 的范数为 $n^{-1/2}$。
+
+\section{算子的不同收敛方式}
+对 $T_n,T\in\mathcal B(X,Y)$，算子范数收敛要求 $\|T_n-T\|\to0$；\keyterm{强算子收敛（strong operator convergence）}要求对每个 $x$ 有 $\|T_nx-Tx\|\to0$；\keyterm{弱算子收敛（weak operator convergence）}只要求 $g(T_nx)\to g(Tx)$ 对每个 $x\in X,g\in Y^*$ 成立。三者依次蕴含。
+
+在 $\ell^2$ 上令 $P_n$ 保留前 $n$ 个坐标，则 $P_nx\to x$ 对每个 $x$ 成立，而 $\|P_n-I\|=1$，所以强算子收敛不蕴含算子范数收敛。右移算子 $R$ 的幂满足 $R^nx\rightharpoonup0$：先对有限支撑测试向量验证，再用稠密性与 $\|R^n\|=1$ 延拓。因此 $R^n$ 弱算子趋零，却不强算子趋零。
+
+\section{例题与习题}
+\begin{enumerate}
+ \item 若 $(x_n)$ 范数有界，且在 $X^*$ 的某个范数稠密子集上 $f(x_n)\to f(x)$，证明 $x_n\rightharpoonup x$。
+ \item 证明有限维空间中的弱收敛与范数收敛等价。
+ \item 对 $\ell^2$ 的单位向量，构造由第 $n$ 项开始的有限凸组合，使其范数趋零。
+ \item 证明无限维赋范空间中任意基本弱零邻域都是范数无界的。提示：有限多个泛函的公共核非零。
+\end{enumerate}
+
+\chapter{弱紧性与自反空间}
+\label{chap:fa-reflexive}
+
+弱收敛的优势在于：某些不具有范数紧性的有界集合，在弱拓扑下恢复紧性。对偶空间中的一般结论是弱星紧性；要把它转化为原空间中的弱紧性，需要自反性。
+
+\section{Banach--Alaoglu 定理}
+\begin{theorem}\label{thm:fa-alaoglu}
+任意赋范空间 $X$ 的对偶闭单位球 $B_{X^*}$ 在 $\sigma(X^*,X)$ 下紧。
+\end{theorem}
+\begin{proof}
+将 $f\in B_{X^*}$ 视为坐标族 $(f(x))_{x\in X}$。每个坐标属于紧集 $D_x=\{z\in\mathbb K:|z|\leq\|x\|\}$，而乘积 $\prod_{x\in X}D_x$ 由 Tychonoff 定理紧。这个乘积中满足
+\[
+ a_{\alpha x+\beta y}=\alpha a_x+\beta a_y
+ \quad(x,y\in X,\ \alpha,\beta\in\mathbb K)
+\]
+的坐标族构成闭集，因为每个等式都是有限坐标上的闭条件。它们恰好对应范数至多一的线性泛函。乘积拓扑在此闭集上的诱导拓扑正是弱星拓扑，所以 $B_{X^*}$ 紧。所用乘积紧性是附录\ref{app:fa-topology}中明确列出的拓扑输入。
+\end{proof}
+这一定理没有声称原空间 $X$ 的闭单位球弱紧，也没有在一般情形下声称每个有界泛函序列都有弱星收敛子列。
+
+\section{可分空间中的弱星子列}
+\begin{theorem}\label{thm:fa-weak-star-subsequence}
+若 $X$ 可分，则 $X^*$ 中每个范数有界序列都有弱星收敛子列。
+\end{theorem}
+\begin{proof}
+取可数稠密集 $\{x_j\}$。若 $\|f_n\|\leq M$，则对每个 $j$，标量列 $(f_n(x_j))$ 有界。逐次选子列并取对角子列，得到 $f_{n_k}(x_j)$ 对所有 $j$ 收敛。对任意 $x$，估计
+\[
+ |f_{n_k}(x)-f_{n_l}(x)|\leq2M\|x-x_j\|
+       +|f_{n_k}(x_j)-f_{n_l}(x_j)|
+\]
+说明 $(f_{n_k}(x))$ 为 Cauchy 序列。令 $f(x)$ 为其极限，便得线性泛函及 $|f(x)|\leq M\|x\|$，所以 $f\in X^*$，子列弱星趋于 $f$。
+\end{proof}
+在 $B_{X^*}$ 上，还可用
+\[
+ d(f,g)=\sum_{j\geq1}2^{-j}\frac{|f(x_j)-g(x_j)|}{1+|f(x_j)-g(x_j)|}
+\]
+给弱星拓扑赋予度量。稠密性与统一范数界保证该度量收敛等价于逐点收敛。这里的有界集限制不可随意省略。
+
+\section{自反空间与典范嵌入}
+\begin{definition}
+Banach 空间 $X$ 称为\keyterm{自反的（reflexive）}，若典范等距映射 $J:X\to X^{**}$，$(Jx)(f)=f(x)$，为满射。
+\end{definition}
+Hilbert 空间自反。实情形连续两次使用 Riesz 表示即可；复情形设 $R(y)=\langle\,\cdot\,,y\rangle$，对 $F\in H^{**}$，映射 $y\mapsto\overline{F(Ry)}$ 为连续线性泛函，故等于 $\langle y,z\rangle$。于是 $F(Ry)=\langle z,y\rangle=(Ry)(z)$，从而 $F=Jz$。
+
+由定理\ref{thm:fa-sequence-dual}，$1<p<\infty$ 时 $\ell^p$ 自反；在本书采用的 $\sigma$ 有限测度空间上，$L^p$ 也由其对偶表示得出同一结论。另一方面，$c_0^{**}\cong\ell^\infty$，典范映射就是自然包含，因此 $c_0$ 不自反。自反性要求的是典范映射满射，而不只是抽象存在某个同构。
+
+\section{自反性的弱紧性刻画}
+\begin{lemma}[Goldstine 定理]\label{lem:fa-goldstine}
+$J(B_X)$ 在 $B_{X^{**}}$ 中弱星稠密。
+\end{lemma}
+\begin{proof}
+给定 $F\in B_{X^{**}}$ 及有限个 $f_1,\ldots,f_m\in X^*$，只需证明 $(F(f_j))_{j=1}^m$ 属于 $\{(f_j(x))_{j=1}^m:x\in B_X\}$ 的闭包。若不属于，在有限维实空间（复情形取实部）中分离点与闭凸集，得到 $f=\sum_jc_jf_j$ 满足
+\[
+ \operatorname{Re}F(f)>\sup_{x\in B_X}\operatorname{Re}f(x)=\|f\|.
+\]
+但 $\|F\|\leq1$ 保证 $\operatorname{Re}F(f)\leq\|f\|$，矛盾。有限坐标邻域恰好定义弱星拓扑，故引理成立。
+\end{proof}
+\begin{theorem}\label{thm:fa-reflexive-compact}
+Banach 空间 $X$ 自反当且仅当 $B_X$ 弱紧。
+\end{theorem}
+\begin{proof}
+自反时，$J$ 把 $B_X$ 双射到 $B_{X^{**}}$，并把弱拓扑对应到 $\sigma(X^{**},X^*)$；由 Banach--Alaoglu 定理得紧性。反之，若 $B_X$ 弱紧，则 $J(B_X)$ 在 Hausdorff 弱星拓扑中紧，因而闭；Goldstine 定理又保证它在 $B_{X^{**}}$ 中稠密，所以两者相等，缩放后得 $J(X)=X^{**}$。
+\end{proof}
+自反空间的闭线性子空间 $M$ 也自反：$B_M=M\cap B_X$ 为弱闭的弱紧集，而 Hahn--Banach 延拓保证 $M$ 的自身弱拓扑与诱导弱拓扑一致。闭子空间的商 $X/M$ 也自反：商映射弱连续，闭单位球的像弱紧；它包含商空间的开单位球，而后者在商闭单位球中弱稠密，故像包含整个商闭单位球，反向包含由商范数定义成立，再用定理\ref{thm:fa-reflexive-compact}。
+
+\section{有界序列的弱收敛子列}
+\begin{theorem}\label{thm:fa-reflexive-subsequence}
+自反 Banach 空间中的每个有界序列都有弱收敛子列。
+\end{theorem}
+\begin{proof}
+设 $(x_n)$ 有界，令 $M=\overline{\operatorname{span}\{x_n:n\geq1\}}$。$M$ 可分且自反。先说明 $M^*$ 可分：由上一节的度量和 Banach--Alaoglu 定理，$B_{M^*}$ 弱星紧且可度量化，故有可数弱星稠密子集。因 $M$ 自反，$M^*$ 上的弱星拓扑就是弱拓扑；该可数集的凸包弱稠密，定理\ref{thm:fa-convex-weak-closure}使其范数稠密。取有理系数的有限凸组合，便得到范数可数稠密集。
+
+现在把 $Jx_n$ 看作 $(M^*)^*$ 中的有界序列，对可分空间 $M^*$ 使用定理\ref{thm:fa-weak-star-subsequence}，得到弱星收敛子列。极限由自反性等于某个 $Jx$，$x\in M$，故 $x_n$ 的相应子列在 $M$ 中弱收敛；将 $X^*$ 的泛函限制到 $M$，即知它也在 $X$ 中弱收敛。
+\end{proof}
+更一般的 Eberlein--Šmulian 定理说明：Banach 空间中，一个子集弱紧当且仅当其中每个序列都有弱收敛到该子集某点的子列。本书不证明这一更深结果；弱紧性的进一步理论可参阅\cite{teschl-fa}。上面的自反情形已足够支持后续直接法。
+
+\section{例题与习题}
+\begin{example}[最近点存在]
+自反 Banach 空间中，任意非空闭凸集 $C$ 到给定点 $x$ 的距离都能达到。
+\end{example}
+\begin{solve}
+取 $y_n\in C$ 使 $\|x-y_n\|\to d=\operatorname{dist}(x,C)$。此序列有界，故有弱收敛子列，记极限为 $y$。闭凸集弱闭，所以 $y\in C$；范数下半连续性给出 $\|x-y\|\leq d$，因而等号成立。唯一性通常需要严格凸性等额外条件。
+\end{solve}
+\begin{enumerate}
+ \item 证明 $\ell^1$ 不自反。提示：若 $e_n$ 有弱收敛子列，坐标泛函迫使其极限为零，而求和泛函给出矛盾。
+ \item 证明自反空间上的每个连续线性泛函都在闭单位球上达到其模的最大值。
+ \item 证明严格凸 Banach 空间中，闭凸集的最近点一旦存在便唯一。
+ \item 解释为何 $\ell^\infty$ 不自反：它含有闭子空间 $c_0$。
+\end{enumerate}
+
+\chapter{有界算子的谱理论}
+\label{chap:fa-spectrum}
+
+本章中 $X$ 为非零复 Banach 空间，$T\in\mathcal B(X)$。有限维矩阵不可逆等价于存在非零核；无限维中还可能因值域不满、逆映射无界等原因失败。谱把这些现象统一起来。
+
+\section{可逆算子与 Neumann 级数}
+\begin{proposition}\label{prop:fa-neumann}
+若 $S\in\mathcal B(X)$ 且 $\|S\|<1$，则 $I-S$ 可逆，且
+\begin{equation}
+ (I-S)^{-1}=\sum_{n=0}^{\infty}S^n,
+ \qquad\|(I-S)^{-1}\|\leq\frac1{1-\|S\|}.
+ \label{eq:fa-neumann-series}
+\end{equation}
+\end{proposition}
+\begin{proof}
+$\mathcal B(X)$ 完备，且 $\sum_n\|S^n\|\leq\sum_n\|S\|^n<\infty$，故级数按算子范数收敛。有限几何和左右乘 $I-S$ 均等于 $I-S^{N+1}$，令 $N\to\infty$ 即得双侧逆。
+\end{proof}
+若 $A$ 可逆且 $\|A^{-1}E\|<1$，则 $A+E=A(I+A^{-1}E)$ 可逆。因此可逆算子构成开集，小扰动不会立即破坏可逆性。
+
+\section{预解集、谱与谱的分类}
+\begin{definition}
+\keyterm{预解集（resolvent set）}$\rho(T)$ 由所有使 $\lambda I-T$ 具有有界双侧逆的 $\lambda\in\mathbb C$ 组成。\keyterm{谱（spectrum）}为 $\sigma(T)=\mathbb C\setminus\rho(T)$。对 $\lambda\in\rho(T)$ 记 $R(\lambda,T)=(\lambda I-T)^{-1}$。
+\end{definition}
+由有界逆定理，$\lambda I-T$ 双射已足以保证逆有界。采用互不相交的分类：非单射时属于点谱（point spectrum）；单射、值域稠密但不满时属于连续谱（continuous spectrum）；单射且值域不稠密时属于剩余谱（residual spectrum）。点谱中的元素就是特征值。
+
+\section{谱的非空性与预解恒等式}
+直接将逆算子相减得到
+\[
+ R(\lambda,T)-R(\mu,T)=(\mu-\lambda)R(\lambda,T)R(\mu,T).
+\]
+若 $|h|\|R(\lambda,T)\|<1$，Neumann 展开还给出
+\[
+ R(\lambda+h,T)=\sum_{n=0}^{\infty}(-h)^nR(\lambda,T)^{n+1},
+\]
+所以预解集开，预解算子在其中解析。
+
+\begin{theorem}\label{thm:fa-spectrum-compact}
+$\sigma(T)$ 是非空紧集，且包含于 $\{\lambda:|\lambda|\leq\|T\|\}$。
+\end{theorem}
+\begin{proof}
+若 $|\lambda|>\|T\|$，则
+\[
+ R(\lambda,T)=\lambda^{-1}\sum_{n=0}^{\infty}(T/\lambda)^n,
+ \qquad\|R(\lambda,T)\|\leq\frac1{|\lambda|-\|T\|}.
+\]
+因此谱有界；预解集开保证谱闭。若谱为空，对每个 $x\in X,f\in X^*$，函数 $\lambda\mapsto f(R(\lambda,T)x)$ 为整函数，在大圆外有界且趋零，在圆内由连续性有界。Liouville 定理使其恒为零。由对偶分离点知 $R(\lambda,T)=0$，这与它是逆算子且 $X\ne\{0\}$ 矛盾。
+\end{proof}
+复标量域在非空性证明中至关重要；实矩阵的实特征值集合可能为空。实算子的谱通常通过附录\ref{app:fa-complex}中的复化定义。
+
+\section{谱半径与多项式谱映射}
+\begin{theorem}\label{thm:fa-spectral-radius}
+定义 $r(T)=\max_{\lambda\in\sigma(T)}|\lambda|$，则
+\begin{equation}
+ r(T)=\lim_{n\to\infty}\|T^n\|^{1/n}.
+ \label{eq:fa-spectral-radius}
+\end{equation}
+对任意复系数多项式 $p$，有 $\sigma(p(T))=p(\sigma(T))$。
+\end{theorem}
+\begin{proof}
+次乘性 $\|T^{m+n}\|\leq\|T^m\|\|T^n\|$ 保证根式极限 $L$ 存在并等于其下确界：固定 $m$，写 $n=km+j$，用余数 $0\leq j<m$ 的有限个范数控制，再令 $n\to\infty$。若某次幂为零，则 $L=0$ 单独成立。当 $|\lambda|>L$ 时，根值判别保证 $\sum_nT^n/\lambda^{n+1}$ 收敛并给出逆，故 $r(T)\leq L$。
+
+反向取 $R>r(T)$。由大圆上的 Neumann 级数逐项积分，再在预解区域内变形路径，得到
+\[
+ T^n=\frac1{2\pi\mathrm i}\int_{|\lambda|=R}\lambda^nR(\lambda,T)\,\mathrm d\lambda.
+\]
+算子值积分的使用可逐个向量、泛函标量化，见附录\ref{app:fa-complex}。故 $\|T^n\|\leq R^{n+1}\max_{|\lambda|=R}\|R(\lambda,T)\|$，取 $n$ 次方根得 $L\leq R$，再令 $R\downarrow r(T)$。
+
+对非常数 $p$，将 $p(z)-\mu$ 分解为一次因子的乘积。相应算子因子两两交换；有限个交换因子的乘积可逆当且仅当每个因子可逆。因此 $\mu\notin\sigma(p(T))$ 当且仅当 $p(z)=\mu$ 的所有根均不在 $\sigma(T)$。常数多项式情形直接验证。
+\end{proof}
+一般有 $r(T)\leq\|T\|$，但不必相等；非零幂零矩阵的谱半径为零。
+
+\section{自伴与正算子的谱}
+\begin{proposition}\label{prop:fa-selfadjoint-spectrum}
+有界自伴算子 $T$ 的谱为实集，且 $r(T)=\|T\|$。正算子的谱包含于 $[0,\|T\|]$。
+\end{proposition}
+\begin{proof}
+对非实 $\lambda$，内积的虚部给出 $\|(\lambda I-T)x\|\geq|\operatorname{Im}\lambda|\|x\|$。这保证单射及闭值域：像序列收敛时，原像由下界为 Cauchy 序列。同时 $(\lambda I-T)^*=\overline\lambda I-T$ 的核为零，故值域稠密，因而满射。于是非实数均在预解集中。
+
+由 $\|T^*T\|=\|T\|^2$ 及自伴性，归纳得 $\|T^{2^k}\|=\|T\|^{2^k}$；谱半径公式即给出 $r(T)=\|T\|$。若 $T\geq0$、$a>0$，则 $\langle(T+aI)x,x\rangle\geq a\|x\|^2$，同样用下界与伴随核证明 $T+aI$ 可逆，排除负谱点。
+\end{proof}
+
+\section{例题与习题}
+\begin{example}[谱点不必是特征值]\label{ex:fa-multiplication-spectrum}
+在 $L^2(0,1)$ 上，$(Tf)(t)=tf(t)$ 的谱为 $[0,1]$，但点谱为空。
+\end{example}
+\begin{solve}
+若 $\lambda\notin[0,1]$，乘以 $(\lambda-t)^{-1}$ 为有界逆。若 $\lambda\in[0,1]$，取支撑在 $|t-\lambda|<1/n$ 内的归一化示性函数 $f_n$，则 $\|f_n\|_2=1$ 而 $\|(\lambda I-T)f_n\|_2\leq1/n$，排除有界逆。特征方程 $(t-\lambda)f(t)=0$ 迫使 $f$ 支撑在零测单点，故 $f=0$。因算子自伴且核为零，其值域稠密，所以这些谱点均为连续谱点。
+\end{solve}
+\begin{enumerate}
+ \item 证明 $\ell^2$ 上有界对角算子 $T(x_j)=(a_jx_j)$ 的谱等于 $\overline{\{a_j:j\geq1\}}$，点谱等于对角元的集合。
+ \item 计算 $\ell^2$ 上左右移位的点谱，并证明它们的谱都是闭单位圆盘。
+ \item 证明当 $|\lambda|>\|T\|$ 时，预解算子的上述上界成立，讨论 $T=cI$ 时何时达到等号。
+ \item 构造两个具有相同谱但范数不同的有限维算子。
+\end{enumerate}
+
+\chapter{紧算子与 Fredholm 理论}
+\label{chap:fa-compact}
+
+紧算子把有界输入转化为具有收敛子列的输出。这一性质弱于有限秩，却足以使非零谱点及方程不可解的障碍具有有限维结构。
+
+\section{紧算子的定义与基本性质}
+\begin{definition}
+线性算子 $K:X\to Y$ 称为\keyterm{紧算子（compact operator）}，若每个有界集的像相对紧，即其闭包紧。对赋范空间，这等价于每个有界序列 $(x_n)$ 都有子列，使 $(Kx_{n_j})$ 在 $Y$ 中收敛。
+\end{definition}
+紧算子有界，因为单位球像的紧闭包有界。有限秩有界算子紧，因为其有界像位于有限维空间。紧算子与有界算子在任意一侧复合仍紧：一侧保持输入有界，另一侧把输出收敛序列连续地映为收敛序列。有限个紧算子之和也紧，可依次选子列证明。
+
+\begin{proposition}\label{prop:fa-compact-closed}
+若 $Y$ 完备，$K_n:X\to Y$ 紧且 $\|K_n-K\|\to0$，则 $K$ 紧。
+\end{proposition}
+\begin{proof}
+给定 $\varepsilon>0$，取 $n$ 使 $\|K_n-K\|<\varepsilon/3$。$K_n(B_X)$ 有有限个半径 $\varepsilon/3$ 的球覆盖，因此 $K(B_X)$ 有有限个半径 $\varepsilon$ 的球覆盖。其闭包全有界，且作为完备空间的闭集完备，由定理\ref{thm:fa-metric-compactness}可知紧。
+\end{proof}
+在无限维空间中，恒等算子不紧，这是推论\ref{cor:fa-unit-ball}的另一种表述。
+
+\section{有限秩逼近与积分算子}
+若 $K:H_1\to H_2$ 是 Hilbert 空间间的紧算子，对 $K(B_{H_1})$ 取有限 $\varepsilon$ 网 $y_1,\ldots,y_m$。设 $P$ 为到其线性张成空间的正交投影，则最佳逼近性质给出 $\|(I-P)K\|\leq\varepsilon$，而 $PK$ 为有限秩。因此 Hilbert 空间间的紧算子恰为有限秩算子的范数极限；这一逆向逼近结论不能无条件推广到所有 Banach 空间。
+
+\begin{theorem}[Arzelà--Ascoli]\label{thm:fa-ascoli}
+设 $Q$ 为紧度量空间。$\mathcal F\subset C(Q)$ 在一致范数下相对紧，当且仅当它一致有界且等度连续。等度连续指对每个 $\varepsilon>0$ 存在 $\delta>0$，使 $d(s,t)<\delta$ 时 $|f(s)-f(t)|<\varepsilon$ 对所有 $f\in\mathcal F$ 成立。
+\end{theorem}
+\begin{proof}
+相对紧集可用有限个一致范数小球覆盖。有限个中心函数均有界且一致连续，利用三角不等式把这两种性质传给整个函数族。
+
+反之，由等度连续性选 $\delta$，再以有限个 $\delta$ 球覆盖 $Q$，记球心为 $t_1,\ldots,t_m$。一致有界性保证向量 $(f(t_j))_{j=1}^m$ 处于有限维有界集，故可取有限细网，并从每个非空网格选择一个函数。两个函数若各球心处数值足够接近，利用等度连续性即可在整个 $Q$ 上一致接近。因此 $\mathcal F$ 全有界；$C(Q)$ 完备，故闭包紧。
+\end{proof}
+若 $k\in C([a,b]^2)$，则
+\[
+ (Kf)(t)=\int_a^b k(t,s)f(s)\,\mathrm ds
+\]
+在 $C([a,b])$ 上紧：单位球的像由 $(b-a)\|k\|_\infty$ 控制，而 $|Kf(t)-Kf(t')|\leq\int_a^b|k(t,s)-k(t',s)|\,\mathrm ds$ 给出等度连续性。在 $L^2$ 框架中，若核平方可积，则 Cauchy--Schwarz 给出 $\|K\|\leq\|k\|_{L^2}$；用有限个乘积函数逼近核，可得有限秩逼近，故算子也紧。
+
+\section{紧扰动的核与闭值域}
+本节设 $X$ 为 Banach 空间，$K\in\mathcal B(X)$ 紧，$A=I-K$。
+\begin{lemma}\label{lem:fa-compact-range}
+$\ker A$ 有限维，$\operatorname{Ran}A$ 闭，并存在 $C>0$ 使
+\[
+ \operatorname{dist}(x,\ker A)\leq C\|Ax\|\quad(x\in X).
+\]
+\end{lemma}
+\begin{proof}
+在 $\ker A$ 上 $K=I$，故其单位球紧，核有限维。若距离估计失败，可缩放并减去核内向量，得到 $\operatorname{dist}(x_n,\ker A)=1$、$\|x_n\|\leq2$ 且 $Ax_n\to0$。紧性给出 $Kx_n$ 的收敛子列，于是 $x_n=Ax_n+Kx_n$ 的相应子列收敛到 $x\in\ker A$，与距离为一矛盾。
+
+若 $Ax_n\to y$，由距离估计可在不改变 $Ax_n$ 的条件下选取有界代表元。再由紧性选 $Kx_n$ 收敛子列，便有 $x_n\to x$ 且 $Ax=y$，所以值域闭。
+\end{proof}
+
+\section{Fredholm 二择一与指数}
+\begin{theorem}[Fredholm 二择一]\label{thm:fa-fredholm-alternative}
+对紧算子 $K$，$I-K$ 单射当且仅当满射，此时逆有界。一般地，$A=I-K$ 的核有限维、值域闭，且
+\[
+ \dim\ker A=\dim(X/\operatorname{Ran}A).
+\]
+方程 $Ax=y$ 可解当且仅当 $f(y)=0$ 对所有 $f\in\ker A'$ 成立。
+\end{theorem}
+\begin{proof}
+考虑 $N_j=\ker A^j$ 与 $R_j=\operatorname{Ran}A^j$。因 $A^j=I-K_j$，其中 $K_j$ 是含因子 $K$ 的算子多项式，故 $K_j$ 紧；由引理\ref{lem:fa-compact-range}，$N_j$ 有限维且 $R_j$ 闭。
+
+两个链都必在有限步稳定。若 $N_j$ 严格递增，用 Riesz 引理选单位向量 $x_j\in N_j$，到 $N_{j-1}$ 的距离大于 $1/2$。当 $j>i$ 时，$Ax_j,Kx_i\in N_{j-1}$，故 $\|Kx_j-Kx_i\|>1/2$，违反紧性。若 $R_j$ 严格递减，选单位向量 $x_j\in R_{j-1}$，到 $R_j$ 的距离大于 $1/2$；当 $j>i$ 时，$Kx_j,Ax_i\in R_i$，再次得到像之间距离大于 $1/2$。链一旦相邻相等，以取原像或取像可知后面也都相等。
+
+取足够大 $m$ 使两链稳定。则
+\[
+ X=N_m\oplus R_m.
+\]
+确实，若 $x=A^my\in N_m$，则 $y\in N_{2m}=N_m$，所以 $x=0$。又因 $R_m=R_{2m}$，任意 $x$ 都可选 $y$ 使 $A^mx=A^{2m}y$，从而 $x-A^my\in N_m$。在 $R_m$ 上，$A$ 单射且满射；在有限维 $N_m$ 上，核维数等于值域余维。分块考察便得全空间的维数等式，所以单射与满射等价，逆的有界性由有界逆定理得到。
+
+最后，$\ker A'=(\operatorname{Ran}A)^\perp$。由值域闭及命题\ref{prop:fa-distance-dual}，一个 $y$ 属于值域当且仅当所有这些泛函都在 $y$ 上消失。
+\end{proof}
+有界线性算子 $A:X\to Y$ 若核有限维、值域闭且值域余维有限，称为\keyterm{Fredholm 算子（Fredholm operator）}。其指数定义为
+\begin{equation}
+ \operatorname{ind}A=\dim\ker A-\dim(Y/\operatorname{Ran}A).
+ \label{eq:fa-fredholm-index}
+\end{equation}
+上面的定理说明 $I-K$ 的指数为零。在 Hilbert 空间中，相容条件写成 $y\perp\ker(I-K^*)$。
+
+\section{紧算子的非零谱}
+\begin{theorem}\label{thm:fa-compact-spectrum}
+复 Banach 空间上紧算子 $K$ 的每个非零谱点都是特征值，其特征空间有限维；对每个 $\varepsilon>0$，模至少为 $\varepsilon$ 的谱点只有有限个。因此非零谱至多可数，唯一可能的聚点是零。
+\end{theorem}
+\begin{proof}
+对 $\lambda\ne0$，将 $\lambda I-K$ 写为 $\lambda(I-K/\lambda)$，Fredholm 二择一及有限维核立即给出前两项。
+
+若有互异特征值 $\lambda_n$ 满足 $|\lambda_n|\geq\varepsilon$，取相应特征向量，令其前 $n$ 个的张成空间为 $E_n$。不同特征值的特征向量线性无关，且 $(K-\lambda_n I)E_n\subset E_{n-1}$。由 Riesz 引理取 $x_n\in E_n$，$\|x_n\|=1$，到 $E_{n-1}$ 距离大于 $1/2$。若 $n>m$，则 $Kx_n-Kx_m$ 与 $\lambda_nx_n$ 相差 $E_{n-1}$ 中的向量，故其范数大于 $\varepsilon/2$，与紧性矛盾。
+\end{proof}
+无限维空间上零必在紧算子的谱中，否则 $I=K^{-1}K$ 紧，违反闭单位球不紧。但零未必是特征值，如 $\ell^2$ 上对角元为 $1/n$ 的算子。
+
+\section{例题与习题}
+\begin{example}[Volterra 算子]
+$C([0,1])$ 上 $(Vf)(t)=\int_0^t f(s)\,\mathrm ds$ 紧，且 $\sigma(V)=\{0\}$。
+\end{example}
+\begin{solve}
+单位球像一致有界且满足 $|Vf(t)-Vf(s)|\leq|t-s|$，由 Arzelà--Ascoli 得紧性。逐次积分或归纳得 $\|V^n\|\leq1/n!$，故谱半径为零。谱非空，所以只有零；$V$ 单射，表明零可以是紧算子的非特征谱点。
+\end{solve}
+\begin{enumerate}
+ \item 证明 $\ell^2$ 上的有界对角算子紧当且仅当其对角元趋零。
+ \item 对 $Kf(t)=t\int_0^1f(s)\,\mathrm ds$ 求 $I-K$ 的逆；再把系数改为 $2t$，讨论非齐次方程的相容条件。
+ \item 证明若 $x_n\rightharpoonup x$ 且 $K$ 紧，则 $Kx_n\to Kx$。提示：利用弱极限唯一性排除不收敛子列。
+ \item 说明紧算子的有限秩近似为何不意味着它具有有限维值域。
+\end{enumerate}
+
+\chapter{紧自伴算子的谱分解}
+\label{chap:fa-compact-spectral}
+
+本章把有限维对称矩阵的正交对角化推广到紧自伴算子。紧性保证非零谱由特征值组成，自伴性保证不同特征方向正交，两者结合得到可用于计算的展开。证明先在复 Hilbert 空间中进行；实 Hilbert 空间可先复化，自伴性保证所得特征值为实数，再取特征向量的实部或虚部得到实特征方向，其余正交分解步骤相同。
+
+\section{特征值与正交性}
+若 $Tx=\lambda x$、$x\ne0$，且 $T=T^*$，则
+\[
+ \lambda\|x\|^2=\langle Tx,x\rangle
+ =\langle x,Tx\rangle=\overline\lambda\|x\|^2,
+\]
+所以 $\lambda$ 为实数。若 $Ty=\mu y$，$\lambda\ne\mu$，则 $(\lambda-\mu)\langle x,y\rangle=0$，故 $x\perp y$。某个特征空间的正交补在 $T$ 下保持不变，因为对该特征空间中的 $e$，$\langle Tx,e\rangle=\langle x,Te\rangle=0$。
+
+\section{极值与非零特征值}
+\begin{proposition}\label{prop:fa-compact-extreme}
+非零紧自伴算子 $T$ 有特征值 $\lambda$ 满足 $|\lambda|=\|T\|$。因此
+\[
+ \max_{\|x\|=1}|\langle Tx,x\rangle|=\|T\|.
+\]
+\end{proposition}
+\begin{proof}
+由命题\ref{prop:fa-selfadjoint-spectrum}及谱的紧性，存在谱点 $\lambda$ 满足 $|\lambda|=\|T\|>0$。紧算子的非零谱点都是特征值，故可取对应单位特征向量达到上述值。另一侧由 Cauchy--Schwarz 及算子范数给出。
+\end{proof}
+这一证明使用了前章的一般谱论。如果从二次型的最大化序列出发，也可证明同一结论，但应利用紧算子作用后的收敛，不能把整个单位球当作范数紧集。
+
+\section{紧自伴谱定理}
+\begin{theorem}\label{thm:fa-compact-spectral}
+设 $T$ 为可分 Hilbert 空间 $H$ 上的紧自伴算子。其非零特征值可按重数列为有限列或可数列 $(\lambda_n)$，相应标准正交特征向量为 $(e_n)$，并且
+\[
+ H=\ker T\oplus\overline{\operatorname{span}\{e_n\}}.
+\]
+若列无穷，则 $\lambda_n\to0$；对任意 $x\in H$，
+\begin{equation}
+ Tx=\sum_n\lambda_n\langle x,e_n\rangle e_n,
+ \label{eq:fa-compact-spectral-expansion}
+\end{equation}
+级数按 Hilbert 范数收敛。
+\end{theorem}
+\begin{proof}
+若 $T\ne0$，由命题\ref{prop:fa-compact-extreme}选择绝对值最大的特征值及一个单位特征向量，然后把 $T$ 限制到其正交补，继续这一过程。限制仍紧且自伴。若有限步后限制为零，分解已经得到；否则得到正交列，$\|Te_n-Te_m\|^2=\lambda_n^2+\lambda_m^2$。紧性迫使 $\lambda_n\to0$。
+
+记 $M=\overline{\operatorname{span}\{e_n\}}$。任意 $x\in M^\perp$ 都属于每一步的剩余空间，其上算子范数等于下一步选出的 $|\lambda_n|$；令 $n\to\infty$ 得 $Tx=0$。反之，$x\in\ker T$ 必与所有非零特征向量正交，所以 $M^\perp=\ker T$。在 $M$ 中使用正交展开，在核中算子为零，即得式\eqref{eq:fa-compact-spectral-expansion}。
+\end{proof}
+$x$ 本身的展开应为 $x=P_{\ker T}x+\sum_n\langle x,e_n\rangle e_n$，不可遗漏核中的分量。按 $|\lambda_n|$ 递减排列时，有限秩截断 $T_Nx=\sum_{n\leq N}\lambda_n\langle x,e_n\rangle e_n$ 满足
+\[
+ \|T-T_N\|=\sup_{n>N}|\lambda_n|.
+\]
+上界由正交性得到，下界在相应特征向量上取到或逼近；有限列情形中，空尾部的上确界在此约定为零，即保留全部非零特征项后误差为零。
+
+\section{正算子的极小极大原理}
+设 $T\geq0$ 紧，非零特征值按 $\lambda_1\geq\lambda_2\geq\cdots>0$ 排列。对存在的第 $n$ 个特征值，有
+\[
+ \lambda_n=min_{\dim L=n-1}\ \sup_{\substack{x\perp L\\\|x\|=1}}
+ \langle Tx,x\rangle.
+\]
+证明只需两个方向。取 $L=\operatorname{span}\{e_1,\ldots,e_{n-1}\}$，谱展开给出上界 $\lambda_n$；任意 $n-1$ 维的 $L$ 都使 $\operatorname{span}\{e_1,\ldots,e_n\}\cap L^\perp$ 含单位向量，该向量的二次型至少为 $\lambda_n$，得到下界。这是极小极大原理（min--max principle）的一个常用形式。
+
+\section{奇异值与 Green 算子}
+若 $T:H_1\to H_2$ 是可分 Hilbert 空间间的紧算子，则 $T^*T$ 为正紧自伴算子。设其正特征值为 $s_n^2$，对应单位特征向量 $v_n$，定义 $u_n=Tv_n/s_n$。计算内积可知 $(u_n)$ 标准正交，并且
+\[
+ Tx=\sum_n s_n\langle x,v_n\rangle u_n.
+\]
+数 $s_n$ 称为\keyterm{奇异值（singular value）}。核 $\ker(T^*T)=\ker T$ 保证展开没有遗漏非零输出。按降序截断后的误差为 $s_{N+1}$。若至少有 $N+1$ 个正奇异值，任何秩至多 $N$ 的算子 $F$ 在 $\operatorname{span}\{v_1,\ldots,v_{N+1}\}$ 中都有单位核向量，故 $\|T-F\|\geq s_{N+1}$；若正奇异值只有至多 $N$ 个，截断已经等于 $T$，并约定 $s_{N+1}=0$。因此奇异值截断是算子范数下的最佳秩 $N$ 逼近。
+
+\begin{example}[区间上的 Green 算子]\label{ex:fa-green}
+在 $L^2(0,1)$ 上令
+\[
+ (Gf)(t)=\int_0^1(\min(t,s)-ts)f(s)\,\mathrm ds.
+\]
+则 $G$ 紧、自伴且单射，特征值为 $1/(n\pi)^2$，标准正交特征函数为 $e_n(t)=\sqrt2\sin(n\pi t)$。
+\end{example}
+\begin{solve}
+核连续且对称，故紧性与自伴性成立。将积分在 $s=t$ 处分开并求导，得到 $u=Gf$ 满足 $-u''=f$（弱导数意义）及 $u(0)=u(1)=0$，从而 $G$ 单射。若 $Gf=\lambda f$，$\lambda\ne0$，便有 $-f''=\lambda^{-1}f$ 及零边界条件。常微分方程求解给出 $\lambda=1/(n\pi)^2$ 和正弦函数；负值及零频率仅有零解。由紧自伴谱定理及核为零，这些特征函数的闭线性张成空间就是 $L^2(0,1)$。
+\end{solve}
+
+\section{习题}
+\begin{enumerate}
+ \item 验证实对角紧算子的谱分解，并计算截断误差。
+ \item 若紧自伴算子单射，证明其值域稠密；它的值域是否一定闭？
+ \item 利用例\ref{ex:fa-green}，求 $-u''=\sin(2\pi t)$、$u(0)=u(1)=0$ 的解。
+ \item 用乘法算子例\ref{ex:fa-multiplication-spectrum}说明一般有界自伴算子不能都按离散特征向量展开。
+\end{enumerate}
+
+\chapter{变分方法与方程的弱解}
+\label{chap:fa-variational}
+
+许多方程可以从能量极小化或对所有测试函数成立的积分恒等式得到。以下以实空间为主，展示抽象定理怎样给出具体问题的存在性、唯一性和稳定性。
+
+\section{能量最小化的直接法}
+函数 $E:C\to\mathbb R\cup\{+\infty\}$ 称为弱序列下半连续，若 $u_n\rightharpoonup u$ 且 $u_n,u\in C$ 时，$E(u)\leq\liminf_nE(u_n)$；称为\keyterm{强制的（coercive）}，若沿 $C$ 中任意满足 $\|u_n\|\to\infty$ 的序列都有 $E(u_n)\to+\infty$。
+
+\begin{theorem}[直接法]\label{thm:fa-direct-method}
+设 $X$ 为实自反 Banach 空间，$C\subset X$ 非空且弱序列闭。若 $E:C\to\mathbb R\cup\{+\infty\}$ 弱序列下半连续、强制，且 $-\infty<\inf_CE<+\infty$，则 $E$ 在 $C$ 上取得最小值。若 $C$ 凸且 $E$ 在有效定义域上严格凸，则极小点唯一。
+\end{theorem}
+\begin{proof}
+选 $u_n\in C$ 使 $E(u_n)\to m=\inf_CE$。若序列不有界，便可取范数趋于无穷的子列，强制性将迫使其能量趋于无穷，与趋于有限 $m$ 矛盾。因此存在弱收敛子列 $u_{n_k}\rightharpoonup u$。约束的弱序列闭性给出 $u\in C$，下半连续性给出 $E(u)\leq m$，所以等号成立。若存在两个不同极小点，严格凸性使其中点能量严格小于 $m$，矛盾。
+\end{proof}
+范数连续的凸函数弱下半连续：其各个下水平集是范数闭凸集，因而弱闭。这个判别常比直接估计弱极限更方便。
+
+\section{Lax--Milgram 定理}
+\begin{theorem}\label{thm:fa-lax-milgram}
+设 $H$ 为实 Hilbert 空间，双线性形式 $a:H\times H\to\mathbb R$ 满足
+\[
+ |a(u,v)|\leq M\|u\|\|v\|,\qquad
+ a(v,v)\geq\alpha\|v\|^2,
+ \qquad M<\infty,\quad\alpha>0.
+\]
+则对每个 $f\in H^*$，存在唯一 $u\in H$ 满足
+\begin{equation}
+ a(u,v)=f(v)\quad(v\in H),\qquad
+ \|u\|\leq\alpha^{-1}\|f\|.
+ \label{eq:fa-lax-milgram}
+\end{equation}
+\end{theorem}
+\begin{proof}
+由 Riesz 表示，存在有界线性算子 $A$ 使 $a(u,v)=\langle Au,v\rangle$，并存在 $g$ 使 $f(v)=\langle g,v\rangle$。强制性给出 $\|Au\|\geq\alpha\|u\|$，所以 $A$ 单射且值域闭。若 $z\perp\operatorname{Ran}A$，则 $a(v,z)=0$ 对所有 $v$ 成立，取 $v=z$ 得 $z=0$。故值域又稠密，从而等于 $H$。唯一解为 $A^{-1}g$，同一下界给出所述估计。
+\end{proof}
+若 $a$ 对称，解还等价于最小化 $E(v)=\frac12a(v,v)-f(v)$，因为
+\[
+ E(u+h)-E(u)=\tfrac12a(h,h)\geq\tfrac\alpha2\|h\|^2.
+\]
+反过来，在任意方向对能量的一元二次式取导，得到弱方程。非对称情形不能用这一能量直接替代原方程，因为能量只反映双线性形式的对称部分。
+
+\section{弱导数与 Sobolev 空间}
+设 $\Omega\subset\mathbb R^d$ 开，$C_c^\infty(\Omega)$ 表示光滑且支撑为 $\Omega$ 内紧集的测试函数。对局部可积 $u$，若局部可积 $v_j$ 满足
+\[
+ \int_\Omega u\,\partial_j\varphi\,\mathrm dx
+ =-\int_\Omega v_j\varphi\,\mathrm dx
+ \quad(\varphi\in C_c^\infty(\Omega)),
+\]
+称 $v_j$ 为 $u$ 的第 $j$ 个\keyterm{弱导数（weak derivative）}，记为 $\partial_ju$。它在几乎处处意义下唯一；所用事实是局部可积函数若对所有测试函数积分为零，则几乎处处为零，可由光滑逼近恒等元证明。
+
+\keyterm{Sobolev 空间（Sobolev space）}$H^1(\Omega)$ 定义为 $u\in L^2(\Omega)$ 且所有一阶弱导数属于 $L^2(\Omega)$ 的集合，赋予范数
+\[
+ \|u\|_{H^1}^2=\|u\|_2^2+\sum_{j=1}^d\|\partial_ju\|_2^2.
+\]
+它是 Hilbert 空间：若 $u_n$ 及各弱导数分别在 $L^2$ 中收敛到 $u,v_j$，则在测试恒等式中利用 Cauchy--Schwarz 取极限，得 $v_j=\partial_ju$。定义 $H_0^1(\Omega)$ 为 $C_c^\infty(\Omega)$ 在 $H^1$ 中的闭包，所以它也完备；这是齐次边界条件的一种不依赖逐点边界值的定义。
+
+若 $\Omega$ 有界，则存在 $C_\Omega$ 使
+\begin{equation}
+ \|u\|_2\leq C_\Omega\|\nabla u\|_2\quad(u\in H_0^1(\Omega)).
+ \label{eq:fa-poincare}
+\end{equation}
+这是 Poincaré 不等式。对测试函数，将其零延拓到包含 $\Omega$ 的有界长方体，沿一个坐标方向使用微积分基本定理及 Cauchy--Schwarz，再积分即可得估计；一般 $u$ 由定义中的稠密性取极限。因此 $\|\nabla u\|_2$ 是 $H_0^1$ 上与原范数等价的 Hilbert 范数。
+
+\section{Poisson 方程的弱形式}
+对有界开集 $\Omega$，用梯度范数赋予 $H_0^1(\Omega)$ Hilbert 结构，并定义 $H^{-1}(\Omega)=(H_0^1(\Omega))^*$。给定 $f\in H^{-1}(\Omega)$，求 $u\in H_0^1(\Omega)$ 满足
+\[
+ \int_\Omega\nabla u\cdot\nabla v\,\mathrm dx=f(v)
+ \quad(v\in H_0^1(\Omega)).
+\]
+这里 $a(u,v)=\int\nabla u\cdot\nabla v$ 的有界常数和强制常数都为一，故 Lax--Milgram 定理给出唯一解及 $\|\nabla u\|_2\leq\|f\|_{H^{-1}}$。若 $f\in L^2$，将其视为 $v\mapsto\int fv$，Poincaré 不等式给出连续性。
+
+若 $u$ 足够光滑，分部积分将该恒等式化为 $-\Delta u=f$ 及零边界条件；反之，弱解自动具有经典导数或逐点边界值并非形式推理的结果，还需要额外正则性条件。
+
+\section{Galerkin 逼近与 Céa 估计}
+取有限维子空间 $H_n\subset H$，求 $u_n\in H_n$ 使 $a(u_n,v_n)=f(v_n)$ 对所有 $v_n\in H_n$ 成立。限制后的形式仍有界且强制，所以离散解唯一。令 $e=u-u_n$，相减得到 Galerkin 正交性 $a(e,v_n)=0$，于是对任意 $w_n\in H_n$，
+\[
+ \alpha\|e\|^2\leq a(e,e)=a(e,u-w_n)
+ \leq M\|e\|\|u-w_n\|.
+\]
+因此
+\begin{equation}
+ \|u-u_n\|\leq\frac M\alpha\inf_{w_n\in H_n}\|u-w_n\|.
+ \label{eq:fa-cea}
+\end{equation}
+这称为 Céa 估计。若右侧最佳逼近误差趋零，则离散解收敛；单凭“子空间有限维”不能推出该逼近性质。
+
+\section{例题与习题}
+\begin{example}
+方程 $-u''=1$、$u(0)=u(1)=0$ 的弱解为 $u(t)=t(1-t)/2$。
+\end{example}
+\begin{solve}
+此函数属于 $H_0^1(0,1)$。先对光滑紧支撑 $v$ 分部积分得 $\int_0^1u'v'=\int_0^1v$，再由稠密性扩展到所有 $v\in H_0^1$，故它是弱解；唯一性由 Lax--Milgram 定理保证。若用分片线性基 $\phi_j$ 逼近，系数满足 $\sum_j(\int\phi_j'\phi_i')c_j=\int\phi_i$，刚度矩阵的正定性来自梯度能量。
+\end{solve}
+\begin{enumerate}
+ \item 在 $H_0^1(0,1)$ 上证明 $\|u\|_2\leq\|u'\|_2$，不要求求最佳常数。
+ \item 用能量差证明对称强制形式的极小点唯一。
+ \item 说明若改在 $H^1(0,1)$ 上只使用 $a(u,v)=\int u'v'$，常数函数如何导致不唯一。
+ \item 对嵌套且并集稠密的 $H_n$，由式\eqref{eq:fa-cea}证明 $u_n\to u$。
+\end{enumerate}
+
+\chapter{不动点方法与非线性方程}
+\label{chap:fa-fixed-point}
+
+线性方程可以研究核、值域与谱；非线性方程常改写为 $u=F(u)$。不动点方法的第一步是选定空间与不变集合，随后才判断压缩性、连续性或紧性。
+
+\section{压缩映射与非线性积分方程}
+考虑 $C([0,1])$ 上的方程
+\[
+ u(t)=g(t)+\lambda\int_0^1k(t,s)\phi(u(s))\,\mathrm ds,
+\]
+其中 $g,k$ 连续，$\phi:\mathbb R\to\mathbb R$ 为 Lipschitz 函数，常数为 $L$。右侧定义连续函数，且对应映射 $F$ 满足
+\[
+ \|Fu-Fv\|_\infty\leq q\|u-v\|_\infty,
+ \qquad q=|\lambda|L\max_t\int_0^1|k(t,s)|\,\mathrm ds.
+\]
+若 $q<1$，定理\ref{thm:fa-contraction}给出唯一解。算法为任取 $u_0\in C([0,1])$，计算 $u_{n+1}=F(u_n)$；可用后验误差界 $q\|u_n-u_{n-1}\|_\infty/(1-q)$ 作为停止依据。
+
+\section{常微分方程的局部存在性}
+考虑 $u'(t)=b(t,u(t))$、$u(t_0)=u_0$，其中 $b$ 在矩形 $|t-t_0|\leq a$、$|u-u_0|\leq r$ 上连续，并对第二变量统一 Lipschitz，常数为 $L$。设该矩形上 $|b|\leq M$，选 $h\leq a$ 使 $hM\leq r$ 且 $hL<1$。在完备闭集
+\[
+ C=\{u\in C([t_0-h,t_0+h]):\|u-u_0\|_\infty\leq r\}
+\]
+上，$Fu(t)=u_0+\int_{t_0}^t b(s,u(s))\,\mathrm ds$ 保持 $C$ 不变且为压缩。其不动点连续，积分表达又给出可微性，因此是微分方程的局部唯一解。延长到更大时间区间需要进一步控制解的范围，不能仅凭局部估计断言全局存在。
+
+\section{Schauder 不动点定理}
+本节引用有限维拓扑中的 Brouwer 不动点定理：有限维实线性空间中，非空紧凸集的每个连续自映射都有不动点。其拓扑证明超出本书范围，可参阅\cite{teschl-fa}的 Brouwer 映射度部分；下面给出从它推出无限维紧映射结论的完整论证。
+
+\begin{theorem}[Schauder]\label{thm:fa-schauder}
+设 $C$ 是 Banach 空间中的非空闭有界凸集，$F:C\to C$ 连续且 $F(C)$ 相对紧，则 $F$ 有不动点。
+\end{theorem}
+\begin{proof}
+记 $K=\overline{F(C)}\subset C$。对 $\varepsilon>0$ 选 $y_1,\ldots,y_m\in K$ 构成 $\varepsilon/2$ 网。在 $K$ 上定义
+\[
+ w_j(y)=\max(\varepsilon-\|y-y_j\|,0),\qquad
+ Q_\varepsilon(y)=\frac{\sum_jw_j(y)y_j}{\sum_jw_j(y)}.
+\]
+分母严格为正，映射连续，且 $\|Q_\varepsilon(y)-y\|<\varepsilon$。凸包 $D=\operatorname{conv}\{y_1,\ldots,y_m\}$ 为 $C$ 内有限维紧凸集，$Q_\varepsilon F:D\to D$ 连续，所以有不动点 $x_\varepsilon$。于是 $\|x_\varepsilon-Fx_\varepsilon\|<\varepsilon$。
+
+令 $\varepsilon\downarrow0$。由于 $Fx_\varepsilon\in K$，可选择一列使 $Fx_\varepsilon$ 收敛，$x_\varepsilon$ 也趋于同一极限 $x\in C$。由连续性 $Fx=x$。
+\end{proof}
+紧性提供的是可收敛的近似解，不提供压缩映射所具有的误差收缩率。
+
+\section{先验估计与 Schaefer 定理}
+非线性映射 $F:X\to X$ 称为紧映射，若它连续并把有界集映成相对紧集。
+\begin{theorem}[Schaefer 不动点定理]
+若 Banach 空间上的紧映射 $F$ 满足集合
+\[
+ \{x\in X:x=\lambda F(x)\text{ 对某个 }0\leq\lambda\leq1\}
+\]
+有界，则 $F$ 有不动点。
+\end{theorem}
+\begin{proof}
+取 $R$ 大于上述集合中所有元素的范数。在闭球 $RB_X$ 上定义 $G(x)=F(x)$（当 $\|F(x)\|\leq R$），否则定义 $G(x)=RF(x)/\|F(x)\|$。它连续、像相对紧，并将该闭球映入自身。由 Schauder 定理有 $x=G(x)$。若截断发生，则 $\|x\|=R$ 且 $x=\lambda F(x)$，$0<\lambda<1$，与 $R$ 的选取矛盾。因此没有截断，$x=F(x)$。
+\end{proof}
+这解释了先验估计的用途：不必事先找到所有解，只需给整个参数族的候选解一个统一界。
+
+\section{存在性、唯一性与算法收敛}
+$F(x)=1-x$ 在 $[0,1]$ 上连续，唯一不动点为 $1/2$，但除初值 $1/2$ 外，简单迭代在两个数之间交替。$F(x)=x$ 的每个点都是不动点。因此，Schauder 结论不包含唯一性，也不保证迭代收敛。研究算法时，必须另外给出收缩、单调性、能量下降或其他收敛依据。
+
+\section{例题与习题}
+\begin{example}[仅连续非线性的存在性]
+设 $g\in C([0,1])$、$k\in C([0,1]^2)$，$\phi:\mathbb R\to\mathbb R$ 连续且 $|\phi(s)|\leq A$。则方程 $u(t)=g(t)+\int_0^1k(t,s)\phi(u(s))\,\mathrm ds$ 至少有一个连续解。
+\end{example}
+\begin{solve}
+取 $R\geq\|g\|_\infty+A\max_t\int|k(t,s)|\,\mathrm ds$，右端映射保持闭球 $\|u\|_\infty\leq R$。$\phi$ 在 $[-R,R]$ 上一致连续，保证该映射连续；核的一致连续性给出像的等度连续性，一致有界性已由 $R$ 的选取保证。Arzelà--Ascoli 与 Schauder 定理给出解。这里不要求 $\phi$ 为压缩型非线性。
+\end{solve}
+\begin{enumerate}
+ \item 对 $u(t)=t+\lambda\int_0^1ts\sin u(s)\,\mathrm ds$，给出保证唯一性的参数范围，再说明所有实数 $\lambda$ 下至少存在一个解。
+ \item 在常微分方程例中，明确 $hM\leq r$ 与 $hL<1$ 分别用于哪一步。
+ \item 给出连续自映射有多个不动点、且某些初值的迭代不收敛的区间例子。
+ \item 检查 Schauder 证明中闭性、凸性、连续性和紧性分别出现的位置。
+\end{enumerate}
+
+\chapter{无界算子与定义域}
+\label{chap:fa-unbounded}
+
+本章为选读内容。求导在 $L^2$ 范数下不能由函数本身的大小控制，因此不适合放进处处定义的有界算子框架。正确做法是把定义域一并写入算子的定义。
+
+\section{稠密定义、闭性与可闭性}
+记线性算子为 $A:D(A)\subset H\to H$，其中 $D(A)$ 为线性子空间。若 $\overline{D(A)}=H$，称其\keyterm{稠密定义（densely defined）}；若图像 $G(A)$ 在 $H\times H$ 中闭，称为\keyterm{闭算子（closed operator）}。等价的序列条件是：$x_n\in D(A)$、$x_n\to x$、$Ax_n\to y$ 时，必有 $x\in D(A)$ 且 $Ax=y$。
+
+若图像闭包仍为某个算子的图像，则称 $A$ 可闭（closable），该算子记为 $\overline A$。一个线性图像表示单值算子的充要条件是它与竖直子空间 $\{0\}\times H$ 仅相交于零，所以可闭性等价于
+\[
+ x_n\to0,\quad Ax_n\to y\quad\Longrightarrow\quad y=0.
+\]
+
+\section{图像范数}
+在 $D(A)$ 上定义 $\|x\|_A=(\|x\|^2+\|Ax\|^2)^{1/2}$，称为图像范数（graph norm）。映射 $x\mapsto(x,Ax)$ 是到 $G(A)$ 的等距同构，因此 $A$ 闭当且仅当 $D(A)$ 在图像范数下完备。
+
+\begin{example}\label{ex:fa-unbounded-diagonal}
+在 $\ell^2$ 上，令 $(Ax)_n=nx_n$，$D(A)=\{x\in\ell^2:(nx_n)\in\ell^2\}$。它稠密定义、闭而无界。
+\end{example}
+\begin{solve}
+$D(A)$ 包含 $c_{00}$，所以稠密。若 $x^{(k)}\to x$、$Ax^{(k)}\to y$，逐坐标取极限得 $y_n=nx_n$，于是 $x\in D(A)$ 且 $Ax=y$，证明闭性。又 $\|Ae_n\|=n$，故它在原 $\ell^2$ 范数下无界。图像范数则为 $(\sum_n(1+n^2)|x_n|^2)^{1/2}$。
+\end{solve}
+
+\section{无界算子的伴随}
+若 $A$ 稠密定义，规定 $y\in D(A^*)$ 当且仅当存在 $C_y<\infty$ 使
+\[
+ |\langle Ax,y\rangle|\leq C_y\|x\|\quad(x\in D(A)).
+\]
+该泛函先唯一延拓到 $H$，再由 Riesz 表示得到唯一 $A^*y$，使 $\langle Ax,y\rangle=\langle x,A^*y\rangle$。
+
+\begin{proposition}
+伴随 $A^*$ 总是闭算子；$A$ 可闭当且仅当 $D(A^*)$ 稠密，此时 $\overline A=A^{**}$。
+\end{proposition}
+\begin{proof}
+若 $y_n\to y$、$A^*y_n\to z$，则对任意 $x\in D(A)$ 取极限，得到 $\langle Ax,y\rangle=\langle x,z\rangle$，故 $y\in D(A^*)$ 且 $A^*y=z$。
+
+在乘积 Hilbert 空间中直接由定义得到
+\[
+ G(A)^\perp=\{(-A^*y,y):y\in D(A^*)\}.
+\]
+所以 $(0,z)\in\overline{G(A)}=G(A)^{\perp\perp}$ 当且仅当 $z\perp D(A^*)$。图像闭包不含非零竖直向量，恰好等价于 $D(A^*)$ 稠密。此时再次使用同一正交关系，得到 $G(A^{**})=\overline{G(A)}$。
+\end{proof}
+
+\section{对称、自伴与本质自伴}
+稠密定义的 $A$ 称为对称（symmetric），若 $\langle Ax,y\rangle=\langle x,Ay\rangle$ 对 $x,y\in D(A)$ 成立，即 $A\subset A^*$；称为自伴，若 $D(A)=D(A^*)$ 且两算子在其上相等。若 $A$ 可闭且 $\overline A$ 自伴，称为本质自伴（essentially self-adjoint）。对称性只检验共同定义域上的恒等式，自伴性还要求定义域已经足够大。
+
+\begin{theorem}[Hellinger--Toeplitz]
+在整个 Hilbert 空间上定义的对称线性算子必有界。
+\end{theorem}
+\begin{proof}
+设 $x_n\to x$、$Ax_n\to y$。对任意 $z\in H$，由对称性得 $\langle y,z\rangle=\lim_n\langle x_n,Az\rangle=\langle Ax,z\rangle$，因此 $y=Ax$。图像闭，且定义域为整个 $H$，由闭图像定理得到有界性。
+\end{proof}
+所以真正无界的自伴算子必有真定义域。例\ref{ex:fa-unbounded-diagonal}还是自伴的：用 $x=e_n$ 测试伴随关系，迫使 $(A^*y)_n=ny_n$，其属于 $\ell^2$ 恰好给出同一个定义域。
+
+\section{边界条件决定算子}
+在一维，$H^1(0,1)$ 的元素有唯一的连续绝对连续代表，满足 $u(t)=u(0)+\int_0^tu'(s)\,\mathrm ds$。这是因为减去弱导数的积分后，剩余函数弱导数为零，故为常数。因而端点值有意义，且可进行分部积分。
+
+在复 $L^2(0,1)$ 中考虑表达式 $-\mathrm i u'$，有边界恒等式
+\[
+ \langle-\mathrm iu',v\rangle-\langle u,-\mathrm iv'\rangle
+ =-\mathrm i[u\overline v]_0^1.
+\]
+若 $D(A_0)=H_0^1(0,1)$，两端点均为零，故 $A_0$ 对称。然而测试函数检验伴随只要求 $v\in H^1(0,1)$，边界项不再限制 $v$，因此 $D(A_0^*)=H^1(0,1)$，$A_0$ 不自伴。
+
+若改为周期定义域 $D(A_{\mathrm{per}})=\{u\in H^1(0,1):u(0)=u(1)\}$，伴随关系则迫使 $v(0)=v(1)$，故 $A_{\mathrm{per}}$ 自伴。特征方程给出 $u(t)=ce^{\mathrm i\lambda t}$，周期条件给出 $\lambda=2\pi n$，$n\in\mathbb Z$。同一微分表达式配上不同定义域，确实产生不同算子。
+
+\section{习题}
+\begin{enumerate}
+ \item 证明无界对角算子的定义域在 $\ell^2$ 中不闭，却在图像范数下完备。
+ \item 对 $A(x_n)=(a_nx_n)$，其中 $a_n$ 为任意实数列，写出最大自然定义域并证明自伴性。
+ \item 核对周期微分算子的伴随定义域，说明为何只验证分部积分恒等式还不够。
+ \item 构造稠密定义但不可闭的线性算子。提示：在 $c_{00}\subset\ell^2$ 上考虑 $Ax=(\sum_nnx_n)e_1$。
+\end{enumerate}
+
+\chapter{一般谱定理与函数演算}
+\label{chap:fa-general-spectral}
+
+本章为选读内容。乘法算子可以没有任何特征向量，因而一般自伴算子不能只靠特征值求和表示。谱积分用可测集合上的正交投影代替单个特征空间。本章证明连续函数演算的基本构造，对一般谱定理给出准确陈述和证明思路；完整论证可参阅文献\cite{teschl}的谱定理部分。
+
+\section{投影值测度}
+\begin{definition}
+设 $S$ 是实轴或复平面的 Borel 子集。\keyterm{投影值测度（projection-valued measure）}是从 $S$ 的 Borel 集到 $H$ 上正交投影的映射 $E$，满足 $E(S)=I$、$E(\varnothing)=0$、$E(B\cap C)=E(B)E(C)$，且对两两不交的 $B_n$，
+\[
+ E\Bigl(\bigcup_nB_n\Bigr)x=\sum_nE(B_n)x\quad(x\in H),
+\]
+其中级数在 $H$ 中收敛。
+\end{definition}
+给定 $x$，$\mu_x(B)=\langle E(B)x,x\rangle=\|E(B)x\|^2$ 为有限正测度。用 $\mathbf1_B$ 表示在 $B$ 上取一、在其外取零的示性函数。对简单函数 $s=\sum_ja_j\mathbf1_{B_j}$，定义 $s(E)=\sum_ja_jE(B_j)$。若 $B_j$ 两两不交，则
+\[
+ \|s(E)x\|^2=\sum_j|a_j|^2\mu_x(B_j)=\int|s|^2\,\mathrm d\mu_x.
+\]
+有界 Borel 函数可由简单函数一致逼近，这个等式保证相应算子在范数下收敛，定义 $f(E)=\int f\,\mathrm dE$。
+
+\section{连续函数演算}
+先设 $T$ 有界自伴。对多项式 $p$，$p(T)$ 正规。正规算子 $N$ 满足 $\|N^2\|=\|N\|^2$：计算
+\[
+ \|N^2\|^2=\|(N^*)^2N^2\|=\|(N^*N)^2\|=\|N^*N\|^2,
+\]
+最后一步用自伴算子的范数恒等式。重复取平方并用谱半径公式，得 $\|N\|=r(N)$。因此多项式谱映射定理给出
+\[
+ \|p(T)\|=\max_{\lambda\in\sigma(T)}|p(\lambda)|.
+\]
+
+对 $f\in C(\sigma(T))$，由实紧集上的 Weierstrass 逼近定理，取多项式 $p_n$ 在谱上一致趋于 $f$；定义 $f(T)=\lim_np_n(T)$。上式保证极限存在、与逼近选择无关，并且
+\[
+ (fg)(T)=f(T)g(T),\quad \overline f(T)=f(T)^*,\quad
+ \|f(T)\|=\max_{\sigma(T)}|f|.
+\]
+这称为\keyterm{连续函数演算（continuous functional calculus）}。对复平面上的正规算子需要同时使用 $z,\overline z$ 的多项式以及 Stone--Weierstrass 定理，不能只用解析多项式逼近所有连续函数。
+
+\section{一般有界谱定理}
+\begin{theorem}[谱定理；本节引用]\label{thm:fa-general-spectral}
+每个复 Hilbert 空间上的有界正规算子 $T$ 都有唯一的投影值测度 $E$，定义在 $\sigma(T)$ 上，使
+\begin{equation}
+ T=\int_{\sigma(T)}\lambda\,\mathrm dE(\lambda).
+ \label{eq:fa-general-spectral-integral}
+\end{equation}
+有界 Borel 函数演算由 $f(T)=\int f\,\mathrm dE$ 给出。若 $T$ 自伴，谱在实轴上。
+\end{theorem}
+\begin{proof}[证明思路]
+先建立连续函数演算。对每个 $x$，$f\mapsto\langle f(T)x,x\rangle$ 是正线性泛函，用 Riesz--Markov 表示得到测度 $\mu_x$。对不同向量使用极化恒等式，恢复交叉项的测度；再证明这些测度给出算子 $E(B)$，且满足投影性、乘法性与强可数可加性，最后由简单函数逼近构造 Borel 演算。由标量测度恢复算子并验证投影性是关键步骤，此处仅说明路线，不作为完整证明。
+\end{proof}
+投影 $E(\{\lambda\})$ 的像恰为 $\lambda$ 的特征空间。紧自伴算子具有可数个非零谱原子，再加零处的核投影，其谱积分就是第\ref{chap:fa-compact-spectral}章的求和公式。若谱测度没有相应单点原子，谱点就不产生特征向量。
+
+\section{无界自伴谱定理}
+对无界算子，表达式必须与定义域同时给出。一般谱定理的无界版本断言：每个自伴算子 $A$ 有唯一实轴上的投影值测度 $E$，使
+\[
+ D(A)=\left\{x:\int_{\mathbb R}\lambda^2\,\mathrm d\mu_x(\lambda)<\infty\right\},
+ \qquad Ax=\lim_{N\to\infty}\int_{[-N,N]}\lambda\,\mathrm dE(\lambda)x.
+\]
+这里的极限按向量范数取得。更一般地，有限值 Borel 函数 $f$ 给出
+\[
+ D(f(A))=\{x:\int|f|^2\,\mathrm d\mu_x<\infty\},\qquad
+ \|f(A)x\|^2=\int|f|^2\,\mathrm d\mu_x.
+\]
+本书引用这一版本；它可由有界谱定理配合 Cayley 变换等方法建立，完整条件与证明见\cite{teschl}。无界函数演算中的算子乘法需要核对定义域，不能无条件照搬有界代数公式。
+
+\section{平方根、谱投影与演化算子}
+若 $T\geq0$ 有界自伴，则 $T^{1/2}=\int\sqrt\lambda\,\mathrm dE(\lambda)$ 为正算子且平方等于 $T$。其正平方根唯一：若 $B\geq0$ 且 $B^2=T$，对 $B$ 的连续函数演算应用恒等式 $\sqrt{s^2}=s$（$s\geq0$），即得 $B=(B^2)^{1/2}=T^{1/2}$。
+
+若 $A$ 自伴，$e^{\mathrm itA}=\int e^{\mathrm it\lambda}\,\mathrm dE(\lambda)$ 为酉算子。由谱积分的乘法性质形成群；由 $|e^{\mathrm it\lambda}-1|^2\leq4$ 和支配收敛定理，对每个 $x$ 有 $e^{\mathrm itA}x\to x$。若 $A\geq0$，则 $e^{-tA}$（$t\geq0$）同样强连续，且范数至多一，是下一章的一个重要半群。
+
+\section{例题与习题}
+\begin{example}[乘法算子的谱投影]
+在 $L^2(0,1)$ 上令 $Tf(t)=tf(t)$。对 Borel 集 $B\subset[0,1]$，$E(B)f=\mathbf1_Bf$，且 $g(T)f(t)=g(t)f(t)$。
+\end{example}
+\begin{solve}
+示性函数乘法为正交投影，不交集合对应正交分量；可数可加性由 $L^2$ 收敛得到。简单函数逐项验证谱积分，再用一致逼近得到有界 Borel 函数公式。每个单点零测，所以 $E(\{\lambda\})=0$，这与算子没有特征值相符。
+\end{solve}
+\begin{enumerate}
+ \item 对 $\ell^2$ 上的自伴对角算子写出 $E(B)$，由谱积分恢复其定义域。
+ \item 验证非负乘法算子的平方根就是乘以原函数的平方根。
+ \item 比较谱投影 $E(B)$ 与某个单点特征空间投影，说明二者信息量的差别。
+ \item 证明 $e^{-tA}$ 在 $A\geq0$ 时保持范数不增，但不一定按算子范数趋于 $I$。
+\end{enumerate}
+
+\chapter{算子半群与演化方程}
+\label{chap:fa-semigroups}
+
+本章为选读内容。有限维方程 $u'(t)=Au(t)$ 的解由矩阵指数给出。无限维中，即使生成时间演化的算子 $A$ 无界，每个固定时刻的演化仍可能由有界算子描述。
+
+\section{强连续半群}
+\begin{definition}
+Banach 空间 $X$ 上的\keyterm{强连续半群（strongly continuous semigroup）}是算子族 $S(t)\in\mathcal B(X)$，$t\geq0$，满足
+\[
+ S(0)=I,\qquad S(t+s)=S(t)S(s),
+\]
+并且对每个 $x\in X$，映射 $t\mapsto S(t)x$ 连续。若 $\|S(t)\|\leq1$，称为压缩半群。
+\end{definition}
+当 $A\in\mathcal B(X)$ 时，$S(t)=\sum_{n\geq0}t^nA^n/n!$ 按算子范数收敛；绝对收敛允许重排双重级数，从二项式公式得到半群性质，而且 $S'(t)=AS(t)$。无界情形不应直接写未经定义的算子幂级数。
+
+任意强连续半群在有限时间区间上算子范数一致有界：对每个 $x$，轨道在该区间上有界，再用一致有界原理。取 $M=\max\{1,\sup_{0\leq t\leq1}\|S(t)\|\}$，由半群性质得到 $\|S(t)\|\leq M e^{\omega t}$，其中 $\omega=\log M$。
+
+\section{生成元与闭性}
+\begin{definition}
+半群的\keyterm{无穷小生成元（infinitesimal generator）}由
+\begin{equation}
+ Ax=\lim_{h\downarrow0}\frac{S(h)x-x}{h},\qquad
+ D(A)=\left\{x\in X:\text{此极限在 }X\text{ 中存在}\right\}
+ \label{eq:fa-semigroup-generator}
+\end{equation}
+定义。
+\end{definition}
+若 $x\in D(A)$，由半群性质可得 $S(t)x\in D(A)$，且 $AS(t)x=S(t)Ax$；右、左差商进一步给出 $\frac{\mathrm d}{\mathrm dt}S(t)x=S(t)Ax$（在 $t=0$ 取右导数）。因此
+\begin{equation}
+ S(t)x-x=\int_0^tS(s)Ax\,\mathrm ds.
+ \label{eq:fa-generator-integral}
+\end{equation}
+连续 Banach 空间值函数的积分可定义为 Riemann 和的范数极限；一致连续性和完备性保证极限存在。
+
+\begin{proposition}
+强连续半群的生成元稠密定义且闭。
+\end{proposition}
+\begin{proof}
+对任意 $x\in X$，令 $x_h=h^{-1}\int_0^hS(s)x\,\mathrm ds$。利用半群性质移动积分区间可得 $x_h\in D(A)$ 且 $Ax_h=(S(h)x-x)/h$；强连续性给出 $x_h\to x$，故定义域稠密。
+
+若 $x_n\in D(A)$、$x_n\to x$、$Ax_n\to y$，在式\eqref{eq:fa-generator-integral}中利用有限时间区间上的统一算子界取极限，得到 $S(t)x-x=\int_0^tS(s)y\,\mathrm ds$。除以 $t$ 并令 $t\downarrow0$，右侧趋于 $y$，所以 $x\in D(A)$ 且 $Ax=y$，即 $A$ 闭。
+\end{proof}
+
+\section{预解算子与 Hille--Yosida 定理}
+对闭算子 $A$，$\lambda\in\rho(A)$ 指 $\lambda I-A:D(A)\to X$ 双射且其逆作为 $X\to X$ 的算子有界。若 $A$ 生成满足 $\|S(t)\|\leq Me^{\omega t}$ 的半群，则对实数 $\lambda>\omega$，
+\[
+ R(\lambda,A)x=\int_0^\infty e^{-\lambda t}S(t)x\,\mathrm dt,
+ \qquad\|R(\lambda,A)\|\leq\frac M{\lambda-\omega}.
+\]
+积分由增长估计绝对收敛。其逆关系可先在 $D(A)$ 中用式\eqref{eq:fa-generator-integral}分部积分验证，再利用稠密性和生成元闭性扩展；这是半群与预解估计之间的联系。
+
+\begin{theorem}[Hille--Yosida 的压缩半群版本；引用]
+设 $A$ 是 Banach 空间上的稠密定义闭算子。它生成强连续压缩半群，当且仅当每个实数 $\lambda>0$ 属于 $\rho(A)$，且 $\|R(\lambda,A)\|\leq1/\lambda$。
+\end{theorem}
+必要性由上述积分公式得到。充分性通过有界近似 $A_\lambda=\lambda A R(\lambda,A)=\lambda^2R(\lambda,A)-\lambda I$ 及指数半群的极限构造证明；本书不展开这一极限论证，完整证明见\cite{engel-nagel}第二章第三节。一般增长常数 $M$ 的版本需要对预解算子的各次幂给出相应估计，不能只替换单次估计中的常数。
+
+\section{经典解与温和解}
+设 $A$ 生成 $S(t)$。若 $u_0\in D(A)$，则 $u(t)=S(t)u_0$ 是 $u'=Au$ 的经典解，即轨道可微、取值在 $D(A)$ 中并满足微分方程。唯一性可固定终点 $t$，对 $s\mapsto S(t-s)u(s)$ 求导，得到导数为零。
+
+一般 $u_0\in X$ 未必属于定义域，仍可定义 $u(t)=S(t)u_0$，称为\keyterm{温和解（mild solution）}。对连续外力 $g:[0,T]\to X$，非齐次问题的温和解为
+\[
+ u(t)=S(t)u_0+\int_0^tS(t-s)g(s)\,\mathrm ds.
+\]
+连续外力保证这条公式有意义，但要逐项微分并取得经典解，还需初值与外力的额外正则性；不能把温和解公式本身当作经典可微性的证明。
+
+\section{区间上的热半群}
+采用例\ref{ex:fa-green}中的正交基 $e_n(x)=\sqrt2\sin(n\pi x)$。若 $u_0=\sum_nc_ne_n\in L^2(0,1)$，令
+\[
+ S(t)u_0=\sum_{n=1}^{\infty}e^{-(n\pi)^2t}c_ne_n.
+\]
+系数逐项满足乘法规律，故这是半群；Parseval 恒等式与级数的支配收敛给出强连续性，且 $\|S(t)\|=e^{-\pi^2t}$。其生成元为
+\[
+ Au=-\sum_n(n\pi)^2c_ne_n,\qquad
+ D(A)=\left\{u:\sum_n(n\pi)^4|c_n|^2<\infty\right\}.
+\]
+定义域内，差商由 $|(e^{-ah}-1)/h|\leq a$ 控制，故按 $L^2$ 范数收敛；反之，若差商收敛，逐坐标极限迫使所得系数平方可和，恰好给出该定义域。
+
+定义 $H^2(0,1)=\{u\in H^1(0,1):u''\in L^2(0,1)\}$，二阶导数仍为弱导数。由 Green 算子的逆关系可将上述定义域识别为 $H^2(0,1)\cap H_0^1(0,1)$，并有 $Au=u''$。所以 $u(t)=S(t)u_0$ 描述零边界条件下的热方程 $u_t=u_{xx}$。每个 $t>0$ 的指数衰减还保证 $u(t)\in D(A)$；在初始时刻是否可微则取决于 $u_0$ 是否属于 $D(A)$。
+
+\section{习题}
+\begin{enumerate}
+ \item 对有界 $A$ 证明 $\|e^{tA}\|\leq e^{t\|A\|}$。
+ \item 在上述热半群中证明 $\|S(t)-I\|=1$ 对每个 $t>0$ 成立，说明强连续不等于算子范数连续。
+ \item 计算初值 $u_0=e_1+2e_3$ 的热演化及其 $L^2$ 范数。
+ \item 证明非负自伴算子的谱演算产生强连续压缩半群 $e^{-tA}$。
+\end{enumerate}
+
+\appendix
+
+\chapter{测度与积分的必要知识}
+\label{app:fa-measure}
+
+本附录补充 $L^p$ 理论中直接用到的概念与估计。测度构造、一般测度表示和乘积测度理论只陈述所需结果；它们可在实分析课程中系统学习，相关测度、积分、对偶表示及 Sobolev 空间内容参阅\cite{teschl-ra}。
+
+\section{测度、可测函数与几乎处处}
+集合 $\Omega$ 上的 $\sigma$ 代数 $\mathcal A$ 包含 $\Omega$，并对补集与可数并封闭。测度 $\mu:\mathcal A\to[0,\infty]$ 满足 $\mu(\varnothing)=0$，且对两两不交的 $E_n$，$\mu(\bigcup_nE_n)=\sum_n\mu(E_n)$。若 $\Omega$ 可由可数个有限测度集覆盖，称测度 $\sigma$ 有限。
+
+实函数 $f$ 可测，是指 $\{x:f(x)>a\}\in\mathcal A$ 对每个实数 $a$ 成立；复函数的实部与虚部均可测时称可测。某性质在一个零测集之外成立，称其几乎处处（almost everywhere）成立。零测集的任意子集仍可测时，称测度完备。欧氏空间的 Borel $\sigma$ 代数由开集生成；Lebesgue 可测集还包括对 Borel 测度作完备化时加入的零测子集。
+
+\section{积分与收敛定理}
+非负简单函数写为 $s=\sum_{j=1}^ma_j\mathbf1_{E_j}$，其中 $a_j\geq0$ 且 $E_j$ 两两不交，定义 $\int s\,\mathrm d\mu=\sum_ja_j\mu(E_j)$，约定 $0\cdot\infty=0$。对非负可测 $f$，定义
+\[
+ \int f\,\mathrm d\mu=\sup\left\{\int s\,\mathrm d\mu:0\leq s\leq f,\ s\text{ 为简单函数}\right\}.
+\]
+对实函数使用正负部分之差；当 $\int|f|<\infty$ 时称可积，复函数再分别积分实部与虚部。
+
+\begin{theorem}[三个收敛工具]\label{thm:fa-measure-convergence}
+以下函数均可测，等式与不等式允许非负积分为无穷。
+\begin{enumerate}
+ \item 若 $0\leq f_n\uparrow f$ 几乎处处，则 $\int f_n\uparrow\int f$（单调收敛定理）。
+ \item 若 $f_n\geq0$，则 $\int\liminf_nf_n\leq\liminf_n\int f_n$（Fatou 引理）。
+ \item 若 $f_n\to f$ 几乎处处，且 $|f_n|\leq g$，其中 $g$ 非负可积，则 $\int|f_n-f|\to0$，从而 $\int f_n\to\int f$（支配收敛定理）。
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+单调情形中，$\lim_n\int f_n\leq\int f$。反向任取简单函数 $0\leq s\leq f$ 与 $0<\alpha<1$，在 $\{s>0\}$ 上集合 $E_n=\{f_n\geq\alpha s\}$ 递增并覆盖该集合。由测度的从下连续性，$\int\alpha s\mathbf1_{E_n}\to\alpha\int s$，而每一项不超过 $\int f_n$。令 $\alpha\uparrow1$ 再对 $s$ 取上确界得到等式。
+
+令 $h_n=\inf_{k\geq n}f_k$，则 $h_n\uparrow\liminf f_n$ 且 $\int h_n\leq\inf_{k\geq n}\int f_k$，由单调收敛得到 Fatou 引理。支配情形中 $|f|\leq g$，对非负函数 $2g-|f_n-f|$ 用 Fatou 引理，得到 $\limsup_n\int|f_n-f|\leq0$。
+\end{proof}
+对两个 $\sigma$ 有限测度空间，本书引用 Tonelli--Fubini 定理：非负可测函数可交换积分次序，允许结果无穷；若函数的绝对值在乘积测度下可积，则两次迭代积分存在并等于乘积积分。交换极限、积分或求和前，应先说明使用的是哪一项条件。
+
+\section{Hölder 与 Minkowski 不等式}
+\begin{proposition}\label{prop:fa-holder-minkowski}
+若 $1\leq p,q\leq\infty$、$1/p+1/q=1$，则对 $f\in L^p(\mu)$、$g\in L^q(\mu)$，
+\[
+ \int|fg|\,\mathrm d\mu\leq\|f\|_p\|g\|_q.
+\]
+对 $1\leq p\leq\infty$ 及 $f,g\in L^p(\mu)$，还成立 $\|f+g\|_p\leq\|f\|_p+\|g\|_p$。
+\end{proposition}
+\begin{proof}
+当 $1<p<\infty$ 时，Young 不等式 $ab\leq a^p/p+b^q/q$ 可通过对 $a$ 的一元极值计算证明。把 $f,g$ 分别除以其非零范数，积分后即得 Hölder；范数为零时直接成立，端点 $p=1,q=\infty$ 用几乎处处上界。
+
+对 $1<p<\infty$，先由 $|f+g|^p\leq2^{p-1}(|f|^p+|g|^p)$ 保证可积，再写
+\[
+ \|f+g\|_p^p
+ \leq\int(|f|+|g|)|f+g|^{p-1}
+ \leq(\|f\|_p+\|g\|_p)\|f+g\|_p^{p-1}.
+\]
+除去公共因子得到 Minkowski；若该因子为零则结论直接成立。端点 $p=1,\infty$ 由三角不等式得到。
+\end{proof}
+简单函数在 $L^p(\mu)$（$p<\infty$）中稠密：先截断函数的幅值与小值部分，使所剩非零支撑有限测度，再将值域划分为有限小区间，最后用支配收敛控制误差。在 $\mathbb R^d$ 的 Lebesgue 测度下，进一步有 $C_c^\infty$ 在 $L^p$ 中稠密；该光滑逼近结论在本书作为实分析结果引用，不对任意抽象测度空间无条件使用。
+
+\section{对偶表示所用结果}
+有限有符号或复测度 $\nu$ 的全变差记为 $|\nu|$；对可测集 $E$，$|\nu|(E)$ 是有限可测分割 $E=\bigcup_jE_j$ 上 $\sum_j|\nu(E_j)|$ 的上确界。若 $\mu(E)=0$ 蕴含 $\nu(E)=0$，记 $\nu\ll\mu$，称为绝对连续。
+
+本书引用 Radon--Nikodym 定理的如下形式：若 $\mu$ 为 $\sigma$ 有限正测度、$\nu$ 为全变差有限且 $\nu\ll\mu$ 的有符号或复测度，则存在 $g\in L^1(\mu)$，使 $\nu(E)=\int_Eg\,\mathrm d\mu$，且 $g$ 几乎处处唯一。
+
+它给出 $L^p$ 对偶表示的基本思路：对 $L^p$ 上的有界泛函，在有限测度区域内定义 $\nu(E)=F(\mathbf1_E)$，验证可数可加性与绝对连续性；用 Radon--Nikodym 得到密度，再用 Hölder 型测试证明密度属于 $L^q$ 且范数相等。将可数个有限测度区域拼接，就得到 $\sigma$ 有限情形。这里仅说明表示证明的路线，不代替测度论中的完整论证。
+
+另一项引用结果是 Riesz--Markov 表示：若 $K$ 为紧度量空间，$C(K)$ 上每个连续线性泛函都唯一写为 $F(f)=\int_Kf\,\mathrm d\nu$，其中 $\nu$ 为有限正则 Borel 有符号测度或复测度，且 $\|F\|=|\nu|(K)$。正则性指其全变差可由内侧紧集和外侧开集逼近。它与 Hilbert 空间的 Riesz 表示有不同的表示对象，不可混同。
+
+\section{习题}
+\begin{enumerate}
+ \item 用计数测度从积分不等式推出数列版本。
+ \item 若 $\mu(\Omega)<\infty$、$1\leq p<q<\infty$，证明 $\|f\|_p\leq\mu(\Omega)^{1/p-1/q}\|f\|_q$。
+ \item 取 $f_n=n\mathbf1_{(0,1/n)}$，说明几乎处处趋零为何不保证积分趋零。
+ \item 用 $L^p$ 的稠密性区分“连续函数可逼近可积函数”与“可积函数本身连续”。
+\end{enumerate}
+
+\chapter{拓扑与集合论工具}
+\label{app:fa-topology}
+
+度量空间足以处理主线中的大多数例子，但一般弱紧性涉及任意坐标乘积，必须补充少量不依赖度量的语言。本附录区分定义、可直接验证的事实与作为先修知识引用的定理。进一步论证可参阅\cite{teschl-fa}的集合论及拓扑附录。
+
+\section{拓扑、紧性与乘积}
+集合 $X$ 上的拓扑 $\tau$ 是一族子集，包含 $\varnothing,X$，对任意并和有限交封闭；其成员称开集。映射连续是指开集的逆像开。任意两个不同点都有不交邻域时，空间称为 Hausdorff 空间。
+
+紧性的定义仍是每个开覆盖有有限子覆盖。紧空间的闭子集紧，连续像紧；Hausdorff 空间中的紧子集闭。最后一个事实可如下证明：对紧集外的点 $x$，分别把它与紧集中每一点用不交邻域分开，再对紧集选有限子覆盖；相应的有限个 $x$ 邻域之交就是与紧集不交的邻域。
+
+乘积 $\prod_{i\in I}X_i$ 的基本开集只限制有限个坐标：在有限指标集 $F\subset I$ 上要求 $x_i\in U_i$，其余坐标任意。本书引用\keyterm{Tychonoff 定理}：任意一族紧空间的乘积在乘积拓扑下紧。它是 Banach--Alaoglu 定理中唯一使用的任意乘积紧性结果。
+
+\section{网与子网}
+有向集是带有反身、传递关系的非空集合 $D$，且任意两个元素都有共同后继。\keyterm{网（net）}是以有向集为指标的族 $(x_\alpha)_{\alpha\in D}$；它趋于 $x$，是指每个 $x$ 的邻域最终包含全部网元素。
+
+序列就是以自然数为指标的网。若 $x\in\overline A$，用 $x$ 的邻域按反向包含排序，在每个邻域 $U$ 中选择 $a_U\in U\cap A$，便得到趋于 $x$ 的网。反之，一个来自 $A$ 的网若趋于 $x$，则每个邻域与 $A$ 相交。因此网总能刻画闭包，而序列只有在额外条件下才能做到。
+
+若 $\phi:E\to D$ 保序，且对每个 $\alpha\in D$，最终有 $\phi(\beta)\geq\alpha$，则 $(x_{\phi(\beta)})_{\beta\in E}$ 称为一个子网。一般紧性判别断言：拓扑空间紧当且仅当每个网都有收敛子网。这里引用该判别；它解释为什么一般弱星紧性不能直接改写成序列子列结论。
+
+\section{Zorn 引理}
+偏序关系除反身、传递外还满足反对称性。链是其中任意两个元素都可比较的子集；上界是大于等于该子集全部元素的元素；极大元是无法被严格扩大的元素，不要求它大于整个集合的所有元素。
+
+本书采用 Zorn 引理：若非空偏序集的每条链都在该集合内有上界，则它存在极大元。这是与选择公理等价的集合论原则。在 Hahn--Banach 证明中，元素是定义在不同子空间上的受控延拓；链的上界由这些兼容映射之并给出。使用引理时必须验证并后的定义域是线性子空间、数值无冲突且控制不等式仍成立。
+
+\section{半范数族与局部凸空间}
+若向量空间的加法与数乘连续，称为拓扑向量空间（topological vector space）；若零点有凸邻域基，称为局部凸空间（locally convex space）。一族半范数 $(p_i)_{i\in I}$ 可用基本邻域
+\[
+ \{x:p_{i_1}(x)<\varepsilon,\ldots,p_{i_m}(x)<\varepsilon\}
+\]
+生成局部凸拓扑；若半范数族能分离非零向量，则拓扑为 Hausdorff。弱拓扑就是取 $p_f(x)=|f(x)|$ 得到的情形。
+
+例如，对开集 $\Omega\subset\mathbb R^d$ 中的光滑函数，用 $p_{K,m}(u)=\max_{|\alpha|\leq m}\sup_{x\in K}|\partial^\alpha u(x)|$ 描述各阶导数在紧集 $K\subset\Omega$ 上一致收敛。这里 $\alpha=(\alpha_1,\ldots,\alpha_d)$ 为非负整数多重指标，$|\alpha|=\sum_j\alpha_j$。这种结构用于分布理论，不必强行由单个范数描述。
+
+\section{习题}
+\begin{enumerate}
+ \item 直接证明坐标投影在乘积拓扑下连续。
+ \item 用网的定义证明闭集包含来自该集合的所有收敛网的极限。
+ \item 解释 Zorn 引理中的极大元与最大元的区别。
+ \item 由半范数邻域验证弱拓扑下的加法和数乘连续。
+\end{enumerate}
+
+\chapter{复分析与谱论的补充工具}
+\label{app:fa-complex}
+
+本附录只列出谱论直接使用的复分析工具，并说明算子值表达式的含义。复分析中的积分定理与逼近定理作为先修结论使用。
+
+\section{实空间的复化}
+若 $X$ 为实 Banach 空间，令 $X_{\mathbb C}=\{x+\mathrm iy:x,y\in X\}$，按通常规则定义复数乘法。一种可用范数是
+\[
+ \|x+\mathrm iy\|_{\mathbb C}=
+ \sup_{\theta\in\mathbb R}\|x\cos\theta-y\sin\theta\|.
+\]
+旋转参数给出复齐次性，三角不等式逐个 $\theta$ 验证；并有
+\[
+ \max(\|x\|,\|y\|)\leq\|x+\mathrm iy\|_{\mathbb C}\leq\|x\|+\|y\|.
+\]
+所以它完备，且实空间等距嵌入。实有界算子 $T$ 延拓为 $T_{\mathbb C}(x+\mathrm iy)=Tx+\mathrm iTy$，其范数仍为 $\|T\|$。实算子的复谱定义为 $\sigma(T_{\mathbb C})$；实平面九十度旋转没有实特征值，却有复特征值 $\mathrm i,-\mathrm i$。
+
+\section{解析函数的基本结论}
+复函数在开集内每一点复可微时称解析（holomorphic）。本书使用 Cauchy 积分公式及其估计：若 $f$ 在包含闭圆盘 $|z-z_0|\leq R$ 的邻域内解析，则
+\[
+ f^{(n)}(z_0)=\frac{n!}{2\pi\mathrm i}
+ \int_{|z-z_0|=R}\frac{f(z)}{(z-z_0)^{n+1}}\,\mathrm dz,
+ \qquad |f^{(n)}(z_0)|\leq\frac{n!}{R^n}\max_{|z-z_0|=R}|f(z)|.
+\]
+若 $f$ 是有界整函数，让 $R\to\infty$ 即得 $f'=0$，所以 $f$ 为常数；这就是 Liouville 定理。若一条闭曲线在解析区域内连续变形，积分值不变。谱半径公式的证明使用了这一性质。
+
+连续函数演算还使用 Weierstrass 逼近定理：实紧区间上的连续函数可由多项式一致逼近；对实紧子集先作连续延拓即可。复平面紧集上的一般连续函数则需使用含 $z,\overline z$ 的多项式及 Stone--Weierstrass 定理，不能不加条件地只用 $z$ 的多项式。
+
+\section{算子值积分与标量化}
+若 $F:[a,b]\to\mathcal B(X)$ 按算子范数连续，则其 Riemann 和在完备空间 $\mathcal B(X)$ 中收敛，定义积分，并满足
+\[
+ \left\|\int_a^bF(t)\,\mathrm dt\right\|\leq\int_a^b\|F(t)\|\,\mathrm dt.
+\]
+分段光滑曲线上的积分由参数化定义。每个 $x\in X$ 和 $f\in X^*$ 都可移入积分，即 $f((\int F)x)=\int f(Fx)$。因此可以先证明标量积分恒等式，再利用连续对偶分离向量恢复算子恒等式。
+
+预解算子的 Neumann 展开按算子范数在足够小的闭圆盘上一致收敛，所以可逐项积分。在大圆上提取 $R(\lambda,T)=\sum_{k\geq0}T^k\lambda^{-k-1}$ 的第 $n$ 项，就得到谱半径证明中的积分表达。这里的一致收敛是交换求和与积分的依据。
+
+\section{习题}
+\begin{enumerate}
+ \item 验证上述复化范数的复齐次性及完备性。
+ \item 从预解恒等式推出 $\frac{\mathrm d}{\mathrm d\lambda}R(\lambda,T)=-R(\lambda,T)^2$。
+ \item 在有限维对角矩阵上直接核验谱半径证明中的轮廓积分公式。
+ \item 说明算子值函数弱意义上的逐点信息为何不足以无条件交换极限与算子范数。
+\end{enumerate}
+
+\begin{thebibliography}{9}
+\bibitem{mit-syllabus}
+Massachusetts Institute of Technology.
+\emph{18.102 Introduction to Functional Analysis, Spring 2021: Syllabus}.
+\url{https://ocw.mit.edu/courses/18-102-introduction-to-functional-analysis-spring-2021/pages/syllabus/}.
+
+\bibitem{mit-notes}
+Massachusetts Institute of Technology.
+\emph{18.102 Introduction to Functional Analysis, Spring 2021: Lecture Notes and Readings}.
+\url{https://ocw.mit.edu/courses/18-102-introduction-to-functional-analysis-spring-2021/pages/lecture-notes-and-readings/}.
+\bibitem{teschl}
+Gerald Teschl.
+\emph{Mathematical Methods in Quantum Mechanics: With Applications to Schrödinger Operators}.
+作者公开版本，重点参阅自伴算子与谱定理部分。
+\url{https://www.mat.univie.ac.at/~gerald/ftp/book-schroe/schroe.pdf}.
+
+\bibitem{engel-nagel}
+Klaus-Jochen Engel and Rainer Nagel.
+\emph{One-Parameter Semigroups for Linear Evolution Equations}.
+第二章：生成元、预解算子与生成定理。
+\url{https://www.math.uni-tuebingen.de/de/forschung/agfa/members/engel-nagel_one-parameter-semigroups.pdf}.
+\bibitem{teschl-fa}
+Gerald Teschl.
+\emph{Topics in Linear and Nonlinear Functional Analysis}.
+作者书目与内容目录页。
+\url{https://www.mat.univie.ac.at/~gerald/ftp/book-fa/index.html}.
+
+\bibitem{teschl-ra}
+Gerald Teschl.
+\emph{Topics in Real Analysis}.
+作者书目与内容目录页。
+\url{https://www.mat.univie.ac.at/~gerald/ftp/book-ra/index.html}.
+\end{thebibliography}
+
+\end{document}

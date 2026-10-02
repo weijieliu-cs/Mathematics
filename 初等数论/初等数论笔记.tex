@@ -1,0 +1,1550 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexbook}
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{初等数论笔记}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+\frontmatter
+\tableofcontents
+
+\chapter{绪言与课程路线}
+\label{ch:course-outline}
+
+\keyterm{初等数论（elementary number theory）}研究整数的整除、分解、同余及整数方程。本书面向本科生，以中学代数和基本逻辑为起点，不预设抽象代数。内容围绕三个问题展开：整数如何分解，取余运算保留哪些结构，以及整数方程的解如何判定与构造。
+
+全书分为四个阶段。第\ref{ch:introduction}至\ref{ch:primes}章建立证明方法、整除理论与唯一分解；第\ref{ch:congruences}至\ref{ch:quadratic-residues}章依次讨论同余、中国剩余定理、算术函数、幂同余、原根与二次互反律；第\ref{ch:diophantine}至\ref{ch:pell}章讨论整数方程、连分数和 Pell 方程；第\ref{ch:prime-distribution}、\ref{ch:algorithms}章选讲素数分布与算法应用。首次学习宜顺序阅读前十章，再根据兴趣进入后续专题。
+
+正文突出定义、定理、证明与例题。核心推导尽量自足；较长的拓展定理在引用处明确标注不证，不以证明思路代替完整证明。章末习题用于检验概念、训练证明，附录提供代表题的答案与综合解答。计算结果用于核对例子，不能代替一般命题的证明。
+
+课程范围可与 MIT 本科课程资料\cite{mit-syllabus,mit-notes}对照，计算专题可进一步阅读 Stein 的教材\cite{stein-book}。参考资料中的代数和椭圆曲线部分不作为本书先修要求。
+
+\mainmatter
+
+\chapter{绪论与整数证明方法}
+\label{ch:introduction}
+
+\section{从三个问题认识数论}
+\label{sec:intro-questions}
+
+每隔 $6$ 天与每隔 $8$ 天举行的两项活动，若今天同时举行，则下一次同时举行在 $24$ 天后。这是公倍数问题。若两项活动的起始时间不同，就需要同时满足两个余数条件，这将引出同余方程。
+
+整数 $65$ 有表示 $65=1^2+8^2=4^2+7^2$，而 $21$ 不能表示为两个整数的平方和。分数 $1/7=0.\overline{142857}$ 的循环节长度是 $6$。这些现象分别引出平方和判据和乘法阶。数论不仅寻找一个例子，更要回答：何时存在，是否唯一，怎样求出全部对象，以及计算过程为什么正确。
+
+\section{整数、逻辑语言与符号约定}
+
+记 $\mathbb Z$、$\mathbb Q$、$\mathbb R$ 分别为整数、有理数、实数集，$\mathbb Z_{>0}$ 和 $\mathbb Z_{\ge0}$ 分别为正整数集和非负整数集。后文还使用复数集 $\mathbb C$。字母的范围由所在命题规定，通常用 $p,q$ 表示素数，但约定不代替假设。有限集合 $A$ 的元素个数记为 $\#A$。
+
+命题 $P\Rightarrow Q$ 表示 $P$ 是 $Q$ 的充分条件，$Q$ 是 $P$ 的必要条件；$P\Leftrightarrow Q$ 要求两个方向都成立。逆命题 $Q\Rightarrow P$ 一般不成立，逆否命题 $\neg Q\Rightarrow\neg P$ 则与原命题等价。例如，被 $4$ 整除的整数一定是偶数，但偶数 $6$ 不能被 $4$ 整除。
+
+量词顺序不可随意交换。命题“对每个整数 $a$，存在整数 $b$ 使 $b>a$”成立，但不存在一个整数 $b$ 大于所有整数。否定全称命题只需一个反例；否定存在命题则须排除全部可能。
+
+\section{良序原理与数学归纳法}
+
+\begin{axiom}[良序原理]
+每个非空的非负整数子集都有最小元。
+\end{axiom}
+
+\keyterm{良序原理（well-ordering principle）}是本书对整数所使用的基本性质。它既用于选择最小对象，也用于证明下降过程必定终止。
+
+\begin{theorem}[强归纳法（strong induction）]
+设 $n_0\in\mathbb Z_{\ge0}$。若命题 $P(n_0)$ 成立，且对每个 $n>n_0$，由所有 $n_0\le k<n$ 的 $P(k)$ 成立可推出 $P(n)$，则 $P(n)$ 对所有 $n\ge n_0$ 成立。
+\end{theorem}
+\begin{proof}
+若有反例，取最小反例 $m$。由初始情形知 $m>n_0$，由最小性知 $P(k)$ 对所有 $n_0\le k<m$ 成立；归纳条件于是给出 $P(m)$，矛盾。
+\end{proof}
+
+普通归纳法只使用前一个命题 $P(n-1)$，是上述方法的特例。最小反例法把同一论证反过来组织：假定反例存在，再从最小反例构造更小的反例。任何严格递减的非负整数序列都只能有有限项，否则其值集有最小元，而下一项更小，发生矛盾。
+
+\begin{example}
+证明对每个 $n\ge1$，$1+3+\cdots+(2n-1)=n^2$。
+\end{example}
+\begin{proof}
+$n=1$ 时成立。若前 $n$ 项之和为 $n^2$，则前 $n+1$ 项之和为 $n^2+(2n+1)=(n+1)^2$，归纳完成。
+\end{proof}
+
+\section{反证、构造与抽屉原理}
+
+\begin{example}
+$\sqrt2$ 不是有理数。
+\end{example}
+\begin{proof}
+若 $\sqrt2=a/b$，可在所有 $a,b>0$ 的整数表示中选取分母 $b$ 最小的一组。由 $a^2=2b^2$ 知 $a$ 为偶数：奇数 $2k+1$ 的平方仍为奇数。写 $a=2c$，得 $b^2=2c^2$，故 $b=2d$。于是 $\sqrt2=c/d$ 且 $0<d<b$，与选择矛盾。
+\end{proof}
+
+该证明同时说明了反证与递降的作用。构造性证明则必须实际给出对象，并验证它满足条件；仅说“可以找到”不构成存在性证明。
+
+\begin{proposition}[抽屉原理]
+若 $N>k\ge1$，把 $N$ 个对象放入 $k$ 个盒子，则至少一个盒子含两个对象。
+\end{proposition}
+\begin{proof}
+若每盒至多一个，对象总数至多为 $k$，与 $N>k$ 矛盾。
+\end{proof}
+
+\keyterm{抽屉原理（pigeonhole principle）}在数论中常以余数为盒子。两个对象落在同一盒子，意味着它们的差被某个整数整除；这一思想将在同余与平方和问题中反复出现。
+
+\section{习题}
+\begin{enumerate}
+  \item 写出“对每个正整数 $n$，存在素数 $p>n$”的否定，说明否定命题需要怎样的证据。
+  \item 用归纳法证明 $\sum_{k=1}^n k=n(n+1)/2$，指出归纳起点与归纳假设。
+  \item 证明从 $1,2,\ldots,2n$ 中任取 $n+1$ 个不同整数，必有两个相邻。
+  \item 仿照最小分母论证证明 $\sqrt3$ 无理；先说明平方被 $3$ 整除时，原整数也被 $3$ 整除。
+\end{enumerate}
+
+\chapter{整除、最大公因数与欧几里得算法}
+\label{ch:divisibility}
+
+\section{整除关系与带余除法}
+
+\begin{definition}
+对 $a,b\in\mathbb Z$，若存在 $k\in\mathbb Z$ 使 $b=ak$，则称 $a$ \keyterm{整除（divide）} $b$，记为 $a\mid b$；否则记为 $a\nmid b$。
+\end{definition}
+
+每个整数都整除 $0$，而 $0\mid b$ 当且仅当 $b=0$。若 $a\mid b$ 且 $a\mid c$，则对任意 $u,v\in\mathbb Z$ 有 $a\mid ub+vc$，因为 $b=ar,c=as$ 蕴含 $ub+vc=a(ur+vs)$。整除具有传递性；若 $a\mid b$ 且 $b\ne0$，则 $|a|\le|b|$。
+
+\begin{theorem}[带余除法（division algorithm）]
+\label{thm:division}
+对任意 $a\in\mathbb Z$ 与 $b\in\mathbb Z_{>0}$，存在唯一的整数 $q,r$，使
+\begin{equation}
+  a=bq+r,\qquad 0\le r<b.
+  \label{eq:division-algorithm}
+\end{equation}
+\end{theorem}
+\begin{proof}
+集合 $S=\{a-bq:q\in\mathbb Z,\ a-bq\ge0\}$ 非空：例如取 $q=-|a|$。由良序原理取其最小元 $r=a-bq$。若 $r\ge b$，则 $r-b\in S$ 且更小，矛盾，故 $0\le r<b$。若另有 $a=bq'+r'$，则 $b(q-q')=r'-r$；右端绝对值小于 $b$，只能为 $0$，于是 $q=q',r=r'$。
+\end{proof}
+
+例如 $-17=5(-4)+3$，所以除以 $5$ 的余数是 $3$。余数的非负约定对负被除数同样适用。
+
+\section{最大公因数、互素与贝祖等式}
+
+\begin{definition}
+不全为零的整数 $a,b$ 的\keyterm{最大公因数（greatest common divisor）} $\gcd(a,b)$ 是它们最大的正公因数。若 $\gcd(a,b)=1$，称 $a,b$ \keyterm{互素（coprime）}。
+\end{definition}
+
+公因数集合非空，且被任一非零数的绝对值所界，故最大公因数存在。特别地，$\gcd(a,0)=|a|$（$a\ne0$），改变符号不影响最大公因数。本书不使用 $\gcd(0,0)$。
+
+\begin{theorem}[贝祖等式]
+\label{thm:bezout}
+设 $a,b\in\mathbb Z$ 不全为零，$d=\gcd(a,b)$。则存在 $u,v\in\mathbb Z$ 使 $au+bv=d$，而且每个公因数都整除 $d$。
+\end{theorem}
+\begin{proof}
+所有正的整数线性组合 $ax+by$ 构成非空集合，取其中最小元 $s=au+bv$。将 $a$ 除以 $s$，余数 $r=a-qs$ 仍是 $a,b$ 的整数线性组合；若 $r>0$，则 $r<s$ 违背最小性，故 $s\mid a$。同理 $s\mid b$。任意公因数都整除 $s$，从而不超过 $s$；因此 $s=d$，并得到所需等式。
+\end{proof}
+
+\keyterm{贝祖等式（Bézout's identity）}把公因数问题转化为线性组合。由它还知全部整数线性组合恰为 $d$ 的整数倍。
+
+\begin{corollary}[互素消去]
+\label{cor:coprime-cancellation}
+若 $\gcd(a,b)=1$ 且 $a\mid bc$，则 $a\mid c$。
+\end{corollary}
+\begin{proof}
+取 $au+bv=1$，乘以 $c$ 得 $c=auc+bvc$；右侧两项均被 $a$ 整除。
+\end{proof}
+
+\section{欧几里得算法与扩展算法}
+
+若 $a=bq+r$，则 $a,b$ 的公因数恰是 $b,r$ 的公因数，因而
+\[
+  \gcd(a,b)=\gcd(b,r).
+\]
+\keyterm{欧几里得算法（Euclidean algorithm）}对 $A=|a|,B=|b|$ 反复执行：若 $B=0$，输出 $A$；否则用带余除法求 $R$，令 $(A,B)\leftarrow(B,R)$。非零余数严格递减，故算法终止；最大公因数在更新中不变，最后一个非零余数即为答案。
+
+扩展算法同时记录系数。对非负初值 $A,B$，以 $(r_0,s_0,t_0)=(A,1,0)$、$(r_1,s_1,t_1)=(B,0,1)$ 开始；当 $r_i>0$ 时取 $q_i=\lfloor r_{i-1}/r_i\rfloor$，并令
+\[
+ (r_{i+1},s_{i+1},t_{i+1})
+ =(r_{i-1},s_{i-1},t_{i-1})-q_i(r_i,s_i,t_i).
+\]
+这里 $\lfloor x\rfloor$ 表示不超过实数 $x$ 的最大整数。不变式 $r_i=s_iA+t_iB$ 由递推保持，故最后一组非零余数的系数给出贝祖等式。原数为负时，把相应系数变号；若初始 $B=0$，直接返回第一组。
+
+\begin{example}
+求 $252,198$ 的最大公因数和一组贝祖系数。
+\end{example}
+\begin{solve}
+带余除法依次为 $252=198+54$、$198=3\cdot54+36$、$54=36+18$、$36=2\cdot18$，故最大公因数为 $18$。回代得
+\[
+ 18=54-36=4\cdot54-198=4\cdot252-5\cdot198.
+\]
+\end{solve}
+
+\section{最小公倍数与一次不定方程}
+
+非零整数 $a,b$ 的\keyterm{最小公倍数（least common multiple）}记为 $\operatorname{lcm}(a,b)$，即最小正公倍数。写 $|a|=dA,|b|=dB$，其中 $d=\gcd(a,b)$，则 $\gcd(A,B)=1$。若 $m$ 为公倍数，写 $m=dAt$，由 $B\mid At$ 得 $B\mid t$，故 $dAB\mid m$。因此
+\begin{equation}
+ \operatorname{lcm}(a,b)=\frac{|ab|}{\gcd(a,b)}.
+ \label{eq:gcd-lcm}
+\end{equation}
+
+多个整数的最大公因数可递归计算；它们整体最大公因数为 $1$ 并不等于两两互素，例如 $6,10,15$。
+
+\begin{theorem}[一次不定方程]
+\label{thm:linear-diophantine}
+设 $a,b,c\in\mathbb Z$，$a,b$ 不全为零，$d=\gcd(a,b)$。方程 $ax+by=c$ 有整数解当且仅当 $d\mid c$。若 $(x_0,y_0)$ 是一组解，则全部解为
+\begin{equation}
+ x=x_0+\frac bd t,\qquad y=y_0-\frac ad t,\qquad t\in\mathbb Z.
+ \label{eq:linear-diophantine-solutions}
+\end{equation}
+\end{theorem}
+\begin{proof}
+必要性由 $d\mid ax+by$ 得到；充分性将贝祖等式乘以 $c/d$ 即可。任意两组解之差满足 $(a/d)(x-x_0)=-(b/d)(y-y_0)$。若 $b\ne0$，互素消去给出 $b/d\mid x-x_0$，代入得到通解；若 $b=0$，则 $a/d=\pm1$，$x$ 固定而 $y$ 任意，同一公式仍覆盖全部解。反向代入验证每组参数确为解。
+\end{proof}
+
+要求未知量取整数值的方程称为\keyterm{不定方程（Diophantine equation）}；名称不意味着它必有无穷多解。
+
+\begin{example}
+求 $18x+30y=42$ 的全部整数解和非负整数解。
+\end{example}
+\begin{solve}
+约去最大公因数 $6$ 后得到 $3x+5y=7$，一组解为 $(-1,2)$，故 $x=-1+5t,y=2-3t$。非负性要求 $t\ge1$ 且 $t\le0$，所以不存在非负整数解，尽管整数解有无穷多组。
+\end{solve}
+
+\section{习题}
+\begin{enumerate}
+ \item 对 $-37$ 除以 $8$ 作带余除法；求 $\gcd(414,662)$ 并写出贝祖等式。
+ \item 证明 $\gcd(a,b)=\gcd(a,a+b)$，其中 $a,b$ 不全为零。
+ \item 求 $35x+22y=1$ 的全部整数解。
+ \item 若 $a,b>0$ 且互素，证明 $a\mid c$、$b\mid c$ 蕴含 $ab\mid c$。
+\end{enumerate}
+
+\chapter{素数与算术基本定理}
+\label{ch:primes}
+
+\section{素数、合数与素数无穷性}
+
+\begin{definition}
+大于 $1$ 且正因数只有 $1$ 和自身的整数称为\keyterm{素数（prime number）}；大于 $1$ 的其他整数称为合数（composite number）。整数 $1$ 不属于这两类。
+\end{definition}
+
+每个 $n>1$ 都有素因子：取 $n$ 的大于 $1$ 的最小正因数 $d$；若 $d$ 为合数，它有一个介于 $1$ 与 $d$ 之间的因数，这也是 $n$ 的因数，矛盾。
+
+\begin{theorem}[素数无穷性]
+素数有无穷多个。
+\end{theorem}
+\begin{proof}
+若全部素数为 $p_1,\ldots,p_r$，令 $N=p_1\cdots p_r+1>1$。取 $N$ 的素因子 $q$，则 $q$ 应是某个 $p_i$，于是同时整除 $p_1\cdots p_r$ 和 $N$，从而整除 $1$，矛盾。
+\end{proof}
+
+这里并未断言 $N$ 本身为素数，只断言它具有新的素因子。
+
+\section{欧几里得引理与唯一分解}
+
+\begin{lemma}[欧几里得引理（Euclid's lemma）]
+\label{lem:euclid-prime}
+若 $p$ 为素数且 $p\mid ab$，则 $p\mid a$ 或 $p\mid b$。
+\end{lemma}
+\begin{proof}
+若 $p\nmid a$，由素数定义有 $\gcd(p,a)=1$，应用推论\ref{cor:coprime-cancellation}得 $p\mid b$。
+\end{proof}
+
+\begin{theorem}[算术基本定理（fundamental theorem of arithmetic）]
+\label{thm:unique-factorization}
+每个整数 $n>1$ 都有唯一表示
+\begin{equation}
+ n=p_1^{\alpha_1}\cdots p_r^{\alpha_r},\qquad
+ p_1<\cdots<p_r,\quad \alpha_i\in\mathbb Z_{>0},
+ \label{eq:prime-factorization}
+\end{equation}
+其中 $p_1,\ldots,p_r$ 为素数。
+\end{theorem}
+\begin{proof}
+对 $n$ 强归纳证明存在性。若 $n$ 为素数，已成立；否则 $n=ab$，其中 $1<a,b<n$，把 $a,b$ 的素数分解相乘即可。为证唯一性，将任意两种分解展开为素数的乘积。第一种的任一素因子，由欧几里得引理必整除第二种中的某个素数，因而等于它；消去这一对因子后继续，最终所有素因子及重数一致。
+\end{proof}
+
+对负整数，另加一个负号即可。整数 $1$ 对应空乘积，值约定为 $1$。把 $1$ 排除在素数之外，正是为了使分解中的因子个数不受任意插入 $1$ 的影响。
+
+\section{素因子指数与整除判定}
+
+对素数 $p$ 和非零整数 $n$，记 $v_p(n)$ 为 $p$ 在 $|n|$ 的分解中的指数，称为 $p$ 进赋值（$p$-adic valuation）。不出现的素因子指数为 $0$。由唯一分解，非零 $a,b$ 满足
+\[
+ v_p(ab)=v_p(a)+v_p(b),\qquad
+ a\mid b\ \Longleftrightarrow\ v_p(a)\le v_p(b)\ \text{对每个素数 }p.
+\]
+因此最大公因数与最小公倍数的指数分别取两者的最小值和最大值。
+
+若 $a,b,a+b$ 均非零，写 $a=p^ru,b=p^sv$ 且 $p\nmid uv$。当 $r<s$ 时，$a+b=p^r(u+p^{s-r}v)$，括号内不被 $p$ 整除；故
+\[
+ v_p(a+b)\ge\min\{v_p(a),v_p(b)\},
+\]
+且两指数不同时等号成立。指数相同则可能严格增大，例如 $v_2(1+3)=2$。
+
+\begin{corollary}
+固定 $k\ge2$。正整数 $n$ 是整数的 $k$ 次幂，当且仅当每个 $v_p(n)$ 都是 $k$ 的倍数。特别地，互素正整数的乘积为平方时，各因子均为平方。
+\end{corollary}
+\begin{proof}
+若 $n=t^k$，则 $v_p(n)=kv_p(t)$；反之把各指数除以 $k$ 后构造 $t$。互素因子不共享素因子，故乘积中的偶指数分别属于各因子。
+\end{proof}
+
+\section{阶乘、二项式系数与筛法}
+
+\begin{proposition}[阶乘中的素因子指数]
+对素数 $p$ 与整数 $n\ge0$，
+\begin{equation}
+ v_p(n!)=\sum_{j\ge1}\left\lfloor\frac{n}{p^j}\right\rfloor.
+ \label{eq:factorial-valuation}
+\end{equation}
+\end{proposition}
+\begin{proof}
+$n!$ 中每个 $p$ 的倍数至少贡献一次，每个 $p^2$ 的倍数再贡献一次，依此类推。若某数的指数为 $s$，它恰好被计数 $s$ 次。$p^j>n$ 后各项为零，故这里只涉及有限求和；$n=0$ 时两边均为零。
+\end{proof}
+
+对 $0\le k\le n$，二项式系数 $\binom nk=n!/[k!(n-k)!]$ 的素因子指数由三次应用式\eqref{eq:factorial-valuation}得到。例如 $100!$ 中 $5$ 的指数为 $20+4=24$，$2$ 的指数更大，故十进制末尾恰有 $24$ 个零。
+
+若 $n$ 为合数，写 $n=ab$ 且 $1<a\le b$，则 $a\le\sqrt n$；$a$ 的一个素因子也不超过 $\sqrt n$。因此试除只需检查不超过平方根的素数。\keyterm{埃拉托色尼筛法（sieve of Eratosthenes）}用于列出 $N$ 以下的所有素数：从 $2$ 起，遇到尚未标记的 $p$ 就保留它，并标记 $p^2,p^2+p,\ldots\le N$；处理至 $p^2>N$ 后停止。较小的合数倍数已由更小素因子标记，所有合数最终都会被某个不超过其平方根的素因子筛去。
+
+\section{习题}
+\begin{enumerate}
+ \item 分解 $360$；证明它的每个正约数唯一写成 $2^a3^b5^c$，其中 $0\le a\le3,0\le b\le2,0\le c\le1$。
+ \item 计算 $v_2(100!)$ 与 $v_5\bigl(\binom{100}{50}\bigr)$。
+ \item 若正整数 $a,b$ 互素且 $ab$ 为立方，证明 $a,b$ 都是立方。
+ \item 证明对素数 $p$ 和 $1\le k<p$，$p\mid\binom pk$。
+\end{enumerate}
+
+\chapter{同余与剩余类}
+\label{ch:congruences}
+
+\section{同余关系及其基本运算}
+
+\begin{definition}
+固定整数 $m\ge2$。若 $m\mid(a-b)$，称整数 $a,b$ 模 $m$ \keyterm{同余（congruent）}，记为 $a\equiv b\pmod m$。
+\end{definition}
+
+由带余除法，两个整数同余当且仅当它们除以 $m$ 的余数相同。整除的基本性质给出自反性、对称性与传递性，故同余是等价关系。需要模 $1$ 时，约定任意两个整数都同余。
+
+\begin{proposition}
+若 $a\equiv b\pmod m$、$c\equiv d\pmod m$，则 $a\pm c\equiv b\pm d\pmod m$ 且 $ac\equiv bd\pmod m$。因而对每个整系数多项式 $f$，$f(a)\equiv f(b)\pmod m$。
+\end{proposition}
+\begin{proof}
+和差结论直接来自差的整除性；乘积使用 $ac-bd=c(a-b)+b(c-d)$。重复使用乘法与加法即可得到多项式结论。
+\end{proof}
+
+例如 $10\equiv-1\pmod{11}$，所以 $10^{2k}\equiv1$、$10^{2k+1}\equiv-1\pmod{11}$。取余可在运算的每一步进行，不必先算出大整数。
+
+\section{同余约分与条件的作用}
+
+\begin{proposition}[约分法则]
+\label{prop:congruence-cancellation}
+设 $a,b,c\in\mathbb Z$、$m\ge2$，$d=\gcd(c,m)$。则
+\begin{equation}
+ ac\equiv bc\pmod m
+ \quad\Longleftrightarrow\quad
+ a\equiv b\pmod{m/d}.
+ \label{eq:congruence-cancellation}
+\end{equation}
+\end{proposition}
+\begin{proof}
+写 $c=dc',m=dm'$，则 $\gcd(c',m')=1$。原条件等价于 $m'\mid c'(a-b)$，由互素消去又等价于 $m'\mid a-b$；$m'=1$ 时也成立。
+\end{proof}
+
+因此，只有已知 $\gcd(c,m)=1$ 时，才能普遍地约去 $c$ 而保留模数。例如 $2\cdot1\equiv2\cdot4\pmod6$，约分后得到 $1\equiv4\pmod3$，不能得到模 $6$ 的同余。另一个常用规则是：若 $n\mid m$，则模 $m$ 同余蕴含模 $n$ 同余，反向通常不成立。
+
+\section{剩余类、剩余系与模逆元}
+
+\begin{definition}
+整数 $a$ 的模 $m$ \keyterm{剩余类（residue class）}为 $[a]_m=\{a+km:k\in\mathbb Z\}$。全部剩余类的集合记为 $\mathbb Z/m\mathbb Z$。每类各选一个代表元所得的集合称为完全剩余系（complete residue system）。
+\end{definition}
+
+$0,1,\ldots,m-1$ 构成完全剩余系，所以恰有 $m$ 个类。定义 $[a]_m+[b]_m=[a+b]_m$、$[a]_m[b]_m=[ab]_m$；前节的保同余性质保证结果不依赖代表元。
+
+\begin{theorem}[模逆元]
+\label{thm:modular-inverse}
+整数 $a$ 模 $m$ 存在逆元，即存在 $u$ 使 $au\equiv1\pmod m$，当且仅当 $\gcd(a,m)=1$；逆元在模 $m$ 意义下唯一。
+\end{theorem}
+\begin{proof}
+若 $au-mv=1$，则 $a,m$ 的每个公因数都整除 $1$，故互素。反之用贝祖等式构造 $u$。若 $au\equiv av\equiv1$，由约分法则知 $u\equiv v\pmod m$。
+\end{proof}
+
+\keyterm{模逆元（modular inverse）}记为 $a^{-1}\pmod m$，这里的负指数不是实数倒数。每个可逆类各选一个代表元，称为简化剩余系（reduced residue system）。模素数时每个非零类均可逆，模合数时则可能存在两个非零类相乘为零，如 $[2]_6[3]_6=[0]_6$。
+
+\begin{example}
+求 $3$ 模 $7$ 的逆元，并比较模 $7$ 与模 $8$ 的可逆类。
+\end{example}
+\begin{solve}
+$3\cdot5-7\cdot2=1$，所以逆元为 $5$。模 $7$ 的 $1,\ldots,6$ 全部可逆；模 $8$ 只有 $1,3,5,7$ 可逆，因为这些数且仅这些数与 $8$ 互素。
+\end{solve}
+
+\section{数位、周期与同余不变量}
+
+设非负整数 $N=\sum_{j=0}^k a_j10^j$，其中 $a_j$ 为十进制数位。由 $10\equiv1\pmod9$ 与 $10\equiv-1\pmod{11}$ 得
+\[
+ N\equiv\sum_{j=0}^k a_j\pmod9,\qquad
+ N\equiv\sum_{j=0}^k(-1)^ja_j\pmod{11}.
+\]
+这分别给出数位和与交错数位和判别法；模 $3$ 同理。一般进制 $B$ 的展开可用相同方法处理。
+
+幂序列 $1,a,a^2,\ldots$ 模 $m$ 只有有限个状态，故存在 $0\le i<j$ 使 $a^i\equiv a^j$；之后乘以相同的幂，得到从第 $i$ 项起的周期性。若 $a$ 可逆，则可约去 $a^i$，得到从起点开始的周期性。一般底数只有最终周期性，例如模 $8$ 的 $1,2,4,0,0,\ldots$。
+
+\begin{example}
+证明 $x^2+y^2=4z+3$ 没有整数解。
+\end{example}
+\begin{proof}
+偶数平方模 $4$ 余 $0$，奇数平方模 $4$ 余 $1$，所以两平方和只能余 $0,1,2$，而右侧余 $3$，矛盾。
+\end{proof}
+
+\section{习题}
+\begin{enumerate}
+ \item 求 $17$ 模 $43$ 的逆元。
+ \item 证明任意 $n+1$ 个整数中有两个之差被 $n$ 整除，其中 $n\ge1$。
+ \item 求整数平方模 $8$ 的全部可能余数，并证明奇数平方模 $8$ 均余 $1$。
+ \item 对进制 $B\ge2$，推导模 $B-1$ 与模 $B+1$ 的数位判别法。
+\end{enumerate}
+
+\chapter{一次同余方程与中国剩余定理}
+\label{ch:crt}
+
+\section{一次同余方程的可解性与解数}
+
+\begin{theorem}
+\label{thm:linear-congruence}
+设 $a,b\in\mathbb Z$、$m\ge2$，$d=\gcd(a,m)$。方程 $ax\equiv b\pmod m$ 可解当且仅当 $d\mid b$。可解时，全部整数解构成模 $m/d$ 的一个同余类，在模 $m$ 意义下恰有 $d$ 个不同解类。
+\end{theorem}
+\begin{proof}
+方程等价于存在整数 $y$ 使 $ax-my=b$，由定理\ref{thm:linear-diophantine}得到可解条件。约去 $d$ 后，$a/d$ 与 $m/d$ 互素，因此当 $m/d>1$ 时，模逆元给出唯一的 $x_0\pmod{m/d}$；若 $m/d=1$，任意整数都是解。模 $m$ 的代表元可取
+\[
+ x_0,\ x_0+m/d,\ \ldots,\ x_0+(d-1)m/d.
+\]
+它们两两不同，且覆盖全部整数解。
+\end{proof}
+
+例如 $6x\equiv9\pmod{15}$ 约为 $2x\equiv3\pmod5$，故 $x\equiv4\pmod5$；在模 $15$ 下有三个解类 $4,9,14$。求解时必须说明采用哪个模数计数。
+
+\section{互素模数的中国剩余定理}
+
+\begin{theorem}[中国剩余定理]
+\label{thm:crt}
+设 $m_1,\ldots,m_r\ge2$ 两两互素，$a_i\in\mathbb Z$，$M=\prod_{i=1}^r m_i$。则
+\begin{equation}
+ x\equiv a_i\pmod{m_i},\qquad 1\le i\le r,
+ \label{eq:crt-system}
+\end{equation}
+在模 $M$ 意义下有唯一解。
+\end{theorem}
+\begin{proof}
+令 $M_i=M/m_i$。由两两互素，$\gcd(M_i,m_i)=1$，取 $u_i$ 使 $M_iu_i\equiv1\pmod{m_i}$。则
+\begin{equation}
+ x_0=\sum_{i=1}^r a_iM_iu_i
+ \label{eq:crt-construction}
+\end{equation}
+满足每个方程，因为其他各项均被相应的 $m_i$ 整除。若 $x,y$ 都为解，每个 $m_i$ 都整除 $x-y$，两两互素使其乘积 $M$ 也整除 $x-y$，唯一性得证。
+\end{proof}
+
+\keyterm{中国剩余定理（Chinese remainder theorem）}还说明，模 $M$ 的剩余类与各个模 $m_i$ 剩余类的组合一一对应，而且这种对应保持加法和乘法。
+
+\begin{example}
+求模 $3,5,7$ 分别余 $2,3,2$ 的全部整数。
+\end{example}
+\begin{solve}
+$M=105$，可取 $M_1u_1=35\cdot2=70$、$M_2u_2=21$、$M_3u_3=15$。式\eqref{eq:crt-construction}给出 $x_0=2\cdot70+3\cdot21+2\cdot15=233$，故全部解为 $x\equiv23\pmod{105}$。
+\end{solve}
+
+\section{非互素模数的相容条件}
+
+\begin{theorem}
+\label{thm:general-crt}
+方程组 $x\equiv a_i\pmod{m_i}$（$m_i\ge2$）可解，当且仅当对任意 $i,j$，
+\[
+ \gcd(m_i,m_j)\mid(a_i-a_j).
+\]
+若可解，解在模 $L=\operatorname{lcm}(m_1,\ldots,m_r)$ 意义下唯一。
+\end{theorem}
+\begin{proof}
+任何解都给出 $a_i-a_j=(a_i-x)+(x-a_j)$，所以相容条件必要。反之，对每个整除 $L$ 的素数 $p$，选取使 $v_p(m_i)$ 最大的指标 $i(p)$，规定
+\[
+ x\equiv a_{i(p)}\pmod{p^{v_p(L)}}.
+\]
+这些素数幂两两互素，故有公共解。对任意 $m_j$ 的每个素数幂因子，相容条件保证此解与 $a_j$ 同余，于是满足全部原方程。任意两解之差被每个 $m_i$ 整除，故被 $L$ 整除。
+\end{proof}
+
+实际计算可逐项合并。已有 $x\equiv A\pmod L$，再加入 $x\equiv a\pmod m$，令 $x=A+Lt$，只需解 $Lt\equiv a-A\pmod m$。若不可解则停止；若得到 $t_0$，更新解为 $A+Lt_0$，更新模数为 $\operatorname{lcm}(L,m)$。
+
+\section{素数幂分解与解的组合}
+
+若 $m=\prod_i p_i^{\alpha_i}$，整系数多项式同余 $f(x)\equiv0\pmod m$ 等价于所有 $f(x)\equiv0\pmod{p_i^{\alpha_i}}$。局部根的每一种组合恰好给出一个模 $m$ 的根类，因此总体根数等于局部根数的乘积。
+
+\begin{example}
+求 $x^2\equiv1\pmod{15}$ 的全部解。
+\end{example}
+\begin{solve}
+模 $3$ 与模 $5$ 分别只有 $\pm1$ 两根。将四种符号组合用中国剩余定理合并，得到 $x\equiv1,4,11,14\pmod{15}$。这也说明合数模数下二次同余可有超过两个根。
+\end{solve}
+
+\section{习题}
+\begin{enumerate}
+ \item 解 $14x\equiv8\pmod{30}$，列出模 $30$ 的全部解类。
+ \item 解 $x\equiv1\pmod6$、$x\equiv5\pmod8$；再将第二式的 $5$ 改为 $4$，判断可解性。
+ \item 求 $x^2\equiv1\pmod{35}$ 的全部解。
+ \item 设 $p,q$ 为不同奇素数，证明 $x^2\equiv1\pmod{pq}$ 恰有四个根类。
+\end{enumerate}
+
+\chapter{算术函数与莫比乌斯反演}
+\label{ch:arithmetic-functions}
+
+\section{算术函数、积性与约数求和}
+
+\begin{definition}
+\keyterm{算术函数（arithmetic function）}是定义在正整数集上的函数，本章允许其取复数值。若 $f(1)=1$，且 $\gcd(m,n)=1$ 时 $f(mn)=f(m)f(n)$，则称 $f$ 为\keyterm{积性函数（multiplicative function）}；若乘法等式对所有正整数 $m,n$ 成立，则称完全积性。
+\end{definition}
+
+记 $\tau(n)$ 为正约数个数，$\sigma(n)$ 为正约数和；$\sum_{d\mid n}$ 总对正约数求和。由唯一分解，若 $n=\prod_{i=1}^r p_i^{\alpha_i}$，每个约数对应唯一的指数选择，故
+\begin{equation}
+ \tau(n)=\prod_i(\alpha_i+1),\qquad
+ \sigma(n)=\prod_i(1+p_i+\cdots+p_i^{\alpha_i}).
+ \label{eq:divisor-functions}
+\end{equation}
+$n=1$ 时均为 $1$。互素两数的素因子集合不交，所以两函数均积性；但 $\tau(4)=3\ne\tau(2)^2$，故 $\tau$ 不完全积性。一般积性函数由所有素数幂上的取值唯一确定。
+
+\section{欧拉函数与互素计数}
+
+\begin{definition}
+\keyterm{欧拉函数（Euler's totient function）}为
+\[
+ \varphi(n)=\#\{a:1\le a\le n,\ \gcd(a,n)=1\}.
+\]
+特别地，$\varphi(1)=1$。
+\end{definition}
+
+\begin{theorem}
+\label{thm:totient}
+欧拉函数积性，且
+\begin{equation}
+ \varphi(n)=n\prod_{p\mid n}\left(1-\frac1p\right),
+ \qquad \sum_{d\mid n}\varphi(d)=n.
+ \label{eq:totient-product}
+\end{equation}
+乘积遍历 $n$ 的不同素因子。
+\end{theorem}
+\begin{proof}
+在 $1,\ldots,p^k$ 中，恰有 $p^{k-1}$ 个数被 $p$ 整除，故 $\varphi(p^k)=p^k-p^{k-1}$。若 $m,n$ 互素，中国剩余定理把模 $mn$ 的可逆类与模 $m,n$ 的可逆类对一一对应，故 $\varphi(mn)=\varphi(m)\varphi(n)$，乘积公式随之成立。
+
+将 $1\le a\le n$ 按 $\gcd(a,n)=g$ 分类，其中 $g\mid n$。写 $a=gb$，则 $1\le b\le n/g$ 且 $\gcd(b,n/g)=1$，这一类有 $\varphi(n/g)$ 个数。各类不交且覆盖全部 $n$ 个数，得到约数求和式。
+\end{proof}
+
+\begin{example}
+计算 $360$ 的约数个数、约数和与欧拉函数值。
+\end{example}
+\begin{solve}
+$360=2^3\cdot3^2\cdot5$，所以 $\tau(360)=4\cdot3\cdot2=24$，$\sigma(360)=15\cdot13\cdot6=1170$，$\varphi(360)=360\cdot\frac12\cdot\frac23\cdot\frac45=96$。
+\end{solve}
+
+\section{狄利克雷卷积与莫比乌斯函数}
+
+\begin{definition}
+算术函数 $f,g$ 的\keyterm{狄利克雷卷积（Dirichlet convolution）}定义为
+\begin{equation}
+ (f*g)(n)=\sum_{d\mid n}f(d)g(n/d).
+ \label{eq:dirichlet-convolution}
+\end{equation}
+记 $\mathbf1(n)=1$，$\varepsilon(1)=1$、$\varepsilon(n)=0$（$n>1$）。
+\end{definition}
+
+换元 $d\leftrightarrow n/d$ 证明交换律；两种结合方式都等于有限和 $\sum_{abc=n}f(a)g(b)h(c)$，故结合律成立；直接计算得 $f*\varepsilon=f$。若 $f,g$ 积性，互素 $m,n$ 的每个约数唯一写为 $uv$（$u\mid m,v\mid n$），将双重和分离即可证明 $f*g$ 积性。
+
+\begin{definition}
+\keyterm{莫比乌斯函数（Möbius function）}定义为
+\[
+ \mu(n)=
+ \begin{cases}
+ 1,&n=1,\\
+ (-1)^r,&n\text{ 是 }r\text{ 个不同素数的乘积},\\
+ 0,&n\text{ 被某个素数的平方整除}.
+ \end{cases}
+\]
+\end{definition}
+
+$\mu$ 的积性直接来自不交素因子集合。若 $n>1$ 有 $r$ 个不同素因子，只有无平方因子的约数对 $\sum_{d\mid n}\mu(d)$ 有贡献；选出 $j$ 个素因子共有 $\binom rj$ 种，故该和为 $(1-1)^r=0$。加上 $n=1$ 的情形，得到
+\begin{equation}
+ \mu*\mathbf1=\varepsilon.
+ \label{eq:mobius-unit}
+\end{equation}
+
+\section{莫比乌斯反演及计数应用}
+
+\begin{theorem}[莫比乌斯反演]
+\label{thm:mobius-inversion}
+对算术函数 $f,F$，
+\begin{equation}
+ F(n)=\sum_{d\mid n}f(d)
+ \quad\Longleftrightarrow\quad
+ f(n)=\sum_{d\mid n}\mu(d)F(n/d).
+ \label{eq:mobius-inversion}
+\end{equation}
+\end{theorem}
+\begin{proof}
+左式为 $F=f*\mathbf1$，两侧与 $\mu$ 卷积，利用结合律和式\eqref{eq:mobius-unit}得 $F*\mu=f$。反之，对右式与 $\mathbf1$ 卷积即可恢复左式。所有求和均有限。
+\end{proof}
+
+\keyterm{莫比乌斯反演（Möbius inversion）}把按约数累加的信息还原。令 $F(n)=n$，由欧拉函数的约数和式得到 $\varphi(n)=\sum_{d\mid n}\mu(d)n/d$，也可再次推出乘积公式。
+
+\begin{example}
+求 $1\le a,b\le N$ 中互素有序数对的个数 $C(N)$，其中 $N\in\mathbb Z_{>0}$。
+\end{example}
+\begin{solve}
+由式\eqref{eq:mobius-unit}，$\sum_{d\mid\gcd(a,b)}\mu(d)$ 在两数互素时为 $1$，否则为 $0$。交换有限求和得到
+\begin{equation}
+ C(N)=\sum_{d=1}^N\mu(d)\left\lfloor\frac Nd\right\rfloor^2.
+ \label{eq:coprime-pairs}
+\end{equation}
+平方项分别选择被 $d$ 整除的两个坐标，已包括 $(1,1)$；当 $N=3$ 时结果为 $9-1-1=7$。
+\end{solve}
+
+\section{习题}
+\begin{enumerate}
+ \item 计算 $\varphi(840)$、$\tau(840)$ 和 $\mu(840)$。
+ \item 证明 $\sum_{d\mid n}\mu(d)\tau(n/d)=1$。
+ \item 证明 $\sum_{d\mid n}\mu(d)^2=2^r$，其中 $r$ 为 $n$ 的不同素因子个数。
+ \item 通过计数对称性证明 $C(N)=2\sum_{k=1}^N\varphi(k)-1$，并与式\eqref{eq:coprime-pairs}比较。
+\end{enumerate}
+
+\chapter{费马、欧拉与威尔逊定理}
+\label{ch:classical-congruences}
+
+\section{费马小定理及两种表述}
+
+\begin{theorem}[费马小定理]
+\label{thm:fermat}
+若 $p$ 为素数且 $p\nmid a$，则 $a^{p-1}\equiv1\pmod p$。等价地，对任意整数 $a$，$a^p\equiv a\pmod p$。
+\end{theorem}
+\begin{proof}
+$a,2a,\ldots,(p-1)a$ 均非零，且模 $p$ 两两不同，因为 $ia\equiv ja$ 可约去 $a$。故它们是 $1,\ldots,p-1$ 的一个排列，从而
+\[
+ a^{p-1}(p-1)!\equiv(p-1)!\pmod p.
+\]
+阶乘与 $p$ 互素，约去它便得结论。再乘以 $a$ 得第二种形式；$p\mid a$ 时第二式两侧均为零。反之，在 $p\nmid a$ 时第二式可约去 $a$。
+\end{proof}
+
+\keyterm{费马小定理（Fermat's little theorem）}控制模素数的幂。例如 $2^6\equiv1\pmod7$，而 $1000\equiv4\pmod6$，故 $2^{1000}\equiv2^4\equiv2\pmod7$。
+
+\section{欧拉定理与指数化简}
+
+\begin{theorem}[欧拉定理]
+\label{thm:euler}
+若 $m\ge2$ 且 $\gcd(a,m)=1$，则 $a^{\varphi(m)}\equiv1\pmod m$。
+\end{theorem}
+\begin{proof}
+取一个简化剩余系 $r_1,\ldots,r_{\varphi(m)}$。乘以 $a$ 后各项仍可逆，且由约分法则两两不同，故形成相同类的排列。两侧乘积同余，并可约去与 $m$ 互素的 $\prod_i r_i$，得到结论。
+\end{proof}
+
+\keyterm{欧拉定理（Euler's theorem）}包含费马小定理。若非负指数 $u\equiv v\pmod{\varphi(m)}$ 且底数与 $m$ 互素，则 $a^u\equiv a^v\pmod m$。去掉互素条件则不成立：$\varphi(8)=4$，但 $2^4\equiv0\not\equiv1=2^0\pmod8$。
+
+处理不互素底数时，可先按素数幂拆分模数；对整除底数的素因子，用指数增长判断何时变为零，对其他素数幂再应用欧拉定理，最后用中国剩余定理合并。
+
+\section{威尔逊定理与逆命题辨析}
+
+\begin{theorem}[威尔逊定理]
+\label{thm:wilson}
+整数 $n>1$ 为素数，当且仅当 $(n-1)!\equiv-1\pmod n$。
+\end{theorem}
+\begin{proof}
+若 $n=p$ 为奇素数，在非零剩余类中，将每个元素与其逆元配对。满足自逆的元素恰为 $1,-1$：$x^2\equiv1$ 意味着 $p\mid(x-1)(x+1)$，由欧几里得引理得 $x\equiv\pm1$。其他配对乘积均为 $1$，所以总乘积为 $-1$。$p=2$ 时直接验证。
+
+反之，若 $n$ 合数，取 $1<d<n$ 且 $d\mid n$。因为 $d$ 是阶乘中的一项，$d\mid(n-1)!$；所给同余又使 $d\mid((n-1)!+1)$，于是 $d\mid1$，矛盾。
+\end{proof}
+
+\keyterm{威尔逊定理（Wilson's theorem）}是素性的充要条件，但直接计算长阶乘并不高效。费马同余只是必要条件：$341=11\cdot31$ 为合数，而 $2^{10}=1024\equiv1\pmod{341}$，故 $2^{340}\equiv1\pmod{341}$。
+
+\section{快速模幂与计算验证}
+
+\keyterm{快速模幂（modular exponentiation by repeated squaring）}直接计算 $a^e\pmod m$，适用于任意整数 $a$、非负整数 $e$ 和 $m\ge2$。初始化 $R=1$、$B$ 为 $a$ 的最小非负余数、$E=e$；在 $E>0$ 时重复：
+\begin{enumerate}
+ \item 若 $E$ 为奇数，令 $R$ 为 $RB$ 模 $m$ 的最小非负余数。
+ \item 令 $B$ 为 $B^2$ 模 $m$ 的最小非负余数，令 $E\leftarrow\lfloor E/2\rfloor$。
+\end{enumerate}
+循环不变式为 $RB^E\equiv a^e\pmod m$。偶数步将 $B^E$ 写成 $(B^2)^{E/2}$；奇数步先提取一个 $B$，因此不变式保持。$E$ 每步约减半，最终为零，此时 $R$ 即所求。$e=0$ 时直接返回 $1$。
+
+例如计算 $3^{13}\pmod{17}$，平方得到 $3^2\equiv9$、$3^4\equiv13$、$3^8\equiv16$；由 $13=8+4+1$ 得 $3^{13}\equiv16\cdot13\cdot3\equiv12\pmod{17}$。模幂算法本身不需要互素条件。
+
+\section{习题}
+\begin{enumerate}
+ \item 求 $7^{222}\pmod{13}$ 与 $3^{100}\pmod{20}$。
+ \item 证明对素数 $p>3$，$p^2\equiv1\pmod{24}$。
+ \item 若奇素数 $p\equiv1\pmod4$，证明 $\bigl(((p-1)/2)!\bigr)^2\equiv-1\pmod p$。
+ \item 用快速模幂计算 $5^{117}\pmod{19}$，并用欧拉定理核对。
+\end{enumerate}
+
+\chapter{阶、原根与高次同余}
+\label{ch:primitive-roots}
+
+\section{乘法阶及其整除性质}
+
+\begin{definition}
+若 $m\ge2$ 且 $\gcd(a,m)=1$，使 $a^t\equiv1\pmod m$ 成立的最小正整数 $t$ 称为 $a$ 模 $m$ 的\keyterm{乘法阶（multiplicative order）}，记为 $\operatorname{ord}_m(a)$。
+\end{definition}
+
+欧拉定理保证至少有一个这样的正指数，因此最小值存在。
+
+\begin{proposition}
+\label{prop:order}
+令 $t=\operatorname{ord}_m(a)$。对正整数 $k$，$a^k\equiv1\pmod m$ 当且仅当 $t\mid k$；特别地，$t\mid\varphi(m)$。此外
+\begin{equation}
+ \operatorname{ord}_m(a^k)=\frac{t}{\gcd(t,k)}.
+ \label{eq:order-power}
+\end{equation}
+\end{proposition}
+\begin{proof}
+写 $k=qt+r$、$0\le r<t$，则 $a^k\equiv a^r$；由 $t$ 的最小性，$a^k\equiv1$ 当且仅当 $r=0$。对第二式，$(a^k)^s\equiv1$ 等价于 $t\mid ks$，满足该条件的最小正整数 $s$ 为 $t/\gcd(t,k)$。
+\end{proof}
+
+若 $b>1$ 且 $\gcd(b,10)=1$，长除法产生的余数序列是 $10^j\pmod b$；首次回到余数 $1$ 的时间恰为 $\operatorname{ord}_b(10)$，这就是 $1/b$ 的十进制最小循环节长度。例如 $10\equiv3\pmod7$，$3$ 模 $7$ 的阶为 $6$，故 $1/7$ 的循环节长为 $6$。
+
+\section{原根的含义与存在范围}
+
+\begin{definition}
+若 $\operatorname{ord}_m(g)=\varphi(m)$，称 $g$ 为模 $m$ 的\keyterm{原根（primitive root）}。
+\end{definition}
+
+此时 $g^0,g^1,\ldots,g^{\varphi(m)-1}$ 两两不同，恰好遍历全部可逆类。模 $7$ 时，$3$ 的幂依次为 $1,3,2,6,4,5$，故 $3$ 是原根；模 $8$ 的每个奇数平方均为 $1$，所以没有阶为 $\varphi(8)=4$ 的元素。
+
+\begin{lemma}[模素数的根数界]
+\label{lem:polynomial-roots}
+若整系数多项式 $f$ 模素数 $p$ 后为次数 $d$ 的非零多项式，则 $f(x)\equiv0\pmod p$ 至多有 $d$ 个根类。
+\end{lemma}
+\begin{proof}
+对 $d$ 归纳。非零常数无根；若 $a$ 是根，模 $p$ 的多项式恒等式给出 $f(x)=(x-a)g(x)$，其中 $g$ 次数为 $d-1$。任意不同于 $a$ 的根 $b$ 都满足 $(b-a)g(b)\equiv0$，由于 $b-a$ 可逆，$g(b)\equiv0$。归纳完成。
+\end{proof}
+
+\begin{theorem}
+\label{thm:prime-primitive-root}
+每个素数模数都有原根。
+\end{theorem}
+\begin{proof}
+$p=2$ 时取 $1$。对奇素数 $p$，写 $p-1=\prod_i\ell_i^{e_i}$。对每个 $i$，多项式 $X^{(p-1)/\ell_i}-1$ 的根数小于 $p-1$，故存在非零类 $a_i$ 不满足该方程。由阶整除 $p-1$，$\operatorname{ord}_p(a_i)$ 的 $\ell_i$ 因子指数必为 $e_i$。令 $b_i=a_i^{(p-1)/\ell_i^{e_i}}$，由式\eqref{eq:order-power}，$b_i$ 的阶为 $\ell_i^{e_i}$。
+
+若两个可逆类 $u,v$ 的阶为互素的 $r,s$，则 $uv$ 的阶为 $rs$。事实上，$(uv)^k=1$ 给出 $u^k=v^{-k}$，这一公共类的阶同时整除 $r,s$，故它为 $1$，于是 $r\mid k,s\mid k$；反向 $(uv)^{rs}=1$。逐次应用可知 $\prod_i b_i$ 的阶为 $p-1$。
+\end{proof}
+
+\begin{theorem}[原根分类]
+\label{thm:primitive-root-classification}
+整数 $m\ge2$ 存在原根，当且仅当 $m=2,4,p^k,2p^k$，其中 $p$ 为奇素数、$k\ge1$。
+\end{theorem}
+\begin{proof}
+先证明存在性。$2,4$ 分别取 $1,3$。若 $g$ 为模奇素数 $p$ 的原根，则 $g$ 与 $g+p$ 中至少一个数 $h$ 满足 $h^{p-1}\not\equiv1\pmod{p^2}$，因为二者的 $(p-1)$ 次幂之差模 $p^2$ 为 $(p-1)g^{p-2}p\not\equiv0$。故 $v_p(h^{p-1}-1)=1$。
+
+对 $p\nmid c$、$s\ge1$，二项展开给出
+\[
+ (1+cp^s)^p\equiv1+cp^{s+1}\pmod{p^{s+2}}.
+\]
+这里使用 $p$ 为奇素数。归纳得到 $v_p(h^{(p-1)p^j}-1)=j+1$。模 $p^k$ 的阶既是 $p-1$ 的倍数，又整除 $(p-1)p^{k-1}$；上述指数关系迫使它等于 $(p-1)p^{k-1}$，故 $h$ 为原根。取同一模 $p^k$ 类的奇数代表元，由中国剩余定理，其模 $2p^k$ 的阶不变。
+
+再证必要性。若 $m=uv$，其中 $u,v>2$ 互素，则可逆类的阶整除 $\operatorname{lcm}(\varphi(u),\varphi(v))$；两欧拉函数值均为偶数，所以该最小公倍数严格小于 $\varphi(u)\varphi(v)=\varphi(m)$。这里 $\varphi(n)$ 在 $n>2$ 时为偶数，是因为可逆类可不重复地配成 $a,-a$。于是 $m$ 不能同时含两个不同的奇素因子，也不能既被 $4$ 整除又有奇素因子。余下只需排除 $m=2^k$、$k\ge3$：奇数 $a$ 满足 $a^2\equiv1\pmod8$，逐次平方得 $a^{2^{k-2}}\equiv1\pmod{2^k}$，所以阶小于 $\varphi(2^k)$。
+\end{proof}
+
+\section{指标与幂同余方程}
+
+固定模 $m$ 的原根 $g$，令 $h=\varphi(m)$。每个可逆类 $a$ 唯一写为 $a\equiv g^s\pmod m$，其中 $s$ 在模 $h$ 意义下唯一，称为关于 $g$ 的\keyterm{指标（index）}或\keyterm{离散对数（discrete logarithm）}。指标把可逆类的乘法转化为模 $h$ 的加法。
+
+\begin{proposition}
+若模 $m$ 有原根，$k\ge1$、$\gcd(a,m)=1$，令 $d=\gcd(k,\varphi(m))$，则 $x^k\equiv a\pmod m$ 可解当且仅当 $a^{\varphi(m)/d}\equiv1\pmod m$；可解时恰有 $d$ 个根类。
+\end{proposition}
+\begin{proof}
+任何解 $x$ 必可逆，否则其与 $m$ 的某个公共素因子也整除 $a$。写 $x=g^t,a=g^s$，原方程等价于 $kt\equiv s\pmod h$，可解当且仅当 $d\mid s$，且恰有 $d$ 个指数类。另一方面，$a^{h/d}=1$ 等价于 $h\mid sh/d$，也就是 $d\mid s$。
+\end{proof}
+
+例如模 $7$ 取原根 $3$，$2\equiv3^2$，则 $x^2\equiv2$ 等价于 $2t\equiv2\pmod6$，得到 $t\equiv1,4\pmod6$，即 $x\equiv3,4\pmod7$。无原根的模数不能直接使用这一化简。
+
+\section{多项式同余与解的提升（选学）}
+
+\begin{proposition}[简单根的亨泽尔提升]
+\label{prop:hensel}
+设 $f\in\mathbb Z[x]$，$p$ 为素数，$j\ge1$，$f(r)\equiv0\pmod{p^j}$ 且 $f'(r)\not\equiv0\pmod p$。则根类 $r\pmod{p^j}$ 唯一提升为模 $p^{j+1}$ 的根类。
+\end{proposition}
+\begin{proof}
+所有提升写为 $r+tp^j$，其中 $t\pmod p$。由二项展开，
+\[
+ f(r+tp^j)\equiv f(r)+tp^jf'(r)\pmod{p^{j+1}},
+\]
+因为高次项含 $p^{2j}$，而 $2j\ge j+1$。故所求条件为 $f(r)/p^j+tf'(r)\equiv0\pmod p$，其系数可逆，所以 $t$ 唯一。
+\end{proof}
+
+这称为\keyterm{亨泽尔提升（Hensel lifting）}。例如 $f(x)=x^2-2$ 的模 $7$ 根 $3$ 提升至模 $49$ 时，$f(3)/7=1$、$f'(3)=6$，故 $1+6t\equiv0\pmod7$，得到 $t=1$，根为 $10$。若导数为零，则可能无提升，也可能有多个提升，需重新求解。
+
+\section{习题}
+\begin{enumerate}
+ \item 求模 $7$ 的全部原根，证明存在原根的模数 $m$ 恰有 $\varphi(\varphi(m))$ 个原根类。
+ \item 求 $1/13$ 的最小循环节长度。
+ \item 求 $x^3\equiv1\pmod7$ 的全部解。
+ \item 将 $x^2\equiv2\pmod7$ 的两个根提升至模 $49$，再代入核查。
+\end{enumerate}
+
+\chapter{二次剩余与二次互反律}
+\label{ch:quadratic-residues}
+
+\section{二次剩余与勒让德符号}
+
+若 $\gcd(a,m)=1$ 且 $x^2\equiv a\pmod m$ 有解，称 $a$ 为模 $m$ 的\keyterm{二次剩余（quadratic residue）}，否则称二次非剩余。以下先固定奇素数 $p$。
+
+\begin{definition}
+\keyterm{勒让德符号（Legendre symbol）}定义为
+\[
+ \left(\frac ap\right)=
+ \begin{cases}
+ 0,&p\mid a,\\
+ 1,&a\text{ 是模 }p\text{ 的二次剩余},\\
+ -1,&a\text{ 是模 }p\text{ 的二次非剩余}.
+ \end{cases}
+\]
+\end{definition}
+
+若 $x^2\equiv y^2\pmod p$，则 $p\mid(x-y)(x+y)$，所以 $x\equiv\pm y$。非零的 $p-1$ 个类可分为 $(p-1)/2$ 对 $\{x,-x\}$，每对给出不同的平方。因此非零平方剩余恰有 $(p-1)/2$ 个，各有两个平方根类。
+
+\section{欧拉判别法与高斯引理}
+
+\begin{theorem}[欧拉判别法]
+\label{thm:euler-criterion}
+对奇素数 $p$ 与整数 $a$，
+\begin{equation}
+ a^{(p-1)/2}\equiv\left(\frac ap\right)\pmod p.
+ \label{eq:euler-criterion}
+\end{equation}
+\end{theorem}
+\begin{proof}
+$p\mid a$ 时成立。若 $a=b^2\not\equiv0$，由费马小定理得 $a^{(p-1)/2}=b^{p-1}\equiv1$。多项式 $X^{(p-1)/2}-1$ 至多有 $(p-1)/2$ 个根，已由平方剩余占满，故非剩余不能使此值为 $1$。又由费马小定理，此值的平方为 $1$，所以只能为 $-1$。
+\end{proof}
+
+\keyterm{欧拉判别法（Euler's criterion）}立即给出乘法性
+\[
+ \left(\frac{ab}{p}\right)=\left(\frac ap\right)\left(\frac bp\right).
+\]
+先由幂运算得到两侧模 $p$ 同余，再利用它们只取 $0,1,-1$ 且 $p$ 为奇素数，得到整数意义下的相等。
+
+\begin{lemma}[高斯引理（Gauss's lemma）]
+\label{lem:gauss}
+若 $p\nmid a$，在 $a,2a,\ldots,\frac{p-1}{2}a$ 的最小正余数中，大于 $p/2$ 的共有 $N$ 个，则 $\left(\frac ap\right)=(-1)^N$。
+\end{lemma}
+\begin{proof}
+记 $h=(p-1)/2$，将每个余数 $r>p/2$ 替换为 $r-p$，得到绝对值均在 $1,\ldots,h$ 中的带符号余数。若两个绝对值相同，则 $ia\equiv\pm ja$，进而 $i\equiv\pm j\pmod p$；由 $1\le i,j\le h$ 只能有 $i=j$。故这些绝对值恰为 $1,\ldots,h$ 的排列。相乘并约去 $h!$，得 $a^h\equiv(-1)^N$，再用欧拉判别法。
+\end{proof}
+
+\section{二次互反律及补充公式}
+
+\begin{theorem}[二次互反律]
+\label{thm:quadratic-reciprocity}
+若 $p,q$ 为不同奇素数，则
+\begin{equation}
+ \left(\frac pq\right)\left(\frac qp\right)
+ =(-1)^{\frac{p-1}{2}\frac{q-1}{2}}.
+ \label{eq:quadratic-reciprocity}
+\end{equation}
+对任意奇素数 $p$，
+\begin{equation}
+ \left(\frac{-1}{p}\right)=(-1)^{(p-1)/2},\qquad
+ \left(\frac2p\right)=(-1)^{(p^2-1)/8}.
+ \label{eq:quadratic-supplements}
+\end{equation}
+\end{theorem}
+\begin{proof}
+先把高斯引理改写为计数形式。令 $h=(p-1)/2$，写 $qj=pk_j+r_j$（$1\le r_j<p$），并记 $s_j=\min(r_j,p-r_j)$。由高斯引理的证明，$s_j$ 是 $1,\ldots,h$ 的排列。若 $N$ 个 $r_j>p/2$，则
+\[
+ \sum_jr_j=\sum_js_j+Np-2\sum_{r_j>p/2}s_j.
+\]
+因 $p,q$ 都为奇数，将 $q\sum_jj=p\sum_jk_j+\sum_jr_j$ 模 $2$ 化简，得到 $N\equiv\sum_jk_j\pmod2$。所以
+\[
+ \left(\frac qp\right)=(-1)^{\sum_{j=1}^{(p-1)/2}\lfloor qj/p\rfloor}.
+\]
+
+考虑矩形中的整数点 $1\le j\le(p-1)/2$、$1\le k\le(q-1)/2$。直线 $qj=pk$ 不经过任何这样的点，因为 $p,q$ 是不同素数。直线下方的点数为 $\sum_j\lfloor qj/p\rfloor$，上方的点数为 $\sum_k\lfloor pk/q\rfloor$。两者之和为 $(p-1)(q-1)/4$，这给出式\eqref{eq:quadratic-reciprocity}。
+
+第一条补充公式由欧拉判别法取 $a=-1$ 得到。第二条用高斯引理取 $a=2$：余数是 $2,4,\ldots,p-1$，故 $N=(p-1)/2-\lfloor p/4\rfloor$。按 $p\equiv1,3,5,7\pmod8$ 分别计算，其奇偶性依次为偶、奇、奇、偶，与 $(p^2-1)/8$ 相同。
+\end{proof}
+
+\keyterm{二次互反律（quadratic reciprocity law）}将大分母的符号化为较小分母的符号。两个奇素数不同时模 $4$ 余 $3$ 时，交换分子分母不变号；二者都余 $3$ 时变号。
+
+\begin{example}
+判断 $x^2\equiv5\pmod{11}$ 和 $x^2\equiv3\pmod{11}$ 是否可解。
+\end{example}
+\begin{solve}
+$\left(\frac5{11}\right)=\left(\frac{11}5\right)=\left(\frac15\right)=1$，且 $4^2\equiv5$，故根为 $4,7$。又 $\left(\frac3{11}\right)=-\left(\frac{11}3\right)=-\left(\frac23\right)=1$，根为 $5,6$。判别可解性不等于已求出平方根，还需额外计算。
+\end{solve}
+
+\section{雅可比符号与合数模数}
+
+若奇正整数 $n>1$ 分解为 $n=\prod_i p_i^{e_i}$，定义\keyterm{雅可比符号（Jacobi symbol）}
+\[
+ \left(\frac an\right)=\prod_i\left(\frac a{p_i}\right)^{e_i},
+ \qquad \left(\frac a1\right)=1.
+\]
+分母为素数时与勒让德符号一致。它对分子和奇正分母均具乘法性；对互素奇正整数 $m,n$，满足同样的互反式 $\left(\frac mn\right)\left(\frac nm\right)=(-1)^{(m-1)(n-1)/4}$。这是将素数互反律逐对相乘的结果：对奇数 $u,v$，$(uv-1)/2\equiv(u-1)/2+(v-1)/2\pmod2$，故各素因子的符号指数合并为所示指数。
+
+如果 $a$ 与 $n$ 互素且模 $n$ 为平方，则雅可比符号为 $1$；反向不成立。例如 $\left(\frac2{15}\right)=\left(\frac23\right)\left(\frac25\right)=(-1)(-1)=1$，但模 $3$ 已无平方根。模奇素数幂的非零根可用命题\ref{prop:hensel}提升，合数模数则继续用中国剩余定理合并；模 $2$ 的幂须单独处理。
+
+\begin{corollary}
+\label{cor:prime-three-mod-four}
+若素数 $p\equiv3\pmod4$ 且 $p\mid x^2+y^2$，则 $p\mid x$ 且 $p\mid y$。
+\end{corollary}
+\begin{proof}
+若 $p\nmid y$，则 $(xy^{-1})^2\equiv-1\pmod p$，与 $\left(\frac{-1}p\right)=-1$ 矛盾。故 $p\mid y$，进而 $p\mid x^2$，所以 $p\mid x$。
+\end{proof}
+
+\section{习题}
+\begin{enumerate}
+ \item 列出模 $13$ 的非零平方剩余，并用欧拉判别法核对。
+ \item 用互反律计算 $\left(\frac7{19}\right)$ 与 $\left(\frac{13}{17}\right)$。
+ \item 求 $x^2\equiv4\pmod{45}$ 的全部解。
+ \item 若奇素数 $p\mid a^2+1$，证明 $p\equiv1\pmod4$；解释为什么必须排除 $p=2$。
+\end{enumerate}
+
+\chapter{不定方程与平方和}
+\label{ch:diophantine}
+
+\section{整数方程的解题框架}
+
+整数方程的第一步是明确未知量范围。整除与因式分解常能把无限搜索化为有限个约数组合；同余可以给出无解障碍；不等式用于界定取值；参数化用于描述全部解。整数解必在每个模数下给出同余解，因此某个模数下无解足以否定整数解，但通过有限个模数的检验并不足以证明整数解存在。
+
+\begin{example}
+求 $xy=x+y+3$ 的全部正整数解。
+\end{example}
+\begin{solve}
+改写为 $(x-1)(y-1)=4$。正整数解必须有 $x,y\ge2$，因此因子对只有 $(1,4),(2,2),(4,1)$，得到 $(x,y)=(2,5),(3,3),(5,2)$。因子枚举已覆盖所有可能，所以答案完整。
+\end{solve}
+
+\section{勾股数的参数化}
+
+满足 $x^2+y^2=z^2$ 的正整数三元组称为\keyterm{勾股三元组（Pythagorean triple）}；若 $\gcd(x,y,z)=1$，称其本原（primitive）。本原解的三个数两两互素，否则某个公共素因子也会整除第三个数。
+
+\begin{theorem}
+\label{thm:pythagorean}
+交换两条直角边后，每个本原勾股三元组唯一写为
+\begin{equation}
+ x=u^2-v^2,\qquad y=2uv,\qquad z=u^2+v^2,
+ \label{eq:pythagorean-parameters}
+\end{equation}
+其中 $u>v>0$，$\gcd(u,v)=1$，且 $u,v$ 奇偶性不同；规定 $x$ 为奇边、$y$ 为偶边。
+\end{theorem}
+\begin{proof}
+两边不能均偶，也不能均奇，否则平方和模 $4$ 余 $2$。故可令 $x,z$ 奇、$y$ 偶。由
+\[
+ \frac{z+x}{2}\frac{z-x}{2}=\left(\frac y2\right)^2
+\]
+知左侧两因子乘积为平方。它们互素：公因数整除其和 $z$ 与差 $x$。因此分别为 $u^2,v^2$，且 $u>v>0$，得到所示公式。互素性给出 $\gcd(u,v)=1$，$z$ 为奇数又给出二者奇偶性不同；$u^2=(z+x)/2,v^2=(z-x)/2$ 保证唯一性。
+
+反之，公式直接满足勾股等式。若某个奇素数同时整除 $u^2-v^2$ 与 $u^2+v^2$，则它整除 $u,v$，矛盾；两者又都是奇数。因此所构造的三元组本原。
+\end{proof}
+
+一般正整数解由本原解同时乘以正整数得到。取 $(u,v)=(2,1),(3,2)$，分别得到 $(3,4,5)$ 与 $(5,12,13)$。
+
+\section{无穷递降法}
+
+\keyterm{无穷递降法（infinite descent）}的要点是：若一组解存在，就能构造同类且某个正整数参数严格更小的解；这与良序原理矛盾。
+
+\begin{theorem}
+\label{thm:fermat-four}
+方程 $x^4+y^4=z^2$ 没有正整数解。
+\end{theorem}
+\begin{proof}
+若有解，取 $z$ 最小的一组。它满足 $\gcd(x,y)=1$：若 $d>1$ 同时整除 $x,y$，则 $d^4\mid z^2$，由唯一分解有 $d^2\mid z$，约去 $d^4$ 就得到右侧参数为 $z/d^2$ 的更小解。由奇偶性可令 $x$ 奇、$y$ 偶。本原勾股三元组 $(x^2,y^2,z)$ 给出
+\[
+ x^2=u^2-v^2,\qquad y^2=2uv,\qquad z=u^2+v^2,
+\]
+其中 $u,v$ 互素且奇偶不同。若 $u$ 偶而 $v$ 奇，则 $x^2\equiv3\pmod4$，不可能；所以 $u$ 奇、$v$ 偶。由 $(y/2)^2=u(v/2)$ 及两因子互素，得 $u=s^2,v=2t^2$，于是
+\[
+ x^2+(2t^2)^2=s^4.
+\]
+这是本原勾股三元组：若素数同时整除 $x,t$，由 $x^2=s^4-4t^4$ 就也整除 $s$，与 $\gcd(u,v)=1$ 矛盾。再次参数化得
+\[
+ x=r^2-w^2,\qquad t^2=rw,\qquad s^2=r^2+w^2,
+\]
+其中 $r,w$ 互素且为正整数。乘积为平方迫使 $r=a^2,w=b^2$，因此 $a^4+b^4=s^2$。而 $s^2=u<z$，特别有 $s<z$，构造出了更小的正整数解，矛盾。
+\end{proof}
+
+因此 $x^4+y^4=z^4$ 也无正整数解，只需把右侧视为 $(z^2)^2$。这一论证只处理指数 $4$，并未证明所有指数的情形。
+
+\section{两平方和定理}
+
+\begin{lemma}
+\label{lem:prime-two-squares}
+奇素数 $p$ 能写成两个整数的平方和，当且仅当 $p\equiv1\pmod4$。
+\end{lemma}
+\begin{proof}
+必要性来自平方模 $4$ 的余数：奇数平方和只能由一奇一偶产生，因而余 $1$。
+
+若 $p\equiv1\pmod4$，由式\eqref{eq:quadratic-supplements}可取 $t$ 使 $t^2\equiv-1\pmod p$。令 $h=\lfloor\sqrt p\rfloor$，考虑 $(h+1)^2>p$ 个整数对 $(u,v)$，其中 $0\le u,v\le h$，将它们按 $u-tv\pmod p$ 分入 $p$ 个盒子。两个不同的对有相同余数，作差得到不全为零的 $x,y$，满足 $|x|,|y|\le h$ 且 $x\equiv ty\pmod p$。于是
+\[
+ 0<x^2+y^2\le2h^2<2p,\qquad p\mid x^2+y^2.
+\]
+只能有 $x^2+y^2=p$。
+\end{proof}
+
+\begin{theorem}[两平方和定理（sum of two squares theorem）]
+\label{thm:two-squares}
+正整数 $n$ 可写成 $x^2+y^2$（$x,y\in\mathbb Z$），当且仅当每个满足 $p\equiv3\pmod4$ 的素因子 $p$ 在 $n$ 的分解中具有偶数指数。允许 $x$ 或 $y$ 为零。
+\end{theorem}
+\begin{proof}
+若这样的 $p$ 整除 $x^2+y^2$，由推论\ref{cor:prime-three-mod-four}，$p$ 同时整除 $x,y$，所以可从和式提出 $p^2$。反复进行，$p$ 的指数只能为偶数。
+
+反之，$2=1^2+1^2$，模 $4$ 余 $1$ 的素数由引理\ref{lem:prime-two-squares}表示为两平方和，模 $4$ 余 $3$ 的素数的偶次幂本身为平方。最后使用恒等式
+\begin{equation}
+ (a^2+b^2)(c^2+d^2)=(ac-bd)^2+(ad+bc)^2
+ \label{eq:two-square-product}
+\end{equation}
+逐个相乘即可得到 $n$ 的表示。
+\end{proof}
+
+例如 $65=5\cdot13$ 满足判据，并有 $65=1^2+8^2=4^2+7^2$；$21=3\cdot7$ 不满足判据，因而无表示。判据解决可表示性，完整枚举全部表示则是进一步的问题。
+
+\section{四平方和专题（选学）}
+
+\begin{theorem}[拉格朗日四平方和定理；此处不证]
+每个非负整数都能写成四个整数的平方和。
+\end{theorem}
+
+该结论称为\keyterm{四平方和定理（four-square theorem）}，其完整证明可见参考资料\cite{mit-four-squares}。与两平方和相比，四个变量消除了可表示性的限制。例如 $7=2^2+1^2+1^2+1^2$，但它不是两平方和；它也不是三平方和，因为平方模 $8$ 只可能余 $0,1,4$，三个这样的余数不可能相加得到 $7$。这里引用的是存在性结论，并未给出高效求表示的算法。
+
+\section{习题}
+\begin{enumerate}
+ \item 求斜边为 $25$ 的全部正整数勾股三元组，不区分两条直角边的次序。
+ \item 判断 $45,75,130$ 哪些可表示为两个整数的平方和，并给出可表示者的一组表示。
+ \item 证明不存在面积为奇数的整数边长直角三角形。
+ \item 求 $xy=2x+3y$ 的全部正整数解，并说明枚举为何完整。
+\end{enumerate}
+
+\chapter{连分数与有理逼近}
+\label{ch:continued-fractions}
+
+\section{有限简单连分数与有理数}
+
+\begin{definition}
+\keyterm{简单连分数（simple continued fraction）}写为
+\begin{equation}
+ [a_0;a_1,\ldots,a_n]
+ =a_0+\cfrac1{a_1+\cfrac1{\ddots+\cfrac1{a_n}}},
+ \label{eq:finite-continued-fraction}
+\end{equation}
+其中 $a_0\in\mathbb Z$，$a_1,\ldots,a_n$ 为正整数；$n=0$ 时值为 $a_0$。
+\end{definition}
+
+对有理数 $\alpha$，令 $a_0=\lfloor\alpha\rfloor$。若余下的小数部分非零，取倒数再重复取整；这是欧几里得算法的另一种写法，分母随带余除法下降，因而有限步终止。反之，有限连分数由有理运算构成，值必为有理数。
+
+若末项为 $1$，可用 $[\ldots,a,1]=[\ldots,a+1]$ 合并。规定非整数的有限展开末项至少为 $2$，则每步的整数部分被唯一确定，得到唯一的规范展开。例如
+\[
+ 415=4\cdot93+43,\quad93=2\cdot43+7,\quad43=6\cdot7+1,
+\]
+故 $415/93=[4;2,6,7]$。
+
+\section{渐近分数与递推关系}
+
+截取前 $k+1$ 项得到的 $P_k/Q_k=[a_0;a_1,\ldots,a_k]$ 称为\keyterm{渐近分数（convergent，又称收敛分数）}。令
+\begin{equation}
+ P_{-2}=0,\quad P_{-1}=1,\qquad Q_{-2}=1,\quad Q_{-1}=0,
+ \label{eq:convergent-initial}
+\end{equation}
+并递推
+\begin{equation}
+ P_k=a_kP_{k-1}+P_{k-2},\qquad
+ Q_k=a_kQ_{k-1}+Q_{k-2}.
+ \label{eq:convergent-recurrence}
+\end{equation}
+这些公式可由矩阵恒等式直接验证：
+\[
+ \begin{pmatrix}a_0&1\\1&0\end{pmatrix}\cdots
+ \begin{pmatrix}a_k&1\\1&0\end{pmatrix}
+ =\begin{pmatrix}P_k&P_{k-1}\\Q_k&Q_{k-1}\end{pmatrix}.
+\]
+每个左侧矩阵表示分式变换 $t\mapsto a_j+1/t$，连乘表示依次代入；取行列式得到
+\begin{equation}
+ P_kQ_{k-1}-P_{k-1}Q_k=(-1)^{k+1},\qquad k\ge0.
+ \label{eq:convergent-determinant}
+\end{equation}
+因此 $\gcd(P_k,Q_k)=1$，相邻渐近分数之差的绝对值为 $1/(Q_kQ_{k-1})$（$k\ge1$）。$Q_0=1$，$Q_k>0$，且 $Q_{k+2}\ge Q_{k+1}+Q_k$，所以无限展开的分母趋于无穷。
+
+\section{无限连分数与误差估计}
+
+对无理实数 $\alpha$，定义完整商 $\alpha_0=\alpha$、$a_k=\lfloor\alpha_k\rfloor$、$\alpha_{k+1}=1/(\alpha_k-a_k)$。过程不会终止，否则反向代入会使 $\alpha$ 为有理数；并且 $k\ge1$ 时 $\alpha_k>1$、$a_k\ge1$。矩阵恒等式给出
+\begin{equation}
+ \alpha=\frac{P_k\alpha_{k+1}+P_{k-1}}
+ {Q_k\alpha_{k+1}+Q_{k-1}}.
+ \label{eq:complete-quotient}
+\end{equation}
+由式\eqref{eq:convergent-determinant}，
+\begin{equation}
+ \alpha-\frac{P_k}{Q_k}
+ =\frac{(-1)^k}{Q_k(Q_k\alpha_{k+1}+Q_{k-1})},\qquad
+ \left|\alpha-\frac{P_k}{Q_k}\right|<\frac1{Q_kQ_{k+1}}.
+ \label{eq:convergent-error}
+\end{equation}
+后一不等式使用 $\alpha_{k+1}>a_{k+1}$。因此偶数下标的渐近分数在 $\alpha$ 左侧，奇数下标的在右侧，且都收敛于 $\alpha$。
+
+反过来，任意满足部分商条件的无限序列也确定一个无理极限。由递推，偶数子列严格递增、奇数子列严格递减，二者交错且相邻差趋于零，所以趋于同一实数。若极限为既约分数 $A/B$，它不同于每个渐近分数，故误差至少为 $1/(BQ_k)$；但嵌套区间给出的误差至多为 $1/(Q_kQ_{k+1})$，当 $Q_{k+1}>B$ 时矛盾。分式变换的连续性又使极限的取整展开恢复原部分商序列。
+
+\begin{lemma}[第二类逼近性质]
+\label{lem:best-approximation}
+设 $\alpha$ 无理，$k\ge0$。若整数 $a,b$ 满足 $0<b<Q_{k+1}$，且 $a/b\ne P_k/Q_k$，则
+\[
+ |b\alpha-a|\ge|Q_k\alpha-P_k|.
+\]
+\end{lemma}
+\begin{proof}
+由式\eqref{eq:convergent-determinant}，相邻两列组成的矩阵行列式为 $\pm1$，消元所得逆矩阵仍为整数矩阵，故唯一存在整数 $u,v$ 使
+\[
+ (a,b)=u(P_k,Q_k)+v(P_{k+1},Q_{k+1}).
+\]
+$v=0$ 会使分数相等，故 $v\ne0$。由 $0<b<Q_{k+1}$，若 $v>0$ 必有 $u<0$，若 $v<0$ 必有 $u>0$。两误差 $Q_k\alpha-P_k$ 与 $Q_{k+1}\alpha-P_{k+1}$ 符号相反，因此乘以异号的 $u,v$ 后同号相加，绝对值至少为 $|Q_k\alpha-P_k|$。
+\end{proof}
+
+\begin{theorem}[勒让德逼近判据（Legendre's approximation criterion）]
+\label{thm:legendre-approximation}
+若 $a/b$ 既约、$b>0$，且 $|\alpha-a/b|<1/(2b^2)$，则 $a/b$ 是无理数 $\alpha$ 的一个渐近分数。
+\end{theorem}
+\begin{proof}
+选取最大的 $k$ 使 $Q_k\le b$，则 $b<Q_{k+1}$。若分数不等于 $P_k/Q_k$，由引理\ref{lem:best-approximation}得
+\[
+ 1\le|aQ_k-bP_k|
+ \le Q_k|a-b\alpha|+b|Q_k\alpha-P_k|
+ \le(Q_k+b)|a-b\alpha|<1,
+\]
+矛盾。这里最后使用 $Q_k\le b$ 与假定误差界。
+\end{proof}
+
+该引理比较的是 $|b\alpha-a|$，不是在任意分母范围内无条件最小化 $|\alpha-a/b|$；两类“最佳逼近”不能混用。
+
+\section{周期连分数与二次无理数}
+
+\keyterm{二次无理数（quadratic irrational）}是满足整系数二次方程的无理实数。以下证明后章所需的平方根周期性。
+
+\begin{theorem}[平方根的周期展开]
+\label{thm:sqrt-period}
+若 $D$ 为非平方正整数，$a_0=\lfloor\sqrt D\rfloor$，则
+\[
+ \sqrt D=[a_0;\overline{a_1,\ldots,a_{\ell-1},2a_0}],
+\]
+其中横线表示不断重复，$\ell\ge1$ 为最小周期长度。
+\end{theorem}
+\begin{proof}
+将完整商写为 $\alpha_j=(\sqrt D+B_j)/C_j$，从 $B_0=0,C_0=1$ 开始，直接有理化得到
+\begin{equation}
+ B_{j+1}=a_jC_j-B_j,\qquad
+ C_{j+1}=\frac{D-B_{j+1}^2}{C_j}.
+ \label{eq:surd-recurrence}
+\end{equation}
+由 $C_j\mid D-B_j^2$ 归纳知各 $B_j,C_j$ 均为整数且保持这一整除条件。
+
+记 $\alpha_j'=(B_j-\sqrt D)/C_j$ 为共轭值。$\alpha_1>1$ 且 $-1<\alpha_1'=1/(-\sqrt D-a_0)<0$。若此性质对 $j$ 成立，则 $\alpha_{j+1}>1$，且 $\alpha_{j+1}'=1/(\alpha_j'-a_j)\in(-1,0)$。所以对 $j\ge1$，$C_j>0$，并由
+\[
+ \alpha_j-\alpha_j'=\frac{2\sqrt D}{C_j}>1
+\]
+得 $C_j<2\sqrt D$，又有 $-\sqrt D<B_j<\sqrt D$。整数状态 $(B_j,C_j)$ 只有有限种，故必重复。
+
+转移在这些状态上可逆：给定 $\alpha_{j+1}'$，由 $-1/\alpha_{j+1}'=a_j-\alpha_j'\in(a_j,a_j+1)$ 唯一恢复 $a_j$，进而恢复 $\alpha_j$。因此从 $\alpha_1$ 起即为一个循环。数 $\beta=\sqrt D+a_0$ 同样满足 $\beta>1,-1<\beta'<0$，且其下一完整商为 $\alpha_1$，所以它是循环中 $\alpha_1$ 的前一项，即 $\alpha_\ell=\beta$。其整数部分为 $2a_0$，定理得证。
+\end{proof}
+
+证明还给出整数算法：用式\eqref{eq:surd-recurrence}迭代，并取 $a_j=\lfloor(a_0+B_j)/C_j\rfloor$。无需浮点近似 $\sqrt D$，因为 $0<\sqrt D-a_0<1$ 不会改变该商的整数部分。对 $j\ge1$，$C_j=1$ 当且仅当 $B_j=a_0$，也即当且仅当 $\ell\mid j$；这由 $-1<B_j-\sqrt D<0$ 和循环中状态互异得到。
+
+一般的拉格朗日周期定理（Lagrange's periodicity theorem）断言：实数的无限简单连分数最终周期，当且仅当它为二次无理数。这里仅引用一般情形，证明见\cite{mit-periodic}；“最终周期”允许周期前有有限项，不能与从起点开始的纯周期混同。后章只依赖上面已证明的平方根情形。
+
+\section{习题}
+\begin{enumerate}
+ \item 由递推计算 $[4;2,6,7]$ 的所有渐近分数。
+ \item 证明 $\sqrt2=[1;\overline2]$，计算前五个渐近分数并核对误差符号。
+ \item 用整数状态递推求 $\sqrt3$ 与 $\sqrt{13}$ 的周期。
+ \item 若 $a_k=1$ 对所有 $k\ge1$ 成立，说明分母递推与斐波那契数列的关系。
+\end{enumerate}
+
+\chapter{Pell 方程}
+\label{ch:pell}
+
+\section{方程形式与平方模数的区别}
+
+固定非平方正整数 $D$，\keyterm{佩尔方程（Pell equation）}为
+\begin{equation}
+ x^2-Dy^2=1,\qquad x,y\in\mathbb Z.
+ \label{eq:pell-equation}
+\end{equation}
+$y=0$ 给出平凡解 $(\pm1,0)$；非平凡解可先取 $x,y>0$，再恢复符号。若 $D=s^2$ 是平方，则 $(x-sy)(x+sy)=1$，整数因子只能同为 $1$ 或同为 $-1$，因而只有平凡解。非平方条件实质上改变了方程的结构。
+
+对形如 $u=x+y\sqrt D$ 的数定义共轭 $u'=x-y\sqrt D$ 与\keyterm{范数（norm）} $N(u)=uu'=x^2-Dy^2$。由直接乘法可知 $N(uv)=N(u)N(v)$。整数系数在乘法下保持；若 $N(u)=1$，其逆元就是共轭，仍有整数系数。
+
+\section{连分数方法与基本解}
+
+设 $P_k/Q_k$ 为 $\sqrt D$ 的渐近分数，$B_j,C_j$ 为式\eqref{eq:surd-recurrence}的状态。
+
+\begin{lemma}
+\label{lem:pell-convergent-norm}
+对每个 $k\ge0$，
+\begin{equation}
+ P_k^2-DQ_k^2=(-1)^{k+1}C_{k+1}.
+ \label{eq:pell-convergent-norm}
+\end{equation}
+而任意满足 $x,y>0$、$x^2-Dy^2=\pm1$ 的解，$x/y$ 必为 $\sqrt D$ 的渐近分数。
+\end{lemma}
+\begin{proof}
+将 $\alpha_{k+1}=(\sqrt D+B_{k+1})/C_{k+1}$ 代入式\eqref{eq:complete-quotient}，比较有理部分和 $\sqrt D$ 的系数，得
+\[
+ P_k=B_{k+1}Q_k+C_{k+1}Q_{k-1},\qquad
+ DQ_k=B_{k+1}P_k+C_{k+1}P_{k-1}.
+\]
+消去 $B_{k+1}$，再用行列式恒等式即得范数公式。
+
+若 $x^2-Dy^2=\pm1$，则 $\gcd(x,y)=1$，并有
+\[
+ \left|\frac xy-\sqrt D\right|
+ =\frac1{y^2(x/y+\sqrt D)}<\frac1{2y^2}.
+\]
+这里 $D\ge2$ 且 $x/y\ge1$，故分母括号大于 $2$。由定理\ref{thm:legendre-approximation}，$x/y$ 必是渐近分数。
+\end{proof}
+
+\begin{theorem}[基本解的周期公式]
+\label{thm:pell-fundamental}
+设 $\sqrt D$ 的最小周期长度为 $\ell$。方程\eqref{eq:pell-equation}存在正整数解，其中 $x$ 最小的一组称为\keyterm{基本解（fundamental solution）}，并由
+\[
+ (x_1,y_1)=
+ \begin{cases}
+ (P_{\ell-1},Q_{\ell-1}),&\ell\text{ 为偶数},\\
+ (P_{2\ell-1},Q_{2\ell-1}),&\ell\text{ 为奇数}
+ \end{cases}
+\]
+给出。
+\end{theorem}
+\begin{proof}
+由定理\ref{thm:sqrt-period}之后的状态结论，$C_j=1$ 当且仅当 $\ell\mid j$。因此渐近分数给出范数 $\pm1$ 当且仅当 $k+1=r\ell$，相应范数为 $(-1)^{r\ell}$。最早的正范数出现于所列下标，这也证明了解的存在。任意正解都由引理\ref{lem:pell-convergent-norm}来自渐近分数，而这些分子的值严格递增，所以最早出现者即为基本解。
+\end{proof}
+
+计算时先求周期，再用整数递推计算相应的 $P_k,Q_k$，最后代回原方程核查。也可以依次测试渐近分数的范数直到遇到 $1$；上述定理保证过程终止。
+
+\section{全部正整数解的生成}
+
+\begin{theorem}
+\label{thm:pell-all}
+若 $(x_1,y_1)$ 是基本解，则全部正整数解恰由
+\begin{equation}
+ x_n+y_n\sqrt D=(x_1+y_1\sqrt D)^n,
+ \qquad n=1,2,\ldots
+ \label{eq:pell-all-solutions}
+\end{equation}
+给出。
+\end{theorem}
+\begin{proof}
+令 $U=x_1+y_1\sqrt D>1$。正整数幂的系数为正整数，范数为 $1$，所以确实给出解。
+
+反之，任取正解对应的 $V=x+y\sqrt D>1$。因为 $U>1$，可选整数 $n\ge0$ 使 $U^n\le V<U^{n+1}$。令 $W=VU^{-n}$，由 $U^{-1}=x_1-y_1\sqrt D$，$W$ 有整数系数、范数为 $1$，且 $1\le W<U$。写 $W=X+Y\sqrt D$，则
+\[
+ X=\frac{W+W^{-1}}2,\qquad
+ Y=\frac{W-W^{-1}}{2\sqrt D}.
+\]
+若 $W>1$，则 $X,Y>0$，且 $X<x_1$：函数 $(t+t^{-1})/2$ 在 $t>1$ 上严格递增，可由两值作差验证。这与基本解的最小性矛盾。故 $W=1$，即 $V=U^n$；因 $V>1$，必有 $n\ge1$。
+\end{proof}
+
+展开乘法得到不含根号的递推
+\[
+ x_{n+1}=x_1x_n+Dy_1y_n,\qquad
+ y_{n+1}=y_1x_n+x_1y_n.
+\]
+全部整数解还包括 $(\pm1,0)$ 以及对每个正解独立改变两个坐标的符号。
+
+\begin{example}
+求 $x^2-2y^2=1$ 的前三组正整数解。
+\end{example}
+\begin{solve}
+$\sqrt2=[1;\overline2]$，周期长为 $1$，基本解取下标 $1$ 的渐近分数 $3/2$，故为 $(3,2)$。再由 $(3+2\sqrt2)^2=17+12\sqrt2$、$(3+2\sqrt2)^3=99+70\sqrt2$，得到 $(17,12)$、$(99,70)$。定理\ref{thm:pell-all}保证继续取幂可得到全部正解。
+\end{solve}
+
+\section{负 Pell 方程与相关问题}
+
+\begin{proposition}
+\label{prop:negative-pell}
+$x^2-Dy^2=-1$ 有整数解，当且仅当 $\sqrt D$ 的最小周期长度 $\ell$ 为奇数。可解时最小正解为 $(P_{\ell-1},Q_{\ell-1})$。
+\end{proposition}
+\begin{proof}
+任意正解均来自渐近分数；由式\eqref{eq:pell-convergent-norm}，范数为 $-1$ 等价于 $k+1=r\ell$ 且 $r\ell$ 为奇数。这在 $\ell$ 为奇数时且仅此时可发生，最早下标为 $\ell-1$。若存在任意整数解，取坐标绝对值即可得到正解，因为 $D\ge2$ 排除了零坐标。
+\end{proof}
+
+若最小负范数正解对应 $V_0=x_0+y_0\sqrt D$，正 Pell 方程基本解对应 $U$，则负方程全部正解为 $V_0U^n$（$n\ge0$）。确实，任一其他负范数正解 $V\ge V_0$ 的商 $V/V_0=-VV_0'$ 有整数系数、范数 $1$ 且不小于 $1$，所以由定理\ref{thm:pell-all}是 $U$ 的非负整数幂。
+
+例如 $D=2$ 时 $1^2-2\cdot1^2=-1$；$D=3$ 的周期长为 $2$，负方程无解，也可用模 $3$ 的平方余数直接排除。一般方程 $x^2-Dy^2=N$ 的解乘以范数 $1$ 的元素仍是解，但可能存在多个互不相连的解族，不能直接照搬单一基本解生成全部解的结论。
+
+\section{习题}
+\begin{enumerate}
+ \item 求 $D=3,5,13$ 时正 Pell 方程的基本解，并代入验证。
+ \item 写出 $x^2-2y^2=-1$ 的前三组正解。
+ \item 证明三角数 $n(n+1)/2$ 为平方 $m^2$ 等价于 $(2n+1)^2-8m^2=1$，求前两个正整数 $n$。
+ \item 由整数递推证明正 Pell 方程的正解有无穷多组，且两坐标均严格递增。
+\end{enumerate}
+
+\chapter{素数分布初步（选学）}
+\label{ch:prime-distribution}
+
+本章先用整除与同余研究特殊数列，再讨论正项级数与渐近式；后两部分使用级数收敛和实函数极限的基本概念。
+
+\section{特殊等差数列中的素数}
+
+\begin{proposition}
+形如 $4k+3$ 的素数和形如 $4k+1$ 的素数都各有无穷多个。
+\end{proposition}
+\begin{proof}
+若模 $4$ 余 $3$ 的素数只有 $p_1,\ldots,p_r$，令 $N=4p_1\cdots p_r-1$。$N$ 是模 $4$ 余 $3$ 的奇数，故其素因子中至少一个 $q$ 模 $4$ 余 $3$，否则素因子全部余 $1$，乘积也余 $1$。但每个 $p_i$ 都不能整除 $N$，矛盾。
+
+若模 $4$ 余 $1$ 的素数只有 $q_1,\ldots,q_s$，令 $A=2q_1\cdots q_s$，取奇数 $A^2+1$ 的素因子 $q$。此时 $q\nmid A$ 且 $A^2\equiv-1\pmod q$，由补充公式知 $q\equiv1\pmod4$；它又不同于原有全部 $q_i$，矛盾。空列表按空乘积为 $1$ 处理，同样成立。
+\end{proof}
+
+更一般的\keyterm{狄利克雷素数定理（Dirichlet's theorem on primes in arithmetic progressions）}断言：若正整数 $a,m$ 互素，则 $a+km$（$k\ge0$）含无穷多个素数。互素条件不可删去，因为公共因子会整除数列中的每一项。这里仅陈述一般定理，其解析证明见\cite{kedlaya-dirichlet}。
+
+\section{素数间隔与素数倒数和}
+
+给定 $L\ge1$，令 $N=(L+1)!$，则 $N+2,N+3,\ldots,N+L+1$ 都是合数：第 $j$ 项被 $j$ 整除且严格大于 $j$。这构造了任意长的连续合数段，但没有断言空隙长度与其所处位置成正比。
+
+\begin{theorem}[素数倒数和发散]
+$\sum_{p\text{ 为素数}}1/p$ 发散。
+\end{theorem}
+\begin{proof}
+若该正项级数收敛，可取 $P$ 使 $\sum_{p>P}1/p<1/2$。对任意 $X>P$，由有限乘积不等式 $\prod_i(1-u_i)\ge1-\sum_i u_i$（$0\le u_i\le1$，可归纳证明），得到
+\[
+ \prod_{P<p\le X}(1-1/p)>\frac12.
+\]
+另一方面，将有限多个收敛几何级数相乘，由唯一分解，
+\[
+ \sum_{n\le X}\frac1n
+ \le\prod_{p\le X}(1-1/p)^{-1}
+ <2\prod_{p\le P}(1-1/p)^{-1}.
+\]
+第一不等式成立，是因为每个 $n\le X$ 的素因子均不超过 $X$，所以其倒数必出现在乘积展开中。右端为固定常数，但调和级数发散：每个区间 $2^{j-1}<n\le2^j$ 的倒数和至少为 $1/2$。矛盾。
+\end{proof}
+
+伯特兰命题（Bertrand's postulate）进一步保证对每个整数 $n>1$，区间 $(n,2n)$ 内至少有一个素数。这里将它作为不证的选学结论，相关讨论与推广见\cite{sondow-bertrand}。它与任意长合数段并不矛盾：前者控制相对尺度，后者只要求绝对长度任意大。
+
+\section{素数计数函数与数量级}
+
+定义\keyterm{素数计数函数（prime-counting function）} $\pi(x)=\#\{p\le x:p\text{ 为素数}\}$（$x\ge2$）。记 $f(x)\sim g(x)$ 表示 $f(x)/g(x)\to1$。\keyterm{素数定理（prime number theorem）}给出
+\begin{equation}
+ \pi(x)\sim\frac{x}{\log x}\qquad(x\to\infty),
+ \label{eq:prime-number-theorem}
+\end{equation}
+其中 $\log$ 为自然对数。该定理在此引用而不证明，进一步阅读见\cite{kedlaya-pnt}。
+
+渐近等价描述相对误差趋于零，并不意味着两边之差趋于零，也不直接给出某个有限 $x$ 下的误差界。例如 $\pi(100)=25$，而 $100/\log100\approx21.7$。实际计数、可证明上下界与渐近式是不同层次的信息。
+
+\section{习题}
+\begin{enumerate}
+ \item 构造连续五个合数，并验证每个数的一个真因子。
+ \item 若只知道某一剩余类中有无穷多个素数，能否推出其中素数的倒数和发散？说明为何仅凭“无穷多个”不足以推断。
+ \item 利用素数定理证明 $\pi(2x)-\pi(x)\sim x/\log x$；注明这里使用了一个未在正文证明的定理。
+ \item 用筛法核对 $\pi(100)=25$，比较计数结果与式\eqref{eq:prime-number-theorem}的表达式。
+\end{enumerate}
+
+\chapter{数论算法与公钥密码入门（选学）}
+\label{ch:algorithms}
+
+\section{输入规模、运算次数与算法描述}
+
+正整数 $n$ 的二进制位数为 $L=\lfloor\log_2n\rfloor+1$，这是描述输入规模的自然参数。对最终非负的函数 $f,g$，且 $g$ 最终为正，记 $f(t)=O(g(t))$，表示存在常数 $C,t_0>0$ 使 $t\ge t_0$ 时 $f(t)\le Cg(t)$。常数不能随输入增长而改变。
+
+试除到 $\sqrt n$ 的次数关于 $n$ 是平方根量级，却关于位数 $L$ 为指数级。欧几里得算法的非零余数每两步至少缩小一半：若本次余数超过前一除数的一半，下一次余数就小于该一半。因此对初始 $A\ge B\ge1$，除法次数为 $O(1+\log B)$。
+
+快速模幂使用 $O(\log(e+1))$ 次模乘（$e\ge1$）。但一次大整数运算不能视为一个位操作。若模数有 $L$ 位、底数已约化，采用学校式乘法和长除法，则每次模乘可用 $O(L^2)$ 位操作实现，所以得到上界 $O(L^2\log(e+1))$。这是指定运算方法下的上界，并非最优复杂度断言。
+
+全书基础算法可以依赖调用：扩展欧几里得算法给出最大公因数与贝祖系数；互素时系数给出模逆元；模逆元用于一次同余与中国剩余定理；快速模幂用于大指数运算。每步返回的是整数或剩余类，应明确其代表元范围。
+
+\section{素性检验与伪素数}
+
+对奇数 $n>2$，取 $1<a<n$。若 $\gcd(a,n)>1$，已找到非平凡因子；若 $\gcd(a,n)=1$ 而 $a^{n-1}\not\equiv1\pmod n$，由费马小定理可判定 $n$ 合数。若同余成立，只能说通过了该底数的检验。通过检验的合数称为底数 $a$ 的\keyterm{费马伪素数（Fermat pseudoprime）}。
+
+例如 $561=3\cdot11\cdot17$，对每个与 $561$ 互素的整数 $a$，费马小定理分别给出模 $3,11,17$ 的幂周期整除 $2,10,16$，它们均整除 $560$，故 $a^{560}\equiv1\pmod{561}$。所以仅增加若干费马检验底数不能保证正确判定素数。
+
+\keyterm{Miller--Rabin 检验（Miller--Rabin primality test）}进一步使用平方根信息。对待测整数 $n$，先排除 $n<2$，对 $2,3$ 直接判为素数，对其他偶数判为合数。余下 $n\ge5$ 为奇数，写 $n-1=2^sd$，其中 $d$ 为奇数，取 $1<a<n-1$ 并先检验最大公因数。若互素，则计算 $b_0=a^d\pmod n$，随后令 $b_{j+1}=b_j^2\pmod n$。当 $b_0=1$，或某个 $0\le j<s$ 有 $b_j=-1\pmod n$ 时，该底数通过；其余情形判为合数。
+
+该规则不会误判素数。若 $n$ 为素数，则 $b_s=1$；若 $b_0\ne1$，取第一次出现 $1$ 的位置，前一项是 $1$ 的平方根且不是 $1$，模素数时只能为 $-1$。合数则可能通过某些底数；重复抽样的概率分析需要额外定理，本节不以未经证明的概率界代替说明。
+
+\section{因数分解与算法问题的区别}
+
+素性检验只需回答是否为素数，因数分解则要求给出非平凡因子或完整分解。两者的输出不同，不能把某个素性检验直接当作分解算法。
+
+对奇合数 $n$，\keyterm{平方差分解（Fermat factorization）}从 $A=\lceil\sqrt n\rceil$ 开始，检查 $A^2-n$ 是否为整数平方 $B^2$；若是，则 $n=(A-B)(A+B)$，否则令 $A\leftarrow A+1$。其中 $\lceil x\rceil$ 为不小于 $x$ 的最小整数。若因子 $u,v$ 相近，则 $A=(u+v)/2$ 接近起点，因此这种方法可能较快；因子相距很远时可能很慢。例如 $6059=78^2-5^2=73\cdot83$。
+
+进一步的 Pollard $\rho$ 方法可按如下方式试探因子：固定 $f(t)=t^2+c\pmod n$，初始化 $x=y=x_0$，反复令 $x\leftarrow f(x)$、$y\leftarrow f(f(y))$，并计算 $d=\gcd(|x-y|,n)$。若 $1<d<n$，输出因子；若 $d=n$，更换参数重试；若 $d=1$，继续迭代。实际应设置步数限额，到限额后报告此次尝试未找到因子。每个返回因子都可直接验证，但这一描述不保证任意固定参数下必定成功。
+
+\section{RSA 的数论模型与正确性}
+
+\keyterm{公钥密码（public-key cryptography）}区分公开参数与秘密参数。RSA 的基本数论模型如下：取不同奇素数 $p,q$，令 $n=pq$，选整数 $1<e<\varphi(n)$ 且 $\gcd(e,\varphi(n))=1$，再由扩展欧几里得算法求 $1\le d<\varphi(n)$ 使
+\[
+ ed\equiv1\pmod{\varphi(n)},\qquad \varphi(n)=(p-1)(q-1).
+\]
+对消息代表元 $0\le M<n$，密文 $C$ 为 $M^e$ 模 $n$ 的最小非负余数；解密输出 $C^d$ 模 $n$ 的最小非负余数。$(n,e)$ 为公开参数，$d$ 为私钥指数。
+
+\begin{proposition}[RSA 的正确性]
+\label{prop:rsa-correctness}
+在上述条件下，对每个 $0\le M<n$ 均有 $M^{ed}\equiv M\pmod n$。
+\end{proposition}
+\begin{proof}
+写 $ed=1+k(p-1)(q-1)$。模 $p$ 考察：若 $p\mid M$，两侧均为零；若 $p\nmid M$，由费马小定理有 $M^{p-1}\equiv1$，故 $M^{ed}\equiv M$。模 $q$ 同理，再由中国剩余定理合并。这一证明也覆盖与 $n$ 不互素的消息。
+\end{proof}
+
+\begin{example}
+取 $p=5,q=11,e=3$，演示加密与解密。
+\end{example}
+\begin{solve}
+$n=55,\varphi(n)=40$，由 $3\cdot27=81\equiv1\pmod{40}$，得 $d=27$。消息 $M=7$ 加密为 $C=7^3\bmod55=13$，解密 $13^{27}\bmod55=7$。若 $M=5$，虽不与 $55$ 互素，仍有 $C=15$ 和 $15^{27}\bmod55=5$，与定理一致。
+\end{solve}
+
+这里讨论的是基本代数模型，正确性不等于安全性。知道 $p,q$ 就能计算 $\varphi(n)$ 与私钥指数，这是一个明确的推导方向；不能据此未经证明地断言所有恢复消息的方法都等价于分解 $n$。实际密码方案还包含本章未讨论的消息编码与随机化机制。
+
+\section{离散对数与综合实验}
+
+在素数模数下固定原根 $g$，计算 $g^a\pmod p$ 可用快速模幂，而由结果求 $a\pmod{p-1}$ 是离散对数问题。Diffie--Hellman 的代数关系是：分别公开 $A=g^a\pmod p$、$B=g^b\pmod p$ 后，两方可分别计算
+\[
+ B^a\equiv A^b\equiv g^{ab}\pmod p.
+\]
+这证明两方得到相同的值，但没有证明第三方无法计算该值。讨论困难性时还需指定参数分布与计算模型，不能只根据运算方向不同作出结论。
+
+\section{习题}
+\begin{enumerate}
+ \item 写出快速模幂的逐步运算表，核查 $13^{27}\pmod{55}$。
+ \item 验证 $561$ 对每个互素底数通过费马检验；找一个底数使它未通过 Miller--Rabin 检验。
+ \item 用平方差法分解 $10403$，解释它为何适合此例。
+ \item 实现扩展欧几里得、模逆元与中国剩余定理；测试无逆元和约束不相容的输入，并明确返回结果。
+\end{enumerate}
+
+\appendix
+
+\chapter{常用符号与结论索引}
+\label{app:reference}
+
+\section{常用符号}
+\begin{description}
+ \item[整数与整除] $\mathbb Z_{>0}$ 为正整数集；$a\mid b$ 表示 $b=ak$ 对某个整数 $k$ 成立；$\gcd(a,b)$ 与 $\operatorname{lcm}(a,b)$ 分别为最大公因数与最小公倍数；$v_p(n)$ 为非零整数 $n$ 的素因子 $p$ 的指数。
+ \item[同余与剩余] $a\equiv b\pmod m$ 表示 $m\mid a-b$；$[a]_m$ 为剩余类；$a^{-1}\pmod m$ 仅在 $\gcd(a,m)=1$ 时存在；$\operatorname{ord}_m(a)$ 是可逆类的乘法阶。
+ \item[算术函数] $\tau,\sigma,\varphi,\mu$ 分别表示约数个数、约数和、欧拉函数与莫比乌斯函数；$f*g$ 为狄利克雷卷积；$\mathbf1$ 为恒一函数，$\varepsilon$ 为卷积单位元。$\sum_{d\mid n}$ 对正约数求和。
+ \item[平方剩余] $\left(\frac ap\right)$ 在奇素数分母时为勒让德符号；推广到奇正分母时为雅可比符号，符号等于 $1$ 的可解性含义随分母类型改变。
+ \item[连分数] $P_k/Q_k$ 为第 $k$ 个渐近分数，下标从 $0$ 开始；$\alpha_k$ 为完整商；平方根展开中的 $B_k,C_k$ 由式\eqref{eq:surd-recurrence}定义；$\ell$ 为最小周期长度。
+ \item[分析记号] $\lfloor x\rfloor$ 与 $\lceil x\rceil$ 分别为下、上取整；$\pi(x)$ 为素数计数函数；$f\sim g$ 表示比值趋于 $1$，$f=O(g)$ 表示指定极限方向下的数量级上界。
+\end{description}
+
+\section{按问题查找结论}
+\begin{description}
+ \item[构造整数线性组合] 用贝祖等式（定理\ref{thm:bezout}），先排除两个输入同时为零的情形。
+ \item[求一次整数方程] 用定理\ref{thm:linear-diophantine}；可解条件为最大公因数整除常数项，完整解见式\eqref{eq:linear-diophantine-solutions}。
+ \item[比较素因子指数] 用算术基本定理（定理\ref{thm:unique-factorization}）及式\eqref{eq:factorial-valuation}。
+ \item[求一次同余与同余组] 用定理\ref{thm:linear-congruence}、\ref{thm:crt}、\ref{thm:general-crt}；记录最终模数，不能把“一个解类”理解为“一个整数”。
+ \item[求约数和或反演] 用式\eqref{eq:divisor-functions}、定理\ref{thm:totient}与\ref{thm:mobius-inversion}；积性只要求互素输入相乘时成立。
+ \item[化简幂或求幂同余] 用费马、欧拉定理与阶的性质；使用指标前先核查模数是否有原根，见定理\ref{thm:primitive-root-classification}。
+ \item[判断平方剩余] 用定理\ref{thm:euler-criterion}和\ref{thm:quadratic-reciprocity}；勒让德符号的分母必须为奇素数。
+ \item[判断两平方和] 用定理\ref{thm:two-squares}；模 $4$ 余 $3$ 的素因子指数必须为偶数。
+ \item[求 Pell 方程全部解] 先按定理\ref{thm:pell-fundamental}求基本解，再按定理\ref{thm:pell-all}生成；负方程使用命题\ref{prop:negative-pell}。
+\end{description}
+
+\chapter{习题选答与综合训练}
+\label{app:exercises}
+
+\section{各章计算题选答}
+
+\textbf{第\ref{ch:introduction}章。}相邻数问题可将 $1,\ldots,2n$ 分为 $n$ 对 $\{1,2\},\{3,4\},\ldots,\{2n-1,2n\}$ 后应用抽屉原理。证明 $\sqrt3$ 无理时，先按模 $3$ 的余数 $0,1,2$ 分类，得到平方被 $3$ 整除则原数被 $3$ 整除，再重复最小分母论证。
+
+\textbf{第\ref{ch:divisibility}章。}$-37=8(-5)+3$；$\gcd(414,662)=2=8\cdot414-5\cdot662$。$35x+22y=1$ 的全部解为 $x=-5+22t,y=8-35t$（$t\in\mathbb Z$）。
+
+\textbf{第\ref{ch:primes}章。}$v_2(100!)=50+25+12+6+3+1=97$；$v_5\bigl(\binom{100}{50}\bigr)=24-2\cdot12=0$。对 $1\le k<p$，$\binom pk$ 的分子含一个因子 $p$，分母 $k!(p-k)!$ 不含 $p$，故 $p\mid\binom pk$。
+
+\textbf{第\ref{ch:congruences}章。}$17^{-1}\equiv38\pmod{43}$，因为 $17\cdot38=15\cdot43+1$。平方模 $8$ 的全部可能余数为 $0,1,4$。
+
+\textbf{第\ref{ch:crt}章。}$14x\equiv8\pmod{30}$ 的解为 $x\equiv7,22\pmod{30}$。两条相容约束的解为 $x\equiv13\pmod{24}$，把余数 $5$ 改为 $4$ 后奇偶性冲突而无解。模 $35$ 的平方根 $1$ 有四个：$1,6,29,34$。
+
+\textbf{第\ref{ch:arithmetic-functions}章。}$840=2^3\cdot3\cdot5\cdot7$，故 $\varphi(840)=192,\tau(840)=32,\mu(840)=0$。卷积恒等式由 $\tau=\mathbf1*\mathbf1$ 与 $\mu*\mathbf1=\varepsilon$ 得到 $\mu*\tau=\mathbf1$。
+
+\textbf{第\ref{ch:classical-congruences}章。}$7^{222}\equiv12\pmod{13}$、$3^{100}\equiv1\pmod{20}$、$5^{117}\equiv1\pmod{19}$。若 $p>3$ 为素数，$p$ 为奇数给出 $p^2\equiv1\pmod8$，$3\nmid p$ 给出 $p^2\equiv1\pmod3$，再合并为模 $24$ 的结论。
+
+\textbf{第\ref{ch:primitive-roots}章。}模 $7$ 的原根为 $3,5$；$10$ 模 $13$ 的阶为 $6$。$x^3\equiv1\pmod7$ 的根为 $1,2,4$；$x^2\equiv2\pmod{49}$ 的根为 $10,39$。若 $g$ 是模 $m$ 的原根，由式\eqref{eq:order-power}，$g^k$ 为原根当且仅当 $\gcd(k,\varphi(m))=1$，所以原根类有 $\varphi(\varphi(m))$ 个。
+
+\textbf{第\ref{ch:quadratic-residues}章。}模 $13$ 的非零平方剩余为 $1,3,4,9,10,12$；$\left(\frac7{19}\right)=1$、$\left(\frac{13}{17}\right)=1$；$x^2\equiv4\pmod{45}$ 的根为 $2,7,38,43$。
+
+\textbf{第\ref{ch:diophantine}章。}斜边为 $25$ 的三元组为 $(7,24,25)$、$(15,20,25)$。$45=3^2+6^2$、$130=3^2+11^2$，而 $75$ 不可表示，因为其素因子 $3$ 的指数为奇数。方程 $xy=2x+3y$ 化为 $(x-3)(y-2)=6$；由 $x(y-2)=3y>0$ 知 $y>2$，继而 $x>3$，所以只有正因子对，得到 $(4,8),(5,5),(6,4),(9,3)$。
+
+\textbf{第\ref{ch:continued-fractions}章。}$415/93$ 的渐近分数为 $4,9/2,58/13,415/93$。$\sqrt2$ 的前五个渐近分数为 $1,3/2,7/5,17/12,41/29$；$\sqrt3=[1;\overline{1,2}]$、$\sqrt{13}=[3;\overline{1,1,1,1,6}]$。
+
+\textbf{第\ref{ch:pell}章。}$D=3,5,13$ 的基本解分别为 $(2,1),(9,4),(649,180)$。负方程 $x^2-2y^2=-1$ 的前三组正解为 $(1,1),(7,5),(41,29)$。平方三角数的前两个正指标为 $n=1,8$。
+
+\textbf{第\ref{ch:prime-distribution}章。}$6!+2,\ldots,6!+6$ 给出连续五个合数。仅由集合无穷不能推断倒数和发散，例如 $\{2^k:k\ge1\}$ 的倒数和收敛；要讨论某个素数子集，仍需关于该子集分布的额外信息。
+
+\textbf{第\ref{ch:algorithms}章。}$13^{27}\equiv7\pmod{55}$。对 $561$ 取底数 $2$，$560=2^4\cdot35$，相继得到 $263,166,67,1$；起点非 $1$，且此前未出现 $-1\equiv560$，所以未通过 Miller--Rabin 检验。$10403=102^2-1^2=101\cdot103$。
+
+\section{综合例题}
+
+\begin{example}[同余化简与解数]
+求 $6x\equiv9\pmod{15}$、$x\equiv2\pmod7$ 的全部整数解，并说明模 $105$ 有几个解类。
+\end{example}
+\begin{solve}
+第一式等价于 $x\equiv4\pmod5$。与第二式合并，得 $x\equiv9\pmod{35}$。因此模 $105$ 的解类为 $9,44,79$，共三个。模 $35$ 唯一与模 $105$ 有三类是同一整数解集的两种表达。
+\end{solve}
+
+\begin{example}[最大公因数的求和]
+对 $n\ge1$，证明
+\[
+ \sum_{k=1}^n\gcd(k,n)=\sum_{d\mid n}d\varphi(n/d).
+\]
+\end{example}
+\begin{proof}
+按 $\gcd(k,n)=d$ 分类。写 $k=du$ 后，条件等价于 $1\le u\le n/d$、$\gcd(u,n/d)=1$，故该类含 $\varphi(n/d)$ 个数，每个贡献 $d$。对全部正约数求和即可。例如 $n=12$ 时，右侧为 $4+4+6+8+6+12=40$。
+\end{proof}
+
+\begin{example}[平方和的全部表示]
+求 $x^2+y^2=2025$ 的全部非负整数解，不区分坐标次序。
+\end{example}
+\begin{solve}
+$2025=3^4\cdot5^2$。因 $3\equiv3\pmod4$，推论\ref{cor:prime-three-mod-four}使 $x,y$ 同时被 $3$ 整除；除以 $9$ 后再次应用，得 $9\mid x,y$。写 $x=9a,y=9b$，则 $a^2+b^2=25$。规定 $a\ge b\ge0$，有 $2b^2\le25$，故只需检查 $b=0,1,2,3$，得到 $(a,b)=(5,0),(4,3)$。原方程只有 $(45,0),(36,27)$。
+\end{solve}
+
+\begin{example}[平方三角数]
+求使 $n(n+1)/2$ 为平方的全部正整数 $n$ 的生成方法。
+\end{example}
+\begin{solve}
+设 $n(n+1)/2=m^2$，配方得 $(2n+1)^2-8m^2=1$。$D=8$ 的基本解为 $(3,1)$，所以令
+\[
+ X_k+Y_k\sqrt8=(3+\sqrt8)^k,\qquad
+ n_k=\frac{X_k-1}{2},\quad k\ge1.
+\]
+方程保证 $X_k$ 为奇数，故每个 $n_k$ 为正整数；反向变换和 Pell 方程的完备性保证没有遗漏。前三个指标为 $1,8,49$，对应平方三角数 $1,36,1225$。
+\end{solve}
+
+\backmatter
+
+\begin{thebibliography}{9}
+  \bibitem{mit-syllabus}
+  Abhinav Kumar.
+  \emph{18.781 Theory of Numbers: Syllabus}.
+  MIT OpenCourseWare, Spring 2012.
+  \url{https://ocw.mit.edu/courses/18-781-theory-of-numbers-spring-2012/pages/syllabus/}.
+
+  \bibitem{mit-notes}
+  Joseph Lee and Abhinav Kumar.
+  \emph{18.781 Theory of Numbers: Lecture Notes}.
+  MIT OpenCourseWare, Spring 2012.
+  \url{https://ocw.mit.edu/courses/18-781-theory-of-numbers-spring-2012/pages/lecture-notes/}.
+
+  \bibitem{stein-book}
+  William Stein.
+  \emph{Elementary Number Theory: Primes, Congruences, and Secrets}.
+  Author's book page.
+  \url{https://www.wstein.org/ent/}.
+
+  \bibitem{mit-periodic}
+  Joseph Lee and Abhinav Kumar.
+  \emph{Periodic Continued Fractions, Quadratic Irrationalities, Lecture 20 Notes}.
+  MIT OpenCourseWare, 2012.
+  \url{https://ocw.mit.edu/courses/18-781-theory-of-numbers-spring-2012/resources/mit18_781s12_lec20/}.
+
+  \bibitem{mit-four-squares}
+  Joseph Lee and Abhinav Kumar.
+  \emph{Four Squares Theorem, Lecture 22 Notes}.
+  MIT OpenCourseWare, 2012.
+  \url{https://ocw.mit.edu/courses/18-781-theory-of-numbers-spring-2012/resources/mit18_781s12_lec22/}.
+
+  \bibitem{kedlaya-dirichlet}
+  Kiran S. Kedlaya.
+  \emph{Primes in Arithmetic Progressions}.
+  MIT 18.785: Analytic Number Theory, 2007.
+  \url{https://kskedlaya.org/18.785/dirichlet.pdf}.
+
+  \bibitem{kedlaya-pnt}
+  Kiran S. Kedlaya.
+  \emph{The Prime Number Theorem}.
+  MIT 18.785: Analytic Number Theory, 2007.
+  \url{https://kskedlaya.org/18.785/pnt.pdf}.
+
+  \bibitem{sondow-bertrand}
+  Jonathan Sondow.
+  Ramanujan Primes and Bertrand's Postulate.
+  \emph{American Mathematical Monthly}, 116 (2009), 630--635.
+  \url{https://arxiv.org/abs/0907.5232}.
+\end{thebibliography}
+
+\end{document}

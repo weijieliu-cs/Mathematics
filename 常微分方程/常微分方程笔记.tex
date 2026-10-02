@@ -1,0 +1,1409 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexbook}
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{常微分方程笔记}
+\author{}
+\date{}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\tableofcontents
+
+\chapter{课程结构与学习路线}
+\label{chap:ode-roadmap}
+
+\section*{课程定位与编写范围}
+本书面向已经学习一元微积分、正在学习数学分析和高等代数的读者，以本科常微分方程课程为主线，兼顾数学理论、求解方法和实际建模。研究对象是未知函数及其关于一个自变量的导数之间的关系。学习目标不仅是求出若干方程的解析表达式，还包括判断解是否存在、是否唯一、能够延伸到哪里，以及初值变化和时间演化如何影响解。
+
+本书采用紧凑的教材写法，以定义、关键结论、必要证明和典型例题组织正文。前九章构成基础主线，后五章提供方法拓展与综合应用；标为“选学”的内容不作为基础章节的默认前提。篇幅较长的高阶理论只陈述所需版本并注明证明省略，其余核心推导尽量在正文中完成。
+
+\section*{先修知识}
+\begin{description}
+  \item[微积分与数学分析] 导数与微分、定积分与微积分基本定理、泰勒公式、多元函数的偏导数、函数列的一致收敛。涉及压缩映射和级数解法时，再补充完备性、函数空间与幂级数。
+  \item[线性代数] 向量空间、线性相关与线性无关、矩阵与行列式、线性方程组、特征值与特征向量。若尚未学习 Jordan 标准形，可先掌握可对角化情形，再补读重根情形。
+  \item[辅助工具] 复数的指数表示、基本积分技巧与初步程序设计。程序设计仅用于数值实验，不作为理解基础理论的前提。所需知识集中列在附录\ref{app:ode-analysis}与附录\ref{app:ode-algebra}中。
+\end{description}
+
+\section*{全书课程大纲}
+全书按照“提出问题与直接求解---初值问题的理论基础---线性结构---非线性定性分析---专题与综合应用”的顺序展开。
+\begin{enumerate}
+  \item \textbf{绪论与基本概念}（第\ref{chap:ode-intro}章）：建模、方程分类、解与解区间、初值问题、方向场。
+  \item \textbf{一阶方程的初等解法}（第\ref{chap:ode-first-order}章）：变量分离、一阶线性方程、变量代换、恰当方程与积分因子。
+  \item \textbf{隐式方程与可降阶方程}（第\ref{chap:ode-reduction}章）：导数未解出的方程、参数法、奇解与包络、降阶方法。
+  \item \textbf{初值问题的存在性与唯一性}（第\ref{chap:ode-existence}章）：积分方程、Picard 迭代、压缩映射、存在唯一性与反例。
+  \item \textbf{解的延拓与连续依赖性}（第\ref{chap:ode-dependence}章）：Gronwall 不等式、最大解、有限时间爆破、初值与参数依赖。
+  \item \textbf{高阶线性微分方程}（第\ref{chap:ode-linear-scalar}章）：解空间、基本解组、常系数方程、非齐次方程、振动与共振。
+  \item \textbf{线性微分方程组}（第\ref{chap:ode-linear-system}章）：基本矩阵、矩阵指数、Jordan 方法、常数变易与线性系统的长期行为。
+  \item \textbf{自治系统与平面定性理论}（第\ref{chap:ode-phase-plane}章）：轨道、相图、平衡点、首次积分、周期轨道与极限环。
+  \item \textbf{稳定性与 Lyapunov 方法}（第\ref{chap:ode-stability}章）：稳定性定义、线性化、Lyapunov 函数、不变性原理。
+  \item \textbf{幂级数解法与特殊函数初步}（第\ref{chap:ode-series}章）：常点、正则奇点、Frobenius 方法、Bessel 与 Legendre 方程。
+  \item \textbf{拉普拉斯变换与线性响应}（第\ref{chap:ode-laplace}章）：变换的存在条件、导数变换、卷积、分段输入与脉冲响应。
+  \item \textbf{边值问题与 Sturm--Liouville 理论初步}（第\ref{chap:ode-boundary}章）：两点边值问题、Green 函数、特征值、正交性与振荡。
+  \item \textbf{常微分方程数值方法}（第\ref{chap:ode-numerical}章）：Euler 与 Runge--Kutta 方法、误差、收敛、绝对稳定性与刚性。
+  \item \textbf{数学建模与综合专题}（第\ref{chap:ode-modeling}章）：量纲与无量纲化、种群模型、振动模型、传染病模型及综合研究。
+\end{enumerate}
+
+\section*{学习顺序与内容层次}
+第\ref{chap:ode-intro}至第\ref{chap:ode-stability}章构成基础主线，其中第\ref{chap:ode-reduction}章的参数法与奇解可先略读。第一次学习可先用第\ref{chap:ode-first-order}章积累求解经验，再学习第\ref{chap:ode-existence}、\ref{chap:ode-dependence}章的严格理论；第\ref{chap:ode-linear-scalar}、\ref{chap:ode-linear-system}章把微分方程与线性代数联系起来；最后由第\ref{chap:ode-phase-plane}、\ref{chap:ode-stability}章进入非线性问题。
+
+第\ref{chap:ode-series}至第\ref{chap:ode-modeling}章是拓展与综合部分。级数解法需要幂级数知识；拉普拉斯变换主要承接线性方程；边值问题承接线性方程并引入新的边界约束；数值方法的算法部分可提前阅读，误差证明则依赖存在唯一性与连续依赖性。建模实例应贯穿全书，最后一章负责综合比较，不将应用完全留到最后。
+
+\section*{统一记号与正文展开方式}
+通常用 $t\in I\subseteq\mathbb{R}$ 表示自变量，其中 $I$ 是一个区间；用 $y(t)\in\mathbb{R}$ 表示标量未知函数，用 $x(t)\in\mathbb{R}^d$ 表示 $d$ 维状态向量。撇号表示对自变量求导，$y^{(n)}$ 表示 $n$ 阶导数，$\|\cdot\|$ 表示欧氏范数及相应的诱导矩阵范数。$t_0$ 表示初始时刻，$y_0$ 或 $x_0$ 表示初值。系数、参数和积分常数在各处另行声明。
+
+正文围绕问题动机、概念与条件、关键推导和例题展开。习题覆盖概念辨析、计算、证明与反例及综合应用，附录给出部分答案与提示。学习时应区分“无法用已有方法写出显式解”与“没有解”，也应区分数值观察与已经证明的数学结论。
+
+参考教材\cite{lebl-diffyqs,teschl-ode}可用于进一步阅读，并提供部分选学结论的完整证明。
+
+\mainmatter
+
+\chapter{绪论与基本概念}
+\label{chap:ode-intro}
+
+微分方程用局部变化规律描述整体演化。学习时需要同时回答三个问题：模型表达了什么，方程有哪些解，这些解具有怎样的性质。显式公式是重要工具，但并不是研究的唯一目标。
+
+\section{从变化规律到微分方程}
+设 $N(t)$ 表示时刻 $t$ 的种群数量。在资源充足、单位个体净增长率保持为常数 $r$ 的假设下，短时间内的净增长量近似为 $rN(t)\Delta t$；令 $\Delta t\to0$，得到
+\[
+  N'=rN,\qquad N(0)=N_0.
+\]
+其中 $r$ 的单位是时间的倒数。由 $(e^{-rt}N)'=0$ 得 $N(t)=N_0e^{rt}$。指数增长是模型假设的结果；若资源限制改变了单位增长率，方程也必须改变。
+
+类似地，物体温度 $T(t)$ 满足牛顿冷却模型
+\[
+ T'=-k(T-T_{\mathrm{env}}),\qquad k>0,
+\]
+其中环境温度 $T_{\mathrm{env}}$ 暂取常数。弹簧振子的位移 $y(t)$ 则满足
+\[
+ my''+cy'+ky=F(t),\qquad m>0,\ c\geq0,\ k>0.
+\]
+此处 $m,c,k$ 分别为质量、阻尼系数和弹性系数，$F$ 为外力；$-ky$ 与 $-cy'$ 分别是线性回复力和阻尼力。方程中的每一项均具有力的量纲。模型是否适用取决于这些力学近似，而不取决于能否解出方程。
+
+\begin{example}[冷却模型]
+一物体初温为 $80\,{}^\circ\mathrm C$，置于恒温 $20\,{}^\circ\mathrm C$ 的环境中。以分钟为时间单位，若十分钟后温度为 $50\,{}^\circ\mathrm C$，求模型中的 $k$ 及后续温度。
+\end{example}
+\begin{solve}
+令 $u=T-20$，则 $u'=-ku$，所以 $T(t)=20+60e^{-kt}$。代入 $T(10)=50$ 得 $e^{-10k}=1/2$，从而
+\[
+ k=\frac{\log2}{10},\qquad T(t)=20+60\cdot2^{-t/10}.
+\]
+温差每十分钟减半；在该模型中温度渐近接近环境温度，而不在有限时间内与之相等。
+\end{solve}
+
+\section{方程的阶、线性与自治性}
+\begin{definition}
+\keyterm{常微分方程}（ordinary differential equation，ODE）是未知函数及其关于同一个自变量的导数之间的关系。一般标量形式为
+\[
+ F(t,y,y',\ldots,y^{(n)})=0.
+\]
+实际出现的最高导数阶数 $n$ 称为方程的阶。若可解成 $y^{(n)}=g(t,y,\ldots,y^{(n-1)})$，称为关于最高阶导数的标准形式。未知函数依赖多个自变量且涉及偏导数时，得到偏微分方程（partial differential equation，PDE）。
+\end{definition}
+
+方程
+\begin{equation}
+ a_n(t)y^{(n)}+a_{n-1}(t)y^{(n-1)}+\cdots+a_0(t)y=b(t)
+ \label{eq:ode-general-linear}
+\end{equation}
+称为线性方程（linear equation），因为未知函数及其导数以线性组合出现。$b\equiv0$ 时称齐次，否则称非齐次。讨论标准形时应限定在 $a_n\ne0$ 的区间。$y''+ty=\sin t$ 是线性的，$y'=y^2$ 和 $y''+yy'=0$ 不是线性的。
+
+标准形右端不显含 $t$ 时称为自治方程（autonomous equation）。例如 $y'=y^2$ 自治而非线性，$y'=ty$ 线性而非自治。自治性与线性是不同分类标准。一阶方程 $y'=G(y/t)$ 的“齐次型”是另一术语，不能与线性齐次方程混淆。
+
+\section{解、解区间与隐式表示}
+\begin{definition}
+设 $I$ 为非空开区间。若 $y\in C^n(I)$，且将 $y(t)$ 及其导数代入方程后对所有 $t\in I$ 均成立，则称 $y$ 是方程在 $I$ 上的经典解。解应连同其定义区间一起给出。
+\end{definition}
+
+显式式子 $y=\varphi(t)$ 直接给出函数；隐式关系 $H(t,y)=0$ 需要选定可微分支。当 $H\in C^1$ 且某点处 $H_y\ne0$ 时，隐函数定理保证该点附近可以解出 $y$。例如 $y^2=t$ 在 $t>0$ 有两条分支，而它们在 $t=0$ 处均没有有限右导数。
+
+由积分常数组成并覆盖所讨论解族的表达式称为通解，其中固定常数得到特解。对于正则 $n$ 阶线性方程，通解含 $n$ 个独立常数；一般隐式非线性方程可能有多分支或不包含在通常参数族中的奇解，不能只用“常数个数”定义通解。
+
+\begin{example}[表达式与最大区间]
+求 $y'=y^2$、$y(0)=1$ 的解及其包含零点的最大存在区间。
+\end{example}
+\begin{solve}
+在 $y\ne0$ 时，$(-1/y)'=1$，故 $y=1/(C-t)$。初值给出 $C=1$，因而 $y(t)=1/(1-t)$。它在 $(-\infty,1)$ 上满足方程与初值，并在 $t\uparrow1$ 时趋于正无穷，故不能以有限连续值延伸过 $1$。相同表达式在 $(1,\infty)$ 上也满足方程，但那是另一段解，不是给定初值解的一部分。原方程另有常值解 $y\equiv0$。
+\end{solve}
+
+\section{初值问题与边值问题}
+\keyterm{初值问题}（initial value problem，IVP）在同一时刻指定状态。例如
+\begin{equation}
+ y'=f(t,y),\qquad y(t_0)=y_0
+ \label{eq:ode-scalar-ivp}
+\end{equation}
+的一般任务是确定经过 $(t_0,y_0)$ 的解。$n$ 阶标准方程通常给定 $y(t_0),y'(t_0),\ldots,y^{(n-1)}(t_0)$。\keyterm{边值问题}（boundary value problem，BVP）则在不同端点施加条件，例如 $y''+y=0$、$y(0)=a$、$y(\pi)=b$。
+
+即使初值问题唯一可解，边值问题也可能无解或有无穷多解。上述方程的通解是 $A\cos t+B\sin t$；边界条件要求 $A=a$、$-A=b$。若 $b\ne-a$ 则无解，若 $b=-a$ 则 $B$ 任意。存在性、唯一性和数据扰动下的连续依赖性都需要各自的条件。
+
+\section{方向场与解的几何意义}
+一阶方程 $y'=f(t,y)$ 在平面每一点指定斜率 $f(t,y)$，这些短线元组成方向场（slope field）。解的图像是与方向场相切的积分曲线（integral curve）。在 $f>0$ 的区域解增加，在 $f<0$ 的区域解减少；$f=0$ 只表示该点切线水平，不一定意味着整条解为常数。
+
+对于 $y'=g(y)$，满足 $g(y_*)=0$ 的常值 $y_*$ 是平衡点（equilibrium）。例如 $y'=y(1-y)$ 的平衡点为 $0,1$；在 $0<y<1$ 上解增加，在 $y>1$ 上解减少。若局部唯一性成立，非平衡解不能在有限时间穿过平衡解；这一结论将在第\ref{chap:ode-existence}章得到理论依据。
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-classify} 判别 $y''+t^2y=0$、$y'=\sin y$、$y'=t+y^2$ 的阶数、线性与自治性。
+ \item\label{ex:ode-square} 求 $y'=y^2$、$y(0)=a$ 的解及最大区间，分别讨论 $a>0$、$a=0$、$a<0$。
+ \item\label{ex:ode-boundary-intro} 对 $y''=0$ 比较条件 $y(0)=1,y'(0)=2$ 与 $y(0)=1,y(1)=2$ 所确定的解。
+ \item 说明“右端在某点为零”为什么不必使经过该点的解恒为常数，并给出非自治方程的例子。
+\end{enumerate}
+
+\chapter{一阶方程的初等解法}
+\label{chap:ode-first-order}
+
+一阶方程没有统一的初等求解公式。有效的方法是识别结构，把方程化为积分或线性方程。每次除法、代换和开方都可能缩小定义域，必须同时检查被排除的解。
+
+\section{直接积分与变量可分离方程}
+若 $y'=g(t)$ 且 $g$ 连续，则初值解为 $y(t)=y_0+\int_{t_0}^t g(s)\,\mathrm ds$。更一般地，对变量可分离方程（separable equation）
+\[
+ y'=g(t)h(y),
+\]
+先检查 $h(c)=0$ 所给出的常值解 $y\equiv c$。在 $h(y)\ne0$ 的区间上，选取 $H'=1/h$，由链式法则得 $(H(y(t)))'=g(t)$，故
+\begin{equation}
+ \int_{y_0}^{y(t)}\frac{\mathrm du}{h(u)}=\int_{t_0}^t g(s)\,\mathrm ds.
+ \label{eq:ode-separable}
+\end{equation}
+因为 $H'\ne0$，在相应分支上可以局部解出 $y$。分离变量的实质是链式法则，不是将导数当作两个独立数字相除。
+
+\begin{example}[Logistic 增长]
+设 $r,K>0$，求逻辑斯谛增长（logistic growth）模型 $y'=ry(1-y/K)$、$y(0)=y_0>0$ 的解。
+\end{example}
+\begin{solve}
+平衡解为 $0,K$。对非平衡分支，积分得到 $\log|y/(K-y)|=rt+C$，整理并代入初值得
+\begin{equation}
+ y(t)=\frac{K}{1+(K/y_0-1)e^{-rt}}.
+ \label{eq:ode-logistic}
+\end{equation}
+该式也包含 $y_0=K$ 的解。对所有 $t\geq0$ 分母为正，故正向解全局存在且趋于 $K$；$y_0<K$ 时递增，$y_0>K$ 时递减。向负时间延拓时仍须检查分母，不能由正向全局存在推出双向全局存在。
+\end{solve}
+
+\section{一阶线性方程与常数变易法}
+设 $p,q$ 在区间 $I$ 上连续，$t_0\in I$。对于 $y'+p(t)y=q(t)$，令 $P(t)=\int_{t_0}^t p(s)\,\mathrm ds$，则
+\[
+ (e^{P(t)}y)'=e^{P(t)}q(t).
+\]
+由积分得到
+\begin{equation}
+ y(t)=e^{-P(t)}\left[y_0+\int_{t_0}^t e^{P(s)}q(s)\,\mathrm ds\right].
+ \label{eq:ode-first-linear}
+\end{equation}
+$e^P$ 称为积分因子（integrating factor）。这个推导同时给出存在性和唯一性：式\eqref{eq:ode-first-linear}满足初值，而任何解均须满足同一积分恒等式。
+
+齐次解为 $Ce^{-P}$。将常数 $C$ 换成函数 $C(t)$，代回方程得到 $C'=e^Pq$，这就是常数变易法（variation of constants）。两个非齐次解之差为齐次解，但两个非齐次解的和一般不再满足原方程。
+
+\begin{example}[混合槽]
+容量为 $V>0$ 的槽内液体均匀混合，以相同流量 $q>0$ 流入和流出，流入浓度恒为 $c_{\mathrm{in}}$。求初始溶质量为 $m_0$ 时的溶质量。
+\end{example}
+\begin{solve}
+槽内容量保持 $V$，流出浓度为 $m/V$。守恒关系给出 $m'=qc_{\mathrm{in}}-qm/V$，所以
+\[
+ m(t)=Vc_{\mathrm{in}}+(m_0-Vc_{\mathrm{in}})e^{-qt/V}.
+\]
+时间尺度 $V/q$ 越小，浓度接近流入浓度越快。
+\end{solve}
+
+\section{齐次型方程与常见变量代换}
+对 $y'=G(y/t)$，在不含 $0$ 的时间区间令 $v=y/t$。由 $y'=v+tv'$ 得
+\[
+ tv'=G(v)-v.
+\]
+先保留 $G(v)=v$ 给出的直线解 $y=vt$，再对其余分支分离变量：$\mathrm dv/(G(v)-v)=\mathrm dt/t$。
+
+\begin{example}
+求 $y'=1+y/t$ 在 $t\ne0$ 上的解。
+\end{example}
+\begin{solve}
+令 $y=tv$，得到 $tv'=1$，故 $v=\log|t|+C$，即 $y=t(\log|t|+C)$。解分别定义在正、负半轴；原方程在 $t=0$ 未定义。
+\end{solve}
+
+若右端依赖两个仿射式的比值，例如 $(at+by+c)/(dt+ey+f)$，可先求使两仿射式同时为零的交点并平移。若 $ae-bd\ne0$，交点唯一，平移后常可化为齐次型；若行列式为零，应利用线性相关结构另作代换，不能强行求不存在的交点。
+
+\section{Bernoulli 方程与 Riccati 方程}
+Bernoulli 方程（Bernoulli equation）为
+\[
+ y'+p(t)y=q(t)y^\alpha.
+\]
+$\alpha=0,1$ 时它是线性的。对 $\alpha\ne0,1$，在实幂及代换有定义且 $y\ne0$ 的区间令 $z=y^{1-\alpha}$，得到
+\[
+ z'+(1-\alpha)p(t)z=(1-\alpha)q(t).
+\]
+解出 $z$ 后须在原分支反解，并单独检验 $y\equiv0$ 是否为原方程的解。
+
+\begin{example}
+求 $y'+y=y^2$、$y(0)=1/2$ 的解。
+\end{example}
+\begin{solve}
+令 $z=1/y$，则 $z'-z=-1$，$z(0)=2$，所以 $z=1+e^t$，$y=1/(1+e^t)$，其最大区间为 $\mathbb R$。
+\end{solve}
+
+Riccati 方程（Riccati equation）为 $y'=a(t)y^2+b(t)y+c(t)$。若已知特解 $y_p$，令 $y=y_p+1/u$，计算得
+\[
+ u'+(2ay_p+b)u=-a.
+\]
+这是线性方程；反代要求 $u\ne0$，而特解 $y_p$ 须单独保留。例如 $y'=y^2-1$ 的特解为 $1$，代换后 $u'+2u=-1$，故 $y=1+(Ce^{-2t}-1/2)^{-1}$，再加上 $y\equiv1$，并逐支确定区间。
+
+\section{恰当方程与积分因子}
+\begin{definition}
+在开区域 $D\subseteq\mathbb R^2$ 上，若存在 $C^1$ 函数 $H$ 使 $H_t=M$、$H_y=N$，则称 $M\,\mathrm dt+N\,\mathrm dy=0$ 为恰当方程（exact equation）。其积分曲线位于 $H(t,y)=C$ 上。
+\end{definition}
+
+若 $M,N\in C^1(D)$，必要条件为 $M_y=N_t$。在矩形区域该条件也充分：固定 $(t_0,y_0)$，取
+\[
+ H(t,y)=\int_{t_0}^t M(s,y_0)\,\mathrm ds+\int_{y_0}^y N(t,v)\,\mathrm dv,
+\]
+则 $H_y=N$，而 $H_t=M(t,y_0)+\int_{y_0}^y M_y(t,v)\,\mathrm dv=M(t,y)$。单连通开区域上的充分性可由路径积分的无关性证明。若要将等值线写成 $y(t)$，还需局部检查 $N=H_y\ne0$。
+
+若原方程不恰当，可寻找处处非零的因子 $\mu$。由 $(\mu M)_y=(\mu N)_t$ 可得两种常用情形：
+\begin{align*}
+ \frac{M_y-N_t}{N}=a(t)&\quad\Longrightarrow\quad \mu(t)=\exp\!\left(\int a(t)\,\mathrm dt\right),\quad N\ne0,\\
+ \frac{N_t-M_y}{M}=b(y)&\quad\Longrightarrow\quad \mu(y)=\exp\!\left(\int b(y)\,\mathrm dy\right),\quad M\ne0.
+\end{align*}
+条件仅在相应非零分母区域内使用；并非所有方程都有这两类积分因子。
+
+\begin{example}
+解 $(2ty+y)\,\mathrm dt+t\,\mathrm dy=0$，其中 $t\ne0$。
+\end{example}
+\begin{solve}
+$M_y=2t+1$、$N_t=1$，故 $(M_y-N_t)/N=2$。乘以 $e^{2t}$ 后，左端正是 $\mathrm d(te^{2t}y)$，所以 $y=Ce^{-2t}/t$。
+\end{solve}
+
+\section{方法选择与习题}
+先检查线性或可分离结构，再考虑比值代换、Bernoulli 型、已知特解的 Riccati 型与恰当性。求得表达式后，代回原式、恢复初值并确定区间，才能完成解答。
+\begin{enumerate}
+ \item\label{ex:ode-separate} 求 $y'=2ty$、$y(0)=3$。
+ \item\label{ex:ode-linear} 求 $y'+2y=e^t$、$y(0)=0$。
+ \item\label{ex:ode-exact} 求 $(2ty+1)\,\mathrm dt+(t^2+2y)\,\mathrm dy=0$ 的势函数，并说明何处可局部解出 $y(t)$。
+ \item 对 $y'=y^{2/3}$，讨论除以 $y^{2/3}$ 会遗漏哪些解；检验在一段时间内等于零后再离开的函数。
+ \item 从式\eqref{eq:ode-logistic}确定 $y_0>K$ 时包含 $0$ 的最大存在区间。
+\end{enumerate}
+
+\chapter{隐式方程与可降阶方程}
+\label{chap:ode-reduction}
+
+某些方程的导数不能直接解出，或虽为高阶却缺少部分变量。此时参数化与降阶能够揭示特殊结构，但通常只能先得到局部结果。
+
+\section{导数未解出的一阶方程}
+考虑 $F(t,y,p)=0$，其中 $p=y'$。若 $F\in C^1$，且在满足方程的点 $(t_0,y_0,p_0)$ 有 $F_p\ne0$，则隐函数定理给出附近的唯一分支 $p=f(t,y)$。若 $F_p=0$，该结论不再适用；这并不自动意味着无解或不唯一。
+
+例如 $(y')^2=4y$ 在 $y>0$ 有两个分支 $y'=\pm2\sqrt y$。$y=(t-C)^2$ 可在 $t=C$ 两侧分别属于不同分支。因此解隐式方程时，应记录分支及可能发生分支连接的位置。
+
+\section{以导数为参数的方法}
+本节及下一节的参数函数假设为 $C^2$。若能写成 $y=\phi(t,p)$，沿 $C^2$ 解求导，得到 $p=\phi_t+\phi_p p'$。在 $p$ 可作局部参数且 $p-\phi_t\ne0$ 的区域，
+\[
+ \frac{\mathrm dt}{\mathrm dp}=\frac{\phi_p(t,p)}{p-\phi_t(t,p)}.
+\]
+解出 $t=t(p)$ 后，由 $y=\phi(t(p),p)$ 得参数曲线，并检验 $\mathrm dy/\mathrm dp=p\,\mathrm dt/\mathrm dp$。若 $t'(p)=0$，则不能直接用该参数表示局部函数 $y(t)$。常值 $p$ 和被除去的零因子必须另行检查。
+
+若写成 $t=\psi(y,p)$，同理由 $\mathrm dy=p\,\mathrm dt$ 得
+\[
+ (1-p\psi_y)\frac{\mathrm dy}{\mathrm dp}=p\psi_p.
+\]
+这些求导对解具有额外正则性要求；所得曲线最后仍按原方程所要求的 $C^1$ 条件验证。
+
+\section{Clairaut 方程、Lagrange 方程与奇解}
+Clairaut 方程（Clairaut equation）为 $y=tp+\phi(p)$。在 $C^2$ 分支上求导得到 $(t+\phi'(p))p'=0$。常值 $p=C$ 给出直线族 $y=Ct+\phi(C)$；另一候选分支为
+\[
+ t=-\phi'(p),\qquad y=\phi(p)-p\phi'(p).
+\]
+它是直线族的候选包络（envelope），仍须检查参数正则性与原方程。
+
+\begin{example}[奇解]
+求 $y=ty'+(y')^2$ 的直线族及其奇解。
+\end{example}
+\begin{solve}
+直线族为 $y=Ct+C^2$。候选包络满足 $t=-2p$，故 $y=-t^2/4$。其导数为 $-t/2$，代入右端得 $-t^2/2+t^2/4=-t^2/4$，验证成立。它不对应任何固定 $C$，称为奇解（singular solution）。在切点处可将直线分支与抛物线分支作 $C^1$ 拼接，因此上述直线族与奇解不应被误称为对所有 $C^1$ 解的无条件穷尽。
+\end{solve}
+
+Lagrange 方程（Lagrange equation）为 $y=t\phi(p)+\psi(p)$。求导后，在 $p\ne\phi(p)$ 的参数分支上得到
+\[
+ \frac{\mathrm dt}{\mathrm dp}-\frac{\phi'(p)}{p-\phi(p)}t
+ =\frac{\psi'(p)}{p-\phi(p)}.
+\]
+它关于 $t(p)$ 是一阶线性方程。若常数 $c$ 满足 $c=\phi(c)$，则还应检验直线 $y=ct+\psi(c)$。
+
+\section{缺少未知函数或自变量的高阶方程}
+若方程只含 $t,y^{(k)},\ldots,y^{(n)}$，令 $z=y^{(k)}$，先解 $(n-k)$ 阶方程，再积分 $k$ 次恢复 $y$。例如 $y'''=y''$ 给出 $z'=z$，所以 $y=C_1e^t+C_2t+C_3$。
+
+对不显含 $t$ 的二阶方程 $y''=G(y,y')$，若某段解满足 $y'\ne0$，则 $y$ 可作局部自变量。令 $p(y)=y'$，链式法则给出
+\[
+ p\frac{\mathrm dp}{\mathrm dy}=G(y,p).
+\]
+求得 $p(y)$ 后再解 $y'=p(y)$。平衡解由 $G(c,0)=0$ 单独确定；转向点 $p=0$ 附近须重新检查局部可逆性。
+
+\section{能量积分与守恒关系}
+对 $y''=-V'(y)$，其中 $V\in C^1$，有
+\begin{equation}
+ \frac{\mathrm d}{\mathrm dt}\left(\frac{(y')^2}{2}+V(y)\right)
+ =y'(y''+V'(y))=0.
+ \label{eq:ode-energy}
+\end{equation}
+故能量 $E=(y')^2/2+V(y)$ 沿解不变。这种沿解保持常数的关系称为首次积分（first integral）。在单调分支上，
+\[
+ y'=\pm\sqrt{2(E-V(y))},\qquad
+ t-t_0=\pm\int_{y_0}^{y(t)}\frac{\mathrm du}{\sqrt{2(E-V(u))}}.
+\]
+允许的位置必须满足 $V(y)\leq E$，而 $V(y)=E$ 对应可能的转向点。
+
+\begin{example}
+设 $y''=-\omega^2y$，$\omega>0$，$y(0)=A>0$、$y'(0)=0$。能量恒为 $\omega^2A^2/2$，所以 $|y|\leq A$。由初始加速度为负，先选下降分支；积分得 $y=A\cos(\omega t)$，并可直接代回验证其全局成立。转向点处的分支更换由原方程确定，不能始终固定同一个平方根符号。
+\end{example}
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-clairaut} 求 $y=ty'-(y')^2$ 的直线解族与奇解，并代回验证。
+ \item\label{ex:ode-reduce} 解 $y''=2y'$、$y(0)=0$、$y'(0)=1$。
+ \item 对 $y''+y^3=0$ 建立能量积分，证明任意解在其存在区间上位置与速度均有界。
+ \item 说明“能量恒定”为什么不能单独决定运动方向，指出给定初值还提供了什么信息。
+\end{enumerate}
+
+\chapter{初值问题的存在性与唯一性}
+\label{chap:ode-existence}
+
+能否求出公式与解是否存在是不同问题。本章对有限维系统 $x'=f(t,x)$、$x(t_0)=x_0$ 建立局部理论，其中 $x\in\mathbb R^d$，$f:D\to\mathbb R^d$，$D\subseteq\mathbb R\times\mathbb R^d$ 为开集。
+
+\section{从微分方程到积分方程}
+设 $f$ 连续。对于图像包含于 $D$ 的连续函数 $x$，初值问题等价于
+\begin{equation}
+ x(t)=x_0+\int_{t_0}^t f(s,x(s))\,\mathrm ds.
+ \label{eq:ode-integral-ivp}
+\end{equation}
+一个方向是对 $x'=f(t,x)$ 积分；反方向则因被积函数连续，可由微积分基本定理对右端求导，并在 $t=t_0$ 恢复初值。积分形式把“求导数满足条件”转化为“寻找积分算子的不动点”。
+
+\section{Lipschitz 条件与函数空间}
+\begin{definition}
+若在某区域上存在 $L\geq0$，使同一时刻的任意两个允许状态满足
+\[
+ \|f(t,x)-f(t,z)\|\leq L\|x-z\|,
+\]
+则称 $f$ 关于状态变量满足 Lipschitz 条件（Lipschitz condition）。若每一点都有满足此条件的乘积邻域，则称局部 Lipschitz；邻域内的常数对时间一致。
+\end{definition}
+
+若 $D_xf$ 连续，在一个紧乘积邻域上有界且状态截面凸，则沿线段积分得到
+\[
+ f(t,x)-f(t,z)=\int_0^1D_xf(t,z+\theta(x-z))(x-z)\,\mathrm d\theta,
+\]
+故可取 $L=\sup\|D_xf\|$。例如 $|y|$ 是 Lipschitz 函数但在零点不可微，$\sqrt{|y|}$ 连续但在零点不满足局部 Lipschitz 条件。
+
+记 $C(J,\mathbb R^d)$ 为紧区间 $J$ 上的连续函数空间，赋予一致范数 $\|u\|_\infty=\max_{t\in J}\|u(t)\|$。一致 Cauchy 列逐点有极限，且收敛一致；一致极限连续，因此此空间完备。
+
+\begin{theorem}[压缩映射原理]
+设 $(X,d)$ 为非空完备度量空间，$T:X\to X$ 满足 $d(Tu,Tv)\leq qd(u,v)$，其中 $0\leq q<1$。则 $T$ 有唯一不动点，且从任意 $u_0\in X$ 出发的迭代 $u_{k+1}=Tu_k$ 收敛到该点。
+\end{theorem}
+\begin{proof}
+逐次估计得 $d(u_{k+1},u_k)\leq q^kd(u_1,u_0)$，故对 $m>k$，$d(u_m,u_k)\leq q^kd(u_1,u_0)/(1-q)$。完备性给出极限 $u$，而 Lipschitz 连续性给出 $Tu=u$。若 $Tv=v$，则 $d(u,v)\leq qd(u,v)$，所以 $u=v$。
+\end{proof}
+
+\section{Picard 迭代与存在唯一性定理}
+\begin{theorem}[Picard--Lindelöf 定理]
+\label{thm:ode-picard}
+设 $f$ 在 $D$ 上连续且关于状态局部 Lipschitz。则每个 $(t_0,x_0)\in D$ 都存在一个包含 $t_0$ 的区间，其上初值问题有唯一局部解。更精确地，任意两个同初值解在其定义区间的交集上相同。
+\end{theorem}
+\begin{proof}
+取包含于 $D$ 的闭柱体 $Q=\{|t-t_0|\leq a,\ \|x-x_0\|\leq b\}$，使 $f$ 在其上具有 Lipschitz 常数 $L$，并令 $M=\max_Q\|f\|$。取 $h>0$ 满足 $h\leq a$、$hM\leq b$、$hL<1$；若 $M$ 或 $L$ 为零，相应限制自动满足。在 $J=[t_0-h,t_0+h]$ 上，集合
+\[
+ X=\{u\in C(J,\mathbb R^d):\|u-x_0\|_\infty\leq b\}
+\]
+非空、闭且完备。定义 $Tu=x_0+\int_{t_0}^{\,t}f(s,u(s))\,\mathrm ds$。有 $\|Tu-x_0\|_\infty\leq hM\leq b$，以及 $\|Tu-Tv\|_\infty\leq hL\|u-v\|_\infty$，所以 $T$ 有唯一不动点，即所求解。任意同初值解因连续性在足够短的区间内属于上述集合，故局部相同。若两个解在共同区间内首次分离，则在分离端点重新应用局部唯一性可继续相等，产生矛盾；两个方向均如此。
+\end{proof}
+
+不动点的具体构造为 Picard 迭代（Picard iteration）
+\[
+ x^{[0]}(t)=x_0,\qquad x^{[k+1]}(t)=x_0+\int_{t_0}^t f(s,x^{[k]}(s))\,\mathrm ds.
+\]
+上标 $[k]$ 表示迭代次数。令 $q=hL<1$，证明还给出误差界
+\[
+ \|x-x^{[k]}\|_\infty\leq\frac{q^k}{1-q}\|x^{[1]}-x^{[0]}\|_\infty.
+\]
+
+\begin{example}
+对 $y'=t+y$、$y(0)=0$，前四次近似为 $y^{[0]}=0$、$y^{[1]}=t^2/2$、$y^{[2]}=t^2/2+t^3/6$、$y^{[3]}=t^2/2+t^3/6+t^4/24$。其极限为 $e^t-1-t$，直接求导可验证。Picard 迭代在这里产生了解的幂级数，但其一般依据是积分算子的收敛性。
+\end{example}
+
+\section{仅有连续性时的存在性与非唯一性}
+\begin{theorem}[Peano 存在定理]
+若有限维系统的 $f$ 在初值点的一个开邻域内连续，则该初值问题至少有一个局部解。
+\end{theorem}
+\begin{proof}[证明思路]
+在紧柱体上取有界的 $f$，选足够短的时间区间以使 Euler 折线不离开柱体。这些折线一致有界且具有共同的 Lipschitz 常数；由 Arzelà--Ascoli 定理可抽出一致收敛子列。利用 $f$ 在柱体上的一致连续性，证明折线满足积分方程的残差一致趋于零，再取极限得到式\eqref{eq:ode-integral-ivp}。向负时间同理。紧致性步骤见附录\ref{app:ode-analysis}。
+\end{proof}
+
+连续性不能保证唯一性。对 $y'=\sqrt{|y|}$、$y(0)=0$，每个 $a\geq0$ 都给出解
+\[
+ y_a(t)=\begin{cases}0,&t\leq a,\\(t-a)^2/4,&t>a.\end{cases}
+\]
+在 $a$ 处左右导数均为零，故它是 $C^1$ 函数，并处处满足方程。解可以等待任意时间后离开零点。另一方面，Lipschitz 条件只是唯一性的充分条件；某点不满足它时，必须另作判断。
+
+\section{高阶方程与方程组的统一处理}
+对 $y^{(n)}=g(t,y,\ldots,y^{(n-1)})$，令 $x_j=y^{(j-1)}$，得到
+\[
+ x_1'=x_2,\ \ldots,\ x_{n-1}'=x_n,\quad x_n'=g(t,x_1,\ldots,x_n).
+\]
+初始导数数据恰好组成向量初值。因此，只要 $g$ 连续且对状态局部 Lipschitz，就可应用定理\ref{thm:ode-picard}。若原方程是隐式的，则先检查能否在给定分支附近解出最高阶导数。
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-picard} 对 $y'=y$、$y(0)=1$ 写出前三次 Picard 迭代，并证明第 $k$ 次为 $\sum_{j=0}^k t^j/j!$。
+ \item 验证 $f(y)=|y|$ 的全局 Lipschitz 性，并求初值为正、零、负时的解。
+ \item 对 $y'=1/y$、$y(0)=0$，说明为什么上述两个存在定理都不能应用。
+ \item 将 $y''+y^3=0$ 写成一阶系统，验证每个初值附近的存在唯一性。
+\end{enumerate}
+
+\chapter{解的延拓与连续依赖性}
+\label{chap:ode-dependence}
+
+局部存在唯一性解决了初始时刻附近的问题。要研究较长时间，还需要控制解的大小，并了解初值或方程的微小变化如何传播。
+
+\section{Gronwall 不等式与误差估计}
+\begin{theorem}[Gronwall 不等式]
+\label{thm:ode-gronwall}
+设 $u,b$ 在 $[t_0,T]$ 上连续非负，$a\geq0$。若 $u(t)\leq a+\int_{t_0}^t b(s)u(s)\,\mathrm ds$，则
+\[
+ u(t)\leq a\exp\!\left(\int_{t_0}^t b(s)\,\mathrm ds\right).
+\]
+\end{theorem}
+\begin{proof}
+先令 $a>0$，记 $v(t)=a+\int_{t_0}^t b(s)u(s)\,\mathrm ds$，则 $u\leq v$、$v'\leq bv$。因此 $(e^{-\int_{t_0}^t b}v)'\leq0$，积分得到结论。若 $a=0$，将右端的常数换成任意 $\varepsilon>0$，应用已证结果后令 $\varepsilon\downarrow0$。
+\end{proof}
+
+向负时间的估计可用变量 $\tau=t_0-t$ 化为上述形式。该不等式的作用是把含未知函数积分的上界，变成已知量的显式上界。
+
+\section{解对初值和右端的连续依赖}
+设 $x'=f(t,x)$、$z'=g(t,z)$ 的两条解在 $[t_0,T]$ 上均存在。假设所需区域内 $f$ 关于状态的 Lipschitz 常数为 $L$，且沿 $z$ 有 $\|f(t,z(t))-g(t,z(t))\|\leq\eta$。记 $\delta=\|x(t_0)-z(t_0)\|$，由积分方程得到
+\[
+ \|x(t)-z(t)\|\leq\delta+\eta(t-t_0)+L\int_{t_0}^t\|x(s)-z(s)\|\,\mathrm ds.
+\]
+令右端为 $v(t)$，则 $v'\leq\eta+Lv$、$v(t_0)=\delta$，乘以积分因子可得
+\begin{equation}
+ \|x(t)-z(t)\|\leq
+ \begin{cases}
+ \delta e^{L(t-t_0)}+\dfrac{\eta}{L}(e^{L(t-t_0)}-1),&L>0,\\
+ \delta+\eta(t-t_0),&L=0.
+ \end{cases}
+ \label{eq:ode-dependence-bound}
+\end{equation}
+特别地，同一方程的初值误差最多按此上界放大。参考解图像位于定义域内部时，可选紧管状邻域；小扰动在首次可能离开该邻域前满足上述估计，选扰动足够小即可排除离开，再用延拓定理保证共同存在。这给出固定紧时间段上的连续依赖性。估计随时间增长，并不等于无限时间稳定性。
+
+\section{最大解与延拓定理}
+\begin{definition}
+若一个解在更大的区间上存在且限制到原区间后与原解相同，称其为原解的延拓（continuation）。不能进一步延拓的解称最大解（maximal solution），其定义区间称最大存在区间。
+\end{definition}
+
+在连续且局部 Lipschitz 的条件下，所有同初值局部解在交集上相同，因此可在其区间的并集上拼接成唯一最大解，其区间为某个开区间 $(\alpha,\beta)$。
+
+\begin{theorem}[有限端点的延拓判据]
+\label{thm:ode-continuation}
+设 $f:D\to\mathbb R^d$ 连续且关于状态局部 Lipschitz。若解在 $[t_0,\beta)$ 上存在，$\beta<\infty$，且接近 $\beta$ 时其图像保持在 $D$ 的某个紧子集 $K$ 内，则该解可延拓过 $\beta$。
+\end{theorem}
+\begin{proof}
+$f$ 在 $K$ 上有界，设界为 $M$。对足够接近 $\beta$ 的 $s,t$，积分方程给出 $\|x(t)-x(s)\|\leq M|t-s|$，故存在有限极限 $x_\beta$。由 $K$ 闭得 $(\beta,x_\beta)\in K\subset D$。在此点应用局部存在定理，并以积分方程将新旧解拼接；连续性保证拼接后的导数也满足方程，唯一性保证两段相容。
+\end{proof}
+
+因此，有限最大端点意味着解的图像无法继续保持在定义域内部的紧集里。原因可能是状态无界，也可能是趋近定义域边界，二者不能混同。
+
+\section{有限时间爆破与全局存在}
+解在有限时间内范数趋于无穷称为有限时间爆破（finite-time blow-up）。例如 $y'=y^2$、$y(0)=1$ 的解在 $t=1$ 爆破，即使右端在整个平面上光滑。
+
+\begin{theorem}[线性增长条件]
+设 $f$ 在 $\mathbb R\times\mathbb R^d$ 上连续且关于状态局部 Lipschitz，且
+\[
+ \|f(t,x)\|\leq a(t)+b(t)\|x\|,
+\]
+其中 $a,b$ 连续非负。则任意初值的解在整个实轴上存在。
+\end{theorem}
+\begin{proof}
+在任意有限时间段 $[t_0,T]$ 上，令 $A=\|x_0\|+\int_{t_0}^T a(s)\,\mathrm ds$。积分方程与定理\ref{thm:ode-gronwall}给出 $\|x(t)\|\leq A\exp(\int_{t_0}^T b)$，该界不依赖于尚未到达的最大端点。若有限最大端点位于此时间段，解图像就保持在一个紧柱体中，与定理\ref{thm:ode-continuation}矛盾。负时间同理。
+\end{proof}
+
+\begin{example}
+对 $y''+y^3=0$，能量 $(y')^2/2+y^4/4$ 守恒，因此状态 $(y,y')$ 始终有界。虽然其右端不满足全局线性增长上界，仍可用延拓判据证明解双向全局存在。充分条件不满足不代表结论不成立。
+\end{example}
+
+\section{参数依赖与变分方程（选学）}
+设 $\mu\in\mathbb R^m$，考虑 $x'=f(t,x,\mu)$、$x(t_0,\mu)=\xi(\mu)$。若 $f,D_xf,D_\mu f$ 连续且 $\xi\in C^1$，则在参考解的任意紧存在区间上，附近参数的解关于 $\mu$ 可微。其灵敏度矩阵 $Z=\partial x/\partial\mu\in\mathbb R^{d\times m}$ 满足
+\begin{equation}
+ Z'=D_xf(t,x,\mu)Z+D_\mu f(t,x,\mu),\qquad Z(t_0)=D\xi(\mu).
+ \label{eq:ode-sensitivity}
+\end{equation}
+\textbf{证明思路：}先由式\eqref{eq:ode-dependence-bound}控制参数差商，再对积分方程使用一阶增量公式。连续导数使余项在紧邻域内一致趋于零，Gronwall 估计使差商收敛到上述线性积分方程的解。这一论证提供可微性，随后才可合法地对原方程求参数导数。
+
+例如 $y'=\mu y$、$y(0)=y_0$ 给出 $y=y_0e^{\mu t}$，$Z=ty_0e^{\mu t}$；代入 $Z'=\mu Z+y$、$Z(0)=0$ 可核验。
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-growth} 对 $y'=\sin(t+y)$ 证明任意初值解全局存在，并给出两个初值解之差的上界。
+ \item\label{ex:ode-domain} 求 $y'=1/y$、$y(0)=1$ 的最大解，说明其有限端点为何不是状态爆破。
+ \item 对 $y''+cy'+ky=0$，$c,k>0$，用能量证明前向解有界，再证明全局存在。
+ \item 解释 $y'=y$ 的解为何连续依赖初值，但零解仍不是前向稳定的。
+\end{enumerate}
+
+\chapter{高阶线性微分方程}
+\label{chap:ode-linear-scalar}
+
+固定区间 $I$，设各系数与 $g$ 连续，研究标准线性方程
+\begin{equation}
+ L[y]:=y^{(n)}+a_{n-1}(t)y^{(n-1)}+\cdots+a_0(t)y=g(t).
+ \label{eq:ode-linear-standard}
+\end{equation}
+若原式最高阶系数不恒为 $1$，须先限制到它不为零的区间再归一化。
+
+\section{线性方程的解空间与叠加原理}
+\begin{theorem}
+方程 $L[y]=0$ 在 $I$ 上的解构成 $n$ 维向量空间。若 $y_1,\ldots,y_n$ 是其一组基，$y_p$ 是 $L[y]=g$ 的一个特解，则全部非齐次解为
+\[
+ y=y_p+C_1y_1+\cdots+C_ny_n.
+\]
+\end{theorem}
+\begin{proof}
+线性性保证齐次解对线性组合封闭。将高阶方程化为一阶系统后，局部存在唯一性成立；在 $I$ 的每个紧时间段上，连续系数有界，线性增长估计保证解可延拓。因此给定 $t_0\in I$，初值映射 $y\mapsto(y(t_0),\ldots,y^{(n-1)}(t_0))$ 是解空间到 $\mathbb R^n$ 的线性双射，维数为 $n$。最后，$L[y]=L[y_p]$ 等价于 $L[y-y_p]=0$。
+\end{proof}
+
+齐次解空间的一组基称基本解组（fundamental set of solutions）。非齐次解集是该空间的平移，一般不包含零函数。
+
+\section{Wronski 行列式与 Abel 公式}
+对 $n$ 个 $C^{n-1}$ 函数定义 Wronski 行列式（Wronskian）
+\[
+ W(t)=\det\bigl(y_j^{(i-1)}(t)\bigr)_{i,j=1}^n.
+\]
+若这些函数都是式\eqref{eq:ode-linear-standard}的齐次解，由初值映射可知：它们构成基本解组当且仅当某一点 $W(t_0)\ne0$。
+
+\begin{proposition}[Abel 公式]
+对于同一标准齐次线性方程的 $n$ 个解，
+\begin{equation}
+ W(t)=W(t_0)\exp\!\left(-\int_{t_0}^t a_{n-1}(s)\,\mathrm ds\right).
+ \label{eq:ode-abel}
+\end{equation}
+\end{proposition}
+\begin{proof}
+按行对行列式求导。前 $n-1$ 行求导后分别与下一行相同，相应项为零。最后一行用方程替换，除 $-a_{n-1}$ 倍原行外，其余项均与前面某行重复，故 $W'=-a_{n-1}W$。应用一阶线性公式即得结论。
+\end{proof}
+
+此结论依赖这些函数满足同一正则线性方程。任意函数族不能只凭 $W\equiv0$ 推出线性相关：$t^2$ 与 $t|t|$ 在 $\mathbb R$ 上均为 $C^1$，其 Wronskian 恒为零，但比较正、负半轴可知它们线性无关。
+
+\section{常系数齐次方程与特征根}
+若系数为常数，记 $D=\mathrm d/\mathrm dt$，对应多项式 $P(r)=r^n+a_{n-1}r^{n-1}+\cdots+a_0$。由 $P(D)e^{rt}=P(r)e^{rt}$，每个特征根 $r$ 给出指数解。若 $r$ 的重数为 $m$，则
+\[
+ e^{rt},te^{rt},\ldots,t^{m-1}e^{rt}
+\]
+都是解，因为 $P(D)(e^{rt}v)=e^{rt}P(D+r)v$。不同根对应的这些函数线性无关：对某根的多项式指数项，施加其余根的消去算子，只留下该根的项；其余因子在有限维多项式空间上可逆，从而该多项式必须为零。函数总数为 $n$，所以构成基本解组。
+
+对于共轭根 $\alpha\pm i\beta$，取实部与虚部得到 $t^ke^{\alpha t}\cos\beta t$、$t^ke^{\alpha t}\sin\beta t$。例如 $(D-1)^2(D^2+4)y=0$ 的实通解为 $(C_1+C_2t)e^t+C_3\cos2t+C_4\sin2t$。
+
+\section{非齐次方程的待定系数法与常数变易法}
+对常系数方程，若右端为 $e^{\alpha t}$ 乘多项式，或其与正弦、余弦的组合，可用待定系数法（method of undetermined coefficients）。例如复形式右端 $e^{\lambda t}Q_m(t)$，若 $\lambda$ 是 $P$ 的 $s$ 重根，试取 $y_p=t^se^{\lambda t}R_m(t)$，其中 $R_m$ 为待定的至多 $m$ 次多项式。因子 $t^s$ 用于避开齐次核；该规则来自前述移位算子恒等式。
+
+\begin{example}
+求 $y''-2y'+y=e^t$ 的通解。
+\end{example}
+\begin{solve}
+特征根 $1$ 为二重根，令 $y=e^tv$，则 $(D-1)^2y=e^tv''$。于是 $v''=1$，故 $y=e^t(C_1+C_2t+t^2/2)$。
+\end{solve}
+
+对于二阶方程 $y''+py'+qy=g$，已知基本解组 $y_1,y_2$ 时，令 $y_p=u_1y_1+u_2y_2$，附加 $u_1'y_1+u_2'y_2=0$。代入得
+\[
+ u_1'y_1'+u_2'y_2'=g,\qquad
+ u_1'=-\frac{y_2g}{W},\quad u_2'=\frac{y_1g}{W},
+\]
+其中 $W=y_1y_2'-y_1'y_2\ne0$。积分即得到常数变易公式。高阶情形同理，对 $u_j'$ 建立由 Wronski 矩阵组成的线性方程组。
+
+\section{Euler 方程与已知一解时的降阶}
+等维 Euler 方程（Cauchy--Euler equation）如 $t^2y''+aty'+by=0$。在任一不含零的半轴上令 $\tau=\log|t|$、$u(\tau)=y(t)$，则 $ty'=u'$、$t^2y''=u''-u'$，故
+\[
+ u''+(a-1)u'+bu=0.
+\]
+例如 $t^2y''-ty'+y=0$ 的解可写成 $y=|t|(C_1+C_2\log|t|)$，在固定半轴也可将 $|t|$ 改为 $t$ 并吸收常数。
+
+若已知 $y''+py'+qy=0$ 的解 $y_1$，在 $y_1\ne0$ 的子区间令 $y=v y_1$，得到 $v''+(2y_1'/y_1+p)v'=0$。因此可取第二解
+\[
+ y_2(t)=y_1(t)\int^t\frac{e^{-\int^s p(\tau)\,\mathrm d\tau}}{y_1(s)^2}\,\mathrm ds.
+\]
+选定积分基点后，该式在所用区间给出与 $y_1$ 线性无关的解。
+
+\section{振动、阻尼与共振}
+对 $my''+cy'+ky=F_0\cos\Omega t$，设 $m,k>0$、$c\geq0$。齐次特征根由 $mr^2+cr+k=0$ 给出：$0<c<2\sqrt{mk}$ 为欠阻尼，等号为临界阻尼，更大时为过阻尼。三种情况下 $c>0$ 均使自由响应趋于零。
+
+当 $c>0$ 时，受迫稳态振幅为
+\[
+ A(\Omega)=\frac{|F_0|}{\sqrt{(k-m\Omega^2)^2+c^2\Omega^2}},
+\]
+可由复试探解 $Ce^{i\Omega t}$ 求得。若 $c=0$ 且 $\Omega=\omega_0=\sqrt{k/m}$，出现特解 $F_0t\sin(\omega_0t)/(2m\omega_0)$，振幅随时间增长，这才是理想无阻尼的共振增长。有阻尼系统的频率响应峰值与此不同，且峰值未必在 $\omega_0$。
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-constant} 解 $y''+4y=0$、$y(0)=1$、$y'(0)=2$。
+ \item\label{ex:ode-resonance} 求 $y''+y=\sin t$ 的一个特解，并解释试取 $A\sin t+B\cos t$ 为什么失败。
+ \item 用常数变易法求 $y''+y=\sec t$ 在 $(-\pi/2,\pi/2)$ 上的特解。
+ \item 由振幅公式证明：当 $c^2<2mk$ 时正频率峰值在 $\Omega=\sqrt{k/m-c^2/(2m^2)}$；否则振幅在非负频率上最大于零频率。
+\end{enumerate}
+
+\chapter{线性微分方程组}
+\label{chap:ode-linear-system}
+
+设 $A:I\to\mathbb R^{d\times d}$、$b:I\to\mathbb R^d$ 连续，考虑 $x'=A(t)x+b(t)$。矩阵语言把多个耦合变量作为一个状态处理，并统一高阶标量方程与耦合系统。
+
+\section{基本矩阵与状态转移矩阵}
+齐次系统的解空间为 $d$ 维。以一组基解为列构成的矩阵 $\Phi(t)$ 称基本矩阵（fundamental matrix），满足 $\Phi'=A\Phi$，且处处可逆。可逆性来自初值唯一性：若 $\Phi(t_*)c=0$，则解 $\Phi(t)c$ 与零解具有相同初值，所以恒为零，基解的线性无关性迫使 $c=0$。
+
+两个基本矩阵满足 $\Psi=\Phi C$，其中 $C$ 是常可逆矩阵，因为
+\[
+ (\Phi^{-1}\Psi)'=-\Phi^{-1}A\Psi+\Phi^{-1}A\Psi=0.
+\]
+状态转移矩阵（state transition matrix）定义为
+\[
+ U(t,s)=\Phi(t)\Phi(s)^{-1}.
+\]
+它不依赖基的选择，并满足 $U(t,s)U(s,r)=U(t,r)$、$U(s,s)=I_d$。初值解就是 $x(t)=U(t,t_0)x_0$。
+
+\section{Liouville 公式与常数变易}
+由行列式求导及 $\Phi'=A\Phi$，得到 Liouville 公式（Liouville formula）
+\[
+ \det\Phi(t)=\det\Phi(t_0)\exp\!\left(\int_{t_0}^t\operatorname{tr}A(s)\,\mathrm ds\right).
+\]
+也可按行列式多线性直接推导 $(\det\Phi)'=(\operatorname{tr}A)\det\Phi$。它描述线性系统对有向体积的缩放。
+
+对非齐次系统令 $x=\Phi c(t)$，则 $c'=\Phi^{-1}b$，所以
+\begin{equation}
+ x(t)=U(t,t_0)x_0+\int_{t_0}^t U(t,s)b(s)\,\mathrm ds.
+ \label{eq:ode-system-variation}
+\end{equation}
+第一项是初始状态的自由演化，第二项是各时刻输入经过后续演化后的累积；该解释将在拉普拉斯变换中再次出现。
+
+\section{常系数系统与矩阵指数}
+对常矩阵 $A$，定义矩阵指数（matrix exponential）
+\[
+ e^{tA}=\sum_{k=0}^\infty\frac{t^kA^k}{k!}.
+\]
+因 $\|A^k\|\leq\|A\|^k$，此级数及其逐项导数级数在紧时间段上一致收敛，故 $(e^{tA})'=Ae^{tA}$、$e^{0A}=I_d$。唯一性给出 $U(t,s)=e^{(t-s)A}$。若 $A=SDS^{-1}$，则 $e^{tA}=Se^{tD}S^{-1}$。
+
+当 $AB=BA$ 时，由二项式展开与绝对收敛可得 $e^{A+B}=e^Ae^B$；一般不成立。例如取
+\[
+ A=\begin{pmatrix}0&1\\0&0\end{pmatrix},\qquad B=\begin{pmatrix}0&0\\1&0\end{pmatrix}.
+\]
+有 $e^Ae^B=\begin{pmatrix}2&1\\1&1\end{pmatrix}$，而 $A+B$ 对称，其指数也对称且两对角元相同，故二者不同。
+
+\section{重特征值、Jordan 链与实解}
+若 $Av=\lambda v$，则 $e^{\lambda t}v$ 为解。若 $(A-\lambda I)w=v$，则 $e^{\lambda t}(w+tv)$ 也是解；求导可直接验证。更一般的 Jordan 块 $J=\lambda I+N$、$N^m=0$ 给出
+\[
+ e^{tJ}=e^{\lambda t}\left(I+tN+\cdots+\frac{t^{m-1}N^{m-1}}{(m-1)!}\right).
+\]
+重根本身不一定产生多项式因子，只有非平凡 Jordan 块才产生。若 $A$ 为实矩阵且 $\lambda=\alpha+i\beta$、$v=u+iw$，则实解对为
+\[
+ e^{\alpha t}(u\cos\beta t-w\sin\beta t),\qquad
+ e^{\alpha t}(u\sin\beta t+w\cos\beta t).
+\]
+
+\begin{example}
+解 $x'=\begin{pmatrix}-1&1\\0&-1\end{pmatrix}x$、$x(0)=(a,b)^{\mathsf T}$。
+\end{example}
+\begin{solve}
+$A=-I+N$、$N^2=0$，所以 $e^{tA}=e^{-t}\begin{pmatrix}1&t\\0&1\end{pmatrix}$，得到 $x(t)=e^{-t}(a+bt,b)^{\mathsf T}$。虽有因子 $t$，指数衰减最终仍占主导。
+\end{solve}
+
+\section{变系数系统与周期系数简介}
+一般不能写 $U(t,t_0)=\exp(\int_{t_0}^t A(s)\,\mathrm ds)$。若所有 $A(t)$ 两两可交换，则 $B(t)=\int_{t_0}^t A(s)\,\mathrm ds$ 与 $B'(t)=A(t)$ 可交换，逐项求导给出 $(e^{B(t)})'=A(t)e^{B(t)}$，此时该式成立。
+
+若 $A(t+T)=A(t)$，$T>0$，令 $\Phi(t)=U(t,0)$、$M=\Phi(T)$。唯一性给出
+\[
+ \Phi(t+T)=\Phi(t)M,\qquad \Phi(nT)=M^n.
+\]
+$M$ 称单周期矩阵，其特征值称 Floquet 乘子（Floquet multipliers）。当所有乘子模小于 $1$ 时，$M^n$ 指数衰减；结合 $\Phi$ 在 $[0,T]$ 上有界，可知连续时间解也指数衰减。完整 Floquet 分解属于进一步理论，本节不需要它。
+
+\section{线性系统的增长与衰减}
+若 $A$ 的全部特征值实部为负，可取 $\alpha>0$ 小于这些衰减率的最小值。Jordan 公式中有限次多项式均可被略慢的指数吸收，故存在 $C\geq1$ 使
+\[
+ \|e^{tA}\|\leq Ce^{-\alpha t},\qquad t\geq0.
+\]
+若有特征值实部为正，则相应实解或复解的实二维表示中存在增长方向。虚轴上的特征值是否产生增长还取决于 Jordan 块：$A=0$ 产生常值解，而 $A=\begin{pmatrix}0&1\\0&0\end{pmatrix}$ 产生线性增长。这些区别是稳定性判据的基础。
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-system} 解 $x_1'=x_1+x_2$、$x_2'=x_1+x_2$，初值为 $(1,0)^{\mathsf T}$。
+ \item 验证基本矩阵 $\Phi C$ 与 $\Phi$ 产生相同的 $U(t,s)$，其中 $C$ 为常可逆矩阵。
+ \item\label{ex:ode-nilpotent} 若 $A^3=0$，求 $e^{tA}$ 并直接验证导数公式。
+ \item 对 $x'=A(t)x+b(t)$，从式\eqref{eq:ode-system-variation}验证微分方程和初值，而非仅记忆公式。
+\end{enumerate}
+
+\chapter{自治系统与平面定性理论}
+\label{chap:ode-phase-plane}
+
+本章设 $x'=f(x)$，$f$ 在开区域 $D\subseteq\mathbb R^d$ 上为 $C^1$。即使没有显式解，也可以由向量场判断解的方向、可能的极限与周期运动。
+
+\section{相空间、轨道与局部流}
+状态空间称相空间（phase space），解 $x(t)$ 在其中的像称轨道（orbit）。记初值为 $x_0$ 的解为 $\varphi_t(x_0)$，称局部流（local flow）。自治性和唯一性给出
+\[
+ \varphi_0(x_0)=x_0,\qquad
+ \varphi_{t+s}(x_0)=\varphi_t(\varphi_s(x_0)),
+\]
+其中有关解都必须存在。若两条解轨道相交，将相交时刻对齐后可由唯一性知它们属于同一轨道；不同初始时刻只是同一运动的不同参数起点。
+
+若解在某个 $T>0$ 后回到同一状态，则唯一性使其重复原来的运动。非平衡周期解的轨道是闭曲线；平衡点本身则是一点轨道。
+
+\section{标量自治方程与平衡点}
+对 $y'=g(y)$，在不含零点的区间内 $g$ 符号固定，故非平衡解严格单调。实轴上标出 $g=0$ 的点并在各区间画出方向，得到相线（phase line）。若全局正向解有界且单调，它存在有限极限 $\ell$；若 $\ell$ 仍在 $g$ 的定义域内，则必有 $g(\ell)=0$，否则连续性使 $y'$ 在充分大时间后保持远离零，矛盾。
+
+在局部唯一性条件下，非平衡解不能有限时间到达平衡点：若到达，则以该时刻为初值向前、向后应用唯一性，将迫使它与常值解重合。因而 $y'=y(1-y)$ 的正解从两侧趋近 $1$，却不在有限时间越过 $1$。
+
+\section{平面线性系统的相图}
+对实 $2\times2$ 矩阵 $A$，记 $\tau=\operatorname{tr}A$、$\Delta=\det A$，特征方程为 $\lambda^2-\tau\lambda+\Delta=0$。相图（phase portrait）汇集区域内不同初值的轨道。
+\begin{itemize}
+ \item $\Delta<0$：两个实根异号，原点为鞍点（saddle），一条方向收缩、另一条方向伸长。
+ \item $\Delta>0$、$\tau^2>4\Delta$：两个不同实根同号，原点为结点（node）；$\tau<0$ 吸引，$\tau>0$ 排斥。
+ \item $\tau^2<4\Delta$、$\tau\ne0$：复根实部非零，原点为焦点（focus），按 $\tau$ 的符号向内或向外旋转。
+ \item $\tau=0$、$\Delta>0$：纯虚特征值，原点为中心（center），非零轨道是闭合椭圆。
+\end{itemize}
+重实根情形还须检查是否有两个独立特征向量；$\Delta=0$ 有零特征值，不属于上述非退化分类。旋转方向应由实际向量场判断，不能只由特征值决定。
+
+\section{非线性平面系统的相图构造}
+设 $u'=P(u,v)$、$v'=Q(u,v)$。零增长曲线（nullcline）$P=0$、$Q=0$ 把平面划分为分量符号固定的区域：$P>0$ 向右、$Q>0$ 向上，其余类推。两类曲线交点为平衡点，但某一条零增长曲线通常不是轨道。
+
+例如 $u'=u(1-u-v)$、$v'=v(2-u-v)$ 在第一象限中以直线 $u+v=1,2$ 分区。坐标轴因右端含相应变量而保持不变，局部唯一性又阻止正解穿越坐标轴。这样的正向不变集（positively invariant set）帮助限定长期行为。平衡点附近可计算 Jacobian 矩阵作线性化，其严格适用条件见第\ref{chap:ode-stability}章。
+
+\section{首次积分、能量与周期运动}
+若 $H\in C^1(D)$ 且 $\nabla H\cdot f=0$，则由链式法则 $\mathrm dH(x(t))/\mathrm dt=0$，故 $H$ 是首次积分。轨道位于其等值集内，但一个等值集可以包含多条轨道。
+
+对无阻尼单摆 $\theta''+\omega^2\sin\theta=0$，$\omega>0$，令 $v=\theta'$，有能量
+\[
+ H(\theta,v)=\frac{v^2}{2}+\omega^2(1-\cos\theta).
+\]
+在一个势阱内，$0<E<2\omega^2$ 的能量曲线为围绕最低点的闭合曲线，且向量场处处非零，故对应周期摆动。理由是该正则闭曲线紧，运动速度的模有正下界，一次绕行所需时间有限。$E=2\omega^2$ 的曲线经过不稳定平衡点，不能由同一论证推出有限周期。$E>2\omega^2$ 对应持续旋转；若将角度视为实数，其轨道不闭合，若模 $2\pi$ 识别角度，则应在圆柱相空间中理解。
+
+\section{周期轨道与极限环（选学）}
+孤立的周期轨道称极限环（limit cycle），中心周围的一族闭轨不满足孤立性。平面系统
+\[
+ u'=(1-u^2-v^2)u-v,\qquad v'=u+(1-u^2-v^2)v
+\]
+在极坐标中满足 $r'=r(1-r^2)$、$\theta'=1$。所以 $r=1$ 是吸引的极限环，非零邻近轨道渐近靠近它而不与之相交。
+
+\begin{proposition}[Bendixson 判据]
+在单连通开区域中，若 $P,Q\in C^1$ 且 $P_u+Q_v$ 处处严格同号，则区域内不存在非平衡周期轨道。
+\end{proposition}
+\begin{proof}
+若存在周期轨道，它是简单闭曲线，围成的有界区域也在给定单连通区域内。沿轨道向量场与边界相切，通量为零；Green 公式却把此通量写为 $\iint(P_u+Q_v)\,\mathrm du\,\mathrm dv$，其严格同号，矛盾。
+\end{proof}
+
+对正向全局轨道，定义 $\omega$ 极限集（omega-limit set）为所有 $x(t_n)$ 的极限点，其中 $t_n\to\infty$。Poincaré--Bendixson 定理的基础版本是：平面 $C^1$ 系统的一条正向轨道若保持在定义域内部的紧集中，且其 $\omega$ 极限集不含平衡点，则该极限集是一条周期轨道。这里引用该定理而省略平面拓扑证明，见\cite[第7章]{teschl-ode}。维数、紧性和无平衡点条件均不可省略。
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-phase} 分析 $y'=y(1-y)(y-2)$ 的相线及各平衡点附近的方向。
+ \item\label{ex:ode-spiral} 判断 $A=\begin{pmatrix}-1&-2\\2&-1\end{pmatrix}$ 的相图类型与旋转方向。
+ \item 对上述极限环系统，证明任意 $r(0)>0$ 的解满足 $r(t)\to1$。
+ \item 证明 $u'=-u+\sin v$、$v'=-v+\sin u$ 在平面上没有非平衡周期轨道。
+\end{enumerate}
+
+\chapter{稳定性与 Lyapunov 方法}
+\label{chap:ode-stability}
+
+本章研究自治系统 $x'=f(x)$，假设 $f$ 局部 Lipschitz。将平衡点平移到原点后有 $f(0)=0$。稳定性描述的是所有充分小初始扰动在整个未来的行为，比有限时间的连续依赖性更强。
+
+\section{稳定、渐近稳定与指数稳定}
+\begin{definition}
+原点称为 Lyapunov 稳定（Lyapunov stable），若对每个 $\varepsilon>0$，存在 $\delta>0$，使 $\|x(0)\|<\delta$ 的解对所有 $t\geq0$ 存在且满足 $\|x(t)\|<\varepsilon$。若不满足此条件，称不稳定。
+
+若原点稳定，且存在 $r>0$ 使 $\|x(0)\|<r$ 的解均趋于零，则称渐近稳定（asymptotically stable）。若存在 $C\geq1$、$\alpha,r>0$ 使这些解满足 $\|x(t)\|\leq Ce^{-\alpha t}\|x(0)\|$，则称指数稳定（exponentially stable）。
+\end{definition}
+
+指数稳定蕴含渐近稳定，渐近稳定蕴含稳定，逆命题一般不成立。$y'=0$ 的零解稳定而不渐近稳定。$y'=-y^3$ 的解为 $y_0/\sqrt{1+2y_0^2t}$，零解渐近稳定，但只有代数衰减，不指数稳定。若吸引域为整个状态空间且原点稳定，称全局渐近稳定。非自治系统的一致稳定性还要求 $\delta$ 不依赖初始时刻，本章不将这一条件隐含在自治定义中。
+
+\section{常系数线性系统的稳定性判据}
+\begin{theorem}
+\label{thm:ode-linear-stability}
+对 $x'=Ax$：原点稳定当且仅当所有特征值实部不大于零，且虚轴上的特征值均为半单特征值，即相应 Jordan 块均为一阶。原点渐近稳定当且仅当所有特征值实部严格为负；此时也指数稳定。
+\end{theorem}
+\begin{proof}
+由 Jordan 公式，负实部块产生多项式乘衰减指数，虚轴上一阶块有界；故第一组条件使 $\sup_{t\geq0}\|e^{tA}\|<\infty$，立即得到稳定性。正实部块产生指数增长，虚轴上高阶块产生多项式增长，均可将相应初始向量任意缩小而仍使解最终离开某个固定邻域，故不稳定。全部实部为负时，第\ref{chap:ode-linear-system}章已证明指数估计；若有纯虚特征值，则存在不趋于零的非零解，因此不渐近稳定。
+\end{proof}
+
+\section{非线性系统的线性化方法}
+若 $f\in C^1$，记 $A=Df(0)$，可写 $f(x)=Ax+r(x)$，其中 $\|r(x)\|/\|x\|\to0$。当 $A$ 全部特征值实部为负时，取 $\|e^{tA}\|\leq Me^{-\alpha t}$，并在足够小球内使 $\|r(x)\|\leq\eta\|x\|$、$M\eta<\alpha$。常数变易给出
+\[
+ e^{\alpha t}\|x(t)\|\leq M\|x_0\|+M\eta\int_0^t e^{\alpha s}\|x(s)\|\,\mathrm ds.
+\]
+Gronwall 不等式推出 $\|x(t)\|\leq M\|x_0\|e^{-(\alpha-M\eta)t}$。初值足够小时此估计阻止解首次离开小球，延拓定理再保证前向全局存在。因此原点局部指数稳定。
+
+若 $A$ 有正实部特征值，则原点不稳定，这是线性化不稳定性定理；证明需要控制不稳定方向上的非线性余项，此处引用标准结论而省略证明，参见\cite[第9章]{teschl-ode}。若没有正实部特征值但有零实部特征值，线性化一般不能判定。例如 $y'=-y^3$、$y'=y^3$ 的线性化均为 $y'=0$，前者渐近稳定，后者的任意正初值解都将离开原点邻域。
+
+\section{Lyapunov 直接法}
+\begin{definition}
+若 $C^1$ 函数 $V$ 在原点邻域满足 $V(0)=0$、$V(x)>0$（$x\ne0$），称 $V$ 正定。其沿系统的导数定义为 $\dot V(x)=\nabla V(x)\cdot f(x)$，故沿解 $\frac{\mathrm d}{\mathrm dt}V(x(t))=\dot V(x(t))$。具有适当符号性质的 $V$ 称 Lyapunov 函数（Lyapunov function）。
+\end{definition}
+
+\begin{theorem}[Lyapunov 直接法]
+若 $V$ 局部正定且 $\dot V\leq0$，则原点稳定。若进一步 $\dot V(x)<0$ 对所有邻近非零点成立，则原点渐近稳定。
+\end{theorem}
+\begin{proof}
+取闭球 $\overline B_\varepsilon$ 包含在所用邻域内。正定性和紧性给出 $m=\min_{\|x\|=\varepsilon}V(x)>0$。由 $V$ 连续，可取 $\delta<\varepsilon$ 使 $\|x\|<\delta$ 时 $V(x)<m$。沿解 $V$ 不增，故解不能首次到达球面；它保持在内部紧子水平集中，因此可向前延拓，得到稳定性。
+
+若 $\dot V$ 负定，先把小初值解限制在上述紧子水平集。对任意更小半径 $\rho>0$，稳定性给出一个半径 $\sigma>0$，使进入 $B_\sigma$ 的解以后始终处于 $B_\rho$。若解永不进入 $B_\sigma$，则在所处紧集与 $\|x\|\geq\sigma$ 的交集上有 $\dot V\leq-c<0$，从而 $V$ 最终为负，矛盾。因此它最终进入并保持在任意 $B_\rho$，即趋于零。
+\end{proof}
+
+\begin{example}[二次型的构造]
+若 $A$ 为 Hurwitz 矩阵，即全部特征值实部为负，给定对称正定矩阵 $Q$，定义
+\[
+ P=\int_0^\infty e^{tA^{\mathsf T}}Qe^{tA}\,\mathrm dt.
+\]
+指数估计保证收敛，且 $x^{\mathsf T}Px=\int_0^\infty (e^{tA}x)^{\mathsf T}Q(e^{tA}x)\,\mathrm dt>0$。对被积函数求导并积分得 $A^{\mathsf T}P+PA=-Q$。因此 $V=x^{\mathsf T}Px$ 满足 $\dot V=-x^{\mathsf T}Qx<0$，给出线性系统的稳定性证书。
+\end{example}
+
+\section{不变性原理与全局结论（选学）}
+\begin{theorem}[LaSalle 不变性原理，紧集版本]
+设 $K\subset D$ 为紧的正向不变集，$V\in C^1$ 且 $\dot V\leq0$ 于 $K$。令 $M$ 为 $\{x\in K:\dot V(x)=0\}$ 中最大的完整不变子集，则每个从 $K$ 出发的解到 $M$ 的距离趋于零。
+\end{theorem}
+\begin{proof}[证明思路]
+$V(x(t))$ 单调有界，故趋于某数 $c$。轨道的 $\omega$ 极限集非空、紧且不变，其上 $V\equiv c$，于是沿该集合内的完整轨道有 $\dot V=0$，故极限集包含于 $M$。若轨道到 $M$ 的距离不趋于零，可取一列远离 $M$ 的状态，紧性产生属于极限集的极限点，矛盾。
+\end{proof}
+
+例如阻尼振子 $y'=v$、$v'=-ky-cv$，$k,c>0$，取 $V=(ky^2+v^2)/2$，则 $\dot V=-cv^2$ 只是半负定。在 $v=0$ 上保持不变还要求 $v'=-ky=0$，故最大不变子集只有原点。能量子水平集紧且正向不变，所以每个解趋于原点。
+
+若 $V$ 定义于整个 $\mathbb R^d$ 且 $V(x)\to\infty$ 当 $\|x\|\to\infty$，称其径向无界（radially unbounded）。结合 $\dot V\leq0$ 可将每条解限制在紧子水平集中，保证前向全局存在；若再满足负定导数或上述不变性条件，可得到全局渐近稳定。
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-stable} 判断 $y'=0$、$y'=-y$、$y'=-y^3$、$y'=y^3$ 的零解稳定性，说明理由。
+ \item\label{ex:ode-lyapunov} 用 $V=(u^2+v^2)/2$ 证明 $u'=-u-v^3$、$v'=u v^2-v$ 的原点全局渐近稳定。
+ \item 对 $A=\begin{pmatrix}-1&1\\0&-1\end{pmatrix}$，求满足 $A^{\mathsf T}P+PA=-I_2$ 的对称矩阵 $P$。
+ \item 说明 $\dot V\leq0$ 为什么不足以推出渐近稳定，并用无阻尼振子的能量举例。
+\end{enumerate}
+
+\chapter{幂级数解法与特殊函数初步}
+\label{chap:ode-series}
+
+幂级数把未知函数转化为一列待定系数，适合构造局部解析解。递推式只解决形式计算，收敛性决定该形式级数是否真正给出解。
+
+\section{解析系数与常点附近的幂级数解}
+若标准方程 $y''+p(t)y'+q(t)y=0$ 的 $p,q$ 在 $t_0$ 附近可展为收敛幂级数，则称 $t_0$ 为常点（ordinary point）。记 $z=t-t_0$，设
+\[
+ p=\sum_{j\geq0}p_jz^j,\quad q=\sum_{j\geq0}q_jz^j,\quad y=\sum_{j\geq0}a_jz^j.
+\]
+比较 $z^k$ 的系数得到
+\begin{equation}
+ (k+2)(k+1)a_{k+2}
+ =-\sum_{j=0}^k\bigl[p_j(k-j+1)a_{k-j+1}+q_ja_{k-j}\bigr].
+ \label{eq:ode-power-recursion}
+\end{equation}
+因此 $a_0=y(t_0)$、$a_1=y'(t_0)$ 决定所有系数。解析存在定理保证所得级数在某个非零半径内收敛；证明可用系数的优级数估计，此处省略估计细节，参见\cite[第4章]{teschl-ode}。
+
+\begin{example}
+对 $y''+y=0$，递推为 $a_{k+2}=-a_k/((k+2)(k+1))$，从而
+\[
+ y=a_0\sum_{j=0}^\infty\frac{(-1)^jt^{2j}}{(2j)!}
+ +a_1\sum_{j=0}^\infty\frac{(-1)^jt^{2j+1}}{(2j+1)!}
+ =a_0\cos t+a_1\sin t.
+\]
+阶乘分母使两级数对任意 $t$ 收敛，故这里的解是全局解析的。
+\end{example}
+
+对 $y''-ty=0$，有 $a_2=0$、$(k+2)(k+1)a_{k+2}=a_{k-1}$（$k\geq1$），于是两个初始系数分别产生
+\[
+ y=a_0(1+t^3/6+t^6/180+\cdots)+a_1(t+t^4/12+t^7/504+\cdots).
+\]
+这说明级数方法并不要求解已经有初等函数名称。
+
+\section{收敛区间与形式计算的合法性}
+幂级数在收敛半径内可逐项微分，且在任何更小闭区间上一致收敛。因而只有证明收敛以后，代入方程和系数比较才形成一个完整解的构造。
+
+若 $p,q$ 可作为复解析函数延伸到以 $t_0$ 为中心、半径 $R$ 的圆盘，则对应初值解在该圆盘解析，其 Taylor 级数至少在 $|t-t_0|<R$ 收敛。最近的系数奇点给出常用的保证范围，但某个特殊解可能跨过该点。例如 $y''-y'/t=0$ 在零点系数奇异，其解 $1,t^2$ 却都在零点解析。仅凭系数奇点不能断言每个解的精确收敛半径。
+
+\section{正则奇点与 Frobenius 方法}
+设 $t_0=0$ 是系数奇点。如果 $P(t)=tp(t)$、$Q(t)=t^2q(t)$ 都可在零点解析延拓，则称零点为正则奇点（regular singular point）。方程可写成
+\[
+ t^2y''+tP(t)y'+Q(t)y=0.
+\]
+Frobenius 方法（Frobenius method）在 $t>0$ 上试取 $y=t^r\sum_{k=0}^\infty a_kt^k$，$a_0\ne0$。若 $P=\sum p_jt^j$、$Q=\sum q_jt^j$，最低次项给出指标方程（indicial equation）
+\[
+ F(r):=r(r-1)+p_0r+q_0=0,
+\]
+其余项满足
+\[
+ F(r+k)a_k=-\sum_{j=1}^k[p_j(r+k-j)+q_j]a_{k-j},\qquad k\geq1.
+\]
+若两个指标根之差不是整数，各根产生一个 Frobenius 解，且所得级数在足够小邻域收敛。复根可在复数中计算再取实部与虚部；实幂在这里用 $t^r=e^{r\log t}$ 解释。
+
+重根或根差为整数时，递推可能遇到零分母，第二解可能需要对数项；其是否出现须由递推或降阶公式判断。例如 $t^2y''+ty'=0$ 的解为 $1,\log t$，而 $t^2y''-2y=0$ 的解为 $t^2,t^{-1}$，虽根差为整数却不含对数。上述收敛与解型定理见\cite[第4章]{teschl-ode}，本章只展开构造计算。
+
+\section{Bessel 方程与 Legendre 方程}
+Bessel 方程（Bessel equation）为
+\[
+ t^2y''+ty'+(t^2-\nu^2)y=0.
+\]
+零点为正则奇点，指标根为 $\pm\nu$。对整数 $n\geq0$，规范化的一个解为第一类 Bessel 函数
+\[
+ J_n(t)=\sum_{k=0}^\infty\frac{(-1)^k}{k!(n+k)!}\left(\frac t2\right)^{2k+n}.
+\]
+相邻项比值证明它对所有有限 $t$ 收敛；代入递推可验证方程。二阶方程仍需第二个独立解，在零点附近它一般具有奇性，故不能把 $J_n$ 单独当成通解。
+
+Legendre 方程（Legendre equation）为
+\[
+ (1-t^2)y''-2ty'+\ell(\ell+1)y=0.
+\]
+在零点展开得 $a_{k+2}=[k(k+1)-\ell(\ell+1)]a_k/[(k+2)(k+1)]$。当 $\ell=n\geq0$ 为整数时，与 $n$ 同奇偶的级数在次数 $n$ 终止，经 $P_n(1)=1$ 规范化得到 Legendre 多项式。前几项为 $P_0=1$、$P_1=t$、$P_2=(3t^2-1)/2$。不同次数的多项式在 $[-1,1]$ 上正交，可将方程写成 $((1-t^2)P_n')'+n(n+1)P_n=0$，对两个次数交叉相乘相减后积分；端点因 $1-t^2=0$ 且多项式导数有界而消失。
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-airy} 求 $y''-ty=0$、$y(0)=1$、$y'(0)=0$ 的前四个非零 Taylor 项。
+ \item\label{ex:ode-frobenius} 求 $t^2y''+ty'-4y=0$ 在 $t>0$ 上的指标根与通解。
+ \item 写出 $J_0$ 的前三个非零项，并代回方程检查相应阶数。
+ \item 由递推求 $P_3$，并直接验证它与 $P_1$ 在 $[-1,1]$ 上正交。
+\end{enumerate}
+
+\chapter{拉普拉斯变换与线性响应}
+\label{chap:ode-laplace}
+
+拉普拉斯变换把常系数线性微分运算转化为代数运算，并将初值直接带入方程。对于分段外力和延迟输入，它尤其方便。
+
+\section{拉普拉斯变换的定义与存在条件}
+\begin{definition}
+对定义于 $t\geq0$ 的函数 $g$，其单边拉普拉斯变换（Laplace transform）为
+\[
+ G(s)=\mathcal L\{g\}(s)=\int_0^\infty e^{-st}g(t)\,\mathrm dt,
+\]
+其中首先取实数 $s$，并只在积分收敛处使用该式。若存在 $M,a,T$ 使 $|g(t)|\leq Me^{at}$ 对 $t\geq T$ 成立，则称 $g$ 为指数阶函数。
+\end{definition}
+
+若 $g$ 在每个有限区间分段连续且为指数阶，则变换对充分大的 $s$ 绝对收敛：尾部可被 $Me^{-(s-a)t}$ 的积分控制，有限区间部分可积。在这一函数类内，相同变换决定函数在其连续点处的值；若两函数连续，则处处相同。此处采用拉普拉斯变换唯一性定理，证明省略，参见\cite[第6章]{lebl-diffyqs}。孤立点的取值不会改变积分。
+
+直接积分和分部积分得到基本公式（在各自收敛范围内）：
+\[
+ \mathcal L\{1\}=\frac1s,\quad
+ \mathcal L\{t^n\}=\frac{n!}{s^{n+1}},\quad
+ \mathcal L\{e^{at}\}=\frac1{s-a},\quad
+ \mathcal L\{\cos\omega t\}=\frac{s}{s^2+\omega^2},\quad
+ \mathcal L\{\sin\omega t\}=\frac{\omega}{s^2+\omega^2}.
+\]
+这里 $n$ 为非负整数，三角函数公式可由复指数积分或两次分部积分导出。
+
+\section{导数、平移与尺度变换}
+若 $g$ 局部绝对连续，$g,g'$ 的加权积分满足收敛条件且 $e^{-st}g(t)\to0$，分部积分给出
+\[
+ \mathcal L\{g'\}=sG(s)-g(0^+).
+\]
+逐次应用，在相应导数满足同类条件时得到
+\begin{equation}
+ \mathcal L\{g^{(n)}\}=s^nG(s)-\sum_{j=0}^{n-1}s^{n-1-j}g^{(j)}(0^+).
+ \label{eq:ode-laplace-derivative}
+\end{equation}
+若函数在内部有跳跃，不能把其分段普通导数直接代入而忽略跳跃项。
+
+令 $H(t-a)$ 为 Heaviside 阶跃函数（Heaviside step function），在 $t<a$ 为零，在 $t>a$ 为一，单点 $t=a$ 的取值不影响变换。变量代换给出
+\begin{align*}
+ \mathcal L\{e^{at}g(t)\}(s)&=G(s-a),\\
+ \mathcal L\{H(t-a)g(t-a)\}(s)&=e^{-as}G(s),\qquad a\geq0,\\
+ \mathcal L\{g(bt)\}(s)&=b^{-1}G(s/b),\qquad b>0.
+\end{align*}
+时间延迟必须同时作用于阶跃与后面的函数，$H(t-a)g(t)$ 一般不能直接用第二个公式。
+
+\section{用变换求解线性初值问题}
+\begin{example}
+求 $y''+3y'+2y=1$、$y(0)=y'(0)=0$。
+\end{example}
+\begin{solve}
+设 $Y=\mathcal L\{y\}$。应用式\eqref{eq:ode-laplace-derivative}得 $(s^2+3s+2)Y=1/s$，所以
+\[
+ Y=\frac{1}{s(s+1)(s+2)}=\frac1{2s}-\frac1{s+1}+\frac1{2(s+2)}.
+\]
+逆变换给出 $y=1/2-e^{-t}+e^{-2t}/2$。求导可核验两个初值与原方程；其极限 $1/2$ 也与常值稳态方程 $2y=1$ 一致。
+\end{solve}
+
+一般步骤为：带入初值进行变换，解关于 $Y$ 的代数式，分解成已知变换，再检验解。该方法主要适用于常系数方程；变系数乘积并不总能转成简单代数关系。
+
+\section{卷积与零状态响应}
+定义卷积（convolution）
+\[
+ (g*h)(t)=\int_0^t g(t-\tau)h(\tau)\,\mathrm d\tau.
+\]
+若 $g,h$ 分段连续且为指数阶，则对充分大的 $s$ 有绝对收敛，故可用 Fubini 定理交换积分，令 $u=t-\tau$，得到
+\[
+ \mathcal L\{g*h\}(s)
+ =\int_0^\infty\int_0^\infty e^{-s(u+\tau)}g(u)h(\tau)\,\mathrm du\,\mathrm d\tau
+ =G(s)H(s).
+\]
+
+对于零初值线性系统 $x'=Ax+b(t)$，式\eqref{eq:ode-system-variation}正是矩阵核 $e^{At}$ 与输入 $b$ 的卷积。标量方程 $y''+y=f$、$y(0)=y'(0)=0$ 则给出
+\[
+ y(t)=\int_0^t\sin(t-\tau)f(\tau)\,\mathrm d\tau.
+\]
+每一时刻的输入都按同一个核传播，线性叠加后形成总响应。
+
+\section{分段输入与脉冲输入（脉冲部分选学）}
+\begin{example}
+求零初值系统 $y''+y=H(t-a)$，其中 $a>0$。
+\end{example}
+\begin{solve}
+$Y=e^{-as}/[s(s^2+1)]$，因此 $y=H(t-a)[1-\cos(t-a)]$。在开启时刻 $a$，$y$ 与 $y'$ 都连续，$y''$ 在两侧有跳跃；原方程按分段经典意义成立。
+\end{solve}
+
+Dirac $\delta$（Dirac delta）是分布，不是普通函数，其作用由 $\langle\delta_a,\phi\rangle=\phi(a)$ 定义，其中 $\phi$ 为光滑紧支撑测试函数，$a>0$。因此 $\mathcal L\{\delta_a\}=e^{-as}$。对 $y''+y=J\delta_a$，在 $a$ 附近积分得
+\[
+ y(a^+)=y(a^-),\qquad y'(a^+)-y'(a^-)=J.
+\]
+第一式还可由分布求导看出：若 $y$ 自身跳跃，$y''$ 会产生右端没有的 $\delta_a'$ 项。零初值响应为 $JH(t-a)\sin(t-a)$。它是在分布意义下满足方程的解，而不是处处 $C^2$ 的经典解。
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-laplace} 用变换求 $y'+2y=1$、$y(0)=0$。
+ \item\label{ex:ode-delay} 求 $\mathcal L\{H(t-2)(t-2)^2\}$。
+ \item 用卷积求零初值 $y''+y=e^{-t}$ 的解，并代回验证。
+ \item 将作用于区间 $[a,b]$、$0<a<b$ 的单位矩形输入写成阶跃函数之差，求其对 $y''+y=f$ 的零初值响应。
+\end{enumerate}
+
+\chapter{边值问题与 Sturm--Liouville 理论初步}
+\label{chap:ode-boundary}
+
+边值问题在区间两端共同限制解。它的可解性由微分方程和边界条件共同决定，不能直接套用初值问题的唯一性结论。
+
+\section{两点边值问题的存在性与唯一性}
+设二阶正则线性方程的通解为 $y=y_p+c_1y_1+c_2y_2$，边界条件为 $B_1[y]=b_1$、$B_2[y]=b_2$，其中 $B_i$ 是端点值与端点导数的线性组合。代入得到
+\[
+ \begin{pmatrix}B_1[y_1]&B_1[y_2]\\B_2[y_1]&B_2[y_2]\end{pmatrix}
+ \begin{pmatrix}c_1\\c_2\end{pmatrix}
+ =\begin{pmatrix}b_1-B_1[y_p]\\b_2-B_2[y_p]\end{pmatrix}.
+\]
+矩阵可逆时唯一可解；奇异时须检查相容性，相容则解不唯一，不相容则无解。
+
+\begin{example}
+对 $y''+\lambda y=0$、$y(0)=y(\pi)=0$，$\lambda\leq0$ 时只有零解；$\lambda>0$ 时 $y=C\sin(\sqrt\lambda t)$，第二个边界条件要求 $C\sin(\sqrt\lambda\pi)=0$。所以非零解恰在 $\lambda=n^2$、$n=1,2,\ldots$ 出现，对应 $y=C\sin nt$。这些特殊参数称特征值。
+\end{example}
+
+\section{自伴形式与 Lagrange 恒等式}
+在有限区间 $[a,b]$ 上，设 $p\in C^1$、$q,w\in C$ 均为实函数，$p,w>0$。定义 $L[y]=-(py')'+qy$，研究
+\begin{equation}
+ L[y]=\lambda w(t)y,
+ \label{eq:ode-sturm-liouville}
+\end{equation}
+配合齐次、分离且不含 $\lambda$ 的实边界条件
+\[
+ \alpha_1y(a)+\alpha_2p(a)y'(a)=0,\qquad
+ \beta_1y(b)+\beta_2p(b)y'(b)=0,
+\]
+其中每一对系数不同时为零。这称正则 Sturm--Liouville 问题（regular Sturm--Liouville problem）。$y=0$ 的端点条件称 Dirichlet 条件，$y'=0$ 称 Neumann 条件，两者的非平凡线性组合称 Robin 条件。
+
+对 $u,v\in C^2[a,b]$，直接展开可得 Lagrange 恒等式
+\begin{equation}
+ \int_a^b(uL[v]-vL[u])\,\mathrm dt
+ =[p(vu'-uv')]_a^b.
+ \label{eq:ode-lagrange-identity}
+\end{equation}
+若 $u,v$ 满足上述相同的齐次边界条件，则在每个端点，两向量 $(u,pu')$、$(v,pv')$ 属于同一条一维直线，行列式为零，故边界项消失。这是自伴（self-adjoint）结构的具体体现。
+
+\section{Green 函数与非齐次边值问题}
+考虑 $L[y]=f$ 及齐次边界条件，假设对应齐次问题只有零解。取 $L[\phi]=L[\psi]=0$，其中非零解 $\phi$ 满足左端条件，非零解 $\psi$ 满足右端条件。量
+\[
+ D=p(t)(\phi\psi'-\phi'\psi)
+\]
+由方程可知为常数，且 $D\ne0$；否则两解相关，将产生满足两端条件的非零齐次解。定义 Green 函数（Green's function）
+\[
+ G(t,s)=-\frac1D
+ \begin{cases}\phi(t)\psi(s),&t\leq s,\\\phi(s)\psi(t),&t\geq s.\end{cases}
+\]
+它在 $t=s$ 连续，满足两端边界条件，并有 $-p(s)[G_t(s^+,s)-G_t(s^-,s)]=1$。因此分段求导可验证
+\[
+ y(t)=\int_a^bG(t,s)f(s)\,\mathrm ds
+\]
+满足 $L[y]=f$。导数的跳跃符号由算子中的负号决定。
+
+\begin{example}
+对 $-y''=1$、$y(0)=y(1)=0$，可取 $\phi=t$、$\psi=1-t$，$D=-1$，所以 $G(t,s)=\min(t,s)[1-\max(t,s)]$。积分得 $y=t(1-t)/2$，直接求二阶导数即可核验。
+\end{example}
+
+\section{Sturm--Liouville 特征值与正交性}
+\begin{theorem}
+正则分离自伴问题的特征值均为实数；属于不同特征值的实特征函数关于权函数 $w$ 正交。
+\end{theorem}
+\begin{proof}
+若 $L[y]=\lambda wy$，实系数使 $L[\overline y]=\overline\lambda w\overline y$。对 $u=\overline y,v=y$ 应用式\eqref{eq:ode-lagrange-identity}得 $(\lambda-\overline\lambda)\int_a^bw|y|^2=0$，而非零解的积分严格为正，故 $\lambda$ 实。若 $L[u]=\lambda wu$、$L[v]=\mu wv$，同一恒等式得 $(\mu-\lambda)\int_a^bwuv=0$；$\lambda\ne\mu$ 时即为正交。
+\end{proof}
+
+在分离边界条件下，每个特征值的解空间还是一维：满足左端条件的初始向量空间为一维，初值唯一性把它映成一维解空间。对于本章的正则问题，其全部特征值可排为 $\lambda_1<\lambda_2<\cdots\to\infty$，特征函数在加权空间 $L^2_w(a,b)$ 中构成完备正交系。后两项属于谱理论结论，此处引用而不证明，见\cite[第5章]{teschl-ode}；不能仅由正交性推断完备性。
+
+\section{振荡、零点与展开（选学）}
+对同一方程 $y''+a(t)y'+b(t)y=0$ 的两个独立实解 $u,v$，它们的零点交错，即 Sturm 分离定理。证明如下：非零解的零点都是简单零点，否则初值唯一性使其恒为零。在 $u$ 的两个相邻零点间，$u$ 符号固定，而 Wronskian 不变号，所以在两端 $v$ 的符号相反，至少有一零点。又有 $(v/u)'=W/u^2$ 严格同号，故至多有一个零点。
+
+对 $u''+q_1u=0$、$v''+q_2v=0$，若连续系数满足 $q_2>q_1$，则 $u$ 的每两个相邻零点之间有 $v$ 的零点。这是比较定理的一种形式：若反设内部无零点，可调整符号使 $u,v$ 在内部都正；则 $(u'v-uv')'=(q_2-q_1)uv>0$，但该量在左端非负、右端非正，矛盾。
+
+正则分离 Sturm--Liouville 问题的第 $n$ 个特征函数在 $(a,b)$ 内有 $n-1$ 个零点，此结论依赖振荡理论。对 $f\in L^2_w$，其正交展开系数为
+\[
+ c_n=\frac{\int_a^b f(t)y_n(t)w(t)\,\mathrm dt}{\int_a^b y_n(t)^2w(t)\,\mathrm dt}.
+\]
+完备性保证部分和在范数 $\|f\|_w^2=\int_a^b|f|^2w$ 下收敛；这并不自动保证逐点或一致收敛。Legendre 方程在端点有退化系数，不能不经检查就作为本章正则定理的实例。
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-neumann} 求 $-y''=\lambda y$、$y'(0)=y'(\pi)=0$ 的特征值和特征函数，注意零特征值。
+ \item\label{ex:ode-mixed} 求 $-y''=\lambda y$、$y(0)=y'(\pi)=0$ 的特征值。
+ \item 求 $-y''=t$、$y(0)=y(1)=0$，分别用直接积分和 Green 函数验证。
+ \item 对 $-y''=f$、$y'(0)=y'(1)=0$，证明可解当且仅当 $\int_0^1f=0$，且解只确定到一个加法常数。
+\end{enumerate}
+
+\chapter{常微分方程数值方法}
+\label{chap:ode-numerical}
+
+数值方法以有限步计算近似解。可靠的结论需要同时考虑离散误差、误差传播和浮点运算，不能仅凭曲线平滑或程序未报错判断结果正确。
+
+\section{离散网格与误差的基本概念}
+对 $x'=f(t,x)$、$x(t_0)=x_0\in\mathbb R^d$，先取等步长网格 $t_n=t_0+nh$，其中 $h=(T-t_0)/N>0$。用 $x_n$ 近似 $x(t_n)$。单步法写为 $x_{n+1}=\Psi_h(t_n,x_n)$。
+
+定义全局误差 $e_n=x(t_n)-x_n$，定义从精确状态出发的一步缺陷
+\[
+ d_{n+1}=x(t_{n+1})-\Psi_h(t_n,x(t_n)).
+\]
+本章的一步缺陷不除以 $h$；某些文献把 $d_{n+1}/h$ 称局部截断误差，二者的阶数相差一。若在固定 $[t_0,T]$ 上有 $\max_n\|e_n\|\leq Ch^p$，且 $C$ 与 $h$ 无关，则称该方法具有 $p$ 阶全局精度。
+
+\section{Euler 方法与改进方法}
+以积分方程中的左端矩形近似积分，得到显式 Euler 方法（explicit Euler method）
+\begin{equation}
+ x_{n+1}=x_n+hf(t_n,x_n).
+ \label{eq:ode-euler}
+\end{equation}
+若精确解为 $C^2$ 且 $\|x''(t)\|\leq M$，Taylor 积分余项给出 $\|d_{n+1}\|\leq Mh^2/2$。一步算法输入为 $(t_n,x_n,h)$，输出为 $x_{n+1}$；从初值初始化后执行 $N$ 步到达终点。
+
+显式梯形法（Heun 方法）先预测再平均斜率：
+\[
+ k_1=f(t_n,x_n),\quad k_2=f(t_n+h,x_n+hk_1),\quad
+ x_{n+1}=x_n+\tfrac h2(k_1+k_2).
+\]
+显式中点法则用 $k_1=f(t_n,x_n)$、$k_2=f(t_n+h/2,x_n+hk_1/2)$，再令 $x_{n+1}=x_n+hk_2$。在右端及解足够光滑时，两者的一步缺陷均为 $O(h^3)$，全局二阶；每步需要两次右端求值。它们与需要解代数方程的隐式梯形法不同。
+
+\section{Runge--Kutta 方法与自适应步长}
+经典四阶 Runge--Kutta 方法（Runge--Kutta method，RK4）为
+\begin{align*}
+ k_1&=f(t_n,x_n),&
+ k_2&=f(t_n+h/2,x_n+hk_1/2),\\
+ k_3&=f(t_n+h/2,x_n+hk_2/2),&
+ k_4&=f(t_n+h,x_n+hk_3),\\
+ x_{n+1}&=x_n+\tfrac h6(k_1+2k_2+2k_3+k_4).
+\end{align*}
+各 $k_i$ 均为 $d$ 维向量。若 $f$ 在受控邻域内具有足够多的有界连续导数，例如 $C^5$，Taylor 展开可验证一步缺陷为 $O(h^5)$；配合 Lipschitz 误差传播，得到固定时间段上的四阶全局精度。展开计算较长，此处不逐项列出。每步四次右端求值；若单次求值代价为 $C_f$，共 $N$ 步代价为 $O(NC_f)$，只保存当前状态时工作存储为 $O(d)$。
+
+一种不需要另建公式的局部估计是步长加倍法：分别计算一步 $h$ 的结果 $x_c$ 和两步 $h/2$ 的结果 $x_f$。若方法阶数为 $p$ 且处于渐近误差区，则 $\|x_f-x_c\|/(2^p-1)$ 估计较精细结果的一步误差。逐分量用 $\mathrm{atol}_i+\mathrm{rtol}\max(|x_{n,i}|,|x_{f,i}|)$ 缩放，再取最大值为 $E$。$E\leq1$ 时接受精细结果，否则拒绝并重算；可用带安全因子的 $h_{\mathrm{new}}=\eta h E^{-1/(p+1)}$ 建议新步长，并限制放缩倍数、最小步长与剩余区间。$E=0$ 时按最大允许倍数增长。该估计并非严格的全局误差保证。
+
+\section{一致性、收敛性与全局误差估计}
+\begin{theorem}[Euler 的一阶误差界]
+设精确解在 $[t_0,T]$ 上为 $C^2$，$\|x''\|\leq M$；在包含精确状态、数值状态及二者连线的区域中，$f$ 关于状态的 Lipschitz 常数为 $L$。若初始值精确，则
+\[
+ \max_{0\leq n\leq N}\|e_n\|\leq
+ \begin{cases}\dfrac{Mh}{2L}(e^{L(T-t_0)}-1),&L>0,\\
+ \dfrac{Mh}{2}(T-t_0),&L=0.
+ \end{cases}
+\]
+\end{theorem}
+\begin{proof}
+将精确一步公式减去式\eqref{eq:ode-euler}，得 $\|e_{n+1}\|\leq(1+hL)\|e_n\|+Mh^2/2$。从 $e_0=0$ 迭代并求几何和，有 $\|e_n\|\leq Mh[(1+hL)^n-1]/(2L)$。用 $1+hL\leq e^{hL}$ 即得结论；$L=0$ 时直接累加一步缺陷。
+\end{proof}
+
+一般单步法若满足传播界 $\|\Psi_h(t,u)-\Psi_h(t,v)\|\leq(1+Ch)\|u-v\|$，并有一致的一步缺陷 $O(h^{p+1})$，同样的递推给出 $O(h^p)$ 全局误差。可见局部精度必须配合适当稳定性才能推出收敛。若控制条件仅在局部邻域成立，还需用小步长误差界和首次离开论证保证数值轨道留在该邻域。
+
+\section{绝对稳定性与刚性问题}
+对测试方程 $z'=\lambda z$，$\lambda\in\mathbb C$、$\operatorname{Re}\lambda<0$，单步法常给出 $z_{n+1}=R(h\lambda)z_n$。满足 $|R(h\lambda)|<1$ 的参数构成绝对稳定区域（region of absolute stability）。显式 Euler 的 $R(\zeta)=1+\zeta$，所以要求
+\[
+ |1+h\lambda|<1.
+\]
+当 $\lambda=-a<0$ 时即 $0<h<2/a$。例如 $z'=-100z$ 的精确解衰减，但取 $h=0.03$ 时显式 Euler 每步乘以 $-2$，数值解反而增长。
+
+刚性（stiffness）常表现为稳定性所需步长远小于描述所关心慢过程的步长。隐式 Euler 为 $x_{n+1}=x_n+hf(t_{n+1},x_{n+1})$，测试方程的放大因子是 $(1-h\lambda)^{-1}$，整个左半平面都稳定。但每步需要解代数方程；若迭代映射将某非空闭集映入自身，且其上 $f$ 的状态 Lipschitz 常数 $L$ 满足 $hL<1$，则压缩映射原理保证简单不动点迭代收敛。更大步长可能需要 Newton 方法及额外条件。稳定不等于精确，也不意味着任意非线性隐式步都有唯一解。
+
+\section{数值实验与习题}
+实验应固定终止时刻，记录误差范数、步长和参考解。若 $E(h)\approx Ch^p$，则 $\log_2(E(h)/E(h/2))$ 近似观测阶；步长过小时舍入误差会破坏该比例，不能无限减小步长来证明方法更准确。
+\begin{enumerate}
+ \item\label{ex:ode-euler-value} 对 $y'=y$、$y(0)=1$，用显式 Euler 取 $h=0.1$，写出 $t=1$ 的近似值并与 $e$ 比较。
+ \item\label{ex:ode-euler-stability} 对 $y'=-20y$ 求显式 Euler 的稳定步长范围，并比较 $h=0.05$ 与 $h=0.15$。
+ \item 对 $y''+y=0$ 改写为一阶系统，证明显式 Euler 每步使平方范数乘以 $1+h^2$，解释数值能量漂移。
+ \item 对精确解为 $e^{-t}$ 的问题比较三种阶数的方法，通过步长减半估计观测阶，并说明参考解与误差的计算方式。
+\end{enumerate}
+
+\chapter{数学建模与综合专题}
+\label{chap:ode-modeling}
+
+一个完整模型由状态变量、演化规律、参数、初始数据与适用范围组成。数学分析应回到原问题解释：解是否保持物理可行，参数阈值代表什么，近似忽略了哪些机制。
+
+\section{建模流程、量纲与无量纲化}
+首先列出可测量的状态及其单位，再用守恒关系或速率关系建立方程，并检查方程是否闭合。例如由 $y'=ry(1-y/K)-H$ 描述持续收获，$y,K$ 的单位是数量，$r$ 为时间的倒数，$H$ 为数量除以时间。取 $u=y/K$、$\tau=rt$，方程化为
+\begin{equation}
+ \frac{\mathrm du}{\mathrm d\tau}=u(1-u)-h,\qquad h=\frac{H}{rK}.
+ \label{eq:ode-harvest-dimensionless}
+\end{equation}
+三个有量纲参数在无量纲方程中归为一个组合 $h$。这使不同尺度的系统可以比较，但不表示原参数能够分别由单条无量纲轨道识别。
+
+若利用数据估计参数，例如最小化 $\sum_i(y(t_i;\theta)-z_i)^2$，必须说明观测时刻 $t_i$、观测值 $z_i$、未知参数 $\theta$ 的约束和误差假设。目标函数可能有多个极小点；数值拟合结果不等于参数唯一可识别的证明。
+
+\section{种群增长、收获与阈值现象}
+设 $H\geq0$。由式\eqref{eq:ode-harvest-dimensionless}，平衡点满足 $u^2-u+h=0$。当 $0<h<1/4$ 时有
+\[
+ u_\pm=\frac{1\pm\sqrt{1-4h}}2.
+\]
+导数 $1-2u$ 表明较小平衡点排斥、较大平衡点吸引。$u_-<u_0<u_+$ 的解增加，$u_0>u_+$ 的解减少，均趋于 $u_+$；$0\leq u_0<u_-$ 的解减少并在有限时间到达零。到达零后原常量收获方程会继续产生负数量，故生物解释必须终止或修改收获机制。
+
+当 $h=1/4$ 时，$u'=-(u-1/2)^2$：从上方出发趋于 $1/2$，从下方出发远离它，是单侧吸引的退化平衡。$h>1/4$ 时右端始终小于一个负常数，任意正初值都在有限时间到达零。阈值为 $H_c=rK/4$。两个平衡点在阈值合并并消失，是鞍结分岔（saddle-node bifurcation）的典型现象；这一结论依赖持续、状态无关收获的假设。
+
+\section{机械振动与电路模型}
+对 $my''+cy'+ky=F(t)$，取 $\omega_0=\sqrt{k/m}$、$\tau=\omega_0t$、$u=y/Y$，其中 $Y>0$ 为位移尺度，得到
+\[
+ u_{\tau\tau}+2\zeta u_\tau+u=\frac{F(\tau/\omega_0)}{kY},\qquad
+ \zeta=\frac{c}{2\sqrt{mk}}.
+\]
+阻尼比 $\zeta$ 决定欠阻尼、临界与过阻尼。无外力时能量 $E=m(y')^2/2+ky^2/2$ 满足 $E'=-c(y')^2$，这为解析与数值解提供一致性检查。
+
+串联 RLC 电路以电荷 $q$ 为状态满足
+\[
+ Lq''+Rq'+q/C=V(t),
+\]
+其中 $L,C>0$ 为电感与电容，$R\geq0$ 为电阻，电流为 $q'$。它与振子对应 $m\leftrightarrow L$、$c\leftrightarrow R$、$k\leftrightarrow1/C$。电荷和位移虽具有不同单位，数学结构相同。线性元件、理想集中参数等假设仍须分别检验。
+
+\section{捕食模型与传染病模型}
+Lotka--Volterra 捕食模型为
+\[
+ x'=x(a-by),\qquad y'=y(-d+cx),\qquad a,b,c,d>0,
+\]
+其中 $x$ 为被捕食者数量，$y$ 为捕食者数量。正初值解保持正值，内部平衡点为 $(d/c,a/b)$。直接求导可验证
+\[
+ H(x,y)=cx-d\log x+by-a\log y
+\]
+沿解不变。$H$ 在该平衡点严格最小，并在靠近坐标轴或趋于无穷时趋于无穷，因此非平衡正轨道保持在紧能量曲线上。该模型产生围绕内部平衡点的周期运动，而不是吸引的极限环；模型若加入自限增长，结论可能改变。
+
+SIR 模型将总人数 $N$ 分为易感者 $S$、感染者 $I$、移出者 $R$。假设封闭人群、均匀混合、永久移出，采用频率依赖传播：
+\begin{equation}
+ S'=-\beta\frac{SI}{N},\qquad
+ I'=\beta\frac{SI}{N}-\gamma I,\qquad
+ R'=\gamma I,
+ \label{eq:ode-sir}
+\end{equation}
+其中 $\beta,\gamma>0$ 单位均为时间的倒数，$S(0)+I(0)+R(0)=N$，初值非负。三个方程相加给出总人数守恒，各坐标面上的向量场保证非负性，因此状态始终在紧单纯形中，解前向全局存在。
+
+对于完全易感背景，基本再生数（basic reproduction number）定义为 $\mathcal R_0=\beta/\gamma$；当前感染人数增加的条件是 $S/N>1/\mathcal R_0$。这说明 $\mathcal R_0>1$ 与给定初始状态下 $I'(0)>0$ 并不完全相同。
+
+若 $S(0)>0$，由 $S'/S=-(\beta/(\gamma N))R'$ 得
+\[
+ \log\frac{S(t)}{S(0)}=-\frac{\beta}{\gamma N}[R(t)-R(0)].
+\]
+$R$ 单调有界，故 $\int_0^\infty I(t)\,\mathrm dt<\infty$；$I'$ 有界使 $I$ 一致连续，从而 $I(t)\to0$。否则可抽出高度有正下界、宽度一致的互不相交区间，使积分发散。取极限得到最终规模关系
+\[
+ \log\frac{S_\infty}{S(0)}
+ =-\mathcal R_0\left(1-\frac{S_\infty}{N}-\frac{R(0)}{N}\right).
+\]
+这些是特定确定性模型的数学结论，参数解释与观测检验仍须依实际数据完成。
+
+\section{综合研究题的组织}
+以带收获的 Logistic 模型为例，一个可复核的分析应包含：参数与单位、无量纲化、平衡点及阈值、非负解释的终止条件、数值算法与误差核验。显式解用于核对计算，相线说明全部初值的趋势，稳定性解释扰动，数值实验展示过渡过程；这些方法各自回答不同问题。
+
+对于没有精确解的模型，可用步长减半、不同阶方法比较、守恒量或耗散关系检查数值结果。两种近似一致只是支持证据，不能代替误差界或数学证明。
+
+\section{综合习题与项目}
+\begin{enumerate}
+ \item\label{ex:ode-harvest} 对 $u'=u(1-u)-h$，分别分析 $h=0,1/8,1/4,1/2$，给出非负初值的长期趋势或到达零的结论。
+ \item\label{ex:ode-sir} 在式\eqref{eq:ode-sir}中设 $S(0)/N=0.4$、$\mathcal R_0=2$、$I(0)>0$。判断感染人数初期增加还是减少，并解释。
+ \item 证明捕食模型的 $H$ 在内部平衡点严格最小，并说明正能量曲线为何不趋近坐标轴。
+ \item 选择收获、振动或 SIR 模型，写出假设、理论分析和误差可复核的数值实验方案。若使用合成数据，应明确标注；若使用观测数据，应注明来源与误差假设。
+\end{enumerate}
+
+\appendix
+
+\chapter{数学分析预备知识}
+\label{app:ode-analysis}
+
+\section{连续性、紧致性与函数列}
+连续函数在紧集上有界且一致连续。对连续向量函数 $u:[a,b]\to\mathbb R^d$，一致范数为 $\|u\|_\infty=\max\|u(t)\|$。若 $u_n$ 在此范数下为 Cauchy 列，则逐点极限 $u$ 存在；对 Cauchy 不等式先令一个指标趋于无穷，可知 $u_n\to u$ 一致。由三角不等式将 $u$ 的局部变化分为两个逼近误差与一个连续函数的变化，便知 $u$ 连续。这证明了 $C([a,b],\mathbb R^d)$ 的完备性。
+
+函数族等度连续（equicontinuous）是指：对每个 $\varepsilon>0$，存在同一个 $\delta>0$，使族中任意 $u$ 和任意 $|s-t|<\delta$ 都满足 $\|u(s)-u(t)\|<\varepsilon$。Arzelà--Ascoli 定理断言，紧区间上一致有界且等度连续的连续函数列存在一致收敛子列。证明的要点是在可数稠密点集上对角抽子列，再用等度连续性把逐点控制扩展为一致控制。有限维值域的有界序列可抽收敛子列，是该论证的重要前提。
+
+\section{多元微分与隐函数定理}
+对 $f:\mathbb R^d\to\mathbb R^m$，$Df(x)$ 是由偏导数组成的 $m\times d$ Jacobian 矩阵。当连接 $x,z$ 的线段位于定义域中且 $f\in C^1$ 时，
+\[
+ f(x)-f(z)=\int_0^1Df(z+\theta(x-z))(x-z)\,\mathrm d\theta.
+\]
+因此导数有界给出 Lipschitz 估计。多维向量函数一般不能写成对所有分量都共用一个中间点的标量中值公式，积分形式没有这一问题。
+
+隐函数定理的标量版本为：若 $F(t,y)$ 为 $C^1$，$F(t_0,y_0)=0$ 且 $F_y(t_0,y_0)\ne0$，则附近唯一存在 $C^1$ 函数 $y=\phi(t)$ 满足该关系，并有 $\phi'=-F_t/F_y$。对于 $F(t,y,p)=0$ 解出 $p$，使用的非退化条件相应是 $F_p\ne0$。
+
+\section{幂级数与积分中的极限}
+幂级数 $\sum a_n(t-t_0)^n$ 在其收敛半径内可逐项求导；在任何严格较小的闭区间上一致收敛。乘积级数与系数比较应在共同的收敛区域内进行，不能只操作形式符号后便宣称得到函数解。
+
+若连续函数 $g_n\to g$ 在有限区间上一致收敛，则
+\[
+ \left\|\int_a^b g_n-\int_a^b g\right\|\leq(b-a)\|g_n-g\|_\infty\to0.
+\]
+对无穷区间，若局部一致收敛且 $\|g_n(t)\|\leq h(t)$，其中 $h\geq0$ 可积，则先以 $h$ 控制远端积分，再在有限区间取极限，即可交换极限与积分。交换双重积分时，绝对可积性是本书使用 Fubini 定理的充分条件。对参数积分求导也必须控制导数的可积性或在紧区间上具有连续偏导数，不能只把导数符号移入积分。
+
+\chapter{线性代数预备知识}
+\label{app:ode-algebra}
+
+\section{解空间、基与线性映射}
+函数空间中的线性无关与向量空间完全相同：若 $\sum_{j=1}^n c_jy_j(t)\equiv0$ 只允许所有常数 $c_j=0$，则函数族线性无关。系数必须为常数；允许系数依赖 $t$ 会改变问题。
+
+线性算子 $L$ 的齐次解集是核 $\ker L$。若 $L[y_p]=g$，则 $L[y]=g$ 的解集为 $y_p+\ker L$。有限维情形中，线性映射一旦同时单射、满射，就给出两个空间的维数相同；这正是用初值映射证明线性微分方程解空间维数的依据。
+
+\section{特征值、Jordan 标准形与矩阵指数}
+$\lambda$ 为矩阵 $A$ 的特征值，是指存在非零向量 $v$ 使 $Av=\lambda v$。它在特征多项式中的重数为代数重数，而 $\ker(A-\lambda I)$ 的维数为几何重数。后者不超过前者；所有特征值均有足够独立特征向量时，矩阵可对角化。
+
+在复数域上，任意方阵都相似于 Jordan 标准形。每块为 $J=\lambda I+N$，其中 $N$ 只有紧邻对角线的上方可能为一，且为幂零矩阵。长度为 $m$ 的广义特征向量链满足
+\[
+ (A-\lambda I)v_1=0,\qquad (A-\lambda I)v_{j+1}=v_j.
+\]
+相应解包含 $e^{\lambda t}$ 乘次数至多 $m-1$ 的多项式。半单特征值是指其全部 Jordan 块均为一阶，不要求该特征值只有一重。
+
+\section{范数、二次型与正定矩阵}
+欧氏范数对应的诱导矩阵范数定义为 $\|A\|=\sup_{\|x\|=1}\|Ax\|$，因而 $\|Ax\|\leq\|A\|\|x\|$、$\|AB\|\leq\|A\|\|B\|$。这两条不等式支持矩阵指数和误差估计。
+
+实对称矩阵 $P$ 正定是指 $x^{\mathsf T}Px>0$ 对所有 $x\ne0$ 成立。由正交对角化，若最小、最大特征值为 $m,M$，则
+\[
+ 0<m\|x\|^2\leq x^{\mathsf T}Px\leq M\|x\|^2\quad(x\ne0).
+\]
+因此正定二次型同时控制状态范数并具有紧子水平集。若沿系统还有 $\dot V\leq-c\|x\|^2$，则 $\dot V\leq-(c/M)V$，从而 $\|x(t)\|\leq\sqrt{M/m}\,e^{-ct/(2M)}\|x(0)\|$。
+
+\chapter{方法索引与习题提示}
+\label{app:ode-methods}
+
+\section{按方程结构查找方法}
+\begin{description}
+ \item[可分离与一阶线性] 用式\eqref{eq:ode-separable}或\eqref{eq:ode-first-linear}；前者检查零因子对应的平衡解，后者检查系数连续的区间。
+ \item[可代换的一阶方程] 比值型取 $y/t$，Bernoulli 型取 $y^{1-\alpha}$，已知特解的 Riccati 型取 $y-y_p=1/u$；记录每个代换的可逆范围。见第\ref{chap:ode-first-order}章。
+ \item[隐式与可降阶方程] 先检查隐函数条件，再考虑导数参数化、缺项代换与能量积分。见第\ref{chap:ode-reduction}章。
+ \item[存在、唯一与延拓] 以定理\ref{thm:ode-picard}判断局部问题，用定理\ref{thm:ode-continuation}和先验界处理最大区间，不从光滑性直接推断全局存在。
+ \item[高阶线性与线性系统] 常系数用特征根或矩阵指数；非齐次用式\eqref{eq:ode-system-variation}；变系数一般没有简单指数公式。见第\ref{chap:ode-linear-scalar}、\ref{chap:ode-linear-system}章。
+ \item[非线性长期行为] 先找平衡点、不变区域与守恒量，再用线性化或 Lyapunov 方法。零实部特征值通常需要额外分析。见第\ref{chap:ode-phase-plane}、\ref{chap:ode-stability}章。
+ \item[级数、变换与边值] 常点与正则奇点选择不同级数形式；分段输入可用拉普拉斯变换；边值问题先检查相容性。见第\ref{chap:ode-series}至第\ref{chap:ode-boundary}章。
+ \item[数值求解] 分别检查精度、稳定区域与误差控制；通过步长变化、已知解或结构量交叉核验。见第\ref{chap:ode-numerical}章。
+\end{description}
+
+\section{完成一道题后的自检}
+一个完整解答应明确未知函数、自变量、参数与初始或边界数据；说明关键代换及除法是否合法；将结果代回原方程；给出相关定义域或最大区间；说明定理的假设如何满足。稳定性结论要写清局部或全局、稳定或渐近稳定。数值题还应给出算法、步长或容差、误差度量和参考结果的来源。
+
+\section{部分习题答案与提示}
+以下只给出检查结果与关键步骤，计算和证明仍应按正文方法完成。
+\begin{description}
+ \item[第\ref{chap:ode-intro}章] 习题\ref{ex:ode-classify}依次为二阶线性非自治、一阶非线性自治、一阶非线性非自治。习题\ref{ex:ode-square}：$a\ne0$ 时 $y=a/(1-at)$；$a>0$ 的最大区间为 $(-\infty,1/a)$，$a<0$ 时为 $(1/a,\infty)$；$a=0$ 时为全实轴上的零解。习题\ref{ex:ode-boundary-intro}的解依次为 $1+2t$ 与 $1+t$。
+ \item[第\ref{chap:ode-first-order}章] 习题\ref{ex:ode-separate}为 $3e^{t^2}$；习题\ref{ex:ode-linear}为 $(e^t-e^{-2t})/3$。习题\ref{ex:ode-exact}可取势函数 $H=t^2y+t+y^2$，当 $t^2+2y\ne0$ 时可局部解出 $y$。
+ \item[第\ref{chap:ode-reduction}章] 习题\ref{ex:ode-clairaut}的直线族为 $y=Ct-C^2$，奇解为 $t^2/4$；习题\ref{ex:ode-reduce}为 $(e^{2t}-1)/2$。
+ \item[第\ref{chap:ode-existence}章] 习题\ref{ex:ode-picard}对递推积分作归纳即可，每次积分增加下一项 $t^{k+1}/(k+1)!$。
+ \item[第\ref{chap:ode-dependence}章] 习题\ref{ex:ode-growth}中 $|f|\leq1$、状态 Lipschitz 常数可取 $1$，故初值差的上界为 $e^{|t-t_0|}$ 倍原差。习题\ref{ex:ode-domain}为 $\sqrt{1+2t}$，最大区间 $(-1/2,\infty)$；左端趋近右端函数未定义的 $y=0$。
+ \item[第\ref{chap:ode-linear-scalar}章] 习题\ref{ex:ode-constant}为 $\cos2t+\sin2t$；习题\ref{ex:ode-resonance}可取 $-t\cos t/2$，原试探式属于齐次解空间。
+ \item[第\ref{chap:ode-linear-system}章] 习题\ref{ex:ode-system}为 $x_1=(e^{2t}+1)/2$、$x_2=(e^{2t}-1)/2$；习题\ref{ex:ode-nilpotent}为 $I+tA+t^2A^2/2$。
+ \item[第\ref{chap:ode-phase-plane}章] 习题\ref{ex:ode-phase}中 $0,2$ 吸引，$1$ 排斥；习题\ref{ex:ode-spiral}为逆时针旋转的吸引焦点，可代入 $(1,0)$ 检查向上运动。
+ \item[第\ref{chap:ode-stability}章] 习题\ref{ex:ode-stable}依次为稳定但非渐近稳定、指数稳定、渐近稳定但非指数稳定、不稳定。习题\ref{ex:ode-lyapunov}有 $\dot V=-u^2-v^2$，且 $V$ 径向无界。
+ \item[第\ref{chap:ode-series}章] 习题\ref{ex:ode-airy}为 $1+t^3/6+t^6/180+t^9/12960$；习题\ref{ex:ode-frobenius}的指标根为 $\pm2$，通解 $C_1t^2+C_2t^{-2}$。
+ \item[第\ref{chap:ode-laplace}章] 习题\ref{ex:ode-laplace}为 $(1-e^{-2t})/2$；习题\ref{ex:ode-delay}为 $2e^{-2s}/s^3$，$s>0$。
+ \item[第\ref{chap:ode-boundary}章] 习题\ref{ex:ode-neumann}为 $\lambda_n=n^2$、$y_n=\cos nt$，$n=0,1,\ldots$；习题\ref{ex:ode-mixed}为 $\lambda_n=(n+1/2)^2$，$n=0,1,\ldots$。
+ \item[第\ref{chap:ode-numerical}章] 习题\ref{ex:ode-euler-value}为 $1.1^{10}\approx2.593742$，小于 $e$；习题\ref{ex:ode-euler-stability}要求 $0<h<0.1$，两给定步长的放大因子分别为 $0$ 与 $-2$。
+ \item[第\ref{chap:ode-modeling}章] 习题\ref{ex:ode-harvest}可用 $u'=1/4-h-(u-1/2)^2$ 分类，再参照本章的相线分析；习题\ref{ex:ode-sir}中 $\mathcal R_0S(0)/N=0.8<1$，故初期感染人数减少。
+\end{description}
+
+\backmatter
+
+\begin{thebibliography}{9}
+  \bibitem{lebl-diffyqs}
+  Jiří Lebl.
+  \emph{Notes on Diffy Qs: Differential Equations for Engineers}.
+  作者公开教材与在线目录：\url{https://www.jirka.org/diffyqs/}。
+
+  \bibitem{teschl-ode}
+  Gerald Teschl.
+  \emph{Ordinary Differential Equations and Dynamical Systems}.
+  Graduate Studies in Mathematics, Volume 140.
+  American Mathematical Society, 2012.
+  作者公开页面：\url{https://www.mat.univie.ac.at/~gerald/ftp/book-ode/}。
+\end{thebibliography}
+
+\end{document}

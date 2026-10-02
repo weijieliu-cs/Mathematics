@@ -21,16 +21,1499 @@
 \clearpage
 
 
-\chapter{基本概念}
+\chapter*{课程大纲与阅读说明}
+\addcontentsline{toc}{chapter}{课程大纲与阅读说明}
 
+\section*{课程定位}
 
-\chapter{凸集与凸函数}
+凸优化（convex optimization）研究在凸可行集上极小化凸函数的问题。本书面向学过线性代数与多元微积分的本科生，围绕三个问题展开：怎样建立凸模型，怎样证明候选解最优，以及怎样以有限精度求解。基本概念和核心算法给出推导；涉及较多凸分析工具的进阶定理注明引用或证明思路，供第二轮学习使用。
 
+全书沿用 Boyd 和 Vandenberghe 的《Convex Optimization》\cite{boyd-vandenberghe} 的理论、应用、算法主线，以最小二乘、资源分配和几何投影贯穿各章。概率知识主要用于统计应用，数值线性代数按算法需要补充。
 
-\chapter{对偶理论}
+\section*{全书课程大纲}
+\begin{enumerate}
+  \item 第\ref{ch:co-introduction}章：绪论与优化建模。变量、目标、约束、可行性、最优值与数值精度。
+  \item 第\ref{ch:co-sets}章：凸集。凸组合、凸包、典型凸集、保凸运算、投影、分离与对偶锥。
+  \item 第\ref{ch:co-functions}章：凸函数。凸性判据、保凸运算、共轭、次梯度与拟凸性。
+  \item 第\ref{ch:co-models}章：凸优化问题与标准模型。最优性、等价变换、线性规划、二次规划及锥规划。
+  \item 第\ref{ch:co-duality}章：拉格朗日对偶与最优性条件。强弱对偶、Slater 条件、KKT 条件与灵敏度。
+  \item 第\ref{ch:co-fitting}章：逼近、拟合与正则化。误差度量、稀疏拟合、鲁棒约束与形状限制。
+  \item 第\ref{ch:co-statistics}章：统计估计与实验设计。似然、后验、熵、检测器和信息矩阵。
+  \item 第\ref{ch:co-geometry}章：几何优化与分类。投影、距离、椭球、间隔与定位。
+  \item 第\ref{ch:co-unconstrained}章：无约束优化算法。线搜索、梯度法、牛顿法与收敛速度。
+  \item 第\ref{ch:co-equality}章：等式约束优化算法。消元、约束牛顿法、残差与块线性系统。
+  \item 第\ref{ch:co-interior}章：内点法。障碍函数、中心路径、可行性与原对偶迭代。
+\end{enumerate}
+附录\ref{app:co-background}补充数学基础，附录\ref{app:co-quadratic}讨论两个二次函数相关问题，附录\ref{app:co-numerical}说明数值线性代数。
 
+\section*{阅读与练习}
 
-\chapter{优化算法}
+首先顺序学习第\ref{ch:co-introduction}至\ref{ch:co-duality}章。应用部分的三个章节可以按兴趣选读；算法部分依次学习无约束、等式约束和不等式约束问题。相对内部、矩阵凸性、自协调分析和附录\ref{app:co-quadratic}属于进阶内容，不影响首次掌握主要方法。
+
+阅读时须分别回答：结论的假设是什么，关键不等式来自哪里，去掉某个假设是否仍然成立。各章习题给出必要提示或核对结果，完整推导仍应独立完成。数值练习要求同时检查目标值、可行性和适用的最优性指标；实验结果不能替代理论证明。
+
+\chapter{绪论与优化建模}
+\label{ch:co-introduction}
+
+优化从一个选择问题开始：在允许的方案中，按给定准则选择最好的一种。数学模型必须分别说明哪些量可以改变、哪些限制必须满足，以及用什么量衡量优劣。
+
+\section{研究对象与基本语言}
+
+设决策变量为 $x\in\mathbb R^n$，公共定义域为非空集合 $D\subseteq\mathbb R^n$。给定目标函数 $f_0:D\to\mathbb R$、不等式约束函数 $f_i:D\to\mathbb R$ 和等式约束函数 $h_j:D\to\mathbb R$，一般优化问题写为
+\begin{equation}
+ \begin{aligned}
+ \mathop{\mathrm{minimize}}_{x\in D}\quad &f_0(x)\\
+ \mathrm{subject\ to}\quad &f_i(x)\leq0,\quad i=1,\ldots,m,\\
+ &h_j(x)=0,\quad j=1,\ldots,p.
+ \end{aligned}
+ \label{eq:co-general-problem}
+\end{equation}
+这里 $m,p$ 为约束数量，允许为零。$D$ 不可省略，例如含 $\log x_i$ 的函数要求 $x_i>0$。
+
+\begin{definition}
+满足全部约束且属于 $D$ 的点称为\keyterm{可行点（feasible point）}，其集合称为可行集 $\mathcal F$。最优值与最优解集分别为
+\[
+ p^\star=\inf_{x\in\mathcal F}f_0(x),\qquad
+ X^\star=\{x\in\mathcal F:f_0(x)=p^\star\}.
+\]
+若 $x^\star\in X^\star$，则称它为全局最优解（global optimum）。若存在 $\delta>0$，使所有满足 $x\in\mathcal F$、$\|x-x^\star\|_2<\delta$ 的点都有 $f_0(x)\geq f_0(x^\star)$，则称 $x^\star$ 为局部最优解（local optimum）。
+\end{definition}
+
+约定 $\inf\varnothing=+\infty$。因此不可行问题有 $p^\star=+\infty$；若目标在可行集上无下界，则 $p^\star=-\infty$。有限最优值也可能不取到：$\inf_{x\in\mathbb R}e^x=0$，但不存在 $e^x=0$ 的实数。相反，常数目标在非空可行集上的每个点都是最优解。可行、有限、存在最优解和最优解唯一，是四个不同性质。
+
+\section{从实际问题到数学模型}
+
+建模通常依次确定决策变量与单位、目标、约束及数据。最大化收益可转为最小化其相反数；这种变换改变目标值的符号，但保留最优方案。
+
+\begin{example}[资源分配]
+两种产品的产量为 $x_1,x_2\geq0$，单位收益为 $3,2$，资源限制为 $x_1+x_2\leq4$、$2x_1+x_2\leq6$。求最大收益。
+\end{example}
+\begin{solve}
+模型为最大化 $3x_1+2x_2$，满足上述四个线性不等式。对任意可行点，
+\[
+ 3x_1+2x_2=(x_1+x_2)+(2x_1+x_2)\leq4+6=10.
+\]
+点 $(2,2)$ 可行且收益为 $10$，故它最优。两条资源约束的加权和给出了上界；这正是第\ref{ch:co-duality}章对偶证书的基本思想。
+\end{solve}
+
+硬约束要求条件必须满足；惩罚项允许违反条件并支付代价。例如约束 $x=0$ 与在目标中加入 $\alpha x^2$ 一般不等价，有限 $\alpha>0$ 未必迫使最优点为零。优化模型的正确求解也不保证建模假设符合实际。
+
+\section{最小二乘与线性规划两个原型}
+
+给定 $A\in\mathbb R^{r\times n}$、$b\in\mathbb R^r$，\keyterm{最小二乘（least squares）}以残差平方和衡量误差：
+\begin{equation}
+ \min_{x\in\mathbb R^n}\frac12\|Ax-b\|_2^2.
+ \label{eq:co-least-squares}
+\end{equation}
+直接展开可得梯度 $A^{\mathsf T}(Ax-b)$，故候选解满足正规方程 $A^{\mathsf T}Ax=A^{\mathsf T}b$。若 $\widehat x$ 满足此式，则对任意 $d$，
+\[
+ \frac12\|A(\widehat x+d)-b\|_2^2
+ =\frac12\|A\widehat x-b\|_2^2+\frac12\|Ad\|_2^2,
+\]
+交叉项因正规方程为零，因此 $\widehat x$ 最优。最优解总存在，因为 $b$ 到有限维闭子空间 $\operatorname{range}A$ 的正交投影存在；满列秩时 $A^{\mathsf T}A\succ0$，解唯一且为 $(A^{\mathsf T}A)^{-1}A^{\mathsf T}b$，秩亏时沿 $\ker A$ 移动不改变残差。
+
+\keyterm{线性规划（linear programming，LP）}的目标和约束均为仿射函数，例如 $\min c^{\mathsf T}x$，满足 $Gx\leq h$、$Ax=b$。前一节资源分配即为 LP。最小二乘靠二次曲率刻画误差，LP 靠多面体约束限制方案，两者都属于凸优化。
+
+\section{凸优化的核心特征与边界}
+
+集合是凸的，意指其中两点间的线段仍在集合内；函数是凸的，意指沿线段的函数值不超过端点函数值的加权平均。正式定义见第\ref{ch:co-sets}、\ref{ch:co-functions}章。凸问题的局部最优解必为全局最优解，但解的存在性和唯一性需要另外分析。
+
+\keyterm{等价改写（equivalent reformulation）}应保持可行方案或最优方案的可恢复对应。\keyterm{凸松弛（convex relaxation）}则通常扩大可行集，用较易求解的问题提供界。例如对 $x\in\{0,1\}$ 的限制改用 $0\leq x\leq1$，极小化问题的最优值只能下降或不变，所得解未必满足原来的整数要求。
+
+“凸”描述结构，计算成本还取决于规模、稀疏性、数据条件和精度。数值算法返回的通常是近似解：当 $p^\star$ 有限时，可行点 $x$ 若满足 $f_0(x)-p^\star\leq\varepsilon$，称为 $\varepsilon$-次优解。由于 $p^\star$ 未知，需要利用对偶下界等可计算量认证精度。
+
+\section{全书符号与表述约定}
+
+向量默认为列向量，内积为 $x^{\mathsf T}y$，欧氏范数为 $\|x\|_2=\sqrt{x^{\mathsf T}x}$。$\|x\|_1=\sum_i|x_i|$，$\|x\|_\infty=\max_i|x_i|$。$x_k$ 表示迭代点，$(x_k)_i$ 表示其第 $i$ 个分量。$\mathbb R_+^n$、$\mathbb R_{++}^n$ 分别表示分量非负、严格为正的向量。
+
+实对称矩阵空间为 $\mathbb S^n$。$X\succeq0$ 表示 $v^{\mathsf T}Xv\geq0$ 对所有 $v$ 成立；$X\succ0$ 表示该值对非零 $v$ 严格为正。相应集合为 $\mathbb S_+^n$、$\mathbb S_{++}^n$；$X\succeq Y$ 指 $X-Y\succeq0$，不同于逐元素比较。矩阵内积为 $\langle X,Y\rangle=\operatorname{tr}(X^{\mathsf T}Y)$，其中 $\operatorname{tr}$ 为迹。
+
+函数的有效定义域记为 $\operatorname{dom}f$，梯度和海塞矩阵（Hessian matrix）记为 $\nabla f$、$\nabla^2f$。符号 $\inf$ 表示下确界，$\min$ 还断言该值取到；$\operatorname{arg\,min}$ 表示最优解集合。随机变量用大写字母，观测值通常用相应小写字母。
+
+\section{例题与学习检查}
+\begin{example}[均值作为最小二乘解]
+给定实数观测 $b_1,\ldots,b_N$，求使 $\sum_{i=1}^N(x-b_i)^2$ 最小的常数 $x$。
+\end{example}
+\begin{solve}
+令 $\bar b=N^{-1}\sum_i b_i$，利用 $\sum_i(b_i-\bar b)=0$ 得
+\[
+ \sum_i(x-b_i)^2=N(x-\bar b)^2+\sum_i(\bar b-b_i)^2.
+\]
+第二项与 $x$ 无关，第一项在且仅在 $x=\bar b$ 时为零，故均值是唯一最优解。
+\end{solve}
+\begin{enumerate}
+ \item 分别构造不可行、无下界、有限但无最优解、存在多个最优解的问题。说明它们的 $p^\star$ 与 $X^\star$。
+ \item 求 $\min_{x\geq1}(x-2)^2$ 和 $\min_{x\geq3}(x-2)^2$；比较最优点的导数。答案分别为 $2$ 和 $3$，约束边界最优点不必有零导数。
+ \item 资源分配例中若第一项资源上限由 $4$ 改为 $4+u$，在 $u=0$ 附近求最优收益。提示：交点为 $(2-u,2+2u)$，收益为 $10+u$，须同时检查非负性。
+\end{enumerate}
+
+\part{凸优化理论}
+
+\chapter{凸集}
+\label{ch:co-sets}
+
+凸集描述可以连续混合的可行方案。本章建立集合运算、投影和分离的工具；这些工具随后用于函数凸性、最优性条件和对偶理论。
+
+\section{仿射结构与凸结构}
+
+\begin{definition}
+集合 $C\subseteq\mathbb R^n$ 为仿射集（affine set），若任意 $x,y\in C$、$\theta\in\mathbb R$ 都有 $\theta x+(1-\theta)y\in C$。若只要求
+\begin{equation}
+ x,y\in C,\quad0\leq\theta\leq1
+ \quad\Longrightarrow\quad\theta x+(1-\theta)y\in C,
+ \label{eq:co-convex-set}
+\end{equation}
+则称 $C$ 为凸集（convex set）。
+\end{definition}
+
+有限和 $\sum_{i=1}^k\theta_i x_i$ 在 $\sum_i\theta_i=1$ 时称为仿射组合；再有 $\theta_i\geq0$ 时称为凸组合。凸集包含其任意有限个点的凸组合：对点数归纳，将最后一个点与其余点的归一化凸组合再次作两点凸组合即可；权重为零的点可先删去。
+
+集合 $S$ 的凸包（convex hull）$\operatorname{conv}S$ 是其所有有限凸组合组成的集合。两个凸组合的凸组合仍是凸组合，所以凸包为凸集；任何包含 $S$ 的凸集都包含这些组合，故凸包是包含 $S$ 的最小凸集。仿射包 $\operatorname{aff}S$ 同理由全部仿射组合构成。
+
+\begin{example}
+仿射方程组的解集 $\{x:Ax=b\}$ 是仿射集；单位圆周不是凸集，因为两个相反点的中点为原点。其凸包为单位闭圆盘：盘内非零点可由同一直径的两个端点凸组合得到，原点取相等权重即可。
+\end{example}
+
+\section{凸锥与典型集合}
+
+非空集合 $K$ 若对 $x\in K$、$t\geq0$ 有 $tx\in K$，称为锥（cone）；若还为凸集，则为凸锥（convex cone）。等价地，凸锥对非负线性组合封闭。以下集合反复出现：
+\begin{itemize}
+ \item 半空间 $\{x:a^{\mathsf T}x\leq b\}$ 与超平面 $\{x:a^{\mathsf T}x=b\}$，其中 $a\ne0$；有限个半空间和超平面的交称为多面体（polyhedron）。
+ \item 范数球 $\{x:\|x-c\|\leq r\}$，其中 $r\geq0$。三角不等式保证两点的凸组合仍在球内。椭球可写为 $\{c+Bu:\|u\|_2\leq1\}$；$B$ 可逆时它为满维椭球。
+ \item 概率单纯形 $\Delta_n=\{x\in\mathbb R_+^n:\mathbf1^{\mathsf T}x=1\}$，其中 $\mathbf1$ 为全一向量；二阶锥 $\mathcal Q_{n+1}=\{(x,t):\|x\|_2\leq t\}$。
+ \item 半正定锥 $\mathbb S_+^n$：若 $X,Y\succeq0$，则对 $\alpha,\beta\geq0$ 和任意 $v$，有 $v^{\mathsf T}(\alpha X+\beta Y)v\geq0$，故它为凸锥。
+\end{itemize}
+多面体不一定有界。非负正交锥 $\mathbb R_+^n$ 是多面体凸锥；半正定矩阵的对角元非负是必要条件，但不是半正定性的充分条件。
+
+\section{保凸运算与集合表示}
+
+\begin{proposition}
+凸集的任意交、笛卡尔积、仿射像、仿射原像和集合和均为凸集。
+\end{proposition}
+\begin{proof}
+若两点属于一族凸集的交，其线段属于族中每个集合，因而属于交。仿射映射 $T(x)=Ax+b$ 满足 $T(\theta x+(1-\theta)y)=\theta T(x)+(1-\theta)T(y)$，所以像和原像均保凸。对集合和 $C+D=\{c+d:c\in C,d\in D\}$，把两点凸组合分别在 $C,D$ 中展开即可；积集逐分量使用凸性。
+\end{proof}
+
+并集通常不保凸，例如 $\{-1\}\cup\{1\}$。投影是线性像，因此消去某些坐标保持凸性，但不一定保持闭性。
+
+透视映射 $P(x,t)=x/t$ 定义于 $t>0$。若 $(x_1,t_1),(x_2,t_2)$ 属于此半空间内的凸集，为得到其像的权重 $\theta$，取原空间权重
+\[
+ \alpha=\frac{\theta t_2}{\theta t_2+(1-\theta)t_1}.
+\]
+代入可得 $P(\alpha(x_1,t_1)+(1-\alpha)(x_2,t_2))=\theta x_1/t_1+(1-\theta)x_2/t_2$，故透视像保凸。线性分式映射 $(Ax+b)/(c^{\mathsf T}x+d)$ 在分母为正的区域内是仿射映射与透视映射的复合，也保凸。
+
+\section{相对内部、闭性与投影预备}
+
+点 $x$ 为集合 $C$ 的内点，若某个以 $x$ 为中心的开球包含于 $C$。相对内部（relative interior）$\operatorname{ri}C$ 改为只要求开球与 $\operatorname{aff}C$ 的交包含于 $C$。例如 $\Delta_n$ 在 $n>1$ 时的内部为空，而相对内部由全部分量正的概率向量组成。集合包含其所有极限点时称为闭集；闭包 $\overline C$ 是包含 $C$ 的最小闭集。
+
+\begin{theorem}[最近点存在唯一性]
+设 $C\subseteq\mathbb R^n$ 非空、闭且凸。对每个 $z\in\mathbb R^n$，存在唯一的 $u\in C$ 使 $\|z-u\|_2=\inf_{x\in C}\|z-x\|_2$。
+\label{thm:co-projection-existence}
+\end{theorem}
+\begin{proof}
+取 $x_0\in C$。寻找最近点时可限制于 $C\cap\{x:\|x-z\|_2\leq\|x_0-z\|_2\}$，这是非空紧集，连续距离函数在其上取得最小值。若不同的 $u,v$ 均为最近点，记共同平方距离为 $d^2$，则中点属于 $C$ 且
+\[
+ \left\|z-\frac{u+v}{2}\right\|_2^2
+ =\frac12\|z-u\|_2^2+\frac12\|z-v\|_2^2-\frac14\|u-v\|_2^2<d^2,
+\]
+矛盾。
+\end{proof}
+
+\section{分离与支撑超平面}
+
+\begin{theorem}[点与闭凸集的严格分离]
+设 $C$ 非空闭凸且 $z\notin C$。存在 $a\ne0$、$\beta\in\mathbb R$，使 $a^{\mathsf T}x\leq\beta<a^{\mathsf T}z$ 对所有 $x\in C$ 成立。
+\end{theorem}
+\begin{proof}
+取最近点 $u$。对任意 $x\in C$，点 $u+t(x-u)$ 在 $0\leq t\leq1$ 时属于 $C$，其到 $z$ 的平方距离在 $t=0$ 处有非负右导数，故 $(z-u)^{\mathsf T}(x-u)\leq0$。令 $a=z-u\ne0$、$\beta=a^{\mathsf T}u$，则 $a^{\mathsf T}z-\beta=\|z-u\|_2^2>0$。
+\end{proof}
+
+一般分离定理断言：两个不相交的非空凸集 $C,D$ 存在 $a\ne0$、$\beta$，使 $a^{\mathsf T}x\leq\beta\leq a^{\mathsf T}y$ 对所有 $x\in C,y\in D$ 成立。此有限维定理在这里引用，证明见\cite{boyd-vandenberghe}关于分离的讨论。若一个集合紧、另一个闭，则距离取到且为正，最近点对可给出严格分离。仅有闭性而无紧性，不足以保证正距离。
+
+闭凸集 $C$ 的边界点 $u$ 存在支撑超平面（supporting hyperplane）：有 $a\ne0$ 使 $a^{\mathsf T}(x-u)\leq0$ 对所有 $x\in C$ 成立。可取趋于 $u$ 的集外点，将上述分离向量归一化后取收敛子列；极限向量仍为单位向量，极限不等式给出结论。
+
+\section{广义不等式与对偶锥}
+
+正常锥（proper cone）是闭、凸、有非空内部且满足 $K\cap(-K)=\{0\}$ 的锥。定义 $x\preceq_K y$ 当且仅当 $y-x\in K$，则它具有自反性、传递性和反对称性，但两点可能不可比较。向量逐分量序和对称矩阵半正定序都是例子。集合的最小元须小于等于每个元素；极小元只要求不存在另一个不等于自身且小于等于自身的元素。
+
+凸锥 $K$ 的对偶锥（dual cone）定义为
+\begin{equation}
+ K^*=\{y:y^{\mathsf T}x\geq0\ \text{对所有 }x\in K\}.
+ \label{eq:co-dual-cone}
+\end{equation}
+它是闭半空间的交，故为闭凸锥。$\mathbb R_+^n$ 自对偶，因为可取各坐标单位向量检验符号。二阶锥也自对偶：若 $\|y\|_2\leq s$、$\|x\|_2\leq t$，则 $y^{\mathsf T}x+st\geq0$；反之取边界向量检验可得 $s\geq\|y\|_2$。$\mathbb S_+^n$ 在迹内积下自对偶：对 $X,Y\succeq0$，$\operatorname{tr}(XY)=\operatorname{tr}(X^{1/2}YX^{1/2})\geq0$；反向取 $X=vv^{\mathsf T}$ 即得 $v^{\mathsf T}Yv\geq0$。
+
+\begin{proposition}
+闭凸锥满足 $K^{**}=K$；一般凸锥满足 $K^{**}=\overline K$。
+\end{proposition}
+\begin{proof}
+由定义 $K\subseteq K^{**}$。若 $z\notin K$，严格分离给出 $a^{\mathsf T}x\leq\beta<a^{\mathsf T}z$。锥的缩放性质迫使 $a^{\mathsf T}x\leq0$ 对所有 $x\in K$，且因 $0\in K$ 有 $\beta\geq0$。于是 $-a\in K^*$ 而 $(-a)^{\mathsf T}z<0$，所以 $z\notin K^{**}$。非闭情形利用 $K^*=(\overline K)^*$ 即得。
+\end{proof}
+
+\section{例题与学习检查}
+\begin{example}[到半空间的投影]
+设 $a\ne0$，$C=\{x:a^{\mathsf T}x\leq b\}$。若 $a^{\mathsf T}z\leq b$，最近点就是 $z$；否则最近点为
+\[
+ u=z-\frac{a^{\mathsf T}z-b}{\|a\|_2^2}a.
+\]
+事实上 $a^{\mathsf T}u=b$，且任意可行 $x$ 满足 $(z-u)^{\mathsf T}(x-u)\leq0$。展开 $\|z-x\|_2^2$ 即知它不小于 $\|z-u\|_2^2$。
+\end{example}
+\begin{enumerate}
+ \item 判断 $\{x:\|Ax-b\|_2\leq1\}$、$\{x:\|x\|_2=1\}$ 是否凸，并指出退化维数可能带来的例外。
+ \item 求 $\{(x,y):x\geq0,\ 0\leq y\leq x\}$ 的对偶锥。提示：原锥由 $(1,0),(1,1)$ 生成，对偶条件为 $u\geq0,u+v\geq0$。
+ \item 证明闭凸集的相交可以没有内点，即使每个集合都有内点；再计算所得集合的相对内部。
+\end{enumerate}
+
+\chapter{凸函数}
+\label{ch:co-functions}
+
+凸函数把集合的线段性质转化为函数值的不等式。判断凸性既可以求导，也可以把复杂函数分解为已知凸函数及保凸运算；后者往往更适合建模。
+
+\section{定义、上图与次水平集}
+
+\begin{definition}
+设 $D\subseteq\mathbb R^n$ 为凸集。函数 $f:D\to\mathbb R$ 为凸函数（convex function），若
+\begin{equation}
+ f(\theta x+(1-\theta)y)\leq\theta f(x)+(1-\theta)f(y),
+ \quad x,y\in D,\quad\theta\in[0,1].
+ \label{eq:co-convex-function}
+\end{equation}
+若对 $x\ne y$、$0<\theta<1$ 不等式严格，则称为严格凸函数（strictly convex function）。若 $-f$ 凸，则 $f$ 为凹函数（concave function）。
+\end{definition}
+
+上图（epigraph，亦称上境图）与水平 $\alpha$ 下的次水平集分别为
+\[
+ \operatorname{epi}f=\{(x,t):x\in D,\ f(x)\leq t\},\qquad
+ C_\alpha=\{x\in D:f(x)\leq\alpha\}.
+\]
+$f$ 凸当且仅当其上图凸：正向对两个上图点应用式\eqref{eq:co-convex-function}，反向取高度恰为 $f(x),f(y)$ 的两点即可。凸函数的次水平集也凸，因为两点函数值均不超过 $\alpha$ 时，其凸组合的函数值仍不超过 $\alpha$。
+
+允许函数取 $+\infty$，可将 $D$ 外的点统一排除。对于 $f:\mathbb R^n\to\mathbb R\cup\{+\infty\}$，有效定义域为 $\operatorname{dom}f=\{x:f(x)<+\infty\}$；定义域非空时称为适当函数（proper function）。上图闭时称为闭函数（closed function），在有限维空间中等价于下半连续。集合 $C$ 的指示函数（indicator function）$I_C$ 在 $C$ 上为零、在其外为 $+\infty$；它为凸函数当且仅当 $C$ 凸。
+
+\section{一阶、二阶判据与曲率}
+
+\begin{theorem}[微分判据]
+设 $D$ 为开凸集。若 $f$ 在 $D$ 上可微，则它凸当且仅当
+\begin{equation}
+ f(y)\geq f(x)+\nabla f(x)^{\mathsf T}(y-x),\quad x,y\in D.
+ \label{eq:co-tangent-bound}
+\end{equation}
+若 $f$ 二次连续可微，则它凸当且仅当 $\nabla^2f(x)\succeq0$ 对所有 $x\in D$ 成立。
+\end{theorem}
+\begin{proof}
+由凸性，$[f(x+t(y-x))-f(x)]/t\leq f(y)-f(x)$。令 $t\downarrow0$ 得式\eqref{eq:co-tangent-bound}。反向令 $z=(1-\theta)x+\theta y$，分别在 $z$ 处对 $x,y$ 使用切平面下界，以 $1-\theta,\theta$ 加权后梯度项抵消，即得凸性。
+
+二阶判据可沿直线证明。令 $g(t)=f(x+td)$，则 $g''(t)=d^{\mathsf T}\nabla^2f(x+td)d$。海塞矩阵半正定使每条线上的导数单调，积分即得一阶下界；反之凸的二次可微单变量函数有 $g''(0)\geq0$，对任意方向 $d$ 即得到矩阵半正定。
+\end{proof}
+
+若海塞矩阵处处正定，则函数严格凸；逆命题不成立，$x^4$ 严格凸但在零点的二阶导数为零。给定 $\mu>0$，若 $f(x)-\mu\|x\|_2^2/2$ 凸，则称 $f$ 为 $\mu$-强凸函数（strongly convex function）。可微情形等价于
+\[
+ f(y)\geq f(x)+\nabla f(x)^{\mathsf T}(y-x)+\frac\mu2\|y-x\|_2^2.
+\]
+在二次连续可微情形，强凸性等价于 $\nabla^2f(x)\succeq\mu I$。另一方面，梯度的 $L$-利普希茨连续性（Lipschitz continuity）指 $\|\nabla f(x)-\nabla f(y)\|_2\leq L\|x-y\|_2$，它控制梯度变化的上界。对开凸域上的二次连续可微凸函数，这等价于 $\nabla^2f(x)\preceq LI$。
+
+\section{常用函数与詹森不等式}
+
+仿射函数同时凸、凹。二次函数 $f(x)=\tfrac12x^{\mathsf T}Px+q^{\mathsf T}x+r$ 在 $P=P^{\mathsf T}$ 时凸当且仅当 $P\succeq0$。任意范数都凸，因为三角不等式和正齐次性给出定义中的不等式。$e^x$ 在实轴上凸，$-\log x$ 在 $x>0$ 上凸，二者可直接用二阶导数验证。
+
+对数和指数函数（log-sum-exp）$f(x)=\log\sum_{i=1}^n e^{x_i}$ 的梯度分量为 $q_i=e^{x_i}/\sum_j e^{x_j}$，海塞矩阵为 $\operatorname{diag}(q)-qq^{\mathsf T}$。由于 $q_i\geq0$、$\sum_iq_i=1$，对任意 $v$，
+\[
+ v^{\mathsf T}\nabla^2f(x)v
+ =\sum_iq_i v_i^2-\left(\sum_iq_i v_i\right)^2
+ =\sum_iq_i\left(v_i-\sum_jq_jv_j\right)^2\geq0,
+\]
+故 $f$ 凸。它满足 $\max_i x_i\leq f(x)\leq\max_i x_i+\log n$，可用作最大值的光滑近似。
+
+在 $X\succ0$ 上，$F(X)=-\log\det X$ 沿对称方向 $H$ 的二阶导数为
+\[
+ D^2F(X)[H,H]=\operatorname{tr}(X^{-1}HX^{-1}H)
+ =\|X^{-1/2}HX^{-1/2}\|_{\mathrm F}^2\geq0,
+\]
+其中 $\|B\|_{\mathrm F}^2=\operatorname{tr}(B^{\mathsf T}B)$ 为弗罗贝尼乌斯范数平方，所以 $F$ 凸。
+
+\begin{proposition}[詹森不等式]
+若 $f$ 凸，$\theta_i\geq0$、$\sum_i\theta_i=1$，则
+\[
+ f\left(\sum_i\theta_i x_i\right)\leq\sum_i\theta_i f(x_i).
+\]
+\end{proposition}
+\begin{proof}
+对点数归纳，将最后一点与其余点的归一化凸组合作两次应用即可。若 $f$ 严格凸，等号要求所有正权重点相同，否则在归纳中至少一次出现严格不等式。
+\end{proof}
+期望形式称为 Jensen 不等式。一个便于核查的版本是：$f$ 在开凸集 $D$ 上凸且可微，随机向量 $Z$ 几乎处处属于 $D$，$\mathbb EZ\in D$，且 $Z,f(Z)$ 可积，则 $f(\mathbb EZ)\leq\mathbb E f(Z)$。在 $\mathbb EZ$ 处使用式\eqref{eq:co-tangent-bound}并取期望，线性项的期望为零，即得结论。
+
+\section{保凸运算与复合规则}
+
+非负加权和与仿射复合保凸。若每个 $f_\alpha$ 凸，则 $f(x)=\sup_\alpha f_\alpha(x)$ 为凸扩展值函数，因为
+\[
+ f_\alpha(\theta x+(1-\theta)y)
+ \leq\theta\sup_\beta f_\beta(x)+(1-\theta)\sup_\beta f_\beta(y)
+\]
+对每个 $\alpha$ 成立。逐点最小值不保凸，例如 $\min\{x,-x\}=-|x|$。
+
+若外层函数 $h$ 凸且单调不减、内层 $g$ 凸，则在复合有定义且定义域凸的条件下，$h\circ g$ 凸：先用 $g$ 的凸性及 $h$ 的单调性，再用 $h$ 的凸性。若 $h$ 单调不增，则应配合凹的 $g$。多变量外层函数按各分量的单调方向检验，不能只检查外层凸性。
+
+设 $F(x,y)$ 联合凸，$C$ 为固定凸集，$f(x)=\inf_{y\in C}F(x,y)$，且下确界不为 $-\infty$。取使 $F(x_i,y_i)\leq f(x_i)+\varepsilon$ 的近似最优点，使用联合凸性，再令 $\varepsilon\downarrow0$，便得 $f$ 凸。是否取到下确界不是此证明的必要条件，但 $f$ 未必闭。
+
+凸函数 $f$ 的透视函数（perspective）为 $g(x,t)=t f(x/t)$，定义于 $t>0$、$x/t\in\operatorname{dom}f$。令 $t=\theta t_1+(1-\theta)t_2$，则 $x/t$ 是 $x_1/t_1,x_2/t_2$ 以 $\theta t_1/t,(1-\theta)t_2/t$ 为权的凸组合，代入凸性并乘以 $t$ 即证 $g$ 联合凸。因此 $\|x\|_2^2/t$ 在 $t>0$ 上联合凸。
+
+\section{共轭函数、次梯度与支撑下界}
+
+函数 $f$ 的凸共轭（convex conjugate）为
+\begin{equation}
+ f^*(y)=\sup_{x\in\operatorname{dom}f}\{y^{\mathsf T}x-f(x)\}.
+ \label{eq:co-conjugate}
+\end{equation}
+它是仿射函数的上确界，故总是凸的。例如 $f(x)=\|x\|_2^2/2$ 时，配方得 $f^*(y)=\|y\|_2^2/2$。$I_C^*(y)=\sup_{x\in C}y^{\mathsf T}x$ 称为 $C$ 的支撑函数（support function）。由定义立即得到 Fenchel 不等式 $f(x)+f^*(y)\geq y^{\mathsf T}x$。
+
+\begin{definition}
+设 $f$ 为适当凸函数，$x\in\operatorname{dom}f$。若向量 $g$ 满足 $f(z)\geq f(x)+g^{\mathsf T}(z-x)$ 对所有 $z$ 成立，则称 $g$ 为 $f$ 在 $x$ 处的次梯度（subgradient）；全部次梯度组成次微分（subdifferential）$\partial f(x)$。
+\end{definition}
+
+当 $x$ 位于有效定义域的内部且凸函数 $f$ 在 $x$ 可微时，次微分为 $\{\nabla f(x)\}$；$f(x)=|x|$ 的次微分在正点为 $\{1\}$、负点为 $\{-1\}$、零点为 $[-1,1]$。这由 $|z|\geq gz$ 对所有 $z$ 的条件直接得到。Fenchel 不等式取等号当且仅当 $y\in\partial f(x)$，因为等号正好要求 $x$ 在共轭定义的上确界中达到最大值。
+
+次微分在定义域边界上可能为空。例如 $f(x)=-\sqrt{x}$ 定义于 $x\geq0$ 并在域外取 $+\infty$，在零点若有有限次梯度 $g$，则 $-1/\sqrt z\geq g$ 对所有 $z>0$，与 $z\downarrow0$ 矛盾。
+
+作为选读结论，有限维 Fenchel--Moreau 定理断言：适当闭凸函数满足 $f^{**}=f$。它说明该函数可由全部仿射下界恢复；一般函数只能直接得到 $f^{**}\leq f$。此定理可由上图分离证明，本节仅引用结论；该结果与闭性条件见\cite{boyd-vandenberghe}的共轭函数小节。
+
+\section{拟凸性、对数凸性与矩阵凸性}
+
+函数 $f$ 称为拟凸（quasiconvex），若每个次水平集都凸；等价地，$f(\theta x+(1-\theta)y)\leq\max\{f(x),f(y)\}$。凸函数必拟凸，反之不成立：$x^3$ 在实轴上的次水平集均为半直线，但其二阶导数在负半轴为负。拟凸最小化可通过逐次判断水平集是否与约束集相交来求解。
+
+正值函数 $f$ 若 $\log f$ 凸，称为对数凸（log-convex）；若 $\log f$ 凹，称为对数凹（log-concave）。例如 $e^{x^2}$ 对数凸，$e^{-x^2}$ 对数凹。对数凸函数是凸函数，因为 $f=\exp(\log f)$ 是凸递增函数与凸函数的复合。
+
+对矩阵值函数 $F:D\to\mathbb S^r$，关于半正定序的凸性指
+\[
+ F(\theta x+(1-\theta)y)\preceq\theta F(x)+(1-\theta)F(y).
+\]
+它等价于对每个 $v\in\mathbb R^r$，标量函数 $v^{\mathsf T}F(x)v$ 凸。例如 $F(x)=xx^{\mathsf T}$ 为此意义下的凸映射，因为右端减左端为 $\theta(1-\theta)(x-y)(x-y)^{\mathsf T}\succeq0$。逐元素凸性与矩阵序凸性不能混同。
+
+\section{例题与学习检查}
+\begin{example}[曲率与正则化]
+对 $\alpha>0$，函数 $f(x)=\tfrac12\|Ax-b\|_2^2+\tfrac\alpha2\|x\|_2^2$ 的海塞矩阵为 $A^{\mathsf T}A+\alpha I\succeq\alpha I$，因此它至少为 $\alpha$-强凸，即使 $A$ 秩亏也如此。若将平方正则项换成 $\alpha\|x\|_1$，目标仍凸，但一般不再可微或强凸。
+\end{example}
+\begin{enumerate}
+ \item 用海塞矩阵和透视函数两种方法证明 $x^2/t$ 在 $t>0$ 上联合凸。
+ \item 求 $f(x)=\tfrac12x^{\mathsf T}Px$ 在 $P\succ0$ 时的共轭。答案为 $\tfrac12y^{\mathsf T}P^{-1}y$。
+ \item 证明 $\max_i(a_i^{\mathsf T}x+b_i)$ 凸；若当前最大值由唯一指标取得，求其梯度。
+ \item 举例说明严格凸不推出强凸，凸不推出对数凸。提示：$x^4$ 与正半轴上的 $x$。
+\end{enumerate}
+
+\chapter{凸优化问题与标准模型}
+\label{ch:co-models}
+
+模型的凸性应从变量、定义域、目标及每个约束逐项检查。本章把前两章的判据转化为建模工具，并给出算法和对偶理论所需的基本最优性结论。
+
+\section{标准形式与最优性基本定理}
+
+式\eqref{eq:co-general-problem}在 $D$ 凸、$f_0,f_1,\ldots,f_m$ 凸、$h_j$ 仿射时称为标准形式凸问题。它的可行集是凸集，因为凸函数次水平集与仿射集的交仍凸。最大化凹函数也属于凸优化，因为取负号后得到凸的极小化问题。
+
+一个凸可行集可能被写成非标准约束。例如 $x^2=0$ 定义单点凸集，但左侧不是仿射函数；改写为 $x=0$ 就得到标准凸表示。建模时应寻找便于验证和求解的表示。
+
+\begin{theorem}[凸问题的最优解]
+在凸集 $C$ 上极小化凸函数 $f$ 时，每个局部最优解都是全局最优解；最优解集是凸集；若 $f$ 严格凸，则最优解至多一个。
+\end{theorem}
+\begin{proof}
+若局部最优点 $x^\star$ 不是全局最优点，存在 $y\in C$ 使 $f(y)<f(x^\star)$。对任意 $0<t<1$，$x_t=(1-t)x^\star+ty$ 可行且 $f(x_t)<f(x^\star)$；令 $t$ 足够小，便与局部最优性矛盾。若 $x,y$ 均最优，其凸组合的函数值不超过最优值，又不可能小于它，故仍最优。严格凸时两个不同最优点的中点会有更小函数值，故不能同时存在。
+\end{proof}
+
+存在性需另外保证。连续函数在非空紧可行集上取得最小值；更一般地，下半连续目标只要有一个非空紧的有限次水平集，就能在其上取得全局最小值。若目标在闭可行集上连续且随 $\|x\|_2\to\infty$ 趋于 $+\infty$，这种紧次水平集也存在。严格凸性只保证至多一个解，不能代替这些条件。
+
+\section{一阶最优性与约束边界}
+
+\begin{theorem}
+设 $C$ 非空凸，$f$ 在包含 $C$ 的开凸集上凸且可微。点 $x^\star\in C$ 最优，当且仅当
+\begin{equation}
+ \nabla f(x^\star)^{\mathsf T}(x-x^\star)\geq0,
+ \quad\text{对所有 }x\in C.
+ \label{eq:co-first-order-optimality}
+\end{equation}
+\end{theorem}
+\begin{proof}
+必要性由线段 $x^\star+t(x-x^\star)$ 上目标在 $t=0$ 处的右导数非负得到。充分性由切平面下界 $f(x)\geq f(x^\star)+\nabla f(x^\star)^{\mathsf T}(x-x^\star)\geq f(x^\star)$ 得到。
+\end{proof}
+
+当 $C=\mathbb R^n$ 时，可取 $x-x^\star=-\nabla f(x^\star)$，故条件化为 $\nabla f(x^\star)=0$。约束问题则不必如此：在 $x\geq0$ 上最小化 $f(x)=x$，最优点为零而导数为 $1$。可行方向限制了实际能够下降的方向。
+
+对适当凸函数，包括通过指示函数编码约束的情形，由次梯度定义可知
+\[
+ x^\star\text{ 最优}\quad\Longleftrightarrow\quad0\in\partial f(x^\star).
+\]
+把它进一步拆成目标和约束各自的次微分时，需要相应的求和规则及资格条件。
+
+\section{等价变换、松弛与拟凸优化}
+
+上图改写 $\min_x f(x)$ 为 $\min_{x,t}t$，约束 $f(x)\leq t$，保留最优值，并可由新解直接恢复 $x$。对于 $\min_x\max_i f_i(x)$，改写为 $\min t$、$f_i(x)\leq t$，常能消除目标中的非光滑最大值。可逆变量替换保留方案对应；严格递增的目标变换保留最优解，但通常改变最优值。
+
+若以更大的集合 $\widetilde C\supseteq C$ 替代原可行集，则
+\[
+ \inf_{x\in\widetilde C}f(x)\leq\inf_{x\in C}f(x).
+\]
+因此松弛产生下界；只有松弛解还满足原约束时，才能直接认证它也是原问题的最优解。
+
+设 $f$ 拟凸、约束集 $C$ 凸，且能判断 $C\cap\{x:f(x)\leq\tau\}$ 是否为空。给定最优值下界 $l$ 和来自可行点的上界 $u$，每次取 $\tau=(l+u)/2$：可行时保存该点并令 $u=\tau$，不可行时令 $l=\tau$。经过 $\lceil\log_2((u_0-l_0)/\varepsilon)\rceil$ 次判定，区间长度不超过 $\varepsilon$；此计数不包括每次可行性判定的代价，并假设判定精确。
+
+\section{线性规划与凸二次规划}
+
+LP 的常用标准形式为
+\[
+ \min_x c^{\mathsf T}x,\qquad Ax=b,\quad x\geq0.
+\]
+自由变量可写成两个非负变量之差；不等式 $Gx\leq h$ 可引入非负松弛变量 $s$，写成 $Gx+s=h$。转换增加变量，但便于统一分析。
+
+凸二次规划（quadratic programming，QP）具有形式
+\[
+ \min_x\ \tfrac12x^{\mathsf T}Px+q^{\mathsf T}x+r,
+ \qquad Gx\leq h,\quad Ax=b,\quad P\succeq0.
+\]
+若不等式也为凸二次函数，则称为凸二次约束二次规划（quadratically constrained quadratic programming，QCQP）。每一个不等式的二次型矩阵都应半正定；任意二次等式通常不符合标准凸形式。最小二乘为 QP，因为其二次项矩阵为 $A^{\mathsf T}A$。
+
+\section{二阶锥规划与半正定规划}
+
+二阶锥规划（second-order cone programming，SOCP）的目标线性，约束由仿射等式及
+\[
+ \|A_i x+b_i\|_2\leq c_i^{\mathsf T}x+d_i
+\]
+组成。左、右两侧整体表示一个仿射向量落入二阶锥；右侧非负性已由该不等式保证。凸 QCQP 可以通过二次型分解和旋转二阶锥转为 SOCP，例如 $\|u\|_2^2\leq t$ 等价于 $\|(2u,t-1)\|_2\leq t+1$。
+
+半正定规划（semidefinite programming，SDP）允许仿射矩阵约束 $F_0+\sum_i x_iF_i\succeq0$，其中 $F_i$ 为给定对称矩阵。最大特征值极小化可写为 $\min t$，满足 $tI-F(x)\succeq0$，前提是 $F$ 关于变量仿射。
+
+\begin{proposition}[Schur 补]
+若 $A\succ0$，则
+\[
+ \begin{bmatrix}A&B\\B^{\mathsf T}&C\end{bmatrix}\succeq0
+ \quad\Longleftrightarrow\quad C-B^{\mathsf T}A^{-1}B\succeq0.
+\]
+\end{proposition}
+\begin{proof}
+对向量 $u,v$，块二次型等于
+\[
+ (u+A^{-1}Bv)^{\mathsf T}A(u+A^{-1}Bv)
+ +v^{\mathsf T}(C-B^{\mathsf T}A^{-1}B)v.
+\]
+充分性由两项非负得到；必要性取 $u=-A^{-1}Bv$。
+\end{proof}
+若 $A$ 仅半正定，须增加值域条件并使用广义逆，不能直接照用此公式。
+
+\section{几何规划与对数变换}
+
+对正变量 $x_j>0$，单项式（monomial）为 $c\prod_jx_j^{a_j}$，其中 $c>0$、$a_j\in\mathbb R$；若干单项式的和称为正项式（posynomial）。几何规划（geometric programming，GP）的标准形式为最小化正项式，满足正项式不等式 $f_i(x)\leq1$ 和单项式等式 $h_j(x)=1$。
+
+令 $y_j=\log x_j$。单项式的对数成为 $\log c+a^{\mathsf T}y$，正项式的对数成为
+\[
+ \log\sum_k\exp(a_k^{\mathsf T}y+\log c_k),
+\]
+这是凸函数。因此对目标取对数、对每个约束取对数后，得到标准凸问题，原变量由 $x_j=e^{y_j}$ 恢复。
+
+\begin{example}
+长方形要求 $x,y>0$、面积 $xy\geq1$，求最小周长。模型为最小化 $2x+2y$，满足 $x^{-1}y^{-1}\leq1$，是 GP。由 $x+y\geq2\sqrt{xy}\geq2$，最优解为 $x=y=1$；对数改写中，面积约束成为 $-u-v\leq0$。
+\end{example}
+
+\section{多目标优化与建模检查}
+
+设可行集为 $C$，目标向量为 $F(x)=(f_1(x),\ldots,f_q(x))$。若 $x^\star\in C$，且不存在 $x\in C$ 使各目标均不大于 $F(x^\star)$ 且至少一项严格更小，则称 $x^\star$ 为帕累托最优（Pareto optimal）。给定权重 $w_i>0$，求解 $\min_{x\in C}\sum_iw_i f_i(x)$，称为加权和标量化（scalarization）。其最优解必为帕累托最优，否则支配它的点会有严格更小的加权和。若权重非负且不全为零，一般只能保证弱帕累托最优，即不存在同时严格改善全部目标的可行点。
+
+例如在 $0\leq x\leq1$ 上同时最小化 $x^2$ 和 $(x-1)^2$，每一点均为帕累托最优；正权重和的解为 $x=w_2/(w_1+w_2)$，展示了偏好权重对方案的影响。
+
+一个模型的最终检查应包括定义域、目标曲率、约束方向、等式仿射性以及辅助变量能否还原。诸如 $\|x\|_2\geq1$ 的约束虽使用凸函数，却是其超水平集，通常非凸。
+
+\section{例题与学习检查}
+\begin{example}[同一残差的不同模型]
+令 $e=Ax-b\in\mathbb R^r$。最小化 $\|e\|_1$ 等价于 LP：最小化 $\mathbf1^{\mathsf T}t$，约束 $-t\leq Ax-b\leq t$；最小化 $\|e\|_\infty$ 等价于最小化标量 $s$，约束 $-s\mathbf1\leq Ax-b\leq s\mathbf1$。最小化 $\|e\|_2$ 可用 SOCP 上图，而最小化其平方可用 QP。三种误差度量一般给出不同最优方案。
+\end{example}
+\begin{enumerate}
+ \item 将 $\min_x\max\{|x-1|,2|x+1|\}$ 写成 LP 并求解。答案为 $x=-1/3$，最优值 $4/3$。
+ \item 设 $f:\mathbb R^n\to\mathbb R$ 为 $\mu$-强凸连续函数，$C$ 为非空闭凸集。证明 $f$ 在 $C$ 上的最小值存在且唯一。提示：强凸下界提供强制性。
+ \item 用 Schur 补将 $y^{\mathsf T}X^{-1}y\leq t$、$X\succ0$ 写成矩阵不等式，并说明正定定义域不可遗漏。
+\end{enumerate}
+
+\chapter{拉格朗日对偶与最优性条件}
+\label{ch:co-duality}
+
+可行点给出极小化问题的上界；对偶理论构造下界。当上下界一致时，最优性得到认证。对偶变量还描述约束扰动的影响，并把几何最优性条件写成可以求解的方程与不等式。
+
+\section{拉格朗日函数与对偶函数}
+
+对式\eqref{eq:co-general-problem}，引入不等式乘子 $\lambda\in\mathbb R_+^m$、等式乘子 $\nu\in\mathbb R^p$，定义拉格朗日函数（Lagrangian）和对偶函数（dual function）：
+\begin{equation}
+ \mathcal L(x,\lambda,\nu)=f_0(x)+\sum_i\lambda_i f_i(x)+\sum_j\nu_j h_j(x),
+ \qquad g(\lambda,\nu)=\inf_{x\in D}\mathcal L(x,\lambda,\nu).
+ \label{eq:co-lagrangian-dual-function}
+\end{equation}
+对 $x$ 取下确界时保留定义域 $D$，但不再要求已纳入拉格朗日函数的约束。$g$ 可以取 $-\infty$，此时该乘子不给出有用的有限下界。
+
+\begin{proposition}
+对偶函数关于乘子为凹函数，无须假设原问题凸。
+\end{proposition}
+\begin{proof}
+固定 $x$ 时，$\mathcal L$ 关于乘子仿射。用 $y=(\lambda,\nu)$ 简记乘子，对 $0\leq\theta\leq1$ 有
+\[
+ \inf_x\mathcal L(x,\theta y_1+(1-\theta)y_2)
+ \geq\theta\inf_x\mathcal L(x,y_1)+(1-\theta)\inf_x\mathcal L(x,y_2),
+\]
+这正是凹性。
+\end{proof}
+
+\begin{example}
+对 $\min_x x$，约束 $x\geq1$，有 $\mathcal L=x+\lambda(1-x)$。若 $\lambda\ne1$，对自由变量 $x$ 的线性函数无下界；若 $\lambda=1$，$g(1)=1$。对偶函数的有限性本身产生了乘子约束，不能只形式化地求导后忽略其余情况。
+\end{example}
+
+\section{对偶问题、弱对偶与证书}
+
+对偶问题为最大化 $g(\lambda,\nu)$，满足 $\lambda\geq0$；其最优值为 $d^\star$。这是在凸域上最大化凹函数，因此是凸优化问题。
+
+\begin{theorem}[弱对偶]
+对任意原可行点 $x$ 与 $\lambda\geq0$、$\nu\in\mathbb R^p$，有 $g(\lambda,\nu)\leq f_0(x)$，从而 $d^\star\leq p^\star$。
+\end{theorem}
+\begin{proof}
+由下确界定义及可行性，
+\[
+ g(\lambda,\nu)\leq\mathcal L(x,\lambda,\nu)
+ =f_0(x)+\sum_i\lambda_i f_i(x)\leq f_0(x).
+\]
+分别对原变量取下确界、对乘子取上确界即可。
+\end{proof}
+
+当原、对偶值有限时，对偶间隙（duality gap）$f_0(x)-g(\lambda,\nu)$ 给出
+\[
+ 0\leq f_0(x)-p^\star\leq f_0(x)-g(\lambda,\nu).
+\]
+因此原可行点与对偶可行点的目标差不超过 $\varepsilon$，就认证了 $\varepsilon$-次优性。这个结论不需要强对偶，但在最优对偶间隙为正时可能无法得到任意小的证书。
+
+\section{强对偶与 Slater 条件}
+
+若 $d^\star=p^\star$，称为强对偶（strong duality）。凸性之外还需适当的约束资格条件（constraint qualification）来保证它。下面给出适合首次学习的版本。
+
+\begin{theorem}[Slater 条件的有限值版本]
+设 $f_0,\ldots,f_m$ 在 $\mathbb R^n$ 上为有限凸函数，等式约束为 $Ax=b$，$A$ 满行秩。若存在 $\bar x$ 满足 $A\bar x=b$、$f_i(\bar x)<0$ 对所有 $i$ 成立，且 $p^\star$ 有限，则强对偶成立，且存在最优乘子。此结论不要求原最优值取到。
+\label{thm:co-slater}
+\end{theorem}
+\begin{proof}
+考虑凸集
+\[
+ \mathcal U=\{(u,v,t):\text{存在 }x,\ f_i(x)<u_i,\ Ax-b=v,\ f_0(x)<t\}.
+\]
+点 $(0,0,p^\star)$ 不属于 $\mathcal U$。由分离定理，存在非零向量 $(\lambda,\nu,\eta)$，使
+\[
+ \lambda^{\mathsf T}u+\nu^{\mathsf T}v+\eta t\geq\eta p^\star
+ \quad\text{对所有 }(u,v,t)\in\mathcal U.
+\]
+$u_i,t$ 可任意增大，故 $\lambda\geq0,\eta\geq0$。若 $\eta=0$，在严格可行点 $\bar x$ 取 $f_i(\bar x)<u_i<0$、$v=0$，得 $\lambda=0$。随后 $\nu^{\mathsf T}(Ax-b)\geq0$ 对所有 $x$，迫使 $A^{\mathsf T}\nu=0$；满行秩推出 $\nu=0$，与分离向量非零矛盾。因此 $\eta>0$，归一化使其为 $1$。
+
+固定任意 $x$，令 $u_i\downarrow f_i(x)$、$t\downarrow f_0(x)$，得到 $\mathcal L(x,\lambda,\nu)\geq p^\star$。取下确界知 $g(\lambda,\nu)\geq p^\star$；弱对偶给出反向不等式，故这组乘子取到 $d^\star=p^\star$。
+\end{proof}
+
+更一般的版本允许凸的有效定义域 $D$，要求严格可行点位于 $\operatorname{ri}D$；仿射不等式还可放宽为非严格成立。该推广见\cite{boyd-vandenberghe}关于 Slater 条件的讨论。本书使用时明确采用哪个版本。
+
+资格条件是充分条件而非必要条件。例如 $\min_x x$、$x^2\leq0$ 的原最优值为零，对偶函数在 $\lambda>0$ 时为 $-1/(4\lambda)$，故强对偶仍成立，但有限乘子不能取到零。这里没有严格可行点，KKT 乘子也不存在。
+
+\section{KKT 条件与互补松弛}
+
+设 $D$ 为开凸集，各 $f_i$ 在其上凸且可微，等式约束为 $Ax=b$。Karush--Kuhn--Tucker 条件（KKT conditions）为
+\begin{equation}
+ \begin{aligned}
+ &x^\star\in D,\quad f_i(x^\star)\leq0,\quad Ax^\star=b,\\
+ &\lambda_i^\star\geq0,\quad\lambda_i^\star f_i(x^\star)=0,\quad i=1,\ldots,m,\\
+ &\nabla f_0(x^\star)+\sum_i\lambda_i^\star\nabla f_i(x^\star)
+    +A^{\mathsf T}\nu^\star=0.
+ \end{aligned}
+ \label{eq:co-kkt}
+\end{equation}
+前三类关系分别表达原可行性、对偶可行性和互补松弛（complementary slackness），最后一式为拉格朗日函数的驻点条件。
+
+\begin{theorem}
+满足式\eqref{eq:co-kkt}的点是原、对偶最优点。反之，若原最优解存在、强对偶成立且对偶最优值取到，则原、对偶最优点满足 KKT 条件。因此在 Slater 条件下，KKT 是已有原最优解的必要充分刻画。
+\end{theorem}
+\begin{proof}
+拉格朗日函数关于 $x$ 凸，驻点条件使 $x^\star$ 取到其下确界；互补松弛和原可行性给出 $g(\lambda^\star,\nu^\star)=f_0(x^\star)$，由弱对偶知最优。
+
+反向，从 $g(\lambda^\star,\nu^\star)\leq\mathcal L(x^\star,\lambda^\star,\nu^\star)\leq f_0(x^\star)$ 且两端相等可知，中间两步均取等号。各 $\lambda_i^\star f_i(x^\star)\leq0$ 且总和为零，故逐项为零；$x^\star$ 又是开域内拉格朗日函数的极小点，所以梯度为零。
+\end{proof}
+
+若某约束严格不活跃，即 $f_i(x^\star)<0$，其乘子必为零；活跃约束的乘子却也可能为零。若把非空闭凸约束 $x\in C$ 保留在定义域中，则在 $x\in C$ 处定义法锥（normal cone）$N_C(x)=\{v:v^{\mathsf T}(z-x)\leq0\text{ 对所有 }z\in C\}$，相应的拉格朗日最小化条件为 $-\nabla_x\mathcal L\in N_C(x)$。乘子的存在仍须单独核查资格条件。
+
+\section{鞍点、共轭与不同对偶表示}
+
+拉格朗日鞍点（saddle point）满足
+\[
+ \mathcal L(x^\star,\lambda,\nu)
+ \leq\mathcal L(x^\star,\lambda^\star,\nu^\star)
+ \leq\mathcal L(x,\lambda^\star,\nu^\star)
+\]
+对所有 $x\in D,\lambda\geq0,\nu$ 成立。右侧表示 $x^\star$ 最小化拉格朗日函数；左侧迫使原可行性和互补松弛，否则相应乘子可使左侧无界增大。因此鞍点与达到相同有限值的原对偶最优点对应。
+
+对 $\min_x f(x)$、$Ax=b$，共轭给出
+\[
+ g(\nu)=\inf_x\{f(x)+(A^{\mathsf T}\nu)^{\mathsf T}x-b^{\mathsf T}\nu\}
+       =-f^*(-A^{\mathsf T}\nu)-b^{\mathsf T}\nu.
+\]
+例如 $f(x)=\|x\|_2^2/2$ 时，$g(\nu)=-\|A^{\mathsf T}\nu\|_2^2/2-b^{\mathsf T}\nu$。若 $A$ 满行秩，则
+\[
+ \nu^\star=-(AA^{\mathsf T})^{-1}b,\qquad
+ x^\star=A^{\mathsf T}(AA^{\mathsf T})^{-1}b.
+\]
+这就是等式约束最小范数解，原对偶值同为 $b^{\mathsf T}(AA^{\mathsf T})^{-1}b/2$。
+
+LP $\min c^{\mathsf T}x$、$Ax=b$、$x\geq0$ 的对偶也可由有限性求得。将 $x\geq0$ 留在定义域中，则 $g(\nu)=-b^{\mathsf T}\nu$ 当且仅当 $c+A^{\mathsf T}\nu\geq0$，否则为 $-\infty$。改变变量 $y=-\nu$ 得熟悉的形式：最大化 $b^{\mathsf T}y$，满足 $A^{\mathsf T}y\leq c$。
+
+\section{扰动、灵敏度与乘子的解释}
+
+把约束改为 $f_i(x)\leq u_i$、$Ax=b+v$，最优值记为 $p(u,v)$。设原问题强对偶且有最优乘子 $(\lambda^\star,\nu^\star)$，则对扰动问题的任意可行点使用原拉格朗日下界，有
+\begin{equation}
+ p(u,v)\geq p(0,0)-{\lambda^\star}^{\mathsf T}u-{\nu^\star}^{\mathsf T}v.
+ \label{eq:co-sensitivity-bound}
+\end{equation}
+确切地说，$f_0(x)\geq g(\lambda^\star,\nu^\star)-{\lambda^\star}^{\mathsf T}u-{\nu^\star}^{\mathsf T}v$，再对扰动可行集取下确界即可。若 $p$ 在原点邻域有限且可微，支撑下界的斜率唯一，因而 $\nabla_up(0,0)=-\lambda^\star$、$\nabla_vp(0,0)=-\nu^\star$。
+
+乘子称为影子价格（shadow price），表示放宽单位约束可能带来的边际目标改进。等式扰动的符号取决于采用 $Ax=b+v$ 还是其他约定，不能脱离定义记忆。
+
+\section{择一定理与锥对偶}
+
+\begin{theorem}[Farkas 引理]
+对 $A\in\mathbb R^{r\times n}$、$b\in\mathbb R^r$，下列两个系统恰有一个可行：
+\[
+ Ax=b,\ x\geq0;\qquad A^{\mathsf T}y\geq0,\ b^{\mathsf T}y<0.
+\]
+\end{theorem}
+\begin{proof}
+两者不能同时可行，否则 $b^{\mathsf T}y=x^{\mathsf T}A^{\mathsf T}y\geq0$。若第一个不可行，则 $b$ 不属于有限生成锥 $K=\{Ax:x\geq0\}$。该锥是闭的：每个锥组合可消去线性相关的活动生成元，写成线性无关生成元的非负组合；这样的子锥各自闭，且只有有限多个。由点与闭凸锥的严格分离，存在 $y\in K^*$ 满足 $b^{\mathsf T}y<0$，而 $y\in K^*$ 等价于 $A^{\mathsf T}y\geq0$。
+\end{proof}
+
+对于仿射锥约束 $F(x)\in-K$，选择 $z\in K^*$，则 $\langle z,F(x)\rangle\leq0$，故它可以作为拉格朗日项。对 SDP 约束 $F(x)\succeq0$，相应项写为 $-\langle Z,F(x)\rangle$，$Z\succeq0$；互补性为 $\langle Z,F(x)\rangle=0$。两者半正定时还可推出 $ZF(x)=0$，但不是逐元素相乘。
+
+\section{例题与学习检查}
+\begin{example}[用 KKT 求解与认证]
+求 $\min_{x\geq1}x^2/2$。
+\end{example}
+\begin{solve}
+$\mathcal L=x^2/2+\lambda(1-x)$，$g(\lambda)=\lambda-\lambda^2/2$，$\lambda\geq0$。KKT 给出 $x=\lambda$、$\lambda(1-x)=0$、$x\geq1$，因此 $x^\star=\lambda^\star=1$。原对偶目标均为 $1/2$，最优性得到认证。点 $x=2$ 严格可行，因此 Slater 条件也成立。
+\end{solve}
+
+\begin{example}[比例资源分配]
+给定权重 $w_i>0$、预算 $B>0$，最大化 $\sum_iw_i\log x_i$，满足 $x_i>0$、$\sum_i x_i\leq B$。
+\end{example}
+\begin{solve}
+转为最小化负效用。驻点条件为 $-w_i/x_i+\lambda=0$；由于效用对每个变量递增，预算约束取等号。记 $W=\sum_iw_i$，得到 $\lambda^\star=W/B$、$x_i^\star=Bw_i/W$。这些点满足 KKT，因此最优；负效用严格凸，故解唯一。预算的边际效用为 $W/B$，与乘子一致。
+\end{solve}
+\begin{enumerate}
+ \item 求 $\min_{x\geq0}(x-a)^2/2$ 的最优解和乘子，按 $a$ 的符号讨论。答案为 $x^\star=\max\{a,0\}$、$\lambda^\star=\max\{-a,0\}$。
+ \item 验证 $\min x$、$x^2\leq0$ 的最优点不满足任何有限乘子的 KKT 条件，解释它与充分性定理并不矛盾。
+ \item 对任意原可行点和对偶可行点证明：若目标相等，它们分别最优；说明该论证为何不需要 Slater 条件。
+\end{enumerate}
+
+\part{凸优化应用}
+
+\chapter{逼近、拟合与正则化}
+\label{ch:co-fitting}
+
+拟合问题需要回答两件事：什么样的误差不可接受，以及什么样的解更符合任务需要。前者决定损失函数，后者表现为约束或正则项。本章固定设计矩阵 $A\in\mathbb R^{r\times n}$ 与观测 $b\in\mathbb R^r$，以 $e(x)=Ax-b$ 记残差。
+
+\section{范数逼近与误差度量}
+
+最小二乘最小化 $\sum_i e_i^2$，对大残差施加较重惩罚；最小绝对偏差最小化 $\sum_i|e_i|$，对残差大小的惩罚为线性；极小极大逼近最小化 $\max_i|e_i|$，控制最坏单点误差。后两者的 LP 表示已在第\ref{ch:co-models}章给出。
+
+最小化 $\|e\|_2$ 与 $\|e\|_2^2$ 有相同最优解，因为平方在非负实数上严格递增。不同范数一般没有这种对应。权重模型 $\sum_iw_i e_i^2$ 在 $w_i\geq0$ 时凸；权重可以表达量纲归一化或已知的观测可靠性，但应与建模假设相符。
+
+\begin{example}[均值、中位数与中程数]
+用常数 $x$ 拟合观测 $0,0,9$。平方损失的唯一解为均值 $3$；绝对偏差损失为 $2|x|+|x-9|$，在 $x=0$ 唯一最小；最大绝对误差要求同时接近最小值 $0$ 和最大值 $9$，故最优解为 $9/2$，误差为 $9/2$。同一数据下，不同目标表达了不同偏好。
+\end{example}
+
+\section{最小范数解与带约束逼近}
+
+欠定方程 $Ax=b$ 可能有很多解。最小范数模型 $\min\|x\|_2^2/2$、$Ax=b$ 选出唯一最小欧氏范数解；当 $A$ 满行秩时，第\ref{ch:co-duality}章已得
+\[
+ x^\star=A^{\mathsf T}(AA^{\mathsf T})^{-1}b.
+\]
+任意其他解为 $x^\star+d$，$Ad=0$；因 $x^\star\in\operatorname{range}A^{\mathsf T}$，有 ${x^\star}^{\mathsf T}d=0$，故 $\|x^\star+d\|_2^2=\|x^\star\|_2^2+\|d\|_2^2$，再次证明唯一性。一般可行的秩亏系统可用伪逆 $A^\dagger b$ 表示，见附录\ref{app:co-numerical}。
+
+实际拟合常要求 $x\geq0$、$\mathbf1^{\mathsf T}x=1$ 或 $l\leq x\leq u$。这些约束仿射，故与凸损失组合后仍凸。例如非负最小二乘的 KKT 条件为 $A^{\mathsf T}(Ax-b)-\lambda=0$、$x,\lambda\geq0$、$x_i\lambda_i=0$。将无约束解的负分量直接截断通常不是其解，因为矩阵 $A^{\mathsf T}A$ 会耦合各分量。
+
+\section{正则化与偏好编码}
+
+正则化（regularization）在数据损失之外加入对解的偏好。给定 $\alpha>0$，两个典型模型为
+\begin{equation}
+ \min_x\frac12\|Ax-b\|_2^2+\frac\alpha2\|x\|_2^2,
+ \qquad
+ \min_x\frac12\|Ax-b\|_2^2+\alpha\|x\|_1.
+ \label{eq:co-regularized-fitting}
+\end{equation}
+前者为岭回归（ridge regression），其唯一解为 $(A^{\mathsf T}A+\alpha I)^{-1}A^{\mathsf T}b$。后者为 Lasso，最优性条件为
+\[
+ 0\in A^{\mathsf T}(Ax-b)+\alpha\partial\|x\|_1.
+\]
+因此当最优分量 $x_j=0$ 时，相应残差相关量可在 $[-\alpha,\alpha]$ 内变化；这解释了绝对值正则项产生零分量的机制，但不保证任意数据都能恢复真实稀疏结构。
+
+\begin{example}[软阈值]
+当 $A=I$ 时，Lasso 可逐坐标求解 $\min_x(x-b)^2/2+\alpha|x|$。在正半轴驻点为 $b-\alpha$，负半轴驻点为 $b+\alpha$；零点最优当且仅当 $|b|\leq\alpha$。故
+\[
+ x^\star=\operatorname{sign}(b)\max\{|b|-\alpha,0\},
+\]
+其中 $\operatorname{sign}(0)=0$，称为软阈值（soft thresholding）。对 $b=(3,1/2)$、$\alpha=1$，解为 $(2,0)$。
+\end{example}
+
+若 $x_\alpha$ 最小化 $L(x)+\alpha R(x)$，则它也最小化约束问题 $\min L(x)$、$R(x)\leq R(x_\alpha)$，否则可找到更小的惩罚目标。反向对应依赖乘子存在性，且参数不必一一对应。由两个权重下的最优性不等式相加可知，随 $\alpha$ 增大，选取的最优解的正则项值不增，数据损失值不减。
+
+\section{鲁棒损失与不确定性集合}
+
+Huber 损失在小误差处为平方、大误差处为线性。给定 $\delta>0$，定义
+\[
+ h_\delta(t)=
+ \begin{cases}t^2/2,&|t|\leq\delta,\\
+ \delta|t|-\delta^2/2,&|t|>\delta.
+ \end{cases}
+\]
+其导数为截断到 $[-\delta,\delta]$ 的 $t$，连续且单调不减，故损失凸。还可写成 $h_\delta(t)=\min_v\{(t-v)^2/2+\delta|v|\}$，由软阈值代入验证。这使大残差的边际惩罚不再无限增长。
+
+鲁棒优化（robust optimization）则要求约束对指定不确定性集合内的所有参数成立。设约束系数为 $a=\bar a+Pu$，$\|u\|_2\leq\rho$，其中 $P$ 为已知矩阵、$\rho\geq0$。条件 $a^{\mathsf T}x\leq b$ 对所有这样的 $u$ 成立，当且仅当
+\[
+ \bar a^{\mathsf T}x+\rho\|P^{\mathsf T}x\|_2\leq b.
+\]
+因为 $\sup_{\|u\|_2\leq\rho}u^{\mathsf T}P^{\mathsf T}x=\rho\|P^{\mathsf T}x\|_2$，上界由柯西--施瓦茨不等式给出，平行方向取到。所得为 SOCP 约束；若不确定集改为 $\|u\|_\infty\leq\rho$，则对应项为 $\rho\|P^{\mathsf T}x\|_1$。
+
+最坏情形目标 $\sup_{u\in U}F(x,u)$ 在每个 $F(\cdot,u)$ 凸时仍凸。保证的范围由集合 $U$ 决定；抗异常损失、平均风险和最坏情形约束表达的是不同假设。
+
+\section{函数拟合、平滑与插值}
+
+给定固定基函数 $\phi_1,\ldots,\phi_n$，令拟合函数为 $g(t)=\sum_jx_j\phi_j(t)$。在观测位置 $t_i$ 上有 $g(t_i)=(Ax)_i$，其中 $A_{ij}=\phi_j(t_i)$，所以损失关于系数 $x$ 的凸性与基函数关于 $t$ 是否凸没有直接关系。
+
+对网格上的函数值 $x_1,\ldots,x_n$，一阶差分矩阵 $D$ 满足 $(Dx)_i=x_{i+1}-x_i$。平方平滑项 $\|Dx\|_2^2$ 惩罚快速变化；总变差（total variation）$\|Dx\|_1$ 倾向产生较少的跳变。固定网格 $t_1<\cdots<t_n$ 上，分段线性插值函数凸当且仅当相邻斜率满足
+\[
+ \frac{x_{i+1}-x_i}{t_{i+1}-t_i}
+ \leq\frac{x_{i+2}-x_{i+1}}{t_{i+2}-t_{i+1}},\quad i=1,\ldots,n-2.
+\]
+这些是关于函数值的线性不等式。对于任意其他函数族，仅在采样点检验形状通常不能认证整个连续区间上的性质。
+
+精确插值要求 $Ax=b$，可能在噪声下放大不稳定性；逼近允许残差并通过损失和正则项进行权衡。两者首先是不同的模型选择。
+
+\section{综合例题与学习检查}
+\begin{enumerate}
+ \item 对观测 $0,0,M$，分别求三种范数下的最佳常数，分析 $M\to+\infty$ 时的变化。答案为 $M/3,0,M/2$。
+ \item 推导带非负约束的岭回归 KKT 条件。说明为何 $A=I$ 时可以逐坐标求解，而一般 $A$ 不行。
+ \item 给定线性拟合的椭球系数不确定性，写出其 SOCP 鲁棒对应形式，并核对矩阵维度。
+ \item 在等距网格上拟合一列数据，写出“平方误差加总变差”和“平方误差加凸性约束”两个模型。前者偏好分段常数，后者限制斜率单调，两种模型不可互换。
+\end{enumerate}
+
+\chapter{统计估计与实验设计}
+\label{ch:co-statistics}
+
+统计模型决定数据的分布及未知参数，优化决定按某个准则选择哪一个参数值。一个估计问题是否凸，取决于参数化、参数域和目标函数；统计一致性、偏差与泛化性质则需要另外的概率分析。
+
+\section{参数估计与最大似然}
+
+设随机观测 $Z_1,\ldots,Z_N$ 在参数 $\theta\in\Theta\subseteq\mathbb R^d$ 下独立，其观测值为 $z_1,\ldots,z_N$，概率质量函数或密度为 $p_\theta$。最大似然估计（maximum likelihood estimation，MLE）最大化观测数据的似然，等价于
+\begin{equation}
+ \widehat\theta\in\mathop{\mathrm{arg\,min}}_{\theta\in\Theta}
+ \left\{-\sum_{i=1}^N\log p_\theta(z_i)\right\}.
+ \label{eq:co-mle}
+\end{equation}
+零概率对应负对数似然 $+\infty$。当 $\Theta$ 凸且各负对数似然关于 $\theta$ 凸时，这是凸问题。若观测不独立，应使用联合密度，不能直接写成上述乘积或求和。
+
+\begin{example}[伯努利参数]
+独立观测 $z_i\in\{0,1\}$，成功概率为 $q\in[0,1]$，记 $S=\sum_i z_i$。负对数似然为 $-S\log q-(N-S)\log(1-q)$。当 $0<S<N$ 时，令导数 $-S/q+(N-S)/(1-q)=0$，得到唯一解 $\widehat q=S/N$。当 $S=0$ 或 $S=N$ 时，解分别为端点 $0,1$，相应零计数项按连续延拓处理。
+\end{example}
+
+指数族在自然参数 $\theta$ 下写成 $p_\theta(z)=h(z)\exp(\theta^{\mathsf T}T(z)-A(\theta))$。对数配分函数 $A$ 凸，所以负对数似然是凸函数加仿射项。常用例子是逻辑回归：给定特征 $a_i$ 和标签 $y_i\in\{0,1\}$，目标为
+\[
+ \sum_i\bigl[\log(1+e^{a_i^{\mathsf T}\theta})-y_i a_i^{\mathsf T}\theta\bigr].
+\]
+海塞矩阵为 $\sum_iq_i(1-q_i)a_i a_i^{\mathsf T}\succeq0$，其中 $q_i=(1+e^{-a_i^{\mathsf T}\theta})^{-1}$。数据完全可分时，无正则项的最优值可能只在参数范数趋于无穷时逼近，凸性并不保证有限最优参数。
+
+\section{最大后验估计与正则化}
+
+给定先验密度 $\pi(\theta)$，最大后验估计（maximum a posteriori estimation，MAP）最小化
+\[
+ -\sum_i\log p_\theta(z_i)-\log\pi(\theta),
+\]
+其中省略与 $\theta$ 无关的归一化常数。若似然和先验关于参数均对数凹，且共同支持集凸，则负对数后验凸。高斯先验产生平方正则项，独立拉普拉斯先验产生绝对值正则项；尺度决定对应系数。
+
+\begin{example}[高斯均值的 MAP]
+设 $Z_i\mid\theta\sim N(\theta,\sigma^2)$ 独立，$\sigma^2>0$ 已知；先验为 $\theta\sim N(m_0,\tau^2)$，$\tau^2>0$。负对数后验除常数外为
+\[
+ \frac1{2\sigma^2}\sum_i(z_i-\theta)^2+\frac1{2\tau^2}(\theta-m_0)^2.
+\]
+其唯一最小点为
+\[
+ \widehat\theta_{\mathrm{MAP}}
+ =\frac{(N/\sigma^2)\bar z+(1/\tau^2)m_0}{N/\sigma^2+1/\tau^2},
+ \qquad \bar z=\frac1N\sum_i z_i.
+\]
+这按精度对样本均值和先验均值加权。本例后验为高斯，众数与均值相同；一般 MAP 只给出后验众数，不能替代整个后验分布。
+\end{example}
+
+\section{有限支持上的分布估计}
+
+在给定有限支持 $\{z_1,\ldots,z_s\}$ 上，以概率向量 $q\in\Delta_s$ 为变量。已知矩条件可写为 $Bq=c$，例如均值条件 $\sum_jq_jz_j=\mu$。熵（entropy）为 $H(q)=-\sum_jq_j\log q_j$，约定 $0\log0=0$。由于 $t\log t$ 在 $t>0$ 上凸且可连续延拓到零，最大熵模型
+\[
+ \max_{q\geq0}\ H(q),\qquad \mathbf1^{\mathsf T}q=1,\quad Bq=c
+\]
+是凸优化。若可行集非空，它紧且熵连续，因此最优解存在；熵严格凹，故解唯一。
+
+无矩约束时，对称性和 Jensen 不等式给出均匀分布 $q_j=1/s$。若最优解全部为正，对负熵写 KKT 可得 $q_j$ 与 $\exp(-b_j^{\mathsf T}\nu)$ 成比例，其中 $b_j$ 为 $B$ 的第 $j$ 列，乘子 $\nu$ 由矩约束确定。
+
+给定参考分布 $r$，相对熵（relative entropy）为 $D(q\|r)=\sum_jq_j\log(q_j/r_j)$。当 $q_j>0,r_j=0$ 时定义该项为 $+\infty$；$q_j=0$ 时定义为零。固定 $r$ 时它关于 $q$ 凸。有限支持上的优化是有限维问题，将连续分布离散化后得到的解只对该离散模型直接最优。
+
+\section{检测器设计与假设检验}
+
+考虑两个假设 $H_0,H_1$，观测只能取有限值 $z_1,\ldots,z_s$，相应已知概率为 $p_{0\ell},p_{1\ell}$。令 $t_\ell\in[0,1]$ 表示观测 $z_\ell$ 后判为 $H_1$ 的概率。$t_\ell\in\{0,1\}$ 对应确定性检测器，允许区间值则为随机检测器（randomized detector）。
+
+虚警率为 $\alpha(t)=\sum_\ell p_{0\ell}t_\ell$，漏检率为 $\beta(t)=\sum_\ell p_{1\ell}(1-t_\ell)$。给定虚警上限 $a\in[0,1]$，最小化 $\beta(t)$，满足 $\alpha(t)\leq a$、$0\leq t\leq1$，是 LP。
+
+对虚警约束引入乘子 $\lambda\geq0$，拉格朗日目标中 $t_\ell$ 的系数为 $\lambda p_{0\ell}-p_{1\ell}$。故当该系数为负时选 $t_\ell=1$，为正时选零，相等时可随机化。对于 $p_{0\ell}>0$，这就是按似然比 $p_{1\ell}/p_{0\ell}$ 与阈值比较；阈值由虚警限制决定。优化变量是决策规则，输入分布是模型给定的数据。
+
+\section{概率界与优化表达}
+
+对非负随机变量 $Y$ 和 $a>0$，$\mathbb EY\geq a\mathbb P(Y\geq a)$ 给出 Markov 不等式。若 $Z$ 的均值为 $\mu$、方差为 $\sigma^2<\infty$，令 $Y=(Z-\mu)^2$，得切比雪夫界（Chebyshev bound）
+\[
+ \mathbb P(|Z-\mu|\geq a)\leq\sigma^2/a^2.
+\]
+若 $M_Z(t)=\mathbb E e^{tZ}$ 在某个 $t>0$ 处有限，再对 $e^{tZ}$ 使用 Markov 不等式，得到 Chernoff 界
+\[
+ \mathbb P(Z\geq a)\leq\inf_{t\geq0:\,M_Z(t)<\infty}
+       \exp\bigl(\log M_Z(t)-ta\bigr).
+\]
+对数矩母函数在有限性区间上凸；可由 Hölder 不等式得到。因此选取最紧的这一类上界是一个单变量凸问题。所得仍是概率的上界，不一定等于真实概率。
+
+若只知道有限支持上的若干矩，最大化指定事件的概率等于最大化 $\sum_{j:z_j\in E}q_j$，满足概率和矩约束，这是 LP。对连续支持，变量变为概率分布本身；有限维近似或矩方法给出的界应与原分布问题区分。
+
+\section{实验设计与信息矩阵}
+
+在线性观测模型 $Y=a_i^{\mathsf T}\theta+\varepsilon$ 中，假设噪声独立、均值为零且方差为已知 $\sigma^2$；若解释为 Fisher 信息，再假设噪声为高斯。候选测量向量为 $a_1,\ldots,a_s\in\mathbb R^d$，连续设计权重满足 $w\in\Delta_s$，定义归一化信息矩阵
+\[
+ M(w)=\sum_iw_i a_i a_i^{\mathsf T}.
+\]
+总测量数为 $N$、且各方向次数为 $Nw_i$ 时，总信息为 $NM(w)/\sigma^2$。在 $M(w)\succ0$ 的域上，D-最优设计最小化 $-\log\det M(w)$；A-最优设计最小化 $\operatorname{tr}(M(w)^{-1})$；E-最优设计最大化最小特征值，可写为最大化 $t$，满足 $M(w)\succeq tI$。
+
+A-最优设计的凸性可由 Schur 补看出：引入对称矩阵 $Z$，最小化 $\operatorname{tr}Z$，满足
+\[
+ \begin{bmatrix}M(w)&I\\I&Z\end{bmatrix}\succeq0,
+\]
+即要求 $Z\succeq M(w)^{-1}$。这些设计分别控制误差椭球体积、平均方差和最不利方向信息；连续权重是整数次数的松弛，取整后须重新检查矩阵的秩与目标值。
+
+\section{例题与学习检查}
+\begin{example}[两个正交测量方向]
+设 $a_1=(1,0)^{\mathsf T}$、$a_2=(0,1)^{\mathsf T}$，则 $M(w)=\operatorname{diag}(w,1-w)$，$0<w<1$。D-最优设计最大化 $w(1-w)$，A-最优设计最小化 $1/w+1/(1-w)$，E-最优设计最大化 $\min\{w,1-w\}$；三者均在 $w=1/2$ 取最优。这一重合来自该例的对称性，并非一般结论。
+\end{example}
+\begin{enumerate}
+ \item 推导独立 Poisson 观测的均值参数最大似然估计，分别在均值参数和对数均值参数下判断凸性。
+ \item 在三点支持 $\{0,1,2\}$ 上最大化熵，要求均值为 $1$。验证均匀分布最优，并说明只给定归一化与均值时为何解仍唯一。
+ \item 对 $Z\sim N(0,1)$，用 $\log M_Z(t)=t^2/2$ 优化 Chernoff 界，求 $a\geq0$ 时的结果 $e^{-a^2/2}$。
+\end{enumerate}
+
+\chapter{几何优化与分类}
+\label{ch:co-geometry}
+
+距离、包含、分离和位置都可以转化为优化约束。建模的关键是选择合适的变量：同一个几何对象采用不同参数化，可能显露或遮蔽凸结构。
+
+\section{向凸集投影与最优性}
+
+对非空闭凸集 $C$，欧氏投影（Euclidean projection）定义为
+\begin{equation}
+ \Pi_C(z)=\mathop{\mathrm{arg\,min}}_{x\in C}\frac12\|x-z\|_2^2.
+ \label{eq:co-projection}
+\end{equation}
+根据定理\ref{thm:co-projection-existence}，最优解唯一，故这里将最优解集合与其中唯一元素认同。由一阶最优性条件，$u=\Pi_C(z)$ 当且仅当
+\[
+ (z-u)^{\mathsf T}(x-u)\leq0\quad\text{对所有 }x\in C.
+\]
+这表示从投影点指向原点 $z$ 的方向，与所有可行位移都成非锐角。
+
+\begin{proposition}[投影的非扩张性]
+$\|\Pi_C(z)-\Pi_C(w)\|_2\leq\|z-w\|_2$。
+\end{proposition}
+\begin{proof}
+令 $u=\Pi_C(z)$、$v=\Pi_C(w)$，在两条投影不等式中分别取 $x=v,u$ 并相加，得 $\|u-v\|_2^2\leq(u-v)^{\mathsf T}(z-w)$。再用柯西--施瓦茨不等式；若 $u=v$ 则结论直接成立。
+\end{proof}
+
+到半空间的投影已在第\ref{ch:co-sets}章求出。点 $z$ 到球 $\{x:\|x-c\|_2\leq r\}$ 的投影在 $z$ 位于球内时为 $z$，在球外时为 $c+r(z-c)/\|z-c\|_2$。到满行秩仿射集合 $Ax=b$ 的投影为 $z-A^{\mathsf T}(AA^{\mathsf T})^{-1}(Az-b)$，可由最小范数修正求得。
+
+\section{集合距离与分离问题}
+
+非空凸集 $C,D$ 的距离为 $\inf_{x\in C,y\in D}\|x-y\|_2$，是关于 $(x,y)$ 的凸优化。若一个集合紧、另一个闭，取极小化序列并利用有界性可得到收敛子列，因此距离取到；不相交时该距离严格为正。
+
+但两个闭凸集不相交时距离仍可能为零。例如 $C=\{(x,y):y\geq e^x\}$、$D=\{(x,y):y\leq0\}$，取 $(x,e^x)$ 与 $(x,0)$，令 $x\to-\infty$ 即可使距离趋零，且永不相交。
+
+支撑函数 $\sigma_C(v)=\sup_{x\in C}v^{\mathsf T}x$ 将点到集合的距离写为
+\[
+ \operatorname{dist}(z,C)=\max_{\|v\|_2\leq1}\{v^{\mathsf T}z-\sigma_C(v)\}
+\]
+，其中 $C$ 非空闭凸。任意可行 $v$ 和 $x\in C$ 满足 $v^{\mathsf T}z-\sigma_C(v)\leq\|z-x\|_2$；若 $z\notin C$，取 $v=(z-\Pi_C(z))/\|z-\Pi_C(z)\|_2$，投影不等式保证下界取等号。若 $z\in C$，取 $v=0$。这给出了距离问题的一个对偶解释。
+
+\section{距离矩阵、格拉姆矩阵与半正定表示}
+
+设未知点 $p_1,\ldots,p_N\in\mathbb R^d$ 作为矩阵 $P$ 的行，格拉姆矩阵（Gram matrix）为 $G=PP^{\mathsf T}\succeq0$。平方距离满足
+\[
+ \|p_i-p_j\|_2^2=G_{ii}+G_{jj}-2G_{ij}.
+\]
+因此给定部分平方距离会形成关于 $G$ 的仿射约束。反之，若 $G\succeq0$ 且秩为 $r$，由谱分解 $G=U_r\Lambda_rU_r^{\mathsf T}$，矩阵 $P=U_r\Lambda_r^{1/2}$ 的行给出 $\mathbb R^r$ 中的一组坐标。
+
+若要求固定低维空间，例如 $d=2$，还须加上 $\operatorname{rank}G\leq d$，这是非凸限制。删除秩约束得到 SDP 松弛，得到的点集可能需要更高维空间才能准确实现。截取最大的 $d$ 个特征值可以给出近似坐标，但应重新计算距离误差。
+
+\section{极值体积椭球与不同中心}
+
+用 $E=\{x:\|Bx+d\|_2\leq1\}$ 表示椭球，其中 $B\succ0$。其体积为单位球体积除以 $\det B$，故包围点 $a_i$ 的最小体积椭球可求解
+\[
+ \min_{B\succ0,d}-\log\det B,
+ \qquad \|Ba_i+d\|_2\leq1\quad\text{对所有 }i.
+\]
+约束关于 $(B,d)$ 凸。若点集仿射张成全空间，则可得到非退化最小包围椭球；若点集低维，满维体积的下确界可能为零而不取到。
+
+对于多面体 $C=\{x:a_i^{\mathsf T}x\leq b_i\}$，内接椭球用 $E=\{c+Bu:\|u\|_2\leq1\}$、$B\succ0$ 表示。其包含条件等价于 $a_i^{\mathsf T}c+\|Ba_i\|_2\leq b_i$，体积正比于 $\det B$，故最大化 $\log\det B$ 是凸优化意义下的凹最大化。存在满维可行椭球需多面体有内点；有界性使最大体积有限。
+
+切比雪夫中心（Chebyshev center）选择最大内接球中心，可通过 LP 求得：最大化 $r\geq0$，满足 $a_i^{\mathsf T}c+r\|a_i\|_2\leq b_i$。解析中心（analytic center）则最小化 $-\sum_i\log(b_i-a_i^{\mathsf T}c)$，定义于严格可行域。对于有界、具有严格可行点的多面体，目标逼近边界时趋于无穷，故中心存在；不同的冗余约束表示可能改变解析中心。
+
+\section{线性分类与最大间隔}
+
+给定样本 $a_i\in\mathbb R^n$、标签 $y_i\in\{-1,1\}$，分类超平面为 $w^{\mathsf T}x+\beta=0$。若数据线性可分，可缩放 $w,\beta$，使 $y_i(w^{\mathsf T}a_i+\beta)\geq1$。点到超平面的距离为 $|w^{\mathsf T}a_i+\beta|/\|w\|_2$，因此最大化规范化后的间隔等价于硬间隔支持向量机（support vector machine，SVM）：
+\[
+ \min_{w,\beta}\frac12\|w\|_2^2,
+ \qquad y_i(w^{\mathsf T}a_i+\beta)\geq1.
+\]
+不可分时引入松弛量 $\xi_i\geq0$，将右侧改为 $1-\xi_i$，目标加入 $C\sum_i\xi_i$，其中 $C>0$。消去松弛量就得到铰链损失 $\max\{0,1-y_i(w^{\mathsf T}a_i+\beta)\}$。
+
+硬间隔模型的驻点条件给出 $w=\sum_i\alpha_i y_i a_i$、$\sum_i\alpha_i y_i=0$、$\alpha_i\geq0$；互补松弛为 $\alpha_i[y_i(w^{\mathsf T}a_i+\beta)-1]=0$。因此只有间隔约束活跃的样本可能有非零乘子，它们决定分类法向量，称为支持向量。
+
+\section{设施定位、网络布局与平面布置}
+
+给定需求点 $a_i$ 和非负权重 $w_i$，设施位置 $x$ 可由 $\min_x\sum_iw_i\|x-a_i\|_2$ 确定。引入 $t_i\geq\|x-a_i\|_2$ 即为 SOCP；区域约束若为凸集，模型仍凸。多个设施且连接关系固定时，代价 $\sum_{(i,j)}w_{ij}\|x_i-x_j\|_2$ 也凸。
+
+若同时决定哪个设施服务哪个客户，会出现离散指派；这部分通常不能直接保留在纯凸模型中。矩形非重叠也包含“左、右、上、下”中的离散选择。只有预先固定相对关系，或采用其他具有明确保证的松弛，才可将相应位置限制写成单组凸约束。
+
+\section{例题与学习检查}
+\begin{example}[一维最大间隔]
+负类点为 $-2$，正类点为 $2$。硬间隔约束为 $2w-\beta\geq1$、$2w+\beta\geq1$，相加得 $w\geq1/2$。故最小化 $w^2/2$ 时取 $w=1/2$、$\beta=0$，分类边界为原点，两侧几何间隔均为 $2$。
+\end{example}
+\begin{enumerate}
+ \item 求 $(3,4)$ 到单位闭球的投影，验证距离为 $4$，投影为 $(3/5,4/5)$。
+ \item 推导盒状区域 $l_i\leq x_i\leq u_i$ 上的欧氏投影。答案为逐坐标截断。
+ \item 比较区间 $[0,3]$ 的最大内接球中心与解析中心；再添加冗余约束 $x<4$，检查解析中心是否改变。
+ \item 给定三点的部分距离，写出 $3\times3$ 格拉姆矩阵的 SDP 可行性模型，并指出若要求点都在直线上须补充什么条件。
+\end{enumerate}
+
+\part{凸优化算法}
+
+\chapter{无约束优化算法}
+\label{ch:co-unconstrained}
+
+本章研究 $\min_x f(x)$。除另有说明外，函数凸且可微；出现 $x^\star$ 时假设最优解存在，以 $f^\star=f(x^\star)$ 记最优值。算法产生序列 $x_0,x_1,\ldots$，必须区分目标误差、点误差和计算成本。
+
+\section{算法问题、误差与基本假设}
+
+目标误差为 $f(x_k)-f^\star$，点误差为 $\|x_k-x^\star\|_2$，梯度范数 $\|\nabla f(x_k)\|_2$ 则直接可计算。一般情况下，函数值接近最优不保证点接近某个指定最优解；若函数为 $\mu$-强凸，则
+\[
+ \frac\mu2\|x-x^\star\|_2^2\leq f(x)-f^\star
+ \leq\frac1{2\mu}\|\nabla f(x)\|_2^2.
+\]
+左侧来自最优点处的强凸下界；右侧对 $f(y)\geq f(x)+\nabla f(x)^{\mathsf T}(y-x)+\mu\|y-x\|_2^2/2$ 关于 $y$ 取下确界得到。
+
+\begin{lemma}[下降引理]
+若 $f$ 在包含线段 $[x,y]$ 的开凸域上可微，且梯度以常数 $L$ 利普希茨连续，则
+\begin{equation}
+ f(y)\leq f(x)+\nabla f(x)^{\mathsf T}(y-x)+\frac L2\|y-x\|_2^2.
+ \label{eq:co-descent-lemma}
+\end{equation}
+\end{lemma}
+\begin{proof}
+令 $d=y-x$。由微积分基本定理，$f(y)-f(x)-\nabla f(x)^{\mathsf T}d=\int_0^1[\nabla f(x+td)-\nabla f(x)]^{\mathsf T}d\,dt$，其上界为 $\int_0^1Lt\|d\|_2^2\,dt=L\|d\|_2^2/2$。
+\end{proof}
+
+\section{下降方向与线搜索}
+
+统一更新为 $x_{k+1}=x_k+t_kd_k$，其中 $d_k$ 为方向，$t_k>0$ 为步长。当 $\nabla f(x_k)^{\mathsf T}d_k<0$ 时，称 $d_k$ 为下降方向（descent direction）。可微性保证充分小的正步长使目标下降，但过大步长可能越过低谷或离开定义域。
+
+Armijo 回溯线搜索（backtracking line search）取参数 $0<\alpha<1/2$、$0<\beta<1$，先令 $t=1$；若试探点不在定义域内，或
+\[
+ f(x+td)>f(x)+\alpha t\nabla f(x)^{\mathsf T}d,
+\]
+就令 $t\leftarrow\beta t$，直到满足条件。若当前点位于开定义域且 $d$ 为下降方向，则足够小步长必满足条件，因为一阶展开中的余项为 $o(t)$。精确线搜索直接最小化射线上的目标，通常比回溯更贵。
+
+\section{梯度下降与收敛速度}
+
+梯度下降（gradient descent）采用 $d_k=-\nabla f(x_k)$。给定 $x_0$ 和误差要求，可使用已知 $L>0$ 的固定步长 $1/L$，或每步回溯；更新后重复计算梯度，达到适用的停止条件时返回当前点。
+
+\begin{theorem}[光滑凸情形的目标误差界]
+设 $f:\mathbb R^n\to\mathbb R$ 凸，梯度以常数 $L>0$ 利普希茨连续，且存在最优解。令 $x_{k+1}=x_k-\nabla f(x_k)/L$，则对 $k\geq1$，
+\begin{equation}
+ f(x_k)-f^\star\leq\frac{L\|x_0-x^\star\|_2^2}{2k}.
+ \label{eq:co-gradient-rate}
+\end{equation}
+\end{theorem}
+\begin{proof}
+记 $g_k=\nabla f(x_k)$。下降引理给出 $f(x_{k+1})\leq f(x_k)-\|g_k\|_2^2/(2L)$，故目标值不增。再用凸性 $f(x_k)-f^\star\leq g_k^{\mathsf T}(x_k-x^\star)$，得
+\[
+ f(x_{k+1})-f^\star
+ \leq\frac L2\bigl(\|x_k-x^\star\|_2^2-\|x_{k+1}-x^\star\|_2^2\bigr).
+\]
+从 $0$ 至 $k-1$ 求和，右侧望远镜消去；左侧至少为 $k[f(x_k)-f^\star]$，于是得到所述界。
+\end{proof}
+
+若再有 $\mu$-强凸性，则前节梯度误差界与下降引理给出
+\[
+ f(x_{k+1})-f^\star\leq(1-\mu/L)[f(x_k)-f^\star].
+\]
+因此目标误差按几何比例衰减，称为线性收敛（linear convergence）。达到给定误差所需迭代次数与条件比 $L/\mu$ 及精度对数相关；一般光滑凸情形只有式\eqref{eq:co-gradient-rate}的 $O(1/k)$ 目标误差界。这里 $O(1/k)$ 描述误差随迭代次数的衰减阶；反解误差要求后，所需迭代次数为 $O(1/\varepsilon)$，尚不包含每次梯度计算的成本。
+
+\section{最速下降、尺度与条件数}
+
+给定范数 $\|\cdot\|$，归一化最速下降方向（steepest descent direction）最小化 $g^{\mathsf T}d$，约束 $\|d\|\leq1$。其最小值为 $-\|g\|_*$，其中对偶范数为 $\|g\|_*=\max_{\|d\|\leq1}g^{\mathsf T}d$。欧氏范数对应负梯度；$\ell_1$ 范数对应沿最大绝对梯度分量的坐标轴移动。
+
+在二次范数 $\|d\|_P=\sqrt{d^{\mathsf T}Pd}$、$P\succ0$ 下，方向与 $-P^{-1}g$ 平行。矩阵 $P$ 改变所用度量，称为预条件（preconditioning）的一种形式；它不改变原目标的最优点。
+
+对正定二次函数，梯度的变化常数可取最大特征值 $L$，强凸参数可取最小特征值 $\mu$，比值 $\kappa=L/\mu$ 为谱条件数。例 $f(x)=\tfrac12(x_1^2+100x_2^2)$，步长 $1/100$ 使第二个分量一步归零，却使第一个分量每步只乘以 $0.99$。选择 $P=\operatorname{diag}(1,100)$ 后，预条件方向配单位步长可一步到达最优点。
+
+\section{牛顿方向与阻尼牛顿法}
+
+设 $f$ 二次连续可微，当前 $H=\nabla^2f(x)\succ0$。二阶模型为 $m(d)=f(x)+g^{\mathsf T}d+d^{\mathsf T}Hd/2$，其唯一最小点满足
+\begin{equation}
+ Hd=-g.
+ \label{eq:co-newton-direction}
+\end{equation}
+这定义牛顿方向（Newton direction）。当 $g\ne0$ 时，$g^{\mathsf T}d=-g^{\mathsf T}H^{-1}g<0$，故可用回溯线搜索形成阻尼牛顿法（damped Newton method）。实现应解线性系统，不显式计算逆矩阵。
+
+\begin{theorem}[局部二次收敛]
+设 $x^\star$ 为驻点，在其某邻域内 $\nabla^2f(x)\succeq\mu I$、$\mu>0$，且海塞矩阵关于谱范数以常数 $M$ 利普希茨连续。对充分接近 $x^\star$ 的初值，单位步长牛顿法保持在该邻域内，并满足
+\[
+ \|x_{k+1}-x^\star\|_2\leq\frac{M}{2\mu}\|x_k-x^\star\|_2^2.
+\]
+\end{theorem}
+\begin{proof}
+记 $e=x-x^\star$、$H=\nabla^2f(x)$。因 $\nabla f(x^\star)=0$，积分表示给出
+\[
+ e^+=H^{-1}\int_0^1[H-\nabla^2f(x^\star+te)]e\,dt.
+\]
+用 $\|H^{-1}\|_2\leq1/\mu$ 及海塞矩阵的利普希茨界，得到 $\|e^+\|_2\leq(M/(2\mu))\|e\|_2^2$。选初值足够近，使此上界既留在邻域内又小于原误差，即可归纳。
+\end{proof}
+
+局部定理不保证任意初值都适合单位步长。若初值次水平集紧、包含在定义域内，并在其邻域内有统一界 $0<\mu I\preceq\nabla^2f\preceq LI$，则回溯接受步长有正的统一下界，每次下降量可下界为常数乘 $\|\nabla f\|_2^2$，由目标有下界可推出梯度趋零；再由强凸性推出收敛到唯一解。正定二次目标的二阶模型本身精确，解准牛顿方程并取单位步长即可一步求解。
+
+\section{牛顿减量与自协调分析}
+
+在 $H\succ0$ 时定义牛顿减量（Newton decrement）
+\[
+ \delta(x)=\sqrt{\nabla f(x)^{\mathsf T}H^{-1}\nabla f(x)}.
+\]
+二阶模型预测的最大下降量为 $\delta(x)^2/2$，因为将 $d=-H^{-1}g$ 代入 $m(d)$ 可得此值。但它本身不是任意函数的全局目标误差界。
+
+自协调函数（self-concordant function，亦译自和谐函数）是开凸域上的三次连续可微凸函数，满足
+\[
+ |D^3f(x)[h,h,h]|\leq2\bigl(D^2f(x)[h,h]\bigr)^{3/2}
+\]
+对所有点和方向成立，其中 $D^j f(x)[h,\ldots,h]$ 为沿直线的 $j$ 阶导数。$-\log x$ 在正半轴上恰好满足等号；凸二次函数的三阶导数为零。该条件用局部曲率控制高阶变化，且保持仿射坐标变换下的形式。
+
+以下标准自协调估计作为选读结论引用，完整推导见\cite{boyd-vandenberghe}关于牛顿法的讨论：若 $f$ 为自协调函数，在域外取 $+\infty$ 后闭、海塞矩阵正定且最小值取到，则步长 $1/(1+\delta)$ 给出至少 $\delta-\log(1+\delta)$ 的目标下降；当 $\delta<1$ 时，
+\[
+ f(x)-f^\star\leq-\delta-\log(1-\delta).
+\]
+因此在这些条件下，减量可以转成严格误差证书。自协调性也为内点法的迭代分析提供工具。
+
+\section{实现、停止准则与数值实践}
+
+梯度法每步需要一个梯度和若干函数值；牛顿法还需要海塞矩阵及线性求解。稠密 $n\times n$ 正定矩阵的 Cholesky 分解需 $O(n^3)$ 运算、$O(n^2)$ 存储；稀疏结构、低秩结构和分解复用可能显著改变成本。迭代次数少不必然意味着总时间短。
+
+在已知强凸参数 $\mu$ 时，可用 $\|\nabla f(x)\|_2^2/(2\mu)\leq\varepsilon$ 停止；适用的自协调情形可用前节减量界。缺少误差界时，小梯度只直接表示近似驻点。实际实现还需设置最大迭代次数与线搜索失败状态，不能把这些退出状态等同于已满足最优性精度。
+
+\begin{enumerate}
+ \item 推导 $f(x)=x^2/2$ 上固定步长梯度法的序列。证明 $0<t<2$ 时收敛，$t=2$ 时一般振荡。
+ \item 对 $f(x)=\tfrac12(x_1^2+100x_2^2)$，比较固定步长梯度法与牛顿法，记录目标误差和线性求解代价。
+ \item 验证 $-\log x$ 的自协调条件，解释它虽然自协调却没有有限最小点，故不能直接套用含最小点的误差结论。
+ \item 证明若 $\mu$ 已知且目标误差不超过 $\varepsilon$，则点误差不超过 $\sqrt{2\varepsilon/\mu}$。
+\end{enumerate}
+
+\chapter{等式约束优化算法}
+\label{ch:co-equality}
+
+考虑 $\min_x f(x)$，满足 $Ax=b$。等式要求每一步位移保持在可行方向内，或在迭代中逐步消除等式残差。本章假设 $f$ 在开凸域上二次连续可微，并在使用牛顿系统时明确秩与曲率条件。
+
+\section{仿射约束与降维表示}
+
+设 $A\in\mathbb R^{p\times n}$。首先检查 $b\in\operatorname{range}A$；否则等式系统不可行。可以删除冗余等式，以下通常假设 $A$ 满行秩。若 $p=n$，可行点唯一，只需检查其是否在目标定义域内。
+
+当 $p<n$，取可行点 $\bar x$，令 $F\in\mathbb R^{n\times(n-p)}$ 的列构成 $\ker A$ 的一组基。所有可行点唯一写成 $x=\bar x+Fz$，于是原问题化为无约束问题
+\[
+ \min_z\widetilde f(z)=f(\bar x+Fz),\qquad
+ \nabla\widetilde f=F^{\mathsf T}\nabla f,\quad
+ \nabla^2\widetilde f=F^{\mathsf T}\nabla^2fF.
+\]
+因此只有可行方向上的曲率直接影响约束最优性。例 $f(x_1,x_2)=x_1^2/2$、$x_2=0$，全空间海塞矩阵奇异，但可行子空间上的目标严格凸。
+
+\section{等式约束二次问题与 KKT 系统}
+
+对二次目标 $f(x)=x^{\mathsf T}Px/2+q^{\mathsf T}x+r$、$P=P^{\mathsf T}$，驻点与可行性构成
+\[
+ \begin{bmatrix}P&A^{\mathsf T}\\A&0\end{bmatrix}
+ \begin{bmatrix}x\\\nu\end{bmatrix}
+ =\begin{bmatrix}-q\\b\end{bmatrix}.
+\]
+即使 $P$ 在全空间不正定，只要在 $\ker A$ 上正定，该二次问题也有唯一约束最小点。
+
+\begin{proposition}[KKT 矩阵的非奇异性]
+若 $A$ 满行秩，且对所有非零 $d\in\ker A$ 有 $d^{\mathsf T}Pd>0$，则上述 KKT 矩阵非奇异。
+\end{proposition}
+\begin{proof}
+设齐次系统满足 $Pd+A^{\mathsf T}w=0$、$Ad=0$。第一式左乘 $d^{\mathsf T}$ 得 $d^{\mathsf T}Pd=0$，故 $d=0$；随后 $A^{\mathsf T}w=0$，由满行秩得 $w=0$。齐次系统仅有零解，因此矩阵可逆。
+\end{proof}
+冗余约束会使乘子不唯一，即使原变量的最优点仍唯一。因此数值奇异可能来自约束表示，并不必然来自目标缺少约束最小值。
+
+\section{可行初始点的约束牛顿法}
+
+给定 $Ax_k=b$，令 $g_k=\nabla f(x_k)$、$H_k=\nabla^2f(x_k)$。最小化局部二次模型，约束方向满足 $Ad=0$，得到
+\begin{equation}
+ \begin{bmatrix}H_k&A^{\mathsf T}\\A&0\end{bmatrix}
+ \begin{bmatrix}d_k\\w_k\end{bmatrix}
+ =-\begin{bmatrix}g_k\\0\end{bmatrix}.
+ \label{eq:co-equality-newton}
+\end{equation}
+若 $H_k$ 在 $\ker A$ 上正定，系统唯一可解。由方向方程左乘 $d_k^{\mathsf T}$ 得 $g_k^{\mathsf T}d_k=-d_k^{\mathsf T}H_kd_k\leq0$；非零方向严格下降，零方向对应约束驻点。
+
+算法从可行初值开始，每步解式\eqref{eq:co-equality-newton}，用回溯保证目标下降及定义域可行，然后更新 $x_{k+1}=x_k+t_kd_k$。由于 $Ad_k=0$，任意步长均保持等式。约束牛顿减量可定义为 $\sqrt{d_k^{\mathsf T}H_kd_k}$，其为零当且仅当约束方向的一阶最优性条件成立；转换为误差上界仍需曲率或自协调假设。
+
+令 $d_k=F\Delta z_k$，将方向方程左乘 $F^{\mathsf T}$，得到 $F^{\mathsf T}H_kF\Delta z_k=-F^{\mathsf T}g_k$，这就是降维目标的牛顿方程。因此第\ref{ch:co-unconstrained}章的局部收敛定理可在降维空间中使用，而无需全空间海塞矩阵正定。
+
+\section{不可行初始点与原对偶残差}
+
+若初值不满足等式，令原残差（primal residual）和对偶残差（dual residual）为
+\[
+ r_{\mathrm p}(x)=Ax-b,\qquad
+ r_{\mathrm d}(x,\nu)=\nabla f(x)+A^{\mathsf T}\nu.
+\]
+对二者组成的非线性方程使用牛顿法，得到
+\[
+ \begin{bmatrix}\nabla^2f(x)&A^{\mathsf T}\\A&0\end{bmatrix}
+ \begin{bmatrix}\Delta x\\\Delta\nu\end{bmatrix}
+ =-\begin{bmatrix}r_{\mathrm d}\\r_{\mathrm p}\end{bmatrix}.
+\]
+更新 $(x,\nu)\leftarrow(x,\nu)+t(\Delta x,\Delta\nu)$。原残差精确满足 $r_{\mathrm p}^{+}=(1-t)r_{\mathrm p}$；若取单位步长，下一点即满足等式，但可能因目标定义域或非线性残差而不能采用该步长。
+
+可对总残差 $R=(r_{\mathrm d},r_{\mathrm p})$ 回溯，要求 $\|R^+\|_2\leq(1-\alpha t)\|R\|_2$ 并保持定义域。若残差雅可比可逆且方向精确，则 $R^+=R-tR+o(t)$，故小步长会被接受。这里下降的是残差，不保证目标每步都下降。局部快速收敛要求雅可比非奇异和相应光滑性，全局收敛仍需额外条件。
+
+\section{块消元与结构化求解}
+
+若 $H\succ0$，方向系统 $H\Delta x+A^{\mathsf T}\Delta\nu=-r_{\mathrm d}$、$A\Delta x=-r_{\mathrm p}$ 可消去 $\Delta x$，得到
+\[
+ AH^{-1}A^{\mathsf T}\Delta\nu
+ =r_{\mathrm p}-AH^{-1}r_{\mathrm d},\qquad
+ \Delta x=-H^{-1}(r_{\mathrm d}+A^{\mathsf T}\Delta\nu).
+\]
+满行秩使 Schur 补 $AH^{-1}A^{\mathsf T}$ 正定。公式中的 $H^{-1}$ 在实现时由解方程完成。若 $H$ 仅在零空间上正定，可能不可逆，应使用零空间法或对整个对称不定 KKT 矩阵作分解。
+
+零空间法降低变量维数，但构造稠密基可能破坏原稀疏结构；Schur 补法适合等式较少的情形，却可能增加填充和条件数。实际方法的选择取决于维数与矩阵结构，不能只比较公式长短。
+
+\section{例题、终止条件与学习检查}
+\begin{example}[守恒约束下的一步牛顿]
+最小化 $f(x)=\tfrac12[(x_1-2)^2+x_2^2]$，满足 $x_1+x_2=1$。取可行初值 $x_0=(1,0)$，有 $g_0=(-1,0)$、$H_0=I$。方向方程为 $d_1+w=1$、$d_2+w=0$、$d_1+d_2=0$，得 $w=1/2$、$d=(1/2,-1/2)$。单位步长到达 $x^\star=(3/2,-1/2)$，目标值为 $1/4$；这是二次模型精确性在约束空间中的表现。
+\end{example}
+
+停止时至少检查 $\|Ax-b\|_2$ 与 $\|\nabla f(x)+A^{\mathsf T}\nu\|_2$。尺度不同的残差应结合绝对、相对容差解释；当 $x$ 已可行且 $f$ 在全空间为 $\mu$-强凸时，$\|r_{\mathrm d}\|_2^2/(2\mu)$ 是目标误差上界，因为 $A(x-x^\star)=0$ 使乘子项消去。不可行点不能直接使用这个结论。
+
+\begin{enumerate}
+ \item 用消元 $x_2=1-x_1$ 重新求解上述例题，并核对方向。
+ \item 在 $f(x)=x_1^2/2$、$x_2=0$ 中写出 KKT 矩阵，验证其可逆而 $\nabla^2f$ 不可逆。
+ \item 给等式系统重复添加一条相同约束，说明原解、乘子和线性系统非奇异性分别怎样变化。
+ \item 对不可行初始点方法验证原残差递推，并说明单位步长后的目标域检查为什么仍然必要。
+\end{enumerate}
+
+\chapter{内点法}
+\label{ch:co-interior}
+
+内点法（interior-point method）把不等式约束转化为一系列内部子问题，再用牛顿法求解。对偶理论给出这些内部点距原最优值的界，因而将算法更新与精度认证联系起来。
+
+\section{不等式约束与严格可行域}
+
+考虑 $\min f_0(x)$，满足 $f_i(x)\leq0$、$Ax=b$，本章设不等式数量 $m\geq1$，$f_0,\ldots,f_m$ 在公共开凸域上二次连续可微且凸，$A$ 满行秩。严格可行域为满足全部 $f_i(x)<0$ 和仿射等式的点。基本障碍法从这样的点出发；没有严格可行点时，应先消去冗余约束、降低维数或采用其他问题表示。
+
+原最优点可能位于边界，例如 $\min_{x\geq0}x$ 的解为零。内点法在内部逐步逼近它，不要求某个有限迭代恰好到达边界。算法能否达到指定目标误差，还依赖子问题的存在性与求解精度。
+
+\section{对数障碍与中心路径}
+
+在严格不等式域上定义对数障碍（logarithmic barrier）
+\[
+ \phi(x)=-\sum_{i=1}^m\log(-f_i(x)).
+\]
+$-\log(-u)$ 在 $u<0$ 上凸且递增，所以它与凸 $f_i$ 的复合凸。直接求导得到
+\[
+ \nabla\phi=-\sum_i\frac{\nabla f_i}{f_i},\qquad
+ \nabla^2\phi=\sum_i\left(\frac{\nabla f_i\nabla f_i^{\mathsf T}}{f_i^2}
+                         -\frac{\nabla^2f_i}{f_i}\right)\succeq0.
+\]
+对 $t>0$，中心化子问题为
+\begin{equation}
+ x(t)\in\mathop{\mathrm{arg\,min}}_{Ax=b}\{t f_0(x)+\phi(x)\}.
+ \label{eq:co-central-path}
+\end{equation}
+假设这些解存在；若目标在可行子空间上严格凸，则解唯一，由这些点构成中心路径（central path）。
+
+\begin{theorem}[精确中心点的误差界]
+若 $x(t)$ 是精确中心点，则可构造对偶可行乘子，使原对偶间隙为 $m/t$，从而 $0\leq f_0(x(t))-p^\star\leq m/t$。
+\end{theorem}
+\begin{proof}
+中心化驻点条件为 $t\nabla f_0(x(t))+\nabla\phi(x(t))+A^{\mathsf T}w=0$。令
+\[
+ \lambda_i(t)=-\frac1{t f_i(x(t))}>0,\qquad\nu(t)=w/t.
+\]
+则原拉格朗日函数在 $x(t)$ 处梯度为零，由凸性知该点取到其下确界。因此
+\[
+ g(\lambda(t),\nu(t))=f_0(x(t))+\sum_i\lambda_i(t)f_i(x(t))
+ =f_0(x(t))-m/t.
+\]
+弱对偶即给出目标误差上界。
+\end{proof}
+这同时解释了互补松弛的近似形式 $\lambda_i(t)(-f_i(x(t)))=1/t$。若中心点只被近似求出，拉格朗日最小化不再精确成立，不能不计内层误差便断言同样的间隙等式。
+
+\section{障碍方法的两层迭代}
+
+给定严格可行点 $x_0$、参数 $t_0>0$、增长因子 $\gamma>1$ 和最终精度 $\varepsilon>0$，基本障碍法如下。
+\begin{enumerate}
+ \item 在当前 $t$ 下，用第\ref{ch:co-equality}章的约束牛顿法最小化 $tf_0+\phi$。线搜索同时保持所有 $f_i(x)<0$。
+ \item 检查适用的中心化误差界及原问题误差证书。精确中心化的理想模型在 $m/t\leq\varepsilon$ 时可停止。
+ \item 否则令 $t\leftarrow\gamma t$，以上一个中心点热启动（warm start）新的子问题，重复迭代。
+\end{enumerate}
+理想精确中心化下，参数更新次数至多为 $\max\{0,\lceil\log(m/(t_0\varepsilon))/\log\gamma\rceil\}$。这只是外层次数；每层还需要若干牛顿步和线性求解。增长因子大减少外层次数，却可能让新子问题的初值离中心更远。
+
+\begin{example}[一维中心路径]
+对 $\min_{x\geq0}x$，障碍子问题为 $\min_{x>0}tx-\log x$。驻点给出 $x(t)=1/t$，对偶乘子恒为 $1$，最优值下界为零，间隙恰为 $1/t$。内部点随 $t\to\infty$ 逼近边界解零。
+\end{example}
+
+\section{阶段一问题与可行性判断}
+
+阶段一方法（phase I method）通过辅助变量寻找严格可行点。例如求解
+\[
+ \min_{x,s}s,\qquad f_i(x)\leq s\ (i=1,\ldots,m),\quad Ax=b.
+\]
+若已经有定义域内的等式可行点 $x_0$，选择 $s_0>\max_i f_i(x_0)$ 即得到辅助问题的严格可行初值。任意目标值 $s<0$ 的辅助可行点都给出原问题严格可行点，无须继续求到辅助最优值。
+
+若辅助问题的最优值严格为正，则原问题不可行，因为原可行点必可与 $s=0$ 配成辅助可行点。若最优值为零且取到，则原问题可行，但没有严格可行点；若零下确界未取到，则仅凭数值接近零不能判断原可行性。实际计算需要适用的对偶证书来区分不可行与尚未找到可行点。
+
+\section{自协调障碍与复杂度}
+
+对开凸集 $C$，自协调障碍除满足第\ref{ch:co-unconstrained}章的三阶导数条件外，还在趋近边界时发散，并具有某个参数 $\vartheta>0$，使
+\[
+ |D\phi(x)[h]|\leq\sqrt{\vartheta}\sqrt{D^2\phi(x)[h,h]}
+\]
+对所有点和方向成立。参数控制障碍梯度相对于局部曲率的大小。线性目标 $t c^{\mathsf T}x+\phi(x)$ 的三阶与二阶导数不受线性项影响，所以可统一应用自协调牛顿分析。
+
+一个标准短步路径跟踪（short-step path-following）结论如下：在有界开凸可行域上，给定海塞矩阵正定的 $\vartheta$-自协调障碍，消去仿射等式后从 $t_0$ 的中心点或指定中心邻域出发，每次将 $t$ 乘以 $1+\eta/\sqrt\vartheta$，其中 $\eta>0$ 为足够小的固定常数，并用牛顿步维持固定的中心邻域，则达到原对偶间隙不超过 $\varepsilon$ 所需牛顿步数为
+\[
+ O\!\left(\sqrt\vartheta\,
+ \log\max\left\{2,\frac{\vartheta}{t_0\varepsilon}\right\}\right).
+\]
+此为选读复杂度结论，完整中心邻域估计见\cite{boyd-vandenberghe}的自协调分析。证明要点是每次参数变化只使中心偏移一个受控的局部距离，因而常数次牛顿校正足够；达到 $t$ 与 $\vartheta/\varepsilon$ 同阶所需更新次数即产生上式。
+
+该界不包含取得初始中心点的代价，也不等于浮点总运算量。一般凸不等式的对数障碍未必满足所需自协调条件；上一节任意固定大增长因子的障碍法也不能直接套用短步法的迭代界。
+
+\section{锥约束的障碍函数}
+
+三种常用锥的标准障碍及参数为：
+\[
+ \begin{array}{c|c|c}
+ \text{定义域}&\text{障碍函数}&\vartheta\\\hline
+ x\in\mathbb R_{++}^n&-\sum_i\log x_i&n\\
+ t>\|x\|_2&-\log(t^2-\|x\|_2^2)&2\\
+ X\in\mathbb S_{++}^n&-\log\det X&n
+ \end{array}
+\]
+这些是相应锥的自协调障碍，矩阵情形采用迹内积；这里引用其标准性质。积锥的障碍相加，参数相加。上述函数还满足 $\phi(\alpha x)=\phi(x)-\vartheta\log\alpha$，$\alpha>0$，称为对数齐次性（logarithmic homogeneity）。对 $\alpha$ 求导于 $1$，得到 $\langle\nabla\phi(x),x\rangle=-\vartheta$。
+
+对于变量位于锥内的线性目标问题，精确中心点对应的对偶锥变量为 $z=-\nabla\phi(x)/t$，其互补内积为 $\langle z,x\rangle=\vartheta/t$。因此锥形式的间隙由障碍参数控制，不能一律用标量不等式的条数代替。
+
+\section{原对偶内点法}
+
+引入松弛向量 $s>0$，使 $f(x)+s=0$，并保持乘子 $\lambda>0$。这里 $f=(f_1,\ldots,f_m)$，$J(x)$ 为以 $\nabla f_i(x)^{\mathsf T}$ 作行的雅可比矩阵，$S=\operatorname{diag}(s)$、$\Lambda=\operatorname{diag}(\lambda)$。定义
+\[
+ \begin{aligned}
+ r_{\mathrm d}&=\nabla f_0+J^{\mathsf T}\lambda+A^{\mathsf T}\nu,&
+ r_{\mathrm e}&=Ax-b,\\
+ r_{\mathrm i}&=f(x)+s,&
+ r_{\mathrm c}&=S\lambda-\sigma\bar\mu\mathbf1,
+ \end{aligned}
+ \qquad \bar\mu=\frac{s^{\mathsf T}\lambda}{m},\quad0<\sigma<1.
+\]
+将本步目标 $\sigma\bar\mu$ 固定，设 $H=\nabla^2f_0+\sum_i\lambda_i\nabla^2f_i$，对扰动 KKT 系统作牛顿线性化：
+\[
+ \begin{bmatrix}
+ H&A^{\mathsf T}&J^{\mathsf T}&0\\
+ A&0&0&0\\
+ J&0&0&I\\
+ 0&0&S&\Lambda
+ \end{bmatrix}
+ \begin{bmatrix}\Delta x\\\Delta\nu\\\Delta\lambda\\\Delta s\end{bmatrix}
+ =-\begin{bmatrix}r_{\mathrm d}\\r_{\mathrm e}\\r_{\mathrm i}\\r_{\mathrm c}\end{bmatrix}.
+\]
+在此系统非奇异时求出方向。先取不超过使 $s+t\Delta s>0$、$\lambda+t\Delta\lambda>0$ 的最大步长的固定比例，再回溯保证定义域和残差要求。更新全部变量，重新计算平均互补量，直到可行性残差、驻点残差和互补量均达到要求。
+
+$s^{\mathsf T}\lambda$ 常作为代理对偶间隙。只有原可行性成立且 $x$ 确实最小化对应拉格朗日函数时，它才等于真实的 $f_0(x)-g(\lambda,\nu)$；在不可行迭代点上不能仅凭它很小就宣称近似最优。
+
+\section{综合实现与课程总结练习}
+
+把全书应用于带界最小二乘：最小化 $\|Ax-b\|_2^2/2$，满足 $0\leq x\leq u$，其中 $u>0$。这是 QP，$x=u/2$ 为严格可行初值。障碍为 $-\sum_j\log x_j-\sum_j\log(u_j-x_j)$，精确中心点间隙为 $2n/t$；中心化目标的海塞矩阵为 $tA^{\mathsf T}A$ 加正的对角矩阵，因此中心化方向唯一可解。即使 $A$ 秩亏，障碍子问题仍有严格曲率。
+
+\begin{enumerate}
+ \item 写出上述模型的中心化梯度与海塞矩阵，推导保持 $0<x<u$ 的步长上界。
+ \item 对 $\min_{0\leq x\leq1}(x-2)^2/2$ 求原问题最优点，写出中心路径方程，解释中心点如何趋于边界。
+ \item 举出一个可行但无严格可行点的凸约束系统，说明为什么基本障碍初始化失败不等于不可行。
+ \item 完成一个小规模实验：写出模型、凸性依据、KKT 条件和停止标准，记录残差及适用的误差证书。若用软件结果交叉核对，应比较相同目标、约束和精度，而不仅比较变量输出。
+\end{enumerate}
+
+\appendix
+
+\chapter{数学基础与符号补充}
+\label{app:co-background}
+
+本附录集中列出正文使用的基础工具。首次阅读时可以按引用查阅；各结论的条件也是分析优化模型时应保留的条件。
+
+\section{范数、内积与对偶范数}
+
+范数 $\|x\|$ 满足正定性、绝对齐次性 $\|\alpha x\|=|\alpha|\|x\|$ 和三角不等式。对 $1\leq p<\infty$，$\|x\|_p=(\sum_i|x_i|^p)^{1/p}$；$\|x\|_\infty=\max_i|x_i|$。若 $p,q>1$ 且 $1/p+1/q=1$，Young 不等式 $ab\leq a^p/p+b^q/q$ 对非负 $a,b$ 成立，它可由固定 $a$ 后求右侧减左侧关于 $b$ 的最小值证明。对归一化分量应用并求和，即得 Hölder 不等式
+\[
+ |x^{\mathsf T}y|\leq\|x\|_p\|y\|_q.
+\]
+端点形式为 $|x^{\mathsf T}y|\leq\|x\|_1\|y\|_\infty$；$p=q=2$ 为柯西--施瓦茨不等式。
+
+对偶范数 $\|y\|_*=\max_{\|x\|\leq1}y^{\mathsf T}x$ 的最大值在有限维紧单位球上取到。Hölder 不等式给出上界，选取同号且大小成适当幂次的分量可取等号，所以 $\ell_p$ 的对偶为 $\ell_q$。$P\succ0$ 时，$\sqrt{x^{\mathsf T}Px}$ 的对偶范数为 $\sqrt{y^{\mathsf T}P^{-1}y}$。
+
+\section{有限维拓扑与极值存在性}
+
+有限维空间中，集合紧当且仅当闭且有界；紧集中的任意序列都有收敛于该集合的子列。连续函数在非空紧集上取到最大、最小值。较弱的下半连续性要求 $f(x)\leq\liminf_k f(x_k)$ 对所有 $x_k\to x$ 成立；在非空紧集上，它已足以保证有限值函数取到最小值。
+
+\begin{proposition}
+设 $f:C\to\mathbb R$ 下半连续，存在实数 $\alpha$ 使次水平集 $S_\alpha=\{x\in C:f(x)\leq\alpha\}$ 非空且紧，则 $f$ 在 $C$ 上有全局最小点。
+\end{proposition}
+\begin{proof}
+先在紧集 $S_\alpha$ 上取极小化序列。若其函数值无下界，紧性给出收敛子列，下半连续性将迫使有限函数值不大于 $-\infty$，矛盾。因此下确界有限，取收敛子列后，下半连续性说明极限点取到该下确界。$S_\alpha$ 外的函数值大于 $\alpha$，故该点也是全局最小点。
+\end{proof}
+
+强制性（coercivity）指 $\|x\|_2\to\infty$ 时 $f(x)\to+\infty$。在非空闭集上的连续强制函数有非空紧次水平集，因而取到最小值。开集上的连续函数则可能在缺失的边界逼近下确界，如 $f(x)=x$ 在 $(0,1)$ 上。
+
+\section{微分与矩阵分析}
+
+可微性表示 $f(x+h)=f(x)+\nabla f(x)^{\mathsf T}h+o(\|h\|_2)$，要求余项在所有趋零方向上一致地小。沿每条直线有方向导数并不足够：令 $f(0,0)=0$，非原点处 $f(x,y)=x^3/(x^2+y^2)$，其方向导数 $d_1^3/(d_1^2+d_2^2)$ 存在但不是方向的线性函数，故原点不可微。
+
+二次连续可微时，泰勒展开为 $f(x+h)=f(x)+\nabla f(x)^{\mathsf T}h+\tfrac12h^{\mathsf T}\nabla^2f(x)h+o(\|h\|_2^2)$。仿射复合 $g(z)=f(Az+b)$ 满足 $\nabla g=A^{\mathsf T}\nabla f$、$\nabla^2g=A^{\mathsf T}(\nabla^2f)A$。这些关系解释了降维和变量缩放对曲率的作用。
+
+对称矩阵可谱分解为 $X=U\Lambda U^{\mathsf T}$，$U$ 正交；它半正定当且仅当全部特征值非负。正定时平方根和逆可通过对特征值分别开方、取倒数定义。谱范数为 $\|A\|_2=\max_{\|x\|_2=1}\|Ax\|_2$，等于最大奇异值。正定矩阵的 $\log\det X$ 沿方向 $H$ 的导数为 $\operatorname{tr}(X^{-1}H)$；逆矩阵的方向导数为 $-X^{-1}HX^{-1}$，后者可对恒等式 $XX^{-1}=I$ 求导得到。
+
+\section{概率工具与学习检查}
+
+随机向量 $Z$ 的均值为 $\mu=\mathbb EZ$，协方差为 $\Sigma=\mathbb E[(Z-\mu)(Z-\mu)^{\mathsf T}]$。若二阶矩有限，对给定对称矩阵 $P$ 有
+\[
+ \mathbb E[Z^{\mathsf T}PZ]=\mu^{\mathsf T}P\mu+\operatorname{tr}(P\Sigma),
+\]
+可由 $Z=\mu+(Z-\mu)$ 展开并利用中心化项均值为零得到。独立性推出协方差为零，反向一般不成立。
+
+交换参数微分与期望需要条件。例如在参数点的某邻域中，样本函数几乎处处可微，其各偏导绝对值受同一个可积随机变量控制，且函数在某参考参数处可积，则可用支配收敛定理交换微分与期望。计算似然或信息矩阵时，应验证这些条件或使用无需交换的有限和表达。
+
+\begin{enumerate}
+ \item 证明 $\|x\|_2\leq\|x\|_1\leq\sqrt n\|x\|_2$，并给出两端取等号的例子。
+ \item 构造闭但不有界的可行集及连续目标，使有限下确界不取到。提示：$e^x$ 在实轴上。
+ \item 对 $X\succ0$，由逆矩阵导数重新推导 $-\log\det X$ 的二阶方向导数。
+\end{enumerate}
+
+\chapter{两个二次函数相关问题}
+\label{app:co-quadratic}
+
+本附录为选读。它展示某些非凸二次问题仍有精确的半正定证书；这种特殊结构不能推广为一般非凸优化的结论。
+
+\section{单个二次约束与信赖域问题}
+
+信赖域子问题（trust-region subproblem）为
+\[
+ \min_{\|x\|_2\leq\Delta}\left\{\frac12x^{\mathsf T}Qx+c^{\mathsf T}x\right\},
+ \qquad Q=Q^{\mathsf T},\quad\Delta>0.
+\]
+即使 $Q$ 不半正定，连续目标在紧球上仍取到最小值。其全局最优点可由以下条件刻画：存在 $\lambda\geq0$，使
+\[
+ (Q+\lambda I)x=-c,\quad Q+\lambda I\succeq0,\quad
+ \|x\|_2\leq\Delta,\quad\lambda(\|x\|_2^2-\Delta^2)=0.
+\]
+充分性可直接验证：拉格朗日函数 $\mathcal L(x,\lambda)=x^{\mathsf T}Qx/2+c^{\mathsf T}x+\lambda(\|x\|_2^2-\Delta^2)/2$ 在该点全局最小，且互补性使其值等于原目标，弱对偶给出最优性。必要性由下一节的 S 引理推出，这里引用该标准结论。
+
+\begin{example}
+令 $Q=\operatorname{diag}(-2,2)$、$c=0$、$\Delta=1$，目标为 $-x_1^2+x_2^2$。其最小值为 $-1$，在 $(1,0)$、$(-1,0)$ 取到；取 $\lambda=2$ 时 $Q+\lambda I=\operatorname{diag}(0,4)\succeq0$，符合上述条件。这也说明最优点不必唯一，修正海塞矩阵也不必正定。
+\end{example}
+
+\section{S 引理与半正定证书}
+
+\begin{theorem}[S 引理]
+设 $q_0,q_1$ 为实二次函数，存在 $\bar x$ 使 $q_1(\bar x)<0$。则下列两项等价：对所有 $x$，$q_1(x)\leq0$ 蕴含 $q_0(x)\geq0$；存在 $\lambda\geq0$，使 $q_0(x)+\lambda q_1(x)\geq0$ 对所有 $x$ 成立。
+\end{theorem}
+由第二项推出第一项只需移项；反向是引理的实质，本书引用其结论，证明可参见\cite{ahmadi-slemma}。严格可行性不可直接删除，多约束时通常也只保留乘子证书的充分性。
+
+写 $q_i(x)=x^{\mathsf T}Q_i x+2a_i^{\mathsf T}x+c_i$，其全空间非负性证书等价于
+\[
+ \begin{bmatrix}
+ Q_0+\lambda Q_1&a_0+\lambda a_1\\
+ (a_0+\lambda a_1)^{\mathsf T}&c_0+\lambda c_1
+ \end{bmatrix}\succeq0.
+\]
+这把无限多个点上的不等式化成有限维矩阵条件。二次函数全空间非负等价于相应提升矩阵半正定：末坐标非零的向量可缩放为 $(x,1)$，末坐标为零的情形由连续性补上。将 $q_0$ 换为 $q_0-\gamma$，最大化可认证的下界 $\gamma$，就得到单约束二次问题的精确 SDP 值表示。
+
+\section{联合值域与应用练习}
+
+对两个对称矩阵 $A,B$，齐次二次型的联合值域 $\{(x^{\mathsf T}Ax,x^{\mathsf T}Bx):x\in\mathbb R^n\}$ 是凸锥；这是两二次型的经典凸性结论，此处引用，详见\cite{boyd-vandenberghe}附录中的论述。该锥未必闭，例如 $(x^2,2xy)$ 的值域包含所有第一坐标正的点及原点，却不包含 $(0,1)$。
+
+不能将此结论直接推广到任意非齐次二次函数：$\{(x,x^2):x\in\mathbb R\}$ 是抛物线，两个不同点的中点通常不在其上。单约束 S 引理中的资格条件正是把联合值域几何与分离证书联系起来所需的关键假设之一。
+
+\begin{enumerate}
+ \item 用 $q_1(x)=x^2-1$、$q_0(x)=1-x^2$ 验证 S 引理，给出乘子 $\lambda=1$。
+ \item 取 $q_1(x)=x^2$、$q_0(x)=x$。验证蕴含关系成立，却不存在有限 $\lambda\geq0$ 使 $x+\lambda x^2$ 对所有实数非负，说明严格可行性的作用。
+ \item 对球内二次函数的下界认证写出 SDP，并与直接计算的最小特征值例题核对。
+\end{enumerate}
+
+\chapter{数值线性代数与算法实现基础}
+\label{app:co-numerical}
+
+优化算法经常把主要成本集中在线性方程求解。数值实现应利用正定性、稀疏性和秩结构，同时区分方程残差与实际解误差。
+
+\section{线性系统、分解与最小二乘}
+
+对可逆方阵，带主元 LU 分解将置换后的矩阵写成下三角与上三角矩阵之积，再作两次三角求解。对称正定矩阵可写成 $LL^{\mathsf T}$，其中 $L$ 为对角元正的下三角矩阵，称为 Cholesky 分解。对称不定矩阵通常用带置换的 $LDL^{\mathsf T}$ 分解，$D$ 可含 $1\times1$ 与 $2\times2$ 对角块。KKT 矩阵即使可逆，也通常不正定，因此不能直接套用普通 Cholesky 分解。
+
+对 $A\in\mathbb R^{r\times n}$ 满列秩的最小二乘，薄 QR 分解为 $A=QR$，$Q^{\mathsf T}Q=I$、$R$ 为可逆上三角矩阵。分解残差可得
+\[
+ \|Ax-b\|_2^2=\|Rx-Q^{\mathsf T}b\|_2^2+\|(I-QQ^{\mathsf T})b\|_2^2,
+\]
+所以只需解 $Rx=Q^{\mathsf T}b$。
+
+一般矩阵的奇异值分解为 $A=U\Sigma V^{\mathsf T}$。将非零奇异值取倒数并转置矩形对角结构，得到 $\Sigma^\dagger$，定义 Moore--Penrose 伪逆 $A^\dagger=V\Sigma^\dagger U^{\mathsf T}$。$A^\dagger b$ 是所有最小二乘解中的最小范数解；若方程可行，它就是最小范数精确解。
+
+\section{块矩阵、Schur 补与 KKT 方程}
+
+对块方程 $Hu+A^{\mathsf T}v=r$、$Au=s$，若 $H$ 可逆，先写 $u=H^{-1}(r-A^{\mathsf T}v)$，再得到 $AH^{-1}A^{\mathsf T}v=AH^{-1}r-s$。式中负号必须与原方程一致；优化中的右端常由负残差组成，机械套公式容易出错。
+
+若 $H\succ0$ 且 $A$ 满行秩，Schur 补正定；若 $H$ 奇异但在 $\ker A$ 上正定，整个 KKT 矩阵仍可能可逆，此时直接的块求逆公式不可用。稀疏直接分解中的填充是原零元素在分解中变为非零的现象，适当排序可降低存储和运算成本。
+
+\section{条件数、舍入误差与规模}
+
+对可逆矩阵 $A$，条件数 $\kappa_2(A)=\|A\|_2\|A^{-1}\|_2$ 衡量输入扰动被放大的程度。若 $Ax=b$、近似解为 $\widehat x$、残差为 $r=b-A\widehat x$，则
+\[
+ \|x-\widehat x\|_2\leq\|A^{-1}\|_2\|r\|_2,
+ \qquad
+ \frac{\|x-\widehat x\|_2}{\|x\|_2}
+ \leq\kappa_2(A)\frac{\|r\|_2}{\|b\|_2}
+\]
+在 $x,b\ne0$ 时成立。因此小相对残差未必意味着小相对解误差。后向误差讨论计算解可看成哪个邻近问题的精确解；条件数则决定邻近问题的解与原解能差多少。
+
+满列秩矩阵满足 $\kappa_2(A^{\mathsf T}A)=\kappa_2(A)^2$。正规方程虽然形式简洁，却可能放大数值困难；QR 和奇异值分解避免显式形成这一平方条件的矩阵。不同方法的实际误差仍与舍入、缩放及算法实现有关。
+
+稠密方阵分解一般需 $O(n^3)$ 运算，已有分解后的每个新右端求解需 $O(n^2)$。稀疏问题取决于非零结构与填充，不能只用原非零元素个数给出统一成本。牛顿法和内点法中若矩阵结构不变，可以复用符号分解；数值因子是否可复用则取决于矩阵值是否改变。
+
+\section{综合练习与结果核验}
+\begin{enumerate}
+ \item 对 $A=\operatorname{diag}(1,10^{-8})$，构造残差很小但解误差明显的近似解，核对条件数界。
+ \item 对同一个满列秩最小二乘问题，比较正规方程、QR 与奇异值分解的结果；逐步使两列接近线性相关，记录残差与参数误差的差别。
+ \item 任选一次牛顿或 KKT 步，核验方程残差、方向下降性、更新后可行性及优化停止指标。线性系统求解成功、迭代收敛和达到所需最优性精度是三个需要分别确认的结论。
+\end{enumerate}
+
+\begin{thebibliography}{9}
+\bibitem{boyd-vandenberghe}
+Stephen Boyd and Lieven Vandenberghe.
+\emph{Convex Optimization}. Cambridge University Press, 2004.
+作者提供的教材、勘误与教学资料：\url{https://web.stanford.edu/~boyd/cvxbook/}。
+
+\bibitem{ahmadi-slemma}
+Amir Ali Ahmadi; Georgina Hall（课堂记录）.
+\emph{ORF 523: Convex and Conic Optimization, Lecture 12}.
+Princeton University, Spring 2017.
+\url{https://www.princeton.edu/~amirali/Public/Teaching/ORF523/S17/ORF523_S17_Lec12_gh.pdf}。
+\end{thebibliography}
 
 
 \end{document}

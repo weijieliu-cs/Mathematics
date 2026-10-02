@@ -1,0 +1,60 @@
+\documentclass[UTF8]{ctexart}
+
+% 支持从项目根目录、强化学习目录或当前文档目录读取共享样式。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{马尔可夫性质}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{定义与预测含义}
+\label{sec:markov-property-definition}
+
+预测一个随机过程的下一步，是否必须保留它经历过的全部状态？
+\keyterm{马尔可夫性质}（Markov property）是指：
+已知当前状态后，过去的历史不再为预测下一状态的概率分布提供额外信息。
+
+\begin{definition}[离散状态下的马尔可夫性质]
+设 $(S_t)_{t\geq 0}$ 为离散时间随机过程，状态空间 $\mathcal S$ 为有限或可数集合。
+若对任意 $t\geq 0$、任意具有正概率的历史取值 $(s_0,\ldots,s_t)$ 及任意 $s'\in\mathcal S$，均有
+\begin{equation}
+  \Pr(S_{t+1}=s'\mid S_0=s_0,\ldots,S_t=s_t)
+  =\Pr(S_{t+1}=s'\mid S_t=s_t),
+  \label{eq:markov-property}
+\end{equation}
+则称该过程具有马尔可夫性质。其中 $S_t$ 是时刻 $t$ 的随机状态，$s_t$ 是其一个取值。
+\end{definition}
+
+式\eqref{eq:markov-property}比较的是两种信息条件下的\keyterm{条件概率分布}。
+因此，“当前状态是预测未来的充分信息”并不表示下一状态已被唯一确定；
+转移仍可具有随机性。这一性质本身也不要求转移概率随时间保持不变。
+
+\section{历史信息与状态表示}
+\label{sec:markov-property-history}
+
+马尔可夫性质表示\keyterm{给定当前状态后，下一状态与更早的历史条件独立}
+（conditional independence），并非未来与历史无条件独立。
+历史可以通过当前状态影响未来；当前状态只需保留预测所需的信息，并不需要完整记录或还原历史。
+
+\begin{example}[一维随机游走]
+设 $S_0=0$，每步独立地以相同概率向左或向右移动一个单位。
+记第 $t$ 步的位移为 $X_t$，则 $S_{t+1}=S_t+X_{t+1}$，且
+$\Pr(X_{t+1}=1)=\Pr(X_{t+1}=-1)=1/2$。
+由于新位移独立于此前各步，已知 $S_t=s$ 后，无论此前怎样到达 $s$，
+下一步到达 $s+1$ 或 $s-1$ 的概率都为 $1/2$，故满足马尔可夫性质。
+当前位置汇总了过去位移的累积结果，却不能还原每一步的路径。
+\end{example}
+
+在\keyterm{强化学习}（reinforcement learning）中，还需给定当前动作：
+若采用\keyterm{马尔可夫决策过程}（Markov decision process，MDP）模型，
+下一状态与奖励的联合分布在给定当前状态和动作后，不再依赖更早的交互历史。
+因此，状态表示必须包含相关信息；例如移动规则受电量影响时，仅记录位置可能不够，还应记录剩余电量。
+其计算意义在于：预测环境下一步的响应时，可以用当前状态和动作替代不断增长的历史记录。
+
+\end{document}

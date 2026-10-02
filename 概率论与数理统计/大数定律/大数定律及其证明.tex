@@ -1,0 +1,930 @@
+\documentclass[UTF8]{ctexart}
+
+% 支持从项目根目录、概率论与数理统计目录或当前文档目录读取共享样式。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{大数定律及其证明}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{绪论：从随机结果到稳定的平均值}
+\label{sec:lln-introduction}
+
+单次抛硬币的结果不确定，多次抛掷后的正面比例却往往接近一个稳定的数。
+类似地，单件产品的测量误差会波动，大量测量的平均值可能更接近真实水平。
+\keyterm{大数定律}（law of large numbers，LLN）研究的正是：
+在什么条件下，样本平均值会收敛到总体期望，以及这种收敛应如何理解。
+
+大数定律不是“随机性消失”，也不意味着每多观察一个样本，误差就一定缩小。
+它描述的是样本量趋于无穷时的极限性质；有限样本的误差概率还需要不等式来控制。
+期望是由概率分布决定的总体量，样本平均值则根据随机观测计算得到，两者不能混为一谈。
+
+本文按知识依赖安排证明。第 \ref{sec:lln-convergence} 节区分两种收敛方式；
+第 \ref{sec:lln-weak-finite} 节用切比雪夫不等式证明有限方差下的弱大数定律；
+第 \ref{sec:lln-weak-integrable} 节通过截断去掉有限方差假设。
+随后引入 Borel--Cantelli 引理和 Kolmogorov 最大不等式，
+证明有限方差下的强大数定律，再在第 \ref{sec:lln-strong-integrable} 节证明一般的可积情形。
+初次学习可以先读有限方差部分，再回头理解截断与随机级数。
+有关更完整的概率论背景，可参阅文献 \cite{durrett-lln,sheffield-lln}。
+
+\section{记号与两种收敛方式}
+\label{sec:lln-convergence}
+
+\subsection{样本和、样本平均值与假设}
+
+设 $X_1,X_2,\ldots$ 定义在同一概率空间 $(\Omega,\mathcal F,\mathbb P)$ 上。
+$\Omega$ 表示所有可能的试验记录，$\mathcal F$ 表示可讨论的事件，
+$\mathbb P$ 为概率；$\mathbb E$ 表示相对于该概率的数学期望（mathematical expectation）。
+$X_i$ 是第 $i$ 次观测的随机变量，$x_i$ 是一次观测后得到的具体数值。
+
+若这些变量相互独立且具有相同分布，称它们\keyterm{独立同分布}
+（independent and identically distributed，i.i.d.）。
+“相互独立”是对任意有限多个不同索引的联合分布提出的要求，
+不只是两两独立；本文的一般强大数定律使用这一假设。
+“同分布”保证每次试验使用同一种概率规律。
+
+若 $\mathbb E|X_1|<\infty$，称 $X_1$ \keyterm{可积}（integrable），并记
+$\mu=\mathbb E[X_1]$。若还满足 $\mathbb E[X_1^2]<\infty$，将其
+\keyterm{方差}（variance）记为
+$\sigma^2=\operatorname{Var}(X_1)=\mathbb E[(X_1-\mu)^2]$。
+后一个条件更强；一般的大数定律不必要求有限方差。
+
+定义样本和及\keyterm{样本平均值}（sample mean）
+\begin{equation}
+  S_n=\sum_{i=1}^nX_i,\qquad
+  \overline X_n=\frac{S_n}{n}.
+  \label{eq:lln-sample-mean}
+\end{equation}
+当共同均值为 $\mu$ 时，中心化的和记为
+$T_n=S_n-n\mu=\sum_{i=1}^n(X_i-\mu)$。
+因此，证明 $\overline X_n\to\mu$ 等价于证明 $T_n/n\to0$，
+但仍需指定采用哪一种随机收敛方式。
+
+\subsection{弱大数定律中的依概率收敛}
+
+\begin{definition}[依概率收敛]
+\label{def:lln-probability-convergence}
+若对任意 $\varepsilon>0$，
+\[
+  \lim_{n\to\infty}\mathbb P(|Z_n-z|>\varepsilon)=0,
+\]
+则称随机变量序列 $Z_n$ \keyterm{依概率收敛}
+（convergence in probability）到常数 $z$，记为 $Z_n\xrightarrow{\mathbb P}z$。
+\end{definition}
+
+\keyterm{弱大数定律}（weak law of large numbers，WLLN）的典型结论是
+\begin{equation}
+  \overline X_n\xrightarrow{\mathbb P}\mu.
+  \label{eq:lln-wlln-statement}
+\end{equation}
+具体地，任给误差标准 $\varepsilon>0$ 和概率标准 $\delta>0$，
+存在一个确定的 $N$，使所有 $n\geq N$ 都有
+$\mathbb P(|\overline X_n-\mu|>\varepsilon)<\delta$。
+这里控制的是每个足够大的样本量对应的偏差概率。
+
+\subsection{强大数定律中的几乎必然收敛}
+
+\begin{definition}[几乎必然收敛]
+\label{def:lln-almost-sure-convergence}
+若
+\[
+  \mathbb P\bigl(\{\omega:\lim_{n\to\infty}Z_n(\omega)=z\}\bigr)=1,
+\]
+则称 $Z_n$ \keyterm{几乎必然收敛}（almost sure convergence）到 $z$，
+记为 $Z_n\xrightarrow{\mathrm{a.s.}}z$。
+\end{definition}
+
+\keyterm{强大数定律}（strong law of large numbers，SLLN）的典型结论是
+\begin{equation}
+  \overline X_n\xrightarrow{\mathrm{a.s.}}\mu.
+  \label{eq:lln-slln-statement}
+\end{equation}
+在概率为 $1$ 的试验记录集合中，每条记录给出一个普通数列
+$\overline X_1(\omega),\overline X_2(\omega),\ldots$，这个数列都收敛到 $\mu$。
+对其中每条记录及每个 $\varepsilon>0$，
+存在可能依赖于记录的 $N(\omega,\varepsilon)$，
+使所有 $n\geq N(\omega,\varepsilon)$ 都有
+$|\overline X_n(\omega)-\mu|<\varepsilon$。
+这不要求所有记录共用同一个最终稳定时刻。
+
+\begin{proposition}[几乎必然收敛蕴含依概率收敛]
+\label{prop:lln-as-implies-probability}
+若 $Z_n\xrightarrow{\mathrm{a.s.}}z$，则 $Z_n\xrightarrow{\mathbb P}z$。
+\end{proposition}
+
+\begin{proof}
+固定 $\varepsilon>0$，令
+$B_m=\bigcup_{n\geq m}\{|Z_n-z|>\varepsilon\}$。
+事件 $B_m$ 随 $m$ 递减，其交集表示偏差超过 $\varepsilon$ 的情况发生无穷多次。
+几乎必然收敛使这个交集的概率为零。
+由概率对递减事件列的连续性，$\mathbb P(B_m)\to0$；
+又因为 $\{|Z_m-z|>\varepsilon\}\subseteq B_m$，结论成立。
+\end{proof}
+
+\begin{example}[依概率收敛不一定几乎必然收敛]
+\label{ex:lln-typewriter}
+令 $U$ 在 $[0,1)$ 上均匀分布。
+第 $m$ 组把该区间划分成 $2^m$ 个等长小区间，其中 $m=0,1,\ldots$；
+依次定义
+\[
+  Z_{2^m+k}
+  =\mathbf1_{\{k/2^m\leq U<(k+1)/2^m\}},
+  \qquad k=0,\ldots,2^m-1.
+\]
+这里 $\mathbf1_A$ 表示事件 $A$ 发生时为 $1$、否则为 $0$ 的指示变量。
+第 $m$ 组中每个变量取 $1$ 的概率为 $2^{-m}$，故 $Z_n\xrightarrow{\mathbb P}0$。
+但对每个固定的 $U$，每一组恰有一个变量取 $1$；
+从 $m=1$ 起，每组又至少有一个变量取 $0$。
+因此每条记录都包含无穷多个 $1$ 和 $0$，不收敛。
+这个一般随机序列的例子说明两种收敛定义确实不同。
+\end{example}
+
+\section{证明需要的基本工具}
+\label{sec:lln-basic-tools}
+
+\subsection{期望、方差与切比雪夫不等式}
+
+若 $X_1,\ldots,X_n$ 可积，则
+$\mathbb E[S_n]=\sum_{i=1}^n\mathbb E[X_i]$，无需独立性。
+对方差有限的变量，定义\keyterm{协方差}（covariance）
+$\operatorname{Cov}(X_i,X_j)
+=\mathbb E[(X_i-\mathbb E[X_i])(X_j-\mathbb E[X_j])]$；
+协方差为零称为\keyterm{不相关}（uncorrelated）。
+若它们两两不相关且方差有限，则
+$\operatorname{Var}(S_n)=\sum_{i=1}^n\operatorname{Var}(X_i)$。
+后一个等式来自展开中心化和的平方：
+各个交叉项的期望为协方差，因不相关而等于零。
+相互独立且平方可积足以保证这些条件。
+
+\begin{lemma}[马尔可夫与切比雪夫不等式]
+\label{lem:lln-chebyshev}
+若 $Y\geq0$ 且 $a>0$，则
+$\mathbb P(Y\geq a)\leq\mathbb E[Y]/a$。
+若 $Z$ 的均值为 $m$、方差为 $v<\infty$，则对任意 $\varepsilon>0$，
+\begin{equation}
+  \mathbb P(|Z-m|\geq\varepsilon)\leq\frac{v}{\varepsilon^2}.
+  \label{eq:lln-chebyshev}
+\end{equation}
+它们分别称为\keyterm{马尔可夫不等式}（Markov's inequality）与
+\keyterm{切比雪夫不等式}（Chebyshev's inequality）。
+\end{lemma}
+
+\begin{proof}
+由 $a\mathbf1_{\{Y\geq a\}}\leq Y$ 取期望，得到第一式。
+再对非负变量 $(Z-m)^2$ 和阈值 $\varepsilon^2$ 使用第一式，即得第二式。
+\end{proof}
+
+\subsection{数列平均与可积尾部}
+
+\begin{lemma}[收敛数列的平均仍收敛]
+\label{lem:lln-cesaro}
+若实数列 $a_n\to a$，则 $n^{-1}\sum_{k=1}^n a_k\to a$。
+这一结论称为\keyterm{切萨罗平均引理}（Cesàro averaging lemma）。
+\end{lemma}
+
+\begin{proof}
+给定 $\varepsilon>0$，选 $K$ 使 $k>K$ 时 $|a_k-a|<\varepsilon$。
+对 $n>K$，
+\[
+  \left|\frac1n\sum_{k=1}^na_k-a\right|
+  \leq\frac1n\sum_{k=1}^K|a_k-a|+\frac{n-K}{n}\varepsilon.
+\]
+第一项趋于零，故上极限不超过任意给定的 $\varepsilon$。
+\end{proof}
+
+一般可积情形的证明还使用两个概率积分事实：
+非负变量单调递增到 $Y$ 时，其期望单调递增到 $\mathbb E[Y]$；
+非负级数的期望可以逐项求和，两侧允许为 $+\infty$。
+前者是\keyterm{单调收敛定理}（monotone convergence theorem），
+后者可对级数的部分和应用前者得到。
+这些积分基础结果见文献 \cite[第 1.6--1.7 节]{durrett-lln}。
+
+\begin{lemma}[可积变量的尾部贡献趋于零]
+\label{lem:lln-tail}
+若 $\mathbb E|X|<\infty$，则
+\[
+  \mathbb E[|X|\mathbf1_{\{|X|>K\}}]\longrightarrow0
+  \qquad(K\to\infty).
+\]
+\end{lemma}
+
+\begin{proof}
+由于 $|X|\mathbf1_{\{|X|\leq K\}}\uparrow|X|$，单调收敛给出
+$\mathbb E[|X|\mathbf1_{\{|X|\leq K\}}]\to\mathbb E|X|$。
+从有限数 $\mathbb E|X|$ 中相减即可。
+\end{proof}
+
+\section{有限方差下的弱大数定律}
+\label{sec:lln-weak-finite}
+
+\begin{theorem}[有限方差的弱大数定律]
+\label{thm:lln-wlln-finite}
+设 $X_1,X_2,\ldots$ 独立同分布，$\mathbb E[X_1]=\mu$，
+$\operatorname{Var}(X_1)=\sigma^2<\infty$。
+则 $\overline X_n\xrightarrow{\mathbb P}\mu$。更具体地，对任意 $\varepsilon>0$，
+\begin{equation}
+  \mathbb P(|\overline X_n-\mu|\geq\varepsilon)
+  \leq\frac{\sigma^2}{n\varepsilon^2}.
+  \label{eq:lln-wlln-bound}
+\end{equation}
+此外，还有 $\mathbb E[(\overline X_n-\mu)^2]=\sigma^2/n\to0$，
+即样本平均值\keyterm{均方收敛}（mean-square convergence）到 $\mu$。
+\end{theorem}
+
+\begin{proof}
+证明分为“均值正确”“波动减小”“大偏差概率趋零”三步。
+
+\textbf{第一步：计算平均值的期望。}
+由线性性，
+\[
+  \mathbb E[\overline X_n]
+  =\frac1n\sum_{i=1}^n\mathbb E[X_i]=\mu.
+\]
+这一步不依赖独立性，只使用每个变量的均值相同。
+
+\textbf{第二步：计算平均值的方差。}
+由独立性，$\operatorname{Var}(S_n)=n\sigma^2$，
+再使用 $\operatorname{Var}(cZ)=c^2\operatorname{Var}(Z)$，得到
+\begin{equation}
+  \operatorname{Var}(\overline X_n)
+  =\frac1{n^2}\operatorname{Var}(S_n)
+  =\frac{\sigma^2}{n}.
+  \label{eq:lln-average-variance}
+\end{equation}
+其中常数因子的平方来自方差定义中的平方偏差。
+
+\textbf{第三步：用方差控制偏差概率。}
+对 $\overline X_n$ 使用引理 \ref{lem:lln-chebyshev}，得到式 \eqref{eq:lln-wlln-bound}。
+固定 $\varepsilon>0$ 后，右侧随 $n\to\infty$ 趋于零，故得到依概率收敛。
+式 \eqref{eq:lln-average-variance} 同时给出均方收敛。
+\end{proof}
+
+这份证明不只是一个极限论证，也提供有限样本保证：
+若希望误差至少为 $\varepsilon$ 的概率不超过 $\delta$，其中 $0<\delta<1$，
+则选取满足
+\begin{equation}
+  n\geq\frac{\sigma^2}{\delta\varepsilon^2}
+  \label{eq:lln-sample-size}
+\end{equation}
+的整数样本量足够。这是充分条件，通常不是达到该精度所需的最小样本量。
+均方根误差为
+$\sqrt{\mathbb E[(\overline X_n-\mu)^2]}=\sigma/\sqrt n$，
+所以把这一误差尺度缩小到原来的一半，需要把样本量增加到四倍。
+
+\begin{example}[公平硬币的正面比例]
+\label{ex:lln-coin-bound}
+独立抛掷公平硬币，正面记 $X_i=1$、反面记 $X_i=0$。
+则 $\mu=1/2$、$\sigma^2=1/4$，$\overline X_n$ 就是正面比例。
+取 $\varepsilon=0.1$，式 \eqref{eq:lln-wlln-bound} 给出
+\[
+  \mathbb P(|\overline X_n-0.5|\geq0.1)\leq\frac{25}{n}.
+\]
+当 $n=1000$ 时，比例偏离 $50\%$ 至少 $10$ 个百分点的概率不超过 $2.5\%$。
+这个数是概率上界，不能当成精确概率。
+若要求该概率不超过 $5\%$，则切比雪夫界保证 $n\geq500$ 已经足够。
+\end{example}
+
+\subsection{哪些假设真正用于这个证明}
+
+弱大数定律的方差证明只需要
+$\mathbb E[\overline X_n]\to\mu$ 及
+$\operatorname{Var}(\overline X_n)\to0$，并不必须采用完整的独立同分布假设。
+
+\begin{proposition}[一个更一般的方差判据]
+\label{prop:lln-variance-criterion}
+若 $X_i$ 均有有限方差、两两不相关，并且
+\[
+  \frac1{n^2}\sum_{i=1}^n\operatorname{Var}(X_i)\longrightarrow0,
+\]
+则
+$n^{-1}\sum_{i=1}^n(X_i-\mathbb E[X_i])\xrightarrow{\mathbb P}0$。
+若另有 $n^{-1}\sum_{i=1}^n\mathbb E[X_i]\to\mu$，则 $\overline X_n\xrightarrow{\mathbb P}\mu$。
+\end{proposition}
+
+\begin{proof}
+中心化平均值的方差正好等于假设中的量，切比雪夫不等式给出第一项结论。
+第二项由
+$\overline X_n-\mu=n^{-1}\sum_i(X_i-\mathbb E[X_i])
++(n^{-1}\sum_i\mathbb E[X_i]-\mu)$
+及三角不等式得到。
+\end{proof}
+
+\section{只要求可积的弱大数定律}
+\label{sec:lln-weak-integrable}
+
+若方差无穷，上一节的切比雪夫估计失去作用，但这不意味着大数定律失效。
+一个重要方法是\keyterm{截断}（truncation）：
+先把极端大的取值分离出来，处理有界部分，再控制被分离部分的平均贡献。
+
+\begin{theorem}[可积独立同分布变量的平均收敛]
+\label{thm:lln-wlln-integrable}
+若 $X_1,X_2,\ldots$ 独立同分布且 $\mathbb E|X_1|<\infty$，记
+$\mu=\mathbb E[X_1]$，则
+\begin{equation}
+  \mathbb E|\overline X_n-\mu|\longrightarrow0,
+  \qquad
+  \overline X_n\xrightarrow{\mathbb P}\mu.
+  \label{eq:lln-l1-convergence}
+\end{equation}
+第一项称为 $L^1$ 收敛或平均绝对误差收敛。
+\end{theorem}
+
+\begin{proof}
+固定 $K>0$，令
+$Y_i^{(K)}=X_i\mathbf1_{\{|X_i|\leq K\}}$、
+$\mu_K=\mathbb E[Y_1^{(K)}]$。
+对这个固定的 $K$，变量 $Y_i^{(K)}$ 仍独立同分布，且绝对值不超过 $K$。
+把误差分为三部分：
+\[
+  \overline X_n-\mu
+  =\left(\frac1n\sum_{i=1}^nY_i^{(K)}-\mu_K\right)
+   +\frac1n\sum_{i=1}^n(X_i-Y_i^{(K)})
+   +(\mu_K-\mu).
+\]
+对绝对值取期望，并使用
+$\mathbb E|Z|\leq\sqrt{\mathbb E[Z^2]}$，得到
+\begin{align}
+  \mathbb E|\overline X_n-\mu|
+  &\leq
+  \sqrt{\frac{\operatorname{Var}(Y_1^{(K)})}{n}}
+  +2\,\mathbb E[|X_1|\mathbf1_{\{|X_1|>K\}}].
+  \label{eq:lln-truncation-l1-bound}
+\end{align}
+其中第二部分由三角不等式和同分布性控制，第三部分满足
+$|\mu_K-\mu|\leq\mathbb E[|X_1|\mathbf1_{\{|X_1|>K\}}]$。
+所用平方根不等式是 Cauchy--Schwarz 不等式对 $|Z|$ 和常数 $1$ 的应用，
+也可由 $\operatorname{Var}(|Z|)\geq0$ 推出。
+
+现在先固定 $K$，令 $n\to\infty$，第一项趋于零；
+再令 $K\to\infty$，引理 \ref{lem:lln-tail} 使第二项趋于零。
+严格地说，先选 $K$ 使尾部项小于任意给定误差的一半，
+再选 $n$ 使方差项小于另一半，因此证明了 $L^1$ 收敛。
+最后使用马尔可夫不等式：
+\[
+  \mathbb P(|\overline X_n-\mu|>\varepsilon)
+  \leq\frac{\mathbb E|\overline X_n-\mu|}{\varepsilon}
+  \longrightarrow0.
+\]
+\end{proof}
+
+这里的极限顺序十分重要：方差项中的 $K$ 先保持固定，
+从而可以使用有界变量的方差估计。
+结论没有给出一个只依赖 $\mathbb E|X_1|$ 的通用 $n^{-1/2}$ 误差尺度；
+在方差无穷的情况下，不能直接沿用式 \eqref{eq:lln-average-variance}。
+
+\section{从弱结论到强结论所需的工具}
+\label{sec:lln-strong-tools}
+
+\subsection{为什么不能直接对切比雪夫界求和}
+
+由式 \eqref{eq:lln-wlln-bound} 得到的单个偏差概率上界是 $C/n$。
+虽然它趋于零，但 $\sum_n C/n$ 发散，
+因此不能仅凭这个估计证明“偏差事件最终不再发生”。
+强大数定律需要控制一条无限记录上反复偏离的情况，
+而不仅仅是每个固定时刻的偏差概率。
+
+\begin{lemma}[第一 Borel--Cantelli 引理]
+\label{lem:lln-borel-cantelli}
+若事件序列 $A_1,A_2,\ldots$ 满足
+$\sum_{n=1}^\infty\mathbb P(A_n)<\infty$，
+则这些事件以概率 $1$ 只发生有限多次。
+此为\keyterm{第一波雷尔--坎泰利引理}（first Borel--Cantelli lemma），不要求事件独立。
+\end{lemma}
+
+\begin{proof}
+令 $B_m=\bigcup_{n\geq m}A_n$。
+由并集上界，
+$\mathbb P(B_m)\leq\sum_{n\geq m}\mathbb P(A_n)\to0$。
+事件 $A_n$ 发生无穷多次，恰好等于递减事件列 $B_m$ 的交集；
+该交集的概率由连续性等于 $\lim_m\mathbb P(B_m)=0$。
+\end{proof}
+
+这个引理只给出充分条件。概率级数发散时，它没有给出“发生无穷多次”的结论。
+如果只在稀疏时刻证明收敛，也仍需另外控制稀疏时刻之间的波动。
+下一个最大不等式可以同时控制一个区间内的所有部分和。
+
+\subsection{Kolmogorov 最大不等式}
+
+\begin{lemma}[独立中心化部分和的最大不等式]
+\label{lem:lln-kolmogorov-maximal}
+设 $Z_1,\ldots,Z_N$ 相互独立，
+$\mathbb E[Z_i]=0$、$\mathbb E[Z_i^2]<\infty$。
+记 $U_k=\sum_{i=1}^k Z_i$，则对任意 $\lambda>0$，
+\begin{equation}
+  \mathbb P\left(\max_{1\leq k\leq N}|U_k|\geq\lambda\right)
+  \leq\frac{\sum_{i=1}^N\operatorname{Var}(Z_i)}{\lambda^2}.
+  \label{eq:lln-maximal}
+\end{equation}
+此为\keyterm{柯尔莫哥洛夫最大不等式}（Kolmogorov's maximal inequality）。
+\end{lemma}
+
+\begin{proof}
+按首次越过阈值的时刻划分事件。对 $k=1,\ldots,N$，令
+\[
+  A_k=\{|U_1|<\lambda,\ldots,|U_{k-1}|<\lambda,\ |U_k|\geq\lambda\}.
+\]
+这些事件互不相交，其并集就是左侧最大值事件。
+$A_k$ 和 $U_k$ 只取决于前 $k$ 个变量，
+而 $U_N-U_k$ 由之后的变量决定，独立于它们且均值为零。
+所以
+\[
+  \mathbb E[U_k(U_N-U_k)\mathbf1_{A_k}]=0.
+\]
+各项可积性由平方可积和 Cauchy--Schwarz 不等式保证。
+展开 $U_N=U_k+(U_N-U_k)$ 的平方，得到
+\[
+  \mathbb E[U_N^2\mathbf1_{A_k}]
+  =\mathbb E[U_k^2\mathbf1_{A_k}]
+   +\mathbb E[(U_N-U_k)^2\mathbf1_{A_k}]
+  \geq\lambda^2\mathbb P(A_k).
+\]
+将这些互不相交的事件相加，并使用独立性计算总方差，有
+\[
+  \lambda^2\sum_{k=1}^N\mathbb P(A_k)
+  \leq\mathbb E[U_N^2]
+  =\sum_{i=1}^N\operatorname{Var}(Z_i).
+\]
+除以 $\lambda^2$ 即得结论。
+\end{proof}
+
+切比雪夫不等式控制的是某个指定时刻 $|U_N|$，
+最大不等式控制的则是此前任意时刻是否曾越过阈值。
+右侧仍只需要总方差，这使它能用于整条样本路径的收敛证明。
+
+\section{有限方差下的强大数定律}
+\label{sec:lln-strong-finite}
+
+\begin{theorem}[有限方差的强大数定律]
+\label{thm:lln-slln-finite}
+设 $X_1,X_2,\ldots$ 独立同分布，均值为 $\mu$，方差为有限数 $\sigma^2$，
+则 $\overline X_n\xrightarrow{\mathrm{a.s.}}\mu$。
+\end{theorem}
+
+\begin{proof}
+令 $T_k=\sum_{i=1}^k(X_i-\mu)$。
+目标是证明 $T_n/n\to0$ 几乎必然。
+取二进制时刻 $2^m$，其中 $m=1,2,\ldots$，并固定 $\varepsilon>0$。
+由最大不等式，
+\begin{equation}
+  \mathbb P\left(
+    \max_{1\leq k\leq2^m}|T_k|\geq\varepsilon2^m
+  \right)
+  \leq\frac{2^m\sigma^2}{\varepsilon^2 2^{2m}}
+  =\frac{\sigma^2}{\varepsilon^2 2^m}.
+  \label{eq:lln-dyadic-bound}
+\end{equation}
+右侧对 $m$ 求和有限。由引理 \ref{lem:lln-borel-cantelli}，
+对这个固定的 $\varepsilon$，以概率 $1$，充分大的 $m$ 都满足
+$\max_{k\leq2^m}|T_k|/2^m<\varepsilon$。
+
+为了让误差趋于零，而不只小于某个固定数，
+将 $\varepsilon$ 依次取为 $1,1/2,1/3,\ldots$。
+每个取值对应一个概率为 $1$ 的事件，可数个这样的事件的交集仍然概率为 $1$。
+在这个共同集合上，
+\begin{equation}
+  \frac{\max_{1\leq k\leq2^m}|T_k|}{2^m}\longrightarrow0.
+  \label{eq:lln-dyadic-convergence}
+\end{equation}
+
+最后处理任意时刻 $n$。
+选取 $m$ 使 $2^{m-1}<n\leq2^m$，则
+\[
+  \frac{|T_n|}{n}
+  \leq\frac{\max_{1\leq k\leq2^m}|T_k|}{2^{m-1}}
+  =2\,\frac{\max_{1\leq k\leq2^m}|T_k|}{2^m}
+  \longrightarrow0.
+\]
+所以所有时刻的中心化平均值都趋于零，而不只是在二进制子序列上收敛。
+\end{proof}
+
+证明的分工是：最大不等式把一个区间内所有时刻的偏差归结为一个概率界；
+二进制时刻使这些界形成可求和的几何级数；
+Borel--Cantelli 引理将可求和性转化为“坏事件只发生有限次”。
+最后一个比较不等式负责填补子序列之间的间隙，不能省略。
+
+\section{一般强大数定律的两个辅助引理}
+\label{sec:lln-series-tools}
+
+要把强大数定律推广到方差可能无穷的情况，
+需要先将每个变量截断到有限范围，再证明中心化后的加权级数收敛。
+本节建立从“方差可求和”到“样本平均趋零”的桥梁。
+
+\subsection{独立随机级数的收敛}
+
+\begin{lemma}[方差可求和保证中心化级数收敛]
+\label{lem:lln-series-convergence}
+设 $Z_1,Z_2,\ldots$ 相互独立，
+$\mathbb E[Z_n]=0$、$\mathbb E[Z_n^2]<\infty$，且
+\[
+  \sum_{n=1}^\infty\operatorname{Var}(Z_n)<\infty.
+\]
+则随机级数 $\sum_{n=1}^\infty Z_n$ 几乎必然收敛到一个有限实数。
+\end{lemma}
+
+\begin{proof}
+记 $U_n=\sum_{k=1}^nZ_k$。
+因为方差级数的尾和趋于零，可以选择递增整数 $n_j\to\infty$，使
+$\sum_{k>n_j}\operatorname{Var}(Z_k)\leq2^{-3j}$。
+对任意有限的 $M>n_j$，将最大不等式应用于
+$Z_{n_j+1},\ldots,Z_M$，得到
+\[
+  \mathbb P\left(
+    \max_{n_j<m\leq M}|U_m-U_{n_j}|>2^{-j}
+  \right)
+  \leq 2^{2j}\sum_{k>n_j}\operatorname{Var}(Z_k)
+  \leq2^{-j}.
+\]
+令 $M\to\infty$，由递增事件列的概率连续性，
+\[
+  \mathbb P\left(
+    \sup_{m>n_j}|U_m-U_{n_j}|>2^{-j}
+  \right)\leq2^{-j}.
+\]
+由 Borel--Cantelli 引理，在概率为 $1$ 的集合上，充分大的 $j$ 满足
+对所有 $m\geq n_j$ 都有 $|U_m-U_{n_j}|\leq2^{-j}$。
+于是任意 $m,\ell\geq n_j$ 都满足
+$|U_m-U_\ell|\leq2^{1-j}$。
+所以部分和序列在每条这样的记录上都是柯西数列，
+由实数的完备性收敛到有限实数。
+\end{proof}
+
+这个结论保证级数收敛，但不声称 $\sum_n|Z_n|$ 也收敛；
+证明所控制的是中心化部分和的尾部波动。
+
+\subsection{从加权级数恢复普通平均}
+
+\begin{lemma}[Kronecker 引理的常用形式]
+\label{lem:lln-kronecker}
+设 $a_1,a_2,\ldots$ 为实数。若级数
+$\sum_{k=1}^\infty a_k/k$ 收敛，则
+\[
+  \frac1n\sum_{k=1}^n a_k\longrightarrow0.
+\]
+这是\keyterm{克罗内克引理}（Kronecker's lemma）中分母取 $k$ 的情形。
+\end{lemma}
+
+\begin{proof}
+记 $b_n=\sum_{k=1}^n a_k/k$、$b_0=0$。
+由假设 $b_n\to b$，且 $a_k=k(b_k-b_{k-1})$。
+将有限和展开并抵消相邻项，得到
+\[
+  \sum_{k=1}^n a_k
+  =\sum_{k=1}^n k(b_k-b_{k-1})
+  =nb_n-\sum_{k=1}^{n-1}b_k.
+\]
+两侧除以 $n$，第一项趋于 $b$；
+第二项由引理 \ref{lem:lln-cesaro} 也趋于 $b$，故差趋于零。
+\end{proof}
+
+\begin{corollary}[独立变量的方差级数判据]
+\label{cor:lln-kolmogorov-criterion}
+设 $W_1,W_2,\ldots$ 相互独立且每项方差有限。如果
+\[
+  \sum_{n=1}^\infty\frac{\operatorname{Var}(W_n)}{n^2}<\infty,
+\]
+则
+\begin{equation}
+  \frac1n\sum_{k=1}^n(W_k-\mathbb E[W_k])
+  \xrightarrow{\mathrm{a.s.}}0.
+  \label{eq:lln-variance-series-criterion}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+令 $Z_n=(W_n-\mathbb E[W_n])/n$。
+引理 \ref{lem:lln-series-convergence} 说明 $\sum_nZ_n$ 几乎必然收敛，
+再逐条记录应用引理 \ref{lem:lln-kronecker} 即得结论。
+\end{proof}
+
+该判据不要求同分布；结论是围绕各自均值的中心化平均趋于零。
+若另外知道 $n^{-1}\sum_{k=1}^n\mathbb E[W_k]\to\mu$，
+才可进一步写成 $n^{-1}\sum_{k=1}^nW_k\to\mu$。
+
+\section{只要求一阶绝对矩有限的强大数定律}
+\label{sec:lln-strong-integrable}
+
+\begin{theorem}[可积独立同分布变量的强大数定律]
+\label{thm:lln-slln-integrable}
+若 $X_1,X_2,\ldots$ 独立同分布且 $\mathbb E|X_1|<\infty$，
+记 $\mu=\mathbb E[X_1]$，则
+\begin{equation}
+  \frac1n\sum_{k=1}^nX_k\xrightarrow{\mathrm{a.s.}}\mu.
+  \label{eq:lln-slln-integrable}
+\end{equation}
+\end{theorem}
+
+证明的目标是把原变量替换成便于使用方差判据的变量，
+并证明替换对长期平均值没有影响。
+不同于第 \ref{sec:lln-weak-integrable} 节的固定截断阈值，
+这里让第 $n$ 个变量的截断阈值也随 $n$ 增大。
+
+\begin{proof}
+\textbf{第一步：截断只会修改有限多个样本。}
+令
+\[
+  Y_n=X_n\mathbf1_{\{|X_n|\leq n\}}.
+\]
+这些变量依然相互独立，因为每个 $Y_n$ 只由对应的 $X_n$ 决定；
+但它们不再同分布。由同分布性和非负求和交换，
+\begin{align}
+  \sum_{n=1}^\infty\mathbb P(X_n\neq Y_n)
+  &=\sum_{n=1}^\infty\mathbb P(|X_1|>n) \notag\\
+  &=\mathbb E\left[\sum_{n=1}^\infty
+       \mathbf1_{\{|X_1|>n\}}\right]
+  \leq\mathbb E|X_1|<\infty.
+  \label{eq:lln-truncation-events}
+\end{align}
+最后一步利用：对任意 $u\geq0$，满足正整数 $n<u$ 的个数不超过 $u$。
+由 Borel--Cantelli 引理，几乎必然只有有限多个 $n$ 满足 $X_n\neq Y_n$。
+所以在这样的记录上，差值总和最终是一个固定有限数，从而
+\begin{equation}
+  \frac1n\sum_{k=1}^n(X_k-Y_k)\longrightarrow0.
+  \label{eq:lln-truncation-difference}
+\end{equation}
+
+\textbf{第二步：截断变量满足方差级数判据。}
+虽然 $\mathbb E[X_1^2]$ 可能无穷，但每个 $Y_n$ 都有界，故方差有限。
+记 $U=|X_1|$，则
+\begin{align}
+  \sum_{n=1}^\infty\frac{\operatorname{Var}(Y_n)}{n^2}
+  &\leq\sum_{n=1}^\infty\frac{\mathbb E[Y_n^2]}{n^2} \notag\\
+  &=\mathbb E\left[
+     U^2\sum_{n=1}^\infty\frac{\mathbf1_{\{U\leq n\}}}{n^2}
+     \right].
+  \label{eq:lln-truncated-variance}
+\end{align}
+这里同分布性用于将 $\mathbb E[Y_n^2]$ 写成
+$\mathbb E[X_1^2\mathbf1_{\{|X_1|\leq n\}}]$，
+交换期望与求和则由各项非负保证。
+
+为估计括号内的量，固定 $u>0$，令 $m=\lceil u\rceil$，
+即不小于 $u$ 的最小整数。由于 $m\geq1$，
+\[
+  \sum_{n=m}^\infty\frac1{n^2}
+  \leq\frac1{m^2}+\int_m^\infty\frac{\mathrm dx}{x^2}
+  =\frac1{m^2}+\frac1m
+  \leq\frac2m
+  \leq\frac2u.
+\]
+所以
+$u^2\sum_{n\geq1}\mathbf1_{\{u\leq n\}}/n^2\leq2u$；
+当 $u=0$ 时左侧也为零。因此
+\begin{equation}
+  \sum_{n=1}^\infty\frac{\operatorname{Var}(Y_n)}{n^2}
+  \leq2\mathbb E|X_1|<\infty.
+  \label{eq:lln-truncated-variance-finite}
+\end{equation}
+这一步是用有限的一阶绝对矩控制整列截断变量的加权二阶矩，
+没有假设原变量具有有限二阶矩。
+
+\textbf{第三步：截断变量的中心化平均趋于零。}
+由推论 \ref{cor:lln-kolmogorov-criterion}，
+\begin{equation}
+  \frac1n\sum_{k=1}^n(Y_k-\mathbb E[Y_k])
+  \xrightarrow{\mathrm{a.s.}}0.
+  \label{eq:lln-truncated-centered}
+\end{equation}
+
+\textbf{第四步：恢复原变量的均值。}
+由引理 \ref{lem:lln-tail}，
+\[
+  |\mathbb E[Y_n]-\mu|
+  \leq\mathbb E[|X_1|\mathbf1_{\{|X_1|>n\}}]\longrightarrow0.
+\]
+引理 \ref{lem:lln-cesaro} 因而给出
+$n^{-1}\sum_{k=1}^n\mathbb E[Y_k]\to\mu$。
+最后分解
+\[
+  \overline X_n-\mu
+  =\frac1n\sum_{k=1}^n(X_k-Y_k)
+   +\frac1n\sum_{k=1}^n(Y_k-\mathbb E[Y_k])
+   +\left(\frac1n\sum_{k=1}^n\mathbb E[Y_k]-\mu\right).
+\]
+第一项由式 \eqref{eq:lln-truncation-difference} 趋于零，
+第二项由式 \eqref{eq:lln-truncated-centered} 几乎必然趋于零，
+第三项是趋于零的确定性数列。取这些概率为 $1$ 的事件的交集，即完成证明。
+\end{proof}
+
+结合命题 \ref{prop:lln-as-implies-probability}，一般弱大数定律也随之成立。
+第 \ref{sec:lln-weak-integrable} 节另外证明了 $L^1$ 收敛。
+因此，在独立同分布且可积的假设下，样本平均值同时几乎必然、依概率和在 $L^1$ 中收敛到 $\mu$。
+这里三种结论同时成立依赖于大数定律的特殊结构；
+不能据此认为一般序列的几乎必然收敛自动蕴含 $L^1$ 收敛。
+
+\section{例子与应用}
+\label{sec:lln-applications}
+
+\subsection{事件频率收敛到概率}
+
+\begin{example}[伯努利大数定律]
+\label{ex:lln-bernoulli}
+独立重复同一种试验，每次某事件发生的概率为 $p\in[0,1]$。
+令事件发生时 $X_i=1$，否则 $X_i=0$，
+则 $X_i$ 服从\keyterm{伯努利分布}（Bernoulli distribution），
+且 $\mathbb E[X_i]=p$、$\operatorname{Var}(X_i)=p(1-p)$。
+记前 $n$ 次中事件发生的次数为 $N_n=\sum_{i=1}^nX_i$，则
+\[
+  \frac{N_n}{n}\xrightarrow{\mathrm{a.s.}}p,
+  \qquad
+  \mathbb P\left(\left|\frac{N_n}{n}-p\right|\geq\varepsilon\right)
+  \leq\frac{p(1-p)}{n\varepsilon^2}
+  \leq\frac1{4n\varepsilon^2}.
+\]
+最后一个界使用 $p(1-p)\leq1/4$，因此即使不知道 $p$ 的确切数值也可使用。
+这说明频率可作为概率的估计，但收敛结论不等于某次频率恰好等于概率。
+\end{example}
+
+\subsection{样本平均与蒙特卡洛积分}
+
+设 $U_1,U_2,\ldots$ 独立且在 $[0,1]$ 上均匀分布，
+$f:[0,1]\to\mathbb R$ 为可测函数并满足 $\int_0^1|f(u)|\,\mathrm du<\infty$。
+由于均匀分布的密度为 $1$，
+\[
+  \mathbb E[f(U_i)]=\int_0^1 f(u)\,\mathrm du.
+\]
+对 $X_i=f(U_i)$ 应用一般强大数定律，得到
+\begin{equation}
+  \widehat I_n=\frac1n\sum_{i=1}^nf(U_i)
+  \xrightarrow{\mathrm{a.s.}}
+  I=\int_0^1 f(u)\,\mathrm du.
+  \label{eq:lln-monte-carlo}
+\end{equation}
+这就是\keyterm{蒙特卡洛积分}（Monte Carlo integration）的一种基本形式：
+利用随机采样的函数值平均估计积分。
+如果还满足 $\int_0^1f(u)^2\,\mathrm du<\infty$，
+则可进一步使用有限方差的概率误差界。
+
+\begin{example}[估计平方函数的积分]
+取 $f(u)=u^2$。理论积分为 $I=1/3$，且
+\[
+  \operatorname{Var}(U_i^2)
+  =\int_0^1u^4\,\mathrm du
+   -\left(\int_0^1u^2\,\mathrm du\right)^2
+  =\frac15-\frac19=\frac4{45}.
+\]
+因此 $\widehat I_n=n^{-1}\sum_iU_i^2$ 几乎必然收敛到 $1/3$，并满足
+$\mathbb P(|\widehat I_n-1/3|\geq\varepsilon)
+\leq4/(45n\varepsilon^2)$。
+收敛依据来自独立同分布样本的大数定律，而不是某一组模拟数值看起来已经稳定。
+\end{example}
+
+\subsection{无限方差并不妨碍一般大数定律}
+
+\begin{example}[有限均值、无限方差的分布]
+\label{ex:lln-infinite-variance}
+设 $X_i$ 独立同分布，概率密度为
+\[
+  f(x)=
+  \begin{cases}
+    \dfrac32x^{-5/2},&x\geq1,\\
+    0,&x<1.
+  \end{cases}
+\]
+这是一个\keyterm{帕累托分布}（Pareto distribution）。
+其密度积分为 $1$，一阶矩与二阶矩分别为
+\[
+  \mathbb E[X_1]
+  =\frac32\int_1^\infty x^{-3/2}\,\mathrm dx=3,
+  \qquad
+  \mathbb E[X_1^2]
+  =\frac32\int_1^\infty x^{-1/2}\,\mathrm dx=+\infty.
+\]
+因 $X_1\geq0$，有 $\mathbb E|X_1|=3<\infty$。
+故定理 \ref{thm:lln-slln-integrable} 保证 $\overline X_n\to3$ 几乎必然，
+定理 \ref{thm:lln-wlln-integrable} 还保证 $L^1$ 收敛。
+有限方差的证明和 $\sigma^2/n$ 界则不适用于这个例子。
+\end{example}
+
+\section{条件边界与常见误解}
+\label{sec:lln-boundaries}
+
+\subsection{重复记录不等于取得独立样本}
+
+\begin{example}[均值始终正确，平均值却不收敛]
+\label{ex:lln-dependent-failure}
+令 $Z$ 等概率取 $0,1$，并对所有 $n$ 定义 $X_n=Z$。
+这些变量同分布，每项期望均为 $1/2$，但完全相关。
+由于 $\overline X_n=Z$，对每个 $n$ 都有
+\[
+  \mathbb E[\overline X_n]=\frac12,\qquad
+  \mathbb P(|\overline X_n-1/2|>1/4)=1.
+\]
+所以样本量符号上的增加并没有使平均值接近 $1/2$。
+估计量的\keyterm{无偏性}（unbiasedness）只意味着其期望等于目标参数；
+\keyterm{一致性}（consistency）则要求它随样本量增大依概率收敛到目标参数，两者不是同一结论。
+\end{example}
+
+独立性不是所有大数定律都必须具备的条件；
+例如命题 \ref{prop:lln-variance-criterion} 已允许两两不相关的变量。
+但依赖数据需要相应的假设和证明，不能未经检查直接套用独立同分布版本。
+相邻时间点的数据、同一轨迹上的观测或随学习策略变化的数据，都应先确认模型是否符合所用定理。
+
+\subsection{均值无穷时可能得到不同的极限}
+
+若 $\mathbb E|X_1|=\infty$，本文有限均值的大数定律不能直接使用。
+不过，这不意味着所有形式的平均收敛都不可能；有时极限是扩展实数。
+
+\begin{proposition}[非负且均值无穷的情形]
+\label{prop:lln-infinite-mean}
+若 $X_1,X_2,\ldots$ 是非负的独立同分布实值随机变量，且
+$\mathbb E[X_1]=+\infty$，则 $\overline X_n\to+\infty$ 几乎必然。
+\end{proposition}
+
+\begin{proof}
+对每个正整数 $K$，令 $Y_i^{(K)}=\min\{X_i,K\}$。
+它们有界且独立同分布，有限方差强大数定律给出
+$n^{-1}\sum_{i=1}^nY_i^{(K)}\to\mathbb E[\min\{X_1,K\}]$ 几乎必然。
+取所有正整数 $K$ 对应的概率为 $1$ 的事件的交集。
+在这个共同集合上，由 $X_i\geq Y_i^{(K)}$，
+\[
+  \liminf_{n\to\infty}\overline X_n
+  \geq\mathbb E[\min\{X_1,K\}]
+  \qquad\text{对每个正整数 }K.
+\]
+单调收敛定理使右侧随 $K\to\infty$ 趋于 $+\infty$，
+因此左侧为 $+\infty$，即得到所述发散结论。
+\end{proof}
+
+\subsection{大数定律没有承诺什么}
+
+\begin{enumerate}
+  \item \textbf{没有承诺误差逐步减小。}
+  收敛数列允许反复波动，样本平均值也一样。
+  \item \textbf{没有承诺结果会主动补偿过去。}
+  独立抛掷公平硬币，即使此前连续多次为正面，下一次正面概率仍是 $1/2$。
+  极限比例的稳定来自大量新观测的平均作用，而不是硬币对过去结果作出调整。
+  \item \textbf{没有承诺次数差趋于零。}
+  伯努利大数定律说明 $(N_n-np)/n\to0$，
+  不能因此推出未经除以 $n$ 的 $N_n-np\to0$。
+  \item \textbf{没有单凭极限结论给出最小样本量。}
+  有限样本保证需要切比雪夫界等额外估计，
+  而式 \eqref{eq:lln-sample-size} 只是一个充分的样本量要求。
+  \item \textbf{没有把概率为一解释为没有例外记录。}
+  强大数定律允许零概率的例外集合；
+  概率为零与集合为空是不同概念。
+  \item \textbf{没有自动纠正抽样偏差。}
+  样本平均值趋向的是实际采样分布的期望；
+  若采样分布与想研究的总体不同，收敛本身不能保证估计目标正确。
+\end{enumerate}
+
+大数定律研究平均值收敛到什么；
+\keyterm{中心极限定理}（central limit theorem，CLT）则进一步研究适当缩放后误差的分布。
+二者回答不同问题，本文的证明不依赖中心极限定理。
+
+\subsection{定理与证明路线速查}
+
+表 \ref{tab:lln-theorems} 汇总本文主要结论。
+表中的条件是对应证明使用的充分条件，不代表所有可能的大数定律形式。
+
+\begin{table}
+  \centering
+  \caption{主要大数定律及证明依据}
+  \label{tab:lln-theorems}
+  \begin{tabularx}{\textwidth}{YYY}
+    \toprule
+    假设 & 结论 & 本文证明依据 \\
+    \midrule
+    独立同分布、有限方差 &
+    均方收敛与弱大数定律 &
+    方差计算、切比雪夫不等式；定理 \ref{thm:lln-wlln-finite} \\
+    独立同分布、一阶绝对矩有限 &
+    $L^1$ 收敛与弱大数定律 &
+    固定阈值截断、尾部控制；定理 \ref{thm:lln-wlln-integrable} \\
+    独立同分布、有限方差 &
+    强大数定律 &
+    最大不等式、二进制区间、Borel--Cantelli；定理 \ref{thm:lln-slln-finite} \\
+    相互独立、每项方差有限，且 $\sum_n\operatorname{Var}(X_n)/n^2<\infty$ &
+    中心化平均值几乎必然趋于零 &
+    随机级数收敛、Kronecker 引理；推论 \ref{cor:lln-kolmogorov-criterion} \\
+    独立同分布、一阶绝对矩有限 &
+    强大数定律 &
+    随样本序号变化的截断、方差级数判据；定理 \ref{thm:lln-slln-integrable} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{thebibliography}{9}
+\bibitem{durrett-lln}
+Rick Durrett.
+\emph{Probability: Theory and Examples}.
+Version 5, January 11, 2019.
+第 2.2 节讨论弱大数定律，第 2.3 节讨论 Borel--Cantelli 引理，
+第 2.4 节讨论强大数定律，第 2.5 节讨论最大不等式、随机级数与 Kronecker 引理。
+\url{https://math.duke.edu/~rtd/PTE/PTE5_011119.pdf}.
+
+\bibitem{sheffield-lln}
+Scott Sheffield.
+\emph{18.175 Theory of Probability}, Spring 2014.
+MIT OpenCourseWare, Lecture Slides.
+相关课程主题包括大数定律、独立性、Borel--Cantelli 引理及最大不等式。
+\url{https://ocw.mit.edu/courses/18-175-theory-of-probability-spring-2014/pages/lecture-slides/}.
+\end{thebibliography}
+
+\end{document}

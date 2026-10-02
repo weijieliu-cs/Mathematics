@@ -1,0 +1,387 @@
+\documentclass[UTF8]{ctexart}
+
+% 支持从项目根目录、概率论与数理统计目录或当前文档目录读取共享样式。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{数学期望性质入门}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{从平均数认识数学期望}
+\label{sec:basic-expectation-introduction}
+
+一种彩票有时中奖、有时不中，只看最高奖金，不能判断平均能得到多少。
+既要考虑每种结果的数值，也要考虑它出现的概率。
+\keyterm{数学期望}（mathematical expectation）就是\keyterm{以概率为权重的平均数}。
+
+本文只讨论可能取值有限的情况，因此所有公式中的期望都是有限数，
+只需概率、加权平均和初等代数知识。
+先理解期望的含义，再学习常用运算规则，最后用“分组平均”认识条件期望和全期望公式。
+
+\subsection{随机变量与期望的计算}
+
+\keyterm{随机变量}（random variable）是给随机结果对应一个数。
+例如，掷骰子后朝上的点数可以记为 $X$。
+大写 $X$ 表示结果尚未确定时的随机量，小写 $x$ 表示一次具体取到的数值。
+记号 $\mathbb P(X=x)$ 表示“$X$ 取到 $x$ 的概率”。
+
+\begin{definition}[有限个取值时的数学期望]
+设 $X$ 的不同可能取值为 $x_1,\ldots,x_n$，相应概率为 $p_1,\ldots,p_n$，
+其中 $p_i\geq0$ 且 $p_1+\cdots+p_n=1$。定义
+\begin{equation}
+  \mathbb E[X]=x_1p_1+\cdots+x_np_n
+  =\sum_{i=1}^{n}x_ip_i.
+  \label{eq:basic-expectation-definition}
+\end{equation}
+记号 $\mathbb E[X]$ 读作“$X$ 的期望”，$\sum$ 表示把列出的各项相加。
+\end{definition}
+
+计算时只做三步：列出可能取值，写出对应概率，再将“取值乘概率”的结果相加。
+只有各种结果等可能时，才可以直接把这些取值相加后除以取值个数。
+
+\begin{example}[公平骰子的点数]
+公平六面骰子的点数 $1,2,\ldots,6$ 各以 $1/6$ 的概率出现，因此
+\[
+  \mathbb E[X]
+  =1\times\frac16+\cdots+6\times\frac16
+  =\frac{21}{6}=3.5.
+\]
+骰子不可能掷出 $3.5$ 点，这并不矛盾：
+\keyterm{期望是平均水平，不是下一次必然发生的结果，也不必是某个实际取值。}
+\end{example}
+
+\subsection{期望与多次试验的平均值}
+
+若独立地重复同一种试验，且每次各种结果的概率保持不变，
+试验次数足够多时，实际平均值以很高的概率接近期望。
+这一联系由\keyterm{大数定律}（law of large numbers）保证。
+它不表示少量试验的平均值一定接近期望，也不表示每次增加一次试验，误差都必然变小。
+
+\begin{example}[奖金与净收益]
+\label{ex:basic-expectation-lottery}
+假设一次抽奖有 $70\%$ 的概率得 $0$ 元、$20\%$ 的概率得 $10$ 元、
+$10\%$ 的概率得 $50$ 元。记奖金为 $X$，则
+\[
+  \mathbb E[X]=0\times0.7+10\times0.2+50\times0.1=7\text{ 元}.
+\]
+若每次参与需支付 $5$ 元，净收益是奖金减去费用，其期望为 $7-5=2$ 元。
+这说明平均净收益为正，并不保证某一次不会亏钱；
+例如未中奖时，该次净收益就是 $-5$ 元。
+\end{example}
+
+\section{最常用的运算规则：线性性}
+\label{sec:basic-expectation-linearity}
+
+\subsection{常数、倍数与固定增减}
+
+\begin{property}[常数与一次式]
+若 $a,b,c$ 是固定常数，则
+\begin{equation}
+  \mathbb E[c]=c,\qquad
+  \mathbb E[aX+b]=a\mathbb E[X]+b.
+  \label{eq:basic-expectation-affine}
+\end{equation}
+\end{property}
+
+\begin{proof}
+常数 $c$ 以概率 $1$ 出现，所以 $\mathbb E[c]=c$。
+若 $X$ 取 $x_i$ 的概率为 $p_i$，则
+\[
+  \mathbb E[aX+b]
+  =\sum_i(ax_i+b)p_i
+  =a\sum_i x_ip_i+b\sum_i p_i
+  =a\mathbb E[X]+b.
+\]
+即使变换后某些取值相同，把相同结果的概率合并也不会改变这份加权和。
+\end{proof}
+
+它的直观含义是：每次得分都翻倍，平均得分也翻倍；每次固定多得 $3$ 分，平均分也多 $3$ 分。
+例 \ref{ex:basic-expectation-lottery} 中“净收益的期望等于奖金期望减去费用”，正是这一性质。
+其中 $a$ 可以为负数，例如 $\mathbb E[-X]=-\mathbb E[X]$。
+
+\subsection{和与差的期望}
+
+\begin{property}[期望的线性性]
+\label{prop:basic-expectation-linearity}
+对随机变量 $X,Y$ 和常数 $a,b$，有
+\begin{equation}
+  \mathbb E[aX+bY]=a\mathbb E[X]+b\mathbb E[Y].
+  \label{eq:basic-expectation-linearity}
+\end{equation}
+特别地，
+$\mathbb E[X+Y]=\mathbb E[X]+\mathbb E[Y]$，
+$\mathbb E[X-Y]=\mathbb E[X]-\mathbb E[Y]$。
+这些公式\keyterm{不要求 $X,Y$ 独立}。
+\end{property}
+
+\begin{proof}
+把同一次试验中 $(X,Y)$ 的可能结果依次列出：
+第 $i$ 种结果为 $(x_i,y_i)$，概率为 $q_i$。
+按所有配对结果求加权平均，有
+\[
+  \mathbb E[aX+bY]
+  =\sum_i(ax_i+by_i)q_i
+  =a\sum_i x_iq_i+b\sum_i y_iq_i.
+\]
+后面两个加权和分别为 $\mathbb E[X]$ 和 $\mathbb E[Y]$；
+同一个 $X$ 取值即使出现在多个配对结果中，合并概率后仍是原来的期望。
+因此无需假设独立。
+\end{proof}
+
+例如，掷出一次骰子的点数为 $X$，额外奖励为 $Y=2X$。
+$Y$ 完全由 $X$ 决定，但仍有
+$\mathbb E[X+Y]=3.5+7=10.5$。
+可见，“不独立”不会破坏加法公式。
+
+对有限个随机变量同样有
+\[
+  \mathbb E[X_1+\cdots+X_n]
+  =\mathbb E[X_1]+\cdots+\mathbb E[X_n].
+\]
+实际求总分、总费用、总次数时，往往不必先求出总量的全部概率分布，
+可以先求各部分的期望，再相加。
+
+\section{大小关系、乘积与平方}
+\label{sec:basic-expectation-other-properties}
+
+\subsection{平均不会超出原来的范围}
+
+\begin{property}[非负性与大小关系]
+如果对每种可能结果都有 $X\geq0$，则 $\mathbb E[X]\geq0$。
+如果每种可能结果下都有 $X\leq Y$，则 $\mathbb E[X]\leq\mathbb E[Y]$。
+特别地，如果 $m\leq X\leq M$，其中 $m,M$ 为常数，则
+\[
+  m\leq\mathbb E[X]\leq M.
+\]
+\end{property}
+
+\begin{proof}
+非负数乘以非负概率，再相加，结果仍然非负。
+若 $X\leq Y$，则 $Y-X\geq0$，所以
+$\mathbb E[Y]-\mathbb E[X]=\mathbb E[Y-X]\geq0$。
+最后分别比较 $m$ 与 $X$、$X$ 与 $M$ 即可。
+\end{proof}
+
+例如，成绩始终在 $0$ 到 $100$ 分之间，期望成绩也在这个范围内。
+如果某种加分规则对每个学生都不减分，那么实施后的期望成绩不会下降。
+这要求比较同一种结果下的两个数，不能只比较它们的最大值。
+
+另一个有用的结果是
+\[
+  |\mathbb E[X]|\leq\mathbb E[|X|].
+\]
+这是因为 $-|X|\leq X\leq|X|$。
+先平均时正负数可能相互抵消；先取绝对值再平均，就没有这种抵消。
+
+\subsection{乘积需要额外条件}
+
+有限取值情形下，称 $X,Y$ \keyterm{相互独立}（independent），
+是指对所有可能的 $x,y$，都有
+$\mathbb P(X=x,Y=y)=\mathbb P(X=x)\mathbb P(Y=y)$。
+直观地说，知道其中一个的结果，不会改变另一个各种取值的概率。
+
+\begin{property}[独立变量乘积的期望]
+\label{prop:basic-expectation-product}
+如果 $X,Y$ 独立，则
+\begin{equation}
+  \mathbb E[XY]=\mathbb E[X]\mathbb E[Y].
+  \label{eq:basic-expectation-product}
+\end{equation}
+\end{property}
+
+这个公式来自独立性：一对结果 $(x,y)$ 的概率可以拆成两个概率相乘。
+因此，对所有配对结果计算“$xy$ 乘以对应概率”时，加权和可以因式分解为
+\[
+  \sum_x\sum_y xy\,\mathbb P(X=x)\mathbb P(Y=y)
+  =\left(\sum_x x\mathbb P(X=x)\right)
+   \left(\sum_y y\mathbb P(Y=y)\right).
+\]
+两个求和符号只是表示遍历所有配对结果。
+例如，独立掷两枚公平骰子，点数分别为 $X,Y$，
+则乘积的期望为 $3.5\times3.5=12.25$。
+
+\begin{example}[不独立时不能直接拆乘积]
+\label{ex:basic-expectation-product-failure}
+抛一枚公平硬币，正面记 $X=1$，反面记 $X=-1$，并令 $Y=X$。
+两者总是相等，因而不独立。此时
+\[
+  \mathbb E[X]=\mathbb E[Y]=0,\qquad
+  \mathbb E[XY]=\mathbb E[X^2]=1.
+\]
+所以 $\mathbb E[XY]\neq\mathbb E[X]\mathbb E[Y]$。
+独立性保证乘积公式成立；若不知道是否独立，就不能直接套用。
+\end{example}
+
+\subsection{先平方还是先求平均}
+
+例 \ref{ex:basic-expectation-product-failure} 同时说明，
+$\mathbb E[X^2]$ 和 $(\mathbb E[X])^2$ 一般不相等。
+它们的运算顺序不同：前者先平方再平均，后者先平均再平方。
+
+记 $\mu=\mathbb E[X]$。随机变量的\keyterm{方差}（variance）定义为
+\begin{equation}
+  \operatorname{Var}(X)
+  =\mathbb E[(X-\mu)^2]
+  =\mathbb E[X^2]-\mu^2.
+  \label{eq:basic-expectation-variance}
+\end{equation}
+第一式表示“与均值的距离平方的平均”，用于描述结果的波动程度。
+第二式由展开平方得到：
+$\mathbb E[X^2-2\mu X+\mu^2]
+=\mathbb E[X^2]-2\mu^2+\mu^2$。
+由于平方非负，
+\[
+  \mathbb E[X^2]\geq(\mathbb E[X])^2.
+\]
+对于上述硬币例子，均值为 $0$，方差为 $1$：
+平均得分为零，并不表示每次的得分都为零。
+
+\section{把概率变成期望：零一变量}
+\label{sec:basic-expectation-indicators}
+
+如果某个事件发生时记为 $1$，不发生时记为 $0$，就得到一个
+\keyterm{指示随机变量}（indicator random variable）$I$。
+若事件发生的概率为 $p$，则
+\begin{equation}
+  \mathbb E[I]=1\times p+0\times(1-p)=p.
+  \label{eq:basic-expectation-indicator}
+\end{equation}
+所以，\keyterm{零一变量的期望就是取到 $1$ 的概率}。
+
+\begin{example}[猜选择题的期望答对数]
+假设有 $10$ 道选择题，每题猜对的概率都是 $1/4$。
+令 $I_i$ 表示第 $i$ 题是否答对，答对为 $1$，答错为 $0$。
+答对总数为 $N=I_1+\cdots+I_{10}$，因此
+\[
+  \mathbb E[N]
+  =\sum_{i=1}^{10}\mathbb E[I_i]
+  =10\times\frac14=2.5.
+\]
+这里不要求不同题的答对情况独立，因为使用的是加法规则。
+一次考试的答对数一定是整数；$2.5$ 描述的是期望答对数。
+\end{example}
+
+\section{条件期望与分组平均}
+\label{sec:basic-expectation-conditioning}
+
+\subsection{知道部分信息后，重新计算平均值}
+
+\keyterm{条件期望}（conditional expectation）是在已经知道某个条件的情况下，
+使用该条件下的概率重新求平均。
+例如，$\mathbb E[X\mid Y=y]$ 表示“已知 $Y=y$ 时，$X$ 的期望”，
+竖线 $\mid$ 可以读作“在已知……的条件下”。
+本文只对发生概率为正的条件进行这种计算。
+
+\begin{example}[先选抽奖箱，再抽奖金]
+\label{ex:basic-expectation-total}
+假设先随机选择一个抽奖箱：以 $40\%$ 的概率选 A 箱，以 $60\%$ 的概率选 B 箱。
+A 箱内有两张分别标着 $0$ 元、$10$ 元的奖券，B 箱内有两张分别标着 $10$ 元、$20$ 元的奖券；
+选好箱子后，在其中等概率抽取一张。记奖金为 $X$，选中的箱子为 $Y$。
+
+已知选中哪个箱子时，分别有
+\[
+  \mathbb E[X\mid Y=\mathrm A]=\frac{0+10}{2}=5,\qquad
+  \mathbb E[X\mid Y=\mathrm B]=\frac{10+20}{2}=15.
+\]
+尚未知道箱子时，按选箱概率加权，得到
+\[
+  \mathbb E[X]=0.4\times5+0.6\times15=11\text{ 元}.
+\]
+也可以把所有抽取路径直接展开验证：
+来自 A 箱的两张券各以 $0.2$ 的概率被抽到，
+来自 B 箱的两张券各以 $0.3$ 的概率被抽到，因此
+$0\times0.2+10\times0.2+10\times0.3+20\times0.3=11$。
+\end{example}
+
+\subsection{全期望公式：先在组内平均，再在组间平均}
+
+设分组变量 $Y$ 的取值为 $y_1,\ldots,y_m$，每组概率为
+$q_j=\mathbb P(Y=y_j)>0$，则
+\begin{equation}
+  \mathbb E[X]
+  =\sum_{j=1}^{m}
+    \mathbb E[X\mid Y=y_j]q_j.
+  \label{eq:basic-expectation-total}
+\end{equation}
+这称为\keyterm{全期望公式}（law of total expectation）。
+每个可能结果只属于一个组；先在各组内求平均，再按组的概率加权，
+每个结果最终获得的权重仍是它原来的发生概率，所以与直接求平均一致。
+
+例 \ref{ex:basic-expectation-total} 中不能直接计算 $(5+15)/2=10$，
+因为两个箱子被选中的概率并不相等。
+类似地，把各班平均分合成全年级平均分时，应按各班人数占比加权；
+只有各班人数相等时，才可直接对班级平均分作算术平均。
+
+\subsection{为什么还能写成两层期望}
+
+记 $M=\mathbb E[X\mid Y]$，它表示“根据实际选中的组，返回该组的平均值”。
+在抽奖箱例子中，$M$ 以 $0.4$ 的概率等于 $5$、以 $0.6$ 的概率等于 $15$，
+所以 $M$ 本身仍然是随机变量。
+再求一次期望，有
+\begin{equation}
+  \mathbb E[\mathbb E[X\mid Y]]
+  =\mathbb E[M]
+  =\mathbb E[X].
+  \label{eq:basic-expectation-tower}
+\end{equation}
+内层给出各组的平均值，外层把这些平均值按组的概率加权。
+
+这不表示 $X=M$。在 A 箱中，实际奖金 $X$ 是 $0$ 或 $10$，
+而该组均值 $M$ 是 $5$，两者每次都不相等；
+但是组内和总体上的平均值都相同。
+
+进一步，若已经知道 $Y$，又按额外信息 $Z$ 细分，就有
+\[
+  \mathbb E[\mathbb E[X\mid Y,Z]\mid Y]
+  =\mathbb E[X\mid Y].
+\]
+这称为\keyterm{迭代期望法则}（law of iterated expectations），也称塔式法则。
+例如，从全校学生中等概率抽取一人，令 $X$ 为其成绩，$Y$ 为其年级，$Z$ 为其班级：
+在固定年级内，先算各班平均分，再按班级人数加权，
+与直接计算这个年级的平均分相同。
+内层保留了外层已经知道的年级信息，不能随意改成只根据一个无关条件求平均。
+
+\section{常用性质速查与做题顺序}
+\label{sec:basic-expectation-summary}
+
+表 \ref{tab:basic-expectation-summary} 汇总本文最常用的公式。
+它们都在本文“随机变量只有有限个可能取值”的范围内使用。
+
+\begin{table}
+  \centering
+  \caption{数学期望常用性质}
+  \label{tab:basic-expectation-summary}
+  \begin{tabularx}{\textwidth}{lYY}
+    \toprule
+    性质 & 公式 & 使用提醒 \\
+    \midrule
+    常数 & $\mathbb E[c]=c$ & $c$ 是固定的数 \\
+    固定倍数与增减 & $\mathbb E[aX+b]=a\mathbb E[X]+b$ & $a,b$ 都是常数 \\
+    加法 & $\mathbb E[X+Y]=\mathbb E[X]+\mathbb E[Y]$ & 不要求独立 \\
+    大小关系 & $X\leq Y\Rightarrow\mathbb E[X]\leq\mathbb E[Y]$ & 每种可能结果下都要满足大小关系 \\
+    乘积 & $\mathbb E[XY]=\mathbb E[X]\mathbb E[Y]$ & 独立时可用，一般不能直接拆分 \\
+    零一变量 & $\mathbb E[I]=\mathbb P(I=1)$ & $I$ 只能取 $0,1$ \\
+    平方 & $\mathbb E[X^2]\geq(\mathbb E[X])^2$ & 两种运算顺序一般不相等 \\
+    分组平均 & $\mathbb E[\mathbb E[X\mid Y]]=\mathbb E[X]$ & 各组均值按组的概率加权 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+做题时，可以依次考虑：
+\begin{enumerate}
+  \item \textbf{先确定要求什么。} 是奖金、净收益、答对数，还是若干步的总得分？
+  \item \textbf{取值少时，直接列分布。} 检查概率之和是否为 $1$，再按定义计算。
+  \item \textbf{总量能拆成和时，优先用线性性。} 各部分即使相关，期望仍能相加。
+  \item \textbf{遇到乘积时，先检查独立性。} 遇到平方、商等运算，不直接把期望移进去。
+  \item \textbf{已知某个条件后更容易计算时，尝试分组。} 先求各组条件期望，再按正确概率加权。
+  \item \textbf{最后检查含义与范围。} 期望是否落在可能值的最小值与最大值之间？
+  是否误把平均收益解释成了每次都能得到的收益？
+\end{enumerate}
+
+\end{document}

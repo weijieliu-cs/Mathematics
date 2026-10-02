@@ -1,0 +1,1340 @@
+\documentclass[UTF8]{ctexart}
+
+% 支持从项目根目录、概率论与数理统计目录或当前文档目录读取共享样式。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{数学期望与条件期望}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{绪论：期望作为加权平均与积分}
+\label{sec:expectation-introduction}
+
+\keyterm{数学期望}（mathematical expectation）用概率作为权重，对随机变量的可能取值进行平均。
+它既描述总体的平均水平，也是处理随机和、误差、风险以及动态决策问题的基本算子。
+计算期望时，不仅要得到一个形式上的公式，还必须说明期望是否存在、是否有限，以及推导中的交换步骤是否合法。
+例如，有限和的期望可以逐项相加，却不能据此无条件地交换无限求和与期望。
+
+本文先以概率积分统一离散与连续情形，随后讨论代数性质、矩与不等式、极限及积分交换，
+再建立条件期望的定义、迭代法则与最小均方误差解释，最后给出随机和与贝尔曼方程的应用。
+主要结论均注明条件；测度论中的基础定理在使用处说明来源或证明依据。
+阅读计算公式只需基本概率与积分知识；条件期望的严格定义还需理解
+\keyterm{$\sigma$ 代数}（sigma-algebra）所表示的信息。
+
+全文区分\keyterm{总体期望}与\keyterm{样本平均值}：
+前者由概率分布决定，后者由有限次观测计算得到。
+“估计量的期望等于目标量”并不表示一次实际估计必然等于目标量。
+有关积分与条件期望的系统背景，可参阅文献 \cite{durrett-pte,sheffield-probability}。
+
+\section{定义、可积性与统一计算公式}
+\label{sec:expectation-definition}
+
+\subsection{概率空间与几乎处处的约定}
+
+固定概率空间 $(\Omega,\mathcal F,\mathbb P)$。
+$\Omega$ 是样本空间；$\mathcal F$ 是事件组成的 $\sigma$ 代数，即包含 $\Omega$、
+对补集和可数并封闭的集合族；$\mathbb P$ 是其上的概率测度。
+实值\keyterm{随机变量}（random variable）$X$ 是从 $\Omega$ 到 $\mathbb R$ 的可测函数，
+即对任意实数 $x$，事件 $\{X\leq x\}$ 属于 $\mathcal F$。
+大写 $X$ 表示随机变量，小写 $x$ 表示其取值。
+
+若事件发生的概率为 $1$，称其\keyterm{几乎必然}（almost surely，a.s.）发生。
+下文随机变量之间的等式与不等式，除说明外均按几乎必然理解。
+两个随机变量只在零概率集合上不同，不影响其期望。
+事件 $A$ 的\keyterm{指示随机变量}（indicator random variable）记为 $\mathbf1_A$：
+在 $A$ 上为 $1$，在 $A^c$ 上为 $0$。
+
+\subsection{非负期望、一般期望与有限期望}
+
+\begin{definition}[数学期望与可积性]
+\label{def:expectation-integrability}
+若 $X\geq0$，用\keyterm{勒贝格积分}（Lebesgue integral）定义
+\[
+  \mathbb E[X]=\int_\Omega X(\omega)\,\mathbb P(\mathrm d\omega)\in[0,+\infty].
+\]
+对一般实值随机变量，记正部与负部为
+$X^+=\max\{X,0\}$、$X^-=\max\{-X,0\}$，则
+$X=X^+-X^-$、$|X|=X^++X^-$。
+当 $\mathbb E[X^+]$ 与 $\mathbb E[X^-]$ 不同时为 $+\infty$ 时，定义扩展实数意义的期望
+\[
+  \mathbb E[X]=\mathbb E[X^+]-\mathbb E[X^-].
+\]
+若两者均为 $+\infty$，则 $\mathbb E[X]$ 未定义，不能把它解释为 $+\infty-\infty$。
+若 $\mathbb E[|X|]<\infty$，称 $X$ \keyterm{可积}（integrable），记为 $X\in L^1$；
+这等价于 $\mathbb E[X]$ 存在且为有限实数。
+\end{definition}
+
+本文凡涉及实数之间的相减、有限线性组合或条件期望，默认有关随机变量可积，
+并在乘积、非线性函数等操作处另列所需条件。
+处理单调极限时，也允许非负变量本身取扩展值 $+\infty$。
+非负随机变量的期望允许取 $+\infty$，这一约定在单调收敛与 Tonelli 定理中尤其重要。
+
+\begin{example}[对称不保证期望为零]
+\label{ex:expectation-cauchy}
+设 $X$ 服从标准\keyterm{柯西分布}（Cauchy distribution），密度为
+$f_X(x)=1/\{\pi(1+x^2)\}$。
+由于
+\[
+  \mathbb E[X^+]=\int_0^\infty\frac{x}{\pi(1+x^2)}\,\mathrm dx=+\infty,
+  \qquad \mathbb E[X^-]=+\infty,
+\]
+其期望未定义。尽管每个对称截断积分
+$\int_{-M}^{M}x f_X(x)\,\mathrm dx=0$，这个\keyterm{柯西主值}（Cauchy principal value）
+也不能代替数学期望。若另已知 $X\in L^1$ 且 $X$ 与 $-X$ 同分布，才可推出 $\mathbb E[X]=0$。
+\end{example}
+
+\subsection{按分布求积分与随机变量函数的期望}
+
+实轴上由开集生成的 $\sigma$ 代数记为 $\mathcal B(\mathbb R)$，
+其元素称为\keyterm{博雷尔集}（Borel set）。
+记 $X$ 的分布为 $\mu_X$，即对 $B\in\mathcal B(\mathbb R)$，
+$\mu_X(B)=\mathbb P(X\in B)$。
+
+\begin{theorem}[分布积分公式]
+\label{thm:expectation-lotus}
+设 $g:\mathbb R\to\mathbb R$ 为 Borel 可测函数。
+若 $g\geq0$，或 $\mathbb E[|g(X)|]<\infty$，则
+\begin{equation}
+  \mathbb E[g(X)]=\int_{\mathbb R}g(x)\,\mu_X(\mathrm dx).
+  \label{eq:expectation-lotus}
+\end{equation}
+特别地，离散情形及存在概率密度的情形分别为
+\[
+  \mathbb E[g(X)]=\sum_x g(x)\mathbb P(X=x),
+  \qquad
+  \mathbb E[g(X)]=\int_{\mathbb R}g(x)f_X(x)\,\mathrm dx.
+\]
+离散求和遍历支撑集，$f_X$ 表示 $X$ 的概率密度。
+\end{theorem}
+
+\begin{proof}
+当 $g=\mathbf1_B$ 时，两端均为 $\mathbb P(X\in B)$。
+有限线性组合给出非负简单函数的情形。
+将非负可测函数由非负简单函数单调逼近，并使用第 \ref{sec:expectation-limits} 节的单调收敛定理，
+得到非负情形；可积情形再分别处理 $g^+$ 与 $g^-$。
+\end{proof}
+
+式 \eqref{eq:expectation-lotus} 常称为\keyterm{无意识统计学家定律}
+（law of the unconscious statistician，LOTUS）。
+它说明计算 $g(X)$ 的期望不必先求出 $g(X)$ 的分布。
+对随机向量 $(X,Y)$ 也有相同结论，只需使用联合分布；
+因此，两个变量各自的边缘分布通常不足以确定 $\mathbb E[g(X,Y)]$。
+
+\section{代数、次序与独立性}
+\label{sec:expectation-algebra}
+
+\subsection{常数、线性性与指示变量}
+
+\begin{proposition}[有限线性性]
+\label{prop:expectation-linearity}
+设 $X_1,\ldots,X_n\in L^1$，$a_1,\ldots,a_n,b\in\mathbb R$，则
+\begin{equation}
+  \mathbb E\!\left[b+\sum_{i=1}^n a_iX_i\right]
+  =b+\sum_{i=1}^n a_i\mathbb E[X_i].
+  \label{eq:expectation-linearity}
+\end{equation}
+该结论不要求随机变量独立，也不要求同分布。
+\end{proposition}
+
+\begin{proof}
+由 $\bigl|b+\sum_i a_iX_i\bigr|\leq |b|+\sum_i|a_i||X_i|$，左侧随机变量可积。
+勒贝格积分的有限线性性给出等式；其中 $\mathbb E[b]=b\mathbb P(\Omega)=b$。
+\end{proof}
+
+对任意事件 $A$，有
+\begin{equation}
+  \mathbb E[\mathbf1_A]=\mathbb P(A).
+  \label{eq:expectation-indicator}
+\end{equation}
+故事件发生次数 $N=\sum_{i=1}^n\mathbf1_{A_i}$ 满足
+$\mathbb E[N]=\sum_{i=1}^n\mathbb P(A_i)$，即使事件彼此相关也成立。
+这一性质常用于把“计数的期望”转化为“若干事件概率之和”。
+
+\subsection{单调性、严格性与连续性}
+
+\begin{proposition}[保序与绝对值控制]
+\label{prop:expectation-order}
+对 $X,Y\in L^1$，成立以下性质：
+\begin{enumerate}
+  \item 若 $X\leq Y$，则 $\mathbb E[X]\leq\mathbb E[Y]$。
+  \item 若 $X\geq0$，则 $\mathbb E[X]=0$ 当且仅当 $X=0$ 几乎必然。
+  \item 若 $X\leq Y$ 且 $\mathbb P(X<Y)>0$，则 $\mathbb E[X]<\mathbb E[Y]$。
+  \item $|\mathbb E[X]|\leq\mathbb E[|X|]$，且
+  \begin{equation}
+    |\mathbb E[X]-\mathbb E[Y]|\leq\mathbb E[|X-Y|].
+    \label{eq:expectation-l1-continuity}
+  \end{equation}
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+非负函数积分非负，对 $Y-X$ 使用这一事实得到第一条。
+若 $X\geq0$ 且 $\mathbb P(X>0)>0$，由
+$\{X>0\}=\bigcup_{m\geq1}\{X\geq1/m\}$，
+存在 $m$ 使 $\mathbb P(X\geq1/m)>0$，于是
+$\mathbb E[X]\geq m^{-1}\mathbb P(X\geq1/m)>0$。
+这证明第二条，并对 $Y-X$ 给出第三条。
+最后从 $-|X|\leq X\leq|X|$ 得到绝对值不等式，再将 $X$ 换为 $X-Y$。
+\end{proof}
+
+如果 $a\leq X\leq b$，其中 $a,b$ 为有限常数，则 $a\leq\mathbb E[X]\leq b$。
+但期望未必是随机变量能够实际取到的值：
+例如 $X$ 等概率取 $0$ 与 $1$，则 $\mathbb E[X]=1/2$。
+若 $\mathbb E|X_n-X|\to0$，式 \eqref{eq:expectation-l1-continuity} 立即推出
+$\mathbb E[X_n]\to\mathbb E[X]$；这就是期望关于 $L^1$ 收敛的连续性。
+
+\subsection{乘积期望与独立性的作用}
+
+\begin{proposition}[独立变量的乘积]
+\label{prop:expectation-independent-product}
+若 $X,Y$ 独立且均可积，则 $XY$ 可积，并且
+\begin{equation}
+  \mathbb E[XY]=\mathbb E[X]\mathbb E[Y].
+  \label{eq:expectation-product}
+\end{equation}
+更一般地，若 $g(X)$ 与 $h(Y)$ 可积，则
+$\mathbb E[g(X)h(Y)]=\mathbb E[g(X)]\mathbb E[h(Y)]$。
+\end{proposition}
+
+\begin{proof}
+独立性使联合分布等于边缘分布的乘积。
+先由 Tonelli 定理计算
+$\mathbb E|XY|=\int|x||y|\,\mu_X(\mathrm dx)\mu_Y(\mathrm dy)
+=\mathbb E|X|\mathbb E|Y|<\infty$，
+再由 Fubini 定理分离有符号积分。对 $g(X),h(Y)$ 重复此过程。
+这两个积分定理的条件见第 \ref{sec:expectation-exchange} 节。
+\end{proof}
+
+若无独立性，即使 $X,Y$ 各自可积，也不保证 $XY$ 可积。
+例如 $U$ 在 $(0,1)$ 上均匀分布，令 $X=Y=U^{-2/3}$，
+则 $\mathbb E[X]=\mathbb E[Y]=3$，而 $\mathbb E[XY]=+\infty$。
+即使乘积可积，式 \eqref{eq:expectation-product} 也可能不成立。
+例如 $X=Y$ 且 $X$ 等概率取 $-1,1$，则 $\mathbb E[XY]=1$，而
+$\mathbb E[X]\mathbb E[Y]=0$。
+
+\section{矩、方差与协方差}
+\label{sec:expectation-moments}
+
+\subsection{二阶矩与最佳常数预测}
+
+对正整数 $k$，在 $\mathbb E|X|^k<\infty$ 时，称 $\mathbb E[X^k]$ 为
+$k$ 阶\keyterm{原点矩}（raw moment），
+$\mathbb E[(X-\mathbb E[X])^k]$ 为 $k$ 阶\keyterm{中心矩}（central moment）。
+若 $\mathbb E[X^2]<\infty$，称 $X$ \keyterm{平方可积}（square-integrable），记为 $X\in L^2$。
+平方可积蕴含可积，因为 $|x|\leq1+x^2$。
+
+\begin{proposition}[方差分解]
+\label{prop:expectation-variance}
+对 $X\in L^2$，记 $\mu=\mathbb E[X]$，其\keyterm{方差}（variance）为
+\begin{equation}
+  \operatorname{Var}(X)
+  =\mathbb E[(X-\mu)^2]
+  =\mathbb E[X^2]-\mu^2.
+  \label{eq:expectation-variance}
+\end{equation}
+对任意常数 $c$，
+\begin{equation}
+  \mathbb E[(X-c)^2]
+  =\operatorname{Var}(X)+(\mu-c)^2.
+  \label{eq:expectation-best-constant}
+\end{equation}
+因此 $\mu$ 是使均方误差最小的唯一常数，且
+$\operatorname{Var}(X)=0$ 当且仅当 $X=\mu$ 几乎必然。
+\end{proposition}
+
+\begin{proof}
+将 $X-c=(X-\mu)+(\mu-c)$ 平方并取期望。
+交叉项为 $2(\mu-c)\mathbb E[X-\mu]=0$，得到第二个等式；
+令 $c=0$ 得到第一个。最优性来自 $(\mu-c)^2\geq0$，
+零方差的结论由命题 \ref{prop:expectation-order} 的非负零期望性质得到。
+\end{proof}
+
+\subsection{协方差与随机和的二阶性质}
+
+对 $X,Y\in L^2$，有 $|XY|\leq(X^2+Y^2)/2$，所以乘积可积。
+定义\keyterm{协方差}（covariance）
+\[
+  \operatorname{Cov}(X,Y)
+  =\mathbb E[(X-\mathbb E[X])(Y-\mathbb E[Y])]
+  =\mathbb E[XY]-\mathbb E[X]\mathbb E[Y].
+\]
+协方差对两个变量分别线性。因此，对 $X_1,\ldots,X_n\in L^2$，
+\begin{equation}
+  \operatorname{Var}\!\left(\sum_{i=1}^n a_iX_i\right)
+  =\sum_{i=1}^n a_i^2\operatorname{Var}(X_i)
+   +2\sum_{1\leq i<j\leq n}a_ia_j\operatorname{Cov}(X_i,X_j).
+  \label{eq:expectation-variance-sum}
+\end{equation}
+证明只需展开中心化后的平方并使用有限线性性。
+独立性使协方差为零，但方差可加只需要两两\keyterm{不相关}（uncorrelated）。
+
+\begin{example}[不相关不等于独立]
+\label{ex:expectation-dependent-uncorrelated}
+令 $X$ 在 $\{-1,0,1\}$ 上等概率取值，$Y=X^2$。
+则 $\mathbb E[X]=\mathbb E[X^3]=0$，从而 $\operatorname{Cov}(X,Y)=0$。
+但是 $\mathbb P(Y=0\mid X=0)=1$，而 $\mathbb P(Y=0)=1/3$，
+故 $X,Y$ 不独立。乘积期望恰好分解，并不是独立性的充分条件。
+\end{example}
+
+若 $X_1,\ldots,X_n$ 是具有共同均值 $\mu$、方差 $\sigma^2$ 的两两不相关变量，
+则样本平均值 $\overline X_n=n^{-1}\sum_iX_i$ 满足
+$\mathbb E[\overline X_n]=\mu$、
+$\operatorname{Var}(\overline X_n)=\sigma^2/n$。
+其中均值公式不需要不相关条件；方差公式则依赖该条件。
+
+对每个分量平方可积的随机向量 $\mathbf X\in\mathbb R^d$，
+均值向量 $\boldsymbol\mu=\mathbb E[\mathbf X]$ 按分量定义，
+协方差矩阵为 $\Sigma=\mathbb E[(\mathbf X-\boldsymbol\mu)(\mathbf X-\boldsymbol\mu)^{\mathsf T}]$。
+若 $A$ 为常数 $m\times d$ 矩阵，$\mathbf b\in\mathbb R^m$，则
+\[
+  \mathbb E[A\mathbf X+\mathbf b]=A\boldsymbol\mu+\mathbf b,
+  \qquad
+  \operatorname{Cov}(A\mathbf X+\mathbf b)=A\Sigma A^{\mathsf T}.
+\]
+对任意 $\mathbf v\in\mathbb R^d$，
+$\mathbf v^{\mathsf T}\Sigma\mathbf v=\operatorname{Var}(\mathbf v^{\mathsf T}\mathbf X)\geq0$，
+故协方差矩阵必为半正定矩阵。
+
+\section{由期望得到的不等式}
+\label{sec:expectation-inequalities}
+
+\subsection{马尔可夫与切比雪夫不等式}
+
+\begin{proposition}[尾概率控制]
+\label{prop:expectation-tail-bounds}
+若 $X\geq0$ 且 $a>0$，则\keyterm{马尔可夫不等式}（Markov's inequality）给出
+\[
+  \mathbb P(X\geq a)\leq\frac{\mathbb E[X]}{a}.
+\]
+若 $X\in L^2$、$\mu=\mathbb E[X]$，则对任意 $\varepsilon>0$，
+\[
+  \mathbb P(|X-\mu|\geq\varepsilon)
+  \leq\frac{\operatorname{Var}(X)}{\varepsilon^2},
+\]
+称为\keyterm{切比雪夫不等式}（Chebyshev's inequality）。
+\end{proposition}
+
+\begin{proof}
+第一式由 $a\mathbf1_{\{X\geq a\}}\leq X$ 取期望得到。
+对非负变量 $(X-\mu)^2$ 和阈值 $\varepsilon^2$ 使用第一式，得到第二式。
+\end{proof}
+
+更一般地，若 $p>0$ 且 $\mathbb E|X|^p<\infty$，则
+$\mathbb P(|X|\geq a)\leq\mathbb E|X|^p/a^p$。
+这些不等式把矩信息转化为尾概率上界，但通常不能唯一确定尾概率。
+
+\subsection{凸性与詹森不等式}
+
+\begin{theorem}[詹森不等式]
+\label{thm:expectation-jensen}
+设 $X\in L^1$，$\varphi:\mathbb R\to\mathbb R$ 是有限值凸函数，
+且 $\varphi(X)\in L^1$，则
+\begin{equation}
+  \varphi(\mathbb E[X])\leq\mathbb E[\varphi(X)].
+  \label{eq:expectation-jensen}
+\end{equation}
+若 $\varphi$ 严格凸，则等号成立当且仅当 $X$ 几乎必然为常数。
+若 $\varphi$ 为凹函数，在相同可积条件下不等号反向。
+\end{theorem}
+
+\begin{proof}
+令 $\mu=\mathbb E[X]$。实轴上的有限值凸函数在 $\mu$ 处存在一条支持直线，
+即存在 $c\in\mathbb R$ 使
+$\varphi(x)\geq\varphi(\mu)+c(x-\mu)$ 对所有 $x$ 成立。
+代入 $X$ 并取期望，线性项的期望为零，得到不等式。
+严格凸时，支持直线只能在 $\mu$ 处接触函数图像。
+因而等号等价于非负差
+$\varphi(X)-\varphi(\mu)-c(X-\mu)$ 的期望为零，
+再由命题 \ref{prop:expectation-order} 得到 $X=\mu$ 几乎必然。
+凹函数的结论对 $-\varphi$ 应用凸情形即可。
+\end{proof}
+
+上述结果称为\keyterm{詹森不等式}（Jensen's inequality）。
+取 $\varphi(x)=x^2$ 可得 $(\mathbb E[X])^2\leq\mathbb E[X^2]$。
+若 $X>0$、$X$ 与 $\log X$ 可积，则凹函数 $\log$ 给出
+$\mathbb E[\log X]\leq\log\mathbb E[X]$；
+这里使用的是同一定理在开区间 $(0,\infty)$ 上的版本，支持直线的证明仍适用。
+因此，非线性函数与期望一般不能直接交换。
+
+\subsection{乘积控制与 \texorpdfstring{$L^p$}{Lp} 范数}
+
+对 $1\leq p<\infty$，定义
+$L^p=\{X:\mathbb E|X|^p<\infty\}$ 及
+$\|X\|_p=(\mathbb E|X|^p)^{1/p}$；
+$L^\infty$ 是本质有界的随机变量集合，
+$\|X\|_\infty=\inf\{c\geq0:\mathbb P(|X|\leq c)=1\}$。
+这些空间将几乎必然相等的随机变量视为同一元素。
+
+\begin{theorem}[Hölder 与 Cauchy--Schwarz 不等式]
+\label{thm:expectation-holder}
+若 $1<p,q<\infty$ 且 $p^{-1}+q^{-1}=1$，$X\in L^p$、$Y\in L^q$，则
+\begin{equation}
+  \mathbb E|XY|\leq\|X\|_p\|Y\|_q.
+  \label{eq:expectation-holder}
+\end{equation}
+这称为\keyterm{赫尔德不等式}（Hölder's inequality）。
+当 $p=q=2$ 时得到\keyterm{柯西--施瓦茨不等式}（Cauchy--Schwarz inequality）
+\[
+  |\mathbb E[XY]|
+  \leq\mathbb E|XY|
+  \leq\sqrt{\mathbb E[X^2]\mathbb E[Y^2]}.
+\]
+端点情形为 $\mathbb E|XY|\leq\|X\|_1\|Y\|_\infty$。
+\end{theorem}
+
+\begin{proof}
+若任一范数为零，相关变量几乎必然为零，结论成立。
+否则令 $U=|X|/\|X\|_p$、$V=|Y|/\|Y\|_q$。
+由 Young 不等式 $uv\leq u^p/p+v^q/q$，取期望得到
+$\mathbb E[UV]\leq1/p+1/q=1$。
+Young 不等式可由对固定 $v\geq0$ 最大化 $uv-u^p/p$ 得到：
+最大值在 $u=v^{q-1}$ 处取到，值为 $v^q/q$。
+端点情形直接由 $|XY|\leq|X|\|Y\|_\infty$ 得到。
+\end{proof}
+
+\begin{proposition}[Minkowski 不等式与矩的比较]
+\label{prop:expectation-lp}
+若 $1\leq p\leq\infty$ 且 $X,Y\in L^p$，则
+\[
+  \|X+Y\|_p\leq\|X\|_p+\|Y\|_p.
+\]
+这称为\keyterm{闵可夫斯基不等式}（Minkowski's inequality）。
+在概率空间上，若 $1\leq p\leq q\leq\infty$ 且 $X\in L^q$，则
+$X\in L^p$ 且 $\|X\|_p\leq\|X\|_q$。
+\end{proposition}
+
+\begin{proof}
+$p=1,\infty$ 时三角不等式直接给出第一项结论。
+当 $1<p<\infty$ 时，先用
+$|X+Y|^p\leq2^{p-1}(|X|^p+|Y|^p)$ 保证其可积。
+由 Hölder 不等式，
+\[
+  \|X+Y\|_p^p
+  \leq\mathbb E[(|X|+|Y|)|X+Y|^{p-1}]
+  \leq(\|X\|_p+\|Y\|_p)\|X+Y\|_p^{p-1}.
+\]
+若左侧范数为零，结论成立；否则约去公共因子。
+当 $p<q<\infty$ 时，对 $|X|^p$ 与 $1$ 使用指数 $q/p$ 及其共轭指数的 Hölder 不等式，
+得到 $\mathbb E|X|^p\leq(\mathbb E|X|^q)^{p/q}$。
+$p=q$ 与 $q=\infty$ 的情形分别由恒等式和本质上界得到。
+\end{proof}
+
+\section{极限、期望与一致可积性}
+\label{sec:expectation-limits}
+
+\subsection{三种基本极限定理}
+
+\begin{theorem}[单调收敛定理]
+\label{thm:expectation-mct}
+若 $0\leq X_n\uparrow X$ 几乎必然，则
+\[
+  \mathbb E[X_n]\uparrow\mathbb E[X],
+\]
+两端允许为 $+\infty$。此为\keyterm{单调收敛定理}（monotone convergence theorem）。
+\end{theorem}
+
+\begin{proof}
+单调性给出 $\lim_n\mathbb E[X_n]\leq\mathbb E[X]$。
+对任意非负简单函数 $s\leq X$ 和 $0<c<1$，记 $A_n=\{X_n\geq cs\}$。
+除零概率集合外，$A_n$ 递增至 $\Omega$，因为在 $s>0$ 处有 $X\geq s>cs$。
+于是
+$\lim_n\mathbb E[X_n]\geq c\lim_n\mathbb E[s\mathbf1_{A_n}]=c\mathbb E[s]$；
+最后一个等号由简单函数的有限和表示及概率的下连续性得到。
+先令 $c\uparrow1$，再对所有 $s\leq X$ 取上确界，利用非负积分的定义完成证明。
+\end{proof}
+
+\begin{theorem}[Fatou 引理]
+\label{thm:expectation-fatou}
+若 $X_n\geq0$，则
+\begin{equation}
+  \mathbb E[\liminf_{n\to\infty}X_n]
+  \leq\liminf_{n\to\infty}\mathbb E[X_n].
+  \label{eq:expectation-fatou}
+\end{equation}
+这称为\keyterm{法图引理}（Fatou's lemma），两端允许为 $+\infty$。
+\end{theorem}
+
+\begin{proof}
+令 $Y_n=\inf_{k\geq n}X_k$，则 $0\leq Y_n\uparrow\liminf_nX_n$。
+由单调收敛以及
+$\mathbb E[Y_n]\leq\inf_{k\geq n}\mathbb E[X_k]$，取极限即可。
+\end{proof}
+
+\begin{theorem}[控制收敛定理]
+\label{thm:expectation-dct}
+若 $X_n\to X$ 几乎必然，并存在非负 $H\in L^1$ 使对所有 $n$ 有 $|X_n|\leq H$，
+则 $X\in L^1$，且
+\[
+  \mathbb E|X_n-X|\longrightarrow0,
+  \qquad
+  \mathbb E[X_n]\longrightarrow\mathbb E[X].
+\]
+这称为\keyterm{控制收敛定理}（dominated convergence theorem）。
+\end{theorem}
+
+\begin{proof}
+由 $|X|\leq H$ 得到可积性。
+分别对非负变量 $H+X_n$ 与 $H-X_n$ 使用 Fatou 引理，
+可得 $\mathbb E[X]\leq\liminf_n\mathbb E[X_n]$
+及 $\limsup_n\mathbb E[X_n]\leq\mathbb E[X]$，因此期望收敛。
+再对 $|X_n-X|$ 使用刚证明的结论：
+它几乎必然趋于零且被 $2H$ 控制，故其期望趋于零。
+\end{proof}
+
+三条定理分别使用非负单调性、非负性和共同可积上界；
+不能把“每个 $X_n$ 都可积”替代这些条件。
+若 $X_n\downarrow X$ 且存在可积的共同上、下界，也可对上界减去 $X_n$ 使用单调收敛。
+特别地，$0\leq X_n\downarrow X$ 且 $\mathbb E[X_1]<\infty$ 时，期望递减收敛。
+
+\begin{example}[几乎必然收敛仍可能丢失期望]
+\label{ex:expectation-spike}
+设 $U$ 在 $(0,1)$ 上均匀分布，令
+$X_n=n\mathbf1_{\{U\leq1/n\}}$。
+对每个 $U>0$，当 $n$ 足够大时 $X_n=0$，故 $X_n\to0$ 几乎必然；
+但 $\mathbb E[X_n]=n(1/n)=1$。
+因此几乎必然收敛、依概率收敛乃至 $\sup_n\mathbb E|X_n|<\infty$，
+都不足以单独保证期望收敛。稀少事件上的大取值在极限中消失，却始终贡献固定的期望。
+\end{example}
+
+\subsection{一致可积与 \texorpdfstring{$L^1$}{L1} 收敛}
+
+若对任意 $\varepsilon>0$，有 $\mathbb P(|X_n-X|>\varepsilon)\to0$，
+称 $X_n$ \keyterm{依概率收敛}（convergence in probability）到 $X$，记为 $X_n\xrightarrow{\mathbb P}X$。
+若 $\mathbb E|X_n-X|\to0$，称其 $L^1$ 收敛，记为 $X_n\xrightarrow{L^1}X$。
+由马尔可夫不等式，$L^1$ 收敛蕴含依概率收敛；反向需要附加条件。
+
+\begin{definition}[一致可积]
+\label{def:expectation-ui}
+一族可积随机变量 $\{X_n:n\geq1\}$ 称为\keyterm{一致可积}
+（uniformly integrable），如果
+\[
+  \lim_{K\to\infty}\sup_n
+  \mathbb E[|X_n|\mathbf1_{\{|X_n|>K\}}]=0.
+\]
+它要求所有随机变量的大值部分对期望的贡献能够被同一个截断阈值一致控制。
+\end{definition}
+
+若存在共同可积控制变量 $H$，则一致可积；若存在 $\delta>0$ 使
+$\sup_n\mathbb E|X_n|^{1+\delta}<\infty$，则由
+$|X_n|\mathbf1_{\{|X_n|>K\}}\leq K^{-\delta}|X_n|^{1+\delta}$，
+也可得到一致可积。例 \ref{ex:expectation-spike} 则不满足它：
+任给 $K$，选 $n>K$ 后，其大值部分的期望仍为 $1$。
+
+\begin{theorem}[一致可积的收敛判据]
+\label{thm:expectation-ui}
+设 $X_n\in L^1$ 且 $X_n\xrightarrow{\mathbb P}X$，其中 $X$ 为实值随机变量。
+则 $\{X_n\}$ 一致可积，当且仅当 $X\in L^1$ 且 $X_n\xrightarrow{L^1}X$。
+\end{theorem}
+
+\begin{proof}
+先设一致可积。它推出 $\sup_n\mathbb E|X_n|<\infty$：
+选一个使尾期望一致小于 $1$ 的 $K$，则 $\mathbb E|X_n|\leq K+1$。
+依概率收敛可选取一个几乎必然收敛的子列，再用 Fatou 引理得到 $X\in L^1$。
+这里子列的构造是逐次选 $n_k$ 使
+$\mathbb P(|X_{n_k}-X|>2^{-k})\leq2^{-k}$；
+记这些事件为 $A_k$，则
+$\mathbb P(\bigcup_{k\geq m}A_k)\leq\sum_{k\geq m}2^{-k}\to0$，
+所以几乎必然只有有限个 $A_k$ 发生，得到子列的几乎必然收敛。
+
+令 $T_K(x)=\max\{-K,\min\{x,K\}\}$，有
+\[
+  \mathbb E|X_n-X|
+  \leq\mathbb E[|X_n|\mathbf1_{\{|X_n|>K\}}]
+  +\mathbb E|T_K(X_n)-T_K(X)|
+  +\mathbb E[|X|\mathbf1_{\{|X|>K\}}].
+\]
+先取 $K$ 足够大，使第一项对 $n$ 一致小、第三项小。
+对固定 $K$，中间差值依概率趋于零且不超过 $2K$；
+其期望不超过 $\varepsilon+2K\mathbb P(|T_K(X_n)-T_K(X)|>\varepsilon)$，
+故先令 $n\to\infty$ 再令 $\varepsilon\downarrow0$，得到充分性。
+
+反之，若 $X_n\xrightarrow{L^1}X$，由
+\[
+  \mathbb E[|X_n|\mathbf1_{\{|X_n|>K\}}]
+  \leq2\mathbb E|X_n-X|
+    +2\mathbb E[|X|\mathbf1_{\{|X|>K/2\}}]
+\]
+可一致控制所有充分大的 $n$；有限个剩余变量的尾期望分别趋于零。
+因此整个序列一致可积。
+\end{proof}
+
+上述判据系统说明了“概率收敛之外，还缺少什么”，相关理论见文献 \cite[第 4.6 节]{durrett-pte}。
+它保证的是 $L^1$ 收敛，从而保证期望收敛；不能把它误读为
+“只有一致可积时，有符号期望才可能碰巧收敛”。
+
+\section{求和、积分与微分的交换}
+\label{sec:expectation-exchange}
+
+\subsection{无限级数与随机积分}
+
+\begin{proposition}[无限和的两种充分条件]
+\label{prop:expectation-series}
+若 $X_n\geq0$，则
+\begin{equation}
+  \mathbb E\!\left[\sum_{n=1}^\infty X_n\right]
+  =\sum_{n=1}^\infty\mathbb E[X_n],
+  \label{eq:expectation-positive-series}
+\end{equation}
+等式允许两侧均为 $+\infty$。
+若 $X_n$ 可正可负，但 $\sum_n\mathbb E|X_n|<\infty$，
+则 $\sum_nX_n$ 几乎必然绝对收敛、在 $L^1$ 中收敛，并且仍有逐项取期望的公式，
+此时期望级数绝对收敛且为有限值。
+\end{proposition}
+
+\begin{proof}
+对非负部分和应用单调收敛定理得到第一式。
+对 $|X_n|$ 使用第一式，绝对可积条件给出
+$\mathbb E[\sum_n|X_n|]<\infty$，从而 $\sum_n|X_n|<\infty$ 几乎必然。
+又有
+$\mathbb E|\sum_{n>N}X_n|\leq\sum_{n>N}\mathbb E|X_n|\to0$，
+得到 $L^1$ 收敛，再由式 \eqref{eq:expectation-l1-continuity} 完成证明。
+\end{proof}
+
+\begin{theorem}[Tonelli 与 Fubini 的概率形式]
+\label{thm:expectation-fubini}
+设 $(T,\mathcal T,\nu)$ 为 $\sigma$ 有限测度空间，即 $T$ 可由可数个有限测度集合覆盖；
+$f:T\times\Omega\to\mathbb R$ 关于乘积 $\sigma$ 代数 $\mathcal T\otimes\mathcal F$ 可测。
+若 $f\geq0$，则\keyterm{托内利定理}（Tonelli's theorem）允许
+\begin{equation}
+  \mathbb E\!\left[\int_T f(t,\omega)\,\nu(\mathrm dt)\right]
+  =\int_T\mathbb E[f(t,\cdot)]\,\nu(\mathrm dt),
+  \label{eq:expectation-fubini}
+\end{equation}
+两侧允许为 $+\infty$。
+若 $f$ 有正有负，但
+$\int_T\mathbb E|f(t,\cdot)|\,\nu(\mathrm dt)<\infty$，
+则\keyterm{富比尼定理}（Fubini's theorem）保证式 \eqref{eq:expectation-fubini} 成立，
+且内层积分在几乎所有对应取值处存在并可积。
+\end{theorem}
+
+这两个结果是乘积测度的基础定理，见文献 \cite[第 1.7 节]{durrett-pte}；
+证明思路是以矩形指示函数为起点，通过单调类方法、简单函数逼近和单调收敛扩展到非负函数，
+再以正负部分解处理绝对可积函数。
+命题 \ref{prop:expectation-series} 对应于 $T$ 为正整数集合、$\nu$ 为计数测度的情形。
+一般有符号函数若无绝对可积性，不能仅凭某个迭代积分存在就任意交换积分次序。
+
+\subsection{尾积分公式}
+
+\begin{proposition}[由尾概率计算期望与矩]
+\label{prop:expectation-tail-integral}
+若 $X\geq0$，则对任意 $p>0$，
+\begin{equation}
+  \mathbb E[X^p]
+  =p\int_0^\infty t^{p-1}\mathbb P(X>t)\,\mathrm dt.
+  \label{eq:expectation-tail-integral}
+\end{equation}
+若 $N$ 为非负整数值随机变量，则
+\[
+  \mathbb E[N]=\sum_{k=1}^\infty\mathbb P(N\geq k).
+\]
+这些期望允许为 $+\infty$。若一般实值 $X\in L^1$，则
+\[
+  \mathbb E[X]
+  =\int_0^\infty\mathbb P(X>t)\,\mathrm dt
+   -\int_0^\infty\mathbb P(X<-t)\,\mathrm dt,
+\]
+且右侧两个积分都有限。
+\end{proposition}
+
+\begin{proof}
+逐点写出
+$X^p=\int_0^\infty p t^{p-1}\mathbf1_{\{X>t\}}\,\mathrm dt$，
+由非负性使用 Tonelli 定理。
+整数情形使用 $N=\sum_{k\geq1}\mathbf1_{\{N\geq k\}}$；
+有符号情形分别处理 $X^+$ 与 $X^-$。
+\end{proof}
+
+\subsection{换测度与加权期望}
+
+设 $\mathbb P,\mathbb Q$ 是同一可测空间上的两个概率测度。
+若 $\mathbb P(A)=0$ 总能推出 $\mathbb Q(A)=0$，称 $\mathbb Q$ 关于 $\mathbb P$
+\keyterm{绝对连续}（absolutely continuous），记为 $\mathbb Q\ll\mathbb P$。
+由拉东--尼科迪姆定理（Radon--Nikodym theorem），存在非负可测函数
+$L=\mathrm d\mathbb Q/\mathrm d\mathbb P$，
+使 $\mathbb Q(A)=\mathbb E_{\mathbb P}[L\mathbf1_A]$，并有 $\mathbb E_{\mathbb P}[L]=1$。
+这里期望的下标明确表示所用的概率测度。
+
+若 $X\geq0$，或 $\mathbb E_{\mathbb Q}|X|<\infty$，则
+\begin{equation}
+  \mathbb E_{\mathbb Q}[X]
+  =\mathbb E_{\mathbb P}[LX].
+  \label{eq:expectation-change-measure}
+\end{equation}
+这由指示函数情形出发，经简单函数逼近、单调收敛及正负部分解得到。
+它是\keyterm{重要性采样}（importance sampling）的理论基础：
+在 $\mathbb P$ 下采样时，使用权重 $L$ 可表达 $\mathbb Q$ 下的目标期望。
+若两者关于同一基准测度的密度分别为 $p,q$，则 $L=q/p$ 在 $p>0$ 处成立；
+绝对连续性要求目标分布不能把正概率放在采样分布的零概率区域。
+期望可积不保证估计量的方差有限；后者还需 $\mathbb E_{\mathbb P}[(LX)^2]<\infty$。
+
+\subsection{参数微分与期望}
+
+\begin{proposition}[期望下微分的一个充分条件]
+\label{prop:expectation-differentiation}
+设 $I$ 为包含 $\theta_0$ 的开区间，$f:I\times\Omega\to\mathbb R$ 联合可测，
+且 $f(\theta_0,\cdot)\in L^1$。
+假设在同一个概率为 $1$ 的集合上，$f(\cdot,\omega)$ 在 $I$ 内处处可微，
+并存在非负 $H\in L^1$ 使
+$|\partial_\theta f(\theta,\omega)|\leq H(\omega)$ 对所有 $\theta\in I$ 成立。
+则 $F(\theta)=\mathbb E[f(\theta,\cdot)]$ 在 $\theta_0$ 可微，且
+\[
+  F'(\theta_0)
+  =\mathbb E[\partial_\theta f(\theta_0,\cdot)].
+\]
+\end{proposition}
+
+\begin{proof}
+中值定理给出
+$|f(\theta,\omega)-f(\theta_0,\omega)|\leq|\theta-\theta_0|H(\omega)$，
+因此邻域内的期望均有限。
+差商绝对值也由 $H$ 控制，且几乎必然趋于 $\partial_\theta f(\theta_0,\omega)$，
+故可对差商使用控制收敛定理。
+\end{proof}
+
+这里概率测度 $\mathbb P$ 固定，参数只出现在被积函数中。
+若分布本身也依赖参数，则还需处理测度或密度的变化，
+不能只对被积函数求导而忽略分布的导数。
+
+\section{条件期望的定义与存在性}
+\label{sec:conditional-definition}
+
+\subsection{给定事件与给定随机变量}
+
+若 $A\in\mathcal F$ 且 $\mathbb P(A)>0$，对 $X\in L^1$ 定义
+\[
+  \mathbb E[X\mid A]
+  =\frac{\mathbb E[X\mathbf1_A]}{\mathbb P(A)}.
+\]
+这是一个数。若 $Y$ 离散，对每个 $\mathbb P(Y=y)>0$ 的 $y$，令
+$m(y)=\mathbb E[X\mid Y=y]$，则 $m(Y)$ 随 $Y$ 的结果而变化，是随机变量。
+所以 $\mathbb E[X\mid Y=y]$ 与 $\mathbb E[X\mid Y]$ 属于不同类型的对象。
+
+连续变量的单点事件常满足 $\mathbb P(Y=y)=0$，
+此时不能直接使用上面的概率比值。
+条件期望必须通过信息所对应的 $\sigma$ 代数或条件分布定义；
+在零概率集合上，其具体取值一般不由原分布唯一确定。
+
+\subsection{给定信息的严格定义}
+
+设 $\mathcal G\subseteq\mathcal F$ 是子 $\sigma$ 代数，表示当前可用的信息。
+例如 $\sigma(Y)$ 是使 $Y$ 可测的最小 $\sigma$ 代数，代表观测到 $Y$ 所获得的信息；
+$\sigma(Y,Z)$ 包含同时观测 $Y,Z$ 的信息。
+
+\begin{definition}[条件期望]
+\label{def:conditional-expectation}
+设 $X\in L^1$。若随机变量 $M$ 满足：
+\begin{enumerate}
+  \item $M$ 关于 $\mathcal G$ 可测，且 $M\in L^1$；
+  \item 对每个 $A\in\mathcal G$，
+  \begin{equation}
+    \mathbb E[M\mathbf1_A]=\mathbb E[X\mathbf1_A],
+    \label{eq:conditional-defining-identity}
+  \end{equation}
+\end{enumerate}
+则称 $M$ 是给定 $\mathcal G$ 时 $X$ 的\keyterm{条件期望}（conditional expectation），
+记为 $\mathbb E[X\mid\mathcal G]$。
+另记 $\mathbb E[X\mid Y]=\mathbb E[X\mid\sigma(Y)]$。
+\end{definition}
+
+第一条要求预测结果只能使用已知信息；第二条要求在每个可由已知信息区分的事件内部，
+预测量与原变量的积分一致。它并不要求两个变量逐点相等。
+取 $A=\Omega$，已经可以看出条件期望保留总体期望。
+
+\begin{theorem}[存在性与几乎必然唯一性]
+\label{thm:conditional-existence}
+对任意 $X\in L^1$ 及子 $\sigma$ 代数 $\mathcal G$，
+$\mathbb E[X\mid\mathcal G]$ 存在，且在几乎必然相等的意义下唯一。
+\end{theorem}
+
+\begin{proof}
+在 $(\Omega,\mathcal G)$ 上定义有限符号测度
+$\nu(A)=\mathbb E[X\mathbf1_A]$。
+它关于 $\mathbb P$ 在 $\mathcal G$ 上的限制绝对连续：
+若 $\mathbb P(A)=0$，则 $\nu(A)=0$。
+由\keyterm{拉东--尼科迪姆定理}（Radon--Nikodym theorem），
+存在 $\mathcal G$ 可测的可积密度 $M$，使
+$\nu(A)=\int_A M\,\mathrm d\mathbb P$，这就是所需条件期望。
+这里将该测度论定理作为基础结果使用，条件期望的这一构造见文献 \cite[第 4.1 节]{durrett-pte}。
+
+若 $M,N$ 都满足定义，则对 $A_m=\{M\geq N+1/m\}\in\mathcal G$，
+有 $0=\mathbb E[(M-N)\mathbf1_{A_m}]\geq\mathbb P(A_m)/m$，
+故 $\mathbb P(M>N)=0$。交换二者，再得 $\mathbb P(N>M)=0$。
+\end{proof}
+
+条件期望的一个具体代表称为一个\keyterm{版本}（version）。
+以 $\sigma(Y)$ 为条件时，可将其写为某个可测函数 $m(Y)$；
+对实值随机变量，这是可测因子分解的标准结论。
+不同版本的 $m(y)$ 只需在 $Y$ 的分布下几乎处处相同。
+因此，书写 $\mathbb E[X\mid Y=y]$ 时通常隐含已经选定这样的版本。
+
+\subsection{离散分组与密度公式}
+
+若 $A_1,A_2,\ldots$ 是样本空间的有限或可数划分，
+每个 $\mathbb P(A_i)>0$，且 $\mathcal G=\sigma(A_1,A_2,\ldots)$，则
+\begin{equation}
+  \mathbb E[X\mid\mathcal G]
+  =\sum_i
+    \frac{\mathbb E[X\mathbf1_{A_i}]}{\mathbb P(A_i)}\mathbf1_{A_i}.
+  \label{eq:conditional-partition}
+\end{equation}
+右侧在每个分组上等于组内均值。
+它可积，因为各组绝对积分之和不超过 $\mathbb E|X|$；
+对任意由这些分组组成的事件逐组积分，就能验证定义。
+
+若 $(X,Y)$ 有联合密度 $f_{X,Y}$，边缘密度
+$f_Y(y)=\int_{\mathbb R}f_{X,Y}(x,y)\,\mathrm dx$，则对 $f_Y(y)>0$，
+\[
+  f_{X\mid Y}(x\mid y)=\frac{f_{X,Y}(x,y)}{f_Y(y)},\qquad
+  m(y)=\int_{\mathbb R}x f_{X\mid Y}(x\mid y)\,\mathrm dx.
+\]
+当 $X\in L^1$ 时，这个绝对可积的条件积分在 $Y$ 的分布下几乎处处存在，
+并给出 $\mathbb E[X\mid Y]=m(Y)$ 的一个版本。
+对 $f_Y(y)=0$ 的取值，可以任意赋值而不改变该随机变量的几乎必然等价类。
+
+\section{条件期望的基本性质与迭代法则}
+\label{sec:conditional-properties}
+
+本节固定子 $\sigma$ 代数 $\mathcal G$，并假设参与有符号条件期望的变量可积。
+下列等式与不等式均为随机变量之间几乎必然成立的关系。
+
+\subsection{线性、保序、保均值与可测量}
+
+\begin{proposition}[基本运算性质]
+\label{prop:conditional-basic}
+对 $X,Y\in L^1$ 和常数 $a,b$：
+\begin{align}
+  \mathbb E[aX+bY\mid\mathcal G]
+    &=a\mathbb E[X\mid\mathcal G]+b\mathbb E[Y\mid\mathcal G],
+    \label{eq:conditional-linearity}\\
+  X\leq Y\quad&\Longrightarrow\quad
+    \mathbb E[X\mid\mathcal G]\leq\mathbb E[Y\mid\mathcal G],
+    \label{eq:conditional-order}\\
+  |\mathbb E[X\mid\mathcal G]|
+    &\leq\mathbb E[|X|\mid\mathcal G],
+    \label{eq:conditional-absolute}\\
+  \mathbb E[\mathbb E[X\mid\mathcal G]]
+    &=\mathbb E[X].
+    \label{eq:conditional-total}
+\end{align}
+若 $X$ 本身关于 $\mathcal G$ 可测，则 $\mathbb E[X\mid\mathcal G]=X$。
+特别地，$\mathbb E[c\mid\mathcal G]=c$，以及
+$\mathbb E[h(Y)\mid Y]=h(Y)$，其中 $h(Y)\in L^1$。
+\end{proposition}
+
+\begin{proof}
+线性组合满足定义中的可测性和积分恒等式，故由唯一性得到线性性。
+若 $W\geq0$，令 $M=\mathbb E[W\mid\mathcal G]$，
+则对 $A_m=\{M\leq-1/m\}$ 有
+$0\leq\mathbb E[W\mathbf1_{A_m}]
+=\mathbb E[M\mathbf1_{A_m}]\leq-\mathbb P(A_m)/m$，
+从而 $M\geq0$。对 $W=Y-X$ 使用此结论得到保序性。
+再对 $-|X|\leq X\leq|X|$ 使用保序性，得到绝对值控制。
+取定义中的 $A=\Omega$ 得到保均值性质。
+若 $X$ 已经 $\mathcal G$ 可测，它自身就满足定义的两条要求。
+\end{proof}
+
+条件概率是条件期望的特例：
+$\mathbb P(A\mid\mathcal G)=\mathbb E[\mathbf1_A\mid\mathcal G]$。
+它是取值于 $[0,1]$ 的 $\mathcal G$ 可测随机变量，而非必须为常数的无条件概率。
+
+\subsection{提出已知因子与独立信息}
+
+\begin{proposition}[提出已知的量]
+\label{prop:conditional-pullout}
+设 $U$ 为实值 $\mathcal G$ 可测随机变量，且 $X,UX\in L^1$，则
+\begin{equation}
+  \mathbb E[UX\mid\mathcal G]
+  =U\mathbb E[X\mid\mathcal G].
+  \label{eq:conditional-pullout}
+\end{equation}
+特别地，$U$ 有界且 $X\in L^1$ 时条件自动满足。
+\end{proposition}
+
+\begin{proof}
+记 $M=\mathbb E[X\mid\mathcal G]$。
+若 $U=\mathbf1_B$、$B\in\mathcal G$，则对 $A\in\mathcal G$，
+$\mathbb E[\mathbf1_AUM]=\mathbb E[\mathbf1_{A\cap B}M]
+=\mathbb E[\mathbf1_{A\cap B}X]$。
+由定义得到指示函数情形；线性性与一致有界的简单函数逼近给出有界 $U$ 的情形。
+
+一般情形先对 $|U|\wedge n$ 和 $|X|$ 应用有界情形并取总体期望，
+再由单调收敛得到
+$\mathbb E[|U|\mathbb E(|X|\mid\mathcal G)]=\mathbb E|UX|<\infty$。
+由式 \eqref{eq:conditional-absolute} 得到 $UM\in L^1$。
+对截断 $U_n=\max\{-n,\min\{U,n\}\}$ 的积分恒等式使用控制收敛，
+分别以 $|UX|$ 与 $|UM|$ 控制，即得到一般情形。
+\end{proof}
+
+“已知”是相对于条件信息 $\mathcal G$ 而言。
+例如 $\mathbb E[Y X\mid Y]=Y\mathbb E[X\mid Y]$ 在满足可积条件时成立，
+但 $\mathbb E[YX]=Y\mathbb E[X]$ 一般连对象类型都不一致：左边是数，右边通常仍随机。
+
+\begin{proposition}[独立信息不改变均值]
+\label{prop:conditional-independence}
+若 $X\in L^1$，且 $\sigma(X)$ 与 $\mathcal G$ 独立，
+即对任意 $B\in\sigma(X)$、$A\in\mathcal G$ 有
+$\mathbb P(A\cap B)=\mathbb P(A)\mathbb P(B)$，则
+\[
+  \mathbb E[X\mid\mathcal G]=\mathbb E[X].
+\]
+\end{proposition}
+
+\begin{proof}
+常数 $\mathbb E[X]$ 关于 $\mathcal G$ 可测。
+独立乘积的期望公式给出
+$\mathbb E[X\mathbf1_A]=\mathbb E[X]\mathbb P(A)$，
+故这个常数满足条件期望的定义。
+\end{proof}
+
+反命题不成立。在例 \ref{ex:expectation-dependent-uncorrelated} 中，
+$Y=X^2$ 与 $X$ 相关联，但给定 $Y=1$ 后 $X$ 等概率为 $-1,1$，
+给定 $Y=0$ 后 $X=0$，因此
+$\mathbb E[X\mid Y]=0=\mathbb E[X]$。
+这只表示关于条件均值的信息不变，不能推出整个条件分布不变。
+交换该例中两个变量的角色，又有 $\operatorname{Cov}(Y,X)=0$，
+但 $\mathbb E[Y\mid X]=X^2$ 并非常数 $\mathbb E[Y]=2/3$；
+所以不相关也不能反推出条件均值不变。
+
+\subsection{嵌套信息与塔式法则}
+
+\begin{theorem}[条件期望的迭代法则]
+\label{thm:conditional-tower}
+设 $\mathcal H\subseteq\mathcal G\subseteq\mathcal F$，且 $X\in L^1$，则
+\begin{align}
+  \mathbb E[\mathbb E[X\mid\mathcal G]\mid\mathcal H]
+    &=\mathbb E[X\mid\mathcal H],
+    \label{eq:conditional-tower}\\
+  \mathbb E[\mathbb E[X\mid\mathcal H]\mid\mathcal G]
+    &=\mathbb E[X\mid\mathcal H].
+    \label{eq:conditional-tower-reverse}
+\end{align}
+式 \eqref{eq:conditional-tower} 称为\keyterm{迭代期望法则}
+（law of iterated expectations）或\keyterm{塔式法则}（tower property）。
+\end{theorem}
+
+\begin{proof}
+记 $M=\mathbb E[X\mid\mathcal G]$、
+$N=\mathbb E[M\mid\mathcal H]$。
+$N$ 关于 $\mathcal H$ 可测且可积；对任意 $A\in\mathcal H\subseteq\mathcal G$，
+\[
+  \mathbb E[N\mathbf1_A]
+  =\mathbb E[M\mathbf1_A]
+  =\mathbb E[X\mathbf1_A].
+\]
+由唯一性知 $N=\mathbb E[X\mid\mathcal H]$。
+第二个等式则因为 $\mathbb E[X\mid\mathcal H]$ 已经 $\mathcal G$ 可测，
+对更丰富的信息再取条件期望仍等于自身。
+\end{proof}
+
+第一式表示：先利用更多信息求平均，再只保留较少信息求平均，
+与一开始只根据较少信息求平均相同。
+第二式并非恢复已经被平均掉的信息；它只说明一个已知量再次条件化不发生变化。
+取平凡信息 $\mathcal H=\{\varnothing,\Omega\}$，
+即得到式 \eqref{eq:conditional-total} 的\keyterm{全期望公式}（law of total expectation）。
+
+对随机变量 $Y,Z$，由于 $\sigma(Y)\subseteq\sigma(Y,Z)$，有
+\begin{equation}
+  \mathbb E[\mathbb E[X\mid Y,Z]\mid Y]
+  =\mathbb E[X\mid Y].
+  \label{eq:conditional-tower-variables}
+\end{equation}
+若 $Y,Z$ 离散，对 $\mathbb P(Y=y)>0$ 的取值，这等价于
+\[
+  \mathbb E[X\mid Y=y]
+  =\sum_z
+    \mathbb E[X\mid Y=y,Z=z]\mathbb P(Z=z\mid Y=y).
+\]
+条件概率为零的分组不参与计算。
+此式是给定 $Y=y$ 后，按 $Z$ 再分组并加权平均；
+不需要变量相互独立，但不能把权重错写为无条件概率 $\mathbb P(Z=z)$。
+
+\begin{example}[条件信息不能任意删去]
+\label{ex:conditional-nonnested}
+令 $Y$ 等概率取 $0,1$，令 $Z$ 是与 $Y$ 独立的另一零一变量，并取 $X=Y$。
+则
+\[
+  \mathbb E[\mathbb E[X\mid Z]\mid Y]=\frac12,
+  \qquad
+  \mathbb E[X\mid Y]=Y.
+\]
+两者不相等。原因是 $\sigma(Y)$ 与 $\sigma(Z)$ 不具有所需的包含关系。
+只有另行证明 $\mathbb E[X\mid Y,Z]=\mathbb E[X\mid Z]$，
+才可在式 \eqref{eq:conditional-tower-variables} 中将内层条件 $(Y,Z)$ 简化为 $Z$；
+马尔可夫性是某些随机过程满足这种简化的依据。
+\end{example}
+
+\subsection{条件收敛与条件 Jensen 不等式}
+
+为处理非负但未必可积的变量，可定义
+$\mathbb E[X\mid\mathcal G]=\lim_{n\to\infty}\mathbb E[X\wedge n\mid\mathcal G]$，
+允许取 $+\infty$。由保序性和单调收敛，它满足非负版本的积分恒等式，
+并与可积情形的定义一致。
+
+\begin{proposition}[条件版本的收敛定理]
+\label{prop:conditional-convergence}
+对固定 $\mathcal G$：
+\begin{enumerate}
+  \item 若 $0\leq X_n\uparrow X$，则
+    $\mathbb E[X_n\mid\mathcal G]\uparrow\mathbb E[X\mid\mathcal G]$。
+  \item 若 $X_n\geq0$，则
+    $\mathbb E[\liminf_nX_n\mid\mathcal G]
+      \leq\liminf_n\mathbb E[X_n\mid\mathcal G]$。
+  \item 若 $X_n\to X$ 几乎必然且 $|X_n|\leq H\in L^1$，
+    则 $\mathbb E[X_n\mid\mathcal G]\to\mathbb E[X\mid\mathcal G]$
+    几乎必然且在 $L^1$ 中收敛。
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+第一条由条件保序性得到递增极限；
+对每个 $A\in\mathcal G$ 两次使用普通单调收敛定理，
+可验证此极限满足 $X$ 的条件积分恒等式。
+第二条仿照 Fatou 引理，对 $\inf_{k\geq n}X_k$ 使用第一条。
+第三条先对 $H\pm X_n$ 使用第二条，得到几乎必然收敛。
+又由条件绝对值控制与全期望公式，
+\[
+  \mathbb E|\mathbb E[X_n\mid\mathcal G]-\mathbb E[X\mid\mathcal G]|
+  \leq\mathbb E|X_n-X|\longrightarrow0,
+\]
+完成 $L^1$ 收敛的证明。
+\end{proof}
+
+\begin{theorem}[条件 Jensen 与收缩性]
+\label{thm:conditional-jensen}
+若 $X\in L^1$，$\varphi:\mathbb R\to\mathbb R$ 为有限值凸函数，
+且 $\varphi(X)\in L^1$，则
+\begin{equation}
+  \varphi(\mathbb E[X\mid\mathcal G])
+  \leq\mathbb E[\varphi(X)\mid\mathcal G].
+  \label{eq:conditional-jensen}
+\end{equation}
+特别地，对 $1\leq p\leq\infty$ 及 $X,Y\in L^p$，
+\begin{equation}
+  \|\mathbb E[X\mid\mathcal G]-\mathbb E[Y\mid\mathcal G]\|_p
+  \leq\|X-Y\|_p.
+  \label{eq:conditional-contraction}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+实轴上的有限值凸函数可写为可数个仿射下界的上确界：
+$\varphi(x)=\sup_k(a_kx+b_k)$。
+可在各有理点选一条支持直线；由凸函数的连续性和局部斜率有界性，
+这些直线的上确界即为原函数。
+对每个 $k$，由条件保序与线性性得到
+$a_k\mathbb E[X\mid\mathcal G]+b_k
+\leq\mathbb E[\varphi(X)\mid\mathcal G]$。
+由于下界只有可数个，可在同一概率为 $1$ 的集合上对 $k$ 取上确界。
+两侧的仿射下界与可积上界还保证 $\varphi(\mathbb E[X\mid\mathcal G])$ 可积。
+
+取 $\varphi(x)=|x|^p$ 并取总体期望，得到有限 $p$ 的收缩性，
+再对 $X-Y$ 使用线性性。$p=\infty$ 时由
+$|X-Y|\leq\|X-Y\|_\infty$ 与条件保序性得到结论。
+\end{proof}
+
+若 $X,Y\in L^2$，还成立条件 Cauchy--Schwarz 不等式
+\[
+  |\mathbb E[XY\mid\mathcal G]|^2
+  \leq\mathbb E[X^2\mid\mathcal G]\mathbb E[Y^2\mid\mathcal G].
+\]
+证明时，对每个有理数 $t$ 考察非负条件期望
+$\mathbb E[(X-tY)^2\mid\mathcal G]$，
+在共同的概率为 $1$ 的集合上再由关于 $t$ 的连续性推广到所有实数，
+相应二次多项式的非负性便给出此式。
+
+\section{条件期望的二阶结构与最优预测}
+\label{sec:conditional-projection}
+
+\subsection{正交性与最小均方误差}
+
+\begin{theorem}[条件期望的正交投影性质]
+\label{thm:conditional-projection}
+设 $X\in L^2$，$M=\mathbb E[X\mid\mathcal G]$。
+则 $M\in L^2$，且对每个 $\mathcal G$ 可测的 $Z\in L^2$，
+\begin{align}
+  \mathbb E[(X-M)Z]&=0,
+    \label{eq:conditional-orthogonality}\\
+  \mathbb E[(X-Z)^2]
+    &=\mathbb E[(X-M)^2]+\mathbb E[(M-Z)^2].
+    \label{eq:conditional-pythagoras}
+\end{align}
+因此，$M$ 在所有 $\mathcal G$ 可测且平方可积的预测量中，
+唯一地最小化\keyterm{均方误差}（mean squared error，MSE），其中唯一性按几乎必然相等理解。
+\end{theorem}
+
+\begin{proof}
+$L^2$ 收缩性给出 $M\in L^2$。
+由 Cauchy--Schwarz 不等式，$(X-M)Z$ 可积。
+提出已知因子并使用全期望公式，得到
+\[
+  \mathbb E[(X-M)Z]
+  =\mathbb E[Z\,\mathbb E[X-M\mid\mathcal G]]=0.
+\]
+展开 $X-Z=(X-M)+(M-Z)$ 的平方，
+对已知量 $M-Z$ 使用刚证明的正交性，交叉项为零。
+最后 $\mathbb E[(M-Z)^2]\geq0$，且等号当且仅当 $M=Z$ 几乎必然。
+\end{proof}
+
+以 $\langle U,V\rangle=\mathbb E[UV]$ 为 $L^2$ 的内积，
+式 \eqref{eq:conditional-orthogonality} 表明残差与所有利用 $\mathcal G$ 的平方可积量正交。
+这就是条件期望作为\keyterm{正交投影}（orthogonal projection）的含义。
+“最佳预测”在这里专指平方损失下的最优性；
+换用绝对误差等损失函数，最优预测一般不再是条件均值。
+残差正交也不等于残差与已知信息独立。
+
+\subsection{全方差与全协方差公式}
+
+对 $X\in L^2$，定义\keyterm{条件方差}（conditional variance）
+\[
+  \operatorname{Var}(X\mid\mathcal G)
+  =\mathbb E[(X-\mathbb E[X\mid\mathcal G])^2\mid\mathcal G]
+  =\mathbb E[X^2\mid\mathcal G]-(\mathbb E[X\mid\mathcal G])^2.
+\]
+它是非负且可积的 $\mathcal G$ 可测随机变量。
+第二个等式由展开平方、提出已知因子得到。
+
+\begin{proposition}[全方差公式]
+\label{prop:conditional-total-variance}
+若 $X\in L^2$，则
+\begin{equation}
+  \operatorname{Var}(X)
+  =\mathbb E[\operatorname{Var}(X\mid\mathcal G)]
+   +\operatorname{Var}(\mathbb E[X\mid\mathcal G]).
+  \label{eq:conditional-total-variance}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+在式 \eqref{eq:conditional-pythagoras} 中取常数 $Z=\mathbb E[X]$。
+第一项由全期望公式变为条件方差的期望；
+第二项利用 $\mathbb E[M]=\mathbb E[X]$ 识别为 $M$ 的方差。
+\end{proof}
+
+第一项描述给定信息后仍然存在的组内变动，
+第二项描述不同信息取值对应的条件均值之间的变动。
+因此一般不能把总体方差只写成条件方差的平均值。
+
+对 $X,Y\in L^2$，记 $M_X=\mathbb E[X\mid\mathcal G]$、
+$M_Y=\mathbb E[Y\mid\mathcal G]$，并定义
+$\operatorname{Cov}(X,Y\mid\mathcal G)
+=\mathbb E[(X-M_X)(Y-M_Y)\mid\mathcal G]$。
+展开中心化乘积并用残差的正交性，可以得到
+\begin{equation}
+  \operatorname{Cov}(X,Y)
+  =\mathbb E[\operatorname{Cov}(X,Y\mid\mathcal G)]
+   +\operatorname{Cov}(M_X,M_Y).
+  \label{eq:conditional-total-covariance}
+\end{equation}
+具体地，写 $X-\mathbb E[X]=(X-M_X)+(M_X-\mathbb E[X])$，
+对 $Y$ 作同样分解；两个混合项期望为零，其余两项正好对应右侧。
+
+\subsection{增加信息与平均预测误差}
+
+若 $\mathcal H\subseteq\mathcal G$ 且 $X\in L^2$，记
+$M_{\mathcal H}=\mathbb E[X\mid\mathcal H]$、
+$M_{\mathcal G}=\mathbb E[X\mid\mathcal G]$。
+因为 $M_{\mathcal H}$ 也关于 $\mathcal G$ 可测，投影定理给出
+\[
+  \mathbb E[(X-M_{\mathcal H})^2]
+  =\mathbb E[(X-M_{\mathcal G})^2]
+   +\mathbb E[(M_{\mathcal G}-M_{\mathcal H})^2].
+\]
+所以增加信息不会提高最优均方预测误差，并有
+\[
+  \mathbb E[\operatorname{Var}(X\mid\mathcal G)]
+  \leq\mathbb E[\operatorname{Var}(X\mid\mathcal H)].
+\]
+这是一条平均意义的不等式，不是条件方差逐点减小的断言。
+
+\begin{example}[某个分组的条件方差可以更大]
+\label{ex:conditional-variance-increase}
+设 $B$ 等概率取 $0,1$，$Z$ 独立于 $B$ 且等概率取 $-1,1$，
+定义 $X=(1+9B)Z$。则
+$\mathbb E[X\mid B]=0$、
+$\operatorname{Var}(X\mid B=0)=1$、
+$\operatorname{Var}(X\mid B=1)=100$。
+总体方差为 $(1+100)/2=50.5$，因此在 $B=1$ 的分组中，
+条件方差高于总体方差；但条件方差的平均值仍符合全方差公式。
+\end{example}
+
+\section{应用：随机和与动态回报}
+\label{sec:expectation-applications}
+
+\subsection{独立随机项数下的和}
+
+\begin{proposition}[独立随机和的期望]
+\label{prop:expectation-random-sum}
+设 $X_1,X_2,\ldots$ 同分布且可积，共同均值为 $\mu$；
+非负整数值随机变量 $N$ 与整个序列独立，且 $\mathbb E[N]<\infty$。
+约定 $N=0$ 时空和为零，则
+\begin{equation}
+  \mathbb E\!\left[\sum_{i=1}^{N}X_i\right]
+  =\mathbb E[N]\mu.
+  \label{eq:expectation-random-sum}
+\end{equation}
+这个版本不要求 $X_i$ 之间相互独立。
+\end{proposition}
+
+\begin{proof}
+写成确定索引的级数
+$\sum_{i=1}^{N}X_i=\sum_{i\geq1}X_i\mathbf1_{\{N\geq i\}}$。
+由 $N$ 与序列独立及尾和公式，
+\[
+  \sum_{i\geq1}\mathbb E[|X_i|\mathbf1_{\{N\geq i\}}]
+  =\mathbb E|X_1|\sum_{i\geq1}\mathbb P(N\geq i)
+  =\mathbb E|X_1|\mathbb E[N]<\infty.
+\]
+因此可以交换期望与级数；每一项的期望为
+$\mu\mathbb P(N\geq i)$，再求和即得结论。
+\end{proof}
+
+随机项数依赖于观测时，不能直接套用这个独立版本。
+例如 $X_i$ 各自等概率取 $-1,1$，令 $N=\mathbf1_{\{X_1=1\}}$，
+则 $\sum_{i=1}^{N}X_i=\mathbf1_{\{X_1=1\}}$ 的期望为 $1/2$，
+而 $\mathbb E[N]\mathbb E[X_1]=0$。
+某些适应于观测历史的停止规则仍满足更一般的随机和公式，
+但必须另行核对停止规则与可积性条件。
+
+\subsection{折扣回报的可积性}
+
+考虑离散时间的\keyterm{马尔可夫决策过程}
+（Markov decision process，MDP），状态与动作空间有限，
+每个状态 $s$ 的可用动作集合 $\mathcal A(s)$ 非空。
+用 $S_t,A_t,R_{t+1}$ 分别表示时刻 $t$ 的状态、所选动作及执行动作后收到的奖励。
+环境中下一状态与奖励的联合分布在给定当前状态和动作后不依赖更早的交互历史，
+且该规律不随时间改变。
+固定\keyterm{平稳马尔可夫策略}（stationary Markov policy）
+$\pi(a\mid s)$：给定当前状态后，动作分布不再依赖更早历史或时间。
+
+假设存在常数 $C<\infty$ 使每步 $|R_{t+1}|\leq C$，
+并取折扣因子 $0\leq\gamma<1$。定义
+\begin{equation}
+  G_t=\sum_{k=0}^\infty\gamma^kR_{t+k+1},
+  \qquad
+  |G_t|\leq\frac{C}{1-\gamma},
+  \qquad
+  G_t=R_{t+1}+\gamma G_{t+1}.
+  \label{eq:expectation-return}
+\end{equation}
+故回报绝对收敛且可积，可以合法地对部分和取极限或逐项取期望。
+这里第一项奖励记作 $R_{t+1}$；若把它记作 $R_t$，
+只需整体平移奖励下标，推导不变。
+当 $\gamma=1$ 时，该几何级数控制失效，需采用有限时域等其他保证回报可积的条件。
+
+\subsection{贝尔曼期望方程中的两种不同依据}
+
+记 $\mathbb E_\pi$ 为固定策略 $\pi$ 下的期望。
+对任意状态 $s$，令 $V^\pi(s)$ 表示以 $s$ 为起点、遵循同一环境和策略时的回报期望；
+在当前过程的正概率状态上，它满足
+$V^\pi(s)=\mathbb E_\pi[G_t\mid S_t=s]$。
+从每个状态重新开始的定义也使未被当前初始分布访问的状态具有确定的价值。
+
+由式 \eqref{eq:expectation-return}，
+\[
+  V^\pi(s)
+  =\mathbb E_\pi[R_{t+1}+\gamma G_{t+1}\mid S_t=s].
+\]
+关键是解释未来回报这一项：
+\begin{align}
+  \mathbb E_\pi[G_{t+1}\mid S_t=s]
+  &=\mathbb E_\pi\!\left[
+      \mathbb E_\pi[G_{t+1}\mid S_t,S_{t+1}]
+      \,\middle|\,S_t=s\right]
+      \label{eq:expectation-bellman-tower}\\
+  &=\mathbb E_\pi[V^\pi(S_{t+1})\mid S_t=s].
+      \label{eq:expectation-bellman-markov}
+\end{align}
+第一步只使用
+$\sigma(S_t)\subseteq\sigma(S_t,S_{t+1})$ 下的塔式法则；
+第二步才使用环境的马尔可夫性和平稳策略，
+使给定 $S_{t+1}$ 后的后续回报期望不再依赖 $S_t$，
+并等于 $V^\pi(S_{t+1})$。
+
+再使用条件期望的线性性，得到\keyterm{贝尔曼期望方程}
+（Bellman expectation equation）
+\begin{equation}
+  V^\pi(s)
+  =\mathbb E_\pi[R_{t+1}+\gamma V^\pi(S_{t+1})\mid S_t=s].
+  \label{eq:expectation-bellman}
+\end{equation}
+这里并没有声称 $G_{t+1}=V^\pi(S_{t+1})$，
+也不需要当前奖励与未来回报独立。
+相等的是在当前信息下的条件期望，而非两个随机变量每次实现的数值。
+
+若记环境转移概率为 $P(s'\mid s,a)$，
+一步奖励均值为 $r(s,a)$，则定义
+\[
+  P_\pi(s'\mid s)=\sum_{a\in\mathcal A(s)}\pi(a\mid s)P(s'\mid s,a),
+  \qquad
+  r_\pi(s)=\sum_{a\in\mathcal A(s)}\pi(a\mid s)r(s,a).
+\]
+有限状态下，式 \eqref{eq:expectation-bellman} 化为
+$V^\pi(s)=r_\pi(s)+\gamma\sum_{s'}P_\pi(s'\mid s)V^\pi(s')$。
+例如下一步以概率 $0.4,0.6$ 进入价值为 $15,5$ 的两个状态，
+则下一状态价值的期望为 $0.4\times15+0.6\times5=9$。
+若当前奖励恒为 $2$ 且 $\gamma=0.9$，便有 $V^\pi(s)=2+0.9\times9=10.1$；
+这个计算先按下一状态分组，再按转移概率加权。
+
+\section{常见误用与使用顺序}
+\label{sec:expectation-pitfalls}
+
+\begin{enumerate}
+  \item \textbf{把分布对称当作可积性。}
+  对称性只有在期望可定义时才能用于相消；
+  柯西分布的对称主值不是期望，见例 \ref{ex:expectation-cauchy}。
+  \item \textbf{把有限线性性直接推广到无限和。}
+  无限和通常需非负性或 $\sum_n\mathbb E|X_n|<\infty$ 等条件；
+  不能仅因每个单项可积就逐项求期望，见命题 \ref{prop:expectation-series}。
+  \item \textbf{把乘积、商或非线性函数直接拆开。}
+  独立性可以保证乘积期望分解，但一般没有
+  $\mathbb E[X/Y]=\mathbb E[X]/\mathbb E[Y]$。
+  即使 $X\equiv1$、$Y$ 等概率取 $1,2$，两侧也分别为 $3/4$ 与 $2/3$。
+  \item \textbf{把收敛当作期望可以交换极限的充分条件。}
+  几乎必然收敛仍可能留下不可忽略的大值尾部；
+  应核对控制收敛或一致可积等条件，见例 \ref{ex:expectation-spike}。
+  \item \textbf{把期望相等理解为变量相等。}
+  $\mathbb E[X]=\mathbb E[Y]$ 只比较均值，不能推出 $X=Y$；
+  条件期望相等同样不表示实际结果逐次相等。
+  \item \textbf{在塔式法则中任意删改条件。}
+  应先写清 $\sigma$ 代数的包含关系；
+  内层条件简化还需要独立性、条件均值不变或马尔可夫性等额外依据，
+  见例 \ref{ex:conditional-nonnested}。
+  \item \textbf{把条件均值不变、不相关与独立混为一谈。}
+  对平方可积变量，独立推出 $\mathbb E[X\mid Y]=\mathbb E[X]$，
+  后者由提出已知因子和全期望公式推出 $\operatorname{Cov}(X,Y)=0$；
+  两个逆向推论一般都不成立。
+  \item \textbf{把平均误差下降理解为每个分组的方差都下降。}
+  更多信息降低的是最优预测的总体均方误差，
+  某个分组的条件方差仍可更大，见例 \ref{ex:conditional-variance-increase}。
+\end{enumerate}
+
+实际推导时，可以依次确认：随机变量及概率模型是什么，目标量是否可积，
+所用操作是有限代数运算还是极限交换，条件信息有哪些，
+以及结论是数值期望的等式、随机变量的几乎必然等式，还是某种收敛关系。
+这些检查决定公式的适用范围，也有助于区分理论期望、样本估计和一次实际观测。
+
+\begin{thebibliography}{9}
+\bibitem{durrett-pte}
+Rick Durrett.
+\emph{Probability: Theory and Examples}.
+Version 5, January 11, 2019.
+第 1.4--1.7 节讨论积分、期望与交换定理；
+第 4.1 节讨论条件期望，第 4.6 节讨论一致可积性。
+\url{https://math.duke.edu/~rtd/PTE/PTE5_011119.pdf}.
+
+\bibitem{sheffield-probability}
+Scott Sheffield.
+\emph{18.175 Theory of Probability}, Spring 2014.
+MIT OpenCourseWare, Lecture Slides.
+课程材料包含积分、数学期望与条件期望的测度论背景。
+\url{https://ocw.mit.edu/courses/18-175-theory-of-probability-spring-2014/pages/lecture-slides/}.
+\end{thebibliography}
+
+\end{document}

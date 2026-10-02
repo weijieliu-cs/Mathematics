@@ -1,0 +1,63 @@
+\documentclass[UTF8]{ctexart}
+
+% 支持从项目根目录、强化学习目录或当前文档目录读取共享样式。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{马尔可夫过程与马尔可夫决策过程}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{区别：随机演化与动作选择}
+\label{sec:mp-mdp-distinction}
+
+\keyterm{马尔可夫过程描述状态如何演化；马尔可夫决策过程还描述动作如何影响演化，并用奖励评价决策。}
+以下讨论离散时间、有限状态和有限动作的情形，并假设环境规则不随时间改变。
+后一个假设称为\keyterm{时间齐次性}（time homogeneity），并非马尔可夫性质本身的要求。
+
+\begin{definition}[马尔可夫过程]
+随机过程 $(S_t)_{t\geq0}$ 若满足：给定当前状态后，更早的历史不再改变下一状态的概率分布，
+则称为\keyterm{马尔可夫过程}（Markov process）。在上述假设下，对任意 $t\geq0$、
+正概率的历史 $(s_0,\ldots,s_t)$ 及任意下一状态 $s'$，有
+\begin{equation}
+  \Pr(S_{t+1}=s'\mid S_0=s_0,\ldots,S_t=s_t)
+  =P_{\mathrm{MP}}(s'\mid s_t).
+  \label{eq:mp-mdp-markov}
+\end{equation}
+其中 $S_t$ 是状态随机变量，$s_t$ 是其取值，$P_{\mathrm{MP}}$ 是状态转移概率。
+该模型不单独引入动作选择，也不必包含奖励。
+\end{definition}
+
+\begin{definition}[马尔可夫决策过程]
+\keyterm{马尔可夫决策过程}（Markov decision process，MDP）在状态转移中引入动作和奖励。
+记 $A_t$ 为当前动作，$R_{t+1}$ 为执行动作后获得的奖励；
+给定 $S_t$ 和 $A_t$ 后，$(S_{t+1},R_{t+1})$ 的联合分布不再依赖更早的交互历史。
+状态转移概率记为 $P(s'\mid s,a)$，其中 $s,a$ 是当前状态和动作的取值。
+\end{definition}
+
+\keyterm{策略}（policy）规定如何选择动作，目标通常是使长期累计奖励的期望更高。
+MDP 是决策问题的模型，本身并不指定采用哪条策略，也不保证动作结果是确定的。
+
+\section{联系：固定策略得到马尔可夫过程}
+\label{sec:mp-mdp-fixed-policy}
+
+固定一条仅依赖当前状态、且不随时间改变的策略 $\pi$，
+记 $\pi(a\mid s)$ 为在状态 $s$ 选择动作 $a$ 的概率，$\mathcal A(s)$ 为可用动作集合。
+按动作应用全概率公式，得到
+\begin{equation}
+  P_\pi(s'\mid s)
+  =\sum_{a\in\mathcal A(s)}\pi(a\mid s)P(s'\mid s,a).
+  \label{eq:mp-mdp-induced-transition}
+\end{equation}
+右侧只依赖当前状态，因此忽略奖励后，状态序列构成马尔可夫过程。
+固定策略是固定动作的选择规律，并不要求每次选择同一个动作；若策略依赖更早的历史，上述结论不一定成立。
+
+例如，在仅由位置和动作决定移动与奖励的固定迷宫中，机器人选择方向并获得奖励，可用 MDP 描述。
+若规定它在每个位置都等概率选择可用方向，忽略奖励后，其位置序列便是马尔可夫过程。
+
+\end{document}

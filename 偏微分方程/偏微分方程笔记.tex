@@ -1,0 +1,1679 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexbook}
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{偏微分方程笔记}
+\author{}
+\date{}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\tableofcontents
+
+\chapter{绪论与阅读说明}
+\label{chap:roadmap}
+
+\section{研究对象与全书定位}
+
+\keyterm{偏微分方程（partial differential equation，PDE）}研究多元未知函数与其偏导数之间的关系。温度如何扩散、波动如何传播、静电势如何由电荷和边界决定，都可以导向偏微分方程。学习这门课程既要理解方程如何产生，也要研究给定数据能否确定解，以及解具有怎样的性质。
+
+本书按本科初学者的知识起点组织，以标量方程为主，从数学物理模型和经典求解方法出发，逐步过渡到弱解与现代分析方法。全书分为基础概念、经典方法与方程、弱解理论、进阶专题四部分。基础部分可作为第一门偏微分方程课程；后两部分供继续学习时使用，不预设读者在入门阶段已经掌握泛函分析。
+
+正文围绕定义、推导、核心结论和完整例题展开。基础方法给出可核查的关键步骤；涉及较深实分析或泛函分析的结果，明确说明假设，并标注证明要点或进一步阅读出处。各章习题用于检验计算、证明和建模能力，可与正文例题配合使用。
+
+\section{先修知识与学习目标}
+
+基础部分需要多元微积分、常微分方程与线性代数：偏导数与链式法则、重积分与分部积分、散度定理、二阶线性常微分方程，以及实对称矩阵的特征值与正交对角化。傅里叶级数在第\ref{chap:fourier-series}章系统补充。进入第\ref{chap:sobolev}章前，应补足勒贝格积分、赋范空间与希尔伯特空间的基本概念；相关依赖列于附录\ref{app:analysis}和附录\ref{app:functional}。
+
+完成基础部分后，应能够从守恒关系建立简单模型，正确提出定解问题，选用特征线、分离变量、积分变换或格林函数方法，并用极值原理与能量法讨论唯一性和稳定性。完成进阶部分后，应能够写出弱形式，检查存在唯一性定理的假设，理解正则性、非线性与数值近似各自带来的问题。
+
+\section{全书课程大纲}
+
+下列四个模块给出全书顺序，具体知识依赖在阅读路线中说明。
+
+\begin{description}
+  \item[基础概念与模型]
+  第\ref{chap:concepts}章：偏微分方程的基本概念；
+  第\ref{chap:modeling}章：物理模型与定解问题；
+  第\ref{chap:characteristics}章：一阶方程与特征线法；
+  第\ref{chap:classification}章：二阶线性方程的分类与标准形。
+  \item[经典方法与三类基本方程]
+  第\ref{chap:fourier-series}章：傅里叶级数与施图姆--刘维尔理论；
+  第\ref{chap:separation}章：分离变量法与本征函数展开；
+  第\ref{chap:wave-one}章：一维波动方程；
+  第\ref{chap:wave-multi}章：多维波动方程与能量法；
+  第\ref{chap:heat}章：热方程与扩散；
+  第\ref{chap:harmonic}章：拉普拉斯方程与调和函数；
+  第\ref{chap:green}章：泊松方程、格林函数与位势；
+  第\ref{chap:transforms}章：积分变换与基本解。
+  \item[弱解与现代分析基础]
+  第\ref{chap:sobolev}章：分布、弱导数与索伯列夫空间；
+  第\ref{chap:elliptic-weak}章：椭圆方程的弱解与变分方法；
+  第\ref{chap:evolution-weak}章：演化方程的弱解与能量估计。
+  \item[进阶专题与综合应用]
+  第\ref{chap:conservation}章：非线性守恒律与熵解；
+  第\ref{chap:nonlinear}章：非线性方程的基本方法；
+  第\ref{chap:numerics}章：数值方法与综合建模。
+\end{description}
+
+附录\ref{app:calculus}整理微积分与常微分方程工具；附录\ref{app:analysis}整理积分、收敛与不等式；附录\ref{app:functional}整理泛函分析工具。附录用于查阅和补课，不要求在阅读第一章前全部学完。
+
+\section{阅读顺序与阶段性检查}
+
+\begin{enumerate}
+  \item \textbf{建立问题意识。}先读第\ref{chap:concepts}--\ref{chap:classification}章，能够区分方程、附加条件、解的类别和适定性问题，并独立求解简单输运方程。
+  \item \textbf{掌握经典主线。}接着读第\ref{chap:fourier-series}--\ref{chap:green}章，比较波动、扩散与平衡三种机制。第\ref{chap:wave-multi}章的高维表示公式及第\ref{chap:separation}章的特殊函数可在第一遍阅读时选读。
+  \item \textbf{统一求解方法。}第\ref{chap:transforms}章将频率分解、卷积与基本解联系起来。傅里叶变换也可在学完第\ref{chap:fourier-series}章后提前阅读，用于辅助热方程的推导。
+  \item \textbf{进入弱解理论。}补足附录中的实分析与泛函分析工具，再读第\ref{chap:sobolev}--\ref{chap:evolution-weak}章，练习从经典方程到弱形式、从先验估计到存在性证明的转换。
+  \item \textbf{按兴趣拓展。}第\ref{chap:conservation}章承接特征线与分布；第\ref{chap:nonlinear}章承接变分和演化方程；第\ref{chap:numerics}章中的差分部分可在基础课程后阅读，有限元部分则依赖弱形式。
+\end{enumerate}
+
+本科基础路线以能够独立提出问题、推导公式并核查解为标准；进阶路线以能够说明函数空间、估计与极限过程为标准，可在完成基础课程后继续阅读。
+
+\section{统一符号与叙述约定}
+
+空间维数记为正整数 $n$，空间点记为 $x=(x_1,\ldots,x_n)\in\mathbb R^n$，时间记为 $t$，终止时间记为 $T>0$。区域 $\Omega\subset\mathbb R^n$ 指非空连通开集，其边界和闭包分别为 $\partial\Omega$ 与 $\overline\Omega$；需要边界积分、法向量或迹时，另行说明边界的光滑性。外单位法向量记为 $\nu$。
+
+标量未知函数记为 $u=u(x)$ 或 $u=u(x,t)$；$u_t$ 表示时间偏导数。梯度（gradient）、散度（divergence）和拉普拉斯算子（Laplacian）分别记为
+\[
+  \nabla u=(\partial_{x_1}u,\ldots,\partial_{x_n}u),\qquad
+  \operatorname{div}F=\sum_{j=1}^n\partial_{x_j}F_j,\qquad
+  \Delta u=\sum_{j=1}^n\partial_{x_jx_j}u,
+\]
+其中 $F=(F_1,\ldots,F_n)$ 为向量场，$\partial_\nu u=\nabla u\cdot\nu$ 为外法向导数。扩散系数记为 $\kappa>0$，波速记为 $c>0$，区间长度记为 $\ell>0$。源项通常记为 $f$；$g$、$h$ 表示具体问题中说明的已知初始或边界数据，各章均重新明确其含义。
+
+$C^k$ 表示具有 $k$ 阶连续偏导数的函数类；$L^p$ 表示按几乎处处相等识别的勒贝格可积函数空间，其精确定义在附录\ref{app:analysis}补充。$\|v\|_{L^2(\Omega)}^2=\int_\Omega |v|^2\,dx$。多重指标、分布与索伯列夫空间在第\ref{chap:sobolev}章定义。常数的取值和依赖关系在具体估计中说明，不把不同上下文中的常数视为同一个数。
+
+\section{参考资料与核对依据}
+
+基础课程选题可对照 MIT 的公开课程大纲\cite{mit152}；弱导数、椭圆弱解和演化方程可配合 Hunter 的讲义\cite{hunter}阅读；分析与数值方法的衔接可对照 MIT 的相关课程\cite{mit303}。这些资料用于核对课程覆盖和继续阅读，本书的章节安排与例题设计按上述学习路线组织。
+
+\mainmatter
+
+\part{基础概念与模型}
+
+\chapter{偏微分方程的基本概念}
+\label{chap:concepts}
+
+偏微分方程把一个场在不同方向的变化联系起来。例如温度是位置与时间的函数，温度的时间变化又受到空间温差的影响。因此，首先应辨认未知量、独立变量和定义域，再讨论方程的结构。
+
+\section{从常微分方程到偏微分方程}
+\begin{definition}
+设 $\Omega\subset\mathbb R^n$ 为开集。含有未知函数 $u:\Omega\to\mathbb R$ 及其偏导数的关系称为偏微分方程；其中实际出现的最高阶偏导数的阶数称为方程的\keyterm{阶（order）}。二阶标量方程可写为
+\[
+ F(x,u,\nabla u,D^2u)=0,
+\]
+其中 $D^2u=(\partial_{x_i x_j}u)_{i,j=1}^n$ 为海森矩阵（Hessian matrix），$F$ 为已知函数。
+\end{definition}
+当未知量是向量时得到方程组。时间也是独立变量，但为突出演化方向通常写成 $u(x,t)$。热方程 $u_t-\kappa u_{xx}=0$ 按所有导数的最高阶计是二阶方程，按时间导数看则是一阶演化方程。
+
+在矩形 $I\times J$ 上，$u_x=0$ 的所有 $C^1$ 解为 $u(x,y)=g(y)$，其中 $g$ 可任取 $C^1$ 函数：固定 $y$ 后，一元函数 $x\mapsto u(x,y)$ 的导数为零，故沿水平线为常数。偏微分方程的解通常包含函数自由度，仅写方程不足以确定解。定义在某点邻域内的解称局部解；定义在所讨论的整个区域或全部正时间上的解称整体解，二者不能混同。
+
+\section{线性结构与非线性的层次}
+\begin{definition}
+二阶方程若能写成
+\[
+ Lu:=\sum_{i,j=1}^n a_{ij}(x)u_{x_ix_j}
+       +\sum_{i=1}^n b_i(x)u_{x_i}+d(x)u=f(x),
+\]
+则称为\keyterm{线性方程（linear equation）}，因为 $L(\alpha u+\beta v)=\alpha Lu+\beta Lv$。$f=0$ 时称齐次，否则称非齐次。若最高阶项仍线性且其系数只依赖 $x$，低阶项允许非线性，称\keyterm{半线性（semilinear）}；若最高阶项线性而系数还可依赖 $u,\nabla u$，称\keyterm{拟线性（quasilinear）}；最高阶导数以非线性方式出现时称\keyterm{完全非线性（fully nonlinear）}。
+\end{definition}
+这是一组逐层包含的结构类别，具体分类时通常指出最精细的一类。一阶方程的拟线性系数可依赖 $u$；二阶方程的拟线性系数还可依赖一阶导数。
+
+\begin{example}
+$u_t-u_{xx}=u^3$ 是二阶半线性方程；$u_t+u u_x=0$ 是一阶拟线性方程；$u_{xx}u_{yy}-u_{xy}^2=1$ 是二阶完全非线性方程。$x^2u_{xx}+\sin x\,u_y=0$ 仍是线性方程，自变量进入系数不破坏线性。
+\end{example}
+若 $Lu_1=Lu_2=f$，则 $L(u_1-u_2)=0$。因而非齐次方程的解集在非空时是“一个特解加齐次解空间”。但叠加还必须与边界数据匹配：两个具有相同非零边值的解相加，一般不再具有原边值。
+
+\section{经典解、广义解与解的验证}
+\begin{definition}
+若未知函数具有方程中要求的连续偏导数，并在定义域内逐点满足方程，就称为\keyterm{经典解（classical solution）}。对热方程常写 $u\in C^{2,1}$，表示所需的二阶空间导数和一阶时间导数连续。完整定解问题还要求在指定意义下满足初始条件和边界条件。
+\end{definition}
+验证解有三个环节：检查定义域与可微性，代入微分方程，核对全部附加数据。例如
+\[
+ u(x,t)=e^{-\kappa(\pi/\ell)^2t}\sin(\pi x/\ell)
+\]
+满足 $u_t=\kappa u_{xx}$、$u(0,t)=u(\ell,t)=0$，其初值只能是 $\sin(\pi x/\ell)$，不能据此宣称它解出了任意初温问题。
+
+若初值 $g(x)=|x|$，输运表达式 $u(x,t)=|x-at|$ 沿直线 $x=at$ 不可微，不能作为该处的经典解。将导数转移到光滑测试函数后，它仍可满足积分恒等式。这引出\keyterm{弱解（weak solution）}：保留方程的积分意义，放宽解本身的可微性。严格定义见第\ref{chap:sobolev}章。
+
+\section{适定性与研究问题的层次}
+\begin{definition}
+设数据属于赋范空间 $Y$，解属于赋范空间 $X$。若每个允许的数据 $d\in Y$ 都有唯一解 $u\in X$，且数据到解的映射连续，则称问题在这些空间中\keyterm{适定（well-posed）}。连续依赖的含义是 $d_m\to d$ 蕴含相应的 $u_m\to u$，分别采用 $Y$ 和 $X$ 的范数。
+\end{definition}
+存在性回答能否求解，唯一性回答是否由数据确定，稳定性回答数据误差会怎样影响结果。显式公式是求解工具，适定性则是问题本身的性质；许多适定问题没有可用的闭式解。逆向热方程有些数据确实能产生解，但高频误差会剧烈放大，因此连续依赖仍可能失败，见第\ref{chap:heat}章。
+
+\section{例题与习题}
+\begin{example}
+在矩形上求 $u_{xy}=0$ 的全部 $C^2$ 解，并附加 $u(x,0)=p(x)$、$u(0,y)=q(y)$。
+\end{example}
+\begin{solve}
+固定 $x$，$u_x$ 与 $y$ 无关，所以积分得 $u(x,y)=A(x)+B(y)$。两条坐标轴相交处必须满足 $p(0)=q(0)$；在此前提下唯一解为
+\[
+ u(x,y)=p(x)+q(y)-p(0).
+\]
+其中 $p,q\in C^2$，且矩形含有相应轴段。代入即可验证；若交点数据不同，则不存在连续解。
+\end{solve}
+\begin{enumerate}
+ \item 分类 $u_t=(1+u^2)u_{xx}$ 与 $u_t=u_{xx}+(u_x)^2$，说明判别依据。
+ \item 证明线性齐次边值问题的解集是线性空间，非齐次问题的非空解集通常只是仿射空间。
+ \item 对 $u_t+a u_x=0$ 的平移解，证明初值在上确界范数中的误差在演化中保持不变。
+\end{enumerate}
+
+\chapter{物理模型与定解问题}
+\label{chap:modeling}
+
+建模把三类信息合并起来：守恒定律描述收支，材料规律描述通量，初始与边界条件描述实验配置。数学推导应保留这些信息的来源。
+
+\section{守恒律与局部平衡}
+设 $\rho$ 为体密度，$J$ 为流出通量，$s$ 为单位体积源项。对任意固定的光滑控制体 $V$，收支关系为
+\begin{equation}
+ \frac{d}{dt}\int_V\rho\,dx
+ =-\int_{\partial V}J\cdot\nu\,dS+\int_Vs\,dx.
+ \label{eq:balance-integral}
+\end{equation}
+假设 $\rho$ 对时间连续可微、$J$ 对空间连续可微、$s$ 连续，则可交换微分与积分并使用散度定理，得到
+\[
+ \int_V(\rho_t+\operatorname{div}J-s)\,dx=0.
+\]
+被积函数连续，若它在一点为正或为负，则在充分小球上保持同号，与积分恒为零矛盾。因此
+\begin{equation}
+ \rho_t+\operatorname{div}J=s.
+ \label{eq:local-balance}
+\end{equation}
+守恒关系还不能单独决定 $\rho$ 与 $J$；描述材料响应的\keyterm{构成关系（constitutive relation）}负责把未知量联系起来。
+
+\section{热传导、扩散与平衡模型}
+设 $u$ 为温度，$C(x)>0$ 为体积热容量，$k(x)>0$ 为各向同性热导率，$Q$ 为热源。忽略材料参数随温度的变化，内能密度相对某参考温度为 $Cu$。\keyterm{傅里叶定律（Fourier's law）}$J=-k\nabla u$ 表示热从高温处流向低温处。代入式\eqref{eq:local-balance}得
+\begin{equation}
+ C u_t-\operatorname{div}(k\nabla u)=Q.
+ \label{eq:heat-model}
+\end{equation}
+常系数时令 $\kappa=k/C$、$f=Q/C$，得到 $u_t-\kappa\Delta u=f$。变系数时 $\operatorname{div}(k\nabla u)=k\Delta u+\nabla k\cdot\nabla u$，不能漏掉第二项。各向异性材料中 $k$ 应换成适当正定的矩阵。
+
+扩散浓度满足同样的收支结构，\keyterm{菲克定律（Fick's law）}以浓度梯度决定扩散通量。稳态时 $u_t=0$，常系数无源模型归结为 $\Delta u=0$；有源模型可统一写为 $-\Delta u=f$，这就是泊松方程。
+
+\section{弦振动与波动模型}
+设弦的平衡位置为 $0<x<\ell$，横向位移为 $u(x,t)$，线密度为 $\rho_0>0$，恒定张力为 $\mathcal T>0$。假设斜率 $|u_x|\ll1$，忽略纵向运动与张力变化，则张力的竖直分量近似为 $\mathcal T u_x$。长度为 $\delta x$ 的弦段满足
+\[
+ \rho_0\delta x\,u_{tt}\approx
+ \mathcal T\bigl(u_x(x+\delta x,t)-u_x(x,t)\bigr)+q(x,t)\delta x.
+\]
+除以 $\delta x$ 并取极限得
+\begin{equation}
+ u_{tt}-c^2u_{xx}=f,\qquad
+ c=\sqrt{\mathcal T/\rho_0},\qquad f=q/\rho_0.
+ \label{eq:wave-model}
+\end{equation}
+小斜率与恒张力是模型假设，并非方程的推论。若单位长度阻力正比于速度，另得 $u_{tt}+\gamma u_t-c^2u_{xx}=f$，其中 $\gamma\ge0$。
+
+\section{初始条件、边界条件与相容性}
+热方程的典型\keyterm{初值（initial data）}为 $u(x,0)=g(x)$；波动方程还需要 $u_t(x,0)=h(x)$。这与其分别含一阶、二阶时间导数有关。空间边界常见三类条件：
+\[
+ \underbrace{u=g}_{\text{狄利克雷（Dirichlet）}},\qquad
+ \underbrace{\partial_\nu u=g}_{\text{诺伊曼（Neumann）}},\qquad
+ \underbrace{\alpha u+\beta\partial_\nu u=g}_{\text{罗宾（Robin）}}.
+\]
+具体问题必须说明系数与数据，并避免两个系数同时为零。热流给定通常规定的是 $-k\partial_\nu u$，而不直接是法向导数。
+
+若要求热方程解在闭区域上连续，初温与边温在交界处必须相等。若还要求方程一直成立到 $t=0$ 的边界，则需更高阶相容性。例如左端温度为 $b(t)$ 时，需 $g(0)=b(0)$，并在导数足够光滑时有 $\kappa g''(0)+f(0,0)=b'(0)$。较弱的解可以允许角点不相容，但应另行规定初值和边界的取得方式。
+
+\section{无量纲化与模型检查}
+令 $x=\ell\xi$、$t=t_*\tau$、$u=u_*v$，其中尺度均为正数。齐次热方程变为
+\[
+ v_\tau=\frac{\kappa t_*}{\ell^2}\Delta_\xi v.
+\]
+取 $t_*=\ell^2/\kappa$ 可将系数化为一；波动方程相应取 $t_*=\ell/c$。这两个时间尺度分别反映扩散和传播机制。无量纲化（nondimensionalization）既简化参数，也暴露量纲不一致的建模错误。
+
+\section{例题与习题}
+\begin{example}
+常系数细杆具有均匀体积热源 $Q$，左端保持温度 $T_L$，右端向温度 $T_a$ 的环境散热，换热系数为 $\eta>0$。写出定解问题。
+\end{example}
+\begin{solve}
+若初温为 $g(x)$，则
+\[
+ C u_t-ku_{xx}=Q,\quad 0<x<\ell,\qquad
+ u(0,t)=T_L,\quad -k u_x(\ell,t)=\eta(u(\ell,t)-T_a),\quad
+ u(x,0)=g(x).
+\]
+右端外法向沿正 $x$ 方向，所以流出热量为 $-ku_x$。若要求连续到初始边界，$g(0)=T_L$；若要求初始时刻也具有相应的一阶边界正则性，还需 $-kg'(\ell)=\eta(g(\ell)-T_a)$。
+\end{solve}
+\begin{enumerate}
+ \item 把例题中的左端改成对流散热，写出该端的正确符号。
+ \item 对齐次诺伊曼热方程积分，证明无源时总热量守恒。
+ \item 从式\eqref{eq:wave-model}核查波速的量纲，并说明张力加倍为何不使波速加倍。
+\end{enumerate}
+
+\chapter{一阶方程与特征线法}
+\label{chap:characteristics}
+
+一阶方程规定了未知函数沿某些方向的变化率。沿这些方向积分，偏微分方程便化成常微分方程；这就是\keyterm{特征线法（method of characteristics）}。
+
+\section{常系数输运方程}
+对 $u_t+a u_x=f(x,t)$，取曲线 $x(s)=\xi+as$，链式法则给出
+\[
+ \frac{d}{ds}u(\xi+as,s)=f(\xi+as,s).
+\]
+在初值 $u(x,0)=g(x)$ 下，积分并令 $\xi=x-at$ 得
+\begin{equation}
+ u(x,t)=g(x-at)+\int_0^t f(x-a(t-s),s)\,ds.
+ \label{eq:transport-solution}
+\end{equation}
+当 $g\in C^1$、$f$ 及 $f_x$ 连续时，此式可直接微分验证为经典解。任何经典解沿同一特征线都必须满足上述常微分方程，因而该构造也证明唯一性。
+
+在半轴 $x>0$ 且 $a>0$ 时，反向追踪特征线可能先遇到 $t=0$，也可能先遇到 $x=0$。无源且流入数据为 $u(0,t)=b(t)$ 时，解分别为 $g(x-at)$（$x\ge at$）和 $b(t-x/a)$（$x<at$）。连续性要求 $g(0)=b(0)$。当 $a<0$ 时 $x=0$ 是流出端，随意再给边值可能使问题矛盾。
+
+\section{变系数线性方程与特征系统}
+考虑 $a(x,y)u_x+b(x,y)u_y+d(x,y)u=f(x,y)$，定义
+\[
+ \frac{dx}{ds}=a(x,y),\qquad \frac{dy}{ds}=b(x,y),\qquad
+ \frac{dz}{ds}=f(x,y)-d(x,y)z.
+\]
+沿特征曲线应有 $z(s)=u(x(s),y(s))$。若系数为 $C^1$，前两式在每个初始点附近有唯一特征流；第三式是线性方程。记 $D(s)=\int_0^s d(x(\sigma),y(\sigma))\,d\sigma$，则
+\[
+ z(s)=e^{-D(s)}\left[z(0)+\int_0^s e^{D(\sigma)}f(x(\sigma),y(\sigma))\,d\sigma\right].
+\]
+最后还需把特征参数反解为 $x,y$，不能停在参数曲线的计算上。
+
+\section{柯西问题与非特征条件}
+设在 $C^1$ 曲线 $\gamma(r)=(x_0(r),y_0(r))$ 上给定 $u=g(r)$。由每个 $\gamma(r)$ 发出特征线，得到映射 $(r,s)\mapsto(x(r,s),y(r,s))$。在 $s=0$，其雅可比行列式为
+\begin{equation}
+ x_0'(r)b(\gamma(r))-y_0'(r)a(\gamma(r)).
+ \label{eq:noncharacteristic}
+\end{equation}
+若此值非零，逆函数定理允许局部反解参数，从而在系数、初始曲线和数据为 $C^1$ 时构造唯一局部 $C^1$ 解。这称\keyterm{非特征条件（non-characteristic condition）}。
+
+若初始曲线本身是一条特征线，数据不能独立指定。以 $u_x+u_y=0$ 为例，解为 $u=F(y-x)$：在 $y=0$ 上给数据可以确定 $F$；在 $y=x$ 上的值只能为常数。非常数数据导致无解，常数数据则只确定 $F(0)$，不能决定整个解。
+
+\section{拟线性方程与特征线相交}
+对\keyterm{无黏伯格斯方程（inviscid Burgers equation）}$u_t+u u_x=0$，沿特征有 $du/dt=0$，因此 $u=g(\xi)$，而特征速度也是这个常数：
+\begin{equation}
+ x=\xi+t g(\xi),\qquad u(x,t)=g(\xi),\qquad
+ u_x(x,t)=\frac{g'(\xi)}{1+t g'(\xi)}.
+ \label{eq:burgers-characteristic}
+\end{equation}
+设 $g\in C^1(\mathbb R)$ 且 $g,g'$ 有界。如果 $m=\inf g'<0$，则在 $0\le t<-1/m$ 内，参数映射的导数至少为 $1+tm>0$，并且映射趋向两端无穷，所以可全局反解。若最小值 $m$ 在某点取得，则该点特征上的 $u_x$ 在 $t\uparrow-1/m$ 时趋于负无穷，而 $u$ 仍有界。这种现象称\keyterm{梯度爆破（gradient blow-up）}；其后不能继续使用单值的经典特征解。
+
+\section{例题与习题}
+\begin{example}
+求 $u_t+u u_x=0$、$u(x,0)=-\tanh x$ 的经典解存在区间及首个梯度奇异点。
+\end{example}
+\begin{solve}
+特征表示为 $x=\xi-t\tanh\xi$、$u=-\tanh\xi$。因 $g'(\xi)=-\operatorname{sech}^2\xi\ge-1$，在 $t<1$ 可反解。$\xi=0$ 对应 $x=0$，且
+\[
+ u_x(0,t)=-\frac1{1-t}.
+\]
+故首次梯度奇异发生于 $(x,t)=(0,1)$，函数值本身始终介于 $-1$ 与 $1$ 之间。
+\end{solve}
+\begin{enumerate}
+ \item 求 $u_t+a u_x=b u$ 的初值解，并核查 $b$ 对振幅而非传播速度的影响。
+ \item 对 $x u_x+y u_y=u$，在 $x=1$ 上给数据，求局部解并指出构造适用的区域。
+ \item 若 $g'\ge0$ 且 $g,g'$ 有界，证明伯格斯方程的上述构造在任意有限正时间保持经典可解。
+\end{enumerate}
+
+\chapter{二阶线性方程的分类与标准形}
+\label{chap:classification}
+
+最高阶导数决定方程对局部高频变化的主要响应，因而称为\keyterm{主部（principal part）}。二维二阶方程的主部与一个二次型对应，分类首先是线性代数问题。
+
+\section{主部、主符号与二维分类}
+考虑实系数方程
+\begin{equation}
+ A u_{xx}+2B u_{xy}+C u_{yy}+D u_x+E u_y+F u=G,
+ \label{eq:second-order-general}
+\end{equation}
+其主部矩阵为 $M=\bigl(\begin{smallmatrix}A&B\\B&C\end{smallmatrix}\bigr)$。在 $M\ne0$ 的点，若 $B^2-AC<0$，两特征值同号，称\keyterm{椭圆型（elliptic）}；若 $B^2-AC>0$，两者异号，称\keyterm{双曲型（hyperbolic）}；若 $B^2-AC=0$，矩阵秩为一，通常称二维主部为\keyterm{抛物型（parabolic）}。$M=0$ 时二阶主部消失，应单独视为退化点。
+
+$u_{xx}+u_{yy}=0$、$u_{tt}-c^2u_{xx}=0$ 和 $u_t-\kappa u_{xx}=0$ 分别给出三类典型模型。但秩一的主部本身不保证方程具有热传导那样的时间演化结构，低阶项仍需检查。
+
+\section{坐标变换与标准形}
+设 $\xi=\xi(x,y)$、$\eta=\eta(x,y)$ 为 $C^2$ 可逆局部坐标，写 $u(x,y)=v(\xi,\eta)$。以 $u_{xx}$ 为例，
+\[
+ u_{xx}=v_{\xi\xi}\xi_x^2+2v_{\xi\eta}\xi_x\eta_x+v_{\eta\eta}\eta_x^2
+         +v_\xi\xi_{xx}+v_\eta\eta_{xx}.
+\]
+若 $J=\partial(\xi,\eta)/\partial(x,y)$，新主部矩阵为 $JMJ^{\mathsf T}$。由于 $\det(JMJ^{\mathsf T})=(\det J)^2\det M$，分类在非退化坐标变换下不变。
+
+常系数时可先用正交变换对角化 $M$，再伸缩坐标，将主部化为 $v_{\xi\xi}+v_{\eta\eta}$、$v_{\xi\xi}-v_{\eta\eta}$ 或 $v_{\xi\xi}$，必要时整体乘以非零常数。变系数情形逐点对角化不等于已经找到全局坐标；坐标的可积性和雅可比非零均须另行处理。
+
+\section{特征曲线与传播结构}
+设曲线局部为 $\varphi(x,y)=\text{常数}$，其法向为 $\nabla\varphi$。当
+\[
+ A\varphi_x^2+2B\varphi_x\varphi_y+C\varphi_y^2=0
+\]
+时称为特征曲线。用切向微分表示即
+\[
+ A(dy)^2-2B\,dx\,dy+C(dx)^2=0.
+\]
+双曲型有两族实特征方向，椭圆型没有非零实特征方向，秩一抛物型有一个重方向。波动方程在 $(x,t)$ 平面中给出 $dx=\pm c\,dt$。取 $\xi=x-ct$、$\eta=x+ct$，方程变成 $v_{\xi\eta}=0$，这是达朗贝尔公式的起点。
+
+\section{高维主符号与分类的边界}
+对实对称矩阵 $M(x)$，定义\keyterm{主符号（principal symbol）}$p(x,\zeta)=\zeta^{\mathsf T}M(x)\zeta$。若存在 $\theta>0$，对所有 $\zeta\in\mathbb R^n$ 和所考虑的 $x$ 都有
+\[
+ \theta|\zeta|^2\le\zeta^{\mathsf T}M(x)\zeta\le\theta^{-1}|\zeta|^2,
+\]
+则在此正号约定下称主部一致椭圆。负定主部可先整体换号。高维双曲或抛物演化方程还需指定时间方向，不能使用一个二维判别式概括。
+
+特里科米方程（Tricomi equation）$y u_{xx}+u_{yy}=0$ 在 $y>0$ 为椭圆型，在 $y<0$ 为双曲型，在 $y=0$ 退化为秩一主部。此例说明方程类型可以随位置改变。
+
+\section{例题与习题}
+\begin{example}
+化简 $u_{xx}+4u_{xy}+u_{yy}=0$。
+\end{example}
+\begin{solve}
+$B=2$，故 $B^2-AC=3>0$。令 $\xi=(x+y)/\sqrt2$、$\eta=(x-y)/\sqrt2$，雅可比为 $-1$，主部变为 $3v_{\xi\xi}-v_{\eta\eta}$。再令 $r=\xi/\sqrt3$，得到 $w_{rr}-w_{\eta\eta}=0$。所有附加条件也必须按相同变换重写。
+\end{solve}
+\begin{enumerate}
+ \item 对 $u_{xx}+2u_{xy}+u_{yy}+u_x=0$ 取 $\xi=x+y$、$\eta=x-y$，验证所得方程为 $4v_{\xi\xi}+v_\xi+v_\eta=0$。
+ \item 写出 $y u_{xx}+u_{yy}=0$ 在 $y<0$ 内的特征曲线微分方程。
+ \item 给出一个处处椭圆但在整个无界区域上不一致椭圆的系数矩阵。
+\end{enumerate}
+
+\part{经典方法与三类基本方程}
+
+\chapter{傅里叶级数与施图姆--刘维尔理论}
+\label{chap:fourier-series}
+
+边界条件把允许的空间振型限制为一族特殊函数。把一般初值分解为这些振型后，偏微分方程可化为一列时间常微分方程。本章说明这种分解为什么成立。
+
+\section{正交函数系与傅里叶系数}
+在实空间 $L^2(a,b)$ 上定义内积 $(f,g)=\int_a^b fg\,dx$。若 $(\phi_j,\phi_k)=0$（$j\ne k$）且 $\|\phi_k\|_2=1$，称其为规范正交系。使 $\|f-\sum_{k=1}^N a_k\phi_k\|_2$ 最小的系数为 $a_k=(f,\phi_k)$：展开平方后，关于 $a_k$ 的部分恰是 $\sum_k|a_k-(f,\phi_k)|^2$。
+
+在 $(-\ell,\ell)$ 上，\keyterm{傅里叶级数（Fourier series）}的约定为
+\begin{equation}
+ f(x)\sim\frac{a_0}{2}+\sum_{k=1}^\infty\left(a_k\cos\frac{k\pi x}{\ell}+b_k\sin\frac{k\pi x}{\ell}\right),
+ \quad
+ a_k=\frac1\ell\int_{-\ell}^\ell f(x)\cos\frac{k\pi x}{\ell}\,dx,
+ \quad
+ b_k=\frac1\ell\int_{-\ell}^\ell f(x)\sin\frac{k\pi x}{\ell}\,dx.
+ \label{eq:fourier-series-coefficients}
+\end{equation}
+其中 $a_0$ 按同一公式取 $k=0$。符号 $\sim$ 先表示按此计算系数，尚未指定收敛意义。区间 $(0,\ell)$ 上的正弦系数为 $\frac2\ell\int_0^\ell f\sin(k\pi x/\ell)\,dx$，余弦系数同理；它们分别对应奇延拓与偶延拓。延拓的端点光滑性会影响系数衰减。
+
+\section{收敛方式与逐项运算}
+\begin{theorem}[傅里叶收敛的两种基本形式]
+若 $f\in L^2(-\ell,\ell)$，其对称部分和在 $L^2$ 范数下收敛到 $f$，并有帕塞瓦尔等式（Parseval's identity）
+\[
+ \frac1\ell\int_{-\ell}^\ell |f|^2\,dx
+ =\frac{|a_0|^2}{2}+\sum_{k=1}^\infty(|a_k|^2+|b_k|^2).
+\]
+若 $f$ 的周期延拓分段 $C^1$，则在每一点傅里叶级数收敛到 $(f(x-)+f(x+))/2$，周期端点按周期延拓理解。
+\end{theorem}
+\begin{proof}[证明要点]
+有限和的正交性给出勾股恒等式及贝塞尔不等式。三角多项式在 $L^2$ 中稠密，因此正交投影误差趋于零，极限即帕塞瓦尔等式。稠密性可由连续周期函数的均匀三角多项式逼近和连续函数在 $L^2$ 中的稠密性得到。逐点结论则把部分和写成狄利克雷核积分，用对称差商和分段 $C^1$ 条件控制振荡积分；它不是仅由 $L^2$ 收敛推出的。
+\end{proof}
+跳跃附近的部分和会出现不随截断阶数消失的相对超调，称吉布斯现象（Gibbs phenomenon）；振荡区域会缩小，这与 $L^2$ 收敛并不矛盾。逐项微分尤其需要谨慎：若导数级数一致收敛且原级数在一点收敛，则可逐项求导；仅有原级数逐点收敛远远不够。
+
+\section{正则施图姆--刘维尔问题}
+考虑有限区间上的\keyterm{施图姆--刘维尔问题（Sturm--Liouville problem）}
+\begin{equation}
+ -(pX')'+qX=\lambda wX,\qquad a<x<b,
+ \label{eq:sturm-liouville}
+\end{equation}
+其中 $p\in C^1([a,b])$、$q,w\in C([a,b])$ 为实函数，$p,w>0$。两端分别规定 $\alpha_1X(a)+\alpha_2p(a)X'(a)=0$ 和 $\beta_1X(b)+\beta_2p(b)X'(b)=0$，每一对实系数不同时为零。存在非零解的参数 $\lambda$ 称\keyterm{本征值（eigenvalue）}，该解称本征函数（eigenfunction）。
+
+若 $X_j,X_k$ 对应不同本征值，两式交叉相乘相减再积分，得到
+\[
+ (\lambda_j-\lambda_k)\int_a^b wX_jX_k\,dx
+ =\bigl[p(X_jX_k'-X_j'X_k)\bigr]_a^b=0.
+\]
+边界项为零正是分离自伴边界条件的作用，因此本征函数在带权内积 $(f,g)_w=\int_a^b wfg$ 下正交。
+
+\begin{theorem}[正则谱结论]
+在上述假设下，本征值均为实数、各为单本征值，可递增排列为趋于 $+\infty$ 的序列；规范化本征函数构成 $L^2((a,b),w\,dx)$ 的正交基。
+\end{theorem}
+正交性已证；实性同样由共轭乘积积分得到。选取足够大的正数平移算子后，其逆算子自伴、正且紧，应用附录\ref{app:functional}的紧自伴谱定理得到离散性与完备性；单重性来自二阶常微分方程的初值唯一性和一端的一个边界约束。一般罗宾条件下可能存在负本征值，不能把实谱误写成正谱。
+
+\section{常见谱问题与零模态}
+对 $-X''=\lambda X$，将方程乘 $X$ 并积分可得
+\[
+ \lambda\int_0^\ell X^2\,dx=\int_0^\ell(X')^2\,dx-[XX']_0^\ell.
+\]
+狄利克雷、诺伊曼和一端各取一种的混合条件均使边界项为零，因而没有负本征值。直接解常系数方程得
+\[
+\begin{array}{c|c|c}
+ \text{边界条件}&\lambda&X\text{（相差非零常数）}\\\hline
+ X(0)=X(\ell)=0&(k\pi/\ell)^2,\ k\ge1&\sin(k\pi x/\ell)\\
+ X'(0)=X'(\ell)=0&(k\pi/\ell)^2,\ k\ge0&\cos(k\pi x/\ell)\\
+ X(0)=X'(\ell)=0&((k+\tfrac12)\pi/\ell)^2,\ k\ge0&\sin((k+\tfrac12)\pi x/\ell)
+\end{array}
+\]
+诺伊曼的 $k=0$ 模态是常数，对热方程意味着平均值不衰减。其余两类的最小本征值严格为正。
+
+\section{例题与习题}
+\begin{example}
+求 $g(x)=x(\ell-x)$ 在 $(0,\ell)$ 上的正弦展开。
+\end{example}
+\begin{solve}
+令 $\omega_k=k\pi/\ell$。连续分部积分两次，利用 $g(0)=g(\ell)=0$、$g''=-2$，得
+\[
+ b_k=\frac2\ell\int_0^\ell g(x)\sin(\omega_kx)\,dx
+ =\frac{4\ell^2(1-(-1)^k)}{k^3\pi^3}.
+\]
+因此仅奇数项非零，且系数绝对可和，级数一致收敛；在区间内等于 $g$，端点也取零值。该衰减阶是边界条件与两次分部积分共同产生的。
+\end{solve}
+\begin{enumerate}
+ \item 求常数函数 $1$ 的正弦展开，解释为何级数在端点不恢复原取值。
+ \item 证明区间上满足零端点的光滑函数有 $\int|v'|^2\ge(\pi/\ell)^2\int|v|^2$。
+ \item 完整讨论混合边界谱问题中 $\lambda=0$ 的情况，避免除以 $\sqrt\lambda$ 时漏解。
+\end{enumerate}
+
+\chapter{分离变量法与本征函数展开}
+\label{chap:separation}
+
+分离变量不是猜测一般解，而是寻找可以叠加的基本模态。其有效性依赖线性结构、空间谱问题和展开的收敛性。
+
+\section{分离变量的基本步骤}
+考虑 $u_t=\kappa u_{xx}$、$u(0,t)=u(\ell,t)=0$。代入 $u=X(x)T(t)$，在非零处得到 $T'/(\kappa T)=X''/X=-\lambda$，故
+\[
+ -X''=\lambda X,\qquad T'+\kappa\lambda T=0.
+\]
+第\ref{chap:fourier-series}章给出 $\lambda_k=(k\pi/\ell)^2$，所以初温 $g$ 对应
+\begin{equation}
+ u(x,t)=\sum_{k=1}^\infty b_k e^{-\kappa\lambda_kt}\sin(k\pi x/\ell),
+ \qquad b_k=\frac2\ell\int_0^\ell g(x)\sin(k\pi x/\ell)\,dx.
+ \label{eq:heat-sine-solution}
+\end{equation}
+若 $g\in L^2(0,\ell)$，则对每个 $\varepsilon>0$，在 $t\ge\varepsilon$ 上任意有限阶导数级数都一致收敛：微分只带来 $k$ 的幂，而 $e^{-\kappa\lambda_k\varepsilon}$ 压倒任意幂，系数还满足平方可和。故正时间内可逐项微分并验证方程。初值则由帕塞瓦尔等式和级数控制收敛得到 $\|u(t)-g\|_2\to0$；不能把任意 $L^2$ 数据都解释为逐点边界数据。
+
+\section{初始数据、源项与模态方程}
+使用规范基 $\phi_k=\sqrt{2/\ell}\sin(k\pi x/\ell)$，将 $u_t-\kappa u_{xx}=f$ 投影到每个模态，得到
+\[
+ a_k'+\kappa\lambda_k a_k=f_k(t),\qquad a_k(0)=g_k,
+ \qquad f_k=(f,\phi_k),\quad g_k=(g,\phi_k).
+\]
+由积分因子法，
+\begin{equation}
+ a_k(t)=e^{-\kappa\lambda_kt}g_k+
+ \int_0^t e^{-\kappa\lambda_k(t-s)}f_k(s)\,ds.
+ \label{eq:heat-mode-forcing}
+\end{equation}
+对 $f\in C([0,T];L^2)$，它首先给出 $L^2$ 值解；若数据具有使相关导数级数局部一致收敛的额外正则性，则恢复经典解。波动方程的对应模态方程为 $a_k''+c^2\lambda_k a_k=f_k$，还须给出 $a_k'(0)$。
+
+\section{非齐次边界条件的处理}
+若 $u(0,t)=\alpha(t)$、$u(\ell,t)=\beta(t)$，取
+\[
+ v(x,t)=\alpha(t)+\frac{x}{\ell}(\beta(t)-\alpha(t)),\qquad w=u-v.
+\]
+则 $w$ 满足零边界，而
+\[
+ w_t-\kappa w_{xx}=f-v_t+\kappa v_{xx}=f-v_t,\qquad
+ w(x,0)=g(x)-v(x,0).
+\]
+边值随时间变化时必须保留 $v_t$。辅助函数的选择不唯一，但只要变换完整，最终的 $u$ 应相同。
+
+\section{矩形、圆域与特殊函数}
+在矩形 $0<x<a$、$0<y<b$ 上，令拉普拉斯方程的左右边及下边为零，上边为 $g(x)$。对光滑且在两端附近为零的 $g$，分离变量得到
+\begin{equation}
+ u(x,y)=\sum_{k=1}^\infty g_k
+ \frac{\sinh(k\pi y/a)}{\sinh(k\pi b/a)}\sin(k\pi x/a),
+ \qquad g_k=\frac2a\int_0^a g(x)\sin(k\pi x/a)\,dx.
+ \label{eq:rectangle-laplace}
+\end{equation}
+双曲正弦来自 $Y''-(k\pi/a)^2Y=0$，比例系数同时保证下边为零、上边恢复傅里叶数据。
+
+圆域需要极坐标：链式法则给出 $\Delta u=u_{rr}+r^{-1}u_r+r^{-2}u_{\theta\theta}$。求 $-\Delta\phi=\lambda\phi$ 时令 $\phi=R(r)\Theta(\theta)$，角向周期性给出 $\Theta=\cos(m\theta)$ 或 $\sin(m\theta)$，$m$ 为非负整数，而
+\[
+ r^2R''+rR'+(\lambda r^2-m^2)R=0.
+\]
+原点正则的解为贝塞尔函数（Bessel function）$J_m(\sqrt\lambda r)$；对整数 $m\ge0$，可由收敛级数
+\[
+ J_m(z)=\sum_{j=0}^\infty\frac{(-1)^j}{j!(j+m)!}\left(\frac z2\right)^{2j+m}
+\]
+定义并代入验证。半径 $R_0$ 的零边界给出 $\sqrt\lambda R_0$ 必须是 $J_m$ 的正零点。球域轴对称的角向方程为 $((1-z^2)P')'+m(m+1)P=0$，其中 $z$ 为极角的余弦，其多项式解是勒让德多项式（Legendre polynomial）。这些特殊函数由区域几何和分离后的常微分方程共同确定。
+
+\section{例题与习题}
+\begin{example}
+求两端恒温 $u(0,t)=A$、$u(\ell,t)=B$ 的无源热方程，初值为 $A+(B-A)x/\ell+\sin(\pi x/\ell)$。
+\end{example}
+\begin{solve}
+稳态 $v=A+(B-A)x/\ell$ 满足 $v''=0$。减去 $v$ 后只有一个正弦模态，故
+\[
+ u(x,t)=A+\frac{B-A}{\ell}x+e^{-\kappa(\pi/\ell)^2t}\sin(\pi x/\ell).
+\]
+首项承担边界数据，末项描述向稳态衰减的瞬态。
+\end{solve}
+\begin{enumerate}
+ \item 把第\ref{chap:fourier-series}章中 $x(\ell-x)$ 的系数代入式\eqref{eq:heat-sine-solution}，写出完整解。
+ \item 用式\eqref{eq:heat-mode-forcing}求零初值、源项 $f(x,t)=\sin(\pi x/\ell)$ 的热方程。
+ \item 对矩形问题取上边 $\sin(2\pi x/a)$，写出单模态解并直接验证。
+\end{enumerate}
+
+\chapter{一维波动方程}
+\label{chap:wave-one}
+
+波动方程把初始扰动沿特征方向传播。有限区间适合模态展开，无界区间则可以得到直接反映传播结构的公式。
+
+\section{无界弦与达朗贝尔公式}
+\begin{theorem}[达朗贝尔公式]
+设 $g\in C^2(\mathbb R)$、$h\in C^1(\mathbb R)$。$u_{tt}-c^2u_{xx}=0$、$u(x,0)=g(x)$、$u_t(x,0)=h(x)$ 的唯一 $C^2$ 解为
+\begin{equation}
+ u(x,t)=\frac{g(x-ct)+g(x+ct)}2+
+ \frac1{2c}\int_{x-ct}^{x+ct}h(s)\,ds.
+ \label{eq:dalembert}
+\end{equation}
+\end{theorem}
+\begin{proof}
+特征坐标 $\xi=x-ct$、$\eta=x+ct$ 把方程化为 $v_{\xi\eta}=0$，故 $u=F(x-ct)+G(x+ct)$。初值给出 $F+G=g$ 与 $-cF'+cG'=h$，解出 $F',G'$ 后积分，即得式\eqref{eq:dalembert}。给定的正则性保证公式可微至所需阶数，直接代入恢复三项条件；上述反推又说明任何经典解均只能取此形式。
+\end{proof}
+零初速度时，初位移分裂为两列振幅各减半、方向相反的行波。非零初速度则通过区间积分贡献位移。
+
+\section{依赖域、影响域与有限传播速度}
+点 $(x,t)$ 的值仅使用区间 $[x-ct,x+ct]$ 上的初始数据，称其\keyterm{依赖域（domain of dependence）}。初始点 $x_0$ 只能影响满足 $|x-x_0|\le ct$ 的点，这构成它的\keyterm{影响域（domain of influence）}。如果 $g,h$ 均在区间 $[a,b]$ 外为零，则 $u(\cdot,t)$ 在 $[a-ct,b+ct]$ 外为零，这就是有限传播。
+
+若两组数据之差为 $\delta g,\delta h$，达朗贝尔公式给出
+\[
+ |\delta u(x,t)|\le\|\delta g\|_{L^\infty([x-ct,x+ct])}
+ +t\|\delta h\|_{L^\infty([x-ct,x+ct])}.
+\]
+这同时说明局部数据决定性和有限时间内的连续依赖。
+
+\section{半无界弦与边界反射}
+半轴固定端 $u(0,t)=0$ 可将 $g,h$ 奇延拓至全轴后使用式\eqref{eq:dalembert}。奇对称使边界值抵消，反射波因此改变符号。若要求延拓为 $g\in C^2(\mathbb R)$、$h\in C^1(\mathbb R)$，半轴数据需满足 $g(0)=g''(0)=h(0)=0$ 等相应端点条件。较少相容性时，公式仍可在适当弱意义下使用，但不能宣称经过所有反射特征后仍是全局 $C^2$ 解。
+
+自由端 $u_x(0,t)=0$ 使用偶延拓，反射不变号；相应光滑延拓需要 $g'(0)=h'(0)=0$。有限区间固定两端时，先作奇延拓再作 $2\ell$ 周期延拓，即可描述反复反射，也可等价地使用正弦级数。
+
+\section{受迫振动与杜阿梅尔原理}
+外力在时刻 $s$ 施加的微小冲量相当于该时刻的初速度。把所有时刻的响应相加，得到\keyterm{杜阿梅尔原理（Duhamel's principle）}：在例如 $f$ 光滑且空间紧支集的充分条件下，零初值的受迫解为
+\begin{equation}
+ u_f(x,t)=\frac1{2c}\int_0^t\int_{x-c(t-s)}^{x+c(t-s)}f(y,s)\,dy\,ds.
+ \label{eq:wave-duhamel}
+\end{equation}
+积分域是过去光锥的内部。一般初值解等于式\eqref{eq:dalembert}与式\eqref{eq:wave-duhamel}之和，线性使这种分解成立。
+
+\section{例题与习题}
+\begin{example}
+固定两端的弦初始静止，外力为 $f(x,t)=F\sin(k\pi x/\ell)\cos(\omega t)$，其中 $F,\omega$ 为常数且 $\omega\ge0$。求受迫解。
+\end{example}
+\begin{solve}
+令 $u=a(t)\sin(k\pi x/\ell)$、$\omega_k=ck\pi/\ell$，得到 $a''+\omega_k^2a=F\cos(\omega t)$、$a(0)=a'(0)=0$。因此
+\[
+ a(t)=\begin{cases}
+ \displaystyle\frac{F}{\omega_k^2-\omega^2}\bigl(\cos(\omega t)-\cos(\omega_kt)\bigr),&\omega\ne\omega_k,\\
+ \displaystyle\frac{F}{2\omega_k}t\sin(\omega_kt),&\omega=\omega_k.
+ \end{cases}
+\]
+共振时出现线性增长的振幅；这是无阻尼模型的结论，不能直接用于含阻尼的长期响应。
+\end{solve}
+\begin{enumerate}
+ \item 令 $g=0$、$h$ 为光滑紧支集函数，求某固定位置在足够晚时的位移，并解释一维传播留下的常数位移。
+ \item 用奇延拓求固定端半轴问题，检查反射波的符号。
+ \item 对常值源项 $f=1$ 和零初值，由式\eqref{eq:wave-duhamel}求解并直接代回方程。
+\end{enumerate}
+
+\chapter{多维波动方程与能量法}
+\label{chap:wave-multi}
+
+高维空间中，波沿球面传播，几何使不同维数的表示公式有所不同。另一方面，把方程与速度相乘可以得到不依赖显式公式的能量关系，这种方法还能推广到变系数和弱解。
+
+\section{球面平均与三维表示公式}
+对 $\psi:\mathbb R^3\to\mathbb R$ 定义\keyterm{球面平均（spherical mean）}
+\[
+ M_r\psi(x)=\frac1{4\pi}\int_{|\omega|=1}\psi(x+r\omega)\,dS_\omega.
+\]
+对光滑函数，散度定理给出 $\partial_{rr}M_r\psi+2r^{-1}\partial_rM_r\psi=M_r\Delta\psi$。所以对三维波动解 $u$，函数 $W(r,t)=rM_ru(x,t)$ 满足 $W_{tt}=c^2W_{rr}$，且关于 $r$ 奇对称。对 $W$ 使用一维公式，再由 $u(x,t)=\partial_rW(0,t)$ 恢复解，得到\keyterm{基尔霍夫公式（Kirchhoff's formula）}
+\begin{equation}
+ u(x,t)=\partial_t\bigl(tM_{ct}g(x)\bigr)+tM_{ct}h(x),\qquad t>0.
+ \label{eq:kirchhoff}
+\end{equation}
+例如 $g\in C^3$、$h\in C^2$ 是保证这些运算及经典验证成立的一组充分条件。由于 $M_0g=g$ 且球面上一阶方向的平均为零，令 $t\downarrow0$ 可恢复 $u=g$、$u_t=h$。
+
+\section{降维法与传播尾部}
+让三维数据不依赖第三个坐标，得到二维解。把单位球面的上下半球投影到单位圆盘，面元之和为 $2(1-|z|^2)^{-1/2}dz$，因此令
+\[
+ P_t\psi(x)=\frac1{2\pi}\int_{|z|<1}\frac{\psi(x+ctz)}{\sqrt{1-|z|^2}}\,dz,
+\]
+便有二维公式 $u=\partial_t(tP_tg)+tP_th$。分母虽在边缘奇异，但可积；常数的归一化由 $P_t1=1$ 检查。
+
+三维公式仅使用以 $x$ 为中心、半径 $ct$ 的球面附近的初始数据；二维公式则使用整个圆盘。对于自由空间中的三维常系数波动，紧支集数据产生的信号经过后可以完全消失，体现\keyterm{惠更斯原理（Huygens' principle）}。二维一般留有传播尾部，不能将球面依赖误推广到所有维数。
+
+\section{能量恒等式与唯一性}
+设 $\Omega$ 为有界 $C^1$ 区域，$u$ 足够光滑，满足 $u_{tt}-c^2\Delta u=f$。定义
+\begin{equation}
+ E(t)=\frac12\int_\Omega\bigl(u_t^2+c^2|\nabla u|^2\bigr)\,dx.
+ \label{eq:wave-energy}
+\end{equation}
+乘方程以 $u_t$ 后分部积分，得到
+\begin{equation}
+ E'(t)=\int_\Omega f u_t\,dx+c^2\int_{\partial\Omega}u_t\partial_\nu u\,dS.
+ \label{eq:wave-energy-balance}
+\end{equation}
+固定的齐次狄利克雷边界给出 $u_t=0$，齐次诺伊曼边界给出 $\partial_\nu u=0$，两者都消去边界项。无源时 $E(t)=E(0)$。
+
+\begin{proposition}
+对同一组初位移、初速度和上述同类齐次边界，光滑波动解至多有一个。
+\end{proposition}
+\begin{proof}
+两个解之差 $w$ 满足齐次方程、零初值及齐次边界，因而 $E_w(t)=0$，特别是 $w_t=0$。结合 $w(x,0)=0$ 得 $w=0$。这也处理了诺伊曼条件下梯度不能单独控制常数的问题。
+\end{proof}
+有源时由柯西--施瓦茨不等式得到 $E'\le\sqrt{2E}\|f\|_2$，经对 $\sqrt{E+\varepsilon}$ 积分再令 $\varepsilon\downarrow0$ 得
+\[
+ \sqrt{E(t)}\le\sqrt{E(0)}+\frac1{\sqrt2}\int_0^t\|f(s)\|_2\,ds.
+\]
+将此式用于解之差即可得到能量范数中的连续依赖。
+
+\section{局部能量与有限传播}
+在无源全空间问题中，固定 $(x_0,t_0)$，对缩小的球 $B_{c(t_0-t)}(x_0)$ 定义局部能量。求导时球面向内移动，除式\eqref{eq:wave-energy-balance}的通量外，还产生负的运动边界项，因此
+\[
+ E_{\mathrm{loc}}'(t)=\int_{\partial B_{c(t_0-t)}}
+ \left[c^2u_t\partial_\nu u-\frac c2(u_t^2+c^2|\nabla u|^2)\right]dS\le0.
+\]
+最后一步来自 $2c|u_t\partial_\nu u|\le u_t^2+c^2|\nabla u|^2$。若两组数据在初始球内相同，差解的局部能量为零，结合初位移便得到过去光锥中的差解为零。这给出任意空间维数的有限传播证明。
+
+阻尼方程 $u_{tt}+\gamma u_t-c^2\Delta u=0$ 在零通量边界下满足 $E'=-\gamma\int u_t^2\le0$。该式直接给出单调性；指数衰减还需把速度项与总能量联系起来，不能仅由 $E'\le0$ 推出。
+
+\section{例题与习题}
+\begin{example}
+三维径向解 $u(x,t)=U(r,t)$，$r=|x|$，如何化为一维问题？
+\end{example}
+\begin{solve}
+对 $r>0$，$\Delta u=U_{rr}+2U_r/r$。令 $v=rU$，则 $v_{tt}=c^2v_{rr}$。若 $U$ 在原点光滑，则 $v(0,t)=0$，应把 $v$ 奇延拓后使用一维公式。求出 $v$ 再除以 $r$；原点值用极限 $U(0,t)=v_r(0,t)$ 定义，不能直接代入含 $1/r$ 的表达式。
+\end{solve}
+\begin{enumerate}
+ \item 验证 $M_r1=1$，用式\eqref{eq:kirchhoff}处理常数初位移与常数初速度。
+ \item 对齐次狄利克雷问题证明能量估计中 $\|\nabla u\|_2$ 能控制 $\|u\|_2$。
+ \item 写出含阻尼和源项时的完整能量收支，解释各项符号。
+\end{enumerate}
+
+\chapter{热方程与扩散}
+\label{chap:heat}
+
+与波动的能量守恒不同，扩散削弱空间不均匀性。热核给出显式解，最大值原理控制振幅，能量法控制平均平方大小；三者从不同角度描述同一机制。
+
+\section{热核与全空间初值问题}
+定义\keyterm{热核（heat kernel）}
+\begin{equation}
+ K_\kappa(x,t)=(4\pi\kappa t)^{-n/2}\exp\left(-\frac{|x|^2}{4\kappa t}\right),\qquad t>0.
+ \label{eq:heat-kernel}
+\end{equation}
+直接求导有
+\[
+ \partial_tK_\kappa=\left(-\frac n{2t}+\frac{|x|^2}{4\kappa t^2}\right)K_\kappa
+ =\kappa\Delta K_\kappa,
+ \qquad \int_{\mathbb R^n}K_\kappa(x,t)\,dx=1.
+\]
+后一等式由一维高斯积分的乘积得到。初值 $g\in L^p(\mathbb R^n)$、$1\le p<\infty$ 时，定义
+\begin{equation}
+ u(x,t)=(K_\kappa(t)*g)(x)=\int_{\mathbb R^n}K_\kappa(x-y,t)g(y)\,dy.
+ \label{eq:heat-convolution}
+\end{equation}
+高斯及其导数的衰减允许在正时间内微分积分，故解光滑且满足方程。记 $\tau_y g(x)=g(x-y)$，则
+\[
+ \|K_\kappa(t)*g-g\|_p
+ \le\int K_\kappa(y,t)\|\tau_y g-g\|_p\,dy\longrightarrow0.
+\]
+证明时把积分分为 $|y|<\delta$ 与其外部：前者用 $L^p$ 中平移连续性，后者用高斯质量集中和 $\|\tau_yg-g\|_p\le2\|g\|_p$。这称逼近恒等算子性质。对有界连续数据可在每个连续点恢复初值；若数据有界且一致连续，则恢复是上确界范数一致的。
+
+\section{最大值原理与比较原理}
+设 $Q_T=\Omega\times(0,T]$，其中 $\Omega$ 有界；其\keyterm{抛物边界（parabolic boundary）}为 $(\overline\Omega\times\{0\})\cup(\partial\Omega\times[0,T])$。
+\begin{theorem}[弱最大值原理]
+若 $u\in C(\overline Q_T)\cap C^{2,1}(Q_T)$ 且 $u_t-\kappa\Delta u\le0$，则 $\max_{\overline Q_T}u\le\max_{\partial_pQ_T}u$。
+\end{theorem}
+\begin{proof}
+令 $v=u-\varepsilon t$。若 $v$ 的最大值在空间内部且时间正的点取得，则该点有 $\Delta v\le0$、$v_t\ge0$，终止时刻取左时间导数即可，故 $v_t-\kappa\Delta v\ge0$，与其严格小于零矛盾。因此 $v$ 的最大值在抛物边界，令 $\varepsilon\downarrow0$ 得结论。
+\end{proof}
+对两个函数之差应用定理可得\keyterm{比较原理（comparison principle）}，再分别用于 $u-v$ 和 $v-u$ 得狄利克雷初边值问题唯一性及边界数据的上确界稳定估计。强最大值原理进一步指出：无源热解若在 $(x_0,t_0)$（$x_0\in\Omega,t_0>0$）取得此前整个闭柱体上的最大值，且 $\Omega$ 连通，则在 $\Omega\times(0,t_0]$ 为常数。强形式的证明需要局部传播论证，这里仅陈述供选读。
+
+\section{平滑效应与瞬时传播}
+对 $g\in L^1$，核的任意空间导数都满足正时间估计，从而 $u(\cdot,t)$ 为光滑函数，这称\keyterm{平滑效应（smoothing effect）}。例如
+\[
+ \|u(t)\|_\infty\le(4\pi\kappa t)^{-n/2}\|g\|_1.
+\]
+若 $g\ge0$ 且不几乎处处为零，则式\eqref{eq:heat-convolution}的被积函数非负，并在一个正测度集合上为正，所以任意 $x$ 和 $t>0$ 都有 $u(x,t)>0$。这是全空间模型中的瞬时传播，与波动方程的有限传播不同。若 $g$ 变号，则不能照搬该严格正性结论。
+
+\section{能量耗散与长时间行为}
+对光滑解和齐次狄利克雷或诺伊曼边界，乘方程以 $u$ 并积分可得
+\begin{equation}
+ \frac12\frac d{dt}\|u(t)\|_2^2+\kappa\|\nabla u(t)\|_2^2=0.
+ \label{eq:heat-energy}
+\end{equation}
+在有界连通利普希茨区域上，零边界函数满足 $\|\nabla v\|_2^2\ge\lambda_1\|v\|_2^2$，其中 $\lambda_1>0$ 为第一狄利克雷本征值。故
+\[
+ \|u(t)\|_2\le e^{-\kappa\lambda_1t}\|g\|_2.
+\]
+诺伊曼情形中，积分方程得到平均值 $\bar g=|\Omega|^{-1}\int_\Omega g$ 不变；对 $u-\bar g$ 使用零平均值庞加莱不等式，便知解趋于 $\bar g$。若有不随时间变化的源项，应先求稳态并对偏离稳态的量作估计。
+
+\section{受迫热方程与逆向不适定性}
+对光滑且满足适当可积性的源项，杜阿梅尔公式为
+\[
+ u(t)=K_\kappa(t)*g+\int_0^t K_\kappa(t-s)*f(s)\,ds.
+\]
+核在 $t=s$ 附近的意义可先通过光滑数据直接验证，再以范数估计扩展。
+
+逆向恢复初值则不同。在区间零边界问题中取规范模态 $\phi_m=\sqrt{2/\ell}\sin(m\pi x/\ell)$，令
+\[
+ u_m(x,t)=e^{-\kappa(m\pi/\ell)^2t}\phi_m(x).
+\]
+初值的 $L^2$ 范数恒为一，但对固定 $T>0$，终值范数趋于零。因此在可达终值集合上，终值到初值的逆映射在 $L^2$ 范数下不连续：任意小的终值误差也可能对应不可忽略的初值误差。
+
+\section{例题与习题}
+\begin{example}
+设 $g(x)=M(4\pi\alpha)^{-n/2}e^{-|x|^2/(4\alpha)}$，$M>0$、$\alpha>0$。求全空间热方程的解。
+\end{example}
+\begin{solve}
+高斯卷积通过配方得到参数相加，故
+\[
+ u(x,t)=M\,[4\pi(\alpha+\kappa t)]^{-n/2}
+ \exp\left(-\frac{|x|^2}{4(\alpha+\kappa t)}\right).
+\]
+空间积分始终为 $M$，峰值下降，而每个坐标方向的方差由 $2\alpha$ 增为 $2(\alpha+\kappa t)$。扩散降低峰值但不消灭总量。
+\end{solve}
+\begin{enumerate}
+ \item 对非负可积初值证明全空间总质量守恒，并说明交换积分的依据。
+ \item 比较同一初温在绝热杆与零温端点杆中的极限状态。
+ \item 将高频反例改为终值中任意小扰动会引起指定大小初值误差的表述。
+\end{enumerate}
+
+\chapter{拉普拉斯方程与调和函数}
+\label{chap:harmonic}
+
+平衡场没有独立的时间演化，但其内部值仍受强烈约束：一个点的值等于周围球面的平均。平均值性质是极值原理和内部平滑性的共同来源。
+
+\section{调和函数与格林恒等式}
+\begin{definition}
+若 $u\in C^2(\Omega)$ 且 $\Delta u=0$，则称 $u$ 为\keyterm{调和函数（harmonic function）}。
+\end{definition}
+设 $\Omega$ 为有界 $C^1$ 区域，$u,v\in C^2(\overline\Omega)$。对 $u\nabla v$ 使用散度定理得到\keyterm{格林第一恒等式（Green's first identity）}
+\begin{equation}
+ \int_\Omega(\nabla u\cdot\nabla v+u\Delta v)\,dx
+ =\int_{\partial\Omega}u\partial_\nu v\,dS.
+ \label{eq:green-first}
+\end{equation}
+交换 $u,v$ 并相减，得到格林第二恒等式
+\begin{equation}
+ \int_\Omega(u\Delta v-v\Delta u)\,dx
+ =\int_{\partial\Omega}(u\partial_\nu v-v\partial_\nu u)\,dS.
+ \label{eq:green-second}
+\end{equation}
+本章使用外法向；改变方向会同时改变全部边界项的符号。
+
+\section{平均值性质与内部正则性}
+记 $\sigma_{n-1}$ 为单位球面面积。若 $\overline{B_R(x_0)}\subset\Omega$，球面平均 $m(r)$ 的导数满足
+\[
+ m'(r)=\frac1{\sigma_{n-1}r^{n-1}}\int_{\partial B_r(x_0)}\partial_\nu u\,dS
+ =\frac1{\sigma_{n-1}r^{n-1}}\int_{B_r(x_0)}\Delta u\,dx=0.
+\]
+令 $r\downarrow0$，再对半径积分，得到
+\begin{equation}
+ u(x_0)=\frac1{|\partial B_r|}\int_{\partial B_r(x_0)}u\,dS
+       =\frac1{|B_r|}\int_{B_r(x_0)}u\,dx.
+ \label{eq:harmonic-mean}
+\end{equation}
+这称\keyterm{平均值性质（mean value property）}。
+
+若连续函数在所有内含小球上满足平均值性质，则与任意径向光滑单位质量磨光核卷积后在内部仍等于自身，故它内部光滑。对球平均作二阶泰勒展开再令半径趋于零，便得 $\Delta u=0$。同一卷积表示也说明调和函数的高阶导数可由稍大邻域中的函数值控制；内部光滑并不保证连续到任意形状的边界。
+
+\section{最大值原理与唯一性}
+\begin{theorem}
+设 $\Omega$ 有界、连通，$u\in C^2(\Omega)\cap C(\overline\Omega)$ 调和，则最大值和最小值均在边界取得。若最大值在内部取得，则 $u$ 为常数。
+\end{theorem}
+\begin{proof}
+设 $u(x_0)=M=\max_{\overline\Omega}u$ 且 $x_0\in\Omega$。平均值公式与 $u\le M$ 说明每个充分小球上 $u=M$，否则连续性会使平均严格小于 $M$。因此最大值点集在 $\Omega$ 中既闭又开，连通性使其等于 $\Omega$。若没有内部最大值，则最大值自然在边界；最小值对 $-u$ 应用同一论证。
+\end{proof}
+对两个调和延拓之差应用定理得
+\[
+ \|u_1-u_2\|_{C(\overline\Omega)}\le\|g_1-g_2\|_{C(\partial\Omega)}.
+\]
+这给出唯一性与稳定性，但存在性仍需另行构造。
+
+\section{泊松积分公式与圆盘边值问题}
+单位圆盘上连续边值 $g(\theta)$ 的调和延拓为
+\begin{equation}
+ u(r,\theta)=\frac1{2\pi}\int_0^{2\pi}
+ \frac{1-r^2}{1-2r\cos(\theta-\varphi)+r^2}g(\varphi)\,d\varphi,
+ \qquad 0\le r<1.
+ \label{eq:poisson-disk}
+\end{equation}
+核的傅里叶展开为 $1+2\sum_{k\ge1}r^k\cos(k(\theta-\varphi))$，由几何级数求和得到。对 $r<1$ 可逐项微分，且每个 $r^k\cos(k\theta)$、$r^k\sin(k\theta)$ 都调和。核非负、积分为 $2\pi$，当 $r\uparrow1$ 时质量集中在 $\varphi=\theta$ 附近；利用 $g$ 的一致连续性便可证明边界一致收敛。
+
+对于 $n\ge2$ 的球 $B_R(0)$，对应\keyterm{泊松核（Poisson kernel）}为
+\[
+ P(x,y)=\frac{R^2-|x|^2}{\sigma_{n-1}R|x-y|^n},\qquad |x|<R,\quad |y|=R,
+\]
+解为 $\int_{\partial B_R}P(x,y)g(y)\,dS_y$。它将在第\ref{chap:green}章中与法向导数表示联系起来。
+
+\section{哈纳克不等式与刘维尔定理}
+\begin{proposition}[哈纳克不等式的局部形式]
+若 $u\ge0$ 在 $B_{2R}(x_0)$ 调和，则对 $x\in B_R(x_0)$ 有 $C_n^{-1}u(x_0)\le u(x)\le C_nu(x_0)$，其中 $C_n$ 只依赖维数。
+\end{proposition}
+\begin{proof}
+在半径 $3R/2$ 的球面使用泊松表示。对 $|x-x_0|\le R$，分子介于固定正数乘 $R^2$ 之间，$|x-y|$ 介于 $R/2$ 与 $5R/2$ 之间，所以核与球心处的常数核上下可比。乘以非负边值并积分即得。
+\end{proof}
+沿紧子集中的有限球链迭代可比较正调和函数在不同点的值，这称\keyterm{哈纳克不等式（Harnack inequality）}。
+
+\begin{theorem}[刘维尔定理]
+定义在整个 $\mathbb R^n$ 上且有界的调和函数必为常数。
+\end{theorem}
+\begin{proof}
+在任意球 $B_R(x_0)$ 的泊松公式中对 $x$ 求导并取 $x=x_0$，可得 $|\nabla u(x_0)|\le C_nR^{-1}\|u\|_\infty$。令 $R\to\infty$ 得梯度为零，再用连通性得常数。
+\end{proof}
+
+\section{例题与习题}
+\begin{example}
+求单位圆盘上边值 $g(\theta)=1+2\cos2\theta-\sin3\theta$ 的调和延拓。
+\end{example}
+\begin{solve}
+每个角频率 $k$ 对应原点正则的径向因子 $r^k$，所以
+\[
+ u(r,\theta)=1+2r^2\cos2\theta-r^3\sin3\theta.
+\]
+逐项验证调和与边值，再由最大值原理保证唯一性。取球心值得 $u(0)=1$，恰等于边界平均值。
+\end{solve}
+\begin{enumerate}
+ \item 求二维径向调和函数，解释包含原点时对数项为什么必须消失。
+ \item 证明 $x_1$ 是全空间调和但非常数的函数，指出它为何不违背刘维尔定理。
+ \item 若连续边值满足 $m\le g\le M$，用泊松核证明解也满足相同界。
+\end{enumerate}
+
+\chapter{泊松方程、格林函数与位势}
+\label{chap:green}
+
+有源平衡问题的解可以分解为各点源响应的叠加。自由空间中的点源响应称基本解；为了同时满足区域边界，需要再加一个调和修正。
+
+\section{基本解与点源的解释}
+对 $n\ge2$，记 $\sigma_{n-1}$ 为单位球面面积，统一考虑算子 $-\Delta$。其\keyterm{基本解（fundamental solution）}为
+\begin{equation}
+ \Phi(x)=\begin{cases}
+ \displaystyle-\frac1{2\pi}\log|x|,&n=2,\\
+ \displaystyle\frac{|x|^{2-n}}{(n-2)\sigma_{n-1}},&n\ge3.
+ \end{cases}
+ \label{eq:laplace-fundamental}
+\end{equation}
+径向公式 $\Delta\Phi=\Phi''+(n-1)\Phi'/r$ 说明它在原点外调和；常数由 $-\int_{\partial B_r}\partial_\nu\Phi\,dS=1$ 确定。对任意光滑紧支集函数 $\varphi$，在去掉 $B_\varepsilon$ 的区域分部积分并令 $\varepsilon\downarrow0$，小球通量给出
+\[
+ \int_{\mathbb R^n}\Phi(x)(-\Delta\varphi(x))\,dx=\varphi(0).
+\]
+这就是 $-\Delta\Phi=\delta_0$ 的严格积分含义，其中 $\delta_0$ 为单位点源。基本解在原点奇异，却局部可积；不能以“原点外调和”断言它在全空间的拉普拉斯算子处处为零。
+
+\section{牛顿位势与源项正则性}
+设 $f\in C_c^\infty(\mathbb R^n)$，定义\keyterm{牛顿位势（Newtonian potential）}
+\[
+ u(x)=(\Phi*f)(x)=\int_{\mathbb R^n}\Phi(x-y)f(y)\,dy.
+\]
+局部可积性和紧支集保证积分存在。把导数转移到 $f$，即 $D^\alpha u=\Phi*D^\alpha f$，可证明 $u$ 光滑；用基本解恒等式得 $-\Delta u=f$。直接把两个导数作用在奇异核上反而需要处理非绝对可积项，因此上述转移是证明中的关键。
+
+当 $n\ge3$ 时位势在远处趋于零；二维中一般呈对数行为，是否消除该项取决于总源量 $\int f$。全空间泊松方程的解还可以加任意调和函数，因此远处增长或衰减条件承担额外的唯一性约束。
+
+\section{区域格林函数与表示公式}
+设 $\Omega$ 为有界光滑区域。固定 $x\in\Omega$，若 $H_x(y)$ 是边值 $\Phi(y-x)$ 的调和延拓，则
+\[
+ G(x,y)=\Phi(y-x)-H_x(y)
+\]
+满足 $-\Delta_yG(x,y)=\delta_x(y)$、$G(x,y)=0$（$y\in\partial\Omega$），称狄利克雷\keyterm{格林函数（Green's function）}。它同时依赖算子和区域，而基本解只描述全空间的点源。
+
+若 $u\in C^2(\overline\Omega)$、$-\Delta u=f$、边值为 $g$，对去掉源点小球的区域应用式\eqref{eq:green-second}并取极限，得到
+\begin{equation}
+ u(x)=\int_\Omega G(x,y)f(y)\,dy-
+       \int_{\partial\Omega}g(y)\partial_{\nu_y}G(x,y)\,dS_y.
+ \label{eq:green-representation}
+\end{equation}
+负号来自本书对 $-\Delta$ 的约定。故泊松核就是 $-\partial_{\nu_y}G$。对两个源点的格林函数应用同一恒等式并分别移去奇点，可得 $G(x,y)=G(y,x)$；这里使用了算子的对称性和相同的齐次边界条件。
+
+\section{镜像法与简单区域}
+在半空间 $\Omega=\{y_n>0\}$，令 $x^*=(x_1,\ldots,x_{n-1},-x_n)$。\keyterm{镜像法（method of images）}给出
+\[
+ G(x,y)=\Phi(y-x)-\Phi(y-x^*).
+\]
+第二个奇点位于区域外，因而只提供调和修正；边界上两个距离相等，函数值抵消。因此源点奇性和齐次边界条件都得到保留。
+
+球 $B_R(0)$ 中，当 $n\ge3$、$x\ne0$ 时令 $x^*=R^2x/|x|^2$，可得
+\[
+ G(x,y)=\Phi(y-x)-\left(\frac R{|x|}\right)^{n-2}\Phi(y-x^*).
+\]
+边界关系 $|y-x^*|=(R/|x|)|y-x|$ 验证了零边值；$x=0$ 的极限为 $\Phi(y)-\Phi(R)$，其中 $\Phi(R)$ 表示半径为 $R$ 处的径向值。对边界法向求导即恢复上一章的球泊松核。
+
+\section{诺伊曼问题的相容性与常数歧义}
+对 $-\Delta u=f$、$\partial_\nu u=g$，散度定理给出必要条件
+\begin{equation}
+ \int_\Omega f\,dx+\int_{\partial\Omega}g\,dS=0.
+ \label{eq:neumann-compatibility}
+\end{equation}
+若两个解对应相同数据，差 $w$ 满足 $\Delta w=0$、$\partial_\nu w=0$。在式\eqref{eq:green-first}中取 $u=v=w$，得 $\int|\nabla w|^2=0$；连通性说明 $w$ 为常数。因而可以附加 $\int_\Omega u=0$ 消除歧义。在有界利普希茨区域及适当平方可积数据下，相容条件也保证弱解存在，证明见第\ref{chap:elliptic-weak}章。
+
+\section{例题与习题}
+\begin{example}
+求 $-u''=f$、$u(0)=u(\ell)=0$ 的区间格林函数，并解 $f=1$ 的情形。
+\end{example}
+\begin{solve}
+固定 $y$ 后，格林函数在 $x<y$、$x>y$ 分别线性，在 $x=y$ 连续，且由 $-G_{xx}=\delta_y$ 得 $G_x(y+,y)-G_x(y-,y)=-1$。结合零端点得
+\[
+ G(x,y)=\frac{\min(x,y)(\ell-\max(x,y))}{\ell},\qquad
+ u(x)=\int_0^\ell G(x,y)f(y)\,dy.
+\]
+取 $f=1$，分成 $y<x$ 与 $y>x$ 两段积分可得 $u=x(\ell-x)/2$，与直接积分一致。
+\end{solve}
+\begin{enumerate}
+ \item 判断 $-\Delta u=1$、$\partial_\nu u=0$ 在有界光滑区域上是否可解。
+ \item 验证半空间格林函数在源点附近与基本解有相同奇性。
+ \item 用式\eqref{eq:green-representation}检查零源项、常数边值时的符号与归一化。
+\end{enumerate}
+
+\chapter{积分变换与基本解}
+\label{chap:transforms}
+
+有限区间产生离散频率，全空间则产生连续频率。积分变换把空间微分转为代数乘法，保留时间方向的常微分方程。
+
+\section{傅里叶变换的约定与性质}
+对 $f\in L^1(\mathbb R^n)$ 定义\keyterm{傅里叶变换（Fourier transform）}
+\begin{equation}
+ \widehat f(\xi)=\int_{\mathbb R^n}e^{-ix\cdot\xi}f(x)\,dx,
+ \qquad
+ f(x)=\frac1{(2\pi)^n}\int_{\mathbb R^n}e^{ix\cdot\xi}\widehat f(\xi)\,d\xi.
+ \label{eq:fourier-convention}
+\end{equation}
+第二式在例如 $f$ 为施瓦茨函数（Schwartz function，即函数及其各阶导数快于任意负幂衰减）时成立；若 $f,\widehat f\in L^1$，则在相应连续代表上成立。$i^2=-1$，$\xi$ 为频率变量。
+
+对快速衰减的光滑函数，分部积分和富比尼定理给出
+\[
+ \widehat{\partial_{x_j}f}=i\xi_j\widehat f,\qquad
+ \widehat{\Delta f}=-|\xi|^2\widehat f,\qquad
+ \widehat{f*g}=\widehat f\,\widehat g,
+\]
+其中 $(f*g)(x)=\int f(x-y)g(y)\,dy$ 称\keyterm{卷积（convolution）}。逆变换可先在频域乘以 $e^{-\varepsilon|\xi|^2}$，把积分写成高斯卷积，再由逼近恒等算子性质令 $\varepsilon\downarrow0$。由密度延拓得到\keyterm{普朗歇尔定理（Plancherel's theorem）}
+\[
+ \|f\|_2^2=(2\pi)^{-n}\|\widehat f\|_2^2.
+\]
+对一般 $L^2$ 函数，变换先以 $L^2$ 极限定义，原积分未必逐点绝对收敛。
+
+\section{频域中的热方程与波动方程}
+空间变换把热方程化为 $\partial_t\widehat u+\kappa|\xi|^2\widehat u=0$，因此 $\widehat u=e^{-\kappa t|\xi|^2}\widehat g$。对高斯因子作逆变换恰得式\eqref{eq:heat-kernel}。高频衰减更快，是平滑与逆向不稳定的共同原因。
+
+波动方程相应给出
+\begin{equation}
+ \widehat u(\xi,t)=\cos(c|\xi|t)\widehat g(\xi)
+ +\frac{\sin(c|\xi|t)}{c|\xi|}\widehat h(\xi).
+ \label{eq:wave-fourier}
+\end{equation}
+零频率处第二个乘子取极限 $t$。每个频率只是振荡，没有热方程那样的指数衰减。对光滑快速衰减数据可直接逆变换验证；能量数据的解释依靠普朗歇尔等式和相应范数估计。
+
+\section{拉普拉斯变换与半轴时间问题}
+若 $v(t)$ 及所需导数分段连续且至多指数增长，定义\keyterm{拉普拉斯变换（Laplace transform）}
+\[
+ V(s)=\mathcal Lv(s)=\int_0^\infty e^{-st}v(t)\,dt,
+\]
+其中 $\operatorname{Re}s$ 大于相应增长率。分部积分给出 $\mathcal L(v')=sV-v(0)$、$\mathcal L(v'')=s^2V-sv(0)-v'(0)$。初始数据成为代数项，不应在变换中丢失。
+
+例如半轴 $x>0$ 上 $u_t=\kappa u_{xx}$、零初值、端点温度 $u(0,t)=b(t)$，并选择在 $x\to\infty$ 衰减的解。对时间变换得 $\kappa U_{xx}-sU=0$，故
+\[
+ U(x,s)=B(s)e^{-x\sqrt{s/\kappa}},\qquad \operatorname{Re}\sqrt{s/\kappa}>0.
+\]
+选择平方根分支与舍去增长解都来自无穷远条件。当 $b(t)=1$（$t>0$）时，反演为 $u=\operatorname{erfc}(x/(2\sqrt{\kappa t}))$，其中 $\operatorname{erfc}(z)=\frac2{\sqrt\pi}\int_z^\infty e^{-r^2}\,dr$。该问题在初始边界角点不相容，解的初值按每个固定 $x>0$ 的极限理解。
+
+\section{卷积、基本解与杜阿梅尔公式}
+受迫热方程的频率方程为 $\partial_t\widehat u+\kappa|\xi|^2\widehat u=\widehat f$，积分因子法给出
+\[
+ \widehat u(t)=e^{-\kappa t|\xi|^2}\widehat g+
+ \int_0^t e^{-\kappa(t-s)|\xi|^2}\widehat f(s)\,ds.
+\]
+逆变换恢复上一章的时空卷积公式。积分上限为 $t$ 表示因果性：当前状态不依赖未来源项。椭圆基本解则没有这种时间方向。遇到狄拉克点源或不可积核时，需要第\ref{chap:sobolev}章的分布语言，不能把形式变换当成已经完成的存在性证明。
+
+\section{例题与习题}
+\begin{example}
+按式\eqref{eq:fourier-convention}计算 $f(x)=e^{-a x^2}$ 的一维傅里叶变换，$a>0$。
+\end{example}
+\begin{solve}
+记变换为 $I(\xi)$。利用 $xf=-(2a)^{-1}f'$ 并分部积分，得 $I'(\xi)=-\xi I(\xi)/(2a)$。又 $I(0)=\sqrt{\pi/a}$，所以
+\[
+ \widehat f(\xi)=\sqrt{\pi/a}\,e^{-\xi^2/(4a)}.
+\]
+各维相乘得到高维公式，并检查热核的系数 $(4\pi\kappa t)^{-n/2}$。
+\end{solve}
+\begin{enumerate}
+ \item 由平移和伸缩的变量替换求 $f(x-a)$ 与 $f(bx)$（$b>0$）的傅里叶变换。
+ \item 对式\eqref{eq:wave-fourier}核查两项初始数据，特别处理 $\xi=0$。
+ \item 直接微分验证半轴的互补误差函数解，并说明其在哪个角点不连续。
+\end{enumerate}
+
+\part{弱解与现代分析基础}
+
+\chapter{分布、弱导数与索伯列夫空间}
+\label{chap:sobolev}
+
+经典导数要求逐点极限存在，弱导数则用积分刻画变化。这样既能保留分部积分，也能使能量有界但不光滑的函数进入方程。本章起允许使用勒贝格积分；相关基础见附录\ref{app:analysis}。
+
+\section{测试函数与分布导数}
+\keyterm{测试函数（test function）}是 $\varphi\in C_c^\infty(\Omega)$，即光滑且支集紧含于 $\Omega$ 的函数。所谓 $\varphi_j\to0$，指它们的支集均含于同一紧集，且每阶导数都一致趋于零。\keyterm{分布（distribution）}是对此收敛连续的线性泛函 $S$，作用记为 $\langle S,\varphi\rangle$。
+
+局部可积函数通过 $\langle u,\varphi\rangle=\int u\varphi$ 定义分布；\keyterm{狄拉克分布（Dirac distribution）}则由 $\langle\delta_a,\varphi\rangle=\varphi(a)$ 定义，不是普通的可积函数。分布导数规定为
+\[
+ \langle\partial_jS,\varphi\rangle=-\langle S,\partial_j\varphi\rangle.
+\]
+这个负号恰好延续光滑函数的分部积分规则，且所有分布都可以任意次求导。
+
+\section{弱导数与多重指标}
+令 $\alpha=(\alpha_1,\ldots,\alpha_n)$ 为非负整数多重指标，$|\alpha|=\sum\alpha_j$，$D^\alpha=\partial_1^{\alpha_1}\cdots\partial_n^{\alpha_n}$。
+\begin{definition}
+若 $u,v\in L^1_{\mathrm{loc}}(\Omega)$ 且
+\begin{equation}
+ \int_\Omega uD^\alpha\varphi\,dx=(-1)^{|\alpha|}\int_\Omega v\varphi\,dx
+ \quad\text{对所有 }\varphi\in C_c^\infty(\Omega),
+ \label{eq:weak-derivative}
+\end{equation}
+则称 $v$ 为 $u$ 的 $\alpha$ 阶\keyterm{弱导数（weak derivative）}。
+\end{definition}
+弱导数若存在则几乎处处唯一：两者之差与所有测试函数的积分为零，用光滑逼近或勒贝格微分定理即可推出该差几乎处处为零。经典导数在足够局部可积时也是弱导数，但一般分布导数未必可由函数表示。
+
+\begin{example}
+在 $(-1,1)$ 上，$u(x)=|x|$ 的弱导数为 $\operatorname{sgn}x$，二阶分布导数为 $2\delta_0$。阶跃函数 $H(x)=\mathbf1_{\{x>0\}}$ 的分布导数为 $\delta_0$。
+\end{example}
+\begin{proof}
+分别在负半轴和正半轴分部积分。$|x|$ 本身在零点连续，第一次求导的边界项抵消；其一阶导数从 $-1$ 跳到 $1$，第二次产生 $2\varphi(0)$。同理 $-\int_0^1\varphi'=\varphi(0)$，所以 $H'=\delta_0$。
+\end{proof}
+
+\section{索伯列夫空间与光滑逼近}
+\begin{definition}
+对整数 $k\ge0$、$1\le p<\infty$，\keyterm{索伯列夫空间（Sobolev space）}定义为
+\[
+ W^{k,p}(\Omega)=\{u\in L^p(\Omega):D^\alpha u\in L^p(\Omega),\ |\alpha|\le k\},\qquad
+ \|u\|_{W^{k,p}}=\left(\sum_{|\alpha|\le k}\|D^\alpha u\|_p^p\right)^{1/p}.
+\]
+导数均按弱意义理解；$p=\infty$ 时改用这些导数的本性上确界范数之和。记 $H^k=W^{k,2}$，其自然内积使之成为希尔伯特空间。
+\end{definition}
+这些空间完备：若 $u_j$ 在该范数下为柯西列，则各阶导数分别在 $L^p$ 中收敛；在式\eqref{eq:weak-derivative}中传递极限，便可识别极限之间的弱导数关系。
+
+取 $\eta\in C_c^\infty(\mathbb R^n)$、$\eta\ge0$、$\int\eta=1$，令 $\eta_\varepsilon(x)=\varepsilon^{-n}\eta(x/\varepsilon)$。卷积 $u_\varepsilon=\eta_\varepsilon*u$ 称\keyterm{磨光（mollification）}。在远离边界的紧子区域上，$p<\infty$ 时 $u_\varepsilon\to u$ 于相应 $W^{k,p}$ 范数，且 $D^\alpha u_\varepsilon=\eta_\varepsilon*D^\alpha u$。靠近边界需延拓或截断，不能自动认为卷积保持零边值。
+
+\section{迹、零边界空间与庞加莱不等式}
+定义 $H_0^1(\Omega)$ 为 $C_c^\infty(\Omega)$ 在 $H^1$ 中的闭包。\keyterm{利普希茨区域（Lipschitz domain）}指边界在每一点附近经过刚体坐标变换后，能写成利普希茨函数的图像，且区域局部位于图像的一侧；利普希茨条件为 $|F(x)-F(y)|\le L|x-y|$，其中 $L$ 为有限常数。对有界利普希茨区域，存在连续的\keyterm{迹算子（trace operator）}$\operatorname{Tr}:H^1(\Omega)\to L^2(\partial\Omega)$，在光滑函数上等于边界限制，且其核恰为 $H_0^1(\Omega)$。这里的边界值由连续延拓定义，与改变函数在零测集上的代表无关。
+
+\begin{theorem}[庞加莱不等式]
+若 $\Omega$ 有界，则存在 $C_P>0$，使 $\|v\|_2\le C_P\|\nabla v\|_2$ 对所有 $v\in H_0^1(\Omega)$ 成立。若 $\Omega$ 还连通且为利普希茨区域，则同类估计对零平均值的 $H^1$ 函数也成立。
+\end{theorem}
+\begin{proof}[零边界情形的证明]
+把 $\Omega$ 放在宽度 $L$ 的长方体内，对 $v\in C_c^\infty(\Omega)$ 作零延拓。沿第一坐标有 $v(x)=\int_a^{x_1}\partial_1v(s,x')\,ds$，由柯西--施瓦茨及再积分得 $\|v\|_2\le L\|\partial_1v\|_2$。再用定义中的稠密性推广到 $H_0^1$。
+\end{proof}
+零平均值情形可由下节紧性反证：若估计失败，取 $\|v_j\|_2=1$、$\|\nabla v_j\|_2\to0$、均值为零的序列，紧性给出 $L^2$ 极限 $v$；其弱梯度为零，连通性使 $v$ 为常数，均值为零又迫使 $v=0$，与范数为一矛盾。
+
+\section{嵌入与紧性}
+对有界利普希茨区域，\keyterm{索伯列夫嵌入（Sobolev embedding）}提供以下常用结论：$n>2$ 时 $H^1\hookrightarrow L^{2n/(n-2)}$；$n=2$ 时 $H^1\hookrightarrow L^q$ 对所有有限 $q$ 成立；$n=1$ 的区间上 $H^1$ 函数具有连续代表并嵌入 $L^\infty$。箭头表示存在控制相应范数的常数，不表示保持相同范数。
+
+\keyterm{雷利希--孔德拉绍夫紧性定理（Rellich--Kondrachov compactness theorem）}进一步给出 $H^1(\Omega)\hookrightarrow L^2(\Omega)$ 的紧嵌入：每个 $H^1$ 有界序列有一个 $L^2$ 强收敛子列。一般不能在临界指数处把连续嵌入改成紧嵌入。这些定理的完整证明需实分析工具，本书使用上述明确范围，进一步证明可参见文献\cite{hunter}第3章。
+
+\section{例题与习题}
+\begin{example}
+判断 $|x|$ 在 $(-1,1)$ 上是否属于 $H^1$、$H^2$ 和 $H_0^1$。
+\end{example}
+\begin{solve}
+$|x|$ 及其弱导数 $\operatorname{sgn}x$ 均平方可积，故属于 $H^1$；二阶导数为点质量，不能由 $L^2$ 函数表示，故不属于 $H^2$。它的两个端点迹均为 $1$，故不属于 $H_0^1$。相反 $1-|x|$ 属于 $H_0^1$，但仍不属于 $H^2$。
+\end{solve}
+\begin{enumerate}
+ \item 在区间上直接证明 $|v(x)-v(y)|\le\|v'\|_2|x-y|^{1/2}$，先对光滑函数再由逼近推广。
+ \item 说明非零常数为何反驳没有边界或均值约束的庞加莱不等式。
+ \item 举出弱收敛而不强收敛的 $L^2$ 序列，比较它与紧嵌入所要求的 $H^1$ 有界性。
+\end{enumerate}
+
+\chapter{椭圆方程的弱解与变分方法}
+\label{chap:elliptic-weak}
+
+显式公式依赖区域几何，弱形式则依靠积分和能量，能够统一处理一般区域。核心步骤是：选定解空间，把方程写为连续双线性型，再检查能量能否控制未知量。
+
+\section{从经典方程到弱形式}
+设 $\Omega$ 为有界利普希茨区域，$f\in L^2(\Omega)$。若 $u$ 是 $-\Delta u=f$、$u|_{\partial\Omega}=0$ 的足够光滑解，与零边界测试函数 $v$ 相乘并积分，得到
+\begin{equation}
+ \int_\Omega\nabla u\cdot\nabla v\,dx=\int_\Omega fv\,dx.
+ \label{eq:poisson-weak}
+\end{equation}
+两边仅要求一阶导数平方可积。因此定义弱解为满足 $u\in H_0^1(\Omega)$，且式\eqref{eq:poisson-weak}对所有 $v\in H_0^1(\Omega)$ 成立的函数。左侧由柯西--施瓦茨控制，右侧由 $|\int fv|\le C_P\|f\|_2\|\nabla v\|_2$ 控制。
+
+经典解蕴含弱解。反之，若弱解额外属于 $C^2(\Omega)\cap C(\overline\Omega)$ 且 $f$ 连续，则先在紧支集测试函数上分部积分，得到 $\int(-\Delta u-f)\varphi=0$；连续性迫使被积函数为零，零迹与连续性则恢复零边界。额外正则性是这个逆向推理的必要环节。
+
+\section{有界性、强制性与存在唯一性}
+\begin{theorem}[拉克斯--米尔格拉姆定理（Lax--Milgram theorem）]
+设 $V$ 为实希尔伯特空间，双线性型 $a$ 满足
+\[
+ |a(u,v)|\le M\|u\|_V\|v\|_V,\qquad
+ a(v,v)\ge\alpha\|v\|_V^2,
+ \qquad M<\infty,\quad\alpha>0.
+\]
+则每个连续线性泛函 $F\in V^*$ 唯一确定 $u\in V$，使 $a(u,v)=F(v)$ 对所有 $v\in V$ 成立，且 $\|u\|_V\le\alpha^{-1}\|F\|_{V^*}$。第二个条件称\keyterm{强制性（coercivity）}。
+\end{theorem}
+\begin{proof}
+由里斯表示定理，有有界线性算子 $A:V\to V$，使 $a(u,v)=(Au,v)_V$。强制性给出 $\|Au\|_V\ge\alpha\|u\|_V$，所以 $A$ 单射且值域闭：若 $Au_j$ 收敛，此估计使 $u_j$ 为柯西列，极限仍映到该值域点。若 $w$ 垂直于值域，则 $a(v,w)=0$ 对所有 $v$ 成立；取 $v=w$ 得 $w=0$，故值域也稠密，从而等于 $V$。再把 $F$ 用里斯表示成内积即可求得唯一 $u$；取测试函数 $u$ 得范数估计。
+\end{proof}
+取 $V=H_0^1(\Omega)$、$\|v\|_V=\|\nabla v\|_2$，庞加莱不等式保证这是完备且等价的范数。泊松弱形式对应 $a(u,v)=\int\nabla u\cdot\nabla v$，可取 $M=\alpha=1$，于是存在唯一弱解，且
+\[
+ \|\nabla u\|_2\le C_P\|f\|_2.
+\]
+更一般地，右端可取任意 $F\in H^{-1}(\Omega):=(H_0^1(\Omega))^*$，此时右边写成对偶配对 $\langle F,v\rangle$。
+
+\section{狄利克雷原理与能量极小化}
+考虑
+\begin{equation}
+ \min_{v\in H_0^1(\Omega)}J(v),\qquad
+ J(v)=\frac12\int_\Omega|\nabla v|^2\,dx-\int_\Omega fv\,dx.
+ \label{eq:dirichlet-functional}
+\end{equation}
+若 $u$ 为极小点，对任意 $v\in H_0^1$，标量函数 $\varepsilon\mapsto J(u+\varepsilon v)$ 在零点导数为零，即式\eqref{eq:poisson-weak}。反过来若 $u$ 满足弱方程，则展开平方得到
+\[
+ J(u+v)-J(u)=\frac12\int_\Omega|\nabla v|^2\,dx\ge0.
+\]
+等号只在 $v=0$ 时成立。因此弱解就是唯一极小点，这称\keyterm{狄利克雷原理（Dirichlet principle）}。一般变分问题的驻点未必是极小点；这里的二次型正定性承担了关键作用。非对称双线性型虽可用拉克斯--米尔格拉姆定理，却通常不来自上述二次能量。
+
+\section{变系数、不同边界与谱问题}
+令 $A\in L^\infty(\Omega;\mathbb R^{n\times n})$，且对几乎处处 $x$ 和所有 $\xi$ 有 $\xi^{\mathsf T}A(x)\xi\ge\theta|\xi|^2$，$\theta>0$。若 $q\in L^\infty$、$q\ge0$，则
+\[
+ a(u,v)=\int_\Omega A\nabla u\cdot\nabla v+quv\,dx
+\]
+在 $H_0^1$ 上有界且强制，给出 $-\operatorname{div}(A\nabla u)+qu=f$ 的唯一弱解。非齐次狄利克雷数据必须先有 $H^1$ 提升 $G$，再令 $w=u-G\in H_0^1$，右端随之变成 $F(v)-a(G,v)$。
+
+泊松诺伊曼问题在 $V=\{v\in H^1(\Omega):\int v=0\}$ 上处理。若 $f\in L^2(\Omega)$、$g\in L^2(\partial\Omega)$ 满足式\eqref{eq:neumann-compatibility}，则
+\[
+ a(u,v)=\int\nabla u\cdot\nabla v,\qquad
+ F(v)=\int_\Omega fv+\int_{\partial\Omega}g\operatorname{Tr}v
+\]
+满足有界性和强制性，得到唯一零均值弱解。相容条件使该恒等式也对常数测试函数成立。对罗宾条件 $\partial_\nu u+\beta u=g$，若 $\beta\in L^\infty(\partial\Omega)$ 且 $\beta\ge\beta_0>0$ 几乎处处成立，则把 $\int_{\partial\Omega}\beta\operatorname{Tr}u\operatorname{Tr}v$ 加入双线性型，可在整个 $H^1$ 上得到有界性和强制性。变系数散度算子的自然边界量是 $A\nabla u\cdot\nu$，一般不是 $\partial_\nu u$。
+
+在有界光滑区域上，设 $\{\phi_k\}$ 是狄利克雷拉普拉斯算子的规范本征基，$-\Delta\phi_k=\lambda_k\phi_k$。方程 $-\Delta u-\lambda u=f$ 的系数满足 $(\lambda_k-\lambda)u_k=f_k$。因此 $\lambda$ 不是本征值时唯一可解；若为本征值，则可解当且仅当 $f$ 与对应整个本征空间正交，解可加任意同一本征空间元素。这是\keyterm{弗雷德霍姆择一定理（Fredholm alternative）}在本问题中的形式。
+
+\section{内部与边界正则性}
+对于泊松方程，$f\in L^2_{\mathrm{loc}}$ 的弱解具有 $H^2_{\mathrm{loc}}$ 正则性；证明可用差商估计先控制一阶导数的差商，再识别二阶弱导数。如果 $\Omega$ 有界且边界为 $C^{1,1}$，零狄利克雷问题还满足整体估计
+\[
+ \|u\|_{H^2(\Omega)}\le C_\Omega\|f\|_{L^2(\Omega)}.
+\]
+这里 $C^{1,1}$ 表示局部边界图函数的一阶导数利普希茨连续。完整的边界差商证明超出基础课程范围，可参见文献\cite{hunter}第4章的正则性讨论。
+
+边界几何不能省略。平面扇形 $0<r<1$、$0<\theta<\omega$，若 $\pi<\omega<2\pi$，则 $v=r^{\pi/\omega}\sin(\pi\theta/\omega)$ 调和且在两条径向边上为零。其梯度在角点附近平方可积，但二阶导数不平方可积，因为径向积分分别与 $\int_0^1r^{2\pi/\omega-1}dr$ 和 $\int_0^1r^{2\pi/\omega-3}dr$ 同阶。这说明凹角可以阻碍整体 $H^2$ 正则性。
+
+\section{例题与习题}
+\begin{example}
+对 $-\Delta u+u=f$、零狄利克雷边界，证明弱解存在唯一且 $\|u\|_{H^1}\le\|f\|_2$。
+\end{example}
+\begin{solve}
+取 $a(u,v)=\int(\nabla u\cdot\nabla v+uv)$，它在 $H_0^1$ 的通常 $H^1$ 范数下有界且强制常数为一，右端连续，故存在唯一弱解。取 $v=u$ 得
+\[
+ \|u\|_{H^1}^2=\int fu\le\|f\|_2\|u\|_2\le\|f\|_2\|u\|_{H^1}.
+\]
+若 $u=0$ 估计成立，否则约去一项即可。
+\end{solve}
+\begin{enumerate}
+ \item 对非齐次狄利克雷问题写出提升后的右端，说明提升不唯一为何不影响最终解。
+ \item 在区间上取 $\lambda=(\pi/\ell)^2$，分别构造谱参数泊松问题可解与不可解的源项。
+ \item 用相同方法说明诺伊曼问题没有均值约束时为何不能直接使用梯度范数。
+\end{enumerate}
+
+\chapter{演化方程的弱解与能量估计}
+\label{chap:evolution-weak}
+
+时间依赖问题需要同时控制空间导数和时间变化。有限维投影提供近似解，统一能量估计则保证其极限仍满足方程。这一证明路线与数值方法密切相连。
+
+\section{时间依赖的函数空间}
+取 $\Omega$ 为有界利普希茨区域，$V=H_0^1(\Omega)$、$H=L^2(\Omega)$、$V^*=H^{-1}(\Omega)$，得到\keyterm{希尔伯特三重空间（Hilbert triple）}$V\hookrightarrow H\hookrightarrow V^*$；$h\in H$ 通过 $v\mapsto(h,v)_H$ 视为 $V^*$ 元素。
+
+\keyterm{玻赫纳空间（Bochner space）}$L^2(0,T;V)$ 由强可测且 $\int_0^T\|u(t)\|_V^2dt<\infty$ 的函数构成。若 $w\in L^2(0,T;V^*)$ 满足
+\[
+ \int_0^T(u(t),v)_H\eta'(t)\,dt
+ =-\int_0^T\langle w(t),v\rangle\eta(t)\,dt
+\]
+对所有 $v\in V$、$\eta\in C_c^\infty(0,T)$ 成立，则记 $u_t=w$。
+
+\begin{theorem}[能量空间的时间连续性]
+若 $u\in L^2(0,T;V)$、$u_t\in L^2(0,T;V^*)$，则 $u$ 有唯一 $C([0,T];H)$ 代表，且
+\begin{equation}
+ \frac12\|u(t)\|_H^2-\frac12\|u(s)\|_H^2
+ =\int_s^t\langle u_\tau,u\rangle\,d\tau.
+ \label{eq:hilbert-triple-energy}
+\end{equation}
+\end{theorem}
+其证明先对时间磨光后的函数应用普通乘积法则，再用 $L^2(V)$ 与 $L^2(V^*)$ 的对偶估计传递极限；范数连续性结合弱连续性给出强连续代表。此处保留证明思路，详细向量值函数论可参见文献\cite{hunter}附录6.A、6.B。该结论使 $u(0)=g$ 成为 $H$ 中有意义的条件，而非任取时间切片的点值。
+
+\section{热方程的弱形式与伽辽金近似}
+对 $g\in H$、$f\in L^2(0,T;V^*)$，弱热方程定义为
+\begin{equation}
+ \langle u_t,v\rangle+\kappa\int_\Omega\nabla u\cdot\nabla v\,dx
+ =\langle f,v\rangle\quad(v\in V),\qquad u(0)=g,
+ \label{eq:weak-heat}
+\end{equation}
+对几乎处处时间成立，且 $u,u_t$ 属于上一节的能量空间。
+
+选择 $H$ 规范正交的狄利克雷拉普拉斯本征函数 $\phi_k$，令 $V_N=\operatorname{span}\{\phi_1,\ldots,\phi_N\}$。\keyterm{伽辽金方法（Galerkin method）}取 $u_N=\sum_{k=1}^Na_k(t)\phi_k$，要求式\eqref{eq:weak-heat}对 $v\in V_N$ 成立，即
+\[
+ a_k'+\kappa\lambda_ka_k=\langle f,\phi_k\rangle,
+ \qquad a_k(0)=(g,\phi_k)_H.
+\]
+右端平方可积，每个有限维系统都有唯一绝对连续解。基函数既满足边界，又把空间能量对角化。
+
+\section{统一估计、取极限与唯一性}
+在有限维方程中取 $v=u_N$，用杨氏不等式得
+\[
+ \frac12\frac d{dt}\|u_N\|_H^2+\kappa\|u_N\|_V^2
+ \le\frac\kappa2\|u_N\|_V^2+\frac1{2\kappa}\|f\|_{V^*}^2.
+\]
+积分得到不依赖 $N$ 的估计
+\begin{equation}
+ \sup_{0\le t\le T}\|u_N(t)\|_H^2
+ +\kappa\int_0^T\|u_N\|_V^2dt
+ \le 2\|g\|_H^2+\frac2\kappa\int_0^T\|f\|_{V^*}^2dt.
+ \label{eq:galerkin-bound}
+\end{equation}
+常数二来自把各自的上界相加。又因本征投影在 $V$ 范数下不增，方程给出 $\|(u_N)_t\|_{V^*}\le\kappa\|u_N\|_V+\|f\|_{V^*}$。于是可提取 $u_N$ 在 $L^2(V)$ 及导数在 $L^2(V^*)$ 中的弱收敛子列。
+
+为了识别极限，先取有限个基函数的空间组合和光滑时间函数测试，并在时间上分部积分。每项对未知量都是连续线性的，所以可传递弱极限；再由有限维空间的稠密性扩展到所有 $v\in V$。初始投影趋于 $g$，积分式中的初始项因而也恢复为 $g$。式\eqref{eq:hilbert-triple-energy}保证极限具有时间连续代表并满足初值。这给出存在性。
+
+若 $u_1,u_2$ 数据相同，令 $w=u_1-u_2$，由式\eqref{eq:hilbert-triple-energy}合法地取测试函数 $w$，得 $\frac12\|w(t)\|_H^2+\kappa\int_0^t\|w\|_V^2=0$，故唯一。对不同数据同样估计得到连续依赖。这些结论只用弱收敛，不需要声称近似解逐点收敛。
+
+\section{波动方程的能量解}
+对 $g\in V$、$h\in H$、$f\in L^2(0,T;H)$，\keyterm{能量解（energy solution）}满足
+\[
+ u\in C([0,T];V),\quad u_t\in C([0,T];H),\quad u_{tt}\in L^2(0,T;V^*),
+\]
+以及 $\langle u_{tt},v\rangle+c^2(\nabla u,\nabla v)=(f,v)_H$，初值为 $u(0)=g$、$u_t(0)=h$。本征投影给出 $a_k''+c^2\lambda_ka_k=(f,\phi_k)$。
+
+对有限维系统应用第\ref{chap:wave-multi}章的能量估计。由于初始投影在 $V\times H$ 中收敛、源项投影在 $L^2(0,T;H)$ 中收敛，同一估计应用于两个截断之差，说明 $u_N$ 在 $C([0,T];V)$、$(u_N)_t$ 在 $C([0,T];H)$ 中为柯西列。极限提供存在性、初值和能量估计；对差解再用估计得到唯一性。弱解的 $u_t$ 未必属于 $V$，因此直接在未证明合法性的弱式中取 $v=u_t$ 并不严谨，上述有限维逼近正是补足这一点。
+
+\section{半群观点与长时间行为}
+对无源热方程定义解算子
+\[
+ S(t)g=\sum_{k\ge1}e^{-\kappa\lambda_kt}(g,\phi_k)_H\phi_k.
+\]
+其满足 $S(0)=I$、$S(t+s)=S(t)S(s)$、$\|S(t)g\|_H\le\|g\|_H$，且由平方可和系数的控制收敛有 $S(t)g\to g$ 于 $H$。这称\keyterm{强连续收缩半群（strongly continuous contraction semigroup）}。
+
+它的\keyterm{生成元（generator）}是强极限 $Ag=\lim_{t\downarrow0}(S(t)g-g)/t$ 存在时所定义的算子；本例 $A\phi_k=-\kappa\lambda_k\phi_k$，定义域为 $\sum\lambda_k^2|(g,\phi_k)|^2<\infty$ 的函数。对 $H$ 值可积源项，$u(t)=S(t)g+\int_0^tS(t-s)f(s)ds$。抽象记号统一了公式，但生成元的定义域仍不可省略。
+
+\section{例题与习题}
+\begin{example}
+两个无源弱热解的初值分别为 $g_1,g_2\in H$，估计它们的差。
+\end{example}
+\begin{solve}
+差解满足同一齐次弱方程，能量恒等式给出
+\[
+ \|u_1(t)-u_2(t)\|_H^2+
+ 2\kappa\int_0^t\|\nabla(u_1-u_2)\|_2^2ds=\|g_1-g_2\|_H^2.
+\]
+特别地，解算子在 $H$ 中不放大初值误差。若使用第一本征值，还能得到指数衰减界。
+\end{solve}
+\begin{enumerate}
+ \item 写出有限区间前两个正弦模态的伽辽金系统，比较热方程与波动方程的时间因子。
+ \item 在初值不同、源项也不同的情形中推导对应的稳定估计。
+ \item 解释为何 $L^2(0,T;V)$ 中的等价类本身没有确定的 $t=0$ 点值。
+\end{enumerate}
+
+\part{进阶专题与综合应用}
+
+\chapter{非线性守恒律与熵解}
+\label{chap:conservation}
+
+特征线相交说明经典描述已经失效，但物理量仍应守恒。允许间断后，积分守恒能够继续使用；问题是这样的弱解可能不唯一，还需要一个选择原则。
+
+\section{标量守恒律与经典解破裂}
+一维\keyterm{标量守恒律（scalar conservation law）}写成
+\begin{equation}
+ u_t+\partial_xF(u)=0,\qquad u(x,0)=g(x),
+ \label{eq:scalar-conservation}
+\end{equation}
+其中 $F\in C^2(\mathbb R)$ 为通量。光滑时它等价于 $u_t+F'(u)u_x=0$，特征速度为 $F'(u)$。若通量严格凸，即 $F''>0$，较大状态传播更快，后方较大的状态会追上前方较小的状态。伯格斯通量 $F(u)=u^2/2$ 正是第\ref{chap:characteristics}章的情形。
+
+出现间断后，$F'(u)u_x$ 是不连续函数与分布的乘积，通常没有直接的经典定义；而 $\partial_xF(u)$ 仍可按分布求导。因此应从守恒形式定义弱解，不能随意改写为非守恒乘积。
+
+\section{弱形式与间断传播}
+若 $u$ 局部有界，称其为给定初值的弱解，是指对所有在 $\mathbb R\times[0,\infty)$ 上光滑紧支集的测试函数 $\varphi$ 有
+\begin{equation}
+ \int_0^\infty\int_{\mathbb R}(u\varphi_t+F(u)\varphi_x)\,dxdt
+ +\int_{\mathbb R}g(x)\varphi(x,0)\,dx=0.
+ \label{eq:conservation-weak}
+\end{equation}
+初值项来自时间分部积分的下端点。
+
+设一个分段光滑解沿 $x=\gamma(t)$ 间断，两侧状态为 $u_L,u_R$，记 $[u]=u_R-u_L$、$[F]=F(u_R)-F(u_L)$。跨越曲线积分，或计算分布导数的点质量系数，得到
+\begin{equation}
+ \gamma'(t)[u]=[F],\qquad
+ s=\frac{F(u_R)-F(u_L)}{u_R-u_L}\quad(u_R\ne u_L).
+ \label{eq:rankine-hugoniot}
+\end{equation}
+这称\keyterm{兰金--雨贡纽条件（Rankine--Hugoniot condition）}。它确定间断速度，却没有说明该间断是否可由物理耗散的极限产生。
+
+\section{黎曼问题、激波与稀疏波}
+\keyterm{黎曼问题（Riemann problem）}的初值为 $g=u_L$（$x<0$）、$g=u_R$（$x>0$）。对严格凸通量，$u_L>u_R$ 时构造速度由式\eqref{eq:rankine-hugoniot}给出的\keyterm{激波（shock wave）}。弦斜率介于端点导数之间，所以
+\[
+ F'(u_R)<s<F'(u_L),
+\]
+两侧特征均进入间断。
+
+若 $u_L<u_R$，特征向外分离，应填入连续的\keyterm{稀疏波（rarefaction wave）}。令 $u(x,t)=U(x/t)$，方程变成 $(F'(U)-x/t)U'=0$，由此得到
+\[
+ u(x,t)=\begin{cases}
+ u_L,&x/t\le F'(u_L),\\
+ (F')^{-1}(x/t),&F'(u_L)<x/t<F'(u_R),\\
+ u_R,&x/t\ge F'(u_R).
+ \end{cases}
+\]
+中间逆函数仅在两个状态之间的区间上使用。该解对每个 $t>0$ 连续，且在积分意义下取得阶跃初值。
+
+\section{熵条件与消失黏性}
+给定凸函数 $\eta\in C^2(\mathbb R)$，取 $q'$ 满足 $q'=\eta'F'$。称 $(\eta,q)$ 为\keyterm{熵--熵通量对（entropy--entropy flux pair）}。光滑解满足 $\partial_t\eta(u)+\partial_xq(u)=0$；对于间断解，要求
+\begin{equation}
+ \partial_t\eta(u)+\partial_xq(u)\le0
+ \label{eq:entropy-inequality}
+\end{equation}
+对所有凸熵成立，且初值在局部 $L^1$ 意义下取得。分布不等式表示其对任意非负测试函数的作用不大于零。对激波，它等价于 $[q]-s[\eta]\le0$。
+
+这项选择可由\keyterm{消失黏性方法（vanishing viscosity method）}解释：对 $u_t+F(u)_x=\varepsilon u_{xx}$，链式法则给出
+\[
+ \partial_t\eta(u)+\partial_xq(u)
+ =\varepsilon\partial_{xx}\eta(u)-\varepsilon\eta''(u)u_x^2
+ \le\varepsilon\partial_{xx}\eta(u).
+\]
+在能够提取足够强收敛极限并使右端趋于零的条件下，得到式\eqref{eq:entropy-inequality}；存在这种极限仍需统一估计。
+
+对 $F\in C^2$ 与有界初值，克鲁日科夫理论用全部 $\eta_k(r)=|r-k|$ 的熵条件建立有界熵解的存在唯一性；若两组初值之差可积，则解满足 $L^1$ 收缩估计。该定理在此作为进阶结论引用，不展开倍变量法证明，原始理论见文献\cite{kruzhkov}。单独验证一个熵不等式通常不等于验证全部条件。
+
+\section{例题与习题}
+\begin{example}
+分别求伯格斯方程在 $(u_L,u_R)=(1,0)$ 与 $(0,1)$ 下的熵解。
+\end{example}
+\begin{solve}
+第一种情形是激波，速度 $s=(0-1/2)/(0-1)=1/2$，所以 $x<t/2$ 时 $u=1$，$x>t/2$ 时 $u=0$。第二种情形是稀疏波：$x\le0$ 时 $u=0$，$0<x<t$ 时 $u=x/t$，$x\ge t$ 时 $u=1$。
+
+第二组数据也允许速度 $1/2$ 的扩张间断弱解，但取 $\eta=u^2/2$、$q=u^3/3$，可得 $[q]-s[\eta]=1/3-1/4=1/12>0$，违反熵条件，因此被排除。
+\end{solve}
+\begin{enumerate}
+ \item 对一般常数 $u_L>u_R$ 的伯格斯激波求速度并验证特征进入条件。
+ \item 对稀疏波分别检查扇区内部、两条边界以及初值的弱意义。
+ \item 设车流密度为 $\rho$，速度模型为 $v(\rho)=v_0(1-\rho/\rho_{\max})$，写出通量并判断其凸凹性；不要直接套用凸通量的状态次序。
+\end{enumerate}
+
+\chapter{非线性方程的基本方法}
+\label{chap:nonlinear}
+
+线性方程的叠加原理失效后，需要其他结构控制解。本章选择三种可重复使用的结构：压缩映射给出局部解，先验界支持延拓，凸能量与单调性处理非线性平衡。
+
+\section{不动点方法与局部适定性}
+考虑全空间反应扩散方程（reaction--diffusion equation）$u_t-\kappa\Delta u=F(u)$，设 $g$ 有界且一致连续，$F$ 局部利普希茨。记 $BUC(\mathbb R^n)$ 为有界一致连续函数的上确界范数空间，$S(t)g=K_\kappa(t)*g$。将方程改写为
+\begin{equation}
+ u(t)=S(t)g+\int_0^tS(t-s)F(u(s))\,ds.
+ \label{eq:semilinear-mild}
+\end{equation}
+在 $X=C([0,T];BUC)$ 中取闭球 $\|u\|_X\le R$，其中 $R>\|g\|_\infty$。记 $M_R=\max_{|r|\le R}|F(r)|$，$L_R$ 为该区间上的利普希茨常数。右端算子 $\mathcal A$ 满足
+\[
+ \|\mathcal Au\|_X\le\|g\|_\infty+TM_R,\qquad
+ \|\mathcal Au-\mathcal Av\|_X\le TL_R\|u-v\|_X.
+\]
+取 $T$ 使第一式不超过 $R$ 且 $TL_R<1$，由巴拿赫不动点定理得唯一局部\keyterm{温和解（mild solution）}，即满足积分式的解。附录\ref{app:functional}给出该定理的证明。若要提升为经典解，仍须核查数据与非线性所提供的额外正则性，不能把积分式可解直接等同于所有导数已存在。
+
+\section{比较原理、先验界与爆破}
+在解的有界范围内，$F$ 有利普希茨常数 $L$。两个光滑解之差满足 $w_t-\kappa\Delta w=a(x,t)w$，其中 $|a|\le L$；用 $e^{-Lt}w$ 将零阶系数化为非正，再应用最大值论证，可得相应初边值条件下的比较原理。全空间有界解可先加入趋向空间无穷大的微小屏障，使极值论证发生在有限区域，再令屏障系数趋于零。
+
+对 $F(u)=u(1-u)$，常数 $0,1$ 分别为解，故 $0\le g\le1$ 时解保持在该区间。局部不动点构造的时间下界只依赖这个范围，因而可反复延拓为整体温和解。反之，若最大存在时间有限而解的上确界始终有界，便可从靠近终点的时刻用统一时间步再次构造，产生矛盾。因此有限时间失效必须伴随相应范数无界。
+
+\begin{example}
+对全空间方程 $u_t-\kappa\Delta u=u^2$，取常数初值 $g=a>0$，有精确解 $u(x,t)=a/(1-at)$，在 $t=1/a$ 发生\keyterm{有限时间爆破（finite-time blow-up）}。该解与齐次诺伊曼边界也相容，但不满足零狄利克雷边界，故不能不加说明地用于后者。
+\end{example}
+
+\section{变分法与单调性}
+设 $\Omega\subset\mathbb R^n$ 有界且为利普希茨区域，$n\le4$，$f\in L^2$。考虑零边界方程 $-\Delta u+u^3=f$ 及泛函
+\begin{equation}
+ J(v)=\frac12\int_\Omega|\nabla v|^2\,dx+
+      \frac14\int_\Omega|v|^4\,dx-\int_\Omega fv\,dx,
+ \qquad v\in H_0^1(\Omega).
+ \label{eq:nonlinear-functional}
+\end{equation}
+由 $H_0^1\hookrightarrow L^4$，各项均有意义。庞加莱与杨氏不等式给出 $J(v)\ge\frac14\|\nabla v\|_2^2-C\|f\|_2^2$，所以极小化序列在 $H_0^1$ 中有界。取弱收敛子列 $v_j\rightharpoonup u$；连续嵌入同时给出 $L^4$ 弱收敛，两个范数幂弱下半连续，线性源项弱连续，因而 $u$ 取得极小值。这就是\keyterm{直接法（direct method）}。在临界维数四，$H_0^1$ 到 $L^4$ 的嵌入一般不紧，但这里的弱下半连续论证仍然适用。
+
+沿任意 $v\in H_0^1$ 求变分得
+\[
+ \int_\Omega\nabla u\cdot\nabla v+u^3v\,dx=\int_\Omega fv\,dx.
+\]
+若 $u,w$ 为两个弱解，以差 $u-w$ 测试，得到
+\[
+ \|\nabla(u-w)\|_2^2+\int_\Omega(u^3-w^3)(u-w)\,dx=0.
+\]
+第二项非负，因为立方函数单调，故 $u=w$。非线性并不必然导致不唯一，关键在于具体结构。
+
+\section{哈密顿--雅可比方程与黏性解概览}
+对\keyterm{哈密顿--雅可比方程（Hamilton--Jacobi equation）}$u_t+H(\nabla u)=0$，$H$ 为给定连续函数，不光滑解的选择常使用\keyterm{黏性解（viscosity solution）}。连续函数 $u$ 是黏性次解，指任意 $C^1$ 测试函数 $\varphi$ 在内部从上方接触 $u$（$u-\varphi$ 有局部极大值）时有 $\varphi_t+H(\nabla\varphi)\le0$；从下方接触时要求相反不等式，得到黏性超解；同时满足二者就是黏性解。
+
+光滑解自然满足该定义，因为接触点一阶导数相同；非光滑处则由所有接触测试选择允许的尖点。例如 $u(x)=|x|$ 几乎处处满足 $|u'|=1$，但在零点被 $\varphi=0$ 从下方接触，超解条件要求 $|\varphi'|-1\ge0$，实际为 $-1$，所以它不是该稳态方程在整个直线上的黏性解。几乎处处满足方程并不足够，黏性解也不能与分布弱解仅按名称互换。
+
+\section{例题与习题}
+\begin{example}
+对局部不动点迭代 $u_{m+1}=\mathcal Au_m$，何时可以停止？
+\end{example}
+\begin{solve}
+若压缩常数为 $q=TL_R<1$，则由等比级数估计
+\[
+ \|u-u_m\|_X\le\frac{q}{1-q}\|u_m-u_{m-1}\|_X.
+\]
+因此给定容差 $\varepsilon$，右侧不超过 $\varepsilon$ 即可保证迭代误差达标。实际离散求积还引入额外误差，此估计只控制精确算子迭代。
+\end{solve}
+\begin{enumerate}
+ \item 对全局利普希茨 $F$，结合 $|F(r)|\le|F(0)|+L|r|$ 和格朗沃尔不等式证明有限时间内的先验上界。
+ \item 对式\eqref{eq:nonlinear-functional}直接计算一阶变分，并核查 $u^3v$ 的可积性。
+ \item 比较 $u^3$ 与 $-u^3$ 作为椭圆方程零阶项时的能量和单调性差异。
+\end{enumerate}
+
+\chapter{数值方法与综合建模}
+\label{chap:numerics}
+
+数值方法的任务是以有限个未知量近似连续问题。一个计算结果可用，既需要离散方程反映原方程，也需要误差在迭代中受到控制。
+
+\section{有限差分与局部截断误差}
+在 $[0,\ell]$ 上取 $J$ 个等长小区间，$h=\ell/J$，时间步长为 $\tau$。记 $x_j=jh$、$t_m=m\tau$、$U_j^m\approx u(x_j,t_m)$，并定义中心差分 $D_hU_j=(U_{j+1}-2U_j+U_{j-1})/h^2$。一维热方程的显式\keyterm{有限差分法（finite difference method）}为
+\begin{equation}
+ U_j^{m+1}=\mu U_{j-1}^m+(1-2\mu)U_j^m+\mu U_{j+1}^m+\tau f(x_j,t_m),
+ \qquad \mu=\frac{\kappa\tau}{h^2}.
+ \label{eq:heat-explicit-scheme}
+\end{equation}
+输入是网格、系数、初值及边值；先置 $U_j^0=g(x_j)$，每个时间层赋边界值，再更新内部点，迭代到指定终止时刻。每步需要 $O(J)$ 运算；若只保存相邻时间层，存储为 $O(J)$。
+
+将精确解代入差分方程并除以时间步长，所得残差称\keyterm{局部截断误差（local truncation error）}。若 $u_{tt}$ 与 $u_{xxxx}$ 等导数在所考虑闭区域有界，泰勒展开给出
+\[
+ \frac{u(x_j,t_{m+1})-u(x_j,t_m)}\tau-\kappa D_hu(x_j,t_m)-f(x_j,t_m)
+ =O(\tau+h^2).
+\]
+这称\keyterm{一致性（consistency）}，尚未证明数值解接近精确解。
+
+\section{稳定性、收敛与步长限制}
+当 $0\le\mu\le1/2$ 时，式\eqref{eq:heat-explicit-scheme}的三个权重非负且和为一。对同样边界与源项的两组数值解之差，每步上确界范数不增，这就是相应的\keyterm{稳定性（stability）}。把精确解残差作为误差方程的源项迭代，若初始和边界值精确且 $m\tau\le T$，则
+\[
+ \max_j|U_j^m-u(x_j,t_m)|\le T\max_{j,r}|\text{残差}_{j,r}|
+ \le C_T(\tau+h^2).
+\]
+因此在上述光滑性和步长限制下得到\keyterm{收敛性（convergence）}。这段论证把一致性、稳定性和收敛之间的作用分别写明。
+
+对无限均匀或周期网格，代入空间频率 $e^{ij\theta}$，放大因子为 $G=1-4\mu\sin^2(\theta/2)$；要求 $|G|\le1$ 同样得到标准限制 $\mu\le1/2$。后向欧拉格式和克兰克--尼科尔森格式（Crank--Nicolson scheme）分别为
+\[
+ (I-\tau\kappa D_h)U^{m+1}=U^m+\tau f^{m+1},\qquad
+ (I-\tfrac\tau2\kappa D_h)U^{m+1}=(I+\tfrac\tau2\kappa D_h)U^m+\tfrac\tau2(f^{m+1}+f^m).
+\]
+对齐次边界的离散拉普拉斯本征模态，令 $z\ge0$ 为时间步长乘衰减率，两者放大因子是 $(1+z)^{-1}$ 和 $(1-z/2)/(1+z/2)$，模均不超过一。因此它们在离散 $L^2$ 意义下无上述时间步长稳定限制，但大步长仍降低精度；后一因子还可能为负，导致高频振荡。
+
+\section{波动方程的离散传播}
+标准中心格式为
+\[
+ U_j^{m+1}=2U_j^m-U_j^{m-1}+
+ r^2(U_{j+1}^m-2U_j^m+U_{j-1}^m)+\tau^2 f_j^m,
+ \qquad r=\frac{c\tau}{h}.
+\]
+设初速度采样为 $v_j$，可用 $U_j^1=g(x_j)+\tau v_j+\frac12\tau^2(c^2D_hg(x_j)+f_j^0)$ 启动。形式截断误差为 $O(\tau^2+h^2)$，前提是对应四阶导数有界。
+
+代入频率模态，时间放大因子 $G$ 满足
+\[
+ G^2-2\bigl(1-2r^2\sin^2(\theta/2)\bigr)G+1=0.
+\]
+标准步长条件为 $r\le1$；若希望在一般稳定性论证中避开端点退化，可固定 $r\le r_0<1$。当 $r>1$，存在高频使一个根的模大于一。\keyterm{柯朗--弗里德里希斯--刘易条件（Courant--Friedrichs--Lewy condition，CFL condition）}要求数值依赖域能够覆盖物理依赖域，本例即 $h/\tau\ge c$。该几何条件一般是必要限制，不能脱离具体格式独自保证稳定。
+
+\section{有限元与变分离散}
+对于 $-u''=f$、零端点，在同一空间网格上取连续分片线性函数空间 $V_h\subset H_0^1(0,\ell)$，以节点帽函数 $\phi_i$ 为基。\keyterm{有限元法（finite element method）}求 $u_h=\sum_iU_i\phi_i$，使
+\[
+ \int u_h'v_h'=\int fv_h\quad(v_h\in V_h),\qquad
+ KU=F,\quad K_{ij}=\int\phi_i'\phi_j',\quad F_i=\int f\phi_i.
+\]
+均匀网格上 $K_{ii}=2/h$、$K_{i,i+1}=K_{i+1,i}=-1/h$，其余非邻项为零。边界条件通过空间的选择实现，载荷积分的数值近似则另有求积误差。
+
+一般有界、强制双线性型下，精确弱解与伽辽金解满足\keyterm{伽辽金正交性（Galerkin orthogonality）}$a(u-u_h,v_h)=0$。记有界常数为 $M$、强制常数为 $\alpha$，则对任意 $v_h$，
+\[
+ \alpha\|u-u_h\|_V^2\le a(u-u_h,u-v_h)
+ \le M\|u-u_h\|_V\|u-v_h\|_V.
+\]
+约去一项并取下确界，得到\keyterm{塞亚引理（C\'ea's lemma）}
+\begin{equation}
+ \|u-u_h\|_V\le\frac M\alpha\inf_{v_h\in V_h}\|u-v_h\|_V.
+ \label{eq:cea}
+\end{equation}
+它把求解误差归结为逼近能力。例如一维 $u\in H^2$ 时，分片线性插值给出 $\|u-u_h\|_{H^1}\le Ch\|u\|_{H^2}$；更高维还需网格形状规则性，角点奇异会降低预期阶数。
+
+\section{综合例题与学习检查}
+\begin{example}
+为零边界热方程设计一个可以核对误差的计算实例。
+\end{example}
+\begin{solve}
+在 $0<x<1$ 取已知函数 $u_*(x,t)=e^{-t}\sin(\pi x)$。由方程反算
+\[
+ f(x,t)=(\kappa\pi^2-1)e^{-t}\sin(\pi x),\qquad g(x)=\sin(\pi x).
+\]
+这组数据使 $u_*$ 成为精确解。使用式\eqref{eq:heat-explicit-scheme}，取固定 $0<\mu<1/2$ 即 $\tau=\mu h^2/\kappa$，在相同终止时间比较网格最大误差；当非零的二阶主误差项占主导时，网格步长减半后误差约缩小为四分之一。这是渐近预期，还需避免主误差项偶然抵消、时间终点不一致或舍入误差占主导的情形。
+\end{solve}
+\begin{enumerate}
+ \item 实现或手工推进热方程前三个时间层，分别选择满足与违反稳定限制的参数。
+ \item 对前述受迫弦振动例题比较模态精确解与中心差分结果，区分共振、相位误差及数值不稳定。
+ \item 对 $-u''=1$ 的区间问题组装三对角有限元方程，用 $u=x(\ell-x)/2$ 检查误差。
+\end{enumerate}
+任何综合计算都应交代模型、数据、算法、网格与终止条件，并检查边界残差、误差或守恒量。图像的平滑性不足以判定数值正确性。
+
+\appendix
+
+\chapter{微积分与常微分方程工具}
+\label{app:calculus}
+
+\section{多元微分与坐标变换}
+若 $y=\Phi(x)$ 为 $C^1$ 映射，$u(x)=v(\Phi(x))$，则链式法则为 $\nabla_xu=D\Phi(x)^{\mathsf T}\nabla_yv$。若 $\det D\Phi(x_0)\ne0$，逆函数定理保证 $x_0$ 附近存在 $C^1$ 局部逆。非零雅可比给出的是局部结论；全局单射需要另证。
+
+平面极坐标 $x=r\cos\theta$、$y=r\sin\theta$ 的面积元为 $r\,dr\,d\theta$，三维球坐标 $x=(r\sin\theta\cos\varphi,r\sin\theta\sin\varphi,r\cos\theta)$ 的体积元为 $r^2\sin\theta\,dr\,d\theta\,d\varphi$。一般 $n$ 维径向积分为
+\[
+ \int_{\mathbb R^n}f(|x|)\,dx=\sigma_{n-1}\int_0^\infty f(r)r^{n-1}\,dr,
+\]
+前提是被积函数非负或绝对可积。对径向函数 $u(x)=U(|x|)$，在 $r>0$ 有 $\Delta u=U''+(n-1)U'/r$；原点正则性必须由 $U$ 的极限另行检查。
+
+\section{积分恒等式与边界方向}
+若 $\Omega$ 有界且边界分片 $C^1$，向量场 $F\in C^1(\overline\Omega)$，则散度定理为
+\[
+ \int_\Omega\operatorname{div}F\,dx=\int_{\partial\Omega}F\cdot\nu\,dS.
+\]
+取 $F=u\nabla v$ 得式\eqref{eq:green-first}，交换变量再相减得式\eqref{eq:green-second}。若区域被挖去小球，内边界的区域外法向指向小球中心，这正是基本解计算中容易出错的符号。
+
+区间 $[a,b]$ 的边界法向在左端为 $-1$、右端为 $1$，所以边界项 $[uv']_a^b=u(b)v'(b)-u(a)v'(a)$ 与多维记号完全一致。对较弱的函数空间，这些恒等式需通过稠密逼近和迹延拓后使用。
+
+\section{常微分方程与参数依赖}
+若 $F(t,z)$ 在开域内连续，并对 $z$ 局部利普希茨且常数在紧时间区间上一致，则初值问题 $z'=F(t,z)$、$z(t_0)=z_0$ 在该点附近存在唯一 $C^1$ 解。只要在有限时间内轨道留在定义域的某个紧子集中，就能继续延拓。若 $F$ 连续但不利普希茨，唯一性可能失效，例如 $z'=2\sqrt{|z|}$、$z(0)=0$ 可以有延迟离开零点的解。
+
+线性方程 $y'+a(t)y=b(t)$ 的积分因子为 $e^{A(t)}$，$A(t)=\int_{t_0}^t a(s)ds$，因此
+\[
+ y(t)=e^{-A(t)}\left(y(t_0)+\int_{t_0}^t e^{A(s)}b(s)ds\right).
+\]
+若 $a,b$ 仅局部可积，此公式仍定义绝对连续解并使方程几乎处处成立。常系数振子 $y''+\omega^2y=b(t)$（$\omega>0$）则有
+\[
+ y(t)=y(0)\cos\omega t+\frac{y'(0)}\omega\sin\omega t
+       +\int_0^t\frac{\sin\omega(t-s)}\omega b(s)\,ds.
+\]
+当 $\omega=0$，应取极限核 $t-s$。边值问题不同于初值问题，即使系数光滑，指定两端数据也可能无解或不唯一；谱问题正体现了这种区别。
+
+\chapter{积分、收敛与常用不等式}
+\label{app:analysis}
+
+\section{勒贝格积分与函数空间}
+“几乎处处”表示允许除去一个勒贝格测度为零的集合。$L^p(\Omega)$ 的元素是几乎处处相等的可测函数的等价类，范数为
+\[
+ \|f\|_p=\left(\int_\Omega|f|^p\,dx\right)^{1/p}\quad(1\le p<\infty),\qquad
+ \|f\|_\infty=\operatorname*{ess\,sup}_{x\in\Omega}|f(x)|.
+\]
+本性上确界是忽略零测集后成立的最小本质上界。局部可积 $L^1_{\mathrm{loc}}$ 要求在每个紧子集上可积，不要求全区域积分有限。
+
+若 $|\Omega|<\infty$ 且 $q\ge p$，赫尔德不等式给出 $\|f\|_p\le|\Omega|^{1/p-1/q}\|f\|_q$。在无限测度区域上不能任意沿用这个包含关系。范数收敛也不自动给出原序列逐点收敛，因此初值与级数解必须标明收敛空间。
+
+\section{交换运算与收敛定理}
+\begin{description}
+ \item[单调收敛定理] 若可测函数 $0\le f_j\uparrow f$，则 $\int f_j\uparrow\int f$，允许积分为无穷。
+ \item[控制收敛定理] 若 $f_j\to f$ 几乎处处，且存在同一个 $g\in L^1$ 使 $|f_j|\le g$，则 $\int f_j\to\int f$。控制函数不能随 $j$ 无限制变化。
+ \item[法图引理] 若 $f_j\ge0$，则 $\int\liminf_j f_j\le\liminf_j\int f_j$。这类下半连续关系常用于极小化序列。
+ \item[托内利与富比尼定理] 在本书使用的勒贝格乘积空间上，非负可测函数可由托内利定理交换积分次序；绝对可积函数可由富比尼定理交换积分次序。非绝对可积的带符号积分需要另作判断。
+\end{description}
+
+积分号下求导的一组充分条件是：参数附近导数存在，导数被一个与参数无关的可积函数控制，且原函数在一个参数值处可积。此时可把差商写成导数积分并应用控制收敛。级数逐项求导的一组常用充分条件是导数级数一致收敛且原级数在一点收敛；若还要更高阶导数，就必须对相应阶数重复核查条件。
+
+\section{估计与格朗沃尔不等式}
+若 $1<p,q<\infty$、$1/p+1/q=1$，\keyterm{赫尔德不等式（H\"older inequality）}为 $\int|fg|\le\|f\|_p\|g\|_q$；$p=q=2$ 即\keyterm{柯西--施瓦茨不等式（Cauchy--Schwarz inequality）}。端点 $p=1,q=\infty$ 也成立。
+
+能量估计常用参数化\keyterm{杨氏不等式（Young's inequality）}
+\[
+ ab\le\frac\varepsilon2 a^2+\frac1{2\varepsilon}b^2,\qquad a,b\ge0,\quad\varepsilon>0,
+\]
+它由 $(\sqrt\varepsilon a-b/\sqrt\varepsilon)^2\ge0$ 得到。选择 $\varepsilon$ 的目的是让第一项被方程左侧的正能量吸收，代价是另一常数增大。
+
+\begin{lemma}[格朗沃尔不等式（Gronwall's inequality）]
+设连续函数 $y\ge0$、常数 $a\ge0$ 和非负可积函数 $b$ 满足
+\[
+ y(t)\le a+\int_0^t b(s)y(s)ds,
+\]
+则 $y(t)\le a\exp(\int_0^tb(s)ds)$。
+\end{lemma}
+\begin{proof}
+先设 $a>0$，令 $Y(t)=a+\int_0^tby$。则 $y\le Y$ 且 $Y'\le bY$ 几乎处处成立，乘以 $\exp(-\int_0^tb)$ 后导数非正，便得结论。$a=0$ 时先把右端加上任意 $\varepsilon>0$，再令 $\varepsilon\downarrow0$。
+\end{proof}
+相应地，若绝对连续的 $y$ 满足 $y'+\lambda y\le r(t)$，则乘以积分因子得 $y(t)\le e^{-\lambda t}y(0)+\int_0^te^{-\lambda(t-s)}r(s)ds$。每次使用估计时，应说明常数依赖哪些参数，特别要指出是否独立于近似维数或网格步长。
+
+\chapter{泛函分析工具}
+\label{app:functional}
+
+\section{巴拿赫空间与希尔伯特空间}
+完备的赋范线性空间称\keyterm{巴拿赫空间（Banach space）}；内积诱导的范数使之完备时称\keyterm{希尔伯特空间（Hilbert space）}。完备性保证柯西近似真正收敛到所选空间中的元素。
+
+希尔伯特空间 $H$ 中任意闭线性子空间 $M$ 都有正交投影：每个 $x\in H$ 唯一分解为 $x=m+z$，$m\in M$、$z\perp M$。证明可取距离极小化序列，利用平行四边形恒等式说明它为柯西列，再由闭性取得极小点；沿 $M$ 中任意方向求一元二次函数的极小值得正交性。
+
+\begin{theorem}[里斯表示定理（Riesz representation theorem）]
+在实希尔伯特空间上，每个连续线性泛函 $F$ 都唯一写成 $F(v)=(z,v)_H$，其中 $z\in H$，且 $\|F\|=\|z\|_H$。
+\end{theorem}
+\begin{proof}
+$F=0$ 时取 $z=0$。否则 $\ker F$ 是闭子空间且其正交补为一维：任选 $F(x)\ne0$，每个 $v$ 减去 $F(v)x/F(x)$ 就落在核中。取其正交补的单位向量 $e$，令 $z=F(e)e$，分解 $v$ 即验证表示。范数等式来自柯西--施瓦茨和取 $v=z/\|z\|$，唯一性由差向量与所有向量正交得到。
+\end{proof}
+
+\section{对偶空间与弱收敛}
+赋范空间 $X$ 的连续线性泛函构成对偶空间 $X^*$，范数为 $\|F\|_{X^*}=\sup_{\|v\|_X\le1}|F(v)|$，作用也记作 $\langle F,v\rangle$。若 $F(x_j)\to F(x)$ 对每个 $F\in X^*$ 成立，称 $x_j$ \keyterm{弱收敛（weak convergence）}到 $x$，记 $x_j\rightharpoonup x$。若 $F_j\in X^*$ 对每个固定 $x\in X$ 都有 $F_j(x)\to F(x)$，称为\keyterm{弱星收敛（weak-star convergence）}。
+
+可分希尔伯特空间中的有界序列有弱收敛子列：对一组可数规范正交基逐个提取系数收敛子列，再对角选取；有界性使极限系数平方可和，并可用有限维逼近控制任意测试向量。注意这并不保证范数收敛。例如规范正交序列弱收敛到零，但各项范数都为一。
+
+范数弱下半连续。在希尔伯特空间中，若 $x_j\rightharpoonup x\ne0$，则 $(x_j,x)\to\|x\|^2$，由柯西--施瓦茨得 $\|x\|\le\liminf\|x_j\|$；$x=0$ 时结论直接成立。结合范数收敛，弱收敛可升级为强收敛，因为展开 $\|x_j-x\|^2$ 即可验证。
+
+\section{抽象工具的使用清单}
+\begin{theorem}[巴拿赫不动点定理（Banach fixed-point theorem）]
+设非空完备度量空间 $X$ 上的映射 $T:X\to X$ 满足 $d(Tx,Ty)\le qd(x,y)$，其中 $0\le q<1$。则 $T$ 有唯一不动点，任意初值的迭代 $x_{m+1}=Tx_m$ 都收敛到它。
+\end{theorem}
+\begin{proof}
+连续迭代差满足 $d(x_{m+1},x_m)\le q^m d(x_1,x_0)$，等比级数控制任意尾段，故迭代为柯西列。完备性给出极限 $x_*$，利普希茨连续性给出 $Tx_*=x_*$。若另有 $y_*$，则 $d(x_*,y_*)\le qd(x_*,y_*)$，所以两者相同。
+\end{proof}
+在函数闭球中使用时，既要证明压缩，也要证明映射确实留在闭球内。拉克斯--米尔格拉姆定理则见第\ref{chap:elliptic-weak}章，其对象是希尔伯特空间上的有界强制双线性型，不能用压缩条件替代。
+
+另一个常用结论是紧自伴算子的谱定理：若 $K:H\to H$ 紧且自伴，则非零谱值为实本征值，每个非零本征空间有限维，非零本征值的唯一可能聚点为零，并且 $H$ 是 $\ker K$ 与这些本征空间闭线性张成的正交直和。这里紧性指有界序列的像具有范数收敛子列，自伴指 $(Ku,v)=(u,Kv)$。对单射的正紧算子，规范本征函数因此构成整个空间的基；应用于适当平移后椭圆算子的逆，就得到离散本征展开。上述谱结论可参见文献\cite{hunter}附录4.B，本书不展开其完整证明。
+
+这些工具分别提供不动点、弱解或谱分解。它们不会自动给出经典正则性；从空间中的存在结论回到逐点微分方程，还需正文相应章节中的正则性和迹论证。
+
+\backmatter
+
+\begin{thebibliography}{9}
+  \bibitem{mit152}
+  MIT OpenCourseWare.
+  \emph{18.152 Introduction to Partial Differential Equations}, Fall 2011, Syllabus.
+  \url{https://ocw.mit.edu/courses/18-152-introduction-to-partial-differential-equations-fall-2011/pages/syllabus/}.
+
+  \bibitem{hunter}
+  John K. Hunter.
+  \emph{Notes on Partial Differential Equations}.
+  University of California, Davis, revised June 18, 2014.
+  \url{https://math.ucdavis.edu/~hunter/pdes/pde_notes.pdf}.
+
+  \bibitem{mit303}
+  MIT OpenCourseWare.
+  \emph{18.303 Linear Partial Differential Equations: Analysis and Numerics}, Fall 2014, Syllabus.
+  \url{https://ocw.mit.edu/courses/18-303-linear-partial-differential-equations-analysis-and-numerics-fall-2014/pages/syllabus/}.
+  \bibitem{kruzhkov}
+  S. N. Kruzhkov.
+  First order quasilinear equations in several independent variables.
+  \emph{Mathematics of the USSR-Sbornik}, 10(2): 217--243, 1970.
+  \url{https://doi.org/10.1070/SM1970v010n02ABEH002156}.
+\end{thebibliography}
+
+\end{document}
