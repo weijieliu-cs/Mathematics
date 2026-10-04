@@ -21,19 +21,1247 @@
 \clearpage
 
 
-\chapter{神经网络基础}
+\chapter*{前言与全书路线}
+\addcontentsline{toc}{chapter}{前言与全书路线}
 
+\section*{课程定位与学习目标}
+本书面向具有一元微积分、初步线性代数和基础编程知识的深度学习初学者，目标是建立从问题建模、网络设计、梯度计算到实验验证的完整认识。\keyterm{深度学习（deep learning）}以多层可学习变换构造数据表示，既涉及函数的表达能力，也涉及从有限数据中估计参数的方法。学习重点不是记忆网络名称，而是能够回答：输入和输出是什么，模型施加了什么结构假设，目标函数衡量什么，参数如何更新，以及实验支持多大范围的结论。
 
-\chapter{反向传播}
+本书按问题、数学工具、网络训练、典型架构和进阶应用组织正文。基础部分以可手算的小模型建立直觉，关键结论给出假设与必要推导；核心部分强调数学表达与程序计算的一致性，进阶部分介绍生成模型、结构数据和可靠性问题。各章配有解答完整的例题及概念、推导和实验练习，实验以明确的输入、对照和评价协议为任务要求，不预设尚未运行的结果。紧凑性体现在压缩重复叙述，保留定义条件、推导依据和算法边界。
 
+\section*{六篇二十四章的课程总纲}
+\begin{enumerate}
+  \item \textbf{第一篇：问题与数学基础。}第\ref{chap:dl-introduction}章“深度学习的问题、方法与学习路线”；第\ref{chap:dl-mathematics}章“线性代数、微积分与数值计算”；第\ref{chap:dl-probability}章“概率、统计与信息量”；第\ref{chap:dl-baselines}章“监督学习与线性基线”。从具体任务出发，建立贯穿全书的模型、数据、损失与评估语言。
+  \item \textbf{第二篇：神经网络与训练原理。}第\ref{chap:dl-mlp}章“前馈神经网络与表示能力”；第\ref{chap:dl-backprop}章“计算图、反向传播与自动微分”；第\ref{chap:dl-optimization}章“优化算法与训练动力学”；第\ref{chap:dl-regularization}章“初始化、归一化与正则化”；第\ref{chap:dl-engineering}章“训练程序、实验设计与故障诊断”。完成从手工求导到可靠训练一个网络的闭环。
+  \item \textbf{第三篇：典型网络架构。}第\ref{chap:dl-cnn}章“卷积神经网络”；第\ref{chap:dl-vision}章“残差网络与视觉任务”；第\ref{chap:dl-rnn}章“循环神经网络与序列建模”；第\ref{chap:dl-attention}章“注意力机制”；第\ref{chap:dl-transformer}章“Transformer 与序列架构”。比较局部连接、状态递推和内容寻址三种信息组织方式。
+  \item \textbf{第四篇：表示学习、预训练与应用。}第\ref{chap:dl-representation}章“表示学习与自监督学习”；第\ref{chap:dl-transfer}章“迁移学习、预训练与微调”；第\ref{chap:dl-language}章“语言建模与生成”；第\ref{chap:dl-multimodal}章“多模态学习与跨模态对齐”。把网络结构与学习任务分开，解释数据、目标函数和适配方式如何共同决定模型用途。
+  \item \textbf{第五篇：深度生成模型。}第\ref{chap:dl-vae}章“概率生成建模与变分自编码器”；第\ref{chap:dl-gan-flow}章“生成对抗网络与正规化流”；第\ref{chap:dl-diffusion}章“扩散模型与去噪学习”。沿概率建模、训练目标、采样过程和评价方式比较不同生成路线。
+  \item \textbf{第六篇：进阶专题与综合实践。}第\ref{chap:dl-gnn}章“图神经网络与结构化数据”；第\ref{chap:dl-reliability}章“泛化、鲁棒性与不确定性”；第\ref{chap:dl-projects}章“效率、部署与综合项目”。把模型放回计算预算、分布变化和真实使用条件中检验。
+\end{enumerate}
+
+\section*{阅读路线与贯穿案例}
+基础路线依次学习第\ref{chap:dl-introduction}至第\ref{chap:dl-engineering}章，再完成卷积网络及视觉任务；序列路线在训练基础上学习第\ref{chap:dl-rnn}至第\ref{chap:dl-transformer}章，再进入表示学习、迁移学习和语言建模。进阶读者可在概率基础、反向传播与训练程序熟练后进入生成模型；图神经网络是可独立选择的结构数据专题。第\ref{chap:dl-reliability}章中有关泛化与评估的内容应在每次实验时回看，第\ref{chap:dl-projects}章用于整合全书方法。
+
+贯穿案例分成三条：二维合成数据用于观察决策边界和核对梯度，小型图像分类用于比较网络结构与正则化，短序列预测用于区分训练目标和生成行为。生成模型先使用二维分布再使用小图像，避免把视觉效果当成数学解释。实验先建立简单基线，再一次改变一个主要因素；记录数据划分、参数量、训练预算、随机种子、评价指标与失败样本。基础阅读可结合文献\cite{goodfellow2016}，实现练习可结合文献\cite{d2l}，专门模型另列原始论文。
+
+\section*{全书记号与论证约定}
+标量用普通字母表示，向量与矩阵用粗体表示，单个样本的特征向量默认是列向量。训练集记为 $\mathcal D=\{(\mathbf x_i,y_i)\}_{i=1}^{n}$，其中 $n$ 为样本数，$\mathbf x_i\in\mathbb R^d$，$d$ 为输入维度；目标 $y_i$ 的取值空间随任务定义。随机输入、随机目标分别记为 $\mathbf X,Y$，其联合分布记为 $P$。批量数据矩阵另记为 $\mathbf X_{\mathrm{batch}}\in\mathbb R^{B\times d}$，每行是一个样本，$B$ 为批量大小；不要把这个矩阵与随机向量 $\mathbf X$ 混同。
+
+模型写为 $f_\theta$，$\theta\in\mathbb R^p$ 汇集全部可训练参数，$p$ 为参数总数；样本损失写为 $\ell(f_\theta(\mathbf x),y)$，训练目标写为 $J(\theta)$。参数、超参数和优化器状态分别定义。层索引用 $l$，迭代或时间索引用 $t$，其范围在各章说明；$\mathbf I_d$ 表示 $d$ 阶单位矩阵，$\|\cdot\|_2$ 表示欧氏范数，$\odot$ 表示逐元素乘法，$\log$ 默认是自然对数。期望、梯度和概率式都注明所针对的随机量或变量。理论结论注明条件，经验规律通过对照实验讨论，算法输出与全局最优解不作无条件等同。
+
+\part{问题与数学基础}
+
+\chapter{深度学习的问题、方法与学习路线}
+\label{chap:dl-introduction}
+一张灰度图像可以表示为像素数组，但“这张图像是否包含猫”并不是逐个像素求和就能回答的问题。学习系统利用已有图像及其标签，调整一个带参数的函数，使它在未见图像上也能给出有用预测。深度学习的核心是让特征变换本身参与学习：参数既决定如何提取表示，也决定如何利用表示完成任务。
+
+\section{从具体任务到学习问题}
+设房屋面积为 $x\in\mathbb R$、价格为 $y\in\mathbb R$，由面积预测价格是\keyterm{回归（regression）}；由图像 $\mathbf x$ 预测有限类别 $y\in\{1,\ldots,K\}$ 是\keyterm{分类（classification）}；由已出现的文字预测后续词元则是序列预测。同一种输入可以服务于不同任务，任务的区别必须由目标和使用条件说明。房价还受地段等因素影响，输入中没有的信息不能仅靠增加网络层数凭空恢复。
+
+\keyterm{监督学习（supervised learning）}使用输入与目标配对的数据，目标可以来自人工标注、测量或已有记录；\keyterm{无监督学习（unsupervised learning）}研究未给定任务标签的数据结构或分布；\keyterm{自监督学习（self-supervised learning）}从数据自身构造预测信号，例如遮住句中的一个词再预测它。自监督学习通常归入广义无监督学习，也可采用监督式损失训练。它们划分的是学习信号，而不是网络结构。
+
+\section{模型、目标函数与学习算法}
+\begin{definition}[模型与学习问题]
+给定输入空间 $\mathcal X$、目标空间 $\mathcal Y$ 和参数集合 $\Theta$，模型族是 $\{f_\theta:\mathcal X\to\mathcal A:\theta\in\Theta\}$，其中 $\mathcal A$ 是预测空间，可以是数值、分数或概率向量。损失 $\ell:\mathcal A\times\mathcal Y\to\mathbb R\cup\{+\infty\}$ 衡量预测与目标的差异，通常越小越好；常见分类、回归损失非负，连续密度的负对数却未必非负。训练算法根据数据和规定的目标选择参数，涉及期望时另要求相应可积性。
+\end{definition}
+例如 $f_{w,b}(x)=wx+b$ 是模型，$\ell(\widehat y,y)=(\widehat y-y)^2/2$ 是平方损失，而梯度下降是一种求参数的方法。模型不等于损失，损失不等于算法：同一模型可以最小化平方误差或绝对误差，同一目标也可用不同算法求解。参数 $w,b$ 由训练调整，层数和学习率等\keyterm{超参数（hyperparameter）}通常由外部配置或验证过程选择。
+
+\keyterm{训练（training）}输入数据和初始状态，输出拟合后的参数；\keyterm{推断（inference）}使用已经确定的参数对新输入计算结果。训练时还可能维护动量等优化器状态，它们与模型参数不同。分类模型输出一个概率向量后，仍需通过取最大值或代价相关规则形成决策。
+
+\section{从人工特征到层次表示}
+\keyterm{特征（feature）}是输入中供模型使用的量，\keyterm{表示（representation）}是数据经变换后用于后续计算的形式。若价格随面积非线性变化，可人工构造 $(x,x^2)$，再对这两个特征使用线性模型；神经网络则把特征写成可学习映射 $\mathbf h_\phi(\mathbf x)$，并联合学习预测器 $g_\psi$，形成 $f_\theta=g_\psi\circ\mathbf h_\phi$，其中 $\theta=(\phi,\psi)$。
+
+多层组合可逐步改变数据的可分性，但不能据此认定每一层必然对应某种固定人类语义。网络深度是变换的层数，宽度是中间表示的维度，参数量则是独立可训练数值的个数；三者相关但不同。\keyterm{归纳偏置（inductive bias）}是模型与算法偏好的结构，例如卷积共享不同位置的局部处理规则。偏置与任务相符时可能提高数据利用效率，是否有效仍需验证。
+
+\section{数据划分与学习结果的含义}
+训练集用于拟合参数，验证集用于选择超参数与检查点，测试集用于方案确定后的独立评价。\keyterm{泛化（generalization）}关注模型对未参与拟合和选择的新样本的表现。记住训练样本只能证明模型能适应该数据，不能证明它已掌握可迁移规律；训练误差很低而新样本误差很高称为\keyterm{过拟合（overfitting）}。
+
+划分单位必须与使用问题一致。同一人的多张照片若分别进入训练集和测试集，模型可能利用身份线索，不能据此估计对新人的表现；预测未来时，用未来数据估计标准化参数也可能引入\keyterm{数据泄漏（data leakage）}。因此应先确定测试对象是新样本、新对象还是未来时段，再设计划分。总体使用风险还取决于部署分布与错误代价，不能由一个测试准确率完整描述。
+
+\section{例题与习题}
+\begin{example}[高准确率的简单基线]
+某测试集中有 $950$ 张非猫图像和 $50$ 张猫图像。始终预测“非猫”的准确率是多少，它能否完成寻找猫图像的任务？
+\end{example}
+\begin{solve}
+该模型预测正确 $950$ 次，准确率为 $95\%$，但找出的猫图像数为零。它为类别不平衡任务提供了一个必须超越的简单基线，也说明总体正确比例与指定类别的识别能力不同；后者需用第\ref{chap:dl-baselines}章的召回率等指标描述。
+\end{solve}
+\begin{enumerate}
+\item 将“预测学生是否通过考试”写成输入、目标、预测时点和评价对象明确的问题，列举一个可能泄漏结果的特征。
+\item 解释为什么更换优化器没有改变模型族，而把输入从 $x$ 改为 $(x,x^2)$ 改变了可表示的函数。
+\item 为存在同一对象重复观测的数据设计训练、验证和测试划分，并说明它估计哪一种泛化能力。
+\end{enumerate}
+
+\chapter{线性代数、微积分与数值计算}
+\label{chap:dl-mathematics}
+网络首先是一个可以逐项计算的函数。理解它需要同时核对数学关系和数组形状：形状错误通常意味着不同的对象被错误组合，而数值不稳定则可能使正确公式产生无用的计算结果。
+
+\section{向量、矩阵、张量与形状}
+对列向量 $\mathbf x,\mathbf y\in\mathbb R^d$，内积为 $\mathbf x^\mathsf T\mathbf y=\sum_jx_jy_j$，欧氏范数为 $\|\mathbf x\|_2=(\sum_jx_j^2)^{1/2}$。矩阵 $\mathbf W\in\mathbb R^{m\times d}$ 的秩是其列空间的维数；它把 $d$ 维输入映到 $m$ 维输出。仿射变换 $\mathbf z=\mathbf W\mathbf x+\mathbf b$ 满足 $z_i=\sum_jW_{ij}x_j+b_i$，因此偏置必须属于 $\mathbb R^m$。矩阵的 Frobenius 范数定义为 $\|\mathbf W\|_F=(\sum_{ij}W_{ij}^2)^{1/2}$。
+
+程序中的\keyterm{张量（tensor）}通常指多维数组；本书不要求一般张量代数。以批量为行时，$\mathbf X_{\mathrm{batch}}\in\mathbb R^{B\times d}$ 的仿射输出为 $\mathbf X_{\mathrm{batch}}\mathbf W^\mathsf T+\mathbf1_B\mathbf b^\mathsf T$，其中 $\mathbf1_B$ 是全一列向量。广播只是省略了偏置的显式复制，不会改变数学含义。批量轴、通道轴和空间轴各有语义；重排轴与仅改变形状也不是同一操作。
+
+\section{导数、梯度、雅可比与链式法则}
+\begin{definition}[微分与梯度]
+设 $f:\mathbb R^d\to\mathbb R$ 在 $\mathbf x$ 的邻域内有定义。若存在向量 $\mathbf g$ 使 $f(\mathbf x+\mathbf u)=f(\mathbf x)+\mathbf g^\mathsf T\mathbf u+o(\|\mathbf u\|_2)$，则称 $f$ 在该点可微，$\mathbf g$ 称为\keyterm{梯度（gradient）}，记为 $\nabla f(\mathbf x)$。可微时沿方向 $\mathbf v$ 的方向导数为 $\nabla f(\mathbf x)^\mathsf T\mathbf v$。
+\end{definition}
+对可微映射 $F:\mathbb R^d\to\mathbb R^m$，其\keyterm{雅可比矩阵（Jacobian matrix）}为 $[DF]_{ij}=\partial F_i/\partial x_j$。若 $g:\mathbb R^m\to\mathbb R$ 也可微，则
+\begin{equation}
+\nabla_{\mathbf x}(g\circ F)(\mathbf x)=DF(\mathbf x)^\mathsf T\nabla g(F(\mathbf x)).
+\label{eq:dl-chain-rule}
+\end{equation}
+把 $F(\mathbf x+\mathbf u)=F(\mathbf x)+DF(\mathbf x)\mathbf u+o(\|\mathbf u\|)$ 代入 $g$ 的一阶展开即可得到这一\keyterm{链式法则（chain rule）}，它也是反向传播的局部依据。对二阶连续可微标量函数，\keyterm{海森矩阵（Hessian matrix）}为 $\nabla^2f=(\partial^2f/\partial x_i\partial x_j)_{ij}$，混合偏导相等保证它对称。
+
+\section{局部近似、曲率与条件数}
+若 $f$ 在邻域内二阶连续可微，则 $f(\mathbf x+\mathbf u)=f(\mathbf x)+\nabla f(\mathbf x)^\mathsf T\mathbf u+\frac12\mathbf u^\mathsf T\nabla^2f(\mathbf x)\mathbf u+o(\|\mathbf u\|_2^2)$。梯度给出一阶变化，海森矩阵描述曲率。梯度为零仅表示一阶项消失，局部极小、极大或鞍点都可能满足这一条件。
+
+对 $f(\mathbf x)=\frac12\mathbf x^\mathsf T\mathbf A\mathbf x$，设 $\mathbf A$ 对称正定，其特征值满足 $0<\lambda_{\min}\leq\lambda_{\max}$，谱条件数为 $\kappa=\lambda_{\max}/\lambda_{\min}$。梯度更新为 $\mathbf x_{t+1}=(\mathbf I-\eta\mathbf A)\mathbf x_t$；沿特征值 $\lambda_j$ 的坐标每次乘 $1-\eta\lambda_j$。故收敛到零的充分且对所有初值必要的条件为 $0<\eta<2/\lambda_{\max}$。较大 $\kappa$ 会使某些方向很慢，因此特征尺度影响优化；这是二次模型上的准确结论，不能直接当作全部非线性网络的收敛定理。
+
+\section{浮点运算与稳定计算}
+浮点数只能保存有限有效位，过大的指数可能上溢，两个很接近的数相减可能丢失相对精度。对 $a_1,\ldots,a_K\in\mathbb R$，令 $a_{\max}=\max_ka_k$，把最大指数因子提出得到
+\begin{equation}
+\log\sum_{k=1}^Ke^{a_k}=a_{\max}+\log\sum_{k=1}^Ke^{a_k-a_{\max}}.
+\label{eq:dl-logsumexp}
+\end{equation}
+右侧指数参数不大于零，避免了指数上溢。直接先计算 softmax 再取对数仍可能将很小概率舍入为零，因此分类损失宜直接由此式和逻辑值计算。
+
+若一元函数三阶连续可微，中心差分 $[f(x+h)-f(x-h)]/(2h)=f'(x)+O(h^2)$ 来自两次泰勒展开。步长减小时截断误差降低，但减法舍入误差经除以 $h$ 被放大；数值梯度不能通过无限减小步长无限提高精度。梯度检查宜避开不可导点，比较若干中等步长下的稳定结果。
+
+\section{例题与习题}
+\begin{example}[平方损失的矩阵梯度]
+设 $\mathbf W\in\mathbb R^{m\times d}$、$\mathbf y\in\mathbb R^m$，求 $f(\mathbf x)=\|\mathbf W\mathbf x-\mathbf y\|_2^2/2$ 的梯度与海森矩阵。
+\end{example}
+\begin{solve}
+记 $\mathbf r=\mathbf W\mathbf x-\mathbf y$。增量的一阶项为 $\mathbf r^\mathsf T\mathbf W\mathbf u$，故 $\nabla f=\mathbf W^\mathsf T\mathbf r\in\mathbb R^d$，再微分得 $\nabla^2f=\mathbf W^\mathsf T\mathbf W$。任意 $\mathbf v$ 满足 $\mathbf v^\mathsf T\nabla^2f\mathbf v=\|\mathbf W\mathbf v\|^2\geq0$；仅当 $\mathbf W$ 列满秩时海森矩阵正定。
+\end{solve}
+\begin{enumerate}
+\item 令 $a_1=1000,a_2=1001$，用式\eqref{eq:dl-logsumexp}把结果写成不含大指数的形式。
+\item 对 $f(x_1,x_2)=(x_1^2+x_2)^2$ 求梯度，并在 $(1,2)$ 核对沿 $(1,-1)$ 的方向导数。
+\item 对 $\mathbf A=\operatorname{diag}(1,100)$ 求允许所有初值收敛的固定步长范围，解释两个坐标的衰减速度差异。
+\end{enumerate}
+
+\chapter{概率、统计与信息量}
+\label{chap:dl-probability}
+一个分类器输出 $0.8$，表达的是模型对某个事件赋予的概率，而不是保证该次判断有八成“正确成分”。概率用于描述不确定性、构造训练目标及研究有限样本误差；它的解释必须与数据来源和条件信息一致。
+
+\section{随机变量、分布与条件概率}
+随机变量记为大写字母，观察到的取值记为小写字母。离散变量用质量函数 $p(x)=P(X=x)$ 描述，连续变量的密度满足 $P(X\in A)=\int_Ap(x)\,dx$；密度值可以大于一，积分得到的概率才必须在 $[0,1]$ 内。对正概率事件 $B$，$P(A\mid B)=P(A\cap B)/P(B)$。有密度时相应关系为 $p(x,y)=p(y\mid x)p(x)$，条件密度在边缘密度为正处定义。
+
+伯努利变量 $Y\in\{0,1\}$ 满足 $p(y)=\pi^y(1-\pi)^{1-y}$；类别变量的概率向量 $\boldsymbol\pi$ 满足 $\pi_k\geq0,\sum_k\pi_k=1$。对均值 $\boldsymbol\mu\in\mathbb R^d$ 和正定协方差 $\boldsymbol\Sigma$，多元高斯密度为
+\[
+p(\mathbf x)=\frac{\exp[-\frac12(\mathbf x-\boldsymbol\mu)^\mathsf T\boldsymbol\Sigma^{-1}(\mathbf x-\boldsymbol\mu)]}{(2\pi)^{d/2}\det(\boldsymbol\Sigma)^{1/2}}.
+\]
+一般协方差矩阵 $\operatorname{Cov}(\mathbf X)=\mathbb E[(\mathbf X-\boldsymbol\mu)(\mathbf X-\boldsymbol\mu)^\mathsf T]$ 半正定，因为其任意二次型都是投影变量的方差；奇异高斯分布不具有相对于全维体积的上述密度。
+
+\section{期望、方差与蒙特卡洛估计}
+若 $\mathbb E|Z|<\infty$，期望是分布加权平均；若二阶矩有限，$\operatorname{Var}(Z)=\mathbb E[(Z-\mathbb EZ)^2]$。设 $Z_1,\ldots,Z_n$ 独立同分布，均值为 $\mu$、方差为 $\sigma^2$，则 $\bar Z=n^{-1}\sum_iZ_i$ 满足 $\mathbb E\bar Z=\mu$、$\operatorname{Var}(\bar Z)=\sigma^2/n$：展开和的方差后，独立性使交叉协方差为零。由切比雪夫不等式，$P(|\bar Z-\mu|\geq\varepsilon)\leq\sigma^2/(n\varepsilon^2)$。
+
+用随机样本平均近似期望称为\keyterm{蒙特卡洛估计（Monte Carlo estimation）}。相关样本的均值方差还包含协方差项，不能只看样本数。训练中的数据抽样、初始化、批量选择与随机失活是不同随机性来源；固定随机种子便于重现某条计算轨迹，不会消除估计误差，也不能代替多次独立实验。
+
+\section{似然、最大似然与最大后验}
+给定观察值后，$L(\theta)=\prod_ip_\theta(y_i\mid\mathbf x_i)$ 是参数的\keyterm{似然（likelihood）}，其乘积形式对应条件独立假设。\keyterm{最大似然估计（maximum likelihood estimation, MLE）}最大化 $\log L(\theta)$。若 $Y_i=f_\theta(\mathbf x_i)+\varepsilon_i$，独立噪声 $\varepsilon_i\sim\mathcal N(0,\sigma^2)$ 且 $\sigma^2$ 固定，则
+\[
+-\log L(\theta)=\frac1{2\sigma^2}\sum_i(y_i-f_\theta(\mathbf x_i))^2+\frac n2\log(2\pi\sigma^2),
+\]
+因此最大似然与最小平方误差等价。对伯努利输出则得到 $-y\log\pi-(1-y)\log(1-\pi)$，即二元交叉熵。
+
+给定先验密度 $p(\theta)$，\keyterm{最大后验估计（maximum a posteriori estimation, MAP）}最小化 $-\log L(\theta)-\log p(\theta)$。独立零均值高斯先验产生二次惩罚；若把似然求和改成平均，惩罚系数也须相应缩放。MAP 是一个参数点的估计，不等于对后验分布积分得到的贝叶斯预测。
+
+\section{熵、交叉熵与相对熵}
+对有限空间上的概率向量 $p,q$，定义\keyterm{熵（entropy）} $H(p)=-\sum_kp_k\log p_k$、\keyterm{交叉熵（cross-entropy）} $H(p,q)=-\sum_kp_k\log q_k$ 和\keyterm{KL 散度（Kullback--Leibler divergence）} $D_{\mathrm{KL}}(p\|q)=\sum_{p_k>0}p_k\log(p_k/q_k)$，约定 $0\log0=0$；若某个 $p_k>0$ 而 $q_k=0$，后两者取 $+\infty$。在有限情形逐项整理得到
+\begin{equation}
+H(p,q)=H(p)+D_{\mathrm{KL}}(p\|q).
+\label{eq:dl-cross-entropy}
+\end{equation}
+\begin{proposition}[KL 散度非负]
+对有限概率分布 $p,q$，有 $D_{\mathrm{KL}}(p\|q)\geq0$，等号成立当且仅当 $p=q$。
+\end{proposition}
+\begin{proof}
+无穷情形结论成立。否则由 $\log u\leq u-1$，有 $\sum_{p_k>0}p_k\log(q_k/p_k)\leq\sum_{p_k>0}(q_k-p_k)\leq0$。第一处取等须所有相关比值为一，第二处取等须 $q$ 在 $p$ 的零概率位置也为零，合起来恰为 $p=q$。
+\end{proof}
+KL 散度一般不对称，也不满足距离所要求的全部性质。式\eqref{eq:dl-cross-entropy}说明固定目标分布时，最小化交叉熵等价于最小化该方向的 KL 散度。
+
+\section{例题与习题}
+\begin{example}[置信度与对数损失]
+对真实类别 $y=1$，模型分别给出 $\pi=0.9,0.6,0.01$。比较三个预测的交叉熵。
+\end{example}
+\begin{solve}
+损失依次为 $-\log0.9\approx0.105$、$-\log0.6\approx0.511$ 和 $-\log0.01\approx4.605$。前两个在阈值 $1/2$ 下都分类正确，但对数损失不同；第三个高置信度错误受罚很大。交叉熵因而提供了比正确与否更连续的优化信号。
+\end{solve}
+\begin{enumerate}
+\item 对独立伯努利样本推导 $\pi$ 的最大似然估计，并单独检查全为零、全为一的边界情况。
+\item 若 $X$ 在 $[0,1/2]$ 上均匀分布，写出密度并计算 $P(X\leq1/4)$。
+\item 对两个取值相关的随机变量推导其平均值方差，解释为何重复复制一个样本不增加独立信息。
+\end{enumerate}
+
+\chapter{监督学习与线性基线}
+\label{chap:dl-baselines}
+在复杂网络之前先建立线性基线，可以分辨收益来自数据、特征还是结构。线性模型还能把目标、解的存在唯一性与数值算法清楚分开，为后续非凸问题提供参照。
+
+\section{总体风险、经验风险与正则化目标}
+\begin{definition}[风险与经验风险]
+对数据分布 $P$ 和给定损失，模型的总体风险为 $\mathcal R(\theta)=\mathbb E_{(\mathbf X,Y)\sim P}[\ell(f_\theta(\mathbf X),Y)]$。对训练样本和非负正则化强度 $\lambda$，经验目标为
+\begin{equation}
+\widehat{\mathcal R}_n(\theta)=\frac1n\sum_{i=1}^n\ell(f_\theta(\mathbf x_i),y_i),
+\qquad J(\theta)=\widehat{\mathcal R}_n(\theta)+\lambda\Omega(\theta),
+\label{eq:dl-empirical-objective}
+\end{equation}
+其中 $\Omega$ 是预先选定的惩罚函数。
+\end{definition}
+\keyterm{正则化（regularization）}通过惩罚、约束或其他机制引入对解的偏好，式中的 $\Omega$ 是显式惩罚的一种形式。固定 $\theta$ 时，独立同分布且可积的样本损失使经验风险成为总体风险的无偏估计，并由大数定律收敛。若 $\theta$ 由同一数据选出，这个固定参数结论不足以说明它的训练误差可靠估计了测试误差。训练算法实际返回的 $\widehat\theta$ 还可能不是 $J$ 的精确最小点：有限数据、函数类限制和优化不足是不同误差来源。
+
+\section{线性回归与最小二乘}
+令增广特征 $\widetilde{\mathbf x}_i=(\mathbf x_i^\mathsf T,1)^\mathsf T$，参数 $\mathbf w$ 包含偏置，设计矩阵 $\mathbf A$ 的第 $i$ 行是 $\widetilde{\mathbf x}_i^\mathsf T$，目标向量为 $\mathbf y$。最小二乘目标 $J(\mathbf w)=\|\mathbf A\mathbf w-\mathbf y\|_2^2/(2n)$ 的梯度为 $\mathbf A^\mathsf T(\mathbf A\mathbf w-\mathbf y)/n$，其最小点满足正规方程
+\begin{equation}
+\mathbf A^\mathsf T\mathbf A\mathbf w=\mathbf A^\mathsf T\mathbf y.
+\label{eq:dl-normal-equations}
+\end{equation}
+几何上，$\mathbf A\mathbf w$ 是 $\mathbf y$ 到 $\operatorname{col}(\mathbf A)$ 的正交投影，有限维子空间的投影总存在且唯一；参数唯一当且仅当 $\mathbf A$ 列满秩。秩不足时，同一拟合向量对应一族相差于 $\ker\mathbf A$ 的参数，可用伪逆选最小范数解。加入 $\lambda\|\mathbf w\|^2/2$ 且 $\lambda>0$ 后，方程变成 $(\mathbf A^\mathsf T\mathbf A+n\lambda\mathbf I)\mathbf w=\mathbf A^\mathsf T\mathbf y$，系数矩阵正定；这里只对全部参数加惩罚，排除偏置时须另写惩罚矩阵。
+
+数值计算宜用 QR、奇异值分解或相应线性求解器，避免为了套用公式而显式求逆。对于二阶矩有限的回归目标，还可写出 $\mathbb E[(Y-a)^2\mid\mathbf X]=\operatorname{Var}(Y\mid\mathbf X)+(a-\mathbb E[Y\mid\mathbf X])^2$，故无函数类限制时平方风险由条件均值最小化；线性模型是在其可表示范围内逼近这一函数。
+
+\section{逻辑回归与多分类模型}
+\keyterm{逻辑回归（logistic regression）}在二分类中取分数 $z=\mathbf w^\mathsf T\mathbf x+b$，经\keyterm{逻辑函数（sigmoid）} $\sigma(z)=1/(1+e^{-z})$ 得到类别一的概率。由 $\sigma'(z)=\sigma(z)(1-\sigma(z))$ 可得二元交叉熵对 $z$ 的导数为 $\sigma(z)-y$。它是非线性概率映射，但决策边界 $z=0$ 仍是超平面，因此名称中的“回归”不意味着它用于连续数值回归。
+
+对 $K$ 个类别，\keyterm{逻辑值（logit）}向量 $\mathbf z\in\mathbb R^K$ 经 softmax 变为 $p_k=e^{z_k}/\sum_je^{z_j}$。目标的\keyterm{独热编码（one-hot encoding）}为 $y_k=\mathbf1\{y=k\}$，交叉熵是 $\ell=-z_y+\log\sum_je^{z_j}$，直接微分得到
+\begin{equation}
+\frac{\partial\ell}{\partial z_k}=p_k-y_k.
+\label{eq:dl-softmax-gradient}
+\end{equation}
+利用式\eqref{eq:dl-logsumexp}稳定计算损失，避免重复 softmax 或先舍入概率。改变分类阈值会改变决策，通常不改变已经训练的概率模型。
+
+\section{评价指标、模型选择与误差来源}
+以指定正类为基准，记真正例、假正例、假负例和真负例数为 $TP,FP,FN,TN$。准确率为 $(TP+TN)/n$，精确率为 $TP/(TP+FP)$，召回率为 $TP/(TP+FN)$，$F_1=2TP/(2TP+FP+FN)$；分母为零时必须报告采用的约定。多分类的宏平均给各类相同权重，微平均先合并计数，类别不均衡时二者可能差异很大。
+
+回归的\keyterm{均方误差（mean squared error, MSE）}为 $n^{-1}\sum_i(\widehat y_i-y_i)^2$，\keyterm{平均绝对误差（mean absolute error, MAE）}为 $n^{-1}\sum_i|\widehat y_i-y_i|$，前者对大残差更敏感。选择指标应联系误判代价与使用对象。验证集用于比较模型与超参数，反复针对它改方案会产生选择偏差；独立测试集只在方案确定后评价，不能继续充当调参信号。
+
+\section{例题与习题}
+\begin{example}[拟合一条直线]
+对样本 $(x,y)=(0,1),(1,2),(2,2)$，求含截距的最小二乘直线。
+\end{example}
+\begin{solve}
+有 $\bar x=1,\bar y=5/3$，斜率 $w=\sum_i(x_i-\bar x)(y_i-\bar y)/\sum_i(x_i-\bar x)^2=1/2$，截距 $b=\bar y-w\bar x=7/6$。三个残差为 $1/6,-1/3,1/6$，均方误差为 $1/18$。残差不全为零并不表示算法失败，而是样本不在同一条直线上。
+\end{solve}
+\begin{enumerate}
+\item 对分数 $(0,0,0)$ 和真实类别一，计算 softmax、交叉熵及其梯度。
+\item 证明给所有逻辑值同时加同一常数不改变 softmax 输出，说明参数冗余的一种来源。
+\item 在相同数据划分上比较常数预测、线性模型与加入二次特征的模型，报告训练和验证误差，解释更低训练误差是否对应更低验证误差。
+\end{enumerate}
+
+\part{神经网络与训练原理}
+
+\chapter{前馈神经网络与表示能力}
+\label{chap:dl-mlp}
+线性分类器只能产生超平面决策边界；如果先把输入变换到新的表示空间，原来不可分的数据可能变得可分。前馈网络把这一变换和最后的预测器一起学习，其基本单元是仿射映射与非线性激活的复合。
+
+\section{神经元、隐藏层与前向传播}
+\begin{definition}[前馈网络]
+令 $\mathbf h^{(0)}=\mathbf x\in\mathbb R^{d_0}$。具有 $L$ 层变换的\keyterm{前馈神经网络（feedforward neural network）}按
+\begin{equation}
+\mathbf a^{(l)}=\mathbf W^{(l)}\mathbf h^{(l-1)}+\mathbf b^{(l)},\qquad
+\mathbf h^{(l)}=\phi_l(\mathbf a^{(l)}),\quad l=1,\ldots,L
+\label{eq:dl-forward-layer}
+\end{equation}
+计算，权重 $\mathbf W^{(l)}\in\mathbb R^{d_l\times d_{l-1}}$，偏置 $\mathbf b^{(l)}\in\mathbb R^{d_l}$，输出为 $f_\theta(\mathbf x)=\mathbf h^{(L)}$。中间的 $\mathbf h^{(l)}$ 称隐藏表示，$\phi_l$ 称激活映射。
+\end{definition}
+全连接前馈网络也称\keyterm{多层感知机（multilayer perceptron, MLP）}。单个隐藏单元先求输入的加权和，再进行标量非线性变换；每一层同时计算多个这样的单元。回归输出可用恒等映射，分类输出可保留逻辑值并由损失内部处理 sigmoid 或 softmax。所谓“层数”有时是否计入输入层存在惯例差异，本书 $L$ 始终指带参数的变换层数。
+
+\section{激活函数与非线性来源}
+常用逐元素激活包括 $\sigma(a)=1/(1+e^{-a})$、$\tanh a$ 和\keyterm{修正线性单元（rectified linear unit, ReLU）} $\rho(a)=\max(0,a)$。前两者的导数分别为 $\sigma(a)(1-\sigma(a))$、$1-\tanh^2a$，在输入绝对值很大时接近零，称为饱和；ReLU 在正半轴导数为一，在负半轴为零，在零点不存在普通导数。实际反向计算通常在零点选定零等约定值，这是一条计算规则。
+
+\begin{proposition}[仿射层的合并]
+任意有限个没有非线性激活的仿射层，其复合仍是仿射映射。
+\end{proposition}
+\begin{proof}
+两层的复合为 $\mathbf W_2(\mathbf W_1\mathbf x+\mathbf b_1)+\mathbf b_2=(\mathbf W_2\mathbf W_1)\mathbf x+(\mathbf W_2\mathbf b_1+\mathbf b_2)$。对层数归纳即得结论。
+\end{proof}
+因此深度本身不足以产生非线性表达能力。中间维度还可能限制复合矩阵的秩，多个线性层的参数化与单层虽然描述相近函数，优化行为却未必相同。
+
+\section{决策边界、宽度与深度}
+对二元输入的异或（exclusive OR, XOR），$(0,0),(1,1)$ 标为零，$(1,0),(0,1)$ 标为一。若仿射分数以正数判一、非正数判零，则后两点要求 $w_1+b>0,w_2+b>0$，相加得 $w_1+w_2+2b>0$；前两点要求 $b\leq0,w_1+w_2+b\leq0$，相加得到相反不等式，故线性分类器不能完成此任务。
+
+ReLU 网络在固定激活模式下是仿射函数，不同模式拼接成分段仿射函数。深度和宽度通过改变可实现的分区与组合方式影响表示能力。一个常用的通用逼近结论是：对任意 $d\geq1$、立方体 $[-1,1]^d$ 上连续函数 $f$ 和 $\varepsilon>0$，存在有限宽度 $m$ 及实参数，使 $c+\sum_{j=1}^ma_j\rho(\mathbf w_j^\mathsf T\mathbf x+b_j)$ 与 $f$ 的一致误差小于 $\varepsilon$。这是关于存在性的引用结论，证明不在本书范围内；它不提供给定小宽度、有限数据或具体训练算法的成功保证。
+
+\section{参数化、损失与批量计算}
+全连接第 $l$ 层有 $d_ld_{l-1}+d_l$ 个参数，总数为各层之和。以批量为行，令 $\mathbf H^{(0)}=\mathbf X_{\mathrm{batch}}$，则 $\mathbf A^{(l)}=\mathbf H^{(l-1)}(\mathbf W^{(l)})^\mathsf T+\mathbf1_B(\mathbf b^{(l)})^\mathsf T$。激活沿每个样本计算，偏置沿批量轴广播；批量并未增加模型参数，只使同一模型同时作用于多条输入。
+
+平方损失针对实数预测，二元交叉熵针对一个伯努利目标，多分类交叉熵针对互斥类别。若一张图像可同时属于多个标签，应对每个标签建立适当的二分类目标，而非用强制概率和为一的 softmax 混淆问题。损失中的求和或平均也必须明确，因为它会改变梯度尺度。
+
+\section{例题与习题}
+\begin{example}[两隐藏单元实现 XOR]
+令 $s=x_1+x_2$，$h_1=\rho(s)$、$h_2=\rho(s-1)$，输出 $f=h_1-2h_2$。检查四个二元输入的输出。
+\end{example}
+\begin{solve}
+当 $s=0,1,2$ 时，$(h_1,h_2)$ 分别是 $(0,0),(1,0),(2,1)$，输出分别为 $0,1,0$，恰好实现 XOR。该构造的作用是证明表示存在，并不意味着随机初始化后任何训练算法都会找到它。若按完整的 $2$--$2$--$1$ 网络计入全部偏置，共有 $4+2+2+1=9$ 个参数槽位。
+\end{solve}
+\begin{enumerate}
+\item 写出上述网络的两层权重和偏置，并计算非二元输入 $(0.2,0.4)$ 的输出。
+\item 求宽度为 $d_0,d_1,d_2$ 的两层网络参数总数；若两层间强制共享部分参数，计数应怎样改变？
+\item 在固定二维数据和训练预算下比较线性模型与 ReLU 网络，分别记录可分性、训练误差和验证误差。
+\end{enumerate}
+
+\chapter{计算图、反向传播与自动微分}
+\label{chap:dl-backprop}
+\keyterm{反向传播（backpropagation）}把链式法则按计算图组织起来，复用中间结果以避免重复计算。其输入是前向计算保存的量及输出端导数，输出是损失对各参数的梯度。
+
+\section{计算图与局部导数}
+\keyterm{计算图（computational graph）}用有向边表示数值依赖。对 $u=wx$、$v=u+b$、$\ell=(v-y)^2/2$，前向依次计算 $u,v,\ell$；反向从 $\partial\ell/\partial\ell=1$ 出发，得到 $\partial\ell/\partial v=v-y$，再乘局部导数得到 $\partial\ell/\partial w=(v-y)x$、$\partial\ell/\partial b=v-y$。
+
+若一个结点流向多条路径，总导数是所有路径贡献之和。例如 $u=x^2$、$v=x+u$，则 $dv/dx=1+2x$。共享权重被多次使用时也必须累加各处贡献，不能让后算出的梯度覆盖先前结果。前向图只要是有限无环图，就能按拓扑顺序计算、按逆拓扑顺序传导；循环网络沿有限时间展开后也属于这种情形。
+
+\section{反向模式与向量--雅可比乘积}
+对中间映射 $\mathbf v=F(\mathbf u)$，若已知列梯度 $\overline{\mathbf v}=\nabla_{\mathbf v}\ell$，则式\eqref{eq:dl-chain-rule}给出 $\overline{\mathbf u}=DF(\mathbf u)^\mathsf T\overline{\mathbf v}$。按行写为 $\overline{\mathbf u}^\mathsf T=\overline{\mathbf v}^\mathsf TDF$，称\keyterm{向量--雅可比乘积（vector--Jacobian product, VJP）}。通常只计算这一乘积，无需形成完整雅可比矩阵。
+
+\keyterm{自动微分（automatic differentiation）}对程序使用的基本算子应用精确微分规则，数值结果仍受浮点误差影响。前向模式传播输入方向，适合较少输入方向；反向模式从输出传播梯度，特别适合一个标量损失对大量参数求导。若各算子的反向成本与前向成本同阶，一次标量反向传播的运算量与前向同阶；保存激活却可能占用大量内存，重计算可用更多运算换更少存储。
+
+\section{全连接层与激活层的梯度}
+在式\eqref{eq:dl-forward-layer}中令 $\boldsymbol\delta^{(l)}=\nabla_{\mathbf a^{(l)}}\ell$。由 $da_i^{(l)}=\sum_jh_j^{(l-1)}dW_{ij}^{(l)}+db_i^{(l)}+\sum_jW_{ij}^{(l)}dh_j^{(l-1)}$，逐项读取微分系数可得
+\begin{equation}
+\nabla_{\mathbf W^{(l)}}\ell=\boldsymbol\delta^{(l)}(\mathbf h^{(l-1)})^\mathsf T,
+\qquad \nabla_{\mathbf b^{(l)}}\ell=\boldsymbol\delta^{(l)}.
+\label{eq:dl-layer-gradients}
+\end{equation}
+对逐元素可微隐藏激活，链式法则继续给出
+\begin{equation}
+\boldsymbol\delta^{(l)}=((\mathbf W^{(l+1)})^\mathsf T\boldsymbol\delta^{(l+1)})\odot\phi_l'(\mathbf a^{(l)}).
+\label{eq:dl-backprop-recursion}
+\end{equation}
+前一个式子的形状为 $d_l\times d_{l-1}$，后一个为 $d_l$，与相应参数或中间量一致。对输出逻辑值的 softmax 交叉熵，以式\eqref{eq:dl-softmax-gradient}的 $\mathbf p-\mathbf y$ 初始化；对恒等输出的平方损失，以预测减目标初始化。批量平均损失的参数梯度是各样本梯度的平均，而非未经缩放的和。
+
+\section{自动微分与梯度检查}
+符号微分构造导数表达式，数值微分用邻近函数值近似导数，自动微分则沿实际执行的算子传播导数。程序中主动停止梯度会把一个中间量对上游的导数设为零，改变的正是所求梯度。梯度缓冲常采用累加语义，故每次独立更新前须清零；需要累积多个微批量时则应在整个累积开始前清零。
+
+在远离不可导点的位置，选方向 $\mathbf v$，比较 $\nabla J(\theta)^\mathsf T\mathbf v$ 与 $[J(\theta+h\mathbf v)-J(\theta-h\mathbf v)]/(2h)$。检查时固定随机掩码等随机性，并试几个步长，否则两次前向的随机差别可能掩盖导数。没有梯度通常说明图不连通或未记录，零梯度可能是真实平坦、饱和或相消，数值错误还可能来自错误广播和损失缩放。
+
+\section{例题与习题}
+\begin{example}[一次完整的两层更新]
+设 $h=\rho(w_1x+b_1)$、$\widehat y=w_2h+b_2$，$x=2,y=1$，初值 $w_1=w_2=1,b_1=b_2=0$，损失为 $(\widehat y-y)^2/2$。用学习率 $0.1$ 同时更新四个参数。
+\end{example}
+\begin{solve}
+前向得 $h=2,\widehat y=2,\ell=1/2$。输出误差为一，故 $\partial\ell/\partial w_2=2$、$\partial\ell/\partial b_2=1$；隐藏激活位于正半轴，故 $\partial\ell/\partial w_1=2$、$\partial\ell/\partial b_1=1$。全部梯度在旧参数处计算，更新得 $w_1=w_2=0.8,b_1=b_2=-0.1$，新输出为 $0.8(0.8\times2-0.1)-0.1=1.1$，新损失为 $0.005$。
+\end{solve}
+\begin{enumerate}
+\item 对 $f_w(x)=wx$、$x=2,y=1,w=1$ 核对梯度为 $2$，更新到 $w=0.8$ 后平方损失为 $0.18$。
+\item 写出两条分支共享同一权重时的梯度和，说明边反向边更新参数为什么不再是同一点处的梯度下降。
+\item 对本章两层例题用中心差分验证四个梯度，随后把隐藏预激活移到零，解释梯度检查结果的变化。
+\end{enumerate}
+
+\chapter{优化算法与训练动力学}
+\label{chap:dl-optimization}
+训练是根据梯度逐步更新参数的过程。训练目标下降与新样本表现改善有关，但并不等价；本章先建立可证明的下降条件，再讨论随机梯度和常用更新规则。
+
+\section{梯度下降与下降条件}
+\keyterm{梯度下降（gradient descent）}沿当前负梯度方向更新参数，步长 $\eta>0$ 称\keyterm{学习率（learning rate）}。负梯度给出欧氏范数约束下最陡的一阶下降方向，但有限步长是否下降还取决于目标的曲率。
+\begin{proposition}[光滑函数的单步下降]
+设 $J:\mathbb R^p\to\mathbb R$ 可微，且 $\|\nabla J(\mathbf u)-\nabla J(\mathbf v)\|_2\leq L\|\mathbf u-\mathbf v\|_2$，其中 $L>0$。取 $\theta^+=\theta-\eta\nabla J(\theta)$，则
+\begin{equation}
+J(\theta^+)\leq J(\theta)-\eta(1-L\eta/2)\|\nabla J(\theta)\|_2^2.
+\label{eq:dl-descent}
+\end{equation}
+因此 $0<\eta<2/L$ 且梯度非零时严格下降。
+\end{proposition}
+\begin{proof}
+令增量为 $\mathbf u$。由沿线段积分，$J(\theta+\mathbf u)-J(\theta)-\nabla J(\theta)^\mathsf T\mathbf u=\int_0^1[\nabla J(\theta+t\mathbf u)-\nabla J(\theta)]^\mathsf T\mathbf u\,dt\leq L\|\mathbf u\|_2^2/2$。代入 $\mathbf u=-\eta\nabla J(\theta)$ 即得。
+\end{proof}
+若另有 $J\geq J_{\inf}$，固定 $0<\eta\leq1/L$，累加可得 $\min_{0\leq t<T}\|\nabla J(\theta_t)\|^2\leq2(J(\theta_0)-J_{\inf})/(\eta T)$。这说明出现小梯度点，不保证参数序列收敛到全局最小值。凸可微目标的驻点是全局最小点，强凸性还给出唯一性；含 ReLU 的目标不处处光滑，不能直接无条件套用本命题。
+
+\section{随机梯度与小批量训练}
+每步在给定过去状态后，独立均匀抽取 $B$ 个不同训练索引组成 $\mathcal B_t$。对可微样本损失与惩罚定义
+\begin{equation}
+\mathbf g_t=\frac1B\sum_{i\in\mathcal B_t}\nabla_\theta\ell(f_{\theta_t}(\mathbf x_i),y_i)+\lambda\nabla\Omega(\theta_t),
+\qquad \theta_{t+1}=\theta_t-\eta_t\mathbf g_t.
+\label{eq:dl-sgd}
+\end{equation}
+每个索引被选中的概率为 $B/n$，故条件期望 $\mathbb E[\mathbf g_t\mid\theta_t,\mathcal D]=\nabla J(\theta_t)$。这就是\keyterm{随机梯度下降（stochastic gradient descent, SGD）}的基本依据。每轮随机重排后依次取批量时，后续批量受已用索引限制，不能直接声称同样的逐步条件无偏性。批量归一化等跨样本运算也需要按实际批量目标重新解释梯度。
+
+一次迭代执行一次更新，一个\keyterm{训练轮次（epoch）}通常指遍历训练集一次。独立有放回抽样时，样本梯度协方差有限则平均梯度的协方差缩小为原来的 $1/B$；较大批量减少这种抽样波动，却增加单步计算。随机单步不保证目标单调下降，学习率和总预算必须共同考虑。
+
+\section{动量、自适应更新与权重衰减}
+\keyterm{动量（momentum）}保存历史梯度方向。一种约定为 $\mathbf v_t=\beta\mathbf v_{t-1}+\mathbf g_t$、$\theta_{t+1}=\theta_t-\eta_t\mathbf v_t$，初值 $\mathbf v_{-1}=0$、$0\leq\beta<1$。有些实现将新梯度乘 $1-\beta$，两种学习率含义不同。AdaGrad 逐坐标累计平方梯度，RMSProp 用指数平均代替无限累积，都通过历史幅度调整更新尺度。
+
+Adam 同时维护一阶、二阶矩。以下令更新编号从 $t=1$ 开始，$\mathbf m_0=\mathbf v_0=0$，逐元素计算
+\begin{align}
+\mathbf m_t&=\beta_1\mathbf m_{t-1}+(1-\beta_1)\mathbf g_t,&
+\mathbf v_t&=\beta_2\mathbf v_{t-1}+(1-\beta_2)\mathbf g_t\odot\mathbf g_t,\notag\\
+\widehat{\mathbf m}_t&=\mathbf m_t/(1-\beta_1^t),&
+\widehat{\mathbf v}_t&=\mathbf v_t/(1-\beta_2^t),\notag\\
+\theta_t&=\theta_{t-1}-\eta_t\widehat{\mathbf m}_t/(\sqrt{\widehat{\mathbf v}_t}+\varepsilon).
+\label{eq:dl-adam}
+\end{align}
+这里 $0\leq\beta_1,\beta_2<1$、$\varepsilon>0$，$\mathbf g_t$ 在 $\theta_{t-1}$ 处计算，除法和开方均逐元素。偏差校正补偿零初始化造成的初期缩小，不是对任意非平稳过程的准确统计建模。
+
+普通 SGD 对 $\lambda\|\theta\|^2/2$ 的惩罚产生 $\theta^+=(1-\eta\lambda)\theta-\eta\nabla\widehat{\mathcal R}_n$。自适应算法若把惩罚加入梯度，会同时对它预条件化；\keyterm{解耦权重衰减（decoupled weight decay）}则把参数缩小与自适应梯度步骤分开，通常不再等价于相同的 $L^2$ 惩罚。
+
+\section{学习率调度与停止准则}
+学习率可以固定、分段下降或平滑改变。例如总更新数为 $T$ 时，余弦日程可取 $\eta_t=\eta_{\min}+(\eta_{\max}-\eta_{\min})(1+\cos(\pi t/T))/2$，$0\leq t\leq T$；预热则在初期从较小值升到预设值。这些日程是可检验的训练设计，不是对所有目标最优的公式。
+
+优化停止可依据预算、梯度或目标变化；统计意义上的模型选择通常依据验证表现。保存验证指标最佳的检查点与保存最后一次更新并不相同。比较优化器时，应说明按相同轮次、更新数还是计算时间匹配预算，同时报告允许的调参次数。复杂非凸网络上的效果主要由受控实验说明，不能从算法名称推断普遍优劣。
+
+\section{例题与习题}
+\begin{example}[动量累积与步长]
+对 $J(\theta)=\theta^2/2$，从 $\theta_0=1$ 出发，取 $\eta=0.1,\beta=0.9$ 和上述未归一化动量，计算前两次更新。
+\end{example}
+\begin{solve}
+第一步 $g_0=1,v_0=1,\theta_1=0.9$；第二步 $g_1=0.9,v_1=0.9\times1+0.9=1.8,\theta_2=0.72$。普通梯度下降第二步为 $0.81$。动量在方向一致时累积更新，但这一个例子不能证明它对全部目标更快或更稳定。
+\end{solve}
+\begin{enumerate}
+\item 从式\eqref{eq:dl-descent}推导本章的最小梯度范数界，指出下界 $J_{\inf}$ 用于哪一步。
+\item 在零初始矩状态下，对标量梯度 $g_1=2$ 计算 Adam 的偏差校正结果，保留 $\varepsilon$。
+\item 在二维二次函数上比较三个学习率的轨迹，再在同一 MLP 上比较 SGD 与 Adam，分别报告数学模型和实际网络的结果。
+\end{enumerate}
+
+\chapter{初始化、归一化与正则化}
+\label{chap:dl-regularization}
+网络的表示能力并不保证训练过程数值良好。初始化控制早期信号尺度，归一化改变层内计算，正则化限制拟合或引入随机扰动；它们可能相互影响，但解决的问题不同。
+
+\section{信号传播与参数初始化}
+对 $a=\sum_{j=1}^{d_{\mathrm{in}}}w_jh_j$，假设权重独立、零均值、方差为 $v$，并与输入独立，且各输入二阶矩同为 $q$。交叉项期望为零，故 $\mathbb E[a^2]=d_{\mathrm{in}}vq$。若 $a$ 的分布关于零对称，ReLU 输出二阶矩为 $\mathbb E[\rho(a)^2]=\mathbb E[a^2]/2$，因此保持二阶矩的启发式选择是 $v=2/d_{\mathrm{in}}$，即 He 初始化的常用尺度。这里保持的是二阶矩，不能把 ReLU 的非零均值忽略后称作严格方差保持。
+
+对近似线性激活，兼顾前向与反向尺度的 Xavier 方案常取 $v=2/(d_{\mathrm{in}}+d_{\mathrm{out}})$。这些计算依赖独立性等近似，训练后通常不再严格成立。反向传播连乘局部雅可比时，范数可能随深度衰减或放大，形成梯度消失或爆炸。相同隐藏单元若使用完全相同初值并接收对称梯度，会保持相同状态；随机初始化用于打破这种对称，不是训练成功的保证。
+
+\section{批量归一化与层归一化}
+对某一特征在一个批量中的数值 $a_1,\ldots,a_B$，\keyterm{批量归一化（batch normalization）}计算
+\[
+\mu_B=\frac1B\sum_i a_i,\quad s_B^2=\frac1B\sum_i(a_i-\mu_B)^2,\quad
+\widehat a_i=\frac{a_i-\mu_B}{\sqrt{s_B^2+\varepsilon}},\quad z_i=\gamma\widehat a_i+\beta,
+\]
+其中 $\gamma,\beta$ 可训练，$\varepsilon>0$。训练时单个输出依赖其他批量样本；常见推断实现使用训练期间积累的均值、方差，具体更新约定应随实现记录。卷积特征通常按通道汇总批量和空间位置。
+
+\keyterm{层归一化（layer normalization）}对单个样本或词元的特征轴计算均值方差，因此不依赖同批量的其他样本。归一化轴必须由张量语义指定：对 $B\times T\times d$ 的序列表示，沿最后的 $d$ 维归一化与沿时间轴归一化是不同运算。输入标准化使用训练数据的固定统计量，也不同于这些隐藏层操作。
+
+\section{显式正则化与随机失活}
+惩罚 $\lambda\|\theta\|_2^2/2$ 的梯度为 $\lambda\theta$，倾向于缩小权重；$L^1$ 惩罚 $\lambda\sum_j|\theta_j|$ 在零点不可微，合适的优化方法可以产生稀疏解。两者都改变目标，惩罚偏置或归一化参数与否需明确约定。
+
+\keyterm{随机失活（dropout）}在训练时对固定激活 $h_j$ 使用独立掩码 $M_j\sim\operatorname{Bernoulli}(q)$，$q\in(0,1]$，令 $\widetilde h_j=M_jh_j/q$。直接计算得 $\mathbb E\widetilde h_j=h_j$、$\operatorname{Var}(\widetilde h_j)=h_j^2(1-q)/q$。推断时通常关闭掩码并使用原激活。后续含非线性时，$\mathbb E f(\widetilde{\mathbf h})$ 一般不等于 $f(\mathbf h)$，所以保持局部期望不表示严格平均了所有子网络的输出。
+
+\section{数据增强、早停与训练曲线}
+\keyterm{数据增强（data augmentation）}从原样本构造变换样本，本质是假定某种变换保持标签，或已知标签怎样随变换变化。水平翻转可能适合某些物体识别，却不适合所有文字识别；错误增强会制造标签噪声。标签平滑把独热目标改成 $q_k=(1-\epsilon)\mathbf1\{k=y\}+\epsilon/K$，$0\leq\epsilon<1$，实际改变了监督分布。
+
+\keyterm{早停（early stopping）}按验证标准在过度拟合前选择检查点。训练、验证误差都高可能是表达不足、优化不足或标签问题；训练低而验证高也可能来自分布差异。训练中开启增强和 dropout 而验证时关闭，可能使训练指标暂时更差，因此比较曲线前要核对测量模式，不能只根据曲线形状诊断原因。
+
+\section{例题与习题}
+\begin{example}[归一化的具体计算]
+一批某特征的数值为 $1,3$，取 $\gamma=1,\beta=0$。计算归一化输出，并说明稳定常数的作用。
+\end{example}
+\begin{solve}
+均值为 $2$，以分母 $B=2$ 计算的方差为 $1$，输出为 $-1/\sqrt{1+\varepsilon},1/\sqrt{1+\varepsilon}$。若两数都为 $2$，方差为零，稳定常数使分母非零，中心化输出为零；它也使一般情况下输出方差不严格等于一。
+\end{solve}
+\begin{enumerate}
+\item 对 $h=2,q=1/2$ 列出 dropout 输出分布并核对均值和方差。
+\item 在相同网络和预算上分别改变初始化或正则化强度，每次只改变一个因素，记录激活和梯度尺度。
+\item 举出一个保持图像外观合理却改变真实标签的增强，解释为什么训练数据更多反而可能降低效果。
+\end{enumerate}
+
+\chapter{训练程序、实验设计与故障诊断}
+\label{chap:dl-engineering}
+一个训练程序必须忠实实现所声明的目标。输入形状正确不代表标签语义正确，损失下降也不代表评价没有泄漏。本章用与具体框架版本无关的流程组织实现与检查。
+
+\section{数据管线与批量组织}
+先划分训练、验证和测试对象，再仅用训练数据拟合标准化、词表等需要估计的预处理步骤。若训练特征均值、标准差为 $\mu_j,s_j$，验证和测试沿用 $(x_j-\mu_j)/s_j$，零方差特征须删除或使用明确稳定规则。类别编号的映射在各划分中保持一致，图像通道和像素尺度也须一致。
+
+批量加载器按索引取样、变换并拼接。变长序列另存有效位置掩码 $m_{it}\in\{0,1\}$，目标损失应除以有效项总数 $N_{\mathrm{valid}}=\sum_{i,t}m_{it}>0$，即 $\sum_{i,t}m_{it}\ell_{it}/N_{\mathrm{valid}}$。这使每个有效词元等权；若任务要求每条序列等权，应先在各序列内平均，再对序列平均。两者不是实现细节上的任意替换。
+
+\section{最小训练循环与验证循环}
+给定训练集、模型、初始化、优化器、批量大小和更新预算，基本循环如下。伪代码中的 backward 计算梯度，step 使用该梯度和优化器状态更新参数；每步只调用一次 step。
+\begin{verbatim}
+initialize model parameters and optimizer state
+for each training batch within the update budget:
+    set training mode
+    clear gradient buffers
+    prediction = model(batch.inputs)
+    loss = objective(prediction, batch.targets, batch.mask)
+    backward(loss)
+    update parameters with optimizer.step()
+    record loss, sample count, and learning rate
+periodically evaluate on validation data
+save the checkpoint selected by the validation rule
+\end{verbatim}
+验证时切换推断模式，关闭不需要的梯度记录，并累计总损失和有效项数量；训练模式控制 dropout、批量归一化等行为，停止记录梯度控制计算图构造，二者并不等价。测试前恢复选定检查点。出现非有限损失时应保存诊断信息并检查原因，而非把无效更新继续计入正常训练。
+
+\section{检查点、随机性与可复现记录}
+用于预测的检查点至少包含模型参数和必要的运行统计；用于恢复训练还需优化器状态、学习率调度位置、随机数状态及数据读取位置。只恢复权重而丢弃动量，接下来的轨迹一般不同。实验记录应包含数据版本、划分规则、配置、实现版本、指标定义和计算环境；相同种子在不同算子与硬件上未必逐位一致。
+
+若有 $R\geq2$ 次独立运行，指标为 $s_1,\ldots,s_R$，可报告均值 $\bar s$ 与样本标准差 $[\sum_r(s_r-\bar s)^2/(R-1)]^{1/2}$。它描述不同运行的离散程度，不是自动成立的总体置信区间。独立重复训练与在一个固定测试集上重采样，衡量的随机性也不同。
+
+\section{调试顺序与消融实验}
+先查看原始样本、标签和变换后的输入，再验证输出形状、损失尺度、梯度与一次参数更新。容量足够、标签一致且关闭强增强和强正则时，尝试拟合极小子集是有效诊断：若仍不能降低训练误差，优先检查目标、梯度与优化设置。极小子集拟合成功只证明局部训练通路可用，仍需检查泛化。
+
+\keyterm{消融实验（ablation study）}移除或改变一个组件以检验其作用。应尽量固定数据、预算和选择协议，并报告参数量等随之变化的因素。若减少一个模块同时大幅缩小模型，结果只能说明这一联合改变的影响。失败样本应按输入条件、类别和误差类型检查，避免用总体均值掩盖系统错误。
+
+\section{例题与习题}
+\begin{example}[正确汇总不等大小批量]
+两个验证批量分别有 $8$ 和 $2$ 个样本，平均损失分别为 $1$ 和 $3$。求整个验证集的样本平均损失。
+\end{example}
+\begin{solve}
+总损失为 $8\times1+2\times3=14$，除以 $10$ 得 $1.4$。直接平均两个批量均值得到 $2$，错误地赋予小批量中每个样本更高权重。变长序列的词元平均也应按有效词元数加权。
+\end{solve}
+\begin{enumerate}
+\item 在简单分类任务中分别制造标签错位、漏清梯度和验证时保留 dropout 的故障，记录可区分它们的现象。
+\item 从线性基线到 MLP 完成一次训练，提交固定划分、配置、训练曲线、验证选择规则与测试结果。
+\item 设计一个比较两种网络模块的实验，列明需要匹配的预算、需要报告的变化和不能由结果推出的结论。
+\end{enumerate}
+
+\part{典型网络架构}
 
 \chapter{卷积神经网络}
+\label{chap:dl-cnn}
+把图像展平后使用全连接层，会为不同位置学习互不相关的权重。若同一种局部模式在不同位置都可能出现，共享局部规则更符合任务结构。卷积网络把局部连接与权重共享直接写进模型。
 
+\section{从全连接到局部连接与权重共享}
+\keyterm{卷积神经网络（convolutional neural network, CNN）}在空间邻域中应用可学习核，并在不同位置复用核参数。一个宽 $k$ 的一维核可写成 $y_i=\sum_{u=0}^{k-1}w_ux_{i+u}$。它计算的是\keyterm{互相关（cross-correlation）}；数学卷积通常包含核索引翻转。深度学习习惯把这种不翻转的运算也称卷积，本书公式按互相关约定书写。
 
-\chapter{序列模型与注意力机制}
+局部性限制单层只读取邻域，共享权重限制各位置使用同一规则。全连接映射可以表示更多位置特定关系，卷积则减少独立参数，表达一种归纳偏置。若任务依赖绝对位置且未加入位置信息，过强共享可能不合适；结构选择必须联系数据语义。
 
+\section{卷积运算、通道与输出形状}
+令输入 $X_{c,i,j}$ 有 $C_{\mathrm{in}}$ 个通道，核 $W_{o,c,u,v}$ 的空间大小为 $k_h\times k_w$，输出通道为 $o$。以步幅一、无填充为例，
+\[
+Y_{o,i,j}=b_o+\sum_{c=1}^{C_{\mathrm{in}}}\sum_{u=0}^{k_h-1}\sum_{v=0}^{k_w-1}W_{o,c,u,v}X_{c,i+u,j+v}.
+\]
+每个输出通道都对输入通道求和，而不是让通道独立通过。总参数量为 $C_{\mathrm{out}}(C_{\mathrm{in}}k_hk_w+1)$，与输入空间大小无关。
 
-\chapter{训练与正则化}
+单轴输入长度为 $H$、核长为 $k$、两端各补 $p_0$ 个零、步幅为 $s\geq1$、膨胀率为 $r\geq1$ 时，有效核宽为 $r(k-1)+1$。可用的核起点从零开始，每次增加 $s$，不得超过 $H+2p_0-r(k-1)-1$，故
+\begin{equation}
+H_{\mathrm{out}}=\left\lfloor\frac{H+2p_0-r(k-1)-1}{s}\right\rfloor+1.
+\label{eq:dl-conv-shape}
+\end{equation}
+这里要求填充后输入至少能容纳一个有效核，二维沿两轴分别计算。非对称填充时应以两侧填充总数替换 $2p_0$。
 
+\section{感受野、池化与平移性质}
+\keyterm{感受野（receptive field）}是一个输出可能依赖的输入区域。对顺序堆叠层，令 $R_0=j_0=1$，其中 $R_l$ 是理论感受野宽度、$j_l$ 是相邻输出对应到原输入的间隔。核长 $k_l$、膨胀率 $r_l$、步幅 $s_l$ 给出 $R_l=R_{l-1}+(k_l-1)r_lj_{l-1}$、$j_l=s_lj_{l-1}$。这描述可能连接范围，不等于各输入对输出的实际影响相同。
+
+最大池化取窗口最大值，平均池化取均值；二者常用于下采样。无限网格上的步幅一卷积满足 $C(T_\Delta x)=T_\Delta C(x)$，其中 $T_\Delta$ 为整数平移，这称\keyterm{平移等变性（translation equivariance）}。把输入索引整体替换即可验证此式。有限边界填充和带步幅下采样可能破坏一般平移下的严格等变性。等变是输出随输入移动，不变则是输出保持不动，两者不同。
+
+\section{卷积层的学习与分类网络}
+卷积核参数在多个输出位置出现。记输出梯度为 $\Delta_{o,i,j}$，则上式中的核梯度为 $\partial\ell/\partial W_{o,c,u,v}=\sum_{i,j}\Delta_{o,i,j}X_{c,i+u,j+v}$；共享权重梯度按使用位置累加，偏置梯度为 $\sum_{i,j}\Delta_{o,i,j}$。输入梯度则把各输出贡献送回对应输入位置，仍是计算图的链式法则。
+
+分类网络可交替堆叠卷积、激活与下采样，最后展平接全连接头，或对每个通道作全局平均后分类。全局平均大幅减少头部参数，但也舍弃显式空间布局。普通稠密卷积乘加量约为 $H_{\mathrm{out}}W_{\mathrm{out}}C_{\mathrm{out}}C_{\mathrm{in}}k_hk_w$；激活存储另随批量与空间分辨率增长。参数少不等于运行快，实际延迟还受算子实现和数据移动影响。
+
+\section{例题与习题}
+\begin{example}[边缘差分核]
+输入为 $\left(\begin{smallmatrix}1&2&3\\4&5&6\\7&8&9\end{smallmatrix}\right)$，核为 $\left(\begin{smallmatrix}1&0\\0&-1\end{smallmatrix}\right)$，无偏置、无填充、步幅一。求输出。
+\end{example}
+\begin{solve}
+四个窗口分别计算 $1-5,2-6,4-8,5-9$，输出为 $\left(\begin{smallmatrix}-4&-4\\-4&-4\end{smallmatrix}\right)$。式\eqref{eq:dl-conv-shape}给出每轴长度 $3-2+1=2$。同一个核在每个位置计算相同方向的局部差分，这就是权重共享的具体含义。
+\end{solve}
+\begin{enumerate}
+\item 输入 $32\times32$、$3$ 通道，使用 $16$ 个 $3\times3$ 核、填充一、步幅二，求输出形状与含偏置参数量。
+\item 求两层 $3\times3$、步幅一卷积的理论感受野，再把第一层步幅改成二。
+\item 在相同图像划分和预算上比较 MLP 与 CNN，并测量图像平移前后的预测变化，解释边界处理的影响。
+\end{enumerate}
+
+\chapter{残差网络与视觉任务}
+\label{chap:dl-vision}
+加深网络可以组合更多局部变换，但也增加优化难度。残差连接为信号提供直接路径；分类之外的视觉任务则要求网络保留或恢复空间信息，因而需要不同输出结构。
+
+\section{残差连接与深层网络}
+\keyterm{残差连接（residual connection）}把输出写成 $\mathbf y=\mathbf x+F_\theta(\mathbf x)$，两项必须同形。在可微点 $D\mathbf y=\mathbf I+DF_\theta$，反向梯度包含直接传递的 $\nabla_{\mathbf y}\ell$ 与经过残差分支的贡献。即使分支接近零，块仍可近似恒等映射，使“保留输入”成为容易表达的状态。
+
+恒等项不保证任意深网络的梯度都不消失：分支导数仍可能相消，多个块的雅可比仍需连乘。若通道数或空间尺度变化，可写成 $\mathbf y=P\mathbf x+F_\theta(\mathbf x)$，其中 $P$ 是相容投影，常用带适当步幅的 $1\times1$ 卷积实现。此时直接路径导数是 $P$，不再是同维恒等矩阵。
+
+\section{模块化设计与多尺度表示}
+$1\times1$ 卷积在每个位置混合通道，不直接扩展空间感受野。瓶颈块先减少通道，再进行空间卷积，最后恢复通道，可降低中间计算。下采样层扩大后续单元对应的输入范围，却降低定位精度；多尺度结构把不同分辨率特征结合，以兼顾局部细节和较大范围信息。
+
+\keyterm{深度可分离卷积（depthwise separable convolution）}先对每个输入通道独立作空间卷积，再用 $1\times1$ 卷积混合通道。忽略偏置、设通道倍率为一，参数量从 $k^2C_{\mathrm{in}}C_{\mathrm{out}}$ 降为 $k^2C_{\mathrm{in}}+C_{\mathrm{in}}C_{\mathrm{out}}$，但结构约束也不同。理论乘加量下降不保证同比加速，小算子调度和内存访问可能占主导。
+
+\section{目标检测的输出与评价}
+\keyterm{目标检测（object detection）}输出一组对象，每个对象包含类别和边界框，可用 $(x_{\min},y_{\min},x_{\max},y_{\max})$ 表示。对面积有限且并集非空的两个区域 $A,B$，\keyterm{交并比（intersection over union, IoU）}为 $|A\cap B|/|A\cup B|$。分类损失评价类别，位置回归损失评价边界；训练前必须说明哪个预测与哪个真实对象匹配，未匹配预测如何处理。
+
+候选框方法生成多个候选并评分，集合式方法直接学习有限预测集合及匹配。\keyterm{非极大值抑制（non-maximum suppression, NMS）}依次保留高分候选，删除与其重叠过大的同类候选，是减少重复预测的后处理。平均精度依据按分数排序并匹配后的精确率--召回率曲线计算；不同 IoU 阈值、插值和类别汇总规则会给出不同数值，比较时应固定完整协议。
+
+\section{语义分割与编码器--解码器}
+\keyterm{语义分割（semantic segmentation）}为每个像素赋予类别；\keyterm{实例分割（instance segmentation）}还要区分同类的不同对象。编码器逐步降低分辨率以提取语义，解码器恢复空间输出，跳跃连接把较高分辨率特征送到对应解码层。像素交叉熵可在有效标注位置平均，类别权重会改变不同像素的训练贡献。
+
+上采样可用固定插值或可训练的\keyterm{转置卷积（transposed convolution）}。将普通卷积写成线性映射 $\mathbf y=\mathbf C\mathbf x$，转置卷积对应 $\mathbf C^\mathsf T$，一般不是 $\mathbf C^{-1}$。在一维、膨胀率一的常见设置下，其输出长为 $(H_{\mathrm{in}}-1)s-2p_0+k+o$，其中输出补偿 $0\leq o<s$ 选择相容形状。输出与标签须逐像素对齐，否则损失可能在错误位置比较。
+
+\section{例题与习题}
+\begin{example}[区域重叠]
+两个边界框分别为 $A=[0,2]\times[0,2]$ 与 $B=[1,3]\times[0,2]$。求 IoU，并解释其含义。
+\end{example}
+\begin{solve}
+两框面积各为 $4$，交集面积为 $2$，并集面积为 $4+4-2=6$，故 IoU 为 $1/3$。它衡量位置重叠，不说明类别是否正确；类别预测正确而位置偏离仍可能在检测评价中算作失败。
+\end{solve}
+\begin{enumerate}
+\item 设计把 $32\times32\times16$ 特征变为 $16\times16\times32$ 的残差块，写明两条分支形状。
+\item 对 $C_{\mathrm{in}}=C_{\mathrm{out}}=32,k=3$ 比较普通卷积和深度可分离卷积的无偏置参数量。
+\item 用合成矩形图像建立分割实验，比较插值和转置卷积上采样，并分别报告像素指标、区域指标与推断成本。
+\end{enumerate}
+
+\chapter{循环神经网络与序列建模}
+\label{chap:dl-rnn}
+预测下一个字符需要过去的信息，处理完整句子又需要适应不同长度。循环网络通过一个重复更新的状态压缩历史，每个时刻使用相同参数；这种共享使模型长度可变，也使梯度沿时间反复通过同一结构。
+
+\section{序列任务、时间信息与因果约束}
+序列到单值任务可用整段输入判断类别，序列到序列任务输出一串目标。\keyterm{自回归（autoregressive）}预测在位置 $t$ 仅使用此前位置，条件分布写成 $p_\theta(x_t\mid x_{<t})$；在线时间预测还须明确哪些外生信息在预测时已知。离线分析整段数据可使用未来位置，在线预测一般不允许，因此同一网络结构在不同任务中可能有不同合法性。
+
+变长序列需要掩码控制有效损失和状态更新；填充值只是计算占位，不应无意充当真实观测。时间预测的训练验证划分通常保持时间顺序，对重叠窗口还应避免相同目标跨划分复用。双向网络同时读入左右上下文，适合允许完整输入的分析任务，不能直接作为不读取未来的在线预测器。
+
+\section{循环状态与参数共享}
+\keyterm{循环神经网络（recurrent neural network, RNN）}的基本状态更新为
+\begin{equation}
+\mathbf h_t=\phi(\mathbf W_x\mathbf x_t+\mathbf W_h\mathbf h_{t-1}+\mathbf b),
+\qquad \widehat{\mathbf y}_t=\mathbf W_o\mathbf h_t+\mathbf b_o.
+\label{eq:dl-rnn-state}
+\end{equation}
+若输入维度为 $d$、隐藏维度为 $h$、输出维度为 $m$，则 $\mathbf W_x\in\mathbb R^{h\times d}$、$\mathbf W_h\in\mathbb R^{h\times h}$、$\mathbf W_o\in\mathbb R^{m\times h}$。初始状态可设零或另行学习，所有时刻共享这些参数，因此参数量不随序列长度增长。
+
+状态 $\mathbf h_t$ 是整个前缀的确定性函数，但有限维状态不保证完整保存所有历史。多层 RNN 把下层同一时刻的输出送入上层，时间方向和深度方向是两种不同索引。把不相关序列拼进一个批量时应各自维护初始状态，不能让上一条样本的状态意外成为下一条样本的历史。
+
+\section{沿时间反向传播与梯度控制}
+\keyterm{沿时间反向传播（backpropagation through time, BPTT）}把有限序列展开成普通计算图。设 $\ell=\sum_t\ell_t$，每个共享参数的梯度是它在所有时间结点上的贡献之和。在逐元素可微激活下，令 $\mathbf a_t=\mathbf W_x\mathbf x_t+\mathbf W_h\mathbf h_{t-1}+\mathbf b$，相邻状态的雅可比为 $\mathbf J_t=\operatorname{diag}(\phi'(\mathbf a_t))\mathbf W_h$，远处依赖包含 $\mathbf J_t\cdots\mathbf J_{s+1}$。
+
+由矩阵范数次乘性，乘积范数不超过各因子范数乘积，因此反复收缩可能使远期梯度很小，反复放大可能导致爆炸；单个权重矩阵的特征值不能完全刻画状态依赖的非线性乘积。截断 BPTT 将超过指定窗口的状态视作常量，减少成本但舍弃远期梯度。全局梯度裁剪 $\mathbf g\leftarrow\mathbf g\min(1,c/\|\mathbf g\|_2)$（零梯度保持零）限制大梯度，不能恢复已经消失的信息。
+
+\section{门控循环单元与编码器--解码器}
+\keyterm{长短期记忆（long short-term memory, LSTM）}引入细胞状态 $\mathbf c_t$。令 $\mathbf u_t=[\mathbf x_t;\mathbf h_{t-1}]$，定义遗忘门、输入门、输出门 $\mathbf f_t=\sigma(\mathbf W_f\mathbf u_t+\mathbf b_f)$、$\mathbf i_t=\sigma(\mathbf W_i\mathbf u_t+\mathbf b_i)$、$\mathbf o_t=\sigma(\mathbf W_o\mathbf u_t+\mathbf b_o)$，候选 $\widetilde{\mathbf c}_t=\tanh(\mathbf W_c\mathbf u_t+\mathbf b_c)$，并更新
+\[
+\mathbf c_t=\mathbf f_t\odot\mathbf c_{t-1}+\mathbf i_t\odot\widetilde{\mathbf c}_t,
+\qquad \mathbf h_t=\mathbf o_t\odot\tanh\mathbf c_t.
+\]
+这里各门与状态同维，$\mathbf W_o$ 在本段是输出门参数。加性路径使信息可在遗忘门接近一时保留，仍不保证任意长依赖都能学得。
+
+\keyterm{门控循环单元（gated recurrent unit, GRU）}可采用 $\mathbf r_t=\sigma(\mathbf W_r\mathbf x_t+\mathbf U_r\mathbf h_{t-1}+\mathbf b_r)$、$\mathbf z_t=\sigma(\mathbf W_z\mathbf x_t+\mathbf U_z\mathbf h_{t-1}+\mathbf b_z)$，候选 $\widetilde{\mathbf h}_t=\tanh(\mathbf W\mathbf x_t+\mathbf U(\mathbf r_t\odot\mathbf h_{t-1})+\mathbf b)$，再令 $\mathbf h_t=(1-\mathbf z_t)\odot\mathbf h_{t-1}+\mathbf z_t\odot\widetilde{\mathbf h}_t$。此处更新门定义为新候选的权重，其他约定可能相反。编码器--解码器先编码输入，再条件生成目标；\keyterm{教师强制（teacher forcing）}在训练时给解码器真实前一目标，生成时则使用自身已生成内容，二者前缀分布可能不同。
+
+\section{例题与习题}
+\begin{example}[共享权重的时间梯度]
+考虑标量线性递推 $h_t=wh_{t-1}+x_t$，$h_0=0$，输入 $x_1=1,x_2=2$，损失为 $h_2^2/2$。求 $w=1$ 时的损失和梯度。
+\end{example}
+\begin{solve}
+$h_1=1,h_2=w+2$，故 $w=1$ 时损失为 $9/2$，梯度为 $h_2\,dh_2/dw=3$。递推求导也得到 $dh_1/dw=0$、$dh_2/dw=h_1+w\,dh_1/dw=1$。较长序列须继续累积共享参数的各时刻贡献。
+\end{solve}
+\begin{enumerate}
+\item 写出 $h_t=wh_{t-1}+x_t$ 的 $dh_t/dw$ 递推，说明直接依赖和经历史状态的依赖各是什么。
+\item 在上述 GRU 约定下讨论更新门趋近零或一的行为，核对各矩阵维度。
+\item 用延迟复制任务比较简单 RNN 与门控网络，固定参数量范围和训练预算，并测试不同序列长度。
+\end{enumerate}
+
+\chapter{注意力机制}
+\label{chap:dl-attention}
+单个循环状态必须把整个历史压缩到固定维度。注意力则保留一组候选表示，并根据当前需求选择性聚合：问题决定查询，候选提供可匹配的键，真正被汇总的信息存放在值中。
+
+\section{从固定状态到内容寻址}
+\keyterm{注意力（attention）}给定查询 $\mathbf q$、键 $\mathbf k_j$ 和值 $\mathbf v_j$，先计算分数 $e_j=s(\mathbf q,\mathbf k_j)$，再令 $a_j=e^{e_j}/\sum_re^{e_r}$，输出 $\sum_ja_j\mathbf v_j$。$\mathbf q$、$\mathbf k_j$、$\mathbf v_j$ 分别称\keyterm{查询（query）}、\keyterm{键（key）}和\keyterm{值（value）}。同一批值可以因查询不同得到不同组合，区别于固定权重的平均。
+
+点积打分使用 $\mathbf q^\mathsf T\mathbf k$；加性打分可用 $\mathbf a^\mathsf T\tanh(\mathbf W_q\mathbf q+\mathbf W_k\mathbf k+\mathbf b)$，各投影尺寸须保证相加。归一化权重非负且和为一，聚合结果位于值向量的凸包中；后续投影与非线性仍可改变这一几何关系。较大权重说明当前计算中的相对分配，不自动构成因果解释。
+
+\section{缩放点积注意力及维度}
+设 $\mathbf Q\in\mathbb R^{n_q\times d_k}$、$\mathbf K\in\mathbb R^{n_k\times d_k}$、$\mathbf V\in\mathbb R^{n_k\times d_v}$，批量查询输出为
+\begin{equation}
+\operatorname{Attention}(\mathbf Q,\mathbf K,\mathbf V)
+=\operatorname{softmax}\!\left(\frac{\mathbf Q\mathbf K^\mathsf T}{\sqrt{d_k}}+\mathbf M\right)\mathbf V.
+\label{eq:dl-attention}
+\end{equation}
+分数和掩码 $\mathbf M$ 的形状均为 $n_q\times n_k$，softmax 逐行沿键位置计算，输出为 $n_q\times d_v$。允许位置的掩码取零，禁止位置用 $-\infty$ 表示概率为零；每行须至少允许一个位置，否则归一化无定义。
+
+若查询与键的各分量相互独立、均值零且方差一，则点积各项方差为一，总方差为 $d_k$，除以 $\sqrt{d_k}$ 后方差为一。这说明缩放的初始尺度动机；训练后的特征不必满足这些独立条件。计算 softmax 时仍应减去每行允许分数的最大值以保持数值稳定。
+
+\section{自注意力、交叉注意力与多头机制}
+\keyterm{自注意力（self-attention）}从同一序列产生查询、键和值；\keyterm{交叉注意力（cross-attention）}的查询来自一组表示，键值来自另一组。对行表示 $\mathbf H\in\mathbb R^{T\times d}$，可令 $\mathbf Q=\mathbf H\mathbf W_Q$，其中 $\mathbf W_Q\in\mathbb R^{d\times d_k}$，其他投影同理；这里投影矩阵采用右乘记号。
+
+\keyterm{多头注意力（multi-head attention）}用不同投影形成 $m$ 个头 $\mathbf Z_j$，拼接后计算 $[\mathbf Z_1|\cdots|\mathbf Z_m]\mathbf W_O$，$\mathbf W_O\in\mathbb R^{md_v\times d}$。因果掩码禁止未来位置，填充掩码禁止占位符，局部窗口掩码限制邻域；这些规则可以组合，但各自解决不同问题。标准因果自注意力的第 $i$ 行允许 $j\leq i$，具体输入目标移位见下一章。
+
+\section{位置信息与计算成本}
+\begin{proposition}[无位置自注意力的置换等变性]
+若所有位置共享投影，且不加入位置编码或位置相关掩码，则同时置换输入位置会同样置换自注意力输出。
+\end{proposition}
+\begin{proof}
+令 $\mathbf P$ 为置换矩阵。输入变为 $\mathbf P\mathbf H$ 时，分数矩阵变为 $\mathbf P\mathbf Q\mathbf K^\mathsf T\mathbf P^\mathsf T$。逐行 softmax 与相应行列置换相容，故权重变为 $\mathbf P\mathbf A\mathbf P^\mathsf T$；乘以 $\mathbf P\mathbf V$ 后输出为 $\mathbf P\mathbf A\mathbf V$。
+\end{proof}
+因此没有位置机制时，自注意力无法仅凭排列区分相同词元集合的不同顺序。绝对位置编码给位置附加表示，相对位置机制直接影响位置间的相互作用。对固定头数、长度 $T$ 和宽度 $d$，标准稠密分数矩阵需 $O(T^2)$ 存储，注意力乘法需 $O(T^2d)$ 运算，投影另需 $O(Td^2)$。不显式保存全部分数的实现可以降低实际内存，不能据此声称数学上少算了所有成对关系。
+
+\section{例题与习题}
+\begin{example}[查询改变加权平均]
+取标量键 $k_1=0,k_2=\log3$，值 $v_1=1,v_2=3$，无掩码且 $d_k=1$。比较查询 $q=1$ 与 $q=0$ 的输出。
+\end{example}
+\begin{solve}
+$q=1$ 时分数为 $(0,\log3)$，权重为 $(1/4,3/4)$，输出为 $2.5$；$q=0$ 时权重为 $(1/2,1/2)$，输出为 $2$。若禁止第二个键，则两种查询的输出都为 $1$。值保持不变，查询和可见集合共同决定聚合。
+\end{solve}
+\begin{enumerate}
+\item 对本例加入第三个键和值，自选分数后手算输出，核对结果属于值的凸包。
+\item 写出长度四的因果掩码，解释不能对每列而应对每行归一化的原因。
+\item 实现一个小型键值检索实验，同时检查权重和输出正确率；改变序列长度后记录运算与内存变化。
+\end{enumerate}
+
+\chapter{Transformer 与序列架构}
+\label{chap:dl-transformer}
+注意力负责位置之间的信息交换，逐位置前馈网络负责特征变换，残差和归一化组织深层计算。Transformer（通常保留英文名称）把这些模块组合成序列架构；原始模型见文献\cite{vaswani2017}，不同变体需要明确其实际计算顺序。
+
+\section{Transformer 块的计算结构}
+以预归一化块为例，行表示 $\mathbf H\in\mathbb R^{T\times d}$ 经过
+\begin{equation}
+\mathbf U=\mathbf H+\operatorname{MHA}(\operatorname{LN}(\mathbf H)),\qquad
+\mathbf H^+=\mathbf U+\operatorname{FFN}(\operatorname{LN}(\mathbf U)),
+\label{eq:dl-transformer-block}
+\end{equation}
+其中 MHA 表示多头注意力，LN 表示沿特征轴的层归一化。逐位置前馈网络可写成 $\operatorname{FFN}(\mathbf X)=\phi(\mathbf X\mathbf W_1+\mathbf1_T\mathbf b_1^\mathsf T)\mathbf W_2+\mathbf1_T\mathbf b_2^\mathsf T$，$\mathbf W_1\in\mathbb R^{d\times d_{\mathrm{ff}}}$、$\mathbf W_2\in\mathbb R^{d_{\mathrm{ff}}\times d}$。它在位置间共享参数，但不直接混合位置。
+
+后归一化结构则在残差相加后归一化，例如 $\mathbf U=\operatorname{LN}(\mathbf H+\operatorname{MHA}(\mathbf H))$。两者不可在同一公式中随意互换。忽略偏置、取各头总宽度为 $d$ 时，注意力投影约有 $4d^2$ 个权重，前馈部分有 $2dd_{\mathrm{ff}}$ 个权重；序列长度改变计算量而不改变这些权重数。
+
+\section{编码器、解码器与条件生成}
+仅编码器结构通常允许读取整个输入，适合分类和完整序列表示；仅解码器的自注意力采用因果约束，适合自回归预测。编码器--解码器先计算源序列表示，解码器再以目标前缀为查询，通过交叉注意力读取源表示。源侧完整可见与目标侧只能读前缀是两种不同约束。
+
+架构中的“解码器”是一组网络模块，生成时的“解码策略”是如何从输出分布选择词元的算法。双向编码器不能只把输出接到采样器就成为正确的因果模型，训练目标和可见范围必须一致。同样，使用 Transformer 不代表必然采用下一词元预测，也可以采用掩码预测或其他任务。
+
+\section{训练掩码、目标移位与损失}
+\keyterm{词元（token）}是离散序列单位，词表大小记为 $V$。\keyterm{嵌入（embedding）}矩阵 $\mathbf E\in\mathbb R^{V\times d}$ 将词元编号变成可学习向量。绝对位置向量可学习，也可按固定函数生成；例如偶数 $d$ 时，位置 $t$ 的第 $2j,2j+1$ 维可取 $\sin(t/10000^{2j/d})$、$\cos(t/10000^{2j/d})$，$j=0,\ldots,d/2-1$。
+
+给定目标序列 $(x_1,\ldots,x_T)$，用 $\mathrm{BOS}$ 表示序列起始标记，输入为 $(\mathrm{BOS},x_1,\ldots,x_{T-1})$，第 $t$ 个输出预测 $x_t$。因果掩码允许读取不晚于当前输入位置的内容，因此可以一次并行计算全部训练位置而不泄漏目标。损失在非填充目标上平均，源侧填充与目标侧因果规则分别处理。若直接把未移位目标暴露给同一位置，模型可能学习复制，训练损失虽低却不能正确生成。
+
+\section{自回归推断与缓存}
+生成时给定前缀，取最后位置的条件分布，选出新词元并附加，直到遇到结束符或达到预定长度。对确定性的因果推断、固定参数和位置规则，旧位置表示不受新增未来位置影响，因此每层可保存旧键和值，只为新位置计算新投影，称\keyterm{键值缓存（key--value cache, KV cache）}。
+
+\keyterm{预填充（prefill）}处理初始前缀，随后逐词元生成。标准多头结构、固定层数下，缓存规模随上下文长度线性增长；一个新查询仍需与可见历史键交互。缓存减少重复计算，不取消历史访问成本。能接受更长输入只说明形状或实现允许，还需测试位置外推和实际信息利用，不能由最大输入长度推出可靠记忆范围。
+
+\section{例题与习题}
+\begin{example}[一个小块的权重数]
+取模型宽度 $d=32$、四个头、每头查询键值维度均为 $8$、前馈宽度 $d_{\mathrm{ff}}=64$，忽略偏置和归一化参数。计算一个块的权重数。
+\end{example}
+\begin{solve}
+查询、键、值及输出四个投影共有 $4\times32^2=4096$ 个权重，前馈层共有 $32\times64+64\times32=4096$ 个，总计 $8192$。长度为十或一百不改变此数，但注意力分数的元素数随长度平方增长。
+\end{solve}
+\begin{enumerate}
+\item 写出输入为 $(\mathrm{BOS},a,b)$、目标为 $(a,b,c)$ 时每个位置的可见集合。
+\item 在固定推断模式下扰动未来输入位置，验证因果模型的较早位置输出保持不变。
+\item 在短符号序列任务上训练小型 Transformer，与参数量接近的 RNN 比较，并记录训练吞吐、生成延迟和任务正确率。
+\end{enumerate}
+
+\part{表示学习、预训练与应用}
+
+\chapter{表示学习与自监督学习}
+\label{chap:dl-representation}
+一个表示是否有用，要看它保留的信息能否支持目标任务。监督分类只是一种学习表示的方式；重建输入、匹配不同视图和预测被遮住的部分，也能构造可训练目标，但各自偏好的信息不同。
+
+\section{表示的用途与评价方式}
+\keyterm{表示学习（representation learning）}寻找映射 $g_\phi:\mathcal X\to\mathbb R^d$，使输出便于下游预测、检索或其他操作。若编码器把两个应属不同类别的输入映到完全相同表示，任何只读取该表示的确定性分类器都无法区分它们。因此表示需要丢弃无关变化，同时保留任务需要的差异；何者无关取决于任务。
+
+\keyterm{线性探测（linear probing）}冻结 $g_\phi$，仅训练线性输出头；端到端微调则允许改变编码器。两者回答不同问题：前者评价当前表示对线性读出的适用性，后者评价经过额外监督适配后的性能。可视化成簇、维度较低或训练重建好，都不能单独证明下游效果；应固定划分、标注量、探测器容量和选择预算。
+
+\section{自编码器与重建目标}
+\keyterm{自编码器（autoencoder）}由编码器 $g_\phi$ 和解码器 $d_\psi$ 组成，重建 $\widehat{\mathbf x}=d_\psi(g_\phi(\mathbf x))$。对连续向量可最小化 $n^{-1}\sum_i\|\mathbf x_i-\widehat{\mathbf x}_i\|^2$；对离散数据应使用相应的概率损失。中间维度小于输入维度形成瓶颈，但低维本身不保证语义有用，过大容量甚至可以记住有限训练集。
+
+对中心化数据、线性编码解码、平方误差和低秩瓶颈，最优重建子空间可由\keyterm{主成分分析（principal component analysis, PCA）}的领先特征方向给出。这是截断奇异值分解的标准最小误差结论，此处引用；编码器和解码器因子未必唯一，非线性网络也不与 PCA 等价。去噪自编码器输入扰动样本 $\widetilde{\mathbf x}$ 却重建原样本 $\mathbf x$，优化 $\mathbb E_{\mathbf X,\widetilde{\mathbf X}\mid\mathbf X}\|d_\psi(g_\phi(\widetilde{\mathbf X}))-\mathbf X\|^2$，迫使模型利用可恢复的结构，而非直接复制。
+
+\section{对比学习与正负样本}
+\keyterm{对比学习（contrastive learning）}把应当接近的表示作为正对，把候选中的其他表示作为负对。对 $B$ 个样本构造两种保持任务语义的视图，得到单位向量 $\mathbf q_i,\mathbf k_i$，温度 $\tau>0$。一种单向批量目标为
+\begin{equation}
+\ell_i=-\log\frac{\exp(\mathbf q_i^\mathsf T\mathbf k_i/\tau)}{\sum_{j=1}^B\exp(\mathbf q_i^\mathsf T\mathbf k_j/\tau)}.
+\label{eq:dl-contrastive}
+\end{equation}
+它把“在 $B$ 个候选中找到配对视图”写成分类任务。对分数 $s_{ij}=\mathbf q_i^\mathsf T\mathbf k_j/\tau$，梯度仍为 $p_{ij}-\mathbf1\{j=i\}$，正对分数被相对提高，其他分数被相对降低。
+
+若所有输入都产生相同向量，各候选概率为 $1/B$，损失为 $\log B$，称\keyterm{表示坍塌（representation collapse）}。损失能区分此状态与更好的匹配，不等于任意优化过程必然避开坍塌。增强若改变真实语义，会构造错误正对；批量中的不同样本若语义相同，也可能成为假负例。目标定义和数据构造因此同样重要。
+
+\section{掩码预测与目标构造}
+\keyterm{掩码建模（masked modeling）}随机选择位置集合 $M$，用可见部分 $\mathbf x_{\bar M}$ 预测被遮住的内容。例如离散序列的目标为 $-\sum_{t\in M}\log p_\theta(x_t\mid\mathbf x_{\bar M},M)$，只在指定目标位置求损失。输入若通过另一条未遮蔽路径泄漏真实目标，网络可能只学到复制。遮蔽过少时问题可能过易，过多时可用信息不足，选择应通过下游评价检验。
+
+像素重建、词元分类和特征回归强调的信息不同。无显式负样本的方法可以使用预测器、停止梯度、目标网络或方差约束等机制；它们改变了目标或优化结构，不能把“去掉负样本”视作完整算法。自监督信号来自数据自身，但仍包含增强不变性、上下文可预测性等建模假设。
+
+\section{例题与习题}
+\begin{example}[温度化匹配]
+在式\eqref{eq:dl-contrastive}中取 $B=2$，某查询与正、负键的相似度分别为 $1,0$，温度为一。求配对概率与损失，并与表示坍塌比较。
+\end{example}
+\begin{solve}
+正对概率为 $e/(e+1)$，损失为 $\log(1+e^{-1})\approx0.313$。坍塌时两个分数相等，概率为 $1/2$，损失为 $\log2\approx0.693$。该例说明相对匹配改善会降低目标，但不证明学到的差异就是下游任务需要的差异。
+\end{solve}
+\begin{enumerate}
+\item 构造一个重建误差很低而分类所需信息被丢弃的表示例子，说明重建与分类目标的差别。
+\item 推导式\eqref{eq:dl-contrastive}对查询向量的梯度，先把单位向量看作自由变量，再讨论归一化链式法则。
+\item 固定编码器、下游标签数量和线性探测协议，比较随机初始化与一种自监督预训练，并报告增强选择的影响。
+\end{enumerate}
+
+\chapter{迁移学习、预训练与微调}
+\label{chap:dl-transfer}
+从已学参数开始训练，可以利用源任务中形成的表示，也可能带来不适合目标任务的偏置。迁移是否有益，必须相对于相同目标数据、评价协议和适配预算下的基线判断。
+
+\section{源域、目标域与迁移条件}
+\keyterm{迁移学习（transfer learning）}利用源问题获得的信息帮助目标问题；\keyterm{预训练（pretraining）}是获得初始表示或参数的训练阶段，\keyterm{微调（fine-tuning）}是以这些参数为起点适配目标任务。源、目标可以具有不同输入分布、标签空间和训练损失，三种差异应分别说明。
+
+例如源任务学习辨别物体形状，目标任务也依赖边缘和纹理时，部分表示可能有用；若源任务鼓励忽略颜色而目标恰要按颜色分类，这种不变性可能妨碍目标学习。相对合适基线表现下降称\keyterm{负迁移（negative transfer）}。能载入已有权重是程序事实，能够节省数据或提高准确率是需要实验支持的结论。
+
+\section{冻结特征、部分微调与全量微调}
+冻结特征时只训练新输出头，优化变量最少，适合检验源表示是否已经可用；部分微调只开放若干模块；全量微调更新全部可训练权重，表达调整能力更大，但小数据下也更容易过拟合。不同模块可使用不同学习率，选择应依据验证结果，而不是默认底层一定通用、顶层一定专用。
+
+“冻结权重”与“推断模式”不同：前者禁止梯度更新，后者控制 dropout、归一化统计等行为。即使全部权重冻结，训练模式下的运行均值仍可能变化。实现时应明确可训练参数集合、缓冲状态和优化器状态，检查新输出头没有被遗漏，冻结模块也没有被意外更新。
+
+\section{参数高效适配与低秩更新}
+\keyterm{参数高效微调（parameter-efficient fine-tuning, PEFT）}仅训练相对少量新增或选定参数。适配器（adapter）可在冻结层旁加入小瓶颈分支；\keyterm{低秩适配（low-rank adaptation, LoRA）}则按文献\cite{hu2021}把冻结矩阵 $\mathbf W_0\in\mathbb R^{m\times d}$ 改为
+\begin{equation}
+\mathbf W=\mathbf W_0+\frac\alpha r\mathbf B\mathbf A,
+\qquad \mathbf B\in\mathbb R^{m\times r},\quad\mathbf A\in\mathbb R^{r\times d}.
+\label{eq:dl-low-rank}
+\end{equation}
+其中 $r\geq1$、$\alpha>0$，更新秩不超过 $r$，可训练参数为 $r(m+d)$。对输入 $\mathbf x$，先算 $\mathbf A\mathbf x$ 再乘 $\mathbf B$，不必在每次前向显式构造稠密增量。
+
+令 $c=\alpha/r$，把损失对 $\mathbf W$ 的梯度记为 $\mathbf G$，则 $\nabla_{\mathbf B}\ell=c\mathbf G\mathbf A^\mathsf T$、$\nabla_{\mathbf A}\ell=c\mathbf B^\mathsf T\mathbf G$。若两因子同时初始化为零，两者梯度都为零；常用一因子随机、另一因子为零，使初始增量为零而保留学习通路。参数减少并不同比减少激活或全部前向计算，模型仍要通过冻结主干。
+
+\section{分布变化、遗忘与选择协议}
+目标微调后原任务能力下降称为\keyterm{灾难性遗忘（catastrophic forgetting）}的一种表现，但必须固定源任务评价才能识别。目标数据与源数据的类别比例变化、标签定义变化、条件关系变化是不同问题；只看目标准确率无法推断源能力保留程度。
+
+比较从头训练、冻结表示和微调时，固定目标划分、标注量、主要选择预算与指标，分别报告使用的源模型和预训练信息。目标训练成本可以单独比较，总成本则还应说明是否计入预训练。少量标签场景可用多次独立划分考察变动，不能用测试集选择秩、解冻范围或训练轮次。
+
+\section{例题与习题}
+\begin{example}[低秩适配的参数量]
+对 $512\times512$ 权重矩阵，取 LoRA 秩 $r=8$。比较全量微调和低秩适配的可训练参数量，不计偏置。
+\end{example}
+\begin{solve}
+全量需 $512^2=262144$ 个参数，低秩需 $8(512+512)=8192$ 个，是前者的 $1/32$。原矩阵仍需存储和参与计算，故该比率只描述可训练参数，不能直接当作整体内存或延迟比率。
+\end{solve}
+\begin{enumerate}
+\item 推导两个低秩因子的梯度，解释零初始化单个因子与同时零初始化的区别。
+\item 对一个源、目标标签语义不同的任务，说明应保留哪些模块、替换哪些输出，并给出可验证假设。
+\item 固定目标标签预算比较四种适配方式，同时报告目标指标、源任务指标、可训练参数和训练时间。
+\end{enumerate}
+
+\chapter{语言建模与生成}
+\label{chap:dl-language}
+语言模型把文本映成离散序列并预测条件分布。训练学习的是概率规律，生成还需要选择规则；高概率文本、符合指令的回答和事实正确的回答并非同一个概念。
+
+\section{分词、词表与序列数据}
+\keyterm{分词（tokenization）}把文本变成词元编号序列。字符词表小但序列较长，整词词表较大且存在未见词，子词方法在二者之间组合常见片段。中文的字符、词语与子词切分也可能不同；同一文本在不同分词器下的长度不能直接比较。特殊词元用于标记开始、结束、填充或角色，它们是模型输入协议的一部分。
+
+训练窗口可以由长文档切片得到，但必须保留需要的文档边界规则。若跨文档连接，模型实际学习了何种连接分布需要解释；若相邻窗口重叠，评价划分应避免同一来源片段泄漏。词表与规范化步骤应在预定训练信息范围内确定，评价时使用相同编码和解码规则。
+
+\section{自回归目标与困惑度}
+对固定长度的词元序列 $x_{1:T}$，条件概率链式法则给出
+\begin{equation}
+ p_\theta(x_{1:T})=\prod_{t=1}^Tp_\theta(x_t\mid x_{<t}),\qquad
+ \operatorname{PPL}=\exp\!\left(-\frac1T\sum_{t=1}^T\log p_\theta(x_t\mid x_{<t})\right).
+\label{eq:dl-language-probability}
+\end{equation}
+其中首位置使用起始上下文，\keyterm{困惑度（perplexity）}是平均负对数似然的指数。对整个语料应先合并有效词元的负对数似然，再取指数，而不是无权平均各句困惑度。可变长度完整文本还须对结束词元建模，或明确给定长度；截断生成不等于模型赋予截断文本全部的序列概率。
+
+训练通常对真实前缀执行教师强制，最小化有效词元交叉熵。若模型始终给正确词元概率 $1/K$，困惑度为 $K$，可理解为这类均匀预测器的等效候选数。但不同分词单位、语料和边界协议改变这一量的尺度，跨设置的困惑度不可直接作优劣结论。
+
+\section{解码策略与生成行为}
+贪心解码每步取最大概率词元；束搜索保留若干高分前缀并扩展，是完整序列搜索的近似。温度采样使用 $p_k^{(\tau)}=e^{z_k/\tau}/\sum_je^{z_j/\tau}$，$\tau>0$，温度改变分布尖锐程度；top-$k$ 在最高分的 $k$ 个候选内重归一化，top-$p$ 则保留累计质量达到指定阈值的高概率集合。生成分布因这些选择而可能不同于原模型分布。
+
+贪心不保证全序列最优。例如首步 $P(A)=0.6,P(B)=0.4$，在 $A$ 后最佳下一词概率为 $0.51$，在 $B$ 后为 $0.99$；贪心得到两步概率 $0.306$，而从 $B$ 开始可得 $0.396$。另一方面，序列概率最优也不等于任务答案最好。生成评价还需检查正确性、约束满足、重复与结束行为，采样时记录随机种子和解码参数。
+
+\section{指令微调、上下文学习与检索增强}
+\keyterm{指令微调（instruction tuning）}用指令、可选上下文和回答构造监督样本。对条件文本 $c$ 与回答 $a_{1:T}$，常见目标是 $-\sum_t\log p_\theta(a_t\mid c,a_{<t})$，损失只施加在需要学习生成的回答位置；输入中保留的提示不等于都要计入目标。偏好数据则提供回答间的比较，如何转成目标还需另外规定奖励或偏好优化模型。
+
+\keyterm{上下文学习（in-context learning）}把示例或规则写入输入，在固定参数下改变条件分布；它不等于通过梯度微调。\keyterm{检索增强生成（retrieval-augmented generation, RAG）}先取回相关材料，再把材料作为条件输入。检索缺失、证据错误和生成不忠于证据会产生不同失败，须分别评价。文本流畅或模型自述“有把握”均不能替代事实核查与任务标准。
+
+\section{例题与习题}
+\begin{example}[计算词元困惑度]
+两个目标词元在真实前缀下的条件概率分别为 $1/2$ 和 $1/4$。求序列概率、平均负对数似然与困惑度。
+\end{example}
+\begin{solve}
+序列概率为 $1/8$，平均负对数似然为 $(\log2+\log4)/2=\frac32\log2$，困惑度为 $2^{3/2}=\sqrt8\approx2.828$。两个位置概率的算术平均为 $3/8$，取其倒数不等于正确困惑度，因为该指标来自对数平均。
+\end{solve}
+\begin{enumerate}
+\item 在本章两步概率树上比较贪心与宽度二的束搜索，补全每个结点剩余候选概率。
+\item 训练小型字符模型，分别报告困惑度与固定提示下的生成样本，检查是否记忆训练片段。
+\item 设计固定参数、有无检索材料的对照，并把检索命中和回答正确分别计分，说明能据此识别哪些错误。
+\end{enumerate}
+
+\chapter{多模态学习与跨模态对齐}
+\label{chap:dl-multimodal}
+同一对象可以由图像、文字或声音描述，各模态保留的信息并不相同。多模态学习的关键是确定哪些观测相互对应、哪些信息需要融合，以及评价任务是否真正要求模型使用多个来源。
+
+\section{模态、配对数据与任务定义}
+\keyterm{模态（modality）}指数据的表现或采集形式。图文检索以一种模态查询另一种，图像描述以图像生成文字，视觉问答同时读取图像和问题；它们的监督单位和输出空间不同。一个图文配对只说明在给定标注协议下二者有关，文字未必描述了全部图像细节，多张图像也可能对应同一描述。
+
+音频可表示为按采样率记录的波形，短时傅里叶变换把局部时间窗映为频率表示，谱图保留随时间变化的频率信息。采样率、窗口和幅度变换改变可见信息与分辨率，不能仅把预处理当作无关格式转换。视频和声音还涉及时间对齐，整段共同出现不保证每一时刻语义对应。
+
+\section{双编码器与共享表示空间}
+双编码器分别计算单位化图像向量 $\mathbf u_i$ 和文本向量 $\mathbf v_j$，二者维度相同。令相似度 $S_{ij}=\mathbf u_i^\mathsf T\mathbf v_j/\tau$，$\tau>0$，对 $B$ 对训练样本使用双向目标
+\begin{equation}
+\mathcal L=-\frac1{2B}\sum_{i=1}^B\left[\log\frac{e^{S_{ii}}}{\sum_je^{S_{ij}}}+\log\frac{e^{S_{ii}}}{\sum_je^{S_{ji}}}\right].
+\label{eq:dl-multimodal-contrast}
+\end{equation}
+第一项给定图像选文本，第二项给定文本选图像，都是式\eqref{eq:dl-contrastive}的应用。相同维度只保证可计算内积，训练目标才促使匹配语义靠近。
+
+如果一个查询存在多个正确候选，应按实际标注构造多正例目标或允许集合，不能把所有非对角项都强制当负例。检索时可以预先缓存候选表示，查询只需编码一次并排序；这提高候选处理效率，但跨模态细粒度交互受到独立编码形式的限制。
+
+\section{跨模态交互与条件生成}
+早期融合先组合较底层表示，后期融合组合各模态的预测或高层特征；交叉注意力则允许一方按当前查询读取另一方内容。例如视觉编码器产生 $N$ 个图像特征，经投影后作为键值，文本位置作为查询，输出再用于预测下一个词元。投影后的通道宽度必须与对应注意力头相容。
+
+另一种方式把图像表示作为前缀，与文本嵌入一起送入序列模型。此时掩码应明确图像位置与文本位置的可见关系，生成损失通常仅作用在目标文本上。模型可能利用语言常识直接猜答案而忽略图像；能接受两种输入并不证明它实际利用了两者，需设置输入依赖的诊断。
+
+\section{跨模态评价与捷径诊断}
+对给定候选集合，检索 Recall@$k$ 可定义为正确候选集合与前 $k$ 个结果相交的查询比例；候选规模、重复项和多正例规则改变指标含义。生成任务除了语言质量，还需检查具体对象、属性与关系是否由输入支持，单一文本重叠指标不能覆盖全部视觉一致性。
+
+将图文配对打乱、替换关键属性、遮挡相关区域或移除一种模态，可检验任务表现是否依赖相应信息。这些干预也可能使输入离开原分布，因此应尽量构造自然、受控的对照，并比较单模态基线。原始数据中的重复对象和模板文本可能产生捷径，应按来源或对象划分以匹配目标使用情形。
+
+\section{例题与习题}
+\begin{example}[对称图文匹配]
+两对样本的相似度分数矩阵为 $\mathbf S=\left(\begin{smallmatrix}2&0\\0&2\end{smallmatrix}\right)$。求式\eqref{eq:dl-multimodal-contrast}的损失。
+\end{example}
+\begin{solve}
+每行和每列的正确配对概率都为 $e^2/(e^2+1)$，四个负对数项相同，平均损失为 $\log(1+e^{-2})\approx0.127$。若所有分数相等，损失为 $\log2$。该计算评价配对判别，不能单独证明模型理解了对象间的空间关系。
+\end{solve}
+\begin{enumerate}
+\item 若两条文本都是同一图像的正确描述，应怎样修改匹配目标和检索评价？
+\item 为“物体在桌子的左侧还是右侧”设计一组只改变空间关系的图文对照，说明单模态猜测为何不足。
+\item 冻结现成编码器，仅训练投影层完成小规模检索实验，同时报告单模态、打乱配对和正常配对结果。
+\end{enumerate}
+
+\part{深度生成模型}
+
+\chapter{概率生成建模与变分自编码器}
+\label{chap:dl-vae}
+判别任务给定输入预测目标，生成建模则研究数据分布并从中产生新样本。生成质量包含真实性与覆盖度：只输出一个看似真实的样本，并没有学会完整分布。隐变量模型通过先生成潜在因素、再生成观测来组织这一问题。
+
+\section{判别建模、生成建模与采样}
+生成模型可以定义 $p_\theta(\mathbf x)$，也可以定义带条件的 $p_\theta(\mathbf x\mid\mathbf c)$，例如根据类别或文本生成图像。显式密度使似然可作为训练或评价量；某些模型只有方便的采样程序，没有方便计算的密度。能采样、能算密度和能求训练梯度是三个不同能力，不能互相替代。
+
+给定独立观测样本，最大似然最小化平均负对数密度。连续密度依赖坐标尺度，数值大小不能直接跨预处理比较；高似然也不自动保证某个感知指标优秀。以两个分离高斯峰组成的数据为例，一个只生成其中一峰的模型可以产生许多合理样本，却遗漏另一类情况，因此还要评价模式覆盖。
+
+\section{隐变量模型与后验推断}
+设隐变量 $\mathbf Z\in\mathbb R^k$ 具有先验密度 $p(\mathbf z)$，条件模型为 $p_\theta(\mathbf x\mid\mathbf z)$，联合密度是 $p_\theta(\mathbf x,\mathbf z)=p(\mathbf z)p_\theta(\mathbf x\mid\mathbf z)$。边缘密度和后验分别为
+\[
+p_\theta(\mathbf x)=\int p(\mathbf z)p_\theta(\mathbf x\mid\mathbf z)\,d\mathbf z,
+\qquad p_\theta(\mathbf z\mid\mathbf x)=\frac{p_\theta(\mathbf x,\mathbf z)}{p_\theta(\mathbf x)}.
+\]
+后式要求分母为正。生成可先抽 $\mathbf Z$ 再抽条件观测，反向推断却需要难以计算的边缘积分。用网络给出近似后验 $q_\phi(\mathbf z\mid\mathbf x)$，使不同输入共享推断参数 $\phi$，称为摊销推断（amortized inference）。生成参数 $\theta$ 与推断参数 $\phi$ 承担不同角色。
+
+\section{证据下界及其推导条件}
+\begin{proposition}[ELBO 分解]
+固定满足 $0<p_\theta(\mathbf x)<\infty$ 的观测，设相关密度、期望存在且下式涉及的 KL 散度有限。定义\keyterm{证据下界（evidence lower bound, ELBO）}
+\begin{equation}
+\mathcal L_{\mathrm{ELBO}}(\theta,\phi;\mathbf x)
+=\mathbb E_{q_\phi(\mathbf Z\mid\mathbf x)}[\log p_\theta(\mathbf x\mid\mathbf Z)]
+-D_{\mathrm{KL}}(q_\phi(\mathbf Z\mid\mathbf x)\|p(\mathbf Z)).
+\label{eq:dl-elbo}
+\end{equation}
+则 $\log p_\theta(\mathbf x)=\mathcal L_{\mathrm{ELBO}}+D_{\mathrm{KL}}(q_\phi(\mathbf Z\mid\mathbf x)\|p_\theta(\mathbf Z\mid\mathbf x))\geq\mathcal L_{\mathrm{ELBO}}$。
+\end{proposition}
+\begin{proof}
+由贝叶斯分解，$\log p_\theta(\mathbf x)=\log p_\theta(\mathbf x,\mathbf z)-\log p_\theta(\mathbf z\mid\mathbf x)$。在右侧加减 $\log q_\phi(\mathbf z\mid\mathbf x)$ 后对 $q_\phi$ 积分，第一部分是 $\mathbb E_q\log p_\theta(\mathbf x\mid\mathbf Z)-D_{\mathrm{KL}}(q\|p)$，第二部分正是到真实后验的 KL 散度。非负性由离散证明的积分版本得到。
+\end{proof}
+第一项鼓励隐变量解释观测，第二项限制近似后验偏离先验。等号要求近似后验与真实后验几乎处处一致。联合最大化下界既改善生成模型又改善推断，但下界与似然可能存在间隙，因此不能把下界数值称作精确对数似然。
+
+\section{变分自编码器与重参数化}
+\keyterm{变分自编码器（variational autoencoder, VAE）}把上述生成器和近似后验参数化为网络\cite{kingma2013}。常用 $p(\mathbf z)=\mathcal N(\mathbf0,\mathbf I_k)$，$q_\phi=\mathcal N(\boldsymbol\mu_\phi(\mathbf x),\operatorname{diag}(\boldsymbol\sigma_\phi^2(\mathbf x)))$，各 $\sigma_j>0$。为使采样梯度能传回编码器，使用\keyterm{重参数化技巧（reparameterization trick）}
+\[
+\boldsymbol\epsilon\sim\mathcal N(\mathbf0,\mathbf I_k),\qquad
+\mathbf Z=\boldsymbol\mu_\phi(\mathbf x)+\boldsymbol\sigma_\phi(\mathbf x)\odot\boldsymbol\epsilon.
+\]
+随机性现在由与参数独立的 $\boldsymbol\epsilon$ 提供。若被积函数可微且邻域内导数受到可积函数控制，可交换微分与期望，得到路径导数的蒙特卡洛估计；离散采样不能无条件沿用这个可微变换。
+
+对角高斯的先验 KL 有解析式
+\begin{equation}
+D_{\mathrm{KL}}(q_\phi\|p)=\frac12\sum_{j=1}^k(\mu_j^2+\sigma_j^2-1-\log\sigma_j^2).
+\label{eq:dl-gaussian-kl}
+\end{equation}
+证明只需将两高斯对数密度相减，并使用 $\mathbb E_q[(Z_j-\mu_j)^2]=\sigma_j^2$ 和 $\mathbb E_qZ_j^2=\mu_j^2+\sigma_j^2$。条件观测若为固定方差高斯，负重建对数似然是适当缩放的平方误差；若为伯努利则是交叉熵。训练抽取数据和噪声、计算负 ELBO、反向更新 $\theta,\phi$；生成时只需先验与解码器。
+
+\section{例题与习题}
+\begin{example}[重建好不等于从先验生成好]
+一维近似后验为 $q=\mathcal N(1,1)$，先验为 $p=\mathcal N(0,1)$。计算 KL，说明该惩罚约束了什么。
+\end{example}
+\begin{solve}
+式\eqref{eq:dl-gaussian-kl}给出 $D_{\mathrm{KL}}(q\|p)=(1+1-1-0)/2=1/2$。即使编码后的点能很好重建，后验整体偏离先验仍受罚，因为生成阶段从先验取样；没有这一协调，仅在编码所得潜变量处重建好，不保证任意先验样本都被合理解码。反之，后验几乎等于先验也可能伴随模型忽略输入的后验坍塌，仍需检查潜变量的实际作用。
+\end{solve}
+\begin{enumerate}
+\item 独立推导式\eqref{eq:dl-gaussian-kl}，核对均值零、方差一时 KL 为零。
+\item 若编码器输出 $s_j=\log\sigma_j^2$，写出采样公式并解释为何尺度是 $e^{s_j/2}$。
+\item 在二维双峰数据上比较普通自编码器与 VAE，分别展示重建样本、先验采样和各模式覆盖，避免只选择好看的样本。
+\end{enumerate}
+
+\chapter{生成对抗网络与正规化流}
+\label{chap:dl-gan-flow}
+VAE 用近似推断处理难算的边缘似然。另一条路线用判别器衡量生成与真实数据的差异；还有一条路线严格限制变换可逆，使密度可以直接计算。二者各有明确目标，也有不同结构约束。
+
+\section{生成器、判别器与对抗目标}
+\keyterm{生成对抗网络（generative adversarial network, GAN）}把先验噪声 $\mathbf Z\sim p_Z$ 映为 $G_\theta(\mathbf Z)$，判别器 $D_\psi(\mathbf x)\in(0,1)$ 估计样本来自真实数据的相对可能性。经典目标\cite{goodfellow2014}是
+\begin{equation}
+\min_\theta\max_\psi V(\theta,\psi),\qquad
+V=\mathbb E_{\mathbf X\sim P_{\mathrm{data}}}\log D_\psi(\mathbf X)
++\mathbb E_{\mathbf Z\sim p_Z}\log(1-D_\psi(G_\theta(\mathbf Z))).
+\label{eq:dl-gan}
+\end{equation}
+实际训练交替固定生成器更新判别器、固定判别器更新生成器。判别器步骤不应更新生成器；生成器步骤仍需让梯度穿过判别器的输入路径，只是暂不更新判别器参数。
+
+当判别器很容易辨别假样本时，原生成器目标可能产生较弱梯度。常用非饱和目标 $-\mathbb E_{\mathbf Z}\log D_\psi(G_\theta(\mathbf Z))$，它与式\eqref{eq:dl-gan}的生成器目标不同，不能把二者写作同一损失。训练需要明确两种更新各执行多少次、优化器状态和停止预算。
+
+\section{理想判别器与实际训练困难}
+固定生成分布，设真实、生成分布相对于共同测度具有密度 $p,q$。若判别器函数类不受限，则对 $p(\mathbf x)+q(\mathbf x)>0$，逐点最大化 $p\log D+q\log(1-D)$ 得
+\[
+D^*(\mathbf x)=\frac{p(\mathbf x)}{p(\mathbf x)+q(\mathbf x)}.
+\]
+内点可由求导 $p/D-q/(1-D)=0$ 得到，二阶导数为负；仅一个密度非零时，最优是边界极限。代入积分，令 $m=(p+q)/2$，得
+\[
+\sup_DV=-\log4+D_{\mathrm{KL}}(p\|m)+D_{\mathrm{KL}}(q\|m)
+=-\log4+2\operatorname{JS}(p,q),
+\]
+其中 $\operatorname{JS}$ 是 Jensen--Shannon 散度，定义为这两个 KL 的半和。因此在此理想化问题中，若生成器可表示真实分布，全局最优在 $p=q$ 达到。
+
+这一结论假设每次判别器能充分优化且函数类不受限，不是交替梯度算法的收敛证明。有限数据与网络下，双方目标同时变化，可能震荡；生成器只覆盖少数模式称模式坍塌，不能通过展示几张真实感强的样本排除。应记录多个种子、全部抽样协议与分布覆盖。
+
+\section{可逆变换与密度变量替换}
+\keyterm{正规化流（normalizing flow）}使用同维可逆映射 $\mathbf X=f_\theta(\mathbf Z)$。若映射与逆映射可微，雅可比行列式非零且基分布有密度，则变量替换公式给出
+\begin{equation}
+\log p_\theta(\mathbf x)=\log p_Z(f_\theta^{-1}(\mathbf x))
++\log|\det Df_\theta^{-1}(\mathbf x)|.
+\label{eq:dl-flow-density}
+\end{equation}
+体积扩张处密度降低，体积收缩处密度升高，因此行列式项不能省略。若 $f=f_L\circ\cdots\circ f_1$，雅可比行列式的乘积在对数下变成和；设计目标是在足够灵活的同时，使每层逆变换和对数行列式容易计算。相关密度变换思想见文献\cite{rezende2015}。
+
+基分布中采样后按正向映射生成，在数据端用逆映射计算密度；不同文献也可能反过来命名“正向”，必须以公式判断。流严格保持输入输出维数，若要引入降维或离散数据，需额外模型或预处理，不能直接把同维连续公式原样套用。
+
+\section{耦合层、模型取舍与生成评价}
+把 $\mathbf z$ 分为 $\mathbf z_a,\mathbf z_b$，仿射耦合层定义 $\mathbf x_a=\mathbf z_a$、$\mathbf x_b=\mathbf z_b\odot\exp s(\mathbf z_a)+t(\mathbf z_a)$，其中 $s,t$ 输出与 $\mathbf z_b$ 同维。逆变换为 $\mathbf z_a=\mathbf x_a$、$\mathbf z_b=(\mathbf x_b-t(\mathbf x_a))\odot\exp[-s(\mathbf x_a)]$。雅可比为分块三角矩阵，对数绝对行列式是 $\sum_js_j(\mathbf z_a)$；$s,t$ 本身不必可逆。交换分块或加入置换后堆叠，可让不同坐标被更新。
+
+VAE 优化似然下界，GAN 通过对抗判别学习采样器，流在结构约束下直接计算密度。评价应同时关注质量、覆盖和任务用途。基于固定图像特征的分布指标还依赖特征提取器、样本量和估计方法；一个指标较好不能证明生成分布等于真实分布，二维可控数据上的模式计数往往更容易解释。
+
+\section{例题与习题}
+\begin{example}[缩放的密度修正]
+令 $Z\sim\mathcal N(0,1)$，$X=2Z+1$。求 $X$ 的密度并计算 $p_X(1)$。
+\end{example}
+\begin{solve}
+逆映射为 $z=(x-1)/2$、导数为 $1/2$，故 $p_X(x)=\frac1{2\sqrt{2\pi}}\exp[-(x-1)^2/8]$，$p_X(1)=1/(2\sqrt{2\pi})$。若忘记因子 $1/2$，密度积分会等于二而非一，说明体积修正是概率守恒所必需。
+\end{solve}
+\begin{enumerate}
+\item 对两点分布 $p=(0.8,0.2),q=(0.2,0.8)$ 求最优判别器，再检查 $p=q$ 时的最优值。
+\item 推导二维仿射耦合层的雅可比与逆映射，说明每层保持一部分坐标时为何需要交换分块。
+\item 在同一二维双峰数据上比较一个 GAN 和一个小型流，报告模式覆盖、训练稳定性及是否能直接评价密度。
+\end{enumerate}
+
+\chapter{扩散模型与去噪学习}
+\label{chap:dl-diffusion}
+把数据逐步加噪容易实现；扩散模型学习相反方向的恢复过程，再从简单噪声出发生成数据。本章以离散时间去噪扩散概率模型为主\cite{ho2020}，先固定加噪机制，再分别说明训练与采样。
+
+\section{正向加噪过程与闭式边缘}
+令数据为 $\mathbf X_0\in\mathbb R^d$，时间 $t=1,\ldots,T$，噪声日程 $0<\beta_t<1$，记 $\alpha_t=1-\beta_t$、$\bar\alpha_t=\prod_{s=1}^t\alpha_s$、$\bar\alpha_0=1$。给定前一状态，令
+\[
+\mathbf X_t=\sqrt{\alpha_t}\mathbf X_{t-1}+\sqrt{\beta_t}\boldsymbol\epsilon_t,
+\qquad \boldsymbol\epsilon_t\sim\mathcal N(\mathbf0,\mathbf I_d),
+\]
+各步噪声相互独立并独立于数据。反复代入，原始信号系数为 $\sqrt{\bar\alpha_t}$，累计噪声仍为高斯，其方差按递推 $v_t=\alpha_tv_{t-1}+\beta_t$、$v_0=0$ 得 $v_t=1-\bar\alpha_t$。因此
+\begin{equation}
+q(\mathbf x_t\mid\mathbf x_0)=\mathcal N(\mathbf x_t;\sqrt{\bar\alpha_t}\mathbf x_0,(1-\bar\alpha_t)\mathbf I_d).
+\label{eq:dl-diffusion-forward}
+\end{equation}
+训练可直接按此式抽任意时刻，无需逐步加噪。当 $\bar\alpha_T$ 很小时，经过适当缩放的数据在终点通常接近标准高斯；任意有限日程下并不严格相等，数据尺度和终点残余信号都需考虑。
+
+\section{反向条件分布与噪声预测目标}
+给定干净样本，正向高斯模型允许精确计算
+\[
+q(\mathbf x_{t-1}\mid\mathbf x_t,\mathbf x_0)=\mathcal N(\widetilde{\boldsymbol\mu}_t,\widetilde\beta_t\mathbf I_d),\qquad
+\widetilde\beta_t=\frac{1-\bar\alpha_{t-1}}{1-\bar\alpha_t}\beta_t,
+\]
+其中 $t\geq2$，$\widetilde{\boldsymbol\mu}_t=\frac{\sqrt{\bar\alpha_{t-1}}\beta_t}{1-\bar\alpha_t}\mathbf x_0+\frac{\sqrt{\alpha_t}(1-\bar\alpha_{t-1})}{1-\bar\alpha_t}\mathbf x_t$。这是将 $q(\mathbf x_t\mid\mathbf x_{t-1})q(\mathbf x_{t-1}\mid\mathbf x_0)$ 相乘并对 $\mathbf x_{t-1}$ 配方所得。生成时不知道 $\mathbf x_0$，因此不能直接使用此后验。
+
+时间条件网络 $\epsilon_\theta(\mathbf x_t,t)$ 预测实际加入的噪声。简化训练目标为
+\begin{equation}
+\mathcal L_{\mathrm{simple}}=\mathbb E_{t,\mathbf X_0,\boldsymbol\epsilon}
+\left\|\boldsymbol\epsilon-\epsilon_\theta(\sqrt{\bar\alpha_t}\mathbf X_0+\sqrt{1-\bar\alpha_t}\boldsymbol\epsilon,t)\right\|_2^2,
+\label{eq:dl-diffusion-loss}
+\end{equation}
+通常 $t$ 均匀取自 $\{1,\ldots,T\}$，$\boldsymbol\epsilon$ 是独立标准高斯。每步训练抽数据、时间和噪声，构造带噪输入，计算均方误差后更新网络。若从完整变分目标推导、固定反向方差 $\sigma_t^2>0$，中间步噪声误差带权 $\beta_t^2/[2\sigma_t^2\alpha_t(1-\bar\alpha_t)]$，还包含端点项；舍去时间权重得到常用简化目标，二者不是逐项相同的损失。
+
+\section{反向采样与条件控制}
+噪声预测对应的反向均值参数化为
+\begin{equation}
+\boldsymbol\mu_\theta(\mathbf x_t,t)=\frac1{\sqrt{\alpha_t}}
+\left(\mathbf x_t-\frac{\beta_t}{\sqrt{1-\bar\alpha_t}}\epsilon_\theta(\mathbf x_t,t)\right).
+\label{eq:dl-diffusion-reverse}
+\end{equation}
+一种常用生成过程从 $\mathbf x_T\sim\mathcal N(\mathbf0,\mathbf I_d)$ 开始，对 $t=T,\ldots,2$ 抽独立 $\mathbf z_t\sim\mathcal N(\mathbf0,\mathbf I_d)$，更新 $\mathbf x_{t-1}=\boldsymbol\mu_\theta(\mathbf x_t,t)+\sigma_t\mathbf z_t$，例如选择 $\sigma_t^2=\widetilde\beta_t$；末步直接输出 $\boldsymbol\mu_\theta(\mathbf x_1,1)$。末步确定性输出是这一采样约定，不能与任意非零方差的末步随机模型混同。训练只抽一个时间，完整生成却调用网络多次，因此成本不同。
+
+带条件 $c$ 时可令网络输入 $\epsilon_\theta(\mathbf x_t,t,c)$。同时训练有条件和空条件分支后，可采用 $\widehat\epsilon=\epsilon_{\varnothing}+w(\epsilon_c-\epsilon_{\varnothing})$，其中 $w=1$ 为原条件预测，$w>1$ 强化该差异。这种引导改变采样更新，可能改善条件符合程度也可能降低多样性；其效果应与日程、步数和条件一起评价。
+
+\section{得分解释与进阶联系}
+对光滑且正的带噪边缘密度 $p_t$，\keyterm{得分函数（score function）}定义为 $\nabla_{\mathbf x}\log p_t(\mathbf x)$。在可将微分移入混合密度积分的正则条件下，对高斯核求导得到
+\[
+\nabla_{\mathbf x}\log p_t(\mathbf x)
+=-\frac{\mathbb E[\boldsymbol\epsilon\mid\mathbf X_t=\mathbf x]}{\sqrt{1-\bar\alpha_t}}.
+\]
+因为均方误差的最优预测器是条件均值，理想噪声预测可转成边缘得分估计。这解释了去噪与概率密度局部方向的联系；这里“得分”不是生成质量指标，也不是单个样本的分类置信度。
+
+连续时间扩散需要随机微分方程和相应正则性，不能把离散时间步简单写成微分符号就视为严格极限证明。潜空间扩散先编码数据，再在隐空间加噪与生成，可降低表示尺寸，但质量同时受编码解码误差和扩散误差影响。这些是进阶阅读方向，不作为掌握离散算法的先决条件。
+
+\section{例题与习题}
+\begin{example}[两步加噪]
+一维干净样本 $x_0=2$，取 $\beta_1=0.1,\beta_2=0.2$。求 $X_2\mid x_0$ 的均值、方差及第二步后验方差。
+\end{example}
+\begin{solve}
+$\bar\alpha_2=0.9\times0.8=0.72$，故条件均值为 $2\sqrt{0.72}\approx1.697$，方差为 $0.28$。给定 $x_2,x_0$ 后，$X_1$ 的后验方差为 $\widetilde\beta_2=0.2\times0.1/0.28=1/14$。边缘加噪方差与反向后验方差描述不同条件下的不确定性，不能混用。
+\end{solve}
+\begin{enumerate}
+\item 用归纳法证明正向累计噪声方差为 $1-\bar\alpha_t$，注明独立性用在何处。
+\item 把 $\mathbf x_0=(\mathbf x_t-\sqrt{1-\bar\alpha_t}\boldsymbol\epsilon)/\sqrt{\bar\alpha_t}$ 代入后验均值，推导式\eqref{eq:dl-diffusion-reverse}中的系数。
+\item 在二维混合分布上训练噪声预测器，固定模型比较不同采样设置，并同时记录模式覆盖、条件满足和网络调用次数。
+\end{enumerate}
+
+\part{进阶专题与综合实践}
+
+\chapter{图神经网络与结构化数据}
+\label{chap:dl-gnn}
+图像具有规则网格，分子、关系网络和引用网络却具有不规则邻接关系。图神经网络沿给定关系传递信息，并要求结果不依赖人为的节点编号；结构本身成为模型输入的一部分。
+
+\section{图、特征与学习任务}
+图 $G=(V,E)$ 由节点集 $V$ 与边集 $E$ 组成，设 $|V|=N$。邻接矩阵 $\mathbf A\in\mathbb R^{N\times N}$ 的 $A_{uv}$ 表示从节点 $u$ 到 $v$ 的边权；无向图的邻接矩阵对称。节点特征矩阵 $\mathbf H^{(0)}\in\mathbb R^{N\times d_0}$ 按行存储表示，边也可以携带类型或属性。节点预测为每个节点输出，链接预测评价两个节点的关系，整图预测把一张图映到一个目标。
+
+传导式学习（transductive learning）可以在训练时看到待预测节点的无标签特征与允许结构；归纳式学习（inductive learning）要求规则可用于未见节点或图。它们利用的信息不同，指标不可脱离设定比较。链接预测通常需要从输入图中移除待预测目标边，否则边的存在本身可能泄漏答案；具体可见结构必须按真实预测时点规定。
+
+\section{消息传递与置换对称性}
+\keyterm{消息传递（message passing）}的一层可写为
+\[
+\mathbf m_v^{(l)}=\operatorname{AGG}\{M_l(\mathbf h_v^{(l)},\mathbf h_u^{(l)},\mathbf e_{uv}):u\in\mathcal N(v)\},\qquad
+\mathbf h_v^{(l+1)}=U_l(\mathbf h_v^{(l)},\mathbf m_v^{(l)}),
+\]
+其中 $\mathcal N(v)$ 是邻居集合，$\mathbf e_{uv}$ 是可选边特征，$M_l,U_l$ 在各节点共享，AGG 为求和、平均或最大值等对集合排列不敏感的运算。平均丢弃了部分邻居数量信息，求和保留规模却使数值随度数变化，选择对应不同偏置。
+
+\begin{proposition}[消息传递的置换性质]
+若聚合对邻居顺序不变，消息与更新函数共享且不额外使用编号，则重新编号节点会以相同方式重排每层节点表示。对节点表示求和等对称读出进一步得到整图不变表示。
+\end{proposition}
+\begin{proof}
+初始特征随编号重排。若第 $l$ 层满足对应关系，重编号后的每个节点拥有同一组重新编号的邻居消息，多重集合只改变列举顺序，聚合值不变，共享更新保持对应关系。归纳得到全部层；最后的对称读出不依赖节点排列。
+\end{proof}
+
+\section{图卷积、归一化与图注意力}
+对无向非负权图，令 $\widetilde{\mathbf A}=\mathbf A+\mathbf I_N$，$\widetilde D_{vv}=\sum_u\widetilde A_{vu}>0$。一种图卷积层\cite{kipf2016}为
+\begin{equation}
+\mathbf H^{(l+1)}=\sigma\!\left(\widetilde{\mathbf D}^{-1/2}\widetilde{\mathbf A}\widetilde{\mathbf D}^{-1/2}\mathbf H^{(l)}\mathbf W^{(l)}\right),
+\label{eq:dl-graph-convolution}
+\end{equation}
+其中 $\mathbf W^{(l)}\in\mathbb R^{d_l\times d_{l+1}}$ 右乘行表示，与全连接层的列向量权重记法需区分。自环保留自身信息，对称度归一化控制不同度数的传播尺度，但其每行和一般不等于一，不能简单称为邻居算术平均。
+
+图注意力可在 $u\in\mathcal N(v)\cup\{v\}$ 上计算可学习分数 $s_{vu}$，归一化为 $a_{vu}=e^{s_{vu}}/\sum_we^{s_{vw}}$，再聚合 $\sum_ua_{vu}\mathbf W\mathbf h_u$。共享打分规则与邻居内 softmax 保持置换性质，权重则依赖当前特征。它改变了聚合权重，不取消图结构限定的可见范围。
+
+\section{传播范围、过平滑与图数据泄漏}
+不含全局连接的一层局部消息传递只能扩大一跳可见范围，$L$ 层只能沿最多 $L$ 条边传播。加深可读取更远处信息，也可能压缩大量邻域差异。对纯线性传播 $\mathbf H^{(L)}=\mathbf S^L\mathbf H^{(0)}$，若对称 $\mathbf S$ 有单位特征向量 $\mathbf v$ 对应唯一特征值一，其余特征值绝对值小于一，则由谱分解 $\mathbf S^L\to\mathbf v\mathbf v^\mathsf T$；不同节点表示趋向同一低维模式。这是\keyterm{过平滑（oversmoothing）}的一种明确机制，不是所有含非线性、残差和可训练权重网络的无条件结论。
+
+邻居数随跳数迅速增长而状态维度固定，还可能使远处信息难以传递，常称信息过度压缩（oversquashing）。邻居采样可控制计算，但会改变传播的随机性。评估时应检查跨划分实体重复、目标边残留、时间信息和标签进入特征等问题；允许看到测试节点结构的传导设定本身不等于泄漏，关键在于是否使用了设定禁止的信息。
+
+\section{例题与习题}
+\begin{example}[路径图的一层聚合]
+四节点无向路径为 $1$--$2$--$3$--$4$，各边权一，加自环后使用式\eqref{eq:dl-graph-convolution}，特征为 $(1,0,0,1)^\mathsf T$，权重和激活均取恒等。求输出。
+\end{example}
+\begin{solve}
+加自环度数为 $(2,3,3,2)$。节点一从自身得到 $1/2$，节点二从节点一得到 $1/\sqrt6$，另一侧对称，输出为 $(1/2,1/\sqrt6,1/\sqrt6,1/2)^\mathsf T$。重新编号只会对应重排结果；若错误地把归一化当作每行平均，就会得到不同数值。
+\end{solve}
+\begin{enumerate}
+\item 写出本例的完整归一化邻接矩阵，并验证它对称但部分行和不等于一。
+\item 比较求和与平均聚合对重复邻居特征的反应，说明二者可区分的信息不同。
+\item 在固定图任务上比较仅用节点特征的 MLP、图模型和打乱边的对照，分别说明训练时可见的结构与标签。
+\end{enumerate}
+
+\chapter{泛化、鲁棒性与不确定性}
+\label{chap:dl-reliability}
+一个测试分数支持的是特定数据、任务和评价协议下的结论。要把训练结果用于新场景，必须分析样本误差、分布变化与概率解释；可视化或高置信度不能代替这些证据。
+
+\section{泛化误差与有限模型类的界}
+\begin{theorem}[有限模型类的一致界]
+设非空有限预测器集合 $\mathcal H$ 在观察数据前固定，损失取值于 $[0,1]$，训练样本为来自 $P$ 的 $n$ 个独立同分布观测。对 $0<\delta<1$，以至少 $1-\delta$ 的概率，所有 $h\in\mathcal H$ 同时满足
+\begin{equation}
+|\mathcal R(h)-\widehat{\mathcal R}_n(h)|\leq
+\sqrt{\frac{\log(2|\mathcal H|/\delta)}{2n}}.
+\label{eq:dl-finite-generalization}
+\end{equation}
+\end{theorem}
+\begin{proof}
+先对 $Z\in[0,1]$ 证明 $\mathbb E e^{\lambda(Z-\mathbb EZ)}\leq e^{\lambda^2/8}$。令 $g(\lambda)$ 是左侧的对数，$g(0)=g'(0)=0$，$g''(\lambda)$ 等于指数加权分布下的 $Z$ 方差。该分布仍支撑于 $[0,1]$，故方差不超过 $\mathbb E(Z-1/2)^2\leq1/4$；两次积分得界，负 $\lambda$ 同理。由于 $Z$ 有界，此处求导与期望可交换。
+
+对固定 $h$ 的独立样本损失，利用矩母函数乘积和 Markov 不等式，$P(\widehat{\mathcal R}_n-\mathcal R\geq\varepsilon)\leq\exp(-\lambda n\varepsilon+n\lambda^2/8)$。取 $\lambda=4\varepsilon$ 得 $e^{-2n\varepsilon^2}$，反向偏差同理。对 $|\mathcal H|$ 个预测器取并集界，失败概率不超过 $2|\mathcal H|e^{-2n\varepsilon^2}$；令它等于 $\delta$ 即得结论。
+\end{proof}
+因为结论同时覆盖全部 $h$，可以在这个固定集合内用数据选择模型。若统一误差上界为 $\varepsilon$，经验最小化解 $\widehat h$ 相对集合内总体最优解 $h^*$ 满足 $\mathcal R(\widehat h)\leq\widehat{\mathcal R}_n(\widehat h)+\varepsilon\leq\widehat{\mathcal R}_n(h^*)+\varepsilon\leq\mathcal R(h^*)+2\varepsilon$。无限实参数网络不属于有限集合，不能把参数个数直接代入 $|\mathcal H|$；无界交叉熵也不满足本定理的损失假设。
+
+\section{分布变化与鲁棒性评估}
+训练分布 $P$ 与使用分布 $Q$ 可能不同。协变量变化指输入边缘改变而条件标签规律保持，标签比例变化指类别先验改变而各类条件输入分布保持，概念变化则涉及 $P(Y\mid\mathbf X)$ 改变。\keyterm{分布外（out-of-distribution, OOD）}评价需明确究竟改变了哪些条件，不宜把所有新数据都当成同一种挑战。
+
+\keyterm{对抗扰动（adversarial perturbation）}在指定约束下寻找增大损失的输入变化。给定合法集合 $\{\boldsymbol\Delta:\|\boldsymbol\Delta\|\leq\epsilon,\mathbf x+\boldsymbol\Delta\in\mathcal X\}$，局部鲁棒损失是其中损失的上确界。对可微损失的一阶近似和无其他约束的 $L^\infty$ 球，最大化线性项得到 $\Delta_j=\epsilon\operatorname{sign}(\partial\ell/\partial x_j)$；它只是线性化攻击步骤，不是全局最坏扰动的证明。自然损坏、对抗扰动和真实分布变化应分别评估。
+
+\section{概率校准与不确定性}
+令分类预测为 $\widehat Y$、最大类别概率为 $C$。\keyterm{置信度校准（confidence calibration）}要求 $\mathbb E[\mathbf1\{Y=\widehat Y\}\mid C]=C$ 几乎处处成立，即给出某置信水平的预测在总体上具有相符的正确比例。校准与准确率不同：一个总报多数类频率的简单模型也可能校准，但辨别能力有限。
+
+可靠性图按置信度分组比较组内正确比例与平均置信度。经验校准误差可定义为 $\sum_b(|B_b|/n)|\operatorname{acc}(B_b)-\operatorname{conf}(B_b)|$，它依赖分箱、样本量，空箱应忽略。负对数似然和 Brier 分数 $n^{-1}\sum_i\sum_k(p_{ik}-\mathbf1\{y_i=k\})^2$ 同时评价完整概率预测。数据本身的随机性与模型知识不足是不同不确定性来源，单个 softmax 最大值不会自动把它们区分开。
+
+\section{解释方法、消融与因果边界}
+输入梯度描述当前点附近的局部敏感性，显著性图把这种敏感性映回输入位置；梯度小可能来自饱和，不一定表示信息不重要。遮挡或删除特征测试较大变化，却可能产生不自然输入。注意力权重是计算中的相对分配，可帮助定位模型行为，但不能仅据权重大小断言某特征是预测的因果原因。
+
+解释应服务于可反驳的问题，例如“改变这个属性是否改变预测”，再构造保持其他条件尽量相同的样本。隐私、训练记忆和群体误差也需要具体评价：平均正确率可能掩盖某类输入的持续失败，复述训练片段需要与正常公共短语区分。对照越接近实际使用条件，结论的适用范围越清楚。
+
+\section{例题与习题}
+\begin{example}[相同准确率，不同经验校准]
+十个二分类样本中八个为正类。两个模型都始终预测正类，分别输出正类概率 $0.9$ 和 $0.8$。比较准确率和这组样本上的置信度偏差。
+\end{example}
+\begin{solve}
+准确率均为 $0.8$。第一模型的平均置信度为 $0.9$，与实际正确比例相差 $0.1$；第二模型在这组样本上相符。按二元标量平方概率误差计算，两者分别为 $0.8(0.1)^2+0.2(0.9)^2=0.17$ 和 $0.8(0.2)^2+0.2(0.8)^2=0.16$。有限样本上的相符不证明总体校准，更不证明分布变化后仍校准。
+\end{solve}
+\begin{enumerate}
+\item 取 $n=1000,|\mathcal H|=100,\delta=0.05$，计算式\eqref{eq:dl-finite-generalization}并判断其信息量。
+\item 说明多次看测试结果后继续选择模型，为什么破坏了“最终固定方案的独立评价”解释。
+\item 对同一模型分别做自然损坏和受约束扰动评估，记录预算、输入合法范围、任务指标与置信度变化。
+\end{enumerate}
+
+\chapter{效率、部署与综合项目}
+\label{chap:dl-projects}
+模型的实际价值同时取决于任务表现、计算资源和输入条件。一个可复核项目应让读者知道结果怎样得到、代价是什么、在哪些情况下会失败，而不只保留最好的一次指标。
+
+\section{计算量、内存与性能测量}
+设模型有 $p$ 个参数，每个数值用 $b$ 字节，则仅权重占 $bp$ 字节；训练还要保存梯度、优化器状态、中间激活和临时工作区。以全部使用四字节数值的 Adam 为例，权重、梯度、一阶矩和二阶矩共约 $16p$ 字节，未计激活、主权重副本或实现开销。长序列推断还需考虑 KV cache，不能只根据参数文件大小选择设备。
+
+吞吐量是单位时间处理的样本或词元数，延迟是一次请求从输入到输出的时间；增加批量可提高吞吐，也可能增加单请求等待。测量应注明硬件、数值精度、批量、输入长度、预热次数和同步方式，并区分纯模型与包含预处理、传输、后处理的端到端时间。理论乘加量只能解释部分成本，不能代替实测。
+
+\section{混合精度、累积梯度与并行训练}
+\keyterm{混合精度（mixed precision）}在适合的运算中使用较低精度，同时对敏感计算或状态保留较高精度。损失缩放将损失乘 $S>0$，反向后再除以 $S$，在精确算术下不改变梯度，可缓解某些格式的下溢；溢出检测和缩放调整属于实际算法的一部分。激活重计算在反向时重做部分前向，交换计算与内存，要求重算时随机性与状态行为保持一致。
+
+若总共 $N=\sum_jB_j$ 个样本被分为微批量，且参数在整个累积期间固定、模型没有批量相关操作，则全体平均梯度等于 $\sum_j(B_j/N)\nabla J_j$，其中 $J_j$ 为第 $j$ 个微批量平均损失。应清零一次、按这些权重累积、最后更新一次。批量归一化使不同分组的目标不同，逐微批量更新又改变了求导点，都不能直接视为同一次大批量更新。
+
+数据并行在多个设备复制模型、分配数据并聚合梯度。各设备样本数相同可平均设备梯度，不相同时按样本数加权；同步还增加通信开销。比较单设备和多设备实验时，说明全局批量、更新次数及学习率是否改变，避免把训练协议变化完全归因于硬件加速。
+
+\section{模型压缩与推断部署}
+\keyterm{量化（quantization）}把数值映到较少的离散水平，例如 $q=\operatorname{clip}(\operatorname{round}(x/s)+z_0,q_{\min},q_{\max})$、$\widehat x=s(q-z_0)$，其中 $s>0$ 为尺度、$z_0$ 为零点。舍入与截断引入误差，范围估计和敏感层处理影响表现。\keyterm{剪枝（pruning）}移除权重或结构单元，稀疏权重只有得到相应算子支持才可能加速。
+
+\keyterm{知识蒸馏（knowledge distillation）}用教师分布训练学生。设温度 $\tau>0$ 下的教师与学生输出为 $p_T^{(\tau)},p_S^{(\tau)}$，可取 $\lambda\ell_{\mathrm{label}}+(1-\lambda)\tau^2D_{\mathrm{KL}}(p_T^{(\tau)}\|p_S^{(\tau)})$，$0\leq\lambda\leq1$；温度和缩放约定属于目标定义。教师错误也可能被传递，必须保留独立评价。部署时固定预处理、推断模式和后处理，验证压缩前后同一输入的输出及端到端成本。
+
+\section{三个基础项目与一个进阶项目}
+\textbf{图像分类项目。}选择带明确来源和划分规则的小型数据，先实现多数类与线性基线，再比较 MLP、CNN 和一个残差变体。固定主要训练预算，分别改变网络结构和增强，不同时混改；报告分类指标、参数量、训练时间及典型错误。先验证一个小批量的形状与梯度，再运行完整训练。
+
+\textbf{序列项目。}构造延迟复制、括号类型预测等可自动检查标签的任务，或使用固定来源的短文本。比较 RNN 与小型 Transformer，核查目标移位和未来信息屏蔽；在训练长度内外分别评价，报告任务正确率或困惑度，并单列生成延迟。样本生成规则与最大长度作为实验条件公开。
+
+\textbf{迁移项目。}固定源模型，在多个目标标注预算下比较从头训练、线性探测、部分与全量微调。所有方案使用一致测试集和相近选择预算，报告预训练来源、目标性能、源能力保留及成本。\textbf{进阶生成项目。}在已知模式的二维分布上任选 VAE、GAN、流或扩散，先核对核心概率或密度公式，再比较采样与真实分布的模式比例、局部质量和成本；没有训练结果前不预设某模型胜出。
+
+\section{项目验收、报告与后续学习}
+项目报告应把问题定义、数据与划分、算法目标、配置、基线、对照、主要指标和成本连接成可复核的论证。清楚标注理论保证与经验发现，说明随机种子、检查点选择和评价脚本的规则；保留失败和无提升结果，而不是只汇报最优曲线。一个完整实验至少要让别人能够确定输入、复现主要计算并验证评价含义。
+
+\begin{example}[训练状态的存储估计]
+某模型有一千万个参数，以四字节数值保存参数、梯度和 Adam 两个矩状态。估算这些张量的总存储。
+\end{example}
+\begin{solve}
+四组张量共 $4\times4\times10^7=1.6\times10^8$ 字节，约为十进制 $160$ MB。该数不是实际峰值内存：激活、临时工作区、数据批量和可能的参数副本尚未计入。是否能运行仍需结合输入形状与实现测量。
+\end{solve}
+\begin{enumerate}
+\item 三个微批量大小为 $4,4,2$，写出正确的累计损失权重，说明为何全部除以三一般不对。
+\item 固定输入和设备，测量两种批量大小的吞吐量与延迟，解释二者为何可能给出不同排序。
+\item 选择上述一个项目，先写出可反驳的假设、匹配条件和判定标准，再实施实验，最后逐条说明证据支持了什么。
+\end{enumerate}
+
+\chapter*{学习检查与进阶阅读}
+\addcontentsline{toc}{chapter}{学习检查与进阶阅读}
+基础阶段应能独立写出数据到损失的计算过程，核对网络各层形状，推导小模型梯度并完成一次参数更新；架构阶段应能解释卷积、状态递推与注意力各自允许哪些信息交互；进阶阶段应能区分表示目标、概率模型、采样算法和评价指标。对于任何新方法，先确定改变的是模型、目标、数据还是求解算法，再比较其假设与代价，这比记忆名称更有迁移价值。
+
+本书给出紧凑的本科入门主线，证明限于文中明确陈述并推导的结论。通用逼近、线性低秩逼近等引用结论和连续时间生成等进阶方向不构成完整专题论述。数学与基础网络可结合文献\cite{goodfellow2016}深入阅读，实现练习可结合文献\cite{d2l}；进一步研究应按需要补充统计学习理论、数值优化、计算机视觉、自然语言处理或随机过程知识。章末实验是可执行的学习任务，文中没有把未经运行的预期写成实验结果。
+
+\begin{thebibliography}{9}
+\bibitem{goodfellow2016}
+Goodfellow I., Bengio Y., Courville A. \emph{Deep Learning}. MIT Press, 2016. \url{https://www.deeplearningbook.org/}.
+
+\bibitem{d2l}
+Zhang A., Lipton Z. C., Li M., Smola A. J. \emph{Dive into Deep Learning}. 在线教材. \url{https://d2l.ai/}.
+
+\bibitem{vaswani2017}
+Vaswani A., et al. \emph{Attention Is All You Need}. 2017. \url{https://arxiv.org/abs/1706.03762}.
+
+\bibitem{kingma2013}
+Kingma D. P., Welling M. \emph{Auto-Encoding Variational Bayes}. 2013 年预印本. \url{https://arxiv.org/abs/1312.6114}.
+
+\bibitem{goodfellow2014}
+Goodfellow I. J., et al. \emph{Generative Adversarial Networks}. 2014 年预印本. \url{https://arxiv.org/abs/1406.2661}.
+
+\bibitem{ho2020}
+Ho J., Jain A., Abbeel P. \emph{Denoising Diffusion Probabilistic Models}. 2020. \url{https://arxiv.org/abs/2006.11239}.
+
+\bibitem{hu2021}
+Hu E. J., et al. \emph{LoRA: Low-Rank Adaptation of Large Language Models}. 2021 年预印本. \url{https://arxiv.org/abs/2106.09685}.
+
+\bibitem{rezende2015}
+Rezende D. J., Mohamed S. \emph{Variational Inference with Normalizing Flows}. 2015 年预印本. \url{https://arxiv.org/abs/1505.05770}.
+
+\bibitem{kipf2016}
+Kipf T. N., Welling M. \emph{Semi-Supervised Classification with Graph Convolutional Networks}. 2016 年预印本. \url{https://arxiv.org/abs/1609.02907}.
+\end{thebibliography}
 
 \end{document}

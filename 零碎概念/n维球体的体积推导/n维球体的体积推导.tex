@@ -1,0 +1,428 @@
+\documentclass[UTF8]{ctexart}
+
+% 支持从项目根目录、零碎概念目录或本文目录编译。
+\makeatletter
+\def\input@path{{../../}{../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{n维球体的体积推导}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{问题的起点：从线段、圆盘到高维球体}
+\label{sec:nb-introduction}
+
+一维空间中，以原点为中心、半径为 $R$ 的球体就是区间 $[-R,R]$，它的长度为 $2R$；二维空间中的球体是圆盘，面积为 $\pi R^2$；三维空间中的球体是通常的实心球，体积为 $4\pi R^3/3$。这三个公式呈现出共同的结构：半径的幂次等于空间的维数，前面的系数则随维数变化。因此，推广到高维时，真正需要解决的问题并不是如何猜测半径的次数，而是如何准确确定维数所对应的系数，以及为什么这些系数由同一条规律支配。
+
+本文讨论通常欧氏距离所确定的球体。最终将证明：对任意正整数 $n$ 和实数 $R>0$，$n$ 维球体的体积为
+\begin{equation}\label{eq:nb-main-preview}
+  V_n(R)=\frac{\pi^{n/2}}{\Gamma\!\left(\frac n2+1\right)}R^n,
+\end{equation}
+其中 $\Gamma$ 是后文从积分定义出发介绍的伽马函数。这个公式不要求把高维球体画出来：高维几何的计算依赖坐标、距离、截面和积分，图像直观只是理解的辅助。本文先从缩放性质和低维截面出发，得到不使用特殊函数的递推式，再解释伽马函数怎样统一奇偶维公式，最后通过高斯积分给出另一条推导路线。两条路线的中间对象不同，因而也能帮助检查常数和指标是否正确。
+
+所需基础包括一元积分、简单的多元积分、极坐标换元以及行列式的基本性质。涉及迭代积分时，本文采用多元积分中的托内利定理（Tonelli's theorem）：非负可测函数可以交换积分次序，等式在积分可能为无穷大的情况下仍然成立。对于已经证明可积的函数，也可使用富比尼定理（Fubini's theorem）。这些积分定理作为基础工具使用，不在本文重新证明；每次用到它们时，将说明非负性或可积性。伽马函数的递推关系、半整数取值及本文需要的径向积分公式则给出具体论证。
+
+\section{研究对象、体积的含义与缩放性质}
+\label{sec:nb-definition}
+
+\begin{definition}[欧氏球体与球面]
+设 $n\geq1$ 为整数，$x=(x_1,\ldots,x_n)\in\mathbb R^n$，其\keyterm{欧氏范数}（Euclidean norm）定义为
+\[
+  \|x\|_2=\left(\sum_{i=1}^n x_i^2\right)^{1/2}.
+\]
+以原点为球心、半径为 $R>0$ 的闭\keyterm{球体}（ball）和\keyterm{球面}（sphere）分别为
+\[
+  B_n(R)=\{x\in\mathbb R^n:\|x\|_2\leq R\},\qquad
+  S^{n-1}(R)=\{x\in\mathbb R^n:\|x\|_2=R\}.
+\]
+记 $V_n(R)$ 为 $B_n(R)$ 的 $n$ 维体积，记 $\omega_n=V_n(1)$ 为单位球体积。
+\end{definition}
+
+这里的体积统一指 $n$ 维勒贝格测度（Lebesgue measure），记为 $\operatorname{vol}_n$；对本文的球体，也可用通常的多元黎曼积分理解。其规范化约定是：边长分别为 $a_1,\ldots,a_n$ 的长方体体积等于 $a_1\cdots a_n$。因此，体积在一维就是长度，在二维就是面积，在三维就是通常的体积。球面记号中的 $n-1$ 表示边界自身的维数，而不是球体所在空间的维数；例如三维球体的边界是二维曲面 $S^2(R)$。下文计算的主要对象是包含内部的球体，球面面积将在第~\ref{sec:nb-surface}~节另行讨论。
+
+用积分表达体积，有
+\[
+  V_n(R)=\int_{\mathbb R^n}\mathbf1_{B_n(R)}(x)\,\mathrm dx,
+\]
+其中 $\mathbf1_A$ 是集合 $A$ 的示性函数（indicator function），在 $A$ 内取值为 $1$，在 $A$ 外取值为 $0$，而 $\mathrm dx=\mathrm dx_1\cdots\mathrm dx_n$ 表示体积元。球体包含在长方体 $[-R,R]^n$ 内，因此体积有限；它又包含长方体 $[-R/\sqrt n,R/\sqrt n]^n$，因此体积严格为正。这些包含关系说明，下面使用的体积常数不是无穷量，也不会等于零。
+
+\begin{proposition}[半径的缩放规律]\label{prop:nb-scaling}
+对任意整数 $n\geq1$ 和 $R>0$，有
+\begin{equation}\label{eq:nb-scaling}
+  V_n(R)=\omega_nR^n.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+令 $x=Ry$，即每个坐标都满足 $x_i=Ry_i$。条件 $\|x\|_2\leq R$ 等价于 $\|y\|_2\leq1$。此线性变换的矩阵是 $RI_n$，其中 $I_n$ 为 $n$ 阶单位矩阵，其雅可比行列式（Jacobian determinant）的绝对值为 $R^n$。由多元积分换元公式，
+\[
+  V_n(R)=\int_{B_n(1)}R^n\,\mathrm dy=R^n\omega_n.
+\]
+这里出现 $R^n$，是因为全部 $n$ 个坐标方向都同时按比例 $R$ 缩放。
+\end{proof}
+
+平移的雅可比行列式为 $1$，所以更换球心不会改变体积；正交变换的行列式绝对值也为 $1$，所以旋转或反射不改变体积。于是，把球心放在原点并选择方便的坐标轴，不会损失一般性。另一方面，缩放规律只给出了 $R$ 的次数，并没有确定 $\omega_n$。仅凭“量纲正确”不能得到完整公式：例如 $R^3$、$\pi R^3$ 和 $4\pi R^3/3$ 都具有三维体积的量纲，但只有最后一个是三维球体积。
+
+缩放规律还可以证明球面本身的 $n$ 维体积为零，而无须预先知道球面的面积。对 $0<\varepsilon<R$，球面 $S^{n-1}(R)$ 包含在 $B_n(R+\varepsilon)\setminus B_n(R-\varepsilon)$ 内，所以
+\[
+  0\leq\operatorname{vol}_n\bigl(S^{n-1}(R)\bigr)
+  \leq\omega_n\bigl((R+\varepsilon)^n-(R-\varepsilon)^n\bigr).
+\]
+右端在 $\varepsilon\to0^+$ 时趋于零。因而开球和闭球有相同的 $n$ 维体积，积分区域是否包含边界不会改变本文的结果。这里说的是球面的 $n$ 维体积为零，并不是它的 $(n-1)$ 维面积为零；区分测量的维数十分必要。
+
+\section{截面法：把高维问题降到低维}
+\label{sec:nb-slicing}
+
+\subsection{固定一个坐标得到的递推积分}
+
+先取整数 $n\geq2$，把点写成 $x=(y,t)$，其中 $y\in\mathbb R^{n-1}$，$t\in\mathbb R$。球体条件为 $\|y\|_2^2+t^2\leq R^2$。当 $t$ 固定且 $|t|\leq R$ 时，剩余坐标满足
+\[
+  \|y\|_2\leq\sqrt{R^2-t^2},
+\]
+所以垂直于最后一个坐标轴的截面是一个半径为 $\sqrt{R^2-t^2}$ 的 $(n-1)$ 维球体；当 $|t|>R$ 时截面为空。截面半径随位置变化，中心截面最大，接近两端时缩小到零，这正是三维球体切成圆盘的高维版本。
+
+球体的示性函数非负，故可用托内利定理先积掉 $y$，再对 $t$ 积分。由命题~\ref{prop:nb-scaling}，得到
+\begin{equation}\label{eq:nb-one-slice}
+  V_n(R)=\omega_{n-1}\int_{-R}^{R}(R^2-t^2)^{(n-1)/2}\,\mathrm dt.
+\end{equation}
+再令 $t=Ru$，便有
+\begin{equation}\label{eq:nb-adjacent}
+  \omega_n=\omega_{n-1}\int_{-1}^{1}(1-u^2)^{(n-1)/2}\,\mathrm du.
+\end{equation}
+这是一条相邻维数之间的精确关系。它体现了卡瓦列里原理（Cavalieri's principle）的积分形式：总体积是沿某个方向把各截面的低维体积累加起来。使用这个原理时，累加的是随位置变化的截面体积，不能拿中央截面体积直接乘整个直径，否则得到的是外接柱体的体积。
+
+\begin{example}[由圆盘截面求三维球体积]
+已知二维圆盘面积为 $\pi r^2$，求半径为 $R$ 的三维球体积。
+\end{example}
+\begin{solve}
+由 $\omega_2=\pi$ 和式~\eqref{eq:nb-one-slice}，
+\[
+  V_3(R)=\pi\int_{-R}^{R}(R^2-t^2)\,\mathrm dt
+  =\pi\left[R^2t-\frac{t^3}{3}\right]_{-R}^{R}
+  =\frac{4\pi}{3}R^3.
+\]
+这个计算说明，高维体积推导中最重要的几何步骤是确认截面的维数与半径；积分只负责把已经正确识别的截面累加。若把截面半径误写成 $R-|t|$，所得截面对应另一种形状，就不再是球体。
+\end{solve}
+
+\subsection{固定两个坐标得到更简单的递推式}
+
+相邻维数递推式中的幂次可能是半整数，直接积分并不总是方便。一个更有效的选择是一次分出两个坐标，让这两个坐标组成平面，再在该平面使用普通极坐标。取 $n\geq3$，把点写成 $x=(y,z)$，其中 $y\in\mathbb R^{n-2}$，$z=(z_1,z_2)\in\mathbb R^2$。对满足 $\|z\|_2\leq R$ 的固定 $z$，剩余截面是半径为 $\sqrt{R^2-\|z\|_2^2}$ 的 $(n-2)$ 维球体，因此
+\[
+  V_n(R)=\omega_{n-2}\int_{z_1^2+z_2^2\leq R^2}
+  (R^2-z_1^2-z_2^2)^{(n-2)/2}\,\mathrm dz_1\mathrm dz_2.
+\]
+这里再次使用了非负示性函数的迭代积分，并未用到未知的高维球面面积。
+
+令 $z_1=\rho\cos\theta$、$z_2=\rho\sin\theta$，其中 $0\leq\rho\leq R$、$0\leq\theta<2\pi$。二维极坐标的面积元为 $\rho\,\mathrm d\rho\,\mathrm d\theta$；因而
+\begin{align*}
+  V_n(R)
+  &=2\pi\omega_{n-2}\int_0^R
+    (R^2-\rho^2)^{(n-2)/2}\rho\,\mathrm d\rho\\
+  &=\pi\omega_{n-2}\int_0^{R^2}v^{(n-2)/2}\,\mathrm dv
+    =\frac{2\pi}{n}\omega_{n-2}R^n.
+\end{align*}
+第二行使用 $v=R^2-\rho^2$，所以 $\mathrm dv=-2\rho\,\mathrm d\rho$；积分限原本从 $R^2$ 到 $0$，交换上下限后抵消负号。剩下的是幂函数积分，而它的指数 $(n-2)/2\geq1/2$，在零点不存在不可积的问题。比较 $R^n$ 的系数，得到全文最实用的递推关系。
+
+\begin{proposition}[隔两维的体积递推]\label{prop:nb-recurrence}
+对每个整数 $n\geq3$，单位球体积满足
+\begin{equation}\label{eq:nb-recurrence}
+  \boxed{\omega_n=\frac{2\pi}{n}\omega_{n-2}},
+  \qquad \omega_1=2,\quad\omega_2=\pi.
+\end{equation}
+\end{proposition}
+
+也可以把它写成一般半径下的关系
+\[
+  V_n(R)=\frac{2\pi R^2}{n}V_{n-2}(R).
+\]
+此时右端必须带有额外的 $R^2$，因为两个体积的维数相差二。这个检查有助于发现把单位球公式直接套到任意半径时常见的遗漏。该递推式中的 $2\pi$ 来自二维平面内完整转一圈的角度积分，分母 $n$ 来自径向幂函数的积分；它们都具有明确来源，并不是依据几个低维数值猜出的规律。
+
+\section{展开递推：偶数维与奇数维的显式公式}
+\label{sec:nb-parity}
+
+\subsection{偶数维中的普通阶乘}
+
+设 $n=2m$，其中 $m\geq1$ 为整数。递推关系变成 $\omega_{2m}=(\pi/m)\omega_{2m-2}$。当 $m\geq2$ 时，不断降低维数直到二维，得到
+\[
+  \omega_{2m}=\frac{\pi}{m}\frac{\pi}{m-1}\cdots
+  \frac{\pi}{2}\,\omega_2=\frac{\pi^m}{m!}.
+\]
+当 $m=1$ 时同一个结果就是 $\omega_2=\pi$。这里的 $m!=1\cdot2\cdots m$ 是阶乘，约定 $0!=1$。因此偶数维球体积为
+\begin{equation}\label{eq:nb-even}
+  V_{2m}(R)=\frac{\pi^m}{m!}R^{2m},\qquad m\geq1.
+\end{equation}
+例如 $V_4(R)=\pi^2R^4/2$，$V_6(R)=\pi^3R^6/6$。每升高两个维数，二维角度积分增加一个 $\pi$ 因子，同时幂函数积分带来的分母继续累乘，最终构成阶乘。
+
+\subsection{奇数维中的双阶乘}
+
+设 $n=2m+1$，其中 $m\geq0$ 为整数。此时递推最终停在一维，得到
+\[
+  \omega_{2m+1}
+  =\frac{2\pi}{2m+1}\frac{2\pi}{2m-1}\cdots
+   \frac{2\pi}{3}\,\omega_1
+  =\frac{2^{m+1}\pi^m}{(2m+1)!!}.
+\]
+当 $m=0$ 时，上式中的递推乘积理解为空乘积，其值为 $1$。符号 $(2m+1)!!$ 称为\keyterm{双阶乘}（double factorial），在这里表示 $1\cdot3\cdot5\cdots(2m+1)$，并不是先求阶乘再求一次阶乘。于是
+\begin{equation}\label{eq:nb-odd}
+  V_{2m+1}(R)=\frac{2^{m+1}\pi^m}{(2m+1)!!}R^{2m+1},
+  \qquad m\geq0.
+\end{equation}
+利用 $(2m+1)!=(2m+1)!!\,2^m m!$，还可改写为
+\[
+  V_{2m+1}(R)=\frac{2^{2m+1}m!\pi^m}{(2m+1)!}R^{2m+1}.
+\]
+例如 $V_5(R)=8\pi^2R^5/15$，$V_7(R)=16\pi^3R^7/105$。奇数维和偶数维出现不同的乘积，是因为递推每次降低两个维数，因而保留维数的奇偶性，而不是因为它们服从两套互不相干的几何规律。
+
+到这里，任意正整数维的球体积已经求出，完全不必先学习特殊函数。有时为了把式~\eqref{eq:nb-recurrence}~的写法延伸到 $n=2$，人们约定 $\omega_0=1$。在零维空间只有一个点的测度约定下，这与零维体积一致；它不表示“一点在正维空间中的体积为一”。本文的几何论证以 $\omega_1$、$\omega_2$ 为初值，因此并不依赖这个额外约定。
+
+\section{伽马函数：把奇偶维公式合为一个公式}
+\label{sec:nb-gamma}
+
+\subsection{积分定义与阶乘的延拓}
+
+\begin{definition}[伽马函数]
+对实数 $s>0$，定义\keyterm{伽马函数}（Gamma function）
+\begin{equation}\label{eq:nb-gamma-definition}
+  \Gamma(s)=\int_0^\infty t^{s-1}e^{-t}\,\mathrm dt.
+\end{equation}
+\end{definition}
+
+先说明定义中的反常积分收敛。在零点附近，$0<e^{-t}\leq1$，而 $\int_0^1t^{s-1}\,\mathrm dt=1/s<\infty$；在无穷远处，$t^{s-1}e^{-t/2}$ 在 $[1,\infty)$ 上有界，故存在常数 $C_s$ 使 $t^{s-1}e^{-t}\leq C_se^{-t/2}$。后者在无穷远可积，因此积分存在且为正。条件 $s>0$ 不是装饰性的限制，它保证了零点处的可积性；本文不需要伽马函数在其他参数范围内的延拓。
+
+对 $s>0$，先在有限区间上分部积分，再令端点趋于零和无穷，得到
+\begin{equation}\label{eq:nb-gamma-recurrence}
+  \Gamma(s+1)=\int_0^\infty t^se^{-t}\,\mathrm dt
+  =s\int_0^\infty t^{s-1}e^{-t}\,\mathrm dt=s\Gamma(s).
+\end{equation}
+边界项消失是因为 $t^se^{-t}\to0$ 在 $t\to0^+$ 和 $t\to\infty$ 时都成立。又因为 $\Gamma(1)=\int_0^\infty e^{-t}\,\mathrm dt=1$，逐次递推可得 $\Gamma(m+1)=m!$。注意整数 $m$ 的阶乘对应的是 $\Gamma(m+1)$，而不是 $\Gamma(m)$；这个参数偏移正是体积公式分母最容易写错的地方。
+
+\subsection{先独立求出高斯积分}
+\label{subsec:nb-gaussian-one}
+
+为了处理奇数维，需要计算 $\Gamma(1/2)$。令
+\[
+  I=\int_{-\infty}^{\infty}e^{-u^2}\,\mathrm du.
+\]
+这个积分称为\keyterm{高斯积分}（Gaussian integral）。它是有限的，因为在 $|u|\geq1$ 时有 $e^{-u^2}\leq e^{-|u|}$，而后一函数可积。直接求原函数并不方便，但将积分平方后，两个变量的平方和便可用二维极坐标处理。由非负性和托内利定理，
+\[
+  I^2=\int_{\mathbb R^2}e^{-(u^2+v^2)}\,\mathrm du\mathrm dv.
+\]
+对半径为 $L$ 的圆盘先作极坐标换元，再令 $L\to\infty$。圆盘递增覆盖平面，非负积分的单调收敛定理（monotone convergence theorem）允许取此极限，于是
+\[
+  I^2=\int_0^{2\pi}\int_0^\infty e^{-r^2}r\,\mathrm dr\mathrm d\theta
+  =2\pi\cdot\frac12=\pi.
+\]
+由于 $I>0$，所以 $I=\sqrt\pi$。这一计算只用二维极坐标的雅可比，不使用任何未知的高维体积系数，也没有预先套用高维球面面积公式。
+
+在式~\eqref{eq:nb-gamma-definition}~中令 $s=1/2$，再作 $t=u^2$ 的换元，得到
+\[
+  \Gamma\!\left(\frac12\right)
+  =\int_0^\infty t^{-1/2}e^{-t}\,\mathrm dt
+  =2\int_0^\infty e^{-u^2}\,\mathrm du=\sqrt\pi.
+\]
+换元可先在远离零点的有限区间内进行，再利用非负积分的收敛取极限。由递推关系，对整数 $m\geq0$，
+\begin{equation}\label{eq:nb-half-gamma}
+  \Gamma\!\left(m+\frac32\right)
+  =\left(m+\frac12\right)\left(m-\frac12\right)\cdots\frac12\sqrt\pi
+  =\frac{(2m+1)!!}{2^{m+1}}\sqrt\pi.
+\end{equation}
+
+\subsection{统一表达式及其验证}
+
+当 $n=2m$ 时，$\Gamma(n/2+1)=m!$，所以式~\eqref{eq:nb-even}~等于式~\eqref{eq:nb-main-preview}。当 $n=2m+1$ 时，式~\eqref{eq:nb-half-gamma}~给出
+\[
+  \frac{\pi^{n/2}}{\Gamma(n/2+1)}
+  =\frac{\pi^{m+1/2}}{(2m+1)!!\sqrt\pi/2^{m+1}}
+  =\frac{2^{m+1}\pi^m}{(2m+1)!!},
+\]
+恰好恢复式~\eqref{eq:nb-odd}。因此已经证明以下结论。
+
+\begin{theorem}[$n$ 维欧氏球体的体积]\label{thm:nb-volume}
+对任意正整数 $n$，以任意点为球心、半径为 $R>0$ 的欧氏球体，其 $n$ 维体积为
+\begin{equation}\label{eq:nb-volume}
+  \boxed{V_n(R)=\frac{\pi^{n/2}R^n}{\Gamma(n/2+1)}}.
+\end{equation}
+\end{theorem}
+
+伽马函数在这里承担的是统一记号与统一计算的作用。它将整数阶乘和半整数连乘纳入同一条递推关系，从而免去奇偶分类。虽然右端作为实参数的函数可以在某些非整数 $n$ 上有意义，本文的几何定理仍只讨论正整数维欧氏空间，不能仅凭公式能代入小数，就宣称已经定义了非整数维欧氏球的体积。
+
+\section{高斯积分法：从另一个方向确定体积常数}
+\label{sec:nb-gaussian-method}
+
+\subsection{不预设球面面积的径向积分公式}
+
+前面的证明通过截面递推得到了全部体积常数。现在暂时只保留缩放关系 $V_n(r)=\omega_n r^n$，把 $\omega_n$ 当作未知数，说明如何用同一个高斯积分的两种算法确定它。这条路线需要\keyterm{径向函数}（radial function）：函数值只依赖点到原点的距离，可以写成 $f(\|x\|_2)$。对这样的函数，无须写出全部高维角坐标，只要按同心薄壳分层即可。
+
+设 $f$ 是 $[0,M]$ 上的非负连续函数，$M>0$，并取分割 $0=r_0<r_1<\cdots<r_k=M$。第 $j$ 个球壳 $r_{j-1}<\|x\|_2\leq r_j$ 的体积严格等于
+\[
+  \omega_n(r_j^n-r_{j-1}^n).
+\]
+在这个球壳内，用 $f$ 在 $[r_{j-1},r_j]$ 上的最小值和最大值分别替代函数，就能给积分作上下界。由一致连续性，当分割的最大长度趋于零时，两界之差至多为 $\omega_nM^n$ 乘以相应的最大振幅，因而趋于零。故积分等于任意取点的球壳和式的极限。
+
+再由一元微分中值定理，每个 $r_j^n-r_{j-1}^n$ 可写为 $n\xi_j^{n-1}(r_j-r_{j-1})$，其中 $\xi_j\in(r_{j-1},r_j)$。连续性保证球壳和式趋于通常的一元积分，于是
+\begin{equation}\label{eq:nb-radial-finite}
+  \int_{B_n(M)}f(\|x\|_2)\,\mathrm dx
+  =n\omega_n\int_0^M f(r)r^{n-1}\,\mathrm dr.
+\end{equation}
+球心单点的体积为零，不影响上述分层。当 $f$ 在 $[0,\infty)$ 上非负连续时，令 $M\to\infty$，由单调收敛定理得到
+\begin{equation}\label{eq:nb-radial}
+  \int_{\mathbb R^n}f(\|x\|_2)\,\mathrm dx
+  =n\omega_n\int_0^\infty f(r)r^{n-1}\,\mathrm dr,
+\end{equation}
+等式允许两端同时为无穷大。这个证明表明，径向权重 $r^{n-1}$ 来源于球壳体积对半径的一阶变化，系数则暂时保留为未知的 $n\omega_n$。若一开始就把已经求好的球面面积系数写进去，再声称由它推出球体积，便没有构成独立的证明。
+
+\subsection{同一个多元积分的两种计算}
+
+考虑
+\[
+  J_n=\int_{\mathbb R^n}e^{-(x_1^2+\cdots+x_n^2)}\,\mathrm dx.
+\]
+第一种计算沿直角坐标分离变量。因为指数函数满足 $e^{-(x_1^2+\cdots+x_n^2)}=\prod_{i=1}^n e^{-x_i^2}$，且被积函数非负，反复使用托内利定理和第~\ref{subsec:nb-gaussian-one}~小节的高斯积分结果，便有
+\begin{equation}\label{eq:nb-gaussian-cartesian}
+  J_n=\prod_{i=1}^n\int_{-\infty}^{\infty}e^{-x_i^2}\,\mathrm dx_i
+  =(\sqrt\pi)^n=\pi^{n/2}.
+\end{equation}
+这也证明了该多元积分是有限的。
+
+第二种计算利用它只依赖半径 $r=\|x\|_2$ 的性质。由式~\eqref{eq:nb-radial}，再令 $t=r^2$，得到
+\begin{align*}
+  J_n
+  &=n\omega_n\int_0^\infty e^{-r^2}r^{n-1}\,\mathrm dr\\
+  &=\frac{n\omega_n}{2}\int_0^\infty e^{-t}t^{n/2-1}\,\mathrm dt
+    =\frac{n\omega_n}{2}\Gamma\!\left(\frac n2\right).
+\end{align*}
+注意换元后的幂次是 $n/2-1$，因为 $\mathrm dr=\mathrm dt/(2\sqrt t)$，必须把这个因子与 $r^{n-1}$ 一起换掉。比较两种结果，解出
+\[
+  \omega_n=\frac{2\pi^{n/2}}{n\Gamma(n/2)}
+  =\frac{\pi^{n/2}}{\Gamma(n/2+1)},
+\]
+最后一步使用伽马函数递推式。这再次得到定理~\ref{thm:nb-volume}，而没有调用第~\ref{sec:nb-parity}~节的奇偶维连乘结果。
+
+这条方法之所以有效，是因为高斯函数同时具备两个结构：在直角坐标下，它分解为一元函数的乘积；在径向坐标下，它只依赖欧氏距离。两种结构把一个未知的几何常数转化为同一个积分的两种表达。球体本身的示性函数虽然也具有径向对称性，却不能像高斯函数那样直接按坐标分解，因此直接积分球体往往需要截面法，而引入高斯函数后计算反而更简洁。
+
+\section{贝塔积分如何连接相邻维数}
+\label{sec:nb-beta}
+
+隔两维递推已经足以完成求解，但式~\eqref{eq:nb-adjacent}~中的相邻维数积分也有统一表达。对实数 $a,b>0$，定义\keyterm{贝塔函数}（Beta function）
+\[
+  B(a,b)=\int_0^1u^{a-1}(1-u)^{b-1}\,\mathrm du.
+\]
+两个参数为正分别保证零点和一点附近可积。由伽马函数定义和非负性，
+\[
+  \Gamma(a)\Gamma(b)=\int_0^\infty\int_0^\infty
+  x^{a-1}y^{b-1}e^{-(x+y)}\,\mathrm dx\mathrm dy.
+\]
+作换元 $x=su$、$y=s(1-u)$，其中 $s>0$、$0<u<1$，雅可比行列式绝对值为 $s$。换元后被积表达式分解为 $s^{a+b-1}e^{-s}$ 与 $u^{a-1}(1-u)^{b-1}$ 的乘积，再由托内利定理分离积分，得到
+\begin{equation}\label{eq:nb-beta-gamma}
+  B(a,b)=\frac{\Gamma(a)\Gamma(b)}{\Gamma(a+b)}.
+\end{equation}
+换元在两个开区域间光滑且可逆，边界不影响积分；反常积分可以通过非负区域穷竭来理解。
+
+回到截面积分，利用偶对称性并令 $v=u^2$，有
+\begin{align*}
+  \int_{-1}^1(1-u^2)^{(n-1)/2}\,\mathrm du
+  &=\int_0^1v^{-1/2}(1-v)^{(n-1)/2}\,\mathrm dv\\
+  &=B\!\left(\frac12,\frac{n+1}{2}\right)
+   =\frac{\sqrt\pi\,\Gamma((n+1)/2)}{\Gamma(n/2+1)}.
+\end{align*}
+因此式~\eqref{eq:nb-adjacent}~可以写成
+\[
+  \frac{\omega_n}{\omega_{n-1}}
+  =\frac{\sqrt\pi\,\Gamma((n+1)/2)}{\Gamma(n/2+1)}.
+\]
+已知 $\omega_{n-1}=\pi^{(n-1)/2}/\Gamma((n+1)/2)$ 时，右侧的伽马因子相消，正好得到 $\omega_n$ 的统一公式。这不仅核对了截面法与高斯积分法的一致性，也解释了贝塔函数为什么自然出现在球体切片中：截面半径的平方形如 $1-u^2$，平方换元把它变成贝塔积分的两个端点幂因子。
+
+\section{球面面积、具体计算与常见误区}
+\label{sec:nb-surface}
+
+对整数 $n\geq2$，记 $A_{n-1}(R)$ 为球面 $S^{n-1}(R)$ 的通常 $(n-1)$ 维面积，即用局部参数化及其面积元定义的面积。球体积关于半径的导数满足
+\begin{equation}\label{eq:nb-area}
+  A_{n-1}(R)=\frac{\mathrm d}{\mathrm dR}V_n(R)
+  =n\omega_nR^{n-1}
+  =\frac{2\pi^{n/2}}{\Gamma(n/2)}R^{n-1}.
+\end{equation}
+这里第一处等号需要几何解释，不能把“对半径求导得到面积”推广到任意形变。对球面，增大半径意味着每一点都沿外法线以同样速度移动，因此厚度为 $h$ 的外侧球壳，其体积除以 $h$ 在 $h\to0^+$ 时趋于球面面积。
+
+更具体地，设 $p$ 是半径为 $R$ 的球面上的点，沿法线移动距离 $t$ 后的位置为 $(1+t/R)p$。在切向的 $n-1$ 个方向上，长度均缩放为原来的 $1+t/R$ 倍，而法向长度元为 $\mathrm dt$。由光滑曲面的面积元及多元换元公式，外侧球壳体积为
+\[
+  V_n(R+h)-V_n(R)
+  =A_{n-1}(R)\int_0^h\left(1+\frac tR\right)^{n-1}\,\mathrm dt.
+\]
+两侧除以 $h$ 并令 $h\to0^+$，便得到式~\eqref{eq:nb-area}~的第一处等号。这里使用了光滑曲面面积元的标准理论，本文给出了它在球面法向坐标中的具体因子；前面的体积推导不依赖这部分理论。对于 $n=1$，边界是两个端点，若用零维计数面积衡量，其值为 $2$，也与 $V_1'(R)=2$ 相符。
+
+在二维，式~\eqref{eq:nb-area}~给出圆周长 $2\pi R$；在三维，它给出球面面积 $4\pi R^2$。这说明球体积和球面面积包含相关的常数，但半径次数相差一，分母中的伽马函数参数也相差一。球面面积使用 $\Gamma(n/2)$，球体积使用 $\Gamma(n/2+1)$，把两个公式混用会同时造成常数和量纲错误。
+
+\begin{example}[四维球与五维球的体积]
+求半径为 $2$ 的四维球体积，并求半径为 $1$ 的五维球体积。
+\end{example}
+\begin{solve}
+四维属于偶数维，取 $m=2$，由式~\eqref{eq:nb-even}，
+\[
+  V_4(2)=\frac{\pi^2}{2!}\,2^4=8\pi^2.
+\]
+五维属于奇数维，取 $m=2$，由式~\eqref{eq:nb-odd}，
+\[
+  V_5(1)=\frac{2^3\pi^2}{5!!}=\frac{8\pi^2}{15}.
+\]
+若长度使用某一固定单位，前一结果的单位是该长度单位的四次方，后一结果的单位是五次方。这两个数值不能直接解释成同一物理量的大小比较；跨维度比较单位球时，比较的是统一单位约定下的系数 $\omega_n$。
+\end{solve}
+
+还应分清“半径”和“直径”。若给定直径 $D$，则 $R=D/2$，公式应写为 $V_n=\pi^{n/2}D^n/(2^n\Gamma(n/2+1))$。把直径直接代入半径位置，会使结果放大 $2^n$ 倍，而且维数越高误差越大。同样，高维径向积分中的 $r^{n-1}$ 不能凭直觉省略：不同半径处的球壳包含不同数量的空间体积，积分权重正是对这一变化的记录。
+
+\section{由公式理解高维几何}
+\label{sec:nb-high-dimensional}
+
+\subsection{固定半径时，体积为何最终趋于零}
+
+从 $\omega_1=2$、$\omega_2=\pi$、$\omega_3=4\pi/3$ 出发，容易形成“维数越高，单位球体积越大”的猜测；但递推式~\eqref{eq:nb-recurrence}~表明这并不成立。随着 $n$ 增大，乘子 $2\pi/n$ 最终小于 $1$，并且趋于零。仅知道某条子序列下降还不足以证明其极限为零，但可以进一步作统一估计：取足够大的整数 $N$，使对所有 $n\geq N$ 都有 $2\pi/n\leq1/2$，则每升高两个维数，体积至多变成原来的一半。偶数维和奇数维各自都被一个趋于零的几何数列控制，所以 $\omega_n\to0$。
+
+事实上，对任何固定半径 $R>0$ 都有
+\[
+  \frac{V_n(R)}{V_{n-2}(R)}=\frac{2\pi R^2}{n},
+\]
+同样的论证给出 $V_n(R)\to0$。这里要求半径固定且使用同一长度单位；如果半径随维数增长，就不能继续沿用这一结论。例如，要让高维球始终具有指定的体积，半径通常需要随维数调整。因此，“高维球体积趋于零”不是一个脱离尺度约定的几何口号。
+
+不使用任何渐近公式，也可将单位球与外接立方体比较。单位球包含在 $[-1,1]^n$ 内，后者的体积是 $2^n$。设体积占比为 $q_n=\omega_n/2^n$，则
+\[
+  \frac{q_n}{q_{n-2}}=\frac{\pi}{2n}.
+\]
+因此 $q_n\to0$，表明单位球在外接立方体中所占的比例越来越小。这个结论与球体的半径仍然等于一并不矛盾：约束 $x_1^2+\cdots+x_n^2\leq1$ 要求所有坐标共同分享有限的平方和，而立方体只要求每个坐标分别位于 $[-1,1]$。二者的约束方式在高维下差别显著。
+
+\subsection{为什么大部分体积集中在边界附近}
+
+取固定的相对厚度 $0<\delta<1$。半径从 $(1-\delta)R$ 到 $R$ 的外层球壳，其体积占整个球体的比例为
+\begin{equation}\label{eq:nb-shell-fraction}
+  \frac{V_n(R)-V_n((1-\delta)R)}{V_n(R)}
+  =1-(1-\delta)^n.
+\end{equation}
+当 $n\to\infty$ 时，右端趋于 $1$。这个结果完全由缩放规律得到，不需要知道 $\omega_n$ 的具体值。例如 $n=100$、$\delta=0.05$ 时，最外侧占半径百分之五的球壳约含整个球体百分之 $99.4$ 的体积。这里的厚度是相对于半径衡量的，不能理解成所有维数下任意微小厚度都已经包含几乎全部体积。
+
+为了用概率语言准确表达这一现象，设随机向量 $X$ 在 $B_n(R)$ 中按体积均匀分布，其概率密度在球内为 $1/V_n(R)$、在球外为零。令随机半径 $T=\|X\|_2$，则对 $0\leq r\leq R$，
+\[
+  \mathbb P(T\leq r)=\frac{V_n(r)}{V_n(R)}
+  =\left(\frac rR\right)^n,
+  \qquad f_T(r)=\frac{nr^{n-1}}{R^n}\quad(0<r<R).
+\]
+因此“按体积均匀抽样”并不意味着半径在 $[0,R]$ 上均匀分布；径向密度中的 $r^{n-1}$ 使较大的半径获得更大的权重。进一步积分可得
+\[
+  \mathbb E[T]=\int_0^Rr\frac{nr^{n-1}}{R^n}\,\mathrm dr
+  =\frac{n}{n+1}R,\qquad
+  \mathbb E[R-T]=\frac{R}{n+1}.
+\]
+这说明平均到边界的径向距离随维数增大而缩短，也为“体积集中在边界附近”提供了一个可计算的尺度。
+
+球面自身的 $n$ 维体积为零，与绝大多数球体体积集中在薄壳中并不冲突。前者讨论厚度严格为零的集合，后者讨论厚度为正的区域及其相对占比。若固定 $n$ 并令 $\delta\to0$，式~\eqref{eq:nb-shell-fraction}~的右端仍然趋于零；若固定 $\delta>0$ 再令 $n\to\infty$，它才趋于一。两种极限的顺序不同，回答的是不同问题，这也是理解高维几何时应当始终保留的条件。
+
+\section{推导的逻辑关系与复习要点}
+\label{sec:nb-conclusion}
+
+整个推导可以按依赖关系理解。首先，体积的线性换元规律给出 $V_n(R)=\omega_nR^n$，把问题化为单位球系数的计算。其次，将坐标分成一个 $(n-2)$ 维部分与一个二维部分，在二维部分使用极坐标，得到 $\omega_n=(2\pi/n)\omega_{n-2}$。再从 $\omega_1=2$ 和 $\omega_2=\pi$ 展开递推，分别得到阶乘与双阶乘公式。最后，伽马函数以 $\Gamma(s+1)=s\Gamma(s)$ 和 $\Gamma(1/2)=\sqrt\pi$ 将两个结果统一为式~\eqref{eq:nb-volume}。
+
+另一条路线从缩放规律建立球壳积分公式，然后把 $n$ 维高斯积分一方面按坐标分解，另一方面按半径积分，比较二者即可确定 $\omega_n$。这条路线没有预先使用高维球面面积，因此避免了把结论藏进坐标变换系数的循环论证。贝塔积分则说明相邻维截面递推与伽马函数表达式如何吻合。实际计算中，整数维数较小时用隔两维递推最直接，需要统一表达或进一步分析时用伽马函数最方便；无论采用哪种写法，均应保留维数为正整数、半径为正以及所用距离为欧氏距离这些条件。
+
+\end{document}

@@ -1,0 +1,787 @@
+\documentclass[UTF8]{ctexart}
+
+% 支持从项目根目录、机器学习目录或当前文档目录读取共享样式。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{高斯混合模型原理与前置知识}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+高斯混合模型用若干高斯分布的加权和描述数据分布，把密度估计、软聚类、隐变量推断与统计参数学习联系起来。理解这一模型，关键在于分清观测数据与潜在来源、概率密度与类别概率、模型假设与优化算法，以及似然上升与统计可靠性之间的区别。本文从概率、线性代数、微积分与最大似然估计出发，推导多元高斯分布、后验责任度和期望最大化算法，给出完整数值例题，解释奇异解、初始化、协方差约束、数值稳定性和模型选择，并介绍贝叶斯学习、条件预测与缺失数据等扩展。基础结论尽量提供可核查推导，进阶内容明确适用条件和论证边界。
+\end{abstract}
+\tableofcontents
+
+\section{问题、学习路线与统一记号}
+\label{sec:gmm-introduction}
+
+\subsection{从一个混合来源的问题出发}
+某实验室记录一批零件的长度，但没有记录各零件来自哪一台机器。如果两台机器的加工中心不同，每台机器内部又有近似对称的随机波动，全部长度的直方图可能出现两个集中区域。只用一个平均值和一个方差描述全部数据，会把两类误差混在一起：一类是同一机器内部的加工波动，另一类是机器之间的中心差异。\keyterm{高斯混合模型}（Gaussian mixture model，GMM）把这两类变化分开建模：先随机选择一个来源，再从这个来源对应的高斯分布中生成观测。实际学习时只看到了零件长度，因此既要估计各机器的参数，也要判断每个零件可能来自哪台机器。
+
+例如，一个假想总体由比例为 $0.7$、平均长度为 $0$ 的第一类零件和比例为 $0.3$、平均长度为 $4$ 的第二类零件构成，两类的方差都是 $1$。总体密度为 $0.7\mathcal N(x\mid0,1)+0.3\mathcal N(x\mid4,1)$。这里的 $0.7$ 是抽到第一类的概率，$\mathcal N(x\mid0,1)$ 是第一类在位置 $x$ 处的密度；两者相乘是该来源对观测密度的贡献。即使 $x$ 恰好位于两个均值中间，两个来源的后验概率也未必相等，因为较常见的来源具有较大的先验权重。后文将把这一判断写成贝叶斯公式，并给出可计算的结果。
+
+GMM 可以用于\keyterm{密度估计}（density estimation），即学习哪些区域容易出现观测；也可以用于\keyterm{软聚类}（soft clustering），即用一组概率表达每个样本对不同分量的归属程度。它还可以生成模拟样本，或在联合分布建模后进行条件预测。这些任务共享同一个概率模型，但评价标准不同。密度拟合良好不意味着分量恰好对应人们期待的语义类别；一个弯曲的真实群体可能需要多个高斯分量表示，两个高度重叠的真实来源也可能在密度图上只形成一个峰。因而必须先明确任务，再解释拟合结果。
+
+\subsection{知识依赖与阅读顺序}
+理解模型的第一条线索是概率：联合分布、边缘分布和条件分布解释“来源”和“观测”如何联系；期望和全协方差公式解释整体统计量如何分解。第二条线索是线性代数：正定矩阵、特征分解和二次型决定高斯等密度面的形状，也决定算法能否稳定计算。第三条线索是统计优化：最大似然给出学习目标，隐变量使这个目标难以直接求解，Jensen 不等式和相对熵则解释期望最大化为什么能够逐步改善目标。最后一条线索是统计实践：有限数据、模型选择和非凸优化决定理论公式如何成为可靠的训练流程。
+
+本文依次介绍概率工具、矩阵工具、多元高斯、单高斯估计、混合模型、责任度、EM 的下界解释和参数更新，再以数值计算串联各步。随后讨论算法边界、稳定实现、与 $K$ 均值的关系、分量数选择及贝叶斯和应用扩展。第一次阅读可先掌握经典最大似然路线，再阅读贝叶斯和缺失数据部分；这些扩展不是理解基本 EM 更新的前提。文末的习题及解答用于检查是否能够从概率结构重新推导算法，而不只记住三个更新公式。
+
+\subsection{随机对象、数据和参数}
+设每个观测具有 $d$ 个实数特征，随机向量记为 $X\in\mathbb R^d$，其一次实现记为列向量 $x$。训练数据为 $\mathcal D=\{x_1,\ldots,x_n\}$，其中 $n$ 是样本量，$i$ 始终作为样本索引。潜在来源记为离散随机变量 $Z\in\{1,\ldots,K\}$，其中 $K$ 是预先给定的分量数，$k$ 作为分量索引。除特别说明外，假设给定模型参数后，各样本对 $(X_i,Z_i)$ 独立同分布。这是数据生成假设，不是对任意实际数据都自动成立的事实；时间序列和分组数据通常需要另行处理依赖性。
+
+第 $k$ 个分量的权重、均值和协方差分别记为 $\pi_k$、$\mu_k\in\mathbb R^d$ 和 $\Sigma_k\in\mathbb R^{d\times d}$，全体参数记为 $\theta=\{\pi_k,\mu_k,\Sigma_k\}_{k=1}^K$。权重满足 $\pi_k\geq0$ 和 $\sum_k\pi_k=1$，通常先在 $\pi_k>0$、$\Sigma_k\succ0$ 的内部讨论推导。迭代次数用上标 $(t)$ 表示，以避免与样本、分量索引混淆。$I_d$ 为 $d$ 阶单位阵，$A^\top$ 为转置，$|A|$ 为行列式，$\operatorname{tr}(A)$ 为迹；所有对数均为自然对数。
+
+\section{概率基础：从生成过程到条件推断}
+\label{sec:gmm-probability}
+
+\subsection{概率质量、密度与边缘化}
+离散变量的\keyterm{概率质量函数}（probability mass function）直接给出取某值的概率，例如 $P(Z=k)=\pi_k$。连续变量通常用\keyterm{概率密度函数}（probability density function）描述：若密度为 $p(x)$，则落入可测集合 $A$ 的概率为 $\int_Ap(x)\,\mathrm dx$。在连续分布下，单个精确点的概率通常是零；密度可以超过 $1$，也会随计量单位改变。将密度值解释为“某点发生的概率”会导致对似然、异常分数和责任度的连续误解。
+
+当 $X$ 连续而 $Z$ 离散时，$p(x,z=k)$ 同时表示对 $x$ 的密度和对 $k$ 的质量。\keyterm{乘法公式}给出 $p(x,z=k)=P(Z=k)p(x\mid Z=k)$；把不关心的来源求和，就得到\keyterm{边缘分布}（marginal distribution）
+\begin{equation}
+p(x)=\sum_{k=1}^K\pi_kp(x\mid Z=k).
+\label{eq:gmm-total-probability}
+\end{equation}
+这一步称为\keyterm{边缘化}（marginalization）。它不是挑出一个最可能的来源，而是把所有可能来源对观测的贡献都保留下来。若隐变量也是连续的，对应操作则是积分。GMM 的“混合”首先就是这一边缘化结构，尚未涉及任何训练算法。
+
+\subsection{贝叶斯公式与两个方向的概率}
+在 $p(x)>0$ 时，\keyterm{贝叶斯公式}（Bayes' formula）将生成方向的条件密度转成反向推断的类别概率：
+\begin{equation}
+P(Z=k\mid X=x)=\frac{\pi_kp(x\mid Z=k)}{\sum_{j=1}^K\pi_jp(x\mid Z=j)}.
+\label{eq:gmm-bayes}
+\end{equation}
+严格说，对连续 $X$ 的条件概率按条件密度所确定的版本理解，而不是用正概率事件 $\{X=x\}$ 作普通除法。式中 $\pi_k$ 是看到该样本前的\keyterm{先验概率}（prior probability），结果是结合观测后的\keyterm{后验概率}（posterior probability）。条件密度 $p(x\mid Z=k)$ 与后验 $P(Z=k\mid X=x)$ 的随机对象、归一化方向和单位都不同，不能互换。
+
+若某个位置在第一类中的密度为 $0.2$，在第二类中的密度为 $0.1$，而权重分别是 $0.1$ 和 $0.9$，那么第一类的后验为 $0.02/(0.02+0.09)=2/11$。因此，“第一类的密度更高”并不足以推出“第一类更可能是来源”。同样，后验接近 $1$ 只表明各候选来源相比较时某个来源占优势，不能证明样本本身常见；一个远离全部分量的点也可能具有很尖锐的归属后验。
+
+\subsection{期望、协方差与条件期望}
+若所需积分有限，随机向量的期望为 $m=\mathbb E[X]$，协方差为
+\begin{equation}
+\operatorname{Cov}(X)=\mathbb E[(X-m)(X-m)^\top]
+=\mathbb E[XX^\top]-mm^\top.
+\label{eq:gmm-covariance}
+\end{equation}
+对角元素是各特征的方差，非对角元素是两特征共同偏离均值的平均乘积。正协方差表示同向偏离较多，负协方差表示反向偏离较多，但它不直接等于因果关系，也不能刻画所有非线性依赖。各项的计量单位不同，因此未经标准化的协方差大小不能脱离特征尺度比较。
+
+给定来源 $Z=k$ 后，GMM 的均值和协方差分别是 $\mu_k$ 和 $\Sigma_k$。\keyterm{全期望公式}（law of total expectation）说明先对来源内部取平均、再对来源取平均，等于直接对总体取平均。更一般地，若二阶矩存在，则有\keyterm{全协方差公式}（law of total covariance）
+\begin{equation}
+\operatorname{Cov}(X)=\mathbb E[\operatorname{Cov}(X\mid Z)]
++\operatorname{Cov}(\mathbb E[X\mid Z]).
+\label{eq:gmm-total-covariance}
+\end{equation}
+证明可写 $X-m=(X-\mathbb E[X\mid Z])+(\mathbb E[X\mid Z]-m)$，展开外积。交叉项的条件期望为零，因为 $\mathbb E[X-\mathbb E[X\mid Z]\mid Z]=0$，剩下两项分别给出上述结果。这一分解解释了为什么把两个来源压成一个高斯时，估计方差通常包含来源之间的差异。
+
+\subsection{独立性与条件独立性}
+随机变量独立意味着联合分布可写成边缘分布的乘积；条件独立则要求这种乘积关系在给定某个变量后成立。两者并不等价。即使某个分量内部的两个特征独立，在混合总体中也可能相关，因为两个特征共同受到来源变量的影响。反过来，总体协方差为零也不意味着总体独立，除非附加联合高斯等条件。后文的对角协方差模型只施加分量内部的条件独立假设，没有施加总体独立假设。
+
+训练似然写成各样本密度的乘积，依赖于样本独立性；一个分量的密度写成各坐标密度的乘积，依赖于坐标条件独立性。这是两个不同层面的假设。把多元高斯用于向量数据，不要求向量内部各坐标独立；完整协方差恰好用于表达它们的线性相关结构。
+
+\section{线性代数与微积分前置知识}
+\label{sec:gmm-linear-algebra}
+
+\subsection{二次型、正定性与椭球}
+实对称矩阵 $A$ 对向量 $v$ 产生标量 $v^\top Av$，称为\keyterm{二次型}（quadratic form）。若对任意 $v\neq0$ 都有 $v^\top Av>0$，则 $A$ \keyterm{正定}（positive definite），记为 $A\succ0$；若允许等于零，则称半正定，记为 $A\succeq0$。协方差总是半正定，因为 $v^\top\operatorname{Cov}(X)v=\operatorname{Var}(v^\top X)\geq0$。要让多元高斯具有相对于 $d$ 维体积的普通密度，本文要求协方差正定，否则随机向量可能只落在更低维的仿射子空间中。
+
+实对称正定矩阵可以作\keyterm{谱分解}（spectral decomposition）$\Sigma=U\Lambda U^\top$，其中 $U$ 的列为正交单位特征向量，$\Lambda=\operatorname{diag}(\lambda_1,\ldots,\lambda_d)$ 且 $\lambda_j>0$。于是 $\Sigma^{-1}=U\Lambda^{-1}U^\top$，$|\Sigma|=\prod_j\lambda_j$。令 $y=U^\top(x-\mu)$，便有
+\begin{equation}
+(x-\mu)^\top\Sigma^{-1}(x-\mu)=\sum_{j=1}^d\frac{y_j^2}{\lambda_j}.
+\label{eq:gmm-quadratic-form}
+\end{equation}
+固定该量为正常数得到椭球，其主轴方向由 $U$ 决定，轴长与 $\sqrt{\lambda_j}$ 成正比。某方向的方差较大，沿该方向的同样位移便较不出乎意料，这正是协方差加权距离的几何意义。
+
+\subsection{马氏距离、白化与数值条件}
+当 $\Sigma\succ0$ 时，\keyterm{马氏距离}（Mahalanobis distance）定义为 $d_\Sigma(x,\mu)=\sqrt{(x-\mu)^\top\Sigma^{-1}(x-\mu)}$。它先减去中心，再按照各方向的变化尺度调整距离。取 $W=\Lambda^{-1/2}U^\top$，就有 $W\Sigma W^\top=I_d$，且 $d_\Sigma(x,\mu)=\|W(x-\mu)\|_2$。这一线性变换称为\keyterm{白化}（whitening）；它把协方差变成单位阵，但对非高斯总体而言，并不因此使坐标独立，也不会自动消除所有高阶结构。
+
+正定矩阵的谱条件数为 $\kappa(\Sigma)=\lambda_{\max}/\lambda_{\min}$。最小特征值很小时，逆矩阵会把相应方向的误差强烈放大，导致距离、密度和责任度对微小舍入敏感。因而“矩阵在数学上可逆”远不足以保证数值稳定。实际计算更常使用\keyterm{Cholesky 分解} $\Sigma=LL^\top$，其中 $L$ 是对角元为正的下三角矩阵；通过解三角方程来计算二次型，并用对角元的对数计算对数行列式，而不是显式形成逆矩阵。
+
+\subsection{迹运算与矩阵微分}
+迹满足 $\operatorname{tr}(AB)=\operatorname{tr}(BA)$，前提是乘积的维度合法；对向量 $v$，有 $v^\top Av=\operatorname{tr}(Avv^\top)$。因此许多样本二次型可以合并成一个散布矩阵。例如，$\sum_iw_i(x_i-\mu)^\top A(x_i-\mu)=\operatorname{tr}(A\sum_iw_i(x_i-\mu)(x_i-\mu)^\top)$。这种写法同时简化推导和实现，并揭示高斯参数估计只需要零阶、一阶、二阶加权统计量。
+
+对可逆矩阵的微小扰动 $\mathrm dA$，由 $AA^{-1}=I$ 求微分可得 $\mathrm d(A^{-1})=-A^{-1}(\mathrm dA)A^{-1}$。对正定 $A$ 还有
+\begin{equation}
+\mathrm d\log|A|=\operatorname{tr}(A^{-1}\mathrm dA),\qquad
+\mathrm d\operatorname{tr}(A^{-1}S)=-\operatorname{tr}(A^{-1}SA^{-1}\mathrm dA),
+\label{eq:gmm-matrix-differential}
+\end{equation}
+其中 $S$ 固定。第二式由逆矩阵微分和迹的循环性质得到。对称矩阵参数的扰动也应限制为对称方向；后文改用精度矩阵进行优化，可以减少处理对称元素重复计数的麻烦。矩阵求导的目的不是背诵形式，而是明确哪个量固定、在哪个参数空间内优化。
+
+\subsection{凹函数与拉格朗日乘子}
+函数 $f$ 在凸域上为凹函数，意味着 $f(ta+(1-t)b)\geq tf(a)+(1-t)f(b)$。对数函数在正实数上严格凹，其二阶导数为 $-1/u^2$。因此对 $a_k>0$ 和非负权重 $q_k$、$\sum_kq_k=1$，有\keyterm{Jensen 不等式}
+\begin{equation}
+\log\!\left(\sum_kq_ka_k\right)\geq\sum_kq_k\log a_k.
+\label{eq:gmm-jensen}
+\end{equation}
+在所有正权重对应的 $a_k$ 相同时取等号。这既是 EM 下界的入口，也是判断下界何时贴住原目标的关键。
+
+当优化权重 $\pi_k$ 时，约束 $\sum_k\pi_k=1$ 把参数限制在概率单纯形上。\keyterm{拉格朗日乘子法}（Lagrange multiplier method）通过加入 $\lambda(\sum_k\pi_k-1)$ 处理等式约束，随后还必须检查非负性以及边界情况。找到驻点只是一阶必要条件；要宣布它是最大值，还需要凹性或其他论证。GMM 的权重子问题具有凹性，但整个混合似然不是关于全部参数的凹函数，局部子问题容易并不意味着全局问题容易。
+
+\section{多元高斯分布的结构与推导}
+\label{sec:gmm-gaussian}
+
+\subsection{从标准正态到一般高斯}
+一维标准正态变量的密度为 $(2\pi)^{-1/2}\exp(-u^2/2)$。令 $U=(U_1,\ldots,U_d)^\top$ 的各坐标相互独立且服从标准正态，则其联合密度为 $(2\pi)^{-d/2}\exp(-u^\top u/2)$。给定 $\mu\in\mathbb R^d$ 和 $\Sigma\succ0$，取可逆矩阵 $L$ 满足 $LL^\top=\Sigma$，并定义 $X=\mu+LU$。此时 $\mathbb E[X]=\mu$，$\operatorname{Cov}(X)=\Sigma$，变量替换的雅可比绝对值为 $|\det L|=|\Sigma|^{1/2}$。故 $X$ 的密度是
+\begin{equation}
+\mathcal N(x\mid\mu,\Sigma)=\frac{1}{(2\pi)^{d/2}|\Sigma|^{1/2}}
+\exp\!\left[-\frac12(x-\mu)^\top\Sigma^{-1}(x-\mu)\right].
+\label{eq:gmm-gaussian-density}
+\end{equation}
+这是\keyterm{多元高斯分布}（multivariate Gaussian distribution），也称多元正态分布。生成构造直接证明密度已归一化，同时给出模拟样本的方法。
+
+式\eqref{eq:gmm-gaussian-density}包含三种作用：均值确定位置，协方差的特征方向确定形状，行列式因子调整高度以保持积分为一。只看指数中的距离而漏掉行列式，会系统性偏爱更宽的分量，因为增大方差能减少距离惩罚；归一化因子正好对体积扩张作出补偿。对数密度为
+\begin{equation}
+\log\mathcal N(x\mid\mu,\Sigma)=-\frac d2\log(2\pi)-\frac12\log|\Sigma|
+-\frac12(x-\mu)^\top\Sigma^{-1}(x-\mu).
+\label{eq:gmm-log-gaussian}
+\end{equation}
+学习协方差就是在体积惩罚与拟合距离之间取得平衡，而不是单纯缩短所有样本到均值的距离。
+
+\subsection{边缘分布与条件分布}
+将 $X$ 按坐标分成 $X_a\in\mathbb R^{d_a}$ 和 $X_b\in\mathbb R^{d_b}$，对应分块均值与协方差写为
+\[
+\mu=\begin{pmatrix}\mu_a\\\mu_b\end{pmatrix},\qquad
+\Sigma=\begin{pmatrix}\Sigma_{aa}&\Sigma_{ab}\\\Sigma_{ba}&\Sigma_{bb}\end{pmatrix}.
+\]
+取出部分坐标仍是线性变换，所以边缘分布为 $X_a\sim\mathcal N(\mu_a,\Sigma_{aa})$。若联合协方差正定，则 $\Sigma_{aa}$ 可逆，条件分布为
+\begin{align}
+X_b\mid X_a=a&\sim\mathcal N(m_{b\mid a},V_{b\mid a}),\label{eq:gmm-gaussian-conditional}\\
+m_{b\mid a}&=\mu_b+\Sigma_{ba}\Sigma_{aa}^{-1}(a-\mu_a),\nonumber\\
+V_{b\mid a}&=\Sigma_{bb}-\Sigma_{ba}\Sigma_{aa}^{-1}\Sigma_{ab}.\nonumber
+\end{align}
+为说明这一结论，定义残差 $R=X_b-\mu_b-\Sigma_{ba}\Sigma_{aa}^{-1}(X_a-\mu_a)$。它与 $X_a$ 的交叉协方差为零，协方差正是 $V_{b\mid a}$；两者联合高斯，零交叉协方差使联合高斯密度分解，从而独立。于是固定 $X_a=a$ 只改变线性预测部分，残差分布不变，得到上述公式。
+
+条件均值中的矩阵 $\Sigma_{ba}\Sigma_{aa}^{-1}$ 类似线性回归系数，条件协方差则刻画观察 $X_a$ 后仍不能消除的不确定性。其从 $\Sigma_{bb}$ 中减去的矩阵是半正定的，说明在这个模型下获得信息不会增加平均平方意义上的剩余误差。这里的“条件方差不依赖观测值”是联合高斯的特殊结构，推广到混合模型时，权重会随观测变化，总条件方差通常也会随之变化。
+
+\subsection{高斯假设的价值与局限}
+高斯分布的优点是参数含义清楚、线性变换封闭、条件分布可解析计算，而且二次型便于优化。中心极限定理在一定独立性、矩条件等假设下解释许多小扰动的和为什么近似高斯，却没有说明任意数据、任意子群体都必然高斯。数据若明显偏斜、有厚尾、有严格边界或者具有弯曲结构，单个高斯可能不适用；多个高斯增加了灵活性，但有限分量数和有限样本量仍限制表达能力。
+
+一维高斯具有对称单峰形状，多元高斯的等密度面是椭球。因此 GMM 可被看作使用多个椭球状局部单元拼出复杂密度。这里的“局部单元”是一种建模解释，不是每个分量都必须对应一个自然类别的数学保证。尤其在高维空间，二维投影中的分离可能隐藏其他方向的重叠，二维投影中的重叠也可能掩盖完整特征空间中的分离。
+
+\section{统计学习目标：先理解一个高斯的估计}
+\label{sec:gmm-single-estimation}
+
+\subsection{似然与参数后验的区别}
+在参数固定时，$p(x\mid\theta)$ 是关于观测的概率密度；在数据已经观测之后，把同一个表达式看成参数 $\theta$ 的函数，得到\keyterm{似然函数}（likelihood function）。对独立同分布样本，似然为 $L(\theta;\mathcal D)=\prod_{i=1}^np(x_i\mid\theta)$，\keyterm{最大似然估计}（maximum likelihood estimation，MLE）寻找使这一函数最大的参数。似然并不需要对参数积分为一，也不是参数的概率分布。只有引入参数先验并使用贝叶斯公式，才能得到参数后验。
+
+由于对数严格递增，最大化似然等价于最大化\keyterm{对数似然} $\ell(\theta)=\sum_i\log p(x_i\mid\theta)$。对数将连乘化为求和，减少数值下溢，也使样本贡献更容易分析。对数似然可以为正，因为连续密度可以大于一；它的绝对数值依赖坐标单位。比较模型时，必须在同一数据、同一坐标表示和同一密度基准下比较，不能把某个“正数”或“负数”本身视为拟合质量的阈值。
+
+若真实总体密度为 $p_*$，模型为 $p_\theta$，并且涉及的期望有限，则
+\[
+\mathbb E_{p_*}[\log p_\theta(X)]
+=\mathbb E_{p_*}[\log p_*(X)]-D_{\mathrm{KL}}(p_*\Vert p_\theta).
+\]
+这里 $D_{\mathrm{KL}}(p_*\Vert p_\theta)=\int p_*(x)\log[p_*(x)/p_\theta(x)]\,\mathrm dx$ 是\keyterm{Kullback--Leibler 散度}（KL divergence），也称相对熵。因此在总体层面，最大化期望对数密度对应于在模型族内逼近真实分布。有限样本似然只是总体目标的经验替代，过于灵活的模型可以提高训练似然而降低新样本表现。大数定律对固定参数的平均量收敛，也不自动保证在越来越复杂的模型族中任意优化都可靠。
+
+\subsection{均值的最大似然推导}
+对单个高斯，忽略与参数无关的常数后，目标为
+\[
+\ell(\mu,\Sigma)=-\frac n2\log|\Sigma|
+-\frac12\sum_{i=1}^n(x_i-\mu)^\top\Sigma^{-1}(x_i-\mu)+C.
+\]
+固定 $\Sigma\succ0$，对 $\mu$ 求梯度，得到 $\nabla_\mu\ell=\Sigma^{-1}\sum_i(x_i-\mu)$，故驻点为 $\widehat\mu=\bar x=n^{-1}\sum_i x_i$。Hessian 矩阵为 $-n\Sigma^{-1}\prec0$，所以这是关于均值的唯一最大点。另一个不依赖微分的证明是将每个 $x_i-\mu$ 写成 $(x_i-\bar x)+(\bar x-\mu)$，利用 $\sum_i(x_i-\bar x)=0$ 消去交叉项，剩余关于 $\mu$ 的损失是非负二次型。
+
+\subsection{协方差估计与自由度}
+设样本散布矩阵 $S=n^{-1}\sum_i(x_i-\bar x)(x_i-\bar x)^\top$。当 $S\succ0$ 时，协方差的最大似然解为 $\widehat\Sigma=S$。为验证是全局最大值，写 $\Sigma=S^{1/2}BS^{1/2}$，其中 $B\succ0$。目标相对于常数等价于最小化 $\log|B|+\operatorname{tr}(B^{-1})$。若 $b_j$ 为 $B$ 的特征值，这个目标是 $\sum_j(\log b_j+b_j^{-1})$；标量函数在 $b_j=1$ 处达到唯一最小值，因此 $B=I_d$，即 $\Sigma=S$。
+
+最大似然协方差的分母是 $n$，常见的无偏样本协方差分母则是 $n-1$，两者解决的准则不同。事实上，若样本独立同分布且总体协方差为 $\Sigma_*$，则 $\mathbb E[\sum_i(X_i-\bar X)(X_i-\bar X)^\top]=(n-1)\Sigma_*$。因此除以 $n-1$ 才无偏，而除以 $n$ 才是上述似然问题的解。EM 的协方差更新也属于最大似然更新，不能因为看到“样本方差”就擅自把分母改成有效计数减一。
+
+当 $S$ 奇异时，上述正定内部解不存在。沿样本没有变化的方向缩小协方差，可以不断提高密度而没有二次型代价。特别地，中心化后的 $n$ 个向量张成空间的维数最多为 $n-1$，所以当 $n\leq d$ 时，完整样本协方差必然奇异。这说明数据数量与参数结构之间存在基本约束；它在每个混合分量只有少量有效数据时会更加突出。
+
+\section{高斯混合模型的生成结构}
+\label{sec:gmm-model}
+
+\subsection{模型定义与完整数据}
+\begin{definition}[有限高斯混合模型]
+设 $K$ 为正整数，$\pi_k\geq0$ 且 $\sum_k\pi_k=1$，各 $\Sigma_k\succ0$。若先抽取 $Z\sim\operatorname{Categorical}(\pi_1,\ldots,\pi_K)$，再按 $X\mid Z=k\sim\mathcal N(\mu_k,\Sigma_k)$ 抽样，则 $X$ 的边缘密度为
+\begin{equation}
+p_\theta(x)=\sum_{k=1}^K\pi_k\mathcal N(x\mid\mu_k,\Sigma_k).
+\label{eq:gmm-mixture-density}
+\end{equation}
+称这一概率模型为具有 $K$ 个分量的高斯混合模型。
+\end{definition}
+
+各分量密度非负且积分为一，因而 $\int p_\theta(x)\,\mathrm dx=\sum_k\pi_k=1$。生成一个样本时只选择一个来源，并不从每个来源各抽一次再把向量加起来。因此，“高斯的混合”与“独立高斯随机变量的线性组合”不同：后者仍是高斯，前者通常不是。混合密度中的加权和发生在概率分布层面，而不是观测向量层面。
+
+引入\keyterm{独热编码}（one-hot encoding）$z_{ik}=\mathbf1\{z_i=k\}$，其中每一行只有一个元素为一，其余为零。若来源也被记录，则完整数据是 $\{(x_i,z_i)\}_{i=1}^n$，完整数据对数似然为
+\begin{equation}
+\ell_c(\theta)=\sum_{i=1}^n\sum_{k=1}^Kz_{ik}
+\bigl[\log\pi_k+\log\mathcal N(x_i\mid\mu_k,\Sigma_k)\bigr].
+\label{eq:gmm-complete-loglik}
+\end{equation}
+这个表达式按分量分开，每个高斯只需处理属于它的数据；来源未知时，观测对数似然则为
+\begin{equation}
+\ell(\theta)=\sum_{i=1}^n\log\!\left[\sum_{k=1}^K\pi_k\mathcal N(x_i\mid\mu_k,\Sigma_k)\right].
+\label{eq:gmm-observed-loglik}
+\end{equation}
+困难来自“先求和、后取对数”：对数不能分配到求和内部，分量参数彼此耦合。用 $\sum_k\log(\pi_k\mathcal N_k)$ 替换这一项会彻底改变模型。
+
+\subsection{总体均值与总体协方差}
+由第\ref{sec:gmm-probability}节的条件期望公式，混合总体的均值和协方差为
+\begin{align}
+m&=\sum_k\pi_k\mu_k,\label{eq:gmm-mixture-mean}\\
+\operatorname{Cov}(X)&=\sum_k\pi_k\Sigma_k
++\sum_k\pi_k(\mu_k-m)(\mu_k-m)^\top.\label{eq:gmm-mixture-cov}
+\end{align}
+第一项是分量内部协方差的平均，第二项是分量中心的离散程度。本文开头的两类零件例子有 $m=1.2$，总体方差为 $1+0.7(0-1.2)^2+0.3(4-1.2)^2=4.36$。若仅拟合一个高斯，它会把两类中心的差异也解释为同一个来源内部的波动。
+
+仅凭均值和协方差不能确定混合分布。不同权重、中心和方差的组合可能有相同的前两阶矩，却具有不同的峰形与尾部行为。因此，先计算总体均值和协方差再“分解成若干高斯”一般不是一个由这两个统计量唯一决定的问题。混合模型需要利用更多关于样本分布形状的信息，最大似然正是利用每个样本位置的方式之一。
+
+\subsection{分量、峰与类别的不同含义}
+分量数 $K$ 是模型表示中的单元数，密度峰数是函数形状的性质，语义类别数则来自任务定义。这三个数没有普遍的一一对应关系。两个方差较大、均值较近的分量可能只形成一个总体峰；一个偏斜而连续的群体可能需要多个高斯才能拟合。因而不能仅凭直方图上有两个峰就断言存在两个真实类别，也不能仅凭模型选出五个分量就宣称发现五类对象。
+
+分量编号本身没有语义。若同时交换两个分量的权重、均值和协方差，密度完全不变，这称为\keyterm{标签交换}（label switching）。比较不同初始化的参数时，必须先对齐编号，或比较密度、预测值和不依赖编号的聚类指标。更严重的是，若两个分量参数完全相同，其权重可以重新拆分而保持密度不变；若权重为零，该分量的均值与协方差对密度无影响。这些现象说明一般参数空间包含不可辨识或退化位置，不能把一个带编号的参数表视为唯一真相。
+
+\section{责任度：由生成模型得到软归属}
+\label{sec:gmm-responsibility}
+
+\subsection{后验概率与软计数}
+对当前参数 $\theta$，定义第 $i$ 个样本由第 $k$ 个分量产生的后验概率
+\begin{equation}
+r_{ik}=P_\theta(Z_i=k\mid X_i=x_i)
+=\frac{\pi_k\mathcal N(x_i\mid\mu_k,\Sigma_k)}{\sum_{j=1}^K\pi_j\mathcal N(x_i\mid\mu_j,\Sigma_j)}.
+\label{eq:gmm-responsibility}
+\end{equation}
+它称为\keyterm{责任度}（responsibility），满足 $r_{ik}\geq0$ 和 $\sum_kr_{ik}=1$。由于 $Z_{ik}=\mathbf1\{Z_i=k\}$，还有 $\mathbb E[Z_{ik}\mid x_i,\theta]=r_{ik}$。这条等式十分关键：EM 所需要的是完整数据对数似然关于隐变量的条件期望，而独热变量的期望恰好就是一组后验概率。
+
+定义 $N_k=\sum_i r_{ik}$，则 $\sum_kN_k=n$。$N_k$ 可以理解为第 $k$ 个分量的后验期望样本数，常称\keyterm{有效计数}（effective count），但它通常不是整数，也不是实际观察到的标签计数。若一百个样本对某分量的责任度都为 $0.1$，其有效计数为十；这不表示真的找出了十个确定属于它的样本。它也不等同于所有加权统计问题中的“有效样本量”，例如 $(\sum_iw_i)^2/\sum_iw_i^2$ 衡量的是权重集中程度，概念不同。
+
+\subsection{一个责任度的手算例子}
+考虑权重均为 $1/2$、方差均为 $1$、均值分别为 $0$ 和 $2$ 的一维模型。消去共同归一化常数后，有
+\[
+\frac{r_2(x)}{r_1(x)}
+=\exp\!\left[-\frac12(x-2)^2+\frac12x^2\right]
+=\exp(2x-2),
+\qquad r_2(x)=\frac{1}{1+\exp(2-2x)}.
+\]
+于是 $x=0,1,2$ 时，第二分量的责任度依次约为 $0.1192,0.5,0.8808$。位于第一均值处的样本也不必以概率一归属第一类，因为另一高斯在那里仍具有正密度。正定高斯在整个空间上密度为正，所以当所有权重严格为正时，精确数学运算下所有责任度也严格为正。
+
+如果改成第一分量权重 $0.8$、第二分量权重 $0.2$，后验对数比变为 $\log(0.2/0.8)+2x-2$。两类责任度相等的位置从 $1$ 移到 $1+\tfrac12\log4\approx1.6931$，说明较常见分量的判定区域更大。这个位移完全由贝叶斯公式决定，不需要增加任何人为的分类规则。
+
+\subsection{硬标签与归属不确定性}
+如果任务确实需要一个标签，可以输出 $\widehat z_i=\arg\max_kr_{ik}$，遇到并列时指定固定规则。这是在已拟合模型和对称误分类代价下的最大后验判定，但把责任度变成硬标签会丢失不确定性。例如 $(0.51,0.49)$ 和 $(0.99,0.01)$ 都会产生同一标签，实际支持强度却很不同。可用后验熵 $H_i=-\sum_kr_{ik}\log r_{ik}$ 概括模糊程度，并采用 $0\log0=0$ 的连续延拓约定。
+
+责任度描述的是给定当前参数后的来源不确定性，不包括参数估计误差。如果数据很少，均值和协方差本身可能极不稳定，即使某次拟合的责任度接近一，也不能据此得出整体推断十分可靠的结论。参数自助抽样、重复拟合或贝叶斯后验能够从不同角度表达额外的不确定性；它们与单次条件后验不是同一件事。
+
+\section{期望最大化：从难目标到可优化下界}
+\label{sec:gmm-em-principle}
+
+\subsection{为何直接求导仍留下循环依赖}
+对式\eqref{eq:gmm-observed-loglik}中的均值求导，会出现
+\[
+\frac{\partial\ell}{\partial\mu_k}
+=\sum_i r_{ik}(\theta)\Sigma_k^{-1}(x_i-\mu_k).
+\]
+令导数为零看似得到 $\mu_k=\sum_i r_{ik}(\theta)x_i/\sum_i r_{ik}(\theta)$，但右侧的责任度本身依赖所有未知参数，因而不是一次计算即可得到的显式解。\keyterm{期望最大化算法}（expectation--maximization algorithm，EM）利用这种结构：先用旧参数计算隐变量后验，再固定这组后验权重更新参数。这个交替过程的合理性需要由目标函数证明，而不能仅用“先猜标签再更新”替代。
+
+EM 的经典文献是 Dempster、Laird 与 Rubin 的论文\cite{dempster1977}；本文对有限离散隐变量情形给出独立推导。这里的“期望”作用于完整数据对数似然中的隐变量，期望分布由旧参数决定；“最大化”则以新参数为变量。若在最大化时继续让责任度随候选参数变化，就不再是在优化 EM 定义的辅助函数。
+
+\subsection{利用 Jensen 不等式构造下界}
+对每个样本引入任意严格正的概率向量 $q_i=(q_{i1},\ldots,q_{iK})$。在权重为正、协方差正定时，由式\eqref{eq:gmm-jensen}，
+\begin{align}
+\log p_\theta(x_i)
+&=\log\sum_kq_{ik}\frac{\pi_k\mathcal N(x_i\mid\mu_k,\Sigma_k)}{q_{ik}}\nonumber\\
+&\geq\sum_kq_{ik}\log[\pi_k\mathcal N(x_i\mid\mu_k,\Sigma_k)]
+-\sum_kq_{ik}\log q_{ik}.\label{eq:gmm-elbo-point}
+\end{align}
+将样本求和，定义
+\begin{equation}
+\mathcal F(q,\theta)=\sum_{i,k}q_{ik}\bigl[\log\pi_k+
+\log\mathcal N(x_i\mid\mu_k,\Sigma_k)-\log q_{ik}\bigr].
+\label{eq:gmm-elbo}
+\end{equation}
+这个量称为\keyterm{证据下界}（evidence lower bound，ELBO）。这里的证据是固定参数下的观测数据概率或密度；第\ref{sec:gmm-bayesian}节会把参数也积分掉，两处下界的对象需要区分。零权重或零 $q_{ik}$ 的情况可以在相应支持集上处理并取连续极限，当前推导先避免边界问题。
+
+Jensen 的等号条件要求 $\pi_k\mathcal N(x_i\mid\mu_k,\Sigma_k)/q_{ik}$ 不依赖 $k$，归一化后恰好得到 $q_{ik}=r_{ik}(\theta)$。所以当辅助分布取当前真实后验时，下界恰好接触原目标。E 步所做的并不是任意挑一个容易计算的权重，而是找到使当前下界精确的后验权重。
+
+\subsection{KL 分解与下界的差距}
+对两个离散概率向量 $q,r$，定义 $D_{\mathrm{KL}}(q\Vert r)=\sum_kq_k\log(q_k/r_k)$。若 $r_k>0$，由 $\log u\leq u-1$ 可得
+$-\sum_kq_k\log(r_k/q_k)\geq\sum_k(q_k-r_k)=0$；在支持问题允许时取极限即可覆盖零项。等号要求 $q=r$。直接代入后验公式，有恒等式
+\begin{equation}
+\ell(\theta)=\mathcal F(q,\theta)+\sum_{i=1}^nD_{\mathrm{KL}}\bigl(q_i\Vert r_i(\theta)\bigr).
+\label{eq:gmm-kl-decomposition}
+\end{equation}
+这既证明下界，也给出下界与目标之间差距的精确表达。KL 散度一般不对称，因此不能随意把 $q$ 和 $r$ 的顺序交换；它不是普通欧氏距离，也不满足通常的三角不等式。
+
+在第 $t$ 轮，E 步取 $q_i=r_i(\theta^{(t)})$；M 步固定 $q$，使 $\mathcal F(q,\theta)$ 对 $\theta$ 最大。由于熵项 $-\sum_{i,k}q_{ik}\log q_{ik}$ 此时与候选参数无关，M 步等价于最大化辅助函数
+\begin{equation}
+Q(\theta\mid\theta^{(t)})=
+\mathbb E_{Z\mid\mathcal D,\theta^{(t)}}[\ell_c(\theta)]
+=\sum_{i,k}r_{ik}^{(t)}[\log\pi_k+\log\mathcal N(x_i\mid\mu_k,\Sigma_k)].
+\label{eq:gmm-q-function}
+\end{equation}
+第一处参数 $\theta$ 是待优化变量，条件后的 $\theta^{(t)}$ 只用于确定期望分布，这两个角色必须始终分开。
+
+\subsection{似然单调性的准确结论}
+\begin{proposition}[EM 的单调性]
+假设 E 步计算精确后验，相关目标有限，M 步产生合法参数且满足 $Q(\theta^{(t+1)}\mid\theta^{(t)})\geq Q(\theta^{(t)}\mid\theta^{(t)})$。则观测对数似然满足 $\ell(\theta^{(t+1)})\geq\ell(\theta^{(t)})$。
+\end{proposition}
+\begin{proof}
+令 $q^{(t)}=r(\theta^{(t)})$。由下界、M 步改进和 E 步等号条件，依次得到
+\[
+\ell(\theta^{(t+1)})\geq\mathcal F(q^{(t)},\theta^{(t+1)})
+\geq\mathcal F(q^{(t)},\theta^{(t)})=\ell(\theta^{(t)}).
+\]
+中间不等式成立是因为固定 $q^{(t)}$ 后，$\mathcal F$ 与 $Q$ 只相差不依赖参数的熵项。
+\end{proof}
+
+M 步只提高 $Q$ 而不求出其全局最大值时，称为\keyterm{广义 EM}（generalized EM，GEM）。上面的证明仍然适用，但前提是确实提高了同一个辅助目标。任意重启、删分量、截断权重或添加数值修补，并不自动满足这个条件。单调性也只比较训练目标，不保证测试密度改善，更不保证找到全局最优参数。关于收敛与退化的进一步边界见第\ref{sec:gmm-pathologies}节。
+
+\section{M 步的完整推导与协方差结构}
+\label{sec:gmm-m-step}
+
+\subsection{混合权重的更新}
+本节将 E 步计算出的 $r_{ik}^{(t)}$ 视为固定常数，暂简写为 $r_{ik}$，并令 $N_k=\sum_i r_{ik}$。辅助函数中涉及权重的部分是 $\sum_kN_k\log\pi_k$。在 $N_k>0$ 时，最优权重位于内部，拉格朗日函数为 $\sum_kN_k\log\pi_k+\lambda(\sum_k\pi_k-1)$。驻点方程 $N_k/\pi_k+\lambda=0$ 联同约束给出 $\lambda=-n$，从而
+\begin{equation}
+\pi_k^{(t+1)}=\frac{N_k}{n}.
+\label{eq:gmm-weight-update}
+\end{equation}
+目标对正权重严格凹，因此该解是唯一最大点。若某个 $N_k=0$，无额外约束的权重最优解可以落在 $\pi_k=0$ 的边界，而该分量的其他参数在当前 $Q$ 中失去作用，不能继续套用除以 $N_k$ 的公式。
+
+\subsection{均值更新与加权最小二乘}
+对固定的 $\Sigma_k\succ0$，涉及 $\mu_k$ 的目标是负的加权二次距离和。求导得到 $\sum_i r_{ik}\Sigma_k^{-1}(x_i-\mu_k)=0$，因此
+\begin{equation}
+\mu_k^{(t+1)}=\frac{\sum_i r_{ik}x_i}{N_k}.
+\label{eq:gmm-mean-update}
+\end{equation}
+这就是加权平均，但权重来源于后验推断。固定责任度后，不论当前协方差多么倾斜，均值更新仍是同一个加权平均，因为同一分量的所有样本共享相同的精度矩阵。若每个样本还带有不同的测量误差协方差，模型改变后这个简化就不再自动成立。
+
+令 $\bar x_k=\sum_i r_{ik}x_i/N_k$。对任意候选均值 $\mu$，加权散布分解为
+\[
+\sum_i r_{ik}(x_i-\mu)(x_i-\mu)^\top
+=\sum_i r_{ik}(x_i-\bar x_k)(x_i-\bar x_k)^\top
++N_k(\bar x_k-\mu)(\bar x_k-\mu)^\top.
+\]
+交叉项消失是因为 $\sum_i r_{ik}(x_i-\bar x_k)=0$。因此 $\bar x_k$ 对所有正定协方差都最优，先求新均值再求新协方差能够联合最大化该分量的高斯子问题，而不只是对两个参数各做一次不充分的坐标更新。
+
+\subsection{完整协方差与精度矩阵}
+定义新均值周围的加权散布矩阵
+\[
+S_k=\frac1{N_k}\sum_i r_{ik}(x_i-\mu_k^{(t+1)})(x_i-\mu_k^{(t+1)})^\top.
+\]
+若 $S_k\succ0$，令\keyterm{精度矩阵}（precision matrix）$\Lambda_k=\Sigma_k^{-1}$，协方差子问题等价于最大化 $\tfrac{N_k}{2}[\log|\Lambda_k|-\operatorname{tr}(\Lambda_kS_k)]$。在正定矩阵域上，$\log|\Lambda_k|$ 严格凹；沿对称方向 $H\neq0$ 的二阶变化为 $-\operatorname{tr}(\Lambda_k^{-1}H\Lambda_k^{-1}H)<0$，而迹项是线性的。梯度为零给出 $\Lambda_k^{-1}=S_k$，所以
+\begin{equation}
+\Sigma_k^{(t+1)}=\frac1{N_k}\sum_i r_{ik}
+(x_i-\mu_k^{(t+1)})(x_i-\mu_k^{(t+1)})^\top.
+\label{eq:gmm-cov-update}
+\end{equation}
+这给出了全局最大点的依据，且分母是 $N_k$。责任度来自旧参数，中心必须使用刚更新的均值；若使用旧均值，得到的通常不是标准 EM 的精确 M 步。
+
+加权散布总是半正定，因为对任意 $v$ 都有 $v^\top S_kv=N_k^{-1}\sum_i r_{ik}[v^\top(x_i-\bar x_k)]^2\geq0$。正定还要求具有正权重的数据不全部落在某个真仿射超平面内。在所有责任度严格为正且全体样本仿射张成 $\mathbb R^d$ 时，数学上的更新正定；但如果绝大部分权重数值上极小，矩阵仍可能近乎奇异。因此严格正定与统计上充分支撑、数值上易于求解是三个不同标准。
+
+\subsection{对角、球形与共享协方差}
+完整协方差每个分量需要 $d(d+1)/2$ 个自由参数。样本不足时，可预先限制模型结构。\keyterm{对角协方差}（diagonal covariance）取 $\Sigma_k=\operatorname{diag}(\sigma_{k1}^2,\ldots,\sigma_{kd}^2)$，M 步为
+\[
+(\sigma_{kj}^2)^{(t+1)}=\frac1{N_k}\sum_i r_{ik}(x_{ij}-\mu_{kj}^{(t+1)})^2.
+\]
+它允许各坐标尺度不同，但禁止分量内部的线性相关；高斯性进一步使各坐标在给定分量后独立。\keyterm{球形协方差}（spherical covariance）取 $\Sigma_k=\sigma_k^2I_d$，更新为
+\[
+(\sigma_k^2)^{(t+1)}=\frac1{dN_k}\sum_i r_{ik}\|x_i-\mu_k^{(t+1)}\|_2^2.
+\]
+这里必须除以 $d$，因为标量 $\sigma_k^2$ 同时承担 $d$ 个坐标方向的平均方差。
+
+\keyterm{共享协方差}（tied covariance）要求所有分量使用同一个完整矩阵 $\Sigma$，更新为
+\begin{equation}
+\Sigma^{(t+1)}=\frac1n\sum_{i,k}r_{ik}
+(x_i-\mu_k^{(t+1)})(x_i-\mu_k^{(t+1)})^\top.
+\label{eq:gmm-tied-update}
+\end{equation}
+若进一步要求共享球形协方差，则相应标量为上述总平方距离除以 $nd$。这些公式均来自受限模型中的目标优化。选择哪一种结构是在表达能力与估计稳定性之间作取舍，而不是仅仅选择一个速度开关；坐标旋转会改变对角模型能表示的分布族，却不会改变完整协方差模型的表达族。
+
+\section{把一次 EM 迭代完整算出来}
+\label{sec:gmm-numerical-example}
+
+\begin{example}[三个样本、两个一维分量]
+观测为 $x_1=0,x_2=2,x_3=4$，取 $K=2$。初始权重均为 $1/2$，均值为 $\mu_1^{(0)}=0,\mu_2^{(0)}=4$，方差均为 $4$。求一轮 E 步和 M 步，并检查对数似然变化。
+\end{example}
+\begin{solve}
+两个分量具有相同权重和方差，第一分量的责任度简化为
+\[
+r_{i1}^{(0)}=\frac{1}{1+\exp(x_i-2)},\qquad r_{i2}^{(0)}=1-r_{i1}^{(0)}.
+\]
+三个样本的责任度与加权贡献见表\ref{tab:gmm-example}。表中小数用于展示，后续计算使用未舍入数值。
+\begin{table}[htbp]
+\centering
+\caption{一轮 E 步的责任度与第一分量的一阶贡献}
+\label{tab:gmm-example}
+\begin{tabular}{rrrr}
+\toprule
+$x_i$ & $r_{i1}^{(0)}$ & $r_{i2}^{(0)}$ & $r_{i1}^{(0)}x_i$\\
+\midrule
+0 & 0.880797 & 0.119203 & 0\\
+2 & 0.500000 & 0.500000 & 1.000000\\
+4 & 0.119203 & 0.880797 & 0.476812\\
+\bottomrule
+\end{tabular}
+\end{table}
+故 $N_1=N_2=1.5$，新权重仍各为 $1/2$。第一分量的新均值为 $(1+0.476811688\ldots)/1.5\approx0.984541$；由于对称性，第二分量的新均值为 $4-0.984541\ldots\approx3.015459$。它们从两端向中间移动，因为中心样本对两边各贡献了一半，而每个端点还对另一边具有非零责任度。
+
+第一分量的新方差为
+\[
+(\sigma_1^2)^{(1)}=
+\frac{0.880797\ldots(0-0.984541\ldots)^2
++0.5(2-0.984541\ldots)^2
++0.119203\ldots(4-0.984541\ldots)^2}{1.5}
+\approx1.635510.
+\]
+第二分量同样得到 $1.635510$。也可用 $\sum_i r_{i1}x_i^2/N_1-(\mu_1^{(1)})^2$ 核对，结果一致。把完整高斯归一化常数包括在内，初始和更新后的观测对数似然分别为
+\[
+\ell(\theta^{(0)})\approx-6.468695,
+\qquad \ell(\theta^{(1)})\approx-5.628657.
+\]
+目标增加约 $0.840039$，与单调性结论一致。
+\end{solve}
+
+这只是一次迭代，不能据此宣布参数已经收敛；下一轮必须使用新均值和新方差重新计算全部责任度。若把旧责任度一直固定，后续反复应用 M 步将不会继续改变参数，那只是解决了一次带固定权重的高斯拟合。这个例子的数据量极小，也没有协方差下界，因此适合检查公式，不适合用来证明无限迭代后一定得到稳定、可靠的模型。
+
+有三个特别容易发生的实现错误：把方差 $4$ 当成标准差 $4$，在高斯指数中造成四倍尺度差异；更新方差时仍以旧均值为中心；只计算 $Q$ 的变化而把它误报为观测对数似然变化。正确检查应明确方差与标准差的单位，在一整轮更新结束后重新计算式\eqref{eq:gmm-observed-loglik}，并保留每轮参数和目标之间的一一对应关系。
+
+\section{收敛边界、奇异解与初始化}
+\label{sec:gmm-pathologies}
+
+\subsection{似然为什么可能没有有限最大值}
+无约束的完整协方差 GMM 存在一个根本问题：似然可能无界。取 $K\geq2$，让第一分量的均值等于某个样本 $x_1$，权重固定为 $a\in(0,1)$，协方差取 $\varepsilon^2I_d$；令其余分量组成一个固定的、在所有样本处密度为正的背景分布 $g$。那么
+\[
+p_\varepsilon(x_1)=a(2\pi)^{-d/2}\varepsilon^{-d}+(1-a)g(x_1)\longrightarrow+\infty.
+\]
+对其他样本始终有 $p_\varepsilon(x_i)\geq(1-a)g(x_i)>0$，所以其对数贡献有固定下界。于是当 $\varepsilon\to0$ 时，总对数似然趋于正无穷。这一现象称为\keyterm{分量塌缩}（component collapse）或协方差奇异性；它来自模型目标本身，并非单纯由代码精度不足造成。
+
+因此，“只要迭代次数足够多，就能求出全局最大似然 GMM”在这个参数空间中甚至可能没有定义，因为有限的全局最大点根本不存在。训练似然异常增大且某个协方差特征值持续缩小，是退化的信号，不能按普通优化逻辑当作越来越成功。正则化、参数约束或适当先验不仅改善数值计算，也改变了这个病态估计问题。
+
+\subsection{目标收敛与参数收敛}
+一个单调不减且有上界的实数序列必然收敛。因此，若在某个受限模型中能保证对数似然有上界，EM 的目标值可以得到这一层面的结论。但参数空间可能有平坦方向，存在标签等价表示或其他非唯一解，故目标值收敛并不能单独推出全部参数收敛。即使参数收敛，也需要内点性、光滑性以及更新映射等条件才能进一步论证驻点性质；更不能直接宣称得到局部最大点而排除所有鞍点或退化固定点。
+
+在良好分离的分量中，责任度常接近硬归属，一轮更新就能利用较清晰的分组信息。分量高度重叠时，许多样本对多个分量都有较大责任度，参数小幅变化只造成后验小幅变化，EM 可能缓慢推进。这提供了对慢收敛的直观解释，但实际速度还受初始化、参数化和协方差结构影响；不能仅由是否重叠给出统一的迭代次数保证。
+
+\subsection{初始化与多次重启}
+EM 的目标非凸，因此初始化会影响最终结果。常用方法包括从数据中选取不同样本作为均值、先运行 $K$ 均值取得中心、或先给样本分配随机软权重再估计初始统计量。初始协方差可以采用全体数据的协方差或有尺度依据的对角矩阵，权重可设为均匀或按照初始分组大小设置。这些选择应当避免完全重合的分量：若所有权重、均值、协方差都完全相同，E 步对各分量对称，M 步也保持对称，算法可能一直停留在无法分化的状态。
+
+多次独立初始化可以探索不同吸引区域。在固定模型结构和同一约束下，通常先比较各次运行的合法训练目标，排查退化与未收敛运行，再用事先确定的验证准则评估候选结构。不能不加检查地选取训练似然最大的运行，因为无约束奇异解也可能获胜。固定随机种子有助于复现一条路径，却不证明该路径具有代表性；报告多个种子的分布往往比单一最优值更能揭示稳定程度。
+
+\subsection{协方差下界及其理论意义}
+一种明确的修正是施加 $\Sigma_k\succeq\varepsilon I_d$，其中 $\varepsilon>0$。在固定责任度和均值后，将 $S_k$ 作谱分解 $S_k=U\operatorname{diag}(s_j)U^\top$，受限 M 步的解为
+\begin{equation}
+\Sigma_k^{(t+1)}=U\operatorname{diag}(\max\{s_j,\varepsilon\})U^\top.
+\label{eq:gmm-eigen-floor}
+\end{equation}
+可在精度域 $0\prec\Lambda_k\preceq\varepsilon^{-1}I_d$ 中验证：目标为凹函数，候选与 $S_k$ 对角化，各方向最大化 $\log\lambda-s_j\lambda$，得到 $\lambda=1/\max\{s_j,\varepsilon\}$，其约束最优性条件也满足。因而这是明确受限模型的精确 M 步，能够沿用 EM 单调性证明。每个分量的密度此时至多为 $(2\pi\varepsilon)^{-d/2}$，从而训练对数似然有有限上界。
+
+另一种常用处理是 $S_k+\varepsilon I_d$，它会将所有特征值都增加 $\varepsilon$；这与式\eqref{eq:gmm-eigen-floor}的截断不同，不能把两者视为同一个约束问题的精确解。加对角项在工程上便捷，但如果没有给出对应的惩罚目标及其推导，就不应照搬未修改 EM 的单调性保证。$\varepsilon$ 的单位是特征方差，采用同一个数值处理不同量纲的坐标通常需要先规范尺度。
+
+\section{稳定计算与可执行的训练流程}
+\label{sec:gmm-implementation}
+
+\subsection{在对数域计算责任度}
+高维高斯密度可能极小，直接计算若干密度再相除会出现全部下溢为零的情况。先定义每个分量的对数贡献
+\[
+a_{ik}=\log\pi_k-\frac d2\log(2\pi)-\frac12\log|\Sigma_k|
+-\frac12(x_i-\mu_k)^\top\Sigma_k^{-1}(x_i-\mu_k).
+\]
+对一组实数 $a_1,\ldots,a_K$，令 $m=\max_ka_k$，则\keyterm{对数和指数}（log-sum-exp）恒等式为
+\begin{equation}
+\operatorname{LSE}(a_1,\ldots,a_K)
+=\log\sum_ke^{a_k}=m+\log\sum_ke^{a_k-m}.
+\label{eq:gmm-lse}
+\end{equation}
+平移后至少有一个指数项等于一，其余不超过一，从而避免指数上溢，并保留主导贡献。于是 $\log p_\theta(x_i)=\operatorname{LSE}(a_{i1},\ldots,a_{iK})$，$\log r_{ik}=a_{ik}-\operatorname{LSE}(a_{i1},\ldots,a_{iK})$。责任度特别小时，最后指数运算仍可能得到数值零，但不再造成整行分母成为零。
+
+若使用 $\Sigma_k=L_kL_k^\top$，解 $L_ky_{ik}=x_i-\mu_k$ 后，二次型为 $\|y_{ik}\|_2^2$，对数行列式为 $2\sum_j\log(L_{k,jj})$。显式求逆通常计算更多、误差更大，而且对本任务没有必要。若 Cholesky 分解失败，应检查协方差结构、对称性和特征值下界，而不是无条件改用伪逆继续假装计算普通高斯密度；伪逆对应的退化分布需要不同的支持空间和归一化解释。
+
+\subsection{一次训练的输入、循环与输出}
+一套明确的算法输入应包括数据、分量数、协方差结构、初始化方式、随机种子、最大迭代次数和停止容差。若采用受限协方差模型，还应预先指定下界 $\varepsilon$。以下流程采用式\eqref{eq:gmm-eigen-floor}所对应的完整协方差约束，从而使目标和数值保护具有一致解释；其他结构应换用相应受限更新。
+\begin{enumerate}
+\item 用训练数据建立合法的 $\theta^{(0)}$，使权重严格为正、协方差满足下界，并计算初始对数似然。初始化时若某些中心重复或分量有效数据过少，重新选择初值而不是等待除零发生。
+\item 在 E 步用当前参数计算各 $a_{ik}$、对数密度和责任度，检查每行责任度的和接近一。随后汇总 $N_k$、加权一阶矩和散布矩阵。
+\item 在 M 步先更新权重和均值，再围绕新均值计算协方差，并执行模型规定的特征值下界约束。若出现数值上的空分量，记录该运行失效，或按预先规定的重启规则重新运行；重启前后的目标不作为连续 EM 步比较。
+\item 用更新后的参数重新评估观测对数似然。若超过舍入容许范围出现下降，检查公式、更新顺序和所采用的约束；不要只取变化绝对值而掩盖下降。
+\item 当平均对数似然的非负增量足够小，或达到最大迭代次数时停止。保存停止原因、参数、最终目标和诊断量；输出责任度时须用最终参数重新计算，使二者对应。
+\end{enumerate}
+
+例如令 $\bar\ell_t=\ell(\theta^{(t)})/n$，可使用 $0\leq\bar\ell_{t+1}-\bar\ell_t\leq\tau(1+|\bar\ell_t|)$ 作为一种停止规则，并另外设置小的数值下降容差和最小迭代次数。这个阈值只是工程停止准则，不是与全局最优误差之间的理论界。达到最大迭代次数也应单独标记，不能一律把返回参数解释为已收敛。若在每次循环末尾只保存 M 步前的责任度，会出现参数与标签错开一轮的问题。
+
+\subsection{复杂度与统计量积累}
+完整协方差的一轮计算通常需要 $O(Kd^3+nKd^2)$ 时间：每个分量的矩阵分解约为 $O(d^3)$，样本二次型与协方差积累约为 $O(nKd^2)$。保存所有责任度需要 $O(nK)$ 额外内存，保存参数需要 $O(Kd^2)$；数据本身还需 $O(nd)$。对角和球形模型的主要运算可降至 $O(nKd)$。这些数量级假设常规稠密矩阵运算，不包括多次重启和模型选择重复拟合的总成本。
+
+可按批读取数据，积累 $\sum_i r_{ik}$、$\sum_i r_{ik}x_i$ 和 $\sum_i r_{ik}x_ix_i^\top$，从而避免保存全部责任度。只要整轮使用同一组旧参数，并在遍历完全部样本后统一更新，就仍属于批量 EM。若每处理一小批便立即修改参数，则成为在线或随机近似方法，不能沿用逐轮完整数据似然单调性的结论。用二阶原始矩减去均值外积计算协方差，可能在均值很大而方差很小时发生消减误差；两遍中心化积累或稳定加权递推更适合这类数据。
+
+\subsection{尺度变换与数据预处理}
+设做可逆仿射变换 $y=Ax+b$。完整协方差 GMM 在变换后仍是同类模型，参数为 $\mu'_k=A\mu_k+b$、$\Sigma'_k=A\Sigma_kA^\top$，而密度满足 $p_Y(y)=p_X(x)/|\det A|$。所有分量共同获得同一雅可比因子，所以责任度不变；同一批数据的对数似然则整体减去 $n\log|\det A|$。这说明在没有额外限制的理想数学模型中，尺度变化具有等价参数表示，但初始化、正则化和有限精度实现仍可能受尺度影响。
+
+对角协方差族不对任意旋转封闭，球形协方差族更不对任意逐坐标缩放封闭；固定的 $\varepsilon I_d$ 下界也不在任意仿射变换下保持相同形式。因此标准化实际参与了模型假设。用于标准化的均值和尺度只能从训练集估计，再应用于验证集和测试集，以避免信息泄漏。若采用非线性变换并需要在原空间比较密度，还必须考虑对应的雅可比；仅用于聚类标签时也应说明所选特征空间改变了距离和形状含义。
+
+\section{聚类几何以及与其他模型的关系}
+\label{sec:gmm-relations}
+
+\subsection{高斯分量之间的决策边界}
+将样本分给后验最大的分量，等价于比较判别分数
+\[
+g_k(x)=\log\pi_k-\frac12\log|\Sigma_k|
+-\frac12(x-\mu_k)^\top\Sigma_k^{-1}(x-\mu_k).
+\]
+两个分量的边界满足 $g_k(x)=g_j(x)$。当协方差不同，展开后包含 $x^\top(\Sigma_k^{-1}-\Sigma_j^{-1})x$，一般形成二次曲面。当所有分量共享同一个协方差时，二次项抵消，边界是超平面；当进一步共享球形协方差且权重相等时，判定退化为寻找最近的均值。由此可见，GMM 的分类不仅比较欧氏距离，还比较分量体积与先验权重。
+
+这个结构与监督学习中的线性判别分析、二次判别分析相似：它们都可由类条件高斯和贝叶斯公式产生。区别是监督判别分析中的标签已知，参数可直接按类别估计；无监督 GMM 中来源未知，必须同时推断责任度。若真实类别本身具有多峰结构，还可以为每个已知类别建立多个高斯分量，再把类别内的密度加总；这时“分量索引”和“类别标签”又是两套不同变量。
+
+\subsection{小方差极限与 K 均值}
+在等权重、共享且固定协方差 $\Sigma_k=\sigma^2I_d$ 的模型中，责任度为
+\[
+r_{ik}=\frac{\exp[-\|x_i-\mu_k\|^2/(2\sigma^2)]}
+{\sum_j\exp[-\|x_i-\mu_j\|^2/(2\sigma^2)]}.
+\]
+当 $\sigma^2\to0$ 且最近中心唯一时，最近中心对应的责任度趋于一，其他责任度趋于零。如果存在并列最近中心，极限会在并列中心之间分配质量，不能无条件宣称得到唯一硬标签。固定中心后，令 $b_{ik}=\|x_i-\mu_k\|^2$，由
+$\exp[-\min_kb_{ik}/(2\sigma^2)]\leq\sum_k\exp[-b_{ik}/(2\sigma^2)]\leq K\exp[-\min_kb_{ik}/(2\sigma^2)]$，得到
+\begin{equation}
+-2\sigma^2\log\sum_k\exp[-b_{ik}/(2\sigma^2)]
+\longrightarrow\min_k b_{ik}.
+\label{eq:gmm-kmeans-limit}
+\end{equation}
+忽略与中心无关的项，目标极限就是 $K$ 均值的簇内平方距离和，M 步也趋于每簇样本的普通平均。
+
+所以 $K$ 均值与 GMM 有严格受限条件下的联系，但一般 GMM 并不等于“加了概率输出的 $K$ 均值”。学习不同协方差、不同权重后，簇形状和判定边界都发生改变；GMM 优化的是观测对数密度，$K$ 均值优化的是量化失真。直接把 E 步替换为最近分量的硬标签，是改变了算法目标与下界结构，不能自动保证原混合似然逐轮增加。
+
+\subsection{核密度估计与混合专家}
+采用高斯核的\keyterm{核密度估计}（kernel density estimation，KDE）可写为 $\widehat p(x)=n^{-1}\sum_i\mathcal N(x\mid x_i,h^2I_d)$，形式上也是一个高斯混合。但其中心固定在训练样本上，分量数通常随样本量增长，主要调节带宽 $h$；经典参数化 GMM 则以相对较少的可学习中心、权重和协方差表达数据。两者形式相近，统计复杂度和参数学习方式却不同。
+
+\keyterm{混合专家模型}（mixture of experts）常写成 $p(y\mid x)=\sum_k\pi_k(x)p_k(y\mid x)$，其门控权重直接依赖输入。经典无条件 GMM 的生成权重 $\pi_k$ 是常数，而后验责任度 $r_k(x)$ 随 $x$ 变化；后者是贝叶斯推断的结果，不能与门控模型中事先参数化的 $\pi_k(x)$ 混为一谈。把联合 GMM 条件化也会产生输入相关权重，第\ref{sec:gmm-applications}节会具体推导。
+
+\section{分量数、评价目标与模型选择}
+\label{sec:gmm-model-selection}
+
+\subsection{训练拟合与泛化评价}
+增加分量通常扩大可表示的密度集合，在允许分量重复或零权重时，小模型能够嵌入大模型。因此最优训练似然不会因为模型容量扩大而降低；实际运行变差则可能来自局部优化、初始化或不同正则化。仅用训练似然选择 $K$ 倾向于奖励复杂模型，遇到无约束协方差时还会受到奇异性的根本干扰。模型选择必须同时考虑训练过程是否稳定，以及所关心的统计任务。
+
+如果目标是密度估计，可在未参与拟合的验证集 $\mathcal D_{\mathrm{val}}$ 上计算平均对数密度
+\[
+\frac1{n_{\mathrm{val}}}\sum_{x\in\mathcal D_{\mathrm{val}}}\log p_{\widehat\theta}(x),
+\]
+数值越大越好，也可报告其相反数，即平均负对数似然。若目标是聚类，可额外分析不同重采样下分组是否稳定，以及有外部标签时的调整兰德指数等标签置换不变指标。外部标签代表另一种评价依据，不能在训练中偷偷使用后仍宣称完全无监督。轮廓系数偏向某种距离几何，也未必适合评价方差差异很大的概率分量。
+
+\subsection{参数数量与信息准则}
+权重共有 $K-1$ 个自由参数，均值共有 $Kd$ 个；协方差参数数目取决于结构，见表\ref{tab:gmm-parameter-count}。这里只计一般内部位置的名义自由参数，不把分量标签的排列算作连续维度。边界、重复分量与退化位置具有额外奇异性，简单维度计数不足以解释全部统计行为。
+\begin{table}[htbp]
+\centering
+\caption{常见协方差结构的名义参数数量}
+\label{tab:gmm-parameter-count}
+\begin{tabular}{lll}
+\toprule
+协方差结构 & 协方差参数数目 & 全部参数数目 $p$\\
+\midrule
+各分量完整 & $Kd(d+1)/2$ & $(K-1)+Kd+Kd(d+1)/2$\\
+各分量对角 & $Kd$ & $(K-1)+2Kd$\\
+各分量球形 & $K$ & $(K-1)+Kd+K$\\
+共享完整 & $d(d+1)/2$ & $(K-1)+Kd+d(d+1)/2$\\
+共享球形 & $1$ & $(K-1)+Kd+1$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+两种常见准则是\keyterm{赤池信息准则}（Akaike information criterion，AIC）和\keyterm{贝叶斯信息准则}（Bayesian information criterion，BIC）：
+\begin{equation}
+\operatorname{AIC}=-2\ell(\widehat\theta)+2p,\qquad
+\operatorname{BIC}=-2\ell(\widehat\theta)+p\log n.
+\label{eq:gmm-information-criteria}
+\end{equation}
+按这一符号约定，两者都是越小越好；$\ell$ 是拟合所用样本的总对数似然，不能直接把平均对数似然代入而漏乘 $n$。AIC 的经典解释关注预测风险的近似修正，BIC 的经典解释与正则模型下的边际似然渐近近似有关。两者不是同一个理论目标，也不必在有限数据上选择相同结构。
+
+\subsection{为什么混合模型要谨慎使用 BIC}
+普通 BIC 的经典 Laplace 推导需要可辨识参数、非奇异局部信息矩阵及适当的内部解。混合模型在权重趋于零、两个分量重合或协方差塌缩时违反这些条件，所以不能把普通 BIC 的所有正则模型结论直接搬来。混合模型中仍常使用 BIC 进行候选比较，但解释其一致性或证据近似时必须说明所需模型限制；奇异模型的信息准则需要额外理论处理，相关方向可参见文献\cite{drton2013}。
+
+实际比较时，应统一数据和预处理，明确协方差约束，给每个候选足够的初始化机会，并同时观察验证对数密度、退化比例和分量稳定性。如果带有正则化或约束，可把信息准则当作辅助比较量，但不要忽略估计方式已经偏离普通无约束正则 MLE 推导。验证集似然和训练集 BIC 是两条不同路线，不能把验证集密度直接代进训练 BIC 后声称仍具有原来的理论解释。
+
+\subsection{重采样、尺度和解释稳定性}
+改变训练子样本或随机初始化后，分量可能分裂、合并或交换编号。应先按均值距离、分布距离或样本共聚关系对齐比较，再谈某个分量是否稳定。若数据存在组内依赖，重采样应保留组结构；时间序列宜使用遵守时间顺序的划分。样本数很多并不自动消除依赖造成的有效信息不足。
+
+密度、聚类和机制解释有时会给出不同的最佳分量数。若目标是压缩数据分布，可以容许多个分量描述一个语义群体；若目标是解释潜在来源，则需要额外领域约束或标签证据来支撑来源含义。最终报告应说明分量数是按什么目标选择的，哪些结论由数据和模型支持，哪些只是解释性的命名。
+
+\section{贝叶斯视角：参数也具有不确定性}
+\label{sec:gmm-bayesian}
+
+\subsection{从点估计到参数后验}
+最大似然把参数视为未知常数，输出一个估计值；\keyterm{贝叶斯推断}（Bayesian inference）则为参数指定先验 $p(\theta)$，利用
+\[
+p(\theta,Z\mid\mathcal D)=\frac{p(\mathcal D,Z\mid\theta)p(\theta)}{p(\mathcal D)}
+\]
+同时描述参数和来源的后验不确定性。分母 $p(\mathcal D)$ 需要对参数积分并对来源求和，称为模型证据。它与经典 EM 中固定参数时的 $p_\theta(\mathcal D)$ 不同。加入先验并不意味着从数据中消除了主观选择，而是把关于权重、位置和尺度的偏好明确编码，使其影响可以被讨论和检验。
+
+\keyterm{最大后验估计}（maximum a posteriori estimation，MAP）仅求 $\arg\max_\theta[\ell(\theta)+\log p(\theta)]$，仍然是点估计。MAP-EM 的 E 步在当前点参数下计算来源后验，M 步最大化 $Q(\theta\mid\theta^{(t)})+\log p(\theta)$。若精确增加这个辅助目标，单调性对应的是对数后验目标，而不一定是未加先验的似然。完整贝叶斯预测还需要对参数后验积分，不能与 MAP 代入预测混称。
+
+\subsection{Dirichlet 权重先验与软计数}
+权重位于概率单纯形，可使用\keyterm{狄利克雷分布}（Dirichlet distribution）作为先验。对 $\alpha_k>0$，其密度满足
+\[
+p(\pi)\propto\prod_k\pi_k^{\alpha_k-1}.
+\]
+在 MAP-EM 的权重子问题中，目标变为 $\sum_k(N_k+\alpha_k-1)\log\pi_k$。若每个系数都严格为正，则内部解为
+\begin{equation}
+\pi_k^{\mathrm{MAP}}=\frac{N_k+\alpha_k-1}{n+\sum_j\alpha_j-K}.
+\label{eq:gmm-map-weights}
+\end{equation}
+若这些系数不为正，最优点可能移到边界，或者后验密度在边界无界，不能继续套用内部公式后把负数裁掉。尤其当 $\alpha_k<1$ 时，先验偏向单纯形边界，更应明确处理相应优化问题。
+
+在来源标签已知时，若实际计数为 $n_k$，共轭后验恰为 $\operatorname{Dirichlet}(\alpha_k+n_k)$，其均值为 $(\alpha_k+n_k)/(n+\sum_j\alpha_j)$，与后验众数公式中的减一不同。来源未知时，完整精确后验一般是对多种来源配置的混合，不能简单宣布“把整数计数替换成责任度就是精确权重后验”。以软计数更新 Dirichlet 因子会在变分近似中自然出现，但那时应明确它是近似分解下的坐标更新。
+
+\subsection{均值收缩与协方差先验}
+为直观看到先验作用，考虑一个分量的协方差 $\Sigma$ 已知，并给均值先验 $\mu\sim\mathcal N(m_0,\Sigma/\kappa_0)$，其中 $\kappa_0>0$。固定责任度后，均值的 MAP 更新为
+\[
+\mu^{\mathrm{MAP}}=\frac{\kappa_0m_0+N_k\bar x_k}{\kappa_0+N_k}.
+\]
+证明只需把先验和加权似然的二次项合并并对 $\mu$ 求导。它是先验中心与样本加权中心的折中：有效计数小时，先验影响较强；有效计数大时，数据影响较强。若 $\kappa_0=2$、$m_0=0$、$N_k=3$、$\bar x_k=5$，则更新均值为 $3$，而不加先验的估计为 $5$。
+
+协方差可以采用适当参数下的逆 Wishart 先验，并与条件正态均值先验组合成共轭结构。其目的包括表达合理尺度、惩罚近乎奇异的协方差和在小样本下稳定估计，但具体后验均值和众数依赖自由度、尺度矩阵及参数化约定。本文不在未定义密度的情况下罗列容易混淆的更新式。需要记住的是，适当正则先验可能抑制塌缩，却不能把任意先验、任意近似算法都视为保证可靠的通用修补；先验强度及其尺度仍需要检查。
+
+\subsection{变分贝叶斯与经典 EM 的联系}
+精确积分通常困难，可选择\keyterm{平均场变分近似}（mean-field variational approximation）
+$q(Z,\pi,\mu,\Sigma)=q(Z)q(\pi)\prod_kq(\mu_k,\Sigma_k)$，在这个受限分布族内最大化
+\begin{equation}
+\mathcal L(q)=\mathbb E_q[\log p(\mathcal D,Z,\theta)]
+-\mathbb E_q[\log q(Z,\theta)].
+\label{eq:gmm-bayesian-elbo}
+\end{equation}
+它满足 $\log p(\mathcal D)=\mathcal L(q)+D_{\mathrm{KL}}(q\Vert p(Z,\theta\mid\mathcal D))$。与经典 EM 相比，这次参数也是被近似分布覆盖的随机对象，所优化的是边际证据的下界。后验被限制为若干因子乘积，通常不能精确表达来源与参数之间的全部依赖，因而一般存在非零近似差距。
+
+固定其他因子，设待更新因子为 $q_j(u)$。其目标中与它有关的部分为 $\int q_j(u)h(u)\,\mathrm du-\int q_j(u)\log q_j(u)\,\mathrm du$，其中 $h(u)=\mathbb E_{q_{-j}}[\log p(\mathcal D,Z,\theta)]$。在归一化常数有限时，将其写成对 $\widetilde p_j(u)\propto e^{h(u)}$ 的负 KL 散度加常数，便得到 $q_j(u)\propto e^{h(u)}$。用于来源变量就给出
+\begin{equation}
+q(Z_i=k)\propto\exp\left\{\mathbb E_q[\log\pi_k]
++\mathbb E_q[\log\mathcal N(x_i\mid\mu_k,\Sigma_k)]\right\}.
+\label{eq:gmm-vb-responsibility}
+\end{equation}
+这些是对数项的期望，不能替换成“把参数均值放进高斯密度”而声称等价。权重因子则更新为参数 $\alpha_k+\sum_iq(Z_i=k)$ 的 Dirichlet 分布。这说明软计数在变分框架中的准确位置。
+
+本节只给出变分目标与坐标更新原理，没有宣称完成所有共轭矩阵分布的展开。变分方法可让部分权重变小，但有效分量数仍受到先验、截断上限、数据和优化路径影响。“自动选择”不是脱离这些设置恢复唯一真实类别数的保证。非参数贝叶斯混合还可把潜在分量数设为无限，其有限计算近似仍需要截断或采样机制，这属于进一步学习的方向。
+
+\subsection{后验预测的双重平均}
+完整贝叶斯预测写为
+\[
+p(x_{\mathrm{new}}\mid\mathcal D)=\int\sum_k\pi_k
+\mathcal N(x_{\mathrm{new}}\mid\mu_k,\Sigma_k)
+p(\theta\mid\mathcal D)\,\mathrm d\theta.
+\]
+内部求和平均来源不确定性，外部积分平均参数不确定性。将 $\theta$ 换成一个拟合值只保留了前一层平均。对于预测均值，来源和参数的两层全期望可以依次应用；对于预测方差，还需增加不同参数可能性之间的均值波动项。由此可理解为什么一个点估计模型给出很集中的预测，并不意味着有限数据支持同样集中的结论。
+
+\section{条件预测、缺失值与异常检测}
+\label{sec:gmm-applications}
+
+\subsection{从联合密度导出混合回归}
+将输入特征记为 $X$，待预测响应记为 $Y$，对联合向量 $(X^\top,Y^\top)^\top$ 建立 GMM。第 $k$ 个分量的参数按输入和响应分块。利用高斯边缘与条件公式，有
+\begin{align}
+p(y\mid x)&=\sum_kw_k(x)\mathcal N(y\mid m_k(x),V_k),\label{eq:gmm-conditional-mixture}\\
+w_k(x)&=\frac{\pi_k\mathcal N(x\mid\mu_{xk},\Sigma_{xx,k})}
+{\sum_j\pi_j\mathcal N(x\mid\mu_{xj},\Sigma_{xx,j})},\nonumber\\
+m_k(x)&=\mu_{yk}+\Sigma_{yx,k}\Sigma_{xx,k}^{-1}(x-\mu_{xk}),\nonumber\\
+V_k&=\Sigma_{yy,k}-\Sigma_{yx,k}\Sigma_{xx,k}^{-1}\Sigma_{xy,k}.\nonumber
+\end{align}
+每个分量内部的条件均值是输入的仿射函数，权重却随输入变化，因此总体条件均值通常是非线性的。这里预测时只使用已观测的 $x$ 计算 $w_k(x)$，不能把未知响应 $y$ 也放入责任度计算，否则就泄露了要预测的信息。
+
+条件均值为 $\bar m(x)=\sum_kw_k(x)m_k(x)$，条件协方差为
+\[
+\operatorname{Cov}(Y\mid x)=\sum_kw_k(x)V_k
++\sum_kw_k(x)[m_k(x)-\bar m(x)][m_k(x)-\bar m(x)]^\top.
+\]
+第一项是各分量的剩余噪声，第二项是对不同响应机制不确定带来的波动。若同一输入可能对应两个相距较远的合理输出，只报告条件均值可能得到一个低密度的中间值；保留整个条件混合分布更能表达多解性。训练联合密度是否最适合响应预测，也应由条件预测任务的验证指标检验。
+
+\subsection{部分坐标缺失时的 EM 思路}
+假设每个样本只观测坐标集合 $o_i$，其余坐标集合 $m_i$ 缺失。若缺失机制满足可忽略条件，例如在适当的参数可分离假设下满足\keyterm{随机缺失}（missing at random，MAR），可仅对已观测坐标建立观测似然。此时 E 步责任度使用各分量的边缘高斯
+\[
+r_{ik}\propto\pi_k\mathcal N(x_{i,o_i}\mid\mu_{k,o_i},\Sigma_{k,o_io_i}).
+\]
+这里每个样本的观测维数可以不同，必须使用对应的子均值和协方差。若缺失概率依赖于未观测值且不能由已观测量解释，忽略缺失机制可能引入偏差，需要联合建模；不能仅因使用 EM 就认定缺失问题已经解决。
+
+除来源外，缺失坐标本身也是隐变量。对每个分量计算 $\widetilde x_{ik}=\mathbb E[X_i\mid x_{i,o_i},Z_i=k,\theta^{(t)}]$ 和 $C_{ik}=\operatorname{Cov}(X_i\mid x_{i,o_i},Z_i=k,\theta^{(t)})$；已观测坐标的条件方差为零，缺失块由式\eqref{eq:gmm-gaussian-conditional}给出。完整 M 步使用
+\begin{align}
+\mu_k^{(t+1)}&=\frac1{N_k}\sum_i r_{ik}\widetilde x_{ik},\nonumber\\
+\Sigma_k^{(t+1)}&=\frac1{N_k}\sum_i r_{ik}
+\left[C_{ik}+(\widetilde x_{ik}-\mu_k^{(t+1)})(\widetilde x_{ik}-\mu_k^{(t+1)})^\top\right].
+\label{eq:gmm-missing-update}
+\end{align}
+把缺失值只填成条件均值而丢掉 $C_{ik}$，会忽略填补的不确定性，通常导致协方差低估。这个公式是“期望作用于充分统计量，而不是简单填一张数据表”的具体例子。
+
+\subsection{异常分数与典型性}
+拟合密度后，可用 $s(x)=-\log p_{\widehat\theta}(x)$ 作为异常分数，数值大意味着模型赋予较低密度。阈值应从与使用情境相符的独立校准数据、允许的误报率或带标签验证任务中确定；低密度只是相对于所用模型和坐标表示的概念，不等于确定存在错误或风险。若模型本身未覆盖某个正常群体，正常样本也可能被高分标记。
+
+低最大责任度衡量的是来源模糊，不是低密度；最大责任度很高的样本仍可远离全部中心。反过来，两个高密度分量交叠处可能密度很高而责任度接近均匀。高维时还应区分密度峰与典型区域：标准 $d$ 维高斯在原点密度最大，但 $\mathbb E\|X\|^2=d$，大量概率质量分布在距离原点约为 $\sqrt d$ 的区域。因而仅看某点密度大小不总能完整表达“是否典型”，异常检测应针对实际偏离方式验证。
+
+\subsection{厚尾、离群点与稳健扩展}
+高斯对数密度中的距离惩罚是二次的，极端样本可能明显拉动均值和协方差，也可能促使模型专门分配一个窄分量解释离群点。增加分量不是处理所有异常的通用办法。可考虑以 Student $t$ 分布替代高斯，利用更厚尾部降低极端距离的影响；也可以使用有明确污染解释的背景分布、鲁棒预处理或受控删失模型。每一种修改都改变概率结构，需要重新推导后验权重和参数更新。
+
+如果数据实际上按时间切换状态，独立 GMM 只表达单时刻的边缘分布，不表达状态持续性和转移规律。\keyterm{隐马尔可夫模型}（hidden Markov model，HMM）会在来源变量之间加入马尔可夫转移关系，E 步不再逐样本独立计算，而需要对整条序列推断。理解 GMM 因而也是理解更一般隐变量模型的入口，但必须把新依赖结构明确写进联合分布。
+
+\section{综合建模流程与概念自检}
+\label{sec:gmm-workflow}
+
+\subsection{从问题到可复核结论}
+一个完整项目首先明确输出：需要密度、分组、生成样本还是条件预测，并说明采样单位与潜在依赖。然后划分数据，在训练部分确定预处理规则，选择具有可解释尺度的协方差结构与约束，设置一组候选分量数和多个初始化。每次拟合都记录停止原因、训练目标、最小特征值、有效计数和权重分布；遇到退化时先定位原因，再决定重启、增强约束或简化模型，而不是仅延长迭代。
+
+选模型时使用与任务匹配的验证准则；最终选定后，在独立测试集上评价一次。若用训练集与验证集合并重新拟合，应把合并后的样本量、预处理参数和拟合结果另行记录，不能把旧模型的诊断与新模型的预测混合报告。需要解释分量时，比较不同种子和重采样下的稳定性，并结合领域证据决定哪些分量具有实际含义。数据、种子、参数约束和选择规则共同决定可复现性。
+
+对软件接口，必须区分“预测标签”“后验概率”和“逐样本对数密度”这三种返回值。以 scikit-learn 的官方接口为例，\texttt{GaussianMixture} 提供拟合、标签预测、后验概率与密度评估等功能，支持完整、共享、对角和球形协方差；具体参数和行为应以当前官方文档为准\cite{sklearn-gmm}。使用库可以减少重复实现，却不能替代对目标、尺度、退化和评价方式的理解。本文不把接口默认值当作对所有任务都合适的统计选择。
+
+\subsection{需要同时保留的三层认识}
+第一层是模型：它规定来源怎样抽取，给定来源后观测怎样生成，以及样本之间有哪些独立性假设。第二层是估计准则：可以选择最大似然、带约束似然、MAP 或贝叶斯后验推断，每一种准则解决的问题不同。第三层是计算算法：EM、广义 EM、变分坐标上升或采样方法，只是在相应准则下求解或近似求解的途径。混淆三层会导致把算法没有收敛误认为模型不合适，或把模型似然病态误认为多调几个迭代参数就能解决。
+
+阅读任何 GMM 推导时，可以依次核对：观测和隐变量分别是什么，密度如何归一化，完整数据与观测数据目标有何区别，E 步期望在哪个旧参数下计算，M 步是否真的提高同一个目标，约束如何处理，最后评价是否对应实际任务。这些问题构成一条可迁移到其他隐变量模型的推理路径，比孤立记忆更新公式更可靠。
+
+\section{习题与解答}
+\label{sec:gmm-exercises}
+
+\subsection{习题}
+\begin{enumerate}
+\item 一个一维混合有权重 $1/4,3/4$，均值 $-2,2$，方差都为 $1$。计算总体均值、总体方差，以及在 $x=0$ 处第一分量的责任度，并解释三者分别表示什么。
+\item 二维模型的两个分量权重相等，均值分别为 $(-1,-1)^\top$ 与 $(1,1)^\top$，协方差都为 $I_2$。计算总体协方差，说明为什么分量内部坐标独立不推出总体坐标独立。
+\item 两个二维零均值高斯以相等权重混合，协方差分别为 $I_2$ 和 $9I_2$。证明总体两坐标不相关但不独立。提示：比较 $\mathbb E[X_1^2X_2^2]$ 与 $\mathbb E[X_1^2]\mathbb E[X_2^2]$。
+\item 固定某分量的责任度，设数据为二维，该分量的有效计数 $N_k=4$，所有样本对其加权平方距离之和为 $24$。若采用球形协方差，求 M 步的方差，并解释为什么不是 $6$。这里距离均围绕已经更新的均值计算。
+\item 对 $n=200,d=3,K=4$ 的完整协方差 GMM，若训练总对数似然为 $-800$，计算名义参数数目、AIC 与 BIC。若软件返回的是平均对数密度 $-4$，应如何使用？
+\item 某样本的两个分量对数贡献为 $-1000$ 和 $-1001$。在不直接计算这两个极小指数值的情况下，求其对数密度和责任度。说明高责任度是否能排除异常。
+\item 证明在普通 GMM 的任意非退化 M 步之后，更新权重和均值形成的总体均值等于训练样本均值。这个性质是否说明模型一定正确？
+\item 某一维高斯条件分布的缺失变量均值为 $3$、方差为 $2$。计算 EM 需要的条件二阶矩；若只填入 $3$ 再平方，遗漏了多少？说明这一误差如何影响协方差估计。
+\end{enumerate}
+
+\subsection{解答与讨论}
+\begin{enumerate}
+\item 总体均值为 $(-2)/4+3\cdot2/4=1$，总体方差为 $1+(1/4)(-2-1)^2+(3/4)(2-1)^2=4$。在 $x=0$ 处两个分量密度相等，责任度等于先验权重，第一分量为 $1/4$。均值和方差描述总体位置与离散程度，责任度描述给定一个观测后的来源概率；不能从某一个责任度读出总体方差。
+\item 总体均值为零，协方差为 $I_2+\begin{pmatrix}1&1\\1&1\end{pmatrix}=\begin{pmatrix}2&1\\1&2\end{pmatrix}$。给定来源后两个坐标独立，但未给定来源时它们共享同一个正向或负向偏移，因而产生正协方差。来源变量是相关性的共同来源，这不涉及两个坐标之间的因果影响判断。
+\item 总体均值为零，协方差为 $5I_2$，故两坐标不相关。每个分量内部两坐标独立，所以条件平方乘积期望分别为 $1$ 和 $81$，混合后为 $41$；两个边缘二阶矩都为 $5$，乘积为 $25$。如果总体独立，平方函数也应独立并使这两个量相等，矛盾。因此总体依赖存在于共同尺度变化中，零协方差没有捕捉到它。
+\item 球形方差是 $24/(dN_k)=24/(2\cdot4)=3$。$24/N_k=6$ 是按责任度加权的平均总平方距离，覆盖两个坐标方向；单个方向共享的方差还需除以维数。有效计数为四不要求数据集中恰好只有四个样本。
+\item 参数数目为 $(4-1)+4\cdot3+4\cdot3\cdot4/2=39$。因此 $\operatorname{AIC}=1600+78=1678$，$\operatorname{BIC}=1600+39\log200\approx1806.634377$。平均对数密度先乘以 $200$ 得到 $-800$ 再代入，不能把 $-4$ 直接当作总对数似然。
+\item 提取最大值 $-1000$ 后，对数密度为 $-1000+\log(1+e^{-1})\approx-999.686738$，责任度为 $1/(1+e^{-1})\approx0.731059$ 与 $0.268941$。若对数贡献改成 $-1000,-1010$，第一责任度更接近一，但总密度依然很小；因此归属相对确定与观测常见程度必须分别判断。
+\item 由更新式，$\sum_k\pi_k^{(t+1)}\mu_k^{(t+1)}=\sum_k(N_k/n)(\sum_i r_{ik}x_i/N_k)=n^{-1}\sum_i x_i\sum_kr_{ik}=\bar x$。这只是普通无先验均值更新满足的矩关系。许多错误的分布也可共享样本均值，因而它不能验证分量数、尾部、协方差结构或来源解释。加入均值先验或其他约束后，该等式也可能改变。
+\item 条件二阶矩等于条件方差加条件均值的平方，即 $2+3^2=11$。只填均值会得到 $9$，遗漏条件方差 $2$。缺失数据 EM 的协方差更新需要保留这部分不确定性，式\eqref{eq:gmm-missing-update}中的 $C_{ik}$ 正承担这一作用。
+\end{enumerate}
+
+\section{进一步阅读与推导边界}
+\label{sec:gmm-reading}
+本文已经推导有限 GMM 的密度、总体矩、责任度、EM 下界、单调性和主要协方差结构的更新，并展示了一轮数值计算。对于一般 EM 收敛到驻点所需的完整正则性条件、有限混合的可辨识性定理、奇异模型选择的渐近理论，以及全部共轭变分更新，本文只解释问题和方法位置，没有将其列为已经证明的结论。这样的边界区分有助于把可以直接核查的有限维推导与更深的统计理论分开。
+
+进一步学习可阅读 Bishop 的教材\cite{bishop2006}，沿概率分布、混合模型、EM 与近似推断建立更完整的背景；EM 的一般框架可查原始论文\cite{dempster1977}；奇异信息准则的专门讨论见\cite{drton2013}。实现时可对照官方 GMM 文档\cite{sklearn-gmm}检查接口语义。文献用于进一步核验和扩展，不替代本文明确写出的条件，也不意味着某个软件行为能直接充当一般数学定理。
+
+\begin{thebibliography}{9}
+\bibitem{bishop2006}
+Christopher M. Bishop.
+\emph{Pattern Recognition and Machine Learning}.
+Springer, 2006.
+\url{https://www.microsoft.com/en-us/research/publication/pattern-recognition-machine-learning/}.
+
+\bibitem{dempster1977}
+A. P. Dempster, N. M. Laird, D. B. Rubin.
+Maximum Likelihood from Incomplete Data via the EM Algorithm.
+\emph{Journal of the Royal Statistical Society: Series B (Methodological)}, 39(1):1--22, 1977.
+\url{https://doi.org/10.1111/j.2517-6161.1977.tb01600.x}.
+
+\bibitem{drton2013}
+Mathias Drton, Martyn Plummer.
+\emph{A Bayesian information criterion for singular models}.
+arXiv:1309.0911, 2013; version 3, 2016.
+\url{https://arxiv.org/abs/1309.0911}.
+
+\bibitem{sklearn-gmm}
+scikit-learn developers.
+\emph{Gaussian mixture models}; \emph{GaussianMixture API reference}.
+官方在线文档，访问日期：2026 年 10 月 3 日。
+\url{https://scikit-learn.org/stable/modules/mixture.html}；
+\url{https://scikit-learn.org/stable/modules/generated/sklearn.mixture.GaussianMixture.html}.
+\end{thebibliography}
+
+\end{document}

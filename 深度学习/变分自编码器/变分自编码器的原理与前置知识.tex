@@ -1,0 +1,699 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
+
+% 支持从项目根目录、深度学习目录或本文件所在目录使用共享样式。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{变分自编码器的原理与前置知识}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{研究问题、学习路线与记号}
+\label{sec:vae-introduction}
+
+\subsection{从一幅手写数字到一个概率模型}
+给定许多手写数字图像，我们不仅可以训练分类器判断数字类别，还可以研究这些图像为什么呈现不同的笔画、倾斜程度和粗细，以及如何生成一幅新的图像。分类器主要描述输入与标签的关系，\keyterm{生成模型}（generative model）则试图描述数据本身的分布。这里的“生成”有严格的概率含义：模型应规定一个随机过程，通过抽取随机量产生观测，而不仅是输出一幅看起来合理的确定性图片。图像很高维，但其中的变化往往具有结构；引入少量未观测变量，可以为这种结构提供一种可计算的表示。这样的变量称为\keyterm{潜变量}（latent variable），它们是建模工具，不应在没有证据时直接解释为真实的物理原因。
+
+\keyterm{变分自编码器}（variational autoencoder, VAE）把潜变量生成模型、近似概率推断和神经网络训练结合起来。其核心问题不是“怎样给自编码器加入噪声”，而是：当一个具有潜变量的概率模型难以计算观测数据的似然时，怎样同时学习生成规律和潜变量的近似后验。本文先从可手算的概率模型建立直觉，再逐步引入神经网络。基础方法的原始论述见文献\cite{kingma2014}，系统性的进一步阅读见文献\cite{kingma2019}；以下基础公式的推导与数值例题在文中独立展开，不以阅读这些文献为前提。
+
+想象每幅数字图像都由一个潜在向量 $z$ 控制。先从一个简单分布抽取 $z$，再通过神经网络确定图像的条件分布，最后抽取图像 $x$，这规定了正向生成过程。已经看到图像时，问题反过来变为：哪些 $z$ 可能生成它，各自有多大概率？这就是后验推断。一个图像可能由许多潜在状态解释，所以反向过程通常应输出分布，而不是唯一的代码。VAE 中的编码器用于近似这个反向分布，解码器用于定义正向条件分布；二者的计算方向相反，但并不是数学意义上的互逆函数。
+
+\subsection{前置知识与全文依赖关系}
+阅读本文只需具备向量、矩阵乘法、偏导数、积分及基础概率的初步知识。第\ref{sec:vae-probability}节补齐概率分布与条件概率，第\ref{sec:vae-gaussian}节说明高斯分布和矩阵微分中直接需要的内容，第\ref{sec:vae-information}节建立信息论工具。之后从最大似然进入潜变量模型，推导变分下界，解释编码器的摊销推断、重参数化和具体损失，再讨论训练、评估与失效情形。扩展部分强调每种方法究竟改变了模型、推断分布还是优化目标，避免把不同修改都含混地称为“改进 VAE”。最后给出练习、解答和一个不预设实验结论的实践方案。
+
+全文用大写 $X,Z$ 表示随机向量，小写 $x,z$ 表示它们的取值；向量默认是列向量。观测维数为 $d$，潜变量维数为 $k$，训练集为 $\mathcal D=\{x^{(i)}\}_{i=1}^{N}$，其中 $N$ 是样本数。数据的真实分布记为 $P_{\mathrm{data}}$，生成模型参数为 $\theta$，推断网络参数为 $\phi$。$I_k$ 是 $k$ 阶单位矩阵，$\operatorname{diag}(v)$ 是以向量 $v$ 为对角线的矩阵，$\odot$ 表示逐分量乘法。全文对数均为自然对数，信息量单位为奈特（nat）；换算为比特（bit）时除以 $\log 2$。对离散变量，以下积分应相应替换为求和；同一字母 $p$ 可表示概率质量函数或密度，但每次建模都必须先确定是哪一种。
+
+\section{概率论基础：从联合分布到后验推断}
+\label{sec:vae-probability}
+
+\subsection{概率、密度与期望}
+若 $X$ 取有限或可数个值，概率质量函数 $p(x)=\Pr(X=x)$ 满足非负且总和为一。若 $X$ 在 $\mathbb R^d$ 上具有密度，则 $\Pr(X\in A)=\int_A p(x)\,\mathrm dx$，密度本身不必小于一。连续变量取某个固定点的概率通常为零，却不妨碍该点的密度很高。因此，连续数据的对数似然可以为正，负对数似然也可以为负；不能以损失的正负判断程序是否正确。密度还依赖测量单位：把长度从米换成厘米，密度数值会改变，概率所描述的事件却不变。
+
+对于可积函数 $h$，\keyterm{数学期望}（expectation）定义为 $\mathbb E[h(X)]=\int h(x)p(x)\,\mathrm dx$。它对 $h$ 是线性的，但一般有 $\mathbb E[h(X)]\ne h(\mathbb E[X])$。例如 $X$ 的均值为零、方差为一时，$\mathbb E[X^2]=1$，而 $(\mathbb E[X])^2=0$。这一区别在 VAE 中非常重要：把随机潜变量替换为它的均值再送入非线性解码器，通常不等于计算解码结果的期望；用均值代码计算重建损失，也通常不等于训练目标中的期望重建损失。
+
+方差描述随机量围绕均值的波动。对于随机向量 $Z$，均值 $m=\mathbb E[Z]$，协方差矩阵为 $\operatorname{Cov}(Z)=\mathbb E[(Z-m)(Z-m)^\mathsf T]$。对角元是各分量的方差，非对角元描述线性关联。协方差为零一般不等于独立；只有在联合高斯等附加条件下，不相关才能推出独立。编码器采用对角协方差高斯，实际上是对给定输入后的近似后验施加条件独立假设，而不是证明真实潜变量彼此独立。
+
+\subsection{联合、边缘与条件分布}
+联合密度 $p(x,z)$ 描述两个随机对象同时变化的规律，\keyterm{边缘化}（marginalization）则消去暂不关心的变量：$p(x)=\int p(x,z)\,\mathrm dz$。当 $p(z)>0$ 时，条件密度为 $p(x\mid z)=p(x,z)/p(z)$，因而 $p(x,z)=p(z)p(x\mid z)$。若 $p(x)>0$，\keyterm{贝叶斯公式}（Bayes' rule）给出
+\begin{equation}
+ p(z\mid x)=\frac{p(x\mid z)p(z)}{p(x)},\qquad
+ p(x)=\int p(x\mid z)p(z)\,\mathrm dz.
+ \label{eq:vae-bayes}
+\end{equation}
+其中 $p(z)$ 称为先验（prior），$p(z\mid x)$ 称为后验（posterior）。在把 $x$ 固定、把模型参数或潜在状态视为待比较对象时，$p(x\mid z)$ 可作为似然（likelihood）。同一个数学表达式的名称取决于我们把什么当作变量，而不是取决于它在纸面上的位置。
+
+边缘化并不是为每个观测挑选“最好的潜变量”。$\max_z p(x\mid z)p(z)$ 只保留某个局部状态的值，积分则汇总全部潜在状态的贡献，并考虑状态集合的体积。某个状态可以把一个样本重建得极好，但如果相应区域极窄，它对边缘概率的贡献仍可能很小。这解释了为什么很好的重建不自动意味着很好的生成模型：重建关注给定数据时能否找到适合的代码，生成还要求先验抽到的代码区域能够持续产生合理数据。
+
+\begin{example}[离散后验的手算]
+设潜在类别 $Z\in\{A,B\}$，先验概率分别为 $0.7$ 和 $0.3$。某二值观测满足 $p(X=1\mid A)=0.2$、$p(X=1\mid B)=0.8$。观察到 $X=1$ 后，有 $p(X=1)=0.7\times0.2+0.3\times0.8=0.38$，从而 $p(B\mid X=1)=0.24/0.38\approx0.6316$。观测提高了类别 $B$ 的概率，却没有使后验变成确定性结论。神经网络编码器的角色类似于快速输出这样的后验分布参数，而不是把每个样本强行分配给唯一的隐含原因。
+\end{example}
+
+\subsection{条件独立与层次生成}
+若模型假定给定 $Z$ 后各观测分量独立，则 $p(x\mid z)=\prod_{j=1}^{d}p(x_j\mid z)$。这个条件独立假设能大幅简化解码器，但不意味着边缘上各像素独立。共享的 $Z$ 会把它们联系起来。例如 $X_1=Z+\eta_1$、$X_2=Z+\eta_2$，其中 $Z,\eta_1,\eta_2$ 彼此独立且均值为零，给定 $Z$ 后两个观测独立，但边缘协方差为 $\operatorname{Cov}(X_1,X_2)=\operatorname{Var}(Z)$。这正是潜变量能够以较少坐标解释观测相关性的基本机制。
+
+还应区分条件随机性和参数不确定性。即使固定 $\theta$，从 $p_\theta(x\mid z)$ 抽样仍可能得到不同观测，这是模型中规定的随机性；由于训练数据有限而对 $\theta$ 不确定，则需要对参数另建概率分布。通常的 VAE 将网络权重作为待优化的点估计，并不自动对全部权重做贝叶斯推断。名称中出现“变分”或“后验”，不能据此声称模型已经完整量化了所有来源的不确定性。
+
+\section{线性代数、高斯分布与微分工具}
+\label{sec:vae-gaussian}
+
+\subsection{多元高斯及其几何意义}
+当 $\Sigma\in\mathbb R^{k\times k}$ 是对称正定矩阵时，多元高斯分布（multivariate Gaussian distribution）$\mathcal N(m,\Sigma)$ 的密度为
+\begin{equation}
+ p(z)=(2\pi)^{-k/2}(\det\Sigma)^{-1/2}
+ \exp\!\left[-\frac12(z-m)^\mathsf T\Sigma^{-1}(z-m)\right].
+ \label{eq:vae-gaussian-density}
+\end{equation}
+正定性保证逆矩阵存在、行列式为正，并使二次型给出椭球状等密度面。协方差的特征向量决定椭球方向，特征值决定相应方向的尺度。若协方差奇异，分布可能集中在低维子空间上，不再具有式\eqref{eq:vae-gaussian-density}所写的全维密度，不能直接把行列式设为零继续使用该公式。
+
+最常见的先验是标准高斯 $\mathcal N(0,I_k)$。对角高斯的协方差是 $\operatorname{diag}(s_1^2,\ldots,s_k^2)$，各 $s_j>0$，其对数密度是各坐标一维对数密度之和。这里 $s_j$ 是标准差，$s_j^2$ 才是方差；混淆两者会直接导致采样尺度和 KL 散度错误。网络通常输出无约束实数 $v_j=\log s_j^2$，再通过 $s_j=\exp(v_j/2)$ 构造正标准差。$v_j$ 不是对数标准差，指数中的二分之一不可省略。
+
+若 $\varepsilon\sim\mathcal N(0,I_k)$，取可逆矩阵 $A$，则 $Z=m+A\varepsilon$ 满足 $\mathbb E[Z]=m$、$\operatorname{Cov}(Z)=AA^\mathsf T$。给定正定协方差，可用 Cholesky 分解 $\Sigma=AA^\mathsf T$，其中 $A$ 为对角元正的下三角矩阵。对于对角协方差，这退化为 $Z=m+s\odot\varepsilon$。这一采样公式既是线性代数事实，也是后面重参数化的基础；采样的分布参数由 $m,s$ 控制，随机性由固定分布的 $\varepsilon$ 提供。
+
+\subsection{二次型期望与高斯后验}
+若 $Z$ 均值为 $m$、协方差为 $S$，$A$ 是确定矩阵，且二阶矩有限，则
+\begin{equation}
+ \mathbb E[Z^\mathsf T A Z]=m^\mathsf T A m+\operatorname{tr}(AS).
+ \label{eq:vae-quadratic}
+\end{equation}
+这里 $\operatorname{tr}$ 表示矩阵对角元之和。证明时写 $Z=m+(Z-m)$，展开后两项交叉期望为零，再利用 $u^\mathsf TAu=\operatorname{tr}(Auu^\mathsf T)$ 及期望的线性性。该公式使许多高斯期望能精确计算，不必一概用随机采样近似。后文将用它核对 KL 散度与线性生成模型的重建项。
+
+\begin{example}[贯穿全文的一维模型]
+\label{ex:vae-linear}
+设 $Z\sim\mathcal N(0,1)$，给定 $Z=z$ 后 $X\sim\mathcal N(az,\tau^2)$，其中 $a\in\mathbb R$、$\tau>0$。把联合密度中与 $z$ 有关的指数配方，得到
+\begin{equation}
+ p(z\mid x)=\mathcal N\!\left(z;\frac{ax}{a^2+\tau^2},
+                  \frac{\tau^2}{a^2+\tau^2}\right),\qquad
+ p(x)=\mathcal N(x;0,a^2+\tau^2).
+ \label{eq:vae-linear-posterior}
+\end{equation}
+具体地，二次项来自 $z^2+(x-az)^2/\tau^2$，其 $z^2$ 系数为 $1+a^2/\tau^2$，一次项系数为 $-2ax/\tau^2$，由此得到均值与方差。取 $a=1$、$\tau=1$、$x=2$，真实后验就是 $\mathcal N(1,1/2)$。观测为二，后验均值却为一，这是先验与带噪观测共同约束的结果；不能把后验均值误认为无噪声方程 $x=az$ 的直接求解。
+\end{example}
+
+\subsection{链式法则、雅可比与计算图}
+对于向量映射 $f:\mathbb R^k\to\mathbb R^d$，雅可比矩阵（Jacobian matrix）$J_f(z)$ 的第 $(i,j)$ 项为 $\partial f_i/\partial z_j$。若标量损失 $L$ 依赖 $f(z)$，则 $\nabla_z L=J_f(z)^\mathsf T\nabla_f L$。神经网络由许多映射复合而成，反向传播（backpropagation）就是沿计算图有组织地应用链式法则，并复用中间结果。自动微分准确计算给定计算图的导数，但不会检查这个图是否对应我们想要的概率模型；错误的方差参数化和损失归约仍会得到看似正常的梯度。
+
+对于随机节点，首先要说明我们对什么函数求导。训练目标往往是 $\mathbb E_{Z\sim q_\phi}[h(Z)]$，它同时依赖被积函数和抽样分布。只对一次抽到的 $z$ 求普通导数而忽略抽样分布随 $\phi$ 的变化，会漏掉重要路径。后面将把随机变量写为固定噪声的可微函数，使链式法则真正连接到原来的期望目标。交换导数与积分需要可积控制等条件；“用了自动微分”本身不是交换合法性的证明。
+
+\section{信息论基础：熵、交叉熵、KL 散度与 Jensen 不等式}
+\label{sec:vae-information}
+
+\subsection{熵与交叉熵}
+离散分布 $p$ 的熵（entropy）为 $H(p)=-\sum_xp(x)\log p(x)$，它描述在该分布下的平均信息量。若使用分布 $q$ 的概率来评价来自 $p$ 的样本，得到交叉熵（cross-entropy）$H(p,q)=-\sum_xp(x)\log q(x)$。对于连续密度，相应积分定义的是微分熵（differential entropy），它可为负并随坐标变换改变。因此，“高斯方差较小所以微分熵较低”可以用于同一坐标系下比较，但不能把微分熵直接等同于一个离散编码所需的实际比特数。
+
+\begin{definition}[相对熵]
+设 $q,p$ 相对于同一基准测度具有密度，且 $q$ 对 $p$ 绝对连续，即 $p$ 为零的集合上 $q$ 也不赋正概率。Kullback--Leibler 散度，又称相对熵（relative entropy），定义为
+\begin{equation}
+ D_{\mathrm{KL}}(q\Vert p)=\int q(z)\log\frac{q(z)}{p(z)}\,\mathrm dz.
+ \label{eq:vae-kl-definition}
+\end{equation}
+若存在 $q$ 赋正概率而 $p$ 为零的集合，则规定散度为 $+\infty$。当积分中的正负部分需要相减时，应确保表达式有意义；下文需要有限等式时均假定相关期望有限。
+\end{definition}
+
+\begin{proposition}[非负性及等号条件]
+在上述条件下，$D_{\mathrm{KL}}(q\Vert p)\geq0$；在散度为零时，两个概率分布相同，亦即其密度几乎处处相等。
+\end{proposition}
+\begin{proof}
+利用 $\log t\leq t-1$，在 $q>0$ 的区域有 $-\log(p/q)\geq1-p/q$。关于 $q$ 积分得到 $D_{\mathrm{KL}}(q\Vert p)\geq1-\int_{\{q>0\}}p\geq0$。要取得等号，须在 $q$ 几乎处处有 $p/q=1$，且 $p$ 在其余区域无剩余质量，从而两分布相同。反过来，相同分布的密度比为一，散度为零。
+\end{proof}
+
+KL 散度一般不对称，也不满足距离所需的三角不等式。$D_{\mathrm{KL}}(q\Vert p)$ 中的期望由 $q$ 加权，所以它对“$q$ 大量覆盖而 $p$ 很小”的区域惩罚特别强。若目标 $p$ 是多峰分布，而近似族只允许单个窄峰，最小化这一方向的散度可能偏向覆盖其中一个峰；但这是一种受分布形状与近似族影响的现象，不能简化为无条件的“反向 KL 总是选一个峰”。VAE 推断中最小化的是近似后验到真实后验的散度，后面出现的近似后验到先验的散度则来自同一个下界的另一种分解，两者不要混为一谈。
+
+\subsection{Jensen 不等式与取对数的顺序}
+Jensen 不等式说明，对凹函数 $f$ 和适当可积的随机变量 $U$，有 $\mathbb E[f(U)]\leq f(\mathbb E[U])$。因为对数在正数上严格凹，当 $U>0$ 且相关期望有限时，$\mathbb E[\log U]\leq\log\mathbb E[U]$；等号要求 $U$ 几乎处处为常数。例如 $U$ 等概率取 $1$ 和 $9$，则 $\mathbb E[\log U]=\log3$，而 $\log\mathbb E[U]=\log5$。先平均再取对数与先取对数再平均不等价，正是这个差异产生变分下界与重要性采样对数估计的偏差。
+
+还要分清“函数的下界”和“一次随机估计的值”。若 $\mathcal L\leq\log p(x)$ 是期望层面的不等式，一个以 $\mathcal L$ 为均值的蒙特卡洛估计可以偶尔超过 $\log p(x)$。这不违反 Jensen 不等式，因为随机估计并没有逐次满足同样的不等式。训练日志里的单个批次损失具有抽样噪声，不应被解释为每个时刻都严格有效的确定性似然界。
+
+\section{统计学习基础：最大似然、经验目标与泛化}
+\label{sec:vae-likelihood}
+
+\subsection{为什么使用负对数似然}
+设模型族为 $\{p_\theta:\theta\in\Theta\}$，其中 $\Theta$ 是允许的参数集合。假定观测样本独立同分布，数据似然为 $\prod_{i=1}^{N}p_\theta(x^{(i)})$，最大似然估计（maximum likelihood estimation）选择使该乘积最大的参数。取对数不改变最大值的位置，因而可写为
+\begin{equation}
+ \widehat\theta\in\operatorname*{arg\,min}_{\theta\in\Theta}
+ \frac1N\sum_{i=1}^{N}-\log p_\theta(x^{(i)}).
+ \label{eq:vae-mle}
+\end{equation}
+这里写成集合成员，是因为最优解可能不唯一，也可能在无约束模型族中不存在。神经网络训练通常只得到数值上的候选解，并不能保证达到全局最优。把目标写成最小化负对数似然，是为了与常见的梯度下降形式一致；后面的 ELBO 则按最大化记号定义，转换为损失时必须改变符号。
+
+若真实分布与模型具有共同基准测度下的密度，且相关量有限，则总体负对数似然满足 $\mathbb E_{P_{\mathrm{data}}}[-\log p_\theta(X)]=H(P_{\mathrm{data}})+D_{\mathrm{KL}}(P_{\mathrm{data}}\Vert P_\theta)$，连续情形把 $H$ 理解为微分熵。真实分布的熵与 $\theta$ 无关，故总体最大似然等价于在这一方向上逼近数据分布。这是总体层面的解释，不能直接把有限样本的离散经验分布与连续密度之间的 KL 当作同一个有限表达式；有限样本目标应直接按式\eqref{eq:vae-mle}计算。
+
+\subsection{有限数据、小批量与泛化误差}
+有限训练集只近似真实分布。复杂模型可以对训练样本给出很高的密度，却不能同样解释新数据，这称为过拟合（overfitting）。因此应把数据分为训练集、验证集和测试集：训练集更新参数，验证集选择超参数和停止时点，测试集用于最终评价。标准化均值、方差等由数据估计的预处理量，应仅从训练集计算。若同一对象产生多条相关记录，则划分单位必须与应用目标相符，否则测试成绩可能来自信息泄漏。
+
+随机梯度下降（stochastic gradient descent, SGD）用小批量目标近似全数据目标。若大小为 $B$ 的批次按均匀方式抽取，对每个样本损失 $\ell_i$，$B^{-1}\sum_{i\in\mathcal B}\nabla\ell_i$ 是全数据平均梯度的无偏估计，前提是各损失及其梯度定义与目标一致。若目标写成全数据求和，则应乘以 $N/B$；若目标本来就是平均，则不应再额外乘 $N$。无偏仅指抽样平均意义上的方向，不保证每一步都降低完整目标，也不消除非凸优化中的局部困难。
+
+VAE 的训练通常具有两层随机性：一层来自选取哪些数据，另一层来自对每个样本抽取潜变量噪声。增大批量主要降低第一层噪声，增加每个样本的潜变量抽样次数主要降低第二层噪声，两者的计算代价不同。训练过程中还可能使用随机数据增强或随机网络操作，这些应另行说明。评估时关闭某些网络随机机制并不自动消除 VAE 的潜变量抽样；要得到稳定估计，还需要明确采样次数和随机种子。
+
+\section{从普通自编码器到潜变量生成模型}
+\label{sec:vae-generative}
+
+\subsection{确定性重建目标的能力与缺口}
+普通自编码器（autoencoder）由编码函数 $g_\phi:\mathbb R^d\to\mathbb R^k$ 与解码函数 $f_\theta:\mathbb R^k\to\mathbb R^d$ 构成，重建为 $\widehat x=f_\theta(g_\phi(x))$。采用平方误差时，目标是最小化 $N^{-1}\sum_i\|x^{(i)}-f_\theta(g_\phi(x^{(i)}))\|^2$。瓶颈维度、网络结构和训练数据决定这种压缩学到什么。维数较低常迫使模型丢弃部分信息，但低维不保证语义清楚，网络也可能记忆有限样本。即使重建误差很小，这个目标仍未明确规定潜变量应服从什么可采样分布。
+
+考虑一个编码器把训练样本映射到许多相隔很远的小区域，解码器只在这些区域附近见过训练信号。任意抽一个标准高斯代码可能落入没有得到有效训练的区域，解码结果便未必合理。因此“可以把任意向量送进解码器”不等于“已定义并学好了数据分布”。要获得概率生成模型，必须明确代码的分布与输出的条件分布；要通过数据学习它们，还需要对边缘似然或适当替代目标进行优化。
+
+\subsection{VAE 的生成假设}
+本文的基本生成模型为
+\begin{equation}
+ Z\sim p(z)=\mathcal N(0,I_k),\qquad
+ X\mid Z=z\sim p_\theta(x\mid z),\qquad
+ p_\theta(x,z)=p(z)p_\theta(x\mid z).
+ \label{eq:vae-joint}
+\end{equation}
+先验在此固定，参数 $\theta$ 只控制解码器；扩展模型可以学习先验，但届时也须对其参数求导。给定 $z$，神经网络输出的可能是高斯均值、对数方差，或者每个二值像素的 Bernoulli 概率。网络输出一个向量这一事实并不足以确定模型，必须说明这些数值如何参数化一个归一化概率分布。
+
+如果取 $p_\theta(x\mid z)=\mathcal N(x;f_\theta(z),\tau^2I_d)$，则 $f_\theta(z)$ 是条件均值，而不是完整的条件分布。生成时先抽 $z$，再抽观测噪声 $\eta\sim\mathcal N(0,I_d)$，输出 $x=f_\theta(z)+\tau\eta$。只输出 $f_\theta(z)$ 是展示条件均值，常便于观察图像内容，但其分布与完整生成模型 $p_\theta(x)$ 不同。类似地，Bernoulli 解码器输出概率图，进一步按这些概率抽取二值像素才是模型中的随机观测。
+
+\subsection{困难为什么出现在积分中}
+模型的边缘密度为 $p_\theta(x)=\int p(z)p_\theta(x\mid z)\,\mathrm dz$。当解码器线性且噪声为高斯时，例题\ref{ex:vae-linear}说明该积分有解析解；但神经网络引入非线性后，通常不能再通过简单配方完成积分。高维网格积分的点数随维度迅速增长，直接从先验采样估计似然也可能低效：对于一个固定观测，只有少量潜在区域能给予它较高似然，而大多数先验样本贡献很小。
+
+真实后验为 $p_\theta(z\mid x)=p(z)p_\theta(x\mid z)/p_\theta(x)$，其归一化常数恰好又是难算的边缘密度。因此“先算后验再训练模型”并没有绕开困难。在可以交换微分与积分的条件下，直接似然梯度还可写成 $\nabla_\theta\log p_\theta(x)=\mathbb E_{p_\theta(z\mid x)}[\nabla_\theta\log p_\theta(x,z)]$，但这仍要求从真实后验有效取样。变分推断的思路是用一个可计算的分布逼近后验，同时构造可优化的似然下界。
+
+\section{变分推断与证据下界的完整推导}
+\label{sec:vae-elbo}
+
+\subsection{为什么引入一个新的分布}
+变分推断（variational inference）把寻找难算分布的近似，转化为在一族候选分布上的优化。对给定 $x$，取易于采样、易于计算密度的 $q_\phi(z\mid x)$。它不是新的观测数据分布，也不是对先验的任意替换，而是用来近似当前生成模型的真实后验。模型一旦规定，真实后验在数学上已经确定；近似族和网络容量只决定我们能够多准确、多高效地表示它。
+
+“变分”强调优化对象本来是分布或函数。实际实现往往用有限维参数控制分布，再用神经网络把输入映射为这些参数。因而术语并不要求程序中显式实现经典变分法的欧拉方程，也不意味着必须计算网络参数的方差。对于标准 VAE，$\phi$ 是编码网络权重，而给定 $x$ 后产生的均值和方差是局部变分分布的参数；这两种“参数”处于不同层次。
+
+\begin{definition}[证据下界]
+固定 $x$，假定 $0<p_\theta(x)<\infty$，$q_\phi(z\mid x)$ 对 $p_\theta(z\mid x)$ 绝对连续，且下述相关对数期望有限。证据下界（evidence lower bound, ELBO）定义为
+\begin{equation}
+ \mathcal L(\theta,\phi;x)
+ =\mathbb E_{q_\phi(z\mid x)}
+  [\log p_\theta(x,z)-\log q_\phi(z\mid x)].
+ \label{eq:vae-elbo-definition}
+\end{equation}
+“证据”指观测的边缘概率或密度 $p_\theta(x)$；下界实际作用于其对数，而不是直接作用于 $p_\theta(x)$。
+\end{definition}
+
+\subsection{第一种推导：分解后验 KL}
+\begin{proposition}[变分分解]
+在上述条件下，
+\begin{equation}
+ \log p_\theta(x)=\mathcal L(\theta,\phi;x)
+ +D_{\mathrm{KL}}\!\left(q_\phi(z\mid x)\Vert p_\theta(z\mid x)\right).
+ \label{eq:vae-gap}
+\end{equation}
+因此 $\mathcal L(\theta,\phi;x)\leq\log p_\theta(x)$，等号当且仅当近似后验与真实后验作为概率分布相同。
+\end{proposition}
+\begin{proof}
+由贝叶斯公式，$\log p_\theta(z\mid x)=\log p_\theta(x,z)-\log p_\theta(x)$。将它代入后验 KL 的定义，得到
+\begin{align*}
+ D_{\mathrm{KL}}(q_\phi\Vert p_\theta(\cdot\mid x))
+ &=\mathbb E_{q_\phi}[\log q_\phi(z\mid x)-\log p_\theta(x,z)
+                    +\log p_\theta(x)]\\
+ &=-\mathcal L(\theta,\phi;x)+\log p_\theta(x).
+\end{align*}
+最后一步使用 $q_\phi$ 积分为一，且固定 $x$ 后 $\log p_\theta(x)$ 与 $z$ 无关。移项并应用 KL 非负性即可；等号条件也由 KL 的等号条件得到。
+\end{proof}
+
+固定 $\theta$ 时，最大化 $\mathcal L$ 等价于使 $q_\phi$ 接近该模型的真实后验，因为式\eqref{eq:vae-gap}左侧不随 $\phi$ 改变。若同时改变 $\theta$，边缘似然和变分间隙都在改变，因此提升 ELBO 不保证真实对数似然在每次更新中也提升。例如下界增加可能主要来自后验近似变准，而边缘似然略有下降。ELBO 是有概率依据的替代目标，却不能被无条件称为精确的最大似然目标。
+
+\subsection{第二种推导：Jensen 不等式}
+若还满足 $q_\phi(z\mid x)>0$ 覆盖联合密度 $p_\theta(x,z)>0$ 的全部相关区域，则可严格写成重要性恒等式
+\begin{equation}
+ p_\theta(x)=\mathbb E_{q_\phi(z\mid x)}
+       \left[\frac{p_\theta(x,Z)}{q_\phi(Z\mid x)}\right].
+ \label{eq:vae-importance-identity}
+\end{equation}
+对两侧取对数，再用 Jensen 不等式，即得到 $\log p_\theta(x)\geq\mathbb E_q\log[p_\theta(x,Z)/q_\phi(Z\mid x)]=\mathcal L$。若 $q$ 漏掉了联合密度的正质量区域，期望只等于该区域之外的截断积分，不能再声称式\eqref{eq:vae-importance-identity}是等式；虽然 ELBO 的下界性质仍可从前一种推导获得，支持集条件必须单独检查。
+
+两种推导揭示不同侧面。KL 分解说明下界为什么可能不紧，Jensen 推导说明它怎样把“积分之后取对数”换成“对数之后求期望”。当 $q=p_\theta(\cdot\mid x)$ 时，比值 $p_\theta(x,z)/q(z\mid x)=p_\theta(x)$ 为常数，Jensen 恰好取等号。对于有全支撑的非退化高斯近似和处处为正的常见解码似然，支持集通常不是障碍；但离散截断、硬约束或退化分布会让这些条件变得实际重要。
+
+\subsection{重建项与先验 KL 的来源}
+把式\eqref{eq:vae-joint}代入下界，可得
+\begin{equation}
+ \mathcal L(\theta,\phi;x)
+ =\mathbb E_{q_\phi(z\mid x)}[\log p_\theta(x\mid Z)]
+  -D_{\mathrm{KL}}(q_\phi(z\mid x)\Vert p(z)).
+ \label{eq:vae-elbo-reconstruction}
+\end{equation}
+第一项常称重建项（reconstruction term），它要求从该样本的近似后验抽出的代码能够解释样本。第二项使编码分布偏离先验的程度受到约束。优化时二者共同作用：若只追求重建，编码分布可能被放到先验极难抽中的区域；若只压低 KL，每个样本都可以被编码为相同的先验分布，潜变量便不再携带输入信息。
+
+式\eqref{eq:vae-elbo-reconstruction}中的先验 KL 不是变分间隙本身。变分间隙比较 $q_\phi(z\mid x)$ 和 $p_\theta(z\mid x)$；先验 KL 比较 $q_\phi(z\mid x)$ 和 $p(z)$。一个近似后验即使等于真实后验，它到先验的 KL 也往往严格为正，表示观测确实改变了对潜变量的认识。因此不能说“VAE 训练成功时每个样本的 KL 应降到零”，也不能把 KL 值高直接判定为推断质量差。
+
+\subsection{与期望最大化算法的联系}
+期望最大化（expectation-maximization, EM）在潜变量模型中交替进行推断与参数更新。精确 E 步令辅助分布等于当前真实后验，使下界在旧参数处取等号；M 步在固定辅助分布时提高下界，于是可推出观测似然不下降。VAE 通常不执行精确 E 步，而使用共享网络近似后验，并以随机梯度同时更新两组参数。因此它继承了变分下界的结构，但一般不继承精确 EM 每轮似然单调提升的保证。把这种联系说清楚，比把 VAE 直接称为“神经网络版 EM”更有助于理解算法差异。
+
+\section{编码器、摊销推断与近似误差}
+\label{sec:vae-amortization}
+
+\subsection{一个网络怎样输出一族分布}
+本文采用的编码器为
+\begin{equation}
+ q_\phi(z\mid x)=\mathcal N\!\left(z;\mu_\phi(x),
+                  \operatorname{diag}(\exp v_\phi(x))\right),
+ \qquad \mu_\phi(x),v_\phi(x)\in\mathbb R^k.
+ \label{eq:vae-encoder}
+\end{equation}
+指数按分量作用。网络前部可以共享特征，再用两个输出头分别计算均值和对数方差。这里的均值和方差随输入变化，所以编码器输出的是条件分布。相同输入多次前向计算时，在网络确定且参数固定的情况下，分布参数保持相同；从该分布抽样得到的潜变量则会变化。这种随机性来自显式采样，不能与网络输出本身不稳定混为一谈。
+
+传统局部变分推断可以为每个样本单独寻找参数 $\lambda_i$，例如一个独立的均值向量和方差向量。VAE 则用同一个映射 $\lambda=h_\phi(x)$ 处理所有样本，称为摊销推断（amortized inference）：大量训练计算被摊到共享网络中，训练后处理一个新样本通常只需要一次前向传播。这样减少了逐样本迭代的代价，但共享映射不一定能为每个样本给出该近似族中的最佳参数。
+
+\subsection{近似误差与摊销误差怎样区分}
+固定生成模型 $\theta$ 和局部变分族 $\mathcal Q$，定义 $\mathcal L^*(x)=\sup_{q\in\mathcal Q}\mathcal L(\theta,q;x)$。若编码器输出的分布属于 $\mathcal Q$，则
+\begin{equation}
+ \log p_\theta(x)-\mathcal L(\theta,\phi;x)
+ =\underbrace{\log p_\theta(x)-\mathcal L^*(x)}_{\text{近似族造成的间隙}}
+ +\underbrace{\mathcal L^*(x)-\mathcal L(\theta,\phi;x)}_{\text{共享推断结果的额外间隙}}.
+ \label{eq:vae-amortization-gap}
+\end{equation}
+两个差值均非负；采用上确界不要求局部最优一定取得。第一项衡量即使在族内做到最好仍有多大局限，第二项衡量当前编码器与这一理想水平的差距。后一项在实际训练中还混合了网络表达不足与优化未完成等因素。文献\cite{cremer2018}系统研究了这类推断次优性区分。
+
+该分解直接给出诊断方法：冻结解码器，以编码器输出为初值，对个别样本的均值和方差继续做局部优化。如果下界明显提升，说明当前共享推断结果还有可改进空间；若几乎不提升，则仍不能证明近似族已足够，因为局部优化可能停在较差位置。增大编码网络与采用更丰富的后验族解决的是不同问题，不能只看参数量就判断哪种改进必然有效。
+
+\section{蒙特卡洛估计与重参数化技巧}
+\label{sec:vae-reparameterization}
+
+\subsection{用样本平均近似期望}
+设 $Z^{(1)},\ldots,Z^{(L)}$ 独立同分布于 $q$。若 $h(Z)$ 可积，则 $L^{-1}\sum_{\ell=1}^{L}h(Z^{(\ell)})$ 是 $\mathbb E_q[h(Z)]$ 的无偏估计，并由大数定律在适当意义下收敛。若方差有限，该平均值的方差是 $\operatorname{Var}(h(Z))/L$，标准差按 $L^{-1/2}$ 缩小。把采样数增加四倍，标准误差通常只缩小为一半，因此增加采样数的收益需要与计算成本一起考虑。
+
+对 VAE 而言，若先验 KL 可以解析计算，常只对重建期望进行采样：$L^{-1}\sum_\ell\log p_\theta(x\mid z^{(\ell)})$。即使每个样本只抽一个潜变量，在相应可积和求导条件下也能得到合法的随机目标与梯度估计，但训练波动可能较大。这并不意味着一个样本足以精确计算期望，而是把积分误差交给持续迭代中的随机平均来处理。验证时通常可以使用更多样本减少指标波动。
+
+\subsection{采样为什么给普通链式法则带来困难}
+假设 $J(\phi)=\mathbb E_{q_\phi(z\mid x)}[h(z)]$，而 $h$ 不显含 $\phi$。若程序先生成一个数值 $z$，随后把它视为与 $\phi$ 无关的常量，普通链式法则会给出零梯度；真实的 $J$ 却可能随均值和方差显著变化。问题不在于随机性“不可求导”这样一个笼统说法，而在于采样分布的参数依赖被从计算图中丢掉了。需要构造反映分布变化的梯度估计。
+
+一种通用方法是得分函数估计（score-function estimator）。假定密度的支撑集不随参数变化，允许微分进入积分，并且相关期望存在，则
+\begin{equation}
+ \nabla_\phi\mathbb E_{q_\phi}[h_\phi(Z)]
+ =\mathbb E_{q_\phi}\left[
+   \nabla_\phi h_\phi(Z)+h_\phi(Z)\nabla_\phi\log q_\phi(Z\mid x)
+ \right].
+ \label{eq:vae-score-gradient}
+\end{equation}
+第一项是固定 $Z$ 时的显式导数，第二项来自密度变化。公式由乘积求导和 $\nabla q=q\nabla\log q$ 得到。对第二项减去不依赖 $Z$ 的基线，可以在不改变期望的情况下调整方差，因为 $\mathbb E_q[\nabla_\phi\log q]=0$。得分函数方法适用范围较广，但在许多连续高维问题中估计方差较大。
+
+\subsection{把参数依赖移入可微变换}
+令 $\varepsilon\sim\mathcal N(0,I_k)$，定义
+\begin{equation}
+ z=g_\phi(x,\varepsilon)
+   =\mu_\phi(x)+\exp\!\left(\frac12v_\phi(x)\right)\odot\varepsilon.
+ \label{eq:vae-reparameterization}
+\end{equation}
+由第\ref{sec:vae-gaussian}节的高斯仿射变换，$z$ 的分布恰好是式\eqref{eq:vae-encoder}，没有引入分布近似。于是原期望变为 $J(\phi)=\mathbb E_{\varepsilon}[h(g_\phi(x,\varepsilon))]$。噪声分布不再依赖 $\phi$，参数依赖全部位于确定性的可微映射中，这称为重参数化技巧（reparameterization trick），相应梯度称为路径导数梯度（pathwise gradient）。
+
+若 $g_\phi$ 与 $h$ 几乎处处可微，而且在所考察参数邻域内，复合函数的导数可由一个对噪声可积的函数控制，则可交换导数与期望，得到
+\begin{equation}
+ \nabla_\phi J(\phi)
+ =\mathbb E_{\varepsilon}\left[
+  \left(\frac{\partial g_\phi}{\partial\phi}\right)^{\!\mathsf T}
+  \nabla_z h(g_\phi(x,\varepsilon))\right].
+ \label{eq:vae-pathwise-gradient}
+\end{equation}
+若 $h$ 也显式依赖 $\phi$，右侧还要加固定 $z$ 时的显式导数。抽样时固定当前噪声，再对复合函数反向传播，便得到该期望的一个梯度样本。重参数化没有把随机模型变成确定性模型，只是用一种便于求导的方式组织随机性。
+
+\begin{example}[路径梯度的直接核验]
+设 $Z=\mu+s\varepsilon$，$\varepsilon\sim\mathcal N(0,1)$，$s>0$，目标为 $J(\mu,s)=\mathbb E[(Z-c)^2]$。直接计算得 $J=(\mu-c)^2+s^2$，故 $\partial J/\partial\mu=2(\mu-c)$、$\partial J/\partial s=2s$。固定一次噪声后，样本损失的两个导数分别为 $2(\mu+s\varepsilon-c)$ 与 $2(\mu+s\varepsilon-c)\varepsilon$。利用 $\mathbb E\varepsilon=0$、$\mathbb E\varepsilon^2=1$，二者期望恰好等于真实导数。这说明样本梯度可以有噪声，同时又在平均意义下正确。
+\end{example}
+
+对 $v=\log s^2$，有 $\partial z/\partial v=s\varepsilon/2$。训练时如果只使用均值 $z=\mu$，便删除了关于方差的这条重建梯度路径；如果把采样结果从计算图分离，则均值和方差都不能通过重建项得到正确更新。对离散变量，直接的类别抽样没有同样的连续路径，通常需要得分函数估计、枚举或连续松弛等其他方法。某种梯度估计是否无偏，必须针对具体目标与构造判断，不能把所有带随机节点的自动微分都归入同一种保证。
+
+\section{高斯 KL、损失公式与一个完整数值例题}
+\label{sec:vae-closed-form}
+
+\subsection{一般高斯 KL 的推导}
+设 $q=\mathcal N(m_q,S_q)$、$p=\mathcal N(m_p,S_p)$，其中两个协方差均正定。将式\eqref{eq:vae-gaussian-density}的对数代入 KL 定义，再用式\eqref{eq:vae-quadratic}计算二次型期望，可得
+\begin{equation}
+ D_{\mathrm{KL}}(q\Vert p)=\frac12\left[
+ \operatorname{tr}(S_p^{-1}S_q)
+ +(m_q-m_p)^\mathsf T S_p^{-1}(m_q-m_p)-k
+ +\log\frac{\det S_p}{\det S_q}\right].
+ \label{eq:vae-gaussian-kl}
+\end{equation}
+其中 $q$ 自身的中心化二次型期望为 $\operatorname{tr}(S_q^{-1}S_q)=k$，这解释了公式中的 $-k$。对数归一化常数贡献行列式之比，目标分布的二次型贡献均值差与协方差两项。这个推导还说明交换两个分布后公式一般改变，不能凭外观把 KL 当成对称距离。
+
+对于标准高斯先验和对角编码器，式\eqref{eq:vae-gaussian-kl}化为
+\begin{equation}
+ K(x):=D_{\mathrm{KL}}(q_\phi(z\mid x)\Vert p(z))
+ =\frac12\sum_{j=1}^{k}\left[\mu_j(x)^2+e^{v_j(x)}-1-v_j(x)\right].
+ \label{eq:vae-diagonal-kl}
+\end{equation}
+各项非负可由 $e^v\geq1+v$ 验证。关于局部参数的导数为 $\partial K/\partial\mu_j=\mu_j$、$\partial K/\partial v_j=(e^{v_j}-1)/2$。只考虑 KL 时，最优点是均值为零、方差为一；当方差接近零时，$-v_j$ 使 KL 发散。这种行为阻止非退化高斯后验在不付代价的情况下收缩成确定性点，但最终尺度由它与重建项共同决定。
+
+\subsection{把 ELBO、真实似然和间隙全部算出来}
+回到例题\ref{ex:vae-linear}，固定 $a=1$、$\tau=1$、$x=2$，取任意近似后验 $q=\mathcal N(m,s^2)$。由二次型期望，
+\begin{align}
+ \mathbb E_q[\log p(x\mid Z)]
+ &=-\frac12\log(2\pi)-\frac12\bigl[(2-m)^2+s^2\bigr],
+ \label{eq:vae-numerical-reconstruction}\\
+ D_{\mathrm{KL}}(q\Vert p)
+ &=\frac12(m^2+s^2-1-\log s^2).
+ \label{eq:vae-numerical-kl}
+\end{align}
+令 $m=1$、$s^2=1/2$，近似后验恰好等于真实后验。重建项约为 $-1.668939$，先验 KL 约为 $0.596574$，下界约为 $-2.265512$。另一方面，边缘分布是 $\mathcal N(0,2)$，故 $\log p(2)=-\tfrac12\log(4\pi)-1\approx-2.265512$，二者完全一致。这同时展示了“下界取等号”和“先验 KL 不为零”可以同时成立。
+
+若反而令 $q=p=\mathcal N(0,1)$，先验 KL 为零，但重建项变为 $-\tfrac12\log(2\pi)-\tfrac52\approx-3.418939$，下界明显更低。由式\eqref{eq:vae-gaussian-kl}可算出 $D_{\mathrm{KL}}(\mathcal N(0,1)\Vert\mathcal N(1,1/2))=\tfrac12(3-\log2)\approx1.153426$，恰好等于真实对数似然减去下界。只监视先验 KL 并追求它越小越好，会把这个明显较差的近似误判为理想结果。
+
+\subsection{从一阶条件重新找回后验}
+对一般 $a,\tau,x$，负 ELBO 关于局部参数 $m,s$ 的表达式为
+\begin{equation}
+ F(m,s)=\frac12\log(2\pi\tau^2)
+ +\frac{(x-am)^2+a^2s^2}{2\tau^2}
+ +\frac12(m^2+s^2-1-\log s^2),\qquad s>0.
+ \label{eq:vae-local-objective}
+\end{equation}
+求导得 $\partial F/\partial m=a(am-x)/\tau^2+m$，以及 $\partial F/\partial s=a^2s/\tau^2+s-1/s$。令它们为零得到 $m=ax/(a^2+\tau^2)$、$s^2=\tau^2/(a^2+\tau^2)$，与贝叶斯配方结果完全一致。又因为关于 $m,s$ 的两个二阶导数分别为 $a^2/\tau^2+1$ 和 $a^2/\tau^2+1+1/s^2$，混合导数为零，所以该目标在 $s>0$ 上严格凸，驻点就是唯一全局最小值。这是特殊线性模型的结论，不能推广为任意神经网络 VAE 目标的凸性。
+
+\section{解码似然决定重建损失}
+\label{sec:vae-likelihood-choice}
+
+\subsection{固定方差高斯与平方误差}
+若观测是连续向量，取 $p_\theta(x\mid z)=\mathcal N(x;f_\theta(z),\tau^2I_d)$，其中 $\tau>0$ 固定，则
+\begin{equation}
+ -\log p_\theta(x\mid z)=\frac{d}{2}\log(2\pi\tau^2)
+            +\frac{1}{2\tau^2}\|x-f_\theta(z)\|^2.
+ \label{eq:vae-gaussian-nll}
+\end{equation}
+所以平方重建误差来自明确的观测噪声假设，并不是与概率模型无关的任意附加项。在固定维数、固定 $\tau$ 且只关心参数梯度时，可以省略第一个常数；但评价对数似然、比较不同噪声尺度或不同维数的模型时必须保留。省略常数与任意改变平方误差前的系数是两件事，后者改变它与 KL 的相对权重。
+
+若网络还输出各坐标的对数观测方差 $u_j(z)$，则负对数似然成为 $\tfrac12\sum_j[\log(2\pi)+u_j(z)+(x_j-f_j(z))^2e^{-u_j(z)}]$。这里 $u$ 属于解码器的观测方差，前文 $v$ 属于编码器的潜变量方差，二者不应共用含糊的记号。平方残差鼓励增大难以拟合坐标的方差，而对数方差项为此付出代价；若遗漏该项，模型可以仅靠无限增大方差降低加权误差。过于灵活的密度模型还可能在某些数据上出现方差趋零的似然退化，因此是否约束方差应作为模型设定说明。
+
+\subsection{二值观测与稳定的二元交叉熵}
+若 $x_j\in\{0,1\}$，解码器输出 logits $a_j(z)\in\mathbb R$，令 $\pi_j(z)=\operatorname{sigmoid}(a_j)=1/(1+e^{-a_j})$，并假定给定 $z$ 后坐标独立，则
+\begin{equation}
+ -\log p_\theta(x\mid z)
+ =-\sum_{j=1}^{d}\left[x_j\log\pi_j(z)+(1-x_j)\log(1-\pi_j(z))\right].
+ \label{eq:vae-bernoulli-nll}
+\end{equation}
+这是二元交叉熵（binary cross-entropy, BCE）。对单坐标，等价表达式为 $\operatorname{softplus}(a)-xa$，其中 $\operatorname{softplus}(a)=\log(1+e^a)$。稳定计算可用 $\max(a,0)-xa+\log(1+e^{-|a|})$，避免直接计算极端概率后的对数。实现时可使用把 logits 与交叉熵合并的接口，而不要先计算 sigmoid 后再重复应用同类变换。
+
+把灰度值缩放到 $[0,1]$ 并没有把它变成 Bernoulli 观测。例如 $0.37$ 是合法的灰度或比例，却不是二值随机变量的取值。BCE 可以作为软标签损失使用，也可在明确的随机二值化协议中出现，但不能因此声称其对连续灰度直接给出了归一化 Bernoulli 密度。若要在 $[0,1]$ 上建立连续模型，可考虑具有相应支撑的连续分布；连续 Bernoulli 分布的归一化问题与 VAE 中的这一误用由文献\cite{loaiza2019}讨论。真实数据的观测空间必须先于损失函数的选择确定。
+
+\subsection{其他观测空间与条件结构}
+若每个位置取 $C$ 个离散类别，可让网络输出 $C$ 个 logits，经 softmax 归一化后使用类别交叉熵。若数据是非负计数，可以考虑 Poisson 等计数分布；若是有界比例，可考虑适当的连续有界分布。这些选择引入不同的均值、方差和支撑假设，应根据数据生成方式与残差诊断确定。把所有连续数据都套用单位方差高斯，或把所有归一化数据都套用 Bernoulli，都会混淆数值预处理与概率建模。
+
+独立坐标解码器还可以改为自回归解码器（autoregressive decoder），即 $p_\theta(x\mid z)=\prod_{j=1}^{d}p_\theta(x_j\mid x_{<j},z)$，其中 $x_{<j}$ 表示指定顺序中此前的观测分量。这个乘积分解在结构上允许更强的局部依赖，但生成通常需要逐步抽取。潜变量因此未必需要解释每个局部细节，训练中也更容易出现解码器绕过潜变量的现象。增强解码器既能改善建模能力，也可能改变潜变量被使用的方式。
+
+\subsection{损失归约为什么会偷偷改变模型}
+标准负 ELBO 对一个样本先在观测维度求和，对潜变量维度也求和，最后在批次维度取平均。记该样本的重建负对数似然为 $R_i$、先验 KL 为 $K_i$，则目标是 $B^{-1}\sum_i(R_i+K_i)$。如果把重建项改为逐像素平均 $R_i/d$，而 KL 仍按潜变量求和，则得到 $B^{-1}\sum_i(R_i/d+K_i)$；把整个目标乘以 $d$ 后是 $B^{-1}\sum_i(R_i+dK_i)$。因此这等价于把 KL 的相对系数放大 $d$ 倍，而不是单纯改变日志显示单位。
+
+同理，若将 KL 在潜维度上取平均而重建仍求和，会把其相对权重缩小 $k$ 倍。图像分辨率、通道数和潜变量维数改变时，这些隐式缩放尤其容易造成误判。只有对整个损失统一乘以正的固定常数，才保留理想精确优化下的最优点；实际迭代还可能因学习率、梯度裁剪和优化器细节而表现不同。比较实验时应记录每个维度上的归约方式，而不只记录一个名义上的 KL 权重。
+
+\section{训练算法、计算图与最小实现}
+\label{sec:vae-training}
+
+\subsection{输入、初始化、更新与终止}
+训练输入包括数据集、潜维数 $k$、编码器与解码器结构、观测似然、批量大小 $B$、每例抽样数 $L$、优化器及学习率计划。随机初始化 $\theta,\phi$，并为验证保留独立数据。每次迭代对批次样本计算 $\mu_i,v_i$，独立抽取 $\varepsilon_{i\ell}\sim\mathcal N(0,I_k)$，构造 $z_{i\ell}$，再计算
+\begin{equation}
+ \widehat F(\theta,\phi;\mathcal B)
+ =\frac1B\sum_{i\in\mathcal B}\left[
+ -\frac1L\sum_{\ell=1}^{L}\log p_\theta(x^{(i)}\mid z_{i\ell})
+ +\frac12\sum_{j=1}^{k}
+      \bigl(\mu_{ij}^{2}+e^{v_{ij}}-1-v_{ij}\bigr)\right].
+ \label{eq:vae-minibatch-objective}
+\end{equation}
+对 $\theta,\phi$ 同时反向传播，按优化器规则更新。使用最简单 SGD 时，$\theta\leftarrow\theta-\eta\nabla_\theta\widehat F$、$\phi\leftarrow\phi-\eta\nabla_\phi\widehat F$，其中 $\eta>0$ 为学习率。KL 不依赖解码器参数，重建项则通过解码器与重参数化路径同时更新两组网络。
+
+训练结束可以由预先规定的更新次数决定，也可以根据验证指标在若干检查点内不再改善而停止；后一种方式应保存验证指标最佳的参数，而不只是最后一步。神经网络目标非凸，一般不能保证在有限步达到全局最优，也不能把训练损失平稳直接解释为模型已经学到真实数据分布。训练预算、停止规则和模型选择过程是实验结果的一部分，应与最终数值一起记录。
+
+若对一批数据执行编码器前向的成本为 $C_e(B)$，对一批潜变量执行解码器前向的成本为 $C_d(B)$，则 $L$ 次潜变量采样的前向成本可粗略写为 $C_e(B)+LC_d(B)+O(BLk)$。反向传播的常数因子和显存消耗依网络结构而定。解析 KL 只需 $O(Bk)$ 运算；对角协方差避免了全协方差的矩阵分解，但其表达能力也更受限制。这里是计算结构分析，不是与硬件无关的实际运行时间保证。
+
+\subsection{与数学公式逐项对应的代码}
+下面是二值观测、对角高斯后验、固定标准高斯先验、每例一次抽样的 PyTorch 训练步骤。它是核心算法片段：调用者须传入编码器、解码器和已包含两者参数的优化器；编码器返回形状均为 $(B,k)$ 的均值与对数方差，解码器返回与展平输入相同形状的 logits。输入每个元素必须取零或一，不能把此片段直接当作连续灰度数据的严格似然实现。相关分布接口与 logits 损失接口见文献\cite{pytorchdocs}。
+\begin{verbatim}
+import torch
+import torch.nn.functional as F
+
+def train_step(x, encoder, decoder, optimizer):
+    encoder.train()
+    decoder.train()
+    x = x.flatten(start_dim=1)       # [B, d], binary data
+    optimizer.zero_grad(set_to_none=True)
+
+    mu, logvar = encoder(x)         # both [B, k]
+    std = torch.exp(0.5 * logvar)
+    eps = torch.randn_like(std)
+    z = mu + std * eps
+    logits = decoder(z)             # [B, d]
+
+    nll = F.binary_cross_entropy_with_logits(
+        logits, x, reduction="none"
+    ).sum(dim=1)                    # [B]
+    kl = 0.5 * (
+        mu.square() + logvar.exp() - 1.0 - logvar
+    ).sum(dim=1)                    # [B]
+    loss = (nll + kl).mean()
+
+    loss.backward()
+    optimizer.step()
+    return {
+        "loss": loss.detach(),
+        "nll": nll.mean().detach(),
+        "kl": kl.mean().detach(),
+    }
+\end{verbatim}
+代码中的分离操作只发生在返回日志指标时，不影响反向传播。用分布对象替代手写采样时，应选择支持重参数化梯度的采样方式，并核查该分布的实现；普通抽样接口不一定保留所需路径。代码也未实现数据读取、完整网络或评估循环，因此其用途是精确说明数学与张量计算的对应关系，不是已经训练完成的实验结果。
+
+\subsection{数值稳定性与有针对性的核查}
+对数方差过大时指数可能溢出，过小时标准差可能下溢，继而产生非有限梯度。可以通过合理初始化、较温和的学习率、对梯度范数的监视和适当的方差参数化缓解；若加入方差上下界或裁剪，必须说明这是对可表达分布或优化行为的改变。用正值变换 $s=\operatorname{softplus}(r)+\epsilon_0$ 也可以确保标准差大于固定 $\epsilon_0>0$，但它与直接输出 $\log s^2$ 的梯度尺度不同，不能机械混用公式。
+
+核查时首先用一维例题比较解析 ELBO 与采样平均，再比较解析梯度与固定随机噪声下的有限差分。若差分时每次重采样，目标的随机波动会淹没微小扰动造成的变化，难以诊断导数。还应确认解码器输出形状、每维归约、KL 符号与观测似然一致。对零均值单位方差编码器，解析 KL 应为零；对非零均值或不同方差，应为非负。这些检查针对概率与计算图的关键连接，比单纯看到损失下降更能发现错误。
+
+\section{潜变量到底学到了什么：信息、几何与可识别性}
+\label{sec:vae-representation}
+
+\subsection{聚合后验与单样本后验}
+把数据分布下的各个编码分布混合起来，得到聚合后验（aggregated posterior）
+\begin{equation}
+ q_\phi(z)=\int q_\phi(z\mid x)\,P_{\mathrm{data}}(\mathrm dx).
+ \label{eq:vae-aggregated}
+\end{equation}
+使用训练经验分布时，它是 $N^{-1}\sum_iq_\phi(z\mid x^{(i)})$。即使每个条件分布都是对角高斯，混合结果通常也不是高斯，更不一定各维独立。给定数据抽后验样本，与直接从先验抽样是两个不同过程；前者访问的是聚合后验，后者访问的是生成模型规定的先验。二者不匹配时，重建样本与无条件生成样本的质量可能不同。
+
+令联合分布为 $Q_\phi(\mathrm dx,\mathrm dz)=P_{\mathrm{data}}(\mathrm dx)q_\phi(z\mid x)\mathrm dz$。在相关积分有限时，定义该联合分布下的互信息（mutual information）为 $I_q(X;Z)=\mathbb E_{Q_\phi}\log[q_\phi(Z\mid X)/q_\phi(Z)]$。把对数比拆成两部分可得
+\begin{equation}
+ \mathbb E_{P_{\mathrm{data}}}D_{\mathrm{KL}}(q_\phi(z\mid X)\Vert p(z))
+ =I_q(X;Z)+D_{\mathrm{KL}}(q_\phi(z)\Vert p(z)).
+ \label{eq:vae-rate-decomposition}
+\end{equation}
+证明只需在 $\log[q(z\mid x)/p(z)]$ 中加减 $\log q(z)$，第一项按定义是互信息，第二项对 $x$ 积分后留下聚合后验。这个等式不要求 $P_{\mathrm{data}}$ 对连续测度具有密度，因此同样适用于有限样本经验分布。
+
+式\eqref{eq:vae-rate-decomposition}说明平均先验 KL 同时限制潜变量保留的输入信息与整体编码分布偏离先验的程度。平均 KL 很小蕴含互信息不能很大；反过来，平均 KL 很大却不保证编码信息有用，因为它可能主要来自聚合后验与先验失配。若仅要求聚合后验匹配先验，也不足以让每个样本的后验都接近先验；不同样本可以被编码到不同区域而整体仍形成同一个先验分布。这些区别是理解表示学习目标的基础。
+
+\subsection{率失真视角与信息压缩}
+记平均重建代价为 $D=\mathbb E_{Q_\phi}[-\log p_\theta(X\mid Z)]$，平均先验 KL 为 $R=\mathbb E_X D_{\mathrm{KL}}(q_\phi(z\mid X)\Vert p(z))$，则平均负 ELBO 为 $D+R$。这提供率失真（rate-distortion）视角：$D$ 衡量解释或重建数据的代价，$R$ 是潜在编码的信息代价代理，并由式\eqref{eq:vae-rate-decomposition}上界互信息。连续似然下的 $D$ 可能为负，所以这里的类比不能机械替换为任意经典非负失真函数；固定高斯时，它在常数和比例意义下对应平方失真。
+
+压缩并不自动筛选出人类关心的语义。若像素级误差主要来自背景纹理，模型可能把有限代码容量用于纹理；如果任务关心数字类别，则还需要通过数据、结构、监督信号或评价设计引导表示。标准 VAE 的目标不包含“某一维必须对应笔画粗细”这样的要求。把得到的坐标命名为语义因素，应有潜变量干预、已知因素数据或外部验证支持，而不应仅凭少量看起来顺滑的样本变化作出结论。
+
+\subsection{高维高斯的典型区域与插值}
+对于 $Z\sim\mathcal N(0,I_k)$，$\mathbb E\|Z\|^2=k$，$\operatorname{Var}(\|Z\|^2)=2k$。由 Chebyshev 不等式，$\Pr(|\|Z\|^2/k-1|>\delta)\leq2/(k\delta^2)$，其中 $\delta>0$。因此维度较大时，大部分概率质量位于半径约为 $\sqrt{k}$ 的区域。原点虽然密度最高，却不是大部分抽样所处的位置；密度与区域概率质量的区别在这里尤为突出。
+
+若 $Z_1,Z_2$ 独立服从标准高斯，线性插值 $Z_t=(1-t)Z_1+tZ_2$ 的协方差是 $[(1-t)^2+t^2]I_k$。当 $t=1/2$ 时，它变成 $I_k/2$，说明插值中点的典型半径小于标准先验的典型半径。可见“端点是合法先验样本”不推出“整条直线也遵循先验的典型分布”。插值可以作为探索工具，但不能据此证明潜空间没有空洞，也不能把平滑视觉变化直接当作整体密度拟合成功的证据。
+
+\subsection{旋转不变性与语义解耦的边界}
+若先验是标准高斯，$A$ 是正交矩阵，则 $AZ$ 与 $Z$ 同分布。把新潜变量记为 $z'=Az$，并把解码器改为 $p'_{\theta}(x\mid z')=p_\theta(x\mid A^\mathsf Tz')$，边缘观测分布保持不变。因此仅凭观测分布通常不能确定哪一组潜在坐标轴具有唯一语义。对角后验族可能在优化中偏好某些坐标方向，但这是推断限制带来的偏好，不是数据已经唯一决定真实因素的证明。
+
+表示的解耦（disentanglement）通常指不同坐标分别对应不同变化因素，但必须明确其形式定义和评价协议。无监督解耦的可识别性局限由文献\cite{locatello2019}系统讨论。这里的简单正交变换例子只展示一种不唯一性，不替代一般性不可能结果的完整证明。若加入标签、成对干预、时间结构或其他归纳偏置，问题的可识别性条件可能改变，因此不能把局限理解为所有有结构的表示学习都不可能成功。
+
+\section{后验坍塌、模糊重建与模型诊断}
+\label{sec:vae-diagnostics}
+
+\subsection{后验坍塌的概率含义}
+后验坍塌（posterior collapse）通常指编码器对许多输入给出接近先验的分布，潜变量因此几乎不携带输入信息。理想化地，若 $q_\phi(z\mid x)=p(z)$ 对数据分布几乎所有 $x$ 成立，则式\eqref{eq:vae-rate-decomposition}表明互信息为零。如果解码器本身能够有效描述数据，并学到基本不依赖 $z$ 的 $p_\theta(x\mid z)$，这种解可能具有不错的似然或下界，却无法提供我们期望的样本表示。序列 VAE 中相关现象和训练处理可参见文献\cite{bowman2016}。
+
+坍塌不应仅凭一条总 KL 曲线诊断。模型可能只使用部分维度，另一些维度保持标准先验；这不一定是错误，也可能说明当前数据与模型不需要那么多潜变量。可以分别记录每维平均 KL、各维后验均值在数据间的方差，以及打乱样本与潜变量的对应关系后重建似然如何变化。若打乱代码几乎不影响结果，说明解码器使用代码的程度有限，但具体解释仍须结合模型结构和抽样误差。
+
+\subsection{处理手段改变了什么}
+KL 预热（KL warm-up）在训练初期使用较小的 KL 权重，随后逐渐增至一，使模型先建立有信息的编码路径。权重不为一的阶段优化的是修改目标，不能声称一直精确优化同一个标准 ELBO；如果最终回到一，后期才恢复标准目标。增加推断网络更新次数、改善初始化或限制解码器的捷径，也可能有帮助，但没有一个对所有模型有效的通用保证。应观察处理是否同时改善表示使用与验证目标，而不能只追求 KL 上升。
+
+另一类方法为部分潜维度提供一定的自由信息容量。例如把每维平均 KL $R_j$ 的惩罚改为 $\max(\lambda,R_j)$，其中阈值 $\lambda>0$，使 $R_j<\lambda$ 时不再继续施加下降梯度。这类自由比特（free bits）式构造改变了优化目标，而且阈值是在每个样本、每个维度还是潜变量组上实施，会得到不同算法。名称中的“比特”也需结合对数底说明。它不会直接强迫模型使用潜变量，更不保证恢复有意义的因素。
+
+\subsection{模糊来自什么，不能由什么推出}
+在平方误差下，给定表示时最优的确定性预测是条件均值。若若干不同的清晰图像在相同代码下仍有可能，均值图像会把不同边缘平均到一起，产生模糊。这既可能源于潜在信息不足，也可能源于简单的条件分布无法充分描述多模态细节。把高斯均值图片展示出来还会省去观测噪声，因此展示策略也影响感观。不能把所有模糊都归因于“KL 太大”，更不能据此断言所有 VAE 结构必然模糊。
+
+提高分辨率、改变观测似然、使用更强条件依赖结构、增加合理的潜在容量，解决的是不同瓶颈。加入感知损失或对抗损失可能改善某些视觉评价，但除非重新建立概率解释，它们与标准负 ELBO 的关系已经改变。此时应分别报告新目标与原似然指标，避免把视觉上更清晰误写为严格似然必然提高。一个可解释的实验应一次改变一个主要因素，并保留相同的数据协议和训练预算作为对照。
+
+\section{常见扩展：目标、条件、先验与后验族}
+\label{sec:vae-extensions}
+
+\subsection{带权目标与率失真约束}
+带权变体 $\beta$-VAE 使用
+\begin{equation}
+ \mathcal L_\beta(x)=\mathbb E_q[\log p_\theta(x\mid Z)]
+              -\beta D_{\mathrm{KL}}(q_\phi(z\mid x)\Vert p(z)),
+ \qquad \beta>0.
+ \label{eq:vae-beta}
+\end{equation}
+文献\cite{higgins2017}研究了通过该权重调节表示的做法。从率失真角度看，考虑在 $R\leq C$ 的约束下最小化重建代价 $D$，其拉格朗日函数为 $D+\beta(R-C)$，固定 $\beta$ 时与优化 $D+\beta R$ 只差常数。这说明权重控制的是一种信息约束的权衡，但神经网络问题通常非凸，不能据此断言每个权重都与某个约束问题全局等价，也不能保证得到完整的最优率失真曲线。
+
+当 $\beta=1$ 时恢复标准 ELBO；当 $\beta\geq1$ 时，由 KL 非负性有 $\mathcal L_\beta\leq\mathcal L\leq\log p_\theta(x)$，所以它仍是下界，但差值不再仅等于后验 KL。若 $0<\beta<1$，则一般不再保证它是原模型的对数似然下界。例如在近似后验恰等于真实后验且先验 KL 为正时，$\mathcal L_\beta=\log p_\theta(x)+(1-\beta)K(x)$，严格高于真实对数似然。提高 $\beta$ 可能减少携带的信息，也可能恶化重建或加重坍塌，因此“更大的 $\beta$ 更好”不是普遍结论。
+
+\subsection{条件 VAE：把生成目标写清楚}
+若给定条件变量 $C=c$，例如数字类别、文本描述或其他已知上下文，条件变分自编码器（conditional VAE, CVAE）可规定 $p_{\theta,\psi}(x,z\mid c)=p_\psi(z\mid c)p_\theta(x\mid z,c)$，其中 $\psi$ 是条件先验参数。编码器为 $q_\phi(z\mid x,c)$，下界为
+\begin{equation}
+ \mathcal L_{\mathrm{cond}}(x,c)
+ =\mathbb E_{q_\phi(z\mid x,c)}[\log p_\theta(x\mid Z,c)]
+  -D_{\mathrm{KL}}(q_\phi(z\mid x,c)\Vert p_\psi(z\mid c)).
+ \label{eq:vae-conditional}
+\end{equation}
+证明是把第\ref{sec:vae-elbo}节中所有概率都条件化于 $c$。训练时既有目标观测 $x$ 又有条件 $c$，生成时只有 $c$，所以必须从条件先验抽 $z$，不能假定还能访问依赖未知目标 $x$ 的编码器。把训练时的完整目标泄漏到生成路径中，会得到不真实的测试表现。
+
+条件先验也可以固定为与 $c$ 无关的标准高斯，只让解码器和编码器使用条件；这是合法的建模选择。潜变量此时有机会描述条件没有确定的变化，例如给定数字类别后的书写风格，但仅靠输入拼接并不保证潜变量完全排除类别信息。若希望内容与风格严格分离，需要额外定义和验证。条件生成任务应评价给定条件时的准确性与多样性，不能只检查无条件图像是否看起来合理。
+
+\subsection{学习先验与多层潜变量}
+固定标准高斯便于抽样和计算 KL，但可能不能很好匹配聚合后验。若引入可学习先验 $p_\psi(z)$，在固定编码器时，平均 KL 由式\eqref{eq:vae-rate-decomposition}分解为不随 $\psi$ 改变的互信息，以及 $D_{\mathrm{KL}}(q_\phi(z)\Vert p_\psi(z))$。在不受限制且最优能取得的先验族中，最优选择就是聚合后验；受限先验族则只能近似它。这个结论并不意味着联合训练时可以忽略泛化或让先验直接记住训练样本，实际效果仍需要在独立数据上评价。
+
+多层潜变量模型进一步规定 $p(x,z_1,z_2)=p(z_2)p_\theta(z_1\mid z_2)p_\theta(x\mid z_1)$。例如选择 $q_\phi(z_1,z_2\mid x)=q_\phi(z_1\mid x)q_\phi(z_2\mid z_1,x)$，对应 ELBO 为
+\begin{equation}
+ \mathbb E_q\!\left[
+ \log p_\theta(x\mid Z_1)+\log p_\theta(Z_1\mid Z_2)+\log p(Z_2)
+ -\log q_\phi(Z_1\mid x)-\log q_\phi(Z_2\mid Z_1,x)\right].
+ \label{eq:vae-hierarchical}
+\end{equation}
+各层按照其父节点条件化，不能不经推导就给每层都加同一个到标准高斯的 KL。多层结构提供更丰富的生成与推断依赖，但“较高层一定代表抽象语义”不是结构本身保证的结论；上层变量也可能被模型忽略。
+
+\subsection{正规化流：扩大近似后验的表达能力}
+从易采样的初始变量 $Z_0\sim q_0(z_0\mid x)$ 出发，经过一系列在固定 $x$ 时可逆、可微且雅可比行列式非零的变换 $Z_t=f_t(Z_{t-1};x)$，称为正规化流（normalizing flow，也称归一化流）。由变量替换公式，最终密度满足
+\begin{equation}
+ \log q_T(z_T\mid x)=\log q_0(z_0\mid x)
+ -\sum_{t=1}^{T}\log\left|\det
+       \frac{\partial f_t(z_{t-1};x)}{\partial z_{t-1}}\right|.
+ \label{eq:vae-flow}
+\end{equation}
+绝对行列式描述局部体积变化，负号保证概率质量在变换前后相同。把最终 $q_T$ 放回一般 ELBO 即可，不需要改变生成模型。文献\cite{rezende2015}研究了用这类变换改进变分推断的方法。
+
+普通非线性网络未必可逆，其雅可比行列式也未必便宜，因而不能随意放进式\eqref{eq:vae-flow}。实际流结构在表达能力、可逆性和行列式计算成本之间取舍。加入流后，近似后验到先验的 KL 通常不再有简单的对角高斯闭式，应使用最终密度计算 $\mathbb E_{q_T}[\log q_T(Z\mid x)-\log p(Z)]$。只变换样本却仍沿用原高斯 KL，会使目标与所声称的概率模型不一致。
+
+\section{重要性采样、IWAE 与似然评估}
+\label{sec:vae-iwae}
+
+\subsection{似然估计与对数似然估计不同}
+对固定观测 $x$，设 $q_\phi(z\mid x)$ 覆盖 $p_\theta(x,z)$ 的支撑，从中独立抽取 $L$ 个样本，定义重要性权重 $w_\ell=p_\theta(x,z^{(\ell)})/q_\phi(z^{(\ell)}\mid x)$。由式\eqref{eq:vae-importance-identity}，$\widehat p_L(x)=L^{-1}\sum_\ell w_\ell$ 是边缘密度的无偏估计；若权重方差有限，其估计方差等于 $\operatorname{Var}(w)/L$。但 $\log\widehat p_L(x)$ 一般是对数边缘密度的有偏估计，Jensen 不等式给出 $\mathbb E\log\widehat p_L(x)\leq\log p_\theta(x)$。
+
+实现中应先计算对数权重 $b_\ell=\log p_\theta(x,z^{(\ell)})-\log q_\phi(z^{(\ell)}\mid x)$，再用
+\begin{equation}
+ \log\widehat p_L(x)
+ =m+\log\sum_{\ell=1}^{L}e^{b_\ell-m}-\log L,
+ \qquad m=\max_\ell b_\ell,
+ \label{eq:vae-logmeanexp}
+\end{equation}
+避免权重直接指数化造成溢出或下溢。若少数权重支配总和，估计仍可能很不稳定，数值稳定技巧不会消除统计方差。归一化权重 $\widetilde w_\ell=w_\ell/\sum_rw_r$ 的集中程度可用 $1/\sum_\ell\widetilde w_\ell^2$ 作为有效样本量的诊断量，但它不是估计已经准确的证明。
+
+\subsection{多样本目标为什么更紧}
+重要性加权自编码器（importance weighted autoencoder, IWAE）使用目标
+\begin{equation}
+ \mathcal L_L(x)=\mathbb E_{q_\phi^{\otimes L}}
+       \log\left(\frac1L\sum_{\ell=1}^{L}w_\ell\right),
+ \qquad \mathcal L_1(x)=\mathcal L(x).
+ \label{eq:vae-iwae}
+\end{equation}
+这里 $q_\phi^{\otimes L}$ 表示 $L$ 个独立同分布样本的联合分布。原始方法见文献\cite{burda2016}。固定模型、固定近似分布且相关期望有限时，有 $\mathcal L_L(x)\leq\mathcal L_{L+1}(x)\leq\log p_\theta(x)$。这个非严格不等式比“样本增加后一定严格改进”更准确，因为近似后验恰好精确时，各权重为相同常数，所有下界都已取等号。
+
+可以直接验证单调性。抽取 $L+1$ 个权重，再等概率删去其中一个，剩下 $L$ 个权重平均值的条件期望，恰好等于全部 $L+1$ 个权重的平均值。对随机删除应用对数的凹性，再对权重取期望，得到 $\mathcal L_{L+1}\geq\mathcal L_L$。上界来自上一小节的 Jensen 不等式。若还希望令 $L\to\infty$ 后交换极限与期望，需要额外的可积控制，例如对数样本均值的一致可积性；仅靠大数定律保证样本平均收敛，不足以自动保证其对数的期望收敛。
+
+多样本 IWAE 与“用更多样本估计同一个 ELBO”不同。后者先对每个样本取对数再平均，只减少估计噪声；前者先平均权重再取对数，改变了期望目标本身。更紧的界也不自动等于更容易优化：不同参数的梯度信号、方差和计算预算都会变化，增加样本数是否提高最终模型质量需要实验判断。比较两个训练方案时，应把目标改变和单位更新成本改变分别记录。
+
+\subsection{模型评价需要回答哪些问题}
+重建评价使用 $x\to q(z\mid x)\to p_\theta(x\mid z)$，无条件生成评价使用 $p(z)\to p_\theta(x\mid z)$，二者必须分开。前者能借助输入选择有利代码，后者才直接检验先验生成分布。表示评价则关注编码结果是否服务于给定任务，例如冻结均值表示后训练一个小分类器；这种下游效果不能代替似然评价。对于具有已知类别或模式的合成数据，应同时检查各模式覆盖比例，避免只展示少数成功样本。
+
+负 ELBO 与负对数似然并不相同。有限样本的重要性估计也应附带采样数、随机重复和预处理协议。对真正离散的 $d$ 维观测，常将平均负对数概率除以 $d\log2$，得到每维比特数；若使用连续密度拟合离散像素，必须交代量化、去量化和相应密度尺度修正，不能把连续密度值直接称为离散编码长度。不同数据缩放、似然常数或维度归约会使数字不可直接比较。
+
+似然高也不自动意味着异常检测可靠。密度受到背景、纹理和观测维数等因素影响，高维典型样本未必位于最高密度处。若实际任务是发现异常，必须在与部署相符的正常、异常和分布变化样本上验证决策指标，而不能仅依据 VAE 的训练目标推断其异常识别能力。生成质量、密度拟合、重建精度和语义表示是相关但不同的评价维度，报告中应明确当前证据支持的是哪一种能力。
+
+\section{综合算例、练习与可复现实验路线}
+\label{sec:vae-exercises}
+
+\subsection{一次二维前向计算}
+\begin{example}[从编码器输出走到损失]
+设二值观测 $x=(1,0)^\mathsf T$，编码器给出 $\mu=(1,0)^\mathsf T$、$v=(\log0.25,\log4)^\mathsf T$，本次噪声样本为 $\varepsilon=(0.2,-0.5)^\mathsf T$。设解码器在对应潜变量处输出 Bernoulli 概率 $(0.8,0.3)^\mathsf T$。计算本次负 ELBO 估计，并说明哪些部分带有采样随机性。
+\end{example}
+\begin{solve}
+标准差是 $s=(0.5,2)^\mathsf T$，所以 $z=\mu+s\odot\varepsilon=(1.1,-1)^\mathsf T$。重建负对数概率为 $-\log0.8-\log0.7=-\log0.56\approx0.579818$。由式\eqref{eq:vae-diagonal-kl}，先验 KL 为 $\tfrac12[1+0.25-1-\log0.25+0+4-1-\log4]=1.625$，故本次损失估计约为 $2.204818$。噪声改变 $z$，从而通常改变解码概率和重建项；在输入与编码器参数固定时，解析 KL 不随本次噪声改变。该数值是单次估计，不是已经精确积分后的负 ELBO，更不是已知的真实负对数似然。
+\end{solve}
+
+\subsection{练习与解答}
+\begin{enumerate}
+ \item 设 $q=\mathcal N(2,4)$，$p=\mathcal N(0,1)$，计算两个方向的 KL，并解释为什么不能交换次序。\textbf{解答：}由式\eqref{eq:vae-gaussian-kl}，$D_{\mathrm{KL}}(q\Vert p)=\tfrac12(7-\log4)\approx2.806853$，反向为 $D_{\mathrm{KL}}(p\Vert q)=\tfrac12(\tfrac14+1-1+\log4)=\tfrac12(\tfrac14+\log4)\approx0.818147$。期望由不同分布加权，方差与均值差也按不同目标尺度衡量。
+ \item 在例题\ref{ex:vae-linear}中取 $a=2$、$\tau=1$、$x=3$，求真实后验及其到先验的 KL。\textbf{解答：}后验均值为 $6/5$，方差为 $1/5$；先验 KL 为 $\tfrac12[36/25+1/5-1-\log(1/5)]\approx1.124719$。若编码器恰好表示该后验，ELBO 等于 $\log\mathcal N(3;0,5)$，但这个先验 KL 仍不为零。
+ \item 为什么在编码器输出 $v=\log s^2$ 时使用 $z=\mu+e^v\varepsilon$ 是错误的？\textbf{解答：}该样本的方差是 $e^{2v}$，而目标分布要求 $e^v$。正确尺度为 $e^{v/2}$；即使使用正确的闭式 KL，也无法补救采样分布已经不一致的问题。
+ \item 若固定方差高斯解码器把 $\tau$ 从一改为二，保持其他设定不变，平方残差项系数如何变化？\textbf{解答：}从 $1/2$ 变为 $1/8$，即缩小为原来的四分之一；常数项从 $d\log(2\pi)/2$ 变为 $d\log(8\pi)/2$。训练梯度中的重建与 KL 权衡改变，因此它不只是生成图片时噪声更大。
+ \item 若每个样本的近似后验都等于同一个 $r(z)$，但 $r\ne p$，潜变量是否包含输入信息？\textbf{解答：}此时 $q(z)=r(z)$，故 $I_q(X;Z)=0$；平均先验 KL 等于 $D_{\mathrm{KL}}(r\Vert p)$，可以很大。它给出“KL 大不代表代码有信息”的具体反例。
+ \item 对同样的 $L$ 个正权重，比较 $L^{-1}\sum_\ell\log w_\ell$ 与 $\log(L^{-1}\sum_\ell w_\ell)$。\textbf{解答：}前者不大于后者，等号要求这些权重全部相同。前者是标准 ELBO 的样本平均估计，后者是 IWAE 目标的一次估计；两者都不能在每次抽样时被直接当作精确对数似然。
+ \item 若生成器忽略 $z$，即 $p_\theta(x\mid z)=r_\theta(x)$，真实后验是什么？\textbf{解答：}边缘密度为 $r_\theta(x)$，在其为正处，由贝叶斯公式 $p_\theta(z\mid x)=p(z)$。此时让编码器等于先验确实是精确推断，说明潜变量坍塌可能来自模型的使用方式，而不只是编码器算错了后验。
+\end{enumerate}
+
+\subsection{先验证已知答案，再研究复杂数据}
+第一阶段只研究例题\ref{ex:vae-linear}的一维模型。固定生成参数，用局部均值和对数方差最小化式\eqref{eq:vae-local-objective}，检查优化结果是否接近解析后验；再以固定噪声比较路径梯度与有限差分。改变观测噪声，检查后验均值与方差如何变化，并通过采样平均核对解析重建项。这个阶段有明确真值，能把概率公式、随机估计和优化程序分开验证，避免在复杂图像上凭感观判断正确性。
+
+第二阶段可使用已知混合比例的二维高斯混合数据。预先固定混合成分、样本量和数据划分，再比较普通自编码器与 VAE 的重建、先验采样、模式覆盖和潜在信息使用。普通自编码器若要生成，也必须明确其代码采样规则；否则双方比较的对象并不对等。可以逐项改变潜维数、KL 权重和解码方差，记录验证负 ELBO、每维 KL 与各模式比例。该阶段的目的不是证明一种模型必然优于另一种，而是找出观察变化与哪一项建模选择对应。
+
+第三阶段再使用真实图像，并提前决定其观测协议是固定二值化、随机二值化还是连续像素建模。保留固定的一组验证样本用于比较重建，同时另外生成固定数量的先验样本检查覆盖。每个实验应记录网络结构、数据范围、似然类型、损失归约、潜维数、训练更新次数、学习率、随机种子和选择规则。若比较 IWAE，额外记录训练与评估采样数；若比较带权目标，验证时最好同时计算相同定义的标准 ELBO，以免只比较不同标尺上的训练损失。
+
+\subsection{建立一条可反复检查的理解链}
+理解 VAE 时，可以沿同一条依赖链检查每个新变体：先写观测空间和联合概率，再明确真实后验为什么难算，接着写近似分布与变分目标，最后确定期望和梯度如何估计。遇到一个新损失，要能指出它来自哪一个归一化似然，还是有意加入的额外目标；遇到一个新采样步骤，要能指出它的分布与参数依赖；遇到一个更好的实验数字，要能说明评价的是密度、重建、表示还是条件生成。这样的检查比记住“重建损失加 KL”更能迁移到复杂模型。
+
+本文证明了基础变分分解、高斯 KL、路径梯度的条件性表达、平均 KL 的信息分解，以及多样本下界的单调性，并通过解析例题说明它们如何彼此核验。有关无监督解耦的一般可识别性、复杂模型的优化行为和特定训练技巧的经验表现，仍需在明确假设下查阅对应研究；它们没有因基础公式成立而自动得到保证。把已证明的数学关系、采用的建模假设、数值近似和经验观察分别说明，才能使 VAE 同时成为可以理解、实现和检验的方法。
+
+\begin{thebibliography}{99}
+\bibitem{kingma2014}
+Diederik P. Kingma and Max Welling.
+Auto-Encoding Variational Bayes.
+ICLR, 2014；预印本首次发表于 2013 年.
+\url{https://arxiv.org/abs/1312.6114}.
+
+\bibitem{kingma2019}
+Diederik P. Kingma and Max Welling.
+An Introduction to Variational Autoencoders.
+Foundations and Trends in Machine Learning, 12(4):307--392, 2019.
+\url{https://arxiv.org/abs/1906.02691}.
+
+\bibitem{cremer2018}
+Chris Cremer, Xuechen Li, and David Duvenaud.
+Inference Suboptimality in Variational Autoencoders.
+ICML, 2018.
+\url{https://arxiv.org/abs/1801.03558}.
+
+\bibitem{loaiza2019}
+Gabriel Loaiza-Ganem and John P. Cunningham.
+The continuous Bernoulli: fixing a pervasive error in variational autoencoders.
+NeurIPS, 2019.
+\url{https://arxiv.org/abs/1907.06845}.
+
+\bibitem{pytorchdocs}
+PyTorch Contributors.
+Probability distributions；binary\_cross\_entropy\_with\_logits.
+PyTorch 官方文档，访问日期：2026 年 10 月 3 日.
+\url{https://docs.pytorch.org/docs/stable/distributions.html}；
+\url{https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.binary_cross_entropy_with_logits.html}.
+
+\bibitem{locatello2019}
+Francesco Locatello et al.
+Challenging Common Assumptions in the Unsupervised Learning of Disentangled Representations.
+ICML, 2019.
+\url{https://arxiv.org/abs/1811.12359}.
+
+\bibitem{bowman2016}
+Samuel R. Bowman et al.
+Generating Sentences from a Continuous Space.
+CoNLL, 2016.
+\url{https://arxiv.org/abs/1511.06349}.
+
+\bibitem{higgins2017}
+Irina Higgins et al.
+$\beta$-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework.
+ICLR, 2017.
+\url{https://openreview.net/forum?id=Sy2fzU9gl}；
+作者页面：\url{https://www.matthey.me/publication/beta_vae/}.
+
+\bibitem{rezende2015}
+Danilo Jimenez Rezende and Shakir Mohamed.
+Variational Inference with Normalizing Flows.
+ICML, 2015.
+\url{https://arxiv.org/abs/1505.05770}.
+
+\bibitem{burda2016}
+Yuri Burda, Roger Grosse, and Ruslan Salakhutdinov.
+Importance Weighted Autoencoders.
+ICLR, 2016.
+\url{https://arxiv.org/abs/1509.00519}.
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,310 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
+
+% 支持从项目根目录、深度学习目录或本文件目录加载共享样式。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{大模型算法工程技术大纲}
+\author{}
+\date{2026年10月3日}
+
+\begin{document}
+\maketitle
+
+\section{评估对象、排序依据与选取口径}
+\label{sec:scope}
+
+本大纲依据用户提供的《算法工程师前沿技术.txt》整理；该文件自署标题为“LLM 算法工程师前沿技术能力地图（2026）”，更新时间为2026年8月27日。评估目标是建立可迁移的\keyterm{大语言模型（large language model, LLM）算法工程能力}，覆盖模型、数据、后训练、评测、检索、智能体及训练推理系统。本文评价的是学习投入优先级，不是论文创新程度、招聘数量或薪资排序；不把原文“必须掌握”“最值得求职”等判断直接当作已证实事实。这里给出后续学习和写作的技术大纲，列出的实现与实验均为验收任务，不代表已经完成。
+
+\textbf{排序标准。}综合比较四点：一是能否解释大量后续方法，即基础依赖性；二是能否跨任务、模型和框架复用，即通用性；三是对数据质量、结果可信度、稳定性、延迟和成本的直接影响，即工程价值；四是能否以合理的时间与算力完成可验证实验，即学习收益。先保障模型、数据、评测和可靠交付，再配置方向性深化。相邻名次是这些标准下的编辑判断，不具有统计显著性；不使用缺乏测量依据的精确分数。排序也不等于严格的先修顺序，例如直接偏好优化的投入优先级可以较高，推导时仍应补齐奖励模型和正则化目标的背景。
+
+\textbf{技术计数。}以具有独立问题、关键方法和验收目标的\keyterm{能力单元}计数，不按缩写、框架品牌、文中出现次数或原文全部编号章节计数。原文第1至70节为主要候选来源：第4节拆为语言建模、分词、数据治理、数据配比四项；第6节拆为数据并行、状态分片、张量并行、流水线并行、上下文并行五项，专家并行归入第3节；第10节拆为奖励模型和基于人类反馈的强化学习两项。第14节是推理模型总述，分配到相关后训练条目；第9与19节合并，第18与44节合并，第41与42节合并，第48至51节合并为服务调度，第63至65节合并为安全与执行隔离。第58节的量化、蒸馏分别并入相应条目，仅剪枝独立计数。第71节补入独立的训练框架能力，其他工具归入对应方法；第0节独有的世界模型、稀疏或混合架构另计两项。由此得到
+\[
+70+3+4+1-1-1-1-1-3-2+1+2=72
+\]
+个候选单元，选取前 $72\times75\%=54$ 项，暂缓18项。第72至82节的趋势、岗位、项目、面试、资料与学习建议用于交叉核查，不重复增加技术数量。因此，75\% 指归一化后的单元数量，并不表示覆盖原文75\%的字数或学习工作量。
+
+\textbf{组织方式。}第\ref{sec:core}至\ref{sec:advanced}节按重要性连续排列54项正式大纲，每项注明原文来源、优先理由、学习范围和可检查的产出。第\ref{sec:deferred}节只记录后18项的取舍，不把它们扩写为本轮学习大纲。原文中的数学分支、软件库和子算法按所属能力单元保留，避免通过细拆某一热门方向影响选取比例。基础数学只复习原文涉及且与后续方法有关的内容，完整理论可与现有《深度学习笔记》配合阅读。
+
+\section{第一层：通用基础与可靠交付}
+\label{sec:core}
+
+\begin{enumerate}[label=\arabic*.,series=techrank]
+\item \textbf{数学、概率与优化基础。}\label{tech:math}
+来源：原文第1节。它决定能否核查目标函数、张量形状和梯度，是后续技术中复用范围最大的基础。范围：矩阵乘法、特征值与奇异值分解（singular value decomposition, SVD）、低秩近似；条件概率、最大似然、熵、交叉熵、互信息、KL与JS散度；随机梯度下降、动量、Adam与AdamW、学习率调度、梯度裁剪。验收：推导交叉熵与最大似然的关系，说明KL的方向性，比较解耦权重衰减与把正则项加入梯度的不同。
+
+\item \textbf{PyTorch与模型训练工具链。}\label{tech:framework}
+来源：原文第0、71、75节。能够检查和修改训练过程，比记住多个框架接口更有长期价值。范围：张量运算、自动微分（automatic differentiation）、模型与优化器状态、数据加载、梯度清零、训练和评估模式；Transformers、Tokenizers、Datasets、PEFT及Accelerate的职责；TensorBoard或Weights \& Biases的实验记录。验收：不用高级Trainer完成一个最小训练循环，再与框架实现对齐损失、有效样本数、梯度和保存恢复结果。
+
+\item \textbf{可复现的工程与实验基础。}\label{tech:engineering}
+来源：原文第70、71节。训练、检索和智能体项目都需要可重跑、可定位故障的程序。范围：Python类型标注、配置、异步与多进程、性能分析和打包；Linux进程、日志及GPU监控；Git版本管理；Docker镜像、挂载及网络；必要的C++内存和并发概念。验收：从固定代码、数据、模型和依赖版本重跑实验，记录随机性、计算预算和失败日志；C++深入程度随系统方向增加，不将其与Python日常熟练度等同。
+
+\item \textbf{Transformer与现代解码器架构。}\label{tech:transformer}
+来源：原文第2节。该模块解释训练、长上下文和推理优化的共同计算对象。范围：自注意力（self-attention）、因果掩码、多头注意力、残差连接、前馈层、层归一化与均方根归一化；旋转位置编码（rotary position embedding, RoPE）、SwiGLU、分组查询注意力（grouped-query attention, GQA）及多查询注意力（multi-query attention, MQA）。验收：实现小型仅解码器模型，检查掩码及张量维度，解释缩放点积与序列长度对计算量的影响，比较不同KV头数的存储需求。
+
+\item \textbf{离线评测与基准实验设计。}\label{tech:evaluation}
+来源：原文第41、42节。无法可靠辨认改进时，更多训练或更复杂系统都可能成为无效投入。范围：任务定义、训练验证测试划分、污染检测、提示与解码配置控制、数学和代码基准、错误分类、重复运行及不确定性；区分格式合格、任务正确与用户偏好。验收：建立冻结测试集和简单基线，给出分任务指标、失败样本与可重跑配置；能说明结果适用范围，而非只报告一个总分。
+
+\item \textbf{训练数据治理与质量控制。}\label{tech:data}
+来源：原文第4.3、9.1节。数据错误会同时污染训练信号与评测结论，治理能力具有直接且广泛的收益。范围：精确去重、MinHash与局部敏感哈希（locality-sensitive hashing, LSH）、语言识别、文档和词元级过滤、个人身份信息（personally identifiable information, PII）处理、来源追溯、近重复及测试集污染。验收：形成可复现的数据处理流程，报告各阶段保留率、误删抽检、重复率和泄漏检查；阈值依据验证集确定。
+
+\item \textbf{分词器与对话序列化。}\label{tech:tokenizer}
+来源：原文第4.2、8节。分词和模板直接决定模型真正接收的输入与学习目标。范围：字节对编码（byte-pair encoding, BPE）、Unigram分词模型、字节级处理、词表及特殊词元；SentencePiece作为实现工具与分词算法的区别；对话模板（chat template）、起止标记、截断与多语言序列长度。验收：展示同一对话的文本、词元和角色边界，核对训练与服务模板一致，发现重复插入特殊词元、角色错位和结尾标记丢失。
+
+\item \textbf{自回归语言建模与预训练目标。}\label{tech:pretraining}
+来源：原文第4.1节。先理解模型学到什么，再区分预训练、继续预训练与后训练。范围：序列概率的条件分解、下一词元预测、标签移位、交叉熵、困惑度（perplexity）、有效词元归一化及训练推断差异。验收：手算短序列的负对数似然，与程序结果对齐；说明不同分词器下的词元级困惑度不能直接比较，并在小语料上完成一次继续预训练对照。
+
+\item \textbf{训练稳定性与显存核算。}\label{tech:stability}
+来源：原文第5节。该能力常常决定实验能否完成，也为分布式方案选择提供依据。范围：参数、梯度、优化器状态、激活与临时缓冲的显存；混合精度（mixed precision）、BF16与FP16、损失缩放、梯度累积、梯度裁剪、激活检查点（activation checkpointing）。验收：预测并测量一个训练任务的显存占用，定位一次非有限损失或显存溢出；解释累积步数、有效批量和损失归一化的关系，不把所有低精度训练都等同于必须使用损失缩放。
+
+\item \textbf{监督微调。}\label{tech:sft}
+来源：原文第8节。监督微调（supervised fine-tuning, SFT）是将数据转化为任务行为的基本工具，也是比较复杂后训练方法的必要基线。范围：指令和多轮对话数据、回答区域损失掩码、样本拼接（packing）、截断、数据混合、学习率与灾难性遗忘。验收：完成从数据到模型再到独立评测的流程；检查拼接后样本边界的掩码约定，对比只训练回答部分和训练全部词元的效果，并检测领域收益与通用能力退化。
+
+\item \textbf{LoRA与QLoRA参数高效微调。}\label{tech:peft}
+来源：原文第7节。参数高效微调（parameter-efficient fine-tuning, PEFT）降低实验门槛，适合先形成可靠训练闭环。范围：低秩适配（low-rank adaptation, LoRA）的秩、缩放、目标模块与合并；量化低秩适配（QLoRA）的冻结量化基座、NF4、双重量化和分页优化器。验收：手写线性层适配器，与全参数微调比较可训练参数、显存和效果；说明QLoRA的梯度流向与权重存储方式，不能把“4位基座”解释为全部训练运算均为4位。参见文献\cite{qlora}。
+
+\item \textbf{验证器与评分器工程。}\label{tech:grader}
+来源：原文第18、44节。验证器（verifier）和评分器（grader）的可靠性同时限制自动评测、合成数据筛选与强化学习。范围：答案提取、精确匹配、正则规则、单元测试、结构约束、工具状态验证、多维评分与人工抽检；区分结果错误、解析失败和环境故障。验收：先给评分器建立正常、边界及对抗样例集，估计误判；代码测试与数学答案匹配只是有限证据，不能自动证明程序全正确或完整推理过程正确。
+
+\item \textbf{指令数据合成与候选筛选。}\label{tech:synthetic}
+来源：原文第9、19节及第72.4节。高质量任务覆盖和反馈闭环通常比机械增加样本数更值得优先投入。范围：Self-Instruct、教师生成、难度与多样性控制、质量过滤、去重、迭代自训练；温度与核采样（top-p sampling）、多候选生成及拒绝筛选。验收：比较原始数据、未过滤合成数据和验证后数据，固定训练预算并记录生成成本。这里沿用行业所称拒绝采样，但按分数保留候选不自动具有经典概率拒绝采样的精确分布保证；训练数据筛选与推断时选择答案分开核算。
+
+\item \textbf{自回归推理与性能指标。}\label{tech:inference}
+来源：原文第46节。理解预填充（prefill）和逐词元解码（decode），才能定位服务优化应作用于哪一阶段。范围：贪心与随机采样、终止条件、批处理；首词元延迟（time to first token, TTFT）、词元间延迟（inter-token latency, ITL）、端到端延迟、吞吐量及峰值显存。验收：分别改变输入长度、输出长度与并发数，绘制性能变化并解释瓶颈；预填充偏计算、解码偏带宽是常见工作负载特征，不是与模型和批量无关的定律。
+
+\item \textbf{键值缓存与增量解码。}\label{tech:kv}
+来源：原文第47节及第2节。键值缓存（key--value cache, KV cache）连接模型架构、上下文长度和服务容量。范围：缓存的层、头、序列轴及数据类型，增量更新、位置编码、掩码和批量变长处理；GQA与MQA的影响。验收：实现有无缓存的两种解码，在容差内比较输出，并由层数、KV头数、头维度、有效序列长度和元素字节数估算存储。理解缓存避免重复投影，却没有消除新查询对历史键值的访问。
+
+\item \textbf{模型服务框架与部署测量。}\label{tech:serving}
+来源：原文第57、71节。至少熟练一个服务框架，比在多个框架中重复跑通默认示例更有用。范围：以vLLM或SGLang为主线学习模型加载、对话模板、请求队列、流式返回、超时、并发、日志、健康检查和适配器服务；按硬件与工作负载了解TensorRT-LLM。验收：部署固定模型，记录版本与配置，进行冷启动、稳定负载及过载测试；将框架功能开关对应到延迟、吞吐和显存的变化。官方功能入口见文献\cite{vllmfeatures}。
+
+\item \textbf{模型安全、工具权限与执行隔离。}\label{tech:safety}
+来源：原文第63至65节。该单元影响真实系统能否可靠使用，应该与工具开发同步学习。范围：提示注入（prompt injection）、越狱、数据泄漏、工具滥用；区分用户指令与检索或工具返回的不可信内容；最小权限、调用前校验、调用后处理、隔离沙箱（sandbox）、审计及失败恢复。验收：用受控测试验证越权参数、恶意网页内容和危险代码不会直接变成外部操作；知道模型自我审查和文本清洗不能替代权限及隔离边界。
+
+\item \textbf{工具调用与外部动作接口。}\label{tech:tool}
+来源：原文第23节。工具调用（tool calling）或函数调用（function calling）是智能体与环境连接的基础接口。范围：工具描述、参数模式、选择与参数生成、结果编码、异常、超时、重试、幂等性（idempotency）和动作日志。验收：实现搜索与一个受控写操作工具，覆盖错误参数、重复请求和部分成功；能区分模型生成调用建议、程序校验和实际执行三个阶段，并保证重试不会重复产生不可忽略的副作用。
+
+\item \textbf{结构化输出与约束解码。}\label{tech:structured}
+来源：原文第60节及第0节。它直接服务信息抽取、工具参数和工作流，故高于原文将其列作前沿加分项的位置。范围：JSON与模式约束（schema）、必填字段和枚举；语法约束、有限状态机（finite-state machine, FSM）及词元掩码；拒绝、截断和不支持的模式结构。验收：比较提示约束、生成后校验和生成时约束的格式合格率、任务正确率与延迟。结构合法只保证相应形式要求，仍需验证字段内容与权限。参见文献\cite{vllmstructured}。
+
+\item \textbf{智能体循环与状态控制。}\label{tech:agent}
+来源：原文第22节。智能体（agent）的关键是围绕环境反馈管理动作与状态，不是调用次数。范围：固定工作流（workflow）与动态决策的区别，观察、动作、工具结果、状态更新、任务成功条件、终止与预算、轨迹记录。验收：实现有明确状态和停止条件的单智能体，与固定工作流比较成功率、调用成本及恢复能力；测试循环、工具失败和信息不足的情形。系统复杂度应由实测需求推动，参见文献\cite{agents}。
+\end{enumerate}
+
+\section{第二层：检索、后训练与高效系统}
+\label{sec:main}
+
+\begin{enumerate}[resume=techrank]
+\item \textbf{检索增强生成的端到端流程。}\label{tech:rag}
+来源：原文第31节。检索增强生成（retrieval-augmented generation, RAG）将外部知识接入模型，适合作为知识更新与可追溯回答的基础方案。范围：文档解析、切分与元数据、索引更新、召回、上下文组装、答案生成和证据引用；访问权限和知识时效。验收：建立含可回答与不可回答问题的文档问答集，与无检索基线比较；能追溯每段答案所用的真实证据，并识别证据缺失时的编造。
+
+\item \textbf{检索与生成的分层评测。}\label{tech:rageval}
+来源：原文第40节。先定位召回、排序、证据选择还是生成出了问题，再选择优化手段。范围：相关性标注、Recall@K、Precision@K、平均倒数排名（mean reciprocal rank, MRR）、归一化折损累积增益（normalized discounted cumulative gain, NDCG）；正确性、忠实性、完整性和引用准确率。验收：给出相关证据集合与指标计算约定，增加理想证据输入的对照实验，分解检索失败与生成失败；没有完整相关性标注时说明召回率的估计边界。
+
+\item \textbf{稀疏检索与倒排索引。}\label{tech:sparse}
+来源：原文第32节。词法检索成本较低且便于解释，是标识符、数字和专业术语查询的重要基线。范围：词频与逆文档频率（TF-IDF）、BM25、分词、倒排表、文档长度归一化及领域词典；在Elasticsearch或OpenSearch等系统中实现。验收：建立包含专有名词、代码符号和数字的查询集，分析词法不匹配与同义表达失败，形成后续语义检索的可比较参照。
+
+\item \textbf{稠密检索与向量表示。}\label{tech:dense}
+来源：原文第33节。稠密检索（dense retrieval）补充语义匹配能力，其重点包括表示训练和索引误差。范围：双编码器（bi-encoder）、对比学习、批内负样本、难负样本、假负样本、向量归一化；近似最近邻（approximate nearest neighbor, ANN）检索，FAISS及Milvus、Qdrant等向量数据库的职责。验收：固定语料与评测集，分别测量编码器质量和ANN相对精确检索的召回损失；检查索引与编码器版本是否匹配。
+
+\item \textbf{混合检索与结果融合。}\label{tech:hybrid}
+来源：原文第34节。词法和语义信号具有互补机会，因此混合检索（hybrid retrieval）值得较早建立对照。范围：候选集合并、去重、倒数排名融合（reciprocal rank fusion, RRF）、加权分数融合及分数校准。验收：比较BM25、稠密检索及两者组合，在固定候选预算下分查询类型报告收益；融合参数用验证集选择，不假定任何组合必然优于最好的单一路线。方法背景见文献\cite{contextual}。
+
+\item \textbf{重排序与细粒度相关性建模。}\label{tech:reranker}
+来源：原文第35节。重排序器（reranker）可在有限候选集上投入更多计算，适合优化最终提供给生成器的证据。范围：交叉编码器（cross-encoder）、查询文档联合编码、重排序训练；ColBERT类后期交互（late interaction）及词元级匹配。验收：比较候选数、重排后证据数、质量和延迟，指出召回阶段漏掉的证据无法仅靠重排恢复；后期交互也可参与检索，不局限为交叉编码器的替代名称。
+
+\item \textbf{上下文工程与信息预算。}\label{tech:context}
+来源：原文第26、72.5节。上下文工程（context engineering）横跨RAG、对话和智能体，直接影响模型实际可用的信息。范围：指令、历史、证据、工具结果与任务状态的组织，相关性选择、压缩、摘要、时效清理和词元预算；区分压缩后的信息变化与缓存复用。验收：在固定上下文预算下比较全文堆入、相关性选择和摘要方案，检查关键约束、来源与否定信息是否丢失，并保留可追溯的原始记录。
+
+\item \textbf{直接偏好优化。}\label{tech:dpo}
+来源：原文第12节。直接偏好优化（direct preference optimization, DPO）是理解偏好数据如何改变策略的简洁入口。范围：优选与劣选回答、参考策略、隐式奖励、温度参数、序列对数概率、偏好损失及长度影响；从带KL正则的奖励优化目标理解其建模假设。验收：实现最小DPO损失，在同一SFT起点上对照训练，独立评估任务质量和偏好变化；不把无需单独训练显式奖励模型解释为无需可靠偏好数据。参见文献\cite{dpo}。
+
+\item \textbf{奖励模型与偏好数据。}\label{tech:reward}
+来源：原文第10.1节。奖励模型（reward model, RM）质量决定优化信号是否与真实目标一致，属于理解对齐方法的核心。范围：成对偏好、Bradley--Terry型目标、标注一致性、平局与噪声、分布外评分、奖励过度优化及奖励投机（reward hacking）。验收：构造成对样本，评估排序准确率与长度等混杂因素；用独立评测检查“奖励升高但真实质量下降”，不把奖励分数直接当作正确概率。
+
+\item \textbf{基于人类反馈的强化学习框架。}\label{tech:rlhf}
+来源：原文第10.2节。基于人类反馈的强化学习（reinforcement learning from human feedback, RLHF）提供反馈、策略、奖励和采样过程之间的统一视角。范围：提示与生成前缀作为状态，词元或工具动作，轨迹、回报、策略梯度；策略、价值模型、奖励模型与参考策略的职责，KL正则及在线样本分布。验收：画清各模块的数据流和梯度流，说明何者冻结、何者更新；RLHF是一类方法体系，经典SFT--RM--PPO流程是其中一条实现路线。OpenRLHF等工具作为实现载体了解，不单独增加方法数量。
+
+\item \textbf{在线策略优化：PPO与RLOO。}\label{tech:policy}
+来源：原文第11节及第13节中的RLOO。近端策略优化（proximal policy optimization, PPO）和带留一法基线的REINFORCE（REINFORCE leave-one-out, RLOO）有助于比较优势估计、方差和计算代价。范围：新旧策略概率比、裁剪目标、价值基线、KL约束、熵、轨迹复用；RLOO的组内留一基线。验收：在小任务上核对更新方向和掩码，比较等采样预算下的稳定性。PPO算法本身不必带固定参考模型；RLOO属于在线强化学习，不能与离线DPO变体混为一类。参见文献\cite{rloo}。
+
+\item \textbf{可验证奖励强化学习。}\label{tech:rlvr}
+来源：原文第14、16、72.1节。可验证奖励强化学习（reinforcement learning with verifiable rewards, RLVR）把可执行或可核对的任务反馈用于策略学习，是推理后训练的重要学习方向。范围：数学结果检查、程序测试、SQL执行及结构化任务；奖励稀疏性、难度分布、解析错误、验证器漏洞和预算。验收：先测评分器，再比较SFT、候选筛选与强化学习；区分任务成功和对评分规则的利用。RLVR按奖励来源分类，可以搭配不同优化器，并不等同于GRPO。参见文献\cite{r1}。
+
+\item \textbf{组相对策略优化与推理训练。}\label{tech:grpo}
+来源：原文第14、15节。组相对策略优化（group relative policy optimization, GRPO）值得掌握，但应在采样、奖励和策略优化基础上学习。范围：同题多回答、组内奖励基线、标准化优势、概率比、裁剪与KL项；全对或全错组、长度偏差、奖励尺度、采样与训练策略的差异。验收：手算一个小组的优势，完成最小训练；报告采样成本与验证器调用量，理解节省独立价值模型不代表总成本总是更低。实践在TRL或verl中选择一种训练实现。原始方法与工具变体分别见文献\cite{grpo,trlgrpo}，不将库默认配置当作唯一算法定义。
+
+\item \textbf{模型与推理行为蒸馏。}\label{tech:distillation}
+来源：原文第20节及第58节的蒸馏部分。知识蒸馏（knowledge distillation）把较强模型的能力迁移到更便宜的模型，是低成本实验和部署之间的连接。范围：回答、词元分布、推理轨迹、偏好和工具行为蒸馏；教师数据与学生自身采样数据，即离策略与同策略数据来源的区别。验收：比较只保留答案、保留推理轨迹和质量过滤后的训练，记录教师调用成本、学生效果与推理长度；长轨迹本身不保证教学价值或过程正确。
+
+\item \textbf{数据并行与梯度同步。}\label{tech:ddp}
+来源：原文第6.1、6.2节。数据并行（data parallelism, DP）是理解多GPU训练的第一步。范围：分布式数据并行（DistributedDataParallel, DDP）、数据分片、AllReduce、采样器、梯度同步与累积、有效批量和故障定位。验收：对齐单卡与多卡的有效批量及损失缩放，检查每轮数据覆盖；比较计算、通信和数据加载耗时，解释扩卡后吞吐未线性增加的原因。NCCL的基本集合通信在此引入，底层调优另列暂缓单元。
+
+\item \textbf{训练状态分片：FSDP与ZeRO。}\label{tech:fsdp}
+来源：原文第6.3节。完全分片数据并行（fully sharded data parallel, FSDP）与零冗余优化器（Zero Redundancy Optimizer, ZeRO）解决训练状态复制带来的显存约束。范围：优化器、梯度、参数的分片，参数聚合、梯度归约散发、通信重叠、检查点和卸载。验收：画出一个训练步的分片生命周期，比较显存、通信与吞吐；按实际PyTorch或DeepSpeed版本核对接口，不能把不同框架的所有模式与ZeRO阶段机械一一对应。参见文献\cite{fsdp}。
+
+\item \textbf{分页缓存与在线服务调度。}\label{tech:scheduling}
+来源：原文第48至51节。把缓存管理与请求调度一起学习，便于理解高并发服务的实际收益。范围：分页注意力（PagedAttention）、连续批处理（continuous batching）、前缀缓存（prefix caching）、分块预填充（chunked prefill）；内存碎片、请求进入退出和长短请求相互阻塞。验收：在相同请求轨迹下分别开关机制，比较吞吐、首词元和尾部延迟。前缀复用依赖一致的词元前缀、模型及相关状态；它减少可复用部分的预填充，不消除新词元的解码。参见文献\cite{vllmfeatures,prefix}。
+
+\item \textbf{FlashAttention与注意力访存优化。}\label{tech:flash}
+来源：原文第52节。理解其方法原理，有助于区分计算复杂度、访存量和真实运行时间。范围：分块、在线softmax、片上存储与高带宽显存之间的数据搬运、融合计算及反向重计算；不同实现的硬件前提。验收：对照朴素注意力检查数值容差、显存与时间，解释为什么精确稠密注意力的核心算术复杂度仍随序列长度二次增长。其“精确”针对数学运算目标，不要求不同浮点实现逐位相同。参见文献\cite{flash}。
+
+\item \textbf{权重与激活量化。}\label{tech:quantization}
+来源：原文第53节及第58节的量化部分。量化（quantization）与部署成本直接相关，应结合模型误差和硬件支持评估。范围：INT8、INT4、FP8与FP4的表达范围及精度，量化尺度、分组粒度、校准、异常值；GPTQ与AWQ的思路，权重单独量化和权重激活量化的区别。验收：固定模型、数据、批量和长度，对比质量、显存、吞吐与延迟；检查目标GPU和内核支持，不能仅依据位宽下降推断必然加速。实现支持以文献\cite{vllmquant}及实际版本为准。
+
+\item \textbf{模型评委与评测校准。}\label{tech:judge}
+来源：原文第43节。以LLM作为评委（LLM-as-a-Judge）能够扩展开放式评测，但其结果仍是有误差的测量。范围：评分量表、成对与绝对评分、位置偏差、冗长偏差、自我偏好、提示敏感性及相关错误。验收：交换回答位置、隐藏来源、与独立人工样本比较，报告一致性和主要分歧；将评委用于偏好或细分维度，不直接替代能执行的客观检查，也不只用训练奖励模型给自身改进作证。参见文献\cite{judge}。
+\end{enumerate}
+
+\section{第三层：方向深化与前沿连接}
+\label{sec:advanced}
+
+\begin{enumerate}[resume=techrank]
+\item \textbf{数据配比与训练课程。}\label{tech:mixture}
+来源：原文第4.4、72.4节。数据配比（data mixture）影响能力分布，值得在数据和评测可靠后系统优化。范围：领域采样率、样本与词元两种配比口径、重复曝光、课程学习（curriculum learning）、代理模型和消融。验收：固定总训练词元与预算比较配比，同时报告领域收益和其他能力损失；小模型或小预算结论只作为候选证据，大规模迁移需要另行验证。
+
+\item \textbf{推断时计算扩展与预算调度。}\label{tech:testtime}
+来源：原文第21、72.3节。推断时扩展（test-time scaling）把训练之外的计算投入变成可控变量。范围：自一致性（self-consistency）、最佳候选选择（best-of-N）、束搜索、树搜索、蒙特卡洛树搜索（Monte Carlo tree search, MCTS）式方法和验证器引导搜索，动态推理预算。验收：在等总生成词元、验证成本或时间预算下比较方法；区分多个样本中存在正确答案与系统实际选中正确答案，不把pass@k直接当作单次交付成功率。
+
+\item \textbf{在线评测与发布反馈。}\label{tech:online}
+来源：原文第45节。离线改善是否转化为真实收益，需要与实际任务、用户分布和系统约束相联系。范围：A/B测试、影子运行（shadow deployment）、小流量发布（canary release）、任务成功率、延迟、成本和反馈偏差。验收：设计流量分配、主要指标、观测窗口、回滚与停止条件，区分模型效果变化和流量构成变化；没有线上条件时先做日志回放，并明确回放不能证明真实线上收益。
+
+\item \textbf{张量并行与层内通信。}\label{tech:tp}
+来源：原文第6.4节。张量并行（tensor parallelism, TP）适用于单设备难以容纳或高效处理的模型层，工程价值随模型规模增加。范围：线性层行列切分、注意力头分配、聚合与归约、通信计算重叠，训练和服务中的不同约束。验收：在小矩阵上核对分片输出和梯度，再比较不同并行度的端到端性能；检查设备互联，不能把多卡显存之和当作没有通信代价的单一显存。
+
+\item \textbf{查询改写、扩展与分解。}\label{tech:query}
+来源：原文第36节。该类方法适合处理检索失败中可定位的表达或组合问题，优先级低于基础召回和评测。范围：查询改写、多查询、复杂问题拆解、假设文档嵌入（hypothetical document embeddings, HyDE）和结果去重。验收：按实体匹配、同义改写和多跳问题分别比较，计入额外模型调用成本；检查生成式改写引入的错误实体和假设，保留原始查询以避免语义漂移。
+
+\item \textbf{长上下文建模与有效利用。}\label{tech:longcontext}
+来源：原文第59节及第0节。长上下文（long context）是模型能力、训练分布与系统开销的联合问题。范围：位置外推、RoPE缩放、长序列继续训练、注意力与缓存开销；跨位置检索、证据组合、干扰信息和长度外推评测。验收：随长度和证据位置变化测量质量与成本，将长上下文直接输入与RAG比较；区分可接受的最大窗口、训练时见过的长度和实际有效利用信息的长度。
+
+\item \textbf{智能体记忆与持久状态。}\label{tech:memory}
+来源：原文第25节。记忆（memory）对长任务和跨会话系统有价值，但应先明确需要保存什么及何时失效。范围：对话、情节、语义与工作记忆，摘要、向量检索、键值记录和外部数据库；写入条件、来源、过期、删除与矛盾消解。验收：比较无记忆、完整历史和选择性记忆，检查任务收益、错误信息固化及跨任务污染；区分模型参数中的知识与外部可读写状态。
+
+\item \textbf{任务规划与失败恢复。}\label{tech:planning}
+来源：原文第27节。规划（planning）的价值需要通过长任务成功率和恢复成本验证。范围：推理与行动交替（ReAct）、先规划后执行（plan-and-execute）、层次分解、自我反思、检查点、部分完成、循环检测与预算控制。验收：设置工具超时、计划失效和中途重启场景，与简单反应式智能体对照；反思后的陈述须由环境或检查器验证，不能把自我肯定当作成功信号。
+
+\item \textbf{混合专家模型与专家并行。}\label{tech:moe}
+来源：原文第3、6.7、72.7节。混合专家模型（mixture of experts, MoE）连接条件计算与分布式系统，是模型结构的重点深化方向。范围：路由器、前若干专家选择、容量、负载均衡与辅助损失、专家坍塌；专家并行（expert parallelism, EP）和All-to-All通信。验收：实现小型稀疏专家层，区分总参数、激活参数、计算量和常驻显存；对照路由负载与通信开销，不把较少激活参数直接换算成固定倍数的速度提升。并行组织可参考文献\cite{megatron}。
+
+\item \textbf{推测解码与多词元候选。}\label{tech:speculation}
+来源：原文第55节及第0节。推测解码（speculative decoding）可减少目标模型串行调用，但收益依赖草稿代价、接受率和并发负载。范围：草稿生成、目标模型并行验证、接受拒绝和残差采样；EAGLE、多词元预测（multi-token prediction, MTP）及基于短语的候选机制。验收：先实现保持目标采样分布的基本方法，再比较接受率与端到端速度；MTP是多词元预测机制，本身不等同于完整且无分布偏差的推测解码系统。基本算法见文献\cite{speculative}。
+
+\item \textbf{模型上下文协议与工具互操作。}\label{tech:mcp}
+来源：原文第24节。模型上下文协议（Model Context Protocol, MCP）服务于应用与工具、数据源的标准化连接，优先级低于通用工具接口和权限模型。范围：宿主、客户端和服务器，工具、资源、提示模板，传输、身份验证、授权、能力发现与错误处理。验收：接入一个受限工具服务，检查权限、断连与协议版本兼容；区分连接协议、智能体策略和工具本身的正确性。具体接口按官方版本核对，参见文献\cite{mcp}。
+
+\item \textbf{代码模型与软件工程智能体。}\label{tech:coding}
+来源：原文第62节。代码任务提供可执行反馈，适合综合检验模型、检索、工具与评测能力，但仓库任务显著复杂于孤立函数生成。范围：代码预训练、填空补全（infilling）、仓库上下文、代码检索、补丁、测试反馈、隔离执行和回归。验收：在固定仓库版本上执行定位、修改、测试、修复循环，记录轨迹与预算；除了现有测试通过，还检查无关改动和隐藏测试，防止修改测试或绕过检查获得表面成功。
+
+\item \textbf{多模态模型基础与任务对齐。}\label{tech:multimodal}
+来源：原文第61节及第0节。多模态大模型（multimodal LLM）扩展任务范围，但各模态的数据与评测要求不同，宜在文本主线稳固后进入。范围：视觉Transformer（vision transformer, ViT）、视觉编码器、连接器、图文对齐、多模态指令数据、交错序列和视觉定位（visual grounding）；了解音频、视频和全模态（omni）扩展。验收：先完成可验证的图文任务，分析文字识别、空间关系和图像幻觉，不将图文实验的结论直接推广到音视频。
+
+\item \textbf{智能体强化学习与工具行为训练。}\label{tech:agentrl}
+来源：原文第29、72.2节。智能体强化学习（agent reinforcement learning, Agent RL）连接后训练与环境交互，研究空间较大，但环境和评测成本也高，因此放在正式大纲末端。范围：轨迹、部分可观测状态、工具动作、长时域奖励、信用分配、任务验证与环境重置。验收：先建立可重复的受控环境，比较固定工作流、提示智能体、轨迹SFT与强化学习，在相同交互预算下测未见任务；只有增益稳定且超过环境成本时再扩大训练。
+\end{enumerate}
+
+\section{后25\%：暂缓单元与重新纳入条件}
+\label{sec:deferred}
+
+下面18项延续同一重要性排序，仅作为取舍记录。暂缓指在通用能力建设阶段不独立展开，不表示技术无效；相关基础概念仍可作为前54项的必要背景。靠近边界的条目差距较小：选择专门岗位或研究问题后，应按瓶颈重新排序，而不是把本表当作永久价值判断。
+
+\begin{enumerate}[resume=techrank]
+\item \textbf{结果奖励与过程奖励建模（Outcome/Process Reward，原文第17节）。}\label{tech:process}
+结果验证已由第\ref{tech:grader}、\ref{tech:rlvr}项覆盖；独立结果奖励模型（ORM）、过程奖励模型（PRM）及步骤级监督的新增重点，在于标注成本、信用分配和可验证性。选择推理搜索或过程监督研究时，升至第\ref{tech:testtime}项之前；当前先验证可靠的结果反馈。
+
+\item \textbf{KV缓存量化（KV cache quantization，原文第54节）。}\label{tech:kvquant}
+面向长上下文和大并发有明确价值，但需要先掌握缓存、普通量化与误差测量；在缓存确实构成显存或带宽瓶颈时优先纳入，而非默认作为所有模型的第一种压缩方法。
+
+\item \textbf{GPU架构与CUDA编程（原文第67节）。}\label{tech:cuda}
+线程块、线程束、共享内存、合并访问与占用率对训练和推理系统岗位价值很高，通用算法岗的独立掌握成本较高。基础性能概念已融入推理与访存条目；确定要开发内核时，将该项提升为系统路线先修。
+
+\item \textbf{NCCL通信机制与专项调优（原文第69节）。}\label{tech:nccl}
+基本AllReduce、AllGather、ReduceScatter和All-to-All分别在分布式与MoE条目中学习；本项只计算深入通信拓扑、重叠与故障调优的额外能力。多机训练被通信限制时再独立展开，避免与第\ref{tech:ddp}项重复计数。
+
+\item \textbf{智能体式迭代检索（Agentic RAG，原文第38节）。}\label{tech:agenticrag}
+多轮证据检查与继续检索可处理复杂问题，也会引入调用成本和终止错误。先完成一次检索、查询变换及可靠评测；当剩余失败明确来自证据不足或多步组合时再纳入。
+
+\item \textbf{流水线并行（pipeline parallelism, PP，原文第6.5节）。}\label{tech:pp}
+微批、流水线气泡、一次前向一次反向（1F1B）及交错调度在大规模模型训练中重要。对小规模微调，其学习和系统复杂度通常应排在数据并行与状态分片之后；目标模型和集群需要跨设备分层时提前。
+
+\item \textbf{上下文并行（context parallelism, CP，原文第6.6节）。}\label{tech:cp}
+沿序列维切分长上下文计算，需要同时处理注意力依赖和跨设备通信。长序列训练已被激活或注意力开销限制时升为重点；仅扩大服务窗口不等于必须掌握完整CP训练实现。
+
+\item \textbf{Triton、自定义内核与LLM编译优化（原文第68节及第0节）。}\label{tech:kernel}
+融合算子、矩阵乘、注意力内核与编译优化属于性能实现能力，投入收益高度依赖硬件和真实瓶颈。先通过性能分析证明现有内核不能满足需求；推理系统方向应在CUDA基础后重点展开。
+
+\item \textbf{索引前上下文补全（Contextual Retrieval，原文第37节）。}\label{tech:contextual}
+为切块补充可追溯的文档上下文是具体检索改进策略\cite{contextual}，相较基础召回与重排序，适用面较窄。错误分析若表明主体、时间或章节语境缺失，再比较其收益与索引构建成本，不把生成的补充说明当作原文证据。
+
+\item \textbf{其他离线偏好优化方法（原文第13节，扣除RLOO）。}\label{tech:prefvariants}
+IPO、KTO、ORPO、SimPO等分别改变目标、反馈形式或参考策略处理，并非完全同类的可互换技巧。通用阶段先掌握DPO及可靠偏好数据；出现可定位的偏差、参考模型成本或数据形式问题后再比较，避免按缩写逐一复现。
+
+\item \textbf{预填充与解码分离服务（prefill--decode disaggregation，原文第56节）。}\label{tech:disaggregation}
+适合独立调度两阶段资源，但增加KV传输、网络与队列协调成本。只有集群规模和负载特征支持分离收益时，才比单池调度优化更优先；系统方向可在完成第\ref{tech:scheduling}项后提前。
+
+\item \textbf{图增强检索（Graph RAG，原文第39节）。}\label{tech:graphrag}
+实体关系与图结构可能改善特定多跳或全局分析任务，但构图、实体消歧、更新和检索均有成本。存在稳定关系数据且基础RAG不能满足需求时再纳入，不把图结构视为所有知识库的必要组成。
+
+\item \textbf{多智能体协作与多智能体学习（原文第28节及第0节）。}\label{tech:multiagent}
+角色分工、通信、交接和协商引入额外成本与错误传播；若进一步训练，还需处理多策略交互。先证明单智能体及固定工作流的限制，并在等预算下验证协作收益；多角色编排不自动构成多智能体强化学习。
+
+\item \textbf{计算机使用智能体（computer-use agent，原文第30节）。}\label{tech:computeruse}
+截图理解、界面定位与鼠标键盘操作依赖多模态能力，环境非确定性较强。只有目标任务缺乏稳定接口或确实要求图形界面时优先进入；通用阶段先完成工具接口清晰、可重置的环境。
+
+\item \textbf{其他稀疏或混合架构（sparse/hybrid architecture，原文第0节）。}\label{tech:hybridarch}
+此处排除已纳入的MoE，保留原文未进一步限定的其他结构方向。候选含义过宽，尚不足以形成统一实现或比较对象；明确结构、任务与稠密基线后再立专题，不能仅凭“新架构”提高排序。
+
+\item \textbf{机制可解释性（mechanistic interpretability，原文第66节）。}\label{tech:interpretability}
+探针、激活修补、因果追踪、回路和稀疏自编码器有研究价值，但对通用工程闭环的直接收益取决于问题。选择内部机制或因果干预研究时提高优先级，注意相关性探测与因果证据的区别。
+
+\item \textbf{结构化与非结构化剪枝（pruning，原文第58节）。}\label{tech:pruning}
+剪掉参数不保证现有硬件获得对应速度收益，且可能需要再训练恢复质量。先与量化、蒸馏及更小基座比较；只有稀疏内核或部署约束能利用剪枝结构时，再独立投入。
+
+\item \textbf{世界模型与环境模型（world/environment model，原文第0节）。}\label{tech:world}
+方向范围大，原文缺少明确状态、动作、预测目标和误差评价；在当前通用LLM工程目标下投入边界不清。若真实交互昂贵、需要模拟规划，并能验证模型误差对策略的影响，再确立具体研究专题。
+\end{enumerate}
+
+\section{按知识依赖实施的路线与综合验收}
+\label{sec:route}
+
+\textbf{公共主线。}先完成第\ref{tech:math}至\ref{tech:transformer}项的基本能力，再把第\ref{tech:evaluation}至\ref{tech:synthetic}项串成数据、训练、评分与误差分析流程；随后补齐第\ref{tech:inference}至\ref{tech:serving}项并部署模型。安全、工具和结构化输出在相关接口接入时同步完成。每轮实验固定基座、数据划分及评价协议，记录训练词元、模型调用、生成长度、显存和运行时间；更改多个因素时安排消融，不能仅凭最终分数归因。
+
+\textbf{后训练路线。}从SFT与PEFT进入奖励模型、RLHF基本目标和DPO，再学习PPO/RLOO、RLVR和GRPO；把合成数据、拒绝筛选与蒸馏作为必须比较的简单方案。综合验收是同一任务上比较SFT、DPO或RL、数据筛选三类改进，给出测试集质量、成本与奖励漏洞分析。推理训练研究可提前纳入第\ref{tech:process}项，但应先证明过程标注和评分可靠。
+
+\textbf{检索与智能体路线。}先完成RAG分层评测，再比较BM25、稠密检索、融合及重排序；加入查询变换时记录额外成本。智能体从工具协议、状态、终止和沙箱开始，再加入上下文、记忆、规划及MCP。综合验收是一个带证据引用的知识系统和一个可重放轨迹的工具系统，明确成功率、引用正确率、延迟及失败原因；有可靠执行反馈后再进入代码智能体或Agent RL。
+
+\textbf{训练与推理系统路线。}训练侧按稳定性、DDP、FSDP或ZeRO、TP、MoE逐步推进；服务侧按推理测量、KV缓存、调度、FlashAttention、量化与推测解码推进。综合验收使用同一模型和固定请求轨迹，报告满足指定延迟条件的吞吐、尾部延迟、显存与质量变化。明确以系统工程为目标时，将第\ref{tech:cuda}、\ref{tech:nccl}、\ref{tech:pp}、\ref{tech:cp}、\ref{tech:kernel}、\ref{tech:disaggregation}项按实际瓶颈提前，相应减少无关应用方向的投入。
+
+\textbf{最小成果组合。}不为54项各做一个孤立演示。可组织六个相互复用的成果：带KV缓存的小型Transformer；带数据治理和独立评测的SFT/PEFT实验；带奖励审计的偏好或可验证奖励训练；带召回与生成分层指标的RAG；带隔离、重试和轨迹评测的工具智能体；带等质量比较的服务优化报告。这些是验收载体，不增加技术计数。达到“能解释、能实现、能测量、能定位失败”后，再决定哪些方向值得扩写成研究专题。
+
+\section{技术边界与核对来源}
+\label{sec:sources}
+
+本次核对日期为2026年10月3日，采用原始论文与官方文档核对技术定义和实现边界。资料支持方法说明，不直接证明本文的优先级；排序由第\ref{sec:scope}节的目标与标准给出，也没有据此推算招聘热度。框架文档是动态入口，执行实验时须保存模型、库、内核及协议版本。原文给出的招聘链接与模型宣传性结论未作为排名依据，本文不复述未经本任务验证的求职回报或性能提升比例。
+
+几处分类尤其需要保持清楚：DPO、PPO、RLOO和GRPO是不同优化路径，RLHF、RLVR则按反馈来源和训练体系描述问题；SFT既可全参数训练，也可使用LoRA或QLoRA。智能体循环、MCP和多智能体协作分别属于控制过程、连接协议与系统组织方式。RAG是一条知识接入流程，检索器、重排序器和生成器应分开评估。格式合规、奖励高、测试通过和实际任务正确之间都需要明确的验证条件；前缀缓存、FlashAttention、量化及推测解码的收益也必须在指定模型、硬件和负载上测量。
+
+\begin{thebibliography}{99}
+\bibitem{dpo} Rafailov R, et al. Direct Preference Optimization: Your Language Model is Secretly a Reward Model. \url{https://arxiv.org/abs/2305.18290}.
+\bibitem{qlora} Dettmers T, et al. QLoRA: Efficient Finetuning of Quantized LLMs. \url{https://arxiv.org/abs/2305.14314}.
+\bibitem{grpo} Shao Z, et al. DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models. \url{https://arxiv.org/abs/2402.03300}.
+\bibitem{r1} DeepSeek-AI, et al. DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning. \url{https://arxiv.org/abs/2501.12948}.
+\bibitem{rloo} Hugging Face. TRL: RLOO Trainer. \url{https://huggingface.co/docs/trl/rloo_trainer}.
+\bibitem{trlgrpo} Hugging Face. TRL: GRPO Trainer. \url{https://huggingface.co/docs/trl/grpo_trainer}.
+\bibitem{fsdp} PyTorch. Fully Sharded Data Parallel, fully\_shard API. \url{https://docs.pytorch.org/docs/stable/distributed.fsdp.fully_shard.html}.
+\bibitem{megatron} NVIDIA. Megatron Core: Parallelism Strategies Guide. \url{https://docs.nvidia.com/megatron-core/developer-guide/latest/user-guide/parallelism-guide.html}.
+\bibitem{flash} Dao T, et al. FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness. \url{https://arxiv.org/abs/2205.14135}.
+\bibitem{speculative} Leviathan Y, et al. Fast Inference from Transformers via Speculative Decoding. \url{https://arxiv.org/abs/2211.17192}.
+\bibitem{judge} Zheng L, et al. Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. \url{https://arxiv.org/abs/2306.05685}.
+\bibitem{contextual} Anthropic. Contextual Retrieval. \url{https://www.anthropic.com/engineering/contextual-retrieval}.
+\bibitem{agents} Anthropic. Building Effective Agents. \url{https://www.anthropic.com/engineering/building-effective-agents}.
+\bibitem{mcp} Model Context Protocol. Architecture Overview. \url{https://modelcontextprotocol.io/docs/learn/architecture}.
+\bibitem{vllmfeatures} vLLM. Features. \url{https://docs.vllm.ai/en/stable/features/}.
+\bibitem{prefix} vLLM. Automatic Prefix Caching. \url{https://docs.vllm.ai/en/stable/features/automatic_prefix_caching/}.
+\bibitem{vllmstructured} vLLM. Structured Outputs. \url{https://docs.vllm.ai/en/stable/features/structured_outputs/}.
+\bibitem{vllmquant} vLLM. Quantization. \url{https://docs.vllm.ai/en/stable/features/quantization/}.
+\end{thebibliography}
+
+\end{document}

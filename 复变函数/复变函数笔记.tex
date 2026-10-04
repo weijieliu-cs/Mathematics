@@ -1,0 +1,1972 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexbook}
+
+% 支持从项目根目录或本笔记目录读取共享样式。
+\makeatletter
+\def\input@path{{../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{复变函数笔记}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\chapter{绪论：从实变量走向复变量}
+\label{chap:cv-intro}
+
+\section{为什么学习复变函数}
+
+在实数范围内，方程 $x^2+1=0$ 没有解。引入满足 $i^2=-1$ 的虚数单位后，这个方程有了两个解 $i$ 与 $-i$，但复数的意义远不止于补齐代数方程的解。复数把平面上的两个实坐标组织成一个数，使伸缩、旋转、振荡等现象能够用统一的运算表示。研究复变量函数，也就是研究从复平面的一部分到复平面的映射，可以同时看到代数、几何与微积分之间的联系。
+
+\keyterm{复变函数论（complex function theory）}的一个核心问题是：把实微积分中的自变量换成复数后，哪些结论仍然成立，哪些结论变得更强？例如，实函数 $x\mapsto x^2$ 的导数由沿实轴的差商决定，而复函数 $z\mapsto z^2$ 的导数要求从平面上任意方向趋近都得到同一个结果。这个要求看起来只改变了极限的取法，却会带来很强的约束：一个函数只要在一个开集内处处复可导，就自动有任意阶导数，并且在每一点附近等于自己的泰勒级数。实函数通常没有这样的性质。
+
+另一个贯穿课程的问题是内部与边界的关系。对适当的复函数，知道一条闭曲线上的函数值，就能用积分恢复曲线内部的函数值；闭路积分往往只由少数奇点附近的一个系数决定。因此，复变函数既是一门研究函数结构的理论，也提供了计算实积分、判断多项式根的个数、求解平面边值问题的工具。学习时应把公式理解为结构的结果，尤其要辨认定义域、路径方向与奇点位置。
+
+\section{先修知识与全书路线}
+
+本书面向学过一元微积分和多元微积分基础的本科生，默认读者熟悉数列极限、偏导数、全微分以及实函数的幂级数。区域、曲线、一致收敛等概念会在使用前说明。正文以单复变量为范围，采用“问题动机、定义、基本结论、证明、例题、习题”的组织方式；不以抽象拓扑和测度论为先修要求。少数涉及平面拓扑的推广会明确标为证明思路，不能把它们当作已经给出的完整拓扑证明。
+
+全书的学习路线如下。第\ref{chap:cv-plane}章建立复数运算和复平面的几何语言；第\ref{chap:cv-derivative}章解释复导数与柯西--黎曼方程；第\ref{chap:cv-elementary}章讨论指数、对数与幂函数，重点辨析多值性和分支。第\ref{chap:cv-integral}章引入曲线积分，第\ref{chap:cv-cauchy}章建立柯西积分理论。第\ref{chap:cv-series}章由积分公式推出幂级数、唯一性和极值性质；第\ref{chap:cv-laurent}章研究洛朗展开与奇点；第\ref{chap:cv-residue}章用留数计算复积分和实积分。第\ref{chap:cv-counting}章讨论零点计数，第\ref{chap:cv-conformal}章讨论共形映射，第\ref{chap:cv-harmonic}章把全纯函数与调和函数、圆盘边值问题联系起来。
+
+这条路线也规定了证明的依赖关系：先用差商定义全纯性，再建立积分理论，最后证明全纯函数可以展开为幂级数。初学时不宜反过来把“全纯函数可以展开”当作柯西定理的前提。每章习题分为基本计算、概念辨析和证明训练，附录提供对应解答或关键步骤。阅读例题时，建议先判断可用定理的条件，再进行代数运算；一个算得很熟的公式，如果用在错误的区域上，仍然会给出错误的结果。
+
+\section{常用记号与阅读约定}
+
+用 $\mathbb R$、$\mathbb C$ 分别表示实数集、复数集。写 $z=x+iy$ 时，默认 $x,y\in\mathbb R$；写 $f=u+iv$ 时，$u,v$ 是相应的实值函数。以 $D$ 表示区域，即非空的连通开集；以
+\[
+ B(a,r)=\{z\in\mathbb C:|z-a|<r\},\qquad
+ \mathbb D=B(0,1),\qquad \mathbb H=\{z:\operatorname{Im}z>0\}
+\]
+表示开圆盘、单位圆盘和上半平面，其中 $r>0$。闭圆盘记为 $\overline{B(a,r)}$。曲线积分默认沿分段连续可微曲线进行，圆周的正向为逆时针方向。记号 $\oint$ 用来强调路径闭合，并不自动说明方向，方向仍由正文约定。
+
+本书用“全纯”表示开集上处处复可导；用“解析”表示局部可由收敛幂级数表示。在证明二者等价以后，可将它们作为同义术语使用。未特别说明时，函数均为单值函数；$\arg z$ 和 $\log z$ 这样的多值记号表示一组可能的值，必须选定分支后才能按普通函数进行微分和积分。
+
+\chapter{复数与复平面的几何}
+\label{chap:cv-plane}
+
+\section{复数的运算、共轭与模}
+
+\begin{definition}[复数与共轭]
+形如 $z=x+iy$ 的数称为\keyterm{复数（complex number）}，其中 $i^2=-1$。$x$ 为实部，$y$ 为虚部，分别记作 $\operatorname{Re}z$、$\operatorname{Im}z$；虚部是实数 $y$，不是 $iy$。复数 $\overline z=x-iy$ 称为 $z$ 的\keyterm{共轭（conjugate）}。
+\end{definition}
+
+两个复数相等，当且仅当实部、虚部分别相等。加法按分量进行，乘法按分配律展开后使用 $i^2=-1$：
+\[
+ (x+iy)(u+iv)=(xu-yv)+i(xv+yu).
+\]
+因此，复数可以作为平面向量相加，但乘法包含了普通二维向量没有的额外结构。除法可借助共轭把分母化成实数；当 $u+iv\ne0$ 时，
+\[
+ \frac{x+iy}{u+iv}
+ =\frac{(x+iy)(u-iv)}{u^2+v^2}
+ =\frac{xu+yv}{u^2+v^2}+i\frac{yu-xv}{u^2+v^2}.
+\]
+
+\begin{definition}[模与距离]
+$z=x+iy$ 的\keyterm{模（modulus）}定义为 $|z|=\sqrt{x^2+y^2}$。复平面中两点 $z,w$ 的距离为 $|z-w|$。特别地，$z\overline z=|z|^2$，故非零复数的倒数为 $z^{-1}=\overline z/|z|^2$。
+\end{definition}
+
+共轭与四则运算相容，例如 $\overline{zw}=\overline z\,\overline w$；模满足 $|zw|=|z||w|$。后一个等式说明模把复数乘法转化为非负实数乘法。另一方面，模不能与加法直接交换，正确的关系是下面的不等式。
+
+\begin{proposition}[三角不等式]
+对任意 $z,w\in\mathbb C$，
+\begin{equation}
+ |z+w|\le |z|+|w|,\qquad
+ \bigl||z|-|w|\bigr|\le |z-w|.
+ \label{eq:cv-triangle}
+\end{equation}
+\end{proposition}
+\begin{proof}
+由 $\operatorname{Re}(z\overline w)\le|z\overline w|=|z||w|$，有
+\[
+ |z+w|^2=|z|^2+2\operatorname{Re}(z\overline w)+|w|^2
+ \le(|z|+|w|)^2.
+\]
+两边开平方得到第一个不等式。将它应用于 $z=(z-w)+w$，得到 $|z|-|w|\le|z-w|$；交换 $z,w$ 后再合并即得第二个不等式。
+\end{proof}
+
+几何上，第一个不等式就是三角形的两边之和不小于第三边；当两个非零向量 $z,w$ 同向时取等号。估计复杂表达式时，先用三角不等式把各项拆开，再使用模的乘法性质，通常比先分离实部与虚部更简洁。
+
+\begin{example}[从复数方程读出几何轨迹]
+求满足 $|z-1|=|z+1|$ 的点集，以及满足 $|z-1|<|z+1|$ 的点集。
+\end{example}
+\begin{solve}
+令 $z=x+iy$。平方后分别比较 $(x-1)^2+y^2$ 与 $(x+1)^2+y^2$，等式给出 $x=0$，严格不等式给出 $x>0$。前者是线段 $[-1,1]$ 的垂直平分线，后者是到 $1$ 比到 $-1$ 更近的右半平面。距离表达式同时提供了代数算法和几何解释。
+\end{solve}
+
+\section{极形式、辐角与开方}
+
+非零复数 $z$ 可以写成 $z=r(\cos\theta+i\sin\theta)$，其中 $r=|z|>0$。此时 $\theta$ 称为 $z$ 的\keyterm{辐角（argument）}；同一复数对应的全部辐角为 $\theta+2k\pi$，$k\in\mathbb Z$。记 $\arg z$ 为这组值，记 $\operatorname{Arg}z\in(-\pi,\pi]$ 为辐角主值。零没有辐角。主值区间只是约定，它在负实轴处存在跳跃，并不是整个去心平面上的连续函数。
+
+暂把 $\cos\theta+i\sin\theta$ 简记为 $e^{i\theta}$；第\ref{chap:cv-elementary}章会从复指数的定义解释这个记号。由实三角函数的加法公式，
+\[
+ r_1e^{i\theta_1}r_2e^{i\theta_2}
+ =r_1r_2e^{i(\theta_1+\theta_2)}.
+\]
+所以，乘以一个非零复数，相当于先按其模伸缩，再按其辐角旋转。例如乘以 $i$ 使平面逆时针旋转 $\pi/2$，乘以 $-1$ 使平面旋转 $\pi$。除法则使模相除、辐角相减；辐角的等式应按模 $2\pi$ 理解，不能直接把主值当成普通实数相加。
+
+\begin{proposition}[棣莫弗公式与复数的根]
+若 $z=re^{i\theta}\ne0$，$n$ 为正整数，则
+\[
+ z^n=r^ne^{in\theta},\qquad
+ w^n=z\quad\Longleftrightarrow\quad
+ w=r^{1/n}e^{i(\theta+2k\pi)/n},\quad k=0,1,\ldots,n-1.
+\]
+这 $n$ 个根两两不同，位于以原点为中心、半径为 $r^{1/n}$ 的圆周上，相邻辐角相差 $2\pi/n$。
+\end{proposition}
+\begin{proof}
+第一式由乘法的极形式反复使用得到。若 $w=\rho e^{i\varphi}$，等式 $w^n=z$ 等价于 $\rho^n=r$ 以及 $n\varphi-\theta\in2\pi\mathbb Z$。将整数按模 $n$ 分类便得到所列的根；两个不同的 $k\in\{0,\ldots,n-1\}$ 不会给出相差 $2\pi$ 的辐角。
+\end{proof}
+
+\begin{example}[四次根与根的对称性]
+求 $w^4=-16$ 的全部解。
+\end{example}
+\begin{solve}
+写成 $-16=16e^{i\pi}$，得
+\[
+ w=2e^{i(\pi/4+k\pi/2)},\quad k=0,1,2,3.
+\]
+对应的直角坐标形式是 $\sqrt2(1+i)$、$\sqrt2(-1+i)$、$\sqrt2(-1-i)$、$\sqrt2(1-i)$。它们构成正方形。这里“求全部根”与“选定一个根函数”是不同的问题：前者给出有限集合，后者还要考虑随 $z$ 变化时能否连续选择。
+\end{solve}
+
+单位根 $\omega_k=e^{2k\pi i/n}$ 是以后处理对称性的常用工具。当 $n\ge2$ 时，它们的和为零：令 $\omega=e^{2\pi i/n}\ne1$，有限等比求和给出 $1+\omega+\cdots+\omega^{n-1}=0$。这是代数等式，也反映了正多边形各顶点向量的相互抵消。
+
+\section{邻域、区域与连通性}
+
+学习复函数时，定义域的形状会直接影响积分和分支的存在。为了准确表达“点的附近”和“区域中有孔洞”，需要一些平面集合的基本语言。
+
+\begin{definition}[开集、边界与区域]
+若集合 $U$ 中每一点 $a$ 都有一个圆盘 $B(a,r)$ 完全包含于 $U$，则 $U$ 为\keyterm{开集（open set）}。若 $a$ 的每个圆盘同时与集合 $E$ 及其补集相交，则 $a$ 为 $E$ 的边界点，全部边界点组成 $\partial E$。集合的闭包 $\overline E$ 由集合及其全部极限点组成。不能分成两个非空、互不相交的相对开集的集合称为连通集；非空连通开集称为\keyterm{区域（domain）}。
+\end{definition}
+
+在复平面中，开集连通当且仅当其中任意两点都可以用完全位于该开集内的折线连接。这里强调开集，是因为一般集合的连通性与路径连通性不必相同。对本课程的大多数计算，可以把区域理解为“允许在内部连续移动而不必跳跃的开集”。例如圆盘、半平面和圆环 $\{r<|z|<R\}$ 都是区域；两个不相交圆盘的并是开集，却不是区域。
+
+集合紧致（compact），在复平面中等价于闭且有界。连续函数在非空紧集上有界并达到最大值和最小值；紧集的开覆盖可以取有限子覆盖。这些实分析结论可通过 $\mathbb C\cong\mathbb R^2$ 使用。以后选取“围住一个点且仍在定义域内的小圆”依靠开性，而从局部估计得到统一控制常常依靠紧性。
+
+\begin{definition}[简单闭曲线与单连通区域]
+除首尾相同外没有自交的连续闭曲线称为\keyterm{简单闭曲线（simple closed curve）}。一个区域中每条连续闭曲线都能在区域内连续收缩为一点，称该区域为\keyterm{单连通区域（simply connected domain）}。收缩过程中不能越过定义域外的点。
+\end{definition}
+
+圆盘与半平面是单连通区域：可沿线段将每一点向一个固定内点收缩。圆环和去心平面 $\mathbb C\setminus\{0\}$ 不是单连通的，因为围绕原点一周的曲线无法在避开原点的条件下缩为一点。“没有孔洞”是有用的直观解释，但具体应用仍应核查所用区域和路径。
+
+本书引用平面拓扑中的若当曲线定理：简单闭曲线把平面分为有界的内部和无界的外部，曲线是二者的共同边界。其拓扑证明不在本书范围内。对分段光滑简单闭曲线，正向指沿曲线前进时内部位于左侧；多边形和圆周都是典型例子。
+
+\section{扩充复平面与无穷远点}
+
+有时需要统一处理 $z\to\infty$ 和有限点附近的行为。为此引入\keyterm{扩充复平面（extended complex plane）} $\widehat{\mathbb C}=\mathbb C\cup\{\infty\}$。这里的 $\infty$ 是一个新点，不是可以任意参与四则运算的复数。邻域 $\{|z|>R\}\cup\{\infty\}$ 描述这个点附近的范围，而局部坐标 $\zeta=1/z$ 把无穷远点对应为 $\zeta=0$。
+
+例如 $f(z)=z^2$ 在无穷远点附近的性质，应通过 $f(1/\zeta)=\zeta^{-2}$ 在零点附近的性质理解；$f(z)=1/z$ 则通过 $f(1/\zeta)=\zeta$ 理解。扩充复平面可以通过球极投影表示成球面，称为黎曼球面（Riemann sphere）。本书只使用这一模型所提供的直观：向任意方向满足 $|z|\to\infty$，都趋向球面上的同一个点。
+
+\section{习题}
+\label{sec:cv-plane-ex}
+\begin{enumerate}
+ \item 计算 $(1+2i)/(2-i)$，并求其模；说明结果为什么与模的商一致。
+ \item 求 $z^3=8i$ 的全部根，写出极形式，并解释根之间的角度关系。
+ \item 将 $|z-1|=2|z+1|$ 化为实坐标方程，指出其圆心与半径。
+ \item 设 $|z|=|w|=1$ 且 $z+w\ne0$，证明 $(z-w)/(z+w)$ 为纯虚数。
+ \item 判断 $\{\operatorname{Re}z>0\}$、$\{0<|z|<1\}$、$\mathbb C\setminus(-\infty,0]$ 是否为单连通区域，并说明理由。
+\end{enumerate}
+
+\chapter{复导数与全纯函数}
+\label{chap:cv-derivative}
+
+\section{复函数、极限与连续性}
+
+一个复函数 $w=f(z)$ 可以拆成两个实函数：
+\[
+ f(x+iy)=u(x,y)+iv(x,y).
+\]
+例如 $f(z)=z^2$ 对应 $u=x^2-y^2$、$v=2xy$；$f(z)=\overline z$ 对应 $u=x$、$v=-y$。前者把一个点的辐角加倍，后者把复平面关于实轴反射。把复函数只看成两个实函数有助于计算，但会暂时遮住复数乘法带来的结构。
+
+\begin{definition}[复极限]
+设 $a$ 为函数定义域的聚点。若对任意 $\varepsilon>0$，存在 $\delta>0$，使定义域内满足 $0<|z-a|<\delta$ 的点都有 $|f(z)-L|<\varepsilon$，就称 $f(z)$ 在 $z\to a$ 时趋于 $L$，记为 $\lim_{z\to a}f(z)=L$。若 $f$ 在 $a$ 有定义且极限等于 $f(a)$，则称 $f$ 在 $a$ 连续。
+\end{definition}
+
+复极限存在等价于实部和虚部的二元函数极限都存在。必须允许所有方向、所有曲线的趋近；沿两条路径得到不同值，可以否定极限，沿若干条路径得到同值却一般不能证明极限。例如实函数 $xy/(x^2+y^2)$ 沿两条坐标轴趋于零，沿 $y=x$ 却趋于 $1/2$。这一点在检查复导数时尤其重要。
+
+\section{复可导比实可微多要求了什么}
+
+\begin{definition}[复导数与全纯性]
+设 $f$ 在 $a$ 的一个邻域内有定义。如果有限极限
+\begin{equation}
+ f'(a)=\lim_{h\to0}\frac{f(a+h)-f(a)}{h}
+ \label{eq:cv-derivative}
+\end{equation}
+存在，则称 $f$ 在 $a$ \keyterm{复可导（complex differentiable）}。若 $f$ 在开集 $U$ 的每一点都复可导，则称 $f$ 在 $U$ \keyterm{全纯（holomorphic）}。在整个 $\mathbb C$ 上全纯的函数称为\keyterm{整函数（entire function）}。
+\end{definition}
+
+式\eqref{eq:cv-derivative}中 $h$ 是复数，可以沿任意方向趋于零。等价地，存在复数 $c$ 使
+\begin{equation}
+ f(a+h)=f(a)+ch+o(|h|),\qquad h\to0,
+ \label{eq:cv-linearization}
+\end{equation}
+此时 $c=f'(a)$。这里 $o(|h|)$ 表示余项除以 $|h|$ 后趋于零。因而复可导蕴含连续；更重要的是，一阶近似只能是“乘以同一个复数”，不能是任意实线性变换。
+
+\begin{example}[三个外形简单但性质不同的函数]
+讨论 $z^2$、$\overline z$ 和 $|z|^2$ 的复可导性。
+\end{example}
+\begin{solve}
+对 $z^2$，差商为 $2a+h$，故处处可导且导数为 $2a$。对 $\overline z$，差商为 $\overline h/h$：沿实轴取值 $1$，沿虚轴取值 $-1$，故处处不可导。对 $|z|^2$，有
+\[
+ \frac{|a+h|^2-|a|^2}{h}
+ =\overline a+a\frac{\overline h}{h}+\overline h.
+\]
+沿实轴与虚轴的极限分别为 $\overline a+a$ 和 $\overline a-a$，二者相等要求 $a=0$。在 $a=0$ 时差商恰为 $\overline h\to0$，故只在原点可导。这说明“在一点可导”不等于“在该点附近全纯”；$|z|^2$ 不在任何非空开集上全纯。
+\end{solve}
+
+复导数的线性、乘积、商与链式法则和实导数相同，证明也由差商和极限法则得到。例如，若 $f$ 在 $a$ 可导，$g$ 在 $f(a)$ 可导，则 $(g\circ f)'(a)=g'(f(a))f'(a)$。商法则要求分母在所考察点不为零。因此，多项式是整函数，有理函数在分母不为零处全纯。一个有理表达式在分母为零处是否能延拓，要另行检查约分后的行为。
+
+\section{柯西--黎曼方程：必要条件与充分条件}
+
+设 $f=u+iv$ 在 $a=x_0+iy_0$ 复可导。沿实方向取差商，得到 $f'(a)=u_x+iv_x$；沿虚方向取差商，得到 $f'(a)=v_y-iu_y$。比较实部与虚部，必有
+\begin{equation}
+ u_x=v_y,\qquad u_y=-v_x.
+ \label{eq:cv-cr}
+\end{equation}
+这组关系称为\keyterm{柯西--黎曼方程（Cauchy--Riemann equations）}，简称 C--R 方程。它们表达了水平方向与竖直方向的一阶变化必须彼此相容。
+
+\begin{theorem}[复可导的实微分判别]
+\label{thm:cv-cr}
+函数 $f=u+iv$ 在 $a$ 复可导，当且仅当 $u,v$ 在 $(x_0,y_0)$ 实可微且满足 C--R 方程。特别地，若 $u,v$ 的一阶偏导数在 $a$ 的邻域存在，并在 $a$ 连续，且在 $a$ 满足 C--R 方程，则 $f$ 在 $a$ 复可导。
+\end{theorem}
+\begin{proof}
+若 $f$ 复可导，式\eqref{eq:cv-linearization}给出实可微性，并已推出 C--R 方程。反之，实可微性给出
+\[
+ f(a+h)-f(a)
+ =(u_x+iv_x)\Delta x+(u_y+iv_y)\Delta y+o(|h|),
+ \quad h=\Delta x+i\Delta y.
+\]
+由 C--R 方程，$u_y+iv_y=i(u_x+iv_x)$，故主部等于 $(u_x+iv_x)h$。除以 $h$ 后余项的模趋于零，于是 $f'(a)=u_x+iv_x$。最后的充分条件来自实分析中“偏导数在该点连续蕴含实可微”的定理。
+\end{proof}
+
+需要特别区分两个层次：C--R 方程配合实可微性，是一点复可导的充要条件；若只知道该点偏导数存在并满足方程，则一般不够，因为它们只控制沿坐标轴的变化。判断区域上全纯时，常用做法是先检查 $u,v$ 在整个区域为 $C^1$，再逐点验证 C--R 方程。
+
+\begin{example}[只验证偏导数为什么不够]
+定义
+\[
+ f(x+iy)=
+ \begin{cases}
+ \dfrac{x^3}{x^2+y^2}+i\dfrac{y^3}{x^2+y^2},&(x,y)\ne(0,0),\\
+ 0,&(x,y)=(0,0).
+ \end{cases}
+\]
+证明它在原点连续且满足 C--R 方程，但不复可导。
+\end{example}
+\begin{solve}
+实部的模不超过 $|x|$，虚部的模不超过 $|y|$，所以 $|f(z)|\le|z|$，原点连续。沿坐标轴求偏导得 $u_x=v_y=1$、$u_y=v_x=0$。然而沿 $y=0$ 有 $f(z)/z=1$，沿 $y=x\ne0$ 有 $f(z)=z/2$，故差商没有统一极限。这一反例也说明连续性不能代替实可微性。
+\end{solve}
+
+\begin{example}[判断一个函数在哪里全纯]
+设 $f(z)=x^2-y^2+i\alpha xy$，其中 $\alpha\in\mathbb R$。求其复可导点，并判断何时为整函数。
+\end{example}
+\begin{solve}
+分量是多项式，实可微性自动成立。C--R 方程为 $(2-\alpha)x=0$、$(\alpha-2)y=0$。若 $\alpha=2$，则 $f=z^2$，为整函数；若 $\alpha\ne2$，则只在原点可导，导数为零，并不在任何区域上全纯。
+\end{solve}
+
+\section{导数的几何意义与调和性预告}
+
+若 $f'(a)=\rho e^{i\theta}\ne0$，则一阶近似把很小的向量 $h$ 变成 $\rho e^{i\theta}h$。因此，在足够小的尺度上，函数近似于统一伸缩与旋转。若两条光滑曲线在 $a$ 相交且切向量非零，像曲线的切向量同时乘以 $f'(a)$，二者夹角便保持不变。这里谈的是局部性质；例如 $e^z$ 的导数处处非零，却会把相差 $2\pi i$ 的点映到同一点，不能由局部保角推出整体单射。
+
+写 $f'(a)=p+iq$，对应的实雅可比矩阵为
+\[
+ \begin{pmatrix}p&-q\\q&p\end{pmatrix},\qquad
+ \det Df(a)=p^2+q^2=|f'(a)|^2.
+\]
+它表明非零复导数保持平面定向。反射 $z\mapsto\overline z$ 的实雅可比行列式为 $-1$，虽保持无向角的大小，却不是全纯映射。若 $f'(a)=0$，一阶近似退化，保角结论不能使用；$z\mapsto z^2$ 在原点把射线之间的角度加倍就是例子。
+
+若暂时进一步假设 $u,v\in C^2$，对 C--R 方程微分并交换连续混合偏导，得到
+\[
+ u_{xx}+u_{yy}=v_{yx}-v_{xy}=0,\qquad
+ v_{xx}+v_{yy}=0.
+\]
+满足这一拉普拉斯方程的实函数称为调和函数（harmonic function）。后面将证明全纯函数自动光滑，从而去掉这里额外列出的 $C^2$ 假设。但任意两个调和函数拼成 $u+iv$ 不一定全纯，它们之间还必须满足 C--R 方程。
+
+\section{习题}
+\label{sec:cv-derivative-ex}
+\begin{enumerate}
+ \item 求 $f(z)=z^3+2/z$ 的全纯区域与导数。
+ \item 判断 $f(z)=\operatorname{Re}z$ 和 $g(z)=z\overline z$ 的复可导点；比较二者与实可微性的关系。
+ \item 设 $f$ 在区域 $D$ 全纯且 $f'(z)=0$ 对所有 $z\in D$ 成立，证明 $f$ 为常数。提示：先在小圆盘内沿线段讨论，再用连通性。
+ \item 设 $f$ 在区域 $D$ 全纯且只取实数值，证明 $f$ 为常数。
+ \item 设 $u(x,y)=x^3-3xy^2$，求所有使 $u+iv$ 在 $\mathbb C$ 全纯的实函数 $v$。
+\end{enumerate}
+
+\chapter{初等函数与多值函数的分支}
+\label{chap:cv-elementary}
+
+\section{复指数：把伸缩和旋转写在一起}
+
+实指数满足 $e^{x+y}=e^xe^y$，而单位圆上的旋转满足辐角相加。把这两种规律结合起来，自然得到下面的定义。
+
+\begin{definition}[复指数函数]
+对 $z=x+iy$，定义
+\begin{equation}
+ e^z=e^x(\cos y+i\sin y).
+ \label{eq:cv-exp}
+\end{equation}
+\end{definition}
+
+由实三角恒等式，$e^{z+w}=e^ze^w$；由模的计算，$|e^z|=e^{\operatorname{Re}z}>0$。所以复指数没有零点。其分量 $u=e^x\cos y$、$v=e^x\sin y$ 光滑且满足 C--R 方程，故它是整函数，并且 $(e^z)'=e^z$。取 $x=0$ 就得到欧拉公式 $e^{iy}=\cos y+i\sin y$，这也说明前面极形式的记号与本章定义一致。
+
+\begin{proposition}[复指数的周期与相等条件]
+对任意 $z,w\in\mathbb C$，
+\[
+ e^z=e^w\quad\Longleftrightarrow\quad z-w=2k\pi i\quad(k\in\mathbb Z).
+\]
+\end{proposition}
+\begin{proof}
+等式等价于 $e^{z-w}=1$。先比较模可知 $\operatorname{Re}(z-w)=0$，再比较实部、虚部可知虚部为 $2k\pi$。反方向直接代入定义即可。
+\end{proof}
+
+因此，实指数的一一对应性质不再适用于整个复平面。几何上，竖直直线 $x=c$ 映成圆 $|w|=e^c$，水平直线 $y=c$ 映成辐角为 $c$ 的射线。指数将横向位置编码为模，将纵向位置编码为辐角；纵向移动 $2\pi$ 后图像重复。这一几何描述会帮助我们理解对数为什么具有多值性。
+
+\begin{example}[解指数方程]
+求 $e^{2z}=-4$ 的全部解。
+\end{example}
+\begin{solve}
+设 $z=x+iy$。比较模有 $e^{2x}=4$，故 $x=\ln2$；比较辐角有 $2y=\pi+2k\pi$。所以
+\[
+ z=\ln2+i\left(\frac\pi2+k\pi\right),\qquad k\in\mathbb Z.
+\]
+只写主辐角会漏掉无穷多个解。
+\end{solve}
+
+\section{复对数与支割线}
+
+对给定的 $z\ne0$，求所有满足 $e^w=z$ 的 $w$，就得到复对数的全部值。
+
+\begin{definition}[多值对数与对数分支]
+若 $z=re^{i\theta}\ne0$，则
+\[
+ \log z=\{\ln r+i(\theta+2k\pi):k\in\mathbb Z\}
+\]
+称为多值对数。在区域 $D\subset\mathbb C\setminus\{0\}$ 上，一个连续函数 $L$ 若满足 $e^{L(z)}=z$，称为对数的一个\keyterm{分支（branch）}。
+\end{definition}
+
+本书在裂平面
+\[
+ \Omega=\mathbb C\setminus(-\infty,0]
+\]
+上选取 $-\pi<\operatorname{Arg}z<\pi$，定义\keyterm{对数主分支（principal branch of logarithm）}
+\begin{equation}
+ \operatorname{Log}z=\ln|z|+i\operatorname{Arg}z,
+ \qquad z\in\Omega.
+ \label{eq:cv-log}
+\end{equation}
+删去的非正实轴称为\keyterm{支割线（branch cut）}。第\ref{chap:cv-plane}章允许在负实轴上定义辐角主值 $\pi$，这里则为了得到连续且全纯的函数，将整条非正实轴排除；这两个使用场景应加以区分。
+
+在不穿过支割线的小邻域内，令 $\theta=\operatorname{Arg}(x+iy)$，由极坐标微分可得
+\[
+ (\ln r)_x=\frac{x}{x^2+y^2},\quad
+ (\ln r)_y=\frac{y}{x^2+y^2},\quad
+ \theta_x=-\frac{y}{x^2+y^2},\quad
+ \theta_y=\frac{x}{x^2+y^2}.
+\]
+这些连续偏导满足 C--R 方程，故 $\operatorname{Log}$ 在 $\Omega$ 全纯，且
+\begin{equation}
+ (\operatorname{Log}z)'=\frac1z.
+ \label{eq:cv-log-derivative}
+\end{equation}
+一般连续对数分支在每个小邻域内与这样的局部分支相差一个固定的 $2k\pi i$，因此也全纯并具有同样的导数。
+
+\begin{proposition}[去心平面上不存在连续对数分支]
+\label{prop:cv-no-global-log}
+不存在定义在整个 $\mathbb C\setminus\{0\}$ 上的连续函数 $L$，使 $e^{L(z)}=z$。
+\end{proposition}
+\begin{proof}
+假设存在。沿单位圆写 $z=e^{it}$，$0\le t\le2\pi$。由指数相等条件，$L(e^{it})-it\in2\pi i\mathbb Z$。左侧连续，取值却只在离散集合内，因而在整个区间为常数。于是 $L(e^{2\pi i})-L(1)=2\pi i$，而 $e^{2\pi i}=1$ 使左侧应为零，矛盾。
+\end{proof}
+
+这个障碍来自绕原点一周后的辐角变化，不来自局部导数计算。对数运算也必须服从分支条件。例如在主分支中取 $z=w=e^{3\pi i/4}$，则
+\[
+ \operatorname{Log}z+\operatorname{Log}w=\frac{3\pi i}{2},\qquad
+ \operatorname{Log}(zw)=-\frac{\pi i}{2}.
+\]
+二者相差 $2\pi i$。熟悉的对数乘法公式若不说明分支，只能在允许相差 $2k\pi i$ 的意义下使用。
+
+\section{幂函数、根函数与分支点}
+
+给定 $\alpha\in\mathbb C$ 和一个对数分支 $L$，在其定义域上定义
+\[
+ z^\alpha=e^{\alpha L(z)}.
+\]
+这是单值全纯函数，求导得 $(z^\alpha)'=\alpha e^{(\alpha-1)L(z)}=\alpha z^{\alpha-1}$，等式两侧使用同一个分支。若换用 $L+2k\pi i$，函数值会乘上 $e^{2k\pi i\alpha}$。当 $\alpha$ 为整数时该因子总为 $1$，多值性消失；当 $\alpha=p/q$ 为最简分数且 $q>0$ 时，非零点处有 $q$ 个不同值；一般复指数则需直接检查这些因子。
+
+\begin{example}[平方根分支]
+在 $\Omega$ 上定义 $s(z)=\exp(\operatorname{Log}z/2)$。则 $s(z)^2=z$，且 $\operatorname{Re}s(z)>0$；另一个平方根分支为 $-s(z)$。从上侧趋近负实轴上的 $-r$ 时，$s(z)\to i\sqrt r$；从下侧趋近时，$s(z)\to-i\sqrt r$。这说明不能直接把该分支连续地补到支割线两侧。
+\end{example}
+
+沿一条围绕原点一周的路径连续追踪平方根，辐角从 $\theta/2$ 变成 $\theta/2+\pi$，函数值变号。原点因此称为这个多值表达式的分支点（branch point）。分支点不能直接当作单值全纯函数的孤立奇点使用留数公式：后者要求在一个完整的去心圆盘上有单值全纯函数，而平方根的上述局部分支并不满足这一要求。
+
+\begin{example}[复数幂也可能取实数值]
+求 $i^i$ 的全部值。
+\end{example}
+\begin{solve}
+因为 $\log i=i(\pi/2+2k\pi)$，所以
+\[
+ i^i=\exp\left(-\frac\pi2-2k\pi\right),\qquad k\in\mathbb Z.
+\]
+所有值都为正实数，主值为 $e^{-\pi/2}$。计算时应先列对数的值，再乘指数，最后取指数函数，不能把多值步骤直接省略。
+\end{solve}
+
+\section{三角函数与双曲函数}
+
+定义
+\[
+ \sin z=\frac{e^{iz}-e^{-iz}}{2i},\qquad
+ \cos z=\frac{e^{iz}+e^{-iz}}2,
+ \qquad
+ \sinh z=\frac{e^z-e^{-z}}2,\qquad
+ \cosh z=\frac{e^z+e^{-z}}2.
+\]
+它们都是整函数，在实轴上与实函数定义一致。直接微分得到 $(\sin z)'=\cos z$、$(\cos z)'=-\sin z$，由指数的乘法法则得到加法公式以及 $\sin^2z+\cos^2z=1$。这里的平方是复数平方，不是模的平方，不能推出 $|\sin z|\le1$。
+
+把 $z=x+iy$ 代入，可得
+\[
+ \sin(x+iy)=\sin x\cosh y+i\cos x\sinh y,
+ \quad
+ \cos(x+iy)=\cos x\cosh y-i\sin x\sinh y.
+\]
+特别地，$\sin(iy)=i\sinh y$，其模随 $|y|$ 增大而无界。实轴上有界只是对整个复平面的一个切片观察。由指数方程，$\sin z=0$ 当且仅当 $z=k\pi$，$\cos z=0$ 当且仅当 $z=\pi/2+k\pi$，其中 $k\in\mathbb Z$；故 $\tan z=\sin z/\cos z$ 只在去掉后一组点的区域上全纯。
+
+\section{习题}
+\label{sec:cv-elementary-ex}
+\begin{enumerate}
+ \item 求 $e^z=1+i$ 的全部解。
+ \item 计算 $\operatorname{Log}(1-i)$，并求 $(-1)^{1/3}$ 的全部值；解释为什么后者不能只写一个值。
+ \item 求 $\sin z=2$ 的全部解。提示：令 $w=e^{iz}$，先解关于 $w$ 的二次方程。
+ \item 在右半平面上，选取在正实轴取实数值的对数分支，证明 $\operatorname{Log}(1/z)=-\operatorname{Log}z$。
+ \item 证明整个去心平面上不存在连续平方根 $s$ 满足 $s(z)^2=z$。
+\end{enumerate}
+
+\chapter{复曲线积分与原函数}
+\label{chap:cv-integral}
+
+\section{从路径参数化定义积分}
+
+实定积分沿实轴累加函数值，复积分则沿平面中的曲线累加。由于复数乘法包含方向信息，积分中不仅有函数值，还要有沿曲线前进的复增量 $\mathrm dz$。同一个函数沿不同路径积分，结果可能不同。
+
+\begin{definition}[复曲线积分]
+设 $\gamma:[a,b]\to\mathbb C$ 为分段 $C^1$ 曲线，$f$ 在其轨迹上连续，定义
+\begin{equation}
+ \int_\gamma f(z)\,\mathrm dz
+ =\int_a^b f(\gamma(t))\gamma'(t)\,\mathrm dt.
+ \label{eq:cv-path-integral}
+\end{equation}
+右侧复值实变量积分按实部、虚部分别积分；分段点处将积分拆开。曲线长度定义为 $\ell(\gamma)=\int_a^b|\gamma'(t)|\,\mathrm dt$。
+\end{definition}
+
+若 $f=u+iv$、$z=x+iy$，则
+\[
+ \int_\gamma f(z)\,\mathrm dz
+ =\int_\gamma(u\,\mathrm dx-v\,\mathrm dy)
+ +i\int_\gamma(v\,\mathrm dx+u\,\mathrm dy).
+\]
+这表明复积分可还原成两个实曲线积分，不过直接参数化通常更简洁。保持方向的适当参数替换不改变积分值；反向曲线 $-\gamma$ 使积分变号；首尾相接的曲线积分等于各段积分之和。这些性质均来自实积分的换元和区间可加性。
+
+\begin{example}[同一端点，不同路径]
+计算 $\int_\gamma\overline z\,\mathrm dz$，其中 $\gamma$ 从 $0$ 到 $1+i$，分别取直线段及依次经过 $0,1,1+i$ 的折线。
+\end{example}
+\begin{solve}
+沿直线段取 $z=(1+i)t$，$0\le t\le1$，有 $\overline z\,\mathrm dz=2t\,\mathrm dt$，积分为 $1$。沿折线第一段 $z=t$，积分为 $1/2$；第二段 $z=1+it$，有 $\overline z\,\mathrm dz=(t+i)\,\mathrm dt$，积分为 $1/2+i$。故折线积分为 $1+i$。端点相同并不保证复积分相同，必须有额外的函数或定义域条件。
+\end{solve}
+
+\begin{example}[圆周积分的基本模型]
+\label{ex:cv-circle-power}
+设 $\gamma$ 为以 $a$ 为中心、半径 $r$ 的正向圆周。对任意整数 $n$，
+\begin{equation}
+ \oint_\gamma(z-a)^n\,\mathrm dz
+ =\begin{cases}2\pi i,&n=-1,\\0,&n\ne-1.\end{cases}
+ \label{eq:cv-circle-power}
+\end{equation}
+\end{example}
+\begin{solve}
+令 $z=a+re^{it}$，$0\le t\le2\pi$，则积分为
+\[
+ ir^{n+1}\int_0^{2\pi}e^{i(n+1)t}\,\mathrm dt.
+\]
+$n=-1$ 时被积函数为常数 $i$，其余整数情形由周期性得零。以后留数定理的核心就是这一事实：沿圆积分时，洛朗级数中只有 $-1$ 次幂留下贡献。
+\end{solve}
+
+\section{积分估计与极限交换}
+
+\begin{theorem}[长乘高估计]
+\label{thm:cv-ml}
+若 $|f(z)|\le M$ 对 $\gamma$ 上每一点成立，则
+\begin{equation}
+ \left|\int_\gamma f(z)\,\mathrm dz\right|
+ \le\int_a^b|f(\gamma(t))||\gamma'(t)|\,\mathrm dt
+ \le M\ell(\gamma).
+ \label{eq:cv-ml}
+\end{equation}
+\end{theorem}
+\begin{proof}
+先对复值实积分使用三角不等式，再把 $|f(\gamma(t))|$ 以 $M$ 控制，即得结论。
+\end{proof}
+
+估计时应同时看函数有多小、曲线有多长。例如半径为 $R$ 的半圆弧长度为 $\pi R$；若其上 $|f|\le C/R^2$，则弧积分为 $O(1/R)$，趋于零。若只有 $|f|\le C/R$，长度相乘后仅得到常数界，不能据此宣布积分趋于零。符号 $A_R=O(B_R)$ 表示存在与足够大的 $R$ 无关的常数 $C$，使 $|A_R|\le C|B_R|$。
+
+若连续函数列 $f_n$ 在固定曲线 $\gamma$ 上一致收敛到 $f$，则
+\[
+ \left|\int_\gamma(f_n-f)\,\mathrm dz\right|
+ \le\ell(\gamma)\sup_{z\in\gamma}|f_n(z)-f(z)|\longrightarrow0.
+\]
+因此可以交换这一极限与积分。这里一致收敛是把所有点上的误差同时压小；逐点收敛一般不能提供右侧的统一上界。后面将几何级数代入柯西积分公式时，就要反复使用这个理由。
+
+\section{原函数与路径无关}
+
+\begin{definition}[原函数]
+若全纯函数 $F$ 在开集 $U$ 上满足 $F'=f$，则称 $F$ 为 $f$ 在 $U$ 上的\keyterm{原函数（primitive）}。
+\end{definition}
+
+\begin{theorem}[复积分的基本定理]
+\label{thm:cv-fundamental}
+若 $f$ 在开集 $U$ 上连续且有原函数 $F$，则对从 $a$ 到 $b$、位于 $U$ 内的任意分段 $C^1$ 曲线 $\gamma$，
+\[
+ \int_\gamma f(z)\,\mathrm dz=F(b)-F(a).
+\]
+特别地，所有闭曲线积分为零。
+\end{theorem}
+\begin{proof}
+在每段光滑参数区间上，由链式法则，$(F\circ\gamma)'(t)=F'(\gamma(t))\gamma'(t)=f(\gamma(t))\gamma'(t)$。应用实积分基本定理并把各段端点值相消，便得到结论。
+\end{proof}
+
+\begin{theorem}[原函数存在的等价条件]
+\label{thm:cv-primitive-equivalence}
+设 $f$ 在区域 $D$ 上连续，则以下三者等价：$f$ 在 $D$ 有原函数；任意连接相同端点的分段 $C^1$ 路径积分相同；$D$ 内每条分段 $C^1$ 闭曲线的积分为零。
+\end{theorem}
+\begin{proof}
+第一条蕴含第二条，由上一条定理得到；把闭曲线与固定端点的常值路径比较，第二条蕴含第三条；将一条路径与另一条反向路径拼接，第三条蕴含第二条。现由第二条构造原函数：固定 $z_0\in D$，令 $F(z)=\int_{z_0}^z f(\zeta)\,\mathrm d\zeta$，由路径无关性定义良好。当 $h$ 足够小时，线段 $[z,z+h]\subset D$，于是
+\[
+ \frac{F(z+h)-F(z)}h=\int_0^1f(z+th)\,\mathrm dt\longrightarrow f(z).
+\]
+最后一步由 $f$ 在 $z$ 的连续性得到，且对 $0\le t\le1$ 误差统一受控。因此 $F'=f$。
+\end{proof}
+
+例如 $z^n$ 在 $\mathbb C$ 上有原函数 $z^{n+1}/(n+1)$，其中 $n\ge0$；但 $1/z$ 在整个去心平面上没有原函数，因为单位圆积分等于 $2\pi i$。在裂平面 $\Omega$ 上它又有原函数 $\operatorname{Log}z$。这说明原函数是否存在，既取决于函数，也取决于定义域。不能看到形式 $1/z$ 就直接在任意路径上套用对数端点差。
+
+\section{绕数：闭曲线围绕一个点转了几圈}
+
+\begin{definition}[绕数]
+对不经过 $a$ 的分段 $C^1$ 闭曲线 $\gamma$，定义其关于 $a$ 的\keyterm{绕数（winding number）}
+\begin{equation}
+ \operatorname{Ind}(\gamma,a)=\frac1{2\pi i}\oint_\gamma\frac{\mathrm dz}{z-a}.
+ \label{eq:cv-index}
+\end{equation}
+\end{definition}
+
+沿一条参数区间上的非零连续路径，可以从起始辐角出发连续选取辐角 $\theta(t)$：将区间分成有限个足够短的小段，使每段像都落在允许局部辐角的圆盘中，再在接合点加上合适的 $2k\pi$。因此可写 $\gamma(t)-a=r(t)e^{i\theta(t)}$，其中 $r(t)>0$。在各光滑小段上，
+\[
+ \frac{\gamma'(t)}{\gamma(t)-a}=\frac{r'(t)}{r(t)}+i\theta'(t).
+\]
+闭曲线首尾模相同、辐角相差 $2k\pi$，故绕数等于整数 $k$。沿参数区间连续选择辐角不要求首尾辐角相同，所以不与去心平面上不存在全局对数的结论矛盾。
+
+正向圆关于圆心的绕数为 $1$，反向为 $-1$，绕两圈为 $2$。绕数随点 $a$ 在曲线补集中连续变化而保持不变，因为它连续且只取整数；在无界分支上为零。对正向简单闭曲线，内部绕数为 $1$、外部为 $0$，这是若当曲线定理与绕数的平面拓扑性质。本书一般先在圆和分段光滑简单闭曲线上使用它，再根据需要解释更一般路径。
+
+\section{习题}
+\label{sec:cv-integral-ex}
+\begin{enumerate}
+ \item 沿从 $0$ 到 $1+i$ 的任意分段光滑路径计算 $\int z^2\,\mathrm dz$。
+ \item 沿正向单位圆计算 $\oint\overline z\,\mathrm dz$。再用 $\overline z=1/z$ 验证。
+ \item 沿从 $1$ 到 $-1$ 的上半单位圆计算 $\int\mathrm dz/z$，并与下半单位圆从 $1$ 到 $-1$ 的结果比较。
+ \item 设 $\gamma_R$ 为上半圆 $|z|=R>2$，证明 $\left|\int_{\gamma_R}\mathrm dz/(z^2+1)\right|\le\pi R/(R^2-1)$。
+ \item 设 $f$ 在区域上有两个原函数 $F,G$，证明 $F-G$ 为常数，并指出连通性的作用。
+\end{enumerate}
+
+\chapter{柯西积分理论：由边界确定内部}
+\label{chap:cv-cauchy}
+
+\section{三角形上的柯西--古尔萨定理}
+
+第\ref{chap:cv-integral}章已经说明，有原函数就有闭路积分为零。现在反过来问：只知道函数全纯，能否推出闭路积分为零？答案首先在小三角形上成立，再通过定义域的拓扑性质推广到较大的路径。局部结论只用复可导性，不需要事先假设导数连续。
+
+\begin{theorem}[柯西--古尔萨定理的三角形形式]
+\label{thm:cv-goursat}
+设闭三角形 $T$ 及其边界包含于开集 $U$，$f$ 在 $U$ 全纯，则
+\[
+ \oint_{\partial T}f(z)\,\mathrm dz=0.
+\]
+边界按正向行进。
+\end{theorem}
+\begin{proof}
+将三边中点连接，把 $T$ 分成四个小三角形。按正向相加各小三角形的边界积分，内部边方向相反而抵消，所以至少有一个小三角形 $T_1$ 的积分模不小于原积分模的 $1/4$。反复选择，得到嵌套三角形 $T_n$，其直径和周长分别为原来的 $2^{-n}$，且
+\[
+ \left|\oint_{\partial T}f\,\mathrm dz\right|
+ \le4^n\left|\oint_{\partial T_n}f\,\mathrm dz\right|.
+\]
+由闭集嵌套和直径趋零，交集只有一点 $a\in T$。复可导性给出
+\[
+ f(z)=f(a)+f'(a)(z-a)+(z-a)\varepsilon(z),
+ \qquad\varepsilon(z)\to0\quad(z\to a).
+\]
+前两项有原函数，其闭路积分为零。给定 $\eta>0$，取 $n$ 足够大，使 $T_n$ 上的余项系数满足 $|\varepsilon(z)|\le\eta$。若原三角形直径为 $d$、周长为 $L$，则长乘高估计给出
+\[
+ \left|\oint_{\partial T_n}f\,\mathrm dz\right|
+ \le\eta\frac d{2^n}\frac L{2^n}.
+\]
+故原积分的模不超过 $\eta dL$。由于 $\eta$ 任意，原积分为零。
+\end{proof}
+
+证明中的关键是两个缩小因子：三角形的尺度缩小控制了余项中的 $|z-a|$，周长缩小又提供一个因子，两者恰好抵消反复选取时出现的 $4^n$。这个证明避免了提前使用 $f'$ 连续，也避免了提前假设泰勒展开。
+
+\begin{corollary}[凸区域上的原函数]
+\label{cor:cv-convex-primitive}
+若 $D$ 为凸区域，$f$ 在 $D$ 全纯，则 $f$ 在 $D$ 有原函数，因而所有位于 $D$ 的分段 $C^1$ 闭曲线积分均为零。
+\end{corollary}
+\begin{proof}
+固定 $z_0\in D$，沿线段定义 $F(z)=\int_{[z_0,z]}f(\zeta)\,\mathrm d\zeta$。由凸性，顶点为 $z_0,z,z+h$ 的三角形完全位于 $D$，三角形积分为零使
+\[
+ F(z+h)-F(z)=\int_{[z,z+h]}f(\zeta)\,\mathrm d\zeta.
+\]
+与定理\ref{thm:cv-primitive-equivalence}中的差商计算相同，得到 $F'=f$。特别地，每个全纯函数在足够小的圆盘上都有原函数。
+\end{proof}
+
+\section{从局部到整体：路径变形与孔洞}
+
+\begin{theorem}[同伦不变性与单连通形式]
+\label{thm:cv-cauchy-domain}
+设 $f$ 在区域 $D$ 全纯。两条具有相同端点的分段 $C^1$ 路径，若能在 $D$ 内保持端点不动地连续变形为彼此，则积分相同；闭曲线在 $D$ 内连续变形时，积分也不变。因此，若 $D$ 单连通，则 $D$ 内所有分段 $C^1$ 闭曲线积分为零，且 $f$ 在 $D$ 有原函数。
+\end{theorem}
+\begin{proof}[证明思路]
+由推论\ref{cor:cv-convex-primitive}，每个足够小的圆盘内存在原函数，小范围内的路径替换不改变积分。把连续变形写成参数矩形上的连续映射；其像紧致，可由有限个这样的圆盘覆盖。由一致连续性，把参数矩形划分得足够细，使每个小格子的像落在一个圆盘内。各小格子的积分由局部原函数的端点差计算，内部边相消，只剩两条边界路径。固定端点对应的边贡献为零，故两条路径积分相同。这里还需用局部原函数的端点差处理未必分段光滑的中间路径，并核对细分无关性；这些是同伦证明的技术步骤，本书不展开完整的拓扑细节。将闭曲线缩为常值路径，就得到单连通形式。
+\end{proof}
+
+对正向分段光滑简单闭曲线 $\Gamma$，若 $f$ 在曲线及其内部的一个开邻域全纯，则 $\oint_\Gamma f\,\mathrm dz=0$。这里“内部”不可省略。$1/z$ 在单位圆附近全纯，但在内部的原点不全纯，故单位圆积分为 $2\pi i$，并不违背柯西定理。
+
+还会用到多连通区域的边界形式：若一个有界区域的边界由一条外边界 $\Gamma_0$ 与有限条互不相交的孔洞边界 $\Gamma_1,\ldots,\Gamma_m$ 组成，均为分段光滑简单闭曲线，且 $f$ 在区域闭包的邻域全纯，那么将每条曲线都按逆时针方向记号时，
+\begin{equation}
+ \oint_{\Gamma_0}f\,\mathrm dz
+ =\sum_{j=1}^m\oint_{\Gamma_j}f\,\mathrm dz.
+ \label{eq:cv-boundary-deformation}
+\end{equation}
+理解这个符号的办法是把区域切开成无孔部分：切口两侧积分相消，真正按区域正向行进时，孔洞边界应为顺时针，移到等式右侧才变成逆时针。该切割论证是前述局部原函数与路径变形结论的应用。它允许把围住奇点的大路径变形成奇点附近的小圆，但不能穿过奇点。
+
+\section{柯西积分公式}
+
+\begin{theorem}[柯西积分公式]
+\label{thm:cv-cauchy-formula}
+设 $\Gamma$ 为正向分段光滑简单闭曲线，$f$ 在 $\Gamma$ 及其内部的一个开邻域全纯。对其内部任意一点 $a$，
+\begin{equation}
+ f(a)=\frac1{2\pi i}\oint_\Gamma\frac{f(z)}{z-a}\,\mathrm dz.
+ \label{eq:cv-cauchy-formula}
+\end{equation}
+\end{theorem}
+\begin{proof}
+取以 $a$ 为中心、完全位于内部的小圆 $C_r$。函数 $f(z)/(z-a)$ 在两条曲线之间全纯，故由式\eqref{eq:cv-boundary-deformation}，大曲线积分等于小圆积分。再拆成
+\[
+ \oint_{C_r}\frac{f(z)}{z-a}\,\mathrm dz
+ =f(a)\oint_{C_r}\frac{\mathrm dz}{z-a}
+ +\oint_{C_r}\frac{f(z)-f(a)}{z-a}\,\mathrm dz.
+\]
+第一项为 $2\pi i f(a)$，第二项的模不超过
+$2\pi\max_{|z-a|=r}|f(z)-f(a)|$，由连续性随 $r\downarrow0$ 趋于零。因此得到公式。
+\end{proof}
+
+公式的含义不是“任何函数都由边界决定”，而是全纯性把内部取值与边界强烈联系起来。若两函数在边界上相同且都满足定理条件，则内部也相同；若只给任意连续边界数据，不一定有全纯函数把它作为完整的复值边界值。第\ref{chap:cv-harmonic}章讨论只给实部边界值的另一类问题。
+
+\begin{example}[先判断点的位置，再套用公式]
+沿正向圆 $|z|=2$ 计算 $\oint e^z/(z-1)\,\mathrm dz$；再沿正向圆 $|z|=1/2$ 计算同一积分。
+\end{example}
+\begin{solve}
+第一条圆包围 $1$，由柯西积分公式得 $2\pi i e$。第二条圆的内部不含 $1$，整个被积函数在该闭圆盘附近全纯，由柯西定理得零。如果路径恰好经过 $1$，普通曲线积分没有定义，以上两个结论都不能直接使用。
+\end{solve}
+
+\section{高阶导数公式与柯西估计}
+
+\begin{theorem}[高阶导数公式]
+\label{thm:cv-higher-cauchy}
+在定理\ref{thm:cv-cauchy-formula}的条件下，$f$ 在曲线内部具有任意阶复导数，且对整数 $n\ge0$，
+\begin{equation}
+ f^{(n)}(a)=\frac{n!}{2\pi i}\oint_\Gamma
+ \frac{f(z)}{(z-a)^{n+1}}\,\mathrm dz.
+ \label{eq:cv-higher-cauchy}
+\end{equation}
+\end{theorem}
+\begin{proof}
+先把 $a$ 限制在内部的一个小闭圆盘内，该闭圆盘与 $\Gamma$ 的距离为正。核 $1/(z-a)$ 对 $a$ 的差商一致趋于 $1/(z-a)^2$：分母因正距离而统一远离零，误差可由常数乘以增量的模控制。因此可把差商极限移入固定曲线积分，得到一阶公式。重复这一论证，每次对核求导产生因子 $n+1$，便得到任意阶公式。核及其各阶导数随 $a$ 连续，因而这些导数也连续。
+\end{proof}
+
+由复导数与实偏导的关系反复使用，全纯函数的实部和虚部都有任意阶连续偏导。这补足了第\ref{chap:cv-derivative}章调和性推导中的光滑性条件。
+
+\begin{corollary}[柯西估计]
+\label{cor:cv-cauchy-estimate}
+若 $f$ 在闭圆盘 $\overline{B(a,R)}$ 的邻域全纯，且 $M_R=\max_{|z-a|=R}|f(z)|$，则
+\begin{equation}
+ |f^{(n)}(a)|\le\frac{n!M_R}{R^n},\qquad n\ge0.
+ \label{eq:cv-cauchy-estimate}
+\end{equation}
+\end{corollary}
+\begin{proof}
+在高阶公式中取半径 $R$ 的圆，分母模为 $R^{n+1}$，圆周长为 $2\pi R$。代入长乘高估计即得。
+\end{proof}
+
+\begin{example}[高阶核的积分]
+沿正向圆 $|z|=2$ 计算 $\oint e^{2z}/(z-1)^3\,\mathrm dz$。
+\end{example}
+\begin{solve}
+核的分母三次方对应二阶导数，因此
+\[
+ \oint_{|z|=2}\frac{e^{2z}}{(z-1)^3}\,\mathrm dz
+ =\frac{2\pi i}{2!}\left.\frac{\mathrm d^2}{\mathrm dz^2}e^{2z}\right|_{z=1}
+ =4\pi i e^2.
+\]
+阶数是分母幂次减一，阶乘位于分母，这是计算时常见的失误点。
+\end{solve}
+
+\section{刘维尔定理、代数基本定理与莫雷拉定理}
+
+\begin{theorem}[刘维尔定理]
+\label{thm:cv-liouville}
+有界整函数必为常数。
+\end{theorem}
+\begin{proof}
+设 $|f(z)|\le M$ 对所有 $z$ 成立。对任意 $a$ 与任意 $R>0$ 使用柯西估计，得 $|f'(a)|\le M/R$。令 $R\to\infty$ 得 $f'(a)=0$。由于整个平面连通，函数为常数。
+\end{proof}
+
+这里的“有界”指整个复平面上的统一有界；$\sin z$ 在实轴有界并不满足条件。定理还揭示一种常用方法：先用积分公式得到局部导数估计，再让可选圆的半径趋于无穷，把整体增长信息转化为导数消失。
+
+\begin{theorem}[代数基本定理]
+\label{thm:cv-fta}
+每个次数至少为一的复系数多项式在 $\mathbb C$ 至少有一个零点，因此次数为 $n$ 的多项式按重数恰有 $n$ 个复根。
+\end{theorem}
+\begin{proof}
+若非常数多项式 $P$ 没有零点，则 $1/P$ 是整函数。由最高次项占优，$|P(z)|\to\infty$ 当 $|z|\to\infty$，故 $1/P$ 在充分大的圆外有界；在剩下的闭圆盘上，连续性和无零点性给出有界性。刘维尔定理使 $1/P$ 为常数，矛盾。因此存在一个根；用多项式除法提出相应的一次因子后归纳，得到按重数计数的结论。
+\end{proof}
+
+\begin{theorem}[莫雷拉定理]
+\label{thm:cv-morera}
+若 $f$ 在开集 $U$ 连续，且每个连同内部位于 $U$ 的三角形 $T$ 都满足 $\oint_{\partial T}f\,\mathrm dz=0$，则 $f$ 在 $U$ 全纯。
+\end{theorem}
+\begin{proof}
+在每个小圆盘内，仿照推论\ref{cor:cv-convex-primitive}由线段积分构造 $F$。三角形积分条件和连续性保证 $F'=f$，所以 $F$ 全纯。由高阶导数公式，$F'$ 也全纯，即 $f$ 在每个小圆盘内全纯，因此在 $U$ 全纯。
+\end{proof}
+
+\section{习题}
+\label{sec:cv-cauchy-ex}
+\begin{enumerate}
+ \item 沿正向圆 $|z|=2$ 计算 $\oint\sin z/z^2\,\mathrm dz$。
+ \item 沿正向圆 $|z|=3$ 计算 $\oint z/[(z-1)(z-2)]\,\mathrm dz$，先做部分分式分解。
+ \item 设整函数 $f$ 满足 $|f(z)|\le C(1+|z|^m)$，其中 $m$ 为非负整数，证明 $f$ 是次数不超过 $m$ 的多项式。
+ \item 证明任意整函数若实部有上界，则必为常数。提示：对 $e^f$ 使用刘维尔定理。
+ \item 解释为何 $1/z$ 在圆环 $1<|z|<2$ 全纯，但没有该圆环上的原函数。
+\end{enumerate}
+
+\chapter{幂级数、零点与全纯函数的刚性}
+\label{chap:cv-series}
+
+\section{复数项级数与一致收敛}
+
+复数项级数 $\sum_{n=0}^\infty c_n$ 的收敛定义为部分和收敛；它等价于实部、虚部级数分别收敛。若 $\sum|c_n|<\infty$，称为绝对收敛，绝对收敛蕴含收敛。这些结论都来自复数模与欧氏距离的一致性。
+
+\begin{definition}[一致收敛与局部一致收敛]
+函数列 $f_n$ 在集合 $E$ 上\keyterm{一致收敛（uniform convergence）}到 $f$，指对任意 $\varepsilon>0$，存在只依赖 $\varepsilon$ 的 $N$，使所有 $n\ge N$ 和所有 $z\in E$ 都有 $|f_n(z)-f(z)|<\varepsilon$。若在开集的每个紧子集上一致收敛，称为\keyterm{局部一致收敛（locally uniform convergence）}。
+\end{definition}
+
+逐点收敛允许 $N$ 随点改变，一致收敛要求同一个 $N$ 控制所有点。对函数项级数，一致收敛指其部分和一致收敛。常用的魏尔斯特拉斯判别法是：若 $|g_n(z)|\le M_n$ 对所有 $z\in E$ 成立，且非负数级数 $\sum M_n$ 收敛，则 $\sum g_n$ 在 $E$ 绝对且一致收敛。证明直接用尾和估计 $\sup_E|\sum_{n=p}^qg_n|\le\sum_{n=p}^qM_n$。
+
+\section{幂级数的收敛半径}
+
+\begin{definition}[幂级数]
+以 $a$ 为中心的\keyterm{幂级数（power series）}是形如 $\sum_{n=0}^\infty c_n(z-a)^n$ 的级数，其中系数 $c_n\in\mathbb C$。
+\end{definition}
+
+\begin{theorem}[收敛半径公式]
+\label{thm:cv-radius}
+令 $L=\limsup_{n\to\infty}|c_n|^{1/n}$，取 $R=1/L$，并约定 $1/0=\infty$、$1/\infty=0$。则幂级数在 $|z-a|<R$ 绝对收敛，在 $|z-a|>R$ 发散，并在每个闭圆盘 $|z-a|\le r<R$ 上一致收敛。$R$ 称为收敛半径；边界 $|z-a|=R$ 上的情况须另行判断。
+\end{theorem}
+\begin{proof}
+若 $r<R$，选取 $s$ 满足 $r<s<R$。由上极限定义，对充分大的 $n$，有 $|c_n|^{1/n}<1/s$，故 $|c_n(z-a)^n|\le(r/s)^n$。等比级数判别给出绝对且一致收敛。若 $|z-a|>R$，则 $\limsup|c_n(z-a)^n|^{1/n}=|z-a|L>1$，一般项甚至不趋于零，故发散。$L=0$ 或 $\infty$ 的情形用同样的内外半径比较处理。
+\end{proof}
+
+当系数比值有极限且表达式有意义时，可用 $R=\lim|c_n/c_{n+1}|$；但系数含零或比值振荡时，根值的上极限公式更可靠。例如 $\sum z^{2n}=1+z^2+z^4+\cdots$ 的奇次系数均为零，仍有收敛半径 $1$。级数 $\sum_{n=1}^\infty z^n/n$ 也有半径 $1$，但在 $z=1$ 发散，在 $z=-1$ 条件收敛，说明圆周上的点不能一概而论。
+
+\section{从柯西公式得到泰勒展开}
+
+\begin{theorem}[泰勒定理与解析性]
+\label{thm:cv-taylor}
+若 $f$ 在圆盘 $B(a,R)$ 全纯，则对 $|z-a|<R$，
+\begin{equation}
+ f(z)=\sum_{n=0}^\infty\frac{f^{(n)}(a)}{n!}(z-a)^n,
+ \label{eq:cv-taylor}
+\end{equation}
+且级数在每个较小闭圆盘上一致收敛。这称为以 $a$ 为中心的\keyterm{泰勒展开（Taylor expansion）}。
+\end{theorem}
+\begin{proof}
+取 $|z-a|<\rho<R$。在积分圆 $|\zeta-a|=\rho$ 上，几何级数给出
+\[
+ \frac1{\zeta-z}
+ =\frac1{\zeta-a}\frac1{1-(z-a)/(\zeta-a)}
+ =\sum_{n=0}^\infty\frac{(z-a)^n}{(\zeta-a)^{n+1}}.
+\]
+若 $|z-a|\le r<\rho$，该级数在积分圆和这个闭圆盘上由比值 $r/\rho<1$ 统一控制。代入柯西积分公式并逐项积分，再用高阶导数公式，得到系数 $f^{(n)}(a)/n!$。一致收敛也由相同的几何估计得到。
+\end{proof}
+
+反过来，一个幂级数在其收敛圆盘内表示全纯函数，并可逐项微分。为了说明微分的合法性，取 $r<s<R$，则 $|c_n|s^n$ 有界，因此 $n|c_n|r^{n-1}$ 由常数乘以 $n(r/s)^{n-1}$ 控制，导数级数在较小闭圆盘上一致收敛。对部分和沿短线段使用积分基本定理，再取一致极限，可知极限函数的导数就是导数级数。逐项积分则直接由曲线上的一致收敛保证。因此“全纯”与“局部可以展开成收敛幂级数的解析函数”在一复变量中等价。
+
+泰勒系数是唯一的，因为对级数逐项微分后代入中心，就得到 $c_n=f^{(n)}(a)/n!$。若 $M_\rho=\max_{|\zeta-a|=\rho}|f(\zeta)|$，柯西估计还给出截断误差
+\begin{equation}
+ \left|f(z)-\sum_{n=0}^{N}\frac{f^{(n)}(a)}{n!}(z-a)^n\right|
+ \le M_\rho\frac{(r/\rho)^{N+1}}{1-r/\rho},\qquad |z-a|\le r<\rho.
+ \label{eq:cv-taylor-error}
+\end{equation}
+这使级数不仅表示函数，还能用于带误差控制的数值近似。
+
+常用展开为
+\[
+ e^z=\sum_{n=0}^\infty\frac{z^n}{n!},\qquad
+ \sin z=\sum_{n=0}^\infty\frac{(-1)^nz^{2n+1}}{(2n+1)!},\qquad
+ \cos z=\sum_{n=0}^\infty\frac{(-1)^nz^{2n}}{(2n)!},
+\]
+三者收敛半径均为无穷。由等比级数逐项积分还得到
+\[
+ \operatorname{Log}(1+z)=\sum_{n=1}^\infty\frac{(-1)^{n-1}}n z^n,
+ \qquad |z|<1.
+\]
+这里 $1+z$ 位于右半平面，使用在 $z=0$ 取值为零的对数分支；微分后的级数为 $1/(1+z)$，再比较中心值确定积分常数。
+
+\begin{example}[实轴上的光滑不能决定泰勒半径]
+求 $f(z)=1/(1+z^2)$ 在 $0$ 的泰勒展开，并解释其收敛范围。
+\end{example}
+\begin{solve}
+等比级数给出 $f(z)=\sum_{n=0}^\infty(-1)^nz^{2n}$，条件为 $|z|<1$。虽然实函数 $1/(1+x^2)$ 对所有实数都光滑，复函数却在 $i,-i$ 处有不能消去的奇点，距离中心均为 $1$。若同一泰勒级数半径大于 $1$，其和会给出跨过这些点的全纯延拓，与奇点矛盾。因此应由复平面中的障碍判断半径，而不能只观察实轴。
+\end{solve}
+
+通常所说“收敛半径等于到最近奇点的距离”，应理解为所讨论单值全纯函数以该中心所能扩展的最大圆盘；人为缩小定义域并不会缩小一个既定幂级数的实际收敛半径，涉及多值延拓时还必须说明分支。
+
+\section{全纯函数列的极限}
+
+\begin{theorem}[局部一致极限定理]
+\label{thm:cv-uniform-limit}
+若 $f_n$ 在开集 $U$ 全纯，且局部一致收敛到 $f$，则 $f$ 全纯；对每个固定整数 $k\ge1$，$f_n^{(k)}$ 也局部一致收敛到 $f^{(k)}$。
+\end{theorem}
+\begin{proof}
+局部一致收敛保证极限连续。对连同内部包含于 $U$ 的任意三角形，沿边界的一致收敛使积分与极限可交换，故极限函数的边界积分为零，由莫雷拉定理知 $f$ 全纯。对紧集 $K\subset U$，可取统一的小半径 $r>0$，使以 $K$ 中每一点为中心的闭圆盘都位于 $U$，这些圆盘的并仍包含于一个紧子集。对差函数 $f_n-f$ 用柯西估计，得到
+\[
+ \sup_{a\in K}|f_n^{(k)}(a)-f^{(k)}(a)|
+ \le\frac{k!}{r^k}\sup_{\operatorname{dist}(z,K)\le r}|f_n(z)-f(z)|\longrightarrow0.
+\]
+\end{proof}
+
+这个定理远强于一般实函数的一致收敛结论。使用时要检查紧集上的一致控制，不能把“每个点都收敛”直接当成“导数也收敛”。
+
+\section{零点的阶与恒等定理}
+
+\begin{definition}[零点的阶]
+设 $f$ 在 $a$ 附近全纯。若 $f(a)=\cdots=f^{(m-1)}(a)=0$ 而 $f^{(m)}(a)\ne0$，则称 $a$ 为 $f$ 的 $m$ 阶零点（zero of order $m$），或重数为 $m$ 的零点。$m=1$ 时称简单零点。
+\end{definition}
+
+泰勒展开立即给出局部分解
+\begin{equation}
+ f(z)=(z-a)^m g(z),\qquad g\text{ 在 }a\text{ 附近全纯},\quad g(a)\ne0.
+ \label{eq:cv-zero-factor}
+\end{equation}
+由连续性，$g$ 在足够小的圆盘内没有零点，故 $a$ 是该圆盘内 $f$ 的唯一零点。如果所有阶导数都为零，则 $f$ 在某个圆盘恒为零。二者形成全纯函数零点结构的基本分岔。
+
+\begin{theorem}[恒等定理]
+\label{thm:cv-identity}
+设 $f,g$ 在区域 $D$ 全纯。如果集合 $\{z\in D:f(z)=g(z)\}$ 在 $D$ 内有聚点，则 $f\equiv g$。特别地，非常数全纯函数减去任意常数所得的零点在 $D$ 内都是孤立的。
+\end{theorem}
+\begin{proof}
+令 $h=f-g$。若零点在 $a\in D$ 聚集，局部分解排除了有限阶零点的可能，所以 $h$ 的所有泰勒系数均为零，$h$ 在 $a$ 附近恒为零。令 $E$ 为 $D$ 中使 $h$ 在其邻域恒为零的点集。它非空且开。若 $a_j\in E$ 且 $a_j\to a\in D$，则各阶导数连续性给出 $h^{(n)}(a)=0$，所以 $a\in E$，故 $E$ 在 $D$ 内也闭。由连通性 $E=D$。
+\end{proof}
+
+聚点必须落在区域内部。例如 $\sin(\pi/z)$ 在 $\mathbb C\setminus\{0\}$ 全纯，在 $z=1/n$ 处为零，却不恒为零，因为这些零点的聚点 $0$ 不在定义域中。另一方面，只要在区域内一小段实区间上知道两个全纯函数相等，就足以决定它们在整个连通区域相等；不必在二维开集中逐点验证。
+
+\section{最大模原理与施瓦茨引理}
+
+\begin{theorem}[最大模原理]
+\label{thm:cv-maximum}
+设 $f$ 在区域 $D$ 全纯。若 $|f|$ 在某个内点取得局部最大值，则 $f$ 为常数。因此，若 $D$ 有界、$f$ 在 $\overline D$ 连续且在 $D$ 全纯，则 $\max_{\overline D}|f|=\max_{\partial D}|f|$。
+\end{theorem}
+\begin{proof}
+设 $a$ 为局部最大点。若 $f(a)=0$，则小邻域内 $|f|\le0$，由恒等定理得结论。若 $f(a)\ne0$，写 $f(a)=Me^{i\alpha}$。取足够小的圆，柯西公式化为平均值式
+\[
+ M=\frac1{2\pi}\int_0^{2\pi}e^{-i\alpha}f(a+re^{it})\,\mathrm dt.
+\]
+取实部后，被积函数处处不超过 $M$，平均值却为 $M$；连续性迫使实部处处等于 $M$。又因模不超过 $M$，虚部必须为零。因此圆周上 $f\equiv f(a)$，恒等定理推出 $D$ 上恒定。对有界区域，连续性保证闭包上的最大值存在；若最大值只在内部取得，前一结论仍使它在边界取到。
+\end{proof}
+
+若全纯函数在区域内没有零点，对 $1/f$ 应用最大模原理可得最小模原理：非常数、无零点全纯函数的模不能在内部取得局部最小值。无零点条件不可省略，$f(z)=z$ 就在原点取得模的最小值零。
+
+\begin{theorem}[施瓦茨引理]
+\label{thm:cv-schwarz}
+若 $f:\mathbb D\to\mathbb D$ 全纯且 $f(0)=0$，则
+\[
+ |f(z)|\le|z|,\qquad |f'(0)|\le1.
+\]
+若在某个非零点第一式取等号，或第二式取等号，则 $f(z)=e^{i\theta}z$，其中 $\theta\in\mathbb R$。
+\end{theorem}
+\begin{proof}
+由泰勒展开，令 $g(z)=f(z)/z$ 并补上 $g(0)=f'(0)$ 后，$g$ 在单位圆盘全纯。对 $0<r<1$，圆周上 $|g|\le1/r$，最大模原理给出圆盘内部同样的估计。固定 $z$ 后令 $r\uparrow1$，得 $|g(z)|\le1$。若某个内点模等于 $1$，最大模原理使 $g$ 恒为一个模为 $1$ 的常数，从而得到等号情形。
+\end{proof}
+
+施瓦茨引理说明，固定原点的单位圆盘全纯自映射不能把一个点的模变大。等号只允许整体旋转，体现了全纯函数的刚性；它还将用于分类单位圆盘的双全纯自映射。
+
+\section{习题}
+\label{sec:cv-series-ex}
+\begin{enumerate}
+ \item 求 $\sum_{n=1}^\infty n z^n$ 的收敛半径和圆盘内的和。
+ \item 将 $1/(2-z)$ 在 $z=1$ 展开为泰勒级数，写出精确收敛半径。
+ \item 求 $\sin z-z$ 在原点的零点阶数；求 $(e^z-1)^2$ 在原点的零点阶数。
+ \item 设 $f$ 在单位圆盘全纯且 $f(1/n)=0$ 对所有整数 $n\ge2$ 成立，证明 $f\equiv0$；解释若点列改为 $1-1/n$，同一理由为何失效。
+ \item 设 $f:\mathbb D\to\mathbb D$ 全纯且 $f(0)=0$、$f'(0)=1$，求 $f$。
+ \item 求 $|z^2+1|$ 在闭单位圆盘上的最大值，并指出取等号的点。
+\end{enumerate}
+
+\chapter{洛朗级数与孤立奇点}
+\label{chap:cv-laurent}
+
+\section{为什么要引入负次幂}
+
+泰勒级数适合研究中心点也属于定义域的函数。若函数只在 $0<|z-a|<R$ 全纯，中心可能出现 $1/(z-a)$ 一类发散项，普通幂级数就不够用了。允许负次幂后，可以同时描述中心的奇异行为和其余部分的正常变化。
+
+\begin{theorem}[洛朗展开]
+\label{thm:cv-laurent}
+设 $f$ 在圆环 $A=\{r<|z-a|<R\}$ 全纯，其中 $0\le r<R\le\infty$，则有唯一展开
+\begin{equation}
+ f(z)=\sum_{n=-\infty}^{\infty}c_n(z-a)^n
+ =\sum_{n=0}^{\infty}c_n(z-a)^n+\sum_{m=1}^{\infty}c_{-m}(z-a)^{-m}.
+ \label{eq:cv-laurent}
+\end{equation}
+两部分级数在每个闭子圆环上绝对且一致收敛。对任意 $r<\rho<R$，
+\begin{equation}
+ c_n=\frac1{2\pi i}\oint_{|\zeta-a|=\rho}
+ \frac{f(\zeta)}{(\zeta-a)^{n+1}}\,\mathrm d\zeta,
+ \qquad n\in\mathbb Z,
+ \label{eq:cv-laurent-coefficient}
+\end{equation}
+且系数与圆周半径 $\rho$ 无关。
+\end{theorem}
+\begin{proof}
+取 $r<\rho_1<|z-a|<\rho_2<R$。对两圆之间的区域挖去 $z$ 附近的小圆，再用边界变形和柯西公式的证明，得
+\[
+ f(z)=\frac1{2\pi i}\oint_{|\zeta-a|=\rho_2}\frac{f(\zeta)}{\zeta-z}\,\mathrm d\zeta
+ -\frac1{2\pi i}\oint_{|\zeta-a|=\rho_1}\frac{f(\zeta)}{\zeta-z}\,\mathrm d\zeta.
+\]
+外圆上的核按 $(z-a)/(\zeta-a)$ 展开，产生非负次幂；内圆上使用
+\[
+ \frac1{\zeta-z}=-\sum_{m=0}^\infty\frac{(\zeta-a)^m}{(z-a)^{m+1}},
+\]
+产生负次幂。对任何固定闭子圆环，把 $\rho_1,\rho_2$ 分别选在其内外两侧，两个几何级数都由严格小于 $1$ 的比值统一控制，故可逐项积分。系数积分的半径无关性由两圆之间的柯西定理得到。最后，若已有这种收敛展开，将其乘以 $(z-a)^{-n-1}$ 后沿圆逐项积分，式\eqref{eq:cv-circle-power}只保留第 $n$ 项，便得到唯一性和系数公式。
+\end{proof}
+
+式\eqref{eq:cv-laurent}中非负次幂部分称为正则部分，负次幂部分称为\keyterm{主部（principal part）}。双向求和的含义是这两个级数分别收敛后相加，不需要规定左右对称截断。实际计算通常不直接计算每个系数的积分，而是使用等比级数、已知泰勒级数、部分分式或有限次微分。
+
+\section{同一函数在不同圆环有不同展开}
+
+\begin{example}[展开式必须附带适用区域]
+\label{ex:cv-annuli}
+求 $f(z)=1/[(z-1)(z-2)]$ 以原点为中心的所有最大圆环展开。
+\end{example}
+\begin{solve}
+先分解为 $f(z)=-1/(z-1)+1/(z-2)$。奇点距中心分别为 $1,2$，所以自然分成三个区域。在 $|z|<1$ 中，两项都按正幂展开：
+\[
+ f(z)=\sum_{n=0}^\infty\left(1-\frac1{2^{n+1}}\right)z^n.
+\]
+在 $1<|z|<2$ 中，第一项按 $1/z$ 展开，第二项按 $z/2$ 展开：
+\[
+ f(z)=-\sum_{n=0}^\infty z^{-n-1}
+ -\sum_{n=0}^\infty\frac{z^n}{2^{n+1}}.
+\]
+在 $|z|>2$ 中，两项都按负幂展开：
+\[
+ f(z)=\sum_{n=0}^\infty(2^n-1)z^{-n-1}.
+\]
+最后一个展开的 $z^{-1}$ 系数为零，与 $f(z)$ 在无穷远处为 $O(z^{-2})$ 相符。中间圆环有无穷多负次幂，并不意味着原点是本性奇点：这个圆环不是以原点为唯一缺点的去心圆盘，不能用它的主部来分类原点。
+\end{solve}
+
+选择展开方式的原则是先确定哪一个比值的模小于 $1$。例如 $1/(z-1)$ 在 $|z|<1$ 应写成 $-1/(1-z)$，在 $|z|>1$ 应写成 $z^{-1}/(1-z^{-1})$。代数变形的选择来自区域条件，而不是来自形式喜好。
+
+\section{孤立奇点的三种类型}
+
+\begin{definition}[孤立奇点]
+若 $f$ 在某个去心圆盘 $0<|z-a|<R$ 单值全纯，则称 $a$ 为其一个孤立奇点（isolated singularity）。按该去心圆盘上的洛朗展开，主部为零时称可去奇点；主部非零且只有有限项时称极点；主部有无穷多非零项时称本性奇点。
+\end{definition}
+
+\begin{theorem}[可去奇点判别]
+\label{thm:cv-removable}
+若 $f$ 在 $a$ 的去心邻域全纯，则以下条件等价：$a$ 是可去奇点；$f$ 能在 $a$ 补充一个值成为邻域内全纯函数；$f$ 在某个去心邻域有界；$\lim_{z\to a}f(z)$ 存在且有限。
+\end{theorem}
+\begin{proof}
+主部为零时，非负次幂级数直接给出全纯延拓；延拓蕴含有限极限，有限极限蕴含局部有界。最后设 $|f|\le M$。由洛朗系数公式，对 $m\ge1$，
+\[
+ |c_{-m}|=\left|\frac1{2\pi i}\oint_{|z-a|=\rho}f(z)(z-a)^{m-1}\,\mathrm dz\right|
+ \le M\rho^m.
+\]
+令 $\rho\downarrow0$ 得所有负次幂系数为零，完成等价性。
+\end{proof}
+
+例如 $\sin z/z$ 在原点可去，延拓值为 $1$；$(e^z-1)/z$ 也在原点可去，延拓值为 $1$。判断时不能仅看表达式是否“分母为零”，应看实际局部行为。
+
+\begin{proposition}[极点判别]
+\label{prop:cv-pole}
+$a$ 为 $f$ 的 $m$ 阶极点，当且仅当
+\[
+ f(z)=\frac{g(z)}{(z-a)^m},\qquad g\text{ 在 }a\text{ 附近全纯且 }g(a)\ne0.
+\]
+此时 $|f(z)|\to\infty$ 当 $z\to a$，且 $1/f$ 可全纯延拓为在 $a$ 有 $m$ 阶零点的函数。反过来，若 $|f(z)|\to\infty$，则 $a$ 必为某个有限阶极点。
+\end{proposition}
+\begin{proof}
+有限非零主部直接给出所列分解，分解也立即给出主部和倒数的零点。若 $|f|\to\infty$，则在足够小的去心邻域内 $f$ 无零点，$1/f\to0$，由可去奇点定理延拓。延拓后的倒数不恒为零，因此在 $a$ 的零点有有限阶，再取倒数即得极点。
+\end{proof}
+
+对有理函数 $P/Q$，若 $P$ 在 $a$ 的零点阶为 $p$，$Q$ 的零点阶为 $q$，则约分后由 $q-p$ 决定类型：$q>p$ 是 $q-p$ 阶极点，$q=p$ 可去且延拓值非零，$q<p$ 可去且延拓后为 $p-q$ 阶零点。计算极点阶数前，应先核对分子是否也为零。
+
+\begin{example}[本性奇点的典型行为]
+$e^{1/z}$ 在 $0<|z|<\infty$ 上展开为 $\sum_{n=0}^\infty z^{-n}/n!$，有无穷多负次幂，所以原点为本性奇点。沿正实轴趋于原点，模趋于无穷；沿负实轴趋于原点，函数趋于零；沿虚轴则持续振荡。它既不能补成有限值，也不像极点那样沿所有路径模都趋于无穷。
+\end{example}
+
+\begin{theorem}[本性奇点附近的稠密性]
+\label{thm:cv-casorati}
+若 $a$ 为 $f$ 的本性奇点，则在任意充分小的去心邻域中，$f$ 的像在 $\mathbb C$ 中稠密，即任意复数 $w$ 的任意小邻域都包含某个函数值。这称为卡索拉蒂--魏尔斯特拉斯定理（Casorati--Weierstrass theorem）。
+\end{theorem}
+\begin{proof}
+若结论不成立，则存在 $w\in\mathbb C$、$\delta>0$ 及某个去心邻域，使 $|f(z)-w|\ge\delta$。于是 $g=1/(f-w)$ 在此全纯且有界，可延拓到 $a$。若 $g(a)\ne0$，则 $f=w+1/g$ 可去；若 $g(a)=0$，则 $g$ 不恒为零，零点阶有限，$f$ 在 $a$ 为极点。两种情况都与本性奇点矛盾。
+\end{proof}
+
+稠密不等于每一个值都能取到。例如 $e^{1/z}$ 永不取零，但可以无限接近零。更强的取值结论属于后续复分析课程，不是这里证明的内容。
+
+\section{无穷远点与亚纯函数}
+
+设 $f$ 在 $|z|>R$ 全纯，通过 $F(\zeta)=f(1/\zeta)$ 在 $0<|\zeta|<1/R$ 的行为定义 $f$ 在无穷远点的奇点类型。次数为 $n\ge1$ 的多项式在无穷远点有 $n$ 阶极点；$1/z$ 在无穷远点可去，延拓值为零；$e^z$ 在无穷远点为本性奇点。
+
+一个函数在区域内除孤立极点外全纯，称为\keyterm{亚纯函数（meromorphic function）}。有理函数是亚纯函数的基本例子；$\tan z$ 在平面内亚纯，因为其奇点都是极点。亚纯不允许本性奇点出现在区域内部。
+
+若整函数在无穷远点可去，则它在大圆外有界，在大圆内也有界，由刘维尔定理为常数；若在无穷远点有 $m$ 阶极点，则 $|f(z)|\le C|z|^m$ 对充分大的 $|z|$ 成立，柯西估计使高于 $m$ 阶的泰勒系数全部为零，故它是多项式。这个例子说明，研究无穷远点可以把函数的整体增长转化为一个局部奇点问题。
+
+\section{习题}
+\label{sec:cv-laurent-ex}
+\begin{enumerate}
+ \item 分别在 $0<|z|<1$ 和 $|z|>1$ 展开 $1/[z(z-1)]$。
+ \item 分类原点处的奇点：$(1-\cos z)/z^2$、$\sin z/z^3$、$\sin(1/z)$。
+ \item 设 $f$ 在去心邻域全纯，且 $(z-a)f(z)\to0$，证明 $a$ 为可去奇点。
+ \item 判断 $z^3+1$、$z/(z^2+1)$、$\sin z$ 在无穷远点的类型。
+ \item 解释 $\operatorname{Log}z$ 的原点为何不属于本章的孤立奇点分类，并与 $e^{1/z}$ 比较。
+\end{enumerate}
+
+\chapter{留数定理与积分计算}
+\label{chap:cv-residue}
+
+\section{留数只提取一个系数}
+
+\begin{definition}[留数]
+设 $a$ 为 $f$ 的孤立奇点，$f$ 在 $a$ 附近的洛朗展开为 $\sum_{n=-\infty}^\infty c_n(z-a)^n$，称 $c_{-1}$ 为 $f$ 在 $a$ 的\keyterm{留数（residue）}，记为 $\operatorname{Res}(f,a)$。
+\end{definition}
+
+留数不是奇点处的函数值，也不是主部的最高阶系数。它专门记录闭路积分能够检测到的那一项。由洛朗系数公式，
+\[
+ \operatorname{Res}(f,a)=\frac1{2\pi i}\oint_{|z-a|=r}f(z)\,\mathrm dz
+\]
+对足够小的正向圆成立。可去奇点的留数为零，但留数为零不意味着奇点可去：$1/z^2$ 在原点是二阶极点，留数却为零。
+
+\begin{proposition}[常用留数公式]
+\label{prop:cv-residue-formula}
+若 $a$ 为简单极点，则
+\[
+ \operatorname{Res}(f,a)=\lim_{z\to a}(z-a)f(z).
+\]
+若 $f=P/Q$，$P,Q$ 在 $a$ 附近全纯，$Q(a)=0$、$Q'(a)\ne0$，则
+\begin{equation}
+ \operatorname{Res}(P/Q,a)=\frac{P(a)}{Q'(a)}.
+ \label{eq:cv-simple-residue}
+\end{equation}
+若 $a$ 为 $m$ 阶极点，则
+\begin{equation}
+ \operatorname{Res}(f,a)=\frac1{(m-1)!}
+ \left.\frac{\mathrm d^{m-1}}{\mathrm dz^{m-1}}
+ \bigl[(z-a)^mf(z)\bigr]\right|_{z=a},
+ \label{eq:cv-pole-residue}
+\end{equation}
+其中方括号内按全纯延拓理解。
+\end{proposition}
+\begin{proof}
+简单极点情形直接从洛朗主部看出。若 $Q$ 有简单零点，写成 $Q(z)=(z-a)q(z)$，$q(a)=Q'(a)$，便得到商的公式；当 $P(a)=0$ 时奇点实际可去，公式仍给出零。一般 $m$ 阶极点情形，$(z-a)^mf(z)$ 的泰勒展开中 $(z-a)^{m-1}$ 项的系数恰为原函数的 $c_{-1}$，按泰勒系数公式即得。
+\end{proof}
+
+\begin{example}[选用最短的计算途径]
+计算 $e^z/z^3$、$1/(z^2+1)$、$e^{1/z}$ 分别在 $0,i,0$ 的留数。
+\end{example}
+\begin{solve}
+第一项从 $e^z=1+z+z^2/2+\cdots$ 读出留数 $1/2$，也可用二阶导数公式；第二项的分母在 $i$ 有简单零点，留数为 $1/(2i)$；第三项虽然有本性奇点，仍可从 $e^{1/z}=1+z^{-1}+z^{-2}/2!+\cdots$ 读出留数 $1$。留数并不限于极点处定义。
+\end{solve}
+
+\section{留数定理与无穷远点的留数}
+
+\begin{theorem}[留数定理]
+\label{thm:cv-residue}
+设 $\Gamma$ 为正向分段光滑简单闭曲线，$f$ 在 $\Gamma$ 及其内部的一个开邻域中，除内部有限个孤立奇点 $a_1,\ldots,a_m$ 外全纯，且曲线上没有奇点。则
+\begin{equation}
+ \oint_\Gamma f(z)\,\mathrm dz
+ =2\pi i\sum_{j=1}^m\operatorname{Res}(f,a_j).
+ \label{eq:cv-residue-theorem}
+\end{equation}
+\end{theorem}
+\begin{proof}
+在每个奇点周围取两两不相交且位于内部的小圆盘。剩余区域上 $f$ 全纯，由边界变形式\eqref{eq:cv-boundary-deformation}，外边界积分等于各正向小圆积分之和。每个小圆积分由洛朗系数公式等于 $2\pi i$ 乘相应留数，故得结论。
+\end{proof}
+
+若 $D$ 为单连通区域，$f$ 除有限个孤立奇点外在 $D$ 全纯，而闭曲线 $\gamma\subset D$ 避开这些点但可以自交，则推广形式为
+\[
+ \oint_\gamma f(z)\,\mathrm dz
+ =2\pi i\sum_j\operatorname{Ind}(\gamma,a_j)\operatorname{Res}(f,a_j).
+\]
+它通过路径分解与绕数的可加性得到；负向绕行给负系数，绕多圈按圈数计算。本书主要计算使用简单闭曲线形式，遇到非单连通定义域时不能省略额外孔洞对路径的影响。
+
+\begin{definition}[无穷远点的留数]
+若 $f$ 在充分大的圆外全纯，定义
+\begin{equation}
+ \operatorname{Res}(f,\infty)
+ =-\operatorname{Res}\left(\frac{f(1/\zeta)}{\zeta^2},0\right).
+ \label{eq:cv-residue-infinity}
+\end{equation}
+\end{definition}
+
+负号和 $\zeta^{-2}$ 来自微分的换元 $\mathrm dz=-\zeta^{-2}\mathrm d\zeta$。因此若 $f$ 在大圆外展开的 $z^{-1}$ 系数为 $b_{-1}$，则 $\operatorname{Res}(f,\infty)=-b_{-1}$。注意这与直接对 $f(1/\zeta)$ 判断无穷远点的奇点类型是两种不同操作。若平面内只有有限个孤立奇点且其余处全纯，沿大圆积分可得
+\[
+ \sum_{a\in\mathbb C}\operatorname{Res}(f,a)+\operatorname{Res}(f,\infty)=0.
+\]
+例如 $f(z)=1/z$ 的有限留数为 $1$，无穷远留数为 $-1$，尽管函数本身在无穷远点可去。
+
+\section{有理函数的实轴积分}
+
+用复积分求实积分的基本步骤是：选择复函数和闭合路径；计算路径内留数；估计新增的圆弧或线段；最后取极限并分离所需的实部或虚部。闭合路径的选择应使新增部分可控，不能只计算留数而省略极限论证。
+
+\begin{theorem}[有理函数的上半平面公式]
+\label{thm:cv-rational-real}
+设 $R(z)=P(z)/Q(z)$ 为约分后的有理函数，实轴上无极点，且 $\deg Q\ge\deg P+2$。则实积分绝对收敛，并有
+\[
+ \int_{-\infty}^{\infty}R(x)\,\mathrm dx
+ =2\pi i\sum_{\operatorname{Im}a>0}\operatorname{Res}(R,a).
+\]
+\end{theorem}
+\begin{proof}
+实轴无极点保证有限区间上连续，次数条件使 $R(x)=O(x^{-2})$，故两端绝对可积。沿 $[-r,r]$ 与上半圆弧闭合，对充分大的 $r$，弧上有统一估计 $|R(z)|\le C/r^2$，弧积分的模至多为 $\pi C/r\to0$。留数定理后令 $r\to\infty$ 即得。
+\end{proof}
+
+\begin{example}[一个四次分母的积分]
+\label{ex:cv-quartic-integral}
+计算 $I=\int_{-\infty}^{\infty}\mathrm dx/(1+x^4)$。
+\end{example}
+\begin{solve}
+上半平面的极点为 $a=e^{i\pi/4}$、$b=e^{3i\pi/4}$，均为简单极点。留数和为
+\[
+ \frac1{4a^3}+\frac1{4b^3}=-\frac{i\sqrt2}{4}.
+\]
+分母次数高出分子四次，符合定理条件，因此
+\[
+ I=2\pi i\left(-\frac{i\sqrt2}{4}\right)=\frac\pi{\sqrt2}.
+\]
+被积函数为偶函数，所以 $\int_0^\infty\mathrm dx/(1+x^4)=\pi/(2\sqrt2)$。偶性只在实积分阶段使用；复平面中仍要完整列出所选半平面的极点。
+\end{solve}
+
+\section{三角有理式积分与单位圆}
+
+对一个周期上的三角有理式，代换 $z=e^{it}$ 把 $t\in[0,2\pi]$ 变成正向单位圆，且
+\begin{equation}
+ \cos t=\frac{z+z^{-1}}2,\qquad
+ \sin t=\frac{z-z^{-1}}{2i},\qquad
+ \mathrm dt=\frac{\mathrm dz}{iz}.
+ \label{eq:cv-trig-substitution}
+\end{equation}
+代换后的表达式是有理函数。使用前应保证原被积函数在积分区间连续，或另行处理实轴奇点；单位圆上有极点时不能直接套用普通留数定理。
+
+\begin{example}[参数积分]
+计算 $I(a,b)=\int_0^{2\pi}\mathrm dt/(a+b\cos t)$，其中 $a,b\in\mathbb R$ 且 $a>|b|$。
+\end{example}
+\begin{solve}
+当 $b=0$ 时结果为 $2\pi/a$。设 $b\ne0$，记 $\Delta=\sqrt{a^2-b^2}>0$。代换后
+\[
+ I(a,b)=\frac2i\oint_{|z|=1}\frac{\mathrm dz}{bz^2+2az+b}.
+\]
+两个根为 $r_1=(-a+\Delta)/b=-b/(a+\Delta)$ 与 $r_2=(-a-\Delta)/b$，乘积为 $1$。由 $a>|b|$ 可知 $|r_1|<1<|r_2|$。圆内留数为
+\[
+ \frac{2/i}{2br_1+2a}=\frac1{i\Delta},
+\]
+所以 $I(a,b)=2\pi/\sqrt{a^2-b^2}$。正平方根的选择由 $\Delta>0$ 明确确定，不能把符号留在计算之外。
+\end{solve}
+
+\section{振荡积分与若当估计}
+
+对含 $\cos(bx)$、$\sin(bx)$ 的积分，通常先组合为 $e^{ibx}$。若 $b>0$，则
+\[
+ |e^{ib(x+iy)}|=e^{-by}\le1\qquad(y\ge0),
+\]
+故适合向上半平面闭合；若 $b<0$，适合向下半平面闭合，并注意整个闭合路径变为顺时针。选择半平面由指数衰减方向决定。
+
+\begin{lemma}[若当圆弧估计]
+\label{lem:cv-jordan}
+设 $b>0$，$h$ 在上半圆弧 $\gamma_R:z=Re^{it}$、$0\le t\le\pi$ 上连续，$M_R=\max_{\gamma_R}|h(z)|$。则
+\[
+ \left|\int_{\gamma_R}e^{ibz}h(z)\,\mathrm dz\right|
+ \le\frac{\pi M_R}{b}.
+\]
+特别地，若 $M_R\to0$，则该弧积分趋于零。
+\end{lemma}
+\begin{proof}
+参数化给出上界 $RM_R\int_0^\pi e^{-bR\sin t}\,\mathrm dt$。利用关于 $\pi/2$ 的对称性，以及 $0\le t\le\pi/2$ 时 $\sin t\ge2t/\pi$，可估计为
+\[
+ 2RM_R\int_0^{\pi/2}e^{-2bRt/\pi}\,\mathrm dt
+ \le\frac{\pi M_R}{b}.
+\]
+\end{proof}
+
+这个估计比简单的长乘高估计更细，因为它使用了圆弧大部分位置上的指数衰减。当 $h(z)=O(1/z)$ 时，长乘高估计只能给出常数界，而本引理能得到趋零结论。不过圆弧趋零本身并不自动证明每个实轴单边反常积分收敛，仍应单独检查。
+
+\begin{example}[余弦变换型积分]
+对 $a>0$、$b\in\mathbb R$，计算
+\[
+ I=\int_{-\infty}^{\infty}\frac{\cos(bx)}{x^2+a^2}\,\mathrm dx.
+\]
+\end{example}
+\begin{solve}
+先取 $b>0$，对 $F(z)=e^{ibz}/(z^2+a^2)$ 向上闭合。圆内只有极点 $ia$，留数为 $e^{-ab}/(2ia)$。圆弧积分可用引理，也可直接用 $|e^{ibz}|\le1$ 和分母的二次增长控制。因此
+\[
+ \int_{-\infty}^{\infty}\frac{e^{ibx}}{x^2+a^2}\,\mathrm dx
+ =\frac\pi a e^{-ab}.
+\]
+取实部，再用余弦关于 $b$ 的偶性以及 $b=0$ 的有理函数积分，得到 $I=\pi e^{-a|b|}/a$。虚部积分为零也可由奇偶性检验。绝对可积的分母保证取实部与反常积分可交换。
+\end{solve}
+
+\section{支割线积分：非整数幂的应用}
+
+\begin{example}[钥匙孔路径]
+\label{ex:cv-keyhole}
+证明当 $0<\alpha<1$ 时，
+\begin{equation}
+ \int_0^\infty\frac{x^{\alpha-1}}{1+x}\,\mathrm dx
+ =\frac\pi{\sin(\pi\alpha)}.
+ \label{eq:cv-keyhole-integral}
+\end{equation}
+\end{example}
+\begin{solve}
+先检查实积分：原点附近为 $O(x^{\alpha-1})$，无穷远为 $O(x^{\alpha-2})$，两端分别要求 $\alpha>0$ 和 $\alpha<1$。取 $F(z)=z^{\alpha-1}/(1+z)$，在 $0<\arg z<2\pi$ 上选分支，支割线沿正实轴。路径从正实轴上侧的 $\varepsilon$ 走到 $R$，沿大圆逆时针返回下侧，再沿下侧从 $R$ 走回 $\varepsilon$，最后沿小圆顺时针闭合。严格说应先使两条射线与割线保持小角度，再令角度趋于零；在固定的 $[\varepsilon,R]$ 上，由连续边界极限可完成这一步。
+
+上侧的幂取值为 $x^{\alpha-1}$，下侧为 $e^{2\pi i(\alpha-1)}x^{\alpha-1}$，而下侧方向相反。因此两条直线段在取边界极限后的和为
+\[
+ \left(1-e^{2\pi i(\alpha-1)}\right)
+ \int_\varepsilon^R\frac{x^{\alpha-1}}{1+x}\,\mathrm dx.
+\]
+大圆弧积分为 $O(R^{\alpha-1})\to0$，小圆弧积分为 $O(\varepsilon^\alpha)\to0$，这里使用 $\alpha$ 为实数以及所选分支上的模为 $|z|^{\alpha-1}$。内部仅有极点 $-1$，其辐角是 $\pi$，留数为 $e^{i\pi(\alpha-1)}$。所以
+\[
+ \left(1-e^{2\pi i(\alpha-1)}\right)I
+ =2\pi i e^{i\pi(\alpha-1)}.
+\]
+由 $1-e^{2it}=-2ie^{it}\sin t$ 以及 $\sin(\pi(\alpha-1))=-\sin(\pi\alpha)$，得到所需结果。支割线两侧的函数值差，正是把复积分转换成实积分的关键。
+\end{solve}
+
+\section{实轴上的奇点与柯西主值}
+
+普通反常积分要求奇点两侧的积分分别收敛。比如 $\int_{-1}^1\mathrm dx/x$ 作为普通反常积分不收敛，但对称截断 $\int_{-1}^{-\varepsilon}\mathrm dx/x+\int_\varepsilon^1\mathrm dx/x$ 恒为零。这引出另一种极限，不能与普通积分混称。
+
+\begin{definition}[柯西主值]
+对 $a<c<b$，若极限存在，定义
+\[
+ \operatorname{PV}\int_a^b f(x)\,\mathrm dx
+ =\lim_{\varepsilon\downarrow0}
+ \left(\int_a^{c-\varepsilon}f(x)\,\mathrm dx
+ +\int_{c+\varepsilon}^bf(x)\,\mathrm dx\right).
+\]
+在无穷区间还可以约定对称截断 $\lim_{R\to\infty}\int_{-R}^Rf(x)\,\mathrm dx$。若同时有有限奇点和无穷端点，必须说明使用的截断方式。
+\end{definition}
+
+若 $f$ 在实轴点 $c$ 有简单极点，局部写成 $A/(z-c)+g(z)$，其中 $g$ 有界。用上半小圆从 $c-\varepsilon$ 绕到 $c+\varepsilon$，方向为顺时针，参数 $z=c+\varepsilon e^{it}$、$t:\pi\to0$ 给出小圆积分趋于 $-i\pi A$。这只是简单极点、指定半圆与指定方向下的结论，不是任何实轴奇点都能直接套用的“半个留数公式”。
+
+\begin{example}[狄利克雷积分]
+\label{ex:cv-dirichlet}
+计算 $\int_0^\infty\sin x/x\,\mathrm dx$。
+\end{example}
+\begin{solve}
+对 $e^{iz}/z$ 取上半大圆，并在原点用上半小圆顺时针避开。原点被排除在闭合区域之外，故闭路积分为零。大圆积分由若当估计趋于零，小圆积分趋于 $-i\pi$，于是
+\[
+ \lim_{R\to\infty}\lim_{\varepsilon\downarrow0}
+ \left(\int_{-R}^{-\varepsilon}\frac{e^{ix}}x\,\mathrm dx
+ +\int_\varepsilon^R\frac{e^{ix}}x\,\mathrm dx\right)=i\pi.
+\]
+这是复被积函数的主值结论。取虚部后，$\sin x/x$ 在原点可连续补值为 $1$；无穷端的普通反常积分也收敛，因为分部积分使尾段积分由 $O(1/R)$ 控制，例如
+\[
+ \int_R^S\frac{\sin x}{x}\,\mathrm dx
+ =\left[-\frac{\cos x}{x}\right]_R^S
+ -\int_R^S\frac{\cos x}{x^2}\,\mathrm dx.
+\]
+因此虚部给出普通积分 $\int_{-\infty}^{\infty}\sin x/x\,\mathrm dx=\pi$，再由偶性得 $\int_0^\infty\sin x/x\,\mathrm dx=\pi/2$。
+\end{solve}
+
+\section{习题}
+\label{sec:cv-residue-ex}
+\begin{enumerate}
+ \item 求 $\cos z/z^3$ 在原点的留数，以及 $z/[(z-1)^2(z+1)]$ 在 $1$ 处的留数。
+ \item 沿正向圆 $|z|=3$ 计算 $\oint z^2/[(z-1)(z-2)]\,\mathrm dz$。
+ \item 计算 $\int_{-\infty}^{\infty}\mathrm dx/(x^2+1)^2$，写出二阶极点处的留数计算。
+ \item 计算 $\int_0^{2\pi}\mathrm dt/(3+2\cos t)$。
+ \item 对 $a,b>0$，计算 $\int_0^\infty\cos(bx)/(x^2+a^2)\,\mathrm dx$。
+ \item 对 $0<p<q$，用代换和式\eqref{eq:cv-keyhole-integral}求 $\int_0^\infty x^{p-1}/(1+x^q)\,\mathrm dx$，其中实幂取正实轴上的通常定义。
+ \item 给出“留数为零但奇点不可去”的例子，并说明一个主值存在但普通反常积分不存在的例子。
+\end{enumerate}
+
+\chapter{辐角原理与零点计数}
+\label{chap:cv-counting}
+
+\section{对数导数如何记录零点与极点}
+
+求一个方程的全部根可能很困难，但判断某个区域中有多少根，往往只需研究边界。连接局部根与边界的函数是 $f'/f$，称为对数导数（logarithmic derivative）。即使 $f$ 没有全局对数，这个商在 $f$ 非零且有限处仍是单值函数。
+
+若 $a$ 是 $f$ 的 $m$ 阶零点，局部分解 $f=(z-a)^mg$ 给出
+\[
+ \frac{f'}f=\frac m{z-a}+\frac{g'}g,
+ \qquad g(a)\ne0.
+\]
+因此对数导数的留数为 $m$。若 $a$ 是 $m$ 阶极点，同样计算得到留数 $-m$。零点与极点在闭路积分中分别贡献正、负整数。
+
+\begin{theorem}[辐角原理]
+\label{thm:cv-argument}
+设 $f$ 在正向分段光滑简单闭曲线 $\Gamma$ 及其内部的开邻域亚纯，且 $\Gamma$ 上没有零点和极点。记内部零点总数为 $N$、极点总数为 $P$，均按重数计算，则
+\begin{equation}
+ \frac1{2\pi i}\oint_\Gamma\frac{f'(z)}{f(z)}\,\mathrm dz=N-P.
+ \label{eq:cv-argument}
+\end{equation}
+\end{theorem}
+\begin{proof}
+曲线及其内部构成紧集，而零点、极点在相关邻域内均孤立且不在边界，所以内部只有有限个。对 $f'/f$ 应用留数定理，每个零点贡献其重数，每个极点贡献重数的负值，即得公式。
+\end{proof}
+
+沿 $\Gamma$ 连续追踪 $f(z)$ 的辐角，式\eqref{eq:cv-argument}也等于像曲线 $f\circ\Gamma$ 关于原点的绕数，所以
+\[
+ \Delta_\Gamma\arg f=2\pi(N-P).
+\]
+这里是沿路径连续追踪的总辐角变化，不是终点辐角主值减去起点主值；后者在闭曲线上可能总写成零，丢失绕行信息。
+
+\section{鲁歇定理：小扰动不改变零点总数}
+
+\begin{theorem}[鲁歇定理]
+\label{thm:cv-rouche}
+设 $f,g$ 在正向分段光滑简单闭曲线 $\Gamma$ 及其内部的开邻域全纯，且边界上满足
+\[
+ |g(z)|<|f(z)|.
+\]
+则 $f$ 与 $f+g$ 在 $\Gamma$ 内的零点总数相同，均按重数计算。
+\end{theorem}
+\begin{proof}
+令 $F_t=f+tg$，$0\le t\le1$。边界上 $|F_t|\ge|f|-|g|>0$，并且紧性给出对所有 $t,z\in[0,1]\times\Gamma$ 统一的正下界。因此
+\[
+ N(t)=\frac1{2\pi i}\oint_\Gamma\frac{F_t'(z)}{F_t(z)}\,\mathrm dz
+\]
+随 $t$ 连续；由辐角原理，它又只能取整数。连续整数值函数在区间上恒定，故 $N(0)=N(1)$。
+\end{proof}
+
+几何上，$f+tg$ 的边界像在变形时始终不穿过原点，所以绕原点的圈数不变。严格不等式应在整个边界上成立，只在部分点成立不够。定理保留的是零点总数而不是每个零点的位置，更不是每个零点都保持原来的重数。
+
+\begin{example}[不用求根公式判断根的位置]
+求 $P(z)=z^5+3z+1$ 在 $|z|<1$ 和 $1<|z|<2$ 内的零点数。
+\end{example}
+\begin{solve}
+在 $|z|=1$ 上取主项 $f=3z$，其余项 $g=z^5+1$ 满足 $|g|\le2<3=|f|$，故单位圆内有一个零点。在 $|z|=2$ 上取主项 $z^5$，有 $|3z+1|\le7<32=|z^5|$，故半径 $2$ 的圆内有五个零点。两个边界均无零点，所以圆环内有四个零点。主项的选择随半径改变，不能机械地总选次数最高项。
+\end{solve}
+
+\begin{example}[简单根在小扰动下的稳定性]
+设 $a$ 是全纯函数 $f$ 的简单零点。取足够小的圆 $|z-a|=r$，使闭圆盘内没有其他零点，并令 $m_r=\min_{|z-a|=r}|f(z)|>0$。若 $h$ 在闭圆盘附近全纯且边界上 $|h|<m_r$，则 $f+h$ 在圆内按重数恰有一个零点，因此该零点也简单。这个结论可以证明近似方程仍有唯一的邻近根，但并不直接给出数值算法的误差或收敛速度。
+\end{example}
+
+\section{开映射与局部反函数}
+
+\begin{theorem}[开映射定理]
+\label{thm:cv-open-map}
+区域上的非常数全纯函数把开集映成开集。
+\end{theorem}
+\begin{proof}
+任取 $a\in D$。由恒等定理，$f-f(a)$ 不在 $a$ 附近恒零，所以 $a$ 为其某个有限阶零点。选小圆使圆内无其他零点，令 $\delta=\min_{|z-a|=r}|f(z)-f(a)|>0$。对任何满足 $|w-f(a)|<\delta$ 的 $w$，鲁歇定理说明 $f(z)-w$ 在圆内至少有一个零点。故 $B(f(a),\delta)$ 包含于该小圆盘的像，说明每个像点都是内点。将小圆选在任意给定开子集内，同样证明该开子集的像为开集。
+\end{proof}
+
+\begin{theorem}[全纯反函数定理]
+\label{thm:cv-inverse}
+若 $f$ 在 $a$ 附近全纯且 $f'(a)\ne0$，则存在 $a$ 的邻域 $U$ 和 $f(a)$ 的邻域 $V$，使 $f:U\to V$ 一一对应，反函数全纯，且
+\[
+ (f^{-1})'(w)=\frac1{f'(f^{-1}(w))}.
+\]
+\end{theorem}
+\begin{proof}
+全纯函数作为实映射光滑，且雅可比行列式为 $|f'(a)|^2>0$。由实反函数定理，可在足够小的邻域得到连续可微反函数。固定 $w_0=f(z_0)$，令 $w=f(z)$，由反函数连续性，$w\to w_0$ 时 $z\to z_0$，于是
+\[
+ \frac{f^{-1}(w)-f^{-1}(w_0)}{w-w_0}
+ =\frac{z-z_0}{f(z)-f(z_0)}\longrightarrow\frac1{f'(z_0)}.
+\]
+缩小邻域可保证导数不为零，故反函数在邻域处处复可导。
+\end{proof}
+
+反过来，单射全纯函数的导数处处不为零。若在某点 $a$ 有 $f'(a)=0$，则 $f-f(a)$ 的零点阶 $m\ge2$。取小圆使其内部除 $a$ 外既无该函数的零点，也无 $f'$ 的零点；对足够接近但不同于 $f(a)$ 的 $w$，鲁歇定理给出 $f-w$ 在圆内有 $m$ 个零点。它们不等于 $a$，导数又不为零，所以均简单，因而至少有两个不同原像，违背单射。这一步解释了共形映射为什么需要排除临界点。
+
+\section{无零点函数何时有全纯对数}
+
+\begin{theorem}[单连通区域上的全纯对数]
+\label{thm:cv-holomorphic-log}
+若 $D$ 单连通，$f$ 在 $D$ 全纯且处处非零，则存在全纯函数 $L$ 使 $e^L=f$。任意两个这样的 $L$ 相差 $2k\pi i$，其中 $k$ 是固定整数。因而 $f$ 在 $D$ 上也存在任意正整数阶的全纯根。
+\end{theorem}
+\begin{proof}
+$f'/f$ 在 $D$ 全纯，由单连通形式的柯西定理存在原函数 $G$。计算
+\[
+ (fe^{-G})'=e^{-G}(f'-fG')=0,
+\]
+故 $fe^{-G}=c\ne0$。任选满足 $e^\ell=c$ 的一个复数 $\ell$，取 $L=G+\ell$ 即可。两个对数之差连续且只取 $2\pi i\mathbb Z$ 中的值，由连通性为常数。最后 $e^{L/n}$ 是 $f$ 的一个全纯 $n$ 次根。
+\end{proof}
+
+一般区域上，准确的对数存在条件是所有闭路都满足 $\oint f'/f\,\mathrm dz=0$：必要性来自对数的导数，充分性来自原函数构造及上面的指数消去。单连通是容易验证的充分条件，却不是每一个具体函数所必需的条件；例如常函数 $f=1$ 在圆环上也有全纯对数零。
+
+\section{习题}
+\label{sec:cv-counting-ex}
+\begin{enumerate}
+ \item 求 $z^4+3z+1$ 在单位圆内的零点数。
+ \item 求 $z^4+z+1$ 在 $|z|<2$ 内的零点数，并说明边界上是否可能有根。
+ \item 对 $f(z)=(z-1)^3/(z+1)^2$，计算沿正向圆 $|z|=2$ 的 $\oint f'/f\,\mathrm dz$。
+ \item 若 $f$ 在单连通区域 $D$ 全纯且无零点，构造一个全纯平方根，并说明所有平方根之间的关系。
+ \item 证明非常数全纯函数不可能把一个区域映入一条直线或一个圆周。
+\end{enumerate}
+
+\chapter{共形映射与典型区域的变换}
+\label{chap:cv-conformal}
+
+\section{局部保角与整体双全纯}
+
+把复杂区域变成圆盘或半平面，能够简化积分和边值问题。但一个可逆坐标变换若任意扭曲角度，可能破坏原来的解析结构；全纯函数的局部伸缩与旋转恰好给出合适的变换。
+
+\begin{definition}[共形与双全纯]
+若 $f$ 在 $a$ 附近全纯且 $f'(a)\ne0$，则称它在 $a$ \keyterm{共形（conformal）}，这里采用保持定向的保角约定。若 $f:D\to G$ 是一一对应的全纯映射，且反函数也全纯，则称它为\keyterm{双全纯映射（biholomorphic map）}，也称两个区域之间的共形映射。
+\end{definition}
+
+由第\ref{chap:cv-counting}章的结果，单射全纯映射的导数不为零，且其反函数自动全纯。因此实际构造时，证明全纯、单射和满射即可。只证明导数不为零，得到的是局部可逆和局部保角，不足以说明整个区域上的单射；$e^z$ 在整个平面上的周期性就是反例。
+
+对经过 $a$ 的两条光滑曲线，像曲线的切向量均乘以 $f'(a)$，所以其有向夹角不变。长度通常会乘以 $|f'(a)|$，面积在一阶近似中会乘以 $|f'(a)|^2$。因此共形不意味着保持距离或面积，也不意味着把有限大小的图形变成相似图形。
+
+\section{莫比乌斯变换}
+
+\begin{definition}[莫比乌斯变换]
+函数
+\begin{equation}
+ T(z)=\frac{az+b}{cz+d},\qquad a,b,c,d\in\mathbb C,\quad ad-bc\ne0,
+ \label{eq:cv-mobius}
+\end{equation}
+称为\keyterm{莫比乌斯变换（Möbius transformation）}，又称分式线性变换。同乘所有系数以一个非零常数不改变变换。
+\end{definition}
+
+若 $c\ne0$，在扩充复平面上规定 $T(-d/c)=\infty$、$T(\infty)=a/c$；若 $c=0$，规定 $T(\infty)=\infty$。解出反函数
+\[
+ T^{-1}(w)=\frac{dw-b}{a-cw},
+\]
+可知 $T$ 在球面上是一一对应。普通点处的导数为
+\[
+ T'(z)=\frac{ad-bc}{(cz+d)^2}\ne0.
+\]
+在极点和无穷远点附近，用 $1/z$ 或 $1/w$ 作局部坐标，同样得到非零导数。条件 $ad-bc\ne0$ 正是排除分子、分母比例相同而退化为常函数的情形。
+
+\begin{proposition}[广义圆的保持性]
+莫比乌斯变换把广义圆映为广义圆。这里广义圆指普通圆，或补上无穷远点的直线。
+\end{proposition}
+\begin{proof}
+圆或直线可统一写成
+\[
+ A|z|^2+Bz+\overline B\,\overline z+C=0,
+ \quad A,C\in\mathbb R,
+\]
+并要求方程表示非退化的圆或直线。将莫比乌斯反函数代入，乘以分母的模平方后，仍得到同一类型的方程。由于变换在球面上双射，原来的圆不会退化为一个点或空集，所以像仍为广义圆。
+\end{proof}
+
+这个性质只确定边界可能变成圆或直线，不能自动确定区域映到哪一侧。常用办法是先确定边界，再测试一个内部点；若还需证明整个区域一一对应，应结合反函数或明确的不等式。
+
+\begin{proposition}[三点确定变换]
+给定扩充复平面上的两个有序三元组，且各组内三点互异，存在唯一莫比乌斯变换把第一组依次映到第二组。
+\end{proposition}
+\begin{proof}
+对互异有限点 $z_1,z_2,z_3$，
+\[
+ S(z)=\frac{(z-z_1)(z_2-z_3)}{(z-z_3)(z_2-z_1)}
+\]
+依次把它们映到 $0,1,\infty$；有无穷远点时取相应极限即可。对目标三点构造 $S_2$，所求为 $S_2^{-1}\circ S_1$。若两个变换都满足条件，它们的复合之差归结为一个固定 $0,1,\infty$ 的莫比乌斯变换；固定无穷远使 $c=0$，固定零使 $b=0$，固定 $1$ 使比例系数为 $1$，故只能是恒等变换。
+\end{proof}
+
+\section{上半平面、右半平面与单位圆盘}
+
+\begin{example}[凯莱变换]
+\label{ex:cv-cayley}
+证明 $T(z)=(z-i)/(z+i)$ 把上半平面双全纯地映到单位圆盘，并将 $i$ 映到 $0$。
+\end{example}
+\begin{solve}
+令 $z=x+iy$，则
+\[
+ |z+i|^2-|z-i|^2=4y.
+\]
+所以 $y>0$ 当且仅当 $|T(z)|<1$。反函数为 $z=i(1+w)/(1-w)$，当 $|w|<1$ 时
+\[
+ \operatorname{Im}z=\frac{1-|w|^2}{|1-w|^2}>0.
+\]
+两式给出满射与反函数的定义域，莫比乌斯性质给出单射和全纯性。实轴与无穷远点组成的边界映到单位圆，$i$ 映到零。
+\end{solve}
+
+类似地，$S(z)=(z-1)/(z+1)$ 将右半平面 $\operatorname{Re}z>0$ 映到单位圆盘，因为 $|z+1|^2-|z-1|^2=4\operatorname{Re}z$。半平面的方向不同，公式中的基准点也不同，不能不经检查就互换 $1$ 与 $i$。
+
+\begin{proposition}[圆盘自同构]
+\label{prop:cv-disk-auto}
+对 $a\in\mathbb D$，函数
+\[
+ \varphi_a(z)=\frac{z-a}{1-\overline a z}
+\]
+是单位圆盘的双全纯自映射，将 $a$ 映到 $0$，反函数为 $\varphi_a^{-1}(w)=(w+a)/(1+\overline a w)$。单位圆盘的全部双全纯自映射恰为
+\[
+ e^{i\theta}\frac{z-a}{1-\overline a z},\qquad a\in\mathbb D,\quad\theta\in\mathbb R.
+\]
+\end{proposition}
+\begin{proof}
+直接展开有
+\begin{equation}
+ 1-|\varphi_a(z)|^2
+ =\frac{(1-|a|^2)(1-|z|^2)}{|1-\overline a z|^2}.
+ \label{eq:cv-disk-auto}
+\end{equation}
+右侧对 $z\in\mathbb D$ 为正，反函数也有相同性能，故得到双射。对任意双全纯自映射 $F$，取 $a=F^{-1}(0)$，令 $H=F\circ\varphi_a^{-1}$，则 $H(0)=0$。施瓦茨引理分别应用于 $H$ 和 $H^{-1}$，得 $|H(z)|\le|z|\le|H(z)|$，所以处处取等号，$H(z)=e^{i\theta}z$，从而得到分类。
+\end{proof}
+
+作为进一步应用，对任意全纯映射 $f:\mathbb D\to\mathbb D$，将 $a$ 和 $f(a)$ 分别通过上述变换移到零，再用施瓦茨引理，得到施瓦茨--皮克不等式（Schwarz--Pick inequality）
+\[
+ \left|\frac{f(z)-f(a)}{1-\overline{f(a)}f(z)}\right|
+ \le\left|\frac{z-a}{1-\overline a z}\right|,
+ \qquad
+ \frac{|f'(a)|}{1-|f(a)|^2}\le\frac1{1-|a|^2}.
+\]
+第一式控制两个点之间的相对位置，第二式由 $z\to a$ 取极限得到。它们说明任意圆盘全纯自映射都受到比普通连续映射强得多的几何约束。
+
+\section{条带、扇形与裂平面的组合映射}
+
+构造映射时，可把任务分成几个可验证步骤：先用平移、旋转确定位置，再用幂函数或指数改变开角和边界形状，最后用莫比乌斯变换送到圆盘或半平面。每一步都应注明定义域、分支、单射性与值域。
+
+\begin{example}[水平条带映到单位圆盘]
+设 $h>0$，求 $S=\{z:0<\operatorname{Im}z<h\}$ 到 $\mathbb D$ 的一个双全纯映射。
+\end{example}
+\begin{solve}
+先取 $\zeta=e^{\pi z/h}$。其辐角在 $(0,\pi)$，模可取所有正数，所以像为上半平面。若两个条带内点有相同像，其差为 $2khi$；但虚部之差的绝对值小于 $h$，故 $k=0$，单射成立。反函数为 $(h/\pi)L(\zeta)$，其中选上半平面上辐角位于 $(0,\pi)$ 的对数。再接凯莱变换，得到
+\[
+ w=\frac{e^{\pi z/h}-i}{e^{\pi z/h}+i}.
+\]
+它把条带中点 $ih/2$ 映到原点。
+\end{solve}
+
+\begin{example}[扇形映到上半平面]
+设 $0<\alpha<2\pi$，$S_\alpha=\{re^{i\theta}:r>0,\ 0<\theta<\alpha\}$。在这个扇形上选辐角 $\theta\in(0,\alpha)$，则
+\[
+ w=z^{\pi/\alpha}=\exp\left(\frac\pi\alpha(\ln r+i\theta)\right)
+\]
+把辐角区间变为 $(0,\pi)$，模 $r^{\pi/\alpha}$ 仍遍历所有正数，故双全纯映到上半平面。其逆变换使用上半平面上的辐角分支，再取 $\alpha/\pi$ 次幂。原点是扇形边界点，不在保角性要求的内部。
+\end{example}
+
+\begin{example}[裂平面映到圆盘]
+对 $\Omega=\mathbb C\setminus(-\infty,0]$，先取主平方根 $s(z)=e^{\operatorname{Log}z/2}$。辐角范围从 $(-\pi,\pi)$ 变为 $(-\pi/2,\pi/2)$，故 $s$ 双全纯地映到右半平面，其逆为在右半平面上限制的平方函数。因此
+\[
+ w=\frac{\sqrt z-1}{\sqrt z+1}
+\]
+把 $\Omega$ 双全纯地映到单位圆盘，且把 $1$ 映到 $0$。这里 $\sqrt z$ 明确取主分支，反函数为 $z=((1+w)/(1-w))^2$。
+\end{example}
+
+\section{存在性与显式公式的边界}
+
+\begin{theorem}[黎曼映射定理，选读]
+若 $D$ 是非空、单连通且不等于整个复平面的区域，则存在 $D$ 到单位圆盘的双全纯映射。给定 $a\in D$，再要求 $f(a)=0$、$f'(a)>0$ 为正实数时，该映射唯一。
+\end{theorem}
+
+本书引用这一存在性定理，不给出依赖正规族等工具的存在性证明。归一化后的唯一性则可以在已有知识内说明：两个这样的映射复合成圆盘自同构并固定原点，只能相差一个旋转；导数为正实数消去该旋转。存在性不等于总能写出初等公式，也不自动保证任意粗糙边界上的连续一一延拓。整个复平面不能双全纯映到圆盘，否则该映射是有界非常数整函数，与刘维尔定理矛盾；有孔的圆环也不能映成圆盘，因为双全纯映射是同胚，保持闭曲线是否能收缩这一拓扑性质。
+
+\section{习题}
+\label{sec:cv-conformal-ex}
+\begin{enumerate}
+ \item 构造将 $0,1,\infty$ 依次映到 $1,\infty,0$ 的莫比乌斯变换。
+ \item 构造上半平面到单位圆盘的双全纯映射，使 $2i$ 映到零。
+ \item 构造第一象限到单位圆盘的双全纯映射，使 $1+i$ 映到零。
+ \item 证明 $z^2$ 在右半平面单射，确定其像；解释它在整个去心平面为什么不单射。
+ \item 若单位圆盘的双全纯自映射固定原点且导数为正实数，证明它是恒等映射。
+\end{enumerate}
+
+\chapter{调和函数与圆盘边值问题}
+\label{chap:cv-harmonic}
+
+\section{从解析函数的实部到拉普拉斯方程}
+
+\begin{definition}[调和函数与调和共轭]
+实值函数 $u\in C^2(D)$ 若满足
+\begin{equation}
+ \Delta u=u_{xx}+u_{yy}=0,
+ \label{eq:cv-laplace}
+\end{equation}
+称为区域 $D$ 上的\keyterm{调和函数（harmonic function）}。若 $u+iv$ 全纯，则称 $v$ 是 $u$ 的\keyterm{调和共轭（harmonic conjugate）}。
+\end{definition}
+
+在理想的均匀介质、无内部热源的二维稳态导热模型中，温度可满足拉普拉斯方程；在无电荷的平面区域内，静电势也可满足同样的方程。这些是带物理假设的模型解释。数学上，本章研究的是给定方程、区域及边界数据后，解是否存在、是否唯一、怎样表示。
+
+由 C--R 方程和全纯函数的光滑性，全纯函数的实部与虚部都调和。但反方向需更细致地表述：一个调和函数局部可以成为全纯函数的实部，能否在整个区域上找到单值调和共轭，取决于区域的拓扑。
+
+\begin{theorem}[调和共轭的存在]
+\label{thm:cv-conjugate}
+每个调和函数在每一点的小邻域内都有调和共轭。若定义域 $D$ 单连通，则存在全局调和共轭；在连通区域上，共轭函数在相差实常数的意义下唯一。
+\end{theorem}
+\begin{proof}
+由 C--R 方程，应要求 $v_x=-u_y$、$v_y=u_x$。在以 $(x_0,y_0)$ 为基点的小矩形内定义
+\[
+ v(x,y)=-\int_{x_0}^{x}u_y(s,y_0)\,\mathrm ds
+ +\int_{y_0}^{y}u_x(x,t)\,\mathrm dt.
+\]
+直接微分得 $v_y=u_x$，又由 $u_{xx}=-u_{yy}$，有
+\[
+ v_x=-u_y(x,y_0)+\int_{y_0}^{y}u_{xx}(x,t)\,\mathrm dt
+ =-u_y(x,y).
+\]
+因此 $u+iv$ 全纯，得到局部存在性。对单连通区域，可沿路径定义
+\begin{equation}
+ v(z)=v(z_0)+\int_{z_0}^{z}(-u_y\,\mathrm dx+u_x\,\mathrm dy).
+ \label{eq:cv-conjugate-integral}
+\end{equation}
+这个实微分形式的闭路积分为零：局部路径无关性由刚才的构造给出，再沿闭曲线收缩过程拼接局部原函数，方法与定理\ref{thm:cv-cauchy-domain}相同；对围住普通平面区域的简单闭曲线，也可直接用格林公式把积分化成 $\iint\Delta u\,\mathrm dx\mathrm dy=0$。故全局定义良好。若 $v_1,v_2$ 都满足要求，则其差的两个偏导均为零，连通性使差为常数。
+\end{proof}
+
+\begin{example}[实际求调和共轭]
+设 $u=x^2-y^2+2x$，求 $v$ 使 $f=u+iv$ 在整个平面全纯。
+\end{example}
+\begin{solve}
+先检查 $u_{xx}+u_{yy}=2-2=0$。由 $v_y=u_x=2x+2$，积分得 $v=(2x+2)y+\phi(x)$。再由 $v_x=-u_y=2y$，得到 $\phi'(x)=0$。所以 $v=2xy+2y+C$，相应 $f(z)=z^2+2z+iC$，$C\in\mathbb R$。不先检查调和性，也可以在第二个方程中发现不相容，但先检查可避免无效积分。
+\end{solve}
+
+在去心平面上，$u(z)=\ln|z|$ 调和，却没有全局单值调和共轭。其候选共轭是辐角，沿单位圆计算式\eqref{eq:cv-conjugate-integral}的增量为 $2\pi$，不满足路径无关性。删去一条支割线后，则可取 $v=\operatorname{Arg}z$。这把对数分支问题与调和共轭问题联系起来。
+
+\section{平均值性质与极值原理}
+
+\begin{theorem}[平均值性质]
+\label{thm:cv-harmonic-mean}
+若 $u$ 在包含闭圆盘 $\overline{B(a,r)}$ 的开集上调和，则
+\begin{equation}
+ u(a)=\frac1{2\pi}\int_0^{2\pi}u(a+re^{it})\,\mathrm dt
+ =\frac1{\pi r^2}\iint_{B(a,r)}u\,\mathrm dx\mathrm dy.
+ \label{eq:cv-harmonic-mean}
+\end{equation}
+\end{theorem}
+\begin{proof}
+在比该闭圆盘略大的圆盘内取调和共轭，得到全纯函数 $F$ 且 $u=\operatorname{Re}F$。柯西积分公式经圆周参数化给出 $F(a)$ 为圆周平均值，取实部得第一式。对每个 $0<s<r$ 使用圆周平均值，再乘 $2\pi s$ 对 $s$ 积分，利用极坐标面积公式得第二式。
+\end{proof}
+
+平均值性质表示中心值既不偏高也不偏低，而是周围各方向取值的平衡。它导致调和函数的极值不能孤立地出现在内部。
+
+\begin{theorem}[调和函数的最大、最小值原理]
+\label{thm:cv-harmonic-max}
+若调和函数 $u$ 在区域 $D$ 内取得其在 $D$ 上的最大值或最小值，则 $u$ 为常数。若 $D$ 有界且 $u\in C(\overline D)$、在 $D$ 调和，则最大值和最小值都可在边界取得。因此同一连续边界数据至多对应一个这样的调和函数。
+\end{theorem}
+\begin{proof}
+设最大值为 $M$，在 $a\in D$ 取得。对任意足够小的圆，其上 $u\le M$，平均值又等于 $M$，由连续性可知圆上每一点都等于 $M$。改变半径得 $u$ 在 $a$ 附近恒为 $M$。于是集合 $\{u=M\}$ 在 $D$ 中非空、开且闭，由连通性等于 $D$。对 $-u$ 应用同样论证得最小值结论。有界区域闭包紧致，极值存在；若两个解边界相同，其差边界为零，用最大、最小值原理得差处处为零。
+\end{proof}
+
+\section{泊松公式与圆盘上的狄利克雷问题}
+
+所谓\keyterm{狄利克雷问题（Dirichlet problem）}，是给定边界值，求区域内部满足拉普拉斯方程并连续达到该边界值的函数。先在单位圆盘上讨论，设边界函数 $\varphi(t)$ 为连续、实值、$2\pi$ 周期函数。
+
+\begin{theorem}[圆盘上的泊松公式]
+\label{thm:cv-poisson}
+对 $0\le r<1$，定义
+\begin{equation}
+ u(re^{i\theta})=\frac1{2\pi}\int_0^{2\pi}
+ P_r(\theta-t)\varphi(t)\,\mathrm dt,
+ \qquad
+ P_r(s)=\frac{1-r^2}{1-2r\cos s+r^2}.
+ \label{eq:cv-poisson}
+\end{equation}
+则 $u$ 在单位圆盘调和，并可连续延拓到闭圆盘，边界值为 $u(e^{it})=\varphi(t)$。它是该边值问题的唯一解。$P_r$ 称为\keyterm{泊松核（Poisson kernel）}。
+\end{theorem}
+\begin{proof}
+首先注意
+\[
+ P_r(\theta-t)=\operatorname{Re}\frac{e^{it}+z}{e^{it}-z},\qquad z=re^{i\theta}.
+\]
+因此 $u$ 是全纯函数
+\[
+ F(z)=\frac1{2\pi}\int_0^{2\pi}\frac{e^{it}+z}{e^{it}-z}\varphi(t)\,\mathrm dt
+\]
+的实部。对每个较小闭圆盘，分母统一远离零，核及其导数有统一界，可对积分取差商并交换极限，所以 $F$ 全纯，$u$ 调和。
+
+核具有三个性质：$P_r(s)>0$；其一个周期上的积分为 $2\pi$；对任意固定角距离 $\delta>0$，在 $\delta\le|s|\le\pi$ 上 $P_r(s)$ 随 $r\uparrow1$ 一致趋于零。第二条可由几何级数得到
+\[
+ P_r(s)=1+2\sum_{n=1}^\infty r^n\cos(ns),\qquad r<1,
+\]
+再逐项积分；第三条来自分母远离零。于是
+\[
+ u(re^{i\theta})-\varphi(\theta)
+ =\frac1{2\pi}\int_0^{2\pi}P_r(\theta-t)
+ [\varphi(t)-\varphi(\theta)]\,\mathrm dt.
+\]
+靠近 $t=\theta$ 的部分由 $\varphi$ 的一致连续性控制，远离部分由第三条控制，得到误差对 $\theta$ 一致趋于零。结合 $\varphi$ 连续，便得到沿任意方向趋近边界时的连续延拓。唯一性由调和极值原理给出。
+\end{proof}
+
+泊松核把边界值做加权平均；$r=0$ 时所有方向权重相同，越靠近边界，权重越集中在附近的边界点。若半径为 $R$、圆心为 $a$，通过缩放 $z=a+R\zeta$ 可得
+\[
+ u(a+re^{i\theta})=\frac1{2\pi}\int_0^{2\pi}
+ \frac{R^2-r^2}{R^2-2Rr\cos(\theta-t)+r^2}
+ \varphi(t)\,\mathrm dt,\qquad 0\le r<R,
+\]
+其中 $\varphi(t)$ 是点 $a+Re^{it}$ 上的边界值。
+
+\begin{example}[由边界的三角多项式求内部解]
+求单位圆盘内的调和函数，其边界值为 $\varphi(t)=3+2\cos t-\sin(2t)$。
+\end{example}
+\begin{solve}
+由泊松核展开及三角函数正交性，常数项不变，第 $n$ 个频率乘以 $r^n$，所以
+\[
+ u(re^{i\theta})=3+2r\cos\theta-r^2\sin(2\theta)
+ =3+2x-2xy.
+\]
+直接求拉普拉斯算子得到零，代入单位圆得到给定边界值，再由唯一性确定这是所求解。一般而言，若边界是有限三角多项式，逐频率乘以 $r^n$ 是最便捷的计算方式；对任意连续边界数据，泊松积分公式始终适用，不需要先假设其傅里叶级数逐点收敛。
+\end{solve}
+
+\section{正调和函数的估计与共形变换}
+
+若 $u$ 在闭圆盘 $\overline{B(0,R)}$ 的邻域调和且非负，由泊松核的上下界，可得对 $|z|=r<R$，
+\begin{equation}
+ \frac{R-r}{R+r}u(0)\le u(z)\le\frac{R+r}{R-r}u(0).
+ \label{eq:cv-harnack}
+\end{equation}
+这是圆盘上的哈纳克不等式（Harnack inequality）。证明只需观察泊松核的最小、最大值分别为 $(R-r)/(R+r)$ 与 $(R+r)/(R-r)$，再用边界平均值等于 $u(0)$。它表明正调和函数在远离边界的小范围内不能任意剧烈变化；靠近边界时常数变大，也提醒我们内部控制与边界行为有不同尺度。
+
+\begin{proposition}[调和性的共形不变性]
+若 $u$ 在区域 $G$ 调和，$f:D\to G$ 全纯，则 $u\circ f$ 在 $D$ 调和。若 $f$ 还是双全纯映射，则可以通过它在两个区域之间转换调和函数。
+\end{proposition}
+\begin{proof}
+写 $f=p+iq$，对二阶偏导使用实链式法则。由 $p,q$ 调和以及 C--R 方程，交叉项抵消，得到
+\[
+ \Delta(u\circ f)=|f'(z)|^2(\Delta u)(f(z))=0.
+\]
+或者在每个小邻域写 $u=\operatorname{Re}F$，则 $u\circ f=\operatorname{Re}(F\circ f)$，也得到同一结论。
+\end{proof}
+
+\begin{example}[扇形上的边界值]
+在扇形 $0<\arg z<\alpha$ 内，求两条边分别取 $0$、$1$ 的一个有界调和函数，其中边界条件只针对两条射线上的非零有限点。
+\end{example}
+\begin{solve}
+选取 $0<\arg z<\alpha$ 的对数分支，取
+\[
+ u(z)=\frac{\arg z}{\alpha}=\operatorname{Im}\frac{\log z}{\alpha}.
+\]
+它在扇形内调和，值在 $(0,1)$，并达到指定射线边界值。原点处两侧数据冲突，不能要求那里连续；区域又无界，因此这里仅给出一个满足所述条件的解，不能未经额外论证直接套用有界区域的边值唯一性定理。
+\end{solve}
+
+\section{习题}
+\label{sec:cv-harmonic-ex}
+\begin{enumerate}
+ \item 判断 $u=x^2+y^2$ 与 $v=e^x\cos y$ 是否调和；对调和者求一个调和共轭。
+ \item 求 $u=x^3-3xy^2+2y$ 的调和共轭，并写出对应的全纯函数。
+ \item 求单位圆盘内边界值为 $2+\cos(3t)+2\sin t$ 的调和函数，并写出中心值。
+ \item 设 $u$ 在闭单位圆盘的邻域调和且边界满足 $|u|\le M$，证明圆盘内也有 $|u|\le M$。
+ \item 证明 $\ln|z|$ 在原点外调和，并计算其候选共轭沿正向单位圆的增量。
+\end{enumerate}
+
+\appendix
+\chapter{习题解答与关键步骤}
+\label{chap:cv-solutions}
+
+本附录与各章习题逐项对应。计算题给出结果和主要推导，证明题指出假设的使用位置。建议先独立完成，再对照思路；得到同一个数值并不能代替对路径方向、收敛区域和定理条件的核查。
+
+\section{复数与复平面}
+对应第\ref{sec:cv-plane-ex}节。
+\begin{enumerate}
+ \item 乘以分母的共轭可得 $(1+2i)/(2-i)=i$，模为 $1$；原分子、分母的模均为 $\sqrt5$，所以模的商也为 $1$。
+ \item $8i=8e^{i\pi/2}$，三个根为 $2e^{i(\pi/6+2k\pi/3)}$，$k=0,1,2$。相邻辐角相差 $2\pi/3$，三根位于半径为 $2$ 的圆上的正三角形顶点。
+ \item 平方并整理得 $3x^2+10x+3y^2+3=0$，即 $(x+5/3)^2+y^2=16/9$。圆心为 $-5/3$，半径为 $4/3$。
+ \item 设 $q=(z-w)/(z+w)$。由单位圆条件有 $\overline z=1/z$、$\overline w=1/w$，故 $\overline q=(w-z)/(w+z)=-q$，这等价于 $\operatorname{Re}q=0$。分母非零条件保证整个表达式有定义。
+ \item 右半平面是凸区域，所以单连通。去心单位圆盘不是单连通，绕原点一周的圆具有非零绕数，在避开原点的连续收缩中绕数不变。裂平面单连通：任意点唯一写成 $re^{i\theta}$，$r>0$、$-\pi<\theta<\pi$，可通过 $H(s,re^{i\theta})=((1-s)r+s)e^{i(1-s)\theta}$ 连续收缩到 $1$，始终不碰支割线。
+\end{enumerate}
+
+\section{复导数与全纯函数}
+对应第\ref{sec:cv-derivative-ex}节。
+\begin{enumerate}
+ \item 定义域为 $\mathbb C\setminus\{0\}$，在其上全纯，$f'(z)=3z^2-2/z^2$。原点处函数无有限延拓，不能列入全纯区域。
+ \item $\operatorname{Re}z$ 的分量满足 $u_x=1$、$v_y=0$，C--R 方程处处失败，因此没有复可导点。$z\overline z=x^2+y^2$ 的 C--R 方程仅在原点成立，而分量实可微，故只在原点复可导，导数为零。两函数作为从 $\mathbb R^2$ 到 $\mathbb R^2$ 的映射都处处光滑。
+ \item 在完全包含于 $D$ 的小圆盘中，任意线段参数化为 $z(t)=a+t(b-a)$。链式法则给出 $(f\circ z)'(t)=f'(z(t))(b-a)=0$，实部、虚部的一元导数均为零，故端点值相同。因此 $f$ 局部为常数；任意两点可由区域内折线连接，逐段使用该结论得全局为常数。
+ \item 写 $f=u+i0$，C--R 方程给出 $u_x=u_y=0$，沿区域内折线可知 $u$ 恒定。也可用开映射定理反证，但此处的证明不依赖后面的定理。
+ \item 由 $v_y=u_x=3x^2-3y^2$，积分得 $v=3x^2y-y^3+\phi(x)$；再用 $v_x=-u_y=6xy$ 得 $\phi'=0$。所以 $v=3x^2y-y^3+C$，对应 $f=z^3+iC$。
+\end{enumerate}
+
+\section{初等函数与分支}
+对应第\ref{sec:cv-elementary-ex}节。
+\begin{enumerate}
+ \item $1+i=\sqrt2e^{i\pi/4}$，故 $z=\tfrac12\ln2+i(\pi/4+2k\pi)$，$k\in\mathbb Z$。
+ \item $\operatorname{Log}(1-i)=\tfrac12\ln2-i\pi/4$。$(-1)^{1/3}$ 的三个值为 $e^{i\pi/3},e^{i\pi},e^{5i\pi/3}$，即 $\tfrac12+i\tfrac{\sqrt3}2,-1,\tfrac12-i\tfrac{\sqrt3}2$。三次方程的全部解与任取一个对数分支后的函数值不是同一问题。
+ \item 由 $(w-w^{-1})/(2i)=2$ 得 $w^2-4iw-1=0$，故 $w=i(2\pm\sqrt3)$。解 $e^{iz}=w$ 得
+ \[
+ z=\frac\pi2+2k\pi\pm i\ln(2+\sqrt3),\qquad k\in\mathbb Z.
+ \]
+ 两种符号对应互为倒数的正数 $2\pm\sqrt3$，应保留全部整数周期。
+ \item 右半平面上的辐角取在 $(-\pi/2,\pi/2)$。若 $z=re^{i\theta}$，则 $1/z=r^{-1}e^{-i\theta}$ 仍在右半平面，所以对数为 $-\ln r-i\theta$，正好等于 $-\operatorname{Log}z$。结论依赖这两个点使用相容分支。
+ \item 假设 $s$ 存在，令 $q(t)=s(e^{it})e^{-it/2}$，则 $q(t)^2=1$。$q$ 连续且只取 $\{1,-1\}$，所以为常数。然而 $q(2\pi)=-s(1)=-q(0)$，矛盾。
+\end{enumerate}
+
+\section{复曲线积分}
+对应第\ref{sec:cv-integral-ex}节。
+\begin{enumerate}
+ \item 取全平面上的原函数 $z^3/3$，结果为 $(1+i)^3/3=(-2+2i)/3$，与路径无关。
+ \item 参数化 $z=e^{it}$ 后有 $\overline z\,\mathrm dz=i\,\mathrm dt$，积分为 $2\pi i$。在单位圆上 $\overline z=1/z$，由基本圆周积分得到同样结果。这个相等只在单位圆上成立，不是两个函数在某个区域内恒等。
+ \item 上半圆取 $z=e^{it}$、$t:0\to\pi$，结果为 $i\pi$；下半圆从 $1$ 到 $-1$ 可取 $t:0\to-\pi$，结果为 $-i\pi$。两者之差 $2\pi i$ 反映合成闭路绕原点一周。
+ \item 在 $|z|=R$ 上，反三角不等式给出 $|z^2+1|\ge R^2-1$，半圆长度为 $\pi R$，代入长乘高估计得所需上界，并随 $R\to\infty$ 趋于零。
+ \item $(F-G)'=0$，由区域连通和前章习题结论得差为常数。若定义域不连通，可以在不同连通分支取不同常数，不能保证全域只有一个常数。
+\end{enumerate}
+
+\section{柯西积分理论}
+对应第\ref{sec:cv-cauchy-ex}节。
+\begin{enumerate}
+ \item 分母为 $z^2$，对应 $\sin z$ 在零点的一阶导数，所以积分为 $2\pi i\cos0=2\pi i$。
+ \item 部分分式为 $-1/(z-1)+2/(z-2)$。两个点均在圆内，故积分为 $2\pi i(-1+2)=2\pi i$。
+ \item 在原点用半径 $R$ 的柯西估计，得 $|f^{(n)}(0)|\le n!C(1+R^m)/R^n$。对 $n>m$ 令 $R\to\infty$，得 $f^{(n)}(0)=0$。由整函数的泰勒展开，$f$ 是次数不超过 $m$ 的多项式。这里用到了第\ref{chap:cv-series}章证明的泰勒定理；读到本题时也可先保留为后续应用。
+ \item 若 $\operatorname{Re}f\le A$，则 $|e^f|\le e^A$，所以 $e^f$ 由刘维尔定理为常数。微分得 $e^ff'=0$，又 $e^f\ne0$，故 $f'=0$，于是 $f$ 为常数。
+ \item 取圆环内任意正向圆 $|z|=r$，$1<r<2$，有 $\oint\mathrm dz/z=2\pi i\ne0$。若存在原函数，该积分必须为零，矛盾。圆环中的孔洞使全纯性不足以保证原函数存在。
+\end{enumerate}
+
+\section{幂级数与全纯函数结构}
+对应第\ref{sec:cv-series-ex}节。
+\begin{enumerate}
+ \item 根值或比值公式给出 $R=1$。从 $\sum_{n=0}^\infty z^n=1/(1-z)$ 在圆盘内逐项微分并乘以 $z$，得到 $\sum_{n=1}^\infty nz^n=z/(1-z)^2$。
+ \item 写 $2-z=1-(z-1)$，得 $1/(2-z)=\sum_{n=0}^\infty(z-1)^n$，半径为 $1$，最近奇点为 $z=2$。
+ \item $\sin z-z=-z^3/6+O(z^5)$，故为三阶零点。$e^z-1=z+O(z^2)$，平方后首项为 $z^2$，故为二阶零点。
+ \item 第一列零点在内部点 $0$ 聚集，恒等定理给出 $f\equiv0$。第二列点聚于边界点 $1$，不满足定理。事实上 $\sin(\pi/(1-z))$ 在单位圆盘全纯、并非恒零，且在每个 $1-1/n$ 处为零。
+ \item 施瓦茨引理的导数等号情形给出 $f(z)=e^{i\theta}z$；由 $f'(0)=1$ 得 $e^{i\theta}=1$，故 $f(z)=z$。
+ \item $|z^2+1|\le|z|^2+1\le2$。要取等号，须 $|z|=1$ 且 $z^2$ 与 $1$ 同向，故 $z^2=1$。最大值为 $2$，恰在 $z=1,-1$ 取得。
+\end{enumerate}
+
+\section{洛朗级数与奇点}
+对应第\ref{sec:cv-laurent-ex}节。
+\begin{enumerate}
+ \item 在 $0<|z|<1$，
+ \[
+ \frac1{z(z-1)}=-\frac1z\frac1{1-z}=-\sum_{n=0}^\infty z^{n-1}.
+ \]
+ 在 $|z|>1$，
+ \[
+ \frac1{z(z-1)}=\frac1{z^2}\frac1{1-z^{-1}}
+ =\sum_{n=0}^\infty z^{-n-2}.
+ \]
+ 两个展开的 $z^{-1}$ 系数分别为 $-1$、$0$，对应积分圆围住不同的奇点集合。
+ \item $(1-\cos z)/z^2=1/2-z^2/24+\cdots$，原点可去，延拓值 $1/2$。$\sin z/z^3=z^{-2}-1/6+\cdots$，原点为二阶极点。$\sin(1/z)=z^{-1}-z^{-3}/3!+\cdots$，有无穷多负次幂，原点为本性奇点。
+ \item 令 $g(z)=(z-a)f(z)$。由假设，$g$ 在 $a$ 可去，延拓值为零。其泰勒展开可提出因子 $z-a$，即 $g(z)=(z-a)h(z)$，其中 $h$ 全纯；在去心邻域内 $f=h$，因此 $f$ 也可去。这说明增长严格慢于 $1/|z-a|$ 的孤立奇点不能留下任何主部。
+ \item $z^3+1$ 在无穷远点有三阶极点；$z/(z^2+1)$ 在无穷远点可去且值为零，因为换元后为 $\zeta/(1+\zeta^2)$；$\sin z$ 换元后为 $\sin(1/\zeta)$，故无穷远点为本性奇点。
+ \item 对数的一个分支没有包含原点周围整圈的去心圆盘作为定义域，全局连续分支也不存在，所以不满足单值孤立奇点分类的前提。$e^{1/z}$ 在完整去心圆盘上单值全纯，才可用洛朗主部分类为本性奇点。
+\end{enumerate}
+
+\section{留数与实积分}
+对应第\ref{sec:cv-residue-ex}节。
+\begin{enumerate}
+ \item 从 $\cos z/z^3=z^{-3}-\tfrac12z^{-1}+\cdots$ 得原点留数 $-1/2$。对第二个函数消去二阶因子，求导得
+ \[
+ \operatorname{Res}\left(\frac z{(z-1)^2(z+1)},1\right)
+ =\left.\frac{\mathrm d}{\mathrm dz}\frac z{z+1}\right|_{z=1}
+ =\frac14.
+ \]
+ \item 在 $1,2$ 的留数分别为 $-1,4$，两个点都在圆内，故积分为 $2\pi i\cdot3=6\pi i$。也可先做多项式除法，但常数项的闭路积分为零。
+ \item 上半平面只有 $i$ 这个二阶极点，其留数为
+ \[
+ \left.\frac{\mathrm d}{\mathrm dz}(z+i)^{-2}\right|_{z=i}
+ =-\frac2{(2i)^3}=\frac1{4i}.
+ \]
+ 圆弧上函数为 $O(R^{-4})$，因此弧积分趋零，实积分等于 $2\pi i/(4i)=\pi/2$。
+ \item $a=3,b=2$ 满足 $a>|b|$，结果为 $2\pi/\sqrt{9-4}=2\pi/\sqrt5$。
+ \item 全实轴积分为 $\pi e^{-ab}/a$，被积函数是偶函数，故半轴结果为 $\pi e^{-ab}/(2a)$。$a>0$ 保证分母无实零点，$b>0$ 确定向上闭合的方向。
+ \item 令 $t=x^q$，则 $x^{p-1}\,\mathrm dx=(1/q)t^{p/q-1}\,\mathrm dt$。由于 $0<p/q<1$，由钥匙孔积分公式得
+ \[
+ \int_0^\infty\frac{x^{p-1}}{1+x^q}\,\mathrm dx
+ =\frac\pi q\csc\frac{\pi p}q.
+ \]
+ 这两个不等式也分别是原点与无穷端的收敛条件。
+ \item $1/z^2$ 在原点留数为零，但有二阶极点。$\operatorname{PV}\int_{-1}^1\mathrm dx/x=0$，而两侧普通反常积分分别发散，故普通积分不存在。两者都说明一个有限的积分相关数值并不代表函数局部行为正常。
+\end{enumerate}
+
+\section{零点计数}
+对应第\ref{sec:cv-counting-ex}节。
+\begin{enumerate}
+ \item 在 $|z|=1$ 上，$|z^4+1|\le2<3=|3z|$。以 $3z$ 为主项应用鲁歇定理，单位圆内按重数恰有一个零点。
+ \item 在 $|z|=2$ 上，$|z+1|\le3<16=|z^4|$，故有四个零点。严格不等式还给出 $|z^4+z+1|\ge16-3>0$，所以边界没有根。
+ \item 圆内有三重零点 $1$ 与二阶极点 $-1$，故积分为 $2\pi i(3-2)=2\pi i$。也可直接写 $f'/f=3/(z-1)-2/(z+1)$ 后积分。
+ \item 由定理\ref{thm:cv-holomorphic-log}选全纯对数 $L$，令 $g=e^{L/2}$，则 $g^2=f$。若 $h^2=f$，因 $f$ 无零点，有 $(h/g)^2=1$；该商连续、区域连通，故 $h/g$ 恒为 $1$ 或 $-1$，全部平方根为 $g$ 与 $-g$。
+ \item 开映射定理说明非常数全纯函数的像必须为非空开集；直线和圆周在平面上都不包含任何开圆盘，矛盾。
+\end{enumerate}
+
+\section{共形映射}
+对应第\ref{sec:cv-conformal-ex}节。
+\begin{enumerate}
+ \item $T(z)=1/(1-z)$ 满足 $T(0)=1$、$T(1)=\infty$、$T(\infty)=0$。由三点确定性，它就是唯一答案。
+ \item 可取 $T(z)=(z-2i)/(z+2i)$。模平方差为 $|z+2i|^2-|z-2i|^2=8\operatorname{Im}z$，所以映到单位圆盘，且 $T(2i)=0$；由莫比乌斯反函数可核实双射。
+ \item 第一象限通过 $\zeta=z^2$ 双全纯映到上半平面，$1+i$ 映到 $2i$。再用上一题变换，得到 $T(z)=(z^2-2i)/(z^2+2i)$。平方函数在该象限单射，因为两个相反的非零点不可能同时位于第一象限。
+ \item 若右半平面的两点满足 $z_1^2=z_2^2$，则 $z_1=z_2$ 或 $z_1=-z_2$；后者不可能，故单射。辐角从 $(-\pi/2,\pi/2)$ 加倍到 $(-\pi,\pi)$，像为 $\mathbb C\setminus(-\infty,0]$。整个去心平面同时含 $z$ 与 $-z$，因此不单射。
+ \item 圆盘自同构固定零点，必为 $e^{i\theta}z$。导数 $e^{i\theta}$ 既为正实数又模为 $1$，故等于 $1$，映射为恒等映射。
+\end{enumerate}
+
+\section{调和函数}
+对应第\ref{sec:cv-harmonic-ex}节。
+\begin{enumerate}
+ \item $\Delta(x^2+y^2)=4$，所以不调和。$\Delta(e^x\cos y)=e^x\cos y-e^x\cos y=0$，调和；一个调和共轭为 $e^x\sin y$，对应 $e^z$。
+ \item 对 $x^3-3xy^2$ 的共轭为 $3x^2y-y^3$，对 $2y$ 的共轭为 $-2x$。所以总共轭为 $3x^2y-y^3-2x+C$，相应全纯函数为 $z^3-2iz+iC$，$C\in\mathbb R$。
+ \item 解为 $u(re^{i\theta})=2+r^3\cos(3\theta)+2r\sin\theta$，也就是 $2+x^3-3xy^2+2y$，中心值为 $2$。中心值等于边界平均值，非零频率的平均均为零。
+ \item 分别对 $u$ 和 $-u$ 应用边界最大值原理，得 $u\le M$ 与 $-u\le M$，合并得 $|u|\le M$。不能直接把实调和函数的模误认为另一个调和函数。
+ \item 由 $u_x=x/(x^2+y^2)$、$u_y=y/(x^2+y^2)$，再求导得 $u_{xx}+u_{yy}=0$。候选共轭的微分为
+ \[
+ -\frac y{x^2+y^2}\,\mathrm dx+\frac x{x^2+y^2}\,\mathrm dy.
+ \]
+ 沿 $x=\cos t,y=\sin t$ 积分等于 $\int_0^{2\pi}\mathrm dt=2\pi$，非零增量阻止它成为全局单值函数的全微分。
+\end{enumerate}
+
+\chapter{综合例题与方法选择}
+\label{chap:cv-synthesis}
+
+\section{同一道积分的三种理解}
+
+\begin{example}[路径半径改变时发生了什么]
+对 $r>0$、$r\ne1$，计算正向圆积分
+\[
+ I(r)=\oint_{|z|=r}\frac{\mathrm dz}{z^2(1-z)}.
+\]
+\end{example}
+\begin{solve}
+先列出奇点：原点为二阶极点，$1$ 为简单极点。对 $0<r<1$，在去心单位圆盘内展开
+\[
+ \frac1{z^2(1-z)}=z^{-2}+z^{-1}+1+z+\cdots,
+\]
+所以原点留数为 $1$，积分 $I(r)=2\pi i$。同一结果也可直接由高阶柯西公式得到：取 $f(z)=1/(1-z)$，则 $\oint f(z)/z^2\,\mathrm dz=2\pi i f'(0)=2\pi i$。
+
+当 $r>1$ 时，还要计入 $z=1$ 的留数 $-1$，因此 $I(r)=2\pi i(1-1)=0$。若改从大圆环展开，
+\[
+ \frac1{z^2(1-z)}=-\sum_{n=0}^\infty z^{-n-3},\qquad |z|>1,
+\]
+其中没有 $z^{-1}$ 项，也给出零。三种方法相互印证，并说明积分在路径连续变形且不跨越奇点时保持不变；半径穿过 $1$ 时恰好越过一个奇点。$r=1$ 的路径经过极点，普通曲线积分不存在，不能通过左右结果插值得到。
+\end{solve}
+
+\section{把增长、唯一性与局部数据结合起来}
+
+\begin{example}[少量数据何时决定整个函数]
+设 $f$ 为整函数，存在常数 $C>0$ 使 $|f(z)|\le C(1+|z|)$，且 $f(0)=0$、$f(1)=1$。求 $f$。
+\end{example}
+\begin{solve}
+增长条件配合柯西估计使 $f^{(n)}(0)=0$ 对所有 $n\ge2$ 成立，所以 $f(z)=az+b$。两个点值给出 $b=0$、$a=1$，故 $f(z)=z$。两个点值本身不能决定任意整函数，例如 $z+cz(z-1)$ 对任意 $c\in\mathbb C$ 都满足这两个点值；真正把自由度压缩到一次多项式的是整体增长条件。
+\end{solve}
+
+\section{选择方法前应核对的条件}
+
+遇到复积分，先标出定义域、奇点与路径方向，再决定能否用原函数、柯西公式或留数定理；遇到级数，先确定中心与圆盘或圆环，再选择等比展开的方向；遇到映射，先给出分支及值域，再证明单射；遇到边值问题，先明确边界数据与解的函数类别，再谈存在性和唯一性。下表把常用结论与最容易遗漏的条件放在一起，供复习时查阅。
+
+\begin{longtable}{@{}p{0.20\textwidth}p{0.35\textwidth}p{0.37\textwidth}@{}}
+\toprule
+工具 & 必须核对的条件 & 结论与使用边界 \\
+\midrule
+\endhead
+C--R 方程 & 点处实可微，或用连续偏导作为充分保证 & 得到点处复可导；只有方程成立不够。 \\
+原函数端点公式 & 同一个定义域上存在单值原函数 & 路径积分仅依赖端点；$1/z$ 须检查对数分支。 \\
+柯西积分定理 & 函数在相关路径与所需内部全纯，或使用单连通版本 & 闭路积分为零；路径上的全纯性不能代替内部条件。 \\
+柯西积分公式 & 分子全纯，求值点在内部，曲线正向且不经过该点 & 分母 $n+1$ 次幂对应 $n$ 阶导数与因子 $1/n!$。 \\
+泰勒展开 & 中心附近全纯，确定可延拓的圆盘 & 只有收敛范围内才能逐项微分、积分并表示原函数。 \\
+洛朗展开 & 在指定圆环上单值全纯 & 系数依赖圆环；分类中心奇点须使用完整去心圆盘。 \\
+留数定理 & 路径不经过奇点，区域内孤立奇点满足定理范围 & 正向简单闭曲线取留数和；一般曲线还要考虑绕数。 \\
+鲁歇定理 & 两函数在边界及内部附近全纯，边界严格模不等式 & 保持零点总数，按重数计；不直接给出各根位置。 \\
+恒等定理 & 两函数在同一区域全纯，相等点在内部有聚点 & 可推出全域相同；聚点只在边界时不能这样使用。 \\
+最大模原理 & 开集上的全纯性及相应连通性 & 非常数函数的模不能在内部局部取最大；最小模需无零点。 \\
+共形映射 & 局部要求导数非零，整体还需单射并确定值域 & 保角不等于保距，局部可逆不等于整体可逆。 \\
+泊松公式 & 连续实值圆周数据；内部求调和解 & 给出连续边值问题唯一解，不要求任意复值数据都可全纯延拓。 \\
+\bottomrule
+\end{longtable}
+
+这些方法背后有一条统一主线：复可导性限制局部变化，柯西理论把局部性质传递到积分，级数把积分信息转成系数，系数再决定零点、奇点与映射结构。真正掌握课程，不只是记住最后的计算公式，还要能说明一个条件失效时，证明在哪一步中断，并能给出相应反例。
+
+\end{document}
