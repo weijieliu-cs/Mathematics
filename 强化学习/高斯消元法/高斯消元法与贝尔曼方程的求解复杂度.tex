@@ -1,0 +1,230 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{高斯消元法与贝尔曼方程的求解复杂度}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{从贝尔曼方程到线性方程组}
+
+对于包含 $n$ 个状态的\keyterm{马尔可夫奖励过程}（Markov reward process），
+设状态集合为 $\mathcal S=\{s_1,\ldots,s_n\}$，$r(s_i)$ 为状态 $s_i$ 的期望即时奖励，
+$p(s_j\mid s_i)$ 为从 $s_i$ 转移到 $s_j$ 的概率，折扣因子满足 $0\leq\gamma<1$。
+价值 $V(s_i)$ 是从 $s_i$ 出发的期望折扣回报，满足\keyterm{贝尔曼方程}（Bellman equation）
+\begin{equation}
+  V(s_i)=r(s_i)+\gamma\sum_{j=1}^{n}p(s_j\mid s_i)V(s_j),
+  \qquad i=1,\ldots,n.
+  \label{eq:bellman-component}
+\end{equation}
+记价值向量为 $\boldsymbol v=(V(s_1),\ldots,V(s_n))^{\mathsf T}$，
+奖励向量为 $\boldsymbol r=(r(s_1),\ldots,r(s_n))^{\mathsf T}$，
+转移矩阵为 $P=(p_{ij})$，其中 $p_{ij}=p(s_j\mid s_i)$。
+矩阵 $P$ 的元素非负且每行之和为 $1$，于是式\eqref{eq:bellman-component}可以写成
+\begin{equation}
+  \boldsymbol v=\boldsymbol r+\gamma P\boldsymbol v,
+  \qquad (I-\gamma P)\boldsymbol v=\boldsymbol r,
+  \label{eq:bellman-linear-system}
+\end{equation}
+其中 $I$ 为 $n$ 阶单位矩阵。令 $A=I-\gamma P$，求价值函数就转化为求解
+具有 $n$ 个未知数的线性方程组 $A\boldsymbol v=\boldsymbol r$。
+
+上述条件保证 $A$ 可逆。事实上，若 $A\boldsymbol z=0$，则
+$\boldsymbol z=\gamma P\boldsymbol z$；令 $M=\max_j|z_j|$，逐个分量取绝对值得到
+$|z_i|\leq\gamma\sum_jp_{ij}|z_j|\leq\gamma M$，故 $M\leq\gamma M$。
+由 $\gamma<1$ 得 $M=0$，所以 $A$ 的零空间只有零向量。因而解析解为
+\begin{equation}
+  \boldsymbol v=(I-\gamma P)^{-1}\boldsymbol r.
+  \label{eq:bellman-inverse}
+\end{equation}
+实际计算通常直接求解式\eqref{eq:bellman-linear-system}，无须显式形成逆矩阵。
+对一般稠密矩阵，常规直接求解的 $O(n^3)$ 复杂度主要来自
+\keyterm{高斯消元法}（Gaussian elimination）。下面用一个四元方程组说明其运算量的来源。
+
+\section{四元方程组：逐轮观察系数更新}
+
+\begin{example}
+求解以下方程组，并统计每轮消元时剩余系数块中的更新次数：
+\begin{equation}
+  \begin{cases}
+    x_1+x_2+x_3+x_4=4,\\
+    2x_1+3x_2+3x_3+3x_4=11,\\
+    3x_1+4x_2+5x_3+5x_4=17,\\
+    4x_1+5x_2+6x_3+7x_4=22.
+  \end{cases}
+  \label{eq:four-variable-system}
+\end{equation}
+该方程组用于展示一般线性方程组的消元步骤，并不要求其系数矩阵具有 $I-\gamma P$ 的形式。
+\end{example}
+
+\begin{solve}
+把未知数的系数与等号右侧常数排在一起，得到\keyterm{增广矩阵}（augmented matrix）
+\[
+  \left[
+  \begin{array}{cccc|c}
+    1&1&1&1&4\\
+    2&3&3&3&11\\
+    3&4&5&5&17\\
+    4&5&6&7&22
+  \end{array}
+  \right].
+\]
+竖线左侧的第 $j$ 列对应 $x_j$ 的系数，右侧为常数项。
+记第 $i$ 行为 $R_i$。把某一行减去另一行的若干倍，等价于对两个方程做同样的线性组合；
+这一操作可以反向还原，因此不改变方程组的解集。消元的目标是逐列消去对角线下方的系数，
+最后从最下面的方程开始向上求解。
+
+\textbf{第一轮：消去下面三行中的 $x_1$。}
+以第一行的第一个系数 $1$ 为\keyterm{主元}（pivot），进行
+\[
+  R_2\leftarrow R_2-2R_1,\qquad
+  R_3\leftarrow R_3-3R_1,\qquad
+  R_4\leftarrow R_4-4R_1.
+\]
+所得矩阵为
+\begin{equation}
+  \left[
+  \begin{array}{cccc|c}
+    1&1&1&1&4\\
+    0&\boxed{1}&\boxed{1}&\boxed{1}&3\\
+    0&\boxed{1}&\boxed{2}&\boxed{2}&5\\
+    0&\boxed{1}&\boxed{2}&\boxed{3}&6
+  \end{array}
+  \right].
+  \label{eq:elimination-first-round}
+\end{equation}
+方框标出的是下面三行中 $x_2,x_3,x_4$ 的系数。例如第二行的这三个系数分别更新为
+\[
+  3-2\times1=1,\qquad 3-2\times1=1,\qquad 3-2\times1=1.
+\]
+第三行对应的更新是 $4-3=1,\ 5-3=2,\ 5-3=2$，
+第四行对应的更新是 $5-4=1,\ 6-4=2,\ 7-4=3$。
+每行都有三个剩余系数需要更新，共处理三行，因此本轮剩余系数块的更新次数为
+\[
+  \underbrace{3}_{\text{待处理行数}}
+  \times\underbrace{3}_{\text{每行剩余系数数}}
+  =9=(n-1)^2\qquad(n=4).
+\]
+这些次数按系数所在的位置计算，即使不同位置算出的数值相同，也分别计数。
+常数项同时更新为 $11-2\times4=3,\ 17-3\times4=5,\ 22-4\times4=6$，
+但这三次更新暂不计入上述 $3\times3$ 的系数块。
+
+\textbf{第二轮：消去下面两行中的 $x_2$。}
+此时使用更新后的第二行，进行
+\[
+  R_3\leftarrow R_3-R_2,\qquad R_4\leftarrow R_4-R_2,
+\]
+得到
+\begin{equation}
+  \left[
+  \begin{array}{cccc|c}
+    1&1&1&1&4\\
+    0&1&1&1&3\\
+    0&0&\boxed{1}&\boxed{1}&2\\
+    0&0&\boxed{1}&\boxed{2}&3
+  \end{array}
+  \right].
+  \label{eq:elimination-second-round}
+\end{equation}
+第一列已经处理完成，本轮只需更新第三、四行中 $x_3,x_4$ 的系数。
+第三行对应 $2-1=1,\ 2-1=1$，第四行对应 $2-1=1,\ 3-1=2$，
+所以剩余系数块的更新次数为
+\[
+  \underbrace{2}_{\text{待处理行数}}
+  \times\underbrace{2}_{\text{每行剩余系数数}}
+  =4=(n-2)^2\qquad(n=4).
+\]
+前一列的零无需重复计算，因为本轮参与相减的各行在第一列都已经是零。
+右侧两个常数项另行更新为 $5-3=2$ 和 $6-3=3$。
+
+\textbf{第三轮与回代。}
+进行 $R_4\leftarrow R_4-R_3$，只需更新第四行的 $x_4$ 系数 $2-1=1$，
+对应 $1\times1=1$ 次剩余系数更新，同时把常数项更新为 $3-2=1$。最终得到
+\begin{equation}
+  \left[
+  \begin{array}{cccc|c}
+    1&1&1&1&4\\
+    0&1&1&1&3\\
+    0&0&1&1&2\\
+    0&0&0&\boxed{1}&1
+  \end{array}
+  \right].
+  \label{eq:elimination-upper-triangular}
+\end{equation}
+从最后一行向上进行\keyterm{回代}（back substitution），依次得到
+\[
+  x_4=1,\qquad
+  x_3=2-x_4=1,\qquad
+  x_2=3-x_3-x_4=1,\qquad
+  x_1=4-x_2-x_3-x_4=1.
+\]
+把 $(1,1,1,1)^{\mathsf T}$ 代入式\eqref{eq:four-variable-system}，
+四个等式均成立。三轮消元中，剩余系数块的更新总数为 $9+4+1=14$。
+\end{solve}
+
+\section{从系数块大小推导三次方复杂度}
+
+考虑一般非奇异线性方程组 $A\boldsymbol x=\boldsymbol b$，其中
+$A=(a_{ij})\in\mathbb R^{n\times n}$，$\boldsymbol x,\boldsymbol b\in\mathbb R^n$。
+以下使用常规稠密实现，并把一次加、减、乘、除视为常数成本的基本运算。
+消元过程中 $a_{ij}$ 与 $b_i$ 表示当前已更新的系数和常数项。
+第 $k$ 轮以 $a_{kk}$ 为主元，对每个 $i=k+1,\ldots,n$，先计算消元倍数
+$m_{ik}=a_{ik}/a_{kk}$，再进行
+\begin{equation}
+  a_{ij}\leftarrow a_{ij}-m_{ik}a_{kj}\quad(j=k+1,\ldots,n),
+  \qquad b_i\leftarrow b_i-m_{ik}b_k,
+  \label{eq:general-elimination-update}
+\end{equation}
+并把 $a_{ik}$ 置为零。主元必须非零；必要时交换当前行与下方某行。
+实际数值计算常采用\keyterm{部分选主元}（partial pivoting），在当前列的候选行中选择绝对值最大的元素作为主元。
+主元搜索与行交换累计增加至多 $O(n^2)$ 的比较和数据移动，不改变下面的三次方主项。
+
+第 $k$ 轮需要处理 $n-k$ 行，每行需要更新 $n-k$ 个剩余系数，
+所以式\eqref{eq:general-elimination-update}中的系数更新次数为 $(n-k)^2$。
+将 $k=1,\ldots,n-1$ 的各轮相加，得到
+\begin{equation}
+  N(n)=\sum_{k=1}^{n-1}(n-k)^2
+  =\sum_{q=1}^{n-1}q^2
+  =\frac{n(n-1)(2n-1)}6
+  =\frac13n^3-\frac12n^2+\frac16n.
+  \label{eq:elimination-update-count}
+\end{equation}
+因此，$N(n)=\Theta(n^3)$；符号 $\Theta$ 表示其增长量级的上界与下界都由
+$n^3$ 的正常数倍控制。每次系数更新通常包含一次乘法和一次减法，
+所以这部分约需 $2N(n)=\frac23n^3+O(n^2)$ 次算术运算。
+例题中的某些乘数恰好为 $1$，可以简化个别运算，但不影响一般稠密算法的计数结论。
+
+\keyterm{系数更新次数不等于全部运算次数}。
+计算消元倍数、更新右侧常数项、处理被消去的元素，每轮各需 $O(n-k)$ 的工作，
+累计为 $O(\sum_{k=1}^{n-1}(n-k))=O(n^2)$。
+消元完成后得到上三角方程组 $U\boldsymbol x=\boldsymbol c$，其中 $U=(u_{ij})$；
+回代按 $i=n,n-1,\ldots,1$ 使用
+\[
+  x_i=\frac{c_i-\sum_{j=i+1}^{n}u_{ij}x_j}{u_{ii}},
+\]
+其中空和取零。各行求和项数依次为 $0,1,\ldots,n-1$，故回代也只需 $O(n^2)$。
+这些工作都不改变消元的主导量级，因此常规稠密高斯消元加回代的总复杂度为 $\Theta(n^3)$，
+通常表述为 $O(n^3)$。
+
+\section{如何理解贝尔曼方程的计算成本}
+
+回到式\eqref{eq:bellman-linear-system}，构造 $A=I-\gamma P$ 需要 $O(n^2)$ 的运算，
+用常规稠密高斯消元求出价值向量需要 $O(n^3)$，总复杂度便为 $O(n^3)$。
+这里的关键是求解整个方程组：虽然 $A$ 只有 $n^2$ 个元素，
+消元过程中许多位置的系数会在不同轮次被反复更新，累计次数由式\eqref{eq:elimination-update-count}给出。
+
+一次矩阵与向量相乘 $P\boldsymbol v$ 只需 $O(n^2)$，但一次乘法并不等于求得方程组的解。
+例如采用迭代 $\boldsymbol v^{(t+1)}=\boldsymbol r+\gamma P\boldsymbol v^{(t)}$，
+其中 $t$ 为迭代编号、$\boldsymbol v^{(0)}$ 为初始向量，稠密情形下每轮需要 $O(n^2)$，
+执行 $K$ 轮则需要 $O(Kn^2)$；达到指定精度所需的 $K$ 还取决于折扣因子、初始误差和误差要求。
+因此，$O(n^3)$ 描述的是一般稠密矩阵的常规直接求解成本，并非所有求解方法都必须达到的下界。
+若转移矩阵具有稀疏性或其他可利用的结构，也可能采用更节省计算的方法。
+
+\end{document}

@@ -1,0 +1,156 @@
+\documentclass[UTF8]{ctexart}
+
+% 支持从项目根目录、强化学习目录或当前文档目录读取共享样式。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{贝尔曼方程}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{基本思想：先走一步，再考虑未来}
+\label{sec:bellman-intuition}
+
+\impo{贝尔曼方程是描述“当前状态的价值等于下一步奖励与下一状态折扣价值之和的期望”的递推关系。}
+
+\keyterm{贝尔曼方程}（Bellman equation）描述当前状态的价值与下一状态的价值之间的关系。
+这里的\keyterm{价值}（value），是从一个状态出发，按照给定行动规则，今后能够获得的折扣累计奖励的期望。
+它把长期收益分成两部分：下一步获得的奖励，以及到达下一状态后的全部未来收益，即
+\[
+  \boxed{\text{当前状态的价值}
+  =\mathbb E\!\left[\text{下一步奖励}+\gamma\,\text{下一状态的价值}\right].}
+\]
+其中，$\mathbb E$ 表示取期望，$\gamma$ 称为\keyterm{折扣因子}（discount factor）。
+例如，$\gamma=0.9$ 表示晚一步获得的奖励按原来的 $90\%$ 计算，晚两步则按 $0.9^2$ 计算。
+这一关系的作用，是把“未来很多步会怎样”的问题，拆成“先走一步，剩下的由下一状态的价值概括”。
+
+\begin{example}[两步到达终点]
+\label{ex:bellman-two-step}
+设从位置 $A$ 出发，走到 $B$ 时获得 $2$ 分，再从 $B$ 走到终点 $T$ 时获得 $10$ 分，此后不再获得奖励。
+每一步的结果都是确定的，且只有这一条路线。用 $V$ 表示各位置的价值，取 $\gamma=0.9$，则
+\[
+  V(T)=0,\qquad
+  V(B)=10+0.9V(T)=10,\qquad
+  V(A)=2+0.9V(B)=11.
+\]
+到达终点的 $10$ 分计入进入终点的那一步奖励，因此终点本身的后续价值为 $0$，不能再重复计入这 $10$ 分。
+从 $A$ 看来，到达 $B$ 后能够获得的全部未来收益已经包含在 $V(B)$ 中，故只需计算 $2+0.9V(B)$。
+\end{example}
+
+\section{给定策略下的回报与价值}
+\label{sec:bellman-value}
+
+以下考虑有限状态、有限动作的时间齐次\keyterm{马尔可夫决策过程}（Markov decision process，MDP）。
+状态集合记为 $\mathcal S$，状态 $s$ 下非空的可选动作集合记为 $\mathcal A(s)$。
+时刻 $t$ 的状态、动作分别记为 $S_t,A_t$；执行动作后，环境给出奖励 $R_{t+1}$，并转移到状态 $S_{t+1}$。
+马尔可夫性质要求：给定当前状态与动作后，下一状态和奖励的条件分布不再依赖更早的历史；
+时间齐次则表示这一规律不随时刻变化。
+
+\keyterm{策略}（policy）规定怎样选择动作。本文采用平稳马尔可夫策略 $\pi$，
+其中 $\pi(a\mid s)$ 表示在状态 $s$ 选择动作 $a$ 的概率；该规则只依赖当前状态，不随时刻变化。
+假设存在有限常数 $M\geq0$，使每步奖励几乎必然满足 $|R_{t+1}|\leq M$，并取 $0\leq\gamma<1$。
+若任务有终点，将其视为此后一直停留其中、每步奖励均为 $0$ 的吸收状态。
+
+\begin{definition}[回报与状态价值函数]
+从时刻 $t$ 开始的\keyterm{回报}（return）是随机变量
+\begin{equation}
+  G_t=\sum_{k=0}^{\infty}\gamma^k R_{t+k+1}
+  =R_{t+1}+\gamma R_{t+2}+\gamma^2R_{t+3}+\cdots.
+  \label{eq:bellman-return}
+\end{equation}
+策略 $\pi$ 的\keyterm{状态价值函数}（state-value function）定义为
+\begin{equation}
+  V^\pi(s)=\mathbb E_\pi[G_t\mid S_t=s].
+  \label{eq:bellman-value}
+\end{equation}
+这里 $\mathbb E_\pi$ 表示动作按照策略 $\pi$ 选择时的期望；条件式理解为从指定状态 $s$ 开始运行过程。
+\end{definition}
+
+由奖励有界与 $\gamma<1$，有 $|G_t|\leq M/(1-\gamma)$，所以级数绝对收敛，且上述期望有限。
+时间齐次环境与平稳策略保证 $V^\pi$ 不依赖起始时刻。
+需要区分：$G_t$ 是某次运行可能获得的随机回报，而 $V^\pi(s)$ 是从指定状态出发的平均回报。
+例如，若回报以相同概率取 $0$ 或 $10$，其价值就是 $5$，但单次回报并不等于 $5$。
+
+\section{贝尔曼期望方程及其推导}
+\label{sec:bellman-expectation}
+
+\keyterm{贝尔曼期望方程}（Bellman expectation equation）回答：按照给定策略 $\pi$ 行动时，各状态的价值应满足什么关系？
+在第\ref{sec:bellman-value}节的假设下，它写为
+\begin{equation}
+  \boxed{
+  V^\pi(s)=\mathbb E_\pi\!\left[
+    R_{t+1}+\gamma V^\pi(S_{t+1})\mid S_t=s
+  \right].}
+  \label{eq:bellman-expectation}
+\end{equation}
+这里的期望同时考虑策略选择动作的随机性，以及环境产生下一状态和奖励的随机性。
+若每一步都确定，期望可以直接按确定数值计算，如例\ref{ex:bellman-two-step}所示。
+
+\begin{proof}
+将式\eqref{eq:bellman-return}的第一项拆出，得到逐条运行轨迹都成立的恒等式
+\[
+  G_t=R_{t+1}+\gamma G_{t+1}.
+\]
+从下一状态 $s'$ 出发继续采用策略 $\pi$ 时，未来回报的平均值为 $V^\pi(s')$。
+由马尔可夫性质、平稳策略与全期望公式，对具有正条件概率的下一状态求和，有
+\[
+\begin{aligned}
+  \mathbb E_\pi[G_{t+1}\mid S_t=s]
+  &=\sum_{s'}\Pr_\pi(S_{t+1}=s'\mid S_t=s)\,
+    \mathbb E_\pi[G_{t+1}\mid S_t=s,S_{t+1}=s']\\
+  &=\sum_{s'}\Pr_\pi(S_{t+1}=s'\mid S_t=s)\,V^\pi(s')\\
+  &=\mathbb E_\pi[V^\pi(S_{t+1})\mid S_t=s].
+\end{aligned}
+\]
+对回报恒等式取给定 $S_t=s$ 的条件期望，再代入上述等式，便得到式\eqref{eq:bellman-expectation}。
+\end{proof}
+
+这一推导并没有断言 $G_{t+1}=V^\pi(S_{t+1})$。
+成立的是：在给定当前状态的期望中，先按下一状态分组求平均，可以把未来随机回报替换为相应状态的价值。
+对固定 $s'$，$V^\pi(s')$ 是确定数值；但下一状态 $S_{t+1}$ 尚未确定，因此 $V^\pi(S_{t+1})$ 仍可能是随机变量，外层期望通常不能省略。
+
+\section{贝尔曼最优方程与算法的关系}
+\label{sec:bellman-optimality}
+
+若进一步寻找最好的行动规则，定义\keyterm{最优状态价值函数}（optimal state-value function）为
+$V^*(s)=\sup_\pi V^\pi(s)$，其中上确界取遍上述平稳马尔可夫策略。
+有限状态、有限动作且 $\gamma<1$ 的折扣 MDP 存在同时在所有状态达到最优价值的平稳确定性策略；
+这里引用这一标准结论\cite[第3章]{sutton-barto}，不展开其存在性证明。
+在这一条件下，最优价值满足\keyterm{贝尔曼最优方程}（Bellman optimality equation）：
+\begin{equation}
+  \boxed{
+  V^*(s)=\max_{a\in\mathcal A(s)}
+  \mathbb E\!\left[
+    R_{t+1}+\gamma V^*(S_{t+1})\mid S_t=s,\ A_t=a
+  \right].}
+  \label{eq:bellman-optimality}
+\end{equation}
+条件式表示从状态 $s$ 执行动作 $a$，再对环境给出的结果取期望。
+其含义是：逐一比较当前可选动作，计算“本步奖励加上此后最优价值”的期望，再选取最大的一个。
+由于后续继续采用最优策略，当前决策必须同时考虑眼前奖励与长远收益，不能只比较本步得分。
+
+例如，在例\ref{ex:bellman-two-step}中，若额外允许从 $A$ 直接到达终点并获得 $8$ 分，
+则直接结束的价值为 $8$，先到 $B$ 再到终点的价值为 $2+0.9\times10=11$，故 $V^*(A)=11$。
+虽然绕经 $B$ 的第一步只有 $2$ 分，低于直接结束的 $8$ 分，但其折扣累计奖励更高。
+
+期望方程评价一个已经给定的策略，最优方程刻画能够达到的最优价值。
+\keyterm{方程是价值之间应当满足的数学关系，算法则规定怎样求出或估计这些价值。}
+例如，\keyterm{价值迭代}（value iteration）在环境模型已知时反复应用最优方程右侧来更新价值估计；
+\keyterm{时序差分学习}（temporal-difference learning）则可用实际观测的奖励与下一状态价值估计构造更新目标。
+因此，写出贝尔曼方程并不意味着价值已经算出，但它为规划和强化学习提供了基本依据。
+
+\begin{thebibliography}{9}
+\bibitem{sutton-barto}
+Richard S. Sutton and Andrew G. Barto.
+\emph{Reinforcement Learning: An Introduction}.
+2nd ed., MIT Press, 2018.
+第3章讨论有限 MDP、价值函数与最优策略，第4章讨论动态规划。
+\href{https://mitpress.mit.edu/9780262039246/reinforcement-learning/}{出版社页面}。
+\end{thebibliography}
+
+\end{document}
