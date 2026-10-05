@@ -1,0 +1,202 @@
+\documentclass[UTF8]{ctexart}
+
+% 支持从项目根目录、强化学习目录或当前文档目录读取共享样式。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{状态价值函数与动作价值函数}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{绪论：评价一个位置，还是评价一次选择}
+\label{sec:value-intro}
+
+在一个可以选择动作的随机系统中，评价当前状态和评价具体动作是两个相关但不同的问题。\keyterm{状态价值函数}（state-value function）回答“处于这个状态，并按照既定策略行动，未来的期望回报是多少”；\keyterm{动作价值函数}（action-value function）回答“处于这个状态，先执行指定动作，随后按照既定策略行动，未来的期望回报是多少”。这里的价值包括后续收益，不只是当前一步的奖励。
+
+例如，在一个岔路口，假设先向左走再遵循策略的期望回报为 $10$，先向右走再遵循同一策略的期望回报为 $4$。如果策略以 $0.3$ 的概率向左、以 $0.7$ 的概率向右，则该状态的价值为 $0.3\times10+0.7\times4=5.8$。两个动作价值分别评价两种选择，状态价值则把这些选择按策略规定的概率综合起来。本文先给出准确的定义及其递推关系，再说明固定策略如何把马尔可夫决策过程转化为马尔可夫奖励过程，最后构造一个完整例子核对这些计算。
+
+\section{模型、策略与折扣回报}
+\label{sec:value-model}
+
+以下考虑离散时间、有限状态和有限动作的\keyterm{马尔可夫决策过程}（Markov decision process，MDP）。记 $\mathcal S$ 为状态集合，$\mathcal A(s)$ 为状态 $s$ 下的非空可用动作集合；$S_t$、$A_t$ 分别为时刻 $t$ 的状态与动作随机变量，$s$、$a$ 是它们的具体取值。执行 $A_t$ 后，环境给出奖励 $R_{t+1}$ 并转移到 $S_{t+1}$。假设给定当前状态与动作后，下一状态和本步奖励的联合条件分布不再依赖此前的交互历史，且不随时间改变。定义
+\begin{equation}
+  \begin{aligned}
+    P(s'\mid s,a)&=\Pr(S_{t+1}=s'\mid S_t=s,A_t=a),\\
+    r(s,a)&=\mathbb E[R_{t+1}\mid S_t=s,A_t=a].
+  \end{aligned}
+  \label{eq:value-model}
+\end{equation}
+其中 $s'$ 表示下一状态，$P(s'\mid s,a)\geq0$ 且 $\sum_{s'\in\mathcal S}P(s'\mid s,a)=1$；$r(s,a)$ 是\keyterm{期望即时奖励}（expected immediate reward），不是某次实际观察到的奖励，也不是长期价值。本步奖励可以与下一状态相关，不要求二者独立。
+
+本文使用\keyterm{平稳马尔可夫策略}（stationary Markov policy）$\pi$：给定交互历史后，动作选择的条件概率只依赖当前状态，且不随时间改变。记该概率为 $\pi(a\mid s)$，则
+\[
+  \pi(a\mid s)\geq0,\qquad
+  \sum_{a\in\mathcal A(s)}\pi(a\mid s)=1.
+\]
+固定策略是固定选择规则，并不要求每次选择相同动作。确定性策略在每个状态指定唯一动作；随机策略允许按照固定概率选择不同动作。环境规定每种动作会带来什么后果，策略规定如何选择动作。
+
+设\keyterm{折扣因子}（discount factor）满足 $0\leq\gamma<1$，并假设存在有限常数 $C$，使所有时刻的奖励几乎必然满足 $|R_{t+1}|\leq C$。从时刻 $t$ 开始的\keyterm{折扣回报}（discounted return）定义为
+\begin{equation}
+  G_t=\sum_{k=0}^{\infty}\gamma^kR_{t+k+1}
+     =R_{t+1}+\gamma G_{t+1}.
+  \label{eq:value-return}
+\end{equation}
+当 $\gamma=0$ 时只保留第一项。由 $|G_t|\leq C/(1-\gamma)$，该级数绝对收敛，回报可积，后文的条件期望均有意义。奖励是一步的得失，回报是一条未来轨迹上的累计得失，价值则是回报的期望。若过程可以终止，可以把终止状态建模为此后始终停留且奖励为零的吸收状态。
+
+\section{两种价值函数及其关系}
+\label{sec:value-functions}
+
+\begin{definition}[状态价值与动作价值]
+固定策略 $\pi$。从状态 $s$ 出发、从当前时刻起按照 $\pi$ 行动的期望回报，称为状态价值，记为
+\begin{equation}
+  V^\pi(s)=\mathbb E_\pi[G_t\mid S_t=s].
+  \label{eq:value-state}
+\end{equation}
+从状态 $s$ 出发、先执行指定动作 $a\in\mathcal A(s)$，从下一时刻起按照 $\pi$ 行动的期望回报，称为动作价值，通常写作
+\begin{equation}
+  Q^\pi(s,a)=\mathbb E_\pi[G_t\mid S_t=s,A_t=a].
+  \label{eq:value-action}
+\end{equation}
+\end{definition}
+
+下标 $\pi$ 表示期望所采用的行动规则；期望还包含环境的状态转移与奖励随机性。式\eqref{eq:value-state}中的当前动作也由策略选择，式\eqref{eq:value-action}中的当前动作则已指定。特别地，即使 $\pi(a\mid s)=0$，仍然可以询问“如果现在执行 $a$，以后再遵循 $\pi$，回报是多少”。此时不能把式\eqref{eq:value-action}机械理解为对零概率事件直接取条件期望，而应按照“从 $s$ 开始、第一步指定 $a$”的实验规则定义。对给定初始分布不可达的状态，也采用从该状态重新开始的解释。
+
+\begin{proposition}[按动作平均与按下一状态平均]
+\label{prop:value-relations}
+在第\ref{sec:value-model}节的假设下，对每个状态 $s$ 及可用动作 $a$，有
+\begin{align}
+  V^\pi(s)
+    &=\sum_{a\in\mathcal A(s)}\pi(a\mid s)Q^\pi(s,a),
+    \label{eq:value-v-from-q}\\
+  Q^\pi(s,a)
+    &=r(s,a)+\gamma\sum_{s'\in\mathcal S}P(s'\mid s,a)V^\pi(s').
+    \label{eq:value-q-from-v}
+\end{align}
+\end{proposition}
+
+\begin{proof}
+对于式\eqref{eq:value-v-from-q}，将从 $s$ 出发的行动按第一步所选动作分组，对各组回报取期望，再按 $\pi(a\mid s)$ 加权，便得到全期望公式。概率为零的动作不影响这一平均。
+
+对于式\eqref{eq:value-q-from-v}，先由式\eqref{eq:value-return}拆出即时奖励，再按下一状态求条件期望。对具有正转移概率的 $s'$，马尔可夫环境和平稳马尔可夫策略保证：给定下一状态后，从下一时刻起的回报分布与此前的状态、动作无关。因此
+\[
+  \mathbb E_\pi[G_{t+1}\mid S_t=s,A_t=a,S_{t+1}=s']
+  =V^\pi(s'),
+\]
+其中第一步指定为 $a$，后续遵循 $\pi$。于是
+\[
+  \begin{aligned}
+    Q^\pi(s,a)
+      &=r(s,a)+\gamma\mathbb E_\pi[G_{t+1}\mid S_t=s,A_t=a]\\
+      &=r(s,a)+\gamma\sum_{s'\in\mathcal S}P(s'\mid s,a)V^\pi(s').
+  \end{aligned}
+\]
+此处只使用期望的线性性和全期望公式，不要求本步奖励与下一状态独立。
+\end{proof}
+
+式\eqref{eq:value-v-from-q}对“当前选择哪个动作”取平均；式\eqref{eq:value-q-from-v}对“执行指定动作后到达哪个状态”取平均。后一式中，$r(s,a)$ 已经对即时奖励取过期望，不能在一般随机奖励模型中直接用某一次观测值替代。另一个需要区分的地方是：\keyterm{$G_{t+1}$ 不等于 $V^\pi(S_{t+1})$；只有在相应的外层条件期望中，两者可以通过全期望公式替换。}前者是实际未来轨迹的回报，后者是从下一状态出发的平均回报。
+
+把式\eqref{eq:value-q-from-v}代入式\eqref{eq:value-v-from-q}，得到状态价值的\keyterm{贝尔曼期望方程}（Bellman expectation equation）：
+\begin{equation}
+  V^\pi(s)=\sum_{a\in\mathcal A(s)}\pi(a\mid s)
+  \left[r(s,a)+\gamma\sum_{s'\in\mathcal S}P(s'\mid s,a)V^\pi(s')\right].
+  \label{eq:value-bellman-v}
+\end{equation}
+反向代入则得到动作价值的贝尔曼期望方程：
+\begin{equation}
+  Q^\pi(s,a)=r(s,a)+\gamma\sum_{s'\in\mathcal S}P(s'\mid s,a)
+  \sum_{a'\in\mathcal A(s')}\pi(a'\mid s')Q^\pi(s',a').
+  \label{eq:value-bellman-q}
+\end{equation}
+这里 $a'$ 是下一状态下的动作。这两个方程在给定策略下评价未来收益，本身没有把动作选择替换为最优选择。
+
+\section{固定策略后的 MDP 就是一个 MRP}
+\label{sec:value-induced-mrp}
+
+\keyterm{马尔可夫奖励过程}（Markov reward process，MRP）已经给定状态转移与奖励规律，没有另外需要选择的动作。设其转移概率为 $\bar P(s'\mid s)$，期望即时奖励为 $\bar r(s)$，价值函数为 $v(s)=\mathbb E[G_t\mid S_t=s]$。在同样的有界奖励与折扣假设下，其贝尔曼方程为
+\begin{equation}
+  v(s)=\bar r(s)+\gamma\sum_{s'\in\mathcal S}\bar P(s'\mid s)v(s').
+  \label{eq:value-mrp-bellman}
+\end{equation}
+
+现在对 MDP 固定策略 $\pi$，按照动作选择概率混合环境的转移与奖励规律，定义
+\begin{equation}
+  \begin{aligned}
+    P^\pi(s'\mid s)&=\sum_{a\in\mathcal A(s)}\pi(a\mid s)P(s'\mid s,a),\\
+    r^\pi(s)&=\sum_{a\in\mathcal A(s)}\pi(a\mid s)r(s,a).
+  \end{aligned}
+  \label{eq:value-induced-model}
+\end{equation}
+下一状态与奖励的联合条件分布也按相同权重混合，因此混合后的规律只依赖当前状态，且不随时间改变。这就是策略 $\pi$ 诱导的 MRP，其期望折扣收益模型可写为 $(\mathcal S,P^\pi,r^\pi,\gamma)$。这四个对象足以确定期望价值，但若要确定回报的完整分布，还需要保留相应的奖励联合分布。
+
+\begin{proposition}[两种表述评价同一个过程]
+\label{prop:value-mrp-equivalence}
+令 $v$ 为上述诱导 MRP 的价值函数，则对每个 $s\in\mathcal S$ 都有
+\begin{equation}
+  v(s)=V^\pi(s),\qquad
+  V^\pi(s)=r^\pi(s)+\gamma\sum_{s'\in\mathcal S}P^\pi(s'\mid s)V^\pi(s').
+  \label{eq:value-mrp-equivalence}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+从同一状态出发，MDP 按策略选择动作后再产生下一状态与奖励；诱导 MRP 直接使用对动作平均后的联合规律。这两种方式产生相同的状态与奖励轨迹分布，因此回报的期望相同。式\eqref{eq:value-mrp-equivalence}的递推式，也可由式\eqref{eq:value-bellman-v}整理并代入式\eqref{eq:value-induced-model}得到。
+\end{proof}
+
+上述递推还唯一确定价值。事实上，若 $u$、$w$ 都满足诱导 MRP 的贝尔曼方程，令 $d=\max_{s\in\mathcal S}|u(s)-w(s)|$，则对每个 $s$ 有
+\[
+  |u(s)-w(s)|
+  \leq\gamma\sum_{s'}P^\pi(s'\mid s)|u(s')-w(s')|
+  \leq\gamma d.
+\]
+取最大值得 $d\leq\gamma d$，由 $\gamma<1$ 得 $d=0$；存在性则由前面已定义的回报期望及其递推式保证。
+
+因此，可以把 $V^\pi$ 理解为“遵循策略 $\pi$ 时的 MRP 价值”，但更准确的含义是：\keyterm{策略确定了诱导 MRP 的转移和奖励规律，动作的影响已经被吸收到 $P^\pi$ 和 $r^\pi$ 中。}不同策略通常产生不同的 MRP，故 MDP 的价值需要标明所用策略；MRP 的规律本来就已给定，通常不再写策略上标。这个结论依赖平稳马尔可夫策略的假设：若策略随时间改变，诱导规律一般也随时间改变；若策略依赖历史，原状态上的过程甚至未必保持马尔可夫性，需要另外分析或扩充状态。
+
+\section{完整例子与最优价值的区别}
+\label{sec:value-example}
+
+\begin{example}[同一个岔路口的两种评价]
+\label{ex:value-fork}
+考虑状态 $s$、$u$ 和终止状态 $z$，取 $\gamma=0.9$。在 $s$ 可以向左或向右：向左立即得到奖励 $1$ 并到达 $u$；向右立即得到奖励 $4$ 并到达 $z$。在 $u$ 只有一个动作，得到奖励 $10$ 后到达 $z$；在 $z$ 只有一个动作，始终停留且奖励为零。所有转移与奖励均为确定的，数值仅用于教学。策略在 $s$ 以 $0.3$ 的概率向左、以 $0.7$ 的概率向右，其他状态没有选择余地。求两种价值函数，并核对诱导 MRP 的计算结果。
+\end{example}
+
+\begin{solve}
+从终点向前计算，有 $V^\pi(z)=0$、$V^\pi(u)=10$。根据式\eqref{eq:value-q-from-v}，两种动作的价值为
+\[
+  \begin{aligned}
+    Q^\pi(s,\text{左})&=1+0.9V^\pi(u)=10,\\
+    Q^\pi(s,\text{右})&=4+0.9V^\pi(z)=4.
+  \end{aligned}
+\]
+向左的即时奖励只有 $1$，低于向右的 $4$，但向左的长期价值更高。根据式\eqref{eq:value-v-from-q}，
+\[
+  V^\pi(s)=0.3\times10+0.7\times4=5.8.
+\]
+因此，$5.8$ 是随机选择两条路径后的期望回报；一次实际运行的回报是 $10$ 或 $4$，并不必然等于 $5.8$。
+
+再从诱导 MRP 的角度计算。固定策略后，$P^\pi(u\mid s)=0.3$、$P^\pi(z\mid s)=0.7$，而期望即时奖励为
+\[
+  r^\pi(s)=0.3\times1+0.7\times4=3.1.
+\]
+由 MRP 的贝尔曼方程，
+\[
+  v(s)=3.1+0.9\bigl(0.3\times10+0.7\times0\bigr)=5.8=V^\pi(s).
+\]
+这里 $3.1$ 是当前一步的期望奖励，$5.8$ 才是包含未来收益的状态价值，两种方法得到完全相同的结果。
+\end{solve}
+
+最后区分\keyterm{策略评价}（policy evaluation）与寻找最优策略。在例\ref{ex:value-fork}中，当前策略的状态价值是 $5.8$，并不等于最大动作价值 $10$；如果改成必定向左，则状态价值变为 $10$。本例只有岔路口存在选择，后续行为不变，所以两个动作价值不随岔路口策略变化；一般 MDP 中，改变策略还会改变后续行为，因此 $Q^\pi$ 本身通常也会改变。
+
+用 $V^*(s)$、$Q^*(s,a)$ 分别表示在所有允许策略中可达到的最优状态价值和最优动作价值，其中动作价值仍先指定当前动作。有限状态、有限动作、有界奖励且 $0\leq\gamma<1$ 的 MDP 存在最优平稳确定性策略，并满足
+\begin{equation}
+  V^*(s)=\max_{a\in\mathcal A(s)}Q^*(s,a).
+  \label{eq:value-optimal}
+\end{equation}
+这里仅陈述最优策略存在性及相应关系，不展开其证明。知道 $Q^*$ 后，在每个状态选择使其最大的动作即可构成最优策略。对一个任意给定策略，则应使用式\eqref{eq:value-v-from-q}的加权平均，而不能直接改成最大值。知道全部 $Q^\pi(s,a)$ 和 $\pi(a\mid s)$ 可以求出 $V^\pi(s)$；反过来，只知道 $V^\pi$ 一般不足以比较动作，还需要环境的奖励与转移信息，才能使用式\eqref{eq:value-q-from-v}。
+
+\end{document}

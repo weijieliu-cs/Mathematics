@@ -1,0 +1,279 @@
+\documentclass[UTF8]{ctexart}
+
+% 支持从项目根目录、强化学习目录或当前文档目录读取共享样式。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{马尔可夫过程、奖励过程与决策过程}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{绪论：从状态变化到收益与决策}
+\label{sec:markov-three-intro}
+
+一台机器每天可能处于“正常”或“故障”状态。如果只研究明天处于哪种状态，就需要描述状态变化的规律；如果正常运行带来收益、故障带来损失，还要计算长期累计收益；如果每天可以选择是否维修，就进一步需要比较不同选择的后果。这三个层次分别引出\keyterm{马尔可夫过程}（Markov process，MP）、\keyterm{马尔可夫奖励过程}（Markov reward process，MRP）和\keyterm{马尔可夫决策过程}（Markov decision process，MDP）。其中，“马尔可夫奖励过程”是标准专业术语，强化学习课程中常用它连接马尔可夫链与决策问题\cite{silver-mdp}。
+
+本文先解释马尔可夫性质，再依次加入奖励和动作，最后说明固定策略如何把 MDP 转化为 MRP。为集中讨论基本概念，以下采用离散时间 $t=0,1,2,\ldots$、有限状态空间和有限动作集合；除介绍一般马尔可夫性质时外，假设环境规律不随时间变化。所有机器转移概率与收益数值均为教学设定，不是实际设备的统计数据。
+
+\section{马尔可夫过程：状态怎样变化}
+\label{sec:markov-three-mp}
+
+\subsection{当前状态包含预测所需的信息}
+
+记 $\mathcal S$ 为\keyterm{状态空间}（state space），$S_t$ 为时刻 $t$ 的状态随机变量，$s_t$ 为它的一个具体取值。例如，$\mathcal S=\{\mathrm N,\mathrm F\}$，其中 $\mathrm N$ 表示正常，$\mathrm F$ 表示故障。由各个时刻的状态随机变量组成的序列 $(S_t)_{t\geq0}$ 是一个\keyterm{随机过程}（stochastic process）。
+
+\begin{definition}[离散时间的马尔可夫性质]
+如果对任意 $t\geq0$、任意具有正概率的历史 $(s_0,\ldots,s_t)$ 以及任意 $s'\in\mathcal S$，都有
+\begin{equation}
+  \Pr(S_{t+1}=s'\mid S_0=s_0,\ldots,S_t=s_t)
+  =\Pr(S_{t+1}=s'\mid S_t=s_t),
+  \label{eq:markov-three-property}
+\end{equation}
+则称该过程具有\keyterm{马尔可夫性质}（Markov property），是离散时间的马尔可夫过程。在本文的有限状态情形下，也称为\keyterm{马尔可夫链}（Markov chain）。
+\end{definition}
+
+式\eqref{eq:markov-three-property}的意思是：\keyterm{已经知道当前状态后，更早的状态历史不再提供预测下一状态所需的额外信息}。它不表示相邻状态独立，也不表示未来完全不受过去影响；过去可以通过当前状态影响未来。一般的马尔可夫过程也可以采用连续时间或连续状态空间，本文不展开这些推广。
+
+马尔可夫性质取决于状态是否选得充分。如果两台今天都正常的机器，因为使用年限不同而有不同的故障概率，那么只记录“正常或故障”可能不足以形成马尔可夫模型；需要考虑把使用年限、磨损程度等相关信息加入状态。扩充状态是建模思路，是否足够仍须根据所假设的演化规律判断。
+
+\subsection{时间齐次性与转移矩阵}
+
+如果给定当前状态后的转移概率不随 $t$ 改变，就称过程具有\keyterm{时间齐次性}（time homogeneity），并记
+\begin{equation}
+  P(s'\mid s)=\Pr(S_{t+1}=s'\mid S_t=s),
+  \qquad
+  P(s'\mid s)\geq0,\quad
+  \sum_{s'\in\mathcal S}P(s'\mid s)=1.
+  \label{eq:markov-three-transition}
+\end{equation}
+这里的 $s'$ 表示下一状态，撇号不表示求导。时间齐次性是额外假设；一个过程可以满足马尔可夫性质，而转移概率仍随时间变化。有限状态的齐次模型通常用 $(\mathcal S,P)$ 表示，其中 $P$ 也表示由这些概率组成的\keyterm{转移矩阵}（transition matrix）。要确定完整的状态序列分布，还需给出初始分布 $\mu_0(s)=\Pr(S_0=s)$。
+
+\begin{example}[机器状态的随机演化]
+\label{ex:markov-three-machine}
+假设在既定运行制度下，正常机器第二天仍正常的概率为 $0.9$，故障机器第二天恢复正常的概率为 $0.4$。恢复可以来自已固定的自动恢复或例行处理机制，此处没有额外需要选择的动作。按照“正常、故障”的顺序排列行与列，有
+\begin{equation}
+  P=\begin{pmatrix}
+    0.9&0.1\\
+    0.4&0.6
+  \end{pmatrix}.
+  \label{eq:markov-three-machine-p}
+\end{equation}
+行表示当前状态，列表示下一状态，每行的概率之和为 $1$。如果今天正常，两天后正常的概率为
+\[
+  0.9\times0.9+0.1\times0.4=0.85.
+\]
+两项分别对应“明天正常”和“明天故障”这两条路径；各条路径的概率相乘，再对互斥路径求和。这一模型回答状态如何变化，尚未评价变化带来的收益。
+\end{example}
+
+\section{马尔可夫奖励过程：从状态变化到长期收益}
+\label{sec:markov-three-mrp}
+
+\subsection{奖励、回报与价值}
+
+在上述状态变化过程中，若机器正常时每天收益 $100$ 元，故障时每天损失 $20$ 元，就可以研究从不同状态出发的长期收益。这里约定 $S_t$ 表示当天开始时的状态，$R_{t+1}$ 表示从时刻 $t$ 到 $t+1$ 这一时间步获得的\keyterm{奖励}（reward）；奖励可以为负，损失 $20$ 元对应奖励 $-20$。本例按当天开始时的状态确定当天奖励，即正常时 $R_{t+1}=100$，故障时 $R_{t+1}=-20$。
+
+\begin{definition}[马尔可夫奖励过程]
+在齐次马尔可夫状态演化上加入奖励机制，并要求给定当前状态后，下一状态与本步奖励的联合条件分布不再依赖此前的状态和奖励历史，且该规律不随时间变化，就得到马尔可夫奖励过程。对于期望折扣收益问题，通常用四元组
+\[
+  (\mathcal S,P,r,\gamma)
+\]
+描述，其中 $P$ 是状态转移概率，$r(s)=\mathbb E[R_{t+1}\mid S_t=s]$ 是\keyterm{期望即时奖励}（expected immediate reward），$\gamma$ 是\keyterm{折扣因子}（discount factor）。本文取 $0\leq\gamma<1$，并假设存在有限常数 $C$，使所有时刻的奖励几乎必然满足 $|R_{t+1}|\leq C$。
+\end{definition}
+
+上述四元组足以确定本文讨论的期望价值，但不一定确定奖励的完整概率分布。一般 MRP 的奖励可以是随机的，也可以与下一状态相关；$r(s)$ 只是它的条件均值。若要研究回报的方差或分布，还需说明相应的联合分布，而不能只使用均值。机器例子使用由当前状态确定的奖励，是较简单的特殊情形。
+
+从时刻 $t$ 开始的\keyterm{折扣回报}（discounted return）和\keyterm{状态价值函数}（state-value function）分别定义为
+\begin{equation}
+  G_t=\sum_{k=0}^{\infty}\gamma^kR_{t+k+1},
+  \qquad
+  v(s)=\mathbb E[G_t\mid S_t=s].
+  \label{eq:markov-three-return}
+\end{equation}
+其中 $\gamma^0=1$；$\gamma=0$ 时只保留第一项。奖励 $R_{t+1}$ 是一步的得失，回报 $G_t$ 是一条未来轨迹上的折扣累计得失，价值 $v(s)$ 则是从 $s$ 出发的回报期望。折扣把下一步奖励乘以 $\gamma$、再下一步乘以 $\gamma^2$，因此越远的奖励权重越小；它本身不改变状态转移概率。在上述有界性假设下，$|G_t|\leq C/(1-\gamma)$，所以级数绝对收敛、期望有限，也允许交换期望与此处的无限求和。
+
+若某个状态不能由给定初始分布到达，仍可把 $v(s)$ 理解为将过程从该状态重新开始时的期望。$\gamma=1$ 的有限时域或满足适当终止条件的问题也可以研究，但不能直接沿用上述无限时域的收敛保证。
+
+\begin{example}[两天收益与一步收益的区别]
+沿用例\ref{ex:markov-three-machine}，取 $\gamma=0.9$。只计算今天与明天两天的奖励，从正常状态出发的期望折扣收益为
+\[
+  100+0.9\bigl(0.9\times100+0.1\times(-20)\bigr)=179.2,
+\]
+从故障状态出发则为
+\[
+  -20+0.9\bigl(0.4\times100+0.6\times(-20)\bigr)=5.2.
+\]
+这两个数是两步回报的期望，不是式\eqref{eq:markov-three-return}中的无限时域价值。故障时的即时奖励为负，但两天期望收益可以为正，因为机器有机会恢复正常；即时奖励与长期价值不能混为一谈。
+\end{example}
+
+\subsection{价值怎样递推}
+
+由回报定义逐项拆出第一项，得到 $G_t=R_{t+1}+\gamma G_{t+1}$。对当前状态取条件期望，再按下一状态求和；利用 MRP 的马尔可夫性质和时间齐次性，未来回报在给定下一状态后的期望就是该状态的价值。因此
+\begin{equation}
+  v(s)=r(s)+\gamma\sum_{s'\in\mathcal S}P(s'\mid s)v(s').
+  \label{eq:markov-three-mrp-bellman}
+\end{equation}
+这称为 MRP 的\keyterm{贝尔曼方程}（Bellman equation），表达“当前价值等于期望即时奖励加上折扣后的下一状态价值期望”。推导只使用期望的线性性和条件期望公式，并不要求本步奖励与下一状态相互独立。机器例子中的方程为
+\[
+  \begin{aligned}
+    v(\mathrm N)&=100+0.9\bigl(0.9v(\mathrm N)+0.1v(\mathrm F)\bigr),\\
+    v(\mathrm F)&=-20+0.9\bigl(0.4v(\mathrm N)+0.6v(\mathrm F)\bigr).
+  \end{aligned}
+\]
+MRP 中的演化规律已经给定，这里是在评价收益，没有尚待优化的动作选择。
+
+\section{马尔可夫决策过程：动作怎样改变结果}
+\label{sec:markov-three-mdp}
+
+\subsection{从固定运行制度到可选择的维修}
+
+现在允许管理者每天选择“不额外维修”或“维修”，动作既可能改变当天净收益，也可能改变第二天的状态分布。负责选择的主体称为\keyterm{智能体}（agent），它所面对并与之交互的系统称为\keyterm{环境}（environment）。记 $A_t$ 为时刻 $t$ 的\keyterm{动作}（action）随机变量，$a$ 为动作取值，$\mathcal A(s)$ 为状态 $s$ 下的非空可用动作集合。
+
+\begin{definition}[马尔可夫决策过程]
+有限状态、有限动作的齐次马尔可夫决策过程，对于期望折扣收益问题通常表示为
+\[
+  (\mathcal S,\mathcal A,P,r,\gamma),
+\]
+其中 $\mathcal A=\bigcup_{s\in\mathcal S}\mathcal A(s)$，并规定
+\begin{equation}
+  \begin{aligned}
+    P(s'\mid s,a)&=\Pr(S_{t+1}=s'\mid S_t=s,A_t=a),\\
+    r(s,a)&=\mathbb E[R_{t+1}\mid S_t=s,A_t=a].
+  \end{aligned}
+  \label{eq:markov-three-mdp-model}
+\end{equation}
+模型要求：给定当前状态和动作后，$(S_{t+1},R_{t+1})$ 的联合条件分布不再依赖更早的交互历史，且不随时间改变。对每个可用的 $(s,a)$，转移概率非负并满足 $\sum_{s'}P(s'\mid s,a)=1$。沿用第\ref{sec:markov-three-mrp}节的有界奖励和折扣假设。
+\end{definition}
+
+与 MRP 相比，这里的转移概率和期望奖励都可以依赖动作。MDP 规定各种选择可能带来什么后果，却没有自动指定应该选择哪个动作。即使环境服从某个 MDP，智能体也不一定已经知道其转移概率和奖励规律。
+
+\begin{example}[维修的短期成本与后续收益]
+令 $a_0$ 表示“不额外维修”，$a_1$ 表示“维修”，两种状态下都允许这两个动作。表\ref{tab:markov-three-maintenance}给出完整的教学模型，其中 $a_0$ 保留例\ref{ex:markov-three-machine}的既定运行制度；当天奖励按表中数值确定，已计入维修成本，单位为元。
+\begin{table}
+  \centering
+  \caption{状态、动作、净奖励与下一状态概率}
+  \label{tab:markov-three-maintenance}
+  \begin{tabular}{ccrrr}
+    \toprule
+    当前状态 $s$ & 动作 $a$ & $r(s,a)$ & $P(\mathrm N\mid s,a)$ & $P(\mathrm F\mid s,a)$ \\
+    \midrule
+    正常 $\mathrm N$ & 不额外维修 $a_0$ & $100$ & $0.90$ & $0.10$ \\
+    正常 $\mathrm N$ & 维修 $a_1$ & $60$ & $0.95$ & $0.05$ \\
+    故障 $\mathrm F$ & 不额外维修 $a_0$ & $-20$ & $0.40$ & $0.60$ \\
+    故障 $\mathrm F$ & 维修 $a_1$ & $-60$ & $0.90$ & $0.10$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+假设今天故障，取 $\gamma=0.9$，仅比较两天收益，并约定明天无论处于哪种状态都采取 $a_0$。今天不额外维修时，期望折扣收益是前面算出的 $5.2$ 元；今天维修时则为
+\[
+  -60+0.9\bigl(0.9\times100+0.1\times(-20)\bigr)=19.2\text{ 元}.
+\]
+维修的即时奖励更低，却提高了明天正常运行的概率，因此在这个明确的两天比较中更好。这一计算没有声称“任何情况下都应该维修”，也没有求出无限时域的最优策略；它说明为什么决策需要考虑动作对未来状态的影响。
+\end{example}
+
+\subsection{策略规定怎样选择动作}
+
+\keyterm{策略}（policy）是选择动作的规则。本文考虑\keyterm{平稳马尔可夫策略}（stationary Markov policy）：对于包括当前状态在内的任意可行交互历史，选择动作的条件概率只依赖当前状态，并且不随时间改变。记这一概率为 $\pi(a\mid s)$，则
+\[
+  \pi(a\mid s)\geq0,\qquad
+  \sum_{a\in\mathcal A(s)}\pi(a\mid s)=1.
+\]
+例如，“正常时不额外维修，故障时维修”是一条确定性策略；“故障时以 $0.7$ 的概率维修、以 $0.3$ 的概率不额外维修”则给出了随机策略在故障状态下的选择规则。固定策略意味着固定选择规律，不意味着每次选择相同动作。
+
+在策略 $\pi$ 下，状态价值写为
+\begin{equation}
+  v_\pi(s)=\mathbb E_\pi\left[
+    \sum_{k=0}^{\infty}\gamma^kR_{t+k+1}\,\middle|\,S_t=s
+  \right].
+  \label{eq:markov-three-policy-value}
+\end{equation}
+下标 $\pi$ 表示期望还要对策略产生的动作随机性求平均。\keyterm{策略评价}（policy evaluation）是在策略已经给定时计算 $v_\pi$；\keyterm{控制}（control）则要寻找收益更高的策略。例如，给定初始分布 $\mu_0$，在上述平稳马尔可夫策略类 $\Pi_{\mathrm{SM}}$ 中，可以写出目标
+\[
+  \sup_{\pi\in\Pi_{\mathrm{SM}}}J(\pi),\qquad
+  J(\pi)=\sum_{s\in\mathcal S}\mu_0(s)v_\pi(s).
+\]
+这给出了优化变量、允许的策略类别和评价标准，但尚未指定求解算法。更一般的策略可以依赖时间或过去历史，不能不加说明地与这里的策略定义混用\cite{poole-policies}。
+
+\section{三者的联系：固定策略得到奖励过程}
+\label{sec:markov-three-connection}
+
+在一个齐次 MDP 中固定平稳马尔可夫策略 $\pi$ 后，动作虽仍可能随机，但选择动作的概率已经确定。对动作应用全概率公式和全期望公式，得到
+\begin{equation}
+  \begin{aligned}
+    P_\pi(s'\mid s)
+      &=\sum_{a\in\mathcal A(s)}\pi(a\mid s)P(s'\mid s,a),\\
+    r_\pi(s)
+      &=\sum_{a\in\mathcal A(s)}\pi(a\mid s)r(s,a).
+  \end{aligned}
+  \label{eq:markov-three-induced}
+\end{equation}
+这两个量只依赖当前状态，且不随时间改变；下一状态与奖励的联合分布也可按同样的动作概率进行混合。因此，固定策略后的系统构成 MRP $(\mathcal S,P_\pi,r_\pi,\gamma)$，该 MRP 的价值恰好是原 MDP 中的 $v_\pi$。
+
+在机器模型中，若采用“正常时不额外维修，故障时维修”的策略，则按照“正常、故障”的行列顺序，有
+\[
+  P_\pi=\begin{pmatrix}0.9&0.1\\0.9&0.1\end{pmatrix},
+  \qquad
+  \begin{pmatrix}r_\pi(\mathrm N)\\r_\pi(\mathrm F)\end{pmatrix}
+    =\begin{pmatrix}100\\-60\end{pmatrix}.
+\]
+如果改为两种状态下都不额外维修，就重新得到第\ref{sec:markov-three-mrp}节的 MRP。若故障时以 $0.7$ 的概率维修，则该状态下
+\[
+  P_\pi(\mathrm N\mid\mathrm F)=0.7\times0.9+0.3\times0.4=0.75,
+  \qquad
+  r_\pi(\mathrm F)=0.7\times(-60)+0.3\times(-20)=-48.
+\]
+还须指定正常状态下的规则，才能确定完整策略及其诱导的 MRP。这说明“对动作求平均”是在计算什么，而不是把动作随意删掉。
+
+将式\eqref{eq:markov-three-induced}代入式\eqref{eq:markov-three-mrp-bellman}，得到 MDP 在固定策略下的贝尔曼期望方程：
+\begin{equation}
+  v_\pi(s)=\sum_{a\in\mathcal A(s)}\pi(a\mid s)
+  \left[r(s,a)+\gamma\sum_{s'\in\mathcal S}P(s'\mid s,a)v_\pi(s')\right].
+  \label{eq:markov-three-policy-bellman}
+\end{equation}
+外层平均对应策略选择动作的随机性，内层平均对应环境转移的随机性。因而，评价一条固定策略，可以转化为计算它所诱导的 MRP 的价值。
+
+上述结论中的策略条件不能省略。若固定的是随时间变化的马尔可夫策略，通常得到随时间变化的转移规律；若策略依赖未包含在当前状态中的历史，单看 $S_t$ 的状态序列甚至可能不再满足马尔可夫性质。因此，“MDP 固定任意策略后都是齐次马尔可夫过程”并不准确。
+
+\section{概念对照与强化学习的位置}
+\label{sec:markov-three-summary}
+
+表\ref{tab:markov-three-comparison}按本文的齐次、有限状态约定，对照三类模型。这里比较的是模型保留的信息；MP 可以作为更复杂系统的状态演化部分，并不意味着现实系统没有收益或人的行为。
+\begin{table}
+  \centering
+  \caption{三类模型关注的问题与基本要素}
+  \label{tab:markov-three-comparison}
+  \begin{tabularx}{\textwidth}{l l Y}
+    \toprule
+    模型 & 常用表示 & 核心问题 \\
+    \midrule
+    MP & $(\mathcal S,P)$ & 给定当前状态，接下来会到哪里？ \\
+    MRP & $(\mathcal S,P,r,\gamma)$ & 在给定演化规律下，从当前状态出发能获得多少期望回报？ \\
+    MDP & $(\mathcal S,\mathcal A,P,r,\gamma)$ & 动作会改变转移和奖励，应怎样选择动作以提高期望回报？ \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+三者之间可以沿着两个方向理解：给 MP 加入奖励机制和收益评价标准，可以建立 MRP；让动作控制转移与奖励，可以建立 MDP。反过来，MDP 固定平稳马尔可夫策略后得到 MRP，而 MRP 忽略奖励后留下 MP。只有一个可用动作的 MDP 也可以用来表示 MRP，因为此时没有实际的动作选择。
+
+\keyterm{强化学习}（reinforcement learning，RL）研究如何利用交互经验进行预测或改进行动策略。MDP 是描述决策任务的数学模型，策略是行动规则，强化学习算法则规定如何利用数据学习；三者不属于同一层次。例如，在机器任务中，表\ref{tab:markov-three-maintenance}规定环境模型，“故障就维修”是一条策略，根据运行记录调整维修规则才涉及学习方法。若模型已知，可以利用模型进行\keyterm{规划}（planning）；若需要根据采样经验评价或改进策略，则进入强化学习的典型问题。MRP 对应的价值预测也可以通过经验学习，因此强化学习并不只包含寻找动作策略这一项任务。
+
+\begin{thebibliography}{9}
+  \bibitem{silver-mdp}
+  David Silver.
+  \emph{Lecture 2: Markov Decision Processes}.
+  强化学习课程讲义，含马尔可夫奖励过程的定义。
+  \url{https://www.davidsilver.uk/wp-content/uploads/2020/03/MDP.pdf}.
+
+  \bibitem{poole-policies}
+  David L. Poole and Alan K. Mackworth.
+  \emph{Artificial Intelligence: Foundations of Computational Agents}, 2nd edition.
+  Section 9.5.1, Policies.
+  \href{https://www.cs.ubc.ca/~poole/aibook/2e/html2e/ArtInt2e.Ch9.S5.SS1.html}{在线章节：策略与平稳性}.
+\end{thebibliography}
+
+\end{document}

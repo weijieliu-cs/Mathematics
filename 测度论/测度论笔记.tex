@@ -1,0 +1,1933 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexbook}
+
+% 支持从项目根目录或当前笔记目录编译。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{测度论笔记}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\chapter{绪论：从长度、积分到随机性}
+\label{chap:mt-introduction}
+
+\section{为什么需要测度论}
+区间的长度、平面图形的面积、集合中元素的个数，以及随机事件的概率，看似属于不同问题，却都有共同要求：空集的大小为零，大小不能为负，互不相交部分合起来的大小应当相加。\keyterm{测度论（measure theory）}从这些要求出发，研究如何给集合赋予大小，以及如何借助这种大小定义积分、处理函数列的极限。它既是现代概率论的基础，也是研究函数空间、弱导数和偏微分方程的重要工具。
+
+有限次相加并不足以处理分析中的极限。例如，有理数集可以写为可数个单点的并；单点长度为零，应当推出有理数集长度为零。但实数区间是不可数个单点的并，区间长度却不为零。这里需要准确区分有限、可数与不可数，而不能把“每一部分为零”无条件推广为“总量为零”。
+
+积分也有类似困难。函数列即使处处收敛，其积分仍可能不收敛到极限函数的积分。测度论将“如何测量集合”和“何时可以交换积分与极限”联系起来，使这些问题能够在统一条件下讨论。
+
+\begin{example}[移动到小区间上的质量]
+在 $(0,1)$ 上令 $f_n(x)=n\mathbf1_{(0,1/n)}(x)$，其中 $\mathbf1_A$ 在 $A$ 上取 $1$，在其余位置取 $0$。对每个固定的 $x>0$，充分大的 $n$ 满足 $1/n<x$，所以 $f_n(x)\to0$。然而，每个函数的积分都是高度与底边长度的乘积：
+\[
+ \int_0^1 f_n(x)\,\mathrm dx=1.
+\]
+逐点观察能看到每个位置最终归零，却不能阻止质量集中在越来越窄的区间中。第\ref{chap:mt-convergence}章将说明，交换极限与积分需要额外条件。
+\end{example}
+
+\section{定位、先修知识与章节路线}
+本书面向学过数学分析基础的读者。先修知识包括集合运算、实数的上确界性质、数列与级数、连续函数、黎曼积分和函数列的逐点收敛。涉及开集时只需要欧氏空间中的初等拓扑；抽象拓扑不是起点。高等代数有助于理解函数空间，但不是定义测度和积分的必要前提。
+
+本书以实值函数为主，非负积分允许取 $+\infty$；对一般有符号函数，始终先检查可积性。核心结果给出证明，包括测度扩张、乘积测度和 Hahn 分解；积分与微分专题中引用的较深结果则明确标出证明范围，便于区分已经证明的结论与进一步阅读的内容。
+
+\begin{longtable}{L{0.10\textwidth}L{0.30\textwidth}L{0.48\textwidth}}
+\toprule
+章节 & 主题 & 需要解决的问题\\
+\midrule
+\endhead
+\ref{chap:mt-sets} & 集合与 $\sigma$ 代数 & 哪些集合可以作为测量对象？\\
+\ref{chap:mt-measures} & 测度空间与零测集 & 可列可加性怎样控制集合极限？\\
+\ref{chap:mt-construction} & 外测度与测度构造 & 区间长度怎样扩张为勒贝格测度？\\
+\ref{chap:mt-functions} & 可测函数与简单逼近 & 哪些函数可以进入积分理论？\\
+\ref{chap:mt-integral} & 勒贝格积分 & 如何统一求和与连续积分？\\
+\ref{chap:mt-convergence} & 积分收敛定理 & 极限、求和与积分何时可以交换？\\
+\ref{chap:mt-modes} & 函数列的收敛方式 & 几乎处处、依测度与均值收敛有何区别？\\
+\ref{chap:mt-product} & 乘积测度与迭代积分 & 多变量积分何时可以改变次序？\\
+\ref{chap:mt-lp} & $L^p$ 空间 & 如何用积分衡量函数距离并保证完备性？\\
+\ref{chap:mt-rn} & 有符号测度与密度 & 一个测度何时能表示成对另一个测度的积分？\\
+\ref{chap:mt-calculus} & 积分、变差与微分 & 原函数与密度为何需要绝对连续性？\\
+\ref{chap:mt-probability} & 与概率论的衔接 & 分布、期望与条件期望如何统一定义？\\
+\bottomrule
+\end{longtable}
+
+首次学习可先到第\ref{chap:mt-convergence}章，掌握测度、可测函数、积分以及三个主要收敛定理，再结合概率论中的期望与泛函分析中的函数空间继续阅读。第\ref{chap:mt-rn}章为一般条件期望提供存在性依据。概率论中的大数定律、中心极限定理和随机过程，以及泛函分析中的算子与对偶理论，应在相应课程中进一步学习。
+
+\section{记号、证明习惯与参考资料}
+$\mathbb N=\{1,2,\ldots\}$，$\mathcal P(S)$ 表示集合 $S$ 的幂集，即全体子集组成的集合。一般测度空间写作 $(S,\mathcal A,\mu)$；补集均相对于当前底空间 $S$。$\mathcal B(\mathbb R)$ 表示实数轴的 Borel $\sigma$ 代数，$\lambda$ 表示勒贝格测度。概率空间写作 $(\Omega,\mathcal F,\mathbb P)$，随机变量通常用 $X,Y$，取值用 $x,y$。
+
+对集合列写 $A_n\uparrow A$，表示 $A_n\subseteq A_{n+1}$ 且 $\bigcup_nA_n=A$；$A_n\downarrow A$ 类似地表示递减并以交集为 $A$。对函数列，$f_n\uparrow f$ 表示每点单调递增且极限为 $f$。除非另有说明，积分所涉及的函数均可测。
+
+本书将“定义是否成立”“结论是否成立”和“某个计算能否实施”分开处理。遇到极限与积分交换，先列出使用的收敛定理及其假设；遇到密度，先说明相对于哪个测度；遇到几乎处处等式，先说明例外集合相对于哪个测度为零。进一步阅读可使用 MIT 的测度与积分公开讲义\cite{mit-measure}和 Teschl 的实分析教材主页及其章节索引\cite{teschl-ra}。
+
+\section{从初等积分到一般积分的思想变化}
+在数学分析中，黎曼积分先把自变量所在区间分成许多小区间，再用每段上的代表函数值与区间长度相乘，最后研究分割变细时的极限。这个构造直接保留了面积直觉，对连续函数、分段连续函数和许多显式计算十分有效。然而，在研究函数列时，极限函数可能具有复杂的不连续点；在研究随机变量时，底空间甚至没有自然的区间结构。因此，一般积分需要依赖集合的大小，而不能始终依赖把自变量轴分成小区间。
+
+勒贝格积分首先处理示性函数：若函数在集合 $A$ 上等于一、在其余位置等于零，其积分就应等于 $A$ 的测度。对只取有限个值的函数，再按每个值对应集合的大小加权求和。一般非负函数通过越来越精细的简单函数从下方逼近。这种构造常被概括为“按函数值分类”，但这一说法只是动机；严格定义仍需要可测性、下方逼近和上确界，不能单凭图形理解替代。
+
+两种积分之间不是互相排斥的关系。对有界闭区间上的黎曼可积函数，勒贝格积分给出相同结果，因此原有的多项式、指数函数和三角函数积分计算仍然有效。新理论的主要价值在于扩大可处理函数的范围，并为积分与极限的交换提供稳定的条件。一个积分可以很难写出初等原函数，却仍有良好的存在性、连续性和收敛性质；这些性质通常比显式表达式更重要。
+
+还应区分“积分理论”和“积分技巧”。换元、分部积分、对称性与递推关系用于求出具体数值；测度论首先回答被积函数是否可测、积分是否存在、能否分拆以及能否交换次序。计算中如果省略这些问题，可能得到形式上相似而实际不相等的两个迭代积分。后文的每种交换定理都应当理解为对合法运算范围的说明。
+
+\section{需要复习的分析语言}
+本科生初学时的困难常来自量词，而不完全来自新概念。函数列逐点收敛要求：对每个固定自变量和每个误差容许量，存在足够大的序号，使其后各项误差足够小。这个序号可以依赖自变量。一致收敛则要求同一个序号适用于整个讨论集合。几乎处处收敛先允许排除一个零测集，再在余下每个位置使用逐点收敛的定义。三种表述中，“先选什么，后选什么”决定了不同强度的结论。
+
+上确界和最大值也必须区别。上确界只要求是最小上界，不要求属于原集合。定义非负积分时，下方简单函数的积分可能没有最大值，但它们的上确界仍然存在于 $[0,\infty]$。例如，用有限小数从下方逼近一个无理数，任何有限阶段都没有达到目标，却可以用上确界刻画目标。积分构造中的逼近采用相同的逻辑，不需要假设某个“最佳简单函数”存在。
+
+级数在测度论中承担了控制可数误差的作用。给定总误差 $\varepsilon>0$，把第 $n$ 步误差安排为小于 $\varepsilon2^{-n}$，便能保证全部误差之和不超过 $\varepsilon$。外测度的次可加性、Egorov 定理、几乎处处收敛子列的构造以及 $L^p$ 完备性证明都会反复使用这一安排。理解这种误差预算，比记住某一次证明中恰好出现的常数更有帮助。
+
+紧性则把局部或无限的信息转化为有限控制。在证明闭区间的外测度等于长度时，可数开覆盖先通过紧性缩减为有限子覆盖，之后才能使用有限个区间的几何比较。紧性并不意味着集合元素有限，而是说某类无限覆盖具有有限的控制子族。学习时应同时保留这两个层次，避免把分析中的紧集误解为离散的小集合。
+
+\section{贯穿全书的模型与证明方法}
+本书反复比较三个空间。第一个是带计数测度的 $\mathbb N$，此时积分就是级数，每个单点都有质量一；第二个是带长度测度的有限区间，此时存在任意小的正测度集合，但总质量有限；第三个是整个实数轴，它允许质量向无穷远移动。许多结论在这三个空间中的差别，分别暴露了原子、有限性和逃向无穷远的影响。学习一个新定理时，可以主动将它放回这三个模型检查条件。
+
+对新的测度恒等式，通常先在容易计算的集合族上验证，再研究使该恒等式成立的集合族是否对适当运算封闭，从而推广到整个 $\sigma$ 代数。对新的积分恒等式，则常按示性函数、简单函数、非负可测函数、可积有符号函数的顺序推广。前一种方法解决“哪些集合上成立”，后一种方法解决“哪些函数上成立”；二者结合构成很多抽象定理的证明骨架。
+
+反例也应按结构分析。若删去有限测度条件，可以尝试让集合向无穷远移动；若删去可积控制，可以尝试让函数在越来越小的集合上越来越高；若把子列结论误写成整列结论，可以让误差在不同位置循环出现。这样的构造并非零散技巧，而是在检查定理究竟阻止了哪一种失效机制。
+
+第一遍阅读宜先建立定义、典型例子和核心定理之间的联系，第二遍再完整复述扩张、完备性和密度存在性的证明。对每个定理，至少应能说明它的输入对象、必要假设、输出结论及一个具体用途；对每个重要假设，应尝试找出一个删去后失败的情形。习题既用于训练计算，也用于检验量词、集合族和例外零测集是否已经被正确理解。
+
+\chapter{集合、可数性与可测空间}
+\label{chap:mt-sets}
+
+\section{可数集合与可数运算}
+集合称为\keyterm{至多可数（at most countable）}，是指它为空、有限，或能够与 $\mathbb N$ 建立一一对应；本书简称为可数。$\mathbb Z$、$\mathbb Q$ 可数，而非退化实数区间不可数。对 $\mathbb Q$，可先按 $|p|+q$ 的大小依次列出所有分数 $p/q$，其中 $p\in\mathbb Z$、$q\in\mathbb N$，再删除重复项。这说明分数虽在实轴上稠密，仍能排成一列。
+
+在通常的集合论框架下，可数个可数集合的并仍可数：将各集合的枚举写成双指标 $a_{j,k}$，再按 $j+k$ 的大小遍历，删除重复项即可。不可数并没有这个性质。测度公理中的可列可加性只针对可数列，不能用于所有实数单点组成的不可数族。
+
+\section{集合列的上极限与下极限}
+\begin{definition}
+集合列 $(A_n)$ 的\keyterm{上极限（limit superior）}与\keyterm{下极限（limit inferior）}分别为
+\begin{equation}
+ \limsup_{n\to\infty}A_n=\bigcap_{m=1}^{\infty}\bigcup_{n\geq m}A_n,\qquad
+ \liminf_{n\to\infty}A_n=\bigcup_{m=1}^{\infty}\bigcap_{n\geq m}A_n.
+ \label{eq:mt-set-limits}
+\end{equation}
+\end{definition}
+$x\in\limsup A_n$ 表示每个起点之后都还能找到一个包含 $x$ 的集合，即 $x$ 属于无穷多个 $A_n$；$x\in\liminf A_n$ 表示存在一个起点，使其后的所有 $A_n$ 都包含 $x$。因此 $\liminf A_n\subseteq\limsup A_n$。对递增集合列，二者都等于并集；对递减集合列，二者都等于交集。
+
+\begin{example}
+若奇数项为 $[0,1]$，偶数项为 $[1,2]$，则 $\liminf A_n=\{1\}$，$\limsup A_n=[0,2]$。下极限要求最终每次都出现，上极限只要求反复出现。
+\end{example}
+
+\section{$\sigma$ 代数与生成族}
+\begin{definition}
+$S$ 上的\keyterm{$\sigma$ 代数（sigma-algebra）}是集合族 $\mathcal A\subseteq\mathcal P(S)$，满足 $S\in\mathcal A$；若 $A\in\mathcal A$，则 $S\setminus A\in\mathcal A$；若每个 $A_n\in\mathcal A$，则 $\bigcup_{n=1}^{\infty}A_n\in\mathcal A$。二元组 $(S,\mathcal A)$ 称为\keyterm{可测空间（measurable space）}，$\mathcal A$ 中的集合称为可测集。
+\end{definition}
+由补集运算及 De Morgan 公式，$\sigma$ 代数也对可数交、集合差和对称差封闭。这里“可测”首先是相对于指定集合族而言，并不表示已经给出了测度。
+
+给定集合族 $\mathcal C\subseteq\mathcal P(S)$，所有包含 $\mathcal C$ 的 $\sigma$ 代数的交仍是 $\sigma$ 代数；它称为 $\mathcal C$ 生成的 $\sigma$ 代数，记作 $\sigma(\mathcal C)$。这个交确实有定义，因为 $\mathcal P(S)$ 总包含 $\mathcal C$。在 $\mathbb R$ 上，由所有开集生成的 $\sigma$ 代数称为\keyterm{Borel $\sigma$ 代数（Borel sigma-algebra）}，记作 $\mathcal B(\mathbb R)$。
+
+\begin{proposition}
+$\mathcal B(\mathbb R)$ 也由所有开区间生成，或由所有射线 $(-\infty,a]$，$a\in\mathbb R$，生成。
+\end{proposition}
+\begin{proof}
+每个开集都是其中端点为有理数的开区间的并；这样的区间至多可数，故开区间生成所有开集。射线是闭集，因而属于 Borel $\sigma$ 代数。反过来，
+\[
+ (-\infty,b)=\bigcup_{n=1}^{\infty}(-\infty,b-1/n],\qquad
+ (a,b)=(-\infty,b)\setminus(-\infty,a].
+\]
+因此射线生成所有开区间，两个生成的 $\sigma$ 代数相同。
+\end{proof}
+
+\begin{example}[有限信息对应的集合族]
+令 $S=\{1,2,3,4\}$，只区分结果属于 $\{1,2\}$ 还是 $\{3,4\}$，则相应的 $\sigma$ 代数是
+\[
+ \mathcal A=\{\varnothing,\{1,2\},\{3,4\},S\}.
+\]
+此时 $\{1\}$ 不是可测集。它并非不存在，而是当前集合族不把它作为单独可辨认的事件。第\ref{chap:mt-probability}章将用这个观点解释条件期望。
+\end{example}
+
+\section{前置知识：量词、原像与扩展实数}
+\label{sec:mt-logical-tools}
+把集合条件翻译成量词，有助于理解后面概率为一或测度为零的陈述。例如，“$x$ 无穷多次属于 $A_n$”表示对每个 $m$ 都存在 $n\geq m$ 使 $x\in A_n$，所以先取尾部并集，再对所有起点取交集；“$x$ 最终一直属于 $A_n$”表示存在 $m$，使每个 $n\geq m$ 都满足该条件，所以先取尾部交集，再对起点取并集。式\eqref{eq:mt-set-limits}中的并与交，正是存在量词与全称量词的集合表达。
+
+原像保留这些逻辑结构。对映射 $f:S\to T$ 及 $T$ 的任意子集族 $(B_i)$，
+\[
+ f^{-1}\!\left(\bigcup_iB_i\right)=\bigcup_if^{-1}(B_i),\qquad
+ f^{-1}\!\left(\bigcap_iB_i\right)=\bigcap_if^{-1}(B_i),\qquad
+ f^{-1}(T\setminus B)=S\setminus f^{-1}(B).
+\]
+这些恒等式对任意指标族成立，与映射是否连续或可逆无关。相对地，直接像一般不保持交集和补集；例如一个常值映射可以把两个不交的非空集合映到同一个单点。这就是可测映射用原像定义的重要原因。
+
+为了允许长度、非负级数和非负积分发散，使用\keyterm{扩展实数（extended real numbers）}$[-\infty,\infty]$。它不是通常意义下的域：$+\infty+(-\infty)$ 不定义，$\infty-\infty$ 不定义，也不能像有限实数那样任意约分。对非负量，可数和定义为有限部分和的上确界，因此无论是否有限都具有明确意义。测度理论优先处理非负对象，正是为了先避开无穷量相消的问题。
+
+区分有限项和无限项同样必要。如果 $a_n,b_n\geq0$ 且 $a_n\leq b_n$，则 $\sum_na_n\leq\sum_nb_n$ 总有意义；但若已知两个级数都为无穷，不能将它们相减并从逐项差推断结果。例如 $\sum_n1-\sum_n1$ 不是一个已经定义的实数表达式，虽然逐项差组成的级数等于零。后文把积分拆成正负部分时，就是在系统排除这种歧义。
+
+\section{可数性的作用与有限空间的全部结构}
+可数性的使用不只出现在可列可加性中。开集可以由可数个有理端点区间生成，实值函数的可测性可以只检查有理阈值，几乎处处成立的可数多个性质可以同时放到一个共同的满测度集合上。它们都利用了“可数多个误差或例外仍可控制”这一事实。若将可数族替换为任意不可数族，对应结论一般就失去保证。
+
+可数个二值选择已经能够产生不可数多个结果。假定所有零一序列可以排成一列 $a^{(1)},a^{(2)},\ldots$，定义新序列的第 $n$ 位为 $1-a^{(n)}_n$，则新序列与第 $n$ 个旧序列在第 $n$ 位不同，因此不在这张表中。这一对角论证说明序列全体不可数。要点不是每个序列有多少项，而是所有可能的无限选择组合有多少种。
+
+在有限底空间上，任何 $\sigma$ 代数都对应一种分组。定义两个点等价，当且仅当它们对 $\mathcal A$ 中每个集合具有相同的隶属关系。每个等价类可以写成有限个可测集合或其补集的交，因此可测，且无法被 $\mathcal A$ 中的集合进一步分开。这些最小非空可测集称为该有限 $\sigma$ 代数的原子。这里是集合族意义下的原子，与后面“正测度且不能再分成两块正测度部分”的测度原子应区分。
+
+每个可测集必为若干原子的并，因为它只要包含某个点，就必须包含所有与该点不可区分的点。反过来，有限个原子的任意并都可测。因此，若有 $r$ 个原子，该 $\sigma$ 代数恰有 $2^r$ 个集合。这个结论为条件期望提供了最直观的模型：信息越细，原子的分组越小，能够表达的随机变量也越丰富。
+
+\section{生成族上的验证：$\pi$--$\lambda$ 定理}
+\label{sec:mt-pi-lambda}
+知道两个集合函数在区间上相同，为什么常能推出它们在所有 Borel 集上相同？需要证明“相同”这一性质能够从一个生成族传播到整个 $\sigma$ 代数。对此，引入两种比 $\sigma$ 代数要求更少的集合族。
+
+\begin{definition}
+对有限交封闭的非空集合族称为\keyterm{$\pi$ 系统（pi-system）}。包含 $S$、对补集封闭且对可数个两两不交集合之并封闭的集合族称为\keyterm{$\lambda$ 系统（lambda-system）}，也称 Dynkin 系统。
+\end{definition}
+若 $A\subseteq B$ 且两者属于一个 $\lambda$ 系统，则 $B\setminus A$ 也属于它：因为 $A$ 与 $S\setminus B$ 不交，先取它们的并，再取补集即可。一个既是 $\pi$ 系统又是 $\lambda$ 系统的集合族是 $\sigma$ 代数，因为它对有限交和补集封闭，可先把一般可数并改写成不交并。
+
+\begin{theorem}[$\pi$--$\lambda$ 定理]
+若 $\mathcal C$ 是 $\pi$ 系统，$\mathcal D$ 是包含 $\mathcal C$ 的 $\lambda$ 系统，则 $\sigma(\mathcal C)\subseteq\mathcal D$。
+\label{thm:mt-pi-lambda}
+\end{theorem}
+\begin{proof}
+记 $\mathcal L$ 为包含 $\mathcal C$ 的最小 $\lambda$ 系统，它由所有此类系统的交定义。固定 $A\in\mathcal C$，考察
+$\mathcal D_A=\{B\in\mathcal L:A\cap B\in\mathcal L\}$。
+由于 $A\in\mathcal L$，前述相对差性质和不交并性质说明 $\mathcal D_A$ 是 $\lambda$ 系统；由于 $\mathcal C$ 对交封闭，它包含 $\mathcal C$。最小性推出 $\mathcal D_A=\mathcal L$。
+
+现在固定任意 $B\in\mathcal L$，考察
+$\mathcal E_B=\{A\in\mathcal L:A\cap B\in\mathcal L\}$。
+相同论证说明它是 $\lambda$ 系统，而刚才的结论说明它包含 $\mathcal C$，故 $\mathcal E_B=\mathcal L$。这样就证明 $\mathcal L$ 对有限交封闭，于是 $\mathcal L$ 是 $\sigma$ 代数。因此 $\sigma(\mathcal C)\subseteq\mathcal L\subseteq\mathcal D$。
+\end{proof}
+
+\begin{corollary}[有限测度的唯一性]
+设 $\mu,\nu$ 是 $(S,\sigma(\mathcal C))$ 上的有限测度，$\mathcal C$ 为包含 $S$ 的 $\pi$ 系统。若两测度在 $\mathcal C$ 上相同，则在 $\sigma(\mathcal C)$ 上相同。
+\label{cor:mt-finite-uniqueness}
+\end{corollary}
+\begin{proof}
+满足 $\mu(A)=\nu(A)$ 的可测集组成 $\lambda$ 系统。补集步骤使用 $\mu(S)=\nu(S)<\infty$，以便合法相减；不交并步骤使用可列可加性。应用定理\ref{thm:mt-pi-lambda}即可。
+\end{proof}
+这一定理首次出现时可能显得抽象，但其用途十分具体：分布函数决定概率分布、矩形上的乘法规则决定联合分布、预测度在生成代数上的数值决定扩张，都会归结为这种唯一性。有限性若缺失，则需要先在可数个有限测度区域上局部验证，再合并，不能直接在无穷总质量上使用补集减法。
+
+\section{习题}
+\begin{enumerate}
+ \item 验证 $\{\varnothing,S\}$ 与 $\mathcal P(S)$ 均为 $\sigma$ 代数，并证明任意一族 $\sigma$ 代数的交仍是 $\sigma$ 代数。
+ \item 证明 $\mathbf1_{\limsup A_n}=\limsup_n\mathbf1_{A_n}$，并写出下极限的对应等式。
+ \item 在 $S=\{1,2,3\}$ 上构造两个 $\sigma$ 代数，使它们的并不是 $\sigma$ 代数。
+\end{enumerate}
+
+\chapter{测度空间、连续性与零测集}
+\label{chap:mt-measures}
+
+\section{测度的定义与基本模型}
+\begin{definition}
+可测空间 $(S,\mathcal A)$ 上的\keyterm{测度（measure）}是映射 $\mu:\mathcal A\to[0,+\infty]$，满足 $\mu(\varnothing)=0$，且对两两不交的可测集 $A_1,A_2,\ldots$，
+\begin{equation}
+ \mu\!\left(\bigcup_{n=1}^{\infty}A_n\right)=\sum_{n=1}^{\infty}\mu(A_n).
+ \label{eq:mt-countable-additivity}
+\end{equation}
+三元组 $(S,\mathcal A,\mu)$ 称为测度空间。若 $\mu(S)<\infty$，称为有限测度；若存在 $S_n\in\mathcal A$ 使 $S=\bigcup_nS_n$ 且每个 $\mu(S_n)<\infty$，称为\keyterm{$\sigma$ 有限（sigma-finite）}；若 $\mu(S)=1$，称为概率测度。
+\end{definition}
+
+在 $\mathbb N$ 的幂集上，\keyterm{计数测度（counting measure）}将有限集合映为其元素个数，将无限集合映为 $+\infty$。固定 $s_0\in S$，定义 $\delta_{s_0}(A)=\mathbf1_A(s_0)$，得到\keyterm{Dirac 测度（Dirac measure）}。它测量一个集合是否包含指定点，并不是相对于长度测度的普通函数密度。
+
+第\ref{chap:mt-construction}章将构造实轴上的勒贝格测度 $\lambda$，使区间的测度等于长度。它在 $\mathbb R$ 上不是有限测度，却是 $\sigma$ 有限的，因为 $\mathbb R=\bigcup_n[-n,n]$。不可数集合上、定义于全部子集的计数测度不是 $\sigma$ 有限：有限测度集只能是有限集，而可数个有限集的并至多可数。
+
+\section{单调性、次可加性与集合极限}
+\begin{proposition}
+测度满足下列性质：
+\begin{enumerate}
+ \item 若 $A\subseteq B$，则 $\mu(A)\leq\mu(B)$；若另有 $\mu(A)<\infty$，则 $\mu(B\setminus A)=\mu(B)-\mu(A)$。
+ \item 对任意可测集列，$\mu(\bigcup_nA_n)\leq\sum_n\mu(A_n)$。
+ \item 若 $A_n\uparrow A$，则 $\mu(A_n)\uparrow\mu(A)$。
+ \item 若 $A_n\downarrow A$ 且 $\mu(A_1)<\infty$，则 $\mu(A_n)\downarrow\mu(A)$。
+\end{enumerate}
+\label{prop:mt-measure-continuity}
+\end{proposition}
+\begin{proof}
+由 $B=A\sqcup(B\setminus A)$ 得到单调性；只有在 $\mu(A)<\infty$ 时才能安全地移项，避免 $\infty-\infty$。对一般并集，令 $B_1=A_1$、$B_n=A_n\setminus\bigcup_{j<n}A_j$。这些 $B_n$ 两两不交、$B_n\subseteq A_n$，并且与原集合列有相同的并，故得到次可加性。
+
+对递增列，取 $B_1=A_1$、$B_n=A_n\setminus A_{n-1}$，可列可加性给出 $\mu(A)=\sum_n\mu(B_n)=\lim_n\mu(A_n)$。对递减列，$A_1\setminus A_n$ 递增到 $A_1\setminus A$；由于 $\mu(A_1)$ 有限，应用已经证明的递增情形并从 $\mu(A_1)$ 中相减即可。
+\end{proof}
+
+\begin{example}[从上连续性需要有限性条件]
+在 $\mathbb R$ 上令 $A_n=[n,\infty)$，则 $A_n\downarrow\varnothing$，但每个 $\lambda(A_n)=\infty$。因此不能省去从上连续性中的有限测度假设；若某个较后项测度有限，则可以从该项开始使用定理。
+\end{example}
+
+\section{几乎处处与测度完备化}
+\begin{definition}
+若可测集 $N$ 满足 $\mu(N)=0$，称其为\keyterm{零测集（null set）}。某性质在一个可测零测集之外成立，称其\keyterm{几乎处处成立（almost everywhere）}，简记为 $\mu$-a.e.。若每个可测零测集的任意子集都属于 $\mathcal A$，称测度空间是\keyterm{完备的（complete）}。
+\end{definition}
+
+可数个零测集的并仍为零测集，这是次可加性的直接推论。有限或可数次使用几乎处处成立的性质时，可以合并所有例外集合；不可数次合并则不能直接这样处理。几乎处处也不等于处处：$\mathbf1_{\{0\}}$ 与零函数在勒贝格测度下几乎处处相等，在 $\delta_0$ 下却不相等。
+
+\begin{proposition}[完备化]
+设 $\mathcal N$ 是所有可测零测集的任意子集组成的集合族。令
+\[
+ \overline{\mathcal A}=\{A\cup N:A\in\mathcal A,\ N\in\mathcal N\},\qquad
+ \overline\mu(A\cup N)=\mu(A).
+\]
+则 $\overline{\mathcal A}$ 是 $\sigma$ 代数，$\overline\mu$ 是良定义的完备测度，并在 $\mathcal A$ 上与 $\mu$ 相同。
+\label{prop:mt-completion}
+\end{proposition}
+\begin{proof}
+若 $A\cup N=B\cup M$，则 $A\triangle B$ 包含在一个可测零测集中；分解 $A,B$ 可知 $\mu(A)=\mu(B)$，因此定义不依赖表示。对补集，取可测零测集 $Z\supseteq N$，可写成
+\[
+ (A\cup N)^c=(A^c\setminus Z)\cup\bigl((A\cup N)^c\cap Z\bigr).
+\]
+第一部分可测，第二部分属于 $\mathcal N$。可数并的封闭性由可数个可测零测集之并仍为零测集得到。若 $A_j\cup N_j$ 两两不交，则 $A_j$ 也两两不交，故可列可加性直接归结为 $\mu$ 的可列可加性。最后，$\overline\mu$-零测集包含在一个原来可测的零测集中，它的任意子集均已被加入。
+\end{proof}
+
+\section{离散质量、限制测度与推前测度}
+给定可数集合 $S=\{s_1,s_2,\ldots\}$ 和非负权重 $w_n$，在 $\mathcal P(S)$ 上定义
+$\mu(A)=\sum_{n:s_n\in A}w_n$。对两两不交的集合列，每个点至多出现一次，非负级数可以重新分组，因而可列可加性成立。总质量为 $\sum_nw_n$；取所有权重为一得到计数测度，取权重和为一得到离散概率测度。定义并不要求每个单点都有正质量，权重为零的点可以存在。
+
+离散模型还说明测度不一定与几何位置有关。即使把这些点嵌入实轴，质量也由指定的权重决定，与相邻两点的欧氏距离无关。对同一个底集合选取不同测度，会得到不同的零测集、不同的可积函数和不同的几乎处处等价关系。因此，讨论“这个函数可积”或“这两个函数相等”时，测度是结论的一部分，不能始终隐藏不写。
+
+固定 $E\in\mathcal A$，可在原空间上定义限制测度 $\mu_E(A)=\mu(A\cap E)$；也可把底空间缩小为 $E$，使用\keyterm{迹 $\sigma$ 代数（trace sigma-algebra）}$\mathcal A|_E=\{A\cap E:A\in\mathcal A\}$。由于 $E$ 可测，迹集合仍属于原来的 $\mathcal A$，测度直接沿用。前者保留整个底空间但忽略外部质量，后者直接改变底空间；两种写法的积分在对应意义下一致。
+
+另一种构造是沿映射搬运质量。若 $T:(S,\mathcal A)\to(U,\mathcal D)$ 可测，定义
+$T_\#\mu(B)=\mu(T^{-1}(B))$。原像保持不交并，故 $T_\#\mu$ 是测度，称为推前测度。它的总质量与 $\mu$ 相同，因此有限性得以保留；但 $\sigma$ 有限性未必保留。例如把带计数测度的 $\mathbb N$ 全部映到一个点，则该单点的质量为无穷，所得空间不能由有限测度集覆盖。这个例子提示：看似温和的构造也可能改变定理所需条件。
+
+\section{可列可加性与连续性的关系}
+命题\ref{prop:mt-measure-continuity}从可列可加性推出从下连续性。反过来，若集合函数非负、有限可加、空集取零，并对所有递增可测集合列从下连续，则它可列可加。事实上，对两两不交的 $A_n$，令 $B_m=\bigcup_{n=1}^{m}A_n$，有限可加性给出 $\mu(B_m)=\sum_{n=1}^{m}\mu(A_n)$，从下连续性使左侧趋于全体并集的大小，而右侧按非负级数定义趋于总和。
+
+因此，可列可加性可以看作有限可加性与一种极限相容性结合后的结果。这解释了测度理论为何特别适合分析：有限分解保证局部计算，连续性保证计算可以通过可数过程传到极限。只满足有限可加性的集合函数通常无法支持同样的积分收敛理论，不能把这一区别视为纯粹的措辞变化。
+
+对有限总质量的有限可加函数，从上连续于空集也足够推出可列可加性。给定递增 $B_m\uparrow B$，差集 $B\setminus B_m\downarrow\varnothing$，于是有限可加性与从上连续性给出 $\mu(B_m)\to\mu(B)$。有限性在这里保证所有减法合法。若允许无穷总质量，就应优先使用不含无穷减法的从下连续形式。
+
+\section{$\sigma$ 有限性如何进入证明}
+设 $S=\bigcup_nE_n$，每个 $\mu(E_n)<\infty$。可以先令 $F_n=\bigcup_{j\leq n}E_j$，将覆盖变成递增覆盖；也可以令 $D_1=E_1$、$D_n=E_n\setminus\bigcup_{j<n}E_j$，将覆盖变成两两不交的有限测度分块。前者适合取极限，后者适合逐块定义对象后再拼接。它们保留有限测度性质，因为有限并的测度不超过各项之和。
+
+许多关于 $\sigma$ 有限空间的证明都遵循同一顺序：先在一个有限测度块上利用补集、积分估计或唯一性，再检查不同块上的结果相容，最后通过可数并或单调收敛合并。这里的可数性使例外零测集仍能统一处理。如果需要不可数多个块，合并后的例外集合未必零测，因此不能直接照搬同一论证。
+
+$\sigma$ 有限性不等于有限性，也不表示每个点都具有一个有限测度的开邻域。后一个条件涉及拓扑，而 $\sigma$ 有限性的定义只涉及可测集合。学习一般定理时，应先识别它需要的是测度结构还是拓扑结构，避免把欧氏空间中特别熟悉的性质误当成抽象测度空间的默认条件。
+
+\section{以集合差异定义距离}
+在有限测度空间中，可以用
+\[
+ d(A,B)=\mu(A\triangle B),\qquad
+ A\triangle B=(A\setminus B)\cup(B\setminus A)
+\]
+衡量两个可测集合的差异。因为 $A\triangle C\subseteq(A\triangle B)\cup(B\triangle C)$，次可加性给出三角不等式。该量对称且非负，但不同集合可能距离为零，所以在全部可测集合上它只是伪度量；把相差零测集的集合视为同一个元素后，才得到真正的度量。
+
+这个构造是 $L^1$ 空间思想的集合版本，因为
+$|\mathbf1_A-\mathbf1_B|=\mathbf1_{A\triangle B}$。集合在测度意义下接近，对应示性函数的积分误差很小；它不要求两个集合在每个位置都相似。例如可以在稠密的零测集上改变集合而不改变这个距离。这一观点有助于提前理解：后面函数空间中的等价类并非形式负担，而是积分所能识别的信息范围决定的。
+
+\section{习题}
+\begin{enumerate}
+ \item 证明有限测度 $\mu$ 非零时，$\mathbb P(A)=\mu(A)/\mu(S)$ 是概率测度；说明 $\mu(S)=\infty$ 时不能用同一公式归一化。
+ \item 证明 $\mu(A\cup B)+\mu(A\cap B)=\mu(A)+\mu(B)$，其中等式允许取无穷；说明为什么将其改写为含减法的形式需要附加条件。
+ \item 若 $\sum_n\mu(A_n)<\infty$，证明 $\mu(\limsup A_n)=0$。提示：从尾部并集的测度估计开始。
+\end{enumerate}
+
+\chapter{外测度、测度扩张与勒贝格测度}
+\label{chap:mt-construction}
+
+\section{先覆盖，再决定哪些集合可测}
+给复杂集合赋予长度，直接把集合分解成区间往往不可行，因为它可能不含任何区间。另一种办法是先用可数个区间覆盖它，计算覆盖所需的总长度，再对所有覆盖取下确界。这个过程可以作用于任意子集，产生外测度；但外测度通常只有次可加性，需要进一步筛选可测集，才能得到真正的测度。
+
+\begin{definition}
+$S$ 上的\keyterm{外测度（outer measure）}是映射 $\mu^*:\mathcal P(S)\to[0,\infty]$，满足 $\mu^*(\varnothing)=0$、单调性，以及可数次可加性
+\[
+ \mu^*\!\left(\bigcup_nE_n\right)\leq\sum_n\mu^*(E_n).
+\]
+这里所有 $E_n$ 都可以是任意子集。
+\end{definition}
+
+在 $\mathbb R$ 上定义\keyterm{勒贝格外测度（Lebesgue outer measure）}
+\begin{equation}
+ \lambda^*(E)=\inf\left\{\sum_{n=1}^{\infty}(b_n-a_n):
+ E\subseteq\bigcup_{n=1}^{\infty}(a_n,b_n),\quad a_n<b_n\right\}.
+ \label{eq:mt-lebesgue-outer}
+\end{equation}
+区间端点均为有限实数；有限覆盖也允许使用。空集的值约定为零。
+
+\begin{proposition}
+式\eqref{eq:mt-lebesgue-outer}定义外测度，且对有限的 $a<b$，$\lambda^*([a,b])=b-a$。
+\end{proposition}
+\begin{proof}
+单调性来自覆盖族的包含关系。证明次可加性时，若 $\sum_j\lambda^*(E_j)=\infty$，不等式已经成立。否则给定 $\varepsilon>0$，为每个 $E_j$ 选择总长度小于 $\lambda^*(E_j)+\varepsilon2^{-j}$ 的可数区间覆盖。合并所有覆盖，得到 $\lambda^*(\bigcup_jE_j)\leq\sum_j\lambda^*(E_j)+\varepsilon$，再令 $\varepsilon\downarrow0$。
+
+用 $(a-\varepsilon,b+\varepsilon)$ 覆盖 $[a,b]$，可得 $\lambda^*([a,b])\leq b-a$。反向考虑任意可数开区间覆盖。由 $[a,b]$ 的紧性可以提取有限子覆盖；有限个区间要覆盖从 $a$ 到 $b$ 的整段，其长度之和至少为 $b-a$。后一事实可通过合并相交区间验证：合并后的并集总长度不超过原长度之和，而包含 $[a,b]$ 的连通部分长度至少为 $b-a$。因此每个原覆盖的总长度也至少为 $b-a$，取下确界完成证明。
+\end{proof}
+
+\section{Carathéodory 可测性与扩张定理}
+\begin{definition}
+给定外测度 $\mu^*$，集合 $A\subseteq S$ 称为\keyterm{Carathéodory 可测的（Carathéodory measurable）}，是指对每个 $E\subseteq S$，
+\begin{equation}
+ \mu^*(E)=\mu^*(E\cap A)+\mu^*(E\setminus A).
+ \label{eq:mt-caratheodory}
+\end{equation}
+\end{definition}
+次可加性已经保证左侧不超过右侧，所以关键是反向不等式。条件要求 $A$ 能把每个测试集合分成内外两部分而不增加总量；只检验 $E=S$ 一般不够。
+
+\begin{theorem}[Carathéodory 外测度定理]
+满足式\eqref{eq:mt-caratheodory}的集合全体 $\mathcal M$ 构成 $\sigma$ 代数，且 $\mu^*|_{\mathcal M}$ 是完备测度。
+\label{thm:mt-caratheodory}
+\end{theorem}
+\begin{proof}
+空集与补集的封闭性直接来自定义。若 $A,B$ 可测，先按 $A$ 切分任意 $E$，再按 $B$ 切分 $E\setminus A$，得到
+\[
+ \mu^*(E)=\mu^*(E\cap A)+\mu^*(E\cap A^c\cap B)
+             +\mu^*(E\setminus(A\cup B)).
+\]
+前两项之和至少为 $\mu^*(E\cap(A\cup B))$，结合次可加性即得 $A\cup B$ 可测。对两两不交的 $A_n\in\mathcal M$，逐次切分得到
+\[
+ \mu^*(E)\geq\sum_{n=1}^{m}\mu^*(E\cap A_n)
+       +\mu^*\!\left(E\setminus\bigcup_{n=1}^{\infty}A_n\right).
+\]
+令 $m\to\infty$，再对 $E\cap\bigcup_nA_n$ 使用次可加性，便得可数并的可测性；一般并可先变成不交并。令 $E=\bigcup_nA_n$，同一估计与次可加性给出可列可加性。若 $\mu^*(N)=0$ 且 $B\subseteq N$，则对任意 $E$，单调性和次可加性给出 $\mu^*(E)=\mu^*(E\setminus B)$，因此 $B$ 可测且测度为零。
+\end{proof}
+
+若集合族只对有限并与补集封闭，称为\keyterm{代数（algebra）}。代数 $\mathcal C$ 上的\keyterm{预测度（premeasure）}$\mu_0$ 满足空集取零，并且对两两不交、并集仍在 $\mathcal C$ 中的集合列满足可列可加性。用 $\mathcal C$ 中的可数覆盖定义外测度，可以将容易计算的初始数据扩张为测度。
+
+\begin{theorem}[预测度扩张]
+代数 $\mathcal C$ 上的预测度 $\mu_0$ 可以扩张为 $\sigma(\mathcal C)$ 上的测度。若 $S$ 可由 $\mathcal C$ 中可数个 $\mu_0$ 有限的集合覆盖，则扩张在 $\sigma(\mathcal C)$ 上唯一。
+\label{thm:mt-extension}
+\end{theorem}
+\begin{proof}
+对任意 $E\subseteq S$ 定义
+\[
+ \mu^*(E)=\inf\left\{\sum_{n=1}^{\infty}\mu_0(C_n):
+ E\subseteq\bigcup_nC_n,\quad C_n\in\mathcal C\right\}.
+\]
+空集取零；因为 $S\in\mathcal C$，覆盖族不会为空。与勒贝格外测度相同的误差分配论证说明 $\mu^*$ 是外测度。对 $A\in\mathcal C$，单个集合覆盖给出 $\mu^*(A)\leq\mu_0(A)$。反向若 $A\subseteq\bigcup_nC_n$，则
+$B_n=A\cap(C_n\setminus\bigcup_{j<n}C_j)$
+属于 $\mathcal C$、两两不交，且并集为 $A$。预测度公理适用，故
+$\mu_0(A)=\sum_n\mu_0(B_n)\leq\sum_n\mu_0(C_n)$，取下确界得到相反不等式。
+
+再固定 $A\in\mathcal C$。每个覆盖集合 $C_n$ 可分成 $C_n\cap A$ 与 $C_n\setminus A$，两者都在代数中；有限可加性说明这次切分保持总预测度。因此，对任意 $E$ 的每个代数覆盖，其总代价至少为 $\mu^*(E\cap A)+\mu^*(E\setminus A)$。对覆盖取下确界，得到 Carathéodory 条件中所需的反向不等式。所以 $\mathcal C$ 中的集合均为 $\mu^*$ 可测，定理\ref{thm:mt-caratheodory}产生的测度可以限制到 $\sigma(\mathcal C)$，并与 $\mu_0$ 相容。
+
+最后证明唯一性。由假设将 $S$ 分成 $\mathcal C$ 中两两不交且预测度有限的 $D_n$。若 $\mu,\nu$ 是两个扩张，对每个固定 $n$，集合函数 $\mu(A\cap D_n)$ 与 $\nu(A\cap D_n)$ 是整个 $\sigma(\mathcal C)$ 上的有限测度，并在代数 $\mathcal C$ 上相同。推论\ref{cor:mt-finite-uniqueness}给出它们在所有可测集上相同。再对 $n$ 求和，得到 $\mu(A)=\nu(A)$。
+\end{proof}
+存在性与唯一性的条件不同，不能把 $\sigma$ 有限性误认为任何测度存在所必需的条件。预测度只在初始代数中规定数值，外测度负责处理任意覆盖，Carathéodory 条件筛选可以无损切分的集合，生成族定理则保证不同构造不能在最终对象上产生歧义。
+
+\section{勒贝格可测集、Borel 集与零测集}
+勒贝格外测度的 Carathéodory 可测集称为\keyterm{勒贝格可测集（Lebesgue measurable set）}，组成 $\sigma$ 代数 $\mathcal L(\mathbb R)$；其上的测度记为 $\lambda$。这里引用构造理论的进一步结论：所有 Borel 集均勒贝格可测，区间的测度为长度，$\lambda$ 平移不变，并且 $(\mathbb R,\mathcal L(\mathbb R),\lambda)$ 是 Borel 长度测度的完备化。相关证明见\cite[第1章]{teschl-ra}。
+
+这些结论中，区间可测性可通过在端点处切开区间覆盖验证；平移不变性则来自平移前后覆盖的长度完全相同。完备化的描述说明，勒贝格可测集包含 Borel 集及其零测修改，而不是简单地把任意子集都宣布为可测。
+
+\begin{example}[稠密性与测度大小无关]
+每个单点都可以被任意短的区间覆盖，所以 $\lambda(\{x\})=0$。有理数集可数，故 $\lambda(\mathbb Q)=0$，尽管它在 $\mathbb R$ 中稠密。于是 $\lambda([0,1]\setminus\mathbb Q)=1$。测度描述大小，稠密性描述每个开区间是否相交，两者回答不同问题。
+\end{example}
+
+\begin{example}[不可数的零测集]
+从 $[0,1]$ 开始，每一步删除每个保留区间的中间三分之一，记第 $n$ 步保留的闭集为 $C_n$，并令 $C=\bigcap_nC_n$。$C_n$ 是 $2^n$ 个长度为 $3^{-n}$ 的闭区间之并，所以
+\[
+ \lambda(C)=\lim_n\lambda(C_n)=\lim_n(2/3)^n=0.
+\]
+这里使用了有限测度下的从上连续性。另一方面，每个二进制序列 $(\varepsilon_k)$ 对应点 $\sum_{k=1}^{\infty}2\varepsilon_k3^{-k}\in C$。不同序列给出不同点：首次不同位置的差为 $2\cdot3^{-k}$，之后全部差的绝对值至多为 $3^{-k}$。由于二进制序列集合不可数，$C$ 不可数。这说明零测不等于可数。
+\end{example}
+
+\section{开集与紧集逼近：勒贝格测度的正则性}
+\label{sec:mt-regularity}
+一个集合的边界可能非常复杂，但在测度意义下，它仍可以由比较简单的开集和紧集逼近。这种逼近不要求边界光滑，也不要求原集合包含区间；要求的是多出来或少掉的部分具有很小测度。它把抽象可测集重新与欧氏空间的拓扑联系起来，是连续函数逼近可测函数的基础。
+
+\begin{theorem}[实轴上勒贝格测度的正则性]
+对每个勒贝格可测集 $E\subseteq\mathbb R$，
+\[
+ \lambda(E)=\inf\{\lambda(U):E\subseteq U,\ U\text{ 开}\}
+ =\sup\{\lambda(K):K\subseteq E,\ K\text{ 紧}\}.
+\]
+若 $\lambda(E)<\infty$，则对每个 $\varepsilon>0$，可选择 $K\subseteq E\subseteq U$，使 $\lambda(U\setminus K)<\varepsilon$。
+\label{thm:mt-regularity}
+\end{theorem}
+\begin{proof}
+先设 $\lambda(E)<\infty$。按外测度定义，取可数开区间覆盖，其长度和小于 $\lambda(E)+\varepsilon$。它们的并 $U$ 开，且 $\lambda(U)\leq$ 该长度和，因此 $\lambda(U\setminus E)<\varepsilon$。
+
+对内逼近，先选 $R$ 足够大，使 $\lambda(E\setminus[-R,R])<\varepsilon$；这是从下连续性用于 $E\cap[-R,R]$ 的结果。再对 $[-R,R]\setminus E$ 作外逼近，选择开集 $V$ 包含它，使 $\lambda(V\setminus([-R,R]\setminus E))<\varepsilon$。令 $K=[-R,R]\setminus V$，则 $K$ 是紧集且包含于 $E$，并有 $\lambda(E\setminus K)<2\varepsilon$。通过一开始缩小误差预算，可得定理所要求的任意精度。
+
+若 $\lambda(E)=\infty$，任何包含 $E$ 的开集都具有无穷测度，外逼近等式成立。另一方面，$\lambda(E\cap[-R,R])\uparrow\infty$，先取具有任意大有限测度的截断，再对它作紧集内逼近，可使紧子集的测度任意大，得到内逼近等式。
+\end{proof}
+
+这里的紧集可以是不连通的，开集也可以由无穷多个区间组成。“用紧集逼近”并不意味着只保留一个闭区间。若 $\lambda(E)<\infty$，还可进一步用有限个区间组成的集合在对称差测度意义下逼近 $E$：先取紧集 $K$ 和开集 $U$，用包含于 $U$ 的小开区间覆盖 $K$，再由紧性抽取有限子覆盖。它们的并 $V$ 满足 $K\subseteq V\subseteq U$，故 $E\triangle V\subseteq U\setminus K$。
+
+\section{为何勒贝格可测集比 Borel 集更多}
+对有限测度可测集 $E$，为每个 $n$ 取开集 $U_n\supseteq E$，使 $\lambda(U_n\setminus E)<2^{-n}$。令 $G=\bigcap_nU_n$，则 $G$ 是 Borel 集，$E\subseteq G$，且 $\lambda(G\setminus E)=0$。一般可测集可先分解成与有界区间的交，再对这些有限测度部分作同样构造。因此，每个勒贝格可测集都与某个 Borel 集仅相差一个零测集。
+
+还需要注意，前述差集本身只知勒贝格可测。对任意外测度为零的集合，可选择总长度趋于零的开覆盖，并取覆盖并集的可数交，得到一个包含它的 Borel 零测集。于是，勒贝格可测集确实可以由 Borel 集加上或删去 Borel 零测集的任意子集得到。这就解释了“Borel 长度测度的完备化”这一描述，而不是仅凭名称将两个集合族视为相同。
+
+在概率模型中，使用 Borel 集有利于保留与拓扑和映射的清晰关系，使用完备化则有利于自由修改零概率事件上的数值。两种做法各有作用。需要复合映射、构造乘积或讨论截面时，应明确当前使用哪一个集合族，因为完备化和这些构造的次序未必可以随意交换。
+
+\section{不可测集为什么出现：Vitali 构造}
+\label{sec:mt-vitali-set}
+一个自然问题是：为什么不直接给实轴的所有子集定义长度？在通常采用选择公理的集合论框架下，平移不变性、可列可加性和区间长度规则无法同时扩展到全部子集。下面的论证给出具体障碍，其作用是解释定义边界，而不是要求实际计算中经常构造不可测集。
+
+在 $[0,1]$ 上定义等价关系 $x\sim y$ 当且仅当 $x-y\in\mathbb Q$。从每个等价类中选择一个代表，组成集合 $V$；这一步使用选择公理。对每个 $q\in\mathbb Q\cap[-1,1]$，考虑平移集 $V+q$。这些集合两两不交：若 $v+q=v'+q'$，则 $v-v'$ 为有理数，代表的唯一性给出 $v=v'$，进而 $q=q'$。
+
+这些平移的并包含 $[0,1]$，因为每个点与其所在等价类的代表相差一个位于 $[-1,1]$ 的有理数；同时，它们的并包含于 $[-1,2]$。若 $V$ 勒贝格可测，平移不变性使每个平移具有相同测度。若该测度为零，可数并的测度为零，与包含长度为一的区间矛盾；若该测度为正，可数个不交平移的总测度为无穷，与包含于长度为三的区间矛盾。因此 $V$ 不可测。
+
+这一矛盾并未否定区间长度或可列可加性，而是说明可测集合族必须受到限制。外测度仍然可以赋给 $V$ 一个非负数，但不能保证它在任意不交分解下具有测度所需的加法性。外测度定义在所有子集上，与测度定义在特定 $\sigma$ 代数上，二者的职责在这里得到清楚区分。
+
+\section{习题}
+\begin{enumerate}
+ \item 直接利用覆盖定义证明任意可数集合的勒贝格外测度为零。
+ \item 设 $E\subseteq\mathbb R$，证明 $\lambda^*(E+t)=\lambda^*(E)$，其中 $E+t=\{x+t:x\in E\}$。
+ \item 解释“区间内每个单点测度为零，所以区间测度为零”错用了哪一个公理条件。
+\end{enumerate}
+
+\chapter{可测函数与简单函数逼近}
+\label{chap:mt-functions}
+
+\section{可测性是原像条件}
+\begin{definition}
+从可测空间 $(S,\mathcal A)$ 到 $(T,\mathcal D)$ 的映射 $f$ 称为\keyterm{可测映射（measurable map）}，若对每个 $B\in\mathcal D$，$f^{-1}(B)\in\mathcal A$。实值函数 $f:S\to\mathbb R$ 的可测性默认以 $\mathcal B(\mathbb R)$ 为目标集合族。
+\end{definition}
+可测性要求测量问题能够沿函数拉回底空间。$f^{-1}(B)=\{s:f(s)\in B\}$ 是原像，不要求 $f$ 有反函数，也不要求原像中只有一点。
+
+\begin{proposition}[生成族判别]
+实值函数 $f$ 可测，当且仅当对每个 $a\in\mathbb R$，集合 $\{f>a\}$ 可测。仅检查所有有理数 $a$ 也足够。
+\label{prop:mt-measurable-test}
+\end{proposition}
+\begin{proof}
+可测函数的射线原像必然可测。反向令 $\mathcal D_f=\{B\subseteq\mathbb R:f^{-1}(B)\in\mathcal A\}$，原像保持补集和可数并，所以 $\mathcal D_f$ 是 $\sigma$ 代数。若所有 $\{f>a\}$ 可测，则 $\mathcal D_f$ 包含生成 Borel $\sigma$ 代数的射线，从而包含所有 Borel 集。只知道有理阈值时，利用 $\{f>a\}=\bigcup_{q\in\mathbb Q,\ q>a}\{f>q\}$ 即可。
+\end{proof}
+
+连续实函数是 Borel 可测的，因为开集的原像开。$\mathbf1_A$ 可测当且仅当 $A$ 可测。两个可测映射的复合在目标、来源集合族相容时仍可测，因为 $(g\circ f)^{-1}(B)=f^{-1}(g^{-1}(B))$。
+
+\section{运算与极限保持可测性}
+若 $f,g$ 为有限实值可测函数，则 $f+g$、$fg$、$|f|$、$\max(f,g)$ 与 $\min(f,g)$ 均可测。例如
+\[
+ \{f+g>a\}=\bigcup_{q\in\mathbb Q}\bigl(\{f>q\}\cap\{g>a-q\}\bigr).
+\]
+平方可由连续函数复合处理，再利用 $fg=((f+g)^2-f^2-g^2)/2$ 处理乘法。扩展实值函数允许取 $\pm\infty$，其可测性仍可用实阈值判别，但不能对 $\infty-\infty$ 等未定义表达式直接做代数运算。
+
+对可测函数列，$\sup_nf_n$ 可测，因为 $\{\sup_nf_n>a\}=\bigcup_n\{f_n>a\}$；取负号得到下确界的对应结论。因此
+\[
+ \liminf_nf_n=\sup_m\inf_{n\geq m}f_n,\qquad
+ \limsup_nf_n=\inf_m\sup_{n\geq m}f_n
+\]
+均可测，逐点存在的极限也可测。若仅知道某函数与可测函数几乎处处相等，要保证它自身可测，还需要底空间完备，或另外明确要求该函数可测。
+
+\section{简单函数的单调逼近}
+\begin{definition}
+取有限个实数值的可测函数称为\keyterm{简单函数（simple function）}，可以写成 $s=\sum_{j=1}^{m}a_j\mathbf1_{A_j}$，其中 $A_j$ 是两两不交的可测集。通过加入零值部分，可以使这些集合覆盖整个底空间。
+\end{definition}
+
+\begin{theorem}
+对每个非负扩展实值可测函数 $f$，存在非负简单函数列 $s_n\uparrow f$。
+\label{thm:mt-simple-approximation}
+\end{theorem}
+\begin{proof}
+将值域按长度 $2^{-n}$ 分档，并在高度 $n$ 截断：
+\[
+ s_n(s)=
+ \begin{cases}
+  2^{-n}\lfloor 2^nf(s)\rfloor,&0\leq f(s)<n,\\
+  n,&f(s)\geq n.
+ \end{cases}
+\]
+其中 $\lfloor u\rfloor$ 表示不超过 $u$ 的最大整数。每个值对应的原像由可测水平集组成，所以 $s_n$ 是简单函数。分档逐次细化、截断高度上升，保证 $s_n\leq s_{n+1}$。对 $f(s)<\infty$，充分大的 $n$ 满足 $0\leq f(s)-s_n(s)<2^{-n}$；对 $f(s)=\infty$，有 $s_n(s)=n\to\infty$。
+\end{proof}
+这一定理是积分构造的关键。它不是把自变量轴切成等长区间，而是先按函数值分档，再测量每档所对应集合的大小。
+
+\section{向量值映射、水平集与极限存在的集合}
+当函数取值于 $\mathbb R^d$ 时，可测性可以逐坐标检查。设 $F=(f_1,\ldots,f_d)$，则 $F$ 关于 $\mathcal B(\mathbb R^d)$ 可测，当且仅当每个坐标函数可测。一个方向来自坐标投影连续；另一个方向则利用有理端点开矩形生成 $\mathbb R^d$ 的 Borel 集合族，而矩形的原像是有限个坐标原像的交。有限维的可数拓扑基使这一判别成为可能。
+
+于是，若 $f_1,\ldots,f_d$ 可测且 $\Phi:\mathbb R^d\to\mathbb R$ 连续，则 $\Phi(f_1,\ldots,f_d)$ 可测。这统一解释了加法、乘法、绝对值、最大值以及许多连续变换为何保持可测性。若 $\Phi$ 仅为 Borel 可测，结论仍成立，因为可测映射的复合可测。应用时必须检查中间空间的集合族相容，不能只看两个映射分别被称为“可测”。
+
+对函数列 $(f_n)$，收敛点组成的集合本身也可测。由实数的完备性，有限实值序列收敛当且仅当满足 Cauchy 条件。因此收敛点集合可以写成
+\[
+ C=\bigcap_{m=1}^{\infty}\bigcup_{N=1}^{\infty}
+ \bigcap_{j,k\geq N}\{|f_j-f_k|\leq1/m\}.
+\]
+右侧只使用可数次集合运算，故可测。在 $C$ 上定义极限、在补集上定义为零，得到可测函数。这个构造在从依测度收敛提取子列，以及证明 $L^p$ 完备性时很有用：极限不必预先在全部点上存在，但可以在一个明确的可测集合上构造，再补成全空间函数。
+
+\section{零测修改与可测版本}
+若 $f$ 可测，$g=f$ 在某个可测零测集 $N$ 之外成立，而空间完备，则 $g$ 也可测。对每个阈值 $a$，集合 $\{g>a\}$ 与 $\{f>a\}$ 的对称差包含于 $N$；完备性保证这部分差异可测，因此阈值判别仍适用。若空间不完备，则可以取不可测的零测子集 $B\subseteq N$，令 $g=\mathbf1_B$，它与零函数几乎处处相等却不可测。这表明“几乎处处修改不影响可测性”含有一个不能省略的环境条件。
+
+在实轴上，每个有限实值勒贝格可测函数都具有与它几乎处处相等的 Borel 可测版本。可先用简单函数逐点逼近；各简单函数的有限个水平集都与 Borel 集仅相差零测集，因此可替换成 Borel 可测简单函数，在必要时把重叠部分按固定次序剔除。全部替换产生的例外集合只有可数多个，其并仍为零测集。在这一并集之外，新旧简单函数列相同。新序列有限收敛的位置组成 Borel 集，在其上取极限、其余位置取零，就得到所需版本。
+
+版本的概念以后还会出现在条件期望和随机过程里。它的含义是：当前理论只在几乎处处意义下确定对象，若要在每个点赋予具体数值，就需要选择一个代表。不能因为两个版本在零测集之外相同，就随意声称它们在某个指定点相等；也不能把不同参数下分别成立的几乎处处等式，未经检查就提升为对所有参数同时成立的等式。
+
+\section{连续性与可测性的距离：Lusin 定理}
+\label{sec:mt-lusin}
+可测函数可以处处不连续，因而可测性远弱于连续性。但在有限测度区域内，舍去足够小的集合后，可测函数仍能表现出连续结构。下面的结果利用上一章的紧集逼近，把复杂水平集中的大部分质量保留在紧集内。它说明可测函数虽允许复杂局部行为，却并非完全无法由连续对象理解。
+
+\begin{theorem}[Lusin 定理的有限测度版本]
+设 $E\subseteq\mathbb R$ 勒贝格可测、$\lambda(E)<\infty$，$f:E\to\mathbb R$ 为有限实值可测函数。对每个 $\varepsilon>0$，存在紧集 $K\subseteq E$，使 $\lambda(E\setminus K)<\varepsilon$，并且限制函数 $f|_K$ 关于 $K$ 的子空间拓扑连续。
+\label{thm:mt-lusin}
+\end{theorem}
+\begin{proof}
+因为 $f$ 在每点有限，集合 $\{x\in E:|f(x)|>M\}$ 随 $M$ 增大递减到空集。有限测度下的从上连续性允许选择 $M$，使该集合测度小于 $\varepsilon/2$。记剩余集合为 $E_M$，在其上 $f$ 有界，故可由简单函数 $s_n$ 一致逼近。
+
+对每个 $n$，把 $E_M$ 分成 $s_n$ 的有限个水平集，再利用紧集内逼近，从每个水平集中选紧子集，使所有遗漏测度之和小于 $\varepsilon2^{-n-1}$。这些紧子集的有限并记为 $K_n$。在 $K_n$ 上，$s_n$ 连续：不同的非空紧水平集两两不交，有限多个这样的紧集之间具有正距离，所以每个水平集在 $K_n$ 中既开又闭。
+
+令 $K=\bigcap_nK_n$。它是紧集，且由次可加性，$\lambda(E\setminus K)<\varepsilon$。每个 $s_n|_K$ 连续，且仍一致收敛到 $f|_K$，故 $f|_K$ 连续。
+\end{proof}
+
+这里的结论是限制函数在 $K$ 上连续，不能理解为原函数在 $K$ 中每个点相对于整个实轴都连续。例如有理数示性函数处处不连续，但它在完全避开有理数的适当紧集上恒为零，限制函数当然连续。区分环境拓扑与子空间拓扑，就能解释这种表面上的矛盾。
+
+Lusin 定理与 Egorov 定理关注不同问题。前者针对一个可测函数，舍去小集合后获得连续性；后者针对一个几乎处处收敛的函数列，舍去小集合后获得一致收敛。二者都把“几乎处处”的信息转化为大集合上的更强性质，但所用结论和所控制的对象不同，不能互相替代。
+
+\section{习题}
+\begin{enumerate}
+ \item 证明 $\{f=g\}$ 是可测集，其中 $f,g$ 是有限实值可测函数。
+ \item 证明非负简单函数的上述逼近对有界 $f$ 最终满足一致误差小于 $2^{-n}$。
+ \item 解释在一个不完备测度空间中，零函数的零测集修改为什么可能不可测。
+\end{enumerate}
+
+\chapter{勒贝格积分的构造与计算}
+\label{chap:mt-integral}
+
+\section{从简单函数到非负函数}
+对非负简单函数 $s=\sum_{j=1}^{m}a_j\mathbf1_{A_j}$，其中 $A_j$ 两两不交，定义
+\begin{equation}
+ \int_Ss\,\mathrm d\mu=\sum_{j=1}^{m}a_j\mu(A_j),
+ \qquad 0\cdot\infty:=0.
+ \label{eq:mt-simple-integral}
+\end{equation}
+将两种表示的集合共同细分为交集，并使用有限可加性，可验证结果与表示方式无关。这一积分满足非负齐次性、加法性和保序性。
+
+\begin{definition}
+对非负可测函数 $f:S\to[0,\infty]$，定义\keyterm{勒贝格积分（Lebesgue integral）}
+\begin{equation}
+ \int_Sf\,\mathrm d\mu
+ =\sup\left\{\int_Ss\,\mathrm d\mu:s\text{ 为非负简单函数， }s\leq f\right\}.
+ \label{eq:mt-nonnegative-integral}
+\end{equation}
+对可测集 $A$，记 $\int_Af\,\mathrm d\mu=\int_Sf\mathbf1_A\,\mathrm d\mu$；即使 $f$ 在某些点为无穷，也约定在 $A$ 外将乘积取为零。
+\end{definition}
+若 $0\leq f\leq g$，参与 $f$ 的上确界的简单函数也可用于 $g$，所以 $\int f\leq\int g$。非负函数的积分总有定义，但可以为无穷。定义只用下方简单函数；任意选取的逼近列为何能恢复这个上确界，将由第\ref{chap:mt-convergence}章的单调收敛定理保证。
+
+\begin{proposition}[零积分与几乎处处]
+对非负可测函数 $f$，$\int f\,\mathrm d\mu=0$ 当且仅当 $f=0$ 几乎处处。
+\label{prop:mt-zero-integral}
+\end{proposition}
+\begin{proof}
+若积分为零，则 $f\geq n^{-1}\mathbf1_{\{f\geq1/n\}}$ 给出 $\mu(\{f\geq1/n\})=0$。这些集合的可数并是 $\{f>0\}$，因此它为零测集。反向若 $f$ 只在零测集上可能非零，则每个满足 $0\leq s\leq f$ 的简单函数都具有零积分，取上确界仍为零。
+\end{proof}
+
+\section{有符号函数与可积性}
+对扩展实值可测函数 $f$，令 $f^+=\max(f,0)$、$f^-=\max(-f,0)$，则 $f=f^+-f^-$，$|f|=f^++f^-$。当 $\int f^+$ 与 $\int f^-$ 至少一个有限时，可定义扩展积分 $\int f=\int f^+-\int f^-$；若二者都无穷，则该积分不定义。称 $f$ \keyterm{可积（integrable）}，是指 $\int|f|\,\mathrm d\mu<\infty$，此时 $\int f$ 为有限实数。后文用 $f\in L^1(\mu)$ 简记这一条件；把几乎处处相等的函数取为同一元素后的正式空间定义见第\ref{chap:mt-lp}章。
+
+可积函数几乎处处有限。事实上，若 $A=\{|f|=\infty\}$，则 $\int|f|\geq M\mu(A)$ 对每个 $M>0$ 成立，所以 $\mu(A)=0$。讨论函数空间时可以在这一零测集上将函数改为零，从而选取有限实值代表。
+
+对可积的 $f,g$ 与实数 $a,b$，有
+\[
+ \int(af+bg)\,\mathrm d\mu
+ =a\int f\,\mathrm d\mu+b\int g\,\mathrm d\mu,\qquad
+ \left|\int f\,\mathrm d\mu\right|\leq\int|f|\,\mathrm d\mu.
+\]
+这些性质由非负函数加法性和正负部分分解得到；非负加法性在下一章通过简单逼近与单调收敛定理证明，从而避免把它当作定义中的额外假设。
+
+\section{计数积分、长度积分与密度}
+对 $\mathbb N$ 上的计数测度，非负函数 $f$ 的积分等于 $\sum_{n=1}^{\infty}f(n)$。这是因为前 $m$ 项的截断给出部分和，而任意下方简单函数的积分均不超过完整非负级数。一般实函数可积恰好对应 $\sum_n|f(n)|<\infty$。因此“积分与求和交换”的许多问题，本质上是两个积分之间的交换。
+
+\begin{example}[零测修改改变黎曼可积性]
+在 $[0,1]$ 上，$f=\mathbf1_{\mathbb Q\cap[0,1]}$ 几乎处处为零，所以勒贝格积分为零。每个非退化子区间同时包含有理数和无理数，导致所有黎曼下和为零、上和为一，故 $f$ 不黎曼可积。勒贝格积分容许这种稠密零测集上的修改。
+\end{example}
+
+对紧区间上的有界黎曼可积函数，其勒贝格积分与黎曼积分一致。这里还需先说明该函数勒贝格可测。选取逐次加细的分割，使上、下阶梯函数 $u_n,l_n$ 的积分之差趋零。在可数个分割端点之外，有 $l_n\uparrow l$、$u_n\downarrow u$，且 $l\leq f\leq u$；端点本身组成零测集。由 $\int(u_n-l_n)\to0$ 及后文的 Fatou 引理（定理\ref{thm:mt-fatou}），有 $u=l$ 几乎处处。因勒贝格测度完备，与可测函数 $l$ 几乎处处相等的 $f$ 也可测。最后，阶梯函数的两种积分都等于对应有限和，利用上下和夹逼即得两种积分一致。
+
+\begin{example}[非负函数生成新的测度]
+设 $w:S\to[0,\infty]$ 可测，定义 $\nu(A)=\int_Aw\,\mathrm d\mu$。下一章的单调收敛定理将保证 $\nu$ 可列可加，因而它是测度。若 $\int_Sw\,\mathrm d\mu=1$，则 $\nu$ 是概率测度，$w$ 是它相对于 $\mu$ 的密度。在 $[0,1]$ 上取 $w(x)=2x$，便有
+\[
+ \nu([a,b])=\int_a^b2x\,\mathrm dx=b^2-a^2,\qquad 0\leq a\leq b\leq1.
+\]
+密度值可以大于一；要求处于 $[0,1]$ 的是事件的概率，而不是密度的点值。
+\end{example}
+
+\section{积分作为加权总量：几个完整模型}
+积分中的测度决定权重，被积函数决定每个位置的数值。在有限集合上，设单点质量依次为 $w_1,\ldots,w_m$，则 $\int f\,\mathrm d\mu=\sum_jf(s_j)w_j$，这就是加权求和。只有当权重和为一时，才可以直接把它称为加权平均；总质量为其他有限正数时，平均值应写成 $\mu(S)^{-1}\int f\,\mathrm d\mu$。无穷总质量空间通常不存在这种统一归一化。
+
+同一个函数对不同测度积分，结果可以完全不同。例如在 $[0,1]$ 上取 $f(x)=x$，对长度测度的积分为 $1/2$，对 $\delta_0$ 的积分为零，对 $\delta_1$ 的积分为一。若取混合概率测度 $\mu=\tfrac12\lambda+\tfrac12\delta_1$，则积分为 $3/4$。这个例子不需要把原子质量硬写成普通密度，也说明离散部分和连续部分可以在同一个模型中自然共存。
+
+\begin{example}[具有不同权重的可数模型]
+在 $\mathbb N$ 上令 $\mathbb P(\{n\})=2^{-n}$。总质量为一。对 $X(n)=n$，利用非负级数求和可得
+\[
+ \mathbb E[X]=\sum_{n=1}^{\infty}n2^{-n}
+ =\sum_{k=1}^{\infty}\sum_{n=k}^{\infty}2^{-n}=2.
+\]
+第二步把正整数 $n$ 写成 $n$ 个一，再重新排列非负项。若将同一函数放在计数测度下，则 $\int X=\sum_nn=\infty$。因此函数值增长本身不能决定可积性，还必须同时考察权重衰减。
+\end{example}
+
+\section{勒贝格可积与反常积分的区别}
+在有限区间上，函数可能因为端点附近无界而需要反常积分；在无界区间上，也可能因为积分范围无限而需要取截断极限。对非负函数，反常积分与勒贝格积分的关系通常由单调收敛解释：逐步扩大截断区域，积分递增到整体积分，允许结果无穷。但对变号函数，反常积分可能依赖正负振荡的抵消，而勒贝格可积性要求绝对值积分有限。
+
+\begin{example}[条件收敛的反常积分不等于勒贝格可积]
+在 $[1,\infty)$ 上取 $f(x)=\sin x/x$。对 $R<T$，分部积分给出
+\[
+ \int_R^T\frac{\sin x}{x}\,\mathrm dx
+ =\left[-\frac{\cos x}{x}\right]_R^T-\int_R^T\frac{\cos x}{x^2}\,\mathrm dx.
+\]
+右侧的绝对值不超过 $3/R$，故截断积分满足 Cauchy 条件，反常积分收敛。然而，在每个区间
+$[k\pi+\pi/6,k\pi+5\pi/6]$ 上有 $|\sin x|\geq1/2$，该段绝对积分至少为某个与 $k$ 无关的正常数乘以 $1/(k+1)$。调和级数发散，故 $\int_1^\infty|f|=\infty$。
+\end{example}
+
+若该例中 $\int f^+$ 或 $\int f^-$ 有一个有限，由截断有符号积分收敛可知另一个也必须有限，与绝对积分发散矛盾。因此两个非负部分的积分都为无穷，整体勒贝格有符号积分不定义。写出一个反常积分的有限极限，并不能据此使用需要 $L^1$ 条件的 Fubini 定理或积分连续性结论。
+
+\section{由非负积分得到尾部估计}
+\begin{proposition}[Markov 型估计]
+若 $f\geq0$ 可测，$a>0$，则
+\[
+ \mu(\{f\geq a\})\leq\frac1a\int f\,\mathrm d\mu.
+\]
+更一般地，若 $p>0$，则
+$\mu(\{|g|\geq a\})\leq a^{-p}\int|g|^p\,\mathrm d\mu$。
+\label{prop:mt-markov}
+\end{proposition}
+\begin{proof}
+在 $\{f\geq a\}$ 上，函数至少为 $a$，故 $a\mathbf1_{\{f\geq a\}}\leq f$。积分并除以正数 $a$ 即得第一式；将其用于 $|g|^p$ 和阈值 $a^p$ 得到第二式。
+\end{proof}
+估计的含义是：若总体非负质量有限，函数就不可能在太大的集合上持续超过一个高阈值。它不利用函数的连续性，也不需要底空间具有几何结构。概率空间上的 Markov 不等式、Chebyshev 不等式，以及 $L^p$ 收敛蕴含依测度收敛，都是这一基本积分估计的不同应用。
+
+反向推理一般不成立。知道某个固定阈值以上的集合很小，不足以控制积分，因为更高位置可能仍携带大量质量。若希望从所有阈值的尾部信息恢复积分，就需要将尾部测度沿阈值积分，得到第\ref{chap:mt-product}章的水平集公式。因此，单个尾部概率与整个期望之间并非等量信息。
+
+\section{凸函数与 Jensen 不等式}
+凸性把有限加权平均的不等式推广为一般积分不等式。设 $I$ 是开区间，函数 $\varphi:I\to\mathbb R$ 凸，即对 $x,y\in I$、$0\leq t\leq1$，
+$\varphi(tx+(1-t)y)\leq t\varphi(x)+(1-t)\varphi(y)$。几何上，图像位于连接两点的弦的下方；分析上，任意内部点处都存在一条支撑直线，位于整张图像下方。
+
+\begin{theorem}[Jensen 不等式的可积版本]
+设 $\mu$ 为概率测度，$f$ 可积且取值于开区间 $I$，$\varphi:I\to\mathbb R$ 凸，并假设 $\varphi\circ f$ 可积。则
+\[
+ \varphi\!\left(\int f\,\mathrm d\mu\right)
+ \leq\int\varphi(f)\,\mathrm d\mu.
+\]
+\label{thm:mt-jensen}
+\end{theorem}
+\begin{proof}
+记 $m=\int f\,\mathrm d\mu$。由于 $f$ 的取值严格位于 $I$ 的端点之间，积分的保序性及非负零积分判别保证 $m\in I$。凸函数的割线斜率单调，因而可在 $m$ 处选择实数 $c$，使
+$\varphi(x)\geq\varphi(m)+c(x-m)$ 对所有 $x\in I$ 成立；若函数可微，可取 $c=\varphi'(m)$。对该支撑直线不等式积分，线性项的积分为零，得到结论。
+\end{proof}
+非可微情形的支撑斜率来自左侧割线斜率的上确界与右侧割线斜率的下确界之间的任意数；凸性保证前者不超过后者，而 $m$ 位于内部保证可以取有限实数。这样，证明不需要错误地假设每个凸函数处处可微。
+
+例如取 $\varphi(x)=x^2$，得到 $(\mathbb E X)^2\leq\mathbb E[X^2]$，其差就是方差；取 $\varphi(x)=|x|$，得到积分三角不等式。若底空间总质量不是一，应先归一化，再应用 Jensen。不经归一化直接把普通积分当作平均，可能导致错误的系数。
+
+\section{习题}
+\begin{enumerate}
+ \item 证明若可测函数 $f,g$ 几乎处处相等，则其非负积分相等；在可积情形下推广到有符号积分。
+ \item 判断 $x^{-\alpha}$ 在 $(0,1)$ 上何时可积，并解释端点奇性怎样影响结论。
+ \item 在 $\mathbb N$ 上给单点赋质量 $2^{-n}$。证明所得测度总质量为一，并计算函数 $f(n)=n$ 的积分。
+\end{enumerate}
+
+\chapter{积分与极限：三个基本收敛定理}
+\label{chap:mt-convergence}
+
+\section{单调收敛定理}
+\begin{theorem}[单调收敛定理]
+若 $0\leq f_n\uparrow f$，则
+\begin{equation}
+ \lim_{n\to\infty}\int f_n\,\mathrm d\mu=\int f\,\mathrm d\mu.
+ \label{eq:mt-mct}
+\end{equation}
+两侧允许为 $+\infty$。这一结论称为\keyterm{单调收敛定理（monotone convergence theorem）}。
+\label{thm:mt-mct}
+\end{theorem}
+\begin{proof}
+由保序性，$L=\lim_n\int f_n$ 存在，且 $L\leq\int f$。为证明反向不等式，任取非负简单函数 $s=\sum_{j=1}^{m}a_j\mathbf1_{A_j}\leq f$ 和 $0<c<1$，其中各 $a_j>0$、各 $A_j$ 两两不交。令 $E_n=\{f_n\geq cs\}\cap\{s>0\}$，则 $E_n\uparrow\{s>0\}$，因为 $f\geq s>cs$ 在该集合成立。因此
+\[
+ \int f_n\geq c\sum_{j=1}^{m}a_j\mu(A_j\cap E_n)
+ \longrightarrow c\sum_{j=1}^{m}a_j\mu(A_j)=c\int s.
+\]
+这里仅用了测度的从下连续性。令 $c\uparrow1$，再对所有 $s\leq f$ 取上确界，得 $L\geq\int f$。若简单函数积分无穷，上述不等式直接给出 $L=\infty$，不需要做无穷量的减法。
+\end{proof}
+
+定理\ref{thm:mt-simple-approximation}给出的任意单调简单逼近因此都能计算积分。对 $f,g\geq0$，分别取简单函数 $s_n\uparrow f$、$t_n\uparrow g$，于是 $s_n+t_n\uparrow f+g$。由简单函数加法性与单调收敛可得
+\[
+ \int(f+g)=\int f+\int g.
+\]
+正齐次性同理成立。再利用正负部分，即得到上一章的可积函数线性性。
+
+\begin{corollary}[非负级数与积分交换]
+若每个 $u_n\geq0$ 可测，则
+\begin{equation}
+ \int\sum_{n=1}^{\infty}u_n\,\mathrm d\mu
+ =\sum_{n=1}^{\infty}\int u_n\,\mathrm d\mu.
+ \label{eq:mt-series}
+\end{equation}
+\end{corollary}
+\begin{proof}
+有限部分和非负且递增，应用单调收敛定理与有限加法性即可。
+\end{proof}
+特别地，对两两不交的 $A_n$，取 $u_n=w\mathbf1_{A_n}$，就证明了 $\nu(A)=\int_Aw\,\mathrm d\mu$ 的可列可加性。对有符号函数级数，若 $\sum_n\int|u_n|<\infty$，先将本推论用于 $|u_n|$，可知级数几乎处处绝对收敛，再用下面的控制收敛定理交换求和与积分。
+
+\section{Fatou 引理}
+\begin{theorem}[Fatou 引理]
+若 $f_n\geq0$ 可测，则
+\begin{equation}
+ \int\liminf_{n\to\infty}f_n\,\mathrm d\mu
+ \leq\liminf_{n\to\infty}\int f_n\,\mathrm d\mu.
+ \label{eq:mt-fatou}
+\end{equation}
+\label{thm:mt-fatou}
+\end{theorem}
+\begin{proof}
+令 $g_m=\inf_{n\geq m}f_n$，则 $0\leq g_m\uparrow\liminf_nf_n$，并且 $\int g_m\leq\inf_{n\geq m}\int f_n$。对左侧用单调收敛，再令 $m\to\infty$ 即得结论。
+\end{proof}
+Fatou 引理不要求原序列单调，却只保证一个方向的不等式。绪论中的集中尖峰满足 $\int\liminf f_n=0<1=\liminf\int f_n$，说明等号可能失败。
+
+\section{控制收敛定理}
+\begin{theorem}[控制收敛定理]
+设 $f_n\to f$ 几乎处处，且存在非负可积函数 $g$，使对所有 $n$ 都有 $|f_n|\leq g$ 几乎处处。若 $f$ 可测，则 $f$ 可积，且
+\begin{equation}
+ \int|f_n-f|\,\mathrm d\mu\longrightarrow0,\qquad
+ \int f_n\,\mathrm d\mu\longrightarrow\int f\,\mathrm d\mu.
+ \label{eq:mt-dct}
+\end{equation}
+该结果称为\keyterm{控制收敛定理（dominated convergence theorem）}，也称支配收敛定理。
+\label{thm:mt-dct}
+\end{theorem}
+\begin{proof}
+合并可数个例外零测集后，有 $|f|\leq g$，所以 $f$ 可积，且 $|f_n-f|\leq2g$。对非负函数 $2g-|f_n-f|$ 使用 Fatou 引理，得到
+\[
+ 2\int g\leq
+ \liminf_n\left(2\int g-\int|f_n-f|\right)
+ =2\int g-\limsup_n\int|f_n-f|.
+\]
+由于 $\int g<\infty$，这里的减法合法，故 $\limsup_n\int|f_n-f|\leq0$。再由积分三角不等式得到积分收敛。
+\end{proof}
+
+若只知道几乎处处存在有限极限，可在一个可测零测集上将极限定义为零，从而取得可测版本。控制函数必须同时支配整个序列，而不能随 $n$ 任意变化；要求每个 $f_n$ 单独可积也不能代替共同控制。
+
+\begin{example}
+在 $(0,1)$ 上令 $f_n(x)=x^n$，则 $f_n(x)\to0$，且 $|f_n|\leq1$，常数 $1$ 在该区间可积，故 $\int_0^1x^n\,\mathrm dx\to0$。在整个 $\mathbb R$ 上，$|f_n|\leq1$ 本身不够，因为常数 $1$ 不可积。例如 $\mathbf1_{[n,n+1]}$ 处处趋于零，但积分恒为一。
+\end{example}
+
+\section{怎样选择定理与处理参数}
+若函数非负且单调递增，优先用单调收敛；若函数非负但缺少进一步控制，可先用 Fatou 引理获取单向估计；若有逐点或几乎处处收敛及一个共同的可积上界，则用控制收敛。有限测度空间上，共同的常数上界是可积控制函数；无限测度空间上则必须进一步检查。
+
+\begin{proposition}[一个积分号下求导的充分条件]
+设 $I\subseteq\mathbb R$ 是开区间，$t_0\in I$。对每个 $t$，$f(t,\cdot)$ 可测，且 $f(t_0,\cdot)$ 可积。假设存在 $\delta>0$、共同的可测零测集 $N$ 和 $g\in L^1(\mu)$，$g\geq0$，使 $(t_0-\delta,t_0+\delta)\subseteq I$，对每个 $s\notin N$，函数 $t\mapsto f(t,s)$ 在该区间可微，且 $|\partial_tf(t,s)|\leq g(s)$。则附近各 $f(t,\cdot)$ 可积，$F(t)=\int f(t,s)\,\mathrm d\mu(s)$ 在 $t_0$ 可微，并且
+\[
+ F'(t_0)=\int\partial_tf(t_0,s)\,\mathrm d\mu(s).
+\]
+\end{proposition}
+\begin{proof}
+由一元中值定理，$|f(t,s)-f(t_0,s)|\leq|t-t_0|g(s)$，故附近函数可积，且差商被 $g$ 控制。差商逐点趋于导数，导数可取为可测差商序列的极限并在 $N$ 上定义为零。沿任意非零 $h_n\to0$ 使用控制收敛，即得所有差商序列的积分趋于同一值，从而得到导数公式。
+\end{proof}
+
+\section{如何在证明中建立控制，而不是猜测控制}
+使用控制收敛定理时，最困难的步骤往往不是验证逐点极限，而是找到一个与序号无关的可积函数。寻找控制应从函数的结构出发。若序列只在某个有限测度集合上非零且幅度统一有界，常数乘示性函数就是控制；若分母含有可能趋零的参数，则应先把参数限制在远离奇点的小邻域；若存在指数衰减，则通常可以牺牲一部分衰减速率，吸收多项式增长。
+
+例如在 $[0,\infty)$ 上，$x^m e^{-ax}$ 对每个固定 $a>0$ 可积。若参数 $a$ 位于 $a_0$ 附近，可要求 $a\geq a_0/2$，从而统一控制为 $x^m e^{-a_0x/2}$。这个控制适用于局部参数极限，但不适用于让 $a$ 从正数趋于零的全过程。局部合法交换不等于在整个参数范围内拥有一个共同控制，这一点在统计模型的参数微分中尤其重要。
+
+还可以先将空间分成容易控制的部分。在有限区间内用常数控制，在远端用可积尾部控制，再将两者相加。若始终无法找到一个共同函数，不应立刻断言极限交换失败；控制收敛提供充分条件，不提供必要条件。此时可以使用单调性、截断估计，或下一章的一致可积性，以另一种方式阻止质量集中。
+
+\begin{example}[不能把各项可积误当成共同控制]
+在 $(0,1)$ 上，$f_n=n\mathbf1_{(0,1/n)}$ 的每一项都可积，且积分甚至统一有界。但若存在一个可积 $g$ 支配全部 $f_n$，控制收敛将推出 $\int f_n\to0$，与积分恒为一矛盾。因此共同的积分上界 $\sup_n\int|f_n|<\infty$ 与共同的逐点可积上界 $|f_n|\leq g$ 是不同条件，前者弱得多。
+\end{example}
+
+\section{带可积下界的 Fatou 引理与递减极限}
+Fatou 引理的非负性可以替换为一个共同可积下界。若 $f_n\geq h$，其中 $h\in L^1(\mu)$，则 $f_n-h\geq0$，对差使用原引理，再把有限数 $\int h$ 加回，得到
+\[
+ \int\liminf_nf_n\,\mathrm d\mu
+ \leq\liminf_n\int f_n\,\mathrm d\mu.
+\]
+这里被积函数的负部受到 $h^-$ 控制，因此各积分都有定义，不会出现正负两部分同时无穷的歧义。对只有共同可积上界的序列，可对其相反数应用这一版本，得到相应的反向上极限估计。
+
+若 $0\leq f_n\downarrow f$ 且 $\int f_1<\infty$，则 $f_1-f_n\uparrow f_1-f$。单调收敛给出差的积分收敛，再从有限的 $\int f_1$ 中相减，得到 $\int f_n\to\int f$。若没有第一项可积性，例如在 $\mathbb R$ 上取 $f_n=\mathbf1_{[n,\infty)}$，每点极限为零而每项积分无穷，结论便会失败。
+
+这个推导再次体现了非负递增与非负递减的不对称。递增极限通过累加质量构造，不需要减去一个无穷总量；递减极限通常要从某个有限背景量中剔除质量。集合测度的从下连续与从上连续，也正是这一积分现象在示性函数上的表现。
+
+\section{Scheffé 引理：由总质量恢复积分收敛}
+\begin{theorem}[Scheffé 引理]
+设 $f_n,f$ 均非负可积，$f_n\to f$ 几乎处处，并且 $\int f_n\,\mathrm d\mu\to\int f\,\mathrm d\mu$，则 $\int|f_n-f|\,\mathrm d\mu\to0$。
+\label{thm:mt-scheffe}
+\end{theorem}
+\begin{proof}
+令 $g_n=\min(f_n,f)$，则 $g_n\to f$ 几乎处处，且 $0\leq g_n\leq f$。控制收敛给出 $\int g_n\to\int f$。由非负数的恒等式 $|a-b|=a+b-2\min(a,b)$，得到
+\[
+ \int|f_n-f|=\int f_n+\int f-2\int g_n\longrightarrow0.
+\]
+\end{proof}
+该引理不要求直接找到同时支配全部 $f_n$ 的可积函数，而是把共同控制用于较小的函数 $\min(f_n,f)$，再利用总积分收敛排除剩余质量。这种改变待控制对象的思路，比机械寻找原序列的上界更灵活。
+
+一个重要应用是概率密度。若 $p_n,p$ 都是相对于同一测度的概率密度，且 $p_n\to p$ 几乎处处，则所有总积分都等于一，故 $p_n\to p$ 于 $L^1$。但必须确认极限 $p$ 本身的积分仍为一。例如 $\mathbf1_{[n,n+1]}$ 几乎处处趋于零，极限已经失去全部质量，因而不满足引理的总积分条件。仅知道每项都是密度，并不能保证逐点极限也是密度。
+
+\section{参数积分的连续性与微分例题}
+设 $t$ 属于某个实区间，$f(t,\cdot)$ 可测，并且在 $t_0$ 的邻域中存在共同可积控制。如果对几乎每个 $s$，$f(t,s)\to f(t_0,s)$ 当 $t\to t_0$，则 $F(t)=\int f(t,s)\,\mathrm d\mu(s)$ 在 $t_0$ 连续。严格证明可沿任意序列 $t_n\to t_0$ 使用控制收敛，再由实函数连续性的序列判别得到结论。参数连续性并不要求每个样本点上都连续，一个共同零测集之外成立即可。
+
+\begin{example}[拉普拉斯型积分]
+对 $a>0$，令 $F(a)=\int_0^\infty e^{-ax}\,\mathrm dx$。直接积分得 $F(a)=1/a$。若希望从积分内部求导，固定 $a_0>0$，将参数限制在 $a_0/2<a<3a_0/2$，便有
+$|\partial_ae^{-ax}|=xe^{-ax}\leq xe^{-a_0x/2}$，后者可积。因此
+\[
+ F'(a_0)=-\int_0^\infty xe^{-a_0x}\,\mathrm dx=-\frac1{a_0^2}.
+\]
+继续求导时，以 $x^me^{-a_0x/2}$ 控制相应阶导数，可同样验证每次微分交换。
+\end{example}
+
+在 $a=0$ 处，整体积分不再有限，因而不能把正参数内部的微分结论直接延伸到边界。这个例子说明，参数积分的理论并非只为难以计算的积分服务；即使数值可以显式求出，控制条件也能解释公式在哪个参数区域有效，以及边界为什么出现奇性。
+
+\section{习题}
+\begin{enumerate}
+ \item 构造可积函数 $f_n\to0$ 处处，但 $\int|f_n|$ 不趋于零的例子，并指出控制收敛定理的哪一条条件失败。
+ \item 证明若 $f_n\downarrow f\geq0$ 且 $\int f_1<\infty$，则 $\int f_n\to\int f$。说明为何需要有限性。
+ \item 若 $f\in L^1(\mu)$，证明 $\int_{\{|f|>M\}}|f|\,\mathrm d\mu\to0$，其中 $M\to\infty$。
+\end{enumerate}
+
+\chapter{几乎处处、依测度与均值收敛}
+\label{chap:mt-modes}
+
+\section{三种不同的误差要求}
+\begin{definition}
+对有限实值可测函数列 $f_n$ 与 $f$，称 $f_n$ \keyterm{几乎处处收敛（almost everywhere convergence）}于 $f$，若在某个可测零测集之外每点收敛；称其\keyterm{依测度收敛（convergence in measure）}于 $f$，若对每个 $\varepsilon>0$，
+\[
+ \mu(\{|f_n-f|>\varepsilon\})\longrightarrow0;
+\]
+对 $1\leq p<\infty$，称其\keyterm{$L^p$ 收敛（convergence in $L^p$）}于 $f$，若各函数属于 $L^p$ 且 $\int|f_n-f|^p\,\mathrm d\mu\to0$。$L^p$ 空间的完整定义见第\ref{chap:mt-lp}章。
+\end{definition}
+几乎处处收敛逐点检查最终行为；依测度收敛检查“大误差发生的集合”有多大；$L^p$ 收敛还把误差幅度纳入积分。后两者不能只靠观察图像是否逐点变小来判断。
+
+\begin{proposition}[收敛方式之间的联系]
+$L^p$ 收敛蕴含依测度收敛。若 $\mu(S)<\infty$，几乎处处收敛也蕴含依测度收敛。依测度收敛的序列总能选出几乎处处收敛到同一极限的子列，最后一条不要求 $\mu(S)<\infty$。
+\label{prop:mt-convergence-implications}
+\end{proposition}
+\begin{proof}
+对第一条，由 $\varepsilon^p\mathbf1_{\{|f_n-f|>\varepsilon\}}\leq|f_n-f|^p$ 得
+\[
+ \mu(\{|f_n-f|>\varepsilon\})
+ \leq\varepsilon^{-p}\int|f_n-f|^p.
+\]
+对第二条，固定 $\varepsilon>0$，令 $E_m=\bigcup_{n\geq m}\{|f_n-f|>\varepsilon\}$。这些集合递减，其交包含于一个例外零测集；从上连续性给出 $\mu(E_m)\to0$，进而控制每个尾项。
+
+对第三条，递增选择 $n_k$，使 $\mu(\{|f_{n_k}-f|>2^{-k}\})<2^{-k}$。由次可加性，尾部并集的测度至多为 $\sum_{k\geq m}2^{-k}$，故属于无穷多个坏集合的点组成零测集。在其余位置，最终总有 $|f_{n_k}-f|\leq2^{-k}$，所以子列收敛。
+\end{proof}
+
+\section{三个反例澄清边界}
+在 $\mathbb R$ 上，$\mathbf1_{[n,n+1]}$ 处处趋于零，但对 $0<\varepsilon<1$，超过 $\varepsilon$ 的集合测度恒为一，因此不依测度收敛。这说明有限测度假设不能从上一命题的第二条中删去。
+
+在 $(0,1)$ 上，$n\mathbf1_{(0,1/n)}$ 几乎处处且依测度趋于零，但 $L^1$ 范数恒为一，所以不在 $L^1$ 中趋于零。小概率或小测度的区域仍可能携带很大的幅度。
+
+依测度收敛也不保证原序列几乎处处收敛。把 $[0,1)$ 的二等分、四等分、八等分等分层区间逐层排列：令 $f_{2^k+j}$ 为
+$[j2^{-k},(j+1)2^{-k})$ 的示性函数，其中 $k\geq0$、$0\leq j<2^k$。这些函数的非零集合测度趋于零，故依测度趋于零；但每个点在每层恰有一次取值为一，也有无穷多次取值为零，所以在每点都不收敛。命题保证的是可以选择合适子列，而非整个序列自动收敛。
+
+\section{Egorov 定理：舍去小集合后的一致收敛}
+\begin{theorem}[Egorov 定理]
+若 $\mu(S)<\infty$ 且 $f_n\to f$ 几乎处处，则对每个 $\eta>0$，存在可测集 $E$，$\mu(E)<\eta$，使 $f_n$ 在 $S\setminus E$ 上一致收敛于 $f$。
+\label{thm:mt-egorov}
+\end{theorem}
+\begin{proof}
+先将例外零测集 $N$ 去掉。对正整数 $m,k$，令
+\[
+ E_{m,k}=\{s\notin N:\sup_{n\geq k}|f_n(s)-f(s)|>1/m\}.
+\]
+固定 $m$ 时，$E_{m,k}$ 随 $k$ 递减到空集。由有限测度下的从上连续性，选 $k_m$ 使 $\mu(E_{m,k_m})<\eta2^{-m-1}$。令 $E=N\cup\bigcup_mE_{m,k_m}$，则 $\mu(E)<\eta$。在补集上，任意 $n\geq k_m$ 均满足 $|f_n-f|\leq1/m$，这正给出一致收敛。
+\end{proof}
+该定理允许对不同 $\eta$ 舍去不同集合，并不表示存在一个固定的零测集，去掉后就一定一致收敛。它也不能直接把舍去集合上的积分误差控制住，因为那里可能存在很高的尖峰。
+
+\section{有限测度下依测度收敛的距离表示}
+若 $\mu(S)<\infty$，可在有限实值可测函数的几乎处处等价类上定义
+\[
+ d(f,g)=\int_S\min(1,|f-g|)\,\mathrm d\mu.
+\]
+这个量总是有限，并满足三角不等式，因为
+$\min(1,a+b)\leq\min(1,a)+\min(1,b)$。距离为零等价于几乎处处相等，因此取商后它是度量。将大误差截断为一，表示这个距离主要关心大误差发生的集合有多大，而不继续追究其幅度究竟有多高。
+
+依测度收敛等价于该距离收敛。对 $0<\varepsilon<1$，有
+\[
+ d(f_n,f)\leq\varepsilon\mu(S)+\mu(\{|f_n-f|>\varepsilon\}),
+\]
+所以依测度收敛先让第二项趋零，再令 $\varepsilon$ 趋零即可。反向由
+$d(f_n,f)\geq\min(1,\varepsilon)\mu(\{|f_n-f|>\varepsilon\})$
+得到尾部集合测度趋零。这一表述把定性的收敛条件转化成一个明确距离，但并没有把它增强为 $L^1$ 收敛，因为距离中的误差已被截断。
+
+在无限测度空间上，全局依测度收敛与局部依测度收敛应当区分。若 $S$ 被有限测度集合 $E_k$ 递增覆盖，局部依测度收敛指在每个 $E_k$ 上依测度收敛。函数 $\mathbf1_{[n,n+1]}$ 在实轴每个有界区间上最终为零，因此局部依测度收敛，却不全局依测度收敛。局部观察无法检测逃向无穷远的质量，正是二者差别的原因。
+
+\section{依测度 Cauchy 性与极限的存在}
+在已经知道极限函数的情况下，证明依测度收敛只需控制坏集合；但构造问题中往往事先并不知道极限是什么。此时可以仿照实数和范数空间中的做法，先比较序列的两项是否越来越接近。称 $(f_n)$ 依测度为 Cauchy 列，是指对每个 $\varepsilon,\eta>0$，存在 $N$，使 $m,n\geq N$ 时
+$\mu(\{|f_m-f_n|>\varepsilon\})<\eta$。
+
+\begin{proposition}
+在有限测度空间中，每个有限实值可测函数组成的依测度 Cauchy 列，都依测度收敛到某个有限实值可测函数。极限在几乎处处意义下唯一。
+\end{proposition}
+\begin{proof}
+由 Cauchy 条件递增选择 $n_k$，使
+$\mu(\{|f_{n_{k+1}}-f_{n_k}|>2^{-k}\})<2^{-k}$。
+这些坏集合的测度可求和，因此除去一个零测集后，每个点最终只经历好事件，相邻子列项的差被可求和数值列 $2^{-k}$ 控制。于是 $(f_{n_k}(s))$ 是实数 Cauchy 列，存在有限极限。在收敛集合上定义该极限，在可测零测例外集上取零，得到可测函数 $f$。
+
+子列几乎处处收敛；因为总测度有限，它也依测度收敛。固定 $\varepsilon,\eta>0$，先利用原序列的 Cauchy 性控制所有足够靠后的 $f_n$ 与某个足够靠后的子列项 $f_{n_k}$ 的差，再利用子列收敛控制 $f_{n_k}$ 与 $f$ 的差。由
+\[
+ \{|f_n-f|>\varepsilon\}\subseteq
+ \{|f_n-f_{n_k}|>\varepsilon/2\}
+ \cup\{|f_{n_k}-f|>\varepsilon/2\},
+\]
+可使两部分测度均小于 $\eta/2$，从而得到整列收敛。唯一性已由前面的三角估计说明。
+\end{proof}
+这个证明与 $L^p$ 完备性证明有共同结构：先从一个只有整体接近性的序列中选择相邻差可求和的子列，再逐点构造极限，最后把子列收敛推广回整列。区别在于，这里控制的是坏事件的测度，而 $L^p$ 完备性直接控制差的范数。认识相同证明结构在不同环境中的变形，有助于理解分析中“完备性”并不是某一个空间的孤立性质。
+
+结合前面的截断距离，可知有限实值可测函数按几乎处处相等取商后，在依测度收敛所对应的度量下是完备的。该空间包含不可积函数，因此它与 $L^1$ 是不同的完备空间；完备性本身并不说明积分会连续。若希望极限与期望同时稳定，还必须加入一致可积性等额外控制。
+
+\section{一致可积性：控制小集合中的积分质量}
+\begin{definition}
+在有限测度空间上，可积函数族 $\mathcal H$ 称为\keyterm{一致可积的（uniformly integrable）}，若
+\[
+ \lim_{M\to\infty}\sup_{h\in\mathcal H}
+ \int_{\{|h|>M\}}|h|\,\mathrm d\mu=0.
+\]
+\label{def:mt-uniform-integrability}
+\end{definition}
+对单个可积函数，高值尾部积分趋零由控制收敛保证。一致可积性把这一结论中的截断高度选成对整个函数族同时有效。它控制的不是函数是否取大值，而是所有大值合起来能够携带多少积分质量，因此允许各函数的峰值位置和峰值大小发生变化。
+
+\begin{proposition}[一致可积性的等价判别]
+在有限测度空间上，$\mathcal H$ 一致可积当且仅当它在 $L^1$ 中有界，并且积分关于集合测度一致绝对连续：对每个 $\varepsilon>0$，存在 $\delta>0$，使 $\mu(A)<\delta$ 时，对所有 $h\in\mathcal H$ 都有 $\int_A|h|<\varepsilon$。
+\label{prop:mt-ui-characterization}
+\end{proposition}
+\begin{proof}
+若一致可积，先选 $M$ 使所有高值尾部积分小于一，则
+$\int|h|\leq M\mu(S)+1$，得到统一 $L^1$ 上界。再为给定 $\varepsilon$ 选 $M$ 使尾部积分小于 $\varepsilon/2$，并用
+$\int_A|h|\leq M\mu(A)+\varepsilon/2$
+选择统一的 $\delta$。
+
+反向设 $\sup_h\int|h|\leq C<\infty$。Markov 估计给出
+$\mu(\{|h|>M\})\leq C/M$。取 $M$ 足够大，使这些集合的测度统一小于绝对连续性所需的 $\delta$，便得到所有尾部积分小于 $\varepsilon$。
+\end{proof}
+若存在一个 $g\in L^1$ 支配整个函数族，则它一致可积。另一常见充分条件是存在 $p>1$ 使 $\sup_h\int|h|^p\leq C$，因为在 $|h|>M$ 上有 $|h|\leq M^{1-p}|h|^p$，尾部积分至多为 $CM^{1-p}$。这些条件比单纯的 $L^1$ 有界强。集中尖峰 $n\mathbf1_{(0,1/n)}$ 的积分统一为一，但对每个 $M$ 都能选择 $n>M$，使全部质量落在高值尾部，故它不一致可积。
+
+\section{Vitali 收敛定理}
+\begin{theorem}[有限测度空间上的 Vitali 收敛定理]
+若 $\mu(S)<\infty$，$f_n\in L^1(\mu)$，且有限实值可测函数 $f$ 满足 $f_n\to f$ 依测度，则 $f_n\to f$ 于 $L^1$ 当且仅当函数族 $\{f_n:n\geq1\}$ 一致可积。
+\label{thm:mt-vitali-convergence}
+\end{theorem}
+\begin{proof}
+先设一致可积。其 $L^1$ 范数统一有界，且可从依测度收敛中选出几乎处处收敛子列。对子列使用 Fatou 引理得 $\int|f|<\infty$。每个可积函数的积分都对集合测度绝对连续，这可通过先截断高值尾部、再控制有界部分证明；因此可以把 $f$ 加入统一的小集合积分控制。
+
+给定 $\eta>0$，令 $A_n=\{|f_n-f|>\eta\}$，则 $\mu(A_n)\to0$。在补集上误差不超过 $\eta$，所以
+\[
+ \int|f_n-f|
+ \leq\eta\mu(S)+\int_{A_n}|f_n|+\int_{A_n}|f|.
+\]
+先把 $\eta$ 取小，再把 $n$ 取大，右侧三项可以任意小，得到 $L^1$ 收敛。
+
+反向若 $f_n\to f$ 于 $L^1$，则范数有界。对给定 $\varepsilon$，充分大的 $n$ 满足 $\int|f_n-f|<\varepsilon/2$，于是
+$\int_A|f_n|\leq\int_A|f|+\varepsilon/2$。
+选择 $\mu(A)$ 足够小可控制第一项；剩下有限多个初始函数各自的积分也绝对连续，取这些条件中的最小 $\delta$ 即可统一控制。应用命题\ref{prop:mt-ui-characterization}，得到一致可积性。
+\end{proof}
+
+Vitali 收敛定理将两个任务分开：依测度收敛保证大误差发生得越来越少，一致可积性保证这些少量位置不能集中大量积分质量。控制收敛定理是一个更易检验的充分条件，因为共同可积上界自动提供后一项控制。但如果峰的位置不断改变，寻找逐点上界困难时，一致可积性通常更合适。
+
+本定理与前面构造不可测集时使用的 Vitali 名称属于不同结论。前者研究函数列的积分收敛，后者说明平移不变长度无法定义在所有子集上；不要仅凭相同人名将它们理解成同一个工具。
+
+\section{习题}
+\begin{enumerate}
+ \item 证明依测度极限在几乎处处相等意义下唯一。
+ \item 对 $f_n(x)=n^\alpha\mathbf1_{(0,1/n)}(x)$，计算其 $L^p$ 范数，并确定何时在 $L^p(0,1)$ 中趋于零。
+ \item 用上述分层区间例子说明，即使 $L^p$ 收敛成立，原序列也未必几乎处处收敛。
+\end{enumerate}
+
+\chapter{乘积测度、Tonelli 定理与 Fubini 定理}
+\label{chap:mt-product}
+
+\section{从矩形的大小到乘积空间}
+设 $(S,\mathcal A,\mu)$ 与 $(T,\mathcal D,\nu)$ 为两个测度空间。矩形 $A\times B$ 的大小自然应当是 $\mu(A)\nu(B)$，约定 $0\cdot\infty=0$。\keyterm{乘积 $\sigma$ 代数（product sigma-algebra）}定义为
+\[
+ \mathcal A\otimes\mathcal D
+ =\sigma(\{A\times B:A\in\mathcal A,\ B\in\mathcal D\}).
+\]
+这里“乘积”包含由矩形经可数集合运算生成的集合，而不只包含矩形本身。
+
+\begin{theorem}[乘积测度的存在唯一性]
+若 $\mu,\nu$ 均为 $\sigma$ 有限测度，则在 $\mathcal A\otimes\mathcal D$ 上存在唯一的测度 $\mu\otimes\nu$，满足
+\[
+ (\mu\otimes\nu)(A\times B)=\mu(A)\nu(B).
+\]
+该测度也为 $\sigma$ 有限测度。
+\label{thm:mt-product-measure}
+\end{theorem}
+\begin{proof}
+对 $E\subseteq S\times T$，记 $E_s=\{t:(s,t)\in E\}$。首先，截面可测的集合全体对补集和可数并封闭，并包含所有可测矩形，因此每个 $E\in\mathcal A\otimes\mathcal D$ 的截面都可测。
+
+先假设 $\nu(T)<\infty$。满足 $s\mapsto\nu(E_s)$ 可测的乘积可测集 $E$ 组成一个 $\lambda$ 系统：全空间对应常数函数，补集对应有限常数 $\nu(T)$ 减去原函数，不交并对应非负可测函数的级数。它包含矩形这一 $\pi$ 系统，因此由定理\ref{thm:mt-pi-lambda}包含全部乘积可测集。一般 $\sigma$ 有限的 $\nu$ 可分成可数个有限测度块，在各块上应用刚才结论再求和，仍得到截面测度函数可测。
+
+现在定义 $\rho(E)=\int_S\nu(E_s)\,\mathrm d\mu(s)$。对不交集合列，截面也不交，先用 $\nu$ 的可列可加性，再用单调收敛，便得 $\rho$ 可列可加。对矩形有 $\rho(A\times B)=\mu(A)\nu(B)$，包括约定的零乘无穷情形。因此所需测度已经存在。
+
+取两个空间的有限测度覆盖，其两两乘积给出乘积空间的可数有限测度矩形覆盖。若有两个满足矩形公式的测度，将它们分别限制在这些有限矩形上，就得到在所有矩形上相同的有限测度。有限测度唯一性使限制测度相同，再用递增有限并覆盖整个空间，即得全局唯一性。有限矩形覆盖也同时证明 $\sigma$ 有限性。
+\end{proof}
+本证明直接从截面构造乘积测度，也展示了可测性、存在性和唯一性各自在何处得到保障。矩形公式只是起点；若未经生成族论证就将它用于任意集合，便会跳过乘积理论中最关键的一步。
+
+即使两个因子空间完备，乘积 $\sigma$ 代数上的测度也未必完备。欧氏空间中通常使用乘积测度的完备化来得到完整的勒贝格测度。下面的定理先在乘积 $\sigma$ 代数上陈述；完备化上的函数需要通过几乎处处相等的乘积可测版本处理，此时关于截面的结论可能只能对几乎所有参数成立。
+
+\section{非负积分与绝对可积积分}
+\begin{theorem}[Tonelli 定理]
+设两个因子测度空间 $\sigma$ 有限，$f:S\times T\to[0,\infty]$ 关于 $\mathcal A\otimes\mathcal D$ 可测，则两种截面函数均可测，迭代积分关于外层变量可测，并且
+\begin{equation}
+ \int_{S\times T}f\,\mathrm d(\mu\otimes\nu)
+ =\int_S\left(\int_T f(s,t)\,\mathrm d\nu(t)\right)\mathrm d\mu(s)
+ =\int_T\left(\int_S f(s,t)\,\mathrm d\mu(s)\right)\mathrm d\nu(t).
+ \label{eq:mt-tonelli}
+\end{equation}
+各积分允许为 $+\infty$。
+\label{thm:mt-tonelli}
+\end{theorem}
+\begin{proof}
+对示性函数 $f=\mathbf1_E$，第一种迭代积分等于乘积测度是上述构造的定义。交换两个因子的角色，可以构造第二种截面积分对应的测度；它在矩形上的值仍为 $\mu(A)\nu(B)$，故由唯一性与原乘积测度相同。于是两个迭代积分的等式对所有可测示性函数成立。
+
+有限线性组合给出非负简单函数情形。一般非负 $f$ 取简单函数 $s_n\uparrow f$，对每个截面使用单调收敛，再对外层变量使用单调收敛，同时对乘积积分使用同一定理，便将等式传到极限。内层积分是可测函数的单调极限，因此外层可测性也在这一过程中得到保证。
+\end{proof}
+
+\begin{theorem}[Fubini 定理]
+在相同的空间条件下，若实值乘积可测函数 $f$ 满足
+\[
+ \int_{S\times T}|f|\,\mathrm d(\mu\otimes\nu)<\infty,
+\]
+则几乎所有截面可积，两种迭代积分均存在且有限，并等于 $f$ 的乘积积分。不可积截面的内层积分可在外层零测集上另定义为零。
+\label{thm:mt-fubini}
+\end{theorem}
+\begin{proof}
+对 $|f|$ 使用 Tonelli 定理。两个非负迭代积分都有限，所以内层绝对积分几乎处处有限。再分别对 $f^+,f^-$ 使用 Tonelli，由于各自的总积分有限，可以相减，得到所需公式。
+\end{proof}
+上述证明先解决集合截面的可测性，再对函数作单调逼近，完整体现了“生成族加简单函数”的两层推广。实际计算中，非负性足以使用 Tonelli；有符号函数则通常先用 Tonelli 检查绝对积分，再使用 Fubini。
+
+\begin{example}[由水平集表示积分]
+对非负可测函数 $f:S\to[0,\infty]$，若 $\mu$ 为 $\sigma$ 有限测度，则
+\begin{equation}
+ \int_S f\,\mathrm d\mu
+ =\int_0^\infty\mu(\{s:f(s)>t\})\,\mathrm dt.
+ \label{eq:mt-layer-cake}
+\end{equation}
+对每个 $s$，有 $f(s)=\int_0^\infty\mathbf1_{\{t<f(s)\}}\,\mathrm dt$，且被积函数联合可测、非负。Tonelli 定理允许交换积分次序，得到公式。这把函数积分转化为各高度之上集合大小的累计。
+\end{example}
+
+\section{缺少绝对可积性时的次序问题}
+\begin{example}[两个迭代积分存在但不相等]
+在 $(0,1)^2$ 上取
+\[
+ f(x,y)=\frac{x^2-y^2}{(x^2+y^2)^2}.
+\]
+固定 $x>0$，被积函数是 $y/(x^2+y^2)$ 对 $y$ 的导数；固定 $y>0$，它是 $-x/(x^2+y^2)$ 对 $x$ 的导数。因此
+\[
+ \int_0^1\left(\int_0^1 f(x,y)\,\mathrm dy\right)\mathrm dx
+ =\int_0^1\frac{1}{1+x^2}\,\mathrm dx=\frac{\pi}{4},
+\]
+\[
+ \int_0^1\left(\int_0^1 f(x,y)\,\mathrm dx\right)\mathrm dy
+ =-\int_0^1\frac{1}{1+y^2}\,\mathrm dy=-\frac{\pi}{4}.
+\]
+这不违背 Fubini 定理，因为绝对积分发散。在 $0<y<x/2$ 上，
+$f(x,y)\geq12/(25x^2)$，故该区域的绝对积分至少为
+$\frac6{25}\int_0^1x^{-1}\,\mathrm dx=\infty$。交换 $x,y$ 得到负值区域具有同样的发散量，因而乘积空间上的有符号积分本身不定义。
+\end{example}
+
+\section{截面、投影与完备化不能混淆}
+对平面集合 $E$，截面 $E_x$ 固定了一个坐标，投影则问是否存在另一个坐标使点落入 $E$。截面对应直接代入一个参数，投影对应存在量词，两者具有不同的可测性性质。乘积可测集的每个截面可测，已经由生成族证明；不能仅凭这一结论就断言任意投影同样属于原 Borel $\sigma$ 代数。本书不需要一般投影定理，因此使用积分时应坚持已经证明的截面结论。
+
+乘积完备化引入的例外可以用一个简单结构说明。在 $[0,1]^2$ 上，竖线 $\{0\}\times[0,1]$ 的二维测度为零。若 $A\subseteq[0,1]$ 是勒贝格不可测集，则 $\{0\}\times A$ 属于二维勒贝格测度的完备化，因为它是该零测竖线的子集；但它不属于一维勒贝格 $\sigma$ 代数的乘积，否则在 $x=0$ 的截面 $A$ 就必须可测，产生矛盾。
+
+因此，在完备化上说“所有截面可测”可能错误，而“几乎所有截面可测”仍可成立。例外恰好集中在外层变量的一个零测集上。使用 Fubini 时允许修改这些例外截面上的内层积分值，不意味着可以任意修改正测度参数集合上的结果。写清楚结论中的几乎处处量词，就能避免把二维零测与每条直线上的一维零测混为一谈。
+
+\section{卷积作为积分换序的应用}
+对 $\mathbb R$ 上的可积函数 $f,g$，形式上定义\keyterm{卷积（convolution）}
+\[
+ (f*g)(x)=\int_{\mathbb R}f(x-y)g(y)\,\mathrm dy.
+\]
+这一表达式首先需要确认内层积分对几乎所有 $x$ 存在。对绝对值使用 Tonelli 定理，并利用勒贝格测度的平移不变性，
+\[
+ \int_{\mathbb R}\int_{\mathbb R}|f(x-y)g(y)|\,\mathrm dy\,\mathrm dx
+ =\int_{\mathbb R}|g(y)|\left(\int_{\mathbb R}|f(x-y)|\,\mathrm dx\right)\mathrm dy
+ =\|f\|_1\|g\|_1.
+\]
+所以卷积几乎处处绝对有定义，且 $\|f*g\|_1\leq\|f\|_1\|g\|_1$。若函数原来仅为勒贝格可测，可以先选择 Borel 版本使联合可测性直接成立；不同版本给出的卷积在几乎处处意义下相同，由同一绝对积分估计验证。
+
+若 $f,g$ 为两个独立随机变量的概率密度，卷积就是其和的密度。对任意 Borel 集 $A$，独立性给出联合密度 $f(u)g(v)$，于是
+\[
+ \mathbb P(X+Y\in A)=\iint\mathbf1_A(u+v)f(u)g(v)\,\mathrm du\,\mathrm dv
+ =\int_A(f*g)(x)\,\mathrm dx.
+\]
+最后一步对固定 $v$ 作平移换元，再用 Tonelli 定理。这个推导同时检查了非负性、积分交换和密度归一化，而不只是记忆一个形式公式。
+
+\section{迭代求和与多重积分的操作顺序}
+面对复杂积分时，可以先判断函数符号，再选择所用定理。非负函数即使积分发散，Tonelli 仍保证交换后得到同一个扩展实数；变号函数则应先检查绝对积分。若绝对积分有限，可以进一步把级数看作计数测度上的积分，把三重及更多重积分通过反复使用乘积空间理论处理。每一步的合法性都来自同一原则，而不是变量个数增加后自动获得。
+
+若某种迭代次序较容易计算，可以先把它用于绝对值，而不是直接用于原函数。只要算出一次非负迭代积分有限，Tonelli 就已经证明整体绝对可积，之后所有相应 Fubini 操作都有依据。相反，两个有符号迭代积分各自存在，并不保证整体绝对可积，更不保证二者相等；前面的反例正展示了这种误用。
+
+\section{习题}
+\begin{enumerate}
+ \item 用 Tonelli 定理证明，对双重非负数列 $a_{m,n}$，两种迭代求和次序给出相同结果，允许结果为无穷。
+ \item 若非负随机变量 $X$ 定义在概率空间上，用式\eqref{eq:mt-layer-cake}推出 $\mathbb E[X]=\int_0^\infty\mathbb P(X>t)\,\mathrm dt$。
+ \item 设 $f\in L^1(\mu)$、$g\in L^1(\nu)$。先证明 $(s,t)\mapsto f(s)g(t)$ 绝对可积，再计算其积分。
+\end{enumerate}
+
+\chapter{$L^p$ 空间与积分不等式}
+\label{chap:mt-lp}
+
+\section{为什么要把几乎处处相等的函数视为同一个元素}
+若直接用 $\int|f-g|$ 衡量两个函数的距离，零测集上不同的函数会有距离零。因此需要先规定等价关系 $f\sim g$ 当且仅当 $f=g$ 几乎处处，再把每个等价类作为一个空间元素。实际计算时仍用 $f$ 表示等价类，但必须记住：一般 $L^p$ 元素的单点取值不是等价类本身确定的数据。
+
+\begin{definition}
+对 $1\leq p<\infty$，\keyterm{勒贝格空间（Lebesgue space）}$L^p(\mu)$ 是满足 $\int|f|^p\,\mathrm d\mu<\infty$ 的实值可测函数按几乎处处相等取商得到的空间，定义
+\[
+ \|f\|_p=\left(\int|f|^p\,\mathrm d\mu\right)^{1/p}.
+\]
+$L^\infty(\mu)$ 是本质有界可测函数的等价类空间，其范数为
+\[
+ \|f\|_\infty=\inf\{M\geq0:|f|\leq M\text{ 几乎处处}\},
+\]
+称为\keyterm{本质上确界（essential supremum）}范数。
+\end{definition}
+$L^\infty$ 中的“无穷”表示一个端点范数，而不是将 $|f|^\infty$ 直接拿去积分。对区间上的勒贝格测度，$\mathbf1_{\{0\}}$ 的本质上确界为零，但其通常的上确界为一。
+
+\section{Hölder 与 Minkowski 不等式}
+\begin{theorem}[Hölder 不等式]
+设 $1\leq p,q\leq\infty$，$1/p+1/q=1$，约定 $1/\infty=0$。若 $f\in L^p(\mu)$、$g\in L^q(\mu)$，则 $fg\in L^1(\mu)$，且
+\begin{equation}
+ \int|fg|\,\mathrm d\mu\leq\|f\|_p\|g\|_q.
+ \label{eq:mt-holder}
+\end{equation}
+\end{theorem}
+\begin{proof}
+当 $p=1,q=\infty$ 时，直接由 $|g|\leq\|g\|_\infty$ 几乎处处积分；另一端点相同。若 $1<p,q<\infty$，对 $a,b\geq0$ 有 Young 不等式 $ab\leq a^p/p+b^q/q$。固定 $b$ 后，对 $a$ 求极小值可验证此式：$a^p/p-ab$ 在 $a=b^{1/(p-1)}$ 处取最小值 $-b^q/q$。在两范数非零时，代入 $a=|f|/\|f\|_p$、$b=|g|/\|g\|_q$ 并积分，得到右侧为 $1/p+1/q=1$。若某个范数为零，对应函数几乎处处为零，结论同样成立。
+\end{proof}
+
+\begin{theorem}[Minkowski 不等式]
+对 $1\leq p\leq\infty$ 和 $f,g\in L^p(\mu)$，
+\begin{equation}
+ \|f+g\|_p\leq\|f\|_p+\|g\|_p.
+ \label{eq:mt-minkowski}
+\end{equation}
+\end{theorem}
+\begin{proof}
+$p=1,\infty$ 由逐点三角不等式得到。对 $1<p<\infty$，先由
+$|f+g|^p\leq2^{p-1}(|f|^p+|g|^p)$ 知 $f+g\in L^p$；该点态估计来自 $t^p$ 的凸性。记 $q=p/(p-1)$，使用 Hölder 不等式可得
+\[
+ \|f+g\|_p^p
+ \leq\int(|f|+|g|)|f+g|^{p-1}
+ \leq(\|f\|_p+\|g\|_p)\|f+g\|_p^{p-1}.
+\]
+范数非零时相除，范数为零时结论直接成立。
+\end{proof}
+
+\section{有限测度与计数测度下的不同包含关系}
+若 $0<\mu(S)<\infty$ 且 $1\leq p<q\leq\infty$，则
+\begin{equation}
+ \|f\|_p\leq\mu(S)^{1/p-1/q}\|f\|_q,\qquad L^q(\mu)\subseteq L^p(\mu).
+ \label{eq:mt-finite-embedding}
+\end{equation}
+当 $q<\infty$ 时，对 $|f|^p$ 与常数 $1$ 使用指数 $q/p$ 及其共轭指数的 Hölder 不等式，再开 $p$ 次方即可；$q=\infty$ 时直接积分。若 $\mu(S)=0$，所有等价类均为零，包含关系仍成立。
+
+在 $\mathbb N$ 的计数测度下，$L^p$ 记为 $\ell^p$，方向却是 $\ell^p\subseteq\ell^q$，$p<q$。事实上，$\sup_n|a_n|\leq\|a\|_p$，从而当 $q<\infty$ 时，
+$\sum_n|a_n|^q\leq\|a\|_p^{q-p}\sum_n|a_n|^p$。两种方向不同，是因为数列每个坐标都有固定测度一，而有限区间上的函数可以在任意小集合上形成高峰。
+
+\section{完备性与简单函数的稠密性}
+\begin{theorem}[$L^p$ 的完备性]
+对任意测度空间及 $1\leq p\leq\infty$，$L^p(\mu)$ 是完备赋范线性空间，即每个范数 Cauchy 序列都在该范数下收敛。
+\label{thm:mt-lp-complete}
+\end{theorem}
+\begin{proof}
+先设 $p<\infty$。从 Cauchy 序列 $(f_n)$ 中选子列，使 $\|f_{n_{k+1}}-f_{n_k}\|_p\leq2^{-k}$。令
+$h_m=\sum_{k=1}^{m}|f_{n_{k+1}}-f_{n_k}|$。Minkowski 不等式给出 $\|h_m\|_p\leq1$；单调收敛作用于 $h_m^p$，说明 $h=\sum_{k=1}^{\infty}|f_{n_{k+1}}-f_{n_k}|$ 属于 $L^p$，故几乎处处有限。
+
+因此该子列几乎处处绝对地累积变化，定义极限 $f$，并在例外零测集上取零。由 $|f|\leq|f_{n_1}|+h$ 可知 $f\in L^p$。对尾部级数重复同一估计，得到
+\[
+ \|f-f_{n_m}\|_p\leq\sum_{k=m}^{\infty}2^{-k}\longrightarrow0.
+\]
+原序列的 Cauchy 性再把子列收敛推广为整个序列收敛。
+
+若 $p=\infty$，同样选取差的范数不超过 $2^{-k}$ 的子列，并合并每个差的点态界失效的零测集。在其补集上，差的级数被数值级数 $\sum_k2^{-k}$ 一致控制，故子列一致收敛于某个本质有界可测函数，尾部上界给出 $L^\infty$ 收敛。最后仍由 Cauchy 性处理整个序列。
+\end{proof}
+
+对 $p<\infty$，可积的简单函数在 $L^p$ 中稠密。对实值 $f$，将第\ref{chap:mt-functions}章的非负简单逼近用于 $|f|$，再乘以 $\operatorname{sgn}(f)$，其中符号函数在正值处取 $1$、负值处取 $-1$、零处取 $0$，得到简单函数 $s_n\to f$，且 $|s_n|\leq|f|$。它们与 $f$ 同号，故 $|f-s_n|^p\leq|f|^p$，控制收敛给出 $\|f-s_n\|_p\to0$。
+
+$L^2$ 还具有内积 $\langle f,g\rangle=\int fg\,\mathrm d\mu$，Hölder 不等式保证该积分存在；完备性使它成为 Hilbert 空间。至此即可与项目中的泛函分析课程衔接，继续学习正交投影、连续线性泛函和算子。
+
+\section{范数的几何含义与等号条件}
+$L^1$ 范数累计绝对误差，$L^2$ 范数累计平方误差后开方，$L^\infty$ 范数控制几乎处处的最大误差。它们对尖峰的敏感程度不同。对高度为 $H$、支撑测度为 $a$ 的示性型函数，$\|H\mathbf1_A\|_p=H a^{1/p}$，而本质上确界为 $H$（假设 $a>0$）。因此，当支撑缩小时，有限阶范数可能变小，本质上确界却不变。
+
+选择范数也就是选择允许的误差类型。平均预测误差适合积分范数，要求所有位置统一控制的任务更接近本质上确界；在偏微分方程中，能量通常对应平方积分，而函数本身与导数的积分控制又会组合成新的空间。不能仅因两个范数都能衡量大小，就认为它们的收敛概念或完备空间相同。
+
+对 $1<p<\infty$，Hölder 不等式的等号条件可以从 Young 不等式逐点读出。若两个范数都非零，则等号成立当且仅当
+\[
+ \frac{|f|^p}{\|f\|_p^p}=\frac{|g|^q}{\|g\|_q^q}
+ \quad\text{几乎处处}.
+\]
+因为归一化后的 Young 不等式之差非负，积分为零意味着它几乎处处为零，而数值 Young 等号恰要求 $a^p=b^q$。这是绝对值乘积积分的等号条件；若讨论 $|\int fg|$ 的等号，还必须保证乘积的符号不会发生抵消。
+
+\section{连续紧支撑函数的稠密性}
+\label{sec:mt-continuous-density}
+简单函数已经在 $L^p$ 中稠密，但在欧氏空间上还希望用连续函数，甚至光滑函数逼近，以便应用微积分。这里证明实轴上连续紧支撑函数的稠密性，记这类函数组成的空间为 $C_c(\mathbb R)$。下标表示支撑紧，即函数在某个有界闭集之外为零。
+
+\begin{theorem}
+对 $1\leq p<\infty$，$C_c(\mathbb R)$ 在 $L^p(\mathbb R,\lambda)$ 中稠密。
+\label{thm:mt-cc-density}
+\end{theorem}
+\begin{proof}
+先考虑有限测度集合的示性函数。通过截断到大区间，可把问题归结为有界可测集 $E$。由正则性，选紧集 $K\subseteq E$ 与有界开集 $U\supseteq E$，使 $\lambda(U\setminus K)$ 任意小。若 $K$ 为空且 $E$ 测度已经足够小，可以直接用零函数逼近；否则定义
+\[
+ \varphi(x)=\frac{d(x,U^c)}{d(x,U^c)+d(x,K)},\qquad
+ d(x,A)=\inf_{a\in A}|x-a|.
+\]
+紧集 $K$ 包含于开集 $U$，两者与补集之间的正分离保证分母处处非零。距离函数连续，因此 $\varphi$ 连续，且 $0\leq\varphi\leq1$，在 $K$ 上为一、在 $U$ 外为零，支撑包含于有界闭集 $\overline U$。于是
+$\|\varphi-\mathbf1_E\|_p^p\leq\lambda(U\setminus K)$。
+
+有限测度集合的有限线性组合可以逐项逼近；再用前面已证明的简单函数稠密性和三角不等式，便得到一般 $L^p$ 函数的结论。
+\end{proof}
+这一定理是测度正则性的一项分析后果。证明中先用紧集与开集控制集合误差，再用距离函数在二者之间连续过渡，最后以积分范数吸收过渡区域。近似函数不必在每个点都逼近原函数；允许把不连续性集中到总测度很小的区域里。
+
+结论一般不能将 $p<\infty$ 改为 $p=\infty$。例如阶跃函数 $\mathbf1_{(0,\infty)}$ 不可能被连续函数在本质上确界范数下以小于 $1/2$ 的误差逼近：若误差小于某个 $c<1/2$，连续性将迫使近零点左侧的值不超过 $c$、右侧的值不小于 $1-c$，在零点取极限产生矛盾。小测度的过渡区域仍会被本质上确界检测到。
+
+\section{可分性、无限测度空间与范数选择}
+称度量空间\keyterm{可分（separable）}，是指存在可数稠密子集。对 $1\leq p<\infty$，$L^p(\mathbb R,\lambda)$ 可分：连续紧支撑函数可由有限个有理端点区间上的有理值阶梯函数在 $L^p$ 中逼近，而这样的阶梯函数只有可数多个。证明时先固定包含支撑的有界区间，利用一致连续性选取细网格，再将函数值近似为有理数；区间长度有限把一致误差转成积分误差。
+
+相对地，$L^\infty(0,1)$ 不可分。集合 $\{\mathbf1_{(0,t)}:0<t<1\}$ 中任意两个不同元素的距离都是一。若存在可数稠密子集，每个这样的函数都应在该子集中某个元素的距离 $1/3$ 内；而同一个中心不能同时接近两个距离为一的函数，因此需要不可数多个中心，矛盾。这一差异会影响后续关于逼近、对偶空间和弱拓扑的研究。
+
+在一般无限测度空间上，不同 $L^p$ 之间通常没有统一的包含方向。对实轴上的 $1\leq p<q<\infty$，取 $1/q<\alpha<1/p$，函数 $x^{-\alpha}\mathbf1_{(0,1)}$ 属于 $L^p$ 而不属于 $L^q$；函数 $(1+x)^{-\alpha}\mathbf1_{(1,\infty)}$ 则属于 $L^q$ 而不属于 $L^p$。前者的障碍位于局部奇点，后者的障碍位于远端尾部。有限测度空间上的包含关系，不能脱离背景测度直接使用。
+
+\section{平移连续性与光滑逼近}
+在实轴的勒贝格空间中，平移是保持范数的运算。记 $(\tau_hf)(x)=f(x-h)$，由平移不变性可得 $\|\tau_hf\|_p=\|f\|_p$。对 $1\leq p<\infty$，还有
+$\|\tau_hf-f\|_p\to0$ 当 $h\to0$。这里的连续性是关于平移参数和积分范数而言，并不声称原函数本身逐点连续。
+
+证明先对 $g\in C_c(\mathbb R)$ 进行：当 $|h|\leq1$，所有平移的支撑位于同一个有界区间中，一致连续性保证函数差的一致范数趋零，再乘以该区间长度的 $1/p$ 次方，就控制了 $L^p$ 范数。对一般 $f$，选连续紧支撑 $g$ 使 $\|f-g\|_p$ 小，再用
+$\|\tau_hf-f\|_p\leq2\|f-g\|_p+\|\tau_hg-g\|_p$。
+先固定逼近误差，再缩小平移量，得到结论。
+
+取非负光滑紧支撑函数 $\rho$，支撑包含于 $[-1,1]$，且 $\int\rho=1$。例如在 $|x|<1$ 上取常数倍的 $\exp(-1/(1-x^2))$，在其余位置取零，再用归一化常数使积分为一。定义 $\rho_\varepsilon(x)=\varepsilon^{-1}\rho(x/\varepsilon)$，则其质量仍为一，但支撑缩到原点附近。这类函数称为\keyterm{磨光核（mollifier）}。
+
+对 $f\in L^p(\mathbb R)$，卷积 $f*\rho_\varepsilon$ 将每个位置附近的函数值作局部平均。利用以 $\rho_\varepsilon(y)\,\mathrm dy$ 为概率测度的 Jensen 不等式，再用 Tonelli 定理，
+\[
+ \|f*\rho_\varepsilon-f\|_p^p
+ \leq\int\rho_\varepsilon(y)\|\tau_yf-f\|_p^p\,\mathrm dy
+ \leq\sup_{|y|\leq\varepsilon}\|\tau_yf-f\|_p^p\longrightarrow0.
+\]
+该估计适用于有限 $p\geq1$；内层积分的有限性由同一个非负积分估计在几乎处处意义下保证。
+
+卷积后的函数光滑，是因为可以把对 $x$ 的导数移到核函数上。对局部的 $x$ 范围，各阶核导数统一有界且只涉及一个共同紧集上的 $f$，而 $L^p$ 函数在有限区间上属于 $L^1$，所以参数积分的控制条件成立。若先把 $f$ 截断到有界区间，再作磨光，就得到光滑紧支撑函数，从而证明 $C_c^\infty(\mathbb R)$ 在有限阶 $L^p$ 中稠密。
+
+这一构造在偏微分方程中很重要：先对光滑近似进行微分和积分运算，再利用范数收敛将结论传回较粗糙的原函数。但近似的导数是否也收敛，需要额外的导数控制；仅有函数的 $L^p$ 收敛不能自动推出其导数收敛。选择正确的函数空间，正是为了把这些不同层次的控制同时记录下来。
+
+\section{$L^2$ 中的正交与最小误差}
+对实值 $L^2$ 函数，称 $f,g$ 正交，若 $\int fg\,\mathrm d\mu=0$。此时展开平方可得
+$\|f+g\|_2^2=\|f\|_2^2+\|g\|_2^2$，这就是函数空间中的勾股关系。它不表示两个函数的支撑必须不交；支撑不交是充分条件，但正负抵消也可能使内积为零。
+
+例如在 $[-1,1]$ 上，常数函数一与函数 $x$ 正交，因为后者是奇函数；两者却在几乎整个区间同时非零。若要用常数 $c$ 逼近平方可积函数 $f$，展开
+$\int(f-c)^2=\int(f-\overline f)^2+\mu(S)(c-\overline f)^2$，
+其中 $0<\mu(S)<\infty$、$\overline f=\mu(S)^{-1}\int f$，可见平均值是唯一的最佳常数近似。后面的条件期望会把“常数”替换成“关于指定信息可测的函数”，但最小平方误差的几何结构保持相同。
+
+\section{习题}
+\begin{enumerate}
+ \item 对 $f(x)=x^{-\alpha}$，确定其在 $(0,1)$ 上属于 $L^p$ 的条件，其中 $\alpha>0$、$1\leq p<\infty$。
+ \item 给出属于 $\ell^2$ 但不属于 $\ell^1$ 的数列，以及属于 $L^1(0,1)$ 但不属于 $L^2(0,1)$ 的函数。
+ \item 证明 $\|f\|_p=0$ 当且仅当 $f=0$ 几乎处处，并解释取等价类在范数定义中的作用。
+\end{enumerate}
+
+\chapter{有符号测度、绝对连续与 Radon--Nikodym 定理}
+\label{chap:mt-rn}
+
+\section{从非负大小到有正负的质量}
+普通测度只能非负，但对可积函数 $f$，集合函数 $\nu(A)=\int_Af\,\mathrm d\mu$ 可能有正有负。为了研究这种对象，本章只讨论总变差有限的实有符号测度，避免同时处理正、负无穷带来的定义问题。
+
+\begin{definition}
+在 $(S,\mathcal A)$ 上，本书讨论的\keyterm{有限有符号测度（finite signed measure）}是取有限实值的集合函数 $\nu$，满足 $\nu(\varnothing)=0$，并对任意两两不交的可测集列满足 $\nu(\bigcup_nA_n)=\sum_n\nu(A_n)$，其中右侧级数绝对收敛；同时将有限变差条件明确写入本章约定，即所有有限可测分割 $S=\bigsqcup_{j=1}^{m}A_j$ 上的 $\sum_j|\nu(A_j)|$ 有统一有限上界。可测集 $P$ 称为正集，若其每个可测子集的 $\nu$ 值均非负；负集类似定义。
+\end{definition}
+
+\begin{theorem}[Hahn 分解定理]
+对每个有限有符号测度 $\nu$，存在可测分解 $S=P\sqcup N$，使 $P$ 为正集、$N$ 为负集。
+\label{thm:mt-hahn}
+\end{theorem}
+注意正集的要求比 $\nu(P)\geq0$ 强：它要求内部没有带负质量的可测子集。证明的思路是在所有集合中找到一个负质量尽可能大的部分，再证明它内部不能藏有正质量，否则还可以继续改进。
+
+\begin{proof}
+先说明有限有符号测度也对单调集合列连续。对递增列，将并集分解成相邻差的可数不交并，可列可加性与绝对收敛给出连续性；对递减列，改看补集，再从有限数 $\nu(S)$ 中相减即可。
+
+令 $\alpha=\inf_{A\in\mathcal A}\nu(A)$。有限变差条件保证 $\alpha>-\infty$，而空集给出 $\alpha\leq0$。选择 $E_n$ 使 $\nu(E_n)<\alpha+2^{-n}$。对任意两个可测集，
+\[
+ \nu(A\cup B)=\nu(A)+\nu(B)-\nu(A\cap B)
+ \leq\nu(A)+\nu(B)-\alpha.
+\]
+因此，有限个 $E_n$ 的并，其测度不超过 $\alpha$ 加上相应误差之和。令 $N_m=\bigcup_{n\geq m}E_n$，通过从下连续性得
+$\alpha\leq\nu(N_m)\leq\alpha+\sum_{n\geq m}2^{-n}$。
+再令 $N=\bigcap_mN_m$，从上连续性给出 $\nu(N)=\alpha$。
+
+若 $B\subseteq N$ 可测且 $\nu(B)>0$，则 $\nu(N\setminus B)<\alpha$，矛盾，所以 $N$ 是负集。若 $B\subseteq S\setminus N$ 可测且 $\nu(B)<0$，则 $\nu(N\cup B)<\alpha$，同样矛盾，所以 $P=S\setminus N$ 是正集。
+\end{proof}
+
+定义 $\nu^+(A)=\nu(A\cap P)$、$\nu^-(A)=-\nu(A\cap N)$，则 $\nu^\pm$ 是有限非负测度，$\nu=\nu^+-\nu^-$，称为\keyterm{Jordan 分解（Jordan decomposition）}。分解不依赖所选 Hahn 集：两种分解中符号相反的交集，其每个可测子集同时具有非负与非正质量，故质量为零。测度 $|\nu|=\nu^++\nu^-$ 称为\keyterm{全变差（total variation）}。
+
+\section{绝对连续与相互奇异}
+\begin{definition}
+若每个满足 $\mu(A)=0$ 的可测集也满足 $\nu(A)=0$，称 $\nu$ 关于 $\mu$ \keyterm{绝对连续（absolutely continuous）}，记为 $\nu\ll\mu$。若存在可测集 $N$，使 $\mu(N)=0$ 且 $|\nu|(S\setminus N)=0$，称 $\nu$ 与 $\mu$ \keyterm{相互奇异（mutually singular）}，记为 $\nu\perp\mu$。
+\end{definition}
+绝对连续说明 $\nu$ 不在 $\mu$ 的零测集上放置质量；相互奇异说明 $\nu$ 的全部质量恰好集中于某个 $\mu$-零测集。二者不是互为否定：测度可能同时包含一部分连续质量与一部分奇异质量。
+
+\begin{example}
+在 $[0,1]$ 上，$\nu(A)=\int_A2x\,\mathrm dx$ 满足 $\nu\ll\lambda$；$\delta_0\perp\lambda$，因为其质量集中在 $\{0\}$。概率测度 $\rho=\tfrac12\lambda+\tfrac12\delta_0$ 既不关于 $\lambda$ 绝对连续，也不与它相互奇异；第一项分散于区间，第二项集中在一个点。
+\end{example}
+
+\section{Radon--Nikodym 定理及其证明}
+\begin{theorem}[Radon--Nikodym 定理，有限有符号版本]
+设 $\mu$ 为 $\sigma$ 有限非负测度，$\nu$ 为同一可测空间上的有限有符号测度，且 $\nu\ll\mu$。则存在 $h\in L^1(\mu)$，使对每个 $A\in\mathcal A$，
+\begin{equation}
+ \nu(A)=\int_Ah\,\mathrm d\mu.
+ \label{eq:mt-radon-nikodym}
+\end{equation}
+$h$ 在 $\mu$-几乎处处相等的意义下唯一，称为\keyterm{Radon--Nikodym 导数（Radon--Nikodym derivative）}，记为 $\mathrm d\nu/\mathrm d\mu$。若 $\nu$ 非负，则可取 $h\geq0$。
+\label{thm:mt-rn}
+\end{theorem}
+\begin{proof}
+先设 $\nu$ 为有限非负测度。考虑所有非负可测函数组成的集合
+\[
+ \mathcal H=\{g\geq0:\text{对每个 }A\in\mathcal A,\ \int_Ag\,\mathrm d\mu\leq\nu(A)\},
+ \qquad \alpha=\sup_{g\in\mathcal H}\int_Sg\,\mathrm d\mu.
+\]
+零函数属于 $\mathcal H$，且 $0\leq\alpha\leq\nu(S)<\infty$。若 $g_1,g_2\in\mathcal H$，按 $\{g_1\geq g_2\}$ 与其补集分割每个 $A$，可知 $\max(g_1,g_2)\in\mathcal H$。因此先取积分趋于 $\alpha$ 的函数列，再逐项取累计最大值，可得到 $g_n\uparrow h$，每个 $g_n\in\mathcal H$。单调收敛给出 $h\in\mathcal H$ 且 $\int h=\alpha$。
+
+剩余质量 $\rho(A)=\nu(A)-\int_Ah\,\mathrm d\mu$ 是有限非负测度，且 $\rho\ll\mu$。若 $\rho(S)>0$，利用 $\mu$ 的 $\sigma$ 有限覆盖，存在 $E\in\mathcal A$，满足 $\mu(E)<\infty$、$\rho(E)>0$；绝对连续性还给出 $\mu(E)>0$。选择 $c>0$ 使 $\rho(E)>c\mu(E)$。在 $E$ 上对有限有符号测度 $\rho-c\mu$ 应用 Hahn 分解，得到正集 $P\subseteq E$。因为该有符号测度在整个 $E$ 上取正值，而负集部分取非正值，故
+\[
+ \rho(P)-c\mu(P)>0,\qquad \mu(P)>0.
+\]
+第二个结论来自 $\rho\ll\mu$。由正集的定义，对每个可测 $B\subseteq P$，$\rho(B)\geq c\mu(B)$，于是对任意 $A$，
+\[
+ \int_A(h+c\mathbf1_P)\,\mathrm d\mu
+ \leq\int_Ah\,\mathrm d\mu+\rho(A)=\nu(A).
+\]
+这表明 $h+c\mathbf1_P\in\mathcal H$，但它的积分为 $\alpha+c\mu(P)>\alpha$，矛盾。因此 $\rho=0$，非负情形得证。
+
+一般有限有符号测度先作 Jordan 分解。由 $\nu\ll\mu$ 可知 $\nu^\pm\ll\mu$，分别应用非负情形，再将两个可积密度相减，得到 $h$。若 $h,k$ 都表示 $\nu$，则对每个 $A$，$\int_A(h-k)=0$；取 $A=\{h>k\}$，非负零积分判别给出该集合上的差几乎处处为零，再交换 $h,k$，得到唯一性。
+\end{proof}
+
+这里的“导数”表达两个测度之间的密度关系，并不要求对自变量做通常的微分。对勒贝格测度的密度和对计数测度的概率质量函数，都是同一种表示的不同特例。定理并未声称每个概率分布都有相对于勒贝格测度的密度；例如 Dirac 测度不满足所需绝对连续性。
+
+\section{换测度公式与适用条件}
+若 $\nu$ 为有限非负测度、$\nu\ll\mu$，令 $h=\mathrm d\nu/\mathrm d\mu$，则对非负可测函数 $\varphi$，
+\begin{equation}
+ \int\varphi\,\mathrm d\nu=\int\varphi h\,\mathrm d\mu.
+ \label{eq:mt-change-measure}
+\end{equation}
+先对示性函数使用定义，再推广到简单函数，最后用单调收敛即可证明。对 $\nu$-可积的有符号 $\varphi$，先对 $|\varphi|$ 使用非负公式，再分别处理正负部分，公式仍成立。
+
+特别地，若概率测度 $\mathbb Q\ll\mathbb P$，则
+$\mathbb E_{\mathbb Q}[X]=\mathbb E_{\mathbb P}[LX]$，其中
+$L=\mathrm d\mathbb Q/\mathrm d\mathbb P$，要求 $X$ 在 $\mathbb Q$ 下可积，或 $X\geq0$。这一关系是加权期望的基础。要反向更换测度，则必须另行检查 $\mathbb P\ll\mathbb Q$，不能仅将 $L$ 形式上取倒数。
+
+\section{全变差为何是正确的大小}
+对正测度，用 $\nu(S)$ 就能表示整体质量；对有符号测度，总质量可能因正负抵消而很小，甚至为零。例如在两个不同点放置质量一与负一，得到 $\delta_a-\delta_b$，其总质量为零，但对集合的作用并不为零。全变差把正、负质量的绝对值分别累计，因而避免这种抵消。
+
+对任意可测集 $A$，Jordan 分解给出
+\[
+ |\nu|(A)=\sup\left\{\sum_{j=1}^{m}|\nu(A_j)|:
+ A=\bigsqcup_{j=1}^{m}A_j,\ A_j\in\mathcal A\right\}.
+\]
+证明时，任意分割的和都不超过 $\nu^+(A)+\nu^-(A)$；反向选择由 $A\cap P$ 和 $A\cap N$ 组成的分割，即可达到这个上界。因此先前约定中的有限变差与这里构造出的全变差测度一致。特别地，$|\nu(A)|\leq|\nu|(A)$，这一估计比只考察 $\nu(S)$ 稳定得多。
+
+若 $\nu(A)=\int_Af\,\mathrm d\mu$，则可取正集 $\{f\geq0\}$ 与负集 $\{f<0\}$，从而
+$\nu^+(A)=\int_Af^+\,\mathrm d\mu$、
+$\nu^-(A)=\int_Af^-\,\mathrm d\mu$、
+$|\nu|(A)=\int_A|f|\,\mathrm d\mu$。
+这解释了为何有符号积分的稳定性依赖绝对值积分，而非仅依赖带符号的总积分：全变差正好记录了所有可能被抵消掩盖的质量。
+
+\section{Lebesgue 分解：连续质量与奇异质量}
+\begin{theorem}[有限非负测度的 Lebesgue 分解]
+设 $\mu,\nu$ 是同一可测空间上的有限非负测度。则存在唯一的非负测度分解
+$\nu=\nu_{\mathrm{ac}}+\nu_{\mathrm{s}}$，其中
+$\nu_{\mathrm{ac}}\ll\mu$，$\nu_{\mathrm{s}}\perp\mu$。
+\label{thm:mt-lebesgue-decomposition}
+\end{theorem}
+\begin{proof}
+令 $\tau=\mu+\nu$，则二者均关于有限测度 $\tau$ 绝对连续。由 Radon--Nikodym 定理，存在非负可积密度 $h=\mathrm d\mu/\mathrm d\tau$ 与 $g=\mathrm d\nu/\mathrm d\tau$。唯一性说明 $h+g=1$ 几乎处处。令 $N=\{h=0\}$，定义
+$\nu_{\mathrm s}(A)=\nu(A\cap N)$、
+$\nu_{\mathrm{ac}}(A)=\nu(A\setminus N)$。
+因为 $\mu(N)=\int_Nh\,\mathrm d\tau=0$，第一部分奇异。第二部分可写成
+\[
+ \nu_{\mathrm{ac}}(A)=\int_A k\,\mathrm d\mu,\qquad
+ k=\begin{cases}g/h,&h>0,\\0,&h=0.\end{cases}
+\]
+该等式由换测度公式直接验证，故第二部分绝对连续。
+
+若存在两种分解，将两个奇异部分各自集中的 $\mu$-零测集取并，记为 $Z$。在 $Z$ 外，两种绝对连续部分都等于 $\nu$；在 $Z$ 上，两者都为零。因此绝对连续部分相同，奇异部分也随之相同。
+\end{proof}
+
+定理把前面的混合例子推广为一般结构。奇异不等于离散：集中于一个不可数零测集上的非原子测度也是奇异测度。离散质量通常表现为单点原子，奇异连续质量则可以在每个单点上都取零，却仍集中于长度为零的集合。下一章的 Cantor 型分布将说明这种第三种可能性，避免把所有分布机械划分为“离散或有密度”两类。
+
+\section{密度的链式法则与零分母}
+设 $\kappa,\nu,\mu$ 是有限非负测度，且 $\kappa\ll\nu\ll\mu$。若 $k=\mathrm d\kappa/\mathrm d\nu$、$h=\mathrm d\nu/\mathrm d\mu$，则对每个可测 $A$，
+\[
+ \kappa(A)=\int_Ak\,\mathrm d\nu=\int_Akh\,\mathrm d\mu.
+\]
+由唯一性得到 $\mathrm d\kappa/\mathrm d\mu=kh$ 几乎处处，这就是密度的链式法则。若某个版本在零测集上出现未定义值，可以先选择有限版本，再在 $h=0$ 的相关位置将乘积定义为零；最终对象仍由几乎处处等价类确定。
+
+与普通导数的形式相似不意味着可以无条件相除。只有当 $\mu$ 与 $\nu$ 相互绝对连续时，才有 $h>0$ 在 $\mu$-几乎处处意义下成立，并可用 $1/h$ 表示反向密度。如果 $\nu$ 完全忽略一个具有正 $\mu$ 测度的区域，反向密度根本不存在，任何“除以零”的形式操作都不能修复这个结构障碍。
+
+在重要性加权中，这个条件对应支撑覆盖：用于采样的分布必须覆盖目标分布可能放置质量的位置。测度论只保证满足可积性时加权期望相等，并不自动保证估计方差小。权重很大时，等式虽然正确，数值估计仍可能不稳定；这是积分恒等式与统计效率之间应有的区分。
+
+\section{概率测度的全变差距离}
+对两个概率测度 $\mathbb P,\mathbb Q$，定义
+$d_{\mathrm{TV}}(\mathbb P,\mathbb Q)=\sup_{A\in\mathcal F}|\mathbb P(A)-\mathbb Q(A)|$。它表示同一个事件在两种模型下的概率最多相差多少。这里采用的概率距离约定与有符号测度全变差总质量相差一个因子二，必须明确区分。
+
+若二者相对于同一测度具有密度 $p,q$，令 $r=p-q$。因为 $\int r=0$，有 $\int r^+=\int r^-=\tfrac12\int|r|$。任意事件上的积分差都不超过其中的正质量，也不小于负质量的相反数；选取事件 $\{r>0\}$ 即达到正上界。因此
+\[
+ d_{\mathrm{TV}}(\mathbb P,\mathbb Q)
+ =\frac12\int|p-q|\,\mathrm d\mu
+ =\frac12|\mathbb P-\mathbb Q|(S).
+\]
+结合 Scheffé 引理，如果概率密度几乎处处收敛到一个仍归一化的密度，就不仅能得到每个固定事件概率收敛，还能得到对全部事件统一的误差控制。这把函数的积分收敛转化成了概率模型之间可解释的距离。
+
+\section{习题}
+\begin{enumerate}
+ \item 对 $\nu(A)=\int_Af\,\mathrm d\mu$，$f\in L^1(\mu)$，证明 $|\nu|(A)=\int_A|f|\,\mathrm d\mu$。
+ \item 设两个概率测度相对于同一测度的密度为 $p,q$，且 $q=0$ 在 $\{p=0\}$ 上几乎处处成立。证明 $\mathbb Q\ll\mathbb P$，并说明 $\mathrm d\mathbb Q/\mathrm d\mathbb P=q/p$ 应如何在 $\{p=0\}$ 上定义。
+ \item 解释上述混合概率测度 $\rho$ 为何不能仅用一个相对于勒贝格测度的密度表示。
+\end{enumerate}
+
+\chapter{积分与微分的联系：变差、密度与绝对连续性}
+\label{chap:mt-calculus}
+
+\section{为什么需要重新审视微积分基本定理}
+数学分析中，连续函数的变上限积分可微，导数等于被积函数；连续可微函数又能由其导数积分恢复。这两个方向在连续性条件下十分整齐。进入测度论后，被积函数只要求可积，原函数可能只在几乎处处意义下可微，因而必须重新说明结论中的量词与假设。
+
+首先应分开三个问题：一个函数是否几乎处处存在导数，导数是否可积，以及导数的积分能否恢复原函数。第一个问题有肯定答案，并不自动给出后两个问题的答案。即使导数几乎处处存在且等于零，函数也未必为常数；额外需要排除集中在零测集上的变化。绝对连续性正是完成这一排除的适当条件。
+
+本章作为测度论与后续分析课程之间的补充路线。基础学习可先掌握定义、典型反例与积分表示，再在进一步的实分析课程中研究微分定理的覆盖论证。它不影响前面已完成的抽象积分理论，但能说明勒贝格积分如何重新连接熟悉的微积分。
+
+\section{有界变差函数与 Stieltjes 测度}
+\begin{definition}
+对 $F:[a,b]\to\mathbb R$，定义总变差
+\[
+ V_a^b(F)=\sup_{a=x_0<\cdots<x_m=b}
+ \sum_{j=1}^{m}|F(x_j)-F(x_{j-1})|.
+\]
+若该上确界有限，称 $F$ 为\keyterm{有界变差函数（function of bounded variation）}。
+\end{definition}
+这里的变差累计所有上升与下降，而端点差只记录净变化。单调函数的变差等于端点差的绝对值，连续可微函数的变差不超过 $\int_a^b|F'|$；频繁振荡可能使变差很大，即使函数值始终处于一个很小的范围内。
+
+若 $F$ 在实轴上非减且右连续，则可以在半开区间上规定
+$\mu_F((u,v])=F(v)-F(u)$。半开区间可以无歧义地拼接，相邻区间的端点不会被重复计数；右连续性保证从上缩小区间时的相容性。由相应预测度扩张，可得到局部有限的 Borel 测度，称为\keyterm{Lebesgue--Stieltjes 测度（Lebesgue--Stieltjes measure）}。这里引用非减右连续函数所定义区间预测度的标准构造，完整验证见\cite[第1章]{teschl-ra}。
+
+对单点，由区间 $(x-h,x]$ 从上趋于 $\{x\}$，可得
+$\mu_F(\{x\})=F(x)-F(x-)$，其中 $F(x-)$ 是左极限。因此函数的跳跃对应测度的原子。若 $F$ 连续，单点质量都为零，但测度未必相对于长度绝对连续；连续性只排除了跳跃，尚未排除集中在不可数零测集上的质量。
+
+\section{绝对连续性比一致连续性更强}
+\begin{definition}
+函数 $F:[a,b]\to\mathbb R$ 称为\keyterm{绝对连续的（absolutely continuous）}，若对每个 $\varepsilon>0$，存在 $\delta>0$，使任意有限个两两不交的子区间 $(a_j,b_j)\subseteq[a,b]$ 只要满足 $\sum_j(b_j-a_j)<\delta$，就有
+$\sum_j|F(b_j)-F(a_j)|<\varepsilon$。
+\end{definition}
+一致连续性控制一段很短区间上的函数增量；绝对连续性同时控制任意多段小区间的增量总和。后者当然蕴含前者，只需取一个区间；反向则一般不成立，因为很多小变化可能在数量增加时累积成不可忽略的总量。
+
+每个 Lipschitz 函数都绝对连续。若 $|F(x)-F(y)|\leq L|x-y|$，对不交区间求和便有总增量不超过 $L$ 乘总长度，可以取 $\delta=\varepsilon/L$，常函数情形另行直接处理。但绝对连续函数未必 Lipschitz，例如 $F(x)=\sqrt{x}$ 在 $[0,1]$ 上绝对连续，其导数 $1/(2\sqrt{x})$ 可积，却在零点附近无界。
+
+绝对连续函数也有界变差。取对应于误差一的长度阈值 $\delta$，将 $[a,b]$ 预先分成有限个长度小于 $\delta$ 的子区间。对任意分割加入这些固定端点，变差和只会增大；每个固定子区间内所有小段的总长度小于 $\delta$，故其增量绝对值之和小于一。对有限个固定子区间求和，就得到与原分割无关的变差上界。
+
+\section{可积函数的变上限积分}
+\begin{proposition}
+若 $f\in L^1([a,b])$，令 $F(x)=\int_a^xf(t)\,\mathrm dt$，则 $F$ 绝对连续。
+\label{prop:mt-integral-ac}
+\end{proposition}
+\begin{proof}
+对有限个两两不交区间，
+\[
+ \sum_j|F(b_j)-F(a_j)|
+ \leq\sum_j\int_{a_j}^{b_j}|f(t)|\,\mathrm dt
+ =\int_{\bigcup_j(a_j,b_j)}|f(t)|\,\mathrm dt.
+\]
+可积函数的积分对集合测度绝对连续，而该并集的长度就是各区间长度之和，因此满足函数绝对连续性的定义。
+\end{proof}
+这一结论并不要求 $f$ 连续，也不要求处处有界。它首先保证原函数的整体变化受集合长度控制，随后才能进一步研究导数。特别地，若把 $f$ 在零测集上修改，所有区间积分都不变，所以由积分定义的 $F$ 完全不变，而不仅仅是几乎处处不变。
+
+\begin{theorem}[勒贝格微分定理的一维形式，引用]
+若 $f$ 在实轴上局部可积，即在每个有界区间上绝对可积，则对几乎每个 $x$，
+\[
+ \lim_{r\downarrow0}\frac1{2r}\int_{x-r}^{x+r}|f(t)-f(x)|\,\mathrm dt=0.
+\]
+这些点称为 $f$ 的勒贝格点。
+\label{thm:mt-lebesgue-differentiation}
+\end{theorem}
+完整证明使用覆盖选择与极大函数估计，本章仅引用其准确形式，参见\cite[第22--23讲]{mit-measure}。从对称区间平均误差趋零，可以推出左右单侧平均误差也趋零，因为单侧误差不超过两倍对称平均误差。因此，对命题\ref{prop:mt-integral-ac}中的 $F$，差商
+$[F(x+h)-F(x)]/h$ 在每个内部勒贝格点趋于 $f(x)$，故 $F'=f$ 几乎处处。
+
+\begin{theorem}[绝对连续函数的积分表示，引用]
+$F:[a,b]\to\mathbb R$ 绝对连续，当且仅当存在 $f\in L^1([a,b])$，使
+$F(x)=F(a)+\int_a^xf(t)\,\mathrm dt$ 对每个 $x\in[a,b]$ 成立。此时 $F'=f$ 几乎处处，因而
+$F(x)=F(a)+\int_a^xF'(t)\,\mathrm dt$。
+\end{theorem}
+从积分表示到绝对连续性及导数结论已经在上面说明；反向需要将绝对连续函数的增量构造成关于长度绝对连续的有符号测度，再用 Radon--Nikodym 定理得到密度，或使用等价的实分析证明。这里给出证明路线而不省略为“由求导即得”，因为一般绝对连续函数并没有处处连续的导数。
+
+\section{前往偏微分方程：弱导数的初步概念}
+经典导数逐点比较函数值，因而会对零测集上的修改十分敏感；但 $L^p$ 元素本身只在几乎处处意义下确定。若希望在可积函数空间中讨论微分，应寻找一种不依赖代表函数个别点值的定义。分部积分提供了办法：把导数转移到已知的光滑测试函数上，从而只让待研究函数出现在积分中。
+
+\begin{definition}
+设 $I$ 为开区间，$f,g$ 在 $I$ 上局部可积。若对每个光滑且紧支撑于 $I$ 的测试函数 $\varphi\in C_c^\infty(I)$，
+\[
+ \int_I f(x)\varphi'(x)\,\mathrm dx
+ =-\int_I g(x)\varphi(x)\,\mathrm dx,
+\]
+则称 $g$ 为 $f$ 的\keyterm{弱导数（weak derivative）}。该定义中的等式对所有测试函数成立，并在积分意义下忽略零测修改。
+\end{definition}
+若 $f$ 连续可微，经典分部积分说明其通常导数就是弱导数，因为测试函数在区间边界附近为零，不产生边界项。弱导数允许更多函数进入微分理论。例如 $f(x)=|x|$ 在零点不可微，但分别在零点两侧分部积分，左右边界项抵消，得到弱导数为符号函数，零点处的取值任意。
+
+并非每个局部可积函数都有局部可积的弱导数。对阶跃函数 $H=\mathbf1_{(0,\infty)}$，有 $\int H\varphi'=-\varphi(0)$。若存在局部可积 $g$ 使其成为弱导数，则应有 $\int g\varphi=\varphi(0)$。选择满足 $0\leq\varphi_n\leq1$、$\varphi_n(0)=1$、支撑缩到零点的光滑测试函数，局部可积性与控制收敛使左侧趋零，而右侧恒为一，矛盾。
+
+该阶跃的微分作用仍可用 Dirac 测度描述，因为 $\int\varphi\,\mathrm d\delta_0=\varphi(0)$；只是这个导数不能由一个局部可积函数表示。这说明“函数导数”“测度形式的导数”和更一般的分布导数具有不同的对象范围。测度论在这里帮助区分了能够由密度表示的变化与集中在单点上的变化。
+
+弱导数与磨光相配合，可以构造 Sobolev 空间和弱解理论。本书只建立入口：可积函数空间提供积分框架，测试函数将微分转成线性恒等式，范数估计保证近似过程有可控极限。完整的偏微分方程分析还需要同时控制函数及其弱导数，不能只依靠本章的单变量例子。
+
+\section{Cantor 函数与奇异连续质量}
+在 Cantor 集构造中，可以同时构造一个连续非减函数 $C:[0,1]\to[0,1]$：在每个被删除的中间三分之一区间上取常数，在保留区间上按二进制权重继续分配增长，并使 $C(0)=0$、$C(1)=1$。一种严格做法是逐步构造连续分段线性函数，每步在新删除区间上拉平，后续每个保留区间内的变化幅度不超过 $2^{-n}$。这些函数一致收敛，极限便连续且非减。
+
+Cantor 集外的每个点都落在某个删除开区间内，而 $C$ 在该区间恒定，所以在那里导数为零。Cantor 集长度为零，因此 $C'=0$ 几乎处处；但 $C(1)-C(0)=1$，故导数积分无法恢复端点变化。这说明“连续且几乎处处可微”不足以替代绝对连续性，也说明不能把几乎处处成立的微分恒等式无条件积分为全局恒等式。
+
+与 $C$ 对应的 Stieltjes 测度没有单点原子，因为 $C$ 连续；它在每个删除区间上的测度为零，因此全部质量集中于 Cantor 集。它既非离散测度，又没有相对于长度的密度，称为奇异连续测度。这样，原子、绝对连续与奇异连续三种质量形式都能在同一测度框架中得到解释。
+
+\section{习题}
+\begin{enumerate}
+ \item 证明 Lipschitz 条件蕴含绝对连续，并用 $\sqrt{x}$ 说明反向不成立。
+ \item 对阶跃函数 $F(x)=\mathbf1_{[0,\infty)}(x)$，计算其 Stieltjes 测度在各半开区间上的值，并识别对应测度。
+ \item 若 $F(x)=\int_a^xf(t)\,\mathrm dt$ 且 $f=0$ 几乎处处，证明 $F$ 在每个点都等于零；再说明 Cantor 函数为什么不是这一命题的反例。
+\end{enumerate}
+
+\chapter{与概率论的衔接：分布、期望和条件期望}
+\label{chap:mt-probability}
+
+\section{概率空间与随机变量的分布}
+\keyterm{概率空间（probability space）}是总测度为一的测度空间 $(\Omega,\mathcal F,\mathbb P)$；可测集称为事件，几乎处处成立称为\keyterm{几乎必然成立（almost surely）}，简记 a.s.。实值\keyterm{随机变量（random variable）}是可测映射 $X:\Omega\to\mathbb R$。在这一形式化中，$X$ 是确定的映射，随机性由样本结果 $\omega$ 的概率模型描述。
+
+随机变量的\keyterm{分布（distribution）}是实轴 Borel 集上的概率测度
+\begin{equation}
+ \mathbb P_X(B)=\mathbb P(X^{-1}(B)),\qquad B\in\mathcal B(\mathbb R),
+ \label{eq:mt-pushforward}
+\end{equation}
+也称\keyterm{推前测度（pushforward measure）}。同一分布可能由不同概率空间上的随机变量产生；只给出边缘分布，不能确定多个随机变量之间的依赖关系。
+
+若 $\mathbb P_X\ll\lambda$，则由 Radon--Nikodym 定理存在密度 $p$，满足 $\mathbb P_X(B)=\int_Bp\,\mathrm d\lambda$。若 $X$ 只取可数个值，则可使用相应可数取值空间的计数测度，将各点概率作为密度。连续密度、离散质量函数与不具有勒贝格密度的分布，都可用分布测度统一描述。
+
+\section{分布函数如何编码一个概率测度}
+对实值随机变量 $X$，定义\keyterm{分布函数（cumulative distribution function）}
+$F_X(t)=\mathbb P(X\leq t)$。它非减、右连续，并满足当 $t\to-\infty$ 时趋零、当 $t\to\infty$ 时趋一。非减性来自事件包含关系；右连续性来自事件 $\{X\leq t_n\}$ 在 $t_n\downarrow t$ 时递减到 $\{X\leq t\}$；两端极限则由实值随机变量在每个样本点取有限值，以及测度对集合极限的连续性得到。
+
+对 $a<b$，区间概率为 $F_X(b)-F_X(a)$，对应半开区间 $(a,b]$。这些区间及适当的射线生成实轴 Borel $\sigma$ 代数，因此分布函数唯一确定分布测度。若两个概率测度具有相同分布函数，在生成射线族上数值相同，有限测度唯一性便使它们在所有 Borel 集上相同。这解释了为什么只用一个实变量函数，就能编码全体 Borel 事件的概率。
+
+在一点 $t$ 的概率质量为 $F_X(t)-F_X(t-)$，其中左极限存在是因为分布函数非减。因而跳跃对应原子，连续分布函数对应没有单点原子，但连续仍不保证存在概率密度。Cantor 分布提供了连续而奇异的例子；只有当分布测度关于长度绝对连续时，才能将分布函数写为某个非负可积密度从负无穷积分到 $t$ 的结果。
+
+反过来，每个具有上述单调性、右连续性和两端极限的函数，都通过 Stieltjes 构造定义一个概率测度。这里不是任意指定一条曲线就能得到分布：右连续性保证端点约定与集合极限相容，两端极限保证总质量恰好为一。这样的构造把随机变量分布与前一章的一般测度构造联系起来。
+
+\section{期望与独立性}
+对非负随机变量或可积随机变量，\keyterm{期望（expectation）}定义为 $\mathbb E[X]=\int_\Omega X\,\mathrm d\mathbb P$。若 $g:\mathbb R\to\mathbb R$ Borel 可测，且 $g(X)\geq0$ 或 $\mathbb E|g(X)|<\infty$，则
+\begin{equation}
+ \mathbb E[g(X)]=\int_{\mathbb R}g(x)\,\mathrm d\mathbb P_X(x).
+ \label{eq:mt-distribution-integral}
+\end{equation}
+证明从 $g=\mathbf1_B$ 开始，此时等式就是分布定义；再由简单逼近、单调收敛与正负部分分解推广。若分布有密度，进一步得到熟悉的 $\int g(x)p(x)\,\mathrm dx$。
+
+实值随机变量 $X,Y$ \keyterm{独立（independent）}，是指对任意 Borel 集 $A,B$，
+$\mathbb P(X\in A,Y\in B)=\mathbb P_X(A)\mathbb P_Y(B)$。由概率测度在生成矩形族上的唯一性，这等价于联合分布 $\mathbb P_{(X,Y)}=\mathbb P_X\otimes\mathbb P_Y$。若 $X,Y$ 独立且各自可积，Tonelli 定理先给出 $\mathbb E|XY|=\mathbb E|X|\mathbb E|Y|<\infty$，Fubini 定理再给出 $\mathbb E[XY]=\mathbb E[X]\mathbb E[Y]$。只知道乘积期望分解，并不足以反推独立。
+
+\section{条件期望为何需要一个子 $\sigma$ 代数}
+给定子 $\sigma$ 代数 $\mathcal G\subseteq\mathcal F$，可以把它理解为当前可辨认的事件所组成的信息。若只观察随机变量 $Y$，相应信息写为 $\sigma(Y)=\{Y^{-1}(B):B\in\mathcal B(\mathbb R)\}$；这些原像组成 $\sigma$ 代数。条件期望要找一个仅依赖这些信息的随机变量，同时在每个已能辨认的事件上保留原来的积分。
+
+\begin{definition}
+设 $X\in L^1(\mathbb P)$。若 $Z$ 关于 $\mathcal G$ 可测、可积，且
+\begin{equation}
+ \int_AZ\,\mathrm d\mathbb P=\int_AX\,\mathrm d\mathbb P
+ \quad\text{对每个 }A\in\mathcal G,
+ \label{eq:mt-conditional-expectation}
+\end{equation}
+则称 $Z$ 是 $X$ 关于 $\mathcal G$ 的\keyterm{条件期望（conditional expectation）}，记为 $\mathbb E[X\mid\mathcal G]$。这一记号指几乎必然相等意义下的等价类，具体函数称为它的一个版本。
+\end{definition}
+
+\begin{theorem}[条件期望的存在与唯一性]
+对每个 $X\in L^1(\mathbb P)$ 和子 $\sigma$ 代数 $\mathcal G$，条件期望存在且几乎必然唯一。
+\end{theorem}
+\begin{proof}
+在可测空间 $(\Omega,\mathcal G)$ 上定义 $\nu(A)=\int_AX\,\mathrm d\mathbb P$。它是有限有符号测度，且 $\nu\ll\mathbb P|_{\mathcal G}$。由于限制后的概率测度有限，定理\ref{thm:mt-rn}给出 $\mathcal G$ 可测的可积密度 $Z$，恰好满足式\eqref{eq:mt-conditional-expectation}。该定理的几乎处处唯一性就是这里的几乎必然唯一性。
+\end{proof}
+
+\begin{example}[有限分割上的条件平均]
+设 $\Omega=\{1,2,3,4\}$，四个结果等概率，$X$ 在四点的取值依次为 $0,2,4,10$，而 $\mathcal G=\sigma(\{1,2\},\{3,4\})$。$\mathcal G$ 可测函数只能在每个分组中取相同值。为保留每个组上的积分，必须有
+\[
+ \mathbb E[X\mid\mathcal G](\omega)=
+ \begin{cases}
+  1,&\omega\in\{1,2\},\\
+  7,&\omega\in\{3,4\}.
+ \end{cases}
+\]
+例如在第一组上，原积分为 $(0+2)/4=1/2$，新积分为 $1\cdot(1/2)=1/2$。条件期望一般是随可用信息变化的随机变量，而不是一个固定常数；再取总体期望才得到 $\mathbb E[X]=4$。
+\end{example}
+
+\section{塔式性质与概率收敛语言}
+取 $A=\Omega$，立即得到 $\mathbb E[\mathbb E[X\mid\mathcal G]]=\mathbb E[X]$。若 $\mathcal H\subseteq\mathcal G$，则
+\begin{equation}
+ \mathbb E[\mathbb E[X\mid\mathcal G]\mid\mathcal H]
+ =\mathbb E[X\mid\mathcal H]\quad\text{几乎必然}.
+ \label{eq:mt-tower}
+\end{equation}
+证明时，左侧 $\mathcal H$ 可测；对任意 $A\in\mathcal H$，先使用关于 $\mathcal H$ 的积分恒等式，再因 $A\in\mathcal G$ 使用关于 $\mathcal G$ 的恒等式，得到其在 $A$ 上的积分等于 $\int_AX$，最后调用唯一性。这就是\keyterm{塔式性质（tower property）}，它以包含关系准确表达信息由细变粗。
+
+在概率空间上，依测度收敛称为\keyterm{依概率收敛（convergence in probability）}，$L^p$ 收敛称为 $p$ 阶均值收敛。因为总测度为一，几乎必然收敛蕴含依概率收敛；反向一般只能选取几乎必然收敛的子列。概率论还研究由分布本身定义的收敛方式，不能把所有“收敛”都理解为随机变量逐点收敛。
+
+测度论提供积分与极限的基本语言，概率论进一步研究独立性、条件化和随机结构产生的规律。例如，若 $X_1,X_2,\ldots$ 两两独立、同均值 $m$、同有限方差 $\sigma^2$，则对 $\overline X_n=n^{-1}\sum_{j=1}^{n}X_j$，
+\[
+ \mathbb P(|\overline X_n-m|>\varepsilon)
+ \leq\frac{\mathbb E[(\overline X_n-m)^2]}{\varepsilon^2}
+ =\frac{\sigma^2}{n\varepsilon^2}\longrightarrow0.
+\]
+第一步来自非负积分的基本估计，第二步使用独立性使不同项的协方差为零。这给出一个弱大数定律的特例，也说明概率结论需要测度论工具与随机变量间的结构共同作用。
+
+\section{可观测函数为何能写成观测值的函数}
+若 $Z$ 关于 $\sigma(Y)$ 可测，常将它写成 $m(Y)$。这个写法并不是把一个抽象随机变量随意改成函数符号，而是依赖可测因子分解：对实值 $Y,Z$，$\sigma(Y)$ 可测性保证存在 Borel 可测函数 $m:\mathbb R\to\mathbb R$，使 $Z=m(Y)$。
+
+证明可以从简单函数开始。若 $Z=\sum_jc_j\mathbf1_{A_j}$，每个 $A_j\in\sigma(Y)$ 都可写成 $Y^{-1}(B_j)$，其中 $B_j$ 为 Borel 集，于是取 $m(y)=\sum_jc_j\mathbf1_{B_j}(y)$ 即可。一般有限实值 $Z$ 用简单函数 $Z_n$ 逐点逼近，得到对应的 Borel 函数 $m_n$。在 $m_n$ 具有有限极限的位置定义 $m$ 为其极限，在其余位置定义为零。这个收敛位置集合可测，而在 $Y$ 的实际取值上，极限必然等于 $Z$。
+
+因子分解说明，条件期望 $\mathbb E[X\mid\sigma(Y)]$ 可以理解为一个由观测值输入、输出预测值的函数。但 $m$ 通常只在 $Y$ 的分布几乎处处意义下唯一；在从不出现或仅构成零概率集合的输入处，函数值可以改变。数学模型给出的这种唯一性范围，与实际计算时希望函数在每个输入处都有明确值之间，需要通过选择版本来衔接。
+
+如果所说的可测性是关于 $\sigma(Y)$ 的完备化而非原集合族，则一般先选择一个与 $Z$ 几乎必然相等的 $\sigma(Y)$ 可测版本，再作分解。这样得到的是几乎必然等式，而非未经选择就保证处处成立的等式。这个区别在本科阶段不需要发展成完整的条件分布理论，但应知道它来自集合族与零测修改的关系。
+
+\section{条件期望的线性、保序与提出已知量}
+条件期望的基本性质应从定义中的两项要求推出：结果关于 $\mathcal G$ 可测，并在每个 $A\in\mathcal G$ 上保留积分。不能只验证保留整体期望，因为很多不同的 $\mathcal G$ 可测函数都有相同的整体期望，而未必满足所有局部事件上的约束。
+
+若 $X,Y$ 可积，$a,b\in\mathbb R$，则
+$a\mathbb E[X\mid\mathcal G]+b\mathbb E[Y\mid\mathcal G]$
+关于 $\mathcal G$ 可测、可积，并在每个 $A$ 上具有与 $aX+bY$ 相同的积分，故由唯一性得到线性性。若 $X\geq0$，记 $Z=\mathbb E[X\mid\mathcal G]$，对 $A_m=\{Z\leq-1/m\}\in\mathcal G$ 有
+$0\leq\int_{A_m}X=\int_{A_m}Z\leq-\mathbb P(A_m)/m$，所以每个 $A_m$ 都为零概率事件，进而 $Z\geq0$ 几乎必然。结合线性性，得到条件期望的保序性。
+
+由 $-|X|\leq X\leq|X|$ 可得
+\[
+ |\mathbb E[X\mid\mathcal G]|
+ \leq\mathbb E[|X|\mid\mathcal G]\quad\text{几乎必然},
+ \qquad
+ \|\mathbb E[X\mid\mathcal G]\|_1\leq\|X\|_1.
+\]
+因此条件期望是 $L^1$ 上的非扩张线性算子，即不增大两函数之间的 $L^1$ 距离。该估计并不保证存在严格小于一的统一比例，不能把它直接套入需要严格收缩系数的不动点定理。
+
+\begin{proposition}[提出已知量的有界版本]
+若 $X\in L^1(\mathbb P)$，$U$ 是有界的 $\mathcal G$ 可测函数，则
+\[
+ \mathbb E[UX\mid\mathcal G]=U\mathbb E[X\mid\mathcal G]
+ \quad\text{几乎必然}.
+\]
+\end{proposition}
+\begin{proof}
+先取 $U=\mathbf1_B$，$B\in\mathcal G$。对任意 $A\in\mathcal G$，所需积分等式正是条件期望定义在 $A\cap B$ 上的应用。线性性推广到简单函数。一般有界 $U$ 可由统一有界的简单函数逐点逼近，对 $UX$ 和 $U\mathbb E[X\mid\mathcal G]$ 分别使用可积控制，就能将积分恒等式传到极限。右侧的可测性和可积性也由有界性保证，最后使用唯一性。
+\end{proof}
+“已知量”在这里有准确含义：$U$ 关于当前信息 $\mathcal G$ 可测。它不表示 $U$ 必须为常数，也不表示任何与问题同时出现的随机变量都可以提出。若 $U$ 不关于 $\mathcal G$ 可测，右侧甚至可能不满足条件期望要求的可测性。
+
+\section{连续观测下的条件分布例题}
+\begin{example}[三角形区域上的联合密度]
+设 $(X,Y)$ 的联合密度为 $p(x,y)=2\mathbf1_{\{0<x<y<1\}}$。固定 $y\in(0,1)$，对 $x$ 积分得到边缘密度 $p_Y(y)=2y$；归一化后的截面密度为
+\[
+ p_{X\mid Y}(x\mid y)=\frac1y\mathbf1_{(0,y)}(x).
+\]
+它表明给定观测值 $y$ 时，$X$ 的条件分布可取为 $(0,y)$ 上的均匀分布，因此候选条件均值为 $m(y)=y/2$。
+\end{example}
+为了严格验证这一候选，不使用 $\mathbb P(Y=y)$ 作分母，因为该事件的概率为零。对任意 Borel 集 $B$，用联合密度和 Fubini 定理计算
+\[
+ \mathbb E[X\mathbf1_{\{Y\in B\}}]
+ =\int_{B\cap(0,1)}\left(\int_0^y2x\,\mathrm dx\right)\mathrm dy
+ =\int_{B\cap(0,1)}y^2\,\mathrm dy
+ =\mathbb E[(Y/2)\mathbf1_{\{Y\in B\}}].
+\]
+而 $Y/2$ 关于 $\sigma(Y)$ 可测，所以它就是 $\mathbb E[X\mid\sigma(Y)]$ 的一个版本。再取总体期望得到 $\mathbb E[X]=\mathbb E[Y]/2=1/3$，与直接积分一致。
+
+这个例子说明连续条件化的正确逻辑：先定义一个随观测值变化的可测函数，再通过所有可观测事件上的积分等式验证，而不是把零概率事件代入有限条件概率的比值公式。条件密度在边缘密度为零的观测值上可以任意指定合适版本，因为这些值不会改变联合概率模型。
+
+\section{条件期望作为 $L^2$ 中的最佳预测}
+\begin{theorem}
+设 $X\in L^2(\mathbb P)$，$Z=\mathbb E[X\mid\mathcal G]$。则 $Z\in L^2(\mathbb P)$，并对每个 $\mathcal G$ 可测的 $Y\in L^2$ 满足
+\[
+ \mathbb E[(X-Z)Y]=0.
+\]
+因此，对任意这样的预测量 $Y$，
+\begin{equation}
+ \mathbb E[(X-Y)^2]
+ =\mathbb E[(X-Z)^2]+\mathbb E[(Z-Y)^2],
+ \label{eq:mt-conditional-projection}
+\end{equation}
+从而 $Z$ 在几乎必然相等意义下唯一地最小化均方误差。
+\label{thm:mt-conditional-projection}
+\end{theorem}
+\begin{proof}
+先证明 $Z$ 平方可积，不能直接假设这一点。令 $Z_M=\max(-M,\min(Z,M))$。由有界 $\mathcal G$ 可测测试函数的积分恒等式，
+$\mathbb E[XZ_M]=\mathbb E[ZZ_M]\geq\mathbb E[Z_M^2]$。
+Cauchy--Schwarz 不等式给出
+$\|Z_M\|_2^2\leq\|X\|_2\|Z_M\|_2$，故 $\|Z_M\|_2\leq\|X\|_2$。对 $Z_M^2\uparrow Z^2$ 用单调收敛，得到 $Z\in L^2$。
+
+对有界 $\mathcal G$ 可测 $Y$，正交恒等式由定义已经成立。对一般 $Y\in L^2$，取截断 $Y_M$，则 $\|Y_M-Y\|_2\to0$。用 Hölder 不等式控制
+$|\mathbb E[(X-Z)(Y_M-Y)]|\leq\|X-Z\|_2\|Y_M-Y\|_2$，
+便将正交恒等式传到极限。最后在平方误差中写 $X-Y=(X-Z)+(Z-Y)$，交叉项由正交性为零，得到式\eqref{eq:mt-conditional-projection}及唯一性。
+\end{proof}
+
+该结论将条件期望解释为只使用当前信息所能作出的最佳平方误差预测。信息限制不是额外的口头条件，而是要求预测量 $\mathcal G$ 可测。若允许使用更多信息，候选函数空间变大，最优误差不会增加；若只有平凡信息，可选函数只能为常数，最佳预测就退化为普通期望。
+
+最小均方误差性质依赖二阶可积性和平方损失。对绝对误差损失，最优预测一般是条件中位数；对其他损失函数，最优对象也可能改变。因此，不能把“条件期望是最佳预测”脱离损失函数而无条件陈述。测度定义中的条件期望始终存在于 $L^1$，但其正交投影解释需要进入 $L^2$。
+
+\section{分布的弱收敛与随机变量的收敛}
+前面讨论的几乎必然、依概率和均值收敛，都需要比较同一个样本结果下的随机变量值。若随机变量定义在不同概率空间上，仍然可以比较它们的分布。设 $\mu_n,\mu$ 是实轴上的概率测度，若对每个有界连续函数 $\varphi:\mathbb R\to\mathbb R$，
+$\int\varphi\,\mathrm d\mu_n\to\int\varphi\,\mathrm d\mu$，称 $\mu_n$ \keyterm{弱收敛（weak convergence）}于 $\mu$。随机变量分布的弱收敛也称依分布收敛。
+
+定义只测试有界连续函数，既限制了对高值尾部的敏感性，也避免在跳跃边界上提出过强要求。例如 $\delta_{1/n}$ 弱收敛于 $\delta_0$，因为 $\varphi(1/n)\to\varphi(0)$；但事件 $\{0\}$ 在前者下的概率始终为零，在极限下为一，故事件概率不对所有集合逐一收敛，更不在全变差距离下收敛。弱收敛的“弱”正体现在测试对象受到了限制。
+
+若同一概率空间上的 $X_n\to X$ 依概率，则它们依分布收敛。对有界连续 $\varphi$，任取一个子列，都能再选出使 $X_{n_k}\to X$ 几乎必然的子列；连续性和有界收敛给出这条子列上的 $\mathbb E[\varphi(X_{n_k})]\to\mathbb E[\varphi(X)]$。若原期望序列不收敛，就可选出与目标保持固定正距离的子列，与上述性质矛盾。这一证明展示了“每个子列都有进一步好子列”如何恢复整列结论。
+
+反向一般不成立。取等概率为正一和负一的随机变量 $X$，并令 $X_n=(-1)^nX$，则各项分布完全相同，因而依分布收敛于 $X$ 的分布。但奇数项与 $X$ 的差的绝对值恒为二，不依概率收敛于 $X$。分布只描述各随机变量的边缘行为，不规定它们在同一空间上如何配对；依概率收敛却对这种配对有明确要求。
+
+弱收敛也不能单独保证普通期望收敛，因为恒等函数 $\varphi(x)=x$ 不有界。若要从分布极限推断均值、方差或损失期望，必须额外控制尾部，例如通过高阶矩界或一致可积性。这样就能理解为何一个分布近似看起来十分准确，某些对极端值敏感的统计量仍可能相差很大。
+
+\section{总体期望、经验测度与机器学习中的积分}
+设观测 $Z_1,\ldots,Z_n$ 取值于某个可测空间。给定观测结果后，\keyterm{经验测度（empirical measure）}定义为
+$\mathbb P_n=n^{-1}\sum_{i=1}^{n}\delta_{Z_i}$。对任意可测函数 $\ell$，只要样本值处有定义，就有
+$\int\ell\,\mathrm d\mathbb P_n=n^{-1}\sum_i\ell(Z_i)$。
+这一等式是测度定义的精确结果，不需要大数定律；大数定律研究的是当样本具有适当随机结构时，这个经验积分是否逼近总体积分 $\int\ell\,\mathrm d\mathbb P$。
+
+在监督学习中，$\ell_\theta(x,y)$ 可以表示模型参数 $\theta$ 下的损失。总体风险
+$R(\theta)=\int\ell_\theta\,\mathrm d\mathbb P$
+与经验风险
+$R_n(\theta)=\int\ell_\theta\,\mathrm d\mathbb P_n$
+是两个不同对象。即使每个固定 $\theta$ 都满足经验风险收敛，也不能立即推出经验最优参数收敛；后者还需要控制整个参数族上的误差以及最小化问题本身。测度论提供积分语言，并不单独代替统计学习中的一致收敛和可识别性分析。
+
+若希望将梯度移入期望，应逐坐标检查参数微分定理的条件：参数附近的损失导数是否存在，是否有共同可积控制，以及数据分布是否固定。若分布本身也随参数变化，还必须处理测度或密度的变化。把有限样本求和的求导规则直接套到任意总体期望上，会漏掉这些分析条件。
+
+在强化学习中，状态转移常由概率核描述：对每个状态 $s$，$K(s,\cdot)$ 是概率测度；对每个可测集合 $A$，$s\mapsto K(s,A)$ 可测。对有界可测的价值函数 $V$，积分 $\int V(s')K(s,\mathrm ds')$ 仍是可测函数，可从示性函数到简单函数，再经有界或非负逼近验证。这样，随机转移后的期望仍属于可供下一步运算的函数类。马尔可夫性质则是关于条件信息的额外结构，并不由“存在一个积分公式”自动得到。
+
+\section{习题}
+\begin{enumerate}
+ \item 证明当 $\mathcal G=\{\varnothing,\Omega\}$ 时，$\mathbb E[X\mid\mathcal G]=\mathbb E[X]$；当 $X$ 本身 $\mathcal G$ 可测时，条件期望等于 $X$。
+ \item 对由有限分割 $A_1,\ldots,A_m$ 生成的 $\mathcal G$，证明在 $\mathbb P(A_j)>0$ 的分组上，条件期望取常数 $\mathbb E[X\mathbf1_{A_j}]/\mathbb P(A_j)$；说明零概率分组应如何处理。
+ \item 设 $X$ 在 $\{-1,0,1\}$ 上均匀取值，$Y=X^2$。证明 $\mathbb E[XY]=\mathbb E[X]\mathbb E[Y]$，但 $X,Y$ 不独立。
+\end{enumerate}
+
+\appendix
+\chapter{代表性习题解答与学习检查}
+\label{app:mt-exercises}
+
+\section{集合运算与零测集}
+第\ref{chap:mt-sets}章中，可取
+$\mathcal A_1=\{\varnothing,\{1\},\{2,3\},S\}$、
+$\mathcal A_2=\{\varnothing,\{2\},\{1,3\},S\}$。
+二者都是 $\sigma$ 代数，但它们的并含 $\{1\}$ 和 $\{2\}$ 却不含 $\{1,2\}$，因此不对有限并封闭。
+
+对第\ref{chap:mt-measures}章的可求和集合列，令 $E_m=\bigcup_{n\geq m}A_n$，则
+\[
+ 0\leq\mu(\limsup A_n)\leq\mu(E_m)
+ \leq\sum_{n\geq m}\mu(A_n)\longrightarrow0.
+\]
+这个证明不要求独立性，也不要求整个底空间测度有限。概率论将其称为第一 Borel--Cantelli 引理；反向命题并不由这一论证得到。
+
+\section{幂函数、尖峰与积分尾部}
+对 $\alpha>0$、$1\leq p<\infty$，
+\[
+ \int_0^1|x^{-\alpha}|^p\,\mathrm dx
+ =\int_0^1x^{-\alpha p}\,\mathrm dx<\infty
+ \quad\Longleftrightarrow\quad \alpha p<1.
+\]
+条件成立时积分为 $1/(1-\alpha p)$；等号边界出现对数发散。因此 $x^{-1/2}\in L^1(0,1)$，但不属于 $L^2(0,1)$。相对地，数列 $(1/n)$ 属于 $\ell^2$ 而不属于 $\ell^1$。
+
+对 $f_n=n^\alpha\mathbf1_{(0,1/n)}$，有
+$\|f_n\|_p^p=n^{\alpha p-1}$，故 $L^p$ 收敛到零当且仅当 $\alpha<1/p$。不论 $\alpha$ 为何，对每个固定 $x>0$，$f_n(x)$ 最终都为零；这再次区分了逐点行为与总体积分误差。
+
+若 $f\in L^1$，函数 $|f|\mathbf1_{\{|f|>M\}}$ 几乎处处趋于零，并被 $|f|$ 控制，因此积分尾部趋零。这一结论还给出积分的绝对连续性：给定 $\varepsilon>0$，先选 $M>0$ 使尾部积分小于 $\varepsilon/2$，再令 $\mu(A)<\varepsilon/(2M)$，便有
+\[
+ \int_A|f|\,\mathrm d\mu
+ \leq M\mu(A)+\int_{\{|f|>M\}}|f|\,\mathrm d\mu<\varepsilon.
+\]
+这里先选截断高度，再选集合测度，顺序不能倒置。
+
+\section{极限唯一性与分层区间}
+若 $f_n$ 同时依测度收敛到 $f,g$，则对任意 $\varepsilon>0$，
+\[
+ \{|f-g|>\varepsilon\}
+ \subseteq\{|f-f_n|>\varepsilon/2\}\cup\{|f_n-g|>\varepsilon/2\}.
+\]
+右侧测度趋零，左侧不随 $n$ 变化，所以左侧测度为零。再对 $\varepsilon=1/m$ 取可数并，得到 $f=g$ 几乎处处。
+
+第\ref{chap:mt-modes}章的分层区间示性函数满足 $\|f_{2^k+j}\|_p^p=2^{-k}$，所以对每个有限 $p\geq1$ 都在 $L^p$ 中趋于零，而每点仍在零、一之间无穷次变化。这不与控制收敛冲突：控制收敛给出从几乎处处收敛到积分收敛的充分条件，不断言反向蕴含。
+
+\section{有限分割与不独立但不相关的例子}
+若 $\mathcal G$ 由有限分割生成，每个 $\mathcal G$ 可测实函数必须在各分组上为常数。设这些常数为 $c_j$，则条件期望的积分约束为
+$c_j\mathbb P(A_j)=\mathbb E[X\mathbf1_{A_j}]$。对正概率分组可以相除；零概率分组的常数可以任取有限值，例如取零，而不影响条件期望等价类。
+
+当 $X$ 在 $\{-1,0,1\}$ 上均匀取值且 $Y=X^2$，有 $\mathbb E[X]=\mathbb E[X^3]=0$，故乘积期望分解成立。然而
+$\mathbb P(X=0,Y=0)=1/3$，而 $\mathbb P(X=0)\mathbb P(Y=0)=1/9$，所以不独立。一个乘积矩只提供一个数值约束，独立性则要求所有 Borel 事件组合均满足乘法关系。
+
+\section{进一步学习前应能说明的问题}
+完成基础部分后，应能解释为什么测度只要求可数可加，为什么从上连续性需要有限性条件，为什么可测函数可以由简单函数逼近，以及积分为什么忽略可测零测集上的修改。完成收敛部分后，应能为交换极限与积分写出具体条件，并用反例区分几乎处处、依测度与 $L^p$ 收敛。
+
+进入概率论前，应能从分布测度推导期望公式，说明密度相对于哪个测度定义，并用子 $\sigma$ 代数和积分恒等式定义条件期望。进入泛函分析前，应能解释 $L^p$ 为什么需要取等价类、范数不等式怎样使用，以及完备性证明中“选择差可求和的子列”发挥了什么作用。在本书介绍的正则性、Lusin 定理、微分定理及弱收敛基础上，后续可以进一步学习一般拓扑空间上的正则测度、覆盖与极大函数估计、$L^p$ 对偶理论以及 Sobolev 空间；这些进阶内容不必在第一遍学习时同时掌握。
+
+\section{综合例题：一列尖峰同时检验多个概念}
+\begin{example}
+在 $(0,1)$ 上令 $f_n(x)=n^\alpha\mathbf1_{(0,n^{-\beta})}(x)$，其中 $\beta>0$、$\alpha\in\mathbb R$。比较它的逐点、依测度与 $L^p$ 收敛，并判断函数族何时一致可积。
+\end{example}
+\begin{solve}
+固定 $x>0$，由于 $n^{-\beta}\to0$，最终 $x$ 不属于支撑，因此不论 $\alpha$ 为何，$f_n(x)\to0$。对任意固定阈值，坏集合的测度不超过 $n^{-\beta}$，也趋于零，所以始终依测度收敛。对有限 $p\geq1$，
+\[
+ \|f_n\|_p^p=n^{\alpha p-\beta}.
+\]
+因此 $L^p$ 收敛到零当且仅当 $\alpha p<\beta$；等号时范数保持为一，大于时范数发散。若 $\alpha>0$，本质上确界为 $n^\alpha$ 并发散；若 $\alpha=0$，它恒为一；若 $\alpha<0$，则在 $L^\infty$ 中也收敛到零。
+
+对一致可积性，已经知道依测度收敛，因此可应用 Vitali 定理：它等价于 $L^1$ 收敛，即 $\alpha<\beta$。也可以直接检查尾部。若 $\alpha\leq0$，函数统一被常数一控制；若 $0<\alpha<\beta$，超过高度 $M$ 的项要求 $n>M^{1/\alpha}$，其尾部质量为 $n^{\alpha-\beta}$，上确界随 $M$ 增大趋零。若 $\alpha=\beta$，任意高截断仍会漏掉质量一；若 $\alpha>\beta$，连 $L^1$ 有界性都失效。
+\end{solve}
+这一例题中的三个参数分别描述高度、支撑长度和误差惩罚指数。逐点收敛只看到支撑最终离开每个固定点，依测度收敛只看到支撑变小，而积分收敛比较的是高度增长与支撑收缩之间的竞争。解题时先分辨每种收敛关注的信息，再计算相应量，比仅凭图像“越来越尖”作判断更可靠。
+
+\section{综合例题：一致可积但没有共同可积上界}
+\begin{example}
+在 $(0,1)$ 内选择两两不交的区间 $I_n$，长度为 $2^{-n}/n$，并令 $f_n=2^n\mathbf1_{I_n}$。证明 $f_n\to0$ 于 $L^1$，函数族一致可积，但不存在可积函数同时支配全部 $f_n$。
+\end{example}
+\begin{solve}
+这些长度之和严格小于 $\sum_n2^{-n}=1$，所以可以按长度依次排列成不交区间。每项积分为 $1/n$，因此 $L^1$ 收敛到零，Vitali 定理的必要性给出一致可积。也可直接检验：只有满足 $2^n>M$ 的项对高值尾部有贡献，而这些项的积分上确界随最低可能序号增大而趋零。
+
+若 $g\geq f_n$ 几乎处处对每个 $n$ 成立，合并全部例外零测集后，在各不交区间上都必须有相应下界，因此
+$\int_0^1g\geq\sum_n\int_{I_n}f_n=\sum_n1/n=\infty$，矛盾。这里各函数分别只占一个区间，但共同上界必须同时覆盖所有区间，其累计代价无限。
+\end{solve}
+这证明控制收敛的共同可积上界并非 $L^1$ 收敛的必要条件，也说明一致可积性确实比单一上界更灵活。若解题时找不到控制函数，应先检查是否可以直接估计积分或利用一致可积性，而不是把找不到某种充分条件当作不收敛的证据。
+
+\section{综合例题：密度集中与分布极限}
+\begin{example}
+在 $[0,1]$ 上令 $p_n(x)=(n+1)x^n$。分析它的逐点极限、积分极限和所定义概率测度的弱极限。
+\end{example}
+\begin{solve}
+每项非负，且积分为一，因此是概率密度。对每个 $0\leq x<1$，指数衰减快于线性增长，故 $p_n(x)\to0$；端点一的异常不影响几乎处处结论。极限函数的积分却为零，因此不存在 $L^1$ 收敛到零，Scheffé 引理的“极限仍具有正确总质量”条件失败。
+
+对任意 $0<\delta<1$，密度在远离右端点的区域上的质量为
+$\int_0^{1-\delta}p_n(x)\,\mathrm dx=(1-\delta)^{n+1}\to0$。若 $\varphi$ 在 $[0,1]$ 上连续，则一致连续性保证，在足够小的端点邻域中 $|\varphi(x)-\varphi(1)|$ 很小；在其余区域，误差不超过 $2\|\varphi\|_\infty$，而该区域质量趋零。因此
+$\int_0^1\varphi(x)p_n(x)\,\mathrm dx\to\varphi(1)$，
+即概率测度弱收敛于 $\delta_1$。
+\end{solve}
+函数几乎处处趋零与分布弱收敛到一个概率测度并不矛盾。前者观察密度相对于长度的点态数值，后者观察质量对连续测试函数的作用。极限质量集中到长度为零的单点后，无法继续由普通长度密度表示，但仍然是一个完全合法的概率测度。
+
+\section{综合例题：平方误差中的条件平均}
+\begin{example}
+设 $\Omega$ 被有限分割 $A_1,\ldots,A_m$ 划分，$\mathbb P(A_j)>0$，$X\in L^2$。在所有形如 $Y=\sum_jc_j\mathbf1_{A_j}$ 的预测量中，求使 $\mathbb E[(X-Y)^2]$ 最小的系数。
+\end{example}
+\begin{solve}
+因为分组两两不交，目标可以写成
+$\sum_j\int_{A_j}(X-c_j)^2\,\mathrm d\mathbb P$。
+各项只依赖自己的 $c_j$，所以可逐组最小化。展开第 $j$ 项，得到二次函数
+$\int_{A_j}X^2-2c_j\int_{A_j}X+c_j^2\mathbb P(A_j)$。
+二次项系数为正，唯一极小点为
+$c_j=\mathbb E[X\mathbf1_{A_j}]/\mathbb P(A_j)$。
+这恰是有限分割上的条件期望。
+
+也可不用求导，直接以该均值 $m_j$ 配方：
+\[
+ \int_{A_j}(X-c_j)^2
+ =\int_{A_j}(X-m_j)^2+\mathbb P(A_j)(c_j-m_j)^2.
+\]
+交叉项为零，因为 $\int_{A_j}(X-m_j)=0$。这给出最优值、唯一性及偏离最优系数时的误差增量。
+\end{solve}
+若某个分组概率为零，目标完全不依赖该组系数，所以不能声称所有点值系数都唯一；唯一性只在几乎必然意义下成立。这个有限维例子把抽象投影定理中的可测性、正交性和等价类三项要求都转化成了可以直接计算的条件。
+
+\section{综合例题：积分换序先检查绝对值}
+\begin{example}
+对 $a>0$，计算
+$I(a)=\int_0^\infty\int_0^\infty e^{-x-y}\cos(axy)\,\mathrm dx\,\mathrm dy$，
+并说明交换积分和参数求导各需要哪些条件。此处不要求把最终一维积分写成初等函数。
+\end{example}
+\begin{solve}
+首先，绝对值不超过 $e^{-x-y}$，其二维积分为一，所以 Fubini 定理允许交换次序。固定 $y$，初等积分给出
+$\int_0^\infty e^{-x}\cos(ayx)\,\mathrm dx=1/(1+a^2y^2)$，
+故
+$I(a)=\int_0^\infty e^{-y}/(1+a^2y^2)\,\mathrm dy$。
+虽然原函数未必具有方便的初等表示，这个表达已经将二维计算降为一维，并立即给出 $0<I(a)\leq1$。
+
+若对原二重积分求参数导数，被积函数导数的绝对值不超过 $xy e^{-x-y}$，其积分等于
+$(\int_0^\infty xe^{-x}\,\mathrm dx)^2=1$。
+因此参数微分可移入积分号，得到
+$I'(a)=-\iint xy e^{-x-y}\sin(axy)\,\mathrm dx\,\mathrm dy$。
+若改对一维表达式求导，则得到
+$I'(a)=-2a\int_0^\infty y^2e^{-y}/(1+a^2y^2)^2\,\mathrm dy<0$。
+两种表达相同，但后一种更容易看出单调性。
+\end{solve}
+例题说明，不同积分表达的价值可以不同：一个方便验证存在性，另一个方便读出符号，第三个可能方便做数值计算。合法变换需要条件，而选择哪一种合法表达则取决于当前要回答的问题。
+
+\section{证明训练：定位每一条假设的用途}
+阅读一个证明时，可以把假设与实际使用位置逐一对应。有限测度常用于从上连续性、常数函数可积和从依测度误差估计积分；$\sigma$ 有限常用于把问题分成可数个有限块；非负性常用于单调收敛和不受顺序影响的求和；绝对可积性常用于有符号积分的拆分与交换；完备性则用于任意零测修改仍然可测。若某条假设在自己的复述中从未出现，应检查是否遗漏了关键步骤，或者定理确实有更弱的版本。
+
+例如，从几乎处处收敛推出依测度收敛的证明，对尾部坏集合使用从上连续性，有限测度正是在此进入；从 $L^p$ 收敛推出依测度收敛的证明只用 Markov 型估计，不需要总测度有限。两种结论看起来都在比较收敛强弱，但它们对空间条件的依赖不同。把依赖写清，比笼统地说“强收敛推出弱收敛”更准确。
+
+再如，Radon--Nikodym 证明中的绝对连续性用于排除“正剩余质量落在零测度块上”的情况，$\sigma$ 有限性用于找到一个具有正剩余质量的有限测度块，Hahn 分解则用于从这个块中提取可以逐点增加候选密度的正区域。这些步骤各有职责，任何一个都不能仅由候选积分有上界替代。
+
+完成习题后，除了核对最终公式，还应检查对象是否已定义、等式在哪种意义下成立、涉及的集合是否可测、积分是否允许无穷，以及极限交换所用条件是否适用于整个序列。数学写作中的专业性首先体现在这些逻辑边界清楚，而不是使用尽可能多的术语。
+
+\begin{thebibliography}{9}
+\bibitem{mit-measure}
+Jeff Viaclovsky.
+\emph{18.125 Measure and Integration}.
+MIT OpenCourseWare, Fall 2003. Lecture notes.
+\url{https://ocw.mit.edu/courses/18-125-measure-and-integration-fall-2003/pages/lecture-notes/}.
+
+\bibitem{teschl-ra}
+Gerald Teschl.
+\emph{Topics in Real Analysis}.
+作者主页与章节索引；测度构造见第1章，积分与乘积测度见第2章，测度分解与导数见第4章。
+\url{https://www.mat.univie.ac.at/~gerald/ftp/book-ra/index.html}.
+\end{thebibliography}
+
+\end{document}
