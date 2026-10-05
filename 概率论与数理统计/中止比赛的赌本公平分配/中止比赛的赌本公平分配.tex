@@ -12,6 +12,9 @@
 \begin{document}
 \maketitle
 
+\section{问题定义}
+\label{sec:points-problem}
+
 \textbf{问题：中止比赛的赌本公平分配。}两名参与者 \(A\) 和 \(B\) 各投入 \(M/2\) 元，形成总额为 \(M>0\) 元的赌本。双方约定进行一系列比赛，每局恰有一名胜者，不存在平局；各局结果相互独立，且每局 \(A\) 获胜的概率均为已知常数 \(p\in(0,1)\)，\(B\) 获胜的概率为 \(1-p\)。比赛采用“先取得 \(s\) 局胜利者获胜”的规则，其中 \(s\) 为正整数：任何一方累计取得第 \(s\) 局胜利时，比赛立即结束，胜者获得全部赌本 \(M\)，败者获得 \(0\)。因此，正常结束的比赛最多进行 \(2s-1\) 局，并不要求打满这些局数。
 
 比赛在完成 \(n=a+b\) 局后，因外部原因永久中止。此时 \(A\) 已赢 \(a\) 局，\(B\) 已赢 \(b\) 局，其中
@@ -36,5 +39,162 @@ x_B=\mathbb E[W_B\mid\text{当前比分为 }(a,b)].
 M=300,\qquad s=3,\qquad a=2,\qquad b=1,\qquad p=\frac12
 \]
 时的特例：两人各投入 \(150\) 元，进行每局双方胜率相等、结果相互独立的三胜制比赛，在 \(A\) 以 \(2:1\) 领先时因外部原因中止，求按照条件期望原则应当如何分配这 \(300\) 元赌本。
+
+\section{把分配金额转化为最终获胜概率}
+\label{sec:points-reduction}
+
+求解时应当关注双方距离最终胜利还差多少局。记
+\begin{equation}
+  r=s-a,\qquad t=s-b,
+  \label{eq:points-remaining}
+\end{equation}
+则 $r,t$ 都是正整数，分别表示 $A,B$ 还需要取得的胜局数。由于每局胜率 $p$ 已知且固定，各局相互独立，中止原因又不提供关于未来结果的额外信息，过去各局的具体排列不会改变后续比赛的分布。因此，对于当前的求解，只需保留 $r,t$ 和 $p$，不必记录前面每一局的胜者。以下概率和期望均在当前比分及中止事实已知的条件下计算。
+
+固定 $p$，用 $Q(r,t)$ 表示从这一状态出发，$A$ 比 $B$ 更早取得所需胜局数的概率；记相应事件为 $E_A$。比赛必在有限局数内产生唯一胜者，因而 $B$ 最终获胜的概率为 $1-Q(r,t)$。由于胜者获得全部赌本，双方最终所得可以写为
+\[
+  W_A=M\mathbf 1_{E_A},\qquad W_B=M(1-\mathbf 1_{E_A}),
+\]
+其中 $\mathbf 1_{E_A}$ 是事件 $E_A$ 的\keyterm{示性函数}（indicator function）：事件发生时取 $1$，否则取 $0$。由问题所规定的条件期望分配原则，立即得到
+\begin{equation}
+  x_A=M Q(r,t),\qquad x_B=M\bigl(1-Q(r,t)\bigr).
+  \label{eq:points-allocation}
+\end{equation}
+所以全部求解工作归结为计算 $Q(r,t)$。只要这一概率确定，分配金额便唯一确定，并且自动满足非负性和总额守恒。下面通过补齐未来比赛，将这一概率转化为二项分布的区间概率。
+
+\section{补齐比赛与二项分布}
+\label{sec:points-binomial}
+
+\subsection{为什么至多还需要这么多局}
+
+令
+\begin{equation}
+  N=r+t-1=2s-a-b-1.
+  \label{eq:points-horizon}
+\end{equation}
+如果又进行了 $N$ 局后仍没有胜者，那么 $A$ 至多赢了 $r-1$ 局，$B$ 至多赢了 $t-1$ 局，合计至多进行 $r+t-2=N-1$ 局，与已经进行了 $N$ 局矛盾。因此，真实比赛至多再进行 $N$ 局。
+
+现在预先生成 $N$ 个相互独立的未来比赛结果，每个结果中 $A$ 获胜的概率都是 $p$。真实比赛仍在某一方达到所需胜局数时立即结束，预先生成的后续结果只作为假想补充，不改变已确定的胜者。对 $i=1,\ldots,N$，令随机变量 $Y_i$ 在第 $i$ 个未来结果为 $A$ 获胜时取 $1$，否则取 $0$，并令
+\[
+  K=Y_1+\cdots+Y_N.
+\]
+于是 $K$ 表示补齐后这 $N$ 局中 $A$ 的总胜局数，服从\keyterm{二项分布}（binomial distribution）：
+\begin{equation}
+  \mathbb P(K=k)=\binom Nk p^k(1-p)^{N-k},
+  \qquad k=0,1,\ldots,N,
+  \label{eq:points-binomial-mass}
+\end{equation}
+其中 $\binom Nk=N!/[k!(N-k)!]$ 是从 $N$ 个位置中选出 $k$ 个位置的组合数。
+
+\subsection{事件等价与一般分配公式}
+
+\begin{theorem}[赌本分配的一般公式]
+\label{thm:points-general}
+在第~\ref{sec:points-problem}~节的假设下，令 $r=s-a$、$t=s-b$、$N=r+t-1$，则
+\begin{equation}
+  Q(r,t)=\sum_{k=r}^{N}\binom Nk p^k(1-p)^{N-k}.
+  \label{eq:points-binomial-tail}
+\end{equation}
+按照条件期望原则，双方应分得
+\begin{equation}
+  \boxed{
+  \begin{aligned}
+    x_A&=M\sum_{k=r}^{N}\binom Nk p^k(1-p)^{N-k},\\
+    x_B&=M\sum_{k=0}^{r-1}\binom Nk p^k(1-p)^{N-k}.
+  \end{aligned}}
+  \label{eq:points-general-shares}
+\end{equation}
+特别地，将 $r,N$ 换回原问题中的参数，有
+\begin{equation}
+  x_A=M\sum_{k=s-a}^{2s-a-b-1}
+    \binom{2s-a-b-1}{k}p^k(1-p)^{2s-a-b-1-k},
+  \qquad x_B=M-x_A.
+  \label{eq:points-original-parameters}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+关键是证明：真实比赛中 $A$ 最终获胜，当且仅当补齐后的 $N$ 局中 $K\ge r$。
+
+若 $A$ 最终获胜，那么真实比赛结束时他已经取得 $r$ 个新的胜局。补齐只可能增加胜局数，不会减少，所以 $K\ge r$。
+
+反过来，若 $B$ 最终获胜，那么真实比赛结束时他已经取得 $t$ 个新的胜局。补齐后的 $N$ 局中，$B$ 至少占据 $t$ 个胜局位置，因此 $A$ 至多取得 $N-t=r-1$ 个胜局。这说明 $K\ge r$ 不可能对应 $B$ 获胜。真实比赛必然产生唯一胜者，故 $K\ge r$ 必然对应 $A$ 获胜。
+
+由事件等价和式~\eqref{eq:points-binomial-mass}，得到式~\eqref{eq:points-binomial-tail}。其补事件为 $K\le r-1$，结合式~\eqref{eq:points-allocation}，即得双方分配金额。
+\end{proof}
+
+这个证明说明，补齐法并没有把比赛规则改成“必须打满 $N$ 局”，而是为计算建立一个固定长度的样本空间，再证明新增的假想结果不会改变胜者。若双方每局胜率相等，即 $p=1/2$，则所有长度为 $N$ 的胜负序列等可能，每个序列的概率都是 $2^{-N}$，从而
+\begin{equation}
+  x_A=\frac{M}{2^N}\sum_{k=r}^{N}\binom Nk,
+  \qquad
+  x_B=\frac{M}{2^N}\sum_{k=0}^{r-1}\binom Nk.
+  \label{eq:points-equal-probability}
+\end{equation}
+当 $p\ne1/2$ 时，不同胜局数的序列通常具有不同概率，必须保留 $p^k(1-p)^{N-k}$ 这一权重，不能只按序列数量的比例分配。
+
+\section{特例、计算示例与适用范围}
+\label{sec:points-examples}
+
+\subsection{三个可以直接检查的状态}
+
+若 $A$ 只差一胜，即 $r=1$，则 $B$ 只有连续赢下接下来的 $t$ 局才能阻止 $A$ 获胜，因此
+\begin{equation}
+  Q(1,t)=1-(1-p)^t.
+  \label{eq:points-one-a}
+\end{equation}
+若 $B$ 只差一胜，即 $t=1$，则 $A$ 必须连续赢下接下来的 $r$ 局才能获胜，因此
+\begin{equation}
+  Q(r,1)=p^r.
+  \label{eq:points-one-b}
+\end{equation}
+若 $r=t$ 且 $p=1/2$，交换双方身份既不改变状态，也不改变未来序列的概率分布，却会交换最终胜者，所以双方获胜概率相同，各为 $1/2$。仅有比分相同而没有 $p=1/2$，不能据此推出平分赌本。
+
+\subsection{原问题的计算}
+
+\begin{example}[三胜制比赛在比分 $2:1$ 时中止]
+\label{ex:points-original}
+总赌本为 $300$ 元，双方每局胜率相等，先赢三局者取得全部赌本。中止时 $A$ 已赢两局，$B$ 已赢一局，求公平分配金额。
+\end{example}
+
+\begin{solve}
+由 $r=3-2=1$、$t=3-1=2$，得 $N=2$。补齐法给出
+\[
+  Q(1,2)=\binom21\left(\frac12\right)^2
+          +\binom22\left(\frac12\right)^2
+        =\frac34.
+\]
+因此，双方应分得
+\[
+  x_A=300\cdot\frac34=225\text{ 元},\qquad
+  x_B=300\cdot\frac14=75\text{ 元}.
+\]
+若保持当前比分和比赛规则不变，但把每局 $A$ 的胜率改为一般的 $p$，则由式~\eqref{eq:points-one-a} 得
+\[
+  x_A=300\bigl[1-(1-p)^2\bigr],\qquad x_B=300(1-p)^2.
+\]
+因此，$225$ 元与 $75$ 元这一具体分配确实依赖于每局双方胜率相等的假设。
+\end{solve}
+
+\subsection{双方还需要多局才能获胜的例子}
+
+\begin{example}[四胜制下的不等胜率分配]
+\label{ex:points-biased}
+双方各投入 $500$ 元，约定先赢四局者获胜。每局 $A$ 获胜的概率为 $p=3/5$，各局独立；中止时 $A$ 已赢一局，$B$ 已赢两局。求双方按条件期望原则应分得的金额。
+\end{example}
+
+\begin{solve}
+此时 $M=1000$、$r=3$、$t=2$、$N=4$。由二项分布公式，
+\[
+  Q(3,2)=\binom43\left(\frac35\right)^3\frac25
+          +\binom44\left(\frac35\right)^4
+        =\frac{216+81}{625}=\frac{297}{625}.
+\]
+所以 $A$ 分得 $1000\times297/625=475.2$ 元，$B$ 分得 $1000\times328/625=524.8$ 元。虽然 $A$ 每局的胜率更高，但当前所需胜局数也更多；最终分配同时取决于每局胜率和距离比赛结束的状态，不能只使用其中一个因素。
+\end{solve}
+
+\subsection{如何理解公平及模型的边界}
+
+本文的“公平”始终指第~\ref{sec:points-problem}~节明确约定的条件期望原则，并非由“公平”一词自动推出的唯一价值判断。在原模型下，双方最终获胜的概率都严格介于 $0$ 与 $1$：$A$ 可以通过连续赢 $r$ 局获胜，$B$ 也可以通过连续赢 $t$ 局获胜，这两种事件都有正概率。因此，只要尚未决出胜者，就不应把全部赌本判给任何一方；即使某人的当前胜局数为零，他仍可能获得正的分配金额。
+
+原始投入相等也不意味着比赛开始时双方的期望所得一定相等。当 $p\ne1/2$ 时，这份约定本身可能对双方具有不同的期望收益；这里的中止结算所保持的是原约定下各自的期望所得，而不是重新调整赛前规则。每局胜率 $p$ 被假设为已知常数，不能直接把当前的胜局比例当作真实胜率；如果 $p$ 未知，或者胜率随局数、比分和历史变化，则需要先建立相应的统计或状态模型，本文的独立同分布公式不能不加修改地套用。
 
 \end{document}
