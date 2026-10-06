@@ -1,0 +1,697 @@
+\documentclass[UTF8]{ctexart}
+
+% 支持从项目根目录、强化学习目录或当前文档目录读取共享样式。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{马尔可夫奖励过程}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{绪论：从预测状态到评价长期收益}
+\label{sec:mrp-intro}
+
+设一台设备每天可能处于“工作”或“待机”状态，第二天的状态由今天的状态按一定概率决定。如果只问“明天工作的概率是多少”，研究的是状态的随机演化；如果设备工作时产生收益，待机时收益为零，进一步询问“从今天起能获得多少累计收益”，就必须把奖励与状态演化结合起来。\keyterm{马尔可夫奖励过程}（Markov reward process，MRP）正是研究这一问题的模型：给定状态转移规律和奖励机制，评价从各个状态出发的未来期望收益。
+
+MRP 中没有尚待选择的动作，因此它首先是一个\keyterm{预测}（prediction）或\keyterm{评价}（evaluation）问题，而不是直接寻找最优行动的问题。没有动作不意味着状态变化是确定的，也不意味着真实系统无人管理；某种运行制度可能已经固定，其影响包含在转移概率和奖励中。马尔可夫决策过程固定合适的策略后，就能得到这样的评价模型。
+
+本文采用离散时间、有限状态和时间齐次的设定，先解释状态、转移与奖励的时序，再定义回报和价值函数，推导贝尔曼方程及其解法，最后讨论终止任务、样本学习和与决策过程的关系。主要无限时域结论假设奖励有界且折扣因子小于 $1$；允许折扣因子等于 $1$ 的情形另行说明。文中数值均为教学设定，不代表实际设备数据。四元组形式及基本记号可参阅文献\cite{silver-mrp}，本文的例子和推导均在各自假设下独立展开。
+
+\section{前置概念：马尔可夫链与转移矩阵}
+\label{sec:mrp-chain}
+
+\subsection{状态必须包含预测所需的信息}
+
+记时间为 $t=0,1,2,\ldots$，\keyterm{状态空间}（state space）为 $\mathcal S=\{s_1,\ldots,s_n\}$。$S_t$ 是时刻 $t$ 的状态随机变量，$s$、$s_i$ 是状态的具体取值；撇号 $s'$ 只表示另一个状态，不表示求导。
+
+\begin{definition}[马尔可夫性质]
+若对所有具有正概率的状态历史及所有 $s'\in\mathcal S$，都有
+\begin{equation}
+  \Pr(S_{t+1}=s'\mid S_0=s_0,\ldots,S_t=s_t)
+  =\Pr(S_{t+1}=s'\mid S_t=s_t),
+  \label{eq:mrp-markov}
+\end{equation}
+则称状态过程具有\keyterm{马尔可夫性质}（Markov property）。有限状态的离散时间马尔可夫过程称为\keyterm{马尔可夫链}（Markov chain）。
+\end{definition}
+
+式\eqref{eq:mrp-markov}说的是：知道当前状态之后，更早的状态历史不再提供预测下一状态所需的额外信息。它不要求各时刻相互独立。比如工作设备明天仍工作的概率可以与待机设备明天开始工作的概率不同，因此 $S_t$ 与 $S_{t+1}$ 通常相关；过去也可以通过当前状态影响未来。
+
+马尔可夫性是关于所选状态的建模条件。如果两台同样处于工作状态的设备，因为磨损程度不同而具有不同的故障概率，只记录“工作”可能不够，必须考虑把磨损程度加入状态。奖励也可能暴露遗漏的信息：即使状态序列本身是马尔可夫链，若历史奖励透露了当前状态没有记录的隐藏变量，状态与奖励的联合过程仍未必满足后文的 MRP 条件。
+
+\subsection{时间齐次性、矩阵方向与初始分布}
+
+进一步假设转移规律不随 $t$ 改变，即具有\keyterm{时间齐次性}（time homogeneity）。定义
+\begin{equation}
+  P(s'\mid s)=\Pr(S_{t+1}=s'\mid S_t=s),\qquad
+  P_{ij}=P(s_j\mid s_i).
+  \label{eq:mrp-transition}
+\end{equation}
+\keyterm{转移矩阵}（transition matrix）$P=(P_{ij})\in\mathbb R^{n\times n}$ 的行表示当前状态，列表示下一状态，满足
+\[
+  P_{ij}\geq0,\qquad \sum_{j=1}^{n}P_{ij}=1.
+\]
+马尔可夫性和时间齐次性是两个条件：前者限制对历史信息的依赖，后者限制对时间的依赖。本文同时采用这两个条件，以便用一个固定矩阵描述所有时刻。
+
+若以行向量 $\boldsymbol\mu_t=(\Pr(S_t=s_1),\ldots,\Pr(S_t=s_n))$ 表示状态分布，则
+\begin{equation}
+  \boldsymbol\mu_{t+1}=\boldsymbol\mu_tP,\qquad
+  \boldsymbol\mu_{t+k}=\boldsymbol\mu_tP^k,
+  \label{eq:mrp-distribution}
+\end{equation}
+其中 $P^0=I$，$I$ 为 $n$ 阶单位矩阵。由对中间状态使用全概率公式，$(P^k)_{ij}$ 正是从 $s_i$ 出发经过 $k$ 步到达 $s_j$ 的概率。指定 $\mathcal S$ 和 $P$ 确定了条件演化规律；要确定整条轨迹的无条件分布，还必须指定初始分布 $\boldsymbol\mu_0$。
+
+\begin{example}[贯穿全文的两状态模型]
+\label{ex:mrp-model}
+以 $A$ 表示工作，$B$ 表示待机，按 $(A,B)$ 排列行与列，设
+\begin{equation}
+  P=\begin{pmatrix}1/2&1/2\\1/4&3/4\end{pmatrix}.
+  \label{eq:mrp-example-p}
+\end{equation}
+从工作状态出发，下一天工作或待机的概率均为 $1/2$；从待机状态出发，下一天开始工作的概率为 $1/4$。两步转移矩阵为
+\[
+  P^2=\begin{pmatrix}3/8&5/8\\5/16&11/16\end{pmatrix}.
+\]
+例如，从 $A$ 出发两天后处于 $A$ 的概率为 $(1/2)(1/2)+(1/2)(1/4)=3/8$，两项分别对应中间状态为 $A$ 和 $B$ 的路径。
+\end{example}
+
+\section{奖励机制与马尔可夫奖励过程的定义}
+\label{sec:mrp-definition}
+
+\subsection{一步交互的时序与联合马尔可夫条件}
+
+采用如下时间约定：在时刻 $t$ 观察到 $S_t$，经过一个时间步得到奖励 $R_{t+1}$ 并到达 $S_{t+1}$，然后继续演化。因此轨迹写成
+\[
+  S_0,\ R_1,\ S_1,\ R_2,\ S_2,\ldots.
+\]
+\keyterm{奖励}（reward）$R_{t+1}$ 是从时刻 $t$ 到 $t+1$ 这一时间步产生的数值，可以为正、为零或为负；负奖励可以表示成本或损失。下标 $t+1$ 标明奖励在这一步结束时被记录，并不说明奖励只能由到达状态决定。
+
+\begin{definition}[齐次马尔可夫奖励机制]
+记截至时刻 $t$ 的历史为 $H_t=(S_0,R_1,S_1,\ldots,R_t,S_t)$。如果下一状态与本步奖励的联合条件分布只依赖当前状态，且不随时间改变，即对状态 $s'$ 和任意可测奖励集合 $B\subseteq\mathbb R$，有
+\begin{equation}
+  \Pr(S_{t+1}=s',R_{t+1}\in B\mid H_t)
+  =K(s',B\mid S_t),
+  \label{eq:mrp-joint-law}
+\end{equation}
+其中 $K$ 是固定的条件概率规律，则称状态与奖励满足本文采用的齐次马尔可夫奖励机制。条件概率等式按几乎处处的意义理解。
+\end{definition}
+
+这里引入 $K$ 只是为了准确说明“知道当前状态就足够”的含义；初学时可以把 $B$ 理解为奖励落入的一个区间。这个条件允许 $R_{t+1}$ 与 $S_{t+1}$ 相关，不要求每次奖励确定，也不要求状态或奖励跨时间独立。对奖励求边缘概率得到 $P$，对本步奖励取条件期望得到奖励函数。
+
+\begin{definition}[期望收益模型的四元组]
+在式\eqref{eq:mrp-joint-law}的基础上，马尔可夫奖励过程的期望收益模型通常记为
+\begin{equation}
+  (\mathcal S,P,r,\gamma),\qquad
+  r(s)=\mathbb E[R_{t+1}\mid S_t=s],
+  \label{eq:mrp-tuple}
+\end{equation}
+其中 $\mathcal S$ 是状态空间，$P$ 是转移矩阵，$r:\mathcal S\to\mathbb R$ 是\keyterm{期望即时奖励}（expected immediate reward），$\gamma\in[0,1]$ 是\keyterm{折扣因子}（discount factor）。除专门讨论未折扣任务的章节外，本文假设 $0\leq\gamma<1$，并假设存在有限常数 $C$，使每一步的奖励几乎必然满足 $|R_{t+1}|\leq C$。
+\end{definition}
+
+“即时”表示只计算当前这一步，不表示奖励在时刻 $t$ 之前已经获得。$r(s)$ 是确定的函数值，$R_{t+1}$ 是随机变量，两者不能直接等同；即使某状态平均奖励为 $2$，单次奖励也可能为 $0$ 或 $4$。有限状态是本文采用的简化，并非所有 MRP 的必要限制；无限或连续状态模型还需补充相应的可测性与可积性条件。
+
+\subsection{四元组保留什么信息}
+
+对于本文的期望折扣回报，$P$ 与 $r$ 足以确定价值；折扣因子规定如何评价不同时间的奖励，不改变原有的转移规律。但这个四元组一般没有保存完整的奖励分布，更没有保存奖励与下一状态的全部相关信息。若研究回报方差、尾部风险或回报分布，就需要 $K$ 等更完整的描述。
+
+例如，只有一个状态且每步奖励恒为 $0$ 的模型，与每步独立地以相同概率获得 $+1$ 或 $-1$ 的模型，都有 $P=(1)$、$r=0$，因此对同一 $\gamma<1$ 都有期望价值 $0$。第一个模型的回报恒为零；第二个模型的回报方差为
+\[
+  \sum_{k=0}^{\infty}\gamma^{2k}=\frac{1}{1-\gamma^2}.
+\]
+这里使用了跨步奖励独立、均值为零及方差为 $1$；由于平方可积的部分和在均方意义下收敛，方差可以取上述极限。可见相同的期望价值并不意味着相同的随机风险。
+
+\section{奖励究竟属于当前状态还是下一状态}
+\label{sec:mrp-reward-timing}
+
+\subsection{当前状态奖励与转移奖励}
+
+最简单的奖励机制是 $R_{t+1}=f(S_t)$，即这一步的奖励完全由出发状态决定，此时 $r(s)=f(s)$。在例\ref{ex:mrp-model}中，约定每天开始时工作就获得 $2$ 单位收益，开始时待机就获得 $0$，便有 $r(A)=2$、$r(B)=0$；当天结束时可能转入另一个状态，但不改变当天已经按出发状态确定的收益。
+
+更一般地，给定出发状态和到达状态后，定义\keyterm{转移奖励的条件均值}（expected transition reward）
+\begin{equation}
+  \rho(s,s')=\mathbb E[R_{t+1}\mid S_t=s,S_{t+1}=s'].
+  \label{eq:mrp-transition-reward}
+\end{equation}
+这里只需在 $P(s'\mid s)>0$ 的转移上定义；对零概率转移可任意赋值而不影响求和。全期望公式给出
+\begin{equation}
+  r(s)=\sum_{s'\in\mathcal S}P(s'\mid s)\rho(s,s').
+  \label{eq:mrp-reward-average}
+\end{equation}
+例如，从某状态出发，以 $0.7$ 的概率转移并获得奖励 $5$，以 $0.3$ 的概率转移并获得奖励 $-2$，则该状态的期望即时奖励为 $0.7\times5+0.3\times(-2)=2.9$。这一步不要求奖励与转移独立，恰好是在保留两者关系后再取平均。
+
+\subsection{到达状态奖励的正确换算}
+
+有些材料将“状态 $s$ 的奖励”定义为到达 $s$ 时领取的奖励。若到达奖励由函数 $h$ 给定，即 $R_{t+1}=h(S_{t+1})$，则 $\rho(s,s')=h(s')$，所以
+\begin{equation}
+  r(s)=\sum_{s'}P(s'\mid s)h(s'),\qquad
+  \boldsymbol r=P\boldsymbol h,
+  \label{eq:mrp-arrival-reward}
+\end{equation}
+其中 $\boldsymbol r$、$\boldsymbol h$ 是按状态排列的列向量。“到达 $s$ 的奖励” $h(s)$ 与“从 $s$ 出发本步奖励的期望” $r(s)$ 使用不同的条件，通常不是同一个数。若只给出 $\mathbb E[R_{t+1}\mid S_{t+1}=s']$，却允许奖励还依赖出发状态，就不能不加条件地把这个均值当作通用的 $h(s')$；此时应保留式\eqref{eq:mrp-transition-reward}中的两个状态。
+
+在到达奖励的约定下，从当前状态 $s$ 开始、只计算此后奖励的价值递推为
+\begin{equation}
+  v(s)=\sum_{s'}P(s'\mid s)\bigl[h(s')+\gamma v(s')\bigr],
+  \label{eq:mrp-arrival-bellman}
+\end{equation}
+而不是直接写成 $h(s)+\gamma\sum_{s'}P(s'\mid s)v(s')$。后者对应另一种计奖时序；只有同时调整回报定义，才能把这两种表达联系起来。
+
+\begin{example}[混用奖励约定会使结果错一拍]
+\label{ex:mrp-arrival}
+设系统确定地按 $A\to B\to z\to z\to\cdots$ 演化，到达 $B$ 奖励 $5$，到达其他状态奖励 $0$，取 $\gamma=0.9$。从 $A$ 出发，未来奖励序列为 $5,0,0,\ldots$，所以 $v(A)=5$；从 $B$ 出发，其后没有奖励，所以 $v(B)=0$。相应地，$h(B)=5$，但 $r(B)=0$，而 $h(A)=0$、$r(A)=5$。若错误地把 $h$ 当作当前状态奖励，就会算出 $v(B)=5$、$v(A)=4.5$，评价的是另一个计奖模型。
+\end{example}
+
+另一个常见问题是终点奖励只应领取一次。若进入终止状态 $z$ 获得 $10$，之后奖励全为 $0$，应设非终止状态到 $z$ 的相应转移奖励为 $10$，而 $\rho(z,z)=0$。若简单设置 $h(z)=10$ 且让 $z$ 无限自循环，就会每一步重复领取 $10$。也可以把“领奖”与“结束”设计成两个状态，但必须明确时序；终点的价值为零与进入终点时获得正奖励并不矛盾。
+
+\section{回报、折扣与状态价值}
+\label{sec:mrp-return}
+
+\subsection{一次轨迹的回报与许多轨迹的平均}
+
+\begin{definition}[折扣回报与状态价值]
+从时刻 $t$ 开始的\keyterm{折扣回报}（discounted return）定义为
+\begin{equation}
+  G_t=\sum_{k=0}^{\infty}\gamma^kR_{t+k+1}
+     =R_{t+1}+\gamma G_{t+1}.
+  \label{eq:mrp-return}
+\end{equation}
+当 $\gamma=0$ 时约定只保留第一项。\keyterm{状态价值函数}（state-value function）定义为
+\begin{equation}
+  v(s)=\mathbb E[G_t\mid S_t=s].
+  \label{eq:mrp-value}
+\end{equation}
+对原初始分布下不可达的状态，将其解释为从该状态重新启动过程后的期望。齐次的无限时域模型使此期望不依赖起始时刻 $t$。
+\end{definition}
+
+奖励 $R_{t+1}$ 记录一步的得失，回报 $G_t$ 记录一条未来随机轨迹的累计得失，价值 $v(s)$ 则记录从指定状态出发的回报期望。它们对应三个层次，不能互相替代。比如一段奖励依次为 $2,0,2$，$\gamma=0.8$，则这三步的回报为 $2+0.8\times0+0.8^2\times2=3.28$；这只是指定轨迹的三步回报，不自动等于三步期望价值，更不等于无限时域价值。
+
+在本文的有界性和折扣假设下，几乎必然有
+\begin{equation}
+  \sum_{k=0}^{\infty}\gamma^k|R_{t+k+1}|
+  \leq \frac{C}{1-\gamma},\qquad
+  |v(s)|\leq\frac{C}{1-\gamma}.
+  \label{eq:mrp-return-bound}
+\end{equation}
+因此回报级数绝对收敛，条件期望有限，并可由支配收敛定理交换这里的期望与无限求和。仅仅假设 $r(s)$ 有界不足以直接使用这一逐轨迹界：正负奖励可能在均值中抵消，仍需适当的绝对可积条件。本文使用有界实际奖励这一容易核查的充分条件。
+
+\subsection{折扣改变的是评价标准}
+
+第 $k+1$ 步奖励的权重为 $\gamma^k$。$\gamma=0$ 只评价第一步，因而 $v=r$；$\gamma$ 越接近 $1$，远期奖励相对于近期奖励保留的权重越大。折扣可以表达时间偏好，也提供无限时域下的收敛保证，但不要求未来一定具有额外的不确定性：完全确定的奖励序列也可以折扣，随机过程也可以在有限时域内不折扣。未来状态的随机性由 $P$ 描述，不能把它与 $\gamma$ 的作用混为一谈。
+
+权重总和 $1/(1-\gamma)$ 常被称为一种\keyterm{有效时域}（effective horizon）的量级，但它不是超过某一步后就忽略奖励的硬截止时间。令 $G_t^{(H)}=\sum_{k=0}^{H-1}\gamma^kR_{t+k+1}$，则
+\begin{equation}
+  |G_t-G_t^{(H)}|\leq\frac{C\gamma^H}{1-\gamma}.
+  \label{eq:mrp-tail-bound}
+\end{equation}
+因此，若要求截断误差不超过 $\varepsilon>0$，应选取满足右端不超过 $\varepsilon$ 的 $H$，不能仅凭“有效时域约为多少”断言误差已经足够小。
+
+折扣还有一个精确的概率解释。设正整数随机变量 $L$ 与整条状态和奖励轨迹独立，且 $\Pr(L>k)=\gamma^k$，即至少保留第一步，此后每步以概率 $\gamma$ 继续、以概率 $1-\gamma$ 结束。由独立性与绝对可积性，
+\begin{equation}
+  \mathbb E\!\left[\sum_{k=0}^{L-1}R_{t+k+1}\,\middle|\,S_t=s\right]
+  =\sum_{k=0}^{\infty}\gamma^k\mathbb E[R_{t+k+1}\mid S_t=s]
+  =v(s).
+  \label{eq:mrp-random-horizon}
+\end{equation}
+这说明独立随机终止的未折扣回报与折扣回报具有相同的期望，不表示二者逐轨迹相等。若终止概率依赖状态或奖励，就不能直接用这一固定 $\gamma$ 的独立性推导。
+
+\subsection{增大折扣因子不一定增大价值}
+
+当所有实际奖励非负时，逐项比较得到 $\gamma$ 增大不会减小回报及其期望；但一般奖励允许为负，就没有这个单调结论。例如单状态模型每步奖励为 $-1$，则 $v=-1/(1-\gamma)$，$\gamma$ 越大，价值反而越小。正确表述是“更重视远期奖励”，而不是“必然得到更高价值”；远期损失也会被更充分地计入。
+
+\section{贝尔曼方程：把无限未来分成两部分}
+\label{sec:mrp-bellman}
+
+\subsection{从回报递推到价值递推}
+
+直接从所有可能的无限轨迹计算 $v(s)$ 很困难，但式\eqref{eq:mrp-return}已经给出一种分解：先计算本步奖励，再计算下一时刻起的回报。难点在于把后一项准确转成下一状态的价值，而不是把随机回报直接当作确定数。
+
+\begin{theorem}[MRP 的贝尔曼期望方程]
+\label{thm:mrp-bellman}
+在式\eqref{eq:mrp-joint-law}的齐次联合马尔可夫条件、奖励有界且 $0\leq\gamma<1$ 的假设下，对每个状态 $s$，有
+\begin{equation}
+  v(s)=r(s)+\gamma\sum_{s'\in\mathcal S}P(s'\mid s)v(s').
+  \label{eq:mrp-bellman}
+\end{equation}
+这称为\keyterm{贝尔曼期望方程}（Bellman expectation equation）。如果使用转移奖励，则等价地写成
+\begin{equation}
+  v(s)=\sum_{s'}P(s'\mid s)\bigl[\rho(s,s')+\gamma v(s')\bigr].
+  \label{eq:mrp-transition-bellman}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+由回报的可积性及条件期望的线性性，
+\[
+  v(s)=\mathbb E[R_{t+1}\mid S_t=s]
+      +\gamma\mathbb E[G_{t+1}\mid S_t=s].
+\]
+第一项是 $r(s)$。对于第二项，按下一状态使用全期望公式，有
+\[
+  \mathbb E[G_{t+1}\mid S_t=s]
+  =\sum_{s'}P(s'\mid s)
+     \mathbb E[G_{t+1}\mid S_t=s,S_{t+1}=s'].
+\]
+对正概率的下一状态 $s'$，联合马尔可夫条件保证：知道 $S_{t+1}=s'$ 后，之后状态和奖励的条件演化不再依赖此前历史；时间齐次性保证其规律与从 $s'$ 重新启动相同。因此
+\begin{equation}
+  \mathbb E[G_{t+1}\mid S_t=s,S_{t+1}=s']=v(s').
+  \label{eq:mrp-inner-expectation}
+\end{equation}
+严格地说，可以先对任意有限步未来回报使用这一性质，再由式\eqref{eq:mrp-return-bound}和支配收敛定理取极限。代回即得式\eqref{eq:mrp-bellman}，再由式\eqref{eq:mrp-reward-average}得到式\eqref{eq:mrp-transition-bellman}。
+\end{proof}
+
+等式\eqref{eq:mrp-inner-expectation}并没有声称 $G_{t+1}=v(S_{t+1})$。前者仍随未来轨迹变化，后者只对该状态之后的随机性取了平均；在外层按 $P(s'\mid s)$ 取平均后，才得到当前状态的未来期望收益。推导也没有假设 $R_{t+1}$ 与 $S_{t+1}$ 独立，因为这里只使用期望的线性性，而没有把乘积期望分解。
+
+\subsection{递推为何不是循环定义}
+
+若 $P(s\mid s)>0$，等式右边会再次出现 $v(s)$；若多个状态互相可达，它们的价值会彼此依赖。这并不使方程无效，而是说明需要同时求解所有状态的价值。例如，单状态、自循环、每步奖励 $c$ 的模型满足 $v=c+\gamma v$，解为 $c/(1-\gamma)$，与几何级数完全一致。
+
+贝尔曼方程是价值函数必须满足的关系；把它变成反复更新估计值的规则，才得到一种算法。MRP 中没有动作需要优化，所以式\eqref{eq:mrp-bellman}对下一状态求加权平均，不含 $\max$。把平均改成最大值，会改变原来的随机评价问题。
+
+\section{矩阵形式、唯一性与访问次数解释}
+\label{sec:mrp-matrix}
+
+\subsection{价值向量与线性方程组}
+
+按 $(s_1,\ldots,s_n)$ 的顺序定义列向量
+\[
+  \boldsymbol v=(v(s_1),\ldots,v(s_n))^{\mathsf T},\qquad
+  \boldsymbol r=(r(s_1),\ldots,r(s_n))^{\mathsf T}.
+\]
+转移矩阵采用第\ref{sec:mrp-chain}节的行随机约定，因此所有贝尔曼方程合写为
+\begin{equation}
+  \boldsymbol v=\boldsymbol r+\gamma P\boldsymbol v,
+  \qquad (I-\gamma P)\boldsymbol v=\boldsymbol r.
+  \label{eq:mrp-linear-system}
+\end{equation}
+矩阵乘法 $P\boldsymbol v$ 对每个出发状态分别计算下一状态价值的期望；状态分布则是行向量，按 $\boldsymbol\mu P$ 向前传播。这两个乘法的方向不同，来自向量含义不同。
+
+\begin{theorem}[折扣价值的唯一解]
+\label{thm:mrp-inverse}
+设 $P$ 为有限状态的行随机矩阵，$0\leq\gamma<1$，则 $I-\gamma P$ 可逆，且
+\begin{equation}
+  \boldsymbol v=(I-\gamma P)^{-1}\boldsymbol r
+  =\sum_{k=0}^{\infty}\gamma^kP^k\boldsymbol r.
+  \label{eq:mrp-inverse}
+\end{equation}
+这是贝尔曼方程的唯一解。
+\end{theorem}
+
+\begin{proof}
+定义向量无穷范数 $\|\boldsymbol x\|_\infty=\max_i|x_i|$，及其诱导的矩阵范数 $\|A\|_\infty=\max_i\sum_j|A_{ij}|$。由于 $P$ 及 $P^k$ 均为行随机矩阵，$\|P^k\|_\infty=1$，故 $\sum_{k\geq0}(\gamma P)^k$ 在矩阵范数下绝对收敛。记部分和为 $M_H=\sum_{k=0}^{H-1}(\gamma P)^k$，则
+\[
+  (I-\gamma P)M_H=M_H(I-\gamma P)=I-(\gamma P)^H.
+\]
+余项范数不超过 $\gamma^H$，趋于零，所以级数极限是 $I-\gamma P$ 的双侧逆，得到式\eqref{eq:mrp-inverse}及唯一性。前面定义的回报期望满足贝尔曼方程，因而必等于这个解。
+\end{proof}
+
+式\eqref{eq:mrp-inverse}中的 $P^k\boldsymbol r$ 有直接的概率含义：其第 $i$ 个分量等于从 $s_i$ 出发时第 $k+1$ 步奖励的期望。因此矩阵级数就是把所有未来时间步的期望奖励按折扣相加，而不是没有概率意义的代数技巧。这一结论不要求链不可约，也不要求状态分布收敛到某个平稳分布；折扣和有界奖励已经足以保证价值存在。
+
+实际数值计算通常直接求解线性方程组 $(I-\gamma P)\boldsymbol v=\boldsymbol r$，不必显式形成逆矩阵。对一般稠密 $n\times n$ 系统，经典高斯消元的算术运算量为 $O(n^3)$，存储量为 $O(n^2)$；这是特定通用算法的复杂度，不是所有具有稀疏或特殊结构的 MRP 都必须支付的成本。数值求解得到浮点近似，仍应以代回方程的残差检查精度。
+
+\subsection{折扣访问次数与初始分布的作用}
+
+定义矩阵
+\begin{equation}
+  M=\sum_{k=0}^{\infty}\gamma^kP^k=(I-\gamma P)^{-1}.
+  \label{eq:mrp-occupancy-matrix}
+\end{equation}
+其元素可以写成
+\begin{equation}
+  M_{ij}=\mathbb E\!\left[\sum_{k=0}^{\infty}
+       \gamma^k\mathbf 1_{\{S_{t+k}=s_j\}}\,\middle|\,S_t=s_i\right],
+  \label{eq:mrp-occupancy-entry}
+\end{equation}
+其中 $\mathbf 1$ 为事件的示性函数。该等式对非负项应用单调收敛即可得到。$M_{ij}$ 表示从 $s_i$ 出发访问 $s_j$ 的\keyterm{期望折扣次数}（expected discounted visitation count），包含 $k=0$ 时的当前状态。因此 $v(s_i)=\sum_jM_{ij}r(s_j)$：每个状态的平均一步奖励，乘以它未来被访问的折扣次数，再相加。
+
+给定初始分布 $\boldsymbol\mu_0$，整体任务的期望回报为
+\begin{equation}
+  J(\boldsymbol\mu_0)=\boldsymbol\mu_0\boldsymbol v
+  =\sum_{k=0}^{\infty}\gamma^k\boldsymbol\mu_0P^k\boldsymbol r.
+  \label{eq:mrp-start-value}
+\end{equation}
+改变初始分布会改变 $J$，但在模型不变时不会改变各个状态本身的 $v(s)$。若定义归一化的折扣访问分布
+\[
+  \boldsymbol d_{\boldsymbol\mu_0,\gamma}
+  =(1-\gamma)\boldsymbol\mu_0M,
+\]
+则它的分量非负且和为 $1$，并满足 $J=\boldsymbol d_{\boldsymbol\mu_0,\gamma}\boldsymbol r/(1-\gamma)$。这是一种与起点和折扣有关的访问分布，通常不是满足 $\boldsymbol dP=\boldsymbol d$ 的平稳分布。
+
+\section{完整算例：从轨迹到精确价值}
+\label{sec:mrp-worked-example}
+
+沿用例\ref{ex:mrp-model}的转移矩阵，奖励由出发状态确定：$r(A)=2$、$r(B)=0$，取 $\gamma=0.8=4/5$。模型没有终止状态，可以永远运行。尽管如此，奖励有界且折扣小于 $1$，因此价值有限。
+
+\subsection{先区分轨迹回报与期望回报}
+
+从 $A$ 出发，考虑前三步状态路径 $A\to B\to A\to A$。该路径的概率为 $(1/2)(1/4)(1/2)=1/16$，对应奖励为 $2,0,2$，三步折扣回报为 $3.28$。另一条路径 $A\to A\to A\to A$ 的概率为 $1/8$，对应三步回报 $2+0.8\times2+0.8^2\times2=4.88$。同一个初始状态可以产生不同的实际回报。
+
+计算三步期望时，无须枚举全部路径。第\ref{sec:mrp-chain}节已经算出，从 $A$ 出发，在时刻 $0,1,2$ 处于 $A$ 的概率分别是 $1,1/2,3/8$，故
+\[
+  \mathbb E[G_0^{(3)}\mid S_0=A]
+  =2+0.8\times1+0.8^2\times\frac34=3.28.
+\]
+它恰好与第一条路径的回报数值相同，但这只是本例的数值巧合；一个是对所有路径的平均，另一个是某条路径的观测值。
+
+\subsection{列方程、消元与代回检查}
+
+贝尔曼方程为
+\begin{equation}
+  \begin{aligned}
+    v(A)&=2+0.8\left(\frac12v(A)+\frac12v(B)\right),\\
+    v(B)&=0+0.8\left(\frac14v(A)+\frac34v(B)\right).
+  \end{aligned}
+  \label{eq:mrp-example-bellman}
+\end{equation}
+整理得到
+\[
+  \begin{pmatrix}0.6&-0.4\\-0.2&0.4\end{pmatrix}
+  \begin{pmatrix}v(A)\\v(B)\end{pmatrix}
+  =\begin{pmatrix}2\\0\end{pmatrix}.
+\]
+第二行给出 $v(B)=v(A)/2$，代入第一行得到 $0.4v(A)=2$，于是
+\begin{equation}
+  v(A)=5,\qquad v(B)=\frac52=2.5.
+  \label{eq:mrp-example-answer}
+\end{equation}
+代回原方程，$2+0.8(2.5+1.25)=5$，$0.8(1.25+1.875)=2.5$，两行均成立。价值界给出 $|v(s)|\leq2/(1-0.8)=10$，结果也满足这一粗略上界。
+
+待机状态的即时奖励是零，但价值为 $2.5$，因为它有机会转入工作状态并在未来持续产生收益。工作状态的价值 $5$ 大于即时奖励 $2$，因为价值还包含以后再次工作的收益。$5$ 不是某次运行必然获得的回报，而是未来全部随机路径的折扣回报期望。
+
+\subsection{用访问次数解释同一个结果}
+
+本例中
+\[
+  M=(I-0.8P)^{-1}
+   =\begin{pmatrix}5/2&5/2\\5/4&15/4\end{pmatrix}.
+\]
+每行和均为 $5=1/(1-0.8)$。从 $A$ 出发，工作状态的期望折扣访问次数为 $5/2$，每次工作奖励 $2$，所以价值为 $5$；从 $B$ 出发，工作状态的期望折扣访问次数为 $5/4$，所以价值为 $5/2$。若初始时以相同概率工作或待机，则整体期望回报为 $(5+2.5)/2=3.75$，而不是两个状态价值相加。
+
+\section{迭代评价：逐步增加对未来的考虑}
+\label{sec:mrp-iteration}
+
+\subsection{更新规则与收敛证明}
+
+当状态较多时，可以从任意初始估计 $\boldsymbol v^{(0)}\in\mathbb R^n$ 出发，反复进行\keyterm{迭代价值评价}（iterative value evaluation）：
+\begin{equation}
+  \boldsymbol v^{(k+1)}=\boldsymbol r+\gamma P\boldsymbol v^{(k)},
+  \qquad k=0,1,2,\ldots.
+  \label{eq:mrp-iteration}
+\end{equation}
+这里 $k$ 是计算迭代次数，不是系统中的时间 $t$；每轮对所有状态同时更新，右边统一使用上一轮的向量。定义\keyterm{贝尔曼算子}（Bellman operator）$\mathcal T\boldsymbol u=\boldsymbol r+\gamma P\boldsymbol u$，则任意 $\boldsymbol u,\boldsymbol w$ 满足
+\begin{equation}
+  \|\mathcal T\boldsymbol u-\mathcal T\boldsymbol w\|_\infty
+  \leq\gamma\|\boldsymbol u-\boldsymbol w\|_\infty.
+  \label{eq:mrp-contraction}
+\end{equation}
+因为每一行只把向量分量差按非负且和为 $1$ 的概率平均，再乘以 $\gamma$。这称为\keyterm{压缩性质}（contraction property）。
+
+利用真实价值 $\mathcal T\boldsymbol v=\boldsymbol v$，反复应用式\eqref{eq:mrp-contraction}即得
+\begin{equation}
+  \|\boldsymbol v^{(k)}-\boldsymbol v\|_\infty
+  \leq\gamma^k\|\boldsymbol v^{(0)}-\boldsymbol v\|_\infty.
+  \label{eq:mrp-iteration-error}
+\end{equation}
+因此任意有限初始估计都收敛到同一个真实价值。若从零向量开始，归纳可得
+\begin{equation}
+  \boldsymbol v^{(k)}=\sum_{j=0}^{k-1}\gamma^jP^j\boldsymbol r,
+  \label{eq:mrp-finite-step}
+\end{equation}
+即第 $k$ 轮恰好评价未来 $k$ 步的期望折扣奖励。若初值不为零，则还会多出 $\gamma^kP^k\boldsymbol v^{(0)}$，可理解为在截断处加入一个终端价值估计。
+
+在第\ref{sec:mrp-worked-example}节的模型中，从零开始得到表\ref{tab:mrp-iterations}。由于该例奖励非负，表中的估计单调增加；一般存在负奖励时，收敛仍成立，却未必单调。
+\begin{table}
+  \centering
+  \caption{两状态模型的同步迭代评价}
+  \label{tab:mrp-iterations}
+  \begin{tabular}{c c c}
+    \toprule
+    迭代次数 $k$ & $v^{(k)}(A)$ & $v^{(k)}(B)$ \\
+    \midrule
+    0 & 0 & 0 \\
+    1 & 2 & 0 \\
+    2 & 2.8 & 0.4 \\
+    3 & 3.28 & 0.8 \\
+    4 & 3.632 & 1.136 \\
+    极限 & 5 & 2.5 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{可核查的停止条件与计算量}
+
+真实误差依赖未知的 $\boldsymbol v$，不能直接作为算法停止条件。对任意近似向量 $\boldsymbol u$，定义\keyterm{贝尔曼残差}（Bellman residual）
+\[
+  \delta(\boldsymbol u)=\|\boldsymbol r+\gamma P\boldsymbol u-\boldsymbol u\|_\infty.
+\]
+由三角不等式和压缩性质，
+\[
+  \|\boldsymbol u-\boldsymbol v\|_\infty
+  \leq\delta(\boldsymbol u)+\gamma\|\boldsymbol u-\boldsymbol v\|_\infty,
+\]
+从而
+\begin{equation}
+  \|\boldsymbol u-\boldsymbol v\|_\infty
+  \leq\frac{\delta(\boldsymbol u)}{1-\gamma}.
+  \label{eq:mrp-residual-bound}
+\end{equation}
+若希望最大状态误差不超过 $\varepsilon$，充分条件是 $\delta(\boldsymbol u)\leq(1-\gamma)\varepsilon$。这比“数值看起来变化不大”更明确；尤其当 $\gamma$ 接近 $1$ 时，较小残差仍可能对应较大的误差上界。
+
+具体算法的输入为 $P,\boldsymbol r,\gamma,\varepsilon$ 和初值 $\boldsymbol u$；每轮先计算 $\boldsymbol w=\boldsymbol r+\gamma P\boldsymbol u$，若 $\|\boldsymbol w-\boldsymbol u\|_\infty\leq(1-\gamma)\varepsilon$，就输出当前的 $\boldsymbol u$；否则令 $\boldsymbol u=\boldsymbol w$ 并继续。这里特意说明输出的是已经计算过残差的向量。理论保证针对精确模型和精确算术；实现时还需考虑浮点舍入、最大迭代次数及模型误差。
+
+一次稠密矩阵乘向量需要 $O(n^2)$ 次算术运算；若 $P$ 只有 $m$ 个非零元素并采用稀疏存储，一轮需要 $O(m+n)$。从零初始化时，由式\eqref{eq:mrp-return-bound}和式\eqref{eq:mrp-iteration-error}有误差界 $\gamma^kC/(1-\gamma)$；当 $0<\gamma<1$，可直接据此选择足够大的整数 $k$。$\gamma$ 越接近 $1$，这个最坏情形界给出的收敛速度越慢；$\gamma=0$ 时一次更新即得到精确价值。
+
+\section{有限时域、终止状态与未折扣任务}
+\label{sec:mrp-undiscounted}
+
+\subsection{固定步数：价值还取决于剩余时间}
+
+如果任务只运行 $H$ 步，即使环境的 $P$ 和 $r$ 不随时间变化，价值仍取决于还剩多少步。记 $v_h(s)$ 为从 $s$ 出发、剩余 $h$ 步且结束后没有额外收益的期望回报，则
+\begin{equation}
+  v_0(s)=0,\qquad
+  v_h(s)=r(s)+\gamma\sum_{s'}P(s'\mid s)v_{h-1}(s'),
+  \quad h=1,\ldots,H.
+  \label{eq:mrp-finite-horizon}
+\end{equation}
+这时允许 $\gamma=1$，因为总共只有有限项；有界奖励保证 $|v_h(s)|\leq Ch$。若结束时还有由末状态决定的收益 $g(s)$，则改用边界 $v_0(s)=g(s)$，从而总回报中包含 $\gamma^Hg(S_H)$。有限时域的同一物理状态在“还剩一天”与“还剩十天”时通常有不同价值；若希望把它视为没有显式时间参数的状态模型，可以将剩余步数并入状态 $(s,h)$。
+
+\subsection{随机终止：终点价值与入终点奖励}
+
+设 $z$ 是\keyterm{终止状态}（terminal state），到达之后任务结束。为了沿用无限序列的记法，可以令 $P(z\mid z)=1$，并规定之后实际奖励恒为零；这样的状态是零奖励的\keyterm{吸收状态}（absorbing state）。于是从已经位于 $z$ 的时刻开始，$G_t=0$，所以 $v(z)=0$。进入 $z$ 的那一步仍可以获得非零奖励，参见第\ref{sec:mrp-reward-timing}节。
+
+从 $S_0=s$ 出发，定义首次到达终点的时间
+\[
+  T=\inf\{t\geq0:S_t=z\},
+\]
+其中 $\inf\varnothing=\infty$。当 $\gamma=1$ 时，回报为 $G_0=\sum_{k=0}^{T-1}R_{k+1}$，包含进入终点那一步的奖励 $R_T$。若奖励有界且 $\mathbb E_s[T]<\infty$，则 $\mathbb E_s[|G_0|]\leq C\mathbb E_s[T]<\infty$，因而价值有定义；这里 $\mathbb E_s$ 表示从状态 $s$ 启动的期望。
+
+不能简单把完整转移矩阵代入 $\boldsymbol v=(I-P)^{-1}\boldsymbol r$。任何行随机矩阵都满足 $P\boldsymbol 1=\boldsymbol 1$，所以 $I-P$ 必然奇异。终点的贝尔曼方程在 $\gamma=1$ 时只给出 $v(z)=v(z)$，不能单靠这条等式确定其值，必须使用回报定义给出的边界条件 $v(z)=0$。
+
+\subsection{非终止子矩阵与有限期望终止时间}
+
+把非终止状态集合记为 $\mathcal N$，按非终止状态在前、终点在后的顺序排列，可写成
+\[
+  P=\begin{pmatrix}Q&\boldsymbol b\\0&1\end{pmatrix}.
+\]
+$Q$ 只保留在非终止状态间的转移，行和可能小于 $1$，缺少的概率就是本步进入终点的概率。若从每个非终止状态都以概率 $1$ 最终终止，则在有限齐次状态模型下，$Q^k\to0$，且
+\begin{equation}
+  N=\sum_{k=0}^{\infty}Q^k=(I-Q)^{-1},\qquad
+  \boldsymbol v_{\mathcal N}=N\boldsymbol r_{\mathcal N},\qquad
+  \boldsymbol\tau=N\boldsymbol 1,
+  \label{eq:mrp-transient-system}
+\end{equation}
+其中 $\tau(s)=\mathbb E_s[T]$，$\boldsymbol r_{\mathcal N}$ 仍包含所有本步转移的期望奖励，包括进入终点时的奖励。$N$ 称为吸收链的\keyterm{基本矩阵}（fundamental matrix），其元素是不折扣的期望访问次数。
+
+下面说明为什么这里的收敛条件足够。对 $s_i\in\mathcal N$，$\sum_j(Q^k)_{ij}=\Pr_{s_i}(T>k)$。几乎必然终止使各行和趋于零；状态数有限，故可选一个共同的整数 $m$，使 $q=\max_i\Pr_{s_i}(T>m)<1$。于是 $\|Q^{\ell m}\|_\infty\leq q^\ell$，矩阵级数按每 $m$ 项分组后受到几何级数控制，故收敛，且所有期望终止时间有限。再由有限部分和相消即可得到逆矩阵公式。这个结论使用了有限状态、时间齐次以及从所有非终止状态几乎必然终止；不能不加条件地推广到任意无限状态或随时间变化的模型。
+
+\begin{example}[反复等待后结束的未折扣任务]
+\label{ex:mrp-terminal}
+设只有非终止状态 $w$ 和终点 $z$。从 $w$ 出发，以概率 $1/2$ 留在 $w$ 并获得奖励 $-1$，以概率 $1/2$ 进入 $z$ 并获得奖励 $4$；终止之后奖励恒为零。求 $\gamma=1$ 时的价值。
+\end{example}
+
+\begin{solve}
+每一步从 $w$ 出发的期望奖励为 $r(w)=(-1)/2+4/2=3/2$，非终止子矩阵为 $Q=(1/2)$。由式\eqref{eq:mrp-transient-system}，
+\[
+  v(w)=\frac{3/2}{1-1/2}=3,\qquad \mathbb E_w[T]=\frac{1}{1-1/2}=2.
+\]
+也可直接验证：贝尔曼方程为 $v(w)=\tfrac12[-1+v(w)]+\tfrac12[4+0]$，解仍是 $3$。从轨迹看，结束前平均经历一次奖励 $-1$ 的等待，最后领取一次 $4$，所以期望总奖励为 $3$。终点价值 $v(z)=0$，并不抹去进入终点时已经获得的 $4$。
+\end{solve}
+
+\subsection{为什么无限持续任务不能随意取一}
+
+单状态每步奖励 $1$ 的持续任务，在 $\gamma<1$ 时价值为 $1/(1-\gamma)$，但在 $\gamma=1$ 时总回报发散到正无穷。单状态奖励恒为零时，真实回报为零，然而未折扣贝尔曼方程变成 $v=v$，有任意多个代数解。这两个例子分别说明：失去折扣后，价值可能不再有限，贝尔曼方程也可能不再唯一确定价值。
+
+对于长期持续运行的系统，有时会改用\keyterm{平均奖励}（average reward）目标，例如研究极限
+\[
+  \lim_{H\to\infty}\frac1H
+  \mathbb E_s\!\left[\sum_{k=0}^{H-1}R_{k+1}\right]
+\]
+是否存在。它与未折扣总回报是不同目标：在每步奖励 $1$ 的例子中，平均奖励为 $1$，总回报却是无穷。不能通过把折扣公式中的 $\gamma$ 直接改成 $1$ 来完成这种目标转换。
+
+\section{模型未知时：怎样从样本估计价值}
+\label{sec:mrp-learning}
+
+前面的直接求解与同步迭代都假设 $P$ 和 $r$ 已知。实际任务常只有观测到的三元组 $(S_t,R_{t+1},S_{t+1})$，此时真实模型及真实价值仍是数学上定义的对象，而算法需要从有限数据构造估计。下面区分先估计模型和直接估计价值两条路线。
+
+\subsection{先估计转移与奖励，再求解}
+
+设数据中以状态 $s$ 为出发状态的转移数为 $N(s)$，其中转入 $s'$ 的次数为 $N(s,s')$。当 $N(s)>0$ 时，可用
+\begin{equation}
+  \widehat P(s'\mid s)=\frac{N(s,s')}{N(s)},\qquad
+  \widehat r(s)=\frac{1}{N(s)}\sum_{t:S_t=s}R_{t+1}
+  \label{eq:mrp-model-estimates}
+\end{equation}
+估计模型，再解 $\widehat{\boldsymbol v}=\widehat{\boldsymbol r}+\gamma\widehat P\widehat{\boldsymbol v}$。求和只覆盖数据中已经观察到奖励和下一状态的转移。若某状态从未被访问，就不能直接使用这些比值，也不能默认该状态奖励和转移已知；必须增加数据或明确额外的估计假设。
+
+这一过程包含两种不同误差：有限样本造成的模型估计误差，以及没有精确求解估计模型造成的数值误差。即使完全解出估计模型的贝尔曼方程，也不意味着已经得到真实模型的精确价值。以行随机的 $\widehat P$ 为例，由两个贝尔曼方程相减可得
+\begin{equation}
+  \|\widehat{\boldsymbol v}-\boldsymbol v\|_\infty
+  \leq\frac{\|\widehat{\boldsymbol r}-\boldsymbol r\|_\infty
+  +\gamma\|(\widehat P-P)\boldsymbol v\|_\infty}{1-\gamma}.
+  \label{eq:mrp-model-error}
+\end{equation}
+因为差向量等于 $\widehat{\boldsymbol r}-\boldsymbol r+\gamma\widehat P(\widehat{\boldsymbol v}-\boldsymbol v)+\gamma(\widehat P-P)\boldsymbol v$，取范数并移项即可。这个界解释了为什么较大的折扣因子还可能放大模型误差；它是理论关系，不是无需知道真实模型就能直接计算的误差证书。
+
+\subsection{蒙特卡洛：直接平均完整回报}
+
+\keyterm{蒙特卡洛评价}（Monte Carlo evaluation，MC）从完整轨迹的回报估计价值。最清楚的情形是从同一个状态 $s$ 独立启动 $N_{\mathrm{MC}}$ 次过程，得到回报 $G^{(1)},\ldots,G^{(N_{\mathrm{MC}})}$，并取
+\begin{equation}
+  \widehat v_{N_{\mathrm{MC}}}(s)
+  =\frac{1}{N_{\mathrm{MC}}}\sum_{i=1}^{N_{\mathrm{MC}}}G^{(i)}.
+  \label{eq:mrp-mc}
+\end{equation}
+若这些回报独立同分布且绝对可积，则由大数定律，当样本数 $N_{\mathrm{MC}}\to\infty$ 时，样本均值几乎必然趋于 $v(s)$；若二阶矩有限，则估计量的方差为 $\operatorname{Var}(G^{(1)})/N_{\mathrm{MC}}$。终止任务的完整回报可在一轮结束后算出，而持续任务通常需要截断，此时会引入式\eqref{eq:mrp-tail-bound}控制的截断误差。
+
+例如，从状态 $s$ 收集到三次完整回报 $4,6,5$，样本平均为 $5$；这只是基于当前数据的估计，并非已经证明真实价值为 $5$。一次回合内不同访问时刻的回报通常相关，不能不经分析就把它们当成独立样本来套用上述方差公式。更一般的首次访问或每次访问 MC 方法需要结合相应采样机制讨论。
+
+\subsection{时序差分：用一步奖励加下一状态估计}
+
+\keyterm{时序差分学习}（temporal-difference learning，TD）的基本表格方法 TD(0) 不等到整条轨迹结束，而用贝尔曼方程构造一步目标。记 $V_t(s)$ 为处理第 $t$ 个转移之前的价值估计，观察 $(S_t,R_{t+1},S_{t+1})$ 后，计算
+\begin{equation}
+  \delta_t=R_{t+1}+\gamma V_t(S_{t+1})-V_t(S_t),
+  \qquad
+  V_{t+1}(S_t)=V_t(S_t)+\alpha_t(S_t)\delta_t,
+  \label{eq:mrp-td}
+\end{equation}
+其他状态保持原估计不变。$\delta_t$ 是\keyterm{时序差分误差}（TD error），$\alpha_t(S_t)$ 是本次更新的\keyterm{步长}（step size）。终止转移中固定下一状态价值为零。用已有估计构造新的估计目标，称为\keyterm{自举}（bootstrapping）。
+
+若 $V_t$ 根据当前转移之前的历史形成，则给定该历史及 $S_t=s$，一步目标的条件期望为
+\[
+  \mathbb E[R_{t+1}+\gamma V_t(S_{t+1})\mid H_t]
+  =r(s)+\gamma\sum_{s'}P(s'\mid s)V_t(s').
+\]
+因而 TD 用随机样本近似一次贝尔曼更新。单个目标可以有很大噪声，单次更新也不保证更接近真实价值；收敛讨论必须同时控制步长、状态访问和模型条件。
+
+例如，在本文的有限状态、齐次、奖励有界、$\gamma<1$ 的条件下，若状态链不可约，从该 MRP 的持续轨迹采样，并采用表格表示及按各状态访问次数确定的步长 $\alpha_j(s)$，满足
+\begin{equation}
+  0<\alpha_j(s)\leq1,\qquad
+  \sum_{j=1}^{\infty}\alpha_j(s)=\infty,\qquad
+  \sum_{j=1}^{\infty}\alpha_j(s)^2<\infty,
+  \label{eq:mrp-td-stepsizes}
+\end{equation}
+则标准 TD(0) 收敛结论给出 $V_t(s)\to v(s)$ 几乎必然成立。不可约有限链保证各状态被无限次访问；$\alpha_j(s)=1/j$ 是一个满足上述条件的选择。这是随机逼近理论的结论，本文仅陈述这一充分条件下的结果，不展开证明；背景可参见文献\cite{sutton-barto-mrp}第六章。不可约性是这里为叙述简洁采用的充分条件，并非所有采样方案的必要条件；有重启或生成模型时也可以保证访问。固定不衰减的步长一般仍会保留随机波动，神经网络近似也不能直接套用上述表格收敛保证。
+
+MC 使用已经观察到的完整回报，TD 使用一步奖励加未来价值估计；前者依赖回合结束或截断，后者能在线更新并用于持续任务。两者都在估计同一个指定 MRP 的价值，区别在于利用数据的方式。本文只介绍方法原理，未把这些估计方法当作已运行的实验。
+
+\section{与马尔可夫决策过程和强化学习的联系}
+\label{sec:mrp-mdp}
+
+\subsection{固定策略怎样得到 MRP}
+
+\keyterm{马尔可夫决策过程}（Markov decision process，MDP）在状态演化中加入可选择的动作。设状态 $s$ 下可用动作集合为 $\mathcal A(s)$，环境的转移概率和期望奖励为
+\[
+  P(s'\mid s,a),\qquad
+  r(s,a)=\mathbb E[R_{t+1}\mid S_t=s,A_t=a].
+\]
+假设下一状态与奖励在给定当前状态、动作后满足齐次联合马尔可夫条件。固定一个\keyterm{平稳马尔可夫策略}（stationary Markov policy）$\pi$，即每步的动作条件分布只依赖当前状态，并且始终使用相同的概率 $\pi(a\mid s)$。对动作取平均得到
+\begin{equation}
+  \begin{aligned}
+    P_\pi(s'\mid s)&=\sum_{a\in\mathcal A(s)}\pi(a\mid s)P(s'\mid s,a),\\
+    r_\pi(s)&=\sum_{a\in\mathcal A(s)}\pi(a\mid s)r(s,a).
+  \end{aligned}
+  \label{eq:mrp-policy-induced}
+\end{equation}
+联合状态与奖励规律也按同样的动作概率混合，所以 $(\mathcal S,P_\pi,r_\pi,\gamma)$ 就是该策略诱导的 MRP。它的价值正是 MDP 的策略价值 $v_\pi$，满足
+\begin{equation}
+  v_\pi(s)=r_\pi(s)+\gamma\sum_{s'}P_\pi(s'\mid s)v_\pi(s').
+  \label{eq:mrp-policy-value}
+\end{equation}
+这个转化保留了按策略行动时的状态与奖励轨迹分布，因此也保留回报期望。
+
+例如，在工作状态 $A$，动作“运行”的期望奖励为 $2$，下一状态按 $(A,B)$ 的概率为 $(1/2,1/2)$；动作“休整”的期望奖励为 $0$，下一状态概率为 $(0,1)$。若策略以 $3/4$ 的概率运行、以 $1/4$ 的概率休整，则 $r_\pi(A)=3/2$，$P_\pi(A\mid A)=3/8$，$P_\pi(B\mid A)=5/8$。还需指定其他状态的规则，才能得到完整 MRP。动作并非毫无影响，而是其影响已经通过概率混合进入新的转移和奖励参数。
+
+\subsection{固定不等于确定，评价不等于控制}
+
+固定策略表示固定选择规则。确定性策略在每个状态指定一个动作，随机策略在每个状态指定一个分布；两者都可能是平稳策略，也都能在上述条件下诱导 MRP。确定性策略也不意味着每个状态只有一个可用动作，更不意味着环境转移确定。
+
+“固定策略后得到齐次 MRP”的前提不能省略。策略若显式依赖时间，诱导转移一般随时间改变；策略若依赖当前状态没有包含的历史，原状态上的过程甚至可能失去马尔可夫性。此时需要用非齐次模型，或者把必要的时间、记忆等信息并入状态。
+
+\keyterm{策略评价}（policy evaluation）是求给定策略诱导的 MRP 的价值，\keyterm{控制}（control）则还要比较和改变策略。前者是后者的重要组成部分，但二者不是同一个任务。仅有 $v_\pi(s)$ 通常不足以判断该选哪个动作，还需动作对应的转移和奖励信息，或相应的动作价值估计。MRP 本身没有待优化的动作，因此它也可以作为强化学习中的独立价值预测问题，而不必每次都附带策略优化。
+
+\section{练习与解答}
+\label{sec:mrp-exercises}
+
+\begin{example}[同一组数字换一种奖励时序]
+\label{ex:mrp-exercise-arrival}
+保留式\eqref{eq:mrp-example-p}的转移矩阵和 $\gamma=0.8$，但改为到达 $A$ 获得 $2$、到达 $B$ 获得 $0$。求新的奖励向量与价值，并与式\eqref{eq:mrp-example-answer}比较。
+\end{example}
+\begin{solve}
+此时 $\boldsymbol h=(2,0)^{\mathsf T}$，因此
+\[
+  \boldsymbol r_{\mathrm{in}}=P\boldsymbol h
+    =\begin{pmatrix}1\\1/2\end{pmatrix},\qquad
+  \boldsymbol v_{\mathrm{in}}=M\boldsymbol r_{\mathrm{in}}
+    =\begin{pmatrix}15/4\\25/8\end{pmatrix}.
+\]
+新的价值为 $3.75$ 和 $3.125$。原模型从 $A$ 出发必得第一步奖励 $2$，新模型第一步奖励还取决于下一状态；从 $B$ 出发则相反，原模型第一步没有收益，新模型有机会马上进入 $A$ 领奖。由原方程 $\boldsymbol v=\boldsymbol h+\gamma P\boldsymbol v$，以及 $P$ 与它的幂级数 $M$ 可交换，也可验证 $\boldsymbol v_{\mathrm{in}}=P\boldsymbol v=(\boldsymbol v-\boldsymbol h)/\gamma$。最后这个除法形式只适用于 $\gamma>0$。
+\end{solve}
+
+\begin{example}[用残差判断计算是否足够准确]
+对第\ref{sec:mrp-worked-example}节的原模型，某次计算得到 $\boldsymbol u=(4.9,2.4)^{\mathsf T}$。求它的贝尔曼残差，并给出最大分量误差的保证。
+\end{example}
+\begin{solve}
+有 $\boldsymbol r+0.8P\boldsymbol u=(4.92,2.42)^{\mathsf T}$，故 $\delta(\boldsymbol u)=0.02$。由式\eqref{eq:mrp-residual-bound}，误差不超过 $0.02/(1-0.8)=0.1$。真实价值为 $(5,2.5)^{\mathsf T}$，实际无穷范数误差恰为 $0.1$，说明这一界在本例中达到等号。
+\end{solve}
+
+\begin{example}[一次 TD 更新是否等于求出了价值]
+仍考虑原两状态模型，初始估计 $V(A)=V(B)=0$，观察到转移 $A\to B$ 及奖励 $2$，取步长 $\alpha=0.1$。写出更新结果，并解释它与真实价值的关系。
+\end{example}
+\begin{solve}
+一步目标为 $2+0.8V(B)=2$，TD 误差为 $2-0=2$，因此 $V(A)$ 更新为 $0+0.1\times2=0.2$，$V(B)$ 保持为零。$0.2$ 是处理一个样本后的估计，不是即时奖励 $2$，也不是真实价值 $5$。后续需要继续采样与更新，并满足相应的覆盖和步长条件，才有收敛依据。
+\end{solve}
+
+\begin{example}[终止奖励与吸收状态奖励的区别]
+某任务从状态 $s$ 必然在一步后结束并获得 $10$，之后没有收益，$\gamma=0.9$。求 $v(s)$ 与 $v(z)$；若错误地让吸收状态每一步都获得 $10$，结果会怎样？
+\end{example}
+\begin{solve}
+正确模型给出 $v(z)=0$、$v(s)=10+0.9\times0=10$。若保留进入终点的奖励 $10$，又令吸收状态此后每步奖励 $10$，则 $v(z)=10/(1-0.9)=100$，$v(s)=10+0.9\times100=100$。错误来自重复计算终点收益，不是折扣公式本身。
+\end{solve}
+
+\section{概念之间的依赖关系}
+\label{sec:mrp-connections}
+
+建立 MRP 时，先明确哪些信息构成状态，以及状态和奖励是否满足联合马尔可夫条件；再确定转移矩阵的方向、奖励对应的时间步、起始分布与终止规则；最后选择有限时域、折扣总回报或其他评价目标。完成这些建模约定后，$r(s)$ 是一步平均收益，$G_t$ 是未来轨迹的累计收益，$v(s)$ 是条件期望，贝尔曼方程则把这个期望分解为当前一步与下一状态两部分。
+
+对于有限状态、有界奖励和 $\gamma<1$ 的模型，矩阵级数给出存在性与唯一性，线性方程组提供直接求解方式，压缩性质提供迭代收敛依据，残差界提供可检查的数值精度标准。模型未知时，数据决定了可以如何估计这些对象，但不会改变奖励、回报与价值的定义。阅读不同资料时，最先应核对的是奖励时序与回报起点，再判断看似不同的公式是在描述同一模型，还是已经改变了计奖规则。
+
+\begin{thebibliography}{9}
+  \bibitem{silver-mrp}
+  David Silver.
+  \emph{Lecture 2: Markov Decision Processes}.
+  参见 Markov Reward Processes 部分及 Policies 部分；讲义采用
+  $R_s=\mathbb E[R_{t+1}\mid S_t=s]$ 的奖励约定。
+  \href{https://web.stanford.edu/class/cme241/lecture_slides/david_silver_slides/MDP.pdf}{斯坦福大学课程网站保存的讲义}.
+
+  \bibitem{sutton-barto-mrp}
+  Richard S. Sutton and Andrew G. Barto.
+  \emph{Reinforcement Learning: An Introduction}, 2nd edition.
+  MIT Press, 2018.
+  第三章讨论回报与价值，第四章讨论动态规划，第五、六章分别讨论 MC 与 TD。
+  \href{https://incompleteideas.net/book/the-book-2nd.html}{作者提供的教材入口}.
+\end{thebibliography}
+
+\end{document}
