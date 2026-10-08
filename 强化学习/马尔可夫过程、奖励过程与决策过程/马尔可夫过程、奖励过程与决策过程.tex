@@ -232,42 +232,213 @@ MRP 中的演化规律已经给定，这里是在评价收益，没有尚待优�
 \section{三者的联系：固定策略得到奖励过程}
 \label{sec:markov-three-connection}
 
-在一个齐次 MDP 中固定平稳马尔可夫策略 $\pi$ 后，动作虽仍可能随机，但选择动作的概率已经确定。对动作应用全概率公式和全期望公式，得到
+\subsection{为什么要把决策过程转化为奖励过程}
+
+第~\ref{sec:markov-three-mrp} 节已经讨论了一个问题：状态转移和奖励规律给定以后，怎样计算长期收益？第~\ref{sec:markov-three-mdp} 节进一步允许选择动作，并引入策略来规定选择规则。于是还需要回答：\keyterm{如果以后一直按照某条策略行动，从当前状态出发的长期收益是多少？}例如，要比较“正常时不额外维修、故障时维修”和“始终不额外维修”两条规则，就需要先分别评价它们的长期效果。
+
+本节的作用是把这两个问题连接起来。在齐次 MDP 中固定一条平稳马尔可夫策略后，环境如何响应动作、智能体如何选择动作，这两部分规律都已经确定。把它们结合，就能直接描述“当前状态下会获得怎样的奖励、接下来会转移到哪里”，从而得到一个 MRP。计算这个 MRP 的价值，就等于计算所选策略的价值。因此，本节先说明固定策略的含义，再推导转换公式，通过三种维修策略逐行计算，最后回到策略评价。
+
+\subsection{固定策略究竟固定了什么}
+
+在本文考虑的平稳马尔可夫策略中，$\pi(a\mid s)$ 表示处于状态 $s$ 时选择动作 $a$ 的概率。“马尔可夫”要求这组概率只依据当前状态，不额外依赖此前的交互历史；“平稳”要求同一状态下的这组概率不随时间改变。\keyterm{固定一条这样的策略，就是选定这套规则，并在评价过程中始终使用它。}这既不要求不同状态选择相同动作，也不要求每个状态只有一个可用动作。
+
+例如，故障状态下可以同时允许“不额外维修”与“维修”两个动作。固定规则 $\pi(a_1\mid\mathrm F)=0.7$、$\pi(a_0\mid\mathrm F)=0.3$ 后，每次遇到故障，都按照这组概率随机选择；某次可能维修，另一次可能不额外维修。可以把选择过程想成从装有七个“维修”签和三个“不额外维修”签的盒子里等概率抽取一个签，执行后放回，下次仍按同样方式抽取。盒内比例不变，对应选择规则固定；抽到的签可以不同，对应实际动作仍有随机性。这不要求每十次故障恰好维修七次。
+
+\begin{remarkbox}[label={rem:markov-three-fixed-policy}]{固定策略与随机策略并不相对}
+\keyterm{确定性策略}（deterministic policy）在每个状态都以概率 $1$ 选择某一个动作；\keyterm{随机策略}（stochastic policy）则至少在某个状态以正概率选择不同动作。这一区分描述的是动作选择是否具有随机性。固定策略与更新策略描述的则是是否改变所采用的选择规则。因此，确定性策略和随机策略都可以先被固定下来，再进行评价。即使采用确定性策略，环境仍可能随机转移；“故障时一定维修”也不意味着“维修后一定恢复正常”。
+
+\tcblower
+“固定一条策略”与“策略平稳”也应区分。可以预先规定“第一天故障时以 $0.7$ 的概率维修，此后故障时以 $0.2$ 的概率维修”，并固定执行这套时间安排；但这是一条\keyterm{非平稳策略}（nonstationary policy）。本节使用的是更具体的条件：固定一条\keyterm{平稳马尔可夫策略}。如果规则规定故障时一定维修，仍然只是策略不选择另一个可用动作，并没有改变环境允许的动作集合。
+\end{remarkbox}
+
+\begin{remarkbox}[label={rem:markov-three-environment-policy}]{齐次环境与平稳策略约束的是不同对象}
+齐次 MDP 约束环境：对于同一个状态和动作，下一状态与本步奖励的联合条件分布不随时间改变。平稳马尔可夫策略约束智能体：给定当前状态，动作选择概率不随时间改变，也不额外依赖历史。$P(s'\mid s,a)$ 回答“采取动作后，环境转移到哪里”，$\pi(a\mid s)$ 回答“当前会选择哪个动作”，二者不是同一个条件。
+
+例如，环境可以始终保持“故障且维修后，以 $0.9$ 的概率恢复正常”，而管理者每天改变维修概率，此时齐次环境可以配合非平稳策略；也可以始终按 $0.7$ 的概率选择维修，但环境在同一状态、动作下的恢复概率随时间变化，此时策略平稳而环境不齐次。这两个条件不能互相推出。本节同时要求二者成立，是为了保证合并后的状态与奖励规律不随时间改变。
+\end{remarkbox}
+
+\subsection{对动作求平均，得到转移概率和期望奖励}
+
+固定策略后，从状态 $s$ 出发的一步演化仍分成两个环节：先按 $\pi(a\mid s)$ 选择动作 $a$，再由环境按该状态、动作对应的规律产生奖励和下一状态。记 $P_\pi(s'\mid s)$ 为执行策略时从 $s$ 到 $s'$ 的转移概率，$r_\pi(s)$ 为执行策略时在 $s$ 获得的期望即时奖励。下标 $\pi$ 表明这两个量随所选策略而定；$\Pr_\pi$ 和 $\mathbb E_\pi$ 分别表示该策略下的概率和期望。
+
+计算下一状态为 $s'$ 的概率时，可以把不同动作看成互斥且穷尽的分支。每个分支上，先乘以选择该动作的概率，再乘以采取该动作后到达 $s'$ 的概率，最后把所有分支相加。这是对动作使用全概率公式；对奖励使用全期望公式，得到
 \begin{equation}
   \begin{aligned}
     P_\pi(s'\mid s)
+      &=\Pr_\pi(S_{t+1}=s'\mid S_t=s)\\
       &=\sum_{a\in\mathcal A(s)}\pi(a\mid s)P(s'\mid s,a),\\
     r_\pi(s)
+      &=\mathbb E_\pi[R_{t+1}\mid S_t=s]\\
       &=\sum_{a\in\mathcal A(s)}\pi(a\mid s)r(s,a).
   \end{aligned}
   \label{eq:markov-three-induced}
 \end{equation}
-这两个量只依赖当前状态，且不随时间改变；下一状态与奖励的联合分布也可按同样的动作概率进行混合。因此，固定策略后的系统构成 MRP $(\mathcal S,P_\pi,r_\pi,\gamma)$，该 MRP 的价值恰好是原 MDP 中的 $v_\pi$。
+第二个公式平均的是不同动作对应的期望即时奖励，并不是把它们不加权地相加。若策略在 $s$ 以概率 $1$ 选择动作 $a_*$，两式便分别简化为 $P_\pi(s'\mid s)=P(s'\mid s,a_*)$ 和 $r_\pi(s)=r(s,a_*)$；随机策略则要保留所有具有正选择概率的动作分支。
 
-在机器模型中，若采用“正常时不额外维修，故障时维修”的策略，则按照“正常、故障”的行列顺序，有
+这些转移概率非负，而且
 \[
-  P_\pi=\begin{pmatrix}0.9&0.1\\0.9&0.1\end{pmatrix},
-  \qquad
-  \begin{pmatrix}r_\pi(\mathrm N)\\r_\pi(\mathrm F)\end{pmatrix}
-    =\begin{pmatrix}100\\-60\end{pmatrix}.
+  \sum_{s'\in\mathcal S}P_\pi(s'\mid s)
+  =\sum_{a\in\mathcal A(s)}\pi(a\mid s)
+    \underbrace{\sum_{s'\in\mathcal S}P(s'\mid s,a)}_{=1}
+  =1,
 \]
-如果改为两种状态下都不额外维修，就重新得到第~\ref{sec:markov-three-mrp} 节的 MRP。若故障时以 $0.7$ 的概率维修，则该状态下
-\[
-  P_\pi(\mathrm N\mid\mathrm F)=0.7\times0.9+0.3\times0.4=0.75,
-  \qquad
-  r_\pi(\mathrm F)=0.7\times(-60)+0.3\times(-20)=-48.
-\]
-还须指定正常状态下的规则，才能确定完整策略及其诱导的 MRP。这说明“对动作求平均”是在计算什么，而不是把动作随意删掉。
+所以 $P_\pi$ 确实给出了合法的转移概率。“只依赖当前状态”是指：指定要预测的下一状态 $s'$ 后，计算转移概率所需的历史信息只有当前状态 $s$；它不表示概率与目标状态 $s'$ 无关。由于环境齐次、策略平稳，同一当前状态对应的规律每天相同。
 
-将式~\eqref{eq:markov-three-induced} 代入式~\eqref{eq:markov-three-mrp-bellman}，得到 MDP 在固定策略下的贝尔曼期望方程：
+要说明整个系统构成 MRP，还应同时考虑下一状态与奖励。例如，把“下一状态为 $s'$，且本步奖励落在某个给定区间”作为一个联合事件，同样可以先按动作分支计算其概率，再按 $\pi(a\mid s)$ 加权。对于任意可行历史，动作概率只依赖当前状态，而给定状态和动作后的环境规律不再依赖历史，因此混合后的联合规律也只依赖当前状态，并且不随时间改变。这满足第~\ref{sec:markov-three-mrp} 节的 MRP 条件，不需要假设本步奖励与下一状态相互独立。
+
+于是，对于本文的期望折扣收益问题，固定策略后的过程可表示为
+\[
+  (\mathcal S,P_\pi,r_\pi,\gamma).
+\]
+状态空间和折扣因子保持不变，动作的影响已经包含在 $P_\pi$ 和 $r_\pi$ 中。这里并没有停止执行动作，而是把动作这一中间环节合并进状态和奖励的演化规律；$P_\pi$ 与 $r_\pi$ 足以用于计算期望折扣回报，但它们本身不记录奖励与下一状态联合分布的全部信息。
+
+\subsection{三种维修策略的转移矩阵和奖励怎样计算}
+
+沿用表~\ref{tab:markov-three-maintenance} 中的机器环境，$\mathrm N$ 表示正常，$\mathrm F$ 表示故障，$a_0$ 表示不额外维修，$a_1$ 表示维修。表中的概率与净奖励是预先给定的模型数据；策略决定选取哪些数据，或用什么权重将它们组合。以下用 $\pi_1,\pi_2,\pi_3$ 区分三条策略，避免把它们对应的 MRP 混为一谈。
+
+每个转移矩阵都按“正常、故障”的顺序排列行与列：行对应今天的状态，列对应明天的状态。将期望奖励函数在两个状态上的取值组成列向量 $\boldsymbol r_\pi$，则待填写的对象为
+\begin{equation}
+  P_\pi=
+  \begin{pmatrix}
+    P_\pi(\mathrm N\mid\mathrm N)&P_\pi(\mathrm F\mid\mathrm N)\\
+    P_\pi(\mathrm N\mid\mathrm F)&P_\pi(\mathrm F\mid\mathrm F)
+  \end{pmatrix},
+  \qquad
+  \boldsymbol r_\pi=
+  \begin{pmatrix}r_\pi(\mathrm N)\\r_\pi(\mathrm F)\end{pmatrix}.
+  \label{eq:markov-three-matrix-entries}
+\end{equation}
+分别确定正常和故障状态下的转移与奖励，就能填好这两个对象。只规定一个状态下的行动规则，只能确定对应的一行和一个奖励分量。
+
+\begin{example}[正常时不额外维修，故障时维修]
+\label{ex:markov-three-policy-repair}
+策略 $\pi_1$ 规定
+\[
+  \pi_1(a_0\mid\mathrm N)=1,\quad
+  \pi_1(a_1\mid\mathrm N)=0,\qquad
+  \pi_1(a_0\mid\mathrm F)=0,\quad
+  \pi_1(a_1\mid\mathrm F)=1.
+\]
+今天正常时，确定选择 $a_0$，读取表~\ref{tab:markov-three-maintenance} 中 $(\mathrm N,a_0)$ 对应的数据：明天正常、故障的概率分别为 $0.9,0.1$，当天净奖励为 $100$。今天故障时，确定选择 $a_1$，读取 $(\mathrm F,a_1)$ 对应的数据：明天正常、故障的概率分别为 $0.9,0.1$，当天净奖励为 $-60$。按照式~\eqref{eq:markov-three-matrix-entries} 的顺序填入，得到
+\begin{equation}
+  P_{\pi_1}=\begin{pmatrix}0.9&0.1\\0.9&0.1\end{pmatrix},
+  \qquad
+  \boldsymbol r_{\pi_1}=\begin{pmatrix}100\\-60\end{pmatrix}.
+  \label{eq:markov-three-policy-repair-mrp}
+\end{equation}
+这也可以直接由加权公式核对。例如，在故障状态下，
+\[
+  P_{\pi_1}(\mathrm N\mid\mathrm F)=0\times0.4+1\times0.9=0.9,
+  \qquad
+  r_{\pi_1}(\mathrm F)=0\times(-20)+1\times(-60)=-60.
+\]
+确定性策略的权重只有 $0$ 和 $1$，所以加权平均退化为直接选取数据。矩阵两行相同，只是“正常且不额外维修”与“故障且维修”在本模型中恰好具有相同的下一状态分布；两种情形的当前状态、动作和当天奖励仍然不同。维修成本已计入净奖励，不能再重复扣除。
+\end{example}
+
+\begin{example}[正常和故障时都不额外维修]
+\label{ex:markov-three-policy-no-repair}
+策略 $\pi_2$ 在两个状态下都以概率 $1$ 选择 $a_0$。今天正常时，仍读取表~\ref{tab:markov-three-maintenance} 中 $(\mathrm N,a_0)$ 对应的数据，得到转移概率 $(0.9,0.1)$ 和奖励 $100$；今天故障时，改为读取 $(\mathrm F,a_0)$ 对应的数据，得到转移概率 $(0.4,0.6)$ 和奖励 $-20$。因此
+\begin{equation}
+  P_{\pi_2}=\begin{pmatrix}0.9&0.1\\0.4&0.6\end{pmatrix},
+  \qquad
+  \boldsymbol r_{\pi_2}=\begin{pmatrix}100\\-20\end{pmatrix}.
+  \label{eq:markov-three-policy-no-repair-mrp}
+\end{equation}
+与 $\pi_1$ 相比，只有故障时的动作改变，所以只有转移矩阵的第二行与奖励向量的第二项改变。这恰好恢复第~\ref{sec:markov-three-mrp} 节的机器 MRP，说明前面给定的运行制度可以看成这个 MDP 始终执行 $a_0$ 所产生的规律。这里“不额外维修”仍允许既定运行制度下的恢复机制，并不意味着故障状态无法恢复。
+\end{example}
+
+\begin{example}[正常时不额外维修，故障时随机选择]
+\label{ex:markov-three-policy-random}
+策略 $\pi_3$ 规定正常时一定不额外维修，故障时以 $0.7$ 的概率维修、以 $0.3$ 的概率不额外维修，即
+\[
+  \pi_3(a_0\mid\mathrm N)=1,\quad
+  \pi_3(a_1\mid\mathrm N)=0,\qquad
+  \pi_3(a_0\mid\mathrm F)=0.3,\quad
+  \pi_3(a_1\mid\mathrm F)=0.7.
+\]
+正常时仍直接得到转移概率 $(0.9,0.1)$ 和奖励 $100$。故障时则不能只取某一个动作对应的数据，而要把两个动作的后果按选择概率加权。明天正常可以经由两条互斥路径实现：“今天维修且明天正常”或者“今天不额外维修且明天正常”；明天故障也可以按相同方式分类。因此
+\begin{equation}
+  \begin{aligned}
+    P_{\pi_3}(\mathrm N\mid\mathrm F)
+      &=\underbrace{0.7\times0.9}_{\text{维修且明天正常}}
+        +\underbrace{0.3\times0.4}_{\text{不额外维修且明天正常}}
+        =0.75,\\
+    P_{\pi_3}(\mathrm F\mid\mathrm F)
+      &=\underbrace{0.7\times0.1}_{\text{维修且明天故障}}
+        +\underbrace{0.3\times0.6}_{\text{不额外维修且明天故障}}
+        =0.25,\\
+    r_{\pi_3}(\mathrm F)
+      &=0.7\times(-60)+0.3\times(-20)=-48.
+  \end{aligned}
+  \label{eq:markov-three-policy-random-mixture}
+\end{equation}
+前两式中的 $0.7$ 和 $0.3$ 来自策略，其余概率来自环境。第三式中的 $-60$ 和 $-20$ 是环境表中已计入成本的净奖励。故障时的实际奖励仍为 $-60$ 或 $-20$；$-48$ 只是按照所选动作概率计算出的期望即时奖励，并不是每次都能得到的奖励，更不是长期价值。完整结果为
+\begin{equation}
+  P_{\pi_3}=\begin{pmatrix}0.9&0.1\\0.75&0.25\end{pmatrix},
+  \qquad
+  \boldsymbol r_{\pi_3}=\begin{pmatrix}100\\-48\end{pmatrix}.
+  \label{eq:markov-three-policy-random-mrp}
+\end{equation}
+如果只说“故障时以 $0.7$ 的概率维修”，就只能确定第二行和第二个奖励分量；本例补充“正常时一定不额外维修”，才得到完整策略及其对应的 MRP。三条策略都没有改变原始环境表，改变的是如何从该表中选取或加权组合数据。
+\end{example}
+
+\subsection{由奖励过程回到策略价值}
+
+上述转换并未改变实际运行机制：在原 MDP 中持续执行策略 $\pi$，与在它所诱导的 MRP 中运行，具有相同的状态和奖励序列分布。前者显式记录动作选择，后者把该环节合并进转移与奖励规律。因此，从同一状态出发的期望折扣回报相同，该 MRP 的价值就是式~\eqref{eq:markov-three-policy-value} 中的 $v_\pi$。沿用有界奖励和 $0\leq\gamma<1$ 的条件，这一期望有限。
+
+在式~\eqref{eq:markov-three-mrp-bellman} 中使用该 MRP 的转移概率和期望奖励，得到
+\begin{equation}
+  v_\pi(s)=r_\pi(s)+\gamma\sum_{s'\in\mathcal S}P_\pi(s'\mid s)v_\pi(s').
+  \label{eq:markov-three-induced-bellman}
+\end{equation}
+再代入式~\eqref{eq:markov-three-induced}，将两个有限动作求和合并，就得到 MDP 在固定策略下的\keyterm{贝尔曼期望方程}（Bellman expectation equation）：
 \begin{equation}
   v_\pi(s)=\sum_{a\in\mathcal A(s)}\pi(a\mid s)
   \left[r(s,a)+\gamma\sum_{s'\in\mathcal S}P(s'\mid s,a)v_\pi(s')\right].
   \label{eq:markov-three-policy-bellman}
 \end{equation}
-外层平均对应策略选择动作的随机性，内层平均对应环境转移的随机性。因而，评价一条固定策略，可以转化为计算它所诱导的 MRP 的价值。
+方括号内先计算“当前采取动作 $a$、此后继续执行 $\pi$”的期望收益，内层求和平均环境导致的下一状态随机性；外层求和再按策略选择动作的概率平均。式~\eqref{eq:markov-three-induced-bellman} 先把动作影响合并，式~\eqref{eq:markov-three-policy-bellman} 则保留两层平均，它们是同一价值关系的两种写法。
 
-上述结论中的策略条件不能省略。若固定的是随时间变化的马尔可夫策略，通常得到随时间变化的转移规律；若策略依赖未包含在当前状态中的历史，单看 $S_t$ 的状态序列甚至可能不再满足马尔可夫性质。因此，“MDP 固定任意策略后都是齐次马尔可夫过程”并不准确。
+例如，在例~\ref{ex:markov-three-policy-random} 的故障状态下，取 $\gamma=0.9$，上述两种写法分别表现为
+\begin{equation}
+  \begin{aligned}
+    v_{\pi_3}(\mathrm F)
+      ={}&0.7\left[-60+0.9\bigl(0.9v_{\pi_3}(\mathrm N)+0.1v_{\pi_3}(\mathrm F)\bigr)\right]\\
+         &+0.3\left[-20+0.9\bigl(0.4v_{\pi_3}(\mathrm N)+0.6v_{\pi_3}(\mathrm F)\bigr)\right]\\
+      ={}&-48+0.9\bigl(0.75v_{\pi_3}(\mathrm N)+0.25v_{\pi_3}(\mathrm F)\bigr).
+  \end{aligned}
+  \label{eq:markov-three-random-bellman}
+\end{equation}
+前两行分别考虑维修与不额外维修，最后一行先合并它们的影响。$0.7$ 和 $0.3$ 是动作概率；每个方括号内乘在下一状态价值平均前的 $0.9$ 是折扣因子；维修分支中乘在 $v_{\pi_3}(\mathrm N)$ 前的另一个 $0.9$ 则是恢复正常的概率。所有下一状态价值仍带下标 $\pi_3$，因为明天及以后继续执行同一条策略。
+
+为了看到“得到 MRP”以后如何完成评价，再对例~\ref{ex:markov-three-policy-repair} 的确定性策略 $\pi_1$ 取 $\gamma=0.9$。将式~\eqref{eq:markov-three-policy-repair-mrp} 代入贝尔曼方程，得到两个未知价值的线性方程组：
+\begin{equation}
+  \begin{aligned}
+    v_{\pi_1}(\mathrm N)&=100+0.9\bigl(0.9v_{\pi_1}(\mathrm N)+0.1v_{\pi_1}(\mathrm F)\bigr),\\
+    v_{\pi_1}(\mathrm F)&=-60+0.9\bigl(0.9v_{\pi_1}(\mathrm N)+0.1v_{\pi_1}(\mathrm F)\bigr).
+  \end{aligned}
+  \label{eq:markov-three-repair-bellman}
+\end{equation}
+两式相减，得 $v_{\pi_1}(\mathrm N)-v_{\pi_1}(\mathrm F)=160$。把 $v_{\pi_1}(\mathrm F)=v_{\pi_1}(\mathrm N)-160$ 代入第一式，得到
+\[
+  v_{\pi_1}(\mathrm N)=100+0.9\bigl(v_{\pi_1}(\mathrm N)-16\bigr),
+  \qquad
+  0.1v_{\pi_1}(\mathrm N)=85.6.
+\]
+所以
+\begin{equation}
+  v_{\pi_1}(\mathrm N)=856,\qquad v_{\pi_1}(\mathrm F)=696.
+  \label{eq:markov-three-repair-values}
+\end{equation}
+这两个数表示从正常或故障状态出发，此后一直执行 $\pi_1$ 的无限时域期望折扣净收益，单位为元。它们与即时奖励 $100,-60$ 含义不同，也不同于前文只考虑两天的收益；故障时当天亏损，长期价值仍可能为正，因为维修后可能恢复正常并在后续持续获得收益。这一计算完成了策略评价，但没有通过比较或最优性证明说明 $\pi_1$ 是最优策略。
+
+\begin{remarkbox}[label={rem:markov-three-mrp-evaluation}]{MRP 是评价所依据的模型，不是评价算法}
+MRP 描述既定运行规律下的状态变化与奖励，本身可以直接建立，无须先给出一个决策问题。固定策略所诱导的 MRP 是其中一种来源；求解其贝尔曼方程或利用采样经验估计价值，才是具体的评价方法。因此，“MRP 可以用来评价策略”在本节语境下正确，但 MRP 的含义并不限于策略评价。
+
+评价已有策略回答“这套规则的长期收益是多少”，改进策略则回答“怎样改变规则才能获得更高的期望收益”。强化学习中的预测方法可以只做前者，控制方法则进一步寻找更好的策略；优化的是期望收益，不保证每次实际运行都取得最大收益。转换为 MRP 本身既没有找到最优策略，也没有自动算出价值，它使已有的收益分析方法能够用于所选策略。
+\end{remarkbox}
+
+上述转换条件不能省略。若固定的是非平稳马尔可夫策略，通常得到随时间变化的转移与奖励规律；若策略依赖未包含在当前状态中的历史，单看 $S_t$ 的状态序列甚至可能不再满足马尔可夫性质。因此，准确的关系是在齐次 MDP 中固定平稳马尔可夫策略得到齐次 MRP；进一步忽略奖励，只保留状态演化，就得到 MP。
 
 \section{概念对照与强化学习的位置}
 \label{sec:markov-three-summary}
