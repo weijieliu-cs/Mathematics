@@ -1,0 +1,807 @@
+\documentclass[UTF8]{ctexart}
+
+% 支持从项目根目录、概率论与数理统计目录或当前笔记目录读取共享样式。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{贝叶斯公式}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{从观察结果到更新判断}
+\label{sec:bayes-introduction}
+
+有两枚硬币：一枚公平，另一枚出现正面的概率为 $3/4$。
+先等可能地选取其中一枚，再连续抛掷这枚硬币三次，结果都是正面。
+观察之前，两枚硬币被选中的概率都是 $1/2$；观察之后，是否仍应当认为两种可能各占一半？
+偏硬币更容易产生连续正面，因此这条观察应当使我们更倾向于认为选中了偏硬币。
+但是公平硬币也能产生连续正面，所以不能仅凭这条观察断定选中的一定是偏硬币。
+怎样把这种判断写成准确的概率计算，就是本文要解决的问题。
+
+\keyterm{贝叶斯公式}（Bayes' formula）描述如何把已有信息与新证据结合起来，
+得到事件在新证据下的条件概率。
+它把“某种假设成立时，出现这条证据的概率”与“已经看到这条证据时，该假设成立的概率”联系起来。
+这两个问题中的条件不同，答案通常也不同。
+贝叶斯公式是条件概率定义的推论，不需要假定被研究的事件之间存在因果关系。
+
+本文以本科概率论中的事件形式为主，只需集合、分数和初等代数知识。
+先建立条件概率与全概率公式，再推导贝叶斯公式，随后通过例题解释先验、似然、后验、证据强度与连续更新。
+最后说明常见误区，并给出带解答的练习。
+所有抽样和检测例题的参数都是题设中的假想数值，不代表现实设备的测量结果。
+
+全文用 $\Omega$ 表示\keyterm{样本空间}（sample space），用 $A,B,H_i,E$ 等大写字母表示事件，
+用 $P$ 表示同一概率模型中的概率。
+$A\cap B$ 表示两事件同时发生，$A^c=\Omega\setminus A$ 表示 $A$ 的补事件。
+一般概率模型中的事件属于给定的事件族；有限样本空间中，可以把每个子集都作为事件。
+条件竖线右边写已知信息，左边写在这些信息下仍要判断的事件。
+
+\section{条件概率：把注意力限制在已知事件之内}
+\label{sec:bayes-conditional}
+
+\subsection{定义与直观解释}
+
+\begin{definition}[条件概率]
+\label{def:bayes-conditional}
+设 $A,B$ 是事件，且 $P(B)>0$。给定 $B$ 时 $A$ 的\keyterm{条件概率}（conditional probability）定义为
+\begin{equation}
+  P(A\mid B)=\frac{P(A\cap B)}{P(B)}.
+  \label{eq:bayes-conditional}
+\end{equation}
+\end{definition}
+
+一旦已知 $B$ 发生，$B$ 之外的结果就与当前信息不相容。
+在剩下的结果中，既属于 $A$ 又属于 $B$ 的部分是 $A\cap B$。
+它在原模型中的概率是 $P(A\cap B)$，而保留下来的全部概率是 $P(B)$；
+两者相除，就得到在新条件下 $A$ 所占的比例。
+这种“先限制范围，再把总概率调整为 $1$”的操作称为\keyterm{归一化}（normalization）。
+
+若有限样本空间中的基本结果等可能，式~\eqref{eq:bayes-conditional} 可以写成
+\[
+  P(A\mid B)=\frac{|A\cap B|}{|B|}.
+\]
+这里 $|C|$ 表示集合 $C$ 的元素个数。
+如果基本结果不等可能，就必须按概率加权，不能直接用元素个数代替概率。
+
+\begin{example}[两个方向的条件概率]
+\label{ex:bayes-die}
+掷一次公平六面骰子，令 $A$ 为“点数是 $6$”，$B$ 为“点数是偶数”。求 $P(A\mid B)$ 与 $P(B\mid A)$。
+\end{example}
+\begin{solve}
+已知点数是偶数时，可能结果为 $\{2,4,6\}$，它们仍然等可能，所以
+\[
+  P(A\mid B)=\frac13.
+\]
+已知点数是 $6$ 时，它一定是偶数，所以
+\[
+  P(B\mid A)=1.
+\]
+同一对事件，仅仅交换条件的位置，所考虑的范围就不同，因此答案可以相差很大。
+\end{solve}
+
+\subsection{乘法公式与独立性}
+
+\begin{proposition}[两个事件的乘法公式]
+\label{prop:bayes-product}
+若 $P(B)>0$，则 $P(A\cap B)=P(B)P(A\mid B)$。
+若还满足 $P(A)>0$，则
+\begin{equation}
+  P(A\cap B)=P(B)P(A\mid B)=P(A)P(B\mid A).
+  \label{eq:bayes-product}
+\end{equation}
+\end{proposition}
+\begin{proof}
+把条件概率定义的两边乘以分母，即得第一式；交换 $A,B$ 的位置，再作同样处理，即得第二种分解。
+\end{proof}
+
+乘法公式表示同一个联合事件可以按两种顺序计算：先考虑 $A$ 的概率，
+再考虑已经发生 $A$ 时 $B$ 的概率；也可以先考虑 $B$，再考虑给定 $B$ 时 $A$ 的概率。
+这种计算顺序不必是事件在时间上的发生顺序。
+例如，已知第二次抽球的颜色，可以反过来计算第一次抽球颜色的条件概率。
+
+\begin{definition}[事件的独立性]
+事件 $A,B$ \keyterm{相互独立}（independent），是指
+\[
+  P(A\cap B)=P(A)P(B).
+\]
+当 $P(B)>0$ 时，这等价于 $P(A\mid B)=P(A)$。
+\end{definition}
+
+独立性表示获知 $B$ 不会改变 $A$ 的概率。
+一般的乘法公式不需要独立性；只有在独立时，才能进一步把其中的条件概率换成无条件概率。
+贝叶斯公式同样不要求事件独立，更新有意义的情形通常恰好涉及有信息关联的事件。
+
+\section{全概率公式：汇总证据出现的所有途径}
+\label{sec:bayes-total}
+
+\subsection{事件划分与加权求和}
+
+\begin{definition}[样本空间的有限划分]
+事件 $H_1,\ldots,H_m$ 构成 $\Omega$ 的一个\keyterm{划分}（partition），是指
+\[
+  H_i\cap H_j=\varnothing\quad(i\ne j),
+  \qquad \bigcup_{i=1}^{m}H_i=\Omega.
+\]
+前一个条件表示不同类别不能同时成立，后一个条件表示没有遗漏可能结果。
+\end{definition}
+
+在应用中，$H_i$ 可以表示产品的来源、所选袋子的编号、硬币的种类等。
+划分类别时，既要避免重叠，又要保证覆盖全部可能。
+例如“来自工厂甲”“是次品”通常不能作为两个划分类别，因为二者可以同时发生。
+
+\begin{theorem}[全概率公式]
+\label{thm:bayes-total}
+设 $H_1,\ldots,H_m$ 构成 $\Omega$ 的划分，且 $P(H_i)>0$。
+对任意事件 $E$，有
+\begin{equation}
+  P(E)=\sum_{i=1}^{m}P(E\mid H_i)P(H_i).
+  \label{eq:bayes-total}
+\end{equation}
+\end{theorem}
+\begin{proof}
+由于每个结果恰好属于一个类别，
+\[
+  E=\bigcup_{i=1}^{m}(E\cap H_i),
+\]
+且右边各事件两两互斥。由概率的有限可加性与乘法公式，
+\[
+  P(E)=\sum_{i=1}^{m}P(E\cap H_i)
+      =\sum_{i=1}^{m}P(E\mid H_i)P(H_i).
+\]
+\end{proof}
+
+式~\eqref{eq:bayes-total} 是按类别概率作加权平均。
+每一项 $P(H_i)P(E\mid H_i)$ 都表示“属于第 $i$ 类且证据出现”的概率，
+把所有互斥途径的概率相加，就得到证据出现的总概率。
+除非各类本来等可能，否则不能把各条件概率直接作算术平均。
+
+若只有 $H$ 与 $H^c$ 两种情形，并且 $0<P(H)<1$，则
+\begin{equation}
+  P(E)=P(E\mid H)P(H)+P(E\mid H^c)P(H^c).
+  \label{eq:bayes-total-binary}
+\end{equation}
+划分类别中的正概率条件是为了使这些条件概率都有定义。
+若某一类概率为零，它与 $E$ 的交集概率也为零，可以从求和中删去，不能直接把未定义的条件概率乘以零。
+对可数无穷个正概率类别，全概率公式也成立，证明使用可数可加性；本文的计算以有限类别为主。
+
+\subsection{一个正向计算}
+
+假设一批产品中 $60\%$ 来自甲厂、$40\%$ 来自乙厂，两厂的次品率分别为 $1\%$ 与 $3\%$。
+从混合后的产品中等可能地抽取一件，记 $E$ 为“抽到次品”。由全概率公式，
+\[
+  P(E)=0.6\times0.01+0.4\times0.03=0.018.
+\]
+混合产品的次品率为 $1.8\%$，不是 $(1\%+3\%)/2=2\%$。
+全概率公式在这里回答“知道各个来源及其比例，最终抽到次品的概率是多少”。
+接下来若反过来问“已经抽到次品，它来自乙厂的概率是多少”，就需要贝叶斯公式。
+
+\section{贝叶斯公式的推导与含义}
+\label{sec:bayes-formula}
+
+\subsection{两个事件的形式}
+
+\begin{theorem}[贝叶斯公式]
+\label{thm:bayes-basic}
+设 $H,E$ 是事件，且 $P(H)>0$、$P(E)>0$，则
+\begin{equation}
+  P(H\mid E)=\frac{P(E\mid H)P(H)}{P(E)}.
+  \label{eq:bayes-basic}
+\end{equation}
+\end{theorem}
+\begin{proof}
+同一联合事件 $H\cap E$ 的概率满足
+\[
+  P(H\mid E)P(E)=P(H\cap E)=P(E\mid H)P(H).
+\]
+由于 $P(E)>0$，两边除以 $P(E)$ 即得结论。
+\end{proof}
+
+这个推导表明，贝叶斯公式不需要额外的独立性假设，也不依赖某种特殊的计数模型。
+它的作用在于：有时 $P(H\mid E)$ 很难直接判断，而假设 $H$ 已知后，$P(E\mid H)$ 容易由试验机制计算。
+这时可以先计算后者，再结合先验与证据总概率求前者。
+
+\subsection{先验、似然、证据与后验}
+
+表~\ref{tab:bayes-terms} 整理了式~\eqref{eq:bayes-basic} 中各个量的角色。
+这里把 $H$ 作为要判断的假设，把 $E$ 作为新证据。
+
+\begin{table}[htbp]
+  \centering
+  \caption{贝叶斯公式中各个量的含义}
+  \label{tab:bayes-terms}
+  \begin{tabularx}{\textwidth}{l l Y}
+    \toprule
+    记号 & 名称 & 所回答的问题 \\
+    \midrule
+    $P(H)$ & 先验概率 & 纳入证据 $E$ 之前，假设 $H$ 成立的概率是多少？ \\
+    $P(E\mid H)$ & 证据的条件概率 & 假设 $H$ 成立时，出现证据 $E$ 的概率是多少？ \\
+    $P(E)$ & 证据的边缘概率 & 综合全部可能假设，出现证据 $E$ 的概率是多少？ \\
+    $P(H\mid E)$ & 后验概率 & 已经观察到 $E$ 时，假设 $H$ 成立的概率是多少？ \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\keyterm{先验概率}（prior probability）与\keyterm{后验概率}（posterior probability）的区别，
+在于是否已经把当前这条证据纳入条件。
+先验可以由随机选择规则、既有观测或其他建模信息确定，并不意味着没有依据的猜测。
+一次更新得到的后验，还可以作为下一次更新所使用的先验。
+
+固定已经观察到的证据 $E$，把 $P(E\mid H_i)$ 看作随假设类别 $i$ 变化的函数，
+就得到这些假设的\keyterm{似然}（likelihood）：$L(i;E)=P(E\mid H_i)$。
+对固定类别，$P(\cdot\mid H_i)$ 是证据的概率分布；
+对固定证据，$L(i;E)$ 是比较假设与数据相容程度的函数，通常不是关于类别 $i$ 的概率分布。
+特别地，一般没有 $\sum_iP(E\mid H_i)=1$。
+
+\subsection{与全概率公式结合}
+
+\begin{theorem}[有限划分下的贝叶斯公式]
+\label{thm:bayes-partition}
+设 $H_1,\ldots,H_m$ 构成 $\Omega$ 的划分，且每个 $P(H_i)>0$。
+若 $P(E)>0$，则对每个 $i$，
+\begin{equation}
+  P(H_i\mid E)
+  =\frac{P(E\mid H_i)P(H_i)}
+  {\displaystyle\sum_{j=1}^{m}P(E\mid H_j)P(H_j)}.
+  \label{eq:bayes-partition}
+\end{equation}
+\end{theorem}
+\begin{proof}
+对 $H_i,E$ 使用定理~\ref{thm:bayes-basic}，再以式~\eqref{eq:bayes-total} 展开分母即可。
+\end{proof}
+
+令 $w_i=P(H_i)P(E\mid H_i)$，则 $w_i=P(H_i\cap E)$，因此 $w_i$ 是第 $i$ 类对证据总概率的贡献。
+式~\eqref{eq:bayes-partition} 就是
+\[
+  P(H_i\mid E)=\frac{w_i}{w_1+\cdots+w_m}.
+\]
+各项非负且总和为 $1$。
+常用的概括“后验正比于先验乘似然”，指的是在固定证据 $E$ 后，各类共用同一个归一化分母；
+省略分母可以帮助比较大小，但不能直接得到后验概率的数值。
+
+在第~\ref{sec:bayes-total} 节的两厂例子中，已知抽到次品时，它来自乙厂的概率为
+\[
+  \frac{0.4\times0.03}{0.018}=\frac23.
+\]
+乙厂在全部产品中占 $40\%$，在次品中却占 $2/3$。
+条件化改变了所考察的群体，从而改变了其中各个来源所占的比例。
+
+\section{四类例题：从抽球到检测}
+\label{sec:bayes-examples}
+
+\subsection{两枚硬币：同一证据在不同假设下的概率}
+
+\begin{example}[连续三次正面之后的硬币类别]
+\label{ex:bayes-coins}
+一枚公平硬币每次正面概率为 $1/2$，一枚偏硬币每次正面概率为 $3/4$。
+先以相同概率选取其中一枚，再连续抛掷所选硬币三次。
+假设给定所选硬币的类别后，各次抛掷相互独立。
+观察到三次都是正面，求选到公平硬币的条件概率。
+\end{example}
+\begin{solve}
+令 $F$ 为“选到公平硬币”，$G$ 为“选到偏硬币”，$E$ 为“三次都是正面”。
+$F,G$ 互斥且覆盖全部情况，题设给出
+\[
+  P(F)=P(G)=\frac12,\qquad
+  P(E\mid F)=\left(\frac12\right)^3=\frac18,\qquad
+  P(E\mid G)=\left(\frac34\right)^3=\frac{27}{64}.
+\]
+其中三次概率相乘使用的是\keyterm{给定硬币类别后的独立性}。
+两种来源对证据总概率的贡献分别为
+\[
+  P(F\cap E)=\frac1{16}=\frac8{128},\qquad
+  P(G\cap E)=\frac{27}{128}.
+\]
+所以 $P(E)=35/128$，进而
+\begin{equation}
+  P(F\mid E)=\frac{8/128}{35/128}=\frac8{35}\approx22.86\%,
+  \qquad
+  P(G\mid E)=\frac{27}{35}\approx77.14\%.
+  \label{eq:bayes-coins-result}
+\end{equation}
+偏硬币更容易产生连续三次正面的证据，因此它的概率从 $1/2$ 上升到 $27/35$。
+公平硬币的概率下降，但没有变成零，因为它也有正概率产生同样的证据。
+\end{solve}
+
+本例中，$P(E\mid F)=1/8$ 与 $P(F\mid E)=8/35$ 回答两个不同的问题，不能互换。
+若只比较似然，偏硬币产生这条证据的概率是公平硬币的
+\[
+  \frac{27/64}{1/8}=\frac{27}{8}
+\]
+倍。由于两种假设的先验相同，后验概率之比也等于 $27/8$；先验不同时，还必须考虑先验之比。
+
+\subsection{选袋抽球：先验由试验机制决定}
+
+\begin{example}[抽到红球后判断袋子]
+\label{ex:bayes-bags}
+甲袋有 $4$ 个红球、$1$ 个白球，乙袋有 $1$ 个红球、$4$ 个白球。
+先以 $1/3$ 的概率选择甲袋、以 $2/3$ 的概率选择乙袋，再从选中的袋中等可能地抽取一个球。
+已知抽到红球，求所选袋子是甲袋的概率。
+\end{example}
+\begin{solve}
+记 $H_1,H_2$ 分别为选择甲袋、乙袋，$R$ 为抽到红球。已知
+\[
+  P(H_1)=\frac13,\quad P(H_2)=\frac23,\quad
+  P(R\mid H_1)=\frac45,\quad P(R\mid H_2)=\frac15.
+\]
+先求联合概率贡献，再归一化，得到
+\[
+  P(H_1\mid R)
+  =\frac{\frac13\cdot\frac45}
+  {\frac13\cdot\frac45+\frac23\cdot\frac15}
+  =\frac{4/15}{6/15}=\frac23.
+\]
+红球使甲袋的概率从 $1/3$ 上升到 $2/3$。
+若错误地假设两个袋子等可能，会得到 $4/5$，这对应另一种选袋机制。
+\end{solve}
+
+这里的先验由“怎样选袋子”确定，而不是由袋中红球的比例确定。
+红球比例给出的是似然，两个信息处于模型的不同环节，不能混用。
+
+\subsection{多个来源：不要遗漏分母中的类别}
+
+\begin{example}[三家工厂的次品溯源]
+\label{ex:bayes-factories}
+仓库中 $50\%$ 的产品来自甲厂、$30\%$ 来自乙厂、$20\%$ 来自丙厂，
+对应次品率分别为 $1\%$、$2\%$、$5\%$。
+从仓库全部产品中等可能地抽取一件，发现是次品。求它来自三家工厂的后验概率。
+\end{example}
+\begin{solve}
+记 $H_1,H_2,H_3$ 为三个来源，$D$ 为抽到次品。
+表~\ref{tab:bayes-factories} 先列出各类的概率贡献，再列出归一化的结果。
+\begin{table}[htbp]
+  \centering
+  \caption{次品来源的贝叶斯计算}
+  \label{tab:bayes-factories}
+  \begin{tabular}{lcccc}
+    \toprule
+    来源 & $P(H_i)$ & $P(D\mid H_i)$ & $P(H_i\cap D)$ & $P(H_i\mid D)$ \\
+    \midrule
+    甲厂 & $0.5$ & $0.01$ & $0.005$ & $5/21$ \\
+    乙厂 & $0.3$ & $0.02$ & $0.006$ & $6/21$ \\
+    丙厂 & $0.2$ & $0.05$ & $0.010$ & $10/21$ \\
+    合计 & $1$ & --- & $0.021$ & $1$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+例如 $P(H_3\mid D)=0.010/0.021=10/21\approx47.62\%$。
+丙厂产品总量最少，但它的次品率最高，最终对次品总概率的贡献也最大。
+判断次品来自哪里，必须同时考虑供货比例与次品率，不能只看其中一列。
+\end{solve}
+
+\subsection{低比例事件的检测：为什么报警不等于确定有问题}
+
+\begin{example}[自动质检中的误报]
+\label{ex:bayes-screening}
+某批零件中，缺陷件占 $1\%$。检测装置对缺陷件以 $95\%$ 的概率报警，
+对合格件以 $5\%$ 的概率误报。
+从该批零件中等可能地选取一件进行检测，已知装置报警，求这件零件确有缺陷的概率。
+\end{example}
+\begin{solve}
+令 $D$ 为“零件有缺陷”，$T$ 为“装置报警”。题设给出
+\[
+  P(D)=0.01,\quad P(D^c)=0.99,\quad
+  P(T\mid D)=0.95,\quad P(T\mid D^c)=0.05.
+\]
+这里 $P(T\mid D)$ 是缺陷件的检出率，$P(T\mid D^c)$ 是合格件的误报率，目标则是 $P(D\mid T)$。
+由贝叶斯公式，
+\begin{equation}
+  P(D\mid T)
+  =\frac{0.01\times0.95}{0.01\times0.95+0.99\times0.05}
+  =\frac{19}{118}\approx16.10\%.
+  \label{eq:bayes-screening-result}
+\end{equation}
+报警确实提供了支持“有缺陷”的证据，使缺陷概率从 $1\%$ 上升到了约 $16.10\%$；
+但报警的零件中，合格件仍然占多数。
+\end{solve}
+
+可以用假想的 $10000$ 件零件帮助理解式~\eqref{eq:bayes-screening-result}。
+按题设比例，其中有 $100$ 件缺陷件、$9900$ 件合格件；
+若都接受检测，报警缺陷件与报警合格件的\keyterm{期望数量}分别为 $95$ 与 $495$。
+所以按这些期望数量构成的比例，报警零件中的缺陷件占 $95/(95+495)=19/118$。
+这是一种展示概率质量的换算，不声称某次实际检测一定恰好产生这些整数，
+也不声称随机比例的期望一般等于两个期望之比。
+
+合格件的误报率虽低，但合格件总量很大，所以误报数量仍可能超过真正检出的缺陷数量。
+忽略目标事件原有比例，只根据检出率判断后验，称为\keyterm{忽视基础比例}（base-rate neglect）。
+同一检测机制用于不同缺陷比例的批次，报警之后的缺陷概率一般不同。
+
+\section{证据怎样改变概率}
+\label{sec:bayes-evidence}
+
+\subsection{后验概率上升或下降的条件}
+
+只考虑 $H,H^c$ 两类。记
+\[
+  p=P(H),\qquad a=P(E\mid H),\qquad b=P(E\mid H^c),
+\]
+其中 $0<p<1$，$0\leq a,b\leq1$，并假定
+$d=pa+(1-p)b=P(E)>0$。贝叶斯公式成为
+\begin{equation}
+  q=P(H\mid E)=\frac{pa}{pa+(1-p)b}.
+  \label{eq:bayes-binary}
+\end{equation}
+
+\begin{proposition}[概率更新的方向]
+\label{prop:bayes-direction}
+在上述条件下，
+\begin{equation}
+  q-p=\frac{p(1-p)(a-b)}{pa+(1-p)b}.
+  \label{eq:bayes-direction}
+\end{equation}
+因此 $a>b$ 时 $q>p$；$a=b$ 时 $q=p$；$a<b$ 时 $q<p$。
+\end{proposition}
+\begin{proof}
+把 $q-p$ 通分，分子为
+\[
+  pa-p\bigl(pa+(1-p)b\bigr)=p(1-p)(a-b).
+\]
+由于分母为正且 $p(1-p)>0$，差值的符号由 $a-b$ 决定。
+\end{proof}
+
+所以，支持某个假设的证据，是在该假设成立时比在其不成立时更容易出现的证据。
+只知道 $a$ 很大或很小，不能单独判断证据支持哪一类，必须比较 $a$ 与 $b$。
+当 $a=b$ 时，$P(E)=a$，并有 $P(H\cap E)=pa=P(H)P(E)$；
+此时 $H$ 与 $E$ 独立，所以概率不发生更新。
+
+在 $a,b>0$ 时，还可以由式~\eqref{eq:bayes-binary} 求得
+\[
+  \frac{\mathrm dq}{\mathrm dp}
+  =\frac{ab}{\bigl(pa+(1-p)b\bigr)^2}>0.
+\]
+这说明保持证据机制不变，先验越大，后验也越大。
+因此“同一条证据”并不自动产生相同的后验，还要看更新之前的概率是什么。
+
+\subsection{赔率与似然比}
+
+\begin{definition}[赔率与似然比]
+若 $0<P(H)<1$，支持 $H$ 的\keyterm{赔率}（odds）定义为
+\[
+  O(H)=\frac{P(H)}{P(H^c)}.
+\]
+若 $0<P(H)<1$ 且 $P(E\mid H^c)>0$，证据 $E$ 支持 $H$ 相对于 $H^c$ 的\keyterm{似然比}（likelihood ratio）定义为
+\[
+  \Lambda(E)=\frac{P(E\mid H)}{P(E\mid H^c)}.
+\]
+\end{definition}
+
+概率与赔率不是同一个数。例如概率为 $3/4$ 时，赔率为 $3$，即 $3:1$。
+若赔率为 $O\geq0$ 且有限，对应概率为 $O/(1+O)$。
+
+\begin{theorem}[贝叶斯公式的赔率形式]
+\label{thm:bayes-odds}
+若 $0<P(H)<1$，且 $P(E\mid H)>0$、$P(E\mid H^c)>0$，则
+\begin{equation}
+  \frac{P(H\mid E)}{P(H^c\mid E)}
+  =\frac{P(H)}{P(H^c)}
+   \frac{P(E\mid H)}{P(E\mid H^c)}.
+  \label{eq:bayes-odds}
+\end{equation}
+即后验赔率等于先验赔率乘以似然比。
+\end{theorem}
+\begin{proof}
+分别对 $H$ 和 $H^c$ 使用式~\eqref{eq:bayes-basic}，两式相除，公共分母 $P(E)$ 消去。
+假设保证所有被除的量为正。
+\end{proof}
+
+在例~\ref{ex:bayes-coins} 中，支持公平硬币相对于偏硬币的先验赔率为 $1$，
+三次正面的似然比为 $(1/8)/(27/64)=8/27$。
+所以后验赔率为 $8/27$，再转换为概率，得到 $(8/27)/(1+8/27)=8/35$。
+似然比乘在\keyterm{赔率}上，不能直接乘在概率上。
+
+如果选到公平硬币的先验概率改为 $0.9$，先验赔率就是 $9$。
+同样观察到三次正面，后验赔率为 $9\times8/27=8/3$，对应概率为 $8/11\approx72.73\%$。
+证据仍然使公平硬币的概率从 $90\%$ 下降，却没有使它变成概率较低的假设。
+“证据支持哪个方向”与“更新后哪个假设的概率最大”是两个不同的问题。
+
+\section{连续观察：后验怎样成为下一次的先验}
+\label{sec:bayes-sequential}
+
+\subsection{带有既有信息的更新公式}
+
+\begin{proposition}[保留既有条件的贝叶斯更新]
+\label{prop:bayes-sequential}
+设 $H_1,\ldots,H_m$ 构成划分，$E_1$ 是已经获得的证据，$E_2$ 是随后获得的证据。
+若 $P(E_1\cap E_2)>0$，且对每个 $i$ 有 $P(H_i\cap E_1)>0$，则
+\begin{equation}
+  P(H_i\mid E_1\cap E_2)
+  =\frac{P(E_2\mid H_i\cap E_1)P(H_i\mid E_1)}
+  {\displaystyle\sum_{j=1}^{m}P(E_2\mid H_j\cap E_1)P(H_j\mid E_1)}.
+  \label{eq:bayes-sequential}
+\end{equation}
+\end{proposition}
+\begin{proof}
+以 $E_1$ 为条件时，$Q(A)=P(A\mid E_1)$ 仍是一个概率：
+非负性来自原概率，$Q(\Omega)=1$，互斥事件的可加性也由条件概率定义得到。
+在概率 $Q$ 下对假设划分与证据 $E_2$ 使用定理~\ref{thm:bayes-partition}，
+即可得到式~\eqref{eq:bayes-sequential}。
+\end{proof}
+
+第一次观察之后的 $P(H_i\mid E_1)$，是第二次更新所用的先验。
+但新的似然必须写成 $P(E_2\mid H_i\cap E_1)$，一般不能直接删去 $E_1$。
+若某类在第一次更新后的概率为零，可以从后续正概率类别中删去该类；
+只要新证据仍在模型中有正概率，它的后验仍为零。
+
+称 $E_1,E_2$ 在给定 $H_i$ 后\keyterm{条件独立}（conditionally independent），是指
+\[
+  P(E_1\cap E_2\mid H_i)
+  =P(E_1\mid H_i)P(E_2\mid H_i).
+\]
+在 $P(H_i\cap E_1)>0$ 时，这等价于
+$P(E_2\mid H_i\cap E_1)=P(E_2\mid H_i)$。
+只有满足这类条件，才可以在更新时把新似然简化为不含旧证据的形式。
+
+\subsection{同一枚硬币的逐次更新}
+
+沿用例~\ref{ex:bayes-coins} 的模型，令 $q_r$ 为已经观察到前 $r$ 次都是正面后，
+所选硬币为公平硬币的概率，令 $q_0=1/2$。
+由于给定硬币类别后各次抛掷独立，再观察到一次正面时，
+\begin{equation}
+  q_{r+1}=\frac{q_r(1/2)}{q_r(1/2)+(1-q_r)(3/4)}.
+  \label{eq:bayes-coin-recursion}
+\end{equation}
+逐次代入得到
+\[
+  q_1=\frac25,\qquad q_2=\frac4{13},\qquad q_3=\frac8{35}.
+\]
+最后的结果与一次性使用“三次都是正面”完全相同。
+这种一致性来自联合概率的正确分解，不需要先把两次证据假设为无条件独立。
+
+若公平硬币的先验概率是 $p\in(0,1)$，观察到前 $n$ 次全部为正面，记这一证据为 $E_n$。
+其中 $n$ 为非负整数，约定 $E_0=\Omega$，表示没有新增观察。于是
+\begin{equation}
+  P(F\mid E_n)
+  =\frac{p(1/2)^n}{p(1/2)^n+(1-p)(3/4)^n}
+  =\frac{1}{1+\dfrac{1-p}{p}(3/2)^n}.
+  \label{eq:bayes-coin-heads}
+\end{equation}
+当 $n=0$ 时，没有新增观察，结果等于 $p$；在这个模型中，连续正面次数增多时，公平硬币的后验概率下降。
+固定 $0<p<1$ 并令 $n\to\infty$，右侧分母趋于无穷，后验趋于零。
+这是关于一系列“前 $n$ 次全为正面”的条件概率的极限，不表示实际抛掷一定永远出现正面。
+
+如果观察中同时出现正面与反面，证据可能向不同方向更新。
+例如先出现一次正面后 $P(F\mid\text{第一次正面})=2/5$；
+第二次若出现反面，则
+\[
+  P(F\mid\text{先正后反})
+  =\frac{(2/5)(1/2)}{(2/5)(1/2)+(3/5)(1/4)}=\frac47.
+\]
+反面在公平硬币下比在偏硬币下更容易出现，所以这条新证据使公平硬币的概率上升。
+观察次数增加，并不意味着某个固定假设的后验每一步都朝同一个方向变化。
+
+\subsection{记录完整顺序与只记录正面次数}
+
+设抛掷同一枚选中的硬币 $n$ 次，观察到某个具体顺序，其中有 $h$ 次正面、$t=n-h$ 次反面，
+其中 $n,h$ 是整数，$n\geq1$ 且 $0\leq h\leq n$。
+给定硬币类别后的独立性给出
+\begin{equation}
+  P(F\mid\text{该具体顺序})
+  =\frac{p(1/2)^h(1/2)^t}
+  {p(1/2)^h(1/2)^t+(1-p)(3/4)^h(1/4)^t}.
+  \label{eq:bayes-coin-sequence}
+\end{equation}
+若只记录“正好有 $h$ 次正面”，这个证据包含 $\binom nh$ 个不同顺序，
+因此两种类别下的似然都要乘以 $\binom nh$。
+该系数在贝叶斯公式的分子、分母中相消，所以两种记录方式在这个模型下给出相同的硬币类别后验。
+但两种证据事件的概率通常不同，不能因为最后约去了系数，就把它们当成同一个事件。
+
+\subsection{条件独立与重复计入证据}
+
+在硬币模型中，给定所选类别后，各次抛掷独立；不知道类别时，各次观察却不独立。
+为直接核查这一点，仍取先验各为 $1/2$，令 $B_1,B_2$ 分别表示第一次、第二次为正面。
+由全概率公式，
+\[
+  P(B_1)=P(B_2)=\frac58,\qquad
+  P(B_1\cap B_2)=\frac12\left(\frac12\right)^2+
+  \frac12\left(\frac34\right)^2=\frac{13}{32}.
+\]
+而 $P(B_1)P(B_2)=25/64\ne13/32$。
+第一次正面会改变我们对硬币类别的判断，进而改变第二次正面的概率；共同的未知类别产生了这种关联。
+
+另一个常见错误是把同一条证据使用两次。
+如果已经知道 $E$，再次收到对同一事实的重复陈述，并没有观察到一个新的独立结果；
+数学上 $E\cap E=E$，所以 $P(H\mid E\cap E)=P(H\mid E)$。
+这时在仍有正概率的类别下，$P(E\mid H\cap E)=1$，
+不能再额外乘一次原来的 $P(E\mid H)$。
+
+\section{解题流程与适用边界}
+\label{sec:bayes-method}
+
+\subsection{把文字问题转成可核查的计算}
+
+贝叶斯题目的难点往往是确定条件与选择机制，而不是分数运算。
+对于有限类别问题，可以采用以下步骤。
+若存在先验为零的类别，在证据总概率为正时，其后验直接为零；以下似然计算只针对正先验类别。
+\begin{enumerate}
+  \item 明确目标。例如“已知报警，求有缺陷的概率”应写成 $P(D\mid T)$，把已知信息放在竖线右边。
+  \item 建立互斥且完整的类别 $H_1,\ldots,H_m$，写出先验 $\pi_i=P(H_i)$，检查 $\sum_i\pi_i=1$。
+  \item 根据试验机制求似然 $\ell_i=P(E\mid H_i)$。需要把多个观测概率相乘时，先检查是否有相应条件独立性。
+  \item 计算各类贡献 $w_i=\pi_i\ell_i$，再计算 $Z=\sum_iw_i=P(E)$。
+  \item 若 $Z>0$，输出 $q_i=w_i/Z$；检查 $q_i\geq0$ 且 $\sum_iq_i=1$，再结合题意解释结果。
+\end{enumerate}
+输入是类别先验与证据在各类下的概率，输出是后验概率向量。
+如果似然已经给出，计算 $m$ 类的贡献与归一化共需 $O(m)$ 次基本算术操作。
+有很多观测时，直接连乘可能产生数值下溢；这属于数值实现问题，可以对正权重使用对数计算，
+不改变贝叶斯公式本身的含义。
+
+\subsection{不能互换的量}
+
+$P(E\mid H)$ 与 $P(H\mid E)$ 通常不同，但也可能恰好相等，不能把“通常不同”写成“必不相等”。
+当 $P(H),P(E),P(H\cap E)$ 都为正时，由条件概率定义可知，
+二者相等当且仅当 $P(H)=P(E)$；若交集概率为零且两个条件事件概率为正，二者都为零。
+无论是否恰好相等，它们的含义始终不同。
+
+观察到 $E$ 之后，等于 $1$ 的是 $P(E\mid E)$，不是原模型中的 $P(E)$。
+贝叶斯公式分母中的 $P(E)$ 保留其观察前的含义，不能因为“已经观察到了”，就擅自把分母改成 $1$。
+同样，后验很高只是在模型与已有信息下概率很高，并不自动构成逻辑上的确定证明。
+
+似然最大的类别不一定是后验最大的类别。
+后验比较的是 $P(H_i)P(E\mid H_i)$；当各类先验相同时，按似然大小排序与按后验大小排序必然一致。
+先验不同时，两种排序仍可能恰好一致，但没有一般保证，必须比较加权后的数值。
+也不能只把似然相加归一化而省去先验，除非明确使用了等先验模型。
+
+\subsection{零概率与模型覆盖范围}
+
+事件形式的条件概率要求被条件化的事件有正概率。
+若 $P(E)=0$，式~\eqref{eq:bayes-basic} 的分母为零，不能直接套用。
+在有限结果模型中，这说明当前模型把该证据排除在有正概率的结果之外，应重新检查观测描述、参数或类别是否完整。
+在连续型模型中，某个精确观测值通常本来就具有零概率，
+需要通过条件分布或概率密度来处理，不能仅凭单点概率为零就断言模型错误。
+本文的事件比值公式不直接解决这种连续观测问题。
+
+如果先验把某个假设赋予概率零，那么对于任何 $P(E)>0$ 的事件，
+\[
+  P(H\mid E)=\frac{P(H\cap E)}{P(E)}=0,
+\]
+因为 $P(H\cap E)\leq P(H)=0$。
+这里使用的是条件概率定义，并没有使用未定义的 $P(E\mid H)$。
+因此，在模型中把一个类别概率设为零，是把它彻底排除；
+如果只是认为它非常罕见，应当区分“很小的正概率”与“零概率”。
+
+贝叶斯公式是在给定模型内部进行一致的概率更新。
+如果类别遗漏、抽样机制改变、先验不对应目标群体，或者把相关证据误当成独立证据，
+即使代数运算完全正确，所得结果也可能不适用于实际问题。
+其中“根据结果判断来源”是条件概率问题，本身不等于证明某种因果关系。
+
+\section{练习与解答}
+\label{sec:bayes-exercises}
+
+\subsection{练习}
+
+\begin{enumerate}
+  \item \label{exr:bayes-die}
+  掷一次公平六面骰子，令 $A=\{1,2\}$，$B=\{2,4,6\}$。
+  求 $P(A\mid B)$ 与 $P(B\mid A)$，说明两者分母的含义。
+
+  \item \label{exr:bayes-bags}
+  甲袋有 $3$ 个红球、$1$ 个白球，乙袋有 $1$ 个红球、$3$ 个白球。
+  先以 $1/4$ 的概率选甲袋，以 $3/4$ 的概率选乙袋，再从所选袋中等可能地抽一个球。
+  已知抽到红球，求选到甲袋的概率。
+
+  \item \label{exr:bayes-factories}
+  两厂供货比例分别为 $0.7$ 与 $0.3$，次品率分别为 $0.02$ 与 $0.06$。
+  从混合产品中等可能地抽到一件次品，求它来自第二家工厂的概率。
+
+  \item \label{exr:bayes-negative}
+  沿用例~\ref{ex:bayes-screening} 的条件，若检测没有报警，求零件仍有缺陷的概率。
+  写清缺陷件未报警与合格件未报警的两个条件概率。
+
+  \item \label{exr:bayes-neutral}
+  设 $H_1,\ldots,H_m$ 是正概率事件构成的划分，且对所有 $i$ 都有 $P(E\mid H_i)=c>0$。
+  证明 $P(H_i\mid E)=P(H_i)$。解释为什么这条证据不能区分类别。
+
+  \item \label{exr:bayes-sequence}
+  沿用例~\ref{ex:bayes-coins} 的条件，观察到“正、正、反”。
+  分别用一次更新和逐次更新求选到公平硬币的后验概率。
+  若只知道三次中恰有两次正面，答案是否改变？说明理由。
+
+  \item \label{exr:bayes-threshold}
+  设 $P(H)=p\in(0,1)$，$P(E\mid H)=a>0$，$P(E\mid H^c)=b>0$。
+  求使 $P(H\mid E)>1/2$ 成立的先验条件。
+  再令 $H$ 为例~\ref{ex:bayes-coins} 中“选到公平硬币”，$E$ 为“三次正面”，求具体阈值。
+
+  \item \label{exr:bayes-repeat}
+  一个报告转述了已经读取过的同一次测量结果，没有提供任何新观测。
+  有人主张应再乘一次该测量结果的似然。解释为什么这样做不正确，
+  并指出真正第二次测量能够使用似然乘法需要什么条件。
+\end{enumerate}
+
+\subsection{参考解答}
+
+\begin{solve}[练习~\ref{exr:bayes-die}]
+$A\cap B=\{2\}$，故
+\[
+  P(A\mid B)=\frac{1/6}{3/6}=\frac13,
+  \qquad P(B\mid A)=\frac{1/6}{2/6}=\frac12.
+\]
+第一个分母是已知事件 $B$ 的概率，第二个分母是已知事件 $A$ 的概率。
+二者只是在不同的已知范围内考察同一交集。
+\end{solve}
+
+\begin{solve}[练习~\ref{exr:bayes-bags}]
+设 $H_1,H_2$ 分别表示选择两袋，$R$ 表示红球，则
+\[
+  P(H_1\mid R)
+  =\frac{\frac14\cdot\frac34}
+  {\frac14\cdot\frac34+\frac34\cdot\frac14}=\frac12.
+\]
+甲袋产生红球的概率较高，但被选择的先验概率较低。
+本题中两个因素恰好使两袋对红球总概率的贡献相同。
+\end{solve}
+
+\begin{solve}[练习~\ref{exr:bayes-factories}]
+设 $H_2$ 为来自第二家工厂，$D$ 为次品，则
+\[
+  P(H_2\mid D)
+  =\frac{0.3\times0.06}{0.7\times0.02+0.3\times0.06}
+  =\frac{0.018}{0.032}=\frac9{16}=56.25\%.
+\]
+第二家工厂的供货占比为 $30\%$，但在次品中的占比为 $56.25\%$。
+\end{solve}
+
+\begin{solve}[练习~\ref{exr:bayes-negative}]
+不报警记为 $T^c$。在各自的条件范围内取补事件，得到
+$P(T^c\mid D)=0.05$，$P(T^c\mid D^c)=0.95$。
+因此
+\[
+  P(D\mid T^c)
+  =\frac{0.01\times0.05}{0.01\times0.05+0.99\times0.95}
+  =\frac1{1882}\approx0.0531\%.
+\]
+未报警使缺陷概率从 $1\%$ 降到了约 $0.0531\%$，但并没有降为零。
+\end{solve}
+
+\begin{solve}[练习~\ref{exr:bayes-neutral}]
+全概率公式给出 $P(E)=\sum_i cP(H_i)=c$，所以
+\[
+  P(H_i\mid E)=\frac{cP(H_i)}{c}=P(H_i).
+\]
+证据在每种类别下出现的概率相同，乘上似然后各类别的相对权重没有改变。
+\end{solve}
+
+\begin{solve}[练习~\ref{exr:bayes-sequence}]
+令 $S$ 为“正、正、反”这一具体顺序。在两种类别下，
+\[
+  P(S\mid F)=\left(\frac12\right)^3=\frac18,
+  \qquad P(S\mid G)=\left(\frac34\right)^2\frac14=\frac9{64}.
+\]
+一次性更新得到
+\[
+  P(F\mid S)=\frac{\frac12\cdot\frac18}
+  {\frac12\cdot\frac18+\frac12\cdot\frac9{64}}=\frac8{17}.
+\]
+逐次更新时，前两次正面后的概率依次为 $2/5$ 与 $4/13$，第三次反面给出
+\[
+  \frac{(4/13)(1/2)}{(4/13)(1/2)+(9/13)(1/4)}=\frac8{17}.
+\]
+若只记录恰有两次正面，两种类别下的似然都乘以 $\binom32=3$，
+公共因子相消，所以答案不变。
+\end{solve}
+
+\begin{solve}[练习~\ref{exr:bayes-threshold}]
+由于分母为正，由式~\eqref{eq:bayes-binary}，
+\[
+  \frac{pa}{pa+(1-p)b}>\frac12
+  \quad\Longleftrightarrow\quad pa>(1-p)b
+  \quad\Longleftrightarrow\quad p>\frac{b}{a+b}.
+\]
+硬币题中 $a=1/8=8/64$，$b=27/64$，所以阈值为 $p>27/35$。
+先验超过这个阈值时，虽然三次正面使公平硬币的概率下降，它的后验仍大于 $1/2$。
+\end{solve}
+
+\begin{solve}[练习~\ref{exr:bayes-repeat}]
+把原证据记为 $E$，重复转述在题设下仍是同一事件，因此 $E\cap E=E$，后验不变。
+真正第二次测量的证据若记为 $E_2$，联合似然应写成
+\[
+  P(E\cap E_2\mid H_i)
+  =P(E\mid H_i)P(E_2\mid H_i\cap E),
+\]
+其中假定 $P(H_i\cap E)>0$。
+只有在给定类别 $H_i$ 后两次证据条件独立时，才可把第二项换为 $P(E_2\mid H_i)$。
+\end{solve}
+
+\end{document}

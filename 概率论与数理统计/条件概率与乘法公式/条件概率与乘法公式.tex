@@ -1,0 +1,424 @@
+\documentclass[UTF8]{ctexart}
+
+% 支持从项目根目录、概率论与数理统计目录或当前笔记目录读取共享样式。
+\makeatletter
+\def\input@path{{../}{../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{条件概率与乘法公式}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{从已知信息出发计算概率}
+\label{sec:conditional-product-introduction}
+
+掷一次公平六面骰子，出现点数 $6$ 的概率是 $1/6$。如果已经知道点数是偶数，那么可能结果只剩下 $2,4,6$，且这三个结果仍然等可能，此时出现点数 $6$ 的概率变为 $1/3$。\impo{试验本身没有改变，改变的是计算概率时掌握的信息。}\keyterm{条件概率}（conditional probability）研究的正是：已知一个事件发生时，另一个事件发生的概率是多少。
+
+本文先说明条件概率的定义及其含义，再由定义推导两个事件的乘法公式，并推广到多个事件；在区分乘法公式与事件独立性之后，引入完备事件组，进一步推导全概率公式与贝叶斯公式。四类公式分别用于在已知条件下计算概率、计算多个事件同时发生的概率、汇总不同类别的结果，以及根据观察结果更新对类别的判断。
+
+用 $\Omega$ 表示\keyterm{样本空间}（sample space），$P$ 表示原概率模型中的概率，$A,B,C$ 等表示事件。记 $AB=A\cap B$，表示 $A,B$ 同时发生；$ABC=A\cap B\cap C$，表示三个事件同时发生。这里的 $AB$ 是交集的简写，不是两个概率相乘。记 $\overline A=\Omega\setminus A$ 为 $A$ 的补事件，$\varnothing$ 为空事件。
+
+\section{条件概率：限制范围并重新归一化}
+\label{sec:conditional-product-definition}
+
+\subsection{定义与成立条件}
+
+\begin{definition}[条件概率]
+\label{def:conditional-product-conditional}
+设 $A,B$ 是样本空间 $\Omega$ 中的两个事件，且 $P(B)>0$。已知 $B$ 发生时 $A$ 发生的条件概率定义为
+\begin{equation}
+  P(A\mid B)=\frac{P(AB)}{P(B)}
+            =\frac{P(A\cap B)}{P(B)}.
+  \label{eq:conditional-product-definition}
+\end{equation}
+其中，竖线右边的 $B$ 是已知条件，左边的 $A$ 是要研究的事件。
+\end{definition}
+
+已知 $B$ 发生，就只考虑落在 $B$ 内的结果；在这些结果中，满足 $A$ 的部分是 $A\cap B$。分子 $P(A\cap B)$ 是这部分在原模型中的概率，分母 $P(B)$ 是所有保留结果在原模型中的总概率。两者相除，是把保留下来的总概率调整为 $1$，这种操作称为\keyterm{归一化}（normalization）。因此，条件概率不能只写成 $P(AB)$：前者是在条件 $B$ 下重新计算的概率，后者仍是原模型中两个事件同时发生的概率。
+
+条件 $P(B)>0$ 保证分母非零。若 $P(B)=0$，则由 $AB\subseteq B$ 可得 $P(AB)=0$，式~\eqref{eq:conditional-product-definition} 成为没有定义的 $0/0$，不能据此把 $P(A\mid B)$ 定为 $0$ 或 $1$。本文只讨论以正概率事件为条件的情形。
+
+若 $\Omega$ 是有限集合，且各个基本结果等可能，记 $|D|$ 为集合 $D$ 的元素个数，则
+\begin{equation}
+  P(A\mid B)
+  =\frac{|A\cap B|/|\Omega|}{|B|/|\Omega|}
+  =\frac{|A\cap B|}{|B|}.
+  \label{eq:conditional-product-counting}
+\end{equation}
+这时可以直接在 $B$ 中数结果；如果基本结果不等可能，就应使用概率之比，不能直接用个数之比代替。
+
+\subsection{条件的方向不能交换}
+
+\begin{example}[同一对事件的两个条件概率]
+\label{ex:conditional-product-die}
+掷一次公平六面骰子，令 $A=\{6\}$ 表示“点数是 $6$”，$B=\{2,4,6\}$ 表示“点数是偶数”。求 $P(A)$、$P(AB)$、$P(A\mid B)$ 和 $P(B\mid A)$。
+\end{example}
+\begin{solve}
+因为 $A\subseteq B$，所以 $AB=A$，从而
+\[
+  P(A)=P(AB)=\frac16,\qquad P(B)=\frac36=\frac12.
+\]
+分别以 $B$ 和 $A$ 为条件，得到
+\[
+  P(A\mid B)=\frac{1/6}{1/2}=\frac13,
+  \qquad
+  P(B\mid A)=\frac{1/6}{1/6}=1.
+\]
+已知点数是偶数，不能确定它就是 $6$；已知点数是 $6$，却能确定它是偶数。因此，$P(A\mid B)$ 与 $P(B\mid A)$ 回答的是不同问题，一般不相等，也一般不等于 $P(AB)$。
+\end{solve}
+
+\subsection{固定条件后的基本性质}
+
+\begin{proposition}[条件概率的基本性质]
+\label{prop:conditional-product-properties}
+固定一个满足 $P(B)>0$ 的事件 $B$。对任意事件 $A,C$，有
+\begin{equation}
+  0\le P(A\mid B)\le1,\qquad
+  P(\Omega\mid B)=P(B\mid B)=1,
+  \label{eq:conditional-product-bounds}
+\end{equation}
+以及补事件公式
+\begin{equation}
+  P(\overline A\mid B)=1-P(A\mid B).
+  \label{eq:conditional-product-complement}
+\end{equation}
+若 $A\cap C=\varnothing$，则
+\begin{equation}
+  P(A\cup C\mid B)=P(A\mid B)+P(C\mid B).
+  \label{eq:conditional-product-additivity}
+\end{equation}
+\end{proposition}
+\begin{proof}
+由 $A\cap B\subseteq B$，有 $0\le P(A\cap B)\le P(B)$；除以正数 $P(B)$，得到概率上下界。又因为 $\Omega\cap B=B$、$B\cap B=B$，相应条件概率都等于 $1$。
+
+事件 $A\cap B$ 与 $\overline A\cap B$ 互斥，且并集为 $B$，所以
+\[
+  P(A\cap B)+P(\overline A\cap B)=P(B).
+\]
+两边除以 $P(B)$，得到式~\eqref{eq:conditional-product-complement}。若 $A\cap C=\varnothing$，则 $A\cap B$ 与 $C\cap B$ 也互斥。利用
+\[
+  (A\cup C)\cap B=(A\cap B)\cup(C\cap B)
+\]
+及概率的可加性，再除以 $P(B)$，得到式~\eqref{eq:conditional-product-additivity}。
+\end{proof}
+
+这些性质说明，固定同一个条件后，许多通常的概率运算仍然成立。例如，“已知 $B$ 时 $A$ 不发生”的概率是 $1-P(A\mid B)$。这里取补集的是所研究的事件 $A$，条件 $B$ 保持不变；不能把它误写成 $P(A\mid\overline B)=1-P(A\mid B)$。
+
+\section{乘法公式：由条件概率求交集概率}
+\label{sec:conditional-product-rule}
+
+\subsection{两个事件的乘法公式}
+
+\begin{theorem}[乘法公式]
+\label{thm:conditional-product-rule}
+设 $A,B$ 是两个事件。若 $P(A)>0$，则
+\begin{equation}
+  P(AB)=P(A)P(B\mid A).
+  \label{eq:conditional-product-forward}
+\end{equation}
+若 $P(B)>0$，则
+\begin{equation}
+  P(AB)=P(B)P(A\mid B).
+  \label{eq:conditional-product-reverse}
+\end{equation}
+因此，当 $P(A)>0$ 且 $P(B)>0$ 时，
+\begin{equation}
+  P(A)P(B\mid A)=P(AB)=P(B)P(A\mid B).
+  \label{eq:conditional-product-two-directions}
+\end{equation}
+这些等式称为\keyterm{乘法公式}（multiplication rule）。
+\end{theorem}
+\begin{proof}
+当 $P(A)>0$ 时，由条件概率定义及 $BA=AB$，有
+\[
+  P(B\mid A)=\frac{P(BA)}{P(A)}=\frac{P(AB)}{P(A)}.
+\]
+两边乘以 $P(A)$，得到式~\eqref{eq:conditional-product-forward}。当 $P(B)>0$ 时，对 $P(A\mid B)$ 作同样处理，得到式~\eqref{eq:conditional-product-reverse}。两种条件同时满足时，便得到式~\eqref{eq:conditional-product-two-directions}。
+\end{proof}
+
+条件概率的定义是“用交集概率除以条件事件的概率”，乘法公式则反过来，“用条件事件的概率乘以该条件下另一事件的概率”。例如，$P(A)P(B\mid A)$ 先计算落在 $A$ 内的概率，再乘以已经落在 $A$ 内时同时满足 $B$ 的比例，得到两事件同时发生的概率。
+
+\keyterm{乘法公式不要求两个事件独立。}其中的第二个因子是条件概率，一般不能直接换成无条件概率。此外，“先考虑 $A$，再考虑给定 $A$ 时的 $B$”描述的是计算顺序，不要求 $A$ 在时间上先于 $B$ 发生，也不表示 $A$ 是 $B$ 的原因。
+
+\subsection{不放回抽样中的应用}
+
+\begin{example}[连续两次抽到红球]
+\label{ex:conditional-product-balls}
+袋中有 $3$ 个红球、$2$ 个白球。每次从剩余球中等可能地抽取一个，连续抽取两次，且第一次抽出的球不放回。令 $A$ 为“第一次抽到红球”，$B$ 为“第二次抽到红球”。求两次都抽到红球的概率。
+\end{example}
+\begin{solve}
+先计算第一次抽到红球的概率，再考察已知第一次抽到红球时袋中还剩哪些球。第一次抽取时有 $5$ 个球，其中 $3$ 个是红球，所以
+\[
+  P(A)=\frac35.
+\]
+已知 $A$ 发生，袋中剩下 $2$ 个红球和 $2$ 个白球，因此
+\[
+  P(B\mid A)=\frac24=\frac12.
+\]
+由乘法公式，
+\begin{equation}
+  P(AB)=\frac35\times\frac24=\frac3{10}.
+  \label{eq:conditional-product-balls}
+\end{equation}
+这里的 $2/4$ 是以“第一次已经抽到红球”为条件的概率；它反映了不放回抽取后袋中组成的变化。
+\end{solve}
+
+为了看清 $P(B\mid A)$ 与 $P(B)$ 的区别，可以把第二次抽到红球分成两条互斥途径：第一次为红球，或者第一次为白球。于是
+\[
+  P(B)=P(AB)+P(\overline A B)
+      =\frac35\times\frac24+\frac25\times\frac34
+      =\frac35.
+\]
+因此，本例中 $P(B\mid A)=1/2$，而 $P(B)=3/5$。若误用 $P(A)P(B)$，会得到 $9/25$，与正确结果 $3/10$ 不同。若改成每次抽取后放回并充分混匀、下一次仍等可能地抽取，则给定第一次的结果，第二次抽到红球的概率仍为 $3/5$，此时两次都抽到红球的概率才是 $(3/5)^2=9/25$。
+
+\section{多个事件的乘法公式}
+\label{sec:conditional-product-chain}
+
+\subsection{三个事件与一般形式}
+
+要计算三个事件同时发生的概率，可以先把 $AB$ 看成一个事件。若 $P(AB)>0$，则 $P(A)\ge P(AB)>0$，从而可以连续使用两次乘法公式：
+\begin{equation}
+  P(ABC)=P(AB)P(C\mid AB)
+        =P(A)P(B\mid A)P(C\mid AB).
+  \label{eq:conditional-product-three}
+\end{equation}
+其中 $P(C\mid AB)$ 表示已知 $A,B$ 都发生时 $C$ 发生的概率。它通常不能写成 $P(C\mid B)$，因为删去条件 $A$ 可能改变概率。
+
+\begin{theorem}[多个事件的乘法公式]
+\label{thm:conditional-product-chain}
+设 $n\ge2$，$A_1,\ldots,A_n$ 为事件，且
+\[
+  P(A_1\cap\cdots\cap A_k)>0,
+  \qquad k=1,\ldots,n-1.
+\]
+则
+\begin{equation}
+  P\!\left(\bigcap_{i=1}^{n}A_i\right)
+  =P(A_1)\prod_{k=2}^{n}
+    P\!\left(A_k\,\middle|\,\bigcap_{i=1}^{k-1}A_i\right).
+  \label{eq:conditional-product-chain}
+\end{equation}
+这里 $\bigcap$ 表示多个事件的交集，$\prod$ 表示连乘。该公式也称为概率的\keyterm{链式法则}（chain rule）。
+\end{theorem}
+\begin{proof}
+记 $D_k=\bigcap_{i=1}^{k}A_i$。对 $k=2,\ldots,n$，由 $P(D_{k-1})>0$ 及 $A_k\cap D_{k-1}=D_k$，有
+\[
+  P(A_k\mid D_{k-1})=\frac{P(D_k)}{P(D_{k-1})}.
+\]
+将这些等式相乘，再乘以 $P(D_1)=P(A_1)$，中间分子与分母依次约去，得到
+\[
+  P(D_1)\prod_{k=2}^{n}\frac{P(D_k)}{P(D_{k-1})}
+  =P(D_n).
+\]
+这就是式~\eqref{eq:conditional-product-chain}。
+\end{proof}
+
+正概率条件用来保证每个条件概率都有定义，并不要求最终交集的概率为正。如果某个前缀交集 $A_1\cap\cdots\cap A_k$ 的概率已经为零，那么最终交集作为它的子事件，概率也为零；此时应直接得出结果，不再继续写以这个零概率事件为条件的因子。
+
+\subsection{每一步都要保留已经使用的条件}
+
+\begin{example}[连续三次抽到红球]
+沿用例~\ref{ex:conditional-product-balls} 的袋子，连续不放回地抽取三个球，每次在剩余球中等可能抽取。令 $A_i$ 表示“第 $i$ 次抽到红球”，其中 $i=1,2,3$。求三次都抽到红球的概率。
+\end{example}
+\begin{solve}
+第一次抽取前有 $3$ 个红球、$5$ 个球；已知第一次为红球，第二次抽取前剩下 $2$ 个红球、$4$ 个球；已知前两次都是红球，第三次抽取前剩下 $1$ 个红球、$3$ 个球。因此
+\[
+  P(A_1)=\frac35,\qquad
+  P(A_2\mid A_1)=\frac24,\qquad
+  P(A_3\mid A_1A_2)=\frac13.
+\]
+由式~\eqref{eq:conditional-product-three}，
+\[
+  P(A_1A_2A_3)=\frac35\times\frac24\times\frac13=\frac1{10}.
+\]
+最后一个因子以“前两次都抽到红球”为条件，不能仅根据“第二次抽到红球”就断定袋中只剩一个红球。
+\end{solve}
+
+\section{乘法公式与独立性的区别}
+\label{sec:conditional-product-independence}
+
+\begin{definition}[两个事件的独立性]
+\label{def:conditional-product-independence}
+若两个事件 $A,B$ 满足
+\begin{equation}
+  P(AB)=P(A)P(B),
+  \label{eq:conditional-product-independence}
+\end{equation}
+则称 $A,B$ \keyterm{相互独立}（independent）。
+\end{definition}
+
+当 $P(A)>0$ 时，将式~\eqref{eq:conditional-product-independence} 两边除以 $P(A)$，可知独立性等价于 $P(B\mid A)=P(B)$；当 $P(B)>0$ 时，同理等价于 $P(A\mid B)=P(A)$。也就是说，在相应条件概率有定义时，获知一个事件发生，不改变另一个事件的概率。独立性的定义本身不含除法，所以即使某个事件的概率为零，也仍然适用。
+
+乘法公式适用于一般事件，独立性则是额外的性质。只有已经知道或证明独立，才可以把条件概率替换成无条件概率。例~\ref{ex:conditional-product-balls} 中不放回抽球改变了下一次的条件概率，因此两次抽到红球这两个事件并不独立；但乘法公式仍然适用。
+
+还应区分独立与\keyterm{互斥}（mutually exclusive）。互斥指 $A\cap B=\varnothing$，即两个事件不能同时发生；独立指式~\eqref{eq:conditional-product-independence} 成立。若 $P(A)>0$、$P(B)>0$ 且 $A,B$ 互斥，则 $P(AB)=0$，而 $P(A)P(B)>0$，所以它们不独立。例如，一次掷骰子中“出现 $1$ 点”与“出现 $2$ 点”互斥，知道前者发生就完全排除了后者。
+
+实际计算时，先区分题目要求的是 $P(A\mid B)$ 还是 $P(AB)$：前者表示在条件 $B$ 下求 $A$ 的概率，使用交集概率与条件事件概率之比；后者表示两事件同时发生，可以按便于计算的方向使用乘法公式。连续多个条件相乘时，每一步都要写清此前已知哪些事件，并检查相应条件事件的概率是否为正。
+
+\section{全概率公式：按互斥类别汇总概率}
+\label{sec:conditional-product-total}
+
+\subsection{完备事件组与事件分解}
+
+有时直接计算 $P(A)$ 不容易，但将试验结果按来源或类别分组后，每组中的条件概率比较容易计算。例如，从不同袋子中抽球时，各袋的红球比例已知，只要再知道选择各袋的概率，就能求最终抽到红球的概率。为使分类后的计算既不重复也不遗漏，需要先说明分类应满足的条件。
+
+\begin{definition}[有限完备事件组]
+\label{def:conditional-product-partition}
+设 $B_1,\ldots,B_n$ 是样本空间 $\Omega$ 中的非空事件。若
+\begin{equation}
+  B_i\cap B_j=\varnothing\quad(i\ne j),
+  \qquad
+  \bigcup_{i=1}^{n}B_i=\Omega,
+  \label{eq:conditional-product-partition}
+\end{equation}
+则称 $B_1,\ldots,B_n$ 构成一个\keyterm{完备事件组}（complete system of events），也称为样本空间的一个\keyterm{划分}（partition）。
+\end{definition}
+
+第一个条件表示这些事件两两互斥，一个结果不可能同时属于两个类别；第二个条件表示各类覆盖全部样本空间，每个结果都属于某一类。两者结合，说明每个结果恰好属于一个类别。完备事件组不要求各类等可能，也不要求它们独立；事实上，两个正概率的互斥事件不可能独立。
+
+对任意事件 $A$，由式~\eqref{eq:conditional-product-partition}，可把它分解为
+\begin{equation}
+  A=A\cap\Omega
+   =A\cap\left(\bigcup_{i=1}^{n}B_i\right)
+   =\bigcup_{i=1}^{n}(A\cap B_i).
+  \label{eq:conditional-product-decomposition}
+\end{equation}
+右边各事件也两两互斥。因此，$A$ 的概率等于这些分块的概率之和，而每一块的概率都能用乘法公式计算。
+
+\subsection{公式及其证明}
+
+\begin{theorem}[全概率公式]
+\label{thm:conditional-product-total}
+设 $B_1,\ldots,B_n$ 是样本空间 $\Omega$ 的一个完备事件组，且 $P(B_i)>0$，$i=1,\ldots,n$。对任意事件 $A$，有
+\begin{equation}
+  P(A)=\sum_{i=1}^{n}P(A\mid B_i)P(B_i).
+  \label{eq:conditional-product-total}
+\end{equation}
+这称为\keyterm{全概率公式}（law of total probability）。
+\end{theorem}
+\begin{proof}
+由式~\eqref{eq:conditional-product-decomposition} 及概率的有限可加性，
+\[
+  P(A)=\sum_{i=1}^{n}P(A\cap B_i).
+\]
+由于每个 $P(B_i)>0$，可以对各项使用乘法公式 $P(A\cap B_i)=P(A\mid B_i)P(B_i)$，代入即得式~\eqref{eq:conditional-product-total}。
+\end{proof}
+
+全概率公式的每一项 $P(A\mid B_i)P(B_i)$ 都表示“属于第 $i$ 类且 $A$ 发生”的概率，求和则汇总了所有互斥类别。因为 $\sum_{i=1}^{n}P(B_i)=1$，也可以把 $P(A)$ 理解为各条件概率 $P(A\mid B_i)$ 以类别概率 $P(B_i)$ 为权重的\keyterm{加权平均}（weighted average）。一般不能把它写成各条件概率的算术平均；只有各类等可能时，各权重才都是 $1/n$。
+
+若某个划分类别 $B_i$ 的概率为零，则 $P(A\cap B_i)=0$，在交集概率的求和中可以直接删去这一项；不能把未定义的 $P(A\mid B_i)$ 与零相乘。定理~\ref{thm:conditional-product-total} 显式要求各类概率为正，正是为了使右端每个条件概率都有定义。这里不要求 $P(A)>0$，所以全概率公式也适用于 $P(A)=0$ 的情形。
+
+最常见的两类划分是 $B$ 与 $\overline B$。若 $0<P(B)<1$，则
+\begin{equation}
+  P(A)=P(A\mid B)P(B)
+       +P(A\mid\overline B)P(\overline B).
+  \label{eq:conditional-product-total-binary}
+\end{equation}
+这表示把 $A$ 的发生分成“$B$ 发生时”和“$B$ 不发生时”两种互斥情形。
+
+\subsection{例题：先选袋子，再抽球}
+
+\begin{example}[从各袋红球比例求总体红球概率]
+\label{ex:conditional-product-two-bags}
+甲袋有 $3$ 个红球、$2$ 个白球，乙袋有 $1$ 个红球、$4$ 个白球。按如下规则试验：以 $3/5$ 的概率选择甲袋，以 $2/5$ 的概率选择乙袋，再从选中的袋子里等可能地抽取一个球。求抽到红球的概率。
+\end{example}
+\begin{solve}
+记 $B_1$ 为“选择甲袋”，$B_2$ 为“选择乙袋”，$A$ 为“抽到红球”。每次只选择一个袋子，因此 $B_1,B_2$ 两两互斥且覆盖全部可能，构成完备事件组。由试验规则，
+\[
+  P(B_1)=\frac35,\qquad P(B_2)=\frac25,
+  \qquad
+  P(A\mid B_1)=\frac35,\qquad P(A\mid B_2)=\frac15.
+\]
+由全概率公式，
+\begin{equation}
+  P(A)=\frac35\times\frac35+\frac15\times\frac25
+      =\frac9{25}+\frac2{25}
+      =\frac{11}{25}.
+  \label{eq:conditional-product-two-bags-total}
+\end{equation}
+其中 $9/25$ 表示“选中甲袋且抽到红球”的概率，$2/25$ 表示“选中乙袋且抽到红球”的概率。由于两个袋子的选择概率不同，不能直接对 $3/5$ 与 $1/5$ 作算术平均。
+\end{solve}
+
+\section{贝叶斯公式：由观察结果更新类别概率}
+\label{sec:conditional-product-bayes}
+
+\subsection{从正向计算到反向推断}
+
+例~\ref{ex:conditional-product-two-bags} 已经解决了一个正向问题：知道选择各袋的概率和各袋的红球比例，求最后抽到红球的概率。现在反过来，假设不知道选中了哪个袋子，只看到抽出的球是红球，能否据此重新判断它来自甲袋或乙袋的概率？甲袋的红球比例较高，因此看到红球后应更倾向于认为选中了甲袋，但乙袋也有红球，不能因此断定一定来自甲袋。贝叶斯公式把这种更新写成定量计算。
+
+\begin{theorem}[贝叶斯公式]
+\label{thm:conditional-product-bayes}
+设 $B_1,\ldots,B_n$ 是样本空间 $\Omega$ 的一个完备事件组，且 $P(B_i)>0$，$i=1,\ldots,n$。若事件 $A$ 满足 $P(A)>0$，则对每个 $i=1,\ldots,n$，有
+\begin{equation}
+  P(B_i\mid A)
+  =\frac{P(B_iA)}{P(A)}
+  =\frac{P(A\mid B_i)P(B_i)}
+         {\displaystyle\sum_{j=1}^{n}P(A\mid B_j)P(B_j)}.
+  \label{eq:conditional-product-bayes}
+\end{equation}
+这称为\keyterm{贝叶斯公式}（Bayes' formula）。
+\end{theorem}
+\begin{proof}
+因为 $P(A)>0$，由条件概率的定义，$P(B_i\mid A)=P(B_iA)/P(A)$。分子用乘法公式写成 $P(B_iA)=P(A\mid B_i)P(B_i)$，分母由全概率公式写成 $P(A)=\sum_{j=1}^{n}P(A\mid B_j)P(B_j)$，代入即得结论。
+\end{proof}
+
+式~\eqref{eq:conditional-product-bayes} 中的 $i$ 标识当前要判断的某一个类别，分母的 $j$ 则遍历全部类别。分母必须包含所有可能类别对观察事件 $A$ 的贡献，不能只保留第 $i$ 类。条件 $P(A)>0$ 保证分母非零，而各 $P(B_i)>0$ 保证正向条件概率 $P(A\mid B_i)$ 有定义。
+
+贝叶斯公式的基本形式并不一定需要显式写出一个完备事件组。只要 $P(A)>0$ 且 $P(B)>0$，就有
+\begin{equation}
+  P(B\mid A)=\frac{P(A\mid B)P(B)}{P(A)}.
+  \label{eq:conditional-product-bayes-basic}
+\end{equation}
+当 $P(A)$ 不直接已知时，才常借助完备事件组，用全概率公式展开这个分母。
+
+\subsection{先验、似然与后验}
+
+把 $B_i$ 看作待判断的类别或假设，把 $A$ 看作已经观察到的证据。观察 $A$ 之前，$P(B_i)$ 称为该类别的\keyterm{先验概率}（prior probability）；给定该类别时观察到 $A$ 的概率为 $P(A\mid B_i)$，当 $A$ 固定、用它比较不同类别时，称为该类别对应的\keyterm{似然}（likelihood）；观察 $A$ 之后，$P(B_i\mid A)$ 称为\keyterm{后验概率}（posterior probability）。$P(A)$ 是证据发生的总概率，负责把各类的权重归一化。
+
+具体说，先为第 $i$ 类计算权重 $w_i=P(A\mid B_i)P(B_i)=P(A\cap B_i)$，再除以全部权重之和：
+\begin{equation}
+  P(B_i\mid A)=\frac{w_i}{\sum_{j=1}^{n}w_j}.
+  \label{eq:conditional-product-posterior-weights}
+\end{equation}
+因此后验概率之和等于 $1$。似然本身一般不在类别之间加和为 $1$，也不等于该类别的后验概率；判断一个类别在证据下有多大可能，需要同时考虑它原来的概率以及它产生证据的可能性。
+
+\subsection{例题：已知红球，反推所选袋子}
+
+\begin{example}[由结果推断来源]
+\label{ex:conditional-product-bags-posterior}
+沿用例~\ref{ex:conditional-product-two-bags} 的试验规则，已知抽到的是红球。求选中甲袋与选中乙袋的条件概率。
+\end{example}
+\begin{solve}
+仍用 $A$ 表示“抽到红球”，$B_1,B_2$ 分别表示选择甲袋、乙袋。由式~\eqref{eq:conditional-product-two-bags-total}，$P(A)=11/25>0$。应用贝叶斯公式，
+\begin{equation}
+  P(B_1\mid A)
+  =\frac{P(A\mid B_1)P(B_1)}{P(A)}
+  =\frac{(3/5)(3/5)}{11/25}
+  =\frac9{11},
+  \label{eq:conditional-product-bags-posterior-one}
+\end{equation}
+同理，
+\[
+  P(B_2\mid A)
+  =\frac{(1/5)(2/5)}{11/25}
+  =\frac2{11}.
+\]
+两者之和为 $1$。选择甲袋的先验概率是 $3/5$，观察到红球后的后验概率变为 $9/11$。这种变化是获得信息后对来源的判断发生了更新，并不表示观察结果改变了已经选中的袋子。
+\end{solve}
+
+从交集概率也能直接理解这个结果：在“选中甲袋且抽到红球”的权重 $9/25$ 与“选中乙袋且抽到红球”的权重 $2/25$ 中，前者占全部红球事件概率的 $9/11$。这里 $P(A\mid B_1)=3/5$ 回答的是“选中甲袋时抽到红球的概率”，而 $P(B_1\mid A)=9/11$ 回答的是“抽到红球后所选袋子为甲袋的概率”，两者的条件方向不同。
+
+\section{四类公式的联系与使用顺序}
+\label{sec:conditional-product-connections}
+
+这四类公式可以从同一条思路串联起来。条件概率定义先把联合概率 $P(AB)$ 除以条件事件的概率；乘法公式对这个定义作等价变形，用 $P(B)P(A\mid B)$ 表示联合概率。全概率公式再把目标事件按完备事件组分成互斥部分，对各部分的联合概率求和；贝叶斯公式则把某一个部分的联合概率除以目标事件的总概率，从而得到看到目标事件后该类别所占的比例。
+
+计算具体问题时，可以先写清目标是 $P(A\mid B)$、$P(AB)$、$P(A)$ 还是 $P(B_i\mid A)$，再选择相应分解。若要使用全概率公式，检查分类是否互斥且覆盖全部可能；若要使用贝叶斯公式，先用乘法公式计算各类与证据同时发生的概率，再将目标类别的这一概率除以所有类别的总和。乘法公式、全概率公式和贝叶斯公式都不要求所涉及的事件独立，不能因为公式中出现乘积，就额外假设独立性。
+
+最后，应把分母条件与结果是否为零区分开。条件概率要求条件事件的概率大于零，全概率公式要求其条件概率所依赖的类别具有正概率，贝叶斯公式还要求已观察事件具有正概率；这些要求用于保证公式有定义，并不排除某个交集概率或某个后验概率等于零。
+
+\end{document}
