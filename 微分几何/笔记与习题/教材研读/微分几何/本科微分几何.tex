@@ -1,0 +1,1554 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexbook}
+
+% 从项目根目录或本文件所在目录均可找到共享样式。
+\makeatletter
+\def\input@path{{../}{../../}{../../../}{../../../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\newcommand{\R}{\mathbb R}
+\newcommand{\dd}{\mathop{}\!\mathrm d}
+\newcommand{\ip}[2]{\langle #1,#2\rangle}
+\newcommand{\norm}[1]{\lVert #1\rVert}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\grad}{grad}
+\newtheorem{exercise}{习题}[chapter]
+
+\title{本科微分几何}
+\author{}
+\date{}
+
+\begin{document}
+\frontmatter
+\maketitle
+\tableofcontents
+
+\chapter{绪论：研究对象、课程定位与学习路线}
+\label{chap:dg-intro}
+
+\section{从弯曲现象到几何不变量}
+一条曲线可以用不同速度描画，一张曲面也可以用不同坐标描述。位置函数及其导数会随这些选择改变，但曲线的长度、曲面上两条切向量的夹角等几何量不应因此改变。\keyterm{微分几何（differential geometry）}用微积分和线性代数研究光滑几何对象，并把不依赖描述方式的性质组织成理论。本书研究欧氏空间中的曲线与曲面，逐步区分三个层次：参数表示是计算工具，切空间与度量是几何结构，曲率则刻画这些结构的变化。
+
+纸片弯成圆柱以后，纸面上曲线的长度可以保持不变，而纸片在空间中的法向方向发生了变化。这个例子说明，\keyterm{内蕴几何（intrinsic geometry）}与\keyterm{外蕴几何（extrinsic geometry）}提出的问题不同：前者只依赖对象内部的长度与角度，后者还研究对象如何放置在周围空间中。曲面的第一基本形式描述前一种信息，第二基本形式描述后一种信息；高斯曲率同时出现在两种理论中，这一事实是全书的中心线索。
+
+局部研究关注一个点附近的几何，整体研究关注整个对象。曲线各处的切向量转动，最终可以决定闭曲线的旋转指标；曲面的高斯曲率积分，则与欧拉示性数联系起来。局部公式不自动包含整体结论：圆柱局部可以展开成平面，却不能由一个单值、无接缝的平面坐标覆盖整个圆柱；测地线在足够短的区间内最短，却可能在走过较长距离以后失去最短性。
+
+\section{参考体系与编写原则}
+本书以北京大学公开的本科微分几何课程说明作为内容范围的主要参照，其先修课为数学分析、高等代数与常微分方程，教学主线由曲线和曲面的基本形式推进到曲面基本方程、测地线及 Gauss--Bonnet 公式\cite{pku-course}。在论证方式上，参考 MIT 18.950 的公开课程定位：以曲率为中心，结合具体几何与定义、定理、证明，并贯通局部几何、整体几何及长度距离问题\cite{mit-syllabus,mit-notes}。这里具体指 MIT 2008 年秋季公开课程，不把某一年的课程安排视作所有年份的统一要求。
+
+清华大学数学科学系的公开教师课程信息也将本科微分几何与研究生微分流形课程分列\cite{tsinghua-course}；该信息用于确认课程层次，不据此推定其指定教材或完整教学大纲。因此，本书选择适合中文本科教学的曲线曲面路线，将抽象流形和黎曼度量放在末章衔接。陈维桓的《微分几何初步》、do Carmo 的曲线曲面教材和 K\"uhnel 的教材列为延伸阅读；这些书的书目信息可分别从北大和 MIT 的课程页面核验\cite{chen,docarmo,kuhnel}。
+
+正文、例题与习题按知识依赖独立组织，不是上述教材的逐章翻译，也不代表有关学校的正式出版教材。基础定理尽量给出完整证明；需要额外拓扑或偏微分方程工具的结论，明确标记所引用的前置定理以及证明边界。判断一段论证是否成立，应检查假设、使用的定理与推理过程，而不是以参考学校的名称代替数学依据。
+
+\section{先修知识与阅读顺序}
+读者应熟悉一元与多元微积分、链式法则、逆函数与隐函数定理、二重积分及 Green 公式，掌握内积空间、对称矩阵与正定二次型，并了解常微分方程初值问题的局部存在唯一性。第~\ref{chap:dg-tools} 章集中说明反复使用的工具，不能替代完整的分析与代数课程。
+
+第~\ref{chap:dg-curves}、\ref{chap:dg-plane} 章研究曲线的局部与整体性质；第~\ref{chap:dg-surfaces}--\ref{chap:dg-examples} 章建立曲面、度量、形算子及典型模型；第~\ref{chap:dg-connection} 章把曲面基本方程与内蕴曲率联系起来；第~\ref{chap:dg-geodesics}、\ref{chap:dg-gb} 章处理测地线与整体曲率；第~\ref{chap:dg-manifolds} 章给出后续流形课程的入口。等周不等式、曲面论基本定理和流形一章可作为提高内容，但不应跳过其假设说明。
+
+每章设置四道自编习题，分别训练概念辨析、计算、证明与综合应用，解答集中于附录~\ref{app:dg-solutions}。学习时宜先独立解题，再对照解答检查论证；公式汇总放在附录~\ref{app:dg-reference}，只用于查阅，不能替代推导。
+
+\section{正则性、符号与方向约定}
+除另行说明，映射、曲线、曲面及向量场均假设光滑，即属于 $C^\infty$ 类；特定命题若说明只需 $C^k$，则按其较弱假设理解。这样可以在主线推导中合法交换混合偏导数，但不省略正则性、非退化性、紧致性与连通性等独立条件。曲线参数区间默认连通；讨论闭曲线时要求首尾各阶导数按所需阶数匹配。
+
+欧氏内积记为 $\ip{v}{w}$，范数记为 $\norm{v}$；曲线用 $\gamma$ 表示，弧长参数用 $s$，一般参数用 $t$。曲面记为 $\Sigma$，局部参数映射记为 $\mathbf x(u,v)$，选定的单位法向量记为 $\nu$。形算子统一取 $S=-\dd\nu$，第二基本形式取 $\mathrm{II}(X,Y)=\ip{SX}{Y}$。因此，半径为 $R$ 的球面取外法向时主曲率为 $-1/R$；高斯曲率为 $1/R^2$。其他教材可能使用相反的形算子符号，比较公式前必须先核对约定。
+
+度量系数为 $g_{ij}$，逆矩阵系数为 $g^{ij}$，两类指标不能混淆。涉及重复指标的求和通常显式写出；只有在明确声明后才采用 Einstein 求和约定。曲面定向、边界正向、曲线行进方向及空间刚体运动是否保持定向，均在相关结论中说明。
+
+\mainmatter
+
+\chapter{欧氏空间与微分工具}
+\label{chap:dg-tools}
+
+\section{内积、叉积与刚体运动}
+几何中的长度来自内积。对 $v,w\in\R^3$，内积与叉积满足
+\[
+ \norm{v\times w}^2=\norm v^2\norm w^2-\ip vw^2,
+ \qquad \ip{v\times w}{z}=\det(v,w,z).
+\]
+这里行列式以三个向量为列；$v\times w$ 的方向由标准右手定向决定。第一式也称 Gram 行列式恒等式，说明两个向量张成的平行四边形面积等于 $\norm{v\times w}$，且面积非零等价于两向量线性无关。
+
+\begin{definition}[欧氏刚体运动]
+映射 $F:\R^3\to\R^3$ 若可写为 $F(p)=Qp+a$，其中 $Q^{\mathsf T}Q=I_3$、$a\in\R^3$，称为\keyterm{刚体运动（rigid motion）}。当 $\det Q=1$ 时，它保持空间定向；当 $\det Q=-1$ 时，它反转空间定向。
+\end{definition}
+刚体运动保持内积差值 $\ip{F(p)-F(q)}{F(r)-F(q)}$，从而保持距离与角度。叉积的变换公式为
+\[
+ (Qv)\times(Qw)=(\det Q)Q(v\times w).
+\]
+证明只需把两边分别与任意 $Qz$ 作内积，利用三重积的行列式变换公式。这个额外的 $\det Q$ 解释了为什么挠率会在空间反射下变号。
+
+\section{微分、秩与局部坐标}
+设 $F:U\subset\R^m\to\R^n$ 可微。在 $p\in U$ 处，微分 $\dd F_p$ 是满足
+\[
+ F(p+h)=F(p)+\dd F_p(h)+o(\norm h)
+\]
+的线性映射。选定标准基以后，它的矩阵是 Jacobi 矩阵，但线性映射与矩阵表示应区分。链式法则写成
+\begin{equation}
+ \dd(G\circ F)_p=\dd G_{F(p)}\circ\dd F_p.
+ \label{eq:dg-chain}
+\end{equation}
+若 $m\le n$ 且 $\rank\dd F_p=m$，称 $F$ 在 $p$ 处为\keyterm{浸入（immersion）}；若 $m\ge n$ 且秩为 $n$，称为\keyterm{下沉（submersion）}。浸入是微分条件，不能单凭它推出整体单射。
+
+\begin{theorem}[逆函数定理与隐函数定理：作为分析前置知识]
+若光滑映射 $F:U\subset\R^n\to\R^n$ 在 $p$ 处满足 $\det\dd F_p\ne0$，则存在 $p$ 与 $F(p)$ 的邻域，使 $F$ 在其间成为具有光滑逆的双射。若光滑函数 $f:\R^3\supset U\to\R$ 满足 $f(p)=c$ 且某个偏导数非零，则 $f^{-1}(c)$ 在 $p$ 附近可表示为相应坐标方向上的光滑函数图像。
+\label{thm:dg-ift}
+\end{theorem}
+这两个结论在本书中引用，不重新证明。它们负责把非退化的微分信息提升为邻域内的坐标信息。行列式在一个点非零，只保证某个邻域内的可逆性；不能据此声称原定义域上的整体可逆性。
+
+\begin{example}[隐式球面与失效的判别条件]
+对 $f(x,y,z)=x^2+y^2+z^2$，在 $f^{-1}(R^2)$ 上若 $R>0$，则 $\grad f=2(x,y,z)\ne0$，故该集合局部为曲面。对方程 $z^2=0$，定义函数的梯度在解集上处处为零，但解集仍是平面。由此可见，非零梯度是某个方程给出正则曲面的充分条件，并不是任何定义方程都必须满足的必要条件。
+\end{example}
+
+\section{正定二次型与自伴算子}
+曲面的坐标基通常不正交。若一个二维内积空间的基为 $e_1,e_2$，其 Gram 矩阵为 $\mathbf g=(\ip{e_i}{e_j})$，则向量的坐标列 $a,b$ 满足 $\ip XY=a^{\mathsf T}\mathbf g b$。矩阵 $\mathbf g$ 对称正定，因此可逆，且 $\det\mathbf g>0$。
+
+\begin{proposition}[非正交基下的自伴性]
+设线性算子 $A$ 在上述基下的矩阵为 $\mathbf A$。它关于该内积自伴，当且仅当
+\[
+ \mathbf A^{\mathsf T}\mathbf g=\mathbf g\mathbf A.
+\]
+自伴算子具有实特征值，并存在内积意义下的标准正交特征基。
+\label{prop:dg-selfadjoint}
+\end{proposition}
+\begin{proof}
+自伴条件 $\ip{AX}{Y}=\ip{X}{AY}$ 对所有坐标列成立，恰好等价于矩阵等式。取正定对称平方根 $\mathbf g^{1/2}$，则 $\mathbf g^{1/2}\mathbf A\mathbf g^{-1/2}$ 为实对称矩阵。应用实对称矩阵的谱定理，再将所得特征基变换回来，即得结论。
+\end{proof}
+
+\section{微分方程与积分的使用条件}
+曲线的 Frenet 方程、平行移动和测地线方程都属于常微分方程。对 $y'=F(t,y)$，若 $F$ 连续且关于 $y$ 局部 Lipschitz，则每个初值有唯一的局部解；光滑 $F$ 满足这些条件。解延伸到整个参数区间需要额外控制，不能把局部存在唯一性当作整体存在性。线性方程 $y'=A(t)y+b(t)$ 在系数连续的区间上则有贯穿该区间的唯一解。
+
+后文对紧区间上的光滑变分求导，可由连续偏导数在紧集上有界来支持积分号下求导。使用 Green 公式时，区域取紧致、边界分段光滑，函数在其邻域内具有连续的一阶偏导数；更弱假设虽可成立，本书不在此展开。曲面积分跨多个坐标片时，可先细分区域再求和；局部表达的不变性保证结果不依赖细分与坐标。
+
+\section{习题}
+\begin{exercise}\label{ex:dg-tools-gram}
+证明 $v,w\in\R^3$ 的 Gram 行列式非负，并说明等号成立的充要条件。
+\end{exercise}
+\begin{exercise}\label{ex:dg-tools-immersion}
+对 $F(u,v)=(\cos u,\sin u,v)$，证明它处处为浸入但在 $\R^2$ 上不是单射；指出使它成为局部坐标的定义域限制。
+\end{exercise}
+\begin{exercise}\label{ex:dg-tools-selfadjoint}
+设 $\mathbf g=\operatorname{diag}(4,1)$、$\mathbf A=\begin{pmatrix}0&1\\4&0\end{pmatrix}$。验证自伴性，求特征值及关于 $\mathbf g$ 的单位特征向量。
+\end{exercise}
+\begin{exercise}\label{ex:dg-tools-cone}
+证明圆锥 $x^2+y^2=z^2$ 除顶点外是正则曲面，并用通过顶点的曲线切向量说明顶点不可能是正则曲面点。
+\end{exercise}
+
+\chapter{空间曲线的局部理论}
+\label{chap:dg-curves}
+
+\section{正则曲线、弧长与参数变换}
+\begin{definition}[正则参数曲线]
+设 $I\subset\R$ 为开区间，$\gamma:I\to\R^3$ 为光滑映射。若对每个 $t\in I$ 均有 $\gamma'(t)\ne0$，称其为\keyterm{正则参数曲线（regular parametrized curve）}。若 $\phi:J\to I$ 为光滑微分同胚，则 $\widetilde\gamma=\gamma\circ\phi$ 为可容许的重新参数化；$\phi'>0$ 时保持曲线方向，$\phi'<0$ 时反转曲线方向。
+\end{definition}
+曲线可以自交；在自交点，不同参数值对应不同的局部曲线分支。曲线的像集与参数化映射不是同一个对象，例如同一个圆可以绕行一次或多次。长度积分会记录绕行重数。
+
+以 $t_0\in I$ 为基点，定义有向\keyterm{弧长（arc length）}坐标
+\[
+ s(t)=\int_{t_0}^t\norm{\gamma'(\xi)}\dd\xi.
+\]
+它严格递增且 $s'(t)>0$，故由定理~\ref{thm:dg-ift} 有光滑逆 $t=t(s)$。于是
+\begin{equation}
+ \norm{\frac{\dd\gamma}{\dd s}}=1,
+ \qquad \frac{\dd}{\dd s}=\frac1{\norm{\gamma'(t)}}\frac{\dd}{\dd t}.
+ \label{eq:dg-arclength}
+\end{equation}
+在紧区间 $[a,b]\subset I$ 上，长度 $L=\int_a^b\norm{\gamma'}\dd t$ 在可容许参数变换下不变，这由一元积分换元公式直接推出。弧长参数把行进速度标准化，使后面的导数主要反映方向变化。
+
+\section{曲率、挠率与 Frenet 标架}
+设 $\gamma(s)$ 为单位速曲线，记单位切向量 $\mathbf t=\gamma'$。由 $\ip{\mathbf t}{\mathbf t}=1$ 得 $\ip{\mathbf t'}{\mathbf t}=0$，故切向量的导数垂直于切线。
+\begin{definition}[曲率与 Frenet 标架]
+单位速曲线的\keyterm{曲率（curvature）}为 $\kappa=\norm{\mathbf t'}$。在 $\kappa>0$ 的区间内，定义主法向量 $\mathbf n=\mathbf t'/\kappa$、次法向量 $\mathbf b=\mathbf t\times\mathbf n$。三者构成正向标准正交的\keyterm{Frenet 标架（Frenet frame）}。\keyterm{挠率（torsion）}定义为 $\tau=-\ip{\mathbf b'}{\mathbf n}$。
+\end{definition}
+
+\begin{theorem}[Frenet--Serret 公式]
+若 $\gamma$ 是 $C^3$ 单位速曲线且 $\kappa>0$，则
+\begin{equation}
+ \mathbf t'=\kappa\mathbf n,\qquad
+ \mathbf n'=-\kappa\mathbf t+\tau\mathbf b,\qquad
+ \mathbf b'=-\tau\mathbf n.
+ \label{eq:dg-frenet}
+\end{equation}
+\end{theorem}
+\begin{proof}
+第一式是定义。对各内积恒等式求导可知正交标架的导数系数矩阵反对称。又由 $\mathbf b\perp\mathbf t$ 和 $\mathbf t'=\kappa\mathbf n$ 得 $\ip{\mathbf b'}{\mathbf t}=0$；结合 $\mathbf b'\perp\mathbf b$，可知 $\mathbf b'$ 只沿 $\mathbf n$ 方向，其系数由挠率定义确定。最后对 $\ip{\mathbf n}{\mathbf t}=0$、$\ip{\mathbf n}{\mathbf b}=0$ 求导，即得第二式。
+\end{proof}
+
+\begin{proposition}[一般参数公式]
+若 $\gamma'(t)\ne0$，则
+\begin{equation}
+ \kappa=\frac{\norm{\gamma'\times\gamma''}}{\norm{\gamma'}^3}.
+ \label{eq:dg-curvature-general}
+\end{equation}
+若进一步 $\gamma'\times\gamma''\ne0$，则
+\begin{equation}
+ \tau=\frac{\det(\gamma',\gamma'',\gamma''')}{\norm{\gamma'\times\gamma''}^2}.
+ \label{eq:dg-torsion-general}
+\end{equation}
+\end{proposition}
+\begin{proof}
+记速度 $q=\dd s/\dd t>0$。由链式法则，$\gamma'=q\mathbf t$、$\gamma''=q'\mathbf t+q^2\kappa\mathbf n$，故 $\gamma'\times\gamma''=q^3\kappa\mathbf b$。再求导，$\gamma'''$ 沿 $\mathbf b$ 的分量为 $q^3\kappa\tau$，三重积因此为 $q^6\kappa^2\tau$。两式相除得到结论。
+\end{proof}
+曲率在反向参数化下不变，挠率也不变；空间反射则保持曲率而反转挠率。曲率为零时仍有切向量，但上述主法向量和挠率未定义，不能把含有 $1/\kappa$ 的公式直接延伸到该点。
+
+\begin{example}[圆柱螺线]\label{exam:dg-helix}
+给定 $a>0$、$b\in\R$，求 $\gamma(t)=(a\cos t,a\sin t,bt)$ 的曲率和挠率。
+\end{example}
+\begin{solve}
+速度为 $\sqrt{a^2+b^2}$。计算得
+\[
+ \gamma'\times\gamma''=(ab\sin t,-ab\cos t,a^2),\quad
+ \det(\gamma',\gamma'',\gamma''')=a^2b.
+\]
+代入式~\eqref{eq:dg-curvature-general}、\eqref{eq:dg-torsion-general} 得
+\[
+ \kappa=\frac a{a^2+b^2},\qquad \tau=\frac b{a^2+b^2}.
+\]
+当 $b=0$ 时退化为半径 $a$ 的圆；改变 $b$ 的符号改变螺旋的手性，恰好反映在挠率符号上。
+\end{solve}
+
+\section{曲线的局部近似与平面性}
+在 $s=0$ 处用 Frenet 标架作坐标轴，单位速曲线的 Taylor 展开为
+\begin{equation}
+ \gamma(s)=\gamma(0)+s\mathbf t_0+\frac{s^2}{2}\kappa_0\mathbf n_0
+ +\frac{s^3}{6}(-\kappa_0^2\mathbf t_0+\kappa'_0\mathbf n_0
+ +\kappa_0\tau_0\mathbf b_0)+o(s^3).
+ \label{eq:dg-curve-taylor}
+\end{equation}
+这里需 $C^3$ 且附近 $\kappa>0$。切线给出一阶近似，$\mathbf t_0,\mathbf n_0$ 张成的\keyterm{密切平面（osculating plane）}包含二阶近似；挠率控制三阶项离开密切平面的程度。中心为 $\gamma(0)+\mathbf n_0/\kappa_0$、半径为 $1/\kappa_0$ 的\keyterm{密切圆（osculating circle）}与曲线的适当单位速参数化在二阶导数上匹配。
+
+\begin{proposition}[零曲率与零挠率]
+单位速曲线在连通区间上若 $\kappa\equiv0$，则它是一段直线。若 $\kappa>0$，则曲线包含于某个平面的充要条件是 $\tau\equiv0$。
+\end{proposition}
+\begin{proof}
+第一种情形 $\gamma''=0$，积分即得直线。第二种情形若 $\tau=0$，则 $\mathbf b'=0$，于是 $\ip{\gamma(s)-\gamma(s_0)}{\mathbf b(s_0)}$ 的导数为零，曲线处于一个固定平面内。反过来，若曲线位于法向为常向量 $a$ 的平面，$\mathbf t,\mathbf n$ 均垂直于 $a$，故连续的 $\mathbf b$ 等于固定的 $a/\norm a$ 或其负向，挠率为零。
+\end{proof}
+
+\section{曲线论基本定理}
+\begin{theorem}[曲率与挠率决定曲线]
+设 $I$ 为区间，给定光滑函数 $\kappa:I\to(0,\infty)$、$\tau:I\to\R$、初始点 $p_0$ 及正向标准正交标架 $(t_0,n_0,b_0)$。对任意 $s_0\in I$，存在唯一单位速曲线 $\gamma:I\to\R^3$，使其在 $s_0$ 处具有这些初始数据，曲率与挠率分别为 $\kappa,\tau$。不固定初始数据时，曲线在保持定向的刚体运动意义下唯一。
+\label{thm:dg-curve-fundamental}
+\end{theorem}
+\begin{proof}
+把式~\eqref{eq:dg-frenet} 视为标架的线性常微分方程，系数光滑，故在整个 $I$ 上有唯一解。令 $Q$ 以三个标架向量为列，则 $Q'=QA$，其中 $A$ 反对称。矩阵 $Q^{\mathsf T}Q$ 满足线性方程 $G'=A^{\mathsf T}G+GA$，初值为 $I_3$，常矩阵 $I_3$ 也是解；唯一性给出正交性。行列式连续且初值为 $1$，故标架始终正向。
+
+定义 $\gamma(s)=p_0+\int_{s_0}^s\mathbf t(\sigma)\dd\sigma$，得到单位速曲线；由 $\mathbf t'=\kappa\mathbf n$ 及 $\kappa>0$，其 Frenet 标架就是所构造的标架。其他解必满足相同初值问题，因而相同。不同初始正向标架之间由唯一的旋转联系，再加上平移即可比较初始点。
+\end{proof}
+严格正曲率保证 Frenet 标架可定义。定理不声称构造出的曲线无自交，也不声称周期的 $\kappa,\tau$ 一定给出闭曲线；闭合还要求标架及位置满足整体相容条件。
+
+\section{习题}
+\begin{exercise}\label{ex:dg-curves-parabola}
+求 $\gamma(t)=(t,t^2,0)$ 的曲率及 $t=0$ 处的密切圆。
+\end{exercise}
+\begin{exercise}\label{ex:dg-curves-reverse}
+用一般参数公式证明：反转曲线参数不改变曲率和挠率，而空间反射改变挠率的符号。
+\end{exercise}
+\begin{exercise}\label{ex:dg-curves-lancret}
+设单位速曲线 $\kappa>0$。证明 $\tau/\kappa$ 为常数，当且仅当单位切向量与某个固定单位向量的夹角为常数。
+\end{exercise}
+\begin{exercise}\label{ex:dg-curves-circle}
+证明：单位速曲线满足 $\kappa\equiv c>0$、$\tau\equiv0$，当且仅当它是半径 $1/c$ 的圆的一段参数化。
+\end{exercise}
+
+\chapter{平面曲线与整体几何}
+\label{chap:dg-plane}
+
+\section{有符号曲率与切向角}
+在定向平面中，令 $J(x,y)=(-y,x)$ 为逆时针直角旋转。对单位速曲线，取左法向 $n=J\mathbf t$，定义\keyterm{有符号曲率（signed curvature）} $k=\ip{\mathbf t'}n$，于是 $\mathbf t'=kn$、$n'=-k\mathbf t$。它允许为负和为零，与空间曲率的关系为 $\kappa=|k|$。
+
+区间上的连续单位切向量可写为 $\mathbf t=(\cos\theta,\sin\theta)$，其中 $\theta$ 是连续的实值\keyterm{切向角（tangent angle）}；存在性可由局部反三角函数沿区间连续拼接得到。求导可知 $k=\theta'$。对一般正则参数 $\gamma(t)=(x(t),y(t))$，
+\begin{equation}
+ k=\frac{x'y''-y'x''}{(x'^2+y'^2)^{3/2}}.
+ \label{eq:dg-signed-curvature}
+\end{equation}
+此处参数行进方向决定单位切向量，反向行进使 $k$ 变号；这与无符号曲率不变并不矛盾。
+
+给定光滑 $k(s)$，先令 $\theta(s)=\theta_0+\int_{s_0}^s k(\sigma)\dd\sigma$，再令
+\[
+ \gamma(s)=p_0+\int_{s_0}^s(\cos\theta(\sigma),\sin\theta(\sigma))\dd\sigma,
+\]
+即可构造单位速曲线，即使 $k$ 有零点也成立。若要求长度 $L$ 后光滑闭合，至少需要切向量周期和位移积分为零；只知道 $\int_0^L k\dd s\in2\pi\mathbb Z$ 不足以保证位移闭合。
+
+\section{闭曲线的旋转指标}
+\begin{definition}[旋转指标]
+设 $\gamma:\R/L\mathbb Z\to\R^2$ 为 $C^2$ 正则闭曲线，以弧长参数表示。在 $[0,L]$ 上选择连续切向角 $\theta$。由于端点切向量相同，存在整数
+\[
+ m=\frac{\theta(L)-\theta(0)}{2\pi}
+   =\frac1{2\pi}\int_0^L k\dd s,
+\]
+称为\keyterm{旋转指标（rotation index）}。改变 $\theta(0)$ 的 $2\pi$ 整数倍选择不影响 $m$。
+\end{definition}
+若一族闭曲线及其一阶导数连续依赖变形参数，而且始终正则，则旋转指标不变：切向量映射连续变形，角增量除以 $2\pi$ 是连续的整数值，因而只能恒定。允许切向量为零或发生非正则奇点时，这个论证失效。
+
+\begin{theorem}[简单闭曲线的转角定理]
+一条 $C^2$ 正则简单闭平面曲线若按内部在左的正向行进，则 $\int k\dd s=2\pi$；反向行进则等于 $-2\pi$。对分段 $C^2$ 的简单闭曲线，在各角点加上有符号外转角 $\alpha_j\in(-\pi,\pi)$，有
+\begin{equation}
+ \int k\dd s+\sum_j\alpha_j=2\pi.
+ \label{eq:dg-turning}
+\end{equation}
+这里要求角点处左右切向量不反向；更一般的退化角点需另外约定。
+\label{thm:dg-turning}
+\end{theorem}
+本定理的拓扑部分作为外部结论使用。证明路线是先证明正向简单多边形的总外转角为 $2\pi$，再用保持简单性的内接多边形逼近光滑曲线，使分段切向量的总转角收敛到曲率积分；保持简单性的逼近与平面分离性质是需要补充的关键，不能仅以图形直观代替。平面曲线的整体理论可沿文献~\cite{mit-notes,docarmo} 的相应主题继续学习。后文 Gauss--Bonnet 定理会明确使用这一结论。
+
+\begin{corollary}[简单闭曲线的总绝对曲率下界]
+在上述光滑简单闭曲线条件下，$\int_0^L|k|\dd s\ge2\pi$。
+\end{corollary}
+\begin{proof}
+由积分三角不等式与转角定理，$\int|k|\dd s\ge|\int k\dd s|=2\pi$。
+\end{proof}
+“简单”条件对旋转指标等于 $\pm1$ 至关重要。绕同一圆 $m$ 次的正则闭参数曲线，其曲率积分为 $2\pi m$，但不是简单闭曲线。
+
+\section{等周不等式}
+给定周长，哪条简单闭曲线围成的面积最大？这个问题把局部的速度约束与整体的面积积分联系起来。先给出所需的分析工具。
+\begin{lemma}[周期 Wirtinger 不等式]
+若 $f$ 为周期 $L$ 的 $C^1$ 实函数且 $\int_0^Lf\dd s=0$，则
+\begin{equation}
+ \int_0^L f^2\dd s\le\frac{L^2}{4\pi^2}\int_0^L(f')^2\dd s.
+ \label{eq:dg-wirtinger}
+\end{equation}
+等号当且仅当 $f(s)=a\cos(2\pi s/L)+b\sin(2\pi s/L)$。
+\label{lem:dg-wirtinger}
+\end{lemma}
+\begin{proof}
+这里使用 Fourier 分析的 Parseval 恒等式作为前置结论。零均值使常数项消失，将 $f$ 的正弦余弦系数记为 $a_n,b_n$，则 $\int f^2=(L/2)\sum_{n\ge1}(a_n^2+b_n^2)$，而 $\int(f')^2=(L/2)\sum_{n\ge1}(2\pi n/L)^2(a_n^2+b_n^2)$。逐项比较即得不等式；等号恰好要求 $n\ge2$ 的系数全为零。$C^1$ 周期函数满足这里使用的 $L^2$ 展开与导数的 Parseval 关系。
+\end{proof}
+
+\begin{theorem}[平面等周不等式]
+若 $C^2$ 正则简单闭平面曲线的长度为 $L$，所围区域面积为 $A$，则 $L^2\ge4\pi A$；等号当且仅当曲线为圆。
+\end{theorem}
+\begin{proof}
+取正向弧长参数，平移曲线使 $\int_0^L\gamma(s)\dd s=0$。Green 公式给出
+\[
+ 2A=\int_0^L(xy'-yx')\dd s
+ =\int_0^L\ip{J\gamma}{\gamma'}\dd s.
+\]
+应用 $L^2$ 空间的 Cauchy--Schwarz 不等式，再对两个坐标分别应用引理~\ref{lem:dg-wirtinger}，得到
+\[
+ 2A\le\Bigl(\int_0^L\norm\gamma^2\dd s\Bigr)^{1/2}
+          \Bigl(\int_0^L\norm{\gamma'}^2\dd s\Bigr)^{1/2}
+ \le\frac L{2\pi}\int_0^L\norm{\gamma'}^2\dd s
+ =\frac{L^2}{2\pi}.
+\]
+若等号成立，Cauchy--Schwarz 的等号条件给出 $\gamma'=cJ\gamma$，其中 $c>0$ 为常数，且单位速条件使 $\norm\gamma=1/c$ 恒定。因此曲线位于圆上；简单闭合排除重复绕行。反之，圆的周长和面积直接满足等号。
+\end{proof}
+
+\section{习题}
+\begin{exercise}\label{ex:dg-plane-ellipse}
+求逆时针椭圆 $\gamma(t)=(a\cos t,b\sin t)$，$a,b>0$，的有符号曲率，并求当 $a>b$ 时曲率的最大值与最小值。
+\end{exercise}
+\begin{exercise}\label{ex:dg-plane-closed}
+设 $k(s)$ 为周期 $L$ 的光滑函数。写出由 $k$ 构造的单位速平面曲线光滑闭合的充分必要条件，说明条件不依赖初始切向角。
+\end{exercise}
+\begin{exercise}\label{ex:dg-plane-offset}
+设单位速平面曲线的左法向为 $n$，令 $\gamma_a=\gamma+an$。在 $1-ak>0$ 的区间内求偏移曲线的弧长元与有符号曲率，并说明 $1-ak=0$ 时发生什么。
+\end{exercise}
+\begin{exercise}\label{ex:dg-plane-area}
+对 $\gamma(t)=(a\cos t,b\sin t)$ 用 Green 公式求围成面积，并结合等周不等式给出周长下界及等号条件。
+\end{exercise}
+
+\chapter{正则曲面、切空间与光滑映射}
+\label{chap:dg-surfaces}
+
+\section{曲面为何需要多个坐标片}
+球面的经纬度在极点失效，并不意味着球面在那里不光滑；平面上的极坐标在原点失效，也不意味着平面在原点有奇点。必须区分坐标退化与几何对象本身的奇点。为此，正则曲面的定义要求每一点至少存在一种良好坐标，而不是要求某一张熟悉的坐标处处有效。
+
+\begin{definition}[正则曲面与参数片]
+集合 $\Sigma\subset\R^3$ 称为\keyterm{正则曲面（regular surface）}，若对每个 $p\in\Sigma$，存在 $\R^3$ 中开邻域 $V$、开集 $U\subset\R^2$ 及映射 $\mathbf x:U\to V\cap\Sigma$，使 $\mathbf x$ 光滑、是到其像的同胚，且 $\rank\dd\mathbf x_q=2$ 对所有 $q\in U$ 成立。$\mathbf x$ 称为参数片，其逆称为局部坐标图（coordinate chart）。
+\label{def:dg-surface}
+\end{definition}
+定义中的同胚条件控制子空间拓扑，秩条件控制微分结构。单有秩条件给出浸入曲面，可能产生自交或重复覆盖；正则曲面则在每一点像一张不自交的局部曲面。正文首先研究无边界曲面；有边界情形在第~\ref{chap:dg-manifolds} 章解释。
+
+\begin{proposition}[坐标过渡的光滑性]
+两个参数片 $\mathbf x:U\to\Sigma$、$\widetilde{\mathbf x}:\widetilde U\to\Sigma$ 在像的交集上给出光滑坐标变换 $\phi=\mathbf x^{-1}\circ\widetilde{\mathbf x}$，且 $\det D\phi\ne0$。
+\end{proposition}
+\begin{proof}
+由于 $D\mathbf x$ 秩为 $2$，在每个点可选两个空间坐标，使对应的 $2\times2$ 子式非零。令 $\pi$ 为投影到这两个坐标的映射，则 $\pi\circ\mathbf x$ 局部可逆，且
+\[
+ \mathbf x^{-1}\circ\widetilde{\mathbf x}
+ =(\pi\circ\mathbf x)^{-1}\circ\pi\circ\widetilde{\mathbf x}
+\]
+在足够小的邻域成立，故过渡映射光滑。同理其逆也光滑，链式法则说明导数可逆。
+\end{proof}
+
+\begin{example}[图像、水平集与球面]
+光滑函数 $f:U\subset\R^2\to\R$ 的图像由 $\mathbf x(u,v)=(u,v,f(u,v))$ 参数化，前两个坐标投影给出连续逆，且 $\mathbf x_u\times\mathbf x_v=(-f_u,-f_v,1)\ne0$。更一般地，定理~\ref{thm:dg-ift} 说明正则水平集 $F^{-1}(c)$ 在 $\grad F\ne0$ 处都是曲面。球面可用分别朝向各坐标轴正负方向的六个图像片覆盖，避免把经纬度的极点退化当作曲面奇点。
+\end{example}
+
+\section{切空间与单位法向量}
+\begin{definition}[切空间]
+对 $p\in\Sigma$，定义 $T_p\Sigma$ 为所有曲面内光滑曲线 $\gamma$ 在 $\gamma(0)=p$ 时的速度 $\gamma'(0)$ 所组成的集合，称为\keyterm{切空间（tangent space）}。
+\end{definition}
+\begin{proposition}[切空间的坐标描述]
+若 $p=\mathbf x(u_0,v_0)$，则
+\begin{equation}
+ T_p\Sigma=\operatorname{span}\{\mathbf x_u,\mathbf x_v\},
+ \qquad
+ \gamma'(0)=u'(0)\mathbf x_u+v'(0)\mathbf x_v.
+ \label{eq:dg-tangent}
+\end{equation}
+因此 $T_p\Sigma$ 是二维线性子空间，与参数片选择无关。
+\end{proposition}
+\begin{proof}
+任意曲面曲线在参数片内可写为 $\gamma(t)=\mathbf x(u(t),v(t))$，链式法则给出所需包含关系。反过来，对任意 $a,b$，曲线 $t\mapsto\mathbf x(u_0+at,v_0+bt)$ 在足够小的区间内有速度 $a\mathbf x_u+b\mathbf x_v$。故二者相等。
+\end{proof}
+严格地说，过 $p$ 的仿射切平面是 $p+T_p\Sigma$；切空间把切向量的起点移至原点。局部单位法向量可以选为
+\begin{equation}
+ \nu=\frac{\mathbf x_u\times\mathbf x_v}{\norm{\mathbf x_u\times\mathbf x_v}}.
+ \label{eq:dg-unit-normal}
+\end{equation}
+若曲面由正则方程 $F=c$ 给出，则 $T_p\Sigma=\ker\dd F_p$，$\grad F/\norm{\grad F}$ 给出另一种法向选择。
+
+\section{曲面定向}
+\begin{definition}[可定向曲面]
+若整个曲面上存在连续单位法向场，称曲面\keyterm{可定向（orientable）}；指定其中一个单位法向场就是选择定向。对光滑正则曲面，连续法向选择在每个坐标片上等于式~\eqref{eq:dg-unit-normal} 或其负向，因而自动光滑。
+\end{definition}
+若 $\widetilde{\mathbf x}=\mathbf x\circ\phi$，则
+\[
+ \widetilde{\mathbf x}_{\widetilde u}\times
+ \widetilde{\mathbf x}_{\widetilde v}
+ =(\det D\phi)(\mathbf x_u\times\mathbf x_v).
+\]
+因此，可定向性等价于能够选择一族覆盖曲面的参数片，使交叠处的坐标变换行列式为正。球面取外法向就是一个整体定向。莫比乌斯带绕中心圈一周后局部法向反转，无法把局部法向拼成整体连续法向；去掉边界后的莫比乌斯带仍提供不可定向曲面的例子。
+
+连通可定向曲面恰有两个定向。事实上，两单位法向场在每一点的比例只能是 $\pm1$，而连续的离散值函数在连通集合上必为常数。若曲面不连通，各连通分支可分别选方向。
+
+\section{曲面之间的映射与微分}
+映射 $F:\Sigma\to\widetilde\Sigma$ 称为光滑，若在任意适用的局部坐标下 $\widetilde{\mathbf x}^{-1}\circ F\circ\mathbf x$ 光滑。坐标过渡的光滑性保证只需在一组覆盖坐标中检查。
+
+对 $v=\gamma'(0)\in T_p\Sigma$，定义
+\[
+ \dd F_p(v)=(F\circ\gamma)'(0)\in T_{F(p)}\widetilde\Sigma.
+\]
+局部坐标中的链式法则说明它只依赖 $v$，不依赖所选曲线，并且是线性映射。若 $F$ 为双射且 $F,F^{-1}$ 都光滑，称其为\keyterm{微分同胚（diffeomorphism）}。若 $\dd F_p$ 在某点可逆，则 $F$ 在该点附近为微分同胚，但仍不能据此推出整体双射。
+
+\section{习题}
+\begin{exercise}\label{ex:dg-surfaces-tangent}
+求椭球 $x^2/a^2+y^2/b^2+z^2/c^2=1$ 在 $(x_0,y_0,z_0)$ 处的仿射切平面，其中 $a,b,c>0$。
+\end{exercise}
+\begin{exercise}\label{ex:dg-surfaces-chart}
+球面经纬参数为 $\mathbf x(\theta,\varphi)=R(\sin\theta\cos\varphi,\sin\theta\sin\varphi,\cos\theta)$。计算叉积并说明其退化位置，给出覆盖北极的替代参数片。
+\end{exercise}
+\begin{exercise}\label{ex:dg-surfaces-orientation}
+证明连通曲面上的两个光滑单位法向场或者处处相同，或者处处相反，并说明连通性不能删去。
+\end{exercise}
+\begin{exercise}\label{ex:dg-surfaces-differential}
+令 $F:\R^2\to\Sigma$，$F(u,v)=(u,v,u^2+v^2)$。求 $\dd F_{(u,v)}(a,b)$，并证明平面与这个抛物面微分同胚。
+\end{exercise}
+
+\chapter{第一基本形式与内蕴度量}
+\label{chap:dg-metric}
+
+\section{由切向量内积到第一基本形式}
+\begin{definition}[第一基本形式]
+曲面在 $p$ 处的\keyterm{第一基本形式（first fundamental form）}是欧氏内积在 $T_p\Sigma$ 上的限制，记为 $\mathrm I_p(X,Y)=\ip XY$。在坐标 $(u^1,u^2)=(u,v)$ 下，记 $\mathbf x_i=\partial_i\mathbf x$，并令
+\[
+ (g_{ij})=\begin{pmatrix}E&F\\F&G\end{pmatrix},\qquad
+ E=\ip{\mathbf x_u}{\mathbf x_u},\quad
+ F=\ip{\mathbf x_u}{\mathbf x_v},\quad
+ G=\ip{\mathbf x_v}{\mathbf x_v}.
+\]
+常将其写成 $\mathrm I=E\dd u^2+2F\dd u\dd v+G\dd v^2$，此处是二次型的记号，不是对坐标微分进行普通数值相乘。
+\end{definition}
+正则性保证 $E>0$、$G>0$ 及 $EG-F^2>0$。对于坐标列 $a,b$，切向量的长度与夹角由
+\[
+ \norm X^2=a^{\mathsf T}\mathbf g a,\qquad
+ \cos\angle(X,Y)=\frac{a^{\mathsf T}\mathbf g b}
+ {\sqrt{a^{\mathsf T}\mathbf g a}\sqrt{b^{\mathsf T}\mathbf g b}}
+\]
+决定，其中角公式要求 $X,Y\ne0$。
+
+\begin{proposition}[度量变换律]
+若旧坐标 $u$ 与新坐标 $\widetilde u$ 满足 $u=\phi(\widetilde u)$，Jacobi 矩阵为 $J=D\phi$，则
+\begin{equation}
+ \widetilde{\mathbf g}=J^{\mathsf T}\mathbf gJ.
+ \label{eq:dg-metric-transform}
+\end{equation}
+\end{proposition}
+\begin{proof}
+链式法则给出 $\widetilde{\mathbf x}_a=\sum_i\mathbf x_i\partial u^i/\partial\widetilde u^a$，两边作内积即得。向量坐标同时作逆向变换，因而计算出的内积保持不变。
+\end{proof}
+
+\section{曲线长度、面积与曲面距离}
+若曲面曲线为 $\gamma(t)=\mathbf x(u(t),v(t))$，则
+\begin{equation}
+ L(\gamma)=\int_a^b\sqrt{E\dot u^2+2F\dot u\dot v+G\dot v^2}\dd t.
+ \label{eq:dg-surface-length}
+\end{equation}
+局部小矩形经参数化后，一阶近似为由 $\mathbf x_u\dd u,\mathbf x_v\dd v$ 张成的平行四边形，故面积元为
+\begin{equation}
+ \dd A=\norm{\mathbf x_u\times\mathbf x_v}\dd u\dd v
+       =\sqrt{EG-F^2}\dd u\dd v.
+ \label{eq:dg-area}
+\end{equation}
+式~\eqref{eq:dg-metric-transform} 给出 $\det\widetilde{\mathbf g}=(\det J)^2\det\mathbf g$，配合二重积分的换元公式说明面积不依赖参数。面积元取正值，所以不需要整体定向；定向面积形式则还记录方向，二者应区分。
+
+\begin{definition}[内蕴距离]
+在连通曲面上，定义
+\[
+ d_\Sigma(p,q)=\inf\{L(\gamma):\gamma\text{ 为连接 }p,q\text{ 的分段光滑曲线}\}.
+\]
+连通曲面局部道路连通，从而道路连通，并可用坐标内的分段光滑路径连接两点，因此集合非空。
+\end{definition}
+长度不小于端点之间的欧氏距离，所以 $d_\Sigma(p,q)\ge\norm{p-q}$，这保证距离的正定性；对称性来自反向曲线，三角不等式来自拼接近乎达到下确界的曲线。下确界未必能由某条曲线达到，例如去掉原点的平面上连接 $(-1,0)$ 与 $(1,0)$ 的最短长度下确界为 $2$，却没有长度恰好为 $2$ 的允许路径。
+
+\section{局部等距与保角映射}
+\begin{definition}[等距与保角]
+光滑映射 $F:\Sigma\to\widetilde\Sigma$ 若在每点满足
+\[
+ \widetilde{\mathrm I}_{F(p)}(\dd F_pX,\dd F_pY)=\mathrm I_p(X,Y),
+\]
+称为\keyterm{局部等距（local isometry）}。正定性迫使 $\dd F_p$ 可逆，故它也是局部微分同胚。若 $F$ 还是整体微分同胚，则称为等距。若上式右边改为 $\lambda(p)^2\mathrm I_p(X,Y)$，其中 $\lambda>0$，称为\keyterm{保角映射（conformal map）}。
+\end{definition}
+局部等距保持每条曲线的长度，但若不是整体双射，未必保持任意两点的整体距离。保角映射保持非零切向量之间的角度，长度则乘以局部因子 $\lambda$，面积乘以 $\lambda^2$。
+
+\begin{example}[圆柱展开]\label{exam:dg-cylinder-isometry}
+半径为 $R$ 的圆柱取参数 $\mathbf x(u,v)=(R\cos(u/R),R\sin(u/R),v)$。由于 $E=G=1$、$F=0$，映射从平面到圆柱处处局部等距。它在整个平面上不单射，因为 $u$ 与 $u+2\pi R$ 映到同一点；限制在宽度小于 $2\pi R$ 的开条带上才得到到其像的等距。因此“圆柱可展开”首先是局部长度保持的陈述。
+\end{example}
+
+\begin{example}[球面的立体投影坐标]\label{exam:dg-stereographic}
+单位球面去掉北极的一个参数化为
+\[
+ \mathbf x(u,v)=\frac1{1+u^2+v^2}(2u,2v,u^2+v^2-1).
+\]
+直接求导作内积得
+\begin{equation}
+ \mathrm I=\frac4{(1+u^2+v^2)^2}(\dd u^2+\dd v^2).
+ \label{eq:dg-stereo-metric}
+\end{equation}
+这说明立体投影坐标保角，却不是等距；离原点越远，参数平面上的同样长度在球面上对应越小的长度。不能把保角误解成保面积。
+\end{example}
+
+\section{习题}
+\begin{exercise}\label{ex:dg-metric-graph}
+对图像 $z=f(u,v)$ 求第一基本形式与面积元，并用于 $f(u,v)=uv$。
+\end{exercise}
+\begin{exercise}\label{ex:dg-metric-sphere}
+求半径 $R$ 球面的经纬度量、纬线长度及整个球面的面积。
+\end{exercise}
+\begin{exercise}\label{ex:dg-metric-cylinder}
+圆柱上两点的角坐标差为 $\Delta\theta$，高度差为 $\Delta z$。证明内蕴距离为 $\min_{m\in\mathbb Z}\sqrt{R^2(\Delta\theta+2\pi m)^2+\Delta z^2}$。
+\end{exercise}
+\begin{exercise}\label{ex:dg-metric-conformal}
+设两个二维内积空间间的可逆线性映射保持所有非零向量之间的角度，证明它把内积乘以同一个正常数。
+\end{exercise}
+
+\chapter{第二基本形式与曲率}
+\label{chap:dg-curvature}
+
+\section{法向变化与形算子}
+第一基本形式测量切向量，却未直接记录曲面离开切平面的速度。为描述弯曲，固定局部单位法向场 $\nu:\Sigma\to\mathbb S^2$，称为\keyterm{高斯映射（Gauss map）}。由 $\ip\nu\nu=1$，微分 $\dd\nu_p(X)$ 垂直于 $\nu(p)$；把 $T_{\nu(p)}\mathbb S^2=\nu(p)^\perp$ 与 $T_p\Sigma$ 视为同一欧氏线性子空间，便可定义形算子。
+
+\begin{definition}[形算子与第二基本形式]
+\keyterm{形算子（shape operator）}为 $S_p=-\dd\nu_p:T_p\Sigma\to T_p\Sigma$。\keyterm{第二基本形式（second fundamental form）}为
+\[
+ \mathrm{II}_p(X,Y)=\ip{S_pX}{Y}.
+\]
+在坐标基下记 $b_{ij}=\ip{\mathbf x_{ij}}\nu$，并记 $e=b_{11}$、$f=b_{12}$、$g=b_{22}$，则 $\mathrm{II}=e\dd u^2+2f\dd u\dd v+g\dd v^2$。
+\end{definition}
+
+\begin{proposition}[形算子的自伴性]
+上述第二基本形式对称，形算子关于第一基本形式自伴，其坐标矩阵为
+\begin{equation}
+ [S]=\mathbf g^{-1}\mathbf b,\qquad
+ \mathbf b=\begin{pmatrix}e&f\\f&g\end{pmatrix}.
+ \label{eq:dg-shape-matrix}
+\end{equation}
+\end{proposition}
+\begin{proof}
+对 $\ip{\mathbf x_j}\nu=0$ 求 $u^i$ 偏导数，得 $\ip{\mathbf x_{ij}}\nu=-\ip{\mathbf x_j}{\nu_i}=\ip{S\mathbf x_i}{\mathbf x_j}$。混合偏导相等说明 $b_{ij}=b_{ji}$，故自伴。若 $S\mathbf x_j=\sum_iS^i{}_j\mathbf x_i$，则矩阵关系为 $\mathbf b=\mathbf g[S]$，得到所示公式。
+\end{proof}
+坐标矩阵 $[S]$ 未必是普通转置意义下的对称矩阵；真正成立的是命题~\ref{prop:dg-selfadjoint} 中相对于 $\mathbf g$ 的自伴性。更换法向 $\nu\mapsto-\nu$ 使 $S$ 和 $\mathrm{II}$ 同时变号。
+
+\section{法曲率、主曲率与 Euler 公式}
+设 $\gamma(s)\subset\Sigma$ 为单位速曲线。由 $\ip{\gamma'}\nu=0$ 求导，得到
+\[
+ \ip{\gamma''}\nu=-\ip{\gamma'}{\dd\nu(\gamma')}
+ =\mathrm{II}(\gamma',\gamma').
+\]
+因此曲线加速度的法向分量只依赖该点的切方向，而不依赖曲线的其他选择。
+
+\begin{definition}[法曲率与主曲率]
+对非零 $X\in T_p\Sigma$，\keyterm{法曲率（normal curvature）}为
+\[
+ k_n(X)=\frac{\mathrm{II}(X,X)}{\mathrm I(X,X)}.
+\]
+形算子的两个实特征值称为\keyterm{主曲率（principal curvatures）}，记为 $k_1,k_2$；相应特征方向称为主方向。若 $S_p=\lambda I$，称 $p$ 为\keyterm{脐点（umbilic point）}，此时每个非零切向量都是主方向。
+\end{definition}
+
+\begin{theorem}[Euler 法曲率公式]
+取标准正交主方向 $e_1,e_2$。若单位向量 $X=\cos\theta\,e_1+\sin\theta\,e_2$，则
+\begin{equation}
+ k_n(X)=k_1\cos^2\theta+k_2\sin^2\theta.
+ \label{eq:dg-euler-curvature}
+\end{equation}
+因而主曲率恰为法曲率在单位圆上的最小值与最大值。
+\end{theorem}
+\begin{proof}
+用 $Se_i=k_ie_i$ 展开 $\ip{SX}{X}$，混合项因正交而消失。再利用 $\cos^2\theta+\sin^2\theta=1$ 即得极值结论。
+\end{proof}
+若空间曲率 $\kappa>0$，曲线主法向与曲面法向的夹角为 $\beta$，则 $k_n=\kappa\cos\beta$，称为 Meusnier 关系。这里 $k_n$ 有符号而 $\kappa\ge0$；不能删去夹角因素，把所有曲面曲线的空间曲率等同于法曲率。
+
+\section{高斯曲率、平均曲率与点的类型}
+\begin{definition}[高斯曲率与平均曲率]
+\keyterm{高斯曲率（Gaussian curvature）}为 $K=\det S=k_1k_2$；\keyterm{平均曲率（mean curvature）}为 $H=\tfrac12\tr S=(k_1+k_2)/2$。用基本形式表示为
+\begin{equation}
+ K=\frac{eg-f^2}{EG-F^2},\qquad
+ H=\frac{eG-2fF+gE}{2(EG-F^2)}.
+ \label{eq:dg-KH}
+\end{equation}
+\end{definition}
+这些公式来自式~\eqref{eq:dg-shape-matrix} 的行列式和迹。主曲率是方程 $\det(\mathbf b-k\mathbf g)=0$ 的根，亦即 $k^2-2Hk+K=0$，故 $H^2-K\ge0$。反转法向使 $H$ 变号而 $K$ 不变，所以不可定向曲面也具有整体定义的 $K$。
+
+当 $K>0$ 时称为椭圆点，当 $K<0$ 时称为双曲点；当 $K=0$ 且 $S\ne0$ 时称为抛物点，$S=0$ 时称为平坦点。平坦点只表示二阶弯曲在该点消失，不说明该点附近是平面。把曲面写成切平面上的图像，并选主方向为坐标轴，有
+\[
+ z=\tfrac12(k_1x^2+k_2y^2)+o(x^2+y^2).
+\]
+这给出点类型的二阶解释。\keyterm{Dupin 标形（Dupin indicatrix）}由切平面中的二次曲线 $\mathrm{II}(X,X)=\pm1$ 描述：椭圆点对应椭圆型，双曲点对应双曲型，抛物点对应平行直线型。它不是实际曲面的截线，而是二阶近似的几何表达。
+
+满足 $\mathrm{II}(X,X)=0$ 的非零方向称为\keyterm{渐近方向（asymptotic direction）}。双曲点有两条渐近方向，椭圆点没有，抛物点有一条，平坦点的所有方向都是渐近方向。切向量处处沿主方向的正则曲线称为\keyterm{曲率线（line of curvature）}；脐点附近可能无法选出唯一的一对主方向场。
+
+\section{典型计算与符号核对}
+\begin{example}[球面与圆柱]
+半径 $R$ 球面取外法向 $\nu(p)=p/R$，故 $S=-I/R$，$K=1/R^2$、$H=-1/R$。圆柱参数沿用例~\ref{exam:dg-cylinder-isometry}，取向外法向，则 $\mathrm I=\dd u^2+\dd v^2$、$\mathrm{II}=-(1/R)\dd u^2$，主曲率为 $-1/R,0$，因此 $K=0$、$H=-1/(2R)$。圆柱可以在空间中弯曲而具有零高斯曲率。
+\end{example}
+
+\begin{example}[图像的曲率公式]\label{exam:dg-graph-curvature}
+设 $\mathbf x(u,v)=(u,v,h(u,v))$，取向上法向 $\nu=(-h_u,-h_v,1)/W$，其中 $W=\sqrt{1+h_u^2+h_v^2}$。有
+\[
+ \mathbf g=\begin{pmatrix}1+h_u^2&h_uh_v\\h_uh_v&1+h_v^2\end{pmatrix},\qquad
+ \mathbf b=\frac1W\begin{pmatrix}h_{uu}&h_{uv}\\h_{uv}&h_{vv}\end{pmatrix}.
+\]
+于是
+\begin{align}
+ K&=\frac{h_{uu}h_{vv}-h_{uv}^2}{(1+h_u^2+h_v^2)^2},\label{eq:dg-graph-K}\\
+ 2H&=\frac{(1+h_v^2)h_{uu}-2h_uh_vh_{uv}+(1+h_u^2)h_{vv}}
+ {(1+h_u^2+h_v^2)^{3/2}}.\label{eq:dg-graph-H}
+\end{align}
+对 $h=(au^2+bv^2)/2$，原点主曲率就是 $a,b$。对 $h=uv$，$K=-1/(1+u^2+v^2)^2<0$；对 $h=u^4+v^4$，原点为平坦点，但任何邻域内都存在非零曲率点。
+\end{example}
+
+\section{习题}
+\begin{exercise}\label{ex:dg-curvature-quadric}
+求 $z=(2x^2-3y^2)/2$ 在原点的主曲率、$K,H$ 及渐近方向，法向取向上。
+\end{exercise}
+\begin{exercise}\label{ex:dg-curvature-normal}
+证明反转曲面法向时 $K$、渐近方向和主方向不变，而主曲率与 $H$ 变号。
+\end{exercise}
+\begin{exercise}\label{ex:dg-curvature-umbilic}
+设连通曲面满足 $S=\lambda I$ 且 $\lambda$ 为常数。证明 $\lambda=0$ 时曲面包含于平面，$\lambda\ne0$ 时包含于半径 $1/|\lambda|$ 的球面。
+\end{exercise}
+\begin{exercise}\label{ex:dg-curvature-matrices}
+某点 $\mathrm I=4\dd u^2+\dd v^2$、$\mathrm{II}=4\dd u\dd v$。求形算子矩阵、主曲率与标准正交主方向，并解释为何不能直接把第二基本形式矩阵的特征值当作主曲率。
+\end{exercise}
+
+\chapter{旋转曲面、直纹面与极小曲面}
+\label{chap:dg-examples}
+
+\section{旋转曲面的统一公式}
+设平面母线 $(r(s),z(s))$ 按弧长参数化，即 $r'^2+z'^2=1$，且 $r(s)>0$。绕 $z$ 轴旋转，得到
+\[
+ \mathbf x(s,\theta)=(r(s)\cos\theta,r(s)\sin\theta,z(s)).
+\]
+选择 $\nu=(-z'\cos\theta,-z'\sin\theta,r')$，直接计算得
+\begin{equation}
+ \mathrm I=\dd s^2+r^2\dd\theta^2,\qquad
+ \mathrm{II}=(r'z''-z'r'')\dd s^2+rz'\dd\theta^2.
+ \label{eq:dg-revolution-forms}
+\end{equation}
+坐标方向互相正交，且第二基本形式也对角化，因此母线方向和纬线方向是主方向，其主曲率为
+\[
+ k_s=r'z''-z'r'',\qquad k_\theta=z'/r.
+\]
+由单位速关系求导得 $r'r''+z'z''=0$，故
+\begin{equation}
+ K=-\frac{r''}{r}.
+ \label{eq:dg-revolution-K}
+\end{equation}
+推导中不必除以 $z'$：直接使用 $(r'z''-z'r'')z'=-r''$，所以即使 $z'=0$ 也成立。条件 $r>0$ 排除了旋转轴上的坐标退化点，若要加入极点必须另查曲面的光滑性。
+
+\begin{example}[环面的正负曲率]\label{exam:dg-torus}
+对 $R>a>0$，环面参数为
+\[
+ \mathbf x(u,v)=((R+a\cos u)\cos v,(R+a\cos u)\sin v,a\sin u).
+\]
+取外法向 $\nu=(\cos u\cos v,\cos u\sin v,\sin u)$。基本形式系数为
+\[
+ E=a^2,\ F=0,\ G=(R+a\cos u)^2,\quad
+ e=-a,\ f=0,\ g=-(R+a\cos u)\cos u.
+\]
+所以 $k_1=-1/a$、$k_2=-\cos u/(R+a\cos u)$，并有
+\[
+ K=\frac{\cos u}{a(R+a\cos u)}.
+\]
+外侧为正曲率，内侧为负曲率，顶部与底部的两条圆为抛物点集合。闭曲面的曲率不必处处同号。
+\end{example}
+
+\section{直纹面与可展性}
+\begin{definition}[直纹面]
+形如 $\mathbf x(u,v)=c(u)+v\,d(u)$、$\norm{d(u)}=1$ 的参数曲面称为\keyterm{直纹面（ruled surface）}，其中固定 $u$、改变 $v$ 得到的直线为母线。只在 $\mathbf x_u\times\mathbf x_v\ne0$ 的区域讨论其正则部分。
+\end{definition}
+由于 $\mathbf x_{vv}=0$，第二基本形式的 $g=0$，故 $K=-f^2/(EG-F^2)\le0$。计算
+\[
+ f=\ip{d'}\nu
+ =\frac{\det(d',c'+vd',d)}{\norm{(c'+vd')\times d}}
+ =\frac{\det(d',c',d)}{\norm{(c'+vd')\times d}},
+\]
+并利用 $EG-F^2=\norm{\mathbf x_u\times\mathbf x_v}^2$，得
+\begin{equation}
+ K=-\frac{\det(c',d,d')^2}{\norm{(c'+vd')\times d}^4}.
+ \label{eq:dg-ruled-K}
+\end{equation}
+因此，直纹面正则部分满足 $K=0$ 当且仅当 $c',d,d'$ 线性相关。这也等价于法向沿母线不变：$g=f=0$ 意味着 $S\mathbf x_v=0$，即 $\nu_v=0$。满足此条件的直纹面称为\keyterm{可展直纹面（developable ruled surface）}。一般曲面“局部可等距展开到平面”的内蕴意义在第~\ref{chap:dg-connection} 章说明。
+
+圆柱对应 $d$ 为常向量；圆锥对应所有母线经过一点，应去掉顶点。空间曲线 $\gamma$ 的\keyterm{切线曲面（tangent developable）}为 $\mathbf x(s,v)=\gamma(s)+v\mathbf t(s)$，若曲线单位速且 $\kappa>0$，则叉积大小为 $|v|\kappa$，故 $v=0$ 处不正则，而 $v\ne0$ 的局部正则部分满足 $K=0$。不能把产生奇点的参数线直接纳入正则曲面理论。
+
+\section{极小曲面与面积的一阶变化}
+\begin{definition}[极小曲面]
+平均曲率处处为零的曲面称为\keyterm{极小曲面（minimal surface）}。条件 $H=0$ 与法向的正负选择无关。“极小”这一术语指面积的驻定条件，不保证任意大小的区域都是面积最小者。
+\end{definition}
+对例~\ref{exam:dg-graph-curvature} 中的图像，$H=0$ 等价于
+\begin{equation}
+ (1+h_v^2)h_{uu}-2h_uh_vh_{uv}+(1+h_u^2)h_{vv}=0.
+ \label{eq:dg-minimal-equation}
+\end{equation}
+该方程还可写为 $\operatorname{div}(\grad h/\sqrt{1+\norm{\grad h}^2})=0$。当一阶导数很小时，忽略二次梯度项可得到线性近似 $h_{uu}+h_{vv}=0$；这只是小斜率近似，不是一般极小曲面方程。
+
+\begin{proposition}[法向变分的面积第一变分]
+设紧致曲面区域 $D$ 的法向为 $\nu$，$f$ 为在边界附近为零的光滑函数。对 $\mathbf x_\varepsilon=\mathbf x+\varepsilon f\nu$，在充分小 $\varepsilon$ 下保持浸入，有
+\begin{equation}
+ \left.\frac{\dd}{\dd\varepsilon}\right|_{0}\operatorname{Area}(D_\varepsilon)
+ =-2\int_D fH\dd A.
+ \label{eq:dg-area-variation}
+\end{equation}
+因此，所有这类法向变分下的面积一阶变化为零，当且仅当 $H=0$。
+\end{proposition}
+\begin{proof}
+记变分度量为 $g_{ij}(\varepsilon)$。由于 $\ip\nu{\mathbf x_i}=0$，有 $\dot g_{ij}(0)=f\ip{\nu_i}{\mathbf x_j}+f\ip{\mathbf x_i}{\nu_j}=-2fb_{ij}$。行列式微分公式给出
+\[
+ \left.\frac{\dd}{\dd\varepsilon}\right|_0\sqrt{\det\mathbf g(\varepsilon)}
+ =\tfrac12\sqrt{\det\mathbf g}\,\tr(\mathbf g^{-1}\dot{\mathbf g})
+ =-2fH\sqrt{\det\mathbf g}.
+\]
+紧致性支持积分号下求导，得到公式。若对所有紧支撑 $f$ 积分都为零而某点 $H\ne0$，可在 $H$ 保持同号的小邻域选同号非负测试函数，使积分不为零，矛盾。
+\end{proof}
+
+\begin{example}[悬链面与正螺旋面]\label{exam:dg-minimal-models}
+悬链面（catenoid）的参数为 $\mathbf x(u,v)=(a\cosh v\cos u,a\cosh v\sin u,av)$，$a>0$。取 $\nu=(\cos u/\cosh v,\sin u/\cosh v,-\tanh v)$，则
+\[
+ E=G=a^2\cosh^2v,\quad F=0,\qquad e=-a,\ f=0,\ g=a.
+\]
+故 $H=0$、$K=-1/(a^2\cosh^4v)$。正螺旋面（helicoid）取 $\mathbf y(u,v)=(u\cos v,u\sin v,av)$，其度量为 $\dd u^2+(u^2+a^2)\dd v^2$；以叉积方向作法向，第二基本形式系数为 $e=g=0$、$f=-a/\sqrt{u^2+a^2}$，同样有 $H=0$，且 $K=-a^2/(u^2+a^2)^2$。它还是直纹面，但不是可展面，说明“由直线生成”不等于“可以等距展开”。
+\end{example}
+
+\section{习题}
+\begin{exercise}\label{ex:dg-examples-cone}
+圆锥去掉顶点后取 $\mathbf x(r,\theta)=(r\cos\theta,r\sin\theta,cr)$，$r>0$。求度量，并构造到平面扇形的局部等距坐标。
+\end{exercise}
+\begin{exercise}\label{ex:dg-examples-torus}
+用例~\ref{exam:dg-torus} 的公式计算整个环面的高斯曲率积分，解释正负曲率如何抵消。
+\end{exercise}
+\begin{exercise}\label{ex:dg-examples-helicoid}
+验证例~\ref{exam:dg-minimal-models} 中正螺旋面的基本形式与 $K,H$。
+\end{exercise}
+\begin{exercise}\label{ex:dg-examples-sphere-variation}
+用球面积 $4\pi R^2$ 直接计算外法向常速变分 $R\mapsto R+\varepsilon$ 的面积导数，并与式~\eqref{eq:dg-area-variation} 核对符号。
+\end{exercise}
+
+\chapter{协变导数与曲面基本方程}
+\label{chap:dg-connection}
+
+\section{为什么需要切向微分}
+曲面上向量场在相邻点属于不同的切平面。把它们看作 $\R^3$ 中的向量后可以求导，但导数一般含有法向分量。例如球面上一条大圆的切向量在空间中不断改变，然而这种改变完全沿球面法向，没有切向转弯。为了研究只依赖曲面内部的变化，应将欧氏导数投影回切平面。
+
+\begin{definition}[协变导数]
+设 $X,Y$ 为曲面上的光滑切向量场。记 $D_XY$ 为把 $Y$ 视为 $\R^3$ 值函数后沿 $X$ 的方向导数，定义
+\[
+ \nabla_XY=(D_XY)^\top,
+\]
+其中 $\top$ 表示正交投影到切空间，称为曲面的\keyterm{协变导数（covariant derivative）}。沿曲线 $\gamma$ 的切向量场 $V(t)$ 类似定义 $\nabla_{\dot\gamma}V=(\dd V/\dd t)^\top$。
+\end{definition}
+它满足对 $X$ 的函数线性、对 $Y$ 的实线性以及 Leibniz 法则 $\nabla_X(fY)=X(f)Y+f\nabla_XY$，具有这些性质的微分结构称为\keyterm{联络（connection）}。还有
+\begin{equation}
+ X\ip YZ=\ip{\nabla_XY}Z+\ip Y{\nabla_XZ},
+ \label{eq:dg-metric-compatible}
+\end{equation}
+称为与度量相容。因为法向分量与切向量正交，该式直接来自欧氏内积的求导法则。沿曲线满足 $\nabla_{\dot\gamma}V=0$ 的向量场称为平行向量场；由起点向量求得终点向量的过程称为\keyterm{平行移动（parallel transport）}，其存在唯一性与保内积性质见习题~\ref{ex:dg-connection-parallel}。
+
+对标量函数定义 $[X,Y]f=X(Yf)-Y(Xf)$，得到向量场的\keyterm{Lie 括号（Lie bracket）}；本书所需的关键性质为坐标向量场满足 $[\partial_i,\partial_j]=0$。协变导数还满足 $\nabla_XY-\nabla_YX=[X,Y]$，称为无挠性（torsion-free）。在坐标基上这是混合偏导相等的结果，再由乘积法则推广到一般向量场。此处的“挠”与空间曲线的挠率是不同概念。
+
+\section{Christoffel 符号与 Gauss--Weingarten 公式}
+将二阶导数按切向和法向分解，得到
+\begin{equation}
+ \mathbf x_{ij}=\sum_{k=1}^2\Gamma^k_{ij}\mathbf x_k+b_{ij}\nu,
+ \qquad
+ \nu_i=-\sum_{k,\ell=1}^2g^{k\ell}b_{i\ell}\mathbf x_k.
+ \label{eq:dg-gauss-weingarten}
+\end{equation}
+第一式称为 Gauss 公式，第二式称为 Weingarten 公式。系数 $\Gamma^k_{ij}$ 称为\keyterm{Christoffel 符号（Christoffel symbols）}。它们描述坐标切向基自身的变化，具有 $\Gamma^k_{ij}=\Gamma^k_{ji}$。
+
+\begin{proposition}[由度量求 Christoffel 符号]
+\begin{equation}
+ \Gamma^k_{ij}=\frac12\sum_{\ell=1}^2g^{k\ell}
+ (\partial_i g_{j\ell}+\partial_jg_{i\ell}-\partial_\ell g_{ij}).
+ \label{eq:dg-christoffel}
+\end{equation}
+\end{proposition}
+\begin{proof}
+对 $g_{j\ell}=\ip{\mathbf x_j}{\mathbf x_\ell}$ 求偏导，将 $\partial_i g_{j\ell}+\partial_jg_{i\ell}-\partial_\ell g_{ij}$ 展开。混合偏导相等使多余项抵消，只剩 $2\ip{\mathbf x_{ij}}{\mathbf x_\ell}=2\sum_k\Gamma^k_{ij}g_{k\ell}$。乘以逆度量矩阵即得结论。
+\end{proof}
+对 $X=\sum_iX^i\mathbf x_i$、$Y=\sum_jY^j\mathbf x_j$，有
+\begin{equation}
+ (\nabla_XY)^k=\sum_iX^i\partial_iY^k+
+ \sum_{i,j}\Gamma^k_{ij}X^iY^j.
+ \label{eq:dg-covariant-coordinates}
+\end{equation}
+式~\eqref{eq:dg-christoffel} 表明协变导数由第一基本形式决定。Christoffel 符号本身不是张量分量：坐标变换还会带来坐标函数的二阶导数项，故在一个坐标系中全为零不意味着在另一个坐标系中也全为零。
+
+\begin{example}[平面的极坐标]
+在 $r>0$ 的局部极坐标中，$\mathrm I=\dd r^2+r^2\dd\theta^2$，非零 Christoffel 符号为
+\[
+ \Gamma^r_{\theta\theta}=-r,\qquad
+ \Gamma^\theta_{r\theta}=\Gamma^\theta_{\theta r}=1/r.
+\]
+平面并未因此具有非零曲率；这些符号反映极坐标基沿位置改变。实际曲率还需要考察协变导数的非交换性。
+\end{example}
+
+\section{曲率算子、Gauss 方程与绝妙定理}
+\begin{definition}[曲率算子]
+约定\keyterm{曲率算子（curvature operator）}为
+\[
+ R(X,Y)Z=\nabla_X\nabla_YZ-\nabla_Y\nabla_XZ-\nabla_{[X,Y]}Z.
+\]
+利用协变导数的乘积法则可检查，右端对 $X,Y,Z$ 都具有函数线性，所以在一点的值只依赖三个向量在该点的值，而不依赖延拓方式。
+\end{definition}
+
+\begin{theorem}[Gauss 方程]
+对欧氏三维空间中的正则曲面，
+\begin{equation}
+ R(X,Y)Z=\mathrm{II}(Y,Z)SX-\mathrm{II}(X,Z)SY.
+ \label{eq:dg-gauss-equation}
+\end{equation}
+若 $e_1,e_2$ 为任意标准正交切向基，则
+\begin{equation}
+ K=\ip{R(e_1,e_2)e_2}{e_1}.
+ \label{eq:dg-intrinsic-K}
+\end{equation}
+\label{thm:dg-gauss}
+\end{theorem}
+\begin{proof}
+一般向量场的 Gauss 公式是 $D_XY=\nabla_XY+\mathrm{II}(X,Y)\nu$，且 $D_X\nu=-SX$。欧氏导数满足 $D_XD_YZ-D_YD_XZ-D_{[X,Y]}Z=0$。代入两项分解，取切向分量得
+\[
+ 0=R(X,Y)Z-\mathrm{II}(Y,Z)SX+\mathrm{II}(X,Z)SY,
+\]
+得到第一式。取 $X=e_1,Y=Z=e_2$，与 $e_1$ 作内积，结果为第二基本形式在标准正交基下的行列式，即 $\det S=K$。
+\end{proof}
+
+\begin{theorem}[Gauss 绝妙定理]
+曲面的高斯曲率由第一基本形式及其至多二阶导数确定，因而在局部等距映射下保持不变。
+\label{thm:dg-egregium}
+\end{theorem}
+\begin{proof}
+由式~\eqref{eq:dg-christoffel}，协变导数由度量及其一阶导数确定；曲率算子再求一次导数，因而只需二阶导数。定理~\ref{thm:dg-gauss} 将它与外蕴定义的 $K$ 联系起来。具体地，坐标下
+\begin{equation}
+ K=\frac{1}{\det\mathbf g}\sum_{\ell=1}^2 g_{1\ell}
+ \left[\partial_1\Gamma^\ell_{22}-\partial_2\Gamma^\ell_{12}
+ +\sum_{m=1}^2\left(\Gamma^m_{22}\Gamma^\ell_{1m}
+ -\Gamma^m_{12}\Gamma^\ell_{2m}\right)\right].
+ \label{eq:dg-K-christoffel}
+\end{equation}
+局部等距在对应坐标下给出同样的度量系数，代入即知高斯曲率相同。
+\end{proof}
+因此球面不可能与平面局部等距；圆柱的 $K=0$ 则与其局部展开相容。反过来，两个曲面在一点具有相同 $K$，远不足以说明它们的邻域等距。这个定理也不声称 $H$ 由度量决定，平面与圆柱已提供反例。
+
+\section{Codazzi 方程与曲面论基本定理}
+定义第二基本形式的协变导数
+\[
+ (\nabla_X\mathrm{II})(Y,Z)=X\bigl(\mathrm{II}(Y,Z)\bigr)
+ -\mathrm{II}(\nabla_XY,Z)-\mathrm{II}(Y,\nabla_XZ).
+\]
+对前一节欧氏导数交换式取法向分量，而非切向分量，得到
+\begin{equation}
+ (\nabla_X\mathrm{II})(Y,Z)=(\nabla_Y\mathrm{II})(X,Z).
+ \label{eq:dg-codazzi}
+\end{equation}
+这称为\keyterm{Codazzi 方程（Codazzi equations）}。坐标中
+\[
+ (\nabla_i b)_{jk}=\partial_i b_{jk}
+ -\sum_\ell\Gamma^\ell_{ij}b_{\ell k}
+ -\sum_\ell\Gamma^\ell_{ik}b_{j\ell},\qquad
+ (\nabla_i b)_{jk}=(\nabla_j b)_{ik}.
+\]
+相应算子形式为 $(\nabla_XS)Y=(\nabla_YS)X$，其中 $(\nabla_XS)Y=\nabla_X(SY)-S(\nabla_XY)$；等价性来自度量相容与自伴性。
+
+\begin{theorem}[曲面论基本定理：局部版本]
+设开集 $U\subset\R^2$ 上给定光滑正定对称矩阵 $\mathbf g=(g_{ij})$ 与光滑对称矩阵 $\mathbf b=(b_{ij})$。用 $\mathbf g$ 定义式~\eqref{eq:dg-christoffel} 中的联络，若 $\mathbf g,\mathbf b$ 满足 Gauss 方程和 Codazzi 方程，则每个点附近都存在正则浸入 $\mathbf x$ 及单位法向，使第一、第二基本形式恰为 $\mathbf g,\mathbf b$。在连通且充分小的邻域内，保持所选法向对应关系时，该浸入在刚体运动意义下唯一；若初始三标架的空间定向也固定，则比较它们的刚体运动保持空间定向。
+\label{thm:dg-surface-fundamental}
+\end{theorem}
+\begin{proof}[证明思路与所需外部工具]
+将式~\eqref{eq:dg-gauss-weingarten} 看作未知标架 $(\mathbf x_1,\mathbf x_2,\nu)$ 的线性偏微分方程。Gauss 与 Codazzi 方程正是混合偏导相容的条件。引用相容线性一阶系统的局部可积性定理，可从给定初始标架求得局部解；该步骤是本证明使用的偏微分方程前置结果。度量内积关系满足同一微分系统，初值满足后便保持。方程还给出 $\partial_2\mathbf x_1=\partial_1\mathbf x_2$，由局部 Poincar\'e 引理可积分出位置函数 $\mathbf x$。正定性保证其秩为 $2$。两组初始数据由刚体运动联系，线性系统的唯一性使该关系在邻域内保持。本书不展开可积性定理的一般证明，也不从这一局部结论推断整体嵌入或闭合性。
+\end{proof}
+
+\begin{corollary}[全脐曲面的刚性]
+若连通正则曲面的每一点都是脐点，则它包含于一个平面或一个球面。
+\end{corollary}
+\begin{proof}
+局部选法向，有 $S=\lambda I$，其中 $\lambda=H$ 光滑。Codazzi 方程化为 $X(\lambda)Y=Y(\lambda)X$。取两个线性无关切向量，可得它们沿 $\lambda$ 的方向导数都为零，所以 $\lambda$ 局部为常数。若该常数为零，$\nu$ 局部恒定，曲面局部在平面内；否则 $\dd(\mathbf x+\nu/\lambda)=0$，得到球心。交叠开片不可能同时属于两个不同平面或球面，因为两不同球面或平面的交集不含曲面开片。连通性遂将局部结论拼成同一个平面或球面。
+\end{proof}
+
+\section{正交标架与零曲率的局部展开}
+在一个小坐标片上选正向标准正交切向标架 $e_1,e_2$，定义一形式 $\omega$ 使
+\[
+ \nabla_Xe_1=\omega(X)e_2,\qquad
+ \nabla_Xe_2=-\omega(X)e_1.
+\]
+一形式在每点是切向量到实数的线性映射；若 $\omega=A\dd u+B\dd v$，其外微分为 $\dd\omega=(\partial_uB-\partial_vA)\dd u\wedge\dd v$，楔积表示交替乘积。由曲率算子的定义可算得 $R(X,Y)e_1=\dd\omega(X,Y)e_2$，于是
+\begin{equation}
+ \dd\omega=-K\dd A.
+ \label{eq:dg-connection-curvature}
+\end{equation}
+这里 $\dd A$ 作为定向面积形式使用，取值 $\dd A(e_1,e_2)=1$。若旋转标架角度为 $\phi$，新的一形式为 $\widetilde\omega=\omega+\dd\phi$。
+
+\begin{proposition}[零高斯曲率的局部平面模型]
+若曲面某邻域内 $K\equiv0$，则每一点都有更小的邻域与平面开集等距。
+\end{proposition}
+\begin{proof}
+缩小到坐标圆盘，式~\eqref{eq:dg-connection-curvature} 表明 $\omega$ 闭合。平面区域上的局部 Poincar\'e 引理给出函数 $\phi$，使 $\dd\phi=-\omega$，旋转后标架平行。设 $\eta^1,\eta^2$ 为该标架的对偶一形式。平行性与无挠性给出
+\[
+ \dd\eta^a(X,Y)=\ip{e_a}{\nabla_XY-\nabla_YX-[X,Y]}=0.
+\]
+再次使用局部 Poincar\'e 引理，得到 $\eta^1=\dd y^1,\eta^2=\dd y^2$。两一形式线性无关，故 $(y^1,y^2)$ 是局部坐标，且 $\mathrm I=(\dd y^1)^2+(\dd y^2)^2$。这就是局部等距展开。
+\end{proof}
+此处只用到二维局部版本的 Poincar\'e 引理：星形开集上的闭一形式可沿从中心出发的线段积分为一个势函数，其证明可由积分求导完成。命题是局部结论；圆柱、圆锥的绕行和接缝问题仍然存在。
+
+\section{习题}
+\begin{exercise}\label{ex:dg-connection-warped}
+对度量 $\dd s^2+r(s)^2\dd\theta^2$ 求全部非零 Christoffel 符号，并用式~\eqref{eq:dg-K-christoffel} 推出 $K=-r''/r$。
+\end{exercise}
+\begin{exercise}\label{ex:dg-connection-conformal}
+对 $\mathrm I=e^{2\varphi(u,v)}(\dd u^2+\dd v^2)$，证明 $K=-e^{-2\varphi}(\varphi_{uu}+\varphi_{vv})$，并验证式~\eqref{eq:dg-stereo-metric} 的曲率为 $1$。
+\end{exercise}
+\begin{exercise}\label{ex:dg-connection-incompatible}
+在平面参数域上指定 $\mathrm I=\dd u^2+\dd v^2$、$\mathrm{II}=\dd u^2+\dd v^2$。证明不存在具有这两种基本形式的曲面片。
+\end{exercise}
+\begin{exercise}\label{ex:dg-connection-parallel}
+证明沿任意光滑曲线，给定初始切向量存在唯一平行向量场，并证明两个平行向量场的内积沿曲线保持不变。
+\end{exercise}
+
+\chapter{测地曲率、测地线与距离}
+\label{chap:dg-geodesics}
+
+\section{Darboux 标架与测地曲率}
+设定向曲面内的曲线 $\gamma(s)$ 为单位速，令 $t=\gamma'$、$q=\nu\times t$，则 $(t,q,\nu)$ 为正向标准正交标架，称为\keyterm{Darboux 标架（Darboux frame）}。加速度分解为
+\begin{equation}
+ t'=k_gq+k_n\nu,
+ \label{eq:dg-darboux-first}
+\end{equation}
+其中 $k_n=\ip{St}t$ 是法曲率，$k_g=\ip{t'}q$ 称为有符号\keyterm{测地曲率（geodesic curvature）}。再记 $\tau_g=\ip{St}q$ 为\keyterm{测地挠率（geodesic torsion）}，有
+\[
+ q'=-k_gt+\tau_g\nu,\qquad \nu'=-k_nt-\tau_gq.
+\]
+这些式子由标架内积求导及 $\nu'=-St$ 得到。空间曲率满足 $\kappa^2=k_g^2+k_n^2$；$k_g$ 描述曲线在曲面内部的转弯，$k_n$ 描述曲面造成的外部弯曲。曲线处处沿主方向等价于 $\tau_g=0$。
+
+在上一章的正交标架下写 $t=\cos\theta\,e_1+\sin\theta\,e_2$，则
+\begin{equation}
+ k_g=\frac{\dd\theta}{\dd s}+\omega(t).
+ \label{eq:dg-kg-angle}
+\end{equation}
+这是测地曲率的切向角表达式。若采用正向正交坐标 $\mathrm I=E\dd u^2+G\dd v^2$，取 $e_1=\mathbf x_u/\sqrt E,e_2=\mathbf x_v/\sqrt G$，由式~\eqref{eq:dg-christoffel} 可得
+\[
+ \omega=-\frac{E_v}{2\sqrt{EG}}\dd u+
+          \frac{G_u}{2\sqrt{EG}}\dd v.
+\]
+代入便得到常用的 Liouville 测地曲率公式。该式既包括切向量相对标架的转动，又包括标架自身的转动。
+
+\section{测地线方程与初值问题}
+\begin{definition}[仿射参数测地线]
+曲线 $\gamma(t)$ 若满足 $\nabla_{\dot\gamma}\dot\gamma=0$，称为\keyterm{测地线（geodesic）}，此时 $t$ 为仿射参数。对非恒定单位速曲线，这等价于 $k_g=0$，即空间加速度完全沿曲面法向。
+\end{definition}
+度量相容给出 $\dd\norm{\dot\gamma}^2/\dd t=2\ip{\nabla_{\dot\gamma}\dot\gamma}{\dot\gamma}=0$，因此测地线速度恒定。非恒定测地线作任意非线性参数变换后，一般不再满足零协变加速度；仿射变换 $t\mapsto at+b$ 则保持方程。
+
+\begin{theorem}[坐标方程与局部存在唯一性]
+坐标曲线 $u(t)=(u^1(t),u^2(t))$ 为仿射参数测地线，当且仅当
+\begin{equation}
+ \ddot u^k+\sum_{i,j=1}^2\Gamma^k_{ij}(u(t))\dot u^i\dot u^j=0,
+ \qquad k=1,2.
+ \label{eq:dg-geodesic-equations}
+\end{equation}
+给定 $p\in\Sigma$ 和 $v\in T_p\Sigma$，存在唯一局部测地线满足 $\gamma(0)=p,\dot\gamma(0)=v$。
+\end{theorem}
+\begin{proof}
+把 $\dot\gamma=\sum_i\dot u^i\mathbf x_i$ 代入式~\eqref{eq:dg-covariant-coordinates} 即得方程。把速度也作为未知量，方程变为光滑的一阶系统；常微分方程初值定理给出局部存在唯一性。不同坐标下得到的解由方程的几何定义和局部唯一性一致拼接。
+\end{proof}
+
+\begin{example}[球面与圆柱上的测地线]
+半径 $R$ 球面上的单位速测地线满足 $\gamma''=-\gamma/R^2$，因为加速度为法向且 $\ip{\gamma''}\gamma=-1$。因此
+\[
+ \gamma(s)=p\cos(s/R)+Rv\sin(s/R),\quad
+ \norm p=R,\ \norm v=1,\ \ip pv=0.
+\]
+它位于过球心的固定平面内，故为大圆。圆柱在展开坐标中度量为欧氏度量，测地线满足 $u''=v''=0$；卷回圆柱后得到母线、水平圆或圆柱螺线。其空间曲率未必为零。
+\end{example}
+
+\section{能量与长度的第一变分}
+对区间 $[a,b]$ 上的曲线定义\keyterm{能量泛函（energy functional）}
+\[
+ \mathcal E(\gamma)=\frac12\int_a^b\norm{\dot\gamma}^2\dd t.
+\]
+与长度不同，能量依赖参数化。Cauchy--Schwarz 不等式给出 $L(\gamma)^2\le2(b-a)\mathcal E(\gamma)$，等号恰在速度恒定时成立。固定端点、固定参数区间的长度极小问题，可在常速参数下转化为能量极小问题。
+
+\begin{theorem}[第一变分公式]
+设 $\gamma_\varepsilon(t)$ 是光滑曲线变分，$V=\partial_\varepsilon\gamma_\varepsilon|_0$，则
+\begin{equation}
+ \left.\frac{\dd\mathcal E(\gamma_\varepsilon)}{\dd\varepsilon}\right|_0
+ =\left[\ip V{\dot\gamma}\right]_a^b
+ -\int_a^b\ip V{\nabla_{\dot\gamma}\dot\gamma}\dd t.
+ \label{eq:dg-energy-variation}
+\end{equation}
+因此，固定端点的所有光滑变分下能量驻定，当且仅当 $\gamma$ 为仿射参数测地线。若基曲线以弧长参数化且正则，则长度第一变分同样为
+\begin{equation}
+ \delta L=\left[\ip Vt\right]_a^b-\int_a^b\ip V{\nabla_t t}\dd s.
+ \label{eq:dg-length-variation}
+\end{equation}
+\end{theorem}
+\begin{proof}
+对能量积分求导，利用度量相容与变分参数的无挠交换关系 $\nabla_{\partial_\varepsilon}\partial_t\gamma=\nabla_{\partial_t}\partial_\varepsilon\gamma$，得 $\delta\mathcal E=\int\ip{\nabla_{\dot\gamma}V}{\dot\gamma}\dd t$。分部积分即得公式。固定端点时 $V(a)=V(b)=0$；任意内部紧支撑切向量场均可通过局部坐标变分实现，因此积分对所有 $V$ 为零恰好迫使协变加速度为零。长度情形对 $\norm{\partial_t\gamma_\varepsilon}$ 求导，并用基曲线速度为 $1$，其余相同。
+\end{proof}
+驻定是极小的必要条件，不是充分条件。球面上一段大于半个大圆的弧仍是测地线，却有更短的大圆弧连接同样端点。长度驻定还只决定无参数曲线；必须采用常速参数才能写成式~\eqref{eq:dg-geodesic-equations}。
+
+\section{旋转曲面的 Clairaut 关系}
+对度量 $\dd s^2+r(s)^2\dd\theta^2$，测地线方程为
+\[
+ \ddot s-rr'\dot\theta^2=0,\qquad
+ \ddot\theta+2\frac{r'}r\dot s\dot\theta=0.
+\]
+第二式等价于 $r^2\dot\theta=c$。对单位速测地线，若其切向量与母线正方向的有向夹角为 $\alpha$，则 $\sin\alpha=r\dot\theta$，所以
+\begin{equation}
+ r\sin\alpha=c,\qquad
+ \dot s^2+\frac{c^2}{r^2}=1.
+ \label{eq:dg-clairaut}
+\end{equation}
+第一式称为\keyterm{Clairaut 关系（Clairaut relation）}。它意味着测地线只能进入 $r\ge|c|$ 的区域。母线 $\theta=\text{常数}$ 总是测地线；非恒定的纬线 $s=s_0$ 是测地线的充要条件为 $r'(s_0)=0$。Clairaut 关系是守恒关系，单独使用时仍须结合单位速条件和测地线方程检查解。
+
+\section{指数映射、短程最短性与完备性}
+令 $\gamma_v$ 为初值 $(p,v)$ 的测地线，在 $v$ 足够小时它至少定义至 $t=1$。定义\keyterm{指数映射（exponential map）} $\exp_p(v)=\gamma_v(1)$。解对初值的光滑依赖说明它光滑，且 $\dd(\exp_p)_0$ 为恒等映射：在方向 $w$ 上，$\exp_p(tw)=\gamma_w(t)$，在 $0$ 处求导即得 $w$。逆函数定理遂给出零向量附近的微分同胚，称其像为一个法坐标邻域。
+
+\begin{lemma}[Gauss 引理的二维形式]
+在足够小的法坐标邻域去掉中心后，采用切平面极坐标 $(r,\theta)$，则
+\begin{equation}
+ \mathrm I=\dd r^2+J(r,\theta)^2\dd\theta^2,
+ \qquad J(r,\theta)>0.
+ \label{eq:dg-geodesic-polar}
+\end{equation}
+其中 $r$ 方向为从 $p$ 出发的单位速测地线方向，与角度方向正交。
+\end{lemma}
+\begin{proof}
+设 $F(r,\theta)=\exp_p(r e(\theta))$，$e(\theta)$ 为切平面单位圆。径向速度 $F_r$ 的长度恒为 $1$。由无挠性，$\nabla_rF_\theta=\nabla_\theta F_r$，从而
+\[
+ \partial_r\ip{F_r}{F_\theta}
+ =\ip{F_r}{\nabla_\theta F_r}
+ =\tfrac12\partial_\theta\norm{F_r}^2=0.
+\]
+在 $r=0$ 处 $F_\theta=0$，所以该内积为零；局部微分同胚保证 $r>0$ 时 $F_\theta\ne0$。令 $J=\norm{F_\theta}$ 即得结论。
+\end{proof}
+
+\begin{theorem}[足够短的测地线实现距离]
+每个点 $p$ 都有一个邻域，使从 $p$ 出发的足够短径向测地线在所有连接相同端点的分段光滑曲线中长度最短；最短曲线的像唯一。
+\end{theorem}
+\begin{proof}
+取半径 $b$ 的闭切向圆盘包含于指数映射的微分同胚定义域内。对留在对应开球中的曲线，式~\eqref{eq:dg-geodesic-polar} 给出速度至少为 $|\dot r|$，因此从中心到半径 $a<b$ 的点长度至少为 $a$，径向测地线达到此值。等号要求几乎处处没有角向运动且径向单调，因此路径的像就是径向线段。若竞争曲线离开该开球，在第一次到达边界以前长度已至少为 $b>a$，也不可能更短。曲线经过中心时，可分段使用估计并取端点极限。
+\end{proof}
+最短性是短程结论；球面上首次到达对跖点时，连接两点的最短大圆弧不再唯一。对一般曲面，指数映射的单射性或非退化性可能在远处失效，需用割点与共轭点理论进一步研究。
+
+\begin{theorem}[Hopf--Rinow 定理：引用]
+对连通、无边界、有限维黎曼流形，内蕴距离的完备性等价于每条测地线都可对全部实参数延伸；在这些条件下，任意两点之间存在达到距离的测地线段。
+\end{theorem}
+该定理作为后续黎曼几何的整体结论引用，不在本书证明。紧致无边界曲面满足完备性，去点平面则不满足。结论保证最短测地线存在，不保证唯一；也不能在未检查完备性时应用。
+
+\section{习题}
+\begin{exercise}\label{ex:dg-geodesics-latitude}
+半径 $R$ 球面取外法向，余纬角 $0<\theta<\pi$ 的纬线按经度增加方向行进。求其法曲率、测地曲率与空间曲率，并判断何时是测地线。
+\end{exercise}
+\begin{exercise}\label{ex:dg-geodesics-equator}
+证明旋转曲面的纬线成为测地线的条件为 $r'=0$，并求标准环面上的两条这类纬线。
+\end{exercise}
+\begin{exercise}\label{ex:dg-geodesics-reparameter}
+设 $\gamma$ 为非恒定仿射参数测地线，$\phi$ 为区间微分同胚。证明 $\gamma\circ\phi$ 仍为仿射参数测地线的充要条件是 $\phi''=0$。
+\end{exercise}
+\begin{exercise}\label{ex:dg-geodesics-hyperbolic}
+上半平面 $y>0$ 赋予度量 $(\dd x^2+\dd y^2)/y^2$。证明 $K=-1$，验证竖直直线可作测地线，并由测地线方程求出所有非竖直测地线的像。
+\end{exercise}
+
+\chapter{Gauss--Bonnet 定理与整体曲率}
+\label{chap:dg-gb}
+
+\section{边界方向、外转角与局部公式}
+给定曲面定向 $\nu$，区域边界的正向规定为：沿边界的单位切向量 $t$ 行进时，$q=\nu\times t$ 指向区域内部。角点的有符号外转角 $\alpha$ 是从入射切向量到出射切向量在定向切平面内的转角；对通常的非退化角点，它等于 $\pi-\beta$，其中 $\beta\in(0,2\pi)$ 为内角。凹角的外转角为负。
+
+\begin{theorem}[坐标圆盘上的 Gauss--Bonnet 公式]
+设 $D$ 为包含在一个定向坐标片内、同胚于闭圆盘的紧致曲面区域，边界分段 $C^2$、简单闭合、角点非退化。则
+\begin{equation}
+ \int_D K\dd A+\int_{\partial D}k_g\dd s+\sum_j\alpha_j=2\pi.
+ \label{eq:dg-local-gb}
+\end{equation}
+曲率积分取正面积，边界按上述正向，$k_g$ 按式~\eqref{eq:dg-darboux-first} 的符号约定。
+\label{thm:dg-local-gb}
+\end{theorem}
+\begin{proof}
+在坐标片中对坐标基作 Gram--Schmidt 正交化，得到正向标准正交标架 $e_1,e_2$。边界切向量相对该标架的角记为 $\theta$；由式~\eqref{eq:dg-kg-angle}，各光滑边上有 $k_g\dd s=\dd\theta+\omega$。切向量相对这一标架的总转角加角点跳跃为 $2\pi$：在参数平面上，这是定理~\ref{thm:dg-turning}；从坐标基连续正交化到正交标架的变换在整个圆盘上定义，边界上不增加绕转次数。因此
+\[
+ \int_{\partial D}k_g\dd s+\sum_j\alpha_j
+ =2\pi+\int_{\partial D}\omega.
+\]
+对一形式 $\omega$ 使用 Green--Stokes 公式，并代入式~\eqref{eq:dg-connection-curvature}，得 $\int_{\partial D}\omega=\int_D\dd\omega=-\int_DK\dd A$，即得结论。此证明依赖前文明确引用的平面转角定理。
+\end{proof}
+公式把三种转弯合并：区域内部的曲率、边界平滑处的测地转弯以及角点的离散转角。在平面 $K=0$ 时，它退化为转角定理；在测地多边形上，边界测地曲率项为零。
+
+\section{曲面三角形与球面面积}
+\begin{corollary}[测地三角形的角盈]
+对满足定理~\ref{thm:dg-local-gb} 条件的测地三角形，内角为 $A,B,C$，有
+\begin{equation}
+ A+B+C-\pi=\int_DK\dd A.
+ \label{eq:dg-angle-excess}
+\end{equation}
+\end{corollary}
+\begin{proof}
+三条边的 $k_g=0$，三个外角的和为 $3\pi-(A+B+C)$，代入即可。
+\end{proof}
+对半径 $R$ 球面上的简单测地三角形，只要选择的区域是圆盘且各边为给定的大圆弧，局部公式经细分仍适用，面积为 $R^2(A+B+C-\pi)$。通常采用短大圆弧围成的小三角形以消除区域选择的歧义。单位球面的一个卦限由三条四分之一大圆围成，三个角均为 $\pi/2$，面积为 $\pi/2$。
+
+\begin{example}[球冠的边界曲率核对]
+半径 $R$ 球面北部球冠 $0\le\theta\le\theta_0<\pi$ 的面积为 $2\pi R^2(1-\cos\theta_0)$。边界正向是经度增加，测地曲率为 $\cot\theta_0/R$，边长为 $2\pi R\sin\theta_0$，所以
+\[
+ \int_DK\dd A=2\pi(1-\cos\theta_0),\qquad
+ \int_{\partial D}k_g\dd s=2\pi\cos\theta_0.
+\]
+两项之和为 $2\pi$。经纬度在北极失效不影响曲面公式，可换坐标或将区域细分处理。
+\end{example}
+
+\section{欧拉示性数与整体公式}
+有限三角剖分将紧致曲面分成有限个三角形，任意两个三角形的交集为空、公共顶点或公共边。设顶点、边、面数分别为 $V,E,F$，定义\keyterm{欧拉示性数（Euler characteristic）} $\chi=V-E+F$。紧致光滑曲面存在适当三角剖分，且 $\chi$ 与所选剖分无关；这是此处引用的拓扑学前置结果。可细分剖分，使每个小三角形都包含在一个坐标片中，边为分段光滑曲线。
+
+\begin{theorem}[整体 Gauss--Bonnet 定理]
+若 $\Sigma$ 是紧致、无边界、可定向光滑曲面，则
+\begin{equation}
+ \int_\Sigma K\dd A=2\pi\chi(\Sigma).
+ \label{eq:dg-global-gb}
+\end{equation}
+更一般地，对紧致定向曲面区域 $D$，若边界分段光滑且具有非退化角点，则
+\begin{equation}
+ \int_DK\dd A+\int_{\partial D}k_g\dd s+\sum_j\alpha_j
+ =2\pi\chi(D).
+ \label{eq:dg-boundary-gb}
+\end{equation}
+\label{thm:dg-global-gb}
+\end{theorem}
+\begin{proof}
+先考虑无边界情形。对上述细分中的每个三角形应用局部公式，写成 $\int K+\int k_g=\sum\beta-\pi$，其中 $\beta$ 是三个内角。所有公共边出现两次且方向相反，其测地曲率积分抵消；每个顶点周围的内角和为 $2\pi$。于是 $\int_\Sigma K\dd A=2\pi V-\pi F$。闭曲面中每条边属于两个三角形，故 $3F=2E$，从而右端等于 $2\pi(V-E+F)$。
+
+有边界时，记内部和边界顶点数为 $V_i,V_b$，边数为 $E_i,E_b$。内部顶点总角为 $2\pi$，边界顶点总内角为 $\beta_j$，只有内部边积分抵消。因此加上边界外角总和 $\sum_j(\pi-\beta_j)$ 后，左端为 $2\pi V_i+\pi V_b-\pi F$。边界上人为增加的光滑顶点外角为零。利用 $3F=2E_i+E_b$ 及闭合边界多边形的 $E_b=V_b$，所得数恰为 $2\pi(V-E+F)$。证明使用三角剖分存在性，不要求这些分割边本身都是测地线。
+\end{proof}
+
+对连通、闭合、可定向曲面，拓扑分类定理给出 $\chi=2-2g$，其中 $g\in\{0,1,2,\ldots\}$ 称为\keyterm{亏格（genus）}，可直观理解为把手数。该分类定理也作为拓扑学结论引用。于是球面的曲率积分为 $4\pi$，环面为 $0$；对 $g\ge2$ 的曲面，总曲率为负。
+
+\section{应用范围与常见误推}
+若紧致无边界连通可定向曲面处处 $K>0$，则 Gauss--Bonnet 给出 $\chi>0$，由分类公式可知它拓扑上为球面。这不说明它必须是几何上的圆球，椭球已是反例。若处处 $K=0$，公式仅给出 $\chi=0$；抽象平坦环面确实存在，但这一点不意味着它能作为 $\R^3$ 中光滑正则曲面等距嵌入。
+
+非紧曲面不能直接套用无边界整体公式。例如平面 $K=0$，却没有 $0=2\pi\chi(\R^2)$ 这样的结论；若在平面中取一个圆盘，边界项恰为 $2\pi$。带边界的区域若漏掉内边界方向，也会得出错误结果：平面圆环的外圆正向为逆时针，内圆正向为顺时针，两条边界曲率积分分别为 $2\pi$ 和 $-2\pi$，总和为零，与 $\chi=0$ 一致。
+
+平行移动同样反映曲率。向量相对局部正交标架的角度为 $\psi$ 时，平行条件为 $\psi'+\omega(\dot\gamma)=0$。沿坐标圆盘边界闭合移动，向量最终相对初始方向的旋转角模 $2\pi$ 为 $-\int_{\partial D}\omega=\int_DK\dd A$。因此小回路的平行移动效应由所围区域的高斯曲率积分控制。
+
+\section{习题}
+\begin{exercise}\label{ex:dg-gb-triangle}
+半径 $R$ 球面上一个由短大圆弧围成的三角形的三个内角均为 $2\pi/3$，求其面积。
+\end{exercise}
+\begin{exercise}\label{ex:dg-gb-annulus}
+用边界 Gauss--Bonnet 公式核对平面圆环 $a\le\sqrt{x^2+y^2}\le b$，其中 $0<a<b$，特别说明两个边界方向。
+\end{exercise}
+\begin{exercise}\label{ex:dg-gb-positive}
+设闭合、连通、可定向曲面满足 $K>0$。证明其亏格为零，并说明为何不能由此推出曲面一定是标准球面。
+\end{exercise}
+\begin{exercise}\label{ex:dg-gb-flat-embedded}
+证明不存在紧致无边界正则曲面 $\Sigma\subset\R^3$ 满足 $K\le0$ 处处成立。提示：考察到固定点的平方距离在曲面上的最大值。
+\end{exercise}
+
+\chapter{从曲面到流形与黎曼几何}
+\label{chap:dg-manifolds}
+
+\section{抽象流形：保留坐标兼容性}
+曲面的许多计算只用到二维局部坐标及坐标过渡，而不再需要空间位置 $\mathbf x$。这提示我们把局部欧氏性质作为出发点，允许研究不预先嵌入某个欧氏空间的几何对象。
+
+\begin{definition}[光滑流形]
+一个 $n$ 维\keyterm{光滑流形（smooth manifold）}是满足 Hausdorff 性与第二可数性的拓扑空间 $M$，配备一族覆盖它的局部坐标图 $\varphi:U\to\R^n$ 的开集，使每个图都是同胚，且交叠处的坐标过渡 $\psi\circ\varphi^{-1}$ 光滑。所有与这些图光滑相容的坐标图构成其光滑结构。
+\end{definition}
+Hausdorff 性保证不同点可用不相交邻域分离；第二可数性要求存在可数拓扑基，排除局部欧氏但整体过大的病态空间。曲面是 $n=2$ 的实例，圆周是 $n=1$ 的实例。有边界流形的图允许取值于半空间的相对开集，映到边界超平面的点构成流形边界；这不同于嵌入曲面区域在 $\R^3$ 中的普通集合边界。
+
+\section{切向量、余切向量与张量}
+抽象流形上没有可直接相减的位置向量。可把经过 $p$ 的曲线按“在某个局部坐标下具有同样速度”分成等价类，得到切空间 $T_pM$；链式法则保证该关系与坐标无关。在坐标 $u^1,\ldots,u^n$ 下，基向量写为 $\partial_i=\partial/\partial u^i$。
+
+\keyterm{余切空间（cotangent space）} $T_p^*M$ 是 $T_pM$ 的对偶空间。基一形式 $\dd u^i$ 满足 $\dd u^i(\partial_j)=\delta^i_j$。向量分量与一形式分量变换方向相反；例如 $X(f)=\dd f(X)=\sum_iX^i\partial_i f$ 的数值与坐标无关。对切向量和余切向量多线性作用的对象称为\keyterm{张量（tensor）}；度量是一个对称的二阶协变张量，其坐标变换正是式~\eqref{eq:dg-metric-transform}。
+
+\section{黎曼度量、梯度与 Laplace--Beltrami 算子}
+\begin{definition}[黎曼度量]
+若每个切空间 $T_pM$ 上给定一个内积 $g_p$，其坐标系数随 $p$ 光滑变化，则称 $g$ 为\keyterm{黎曼度量（Riemannian metric）}，$(M,g)$ 称为黎曼流形。长度、角度、面积或体积以及距离均由该度量定义。
+\end{definition}
+度量允许把一形式转成向量。对光滑函数 $f$，\keyterm{梯度（gradient）}定义为满足 $g(\grad f,X)=X(f)$ 的唯一向量场，因此
+\[
+ \grad f=\sum_{i,j}g^{ij}(\partial_jf)\partial_i.
+\]
+在坐标下直接把偏导数列表当作梯度分量，只在正交单位坐标中成立。度量还唯一确定满足无挠性与度量相容的\keyterm{Levi--Civita 联络（Levi--Civita connection）}；其系数仍由式~\eqref{eq:dg-christoffel} 给出，只把指标范围改为 $1,\ldots,n$。唯一性来自同样的度量求导组合，存在性可由该公式及其坐标变换性质验证。
+
+记 $|g|=\det(g_{ij})$，体积元为 $\sqrt{|g|}\dd u^1\cdots\dd u^n$。向量场 $X$ 的散度坐标式为
+\[
+ \operatorname{div}X=\frac1{\sqrt{|g|}}\sum_i\partial_i(\sqrt{|g|}X^i).
+\]
+定义\keyterm{Laplace--Beltrami 算子（Laplace--Beltrami operator）}为 $\Delta f=\operatorname{div}(\grad f)$，从而
+\begin{equation}
+ \Delta f=\frac1{\sqrt{|g|}}\sum_{i,j}
+ \partial_i\left(\sqrt{|g|}g^{ij}\partial_jf\right).
+ \label{eq:dg-laplacian}
+\end{equation}
+本书取与欧氏 $\sum_i\partial_i^2$ 一致的符号，另一常见约定相差负号。二维保角度量 $e^{2\varphi}(\dd u^2+\dd v^2)$ 下，$\Delta f=e^{-2\varphi}(f_{uu}+f_{vv})$；梯度、散度和曲率都要使用度量，不能从坐标形式的相似性推断几何等同。
+
+\section{三个抽象模型与后续方向}
+欧氏平面度量 $\dd x^2+\dd y^2$ 的曲率为零；半径 $R$ 球面的曲率为 $1/R^2$；上半平面度量 $(\dd x^2+\dd y^2)/y^2$ 的曲率为 $-1$。最后一个模型是\keyterm{双曲平面（hyperbolic plane）}的一种表示，它首先是抽象黎曼度量，不应默认是整个上半平面在 $\R^3$ 中某个全局图像的诱导度量。
+
+另一个例子是商空间 $\R^2/\mathbb Z^2$，把相差整数向量的点视为同一点。平移保持欧氏度量，因此可在商空间上定义平坦度量，得到紧致平坦环面。它与例~\ref{exam:dg-torus} 中的标准旋转环面具有相同拓扑，但后者曲率正负变化，两者不等距。拓扑类型、光滑结构、黎曼度量和欧氏空间中的放置方式是不同层次的数据。
+
+后续学习可以沿两条相互联系的路线展开。一条路线研究流形、微分形式、积分与拓扑，理解为何曲率积分会产生拓扑不变量；另一条路线研究联络、测地线变分、Jacobi 场、曲率比较与整体黎曼几何。对曲面基本形式和测地线的熟练掌握，为这些抽象概念提供了可反复检验的具体模型。
+
+\section{习题}
+\begin{exercise}\label{ex:dg-manifolds-gradient}
+在极坐标平面 $r>0$ 上求 $f(r,\theta)$ 的梯度，特别计算 $f=r^2$ 的梯度与 Laplace--Beltrami 算子。
+\end{exercise}
+\begin{exercise}\label{ex:dg-manifolds-sphere-laplace}
+在半径 $R$ 球面上用经纬坐标计算 $f(\theta,\varphi)=\cos\theta$ 的 $\Delta f$，并解释极点处公式如何理解。
+\end{exercise}
+\begin{exercise}\label{ex:dg-manifolds-flat-torus}
+说明欧氏度量为何能下降到 $\R^2/\mathbb Z^2$，并证明其测地线为直线投影；判断速度 $(a,b)\ne(0,0)$ 时测地线闭合的充要条件。
+\end{exercise}
+\begin{exercise}\label{ex:dg-manifolds-scale}
+二维黎曼度量乘以正常数 $c^2$ 后，求长度、面积、高斯曲率与 $\int K\dd A$ 的变化规律。
+\end{exercise}
+
+\appendix
+\chapter{章末习题解答}
+\label{app:dg-solutions}
+
+\section{欧氏空间与微分工具}
+\begin{solve}[习题~\ref{ex:dg-tools-gram} 的解答]
+Gram 行列式为 $\norm v^2\norm w^2-\ip vw^2$，由 Cauchy--Schwarz 不等式非负，亦等于 $\norm{v\times w}^2$。等号当且仅当 $v,w$ 线性相关，其中包括一个向量为零的情形。若两个向量均非零，这等价于两者平行。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-tools-immersion} 的解答]
+有 $F_u=(-\sin u,\cos u,0)$、$F_v=(0,0,1)$，两者处处线性无关，因此 $F$ 处处为浸入。但 $F(u+2\pi,v)=F(u,v)$，所以不是单射。限制到 $(u_0-\delta,u_0+\delta)\times(v_0-\varepsilon,v_0+\varepsilon)$，其中 $0<\delta<\pi$，可在相应圆弧上选连续角度分支，从而得到光滑逆与参数片。局部良好不能消除整体周期重复。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-tools-selfadjoint} 的解答]
+计算得 $\mathbf g\mathbf A=\begin{pmatrix}0&4\\4&0\end{pmatrix}=\mathbf A^{\mathsf T}\mathbf g$。特征值为 $2,-2$，对应特征向量可取 $(1,2)$、$(1,-2)$。二者关于 $\mathbf g$ 的范数都为 $\sqrt8$，且内积为 $4-4=0$，所以单位特征向量为 $(1,2)/\sqrt8$、$(1,-2)/\sqrt8$。普通矩阵不对称，不妨碍它相对于指定内积自伴。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-tools-cone} 的解答]
+定义函数 $F=x^2+y^2-z^2$ 的梯度为 $(2x,2y,-2z)$，仅在原点为零，故除顶点外是正则水平集。若顶点为正则曲面点，通过该点的所有曲面曲线速度都应位于同一个二维切空间内。但 $\gamma_j(t)=tv_j$，其中 $v_1=(1,0,1),v_2=(0,1,1),v_3=(-1,0,1)$，都完全位于圆锥上，而三个速度线性无关，矛盾。这里使用了切空间的几何性质，而非仅以梯度判据失效作结论。
+\end{solve}
+
+\section{空间曲线}
+\begin{solve}[习题~\ref{ex:dg-curves-parabola} 的解答]
+有 $\gamma'=(1,2t,0)$、$\gamma''=(0,2,0)$，所以 $\kappa(t)=2/(1+4t^2)^{3/2}$。原点处单位切向为 $(1,0,0)$，主法向为 $(0,1,0)$，曲率为 $2$，故密切圆位于 $z=0$ 平面，中心 $(0,1/2,0)$，半径 $1/2$，方程为 $x^2+(y-1/2)^2=1/4$。其下半圆在原点附近有展开 $y=x^2+O(x^4)$，与抛物线的二阶项一致。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-curves-reverse} 的解答]
+先取 $\widetilde\gamma(t)=\gamma(-t)$，三个导数依次增加系数 $-1,1,-1$，因此叉积范数不变，三重积系数为 $(-1)(1)(-1)=1$，曲率与挠率均不变。一般反向参数变换还会增加沿低阶导数的项，但它们在叉积和三重积中消失，最终分子分母具有相同的参数缩放因子。对空间正交变换 $Q$，叉积范数不变，而三重积乘以 $\det Q$；故 $\det Q=-1$ 时挠率变号，曲率不变。平移不影响任何导数。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-curves-lancret} 的解答]
+若 $\tau/\kappa=m$ 为常数，令 $a=(m\mathbf t+\mathbf b)/\sqrt{1+m^2}$。由 Frenet 方程，$a'=(m\kappa-\tau)\mathbf n/\sqrt{1+m^2}=0$，且 $\ip{\mathbf t}a=m/\sqrt{1+m^2}$ 为常数。反之，设固定单位向量 $a$ 满足 $\ip{\mathbf t}a=c$，求导得 $\ip{\mathbf n}a=0$，故 $a=c\mathbf t+d\mathbf b$。由单位长度，$d^2=1-c^2$；若 $d=0$，则 $\mathbf t$ 固定，与 $\kappa>0$ 矛盾。因此 $d$ 连续且非零，在连通区间上为常数。求导得 $(c\kappa-d\tau)\mathbf n=0$，故 $\tau/\kappa=c/d$。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-curves-circle} 的解答]
+由 $\tau=0$ 得曲线在一个平面中，且 $c_0=\gamma+\mathbf n/c$ 的导数为 $\mathbf t-\mathbf t=0$，所以 $c_0$ 为常点。又 $\norm{\gamma-c_0}=1/c$，曲线位于该平面内以 $c_0$ 为中心的圆上。反之，半径 $1/c$ 的圆按弧长参数化后，直接求导得到曲率 $c$ 与挠率 $0$。结论描述曲线的像，未额外排除多次绕行。
+\end{solve}
+
+\section{平面曲线}
+\begin{solve}[习题~\ref{ex:dg-plane-ellipse} 的解答]
+分子 $x'y''-y'x''=ab$，分母为 $(a^2\sin^2t+b^2\cos^2t)^{3/2}$，所以
+\[
+ k(t)=\frac{ab}{(a^2\sin^2t+b^2\cos^2t)^{3/2}}>0.
+\]
+当 $a>b$ 时，分母在长轴端点 $t=0,\pi$ 最小，故最大曲率为 $a/b^2$；在短轴端点 $t=\pi/2,3\pi/2$ 最小曲率为 $b/a^2$。长轴端点弯得更急，与曲率半径较小相一致。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-plane-closed} 的解答]
+设 $\Theta(s)=\int_0^s k(\sigma)\dd\sigma$。充分必要条件为
+\[
+ \Theta(L)\in2\pi\mathbb Z,\qquad
+ \int_0^L\cos\Theta(s)\dd s=0,\qquad
+ \int_0^L\sin\Theta(s)\dd s=0.
+\]
+第一条件保证切向量首尾一致，后两条件保证位置闭合；$k$ 的光滑周期性进一步保证所有高阶导数匹配。改变初始角度只把位移积分整体旋转，所以其是否为零不变。这些条件保证正则闭合，但不保证简单闭合。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-plane-offset} 的解答]
+由 $n'=-k\mathbf t$ 得 $\gamma_a'=(1-ak)\mathbf t$。在 $1-ak>0$ 的区间内，$\dd s_a=(1-ak)\dd s$，单位切向仍为 $\mathbf t$，于是 $k_a=\ip{\dd\mathbf t/\dd s_a}n=k/(1-ak)$。若 $1-ak=0$，偏移参数曲线速度为零，正则性失效，不能继续应用曲率公式。常曲率圆在向内偏移一个曲率半径时整圈缩为圆心，是这种退化的直接例子。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-plane-area} 的解答]
+Green 公式给出 $A=\frac12\int_0^{2\pi}(xy'-yx')\dd t=\pi ab$。由等周不等式，$L\ge2\pi\sqrt{ab}$，等号当且仅当椭圆为圆，即 $a=b$。这给出可直接计算的下界，并没有给出一般椭圆周长的初等闭式。
+\end{solve}
+
+\section{正则曲面}
+\begin{solve}[习题~\ref{ex:dg-surfaces-tangent} 的解答]
+梯度在椭球上非零，切向量满足 $x_0X/a^2+y_0Y/b^2+z_0Z/c^2=0$。仿射切平面为
+\[
+ \frac{x_0(x-x_0)}{a^2}+\frac{y_0(y-y_0)}{b^2}
+ +\frac{z_0(z-z_0)}{c^2}=0,
+\]
+利用点在椭球上，可化为 $x_0x/a^2+y_0y/b^2+z_0z/c^2=1$。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-surfaces-chart} 的解答]
+有 $\mathbf x_\theta\times\mathbf x_\varphi=R^2\sin\theta(\sin\theta\cos\varphi,\sin\theta\sin\varphi,\cos\theta)$，故 $\theta=0,\pi$ 处退化。北极附近可取 $\mathbf y(u,v)=(u,v,\sqrt{R^2-u^2-v^2})$，定义域为 $u^2+v^2<R^2$；前两个坐标投影为逆映射，叉积第三分量为 $1$，因此这是覆盖北极的正则参数片。经度还需限制在长度小于 $2\pi$ 的开区间内以消除重复。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-surfaces-orientation} 的解答]
+两个单位法向量都位于同一条法线，所以 $\widetilde\nu(p)=\sigma(p)\nu(p)$，其中 $\sigma(p)=\ip{\widetilde\nu(p)}{\nu(p)}\in\{1,-1\}$ 连续。连通性使 $\sigma$ 恒定。若曲面是两个互不相交的球面的并，可在第一个分支保持法向、在第二个分支反向，得到既不处处相同也不处处相反的两个法向场。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-surfaces-differential} 的解答]
+微分为 $\dd F_{(u,v)}(a,b)=(a,b,2ua+2vb)$，它是从平面到图像切空间的线性同构。映射 $F$ 双射，其逆为 $(x,y,z)\mapsto(x,y)$ 在抛物面上的限制，两者都光滑，因此为微分同胚。但它通常不保持长度：像向量的范数平方为 $a^2+b^2+(2ua+2vb)^2$，一般不等于 $a^2+b^2$。
+\end{solve}
+
+\section{第一基本形式}
+\begin{solve}[习题~\ref{ex:dg-metric-graph} 的解答]
+有 $E=1+f_u^2$、$F=f_uf_v$、$G=1+f_v^2$，故 $EG-F^2=1+f_u^2+f_v^2$，面积元为 $\sqrt{1+f_u^2+f_v^2}\dd u\dd v$。当 $f=uv$ 时，$\mathrm I=(1+v^2)\dd u^2+2uv\dd u\dd v+(1+u^2)\dd v^2$，面积元为 $\sqrt{1+u^2+v^2}\dd u\dd v$。应保留混合项，否则会错误计算非坐标方向的长度。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-metric-sphere} 的解答]
+度量为 $R^2\dd\theta^2+R^2\sin^2\theta\dd\varphi^2$。固定 $\theta=\theta_0$ 的纬线长度为 $2\pi R\sin\theta_0$，面积元为 $R^2\sin\theta\dd\theta\dd\varphi$。在 $0<\theta<\pi$、$0<\varphi<2\pi$ 积分得面积 $4\pi R^2$；缺少的经线与两极为面积零集合，可通过取极限或增加坐标片处理。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-metric-cylinder} 的解答]
+任何连接两点的圆柱曲线都可沿区间连续选择角度的实值提升；其终点角度差为 $\Delta\theta+2\pi m$，其中 $m\in\mathbb Z$。在展开平面中，这条曲线的长度保持不变，至少为两提升端点的欧氏距离 $\sqrt{R^2(\Delta\theta+2\pi m)^2+\Delta z^2}$。反过来，每一对提升端点之间的直线都可卷回圆柱，达到该长度。由于表达式在 $|m|\to\infty$ 时趋于无穷，下确界由某个整数达到，遂得公式；角度差为 $\pi$ 模 $2\pi$ 时可能出现两条不同最短路径。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-metric-conformal} 的解答]
+取原空间标准正交基 $e_1,e_2$。保角使 $Ae_1\perp Ae_2$，记二者长度为 $a,b>0$。由于 $e_1+e_2$ 与 $e_1-e_2$ 正交，像也正交，故 $a^2-b^2=0$。于是任意向量 $X=x_1e_1+x_2e_2$、$Y=y_1e_1+y_2e_2$ 满足 $\ip{AX}{AY}=a^2(x_1y_1+x_2y_2)=a^2\ip XY$。可逆性排除了缩放因子为零。
+\end{solve}
+
+\section{第二基本形式与曲率}
+\begin{solve}[习题~\ref{ex:dg-curvature-quadric} 的解答]
+原点一阶导数为零，因此第一基本形式是单位矩阵，形算子为 Hessian 矩阵 $\operatorname{diag}(2,-3)$。主曲率为 $2,-3$，$K=-6$、$H=-1/2$。渐近方向满足 $2a^2-3b^2=0$，即 $b=\pm\sqrt{2/3}\,a$。它是双曲点，主方向为两个坐标轴方向。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-curvature-normal} 的解答]
+反转法向后 $\widetilde S=-S$，因此每个特征向量仍是特征向量，其特征值变号；$\widetilde H=-H$，$\widetilde K=\det(-S)=\det S=K$，这里使用了切空间维数为 $2$。渐近方向的条件 $\mathrm{II}(X,X)=0$ 在整体乘以 $-1$ 后不变。若按大小重新编号主曲率，编号可能互换，但对应方向集合不变。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-curvature-umbilic} 的解答]
+若 $\lambda=0$，则 $\dd\nu=0$，连通性使法向恒定。函数 $\ip{\mathbf x}\nu$ 的微分为零，故曲面包含于一个固定平面。若 $\lambda\ne0$，则 $\dd(\mathbf x+\nu/\lambda)=0$，所以 $c=\mathbf x+\nu/\lambda$ 是常点，且 $\norm{\mathbf x-c}=1/|\lambda|$。曲面因而包含于相应球面。题目只给出包含关系；不加完备或紧致等条件时，它可以仅是球面的一块开片。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-curvature-matrices} 的解答]
+由于混合项是 $2f\dd u\dd v$，有 $f=2$，所以 $\mathbf b=\begin{pmatrix}0&2\\2&0\end{pmatrix}$，$[S]=\begin{pmatrix}0&1/2\\2&0\end{pmatrix}$。主曲率为 $1,-1$，对应坐标向量 $(1,2)$、$(1,-2)$，归一化后分别除以 $\sqrt8$。若把 $\mathbf b$ 的普通特征值 $2,-2$ 当作主曲率，就忽略了坐标基的长度差异。正确问题是广义特征值方程 $\mathbf b a=k\mathbf g a$。
+\end{solve}
+
+\section{典型曲面}
+\begin{solve}[习题~\ref{ex:dg-examples-cone} 的解答]
+直接求内积得 $\mathrm I=(1+c^2)\dd r^2+r^2\dd\theta^2$。令 $\rho=\sqrt{1+c^2}\,r$、$\phi=\theta/\sqrt{1+c^2}$，则 $\mathrm I=\dd\rho^2+\rho^2\dd\phi^2$，正是平面极坐标度量。所以 $(r,\theta)\mapsto(\rho\cos\phi,\rho\sin\phi)$ 为局部等距映射。绕锥一周时展开角为 $2\pi/\sqrt{1+c^2}$；完整展开需切开一条母线，顶点仍不在正则讨论范围内。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-examples-torus} 的解答]
+面积元为 $a(R+a\cos u)\dd u\dd v$，所以 $K\dd A=\cos u\dd u\dd v$。积分得
+\[
+ \int_\Sigma K\dd A=\int_0^{2\pi}\int_0^{2\pi}\cos u\dd u\dd v=0.
+\]
+正曲率区域的积分为 $4\pi$，负曲率区域的积分为 $-4\pi$，二者抵消。这是带符号的曲率积分为零，不是曲率处处为零，也不是绝对曲率积分为零。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-examples-helicoid} 的解答]
+有 $\mathbf y_u=(\cos v,\sin v,0)$、$\mathbf y_v=(-u\sin v,u\cos v,a)$，故 $E=1,F=0,G=u^2+a^2$。叉积为 $(a\sin v,-a\cos v,u)$，除以 $\sqrt{u^2+a^2}$ 得单位法向。二阶导数为 $\mathbf y_{uu}=0$、$\mathbf y_{uv}=(-\sin v,\cos v,0)$、$\mathbf y_{vv}=(-u\cos v,-u\sin v,0)$，得到 $e=g=0$、$f=-a/\sqrt{u^2+a^2}$。式~\eqref{eq:dg-KH} 遂给出 $H=0$、$K=-a^2/(u^2+a^2)^2$。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-examples-sphere-variation} 的解答]
+直接求导为 $\left.\dd[4\pi(R+\varepsilon)^2]/\dd\varepsilon\right|_0=8\pi R$。外法向下 $H=-1/R$，取 $f=1$，无边界时不需要边界支撑限制，公式给出 $-2\int_\Sigma fH\dd A=(2/R)(4\pi R^2)=8\pi R$。这个检验同时检查了形算子的负号和第一变分的负号。
+\end{solve}
+
+\section{协变导数与基本方程}
+\begin{solve}[习题~\ref{ex:dg-connection-warped} 的解答]
+度量矩阵为 $\operatorname{diag}(1,r^2)$，仅 $\partial_sg_{\theta\theta}=2rr'$ 非零，故
+\[
+ \Gamma^s_{\theta\theta}=-rr',\qquad
+ \Gamma^\theta_{s\theta}=\Gamma^\theta_{\theta s}=r'/r.
+\]
+曲率分子为 $\partial_s(-rr')-(-rr')(r'/r)=-(r'^2+rr'')+r'^2=-rr''$，分母为 $r^2$，所以 $K=-r''/r$。这是只依赖度量的计算，适用于任何具有此度量的曲面，不要求先给出旋转嵌入。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-connection-conformal} 的解答]
+取正交标架 $e_1=e^{-\varphi}\partial_u,e_2=e^{-\varphi}\partial_v$。由正交坐标公式，$\omega=-\varphi_v\dd u+\varphi_u\dd v$，因此 $\dd\omega=(\varphi_{uu}+\varphi_{vv})\dd u\wedge\dd v$。又 $\dd A=e^{2\varphi}\dd u\wedge\dd v$，式~\eqref{eq:dg-connection-curvature} 给出 $K=-e^{-2\varphi}(\varphi_{uu}+\varphi_{vv})$。立体投影度量中 $\varphi=\log2-\log(1+u^2+v^2)$，其欧氏 Laplace 为 $-4/(1+u^2+v^2)^2$，故 $K=1$。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-connection-incompatible} 的解答]
+由第一基本形式的常系数可知全部 Christoffel 符号为零，内蕴曲率为零。但给定第二基本形式使 $[S]=I_2$，外蕴公式给出 $K=1$，违背 Gauss 方程。因此不存在这样的曲面片。正定第一基本形式和对称第二基本形式各自合法，不意味着它们能同时来自同一个曲面。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-connection-parallel} 的解答]
+平行向量场满足 $\nabla_{\dot\gamma}V=0$，坐标式为
+\[
+ \dot V^k+\sum_{i,j}\Gamma^k_{ij}(u(t))\dot u^iV^j=0.
+\]
+这是关于 $V^k$ 的线性方程，系数沿给定曲线光滑，因此给定初值后唯一存在，可跨坐标片依唯一性拼接；在曲线定义域的每个紧子区间上用有限坐标片完成延伸。两个平行场 $V,W$ 满足 $\dd\ip VW/\dd t=\ip{\nabla_{\dot\gamma}V}W+\ip V{\nabla_{\dot\gamma}W}=0$，所以平行移动保持内积、长度和夹角。
+\end{solve}
+
+\section{测地线}
+\begin{solve}[习题~\ref{ex:dg-geodesics-latitude} 的解答]
+纬线空间中是半径 $R\sin\theta$ 的圆，故 $\kappa=1/(R\sin\theta)$。按经度增加方向，$t=(-\sin\varphi,\cos\varphi,0)$，$q=\nu\times t=(-\cos\theta\cos\varphi,-\cos\theta\sin\varphi,\sin\theta)$，且 $t'=-(\cos\varphi,\sin\varphi,0)/(R\sin\theta)$，这里撇表示弧长导数。于是 $k_n=-1/R$、$k_g=\cot\theta/R$，满足 $\kappa^2=k_n^2+k_g^2$。仅在 $\theta=\pi/2$ 时测地曲率为零，即只有赤道是这族纬线中的测地线。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-geodesics-equator} 的解答]
+纬线 $s=s_0$ 上 $\dot s=\ddot s=0$，非恒定性保证 $\dot\theta\ne0$。第一条测地线方程成为 $r(s_0)r'(s_0)\dot\theta^2=0$；由于 $r>0$，等价于 $r'(s_0)=0$。反之，若该条件成立，令 $\theta$ 为时间的仿射函数，两方程均满足。标准环面母线以 $s=au$ 为弧长，$r=R+a\cos u$，所以 $r'= -\sin u$，得到外赤道 $u=0$ 与内赤道 $u=\pi$。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-geodesics-reparameter} 的解答]
+链式法则和联络乘积法则给出
+\[
+ \nabla_{\frac{\dd}{\dd t}(\gamma\circ\phi)}
+       \frac{\dd}{\dd t}(\gamma\circ\phi)
+ =(\phi')^2(\nabla_{\dot\gamma}\dot\gamma)\circ\phi
+ +\phi''\dot\gamma\circ\phi
+ =\phi''\dot\gamma\circ\phi.
+\]
+非恒定仿射参数测地线的速度为非零常数，因此该式为零当且仅当 $\phi''=0$，即 $\phi(t)=at+b$，其中微分同胚条件要求 $a\ne0$。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-geodesics-hyperbolic} 的解答]
+取 $\varphi=-\log y$，有 $\varphi_{xx}+\varphi_{yy}=1/y^2$，故 $K=-1$。非零 Christoffel 符号为 $\Gamma^x_{xy}=\Gamma^x_{yx}=-1/y$、$\Gamma^y_{xx}=1/y$、$\Gamma^y_{yy}=-1/y$，测地线方程是
+\[
+ x''-2x'y'/y=0,\qquad y''+(x'^2-y'^2)/y=0.
+\]
+当 $x'=0$ 时，$y(t)=Ae^{bt}$，$A>0$，给出竖直测地线，$b=0$ 为常值曲线。非竖直时可按单位速参数化，第一式给出 $x'/y^2=c\ne0$，速度条件为 $(x'^2+y'^2)/y^2=1$。第二式进一步说明 $\dd(y'/y)/\dd t=-c^2y^2$，故 $x+y'/(cy)=a$ 为常数。由速度条件消去 $y'$，得到 $(x-a)^2+y^2=1/c^2$。因此非竖直测地线的像为圆心位于边界直线上的上半圆弧；这里“所有”是指最大延伸后整条上半圆，也包括其子弧。
+\end{solve}
+
+\section{Gauss--Bonnet 定理}
+\begin{solve}[习题~\ref{ex:dg-gb-triangle} 的解答]
+角盈为 $3(2\pi/3)-\pi=\pi$。由恒曲率 $K=1/R^2$，面积为 $\pi R^2$。这个数是整个球面积的四分之一；题目指定短大圆弧及其三角形区域，避免把互补区域误当成同一个三角形。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-gb-annulus} 的解答]
+取向上法向，外边界按逆时针方向，$k_g=1/b$、长度 $2\pi b$，积分为 $2\pi$；内边界必须顺时针，使圆环区域仍在左侧，所以 $k_g=-1/a$、长度 $2\pi a$，积分为 $-2\pi$。内部 $K=0$，无角点，左端总和为零。圆环可收缩到圆周，欧拉示性数为零，故公式成立；若把内边界也取逆时针，就破坏了边界正向约定。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-gb-positive} 的解答]
+由紧致性和 $K>0$，曲率积分严格为正。Gauss--Bonnet 给出 $2\pi(2-2g)>0$，且 $g$ 是非负整数，因此 $g=0$。该结论仅描述拓扑类型。非球形椭球有正高斯曲率且拓扑上是球面，却不具有常曲率，也不是某个标准圆球的刚体运动像。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-gb-flat-embedded} 的解答]
+固定 $a\in\R^3$，令 $F(p)=\tfrac12\norm{p-a}^2$，它在紧致曲面上达到最大值，取最大点 $p$，并记 $R=\norm{p-a}>0$。因为没有边界，对任意切向量 $v$ 有 $\ip{p-a}v=0$，所以可选局部法向 $\nu=(p-a)/R$。对任意单位切向量 $v$，选择曲面曲线 $\gamma(0)=p,\gamma'(0)=v$，最大值条件给出
+\[
+ 0\ge(F\circ\gamma)''(0)=1+\ip{p-a}{\gamma''(0)}
+ =1+R\mathrm{II}(v,v).
+\]
+因此所有单位方向法曲率都不大于 $-1/R$，两个主曲率均严格为负，得到 $K(p)\ge1/R^2>0$，矛盾。证明只用到最大点附近的法向，不要求曲面预先给定整体定向。这个结论也说明抽象平坦环面不能以该度量光滑等距嵌入 $\R^3$。
+\end{solve}
+
+\section{流形与黎曼度量}
+\begin{solve}[习题~\ref{ex:dg-manifolds-gradient} 的解答]
+极坐标的逆度量为 $\operatorname{diag}(1,r^{-2})$，所以 $\grad f=f_r\partial_r+(f_\theta/r^2)\partial_\theta$。由 $\sqrt{|g|}=r$，有 $\Delta f=f_{rr}+f_r/r+f_{\theta\theta}/r^2$。对 $f=r^2$，得到 $\grad f=2r\partial_r$、$\Delta f=4$，与直角坐标下 $f=x^2+y^2$ 的计算一致。$r=0$ 的坐标表达失效，但对应函数和向量场可在直角坐标中光滑延伸。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-manifolds-sphere-laplace} 的解答]
+球面度量给出
+\[
+ \Delta f=\frac1{R^2\sin\theta}\partial_\theta(\sin\theta\,\partial_\theta f)
+ +\frac1{R^2\sin^2\theta}\partial_\varphi^2f.
+\]
+取 $f=\cos\theta$ 得 $\Delta f=-2\cos\theta/R^2$。虽然经纬表达在极点含有形式上的零分母，$f=z/R$ 是整个球面上的光滑函数，$\Delta f=-2f/R^2$ 也光滑；在别的坐标中计算或取此光滑延伸即可理解极点处的值。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-manifolds-flat-torus} 的解答]
+整数平移是欧氏等距，因此同一商点的不同提升给出同样的切向量内积，度量定义无歧义。商映射在足够小的邻域内为局部等距，测地线方程可提升为 $x''=y''=0$，故所有测地线来自直线 $p+t(a,b)$ 的投影。闭合的充要条件是存在 $T>0$，使 $T(a,b)\in\mathbb Z^2$。若 $ab\ne0$，这等价于 $a/b\in\mathbb Q$；若一个分量为零，另一分量非零，也总能选取周期。速度不能同时为零，已由题目排除。
+\end{solve}
+
+\begin{solve}[习题~\ref{ex:dg-manifolds-scale} 的解答]
+新长度为原长度的 $c$ 倍，新面积为原面积的 $c^2$ 倍。因为缩放因子恒定，Christoffel 符号中逆度量的 $c^{-2}$ 与度量导数的 $c^2$ 抵消，联络及 $(1,3)$ 型曲率算子保持不变；用新标准正交基 $e_i/c$ 计算高斯曲率，得到 $\widetilde K=K/c^2$。因此 $\widetilde K\dd\widetilde A=K\dd A$，总曲率不变，与 Gauss--Bonnet 的拓扑性质一致。若缩放因子随位置变化，曲率还会含有其导数，不能使用此结论。
+\end{solve}
+
+\chapter{符号、公式与学习检查}
+\label{app:dg-reference}
+
+\section{主要符号与适用条件}
+\begin{longtable}{p{0.16\textwidth}p{0.36\textwidth}p{0.38\textwidth}}
+\toprule
+符号 & 含义 & 使用时应检查的条件\\
+\midrule
+\endhead
+$\gamma(t),s$ & 参数曲线、弧长参数 & 弧长换元要求 $\gamma'\ne0$\\
+$\kappa,\tau$ & 无符号曲率、挠率 & Frenet 挠率要求 $\kappa>0$\\
+$k,\theta$ & 平面有符号曲率、切向角 & 平面定向与行进方向固定\\
+$\mathbf x(u,v),\Sigma$ & 参数片、曲面 & 秩为 $2$，参数片另需同胚条件\\
+$T_p\Sigma,\nu$ & 切空间、单位法向 & 法向可只局部存在\\
+$E,F,G$ & 第一基本形式系数 & $E>0,\ EG-F^2>0$\\
+$e,f,g$ & 第二基本形式系数 & 依赖法向选择\\
+$g_{ij},g^{ij}$ & 度量矩阵及其逆的系数 & 上指标不是逐项倒数\\
+$S,k_1,k_2$ & 形算子、主曲率 & $S=-\dd\nu$，特征值相对于度量\\
+$K,H$ & 高斯曲率、平均曲率 & 反向法向使 $H$ 变号，$K$ 不变\\
+$\Gamma^k_{ij},\nabla$ & Christoffel 符号、协变导数 & Christoffel 符号本身不是张量\\
+$k_g,k_n,\tau_g$ & 测地曲率、法曲率、测地挠率 & 使用单位速 Darboux 标架\\
+$\omega,\dd A$ & 联络一形式、面积元或形式 & $\dd\omega=-K\dd A$ 中使用定向形式\\
+$\chi,g$ & 欧拉示性数、亏格 & $\chi=2-2g$ 用于连通闭可定向曲面\\
+\bottomrule
+\end{longtable}
+符号 $g$ 在不同语境中可表示第二基本形式系数、抽象度量或亏格；每次出现均以所在章节的定义为准。同一推导中用 $g_{ij}$ 或 $\mathbf g$ 表示度量矩阵，避免与第二基本形式的末项系数混淆。
+
+\section{常用公式的查阅路径}
+曲线的一般参数曲率与挠率见式~\eqref{eq:dg-curvature-general}、\eqref{eq:dg-torsion-general}，Frenet 公式见式~\eqref{eq:dg-frenet}。曲面长度与面积分别见式~\eqref{eq:dg-surface-length}、\eqref{eq:dg-area}；形算子、$K,H$ 与 Euler 法曲率公式分别见式~\eqref{eq:dg-shape-matrix}、\eqref{eq:dg-KH}、\eqref{eq:dg-euler-curvature}。图像曲面的计算可从式~\eqref{eq:dg-graph-K}、\eqref{eq:dg-graph-H} 开始，但必须先选定法向。
+
+内蕴计算先由式~\eqref{eq:dg-christoffel} 求 Christoffel 符号，再根据问题选择式~\eqref{eq:dg-geodesic-equations} 的测地线方程或式~\eqref{eq:dg-K-christoffel} 的曲率公式。测地曲率与角度的关系见式~\eqref{eq:dg-kg-angle}，局部、整体及带边界的 Gauss--Bonnet 公式分别见式~\eqref{eq:dg-local-gb}、\eqref{eq:dg-global-gb}、\eqref{eq:dg-boundary-gb}。公式使用的区域、正则性和定向条件以正文命题为准。
+
+\section{综合计算的一般顺序}
+给定一个参数曲面后，先明确参数域并检查 $\mathbf x_u\times\mathbf x_v\ne0$；若讨论整个几何对象，再检查坐标是否遗漏点、是否重复覆盖。随后计算 $E,F,G$，确认 $EG-F^2>0$，再指定单位法向并计算 $e,f,g$。主曲率应由 $\det(\mathbf b-k\mathbf g)=0$ 求出，并用和为 $2H$、积为 $K$ 相互核对。曲率符号可用平面、球面、圆柱及鞍面四类模型检验。
+
+若研究内蕴问题，应优先利用度量中的对称性：常系数度量对应平直坐标，旋转曲面可以使用 Clairaut 关系，保角度量可直接使用二维保角曲率公式。声称一个映射等距时，应验证整个切向量内积，或等价地验证拉回后的度量矩阵，而不是仅检查某条曲线的长度。声称最短时，还需区分测地线方程、局部最短性和整体最短性。
+
+\section{证明依赖与课程完成标准}
+本书直接证明的主线包括弧长与 Frenet 理论、曲线论基本定理、基本形式的坐标不变性、形算子自伴性、曲面基本方程、Gauss 绝妙定理、面积和能量第一变分、测地线局部理论以及在明确拓扑前置结果下的 Gauss--Bonnet 推导。逆函数与隐函数定理、常微分方程初值定理、谱定理、Green--Stokes 公式属于先修内容；等周不等式的证明另外引用 Parseval 恒等式。平面转角定理、曲面三角剖分与分类定理作为拓扑结论引用，曲面论基本定理的存在性部分给出依赖可积性定理的证明思路，Hopf--Rinow 定理仅陈述，不伪装为已在本书证明。
+
+完成本书核心学习后，应能从具体参数化出发计算曲率、识别方向与坐标陷阱，解释第一基本形式与第二基本形式各自记录的信息，独立推导常见曲面的测地线方程，并在满足条件的曲面区域上使用 Gauss--Bonnet 公式。进一步的目标是把这些计算重述为与坐标无关的线性映射、双线性型和联络结论，从而自然进入流形与黎曼几何。
+
+\backmatter
+\begin{thebibliography}{99}
+
+\bibitem{pku-course}
+北京大学数学科学学院. 微分几何：本科常设课程说明，课程号 00132310.
+\url{https://math.pku.edu.cn/bks/sykc/148741.htm}.
+检索日期：2026 年 10 月 11 日。用于核对先修课程、本科范围与参考书目。
+
+\bibitem{mit-syllabus}
+Paul Seidel. 18.950 Differential Geometry: Syllabus. MIT OpenCourseWare, Fall 2008.
+\url{https://ocw.mit.edu/courses/18-950-differential-geometry-fall-2008/pages/syllabus/}.
+检索日期：2026 年 10 月 11 日。用于课程定位与参考体系的选择。
+
+\bibitem{mit-notes}
+Paul Seidel. 18.950 Differential Geometry: Lecture Notes. MIT OpenCourseWare, Fall 2008.
+\url{https://ocw.mit.edu/courses/18-950-differential-geometry-fall-2008/pages/lecture-notes/}.
+检索日期：2026 年 10 月 11 日。公开讲义按平面曲线、超曲面局部与整体几何、长度距离组织，可用于延伸阅读。
+
+\bibitem{tsinghua-course}
+清华大学数学科学系. 马辉：所授课程.
+\url{https://www.math.tsinghua.edu.cn/info/1375/3012.htm}.
+检索日期：2026 年 10 月 11 日。该页面列出本科微分几何及研究生微分流形等课程，不提供完整本科教学大纲。
+
+\bibitem{chen}
+陈维桓. 微分几何初步. 北京大学出版社.
+书目信息据文献~\cite{pku-course} 的教材与参考书栏目；此处不推定具体版次。
+
+\bibitem{docarmo}
+Manfredo P. do Carmo. \textit{Differential Geometry of Curves and Surfaces}.
+Prentice-Hall, 1976.
+书目信息据文献~\cite{mit-syllabus}；作为曲线、曲面及整体曲率的延伸教材。
+
+\bibitem{kuhnel}
+Wolfgang K\"uhnel. \textit{Differential Geometry: Curves---Surfaces---Manifolds}.
+Student Mathematical Library, Vol.~16. American Mathematical Society, 2002.
+书目信息据文献~\cite{mit-syllabus}；作为向流形理论过渡的延伸教材。
+
+\end{thebibliography}
+\end{document}
