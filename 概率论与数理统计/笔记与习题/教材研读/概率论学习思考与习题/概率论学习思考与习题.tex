@@ -37,8 +37,6 @@
 \subsection{中止比赛的赌本公平分配}
 \label{subsec:points-fair-allocation}
 
-\textbf{教材位置与整理范围。}本题对应教材第~\ref{sec:study-probability-history} 节“概率论简史”中关于中止比赛后分配赌本的讨论。教材以三胜制下比分为 $2:1$ 的情形说明分配思路；下面在这一问题的基础上明确模型假设，并补充一般赛制、固定但不一定相等的每局胜率下的公式及其证明。
-
 甲、乙两人各拿出150元，共300元作为赌本。双方约定，谁先累计赢下三局，谁就拿走全部赌本。每局没有平局，两人获胜的机会相同，而且前面各局的输赢不会影响后面各局的结果。现在甲已经赢了两局，乙赢了一局，比赛却因外部原因不得不中止。这300元应该怎样公平分配？
 
 \subsubsection{问题定义}
@@ -188,7 +186,85 @@ x_B=\mathbb E[W_B\mid\text{当前比分为 }(a,b)].
 
 \section{随机试验和随机事件}
 \label{sec:study-random-experiments}
-% 待补充本节的学习思考与习题解答。
+
+\subsection{德摩根律：复合事件的对立事件}
+\label{subsec:study-de-morgan}
+
+描述随机事件时，经常需要把一个条件整体否定。例如，“两个事件至少发生一个”的否定是什么？“两个事件都发生”的否定又是什么？\impo{\keyterm{德摩根律（De Morgan's laws）}说明：对一个并集或交集取补集时，需要交换并与交，并对其中每个集合分别取补集。}在概率论中，它把复合事件的“不发生”转化为若干较简单事件之间的关系，是寻找对立事件的基本依据。
+
+先明确记号。随机试验所有可能结果组成的集合称为\keyterm{样本空间（sample space）}，记作 $\Omega$；其中的一个结果记作 $\omega$，称为样本点。事件 $A$ 用 $\Omega$ 中满足指定条件的样本点组成的集合表示，实际结果 $\omega\in A$ 就表示事件 $A$ 发生。相对于同一个样本空间，事件 $A$ 的\keyterm{对立事件（complementary event）}是
+\[
+  A^{\mathrm c}=\Omega\setminus A
+  =\{\omega\in\Omega:\omega\notin A\},
+\]
+也就是“$A$ 不发生”，其集合称为 $A$ 的补集，有时也记作 $\overline A$。对于两个事件 $A,B$，\keyterm{并（union）} $A\cup B$ 表示“$A,B$ 至少有一个发生”，允许二者同时发生；\keyterm{交（intersection）} $A\cap B$ 表示“$A,B$ 同时发生”。下面所有补集都相对于固定的 $\Omega$ 而言。
+
+\begin{proposition}[两个事件的德摩根律]
+\label{prop:study-de-morgan}
+设 $A,B$ 是同一随机试验中的两个事件，则
+\begin{align}
+  (A\cup B)^{\mathrm c}
+    &=A^{\mathrm c}\cap B^{\mathrm c},
+    \label{eq:study-de-morgan-union}\\
+  (A\cap B)^{\mathrm c}
+    &=A^{\mathrm c}\cup B^{\mathrm c}.
+    \label{eq:study-de-morgan-intersection}
+\end{align}
+\end{proposition}
+
+式~\eqref{eq:study-de-morgan-union} 表示：\keyterm{“至少一个发生”的对立事件是“一个也不发生”}，因此必须让 $A$ 不发生且 $B$ 不发生。式~\eqref{eq:study-de-morgan-intersection} 表示：\keyterm{“都发生”的对立事件是“至少一个不发生”}，只要 $A,B$ 中有一个没有发生，就足以使“都发生”不成立。这是逻辑中否定与“或”“且”的关系：否定一个“或”条件得到两个否定条件的“且”，否定一个“且”条件得到两个否定条件的“或”。
+
+\begin{example}
+\label{ex:study-de-morgan-die}
+掷一枚六面骰子一次，取 $\Omega=\{1,2,3,4,5,6\}$，样本点表示朝上一面的点数。设 $A$ 为“点数为偶数”，$B$ 为“点数大于 $3$”。分别写出 $A\cup B$、$A\cap B$ 及其对立事件，并核对德摩根律。
+\end{example}
+
+\begin{solve}
+先按条件列出样本点：
+\[
+  A=\{2,4,6\},\qquad B=\{4,5,6\},\qquad
+  A^{\mathrm c}=\{1,3,5\},\qquad B^{\mathrm c}=\{1,2,3\}.
+\]
+于是
+\[
+  \begin{aligned}
+    A\cup B&=\{2,4,5,6\},&
+    (A\cup B)^{\mathrm c}&=\{1,3\}
+      =A^{\mathrm c}\cap B^{\mathrm c},\\
+    A\cap B&=\{4,6\},&
+    (A\cap B)^{\mathrm c}&=\{1,2,3,5\}
+      =A^{\mathrm c}\cup B^{\mathrm c}.
+  \end{aligned}
+\]
+第一行中，“既不是偶数，也不大于 $3$”只有点数 $1,3$；第二行中，“不是偶数，或者不大于 $3$”包括点数 $1,2,3,5$。特别地，点数为 $2$ 时 $A$ 发生而 $B$ 不发生，属于“$A,B$ 不都发生”，却不属于“$A,B$ 都不发生”。\impo{因此，“不都发生”不能理解为“都不发生”，也不能理解为“恰有一个不发生”，因为它还包括二者都不发生的情形。}
+\end{solve}
+
+德摩根律同样适用于有限多个事件。设 $n\ge1$ 为整数，$A_1,\ldots,A_n$ 是同一样本空间中的事件，则
+\begin{equation}
+  \left(\bigcup_{i=1}^{n}A_i\right)^{\mathrm c}
+    =\bigcap_{i=1}^{n}A_i^{\mathrm c},
+  \qquad
+  \left(\bigcap_{i=1}^{n}A_i\right)^{\mathrm c}
+    =\bigcup_{i=1}^{n}A_i^{\mathrm c}.
+  \label{eq:study-de-morgan-finite}
+\end{equation}
+第一式说，“至少一个事件发生”的否定是“所有事件都不发生”；第二式说，“所有事件都发生”的否定是“至少一个事件不发生”。从样本点看，前者把“存在一个 $i$ 使 $\omega\in A_i$”的否定改写为“对每个 $i$ 都有 $\omega\notin A_i$”；后者把“对每个 $i$ 都有 $\omega\in A_i$”的否定改写为“存在一个 $i$ 使 $\omega\notin A_i$”。这既证明了有限情形，也说明同样的论证对可数无穷事件列 $A_1,A_2,\ldots$ 仍成立：
+\begin{equation}
+  \left(\bigcup_{i=1}^{\infty}A_i\right)^{\mathrm c}
+    =\bigcap_{i=1}^{\infty}A_i^{\mathrm c},
+  \qquad
+  \left(\bigcap_{i=1}^{\infty}A_i\right)^{\mathrm c}
+    =\bigcup_{i=1}^{\infty}A_i^{\mathrm c}.
+  \label{eq:study-de-morgan-countable}
+\end{equation}
+
+\impo{德摩根律本身是\keyterm{事件之间的恒等式}，不要求事件互斥或相互独立，也不涉及各事件发生的概率大小。}引入概率后，记 $\mathbb P(E)$ 为事件 $E$ 的概率，结合对立事件的概率关系 $\mathbb P(E^{\mathrm c})=1-\mathbb P(E)$，式~\eqref{eq:study-de-morgan-finite} 给出
+\begin{equation}
+  \mathbb P\!\left(\bigcup_{i=1}^{n}A_i\right)
+    =1-\mathbb P\!\left(\bigcap_{i=1}^{n}A_i^{\mathrm c}\right).
+  \label{eq:study-de-morgan-probability}
+\end{equation}
+\impo{因此，求“至少一个发生”的概率时，可以先求“一个也不发生”的概率，再用 $1$ 减去它。}\impo{不过，交事件的概率不能仅凭德摩根律写成各事件概率的乘积；能否相乘还需要相应的独立性条件。}记忆时可概括为：\keyterm{整体取补，并交互换，逐项取补}；理解时则应回到“至少一个”与“所有”的否定关系。
 
 \section{概率的定义和性质}
 \label{sec:study-probability-definition}
