@@ -318,6 +318,113 @@ x_B=\mathbb E[W_B\mid\text{当前比分为 }(a,b)].
 此近似要求各项 $k/365$ 较小且累计误差可以接受。$r=30,50$ 时，近似值分别为 $0.6963,0.9651$；按精确公式~\eqref{eq:study-birthday-exact} 计算，相应结果为 $0.7063,0.9704$（保留四位小数）。
 \end{solve}
 
+\subsection{加法定理与容斥原理：重叠事件的概率}
+\label{subsec:study-inclusion-exclusion}
+
+求若干事件中“至少有一个发生”的概率，就是求这些事件的并集的概率。若事件之间存在重叠，直接相加各事件的概率，就可能把共同部分重复计算。概率的\keyterm{加法定理（addition theorem）}通过交替减去和补回各重交集的概率，修正这种重复计数；它是\keyterm{容斥原理（inclusion--exclusion principle）}在概率计算中的形式。以下各事件均属于同一概率空间，用 $\mathbb P$ 表示概率；教材中的 $A_iA_j$ 表示交集 $A_i\cap A_j$，不是概率的乘积。
+
+先考察两个事件。记 $B\setminus A=B\cap A^{\mathrm c}$，即“$B$ 发生而 $A$ 不发生”。由于 $A\cup B$ 是 $A$ 与 $B\setminus A$ 的不交并，而 $B$ 是 $B\setminus A$ 与 $A\cap B$ 的不交并，由概率的有限可加性，
+\[
+  \mathbb P(A\cup B)=\mathbb P(A)+\mathbb P(B\setminus A),
+  \qquad
+  \mathbb P(B)=\mathbb P(B\setminus A)+\mathbb P(A\cap B).
+\]
+消去 $\mathbb P(B\setminus A)$，得到
+\begin{equation}
+  \mathbb P(A\cup B)
+    =\mathbb P(A)+\mathbb P(B)-\mathbb P(A\cap B).
+  \label{eq:study-inclusion-exclusion-two}
+\end{equation}
+当 $A,B$ 互斥，即 $A\cap B=\varnothing$ 时，交集项为零，公式退化为互斥事件的加法公式。
+
+对于三个事件，先对 $A\cup B$ 与 $C$ 使用式~\eqref{eq:study-inclusion-exclusion-two}，再由分配律 $(A\cup B)\cap C=(A\cap C)\cup(B\cap C)$ 对交集部分使用同一公式，得
+\begin{equation}
+  \begin{aligned}
+    \mathbb P(A\cup B\cup C)
+      ={}&\mathbb P(A)+\mathbb P(B)+\mathbb P(C)\\
+         &-\mathbb P(A\cap B)-\mathbb P(A\cap C)-\mathbb P(B\cap C)\\
+         &+\mathbb P(A\cap B\cap C).
+  \end{aligned}
+  \label{eq:study-inclusion-exclusion-three}
+\end{equation}
+三者交集为何要加回来？属于三个事件共同部分的样本点，在单事件项中计入三次，又在两两交集项中减去三次，因此还要补回一次；只属于其中两个事件的样本点则计入两次、减去一次，已经恰好保留一次。
+
+\begin{theorem}[有限个事件的加法定理]
+\label{thm:study-inclusion-exclusion}
+设 $n\ge1$ 为整数，$A_1,\ldots,A_n$ 是同一概率空间中的任意事件，则
+\begin{equation}
+  \mathbb P\!\left(\bigcup_{i=1}^{n}A_i\right)
+    =\sum_{k=1}^{n}(-1)^{k-1}
+      \sum_{1\le i_1<\cdots<i_k\le n}
+      \mathbb P(A_{i_1}\cap\cdots\cap A_{i_k}).
+  \label{eq:study-inclusion-exclusion-general}
+\end{equation}
+内层求和遍历所有由 $k$ 个不同下标组成的组合，每组只取一次，共有 $\binom nk$ 项。因此，右端依次为单事件概率之和，减去两两交集概率之和，加上三者交集概率之和，直到符号为 $(-1)^{n-1}$ 的全体事件交集项。公式不要求各事件互斥，也不要求相互独立。
+\end{theorem}
+
+\begin{proof}
+用数学归纳法证明。$n=1$ 时两端均为 $\mathbb P(A_1)$；$n=2$ 时就是已经证明的式~\eqref{eq:study-inclusion-exclusion-two}。设 $n\ge3$，假设公式对任意 $n-1$ 个事件成立，令
+\[
+  U=\bigcup_{i=1}^{n-1}A_i,\qquad B_i=A_i\cap A_n\quad(1\le i\le n-1).
+\]
+由分配律，$U\cap A_n=\bigcup_{i=1}^{n-1}B_i$。再用二事件公式，得
+\begin{equation}
+  \mathbb P\!\left(\bigcup_{i=1}^{n}A_i\right)
+    =\mathbb P(U)+\mathbb P(A_n)
+      -\mathbb P\!\left(\bigcup_{i=1}^{n-1}B_i\right).
+  \label{eq:study-inclusion-exclusion-induction}
+\end{equation}
+分别对 $A_1,\ldots,A_{n-1}$ 和 $B_1,\ldots,B_{n-1}$ 应用归纳假设。$\mathbb P(U)$ 的展开给出所有不含下标 $n$ 的交集项，$\mathbb P(A_n)$ 给出只含下标 $n$ 的一阶项。最后一项中，每个 $k$ 重交集满足
+\[
+  B_{i_1}\cap\cdots\cap B_{i_k}
+    =A_{i_1}\cap\cdots\cap A_{i_k}\cap A_n,
+  \qquad 1\le k\le n-1.
+\]
+它对应一个含下标 $n$ 的 $k+1$ 重交集。归纳公式中的系数为 $(-1)^{k-1}$，再乘以式~\eqref{eq:study-inclusion-exclusion-induction} 中的负号，变为 $(-1)^k$，恰好是 $k+1$ 重交集应有的符号。所有非空下标组合由此不重不漏地出现，合并便得到式~\eqref{eq:study-inclusion-exclusion-general}，归纳完成。
+\end{proof}
+
+容斥原理与对立事件法可以结合使用。由德摩根律~\eqref{eq:study-de-morgan-finite}，“所有事件都不发生”是“至少一个事件发生”的对立事件，因而
+\begin{equation}
+  \begin{aligned}
+    \mathbb P\!\left(\bigcap_{i=1}^{n}A_i^{\mathrm c}\right)
+      &=1-\mathbb P\!\left(\bigcup_{i=1}^{n}A_i\right)\\
+      &=1-\sum_{k=1}^{n}(-1)^{k-1}
+        \sum_{1\le i_1<\cdots<i_k\le n}
+        \mathbb P(A_{i_1}\cap\cdots\cap A_{i_k}).
+  \end{aligned}
+  \label{eq:study-inclusion-exclusion-complement}
+\end{equation}
+\explain{应用这一公式时，应先利用已知条件和事件之间的包含关系，确定所需的各重交集概率，再代入计算。下面的例题说明这一过程。}
+
+\begin{example}
+\label{ex:study-inclusion-exclusion-complement}
+设 $A,B,C$ 是同一概率空间中的三个事件，已知
+\[
+  \mathbb P(A)=\mathbb P(B)=\frac14,\qquad \mathbb P(C)=\frac25,
+  \qquad \mathbb P(A\cap B)=0,\qquad
+  \mathbb P(A\cap C)=\mathbb P(B\cap C)=\frac16.
+\]
+求三个事件都不发生的概率 $\mathbb P(A^{\mathrm c}\cap B^{\mathrm c}\cap C^{\mathrm c})$。
+\end{example}
+
+\begin{solve}
+先确定题目没有直接给出的三者交集概率。由于 $A\cap B\cap C\subseteq A\cap B$，由概率的单调性，
+\[
+  0\le\mathbb P(A\cap B\cap C)\le\mathbb P(A\cap B)=0,
+\]
+所以 $\mathbb P(A\cap B\cap C)=0$。结合对立事件关系和三事件公式~\eqref{eq:study-inclusion-exclusion-three}，得到
+\begin{equation}
+  \begin{aligned}
+    \mathbb P(A^{\mathrm c}\cap B^{\mathrm c}\cap C^{\mathrm c})
+      &=1-\mathbb P(A\cup B\cup C)\\
+      &=1-\left[\frac14+\frac14+\frac25-0-\frac16-\frac16+0\right]\\
+      &=1-\frac{17}{30}=\boxed{\frac{13}{30}}.
+  \end{aligned}
+  \label{eq:study-inclusion-exclusion-example-answer}
+\end{equation}
+\explain{这里仅利用了事件包含关系与容斥原理。}条件 $\mathbb P(A\cap B)=0$ 不能在一般概率空间中推出 $A\cap B=\varnothing$，所以不宜直接把 $A,B$ 称为互斥事件；它已经足以推出三者交集的概率为零。此外，本题中 $\mathbb P(A)\mathbb P(B)=1/16\ne\mathbb P(A\cap B)$，故 $A,B$ 并不独立，也不能用三个对立事件概率的乘积代替所求概率。
+\end{solve}
+
 \section{条件概率}
 \label{sec:study-conditional-probability}
 % 待补充本节的学习思考与习题解答。
