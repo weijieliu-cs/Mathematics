@@ -1,28 +1,30 @@
-\NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{researchnotes}[2026/06/11 v0.2 Shared style for Chinese research notes]
+% 中文学科笔记的共享样式，主要用于 ctexart 和 ctexbook 文档。
+% 本文件采用 UTF-8 编码；项目统一使用 XeLaTeX，兼容 LuaLaTeX。
+% 内部命令使用 rn@ 前缀；宏包文件中可直接使用含 @ 的命令名。
+% 目录使用命令钩子，因此要求不早于 2021 年 6 月的 LaTeX 内核。
+\NeedsTeXFormat{LaTeX2e}[2021/06/01]
+\ProvidesPackage{researchnotes}[2026/10/15 v0.8 中文学科笔记共享样式]
 
-% Engine and fonts.
+% 一、编译引擎、字体与标点
+% 遇到不支持的引擎时立即停止，避免后续字体设置产生连锁错误。
 \RequirePackage{iftex}
-\ifPDFTeX
-  \PackageError{researchnotes}{Please compile with XeLaTeX or LuaLaTeX}{This style is designed for ctex documents.}
-\else
-  \RequirePackage{fontspec}
-  \defaultfontfeatures{Ligatures=TeX}
-  \IfFontExistsTF{Times New Roman}
-    {\setmainfont{Times New Roman}}
-    {\setmainfont{TeX Gyre Termes}}
-\fi
+\RequireTUTeX
+\RequirePackage{fontspec}
+% 西文字体优先使用系统字体，否则使用发行版提供的替代字体。
+% 连字选项仅用于正文西文字体，不覆盖用户为其他字体设置的默认特性。
+\IfFontExistsTF{Times New Roman}
+  {\setmainfont[Ligatures=TeX]{Times New Roman}}
+  {\setmainfont[Ligatures=TeX]{TeX Gyre Termes}}
 
+% 沿用将中文句号显示为全角点号的既有约定。
 \RequirePackage{newunicodechar}
 \newunicodechar{。}{\symbol{"FF0E}}
 
-% Page layout and typography.
-% Preserve the document class spacing for the table of contents.
-\makeatletter
+% 二、页面与正文
+% 在调整正文前保存文档类的行距和段间距，供目录局部恢复使用。
 \let\rn@toc@baselinestretch\baselinestretch
 \newlength{\rn@toc@parskip}
 \setlength{\rn@toc@parskip}{\parskip}
-\makeatother
 \RequirePackage{geometry}
 \RequirePackage{setspace}
 \geometry{
@@ -36,22 +38,23 @@
 \setlength{\parindent}{2em}
 \setlength{\parskip}{0.25em}
 \setstretch{1.3}
-\emergencystretch=2em
-% Keep natural vertical spacing and leave unused height at the page bottom.
-\AtBeginDocument{\raggedbottom}
+\setlength{\emergencystretch}{2em}
+% 保持自然的竖直间距，页面不足的高度留在页底。
+\AddToHook{begindocument}[researchnotes/page-layout]{\raggedbottom}
 
-% Math.
+% 三、数学公式
+% mathtools 已加载 amsmath，随后加载定理与数学符号支持。
 \RequirePackage{mathtools}
 \RequirePackage{amsthm}
 \RequirePackage{amssymb}
 \allowdisplaybreaks[2]
 \numberwithin{equation}{section}
 
-% Tables and figures.
+% 四、图表与表格列类型
 \RequirePackage{graphicx}
 \RequirePackage{xcolor}
 \RequirePackage{tcolorbox}
-\tcbuselibrary{breakable}
+\tcbuselibrary{skins,breakable}
 \RequirePackage{booktabs}
 \RequirePackage{array}
 \RequirePackage{tabularx}
@@ -64,6 +67,7 @@
 \setlength{\intextsep}{8pt plus 2pt minus 2pt}
 \setlength{\floatsep}{10pt plus 2pt minus 2pt}
 \renewcommand{\arraystretch}{1.12}
+% 固定宽度列分别左对齐、居中、右对齐；伸缩列默认左对齐。
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
 \newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
@@ -71,55 +75,69 @@
 \numberwithin{figure}{section}
 \numberwithin{table}{section}
 
-% Lists.
+% 五、列表
 \RequirePackage{enumitem}
 \setlist[itemize]{itemsep=0.15em,topsep=0.25em,parsep=0pt,partopsep=0pt}
 \setlist[enumerate]{itemsep=0.2em,topsep=0.25em,parsep=0pt,partopsep=0pt}
 \setlist[description]{itemsep=0.15em,topsep=0.25em,parsep=0pt,partopsep=0pt}
 
-% Page style.
+% 六、页眉与页脚
 \RequirePackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
-\cfoot{\thepage}
+\fancyfoot[C]{\thepage}
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}
 
-% Section spacing for ctex classes.
-\makeatletter
+% 七、章节标题
+% 为保留文档类原有的目录标题样式，在此集中读取中文宏包的内部值。
+% 先检查所需命令，再保存原值；恢复时使用公开的 \ctexset 接口。
+% 若内部接口发生变化，则保留文档类标题设置并给出警告。
 \newcommand{\rn@restoretocheading}{}
-\@ifundefined{ctexset}{}{
-  % Save the class heading style before applying the body heading style.
-  \let\rn@toc@format\CTEX@section@format
-  \let\rn@toc@beforeskip\CTEX@section@beforeskip
-  \let\rn@toc@afterskip\CTEX@section@afterskip
-  \renewcommand{\rn@restoretocheading}{%
-    \let\CTEX@section@format\rn@toc@format
-    \let\CTEX@section@beforeskip\rn@toc@beforeskip
-    \let\CTEX@section@afterskip\rn@toc@afterskip
-  }
-  \ctexset{
-    section = {
-      format = \centering\Large\bfseries,
-      beforeskip = 1.1ex plus 0.3ex minus 0.2ex,
-      afterskip = 0.7ex plus 0.2ex
-    },
-    subsection = {
-      format = \large\bfseries,
-      beforeskip = 0.9ex plus 0.2ex minus 0.2ex,
-      afterskip = 0.5ex plus 0.2ex
+\newif\ifrn@ctexheadings
+\@ifundefined{ctexset}{}{%
+  \rn@ctexheadingstrue
+  \@for\rn@headingfield:=format,beforeskip,afterskip\do{%
+    \@ifundefined{CTEX@section@\rn@headingfield}{\rn@ctexheadingsfalse}{}%
+  }%
+  \ifrn@ctexheadings
+    \let\rn@toc@format\CTEX@section@format
+    \let\rn@toc@beforeskip\CTEX@section@beforeskip
+    \let\rn@toc@afterskip\CTEX@section@afterskip
+    \renewcommand{\rn@restoretocheading}{%
+      \ctexset{
+        section = {
+          format = \rn@toc@format,
+          beforeskip = \rn@toc@beforeskip,
+          afterskip = \rn@toc@afterskip
+        }
+      }%
     }
-  }
+    \ctexset{
+      section = {
+        format = \centering\Large\bfseries,
+        beforeskip = 1.1ex plus 0.3ex minus 0.2ex,
+        afterskip = 0.7ex plus 0.2ex
+      },
+      subsection = {
+        format = \large\bfseries,
+        beforeskip = 0.9ex plus 0.2ex minus 0.2ex,
+        afterskip = 0.5ex plus 0.2ex
+      }
+    }
+  \else
+    \PackageWarning{researchnotes}{无法读取中文标题设置，已保留文档类原有的标题样式}%
+  \fi
 }
-\makeatother
 
-% Theorem-like environments.
+% 八、定理类环境
+% 正文采用正体，各类环境分别按节编号，保持现有文档的编号方式。
 \newtheoremstyle{rn-theorem}
   {0.7em}
   {0.7em}
-  {\setlength{\parindent}{0pt}}
+  {\normalfont\setlength{\parindent}{0pt}}
   {0pt}
-  {\bfseries}
+  {\normalfont\bfseries}
   {}
   {0.8em}
   {}
@@ -138,8 +156,8 @@
 \newtheorem{observation}{观察}[section]
 \newtheorem{notation}{符号}[section]
 
-% 可复用备注框：沿用 tcolorbox 官方示例的黄绿色标题栏、浅色背景和圆角边框。
-% 与 remark 共用已有编号；可选参数用于标签或单个备注的局部设置。
+% 可分页备注框：黄绿色标题栏、浅色背景和圆角边框。
+% 与 remark 共用计数器；可选参数用于标签或单个备注的局部设置。
 % 用法：\begin{remarkbox}[label={rem:example}]{备注标题}
 % 上半部分正文。\tcblower 下半部分正文。\end{remarkbox}
 % 不需要虚线分隔时，省略 \tcblower 即可。
@@ -154,54 +172,160 @@
   #1
 }
 
-\makeatletter
-\newenvironment{solve}[1][解]{\par
-  \setlength{\parindent}{0pt}%
-  \pushQED{\qed}%
-  \normalfont \topsep6\p@\@plus6\p@\relax
-  \trivlist
-  \item[\hskip\labelsep \bfseries #1\hskip 0.8em]\ignorespaces
-}{%
-  \popQED\endtrivlist\@endpefalse
+% 九、块级提示
+% 仅提供三类：蓝色备注用于补充说明，绿色思路用于解题策略，
+% 红色注意用于重要结论、适用条件与易错提醒；正式定义、定理和证明仍使用各自的环境。
+% 用法：\begin{notealert} 补充说明。\end{notealert}
+% 用法：\begin{notealert}[type=tip,title={先考虑对立事件}] 提示正文。\end{notealert}
+% 类型可取 note、tip、caution，默认为 note；标题可省略。
+% 自定义标题接在类型名称之后，例如“思路：先考虑对立事件”。
+% 提示框默认不编号，不占用定理或备注的计数器；正文可包含公式和列表。
+% 需要上下两部分及虚线分隔时，可在正文中使用 \tcblower。
+% 使用红、绿、蓝三原色，三类提示共用同一套混色比例和外观设置。
+\colorlet{rnalertnote}{blue}
+\colorlet{rnalerttip}{green}
+\colorlet{rnalertcaution}{red}
+
+% 将选项放在独立路径下，避免覆盖其他盒子的同名选项。
+% 类型和自定义标题分别保存，因此两项的书写顺序不影响结果。
+\tcbset{
+  rnalert/.cd,
+  type/.is choice,
+  type/note/.code={%
+    \def\rn@alert@name{备注}%
+    \def\rn@alert@color{rnalertnote}%
+  },
+  type/tip/.code={%
+    \def\rn@alert@name{思路}%
+    \def\rn@alert@color{rnalerttip}%
+  },
+  type/caution/.code={%
+    \def\rn@alert@name{注意}%
+    \def\rn@alert@color{rnalertcaution}%
+  },
+  type/.unknown/.code={%
+    \PackageError{researchnotes}{未知的提示类型 '\pgfkeyscurrentname'}
+      {提示类型只支持 note、tip、caution。}%
+  },
+  title/.store in=\rn@alert@title,
+  .unknown/.code={%
+    \PackageError{researchnotes}{未知的提示选项 '\pgfkeyscurrentname'}
+      {请使用 type 指定类型，使用 title 设置可选标题。}%
+  }
+}
+\newcommand{\rn@alert@heading}{%
+  \rn@alert@name
+  \ifx\rn@alert@title\@empty\else：\rn@alert@title\fi
 }
 
-\newenvironment{analyze}[1][分析]{\par
+% 沿用彩色盒子的默认圆角、边框和内边距，与已有备注框采用相同的混色比例。
+% 三类提示仅配色不同：实色标题栏配白字，浅色背景配黑色正体正文。
+% 长提示可自动跨页，续页重复标题并标记“续”。
+\newtcolorbox{notealert}[1][]{
+  breakable,
+  coltext=black,
+  fonttitle=\normalfont,
+  fontupper=\normalfont,
+  fontlower=\normalfont,
+  /tcb/rnalert/.cd,
+  type=note,
+  title={},
+  #1,
+  /tcb/.cd,
+  colback=\rn@alert@color!5!white,
+  colframe=\rn@alert@color!50!black,
+  colbacktitle=\rn@alert@color!75!black,
+  coltitle=white,
+  title={\rn@alert@heading},
+  title after break={\rn@alert@heading（续）}
+}
+
+% 十、证明、解答与分析
+% 统一维护标题与正文的公共结构；证明和解答保留结束符号栈，支持 \qedhere。
+\newcommand{\rn@prooflike@begin}[1]{%
   \setlength{\parindent}{0pt}%
-  \normalfont \topsep6\p@\@plus6\p@\relax
+  \normalfont
+  \topsep6\p@\@plus6\p@\relax
   \trivlist
   \item[\hskip\labelsep \bfseries #1\hskip 0.8em]\ignorespaces
-}{%
+}
+\newcommand{\rn@prooflike@end}{%
   \endtrivlist\@endpefalse
 }
 
-\renewenvironment{proof}[1][\proofname]{\par
-  \setlength{\parindent}{0pt}%
+\renewenvironment{proof}[1][\proofname]{%
+  \par
   \pushQED{\qed}%
-  \normalfont \topsep6\p@\@plus6\p@\relax
-  \trivlist
-  \item[\hskip\labelsep \bfseries #1\hskip 0.8em]\ignorespaces
+  \rn@prooflike@begin{#1}%
 }{%
-  \popQED\endtrivlist\@endpefalse
+  \popQED\rn@prooflike@end
 }
 
-\makeatother
+\newenvironment{solve}[1][解]{%
+  \par
+  \pushQED{\qed}%
+  \rn@prooflike@begin{#1}%
+}{%
+  \popQED\rn@prooflike@end
+}
 
-% Common colors and note helpers.
+\newenvironment{analyze}[1][分析]{%
+  \par
+  \rn@prooflike@begin{#1}%
+}{%
+  \rn@prooflike@end
+}
+
+% 十一、颜色与正文辅助命令
 \definecolor{rnorange}{HTML}{FF5F15}
 \definecolor{rngreen}{HTML}{27AE60}
 \definecolor{rnlinkblue}{HTML}{1F4E99}
+% 保留旧颜色名称作为别名，兼容已经使用这些名称的笔记。
 \colorlet{myorange}{rnorange}
 \colorlet{mygreen}{rngreen}
 \colorlet{mylinkblue}{rnlinkblue}
-\newcommand{\impo}[1]{{\kaishu\textcolor{blue}{#1}}}
-\newcommand{\explain}[1]{\textcolor{rngreen}{#1}}
-\DeclareRobustCommand{\keyterm}[1]{{\kaishu\mdseries #1}}
-\newcommand{\idea}[1]{\par\vspace{0.45em}\noindent\textbf{#1}}
+
+% 统一的行文强调接口：仅提供蓝、绿、红三类，类型名与块级提示保持一致。
+% 用法：\noteemph{术语或关键结论}，等同于 \noteemph[note]{...}，使用蓝色。
+% 用法：\noteemph[tip]{解题策略或证明思路。}，使用绿色。
+% 用法：\noteemph[caution]{适用条件或易错提醒。}，使用红色。
+% 三类均采用楷体常规字重；普通正文不使用高亮命令，不另设正文色类型。
+% 颜色以提示框的三原色为基础，绿色文字适度加深，以便在白底上阅读。
+% 字体与颜色仅在参数内生效；不同类型嵌套时，内层按其指定类型显示。
+% 仅标记必要内容；\textbf 仍用于结构性强调，不与此接口相互重定义。
+\colorlet{rnemphnote}{rnalertnote}
+\colorlet{rnemphtip}{rnalerttip!50!black}
+\colorlet{rnemphcaution}{rnalertcaution}
+% 保留旧的蓝色名称，兼容直接引用该颜色的文档。
+\colorlet{rnimportant}{rnemphnote}
+\newcommand{\rn@emph@note}[1]{\textcolor{rnemphnote}{#1}}
+\newcommand{\rn@emph@tip}[1]{\textcolor{rnemphtip}{#1}}
+\newcommand{\rn@emph@caution}[1]{\textcolor{rnemphcaution}{#1}}
+\NewDocumentCommand{\noteemph}{O{note} +m}{%
+  {\kaishu\mdseries
+    \@ifundefined{rn@emph@#1}{%
+      \PackageError{researchnotes}{未知的强调类型 '#1'}
+        {请使用 note（术语与要点）、tip（方法与思路）或 caution（条件与易错提醒）。}%
+      \rn@emph@note{#2}%
+    }{%
+      \csname rn@emph@#1\endcsname{#2}%
+    }%
+  }%
+}
+
+% 原有名称保留为稳健的兼容入口，不增加新的高亮类型；新内容优先使用统一接口。
+% 术语和重要内容统一映射到蓝色，解释文字映射到绿色；原有参数形式保持不变。
+\DeclareRobustCommand{\keyterm}[1]{\noteemph[note]{#1}}
+\DeclareRobustCommand{\impo}[1]{\noteemph[note]{#1}}
+\DeclareRobustCommand{\explain}[1]{\noteemph[tip]{#1}}
+% 此命令用于正文中的提示标题，不代替正式的章节层级。
+\DeclareRobustCommand{\idea}[1]{\par\vspace{0.45em}\noindent\textbf{#1}}
 \newenvironment{whispers}
   {\par\color{purple}\itshape}
   {\par}
 
-% Hyperlinks should be loaded late.
+% 十二、超链接与书签
+% 在其他依赖宏包之后加载，以便正确接管交叉引用。
 \RequirePackage{hyperref}
 \hypersetup{
   unicode=true,
@@ -213,10 +337,23 @@
   pdfborder={0 0 0}
 }
 
-% Keep the class's default contents title, layout and spacing. Links remain
-% clickable, but use the normal text appearance within the contents only.
-\makeatletter
-\AddToHook{cmd/tableofcontents/before}{%
+% 可展开的书签副本读取可选类型后只保留正文，不执行字体或颜色指令。
+% 参数解析不使用依赖赋值的向前探测，以适应书签字符串的展开过程。
+\NewExpandableDocumentCommand{\rn@pdf@noteemph}{+O{note} +m}{#2}
+
+% 书签仅保留辅助命令中的文字，去除字体、颜色与段落格式指令。
+\pdfstringdefDisableCommands{%
+  \let\noteemph\rn@pdf@noteemph
+  \let\impo\@firstofone
+  \let\explain\@firstofone
+  \let\keyterm\@firstofone
+  \let\idea\@firstofone
+}
+
+% 十三、目录的局部样式
+% 保留文档类原有的目录标题、布局和间距；目录链接可点击但不着色。
+% 成对钩子使用相同标签，所有临时设置均限制在目录分组内。
+\AddToHook{cmd/tableofcontents/before}[researchnotes/contents]{%
   \begingroup
   \hypersetup{hidelinks}%
   \let\baselinestretch\rn@toc@baselinestretch
@@ -224,7 +361,6 @@
   \setlength{\parskip}{\rn@toc@parskip}%
   \rn@restoretocheading
 }
-\AddToHook{cmd/tableofcontents/after}{\endgroup}
-\makeatother
+\AddToHook{cmd/tableofcontents/after}[researchnotes/contents]{\endgroup}
 
 \endinput
