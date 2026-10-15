@@ -38,6 +38,16 @@
 
 在此配置下，PDF 和 SyncTeX 文件输出到主 `.tex` 文件所在目录，辅助文件集中保存在仓库根目录的 `tmp/build/`。需要清理时，可执行 `LaTeX Workshop: Clean up auxiliary files`；清理命令使用 `latexmk -c`，并传入与编译一致的辅助目录和输出目录。仓库不指定自动编译和自动清理的触发时机，沿用成员的用户设置或插件默认行为；保存时自动编译等使用习惯可在个人设置中调整。
 
+不使用 VS Code 时，可在仓库根目录的 Bash 或 Zsh 终端执行以下命令，以《贝叶斯公式》为例：
+
+```bash
+note_dir="概率论与数理统计/笔记与习题/专题整理/贝叶斯公式"
+latexmk -synctex=1 -interaction=nonstopmode -file-line-error -xelatex \
+  -auxdir=tmp/build -outdir="$note_dir" "$note_dir/贝叶斯公式.tex"
+```
+
+编译其他笔记时，替换 `note_dir` 和命令末尾的 `.tex` 文件名。编译参数及输出位置与上述 VS Code 配置一致：PDF 和 SyncTeX 文件位于笔记目录，辅助文件位于仓库根目录的 `tmp/build/`。
+
 ## 参与贡献
 
 每位参与者都可以为项目贡献自己的理解。欢迎通过 [Issue](https://github.com/weijieliu-cs/Mathematics/issues) 提出问题，或提交 [PR](https://github.com/weijieliu-cs/Mathematics/pulls) 纠错、补充证明、例题与解法。改一个符号、补一个例子都很有帮助。
