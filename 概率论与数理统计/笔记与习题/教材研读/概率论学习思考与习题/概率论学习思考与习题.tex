@@ -79,7 +79,7 @@ $A$ 最终所得以概率 $Q(r,t)$ 为 $M$，以概率 $1-Q(r,t)$ 为 $0$，故�
   \label{eq:points-binomial-mass}
 \end{equation}
 
-\begin{proposition}[赌本分配的一般公式]
+\begin{proposition}
 \label{prop:points-general-shares}
 在上述假设下，令 $r=s-a$、$t=s-b$、$N=r+t-1$，则
 \begin{equation}
@@ -445,11 +445,169 @@ $A$ 最终所得以概率 $Q(r,t)$ 为 $M$，以概率 $1-Q(r,t)$ 为 $0$，故�
 
 \section{随机变量的概念}
 \label{sec:study-random-variable-concept}
-% 待补充本节的学习思考与习题解答。
+
+随机试验的结果可能是硬币的正反面、球的颜色或比赛的胜负记录。研究时，我们常常只关心其中某个数值特征，例如正面出现的次数。随机变量就是按照所研究的问题选定一种数值记录规则，给每个样本点赋予一个实数，从而把关于具体结果的问题转化为关于数值的问题。
+
+\begin{definition}
+\label{def:study-random-variable}
+设随机试验的样本空间为 $\Omega$，并已给定事件及其概率。若实值函数
+\[
+  X:\Omega\longrightarrow\mathbb R,\qquad
+  \omega\longmapsto X(\omega)
+\]
+满足：对任意实数 $u$，集合
+\begin{equation}
+  \{X\le u\}:=\{\omega\in\Omega:X(\omega)\le u\}
+  \label{eq:study-random-variable-measurability}
+\end{equation}
+都是该概率模型中的事件，则称 $X$ 为一个\emph{随机变量（random variable）}。
+\end{definition}
+
+上述事件条件称为\emph{可测性（measurability）}要求，保证相应概率有意义；在有限样本空间且所有子集均为事件时，每个实值函数都满足这一要求。赋值规则 $X$ 是事先确定的，随机性来自试验最终出现哪个样本点 $\omega$。
+
+\begin{example}
+\label{ex:study-random-variable-two-coins}
+独立抛掷一枚公平硬币两次，每次正面和反面出现的概率均为 $1/2$。用 $H$ 表示正面，$T$ 表示反面，记随机变量 $X$ 为两次抛掷中正面出现的次数。写出 $X$ 的赋值规则，说明具体取值与事件的区别，并求事件 $\{X=1\}$ 和 $\{X\le1\}$ 的概率。
+\end{example}
+
+\begin{solve}
+用两个字母依次记录两次抛掷的结果，样本空间为
+\[
+  \Omega=\{HH,HT,TH,TT\}.
+\]
+由公平性与独立性，四个样本点等可能，各自对应的单点事件的概率为 $1/4$。按照“数出正面的个数”这一规则，
+\begin{equation}
+  X(HH)=2,\qquad X(HT)=X(TH)=1,\qquad X(TT)=0.
+  \label{eq:study-random-variable-coin-map}
+\end{equation}
+所以 $X$ 的可能取值为 $0,1,2$。若实际结果为 $HT$，则本次观察到的\emph{实现值（realization）}为 $x=X(HT)=1$。这里，$HT$ 是样本点，$X$ 是赋值函数，$1$ 是具体取值；通常用大写字母表示随机变量，用小写字母表示其取值。
+
+“恰好出现一次正面”对应事件
+\begin{equation}
+  \{X=1\}:=\{\omega\in\Omega:X(\omega)=1\}
+    =\{HT,TH\}.
+  \label{eq:study-random-variable-coin-event}
+\end{equation}
+因此，仅知道 $X=1$ 不能区分 $HT$ 与 $TH$，随机变量不一定保留结果的全部信息。记号 $\mathbb P(X=1)$ 是 $\mathbb P(\{X=1\})$ 的简写；由两个单点事件的互斥性，
+\[
+  \mathbb P(X=1)=\mathbb P(\{HT\})+\mathbb P(\{TH\})
+    =\frac14+\frac14=\frac12.
+\]
+同样，“至多出现一次正面”对应事件
+\[
+  \{X\le1\}=\{\omega\in\Omega:X(\omega)\le1\}
+    =\{TT,HT,TH\}.
+\]
+它包含三个等可能的样本点，故 $\mathbb P(X\le1)=3/4$。这些计算说明，关于随机变量的数值条件，仍然是在描述样本空间中的事件。
+
+若还要区分 $HT$ 与 $TH$，可以在同一样本空间上再定义 $Y$：第一次为正面时取 $1$，否则取 $0$。这样，$HT$ 与 $TH$ 虽然都使 $X=1$，却分别使 $Y=1$ 与 $Y=0$，说明可以用不同随机变量记录同一试验的不同特征。\emph{同一次试验只产生一个样本点，却可以同时确定多个随机变量的取值。}
+\end{solve}
 
 \section{离散型随机变量的分布}
 \label{sec:study-discrete-distributions}
-% 待补充本节的学习思考与习题解答。
+
+\subsection{0-1 分布与二项分布}
+\label{subsec:study-bernoulli-binomial}
+
+把试验的两类结果分别称为“成功”和“失败”。若只记录一次试验是否成功，就得到 0-1 分布；若进行固定次数的独立重复试验，每次成功的概率相同，并记录成功的总次数，就得到二项分布。“成功”和“失败”只是结果的名称，不表示好坏。
+
+\begin{definition}
+\label{def:study-bernoulli-distribution}
+设 $p\in[0,1]$。若随机变量 $X$ 取值于 $\{0,1\}$，且
+\begin{equation}
+  \mathbb P(X=1)=p,\qquad \mathbb P(X=0)=1-p,
+  \label{eq:study-bernoulli-mass}
+\end{equation}
+则称 $X$ 服从参数为 $p$ 的\emph{0-1 分布}，也称\emph{伯努利分布（Bernoulli distribution）}，记作 $X\sim\mathrm{Bern}(p)$。
+\end{definition}
+
+例如，抛掷一次硬币，正面出现的概率为 $p$；把正面记为 $1$、反面记为 $0$，所得随机变量便服从 $\mathrm{Bern}(p)$。
+
+\begin{definition}
+\label{def:study-binomial-distribution}
+设 $n$ 为正整数，$p\in[0,1]$。进行 $n$ 次相互独立的试验，每次只有成功与失败两类结果，且每次成功的概率均为 $p$，这样的试验序列称为\emph{伯努利试验序列（Bernoulli trials）}。令 $X_i$ 在第 $i$ 次试验成功时取 $1$，失败时取 $0$，其中 $i=1,\ldots,n$，则成功的总次数为
+\begin{equation}
+  Y=X_1+X_2+\cdots+X_n.
+  \label{eq:study-binomial-sum}
+\end{equation}
+称 $Y$ 的分布为参数为 $n,p$ 的\emph{二项分布（binomial distribution）}，记作 $Y\sim\mathrm{Bin}(n,p)$。其中 $X_1,\ldots,X_n$ 相互独立，均服从 $\mathrm{Bern}(p)$，而 $Y$ 取值于 $\{0,1,\ldots,n\}$。
+\end{definition}
+
+计算二项分布的概率时，应区分“指定哪些次试验成功”和“只指定成功的总次数”：前者确定一个完整的结果序列，后者通常包含多个不同序列。
+
+\begin{example}
+\label{ex:study-binomial-three-trials}
+独立进行三次试验，每次成功的概率均为 $p\in(0,1)$。记 $Y$ 为成功的总次数，求恰好成功两次的概率，并说明计数系数的来源。
+\end{example}
+
+\begin{solve}
+用 $S$ 表示成功，$F$ 表示失败，按试验顺序记录结果。恰好成功两次对应 $SSF$、$SFS$ 和 $FSS$ 三种结果，由独立性，每种结果的概率均为 $p^2(1-p)$。它们对应的事件两两互斥，所以
+\begin{equation}
+  \mathbb P(Y=2)=3p^2(1-p).
+  \label{eq:study-binomial-three-trials}
+\end{equation}
+其中 $3=\binom32$ 是从三个试验位置中选出两个成功位置的方法数。
+\end{solve}
+
+\begin{proposition}
+\label{prop:study-binomial-mass}
+设 $Y\sim\mathrm{Bin}(n,p)$，其中 $n$ 为正整数。当 $0<p<1$ 时，$Y$ 的概率分布为
+\begin{equation}
+  \mathbb P(Y=k)=\binom nk p^k(1-p)^{n-k},
+  \qquad k=0,1,\ldots,n,
+  \label{eq:study-binomial-mass}
+\end{equation}
+其余取值的概率为 $0$。当 $p=0$ 时，$\mathbb P(Y=0)=1$；当 $p=1$ 时，$\mathbb P(Y=n)=1$。
+\end{proposition}
+
+\begin{proof}
+先设 $0<p<1$，固定整数 $k\in\{0,1,\ldots,n\}$。若事先指定哪 $k$ 次试验成功、其余 $n-k$ 次试验失败，由各次试验的独立性，这一种完整安排的概率为
+\[
+  \underbrace{p\cdots p}_{k\text{ 个}}
+  \underbrace{(1-p)\cdots(1-p)}_{n-k\text{ 个}}
+  =p^k(1-p)^{n-k},
+\]
+其中没有因子时相应的乘积按 $1$ 计算。由于每次试验的成功概率相同，这一概率只取决于成功与失败的次数，不取决于它们出现的具体位置。
+
+从 $n$ 个试验位置中选出 $k$ 个成功位置，共有
+\[
+  \binom nk=\frac{n!}{k!(n-k)!}
+\]
+种选法，其中 $0!=1$。选定成功位置后，其余位置全部为失败，所以每个选法恰好对应一种完整安排；这里只需选择位置，无须再给选中的位置另作排列。不同安排对应的事件两两互斥，而成功总次数恰为 $k$ 的所有结果都包含在这些安排中。由概率的有限可加性，将这 $\binom nk$ 个相同的概率相加，得到
+\[
+  \mathbb P(Y=k)=\binom nk p^k(1-p)^{n-k}.
+\]
+此外，成功次数必在 $0$ 与 $n$ 之间；若 $p=0$，每次试验都以概率 $1$ 失败，故 $Y=0$ 的概率为 $1$；若 $p=1$，同理可得 $Y=n$ 的概率为 $1$。
+\end{proof}
+
+因此，式~\eqref{eq:study-binomial-mass} 中的组合数统计的是成功位置的安排数，$p^k(1-p)^{n-k}$ 则是一种指定安排的概率。\emph[tip]{同一种安排内部，由独立性将各次试验的概率相乘；不同安排之间，由互斥性将各个事件的概率相加。}这里具有相同成功次数的序列等可能，并不要求全部结果序列等可能。
+
+两种分布的关系也可由式~\eqref{eq:study-binomial-sum} 看出：\emph{二项随机变量是若干个相互独立、参数相同的 0-1 随机变量之和。}当 $n=1$ 时，$\mathrm{Bin}(1,p)$ 就是 $\mathrm{Bern}(p)$。应用二项分布时，应核对试验次数固定、各次试验相互独立、成功概率相同这三个条件；若抽样方式不满足这些条件，就需要根据实际模型重新计算分布。
+
+\subsection{标记重捕模型与超几何分布}
+\label{subsec:study-capture-recapture}
+
+% 教材例 2.5：标记重捕（Capture-Recapture）模型。
+\begin{example}
+\label{ex:study-capture-recapture}
+池塘中共有 $N$ 条鱼，第一次捕捞 $M$ 条，标记后全部放回，充分混合后再不放回地捕捞 $n$ 条，其中 $N,M,n$ 为整数，$N\ge1$、$0\le M\le N$、$1\le n\le N$。假定鱼群组成与标记保持不变，第二次捕捞时每个包含 $n$ 条不同鱼的组合等可能。求其中恰有 $m$ 条鱼带标记的概率。
+\end{example}
+
+\begin{solve}
+这称为\emph{标记重捕（capture--recapture）模型}。记 $X$ 为第二次捕捞中有标记鱼的数量。“不放回”指第二次捕捞时同一条鱼不会被重复抽到，与第一次标记后放回并不矛盾。不考虑捕捞顺序，每个具体的 $n$ 条鱼的组合是一个样本点，全部样本点共有 $\binom Nn$ 个，且等可能；这里 $\binom ab$ 表示从 $a$ 个不同对象中选出 $b$ 个的组合数。
+
+要使 $X=m$，需从 $M$ 条有标记鱼中选出 $m$ 条，再从 $N-M$ 条无标记鱼中选出 $n-m$ 条。\emph[tip]{选定有标记部分后，无标记部分的不同选择仍会形成不同的完整结果。}两部分的任意选法可以配对，每个完整结果又唯一确定这两部分，故有利结果数为 $\binom Mm\binom{N-M}{n-m}$。由古典概率公式，
+\begin{equation}
+  \mathbb P(X=m)=\frac{\binom Mm\binom{N-M}{n-m}}{\binom Nn}.
+  \label{eq:study-hypergeometric-mass}
+\end{equation}
+这称为参数为 $(N,M,n)$ 的\emph{超几何分布（hypergeometric distribution）}。由于两类鱼的数量有限，可能的整数取值满足
+\begin{equation}
+  \max\{0,n-(N-M)\}\le m\le\min\{M,n\},
+  \label{eq:study-hypergeometric-support}
+\end{equation}
+范围外的概率为 $0$。这里使用的是选法数的乘法原理，不要求额外的独立性假设；等可能的是具体组合，而不是 $X$ 的不同取值。
+\end{solve}
 
 \section{连续型随机变量的分布}
 \label{sec:study-continuous-distributions}
