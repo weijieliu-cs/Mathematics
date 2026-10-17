@@ -24,7 +24,7 @@
 
 \subsection{预训练模型已经会什么，任务适配还要改变什么}
 
-设一个模型已通过大量数据学会一般语言规律，现在希望它把客服问题分为退款、物流和账户三个类别。一种方案是更新模型中的全部参数，另一种方案是保留原有参数，只学习能够改变任务行为的少量附加参数。前者称为\keyterm{全参数微调}（full fine-tuning），后者属于\keyterm{参数高效微调}（parameter-efficient fine-tuning, PEFT）。这里的“高效”首先指需要训练和保存的任务参数较少，并不预先承诺每个任务的准确率更高，也不承诺所有硬件上都有同样的速度收益。
+设一个模型已通过大量数据学会一般语言规律，现在希望它把客服问题分为退款、物流和账户三个类别。一种方案是更新模型中的全部参数，另一种方案是保留原有参数，只学习能够改变任务行为的少量附加参数。前者称为\emph{全参数微调}（full fine-tuning），后者属于\emph{参数高效微调}（parameter-efficient fine-tuning, PEFT）。这里的“高效”首先指需要训练和保存的任务参数较少，并不预先承诺每个任务的准确率更高，也不承诺所有硬件上都有同样的速度收益。
 
 记预训练参数为 $\theta_0$，微调后的参数为 $\theta_0+\Delta\theta$。全参数微调通常允许 $\Delta\theta$ 在全部参数坐标上变化，低秩适配则对其中某些权重矩阵的增量施加结构限制。它的出发点是：已有模型可能提供了足够丰富的基础表示，完成一个新任务不一定需要任意改变所有权重。这个判断是方法设计的动机；某个任务究竟需要多少自由度，应通过数据、基线和验证实验判断，不能由“模型很大”直接推出“任意微调都是低秩的”。
 
@@ -69,7 +69,7 @@ $\ker(W)=\{x:Wx=0\}$。秩等于列空间的维数，也等于行空间的维数
 $0\leq\operatorname{rank}(W)\leq\min(m,n)$。
 \end{definition}
 
-秩与参数个数不同，秩与稀疏性也不同。\keyterm{稀疏矩阵}（sparse matrix）含有大量零元素，而低秩矩阵可以每个元素都非零。例如全一矩阵的秩为一；单位矩阵只有对角线上非零，却是满秩。LoRA 的“低秩”限制独立变化方向的数量，不要求增量中只有少量位置发生变化，因此它能够用较少参数同时改变大量权重元素。
+秩与参数个数不同，秩与稀疏性也不同。\emph{稀疏矩阵}（sparse matrix）含有大量零元素，而低秩矩阵可以每个元素都非零。例如全一矩阵的秩为一；单位矩阵只有对角线上非零，却是满秩。LoRA 的“低秩”限制独立变化方向的数量，不要求增量中只有少量位置发生变化，因此它能够用较少参数同时改变大量权重元素。
 
 \subsection{矩阵乘积为什么产生低秩结构}
 
@@ -92,7 +92,7 @@ BAx=\sum_{k=1}^{r}b_k(a_k^{\mathsf T}x).
 
 \subsection{实际秩、设定秩与可表示自由度}
 
-在工程配置中，“LoRA 的秩为 $r$”通常是说中间维度设为 $r$，即增量秩的上界为 $r$。如果 $A$ 的行相关、$B$ 的列相关，或者某些方向的权重接近零，乘积的实际秩可能更低。浮点计算还需要区分精确秩与\keyterm{数值秩}（numerical rank）：后者依赖一个阈值，把足够小的奇异值视为零，所以报告数值秩时必须同时报告判定标准。
+在工程配置中，“LoRA 的秩为 $r$”通常是说中间维度设为 $r$，即增量秩的上界为 $r$。如果 $A$ 的行相关、$B$ 的列相关，或者某些方向的权重接近零，乘积的实际秩可能更低。浮点计算还需要区分精确秩与\emph{数值秩}（numerical rank）：后者依赖一个阈值，把足够小的奇异值视为零，所以报告数值秩时必须同时报告判定标准。
 
 两个因子共有 $r(m+n)$ 个参数，但这些参数并非相互独立的有效自由度。对任意可逆矩阵 $C\in\mathbb R^{r\times r}$，
 \[
@@ -113,7 +113,7 @@ $\|U\|_2=\max_{\|x\|_2=1}\|Ux\|_2$，衡量最容易被放大的输入方向。�
 
 \subsection{奇异值分解把矩阵拆成独立方向}
 
-对实矩阵 $M\in\mathbb R^{m\times n}$，\keyterm{奇异值分解}（singular value decomposition, SVD）给出
+对实矩阵 $M\in\mathbb R^{m\times n}$，\emph{奇异值分解}（singular value decomposition, SVD）给出
 \[
 M=U\Sigma V^{\mathsf T}
 =\sum_{j=1}^{q}\sigma_ju_jv_j^{\mathsf T},
@@ -833,61 +833,61 @@ $Y=(W_0+M)X+\varepsilon$，其中噪声 $\varepsilon$ 均值为零、各维方�
 
 \bibitem{hu2021}
 Hu E. J., Shen Y., Wallis P., et al.
-\emph{LoRA: Low-Rank Adaptation of Large Language Models}.
+\textit{LoRA: Low-Rank Adaptation of Large Language Models}.
 2021 年预印本，arXiv:2106.09685.
 \url{https://arxiv.org/abs/2106.09685}.
 
 \bibitem{vaswani2017}
 Vaswani A., Shazeer N., Parmar N., et al.
-\emph{Attention Is All You Need}.
+\textit{Attention Is All You Need}.
 2017，arXiv:1706.03762.
 \url{https://arxiv.org/abs/1706.03762}.
 
 \bibitem{dettmers2023}
 Dettmers T., Pagnoni A., Holtzman A., Zettlemoyer L.
-\emph{QLoRA: Efficient Finetuning of Quantized LLMs}.
+\textit{QLoRA: Efficient Finetuning of Quantized LLMs}.
 2023，arXiv:2305.14314.
 \url{https://arxiv.org/abs/2305.14314}.
 
 \bibitem{kalajdzievski2023}
 Kalajdzievski D.
-\emph{A Rank Stabilization Scaling Factor for Fine-Tuning with LoRA}.
+\textit{A Rank Stabilization Scaling Factor for Fine-Tuning with LoRA}.
 2023，arXiv:2312.03732.
 \url{https://arxiv.org/abs/2312.03732}.
 
 \bibitem{zhang2023}
 Zhang Q., Chen M., Bukharin A., et al.
-\emph{AdaLoRA: Adaptive Budget Allocation for Parameter-Efficient Fine-Tuning}.
+\textit{AdaLoRA: Adaptive Budget Allocation for Parameter-Efficient Fine-Tuning}.
 2023，arXiv:2303.10512.
 \url{https://arxiv.org/abs/2303.10512}.
 
 \bibitem{liu2024}
 Liu S.-Y., Wang C.-Y., Yin H., et al.
-\emph{DoRA: Weight-Decomposed Low-Rank Adaptation}.
+\textit{DoRA: Weight-Decomposed Low-Rank Adaptation}.
 2024，arXiv:2402.09353.
 \url{https://arxiv.org/abs/2402.09353}.
 
 \bibitem{lora-code}
 Microsoft.
-\emph{LoRA: Official Implementation, loralib/layers.py}.
+\textit{LoRA: Official Implementation, loralib/layers.py}.
 \url{https://github.com/microsoft/LoRA/blob/main/loralib/layers.py}.
 访问日期：2026 年 10 月 3 日。
 
 \bibitem{pytorch-autograd}
 PyTorch.
-\emph{Autograd Mechanics}.
+\textit{Autograd Mechanics}.
 \url{https://docs.pytorch.org/docs/main/notes/autograd.html}.
 访问日期：2026 年 10 月 3 日。
 
 \bibitem{pytorch-linear}
 PyTorch.
-\emph{torch.nn.functional.linear}.
+\textit{torch.nn.functional.linear}.
 \url{https://docs.pytorch.org/docs/main/generated/torch.nn.functional.linear.html}.
 访问日期：2026 年 10 月 3 日。
 
 \bibitem{peft-docs}
 Hugging Face.
-\emph{PEFT: LoRA Configuration and API Reference}.
+\textit{PEFT: LoRA Configuration and API Reference}.
 \url{https://huggingface.co/docs/peft/main/package_reference/lora}.
 访问日期：2026 年 10 月 3 日。
 

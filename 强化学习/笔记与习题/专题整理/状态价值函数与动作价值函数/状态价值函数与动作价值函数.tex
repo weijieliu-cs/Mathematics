@@ -1,4 +1,4 @@
-\documentclass[UTF8]{ctexart}
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
 
 % 支持从项目根目录、强化学习目录或当前文档目录读取共享样式。
 \makeatletter
@@ -16,14 +16,14 @@
 \section{绪论：评价一个位置，还是评价一次选择}
 \label{sec:value-intro}
 
-在一个可以选择动作的随机系统中，评价当前状态和评价具体动作是两个相关但不同的问题。\keyterm{状态价值函数}（state-value function）回答“处于这个状态，并按照既定策略行动，未来的期望回报是多少”；\keyterm{动作价值函数}（action-value function）回答“处于这个状态，先执行指定动作，随后按照既定策略行动，未来的期望回报是多少”。这里的价值包括后续收益，不只是当前一步的奖励。
+在一个可以选择动作的随机系统中，评价当前状态和评价具体动作是两个相关但不同的问题。\emph{状态价值函数}（state-value function）回答“处于这个状态，并按照既定策略行动，未来的期望回报是多少”；\emph{动作价值函数}（action-value function）回答“处于这个状态，先执行指定动作，随后按照既定策略行动，未来的期望回报是多少”。这里的价值包括后续收益，不只是当前一步的奖励。
 
 例如，在一个岔路口，假设先向左走再遵循策略的期望回报为 $10$，先向右走再遵循同一策略的期望回报为 $4$。如果策略以 $0.3$ 的概率向左、以 $0.7$ 的概率向右，则该状态的价值为 $0.3\times10+0.7\times4=5.8$。两个动作价值分别评价两种选择，状态价值则把这些选择按策略规定的概率综合起来。本文先给出准确的定义及其递推关系，再说明固定策略如何把马尔可夫决策过程转化为马尔可夫奖励过程，最后构造一个完整例子核对这些计算。
 
 \section{模型、策略与折扣回报}
 \label{sec:value-model}
 
-以下考虑离散时间、有限状态和有限动作的\keyterm{马尔可夫决策过程}（Markov decision process，MDP）。记 $\mathcal S$ 为状态集合，$\mathcal A(s)$ 为状态 $s$ 下的非空可用动作集合；$S_t$、$A_t$ 分别为时刻 $t$ 的状态与动作随机变量，$s$、$a$ 是它们的具体取值。执行 $A_t$ 后，环境给出奖励 $R_{t+1}$ 并转移到 $S_{t+1}$。假设给定当前状态与动作后，下一状态和本步奖励的联合条件分布不再依赖此前的交互历史，且不随时间改变。定义
+以下考虑离散时间、有限状态和有限动作的\emph{马尔可夫决策过程}（Markov decision process，MDP）。记 $\mathcal S$ 为状态集合，$\mathcal A(s)$ 为状态 $s$ 下的非空可用动作集合；$S_t$、$A_t$ 分别为时刻 $t$ 的状态与动作随机变量，$s$、$a$ 是它们的具体取值。执行 $A_t$ 后，环境给出奖励 $R_{t+1}$ 并转移到 $S_{t+1}$。假设给定当前状态与动作后，下一状态和本步奖励的联合条件分布不再依赖此前的交互历史，且不随时间改变。定义
 \begin{equation}
   \begin{aligned}
     P(s'\mid s,a)&=\Pr(S_{t+1}=s'\mid S_t=s,A_t=a),\\
@@ -31,16 +31,16 @@
   \end{aligned}
   \label{eq:value-model}
 \end{equation}
-其中 $s'$ 表示下一状态，$P(s'\mid s,a)\geq0$ 且 $\sum_{s'\in\mathcal S}P(s'\mid s,a)=1$；$r(s,a)$ 是\keyterm{期望即时奖励}（expected immediate reward），不是某次实际观察到的奖励，也不是长期价值。本步奖励可以与下一状态相关，不要求二者独立。
+其中 $s'$ 表示下一状态，$P(s'\mid s,a)\geq0$ 且 $\sum_{s'\in\mathcal S}P(s'\mid s,a)=1$；$r(s,a)$ 是\emph{期望即时奖励}（expected immediate reward），不是某次实际观察到的奖励，也不是长期价值。本步奖励可以与下一状态相关，不要求二者独立。
 
-本文使用\keyterm{平稳马尔可夫策略}（stationary Markov policy）$\pi$：给定交互历史后，动作选择的条件概率只依赖当前状态，且不随时间改变。记该概率为 $\pi(a\mid s)$，则
+本文使用\emph{平稳马尔可夫策略}（stationary Markov policy）$\pi$：给定交互历史后，动作选择的条件概率只依赖当前状态，且不随时间改变。记该概率为 $\pi(a\mid s)$，则
 \[
   \pi(a\mid s)\geq0,\qquad
   \sum_{a\in\mathcal A(s)}\pi(a\mid s)=1.
 \]
 固定策略是固定选择规则，并不要求每次选择相同动作。确定性策略在每个状态指定唯一动作；随机策略允许按照固定概率选择不同动作。环境规定每种动作会带来什么后果，策略规定如何选择动作。
 
-设\keyterm{折扣因子}（discount factor）满足 $0\leq\gamma<1$，并假设存在有限常数 $C$，使所有时刻的奖励几乎必然满足 $|R_{t+1}|\leq C$。从时刻 $t$ 开始的\keyterm{折扣回报}（discounted return）定义为
+设\emph{折扣因子}（discount factor）满足 $0\leq\gamma<1$，并假设存在有限常数 $C$，使所有时刻的奖励几乎必然满足 $|R_{t+1}|\leq C$。从时刻 $t$ 开始的\emph{折扣回报}（discounted return）定义为
 \begin{equation}
   G_t=\sum_{k=0}^{\infty}\gamma^kR_{t+k+1}
      =R_{t+1}+\gamma G_{t+1}.
@@ -98,9 +98,9 @@
 此处只使用期望的线性性和全期望公式，不要求本步奖励与下一状态独立。
 \end{proof}
 
-式\eqref{eq:value-v-from-q}对“当前选择哪个动作”取平均；式\eqref{eq:value-q-from-v}对“执行指定动作后到达哪个状态”取平均。后一式中，$r(s,a)$ 已经对即时奖励取过期望，不能在一般随机奖励模型中直接用某一次观测值替代。另一个需要区分的地方是：\keyterm{$G_{t+1}$ 不等于 $V^\pi(S_{t+1})$；只有在相应的外层条件期望中，两者可以通过全期望公式替换。}前者是实际未来轨迹的回报，后者是从下一状态出发的平均回报。
+式\eqref{eq:value-v-from-q}对“当前选择哪个动作”取平均；式\eqref{eq:value-q-from-v}对“执行指定动作后到达哪个状态”取平均。后一式中，$r(s,a)$ 已经对即时奖励取过期望，不能在一般随机奖励模型中直接用某一次观测值替代。另一个需要区分的地方是：\emph{$G_{t+1}$ 不等于 $V^\pi(S_{t+1})$；只有在相应的外层条件期望中，两者可以通过全期望公式替换。}前者是实际未来轨迹的回报，后者是从下一状态出发的平均回报。
 
-把式\eqref{eq:value-q-from-v}代入式\eqref{eq:value-v-from-q}，得到状态价值的\keyterm{贝尔曼期望方程}（Bellman expectation equation）：
+把式\eqref{eq:value-q-from-v}代入式\eqref{eq:value-v-from-q}，得到状态价值的\emph{贝尔曼期望方程}（Bellman expectation equation）：
 \begin{equation}
   V^\pi(s)=\sum_{a\in\mathcal A(s)}\pi(a\mid s)
   \left[r(s,a)+\gamma\sum_{s'\in\mathcal S}P(s'\mid s,a)V^\pi(s')\right].
@@ -117,7 +117,7 @@
 \section{固定策略后的 MDP 就是一个 MRP}
 \label{sec:value-induced-mrp}
 
-\keyterm{马尔可夫奖励过程}（Markov reward process，MRP）已经给定状态转移与奖励规律，没有另外需要选择的动作。设其转移概率为 $\bar P(s'\mid s)$，期望即时奖励为 $\bar r(s)$，价值函数为 $v(s)=\mathbb E[G_t\mid S_t=s]$。在同样的有界奖励与折扣假设下，其贝尔曼方程为
+\emph{马尔可夫奖励过程}（Markov reward process，MRP）已经给定状态转移与奖励规律，没有另外需要选择的动作。设其转移概率为 $\bar P(s'\mid s)$，期望即时奖励为 $\bar r(s)$，价值函数为 $v(s)=\mathbb E[G_t\mid S_t=s]$。在同样的有界奖励与折扣假设下，其贝尔曼方程为
 \begin{equation}
   v(s)=\bar r(s)+\gamma\sum_{s'\in\mathcal S}\bar P(s'\mid s)v(s').
   \label{eq:value-mrp-bellman}
@@ -155,7 +155,7 @@
 \]
 取最大值得 $d\leq\gamma d$，由 $\gamma<1$ 得 $d=0$；存在性则由前面已定义的回报期望及其递推式保证。
 
-因此，可以把 $V^\pi$ 理解为“遵循策略 $\pi$ 时的 MRP 价值”，但更准确的含义是：\keyterm{策略确定了诱导 MRP 的转移和奖励规律，动作的影响已经被吸收到 $P^\pi$ 和 $r^\pi$ 中。}不同策略通常产生不同的 MRP，故 MDP 的价值需要标明所用策略；MRP 的规律本来就已给定，通常不再写策略上标。这个结论依赖平稳马尔可夫策略的假设：若策略随时间改变，诱导规律一般也随时间改变；若策略依赖历史，原状态上的过程甚至未必保持马尔可夫性，需要另外分析或扩充状态。
+因此，可以把 $V^\pi$ 理解为“遵循策略 $\pi$ 时的 MRP 价值”，但更准确的含义是：\emph{策略确定了诱导 MRP 的转移和奖励规律，动作的影响已经被吸收到 $P^\pi$ 和 $r^\pi$ 中。}不同策略通常产生不同的 MRP，故 MDP 的价值需要标明所用策略；MRP 的规律本来就已给定，通常不再写策略上标。这个结论依赖平稳马尔可夫策略的假设：若策略随时间改变，诱导规律一般也随时间改变；若策略依赖历史，原状态上的过程甚至未必保持马尔可夫性，需要另外分析或扩充状态。
 
 \section{完整例子与最优价值的区别}
 \label{sec:value-example}
@@ -190,7 +190,7 @@
 这里 $3.1$ 是当前一步的期望奖励，$5.8$ 才是包含未来收益的状态价值，两种方法得到完全相同的结果。
 \end{solve}
 
-最后区分\keyterm{策略评价}（policy evaluation）与寻找最优策略。在例\ref{ex:value-fork}中，当前策略的状态价值是 $5.8$，并不等于最大动作价值 $10$；如果改成必定向左，则状态价值变为 $10$。本例只有岔路口存在选择，后续行为不变，所以两个动作价值不随岔路口策略变化；一般 MDP 中，改变策略还会改变后续行为，因此 $Q^\pi$ 本身通常也会改变。
+最后区分\emph{策略评价}（policy evaluation）与寻找最优策略。在例\ref{ex:value-fork}中，当前策略的状态价值是 $5.8$，并不等于最大动作价值 $10$；如果改成必定向左，则状态价值变为 $10$。本例只有岔路口存在选择，后续行为不变，所以两个动作价值不随岔路口策略变化；一般 MDP 中，改变策略还会改变后续行为，因此 $Q^\pi$ 本身通常也会改变。
 
 用 $V^*(s)$、$Q^*(s,a)$ 分别表示在所有允许策略中可达到的最优状态价值和最优动作价值，其中动作价值仍先指定当前动作。有限状态、有限动作、有界奖励且 $0\leq\gamma<1$ 的 MDP 存在最优平稳确定性策略，并满足
 \begin{equation}

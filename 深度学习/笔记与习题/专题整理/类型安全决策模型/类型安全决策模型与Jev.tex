@@ -18,13 +18,13 @@
 
 退款分类、工单路由等任务需要程序可直接使用的判断。若仅用提示词要求大语言模型
 （large language model, LLM）输出 JSON，仍可能出现额外说明、括号缺失或非法枚举值。
-\keyterm{自回归生成}（autoregressive generation）逐个预测词元（token），
+\emph{自回归生成}（autoregressive generation）逐个预测词元（token），
 词元并不等于单个汉字；提示词中的格式要求也不自动成为生成约束。
-不过，\keyterm{约束解码}（constrained decoding）可以在生成时排除不符合规则的词元，
+不过，\emph{约束解码}（constrained decoding）可以在生成时排除不符合规则的词元，
 因此不能把格式错误说成所有 LLM 结构化输出的必然缺陷，参见
 \href{https://openai.com/index/introducing-structured-outputs-in-the-api/}{结构化输出技术说明}。
 
-TypeSafe 将 Jev 定位为\keyterm{类型安全决策模型}：输入业务状态与问题，
+TypeSafe 将 Jev 定位为\emph{类型安全决策模型}：输入业务状态与问题，
 直接返回预先规定类型的值及概率，不自由生成自然语言答案。
 \href{https://typesafe.ai/blog/introducing-system-one-models-and-jev}{官方发布说明}
 强调并行输出与面向校准决策的训练方法；这支持其接口定位，但不足以断言未公开的解码头结构。
@@ -33,7 +33,7 @@ API 中仍可出现 JSON 字段名和预设选项字符串，它们不等于模�
 \section{三种输出原语及其含义}
 \label{sec:jev-primitives}
 
-\keyterm{原语}（primitive）是可由程序组合的基本判断单元。下表概括三类原语，
+\emph{原语}（primitive）是可由程序组合的基本判断单元。下表概括三类原语，
 具体限制以官方文档为准。
 
 \begin{center}
@@ -58,7 +58,7 @@ $\theta$ 表示模型参数。这是模型的条件概率估计，不能直接�
 
 Choice 在有限集合 $\mathcal C=\{c_1,\ldots,c_K\}$ 上给出概率 $p_k$，
 满足 $p_k\geq0$、$\sum_k p_k=1$，并返回概率最大的选项。
-它实现\keyterm{闭集分类}（closed-set classification）；类别不完备时应设“其他”选项。
+它实现\emph{闭集分类}（closed-set classification）；类别不完备时应设“其他”选项。
 Score 的档位编号为 $0,\ldots,m-1$，其档位概率记为 $r_j$，满足
 $r_j\geq0$、$\sum_j r_j=1$。返回分数为
 \begin{equation}
@@ -71,11 +71,11 @@ $s=1.5$。这是档位编号的加权均值，并不自动具有物理量的等�
 \section{类型安全与业务正确性}
 \label{sec:jev-reliability}
 
-\keyterm{类型安全}（type safety）保证输出属于约定范围，不能保证选对类别、
+\emph{类型安全}（type safety）保证输出属于约定范围，不能保证选对类别、
 读懂政策或输入资料真实。官方的 \texttt{confidence} 是由概率分布计算的集中程度指标，
 不能直接当作“答案正确的概率”，参见
 \href{https://docs.typesafe.ai/confidence}{置信度说明}。
-\keyterm{概率校准}（probability calibration）要求在大量预测中，
+\emph{概率校准}（probability calibration）要求在大量预测中，
 获得相近预测概率的事件，其实际发生频率与该概率相近；它需要在目标业务数据上检验。
 
 以退货分流为例，可让 Noul 判断用户是否仅因改变主意而退货，
@@ -97,7 +97,7 @@ $s=1.5$。这是档位编号的加权均值，并不自动具有物理量的等�
 参考标签来自 GPT-6 Astra 与 Claude Fable 5.1 在高思考设置下的回答共识，
 其余模型使用服务商默认推理设置。因此，该指标反映与参考共识的一致程度，
 不能等同于独立人工真值准确率，也不能统称为与“关闭思考的轻量模型”比较。
-若横轴为成本、纵轴为准确率，\keyterm{帕累托前沿}（Pareto frontier）
+若横轴为成本、纵轴为准确率，\emph{帕累托前沿}（Pareto frontier）
 由不存在另一配置成本不更高且准确率不更低、并至少一项严格更优的点组成。
 Jev 位于图中前沿的低成本端，并非准确率最高点；实际选型仍取决于业务误判代价。
 

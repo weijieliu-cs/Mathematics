@@ -1,4 +1,4 @@
-\documentclass[UTF8]{ctexart}
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
 
 % 支持从项目根目录、零碎概念目录或当前笔记目录读取共享样式。
 \makeatletter
@@ -17,11 +17,11 @@
 \section{绪论：对偶究竟在对应什么}
 \label{sec:duality-introduction}
 
-数学中经常出现成对的概念：集合的并与交、命题的或与且、上界与下界、向量与线性函数，以及优化中的原问题与对偶问题。这些对应关系有时允许我们把已经证明的结论转化为另一条结论，有时允许我们从不同变量出发研究同一个问题。\keyterm{对偶性（duality）}是描述这类结构性对应的术语；\keyterm{对偶法则或对偶原理（principle of duality）}则通常强调：在指定的数学体系中，按指定规则转换对象、关系和运算，能够得到相应的有效结论。
+数学中经常出现成对的概念：集合的并与交、命题的或与且、上界与下界、向量与线性函数，以及优化中的原问题与对偶问题。这些对应关系有时允许我们把已经证明的结论转化为另一条结论，有时允许我们从不同变量出发研究同一个问题。\emph{对偶性（duality）}是描述这类结构性对应的术语；\emph{对偶法则或对偶原理（principle of duality）}则通常强调：在指定的数学体系中，按指定规则转换对象、关系和运算，能够得到相应的有效结论。
 
 这里有两个必须先说清楚的问题。第一，对偶的转换规则依赖所在的数学体系，不存在一张适用于所有领域的通用替换表。第二，外观上的成对出现不足以证明对偶关系；必须说明转换作用于什么对象，以及为什么它保留所讨论的结构或结论。集合代数中的对偶法则有严格的符号规则，拉格朗日对偶则有严格的函数构造，两者不能只凭“一个是最小、另一个是最大”来识别。
 
-一个与机器学习直接相关的例子是，把最大化评分 $J(\theta)$ 写为最小化损失 $-J(\theta)$。这个操作保持同一组参数、同一个可行域和同一套优劣排序，属于\keyterm{优化目标的等价变换（equivalent reformulation）}。它体现了实数取负时的次序反转，但通常不称为拉格朗日对偶。后者会引入与约束对应的新变量，并通过一个下确界构造新的目标函数。
+一个与机器学习直接相关的例子是，把最大化评分 $J(\theta)$ 写为最小化损失 $-J(\theta)$。这个操作保持同一组参数、同一个可行域和同一套优劣排序，属于\emph{优化目标的等价变换（equivalent reformulation）}。它体现了实数取负时的次序反转，但通常不称为拉格朗日对偶。后者会引入与约束对应的新变量，并通过一个下确界构造新的目标函数。
 
 本文先从偏序与集合运算解释对偶法则的结构来源，再介绍布尔代数中的精确规则；随后证明最大化与最小化之间的符号变换，推导深度学习中负对数似然与交叉熵的关系；最后从下界的构造引出拉格朗日对偶、强弱对偶、最优性条件和极小极大次序。只关心损失函数符号的读者，可以先读第\ref{sec:duality-sign}、\ref{sec:duality-learning}节，再回到前面的结构解释。基本集合运算、函数和一阶微分足以阅读主体内容，涉及线性代数的扩展单独放在第\ref{sec:duality-linear}节。
 
@@ -38,7 +38,7 @@
  \qquad
  (a\preceq b\ \text{且}\ b\preceq c)\Longrightarrow a\preceq c,
 \]
-则称 $(P,\preceq)$ 为\keyterm{偏序集（partially ordered set）}。
+则称 $(P,\preceq)$ 为\emph{偏序集（partially ordered set）}。
 \end{definition}
 
 实数上的 $\leq$ 是偏序，固定全集 $U$ 的幂集 $\mathcal P(U)$ 上的包含关系 $\subseteq$ 也是偏序。“偏”表示不要求任意两个元素都能比较。例如，$\{1\}$ 与 $\{2\}$ 互不包含，因此集合包含关系通常不是全序。
@@ -48,7 +48,7 @@
 \[
  a\preceq^{\mathrm{op}} b\quad\Longleftrightarrow\quad b\preceq a.
 \]
-所得偏序集 $P^{\mathrm{op}}=(P,\preceq^{\mathrm{op}})$ 称为原偏序集的\keyterm{对偶偏序集（dual poset）}。
+所得偏序集 $P^{\mathrm{op}}=(P,\preceq^{\mathrm{op}})$ 称为原偏序集的\emph{对偶偏序集（dual poset）}。
 \end{definition}
 
 反转关系后，三条偏序公理仍然成立。例如，若 $a\preceq^{\mathrm{op}}b$ 且 $b\preceq^{\mathrm{op}}c$，则在原次序中 $c\preceq b\preceq a$，从而 $a\preceq^{\mathrm{op}}c$。在对偶偏序中，原来的上界成为下界，最大元成为最小元；元素本身没有被替换，改变的是比较的方向。
@@ -59,7 +59,7 @@
 
 \subsection{为什么并与交是自然的一对}
 
-对于偏序集中的两个元素 $a,b$，若它们存在最小上界，记为 $a\vee b$；若存在最大下界，记为 $a\wedge b$。每一对元素都具有这两者的偏序集称为\keyterm{格（lattice）}。反转次序后，“最小上界”变成“最大下界”，因此 $\vee$ 与 $\wedge$ 自然互换。
+对于偏序集中的两个元素 $a,b$，若它们存在最小上界，记为 $a\vee b$；若存在最大下界，记为 $a\wedge b$。每一对元素都具有这两者的偏序集称为\emph{格（lattice）}。反转次序后，“最小上界”变成“最大下界”，因此 $\vee$ 与 $\wedge$ 自然互换。
 
 在 $(\mathcal P(U),\subseteq)$ 中，$A\cup B$ 是 $A,B$ 的最小上界：它包含 $A,B$，而任何同时包含 $A,B$ 的集合 $C$ 都包含 $A\cup B$。同理，$A\cap B$ 是最大下界。因此，集合的并与交是同一种次序结构的两个方向。空集是最小元，全集是最大元，这又解释了为什么它们也要一起互换。
 
@@ -76,7 +76,7 @@
 
 \subsection{转换规则与适用范围}
 
-以下固定全集 $U$，所有集合变量均在 $\mathcal P(U)$ 中取值。考虑由集合变量、常量 $\varnothing,U$、并、交和补集构成的有限表达式。表达式 $E$ 的\keyterm{对偶表达式}记作 $E^{\mathrm d}$，按如下规则构造：
+以下固定全集 $U$，所有集合变量均在 $\mathcal P(U)$ 中取值。考虑由集合变量、常量 $\varnothing,U$、并、交和补集构成的有限表达式。表达式 $E$ 的\emph{对偶表达式}记作 $E^{\mathrm d}$，按如下规则构造：
 \begin{equation}
  \cup\longleftrightarrow\cap,
  \qquad \varnothing\longleftrightarrow U,
@@ -109,7 +109,7 @@
 
 \subsection{用德摩根律给出证明}
 
-\keyterm{德摩根律（De Morgan's laws）}指出
+\emph{德摩根律（De Morgan's laws）}指出
 \begin{equation}
  (A\cup B)^c=A^c\cap B^c,
  \qquad
@@ -182,14 +182,14 @@
 原式是普遍有效的集合恒等式，所以定理\ref{thm:duality-set-identity}直接保证新式成立。若想独立检验：属于左侧意味着属于 $A$，或者同时属于 $B,C$；这恰好等价于既属于 $A\cup B$ 又属于 $A\cup C$。
 \end{solve}
 
-若公式含有 $\subseteq$，规则必须进一步包含\keyterm{包含方向的反转}。例如，普遍成立的 $A\cap B\subseteq A$，对应 $A\cup B\supseteq A$。一般地，若 $E(A)\subseteq F(A)$ 对所有输入成立，先代入补集再对两侧取补集，根据式\eqref{eq:duality-complement-order}得到 $F^{\mathrm d}(A)\subseteq E^{\mathrm d}(A)$。恒等式中的等号没有方向，所以前面的替换表不需要显示这一步。
+若公式含有 $\subseteq$，规则必须进一步包含\emph{包含方向的反转}。例如，普遍成立的 $A\cap B\subseteq A$，对应 $A\cup B\supseteq A$。一般地，若 $E(A)\subseteq F(A)$ 对所有输入成立，先代入补集再对两侧取补集，根据式\eqref{eq:duality-complement-order}得到 $F^{\mathrm d}(A)\subseteq E^{\mathrm d}(A)$。恒等式中的等号没有方向，所以前面的替换表不需要显示这一步。
 
 \section{布尔代数与命题逻辑中的对偶}
 \label{sec:duality-boolean}
 
 \subsection{从集合成员关系到真假值}
 
-固定 $u\in U$，命题“$u\in A$”可以用 $1$ 表示真、$0$ 表示假。于是集合并对应逻辑或 $\lor$，集合交对应逻辑且 $\land$，补集对应逻辑非 $\neg$；全集对应恒真值 $1$，空集对应恒假值 $0$。在真假值集合 $\{0,1\}$ 上，这些运算形成最基本的\keyterm{布尔代数（Boolean algebra）}。
+固定 $u\in U$，命题“$u\in A$”可以用 $1$ 表示真、$0$ 表示假。于是集合并对应逻辑或 $\lor$，集合交对应逻辑且 $\land$，补集对应逻辑非 $\neg$；全集对应恒真值 $1$，空集对应恒假值 $0$。在真假值集合 $\{0,1\}$ 上，这些运算形成最基本的\emph{布尔代数（Boolean algebra）}。
 
 布尔表达式的对偶规则是
 \begin{equation}
@@ -297,19 +297,19 @@
 
 \subsection{从条件似然到负对数似然}
 
-设监督学习数据集为 $\mathcal D=\{(x_i,y_i)\}_{i=1}^N$，模型参数为 $\theta\in\Theta$，分类模型给出条件概率 $p_\theta(y\mid x)$。$X,Y$ 表示总体中的随机输入和随机标签，$x_i,y_i$ 是已经观测到的取值。假设给定输入后，各样本标签按模型条件独立，则观测数据的条件\keyterm{似然（likelihood）}为
+设监督学习数据集为 $\mathcal D=\{(x_i,y_i)\}_{i=1}^N$，模型参数为 $\theta\in\Theta$，分类模型给出条件概率 $p_\theta(y\mid x)$。$X,Y$ 表示总体中的随机输入和随机标签，$x_i,y_i$ 是已经观测到的取值。假设给定输入后，各样本标签按模型条件独立，则观测数据的条件\emph{似然（likelihood）}为
 \begin{equation}
  \operatorname{Lik}(\theta;\mathcal D)
  =\prod_{i=1}^N p_\theta(y_i\mid x_i).
  \label{eq:duality-likelihood}
 \end{equation}
-固定数据后，似然是参数 $\theta$ 的函数；它不是参数本身的概率分布。\keyterm{最大似然估计（maximum likelihood estimation，MLE）}选择使已观测标签获得较高联合概率的参数。
+固定数据后，似然是参数 $\theta$ 的函数；它不是参数本身的概率分布。\emph{最大似然估计（maximum likelihood estimation，MLE）}选择使已观测标签获得较高联合概率的参数。
 
 先假设所有真实标签的预测概率均为正。因为对数严格递增，而 $1/N$ 是正常数，最大化式\eqref{eq:duality-likelihood}等价于最大化平均对数似然
 \[
  \ell(\theta)=\frac1N\sum_{i=1}^N\log p_\theta(y_i\mid x_i).
 \]
-为了把训练统一写为最小化，定义\keyterm{负对数似然（negative log-likelihood，NLL）}损失
+为了把训练统一写为最小化，定义\emph{负对数似然（negative log-likelihood，NLL）}损失
 \begin{equation}
  \mathcal L_{\mathrm{NLL}}(\theta)
  =-\frac1N\sum_{i=1}^N\log p_\theta(y_i\mid x_i).
@@ -319,12 +319,12 @@
 
 \subsection{分类交叉熵与一个具体数值例子}
 
-设共有 $K$ 类，模型输出未归一化类别分数（logits）$z_\theta(x)\in\mathbb R^K$，通过\keyterm{归一化指数函数（softmax）}得到对应概率
+设共有 $K$ 类，模型输出未归一化类别分数（logits）$z_\theta(x)\in\mathbb R^K$，通过\emph{归一化指数函数（softmax）}得到对应概率
 \[
  p_\theta(k\mid x)
  =\frac{\exp(z_{\theta,k}(x))}{\sum_{j=1}^K\exp(z_{\theta,j}(x))}.
 \]
-把真实标签写成独热向量 $t_i\in\{0,1\}^K$，其中 $t_{ik}=1$ 当且仅当 $y_i=k$。经验\keyterm{交叉熵（cross-entropy）}为
+把真实标签写成独热向量 $t_i\in\{0,1\}^K$，其中 $t_{ik}=1$ 当且仅当 $y_i=k$。经验\emph{交叉熵（cross-entropy）}为
 \begin{equation}
  \mathcal L_{\mathrm{CE}}(\theta)
  =-\frac1N\sum_{i=1}^N\sum_{k=1}^K t_{ik}\log p_\theta(k\mid x_i)
@@ -390,7 +390,7 @@
  \end{aligned}
  \label{eq:duality-primal}
 \end{equation}
-其中 $D\subseteq\mathbb R^n$ 是非空定义域，$f_0,f_i,h_j$ 在 $D$ 上为实值函数，$x$ 是原变量，$p^\star$ 是原问题的最优值。这里称其为\keyterm{原问题（primal problem）}。本节首先假设原可行集非空、$p^\star$ 有限，以便直接讨论有限的上下界；建立弱对偶不需要凸性。
+其中 $D\subseteq\mathbb R^n$ 是非空定义域，$f_0,f_i,h_j$ 在 $D$ 上为实值函数，$x$ 是原变量，$p^\star$ 是原问题的最优值。这里称其为\emph{原问题（primal problem）}。本节首先假设原可行集非空、$p^\star$ 有限，以便直接讨论有限的上下界；建立弱对偶不需要凸性。
 
 任意可行点 $\widehat x$ 都给出 $p^\star\leq f_0(\widehat x)$，即最小化问题的一个上界。若另外能找到一个可靠下界 $b\leq p^\star$，便知道
 \[
@@ -400,14 +400,14 @@
 
 \subsection{拉格朗日函数为什么取这样的符号}
 
-引入\keyterm{拉格朗日乘子（Lagrange multipliers）} $\lambda\in\mathbb R_+^m$ 和 $\nu\in\mathbb R^r$，其中 $\mathbb R_+^m$ 表示各分量非负的向量集合，定义
+引入\emph{拉格朗日乘子（Lagrange multipliers）} $\lambda\in\mathbb R_+^m$ 和 $\nu\in\mathbb R^r$，其中 $\mathbb R_+^m$ 表示各分量非负的向量集合，定义
 \begin{equation}
  L(x,\lambda,\nu)
  =f_0(x)+\sum_{i=1}^m\lambda_i f_i(x)
        +\sum_{j=1}^r\nu_jh_j(x).
  \label{eq:duality-lagrangian}
 \end{equation}
-称 $L$ 为\keyterm{拉格朗日函数（Lagrangian）}。本文用 $\mathcal L$ 表示学习损失，用 $L$ 表示拉格朗日函数，避免在同一讨论中混淆。
+称 $L$ 为\emph{拉格朗日函数（Lagrangian）}。本文用 $\mathcal L$ 表示学习损失，用 $L$ 表示拉格朗日函数，避免在同一讨论中混淆。
 
 如果 $x$ 原可行，则 $\lambda_i f_i(x)\leq0$、$\nu_jh_j(x)=0$，所以
 \begin{equation}
@@ -416,12 +416,12 @@
 \end{equation}
 这解释了不等式乘子为什么必须非负：它确保在可行点上增加的项不为正。等式乘子可以任意取符号，因为等式约束在可行点上总为零。如果约束最初写成 $a_i(x)\geq0$，可以先改写为 $-a_i(x)\leq0$，再使用同一约定；符号约定必须整体一致。
 
-固定乘子后，对 $x$ 在 $D$ 内取下确界，得到\keyterm{拉格朗日对偶函数（Lagrange dual function）}
+固定乘子后，对 $x$ 在 $D$ 内取下确界，得到\emph{拉格朗日对偶函数（Lagrange dual function）}
 \begin{equation}
  q(\lambda,\nu)=\inf_{x\in D}L(x,\lambda,\nu).
  \label{eq:duality-function}
 \end{equation}
-此处保留定义域 $D$，但不再要求已经加入 $L$ 的约束成立。下确界可能为 $-\infty$，也可能有限但不被取得，所以不能未经检查就写成最小值。将对偶变量限制为 $\lambda\geq0$、$q(\lambda,\nu)>-\infty$ 时，称乘子\keyterm{对偶可行}；$q=-\infty$ 的乘子只提供无信息的下界。
+此处保留定义域 $D$，但不再要求已经加入 $L$ 的约束成立。下确界可能为 $-\infty$，也可能有限但不被取得，所以不能未经检查就写成最小值。将对偶变量限制为 $\lambda\geq0$、$q(\lambda,\nu)>-\infty$ 时，称乘子\emph{对偶可行}；$q=-\infty$ 的乘子只提供无信息的下界。
 
 \subsection{弱对偶与最优性证书}
 
@@ -437,7 +437,7 @@
  d^\star=\sup_{\lambda\geq0,\,\nu\in\mathbb R^r}q(\lambda,\nu)
  \label{eq:duality-dual-problem}
 \end{equation}
-满足 $d^\star\leq p^\star$。最大化式\eqref{eq:duality-function}的任务称为原问题的\keyterm{拉格朗日对偶问题}。
+满足 $d^\star\leq p^\star$。最大化式\eqref{eq:duality-function}的任务称为原问题的\emph{拉格朗日对偶问题}。
 \end{theorem}
 \begin{proof}
 第一步不等式来自下确界的定义：$q$ 不大于 $L$ 在任意点的取值。第二步就是式\eqref{eq:duality-feasible-lagrangian}。既然 $q(\lambda,\nu)\leq f_0(x)$ 对所有原可行 $x$ 成立，就有 $q(\lambda,\nu)\leq p^\star$；再对允许的乘子取上确界，得到 $d^\star\leq p^\star$。
@@ -476,12 +476,12 @@
 
 \subsection{强对偶究竟保证什么}
 
-在 $p^\star,d^\star$ 均有限时，$p^\star-d^\star\geq0$ 称为\keyterm{最优对偶间隙（optimal duality gap）}。若
+在 $p^\star,d^\star$ 均有限时，$p^\star-d^\star\geq0$ 称为\emph{最优对偶间隙（optimal duality gap）}。若
 \begin{equation}
  p^\star=d^\star,
  \label{eq:duality-strong}
 \end{equation}
-则称\keyterm{强对偶（strong duality）}成立。最优对偶间隙与式\eqref{eq:duality-certificate}中的当前可行点间隙不同：后者还包含原侧与对偶侧没有优化到位的误差。
+则称\emph{强对偶（strong duality）}成立。最优对偶间隙与式\eqref{eq:duality-certificate}中的当前可行点间隙不同：后者还包含原侧与对偶侧没有优化到位的误差。
 
 强对偶是最优值之间的关系，不要求原变量与对偶变量相同，也不单独保证最优值被取到。$x$ 描述原方案，$\lambda,\nu$ 描述约束的权重，它们甚至可能具有不同维数。若要从乘子恢复原最优方案，还需要求解拉格朗日函数的内层问题并检查原可行性与互补关系。
 
@@ -497,7 +497,7 @@
 且原最优值 $p^\star$ 有限，则强对偶成立，并且存在乘子 $(\lambda^\star,\nu^\star)$ 取得对偶最优值。
 \end{theorem}
 
-满足上述严格不等式的点称为严格可行点，这一要求称为\keyterm{斯莱特条件（Slater's condition，常写作 Slater 条件）}。定理是充分条件；没有严格可行点时，只能说不能援用这个版本，不能直接推断强对偶失败。它也没有声称原最优解必然存在。该标准定理及允许一般有效定义域的推广见 Boyd 与 Vandenberghe 的教材第 5.2 节\cite{boyd-vandenberghe}；这里引用结论，不展开依赖凸集分离定理的证明。
+满足上述严格不等式的点称为严格可行点，这一要求称为\emph{斯莱特条件（Slater's condition，常写作 Slater 条件）}。定理是充分条件；没有严格可行点时，只能说不能援用这个版本，不能直接推断强对偶失败。它也没有声称原最优解必然存在。该标准定理及允许一般有效定义域的推广见 Boyd 与 Vandenberghe 的教材第 5.2 节\cite{boyd-vandenberghe}；这里引用结论，不展开依赖凸集分离定理的证明。
 
 使用时应先检查问题是否凸，再检查资格条件。神经网络参数化的损失和约束通常不能直接满足这个凸性假设，因此“用了拉格朗日乘子”不会自动带来强对偶。另一方面，弱对偶的证明完全没有使用凸性，只要对偶函数确实通过全局下确界定义，其下界性质仍然有效。
 
@@ -512,9 +512,9 @@
  \lambda_i^\star f_i(x^\star)=0,\qquad i=1,\ldots,m.
  \label{eq:duality-complementarity}
 \end{equation}
-这称为\keyterm{互补松弛（complementary slackness）}。若约束留有严格余量 $f_i(x^\star)<0$，其乘子必为零；若乘子严格为正，约束必恰好达到边界。反方向“约束达到边界就必有正乘子”一般不成立。
+这称为\emph{互补松弛（complementary slackness）}。若约束留有严格余量 $f_i(x^\star)<0$，其乘子必为零；若乘子严格为正，约束必恰好达到边界。反方向“约束达到边界就必有正乘子”一般不成立。
 
-当 $D=\mathbb R^n$，目标和不等式约束可微且凸、等式为 $Ax=b$ 时，下面四组关系称为\keyterm{卡鲁什--库恩--塔克条件（Karush--Kuhn--Tucker conditions，KKT 条件）}：
+当 $D=\mathbb R^n$，目标和不等式约束可微且凸、等式为 $Ax=b$ 时，下面四组关系称为\emph{卡鲁什--库恩--塔克条件（Karush--Kuhn--Tucker conditions，KKT 条件）}：
 \begin{equation}
  \begin{aligned}
  &f_i(x^\star)\leq0,\quad Ax^\star=b
@@ -701,11 +701,11 @@
 \[
  V^*=\{\varphi:V\to\mathbb R\mid\varphi\text{ 是线性映射}\},
 \]
-称为 $V$ 的\keyterm{代数对偶空间（algebraic dual space）}。这里的对偶对象是对向量进行线性测量的函数；本文只讨论有限维情形，不涉及无限维空间中代数对偶与连续对偶的区别。
+称为 $V$ 的\emph{代数对偶空间（algebraic dual space）}。这里的对偶对象是对向量进行线性测量的函数；本文只讨论有限维情形，不涉及无限维空间中代数对偶与连续对偶的区别。
 
 例如，当 $V=\mathbb R^n$ 时，每个 $a\in\mathbb R^n$ 都确定线性函数 $\varphi_a(x)=a^{\mathsf T}x$。在给定基或内积后，可以用向量坐标表示这些函数，但抽象定义中的向量 $x$ 与作用于它的线性函数 $\varphi$ 是不同类型的对象。
 
-若 $e_1,\ldots,e_n$ 是 $V$ 的基，定义线性函数 $e^1,\ldots,e^n$ 满足 $e^i(e_j)=\delta_{ij}$，其中 $\delta_{ij}$ 在 $i=j$ 时为 $1$、否则为 $0$。于是 $e^i$ 从向量的基展开中取出第 $i$ 个坐标，称这些函数为\keyterm{对偶基（dual basis）}。
+若 $e_1,\ldots,e_n$ 是 $V$ 的基，定义线性函数 $e^1,\ldots,e^n$ 满足 $e^i(e_j)=\delta_{ij}$，其中 $\delta_{ij}$ 在 $i=j$ 时为 $1$、否则为 $0$。于是 $e^i$ 从向量的基展开中取出第 $i$ 个坐标，称这些函数为\emph{对偶基（dual basis）}。
 
 更进一步，线性映射 $T:V\to W$ 诱导出反方向的映射
 \[
@@ -814,7 +814,7 @@
 \begin{thebibliography}{9}
 \bibitem{boyd-vandenberghe}
 Stephen Boyd and Lieven Vandenberghe.
-\emph{Convex Optimization}. Cambridge University Press, 2004.
+\textit{Convex Optimization}. Cambridge University Press, 2004.
 第 5 章讨论拉格朗日对偶、强弱对偶与最优性条件。
 作者提供的教材与配套讲义：\url{https://web.stanford.edu/~boyd/cvxbook/}。
 \end{thebibliography}

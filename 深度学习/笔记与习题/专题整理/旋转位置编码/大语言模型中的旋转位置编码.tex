@@ -18,9 +18,9 @@
 \label{sec:rope-intro}
 
 \subsection{位置为什么值得单独研究}
-考虑“学生帮助老师”和“老师帮助学生”。两句话包含相同的词，关系却因顺序改变而改变。对于逐词读取的循环网络，计算发生的先后顺序已经进入状态更新；对于同时比较整段文本的注意力网络，词元表示之间的相似性本身并不直接标明谁在前、谁在后、相隔多远。\keyterm{位置编码（positional encoding）}就是向模型提供这类结构信息的机制。这里的位置通常指分词器输出序列中的词元索引，而不是汉字编号、单词编号、屏幕上的行号或现实时间。同一句话采用不同分词器时，词元距离可能不同，因此位置机制的语义必须与实际输入表示一起理解。
+考虑“学生帮助老师”和“老师帮助学生”。两句话包含相同的词，关系却因顺序改变而改变。对于逐词读取的循环网络，计算发生的先后顺序已经进入状态更新；对于同时比较整段文本的注意力网络，词元表示之间的相似性本身并不直接标明谁在前、谁在后、相隔多远。\emph{位置编码（positional encoding）}就是向模型提供这类结构信息的机制。这里的位置通常指分词器输出序列中的词元索引，而不是汉字编号、单词编号、屏幕上的行号或现实时间。同一句话采用不同分词器时，词元距离可能不同，因此位置机制的语义必须与实际输入表示一起理解。
 
-\keyterm{大语言模型（large language model, LLM）}中的\keyterm{旋转位置编码（rotary position embedding, RoPE）}把每个注意力头内的查询、键向量拆成若干二维向量，再按词元位置旋转这些二维向量。关键并非把位置变成一个额外标签，而是安排一个代数结构：两个向量各自按绝对位置旋转以后，它们的内积可以改写为由相对位移控制的双线性形式。原始方法见 RoFormer 论文\cite{su2021}。本文围绕这一构造独立展开基础推导、算例与实现分析；涉及后续扩展时另行说明来源与适用边界。
+\emph{大语言模型（large language model, LLM）}中的\emph{旋转位置编码（rotary position embedding, RoPE）}把每个注意力头内的查询、键向量拆成若干二维向量，再按词元位置旋转这些二维向量。关键并非把位置变成一个额外标签，而是安排一个代数结构：两个向量各自按绝对位置旋转以后，它们的内积可以改写为由相对位移控制的双线性形式。原始方法见 RoFormer 论文\cite{su2021}。本文围绕这一构造独立展开基础推导、算例与实现分析；涉及后续扩展时另行说明来源与适用边界。
 
 用钟表可以获得初步直觉：若两根指针具有相同的角速度，同时前进相同时间，它们之间的角度差不变。RoPE 利用的是这种“共同移动抵消”的性质，但词向量不是只有一根指针。每一对坐标对应一根具有不同角速度的指针，而查询和键原有的方向、长度也参与匹配。因此 RoPE 既不是只看距离的查表函数，也不是把词元内容丢掉以后计算两个位置的相似度。后面的推导将把这三个因素分开：内容决定被旋转的向量，位置决定旋转角度，频率决定位置变化在各坐标平面上的快慢。
 
@@ -30,7 +30,7 @@
 本文严格区分三种陈述。第一种是给定矩阵定义后能够证明的代数性质，例如范数保持、相对位移恒等式；第二种是为了构造可计算模型而作出的设计选择，例如几何频率、只旋转查询和键；第三种是必须由训练与评测支持的经验结果，例如某个缩放方案在特定长度上的任务准确率。代数性质可以帮助理解设计，但不能代替经验验证。特别是，公式对任意位置都能求值，不意味着模型在任意长度都能有效利用信息；注意力分数含有相对位移，也不意味着整个语言模型完全不含绝对位置信息。
 
 \subsection{统一记号与约定}
-设序列长度为 $L$，词元位置从 $0$ 开始编号；$m$ 表示查询位置，$n$ 表示键位置，均属于 $\{0,\ldots,L-1\}$。本文固定\keyterm{有向相对位移}为 $\delta=n-m$，因此因果注意力中可见的历史位置满足 $\delta\leq 0$。无向距离写为 $|n-m|$，不得把二者混用。隐藏表示为列向量 $\mathbf h_m\in\mathbb R^D$，$D$ 为模型隐藏维数；单个头的查询、键维数为 $d$，旋转维数为偶数 $d_r=2r\leq d$。先讨论 $d_r=d$，再讨论只旋转部分坐标。$r$ 是二维坐标对的个数，索引 $j$ 从 $0$ 到 $r-1$。
+设序列长度为 $L$，词元位置从 $0$ 开始编号；$m$ 表示查询位置，$n$ 表示键位置，均属于 $\{0,\ldots,L-1\}$。本文固定\emph{有向相对位移}为 $\delta=n-m$，因此因果注意力中可见的历史位置满足 $\delta\leq 0$。无向距离写为 $|n-m|$，不得把二者混用。隐藏表示为列向量 $\mathbf h_m\in\mathbb R^D$，$D$ 为模型隐藏维数；单个头的查询、键维数为 $d$，旋转维数为偶数 $d_r=2r\leq d$。先讨论 $d_r=d$，再讨论只旋转部分坐标。$r$ 是二维坐标对的个数，索引 $j$ 从 $0$ 到 $r-1$。
 
 未旋转的查询、键和值分别记为 $\mathbf q_m,\mathbf k_n,\mathbf v_n$，旋转后的查询和键记为 $\widetilde{\mathbf q}_m,\widetilde{\mathbf k}_n$。频率写为 $\omega_j$，位置相位为 $m\omega_j$，频率基数为 $b>1$；这样可以避免把模型参数、旋转角与基数都记成 $\theta$。$\mathbf I$ 表示维数由上下文确定的单位矩阵，$\|\cdot\|_2$ 是欧氏范数，$\odot$ 是逐元素乘法，$\mathrm i$ 是满足 $\mathrm i^2=-1$ 的虚数单位。批量大小另记为 $B$，查询头数与键值头数分别记为 $H_q,H_{kv}$。所有三角函数以弧度为单位，所有对数均为自然对数，除非另有说明。
 
@@ -45,7 +45,7 @@
 \mathbf v_n=\mathbf W_V\mathbf h_n.
 \label{eq:rope-qkv}
 \end{equation}
-其中 $d_v$ 是值向量维数，常见设计取 $d_v=d$。\keyterm{缩放点积注意力（scaled dot-product attention）}根据查询与键的内积确定匹配分数。给定位置 $m$ 可以读取的键集合 $\mathcal A_m$，其计算为
+其中 $d_v$ 是值向量维数，常见设计取 $d_v=d$。\emph{缩放点积注意力（scaled dot-product attention）}根据查询与键的内积确定匹配分数。给定位置 $m$ 可以读取的键集合 $\mathcal A_m$，其计算为
 \begin{equation}
 s_{mn}=\frac{\mathbf q_m^{\mathsf T}\mathbf k_n}{\sqrt d},\qquad
 a_{mn}=\frac{\exp(s_{mn})}{\sum_{t\in\mathcal A_m}\exp(s_{mt})},\qquad
@@ -62,7 +62,7 @@ a_{mn}=\frac{\exp(s_{mn})}{\sum_{t\in\mathcal A_m}\exp(s_{mt})},\qquad
 \operatorname{softmax}(\mathbf P\mathbf S\mathbf P^{\mathsf T})
 =\mathbf P\operatorname{softmax}(\mathbf S)\mathbf P^{\mathsf T},
 \]
-因为左右置换分别只改变行的顺序及每行元素的顺序，指数与归一化操作不依赖原有编号。因此注意力输出变为 $\mathbf P\mathbf O$。这称为\keyterm{置换等变性（permutation equivariance）}：输入重排使输出同样重排，而不是输出保持完全不变。若最后再使用与顺序无关的汇聚，才可能形成置换不变的整体函数。
+因为左右置换分别只改变行的顺序及每行元素的顺序，指数与归一化操作不依赖原有编号。因此注意力输出变为 $\mathbf P\mathbf O$。这称为\emph{置换等变性（permutation equivariance）}：输入重排使输出同样重排，而不是输出保持完全不变。若最后再使用与顺序无关的汇聚，才可能形成置换不变的整体函数。
 
 这个论证假设可见关系也随重排保持一致，不能直接套到固定下三角的因果掩码。因果掩码规定只能读取前缀，已经引入方向与边界，任意打乱词元却保留原掩码会改变计算图。因此“没有位置编码的任何 Transformer 都完全不知道顺序”过于绝对。更准确的说法是：单纯的内容内积没有明确的距离变量，而掩码提供的可见关系与可学习的细粒度距离表示并不是同一机制。RoPE 在这种内容寻址之上，进一步使匹配过程能够依赖相对位移。
 
@@ -109,7 +109,7 @@ x_0\sin\varphi+x_1\cos\varphi\end{pmatrix}.
 第一式由余弦为偶函数、正弦为奇函数直接得到。第二式将两个矩阵相乘，左上角为 $\cos\alpha\cos\beta-\sin\alpha\sin\beta=\cos(\alpha+\beta)$，右上角为 $-\cos\alpha\sin\beta-\sin\alpha\cos\beta=-\sin(\alpha+\beta)$，其余两个元素同理由和角公式得到。把第一、第二式合用，得到 $\mathbf R(-\alpha)\mathbf R(\alpha)=\mathbf R(0)=\mathbf I_2$，即第三式。
 \end{proof}
 
-满足 $\mathbf U^{\mathsf T}\mathbf U=\mathbf I$ 的实矩阵称为\keyterm{正交矩阵（orthogonal matrix）}。对旋转矩阵，$\|\mathbf R(\alpha)\mathbf x\|_2^2=\mathbf x^{\mathsf T}\mathbf R(\alpha)^{\mathsf T}\mathbf R(\alpha)\mathbf x=\|\mathbf x\|_2^2$，所以旋转保持长度。若两个向量都旋转相同角度，其内积也保持不变；若旋转角不同，则内积一般改变。RoPE 正是利用后一种情形表达位置关系，同时保留单个向量的长度。把“旋转保内积”不加条件地用在不同位置的向量上，会误得“RoPE 不改变注意力”的结论。
+满足 $\mathbf U^{\mathsf T}\mathbf U=\mathbf I$ 的实矩阵称为\emph{正交矩阵（orthogonal matrix）}。对旋转矩阵，$\|\mathbf R(\alpha)\mathbf x\|_2^2=\mathbf x^{\mathsf T}\mathbf R(\alpha)^{\mathsf T}\mathbf R(\alpha)\mathbf x=\|\mathbf x\|_2^2$，所以旋转保持长度。若两个向量都旋转相同角度，其内积也保持不变；若旋转角不同，则内积一般改变。RoPE 正是利用后一种情形表达位置关系，同时保留单个向量的长度。把“旋转保内积”不加条件地用在不同位置的向量上，会误得“RoPE 不改变注意力”的结论。
 
 \subsection{从绝对旋转得到相对角度}
 设 $\mathbf q,\mathbf k\in\mathbb R^2$，位置 $m,n$ 对应角度 $m\omega,n\omega$。利用式\eqref{eq:rope-group}，有
@@ -259,7 +259,7 @@ z\exp(\mathrm i\varphi)
 将 $b$ 称为“最大上下文长度”也不准确。以式\eqref{eq:rope-frequency}为准，最慢频率是 $b^{-(d_r-2)/d_r}$，对应波长为 $2\pi b^{(d_r-2)/d_r}$，它既不等于 $b$，也不是系统必须停止生成的位置。模型允许的窗口由训练配置、位置策略、掩码、缓存容量和运行时实现共同决定，不能从频率表中的一个数字直接读出。
 
 \subsection{周期性、混叠与近似碰撞}
-\keyterm{混叠（aliasing）}在这里指不同位置或位移经周期函数映射后出现相同或接近的表示。若全部频率都是某个基本频率的整数倍，并且存在整数 $T$ 使 $T\omega_j\in2\pi\mathbb Z$，则 $\mathcal R(m+T)=\mathcal R(m)$ 对所有平面成立。几何频率并不一般满足具有小整数 $T$ 的条件，因此不能把单个波长当成完整高维编码的共同周期。
+\emph{混叠（aliasing）}在这里指不同位置或位移经周期函数映射后出现相同或接近的表示。若全部频率都是某个基本频率的整数倍，并且存在整数 $T$ 使 $T\omega_j\in2\pi\mathbb Z$，则 $\mathcal R(m+T)=\mathcal R(m)$ 对所有平面成立。几何频率并不一般满足具有小整数 $T$ 的条件，因此不能把单个波长当成完整高维编码的共同周期。
 
 反过来，没有短的精确共同周期也不意味着任意长范围都能稳定区分。有限维表示落在有界空间中，考虑越来越多的位置，总会有某些位置编码相距很近；有限数值精度还会进一步限制区分能力。对于有限训练范围，重要的是任务所需要区分的位移是否具有足够大的有效差异，而不是声称一个有限维周期编码可以无误差地表示无限多种距离。这样的有效差异还受到内容系数的影响，因为模型实际使用的是加权内积，不是直接读取完整相位向量。
 
@@ -334,7 +334,7 @@ s_{22}=\frac12.
 RoPE 通常在多个注意力层分别作用于该层新产生的查询、键，而不是对上一层已经旋转的查询继续旋转。原因是每层都从更新后的隐藏表示重新构造查询、键；这些向量具有新的内容含义。若程序误把已旋转查询当作未旋转输入，再按同一位置旋转一次，就会得到 $\mathcal R(2m)\mathbf q_m$，相当于改变了相位。每层重复使用同一种位置规则，与同一向量被重复施加位置变换，是两件不同的事。
 
 \subsection{多头与分组查询注意力}
-\keyterm{多头注意力（multi-head attention, MHA）}使用不同投影产生多个查询、键和值子空间；即便各头共享相同频率表，不同的内容投影也能形成不同的位置使用模式。频率表相同不表示所有头具有相同的注意力分布。\keyterm{分组查询注意力（grouped-query attention, GQA）}令多个查询头共享一个键值头，\keyterm{多查询注意力（multi-query attention, MQA）}则只保留一个键值头。它们改变的是键值共享关系，而不是式\eqref{eq:rope-main}本身。
+\emph{多头注意力（multi-head attention, MHA）}使用不同投影产生多个查询、键和值子空间；即便各头共享相同频率表，不同的内容投影也能形成不同的位置使用模式。频率表相同不表示所有头具有相同的注意力分布。\emph{分组查询注意力（grouped-query attention, GQA）}令多个查询头共享一个键值头，\emph{多查询注意力（multi-query attention, MQA）}则只保留一个键值头。它们改变的是键值共享关系，而不是式\eqref{eq:rope-main}本身。
 
 设 $H_q$ 是 $H_{kv}$ 的整数倍，每个查询头被映射到一个键值头。与同一共享键进行点积的查询必须采用与这个键相容的旋转规则；若随意给这些查询头设置不同频率，而缓存键只有一种旋转版本，则一般不能同时满足各头的相对位置恒等式。工程上可以先旋转少量键值头，再按分组规则广播键；当复制的各头使用同一频率时，复制与旋转可以交换。广播维度、头映射和旋转维数必须一起核对。
 
@@ -405,21 +405,21 @@ def rope_pairwise(x, position_ids, base=10000.0,
 \label{sec:rope-cache}
 
 \subsection{预填充与逐词生成的同一坐标系}
-\keyterm{键值缓存（key--value cache, KV cache）}保存历史位置的键和值，使自回归生成无需反复计算相同历史状态。\keyterm{预填充（prefill）}一次处理已有提示词，\keyterm{解码（decoding）}随后逐步处理新增词元。在固定频率的标准实现中，可以直接缓存已经旋转的键 $\widetilde{\mathbf k}_n=\mathcal R(n)\mathbf k_n$ 与未经本层 RoPE 旋转的值 $\mathbf v_n$。新位置 $m$ 只需计算并旋转自己的查询和新键，再与缓存中可见键计算内积。
+\emph{键值缓存（key--value cache, KV cache）}保存历史位置的键和值，使自回归生成无需反复计算相同历史状态。\emph{预填充（prefill）}一次处理已有提示词，\emph{解码（decoding）}随后逐步处理新增词元。在固定频率的标准实现中，可以直接缓存已经旋转的键 $\widetilde{\mathbf k}_n=\mathcal R(n)\mathbf k_n$ 与未经本层 RoPE 旋转的值 $\mathbf v_n$。新位置 $m$ 只需计算并旋转自己的查询和新键，再与缓存中可见键计算内积。
 
 例如提示长度为 $P$，位置编号是 $0,\ldots,P-1$，下一次处理新词元的位置应为 $P$。如果每次单词元前向都使用本地长度为一的 \texttt{arange}，位置会反复变成零，导致新查询与旧键处于错误的相对坐标关系。位置索引应来自请求的逻辑序列状态，而不能仅从当前张量长度推断。分块预填充同样如此：第二个分块的张量索引可以从零开始，逻辑位置必须接在第一个分块之后。
 
 在固定频率、相同掩码且没有训练随机性干扰的条件下，全序列因果前向与逐步缓存前向应产生一致的数学结果，因为历史位置不能读取未来位置，它们的隐藏状态不会因未来词元补入而改变。实际数值比较需要允许不同矩阵乘法形状造成的舍入差异，并关闭 dropout 等随机操作。比较最终生成文本太粗糙：两种实现可能在若干步恰好选择相同词元，却已经具有明显不同的 logits。
 
 \subsection{填充位置、注意力掩码与打包文档}
-批量推理时，各样本长度通常不同，需要\keyterm{填充（padding）}使张量对齐。位置编号与是否可见是两个不同问题：\texttt{position\_ids} 指定真实词元采用哪个逻辑位置，注意力掩码决定哪些键可以被读取。给填充词元分配零号位置并不能阻止真实词元读取它；反过来，掩掉填充也不能自动修正真实词元的位置编号。对于常见的二维有效词元掩码，可以用沿序列轴的累计有效计数减一构造连续位置，再给填充处填入安全占位值，但要确认这与模型预处理约定一致。
+批量推理时，各样本长度通常不同，需要\emph{填充（padding）}使张量对齐。位置编号与是否可见是两个不同问题：\texttt{position\_ids} 指定真实词元采用哪个逻辑位置，注意力掩码决定哪些键可以被读取。给填充词元分配零号位置并不能阻止真实词元读取它；反过来，掩掉填充也不能自动修正真实词元的位置编号。对于常见的二维有效词元掩码，可以用沿序列轴的累计有效计数减一构造连续位置，再给填充处填入安全占位值，但要确认这与模型预处理约定一致。
 
 左填充和右填充在数组中产生不同索引，理想的纯 RoPE 机制允许真实序列采用一致的逻辑编号。某些实现给整个样本使用共同偏移，理论上也可由平移性质抵消，但额外绝对位置机制、缓存接口和有限精度可能使这种处理不再等价。因此更清楚的做法是明确记录真实位置，再通过测试验证不同填充方式下的真实词元输出。尤其不能把批次内最长样本的历史长度无条件用作所有样本下一词元的位置。
 
 将多篇独立文档打包到一个训练序列时，若希望文档间彼此不可见，应同时设置块状因果掩码，并按所选训练方案处理每篇文档的位置。仅重置位置而不阻断跨文档注意力，会让不同文档中的词元发生非预期交互；仅阻断注意力却使用连续编号，在纯固定频率 RoPE 的理想条件下可与各文档重置原点等价，但应考虑起始符等其他机制。因果性、文档隔离和坐标原点各自承担不同职责。
 
 \subsection{滑动窗口删除内容与重编号}
-\keyterm{滑动窗口注意力（sliding-window attention）}只保留最近一段可见历史。删除旧缓存以后，可以继续使用单调增长的全局位置；这样保留键不需要重新旋转。另一种做法是把保留窗口的起点重新记为零，这会改变其坐标原点。若旧位置为 $n$，新位置为 $n-c$，则已旋转键必须变为
+\emph{滑动窗口注意力（sliding-window attention）}只保留最近一段可见历史。删除旧缓存以后，可以继续使用单调增长的全局位置；这样保留键不需要重新旋转。另一种做法是把保留窗口的起点重新记为零，这会改变其坐标原点。若旧位置为 $n$，新位置为 $n-c$，则已旋转键必须变为
 \begin{equation}
 \widetilde{\mathbf k}'_{n-c}
 =\mathcal R(-c)\widetilde{\mathbf k}_n
@@ -514,7 +514,7 @@ p_{\mathrm{hit}}=\frac{1}{1+(N-1)\exp(b_0-a)}.
 扩展方法还可能改变分数尺度或分段选择参数。比较它们时，至少应明确三件事：位置坐标是否压缩，哪些频率改变，注意力内积是否附加了倍率。模型配置中的一个字符串只标识某个实现家族，具体公式仍由版本、检查点和配置参数决定。Hugging Face 的 RoPE 工具文档列出了多种类型及各自字段\cite{hf-rope}；迁移配置时应核对实际代码，不应把不同类型中的同名 \texttt{factor} 无条件解释为完全相同的数学量。
 
 \subsection{位置插值及其局部代价}
-\keyterm{位置插值（position interpolation, PI）}的一种基本形式是取扩展因子 $s>1$，把位置 $m$ 映射为 $m/s$，等价于将全部频率变为 $\omega_j/s$。它使较长序列占据与原训练区间相近的相位范围，原始工作将这一变换与继续训练结合\cite{chen2023}。下面只分析这个线性变换本身，不将论文中的模型效果推广为任意检查点都具有的保证。
+\emph{位置插值（position interpolation, PI）}的一种基本形式是取扩展因子 $s>1$，把位置 $m$ 映射为 $m/s$，等价于将全部频率变为 $\omega_j/s$。它使较长序列占据与原训练区间相近的相位范围，原始工作将这一变换与继续训练结合\cite{chen2023}。下面只分析这个线性变换本身，不将论文中的模型效果推广为任意检查点都具有的保证。
 
 若希望将新序列端点 $L_1-1$ 精确映射到旧端点 $L_0-1$，则可取 $s=(L_1-1)/(L_0-1)$，其中 $L_0>1$；工程上也常按窗口长度比 $L_1/L_0$ 定义缩放因子。两种约定近似相同却不完全一致，应与配置和训练过程配套。实数位置并无数学障碍，因为旋转矩阵本来就对实相位有定义，不需要先把插值后的索引取整；取整反而会把多个不同位置强制合并。
 
@@ -546,7 +546,7 @@ b'=b\,s^{d_r/(d_r-2)},\qquad
 \end{equation}
 当 $\gamma_j=0$ 时完全插值，当 $\gamma_j=1$ 时保留原频率。通过按训练窗口内的旋转圈数 $L_0\omega_j/(2\pi)$ 选择过渡区，可以在保留局部分辨率与限制低频相位变化之间折中。YaRN 将分频处理与注意力尺度调整结合\cite{peng2023}；这里的式子用于解释分频混合的机制，不能代替特定库中关于过渡索引、取整和倍率的完整实现。
 
-若注意力分数改为 $s_{mn}/T$，其中 $T>0$ 称为\keyterm{温度（temperature）}，小温度使已有分数差被放大，大温度使分布更平缓。若通过把旋转后查询、键都乘以同一个正数 $\alpha$ 实现，则点积会乘以 $\alpha^2$，等价于 $T=1/\alpha^2$。把“向量放大两倍”误解为“分数放大两倍”会得到错误配置；只放大一侧才使点积乘以 $\alpha$。
+若注意力分数改为 $s_{mn}/T$，其中 $T>0$ 称为\emph{温度（temperature）}，小温度使已有分数差被放大，大温度使分布更平缓。若通过把旋转后查询、键都乘以同一个正数 $\alpha$ 实现，则点积会乘以 $\alpha^2$，等价于 $T=1/\alpha^2$。把“向量放大两倍”误解为“分数放大两倍”会得到错误配置；只放大一侧才使点积乘以 $\alpha$。
 
 温度不会改变分数的大小排序，却会改变权重集中程度。对于式\eqref{eq:rope-distractor}中的正确排序，适当放大分数差可能减轻大量干扰的归一化稀释；若错误候选原本排在第一位，放大差距也可能强化错误。因而温度调整不是检索正确性的证明，也无法替代对频率和训练分布的适配。某个经验倍率只能作为指定实验条件下的选择，不能当成普适常数。
 
@@ -579,7 +579,7 @@ RoPE 与加法正弦编码都使用谐波函数，却有不同的接口。加法
 \label{sec:rope-advanced}
 
 \subsection{从位置加法到旋转复合}
-整数位置在加法下构成群，而 $m\mapsto\mathcal R(m)$ 把位置相加映射为正交矩阵相乘。这可以称为一个\keyterm{正交表示（orthogonal representation）}。不需要群论背景也能理解它的用途：连续移动两次与一次移动总位移产生相同变换，逆向移动对应逆矩阵。式\eqref{eq:rope-main}之所以简洁，正是因为查询上的逆向变换与键上的正向变换合并为相对移动。
+整数位置在加法下构成群，而 $m\mapsto\mathcal R(m)$ 把位置相加映射为正交矩阵相乘。这可以称为一个\emph{正交表示（orthogonal representation）}。不需要群论背景也能理解它的用途：连续移动两次与一次移动总位移产生相同变换，逆向移动对应逆矩阵。式\eqref{eq:rope-main}之所以简洁，正是因为查询上的逆向变换与键上的正向变换合并为相对移动。
 
 这个视角还帮助区分“可学习”与“结构保持”。可以学习频率，只要对查询与键使用同一组固定后的频率，位置加法规律仍成立；也可以用固定正交矩阵 $\mathbf U$ 变换所有坐标平面，构造 $\mathbf U\mathcal R(m)\mathbf U^{\mathsf T}$，相对恒等式仍成立。若独立学习每个位置的任意正交矩阵，虽然每个矩阵仍保持范数，却通常不再满足组合规律。正交性保证局部长度，组合规律保证相对位移，两种条件不可互相替代。
 
@@ -707,49 +707,49 @@ RoPE 与加法正弦编码都使用谐波函数，却有不同的接口。加法
 \begin{thebibliography}{99}
 \bibitem{su2021}
 Su, J., et al.
-\emph{RoFormer: Enhanced Transformer with Rotary Position Embedding}.
+\textit{RoFormer: Enhanced Transformer with Rotary Position Embedding}.
 arXiv:2104.09864, 2021; revised version, 2023.
 \url{https://arxiv.org/abs/2104.09864}.
 
 \bibitem{vaswani2017}
 Vaswani, A., et al.
-\emph{Attention Is All You Need}.
+\textit{Attention Is All You Need}.
 Advances in Neural Information Processing Systems, 2017.
 \url{https://arxiv.org/abs/1706.03762}.
 
 \bibitem{press2021}
 Press, O., Smith, N. A., and Lewis, M.
-\emph{Train Short, Test Long: Attention with Linear Biases Enables Input Length Extrapolation}.
+\textit{Train Short, Test Long: Attention with Linear Biases Enables Input Length Extrapolation}.
 arXiv:2108.12409, 2021; ICLR, 2022.
 \url{https://arxiv.org/abs/2108.12409}.
 
 \bibitem{chen2023}
 Chen, S., Wong, S., Chen, L., and Tian, Y.
-\emph{Extending Context Window of Large Language Models via Positional Interpolation}.
+\textit{Extending Context Window of Large Language Models via Positional Interpolation}.
 arXiv:2306.15595, 2023.
 \url{https://arxiv.org/abs/2306.15595}.
 
 \bibitem{peng2023}
 Peng, B., et al.
-\emph{YaRN: Efficient Context Window Extension of Large Language Models}.
+\textit{YaRN: Efficient Context Window Extension of Large Language Models}.
 arXiv:2309.00071, 2023; ICLR, 2024.
 \url{https://arxiv.org/abs/2309.00071}.
 
 \bibitem{ding2024}
 Ding, Y., et al.
-\emph{LongRoPE: Extending LLM Context Window Beyond 2 Million Tokens}.
+\textit{LongRoPE: Extending LLM Context Window Beyond 2 Million Tokens}.
 arXiv:2402.13753, 2024.
 \url{https://arxiv.org/abs/2402.13753}.
 
 \bibitem{meta-llama}
 Meta.
-\emph{Llama reference implementation: llama/model.py}.
+\textit{Llama reference implementation: llama/model.py}.
 \url{https://github.com/meta-llama/llama/blob/main/llama/model.py}.
 访问日期：2026 年 10 月 3 日。
 
 \bibitem{hf-rope}
 Hugging Face.
-\emph{Transformers documentation: Rotary embeddings utilities}.
+\textit{Transformers documentation: Rotary embeddings utilities}.
 \url{https://huggingface.co/docs/transformers/main/en/internal/rope_utils}.
 访问日期：2026 年 10 月 3 日。
 \end{thebibliography}
