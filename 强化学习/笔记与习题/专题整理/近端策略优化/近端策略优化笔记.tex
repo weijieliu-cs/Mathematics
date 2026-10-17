@@ -1,4 +1,4 @@
-\documentclass[UTF8]{ctexart}
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
 
 % 支持从项目根目录、强化学习目录或当前笔记目录读取共享样式。
 \makeatletter
@@ -26,7 +26,7 @@
 
 设机器人在某个状态下尝试向前迈步，并获得了高于预期的后续收益。一种直接的学习规则是提高这个动作在该状态下被选中的概率。然而，一次经验包含环境噪声、后续动作的影响以及价值估计的误差；把这条经验反复用于训练，可能把一次偶然成功当成可靠规律。与此同时，策略改变后，机器人会访问新的状态，旧经验对新策略的代表性也随之下降。
 
-\keyterm{近端策略优化}（proximal policy optimization，PPO）处理的核心问题是：在已有数据还具有参考价值的范围内，怎样利用它进行多次更新，而又避免策略变化过大。原始工作提出了剪切替代目标与自适应 KL 惩罚等方案\cite{schulman-ppo}。本文将以 \keyterm{PPO-Clip} 为主线，把一次训练迭代理解为
+\emph{近端策略优化}（proximal policy optimization，PPO）处理的核心问题是：在已有数据还具有参考价值的范围内，怎样利用它进行多次更新，而又避免策略变化过大。原始工作提出了剪切替代目标与自适应 KL 惩罚等方案\cite{schulman-ppo}。本文将以 \emph{PPO-Clip} 为主线，把一次训练迭代理解为
 \[
   \text{固定采样策略}
   \longrightarrow \text{收集轨迹}
@@ -38,9 +38,9 @@
 
 \subsection{算法的位置与阅读路线}
 
-PPO 属于\keyterm{策略梯度方法}（policy gradient method），直接训练参数化的随机策略。常见实现采用\keyterm{演员--评论家结构}（actor--critic architecture）：演员给出动作分布，评论家估计状态价值，为演员提供评价信号。它通常不需要已知环境转移模型，因此属于\keyterm{无模型方法}（model-free method）。
+PPO 属于\emph{策略梯度方法}（policy gradient method），直接训练参数化的随机策略。常见实现采用\emph{演员--评论家结构}（actor--critic architecture）：演员给出动作分布，评论家估计状态价值，为演员提供评价信号。它通常不需要已知环境转移模型，因此属于\emph{无模型方法}（model-free method）。
 
-PPO 通常被归为\keyterm{同策略方法}（on-policy method）：每次外层迭代都用当前策略收集新数据，并围绕这个采样策略构造目标。在内层更新中，待优化策略与采样策略会暂时不同，概率比用于修正给定状态下的动作分布。有限次重复使用当前批次，并不意味着可以任意使用长期保存的历史经验。
+PPO 通常被归为\emph{同策略方法}（on-policy method）：每次外层迭代都用当前策略收集新数据，并围绕这个采样策略构造目标。在内层更新中，待优化策略与采样策略会暂时不同，概率比用于修正给定状态下的动作分布。有限次重复使用当前批次，并不意味着可以任意使用长期保存的历史经验。
 
 本文先在第\ref{sec:ppo-mdp}节至第\ref{sec:ppo-trust-region}节建立数学基础，再在第\ref{sec:ppo-clipping}节解释 PPO 的核心目标。第\ref{sec:ppo-gae}节和第\ref{sec:ppo-boundaries}节回答“优势从哪里来”，第\ref{sec:ppo-loss}节至第\ref{sec:ppo-algorithm}节给出可实现的训练过程，最后讨论诊断、变体与局限。阅读所需的基础是条件期望、微分和简单的梯度优化；文中的证明与数值例题可以分别阅读。
 
@@ -49,7 +49,7 @@ PPO 通常被归为\keyterm{同策略方法}（on-policy method）：每次外�
 
 \subsection{轨迹、奖励与优化目标}
 
-考虑完全可观测的\keyterm{马尔可夫决策过程}（Markov decision process，MDP）。状态空间为 $\mathcal S$，动作空间为 $\mathcal A$，初始状态分布为 $\mu$，环境的联合转移与奖励核为
+考虑完全可观测的\emph{马尔可夫决策过程}（Markov decision process，MDP）。状态空间为 $\mathcal S$，动作空间为 $\mathcal A$，初始状态分布为 $\mu$，环境的联合转移与奖励核为
 \[
   p(s',r\mid s,a).
 \]
@@ -61,7 +61,7 @@ PPO 通常被归为\keyterm{同策略方法}（on-policy method）：每次外�
 \]
 大写字母表示随机变量，小写字母 $s_t,a_t,r_{t+1}$ 表示采样得到的取值。本文始终用 $r_{t+1}$ 表示执行 $a_t$ 后收到的奖励，用 $\rho_t$ 表示新旧策略的概率比，避免把两者都记作 $r_t$。
 
-设折扣因子 $0<\gamma<1$，并假设奖励有界，即存在有限常数 $R_{\max}$，使得 $|R_{t+1}|\le R_{\max}$ 几乎处处成立。定义\keyterm{回报}（return）与策略目标
+设折扣因子 $0<\gamma<1$，并假设奖励有界，即存在有限常数 $R_{\max}$，使得 $|R_{t+1}|\le R_{\max}$ 几乎处处成立。定义\emph{回报}（return）与策略目标
 \begin{align}
   G_t &\coloneqq \sum_{j=0}^{\infty}\gamma^jR_{t+j+1},
   \label{eq:ppo-return}\\
@@ -76,7 +76,7 @@ PPO 通常被归为\keyterm{同策略方法}（on-policy method）：每次外�
 \subsection{价值与优势}
 
 \begin{definition}[价值函数与优势函数]
-对策略 $\pi$，定义\keyterm{状态价值函数}（state-value function）、\keyterm{动作价值函数}（action-value function）和\keyterm{优势函数}（advantage function）为
+对策略 $\pi$，定义\emph{状态价值函数}（state-value function）、\emph{动作价值函数}（action-value function）和\emph{优势函数}（advantage function）为
 \begin{align}
   V^\pi(s)&\coloneqq\mathbb E_\pi[G_t\mid S_t=s],\\
   Q^\pi(s,a)&\coloneqq\mathbb E_\pi[G_t\mid S_t=s,A_t=a],\\
@@ -97,7 +97,7 @@ PPO 通常被归为\keyterm{同策略方法}（on-policy method）：每次外�
 
 \subsection{折扣状态分布与三种不同的平均}
 
-为把各时刻的策略梯度写成一个期望，定义\keyterm{折扣状态占用分布}（discounted state occupancy distribution）
+为把各时刻的策略梯度写成一个期望，定义\emph{折扣状态占用分布}（discounted state occupancy distribution）
 \begin{equation}
   d^\pi_\mu(s)
   \coloneqq(1-\gamma)\sum_{t=0}^{\infty}
@@ -203,7 +203,7 @@ $(I-\gamma P_\theta)^{-1}=\sum_{t\ge0}\gamma^tP_\theta^t$。
 
 减去状态基线不改变总体策略梯度，但有助于减少不相关的回报波动。$V^\pi$ 是自然的基线，并不在所有参数化和方差准则下都是严格的最优基线。实践中用价值网络 $V_\phi$ 近似 $V^\pi$，将高噪声的完整回报转化为优势估计。
 
-在演员的损失中，$\widehat A_i$ 应视为固定评价信号，即采用\keyterm{停止梯度}（stop-gradient）。如果演员与评论家共用特征网络，也不能让策略损失通过 $\widehat A_i$ 反向传播到评论家，否则实际求得的导数会多出不属于式\eqref{eq:ppo-policy-gradient}的项。评论家由独立的价值损失训练。
+在演员的损失中，$\widehat A_i$ 应视为固定评价信号，即采用\emph{停止梯度}（stop-gradient）。如果演员与评论家共用特征网络，也不能让策略损失通过 $\widehat A_i$ 反向传播到评论家，否则实际求得的导数会多出不属于式\eqref{eq:ppo-policy-gradient}的项。评论家由独立的价值损失训练。
 
 \subsection{为何直接重复优化旧批次会产生问题}
 
@@ -233,7 +233,7 @@ $(I-\gamma P_\theta)^{-1}=\sum_{t\ge0}\gamma^tP_\theta^t$。
 \end{equation}
 对于连续动作，两者都是相对于同一基准测度的概率密度，$\rho_\theta$ 是密度比。要求新策略的动作分布被旧策略覆盖：$\pi_\theta(a\mid s)>0$ 的地方，旧策略不能为零。若各策略在共同支持上都严格为正，该条件自动满足。
 
-对可积函数 $f(s,a)$，\keyterm{重要性采样}（importance sampling）给出
+对可积函数 $f(s,a)$，\emph{重要性采样}（importance sampling）给出
 \begin{equation}
   \mathbb E_{A\sim\pi_\theta(\cdot\mid s)}[f(s,A)]
   =\mathbb E_{A\sim\pi_{\mathrm{old}}(\cdot\mid s)}
@@ -338,7 +338,7 @@ $L_{\mathrm{old}}^{\mathrm{IS}}/(1-\gamma)$ 近似的是回报增量，而不是
   \qquad
   C_A=\max_{s,a}|A_{\mathrm{old}}(s,a)|.
 \]
-其中 $\alpha$ 是两策略在状态上的最大\keyterm{全变差距离}（total variation distance）。在式\eqref{eq:ppo-ratio}的支持条件下，
+其中 $\alpha$ 是两策略在状态上的最大\emph{全变差距离}（total variation distance）。在式\eqref{eq:ppo-ratio}的支持条件下，
 \begin{equation}
   \left|J(\theta)-J(\theta_{\mathrm{old}})
        -\frac{L_{\mathrm{old}}^{\mathrm{IS}}(\theta)}{1-\gamma}\right|
@@ -376,7 +376,7 @@ $(1-\gamma)^{-1}\sum_s[d^{\pi_\theta}(s)-d_{\mathrm{old}}(s)]h(s)$。
 
 \subsection{TRPO 的约束及其局部解}
 
-\keyterm{信赖域策略优化}（trust region policy optimization，TRPO）在实际近似问题中用平均 KL 散度约束更新。对同一支持上的离散分布，定义\keyterm{Kullback--Leibler 散度}（KL divergence）
+\emph{信赖域策略优化}（trust region policy optimization，TRPO）在实际近似问题中用平均 KL 散度约束更新。对同一支持上的离散分布，定义\emph{Kullback--Leibler 散度}（KL divergence）
 \[
   D_{\mathrm{KL}}(p\|q)=\sum_a p(a)\log\frac{p(a)}{q(a)}.
 \]
@@ -559,13 +559,13 @@ $A_{\mathrm{old}}(a_-)=-1/2$；
 
 本轮采样前固定价值网络
 $V_{\mathrm{old}}=V_{\phi_{\mathrm{old}}}$。先考虑一段没有中途重置的轨迹
-$(s_t,a_t,r_{t+1},\ldots,s_T)$，其中 $t<T$。定义\keyterm{时间差分残差}（temporal-difference residual，TD residual）
+$(s_t,a_t,r_{t+1},\ldots,s_T)$，其中 $t<T$。定义\emph{时间差分残差}（temporal-difference residual，TD residual）
 \begin{equation}
   \delta_t=r_{t+1}+\gamma V_{\mathrm{old}}(s_{t+1})
            -V_{\mathrm{old}}(s_t).
   \label{eq:ppo-td}
 \end{equation}
-若 $s_{t+1}$ 是真实终止状态，就令它的后续价值为零。借助后继状态的价值估计补足未来回报，称为\keyterm{自举}（bootstrapping）。
+若 $s_{t+1}$ 是真实终止状态，就令它的后续价值为零。借助后继状态的价值估计补足未来回报，称为\emph{自举}（bootstrapping）。
 
 若 $V_{\mathrm{old}}=V^{\pi_{\mathrm{old}}}$，由贝尔曼方程有
 \[
@@ -585,7 +585,7 @@ $(s_t,a_t,r_{t+1},\ldots,s_T)$，其中 $t<T$。定义\keyterm{时间差分残�
 
 \subsection{GAE 的有限轨迹形式与递推}
 
-\keyterm{广义优势估计}（generalized advantage estimation，GAE）用参数 $0\le\lambda\le1$ 对多个时间尺度进行加权\cite{schulman-gae}。令 $H=T-t$，有限轨迹上的形式为
+\emph{广义优势估计}（generalized advantage estimation，GAE）用参数 $0\le\lambda\le1$ 对多个时间尺度进行加权\cite{schulman-gae}。令 $H=T-t$，有限轨迹上的形式为
 \begin{equation}
   \widehat A_t
   =\sum_{j=0}^{H-1}(\gamma\lambda)^j\delta_{t+j}.
@@ -696,7 +696,7 @@ $V_{\mathrm{old}}(s_2)=0.4$。
 
 \subsection{为什么一个结束标志不够}
 
-实现时至少要区分\keyterm{终止}（termination）与\keyterm{截断}（truncation）。终止属于任务定义，例如进入终点或失败状态，此后回报为零；截断只意味着外部停止了采样，例如继续型任务被时间上限打断，状态仍可能有未来价值。Gymnasium 的相关文档也强调了这种区别\cite{gymnasium-time-limits}。
+实现时至少要区分\emph{终止}（termination）与\emph{截断}（truncation）。终止属于任务定义，例如进入终点或失败状态，此后回报为零；截断只意味着外部停止了采样，例如继续型任务被时间上限打断，状态仍可能有未来价值。Gymnasium 的相关文档也强调了这种区别\cite{gymnasium-time-limits}。
 
 如果时间耗尽本身就是有限时域任务的终止条件，则应按真实终止处理，并在需要时把剩余时间纳入状态。不能机械地把所有时间上限都归为同一种边界。
 
@@ -759,7 +759,7 @@ $b_t$ 是自举掩码，$c_t$ 是优势迹的连续性掩码。实际递推为
 
 \subsection{固定目标和优势标准化}
 
-先由原始优势构造式\eqref{eq:ppo-value-target}的 $y_i$，并把它固定下来。一种可选处理是对整个采样批次做\keyterm{优势标准化}（advantage normalization）：
+先由原始优势构造式\eqref{eq:ppo-value-target}的 $y_i$，并把它固定下来。一种可选处理是对整个采样批次做\emph{优势标准化}（advantage normalization）：
 \begin{equation}
   \overline A=\frac1B\sum_i\widehat A_i,\qquad
   \sigma_A^2=\frac1B\sum_i(\widehat A_i-\overline A)^2,\qquad
@@ -783,7 +783,7 @@ $b_t$ 是自举掩码，$c_t$ 是优势迹的连续性掩码。实际递推为
 \end{equation}
 这个 $y_i$ 利用旧价值与实际奖励得到，是监督回归目标；它不是每次评论家更新后都要跟随当前预测变化的变量。本文固定旧价值、优势和目标，以便在本轮多次优化中保持目标一致。重算优势的算法变体需要另行说明，不能在实现中无意混入。
 
-对离散动作，状态 $s$ 下的策略\keyterm{熵}（entropy）为
+对离散动作，状态 $s$ 下的策略\emph{熵}（entropy）为
 \begin{equation}
   \mathcal H(\pi_\theta(\cdot\mid s))
   =-\sum_a\pi_\theta(a\mid s)\log\pi_\theta(a\mid s),
@@ -829,7 +829,7 @@ $b_t$ 是自举掩码，$c_t$ 是优势迹的连续性掩码。实际递推为
 \end{equation}
 这里 $\epsilon_V$ 具有价值的单位，而策略参数 $\epsilon$ 是无量纲的比值阈值；两者不应因都叫“剪切”就被混为同一概念。不同实现的价值剪切公式也可能不同。若奖励整体缩放，价值阈值及损失尺度都需要重新考虑。本文的基本训练流程使用式\eqref{eq:ppo-value-loss}。
 
-\keyterm{梯度范数裁剪}（gradient norm clipping）则直接处理优化器接收的梯度 $g_{\mathrm{opt}}$：
+\emph{梯度范数裁剪}（gradient norm clipping）则直接处理优化器接收的梯度 $g_{\mathrm{opt}}$：
 \[
   g_{\mathrm{opt}}
   \leftarrow
@@ -920,7 +920,7 @@ $\log\pi_\theta(a_i\mid s_i)$ 时，$a_i$ 对当前参数是常量；不应把�
 
 \subsection{外层采样与内层优化}
 
-设有 $N$ 个并行环境，每个环境收集 $T$ 条转移，总批量为 $B=NT$。一次\keyterm{外层迭代}固定采样策略、收集一个批次并完成训练；一次\keyterm{训练遍历}（epoch）表示把该批次遍历一遍；每次只用其中 $M$ 个样本构成\keyterm{小批量}（minibatch）进行梯度更新。本文用 $K$ 表示每个批次最多遍历的次数。
+设有 $N$ 个并行环境，每个环境收集 $T$ 条转移，总批量为 $B=NT$。一次\emph{外层迭代}固定采样策略、收集一个批次并完成训练；一次\emph{训练遍历}（epoch）表示把该批次遍历一遍；每次只用其中 $M$ 个样本构成\emph{小批量}（minibatch）进行梯度更新。本文用 $K$ 表示每个批次最多遍历的次数。
 
 以下流程采用前馈随机策略、固定 GAE 目标、普通价值均方误差，以及可选的批次优势标准化、熵奖励和 KL 早停。
 
@@ -1104,7 +1104,7 @@ $\operatorname{expm1}(x)-x$ 减少相消误差。
 
 \subsection{越界比例与真正进入平坦区的比例}
 
-常见的\keyterm{剪切比例}（clip fraction）记录比值离开区间的频率：
+常见的\emph{剪切比例}（clip fraction）记录比值离开区间的频率：
 \begin{equation}
   q_{\mathrm{out}}
   =\frac1B\sum_i
@@ -1130,7 +1130,7 @@ $\widetilde A_i$。这里忽略折点，且未把优势本身为零的样本计�
 
 应同时观察独立评估回合的回报与长度、KL、比值分布、策略熵、价值误差、优势分布和梯度范数。策略损失的绝对大小通常不能直接跨轮比较，因为参考策略、训练数据以及优势尺度都在变化。
 
-评论家可额外记录\keyterm{解释方差}（explained variance）
+评论家可额外记录\emph{解释方差}（explained variance）
 \begin{equation}
   \mathrm{EV}
   =1-\frac{\widehat{\operatorname{Var}}(y_i-V_\phi(s_i))}
@@ -1211,7 +1211,7 @@ $\widetilde A_i$。这里忽略折点，且未把优势本身为零的样本计�
 
 \subsection{自适应 KL 惩罚}
 
-\keyterm{PPO-Penalty} 将策略距离放入目标，而不是使用样本剪切：
+\emph{PPO-Penalty} 将策略距离放入目标，而不是使用样本剪切：
 \begin{equation}
   \widehat L^{\mathrm{KLPEN}}(\theta)
   =\widehat L^{\mathrm{IS}}(\theta)

@@ -3,7 +3,7 @@
 % 内部命令使用 rn@ 前缀；宏包文件中可直接使用含 @ 的命令名。
 % 目录使用命令钩子，因此要求不早于 2021 年 6 月的 LaTeX 内核。
 \NeedsTeXFormat{LaTeX2e}[2021/06/01]
-\ProvidesPackage{researchnotes}[2026/10/15 v0.8 中文学科笔记共享样式]
+\ProvidesPackage{researchnotes}[2026/10/17 v1.0 中文学科笔记共享样式]
 
 % 一、编译引擎、字体与标点
 % 遇到不支持的引擎时立即停止，避免后续字体设置产生连锁错误。
@@ -280,15 +280,11 @@
 \definecolor{rnorange}{HTML}{FF5F15}
 \definecolor{rngreen}{HTML}{27AE60}
 \definecolor{rnlinkblue}{HTML}{1F4E99}
-% 保留旧颜色名称作为别名，兼容已经使用这些名称的笔记。
-\colorlet{myorange}{rnorange}
-\colorlet{mygreen}{rngreen}
-\colorlet{mylinkblue}{rnlinkblue}
 
 % 统一的行文强调接口：仅提供蓝、绿、红三类，类型名与块级提示保持一致。
-% 用法：\noteemph{术语或关键结论}，等同于 \noteemph[note]{...}，使用蓝色。
-% 用法：\noteemph[tip]{解题策略或证明思路。}，使用绿色。
-% 用法：\noteemph[caution]{适用条件或易错提醒。}，使用红色。
+% 用法：\emph{术语或关键结论}，等同于 \emph[note]{...}，使用蓝色。
+% 用法：\emph[tip]{解题策略或证明思路。}，使用绿色。
+% 用法：\emph[caution]{适用条件或易错提醒。}，使用红色。
 % 三类均采用楷体常规字重；普通正文不使用高亮命令，不另设正文色类型。
 % 颜色以提示框的三原色为基础，绿色文字适度加深，以便在白底上阅读。
 % 字体与颜色仅在参数内生效；不同类型嵌套时，内层按其指定类型显示。
@@ -296,12 +292,10 @@
 \colorlet{rnemphnote}{rnalertnote}
 \colorlet{rnemphtip}{rnalerttip!50!black}
 \colorlet{rnemphcaution}{rnalertcaution}
-% 保留旧的蓝色名称，兼容直接引用该颜色的文档。
-\colorlet{rnimportant}{rnemphnote}
 \newcommand{\rn@emph@note}[1]{\textcolor{rnemphnote}{#1}}
 \newcommand{\rn@emph@tip}[1]{\textcolor{rnemphtip}{#1}}
 \newcommand{\rn@emph@caution}[1]{\textcolor{rnemphcaution}{#1}}
-\NewDocumentCommand{\noteemph}{O{note} +m}{%
+\RenewDocumentCommand{\emph}{O{note} +m}{%
   {\kaishu\mdseries
     \@ifundefined{rn@emph@#1}{%
       \PackageError{researchnotes}{未知的强调类型 '#1'}
@@ -313,11 +307,6 @@
   }%
 }
 
-% 原有名称保留为稳健的兼容入口，不增加新的高亮类型；新内容优先使用统一接口。
-% 术语和重要内容统一映射到蓝色，解释文字映射到绿色；原有参数形式保持不变。
-\DeclareRobustCommand{\keyterm}[1]{\noteemph[note]{#1}}
-\DeclareRobustCommand{\impo}[1]{\noteemph[note]{#1}}
-\DeclareRobustCommand{\explain}[1]{\noteemph[tip]{#1}}
 % 此命令用于正文中的提示标题，不代替正式的章节层级。
 \DeclareRobustCommand{\idea}[1]{\par\vspace{0.45em}\noindent\textbf{#1}}
 \newenvironment{whispers}
@@ -339,14 +328,11 @@
 
 % 可展开的书签副本读取可选类型后只保留正文，不执行字体或颜色指令。
 % 参数解析不使用依赖赋值的向前探测，以适应书签字符串的展开过程。
-\NewExpandableDocumentCommand{\rn@pdf@noteemph}{+O{note} +m}{#2}
+\NewExpandableDocumentCommand{\rn@pdf@emph}{+O{note} +m}{#2}
 
 % 书签仅保留辅助命令中的文字，去除字体、颜色与段落格式指令。
 \pdfstringdefDisableCommands{%
-  \let\noteemph\rn@pdf@noteemph
-  \let\impo\@firstofone
-  \let\explain\@firstofone
-  \let\keyterm\@firstofone
+  \let\emph\rn@pdf@emph
   \let\idea\@firstofone
 }
 
