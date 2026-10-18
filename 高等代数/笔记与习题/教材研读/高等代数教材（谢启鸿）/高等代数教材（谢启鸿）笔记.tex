@@ -25,7 +25,31 @@
 
 \section{二阶行列式}
 
+中学学习的二元一次方程组、三元一次方程组，都属于线性方程组。为了讨论未知数更多的情形，先给出一般的定义；本章将从两个方程、两个未知数的情形出发，引入行列式作为研究线性方程组的工具。
+
+\begin{definition}
+\label{def:linear-system}
+设 $m,n$ 为正整数，在实数范围或复数范围内，$x_1,\ldots,x_n$ 为未知数，$a_{ij}$（$1\leq i\leq m$，$1\leq j\leq n$）与 $b_i$（$1\leq i\leq m$）为给定的常数。形如
+\begin{equation}
+\label{eq:linear-system-standard}
+    \left\{
+    \begin{aligned}
+        a_{11}x_1+a_{12}x_2+\cdots+a_{1n}x_n&=b_1,\\
+        a_{21}x_1+a_{22}x_2+\cdots+a_{2n}x_n&=b_2,\\
+        &\vdots\\
+        a_{m1}x_1+a_{m2}x_2+\cdots+a_{mn}x_n&=b_m
+    \end{aligned}
+    \right.
+\end{equation}
+的方程组称为\emph{$n$ 元线性方程组}（system of linear equations in $n$ unknowns），式~\eqref{eq:linear-system-standard} 称为它的标准形式。其中，$a_{ij}$ 是第 $i$ 个方程中未知数 $x_j$ 的\emph{系数}（coefficient），$b_i$ 是第 $i$ 个方程的\emph{常数项}（constant term）。凡经过有限次移项和合并同类项能够化为这一标准形式的方程组，也称为线性方程组。
+\end{definition}
+
+这里的“线性”是指，整理后的每个方程左端都是未知数的常数倍之和，不含未知数的高次幂或未知数之间的乘积。系数允许为零，因此某个未知数可以不出现在某个方程中。\emph[caution]{$n$ 表示未知数的个数，$m$ 表示方程的个数，二者不必相等}；“$n$ 元”并不意味着方程组一定含有 $n$ 个方程。本章主要讨论 $m=n$ 的情形，二元二方程组是其中最基本的例子。
+
+求解方程组，就是在所讨论的数的范围内找出所有使每个方程同时成立的有序数组 $(x_1,\ldots,x_n)$；每个这样的数组称为方程组的一个\emph{解}（solution）。各分量依次对应相应的未知数，必须同时满足全部方程，而不仅是其中某一个方程。
+
 \section{三阶行列式}
+% 本节已理解，暂不补充笔记。
 
 \section{\texorpdfstring{$n$}{n} 阶行列式}
 
@@ -185,7 +209,7 @@
 
 对于任意两行 $r<s$，先用 $s-r$ 次相邻交换把原第 $r$ 行移到第 $s$ 行，再用 $s-r-1$ 次把原第 $s$ 行从第 $s-1$ 行移到第 $r$ 行，其余各行恢复原次序。总交换次数为奇数，故
 \[
-    |B|=(-1)^{(s-r)+(s-r-1)}|A|=-|A|.
+    |B|=(-1)^{(s-r)+(s-r-1)}|A|=-|A|.\qedhere
 \]
 \end{proof}
 
@@ -370,6 +394,90 @@ $|A^{\mathsf T}|$ 的第一行依次为 $a_{11},a_{21},\ldots,a_{n1}$。利用�
 转置把行与列互换而不改变数值，这就解释了前面各性质中行、列结论的对应关系。使用时可以通过转置将关于列的问题化为关于行的问题；不过，在建立这套性质时，转置不变性本身依赖于前面已经证明的展开公式，不能预先用它代替那些公式所需的证明。
 
 \section{行列式的计算}
+
+计算具有特殊结构的行列式时，可以先利用行、列变换制造零元素，再通过展开降低阶数。如果降阶后仍保留原来的结构，就能建立递推关系。下面的范德蒙行列式是这一方法的典型例子。
+
+% 依据教材例 1.5.6，采用列消去法建立递推关系。
+\begin{example}
+\label{ex:determinant-vandermonde}
+设 $n$ 为正整数，$x_1,\ldots,x_n$ 为实数或复数。计算 $n$ 阶\emph{范德蒙行列式}（Vandermonde determinant）
+\begin{equation}
+\label{eq:vandermonde-definition}
+    V_n(x_1,\ldots,x_n)=
+    \begin{vmatrix}
+        1 & x_1 & x_1^2 & \cdots & x_1^{n-1} \\
+        1 & x_2 & x_2^2 & \cdots & x_2^{n-1} \\
+        \vdots & \vdots & \vdots & & \vdots \\
+        1 & x_{n-1} & x_{n-1}^2 & \cdots & x_{n-1}^{n-1} \\
+        1 & x_n & x_n^2 & \cdots & x_n^{n-1}
+    \end{vmatrix}.
+\end{equation}
+其中第一列的元素均为 $1$，第 $j$ 列的元素为各参数的 $j-1$ 次幂；当 $n=1$ 时，约定 $V_1(x_1)=1$。参数 $x_1,\ldots,x_n$ 不要求两两不同。
+\end{example}
+
+\begin{solve}
+当 $n=1$ 时，$V_1(x_1)=1$。以下设 $n\geq 2$，并在参数明确时将 $V_n(x_1,\ldots,x_n)$ 简记为 $V_n$。为了使最后一行除第一项外全为零，记第 $j$ 列为 $C_j$，按照 $j=n,n-1,\ldots,2$ 的顺序依次作列变换
+\[
+    C_j\longleftarrow C_j-x_nC_{j-1}.
+\]
+由命题~\ref{prop:determinant-column-operations}，每次变换都不改变行列式的值。这里\emph[tip]{从右向左依次变换}，是为了保证用来消去的第 $j-1$ 列尚未改变，使变换后第 $(i,j)$ 元素为
+\[
+    x_i^{j-1}-x_nx_i^{j-2}
+    =x_i^{j-2}(x_i-x_n)\qquad(2\leq j\leq n).
+\]
+特别地，当 $i=n$ 时这些元素全为零，而第一列保持不变，故
+\[
+    V_n=
+    \begin{vmatrix}
+        1 & x_1-x_n & x_1(x_1-x_n) & \cdots & x_1^{n-2}(x_1-x_n) \\
+        1 & x_2-x_n & x_2(x_2-x_n) & \cdots & x_2^{n-2}(x_2-x_n) \\
+        \vdots & \vdots & \vdots & & \vdots \\
+        1 & x_{n-1}-x_n & x_{n-1}(x_{n-1}-x_n) & \cdots & x_{n-1}^{n-2}(x_{n-1}-x_n) \\
+        1 & 0 & 0 & \cdots & 0
+    \end{vmatrix}.
+\]
+
+按第一列展开时，前 $n-1$ 项的余子式都保留了最后一行；删去第一列后，这一行全为零，所以这些余子式的值均为零。因此，只需保留第 $(n,1)$ 元素对应的项，得到
+\[
+    V_n=(-1)^{n+1}
+    \begin{vmatrix}
+        x_1-x_n & x_1(x_1-x_n) & \cdots & x_1^{n-2}(x_1-x_n) \\
+        x_2-x_n & x_2(x_2-x_n) & \cdots & x_2^{n-2}(x_2-x_n) \\
+        \vdots & \vdots & & \vdots \\
+        x_{n-1}-x_n & x_{n-1}(x_{n-1}-x_n) & \cdots & x_{n-1}^{n-2}(x_{n-1}-x_n)
+    \end{vmatrix}.
+\]
+余下行列式的第 $i$ 行有公因子 $x_i-x_n$。利用性质~\ref{prop:determinant-scaling} 逐行提出这些因子，剩下的恰是参数 $x_1,\ldots,x_{n-1}$ 对应的 $n-1$ 阶范德蒙行列式，于是
+\[
+    V_n=(-1)^{n+1}\left(\prod_{i=1}^{n-1}(x_i-x_n)\right)
+        V_{n-1}(x_1,\ldots,x_{n-1}).
+\]
+将每个 $x_i-x_n$ 改写成 $-(x_n-x_i)$，共引入 $n-1$ 个负号。它们与展开时的符号相乘为 $(-1)^{n+1}(-1)^{n-1}=1$，因此得到\emph{递推公式}
+\begin{equation}
+\label{eq:vandermonde-recurrence}
+    V_n(x_1,\ldots,x_n)
+    =\left(\prod_{i=1}^{n-1}(x_n-x_i)\right)
+        V_{n-1}(x_1,\ldots,x_{n-1})\qquad(n\geq 2).
+\end{equation}
+这里提出公因子是运用行列式的数乘性质，并没有除以 $x_i-x_n$；即使某个因子为零，上述等式也仍然成立。
+
+从式~\eqref{eq:vandermonde-recurrence} 逐次降阶，直到 $V_1(x_1)=1$，每一阶 $j$ 都贡献因子 $(x_j-x_1)\cdots(x_j-x_{j-1})$，故
+\begin{equation}
+\label{eq:vandermonde-product}
+    V_n(x_1,\ldots,x_n)
+    =\prod_{j=2}^{n}\prod_{i=1}^{j-1}(x_j-x_i)
+    =\prod_{1\leq i<j\leq n}(x_j-x_i).
+\end{equation}
+符号 $\prod$ 表示连乘，末式遍历所有满足 $1\leq i<j\leq n$ 的下标对，共有 $n(n-1)/2$ 个因子；当 $n=1$ 时，乘积中没有因子，按空积等于 $1$ 的约定，公式同样成立。例如，
+\[
+    \begin{aligned}
+        V_4&=(x_4-x_1)(x_4-x_2)(x_4-x_3)
+              (x_3-x_1)(x_3-x_2)(x_2-x_1),\\
+        V_5&=(x_5-x_1)(x_5-x_2)(x_5-x_3)(x_5-x_4)V_4.
+    \end{aligned}
+\]
+对于式~\eqref{eq:vandermonde-definition} 中的行、列排列，每个因子都写成\emph[caution]{下标较大的参数减去下标较小的参数}。由乘积公式还可知，$V_n\ne 0$ 当且仅当 $x_1,\ldots,x_n$ 两两不同；若 $x_i=x_j$（$i<j$），对应因子为零，此时原行列式的第 $i,j$ 行也恰好相同。
+\end{solve}
 
 \section{行列式的等价定义}
 
