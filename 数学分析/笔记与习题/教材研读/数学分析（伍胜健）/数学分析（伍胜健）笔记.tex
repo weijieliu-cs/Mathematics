@@ -452,20 +452,685 @@ $E$ 无下界（unbounded below）是指
 \section{实数系连续性的基本定理}
 \label{sec:fundamental-theorems-of-real-continuity}
 
+实数系的连续性可以通过闭区间套、有限覆盖、聚点及柯西序列等不同形式来表述，这些结论各有适合的应用场合。本节沿用教材的论证顺序：由单调收敛原理得到闭区间套定理，再依次证明有限覆盖定理、聚点原理、有界序列的子列定理和柯西收敛准则。以下序列的下标均取正整数。
+
 \subsection{闭区间套定理}
 \label{subsec:nested-interval-theorem}
+
+不断缩小一个非空闭区间，并要求后一个区间包含在前一个区间中，直观上应当能保留至少一个公共点。闭区间套定理把这一事实表述为严格的存在性结论；若区间长度还趋于零，则公共点唯一。
+
+\begin{definition}
+\label{def:nested-closed-intervals}
+设 $I_n=[a_n,b_n]$ 为非空有界闭区间，即 $a_n,b_n\in\mathbb{R}$ 且 $a_n\leq b_n$。若
+\[
+    I_{n+1}\subseteq I_n\qquad(n=1,2,\ldots),
+\]
+则称 $\{I_n\}$ 为\emph{闭区间套}（nested closed intervals）。这一包含关系等价于
+\[
+    a_n\leq a_{n+1}\leq b_{n+1}\leq b_n.
+\]
+下面的定理在嵌套条件之外，另要求区间长度趋于零。
+\end{definition}
+
+\begin{theorem}[闭区间套定理]
+\label{thm:nested-closed-intervals}
+设 $\{[a_n,b_n]\}$ 为一列非空有界闭区间，满足
+\[
+    [a_{n+1},b_{n+1}]\subseteq[a_n,b_n]\quad(n=1,2,\ldots),
+    \qquad
+    \lim_{n\to\infty}(b_n-a_n)=0.
+\]
+则存在唯一实数 $c$ 属于每个区间，即
+\[
+    \bigcap_{n=1}^{\infty}[a_n,b_n]=\{c\},
+\]
+并且
+\[
+    \lim_{n\to\infty}a_n=\lim_{n\to\infty}b_n=c.
+\]
+\end{theorem}
+
+\begin{proof}
+由嵌套条件，有 $a_n\leq a_{n+1}\leq b_{n+1}\leq b_n$，所以 $\{a_n\}$ 单调上升且以 $b_1$ 为上界，$\{b_n\}$ 单调下降且以 $a_1$ 为下界。\emph[tip]{分别对左右端点应用单调收敛原理。}记
+\[
+    a=\lim_{n\to\infty}a_n=\sup\{a_n:n\geq1\},
+    \qquad
+    b=\lim_{n\to\infty}b_n=\inf\{b_n:n\geq1\}.
+\]
+对任意 $m,n$，若 $m\leq n$，则 $a_m\leq a_n\leq b_n$；若 $m>n$，则 $a_m\leq b_m\leq b_n$。因此每个右端点都是左端点集合的上界，每个左端点都是右端点集合的下界，从而
+\[
+    a_n\leq a\leq b\leq b_n\qquad(n=1,2,\ldots).
+\]
+又由长度趋于零及极限的运算法则，
+\[
+    b-a=\lim_{n\to\infty}(b_n-a_n)=0.
+\]
+令 $c=a=b$，便有 $a_n\leq c\leq b_n$，所以 $c$ 属于每个区间。若另有 $c'$ 也属于所有区间，则 $a_n\leq c'\leq b_n$ 对每个 $n$ 成立；由夹逼收敛原理，$c'=c$，故公共点唯一。
+\end{proof}
+
+\begin{example}
+\label{ex:sqrt-two-bisection}
+利用\emph{二分法}（bisection method）构造一列闭区间，证明存在唯一的正实数 $c$ 满足 $c^2=2$，并给出用区间中点近似 $c$ 时的误差估计。
+\end{example}
+
+\begin{solve}
+取 $a_1=1$、$b_1=2$，令 $I_1=[a_1,b_1]$。已得到区间 $I_n=[a_n,b_n]$ 后，取其中点 $m_n=(a_n+b_n)/2$，根据 $m_n^2$ 与 $2$ 的大小关系定义
+\begin{equation}
+    I_{n+1}=[a_{n+1},b_{n+1}]=
+    \begin{cases}
+        [m_n,b_n], & m_n^2\leq2,\\
+        [a_n,m_n], & m_n^2>2.
+    \end{cases}
+    \label{eq:sqrt-two-bisection-update}
+\end{equation}
+\emph[tip]{每次保留端点平方仍分处 $2$ 两侧的半区间。}初始时 $a_1^2\leq2\leq b_1^2$；若 $a_n^2\leq2\leq b_n^2$，则第一种情形有 $m_n^2\leq2\leq b_n^2$，第二种情形有 $a_n^2\leq2<m_n^2$。因此由归纳可知，对所有 $n$ 都有
+\[
+    1\leq a_n<b_n\leq2,
+    \qquad a_n^2\leq2\leq b_n^2.
+\]
+同时，由式~\eqref{eq:sqrt-two-bisection-update}，这些非空闭区间逐个嵌套，且每次长度减半，故
+\[
+    b_n-a_n=\frac{1}{2^{n-1}}\longrightarrow0.
+\]
+由闭区间套定理~\ref{thm:nested-closed-intervals}，存在唯一公共点 $c\in[1,2]$，并且 $a_n\to c$、$b_n\to c$。利用极限的乘法法则，在 $a_n^2\leq2\leq b_n^2$ 中取极限，得到 $c^2\leq2\leq c^2$，所以 $c^2=2$，且 $c>0$。若另有正实数 $d$ 满足 $d^2=2$，则 $(c-d)(c+d)=c^2-d^2=0$；由于 $c+d>0$，必有 $c=d$。因此满足该方程的正实数存在且唯一，将它记为 $\sqrt2$。
+
+由于 $c\in[a_n,b_n]$，用区间中点 $m_n$ 近似 $c$ 时，绝对误差不超过区间长度的一半，即
+\begin{equation}
+    \left|\sqrt2-m_n\right|
+    =\left|c-\frac{a_n+b_n}{2}\right|
+    \leq\frac{b_n-a_n}{2}
+    =\frac1{2^n}.
+    \label{eq:sqrt-two-bisection-error}
+\end{equation}
+这里 $I_n$ 由初始区间经过 $n-1$ 次二分得到。给定允许的绝对误差 $\varepsilon>0$，取满足 $2^{-n}\leq\varepsilon$ 的正整数 $n$，构造出 $I_n$ 后输出 $m_n$，便可保证误差不超过 $\varepsilon$。因此，闭区间套定理既保证了所构造实数的存在，也使二分过程获得了明确的近似误差估计。
+\end{solve}
+
+\begin{remark}
+\label{rem:nested-interval-assumptions}
+\emph[caution]{闭性保证极限位置不会被排除，长度趋于零保证公共点唯一。}例如，开区间 $(0,1/n)$ 逐个嵌套且长度趋于零，却没有公共点。若进一步要求开区间严格嵌套，即 $a_n<a_{n+1}<b_{n+1}<b_n$，并且 $b_n-a_n\to0$，则结论仍成立：对相应的闭区间套应用定理，所得公共点 $c$ 满足 $a_n<a_{n+1}\leq c\leq b_{n+1}<b_n$，因而属于每个开区间。
+
+若保留闭区间的嵌套条件而不要求长度趋于零，则同样由单调收敛原理得到 $\alpha=\lim a_n=\sup\{a_n:n\geq1\}$、$\beta=\lim b_n=\inf\{b_n:n\geq1\}$，且
+\begin{equation}
+    \bigcap_{n=1}^{\infty}[a_n,b_n]=[\alpha,\beta].
+    \label{eq:nested-interval-intersection}
+\end{equation}
+这是因为 $a_n\leq\alpha\leq\beta\leq b_n$，而任一公共点 $x$ 满足 $a_n\leq x\leq b_n$，取极限便得 $\alpha\leq x\leq\beta$。例如，$[0,1+1/n]$ 的交集为 $[0,1]$。另外，$[n,+\infty)$ 虽逐个嵌套且均为非空闭集，交集却为空；它们不是有界闭区间，不满足定理的假设。
+\end{remark}
+
+\begin{example}
+% 教材例 2.4.1，第 58 页。
+设 $\{[a_n,b_n]\}$ 为一列非空有界闭区间，且任意两个区间都有公共点。证明这些区间有公共点，即存在 $c\in\mathbb{R}$ 使 $c\in[a_n,b_n]$ 对每个 $n$ 成立。
+\end{example}
+
+\begin{solve}
+由 $[a_i,b_i]\cap[a_j,b_j]\neq\varnothing$，可知 $a_i\leq b_j$ 对任意 $i,j$ 成立。因此每个 $b_j$ 都是集合 $\{a_n:n\geq1\}$ 的上界，令 $c=\sup\{a_n:n\geq1\}$，便有 $a_n\leq c\leq b_n$ 对每个 $n$ 成立。这里仅要求区间两两相交，并不要求它们构成区间套。
+\end{solve}
 
 \subsection{有限覆盖定理}
 \label{subsec:finite-covering-theorem}
 
+有限覆盖定理研究用许多开区间覆盖一个闭区间时，能否从中选出有限个仍覆盖它。它常用于把函数在各点附近的局部性质推广为整个闭区间上的性质。
+
+\begin{definition}
+\label{def:real-neighborhood}
+设 $x\in\mathbb{R}$，$\delta>0$。开区间
+\[
+    U(x,\delta)=(x-\delta,x+\delta)
+\]
+称为 $x$ 的一个\emph{邻域}（neighborhood），相应的\emph{去心邻域}（punctured neighborhood）记为
+\[
+    U_0(x,\delta)=U(x,\delta)\setminus\{x\}
+    =\{y\in\mathbb{R}:0<|y-x|<\delta\}.
+\]
+\end{definition}
+
+\begin{definition}
+\label{def:open-cover-and-finite-subcover}
+设 $A\subseteq\mathbb{R}$，$\{E_\lambda\}_{\lambda\in\Lambda}$ 为一族实数集，其中指标集 $\Lambda$ 不要求有限或可数。若
+\[
+    A\subseteq\bigcup_{\lambda\in\Lambda}E_\lambda,
+\]
+则称这族集合为 $A$ 的一个\emph{覆盖}（cover）。若其中每个 $E_\lambda$ 都是开区间，则称它为 $A$ 的一个\emph{开覆盖}（open cover）；若指标集 $\Lambda$ 只有有限多个元素，则称它为一个\emph{有限覆盖}（finite cover）。这里采用教材本节的表述，以开区间作为开覆盖的成员。
+
+若能从原覆盖中选出有限个集合 $E_{\lambda_1},\ldots,E_{\lambda_N}$，仍满足
+\[
+    A\subseteq E_{\lambda_1}\cup\cdots\cup E_{\lambda_N},
+\]
+则称它们组成一个\emph{有限子覆盖}（finite subcover）。
+\end{definition}
+
+\begin{theorem}[有限覆盖定理]
+\label{thm:finite-covering}
+设 $a,b\in\mathbb{R}$ 且 $a\leq b$，则闭区间 $[a,b]$ 的任意开覆盖都有有限子覆盖。这是\emph{海涅--博雷尔定理}（Heine--Borel theorem）的闭区间形式。
+\end{theorem}
+
+\begin{proof}
+设给定的开覆盖为 $\{E_\lambda\}_{\lambda\in\Lambda}$。当 $a=b$ 时，选取其中任意一个包含 $a$ 的开区间即可。以下设 $a<b$，并反设不能从该覆盖中选出 $[a,b]$ 的有限子覆盖。\emph[tip]{将区间二等分，始终保留不能被原覆盖中的有限个开区间覆盖的那一半。}因为若左右两个闭半区间各有有限子覆盖，将二者合并便得到整个区间的有限子覆盖，所以至少一个半区间仍不能被有限覆盖。
+
+将第一次选出的半区间记为 $[a_1,b_1]$，反复二等分并作同样选择，得到闭区间套 $\{[a_n,b_n]\}$，其中每个区间都不能被原覆盖中的有限个开区间覆盖，且
+\[
+    b_n-a_n=\frac{b-a}{2^n}\longrightarrow0.
+\]
+由定理~\ref{thm:nested-closed-intervals}，存在唯一公共点 $\xi$，并且 $a_n\to\xi$、$b_n\to\xi$。由于 $\xi\in[a,b]$，原覆盖中存在开区间 $E_{\lambda_0}=(c,d)$ 包含 $\xi$，即 $c<\xi<d$。由端点序列的收敛性，充分大的 $n$ 满足
+\[
+    c<a_n\leq\xi\leq b_n<d,
+\]
+于是 $[a_n,b_n]\subseteq E_{\lambda_0}$。这说明只用原覆盖中的一个开区间就能覆盖 $[a_n,b_n]$，与其选择方式矛盾。
+\end{proof}
+
+\begin{remark}
+\emph[caution]{有限覆盖定理要求从给定的任意开覆盖中选取有限子覆盖。}如果只要求另找有限个开区间覆盖 $[a,b]$，那么一个开区间 $(a-1,b+1)$ 就已经足够，这并不是定理要说明的内容。
+
+开区间 $(0,1)$ 有开覆盖 $\{(1/n,1):n\geq2\}$。任取有限个这样的区间，记其下标的最大值为 $N$，则它们的并集为 $(1/N,1)$，不能覆盖 $(0,1)$。无界闭集 $\mathbb{R}$ 有开覆盖 $\{(-n,n):n\geq1\}$，任意有限个成员的并集都是有界的，也不能覆盖 $\mathbb{R}$。这说明若去掉被覆盖集合的闭性或有界性，结论未必成立。
+
+另一方面，单点集族 $\{\{x\}:x\in[0,1]\}$ 覆盖闭区间 $[0,1]$，但任取有限个成员只能覆盖有限个点，所以没有有限子覆盖。这些单点集不是开区间，说明不能将定理中的开覆盖任意换成一般的覆盖。
+\end{remark}
+
+\begin{example}
+% 教材例 2.4.2，第 60--61 页。
+设实函数 $f$ 定义在 $[a,b]$ 上，且对任意 $x\in[a,b]$，都存在 $\delta(x)>0$，使 $f$ 在 $U(x,\delta(x))\cap[a,b]$ 上有界。证明 $f$ 在整个 $[a,b]$ 上有界。
+\end{example}
+
+\begin{solve}
+对每个 $x\in[a,b]$，取上述邻域及实数 $M_x>0$，使得当 $y\in U(x,\delta(x))\cap[a,b]$ 时，$|f(y)|\leq M_x$。这些邻域组成 $[a,b]$ 的一个开覆盖，故由定理~\ref{thm:finite-covering}，可选出有限个邻域 $U(x_1,\delta(x_1)),\ldots,U(x_N,\delta(x_N))$，仍覆盖 $[a,b]$。令
+\[
+    M=\max\{M_{x_1},\ldots,M_{x_N}\}.
+\]
+任取 $y\in[a,b]$，总有某个 $k$ 使 $y\in U(x_k,\delta(x_k))$，从而 $|f(y)|\leq M_{x_k}\leq M$。因此 $f$ 在 $[a,b]$ 上有统一的界。有限子覆盖的作用在于把随点变化的局部界归结为有限多个数，再取它们的最大值。
+\end{solve}
+
+\begin{example}
+\label{ex:continuous-function-bounded-by-finite-cover}
+设 $a,b\in\mathbb{R}$ 且 $a<b$，实函数 $f:[a,b]\to\mathbb{R}$ 在 $[a,b]$ 上连续。利用有限覆盖定理~\ref{thm:finite-covering} 证明 $f$ 在 $[a,b]$ 上有界，即存在 $M>0$，使得对任意 $x\in[a,b]$ 都有 $|f(x)|\leq M$。
+\end{example}
+
 \subsection{聚点原理}
 \label{subsec:accumulation-point-principle}
+
+本小节先讨论实数集的聚点，再通过聚点原理研究序列的子列。集合的聚点描述的是集合中的点在某个位置附近不断聚集；子列则保留原序列中所选各项的先后顺序，二者需要加以区分。
+
+\begin{definition}
+\label{def:accumulation-point-of-real-set}
+设 $E\subseteq\mathbb{R}$。若 $x_0\in\mathbb{R}$ 满足
+\[
+    \forall\delta>0,\quad U_0(x_0,\delta)\cap E\neq\varnothing,
+\]
+则称 $x_0$ 为 $E$ 的一个\emph{聚点}（accumulation point）。等价地，对每个 $\delta>0$，存在 $x\in E$ 使 $0<|x-x_0|<\delta$。这里 $x_0$ 不一定属于 $E$。
+\end{definition}
+
+教材给出了聚点的另外两个等价刻画：$x_0$ 的每个邻域都含有 $E$ 中无穷多个不同的点；存在由 $E$ 中互不相同的点组成的序列 $\{x_n\}$，使 $x_n\to x_0$。为说明等价性，先设 $x_0$ 为聚点。若某个邻域只含有限个异于 $x_0$ 的点，便可缩小半径以排除这些点，与定义矛盾，故每个邻域都含有无穷多个点。进而可逐次选取 $x_n\in E\cap U(x_0,1/n)$，并排除 $x_0$ 和此前选过的有限个点，使各 $x_n$ 互不相同；由 $|x_n-x_0|<1/n$ 得 $x_n\to x_0$。反过来，若互不相同的点列 $\{x_n\}\subseteq E$ 趋于 $x_0$，则任一邻域内都有该序列充分靠后的项，其中至多一项等于 $x_0$，故该去心邻域与 $E$ 相交，$x_0$ 是聚点。
+
+若 $x_0\in E$，但 $x_0$ 不是 $E$ 的聚点，则称它为 $E$ 的\emph{孤立点}（isolated point）。由定义，此时存在 $\delta>0$，使 $U(x_0,\delta)\cap E=\{x_0\}$。例如，$E=\{1/n:n\geq1\}$ 的唯一聚点是 $0$，且 $0\notin E$，而 $E$ 的每个点都是孤立点。$0$ 是聚点可由 $1/n\to0$ 得到；对任意 $x_0\neq0$，先取不含 $0$ 的充分小邻域，其中仅有有限个 $1/n$，再缩小邻域便能排除异于 $x_0$ 的这些点，故 $x_0$ 不是聚点。
+
+\begin{theorem}[聚点原理]
+\label{thm:accumulation-point-principle}
+实数集中的任何有界无限子集至少有一个聚点。
+\end{theorem}
+
+\begin{proof}
+设 $E\subseteq\mathbb{R}$ 有界且含有无穷多个不同的点，取闭区间 $[a,b]$ 使 $E\subseteq[a,b]$。反设 $E$ 没有聚点，则对每个 $x\in[a,b]$，存在 $\delta_x>0$，使
+\[
+    U_0(x,\delta_x)\cap E=\varnothing.
+\]
+因此 $U(x,\delta_x)$ 中至多有 $E$ 的一个点，即可能存在的中心点 $x$。这些邻域组成 $[a,b]$ 的一个开覆盖，由定理~\ref{thm:finite-covering}，可选取有限个邻域，使
+\[
+    [a,b]\subseteq\bigcup_{j=1}^{m}U(x_j,\delta_{x_j}).
+\]
+由于每个邻域至多含有 $E$ 的一个点，而它们覆盖了 $E$，故 $E$ 至多有 $m$ 个点，与 $E$ 为无限集矛盾。因此 $E$ 必有聚点。
+\end{proof}
+
+\begin{definition}
+\label{def:subsequence-and-sequence-cluster-point}
+设 $\{x_n\}$ 为实数列，$n_1<n_2<\cdots$ 为严格递增的正整数列，则 $\{x_{n_k}\}$ 称为 $\{x_n\}$ 的一个\emph{子列}（subsequence）。若某个子列满足 $x_{n_k}\to\xi$，则称 $\xi$ 为原序列的一个\emph{聚点}（cluster point），也称\emph{子列极限}（subsequential limit）。这里 $n_k\geq k$，因而子列的下标必趋于无穷。
+\end{definition}
+
+\begin{theorem}[收敛序列的子列]
+\label{thm:subsequence-of-convergent-sequence}
+若 $x_n\to a$，则 $\{x_n\}$ 的任意子列 $\{x_{n_k}\}$ 都满足 $x_{n_k}\to a$。
+\end{theorem}
+
+\begin{proof}
+对任意 $\varepsilon>0$，存在正整数 $N$，使 $n>N$ 时 $|x_n-a|<\varepsilon$。当 $k>N$ 时，由 $n_k\geq k>N$，得到 $|x_{n_k}-a|<\varepsilon$，所以 $x_{n_k}\to a$。
+\end{proof}
+
+这一结论给出常用的发散判据：若一个序列存在两个收敛子列，且它们的极限不同，则原序列必发散。
+
+\begin{theorem}[波尔查诺--魏尔斯特拉斯定理]
+\label{thm:bolzano-weierstrass-sequence}
+每个有界实数列都至少有一个收敛子列。这一结论称为\emph{波尔查诺--魏尔斯特拉斯定理}（Bolzano--Weierstrass theorem），是聚点原理在序列问题中的应用。
+\end{theorem}
+
+\begin{proof}
+设 $\{x_n\}$ 有界。若它只取有限多个不同的值，则其中至少有一个值出现无穷多次；否则每个值都只出现有限次，整个序列便只有有限项，产生矛盾。选出等于该值的各项，即得一个收敛的常值子列。
+
+若它取无穷多个不同的值，则取值集合 $E=\{x_n:n\geq1\}$ 为有界无限实数集。由定理~\ref{thm:accumulation-point-principle}，$E$ 至少有一个聚点，记为 $a$。对每个正整数 $k$，邻域 $U(a,1/k)$ 内都有 $E$ 的无穷多个不同的点，因此也有原序列的无穷多项。先取 $x_{n_1}\in U(a,1)$；选定 $n_{k-1}$ 后，再取 $n_k>n_{k-1}$，使 $x_{n_k}\in U(a,1/k)$。这样便得到子列 $\{x_{n_k}\}$，且
+\[
+    |x_{n_k}-a|<\frac1k\longrightarrow0.
+\]
+所以 $x_{n_k}\to a$，定理得证。
+\end{proof}
+
+\begin{notealert}[title={波尔查诺--魏尔斯特拉斯定理的直观理解}]
+定理~\ref{thm:bolzano-weierstrass-sequence} 说明，一串数即使一直在不同位置之间跳动，只要始终被限制在某个有限区间内，就一定能按原来的先后顺序挑出无穷多项，使这些项趋于某个固定的实数。这里，\emph{有界只限制取值范围}，并不要求数列逐渐稳定；选取子列时可以跳过一些项，但必须保留所选各项在原数列中的先后顺序。
+
+例如，数列 $x_n=(-1)^n$ 的各项依次为
+\[
+    -1,\ 1,\ -1,\ 1,\ -1,\ 1,\ \ldots,
+\]
+始终位于 $[-1,1]$ 内。挑出偶数位置的项，得到常值子列 $x_{2k}=1$，它收敛于 $1$；挑出奇数位置的项，得到常值子列 $x_{2k-1}=-1$，它收敛于 $-1$。两个子列的极限不同，由定理~\ref{thm:subsequence-of-convergent-sequence} 可知原数列不收敛。
+
+因此，该定理保证的是\emph{至少能选出一个收敛子列}，并不保证原数列收敛，也不保证所有收敛子列具有相同的极限。
+\end{notealert}
+
+\begin{remark}
+\label{rem:set-and-sequence-cluster-points}
+\emph[caution]{序列的聚点不能简单地等同于其取值集合的聚点。}例如，常值序列 $x_n=c$ 的每个子列都趋于 $c$，但取值集合 $\{c\}$ 没有聚点。这也是上述证明先区分取值集合有限与无限两种情况的原因；若取值集合有限，不能直接对它应用集合的聚点原理。
+\end{remark}
 
 \subsection{柯西收敛准则}
 \label{subsec:cauchy-convergence-criterion}
 
+用极限定义证明 $x_n\to a$，需要确定候选极限 $a$。柯西收敛准则改为比较序列后面的项彼此之间的距离，因此可以在尚不知道极限值时判断收敛性。
+
+\begin{definition}
+\label{def:cauchy-sequence}
+若实数列 $\{x_n\}$ 满足
+\begin{equation}
+    \forall\varepsilon>0,\quad\exists N\geq1,\quad
+    \forall m,n>N,\quad |x_m-x_n|<\varepsilon,
+    \label{eq:cauchy-sequence-condition}
+\end{equation}
+其中 $N,m,n$ 均为正整数，则称它为\emph{柯西序列}（Cauchy sequence），简称柯西列，也称基本列。等价地，对每个 $\varepsilon>0$，存在正整数 $N$，使得对所有 $n>N$ 及所有正整数 $p$ 都有 $|x_{n+p}-x_n|<\varepsilon$。
+\end{definition}
+
+条件~\eqref{eq:cauchy-sequence-condition} 要求足够靠后的\emph{任意两项}都彼此接近。$N$ 可以依赖于 $\varepsilon$，但一旦选定，就必须同时适用于所有 $m,n>N$；在等价写法中，$N$ 也不能随 $p$ 改变。
+
+\begin{theorem}[柯西收敛准则]
+\label{thm:cauchy-convergence-criterion}
+实数列收敛的充分必要条件是它为柯西列。
+\end{theorem}
+
+\begin{proof}
+先证必要性。若 $x_n\to a\in\mathbb{R}$，则对任意 $\varepsilon>0$，存在正整数 $N$，使得 $n>N$ 时 $|x_n-a|<\varepsilon/2$。于是对任意 $m,n>N$，由三角不等式得
+\[
+    |x_m-x_n|\leq|x_m-a|+|x_n-a|<\varepsilon,
+\]
+故 $\{x_n\}$ 是柯西列。
+
+再证充分性。\emph[tip]{先证明柯西列有界，再取收敛子列，最后利用柯西条件把子列的收敛推广到整个序列。}在式~\eqref{eq:cauchy-sequence-condition} 中取 $\varepsilon=1$，得到正整数 $N_0$，使 $n>N_0$ 时
+\[
+    |x_n-x_{N_0+1}|<1,
+    \qquad |x_n|<1+|x_{N_0+1}|.
+\]
+令 $M=\max\{|x_1|,\ldots,|x_{N_0}|,1+|x_{N_0+1}|\}$，便有 $|x_n|\leq M$ 对所有 $n$ 成立，所以该序列有界。由定理~\ref{thm:bolzano-weierstrass-sequence}，存在子列 $x_{n_k}\to a\in\mathbb{R}$。
+
+给定 $\varepsilon>0$，由子列收敛，存在正整数 $K$，使 $k>K$ 时 $|x_{n_k}-a|<\varepsilon/2$；由柯西条件，存在正整数 $N$，使 $m,n>N$ 时 $|x_m-x_n|<\varepsilon/2$。固定一个 $k>K$ 且 $n_k>N$，则对所有 $n>N$，都有
+\[
+    |x_n-a|\leq|x_n-x_{n_k}|+|x_{n_k}-a|<\varepsilon.
+\]
+因此 $x_n\to a$。
+\end{proof}
+
+\begin{example}
+% 教材例 2.4.8，第 66--67 页；同时说明相邻项之差趋于零并不足以保证收敛。
+设 $s_n=\sum_{k=1}^{n}1/k$。证明相邻项之差 $s_{n+1}-s_n\to0$，但 $\{s_n\}$ 不收敛。
+\end{example}
+
+\begin{solve}
+由定义，$s_{n+1}-s_n=1/(n+1)\to0$。然而对任意正整数 $n$，都有
+\[
+    s_{2n}-s_n=\sum_{k=n+1}^{2n}\frac1k
+    \geq n\cdot\frac1{2n}=\frac12.
+\]
+取 $\varepsilon_0=1/2$，无论给定多大的正整数 $N$，总可选取 $n>N$，使下标 $n,2n$ 都大于 $N$，而 $|s_{2n}-s_n|\geq\varepsilon_0$。因此它不满足柯西条件，由定理~\ref{thm:cauchy-convergence-criterion} 可知该序列不收敛。\emph[caution]{相邻两项的距离趋于零，不能替代尾部任意两项的距离一致变小。}
+\end{solve}
+
+\begin{example}
+% 教材例 2.4.9，第 67 页。
+证明序列 $y_n=\sum_{k=1}^{n}1/k^2$ 收敛。
+\end{example}
+
+\begin{solve}
+对正整数 $n>m$，由 $1/k^2<1/((k-1)k)$，有
+\[
+    |y_n-y_m|=\sum_{k=m+1}^{n}\frac1{k^2}
+    <\sum_{k=m+1}^{n}\left(\frac1{k-1}-\frac1k\right)
+    =\frac1m-\frac1n<\frac1m.
+\]
+给定 $\varepsilon>0$，取正整数 $N>1/\varepsilon$。当 $n,m>N$ 且 $n>m$ 时，上式给出 $|y_n-y_m|<1/m<\varepsilon$；$m>n$ 时交换两者即可，$m=n$ 时差为零。因此 $\{y_n\}$ 是柯西序列，由定理~\ref{thm:cauchy-convergence-criterion} 可知它收敛。这个证明不需要预先确定极限值。
+\end{solve}
+
+\begin{remark}
+\label{rem:completeness-of-real-numbers}
+设 $K\subseteq\mathbb{R}$，若由 $K$ 中的点组成的任意柯西序列都收敛到 $K$ 中某一点，则称 $K$ 是\emph{完备的}（complete），这称为 $K$ 的\emph{完备性}（completeness）。柯西收敛准则说明 $\mathbb{R}$ 是完备的。$\mathbb{Q}$ 则不完备：设 $q_n$ 为 $\sqrt2$ 保留小数点后 $n$ 位得到的截断小数，由 $0\leq\sqrt2-q_n<10^{-n}$ 可知 $q_n\to\sqrt2$，所以 $\{q_n\}$ 是有理数柯西序列，却没有有理数极限。
+
+任意非空有界开区间 $(a,b)$ 也不完备。例如，$x_n=b-(b-a)/(n+1)$ 的每一项都在 $(a,b)$ 中，并且 $x_n\to b$，所以它是柯西序列，但极限 $b$ 不属于 $(a,b)$。因此，讨论完备性时必须明确要求极限存在于哪个集合中。
+\end{remark}
+
 \section{序列的上下极限}
 \label{sec:upper-and-lower-sequence-limits}
+
+% 根据《数学分析》第一册第 2.5 节整理，教材第 68--76 页；分章 PDF 第 40--48 页。
+普通极限要求序列的所有充分靠后的项都趋近同一个数，但有界序列也可能不断振荡。上一节的波尔查诺--魏尔斯特拉斯定理保证有界序列至少有一个收敛子列，却不保证这些子列具有相同的极限。为了描述序列在尾部的取值范围，本节引入上下极限：先求每一段尾部的上、下确界，再考察这些确界随起始位置后移而趋向何处。以下 $\{x_n\}$ 均为实数列，下标取正整数。
+
+\subsection{从尾部确界定义上下极限}
+\label{subsec:liminf-limsup-definitions}
+
+先设 $\{x_n\}$ 有界，记它从第 $n$ 项开始的取值集合为 $E_n=\{x_k:k\geq n\}$，并令
+\begin{equation}
+    l_n=\inf E_n=\inf_{k\geq n}x_k,
+    \qquad h_n=\sup E_n=\sup_{k\geq n}x_k.
+    \label{eq:sequence-tail-bounds}
+\end{equation}
+由于 $E_{n+1}\subseteq E_n$，缩小取值集合不会使下确界减小，也不会使上确界增大，因此
+\[
+    l_n\leq l_{n+1}\leq h_{n+1}\leq h_n,
+    \qquad l_n\leq x_n\leq h_n.
+\]
+于是 $\{l_n\}$ 单调增加，$\{h_n\}$ 单调减少，并且两者都有界。由单调收敛原理，它们分别收敛于 $\sup_{n\geq1}l_n$ 和 $\inf_{n\geq1}h_n$。
+
+\begin{definition}
+\label{def:liminf-limsup}
+设 $\{x_n\}$ 是有界实数列，$l_n,h_n$ 由式~\eqref{eq:sequence-tail-bounds} 定义。称
+\begin{equation}
+    \begin{aligned}
+        \liminf_{n\to\infty}x_n
+        &=\lim_{n\to\infty}l_n
+        =\sup_{n\geq1}\inf_{k\geq n}x_k,\\
+        \limsup_{n\to\infty}x_n
+        &=\lim_{n\to\infty}h_n
+        =\inf_{n\geq1}\sup_{k\geq n}x_k
+    \end{aligned}
+    \label{eq:liminf-limsup-tail-formulas}
+\end{equation}
+分别为序列的\emph{下极限}（limit inferior）和\emph{上极限}（limit superior），也分别记为 $\underline{\lim}_{n\to\infty}x_n$ 和 $\overline{\lim}_{n\to\infty}x_n$。
+\end{definition}
+
+上述定义可以推广到无界实数列。记 $\overline{\mathbb{R}}=\mathbb{R}\cup\{-\infty,+\infty\}$ 为\emph{扩展实数系}（extended real number system），约定非空无上界实数集的上确界为 $+\infty$，非空无下界实数集的下确界为 $-\infty$。在这一约定下，式~\eqref{eq:sequence-tail-bounds} 对任意实数列都有意义，而式~\eqref{eq:liminf-limsup-tail-formulas} 中的极限按广义极限理解。具体地，若原序列无上界，删去有限项后仍无上界，故所有 $h_n=+\infty$，上极限为 $+\infty$；若原序列无下界，则所有 $l_n=-\infty$，下极限为 $-\infty$。若原序列有下界，则 $l_n$ 为单调增加的实数列，其极限可能有限，也可能为 $+\infty$；有上界时，$h_n$ 的极限同理可能有限，也可能为 $-\infty$。因此，\emph{每个实数列的上下极限都在扩展实数系中存在}，并且恒有
+\begin{equation}
+    \liminf_{n\to\infty}x_n\leq\limsup_{n\to\infty}x_n.
+    \label{eq:liminf-le-limsup}
+\end{equation}
+
+\begin{notealert}[title={上下极限描述尾部的边界}]
+下极限和上极限考察的是不断舍去前面有限项之后，剩余各项的下、上确界最终趋向哪里，而不是原序列的最小值和最大值。例如，$x_n=1/n$ 的上确界为 $1$，但其尾部上确界 $h_n=1/n\to0$，所以上极限为 $0$。改变、增加或删去开头有限项都不会改变上下极限；特别地，对固定非负整数 $r$，$\{x_{n+r}\}$ 与 $\{x_n\}$ 具有相同的上下极限，因为前者的尾部确界就是后者的 $l_{n+r}$ 与 $h_{n+r}$。
+\end{notealert}
+
+\begin{example}
+% 参照教材例 2.5.1，第 69--70 页。
+求下列四个序列的上下极限：
+\[
+    \sin\frac{n\pi}{2},\qquad n^{(-1)^n},\qquad (-1)^n n,\qquad n.
+\]
+\end{example}
+
+\begin{solve}
+对于 $\sin(n\pi/2)$，每个尾部都含有 $1$ 和 $-1$，且所有项均在 $[-1,1]$ 内，故 $l_n=-1$、$h_n=1$。对于 $n^{(-1)^n}$，偶数位置的项等于 $n$，奇数位置的项等于 $1/n$；每个尾部都无上界，同时含有任意接近 $0$ 的正数，故 $l_n=0$、$h_n=+\infty$。因此
+\[
+    \begin{aligned}
+        \liminf_{n\to\infty}\sin\frac{n\pi}{2}&=-1,
+        &\limsup_{n\to\infty}\sin\frac{n\pi}{2}&=1,\\
+        \liminf_{n\to\infty}n^{(-1)^n}&=0,
+        &\limsup_{n\to\infty}n^{(-1)^n}&=+\infty.
+    \end{aligned}
+\]
+对于 $(-1)^n n$，每个尾部既无上界又无下界，故 $l_n=-\infty$、$h_n=+\infty$。对于 $x_n=n$，有 $l_n=n$、$h_n=+\infty$。于是
+\[
+    \begin{aligned}
+        \liminf_{n\to\infty}(-1)^n n&=-\infty,
+        &\limsup_{n\to\infty}(-1)^n n&=+\infty,\\
+        \liminf_{n\to\infty}n&=+\infty,
+        &\limsup_{n\to\infty}n&=+\infty.
+    \end{aligned}
+\]
+最后一个例子说明，上下极限相等时，其共同值仍可能是无穷大；这时原序列具有广义极限，但不在通常的有限极限意义下收敛。
+\end{solve}
+
+\subsection{等价刻画、子列与收敛判据}
+\label{subsec:liminf-limsup-characterizations}
+
+\begin{theorem}[上下极限的等价刻画]
+\label{thm:liminf-limsup-characterizations}
+设 $\{x_n\}$ 为有界实数列，$h\in\mathbb{R}$。则 $h=\limsup_{n\to\infty}x_n$ 当且仅当对任意 $\varepsilon>0$，以下两个条件同时成立：
+\begin{equation}
+    \begin{aligned}
+        &\exists N\geq1,\quad\forall n\geq N,\quad x_n<h+\varepsilon;\\
+        &\forall K\geq1,\quad\exists n\geq K,\quad x_n>h-\varepsilon.
+    \end{aligned}
+    \label{eq:limsup-epsilon-characterization}
+\end{equation}
+这里 $N,K,n$ 均为正整数。等价地，存在子列趋于 $h$，且任何收敛子列的极限都不超过 $h$，即上极限是所有子列极限中的最大值。
+
+相应地，对实数 $l$，$l=\liminf_{n\to\infty}x_n$ 当且仅当对任意 $\varepsilon>0$，同时有
+\begin{equation}
+    \begin{aligned}
+        &\exists N\geq1,\quad\forall n\geq N,\quad x_n>l-\varepsilon;\\
+        &\forall K\geq1,\quad\exists n\geq K,\quad x_n<l+\varepsilon.
+    \end{aligned}
+    \label{eq:liminf-epsilon-characterization}
+\end{equation}
+等价地，下极限是所有子列极限中的最小值。
+\end{theorem}
+
+\begin{proof}
+先证上极限的刻画。若 $h_n\to h$，则给定 $\varepsilon>0$，充分大的 $n$ 满足 $x_n\leq h_n<h+\varepsilon$。另一方面，对任意正整数 $K$，有 $h_K\geq h>h-\varepsilon$；由上确界的定义，必存在 $n\geq K$ 使 $x_n>h-\varepsilon$，否则 $h-\varepsilon$ 就是该尾部的上界，产生矛盾。因此式~\eqref{eq:limsup-epsilon-characterization} 成立。
+
+反过来，若式~\eqref{eq:limsup-epsilon-characterization} 成立，则第一条给出充分大的 $n$ 满足 $h_n\leq h+\varepsilon$，第二条给出每个 $h_n\geq h-\varepsilon$。记 $H=\lim h_n$，取极限得到 $h-\varepsilon\leq H\leq h+\varepsilon$；由 $\varepsilon$ 的任意性，$H=h$。
+
+下面证明子列极限的刻画。在式~\eqref{eq:limsup-epsilon-characterization} 中依次取 $\varepsilon=1/k$，由第一条选取正整数 $N_k$，使 $n\geq N_k$ 时 $x_n<h+1/k$。令 $n_0=0$，再由第二条递归选取 $n_k\geq\max\{N_k,n_{k-1}+1\}$，使 $x_{n_k}>h-1/k$，便得到下标严格递增的子列，且有
+\[
+    h-\frac1k<x_{n_k}<h+\frac1k.
+\]
+故 $x_{n_k}\to h$。若另一子列 $x_{m_k}\to b$，则第一条保证它充分靠后的项小于 $h+\varepsilon$，取极限得 $b\leq h+\varepsilon$，再由 $\varepsilon$ 的任意性得 $b\leq h$。这说明实际的上极限是子列极限中的最大值；反之，若某个数也具有这一最大值性质，它必等于实际的上极限。
+
+由于 $\sup_{k\geq n}(-x_k)=-\inf_{k\geq n}x_k=-l_n$，对序列 $\{-x_n\}$ 应用已经证明的结论，便得到下极限的两个等价刻画。
+\end{proof}
+
+\emph[caution]{“充分靠后的所有项”与“无穷多项”不能互换。}式~\eqref{eq:limsup-epsilon-characterization} 的第一条说，最终所有项都低于 $h+\varepsilon$；第二条说，无论下标走到多远，后面仍有项高于 $h-\varepsilon$。它不要求最终所有项都高于 $h-\varepsilon$，因此有上极限并不意味着原序列收敛。
+
+\begin{remark}
+\label{rem:liminf-limsup-and-set-cluster-points}
+按定义~\ref{def:subsequence-and-sequence-cluster-point}，对任意有界序列，上、下极限分别是它的最大、最小序列聚点。如果进一步要求各项互不相同，那么它们也是取值集合 $E=\{x_n:n\geq1\}$ 的最大、最小聚点：趋于上下极限的子列由互不相同的数组成，故其极限是 $E$ 的聚点；反过来，$E$ 的任一聚点的每个邻域都含有无穷多个不同的点，可以逐次选取下标递增的项趋于该点，所以它也是子列极限。教材对取值集合聚点所作的互异性假设不能直接省略，常值序列便是反例，参见备注~\ref{rem:set-and-sequence-cluster-points}。
+\end{remark}
+
+\begin{theorem}[子列的上下极限与收敛判据]
+\label{thm:subsequence-limits-and-convergence}
+设 $\{x_n\}$ 为任意实数列，$\{x_{n_j}\}$ 为其任一子列，则在扩展实数系中有
+\begin{equation}
+    \liminf_{n\to\infty}x_n
+    \leq\liminf_{j\to\infty}x_{n_j}
+    \leq\limsup_{j\to\infty}x_{n_j}
+    \leq\limsup_{n\to\infty}x_n.
+    \label{eq:subsequence-liminf-limsup-bounds}
+\end{equation}
+此外，对任意 $a\in\overline{\mathbb{R}}$，都有
+\begin{equation}
+    \lim_{n\to\infty}x_n=a
+    \quad\Longleftrightarrow\quad
+    \liminf_{n\to\infty}x_n=\limsup_{n\to\infty}x_n=a.
+    \label{eq:convergence-via-liminf-limsup}
+\end{equation}
+当 $a=\pm\infty$ 时，左端按广义极限理解。
+\end{theorem}
+
+\begin{proof}
+对子列从第 $j$ 项开始的尾部，记
+\[
+    \widetilde l_j=\inf_{i\geq j}x_{n_i},
+    \qquad \widetilde h_j=\sup_{i\geq j}x_{n_i}.
+\]
+该尾部取值集合包含于原序列从第 $n_j$ 项开始的尾部，所以
+\[
+    l_{n_j}\leq\widetilde l_j\leq\widetilde h_j\leq h_{n_j}.
+\]
+因 $n_j\to\infty$，单调尾部确界序列的这两个子列仍趋于原来的广义极限。令 $j\to\infty$，即得式~\eqref{eq:subsequence-liminf-limsup-bounds}。
+
+对于收敛判据，先设 $a\in\mathbb{R}$。若上下极限都等于 $a$，则由 $l_n\leq x_n\leq h_n$ 和夹逼收敛原理得到 $x_n\to a$。反之，若 $x_n\to a$，则对任意 $\varepsilon>0$，充分大的 $n$ 及所有 $k\geq n$ 都满足 $a-\varepsilon<x_k<a+\varepsilon$，从而 $a-\varepsilon\leq l_n\leq h_n\leq a+\varepsilon$，这说明 $l_n,h_n$ 都趋于 $a$。
+
+若 $a=+\infty$，则 $x_n\to+\infty$ 意味着对每个实数 $M$，最终所有项都大于 $M$，因而最终 $l_n\geq M$，所以 $l_n\to+\infty$；由 $h_n\geq l_n$，也有 $h_n\to+\infty$。反之，由 $x_n\geq l_n\to+\infty$ 得 $x_n\to+\infty$。当 $a=-\infty$ 时，利用尾部上确界 $h_n$ 作对称论证即可。
+\end{proof}
+
+\begin{example}
+% 教材例 2.5.2，第 74 页。
+将 $[0,1]\cap\mathbb{Q}$ 中的所有有理数不重复地排成序列 $\{x_n\}$，求它的上下极限。
+\end{example}
+
+\begin{solve}
+任意非空开区间 $(a,b)\subseteq(0,1)$ 都含有无穷多个有理数：由有理数的稠密性，其中有一个有理数；若其中只有有限个有理数，则可在去掉这些点后选出一个非空开子区间，与稠密性矛盾。因此，删去开头有限项后，剩余项仍在 $[0,1]$ 中稠密，尤其仍有任意接近 $0$ 和 $1$ 的项。于是对每个 $n$，都有 $l_n=0$、$h_n=1$，故
+\[
+    \liminf_{n\to\infty}x_n=0,
+    \qquad \limsup_{n\to\infty}x_n=1.
+\]
+也可从聚点看：上述性质保证 $[0,1]$ 中每一点都是取值集合的聚点，区间外的点则不是；其最小、最大聚点分别为 $0$ 和 $1$，由备注~\ref{rem:liminf-limsup-and-set-cluster-points} 得到同一结论。由上下极限不相等可知，该序列不收敛。
+\end{solve}
+
+\subsection{上下极限的保序性与运算性质}
+\label{subsec:liminf-limsup-operations}
+
+\begin{theorem}
+\label{thm:liminf-limsup-operations}
+设 $\{x_n\}$、$\{y_n\}$ 为有界实数列，简记
+\[
+    \underline x=\liminf_{n\to\infty}x_n,\quad
+    \overline x=\limsup_{n\to\infty}x_n,\quad
+    \underline y=\liminf_{n\to\infty}y_n,\quad
+    \overline y=\limsup_{n\to\infty}y_n.
+\]
+若充分大的 $n$ 都满足 $x_n\leq y_n$，则 $\underline x\leq\underline y$ 且 $\overline x\leq\overline y$。取相反数时，上下极限交换位置并变号：
+\begin{equation}
+    \liminf_{n\to\infty}(-x_n)=-\overline x,
+    \qquad \limsup_{n\to\infty}(-x_n)=-\underline x.
+    \label{eq:liminf-limsup-negation}
+\end{equation}
+对于和，有
+\begin{equation}
+    \begin{aligned}
+        \underline x+\underline y
+        &\leq\liminf_{n\to\infty}(x_n+y_n)
+        \leq\underline x+\overline y,\\
+        \underline x+\overline y
+        &\leq\limsup_{n\to\infty}(x_n+y_n)
+        \leq\overline x+\overline y.
+    \end{aligned}
+    \label{eq:liminf-limsup-sum}
+\end{equation}
+交换 $x_n,y_n$ 后，同样得到含 $\overline x+\underline y$ 的两个中间界。若进一步有 $x_n\geq0$、$y_n\geq0$ 对所有 $n$ 成立，则
+\begin{equation}
+    \begin{aligned}
+        \underline x\,\underline y
+        &\leq\liminf_{n\to\infty}(x_ny_n)
+        \leq\underline x\,\overline y,\\
+        \underline x\,\overline y
+        &\leq\limsup_{n\to\infty}(x_ny_n)
+        \leq\overline x\,\overline y.
+    \end{aligned}
+    \label{eq:liminf-limsup-product}
+\end{equation}
+交换两列后，也得到含 $\overline x\,\underline y$ 的相应界。
+\end{theorem}
+
+\begin{proof}
+保序性由充分靠后的每个尾部上的下确界、上确界比较得到；有限个起始项不影响结论。取相反数的公式则由 $\inf_{k\geq n}(-x_k)=-\sup_{k\geq n}x_k$ 及其对偶式取极限得到。
+
+为证明和的不等式，分别用 $l_n^x,h_n^x$ 与 $l_n^y,h_n^y$ 表示两列的尾部确界。对所有 $k\geq n$，有
+\[
+    l_n^x+l_n^y\leq x_k+y_k\leq h_n^x+h_n^y.
+\]
+取尾部确界，再令 $n\to\infty$，得到式~\eqref{eq:liminf-limsup-sum} 最左端和最右端的界。为证明 $\liminf(x_n+y_n)\leq\underline x+\overline y$，由定理~\ref{thm:liminf-limsup-characterizations} 选取 $x_{n_j}\to\underline x$；由于 $\{y_{n_j}\}$ 有界，再由定理~\ref{thm:bolzano-weierstrass-sequence} 选取子列 $y_{n_{j_i}}\to b$。这时 $b\leq\overline y$，且
+\[
+    x_{n_{j_i}}+y_{n_{j_i}}\longrightarrow\underline x+b
+    \leq\underline x+\overline y.
+\]
+由定理~\ref{thm:subsequence-limits-and-convergence}，原序列的下极限不超过该子列极限，所需不等式成立。再选取 $y_{m_j}\to\overline y$，并从有界的 $\{x_{m_j}\}$ 中选出趋于某个 $c\geq\underline x$ 的子列，便得到和的一个子列极限 $c+\overline y\geq\underline x+\overline y$，故 $\limsup(x_n+y_n)\geq\underline x+\overline y$。
+
+当两列非负时，有 $0\leq l_n^x,l_n^y$，从而
+\[
+    l_n^x l_n^y\leq x_k y_k\leq h_n^x h_n^y
+    \qquad(k\geq n),
+\]
+取尾部确界并令 $n\to\infty$，得到乘积的两个外侧界。沿用上一段选出的子列，分别得到乘积的子列极限 $\underline x\,b\leq\underline x\,\overline y$ 与 $c\,\overline y\geq\underline x\,\overline y$；这里乘法保序依赖于 $\underline x,\overline y\geq0$。再应用式~\eqref{eq:subsequence-liminf-limsup-bounds}，即得两个中间界。
+\end{proof}
+
+\emph[caution]{一般不能把上下极限直接拆成两个上下极限的和或积。}例如，取 $x_n=(-1)^n$、$y_n=-(-1)^n$，则两列的上极限都为 $1$，但 $x_n+y_n=0$ 的上极限为 $0$。再取非负序列 $u_n=1+(-1)^n$、$v_n=1-(-1)^n$，则两列的上极限都为 $2$，但 $u_nv_n=0$。不同序列接近各自上极限的项未必出现在相同下标处。以上运算定理针对有界序列，不能在无界情形下不加条件地使用含 $+\infty-\infty$ 或 $0\cdot\infty$ 的表达式。
+
+\begin{corollary}[收敛项与常数因子]
+\label{cor:liminf-limsup-affine-rules}
+设 $a_n\to a\in\mathbb{R}$，$\{x_n\}$ 有界，则
+\[
+    \liminf_{n\to\infty}(a_n+x_n)=a+\liminf_{n\to\infty}x_n,
+    \qquad
+    \limsup_{n\to\infty}(a_n+x_n)=a+\limsup_{n\to\infty}x_n.
+\]
+若 $c>0$，则乘以 $c$ 时上下极限分别乘以 $c$；若 $c<0$，则
+\[
+    \liminf_{n\to\infty}(cx_n)=c\limsup_{n\to\infty}x_n,
+    \qquad
+    \limsup_{n\to\infty}(cx_n)=c\liminf_{n\to\infty}x_n.
+\]
+当 $c=0$ 时，两者均为 $0$。
+\end{corollary}
+
+\begin{proof}
+由 $\liminf a_n=\limsup a_n=a$，在式~\eqref{eq:liminf-limsup-sum} 中交换两列后使用中间界，即得
+\[
+    a+\liminf x_n\leq\liminf(a_n+x_n)\leq a+\liminf x_n,
+\]
+上极限同理。对于 $c>0$，由 $\inf_{k\geq n}(cx_k)=c\inf_{k\geq n}x_k$ 及对应的上确界等式取极限即可；$c<0$ 时，再结合式~\eqref{eq:liminf-limsup-negation} 得到结论。
+\end{proof}
+
+\subsection{用上下极限研究序列的敛散性}
+\label{subsec:liminf-limsup-applications}
+
+\begin{example}
+% 教材例 2.5.3，第 75--76 页。
+设 $\{x_n\}$ 为实数列，$\alpha\geq2$ 为常数，令 $y_n=x_n+\alpha x_{n+1}$。证明：$\{y_n\}$ 收敛的充分必要条件是 $\{x_n\}$ 收敛，并求两者极限之间的关系。
+\end{example}
+
+\begin{solve}
+若 $x_n\to a$，则由极限的运算法则，$y_n\to(1+\alpha)a$。反过来，设 $y_n\to b$。\emph[tip]{先证明原序列有界，再由关系式求出上下极限之间的约束。}由 $\{y_n\}$ 有界，可取 $M>0$，使 $|x_1|\leq M$ 且所有 $|y_n|\leq M$。若 $|x_n|\leq M$，则
+\[
+    |x_{n+1}|=\frac1\alpha|y_n-x_n|
+    \leq\frac{|y_n|+|x_n|}{\alpha}
+    \leq\frac{2M}{\alpha}\leq M.
+\]
+由数学归纳法，$|x_n|\leq M$ 对所有 $n$ 成立，故原序列有界。
+
+记 $l=\liminf x_n$、$h=\limsup x_n$。因为移去首项不改变上下极限，在 $x_n=y_n-\alpha x_{n+1}$ 两边应用推论~\ref{cor:liminf-limsup-affine-rules}，得到
+\[
+    h=b-\alpha l,\qquad l=b-\alpha h.
+\]
+两式相减，得 $h-l=\alpha(h-l)$。由于 $\alpha\geq2$，故 $h=l$，再代回即得 $h=l=b/(1+\alpha)$。由定理~\ref{thm:subsequence-limits-and-convergence}，$x_n\to b/(1+\alpha)$。条件不能任意去掉：若 $\alpha=1$ 且 $x_n=(-1)^n$，则 $y_n=0$ 收敛，但 $\{x_n\}$ 不收敛。
+\end{solve}
+
+\begin{example}
+% 参照教材例 2.5.4，第 76 页。
+利用上下极限证明序列 $\{\sin n\}$ 发散，其中角度以弧度计。
+\end{example}
+
+\begin{solve}
+目标是找到两组下标，使相应的正弦值分别保持在一个正数以上和一个负数以下。记 $\lfloor t\rfloor$ 为不超过 $t$ 的最大整数，对正整数 $k$ 取
+\[
+    n_k=\left\lfloor2k\pi+\frac\pi4\right\rfloor+1,
+    \qquad
+    m_k=\left\lfloor(2k+1)\pi+\frac\pi4\right\rfloor+1.
+\]
+两列下标都严格增加。利用 $t<\lfloor t\rfloor+1\leq t+1$ 以及 $1<\pi/2$，得到
+\[
+    2k\pi+\frac\pi4<n_k<2k\pi+\frac{3\pi}4,
+    \qquad
+    (2k+1)\pi+\frac\pi4<m_k<(2k+1)\pi+\frac{3\pi}4.
+\]
+因此 $\sin n_k>\sqrt2/2$，而 $\sin m_k<-\sqrt2/2$。由式~\eqref{eq:subsequence-liminf-limsup-bounds}，
+\[
+    \liminf_{n\to\infty}\sin n
+    \leq\liminf_{k\to\infty}\sin m_k
+    \leq-\frac{\sqrt2}{2}
+    <\frac{\sqrt2}{2}
+    \leq\limsup_{k\to\infty}\sin n_k
+    \leq\limsup_{n\to\infty}\sin n.
+\]
+所以上下极限不同，原序列发散。这里仅需将上下极限分开，无须求出它们的精确值。
+\end{solve}
 
 \section*{习题二}
 \addcontentsline{toc}{section}{习题二}
