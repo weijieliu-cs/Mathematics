@@ -26,84 +26,241 @@
 
 本章围绕三个问题展开：极限存在的依据是什么，如何计算极限，以及当普通极限不存在时怎样描述变量的渐近行为。前五节以定义、估计和典型题型为主，随后用上、下极限统一讨论振荡现象，最后回到支撑这些论证的实数完备性。微分、积分与级数方法集中放在相应的复习性内容中，使用时说明所需条件。以下以 $\mathbb{N}=\{1,2,\ldots\}$ 表示正整数集；未特别说明时，数列和函数均取实值，“收敛”指收敛到有限实数。
 
-% 教材来源：数学分析/textbooks/数分习题（分章原文）/数分习题-1.pdf。
-% 第 1.1 节：PDF 第 1--9 页；按主题整合正文与代表性单元练习。
 \section{预备}
 \label{sec:pei-preliminaries}
 
-\subsection{函数的范围、对称性与周期}
+\subsection{函数的范围与反函数}
+\label{subsec:pei-inverse-functions}
+
+反函数要解决的问题是：\emph{已知函数值，能否唯一找回原来的自变量？}例如 $f(x)=2x+1$，由 $y=2x+1$ 解出 $x=(y-1)/2$，所以反函数为 $f^{-1}(y)=(y-1)/2$。关键在于能否唯一反解，而不只是交换字母 $x,y$。
 
 \begin{definition}
 \label{def:pei-inverse}
-设 $f:X\to Y$。若不同自变量的像不同，则称 $f$ 为\emph{单射}（injection）；若 $f(X)=Y$，则称 $f$ 为\emph{满射}（surjection）；兼具两者时称为\emph{双射}（bijection）。双射的\emph{反函数}（inverse function）$f^{-1}:Y\to X$ 由 $f^{-1}(y)=x\iff f(x)=y$ 定义，满足 $f^{-1}\circ f=\operatorname{id}_X$、$f\circ f^{-1}=\operatorname{id}_Y$。
+设 $f:X\to Y$，其中 $X$ 是\emph{定义域}（domain），$Y$ 是\emph{陪域}（codomain），$f(X)=\{f(x):x\in X\}$ 是实际取到的\emph{值域}（range）。若对每个 $y\in f(X)$，方程 $f(x)=y$ 在 $X$ 中恰有一个解，就把这个解记为 $f^{-1}(y)$，称 $f^{-1}:f(X)\to X$ 为 $f$ 的\emph{反函数}（inverse function）。
 \end{definition}
 
-讨论反函数必须同时明确原函数的定义域与陪域。函数 $x\mapsto x^2$ 作为 $\mathbb{R}\to\mathbb{R}$ 的映射既非单射也非满射，而限制为 $[0,+\infty)\to[0,+\infty)$ 后是双射，反函数为平方根函数。严格单调函数在其定义域到其像集之间必为双射，反函数保持相同的增减方向；若 $f:X\to Y$、$g:Y\to Z$ 均为双射，则由复合后依次还原各自变量可得 $(g\circ f)^{-1}=f^{-1}\circ g^{-1}$。
+\begin{example}
+\label{ex:pei-square-inverse-domain}
+平方函数 $f(x)=x^2$ 为什么需要限制定义域后才能求反函数？
+\end{example}
+\begin{solve}
+在整个实数轴上，已知 $y=4$ 不能确定原来是 $x=2$ 还是 $x=-2$，所以没有反函数。若只允许 $x\ge0$，则每个 $y\ge0$ 都唯一对应 $x=\sqrt y$，反函数就是平方根函数；若只允许 $x\le0$，反函数则为 $-\sqrt y$。因此，求反函数时必须明确原来的定义域，以及函数实际能取到哪些值。
+\end{solve}
 
-设 $D=-D$，即 $x\in D$ 时 $-x\in D$。满足 $f(-x)=f(x)$ 的函数称为\emph{偶函数}（even function），满足 $f(-x)=-f(x)$ 的函数称为\emph{奇函数}（odd function）。任意 $D$ 上的函数都有唯一分解
+\begin{definition}
+\label{def:pei-injective-surjective}
+方程 $f(x)=y$ 的解 $x\in X$ 称为 $y$ 的原像。对 $f:X\to Y$，若每个 $y\in Y$ 至多有一个原像，称 $f$ 为\emph{单射}（injection）；若每个 $y\in Y$ 至少有一个原像，即 $f(X)=Y$，称 $f$ 为\emph{满射}（surjection）；两者兼有时称为\emph{双射}（bijection）。
+\end{definition}
+
+\begin{proposition}[反函数的存在条件]
+\label{prop:pei-inverse-existence}
+$f:X\to Y$ 在实际值域 $f(X)$ 上有反函数，当且仅当 $f$ 为单射。在整个陪域 $Y$ 上有反函数的充要条件则是 $f$ 为双射。反函数唯一，并满足
+\begin{equation}
+    f^{-1}(f(x))=x\quad(x\in X),\qquad
+    f(f^{-1}(y))=y\quad(y\in f(X)).
+    \label{eq:pei-inverse-identities}
+\end{equation}
+\end{proposition}
+\begin{proof}
+$y\in f(X)$ 已经保证有解，单射性再保证解唯一，故反函数存在且唯一。反过来，若两个不同的自变量具有同一函数值，就无法唯一反解。若还要求每个 $y\in Y$ 都有解，就需要满射性。式~\eqref{eq:pei-inverse-identities} 分别表示“先求值再找回自变量”和“先找原像再求值”，都回到出发时的数。
+\end{proof}
+
+两式还说明原函数与反函数互为反函数，即 $(f^{-1})^{-1}=f$，这里将 $f$ 看作 $X\to f(X)$。\emph[caution]{反函数 $f^{-1}$ 不是倒数 $1/f$}；例如非负半轴上平方函数的反函数是 $\sqrt y$，不是 $1/y^2$。
+
+\begin{proposition}[反函数的两个常用性质]
+\label{prop:pei-composite-inverse}
+若 $f:X\to Y$、$g:Y\to Z$ 都为双射，则复合函数 $(g\circ f)(x)=g(f(x))$ 也为双射，且
+\begin{equation}
+    (g\circ f)^{-1}=f^{-1}\circ g^{-1}.
+    \label{eq:pei-composite-inverse}
+\end{equation}
+若实函数 $f:D\to\mathbb R$ 严格单调，则反函数 $f^{-1}:f(D)\to D$ 存在，且与原函数具有相同的增减方向。
+\end{proposition}
+\begin{proof}
+复合时先作用 $f$，再作用 $g$；反解时先撤销 $g$，再撤销 $f$。具体地，对每个 $z\in Z$，先唯一解得 $y=g^{-1}(z)$，再唯一解得 $x=f^{-1}(y)$，所以原来的 $x$ 就是 $f^{-1}(g^{-1}(z))$。
+
+严格单调使不同自变量的函数值不同，故 $f$ 为单射。若 $f$ 递增，$y_1<y_2$ 的两个原像 $x_1,x_2$ 必满足 $x_1<x_2$，否则 $x_1\ge x_2$ 会推出 $y_1\ge y_2$；若 $f$ 递减，则同理由 $x_1\le x_2$ 推出矛盾，故 $x_1>x_2$。这里的“严格”不能删去，例如 $[0,1]$ 上的常值函数就不能唯一反解。
+\end{proof}
+
+\begin{example}
+\label{ex:pei-rational-inverse}
+设 $f(x)=(x-1)/(x+1)$，$x\ge0$，求反函数并写出它的定义域。
+\end{example}
+\begin{solve}
+先把原式写成 $y=1-2/(x+1)$，由 $x\ge0$ 得 $-1\le y<1$。再由 $y(x+1)=x-1$ 解出 $x$，得到
+\[
+    f^{-1}(y)=\frac{1+y}{1-y},\qquad -1\le y<1.
+\]
+对这个范围内的每个 $y$，上式都给出唯一的 $x\ge0$，所以原函数的值域确实为 $[-1,1)$，它也正是反函数的定义域。
+\end{solve}
+
+\begin{example}
+\label{ex:pei-inverse-order}
+设 $F(x)=(2x+1)^3$，$x\in\mathbb R$，按复合求逆的顺序求 $F^{-1}$。
+\end{example}
+\begin{solve}
+正向计算先乘 $2$、加 $1$，再立方；反过来，应先开立方，再减 $1$、除以 $2$。由 $y=(2x+1)^3$ 得 $\sqrt[3]{y}=2x+1$，所以
+\[
+    F^{-1}(y)=\frac{\sqrt[3]{y}-1}{2},\qquad y\in\mathbb R.
+\]
+开立方和线性反解对每个实数都给出唯一结果，因此 $F:\mathbb R\to\mathbb R$ 为双射。这个例子说明，求复合函数的反函数时，要从最后一步开始逐步还原。
+\end{solve}
+
+\subsection{函数的对称性与周期}
+\label{subsec:pei-symmetry-period}
+
+研究对称性与周期，都是在寻找函数值之间的联系：把自变量变为 $-x$，可以比较图像的左右两侧；把自变量平移一个固定距离，则可以判断图像是否重复。
+
+\begin{definition}
+\label{def:pei-parity}
+设 $f$ 的定义域 $D$ 关于原点对称，即 $x\in D$ 时也有 $-x\in D$。若总有 $f(-x)=f(x)$，称 $f$ 为\emph{偶函数}（even function），其图像关于 $y$ 轴对称；若总有 $f(-x)=-f(x)$，称 $f$ 为\emph{奇函数}（odd function），其图像关于原点对称。例如 $x^2$ 是偶函数，$x^3$ 是奇函数。判断奇偶性前，必须先检查定义域是否对称；若奇函数在 $0$ 处有定义，则由 $f(0)=-f(0)$ 得 $f(0)=0$。
+\end{definition}
+
+\begin{proposition}[把函数分成偶部与奇部]
+\label{prop:pei-parity-decomposition}
+定义域关于原点对称的任意函数，都能唯一写成一个偶函数 $H$ 与一个奇函数 $G$ 的和：
 \begin{equation}
     f(x)=H(x)+G(x),\qquad
     H(x)=\frac{f(x)+f(-x)}2,\quad
-    G(x)=\frac{f(x)-f(-x)}2,
+    G(x)=\frac{f(x)-f(-x)}2.
     \label{eq:pei-parity-decomposition}
 \end{equation}
-其中 $H$ 为偶函数，$G$ 为奇函数。事实上，把 $x$ 换成 $-x$ 后相加、相减，便得到上述两个必要表达式；直接代入又验证了存在性。若奇函数 $f:D\to f(D)$ 为双射，则 $f(D)$ 也关于原点对称，且由 $f(-x)=-f(x)$ 得 $f^{-1}(-y)=-f^{-1}(y)$，故反函数仍为奇函数。
+\end{proposition}
+\begin{proof}
+若 $f(x)=H(x)+G(x)$，把 $x$ 换成 $-x$ 就有 $f(-x)=H(x)-G(x)$。两式相加消去奇部，相减消去偶部，便得到上述公式，因此分解只能如此。反过来，按公式定义的 $H,G$ 确实满足 $H(-x)=H(x)$、$G(-x)=-G(x)$，且两者之和为 $f$，所以分解存在且唯一。
+\end{proof}
+
+奇函数若有反函数，反函数也仍是奇函数。因为 $y=f(x)$ 时有 $-y=f(-x)$，所以值域也关于原点对称，而且 $f^{-1}(-y)=-x=-f^{-1}(y)$。
 
 \begin{definition}
 \label{def:pei-period}
-若 $f$ 在 $\mathbb{R}$ 上定义，存在 $T>0$ 使每个 $x\in\mathbb{R}$ 都满足 $f(x+T)=f(x)$，则称 $f$ 为\emph{周期函数}（periodic function），$T$ 为它的一个正周期。正周期中若有最小者，则称为最小正周期。
+设 $f:\mathbb R\to\mathbb R$。若存在 $T>0$，使每个 $x\in\mathbb R$ 都满足
+\[
+    f(x+T)=f(x),
+\]
+则称 $f$ 为\emph{周期函数}（periodic function），$T$ 为它的一个正周期。若所有正周期中有最小者，则称其为最小正周期。
 \end{definition}
 
-正周期不必有最小值。常值函数的每个正数都是周期；\emph{Dirichlet 函数} $D(x)=\mathbf{1}_{\mathbb{Q}}(x)$ 的每个正有理数都是周期，因此也没有最小正周期。若两个函数具有公共正周期，则它们的和、差、积具有该周期；分别知道两者周期性，并不足以直接对和、差下结论。若周期为 $T$ 的函数在 $[0,T)$ 上可逆，逆映射为 $\varphi$，则它在 $[kT,(k+1)T)$ 上到同一像集的逆映射为 $y\mapsto\varphi(y)+kT$，其中 $k\in\mathbb{Z}$。
+周期表示图像沿横轴平移 $T$ 后与原图像重合。例如 $\sin x$ 的 $2\pi$、$4\pi$ 都是周期，其中 $2\pi$ 才是最小正周期；常值函数的每个正数都是周期，因而没有最小正周期。若 $f,g$ 有共同的正周期 $T$，它们的和、差、积也以 $T$ 为周期；只分别知道两者各自有周期，还不足以直接这样推断。
+
+知道周期 $T$ 后，只需知道 $[0,T)$ 上的函数值，就能通过平移得到其余部分。若 $f$ 限制在 $[0,T)$ 上时有反函数 $\varphi$，则限制在 $[kT,(k+1)T)$ 上时，反函数为 $y\mapsto\varphi(y)+kT$，其中 $k\in\mathbb Z$，各段对应同一个值域。
+
+\begin{proposition}[由图像对称找周期]
+\label{prop:pei-symmetry-period}
+设 $f:\mathbb R\to\mathbb R$。若图像关于两条直线 $x=b$、$x=c$（$b<c$）对称，则 $2(c-b)$ 是一个周期；若 $f$ 为奇函数，且图像关于 $x=a\ne0$ 对称，则 $4|a|$ 是一个周期。这些周期不一定最小。
+\end{proposition}
+\begin{proof}
+关于 $x=b$ 对称，就是 $f(2b-x)=f(x)$。先关于 $x=b$ 反射，再关于 $x=c$ 反射，便把 $x$ 变成 $x+2(c-b)$，而函数值不变，即
+\[
+    f(x+2(c-b))=f(2c-(2b-x))=f(2b-x)=f(x).
+\]
+第二种情形中，关于 $x=a$ 对称给出 $f(x+2a)=f(-x)=-f(x)$，即平移一次变号，再平移一次恢复原值：$f(x+4a)=f(x)$。反向平移也保持函数值，因此 $4|a|$ 是一个正周期。
+\end{proof}
+
+\begin{example}
+\label{ex:pei-parity-split}
+把 $f(x)=x^3+2x^2-x+1$（$x\in\mathbb R$）写成一个偶函数与一个奇函数的和。
+\end{example}
+\begin{solve}
+先求 $f(-x)=-x^3+2x^2+x+1$，再用式~\eqref{eq:pei-parity-decomposition} 得
+\[
+    H(x)=2x^2+1,\qquad G(x)=x^3-x.
+\]
+这里相加后留下偶次幂项，相减后留下奇次幂项；两部分相加正好还原原函数。
+\end{solve}
 
 \begin{example}
 \label{ex:pei-bounded-second-difference}
-设 $f:\mathbb{R}\to\mathbb{R}$ 有界，$h>0$，且对一切 $x$ 有 $f(x+h)-2f(x)+f(x-h)=0$。证明 $h$ 是 $f$ 的周期。
+设 $f:\mathbb R\to\mathbb R$ 有界，$h>0$，且对每个 $x$ 都有 $f(x+h)-2f(x)+f(x-h)=0$。证明 $h$ 是 $f$ 的周期。
 \end{example}
 \begin{solve}
-固定 $x$，记 $d=f(x+h)-f(x)$。给定关系说明沿等距点列的相邻差均为 $d$，故归纳得到 $f(x+nh)=f(x)+nd$，$n\in\mathbb{N}$。若 $d\ne0$，右端随 $n$ 无界，与 $f$ 有界矛盾，所以 $d=0$。因 $x$ 任意，结论成立。有界性不能删去：$f(x)=x$ 满足给定差分关系，却不具有正周期。
+把条件改写成 $f(x+h)-f(x)=f(x)-f(x-h)$，可见沿间距为 $h$ 的点依次前进时，相邻函数值的差都相同。固定 $x$，记这个差为 $d=f(x+h)-f(x)$，便有
+\[
+    f(x+nh)=f(x)+nd,\qquad n=1,2,\ldots.
+\]
+若 $d\ne0$，右端随 $n$ 无界，与 $f$ 有界矛盾，故 $d=0$，即 $f(x+h)=f(x)$。这对每个 $x$ 都成立，所以 $h$ 为周期。有界性不能删去，例如 $f(x)=x$ 满足差分条件，却没有正周期。
 \end{solve}
 
-图像的对称也能给出周期。若 $x=b$、$x=c$ 是两个不同的对称轴，则先后作两次反射得到 $f(x)=f(x+2(c-b))$，故 $2|c-b|$ 为周期；若 $f$ 既为奇函数，又关于 $x=a\ne0$ 对称，则 $f(x+2a)=-f(x)$，再平移一次得到周期 $4|a|$。
-
 \subsection{常用不等式与估计}
+\label{subsec:pei-basic-inequalities}
 
-对实数 $u,v$，三角不等式及其反向形式分别为
-\[
+做估计，就是用容易控制的量给复杂表达式找上界或下界。例如，要说明误差很小，就应给误差的绝对值找一个小的上界。本节介绍三种常用工具：拆分绝对值、估计对数，以及比较和与积。选择工具时，要同时看清表达式的结构和所需的不等号方向。
+
+\begin{proposition}[三角不等式与反向三角不等式]
+\label{prop:pei-triangle-bounds}
+对任意实数 $u,v$，\emph{三角不等式}（triangle inequality）及其反向形式（reverse triangle inequality）分别为
+\begin{equation}
     |u+v|\le |u|+|v|,\qquad
     \bigl||u|-|v|\bigr|\le |u-v|.
-\]
-第一式由 $-|u|\le u\le|u|$、$-|v|\le v\le|v|$ 相加得到；再把 $u=(u-v)+v$、$v=(v-u)+u$ 代入第一式，便得第二式。它们分别用于控制复合误差和由函数值之差反推大小差异。
-
-\begin{theorem}[算术平均与几何平均不等式]
-\label{thm:pei-amgm}
-设 $a_1,\ldots,a_n\ge0$，则
-\begin{equation}
-    (a_1\cdots a_n)^{1/n}\le\frac{a_1+\cdots+a_n}{n},
-    \label{eq:pei-amgm}
+    \label{eq:pei-triangle-bounds}
 \end{equation}
-等号成立当且仅当 $a_1=\cdots=a_n$。
-\end{theorem}
+\end{proposition}
 \begin{proof}
-当 $n=2$ 时，由 $(\sqrt{a_1}-\sqrt{a_2})^2\ge0$ 得结论。若结论对 $n$ 成立，把 $2n$ 个数分为两组，先对每组应用假设，再对两组的算术平均应用二元情形，即得 $2n$ 个数的结论；等号要求两组内部及两组平均都相等。因此结论对每个 $2^k$ 成立。
-
-反向一步，假设结论对 $n+1$ 成立，记 $A=(a_1+\cdots+a_n)/n$。若 $A=0$，所有数均为零；若 $A>0$，对 $a_1,\ldots,a_n,A$ 应用假设，得 $a_1\cdots a_n A\le A^{n+1}$，约去 $A$ 即得 $n$ 个数的结论，且等号条件保持不变。对任意 $n$ 先取 $2^k\ge n$，再逐次反推即可。
+把 $-|u|\le u\le|u|$ 与 $-|v|\le v\le|v|$ 相加，得到 $-(|u|+|v|)\le u+v\le|u|+|v|$，这就是第一式。再由 $u=(u-v)+v$ 得 $|u|-|v|\le|u-v|$；交换 $u,v$ 得 $|v|-|u|\le|u-v|$，合起来便是第二式。
 \end{proof}
 
-\begin{proposition}[对数不等式]
+第一式把“控制一个和”转成“分别控制各项”，多个加数也可以反复使用。例如，给定 $\delta>0$，若 $|x-a|\le\delta$、$|y-b|\le\delta$，则 $|(x+y)-(a+b)|\le2\delta$。第二式则说明，\emph{取绝对值不会扩大两个数之间的距离}：若 $|x-a|\le\delta$，就也有 $\bigl||x|-|a|\bigr|\le\delta$。
+
+\begin{proposition}[对数的上下界]
 \label{prop:pei-log-bounds}
-对 $t>-1$，有
+用 $\log$ 表示自然对数。对 $t>-1$，有
 \begin{equation}
     \frac{t}{1+t}\le\log(1+t)\le t,
     \label{eq:pei-log-bounds}
 \end{equation}
-两侧等号均当且仅当 $t=0$ 成立。
+两侧等号均当且仅当 $t=0$ 成立。条件 $t>-1$ 保证对数有定义，也保证分母为正。
 \end{proposition}
 \begin{proof}
-这里使用导数作复习性证明。函数 $t-\log(1+t)$ 与 $\log(1+t)-t/(1+t)$ 的导数分别为 $t/(1+t)$ 与 $t/(1+t)^2$；两者在 $(-1,0)$ 上递减，在 $(0,+\infty)$ 上递增，且在 $0$ 处取值零，所以结论成立。
+这里用导数作复习性证明。令 $L(s)=s-1-\log s$（$s>0$），则 $L'(s)=(s-1)/s$。所以 $L$ 在 $(0,1)$ 上递减，在 $(1,+\infty)$ 上递增，最小值为 $L(1)=0$，即 $\log s\le s-1$，等号仅在 $s=1$ 时成立。取 $s=1+t$ 得到上界；再取 $s=1/(1+t)$，得到 $-\log(1+t)\le-t/(1+t)$，两边乘以 $-1$ 并将不等号反向，便得下界。
 \end{proof}
 
-例如令 $t=1/k$，便有 $1/(k+1)<\log(1+1/k)<1/k$。此类估计保留了对数与倒数之间的联系，常能把求和问题转化为对数的相消。使用不等式时应根据最终目标选择上、下界；估计过粗而丢掉主项，即使不等式正确，也未必能确定极限。
+这组不等式把对数夹在两个代数式之间。例如，对正整数 $k$ 取 $t=1/k$，便有 $1/(k+1)<\log(1+1/k)<1/k$，可用于比较对数项与倒数项。\emph[caution]{除以负数时不等号要反向}，因此后续若要除以 $t$，必须区分 $t>0$ 与 $t<0$。
+
+\begin{theorem}[算术平均与几何平均不等式]
+\label{thm:pei-amgm}
+设 $n$ 为正整数，$a_1,\ldots,a_n\ge0$，则
+\begin{equation}
+    \underbrace{(a_1\cdots a_n)^{1/n}}_{\text{几何平均}}
+    \le\underbrace{\frac{a_1+\cdots+a_n}{n}}_{\text{算术平均}},
+    \label{eq:pei-amgm}
+\end{equation}
+等号成立当且仅当 $a_1=\cdots=a_n$。它也称\emph{均值不等式}（arithmetic--geometric mean inequality）：当这些非负数的和固定时，它们的乘积在各数相等时达到最大值。
+\end{theorem}
+\begin{proof}
+二元情形来自 $(\sqrt{a_1}-\sqrt{a_2})^2\ge0$。一般情形中，若有某个 $a_i=0$，左端为零，结论成立，且等号只能在所有数均为零时成立。以下设各数都为正，记算术平均为 $A=(a_1+\cdots+a_n)/n$。由式~\eqref{eq:pei-log-bounds} 的上界，取 $t=a_i/A-1>-1$，再对 $i$ 求和，得到
+\[
+    \log\frac{a_1\cdots a_n}{A^n}
+    =\sum_{i=1}^n\log\frac{a_i}{A}
+    \le\sum_{i=1}^n\left(\frac{a_i}{A}-1\right)=0.
+\]
+因此 $a_1\cdots a_n\le A^n$，开 $n$ 次方即得结论。等号要求每个 $a_i/A=1$，也就是各数相等。
+\end{proof}
+
+\begin{example}
+\label{ex:pei-amgm-minimum}
+设 $x>0$，求 $x+4/x$ 的最小值。
+\end{example}
+\begin{solve}
+两个正数 $x$ 与 $4/x$ 的乘积固定为 $4$，因此用二元均值不等式有
+\[
+    x+\frac4x\ge2\sqrt{x\cdot\frac4x}=4.
+\]
+等号要求 $x=4/x$，结合 $x>0$ 得 $x=2$。所以最小值为 $4$，在 $x=2$ 时取得；仅有下界还不够，检查等号能够取到，才确定了最小值。
+\end{solve}
+
+\begin{example}
+\label{ex:pei-log-approximation-error}
+设 $|t|\le1/2$，估计用 $t$ 代替 $\log(1+t)$ 时的误差。
+\end{example}
+\begin{solve}
+由式~\eqref{eq:pei-log-bounds}，$\log(1+t)\le t$，所以误差的绝对值等于 $t-\log(1+t)$。同时，$1+t\ge1/2$，故
+\[
+    0\le t-\log(1+t)
+    \le t-\frac{t}{1+t}
+    =\frac{t^2}{1+t}\le2t^2.
+\]
+因此误差不超过 $2t^2$；例如用 $0.01$ 近似 $\log(1.01)$，误差至多为 $0.0002$。这个估计对正、负的 $t$ 都成立，并且给出了随 $t$ 缩小而缩小的误差界。
+\end{solve}
 
 \subsection{Wallis 积分与乘积}
 
@@ -1037,6 +1194,8 @@ $f(I)\subseteq I$ 保证所有迭代有定义并留在 $I$ 中，相邻差满足
 例如，不存在有限子列极限点恰好为 $\{1,1/2,1/3,\ldots\}$ 的实数列，因为该集合不闭，漏掉了零。另一方面，“唯一有限子列极限点”若没有有界性并不足以保证收敛：$x_{2n}=0$、$x_{2n-1}=n$ 的唯一有限子列极限点为零，原列仍不收敛。与第~\ref{sec:pei-sequence-limsup} 节允许无穷子列极限的表述相对照，可以看出有界性正是在排除逃向无穷大的可能。
 
 
+% 临时仅编译第一章；将下一行的 \iffalse 改为 \iftrue 可恢复第二章及后续内容。
+\iffalse
 % 教材来源：数学分析/textbooks/数分习题（分章原文）/数分习题-2.pdf。
 % PDF 第 1--19 页对应第 2.1 节，第 19--32 页对应第 2.2 节，
 % 第 32--33 页对应第 2.3 节，第 33--42 页对应第 2.4 节。
@@ -6265,5 +6424,7 @@ u(\boldsymbol x)=\int_{r_0}^{r}s f(s)\,ds,
 -\iint_{S_1}\boldsymbol F\cdot\boldsymbol n_1\,dS=0.
 \]
 负号来自入口横截面的指定方向与管段的外法向相反。由此同一流管不同横截面的通量相等；这一守恒关系同时说明了“管量场”一名的几何含义。
+
+\fi % 结束第二章及后续内容的临时屏蔽。
 
 \end{document}
