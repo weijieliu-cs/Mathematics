@@ -6,11 +6,56 @@
 \makeatother
 \usepackage{researchnotes}
 
+% 编译章节列表：{0} 编译全文；{3} 只编译第三章；{2,3} 或 {2,5} 编译多章。
+% 正文章号范围为 1--10，多个章号用半角逗号分隔，仍按原书顺序输出。
+% 列表中含 0 时编译全文。日常只需修改下面这一行。
+\newcommand{\CompileChapter}{0}
+
+% 以下条件由章节列表自动确定，无须手动切换，也无须拆分章节文件。
+\makeatletter
+\@for\notes@chapter:=\CompileChapter\do{%
+    \expandafter\let\csname notes@selected@\number\notes@chapter\endcsname\@empty
+}
+\newif\ifcompileallchapters
+\@ifundefined{notes@selected@0}
+    {\compileallchaptersfalse}
+    {\compileallchapterstrue}
+\newif\ifcompilechapter
+% 可选参数是本章在正文或附录内的序号，必选参数是章节列表中的序号。
+\newcommand{\selectchapter}[2][0]{%
+    \compilechapterfalse
+    \ifcompileallchapters
+        \compilechaptertrue
+    \else
+        \@ifundefined{notes@selected@#2}{}{%
+            \compilechaptertrue
+            \ifnum#1=0\relax
+                \setcounter{chapter}{\numexpr#2-1\relax}%
+            \else
+                \setcounter{chapter}{\numexpr#1-1\relax}%
+            \fi
+        }%
+    \fi
+}
+% 参数依次为目标章号、编号引用、文字指引；目标章入选时保留编号引用。
+\newcommand{\crosschapterref}[3]{%
+    \ifcompileallchapters
+        #2%
+    \else
+        \@ifundefined{notes@selected@#1}{#3}{#2}%
+    \fi
+}
+\makeatother
+
+
+
 \title{概率论与数理统计（缪柏其）笔记}
 \author{}
 \date{}
 
 \begin{document}
+\ifcompileallchapters
+
 \maketitle
 
 \frontmatter
@@ -28,8 +73,13 @@
 
 本笔记以缪柏其、张伟平主编的《概率论与数理统计》（高等教育出版社，2022 年第 1 版）为学习线索，按教材章节顺序整理学习思考与习题解答。
 
+
+\fi
 \mainmatter
 
+
+\selectchapter{1}
+\ifcompilechapter
 \chapter{事件及其概率}
 \label{chap:study-events}
 
@@ -291,7 +341,7 @@ $A$ 最终所得以概率 $Q(r,t)$ 为 $M$，以概率 $1-Q(r,t)$ 为 $0$，故�
 
 概率用 $[0,1]$ 中的数刻画事件发生的可能性，但这一直观解释尚未规定如何赋值。教材从古典计数、频率和主观判断等角度讨论概率：古典概型依据有限个等可能结果计数；频率观点把概率与相同条件下独立重复试验中的长期比例联系起来；\emph{主观概率（subjective probability）}则表示依据已有信息对事件的可信程度作出的数量判断。不同解释用于说明概率的含义或来源，公理化定义则规定它们共同遵守的数学规则。
 
-设独立重复同一试验 $n$ 次，事件 $A$ 出现 $N_n(A)$ 次，\emph{频率（relative frequency）}为 $F_n(A)=N_n(A)/n$。概率 $p=\mathbb P(A)$ 是给定模型中的常数，频率则随观测结果变化；频率接近概率并不表示误差随每次试验单调减小，也不表示有限次试验后必恰等于 $p$。在各次试验独立且事件概率相同的条件下，大数定律给出：对任意 $\varepsilon>0$，$\mathbb P(|F_n(A)-p|>\varepsilon)\to0$。其理论将在第~\ref{sec:study-limit-theorems} 节讨论，这里用它理解频率估计概率的依据。
+设独立重复同一试验 $n$ 次，事件 $A$ 出现 $N_n(A)$ 次，\emph{频率（relative frequency）}为 $F_n(A)=N_n(A)/n$。概率 $p=\mathbb P(A)$ 是给定模型中的常数，频率则随观测结果变化；频率接近概率并不表示误差随每次试验单调减小，也不表示有限次试验后必恰等于 $p$。在各次试验独立且事件概率相同的条件下，大数定律给出：对任意 $\varepsilon>0$，$\mathbb P(|F_n(A)-p|>\varepsilon)\to0$。其理论将在\crosschapterref{4}{第~\ref{sec:study-limit-theorems} 节}{“大数定律和中心极限定理”一节}讨论，这里用它理解频率估计概率的依据。
 
 \begin{definition}
 \label{def:study-probability-space}
@@ -1190,6 +1240,11 @@ $n$ 人等可能地各取一顶属于这 $n$ 人的帽子，求恰有 $k$ 人取
 由上连续性，$\mathbb P(B_n^{\mathrm c})=0$，故每个 $B_n$ 的概率均为 $1$；再对递减列 $B_n$ 应用上连续性，得到交事件的概率为 $1$。第二个结论需要独立性假设，不能仅凭概率级数发散得出。
 \end{proof}
 
+
+\fi
+
+\selectchapter{2}
+\ifcompilechapter
 \chapter{随机变量及其分布}
 \label{chap:study-random-variables}
 
@@ -1992,7 +2047,7 @@ $Y\ge0$ 且 $\mathbb P(Y=0)=0$。当 $y>0$ 时，
   =\Phi(z),\qquad z\in\mathbb R.
   \label{eq:study-de-moivre-laplace}
 \end{equation}
-一般情形的证明留待第~\ref{sec:study-limit-theorems} 节的极限定理讨论。有限 $n$ 时，这是概率近似；尤其在 $p$ 接近 $0$ 或 $1$ 时，不能仅以 $n$ 较大为由忽略分布偏斜。
+一般情形的证明留待\crosschapterref{4}{第~\ref{sec:study-limit-theorems} 节}{“大数定律和中心极限定理”一节}的极限定理讨论。有限 $n$ 时，这是概率近似；尤其在 $p$ 接近 $0$ 或 $1$ 时，不能仅以 $n$ 较大为由忽略分布偏斜。
 
 \subsection{从算术平均的最优性反推误差密度}
 \label{subsec:study-normal-error-origin}
@@ -2183,6 +2238,11 @@ $X\sim\mathrm{Bin}(20,0.2)$，所以 $\mathbb P(X\ge1)=1-0.8^{20}\approx0.9885$�
 由于 $g'(x)=2/(1-x)>0$，它确为所需的单调递增函数。这也展示了从一种连续分布先变到均匀分布、再变到目标分布的构造方法。
 \end{solve}
 
+
+\fi
+
+\selectchapter{3}
+\ifcompilechapter
 \chapter{多维随机变量及其分布}
 \label{chap:study-multivariate}
 % 教材范围：第 3 章，第 88--122 页；正文六节及章末代表习题。
@@ -3172,6 +3232,11 @@ $X=k,Y=j$ 表示前 $k-1$ 次均出现 $1$ 或 $2$，第 $k$ 次出现指定的 
 边界对应退化三角形或重合切点，概率为零。结论依赖“两切点独立、均匀”的模型，不能把三段长度直接当作独立均匀变量。
 \end{solve}
 
+
+\fi
+
+\selectchapter{4}
+\ifcompilechapter
 \chapter{随机变量的数字特征和极限定理}
 \label{chap:study-moments-limits}
 
@@ -3185,7 +3250,7 @@ $X=k,Y=j$ 表示前 $k-1$ 次均出现 $1$ 或 $2$，第 $k$ 次出现指定的 
 \subsection{数学期望的定义、存在条件与运算}
 \label{subsec:study-expectation-properties}
 
-例~\ref{ex:points-original} 中，若比赛继续，甲以概率 $3/4$ 得到 $300$ 元，以概率 $1/4$ 得到 $0$ 元，因而按当前信息计算的平均所得为 $300\times3/4+0\times1/4=225$ 元。这种按概率加权的平均就是\emph{数学期望（expectation）}，也称\emph{均值（mean）}。期望是由分布决定的常数，不必是随机变量实际能够取到的值；例如公平骰子的点数期望为 $3.5$，却不可能掷出 $3.5$ 点。
+\crosschapterref{1}{例~\ref{ex:points-original}}{分赌本问题的例题} 中，若比赛继续，甲以概率 $3/4$ 得到 $300$ 元，以概率 $1/4$ 得到 $0$ 元，因而按当前信息计算的平均所得为 $300\times3/4+0\times1/4=225$ 元。这种按概率加权的平均就是\emph{数学期望（expectation）}，也称\emph{均值（mean）}。期望是由分布决定的常数，不必是随机变量实际能够取到的值；例如公平骰子的点数期望为 $3.5$，却不可能掷出 $3.5$ 点。
 
 \begin{definition}
 \label{def:study-expectation}
@@ -3924,7 +3989,7 @@ $X=k,Y=j$ 表示前 $k-1$ 次均出现 $1$ 或 $2$，第 $k$ 次出现指定的 
 
 \begin{example}
 \label{ex:study-hypergeometric-mean}
-在例~\ref{ex:study-capture-recapture} 的模型中，从 $N$ 条鱼中不放回均匀抽取 $n$ 条，其中 $M$ 条带标记。求抽到的带标记鱼数 $X$ 的期望。
+在\crosschapterref{2}{例~\ref{ex:study-capture-recapture}}{标志重捕问题的例题} 的模型中，从 $N$ 条鱼中不放回均匀抽取 $n$ 条，其中 $M$ 条带标记。求抽到的带标记鱼数 $X$ 的期望。
 \end{example}
 
 \begin{solve}
@@ -4190,6 +4255,11 @@ $K\sim\mathrm{Bin}(500,0.2)$，均值为 $100$、方差为 $80$。因 $K$ 为整
 取 $s=\sigma^2/d$，得到单侧界 $\mathbb P(W\ge d)\le\sigma^2/(\sigma^2+d^2)$。中位数条件使左端至少为 $1/2$，所以 $d^2\le\sigma^2$。若 $m<\mu$，对 $-W$ 作同样论证；$m=\mu$ 时结论直接成立。于是 $|m-\mu|\le\sigma$。这也说明只用双侧切比雪夫界会损失信息，利用单侧事件才能直接得到此处的系数 $1$。
 \end{solve}
 
+
+\fi
+
+\selectchapter{5}
+\ifcompilechapter
 \chapter{统计学基本概念}
 \label{chap:study-statistics-basics}
 
@@ -4798,6 +4868,11 @@ $F_n$ 单调不减、右连续，在左右无穷远处分别趋于 $0,1$，因�
 这里计算期望之差不要求最大值与最小值独立。
 \end{solve}
 
+
+\fi
+
+\selectchapter{6}
+\ifcompilechapter
 \chapter{参数点估计}
 \label{chap:study-point-estimation}
 
@@ -5755,6 +5830,11 @@ $Q/(n+1)$ 的偏差为 $-2\sigma^2/(n+1)$，但方差的下降超过偏差平方
 所以每个有限 $n$ 下都不是无偏估计，但其偏差趋于零，因而是渐近无偏的。这里能得到渐近无偏，来自给定的方差条件，并不是依概率收敛本身保证期望收敛。
 \end{solve}
 
+
+\fi
+
+\selectchapter{7}
+\ifcompilechapter
 \chapter{区间估计}
 \label{chap:study-interval-estimation}
 
@@ -6463,6 +6543,11 @@ $[(S_1^2/S_2^2)F_{n-1,m-1}(1-\alpha/2),\,(S_1^2/S_2^2)F_{n-1,m-1}(\alpha/2)]$。
 $\widehat p=0.005$，得分区间约为 $[0.00214,0.01165]$。虽然总样本量达到 $1000$，观测到的次品数却只有 $5$，且参数估计接近边界，因此不能仅凭 $n$ 很大就保证瓦尔德区间的覆盖率。这里应结合稀少计数检查近似，必要时使用式~\eqref{eq:study-binomial-exact-inversion} 的精确二项反演。总样本量和有效事件数提供的信息不同。
 \end{solve}
 
+
+\fi
+
+\selectchapter{8}
+\ifcompilechapter
 \chapter{假设检验}
 \label{chap:study-hypothesis-testing}
 
@@ -6498,6 +6583,11 @@ $\widehat p=0.005$，得分区间约为 $[0.00214,0.01165]$。虽然总样本量
 \addcontentsline{toc}{section}{习题}
 % 待补充；整理习题时注明教材题号。
 
+
+\fi
+
+\selectchapter{9}
+\ifcompilechapter
 \chapter{非参数假设检验}
 \label{chap:study-nonparametric-testing}
 
@@ -6529,6 +6619,11 @@ $\widehat p=0.005$，得分区间约为 $[0.00214,0.01165]$。虽然总样本量
 \addcontentsline{toc}{section}{习题}
 % 待补充；整理习题时注明教材题号。
 
+
+\fi
+
+\selectchapter{10}
+\ifcompilechapter
 \chapter{相关分析和回归分析}
 \label{chap:study-correlation-regression}
 
@@ -6560,4 +6655,6 @@ $\widehat p=0.005$，得分区间约为 $[0.00214,0.01165]$。虽然总样本量
 \addcontentsline{toc}{section}{习题}
 % 待补充；整理习题时注明教材题号。
 
+
+\fi
 \end{document}

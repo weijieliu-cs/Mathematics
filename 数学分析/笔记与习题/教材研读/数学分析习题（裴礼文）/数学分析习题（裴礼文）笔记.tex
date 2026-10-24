@@ -7,6 +7,49 @@
 \makeatother
 \usepackage{researchnotes}
 
+% 编译章节列表：{0} 编译全文；{3} 只编译第三章；{2,3} 或 {2,5} 编译多章。
+% 正文章号范围为 1--7，多个章号用半角逗号分隔，仍按原书顺序输出。
+% 列表中含 0 时编译全文。日常只需修改下面这一行。
+\newcommand{\CompileChapter}{1}
+
+% 以下条件由章节列表自动确定，无须手动切换，也无须拆分章节文件。
+\makeatletter
+\@for\notes@chapter:=\CompileChapter\do{%
+    \expandafter\let\csname notes@selected@\number\notes@chapter\endcsname\@empty
+}
+\newif\ifcompileallchapters
+\@ifundefined{notes@selected@0}
+    {\compileallchaptersfalse}
+    {\compileallchapterstrue}
+\newif\ifcompilechapter
+% 可选参数是本章在正文或附录内的序号，必选参数是章节列表中的序号。
+\newcommand{\selectchapter}[2][0]{%
+    \compilechapterfalse
+    \ifcompileallchapters
+        \compilechaptertrue
+    \else
+        \@ifundefined{notes@selected@#2}{}{%
+            \compilechaptertrue
+            \ifnum#1=0\relax
+                \setcounter{chapter}{\numexpr#2-1\relax}%
+            \else
+                \setcounter{chapter}{\numexpr#1-1\relax}%
+            \fi
+        }%
+    \fi
+}
+% 参数依次为目标章号、编号引用、文字指引；目标章入选时保留编号引用。
+\newcommand{\crosschapterref}[3]{%
+    \ifcompileallchapters
+        #2%
+    \else
+        \@ifundefined{notes@selected@#1}{#3}{#2}%
+    \fi
+}
+\makeatother
+
+
+
 
 \title{数学分析习题（裴礼文）笔记}
 \author{}
@@ -14,6 +57,8 @@
 
 
 \begin{document}
+\ifcompileallchapters
+
 
 
 \maketitle
@@ -21,6 +66,11 @@
 \clearpage
 
 
+
+\fi
+
+\selectchapter{1}
+\ifcompilechapter
 \chapter{一元函数极限}
 \label{chap:peiliwen-limits}
 
@@ -1194,11 +1244,14 @@ $f(I)\subseteq I$ 保证所有迭代有定义并留在 $I$ 中，相邻差满足
 例如，不存在有限子列极限点恰好为 $\{1,1/2,1/3,\ldots\}$ 的实数列，因为该集合不闭，漏掉了零。另一方面，“唯一有限子列极限点”若没有有界性并不足以保证收敛：$x_{2n}=0$、$x_{2n-1}=n$ 的唯一有限子列极限点为零，原列仍不收敛。与第~\ref{sec:pei-sequence-limsup} 节允许无穷子列极限的表述相对照，可以看出有界性正是在排除逃向无穷大的可能。
 
 
-% 临时仅编译第一章；将下一行的 \iffalse 改为 \iftrue 可恢复第二章及后续内容。
-\iffalse
 % 教材来源：数学分析/textbooks/数分习题（分章原文）/数分习题-2.pdf。
 % PDF 第 1--19 页对应第 2.1 节，第 19--32 页对应第 2.2 节，
 % 第 32--33 页对应第 2.3 节，第 33--42 页对应第 2.4 节。
+
+\fi
+
+\selectchapter{2}
+\ifcompilechapter
 \chapter{一元函数的连续性}
 \label{chap:pei-continuity}
 
@@ -1834,6 +1887,11 @@ f(x+y)=\frac{f(x)+f(y)}{1+f(x)f(y)},
 % 教材来源：数学分析/textbooks/数分习题（分章原文）/数分习题-3.pdf。
 % 对应原书第三章“一元微分学”，本 PDF 第 1--102 页；按主题整合要点与代表例题，不逐题誊录。
 % 扫描原文通过嵌入扫描数据 OCR 核对；无法可靠辨识的个别题目不按原题转写。
+
+\fi
+
+\selectchapter{3}
+\ifcompilechapter
 \chapter{一元微分学}
 \label{chap:pei-diff}
 
@@ -2749,6 +2807,11 @@ $X-a+(Y-b)Y'=0$ 和 $1+(Y')^2+(Y-b)Y''=0$。在切点代入 $Y'=p$、$Y''=q$，�
 
 导数用于求极限时，可以依据定理~\ref{thm:pei-diff-lhospital} 将比值问题转化为导数比，也可以依据 Taylor 公式提取首个非零项。前者要逐次检验法则条件，后者要确定足以越过相消项的展开阶数，并控制余项。若极限涉及移动的中值点，可参考命题~\ref{prop:pei-diff-mean-point-limit}；若涉及项数变化的求和，则需像例~\ref{ex:pei-diff-uniform-small-remainders} 一样给出对下标一致的误差估计。
 
+
+\fi
+
+\selectchapter{4}
+\ifcompilechapter
 \chapter{一元函数积分学}
 \label{chap:pei-int-integral-calculus}
 
@@ -2929,10 +2992,10 @@ $X-a+(Y-b)Y'=0$ 和 $1+(Y')^2+(Y-b)Y''=0$。在切点代入 $Y'=p$、$Y''=q$，�
 \subsection{把困难点围起来：可积而不连续的函数}
 \begin{example}
 \label{ex:pei-int-thomae}
-沿用例~\ref{ex:pei-thomae} 中的 Thomae 函数 $R$（教材称 Riemann 函数），证明它在 $[0,1]$ 上可积且积分为零。
+沿用\crosschapterref{2}{例~\ref{ex:pei-thomae}}{Thomae 函数的例题} 中的 Thomae 函数 $R$（教材称 Riemann 函数），证明它在 $[0,1]$ 上可积且积分为零。
 \end{example}
 \begin{solve}
-固定 $N$，分母 $q\le N$ 的点只有有限个，用总长小于 $\rho$ 的有限个小区间将它们覆盖，并选分划使覆盖区间的端点成为分点。覆盖区间对上和的贡献至多为 $\rho$，其余部分函数不超过 $1/N$，故 $U(R,P)\le\rho+1/N$；每个非退化区间含无理数，下和恒为零。令 $\rho\downarrow0$、$N\to\infty$，便得积分为零。其连续点的刻画已在例~\ref{ex:pei-thomae} 中证明，这里突出同一函数的可积性。
+固定 $N$，分母 $q\le N$ 的点只有有限个，用总长小于 $\rho$ 的有限个小区间将它们覆盖，并选分划使覆盖区间的端点成为分点。覆盖区间对上和的贡献至多为 $\rho$，其余部分函数不超过 $1/N$，故 $U(R,P)\le\rho+1/N$；每个非退化区间含无理数，下和恒为零。令 $\rho\downarrow0$、$N\to\infty$，便得积分为零。其连续点的刻画已在\crosschapterref{2}{例~\ref{ex:pei-thomae}}{Thomae 函数的例题} 中证明，这里突出同一函数的可积性。
 \end{solve}
 同样的方法适用于有界函数的间断点能由总长任意小的有限个区间覆盖的情形：覆盖区间上用有界性控制，余下紧集上用局部连续性和有限覆盖控制振幅。有限个间断点、以及只有有限个聚点的某些间断点列都可这样处理。\emph[caution]{不能把“间断点可数”直接替换成“能被总长任意小的有限个区间覆盖”}；例如上例的有理间断点稠密，证明时须围住函数值较大的有限多个点，而非一次围住全部间断点。
 
@@ -3334,7 +3397,7 @@ $p=1$ 由逐点三角不等式得到。$p>1$ 时，令 $q=p/(p-1)$，利用 $|f+
 \begin{proof}
 第一式在 $[\varepsilon,1]$ 上分部积分，边界项因 $\varepsilon^{\alpha+1}|\ln\varepsilon|^m\to0$ 而消失，得到 $I_m=-mI_{m-1}/(\alpha+1)$，从 $I_0=1/(\alpha+1)$ 递推。第二式同样分部积分，得到 $B_{m,n}=nB_{m+1,n-1}/(m+1)$，递推到 $B_{m+n,0}=1/(m+n+1)$ 即得。
 \end{proof}
-Wallis 积分的初值、降阶递推和双阶乘表达式见式~\eqref{eq:pei-wallis-integral}，混合正弦、余弦幂的公式见式~\eqref{eq:pei-mixed-wallis}。这些公式与上面的两个递推都依靠分部积分；遇到奇点时还须额外验证边界项的极限。
+Wallis 积分的初值、降阶递推和双阶乘表达式见\crosschapterref{1}{式~\eqref{eq:pei-wallis-integral}}{Wallis 积分公式}，混合正弦、余弦幂的公式见\crosschapterref{1}{式~\eqref{eq:pei-mixed-wallis}}{正弦、余弦混合幂的积分公式}。这些公式与上面的两个递推都依靠分部积分；遇到奇点时还须额外验证边界项的极限。
 
 \begin{example}
 计算 $\displaystyle J=\int_0^{\pi/2}\ln(\sin x)\,dx$，以及 $\displaystyle K=\int_0^\infty\frac{\ln x}{1+x^2}\,dx$。
@@ -3515,6 +3578,11 @@ Gaussian 核令 $u=\sqrt n(x-c)$ 后，积分范围向整条实轴扩张；在 $
 
 % 教材来源：数学分析/textbooks/数分习题（分章原文）/数分习题-5.pdf。
 % 按四节主题整合正文与代表性练习；非逐题转录。
+
+\fi
+
+\selectchapter{5}
+\ifcompilechapter
 \chapter{级数}
 \label{chap:pei-series}
 
@@ -4501,6 +4569,11 @@ Fourier 级数的积分比微分稳定。对任意 Riemann 可积的 $f$，即�
 证明时先用展开式代入并逐项积分；第 $k$ 项积分绝对值被 $\int_a^b|f|/(4k^2-1)$ 控制，对 $n$ 无关且关于 $k$ 可和，因此可以逐项令 $n\to\infty$，再由 Riemann--Lebesgue 引理消去所有非常数频率。这里起决定作用的仍是统一可和的控制，而不是单独知道每个振荡积分趋于零。
 
 
+
+\fi
+
+\selectchapter{6}
+\ifcompilechapter
 \chapter{多元函数微分学}
 \label{chap:pei-multivariable-differentiation}
 % 来源：数学分析/textbooks/数分习题（分章原文）/数分习题-6.pdf，PDF 第 1--107 页。按主题整理学习笔记，并非逐题抄录。
@@ -5258,6 +5331,11 @@ y_j=\psi_j(y_1,\ldots,y_r),\qquad j=r+1,\ldots,m,
 这里必须先控制沿 $e$ 的三阶导数，不能把坐标偏导的界直接当成方向导数的同一个界；二维情形得到 $\sqrt2 Mh^2/3$ 的误差上界。
 \end{proof}
 
+
+\fi
+
+\selectchapter{7}
+\ifcompilechapter
 \chapter{多元积分学}
 \label{chap:pei-multivariate-integrals}
 
@@ -6425,6 +6503,7 @@ u(\boldsymbol x)=\int_{r_0}^{r}s f(s)\,ds,
 \]
 负号来自入口横截面的指定方向与管段的外法向相反。由此同一流管不同横截面的通量相等；这一守恒关系同时说明了“管量场”一名的几何含义。
 
-\fi % 结束第二章及后续内容的临时屏蔽。
 
+
+\fi
 \end{document}

@@ -7,6 +7,50 @@
 \makeatother
 \usepackage{researchnotes}
 
+% 编译章节列表：{0} 编译全文；{3} 只编译第三章；{2,3} 或 {2,5} 编译多章。
+% 正文章号范围为 1--25，多个章号用半角逗号分隔，仍按原书顺序输出。
+% 26--28 依次对应附录 A--C，附录仍显示原有字母编号。
+% 列表中含 0 时编译全文。日常只需修改下面这一行。
+\newcommand{\CompileChapter}{0}
+
+% 以下条件由章节列表自动确定，无须手动切换，也无须拆分章节文件。
+\makeatletter
+\@for\notes@chapter:=\CompileChapter\do{%
+    \expandafter\let\csname notes@selected@\number\notes@chapter\endcsname\@empty
+}
+\newif\ifcompileallchapters
+\@ifundefined{notes@selected@0}
+    {\compileallchaptersfalse}
+    {\compileallchapterstrue}
+\newif\ifcompilechapter
+% 可选参数是本章在正文或附录内的序号，必选参数是章节列表中的序号。
+\newcommand{\selectchapter}[2][0]{%
+    \compilechapterfalse
+    \ifcompileallchapters
+        \compilechaptertrue
+    \else
+        \@ifundefined{notes@selected@#2}{}{%
+            \compilechaptertrue
+            \ifnum#1=0\relax
+                \setcounter{chapter}{\numexpr#2-1\relax}%
+            \else
+                \setcounter{chapter}{\numexpr#1-1\relax}%
+            \fi
+        }%
+    \fi
+}
+% 参数依次为目标章号、编号引用、文字指引；目标章入选时保留编号引用。
+\newcommand{\crosschapterref}[3]{%
+    \ifcompileallchapters
+        #2%
+    \else
+        \@ifundefined{notes@selected@#1}{#3}{#2}%
+    \fi
+}
+\makeatother
+
+
+
 
 \title{机器学习笔记}
 \author{}
@@ -14,6 +58,8 @@
 
 
 \begin{document}
+\ifcompileallchapters
+
 
 
 \maketitle
@@ -106,6 +152,11 @@
 
 \part{学习问题与数学基础}
 
+
+\fi
+
+\selectchapter{1}
+\ifcompilechapter
 \chapter{机器学习的任务与基本概念}
 \label{chap:ml-tasks}
 
@@ -214,7 +265,7 @@
 
 训练集用于拟合参数，验证集用于比较模型和选择超参数，测试集用于在选择完成后评价整个流程。\emph{泛化}（generalization）关注未参与训练选择的新样本，训练误差则只描述已见样本。若算法在训练点逐一输出已记住的标签，而在其他位置恒输出零，那么它可以取得零训练误差，却没有学到可推广的关系。
 
-测试误差也是有限样本上的估计，具有随机波动；它能否反映使用效果取决于测试样本是否代表目标分布以及是否独立于模型选择。反复查看测试分数并调整模型，相当于把测试数据用于验证，最终报告会受到选择偏差影响。增加模型容量常使训练误差下降，但可能增加对偶然噪声的依赖，形成\emph{过拟合}（overfitting）；更具体的理论见第\ref{chap:ml-generalization}章。
+测试误差也是有限样本上的估计，具有随机波动；它能否反映使用效果取决于测试样本是否代表目标分布以及是否独立于模型选择。反复查看测试分数并调整模型，相当于把测试数据用于验证，最终报告会受到选择偏差影响。增加模型容量常使训练误差下降，但可能增加对偶然噪声的依赖，形成\emph{过拟合}（overfitting）；更具体的理论见\crosschapterref{6}{第\ref{chap:ml-generalization}章}{“泛化、过拟合与正则化”一章}。
 
 \section{学习范式的交叉与边界}
 
@@ -233,6 +284,11 @@
 
 习题：为预测房价、识别邮件和用户分群分别写出样本单位、输入、输出和可获得反馈；构造一个零训练误差但不能推广的函数；说明分类中永远输出训练多数类的模型为何仍值得作为基线。学习一种算法之前，应先能用这些问题清楚描述任务。
 
+
+\fi
+
+\selectchapter{2}
+\ifcompilechapter
 \chapter{线性代数与微积分工具}
 \label{chap:ml-linear-algebra}
 
@@ -307,6 +363,11 @@ $\bar x=1$、$\bar y=5/3$，中心化后的内积为 $1$、输入平方和为 $2
 
 习题：证明 $\operatorname{rank}(A^\top A)=\operatorname{rank}(A)$；把例题的输入列复制一次，写出全部最小二乘系数并找出最小范数解；用中心差分检查一个二次函数的梯度，解释差分步长过小为何可能加大舍入误差。检查任何矩阵公式时，同时写出每个因子的维度。
 
+
+\fi
+
+\selectchapter{3}
+\ifcompilechapter
 \chapter{概率、统计与信息论基础}
 \label{chap:ml-probability}
 
@@ -394,6 +455,11 @@ $p(y_{\rm new}\mid x_{\rm new},\mathcal D)=\int p_\theta(y_{\rm new}\mid x_{\rm 
 
 习题：十次试验七次成功，计算 $\operatorname{Beta}(2,2)$ 先验下的后验、预测成功概率及 MAP；答案分别为 $\operatorname{Beta}(9,5)$、$9/14$、$2/3$。设 $X$ 在 $\{-1,0,1\}$ 上均匀分布，证明 $X$ 与 $X^2$ 不相关但不独立。比较给真实类别概率 $0.9$ 与 $0.6$ 的两个分类器的单样本对数损失，并说明二者可有相同的零一损失。
 
+
+\fi
+
+\selectchapter{4}
+\ifcompilechapter
 \chapter{机器学习中的优化方法}
 \label{chap:ml-optimization}
 
@@ -477,6 +543,11 @@ Karush--Kuhn--Tucker（KKT）条件包括原始可行性、$\alpha_j\geq0$、驻
 
 习题：推导软阈值更新；解 $\min_{x\geq1}x^2$ 并验证 KKT；比较记录目标值、梯度范数和测试误差所能回答的问题。实现时同时保存停止原因，以区分数值异常、预算耗尽与达到容差。
 
+
+\fi
+
+\selectchapter{5}
+\ifcompilechapter
 \chapter{数据处理、模型评估与选择}
 \label{chap:ml-evaluation}
 
@@ -529,6 +600,11 @@ $k$ 折交叉验证把开发数据分为 $k$ 份，每次用 $k-1$ 份训练、�
 
 习题：为多用户的时间记录设计一个评价未来新用户的划分；解释先在全数据标准化再交叉验证的问题；为一个有五种阈值候选的分类器安排训练、选阈值与最终测试。实验报告应能让另一人重建划分和选择过程。
 
+
+\fi
+
+\selectchapter{6}
+\ifcompilechapter
 \chapter{泛化、过拟合与正则化}
 \label{chap:ml-generalization}
 
@@ -590,7 +666,7 @@ $\widehat{\mathcal R}_n(\widetilde f)\leq\inf_{f\in\mathcal H}\widehat{\mathcal 
 
 正则化求解 $\min_f\widehat{\mathcal R}_n(f)+\lambda\Omega(f)$，其中 $\Omega$ 表达复杂度偏好。在线性模型中，$\|w\|_2^2$ 惩罚收缩参数，$\|w\|_1$ 惩罚还鼓励稀疏；特征缩放会改变相同惩罚的实际含义。约束式 $\Omega(f)\leq B$ 与惩罚式在适当凸性、存在性和乘子条件下可以联系，但不能任意指定 $B,\lambda$ 后断言解必相同。
 
-早停利用验证表现选择训练时长，也是一种控制训练输出的方法，其作用依目标和算法而定。无限假设类需更细的容量概念，例如刻画二分类可实现标记能力的 VC 维（Vapnik--Chervonenkis dimension），或衡量对随机符号拟合能力的 Rademacher 复杂度；本书不证明相应一般理论。实际选择正则化强度仍应使用第\ref{chap:ml-evaluation}章的独立评价流程。
+早停利用验证表现选择训练时长，也是一种控制训练输出的方法，其作用依目标和算法而定。无限假设类需更细的容量概念，例如刻画二分类可实现标记能力的 VC 维（Vapnik--Chervonenkis dimension），或衡量对随机符号拟合能力的 Rademacher 复杂度；本书不证明相应一般理论。实际选择正则化强度仍应使用\crosschapterref{5}{第\ref{chap:ml-evaluation}章}{“数据处理、模型评估与选择”一章}的独立评价流程。
 
 \section{例题、练习与学习检查}
 
@@ -603,8 +679,16 @@ $\widehat{\mathcal R}_n(\widetilde f)\leq\inf_{f\in\mathcal H}\widehat{\mathcal 
 
 习题：证明本章三项误差上界；计算候选数量增加十倍时上例界的变化；从同一带噪声曲线独立生成多份训练集，比较低阶和高阶多项式在固定输入处的偏差与方差。实验只能支持所设生成机制下的观察，不能代替统一风险界。
 
+
+\fi
+\ifcompileallchapters
 \part{监督学习的基本方法}
 
+
+\fi
+
+\selectchapter{7}
+\ifcompilechapter
 \chapter{线性回归与正则化回归}
 \label{chap:ml-regression}
 
@@ -618,7 +702,7 @@ $\widehat{\mathcal R}_n(\widetilde f)\leq\inf_{f\in\mathcal H}\widehat{\mathcal 
 
 \section{最小二乘与参数求解}
 
-训练目标为 $F(\beta)=\frac1{2n}\|A\beta-y\|^2$，梯度是 $A^\top(A\beta-y)/n$。由第\ref{chap:ml-linear-algebra}章的投影结论，正规方程为 $A^\top A\widehat\beta=A^\top y$；满列秩时解唯一，秩亏时可用伪逆得到最小范数解。若先将输入和响应中心化，截距可由 $\widehat b=\bar y-\bar x^\top\widehat w$ 恢复。
+训练目标为 $F(\beta)=\frac1{2n}\|A\beta-y\|^2$，梯度是 $A^\top(A\beta-y)/n$。由\crosschapterref{2}{第\ref{chap:ml-linear-algebra}章}{“线性代数与微积分工具”一章}的投影结论，正规方程为 $A^\top A\widehat\beta=A^\top y$；满列秩时解唯一，秩亏时可用伪逆得到最小范数解。若先将输入和响应中心化，截距可由 $\widehat b=\bar y-\bar x^\top\widehat w$ 恢复。
 
 对稠密矩阵，计算梯度的成本为 $O(np)$，其中 $p$ 是含截距后的参数数目；$n\geq p$ 时，常用 QR 求解的成本为 $O(np^2)$ 量级。闭式解不是一定更快的实现：当数据大且允许近似解时，迭代方法可避免昂贵分解；当需要高精度且规模适中时，稳定的线性代数求解很有价值。
 
@@ -671,6 +755,11 @@ $n=3$，$\mathbf X^\top\mathbf X=\mathbf X^\top y=2$。最小二乘斜率为一�
 
 习题：推导截距恢复公式；证明岭目标严格凸；令 $\mathbf X^\top\mathbf X/n=I_d$，推导 Lasso 为对 $\mathbf X^\top y/n$ 逐坐标软阈值；比较异常响应和异常输入分别怎样改变最小二乘结果。
 
+
+\fi
+
+\selectchapter{8}
+\ifcompilechapter
 \chapter{感知机、逻辑回归与最大熵}
 \label{chap:ml-logistic}
 
@@ -742,6 +831,11 @@ $\sum_{x,y}\widehat p(x)q(y\mid x)\phi_j(x,y)=\widehat m_j$
 
 习题：对两个可分点手算感知机更新并验证间隔界所需假设；证明逻辑回归 Hessian 半正定；当误报代价为一、漏判代价为四时求最优概率阈值；说明分类边界不变时交叉熵仍可能改变的原因。
 
+
+\fi
+
+\selectchapter{9}
+\ifcompilechapter
 \chapter{贝叶斯决策与概率生成分类}
 \label{chap:ml-generative}
 
@@ -799,6 +893,11 @@ $\sum_{x,y}\widehat p(x)q(y\mid x)\phi_j(x,y)=\widehat m_j$
 
 习题：推导共享 Gaussian 协方差下的线性边界；对两个二元特征的计数表计算加一平滑后验；将一个特征复制两次，分析朴素贝叶斯如何重复计入证据，并比较分类结果与概率变化。
 
+
+\fi
+
+\selectchapter{10}
+\ifcompilechapter
 \chapter{近邻方法与非参数估计}
 \label{chap:ml-neighbors}
 
@@ -834,7 +933,7 @@ $k$ 近邻（$k$-nearest neighbors，$k$-NN）保存训练样本，查询时找�
  \widehat m_h(x)=
  \frac{\sum_i\kappa((x-x_i)/h)y_i}{\sum_i\kappa((x-x_i)/h)}
 \]
-且要求分母正。带宽决定局部范围，太小会有高方差，太大会抹去局部变化。此处的核是平滑权重，与第\ref{chap:ml-kernels}章的半正定核要求不同。
+且要求分母正。带宽决定局部范围，太小会有高方差，太大会抹去局部变化。此处的核是平滑权重，与\crosschapterref{13}{第\ref{chap:ml-kernels}章}{“核方法与支持向量机”一章}的半正定核要求不同。
 
 \section{搜索结构与维数灾难}
 
@@ -853,6 +952,11 @@ $k$ 近邻（$k$-nearest neighbors，$k$-NN）保存训练样本，查询时找�
 
 习题：证明归一核密度的积分为一；推导本章局部均方误差界；把一个输入维度乘以一千，观察邻居次序是否变化；比较训练单近邻误差与留一评价误差。
 
+
+\fi
+
+\selectchapter{11}
+\ifcompilechapter
 \chapter{决策树}
 \label{chap:ml-trees}
 
@@ -903,6 +1007,11 @@ $k$ 近邻（$k$-nearest neighbors，$k$-NN）保存训练样本，查询时找�
 
 习题：计算两个各含一半样本、类别分别纯净的子节点相对于均衡父节点的熵增益；推导叶均值公式；在上例增加一个异常响应，比较切点和叶值变化；解释训练纯度与可泛化解释之间的差别。
 
+
+\fi
+
+\selectchapter{12}
+\ifcompilechapter
 \chapter{集成学习}
 \label{chap:ml-ensembles}
 
@@ -963,6 +1072,11 @@ $\epsilon=1/4$，$\alpha=\frac12\log3$。误判点权重乘 $\sqrt3$，其余点
 
 习题：证明本章平均方差公式；推导 AdaBoost 的 $Z_t$；对响应 $0,0,2,2$ 从均值模型开始，用一个树桩作一次平方损失提升。堆叠（stacking）若训练第二层模型，必须用第一层的折外预测构造训练输入，不能用过度拟合的训练内预测代替。
 
+
+\fi
+
+\selectchapter{13}
+\ifcompilechapter
 \chapter{核方法与支持向量机}
 \label{chap:ml-kernels}
 
@@ -996,7 +1110,7 @@ $w=\sum_i\alpha_iy_ix_i$、$\sum_i\alpha_iy_i=0$，
  \quad 0\leq\alpha_i\leq C_{\rm svm},\quad \sum_i\alpha_iy_i=0.
  \label{eq:ml-svm-dual}
 \end{equation}
-软间隔问题存在严格可行点，结合凸性和第\ref{chap:ml-optimization}章的对偶条件，可由最优对偶系数恢复原始最优解。
+软间隔问题存在严格可行点，结合凸性和\crosschapterref{4}{第\ref{chap:ml-optimization}章}{“机器学习中的优化方法”一章}的对偶条件，可由最优对偶系数恢复原始最优解。
 
 $\alpha_i>0$ 的点称支持向量（support vector）。当 $0<\alpha_i<C_{\rm svm}$ 时，互补松弛给出 $\xi_i=0$ 及 $y_i(w^\top x_i+b)=1$，可用于恢复 $b$。达到上界的样本可以位于间隔内、边界上或误分类，不能一概视为误分类。若不存在中间系数，须利用 KKT 不等式确定可行截距区间。
 
@@ -1023,8 +1137,16 @@ $\alpha_i>0$ 的点称支持向量（support vector）。当 $0<\alpha_i<C_{\rm 
 
 习题：证明合页损失是零一误分类损失的上界（固定零分数的处理）；检查矩阵 $\left(\begin{smallmatrix}1&2\\2&1\end{smallmatrix}\right)$ 是否可能为半正定核的 Gram 矩阵；解释核宽度趋向极小空间尺度时对训练点记忆与泛化的影响。
 
+
+\fi
+\ifcompileallchapters
 \part{无监督学习与隐变量模型}
 
+
+\fi
+
+\selectchapter{14}
+\ifcompilechapter
 \chapter{聚类分析}
 \label{chap:ml-clustering}
 
@@ -1073,6 +1195,11 @@ $v^\top Lv=\tfrac12\sum_{ij}W_{ij}(v_i-v_j)^2$
 
 习题：证明均值更新最小化簇内平方距离；构造单连接的链状效应；说明 $K=n$ 时训练目标为何为零而通常缺乏实用分组意义；比较同一数据经特征缩放前后的聚类。
 
+
+\fi
+
+\selectchapter{15}
+\ifcompilechapter
 \chapter{降维、主成分分析与矩阵分解}
 \label{chap:ml-dimension}
 
@@ -1133,6 +1260,11 @@ $S=\frac23\left(\begin{smallmatrix}1&1\\1&1\end{smallmatrix}\right)$，特征值
 
 习题：推导正交重构误差恒等式；构造最大方差方向与分类方向不同的数据；证明因子变换的不唯一性；说明用全部数据拟合 PCA 再评价分类为何可能泄漏信息。
 
+
+\fi
+
+\selectchapter{16}
+\ifcompilechapter
 \chapter{隐变量模型与期望最大化算法}
 \label{chap:ml-em}
 
@@ -1200,8 +1332,16 @@ $x=1$ 到两均值距离相同，责任度为 $1/2$。$x=0$ 时两密度比为 $
 
 习题：从下界恒等式重新证明单调性；给定一组责任度手算一轮均值更新；解释无界似然与单调上升为何不矛盾；构造一个硬分配和软分配产生不同均值的样本集。
 
+
+\fi
+\ifcompileallchapters
 \part{神经网络与表示学习}
 
+
+\fi
+
+\selectchapter{17}
+\ifcompilechapter
 \chapter{前馈神经网络与反向传播}
 \label{chap:ml-networks}
 
@@ -1263,6 +1403,11 @@ $f(x)=w_2\operatorname{ReLU}(w_1x)$，$x=1,y=1$，初始 $w_1=1,w_2=2$，损失�
 
 习题：验证异或表达式；推导矩阵权重梯度的维度；用有限差分核查例题并避免跨越 ReLU 折点；解释训练损失下降而验证损失上升时，延长训练与早停可能产生的不同结果。
 
+
+\fi
+
+\selectchapter{18}
+\ifcompilechapter
 \chapter{深度模型与表示学习初步}
 \label{chap:ml-representation}
 
@@ -1317,8 +1462,16 @@ Softmax 权重为 $1/4,3/4$，输出为五。若第二个位置是未来位置�
 
 习题：用核 $(1,-1)$ 对输入 $(1,2,3,4)$ 做无填充、单位步幅互相关；检验一个序列模型是否使用未来信息；构造会改变标签的图像或文本增强；比较固定随机表示与训练表示时，控制下游模型和标签预算。
 
+
+\fi
+\ifcompileallchapters
 \part{进阶专题与综合实践}
 
+
+\fi
+
+\selectchapter{19}
+\ifcompilechapter
 \chapter{概率图模型与序列学习}
 \label{chap:ml-graphical}
 
@@ -1383,6 +1536,11 @@ HMM 建模观测与状态的联合分布，CRF 直接建模给定完整输入后
 
 习题：手算两步前向与后向并核对总似然；比较逐位置最大后验与 Viterbi 路径；从条件对数似然推导 CRF 梯度；说明按完整序列划分数据为何比随机拆分位置更符合序列泛化评价。
 
+
+\fi
+
+\selectchapter{20}
+\ifcompilechapter
 \chapter{贝叶斯学习与近似推断}
 \label{chap:ml-bayesian}
 
@@ -1428,7 +1586,7 @@ Gibbs 采样逐次从各坐标的全条件分布抽样，其单坐标转移保�
 
 \section{变分推断与其他近似}
 
-变分推断（variational inference）在选定分布族 $\mathcal Q$ 中最大化式\eqref{eq:ml-elbo}。对固定模型，这等价于最小化 $D_{\rm KL}(q\Vert p(\cdot\mid x))$，因为观测对数似然不随 $q$ 改变。均值场族取 $q(z)=\prod_jq_j(z_j)$，固定其他因子时，
+变分推断（variational inference）在选定分布族 $\mathcal Q$ 中最大化\crosschapterref{16}{式\eqref{eq:ml-elbo}}{“隐变量模型与期望最大化算法”中的公式}。对固定模型，这等价于最小化 $D_{\rm KL}(q\Vert p(\cdot\mid x))$，因为观测对数似然不随 $q$ 改变。均值场族取 $q(z)=\prod_jq_j(z_j)$，固定其他因子时，
 \begin{equation}
  q_j^*(z_j)\propto
  \exp\bigl(\mathbb E_{q_{-j}}\log p(x,z)\bigr),
@@ -1449,6 +1607,11 @@ Gibbs 采样逐次从各坐标的全条件分布抽样，其单坐标转移保�
 
 习题：验证 Metropolis--Hastings 的流量对称性；构造不可约但周期的链；用上例比较解析积分、直接采样和重要性采样；解释极大后验点与后验预测均值为什么可能不同。
 
+
+\fi
+
+\selectchapter{21}
+\ifcompilechapter
 \chapter{文本表示与主题模型}
 \label{chap:ml-text}
 
@@ -1507,6 +1670,11 @@ E 步计算 $r_{dvk}=\theta_{dk}\phi_{kv}/\sum_l\theta_{dl}\phi_{lv}$；M 步令
 
 习题：在一个三篇短文语料上计算词频与 TF--IDF；检验 PLSA 更新后的归一化；说明 NMF 因子尺度不唯一；定义留出词的预测协议并比较平均负对数似然及其指数——困惑度（perplexity）。更低困惑度不必对应更符合人工语义的主题。
 
+
+\fi
+
+\selectchapter{22}
+\ifcompilechapter
 \chapter{图数据、推荐与排序}
 \label{chap:ml-graphs}
 
@@ -1577,6 +1745,11 @@ $p_1=\frac12p_2+0.4$，$p_2=\frac12p_1+0.1$，故 $p=(0.6,0.4)^\top$。原始游
 
 习题：用残差 $\|T(p)-p\|_1$ 推导固定点误差上界 $\|T(p)-p\|_1/(1-\alpha)$；推导一个评分样本的因子梯度；解释热门物品基线的作用；设计只用过去交互预测未来推荐效果的评价协议。
 
+
+\fi
+
+\selectchapter{23}
+\ifcompilechapter
 \chapter{半监督、主动学习与迁移学习}
 \label{chap:ml-transfer}
 
@@ -1629,6 +1802,11 @@ $p_1=\frac12p_2+0.4$，$p_2=\frac12p_1+0.1$，故 $p=(0.6,0.4)^\top$。原始游
 
 习题：构造未标注簇结构误导分类的例子；设计按标签预算比较的主动学习曲线；区分协变量偏移、标签先验偏移和概念变化；解释为什么低熵伪标签仍可能系统性错误。
 
+
+\fi
+
+\selectchapter{24}
+\ifcompilechapter
 \chapter{强化学习导论}
 \label{chap:ml-rl}
 
@@ -1696,6 +1874,11 @@ $\nabla_\theta\mathbb E_\theta G_0=\mathbb E_\theta[G_0\sum_t\nabla_\theta\log\p
 
 习题：证明 $T^\pi$ 的压缩性；用两状态模型手算两轮价值迭代；说明离线强化学习仍需处理行动覆盖不足；设计把训练探索回报与固定策略评价回报分开报告的实验。
 
+
+\fi
+
+\selectchapter{25}
+\ifcompilechapter
 \chapter{综合实验与可靠机器学习实践}
 \label{chap:ml-practice}
 
@@ -1744,8 +1927,13 @@ $\nabla_\theta\mathbb E_\theta G_0=\mathbb E_\theta[G_0\sum_t\nabla_\theta\log\p
 
 运行后监测输入质量、预测分布、实际有标签效果及关键分组表现。输入变化不等于效果一定下降，标签到达较慢时也不能立即确认模型仍然有效；重新训练和替换模型应使用保留的评价协议。完成全书学习的标准，是能够为一个新任务陈述假设、选择基线、推导核心更新、设计可信评价并解释失败原因，而不只是调用更多算法。
 
+
+\fi
 \appendix
 
+
+\selectchapter[1]{26}
+\ifcompilechapter
 \chapter{统一记号与常用计算}
 \label{app:ml-notation}
 
@@ -1778,18 +1966,23 @@ $\nabla_\theta\mathbb E_\theta G_0=\mathbb E_\theta[G_0\sum_t\nabla_\theta\log\p
  \nabla_w\frac12\|Aw-y\|^2=A^\top(Aw-y),\qquad
  \nabla_w(w^\top Bw)=(B+B^\top)w.
 \]
-第二式只有在 $B$ 对称时才简化为 $2Bw$。若 $g$ 是向量函数，链式法则为 $\nabla(F\circ g)=J_g^\top\nabla F$，推导与维度约定见第\ref{chap:ml-linear-algebra}章。对矩阵参数，梯度由标量微分中对应系数读出，不应省略转置核对。
+第二式只有在 $B$ 对称时才简化为 $2Bw$。若 $g$ 是向量函数，链式法则为 $\nabla(F\circ g)=J_g^\top\nabla F$，推导与维度约定见\crosschapterref{2}{第\ref{chap:ml-linear-algebra}章}{“线性代数与微积分工具”一章}。对矩阵参数，梯度由标量微分中对应系数读出，不应省略转置核对。
 
-Bernoulli 负对数似然可稳定写为 $\log(1+e^a)-ya$，关于分数 $a$ 的梯度是 $\sigma(a)-y$；Softmax 交叉熵关于分数向量的梯度是 $p-e_y$。一批样本取平均时，参数梯度也必须相应除以样本数。概率预测来自分布模型，决策还需结合损失矩阵，见第\ref{chap:ml-logistic}、\ref{chap:ml-generative}章。
+Bernoulli 负对数似然可稳定写为 $\log(1+e^a)-ya$，关于分数 $a$ 的梯度是 $\sigma(a)-y$；Softmax 交叉熵关于分数向量的梯度是 $p-e_y$。一批样本取平均时，参数梯度也必须相应除以样本数。概率预测来自分布模型，决策还需结合损失矩阵，见第\crosschapterref{8}{\ref{chap:ml-logistic}}{“感知机、逻辑回归与最大熵”中的相关内容}、\crosschapterref{9}{\ref{chap:ml-generative}}{“贝叶斯决策与概率生成分类”中的相关内容}章。
 
 若 $F$ 梯度 $L$-Lipschitz，梯度下降满足
 $F(\theta-\eta\nabla F(\theta))\leq F(\theta)-\eta(1-L\eta/2)\|\nabla F(\theta)\|^2$；
 若迭代映射 $T$ 以系数 $0\leq c<1$ 压缩，则其固定点 $u^*$ 满足
 $\|u-u^*\|\leq\|u-Tu\|/(1-c)$。
-第一式用于判断步长导致的下降，第二式用于把计算残差转为解误差；二者的假设不可互换，分别见第\ref{chap:ml-optimization}、\ref{chap:ml-graphs}和\ref{chap:ml-rl}章。
+第一式用于判断步长导致的下降，第二式用于把计算残差转为解误差；二者的假设不可互换，分别见第\crosschapterref{4}{\ref{chap:ml-optimization}}{“机器学习中的优化方法”中的相关内容}、\crosschapterref{22}{\ref{chap:ml-graphs}}{“图数据、推荐与排序”中的相关内容}和\crosschapterref{24}{\ref{chap:ml-rl}}{“强化学习导论”中的相关内容}章。
 
-当 $Z_1,\ldots,Z_n$ 独立同分布且方差有限，$\operatorname{Var}(n^{-1}\sum_iZ_i)=\operatorname{Var}(Z_1)/n$；若存在相关性，还须加上全部非对角协方差项。因而模型平均、重复实验和链采样中的“样本数”不能直接互换，相关说明见第\ref{chap:ml-ensembles}、\ref{chap:ml-bayesian}章。
+当 $Z_1,\ldots,Z_n$ 独立同分布且方差有限，$\operatorname{Var}(n^{-1}\sum_iZ_i)=\operatorname{Var}(Z_1)/n$；若存在相关性，还须加上全部非对角协方差项。因而模型平均、重复实验和链采样中的“样本数”不能直接互换，相关说明见第\crosschapterref{12}{\ref{chap:ml-ensembles}}{“集成学习”中的相关内容}、\crosschapterref{20}{\ref{chap:ml-bayesian}}{“贝叶斯学习与近似推断”中的相关内容}章。
 
+
+\fi
+
+\selectchapter[2]{27}
+\ifcompilechapter
 \chapter{方法比较与学习自检}
 \label{app:ml-methods}
 
@@ -1818,6 +2011,11 @@ $\|u-u^*\|\leq\|u-Tu\|/(1-c)$。
 
 对每一方法，要求能独立回答五个问题：输入输出是什么，模型假设是什么，优化或推断目标是什么，算法怎样从初始化达到停止，结论如何在新数据上检验。进一步要求完成一个手算例题、一个维度与梯度检查、一个失败反例和一个公平的基线比较。能够调用软件只表明完成了计算操作，能够解释前提、误差来源与失败边界才表明理解了方法。
 
+
+\fi
+
+\selectchapter[3]{28}
+\ifcompilechapter
 \chapter{现有分章材料与全书的对应关系}
 \label{app:ml-materials}
 
@@ -1829,28 +2027,28 @@ $\|u-u^*\|\leq\|u-Tu\|/(1-c)$。
   分章材料 & 现有主题 & 本书对应位置 \\
   \midrule
   \endhead
-  第 1 章 & 统计学习与监督学习概论 & 第\ref{chap:ml-tasks}、\ref{chap:ml-evaluation}、\ref{chap:ml-generalization}章。\\
-  第 2 章 & 感知机 & 第\ref{chap:ml-logistic}章。\\
-  第 3 章 & $k$ 近邻法 & 第\ref{chap:ml-neighbors}章。\\
-  第 4 章 & 朴素贝叶斯法 & 第\ref{chap:ml-generative}章。\\
-  第 5 章 & 决策树 & 第\ref{chap:ml-trees}章。\\
-  第 6 章 & 逻辑回归与最大熵模型 & 第\ref{chap:ml-logistic}章。\\
-  第 7 章 & 支持向量机 & 第\ref{chap:ml-kernels}章。\\
-  第 8 章 & 提升方法 & 第\ref{chap:ml-ensembles}章。\\
-  第 9 章 & EM 算法及其推广 & 第\ref{chap:ml-em}章。\\
-  第 10 章 & 隐马尔可夫模型 & 第\ref{chap:ml-graphical}章。\\
-  第 11 章 & 条件随机场 & 第\ref{chap:ml-graphical}章。\\
-  第 12 章 & 监督学习方法总结 & 第二篇与附录\ref{app:ml-methods}。\\
-  第 13 章 & 无监督学习概论 & 第三篇与第\ref{chap:ml-tasks}章。\\
-  第 14 章 & 聚类方法 & 第\ref{chap:ml-clustering}章。\\
-  第 15 章 & 奇异值分解 & 第\ref{chap:ml-linear-algebra}、\ref{chap:ml-dimension}章。\\
-  第 16 章 & 主成分分析 & 第\ref{chap:ml-dimension}章。\\
-  第 17 章 & 潜在语义分析 & 第\ref{chap:ml-text}章。\\
-  第 18 章 & 概率潜在语义分析 & 第\ref{chap:ml-text}章。\\
-  第 19 章 & 马尔可夫链蒙特卡罗法 & 第\ref{chap:ml-bayesian}章。\\
-  第 20 章 & 潜在狄利克雷分配 & 第\ref{chap:ml-text}章。\\
-  第 21 章 & PageRank 算法 & 第\ref{chap:ml-graphs}章。\\
-  第 22 章 & 无监督学习方法总结 & 第三篇、第五篇与附录\ref{app:ml-methods}。\\
+  第 1 章 & 统计学习与监督学习概论 & 第\crosschapterref{1}{\ref{chap:ml-tasks}}{“机器学习的任务与基本概念”中的相关内容}、\crosschapterref{5}{\ref{chap:ml-evaluation}}{“数据处理、模型评估与选择”中的相关内容}、\crosschapterref{6}{\ref{chap:ml-generalization}}{“泛化、过拟合与正则化”中的相关内容}章。\\
+  第 2 章 & 感知机 & \crosschapterref{8}{第\ref{chap:ml-logistic}章}{“感知机、逻辑回归与最大熵”一章}。\\
+  第 3 章 & $k$ 近邻法 & \crosschapterref{10}{第\ref{chap:ml-neighbors}章}{“近邻方法与非参数估计”一章}。\\
+  第 4 章 & 朴素贝叶斯法 & \crosschapterref{9}{第\ref{chap:ml-generative}章}{“贝叶斯决策与概率生成分类”一章}。\\
+  第 5 章 & 决策树 & \crosschapterref{11}{第\ref{chap:ml-trees}章}{“决策树”一章}。\\
+  第 6 章 & 逻辑回归与最大熵模型 & \crosschapterref{8}{第\ref{chap:ml-logistic}章}{“感知机、逻辑回归与最大熵”一章}。\\
+  第 7 章 & 支持向量机 & \crosschapterref{13}{第\ref{chap:ml-kernels}章}{“核方法与支持向量机”一章}。\\
+  第 8 章 & 提升方法 & \crosschapterref{12}{第\ref{chap:ml-ensembles}章}{“集成学习”一章}。\\
+  第 9 章 & EM 算法及其推广 & \crosschapterref{16}{第\ref{chap:ml-em}章}{“隐变量模型与期望最大化算法”一章}。\\
+  第 10 章 & 隐马尔可夫模型 & \crosschapterref{19}{第\ref{chap:ml-graphical}章}{“概率图模型与序列学习”一章}。\\
+  第 11 章 & 条件随机场 & \crosschapterref{19}{第\ref{chap:ml-graphical}章}{“概率图模型与序列学习”一章}。\\
+  第 12 章 & 监督学习方法总结 & 第二篇与附录\crosschapterref{27}{\ref{app:ml-methods}}{“方法比较与学习自检”中的相关内容}。\\
+  第 13 章 & 无监督学习概论 & 第三篇与\crosschapterref{1}{第\ref{chap:ml-tasks}章}{“机器学习的任务与基本概念”一章}。\\
+  第 14 章 & 聚类方法 & \crosschapterref{14}{第\ref{chap:ml-clustering}章}{“聚类分析”一章}。\\
+  第 15 章 & 奇异值分解 & 第\crosschapterref{2}{\ref{chap:ml-linear-algebra}}{“线性代数与微积分工具”中的相关内容}、\crosschapterref{15}{\ref{chap:ml-dimension}}{“降维、主成分分析与矩阵分解”中的相关内容}章。\\
+  第 16 章 & 主成分分析 & \crosschapterref{15}{第\ref{chap:ml-dimension}章}{“降维、主成分分析与矩阵分解”一章}。\\
+  第 17 章 & 潜在语义分析 & \crosschapterref{21}{第\ref{chap:ml-text}章}{“文本表示与主题模型”一章}。\\
+  第 18 章 & 概率潜在语义分析 & \crosschapterref{21}{第\ref{chap:ml-text}章}{“文本表示与主题模型”一章}。\\
+  第 19 章 & 马尔可夫链蒙特卡罗法 & \crosschapterref{20}{第\ref{chap:ml-bayesian}章}{“贝叶斯学习与近似推断”一章}。\\
+  第 20 章 & 潜在狄利克雷分配 & \crosschapterref{21}{第\ref{chap:ml-text}章}{“文本表示与主题模型”一章}。\\
+  第 21 章 & PageRank 算法 & \crosschapterref{22}{第\ref{chap:ml-graphs}章}{“图数据、推荐与排序”一章}。\\
+  第 22 章 & 无监督学习方法总结 & 第三篇、第五篇与附录\crosschapterref{27}{\ref{app:ml-methods}}{“方法比较与学习自检”中的相关内容}。\\
   \bottomrule
 \end{longtable}
 
@@ -1861,6 +2059,8 @@ $\|u-u^*\|\leq\|u-Tu\|/(1-c)$。
 学习理论的进一步证明可查阅文献\cite{ml-uml}，凸优化与对偶可查阅文献\cite{ml-convex}，概率模型与推断可查阅文献\cite{ml-prml}。统计建模方法的系统比较见文献\cite{ml-esl}；有限链与混合性质见文献\cite{ml-markov}，表格 Q-learning 的原始收敛论证见文献\cite{ml-qlearning}。这些来源用于补充本书明确标注的证明范围，不表示本书复现了其中全部理论和实验。
 
 
+
+\fi
 \backmatter
 \begin{thebibliography}{99}
 

@@ -6,11 +6,56 @@
 \makeatother
 \usepackage{researchnotes}
 
+% 编译章节列表：{0} 编译全文；{3} 只编译第三章；{2,3} 或 {2,5} 编译多章。
+% 正文章号范围为 1--22，多个章号用半角逗号分隔，仍按原书顺序输出。
+% 列表中含 0 时编译全文。日常只需修改下面这一行。
+\newcommand{\CompileChapter}{0}
+
+% 以下条件由章节列表自动确定，无须手动切换，也无须拆分章节文件。
+\makeatletter
+\@for\notes@chapter:=\CompileChapter\do{%
+    \expandafter\let\csname notes@selected@\number\notes@chapter\endcsname\@empty
+}
+\newif\ifcompileallchapters
+\@ifundefined{notes@selected@0}
+    {\compileallchaptersfalse}
+    {\compileallchapterstrue}
+\newif\ifcompilechapter
+% 可选参数是本章在正文或附录内的序号，必选参数是章节列表中的序号。
+\newcommand{\selectchapter}[2][0]{%
+    \compilechapterfalse
+    \ifcompileallchapters
+        \compilechaptertrue
+    \else
+        \@ifundefined{notes@selected@#2}{}{%
+            \compilechaptertrue
+            \ifnum#1=0\relax
+                \setcounter{chapter}{\numexpr#2-1\relax}%
+            \else
+                \setcounter{chapter}{\numexpr#1-1\relax}%
+            \fi
+        }%
+    \fi
+}
+% 参数依次为目标章号、编号引用、文字指引；目标章入选时保留编号引用。
+\newcommand{\crosschapterref}[3]{%
+    \ifcompileallchapters
+        #2%
+    \else
+        \@ifundefined{notes@selected@#1}{#3}{#2}%
+    \fi
+}
+\makeatother
+
+
+
 \title{机器学习教材（李航）笔记}
 \author{}
 \date{}
 
 \begin{document}
+\ifcompileallchapters
+
 
 \maketitle
 \tableofcontents
@@ -19,6 +64,11 @@
 % PDF 第 1--32 页（原书第 3--34 页）。节与小节沿用教材顺序；
 % 推导、条件说明与另拟例题为学习整理，不将教材示意图视为数值实验。
 
+
+\fi
+
+\selectchapter{1}
+\ifcompilechapter
 \chapter{统计学习及监督学习概论}
 \label{chap:lh-learning-overview}
 
@@ -673,6 +723,11 @@
 
 % 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-2.pdf，正文第 35--47 页。
 
+
+\fi
+
+\selectchapter{2}
+\ifcompilechapter
 \chapter{感知机}
 \label{chap:lh-perceptron}
 
@@ -1228,6 +1283,11 @@ w^\top c+b
 
 % 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-3.pdf，第 49--58 页。
 
+
+\fi
+
+\selectchapter{3}
+\ifcompilechapter
 \chapter{$k$ 近邻法}
 \label{chap:lihang-knn}
 
@@ -1487,6 +1547,11 @@ $k=2$ 时，只要 $x_1$ 位于两个最近邻中，两类便各得一票，按�
 两种 $k$ 的边界不同，但仅凭这三个训练样本及几何划分，无法断定哪种规则对未知分布的新样本更准确；还需独立验证或额外的分布假设。教材习题 3.2 的数值搜索已在例~\ref{ex:lihang-knn-kdtree-query} 完成，习题 3.3 的多近邻搜索则由第~\ref{subsec:lihang-knn-kdtree-search} 小节的候选最大堆给出。
 \end{solve}
 
+
+\fi
+
+\selectchapter{4}
+\ifcompilechapter
 \chapter{朴素贝叶斯法}
 \label{chap:lihang-naive-bayes}
 
@@ -1844,6 +1909,11 @@ $y_i$ & $-1$ & $-1$ & 1 & 1 & $-1$ & $-1$ & $-1$ & 1 & 1 & 1 & 1 & 1 & 1 & 1 & $
 
 % 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-5.pdf。
 % 覆盖教材第 5 章正文及习题；章、节编号随全文自动生成。
+
+\fi
+
+\selectchapter{5}
+\ifcompilechapter
 \chapter{决策树}
 \label{ch:lihang-decision-tree}
 
@@ -2430,6 +2500,11 @@ CART 分类树的输入为当前训练集与预先规定的停止条件。在每
 % 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-6.pdf。
 % 对应教材第 6 章，原书第 91--110 页；本文件采用自动章节编号。
 
+
+\fi
+
+\selectchapter{6}
+\ifcompilechapter
 \chapter{逻辑斯谛回归与最大熵模型}
 \label{ch:lh-logistic-maxent}
 
@@ -2990,6 +3065,11 @@ H_{k+1}=H_k+\frac{s_ks_k^{\mathsf T}}{s_k^{\mathsf T}r_k}
 % 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-7.pdf。
 % 对应教材第 7 章，PDF 第 1--44 页，书页 111--154；本笔记独立编排章节编号。
 
+
+\fi
+
+\selectchapter{7}
+\ifcompilechapter
 \chapter{支持向量机}
 \label{chap:lihang-svm}
 
@@ -3673,6 +3753,11 @@ $E_i$ 是实值分数与数值标签之差，不是分类错误指示，也不�
 硬间隔通过严格分离约束确定最大几何间隔，软间隔以合页损失允许违反，核函数改变特征空间的内积结构，SMO 则负责数值求解同一个有限维对偶问题。学习时应分别检查数据是否满足建模条件、核是否半正定、参数与截距是否满足 KKT 条件，以及最终模型在独立数据上的表现；其中任何一项都不能由另一项自动代替。
 
 % ===== 李航教材第 8 章：提升方法（对应 机器学习-8.pdf） =====
+
+\fi
+
+\selectchapter{8}
+\ifcompilechapter
 \chapter{提升方法}
 \label{chap:lh-boosting}
 
@@ -4166,6 +4251,11 @@ $e_m=0$ 时，式~\eqref{eq:lh-boost-alpha} 给出无穷大的系数，不能作
 
 % 研读来源：机器学习/textbooks/机器学习（分章原文）/机器学习-9.pdf，全部 18 页。
 % 本章对应教材第 9 章；笔记中的章节、公式和定理均按本文结构自动编号。
+
+\fi
+
+\selectchapter{9}
+\ifcompilechapter
 \chapter{EM 算法及其推广}
 \label{chap:lihang-em}
 
@@ -4727,6 +4817,11 @@ EM 将观测似然的优化分解为后验计算和完全数据条件期望的�
 
 % 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-10.pdf。
 % 对应教材第 10 章，原书第 193--214 页；本文件采用自动章节编号。
+
+\fi
+
+\selectchapter{10}
+\ifcompilechapter
 \chapter{隐马尔可夫模型}
 \label{chap:lh-hmm}
 
@@ -5289,6 +5384,11 @@ $\max_j\delta_T(j)$ 本身不是路径的后验概率。
 
 % 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-12.pdf。
 % 覆盖教材第 12 章正文（原书第 237--241 页）；随后空白页与无监督学习篇扉页不另立正文。
+
+\fi
+
+\selectchapter{11}
+\ifcompilechapter
 \chapter{条件随机场}
 \label{chap:lihang-crf}
 
@@ -5863,6 +5963,11 @@ $s_4(b,x,i)$ & $i=3,\ b=2$ & $\mu_4=0.5$\\
 
 本章的计算围绕同一个局部得分展开：对所有路径求和得到配分函数，固定结点或边后求和得到边缘概率，对局部特征加权求和得到学习梯度所需的期望，对路径得分取最大值则得到维特比预测。教材习题 11.1 的因子分解已在例~\ref{ex:lihang-crf-four-node-cliques} 给出，习题 11.2 的通用边界恒等式由命题~\ref{prop:lihang-crf-partition-split} 证明，习题 11.3 的学习更新为式~\eqref{eq:lihang-crf-gradient-descent}，习题 11.4 的完整计算见例~\ref{ex:lihang-crf-exercise-paths}。应同时记住三类条件：无向图定理的严格正性、迭代尺度法的非负特征假设，以及前向--后向和维特比递推中一致的首尾边界约定。
 
+
+\fi
+
+\selectchapter{12}
+\ifcompilechapter
 \chapter{监督学习方法总结}
 \label{ch:lh-supervised-summary}
 
@@ -6149,6 +6254,11 @@ EM 算法 & 含隐变量概率模型的参数估计；无独立的预测模型 &
 % 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-13.pdf。
 % 对应教材第 13 章，原书第 245--254 页；本文件沿用自动章节编号。
 % 原文部分图表的文本层不完整，以下不转录其数值，计算例题均另行构造。
+
+\fi
+
+\selectchapter{13}
+\ifcompilechapter
 \chapter{无监督学习概论}
 \label{ch:lh-unsupervised-overview}
 
@@ -6493,6 +6603,11 @@ q^{(t+1)}=\alpha Pq^{(t)}+(1-\alpha)v.
 
 % 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-14.pdf。
 % 对应教材第 14 章，原书第 255--269 页；本文件沿用自动章节编号。
+
+\fi
+
+\selectchapter{14}
+\ifcompilechapter
 \chapter{聚类方法}
 \label{ch:lh-clustering}
 
@@ -6870,6 +6985,11 @@ e^{-\|x_i-c_\ell\|_2^2/(2\sigma^2)}\right)
 
 % 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-15.pdf。
 % 对应教材第 15 章，原书第 271--295 页；沿用本文的自动章节编号。
+
+\fi
+
+\selectchapter{15}
+\ifcompilechapter
 \chapter{奇异值分解}
 \label{ch:lh-svd}
 
@@ -7260,6 +7380,11 @@ a_{ij}\approx (A_k)_{ij}=Z_{i,:}H_{j,:}^{\mathsf T}.
 
 % 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-16.pdf。
 % 对应教材第 16 章，原书第 297--320 页；沿用本文件的自动章节编号。
+
+\fi
+
+\selectchapter{16}
+\ifcompilechapter
 \chapter{主成分分析}
 \label{ch:lh-pca}
 
@@ -7682,6 +7807,11 @@ C_M=\frac1{n-1}\mathbf M\mathbf M^{\mathsf T}
 
 % 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-17.pdf。
 % 对应教材第 17 章，原书第 321--338 页；章节、公式和定理均自动编号。
+
+\fi
+
+\selectchapter{17}
+\ifcompilechapter
 \chapter{潜在语义分析}
 \label{ch:lh-lsa}
 
@@ -7811,7 +7941,7 @@ y_j=U_k^{\mathsf T}x_j
 \end{equation}
 其中 $v_{j\ell}$ 是右奇异向量 $v_\ell$ 的第 $j$ 个分量。坐标等式对原始 $X$ 精确成立，而 $x_j\approx\widehat x_j$ 一般只是近似；只有保留了全部非零奇异方向时，才能把整个重构等式写成 $X=X_k$。
 
-由定理~\ref{thm:lh-svd-best-approximation}，截断 SVD 在给定秩约束下使平方重构误差最小，具体为
+由\crosschapterref{15}{定理~\ref{thm:lh-svd-best-approximation}}{截断 SVD 的最优性定理}，截断 SVD 在给定秩约束下使平方重构误差最小，具体为
 \begin{equation}
 \min_{\operatorname{rank}(B)\leq k}\|X-B\|_F^2
 =\|X-X_k\|_F^2=\sum_{\ell=k+1}^r\sigma_\ell^2.
@@ -8060,6 +8190,11 @@ W\odot\nabla_WJ=0,\qquad H\odot\nabla_HJ=0,
 
 % 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-19.pdf。
 % 对应教材第 19 章，原书第 351--383 页；保留五节及其主要小节。
+
+\fi
+
+\selectchapter{18}
+\ifcompilechapter
 \chapter{马尔可夫链蒙特卡罗法}
 \label{ch:lh-mcmc}
 
@@ -8592,6 +8727,11 @@ p(z_k\mid z_{-k},a,\theta,D)
 
 % 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-18.pdf。
 % 对应教材第 18 章，原书第 339--349 页；沿用本文件的自动章节编号。
+
+\fi
+
+\selectchapter{19}
+\ifcompilechapter
 \chapter{概率潜在语义分析}
 \label{ch:lh-plsa}
 
@@ -9001,6 +9141,11 @@ Q_{\mathrm{co}}=\sum_k\widetilde c_k^{(t)}\log\rho_k
 % 变分推导补充核对：Blei, Ng, Jordan, Latent Dirichlet Allocation,
 % JMLR 3 (2003), 993--1022, §§5.1、5.3--5.4 及附录 A。
 % https://www.jmlr.org/papers/volume3/blei03a/blei03a.pdf
+
+\fi
+
+\selectchapter{20}
+\ifcompilechapter
 \chapter{潜在狄利克雷分配}
 \label{ch:lh-lda}
 
@@ -9536,6 +9681,11 @@ c^{\mathrm H}=\frac{\sum_kg_k/a_k^{\mathrm H}}
 
 稠密保存所有 $\eta,\gamma,\phi$ 需 $O(IK+MK+KV)$ 空间；固定全局参数进行 E 步时，可以逐文档处理并只累加充分统计量，将工作空间降为 $O(K\max_mN_m+MK+KV)$，不计输入语料的 $O(I)$ 存储。完整模型还需保存 $K\times V$ 的 $\lambda$，量级不变。抽样误差与变分近似误差不同：增加平稳链的样本量可以降低蒙特卡罗误差，而增加平均场迭代主要改善受限目标的优化，不能消除分布族限制带来的偏差；比较两种方法时应同时说明模型版本、超参数、计算预算和评价指标。
 
+
+\fi
+
+\selectchapter{21}
+\ifcompilechapter
 \chapter{无监督学习方法总结}
 \label{chap:lh-unsupervised-summary}
 
@@ -9718,7 +9868,7 @@ PLSA & $\sum_{m,n}d_{mn}\log\bigl(d_{mn}/(UV)_{mn}\bigr)$ & $U,V\geq0$，$U$ 各
     D_r=L_r\Sigma_rR_r^{\mathsf T}=UV,\qquad
     U=L_r,\quad V=\Sigma_rR_r^{\mathsf T}.
 \end{equation}
-由定理~\ref{thm:lh-svd-best-approximation} 的最佳低秩近似性质，当 $r$ 不超过矩阵秩时直接应用该定理；当 $r$ 超过矩阵秩时补零奇异值并以 $D$ 本身重构，统一得到
+由\crosschapterref{15}{定理~\ref{thm:lh-svd-best-approximation}}{截断 SVD 的最优性定理} 的最佳低秩近似性质，当 $r$ 不超过矩阵秩时直接应用该定理；当 $r$ 超过矩阵秩时补零奇异值并以 $D$ 本身重构，统一得到
 \[
     \min_{\operatorname{rank}(Q)\leq r}\|D-Q\|_F^2
     =\sum_{j>r}\sigma_j^2,
@@ -9825,6 +9975,11 @@ PLSA 中 $p_1=p_2=1/2$，只有一个话题时两篇文档的词分布必须相�
 本章各方法的联系可以据此把握：矩阵分解提供低维表示，概率模型说明数据和隐变量怎样生成，学习策略规定需要优化或推断什么，算法决定如何近似完成计算。判断两种方法是否等价，应逐一核对数据表示、损失、约束和概率规范化；判断算法保证，应明确它针对目标值、参数、分布还是样本平均。共同使用低维成分或同一种求解工具，都不足以跳过这些条件。
 
 
+
+\fi
+
+\selectchapter{22}
+\ifcompilechapter
 \chapter{PageRank 算法}
 \label{chap:lihang-pagerank}
 
@@ -10336,4 +10491,6 @@ $S^0=I$ 满足要求。若 $S^k$ 元素非负，则 $S^{k+1}=SS^k$ 的每个元�
 教材还提及个性化 PageRank（personalized PageRank）、按主题调整的 PageRank 和其他链接分析方法。与本章直接相关的扩展是将均匀重启分布 $u$ 换成给定的概率向量 $v$，并明确悬挂列的补全分布。对任意已补成列随机矩阵的 $M$，方程 $R=dMR+(1-d)v$ 在 $0<d<1$ 时仍以同样的 $1$ 范数收缩率保证唯一概率解；若 $v$ 各分量严格为正，则该解也严格为正。允许 $v$ 含零分量时，唯一性依然成立，但不能无条件断言每个结点都获得正权重。这一扩展进一步说明，PageRank 取决于图结构和指定的游走规则，其“重要度”应在模型含义下理解。
 
 
+
+\fi
 \end{document}

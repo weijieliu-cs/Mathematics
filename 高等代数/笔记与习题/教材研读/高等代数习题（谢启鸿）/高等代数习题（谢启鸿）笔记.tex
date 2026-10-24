@@ -7,6 +7,49 @@
 \makeatother
 \usepackage{researchnotes}
 
+% 编译章节列表：{0} 编译全文；{3} 只编译第三章；{2,3} 或 {2,5} 编译多章。
+% 正文章号范围为 1--10，多个章号用半角逗号分隔，仍按原书顺序输出。
+% 列表中含 0 时编译全文。日常只需修改下面这一行。
+\newcommand{\CompileChapter}{0}
+
+% 以下条件由章节列表自动确定，无须手动切换，也无须拆分章节文件。
+\makeatletter
+\@for\notes@chapter:=\CompileChapter\do{%
+    \expandafter\let\csname notes@selected@\number\notes@chapter\endcsname\@empty
+}
+\newif\ifcompileallchapters
+\@ifundefined{notes@selected@0}
+    {\compileallchaptersfalse}
+    {\compileallchapterstrue}
+\newif\ifcompilechapter
+% 可选参数是本章在正文或附录内的序号，必选参数是章节列表中的序号。
+\newcommand{\selectchapter}[2][0]{%
+    \compilechapterfalse
+    \ifcompileallchapters
+        \compilechaptertrue
+    \else
+        \@ifundefined{notes@selected@#2}{}{%
+            \compilechaptertrue
+            \ifnum#1=0\relax
+                \setcounter{chapter}{\numexpr#2-1\relax}%
+            \else
+                \setcounter{chapter}{\numexpr#1-1\relax}%
+            \fi
+        }%
+    \fi
+}
+% 参数依次为目标章号、编号引用、文字指引；目标章入选时保留编号引用。
+\newcommand{\crosschapterref}[3]{%
+    \ifcompileallchapters
+        #2%
+    \else
+        \@ifundefined{notes@selected@#1}{#3}{#2}%
+    \fi
+}
+\makeatother
+
+
+
 
 \title{高等代数习题（谢启鸿）笔记}
 \author{}
@@ -14,6 +57,8 @@
 
 
 \begin{document}
+\ifcompileallchapters
+
 
 
 \maketitle
@@ -21,6 +66,11 @@
 \clearpage
 
 
+
+\fi
+
+\selectchapter{1}
+\ifcompilechapter
 \chapter{行列式}
 \label{chap:determinants}
 
@@ -1075,6 +1125,11 @@ D=\frac{\prod_i x_i-\prod_i(x_i-a)}{a}V_n(x_1,\ldots,x_n).
 
 本章的模板都应连同条件一起使用：展开式中的余子式来自哪一个原矩阵，行列变换引用的是原行列还是更新后的行列，提取因子是否被误当成除法，以及含参数公式是否覆盖零值和重根，都会直接影响结论。把结果代回一阶或二阶、检查对角或零参数情形，可以发现许多符号错误；这些核对帮助检验推导，但不能代替对一般阶数的证明。
 
+
+\fi
+
+\selectchapter{2}
+\ifcompilechapter
 \chapter{矩阵}
 \label{chap:matrices}
 
@@ -2045,6 +2100,11 @@ $b=1$ 即退化为普通循环矩阵。这里定义的 $b$-循环矩阵第一行
 
 本章方法的共同点是先识别可以保留的信息：单位向量与基础矩阵提取行列及元素，初等变换保留秩和可逆性，迹提取乘积中能循环比较的标量，矩阵分解暴露中间维数，分块消元把高维问题降到舒尔补，而摄动只把满足连续性与条件保持要求的结论传到奇异情形。选择方法时应先检查这些条件，再进行具体运算。
 
+
+\fi
+
+\selectchapter{3}
+\ifcompilechapter
 \chapter{线性空间与线性方程组}
 \label{chap:linear-spaces-systems}
 
@@ -3190,6 +3250,11 @@ ax+by+c=0,\qquad bx+cy+a=0,\qquad cx+ay+b=0.
 第二因子是三个差的平方和的一半，在三条线不同的条件下严格为正，所以条件恰为 $a+b+c=0$。系数秩为 $2$ 还保证公共点唯一。
 \end{solve}
 
+
+\fi
+
+\selectchapter{4}
+\ifcompilechapter
 \chapter{线性映射}
 \label{chap:xie-ex-linear-maps}
 
@@ -3999,6 +4064,11 @@ $P^2=P$ 当且仅当 $P$ 是沿其核到其像的投影。此时
 % 教材第 4 章（高代习题-4.pdf）整理内容至此结束。
 
 % BEGIN textbook-xie-exercises-ch5
+
+\fi
+
+\selectchapter{5}
+\ifcompilechapter
 \chapter{多项式}
 \label{chap:polynomials}
 
@@ -5121,6 +5191,11 @@ Sylvester 矩阵奇异，当且仅当存在不全为零的 $u,v$，满足 $\deg 
 % END textbook-xie-exercises-ch5
 
 % 教材来源：高代习题-6.pdf，第6章，印刷页287--353；按主题整合，不逐题转录。
+
+\fi
+
+\selectchapter{6}
+\ifcompilechapter
 \chapter{特征值}
 \label{chap:xie-ex-eig-eigenvalues}
 
@@ -6222,6 +6297,11 @@ A^nv+K(c_1,\ldots,c_n)^{\mathsf T}=0,
 将例~\ref{ex:xie-ex-eig-commutator-nilpotent} 用于交换子 $D=DE-ED$，因 $D$ 与自身可交换，得到 $D$ 幂零。故 $W=\ker D\ne0$；由 $DE=ED+D$ 可知 $W$ 对 $E$ 不变。取 $E|_W$ 的特征向量，它就是 $D,E$ 的公共特征向量。在对应一维不变子空间的商空间上，仍有 $\overline D\,\overline E-\overline E\,\overline D=\overline D$。对维数归纳，得到共同上三角基，从而也同时上三角化 $A,B$。
 \end{solve}
 
+
+\fi
+
+\selectchapter{7}
+\ifcompilechapter
 \chapter{相似标准型}
 \label{chap:xie-ex-similarity}
 
@@ -7075,6 +7155,11 @@ $F((\lambda-a)^2+b^2)$ 与 $R(a,b)$ 有相同的二次不可约特征多项式�
 % BEGIN textbook-xie-exercises-ch8
 % 教材来源：《高等代数习题（谢启鸿）》第8章，印刷页435--485；高代习题-8.pdf。
 % 按原书九节主题整合学习笔记；例题为选讲，非训练题逐题誊录。
+
+\fi
+
+\selectchapter{8}
+\ifcompilechapter
 \chapter{二次型}
 \label{chap:xie-ex-quadratic-forms}
 
@@ -7911,6 +7996,11 @@ $z^{\mathsf H}Az>0$，故 $|\lambda|\le1$。证明只使用特征向量，不要
 % BEGIN textbook-xie-exercises-ch9
 % 教材：高代习题-9.pdf，PDF 第 1--118 页，原书第 486--603 页。
 % 覆盖第 9 章各节；基础训练按知识点整合，不逐题抄录题目与答案。
+
+\fi
+
+\selectchapter{9}
+\ifcompilechapter
 \chapter{内积空间}
 \label{chap:xie-ip}
 
@@ -8974,6 +9064,11 @@ F(x)=\sum_{j=1}^n\langle F(x),F(e_j)\rangle F(e_j)
 % END textbook-xie-exercises-ch9
 
 
+
+\fi
+
+\selectchapter{10}
+\ifcompilechapter
 \chapter{双线性型}
 \label{chap:laex-bilinear}
 
@@ -9576,4 +9671,6 @@ $C$ 可逆同时说明 $A$ 非退化。这一过程每次先归一化一对向�
 
 本章的计算可以沿同一条路线检查：先写出两个变量各自所在的空间及其坐标，再确认换基是分别进行还是同时进行；涉及对偶时用评价恒等式确定映射方向，涉及非退化性时计算根子空间，涉及几何分解时检查限制是否非退化。交错型通过成对选基消去混合项，对称型通过非迷向方向分裂出正交补；这两种选基过程都依赖非退化限制，而不只依赖维数相加。
 
+
+\fi
 \end{document}

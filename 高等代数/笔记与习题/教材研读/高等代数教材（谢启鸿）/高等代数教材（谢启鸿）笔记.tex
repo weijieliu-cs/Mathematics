@@ -7,6 +7,49 @@
 \makeatother
 \usepackage{researchnotes}
 
+% 编译章节列表：{0} 编译全文；{3} 只编译第三章；{2,3} 或 {2,5} 编译多章。
+% 正文章号范围为 1--10，多个章号用半角逗号分隔，仍按原书顺序输出。
+% 列表中含 0 时编译全文。日常只需修改下面这一行。
+\newcommand{\CompileChapter}{0}
+
+% 以下条件由章节列表自动确定，无须手动切换，也无须拆分章节文件。
+\makeatletter
+\@for\notes@chapter:=\CompileChapter\do{%
+    \expandafter\let\csname notes@selected@\number\notes@chapter\endcsname\@empty
+}
+\newif\ifcompileallchapters
+\@ifundefined{notes@selected@0}
+    {\compileallchaptersfalse}
+    {\compileallchapterstrue}
+\newif\ifcompilechapter
+% 可选参数是本章在正文或附录内的序号，必选参数是章节列表中的序号。
+\newcommand{\selectchapter}[2][0]{%
+    \compilechapterfalse
+    \ifcompileallchapters
+        \compilechaptertrue
+    \else
+        \@ifundefined{notes@selected@#2}{}{%
+            \compilechaptertrue
+            \ifnum#1=0\relax
+                \setcounter{chapter}{\numexpr#2-1\relax}%
+            \else
+                \setcounter{chapter}{\numexpr#1-1\relax}%
+            \fi
+        }%
+    \fi
+}
+% 参数依次为目标章号、编号引用、文字指引；目标章入选时保留编号引用。
+\newcommand{\crosschapterref}[3]{%
+    \ifcompileallchapters
+        #2%
+    \else
+        \@ifundefined{notes@selected@#1}{#3}{#2}%
+    \fi
+}
+\makeatother
+
+
+
 
 \title{高等代数（谢启鸿）笔记}
 \author{}
@@ -14,6 +57,8 @@
 
 
 \begin{document}
+\ifcompileallchapters
+
 
 
 \maketitle
@@ -21,6 +66,11 @@
 \clearpage
 
 
+
+\fi
+
+\selectchapter{1}
+\ifcompilechapter
 \chapter{行列式}
 \label{chap:determinants}
 
@@ -1011,6 +1061,11 @@ $n=1$ 时结论就是 $a_{11}x_1=b_1$ 在 $a_{11}\ne0$ 时的解公式，以下�
 Laplace 展开适合所选几行或几列中零元素较多、只有少数子式可能非零的情形。一般的稠密行列式若取中间大小的 $k$，需要计算 $\binom{n}{k}$ 对子式，未必比消元更省计算；它的主要作用是按成组的行、列揭示行列式结构。按单行或单列展开、排列展开以及 Laplace 展开描述的是同一个行列式，只是组织各项的方式不同。
 
 
+
+\fi
+
+\selectchapter{2}
+\ifcompilechapter
 \chapter{矩阵}
 \label{chap:matrix}
 
@@ -1539,7 +1594,7 @@ $|A|\ne0$ 时，定理~\ref{thm:matrix-adjugate-inverse} 已给出逆阵。若 $
     D=\operatorname{diag}\left(\binom n0,\binom n1,\ldots,\binom nn\right),\qquad
     W_{kj}=b_j^{n-k}.
 \]
-指数为零的列或行取常数 $1$，不因参数为零而改变。$U$ 是范德蒙矩阵；把 $W$ 的行次序全部反转后，得到以 $b_0,\ldots,b_n$ 为参数的范德蒙矩阵的转置。反转 $n+1$ 行需要 $n(n+1)/2$ 次相邻交换。因此，由式~\eqref{eq:vandermonde-product} 与乘法定理，
+指数为零的列或行取常数 $1$，不因参数为零而改变。$U$ 是范德蒙矩阵；把 $W$ 的行次序全部反转后，得到以 $b_0,\ldots,b_n$ 为参数的范德蒙矩阵的转置。反转 $n+1$ 行需要 $n(n+1)/2$ 次相邻交换。因此，由\crosschapterref{1}{式~\eqref{eq:vandermonde-product}}{范德蒙行列式的乘积公式} 与乘法定理，
 \[
     |M|=\left(\prod_{k=0}^{n}\binom nk\right)
         \prod_{0\leq i<j\leq n}(a_j-a_i)(b_i-b_j).
@@ -1879,6 +1934,11 @@ $A$ 可逆时，作分块倍加，等价于左乘行列式为 $1$ 的矩阵：
 
 
 
+
+\fi
+
+\selectchapter{3}
+\ifcompilechapter
 \chapter{线性空间}
 \label{chap:linear-spaces}
 
@@ -2819,6 +2879,11 @@ $S_0$ 确实是子空间：它包含零向量，且 $Au=Av=0$ 时，$A(au+bv)=aA
 \end{solve}
 
 
+
+\fi
+
+\selectchapter{4}
+\ifcompilechapter
 \chapter{线性映射}
 \label{chap:linear-maps}
 
@@ -3473,6 +3538,11 @@ $T(\ker T)=\{0\}\subseteq\ker T$，且 $T(\operatorname{Im}T)\subseteq T(V)=\ope
 这些结论不需要有限维假设；相比之下，若要由 $T$ 可逆且 $W$ 不变推出 $T(W)=W$，就需要额外条件。$W$ 有限维时，$T|_W$ 是单射，由推论~\ref{cor:linear-map-injective-surjective-rank} 也是满射，故 $T(W)=W$，进而 $T^{-1}(W)=W$。
 
 
+
+\fi
+
+\selectchapter{5}
+\ifcompilechapter
 \chapter{多项式}
 \label{chap:polynomials}
 
@@ -4304,6 +4374,11 @@ $f,g\in\mathbb K[x]$ 互素，当且仅当存在 $u,v\in\mathbb K[x]$ 使 $uf+vg
 \end{solve}
 
 
+
+\fi
+
+\selectchapter{6}
+\ifcompilechapter
 \chapter{特征值}
 \label{chap:xie-eigenvalues}
 
@@ -5274,6 +5349,11 @@ $R_i=0$ 时，$D_i$ 退化为单点。$D_i$ 称为第 $i$ 个\emph{戈尔斯哥�
 两个闭圆盘相交或相切时，都属于同一个连通分支；只有与其余圆盘分离的圆盘组才能单独使用计数结论。回到例~\ref{ex:xie-gershgorin-four}，$D_3$ 中恰有一个特征值，其余三个在 $D_1\cup D_2\cup D_4$ 中。由于 $A$ 是实矩阵，非实特征值成共轭对，而 $D_3$ 关于实轴对称，故该唯一特征值必为实数，且位于区间 $[-4.8,-3.2]$。
 
 
+
+\fi
+
+\selectchapter{7}
+\ifcompilechapter
 \chapter{相似标准型}
 \label{chap:xie-similarity-canonical}
 
@@ -5952,6 +6032,11 @@ $r=1$ 时此式就是 $f(J_1(\mu))=(f(\mu))$。
 事实上，对每个 $i$，规定 $p$ 模 $(\lambda-\mu_i)^{s_i}$ 等于 $f$ 在 $\mu_i$ 处截断到 $s_i-1$ 次的 Taylor 多项式，再用多项式中国剩余定理就得到唯一的模 $m_A$ 余式。逐块比较式~\eqref{eq:xie-jordan-function} 可知 $f(A)=p(A)$。这里对一般解析函数的 $f(A)$ 可通过 Jordan 块公式定义；它与满足收敛条件的幂级数定义一致，并且不依赖 Jordan 基的选择。因而对于固定矩阵，计算解析矩阵函数最终只需有限多个函数值和导数值。
 
 
+
+\fi
+
+\selectchapter{8}
+\ifcompilechapter
 \chapter{二次型}
 \label{chap:quadratic-forms}
 
@@ -6535,6 +6620,11 @@ Hermite 型的值为实数，故可按定义~\ref{def:quadratic-definiteness} �
 \end{solve}
 
 
+
+\fi
+
+\selectchapter{9}
+\ifcompilechapter
 \chapter{内积空间}
 
 线性空间刻画向量的加法与数乘，但尚不能比较长度、距离和夹角。本章在实、复线性空间上加入内积，以此建立正交分解，并研究与内积相容的线性算子。主线是从标准正交基与伴随出发，得到自伴随算子、正规算子的标准型，再讨论谱分解、极分解、奇异值分解及最小二乘问题。除第一节中明确给出的无限维例子外，后续关于算子标准型和矩阵分解的讨论均在有限维空间中进行。
@@ -7404,6 +7494,11 @@ $Q$ 为旋转矩阵，$H$ 分别将两个坐标方向伸缩 $1$ 倍和 $2$ 倍�
 \end{solve}
 
 
+
+\fi
+
+\selectchapter{10}
+\ifcompilechapter
 \chapter{双线性型}
 \label{chap:bilinear-forms}
 
@@ -8000,4 +8095,6 @@ $Q$ 为旋转矩阵，$H$ 分别将两个坐标方向伸缩 $1$ 倍和 $2$ 倍�
 
 
 
+
+\fi
 \end{document}

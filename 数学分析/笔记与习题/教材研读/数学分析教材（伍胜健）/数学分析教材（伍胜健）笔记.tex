@@ -6,11 +6,54 @@
 \makeatother
 \usepackage{researchnotes}
 
+% 编译章节列表：{0} 编译全文；{3} 只编译第三章；{2,3} 或 {2,5} 编译多章。
+% 正文章号范围为 1--17，多个章号用半角逗号分隔，仍按原书顺序输出。
+% 列表中含 0 时编译全文。日常只需修改下面这一行。
+\newcommand{\CompileChapter}{1}
+
+% 以下条件由章节列表自动确定，无须手动切换，也无须拆分章节文件。
+\makeatletter
+\@for\notes@chapter:=\CompileChapter\do{%
+    \expandafter\let\csname notes@selected@\number\notes@chapter\endcsname\@empty
+}
+\newif\ifcompileallchapters
+\@ifundefined{notes@selected@0}
+    {\compileallchaptersfalse}
+    {\compileallchapterstrue}
+\newif\ifcompilechapter
+% 可选参数是本章在正文或附录内的序号，必选参数是章节列表中的序号。
+\newcommand{\selectchapter}[2][0]{%
+    \compilechapterfalse
+    \ifcompileallchapters
+        \compilechaptertrue
+    \else
+        \@ifundefined{notes@selected@#2}{}{%
+            \compilechaptertrue
+            \ifnum#1=0\relax
+                \setcounter{chapter}{\numexpr#2-1\relax}%
+            \else
+                \setcounter{chapter}{\numexpr#1-1\relax}%
+            \fi
+        }%
+    \fi
+}
+% 参数依次为目标章号、编号引用、文字指引；目标章入选时保留编号引用。
+\newcommand{\crosschapterref}[3]{%
+    \ifcompileallchapters
+        #2%
+    \else
+        \@ifundefined{notes@selected@#1}{#3}{#2}%
+    \fi
+}
+\makeatother
+
 \title{数学分析教材（伍胜健）笔记}
 \author{}
 \date{\today}
 
 \begin{document}
+\ifcompileallchapters
+
 \maketitle
 
 \frontmatter
@@ -18,12 +61,16 @@
 
 \chapter{绪论}
 
+\fi
+
 \mainmatter
 
 % 以下章、节、小节及章末习题栏目按教材目录顺序整理。
 % 第一至六章目录来源：数学分析/textbooks/Real-Analysis (1)/Real-Analysis (1).pdf，第 I--III 页。
 % 后续可在对应标题下补充学习思考与习题解答。
 
+\selectchapter{1}
+\ifcompilechapter
 \chapter{函数}
 \label{chap:functions}
 
@@ -528,7 +575,10 @@ $E$ 无下界（unbounded below）是指
 
 \section*{习题一}
 \addcontentsline{toc}{section}{习题一}
+\fi
 
+\selectchapter{2}
+\ifcompilechapter
 \chapter{序列的极限}
 \label{chap:sequence-limits}
 
@@ -604,7 +654,7 @@ $E$ 无下界（unbounded below）是指
 \end{example}
 
 \begin{solve}
-若 $a>1$，令 $t_n=\sqrt[n]{a}-1>0$，由伯努利不等式~\eqref{eq:bernoulli-inequality}，得到 $a=(1+t_n)^n\geq1+nt_n$，故
+若 $a>1$，令 $t_n=\sqrt[n]{a}-1>0$，由\crosschapterref{1}{伯努利不等式~\eqref{eq:bernoulli-inequality}}{伯努利不等式}，得到 $a=(1+t_n)^n\geq1+nt_n$，故
 \[
     0<t_n\leq\frac{a-1}{n}.
 \]
@@ -760,7 +810,7 @@ $E$ 无下界（unbounded below）是指
 \[
     \exists M>0,\quad\forall n\in\mathbb{N},\quad |x_n|\leq M,
 \]
-则称它为\emph{有界序列}（bounded sequence），也记为 $x_n=O(1)$（$n\to\infty$）。这等价于取值集合 $\{x_n:n\in\mathbb{N}\}$ 有界。上界、下界及相应的无界性均按定义~\ref{def:upper-and-lower-bounds} 和定义~\ref{def:bounded-and-unbounded-sets} 理解。
+则称它为\emph{有界序列}（bounded sequence），也记为 $x_n=O(1)$（$n\to\infty$）。这等价于取值集合 $\{x_n:n\in\mathbb{N}\}$ 有界。上界、下界及相应的无界性均按\crosschapterref{1}{定义~\ref{def:upper-and-lower-bounds}}{上、下界的定义} 和\crosschapterref{1}{定义~\ref{def:bounded-and-unbounded-sets}}{有界集与无界集的定义} 理解。
 \end{definition}
 
 \begin{theorem}[有限项不变性、唯一性与有界性]
@@ -1000,7 +1050,7 @@ $E$ 无下界（unbounded below）是指
 \end{theorem}
 
 \begin{proof}
-先设 $\{x_n\}$ 单调递增且有上界。由实数的确界定理，非空有上界的集合 $E=\{x_n:n\geq1\}$ 存在上确界，记为 $a=\sup E$。\emph[tip]{先用上确界的逼近性质找到一项靠近 $a$，再用单调性控制它后面的全部项。}事实上，$x_n\leq a$ 对每个 $n$ 成立；又由定义~\ref{def:supremum}，任给 $\varepsilon>0$，存在正整数 $N$，使得
+先设 $\{x_n\}$ 单调递增且有上界。由实数的确界定理，非空有上界的集合 $E=\{x_n:n\geq1\}$ 存在上确界，记为 $a=\sup E$。\emph[tip]{先用上确界的逼近性质找到一项靠近 $a$，再用单调性控制它后面的全部项。}事实上，$x_n\leq a$ 对每个 $n$ 成立；又由\crosschapterref{1}{定义~\ref{def:supremum}}{上确界定义}，任给 $\varepsilon>0$，存在正整数 $N$，使得
 \[
     a-\varepsilon<x_N\leq a.
 \]
@@ -1010,7 +1060,7 @@ $E$ 无下界（unbounded below）是指
 \]
 故 $|x_n-a|=a-x_n<\varepsilon$。这就证明了 $x_n\to a$。
 
-再设 $\{x_n\}$ 单调递减且有下界，令 $b=\inf E$。由定义~\ref{def:infimum}，任给 $\varepsilon>0$，存在正整数 $N$，使 $b\leq x_N<b+\varepsilon$。当 $n\geq N$ 时，
+再设 $\{x_n\}$ 单调递减且有下界，令 $b=\inf E$。由\crosschapterref{1}{定义~\ref{def:infimum}}{下确界定义}，任给 $\varepsilon>0$，存在正整数 $N$，使 $b\leq x_N<b+\varepsilon$。当 $n\geq N$ 时，
 \[
     b\leq x_n\leq x_N<b+\varepsilon,
 \]
@@ -1825,12 +1875,14 @@ $E$ 无下界（unbounded below）是指
 
 \section*{习题二}
 \addcontentsline{toc}{section}{习题二}
+\fi
 
+\selectchapter{3}
+\ifcompilechapter
 \chapter{函数的极限与连续性}
 \label{chap:function-limits-and-continuity}
 
-% 根据《数学分析》第一册第三章整理，教材第 83--127 页；分章 PDF 第 1--45 页。
-序列极限研究下标趋于无穷时各项的变化，函数极限则允许自变量从不同方向趋于有限点或无穷远。二者的共同核心是：通过限制自变量的变化范围，使函数值与目标值的误差任意小。本章先建立函数极限及其判别方法，再用极限刻画连续性；随后借助实数系的连续性，把逐点的局部结论推广为闭区间上的整体结论，最后用无穷小量与无穷大量的阶描述不同变化速度。
+序列极限研究下标趋于无穷时各项的变化，函数极限则允许自变量从不同方向趋于有限点或无穷远。\emph{二者的共同核心是：通过限制自变量的变化范围，使函数值与目标值的误差任意小。}本章先建立函数极限及其判别方法，再用极限刻画连续性；随后借助实数系的连续性，把逐点的局部结论推广为闭区间上的整体结论，最后用无穷小量与无穷大量的阶描述不同变化速度。
 
 \section{函数的极限}
 \label{sec:function-limits}
@@ -1838,7 +1890,7 @@ $E$ 无下界（unbounded below）是指
 \subsection{函数极限的定义}
 \label{subsec:definition-of-function-limits}
 
-函数在某点可能没有定义，但在该点附近仍可能表现出确定的变化趋势。例如，$x\sin(1/x)$ 在 $x=0$ 没有定义，而 $|x\sin(1/x)|\leq|x|$ 表明它的值随着 $x\to0$ 趋近于零。这里所要刻画的是附近的函数值，而不是中心点的取值。以下沿用定义~\ref{def:real-neighborhood} 中的邻域 $U(x_0,\delta)$ 与去心邻域 $U_0(x_0,\delta)$。
+函数在某点可能没有定义，但在该点附近仍可能表现出确定的变化趋势。例如，$x\sin(1/x)$ 在 $x=0$ 没有定义，而 $|x\sin(1/x)|\leq|x|$ 表明它的值随着 $x\to0$ 趋近于零。这里所要刻画的是附近的函数值，而不是中心点的取值。以下沿用\crosschapterref{2}{定义~\ref{def:real-neighborhood}}{实数邻域的定义} 中的邻域 $U(x_0,\delta)$ 与去心邻域 $U_0(x_0,\delta)$。
 
 \begin{definition}
 \label{def:finite-function-limit}
@@ -2125,7 +2177,7 @@ $E$ 无下界（unbounded below）是指
 \end{theorem}
 
 \begin{proof}
-若极限为 $A$，使 $|f(x)-A|$ 与 $|f(y)-A|$ 都小于 $\varepsilon/2$ 即得必要性。反之，固定一条位于定义范围内且趋于 $x_0$ 的序列 $\{x_n\}$，由式~\eqref{eq:cauchy-condition-for-function-limits}，$\{f(x_n)\}$ 是柯西列。由定理~\ref{thm:cauchy-convergence-criterion}，存在 $A\in\mathbb{R}$ 使 $f(x_n)\to A$。给定 $\varepsilon>0$，先将柯西条件中的误差取为 $\varepsilon/2$，得到 $\delta$；再固定足够大的 $n$，使 $x_n\in U_0(x_0,\delta)$ 且 $|f(x_n)-A|<\varepsilon/2$。于是对所有 $x\in U_0(x_0,\delta)$，
+若极限为 $A$，使 $|f(x)-A|$ 与 $|f(y)-A|$ 都小于 $\varepsilon/2$ 即得必要性。反之，固定一条位于定义范围内且趋于 $x_0$ 的序列 $\{x_n\}$，由式~\eqref{eq:cauchy-condition-for-function-limits}，$\{f(x_n)\}$ 是柯西列。由\crosschapterref{2}{定理~\ref{thm:cauchy-convergence-criterion}}{序列的柯西收敛准则}，存在 $A\in\mathbb{R}$ 使 $f(x_n)\to A$。给定 $\varepsilon>0$，先将柯西条件中的误差取为 $\varepsilon/2$，得到 $\delta$；再固定足够大的 $n$，使 $x_n\in U_0(x_0,\delta)$ 且 $|f(x_n)-A|<\varepsilon/2$。于是对所有 $x\in U_0(x_0,\delta)$，
 \[
     |f(x)-A|\leq|f(x)-f(x_n)|+|f(x_n)-A|<\varepsilon,
 \]
@@ -2351,7 +2403,7 @@ $f$ 的左右极限都为 $0$，而 $f(0)=1$，故 $0$ 是可去间断点，改�
     a^x=\sup\{a^r:r\in\mathbb{Q},\ r<x\}.
     \label{eq:real-exponent-via-supremum}
 \end{equation}
-这个集合非空且有上界，因为可以选整数 $m<x<n$，使 $a^m$ 属于集合，而 $a^n$ 是上界。该定义与有理指数一致：由伯努利不等式~\eqref{eq:bernoulli-inequality}，$a^{1/N}\to1$，因为若 $a^{1/N}\geq1+\eta$，则 $a\geq(1+\eta)^N\geq1+N\eta$，对固定 $\eta>0$ 和充分大 $N$ 不可能成立。对有理数 $x$，从下方用 $x-1/N$ 逼近即可验证式~\eqref{eq:real-exponent-via-supremum} 的确等于原来的 $a^x$。
+这个集合非空且有上界，因为可以选整数 $m<x<n$，使 $a^m$ 属于集合，而 $a^n$ 是上界。该定义与有理指数一致：由\crosschapterref{1}{伯努利不等式~\eqref{eq:bernoulli-inequality}}{伯努利不等式}，$a^{1/N}\to1$，因为若 $a^{1/N}\geq1+\eta$，则 $a\geq(1+\eta)^N\geq1+N\eta$，对固定 $\eta>0$ 和充分大 $N$ 不可能成立。对有理数 $x$，从下方用 $x-1/N$ 逼近即可验证式~\eqref{eq:real-exponent-via-supremum} 的确等于原来的 $a^x$。
 
 \begin{proposition}[指数、对数与幂函数的连续性]
 \label{prop:continuity-of-exponential-logarithmic-power-functions}
@@ -2410,9 +2462,9 @@ $f$ 的左右极限都为 $0$，而 $f(0)=1$，故 $0$ 是可去间断点，改�
 \end{theorem}
 
 \begin{proof}
-先证有界性。由连续性的局部有界性，每个 $x\in[a,b]$ 都有邻域 $U(x,\delta_x)$，使 $f$ 在该邻域与 $[a,b]$ 的交集上有界。对这些邻域应用有限覆盖定理~\ref{thm:finite-covering}，取有限子覆盖，再取相应有限多个局部界的最大值，就得到整个区间上的界。这也完成了例~\ref{ex:continuous-function-bounded-by-finite-cover} 中提出的证明。
+先证有界性。由连续性的局部有界性，每个 $x\in[a,b]$ 都有邻域 $U(x,\delta_x)$，使 $f$ 在该邻域与 $[a,b]$ 的交集上有界。对这些邻域应用\crosschapterref{2}{有限覆盖定理~\ref{thm:finite-covering}}{有限覆盖定理}，取有限子覆盖，再取相应有限多个局部界的最大值，就得到整个区间上的界。\crosschapterref{2}{这也完成了例~\ref{ex:continuous-function-bounded-by-finite-cover} 中提出的证明。}{}
 
-由有界性，$M=\sup\{f(x):x\in[a,b]\}$ 是实数。由上确界定义，对每个正整数 $n$ 可选 $x_n\in[a,b]$，使 $M-1/n<f(x_n)\leq M$，于是 $f(x_n)\to M$。由定理~\ref{thm:bolzano-weierstrass-sequence}，存在子列 $x_{n_k}\to\eta$；闭区间条件保证 $\eta\in[a,b]$。再由连续性，
+由有界性，$M=\sup\{f(x):x\in[a,b]\}$ 是实数。由上确界定义，对每个正整数 $n$ 可选 $x_n\in[a,b]$，使 $M-1/n<f(x_n)\leq M$，于是 $f(x_n)\to M$。由\crosschapterref{2}{定理~\ref{thm:bolzano-weierstrass-sequence}}{波尔查诺--魏尔斯特拉斯定理}，存在子列 $x_{n_k}\to\eta$；闭区间条件保证 $\eta\in[a,b]$。再由连续性，
 \[
     f(\eta)=\lim_{k\to\infty}f(x_{n_k})=M.
 \]
@@ -2752,7 +2804,10 @@ $\sin x\sim x$ 是第一个重要极限；由 $\cos x\to1$，得到 $\tan x/x=(\
 
 \section*{习题三}
 \addcontentsline{toc}{section}{习题三}
+\fi
 
+\selectchapter{4}
+\ifcompilechapter
 \chapter{导数与微分}
 \label{chap:derivatives-and-differentials}
 
@@ -2970,7 +3025,7 @@ $\sin x\sim x$ 是第一个重要极限；由 $\cos x\to1$，得到 $\tan x/x=(\
 特别地，若 $f$ 在 $I$ 上处处可导且导数非零，则其反函数在 $J$ 上处处可导。
 \end{theorem}
 \begin{proof}
-由定理~\ref{thm:continuity-of-inverse-functions}，反函数连续，故 $y\to y_0$ 时 $x=g(y)\to x_0$。又因单射性，$y\ne y_0$ 时 $x\ne x_0$，故
+由\crosschapterref{3}{定理~\ref{thm:continuity-of-inverse-functions}}{反函数的连续性定理}，反函数连续，故 $y\to y_0$ 时 $x=g(y)\to x_0$。又因单射性，$y\ne y_0$ 时 $x\ne x_0$，故
 \[
     \frac{g(y)-g(y_0)}{y-y_0}
     =\frac{x-x_0}{f(x)-f(x_0)}
@@ -3157,7 +3212,7 @@ $\sin x\sim x$ 是第一个重要极限；由 $\cos x\to1$，得到 $\tan x/x=(\
     \left.\frac{\mathrm dy}{\mathrm dx}\right|_{x=x_0}
     =\frac{\psi'(t_0)}{\varphi'(t_0)}.
 \end{equation}
-其依据是 $y(x)=\psi(\varphi^{-1}(x))$，而不是把两个无穷小增量形式地约掉。一个常用的充分条件是 $\varphi$ 在 $t_0$ 附近连续可导且 $\varphi'(t_0)\ne0$：连续性使导数在充分小邻域同号，再由下一章的定理~\ref{thm:derivative-monotonicity-test} 得局部严格单调。
+其依据是 $y(x)=\psi(\varphi^{-1}(x))$，而不是把两个无穷小增量形式地约掉。一个常用的充分条件是 $\varphi$ 在 $t_0$ 附近连续可导且 $\varphi'(t_0)\ne0$：连续性使导数在充分小邻域同号，再由下一章的\crosschapterref{5}{定理~\ref{thm:derivative-monotonicity-test}}{单调性的导数判别定理} 得局部严格单调。
 
 若 $\varphi'(t_0)=0$ 而 $\psi'(t_0)\ne0$，可在相应局部可逆条件下改以 $y$ 为自变量，此时曲线的切线竖直。若二者同时为零，上述公式没有结论，需要直接考察曲线；例如 $x=t^3,y=t^3$ 在 $t=0$ 的两个参数导数均为零，但曲线仍是直线 $y=x$。
 
@@ -3643,7 +3698,10 @@ $m=0$ 时 $a_1=1$。依次取 $m=1,2,3$，有
 
 \section*{习题四}
 \addcontentsline{toc}{section}{习题四}
+\fi
 
+\selectchapter{5}
+\ifcompilechapter
 \chapter{导数的应用}
 \label{chap:applications-of-derivatives}
 
@@ -3983,7 +4041,7 @@ $f$ 在 $[0,2]$ 上连续，故由康托尔定理在该区间上一致连续。�
 \end{example}
 
 \begin{solve}
-第一式的导数商为 $1/(\alpha x^\alpha)\to0$，故结论成立。第二式取正整数 $m>\alpha$，先对 $x^m/e^x$ 连续应用 $m$ 次洛必达法则，最后得到 $m!/e^x\to0$；每次使用前的商都是 $\infty/\infty$ 型，分母导数始终非零。当 $x\geq1$ 时，$0\leq x^\alpha/e^x\leq x^m/e^x$，再由夹逼原理得到所需极限。这为命题~\ref{prop:logarithm-power-exponential-orders} 的增长次序提供了另一种证明。
+第一式的导数商为 $1/(\alpha x^\alpha)\to0$，故结论成立。第二式取正整数 $m>\alpha$，先对 $x^m/e^x$ 连续应用 $m$ 次洛必达法则，最后得到 $m!/e^x\to0$；每次使用前的商都是 $\infty/\infty$ 型，分母导数始终非零。当 $x\geq1$ 时，$0\leq x^\alpha/e^x\leq x^m/e^x$，再由夹逼原理得到所需极限。这为\crosschapterref{3}{命题~\ref{prop:logarithm-power-exponential-orders} 的增长次序}{对数、幂与指数的增长次序}提供了另一种证明。
 \end{solve}
 
 以下用 $C^n(I)$ 表示在区间 $I$ 上具有 $n$ 阶连续导数的函数类，约定 $C^0(I)=C(I)$；用 $C^\infty(I)$ 表示任意阶连续可导函数类，其元素称为\emph{光滑函数}（smooth function）。闭区间上的 $C^n$ 要求内部的各阶导数连续延拓至端点，端点导数按单侧意义理解。
@@ -4097,7 +4155,7 @@ $0\cdot\infty$ 型可改写成 $u/(1/v)$ 或 $v/(1/u)$；$\infty-\infty$ 型可�
     =\frac{x_n^2-\sin^2x_n}{x_n^2\sin^2x_n}
     \longrightarrow\frac13.
 \]
-由定理~\ref{thm:cesaro-mean-of-convergent-sequence}，这些增量的算术平均也趋于 $1/3$，故
+由\crosschapterref{2}{定理~\ref{thm:cesaro-mean-of-convergent-sequence}}{算术平均保持极限的定理}，这些增量的算术平均也趋于 $1/3$，故
 \[
     \frac{u_n}n=\frac{u_1}n+
     \frac1n\sum_{k=1}^{n-1}(u_{k+1}-u_k)\longrightarrow\frac13.
@@ -4777,7 +4835,10 @@ $f''(x_0)=0$ 仍只是候选条件：$x^4$ 在零点二阶导数为零，却始�
 
 \section*{习题五}
 \addcontentsline{toc}{section}{习题五}
+\fi
 
+\selectchapter{6}
+\ifcompilechapter
 \chapter{不定积分}
 \label{chap:indefinite-integrals}
 
@@ -5556,7 +5617,10 @@ $f''(x_0)=0$ 仍只是候选条件：$x^4$ 在零点二阶导数为零，却始�
 \addcontentsline{toc}{section}{习题六}
 
 % 第七至十七章目录根据用户提供的 8 张教材目录图片整理。
+\fi
 
+\selectchapter{7}
+\ifcompilechapter
 \chapter{定积分}
 \label{chap:definite-integrals}
 
@@ -6015,7 +6079,7 @@ $|g|\leq1$，且除零点外连续，因此至多有一个间断点，由定理~
 最后利用 $\Psi(x)=\int_a^b f-\Phi(x)$ 即得下限求导公式。
 \end{proof}
 
-若 $f$ 连续，任一原函数 $F$ 与 $\Phi$ 的导数相同，故 $F-\Phi$ 为常数，由此也能推出牛顿--莱布尼茨公式。反之，可积函数未必存在原函数，例如阶跃函数违背定理~\ref{thm:darboux-derivative-intermediate-value} 中导数的介值性；存在原函数也未必黎曼可积，例如
+若 $f$ 连续，任一原函数 $F$ 与 $\Phi$ 的导数相同，故 $F-\Phi$ 为常数，由此也能推出牛顿--莱布尼茨公式。反之，可积函数未必存在原函数，例如阶跃函数违背\crosschapterref{5}{定理~\ref{thm:darboux-derivative-intermediate-value}}{达布定理} 中导数的介值性；存在原函数也未必黎曼可积，例如
 \[
     F(x)=
     \begin{cases}x^2\sin(1/x^2),&x\neq0,\\0,&x=0,\end{cases}
@@ -6787,7 +6851,10 @@ $0\leq\theta\leq2\pi$ 描绘其边界一次，故
 
 \section*{习题七}
 \addcontentsline{toc}{section}{习题七}
+\fi
 
+\selectchapter{8}
+\ifcompilechapter
 \chapter{广义积分}
 \label{chap:improper-integrals}
 
@@ -7022,7 +7089,7 @@ $\int_a^{+\infty}f(x)\,\mathrm{d}x$ 收敛的充分必要条件是：对每个 $
 \end{theorem}
 
 \begin{proof}
-令 $F(X)=\int_a^X f(x)\,\mathrm{d}x$，则 $F(v)-F(u)=\int_u^v f$。将函数极限的柯西准则，即定理~\ref{thm:cauchy-criterion-for-function-limits}，用于 $X\to+\infty$，即得结论。
+令 $F(X)=\int_a^X f(x)\,\mathrm{d}x$，则 $F(v)-F(u)=\int_u^v f$。将函数极限的柯西准则\crosschapterref{3}{，即定理~\ref{thm:cauchy-criterion-for-function-limits}}{}，用于 $X\to+\infty$，即得结论。
 \end{proof}
 
 这里要求\emph{任意两个足够远的截断点之间的积分一致地小}，不是只检验某一列区间或某种配对方式的极限。这个量词要求排除了利用特殊截断掩盖发散的情形。
@@ -7440,7 +7507,10 @@ $\int_a^b f(x)\,\mathrm{d}x$ 收敛的充分必要条件是：对任意 $\vareps
 
 \section*{习题八}
 \addcontentsline{toc}{section}{习题八}
+\fi
 
+\selectchapter{9}
+\ifcompilechapter
 \chapter{数项级数}
 \label{chap:numerical-series}
 
@@ -7520,7 +7590,7 @@ $\sum_{n=1}^{\infty}a_n$ 既可表示待研究的级数，也可在收敛已经�
       =\frac1{n\,n!}.
     \label{eq:factorial-series-tail-bound}
 \end{equation}
-这里对无穷尾和的估计可先对有限尾和成立，再取极限。这一估计也可用于证明 $e$ 无理：若 $e=p/q$，取整数 $n\geq\max\{q,2\}$，则 $n!(e-T_n)$ 为整数，却严格介于 $0$ 与 $1/n$ 之间，矛盾。例~\ref{ex:taylor-approximation-and-irrationality-of-e} 给出了利用泰勒余项的另一种证明。
+这里对无穷尾和的估计可先对有限尾和成立，再取极限。这一估计也可用于证明 $e$ 无理：若 $e=p/q$，取整数 $n\geq\max\{q,2\}$，则 $n!(e-T_n)$ 为整数，却严格介于 $0$ 与 $1/n$ 之间，矛盾。\crosschapterref{5}{例~\ref{ex:taylor-approximation-and-irrationality-of-e}}{用泰勒公式近似 $e$ 的例题} 给出了利用泰勒余项的另一种证明。
 \end{solve}
 
 \begin{proposition}[有限项改变与线性运算]
@@ -7553,7 +7623,7 @@ $\sum_{n=1}^{\infty}a_n$ 既可表示待研究的级数，也可在收敛已经�
 \end{theorem}
 
 \begin{proof}
-式~\eqref{eq:cauchy-condition-for-numerical-series} 中的尾段和等于 $S_{n+p}-S_n$，故这一条件恰好是部分和序列的柯西条件。应用定理~\ref{thm:cauchy-convergence-criterion} 即得结论。
+式~\eqref{eq:cauchy-condition-for-numerical-series} 中的尾段和等于 $S_{n+p}-S_n$，故这一条件恰好是部分和序列的柯西条件。应用\crosschapterref{2}{定理~\ref{thm:cauchy-convergence-criterion}}{序列的柯西收敛准则} 即得结论。
 \end{proof}
 
 \emph[caution]{这里的 $N$ 必须同时适用于所有尾段长度 $p$，不能在固定 $p$ 后才选取 $N$。}特别取 $p=1$，得到收敛的必要条件 $a_n\to0$；其逆命题不成立。例如调和级数 $\sum1/n$ 的通项趋于零，但
@@ -8309,7 +8379,10 @@ $s>1$ 保证 $p$ 级数 $\zeta(s)$ 有限。对前 $N$ 个素数，分别使用�
 
 \section*{习题九}
 \addcontentsline{toc}{section}{习题九}
+\fi
 
+\selectchapter{10}
+\ifcompilechapter
 \chapter{函数序列与函数项级数}
 \label{chap:function-sequences-and-series}
 
@@ -8970,7 +9043,10 @@ $h$ 处处可导，$h'(0)=0$，而 $t\neq0$ 时 $h'(t)=2t\sin(1/t)-\cos(1/t)$；
 
 \section*{习题十}
 \addcontentsline{toc}{section}{习题十}
+\fi
 
+\selectchapter{11}
+\ifcompilechapter
 \chapter{幂级数}
 \label{chap:power-series}
 
@@ -9021,7 +9097,7 @@ $h$ 处处可导，$h'(0)=0$，而 $t\neq0$ 时 $h'(t)=2t\sin(1/t)-\cos(1/t)$；
 \[
     |a_nx^n|\leq M\left(\frac r{|t|}\right)^n.
 \]
-右边组成收敛的几何级数，由定理~\ref{thm:weierstrass-uniform-m-test} 即得结论。这里仅要求在 $t$ 处收敛，无须假设该点绝对收敛。
+右边组成收敛的几何级数，由\crosschapterref{10}{定理~\ref{thm:weierstrass-uniform-m-test}}{魏尔斯特拉斯 $M$ 判别法} 即得结论。这里仅要求在 $t$ 处收敛，无须假设该点绝对收敛。
 \end{proof}
 
 \begin{theorem}[收敛半径与收敛域]
@@ -9139,7 +9215,7 @@ $h$ 处处可导，$h'(0)=0$，而 $t\neq0$ 时 $h'(t)=2t\sin(1/t)-\cos(1/t)$；
     a_n(x-x_0)^n=a_nR^n
         \left(\frac{x-x_0}{R}\right)^n.
 \]
-级数 $\sum a_nR^n$ 与 $x$ 无关，因而作为函数项级数一致收敛；后一因子关于 $n$ 单调不增，并一致有界于 $1$。由定理~\ref{thm:uniform-abel-test}，乘积级数在该闭区间上一致收敛，再与内部的闭区间拼接即可。左端点的证明相同，只需写成
+级数 $\sum a_nR^n$ 与 $x$ 无关，因而作为函数项级数一致收敛；后一因子关于 $n$ 单调不增，并一致有界于 $1$。由\crosschapterref{10}{定理~\ref{thm:uniform-abel-test}}{函数项级数的阿贝尔判别法}，乘积级数在该闭区间上一致收敛，再与内部的闭区间拼接即可。左端点的证明相同，只需写成
 \[
     a_n(x-x_0)^n=a_n(-R)^n
         \left(\frac{x_0-x}{R}\right)^n,
@@ -9186,7 +9262,7 @@ $h$ 处处可导，$h'(0)=0$，而 $t\neq0$ 时 $h'(t)=2t\sin(1/t)-\cos(1/t)$；
 \end{theorem}
 
 \begin{proof}
-先设 $\alpha\leq\beta$。若二者都在内部，由内闭一致收敛可逐项积分；若其中一个或两个为已经收敛的端点，则阿贝尔定理仍保证在 $[\alpha,\beta]$ 上一致收敛，由推论~\ref{cor:termwise-integration-uniform-series} 得到同一结论。$\alpha>\beta$ 时由定积分的定向约定处理。
+先设 $\alpha\leq\beta$。若二者都在内部，由内闭一致收敛可逐项积分；若其中一个或两个为已经收敛的端点，则阿贝尔定理仍保证在 $[\alpha,\beta]$ 上一致收敛，由\crosschapterref{10}{推论~\ref{cor:termwise-integration-uniform-series}}{函数项级数的逐项积分推论} 得到同一结论。$\alpha>\beta$ 时由定积分的定向约定处理。
 \end{proof}
 
 \begin{theorem}[逐项求导及任意阶光滑性]
@@ -9210,7 +9286,7 @@ $h$ 处处可导，$h'(0)=0$，而 $t\neq0$ 时 $h'(t)=2t\sin(1/t)-\cos(1/t)$；
 \]
 因 $n^{1/n},(n+1)^{1/n}\to1$，且 $n/(n\pm1)\to1$，这两列的上极限都等于 $\limsup|a_n|^{1/n}$，包括零与 $+\infty$ 两种情形。由柯西--哈达玛公式，它们的半径均为 $R$。反复应用可得任意阶求导级数也有半径 $R$。
 
-任取内部的有限闭区间，并将它扩大为仍在内部且包含 $x_0$ 的闭区间。求导级数在其上一致收敛，原级数在 $x_0$ 处收敛，因此由推论~\ref{cor:termwise-differentiation-uniform-derivative-series} 可逐项求导。各阶重复这一论证得到式~\eqref{eq:power-series-arbitrary-derivatives}；每个导函数又是连续项级数的内闭一致极限，故均连续。
+任取内部的有限闭区间，并将它扩大为仍在内部且包含 $x_0$ 的闭区间。求导级数在其上一致收敛，原级数在 $x_0$ 处收敛，因此由\crosschapterref{10}{推论~\ref{cor:termwise-differentiation-uniform-derivative-series}}{函数项级数的逐项求导推论} 可逐项求导。各阶重复这一论证得到式~\eqref{eq:power-series-arbitrary-derivatives}；每个导函数又是连续项级数的内闭一致极限，故均连续。
 \end{proof}
 
 求导与积分保持收敛半径，但可能改变端点的敛散性。若原级数在某端点收敛，积分级数在该端点也收敛；若求导级数在某端点收敛，则原级数也在该端点收敛，因为可把原通项写成求导通项乘以该端点相对中心的距离再除以 $n$，使用阿贝尔判别法。反向推断一般不成立。例如从 $\sum_{n=0}^\infty x^n$ 连续两次从零积分，依次得到
@@ -9347,7 +9423,7 @@ $h$ 处处可导，$h'(0)=0$，而 $t\neq0$ 时 $h'(t)=2t\sin(1/t)-\cos(1/t)$；
 \end{theorem}
 
 \begin{proof}
-由 $T_N(x)=f(x)-R_N(x)$，逐点收敛与一致收敛的两个结论分别直接来自定义。应用时可使用第~\ref{sec:taylor-formula} 节的拉格朗日余项或式~\eqref{eq:taylor-integral-remainder} 中的积分余项估计 $R_N$，但不能在没有估计的情况下把有限阶泰勒公式直接改写为无穷级数。
+由 $T_N(x)=f(x)-R_N(x)$，逐点收敛与一致收敛的两个结论分别直接来自定义。应用时可使用\crosschapterref{5}{第~\ref{sec:taylor-formula} 节}{泰勒公式一节}的拉格朗日余项或\crosschapterref{7}{式~\eqref{eq:taylor-integral-remainder}}{积分余项公式} 中的积分余项估计 $R_N$，但不能在没有估计的情况下把有限阶泰勒公式直接改写为无穷级数。
 \end{proof}
 
 \begin{proposition}[指数、正弦与余弦的展开]
@@ -9654,7 +9730,7 @@ $S_N(x^2-1)$ 是关于 $x$ 的多项式，所以 $|x|$ 在该区间可被多项�
 \end{proof}
 
 \begin{proof}[魏尔斯特拉斯逼近定理的证明]
-由定理~\ref{thm:heine-cantor-uniform-continuity}，$f$ 在 $[a,b]$ 上一致连续。给定 $\varepsilon>0$，选 $\delta>0$，使 $|x-y|<\delta$ 时有 $|f(x)-f(y)|<\varepsilon/2$。取网格宽度小于 $\delta$ 的分割 $a=t_0<\cdots<t_m=b$，令 $g$ 为通过各点 $(t_i,f(t_i))$ 的连续分段线性插值函数。若 $x\in[t_{i-1},t_i]$，写成
+由\crosschapterref{3}{定理~\ref{thm:heine-cantor-uniform-continuity}}{康托尔定理}，$f$ 在 $[a,b]$ 上一致连续。给定 $\varepsilon>0$，选 $\delta>0$，使 $|x-y|<\delta$ 时有 $|f(x)-f(y)|<\varepsilon/2$。取网格宽度小于 $\delta$ 的分割 $a=t_0<\cdots<t_m=b$，令 $g$ 为通过各点 $(t_i,f(t_i))$ 的连续分段线性插值函数。若 $x\in[t_{i-1},t_i]$，写成
 \[
     x=(1-\theta)t_{i-1}+\theta t_i,\qquad
     g(x)=(1-\theta)f(t_{i-1})+\theta f(t_i),
@@ -9679,7 +9755,10 @@ $S_N(x^2-1)$ 是关于 $x$ 的多项式，所以 $|x|$ 在该区间可被多项�
 
 \section*{习题十一}
 \addcontentsline{toc}{section}{习题十一}
+\fi
 
+\selectchapter{12}
+\ifcompilechapter
 \chapter{傅里叶级数}
 \label{chap:fourier-series}
 
@@ -10401,7 +10480,7 @@ $f$ 的傅里叶部分和的\emph{费叶平均}（Fej\'er mean）定义为
 \end{theorem}
 
 \begin{proof}
-$f'$ 连续且为 $2\pi$ 周期函数，对它使用前一定理，得到其傅里叶级数一致收敛到 $f'$。由式~\eqref{eq:fourier-derivative-coefficients}，这个级数正是原级数形式微分后的级数。原级数由前一定理收敛到 $f$，故在任一有限闭区间上，由推论~\ref{cor:termwise-differentiation-uniform-derivative-series} 可逐项求导，得到式~\eqref{eq:fourier-termwise-differentiation}。导数级数本身的实轴一致收敛由前述对 $f'$ 的应用保证。
+$f'$ 连续且为 $2\pi$ 周期函数，对它使用前一定理，得到其傅里叶级数一致收敛到 $f'$。由式~\eqref{eq:fourier-derivative-coefficients}，这个级数正是原级数形式微分后的级数。原级数由前一定理收敛到 $f$，故在任一有限闭区间上，由\crosschapterref{10}{推论~\ref{cor:termwise-differentiation-uniform-derivative-series}}{函数项级数的逐项求导推论} 可逐项求导，得到式~\eqref{eq:fourier-termwise-differentiation}。导数级数本身的实轴一致收敛由前述对 $f'$ 的应用保证。
 \end{proof}
 
 逐项积分需要的条件弱得多：原函数在一个周期内黎曼可积即可，原傅里叶级数本身无需先有逐点或一致收敛性。
@@ -10469,7 +10548,10 @@ $f'$ 连续且为 $2\pi$ 周期函数，对它使用前一定理，得到其傅�
 
 \section*{习题十二}
 \addcontentsline{toc}{section}{习题十二}
+\fi
 
+\selectchapter{13}
+\ifcompilechapter
 \chapter{多元函数的极限和连续}
 \label{chap:multivariable-limits-and-continuity}
 
@@ -10505,7 +10587,7 @@ $f'$ 连续且为 $2\pi$ 周期函数，对它使用前一定理，得到其傅�
 两点 $x,y$ 的\emph{距离}（distance）定义为 $d(x,y)=\|x-y\|$。以下也用 $|x|$、$|x-y|$ 分别表示向量的模与两点间距离；当对象为实数时，竖线仍表示绝对值。
 \end{definition}
 
-例~\ref{ex:holder-inequality-from-concavity} 中的柯西--施瓦茨不等式给出 $|x\cdot y|\leq|x||y|$。由此
+\crosschapterref{5}{例~\ref{ex:holder-inequality-from-concavity}}{赫尔德不等式例题} 中的柯西--施瓦茨不等式给出 $|x\cdot y|\leq|x||y|$。由此
 \[
     |x+y|^2=|x|^2+2x\cdot y+|y|^2\leq(|x|+|y|)^2,
 \]
@@ -11256,7 +11338,10 @@ $f(E)$ 是非空有界闭实数集。令 $M=\sup f(E)$，对每个 $k$ 取 $u_k\
 
 \section*{习题十三}
 \addcontentsline{toc}{section}{习题十三}
+\fi
 
+\selectchapter{14}
+\ifcompilechapter
 \chapter{多元微分学}
 \label{chap:multivariable-differential-calculus}
 
@@ -12406,7 +12491,10 @@ $H_f(\boldsymbol x)$ 在 $D$ 的每一点半正定。其中凸性与式~\eqref{e
 
 \section*{习题十四}
 \addcontentsline{toc}{section}{习题十四}
+\fi
 
+\selectchapter{15}
+\ifcompilechapter
 \chapter{重积分}
 \label{chap:multiple-integrals}
 
@@ -13276,7 +13364,10 @@ $J_T$ 称为\emph{雅可比行列式}（Jacobian determinant）。行列式的�
 
 \section*{习题十五}
 \addcontentsline{toc}{section}{习题十五}
+\fi
 
+\selectchapter{16}
+\ifcompilechapter
 \chapter{曲线积分与曲面积分}
 \label{chap:line-and-surface-integrals}
 
@@ -14341,7 +14432,10 @@ $J_T$ 称为\emph{雅可比行列式}（Jacobian determinant）。行列式的�
 
 \section*{习题十六}
 \addcontentsline{toc}{section}{习题十六}
+\fi
 
+\selectchapter{17}
+\ifcompilechapter
 \chapter{含参变量积分}
 \label{chap:parameter-dependent-integrals}
 
@@ -14668,7 +14762,7 @@ $D$ 紧且 $f$ 连续，故 $f$ 在 $D$ 上一致连续。当 $x\to x_0$ 时，$
     +|K_0|\sup_{t\in K_0}
        \left|\int_A^B f_x(t,y)\,\mathrm{d}y\right|,
 \]
-其中 $|K_0|$ 表示区间长度。两项均趋于零，故原积分在 $K_0$ 上一致收敛。再任取 $t_n\uparrow+\infty$，截断函数 $F_{t_n}$ 在 $x_0$ 处收敛，其导函数在 $K_0$ 上一致收敛。由定理~\ref{thm:differentiation-of-function-sequence}，其极限可导且导数等于导函数的极限，即式~\eqref{eq:parameter-infinite-differentiation}。导数的连续性由前一连续性定理得到。若 $E$ 有界且导数积分在 $E$ 上一致收敛，上述估计中可用 $E$ 的有限长度统一控制 $|x-x_0|$，从而原积分在整个 $E$ 上一致收敛。
+其中 $|K_0|$ 表示区间长度。两项均趋于零，故原积分在 $K_0$ 上一致收敛。再任取 $t_n\uparrow+\infty$，截断函数 $F_{t_n}$ 在 $x_0$ 处收敛，其导函数在 $K_0$ 上一致收敛。由\crosschapterref{10}{定理~\ref{thm:differentiation-of-function-sequence}}{导数与极限的交换定理}，其极限可导且导数等于导函数的极限，即式~\eqref{eq:parameter-infinite-differentiation}。导数的连续性由前一连续性定理得到。若 $E$ 有界且导数积分在 $E$ 上一致收敛，上述估计中可用 $E$ 的有限长度统一控制 $|x-x_0|$，从而原积分在整个 $E$ 上一致收敛。
 \end{proof}
 
 \begin{remark}
@@ -14682,7 +14776,7 @@ $D$ 紧且 $f$ 连续，故 $f$ 在 $D$ 上一致连续。当 $x\to x_0$ 时，$
 \end{proposition}
 
 \begin{proof}
-对任意 $t_n\uparrow+\infty$，连续函数 $F_{t_n}$ 单调增加并逐点趋于连续函数 $I$。由函数序列的狄尼定理，即定理~\ref{thm:dini-uniform-convergence}，它一致收敛。也可固定一列 $\{t_n\}$，由 $A\geq t_n$ 时 $0\leq I(x)-F_A(x)\leq I(x)-F_{t_n}(x)$，直接得到所有实数截断的一致估计。非正情形对 $-f$ 应用同一结论。
+对任意 $t_n\uparrow+\infty$，连续函数 $F_{t_n}$ 单调增加并逐点趋于连续函数 $I$。由函数序列的狄尼定理\crosschapterref{10}{，即定理~\ref{thm:dini-uniform-convergence}}{}，它一致收敛。也可固定一列 $\{t_n\}$，由 $A\geq t_n$ 时 $0\leq I(x)-F_A(x)\leq I(x)-F_{t_n}(x)$，直接得到所有实数截断的一致估计。非正情形对 $-f$ 应用同一结论。
 \end{proof}
 
 \begin{example}
@@ -15086,5 +15180,6 @@ $n=2$ 时乘积为空，按 $1$ 计算；一般情形的伽马函数因子逐项
 
 \section*{习题十七}
 \addcontentsline{toc}{section}{习题十七}
+\fi
 
 \end{document}

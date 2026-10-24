@@ -6,6 +6,49 @@
 \makeatother
 \usepackage{researchnotes}
 
+% 编译章节列表：{0} 编译全文；{3} 只编译第三章；{2,3} 或 {2,5} 编译多章。
+% 正文章号范围为 1--5，多个章号用半角逗号分隔，仍按原书顺序输出。
+% 列表中含 0 时编译全文。日常只需修改下面这一行。
+\newcommand{\CompileChapter}{0}
+
+% 以下条件由章节列表自动确定，无须手动切换，也无须拆分章节文件。
+\makeatletter
+\@for\notes@chapter:=\CompileChapter\do{%
+    \expandafter\let\csname notes@selected@\number\notes@chapter\endcsname\@empty
+}
+\newif\ifcompileallchapters
+\@ifundefined{notes@selected@0}
+    {\compileallchaptersfalse}
+    {\compileallchapterstrue}
+\newif\ifcompilechapter
+% 可选参数是本章在正文或附录内的序号，必选参数是章节列表中的序号。
+\newcommand{\selectchapter}[2][0]{%
+    \compilechapterfalse
+    \ifcompileallchapters
+        \compilechaptertrue
+    \else
+        \@ifundefined{notes@selected@#2}{}{%
+            \compilechaptertrue
+            \ifnum#1=0\relax
+                \setcounter{chapter}{\numexpr#2-1\relax}%
+            \else
+                \setcounter{chapter}{\numexpr#1-1\relax}%
+            \fi
+        }%
+    \fi
+}
+% 参数依次为目标章号、编号引用、文字指引；目标章入选时保留编号引用。
+\newcommand{\crosschapterref}[3]{%
+    \ifcompileallchapters
+        #2%
+    \else
+        \@ifundefined{notes@selected@#1}{#3}{#2}%
+    \fi
+}
+\makeatother
+
+
+
 \newtheorem{exercise}{训练题}[section]
 \newcommand{\E}{\mathbb E}
 \newcommand{\PP}{\mathbb P}
@@ -15,6 +58,8 @@
 \author{竞赛题源中文整理与课程衔接编订}
 \date{2026年10月10日}
 \begin{document}
+\ifcompileallchapters
+
 \maketitle
 \chapter*{编写说明与阅读路线}
 \addcontentsline{toc}{chapter}{编写说明与阅读路线}
@@ -40,6 +85,11 @@ MLE 表示\emph{极大似然估计}（maximum likelihood estimator），UMVUE �
 \clearpage
 
 
+
+\fi
+
+\selectchapter{1}
+\ifcompilechapter
 \chapter{全国大学生数学竞赛概率相关真题}
 
 本章按届次列出十三道概率相关真题。题面与基础解答由 Jacobi Lie 的公开题解转写并校订，属于公开题解转录层级；原卷题号由其逐题元数据给出，未声称逐份校验原卷扫描件。原作者的解答、评注及方法稿采用 CC BY-SA 4.0，具体署名、固定版本及许可见全书编写说明。
@@ -177,7 +227,7 @@ p_n=\frac12+\frac12\left(1-\frac2N\right)^n,\qquad \lim_{n\to\infty}p_n=\frac12.
 
 \begin{remark}[方法与条件]
 
-这里也可直接检验弱收敛：对每个连续函数 $h$，$Eh(Y_n)=2^{-n}\sum_{j<2^n}h(aj/2^n)\to a^{-1}\int_0^ah(u)\,\mathrm du$。换成 $b$ 进制时，独立均匀数字同样产生 $[0,a]$ 上的均匀分布。特征函数与分布的关系见\hyperref[app:probability-transforms]{方法卷：概率变换}。
+这里也可直接检验弱收敛：对每个连续函数 $h$，$Eh(Y_n)=2^{-n}\sum_{j<2^n}h(aj/2^n)\to a^{-1}\int_0^ah(u)\,\mathrm du$。换成 $b$ 进制时，独立均匀数字同样产生 $[0,a]$ 上的均匀分布。特征函数与分布的关系见\crosschapterref{3}{\hyperref[app:probability-transforms]{方法卷：概率变换}}{方法卷：概率变换}。
 
 \end{remark}
 
@@ -213,7 +263,7 @@ f_U(u)=\begin{cases}\frac n2u^{n-1},&0<u<1,\\\frac n2(2-u)^{n-1},&1<u<2,\\0,&\te
 
 \begin{remark}[方法与条件]
 
-最小值与最大值一般不独立。联合密度中的 $[F(y)-F(x)]^{n-2}$ 恰记录其余样本全部夹在两端点之间的概率，因此先求联合分布，再变换到“中心与跨度”最为直接。见\hyperref[app:probability-law]{方法卷：分布与变量变换}。
+最小值与最大值一般不独立。联合密度中的 $[F(y)-F(x)]^{n-2}$ 恰记录其余样本全部夹在两端点之间的概率，因此先求联合分布，再变换到“中心与跨度”最为直接。见\crosschapterref{3}{\hyperref[app:probability-law]{方法卷：分布与变量变换}}{方法卷：分布与变量变换}。
 
 \end{remark}
 
@@ -249,7 +299,7 @@ s_n^2\sim\frac{n^{2\theta+1}}{2\theta+1}.
 
 \begin{remark}[方法与条件]
 
-中心极限定理还给出精确阈值：$\theta=1/2$ 时 $S_n/n\Rightarrow N(0,1/2)$；$\theta>1/2$ 时 $n/s_n\to0$，故 $P(|S_n|\leq n\varepsilon)\to0$，因为标准正态在零点无原子。归一化尺度与 Lindeberg 条件见\hyperref[app:probability-limit]{方法卷：概率极限定理}。
+中心极限定理还给出精确阈值：$\theta=1/2$ 时 $S_n/n\Rightarrow N(0,1/2)$；$\theta>1/2$ 时 $n/s_n\to0$，故 $P(|S_n|\leq n\varepsilon)\to0$，因为标准正态在零点无原子。归一化尺度与 Lindeberg 条件见\crosschapterref{3}{\hyperref[app:probability-limit]{方法卷：概率极限定理}}{方法卷：概率极限定理}。
 
 \end{remark}
 
@@ -294,7 +344,7 @@ P\left(\left|\frac1n\sum_{i=1}^n(Y_{ni}-\mu_n)\right|>\varepsilon\right)
 
 \begin{remark}[方法与条件]
 
-这里不要求 $E|X_1|<\infty$，所以中心必须选截断均值 $\mu_n$，不能未经验证替换成 $EX_1$。尾部截断将大数问题分成稀有大值与可控方差两部分，见\hyperref[app:probability-limit]{方法卷：概率极限定理}。
+这里不要求 $E|X_1|<\infty$，所以中心必须选截断均值 $\mu_n$，不能未经验证替换成 $EX_1$。尾部截断将大数问题分成稀有大值与可控方差两部分，见\crosschapterref{3}{\hyperref[app:probability-limit]{方法卷：概率极限定理}}{方法卷：概率极限定理}。
 
 \end{remark}
 
@@ -332,7 +382,7 @@ s_n^2=\operatorname{Var}S_n=\sum_{k=1}^n\left(\frac1k-\frac1{k^2}\right)=\log n+
 
 \begin{remark}[方法与条件]
 
-$S_n$ 也与均匀随机排列的循环数同分布：依次加入数字 $k$ 时，在 $k$ 种等可能选择中，一种新建循环，其余把它接在已有某个数字后面；独立选择使新增循环数为 $\operatorname{Bernoulli}(1/k)$。本题因此同时描述随机排列的循环数，见\hyperref[app:probability-limit]{方法卷：概率极限定理}。
+$S_n$ 也与均匀随机排列的循环数同分布：依次加入数字 $k$ 时，在 $k$ 种等可能选择中，一种新建循环，其余把它接在已有某个数字后面；独立选择使新增循环数为 $\operatorname{Bernoulli}(1/k)$。本题因此同时描述随机排列的循环数，见\crosschapterref{3}{\hyperref[app:probability-limit]{方法卷：概率极限定理}}{方法卷：概率极限定理}。
 
 \end{remark}
 
@@ -401,7 +451,7 @@ E\left(\alpha^{\mathrm{T}}X \mid \beta^{\mathrm{T}}X\right) = \left(\alpha^{\mat
 \[
 \beta^*=\frac{\mathbb E[(X^{\mathrm T}\beta_0)Y]}{\beta_0^{\mathrm T}\Sigma\beta_0}\,\beta_0.
 \]
-这里先给定指标 $X^{\mathrm T}\beta_0$，正交于它的正态残差与指标及噪声均独立。条件投影与正态回归的证明见\hyperref[app:probability-gaussian]{方法卷：正态条件结构}。
+这里先给定指标 $X^{\mathrm T}\beta_0$，正交于它的正态残差与指标及噪声均独立。条件投影与正态回归的证明见\crosschapterref{3}{\hyperref[app:probability-gaussian]{方法卷：正态条件结构}}{方法卷：正态条件结构}。
 
 \end{remark}
 
@@ -449,7 +499,7 @@ N_t := \max \left\{n \geq 0 : S_n \leq t\right\},\quad t \geq 0.
 
 （iii）独立生成指数等待时间并累加，至首次超过 $1$ 为止；对此前到达时刻求和，得到一次样本 $Z=\sum_{S_n\le1}f(S_n)$。重复 $m$ 次取均值 $m^{-1}\sum_{j=1}^mZ_j$，它无偏且由强大数定律几乎处处收敛到目标积分。
 
-等待时间、Poisson 计数与随机积分是同一过程的三种描述；变换及矩公式见\hyperref[app:probability-poisson]{方法卷：Poisson 到达与随机和}。
+等待时间、Poisson 计数与随机积分是同一过程的三种描述；变换及矩公式见\crosschapterref{3}{\hyperref[app:probability-poisson]{方法卷：Poisson 到达与随机和}}{方法卷：Poisson 到达与随机和}。
 
 \end{solve}
 
@@ -495,7 +545,7 @@ u(t,z)=\frac1{\pi t}\int_{\mathbb R^2}e^{-|w-z|^2/t}\varphi(w)\,\mathrm dw
 
 \begin{remark}[方法与条件]
 
-Poisson 化把一步转移算子变成连续时间半群；扩散尺度由单步协方差与单位时间跳数共同决定。特征函数和生成算子的关系见\hyperref[app:probability-poisson]{方法卷：Poisson 随机和}。
+Poisson 化把一步转移算子变成连续时间半群；扩散尺度由单步协方差与单位时间跳数共同决定。特征函数和生成算子的关系见\crosschapterref{3}{\hyperref[app:probability-poisson]{方法卷：Poisson 随机和}}{方法卷：Poisson 随机和}。
 
 \end{remark}
 
@@ -535,7 +585,7 @@ e^{-ny}\prod_{i\ne j}e^{-z_i},\qquad y>0,\ z_i>0.
 
 \begin{remark}[方法与条件]
 
-指数分布的无记忆性在此表现为联合密度的因子分解；Gamma 和的比例又产生 Beta 分布。变量变换和条件分解的统一做法见\hyperref[app:probability-transforms]{方法卷：变量变换}及\hyperref[app:probability-convolution]{方法卷：卷积}。
+指数分布的无记忆性在此表现为联合密度的因子分解；Gamma 和的比例又产生 Beta 分布。变量变换和条件分解的统一做法见\crosschapterref{3}{\hyperref[app:probability-transforms]{方法卷：变量变换}}{方法卷：变量变换}及\crosschapterref{3}{\hyperref[app:probability-convolution]{方法卷：卷积}}{方法卷：卷积}。
 
 \end{remark}
 
@@ -589,10 +639,15 @@ Gibbs 不等式说明右端非负：由 $-\log t\ge1-t$，对概率分布 $p,q$�
 
 \begin{remark}[方法与条件]
 
-互信息同时等于条件化减少的熵，以及联合分布相对独立分布的偏离。非负性与等号条件来自同一个对数不等式；相关概念及条件互信息的推广见\hyperref[app:probability-entropy]{方法卷：熵与凸性}。
+互信息同时等于条件化减少的熵，以及联合分布相对独立分布的偏离。非负性与等号条件来自同一个对数不等式；相关概念及条件互信息的推广见\crosschapterref{3}{\hyperref[app:probability-entropy]{方法卷：熵与凸性}}{方法卷：熵与凸性}。
 
 \end{remark}
 
+
+\fi
+
+\selectchapter{2}
+\ifcompilechapter
 \chapter{丘成桐大学生数学竞赛概率统计选题}
 本章选题均来自官方历年笔试题包。每节标题给出年份与组别，每道例题注明原题号；题名是为便于检索新增的中文主题名。题面以数学内容为中心译写，解答与补充说明为本书编订。涉及部分选录或条件校订时就地说明，不将删节后的问题冒称为完整原卷。各年未收入的题目不补造题号。
 
@@ -1749,6 +1804,11 @@ v(x)=\frac{x^4}{3}-2a^2x^2+\frac{5a^4}{3}.
 \end{solve}
 
 
+
+\fi
+
+\selectchapter{3}
+\ifcompilechapter
 \chapter{竞赛方法与理论衔接}
 本章首先改编 Jacobi Lie《数学竞赛的方法与结构》中“概率结构与极限定理”一章，原作者及 CC BY-SA 4.0 许可见编写说明。后续的统计推断与方法扩展由编订者补充，各自注明适用条件。这些方法说明及例题不计入历年真题数量。
 
@@ -1789,7 +1849,7 @@ F_X(t)=\mathbb P(X\le t)
 \[
 p_{U,V}(u,v)=n(n-1)[F(v)-F(u)]^{n-2}f(u)f(v),\qquad u<v.
 \]
-解释各因子：有 $n(n-1)$ 种方式指定产生两端点的样本，其他 $n-2$ 个样本都必须落在中间区间。也可先写联合分布函数再求混合导数。这是\hyperref[pr:fin09-hi:13]{次序统计量题}的基础；$n=1$ 时二维分布集中在对角线上，应单独处理。
+解释各因子：有 $n(n-1)$ 种方式指定产生两端点的样本，其他 $n-2$ 个样本都必须落在中间区间。也可先写联合分布函数再求混合导数。这是\crosschapterref{1}{\hyperref[pr:fin09-hi:13]{次序统计量题}}{次序统计量题}的基础；$n=1$ 时二维分布集中在对角线上，应单独处理。
 
 \subsection{变量变换：密度与体积元一起变化}
 
@@ -1817,7 +1877,7 @@ p_S(s)=\begin{cases}s,&0<s<1,\\2-s,&1\le s<2,\\0,&\text{其他}.
 \[
 e^{-ny}\prod_{i\ne j}e^{-z_i},\qquad y,z_i>0.
 \]
-积分给出 $\mathbb P(J=j)=1/n$；除以该概率后，密度分解为 $ne^{-ny}\prod_{i\ne j}e^{-z_i}$。因此在此条件下，最小值与剩余等待时间独立，后者仍为参数 $1$ 的指数分布。这既证明了无记忆性的多变量形式，也避免把“给定某个连续值”误当成普通正概率事件。完整应用见\hyperref[pr:fin16-high:12]{指数样本题}。
+积分给出 $\mathbb P(J=j)=1/n$；除以该概率后，密度分解为 $ne^{-ny}\prod_{i\ne j}e^{-z_i}$。因此在此条件下，最小值与剩余等待时间独立，后者仍为参数 $1$ 的指数分布。这既证明了无记忆性的多变量形式，也避免把“给定某个连续值”误当成普通正概率事件。完整应用见\crosschapterref{1}{\hyperref[pr:fin16-high:12]{指数样本题}}{指数样本题}。
 
 \subsection{独立和、卷积与 Gamma–Beta 分解}
 
@@ -1851,7 +1911,7 @@ p_{S_{n+1}}(s)=\int_0^s\frac{x^{n-1}e^{-x}}{(n-1)!}e^{-(s-x)}\,\mathrm dx
 U+V\sim\operatorname{Gamma}(a+b,1),\qquad
 \frac U{U+V}\sim\operatorname{Beta}(a,b).
 \]
-相同尺度参数是关键；若两个 Gamma 变量的指数衰减率不同，上式的指数项会同时依赖 $s,r$，独立分解通常失效。\hyperref[pr:fin16-high:12]{指数最小值与总和之比}正是先识别独立的 Gamma 分量，再做这一变换。
+相同尺度参数是关键；若两个 Gamma 变量的指数衰减率不同，上式的指数项会同时依赖 $s,r$，独立分解通常失效。\crosschapterref{1}{\hyperref[pr:fin16-high:12]{指数最小值与总和之比}}{指数最小值与总和之比}正是先识别独立的 Gamma 分量，再做这一变换。
 
 \subsection{特征函数：把独立相加变成相乘}
 
@@ -1869,7 +1929,7 @@ U+V\sim\operatorname{Gamma}(a+b,1),\qquad
 \phi_{Y_n}(t)=2^{-n}\sum_{j=0}^{2^n-1}e^{iatj/2^n}
 \longrightarrow\int_0^1e^{iatx}\,\mathrm dx.
 \]
-右边是 $(0,a)$ 上均匀分布的特征函数。这里识别等概率网格比化简三角函数乘积更直接，见\hyperref[pr:fin08-hi:13]{二进位分布题}。
+右边是 $(0,a)$ 上均匀分布的特征函数。这里识别等概率网格比化简三角函数乘积更直接，见\crosschapterref{1}{\hyperref[pr:fin08-hi:13]{二进位分布题}}{二进位分布题}。
 
 下面使用两个标准定理：特征函数唯一决定概率分布；若特征函数列逐点收敛到在零点连续的函数，则该函数仍是某个概率分布的特征函数，原分布列弱收敛于它。这是 Lévy 连续性定理，本章不证明。弱收敛等价于对每个有界连续 $h$，期望 $\mathbb Eh(X_n)$ 收敛；它不自动允许取无界的 $h(x)=x$ 或 $x^2$。
 
@@ -1909,7 +1969,7 @@ U+V\sim\operatorname{Gamma}(a+b,1),\qquad
 \[
 \frac{\mathbb EY_{n1}^2}{n}\le\frac2n\int_0^nt\mathbb P(|X_1|>t)\,\mathrm dt\to0.
 \]
-最后对截断和用 Chebyshev，就得到 $n^{-1}\sum_{i\le n}X_i-\mu_n\to0$ 依概率成立。这是\hyperref[pr:fin11-high:12]{弱大数律与截断题}的完整机制：大值发生概率小，截断后的总方差也小；两者缺一不可。
+最后对截断和用 Chebyshev，就得到 $n^{-1}\sum_{i\le n}X_i-\mu_n\to0$ 依概率成立。这是\crosschapterref{1}{\hyperref[pr:fin11-high:12]{弱大数律与截断题}}{弱大数律与截断题}的完整机制：大值发生概率小，截断后的总方差也小；两者缺一不可。
 
 需要下界时可反向使用二阶矩。对非负、平方可积且 $\mathbb EX>0$ 的 $X$，令 $E=\{X>\eta\mathbb EX\}$（$0<\eta<1$）。有 $(1-\eta)\mathbb EX\le\mathbb E(X1_E)$，再由 Cauchy--Schwarz，
 \[
@@ -1989,7 +2049,7 @@ Z=\beta_0^{\mathrm T}X+\varepsilon,\qquad Y=\operatorname{sgn}Z,
 \[
 \beta^*=\sqrt{\frac2{\pi v}}\,\beta_0.
 \]
-高维最小二乘因而只需一个一维绝对矩；这是\hyperref[pr:fin13-high:12]{正态符号回归题}的主要简化。
+高维最小二乘因而只需一个一维绝对矩；这是\crosschapterref{1}{\hyperref[pr:fin13-high:12]{正态符号回归题}}{正态符号回归题}的主要简化。
 
 更一般地，若 $Y=h(\beta_0^{\mathrm T}X,\varepsilon)\in L^2$、噪声独立于 $X$ 且 $\beta_0\ne0$，正态残差仍给出
 \[
@@ -2029,7 +2089,7 @@ Z=\beta_0^{\mathrm T}X+\varepsilon,\qquad Y=\operatorname{sgn}Z,
 \[
 \mathbb E\sum_{n\ge1:S_n\le T}f(S_n)=\lambda\int_0^Tf(s)\,\mathrm ds.
 \]
-证明是将第 $n$ 个到达时间的密度相加：$\sum_{n\ge1}\lambda^ns^{n-1}e^{-\lambda s}/(n-1)!=\lambda$。先对 $|f|$ 用 Tonelli，得到期望绝对可和，再对 $f$ 交换求和与积分。这给出\hyperref[pr:fin14-high:12]{Poisson 积分题}中的无偏估计。
+证明是将第 $n$ 个到达时间的密度相加：$\sum_{n\ge1}\lambda^ns^{n-1}e^{-\lambda s}/(n-1)!=\lambda$。先对 $|f|$ 用 Tonelli，得到期望绝对可和，再对 $f$ 交换求和与积分。这给出\crosschapterref{1}{\hyperref[pr:fin14-high:12]{Poisson 积分题}}{Poisson 积分题}中的无偏估计。
 
 当 $f\in L^2([0,T])$ 时还有
 \[
@@ -2045,7 +2105,7 @@ P_t=e^{-\lambda t}\sum_{k=0}^\infty\frac{(\lambda t)^k}{k!}T^k
 \]
 当 $T$ 在有界函数空间上为压缩算子时，级数按算子范数收敛，可逐项求导，生成算子就是 $\lambda(T-I)$。这同时解释半群关系 $P_{t+s}=P_tP_s$ 和演化方程 $\partial_tu=\lambda(T-I)u$。
 
-\hyperref[pr:fin15-high:12]{格点随机游走题}中，一步在四个方向各以 $1/4$ 的概率跳长 $\varepsilon$，跳率为 $\varepsilon^{-2}$。每个坐标的单步方差为 $\varepsilon^2/2$，故单位时间方差趋向 $1/2$，极限应为 $B_{t/2}$；生成算子也恰趋向 $\Delta/4$。先算协方差可以预先确定扩散常数，再用特征函数把分布收敛严格化。
+\crosschapterref{1}{\hyperref[pr:fin15-high:12]{格点随机游走题}}{格点随机游走题}中，一步在四个方向各以 $1/4$ 的概率跳长 $\varepsilon$，跳率为 $\varepsilon^{-2}$。每个坐标的单步方差为 $\varepsilon^2/2$，故单位时间方差趋向 $1/2$，极限应为 $B_{t/2}$；生成算子也恰趋向 $\Delta/4$。先算协方差可以预先确定扩散常数，再用特征函数把分布收敛严格化。
 
 \subsection{大数律与中心极限定理：先找正确尺度}
 
@@ -2104,9 +2164,9 @@ s_n^2=\sum_{k=1}^n\operatorname{Var}X_k.
 \]
 其中 $\Phi$ 是标准正态分布函数。大数律把误差除以 $n$；中心极限定理把误差除以 $\sqrt n$，保留了非平凡的波动分布。极限定理本身只给收敛，不给有限样本近似的统一误差率。
 
-\textbf{两类非同分布应用。} 对独立对称变量 $X_k=\pm k^\theta$，有 $s_n^2\sim n^{2\theta+1}/(2\theta+1)$，而 $\max_{k\le n}|X_k|/s_n\to0$，所以 Lindeberg 的截断项最终全部为零。中心极限定理对所有 $\theta>0$ 成立，大数律 $S_n/n\to0$ 却只在 $\theta<1/2$ 成立；见\hyperref[pr:fin10-hi:13]{加权符号变量题}。
+\textbf{两类非同分布应用。} 对独立对称变量 $X_k=\pm k^\theta$，有 $s_n^2\sim n^{2\theta+1}/(2\theta+1)$，而 $\max_{k\le n}|X_k|/s_n\to0$，所以 Lindeberg 的截断项最终全部为零。中心极限定理对所有 $\theta>0$ 成立，大数律 $S_n/n\to0$ 却只在 $\theta<1/2$ 成立；见\crosschapterref{1}{\hyperref[pr:fin10-hi:13]{加权符号变量题}}{加权符号变量题}。
 
-对独立 $X_k\sim\operatorname{Bernoulli}(1/k)$，均值和方差都为 $\log n+O(1)$，正确波动尺度是 $\sqrt{\log n}$。中心化变量被 $1$ 控制，而总方差趋于无穷，同样直接满足 Lindeberg 条件。它也描述均匀随机排列的循环数：插入第 $k$ 个数字时，$k$ 种等概率位置中恰有一种新建循环，其余位置将它接到现有循环内。独立插入使新增循环指标为独立的 $\operatorname{Bernoulli}(1/k)$；详见\hyperref[pr:fin12-high:12]{稀疏计数题}。
+对独立 $X_k\sim\operatorname{Bernoulli}(1/k)$，均值和方差都为 $\log n+O(1)$，正确波动尺度是 $\sqrt{\log n}$。中心化变量被 $1$ 控制，而总方差趋于无穷，同样直接满足 Lindeberg 条件。它也描述均匀随机排列的循环数：插入第 $k$ 个数字时，$k$ 种等概率位置中恰有一种新建循环，其余位置将它接到现有循环内。独立插入使新增循环指标为独立的 $\operatorname{Bernoulli}(1/k)$；详见\crosschapterref{1}{\hyperref[pr:fin12-high:12]{稀疏计数题}}{稀疏计数题}。
 
 若仅知 $X_n\to0$ 依概率且 $|X_n|\le1$，则仍能推出期望绝对值趋零，因为 $\mathbb E|X_n|\le\eta+\mathbb P(|X_n|>\eta)$。这常用于将大数律传递给有界连续函数。它与对原变量直接交换极限和期望是不同的一步。
 
@@ -2135,7 +2195,7 @@ D(p\Vert q)\ge1-\sum_{p_i>0}q_i\ge0.
 H(X)-H(X\mid Y)
 =D(p_{XY}\Vert p_Xp_Y)=I(X;Y)\ge0.
 \]
-这同时证明条件熵平均不增及等号当且仅当独立，见\hyperref[pr:fin17-high:12]{熵的链式法则题}。一个具体例子是独立公平位 $X,Z$ 和 $Y=X\mathbin{\oplus}Z$：$X$ 与 $Y$ 独立，故单独知道 $Y$ 不降低 $X$ 的熵；同时知道 $Y,Z$ 却能恢复 $X$。信息的作用取决于当前已经知道什么。
+这同时证明条件熵平均不增及等号当且仅当独立，见\crosschapterref{1}{\hyperref[pr:fin17-high:12]{熵的链式法则题}}{熵的链式法则题}。一个具体例子是独立公平位 $X,Z$ 和 $Y=X\mathbin{\oplus}Z$：$X$ 与 $Y$ 独立，故单独知道 $Y$ 不降低 $X$ 的熵；同时知道 $Y,Z$ 却能恢复 $X$。信息的作用取决于当前已经知道什么。
 
 对有限变量 $X,Y,Z$，在每个 $Z=z$ 的条件分布内重复相对熵证明，再平均，得到
 \[
@@ -2149,6 +2209,11 @@ I(X;Z)\le I(X;Y).
 
 这些结论都由概率分解和凸性导出。使用时须保留“平均”和“有限分布”的条件：某个特定观测值对应的条件熵可以高于原熵；连续变量的微分熵也不具有这里全部的非负性性质，不能直接照搬。
 
+
+\fi
+
+\selectchapter{4}
+\ifcompilechapter
 \chapter{课程衔接训练：题目}
 本章收录264道既有课程训练题，全部与竞赛真题分开计数。基础概率题用于熟练计算，统计题用于补齐竞赛推断题所需的抽样分布、估计和检验知识。
 
@@ -4524,6 +4589,11 @@ $P(Y\in \mathbb{R})=1$，于是有
 \begin{solve}用白化矩阵 $\Sigma^{-1/2}$ 变换数据，得到协方差为单位阵的误差。最小化\[(Y-X\beta)^\mathsf T\Sigma^{-1}(Y-X\beta),\]正规方程给出\[\widehat\beta=(X^\mathsf T\Sigma^{-1}X)^{-1}X^\mathsf T\Sigma^{-1}Y.\]其均值为 $\beta$，协方差为 $(X^\mathsf T\Sigma^{-1}X)^{-1}$。独立异方差时，$\Sigma$ 为对角阵，目标函数是 $\sum_i(Y_i-x_i^\mathsf T\beta)^2/\sigma_i^2$，精度高的观测权重大。若这些方差需从数据估计，则以上公式的有限样本推断不能直接视为已知协方差情形。\end{solve}
 
 \clearpage
+
+\fi
+
+\selectchapter{5}
+\ifcompilechapter
 \chapter{解题方法与公式速查}
 \section*{方法一：先定义试验，再计算概率}
 \addcontentsline{toc}{section}{方法一：先定义试验，再计算概率}
@@ -4538,7 +4608,7 @@ $P(Y\in \mathbb{R})=1$，于是有
 P\left(\bigcup_{i=1}^nA_i\right)
 =\sum_{\varnothing\ne J\subset\{1,\ldots,n\}}(-1)^{|J|-1}P\left(\bigcap_{j\in J}A_j\right).
 \end{equation*}
-计算后至少检查三个边界：概率是否在 $[0,1]$；样本容量为零或一时是否合乎题意；参数趋近零或一时结果是否具有合理极限。这些检查不能替代推导，却常能发现漏项、错位和重复计数。对应训练为习题~\ref{q:Y1.9}、\ref{q:Y2.3}、\ref{q:Y2.5}。
+计算后至少检查三个边界：概率是否在 $[0,1]$；样本容量为零或一时是否合乎题意；参数趋近零或一时结果是否具有合理极限。这些检查不能替代推导，却常能发现漏项、错位和重复计数。对应训练为\crosschapterref{4}{习题~\ref{q:Y1.9}}{题源~\texttt{Y1.9} 的习题}、\crosschapterref{4}{\ref{q:Y2.3}}{题源~\texttt{Y2.3}}、\crosschapterref{4}{\ref{q:Y2.5}}{题源~\texttt{Y2.5}}。
 
 \section*{方法二：条件概率与信息产生机制}
 \addcontentsline{toc}{section}{方法二：条件概率与信息产生机制}
@@ -4552,7 +4622,7 @@ P(H_j\mid D)=\frac{\pi_jL_j}{\sum_i\pi_iL_i}.
 
 连续观测没有非零单点概率，但有密度似然。给定观测 $x$ 后，$L(\theta;x)=f_\theta(x)$ 是参数的函数，不要求对参数积分等于一。贝叶斯后验则还需乘先验密度，再对参数归一化。将似然本身视为参数的概率分布，只有在明确采用相应先验且归一化有意义的特定情形下才可能成立。
 
-连续检测需要检查的是给定真实状态后的条件独立，而不是检测结果的无条件独立。若两个结果由同一个未知状态共同影响，即使它们条件独立，边际上也往往相关。三门问题进一步说明：观察到“某门被打开且里面没有奖品”，其似然取决于主持人如何选门。信息并不只在看到的结果里，也在产生结果的规则里。对应训练为习题~\ref{q:Y2.23}、\ref{q:M-P7-1}、\ref{q:M-P9-2}。
+连续检测需要检查的是给定真实状态后的条件独立，而不是检测结果的无条件独立。若两个结果由同一个未知状态共同影响，即使它们条件独立，边际上也往往相关。三门问题进一步说明：观察到“某门被打开且里面没有奖品”，其似然取决于主持人如何选门。信息并不只在看到的结果里，也在产生结果的规则里。对应训练为\crosschapterref{4}{习题~\ref{q:Y2.23}}{题源~\texttt{Y2.23} 的习题}、\crosschapterref{4}{\ref{q:M-P7-1}}{题源~\texttt{M-P7-1}}、\crosschapterref{4}{\ref{q:M-P9-2}}{题源~\texttt{M-P9-2}}。
 
 \section*{方法三：分布函数比密度更基本}
 \addcontentsline{toc}{section}{方法三：分布函数比密度更基本}
@@ -4570,7 +4640,7 @@ f_Y(y)=\sum_{x:g(x)=y}\frac{f_X(x)}{|g'(x)|},
 \]
 在常规可微、导数非零的分支上成立，并按几乎处处意义理解。若变换把一段区间压成一个点，结果可能出现原子，此时单纯求导可能漏掉点质量。
 
-独立变量的最大值和最小值常用分布函数最方便：最大值不超过 $t$ 等价于所有变量不超过 $t$；最小值大于 $t$ 等价于所有变量大于 $t$。这些事件关系对离散分布同样适用，但求单点质量时要使用分布函数差。对应训练为习题~\ref{q:Y3.20}、\ref{q:Y3.25}、\ref{q:B8.7}。
+独立变量的最大值和最小值常用分布函数最方便：最大值不超过 $t$ 等价于所有变量不超过 $t$；最小值大于 $t$ 等价于所有变量大于 $t$。这些事件关系对离散分布同样适用，但求单点质量时要使用分布函数差。对应训练为\crosschapterref{4}{习题~\ref{q:Y3.20}}{题源~\texttt{Y3.20} 的习题}、\crosschapterref{4}{\ref{q:Y3.25}}{题源~\texttt{Y3.25}}、\crosschapterref{4}{\ref{q:B8.7}}{题源~\texttt{B8.7}}。
 
 \section*{方法四：联合分布、支撑与独立性}
 \addcontentsline{toc}{section}{方法四：联合分布、支撑与独立性}
@@ -4584,7 +4654,7 @@ f_{U,V}(u,v)=f_{X,Y}(T^{-1}(u,v))\left|\det D T^{-1}(u,v)\right|.
 \]
 题目若有多个逆像，需将各分支贡献相加。极坐标中的面积元素是 $r\,dr\,d\theta$，因此从极坐标密度回到平面时除以 $r$。把这个方向搞反常使密度无法归一化。
 
-零协方差只是二阶线性关系的信息。联合正态情形中零相关推出独立；两个边缘分别正态并不足够。判断独立时可用确定性函数关系找反例，例如 $Y^2=X^2$ 会使相应事件重复，破坏概率乘积。对应训练为习题~\ref{q:A4.23}、\ref{q:Y4.25}、\ref{q:B17.15}、\ref{q:B17.16}。
+零协方差只是二阶线性关系的信息。联合正态情形中零相关推出独立；两个边缘分别正态并不足够。判断独立时可用确定性函数关系找反例，例如 $Y^2=X^2$ 会使相应事件重复，破坏概率乘积。对应训练为\crosschapterref{4}{习题~\ref{q:A4.23}}{题源~\texttt{A4.23} 的习题}、\crosschapterref{4}{\ref{q:Y4.25}}{题源~\texttt{Y4.25}}、\crosschapterref{4}{\ref{q:B17.15}}{题源~\texttt{B17.15}}、\crosschapterref{4}{\ref{q:B17.16}}{题源~\texttt{B17.16}}。
 
 \section*{方法五：先用结构求期望，再求分布}
 \addcontentsline{toc}{section}{方法五：先用结构求期望，再求分布}
@@ -4602,7 +4672,7 @@ f_{U,V}(u,v)=f_{X,Y}(T^{-1}(u,v))\left|\det D T^{-1}(u,v)\right|.
 \]
 前项是固定状态后的内部波动，后项是状态变化造成的均值波动。随机和中常见错误是只保留前项，漏掉随机个数本身导致的方差。
 
-计算结果应保留量纲：均值的单位与变量相同，方差的单位是变量单位平方，标准差恢复原单位，相关系数没有单位。对协方差或方差出现负数，应检查减法和混合模型分解；但协方差本身可以为负。对应训练为习题~\ref{q:A5.9}、\ref{q:A5.25}、\ref{q:A6.4}、\ref{q:B17.5}。
+计算结果应保留量纲：均值的单位与变量相同，方差的单位是变量单位平方，标准差恢复原单位，相关系数没有单位。对协方差或方差出现负数，应检查减法和混合模型分解；但协方差本身可以为负。对应训练为\crosschapterref{4}{习题~\ref{q:A5.9}}{题源~\texttt{A5.9} 的习题}、\crosschapterref{4}{\ref{q:A5.25}}{题源~\texttt{A5.25}}、\crosschapterref{4}{\ref{q:A6.4}}{题源~\texttt{A6.4}}、\crosschapterref{4}{\ref{q:B17.5}}{题源~\texttt{B17.5}}。
 
 \section*{方法六：生成函数与极限定理}
 \addcontentsline{toc}{section}{方法六：生成函数与极限定理}
@@ -4616,7 +4686,7 @@ f_{U,V}(u,v)=f_{X,Y}(T^{-1}(u,v))\left|\det D T^{-1}(u,v)\right|.
 \]
 “样本均值近似正态”并不等于每个原始观测近似正态，也不等于未乘 $\sqrt n$ 的误差服从标准正态。两组样本均值之差的方差要分别除以各自容量。
 
-依分布收敛的分布函数判据通常只对固定连续点成立。若阈值随 $n$ 移动，应使用夹逼或紧性论证。加入一个依概率趋于零的扰动不改变分布极限，这是斯卢茨基思想的常见形式，不要求扰动与原量独立。对应训练为习题~\ref{q:A6.29}、\ref{q:A6.30}、\ref{q:A7.21}、\ref{q:A7.25}。
+依分布收敛的分布函数判据通常只对固定连续点成立。若阈值随 $n$ 移动，应使用夹逼或紧性论证。加入一个依概率趋于零的扰动不改变分布极限，这是斯卢茨基思想的常见形式，不要求扰动与原量独立。对应训练为\crosschapterref{4}{习题~\ref{q:A6.29}}{题源~\texttt{A6.29} 的习题}、\crosschapterref{4}{\ref{q:A6.30}}{题源~\texttt{A6.30}}、\crosschapterref{4}{\ref{q:A7.21}}{题源~\texttt{A7.21}}、\crosschapterref{4}{\ref{q:A7.25}}{题源~\texttt{A7.25}}。
 
 \section*{方法七：抽样分布是统计推断的桥梁}
 \addcontentsline{toc}{section}{方法七：抽样分布是统计推断的桥梁}
@@ -4630,7 +4700,7 @@ f_{U,V}(u,v)=f_{X,Y}(T^{-1}(u,v))\left|\det D T^{-1}(u,v)\right|.
 
 自由度是可独立变化方向的数目。用样本均值估计总体均值后，残差满足和为零的线性约束，故平方和只剩 $n-1$ 个正交正态方向。在回归中估计 $p$ 个满秩线性系数，残差自由度是 $n-p$；在分类计数中，总数和参数拟合也会消耗自由度，但适用条件需要另外检查。
 
-顺序统计量从另一条途径提供抽样分布。最大值的分布来自“所有观测都不超过阈值”，最小值的分布来自“所有观测都超过阈值”。端点参数影响支撑时，极值往往比均值包含更多相关信息。对应训练为习题~\ref{q:B8.3}、\ref{q:B8.4}、\ref{q:B8.7}、\ref{q:B8.8}。
+顺序统计量从另一条途径提供抽样分布。最大值的分布来自“所有观测都不超过阈值”，最小值的分布来自“所有观测都超过阈值”。端点参数影响支撑时，极值往往比均值包含更多相关信息。对应训练为\crosschapterref{4}{习题~\ref{q:B8.3}}{题源~\texttt{B8.3} 的习题}、\crosschapterref{4}{\ref{q:B8.4}}{题源~\texttt{B8.4}}、\crosschapterref{4}{\ref{q:B8.7}}{题源~\texttt{B8.7}}、\crosschapterref{4}{\ref{q:B8.8}}{题源~\texttt{B8.8}}。
 
 \section*{方法八：区分估计方法与估计性质}
 \addcontentsline{toc}{section}{方法八：区分估计方法与估计性质}
@@ -4648,7 +4718,7 @@ E_\theta(T-\theta)^2=\operatorname{Var}_\theta(T)+[E_\theta T-\theta]^2.
 \]
 若一阶导数为零，不能套用这个式子声称得到非退化极限，应继续分析更高阶项。
 
-极大似然解题应写清参数空间和支撑指标，随后才求导。驻点还需判断是最大值，并检查边界和极大值是否达到。均匀分布端点估计正是最大值位于约束边界的典型例子。对应训练为习题~\ref{q:B9.5}、\ref{q:B10.2}、\ref{q:B10.4}、\ref{q:B17.22}。
+极大似然解题应写清参数空间和支撑指标，随后才求导。驻点还需判断是最大值，并检查边界和极大值是否达到。均匀分布端点估计正是最大值位于约束边界的典型例子。对应训练为\crosschapterref{4}{习题~\ref{q:B9.5}}{题源~\texttt{B9.5} 的习题}、\crosschapterref{4}{\ref{q:B10.2}}{题源~\texttt{B10.2}}、\crosschapterref{4}{\ref{q:B10.4}}{题源~\texttt{B10.4}}、\crosschapterref{4}{\ref{q:B17.22}}{题源~\texttt{B17.22}}。
 
 \section*{方法九：充分性、完全性与信息下界}
 \addcontentsline{toc}{section}{方法九：充分性、完全性与信息下界}
@@ -4662,7 +4732,7 @@ E_\theta(T-\theta)^2=\operatorname{Var}_\theta(T)+[E_\theta T-\theta]^2.
 \]
 使用它需核对支撑不随参数产生未处理的边界项、微分积分交换等条件。它只是一个下界，不保证存在达到下界的估计。
 
-充分性、完全性与信息量回答不同问题：前者关乎数据压缩，中者关乎无偏估计唯一性，后者关乎局部精度限制。它们之间不能仅凭名称相似互相替代。对应训练为习题~\ref{q:B11.3}、\ref{q:B11.4}、\ref{q:B11.6}、\ref{q:B11.8}。
+充分性、完全性与信息量回答不同问题：前者关乎数据压缩，中者关乎无偏估计唯一性，后者关乎局部精度限制。它们之间不能仅凭名称相似互相替代。对应训练为\crosschapterref{4}{习题~\ref{q:B11.3}}{题源~\texttt{B11.3} 的习题}、\crosschapterref{4}{\ref{q:B11.4}}{题源~\texttt{B11.4}}、\crosschapterref{4}{\ref{q:B11.6}}{题源~\texttt{B11.6}}、\crosschapterref{4}{\ref{q:B11.8}}{题源~\texttt{B11.8}}。
 
 \section*{方法十：区间估计从枢轴反演}
 \addcontentsline{toc}{section}{方法十：区间估计从枢轴反演}
@@ -4672,7 +4742,7 @@ E_\theta(T-\theta)^2=\operatorname{Var}_\theta(T)+[E_\theta T-\theta]^2.
 
 置信水平（confidence level）是重复抽样中随机区间覆盖固定参数的概率。它不自动等于给定数据以后参数位于已实现区间的后验概率。贝叶斯可信区间（credible interval）则基于后验分布积分。两者数值上有时相同，但逻辑解释不同；一个区间可以有 $95\%$ 的频率覆盖，而在某个特定先验与数据下的后验概率远小于 $95\%$。
 
-样本量规划通常解误差半径不等式。若标准差已知，半径为 $z\sigma/\sqrt n$，所以将半径减半需四倍样本量。未知比例可以用方差上界 $1/4$ 规划，但这仍通常基于正态近似，不能直接声称对所有有限样本精确覆盖。对应训练为习题~\ref{q:M-C22-1}、\ref{q:B13.1}、\ref{q:M-P10-5}、\ref{q:B17.11}。
+样本量规划通常解误差半径不等式。若标准差已知，半径为 $z\sigma/\sqrt n$，所以将半径减半需四倍样本量。未知比例可以用方差上界 $1/4$ 规划，但这仍通常基于正态近似，不能直接声称对所有有限样本精确覆盖。对应训练为\crosschapterref{4}{习题~\ref{q:M-C22-1}}{题源~\texttt{M-C22-1} 的习题}、\crosschapterref{4}{\ref{q:B13.1}}{题源~\texttt{B13.1}}、\crosschapterref{4}{\ref{q:M-P10-5}}{题源~\texttt{M-P10-5}}、\crosschapterref{4}{\ref{q:B17.11}}{题源~\texttt{B17.11}}。
 
 \section*{方法十一：检验的四个概率方向}
 \addcontentsline{toc}{section}{方法十一：检验的四个概率方向}
@@ -4682,7 +4752,7 @@ $p$ 值是在零假设参考分布下，出现至少同样极端结果的概率�
 
 构造拒绝域后，再在备择分布下积分得到功效。不能把零假设临界值重新以备择均值为中心设定，否则就改变了检验规则。中央区间通常是双侧检验的接受区域，其补集才是拒绝区域。离散检验中拒绝域大小常无法恰好等于 $\alpha$，除非允许边界随机化。
 
-不拒绝零假设不等于证明其为真。若要证明实际差异足够小，应预先规定等效界并使用等效检验；若要比较多个假设，还要控制多重检验产生的至少一次误报概率。置信区间能同时显示差异大小与不确定性，通常比仅报“显著／不显著”更有解释力。对应训练为习题~\ref{q:M-P8-3}、\ref{q:M-P9-1}、\ref{q:B14.3}、\ref{q:B14.4}。
+不拒绝零假设不等于证明其为真。若要证明实际差异足够小，应预先规定等效界并使用等效检验；若要比较多个假设，还要控制多重检验产生的至少一次误报概率。置信区间能同时显示差异大小与不确定性，通常比仅报“显著／不显著”更有解释力。对应训练为\crosschapterref{4}{习题~\ref{q:M-P8-3}}{题源~\texttt{M-P8-3} 的习题}、\crosschapterref{4}{\ref{q:M-P9-1}}{题源~\texttt{M-P9-1}}、\crosschapterref{4}{\ref{q:B14.3}}{题源~\texttt{B14.3}}、\crosschapterref{4}{\ref{q:B14.4}}{题源~\texttt{B14.4}}。
 
 \section*{方法十二：分类计数检验的建模检查}
 \addcontentsline{toc}{section}{方法十二：分类计数检验的建模检查}
@@ -4692,7 +4762,7 @@ $p$ 值是在零假设参考分布下，出现至少同样极端结果的概率�
 
 列联表独立性检验中，期望计数为行和乘列和除以总数。对于 $r\times c$ 表，自由度通常为 $(r-1)(c-1)$。两组类别分布同质性与联合表独立性在数值形式上相同，但抽样设计和零假设叙述不同。固定边际和的二乘二表，可用超几何分布作费希尔精确检验。
 
-实际解释应区分统计偏离与产生偏离的原因。拟合优度拒绝只能说明指定模型与数据不相容，不能单凭它断言欺骗、因果效应或某种机制成立。包装内相关、重复测量和选择性收集都会使简单独立计数模型失效。对应训练为习题~\ref{q:M-E2-II5}、\ref{q:B15.2}、\ref{q:B15.4}、\ref{q:M-F-8}。
+实际解释应区分统计偏离与产生偏离的原因。拟合优度拒绝只能说明指定模型与数据不相容，不能单凭它断言欺骗、因果效应或某种机制成立。包装内相关、重复测量和选择性收集都会使简单独立计数模型失效。对应训练为\crosschapterref{4}{习题~\ref{q:M-E2-II5}}{题源~\texttt{M-E2-II5} 的习题}、\crosschapterref{4}{\ref{q:B15.2}}{题源~\texttt{B15.2}}、\crosschapterref{4}{\ref{q:B15.4}}{题源~\texttt{B15.4}}、\crosschapterref{4}{\ref{q:M-F-8}}{题源~\texttt{M-F-8}}。
 
 \section*{方法十三：回归中的线性与随机性}
 \addcontentsline{toc}{section}{方法十三：回归中的线性与随机性}
@@ -4702,7 +4772,7 @@ $p$ 值是在零假设参考分布下，出现至少同样极端结果的概率�
 
 对均值响应的区间与新个体预测区间不同。前者衡量回归曲线估计误差，后者还包含新观测的不可约噪声。两者的中心可相同，半径却差一个额外的误差方差项。观测横坐标越远离样本中心，预测标准误通常越大；在样本范围外还存在模型形式不确定性，这不是单纯增加公式中的标准误就能完全解决的。
 
-变换响应会改变拟合目标。最小化对数残差平方与最小化原尺度残差平方是不同的问题；对数正态模型中把拟合的对数均值直接取指数得到条件中位数，均值还需相应校正。回归相关不能自动解释为因果，遗漏变量可能改变斜率。对应训练为习题~\ref{q:M-C26-1c}、\ref{q:B16.2}、\ref{q:B16.4}、\ref{q:B17.23}。
+变换响应会改变拟合目标。最小化对数残差平方与最小化原尺度残差平方是不同的问题；对数正态模型中把拟合的对数均值直接取指数得到条件中位数，均值还需相应校正。回归相关不能自动解释为因果，遗漏变量可能改变斜率。对应训练为\crosschapterref{4}{习题~\ref{q:M-C26-1c}}{题源~\texttt{M-C26-1c} 的习题}、\crosschapterref{4}{\ref{q:B16.2}}{题源~\texttt{B16.2}}、\crosschapterref{4}{\ref{q:B16.4}}{题源~\texttt{B16.4}}、\crosschapterref{4}{\ref{q:B17.23}}{题源~\texttt{B17.23}}。
 
 \section*{方法十四：重抽样与模拟误差}
 \addcontentsline{toc}{section}{方法十四：重抽样与模拟误差}
@@ -4712,7 +4782,7 @@ $p$ 值是在零假设参考分布下，出现至少同样极端结果的概率�
 
 自助法并非“完全无假设”。它依赖经验分布能在所关心的统计量层面近似真实抽样分布。边界参数、不光滑统计量、极值、重尾或小样本，都可能使普通方法失效。尤其参数自助法继承拟合模型的结构；若模型本身错误，模拟得再多也只是精确地模拟了错误模型。
 
-蒙特卡洛积分把积分写成期望，再用样本平均估计。独立样本通常使标准误按平方根速率下降。方差缩减可利用负相关配对、控制变量或重要性抽样，但必须重新核对无偏性和方差存在性。不能仅凭模拟曲线“看起来符合”就把随机证据当作严格证明。对应训练为习题~\ref{q:B13.6}、\ref{q:M-PF-29}、\ref{q:B17.17}、\ref{q:B17.18}。
+蒙特卡洛积分把积分写成期望，再用样本平均估计。独立样本通常使标准误按平方根速率下降。方差缩减可利用负相关配对、控制变量或重要性抽样，但必须重新核对无偏性和方差存在性。不能仅凭模拟曲线“看起来符合”就把随机证据当作严格证明。对应训练为\crosschapterref{4}{习题~\ref{q:B13.6}}{题源~\texttt{B13.6} 的习题}、\crosschapterref{4}{\ref{q:M-PF-29}}{题源~\texttt{M-PF-29}}、\crosschapterref{4}{\ref{q:B17.17}}{题源~\texttt{B17.17}}、\crosschapterref{4}{\ref{q:B17.18}}{题源~\texttt{B17.18}}。
 
 \section*{方法十五：解答的自检与复习路线}
 \addcontentsline{toc}{section}{方法十五：解答的自检与复习路线}
@@ -5037,7 +5107,7 @@ $\lambda\sim\operatorname{Gamma}(a,b)$，观测独立的 $X_i\sim\operatorname{P
 
 取单位圆。圆周均匀指角度按弧长均匀；圆内均匀指平面面积均匀。前者横坐标密度在两端增大，后者在中心最大。两者均值都为零，但方差分别为 $1/2$ 和 $1/4$。图中为显示内部形状，仅绘制 $|x|\le0.97$；圆周密度在端点的可积奇性没有被改成有限值。
 
-用截条面积可理解圆内密度：横坐标附近宽 $dx$ 的竖条长度约为 $2\sqrt{1-x^2}$，除以圆面积 $\pi$ 得到密度。圆周投影则需要对角度变换，两条对称弧贡献相加。参见习题~\ref{q:Y3.26}、\ref{q:A5.35}。
+用截条面积可理解圆内密度：横坐标附近宽 $dx$ 的竖条长度约为 $2\sqrt{1-x^2}$，除以圆面积 $\pi$ 得到密度。圆周投影则需要对角度变换，两条对称弧贡献相加。参见\crosschapterref{4}{习题~\ref{q:Y3.26}}{题源~\texttt{Y3.26} 的习题}、\crosschapterref{4}{\ref{q:A5.35}}{题源~\texttt{A5.35}}。
 
 \clearpage\subsection*{图解二：二项计数与连续性修正}
 
@@ -5096,7 +5166,7 @@ $\lambda\sim\operatorname{Gamma}(a,b)$，观测独立的 $X_i\sim\operatorname{P
 
 本图采用 $n=50,p=0.3$。柱子表示各整数的概率，可理解为宽为一的直方图；曲线表示均值 $np$、方差 $np(1-p)$ 的正态密度。直接把一般离散单点概率与任意宽度的密度高度比较没有意义，这里以单位宽度建立可比尺度。
 
-近似 $P(X\ge k)$ 时，将连续阈值放在 $k-1/2$，使连续区域覆盖完整整数柱。近似 $P(a\le X\le b)$ 时使用区间 $[a-1/2,b+1/2]$。修正改善许多中等容量计算，但不提供统一的误差保证。参见习题~\ref{q:M-P8-1ab}。
+近似 $P(X\ge k)$ 时，将连续阈值放在 $k-1/2$，使连续区域覆盖完整整数柱。近似 $P(a\le X\le b)$ 时使用区间 $[a-1/2,b+1/2]$。修正改善许多中等容量计算，但不提供统一的误差保证。参见\crosschapterref{4}{习题~\ref{q:M-P8-1ab}}{题源~\texttt{M-P8-1ab} 的习题}。
 
 \clearpage\subsection*{图解三：零相关与依赖形状}
 
@@ -5121,7 +5191,7 @@ $\lambda\sim\operatorname{Gamma}(a,b)$，观测独立的 $X_i\sim\operatorname{P
 
 图示单位圆周上的等角度点，用来展示支撑形状；它不是一份用于估计相关系数的独立随机样本。圆周均匀模型中两个坐标的协方差为零，但满足 $X^2+Y^2=1$ 的确定关系，因此不独立。给定横坐标的绝对值，纵坐标的绝对值已经确定。
 
-相关系数只概括线性共变，不能识别所有非线性依赖。把散点图与模型支撑一起看，比单报一个接近零的相关系数更有信息。联合正态是零相关推出独立的特殊结构，圆周分布不具有该结构。参见习题~\ref{q:A5.35}、\ref{q:B17.15}。
+相关系数只概括线性共变，不能识别所有非线性依赖。把散点图与模型支撑一起看，比单报一个接近零的相关系数更有信息。联合正态是零相关推出独立的特殊结构，圆周分布不具有该结构。参见\crosschapterref{4}{习题~\ref{q:A5.35}}{题源~\texttt{A5.35} 的习题}、\crosschapterref{4}{\ref{q:B17.15}}{题源~\texttt{B17.15}}。
 
 \clearpage\subsection*{图解四：指数样本平均的正态化}
 
@@ -5164,7 +5234,7 @@ $\lambda\sim\operatorname{Gamma}(a,b)$，观测独立的 $X_i\sim\operatorname{P
 
 令原始观测服从率为一的指数分布，图中画的是 $\sqrt n(\overline X-1)$ 的精确伽马变换密度，及标准正态密度。样本容量增大后偏斜减弱，但有限样本的分布仍有其自身支撑和尾部特征。
 
-横轴已经中心化并乘以 $\sqrt n$。若画未缩放的样本均值，曲线会同时向均值收缩，无法直接看清中心极限定理描述的波动形状。图中 $n=1$ 的左端跳跃来自指数变量非负，而非绘图误差。参见习题~\ref{q:A6.30}、\ref{q:B17.20}。
+横轴已经中心化并乘以 $\sqrt n$。若画未缩放的样本均值，曲线会同时向均值收缩，无法直接看清中心极限定理描述的波动形状。图中 $n=1$ 的左端跳跃来自指数变量非负，而非绘图误差。参见\crosschapterref{4}{习题~\ref{q:A6.30}}{题源~\texttt{A6.30} 的习题}、\crosschapterref{4}{\ref{q:B17.20}}{题源~\texttt{B17.20}}。
 
 \clearpage\subsection*{图解五：方差统计量的偏斜}
 
@@ -5199,7 +5269,7 @@ $\lambda\sim\operatorname{Gamma}(a,b)$，观测独立的 $X_i\sim\operatorname{P
 
 若 $Q\sim\chi^2_\nu$，则 $Q/\nu$ 的均值为一，方差为 $2/\nu$。用相同均值尺度比较，可见自由度较小时明显右偏，自由度增大后集中程度提高。正态样本的 $S^2/\sigma^2$ 正具有这种分布，自由度为 $n-1$。
 
-方差区间通常不对称，并非因为计算不精确，而是参考分布偏斜和倒数反演共同造成。对方差区间端点取平方根可得到标准差区间，但不能只对半径取平方根后保留原中心。参见习题~\ref{q:M-C22-1}、\ref{q:M-P10-3}。
+方差区间通常不对称，并非因为计算不精确，而是参考分布偏斜和倒数反演共同造成。对方差区间端点取平方根可得到标准差区间，但不能只对半径取平方根后保留原中心。参见\crosschapterref{4}{习题~\ref{q:M-C22-1}}{题源~\texttt{M-C22-1} 的习题}、\crosschapterref{4}{\ref{q:M-P10-3}}{题源~\texttt{M-P10-3}}。
 
 \clearpage\subsection*{图解六：置信水平的重复抽样含义}
 
@@ -5268,7 +5338,7 @@ $\lambda\sim\operatorname{Gamma}(a,b)$，观测独立的 $X_i\sim\operatorname{P
 
 固定真实均值为零，独立重复模拟 40 次已知标准误的正态均值区间。实线覆盖零，粗虚线未覆盖。本次固定随机种子的模拟中有 0 个区间未覆盖。模拟比例无需恰好等于 $5\%$，因为 40 次有限重复本身也有随机波动。
 
-每条竖线是不同样本产生的随机区间，水平零线是同一个固定参数。$95\%$ 描述的是长期构造程序的覆盖率。给定其中一条已经算出的区间，它是否包含零已是确定事实；若要讨论参数给定数据后的概率，需要另建贝叶斯模型。参见习题~\ref{q:M-P10-5}。
+每条竖线是不同样本产生的随机区间，水平零线是同一个固定参数。$95\%$ 描述的是长期构造程序的覆盖率。给定其中一条已经算出的区间，它是否包含零已是确定事实；若要讨论参数给定数据后的概率，需要另建贝叶斯模型。参见\crosschapterref{4}{习题~\ref{q:M-P10-5}}{题源~\texttt{M-P10-5} 的习题}。
 
 \clearpage\subsection*{图解七：样本容量与检验功效}
 
@@ -5306,7 +5376,7 @@ $\lambda\sim\operatorname{Gamma}(a,b)$，观测独立的 $X_i\sim\operatorname{P
 
 检验 $H_0:\mu=0$，独立正态观测方差为一，双侧水平为 $0.05$。在 $\mu=0$，三条曲线都等于第一类错误概率 $0.05$；离开零假设后，容量较大的检验更快获得高功效。
 
-功效取决于真实差异、噪声、容量和检验规则。没有显著结果可能只是样本精度不足；反过来，大样本可以使很小的差异达到显著，所以实际意义仍应结合效应大小判断。图中的双侧曲线关于零对称，是该正态模型的对称性所致。参见习题~\ref{q:B14.1}、\ref{q:M-F-11}。
+功效取决于真实差异、噪声、容量和检验规则。没有显著结果可能只是样本精度不足；反过来，大样本可以使很小的差异达到显著，所以实际意义仍应结合效应大小判断。图中的双侧曲线关于零对称，是该正态模型的对称性所致。参见\crosschapterref{4}{习题~\ref{q:B14.1}}{题源~\texttt{B14.1} 的习题}、\crosschapterref{4}{\ref{q:M-F-11}}{题源~\texttt{M-F-11}}。
 
 \clearpage\subsection*{图解八：拟合直线与两种不确定性带}
 
@@ -5347,7 +5417,7 @@ $\lambda\sim\operatorname{Gamma}(a,b)$，观测独立的 $X_i\sim\operatorname{P
 
 图中使用六个编订示例点，在独立正态同方差模型下绘出逐点 $95\%$ 均值响应区间和新个体预测区间。点线预测带较宽，因为新个体还有自身误差；离样本横坐标中心越远，两类区间都变宽。
 
-这里是每个固定 $x$ 各自的逐点区间，不是整条曲线同时覆盖率为 $95\%$ 的置信带。若同时查看许多位置，不能把逐点覆盖解释为整体覆盖。参见习题~\ref{q:B16.4}。
+这里是每个固定 $x$ 各自的逐点区间，不是整条曲线同时覆盖率为 $95\%$ 的置信带。若同时查看许多位置，不能把逐点覆盖解释为整体覆盖。参见\crosschapterref{4}{习题~\ref{q:B16.4}}{题源~\texttt{B16.4} 的习题}。
 
 \clearpage
 \section*{题源、许可与编订记录}
@@ -5424,533 +5494,533 @@ $\lambda\sim\operatorname{Gamma}(a,b)$，观测独立的 $X_i\sim\operatorname{P
 \toprule 本册题号 & 主题与来源键 & 题／解\\\midrule\endhead
 
 
-\ref{q:Y1.1} & 事件分解与德摩根律\newline {\small Y1.1} & \pageref{q:Y1.1}/\pageref{a:Y1.1}\\[2pt]
+\crosschapterref{4}{\ref{q:Y1.1}}{题源~\texttt{Y1.1}} & 事件分解与德摩根律\newline {\small Y1.1} & \crosschapterref{4}{\pageref{q:Y1.1}}{见全文}/\crosschapterref{4}{\pageref{a:Y1.1}}{见全文}\\[2pt]
 
-\ref{q:Y1.2} & 用集合语言表示事件\newline {\small Y1.2} & \pageref{q:Y1.2}/\pageref{a:Y1.2}\\[2pt]
+\crosschapterref{4}{\ref{q:Y1.2}}{题源~\texttt{Y1.2}} & 用集合语言表示事件\newline {\small Y1.2} & \crosschapterref{4}{\pageref{q:Y1.2}}{见全文}/\crosschapterref{4}{\pageref{a:Y1.2}}{见全文}\\[2pt]
 
-\ref{q:Y1.3} & 有放回抽球与样本空间\newline {\small Y1.3} & \pageref{q:Y1.3}/\pageref{a:Y1.3}\\[2pt]
+\crosschapterref{4}{\ref{q:Y1.3}}{题源~\texttt{Y1.3}} & 有放回抽球与样本空间\newline {\small Y1.3} & \crosschapterref{4}{\pageref{q:Y1.3}}{见全文}/\crosschapterref{4}{\pageref{a:Y1.3}}{见全文}\\[2pt]
 
-\ref{q:Y1.4} & 将事件列化为互斥事件列\newline {\small Y1.4} & \pageref{q:Y1.4}/\pageref{a:Y1.4}\\[2pt]
+\crosschapterref{4}{\ref{q:Y1.4}}{题源~\texttt{Y1.4}} & 将事件列化为互斥事件列\newline {\small Y1.4} & \crosschapterref{4}{\pageref{q:Y1.4}}{见全文}/\crosschapterref{4}{\pageref{a:Y1.4}}{见全文}\\[2pt]
 
-\ref{q:Y1.5} & 两阶段抽样的对称性\newline {\small Y1.5} & \pageref{q:Y1.5}/\pageref{a:Y1.5}\\[2pt]
+\crosschapterref{4}{\ref{q:Y1.5}}{题源~\texttt{Y1.5}} & 两阶段抽样的对称性\newline {\small Y1.5} & \crosschapterref{4}{\pageref{q:Y1.5}}{见全文}/\crosschapterref{4}{\pageref{a:Y1.5}}{见全文}\\[2pt]
 
-\ref{q:Y1.7} & 无放回试钥匙\newline {\small Y1.7} & \pageref{q:Y1.7}/\pageref{a:Y1.7}\\[2pt]
+\crosschapterref{4}{\ref{q:Y1.7}}{题源~\texttt{Y1.7}} & 无放回试钥匙\newline {\small Y1.7} & \crosschapterref{4}{\pageref{q:Y1.7}}{见全文}/\crosschapterref{4}{\pageref{a:Y1.7}}{见全文}\\[2pt]
 
-\ref{q:Y1.8} & 生日相同的概率\newline {\small Y1.8} & \pageref{q:Y1.8}/\pageref{a:Y1.8}\\[2pt]
+\crosschapterref{4}{\ref{q:Y1.8}}{题源~\texttt{Y1.8}} & 生日相同的概率\newline {\small Y1.8} & \crosschapterref{4}{\pageref{q:Y1.8}}{见全文}/\crosschapterref{4}{\pageref{a:Y1.8}}{见全文}\\[2pt]
 
-\ref{q:Y1.9} & 恰好得到一副手套\newline {\small Y1.9} & \pageref{q:Y1.9}/\pageref{a:Y1.9}\\[2pt]
+\crosschapterref{4}{\ref{q:Y1.9}}{题源~\texttt{Y1.9}} & 恰好得到一副手套\newline {\small Y1.9} & \crosschapterref{4}{\pageref{q:Y1.9}}{见全文}/\crosschapterref{4}{\pageref{a:Y1.9}}{见全文}\\[2pt]
 
-\ref{q:Y1.10} & 两次抽样的交集\newline {\small Y1.10} & \pageref{q:Y1.10}/\pageref{a:Y1.10}\\[2pt]
+\crosschapterref{4}{\ref{q:Y1.10}}{题源~\texttt{Y1.10}} & 两次抽样的交集\newline {\small Y1.10} & \crosschapterref{4}{\pageref{q:Y1.10}}{见全文}/\crosschapterref{4}{\pageref{a:Y1.10}}{见全文}\\[2pt]
 
-\ref{q:Y1.11} & 单位正方形中的圆域\newline {\small Y1.11} & \pageref{q:Y1.11}/\pageref{a:Y1.11}\\[2pt]
+\crosschapterref{4}{\ref{q:Y1.11}}{题源~\texttt{Y1.11}} & 单位正方形中的圆域\newline {\small Y1.11} & \crosschapterref{4}{\pageref{q:Y1.11}}{见全文}/\crosschapterref{4}{\pageref{a:Y1.11}}{见全文}\\[2pt]
 
-\ref{q:Y1.12} & 到达时差与等待\newline {\small Y1.12} & \pageref{q:Y1.12}/\pageref{a:Y1.12}\\[2pt]
+\crosschapterref{4}{\ref{q:Y1.12}}{题源~\texttt{Y1.12}} & 到达时差与等待\newline {\small Y1.12} & \crosschapterref{4}{\pageref{q:Y1.12}}{见全文}/\crosschapterref{4}{\pageref{a:Y1.12}}{见全文}\\[2pt]
 
-\ref{q:Y1.13} & 硬币落格与边界区域\newline {\small Y1.13} & \pageref{q:Y1.13}/\pageref{a:Y1.13}\\[2pt]
+\crosschapterref{4}{\ref{q:Y1.13}}{题源~\texttt{Y1.13}} & 硬币落格与边界区域\newline {\small Y1.13} & \crosschapterref{4}{\pageref{q:Y1.13}}{见全文}/\crosschapterref{4}{\pageref{a:Y1.13}}{见全文}\\[2pt]
 
-\ref{q:Y1.14} & 两次服务是否相遇\newline {\small Y1.14} & \pageref{q:Y1.14}/\pageref{a:Y1.14}\\[2pt]
+\crosschapterref{4}{\ref{q:Y1.14}}{题源~\texttt{Y1.14}} & 两次服务是否相遇\newline {\small Y1.14} & \crosschapterref{4}{\pageref{q:Y1.14}}{见全文}/\crosschapterref{4}{\pageref{a:Y1.14}}{见全文}\\[2pt]
 
-\ref{q:Y1.15} & 立方体内的球域\newline {\small Y1.15} & \pageref{q:Y1.15}/\pageref{a:Y1.15}\\[2pt]
+\crosschapterref{4}{\ref{q:Y1.15}}{题源~\texttt{Y1.15}} & 立方体内的球域\newline {\small Y1.15} & \crosschapterref{4}{\pageref{q:Y1.15}}{见全文}/\crosschapterref{4}{\pageref{a:Y1.15}}{见全文}\\[2pt]
 
-\ref{q:Y1.17} & 概率的次可加性\newline {\small Y1.17} & \pageref{q:Y1.17}/\pageref{a:Y1.17}\\[2pt]
+\crosschapterref{4}{\ref{q:Y1.17}}{题源~\texttt{Y1.17}} & 概率的次可加性\newline {\small Y1.17} & \crosschapterref{4}{\pageref{q:Y1.17}}{见全文}/\crosschapterref{4}{\pageref{a:Y1.17}}{见全文}\\[2pt]
 
-\ref{q:Y1.18} & 可数个概率一事件\newline {\small Y1.18} & \pageref{q:Y1.18}/\pageref{a:Y1.18}\\[2pt]
+\crosschapterref{4}{\ref{q:Y1.18}}{题源~\texttt{Y1.18}} & 可数个概率一事件\newline {\small Y1.18} & \crosschapterref{4}{\pageref{q:Y1.18}}{见全文}/\crosschapterref{4}{\pageref{a:Y1.18}}{见全文}\\[2pt]
 
-\ref{q:Y1.19} & 四个互斥区域的分割\newline {\small Y1.19} & \pageref{q:Y1.19}/\pageref{a:Y1.19}\\[2pt]
+\crosschapterref{4}{\ref{q:Y1.19}}{题源~\texttt{Y1.19}} & 四个互斥区域的分割\newline {\small Y1.19} & \crosschapterref{4}{\pageref{q:Y1.19}}{见全文}/\crosschapterref{4}{\pageref{a:Y1.19}}{见全文}\\[2pt]
 
-\ref{q:Y1.20} & 递增事件列的极限\newline {\small Y1.20} & \pageref{q:Y1.20}/\pageref{a:Y1.20}\\[2pt]
+\crosschapterref{4}{\ref{q:Y1.20}}{题源~\texttt{Y1.20}} & 递增事件列的极限\newline {\small Y1.20} & \crosschapterref{4}{\pageref{q:Y1.20}}{见全文}/\crosschapterref{4}{\pageref{a:Y1.20}}{见全文}\\[2pt]
 
-\ref{q:Y2.1} & 至少一次求职成功\newline {\small Y2.1} & \pageref{q:Y2.1}/\pageref{a:Y2.1}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.1}}{题源~\texttt{Y2.1}} & 至少一次求职成功\newline {\small Y2.1} & \crosschapterref{4}{\pageref{q:Y2.1}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.1}}{见全文}\\[2pt]
 
-\ref{q:Y2.2} & 自习室占用问题\newline {\small Y2.2} & \pageref{q:Y2.2}/\pageref{a:Y2.2}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.2}}{题源~\texttt{Y2.2}} & 自习室占用问题\newline {\small Y2.2} & \crosschapterref{4}{\pageref{q:Y2.2}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.2}}{见全文}\\[2pt]
 
-\ref{q:Y2.3} & 无人拿到自己帽子\newline {\small Y2.3} & \pageref{q:Y2.3}/\pageref{a:Y2.3}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.3}}{题源~\texttt{Y2.3}} & 无人拿到自己帽子\newline {\small Y2.3} & \crosschapterref{4}{\pageref{q:Y2.3}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.3}}{见全文}\\[2pt]
 
-\ref{q:Y2.4} & 有放回点名的覆盖概率\newline {\small Y2.4} & \pageref{q:Y2.4}/\pageref{a:Y2.4}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.4}}{题源~\texttt{Y2.4}} & 有放回点名的覆盖概率\newline {\small Y2.4} & \crosschapterref{4}{\pageref{q:Y2.4}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.4}}{见全文}\\[2pt]
 
-\ref{q:Y2.5} & 信封匹配与容斥\newline {\small Y2.5} & \pageref{q:Y2.5}/\pageref{a:Y2.5}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.5}}{题源~\texttt{Y2.5}} & 信封匹配与容斥\newline {\small Y2.5} & \crosschapterref{4}{\pageref{q:Y2.5}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.5}}{见全文}\\[2pt]
 
-\ref{q:Y2.6} & 独立任务的共同成功\newline {\small Y2.6} & \pageref{q:Y2.6}/\pageref{a:Y2.6}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.6}}{题源~\texttt{Y2.6}} & 独立任务的共同成功\newline {\small Y2.6} & \crosschapterref{4}{\pageref{q:Y2.6}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.6}}{见全文}\\[2pt]
 
-\ref{q:Y2.7} & 发现信号的试验次数\newline {\small Y2.7} & \pageref{q:Y2.7}/\pageref{a:Y2.7}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.7}}{题源~\texttt{Y2.7}} & 发现信号的试验次数\newline {\small Y2.7} & \crosschapterref{4}{\pageref{q:Y2.7}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.7}}{见全文}\\[2pt]
 
-\ref{q:Y2.9} & 保证成功概率的人员数\newline {\small Y2.9} & \pageref{q:Y2.9}/\pageref{a:Y2.9}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.9}}{题源~\texttt{Y2.9}} & 保证成功概率的人员数\newline {\small Y2.9} & \crosschapterref{4}{\pageref{q:Y2.9}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.9}}{见全文}\\[2pt]
 
-\ref{q:Y2.10} & 德梅雷的骰子问题\newline {\small Y2.10} & \pageref{q:Y2.10}/\pageref{a:Y2.10}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.10}}{题源~\texttt{Y2.10}} & 德梅雷的骰子问题\newline {\small Y2.10} & \crosschapterref{4}{\pageref{q:Y2.10}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.10}}{见全文}\\[2pt]
 
-\ref{q:Y2.11} & 条件成绩概率\newline {\small Y2.11} & \pageref{q:Y2.11}/\pageref{a:Y2.11}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.11}}{题源~\texttt{Y2.11}} & 条件成绩概率\newline {\small Y2.11} & \crosschapterref{4}{\pageref{q:Y2.11}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.11}}{见全文}\\[2pt]
 
-\ref{q:Y2.12} & 连续受损的生存概率\newline {\small Y2.12} & \pageref{q:Y2.12}/\pageref{a:Y2.12}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.12}}{题源~\texttt{Y2.12}} & 连续受损的生存概率\newline {\small Y2.12} & \crosschapterref{4}{\pageref{q:Y2.12}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.12}}{见全文}\\[2pt]
 
-\ref{q:Y2.13} & 已知一枚骰子的点数\newline {\small Y2.13} & \pageref{q:Y2.13}/\pageref{a:Y2.13}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.13}}{题源~\texttt{Y2.13}} & 已知一枚骰子的点数\newline {\small Y2.13} & \crosschapterref{4}{\pageref{q:Y2.13}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.13}}{见全文}\\[2pt]
 
-\ref{q:Y2.15} & 两孩家庭中的条件事件\newline {\small Y2.15} & \pageref{q:Y2.15}/\pageref{a:Y2.15}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.15}}{题源~\texttt{Y2.15}} & 两孩家庭中的条件事件\newline {\small Y2.15} & \crosschapterref{4}{\pageref{q:Y2.15}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.15}}{见全文}\\[2pt]
 
-\ref{q:Y2.16} & 通知渠道的全概率\newline {\small Y2.16} & \pageref{q:Y2.16}/\pageref{a:Y2.16}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.16}}{题源~\texttt{Y2.16}} & 通知渠道的全概率\newline {\small Y2.16} & \crosschapterref{4}{\pageref{q:Y2.16}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.16}}{见全文}\\[2pt]
 
-\ref{q:Y2.17} & 隐私调查的随机化回答\newline {\small Y2.17} & \pageref{q:Y2.17}/\pageref{a:Y2.17}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.17}}{题源~\texttt{Y2.17}} & 隐私调查的随机化回答\newline {\small Y2.17} & \crosschapterref{4}{\pageref{q:Y2.17}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.17}}{见全文}\\[2pt]
 
-\ref{q:Y2.19} & 比分差达到二的比赛\newline {\small Y2.19} & \pageref{q:Y2.19}/\pageref{a:Y2.19}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.19}}{题源~\texttt{Y2.19}} & 比分差达到二的比赛\newline {\small Y2.19} & \crosschapterref{4}{\pageref{q:Y2.19}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.19}}{见全文}\\[2pt]
 
-\ref{q:Y2.20} & 加强抽样的波利亚球袋\newline {\small Y2.20} & \pageref{q:Y2.20}/\pageref{a:Y2.20}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.20}}{题源~\texttt{Y2.20}} & 加强抽样的波利亚球袋\newline {\small Y2.20} & \crosschapterref{4}{\pageref{q:Y2.20}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.20}}{见全文}\\[2pt]
 
-\ref{q:Y2.21} & 已知正点反推交通方式\newline {\small Y2.21} & \pageref{q:Y2.21}/\pageref{a:Y2.21}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.21}}{题源~\texttt{Y2.21}} & 已知正点反推交通方式\newline {\small Y2.21} & \crosschapterref{4}{\pageref{q:Y2.21}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.21}}{见全文}\\[2pt]
 
-\ref{q:Y2.22} & 观察合格品后的状态\newline {\small Y2.22} & \pageref{q:Y2.22}/\pageref{a:Y2.22}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.22}}{题源~\texttt{Y2.22}} & 观察合格品后的状态\newline {\small Y2.22} & \crosschapterref{4}{\pageref{q:Y2.22}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.22}}{见全文}\\[2pt]
 
-\ref{q:Y2.23} & 低先验概率下的连续检测\newline {\small Y2.23} & \pageref{q:Y2.23}/\pageref{a:Y2.23}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.23}}{题源~\texttt{Y2.23}} & 低先验概率下的连续检测\newline {\small Y2.23} & \crosschapterref{4}{\pageref{q:Y2.23}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.23}}{见全文}\\[2pt]
 
-\ref{q:Y2.25} & 目击证据与先验比例\newline {\small Y2.25} & \pageref{q:Y2.25}/\pageref{a:Y2.25}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.25}}{题源~\texttt{Y2.25}} & 目击证据与先验比例\newline {\small Y2.25} & \crosschapterref{4}{\pageref{q:Y2.25}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.25}}{见全文}\\[2pt]
 
-\ref{q:Y2.26} & 无穷多次成功的条件\newline {\small Y2.26} & \pageref{q:Y2.26}/\pageref{a:Y2.26}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.26}}{题源~\texttt{Y2.26}} & 无穷多次成功的条件\newline {\small Y2.26} & \crosschapterref{4}{\pageref{q:Y2.26}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.26}}{见全文}\\[2pt]
 
-\ref{q:Y2.27} & 最终不再失败的条件\newline {\small Y2.27} & \pageref{q:Y2.27}/\pageref{a:Y2.27}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.27}}{题源~\texttt{Y2.27}} & 最终不再失败的条件\newline {\small Y2.27} & \crosschapterref{4}{\pageref{q:Y2.27}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.27}}{见全文}\\[2pt]
 
-\ref{q:Y2.28} & 加红球后的黑球出现次数\newline {\small Y2.28} & \pageref{q:Y2.28}/\pageref{a:Y2.28}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.28}}{题源~\texttt{Y2.28}} & 加红球后的黑球出现次数\newline {\small Y2.28} & \crosschapterref{4}{\pageref{q:Y2.28}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.28}}{见全文}\\[2pt]
 
-\ref{q:Y2.29} & 黑红同时增长的抽球\newline {\small Y2.29} & \pageref{q:Y2.29}/\pageref{a:Y2.29}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.29}}{题源~\texttt{Y2.29}} & 黑红同时增长的抽球\newline {\small Y2.29} & \crosschapterref{4}{\pageref{q:Y2.29}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.29}}{见全文}\\[2pt]
 
-\ref{q:Y2.30} & 全概率公式的证明\newline {\small Y2.30} & \pageref{q:Y2.30}/\pageref{a:Y2.30}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.30}}{题源~\texttt{Y2.30}} & 全概率公式的证明\newline {\small Y2.30} & \crosschapterref{4}{\pageref{q:Y2.30}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.30}}{见全文}\\[2pt]
 
-\ref{q:Y2.31} & 贝叶斯公式的证明\newline {\small Y2.31} & \pageref{q:Y2.31}/\pageref{a:Y2.31}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.31}}{题源~\texttt{Y2.31}} & 贝叶斯公式的证明\newline {\small Y2.31} & \crosschapterref{4}{\pageref{q:Y2.31}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.31}}{见全文}\\[2pt]
 
-\ref{q:Y2.32} & 串联与并联可靠性\newline {\small Y2.32} & \pageref{q:Y2.32}/\pageref{a:Y2.32}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.32}}{题源~\texttt{Y2.32}} & 串联与并联可靠性\newline {\small Y2.32} & \crosschapterref{4}{\pageref{q:Y2.32}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.32}}{见全文}\\[2pt]
 
-\ref{q:Y2.33} & 比赛局数与胜率\newline {\small Y2.33} & \pageref{q:Y2.33}/\pageref{a:Y2.33}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.33}}{题源~\texttt{Y2.33}} & 比赛局数与胜率\newline {\small Y2.33} & \crosschapterref{4}{\pageref{q:Y2.33}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.33}}{见全文}\\[2pt]
 
-\ref{q:Y2.34} & 集体迟到的提前量\newline {\small Y2.34} & \pageref{q:Y2.34}/\pageref{a:Y2.34}\\[2pt]
+\crosschapterref{4}{\ref{q:Y2.34}}{题源~\texttt{Y2.34}} & 集体迟到的提前量\newline {\small Y2.34} & \crosschapterref{4}{\pageref{q:Y2.34}}{见全文}/\crosschapterref{4}{\pageref{a:Y2.34}}{见全文}\\[2pt]
 
-\ref{q:Y3.1} & 分布函数的无穷远极限\newline {\small Y3.1} & \pageref{q:Y3.1}/\pageref{a:Y3.1}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.1}}{题源~\texttt{Y3.1}} & 分布函数的无穷远极限\newline {\small Y3.1} & \crosschapterref{4}{\pageref{q:Y3.1}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.1}}{见全文}\\[2pt]
 
-\ref{q:Y3.2} & 指数型密度的归一化\newline {\small Y3.2} & \pageref{q:Y3.2}/\pageref{a:Y3.2}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.2}}{题源~\texttt{Y3.2}} & 指数型密度的归一化\newline {\small Y3.2} & \crosschapterref{4}{\pageref{q:Y3.2}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.2}}{见全文}\\[2pt]
 
-\ref{q:Y3.3} & 二次指数可积的条件\newline {\small Y3.3} & \pageref{q:Y3.3}/\pageref{a:Y3.3}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.3}}{题源~\texttt{Y3.3}} & 二次指数可积的条件\newline {\small Y3.3} & \crosschapterref{4}{\pageref{q:Y3.3}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.3}}{见全文}\\[2pt]
 
-\ref{q:Y3.4} & 最大值与最小值恒等式\newline {\small Y3.4} & \pageref{q:Y3.4}/\pageref{a:Y3.4}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.4}}{题源~\texttt{Y3.4}} & 最大值与最小值恒等式\newline {\small Y3.4} & \crosschapterref{4}{\pageref{q:Y3.4}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.4}}{见全文}\\[2pt]
 
-\ref{q:Y3.5} & 分段密度的归一化\newline {\small Y3.5} & \pageref{q:Y3.5}/\pageref{a:Y3.5}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.5}}{题源~\texttt{Y3.5}} & 分段密度的归一化\newline {\small Y3.5} & \crosschapterref{4}{\pageref{q:Y3.5}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.5}}{见全文}\\[2pt]
 
-\ref{q:Y3.6} & 二项计数的尾概率\newline {\small Y3.6} & \pageref{q:Y3.6}/\pageref{a:Y3.6}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.6}}{题源~\texttt{Y3.6}} & 二项计数的尾概率\newline {\small Y3.6} & \crosschapterref{4}{\pageref{q:Y3.6}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.6}}{见全文}\\[2pt]
 
-\ref{q:Y3.7} & 两组二项计数的比较\newline {\small Y3.7} & \pageref{q:Y3.7}/\pageref{a:Y3.7}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.7}}{题源~\texttt{Y3.7}} & 两组二项计数的比较\newline {\small Y3.7} & \crosschapterref{4}{\pageref{q:Y3.7}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.7}}{见全文}\\[2pt]
 
-\ref{q:Y3.8} & 首次与第多次成功\newline {\small Y3.8} & \pageref{q:Y3.8}/\pageref{a:Y3.8}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.8}}{题源~\texttt{Y3.8}} & 首次与第多次成功\newline {\small Y3.8} & \crosschapterref{4}{\pageref{q:Y3.8}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.8}}{见全文}\\[2pt]
 
-\ref{q:Y3.9} & 泊松分裂与独立性\newline {\small Y3.9} & \pageref{q:Y3.9}/\pageref{a:Y3.9}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.9}}{题源~\texttt{Y3.9}} & 泊松分裂与独立性\newline {\small Y3.9} & \crosschapterref{4}{\pageref{q:Y3.9}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.9}}{见全文}\\[2pt]
 
-\ref{q:Y3.13} & 周期信号的均匀等待\newline {\small Y3.13} & \pageref{q:Y3.13}/\pageref{a:Y3.13}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.13}}{题源~\texttt{Y3.13}} & 周期信号的均匀等待\newline {\small Y3.13} & \crosschapterref{4}{\pageref{q:Y3.13}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.13}}{见全文}\\[2pt]
 
-\ref{q:Y3.14} & 恒定风险率与指数寿命\newline {\small Y3.14} & \pageref{q:Y3.14}/\pageref{a:Y3.14}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.14}}{题源~\texttt{Y3.14}} & 恒定风险率与指数寿命\newline {\small Y3.14} & \crosschapterref{4}{\pageref{q:Y3.14}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.14}}{见全文}\\[2pt]
 
-\ref{q:Y3.15} & 正态尺寸的合格概率\newline {\small Y3.15} & \pageref{q:Y3.15}/\pageref{a:Y3.15}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.15}}{题源~\texttt{Y3.15}} & 正态尺寸的合格概率\newline {\small Y3.15} & \crosschapterref{4}{\pageref{q:Y3.15}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.15}}{见全文}\\[2pt]
 
-\ref{q:Y3.16} & 泊松变量的平方根\newline {\small Y3.16} & \pageref{q:Y3.16}/\pageref{a:Y3.16}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.16}}{题源~\texttt{Y3.16}} & 泊松变量的平方根\newline {\small Y3.16} & \crosschapterref{4}{\pageref{q:Y3.16}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.16}}{见全文}\\[2pt]
 
-\ref{q:Y3.17} & 均匀电流的平方变换\newline {\small Y3.17} & \pageref{q:Y3.17}/\pageref{a:Y3.17}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.17}}{题源~\texttt{Y3.17}} & 均匀电流的平方变换\newline {\small Y3.17} & \crosschapterref{4}{\pageref{q:Y3.17}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.17}}{见全文}\\[2pt]
 
-\ref{q:Y3.18} & 指数变量的仿射变换\newline {\small Y3.18} & \pageref{q:Y3.18}/\pageref{a:Y3.18}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.18}}{题源~\texttt{Y3.18}} & 指数变量的仿射变换\newline {\small Y3.18} & \crosschapterref{4}{\pageref{q:Y3.18}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.18}}{见全文}\\[2pt]
 
-\ref{q:Y3.19} & 半柯西变量的对数\newline {\small Y3.19} & \pageref{q:Y3.19}/\pageref{a:Y3.19}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.19}}{题源~\texttt{Y3.19}} & 半柯西变量的对数\newline {\small Y3.19} & \crosschapterref{4}{\pageref{q:Y3.19}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.19}}{见全文}\\[2pt]
 
-\ref{q:Y3.20} & 倒数、绝对值与正切变换\newline {\small Y3.20} & \pageref{q:Y3.20}/\pageref{a:Y3.20}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.20}}{题源~\texttt{Y3.20}} & 倒数、绝对值与正切变换\newline {\small Y3.20} & \crosschapterref{4}{\pageref{q:Y3.20}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.20}}{见全文}\\[2pt]
 
-\ref{q:Y3.21} & 二项众数与参数估计\newline {\small Y3.21} & \pageref{q:Y3.21}/\pageref{a:Y3.21}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.21}}{题源~\texttt{Y3.21}} & 二项众数与参数估计\newline {\small Y3.21} & \crosschapterref{4}{\pageref{q:Y3.21}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.21}}{见全文}\\[2pt]
 
-\ref{q:Y3.22} & 迟到人数的众数和估计\newline {\small Y3.22} & \pageref{q:Y3.22}/\pageref{a:Y3.22}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.22}}{题源~\texttt{Y3.22}} & 迟到人数的众数和估计\newline {\small Y3.22} & \crosschapterref{4}{\pageref{q:Y3.22}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.22}}{见全文}\\[2pt]
 
-\ref{q:Y3.23} & 泊松众数与似然\newline {\small Y3.23} & \pageref{q:Y3.23}/\pageref{a:Y3.23}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.23}}{题源~\texttt{Y3.23}} & 泊松众数与似然\newline {\small Y3.23} & \crosschapterref{4}{\pageref{q:Y3.23}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.23}}{见全文}\\[2pt]
 
-\ref{q:Y3.24} & 计数结果与参数的区别\newline {\small Y3.24} & \pageref{q:Y3.24}/\pageref{a:Y3.24}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.24}}{题源~\texttt{Y3.24}} & 计数结果与参数的区别\newline {\small Y3.24} & \crosschapterref{4}{\pageref{q:Y3.24}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.24}}{见全文}\\[2pt]
 
-\ref{q:Y3.25} & 骰子样本的最大最小值\newline {\small Y3.25} & \pageref{q:Y3.25}/\pageref{a:Y3.25}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.25}}{题源~\texttt{Y3.25}} & 骰子样本的最大最小值\newline {\small Y3.25} & \crosschapterref{4}{\pageref{q:Y3.25}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.25}}{见全文}\\[2pt]
 
-\ref{q:Y3.26} & 圆周投影的反正弦密度\newline {\small Y3.26} & \pageref{q:Y3.26}/\pageref{a:Y3.26}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.26}}{题源~\texttt{Y3.26}} & 圆周投影的反正弦密度\newline {\small Y3.26} & \crosschapterref{4}{\pageref{q:Y3.26}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.26}}{见全文}\\[2pt]
 
-\ref{q:Y3.28} & 正弦变换的两条分支\newline {\small Y3.28} & \pageref{q:Y3.28}/\pageref{a:Y3.28}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.28}}{题源~\texttt{Y3.28}} & 正弦变换的两条分支\newline {\small Y3.28} & \crosschapterref{4}{\pageref{q:Y3.28}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.28}}{见全文}\\[2pt]
 
-\ref{q:Y3.29} & 逆分布函数生成正态数\newline {\small Y3.29} & \pageref{q:Y3.29}/\pageref{a:Y3.29}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.29}}{题源~\texttt{Y3.29}} & 逆分布函数生成正态数\newline {\small Y3.29} & \crosschapterref{4}{\pageref{q:Y3.29}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.29}}{见全文}\\[2pt]
 
-\ref{q:Y3.31} & 分段单调变换\newline {\small Y3.31} & \pageref{q:Y3.31}/\pageref{a:Y3.31}\\[2pt]
+\crosschapterref{4}{\ref{q:Y3.31}}{题源~\texttt{Y3.31}} & 分段单调变换\newline {\small Y3.31} & \crosschapterref{4}{\pageref{q:Y3.31}}{见全文}/\crosschapterref{4}{\pageref{a:Y3.31}}{见全文}\\[2pt]
 
-\ref{q:Y4.3} & 联合概率表与边缘分布\newline {\small Y4.3} & \pageref{q:Y4.3}/\pageref{a:Y4.3}\\[2pt]
+\crosschapterref{4}{\ref{q:Y4.3}}{题源~\texttt{Y4.3}} & 联合概率表与边缘分布\newline {\small Y4.3} & \crosschapterref{4}{\pageref{q:Y4.3}}{见全文}/\crosschapterref{4}{\pageref{a:Y4.3}}{见全文}\\[2pt]
 
-\ref{q:Y4.6} & 同参数二项变量之和\newline {\small Y4.6} & \pageref{q:Y4.6}/\pageref{a:Y4.6}\\[2pt]
+\crosschapterref{4}{\ref{q:Y4.6}}{题源~\texttt{Y4.6}} & 同参数二项变量之和\newline {\small Y4.6} & \crosschapterref{4}{\pageref{q:Y4.6}}{见全文}/\crosschapterref{4}{\pageref{a:Y4.6}}{见全文}\\[2pt]
 
-\ref{q:Y4.8} & 函数依赖的离散向量\newline {\small Y4.8} & \pageref{q:Y4.8}/\pageref{a:Y4.8}\\[2pt]
+\crosschapterref{4}{\ref{q:Y4.8}}{题源~\texttt{Y4.8}} & 函数依赖的离散向量\newline {\small Y4.8} & \crosschapterref{4}{\pageref{q:Y4.8}}{见全文}/\crosschapterref{4}{\pageref{a:Y4.8}}{见全文}\\[2pt]
 
-\ref{q:Y4.9} & 最小值的尾概率\newline {\small Y4.9} & \pageref{q:Y4.9}/\pageref{a:Y4.9}\\[2pt]
+\crosschapterref{4}{\ref{q:Y4.9}}{题源~\texttt{Y4.9}} & 最小值的尾概率\newline {\small Y4.9} & \crosschapterref{4}{\pageref{q:Y4.9}}{见全文}/\crosschapterref{4}{\pageref{a:Y4.9}}{见全文}\\[2pt]
 
-\ref{q:Y4.15} & 三角支撑上的边缘密度\newline {\small Y4.15} & \pageref{q:Y4.15}/\pageref{a:Y4.15}\\[2pt]
+\crosschapterref{4}{\ref{q:Y4.15}}{题源~\texttt{Y4.15}} & 三角支撑上的边缘密度\newline {\small Y4.15} & \crosschapterref{4}{\pageref{q:Y4.15}}{见全文}/\crosschapterref{4}{\pageref{a:Y4.15}}{见全文}\\[2pt]
 
-\ref{q:Y4.16} & 随机家庭规模与男孩数\newline {\small Y4.16} & \pageref{q:Y4.16}/\pageref{a:Y4.16}\\[2pt]
+\crosschapterref{4}{\ref{q:Y4.16}}{题源~\texttt{Y4.16}} & 随机家庭规模与男孩数\newline {\small Y4.16} & \crosschapterref{4}{\pageref{q:Y4.16}}{见全文}/\crosschapterref{4}{\pageref{a:Y4.16}}{见全文}\\[2pt]
 
-\ref{q:Y4.22} & 连续变量的离散随机缩放\newline {\small Y4.22} & \pageref{q:Y4.22}/\pageref{a:Y4.22}\\[2pt]
+\crosschapterref{4}{\ref{q:Y4.22}}{题源~\texttt{Y4.22}} & 连续变量的离散随机缩放\newline {\small Y4.22} & \crosschapterref{4}{\pageref{q:Y4.22}}{见全文}/\crosschapterref{4}{\pageref{a:Y4.22}}{见全文}\\[2pt]
 
-\ref{q:Y4.25} & 博克斯—穆勒正态生成\newline {\small Y4.25} & \pageref{q:Y4.25}/\pageref{a:Y4.25}\\[2pt]
+\crosschapterref{4}{\ref{q:Y4.25}}{题源~\texttt{Y4.25}} & 博克斯—穆勒正态生成\newline {\small Y4.25} & \crosschapterref{4}{\pageref{q:Y4.25}}{见全文}/\crosschapterref{4}{\pageref{a:Y4.25}}{见全文}\\[2pt]
 
-\ref{q:Y4.30} & 指数变量的极值与比值\newline {\small Y4.30} & \pageref{q:Y4.30}/\pageref{a:Y4.30}\\[2pt]
+\crosschapterref{4}{\ref{q:Y4.30}}{题源~\texttt{Y4.30}} & 指数变量的极值与比值\newline {\small Y4.30} & \crosschapterref{4}{\pageref{q:Y4.30}}{见全文}/\crosschapterref{4}{\pageref{a:Y4.30}}{见全文}\\[2pt]
 
-\ref{q:Y4.34} & 平方和与平方比的变换\newline {\small Y4.34} & \pageref{q:Y4.34}/\pageref{a:Y4.34}\\[2pt]
+\crosschapterref{4}{\ref{q:Y4.34}}{题源~\texttt{Y4.34}} & 平方和与平方比的变换\newline {\small Y4.34} & \crosschapterref{4}{\pageref{q:Y4.34}}{见全文}/\crosschapterref{4}{\pageref{a:Y4.34}}{见全文}\\[2pt]
 
-\ref{q:Y4.36} & 线性变换的密度公式\newline {\small Y4.36} & \pageref{q:Y4.36}/\pageref{a:Y4.36}\\[2pt]
+\crosschapterref{4}{\ref{q:Y4.36}}{题源~\texttt{Y4.36}} & 线性变换的密度公式\newline {\small Y4.36} & \crosschapterref{4}{\pageref{q:Y4.36}}{见全文}/\crosschapterref{4}{\pageref{a:Y4.36}}{见全文}\\[2pt]
 
-\ref{q:A4.4} & 常数与任意变量独立\newline {\small A4.4} & \pageref{q:A4.4}/\pageref{a:A4.4}\\[2pt]
+\crosschapterref{4}{\ref{q:A4.4}}{题源~\texttt{A4.4}} & 常数与任意变量独立\newline {\small A4.4} & \crosschapterref{4}{\pageref{q:A4.4}}{见全文}/\crosschapterref{4}{\pageref{a:A4.4}}{见全文}\\[2pt]
 
-\ref{q:A4.5} & 联合分布函数的右连续性\newline {\small A4.5} & \pageref{q:A4.5}/\pageref{a:A4.5}\\[2pt]
+\crosschapterref{4}{\ref{q:A4.5}}{题源~\texttt{A4.5}} & 联合分布函数的右连续性\newline {\small A4.5} & \crosschapterref{4}{\pageref{q:A4.5}}{见全文}/\crosschapterref{4}{\pageref{a:A4.5}}{见全文}\\[2pt]
 
-\ref{q:A4.11} & 曲边区域上的联合密度\newline {\small A4.11} & \pageref{q:A4.11}/\pageref{a:A4.11}\\[2pt]
+\crosschapterref{4}{\ref{q:A4.11}}{题源~\texttt{A4.11}} & 曲边区域上的联合密度\newline {\small A4.11} & \crosschapterref{4}{\pageref{q:A4.11}}{见全文}/\crosschapterref{4}{\pageref{a:A4.11}}{见全文}\\[2pt]
 
-\ref{q:A4.14} & 指数寿命的比较\newline {\small A4.14} & \pageref{q:A4.14}/\pageref{a:A4.14}\\[2pt]
+\crosschapterref{4}{\ref{q:A4.14}}{题源~\texttt{A4.14}} & 指数寿命的比较\newline {\small A4.14} & \crosschapterref{4}{\pageref{q:A4.14}}{见全文}/\crosschapterref{4}{\pageref{a:A4.14}}{见全文}\\[2pt]
 
-\ref{q:A4.17} & 不独立变量的平方独立\newline {\small A4.17} & \pageref{q:A4.17}/\pageref{a:A4.17}\\[2pt]
+\crosschapterref{4}{\ref{q:A4.17}}{题源~\texttt{A4.17}} & 不独立变量的平方独立\newline {\small A4.17} & \crosschapterref{4}{\pageref{q:A4.17}}{见全文}/\crosschapterref{4}{\pageref{a:A4.17}}{见全文}\\[2pt]
 
-\ref{q:A4.18} & 曲线下均匀点的投影\newline {\small A4.18} & \pageref{q:A4.18}/\pageref{a:A4.18}\\[2pt]
+\crosschapterref{4}{\ref{q:A4.18}}{题源~\texttt{A4.18}} & 曲线下均匀点的投影\newline {\small A4.18} & \crosschapterref{4}{\pageref{q:A4.18}}{见全文}/\crosschapterref{4}{\pageref{a:A4.18}}{见全文}\\[2pt]
 
-\ref{q:A4.19} & 离散与连续变量之差\newline {\small A4.19} & \pageref{q:A4.19}/\pageref{a:A4.19}\\[2pt]
+\crosschapterref{4}{\ref{q:A4.19}}{题源~\texttt{A4.19}} & 离散与连续变量之差\newline {\small A4.19} & \crosschapterref{4}{\pageref{q:A4.19}}{见全文}/\crosschapterref{4}{\pageref{a:A4.19}}{见全文}\\[2pt]
 
-\ref{q:A4.23} & 求和变换后的边缘积分\newline {\small A4.23} & \pageref{q:A4.23}/\pageref{a:A4.23}\\[2pt]
+\crosschapterref{4}{\ref{q:A4.23}}{题源~\texttt{A4.23}} & 求和变换后的边缘积分\newline {\small A4.23} & \crosschapterref{4}{\pageref{q:A4.23}}{见全文}/\crosschapterref{4}{\pageref{a:A4.23}}{见全文}\\[2pt]
 
-\ref{q:A4.27} & 独立正态的线性组合\newline {\small A4.27} & \pageref{q:A4.27}/\pageref{a:A4.27}\\[2pt]
+\crosschapterref{4}{\ref{q:A4.27}}{题源~\texttt{A4.27}} & 独立正态的线性组合\newline {\small A4.27} & \crosschapterref{4}{\pageref{q:A4.27}}{见全文}/\crosschapterref{4}{\pageref{a:A4.27}}{见全文}\\[2pt]
 
-\ref{q:A4.28} & 二维正态的条件分布\newline {\small A4.28} & \pageref{q:A4.28}/\pageref{a:A4.28}\\[2pt]
+\crosschapterref{4}{\ref{q:A4.28}}{题源~\texttt{A4.28}} & 二维正态的条件分布\newline {\small A4.28} & \crosschapterref{4}{\pageref{q:A4.28}}{见全文}/\crosschapterref{4}{\pageref{a:A4.28}}{见全文}\\[2pt]
 
-\ref{q:A4.32} & 尾分布幂次与竞争概率\newline {\small A4.32} & \pageref{q:A4.32}/\pageref{a:A4.32}\\[2pt]
+\crosschapterref{4}{\ref{q:A4.32}}{题源~\texttt{A4.32}} & 尾分布幂次与竞争概率\newline {\small A4.32} & \crosschapterref{4}{\pageref{q:A4.32}}{见全文}/\crosschapterref{4}{\pageref{a:A4.32}}{见全文}\\[2pt]
 
-\ref{q:A5.5} & 广告信息之间的等待\newline {\small A5.5} & \pageref{q:A5.5}/\pageref{a:A5.5}\\[2pt]
+\crosschapterref{4}{\ref{q:A5.5}}{题源~\texttt{A5.5}} & 广告信息之间的等待\newline {\small A5.5} & \crosschapterref{4}{\pageref{q:A5.5}}{见全文}/\crosschapterref{4}{\pageref{a:A5.5}}{见全文}\\[2pt]
 
-\ref{q:A5.8} & 标准正态半径的期望\newline {\small A5.8} & \pageref{q:A5.8}/\pageref{a:A5.8}\\[2pt]
+\crosschapterref{4}{\ref{q:A5.8}}{题源~\texttt{A5.8}} & 标准正态半径的期望\newline {\small A5.8} & \crosschapterref{4}{\pageref{q:A5.8}}{见全文}/\crosschapterref{4}{\pageref{a:A5.8}}{见全文}\\[2pt]
 
-\ref{q:A5.9} & 交换对称与比例期望\newline {\small A5.9} & \pageref{q:A5.9}/\pageref{a:A5.9}\\[2pt]
+\crosschapterref{4}{\ref{q:A5.9}}{题源~\texttt{A5.9}} & 交换对称与比例期望\newline {\small A5.9} & \crosschapterref{4}{\pageref{q:A5.9}}{见全文}/\crosschapterref{4}{\pageref{a:A5.9}}{见全文}\\[2pt]
 
-\ref{q:A5.12} & 离散极值的尾和公式\newline {\small A5.12} & \pageref{q:A5.12}/\pageref{a:A5.12}\\[2pt]
+\crosschapterref{4}{\ref{q:A5.12}}{题源~\texttt{A5.12}} & 离散极值的尾和公式\newline {\small A5.12} & \crosschapterref{4}{\pageref{q:A5.12}}{见全文}/\crosschapterref{4}{\pageref{a:A5.12}}{见全文}\\[2pt]
 
-\ref{q:A5.14} & 曲边密度的归一化勘误\newline {\small A5.14} & \pageref{q:A5.14}/\pageref{a:A5.14}\\[2pt]
+\crosschapterref{4}{\ref{q:A5.14}}{题源~\texttt{A5.14}} & 曲边密度的归一化勘误\newline {\small A5.14} & \crosschapterref{4}{\pageref{q:A5.14}}{见全文}/\crosschapterref{4}{\pageref{a:A5.14}}{见全文}\\[2pt]
 
-\ref{q:A5.17} & 全部指数寿命结束的等待\newline {\small A5.17} & \pageref{q:A5.17}/\pageref{a:A5.17}\\[2pt]
+\crosschapterref{4}{\ref{q:A5.17}}{题源~\texttt{A5.17}} & 全部指数寿命结束的等待\newline {\small A5.17} & \crosschapterref{4}{\pageref{q:A5.17}}{见全文}/\crosschapterref{4}{\pageref{a:A5.17}}{见全文}\\[2pt]
 
-\ref{q:A5.20} & 样本均值与方差的无偏性\newline {\small A5.20} & \pageref{q:A5.20}/\pageref{a:A5.20}\\[2pt]
+\crosschapterref{4}{\ref{q:A5.20}}{题源~\texttt{A5.20}} & 样本均值与方差的无偏性\newline {\small A5.20} & \crosschapterref{4}{\pageref{q:A5.20}}{见全文}/\crosschapterref{4}{\pageref{a:A5.20}}{见全文}\\[2pt]
 
-\ref{q:A5.22} & 最优逆方差加权\newline {\small A5.22} & \pageref{q:A5.22}/\pageref{a:A5.22}\\[2pt]
+\crosschapterref{4}{\ref{q:A5.22}}{题源~\texttt{A5.22}} & 最优逆方差加权\newline {\small A5.22} & \crosschapterref{4}{\pageref{q:A5.22}}{见全文}/\crosschapterref{4}{\pageref{a:A5.22}}{见全文}\\[2pt]
 
-\ref{q:A5.25} & 非负变量的尾积分\newline {\small A5.25} & \pageref{q:A5.25}/\pageref{a:A5.25}\\[2pt]
+\crosschapterref{4}{\ref{q:A5.25}}{题源~\texttt{A5.25}} & 非负变量的尾积分\newline {\small A5.25} & \crosschapterref{4}{\pageref{q:A5.25}}{见全文}/\crosschapterref{4}{\pageref{a:A5.25}}{见全文}\\[2pt]
 
-\ref{q:A5.26} & 和与差的相关系数\newline {\small A5.26} & \pageref{q:A5.26}/\pageref{a:A5.26}\\[2pt]
+\crosschapterref{4}{\ref{q:A5.26}}{题源~\texttt{A5.26}} & 和与差的相关系数\newline {\small A5.26} & \crosschapterref{4}{\pageref{q:A5.26}}{见全文}/\crosschapterref{4}{\pageref{a:A5.26}}{见全文}\\[2pt]
 
-\ref{q:A5.28} & 正方形密度的协方差\newline {\small A5.28} & \pageref{q:A5.28}/\pageref{a:A5.28}\\[2pt]
+\crosschapterref{4}{\ref{q:A5.28}}{题源~\texttt{A5.28}} & 正方形密度的协方差\newline {\small A5.28} & \crosschapterref{4}{\pageref{q:A5.28}}{见全文}/\crosschapterref{4}{\pageref{a:A5.28}}{见全文}\\[2pt]
 
-\ref{q:A5.30} & 正态尺寸差与装配\newline {\small A5.30} & \pageref{q:A5.30}/\pageref{a:A5.30}\\[2pt]
+\crosschapterref{4}{\ref{q:A5.30}}{题源~\texttt{A5.30}} & 正态尺寸差与装配\newline {\small A5.30} & \crosschapterref{4}{\pageref{q:A5.30}}{见全文}/\crosschapterref{4}{\pageref{a:A5.30}}{见全文}\\[2pt]
 
-\ref{q:A5.32} & 不相关但不独立的反例\newline {\small A5.32} & \pageref{q:A5.32}/\pageref{a:A5.32}\\[2pt]
+\crosschapterref{4}{\ref{q:A5.32}}{题源~\texttt{A5.32}} & 不相关但不独立的反例\newline {\small A5.32} & \crosschapterref{4}{\pageref{q:A5.32}}{见全文}/\crosschapterref{4}{\pageref{a:A5.32}}{见全文}\\[2pt]
 
-\ref{q:A5.33} & 中心正态的高阶矩\newline {\small A5.33} & \pageref{q:A5.33}/\pageref{a:A5.33}\\[2pt]
+\crosschapterref{4}{\ref{q:A5.33}}{题源~\texttt{A5.33}} & 中心正态的高阶矩\newline {\small A5.33} & \crosschapterref{4}{\pageref{q:A5.33}}{见全文}/\crosschapterref{4}{\pageref{a:A5.33}}{见全文}\\[2pt]
 
-\ref{q:A5.35} & 圆周与圆内均匀模型\newline {\small A5.35} & \pageref{q:A5.35}/\pageref{a:A5.35}\\[2pt]
+\crosschapterref{4}{\ref{q:A5.35}}{题源~\texttt{A5.35}} & 圆周与圆内均匀模型\newline {\small A5.35} & \crosschapterref{4}{\pageref{q:A5.35}}{见全文}/\crosschapterref{4}{\pageref{a:A5.35}}{见全文}\\[2pt]
 
-\ref{q:A6.1} & 随机组数下的条件二项\newline {\small A6.1} & \pageref{q:A6.1}/\pageref{a:A6.1}\\[2pt]
+\crosschapterref{4}{\ref{q:A6.1}}{题源~\texttt{A6.1}} & 随机组数下的条件二项\newline {\small A6.1} & \crosschapterref{4}{\pageref{q:A6.1}}{见全文}/\crosschapterref{4}{\pageref{a:A6.1}}{见全文}\\[2pt]
 
-\ref{q:A6.3} & 几何个指数等待之和\newline {\small A6.3} & \pageref{q:A6.3}/\pageref{a:A6.3}\\[2pt]
+\crosschapterref{4}{\ref{q:A6.3}}{题源~\texttt{A6.3}} & 几何个指数等待之和\newline {\small A6.3} & \crosschapterref{4}{\pageref{q:A6.3}}{见全文}/\crosschapterref{4}{\pageref{a:A6.3}}{见全文}\\[2pt]
 
-\ref{q:A6.4} & 复合泊松等待的均值方差\newline {\small A6.4} & \pageref{q:A6.4}/\pageref{a:A6.4}\\[2pt]
+\crosschapterref{4}{\ref{q:A6.4}}{题源~\texttt{A6.4}} & 复合泊松等待的均值方差\newline {\small A6.4} & \crosschapterref{4}{\pageref{q:A6.4}}{见全文}/\crosschapterref{4}{\pageref{a:A6.4}}{见全文}\\[2pt]
 
-\ref{q:A6.9} & 条件指数与条件伽马\newline {\small A6.9} & \pageref{q:A6.9}/\pageref{a:A6.9}\\[2pt]
+\crosschapterref{4}{\ref{q:A6.9}}{题源~\texttt{A6.9}} & 条件指数与条件伽马\newline {\small A6.9} & \crosschapterref{4}{\pageref{q:A6.9}}{见全文}/\crosschapterref{4}{\pageref{a:A6.9}}{见全文}\\[2pt]
 
-\ref{q:A6.14} & 威布尔寿命的剩余等待\newline {\small A6.14} & \pageref{q:A6.14}/\pageref{a:A6.14}\\[2pt]
+\crosschapterref{4}{\ref{q:A6.14}}{题源~\texttt{A6.14}} & 威布尔寿命的剩余等待\newline {\small A6.14} & \crosschapterref{4}{\pageref{q:A6.14}}{见全文}/\crosschapterref{4}{\pageref{a:A6.14}}{见全文}\\[2pt]
 
-\ref{q:A6.15} & 泊松观察后的伽马后验\newline {\small A6.15} & \pageref{q:A6.15}/\pageref{a:A6.15}\\[2pt]
+\crosschapterref{4}{\ref{q:A6.15}}{题源~\texttt{A6.15}} & 泊松观察后的伽马后验\newline {\small A6.15} & \crosschapterref{4}{\pageref{q:A6.15}}{见全文}/\crosschapterref{4}{\pageref{a:A6.15}}{见全文}\\[2pt]
 
-\ref{q:A6.17} & 七个接口的第三次失效\newline {\small A6.17} & \pageref{q:A6.17}/\pageref{a:A6.17}\\[2pt]
+\crosschapterref{4}{\ref{q:A6.17}}{题源~\texttt{A6.17}} & 七个接口的第三次失效\newline {\small A6.17} & \crosschapterref{4}{\pageref{q:A6.17}}{见全文}/\crosschapterref{4}{\pageref{a:A6.17}}{见全文}\\[2pt]
 
-\ref{q:A6.20} & 指数顺序统计量的间隔\newline {\small A6.20} & \pageref{q:A6.20}/\pageref{a:A6.20}\\[2pt]
+\crosschapterref{4}{\ref{q:A6.20}}{题源~\texttt{A6.20}} & 指数顺序统计量的间隔\newline {\small A6.20} & \crosschapterref{4}{\pageref{q:A6.20}}{见全文}/\crosschapterref{4}{\pageref{a:A6.20}}{见全文}\\[2pt]
 
-\ref{q:A6.21} & 仿射变换的概率母函数\newline {\small A6.21} & \pageref{q:A6.21}/\pageref{a:A6.21}\\[2pt]
+\crosschapterref{4}{\ref{q:A6.21}}{题源~\texttt{A6.21}} & 仿射变换的概率母函数\newline {\small A6.21} & \crosschapterref{4}{\pageref{q:A6.21}}{见全文}/\crosschapterref{4}{\pageref{a:A6.21}}{见全文}\\[2pt]
 
-\ref{q:A6.24} & 两组硬币成功数之差\newline {\small A6.24} & \pageref{q:A6.24}/\pageref{a:A6.24}\\[2pt]
+\crosschapterref{4}{\ref{q:A6.24}}{题源~\texttt{A6.24}} & 两组硬币成功数之差\newline {\small A6.24} & \crosschapterref{4}{\pageref{q:A6.24}}{见全文}/\crosschapterref{4}{\pageref{a:A6.24}}{见全文}\\[2pt]
 
-\ref{q:A6.29} & 均匀和的特征函数极限\newline {\small A6.29} & \pageref{q:A6.29}/\pageref{a:A6.29}\\[2pt]
+\crosschapterref{4}{\ref{q:A6.29}}{题源~\texttt{A6.29}} & 均匀和的特征函数极限\newline {\small A6.29} & \crosschapterref{4}{\pageref{q:A6.29}}{见全文}/\crosschapterref{4}{\pageref{a:A6.29}}{见全文}\\[2pt]
 
-\ref{q:A6.30} & 指数和的特征函数极限\newline {\small A6.30} & \pageref{q:A6.30}/\pageref{a:A6.30}\\[2pt]
+\crosschapterref{4}{\ref{q:A6.30}}{题源~\texttt{A6.30}} & 指数和的特征函数极限\newline {\small A6.30} & \crosschapterref{4}{\pageref{q:A6.30}}{见全文}/\crosschapterref{4}{\pageref{a:A6.30}}{见全文}\\[2pt]
 
-\ref{q:A6.34} & 二项分布的泊松极限\newline {\small A6.34} & \pageref{q:A6.34}/\pageref{a:A6.34}\\[2pt]
+\crosschapterref{4}{\ref{q:A6.34}}{题源~\texttt{A6.34}} & 二项分布的泊松极限\newline {\small A6.34} & \crosschapterref{4}{\pageref{q:A6.34}}{见全文}/\crosschapterref{4}{\pageref{a:A6.34}}{见全文}\\[2pt]
 
-\ref{q:A6.35} & 给定总和后的部分和\newline {\small A6.35} & \pageref{q:A6.35}/\pageref{a:A6.35}\\[2pt]
+\crosschapterref{4}{\ref{q:A6.35}}{题源~\texttt{A6.35}} & 给定总和后的部分和\newline {\small A6.35} & \crosschapterref{4}{\pageref{q:A6.35}}{见全文}/\crosschapterref{4}{\pageref{a:A6.35}}{见全文}\\[2pt]
 
-\ref{q:A7.2} & 截尾期望的概率上界\newline {\small A7.2} & \pageref{q:A7.2}/\pageref{a:A7.2}\\[2pt]
+\crosschapterref{4}{\ref{q:A7.2}}{题源~\texttt{A7.2}} & 截尾期望的概率上界\newline {\small A7.2} & \crosschapterref{4}{\pageref{q:A7.2}}{见全文}/\crosschapterref{4}{\pageref{a:A7.2}}{见全文}\\[2pt]
 
-\ref{q:A7.3} & 柯西不等式与尾概率\newline {\small A7.3} & \pageref{q:A7.3}/\pageref{a:A7.3}\\[2pt]
+\crosschapterref{4}{\ref{q:A7.3}}{题源~\texttt{A7.3}} & 柯西不等式与尾概率\newline {\small A7.3} & \crosschapterref{4}{\pageref{q:A7.3}}{见全文}/\crosschapterref{4}{\pageref{a:A7.3}}{见全文}\\[2pt]
 
-\ref{q:A7.4} & 最小值的概率界\newline {\small A7.4} & \pageref{q:A7.4}/\pageref{a:A7.4}\\[2pt]
+\crosschapterref{4}{\ref{q:A7.4}}{题源~\texttt{A7.4}} & 最小值的概率界\newline {\small A7.4} & \crosschapterref{4}{\pageref{q:A7.4}}{见全文}/\crosschapterref{4}{\pageref{a:A7.4}}{见全文}\\[2pt]
 
-\ref{q:A7.5} & 伽马矩与切比雪夫界\newline {\small A7.5} & \pageref{q:A7.5}/\pageref{a:A7.5}\\[2pt]
+\crosschapterref{4}{\ref{q:A7.5}}{题源~\texttt{A7.5}} & 伽马矩与切比雪夫界\newline {\small A7.5} & \crosschapterref{4}{\pageref{q:A7.5}}{见全文}/\crosschapterref{4}{\pageref{a:A7.5}}{见全文}\\[2pt]
 
-\ref{q:A7.10} & 三角函数样本均值之比\newline {\small A7.10} & \pageref{q:A7.10}/\pageref{a:A7.10}\\[2pt]
+\crosschapterref{4}{\ref{q:A7.10}}{题源~\texttt{A7.10}} & 三角函数样本均值之比\newline {\small A7.10} & \crosschapterref{4}{\pageref{q:A7.10}}{见全文}/\crosschapterref{4}{\pageref{a:A7.10}}{见全文}\\[2pt]
 
-\ref{q:A7.14} & 比例调查的样本量\newline {\small A7.14} & \pageref{q:A7.14}/\pageref{a:A7.14}\\[2pt]
+\crosschapterref{4}{\ref{q:A7.14}}{题源~\texttt{A7.14}} & 比例调查的样本量\newline {\small A7.14} & \crosschapterref{4}{\pageref{q:A7.14}}{见全文}/\crosschapterref{4}{\pageref{a:A7.14}}{见全文}\\[2pt]
 
-\ref{q:A7.15} & 两组样本均值差的近似\newline {\small A7.15} & \pageref{q:A7.15}/\pageref{a:A7.15}\\[2pt]
+\crosschapterref{4}{\ref{q:A7.15}}{题源~\texttt{A7.15}} & 两组样本均值差的近似\newline {\small A7.15} & \crosschapterref{4}{\pageref{q:A7.15}}{见全文}/\crosschapterref{4}{\pageref{a:A7.15}}{见全文}\\[2pt]
 
-\ref{q:A7.20} & 泊松概率和的二分极限\newline {\small A7.20} & \pageref{q:A7.20}/\pageref{a:A7.20}\\[2pt]
+\crosschapterref{4}{\ref{q:A7.20}}{题源~\texttt{A7.20}} & 泊松概率和的二分极限\newline {\small A7.20} & \crosschapterref{4}{\pageref{q:A7.20}}{见全文}/\crosschapterref{4}{\pageref{a:A7.20}}{见全文}\\[2pt]
 
-\ref{q:A7.21} & 缩放收敛与紧性\newline {\small A7.21} & \pageref{q:A7.21}/\pageref{a:A7.21}\\[2pt]
+\crosschapterref{4}{\ref{q:A7.21}}{题源~\texttt{A7.21}} & 缩放收敛与紧性\newline {\small A7.21} & \crosschapterref{4}{\pageref{q:A7.21}}{见全文}/\crosschapterref{4}{\pageref{a:A7.21}}{见全文}\\[2pt]
 
-\ref{q:A7.22} & 不同参数二项和的极限\newline {\small A7.22} & \pageref{q:A7.22}/\pageref{a:A7.22}\\[2pt]
+\crosschapterref{4}{\ref{q:A7.22}}{题源~\texttt{A7.22}} & 不同参数二项和的极限\newline {\small A7.22} & \crosschapterref{4}{\pageref{q:A7.22}}{见全文}/\crosschapterref{4}{\pageref{a:A7.22}}{见全文}\\[2pt]
 
-\ref{q:A7.25} & 小扰动不改变分布极限\newline {\small A7.25} & \pageref{q:A7.25}/\pageref{a:A7.25}\\[2pt]
+\crosschapterref{4}{\ref{q:A7.25}}{题源~\texttt{A7.25}} & 小扰动不改变分布极限\newline {\small A7.25} & \crosschapterref{4}{\pageref{q:A7.25}}{见全文}/\crosschapterref{4}{\pageref{a:A7.25}}{见全文}\\[2pt]
 
-\ref{q:M-F-C4} & 统计量与未知参数\newline {\small M-F-C4} & \pageref{q:M-F-C4}/\pageref{a:M-F-C4}\\[2pt]
+\crosschapterref{4}{\ref{q:M-F-C4}}{题源~\texttt{M-F-C4}} & 统计量与未知参数\newline {\small M-F-C4} & \crosschapterref{4}{\pageref{q:M-F-C4}}{见全文}/\crosschapterref{4}{\pageref{a:M-F-C4}}{见全文}\\[2pt]
 
-\ref{q:B8.1} & 样本均值的均值与方差\newline {\small B8.1} & \pageref{q:B8.1}/\pageref{a:B8.1}\\[2pt]
+\crosschapterref{4}{\ref{q:B8.1}}{题源~\texttt{B8.1}} & 样本均值的均值与方差\newline {\small B8.1} & \crosschapterref{4}{\pageref{q:B8.1}}{见全文}/\crosschapterref{4}{\pageref{a:B8.1}}{见全文}\\[2pt]
 
-\ref{q:B8.2} & 样本方差的无偏性\newline {\small B8.2} & \pageref{q:B8.2}/\pageref{a:B8.2}\\[2pt]
+\crosschapterref{4}{\ref{q:B8.2}}{题源~\texttt{B8.2}} & 样本方差的无偏性\newline {\small B8.2} & \crosschapterref{4}{\pageref{q:B8.2}}{见全文}/\crosschapterref{4}{\pageref{a:B8.2}}{见全文}\\[2pt]
 
-\ref{q:B8.3} & 正态样本均值和残差的独立性\newline {\small B8.3} & \pageref{q:B8.3}/\pageref{a:B8.3}\\[2pt]
+\crosschapterref{4}{\ref{q:B8.3}}{题源~\texttt{B8.3}} & 正态样本均值和残差的独立性\newline {\small B8.3} & \crosschapterref{4}{\pageref{q:B8.3}}{见全文}/\crosschapterref{4}{\pageref{a:B8.3}}{见全文}\\[2pt]
 
-\ref{q:B8.4} & 卡方分布及自由度\newline {\small B8.4} & \pageref{q:B8.4}/\pageref{a:B8.4}\\[2pt]
+\crosschapterref{4}{\ref{q:B8.4}}{题源~\texttt{B8.4}} & 卡方分布及自由度\newline {\small B8.4} & \crosschapterref{4}{\pageref{q:B8.4}}{见全文}/\crosschapterref{4}{\pageref{a:B8.4}}{见全文}\\[2pt]
 
-\ref{q:B8.5} & 学生 t 统计量\newline {\small B8.5} & \pageref{q:B8.5}/\pageref{a:B8.5}\\[2pt]
+\crosschapterref{4}{\ref{q:B8.5}}{题源~\texttt{B8.5}} & 学生 t 统计量\newline {\small B8.5} & \crosschapterref{4}{\pageref{q:B8.5}}{见全文}/\crosschapterref{4}{\pageref{a:B8.5}}{见全文}\\[2pt]
 
-\ref{q:B8.6} & 方差比与 F 分布\newline {\small B8.6} & \pageref{q:B8.6}/\pageref{a:B8.6}\\[2pt]
+\crosschapterref{4}{\ref{q:B8.6}}{题源~\texttt{B8.6}} & 方差比与 F 分布\newline {\small B8.6} & \crosschapterref{4}{\pageref{q:B8.6}}{见全文}/\crosschapterref{4}{\pageref{a:B8.6}}{见全文}\\[2pt]
 
-\ref{q:B8.7} & 顺序统计量的分布\newline {\small B8.7} & \pageref{q:B8.7}/\pageref{a:B8.7}\\[2pt]
+\crosschapterref{4}{\ref{q:B8.7}}{题源~\texttt{B8.7}} & 顺序统计量的分布\newline {\small B8.7} & \crosschapterref{4}{\pageref{q:B8.7}}{见全文}/\crosschapterref{4}{\pageref{a:B8.7}}{见全文}\\[2pt]
 
-\ref{q:B8.8} & 均匀样本最大值\newline {\small B8.8} & \pageref{q:B8.8}/\pageref{a:B8.8}\\[2pt]
+\crosschapterref{4}{\ref{q:B8.8}}{题源~\texttt{B8.8}} & 均匀样本最大值\newline {\small B8.8} & \crosschapterref{4}{\pageref{q:B8.8}}{见全文}/\crosschapterref{4}{\pageref{a:B8.8}}{见全文}\\[2pt]
 
-\ref{q:B8.9} & 指数样本的最小值与和\newline {\small B8.9} & \pageref{q:B8.9}/\pageref{a:B8.9}\\[2pt]
+\crosschapterref{4}{\ref{q:B8.9}}{题源~\texttt{B8.9}} & 指数样本的最小值与和\newline {\small B8.9} & \crosschapterref{4}{\pageref{q:B8.9}}{见全文}/\crosschapterref{4}{\pageref{a:B8.9}}{见全文}\\[2pt]
 
-\ref{q:M-F-C13} & 中心极限定理的正确标准化\newline {\small M-F-C13} & \pageref{q:M-F-C13}/\pageref{a:M-F-C13}\\[2pt]
+\crosschapterref{4}{\ref{q:M-F-C13}}{题源~\texttt{M-F-C13}} & 中心极限定理的正确标准化\newline {\small M-F-C13} & \crosschapterref{4}{\pageref{q:M-F-C13}}{见全文}/\crosschapterref{4}{\pageref{a:M-F-C13}}{见全文}\\[2pt]
 
-\ref{q:B9.1} & 伯努利矩估计\newline {\small B9.1} & \pageref{q:B9.1}/\pageref{a:B9.1}\\[2pt]
+\crosschapterref{4}{\ref{q:B9.1}}{题源~\texttt{B9.1}} & 伯努利矩估计\newline {\small B9.1} & \crosschapterref{4}{\pageref{q:B9.1}}{见全文}/\crosschapterref{4}{\pageref{a:B9.1}}{见全文}\\[2pt]
 
-\ref{q:B9.2} & 均匀分布的矩估计与极值估计\newline {\small B9.2} & \pageref{q:B9.2}/\pageref{a:B9.2}\\[2pt]
+\crosschapterref{4}{\ref{q:B9.2}}{题源~\texttt{B9.2}} & 均匀分布的矩估计与极值估计\newline {\small B9.2} & \crosschapterref{4}{\pageref{q:B9.2}}{见全文}/\crosschapterref{4}{\pageref{a:B9.2}}{见全文}\\[2pt]
 
-\ref{q:B9.3} & 伽马分布的两个矩参数\newline {\small B9.3} & \pageref{q:B9.3}/\pageref{a:B9.3}\\[2pt]
+\crosschapterref{4}{\ref{q:B9.3}}{题源~\texttt{B9.3}} & 伽马分布的两个矩参数\newline {\small B9.3} & \crosschapterref{4}{\pageref{q:B9.3}}{见全文}/\crosschapterref{4}{\pageref{a:B9.3}}{见全文}\\[2pt]
 
-\ref{q:B9.4} & 正态分布的矩估计\newline {\small B9.4} & \pageref{q:B9.4}/\pageref{a:B9.4}\\[2pt]
+\crosschapterref{4}{\ref{q:B9.4}}{题源~\texttt{B9.4}} & 正态分布的矩估计\newline {\small B9.4} & \crosschapterref{4}{\pageref{q:B9.4}}{见全文}/\crosschapterref{4}{\pageref{a:B9.4}}{见全文}\\[2pt]
 
-\ref{q:B9.5} & 偏差与均方误差分解\newline {\small B9.5} & \pageref{q:B9.5}/\pageref{a:B9.5}\\[2pt]
+\crosschapterref{4}{\ref{q:B9.5}}{题源~\texttt{B9.5}} & 偏差与均方误差分解\newline {\small B9.5} & \crosschapterref{4}{\pageref{q:B9.5}}{见全文}/\crosschapterref{4}{\pageref{a:B9.5}}{见全文}\\[2pt]
 
-\ref{q:B9.6} & 样本方差的最小均方误差缩放\newline {\small B9.6} & \pageref{q:B9.6}/\pageref{a:B9.6}\\[2pt]
+\crosschapterref{4}{\ref{q:B9.6}}{题源~\texttt{B9.6}} & 样本方差的最小均方误差缩放\newline {\small B9.6} & \crosschapterref{4}{\pageref{q:B9.6}}{见全文}/\crosschapterref{4}{\pageref{a:B9.6}}{见全文}\\[2pt]
 
-\ref{q:B9.7} & 一致性与渐近正态性\newline {\small B9.7} & \pageref{q:B9.7}/\pageref{a:B9.7}\\[2pt]
+\crosschapterref{4}{\ref{q:B9.7}}{题源~\texttt{B9.7}} & 一致性与渐近正态性\newline {\small B9.7} & \crosschapterref{4}{\pageref{q:B9.7}}{见全文}/\crosschapterref{4}{\pageref{a:B9.7}}{见全文}\\[2pt]
 
-\ref{q:B9.8} & 样本分位数的直观比较\newline {\small B9.8} & \pageref{q:B9.8}/\pageref{a:B9.8}\\[2pt]
+\crosschapterref{4}{\ref{q:B9.8}}{题源~\texttt{B9.8}} & 样本分位数的直观比较\newline {\small B9.8} & \crosschapterref{4}{\pageref{q:B9.8}}{见全文}/\crosschapterref{4}{\pageref{a:B9.8}}{见全文}\\[2pt]
 
-\ref{q:M-C10-1} & 离散参数空间中的硬币似然\newline {\small M-C10-1} & \pageref{q:M-C10-1}/\pageref{a:M-C10-1}\\[2pt]
+\crosschapterref{4}{\ref{q:M-C10-1}}{题源~\texttt{M-C10-1}} & 离散参数空间中的硬币似然\newline {\small M-C10-1} & \crosschapterref{4}{\pageref{q:M-C10-1}}{见全文}/\crosschapterref{4}{\pageref{a:M-C10-1}}{见全文}\\[2pt]
 
-\ref{q:M-C10-2} & 指数寿命的极大似然估计\newline {\small M-C10-2} & \pageref{q:M-C10-2}/\pageref{a:M-C10-2}\\[2pt]
+\crosschapterref{4}{\ref{q:M-C10-2}}{题源~\texttt{M-C10-2}} & 指数寿命的极大似然估计\newline {\small M-C10-2} & \crosschapterref{4}{\pageref{q:M-C10-2}}{见全文}/\crosschapterref{4}{\pageref{a:M-C10-2}}{见全文}\\[2pt]
 
-\ref{q:M-E2-II1} & 已知形状的伽马率估计\newline {\small M-E2-II1} & \pageref{q:M-E2-II1}/\pageref{a:M-E2-II1}\\[2pt]
+\crosschapterref{4}{\ref{q:M-E2-II1}}{题源~\texttt{M-E2-II1}} & 已知形状的伽马率估计\newline {\small M-E2-II1} & \crosschapterref{4}{\pageref{q:M-E2-II1}}{见全文}/\crosschapterref{4}{\pageref{a:M-E2-II1}}{见全文}\\[2pt]
 
-\ref{q:B10.1} & 正态模型的联合极大似然\newline {\small B10.1} & \pageref{q:B10.1}/\pageref{a:B10.1}\\[2pt]
+\crosschapterref{4}{\ref{q:B10.1}}{题源~\texttt{B10.1}} & 正态模型的联合极大似然\newline {\small B10.1} & \crosschapterref{4}{\pageref{q:B10.1}}{见全文}/\crosschapterref{4}{\pageref{a:B10.1}}{见全文}\\[2pt]
 
-\ref{q:B10.2} & 均匀端点与支撑集\newline {\small B10.2} & \pageref{q:B10.2}/\pageref{a:B10.2}\\[2pt]
+\crosschapterref{4}{\ref{q:B10.2}}{题源~\texttt{B10.2}} & 均匀端点与支撑集\newline {\small B10.2} & \crosschapterref{4}{\pageref{q:B10.2}}{见全文}/\crosschapterref{4}{\pageref{a:B10.2}}{见全文}\\[2pt]
 
-\ref{q:B10.3} & 几何分布的估计与边界\newline {\small B10.3} & \pageref{q:B10.3}/\pageref{a:B10.3}\\[2pt]
+\crosschapterref{4}{\ref{q:B10.3}}{题源~\texttt{B10.3}} & 几何分布的估计与边界\newline {\small B10.3} & \crosschapterref{4}{\pageref{q:B10.3}}{见全文}/\crosschapterref{4}{\pageref{a:B10.3}}{见全文}\\[2pt]
 
-\ref{q:B10.4} & 带删失的指数寿命\newline {\small B10.4} & \pageref{q:B10.4}/\pageref{a:B10.4}\\[2pt]
+\crosschapterref{4}{\ref{q:B10.4}}{题源~\texttt{B10.4}} & 带删失的指数寿命\newline {\small B10.4} & \crosschapterref{4}{\pageref{q:B10.4}}{见全文}/\crosschapterref{4}{\pageref{a:B10.4}}{见全文}\\[2pt]
 
-\ref{q:B10.5} & 极大似然的不变性\newline {\small B10.5} & \pageref{q:B10.5}/\pageref{a:B10.5}\\[2pt]
+\crosschapterref{4}{\ref{q:B10.5}}{题源~\texttt{B10.5}} & 极大似然的不变性\newline {\small B10.5} & \crosschapterref{4}{\pageref{q:B10.5}}{见全文}/\crosschapterref{4}{\pageref{a:B10.5}}{见全文}\\[2pt]
 
-\ref{q:B10.6} & 指数率估计的有限样本偏差\newline {\small B10.6} & \pageref{q:B10.6}/\pageref{a:B10.6}\\[2pt]
+\crosschapterref{4}{\ref{q:B10.6}}{题源~\texttt{B10.6}} & 指数率估计的有限样本偏差\newline {\small B10.6} & \crosschapterref{4}{\pageref{q:B10.6}}{见全文}/\crosschapterref{4}{\pageref{a:B10.6}}{见全文}\\[2pt]
 
-\ref{q:B11.1} & 伯努利样本的充分统计量\newline {\small B11.1} & \pageref{q:B11.1}/\pageref{a:B11.1}\\[2pt]
+\crosschapterref{4}{\ref{q:B11.1}}{题源~\texttt{B11.1}} & 伯努利样本的充分统计量\newline {\small B11.1} & \crosschapterref{4}{\pageref{q:B11.1}}{见全文}/\crosschapterref{4}{\pageref{a:B11.1}}{见全文}\\[2pt]
 
-\ref{q:B11.2} & 泊松样本的充分性与条件二项分布\newline {\small B11.2} & \pageref{q:B11.2}/\pageref{a:B11.2}\\[2pt]
+\crosschapterref{4}{\ref{q:B11.2}}{题源~\texttt{B11.2}} & 泊松样本的充分性与条件二项分布\newline {\small B11.2} & \crosschapterref{4}{\pageref{q:B11.2}}{见全文}/\crosschapterref{4}{\pageref{a:B11.2}}{见全文}\\[2pt]
 
-\ref{q:B11.3} & 拉奥—布莱克改进\newline {\small B11.3} & \pageref{q:B11.3}/\pageref{a:B11.3}\\[2pt]
+\crosschapterref{4}{\ref{q:B11.3}}{题源~\texttt{B11.3}} & 拉奥—布莱克改进\newline {\small B11.3} & \crosschapterref{4}{\pageref{q:B11.3}}{见全文}/\crosschapterref{4}{\pageref{a:B11.3}}{见全文}\\[2pt]
 
-\ref{q:B11.4} & 二项族的完全性\newline {\small B11.4} & \pageref{q:B11.4}/\pageref{a:B11.4}\\[2pt]
+\crosschapterref{4}{\ref{q:B11.4}}{题源~\texttt{B11.4}} & 二项族的完全性\newline {\small B11.4} & \crosschapterref{4}{\pageref{q:B11.4}}{见全文}/\crosschapterref{4}{\pageref{a:B11.4}}{见全文}\\[2pt]
 
-\ref{q:B11.5} & 估计平方概率\newline {\small B11.5} & \pageref{q:B11.5}/\pageref{a:B11.5}\\[2pt]
+\crosschapterref{4}{\ref{q:B11.5}}{题源~\texttt{B11.5}} & 估计平方概率\newline {\small B11.5} & \crosschapterref{4}{\pageref{q:B11.5}}{见全文}/\crosschapterref{4}{\pageref{a:B11.5}}{见全文}\\[2pt]
 
-\ref{q:B11.6} & 伯努利模型的信息量与下界\newline {\small B11.6} & \pageref{q:B11.6}/\pageref{a:B11.6}\\[2pt]
+\crosschapterref{4}{\ref{q:B11.6}}{题源~\texttt{B11.6}} & 伯努利模型的信息量与下界\newline {\small B11.6} & \crosschapterref{4}{\pageref{q:B11.6}}{见全文}/\crosschapterref{4}{\pageref{a:B11.6}}{见全文}\\[2pt]
 
-\ref{q:B11.7} & 信息下界并非总能达到\newline {\small B11.7} & \pageref{q:B11.7}/\pageref{a:B11.7}\\[2pt]
+\crosschapterref{4}{\ref{q:B11.7}}{题源~\texttt{B11.7}} & 信息下界并非总能达到\newline {\small B11.7} & \crosschapterref{4}{\pageref{q:B11.7}}{见全文}/\crosschapterref{4}{\pageref{a:B11.7}}{见全文}\\[2pt]
 
-\ref{q:B11.8} & 非正则模型中的错误下界\newline {\small B11.8} & \pageref{q:B11.8}/\pageref{a:B11.8}\\[2pt]
+\crosschapterref{4}{\ref{q:B11.8}}{题源~\texttt{B11.8}} & 非正则模型中的错误下界\newline {\small B11.8} & \crosschapterref{4}{\pageref{q:B11.8}}{见全文}/\crosschapterref{4}{\pageref{a:B11.8}}{见全文}\\[2pt]
 
-\ref{q:M-E2-II2} & 三类别观察的贝叶斯更新\newline {\small M-E2-II2} & \pageref{q:M-E2-II2}/\pageref{a:M-E2-II2}\\[2pt]
+\crosschapterref{4}{\ref{q:M-E2-II2}}{题源~\texttt{M-E2-II2}} & 三类别观察的贝叶斯更新\newline {\small M-E2-II2} & \crosschapterref{4}{\pageref{q:M-E2-II2}}{见全文}/\crosschapterref{4}{\pageref{a:M-E2-II2}}{见全文}\\[2pt]
 
-\ref{q:M-E2-II3} & 先验赔率与后验赔率\newline {\small M-E2-II3} & \pageref{q:M-E2-II3}/\pageref{a:M-E2-II3}\\[2pt]
+\crosschapterref{4}{\ref{q:M-E2-II3}}{题源~\texttt{M-E2-II3}} & 先验赔率与后验赔率\newline {\small M-E2-II3} & \crosschapterref{4}{\pageref{q:M-E2-II3}}{见全文}/\crosschapterref{4}{\pageref{a:M-E2-II3}}{见全文}\\[2pt]
 
-\ref{q:M-F-C14} & 贝塔与二项共轭\newline {\small M-F-C14} & \pageref{q:M-F-C14}/\pageref{a:M-F-C14}\\[2pt]
+\crosschapterref{4}{\ref{q:M-F-C14}}{题源~\texttt{M-F-C14}} & 贝塔与二项共轭\newline {\small M-F-C14} & \crosschapterref{4}{\pageref{q:M-F-C14}}{见全文}/\crosschapterref{4}{\pageref{a:M-F-C14}}{见全文}\\[2pt]
 
-\ref{q:B12.1} & 平方损失下的贝叶斯估计\newline {\small B12.1} & \pageref{q:B12.1}/\pageref{a:B12.1}\\[2pt]
+\crosschapterref{4}{\ref{q:B12.1}}{题源~\texttt{B12.1}} & 平方损失下的贝叶斯估计\newline {\small B12.1} & \crosschapterref{4}{\pageref{q:B12.1}}{见全文}/\crosschapterref{4}{\pageref{a:B12.1}}{见全文}\\[2pt]
 
-\ref{q:B12.2} & 伽马与泊松共轭的多次观察\newline {\small B12.2} & \pageref{q:B12.2}/\pageref{a:B12.2}\\[2pt]
+\crosschapterref{4}{\ref{q:B12.2}}{题源~\texttt{B12.2}} & 伽马与泊松共轭的多次观察\newline {\small B12.2} & \crosschapterref{4}{\pageref{q:B12.2}}{见全文}/\crosschapterref{4}{\pageref{a:B12.2}}{见全文}\\[2pt]
 
-\ref{q:B12.3} & 正态均值的共轭更新\newline {\small B12.3} & \pageref{q:B12.3}/\pageref{a:B12.3}\\[2pt]
+\crosschapterref{4}{\ref{q:B12.3}}{题源~\texttt{B12.3}} & 正态均值的共轭更新\newline {\small B12.3} & \crosschapterref{4}{\pageref{q:B12.3}}{见全文}/\crosschapterref{4}{\pageref{a:B12.3}}{见全文}\\[2pt]
 
-\ref{q:M-P7-1} & 主持人规则改变三门问题\newline {\small M-P7-1} & \pageref{q:M-P7-1}/\pageref{a:M-P7-1}\\[2pt]
+\crosschapterref{4}{\ref{q:M-P7-1}}{题源~\texttt{M-P7-1}} & 主持人规则改变三门问题\newline {\small M-P7-1} & \crosschapterref{4}{\pageref{q:M-P7-1}}{见全文}/\crosschapterref{4}{\pageref{a:M-P7-1}}{见全文}\\[2pt]
 
-\ref{q:M-P7-2} & 未知面数骰子的预测\newline {\small M-P7-2} & \pageref{q:M-P7-2}/\pageref{a:M-P7-2}\\[2pt]
+\crosschapterref{4}{\ref{q:M-P7-2}}{题源~\texttt{M-P7-2}} & 未知面数骰子的预测\newline {\small M-P7-2} & \crosschapterref{4}{\pageref{q:M-P7-2}}{见全文}/\crosschapterref{4}{\pageref{a:M-P7-2}}{见全文}\\[2pt]
 
-\ref{q:M-P8-1fg} & 显著性与后验概率的区别\newline {\small M-P8-1fg} & \pageref{q:M-P8-1fg}/\pageref{a:M-P8-1fg}\\[2pt]
+\crosschapterref{4}{\ref{q:M-P8-1fg}}{题源~\texttt{M-P8-1fg}} & 显著性与后验概率的区别\newline {\small M-P8-1fg} & \crosschapterref{4}{\pageref{q:M-P8-1fg}}{见全文}/\crosschapterref{4}{\pageref{a:M-P8-1fg}}{见全文}\\[2pt]
 
-\ref{q:M-C22-1} & 小样本正态总体的三类区间\newline {\small M-C22-1} & \pageref{q:M-C22-1}/\pageref{a:M-C22-1}\\[2pt]
+\crosschapterref{4}{\ref{q:M-C22-1}}{题源~\texttt{M-C22-1}} & 小样本正态总体的三类区间\newline {\small M-C22-1} & \crosschapterref{4}{\pageref{q:M-C22-1}}{见全文}/\crosschapterref{4}{\pageref{a:M-C22-1}}{见全文}\\[2pt]
 
-\ref{q:M-P10-1} & 已知标准差的置信水平比较\newline {\small M-P10-1} & \pageref{q:M-P10-1}/\pageref{a:M-P10-1}\\[2pt]
+\crosschapterref{4}{\ref{q:M-P10-1}}{题源~\texttt{M-P10-1}} & 已知标准差的置信水平比较\newline {\small M-P10-1} & \crosschapterref{4}{\pageref{q:M-P10-1}}{见全文}/\crosschapterref{4}{\pageref{a:M-P10-1}}{见全文}\\[2pt]
 
-\ref{q:M-P10-2} & 灌装量的正态均值区间\newline {\small M-P10-2} & \pageref{q:M-P10-2}/\pageref{a:M-P10-2}\\[2pt]
+\crosschapterref{4}{\ref{q:M-P10-2}}{题源~\texttt{M-P10-2}} & 灌装量的正态均值区间\newline {\small M-P10-2} & \crosschapterref{4}{\pageref{q:M-P10-2}}{见全文}/\crosschapterref{4}{\pageref{a:M-P10-2}}{见全文}\\[2pt]
 
-\ref{q:M-P10-3} & 正态方差的区间\newline {\small M-P10-3} & \pageref{q:M-P10-3}/\pageref{a:M-P10-3}\\[2pt]
+\crosschapterref{4}{\ref{q:M-P10-3}}{题源~\texttt{M-P10-3}} & 正态方差的区间\newline {\small M-P10-3} & \crosschapterref{4}{\pageref{q:M-P10-3}}{见全文}/\crosschapterref{4}{\pageref{a:M-P10-3}}{见全文}\\[2pt]
 
-\ref{q:M-P11-1} & 身高区间与宽度要求\newline {\small M-P11-1} & \pageref{q:M-P11-1}/\pageref{a:M-P11-1}\\[2pt]
+\crosschapterref{4}{\ref{q:M-P11-1}}{题源~\texttt{M-P11-1}} & 身高区间与宽度要求\newline {\small M-P11-1} & \crosschapterref{4}{\pageref{q:M-P11-1}}{见全文}/\crosschapterref{4}{\pageref{a:M-P11-1}}{见全文}\\[2pt]
 
-\ref{q:M-P11-2} & 顺序统计量构造端点区间\newline {\small M-P11-2} & \pageref{q:M-P11-2}/\pageref{a:M-P11-2}\\[2pt]
+\crosschapterref{4}{\ref{q:M-P11-2}}{题源~\texttt{M-P11-2}} & 顺序统计量构造端点区间\newline {\small M-P11-2} & \crosschapterref{4}{\pageref{q:M-P11-2}}{见全文}/\crosschapterref{4}{\pageref{a:M-P11-2}}{见全文}\\[2pt]
 
-\ref{q:M-C22-3} & 比例误差与样本量\newline {\small M-C22-3} & \pageref{q:M-C22-3}/\pageref{a:M-C22-3}\\[2pt]
+\crosschapterref{4}{\ref{q:M-C22-3}}{题源~\texttt{M-C22-3}} & 比例误差与样本量\newline {\small M-C22-3} & \crosschapterref{4}{\pageref{q:M-C22-3}}{见全文}/\crosschapterref{4}{\pageref{a:M-C22-3}}{见全文}\\[2pt]
 
-\ref{q:B13.1} & 指数率的精确区间\newline {\small B13.1} & \pageref{q:B13.1}/\pageref{a:B13.1}\\[2pt]
+\crosschapterref{4}{\ref{q:B13.1}}{题源~\texttt{B13.1}} & 指数率的精确区间\newline {\small B13.1} & \crosschapterref{4}{\pageref{q:B13.1}}{见全文}/\crosschapterref{4}{\pageref{a:B13.1}}{见全文}\\[2pt]
 
-\ref{q:B13.2} & 均匀端点的单侧区间\newline {\small B13.2} & \pageref{q:B13.2}/\pageref{a:B13.2}\\[2pt]
+\crosschapterref{4}{\ref{q:B13.2}}{题源~\texttt{B13.2}} & 均匀端点的单侧区间\newline {\small B13.2} & \crosschapterref{4}{\pageref{q:B13.2}}{见全文}/\crosschapterref{4}{\pageref{a:B13.2}}{见全文}\\[2pt]
 
-\ref{q:B13.3} & 两个均值差的合并方差区间\newline {\small B13.3} & \pageref{q:B13.3}/\pageref{a:B13.3}\\[2pt]
+\crosschapterref{4}{\ref{q:B13.3}}{题源~\texttt{B13.3}} & 两个均值差的合并方差区间\newline {\small B13.3} & \crosschapterref{4}{\pageref{q:B13.3}}{见全文}/\crosschapterref{4}{\pageref{a:B13.3}}{见全文}\\[2pt]
 
-\ref{q:B13.4} & 韦尔奇近似区间\newline {\small B13.4} & \pageref{q:B13.4}/\pageref{a:B13.4}\\[2pt]
+\crosschapterref{4}{\ref{q:B13.4}}{题源~\texttt{B13.4}} & 韦尔奇近似区间\newline {\small B13.4} & \crosschapterref{4}{\pageref{q:B13.4}}{见全文}/\crosschapterref{4}{\pageref{a:B13.4}}{见全文}\\[2pt]
 
-\ref{q:B13.5} & 配对差的区间\newline {\small B13.5} & \pageref{q:B13.5}/\pageref{a:B13.5}\\[2pt]
+\crosschapterref{4}{\ref{q:B13.5}}{题源~\texttt{B13.5}} & 配对差的区间\newline {\small B13.5} & \crosschapterref{4}{\pageref{q:B13.5}}{见全文}/\crosschapterref{4}{\pageref{a:B13.5}}{见全文}\\[2pt]
 
-\ref{q:M-P10-5} & 置信区间与后验区间不能互换\newline {\small M-P10-5} & \pageref{q:M-P10-5}/\pageref{a:M-P10-5}\\[2pt]
+\crosschapterref{4}{\ref{q:M-P10-5}}{题源~\texttt{M-P10-5}} & 置信区间与后验区间不能互换\newline {\small M-P10-5} & \crosschapterref{4}{\pageref{q:M-P10-5}}{见全文}/\crosschapterref{4}{\pageref{a:M-P10-5}}{见全文}\\[2pt]
 
-\ref{q:B13.6} & 自助法百分位区间\newline {\small B13.6} & \pageref{q:B13.6}/\pageref{a:B13.6}\\[2pt]
+\crosschapterref{4}{\ref{q:B13.6}}{题源~\texttt{B13.6}} & 自助法百分位区间\newline {\small B13.6} & \crosschapterref{4}{\pageref{q:B13.6}}{见全文}/\crosschapterref{4}{\pageref{a:B13.6}}{见全文}\\[2pt]
 
-\ref{q:M-P8-1ab} & 硬币的精确双侧检验\newline {\small M-P8-1ab} & \pageref{q:M-P8-1ab}/\pageref{a:M-P8-1ab}\\[2pt]
+\crosschapterref{4}{\ref{q:M-P8-1ab}}{题源~\texttt{M-P8-1ab}} & 硬币的精确双侧检验\newline {\small M-P8-1ab} & \crosschapterref{4}{\pageref{q:M-P8-1ab}}{见全文}/\crosschapterref{4}{\pageref{a:M-P8-1ab}}{见全文}\\[2pt]
 
-\ref{q:M-P8-1cd} & 离散拒绝域与功效\newline {\small M-P8-1cd} & \pageref{q:M-P8-1cd}/\pageref{a:M-P8-1cd}\\[2pt]
+\crosschapterref{4}{\ref{q:M-P8-1cd}}{题源~\texttt{M-P8-1cd}} & 离散拒绝域与功效\newline {\small M-P8-1cd} & \crosschapterref{4}{\pageref{q:M-P8-1cd}}{见全文}/\crosschapterref{4}{\pageref{a:M-P8-1cd}}{见全文}\\[2pt]
 
-\ref{q:M-P8-2} & 第一类与第二类错误\newline {\small M-P8-2} & \pageref{q:M-P8-2}/\pageref{a:M-P8-2}\\[2pt]
+\crosschapterref{4}{\ref{q:M-P8-2}}{题源~\texttt{M-P8-2}} & 第一类与第二类错误\newline {\small M-P8-2} & \crosschapterref{4}{\pageref{q:M-P8-2}}{见全文}/\crosschapterref{4}{\pageref{a:M-P8-2}}{见全文}\\[2pt]
 
-\ref{q:M-P8-3} & 复合零假设与功效规划\newline {\small M-P8-3} & \pageref{q:M-P8-3}/\pageref{a:M-P8-3}\\[2pt]
+\crosschapterref{4}{\ref{q:M-P8-3}}{题源~\texttt{M-P8-3}} & 复合零假设与功效规划\newline {\small M-P8-3} & \crosschapterref{4}{\pageref{q:M-P8-3}}{见全文}/\crosschapterref{4}{\pageref{a:M-P8-3}}{见全文}\\[2pt]
 
-\ref{q:M-P8-4} & 直接计算两类错误\newline {\small M-P8-4} & \pageref{q:M-P8-4}/\pageref{a:M-P8-4}\\[2pt]
+\crosschapterref{4}{\ref{q:M-P8-4}}{题源~\texttt{M-P8-4}} & 直接计算两类错误\newline {\small M-P8-4} & \crosschapterref{4}{\pageref{q:M-P8-4}}{见全文}/\crosschapterref{4}{\pageref{a:M-P8-4}}{见全文}\\[2pt]
 
-\ref{q:M-P9-1} & 单侧与双侧 t 检验\newline {\small M-P9-1} & \pageref{q:M-P9-1}/\pageref{a:M-P9-1}\\[2pt]
+\crosschapterref{4}{\ref{q:M-P9-1}}{题源~\texttt{M-P9-1}} & 单侧与双侧 t 检验\newline {\small M-P9-1} & \crosschapterref{4}{\pageref{q:M-P9-1}}{见全文}/\crosschapterref{4}{\pageref{a:M-P9-1}}{见全文}\\[2pt]
 
-\ref{q:M-P9-2} & 停止规则改变抽样分布\newline {\small M-P9-2} & \pageref{q:M-P9-2}/\pageref{a:M-P9-2}\\[2pt]
+\crosschapterref{4}{\ref{q:M-P9-2}}{题源~\texttt{M-P9-2}} & 停止规则改变抽样分布\newline {\small M-P9-2} & \crosschapterref{4}{\pageref{q:M-P9-2}}{见全文}/\crosschapterref{4}{\pageref{a:M-P9-2}}{见全文}\\[2pt]
 
-\ref{q:M-E2-II4} & 正态右尾检验的分位数\newline {\small M-E2-II4} & \pageref{q:M-E2-II4}/\pageref{a:M-E2-II4}\\[2pt]
+\crosschapterref{4}{\ref{q:M-E2-II4}}{题源~\texttt{M-E2-II4}} & 正态右尾检验的分位数\newline {\small M-E2-II4} & \crosschapterref{4}{\pageref{q:M-E2-II4}}{见全文}/\crosschapterref{4}{\pageref{a:M-E2-II4}}{见全文}\\[2pt]
 
-\ref{q:M-F-C10} & 检验与置信区间对偶\newline {\small M-F-C10} & \pageref{q:M-F-C10}/\pageref{a:M-F-C10}\\[2pt]
+\crosschapterref{4}{\ref{q:M-F-C10}}{题源~\texttt{M-F-C10}} & 检验与置信区间对偶\newline {\small M-F-C10} & \crosschapterref{4}{\pageref{q:M-F-C10}}{见全文}/\crosschapterref{4}{\pageref{a:M-F-C10}}{见全文}\\[2pt]
 
-\ref{q:B14.1} & 奈曼—皮尔逊检验\newline {\small B14.1} & \pageref{q:B14.1}/\pageref{a:B14.1}\\[2pt]
+\crosschapterref{4}{\ref{q:B14.1}}{题源~\texttt{B14.1}} & 奈曼—皮尔逊检验\newline {\small B14.1} & \crosschapterref{4}{\pageref{q:B14.1}}{见全文}/\crosschapterref{4}{\pageref{a:B14.1}}{见全文}\\[2pt]
 
-\ref{q:B14.2} & 正态均值的似然比检验\newline {\small B14.2} & \pageref{q:B14.2}/\pageref{a:B14.2}\\[2pt]
+\crosschapterref{4}{\ref{q:B14.2}}{题源~\texttt{B14.2}} & 正态均值的似然比检验\newline {\small B14.2} & \crosschapterref{4}{\pageref{q:B14.2}}{见全文}/\crosschapterref{4}{\pageref{a:B14.2}}{见全文}\\[2pt]
 
-\ref{q:B14.3} & 多重检验与邦费罗尼控制\newline {\small B14.3} & \pageref{q:B14.3}/\pageref{a:B14.3}\\[2pt]
+\crosschapterref{4}{\ref{q:B14.3}}{题源~\texttt{B14.3}} & 多重检验与邦费罗尼控制\newline {\small B14.3} & \crosschapterref{4}{\pageref{q:B14.3}}{见全文}/\crosschapterref{4}{\pageref{a:B14.3}}{见全文}\\[2pt]
 
-\ref{q:B14.4} & 不拒绝不等于等效\newline {\small B14.4} & \pageref{q:B14.4}/\pageref{a:B14.4}\\[2pt]
+\crosschapterref{4}{\ref{q:B14.4}}{题源~\texttt{B14.4}} & 不拒绝不等于等效\newline {\small B14.4} & \crosschapterref{4}{\pageref{q:B14.4}}{见全文}/\crosschapterref{4}{\pageref{a:B14.4}}{见全文}\\[2pt]
 
-\ref{q:M-P9-3} & 单个正态总体的方差检验\newline {\small M-P9-3} & \pageref{q:M-P9-3}/\pageref{a:M-P9-3}\\[2pt]
+\crosschapterref{4}{\ref{q:M-P9-3}}{题源~\texttt{M-P9-3}} & 单个正态总体的方差检验\newline {\small M-P9-3} & \crosschapterref{4}{\pageref{q:M-P9-3}}{见全文}/\crosschapterref{4}{\pageref{a:M-P9-3}}{见全文}\\[2pt]
 
-\ref{q:M-E2-II5} & 两个总体的类别比例比较\newline {\small M-E2-II5} & \pageref{q:M-E2-II5}/\pageref{a:M-E2-II5}\\[2pt]
+\crosschapterref{4}{\ref{q:M-E2-II5}}{题源~\texttt{M-E2-II5}} & 两个总体的类别比例比较\newline {\small M-E2-II5} & \crosschapterref{4}{\pageref{q:M-E2-II5}}{见全文}/\crosschapterref{4}{\pageref{a:M-E2-II5}}{见全文}\\[2pt]
 
-\ref{q:B15.1} & 多项分类的拟合优度\newline {\small B15.1} & \pageref{q:B15.1}/\pageref{a:B15.1}\\[2pt]
+\crosschapterref{4}{\ref{q:B15.1}}{题源~\texttt{B15.1}} & 多项分类的拟合优度\newline {\small B15.1} & \crosschapterref{4}{\pageref{q:B15.1}}{见全文}/\crosschapterref{4}{\pageref{a:B15.1}}{见全文}\\[2pt]
 
-\ref{q:B15.2} & 估计参数后的自由度\newline {\small B15.2} & \pageref{q:B15.2}/\pageref{a:B15.2}\\[2pt]
+\crosschapterref{4}{\ref{q:B15.2}}{题源~\texttt{B15.2}} & 估计参数后的自由度\newline {\small B15.2} & \crosschapterref{4}{\pageref{q:B15.2}}{见全文}/\crosschapterref{4}{\pageref{a:B15.2}}{见全文}\\[2pt]
 
-\ref{q:B15.3} & 列联表独立性检验\newline {\small B15.3} & \pageref{q:B15.3}/\pageref{a:B15.3}\\[2pt]
+\crosschapterref{4}{\ref{q:B15.3}}{题源~\texttt{B15.3}} & 列联表独立性检验\newline {\small B15.3} & \crosschapterref{4}{\pageref{q:B15.3}}{见全文}/\crosschapterref{4}{\pageref{a:B15.3}}{见全文}\\[2pt]
 
-\ref{q:B15.4} & 小样本的费希尔精确检验\newline {\small B15.4} & \pageref{q:B15.4}/\pageref{a:B15.4}\\[2pt]
+\crosschapterref{4}{\ref{q:B15.4}}{题源~\texttt{B15.4}} & 小样本的费希尔精确检验\newline {\small B15.4} & \crosschapterref{4}{\pageref{q:B15.4}}{见全文}/\crosschapterref{4}{\pageref{a:B15.4}}{见全文}\\[2pt]
 
-\ref{q:M-P9-5} & 两个正态方差的 F 检验\newline {\small M-P9-5} & \pageref{q:M-P9-5}/\pageref{a:M-P9-5}\\[2pt]
+\crosschapterref{4}{\ref{q:M-P9-5}}{题源~\texttt{M-P9-5}} & 两个正态方差的 F 检验\newline {\small M-P9-5} & \crosschapterref{4}{\pageref{q:M-P9-5}}{见全文}/\crosschapterref{4}{\pageref{a:M-P9-5}}{见全文}\\[2pt]
 
-\ref{q:M-C26-1a} & 三个点的最小二乘直线\newline {\small M-C26-1a} & \pageref{q:M-C26-1a}/\pageref{a:M-C26-1a}\\[2pt]
+\crosschapterref{4}{\ref{q:M-C26-1a}}{题源~\texttt{M-C26-1a}} & 三个点的最小二乘直线\newline {\small M-C26-1a} & \crosschapterref{4}{\pageref{q:M-C26-1a}}{见全文}/\crosschapterref{4}{\pageref{a:M-C26-1a}}{见全文}\\[2pt]
 
-\ref{q:M-C26-1b} & 二次多项式仍是线性回归\newline {\small M-C26-1b} & \pageref{q:M-C26-1b}/\pageref{a:M-C26-1b}\\[2pt]
+\crosschapterref{4}{\ref{q:M-C26-1b}}{题源~\texttt{M-C26-1b}} & 二次多项式仍是线性回归\newline {\small M-C26-1b} & \crosschapterref{4}{\pageref{q:M-C26-1b}}{见全文}/\crosschapterref{4}{\pageref{a:M-C26-1b}}{见全文}\\[2pt]
 
-\ref{q:M-C26-1c} & 对数尺度的指数拟合\newline {\small M-C26-1c} & \pageref{q:M-C26-1c}/\pageref{a:M-C26-1c}\\[2pt]
+\crosschapterref{4}{\ref{q:M-C26-1c}}{题源~\texttt{M-C26-1c}} & 对数尺度的指数拟合\newline {\small M-C26-1c} & \crosschapterref{4}{\pageref{q:M-C26-1c}}{见全文}/\crosschapterref{4}{\pageref{a:M-C26-1c}}{见全文}\\[2pt]
 
-\ref{q:M-C26-2d} & 正态误差下的最小二乘与似然\newline {\small M-C26-2d} & \pageref{q:M-C26-2d}/\pageref{a:M-C26-2d}\\[2pt]
+\crosschapterref{4}{\ref{q:M-C26-2d}}{题源~\texttt{M-C26-2d}} & 正态误差下的最小二乘与似然\newline {\small M-C26-2d} & \crosschapterref{4}{\pageref{q:M-C26-2d}}{见全文}/\crosschapterref{4}{\pageref{a:M-C26-2d}}{见全文}\\[2pt]
 
-\ref{q:B16.1} & 正规方程与残差正交\newline {\small B16.1} & \pageref{q:B16.1}/\pageref{a:B16.1}\\[2pt]
+\crosschapterref{4}{\ref{q:B16.1}}{题源~\texttt{B16.1}} & 正规方程与残差正交\newline {\small B16.1} & \crosschapterref{4}{\pageref{q:B16.1}}{见全文}/\crosschapterref{4}{\pageref{a:B16.1}}{见全文}\\[2pt]
 
-\ref{q:B16.2} & 高斯—马尔可夫最优性\newline {\small B16.2} & \pageref{q:B16.2}/\pageref{a:B16.2}\\[2pt]
+\crosschapterref{4}{\ref{q:B16.2}}{题源~\texttt{B16.2}} & 高斯—马尔可夫最优性\newline {\small B16.2} & \crosschapterref{4}{\pageref{q:B16.2}}{见全文}/\crosschapterref{4}{\pageref{a:B16.2}}{见全文}\\[2pt]
 
-\ref{q:B16.3} & 斜率估计的方差与区间\newline {\small B16.3} & \pageref{q:B16.3}/\pageref{a:B16.3}\\[2pt]
+\crosschapterref{4}{\ref{q:B16.3}}{题源~\texttt{B16.3}} & 斜率估计的方差与区间\newline {\small B16.3} & \crosschapterref{4}{\pageref{q:B16.3}}{见全文}/\crosschapterref{4}{\pageref{a:B16.3}}{见全文}\\[2pt]
 
-\ref{q:B16.4} & 均值响应区间与预测区间\newline {\small B16.4} & \pageref{q:B16.4}/\pageref{a:B16.4}\\[2pt]
+\crosschapterref{4}{\ref{q:B16.4}}{题源~\texttt{B16.4}} & 均值响应区间与预测区间\newline {\small B16.4} & \crosschapterref{4}{\pageref{q:B16.4}}{见全文}/\crosschapterref{4}{\pageref{a:B16.4}}{见全文}\\[2pt]
 
-\ref{q:B16.5} & 单因素方差分析\newline {\small B16.5} & \pageref{q:B16.5}/\pageref{a:B16.5}\\[2pt]
+\crosschapterref{4}{\ref{q:B16.5}}{题源~\texttt{B16.5}} & 单因素方差分析\newline {\small B16.5} & \crosschapterref{4}{\pageref{q:B16.5}}{见全文}/\crosschapterref{4}{\pageref{a:B16.5}}{见全文}\\[2pt]
 
-\ref{q:B16.6} & 相关系数与回归解释度\newline {\small B16.6} & \pageref{q:B16.6}/\pageref{a:B16.6}\\[2pt]
+\crosschapterref{4}{\ref{q:B16.6}}{题源~\texttt{B16.6}} & 相关系数与回归解释度\newline {\small B16.6} & \crosschapterref{4}{\pageref{q:B16.6}}{见全文}/\crosschapterref{4}{\pageref{a:B16.6}}{见全文}\\[2pt]
 
-\ref{q:M-F-5} & 帕累托模型从估计到区间\newline {\small M-F-5} & \pageref{q:M-F-5}/\pageref{a:M-F-5}\\[2pt]
+\crosschapterref{4}{\ref{q:M-F-5}}{题源~\texttt{M-F-5}} & 帕累托模型从估计到区间\newline {\small M-F-5} & \crosschapterref{4}{\pageref{q:M-F-5}}{见全文}/\crosschapterref{4}{\pageref{a:M-F-5}}{见全文}\\[2pt]
 
-\ref{q:M-PF-26} & 瑞利参数与变换统计量\newline {\small M-PF-26} & \pageref{q:M-PF-26}/\pageref{a:M-PF-26}\\[2pt]
+\crosschapterref{4}{\ref{q:M-PF-26}}{题源~\texttt{M-PF-26}} & 瑞利参数与变换统计量\newline {\small M-PF-26} & \crosschapterref{4}{\pageref{q:M-PF-26}}{见全文}/\crosschapterref{4}{\pageref{a:M-PF-26}}{见全文}\\[2pt]
 
-\ref{q:M-F-7} & 定位中的连续更新与预测\newline {\small M-F-7} & \pageref{q:M-F-7}/\pageref{a:M-F-7}\\[2pt]
+\crosschapterref{4}{\ref{q:M-F-7}}{题源~\texttt{M-F-7}} & 定位中的连续更新与预测\newline {\small M-F-7} & \crosschapterref{4}{\pageref{q:M-F-7}}{见全文}/\crosschapterref{4}{\pageref{a:M-F-7}}{见全文}\\[2pt]
 
-\ref{q:M-F-8} & 六类别概率的综合检验\newline {\small M-F-8} & \pageref{q:M-F-8}/\pageref{a:M-F-8}\\[2pt]
+\crosschapterref{4}{\ref{q:M-F-8}}{题源~\texttt{M-F-8}} & 六类别概率的综合检验\newline {\small M-F-8} & \crosschapterref{4}{\pageref{q:M-F-8}}{见全文}/\crosschapterref{4}{\pageref{a:M-F-8}}{见全文}\\[2pt]
 
-\ref{q:M-F-9} & 两样本检验的完整流程\newline {\small M-F-9} & \pageref{q:M-F-9}/\pageref{a:M-F-9}\\[2pt]
+\crosschapterref{4}{\ref{q:M-F-9}}{题源~\texttt{M-F-9}} & 两样本检验的完整流程\newline {\small M-F-9} & \crosschapterref{4}{\pageref{q:M-F-9}}{见全文}/\crosschapterref{4}{\pageref{a:M-F-9}}{见全文}\\[2pt]
 
-\ref{q:M-F-11} & 双侧检验在指定备择下的功效\newline {\small M-F-11} & \pageref{q:M-F-11}/\pageref{a:M-F-11}\\[2pt]
+\crosschapterref{4}{\ref{q:M-F-11}}{题源~\texttt{M-F-11}} & 双侧检验在指定备择下的功效\newline {\small M-F-11} & \crosschapterref{4}{\pageref{q:M-F-11}}{见全文}/\crosschapterref{4}{\pageref{a:M-F-11}}{见全文}\\[2pt]
 
-\ref{q:M-F-12} & 折线基函数的最小二乘\newline {\small M-F-12} & \pageref{q:M-F-12}/\pageref{a:M-F-12}\\[2pt]
+\crosschapterref{4}{\ref{q:M-F-12}}{题源~\texttt{M-F-12}} & 折线基函数的最小二乘\newline {\small M-F-12} & \crosschapterref{4}{\pageref{q:M-F-12}}{见全文}/\crosschapterref{4}{\pageref{a:M-F-12}}{见全文}\\[2pt]
 
-\ref{q:M-F-13} & 自助分位数的读法\newline {\small M-F-13} & \pageref{q:M-F-13}/\pageref{a:M-F-13}\\[2pt]
+\crosschapterref{4}{\ref{q:M-F-13}}{题源~\texttt{M-F-13}} & 自助分位数的读法\newline {\small M-F-13} & \crosschapterref{4}{\pageref{q:M-F-13}}{见全文}/\crosschapterref{4}{\pageref{a:M-F-13}}{见全文}\\[2pt]
 
-\ref{q:M-PF-18} & 抽球机制与逆向条件概率\newline {\small M-PF-18} & \pageref{q:M-PF-18}/\pageref{a:M-PF-18}\\[2pt]
+\crosschapterref{4}{\ref{q:M-PF-18}}{题源~\texttt{M-PF-18}} & 抽球机制与逆向条件概率\newline {\small M-PF-18} & \crosschapterref{4}{\pageref{q:M-PF-18}}{见全文}/\crosschapterref{4}{\pageref{a:M-PF-18}}{见全文}\\[2pt]
 
-\ref{q:M-PF-19} & 停时分布的边界计算\newline {\small M-PF-19} & \pageref{q:M-PF-19}/\pageref{a:M-PF-19}\\[2pt]
+\crosschapterref{4}{\ref{q:M-PF-19}}{题源~\texttt{M-PF-19}} & 停时分布的边界计算\newline {\small M-PF-19} & \crosschapterref{4}{\pageref{q:M-PF-19}}{见全文}/\crosschapterref{4}{\pageref{a:M-PF-19}}{见全文}\\[2pt]
 
-\ref{q:M-PF-20} & 分段密度与分位数\newline {\small M-PF-20} & \pageref{q:M-PF-20}/\pageref{a:M-PF-20}\\[2pt]
+\crosschapterref{4}{\ref{q:M-PF-20}}{题源~\texttt{M-PF-20}} & 分段密度与分位数\newline {\small M-PF-20} & \crosschapterref{4}{\pageref{q:M-PF-20}}{见全文}/\crosschapterref{4}{\pageref{a:M-PF-20}}{见全文}\\[2pt]
 
-\ref{q:M-PF-21} & 从分布函数回到密度与期望\newline {\small M-PF-21} & \pageref{q:M-PF-21}/\pageref{a:M-PF-21}\\[2pt]
+\crosschapterref{4}{\ref{q:M-PF-21}}{题源~\texttt{M-PF-21}} & 从分布函数回到密度与期望\newline {\small M-PF-21} & \crosschapterref{4}{\pageref{q:M-PF-21}}{见全文}/\crosschapterref{4}{\pageref{a:M-PF-21}}{见全文}\\[2pt]
 
-\ref{q:M-PF-29} & 参数自助法与基本区间\newline {\small M-PF-29} & \pageref{q:M-PF-29}/\pageref{a:M-PF-29}\\[2pt]
+\crosschapterref{4}{\ref{q:M-PF-29}}{题源~\texttt{M-PF-29}} & 参数自助法与基本区间\newline {\small M-PF-29} & \crosschapterref{4}{\pageref{q:M-PF-29}}{见全文}/\crosschapterref{4}{\pageref{a:M-PF-29}}{见全文}\\[2pt]
 
-\ref{q:M-PF-30} & 极小尾概率与数值稳定性\newline {\small M-PF-30} & \pageref{q:M-PF-30}/\pageref{a:M-PF-30}\\[2pt]
+\crosschapterref{4}{\ref{q:M-PF-30}}{题源~\texttt{M-PF-30}} & 极小尾概率与数值稳定性\newline {\small M-PF-30} & \crosschapterref{4}{\pageref{q:M-PF-30}}{见全文}/\crosschapterref{4}{\pageref{a:M-PF-30}}{见全文}\\[2pt]
 
-\ref{q:M-PF-31} & 正态测量的后验精度规划\newline {\small M-PF-31} & \pageref{q:M-PF-31}/\pageref{a:M-PF-31}\\[2pt]
+\crosschapterref{4}{\ref{q:M-PF-31}}{题源~\texttt{M-PF-31}} & 正态测量的后验精度规划\newline {\small M-PF-31} & \crosschapterref{4}{\pageref{q:M-PF-31}}{见全文}/\crosschapterref{4}{\pageref{a:M-PF-31}}{见全文}\\[2pt]
 
-\ref{q:B17.1} & 泊松分裂与参数推断\newline {\small B17.1} & \pageref{q:B17.1}/\pageref{a:B17.1}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.1}}{题源~\texttt{B17.1}} & 泊松分裂与参数推断\newline {\small B17.1} & \crosschapterref{4}{\pageref{q:B17.1}}{见全文}/\crosschapterref{4}{\pageref{a:B17.1}}{见全文}\\[2pt]
 
-\ref{q:B17.2} & 有限总体抽样与修正因子\newline {\small B17.2} & \pageref{q:B17.2}/\pageref{a:B17.2}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.2}}{题源~\texttt{B17.2}} & 有限总体抽样与修正因子\newline {\small B17.2} & \crosschapterref{4}{\pageref{q:B17.2}}{见全文}/\crosschapterref{4}{\pageref{a:B17.2}}{见全文}\\[2pt]
 
-\ref{q:B17.3} & 随机化回答的估计误差\newline {\small B17.3} & \pageref{q:B17.3}/\pageref{a:B17.3}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.3}}{题源~\texttt{B17.3}} & 随机化回答的估计误差\newline {\small B17.3} & \crosschapterref{4}{\pageref{q:B17.3}}{见全文}/\crosschapterref{4}{\pageref{a:B17.3}}{见全文}\\[2pt]
 
-\ref{q:B17.4} & 尾和公式与收集全套\newline {\small B17.4} & \pageref{q:B17.4}/\pageref{a:B17.4}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.4}}{题源~\texttt{B17.4}} & 尾和公式与收集全套\newline {\small B17.4} & \crosschapterref{4}{\pageref{q:B17.4}}{见全文}/\crosschapterref{4}{\pageref{a:B17.4}}{见全文}\\[2pt]
 
-\ref{q:B17.5} & 随机和的复合泊松结构\newline {\small B17.5} & \pageref{q:B17.5}/\pageref{a:B17.5}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.5}}{题源~\texttt{B17.5}} & 随机和的复合泊松结构\newline {\small B17.5} & \crosschapterref{4}{\pageref{q:B17.5}}{见全文}/\crosschapterref{4}{\pageref{a:B17.5}}{见全文}\\[2pt]
 
-\ref{q:B17.6} & 正态变量平方和与比值\newline {\small B17.6} & \pageref{q:B17.6}/\pageref{a:B17.6}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.6}}{题源~\texttt{B17.6}} & 正态变量平方和与比值\newline {\small B17.6} & \crosschapterref{4}{\pageref{q:B17.6}}{见全文}/\crosschapterref{4}{\pageref{a:B17.6}}{见全文}\\[2pt]
 
-\ref{q:B17.7} & 指数竞争与获胜标记\newline {\small B17.7} & \pageref{q:B17.7}/\pageref{a:B17.7}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.7}}{题源~\texttt{B17.7}} & 指数竞争与获胜标记\newline {\small B17.7} & \crosschapterref{4}{\pageref{q:B17.7}}{见全文}/\crosschapterref{4}{\pageref{a:B17.7}}{见全文}\\[2pt]
 
-\ref{q:B17.8} & 条件期望作为最小平方预测\newline {\small B17.8} & \pageref{q:B17.8}/\pageref{a:B17.8}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.8}}{题源~\texttt{B17.8}} & 条件期望作为最小平方预测\newline {\small B17.8} & \crosschapterref{4}{\pageref{q:B17.8}}{见全文}/\crosschapterref{4}{\pageref{a:B17.8}}{见全文}\\[2pt]
 
-\ref{q:B17.9} & 混合正态的方差分解\newline {\small B17.9} & \pageref{q:B17.9}/\pageref{a:B17.9}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.9}}{题源~\texttt{B17.9}} & 混合正态的方差分解\newline {\small B17.9} & \crosschapterref{4}{\pageref{q:B17.9}}{见全文}/\crosschapterref{4}{\pageref{a:B17.9}}{见全文}\\[2pt]
 
-\ref{q:B17.10} & 德尔塔方法估计风险函数\newline {\small B17.10} & \pageref{q:B17.10}/\pageref{a:B17.10}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.10}}{题源~\texttt{B17.10}} & 德尔塔方法估计风险函数\newline {\small B17.10} & \crosschapterref{4}{\pageref{q:B17.10}}{见全文}/\crosschapterref{4}{\pageref{a:B17.10}}{见全文}\\[2pt]
 
-\ref{q:B17.11} & 威尔逊比例区间的反演\newline {\small B17.11} & \pageref{q:B17.11}/\pageref{a:B17.11}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.11}}{题源~\texttt{B17.11}} & 威尔逊比例区间的反演\newline {\small B17.11} & \crosschapterref{4}{\pageref{q:B17.11}}{见全文}/\crosschapterref{4}{\pageref{a:B17.11}}{见全文}\\[2pt]
 
-\ref{q:B17.12} & 正态模型的充分统计量\newline {\small B17.12} & \pageref{q:B17.12}/\pageref{a:B17.12}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.12}}{题源~\texttt{B17.12}} & 正态模型的充分统计量\newline {\small B17.12} & \crosschapterref{4}{\pageref{q:B17.12}}{见全文}/\crosschapterref{4}{\pageref{a:B17.12}}{见全文}\\[2pt]
 
-\ref{q:B17.13} & 最小值模型的非对称估计\newline {\small B17.13} & \pageref{q:B17.13}/\pageref{a:B17.13}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.13}}{题源~\texttt{B17.13}} & 最小值模型的非对称估计\newline {\small B17.13} & \crosschapterref{4}{\pageref{q:B17.13}}{见全文}/\crosschapterref{4}{\pageref{a:B17.13}}{见全文}\\[2pt]
 
-\ref{q:B17.14} & 贝塔—二项预测的额外变异\newline {\small B17.14} & \pageref{q:B17.14}/\pageref{a:B17.14}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.14}}{题源~\texttt{B17.14}} & 贝塔—二项预测的额外变异\newline {\small B17.14} & \crosschapterref{4}{\pageref{q:B17.14}}{见全文}/\crosschapterref{4}{\pageref{a:B17.14}}{见全文}\\[2pt]
 
-\ref{q:B17.15} & 正态性、独立性与零相关\newline {\small B17.15} & \pageref{q:B17.15}/\pageref{a:B17.15}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.15}}{题源~\texttt{B17.15}} & 正态性、独立性与零相关\newline {\small B17.15} & \crosschapterref{4}{\pageref{q:B17.15}}{见全文}/\crosschapterref{4}{\pageref{a:B17.15}}{见全文}\\[2pt]
 
-\ref{q:B17.16} & 支撑集破坏独立性\newline {\small B17.16} & \pageref{q:B17.16}/\pageref{a:B17.16}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.16}}{题源~\texttt{B17.16}} & 支撑集破坏独立性\newline {\small B17.16} & \crosschapterref{4}{\pageref{q:B17.16}}{见全文}/\crosschapterref{4}{\pageref{a:B17.16}}{见全文}\\[2pt]
 
-\ref{q:B17.17} & 蒙特卡洛积分与标准误\newline {\small B17.17} & \pageref{q:B17.17}/\pageref{a:B17.17}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.17}}{题源~\texttt{B17.17}} & 蒙特卡洛积分与标准误\newline {\small B17.17} & \crosschapterref{4}{\pageref{q:B17.17}}{见全文}/\crosschapterref{4}{\pageref{a:B17.17}}{见全文}\\[2pt]
 
-\ref{q:B17.18} & 反向变量的方差缩减\newline {\small B17.18} & \pageref{q:B17.18}/\pageref{a:B17.18}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.18}}{题源~\texttt{B17.18}} & 反向变量的方差缩减\newline {\small B17.18} & \crosschapterref{4}{\pageref{q:B17.18}}{见全文}/\crosschapterref{4}{\pageref{a:B17.18}}{见全文}\\[2pt]
 
-\ref{q:B17.19} & 切比雪夫界与正态近似的角色\newline {\small B17.19} & \pageref{q:B17.19}/\pageref{a:B17.19}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.19}}{题源~\texttt{B17.19}} & 切比雪夫界与正态近似的角色\newline {\small B17.19} & \crosschapterref{4}{\pageref{q:B17.19}}{见全文}/\crosschapterref{4}{\pageref{a:B17.19}}{见全文}\\[2pt]
 
-\ref{q:B17.20} & 学生化与斯卢茨基定理\newline {\small B17.20} & \pageref{q:B17.20}/\pageref{a:B17.20}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.20}}{题源~\texttt{B17.20}} & 学生化与斯卢茨基定理\newline {\small B17.20} & \crosschapterref{4}{\pageref{q:B17.20}}{见全文}/\crosschapterref{4}{\pageref{a:B17.20}}{见全文}\\[2pt]
 
-\ref{q:B17.21} & 三种收敛之间的辨析\newline {\small B17.21} & \pageref{q:B17.21}/\pageref{a:B17.21}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.21}}{题源~\texttt{B17.21}} & 三种收敛之间的辨析\newline {\small B17.21} & \crosschapterref{4}{\pageref{q:B17.21}}{见全文}/\crosschapterref{4}{\pageref{a:B17.21}}{见全文}\\[2pt]
 
-\ref{q:B17.22} & 参数空间约束下的正态估计\newline {\small B17.22} & \pageref{q:B17.22}/\pageref{a:B17.22}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.22}}{题源~\texttt{B17.22}} & 参数空间约束下的正态估计\newline {\small B17.22} & \crosschapterref{4}{\pageref{q:B17.22}}{见全文}/\crosschapterref{4}{\pageref{a:B17.22}}{见全文}\\[2pt]
 
-\ref{q:B17.23} & 遗漏变量导致斜率变化\newline {\small B17.23} & \pageref{q:B17.23}/\pageref{a:B17.23}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.23}}{题源~\texttt{B17.23}} & 遗漏变量导致斜率变化\newline {\small B17.23} & \crosschapterref{4}{\pageref{q:B17.23}}{见全文}/\crosschapterref{4}{\pageref{a:B17.23}}{见全文}\\[2pt]
 
-\ref{q:B17.24} & 加权最小二乘\newline {\small B17.24} & \pageref{q:B17.24}/\pageref{a:B17.24}\\[2pt]
+\crosschapterref{4}{\ref{q:B17.24}}{题源~\texttt{B17.24}} & 加权最小二乘\newline {\small B17.24} & \crosschapterref{4}{\pageref{q:B17.24}}{见全文}/\crosschapterref{4}{\pageref{a:B17.24}}{见全文}\\[2pt]
 
 \bottomrule\end{longtable}
 
@@ -5970,31 +6040,31 @@ $\lambda\sim\operatorname{Gamma}(a,b)$，观测独立的 $X_i\sim\operatorname{P
 
 \begin{longtable}{@{}p{22mm}p{65mm}r@{}}\toprule 届次与题号 & 主题 & 页码\\\midrule\endhead
 
-5届，9题 & 集券等待时间 & \pageref{pr:fin05-hi:9}\\
+5届，9题 & 集券等待时间 & \crosschapterref{1}{\pageref{pr:fin05-hi:9}}{见全文}\\
 
-6届，14题 & 随机需求与期望收益 & \pageref{pr:fin06-hi:14}\\
+6届，14题 & 随机需求与期望收益 & \crosschapterref{1}{\pageref{pr:fin06-hi:14}}{见全文}\\
 
-7届，13题 & 两袋交换与两态链 & \pageref{pr:fin07-hi:13}\\
+7届，13题 & 两袋交换与两态链 & \crosschapterref{1}{\pageref{pr:fin07-hi:13}}{见全文}\\
 
-8届，13题 & 二进制随机级数 & \pageref{pr:fin08-hi:13}\\
+8届，13题 & 二进制随机级数 & \crosschapterref{1}{\pageref{pr:fin08-hi:13}}{见全文}\\
 
-9届，13题 & 最小值与最大值 & \pageref{pr:fin09-hi:13}\\
+9届，13题 & 最小值与最大值 & \crosschapterref{1}{\pageref{pr:fin09-hi:13}}{见全文}\\
 
-10届，13题 & 加权独立和的极限 & \pageref{pr:fin10-hi:13}\\
+10届，13题 & 加权独立和的极限 & \crosschapterref{1}{\pageref{pr:fin10-hi:13}}{见全文}\\
 
-11届，12题 & 截断大数定律 & \pageref{pr:fin11-high:12}\\
+11届，12题 & 截断大数定律 & \crosschapterref{1}{\pageref{pr:fin11-high:12}}{见全文}\\
 
-12届，12题 & 稀疏红球计数 & \pageref{pr:fin12-high:12}\\
+12届，12题 & 稀疏红球计数 & \crosschapterref{1}{\pageref{pr:fin12-high:12}}{见全文}\\
 
-13届，12题 & 正态投影与符号回归 & \pageref{pr:fin13-high:12}\\
+13届，12题 & 正态投影与符号回归 & \crosschapterref{1}{\pageref{pr:fin13-high:12}}{见全文}\\
 
-14届，12题 & 泊松到达与随机积分 & \pageref{pr:fin14-high:12}\\
+14届，12题 & 泊松到达与随机积分 & \crosschapterref{1}{\pageref{pr:fin14-high:12}}{见全文}\\
 
-15届，12题 & 格点随机游走的扩散极限 & \pageref{pr:fin15-high:12}\\
+15届，12题 & 格点随机游走的扩散极限 & \crosschapterref{1}{\pageref{pr:fin15-high:12}}{见全文}\\
 
-16届，12题 & 指数样本、Gamma与Beta & \pageref{pr:fin16-high:12}\\
+16届，12题 & 指数样本、Gamma与Beta & \crosschapterref{1}{\pageref{pr:fin16-high:12}}{见全文}\\
 
-17届，12题 & 有限离散分布的熵 & \pageref{pr:fin17-high:12}\\
+17届，12题 & 有限离散分布的熵 & \crosschapterref{1}{\pageref{pr:fin17-high:12}}{见全文}\\
 
 \bottomrule\end{longtable}
 
@@ -6004,155 +6074,155 @@ $\lambda\sim\operatorname{Gamma}(a,b)$，观测独立的 $X_i\sim\operatorname{P
 
 \begin{longtable}{@{}p{12mm}p{81mm}r@{}}\toprule 年份 & 原题号与主题 & 页码\\\midrule\endhead
 
-2012 & 原题1：强化抽样与随机乘积 & \pageref{yau:2012-1}\\
+2012 & 原题1：强化抽样与随机乘积 & \crosschapterref{2}{\pageref{yau:2012-1}}{见全文}\\
 
-2012 & 原题2：条件期望的正值集合与正态投影 & \pageref{yau:2012-2}\\
+2012 & 原题2：条件期望的正值集合与正态投影 & \crosschapterref{2}{\pageref{yau:2012-2}}{见全文}\\
 
-2012 & 原题3：联合分布的乘积分布混合 & \pageref{yau:2012-3}\\
+2012 & 原题3：联合分布的乘积分布混合 & \crosschapterref{2}{\pageref{yau:2012-3}}{见全文}\\
 
-2012 & 原题4：秩和统计量的均值与方差 & \pageref{yau:2012-4}\\
+2012 & 原题4：秩和统计量的均值与方差 & \crosschapterref{2}{\pageref{yau:2012-4}}{见全文}\\
 
-2012 & 原题5：不相关但不独立 & \pageref{yau:2012-5}\\
+2012 & 原题5：不相关但不独立 & \crosschapterref{2}{\pageref{yau:2012-5}}{见全文}\\
 
-2012 & 原题6：指数比例与随机幂 & \pageref{yau:2012-6}\\
+2012 & 原题6：指数比例与随机幂 & \crosschapterref{2}{\pageref{yau:2012-6}}{见全文}\\
 
-2013 & 原题1：尾概率与有界变换 & \pageref{yau:2013-1}\\
+2013 & 原题1：尾概率与有界变换 & \crosschapterref{2}{\pageref{yau:2013-1}}{见全文}\\
 
-2013 & 原题2：两个正态变量在第一象限内的和 & \pageref{yau:2013-2}\\
+2013 & 原题2：两个正态变量在第一象限内的和 & \crosschapterref{2}{\pageref{yau:2013-2}}{见全文}\\
 
-2013 & 原题3：纪录次数 & \pageref{yau:2013-3}\\
+2013 & 原题3：纪录次数 & \crosschapterref{2}{\pageref{yau:2013-3}}{见全文}\\
 
-2013 & 原题4：指数模型的平均 p 值 & \pageref{yau:2013-4}\\
+2013 & 原题4：指数模型的平均 p 值 & \crosschapterref{2}{\pageref{yau:2013-4}}{见全文}\\
 
-2013 & 原题5：均匀位置族的条件覆盖率 & \pageref{yau:2013-5}\\
+2013 & 原题5：均匀位置族的条件覆盖率 & \crosschapterref{2}{\pageref{yau:2013-5}}{见全文}\\
 
-2013 & 原题6：离散均匀总体上端点的 UMVUE & \pageref{yau:2013-6}\\
+2013 & 原题6：离散均匀总体上端点的 UMVUE & \crosschapterref{2}{\pageref{yau:2013-6}}{见全文}\\
 
-2014 & 原题1：正态分布的积分恒等式刻画 & \pageref{yau:2014-1}\\
+2014 & 原题1：正态分布的积分恒等式刻画 & \crosschapterref{2}{\pageref{yau:2014-1}}{见全文}\\
 
-2014 & 原题2：正交随机级数的一个充分条件 & \pageref{yau:2014-2}\\
+2014 & 原题2：正交随机级数的一个充分条件 & \crosschapterref{2}{\pageref{yau:2014-2}}{见全文}\\
 
-2014 & 原题3：改变测度后的条件期望 & \pageref{yau:2014-3}\\
+2014 & 原题3：改变测度后的条件期望 & \crosschapterref{2}{\pageref{yau:2014-3}}{见全文}\\
 
-2014 & 原题4：用最大值或均值预测第一个样本 & \pageref{yau:2014-4}\\
+2014 & 原题4：用最大值或均值预测第一个样本 & \crosschapterref{2}{\pageref{yau:2014-4}}{见全文}\\
 
-2014 & 原题5：受约束多项分布中的估计与检验 & \pageref{yau:2014-5}\\
+2014 & 原题5：受约束多项分布中的估计与检验 & \crosschapterref{2}{\pageref{yau:2014-5}}{见全文}\\
 
-2015 & 原题1：二次矩的最大值与正态回归 & \pageref{yau:2015-1}\\
+2015 & 原题1：二次矩的最大值与正态回归 & \crosschapterref{2}{\pageref{yau:2015-1}}{见全文}\\
 
-2015 & 原题2：连续两次正面的等待时间 & \pageref{yau:2015-2}\\
+2015 & 原题2：连续两次正面的等待时间 & \crosschapterref{2}{\pageref{yau:2015-2}}{见全文}\\
 
-2015 & 原题3：正态平方级数的可积性 & \pageref{yau:2015-3}\\
+2015 & 原题3：正态平方级数的可积性 & \crosschapterref{2}{\pageref{yau:2015-3}}{见全文}\\
 
-2015 & 原题4：指数样本最小值的估计性质 & \pageref{yau:2015-4}\\
+2015 & 原题4：指数样本最小值的估计性质 & \crosschapterref{2}{\pageref{yau:2015-4}}{见全文}\\
 
-2015 & 原题5：已知相对方差的正态模型 & \pageref{yau:2015-5}\\
+2015 & 原题5：已知相对方差的正态模型 & \crosschapterref{2}{\pageref{yau:2015-5}}{见全文}\\
 
-2016 & 原题1：不立即回头的格点游走 & \pageref{yau:2016-1}\\
+2016 & 原题1：不立即回头的格点游走 & \crosschapterref{2}{\pageref{yau:2016-1}}{见全文}\\
 
-2016 & 原题2：随机符号矩阵的算子范数 & \pageref{yau:2016-2}\\
+2016 & 原题2：随机符号矩阵的算子范数 & \crosschapterref{2}{\pageref{yau:2016-2}}{见全文}\\
 
-2016 & 原题3：非均匀投球中的二球盒数 & \pageref{yau:2016-3}\\
+2016 & 原题3：非均匀投球中的二球盒数 & \crosschapterref{2}{\pageref{yau:2016-3}}{见全文}\\
 
-2016 & 原题4：均值与倒数均值的乘积 & \pageref{yau:2016-4}\\
+2016 & 原题4：均值与倒数均值的乘积 & \crosschapterref{2}{\pageref{yau:2016-4}}{见全文}\\
 
-2016 & 原题5：负漂移下的非负访问次数 & \pageref{yau:2016-5}\\
+2016 & 原题5：负漂移下的非负访问次数 & \crosschapterref{2}{\pageref{yau:2016-5}}{见全文}\\
 
-2017 & 原题1：抽去球直到仅余一种颜色 & \pageref{yau:2017-1}\\
+2017 & 原题1：抽去球直到仅余一种颜色 & \crosschapterref{2}{\pageref{yau:2017-1}}{见全文}\\
 
-2017 & 原题2：二叉树信号传播的阈值辨析 & \pageref{yau:2017-2}\\
+2017 & 原题2：二叉树信号传播的阈值辨析 & \crosschapterref{2}{\pageref{yau:2017-2}}{见全文}\\
 
-2017 & 原题3：不同硬币参数的无限序列测度 & \pageref{yau:2017-3}\\
+2017 & 原题3：不同硬币参数的无限序列测度 & \crosschapterref{2}{\pageref{yau:2017-3}}{见全文}\\
 
-2017 & 原题4：随机图最大团的粗上下界 & \pageref{yau:2017-4}\\
+2017 & 原题4：随机图最大团的粗上下界 & \crosschapterref{2}{\pageref{yau:2017-4}}{见全文}\\
 
-2017 & 原题5：纯死亡过程的概率生成函数 & \pageref{yau:2017-5}\\
+2017 & 原题5：纯死亡过程的概率生成函数 & \crosschapterref{2}{\pageref{yau:2017-5}}{见全文}\\
 
-2018 & 原题1：搜索失败后的最优下一步 & \pageref{yau:2018-1}\\
+2018 & 原题1：搜索失败后的最优下一步 & \crosschapterref{2}{\pageref{yau:2018-1}}{见全文}\\
 
-2018 & 原题2：圆周游走中最后被访问的人 & \pageref{yau:2018-2}\\
+2018 & 原题2：圆周游走中最后被访问的人 & \crosschapterref{2}{\pageref{yau:2018-2}}{见全文}\\
 
-2018 & 原题3：多人各带多件礼物的归还数 & \pageref{yau:2018-3}\\
+2018 & 原题3：多人各带多件礼物的归还数 & \crosschapterref{2}{\pageref{yau:2018-3}}{见全文}\\
 
-2018 & 原题4：精度矩阵与条件独立 & \pageref{yau:2018-4}\\
+2018 & 原题4：精度矩阵与条件独立 & \crosschapterref{2}{\pageref{yau:2018-4}}{见全文}\\
 
-2018 & 原题5：正态向量的投影与样本相关系数 & \pageref{yau:2018-5}\\
+2018 & 原题5：正态向量的投影与样本相关系数 & \crosschapterref{2}{\pageref{yau:2018-5}}{见全文}\\
 
-2019 & 原题1：正随机变量的根上极限 & \pageref{yau:2019-1}\\
+2019 & 原题1：正随机变量的根上极限 & \crosschapterref{2}{\pageref{yau:2019-1}}{见全文}\\
 
-2019 & 原题2：反射随机游走的正常返性 & \pageref{yau:2019-2}\\
+2019 & 原题2：反射随机游走的正常返性 & \crosschapterref{2}{\pageref{yau:2019-2}}{见全文}\\
 
-2019 & 原题4(a)--(e)：完全随机分组的有限总体推断 & \pageref{yau:2019-4}\\
+2019 & 原题4(a)--(e)：完全随机分组的有限总体推断 & \crosschapterref{2}{\pageref{yau:2019-4}}{见全文}\\
 
-2020 & 原题1：有界零均值变量的指数矩 & \pageref{yau:2020-1}\\
+2020 & 原题1：有界零均值变量的指数矩 & \crosschapterref{2}{\pageref{yau:2020-1}}{见全文}\\
 
-2020 & 原题2：泊松分布的差分恒等式 & \pageref{yau:2020-2}\\
+2020 & 原题2：泊松分布的差分恒等式 & \crosschapterref{2}{\pageref{yau:2020-2}}{见全文}\\
 
-2020 & 原题3：偏置随机游走命中零点 & \pageref{yau:2020-3}\\
+2020 & 原题3：偏置随机游走命中零点 & \crosschapterref{2}{\pageref{yau:2020-3}}{见全文}\\
 
-2020 & 原题4：独立坐标与旋转不变性的正态刻画 & \pageref{yau:2020-4}\\
+2020 & 原题4：独立坐标与旋转不变性的正态刻画 & \crosschapterref{2}{\pageref{yau:2020-4}}{见全文}\\
 
-2020 & 原题5：平衡分组再随机化的无偏性 & \pageref{yau:2020-5}\\
+2020 & 原题5：平衡分组再随机化的无偏性 & \crosschapterref{2}{\pageref{yau:2020-5}}{见全文}\\
 
-2020 & 原题6：不等大小组的反例 & \pageref{yau:2020-6}\\
+2020 & 原题6：不等大小组的反例 & \crosschapterref{2}{\pageref{yau:2020-6}}{见全文}\\
 
-2021 & 原题1：弱收敛与较低阶矩收敛 & \pageref{yau:2021-1}\\
+2021 & 原题1：弱收敛与较低阶矩收敛 & \crosschapterref{2}{\pageref{yau:2021-1}}{见全文}\\
 
-2021 & 原题2：马尔可夫链的访问概率和 & \pageref{yau:2021-2}\\
+2021 & 原题2：马尔可夫链的访问概率和 & \crosschapterref{2}{\pageref{yau:2021-2}}{见全文}\\
 
-2021 & 原题3：随机符号和的几乎处处增长率 & \pageref{yau:2021-3}\\
+2021 & 原题3：随机符号和的几乎处处增长率 & \crosschapterref{2}{\pageref{yau:2021-3}}{见全文}\\
 
-2021 & 原题4：随机零一矩阵行列式的奇偶性 & \pageref{yau:2021-4}\\
+2021 & 原题4：随机零一矩阵行列式的奇偶性 & \crosschapterref{2}{\pageref{yau:2021-4}}{见全文}\\
 
-2021 & 原题5：保持随机性的协变量平衡算法 & \pageref{yau:2021-5}\\
+2021 & 原题5：保持随机性的协变量平衡算法 & \crosschapterref{2}{\pageref{yau:2021-5}}{见全文}\\
 
-2021 & 原题6：已知随机化机制下的估计与精确检验 & \pageref{yau:2021-6}\\
+2021 & 原题6：已知随机化机制下的估计与精确检验 & \crosschapterref{2}{\pageref{yau:2021-6}}{见全文}\\
 
-2022 & 原题1：高斯分布族对弱极限封闭 & \pageref{yau:2022-1}\\
+2022 & 原题1：高斯分布族对弱极限封闭 & \crosschapterref{2}{\pageref{yau:2022-1}}{见全文}\\
 
-2022 & 原题2：全变差距离的最大耦合表示 & \pageref{yau:2022-2}\\
+2022 & 原题2：全变差距离的最大耦合表示 & \crosschapterref{2}{\pageref{yau:2022-2}}{见全文}\\
 
-2022 & 原题3：骰子模式11与12的等待时间 & \pageref{yau:2022-3}\\
+2022 & 原题3：骰子模式11与12的等待时间 & \crosschapterref{2}{\pageref{yau:2022-3}}{见全文}\\
 
-2022 & 原题4：共同重置状态产生的收缩 & \pageref{yau:2022-4}\\
+2022 & 原题4：共同重置状态产生的收缩 & \crosschapterref{2}{\pageref{yau:2022-4}}{见全文}\\
 
-2022 & 原题5：正态线性模型中的标准化均值 & \pageref{yau:2022-5}\\
+2022 & 原题5：正态线性模型中的标准化均值 & \crosschapterref{2}{\pageref{yau:2022-5}}{见全文}\\
 
-2022 & 原题6：异方差正态均值的极小极大估计 & \pageref{yau:2022-6}\\
+2022 & 原题6：异方差正态均值的极小极大估计 & \crosschapterref{2}{\pageref{yau:2022-6}}{见全文}\\
 
-2023 & 原题1：强化预测分布的边缘与映射 & \pageref{yau:2023-1}\\
+2023 & 原题1：强化预测分布的边缘与映射 & \crosschapterref{2}{\pageref{yau:2023-1}}{见全文}\\
 
-2023 & 原题2：逐步精细的信息与条件期望极限 & \pageref{yau:2023-2}\\
+2023 & 原题2：逐步精细的信息与条件期望极限 & \crosschapterref{2}{\pageref{yau:2023-2}}{见全文}\\
 
-2023 & 原题3：纪录数的宽于标准差的偏差 & \pageref{yau:2023-3}\\
+2023 & 原题3：纪录数的宽于标准差的偏差 & \crosschapterref{2}{\pageref{yau:2023-3}}{见全文}\\
 
-2023 & 原题4：混合表示是否就是条件概率 & \pageref{yau:2023-4}\\
+2023 & 原题4：混合表示是否就是条件概率 & \crosschapterref{2}{\pageref{yau:2023-4}}{见全文}\\
 
-2023 & 原题5：双边停止抽样下的完全性与无偏估计 & \pageref{yau:2023-5}\\
+2023 & 原题5：双边停止抽样下的完全性与无偏估计 & \crosschapterref{2}{\pageref{yau:2023-5}}{见全文}\\
 
-2023 & 原题6：潜在泊松混合中的比率估计与精确检验 & \pageref{yau:2023-6}\\
+2023 & 原题6：潜在泊松混合中的比率估计与精确检验 & \crosschapterref{2}{\pageref{yau:2023-6}}{见全文}\\
 
-2024 & 原题1：公平多方博弈中内部对局数 & \pageref{yau:2024-1}\\
+2024 & 原题1：公平多方博弈中内部对局数 & \crosschapterref{2}{\pageref{yau:2024-1}}{见全文}\\
 
-2024 & 原题3：随机幂的小数位极限 & \pageref{yau:2024-3}\\
+2024 & 原题3：随机幂的小数位极限 & \crosschapterref{2}{\pageref{yau:2024-3}}{见全文}\\
 
-2024 & 原题5：分组极大值再取最小值的中位数估计 & \pageref{yau:2024-5}\\
+2024 & 原题5：分组极大值再取最小值的中位数估计 & \crosschapterref{2}{\pageref{yau:2024-5}}{见全文}\\
 
-2025 & 原题1(1)：单个正态观测的比例型置信区间 & \pageref{yau:2025-1}\\
+2025 & 原题1(1)：单个正态观测的比例型置信区间 & \crosschapterref{2}{\pageref{yau:2025-1}}{见全文}\\
 
-2026 & 原题1：序数变量的联合分布与优胜概率 & \pageref{yau:2026-1}\\
+2026 & 原题1：序数变量的联合分布与优胜概率 & \crosschapterref{2}{\pageref{yau:2026-1}}{见全文}\\
 
-2026 & 原题2：分块回归与残差化定理 & \pageref{yau:2026-2}\\
+2026 & 原题2：分块回归与残差化定理 & \crosschapterref{2}{\pageref{yau:2026-2}}{见全文}\\
 
-2026 & 原题3：偏斜正态密度与均值 & \pageref{yau:2026-3}\\
+2026 & 原题3：偏斜正态密度与均值 & \crosschapterref{2}{\pageref{yau:2026-3}}{见全文}\\
 
-2026 & 原题4：布朗运动对称区间退出时间的二阶矩 & \pageref{yau:2026-4}\\
+2026 & 原题4：布朗运动对称区间退出时间的二阶矩 & \crosschapterref{2}{\pageref{yau:2026-4}}{见全文}\\
 
 \bottomrule\end{longtable}
 
 \subsection*{主要校订与选录限制}
 
-2017年个人赛第2题的信噪比“发散”表述与其定义不相容，本书给出完整递推，结论为阈值一侧趋零、另一侧趋于有限正值，见例~\ref{yau:2017-2}。2018年个人赛第5题仅要求向量非零不足以定义样本相关系数，本书补充中心化向量非零，见例~\ref{yau:2018-5}。2022年第5题在残差自由度为2时，无偏估计可积但通常不平方可积，本书按有限方差定义单独讨论，见例~\ref{yau:2022-5}。
+2017年个人赛第2题的信噪比“发散”表述与其定义不相容，本书给出完整递推，结论为阈值一侧趋零、另一侧趋于有限正值，见\crosschapterref{2}{例~\ref{yau:2017-2}}{原题2：二叉树信号传播的阈值辨析例题}。2018年个人赛第5题仅要求向量非零不足以定义样本相关系数，本书补充中心化向量非零，见\crosschapterref{2}{例~\ref{yau:2018-5}}{原题5：正态向量的投影与样本相关系数例题}。2022年第5题在残差自由度为2时，无偏估计可积但通常不平方可积，本书按有限方差定义单独讨论，见\crosschapterref{2}{例~\ref{yau:2022-5}}{原题5：正态线性模型中的标准化均值例题}。
 
 2019年个人赛第4题只选录(a)--(e)的完全随机分组推断；2025年第1题只选录第(1)问的覆盖概率计算。2024年第5题区分有限样本精确中位数无偏与渐近中位数无偏，并保留整数分组约束。其余细节校订包括正态退化方差、有限期望的预先验证、连续条件分布、边界参数、潜在结果和测度核的条件，不改变它们所属的来源题号。
 
@@ -6162,4 +6232,6 @@ $\lambda\sim\operatorname{Gamma}(a,b)$，观测独立的 $X_i\sim\operatorname{P
 
 本文件为独立的中文 TeX 源稿，仅依赖项目根目录的 researchnotes.sty 与标准 TeX 宏包，不依赖下载包、临时脚本或其他正文文件。从项目根目录或本文件所在目录均可使用 XeLaTeX 编译；交叉引用和目录至少需要两次编译。临时输出按项目约定放入根目录 tmp/概率论与数理统计/，交付 PDF 放在本文件所在目录。共享样式文件保持不变。
 
+
+\fi
 \end{document}

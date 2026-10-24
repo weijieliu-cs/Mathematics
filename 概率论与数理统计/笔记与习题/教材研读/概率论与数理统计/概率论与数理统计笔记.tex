@@ -7,6 +7,50 @@
 \makeatother
 \usepackage{researchnotes}
 
+% 编译章节列表：{0} 编译全文；{3} 只编译第三章；{2,3} 或 {2,5} 编译多章。
+% 正文章号范围为 1--20，多个章号用半角逗号分隔，仍按原书顺序输出。
+% 21--22 依次对应附录 A--B，附录仍显示原有字母编号。
+% 列表中含 0 时编译全文。日常只需修改下面这一行。
+\newcommand{\CompileChapter}{0}
+
+% 以下条件由章节列表自动确定，无须手动切换，也无须拆分章节文件。
+\makeatletter
+\@for\notes@chapter:=\CompileChapter\do{%
+    \expandafter\let\csname notes@selected@\number\notes@chapter\endcsname\@empty
+}
+\newif\ifcompileallchapters
+\@ifundefined{notes@selected@0}
+    {\compileallchaptersfalse}
+    {\compileallchapterstrue}
+\newif\ifcompilechapter
+% 可选参数是本章在正文或附录内的序号，必选参数是章节列表中的序号。
+\newcommand{\selectchapter}[2][0]{%
+    \compilechapterfalse
+    \ifcompileallchapters
+        \compilechaptertrue
+    \else
+        \@ifundefined{notes@selected@#2}{}{%
+            \compilechaptertrue
+            \ifnum#1=0\relax
+                \setcounter{chapter}{\numexpr#2-1\relax}%
+            \else
+                \setcounter{chapter}{\numexpr#1-1\relax}%
+            \fi
+        }%
+    \fi
+}
+% 参数依次为目标章号、编号引用、文字指引；目标章入选时保留编号引用。
+\newcommand{\crosschapterref}[3]{%
+    \ifcompileallchapters
+        #2%
+    \else
+        \@ifundefined{notes@selected@#1}{#3}{#2}%
+    \fi
+}
+\makeatother
+
+
+
 
 \title{概率论与数理统计笔记}
 \author{}
@@ -14,6 +58,8 @@
 
 
 \begin{document}
+\ifcompileallchapters
+
 
 
 \maketitle
@@ -127,6 +173,11 @@
 
 \part{概率模型与随机变量}
 
+
+\fi
+
+\selectchapter{1}
+\ifcompilechapter
 \chapter{随机试验、事件与概率空间}
 \label{chap:ps-events}
 
@@ -163,17 +214,22 @@
 完成本章后，应能说明一个概率答案所依赖的模型，而不只给出计数结果。
 
 
+
+\fi
+
+\selectchapter{2}
+\ifcompilechapter
 \chapter{条件概率、独立性与贝叶斯公式}
 \label{chap:ps-conditioning}
 
 本章研究获得新信息后概率如何变化，以及何时一个事件不会改变另一个事件的概率。
-先修内容为第\ref{chap:ps-events}章；学习目标是正确选择条件、划分情形并辨认独立性假设。
+先修内容为\crosschapterref{1}{第\ref{chap:ps-events}章}{“随机试验、事件与概率空间”一章}；学习目标是正确选择条件、划分情形并辨认独立性假设。
 
 \section{条件概率与乘法公式}
 \label{sec:ps-conditional-probability}
 定义\emph{条件概率}（conditional probability）$\mathbb P(A\mid B)$，首先限定 $\mathbb P(B)>0$。
 推导乘法公式与多步试验的链式分解，说明树状分析的每条分支都带有相应条件。
-零概率事件不能直接代入比值定义，其连续条件分布处理留待第\ref{chap:ps-multivariate}章。
+零概率事件不能直接代入比值定义，其连续条件分布处理留待\crosschapterref{4}{第\ref{chap:ps-multivariate}章}{“多维随机变量及其分布”一章}。
 
 \section{全概率公式与贝叶斯公式}
 \label{sec:ps-total-bayes}
@@ -198,6 +254,11 @@
 学习检查聚焦“条件是什么”“划分是否完备”“独立性从何而来”三个问题。
 
 
+
+\fi
+
+\selectchapter{3}
+\ifcompilechapter
 \chapter{随机变量、分布函数与常见分布}
 \label{chap:ps-univariate}
 
@@ -214,7 +275,7 @@
 \label{sec:ps-discrete-distributions}
 定义\emph{概率质量函数}（probability mass function, PMF），说明非负性与总和为一。
 依次介绍伯努利分布（Bernoulli）、二项分布（binomial）、超几何分布（hypergeometric）与泊松分布（Poisson），列出参数范围、取值范围和试验机制。
-比较固定次数独立试验、无放回抽样与稀少事件计数；泊松近似的极限条件在第\ref{chap:ps-limits}章讨论。
+比较固定次数独立试验、无放回抽样与稀少事件计数；泊松近似的极限条件在\crosschapterref{9}{第\ref{chap:ps-limits}章}{“概率不等式、大数定律与中心极限定理”一章}讨论。
 
 \section{等待型离散分布与记号约定}
 \label{sec:ps-discrete-waiting}
@@ -237,14 +298,19 @@
 \section{例题、习题与学习检查}
 规划按分段分布函数求概率、按抽样机制选择二项或超几何模型、按等待机制选择几何或指数模型、正态标准化与分位数计算。
 习题要求先检查质量函数或密度是否归一化，再计算；反例题区分“同一分布”与“同一个随机变量”。
-本章暂不集中计算均值和方差，相关数字特征在第\ref{chap:ps-moments}章统一建立。
+本章暂不集中计算均值和方差，相关数字特征在\crosschapterref{5}{第\ref{chap:ps-moments}章}{“数学期望与数字特征”一章}统一建立。
 
 
+
+\fi
+
+\selectchapter{4}
+\ifcompilechapter
 \chapter{多维随机变量及其分布}
 \label{chap:ps-multivariate}
 
 本章研究多个随机量之间的联合关系，回答“分别知道各自的分布是否足够”的问题。
-先修内容为第\ref{chap:ps-univariate}章及二重积分；学习目标是掌握联合、边缘、条件分布与独立性之间的联系。
+先修内容为\crosschapterref{3}{第\ref{chap:ps-univariate}章}{“随机变量、分布函数与常见分布”一章}及二重积分；学习目标是掌握联合、边缘、条件分布与独立性之间的联系。
 
 \section{随机向量与联合分布}
 \label{sec:ps-joint-distributions}
@@ -268,7 +334,7 @@
 \label{sec:ps-multivariate-models}
 介绍多项分布（multinomial distribution），由互斥类别的独立重复试验导出其质量函数。
 介绍二维正态分布（bivariate normal distribution）的参数与密度结构；一般多元正态模型在矩阵工具齐备后补充。
-指出两个正态边缘分布不保证联合正态，也不保证独立；协方差判据在第\ref{chap:ps-moments}章建立。
+指出两个正态边缘分布不保证联合正态，也不保证独立；协方差判据在\crosschapterref{5}{第\ref{chap:ps-moments}章}{“数学期望与数字特征”一章}建立。
 
 \section{例题、习题与学习检查}
 规划三角形区域上的均匀分布、带约束的联合质量表、给定总次数的类别计数等例题。
@@ -276,6 +342,11 @@
 学习检查包括区域边界、归一化、条件分母及独立性依据。
 
 
+
+\fi
+
+\selectchapter{5}
+\ifcompilechapter
 \chapter{数学期望与数字特征}
 \label{chap:ps-moments}
 
@@ -308,10 +379,15 @@
 
 \section{例题、习题与学习检查}
 规划用指示变量求匹配次数期望、比较有放回和无放回抽样的方差、构造零相关的非线性依赖、检查重尾分布的矩。
-统一计算第\ref{chap:ps-univariate}章常见分布的均值和方差，记录参数化及成立条件。
+统一计算\crosschapterref{3}{第\ref{chap:ps-univariate}章}{“随机变量、分布函数与常见分布”一章}常见分布的均值和方差，记录参数化及成立条件。
 习题要求说明所用性质是否依赖独立性，区分“期望相同”与“分布相同”。
 
 
+
+\fi
+
+\selectchapter{6}
+\ifcompilechapter
 \chapter{随机变量函数的分布}
 \label{chap:ps-transformations}
 
@@ -339,7 +415,7 @@
 \section{最大值、最小值与次序统计量的准备}
 \label{sec:ps-extreme-transform}
 对独立样本用事件交并求最大值和最小值的分布，比较同分布与不同分布情形。
-介绍样本排序的含义，为第\ref{chap:ps-sampling}章的次序统计量作准备。
+介绍样本排序的含义，为\crosschapterref{10}{第\ref{chap:ps-sampling}章}{“总体、样本、统计量与抽样分布”一章}的次序统计量作准备。
 用极值与均值的不同归一化说明不同统计量可能具有不同的误差尺度。
 
 \section{例题、习题与学习检查}
@@ -348,6 +424,11 @@
 习题安排同一问题的两种解法，并检查是否遗漏非单调变换的分支。
 
 
+
+\fi
+
+\selectchapter{7}
+\ifcompilechapter
 \chapter{条件期望与条件方差}
 \label{chap:ps-conditional-expectation}
 
@@ -381,7 +462,7 @@
 \label{sec:ps-conditional-prediction}
 在平方可积条件下，研究用 $Y$ 的可测函数预测 $X$ 的问题，证明条件期望使总体均方误差最小。
 从误差正交分解解释“最优”的候选范围与几乎处处唯一性。
-区分总体最优预测函数与由有限数据估计的回归函数，为第\ref{chap:ps-regression}章作铺垫。
+区分总体最优预测函数与由有限数据估计的回归函数，为\crosschapterref{16}{第\ref{chap:ps-regression}章}{“线性回归与预测”一章}作铺垫。
 
 \section{例题、习题与学习检查}
 规划随机次数求和、分层总体均值与方差、给定联合密度求条件均值等例题。
@@ -389,6 +470,11 @@
 习题重点检查“结果是数还是随机变量”、条件信息是否嵌套，以及平方损失结论的适用范围。
 
 
+
+\fi
+
+\selectchapter{8}
+\ifcompilechapter
 \chapter{生成函数与特征函数}
 \label{chap:ps-generating-functions}
 
@@ -411,7 +497,7 @@
 \label{sec:ps-characteristic-function}
 令 $i$ 为虚数单位，定义\emph{特征函数}（characteristic function）$\varphi_X(t)=\mathbb E[e^{itX}]$。
 说明它对所有实数 $t$ 都存在，推导平移、缩放和独立和的公式。
-陈述特征函数的唯一性定理；连续性定理作为第\ref{chap:ps-limits}章分布收敛证明的选读工具，明确极限函数在零点连续的条件。
+陈述特征函数的唯一性定理；连续性定理作为\crosschapterref{9}{第\ref{chap:ps-limits}章}{“概率不等式、大数定律与中心极限定理”一章}分布收敛证明的选读工具，明确极限函数在零点连续的条件。
 
 \section{例题、习题与学习检查}
 规划伯努利、泊松、正态与伽马分布的变换计算，以及独立和分布的识别。
@@ -419,6 +505,11 @@
 学习检查要求说明每次求导与期望交换的依据，并选择最适合当前分布的工具。
 
 
+
+\fi
+
+\selectchapter{9}
+\ifcompilechapter
 \chapter{概率不等式、大数定律与中心极限定理}
 \label{chap:ps-limits}
 
@@ -475,8 +566,16 @@
 学习检查以区分“大数定律描述趋近目标”“中心极限定理描述标准化波动”为主。
 
 
+
+\fi
+\ifcompileallchapters
 \part{数理统计的基本理论}
 
+
+\fi
+
+\selectchapter{10}
+\ifcompilechapter
 \chapter{总体、样本、统计量与抽样分布}
 \label{chap:ps-sampling}
 
@@ -524,6 +623,11 @@
 学习检查要求说明重复抽样中变化的对象，并区分样本标准差和估计量的标准误。
 
 
+
+\fi
+
+\selectchapter{11}
+\ifcompilechapter
 \chapter{充分统计量与统计信息}
 \label{chap:ps-information}
 
@@ -557,14 +661,19 @@
 \section{例题、习题与学习检查}
 规划伯努利概率估计的条件化改进、正态均值的信息计算、均匀模型中常规信息下界的适用性分析。
 习题要求区分“统计量包含信息”与“估计值接近真值”，并检查改进结论比较的是哪一类估计量。
-完整应用将在第\ref{chap:ps-point-estimation}章与估计方法结合。
+完整应用将在\crosschapterref{12}{第\ref{chap:ps-point-estimation}章}{“点估计及其评价”一章}与估计方法结合。
 
 
+
+\fi
+
+\selectchapter{12}
+\ifcompilechapter
 \chapter{点估计及其评价}
 \label{chap:ps-point-estimation}
 
 本章将未知参数估计为一个由样本计算的数值，并建立比较估计方法的标准。
-先修内容为抽样分布与似然；涉及最优无偏估计时使用第\ref{chap:ps-information}章，涉及大样本性质时使用第\ref{chap:ps-limits}章。
+先修内容为抽样分布与似然；涉及最优无偏估计时使用\crosschapterref{11}{第\ref{chap:ps-information}章}{“充分统计量与统计信息”一章}，涉及大样本性质时使用\crosschapterref{9}{第\ref{chap:ps-limits}章}{“概率不等式、大数定律与中心极限定理”一章}。
 
 \section{估计目标、损失与风险}
 \label{sec:ps-estimation-criteria}
@@ -602,6 +711,11 @@
 学习检查要求分别报告估计目标、估计量公式、观测后的估计值和评价标准。
 
 
+
+\fi
+
+\selectchapter{13}
+\ifcompilechapter
 \chapter{区间估计与置信区域}
 \label{chap:ps-intervals}
 
@@ -640,9 +754,14 @@
 \section{例题、习题与学习检查}
 规划正态均值与方差区间、两种测量方法的配对差区间、二项比例在小样本下的区间比较。
 习题要求从枢轴量的不等式完整反解端点，检查单侧与双侧分位数。
-置信区域作为向量参数的自然推广介绍；预测区间与均值区间的区别在第\ref{chap:ps-regression}章进一步展开。
+置信区域作为向量参数的自然推广介绍；预测区间与均值区间的区别在\crosschapterref{16}{第\ref{chap:ps-regression}章}{“线性回归与预测”一章}进一步展开。
 
 
+
+\fi
+
+\selectchapter{14}
+\ifcompilechapter
 \chapter{假设检验的原理与方法}
 \label{chap:ps-testing}
 
@@ -685,6 +804,11 @@
 学习检查强调检验针对模型中的假设，数据质量与模型适用性不能由一个 p 值代替。
 
 
+
+\fi
+
+\selectchapter{15}
+\ifcompilechapter
 \chapter{拟合优度、列联表与非参数方法}
 \label{chap:ps-nonparametric}
 
@@ -721,8 +845,16 @@
 学习检查强调“非参数”仍包含抽样、独立性、对称性或可交换性等假设。
 
 
+
+\fi
+\ifcompileallchapters
 \part{统计模型与数据分析}
 
+
+\fi
+
+\selectchapter{16}
+\ifcompilechapter
 \chapter{线性回归与预测}
 \label{chap:ps-regression}
 
@@ -765,6 +897,11 @@
 学习检查区分误差与残差、相关与回归、描述关系与因果解释。
 
 
+
+\fi
+
+\selectchapter{17}
+\ifcompilechapter
 \chapter{方差分析与试验设计初步}
 \label{chap:ps-anova}
 
@@ -786,7 +923,7 @@
 \section{对比、多重比较与条件检查}
 \label{sec:ps-anova-contrasts}
 定义组均值的线性\emph{对比}（contrast），说明系数和为零的要求，区分事先规划与事后探索。
-构造对比的估计与区间，结合第\ref{chap:ps-testing}章讨论多重比较控制。
+构造对比的估计与区间，结合\crosschapterref{14}{第\ref{chap:ps-testing}章}{“假设检验的原理与方法”一章}讨论多重比较控制。
 通过残差检查讨论方差不齐、非正态和不平衡设计；替代方法需同时说明新的假设和推断目标。
 
 \section{随机化、重复、区组与双因素设计}
@@ -801,8 +938,16 @@
 学习检查要求把显著性、差异大小、区间与设计限制一并解释。
 
 
+
+\fi
+\ifcompileallchapters
 \part{进一步学习的专题}
 
+
+\fi
+
+\selectchapter{18}
+\ifcompilechapter
 \chapter{贝叶斯统计初步（选读）}
 \label{chap:ps-bayesian}
 
@@ -824,7 +969,7 @@
 \section{贝叶斯估计与可信区间}
 \label{sec:ps-bayesian-decisions}
 在后验期望损失最小的准则下介绍\emph{贝叶斯估计}（Bayes estimator）；平方损失和绝对损失分别联系后验均值与中位数。
-介绍\emph{可信区间}（credible interval），并与第\ref{chap:ps-intervals}章的置信区间比较其概率解释。
+介绍\emph{可信区间}（credible interval），并与\crosschapterref{13}{第\ref{chap:ps-intervals}章}{“区间估计与置信区域”一章}的置信区间比较其概率解释。
 最大后验估计单独说明为密度最大化方法，并讨论它依赖参数化的特点。
 
 \section{后验预测与先验敏感性}
@@ -839,6 +984,11 @@
 学习检查避免把不同统计框架中的区间解释混用，并比较数据量与先验影响之间的关系。
 
 
+
+\fi
+
+\selectchapter{19}
+\ifcompilechapter
 \chapter{随机过程初步（选读）}
 \label{chap:ps-processes}
 
@@ -862,7 +1012,7 @@
 定义\emph{平稳分布}（stationary distribution）并求解归一化线性方程。
 说明有限不可约链具有唯一平稳分布；从任意初始分布收敛到它还需非周期性。
 用周期链区分平稳分布与边缘分布极限，并说明有限不可约链的长期时间平均结论不要求非周期性。
-介绍细致平衡与可逆性，为第\ref{chap:ps-computation}章的模拟方法作准备。
+介绍细致平衡与可逆性，为\crosschapterref{20}{第\ref{chap:ps-computation}章}{“随机模拟与统计计算（选读）”一章}的模拟方法作准备。
 
 \section{泊松过程与等待时间}
 \label{sec:ps-poisson-process}
@@ -876,11 +1026,16 @@
 鞅与布朗运动仅列为后续课程方向，不作为本书主干的先修要求。
 
 
+
+\fi
+
+\selectchapter{20}
+\ifcompilechapter
 \chapter{随机模拟与统计计算（选读）}
 \label{chap:ps-computation}
 
 本章用算法近似概率量和统计推断结果，建立理论对象、计算过程与误差评价之间的联系。
-先修内容为极限定理与统计推断；马尔可夫链方法另需第\ref{chap:ps-processes}章。
+先修内容为极限定理与统计推断；马尔可夫链方法另需\crosschapterref{19}{第\ref{chap:ps-processes}章}{“随机过程初步（选读）”一章}。
 每种算法的正文均明确输入、输出、初始化、更新、停止规则及适用条件。
 
 \section{随机数与分布抽样}
@@ -920,8 +1075,13 @@
 学习检查区分模型误差、抽样误差、蒙特卡罗误差与数值优化误差。
 
 
+
+\fi
 \appendix
 
+
+\selectchapter[1]{21}
+\ifcompilechapter
 \chapter{必要的数学工具}
 \label{app:ps-prerequisites}
 
@@ -944,6 +1104,11 @@
 引入确定性及概率意义的阶记号时分别定义，配合极限定理说明近似项与余项的区别。
 
 
+
+\fi
+
+\selectchapter[2]{22}
+\ifcompilechapter
 \chapter{查阅表、方法索引与综合学习检查}
 \label{app:ps-reference}
 
@@ -966,4 +1131,6 @@
 正文中的每个综合案例均按这一顺序组织，使分散的概念能够汇成可独立完成的分析过程。
 
 
+
+\fi
 \end{document}

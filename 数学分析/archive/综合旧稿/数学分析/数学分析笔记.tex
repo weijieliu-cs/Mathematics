@@ -7,6 +7,49 @@
 \makeatother
 \usepackage{researchnotes}
 
+% 编译章节列表：{0} 编译全文；{2} 只编译第二章；{1,2} 编译第一、二章。
+% 正文章号范围为 1--2，多个章号用半角逗号分隔，仍按原书顺序输出。
+% 列表中含 0 时编译全文。日常只需修改下面这一行。
+\newcommand{\CompileChapter}{0}
+
+% 以下条件由章节列表自动确定，无须手动切换，也无须拆分章节文件。
+\makeatletter
+\@for\notes@chapter:=\CompileChapter\do{%
+    \expandafter\let\csname notes@selected@\number\notes@chapter\endcsname\@empty
+}
+\newif\ifcompileallchapters
+\@ifundefined{notes@selected@0}
+    {\compileallchaptersfalse}
+    {\compileallchapterstrue}
+\newif\ifcompilechapter
+% 可选参数是本章在正文或附录内的序号，必选参数是章节列表中的序号。
+\newcommand{\selectchapter}[2][0]{%
+    \compilechapterfalse
+    \ifcompileallchapters
+        \compilechaptertrue
+    \else
+        \@ifundefined{notes@selected@#2}{}{%
+            \compilechaptertrue
+            \ifnum#1=0\relax
+                \setcounter{chapter}{\numexpr#2-1\relax}%
+            \else
+                \setcounter{chapter}{\numexpr#1-1\relax}%
+            \fi
+        }%
+    \fi
+}
+% 参数依次为目标章号、编号引用、文字指引；目标章入选时保留编号引用。
+\newcommand{\crosschapterref}[3]{%
+    \ifcompileallchapters
+        #2%
+    \else
+        \@ifundefined{notes@selected@#1}{#3}{#2}%
+    \fi
+}
+\makeatother
+
+
+
 
 \title{数学分析笔记}
 \author{}
@@ -14,6 +57,8 @@
 
 
 \begin{document}
+\ifcompileallchapters
+
 % 允许每一页的正文高度不完全相同，不强制把页面内容在垂直方向拉伸到页底。
 % 密集公式页面保持正常的段间距，由页底承担余白。
 \raggedbottom
@@ -24,6 +69,11 @@
 \clearpage
 
 
+
+\fi
+
+\selectchapter{1}
+\ifcompilechapter
 \chapter{函数}
 数学分析主要由微积分和级数理论组成，它所研究的主要对象是实函数，即以实数为自变量并且在实数中取值的函数。因此，在本章中我们首先简要地介绍一下实数系的连续性，然后介绍函数的概念和有关的基本知识。
 
@@ -808,6 +858,11 @@ $y=\sin x(x\in\mathbb{R})$ 不是单调函数，但当其定义域 $X$ 取为 $\
 \end{enumerate}
 
 % 整合来源：../../分章旧稿/第02章 序列的极限/第2章 序列的极限.tex
+
+\fi
+
+\selectchapter{2}
+\ifcompilechapter
 \chapter{序列的极限}
 \label{chap:ma-2}
 
@@ -33950,4 +34005,6 @@ $\forall\varepsilon>0$, 由 $a=\lim\limits_{k\to\infty}x_{n_k}$ 知, $\exists K$
 % 
 % 6。计算无穷积分 $\displaystyle\int_0^{+\infty}\frac{e^{-ax^2}-e^{-bx^2}}{x^2}\mathrm dx$，其中 $b>a>0$.
 % 
+
+\fi
 \end{document}

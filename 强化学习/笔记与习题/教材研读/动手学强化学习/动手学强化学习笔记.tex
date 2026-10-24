@@ -7,6 +7,50 @@
 \makeatother
 \usepackage{researchnotes}
 
+% 编译章节列表：{0} 编译全文；{3} 只编译第三章；{2,3} 或 {2,5} 编译多章。
+% 正文章号范围为 1--24，多个章号用半角逗号分隔，仍按原书顺序输出。
+% 25--27 依次对应附录 A--C，附录仍显示原有字母编号。
+% 列表中含 0 时编译全文。日常只需修改下面这一行。
+\newcommand{\CompileChapter}{0}
+
+% 以下条件由章节列表自动确定，无须手动切换，也无须拆分章节文件。
+\makeatletter
+\@for\notes@chapter:=\CompileChapter\do{%
+    \expandafter\let\csname notes@selected@\number\notes@chapter\endcsname\@empty
+}
+\newif\ifcompileallchapters
+\@ifundefined{notes@selected@0}
+    {\compileallchaptersfalse}
+    {\compileallchapterstrue}
+\newif\ifcompilechapter
+% 可选参数是本章在正文或附录内的序号，必选参数是章节列表中的序号。
+\newcommand{\selectchapter}[2][0]{%
+    \compilechapterfalse
+    \ifcompileallchapters
+        \compilechaptertrue
+    \else
+        \@ifundefined{notes@selected@#2}{}{%
+            \compilechaptertrue
+            \ifnum#1=0\relax
+                \setcounter{chapter}{\numexpr#2-1\relax}%
+            \else
+                \setcounter{chapter}{\numexpr#1-1\relax}%
+            \fi
+        }%
+    \fi
+}
+% 参数依次为目标章号、编号引用、文字指引；目标章入选时保留编号引用。
+\newcommand{\crosschapterref}[3]{%
+    \ifcompileallchapters
+        #2%
+    \else
+        \@ifundefined{notes@selected@#1}{#3}{#2}%
+    \fi
+}
+\makeatother
+
+
+
 
 \title{动手学强化学习笔记}
 \author{}
@@ -14,6 +58,8 @@
 
 
 \begin{document}
+\ifcompileallchapters
+
 
 
 \maketitle
@@ -67,6 +113,11 @@
 
 \part{问题建模与数学基础}
 
+
+\fi
+
+\selectchapter{1}
+\ifcompilechapter
 \chapter{绪论}
 \label{ch:rl-introduction}
 
@@ -260,6 +311,11 @@
 \item 分别说明“MDP 是学习算法”“奖励就是正确动作标签”“无模型方法不需要环境数据”错在哪里，并为在线离策略学习给出一个具体例子。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{2}
+\ifcompilechapter
 \chapter{强化学习所需的数学基础}
 \label{ch:rl-math}
 
@@ -340,6 +396,11 @@ Q_n=(1-\alpha)^nQ_0+\alpha\sum_{i=1}^n(1-\alpha)^{n-i}X_i.
 \item 若 $T$ 为压缩常数 $c<1$ 的映射，证明 $\|x-x_*\|\leq\|Tx-x\|/(1-c)$。解释为什么计算残差可以控制未知的解误差。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{3}
+\ifcompilechapter
 \chapter{多臂赌博机与探索利用}
 \label{ch:rl-bandits}
 
@@ -392,6 +453,11 @@ A_t\in\arg\max_a\left\{Q_t(a)+\sqrt{\frac{2\log t}{N_t(a)}}\right\},\qquad t\geq
 \item 固定总交互预算，用多个独立种子比较纯贪心、$\varepsilon$-贪心和 UCB；同时保存累计奖励与伪遗憾。随后在中途交换两臂均值，比较样本均值和常数步长的适应过程。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{4}
+\ifcompilechapter
 \chapter{马尔可夫决策过程}
 \label{ch:rl-mdp}
 
@@ -448,6 +514,11 @@ r(s,a)=\sum_{s',r}r\,p(s',r\mid s,a).
 \item 在固定五步的任务中，同一位置在剩余一步与剩余四步时的最优动作能否不同？构造一个例子，并说明怎样扩充状态。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{5}
+\ifcompilechapter
 \chapter{价值函数与贝尔曼方程}
 \label{ch:rl-bellman}
 
@@ -484,7 +555,7 @@ v_\pi(s)&=\sum_a\pi(a\mid s)\left[r(s,a)+\gamma\sum_{s'}P(s'\mid s,a)v_\pi(s')\r
 v_\pi=r_\pi+\gamma P_\pi v_\pi,
 \qquad v_\pi=(I-\gamma P_\pi)^{-1}r_\pi.
 \]
-逆矩阵存在性由式\eqref{eq:rl-matrix-inverse}保证。级数形式 $v_\pi=\sum_{k\geq0}\gamma^kP_\pi^kr_\pi$ 则把各个未来时刻的期望奖励明确相加。
+逆矩阵存在性由\crosschapterref{2}{式\eqref{eq:rl-matrix-inverse}}{“强化学习所需的数学基础”中的公式}保证。级数形式 $v_\pi=\sum_{k\geq0}\gamma^kP_\pi^kr_\pi$ 则把各个未来时刻的期望奖励明确相加。
 
 \begin{example}[两个状态的精确价值]
 设 $\gamma=1/2$。在状态 $1$ 每步奖励为 $1$，下一步以相等概率到两个状态；状态 $2$ 每步奖励为 $2$ 且保持不变。方程为 $v_1=1+\tfrac14v_1+\tfrac14v_2$、$v_2=2+\tfrac12v_2$，故 $v_2=4$、$v_1=8/3$。状态 $1$ 的价值大于即时奖励，原因是之后还有持续收益。
@@ -534,8 +605,16 @@ $T_*$ 的唯一不动点等于 $v_*$，并满足贝尔曼最优方程 $v_*=T_*v_
 \item 证明 $T_\pi$ 的单调性和压缩性。若模型只在已访问状态上残差小，说明为什么不能直接使用式\eqref{eq:rl-residual-bound}。
 \end{enumerate}
 
+
+\fi
+\ifcompileallchapters
 \part{表格型强化学习}
 
+
+\fi
+
+\selectchapter{6}
+\ifcompilechapter
 \chapter{动态规划}
 \label{ch:rl-dp}
 
@@ -562,7 +641,7 @@ $T_*$ 的唯一不动点等于 $v_*$，并满足贝尔曼最优方程 $v_*=T_*v_
 
 \section{价值迭代与有限时域逆向递推}
 
-价值迭代（value iteration）直接求解最优算子的不动点：初始化 $V_0$，反复令 $V_{k+1}=T_*V_k$，达到残差阈值后输出当前价值及其贪心策略。它每轮不完成某个策略的精确评估，而是只进行一次最优备份。式\eqref{eq:rl-residual-bound}控制价值误差，上一章的贪心策略界再控制策略损失。
+价值迭代（value iteration）直接求解最优算子的不动点：初始化 $V_0$，反复令 $V_{k+1}=T_*V_k$，达到残差阈值后输出当前价值及其贪心策略。它每轮不完成某个策略的精确评估，而是只进行一次最优备份。\crosschapterref{5}{式\eqref{eq:rl-residual-bound}}{“价值函数与贝尔曼方程”中的公式}控制价值误差，上一章的贪心策略界再控制策略损失。
 
 \begin{example}[一状态价值迭代]
 某持续任务只有一个状态，两个动作的确定性奖励为 $1$ 和 $2$，执行后均回到原状态。取 $\gamma=0.9,V_0=0$，则 $V_{k+1}=2+0.9V_k$，所以 $V_k=20(1-0.9^k)$，极限为 $20$。价值尚未完全收敛时，贪心策略已选到奖励为 $2$ 的动作，说明价值收敛与策略稳定不必同时发生。
@@ -587,6 +666,11 @@ V_t(s)=\max_a\left[r_t(s,a)+\gamma\sum_{s'}P_t(s'\mid s,a)V_{t+1}(s')\right],\qu
 \item 构造包含终止状态的小网格，用直接线性求解核验策略评估，再比较策略迭代与价值迭代的输出价值、备份次数及运行时间。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{7}
+\ifcompilechapter
 \chapter{蒙特卡洛方法}
 \label{ch:rl-mc}
 
@@ -594,7 +678,7 @@ V_t(s)=\max_a\left[r_t(s,a)+\gamma\sum_{s'}P_t(s'\mid s,a)V_{t+1}(s')\right],\qu
 
 \section{回合采样与蒙特卡洛预测}
 
-考虑固定策略下独立重置的回合，终止时刻为 $T$。从 $G_T=0$ 开始，逆序计算 $G_t=R_{t+1}+\gamma G_{t+1}$。首次访问（first-visit）MC 每回合只使用某状态第一次出现时的回报；每次访问（every-visit）MC 使用该状态所有出现时的回报。两者都可按式\eqref{eq:rl-incremental-mean}更新均值，但使用的样本集合不同。
+考虑固定策略下独立重置的回合，终止时刻为 $T$。从 $G_T=0$ 开始，逆序计算 $G_t=R_{t+1}+\gamma G_{t+1}$。首次访问（first-visit）MC 每回合只使用某状态第一次出现时的回报；每次访问（every-visit）MC 使用该状态所有出现时的回报。两者都可按\crosschapterref{2}{式\eqref{eq:rl-incremental-mean}}{“强化学习所需的数学基础”中的公式}更新均值，但使用的样本集合不同。
 
 \begin{example}[首次访问与每次访问]
 某回合依次产生 $S_0=s,R_1=1,S_1=s,R_2=2,S_2=\text{终止}$，取 $\gamma=1$。两个回报为 $G_0=3,G_1=2$。仅有这一回合时，首次访问估计为 $3$，每次访问估计为 $(3+2)/2=2.5$；它们不是对同一组数字执行不同平均公式，而是选取了不同样本。
@@ -630,6 +714,11 @@ V_t(s)=\max_a\left[r_t(s,a)+\gamma\sum_{s'}P_t(s'\mid s,a)V_{t+1}(s')\right],\qu
 \item 比较固定回合数与固定交互步数下的算法评价。为什么不同平均回合长度会使两种预算不等价？
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{8}
+\ifcompilechapter
 \chapter{时序差分学习}
 \label{ch:rl-td}
 
@@ -691,6 +780,11 @@ Y_t^{\rm ES}=R_{t+1}+\gamma\sum_a\pi_t(a\mid S_{t+1})Q_t(S_{t+1},a),
 \item 在带悬崖的网格任务中比较 Sarsa 与 Q-learning，同时报告训练行为回报和独立贪心评价回报，解释两种指标回答的问题。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{9}
+\ifcompilechapter
 \chapter{多步学习与资格迹}
 \label{ch:rl-multistep}
 
@@ -754,6 +848,11 @@ V(s)\leftarrow V(s)+\alpha\delta_t e_t(s).
 \item 在随机游走中扫描 $n$ 和 $\lambda$，固定交互预算与步长选择规则，比较价值误差。分析有限回合尾部更新和采样截断对结果的影响。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{10}
+\ifcompilechapter
 \chapter{离策略学习与重要性采样}
 \label{ch:rl-offpolicy}
 
@@ -812,6 +911,11 @@ Q-learning 更新给定 $(s,a)$ 后的条件期望，其一步目标为 $R+\gamm
 \item 在固定目标策略下改变行为策略与回合长度，比较普通、加权和逐决策估计的误差及权重分布。不要用相同训练数据反复筛选目标策略后仍宣称原有无偏评价结论。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{11}
+\ifcompilechapter
 \chapter{模型学习与规划}
 \label{ch:rl-planning}
 
@@ -857,8 +961,16 @@ Dyna-Q 把直接学习与规划放在同一循环。输入交互预算、规划�
 \item 在同一迷宫比较不同规划步数，再在中途关闭通道。分别记录真实交互量、规划次数、运行时间和环境变化后的恢复过程。
 \end{enumerate}
 
+
+\fi
+\ifcompileallchapters
 \part{函数近似与深度强化学习}
 
+
+\fi
+
+\selectchapter{12}
+\ifcompilechapter
 \chapter{价值函数近似}
 \label{ch:rl-approximation}
 
@@ -913,6 +1025,11 @@ Aw=b,
 \item 在小 MRP 上分别计算最佳投影和 TD 固定点；改变特征与采样分布，比较解析解和迭代结果，并检查矩阵是否可逆。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{13}
+\ifcompilechapter
 \chapter{深度价值方法}
 \label{ch:rl-dqn}
 
@@ -964,6 +1081,11 @@ y=r+\gamma(1-d)Q_{w^-}(s',a^*).
 \item 在小离散环境先对照表格 Q-learning，再比较有无回放及目标网络的训练。报告回报、价值尺度、独立重复和更新预算。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{14}
+\ifcompilechapter
 \chapter{策略梯度方法}
 \label{ch:rl-policy-gradient}
 
@@ -1019,6 +1141,11 @@ REINFORCE 固定当前策略采样回合，逆序算回报，再按式\eqref{eq:
 \item 在可枚举短轨迹的小 MDP 中精确计算目标，用中心有限差分核验期望策略梯度，再比较有无基线的样本梯度方差。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{15}
+\ifcompilechapter
 \chapter{演员--评论家与优势估计}
 \label{ch:rl-actor-critic}
 
@@ -1039,7 +1166,7 @@ REINFORCE 固定当前策略采样回合，逆序算回报，再按式\eqref{eq:
 \]
 \end{proposition}
 \begin{proof}
-前两项的条件期望由式\eqref{eq:rl-bellman-q}等于 $q_\pi(s,a)$，减去 $v_\pi(s)$ 即得结论。
+前两项的条件期望由\crosschapterref{5}{式\eqref{eq:rl-bellman-q}}{“价值函数与贝尔曼方程”中的公式}等于 $q_\pi(s,a)$，减去 $v_\pi(s)$ 即得结论。
 \end{proof}
 
 若误差为 $e(s)=V(s)-v_\pi(s)$，则一步优势的条件偏差为 $\gamma\sum_{s'}P(s'\mid s,a)e(s')-e(s)$。它包含动作相关的后继误差，不一定能被基线抵消。多步优势使用 $G_t^{(n)}-V(S_t)$，以更长采样替换部分自举，同样需要正确处理终止和截断。
@@ -1077,6 +1204,11 @@ REINFORCE 固定当前策略采样回合，逆序算回报，再按式\eqref{eq:
 \item 固定环境与批量预算，比较一步优势、完整回报基线和 GAE 的梯度波动与评价回报；构造跨回合数据以检查递推不会错误连接。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{16}
+\ifcompilechapter
 \chapter{信赖域方法与近端策略优化}
 \label{ch:rl-ppo}
 
@@ -1124,7 +1256,7 @@ L^{\rm clip}(\theta)=\widehat{\mathbb E}_t
 
 \section{完整训练过程与诊断}
 
-每个外层迭代先冻结采样策略，收集若干轨迹，保存状态、动作、奖励、边界信息、旧对数概率与旧价值。按第\ref{ch:rl-actor-critic}章计算优势和固定价值标签。随后打乱当前批次进行有限轮小批量更新，概率比用 $\exp(\log\pi_\theta-\log\pi_{\rm old})$ 计算；一轮内旧概率与优势不随新参数重算。最后丢弃或退出该批次，重新采样。
+每个外层迭代先冻结采样策略，收集若干轨迹，保存状态、动作、奖励、边界信息、旧对数概率与旧价值。按\crosschapterref{15}{第\ref{ch:rl-actor-critic}章}{“演员--评论家与优势估计”一章}计算优势和固定价值标签。随后打乱当前批次进行有限轮小批量更新，概率比用 $\exp(\log\pi_\theta-\log\pi_{\rm old})$ 计算；一轮内旧概率与优势不随新参数重算。最后丢弃或退出该批次，重新采样。
 
 若采用损失最小化，可写成 $-L^{\rm clip}+c_vL_V-c_e\widehat{\mathbb E}\mathcal H(\pi_\theta)$，其中 $L_V$ 是价值回归损失，$c_v,c_e\geq0$。这些附加项及是否共享参数必须记录。均匀时间步批次是常见实现选择，与严格折扣占用加权目标的差别仍应明确。KL 惩罚版本以额外 KL 项控制更新，与剪切版本是不同目标。
 
@@ -1137,6 +1269,11 @@ L^{\rm clip}(\theta)=\widehat{\mathbb E}_t
 \item 固定采样预算，比较内层更新轮数与剪切范围；检查旧概率保存、GAE 掩码和评价规则，再解释实验结果。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{17}
+\ifcompilechapter
 \chapter{连续控制与最大熵强化学习}
 \label{ch:rl-continuous}
 
@@ -1203,12 +1340,20 @@ y=r+\gamma(1-d)\left[\min_jQ_{w_j^-}(s',a')-\eta\log\pi_\theta(a'\mid s')\right]
 \item 在低维连续控制中比较 TD3 与 SAC，统一动作范围、奖励尺度、交互预算及评价规则，并分别记录采样和梯度更新成本。
 \end{enumerate}
 
+
+\fi
+\ifcompileallchapters
 \part{进阶专题与综合实践}
 
+
+\fi
+
+\selectchapter{18}
+\ifcompilechapter
 \chapter{深度模型学习与模型预测控制}
 \label{ch:rl-deep-model}
 
-本章将第~\ref{ch:rl-planning} 章的模型思想推广到连续和高维状态，承接函数近似与优化知识，重点讨论动力学预测、模型预测控制和模拟数据的使用。理论分析以简单误差递推为限，学习目标是解释预测误差如何影响规划，并通过真实环境验证决策效果。一个模型不必在所有输入上精确，才能支持有用规划；但平均预测误差很小也不保证决策可靠，因为规划可能专门利用其少数错误区域。
+本章将\crosschapterref{11}{第~\ref{ch:rl-planning} 章}{“模型学习与规划”一章}的模型思想推广到连续和高维状态，承接函数近似与优化知识，重点讨论动力学预测、模型预测控制和模拟数据的使用。理论分析以简单误差递推为限，学习目标是解释预测误差如何影响规划，并通过真实环境验证决策效果。一个模型不必在所有输入上精确，才能支持有用规划；但平均预测误差很小也不保证决策可靠，因为规划可能专门利用其少数错误区域。
 
 \section{参数化动力学与奖励模型}
 
@@ -1247,6 +1392,11 @@ y=r+\gamma(1-d)\left[\min_jQ_{w_j^-}(s',a')-\eta\log\pi_\theta(a'\mid s')\right]
 \item 构造训练分布下误差很小、在优化器偏爱的动作区域却错误的模型，说明平均验证损失为什么不足以决定规划可靠性。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{19}
+\ifcompilechapter
 \chapter{探索、奖励设计与约束决策}
 \label{ch:rl-exploration}
 
@@ -1297,6 +1447,11 @@ $\varepsilon$-贪心每步独立随机化，在需要连续采取特定动作的
 \item 设计带危险区域的网格，分别测试辅助探索奖励、势函数塑形和成本约束，报告原任务回报与成本，避免把三种机制混为同一个改动。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{20}
+\ifcompilechapter
 \chapter{部分可观测决策}
 \label{ch:rl-pomdp}
 
@@ -1338,6 +1493,11 @@ b_{t+1}(s')=
 \item 设计开始时显示一次线索、若干步后才要求选择的环境，比较无记忆、固定窗口和循环策略；用完整状态策略作为信息充足的参照。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{21}
+\ifcompilechapter
 \chapter{分层强化学习与时间抽象}
 \label{ch:rl-hierarchy}
 
@@ -1375,6 +1535,11 @@ q_\nu(s,o)=\mathbb E\!\left[\sum_{k=0}^{K-1}\gamma^kR_{k+1}
 \item 在多房间环境比较原始动作控制与固定技能高层控制，同时统计成功率、原始交互步数和高层决策次数，不把不同时间尺度的“步数”直接比较。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{22}
+\ifcompilechapter
 \chapter{模仿学习与离线强化学习}
 \label{ch:rl-offline}
 
@@ -1414,7 +1579,7 @@ L_{\rm BC}(\theta)=-\frac1{|\mathcal D_E|}\sum_{(s,a)\in\mathcal D_E}\log\pi_\th
 
 \section{逆强化学习与偏好反馈}
 
-逆强化学习（inverse reinforcement learning）从示范推断解释行为的奖励。奖励通常不可唯一辨认：第\ref{ch:rl-exploration}章的势函数塑形就给出不同奖励但相同最优策略的情况。恢复某一种奖励需要结构、先验或其他观测条件；能拟合示范不等于恢复了专家唯一的真实目标。
+逆强化学习（inverse reinforcement learning）从示范推断解释行为的奖励。奖励通常不可唯一辨认：\crosschapterref{19}{第\ref{ch:rl-exploration}章}{“探索、奖励设计与约束决策”一章}的势函数塑形就给出不同奖励但相同最优策略的情况。恢复某一种奖励需要结构、先验或其他观测条件；能拟合示范不等于恢复了专家唯一的真实目标。
 
 偏好学习改为观察两条轨迹的比较。若奖励模型给轨迹评分 $U_\psi(\tau)$，一种概率模型为 $\Pr(\tau_1\succ\tau_2)=\sigma(U_\psi(\tau_1)-U_\psi(\tau_2))$，可用比较标签拟合参数。该模型是一项统计假设；之后优化学得评分会改变策略访问的轨迹分布，可能进入比较数据稀少的区域。因此偏好预测、奖励模型和最终策略应分别评价。
 
@@ -1425,6 +1590,11 @@ L_{\rm BC}(\theta)=-\frac1{|\mathcal D_E|}\sum_{(s,a)\in\mathcal D_E}\log\pi_\th
 \item 固定训练数据，比较行为克隆、直接价值学习和一种支持约束方案。按数据质量与覆盖分组报告结果，训练阶段不得额外访问评价环境。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{23}
+\ifcompilechapter
 \chapter{多智能体强化学习}
 \label{ch:rl-multiagent}
 
@@ -1465,6 +1635,11 @@ L_{\rm BC}(\theta)=-\frac1{|\mathcal D_E|}\sum_{(s,a)\in\mathcal D_E}\log\pi_\th
 \item 在合作网格中比较独立评论家和集中评论家，保持执行信息一致，并在新队友组合上评价。训练与测试所用对手集合应分别列明。
 \end{enumerate}
 
+
+\fi
+
+\selectchapter{24}
+\ifcompilechapter
 \chapter{实验方法、综合项目与论文阅读}
 \label{ch:rl-experiments}
 
@@ -1512,8 +1687,13 @@ s_J^2=\frac1{N-1}\sum_i(\widehat J_i-\bar J)^2.
 
 实验报告应能回答：解决了什么问题，比较了什么方法，花费多少数据与计算，评价了哪个策略，结果有多大波动，以及在哪些条件下失效。没有运行的方案应写为实验设计，没有证明的性质应写为假设或待检验解释。由一个小型准确例子出发，逐步扩大复杂性，比从大型任务的单条曲线推断一般规律更有助于建立可靠认识。
 
+
+\fi
 \appendix
 
+
+\selectchapter[1]{25}
+\ifcompilechapter
 \chapter{符号索引与常见概念辨析}
 \label{app:rl-notation}
 
@@ -1533,6 +1713,11 @@ $G_t$ 是从时刻 $t$ 开始的回报，$\gamma$ 为折扣因子；$v_\pi,q_\pi
 
 DP 用已知模型计算期望备份；MC 用完整回报采样且不自举；TD 用一步或多步样本加后继估计；Dyna 将真实更新与模型模拟结合。DQN 以网络近似动作价值；策略梯度直接调节分布参数；演员--评论家用学习型评价信号支持策略梯度。PPO 在新采样批次附近限制替代目标的更新收益，TD3 和 SAC 则大量使用历史回放；SAC 还改变为最大熵目标。比较方法时应同时说明数据、目标、表示、成本和假设，而不是只按名称排序。
 
+
+\fi
+
+\selectchapter[2]{26}
+\ifcompilechapter
 \chapter{算法描述与实现检查约定}
 \label{app:rl-algorithms}
 
@@ -1554,26 +1739,31 @@ DP 用已知模型计算期望备份；MC 用完整回报采样且不自举；TD
 
 记录任务版本、采样与更新预算、随机种子、网络结构、优化器和奖励处理。需要恢复训练时，应同时保存模型、优化器、归一化统计及必要的回放或采样状态。报告完整配置和原始评价结果，使别人能够判断差异来自算法还是实现选择。
 
+
+\fi
+
+\selectchapter[3]{27}
+\ifcompilechapter
 \chapter{部分习题解答与进一步学习}
 \label{app:rl-exercises}
 
 \section{基础计算题解答}
 
-第\ref{ch:rl-introduction}章的路线阈值由 $-1+5\gamma=2$ 得 $\gamma=3/5$；低于阈值选立即奖励，高于阈值选延迟路线，等号时并列。若第二步以概率 $0.8$ 得 $5$，期望奖励为 $4$，阈值变为 $3/4$。两者比较的都是期望折扣回报。
+\crosschapterref{1}{第\ref{ch:rl-introduction}章}{“绪论”一章}的路线阈值由 $-1+5\gamma=2$ 得 $\gamma=3/5$；低于阈值选立即奖励，高于阈值选延迟路线，等号时并列。若第二步以概率 $0.8$ 得 $5$，期望奖励为 $4$，阈值变为 $3/4$。两者比较的都是期望折扣回报。
 
-第\ref{ch:rl-math}章奖励序列 $1,5,0,2$ 的均值依次为 $1,3,2,2$；常数步长 $1/2$、初值零时依次为 $0.5,2.75,1.375,1.6875$。霍夫丁界要求 $2e^{-0.02n}\leq0.05$，即 $n\geq\log40/0.02$，取整数 $185$ 足够；这是充分样本量，不宣称必要。第\ref{ch:rl-bandits}章三动作的选择概率为 $(0.1,0.45,0.45)$，伪遗憾题的答案为 $0.2\times200=40$；两个相同连续后验因交换对称性各有 $1/2$ 的选择概率。
+\crosschapterref{2}{第\ref{ch:rl-math}章}{“强化学习所需的数学基础”一章}奖励序列 $1,5,0,2$ 的均值依次为 $1,3,2,2$；常数步长 $1/2$、初值零时依次为 $0.5,2.75,1.375,1.6875$。霍夫丁界要求 $2e^{-0.02n}\leq0.05$，即 $n\geq\log40/0.02$，取整数 $185$ 足够；这是充分样本量，不宣称必要。\crosschapterref{3}{第\ref{ch:rl-bandits}章}{“多臂赌博机与探索利用”一章}三动作的选择概率为 $(0.1,0.45,0.45)$，伪遗憾题的答案为 $0.2\times200=40$；两个相同连续后验因交换对称性各有 $1/2$ 的选择概率。
 
-第\ref{ch:rl-mdp}章可取 $\Pr(T=n)=1/[n(n+1)]$，$n\geq1$。总概率通过裂项求和等于一，而 $\mathbb E[T]=\sum_{n\geq1}1/(n+1)=\infty$。第\ref{ch:rl-bellman}章两状态价值为 $v_2=2/(1-\gamma)$、$v_1=1/[(1-\gamma)(1-\gamma/2)]$；奖励为正且持续时，折扣趋近一使价值发散，不代表平均奖励也发散。
+\crosschapterref{4}{第\ref{ch:rl-mdp}章}{“马尔可夫决策过程”一章}可取 $\Pr(T=n)=1/[n(n+1)]$，$n\geq1$。总概率通过裂项求和等于一，而 $\mathbb E[T]=\sum_{n\geq1}1/(n+1)=\infty$。\crosschapterref{5}{第\ref{ch:rl-bellman}章}{“价值函数与贝尔曼方程”一章}两状态价值为 $v_2=2/(1-\gamma)$、$v_1=1/[(1-\gamma)(1-\gamma/2)]$；奖励为正且持续时，折扣趋近一使价值发散，不代表平均奖励也发散。
 
-第\ref{ch:rl-dp}章的一状态价值误差为 $20(0.9)^k$，小于 $0.1$ 需要 $k>\log(0.005)/\log(0.9)$，故 $k=51$ 次足够。贪心策略从对零表第一次比较动作时就已选对。第\ref{ch:rl-mc}章短回合的回报按逆序为 $2,2,1$，故状态 $s$ 的首次访问估计为 $1$，每次访问估计为 $1.5$。
+\crosschapterref{6}{第\ref{ch:rl-dp}章}{“动态规划”一章}的一状态价值误差为 $20(0.9)^k$，小于 $0.1$ 需要 $k>\log(0.005)/\log(0.9)$，故 $k=51$ 次足够。贪心策略从对零表第一次比较动作时就已选对。\crosschapterref{7}{第\ref{ch:rl-mc}章}{“蒙特卡洛方法”一章}短回合的回报按逆序为 $2,2,1$，故状态 $s$ 的首次访问估计为 $1$，每次访问估计为 $1.5$。
 
 \section{算法计算题解答}
 
-第\ref{ch:rl-td}章若 Sarsa 的下一动作改为价值 $4$ 的动作，其目标变为 $4.6$，新估计为 $3.16$；Q-learning 与期望 Sarsa 不依赖这次实际抽到哪个后继动作，结果不变。第\ref{ch:rl-multistep}章访问 $s,u,s$ 时，累计迹依次为 $(1,0),(1/2,1),(5/4,1/2)$，替换迹最后为 $(1,1/2)$，其中坐标按 $(s,u)$ 排列。
+\crosschapterref{8}{第\ref{ch:rl-td}章}{“时序差分学习”一章}若 Sarsa 的下一动作改为价值 $4$ 的动作，其目标变为 $4.6$，新估计为 $3.16$；Q-learning 与期望 Sarsa 不依赖这次实际抽到哪个后继动作，结果不变。\crosschapterref{9}{第\ref{ch:rl-multistep}章}{“多步学习与资格迹”一章}访问 $s,u,s$ 时，累计迹依次为 $(1,0),(1/2,1),(5/4,1/2)$，替换迹最后为 $(1,1/2)$，其中坐标按 $(s,u)$ 排列。
 
-第\ref{ch:rl-offpolicy}章目标动作期望为 $0.4\times1+0.6\times3=2.2$；行为加权计算为 $0.8(0.4/0.8)1+0.2(0.6/0.2)3=2.2$。第\ref{ch:rl-approximation}章常数近似在均匀权重下为 $2$，在权重 $(0.9,0.1)$ 下为 $1.2$，均由加权平方损失求导得到。
+\crosschapterref{10}{第\ref{ch:rl-offpolicy}章}{“离策略学习与重要性采样”一章}目标动作期望为 $0.4\times1+0.6\times3=2.2$；行为加权计算为 $0.8(0.4/0.8)1+0.2(0.6/0.2)3=2.2$。\crosschapterref{12}{第\ref{ch:rl-approximation}章}{“价值函数近似”一章}常数近似在均匀权重下为 $2$，在权重 $(0.9,0.1)$ 下为 $1.2$，均由加权平方损失求导得到。
 
-第\ref{ch:rl-actor-critic}章末尾改为截断、后继价值 $0.6$ 后，最后残差为 $1+0.9\times0.6-0.2=1.34$，按时间正序的优势为 $(0.03235,0.383,1.34)$。截断处 $b=1,c=0$。第\ref{ch:rl-continuous}章软最优动作概率为 $(1/4,3/4)$，软价值为 $\log4$；第\ref{ch:rl-pomdp}章连续两次相同观测的左状态后验为 $0.6(0.8)^2/[0.6(0.8)^2+0.4(0.2)^2]=24/25$。
+\crosschapterref{15}{第\ref{ch:rl-actor-critic}章}{“演员--评论家与优势估计”一章}末尾改为截断、后继价值 $0.6$ 后，最后残差为 $1+0.9\times0.6-0.2=1.34$，按时间正序的优势为 $(0.03235,0.383,1.34)$。截断处 $b=1,c=0$。\crosschapterref{17}{第\ref{ch:rl-continuous}章}{“连续控制与最大熵强化学习”一章}软最优动作概率为 $(1/4,3/4)$，软价值为 $\log4$；\crosschapterref{20}{第\ref{ch:rl-pomdp}章}{“部分可观测决策”一章}连续两次相同观测的左状态后验为 $0.6(0.8)^2/[0.6(0.8)^2+0.4(0.2)^2]=24/25$。
 
 \section{证明题与拓展路线}
 
@@ -1581,6 +1771,8 @@ DP 用已知模型计算期望备份；MC 用完整回报采样且不自举；TD
 
 理论方向可继续学习马尔可夫链、鞅与随机逼近、统计学习中的集中界和最优控制；算法方向可深入离策略估计、表示学习、策略优化与模型规划；应用方向应加强任务建模、系统辨识和实验设计。基础教材\cite{sutton-barto}适合系统复习，专题原始论文适合核对具体目标、算法版本和理论条件。阅读进阶文献前，能独立复现一个小问题的精确解与采样近似，是检验基础是否稳固的有效标准。
 
+
+\fi
 \begin{thebibliography}{99}
 \bibitem{sutton-barto}
 Richard S. Sutton and Andrew G. Barto.
