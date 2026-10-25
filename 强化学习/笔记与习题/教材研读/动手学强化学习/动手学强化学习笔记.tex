@@ -13,42 +13,6 @@
 % 列表中含 0 时编译全文。日常只需修改下面这一行。
 \newcommand{\CompileChapter}{0}
 
-% 以下条件由章节列表自动确定，无须手动切换，也无须拆分章节文件。
-\makeatletter
-\@for\notes@chapter:=\CompileChapter\do{%
-    \expandafter\let\csname notes@selected@\number\notes@chapter\endcsname\@empty
-}
-\newif\ifcompileallchapters
-\@ifundefined{notes@selected@0}
-    {\compileallchaptersfalse}
-    {\compileallchapterstrue}
-\newif\ifcompilechapter
-% 可选参数是本章在正文或附录内的序号，必选参数是章节列表中的序号。
-\newcommand{\selectchapter}[2][0]{%
-    \compilechapterfalse
-    \ifcompileallchapters
-        \compilechaptertrue
-    \else
-        \@ifundefined{notes@selected@#2}{}{%
-            \compilechaptertrue
-            \ifnum#1=0\relax
-                \setcounter{chapter}{\numexpr#2-1\relax}%
-            \else
-                \setcounter{chapter}{\numexpr#1-1\relax}%
-            \fi
-        }%
-    \fi
-}
-% 参数依次为目标章号、编号引用、文字指引；目标章入选时保留编号引用。
-\newcommand{\crosschapterref}[3]{%
-    \ifcompileallchapters
-        #2%
-    \else
-        \@ifundefined{notes@selected@#1}{#3}{#2}%
-    \fi
-}
-\makeatother
-
 
 
 
