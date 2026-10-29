@@ -1,0 +1,944 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexart}
+
+% 支持从项目根目录或本文件所在目录编译。
+\makeatletter
+\def\input@path{{../}{../../}{../../../}{../../../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{利普希茨条件笔记}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{利普希茨条件及其应用}
+\label{sec:lipschitz}
+
+\subsection{研究动机与阅读路线}
+\label{subsec:lip-motivation}
+
+连续性描述自变量的小变化能否引起函数值的小变化，但通常不直接给出两者之间的数量关系。
+例如，$f(x)=x$ 与 $g(x)=\sqrt{x}$ 在 $[0,1]$ 上都连续，因而都一致连续；
+不过，当 $x$ 从 $0$ 增加到很小的 $h>0$ 时，前者的增量为 $h$，后者的增量为 $\sqrt h$，
+两者相对于输入增量的放大倍数分别为 $1$ 与 $1/\sqrt h$。后一个倍数在 $h\to0^+$ 时无界。
+如果希望用一个与输入位置无关的常数统一控制误差传播，仅有连续性或一致连续性便不够。
+
+\emph{利普希茨连续性（Lipschitz continuity）}要求输出增量不超过输入增量的固定倍数。
+这个条件既能加强连续性的定性结论，又能给出可直接计算的误差界。
+它在微分方程中用于控制两条解的分离，在迭代方法中用于证明收敛，在优化中用于控制线性或二次近似的余项，
+在神经网络中则用于估计输入扰动对输出的影响。这些用途的共同基础都是对两个点之间的差作统一估计。
+
+本节以文献~\cite{zhihu-intro,zhihu-deep} 的主题为线索重新组织论述，先介绍定义、判别方法及反例，
+再讨论向量映射、微分方程、优化和神经网络。前半部分只需一元微积分与数列极限；
+向量部分使用欧氏范数、矩阵运算和多元微分；涉及几乎处处可微性的地方另行注明测度论背景。
+AutoLip、SeqLip 和自注意力的研究结论依据原始论文~\cite{scaman-virmaux,kim-attention} 核对，
+基础性质和例题则在正文中给出独立推导。
+
+\subsection{定义、最优常数与连续性层次}
+\label{subsec:lip-definition}
+
+\begin{definition}\label{def:lip-scalar}
+设 $E\subseteq\mathbb R$ 非空，$f:E\to\mathbb R$。若存在一个有限常数 $L\ge0$，
+使得对任意 $x,y\in E$ 都有
+\begin{equation}\label{eq:lip-scalar}
+  |f(x)-f(y)|\le L|x-y|,
+\end{equation}
+则称 $f$ 在 $E$ 上满足\emph{利普希茨条件（Lipschitz condition）}，或称 $f$ 在 $E$ 上是
+$L$-Lipschitz 连续的。这样的 $L$ 称为一个 \emph{Lipschitz 常数（Lipschitz constant）}。
+\end{definition}
+
+定义中的量词顺序是
+\[
+  \exists L\ge0,\quad \forall x,y\in E,\quad |f(x)-f(y)|\le L|x-y|.
+\]
+\emph[caution]{同一个 $L$ 必须适用于定义域中的所有点对，不能随着 $x,y$ 改变。}
+若先选定两个不同的点，再取 $L=|f(x)-f(y)|/|x-y|$，只是给这两个点配了一个常数，
+并没有证明函数满足 Lipschitz 条件。定义也依赖于集合 $E$；改变定义域可能改变最优常数，甚至改变是否满足条件。
+
+当 $E$ 至少包含两个点时，定义\emph{最优 Lipschitz 常数}
+\begin{equation}\label{eq:lip-best}
+  \operatorname{Lip}_E(f)
+  :=\sup_{\substack{x,y\in E\\x\ne y}}
+       \frac{|f(x)-f(y)|}{|x-y|}\in[0,+\infty].
+\end{equation}
+若 $E$ 仅含一个点，约定该值为 $0$。当式~\eqref{eq:lip-best} 有限时，它本身就是一个可用常数，
+而全部可用常数恰为 $L\ge\operatorname{Lip}_E(f)$；当它等于 $+\infty$ 时，不存在有限的全局常数。
+最优常数是割线斜率绝对值的上确界，不要求某条割线恰好达到它。
+下文以 $\operatorname{Lip}$ 表示最优值，以 $L$ 表示一个已证明可用的上界。
+
+固定 $x_0\in E$，式~\eqref{eq:lip-scalar} 等价于
+\begin{equation}\label{eq:lip-cone}
+  f(x_0)-L|x-x_0|\le f(x)\le f(x_0)+L|x-x_0|,
+  \qquad x\in E.
+\end{equation}
+因此，图像被限制在以 $(x_0,f(x_0))$ 为顶点的两条折线之间。
+这限制的是增量的相对大小，并不要求函数单调、有界或处处可导。
+例如，$f(x)=x$ 在 $\mathbb R$ 上的最优常数为 $1$，但函数无界；
+全局 Lipschitz 条件只能推出 $|f(x)|\le |f(0)|+L|x|$ 这样的至多线性增长估计。
+
+\begin{proposition}\label{prop:lip-uniform}
+在非空集合 $E\subseteq\mathbb R$ 上，Lipschitz 连续蕴含一致连续，一致连续蕴含连续。
+这两个蕴含一般都不能反向成立。
+\end{proposition}
+
+\begin{proof}
+若 $L>0$，给定 $\varepsilon>0$，取 $\delta=\varepsilon/L$，则任意 $x,y\in E$ 满足
+$|x-y|<\delta$ 时都有 $|f(x)-f(y)|<\varepsilon$。这里 $\delta$ 只依赖于 $\varepsilon$ 和固定的 $L$，
+不依赖于点的位置，所以得到一致连续性。若 $L=0$，函数为常函数，任取 $\delta>0$ 即可。
+一致连续性中的同一个 $\delta$ 可以用于每一个固定点，故进一步得到连续性。
+两个逆命题的反例见以下两例。
+\end{proof}
+
+\begin{example}\label{ex:lip-sqrt}
+证明 $f(x)=\sqrt x$ 在 $[0,1]$ 上一致连续，但不满足 Lipschitz 条件。
+\end{example}
+\begin{solve}
+对 $x\ge y\ge0$，利用
+$\sqrt x-\sqrt y=(x-y)/(\sqrt x+\sqrt y)$ 及 $\sqrt x+\sqrt y\ge\sqrt{x-y}$，可得
+\[
+  |\sqrt x-\sqrt y|\le\sqrt{|x-y|}.
+\]
+交换 $x,y$ 后同样成立。给定 $\varepsilon>0$，取 $\delta=\varepsilon^2$ 即证明一致连续性。
+另一方面，对 $x>0$，
+\[
+  \frac{|\sqrt x-\sqrt0|}{|x-0|}=\frac1{\sqrt x}\longrightarrow+\infty
+  \qquad(x\to0^+),
+\]
+所以最优 Lipschitz 常数为 $+\infty$。问题在于零点附近的相对放大倍数没有统一上界。
+\end{solve}
+
+\begin{example}\label{ex:lip-square-global}
+证明 $f(x)=x^2$ 在 $\mathbb R$ 上连续，但不一致连续；比较它在有界区间上的情形。
+\end{example}
+\begin{solve}
+取 $x_n=n$、$y_n=n+1/n$，则 $|x_n-y_n|=1/n\to0$，但
+$|f(y_n)-f(x_n)|=2+1/n^2\not\to0$，这与一致连续性的定义矛盾。
+在 $[-R,R]$ 上，若 $R>0$，则
+\[
+  |x^2-y^2|=|x+y||x-y|\le2R|x-y|,
+\]
+故限制后的函数是 $2R$-Lipschitz 的。这里失效的是整个实轴上的统一控制，而非每个有界区间上的控制。
+\end{solve}
+
+更一般地，若存在 $C\ge0$ 与 $0<\alpha\le1$，使
+$|f(x)-f(y)|\le C|x-y|^\alpha$，则称 $f$ 是指数为 $\alpha$ 的
+\emph{霍尔德连续函数（Hölder continuous function）}。
+Lipschitz 条件正是 $\alpha=1$ 的情形，例~\ref{ex:lip-sqrt} 给出了 $\alpha=1/2$ 的估计。
+若区间上对某个 $\alpha>1$ 也满足这样的两点估计，则函数只能是常函数：
+把任意 $[x,y]$ 等分成 $n$ 段，用三角不等式得
+\[
+  |f(y)-f(x)|\le nC\left(\frac{|y-x|}{n}\right)^\alpha
+  =C|y-x|^\alpha n^{1-\alpha}\longrightarrow0.
+\]
+这也说明指数的选择具有实际数学含义。
+
+\subsection{导数判别、局部条件与典型反例}
+\label{subsec:lip-derivative}
+
+\begin{theorem}\label{thm:lip-derivative}
+设 $I\subseteq\mathbb R$ 是含有至少两个点的区间，$f$ 在 $I$ 上连续，在其内部 $I^\circ$ 上可导。
+则对给定的 $L\ge0$，$f$ 在 $I$ 上是 $L$-Lipschitz 的，当且仅当
+$|f'(x)|\le L$ 对所有 $x\in I^\circ$ 成立。因此，在允许取值 $+\infty$ 的意义下，
+\begin{equation}\label{eq:lip-derivative}
+  \operatorname{Lip}_I(f)=\sup_{x\in I^\circ}|f'(x)|.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+若导数满足上述界，任取 $x<y$ 且 $x,y\in I$，$f$ 在 $[x,y]$ 上连续、在 $(x,y)$ 上可导。
+由拉格朗日中值定理，存在 $\xi\in(x,y)$ 使
+$f(y)-f(x)=f'(\xi)(y-x)$，故 $|f(y)-f(x)|\le L|y-x|$。
+反之，若满足 Lipschitz 条件，对每个内部点 $x$ 及充分小的非零 $h$，
+\[
+  \left|\frac{f(x+h)-f(x)}{h}\right|\le L.
+\]
+令 $h\to0$ 得 $|f'(x)|\le L$。前后两种估计分别给出式~\eqref{eq:lip-derivative} 的两个方向；
+若导数无界，则不存在有限 Lipschitz 常数。
+\end{proof}
+
+此处不要求 $f'$ 连续。区间条件保证任意两点之间的整条线段仍在定义域内，
+端点连续性则保证中值定理适用；这两个条件都不能在使用时悄悄略去。
+例如，在 $E=(-1,0)\cup(0,1)$ 上令 $f$ 在左半区间恒为 $0$、在右半区间恒为 $1$，
+则各点导数都为 $0$，但取 $x=-t$、$y=t$ 时割线比值为 $1/(2t)$，故 $f$ 在 $E$ 上不满足 Lipschitz 条件。
+
+\begin{example}\label{ex:lip-constants}
+求 $f(x)=x^2$ 在 $[-3,7]$ 上、$g(x)=\sqrt{x^2+5}$ 在 $\mathbb R$ 上，以及
+$h(x)=ax+b$ 在 $\mathbb R$ 上的最优 Lipschitz 常数，其中 $a,b\in\mathbb R$。
+\end{example}
+\begin{solve}
+三者分别有导数 $2x$、$x/\sqrt{x^2+5}$ 和 $a$，由定理~\ref{thm:lip-derivative} 得
+\[
+  \operatorname{Lip}_{[-3,7]}(f)=14,\qquad
+  \operatorname{Lip}_{\mathbb R}(g)=1,\qquad
+  \operatorname{Lip}_{\mathbb R}(h)=|a|.
+\]
+第一项虽然在内部点处导数绝对值小于 $14$，但令 $x\to7^-$ 就能任意接近 $14$；
+第二项的导数绝对值在每个有限点也严格小于 $1$，其上确界在 $|x|\to\infty$ 时逼近。
+第三项必须取 $|a|$，不能在允许负斜率时直接写成 $a$。平移常数 $b$ 在两点差中抵消，不影响最优常数。
+\end{solve}
+
+\begin{definition}\label{def:lip-local}
+设 $E\subseteq\mathbb R$ 非空。若对每个 $x_0\in E$，都存在 $r>0$ 和有限常数 $L_{x_0}\ge0$，
+使得
+\[
+  |f(x)-f(y)|\le L_{x_0}|x-y|,
+  \qquad x,y\in E\cap(x_0-r,x_0+r),
+\]
+则称 $f$ 在 $E$ 上\emph{局部 Lipschitz 连续（locally Lipschitz continuous）}。
+与此相对，定义~\ref{def:lip-scalar} 中的条件也称为在 $E$ 上全局 Lipschitz 连续。
+\end{definition}
+
+局部条件允许邻域和常数依赖于中心 $x_0$，但在选定的邻域中仍须控制所有点对。
+例如，$x^2$ 和 $e^x$ 在 $\mathbb R$ 上都局部 Lipschitz，却都不全局 Lipschitz；
+$\sqrt x$ 在 $(0,+\infty)$ 上局部 Lipschitz，但在包含零点的 $[0,1]$ 上并不局部 Lipschitz。
+任何开区间上的 $C^1$ 函数都局部 Lipschitz，因为连续导数在每个足够小的闭邻域上有界。
+然而，仅仅处处可导并不足以推出局部 Lipschitz。
+
+\begin{example}\label{ex:lip-differentiable-not-local}
+令
+\[
+  f(x)=
+  \begin{cases}
+    x^2\sin(1/x^2),&x\ne0,\\
+    0,&x=0.
+  \end{cases}
+\]
+证明 $f$ 处处可导，但在零点附近不满足局部 Lipschitz 条件。
+\end{example}
+\begin{solve}
+由 $f(h)/h=h\sin(1/h^2)\to0$ 得 $f'(0)=0$。对 $x\ne0$，
+\[
+  f'(x)=2x\sin(1/x^2)-\frac2x\cos(1/x^2).
+\]
+取 $x_n=(2\pi n)^{-1/2}$，有 $f'(x_n)=-2/x_n\to-\infty$，
+故导数在零点的每个邻域内都无界。根据定理~\ref{thm:lip-derivative}，该函数不可能在这些邻域上 Lipschitz。
+虽然 $|x|\le1$ 时有 $|f(x)-f(0)|\le|x|^2\le|x|$，
+这只控制了与固定点 $0$ 的差，不能替代邻域内任意两个点之间的估计。
+\end{solve}
+
+反过来，Lipschitz 连续也不保证处处可导。由三角不等式，
+$\bigl||x|-|y|\bigr|\le|x-y|$，所以 $|x|$ 在 $\mathbb R$ 上是 $1$-Lipschitz 的，
+但它在 $0$ 的左右导数分别为 $-1$ 与 $1$。
+正确的更深结论是\emph{拉德马赫定理（Rademacher's theorem）}：
+开集 $U\subseteq\mathbb R^n$ 上的局部 Lipschitz 映射 $F:U\to\mathbb R^m$ 几乎处处可微，
+即不可微点组成的集合具有零勒贝格测度。这里的“几乎处处”不能删去，也不表示例外点必为有限个或可数个；
+该定理的证明超出本节的一元微积分基础，可参阅文献~\cite{rademacher-notes}。
+
+\subsection{向量映射、范数和双利普希茨条件}
+\label{subsec:lip-vector}
+
+对 $x=(x_1,\ldots,x_n)^\top\in\mathbb R^n$，记
+$\|x\|_p=(\sum_i|x_i|^p)^{1/p}$（$1\le p<+\infty$）、
+$\|x\|_\infty=\max_i|x_i|$；其中 $p=2$ 给出欧氏范数，
+对应的欧氏内积为 $\langle x,y\rangle=x^\top y$。
+以下除另有说明外使用欧氏范数。对于非空集合 $E\subseteq\mathbb R^n$ 及映射
+$F:E\to\mathbb R^m$，定义
+\begin{equation}\label{eq:lip-vector}
+  \|F(x)-F(y)\|_2\le L\|x-y\|_2,\qquad x,y\in E.
+\end{equation}
+对应的最优常数记为 $\operatorname{Lip}_E(F)$；若使用一般的向量 $p$-范数，则记为
+$\operatorname{Lip}_{p,E}(F)$。输入和输出空间可以具有不同维度，但必须说明各自采用的范数。
+
+对矩阵 $A\in\mathbb R^{m\times n}$，其\emph{诱导算子范数（induced operator norm）}定义为
+\[
+  \|A\|_{p\to p}:=\sup_{v\ne0}\frac{\|Av\|_p}{\|v\|_p}.
+\]
+同一 $p$ 范数下简记为 $\|A\|_p$。由定义及取 $x-y=v$ 可得
+\begin{equation}\label{eq:lip-affine}
+  \operatorname{Lip}_p(x\mapsto Ax+b)=\|A\|_p.
+\end{equation}
+特别地，$\|A\|_2=\sqrt{\lambda_{\max}(A^\top A)}$ 是最大奇异值，也称\emph{谱范数（spectral norm）}，
+而 $\|A\|_\infty=\max_i\sum_j|A_{ij}|$ 是各行绝对值之和的最大值。
+前一公式来自瑞利商；后一公式的上界由三角不等式给出，下界则对达到最大行和的那一行取相应的符号向量得到。
+矩阵的二范数不能与 $\|A\|_{\mathrm F}=(\sum_{i,j}A_{ij}^2)^{1/2}$ 混淆，后者称为
+\emph{弗罗贝尼乌斯范数（Frobenius norm）}。
+
+\begin{theorem}\label{thm:lip-jacobian}
+设 $U\subseteq\mathbb R^n$ 是非空开凸集，$F:U\to\mathbb R^m$ 连续可微。
+记 $J_F(x)=(\partial F_i/\partial x_j)\in\mathbb R^{m\times n}$ 为
+\emph{雅可比矩阵（Jacobian matrix）}，则
+\begin{equation}\label{eq:lip-jacobian}
+  \operatorname{Lip}_{p,U}(F)=\sup_{x\in U}\|J_F(x)\|_p,
+\end{equation}
+其中等式两侧都允许为 $+\infty$。
+\end{theorem}
+\begin{proof}
+设右侧上确界为有限的 $M$。任取 $x,y\in U$，凸性保证线段留在 $U$ 中。
+对各分量使用微积分基本定理，得到
+\[
+  F(y)-F(x)=\int_0^1J_F(x+t(y-x))(y-x)\,\mathrm dt.
+\]
+取范数后用积分三角不等式，得 $\|F(y)-F(x)\|_p\le M\|y-x\|_p$。
+反之，若 $L$ 是可用 Lipschitz 常数，对 $x\in U$ 和任意单位向量 $v$，
+利用开集条件令 $t\to0$，得到
+\[
+  \|J_F(x)v\|_p
+  =\lim_{t\to0}\left\|\frac{F(x+tv)-F(x)}t\right\|_p\le L.
+\]
+再对 $v$、$x$ 分别取上确界即可。若右侧无界，后一论证排除了任何有限的 $L$。
+\end{proof}
+
+在凸集上应用导数界时，需要控制整条连接线段上的导数，而不能只检查端点。
+当 $F$ 只有局部 Lipschitz 正则性时，雅可比矩阵未必处处存在；
+在非空开凸集上仍有
+$\operatorname{Lip}_{p,U}(F)=\operatorname*{ess\,sup}_{x\in U}\|J_F(x)\|_p$，
+其中 $\operatorname*{ess\,sup}$ 是忽略零测集后的\emph{本质上确界（essential supremum）}。
+这一推广依赖绝对连续性和测度论，此处只陈述结论；对下面的光滑函数和有限分段线性网络，
+可以分别使用定理~\ref{thm:lip-jacobian} 及沿线段分段估计来避免调用它。
+
+\begin{definition}\label{def:lip-bilipschitz}
+若存在 $0<c\le C<+\infty$，使映射 $F:E\to\mathbb R^m$ 满足
+\begin{equation}\label{eq:lip-bilipschitz}
+  c\|x-y\|_2\le\|F(x)-F(y)\|_2\le C\|x-y\|_2,\qquad x,y\in E,
+\end{equation}
+则称 $F$ 是\emph{双利普希茨映射（bi-Lipschitz map）}。
+\end{definition}
+
+上界限制距离被放大的程度，下界限制距离被压缩的程度。
+下界保证单射，并在像集 $F(E)$ 上给出
+$\|F^{-1}(u)-F^{-1}(v)\|_2\le c^{-1}\|u-v\|_2$。
+因此，双 Lipschitz 等价于映射本身 Lipschitz、单射且在其像集上的逆映射也 Lipschitz。
+取 $L=\max\{C,c^{-1},1\}$，也可把两端常数写成 $L^{-1}$ 与 $L$；
+定义不要求 $F(E)=\mathbb R^m$。
+例如，$x\mapsto x^3$ 在 $[-1,1]$ 上可逆且为 $3$-Lipschitz，
+但 $|x^3|/|x|=x^2\to0$，故不是双 Lipschitz；
+可逆性本身不保证逆映射对误差稳定。
+
+\subsection{常数的运算法则与误差传播}
+\label{subsec:lip-calculus}
+
+\begin{proposition}\label{prop:lip-calculus}
+设 $F,G$ 在同一集合上取值于同一赋范向量空间，分别具有 Lipschitz 常数 $L_F,L_G$，
+$a,b\in\mathbb R$。则 $aF+bG$ 可取常数 $|a|L_F+|b|L_G$。
+若 $G:E\to D$、$F:D\to H$ 是可复合的 Lipschitz 映射，则
+\begin{equation}\label{eq:lip-composition}
+  \operatorname{Lip}(F\circ G)\le\operatorname{Lip}(F)\operatorname{Lip}(G),
+\end{equation}
+其中中间空间 $D$ 在两个条件中须使用同一范数。
+若实值函数 $f,g$ 另外满足 $|f|\le M_f$、$|g|\le M_g$，则 $fg$ 可取常数
+$M_fL_g+M_gL_f$。
+\end{proposition}
+\begin{proof}
+和与数乘的结论直接来自三角不等式。复合映射满足
+\[
+  \|F(G(x))-F(G(y))\|
+  \le L_F\|G(x)-G(y)\|\le L_FL_G\|x-y\|.
+\]
+乘积则利用
+$f(x)g(x)-f(y)g(y)=f(x)(g(x)-g(y))+g(y)(f(x)-f(y))$，
+分别估计两项即可。
+\end{proof}
+
+乘积法则中的有界性不能随意删去：$f(x)=g(x)=x$ 都在 $\mathbb R$ 上 Lipschitz，
+但它们的乘积 $x^2$ 并不是。若 $F_1,F_2$ 的输出按坐标拼接，且均使用欧氏范数，则
+\[
+  \operatorname{Lip}\bigl(x\mapsto(F_1(x),F_2(x))\bigr)
+  \le\sqrt{L_1^2+L_2^2},
+\]
+因为拼接向量的范数平方等于两部分范数平方之和。
+这些法则提供的是上界，一般不能把不等号改为等号；复合中的方向变化、抵消或定义域限制都可能使实际常数更小。
+
+若实际输入为 $x+e$，并且 $x,x+e\in E$，则
+$\|F(x+e)-F(x)\|\le L\|e\|$。
+这个确定性估计不需要为扰动 $e$ 指定概率分布，但要保证所用的 $L$ 对整个相关区域有效。
+对于分类模型，输出变化小还需要与分类间隔比较：
+设得分映射 $F:E\to\mathbb R^m$ 满足
+$\|F(x)-F(y)\|_\infty\le L\|x-y\|_2$，在 $x$ 处唯一最大得分的类别为 $c$，
+并记间隔 $\gamma=F_c(x)-\max_{j\ne c}F_j(x)>0$。
+则每个 $j\ne c$ 都满足
+\[
+  F_c(x+e)-F_j(x+e)\ge\gamma-2L\|e\|_2.
+\]
+所以当 $L>0$ 且 $\|e\|_2<\gamma/(2L)$ 时，预测类别保持不变。
+这说明鲁棒性保证同时依赖有效常数、所用范数、扰动区域和正的分类间隔。
+
+\subsection{压缩映射、微分方程与可逆残差映射}
+\label{subsec:lip-fixed-point}
+
+当一个自映射的 Lipschitz 常数严格小于 $1$ 时，每次迭代都会按统一比例缩小距离。
+这种映射称为\emph{压缩映射（contraction mapping）}。
+然而，距离变小并不单独保证极限留在定义域内，因此不动点定理还需要完备性。
+下面的距离 $d$ 可以是欧氏距离，也可以是连续函数空间中由一致范数诱导的距离；
+完备性表示每个柯西列都在该空间内有极限。
+
+\begin{theorem}[巴拿赫不动点定理]\label{thm:lip-banach}
+设 $(X,d)$ 为非空完备度量空间，$T:X\to X$ 满足
+$d(Tx,Ty)\le qd(x,y)$，其中 $0<q<1$。
+则 $T$ 有唯一不动点 $x_*$；对任意 $x_0\in X$，
+迭代 $x_{n+1}=T(x_n)$ 收敛到 $x_*$，且
+\begin{equation}\label{eq:lip-contraction-error}
+  d(x_n,x_*)\le\frac{q^n}{1-q}d(x_1,x_0),\qquad n\ge0.
+\end{equation}
+\end{theorem}
+\begin{proof}
+反复使用压缩条件得 $d(x_{n+1},x_n)\le q^n d(x_1,x_0)$。
+因此对 $m>n$，
+\[
+  d(x_m,x_n)\le\sum_{k=n}^{m-1}q^k d(x_1,x_0)
+  \le\frac{q^n}{1-q}d(x_1,x_0)\longrightarrow0.
+\]
+所以 $\{x_n\}$ 是柯西列，由完备性收敛到某个 $x_*\in X$。
+压缩条件保证 $T$ 连续，故 $T(x_*)=\lim_nT(x_n)=\lim_nx_{n+1}=x_*$。
+若 $y_*$ 也是不动点，则 $d(x_*,y_*)\le qd(x_*,y_*)$，由 $q<1$ 得两点相等。
+最后在上述估计中令 $m\to\infty$ 即得误差界。
+\end{proof}
+
+自映射、完备性和 $q<1$ 都有具体作用。例如 $T(x)=x/2$ 把 $(0,1)$ 映入自身且严格压缩，
+但其唯一可能的不动点 $0$ 不在该空间中；$T(x)=x+1$ 在完备空间 $\mathbb R$ 上是 $1$-Lipschitz，
+却没有不动点。因而不能把普通 Lipschitz 条件直接当作压缩条件。
+
+\begin{theorem}[初值问题的局部存在唯一性]\label{thm:lip-picard}
+设 $a,b>0$，$F(t,u)$ 在紧集
+\[
+  R=\{(t,u):|t-t_0|\le a,\ \|u-u_0\|_2\le b\}
+  \subseteq\mathbb R\times\mathbb R^d
+\]
+上连续，并且存在与 $t$ 无关的 $L\ge0$，使得
+\begin{equation}\label{eq:lip-ode-uniform}
+  \|F(t,u)-F(t,v)\|_2\le L\|u-v\|_2,\qquad (t,u),(t,v)\in R.
+\end{equation}
+记 $M=\max_R\|F(t,u)\|_2$。若 $0<h\le a$、$Mh\le b$ 且 $Lh<1$，
+则初值问题
+\[
+  u'(t)=F(t,u(t)),\qquad u(t_0)=u_0
+\]
+在 $J=[t_0-h,t_0+h]$ 上存在唯一一条图像位于 $R$ 内的解。
+\end{theorem}
+\begin{proof}
+在连续函数空间 $C(J,\mathbb R^d)$ 中使用一致范数
+$\|u\|_\infty=\max_{t\in J}\|u(t)\|_2$，取闭集
+$\mathcal S=\{u:\|u-u_0\|_\infty\le b\}$。
+连续函数的一致柯西列一致收敛到连续函数，且闭集包含其极限，故 $\mathcal S$ 完备。
+定义\emph{皮卡迭代算子（Picard iteration operator）}
+\[
+  (\mathcal Tu)(t)=u_0+\int_{t_0}^{t}F(s,u(s))\,\mathrm ds.
+\]
+连续性保证积分有定义；由 $\|(\mathcal Tu)(t)-u_0\|_2\le Mh\le b$，
+知 $\mathcal T$ 把 $\mathcal S$ 映入自身。进一步，由式~\eqref{eq:lip-ode-uniform}，
+\[
+  \|\mathcal Tu-\mathcal Tv\|_\infty\le Lh\|u-v\|_\infty.
+\]
+当 $Lh>0$ 时直接应用定理~\ref{thm:lip-banach}；
+当 $Lh=0$ 时可取任意 $q\in(0,1)$ 作为压缩常数。
+于是 $\mathcal T$ 有唯一不动点。该不动点满足积分方程，
+因被积函数连续，再由微积分基本定理得到所需微分方程及初值。
+反之，任何图像位于 $R$ 内的解积分后都是 $\mathcal T$ 的不动点，故解唯一。
+\end{proof}
+
+上述 Lipschitz 条件只针对状态变量 $u$，同时要求常数在所选时间区间内统一；
+不能把时间 $t$ 和状态变量的角色混写。若 $F$ 关于 $u$ 连续可微且
+$\|\partial F/\partial u\|_2\le L$ 在 $R$ 上成立，则沿状态变量的线段积分即可验证该条件。
+从常值函数 $u^{(0)}(t)=u_0$ 开始，递推
+$u^{(n+1)}=\mathcal Tu^{(n)}$ 就给出了实际的逐次逼近；
+误差由式~\eqref{eq:lip-contraction-error} 在一致范数下控制。
+
+\begin{example}\label{ex:lip-ode-nonunique}
+说明连续右端项为什么不足以保证初值问题的唯一性。
+\end{example}
+\begin{solve}
+考虑 $u'(t)=2\sqrt{|u(t)|}$、$u(0)=0$，并取 $t\ge0$。
+除了恒零解以外，对每个 $c\ge0$，
+\[
+  u_c(t)=
+  \begin{cases}
+    0,&0\le t\le c,\\
+    (t-c)^2,&t>c
+  \end{cases}
+\]
+都满足方程；在拼接点 $c$，左右导数均为 $0$。
+右端项虽然连续，但 $|2\sqrt{|u|}-0|/|u|=2/\sqrt{|u|}$ 在 $u\to0$ 时无界，
+所以局部 Lipschitz 假设不成立。不同解可以先停留在零点，再在不同时间离开。
+\end{solve}
+
+定理~\ref{thm:lip-picard} 是局部结论，不能据此断言解在所有时间都存在。
+例如 $u'=u^2$、$u(0)=1$ 的右端项局部 Lipschitz，但解 $u(t)=1/(1-t)$ 在 $t\to1^-$ 时发散。
+此外，Lipschitz 条件是上述存在唯一性定理的充分条件，缺少它只意味着不能使用该定理，
+并不能对所有方程一概断言解不唯一。
+
+\begin{proposition}\label{prop:lip-residual}
+若 $g:\mathbb R^d\to\mathbb R^d$ 的 Lipschitz 常数不超过 $q$，其中 $0\le q<1$，则
+\emph{残差映射（residual map）} $R(x)=x+g(x)$ 是 $\mathbb R^d$ 到自身的双射，并满足
+\begin{equation}\label{eq:lip-residual}
+  (1-q)\|x-y\|_2\le\|R(x)-R(y)\|_2\le(1+q)\|x-y\|_2.
+\end{equation}
+其逆映射的 Lipschitz 常数不超过 $(1-q)^{-1}$。
+\end{proposition}
+\begin{proof}
+两侧估计分别来自逆三角不等式与三角不等式，下界又保证单射。
+为证满射，固定任意 $z\in\mathbb R^d$，求 $R(x)=z$ 等价于求 $x=z-g(x)$。
+映射 $x\mapsto z-g(x)$ 是完备空间 $\mathbb R^d$ 上的压缩映射，
+故存在唯一解。逆映射的常数界由式~\eqref{eq:lip-residual} 的下界直接得到。
+\end{proof}
+
+这也给出求逆算法 $x_{n+1}=z-g(x_n)$。对 $n\ge0$，
+$\|x_n-R^{-1}(z)\|_2\le\|x_{n+1}-x_n\|_2/(1-q)$，
+因为从 $x_n$ 起的全部相邻增量由几何级数控制。
+因此，相邻迭代差不超过 $(1-q)\varepsilon$ 可作为误差不超过 $\varepsilon$ 的停止依据。
+这里讨论的是精确运算；数值舍入误差需在实现时另行考虑。
+
+\subsection{梯度与 Hessian 矩阵的 Lipschitz 条件}
+\label{subsec:lip-smooth}
+
+对于实值函数 $f:U\subseteq\mathbb R^n\to\mathbb R$，\emph{梯度（gradient）}
+$\nabla f(x)\in\mathbb R^n$ 由一阶偏导数组成，\emph{海森矩阵（Hessian matrix）}
+$\nabla^2 f(x)\in\mathbb R^{n\times n}$ 由二阶偏导数组成。
+函数值的 Lipschitz 条件、\emph{梯度 Lipschitz 连续（Lipschitz continuous gradient）}与
+\emph{Hessian Lipschitz 连续（Lipschitz continuous Hessian）}控制不同层次的增量，
+不能不加条件地互相替换。以下设 $U$ 是非空开凸集，向量使用欧氏范数，矩阵使用谱范数。
+
+若 $f$ 可微且
+\begin{equation}\label{eq:lip-gradient}
+  \|\nabla f(x)-\nabla f(y)\|_2\le L\|x-y\|_2,\qquad x,y\in U,
+\end{equation}
+则称梯度是 $L$-Lipschitz 的，在优化文献中也称 $f$ 为
+\emph{$L$-光滑函数（$L$-smooth function）}。
+这里的“光滑”是特定术语，不要求函数无穷次可微，也不自动包含凸性。
+若 $f\in C^2(U)$，由定理~\ref{thm:lip-jacobian}，
+式~\eqref{eq:lip-gradient} 等价于 $\|\nabla^2f(x)\|_2\le L$ 对所有 $x\in U$ 成立。
+
+\begin{theorem}[一阶近似的二次余项界]\label{thm:lip-descent}
+若 $f$ 满足式~\eqref{eq:lip-gradient}，则对任意 $x,y\in U$，
+\begin{equation}\label{eq:lip-descent}
+  |f(y)-f(x)-\langle\nabla f(x),y-x\rangle|
+  \le\frac L2\|y-x\|_2^2.
+\end{equation}
+\end{theorem}
+\begin{proof}
+令 $h=y-x$。Lipschitz 梯度连续，故可沿线段使用微积分基本定理：
+\[
+  f(x+h)-f(x)-\langle\nabla f(x),h\rangle
+  =\int_0^1\langle\nabla f(x+th)-\nabla f(x),h\rangle\,\mathrm dt.
+\]
+依次使用积分三角不等式、柯西--施瓦茨不等式和梯度的 Lipschitz 界，得
+\[
+  \left|\int_0^1\langle\nabla f(x+th)-\nabla f(x),h\rangle\,\mathrm dt\right|
+  \le\int_0^1Lt\|h\|_2^2\,\mathrm dt=\frac L2\|h\|_2^2.
+\]
+\end{proof}
+
+式~\eqref{eq:lip-descent} 表示 $f(y)$ 被以一阶泰勒式为中心的两个二次模型夹住。
+若额外假设 $f$ 凸，下界可以加强为 $f(y)\ge f(x)+\langle\nabla f(x),y-x\rangle$；
+没有凸性时，只能使用带有 $-L\|y-x\|_2^2/2$ 的下界。
+例如 $f(x)=-x^2$ 的梯度为 $2$-Lipschitz，但它是凹函数，足以说明梯度条件不蕴含凸性。
+
+\begin{example}\label{ex:lip-gradient-step}
+设 $f:\mathbb R^n\to\mathbb R$ 的梯度为 $L$-Lipschitz，$L>0$。
+对梯度下降一步 $x_+=x-\eta\nabla f(x)$，求保证函数值下降的步长范围。
+\end{example}
+\begin{solve}
+将 $y=x_+$ 代入式~\eqref{eq:lip-descent} 的上界得
+\begin{equation}\label{eq:lip-gradient-step}
+  f(x_+)\le f(x)-\eta\left(1-\frac{L\eta}{2}\right)\|\nabla f(x)\|_2^2.
+\end{equation}
+因此 $0<\eta<2/L$ 时，只要梯度非零，就有严格下降；常用选择 $\eta=1/L$ 给出
+$f(x_+)\le f(x)-\|\nabla f(x)\|_2^2/(2L)$。
+这是单步下降保证，本身不保证存在全局最小点，也不保证迭代收敛到全局最优解。
+若连续使用固定步长 $\eta\in(0,2/L)$ 且 $f$ 有有限下界，
+将式~\eqref{eq:lip-gradient-step} 从第 $0$ 步加到第 $N$ 步可得
+$\sum_{k=0}^{\infty}\|\nabla f(x_k)\|_2^2<+\infty$，故梯度趋于零；
+即使如此，迭代点本身是否收敛仍需额外分析。
+\end{solve}
+
+\begin{theorem}[二阶近似的三次余项界]\label{thm:lip-hessian}
+设 $f\in C^2(U)$，且存在 $\rho\ge0$ 使
+\begin{equation}\label{eq:lip-hessian}
+  \|\nabla^2 f(x)-\nabla^2 f(y)\|_2\le\rho\|x-y\|_2,\qquad x,y\in U.
+\end{equation}
+则令 $h=y-x$，有
+\begin{align}
+  \|\nabla f(y)-\nabla f(x)-\nabla^2 f(x)h\|_2
+  &\le\frac{\rho}{2}\|h\|_2^2,\label{eq:lip-gradient-remainder}\\
+  \left|f(y)-f(x)-\langle\nabla f(x),h\rangle
+    -\frac12h^\top\nabla^2 f(x)h\right|
+  &\le\frac{\rho}{6}\|h\|_2^3.\label{eq:lip-cubic-remainder}
+\end{align}
+\end{theorem}
+\begin{proof}
+沿线段对梯度积分，减去固定的线性项后得
+\[
+  \nabla f(x+h)-\nabla f(x)-\nabla^2f(x)h
+  =\int_0^1[\nabla^2f(x+th)-\nabla^2f(x)]h\,\mathrm dt.
+\]
+取范数并积分 $\rho t\|h\|_2^2$ 即得式~\eqref{eq:lip-gradient-remainder}。
+对标量函数 $\psi(t)=f(x+th)$ 连续积分两次，得到
+\[
+  f(x+h)=f(x)+\langle\nabla f(x),h\rangle
+  +\int_0^1(1-t)h^\top\nabla^2f(x+th)h\,\mathrm dt.
+\]
+减去 $\tfrac12h^\top\nabla^2f(x)h$，再用
+$|h^\top Ah|\le\|A\|_2\|h\|_2^2$，余项绝对值不超过
+\[
+  \rho\|h\|_2^3\int_0^1t(1-t)\,\mathrm dt
+  =\frac{\rho}{6}\|h\|_2^3.
+\]
+\end{proof}
+
+上述结论无需假设三阶导数存在。三个层次分别给出关于 $\|h\|$ 的一次增量界、二次余项界和三次余项界。
+“三次界”应理解为用三次方的范数控制余项；在多维情形下，$\|h\|_2^3$ 本身通常不是坐标的三次多项式。
+尤其不能把这些条件排成无条件的强弱链：$f(x)=x^2$ 在 $\mathbb R$ 上不是 Lipschitz，
+其导数却是 $2$-Lipschitz，二阶导数更是常函数；
+$f(x)=x^3$ 的二阶导数 $6x$ 为 $6$-Lipschitz，但一阶导数 $3x^2$ 并不全局 Lipschitz。
+
+反方向也不成立。记 $\operatorname{sgn}(x)$ 为符号函数，正数、零、负数处分别取 $1,0,-1$。
+对 $f(x)=|x|^{3/2}$、$x\in[-1,1]$，导数
+$f'(x)=\tfrac32\operatorname{sgn}(x)\sqrt{|x|}$（$f'(0)=0$）有界，
+故 $f$ 是 Lipschitz 的，但 $|f'(h)-f'(0)|/|h|=\tfrac32|h|^{-1/2}$ 无界，
+所以梯度不 Lipschitz。类似地，$g(x)=|x|^{5/2}$ 的二阶导数
+$g''(x)=\tfrac{15}{4}\sqrt{|x|}$ 在 $[-1,1]$ 上连续有界，故其梯度 Lipschitz，
+而 Hessian 在零点附近不 Lipschitz。
+
+\subsection{多层感知机的 Lipschitz 上界}
+\label{subsec:lip-mlp}
+
+\emph{多层感知机（multilayer perceptron，MLP）}可以写成仿射映射与逐坐标激活函数的复合。
+设层宽为正整数 $n_0,\ldots,n_K$，$K\ge2$，权重与偏置满足
+$W_k\in\mathbb R^{n_k\times n_{k-1}}$、$b_k\in\mathbb R^{n_k}$。定义
+\begin{equation}\label{eq:lip-mlp}
+  h_0(x)=x,\qquad
+  h_k(x)=\rho_k(W_kh_{k-1}(x)+b_k)\ (1\le k<K),\qquad
+  F(x)=W_Kh_{K-1}(x)+b_K.
+\end{equation}
+其中 $\rho_k(z)=(r_k(z_1),\ldots,r_k(z_{n_k}))^\top$，
+$r_k:\mathbb R\to\mathbb R$ 为标量激活函数。
+若 $r_k$ 是 $\ell_k$-Lipschitz 的，则 $\rho_k$ 在欧氏范数下也是 $\ell_k$-Lipschitz，
+因为可以逐坐标估计后将不等式平方求和。
+因此，由式~\eqref{eq:lip-affine} 和式~\eqref{eq:lip-composition}，
+\begin{equation}\label{eq:lip-mlp-product}
+  \operatorname{Lip}(F)
+  \le\left(\prod_{k=1}^{K}\|W_k\|_2\right)
+     \left(\prod_{k=1}^{K-1}\ell_k\right).
+\end{equation}
+这说明固定有限权重、有限层数和全局 Lipschitz 激活函数足以保证整个网络全局 Lipschitz。
+若更换为平方函数等不满足全局条件的激活函数，则不能直接沿用此结论。
+
+常见激活函数的最优标量常数列于表~\ref{tab:lip-activations}。
+\emph{修正线性单元（rectified linear unit，ReLU）}的常数可由其在两侧的斜率 $0,1$ 以及跨越零点的两点差得到，
+其余光滑函数可用定理~\ref{thm:lip-derivative} 计算。
+逐坐标作用到整个向量后，表中常数对各个 $p$-范数仍然适用。
+\begin{table}[htbp]
+  \centering
+  \caption{定义在 $\mathbb R$ 上的常见激活函数及其最优 Lipschitz 常数}
+  \label{tab:lip-activations}
+  \begin{tabular}{lll}
+    \toprule
+    名称 & 标量函数 $r(t)$ & $\operatorname{Lip}_{\mathbb R}(r)$\\
+    \midrule
+    ReLU & $\max\{0,t\}$ & $1$\\
+    Leaky ReLU & $t\ (t\ge0),\ at\ (t<0)$，$a\in\mathbb R$ & $\max\{1,|a|\}$\\
+    Sigmoid & $(1+e^{-t})^{-1}$ & $1/4$\\
+    Tanh & $\tanh t$ & $1$\\
+    Softplus & $\log(1+e^t)$ & $1$\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+例如 Sigmoid 的导数为 $r(t)(1-r(t))\le1/4$，并在 $t=0$ 达到上界。
+把它称为 $1$-Lipschitz 函数没有错，因为 $1$ 是可用上界；
+但把它的最优常数写成 $1$ 就不准确。
+Leaky ReLU 只有在 $|a|\le1$ 时才是 $1$-Lipschitz，
+后面需要激活函数单调不减时还要进一步要求 $a\ge0$。
+
+在各层激活均可微的相应输入点处，链式法则给出
+\begin{equation}\label{eq:lip-mlp-jacobian}
+  J_F(x)=W_KD_{K-1}(x)W_{K-1}\cdots W_2D_1(x)W_1,
+\end{equation}
+其中 $D_k(x)$ 是由该层标量激活导数组成的对角矩阵。
+当所有激活都连续可微时，可结合定理~\ref{thm:lip-jacobian} 对输入取上确界。
+ReLU 网络则是有限分段仿射映射：在具有非空内部的各个仿射区域上计算其线性部分，
+再沿连接两点的线段分段使用估计，也能得到全局上界。
+激活在零点不可导并不使网络失去 Lipschitz 连续性。
+
+\begin{example}\label{ex:lip-mlp-loose}
+设 $\rho$ 为逐坐标 ReLU，$M>1$，令
+\[
+  W_1=\begin{pmatrix}M&0\\0&1\end{pmatrix},\qquad
+  W_2=\begin{pmatrix}1&0\\0&M\end{pmatrix},\qquad
+  F(x)=W_2\rho(W_1x).
+\]
+比较逐层谱范数乘积与网络的最优 Lipschitz 常数。
+\end{example}
+\begin{solve}
+由于 $M>0$，可直接化简为
+$F(x_1,x_2)=M(\max\{0,x_1\},\max\{0,x_2\})^\top$。
+于是 $\operatorname{Lip}(F)\le M$，而在正象限内映射为 $x\mapsto Mx$，故最优值恰为 $M$。
+另一方面，$\|W_1\|_2\|W_2\|_2=M^2$。
+第一层放大最多的方向是第一坐标轴，第二层放大最多的方向是第二坐标轴，
+同一个输入扰动不能同时实现两次最大放大，所以乘积上界比真实值大了 $M$ 倍。
+\end{solve}
+
+偏置不改变单个仿射层的常数，但可以改变哪些激活区域可达，因而可能改变整个非线性网络的最优常数。
+若要通过权重约束控制网络，可将非零 $W$ 替换为
+$\bar W=cW/\|W\|_2$，从而使 $\|\bar W\|_2=c$；
+这称为\emph{谱归一化（spectral normalization）}的一种基本形式。
+对于要求严格认证的上界，应使用可验证的谱范数上界：
+有限次幂迭代产生的 $\|Wv\|_2/\|v\|_2$ 通常只是对最大奇异值的下界或近似值，
+用一个偏小的估计值作分母并不能保证归一化后的实际范数不超过 $c$。
+
+\subsection{AutoLip 与 SeqLip：上界从何而来}
+\label{subsec:lip-estimation}
+
+文献~\cite{scaman-virmaux} 提出的 AutoLip 沿计算图传播变化率上界，
+SeqLip 则进一步利用相邻线性层之间的方向关系。下面给出适合本节分析工具的推导。
+一般网络最优常数的精确计算具有较高复杂性；该文证明某类两层网络的相关计算问题是 NP-hard 的。
+这一研究结果用来说明求严格上界的动机，本节不展开复杂性归约证明，也不把某个启发式优化结果当作精确最优值。
+
+设计算图按依赖顺序排列为
+$z_0(x)=x$、$z_k(x)=g_k(z_0(x),\ldots,z_{k-1}(x))$，$1\le k\le N$。
+如果在覆盖所需中间变量的区域上，有已验证的分变量增量界
+\[
+  \|g_k(u_0,\ldots,u_{k-1})-g_k(v_0,\ldots,v_{k-1})\|
+  \le\sum_{i=0}^{k-1}a_{ki}\|u_i-v_i\|,\qquad a_{ki}\ge0,
+\]
+则可从 $\widehat L_0=1$ 开始，按顺序更新
+\begin{equation}\label{eq:lip-autolip}
+  \widehat L_k=\sum_{i=0}^{k-1}a_{ki}\widehat L_i.
+\end{equation}
+若某节点与输入无关，直接将其常数设为 $0$；未参与 $g_k$ 的变量对应 $a_{ki}=0$。
+数学归纳法证明每个 $\widehat L_k$ 都是节点 $z_k$ 的有效上界，
+输出节点的值就是整个映射的上界。若 $g_k$ 在相关凸的乘积区域内连续可微，
+可用 $\sup\|\partial_i g_k\|$ 作为 $a_{ki}$，沿线段积分验证上述增量界；
+有限样本上的偏导最大值不足以替代全区域上确界。
+在这些局部界已知时，一次按依赖顺序的遍历即可完成传播，标量更新次数与计算图的依赖边数成正比；
+求取各个 $a_{ki}$ 的代价则需另算。
+
+\begin{example}\label{ex:lip-autolip}
+对固定 $\omega\in\mathbb R$，估计
+$f_\omega(x)=\log(1+e^{x/2})+|x/2-\omega\sin x|$ 的全局 Lipschitz 常数。
+\end{example}
+\begin{solve}
+Softplus、正弦函数与绝对值函数都可取常数 $1$，而 $x\mapsto x/2$ 的常数为 $1/2$。
+按复合与求和法则，第一项可取 $1/2$，绝对值内的函数可取 $1/2+|\omega|$，
+所以整个函数可取 $1+|\omega|$。该估计不需要在绝对值的折点处求导，
+也不能在未限制 $\omega\ge0$ 时把 $|\omega|$ 写成 $\omega$。
+\end{solve}
+
+为得到比式~\eqref{eq:lip-mlp-product} 更细的结构上界，现在假设每个标量激活函数均单调不减且为 $1$-Lipschitz。
+对任意两个标量 $s,t$，可写成
+$r_k(s)-r_k(t)=\sigma(s-t)$，其中 $\sigma\in[0,1]$；
+当 $s=t$ 时任选 $\sigma=0$ 即可。将此式逐坐标用于网络的两条前向计算路径，得到
+\[
+  F(x)-F(y)=W_KD_{K-1}W_{K-1}\cdots W_2D_1W_1(x-y),
+  \qquad D_k=\operatorname{diag}(\sigma_k),\quad \sigma_k\in[0,1]^{n_k}.
+\]
+这是真正的两点差公式，不要求激活可导。让所有对角系数独立取遍其允许范围，就有
+\begin{equation}\label{eq:lip-gate-relaxation}
+  \operatorname{Lip}(F)
+  \le \max_{\sigma_k\in[0,1]^{n_k}}
+    \|W_K\operatorname{diag}(\sigma_{K-1})W_{K-1}
+      \cdots W_2\operatorname{diag}(\sigma_1)W_1\|_2.
+\end{equation}
+同一个输入点对未必能同时实现所有这些对角矩阵，因此这里是放宽约束后得到的上界，
+一般不等于原网络的最优常数。
+
+若某个 $W_k=0$，整个网络输出与输入无关，常数为 $0$。
+否则对每个矩阵作\emph{紧致奇异值分解（compact singular value decomposition，compact SVD）}
+$W_k=U_k\Sigma_kV_k^\top$，其中 $\nu_k=\operatorname{rank}(W_k)\ge1$，
+$U_k\in\mathbb R^{n_k\times \nu_k}$、$V_k\in\mathbb R^{n_{k-1}\times \nu_k}$ 的列正交归一，
+$\Sigma_k$ 是 $\nu_k\times \nu_k$ 的正对角矩阵。
+定义
+\[
+  \widetilde\Sigma_k=
+  \begin{cases}
+    \Sigma_k,&k=1\text{ 或 }k=K,\\
+    \Sigma_k^{1/2},&1<k<K,
+  \end{cases}
+  \qquad
+  B_k(\sigma)=\widetilde\Sigma_{k+1}V_{k+1}^\top
+    \operatorname{diag}(\sigma)U_k\widetilde\Sigma_k.
+\]
+每个 $B_k$ 为 $\nu_{k+1}\times \nu_k$ 矩阵。中间层的两个平方根相乘还原为 $\Sigma_k$，
+故式~\eqref{eq:lip-gate-relaxation} 中的矩阵可分解为
+$U_KB_{K-1}\cdots B_1V_1^\top$。由算子范数的次乘性得到 SeqLip 上界
+\begin{equation}\label{eq:lip-seqlip}
+  \operatorname{Lip}(F)\le
+  \widehat L_{\mathrm{SL}}
+  :=\prod_{k=1}^{K-1}\max_{\sigma\in[0,1]^{n_k}}\|B_k(\sigma)\|_2
+  \le\prod_{k=1}^{K}\|W_k\|_2
+  =:\widehat L_{\mathrm{AL}}.
+\end{equation}
+最后一个不等式利用了
+$\|B_k(\sigma)\|_2\le\|\widetilde\Sigma_{k+1}\|_2\|\widetilde\Sigma_k\|_2$；
+把这些界相乘，中间层恰出现两次平方根，端点层各出现一次。
+与逐层乘积相比，此式保留了 $V_{k+1}^\top\operatorname{diag}(\sigma)U_k$ 中的方向关系。
+在例~\ref{ex:lip-mlp-loose} 中，$K=2$，其最大值直接等于 $M$，因而恢复了该例的最优常数。
+
+对单个因子，$\sigma\mapsto\|B_k(\sigma)\|_2$ 是凸函数。
+立方体内每一点都是顶点的凸组合，所以函数值不超过某个顶点处的值，
+最大值可以在 $\{0,1\}^{n_k}$ 上取得。
+因此，给定精确的权重和奇异值分解，穷举 $2^{n_k}$ 个顶点并分别计算谱范数，
+可在有限步内得到该因子的数学最优值；总枚举次数为 $\sum_{k=1}^{K-1}2^{n_k}$，
+每次还需计算一个矩阵的谱范数。这个代价说明宽网络中常需要近似算法，
+但局部上升或随机搜索只给所搜索最大值的下界，不能自动保留式~\eqref{eq:lip-seqlip} 的严格上界保证。
+
+文献~\cite{scaman-virmaux} 还讨论了在相邻层主导奇异方向近似独立均匀、维度很高且非主导奇异值可以忽略时，
+每个连接处出现约 $1/\pi$ 的方向因子。这是带随机模型和谱结构假设的渐近解释，
+不能推出任意已训练的 $K$ 层网络都满足
+$\widehat L_{\mathrm{SL}}\approx\widehat L_{\mathrm{AL}}/\pi^{K-1}$。
+实际应用应以已验证的矩阵界为依据，并把经验估计与数学保证分别报告。
+
+\subsection{自注意力：局部光滑不等于全局 Lipschitz}
+\label{subsec:lip-attention}
+
+\emph{自注意力（self-attention）}与前述 MLP 的一个区别是：用于加权的矩阵本身也依赖于输入。
+设输入由 $N$ 个向量组成，
+$X=(x_1^\top,\ldots,x_N^\top)^\top\in\mathbb R^{N\times D}$，
+取固定参数
+$W^Q,W^K\in\mathbb R^{D\times d}$、$W^V\in\mathbb R^{D\times m}$，
+其中 $N,D,d,m$ 为正整数。无掩码、无偏置的单头点积注意力可写为
+\begin{equation}\label{eq:lip-attention}
+  F(X)=P(X)XW^V,\qquad
+  P(X)=\operatorname{softmax}(XBX^\top),\qquad
+  B=\frac{W^Q(W^K)^\top}{\sqrt d}.
+\end{equation}
+这里的\emph{归一化指数函数（softmax）}按行作用，对 $z\in\mathbb R^N$ 定义
+$s_i(z)=e^{z_i}/\sum_j e^{z_j}$。
+矩阵输入和输出使用 Frobenius 范数，等价于将全部元素排成向量后使用欧氏范数；
+参数矩阵的 $\|\cdot\|_2$ 则仍表示谱范数。
+
+对 $p=s(z)$，直接求导得
+\[
+  J_s(z)=\operatorname{diag}(p)-pp^\top.
+\]
+第 $i$ 行元素绝对值之和为
+$p_i(1-p_i)+\sum_{j\ne i}p_ip_j=2p_i(1-p_i)\le1/2$。
+该矩阵对称，其谱范数不超过最大绝对行和，故 softmax 是全局 $1/2$-Lipschitz 的。
+但这并不能直接推出式~\eqref{eq:lip-attention} 是全局 Lipschitz：
+$X\mapsto XBX^\top$ 是二次映射，且最后还要将依赖于 $X$ 的 $P(X)$ 与 $X$ 相乘。
+不能只看到 softmax 和固定线性层各自有界，就忽略这两处依赖。
+
+\begin{example}\label{ex:lip-attention-counterexample}
+令 $N=2$、$D=d=m=1$，并令三个权重都等于 $1$。
+证明 $F(X)=\operatorname{softmax}(XX^\top)X$ 在 $\mathbb R^2$ 上不全局 Lipschitz。
+\end{example}
+\begin{solve}
+写 $X=(s,t)^\top$。第一行的两个分数分别为 $s^2$、$st$，故第一个输出为
+\[
+  F_1(s,t)=p(s,t)s+(1-p(s,t))t,\qquad
+  p(s,t)=\frac1{1+e^{st-s^2}}.
+\]
+由于 $\partial p/\partial s=p(1-p)(2s-t)$，
+\[
+  \frac{\partial F_1}{\partial s}
+  =p+(s-t)p(1-p)(2s-t),\qquad
+  \frac{\partial F_1}{\partial s}(0,t)=\frac12+\frac{t^2}{4}.
+\]
+如果整个映射存在全局常数 $L$，则只改变输入的第一个坐标并令增量趋零，
+必有 $|\partial F_1/\partial s|\le L$，与上式在 $|t|\to\infty$ 时无界矛盾。
+因此，即使映射处处光滑，也可能不存在覆盖整个无界输入域的有限 Lipschitz 常数。
+\end{solve}
+
+这个反例揭示了文献~\cite{kim-attention} 中点积注意力的核心问题：
+某个查询接近零时，注意力权重本身可以很均匀，但对该查询的微小扰动仍可能被其他大幅输入强烈放大。
+结论涉及无界输入域，并不否认固定参数的注意力映射局部 Lipschitz。
+也不能把它写成“每一组参数都不 Lipschitz”：例如 $W^V=0$ 时输出恒零，
+$B=0$ 时权重为固定平均矩阵，两者都是全局 Lipschitz 的退化情形。
+
+\begin{proposition}\label{prop:lip-attention-bounded}
+对式~\eqref{eq:lip-attention} 中的单头映射，在集合
+$E_R=\{X:\|X\|_{\mathrm F}\le R\}$、$R>0$ 上，可取 Lipschitz 常数
+\begin{equation}\label{eq:lip-attention-bounded}
+  L_R=\bigl(R^2\|B\|_2+\sqrt N\bigr)\|W^V\|_2.
+\end{equation}
+\end{proposition}
+\begin{proof}
+记 $S(X)=XBX^\top$。对扰动矩阵 $H\in\mathbb R^{N\times D}$，
+\[
+  DS(X)[H]=HBX^\top+XBH^\top,\qquad
+  \|DS(X)[H]\|_{\mathrm F}\le2R\|B\|_2\|H\|_{\mathrm F}.
+\]
+按行 softmax 的微分在 Frobenius 范数下仍不超过 $1/2$，
+故 $\|DP(X)[H]\|_{\mathrm F}\le R\|B\|_2\|H\|_{\mathrm F}$。
+又因 $P(X)$ 每行均为概率向量，每行的平方和不超过 $1$，
+所以 $\|P(X)\|_2\le\|P(X)\|_{\mathrm F}\le\sqrt N$。
+对乘积求微分可得
+\[
+  DF(X)[H]=DP(X)[H]XW^V+P(X)HW^V.
+\]
+分别使用 $\|AB\|_{\mathrm F}\le\|A\|_{\mathrm F}\|B\|_2$
+和 $\|AB\|_{\mathrm F}\le\|A\|_2\|B\|_{\mathrm F}$，以及 $\|X\|_2\le R$，
+便得 $\|DF(X)[H]\|_{\mathrm F}\le L_R\|H\|_{\mathrm F}$。
+集合 $E_R$ 为凸集，沿任意两点之间的线段积分即可得到结论。
+\end{proof}
+
+该上界未必最优，但它明确展示了输入半径、序列长度和权重范数的作用。
+如果只在一个有界区域内研究扰动，可以使用这样的区域常数；
+若要求在整个 $\mathbb R^{N\times D}$ 上统一控制，则必须进一步考察结构。
+多头注意力还包含各头输出的拼接与最终线性变换，可在已获得各头有效常数后，
+使用第~\ref{subsec:lip-calculus} 小节的拼接和复合法则组合。
+
+文献~\cite{kim-attention} 提出的一种全局 Lipschitz 构造是
+\emph{基于平方欧氏距离的注意力（$L_2$ self-attention）}。
+为清楚呈现其结构，取单头情形 $W,V\in\mathbb R^{D\times D}$，令
+\begin{equation}\label{eq:lip-l2-attention}
+  A=\frac{WW^\top}{\sqrt D},\qquad
+  P_{ij}(X)=
+  \frac{\exp\!\left(-\|W^\top x_i-W^\top x_j\|_2^2/\sqrt D\right)}
+       {\sum_{\ell=1}^{N}
+        \exp\!\left(-\|W^\top x_i-W^\top x_\ell\|_2^2/\sqrt D\right)},
+  \qquad F_{L_2}(X)=P(X)XAV.
+\end{equation}
+这里查询与键使用同一个 $W$，并在值分支中保留额外的 $A$；
+两处都是该构造的组成部分，不能只替换打分函数便直接套用其定理。
+该论文定理 3.2 的单头特例给出全局上界
+\begin{equation}\label{eq:lip-l2-bound}
+  \operatorname{Lip}(F_{L_2})
+  \le\frac{\sqrt N}{\sqrt D}(4u_N+1)\|W\|_2^2\|V\|_2,
+  \qquad u_Ne^{u_N+1}=N-1,\quad u_N\ge0.
+\end{equation}
+由于 $u\mapsto ue^{u+1}$ 在 $[0,+\infty)$ 上严格递增并覆盖 $[0,+\infty)$，
+$u_N$ 唯一存在，且 $N=1$ 时 $u_N=0$。
+此处引用研究论文的结论，完整证明见其补充材料附录 F；
+它需要对依赖于距离的权重与输入增量联合估计，不能仅靠逐层常数相乘得到。
+共享查询与键参数是这一结论的充分结构条件，
+不应反向解释为所有不共享参数的特殊映射都一定不 Lipschitz。
+
+\subsection{使用条件时的核对顺序与资料说明}
+\label{subsec:lip-reading}
+
+处理一个新的 Lipschitz 问题时，应先写清定义域、输入输出空间和范数，再决定要验证全局条件还是局部条件。
+在一元区间上，可优先尝试直接估计差值或使用有界导数；
+在多元凸域上，可沿线段积分并估计雅可比矩阵的算子范数；
+对复合结构，可传播有效上界，但要保留各层所需的定义域条件。
+如果要证明某个数是最优常数，还需构造逼近该值的点对或导数方向；
+若只获得有限样本或局部优化结果，应把它称为经验估计或下界，不可当作统一上界。
+
+上述例题说明，Lipschitz 函数未必有界，局部 Lipschitz 函数只保证几乎处处可微，
+导数或雅可比判别需要适当的定义域条件，梯度 Lipschitz 不等于函数值 Lipschitz，
+网络的可用常数不等于最优常数，点积注意力在无界域上的反例也不排除有界域上的有效控制。
+这些条件分别对应正文中的证明与反例，可以作为使用相关结论时的核对依据。
+
+\begin{thebibliography}{9}
+\bibitem{zhihu-intro}
+让三分飞一会儿.
+\emph{浅析利普希茨条件（Lipschitz Condition）}.
+知乎专栏，2025-08-13.
+\url{https://zhuanlan.zhihu.com/p/1938980645339652225}.
+
+\bibitem{zhihu-deep}
+科技猛兽.
+\emph{详细解析深度学习中的 Lipschitz 条件}.
+知乎专栏，2021-08-20.
+\url{https://zhuanlan.zhihu.com/p/389024283}.
+
+\bibitem{scaman-virmaux}
+Kevin Scaman and Aladin Virmaux.
+Lipschitz regularity of deep neural networks: analysis and efficient estimation.
+Advances in Neural Information Processing Systems 31, 2018.
+\url{https://arxiv.org/abs/1805.10965}.
+
+\bibitem{kim-attention}
+Hyunjik Kim, George Papamakarios, and Andriy Mnih.
+The Lipschitz Constant of Self-Attention.
+Proceedings of the 38th International Conference on Machine Learning,
+Proceedings of Machine Learning Research, 139:5562--5571, 2021.
+\url{https://proceedings.mlr.press/v139/kim21i.html}.
+
+\bibitem{rademacher-notes}
+Rademacher's Theorem.
+田纳西大学数学系课程讲义.
+\url{https://web.math.utk.edu/~freire/teaching/m448s17/Rademacher.pdf}.
+\end{thebibliography}
+
+\end{document}
