@@ -1,0 +1,1630 @@
+\documentclass[UTF8,12pt,a4paper,fontset=fandol]{ctexbook}
+
+\makeatletter
+\def\input@path{{../}{../../}{../../../}{../../../../}}
+\makeatother
+\usepackage{researchnotes}
+
+\title{深度学习与大语言模型技术原理}
+\author{}
+\date{2026年10月28日}
+
+\begin{document}
+\frontmatter
+\maketitle
+\tableofcontents
+\mainmatter
+
+\chapter{绪论：从可学习的函数到可验证的系统}
+\label{ch:introduction}
+
+\section{研究对象与问题层次}
+
+\emph{深度学习（deep learning）}研究如何用多层可微变换，从数据中学习完成任务的表示与预测规则。给定参数为 $\theta$ 的函数 $f_\theta$，学习过程并不是给每个输入编写一条规则，而是设计模型族、数据分布和目标函数，再用优化算法选择参数。\emph{大语言模型（large language model, LLM）}是这一思想在离散序列上的重要实例：它根据已有词元预测下一个词元，并通过不断重复这个过程生成文本、代码或结构化动作。
+
+预测下一个词元是训练接口，却不足以说明整个系统。模型是否能检索正确证据、遵守工具参数约束、在有限显存中服务并发请求，以及是否能被可靠评估，分别涉及信息检索、程序接口、计算系统与统计实验。因而，理解一项技术至少要回答四个相互关联的问题：它修改了什么对象，优化了什么目标，付出了什么成本，以及在什么条件下成立。例如，低秩适配改变可训练参数的表示；检索增强生成改变模型可见的信息；分页键值缓存改变存储管理；约束解码改变允许生成的词元集合。这些方法作用于不同层次，可以组合，却不能相互替代。
+
+本书以同级目录中的《技术清单.txt》为主题来源。原清单的第1至71节提供主要技术范围，第0节补充世界模型和稀疏混合架构，第72至82节中的项目与学习建议转化为综合实验和阅读路径。重复出现的技术合并讲解，清单对应关系见附录~\ref{app:map}。本书不把清单中的年度热度、求职收益和岗位竞争力排序当成已验证的事实，也不把软件品牌当作独立数学理论。
+
+\section{阅读路线与知识依赖}
+
+全书先建立线性代数、概率和优化语言，再进入分词、语言建模、Transformer、专家混合、数据与分布式训练。后训练部分依次讨论监督微调、偏好建模、策略优化、可验证奖励和蒸馏，使每个目标函数都能追溯到清楚的数据来源。随后介绍检索增强生成与智能体，将模型放入有外部信息和环境反馈的系统中。评测与安全用于检验这些系统的行为；高效推理、模型压缩、长上下文、多模态和底层工程则解释如何实现与扩展它们。
+
+初次阅读可以沿章序建立主线。已有训练基础的读者可以从第~\ref{ch:sft} 章开始学习后训练，再回查第~\ref{ch:probability} 章的概率记号。偏重应用系统时，先阅读第~\ref{ch:retrieval} 至第~\ref{ch:agentlearning} 章，并结合第~\ref{ch:evaluation} 章设计评测。偏重训练与部署时，应把第~\ref{ch:stability}、\ref{ch:distributed} 章与第~\ref{ch:inference} 至第~\ref{ch:speculation} 章连起来阅读。
+
+这里给出的推导是方法理解的基础，实验效果则必须在指定模型、数据和预算下重新检验。论文中的一种成功实现，不是所有模型都满足的最优性定理。软件功能也依赖版本、硬件、内核和模型结构；本书只介绍工具职责和稳定概念，实际接口应以所固定版本的官方文档为准。
+
+\section{统一记号与成本口径}
+
+全书默认单个表示向量为列向量，线性层写为 $y=Wx$，其中 $W\in\mathbb R^{d_{\mathrm{out}}\times d_{\mathrm{in}}}$。在批量注意力中，把词元表示按行堆叠为 $X\in\mathbb R^{n\times d}$，于是同一个列向量线性变换写为 $XW^\top$。采用不同堆叠方式时会明确说明，不能忽略转置混用这两种约定。
+
+用 $n$ 表示序列长度，$d$ 表示隐藏维度，$L$ 表示层数，$B$ 表示批量大小，$V$ 表示词表大小，$h_q$ 与 $h_{kv}$ 分别表示查询头数和键值头数，$d_h$ 表示每头维度。模型参数总数记为 $P$，可训练参数数目记为 $P_{\mathrm{train}}$。$\mathcal D$ 表示数据集或明确指出的数据分布，$\theta$ 表示模型参数；奖励模型参数另记为 $\phi$，价值模型参数另记为 $\psi$。
+
+随机变量用大写字母，取值通常用小写字母；上下文中的矩阵 $X$ 与随机变量 $X$ 依对象说明区分。$p_\theta$ 表示条件概率模型；讨论强化学习时，同一个生成模型写为策略 $\pi_\theta$。$\log$ 默认是自然对数，信息量单位为奈特。复杂度中的 $O(\cdot)$ 隐去常数与未讨论的维度，但不能把运算量直接等同于实测时间。一次乘加按两个浮点运算计数时，会明确采用这个口径。存储的 GiB 为 $2^{30}$ 字节，GB 为 $10^9$ 字节。
+
+\part{数学基础与可学习计算}
+
+\chapter{线性代数、概率与信息论}
+\label{ch:probability}
+
+\section{矩阵、子空间与低秩近似}
+
+神经网络中的矩阵既是参数数组，也是从输入空间到输出空间的线性映射。若 $W\in\mathbb R^{m\times n}$，则其秩等于输出能够张成的子空间维数。$W=BA$、$A\in\mathbb R^{r\times n}$、$B\in\mathbb R^{m\times r}$ 表示先把输入压到 $r$ 维，再映回 $m$ 维，因此 $\operatorname{rank}(BA)\le r$。这一事实是低秩适配节省参数的代数基础，却并不证明任意任务的最优更新都具有低秩。
+
+特征值描述方阵在某个方向上的缩放：$Wv=\lambda v$。非方阵也有\emph{奇异值分解（singular value decomposition, SVD）}：$W=U\Sigma V^\top$，其中 $U,V$ 为正交矩阵，$\Sigma$ 的对角元为非负奇异值 $\sigma_1\ge\sigma_2\ge\cdots$。截断展开 $W_r=\sum_{i=1}^r\sigma_i u_iv_i^\top$ 可以用 $r(m+n)$ 个因子参数近似原矩阵。
+
+\begin{proposition}
+\label{prop:svd-error}
+对上述截断矩阵，$\|W-W_r\|_F^2=\sum_{i>r}\sigma_i^2$，其中 $\|M\|_F^2=\sum_{i,j}M_{ij}^2$。
+\end{proposition}
+\begin{proof}
+矩阵 $u_iv_i^\top$ 关于 Frobenius 内积正交，因为
+\[
+\langle u_iv_i^\top,u_jv_j^\top\rangle_F
+=(u_i^\top u_j)(v_i^\top v_j)=\mathbf 1\{i=j\}.
+\]
+对 $W-W_r=\sum_{i>r}\sigma_i u_iv_i^\top$ 展开平方范数，交叉项均为零，即得结论。
+\end{proof}
+
+这个误差衡量权重矩阵本身的变化，真正关心的输出误差还依赖输入。若输入随机向量 $X$ 有有限二阶矩，令 $\Delta W=\widehat W-W$，则
+\begin{equation}
+\mathbb E\|\Delta W X\|_2^2
+=\operatorname{tr}\!\left(\Delta W\,\mathbb E[XX^\top]\,\Delta W^\top\right).
+\label{eq:activation-error}
+\end{equation}
+因此同样大小的权重误差，落在高频激活方向上时可能产生更大输出误差。这一观察连接后文的激活感知量化与剪枝。
+
+\section{条件分布、最大似然与交叉熵}
+
+给定输入 $x$ 和离散目标 $y\in\{1,\ldots,V\}$，模型输出实数得分 $z_\theta(x)\in\mathbb R^V$，称为 logits。\emph{软最大函数（softmax）}把它变成分布：
+\[
+p_\theta(y=j\mid x)=\frac{\exp(z_j)}{\sum_{k=1}^V\exp(z_k)}.
+\]
+计算时先减去 $m=\max_jz_j$，因为同时平移所有得分不改变概率，却能避免指数上溢。不要先在低精度中计算极小概率再取对数；应直接计算 $\log p_j=z_j-\operatorname{logsumexp}(z)$。
+
+对独立同分布样本 $(x_i,y_i)_{i=1}^N$，条件最大似然等价于最小化经验负对数似然
+\begin{equation}
+\widehat{\mathcal L}(\theta)=-\frac1N\sum_{i=1}^N\log p_\theta(y_i\mid x_i).
+\label{eq:nll}
+\end{equation}
+这里的独立性是假设样本级似然可以相乘，并不要求单个句子中的词元独立。对 one-hot 标签向量 $e_y$，单样本损失也写为交叉熵 $-\sum_j(e_y)_j\log p_j$。直接求导得到
+\begin{equation}
+\frac{\partial\mathcal L}{\partial z_j}=p_j-\mathbf1\{j=y\}.
+\label{eq:ce-gradient}
+\end{equation}
+它一方面抬高正确类别的得分，另一方面按当前概率降低其他类别的得分。交叉熵适用于语言建模，根本原因是语言模型要学习条件概率，而不只是因为该损失容易求导。
+
+\section{熵、散度与互信息}
+
+\begin{definition}
+设 $p,q$ 是同一有限集合上的概率分布。其熵、交叉熵与 Kullback--Leibler 散度分别为
+\[
+H(p)=-\sum_xp(x)\log p(x),\qquad
+H(p,q)=-\sum_xp(x)\log q(x),
+\]
+\[
+D_{\mathrm{KL}}(p\|q)=\sum_xp(x)\log\frac{p(x)}{q(x)}.
+\]
+约定 $0\log0=0$；若存在 $p(x)>0$ 而 $q(x)=0$，后两式取 $+\infty$。
+\end{definition}
+
+在值有限时，$H(p,q)=H(p)+D_{\mathrm{KL}}(p\|q)$。总体目标中的真实数据分布 $p$ 固定，因此最小化交叉熵等价于最小化该方向的 KL 散度；有限样本、有限模型容量和不充分优化都会使结果偏离真实分布。
+
+\begin{proposition}
+\label{prop:kl-nonnegative}
+有限集合上的 $D_{\mathrm{KL}}(p\|q)\ge0$，且等号当且仅当 $p=q$。
+\end{proposition}
+\begin{proof}
+若散度无穷大，结论成立。否则在 $p(x)>0$ 的点上使用 $-\log u\ge1-u$，得
+\[
+D_{\mathrm{KL}}(p\|q)\ge\sum_{p(x)>0}(p(x)-q(x))\ge0.
+\]
+等号要求每个这样的点上 $q(x)/p(x)=1$，且 $q$ 在其余点上没有质量，所以 $p=q$。
+\end{proof}
+
+KL 不对称。$D_{\mathrm{KL}}(p\|q)$ 在 $p$ 的高概率区域惩罚 $q$ 过小，反向散度则在 $q$ 经常访问的位置评估差异。所谓前向 KL 更重覆盖、反向 KL 更易集中于部分峰，是对受限模型族优化行为的常见解释，并不是不加条件的定理。Jensen--Shannon 散度定义为
+\[
+D_{\mathrm{JS}}(p,q)=\tfrac12D_{\mathrm{KL}}(p\|m)+\tfrac12D_{\mathrm{KL}}(q\|m),\qquad m=\tfrac12(p+q),
+\]
+它对称且在自然对数下位于 $[0,\log2]$，因为每点上 $p/m\le2$、$q/m\le2$。
+
+随机变量 $X,Y$ 的\emph{互信息（mutual information）}为 $I(X;Y)=D_{\mathrm{KL}}(p_{XY}\|p_Xp_Y)$，刻画联合分布偏离独立的程度。在熵有限时有 $I(X;Y)=H(X)-H(X\mid Y)$。相关性或互信息都不自动给出因果关系；模型用某个特征成功预测标签，也不说明干预该特征就能控制目标。
+
+\section{采样、估计与训练分布}
+
+模型生成通常是从条件类别分布逐步采样。若 $Y_i$ 独立同分布且 $f(Y_i)$ 有有限方差，样本均值 $\widehat\mu=N^{-1}\sum_i f(Y_i)$ 无偏，方差为 $\operatorname{Var}(f(Y))/N$。重复生成的候选若相关，或者经筛选后只保留成功样本，就不能继续把它们当成原分布的无偏样本。
+
+当样本来自 $q$ 而目标期望属于 $p$ 时，在 $q$ 覆盖 $p$ 的支持集且相关期望存在的条件下，可用重要性采样恒等式
+\begin{equation}
+\mathbb E_{Y\sim p}[f(Y)]
+=\mathbb E_{Y\sim q}\!\left[\frac{p(Y)}{q(Y)}f(Y)\right].
+\label{eq:importance}
+\end{equation}
+这是后文策略概率比的来源。恒等式并不保证估计方差小，尤其当 $q$ 在 $p$ 的重要区域分配很少质量时，少数极大权重会支配估计。裁剪权重可以降低这种影响，但通常引入偏差。
+
+\chapter{神经网络、自动微分与优化}
+\label{ch:optimization}
+
+\section{多层表示与反向传播}
+
+多层感知机（multilayer perceptron, MLP）把线性映射与非线性激活复合：$h^{(\ell)}=\varphi(W^{(\ell)}h^{(\ell-1)}+b^{(\ell)})$。若每一层都是线性的，所有层仍可合并成单个线性映射；非线性使模型能够表达输入相关的分区和交互。常见激活包括 $\operatorname{ReLU}(x)=\max(0,x)$、$\operatorname{SiLU}(x)=x\sigma(x)$ 与 $\operatorname{GELU}(x)=x\Phi(x)$，其中 $\sigma(x)=(1+e^{-x})^{-1}$，$\Phi$ 为标准正态分布函数。
+
+\emph{反向传播（backpropagation）}是计算图上的链式法则。对 $z=Wx+b$ 和标量损失 $\mathcal L$，若上游梯度为 $\delta=\partial\mathcal L/\partial z$，则
+\[
+\frac{\partial\mathcal L}{\partial W}=\delta x^\top,\qquad
+\frac{\partial\mathcal L}{\partial b}=\delta,\qquad
+\frac{\partial\mathcal L}{\partial x}=W^\top\delta.
+\]
+沿图逆序执行这些向量--雅可比积，可避免显式构造整个巨大雅可比矩阵。自动微分计算的是程序所表达函数的导数，无法自动修正标签移位、错误掩码或错误损失归一化。
+
+深层网络的梯度含多个雅可比矩阵的乘积。其范数满足 $\|J_L\cdots J_1\|\le\prod_\ell\|J_\ell\|$；连续放大或衰减可能造成梯度爆炸或消失，但这个上界不意味着所有方向都有相同行为。残差连接 $h^{(\ell+1)}=h^{(\ell)}+F_\ell(h^{(\ell)})$ 使局部雅可比变为 $I+J_{F_\ell}$，提供直接传播路径；初始化、归一化和学习率仍然重要。
+
+\section{随机梯度下降、动量与自适应更新}
+
+设总体风险为 $\mathcal L(\theta)=\mathbb E_Z[\ell(\theta;Z)]$。在可以交换梯度与期望且批量按目标分布抽样时，批梯度 $g_t$ 是总体梯度的无偏估计。\emph{随机梯度下降（stochastic gradient descent, SGD）}用 $\theta_{t+1}=\theta_t-\eta_tg_t$ 更新。动量法以 $v_t=\mu v_{t-1}+g_t$ 累积方向，再用 $-\eta_tv_t$ 更新，从而平滑高频噪声，但不同软件可能采用带 $(1-\mu)$ 的另一种约定。
+
+Adam 维护梯度的一阶和二阶矩估计，初始化 $m_0=v_0=0$：
+\begin{align}
+m_t&=\beta_1m_{t-1}+(1-\beta_1)g_t, &
+v_t&=\beta_2v_{t-1}+(1-\beta_2)g_t^{\odot2},\\
+\widehat m_t&=m_t/(1-\beta_1^t), &
+\widehat v_t&=v_t/(1-\beta_2^t),\\
+\theta_{t+1}&=\theta_t-\eta_t\frac{\widehat m_t}{\sqrt{\widehat v_t}+\varepsilon}.&&
+\end{align}
+平方、平方根和除法逐元素计算。偏差修正补偿零初始化导致的早期缩小；分母按坐标调节更新尺度，并不等于计算了 Hessian，也不保证非凸问题收敛到全局最优解。
+
+\emph{AdamW} 把权重衰减从自适应梯度中解耦\cite{adamw}：
+\begin{equation}
+\theta_{t+1}=(1-\eta_t\lambda)\theta_t
+-\eta_t\frac{\widehat m_t}{\sqrt{\widehat v_t}+\varepsilon}.
+\label{eq:adamw}
+\end{equation}
+若把 $\lambda\theta_t$ 加入梯度，正则项也会改变矩估计并被逐坐标缩放，因而与式~\eqref{eq:adamw} 一般不同。普通无动量 SGD 中，$L_2$ 正则化与相同系数的乘法衰减可以对应；不能把这一等价性直接搬到 Adam。
+
+\section{学习率、正则化与泛化}
+
+学习率预热（warmup）在前若干步逐渐增大学习率，旨在减轻初始梯度尺度和优化器状态尚不稳定时的大更新。余弦衰减可以写成 $\eta_t=\eta_{\min}+\tfrac12(\eta_{\max}-\eta_{\min})(1+\cos(\pi u_t))$，其中 $u_t\in[0,1]$ 是预热后已完成的训练比例。按步数、样本数还是词元数推进调度器会影响不同长度数据下的实际训练，应与预算口径保持一致。
+
+\emph{随机失活（dropout）}在训练时用独立 Bernoulli 掩码 $M_j\sim\operatorname{Bernoulli}(1-p)$ 替换激活为 $M_jh_j/(1-p)$，因此其条件期望仍为 $h_j$；推理时关闭该随机性。这个期望等式不意味着经过后续非线性网络的输出也与训练平均输出完全相同。提前停止、权重衰减和数据增强都可影响泛化，但应由独立验证集选择超参数，测试集只用于最终评估。
+
+对可微、梯度为 $L_s$-Lipschitz 的确定性目标，梯度下降在 $0<\eta\le1/L_s$ 时满足
+\[
+\mathcal L(\theta-\eta\nabla\mathcal L(\theta))
+\le\mathcal L(\theta)-\frac\eta2\|\nabla\mathcal L(\theta)\|_2^2.
+\]
+其依据是平滑性上界 $\mathcal L(\theta+u)\le\mathcal L(\theta)+\nabla\mathcal L(\theta)^\top u+(L_s/2)\|u\|_2^2$；代入 $u=-\eta\nabla\mathcal L(\theta)$ 并使用 $L_s\eta\le1$ 即得结论。随机梯度、自适应更新与非光滑激活需要另外分析。因此，训练损失总体下降是一项监测结果，而不是所有深度网络更新都满足的逐步保证。
+
+\section{PyTorch 中的计算语义}
+
+PyTorch 的张量保存数值、形状、数据类型和设备信息，自动微分追踪需要梯度的运算。一次训练更新的语义顺序是：得到有效批量，前向计算损失，反向累积梯度，完成同步与必要的缩放，裁剪后更新参数，最后为下一次更新清理梯度。实际程序可以把清零放在循环开头，但不能遗漏；否则无意中改变了优化问题。
+
+\texttt{train()} 与 \texttt{eval()} 控制 dropout 等模块的训练行为；关闭梯度记录控制是否构建求导图，两者用途不同。冻结参数只是不计算该参数的梯度；若其输入还要向前面的可训练层传播梯度，就仍然需要保留相关计算图。保存检查点时，应根据恢复目的保存模型、优化器、调度器、随机数状态和数据进度；只有模型权重足以部署，却不足以精确继续训练。
+
+调试时先在小批量上核对张量形状和目标位置，再验证损失是否能降低。对简单可微模块，可用有限差分抽检导数；对含离散选择、随机失活或低精度算子的程序，必须说明比较条件与容差。训练实现的最小可信单元是损失、梯度和更新之间一致的语义，而不只是一个能运行的训练脚本。
+
+\part{语言模型、数据与训练系统}
+
+\chapter{分词、自回归建模与预训练}
+\label{ch:pretraining}
+
+\section{分词器决定模型的离散世界}
+
+模型处理的是有限词表中的编号，而非直接处理人类理解的单词。\emph{词元（token）}可以是字、子词、字节片段或特殊控制符；分词器（tokenizer）把文本映成词元序列，并提供反向解码。词表较大通常使序列较短，却增加嵌入层和输出层开销；词表较小减少每个词元的分类空间，却可能增加注意力和生成步数。不同语言、代码和数字的切分密度不同，因此词表设计影响同一上下文窗口能够容纳多少有效信息。
+
+\emph{字节对编码（byte-pair encoding, BPE）}从较小单元开始，反复统计相邻符号对并合并选定的高频对，形成有顺序的合并规则。训练结束后，编码阶段使用这些规则切分新文本。字节级 BPE 以字节为底层单位，有助于覆盖任意可编码文本，但一个词元不一定对应完整的 Unicode 字符，也不保证数字按数学位数切分。
+
+Unigram 分词模型为候选子词 $s$ 赋概率 $p(s)$。对一种合法切分 $z=(s_1,\ldots,s_k)$，设 $p(z)=\prod_jp(s_j)$；文本概率对全部合法切分求和，训练据此调整子词概率并裁减词表。给定词表后，最优切分可用动态规划求得。它与 BPE 的贪心合并机制不同。SentencePiece 是支持相关分词方法的软件工具，并非与 BPE、Unigram 同层次的第三种单一算法\cite{sentencepiece}。
+
+分词器还必须规定规范化、空格、未知字符和特殊词元的处理。\emph{对话模板（chat template）}进一步把角色、消息边界、工具返回和回答起点串成模型输入。训练时使用一种模板、部署时换另一种模板，会改变条件分布；重复添加开始标记、把结束标记截断或混淆用户与助手角色，都可能导致行为异常。
+
+\section{下一词元预测与标签移位}
+
+对词元序列 $x_{1:n}$，链式法则给出
+\begin{equation}
+p_\theta(x_{1:n})=\prod_{t=1}^np_\theta(x_t\mid x_{<t}),\qquad
+\mathcal L_{\mathrm{LM}}=-\sum_{t=1}^n\log p_\theta(x_t\mid x_{<t}).
+\label{eq:autoregressive}
+\end{equation}
+这是一种概率分解，条件分布通过神经网络参数化。序列的开始由约定的起始上下文表示，结束词元也属于预测目标。若限制最大生成长度，相当于额外规定截断规则，不能把截断自动理解为模型自然结束。
+
+训练采用\emph{教师强制（teacher forcing）}：每个位置都读取真实前缀，并行预测后一个词元。给定输入 $(\mathrm{BOS},x_1,x_2)$，对应目标是 $(x_1,x_2,\mathrm{EOS})$，而不是输入自身。因果掩码防止位置看到未来标签。推理时前缀含模型自己的输出，偏离训练前缀后会产生分布差异；这种差异解释了为何训练损失下降不自动保证长序列生成稳定。
+
+\emph{困惑度（perplexity）}定义为 $\exp(\mathcal L_{\mathrm{LM}}/N_{\mathrm{valid}})$，其中 $N_{\mathrm{valid}}$ 为参与评分的词元总数。它是平均负对数似然的单调变换，较低说明模型对指定测试文本赋予更高概率。不同分词器改变了词元单位，因此词元级困惑度不能直接跨词表比较；不同评测掩码也会改变数值。
+
+\begin{example}
+若一段测试文本的三个目标词元条件概率分别为 $1/2,1/4,1/8$，求该段平均负对数似然与困惑度。
+\end{example}
+\begin{solve}
+序列概率为 $1/64$，总负对数似然为 $\log64=6\log2$，平均值为 $2\log2$，所以困惑度为 $4$。该数值表示模型在这个计分单位上的平均不确定性，并不表示每一步恰好在四个词元中均匀选择。
+\end{solve}
+
+\section{嵌入、输出投影与训练目标的边界}
+
+嵌入矩阵 $E\in\mathbb R^{V\times d}$ 把词元编号映为向量。经过 $L$ 层变换后，位置 $t$ 的隐藏向量 $h_t$ 通过输出矩阵 $W_{\mathrm{out}}\in\mathbb R^{V\times d}$ 产生 logits。权重绑定（weight tying）令 $W_{\mathrm{out}}=E$，减少参数并约束输入与输出表征；是否绑定属于架构选择，并非语言模型的必要条件。
+
+预训练（pre-training）在广泛语料上学习条件分布，继续预训练（continued pre-training）在已有模型基础上继续语言建模，监督微调则着重学习指令条件下的目标回答。三者可以共享交叉熵形式，但数据、掩码、分布与预期行为不同。把某领域文档喂给继续预训练，未必同时教会模型按该领域问答格式回答；高质量任务示例仍可能必要。
+
+对于稠密 Transformer，在忽略部分注意力和输出层成本、以参数矩阵乘法为主的估算下，训练浮点运算量常粗略写为 $C\approx6PN_{\mathrm{tok}}$。这来自每个参数在每个词元上的前向及反向矩阵乘法成本估计，不适用于所有序列长度、稀疏结构和重计算配置。扩大模型与增加数据如何分配预算，需要缩放实验（scaling experiment）验证；幂律拟合是指定区间内的经验模型，不能无条件外推。
+
+\chapter{Transformer 与现代解码器}
+\label{ch:transformer}
+
+\section{从信息选择到缩放点积注意力}
+
+仅靠逐位置 MLP 无法直接混合不同词元的信息。\emph{自注意力（self-attention）}让每个位置根据自身查询，选择其他位置的内容。设 $X\in\mathbb R^{n\times d}$ 按行存储表示，取投影矩阵 $W_Q,W_K\in\mathbb R^{d_h\times d}$、$W_V\in\mathbb R^{d_v\times d}$，定义
+\begin{equation}
+Q=XW_Q^\top,\quad K=XW_K^\top,\quad V_X=XW_V^\top,\qquad
+O=\operatorname{softmax}_{\mathrm{row}}\!\left(\frac{QK^\top}{\sqrt{d_h}}+M\right)V_X.
+\label{eq:attention}
+\end{equation}
+这里用 $V_X$ 表示值矩阵，以区别词表大小 $V$。查询（query）决定需要什么信息，键（key）决定匹配关系，值（value）是被加权汇总的内容。每一行的注意力权重非负且和为1，因而该行输出位于值向量的凸包；后续投影和残差连接不受这一凸包限制。
+
+为什么除以 $\sqrt{d_h}$？假设初始化附近，$q_j,k_j$ 跨坐标独立、均值为零、方差为1，并且两组向量独立，则 $\operatorname{Var}(q^\top k)=d_h$。缩放后方差为1，可减轻维度增大导致 softmax 过度饱和的问题。真实训练中的坐标并不始终满足这些假设，因此这是合理的尺度设计依据，而不是任意模型激活的精确分布结论\cite{attention}。
+
+\section{因果掩码、多头与键值共享}
+
+仅解码器模型（decoder-only model）要求位置 $i$ 只能读取 $j\le i$，因此取 $M_{ij}=0$ 当 $j\le i$，否则取 $-\infty$。实现中还要结合填充掩码与样本边界掩码。对于全被屏蔽的行，softmax 没有合法分布，不能简单用常规指数归一化；应避免产生这种查询或使用有明确定义的内核行为。
+
+\emph{多头注意力（multi-head attention, MHA）}使用 $h_q$ 组查询、键和值投影。取常用的 $d_v=d_h$，把各头输出按列拼接为 $O_{\mathrm{cat}}\in\mathbb R^{n\times h_qd_h}$，再计算 $O_{\mathrm{cat}}W_O^\top$，其中 $W_O\in\mathbb R^{d\times h_qd_h}$。不同头可以学习不同匹配关系，但“一个头对应一个语法规则”不是结构本身保证的事实。\emph{多查询注意力（multi-query attention, MQA）}让所有查询头共享一组键和值；\emph{分组查询注意力（grouped-query attention, GQA）}令 $h_q$ 个查询头分为 $h_{kv}$ 组，每组共享键和值\cite{gqa}。
+
+当 $h_q=h_{kv}$ 时得到 MHA，当 $h_{kv}=1$ 时得到 MQA。若 $h_{kv}$ 整除 $h_q$，每个键值头服务 $h_q/h_{kv}$ 个查询头。共享直接减少键值投影和缓存，但查询头仍各自计算匹配分数，因此不能据此把所有注意力运算量都按同一比例缩小。缓存公式将在式~\eqref{eq:kv-memory} 中给出。
+
+\section{残差、归一化与门控前馈层}
+
+对列向量 $x\in\mathbb R^d$，层归一化（Layer Normalization, LayerNorm）计算
+\[
+\mu=\frac1d\sum_jx_j,\quad v=\frac1d\sum_j(x_j-\mu)^2,\quad
+\operatorname{LN}(x)=g\odot\frac{x-\mu\mathbf1}{\sqrt{v+\varepsilon}}+b.
+\]
+均方根归一化（Root Mean Square Layer Normalization, RMSNorm）省去减均值，常写为
+\[
+\operatorname{RMSNorm}(x)=g\odot\frac{x}{\sqrt{d^{-1}\sum_jx_j^2+\varepsilon}}.
+\]
+二者都按单个词元的特征维归一化，不依赖同批其他样本的均值。RMSNorm 并不使输出均值为零，学习缩放 $g$ 后也不能声称输出均方根恒为1\cite{rmsnorm}。
+
+前置归一化（Pre-Norm）块可写为
+\[
+u=x+\operatorname{Attn}(\operatorname{Norm}(x)),\qquad
+y=u+\operatorname{FFN}(\operatorname{Norm}(u)).
+\]
+后置归一化（Post-Norm）则对残差求和后的结果归一化。Pre-Norm 的残差路径在求导时保留直接恒等分量，但最终训练稳定性仍依赖深度、初始化和优化设置；不能仅凭顺序判断哪一种在所有任务上更优。
+
+前馈网络（feed-forward network, FFN）通常逐位置执行。门控线性单元（gated linear unit, GLU）的 SwiGLU 变体为
+\begin{equation}
+\operatorname{FFN}(x)=W_2\bigl(\operatorname{SiLU}(W_1x)\odot W_3x\bigr),
+\label{eq:swiglu}
+\end{equation}
+其中 $W_1,W_3\in\mathbb R^{d_f\times d}$、$W_2\in\mathbb R^{d\times d_f}$。两条输入投影经逐元素门控交互，再映回隐藏维度\cite{swiglu}。忽略偏置，其参数量为 $3dd_f$；与普通两层 FFN 比较时要固定参数或计算预算，不能只固定中间宽度。
+
+\section{旋转位置编码的相对位置结构}
+
+若不输入位置信息，无掩码自注意力对位置置换具有等变性，难以区分词序。\emph{旋转位置编码（rotary position embedding, RoPE）}把每个查询和键的相邻两维看成二维平面，在位置 $m$ 施加角度 $m\omega_j$ 的旋转\cite{rope}。设头维度为偶数，对第 $j$ 个二维块定义
+\[
+R_j(m)=\begin{pmatrix}\cos(m\omega_j)&-\sin(m\omega_j)\\
+\sin(m\omega_j)&\cos(m\omega_j)\end{pmatrix},
+\qquad R(m)=\operatorname{diag}(R_1(m),\ldots,R_{d_h/2}(m)).
+\]
+频率可取 $\omega_j=b^{-2(j-1)/d_h}$，其中 $b>1$ 是基数。旋转后的查询键为 $\widetilde q_m=R(m)q_m$、$\widetilde k_n=R(n)k_n$。
+
+\begin{proposition}
+\label{prop:rope-relative}
+若查询和键使用同一组频率，则
+\[
+\widetilde q_m^\top\widetilde k_n=q_m^\top R(n-m)k_n.
+\]
+\end{proposition}
+\begin{proof}
+二维旋转满足 $R_j(m)^\top=R_j(-m)$ 及 $R_j(a)R_j(b)=R_j(a+b)$。分块对角乘法因此给出 $R(m)^\top R(n)=R(n-m)$，代入内积即可。
+\end{proof}
+
+命题说明显式旋转项依赖相对位移；$q_m,k_n$ 本身仍依赖内容与之前各层的上下文，不能说整个得分只由距离决定。RoPE 保持向量范数，也不天然保证超出训练长度后的性能。推理缓存通常保存已经旋转的键，位置编号必须与训练及缓存偏移一致；长上下文扩展见第~\ref{ch:longcontext} 章。
+
+\section{计算量与一个完整解码器块}
+
+标准稠密注意力的分数矩阵有 $n^2$ 个元素；在固定头数且 $h_qd_h=d$ 时，$QK^\top$ 与权重乘值的运算量为 $O(n^2d)$，投影与 FFN 通常为 $O(nd^2)$ 或 $O(ndd_f)$。直接保存所有注意力矩阵需 $O(h_qn^2)$ 空间；是否必须把它们写入显存，则取决于实现，第~\ref{ch:efficientattention} 章将讨论在线 softmax。
+
+完整模型依次执行词元嵌入、各层归一化与带 RoPE 的因果注意力、残差和 SwiGLU、最终归一化以及词表投影。训练在所有有效位置计算损失，推理只需取最新位置的输出分布。验证小型实现时，应先检查改变未来词元不会影响过去位置的输出，再检查全序列前向与缓存增量前向在相同数值条件下相符。
+
+\chapter{专家混合、稀疏计算与混合架构}
+\label{ch:moe}
+
+\section{条件计算与路由}
+
+稠密 FFN 对每个词元使用同一组参数。\emph{专家混合（mixture of experts, MoE）}保留多组专家网络 $E_1,\ldots,E_K$，让路由器（router）根据输入选择其中少数几个。设 $p(x)=\operatorname{softmax}(W_rx)$，$S_k(x)$ 为概率最大的 $k$ 个专家索引，可定义
+\begin{equation}
+y=\sum_{e\in S_k(x)}g_e(x)E_e(x),\qquad
+g_e(x)=\frac{p_e(x)}{\sum_{j\in S_k(x)}p_j(x)}.
+\label{eq:moe}
+\end{equation}
+这是重新归一化选中权重的一种约定；也有实现直接保留原始门控概率。Top-$k$ 选择是离散操作，训练通常沿已选分支的连续权重传播梯度，不能把整个选择过程当成处处可微函数。
+
+MoE 增加总参数容量，而每词元只执行少量专家。若每个专家有 $P_e$ 个参数，共享部分有 $P_s$ 个参数，则总参数近似为 $P_s+KP_e$，每词元激活参数近似为 $P_s+kP_e$。后者有助于估算算术成本，前者影响权重存储与加载；通信、路由和填充又会增加额外成本。因此，相同激活参数量不保证相同延迟。
+
+\section{容量、负载均衡与训练失败}
+
+一个含 $N$ 个词元的路由批次会产生约 $kN$ 次专家分配。给每个专家容量 $C=\lceil c kN/K\rceil$，其中 $c$ 是容量系数，可以限制单专家缓存峰值。超容量词元需要丢弃、重路由或采用不丢词元的动态分配；这些是不同算法选择，必须记录，尤其不能悄悄改变有效训练样本。
+
+为说明负载均衡，考虑每词元只选一个专家。令 $f_e$ 为被分配给专家 $e$ 的词元比例，$\bar p_e$ 为该专家门控概率的批平均值，可加入
+\[
+\mathcal L_{\mathrm{bal}}=\alpha K\sum_{e=1}^Kf_e\bar p_e.
+\]
+通常不通过离散计数 $f_e$ 反向传播，而通过 $\bar p_e$ 推动概率分配。它在实践中用于抑制路由拥挤，不能单凭这个乘积形式宣称每个批次必然达到均匀负载。Switch Transformer 给出了此类稀疏路由与辅助损失的具体实例\cite{switch}。
+
+若少数专家长期获得大多数词元，其他专家缺少学习机会，可能出现专家坍缩（expert collapse）。反之，过强均衡又可能压制自然的任务分工。应同时监测每专家词元数、路由熵、溢出率、专家梯度和主任务损失；只看总体损失不能定位路由异常。
+
+\section{专家并行与通信路径}
+
+专家并行（expert parallelism, EP）把专家放到不同设备，路由后把词元表示发送给目标设备，计算完成后再返回并加权合并。该过程常包含 All-to-All 通信，传输对象主要是激活及其反向梯度，而不只是路由编号。各设备专家负载不同会产生等待，跨节点带宽和通信拓扑可能主导速度。
+
+共享专家可处理多数词元共用的知识，路由专家承担更专门的变换；多个专家也可被同一设备持有。推理时请求数量少会使专家矩阵乘法批量过小，降低硬件利用率。因此 MoE 训练与服务必须共同考虑，不能只由理论 FLOPs 判断部署成本。它与数据、张量和流水线并行的组合见第~\ref{ch:distributed} 章。
+
+\section{稀疏注意力、状态空间与混合模型}
+
+MoE 稀疏的是参数激活，稀疏注意力稀疏的是位置之间的连接。若每个词元只访问窗口内 $w$ 个位置，注意力计算可从 $O(n^2d)$ 降为 $O(nwd)$，但远距离信息需要通过多层传播或额外全局位置传递。除非被删去的注意力权重原本为零，否则它通常改变模型函数。
+
+\emph{状态空间模型（state space model, SSM）}用递推状态汇总历史。一个离散线性形式为 $s_t=As_{t-1}+Bx_t$、$y_t=Cs_t+Dx_t$。若状态维度固定，逐词元更新无需缓存全部历史键值，但状态必须压缩过去信息。选择性状态空间模型使部分转移或读写参数依赖输入，以增强内容选择能力；Mamba 是这一思路的具体架构\cite{mamba}，不能把上面的固定线性递推当成其完整实现。
+
+混合架构（hybrid architecture）交替使用注意力、递推模块或专家层，在精确检索历史内容与有限状态记忆之间折中。比较时应固定训练数据和预算，并在长距离检索、顺序建模、吞吐量及状态存储上分别评估。线性序列复杂度是系统优势的一部分，却不证明对所有语言任务都有更高准确率。
+
+\chapter{数据治理、配比与合成数据基础}
+\label{ch:data}
+
+\section{数据处理是一串改变分布的操作}
+
+预训练数据并不是抓取文本后简单拼接。解析、语言识别、文档过滤、去重、敏感字段处理和采样都会改变训练分布。一个可追溯数据单元应保存来源、时间、许可信息、处理版本、父文档标识和保留原因；对敏感原始字段则应采取符合任务约束的访问与存储方式。保留处理元数据，才能知道模型问题来自原始语料、解析错误还是过滤器偏差。
+
+语言识别和质量分类器输出通常是估计分数，而非无误标签。阈值过严可能误删方言、代码混合文本和低资源语言；阈值过松又会保留乱码、模板垃圾和不适宜内容。文档级过滤适于处理整体来源和结构，词元或片段级过滤适于标记局部内容；直接删除局部词元也可能破坏语法与上下文，需要根据目标选择遮盖、剔除整段或保留标记。
+
+个人身份信息（personally identifiable information, PII）处理可结合规则、实体识别与人工抽检。规则擅长固定格式，模型擅长依上下文识别，但都会误报或漏报。数据质量报告应给出各阶段输入量、保留率、抽检误差与语言领域分布，避免用一个“高质量分数”掩盖覆盖损失。
+
+\section{精确去重、MinHash 与局部敏感哈希}
+
+精确去重对规范化后的文档计算哈希，再核对相同键；过强规范化可能把本应不同的程序或数字合并。近重复检测常把文本变为 $n$-gram 集合 $A$，用 Jaccard 相似度 $J(A,B)=|A\cap B|/|A\cup B|$ 衡量重叠。重复转载、模板与局部抄录的判断还需结合文档长度和片段位置。
+
+MinHash 为集合元素选一个随机排列，记录排列下最小元素。对非空集合 $A,B$，两个最小值相同，当且仅当 $A\cup B$ 中排名最小的元素属于交集。每个并集元素成为最小者的概率相同，故
+\[
+\Pr\{h_{\min}(A)=h_{\min}(B)\}=J(A,B).
+\]
+多个独立签名的碰撞比例可估计相似度。实际哈希近似随机排列，应以验证数据检查其误差。
+
+\emph{局部敏感哈希（locality-sensitive hashing, LSH）}通过签名分桶缩小候选比较范围。若签名按 $b$ 个带、每带 $r$ 行分组，在理想独立假设下，相似度为 $s$ 的文档至少一个带完全相同的概率为 $1-(1-s^r)^b$。这说明带数与行数控制召回和误候选，而不是实现一个绝对相似度阈值。候选生成后还要进行更精确核对，且最好按重复簇而非单文档切分训练和测试集。
+
+\section{领域混合、课程与污染检测}
+
+设第 $j$ 个领域分布为 $\mathcal D_j$，按概率 $\alpha_j$ 抽样，则目标为
+\[
+\mathcal L(\theta;\alpha)=\sum_{j=1}^J\alpha_j\mathbb E_{Z\sim\mathcal D_j}[\ell(\theta;Z)],
+\qquad \alpha_j\ge0,\quad \sum_j\alpha_j=1.
+\]
+这里的概率必须说明是按文档还是按词元定义。长文档较多的领域，即使文档抽样比例相同，词元贡献也可能更大。重要性重加权能够改变目标，但过大的权重可能提高梯度方差。
+
+数据配比没有独立于模型和目标的通用最优比例。可以在代理模型上比较配比，进行等词元预算消融，再用较大模型验证是否迁移。课程学习（curriculum learning）让分布随训练进度变化，例如从短上下文扩展到长上下文；难度评分本身可能有偏，且“先易后难”不必然优于随机混合。
+
+污染检测（contamination detection）检查训练数据与评测题目、答案、解析或近似改写的重叠。时间切分、来源隔离、字符串匹配与语义近邻各有盲点。应在模型调参前冻结测试数据，避免用测试反馈反复设计过滤器；否则即使训练语料没有原题，也可能通过实验选择泄漏测试信息。
+
+\section{指令合成与迭代自训练}
+
+合成数据（synthetic data）用模型生成任务、回答或反馈。Self-Instruct 风格流程从种子任务扩展指令，再生成响应，最后筛选格式、重复和质量；教师--学生生成则以较强教师提供目标。教师必须获得完成任务所需的真实证据，否则流畅回答仍可能传播错误。
+
+筛选改变的不只是正确率，还包括题目难度、回答长度和风格。若只保留模型已能完成的题目，难题可能被系统性丢弃；若用同源模型同时生成与裁判，相关错误可能被反复强化。迭代自训练应保留独立人工或真实数据锚点，并报告每轮生成量、通过率、多样性和独立测试表现。其概率视角、蒸馏与拒绝筛选在第~\ref{ch:distillation} 章进一步展开。
+
+\chapter{训练稳定性、精度与显存}
+\label{ch:stability}
+
+\section{参数之外还有哪些显存}
+
+训练峰值显存近似由参数、梯度、优化器状态、前向激活、临时缓冲和通信缓冲组成。以一种混合精度 Adam 实现为例，每参数存2字节低精度权重、2字节梯度、4字节主权重和两个4字节矩估计，静态状态约为 $16P$ 字节。若实现没有独立主权重、使用32位梯度或分片状态，系数就不同；这不是所有框架的固定账单。
+
+激活内存与批量、序列长度、层数及中间宽度有关。保存注意力矩阵的实现还包含二次长度项；优化的注意力内核会改变该项。参数量很少变化时，增加上下文长度仍可能导致显存不足，所以必须记录峰值及其发生阶段，区分前向、反向、优化器更新和评测生成。
+
+\begin{example}
+一个模型有 $P=10^9$ 个参数，采用上述每参数16字节状态估算，四卡均匀分片后每卡静态状态是否就是训练所需全部显存？
+\end{example}
+\begin{solve}
+总静态状态约为16 GB，理想全分片后每卡约4 GB，但还必须加激活、当前聚合的完整参数块、通信及算子临时空间。分片只能减少被分片的状态，不能据此认定4 GB显存即可训练。
+\end{solve}
+
+\section{混合精度与损失缩放}
+
+混合精度（mixed precision）在存储、矩阵乘法、归约和优化器更新中采用不同数据类型。FP16 的指数位较少，BF16 保留与 FP32 相同数量的指数位但尾数更短，因此 BF16 的动态范围更宽而相对精度更低。它们均可能出现舍入误差；某些归约、归一化或 softmax 运算需要更高精度累积。FP8 等格式进一步降低位数，但尺度管理、硬件支持和算子覆盖更为关键。
+
+若低精度梯度易下溢，可以把损失乘尺度 $s>0$ 后反向传播，再把得到的梯度除以 $s$。这在实数算术中等价，但有限精度下能让较小梯度落入可表示区间。动态损失缩放在检测到非有限梯度时跳过更新并降低尺度；必须先反缩放再按真实梯度尺度裁剪。BF16 常常不依赖损失缩放，但不能因此忽视溢出和非有限值检查。
+
+定位损失尖峰时，应沿输入、激活、logits、损失、梯度和参数更新逐级检查有限性。数据中的异常长度、错误标签、过大的学习率、归一化失稳与内核错误都可能产生类似现象。直接减小学习率有时能缓解症状，却不能替代定位根因。
+
+\section{梯度累积与有效词元归一化}
+
+梯度累积（gradient accumulation）把一个有效批量拆成多个微批量（microbatch），多次反向后才更新参数。若第 $j$ 个微批量损失总和为 $S_j$、有效词元数为 $N_j$，希望优化的是
+\begin{equation}
+\mathcal L_{\mathrm{batch}}=\frac{\sum_jS_j}{\sum_jN_j}.
+\label{eq:token-normalization}
+\end{equation}
+先对每个微批量求平均再等权累加，仅在所有 $N_j$ 相等时与此一致。变长序列、回答区域掩码和多设备有效词元不等时，这个区别尤其重要。
+
+在固定参数下、损失可按样本分解、没有依赖批量统计的操作且随机性处理相容时，累积梯度等于同一大批量的梯度。浮点求和顺序、dropout 和批归一化等因素会破坏逐位相同。优化器和学习率调度器应按实际更新次数推进，不能每个微批量都更新一次。
+
+全局范数裁剪把 $g$ 替换为 $g\min(1,c/\|g\|_2)$，$g=0$ 时保持不变。分片训练需要计算跨设备的全局范数，不能把每张卡独立裁剪误当成全局裁剪。裁剪限制单次梯度幅度，但不会修复错误目标或消除所有训练不稳定。
+
+\section{激活检查点与计算换空间}
+
+激活检查点（activation checkpointing）只保存部分前向边界激活，反向时重算内部激活。其输出梯度在相同函数与随机状态下应与完整保存相符；存在随机算子时，需要恢复相应随机数状态。含有不可重复副作用的函数不适合直接重计算。
+
+为理解代价，设 $L$ 层每层激活大小约为 $A$，每隔 $s$ 层保存检查点。忽略其他状态时，边界保存约 $LA/s$，单段重算时额外保存约 $sA$，总量约 $A(L/s+s)$，在 $s\approx\sqrt L$ 附近较小。真实模型层大小不等、重算策略多样，这只是均匀链式网络的示意估算。节省空间需要额外前向计算，应测量每训练词元耗时是否仍满足预算。
+
+\chapter{分布式训练与集合通信}
+\label{ch:distributed}
+
+\section{集合通信及其成本}
+
+集合通信（collective communication）让一组设备协调交换张量。AllReduce 对各设备张量做归约，并使各设备得到完整结果；AllGather 把分片收集成完整张量；ReduceScatter 先归约再把结果分片；All-to-All 让各设备向其他设备发送不同数据块。点对点（point-to-point）通信用于指定设备之间的发送和接收。NCCL 提供 GPU 集合通信实现，算法效果依赖互连、拓扑和消息大小\cite{nccl}。
+
+一个粗略通信模型为 $T_{\mathrm{comm}}\approx a\tau+S/\mathcal B$，其中 $a$ 为通信阶段数，$\tau$ 为每阶段启动延迟，$S$ 为关键路径传输字节数，$\mathcal B$ 为有效带宽。小消息容易受延迟限制，大消息容易受带宽限制。把梯度分桶可以减少小消息开销，并与反向计算重叠；桶太大又会推迟通信启动。只看峰值网络带宽不足以预测训练速度。
+
+\section{数据并行与正确的梯度平均}
+
+数据并行（data parallelism, DP）在每张设备复制模型，各设备处理不同数据，再同步梯度。DistributedDataParallel（DDP）通常在反向过程中同步梯度，各设备执行相同优化器更新以保持参数一致\cite{ddp}。模型副本相同不意味着数据应相同；重复采样同一批会浪费并行能力，并改变有效批量理解。
+
+若有 $D$ 张设备，每卡损失和为 $S_r$、有效词元数为 $N_r$，且通信对梯度取平均，则各卡可反向传播 $D S_r/N_{\mathrm{all}}$，其中 $N_{\mathrm{all}}=\sum_rN_r$。平均后的梯度为
+\[
+\frac1D\sum_r\nabla_\theta\frac{D S_r}{N_{\mathrm{all}}}
+=\nabla_\theta\frac{\sum_rS_r}{N_{\mathrm{all}}}.
+\]
+这说明软件的归约约定必须与损失归一化配套。若每卡先求局部平均而词元数不同，则得到的是设备等权目标。
+
+DDP 不直接减少每卡的参数和优化器状态。多卡能扩大吞吐与有效批量，但模型单卡装不下时，需要分片或模型并行。检查恢复时，还应保持采样器状态与全局步数一致，避免重复或遗漏数据。
+
+\section{ZeRO 与完全分片数据并行}
+
+\emph{零冗余优化器（Zero Redundancy Optimizer, ZeRO）}按阶段分片状态\cite{zero}。ZeRO-1 分片优化器状态；ZeRO-2 进一步分片梯度；ZeRO-3 再分片参数。完全分片数据并行（Fully Sharded Data Parallel, FSDP）采用相关思想，在需要计算某个参数块时聚合参数，反向后归约并重新分片，具体策略依实现而定。
+
+设完整参数、梯度和优化器状态分别占 $M_p,M_g,M_o$，忽略临时聚合时，每卡静态状态近似如下：
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+方案 & 每卡静态状态 \\
+\midrule
+普通数据并行 & $M_p+M_g+M_o$ \\
+ZeRO-1 & $M_p+M_g+M_o/D$ \\
+ZeRO-2 & $M_p+(M_g+M_o)/D$ \\
+ZeRO-3 & $(M_p+M_g+M_o)/D$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+表中的估算没有包含激活和当前聚合参数块，因此不是峰值显存。更细粒度分片降低聚合峰值，却可能增加通信次数；CPU 或存储卸载减少设备占用，同时引入传输与调度成本。
+
+\section{张量并行与流水线并行}
+
+张量并行（tensor parallelism, TP）把单层矩阵运算分到多卡。以行批量约定 $Y=XW$ 为例，按 $W$ 的输出列分块 $W=[W_1,\ldots,W_D]$，各卡计算 $Y_r=XW_r$，拼接得到 $Y$；这是列并行。若按输入维分块，$X=[X_1,\ldots,X_D]$ 且 $W$ 沿行分块，则 $Y=\sum_rX_rW_r$，需归约各卡部分结果；这是行并行。实际 Transformer 常配对使用，避免不必要的中间聚合。
+
+流水线并行（pipeline parallelism, PP）把不同层放在不同阶段，微批量依次流过。以 $p$ 个等耗时阶段、$m$ 个微批量的简单前向流水线为例，执行槽数为 $m+p-1$，相对理想满载的利用率为 $m/(m+p-1)$。完整训练的气泡还依赖前反向调度；一前向一反向（1F1B）能改善激活占用和调度，但不能据简单公式断言所有情形的利用率。
+
+交错流水线把每卡的层拆成多个虚拟阶段，以减少某些调度气泡，同时增加通信与实现复杂度。TP 倾向需要频繁低延迟通信，PP 通常传输阶段边界激活；如何跨节点部署，应根据拓扑和层负载决定。模型能放下以后，再增加切分未必能加速。
+
+\section{上下文并行、专家并行与训练框架}
+
+上下文并行（context parallelism, CP）沿序列维度拆分词元，使每卡保存和计算部分位置的激活。对于全注意力，本地查询仍需要访问相关的全局键值，因此必须交换键值块或采用环式调度；仅把序列截断给不同卡而不通信，会改变模型可见上下文。因果掩码带来位置间负载差异，需要有意识地分配序列块。
+
+专家并行按第~\ref{ch:moe} 章的路由分配专家，与 CP 的序列划分、TP 的层内划分和 PP 的层间划分不同。多维并行会形成不同通信组，各组的设备数乘积受总设备数约束；并非所有维度都必须开启。先由显存约束确定最小必要切分，再优化吞吐，通常更容易解释性能。
+
+DeepSpeed 集成 ZeRO 等训练机制，Megatron-Core 组织大模型层与多维并行，PyTorch 提供基础张量与分布式能力，Accelerate 辅助组织设备和训练流程。后训练框架如 verl、OpenRLHF 还需协调生成、奖励、价值估计与策略更新。它们不会自动消除错误的损失掩码、过时的采样策略或不正确的跨卡归一化；框架迁移应比较同一小任务上的目标、梯度与有效词元统计。
+
+\part{监督微调、偏好学习与推理后训练}
+
+\chapter{监督微调与参数高效适配}
+\label{ch:sft}
+
+\section{监督目标与回答区域掩码}
+
+\emph{监督微调（supervised fine-tuning, SFT）}用指令--回答或多轮对话示例训练条件生成。设一条序列为 $z_{1:n}$，$m_t\in\{0,1\}$ 指示该位置是否属于需要学习的目标，则批目标可写为
+\begin{equation}
+\mathcal L_{\mathrm{SFT}}=-\frac{\sum_{i,t}m_{it}\log p_\theta(z_{it}\mid z_{i,<t})}{\sum_{i,t}m_{it}}.
+\label{eq:sft}
+\end{equation}
+只训练助手回答是常见选择；用户消息虽然不计损失，仍进入模型作为条件，因此不计损失与不可注意这两种掩码含义不同。
+
+多轮对话可以训练每轮助手响应，也可以只训练末轮，目标随之改变。应根据序列化后的角色边界构造掩码，避免用脆弱的普通字符串搜索误把用户引用的角色标记当成真实边界。工具调用内容若属于模型要生成的动作，也可进入监督目标；工具执行结果通常作为后续条件。结束词元是否计入损失会影响停止行为，应与服务端终止规则一致。
+
+\section{拼接、截断与灾难性遗忘}
+
+样本拼接（packing）把多条短样本放入同一计算序列，减少填充浪费。如果它们应相互独立，应使用分块因果掩码，使每条样本只访问自身前缀；位置编号是否重置也需与架构约定一致。如果允许跨文档注意力，则训练的是一个文档串接目标，应明确承认这种变化。仅插入结束标记并不在数学上阻止后续位置读取前文。
+
+截断可能删除答案、结束标记或前置证据。对问答任务，保留完整目标和足够条件通常比机械保留前 $n$ 个词元更重要；过长样本可以分段、筛除或重新构造。训练时应报告被截断比例和空目标样本数，并禁止有效目标数为零时继续做除法。
+
+灾难性遗忘（catastrophic forgetting）指适配新分布后已有能力显著退化。可通过较小学习率、混入通用数据、限制更新参数或增加约束缓解，但都存在任务收益与保留能力的折中。判断遗忘需要适配前后的同一组通用与领域测试，不能只凭领域验证损失下降。
+
+\section{LoRA 的参数化、梯度与合并}
+
+\emph{参数高效微调（parameter-efficient fine-tuning, PEFT）}只训练完整模型中的少量参数或附加模块。\emph{低秩适配（low-rank adaptation, LoRA）}冻结 $W_0\in\mathbb R^{d_o\times d_i}$，令
+\begin{equation}
+W=W_0+sBA,\qquad A\in\mathbb R^{r\times d_i},\quad
+B\in\mathbb R^{d_o\times r},\quad s=\alpha/r.
+\label{eq:lora}
+\end{equation}
+可训练参数量为 $r(d_i+d_o)$，低于全矩阵的条件是 $r<d_id_o/(d_i+d_o)$。低秩限制作用于更新 $\Delta W$，而不是要求原始权重 $W_0$ 低秩\cite{lora}。
+
+设损失对有效矩阵的梯度为 $G$，则 $\nabla_B\mathcal L=sGA^\top$、$\nabla_A\mathcal L=sB^\top G$。常用初始化令 $A$ 随机、$B=0$，这样初始模型保持不变，而 $B$ 可先收到非零梯度；若二者都初始化为零，两者梯度都为零，无法开始学习。$\alpha$ 控制更新尺度，但其效果与学习率、秩和初始化相互作用。
+
+目标模块（target modules）决定在哪些投影中加入适配器，例如查询、值、输出和 FFN；只适配部分层与全层适配表达能力不同。LoRA dropout 通常作用于适配分支输入，推理时关闭。若推理分支是固定线性更新，可合并为 $W_0+sBA$，从而消除额外分支；若基座已经量化，合并后再量化会引入新的误差，必须复测。
+
+\begin{example}
+对 $4096\times4096$ 的线性层采用 $r=16$ 的 LoRA，求可训练参数比例。
+\end{example}
+\begin{solve}
+适配器参数为 $16(4096+4096)=131072$，完整矩阵参数为 $16777216$，比例为 $1/128\approx0.78125\%$。这只比较此层参数；训练仍需前向经过基座并保存必要激活，所以显存不会按同一比例缩小。
+\end{solve}
+
+\section{QLoRA 的存储与计算路径}
+
+\emph{量化低秩适配（quantized low-rank adaptation, QLoRA）}以低位格式保存冻结基座，计算时按需反量化，并训练较高精度的 LoRA 参数\cite{qlora}。其输入输出仍经过完整基座，梯度可穿过线性运算流向适配器，但不更新冻结的量化基座编码。把“4位基座”理解成全部前反向均执行4位运算，是对存储与计算精度的混淆。
+
+NF4 是根据近似正态权重分布设计的非均匀4位码本，双重量化（double quantization）进一步量化分组尺度等元数据，分页优化器（paged optimizer）利用内存管理机制缓解某些峰值。三者分别涉及权重编码、元数据压缩和内存调度，不能合并理解为一个神奇的量化公式。数据分布偏离假设、分组尺度失配或反量化开销都可能影响效果。
+
+比较全参数微调、LoRA 与 QLoRA 时，应保持数据与有效训练预算一致，报告可训练参数、实际峰值显存、训练速度和独立任务指标。若比较的模型或数据不同，不能把全部差异归因于适配方法。量化的一般误差模型将在第~\ref{ch:quantization} 章讨论。
+
+\chapter{奖励建模与直接偏好优化}
+\label{ch:preference}
+
+\section{偏好对与奖励模型}
+
+有些任务难以给唯一标准答案，却能比较两个回答。偏好数据记为 $(x,y_w,y_l)$，其中 $y_w$ 被标为优于 $y_l$。奖励模型（reward model）$r_\phi(x,y)$ 输出实数分数。Bradley--Terry 模型假设
+\[
+\Pr(y_w\succ y_l\mid x)=\sigma\bigl(r_\phi(x,y_w)-r_\phi(x,y_l)\bigr),
+\qquad
+\mathcal L_{\mathrm{RM}}=-\mathbb E_{\mathcal D}\log\Pr(y_w\succ y_l\mid x).
+\]
+这是一种把成对选择映为标量差的建模假设，不保证表达所有非传递偏好。对同一提示给全部分数加任意常数，不改变成对概率，因此奖励的绝对零点不能由这些数据唯一识别。
+
+奖励过优化（reward overoptimization）发生在策略越来越擅长获得代理高分，却没有相应改善真实任务。奖励投机（reward hacking）是其中利用评分缺陷的行为表现，例如靠固定措辞、篇幅或格式取得高分。需要独立测试、分布外样本和对评分器的针对性检查；训练奖励上升本身不能作为质量提高的充分证据。
+
+\section{KL 正则化的最优策略}
+
+固定提示 $x$，考虑有限候选回答集合 $\mathcal Y$，参考策略 $\pi_{\mathrm{ref}}(y\mid x)>0$，奖励有限，$\beta>0$。在所有候选概率分布中最大化
+\begin{equation}
+J(\pi)=\sum_y\pi(y\mid x)r(x,y)
+-\beta D_{\mathrm{KL}}\bigl(\pi(\cdot\mid x)\|\pi_{\mathrm{ref}}(\cdot\mid x)\bigr).
+\label{eq:kl-control}
+\end{equation}
+参考策略通常固定，用于约束偏离既有行为；它不是下一章用于记录采样分布的旧策略。
+
+\begin{proposition}
+\label{prop:gibbs-policy}
+上述问题有唯一最优分布
+\begin{equation}
+\pi^*(y\mid x)=\frac{\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta}}{Z(x)},
+\qquad Z(x)=\sum_y\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta}.
+\label{eq:gibbs-policy}
+\end{equation}
+\end{proposition}
+\begin{proof}
+由定义有 $\log\pi^*=\log\pi_{\mathrm{ref}}+r/\beta-\log Z$，代入可得
+\[
+J(\pi)=\beta\log Z-\beta D_{\mathrm{KL}}(\pi\|\pi^*).
+\]
+利用命题~\ref{prop:kl-nonnegative}，唯一最大值在 $\pi=\pi^*$ 时取得。
+\end{proof}
+
+对于可数无限回答空间，还必须要求 $Z(x)<\infty$ 并保证相关期望有定义。神经网络只表示某个受限策略族，实际优化也不必达到该分布。该命题解释正则化问题的解析结构，而非宣称训练时能枚举全部回答。
+
+\section{DPO 的推导与梯度解释}
+
+由式~\eqref{eq:gibbs-policy} 反解奖励，有 $r(x,y)=\beta\log[\pi^*(y\mid x)/\pi_{\mathrm{ref}}(y\mid x)]+\beta\log Z(x)$。同一提示下两个回答的奖励差消去 $Z(x)$。把候选策略 $\pi_\theta$ 代入此隐式奖励，再放入成对偏好似然，就得到\emph{直接偏好优化（direct preference optimization, DPO）}\cite{dpo}：
+\begin{align}
+h_\theta(x,y_w,y_l)&=\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\mathrm{ref}}(y_w\mid x)}
+-\log\frac{\pi_\theta(y_l\mid x)}{\pi_{\mathrm{ref}}(y_l\mid x)},\\
+\mathcal L_{\mathrm{DPO}}(\theta)&=-\mathbb E_{\mathcal D}\log\sigma(\beta h_\theta).
+\label{eq:dpo}
+\end{align}
+其中完整回答对数概率是回答词元对数概率之和，提示不参与此求和。若擅自改成长度平均，就改变了目标，不能再直接套用刚才的推导。
+
+单对样本的导数为 $\partial\ell/\partial h=-\beta\sigma(-\beta h)$，因此模型会增大被偏好回答相对参考策略的概率优势。$\beta$ 同时参与隐式奖励参数化和梯度尺度，实际训练中不能把它简单解释为独立的“越大越保守”旋钮，尤其在固定数据和有限优化下。
+
+DPO 不需要在每次更新中在线训练奖励模型并执行 PPO rollout，但依然依赖偏好数据质量、覆盖范围和参考策略。离线偏好对未覆盖的输出区域可能被意外改变；两条回答概率也可能同时下降，只是拒绝回答下降更多。应同时检查偏好胜率、目标回答似然、长度和通用能力，必要时加入监督项或改进数据。
+
+\section{IPO、KTO、ORPO 与 SimPO 的目标差异}
+
+恒等偏好优化（Identity Preference Optimization, IPO）从更一般的偏好学习框架出发，采用有限目标间隔。在一种序列对数比约定下，其成对目标为
+\[
+\mathcal L_{\mathrm{IPO}}=\mathbb E_{\mathcal D}\left(h_\theta-\frac1{2\tau}\right)^2,\qquad \tau>0.
+\]
+与把可分偏好数据的 logit 不断推大的逻辑损失不同，这个平方目标惩罚超过目标间隔的情形。论文中的策略空间分析与具体语言模型实现的长度归一化应分别核对\cite{ipo}。
+
+Kahneman--Tversky 优化（KTO）可使用单个回答的“合意／不合意”标注，不要求同提示配对。令 $u_\theta(x,y)=\log[\pi_\theta(y\mid x)/\pi_{\mathrm{ref}}(y\mid x)]$，以条件 KL 为理论参考点 $z_0(x)$，单样本损失为
+\[
+\ell_{\mathrm{KTO}}(x,y)=
+\begin{cases}
+\lambda_+\bigl[1-\sigma(\beta(u_\theta(x,y)-z_0(x)))\bigr],&y\text{ 被标为合意},\\
+\lambda_-\bigl[1-\sigma(\beta(z_0(x)-u_\theta(x,y)))\bigr],&y\text{ 被标为不合意}.
+\end{cases}
+\]
+其中 $\lambda_+,\lambda_->0$ 为类别权重。实际训练使用参考点估计并停止其梯度；原方法包含用批内错配提示与回答构造共享参考点的有偏近似，不能把该近似称为条件 KL 的精确值。KTO 的区别在反馈单位和非线性效用，不能解释为把每个差评回答简单配上一个虚构好回答\cite{kto}。
+
+优势比偏好优化（Odds Ratio Preference Optimization, ORPO）把优选回答的监督项与偏好项合在一起。设 $\bar\ell_\theta(y\mid x)=|y|^{-1}\log\pi_\theta(y\mid x)$、$s_\theta=e^{\bar\ell_\theta}\in(0,1)$，构造 $o_\theta=s_\theta/(1-s_\theta)$，再用 $-\log\sigma(\log o_\theta(y_w)-\log o_\theta(y_l))$ 惩罚不合意相对优势。这里 $s_\theta$ 是词元概率的几何平均，通常不是回答空间上的归一化分布；该方法无需独立参考模型\cite{orpo}。
+
+简单偏好优化（Simple Preference Optimization, SimPO）采用长度平均对数概率形成无参考奖励，其核心形式为
+\[
+\mathcal L_{\mathrm{SimPO}}=-\mathbb E\log\sigma\!\left(
+\beta\bar\ell_\theta(y_w\mid x)-\beta\bar\ell_\theta(y_l\mid x)-\gamma_m\right),
+\]
+其中 $\gamma_m>0$ 是目标间隔\cite{simpo}。这些方法修改了不同假设与成本，不存在只凭名字即可判断的统一优劣；应比较反馈形式、参考策略、长度处理及独立评测结果。
+
+\chapter{策略梯度、PPO、RLOO 与 GRPO}
+\label{ch:policy}
+
+\section{把文本生成写成决策过程}
+
+在单轮生成中，状态 $s_t=(x,y_{<t})$ 是提示和已生成前缀，动作 $a_t=y_t$ 是下一个词元，转移是把动作追加到前缀。终止于结束词元或预算限制。设轨迹为 $\tau$，奖励为 $r_t$，折扣因子 $\gamma\in[0,1]$，回报为 $G_t=\sum_{k=t}^{T}\gamma^{k-t}r_k$。语言回答的最终评分常只在终止时非零，有限时域任务可取 $\gamma=1$。
+
+若环境转移不含 $\theta$，轨迹概率的参数依赖来自策略。对有限轨迹空间或满足可交换求导与期望的可积条件，固定奖励目标 $J(\theta)=\mathbb E_{\tau\sim\pi_\theta}[R(\tau)]$ 有
+\begin{equation}
+\nabla_\theta J=\mathbb E\left[R(\tau)\sum_t\nabla_\theta\log\pi_\theta(a_t\mid s_t)\right].
+\label{eq:policy-gradient}
+\end{equation}
+这是对数导数恒等式。若奖励本身显式依赖参数，还需处理该依赖，不能不加说明地使用固定奖励公式。
+
+给每个状态减去与当前动作无关的基线 $b(s_t)$ 不改变该时刻 score-function 项的期望，因为 $\sum_a\pi_\theta(a\mid s)\nabla\log\pi_\theta(a\mid s)=\nabla1=0$。价值函数 $V^\pi(s)=\mathbb E[G_t\mid s_t=s]$ 作为基线，可降低方差。优势 $A^\pi(s,a)=Q^\pi(s,a)-V^\pi(s)$ 表示动作相对该状态平均水平的价值。
+
+\section{RLHF 中的四种模型角色}
+
+基于人类反馈的强化学习（reinforcement learning from human feedback, RLHF）常以 SFT 模型初始化演员（actor）策略，用奖励模型评估回答，再用策略优化改变生成分布。评论家（critic）估计前缀价值，参考模型提供固定行为锚点；它们有不同职责，即使某些实现共享底层参数，也不应混淆其目标。
+
+参考模型约束通常以 KL 惩罚表达。完整序列 KL 可由链式法则分解为策略自身前缀分布下的逐词元条件 KL 之和。采样 log-ratio $\log\pi_\theta(a_t\mid s_t)-\log\pi_{\mathrm{ref}}(a_t\mid s_t)$ 在当前策略动作下的期望等于条件 KL，但单个样本值可为负。把它加入奖励形成正则化训练，需要明确采样策略和梯度处理。
+
+旧策略 $\pi_{\mathrm{old}}$ 是生成本轮数据的快照，参考策略 $\pi_{\mathrm{ref}}$ 是约束锚点。前者用于估计当前策略相对采样分布的变化，后者用于定义允许偏离的行为。PPO 本身不要求外加参考模型；参考模型是 RLHF 中常见的正则化设计。
+
+\section{PPO 的裁剪代理目标与价值估计}
+
+\emph{近端策略优化（proximal policy optimization, PPO）}使用旧策略轨迹，定义概率比 $\rho_t(\theta)=\pi_\theta(a_t\mid s_t)/\pi_{\mathrm{old}}(a_t\mid s_t)$，最大化
+\begin{equation}
+\mathcal J_{\mathrm{clip}}=\mathbb E_{\pi_{\mathrm{old}}}\left[
+\min\bigl(\rho_t\widehat A_t,
+\operatorname{clip}(\rho_t,1-\epsilon,1+\epsilon)\widehat A_t\bigr)\right].
+\label{eq:ppo}
+\end{equation}
+正优势动作增大概率超过上界后，该样本的增益被截平；负优势动作减小概率超过相应界限后亦如此。但另一方向可能仍有梯度，所以这不是对全部概率比施加硬约束，也不保证单调提升真实回报\cite{ppo}。
+
+广义优势估计（generalized advantage estimation, GAE）先构造时序差分残差 $\delta_t=r_t+\gamma V_\psi(s_{t+1})-V_\psi(s_t)$，再取 $\widehat A_t=\sum_{l=0}^{T-t}(\gamma\lambda)^l\delta_{t+l}$。真正终止时后续价值为零；由于采样长度限制而截断时，是否继续自举取决于任务定义。$\lambda$ 调节估计偏差与方差，价值模型则拟合相应回报目标。
+
+一次训练迭代先冻结旧策略并采样，保存动作对数概率、奖励和终止标记；然后计算优势与价值目标，在有限个小批更新中优化裁剪策略目标和价值损失，最后刷新采样策略。熵奖励可以鼓励探索，参考 KL 用于约束行为。多轮复用旧数据会增大分布偏移，因此要监测 KL、裁剪比例、价值误差、梯度范数与真实任务成功率。
+
+\section{RLOO 的留一基线}
+
+REINFORCE 留一法（REINFORCE Leave-One-Out, RLOO）对同一提示独立采样 $G\ge2$ 个完整回答，评分为 $R_i$，令
+\[
+b_i=\frac1{G-1}\sum_{j\ne i}R_j,\qquad
+\widehat A_i=R_i-b_i.
+\]
+在给定提示下独立采样、奖励函数固定且基线停止梯度时，$b_i$ 不依赖第 $i$ 个回答，因而保留式~\eqref{eq:policy-gradient} 的无偏基线性质。它省去学习价值模型的成本，代价是同题多次生成以及序列级反馈较粗\cite{rloo}。
+
+若改用包含自身的均值 $\bar R$，有 $R_i-\bar R=(G-1)(R_i-b_i)/G$。在未做标准差归一化且条件相同的情形，这只是固定缩放；再除以随机组内标准差后，就不能继续声称只是同一无偏估计的常数倍。RLOO 属于在线策略梯度方法，与离线 DPO 变体处于不同分类维度。
+
+\section{GRPO 的组内优势与实际目标}
+
+\emph{组相对策略优化（group relative policy optimization, GRPO）}以同提示多回答的相对奖励替代独立评论家\cite{grpo}。一种常用定义为
+\begin{equation}
+\bar R=\frac1G\sum_iR_i,\qquad
+\widehat\sigma_R=\sqrt{\frac1G\sum_i(R_i-\bar R)^2},\qquad
+\widehat A_i=\frac{R_i-\bar R}{\widehat\sigma_R+\varepsilon}.
+\label{eq:grpo-adv}
+\end{equation}
+把序列优势分配给回答中的词元，形成一种序列等权的代理目标
+\[
+\frac1G\sum_{i=1}^G\frac1{T_i}\sum_{t=1}^{T_i}
+\left[\min\!\left(\rho_{it}\widehat A_i,
+\operatorname{clip}(\rho_{it},1-\epsilon,1+\epsilon)\widehat A_i\right)
+-\beta K_{it}(\theta)\right].
+\]
+这里 $\rho_{it}$ 相对旧策略计算，$K_{it}$ 可取当前策略相对参考策略在该前缀上的条件 KL。若用动作采样近似 KL，必须说明动作来自哪一分布及相应校正；不同实现并不完全相同。
+
+组内奖励相同，则奖励优势全为零，不能产生区分回答的信号，但 KL 项仍可能产生梯度。题目全部过难或过易都会降低有效学习信号。除以组内标准差会改变不同题目的相对权重，按 $1/T_i$ 平均也改变长度权重，因此“去掉评论家”不是 GRPO 的全部数学内容。长度偏置、裁剪方式和奖励缩放都应通过消融验证。
+
+\section{可验证奖励与过程监督}
+
+\emph{可验证奖励强化学习（reinforcement learning with verifiable rewards, RLVR）}描述奖励来源，不是另一个与 PPO、GRPO 平行的唯一优化算法。数学任务可检查最终结果，代码任务可运行测试，结构化任务可验证模式或数据库结果。规则奖励可以减少人工逐条比较，却依然受测试覆盖、解析和环境可靠性限制。DeepSeek-R1 提供了推理后训练的具体研究实例\cite{r1}，不应据此认为任意模型只加二值奖励就能获得相同效果。
+
+结果奖励模型（outcome reward model, ORM）评价最终结果，过程奖励模型（process reward model, PRM）评价中间步骤。过程监督能提供更细信用分配，但需要定义步骤边界与步骤正确性，不能仅凭最终答案正确就把每个中间步骤标为正确\cite{prm}。多个步骤概率相乘还隐含条件独立或条件概率链式解释，不能把独立打分器的分数随意相乘后称为严格正确率。
+
+若奖励含正确性、格式和长度项，应明确 $R=w_cR_c+w_fR_f-w_lC$ 的权重与量纲。高权重的易得格式奖励可能压倒真正任务成功。一个稳健训练流程先验证评分器，再用小规模 rollout 检查奖励分布和成功率，最后扩大采样；评测必须包含未参与奖励设计的独立任务。
+
+\chapter{拒绝筛选、蒸馏与推理时计算}
+\label{ch:distillation}
+
+\section{采样温度、核采样与拒绝筛选}
+
+温度 $T>0$ 把 logits $z_j$ 变为 $p_T(j)\propto\exp(z_j/T)$。降低温度通常使分布集中，$T\to0$ 时质量趋向最大得分集合；遇到并列最大值时仍需规定选择规则。Top-$k$ 采样保留概率最大的 $k$ 个词元；核采样（nucleus sampling, top-$p$ sampling）保留累计概率至少为阈值 $p$ 的最小排序前缀，再重新归一化。这些操作改变生成分布，不能在使用过滤后采样结果时仍以未过滤分布作精确概率计算。
+
+对提示生成多个回答，再用验证器保留高质量结果，是训练数据中的拒绝筛选。若原生成分布为 $q(y\mid x)$、通过概率为 $a(x,y)\in[0,1]$，且通过率非零，保留样本服从
+\begin{equation}
+q_{\mathrm{keep}}(y\mid x)=\frac{q(y\mid x)a(x,y)}{\sum_{y'}q(y'\mid x)a(x,y')}.
+\label{eq:filter-distribution}
+\end{equation}
+这说明筛选偏向容易通过规则的回答。只有按特定接受率构造时，它才等价于经典概率论中从指定目标分布精确抽样的拒绝采样（rejection sampling）。行业中对候选筛选也使用同名术语，应明确语境。
+
+若每题保留一个最佳结果，形成 Best-of-$N$ 数据，分布还依赖候选间的比较。增加 $N$ 既提高发现正确答案的机会，也提高利用评分器漏洞的机会。必须同时记录生成成本、通过率、题目覆盖和筛选后长度分布。
+
+\section{软目标蒸馏与行为蒸馏}
+
+\emph{知识蒸馏（knowledge distillation）}让学生模型学习教师行为。设教师、学生在同一上下文和词表上的温度分布为 $p_T,q_T$，一个常见目标为
+\[
+\mathcal L=(1-\lambda)\mathcal L_{\mathrm{hard}}
++\lambda T^2D_{\mathrm{KL}}(p_T\|q_T),\qquad 0\le\lambda\le1.
+\]
+软分布同时提供非目标词元的相对信息。$T^2$ 常用于补偿温度对梯度尺度的影响，但其效果依赖得分尺度与温度区间；并不是保证所有温度下梯度完全相同的恒等式\cite{distill}。
+
+响应蒸馏只训练教师生成的离散文本，因而相当于在教师样本上做 SFT。推理轨迹蒸馏进一步保留中间步骤；工具行为蒸馏保留动作、参数和观察。教师写出的解释是可学习的输出轨迹，不应被等同于其内部计算过程。不同词表模型之间不能直接逐编号比较 logits，通常需要文本级训练或显式对齐。
+
+离策略蒸馏（off-policy distillation）使用预先生成的教师轨迹；同策略蒸馏（on-policy distillation）让学生先产生自己常访问的前缀，再由教师在这些前缀上提供信号。后者可以减轻前缀分布失配，但增加在线教师调用与训练调度成本。学生可能缺少教师的表示容量，故即使目标一致也未必达到教师性能。
+
+\section{提示设计、少样本示例与推理轨迹}
+
+提示工程（prompt engineering）在固定模型参数下设计任务说明、输入边界、示例和输出约束。零样本（zero-shot）提示不给已解示例，少样本（few-shot）提示提供少量输入--输出对，帮助模型识别任务和格式。这种上下文学习（in-context learning）通过条件输入改变输出，不等于执行梯度更新；示例的顺序、标签和长度都可能影响结果，应在独立任务上评估。
+
+思维链（chain of thought, CoT）在输出中加入中间推导或分步说明，使模型可以利用已生成的中间文本继续计算。它可能帮助需要多步组合的任务，也可能引入冗长错误和错误前提传播。可见推理轨迹是输出内容，不是模型内部计算机制的完整记录；其正确性需要数学核查、执行反馈或其他外部证据。
+
+提示设计应优先明确问题、条件和可核验输出，再决定是否需要中间步骤。数据中的长推理轨迹可以用于蒸馏，但应检查每步是否有效、最终答案是否被泄漏以及是否包含与任务无关的固定格式。推理长度是资源消耗指标之一，不能单独作为质量标签。
+
+\section{自一致性与验证器选择}
+
+\emph{推理时计算扩展（test-time scaling）}在给定模型参数下，通过更多采样、搜索或验证改善结果。自一致性（self-consistency）从多条推理路径提取标准化答案，再投票\cite{selfconsistency}；Best-of-$N$ 用验证器选择高分候选。前者依赖错误是否分散，后者依赖验证器能否区分正确与错误。若模型系统性偏向同一错误，多数投票会加强错误。
+
+作为理想参照，若各次生成独立且成功概率为 $p$，至少一次成功的概率为 $1-(1-p)^N$。但把成功候选识别出来还需额外选择机制，所以该概率通常是带完美识别器的可达上界，而不是实际交付答案的准确率。固定总计算预算时，更多短候选与更少长候选应分别比较。
+
+思考预算（thinking budget）可以按任务难度、当前不确定性和剩余资源动态分配。一个决策目标是最大化 $\mathbb E[\text{正确性}]-\lambda\mathbb E[\text{成本}]$，成本可以是词元、时间或费用。困难度估计、停止规则和预算调度都需独立验证，不能把更长推理文本当成更强推理的直接证据。
+
+\section{束搜索、树搜索与停止条件}
+
+束搜索（beam search）保留得分较高的若干前缀，扩展后再截断。它近似优化序列概率或经长度调整的分数，并不直接优化事实正确性；如果概率模型偏好错误模式，扩大束宽也不能修复目标。验证器引导搜索则把任务反馈引入节点评分，但需要承担节点生成和评分成本。
+
+蒙特卡罗树搜索（Monte Carlo tree search, MCTS）风格方法在选择、扩展、模拟和回传之间循环。例如 UCT 选择准则可写为 $\widehat Q(s,a)+c\sqrt{\log N(s)/N(s,a)}$，未访问动作另外优先探索。语言推理中，一个动作可能是一词元、一步推导或一次工具调用；动作粒度会显著改变树宽、深度和价值估计难度。采用相似公式并不自动获得经典有限状态搜索条件下的保证。
+
+搜索应有明确的总预算、重复状态检测和终止验证。若验证器只检验最终答案，错误中间前缀可能浪费大量扩展；若用过程模型剪枝，误判又可能提前删除正确路径。实验应报告同预算下的准确率与延迟分布，并与单次生成、独立多采样和简单投票比较。
+
+\part{信息检索与外部知识}
+
+\chapter{稀疏检索、稠密检索与重排序}
+\label{ch:retrieval}
+
+\section{倒排索引与 BM25}
+
+检索任务给定查询 $q$ 和文档库 $\mathcal C$，输出与查询相关的候选文档。稀疏检索（sparse retrieval）主要通过词项匹配；倒排索引（inverted index）为每个词项存储包含它的文档及频率等信息，避免对所有文档逐一扫描。TF--IDF 用词频和逆文档频率赋权，使常见功能词的影响较小，但不同实现的词频、平滑和归一化约定有所不同。
+
+BM25 的一种常用形式为
+\begin{equation}
+\operatorname{score}(q,d)=\sum_{t\in q}\operatorname{IDF}(t)
+\frac{f(t,d)(k_1+1)}{f(t,d)+k_1(1-b+b|d|/\overline\ell)},
+\label{eq:bm25}
+\end{equation}
+其中求和按查询中的不同词项进行，$f(t,d)$ 是词频，$|d|$ 为文档长度，$\overline\ell$ 为库中平均长度，$k_1>0$ 控制词频饱和，$b\in[0,1]$ 控制长度归一化。可取 $\operatorname{IDF}(t)=\log(1+(N-n_t+0.5)/(n_t+0.5))$，$N$ 为文档数，$n_t$ 为包含该词的文档数\cite{bm25}。
+
+词频分式随 $f$ 增大趋向 $k_1+1$，避免一个词重复很多次就无限提高相关性。长文档的分母增大，部分补偿长文天然更易匹配词项的优势。标识符、错误码、精确数字和人名往往需要这种词项匹配；同义表达和跨语言匹配则可能受限。分词与大小写处理同样会影响结果。
+
+\section{双编码器与对比学习}
+
+稠密检索（dense retrieval）用查询编码器 $f_\theta(q)$ 和文档编码器 $g_\theta(d)$ 映到向量空间，称为双编码器（bi-encoder）。得分可取点积 $s(q,d)=f_\theta(q)^\top g_\theta(d)$；若都做单位范数归一化，点积就是余弦相似度。未归一化时，向量范数也参与排序，不能将二者混称\cite{dpr}。
+
+给定正文档 $d_i^+$ 和负例集合 $\mathcal N_i$，对比损失可写为
+\begin{equation}
+\ell_i=-\log\frac{\exp(s(q_i,d_i^+)/\tau)}{
+\exp(s(q_i,d_i^+)/\tau)+\sum_{d\in\mathcal N_i}\exp(s(q_i,d)/\tau)},\qquad \tau>0.
+\label{eq:contrastive}
+\end{equation}
+批内负例（in-batch negatives）复用同批其他查询的正例文档，降低额外编码成本；困难负例（hard negatives）选择词面或语义接近但不满足查询的文档，提高区分能力。若负例其实相关，就会错误推开应靠近的表示，因此必须检查假负例率。
+
+编码器更新后，旧索引中的向量可能与新查询向量不再处于同一空间。发布检索模型应同步管理编码器版本、分词器、向量归一化、文档版本和索引版本。只更新查询端权重而不重建文档向量，除非方法特意支持，否则会产生难以诊断的退化。
+
+\section{近似最近邻与索引取舍}
+
+精确向量搜索对 $N$ 个 $d$ 维向量逐一计算得分，单查询约需 $O(Nd)$ 运算。近似最近邻（approximate nearest neighbor, ANN）通过索引减少访问量。倒排文件（inverted file, IVF）先将向量聚类，再只搜索部分簇；层次可导航小世界图（HNSW）通过图上的局部跳转接近近邻；乘积量化（product quantization, PQ）把向量分成子空间，各子空间以码本索引近似存储。
+
+这些机制分别减少搜索范围、利用邻接结构或压缩向量。簇探测数、图搜索宽度和码本精度越低，通常延迟与内存更小，但 ANN 召回可能下降。应相对精确向量搜索测量索引损失，再把表示模型本身的语义召回单独测量，否则无法分清是向量不好还是索引遗漏。
+
+FAISS 提供向量检索与索引算法，Elasticsearch、OpenSearch 组织文本索引及相关检索服务，Milvus、Qdrant 等向量数据库还处理持久化、元数据过滤和服务管理。选择工具时应从数据更新、过滤、规模与延迟要求出发；数据库品牌本身不决定检索质量。
+
+\section{混合召回、RRF 与分数融合}
+
+混合检索（hybrid retrieval）合并词项与向量召回，以利用互补错误。若不同检索器得分量纲不同，直接相加可能让一个检索器支配结果。加权分数融合需要校准或归一化；归一化也不能保证不同查询下分数含义一致。
+
+倒数排名融合（reciprocal rank fusion, RRF）只使用排名：
+\[
+\operatorname{RRF}(d)=\sum_{j:d\in\mathcal C_j}\frac{w_j}{c+\operatorname{rank}_j(d)},\qquad c>0.
+\]
+未被检索器 $j$ 召回的文档不贡献该项。$c$ 控制对头部排名的敏感性，$w_j$ 控制各路权重。它减少对分数标度的依赖，但丢弃了得分间距信息，也不能修复所有召回器共同漏掉的文档。
+
+\section{交叉编码器与迟交互}
+
+重排序器（reranker）在较小候选集上进行更昂贵的相关性建模。交叉编码器（cross-encoder）将查询和文档拼接输入同一网络，使每层都可建模二者交互，再输出相关分数；因为文档表示依赖查询，难以像双编码器那样离线一次编码后直接复用。候选数量与文档长度直接影响重排成本。
+
+迟交互（late interaction）保留词元级表示，在最后阶段计算细粒度匹配。例如 ColBERT 风格得分为
+\[
+s(q,d)=\sum_{i=1}^{|q|}\max_{1\le j\le|d|}q_i^\top d_j,
+\]
+其中向量通常归一化，并对有效词元使用掩码。它让每个查询词元寻找最强文档匹配，保留更多局部细节，但每文档需要存储多个向量\cite{colbert}。召回、重排和最终生成应分层测量；重排不能从不存在于候选集的文档中创造证据。
+
+\chapter{检索增强生成与复杂检索}
+\label{ch:rag}
+
+\section{从参数知识到可追溯证据}
+
+\emph{检索增强生成（retrieval-augmented generation, RAG）}把外部文档作为条件，用来生成有依据的回答。一个概率化视角为 $p(y\mid q)=\sum_d p_\eta(d\mid q)p_\theta(y\mid q,d)$；实际系统通常只取若干候选，并把它们拼入上下文，而非精确边缘化整个文档库\cite{rag}。检索结果决定信息来源，生成模型负责组织与推理，两部分的错误需要分开定位。
+
+文档切块应保留段落、标题、表格说明和来源位置。块过短会失去条件，块过长会降低匹配精度并消耗上下文。重叠块减少边界断裂，却增加重复与检索冗余。索引单元可以较小，传给模型的证据单元可以扩展到父段落；二者不必相同。
+
+引用需要把最终陈述关联到真实可访问的证据位置。检索到文档并附一个链接，并不证明该文档支持附近结论。应区分引用可解析、引用内容相关和引用确实蕴含陈述三个层次；权限过滤应在检索和返回阶段生效，避免先召回无权文档再寄希望于模型不泄露。
+
+\section{查询改写、分解与 HyDE}
+
+查询改写（query rewriting）把省略、口语或多轮指代表达转成更适合检索的形式；查询扩展（query expansion）增加同义词、别名和相关术语。多查询检索用若干表达分别召回后合并。改写若改变否定、时间、主体或数字条件，会把搜索引向错误问题，因此应保留原始约束并比较召回增益。
+
+查询分解（query decomposition）把复杂问题拆为子问题。若后一个问题需要前一结果，则不能机械并行。例如比较两家公司某年的指标，可以分别检索两者再对齐口径；查找某奖项得主的导师，则需先确定得主。子查询之间的依赖构成有向图，执行与停止应围绕依赖关系管理。
+
+假设文档嵌入（Hypothetical Document Embeddings, HyDE）先生成一个可能包含答案的假设文档，再编码它检索真实文档\cite{hyde}。其动机是让查询更接近文档表达空间；生成的假设文本只是检索媒介，可能包含虚构事实，不能充当答案证据。最终回答仍需回到实际召回来源。
+
+\section{上下文化索引与迭代检索}
+
+上下文化检索（contextual retrieval）在索引前为切块补充父文档语境，例如公司、年份、章节和实体。孤立句“增长20\%”缺少基准，附加真实元数据后更容易被正确检索。若补充语境由模型生成，必须可回溯到原文，避免在索引阶段把幻觉固化成长期知识\cite{contextual}。
+
+智能体式检索增强生成（agentic RAG）根据当前证据决定是否继续检索：识别缺失事实，产生新查询，检查结果，直到证据充分或预算用尽。它比一次检索多了一个决策层，也多了查询漂移、重复搜索和错误自信的风险。证据充分性应按任务需要判断，例如比较题必须覆盖两个对象和相同时间口径，而不是简单以文档数量为准。
+
+停止规则应同时包含成功条件和资源上限。达到预算但证据不足时，应保留未解决项；不能把“没有搜到反例”视为结论已证实。评估迭代检索时，需要记录每次检索的增量证据和调用成本，检查多轮是否确实补足了缺失信息。
+
+\section{图检索与全局总结}
+
+图检索增强生成（Graph RAG）把实体及关系组织为图，可沿邻接关系、路径或社区摘要检索。多跳问题能通过路径定位相关证据，跨文档总结能利用社区级组织；微软提出的 GraphRAG 研究包含面向全局问题的社区摘要路线\cite{graphrag}，并非所有冠以 Graph RAG 的实现都相同。
+
+图中的边可能来自人工结构化数据，也可能由模型抽取。后一种情况下，实体消歧、关系方向、时间和来源必须保留，抽取边不能自动被当作事实。图更新还涉及删除过时关系、版本一致性和摘要重建，比普通向量插入更复杂。
+
+如果任务只需在短文档中查一个精确句子，图构建未必值得；如果需要跨文档关系和全局组织，图可能有帮助。应以同一数据、同一预算比较普通混合检索、迭代检索和图方案，并分析收益来自结构还是额外索引时计算。
+
+\section{检索与生成的分层指标}
+
+设查询的已标注相关文档集合为 $R$，前 $K$ 个结果为 $S_K$，则 $\operatorname{Recall@K}=|R\cap S_K|/|R|$、$\operatorname{Precision@K}=|R\cap S_K|/K$，假定 $|R|>0$ 且返回 $K$ 项。相关性标注不完整时，这些指标会受到未标注文档的影响。平均倒数排名（MRR）平均第一个相关结果排名的倒数，无相关结果取零。
+
+折损累计增益 $\operatorname{DCG@K}=\sum_{i=1}^K(2^{\mathrm{rel}_i}-1)/\log_2(i+1)$ 允许分级相关性，归一化为 $\operatorname{NDCG@K}=\operatorname{DCG@K}/\operatorname{IDCG@K}$，理想增益为零时需规定评测约定。不同指标偏重覆盖、头部命中或排序质量，不能互相替代。
+
+生成侧测量正确性、完整性、忠实性与引用支持率。忠实于错误文档仍可能事实错误，事实碰巧正确也可能没有证据支持。定位问题时可分别给模型真实检索证据和人工理想证据：若理想证据下仍失败，应优先检查生成与任务理解；若理想证据显著改善，再分析召回、重排和上下文组织。
+
+\part{工具、智能体与环境学习}
+
+\chapter{工具接口、MCP 与结构化生成}
+\label{ch:tools}
+
+\section{从输出文本到可执行动作}
+
+工具调用（tool calling）或函数调用（function calling）使模型输出工具名和参数，由外部程序执行。模型生成的调用只是动作建议，执行程序才负责参数解析、权限校验、资源分配和真实副作用。工具模式（tool schema）应明确输入类型、必填字段、枚举、返回结构及错误类别；冗长描述无法替代明确类型约束。
+
+例如检索工具的输入可以包含查询字符串、最大结果数和时间范围，输出包含文档标识、片段、来源与时间。调用记录应保存请求标识、工具版本、参数、开始结束时间、结果及状态。把普通错误描述成正常结果会误导下一步推理，因此应区分成功、可重试故障、不可重试故障和状态未知。
+
+\emph{幂等性（idempotency）}要求同一操作重复执行不会产生额外的不可忽略副作用。读取通常容易重试，转账、发送消息或提交订单则需要请求键、去重和状态查询。超时只说明调用方未及时收到结果，并不证明服务端没有执行；状态未知时盲目重试可能重复写入。长任务还应支持取消、结果恢复和明确的部分成功语义。
+
+\section{MCP 的宿主、客户端与服务端}
+
+模型上下文协议（Model Context Protocol, MCP）标准化应用与外部工具、资源之间的连接。按本书引用的2025-06-18版规范，宿主（host）协调模型、用户与多个客户端（client），每个客户端连接相应服务端（server）；服务端暴露工具、资源和提示模板等能力\cite{mcp}。协议解决发现、消息交换和能力协商，不替代模型推理算法或应用的权限判断。
+
+工具用于请求计算或动作，资源（resources）用于提供可读取内容，提示模板（prompts）封装可选择的交互模板。连接初始化时协商版本与能力，之后按约定交换消息。该版本包含标准输入输出与 Streamable HTTP 等传输方式；传输、鉴权与会话管理的细节应按部署采用的规范版本核对，不能混用不同版本示例。
+
+宿主必须决定哪些能力暴露给模型、哪些资源可访问，以及何时实际执行动作。服务端返回的文档或描述可能包含不可信内容，即使连接成功也不代表其文本具有指令权限。凭证应由受控程序管理，工具不应因为模型在参数中声称“已获授权”就扩大权限。
+
+\section{JSON 模式与生成后校验}
+
+结构化输出（structured output）规定生成结果满足某种可解析形式，例如 JSON 对象或受限代码。JSON 语法合法只说明括号、字符串和分隔符正确；JSON Schema 还可规定字段类型、必填项、枚举和数值范围。字段“日期”是合法字符串，不保证它是真实日期；金额在范围内，也不保证操作被授权。
+
+仅用提示词要求格式，模型仍可能生成前后说明或遗漏字段。生成后校验能发现不合格结果，再进行有限次修复或返回明确错误；修复过程本身也必须受预算和权限控制。对关键动作，业务规则应在确定性程序中再次验证，并把解析失败、语义失败和权限失败分开统计。
+
+\section{语法约束解码与可行前缀}
+
+约束解码（constrained decoding）在生成每个词元前，维护解析状态 $s$，计算允许集合 $\mathcal A(s)$，然后取
+\begin{equation}
+\widetilde p(v\mid s)=\frac{p(v\mid s)\mathbf1\{v\in\mathcal A(s)\}}{
+\sum_{u\in\mathcal A(s)}p(u\mid s)}.
+\label{eq:constrained}
+\end{equation}
+它要求分母非零，并应只保留能够继续扩展为合法完整结果的前缀。词元可能包含多个字符或部分字节，不能把字符级合法性直接等同于词元级合法性。
+
+有限状态机（finite-state machine, FSM）适合正则形式；任意深度嵌套通常需要栈、上下文无关语法解析器或限定深度展开。结束词元只能在合法完成状态允许，长度预算耗尽时也不能把未闭合结果报告为成功。不同后端支持的模式子集可能不同，应把模式本身纳入测试。
+
+逐步重归一化一般会改变概率分布；它不自动等于原模型在“最终结果满足全局约束”条件下的精确条件分布，因为后者还包含各前缀未来完成的概率。约束解码提供的是相应形式上的保证，不是内容正确性或全局最优性保证。
+
+\chapter{智能体循环、记忆与规划}
+\label{ch:agents}
+
+\section{状态、动作与终止条件}
+
+智能体（agent）围绕目标，根据观察选择动作，并利用环境反馈更新后续决策。工作流（workflow）可以预先固定执行图，智能体则把部分路径选择交给模型；实际系统常组合二者。一个可控循环维护任务状态、历史观察、已完成子目标、未解决问题和剩余预算，在每次动作后确认状态变化，再选择继续、恢复或结束。
+
+将系统写成状态机有助于明确语义：待决策、待执行、待观察、待恢复和已终止具有不同允许操作。终止条件包括独立验证成功、明确不可继续和预算耗尽。最后一种状态不能等同于成功，模型说“完成”也不能替代对真实环境的检查。
+
+长任务应在安全边界保存检查点，把已提交副作用和可重放的纯计算分开记录。循环检测可以比较规范化动作、相同观察与状态摘要；连续重复且没有进展时，应改变策略或停止，而非无限增加提示中的自我提醒。
+
+\section{记忆的类型与更新规则}
+
+会话记忆（conversation memory）保存交互历史，工作记忆（working memory）保存当前任务状态，情景记忆（episodic memory）记录过去事件，语义记忆（semantic memory）保存可复用知识。这是功能划分，并不意味着必须建立四个数据库。实现可以使用摘要、向量索引、键值存储和结构化表。
+
+记忆写入比读取更需要谨慎，因为一次错误可能影响后续很多任务。记录应包含来源、时间、适用范围和必要的置信标记；用户偏好、事实、推断与临时状态应能区分。摘要会丢失细节，检索会遗漏信息，过时事实可能与新观察冲突，所以应支持更新、撤销和回查原始证据。
+
+外部记忆不是模型参数更新。检索到一段记录只是把它放入本次条件；是否被正确使用仍取决于相关性、表达、位置和可信度。评价记忆模块应同时检查检索命中率、过时记忆干扰和隐私边界，而不只看存储容量。
+
+\section{上下文工程与信息预算}
+
+上下文工程（context engineering）管理系统指令、对话、工具结果、证据、记忆与任务状态如何进入有限窗口。设候选片段价值为 $v_i$、词元成本为 $c_i$，简单选择问题可以写为 $\max\sum_iv_iz_i$，约束 $\sum_ic_iz_i\le B_{\mathrm{ctx}}$、$z_i\in\{0,1\}$。真实片段之间存在冗余和依赖，所以线性背包只是预算视角，不能直接把独立相关性分数当成真实效用。
+
+压缩可以删去无关内容、提取结构化事实或生成摘要。应保留关键约束、证据来源、未完成事项和动作结果；若只保留自然语言结论，后续可能无法区分观察与猜测。上下文窗口还要为输出、工具调用和可能的后续观察预留空间，不能把全部容量填满输入。
+
+过期状态应及时移除或标记。例如旧文件路径、已经失败的假设和已撤销权限若继续存在，可能支配后续决策。上下文管理的目标是在当前任务下保留有效信息，而不是把所有历史都无条件塞入模型。
+
+\section{ReAct、计划执行与自我修正}
+
+ReAct 把推理与动作、观察交替组织，使计划受环境反馈约束\cite{react}。计划--执行（plan-and-execute）先给出较粗子目标，再由执行过程逐步落实；分层规划把大任务拆成不同抽象层级。计划应能在新证据下更新，否则长而详细的初始计划可能成为错误约束。
+
+反思（reflection）与自我修正（self-correction）让模型重新评估先前结果。若没有新证据、外部测试或可靠判据，多次自检可能重复相同错误，甚至把正确答案改坏。因此，修正应围绕具体失败信号，例如测试报错、缺失引用或状态不一致，而非要求模型泛泛“再想一想”。
+
+规划质量应通过任务成功、恢复率、无效动作数、成本和尾部延迟评估。固定工作流是重要基线：如果任务路径本来明确，动态规划可能只增加成本；如果环境变化大、信息逐步揭示，智能体决策才可能体现优势。
+
+\section{多智能体协作与分布式信用}
+
+多智能体（multi-agent）把检索、编码、检查等职责分给多个决策实体。集中式结构由协调者分配任务并合并结果，分散式结构由各实体协商和交接。角色专门化可能让局部上下文更集中，也可能造成信息丢失、重复工作与冲突。
+
+交接（handoff）至少应包含目标、已知事实、已执行动作、剩余约束和可验证产物。共享文件或外部状态需要明确写入责任与合并顺序；两名智能体各自声称完成不代表组合产物一致。投票也不能自动消除相关错误，尤其当模型、提示和数据源高度相似时。
+
+多智能体学习可把联合策略分解为 $\pi(a_1,\ldots,a_M\mid o_1,\ldots,o_M)$ 的受限因子形式，训练时用团队奖励或个体奖励。其他智能体策略变化会使局部环境非平稳，团队回报又使信用分配困难。集中训练、分散执行是一种设计路线，但需要明确训练时可见信息与部署时可见信息。比较多智能体收益必须固定总计算预算，而非只固定每个成员预算。
+
+\chapter{智能体强化学习、代码与环境模型}
+\label{ch:agentlearning}
+
+\section{部分可观察环境中的策略学习}
+
+工具智能体的真实环境状态可能包含文件、网页、数据库或隐含任务条件，而模型只看见部分观察。因此常用部分可观察马尔可夫决策过程（partially observable Markov decision process, POMDP）建模。策略可依赖历史 $h_t=(o_1,a_1,\ldots,o_t)$ 或它的记忆表示；如果摘要丢失关键状态，就不能默认摘要仍满足马尔可夫性质。
+
+智能体强化学习（agent RL）优化多次动作后的任务回报，工具使用强化学习（tool-use RL）强调选择工具与参数的学习。轨迹概率包含策略动作与环境转移；通常只对模型生成动作的对数概率求策略梯度，工具返回文本不是模型动作，不能一并当作需要提高概率的目标。把全部日志直接做语言建模，可能让模型学会伪造观察。
+
+训练环境要支持可重置初始状态、隔离副作用和稳定评分。异步 rollout 提高利用率，却可能使用过时策略；需要记录采样版本、控制滞后并说明校正方法。长度差异大的轨迹还会造成负载不均，训练吞吐不能只按任务数统计。
+
+\section{稀疏奖励与势函数塑形}
+
+若只有任务最终成功才得到奖励，长轨迹中的有用动作很难归因。中间奖励可以来自有效证据、通过子测试或达到可验证里程碑，但奖励设计不当可能鼓励无意义动作。一个有理论依据的形式是势函数塑形（potential-based reward shaping）：
+\[
+r'_t=r_t+\gamma\Phi(s_{t+1})-\Phi(s_t).
+\]
+对有限时域 $t=0,\ldots,T-1$，塑形项折扣和为 $-\Phi(s_0)+\gamma^T\Phi(s_T)$。若终止势为零且初始状态固定，它只是与策略无关的常数，故不改变期望回报的最优策略。若终止势、时域或部分观察处理不满足条件，就不能直接援引这个结论。
+
+实际中可用最终环境成功验证器判断任务完成，再把过程指标作为诊断或谨慎的辅助奖励。任务奖励上升后，还应检查动作数量、工具滥用、环境损坏和未覆盖约束，避免模型学会通过评分漏洞而非解决问题。
+
+\section{代码模型与软件工程智能体}
+
+代码语言模型可以用代码预训练、指令微调和执行反馈学习。中间填充（fill-in-the-middle, FIM）通过特殊标记重排前缀、后缀和中间缺口，训练根据两侧上下文补全内容；它依然可以用自回归损失实现。仓库级任务还需要理解符号定义、依赖、调用链、测试和构建环境，而非只处理孤立函数。
+
+软件工程智能体围绕问题描述检索代码、读取文件、提出补丁、运行相关测试并依据失败反馈修正。仓库上下文应结合精确符号搜索与语义检索；错误地把相似文件当成实际入口会产生看似合理却不起作用的补丁。补丁应作为可审查产物，记录改动范围和测试证据。
+
+单元测试奖励只覆盖被执行的输入与性质。测试通过不证明程序完全正确，更不能允许模型修改测试来伪造成功。训练和评测应隔离隐藏测试，固定环境与依赖，区分编译失败、运行超时、断言失败和环境故障。代码执行必须位于合适的沙箱与权限范围内。
+
+\section{计算机操作与视觉定位}
+
+计算机操作智能体（computer-use agent）根据屏幕图像、界面树或状态信息选择鼠标、键盘和应用动作。视觉定位（visual grounding）把语言目标关联到实际控件或区域。分辨率变化、滚动偏移、动态布局和遮挡都会影响坐标，旧截图上的位置不能无条件用于新状态。
+
+动作前应确认关键界面条件，动作后检查预期状态变化。环境非确定性包括网络延迟、弹窗、异步加载和焦点变化，恢复策略应区别“动作未执行”与“执行后反馈延迟”。表单提交等副作用动作尤其需要可观测确认，而不能仅凭点击坐标推断成功。
+
+评测可使用受控网页或桌面任务，记录成功率、有效动作数、误操作与恢复能力。多模态模型改善感知接口，但不能替代状态管理和权限控制；视觉能力与任务规划应分开诊断。
+
+\section{世界模型与环境模型}
+
+世界模型（world model）或环境模型（environment model）学习状态转移与反馈，例如 $p_\phi(o_{t+1},r_t\mid h_t,a_t)$，以支持预测、模拟和规划。它可以在真实执行前估计动作后果，或用模拟轨迹补充训练，但模型中的成功并不等于真实环境成功。
+
+若一步预测有误差，长时域滚动可能不断偏离真实可达状态；规划还可能主动选择模型最乐观却最不准确的区域。可通过短期规划、模型集合、不确定性估计与真实反馈校正缓解，但必须明确哪些结果来自模拟、哪些经过真实验证。
+
+在 LLM 场景中，用语言描述“下一步可能发生什么”只是环境模型的一种表达形式。是否能作为可靠规划器，取决于预测校准、动作条件覆盖和闭环验证，而不是生成描述是否连贯。
+
+\part{评测、可靠性与可解释性}
+
+\chapter{离线评测、评分器与在线实验}
+\label{ch:evaluation}
+
+\section{先定义任务，再定义指标}
+
+评测首先明确输入分布、允许信息、成功条件和预算。选择题、自由生成、代码执行和环境交互的成功定义不同；同一模型在不同提示模板、工具权限和采样次数下也不是同一个被评测系统。报告应固定模型及分词器版本、提示、解码设置、上下文限制、工具和评分器版本。
+
+基准测试（benchmark）提供可复用任务集合，但受训练污染、难度饱和和分布代表性限制。精确匹配需要规范化约定，过强规范化可能把不同答案合并；选择题通过选项似然还是直接生成字母评分，也会产生不同结果。不能把不同协议的分数当成同一实验比较。
+
+错误样本（bad case）分析应形成可操作类别，例如任务理解、知识缺失、证据检索、计算、格式、工具参数、环境执行和评分错误。每次修复应对应类别和可验证假设，并用新验证数据确认；不断查看测试样本并修补会使测试集退化成开发集。
+
+\section{成功率、配对比较与不确定性}
+
+若 $N$ 个独立任务的成功指标为 $Z_i\in\{0,1\}$，经验成功率 $\widehat p=N^{-1}\sum_iZ_i$。在同分布 Bernoulli 假设下，其标准误可估为 $\sqrt{\widehat p(1-\widehat p)/N}$；样本少或接近边界时，应采用更适当的区间方法，不能机械使用正态近似。来自同一模板或同一用户的任务可能相关，应按组重采样或聚类处理。
+
+比较模型 A、B 时，最好在相同任务上计算差值 $D_i=Z_i^A-Z_i^B$，再估计 $\overline D$ 的不确定性。这样利用了题目难度的配对信息。多个随机种子、解码随机性和多次调参带来的选择偏差应明确记录；只报告表现最好的一次运行会高估预期能力。
+
+代码生成常用 pass@$k$。对同一道题独立生成 $n$ 个候选，其中 $c$ 个通过，$n\ge k$，无放回随机取 $k$ 个候选至少一次通过的概率估计为
+\begin{equation}
+\widehat{\operatorname{pass@}k}=1-\frac{\binom{n-c}{k}}{\binom nk},
+\label{eq:passk}
+\end{equation}
+其中 $n-c<k$ 时分子取零。该估计针对同一采样机制下的候选成功概率\cite{humaneval}；它假设能辨认哪个候选通过，不能代替实际单答案选择系统的准确率。
+
+\section{评分器工程与验证器的可靠性}
+
+评分器（grader）将输出转成分数或标签，验证器（verifier）检验某种条件是否满足。规则评分适合精确结果、格式和单元测试；模型评分适合难以规则化的语义判断；混合评分结合外部执行与语义评估。无论哪种方式，都应把评分器作为独立待验证组件。
+
+答案提取应保留原始输出，记录提取失败与数学错误的区别。数值比较要规定绝对和相对容差，符号等价要说明定义域与异常点；程序测试要固定依赖、输入和资源限制。模型输出若截断或工具环境损坏，应进入单独错误类别，不能无声计成正确或排除出分母。
+
+评分器测试集应覆盖正确、明显错误、边界和诱导样本，估计误接受率和误拒绝率。对训练奖励而言，误接受尤其容易被策略主动利用；对评测而言，两种误差都影响排名。应保留独立人工抽检和真实环境验证，并监测训练后评分器失效模式是否变化。
+
+\section{大模型裁判的偏差}
+
+大模型作为裁判（LLM-as-a-judge）可以做成对偏好或按评分表打分。常见偏差包括答案位置、篇幅、语言风格、自我偏好和提示敏感性\cite{judge}。因此可随机交换候选顺序、隐藏模型身份、明确维度，并在人工标注子集上测量一致性。两次交换评判仍不一致时，应保留分歧，不能任意选择有利结果。
+
+裁判与被测模型若共享训练数据或能力缺陷，其错误会相关；增加同源裁判数量不一定等于增加独立证据。对数学、代码和检索引用等可部分验证的任务，应优先结合确定性检查或实际执行。裁判给出的自然语言理由也可能是事后解释，不能单凭理由流畅就认定判定可靠。
+
+\section{在线实验与安全发布}
+
+A/B 测试随机分配用户或请求到两个方案，比较事先规定的任务指标、延迟和成本。随机化单位要与干扰范围一致：同一用户跨请求共享记忆时，按单请求分配可能互相污染。需要预先说明样本量、观测窗口和停止规则，反复看显著性再临时停止会增加误判。
+
+影子部署（shadow deployment）将真实请求复制给新系统观察结果，但不把新系统响应交付用户；有副作用的工具应被隔离或模拟。金丝雀发布（canary release）让小比例流量实际使用新版本，再根据指标逐步调整。二者目的不同，不能把影子流量中的模拟成功视为真实用户收益。
+
+在线指标可以包含任务成功率、人工接管率、用户反馈、尾部延迟和单任务成本。点击、留存或转化率可能受界面和人群影响，并不天然等于答案正确性。故应把离线能力证据与在线行为结果结合，并保留回滚版本和明确故障界限。
+
+\chapter{提示注入、工具边界与执行隔离}
+\label{ch:safety}
+
+\section{威胁来自指令与数据的混淆}
+
+提示注入（prompt injection）试图使模型把不可信内容当成应执行指令。直接注入出现在用户输入，间接注入（indirect prompt injection）可藏在网页、文档、邮件或工具输出中。越狱（jailbreak）通常强调诱导模型绕开行为限制；二者可重叠，但分析重点不同。数据泄露、工具滥用和权限提升是可能结果，不是只有不礼貌文本才构成问题。
+
+首先区分可信指令、用户请求与外部数据。来源标签、引用边界和上下文组织能帮助模型，但纯文本提醒不能构成可靠权限边界。外部网页即使写着“系统消息”，也不应因此取得调用内部工具的能力。安全分析应围绕数据从哪里来、能影响什么动作以及动作由谁授权。
+
+\section{工具调用前后的确定性检查}
+
+调用前应验证工具名、参数模式、资源范围和实际权限。最小权限（least privilege）将只读查询与写操作分开，把数据库、文件和网络权限限制到任务所需范围；业务规则应在程序中执行。例如参数符合 JSON Schema，并不能证明用户有权读取指定记录。
+
+调用后需要限制结果大小、规范化结构、过滤不应返回的敏感字段，并保留来源。结果清洗能减少某些攻击面，却无法保证删除所有恶意语义；因此不可信结果仍保持数据身份。模型生成的后续工具调用应重新检查，不能因“上一步工具成功”而继承无限权限。
+
+应对状态未知、重试和并发写入建立明确规则。审计日志把用户授权、模型建议、校验结果和实际动作串联，便于追查；日志本身也可能含敏感信息，需要控制访问与保留范围。安全与可恢复性在这里共同依赖准确状态记录。
+
+\section{沙箱、资源限制与代码执行}
+
+沙箱（sandbox）为代码、Shell 或浏览器任务提供受限环境。隔离维度包括文件系统、身份、进程、网络、资源和凭证；CPU 时间、内存、输出量与子进程数也要限制。容器有助于封装运行环境，但共享内核等机制意味着“使用了容器”并不自动等于强隔离，应按威胁模型选择合适边界。
+
+不可信代码不应直接获得宿主密钥或无约束网络访问。测试数据与评分程序应避免被候选程序修改；真实业务写入应经过受控接口，而非允许生成代码随意操作生产数据库。清理临时环境后仍需确认外部副作用，因为销毁本地容器不会撤回已经发送的请求。
+
+\section{安全评测与能力保持}
+
+工具护栏（tool guardrail）评测应覆盖越权参数、路径逃逸、恶意检索内容、凭证请求和重复副作用等任务内场景，并记录是否真的执行了动作。只检查最终回答是否拒绝，会漏掉“已执行后再拒绝”的失败。
+
+同时测量正常任务完成率与误拦截率。过度限制可能让系统看似安全却无法完成授权任务，宽松限制则可能降低边界可靠性。把安全结果按攻击入口、目标资源和权限层分类，能比单一总分更准确地定位需要修复的执行环节。
+
+\chapter{机制可解释性与因果干预}
+\label{ch:interpretability}
+
+\section{从相关激活到计算机制}
+
+机制可解释性（mechanistic interpretability）研究模型内部哪些表示和计算路径参与了某种行为。激活、神经元、注意力头和电路（circuit）是分析对象，但单个神经元可能响应多个概念，一个概念也可能分布在多个方向。注意力权重显示信息聚合方式的一部分，不能单独作为完整决策解释。
+
+探针（probing）训练简单模型从隐藏表示预测某属性。若探针成功，说明表示中存在可读取信息；这不证明原模型实际使用该信息，也不说明该属性有因果作用。探针容量过大可能自己学习复杂规律，因此应有随机标签、不同层和容量控制等对照。
+
+\section{激活替换与因果追踪}
+
+激活替换（activation patching）比较干净输入和受扰输入，将某层某位置的激活从干净运行复制到受扰运行，再观察目标输出是否恢复。因果追踪（causal tracing）利用类似干预定位信息影响路径。实验必须说明扰动如何构造、替换什么张量以及采用何种输出指标。
+
+若替换恢复行为，表明该干预在此设置下有作用，但不能直接证明替换位置是唯一必要机制。替换值可能把系统推到自然数据从未访问的状态，多个冗余路径也会让单点消融效果较小。应比较多种扰动、对照位置和组合干预，并检查结论是否跨输入成立。
+
+\section{稀疏自编码器与特征字典}
+
+稀疏自编码器（sparse autoencoder, SAE）尝试把激活 $h\in\mathbb R^d$ 分解到更大的特征字典中。一个基本目标为
+\[
+z=\operatorname{ReLU}(W_eh+b_e),\quad \widehat h=W_dz+b_d,\qquad
+\min\mathbb E\bigl[\|h-\widehat h\|_2^2+\lambda\|z\|_1\bigr].
+\]
+稀疏项鼓励每个输入只激活少量特征。为防止通过放大解码列、缩小编码系数任意降低 $L_1$ 惩罚，通常要约束解码字典列范数或使用等效尺度控制。字典学习研究展示了比单神经元分析更细的特征分解\cite{sae}。
+
+重构误差、稀疏度、死特征比例和下游输出保持是不同指标。人为给某个特征命名只是解释假设，需要正反样本与干预证据支持。SAE 分解不一定唯一，也不能仅凭可解释特征数量增加就认定找到了模型的全部真实机制。
+
+\part{高效推理、压缩与服务}
+
+\chapter{自回归推理与键值缓存}
+\label{ch:inference}
+
+\section{预填充与逐词元解码}
+
+推理先处理输入提示，称为预填充（prefill），得到各层表示及首个待生成词元的分布；随后逐次追加词元，称为解码（decode）。预填充可并行处理提示位置，解码的每一步依赖上一步生成结果。贪心解码选择最高概率词元，随机解码按指定分布采样；贪心局部最优不保证整个序列概率最大，也不保证任务正确。
+
+预填充通常包含较大的矩阵乘法，解码在小批量时需要为少量新词元反复读取大量权重与历史缓存，因此常呈现计算与带宽瓶颈的差异。但批量足够大、上下文很长或采用不同架构时，瓶颈可能变化，应根据实测算术强度判断，而非把“prefill 计算受限、decode 带宽受限”当作绝对定律。
+
+首词元延迟（time to first token, TTFT）包含排队、调度、预填充和首个输出准备。词元间延迟（inter-token latency, ITL）描述相邻输出间隔，平均每输出词元时间（time per output token, TPOT）常按首词元后生成耗时平均。吞吐量可按输入词元、输出词元或请求数定义；必须写清分母和统计窗口，避免把不同口径的数字直接比较。
+
+\section{缓存为什么有效}
+
+对确定性、因果的解码器，在参数、历史词元、位置编号和归一化规则不变时，追加未来词元不会改变过去位置的隐藏状态。每层过去位置的键和值因而可以保存，新词元只计算自己的查询、键和值。查询用于本次访问历史，通常不需要作为后续层的长期注意力缓存。
+
+第 $t$ 步的新查询访问缓存 $K_{1:t},V_{1:t}$，其注意力算术成本仍随历史长度增长。KV Cache 避免历史位置的重复投影与 FFN，也避免每步重算完整历史的注意力；它没有让每个新词元的注意力成为常数成本。若从空前缀生成 $T$ 个词元，固定维度下缓存注意力总成本为 $O(T^2d)$，而每步重算全序列的朴素注意力总成本为 $O(T^3d)$。
+
+带 RoPE 时通常缓存已旋转的键，追加位置要使用正确绝对偏移。若中途改变位置缩放或模型权重，旧缓存可能失效。滑动窗口、截断、分支生成和多模态位置编码也要求专门管理，不能仅在数组末尾追加便假定正确。
+
+\section{缓存存储与批量容量}
+
+在每层都采用相同头配置、键值维度相同、每元素占 $b$ 字节且批内长度一致时，缓存数据量为
+\begin{equation}
+M_{\mathrm{KV}}=2BLnh_{kv}d_hb.
+\label{eq:kv-memory}
+\end{equation}
+系数2来自键和值。变长批量可把 $Bn$ 替换为有效长度之和，但实际还要加块填充、索引、尺度元数据和临时空间。张量并行可能分片缓存，也可能因头数与分片数关系发生复制，应按实现核算。
+
+\begin{example}
+设 $B=1,L=32,n=8192,h_{kv}=8,d_h=128$，键值均为2字节元素，求缓存容量；若改为32个键值头，容量如何变化？
+\end{example}
+\begin{solve}
+代入式~\eqref{eq:kv-memory} 得 $1073741824$ 字节，即1 GiB。键值头从8增至32时，数据量增为4 GiB。该结果尚未包括模型权重和其他缓冲，展示了 GQA 对长上下文容量的直接影响。
+\end{solve}
+
+\section{增量解码的正确性检查}
+
+给定相同模型、词元和位置，在关闭 dropout 后，比较一次全序列前向与逐步缓存前向在对应位置的 logits，应在合理数值容差内一致。不同内核与归约顺序可能造成小误差，随机采样又可能把很小分布差异转成不同文本，所以检查 logits 比只比较最终句子更有诊断性。
+
+变长批量需要区分物理存储位置、逻辑位置与填充位置。缓存复用时还要检查模型版本、适配器、前缀词元和位置配置。若使用共享缓存，某个请求修改尾块不能破坏其他请求，后文的写时复制正是为此服务。
+
+\chapter{FlashAttention、分页存储与动态调度}
+\label{ch:efficientattention}
+
+\section{在线 softmax 的精确合并}
+
+普通注意力先生成 $n\times n$ 分数，再写入显存、读取并归一化，产生大量中间数据搬运。考虑一个查询的分数 $s_j$ 与值向量 $v_j$，最终输出为 $\sum_je^{s_j}v_j/\sum_je^{s_j}$。对一组已处理位置，维护最大值 $m$、分母 $\ell=\sum_je^{s_j-m}$ 和未归一化分子 $u=\sum_je^{s_j-m}v_j$。
+
+新块的统计量为 $m_b,\ell_b,u_b$，合并时令
+\begin{align}
+m'&=\max(m,m_b),\\
+\ell'&=e^{m-m'}\ell+e^{m_b-m'}\ell_b,\\
+u'&=e^{m-m'}u+e^{m_b-m'}u_b.
+\label{eq:online-softmax}
+\end{align}
+输出为 $u'/\ell'$。这些式子只是把旧、新两部分指数统一到同一个最大值下，因此在实数算术中与一次性 softmax 完全一致。第一块可直接初始化统计量；全被屏蔽的块不参与合并，避免无效的无穷差。
+
+\section{FlashAttention 的内存与计算取舍}
+
+FlashAttention 把查询、键和值分块加载到片上存储，利用式~\eqref{eq:online-softmax} 累积结果，避免将完整分数矩阵写入高带宽显存（high bandwidth memory, HBM）\cite{flash}。反向阶段利用保存的统计量重算必要分块，进一步减少中间状态存储。它改变的是执行与数据搬运方式，而非把稠密注意力替换成某个近似稀疏核。
+
+稠密注意力的主要算术复杂度仍为 $O(n^2d)$。称为精确注意力，是指计算同一数学函数；有限精度下，归约顺序不同仍可能导致数值差异。性能取决于头维度、块大小、掩码、数据类型和硬件，不能把某篇论文的加速倍数无条件用于另一工作负载。
+
+FlashAttention-3 针对特定 GPU 架构进一步利用异步执行和低精度计算组织\cite{flash3}。理解这些改进需要区分算术、存储带宽、内核并行和同步等待；换用较新内核之前，仍应验证支持范围与数值误差。
+
+\section{PagedAttention 与写时复制}
+
+PagedAttention 将请求的逻辑 KV 序列映射到固定大小的物理块，无需提前为每条请求分配最大长度的连续空间\cite{paged}。块表描述逻辑顺序，注意力内核依表读取相关键值。这样可以减少大连续分配产生的外部碎片，并使请求随生成逐块增长。
+
+若每块容纳 $b_t$ 个词元，单个非共享请求最后一块的未使用容量少于 $b_t$ 个词元；实际仍有块表、对齐与共享策略开销。块太大增加尾部浪费，块太小增加管理和访问成本。分页并不减少注意力数学运算，也不消除每次读取历史 KV 的代价。
+
+分支生成或共享前缀可以让多个请求引用相同物理块。共享块需要引用计数；某请求要修改共享尾块时，应写时复制（copy-on-write），避免污染其他分支。缓存的释放、取消和异常路径同样需要维护计数，否则可能泄漏显存或错误复用数据。
+
+\section{连续批处理、前缀缓存与分块预填充}
+
+连续批处理（continuous batching）在生成迭代边界移除已结束请求并加入新请求，减少固定批量等待最长回答的空闲。调度器需要同时考虑计算词元预算、KV 容量、等待时间和公平性；只追求总吞吐可能让长请求或新请求长期等待。
+
+前缀缓存（prefix caching）复用相同前缀的已计算 KV。有效复用要求词元、模型权重、适配器、位置与相关配置一致；语义相似的提示不能直接共享缓存。系统可以用哈希块或基数树管理共享前缀，SGLang 的 RadixAttention 是相关实现思路\cite{sglang}。缓存加速预填充，却仍需为每个请求生成新的后缀。
+
+分块预填充（chunked prefill）把长输入分成若干调度块，让其与其他请求的解码交错执行，降低长预填充造成的阻塞。每块依然需要正确访问前文 KV，因此不会改变因果上下文。块大小折中内核效率、首词元延迟和其他请求的词元间延迟，应在真实输入输出长度分布下评估。
+
+\chapter{量化、缓存压缩与剪枝}
+\label{ch:quantization}
+
+\section{量化映射与误差来源}
+
+量化（quantization）用有限码字近似实数。均匀仿射量化可写为
+\begin{equation}
+q=\operatorname{clip}\!\left(\operatorname{round}(x/s)+z,q_{\min},q_{\max}\right),\qquad
+\widehat x=s(q-z),\quad s>0,
+\label{eq:quantization}
+\end{equation}
+其中 $s$ 为尺度，$z$ 为零点。未发生裁剪且采用最近舍入时，$|x-\widehat x|\le s/2$；发生裁剪时还包含饱和误差。逐张量、逐通道和分组尺度在元数据成本与局部适配之间折中。
+
+权重量化、激活量化与 KV 量化作用于不同对象。W4A16 常表示4位权重、16位激活，但不完整说明累积精度、尺度、零点或内核实现。训练后量化（post-training quantization, PTQ）使用已训练模型和必要校准数据；量化感知训练（quantization-aware training, QAT）在训练中模拟量化误差，常用直通估计器近似处理不可微舍入，其梯度并非舍入函数的真实导数。
+
+低位存储降低字节数，实测加速仍取决于硬件是否支持相应运算、反量化成本、矩阵形状和内存布局。某些权重量化主要节约带宽；若任务已计算受限或小算子占主导，位数减半不意味着延迟减半。
+
+\section{GPTQ 的重构目标与 AWQ 的缩放}
+
+令校准输入 $X\in\mathbb R^{d_i\times N}$，GPTQ 类方法关注层输出重构
+\[
+\min_{\widehat W\in\mathcal Q}\|(W-\widehat W)X\|_F^2,
+\]
+其中 $\mathcal Q$ 是量化约束集合。每个输出行的二次型包含 $XX^\top$，因此可用二阶信息估计量化某一权重后对其余权重的补偿。GPTQ 通过逐步量化与误差补偿近似求解，通常加阻尼改善病态矩阵的数值稳定性\cite{gptq}。这是校准分布上的局部重构，不是端到端任务损失的全局最优解。
+
+激活感知权重量化（Activation-aware Weight Quantization, AWQ）依据激活统计识别重要通道，并搜索有利的缩放\cite{awq}。对可逆对角矩阵 $S$，有 $Wx=(WS)(S^{-1}x)$；精确算术中函数不变，但对 $WS$ 量化后，误差作用变为 $(\widehat{WS}-WS)S^{-1}x$，从而改变各通道的量化难度。工程上要把等价缩放合理吸收到相邻算子，避免额外开销。
+
+两类方法都依赖校准样本代表性。短通用语料上的低重构误差，不保证长上下文、代码或特殊工具格式不退化。至少应比较困惑度、目标任务质量、长上下文稳定性和服务延迟。
+
+\section{FP8、FP4 与缓存量化}
+
+FP8、FP4 指低位浮点格式家族，具体指数、尾数、尺度和特殊值约定可能不同。整数格式在区间内均匀分配刻度，低位浮点格式的间隔随数值范围变化；两者都需要考虑离群值。块尺度可以提高局部动态范围适配，但增加尺度数据和运算。TensorRT-LLM 等系统的支持取决于所选后端与硬件，应按精度文档核对\cite{trt}。
+
+KV Cache 量化直接减少式~\eqref{eq:kv-memory} 的元素字节数。键的误差改变查询--键匹配，从而改变 softmax 权重；值的误差改变被加权内容，两者传播路径不同。逐通道或逐词元尺度、分组大小、近期高精度残留区等策略有不同代价，不能仅凭权重量化方案推断缓存量化效果。
+
+长上下文会让缓存误差影响更多后续查询。评测应包括长序列、不同位置证据、不同批量和持续生成，而非只测短输入的首个词元。尺度元数据、反量化临时空间与带宽也必须计入实际容量和速度。
+
+\section{结构化与非结构化剪枝}
+
+剪枝（pruning）删除权重或计算结构。非结构化剪枝可保留任意稀疏模式，幅值剪枝按 $|w|$ 选择小权重；若输入方差不同，幅值小不一定输出影响小，式~\eqref{eq:activation-error} 说明了原因。稀疏矩阵还需存索引，普通稠密内核不会因大量零元素自动加速。
+
+结构化剪枝删除通道、注意力头、FFN 中间维度或整层，能够改变实际矩阵形状，更容易被常规内核利用，但通常更强地改变表示能力。半结构化稀疏规定固定小组内保留数量，需要匹配硬件支持。剪枝后常需恢复训练或蒸馏，并重新检查残差维度和归一化参数。
+
+量化减少每个数的表示成本，剪枝减少部分参数或运算，蒸馏训练新的学生行为；三者可以组合，但误差不一定简单相加。选择顺序和恢复策略应通过质量--延迟--内存的联合比较确定。
+
+\chapter{推测解码与预填充解码分离}
+\label{ch:speculation}
+
+\section{草稿与目标模型的并行验证}
+
+推测解码（speculative decoding）让较便宜的草稿模型先提出若干候选词元，目标模型再一次处理这些候选前缀，计算各位置的目标分布。因果掩码允许目标模型并行求得所有候选条件概率，虽然最终只能接受到第一个拒绝位置。其目标是减少昂贵目标模型的串行调用次数，而非减少所有模型的总运算量\cite{speculative}。
+
+设同一历史下草稿分布为 $q$，目标分布为 $p$，先采样 $Y\sim q$，以 $a(Y)=\min(1,p(Y)/q(Y))$ 接受。被拒绝时改从剩余分布
+\begin{equation}
+r(v)=\frac{[p(v)-q(v)]_+}{\sum_u[p(u)-q(u)]_+}
+\label{eq:speculative-residual}
+\end{equation}
+采样。$q(Y)>0$ 对实际草稿样本自动成立；当分母为零时 $p=q$，不会发生拒绝。
+
+\begin{proposition}
+\label{prop:speculative-exact}
+在相同有限词表上精确使用上述接受与残差采样规则，最终词元分布为 $p$。
+\end{proposition}
+\begin{proof}
+词元 $v$ 通过草稿接受得到的概率为 $q(v)\min(1,p(v)/q(v))=\min(p(v),q(v))$，$q(v)=0$ 时该项为零。总拒绝概率为
+\[
+1-\sum_u\min(p(u),q(u))=\sum_u[p(u)-q(u)]_+.
+\]
+乘以式~\eqref{eq:speculative-residual}，拒绝后输出 $v$ 的概率为 $[p(v)-q(v)]_+$。两项相加恰为 $p(v)$。
+\end{proof}
+
+对多词元草稿逐位置应用该规则，在已接受历史上继续检查，遇到拒绝则采样纠正词元并丢弃后续草稿；全部接受时可从最后的目标分布再采一个词元。要保持目标分布，温度、top-$p$ 与其他约束应先一致地纳入 $p,q$，不能混用处理前后的概率。贪心匹配验证则是另一种确定性约定。
+
+\section{接受率与加速条件}
+
+若每次草稿长度为 $K$，每步草稿成本为 $t_d$，目标验证成本为 $t_v(K)$，额外成本为 $t_o$，每轮平均提交 $\mathbb E[A]$ 个词元，则平均每词元成本约为 $(Kt_d+t_v(K)+t_o)/\mathbb E[A]$。只有低于普通目标解码成本时才有净加速。
+
+在每个条件接受率都近似常数 $a$、忽略提前结束且包含全接受后的额外词元时，$\mathbb E[A]=1+a+\cdots+a^K$。实际接受率随任务和前缀变化，验证成本也会随 $K$ 与批量增长，所以更长草稿不必更快。高并发下目标模型本已充分利用算力，额外草稿可能削弱收益。
+
+缓存回滚也是正确性的一部分：拒绝位置之后的草稿 KV 不能作为已确认历史保留。分支草稿树需要特定掩码和索引，不能把不同分支当成一条连续句子执行。
+
+\section{EAGLE、多词元预测与词串草稿}
+
+EAGLE 使用目标模型特征构建轻量草稿，利用词元信息处理特征预测的不确定性；不同版本会改变草稿结构与验证调度\cite{eagle}。其意义是把草稿器与目标模型内部表示结合，而非所有推测方法都必须加载一个独立完整小模型。
+
+多词元预测（multi-token prediction, MTP）在训练时增加未来多个位置的预测头，例如共享表示 $h_t$ 分别预测 $x_{t+1},\ldots,x_{t+K}$，目标可写为各头交叉熵的加权和\cite{mtp}。这些边际预测不自动构成正确的联合生成分布；用于推测时仍需合适草稿组织与目标验证。它也可以作为训练辅助目标，不能与推测解码完全等同。
+
+词串草稿（n-gram speculation）从提示或已生成文本的重复片段提出后续词元，额外模型成本低，适合重复度较高的任务。草稿来源可以不同，分布保持与否取决于完整验证算法，不取决于方法是否被称为“推测”。
+
+\section{预填充解码分离与服务框架}
+
+预填充解码分离（prefill--decode disaggregation）把两阶段放到不同资源池，预填充完成后传输 KV 给解码实例。这样可分别选择并行方式和扩容比例，降低两类计算互相干扰；DistServe 给出了围绕服务质量约束的系统研究\cite{distserve}。代价是缓存传输、跨池队列和状态协调。
+
+若需传输 $M_{\mathrm{KV}}$ 字节、有效链路带宽为 $\mathcal B$，传输时间至少受 $M_{\mathrm{KV}}/\mathcal B$ 量级约束，此外还有启动、格式转换和排队。长提示产生大缓存时，网络可能抵消分离收益。应比较满足 TTFT 与 ITL 约束的有效吞吐量（goodput），而不只比较理论总吞吐。
+
+vLLM、SGLang 和 TensorRT-LLM 分别提供不同模型执行、缓存与内核组织，具体特性和兼容矩阵随版本变化\cite{vllm,sglang,trt}。部署时固定模型、模板、内核与版本，测量冷启动、稳定负载、突发流量和过载恢复。服务层还要处理队列上限、超时、取消、流式输出和健康检查；算法优化只有在完整服务链路中保留收益，才算完成部署验证。
+
+\part{长上下文、多模态与工程实践}
+
+\chapter{长上下文的表示、训练与评测}
+\label{ch:longcontext}
+
+\section{窗口长度与有效使用能力}
+
+上下文窗口规定模型一次能够接受的序列范围，实际可处理长度还受显存与执行实现限制。支持输入更多词元，不等于能稳定利用其中任意位置的信息。远距离依赖、重复干扰、位置分布变化以及输出预算，都会影响有效上下文能力。
+
+长序列同时增加激活、注意力运算和 KV 存储。FlashAttention 减少中间矩阵搬运与存储，CP 分担各设备负担，GQA 或 KV 量化减少缓存，稀疏注意力减少连接；这些方法解决不同成本，也具有不同函数等价性。要判断系统瓶颈，应分别核算预填充、解码和存储，而不是只调整一个最大长度配置。
+
+\section{位置插值与频率缩放}
+
+设训练最大位置约为 $N_0$，希望扩展到 $sN_0$，$s>1$。位置插值（positional interpolation）将位置 $m$ 映为 $m/s$，使 RoPE 相位 $(m/s)\omega_j$ 回到原有范围\cite{pi}。相应地，两个相邻位置的相位间距也缩小，局部位置分辨率改变；避免大相位外推并不免费。
+
+另一类方法修改 RoPE 基数或按频段调整频率，使高频与低频成分采用不同插值程度。YaRN 提供了结合频率处理与注意力尺度调整的具体方案\cite{yarn}。这些方法应视为修改模型的位置几何并可能配合继续训练，不能只凭命题~\ref{prop:rope-relative} 保证长程泛化。
+
+若缩放因子依当前序列长度动态变化，已缓存键是否需要重算必须明确。否则同一注意力中的查询和历史键可能使用不同频率约定，破坏预期相对位置结构。实现时应把位置配置纳入模型和缓存版本。
+
+\section{长上下文训练与数据构造}
+
+长上下文训练需要真正包含长距离依赖的数据。随机把许多无关短文拼成很长序列，虽然满足长度要求，却未必产生利用远处证据的学习信号。可采用完整文档、跨段问答、代码仓库、长对话和带证据位置标注的任务，但要避免生成规则过于简单，导致模型只学模板。
+
+渐进增加序列长度有助于控制训练成本，仍需保留短任务评测以检测退化。训练采样应覆盖不同证据位置、依赖距离和干扰强度。长样本减少每个批量的独立文档数，梯度方差与数据混合也随之改变，不能只把原学习率与批量配置原样迁移。
+
+\section{从针检索到跨段综合}
+
+针检索（needle-in-a-haystack）把特定事实放在长文本某处，再查询该事实，便于控制位置和长度。它测试明确线索检索，却不能代表多跳推理、跨文档比较或全局总结。应同时设置多个相关证据、相互矛盾文本、版本变化和无答案任务，检查模型是否只抓住局部关键词。
+
+评测需系统改变总长度、证据位置和干扰密度，并测量准确率、引用支持、TTFT、ITL 和峰值显存。与短上下文 RAG 基线比较时，应计入检索成本和索引准备，但不能把不同可见证据条件下的结果直接解释成模型记忆能力差异。
+
+\chapter{视觉、音频、视频与统一多模态模型}
+\label{ch:multimodal}
+
+\section{视觉编码与连接器}
+
+多模态大语言模型（multimodal large language model, MLLM）把文本之外的信号转成模型可使用的表示。视觉 Transformer（Vision Transformer, ViT）将图像切成图像块（patch），每块展平后线性投影，加入位置信息再经注意力编码\cite{vit}。若图像大小为 $H\times W$、块边长为 $p$ 且可整除，块数为 $HW/p^2$；提高分辨率会增加视觉序列长度。
+
+视觉编码器输出 $H_v\in\mathbb R^{n_v\times d_v}$，连接器（connector）或投影器（projector）把它映到语言模型维度，例如 $Z=H_vW_p$、$W_p\in\mathbb R^{d_v\times d}$。更复杂的连接器可以使用 MLP、可学习查询或交叉注意力，把大量视觉词元压缩为固定数量。压缩节约上下文，却可能丢失文字、小物体或空间关系。
+
+视觉词元可与文本交错输入，或由语言层通过交叉注意力访问。占位符、图像顺序、分辨率变换和位置编码必须一致；“看见图片”不是一个与预处理无关的能力。多个裁剪块还需说明其原图坐标关系，否则模型难以恢复全局空间结构。
+
+\section{图文对齐与指令微调}
+
+图文对比学习使匹配图像与文本向量相近，非匹配向量相远。对批内 $B$ 对样本，令单位向量为 $v_i,t_i$，相似度 $s_{ij}=v_i^\top t_j/\tau$，可对图到文与文到图分别使用交叉熵并求平均。CLIP 是这种对齐路线的代表\cite{clip}；相似度对齐本身不训练自回归长回答。
+
+视觉指令微调在图像、指令和回答上计算语言目标，可先训练连接器再训练部分或全部模型，也可采用其他联合策略。LLaVA 的 Visual Instruction Tuning 展示了视觉连接器与语言指令数据结合的路径\cite{llava}。冻结视觉编码器能减少训练状态，却限制其适配新视觉领域的能力。
+
+视觉定位将词语关联到图像区域，光学字符识别（optical character recognition, OCR）关注文字内容。对象识别正确不代表相对位置、计数和文字读取都正确。评测要防止语言先验掩盖视觉错误，例如遮挡图像后仍给同一答案，说明模型可能主要依赖文本偏置。
+
+\section{音频与视频的时序结构}
+
+音频可以经波形或时频表示编码，也可以转成离散音频码。语音识别、声音事件理解、说话人信息和语音生成的目标不同；把音频先转写成文本会丢失语调和非语言声学信息。实时交互还需管理分块输入、增量输出和被打断后的状态。
+
+视频同时包含空间与时间。稀疏抽帧降低成本，却可能漏掉短暂关键事件；密集抽帧增加大量相似视觉词元。帧时间戳、音视频同步和跨帧身份跟踪影响时序推理，不能把视频简单当成无序图片集合。长视频摘要还需平衡局部细节与全局事件组织。
+
+\section{统一多模态与模态间评测}
+
+统一多模态模型常被称为 Omni Model，但这一名称不对应唯一架构。系统可以使用不同模态编码器、统一语言主干和多个输出头，也可采用更统一的词元表示。需要说明支持的是输入理解、输出生成还是实时双向交互，不能仅凭“多模态”断言全链路能力。
+
+交错数据（interleaved data）包含文本、图像、音频等交替片段，训练时必须对齐模态边界、时间与目标掩码。不同模态损失尺度和数据量差异很大，混合比例会影响训练方向。评测应覆盖单模态能力、跨模态绑定、缺失模态、噪声与冲突信息，并单独报告感知错误和推理错误。
+
+\chapter{GPU、CUDA、Triton 与编译优化}
+\label{ch:kernels}
+
+\section{并行层级与存储层级}
+
+GPU 通过大量线程隐藏访存和计算延迟。CUDA 的线程（thread）组织为线程块（block），由流式多处理器（streaming multiprocessor, SM）调度；在 NVIDIA CUDA 架构中，线程束（warp）通常由32个线程组成。寄存器属于线程，片上共享内存可供同块线程协作，全局内存容量大但访问成本更高\cite{cuda}。
+
+合并访存（memory coalescing）让相邻线程访问适合合并的地址，减少内存事务；非连续步长、错误布局和大量小访问会浪费带宽。共享内存分块允许一份数据被重复利用，但同步、银行冲突和寄存器压力也会影响性能。占用率（occupancy）表示可驻留活跃线程束比例，高占用率有时有助于隐藏延迟，却不是性能的唯一目标。
+
+\section{Roofline 模型与算子融合}
+
+设一个算子执行 $F$ 次浮点运算、搬运 $M$ 字节，算术强度（arithmetic intensity）为 $I=F/M$。Roofline 模型给出理想吞吐上界
+\[
+P_{\mathrm{achievable}}\le\min(P_{\mathrm{peak}},\mathcal B I),
+\]
+其中 $\mathcal B$ 为相关存储层带宽。若 $I$ 很小，增加算术峰值未必有用；若 $I$ 足够大，计算单元利用和数据类型成为重点。真实性能还受启动、同步和依赖影响，上式只是一种瓶颈分析框架。
+
+算子融合（kernel fusion）把若干操作合成一个内核，避免中间张量反复写回显存。例如融合 RMSNorm 可在读取一行后完成平方归约、缩放与写出；融合 softmax 可避免分别调用最大值、指数、求和和除法内核。融合过多又可能增加寄存器占用、降低并行或限制形状适配，应实测端到端收益。
+
+\section{Triton 内核与边界条件}
+
+Triton 提供面向张量块的 GPU 编程方式，程序实例负责一块数据，通过显式索引、掩码、加载、计算与存储组织内核。它减少部分低层线程管理负担，但仍要求理解布局、块大小、归约和内存层级。官方 fused softmax 教程展示了通过融合减少访存的实例\cite{triton}。
+
+以行 softmax 为例，一个程序读取若干行，在有效列上求最大值，计算指数和分母，再写回归一化结果。非整块长度需要掩码，填充位置应在最大值归约中用 $-\infty$，在指数求和后贡献零。全掩码行、极端数值、非连续输入和不同数据类型都应有明确支持范围。
+
+验证自定义内核时，先与简单参考实现在随机、边界和极端输入上比较，再测性能。容差应结合数据类型与下游敏感性；一个内核在均匀随机输入上误差小，不保证训练中的离群激活也稳定。自动调优（autotuning）搜索块大小等配置，需要记录搜索开销与最终适用形状。
+
+\section{计算图编译与性能测量}
+
+LLM 编译器（LLM compiler）或通用张量编译器将模型图变换为更适合硬件的执行计划，包括常量折叠、算子融合、布局变换和内核选择。动态形状、Python 控制流和外部工具交互可能产生图中断或重新编译。CUDA Graph 一类机制减少重复启动开销，但对内存地址和执行结构有约束。
+
+GPU 执行通常异步，直接在 CPU 端计时而不等待完成会低估耗时。应进行预热、同步或使用设备事件，区分编译与稳定运行成本，报告多次测量分布。优化局部内核后还需测端到端延迟，因为局部提速可能被通信、排队或其他算子掩盖。
+
+\chapter{工程工具链与可复现实验}
+\label{ch:engineering}
+
+\section{模型、数据与后训练框架的职责}
+
+PyTorch 负责张量计算与自动微分；Hugging Face 生态中的 Transformers 提供模型结构、权重与生成接口，Tokenizers 负责分词实现，Datasets 组织数据读取与变换，PEFT 管理适配参数。TRL 组织若干后训练目标，verl 与 OpenRLHF 面向包含采样和分布式组件的后训练流程。理解这些职责，有助于把问题定位到数据、目标、模型或系统层，而不是在多个框架间反复试默认参数。
+
+高层 Trainer 能封装训练循环，但有效词元归一化、梯度累积、模板、packing 和终止标记仍需核对。训练器升级可能改变默认设置，配置文件也未必覆盖所有隐式默认值。因此实验应保存解析后的完整配置、依赖锁定信息和代码版本，关键损失最好能在小样本上独立重算。
+
+TensorBoard、Weights \& Biases 等工具记录损失、学习率、梯度、显存和任务指标。日志应区分训练步、优化器步、生成轮次与累计词元，避免不同横轴造成误读。只记录最终分数不足以分析训练何时开始退化，也不足以恢复被中断实验。
+
+\section{Python、C++ 与系统基础}
+
+Python 的类型标注和数据类帮助表达配置与接口，但运行时输入仍需验证。多进程适于并行数据处理或独立工作者，异步 I/O 适于等待网络工具；异步语法本身不会让 GPU 计算自动并行。队列需要背压（backpressure），防止生产速度长期超过消费速度导致内存增长。
+
+C++ 基础涉及值、指针、引用、对象生命周期和线程同步。张量跨 Python 与原生扩展边界时，要明确谁拥有内存、何时释放以及设备异步操作是否结束。数据竞争、越界和悬空指针可能表现为偶发训练错误，因此底层加速前应先建立可靠接口与错误检查。
+
+Linux 操作能力包括进程、日志、文件权限、磁盘与 GPU 监测，以及通过远程会话管理长任务。文件搜索可用 \texttt{rg}，日志和数据处理可结合 \texttt{awk}、\texttt{sed}，设备状态可用 \texttt{nvidia-smi}；工具名称只是入口，关键是识别任务是否受 CPU、I/O、显存、算力或通信限制。
+
+\section{版本管理、容器与恢复}
+
+Git 分支保存并行改动，合并（merge）保留分支关系，变基（rebase）重写提交基底，拣选（cherry-pick）移植特定提交。实验结果应关联确切提交与未提交改动状态；仅记录分支名不足以确定当时程序。冲突解决需要理解两侧意图，不能自动选择整份文件的一侧而假定正确。
+
+Docker 镜像描述运行环境，容器是运行实例，卷（volume）或挂载保存持久数据，网络配置决定外部连接。应固定基础镜像与依赖版本，并明确 GPU 驱动和运行时兼容关系。把数据写在临时容器内部可能在删除后丢失；把宿主目录全部挂入又可能扩大访问范围。
+
+可恢复训练需要模型、优化器、调度器、随机状态和数据进度相互一致。保存中断导致部分文件不完整时，应能识别检查点是否有效。验证恢复可比较同一小任务连续训练与中断恢复后的损失、步数和数据序列；分布式及非确定性内核下不一定逐位一致，应说明允许偏差。
+
+\section{从失败样本到研究问题}
+
+一个可解释实验先提出可证伪假设，例如“领域回答错误主要来自检索漏召回”，再选择能区分原因的干预，例如提供人工证据、替换召回器或扩大候选集。每次只改变必要因素，并固定数据和计算预算。若多个组件同时改变，最终分数提升也难以归因。
+
+报告应交代任务、数据划分、基线、变量、预算、质量、成本、不确定性和失败类别。负结果同样有价值：某项技术没有带来收益，可能说明瓶颈不在该层，也可能说明实现或条件不满足。附录~\ref{app:experiments} 将清单中的六个项目组织为从公式、实现到评测证据的练习。
+
+\appendix
+
+\chapter{技术清单与正文对应索引}
+\label{app:map}
+
+表~\ref{tab:source-map} 的左栏使用来源文件本身的节号，便于核对范围；右栏使用本书自动交叉引用。清单中的重复主题合并到同一论述，技术栈名称则放在相应方法或工程章节。清单的优先级与求职描述只用于识别学习主题，不作为本书的经验结论。
+
+\begin{longtable}{L{0.12\textwidth}L{0.45\textwidth}L{0.31\textwidth}}
+\caption{来源条目与本书内容的对应关系}\label{tab:source-map}\\
+\toprule
+清单节号 & 技术主题 & 本书位置 \\
+\midrule
+\endfirsthead
+\toprule
+清单节号 & 技术主题 & 本书位置 \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+0 & 能力总览、世界模型、稀疏与混合架构 & 第~\ref{ch:introduction}、\ref{ch:moe}、\ref{ch:agentlearning} 章 \\
+1 & 数学、信息论、优化 & 第~\ref{ch:probability}、\ref{ch:optimization} 章 \\
+2 & 注意力、RoPE、归一化、SwiGLU、GQA、MQA & 第~\ref{ch:transformer} 章 \\
+3 & MoE、路由、容量、负载均衡、专家并行 & 第~\ref{ch:moe} 章 \\
+4 & 分词、语言建模、预训练数据与配比 & 第~\ref{ch:pretraining}、\ref{ch:data} 章 \\
+5 & 混合精度、累积、裁剪、检查点、显存 & 第~\ref{ch:stability} 章 \\
+6 & DDP、FSDP、ZeRO、TP、PP、CP、EP & 第~\ref{ch:distributed} 章 \\
+7--8 & LoRA、QLoRA、SFT、掩码与拼接 & 第~\ref{ch:sft} 章 \\
+9 & 指令数据清洗、合成与筛选 & 第~\ref{ch:data}、\ref{ch:distillation} 章 \\
+10 & 奖励模型、偏好与 RLHF & 第~\ref{ch:preference}、\ref{ch:policy} 章 \\
+11--12 & PPO 与 DPO & 第~\ref{ch:policy}、\ref{ch:preference} 章 \\
+13 & IPO、KTO、ORPO、SimPO、RLOO & 第~\ref{ch:preference}、\ref{ch:policy} 章 \\
+14--16 & 推理后训练、GRPO 与 RLVR & 第~\ref{ch:policy} 章 \\
+17--18 & 结果奖励、过程奖励与验证器 & 第~\ref{ch:policy}、\ref{ch:evaluation} 章 \\
+19--21 & 拒绝筛选、推理蒸馏、推理时计算 & 第~\ref{ch:distillation} 章 \\
+22--24 & 智能体循环、工具调用、MCP & 第~\ref{ch:tools}、\ref{ch:agents} 章 \\
+25--28 & 记忆、上下文、规划、多智能体 & 第~\ref{ch:agents} 章 \\
+29--30 & 智能体强化学习、计算机操作 & 第~\ref{ch:agentlearning} 章 \\
+31 & RAG 的整体模型与流程 & 第~\ref{ch:rag} 章 \\
+32--35 & 稀疏、稠密、混合检索与重排 & 第~\ref{ch:retrieval} 章 \\
+36--39 & 查询变换、上下文化、迭代与图检索 & 第~\ref{ch:rag} 章 \\
+40 & 检索和生成的分层评测 & 第~\ref{ch:rag} 章 \\
+41--45 & 基准、裁判、评分器、在线评测 & 第~\ref{ch:evaluation} 章 \\
+46--47 & 自回归推理、预填充、解码与 KV & 第~\ref{ch:inference} 章 \\
+48--52 & 分页、连续批处理、前缀缓存、分块、FlashAttention & 第~\ref{ch:efficientattention} 章 \\
+53--54 & 权重、激活与 KV 量化 & 第~\ref{ch:quantization} 章 \\
+55--57 & 推测解码、分离服务与服务框架 & 第~\ref{ch:speculation} 章 \\
+58 & 蒸馏、量化、剪枝 & 第~\ref{ch:distillation}、\ref{ch:quantization} 章 \\
+59 & 长上下文、位置扩展、训练与评测 & 第~\ref{ch:longcontext} 章 \\
+60 & 结构化输出与约束解码 & 第~\ref{ch:tools} 章 \\
+61 & 图文、音频、视频与统一多模态 & 第~\ref{ch:multimodal} 章 \\
+62 & 代码预训练、填充、仓库与软件智能体 & 第~\ref{ch:agentlearning} 章 \\
+63--65 & 提示注入、工具护栏与沙箱 & 第~\ref{ch:safety} 章 \\
+66 & 探针、激活替换、因果追踪、SAE & 第~\ref{ch:interpretability} 章 \\
+67--69 & GPU、CUDA、Triton、编译与 NCCL & 第~\ref{ch:kernels}、\ref{ch:distributed} 章 \\
+70--71 & Python、C++、Linux、Git、Docker 与工具链 & 第~\ref{ch:engineering} 章及相应系统章节 \\
+72 & 重复出现的前沿主题 & 按各技术所在章节查阅 \\
+73--74 & 分方向学习与先修次序 & 第~\ref{ch:introduction} 章及本附录后文 \\
+75 & 六个综合项目 & 附录~\ref{app:experiments} \\
+76--77 & 原理解释、实现、优化与能力检验 & 正文推导及附录~\ref{app:experiments} \\
+78--80 & 模型、数据、评测和系统的完整流程 & 第~\ref{ch:engineering} 章 \\
+81--82 & 原始资料与持续学习 & 书末参考文献及本附录后文 \\
+\end{longtable}
+
+\section{按研究问题选择深化方向}
+
+后训练方向应把 SFT、奖励、策略梯度、采样系统与评测连起来学。能写出 DPO 损失只是起点，还要判断偏好数据是否可靠、GRPO 奖励是否有信息、生成吞吐是否成为瓶颈，以及训练改善是否转化为独立任务收益。检索方向则需要同时理解表示学习、索引误差、排序和证据生成，不能把所有失败都归于向量数据库。
+
+智能体方向应先建立状态、工具契约与评测，再研究规划和学习；系统方向应先会核算计算、显存和通信，再选择量化、并行或内核优化。基础模型方向要把数据分布、模型容量和训练预算联合分析。以上是知识依赖建议，不是招聘需求或薪资预测。
+
+持续阅读可以从正文中遇到的具体假设出发，回到原始论文的目标、实验设置和消融。新方法出现时，先判断它改变了目标、数据、架构还是执行方式，再检查是否解决当前问题。论文复现应固定版本并保留负结果；参考文献中的动态文档是入口，实际运行仍需记录所用版本。
+
+\chapter{六个综合实验与关键自检}
+\label{app:experiments}
+
+本附录给出可执行的实验规格，属于学习任务设计，不表示这些实验已在本书编写过程中运行。模型规模和训练步数应根据可用算力选择，但基线、变量、划分和验收条件应在运行前明确。
+
+\section{实验一：从零实现小型解码器}
+
+输入为一份可合法使用的小型文本语料，输出为可训练和增量生成的模型。先固定分词器与训练、验证划分，实现嵌入、因果注意力、RoPE、RMSNorm、SwiGLU、残差和输出头，再按式~\eqref{eq:autoregressive} 训练。先验证很小数据上的损失能明显下降，再进行独立验证，避免将过拟合能力当成泛化能力。
+
+验收包括：标签移位可手算，未来词元变化不影响过去输出，缓存与全前向 logits 在容差内一致，采样与结束规则明确。记录参数量、有效词元、困惑度、预填充与解码时间。将 MHA 改为 GQA 时，同时比较质量与缓存容量，不只展示生成案例。
+
+\section{实验二：SFT、LoRA 与 QLoRA 对照}
+
+选定一个规模可控的基座与领域指令数据，固定模板、回答掩码、数据划分和训练预算。建立未微调基线、LoRA 方案，并在硬件允许时加入全参数或 QLoRA 对照。检查多轮角色边界、空目标、截断、拼接掩码和累计词元归一化。
+
+输出应包含领域质量、通用能力保持、可训练参数、峰值显存和训练速度。合并适配器后重新验证输出；量化合并若改变数值，应报告影响。不能以训练损失最低替代最终方案选择，也不能把未测的节省比例当成实际显存结果。
+
+\section{实验三：奖励模型与直接偏好学习}
+
+构造同提示下的偏好对，并用人工或独立标准抽检标签。先实现奖励差的逻辑损失，再实现式~\eqref{eq:dpo}。在极小数据上核对优选与拒绝回答互换后损失变化，确认参考模型冻结、提示不计分、序列对数概率正确相加。
+
+对比 SFT 基线与 DPO 后模型的独立偏好、任务正确性、回答长度和目标似然。至少设置一个标签噪声或长度偏置对照，用于检验方法是在学习任务偏好还是利用表面特征。若加入 IPO 或 SimPO，应明确新的长度和间隔约定，避免把不同目标的损失数值直接比较。
+
+\section{实验四：可验证任务上的组采样训练}
+
+选择有独立验证条件的算术、代码或 SQL 任务。先构造评分器正常、边界和错误样例，测量误接受与误拒绝；SQL 可在隔离数据库中比较查询结果，还需考虑空结果、排序、重复行与只读约束。然后从固定策略对每题采样多回答，检查奖励分布和组内方差，再实现 RLOO 或 GRPO 更新。
+
+报告任务成功率、全对组与全错组比例、平均长度、KL、裁剪比例、生成和训练耗时。设置只做拒绝筛选 SFT 的基线，以判断在线优化是否在相同预算下有额外价值。训练、奖励开发与最终评测题目应分开，不能通过修改评分器规则追逐测试成绩。
+
+\section{实验五：可归因的检索增强生成}
+
+准备带来源与相关性标注的小型文档库，依次构建 BM25、稠密检索、混合融合和重排。先相对精确向量搜索测 ANN 召回，再测语义相关性。随后构造统一证据格式与引用生成，逐项加入查询改写、上下文扩展或迭代检索。
+
+报告 Recall@K、MRR 或 NDCG，以及回答正确性、引用支持和端到端延迟。加入人工理想证据实验，分离检索与生成错误。对无答案、矛盾来源、过期文档和权限过滤分别评测；只给一个漂亮问答演示不足以说明系统有效。
+
+\section{实验六：受控软件工程智能体}
+
+在隔离小仓库中提供检索、读取、补丁和测试工具，明确参数契约、可写范围、预算和停止条件。先以固定工作流完成任务，再加入动态规划；保存状态与工具结果，验证超时、重试、部分成功和循环检测。任何真实副作用都应通过任务已授权的受控接口发生。
+
+独立评测包含任务完成率、补丁正确性、测试覆盖、无效动作数和成本。用同预算单智能体作为多智能体对照；若进一步收集轨迹训练，应把模型动作与环境观察分开，避免学习伪造工具输出。最终产物应是可审查补丁和验证证据，而非只含模型自述的成功日志。
+
+\section{四个可手算的原理自检}
+
+\begin{example}
+\label{ex:unequal-microbatches}
+两个微批量分别有2和8个有效词元，平均损失分别为1和3。比较“微批量平均的平均”与总体词元平均损失。
+\end{example}
+\begin{solve}
+前者为 $(1+3)/2=2$，后者为 $(2\times1+8\times3)/10=2.6$。两者分别给微批量和词元等权；在变长回答训练中，误用前者会相对提高短回答的权重。对应依据是式~\eqref{eq:token-normalization}。
+\end{solve}
+
+\begin{example}
+若草稿分布 $q=(0.8,0.2)$、目标分布 $p=(0.5,0.5)$，求单词元推测采样的接受率和拒绝后分布。
+\end{example}
+\begin{solve}
+两个草稿词元的条件接受率分别为 $0.5/0.8=0.625$ 和1，总接受率为 $0.8\times0.625+0.2=0.7$。剩余质量为 $(0,0.3)$，所以拒绝后一定输出第二个词元。最终第一项概率为0.5，第二项为 $0.2+0.3=0.5$，与命题~\ref{prop:speculative-exact} 一致。
+\end{solve}
+
+\begin{example}
+某题的四个回答奖励为 $(1,0,0,1)$。使用分母为组大小的方差定义，忽略稳定项，求 GRPO 优势；再求第一个回答的 RLOO 优势。
+\end{example}
+\begin{solve}
+均值为 $1/2$、标准差为 $1/2$，因此 GRPO 优势为 $(1,-1,-1,1)$。第一个回答的留一基线为 $1/3$，RLOO 优势为 $2/3$。这说明两者的基线和缩放不同；不能仅因都使用组内奖励就认定数值目标相同。
+\end{solve}
+
+\begin{example}
+某查询有两个相关文档，前四个结果的二值相关性为 $(0,1,0,1)$，求 Recall@4、Precision@4 与该查询的倒数排名。
+\end{example}
+\begin{solve}
+两个相关文档均被召回，因此 Recall@4 为1，Precision@4 为 $2/4=1/2$。第一个相关结果位于第2名，倒数排名为 $1/2$。覆盖已完整，但头部排序仍有改善空间，这正是区分召回与重排的理由。
+\end{solve}
+
+\backmatter
+\begin{thebibliography}{99}
+
+\bibitem{attention} Vaswani A, et al. Attention Is All You Need. 2017. \url{https://arxiv.org/abs/1706.03762}.
+\bibitem{adamw} Loshchilov I, Hutter F. Decoupled Weight Decay Regularization. 2017. \url{https://arxiv.org/abs/1711.05101}.
+\bibitem{sentencepiece} Kudo T, Richardson J. SentencePiece: A simple and language independent subword tokenizer and detokenizer for Neural Text Processing. 2018. \url{https://arxiv.org/abs/1808.06226}.
+\bibitem{rope} Su J, et al. RoFormer: Enhanced Transformer with Rotary Position Embedding. 2021. \url{https://arxiv.org/abs/2104.09864}.
+\bibitem{gqa} Ainslie J, et al. GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints. 2023. \url{https://arxiv.org/abs/2305.13245}.
+\bibitem{rmsnorm} Zhang B, Sennrich R. Root Mean Square Layer Normalization. 2019. \url{https://arxiv.org/abs/1910.07467}.
+\bibitem{swiglu} Shazeer N. GLU Variants Improve Transformer. 2020. \url{https://arxiv.org/abs/2002.05202}.
+\bibitem{switch} Fedus W, Zoph B, Shazeer N. Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity. 2021. \url{https://arxiv.org/abs/2101.03961}.
+\bibitem{mamba} Gu A, Dao T. Mamba: Linear-Time Sequence Modeling with Selective State Spaces. 2023. \url{https://arxiv.org/abs/2312.00752}.
+\bibitem{zero} Rajbhandari S, et al. ZeRO: Memory Optimizations Toward Training Trillion Parameter Models. 2019. \url{https://arxiv.org/abs/1910.02054}.
+\bibitem{ddp} PyTorch. Distributed Data Parallel. 官方文档，查阅于2026年10月28日。\url{https://docs.pytorch.org/docs/stable/notes/ddp.html}.
+\bibitem{nccl} NVIDIA. NCCL User Guide: Collective Operations. 官方文档，查阅于2026年10月28日。\url{https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/usage/collectives.html}.
+\bibitem{lora} Hu E J, et al. LoRA: Low-Rank Adaptation of Large Language Models. 2021. \url{https://arxiv.org/abs/2106.09685}.
+\bibitem{qlora} Dettmers T, et al. QLoRA: Efficient Finetuning of Quantized LLMs. 2023. \url{https://arxiv.org/abs/2305.14314}.
+\bibitem{dpo} Rafailov R, et al. Direct Preference Optimization: Your Language Model is Secretly a Reward Model. 2023. \url{https://arxiv.org/abs/2305.18290}.
+\bibitem{ipo} Azar M G, et al. A General Theoretical Paradigm to Understand Learning from Human Preferences. 2023. \url{https://arxiv.org/abs/2310.12036}.
+\bibitem{kto} Ethayarajh K, et al. KTO: Model Alignment as Prospect Theoretic Optimization. 2024. \url{https://arxiv.org/abs/2402.01306}.
+\bibitem{orpo} Hong J, Lee N, Thorne J. ORPO: Monolithic Preference Optimization without Reference Model. 2024. \url{https://arxiv.org/abs/2403.07691}.
+\bibitem{simpo} Meng Y, Xia M, Chen D. SimPO: Simple Preference Optimization with a Reference-Free Reward. 2024. \url{https://arxiv.org/abs/2405.14734}.
+\bibitem{ppo} Schulman J, et al. Proximal Policy Optimization Algorithms. 2017. \url{https://arxiv.org/abs/1707.06347}.
+\bibitem{rloo} Ahmadian A, et al. Back to Basics: Revisiting REINFORCE Style Optimization for Learning from Human Feedback in LLMs. 2024. \url{https://arxiv.org/abs/2402.14740}.
+\bibitem{grpo} Shao Z, et al. DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models. 2024. \url{https://arxiv.org/abs/2402.03300}.
+\bibitem{r1} DeepSeek-AI, et al. DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning. 2025. \url{https://arxiv.org/abs/2501.12948}.
+\bibitem{prm} Lightman H, et al. Let's Verify Step by Step. 2023. \url{https://arxiv.org/abs/2305.20050}.
+\bibitem{distill} Hinton G, Vinyals O, Dean J. Distilling the Knowledge in a Neural Network. 2015. \url{https://arxiv.org/abs/1503.02531}.
+\bibitem{selfconsistency} Wang X, et al. Self-Consistency Improves Chain of Thought Reasoning in Language Models. 2022. \url{https://arxiv.org/abs/2203.11171}.
+\bibitem{bm25} Apache Lucene. BM25Similarity, Lucene 9.12.1 API. 官方文档，查阅于2026年10月28日。\url{https://lucene.apache.org/core/9_12_1/core/org/apache/lucene/search/similarities/BM25Similarity.html}.
+\bibitem{dpr} Karpukhin V, et al. Dense Passage Retrieval for Open-Domain Question Answering. 2020. \url{https://arxiv.org/abs/2004.04906}.
+\bibitem{colbert} Khattab O, Zaharia M. ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction over BERT. 2020. \url{https://arxiv.org/abs/2004.12832}.
+\bibitem{rag} Lewis P, et al. Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. 2020. \url{https://arxiv.org/abs/2005.11401}.
+\bibitem{hyde} Gao L, et al. Precise Zero-Shot Dense Retrieval without Relevance Labels. 2022. \url{https://arxiv.org/abs/2212.10496}.
+\bibitem{contextual} Anthropic. Introducing Contextual Retrieval. 2024. \url{https://www.anthropic.com/research/contextual-retrieval}.
+\bibitem{graphrag} Edge D, et al. From Local to Global: A Graph RAG Approach to Query-Focused Summarization. 2024. \url{https://arxiv.org/abs/2404.16130}.
+\bibitem{mcp} Model Context Protocol. Specification 2025-06-18: Architecture; Transports. \url{https://modelcontextprotocol.io/specification/2025-06-18/architecture}; \url{https://modelcontextprotocol.io/specification/2025-06-18/basic/transports}.
+\bibitem{react} Yao S, et al. ReAct: Synergizing Reasoning and Acting in Language Models. 2022. \url{https://arxiv.org/abs/2210.03629}.
+\bibitem{humaneval} Chen M, et al. Evaluating Large Language Models Trained on Code. 2021. \url{https://arxiv.org/abs/2107.03374}.
+\bibitem{judge} Zheng L, et al. Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. 2023. \url{https://arxiv.org/abs/2306.05685}.
+\bibitem{sae} Anthropic. Towards Monosemanticity: Decomposing Language Models With Dictionary Learning. 2023. \url{https://www.anthropic.com/research/towards-monosemanticity-decomposing-language-models-with-dictionary-learning}.
+\bibitem{flash} Dao T, et al. FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness. 2022. \url{https://arxiv.org/abs/2205.14135}.
+\bibitem{flash3} Shah J, et al. FlashAttention-3: Fast and Accurate Attention with Asynchrony and Low-precision. 2024. \url{https://arxiv.org/abs/2407.08608}.
+\bibitem{paged} Kwon W, et al. Efficient Memory Management for Large Language Model Serving with PagedAttention. 2023. \url{https://arxiv.org/abs/2309.06180}.
+\bibitem{sglang} Zheng L, et al. SGLang: Efficient Execution of Structured Language Model Programs. 2023. \url{https://arxiv.org/abs/2312.07104}.
+\bibitem{gptq} Frantar E, et al. GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers. 2022. \url{https://arxiv.org/abs/2210.17323}.
+\bibitem{awq} Lin J, et al. AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration. 2023. \url{https://arxiv.org/abs/2306.00978}.
+\bibitem{speculative} Leviathan Y, Kalman M, Matias Y. Fast Inference from Transformers via Speculative Decoding. 2022. \url{https://arxiv.org/abs/2211.17192}.
+\bibitem{eagle} Li Y, et al. EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty. 2024. \url{https://arxiv.org/abs/2401.15077}.
+\bibitem{mtp} Gloeckle F, et al. Better \& Faster Large Language Models via Multi-token Prediction. 2024. \url{https://arxiv.org/abs/2404.19737}.
+\bibitem{distserve} Zhong Y, et al. DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving. 2024. \url{https://arxiv.org/abs/2401.09670}.
+\bibitem{vllm} vLLM. Features. 官方文档，查阅于2026年10月28日。\url{https://docs.vllm.ai/en/latest/features/}.
+\bibitem{trt} NVIDIA. TensorRT-LLM: Quantization (PyTorch Backend). 官方文档，查阅于2026年10月28日。\url{https://nvidia.github.io/TensorRT-LLM/torch/features/quantization.html}.
+\bibitem{pi} Chen S, et al. Extending Context Window of Large Language Models via Positional Interpolation. 2023. \url{https://arxiv.org/abs/2306.15595}.
+\bibitem{yarn} Peng B, et al. YaRN: Efficient Context Window Extension of Large Language Models. 2023. \url{https://arxiv.org/abs/2309.00071}.
+\bibitem{vit} Dosovitskiy A, et al. An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale. 2020. \url{https://arxiv.org/abs/2010.11929}.
+\bibitem{clip} Radford A, et al. Learning Transferable Visual Models From Natural Language Supervision. 2021. \url{https://arxiv.org/abs/2103.00020}.
+\bibitem{llava} Liu H, et al. Visual Instruction Tuning. 2023. \url{https://arxiv.org/abs/2304.08485}.
+\bibitem{cuda} NVIDIA. CUDA Programming Guide. 官方文档，查阅于2026年10月28日。\url{https://docs.nvidia.com/cuda/cuda-programming-guide/}.
+\bibitem{triton} Triton. Fused Softmax. 官方教程，查阅于2026年10月28日。\url{https://triton-lang.org/main/getting-started/tutorials/02-fused-softmax.html}.
+
+\end{thebibliography}
+\end{document}
