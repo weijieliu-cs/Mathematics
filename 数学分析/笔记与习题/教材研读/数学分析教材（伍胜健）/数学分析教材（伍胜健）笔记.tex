@@ -4359,10 +4359,144 @@ $0\cdot\infty$ 型可改写成 $u/(1/v)$ 或 $v/(1/u)$；$\infty-\infty$ 型可�
 \label{sec:taylor-formula}
 
 % 教材第 197--210 页；分章 PDF 第 21--34 页。
-函数在 $x_0$ 处连续，只能保证 $f(x)=f(x_0)+o(1)$；可导则进一步给出 $f(x)=f(x_0)+f'(x_0)(x-x_0)+o(x-x_0)$。泰勒公式将这一思想推广到高阶：通过匹配函数及其若干阶导数，用多项式逼近函数，并单独研究逼近误差。佩亚诺余项描述靠近展开点时误差的阶，拉格朗日余项则通过高阶导数给出可计算的误差界；插值多项式处理的是在多个指定节点上匹配函数值的另一类逼近问题。
+在一个函数值容易计算的参考点 $x_0$ 附近，可以先用常数 $f(x_0)$ 估计 $f(x)$，再利用导数逐步修正函数值的变化。泰勒公式将这一思想推广到高阶：通过匹配函数及其若干阶导数，用多项式逼近函数，并单独研究逼近误差。佩亚诺余项描述靠近展开点时误差的阶，拉格朗日余项则通过高阶导数给出可计算的误差界；插值多项式处理的是在多个指定节点上匹配函数值的另一类逼近问题。
 
 \subsection{带佩亚诺余项的泰勒公式}
 \label{subsec:taylor-formula-with-peano-remainder}
+
+理解佩亚诺余项，首先要区分误差趋于零与误差相对于某个尺度趋于零。沿用\crosschapterref{3}{定义~\ref{def:little-o-big-o-and-asymptotic-equivalence}}{小 $o$ 记号（little-o notation）的定义}，以下专门解释连续性与可导性中出现的两种余项。固定展开点 $x_0$，令 $h=x-x_0$，则 $x\to x_0$ 等价于 $h\to0$；把余项写成 $h$ 的函数后，原变量中的 $o(x-x_0)$ 就对应于 $o(h)$。
+
+\begin{definition}
+\label{def:peano-little-o-scales}
+设 $r(h)$ 在某个去心邻域 $0<|h|<\rho$ 内有定义，其中 $\rho>0$。当 $h\to0$ 时，
+\begin{equation}
+    \begin{aligned}
+        r(h)=o(1)
+        &\quad\Longleftrightarrow\quad \lim_{h\to0}r(h)=0,\\
+        r(h)=o(h)
+        &\quad\Longleftrightarrow\quad \lim_{h\to0}\frac{r(h)}h=0
+        \quad\Longleftrightarrow\quad
+        \lim_{h\to0}\frac{|r(h)|}{|h|}=0.
+    \end{aligned}
+    \label{eq:peano-little-o-scales}
+\end{equation}
+具体地，$r(h)=o(1)$ 表示对任意 $\varepsilon>0$，存在 $\delta\in(0,\rho]$，使
+\[
+    0<|h|<\delta\quad\Longrightarrow\quad |r(h)|<\varepsilon;
+\]
+而 $r(h)=o(h)$ 表示对任意 $\varepsilon>0$，存在 $\delta\in(0,\rho]$，使
+\[
+    0<|h|<\delta\quad\Longrightarrow\quad |r(h)|<\varepsilon|h|.
+\]
+\end{definition}
+
+$o(1)$ 中的 $1$ 是比较尺度，所表达的是 $r(h)/1\to0$，并不表示误差趋于 $1$，也不表示某个固定的小常数。$o(h)$ 则要求误差除以自变量增量后仍趋于零，即误差是比 $h$ 高阶的无穷小量；这里比较的是绝对值的大小，故双侧趋近时 $h$ 的正负不会影响结论，$o(h)$ 与 $o(|h|)$ 表示相同的余项要求。两种记号都描述一个极限过程，不要求余项在 $h=0$ 处预先有定义，也不单独给出某个指定非零 $h$ 上的数值误差界。
+
+由定义，$r(h)=o(h)$ 等价于存在满足 $\varepsilon(h)\to0$ 的函数 $\varepsilon(h)$，使
+\begin{equation}
+    r(h)=h\varepsilon(h)\qquad(h\ne0).
+    \label{eq:peano-little-o-factorization}
+\end{equation}
+事实上，正向取 $\varepsilon(h)=r(h)/h$，反向则直接除以 $h$。由于 $h\varepsilon(h)\to0$，有 $r(h)=o(h)\Longrightarrow r(h)=o(1)$，反向一般不成立。因此，\emph{$o(h)$ 比 $o(1)$ 给出了更强的误差控制}：前者不仅要求误差消失，还要求误差与 $|h|$ 的比值消失。
+
+\begin{example}
+\label{ex:peano-little-o-basic-comparisons}
+当 $h\to0$ 时，判断 $h$、$h^2$ 与 $\sqrt{|h|}$ 是否为 $o(1)$，以及是否为 $o(h)$。
+\end{example}
+
+\begin{solve}
+三个函数都趋于零，因而都是 $o(1)$。为了进一步判断是否为 $o(h)$，分别计算
+\[
+    \frac{|h|}{|h|}=1,\qquad
+    \frac{h^2}{|h|}=|h|\to0,\qquad
+    \frac{\sqrt{|h|}}{|h|}=\frac1{\sqrt{|h|}}\to+\infty.
+\]
+所以只有 $h^2=o(h)$，而 $h$ 与 $\sqrt{|h|}$ 均不是 $o(h)$。其中 $h$ 与比较尺度同样大，$\sqrt{|h|}$ 虽然趋于零，却比 $|h|$ 大得多。这也说明，仅知道误差趋于零，还不能确定它相对于自变量增量的大小。
+\end{solve}
+
+\emph[caution]{不能仅由两个误差分别写成 $o(h)$ 与 $o(1)$，就断言前一个一定更小。}这些记号描述的是一类满足相应条件的函数，不是两个固定的函数；同一个余项可以同时属于两类，例如 $h^2$ 既是 $o(h)$，也是 $o(1)$。甚至可以取 $r_1(h)=h^2$、$r_0(h)=h^3$，此时 $r_1(h)=o(h)$、$r_0(h)=o(1)$，但 $|r_1(h)|/|r_0(h)|=1/|h|\to+\infty$。因此，要比较两种具体近似的误差，必须利用它们之间的实际关系。
+
+现在设 $f$ 在 $x_0$ 的某邻域内有定义。若 $f$ 在 $x_0$ 连续，则
+\begin{equation}
+    f(x_0+h)=f(x_0)+o(1)\qquad(h\to0).
+    \label{eq:peano-continuous-constant-approximation}
+\end{equation}
+这说明用 $f(x_0)$ 作常数近似时，只要 $h$ 足够小，绝对误差就可以任意小。它相当于暂时忽略从 $x_0$ 到 $x_0+h$ 引起的全部函数值变化；连续性本身没有保证这种误差相对于 $|h|$ 也趋于零。例如 $f(x)=\sqrt{|x|}$ 在零点连续，但用 $f(0)=0$ 近似时，误差 $\sqrt{|h|}$ 不是 $o(h)$。
+
+若 $f$ 在 $x_0$ 可导，令 $a=f'(x_0)$，则导数定义给出
+\[
+    \varepsilon(h)=\frac{f(x_0+h)-f(x_0)}h-a\longrightarrow0.
+\]
+移项便得到
+\begin{equation}
+    f(x_0+h)=f(x_0)+ah+h\varepsilon(h)
+           =f(x_0)+f'(x_0)h+o(h).
+    \label{eq:peano-first-order-decomposition}
+\end{equation}
+这与\crosschapterref{4}{式~\eqref{eq:differential-linear-approximation}}{微分给出的一阶近似公式}一致。$ah$ 是由变化率预测的函数增量，$h\varepsilon(h)$ 是预测后剩下的余项；几何上，$f(x_0)+ah$ 是切线在横坐标 $x_0+h$ 处的纵坐标。通常所说的\emph{线性近似}（linear approximation）指这个关于增量 $h$ 的一次近似；它包含常数项，作为 $x$ 的函数是仿射函数（affine function）。
+
+\begin{proposition}[常数近似与线性近似的误差比较]
+\label{prop:peano-constant-linear-error-comparison}
+设 $f$ 在 $x_0$ 的某邻域内有定义，并在 $x_0$ 可导。记两种近似的带符号误差为
+\begin{equation}
+    \begin{aligned}
+        E_0(h)&=f(x_0+h)-f(x_0),\\
+        E_1(h)&=f(x_0+h)-\bigl[f(x_0)+f'(x_0)h\bigr],
+    \end{aligned}
+    \label{eq:peano-constant-linear-errors}
+\end{equation}
+则绝对误差分别是 $|E_0(h)|$ 与 $|E_1(h)|$。若 $f'(x_0)\ne0$，则充分小的非零 $h$ 满足 $E_0(h)\ne0$，且
+\begin{equation}
+    \lim_{h\to0}\frac{|E_1(h)|}{|E_0(h)|}=0.
+    \label{eq:peano-relative-error-improvement}
+\end{equation}
+若 $f'(x_0)=0$，则两种近似完全相同，且 $E_0(h)=E_1(h)=o(h)$。
+\end{proposition}
+
+\begin{proof}
+沿用式~\eqref{eq:peano-first-order-decomposition} 中的 $a=f'(x_0)$ 与 $\varepsilon(h)\to0$，有
+\[
+    E_0(h)=h\bigl(a+\varepsilon(h)\bigr),\qquad
+    E_1(h)=h\varepsilon(h).
+\]
+若 $a\ne0$，可取充分小的邻域，使 $|\varepsilon(h)|<|a|/2$。于是 $|a+\varepsilon(h)|\geq|a|-|\varepsilon(h)|>|a|/2$，从而对其中的非零 $h$ 有 $E_0(h)\ne0$，并且
+\[
+    \frac{|E_1(h)|}{|E_0(h)|}
+    =\frac{|\varepsilon(h)|}{|a+\varepsilon(h)|}
+    \leq\frac{2|\varepsilon(h)|}{|a|}\longrightarrow0.
+\]
+若 $a=0$，则两种近似均为 $f(x_0)$，两个误差均为 $h\varepsilon(h)=o(h)$。
+\end{proof}
+
+当 $f'(x_0)\ne0$ 时，常数近似的误差满足 $E_0(h)/h\to f'(x_0)\ne0$，其中的一阶主项是 $f'(x_0)h$。加入这个修正后，一阶主项被消去，只留下与 $h$ 的比值趋于零的余项。式~\eqref{eq:peano-relative-error-improvement} 还意味着：对任意给定的 $\eta\in(0,1)$，都存在 $\delta>0$，使 $0<|h|<\delta$ 时有 $|E_1(h)|<\eta|E_0(h)|$。这就是线性近似在展开点附近误差“小得多”的严格含义；它是充分靠近展开点时的结论，不保证在任意远处也成立。这里比较的是两种近似的绝对误差之比，并非误差与函数值 $f(x_0+h)$ 的比值。
+
+\emph[caution]{当 $f'(x_0)=0$ 时，一次修正项为零，不能声称线性近似比常数近似更准确。}此时可导性已经保证常数近似的误差为 $o(h)$，而仅用 $o(1)$ 描述它只是没有充分利用已有信息。导数为零也不意味着函数在附近恒定，更不意味着近似误差为零；若还存在更高阶导数，可以继续寻找第一个非零的高阶修正项。
+
+\begin{example}
+\label{ex:peano-quadratic-linear-error-comparison}
+设 $f(x)=x^2$，比较在 $x_0=2$ 与 $x_0=0$ 处的常数近似和线性近似。
+\end{example}
+
+\begin{solve}
+在 $x_0=2$ 处，$f(2)=4$、$f'(2)=4$，且
+\[
+    f(2+h)=4+4h+h^2.
+\]
+用常数 $4$ 近似时，$E_0(h)=4h+h^2$；用切线给出的 $4+4h$ 近似时，$E_1(h)=h^2$。因此
+\[
+    \frac{|E_1(h)|}{|E_0(h)|}
+    =\frac{|h|}{|4+h|}\longrightarrow0.
+\]
+例如，$h=0.01$ 时真实值为 $4.0401$，两种近似分别为 $4$ 与 $4.04$，绝对误差分别为 $0.0401$ 与 $0.0001$。这里误差减少，是因为一次修正恰好补上了增量中的 $0.04$。
+
+在 $x_0=0$ 处，$f(0)=f'(0)=0$，两种近似都为 $0$，故 $E_0(h)=E_1(h)=h^2=o(h)$。对任意非零 $h$，两种绝对误差的比值都为 $1$，并没有因为写出线性近似公式而改善；若再加入二次项 $h^2$，则在本例中恰好得到原函数，误差才变为零。
+\end{solve}
+
+还应区分 $o(h)$ 与二阶误差控制：仅有一阶可导，不能保证余项是 $O(h^2)$。例如 $f(x)=|x|^{3/2}$ 在零点满足
+\[
+    \left|\frac{f(h)-f(0)}h\right|=|h|^{1/2}\to0,
+\]
+故 $f'(0)=0$。其常数近似与线性近似的误差都是 $|h|^{3/2}=o(h)$，但 $|h|^{3/2}/h^2=1/\sqrt{|h|}\to+\infty$，所以不是 $O(h^2)$。相应的高阶可导性能够保证更高阶的余项估计；这正是下面泰勒公式所说明的内容。
 
 \begin{theorem}[带佩亚诺余项的泰勒公式]
 \label{thm:taylor-peano}
@@ -4388,6 +4522,13 @@ $0\cdot\infty$ 型可改写成 $u/(1/v)$ 或 $v/(1/u)$；$\infty-\infty$ 型可�
 \]
 最后一步由 $f^{(n-1)}$ 在 $x_0$ 的可导性成立，再沿各步洛必达法则反推即得结论。
 \end{proof}
+
+式~\eqref{eq:taylor-peano} 将一次近似推广为 $n$ 阶近似，其误差满足 $R_n(x_0+h)/h^n\to0$。为了看清新增一项怎样改变误差，约定 $T_0(x)=f(x_0)$，并令 $R_k(x)=f(x)-T_k(x)$。对于 $1\leq k\leq n$，记 $c_k=f^{(k)}(x_0)/k!$，则
+\[
+    R_{k-1}(x_0+h)=c_kh^k+R_k(x_0+h),\qquad
+    R_k(x_0+h)=o(h^k).
+\]
+若 $c_k\ne0$，除以 $h^k$ 后，$R_{k-1}(x_0+h)/h^k\to c_k$，因而与命题~\ref{prop:peano-constant-linear-error-comparison} 相同的比较给出 $|R_k(x_0+h)|/|R_{k-1}(x_0+h)|\to0$；若 $c_k=0$，则 $T_k=T_{k-1}$，两种余项完全相同。特别地，当 $f'(x_0)=0$ 而 $f''(x_0)\ne0$ 时，二次修正 $f''(x_0)h^2/2$ 才消去常数近似误差的首个非零主项，使余项成为 $o(h^2)$。因此，逐阶改善的实质在于消去非零的主项，不能只根据多项式名义上的阶数判断两次近似的误差大小。
 
 \begin{proposition}[多项式逼近的唯一性]
 \label{prop:taylor-polynomial-uniqueness}
