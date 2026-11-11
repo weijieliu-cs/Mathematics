@@ -1,0 +1,200 @@
+% !TeX root = ../抽象代数笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{0} % 保留原书章号。
+\chapter{数学语言与预备知识}\label{ch:preliminaries}
+
+抽象代数把具体计算中的共同规律写成公理，再由公理推导结论。学习这一过程，需要准确区分对象与表示、存在与唯一、命题与逆命题。本章准备三项工具：用映射描述结构，用等价关系构造新对象，用整数整除提供最初的模型。所需知识限于中学代数与集合的基本概念。
+
+\section{命题、量词与证明方法}\label{sec:logic}
+
+\emph{命题（proposition）}是具有确定真值的陈述。对于命题 $P,Q$，$P\Rightarrow Q$ 表示 $P$ 是 $Q$ 的充分条件、$Q$ 是 $P$ 的必要条件；$P\Leftrightarrow Q$ 表示两者互为充要条件。证明等价命题通常需要分别证明两个方向。逆命题 $Q\Rightarrow P$ 不由原命题推出，而逆否命题 $\neg Q\Rightarrow\neg P$ 与原命题等价。
+
+\emph{量词（quantifier）}指定陈述适用的范围。设 $P(x)$ 是关于 $x\in X$ 的条件，则 $\forall x\in X,\ P(x)$ 要求每个元素满足条件，$\exists x\in X,\ P(x)$ 只要求至少一个元素满足条件。否定时应同时交换量词并否定条件：
+\[
+  \neg(\forall x\in X,\ P(x))\ \Longleftrightarrow\
+  \exists x\in X,\ \neg P(x),\qquad
+  \neg(\exists x\in X,\ P(x))\ \Longleftrightarrow\
+  \forall x\in X,\ \neg P(x).
+\]
+记号 $\exists!x\in X,\ P(x)$ 表示存在唯一的满足条件的元素。证明它时，先构造一个满足条件的元素，再证明任意两个满足条件的元素相等。
+
+\begin{example}[量词顺序]
+在实数中，$\forall x\in\mathbb R,\ \exists y\in\mathbb R,\ x+y=0$ 成立：对给定的 $x$ 取 $y=-x$。但 $\exists y\in\mathbb R,\ \forall x\in\mathbb R,\ x+y=0$ 不成立，因为分别取 $x=0,1$ 会要求同一个 $y$ 同时等于 $0$ 和 $-1$。后文“每个元素有逆元”中的逆元可以依赖于该元素。
+\end{example}
+
+直接证明从假设推出结论；反证法在假设结论不成立后导出矛盾；反例则给出一个满足假设但不满足结论的对象。对有限或可逐步构造的对象，常用归纳法。它的基础可以表述为自然数的\emph{良序原理（well-ordering principle）}：每个非空的 $\mathbb N$ 的子集都有最小元。本书将此作为自然数的基本性质。
+
+\begin{proposition}[数学归纳法]\label{prop:induction}
+设 $P(n)$ 是关于 $n\in\mathbb N$ 的命题。若 $P(0)$ 成立，并且对每个 $n\in\mathbb N$ 都有 $P(n)\Rightarrow P(n+1)$，则所有 $P(n)$ 均成立。
+\end{proposition}
+\begin{proof}
+若结论不成立，反例指标组成非空集合，取其最小元 $m$。由 $P(0)$ 成立知 $m>0$；最小性给出 $P(m-1)$，归纳假设继而给出 $P(m)$，矛盾。
+\end{proof}
+
+同一论证还给出强归纳法：证明 $P(n)$ 时，可以假设所有较小指标对应的命题都成立。使用归纳法必须写明起始指标与归纳推进；“已经验证很多情形”不能替代对任意指标的论证。
+
+\section{集合、映射与运算}\label{sec:maps-operations}
+
+集合由其元素确定，证明 $A=B$ 可以分别证明 $A\subseteq B$ 和 $B\subseteq A$。集合 $X,Y$ 的\emph{笛卡尔积（Cartesian product）}为 $X\times Y=\{(x,y):x\in X,\ y\in Y\}$，其中有序对相等当且仅当对应分量相等。有限集合 $X$ 的元素个数记为 $|X|$。
+
+\begin{definition}[映射与像]
+\emph{映射（map）}$f:X\to Y$ 给每个 $x\in X$ 指定唯一元素 $f(x)\in Y$。$X$ 称为定义域，$Y$ 称为陪域。对 $A\subseteq X$、$B\subseteq Y$，定义\emph{像（image）}与\emph{原像（preimage）}
+\[
+  f(A)=\{f(x):x\in A\},\qquad
+  f^{-1}(B)=\{x\in X:f(x)\in B\}.
+\]
+整个映射的像记为 $\operatorname{im}f=f(X)$，它可以小于陪域 $Y$。
+\end{definition}
+
+若 $f(x)=f(x')$ 总能推出 $x=x'$，则 $f$ 是\emph{单射（injection）}；若 $f(X)=Y$，则 $f$ 是\emph{满射（surjection）}；同时为单射、满射的映射称为\emph{双射（bijection）}。原像 $f^{-1}(B)$ 对任意映射都有意义，不要求 $f$ 存在逆映射。
+
+给定 $f:X\to Y$、$g:Y\to Z$，其复合定义为 $(g\circ f)(x)=g(f(x))$。恒等映射 $\operatorname{id}_X:X\to X$ 满足 $\operatorname{id}_X(x)=x$。复合满足结合律，因为两种括号方式在每个元素上的取值都是 $h(g(f(x)))$，但一般不满足交换律，甚至交换次序后的复合可能没有定义。
+
+\begin{proposition}[双射与逆映射]\label{prop:inverse-map}
+映射 $f:X\to Y$ 为双射，当且仅当存在映射 $g:Y\to X$ 满足 $g\circ f=\operatorname{id}_X$、$f\circ g=\operatorname{id}_Y$；这样的 $g$ 唯一，记为 $f^{-1}$。
+\end{proposition}
+\begin{proof}
+若 $f$ 为双射，则对每个 $y\in Y$ 都有唯一的 $x\in X$ 满足 $f(x)=y$，令 $g(y)=x$ 即得所需映射。反之，若两式成立，由 $f(x)=f(x')$ 两边作用 $g$ 得 $x=x'$，且每个 $y=f(g(y))$ 都属于像，故 $f$ 为双射。若 $g,h$ 都满足两式，则 $g=g\circ(f\circ h)=(g\circ f)\circ h=h$。
+\end{proof}
+
+\begin{definition}[二元运算]
+非空集合 $X$ 上的\emph{二元运算（binary operation）}是映射 $*:X\times X\to X$，通常将 $*(a,b)$ 写成 $a*b$。若对任意 $a,b,c\in X$ 有 $(a*b)*c=a*(b*c)$，称其满足结合律；若对任意 $a,b\in X$ 有 $a*b=b*a$，称其满足交换律。
+\end{definition}
+
+运算的结果仍在 $X$ 中这一要求称为封闭性。例如减法是 $\mathbb Z$ 上的二元运算，却不是 $\mathbb N$ 上的二元运算；它在 $\mathbb Z$ 上不满足结合律，因为 $(1-1)-1=-1$ 而 $1-(1-1)=1$。同一集合配上不同运算会得到不同结构，因此谈论代数对象时必须同时说明集合和运算。
+
+\section{等价关系、划分与商集}\label{sec:equivalence-quotients}
+
+在许多问题中，只关心某些差别而忽略另一些差别。例如整数除以 $n$ 时，可以只记录余数。这种“视为相同”的规则必须保持一致，才能把原来的元素合并成新对象。
+
+\begin{definition}[等价关系与商集]
+集合 $X$ 上的关系 $\sim$ 若满足自反性 $x\sim x$、对称性 $x\sim y\Rightarrow y\sim x$、传递性 $x\sim y,\ y\sim z\Rightarrow x\sim z$，则称为\emph{等价关系（equivalence relation）}。元素 $x$ 的\emph{等价类（equivalence class）}为 $[x]=\{y\in X:y\sim x\}$，全部等价类组成\emph{商集（quotient set）}$X/{\sim}=\{[x]:x\in X\}$。
+\end{definition}
+
+\begin{proposition}[等价关系与划分]\label{prop:equivalence-partition}
+等价关系的等价类都是非空的，覆盖 $X$，且任意两个等价类或者相等，或者不相交。反过来，将 $X$ 分成若干两两不交的非空子集，就唯一确定一个以这些子集为等价类的等价关系。
+\end{proposition}
+\begin{proof}
+由 $x\sim x$，每个 $x$ 都在 $[x]$ 中。若 $z\in[x]\cap[y]$，则 $z\sim x$、$z\sim y$，从而 $x\sim y$。对任意 $u\in[x]$，由 $u\sim x\sim y$ 得 $u\in[y]$，故 $[x]\subseteq[y]$；交换 $x,y$ 得到相等。反过来，定义 $x\sim y$ 当且仅当两者属于同一个分块，逐项满足三条性质，且分块已经唯一规定了哪些元素相关。
+\end{proof}
+
+\begin{example}[整数同余]\label{ex:integer-congruence}
+固定正整数 $n$，定义 $a\equiv b\pmod n$ 当且仅当 $a-b=nk$ 对某个 $k\in\mathbb Z$ 成立。由 $a-a=0$、$b-a=-(a-b)$ 及 $a-c=(a-b)+(b-c)$，这是等价关系。等价类记为 $\overline a$，商集记为 $\mathbb Z/n\mathbb Z$。例如模 $3$ 时，$\overline1$ 包含 $\ldots,-5,-2,1,4,7,\ldots$；$1$ 只是该类的一个代表元，不是这个类本身。
+\end{example}
+
+\begin{proposition}[通过商集定义映射]\label{prop:quotient-set-map}
+设 $\sim$ 是 $X$ 上的等价关系，$f:X\to Y$。存在映射 $\overline f:X/{\sim}\to Y$ 满足 $\overline f([x])=f(x)$，当且仅当 $x\sim x'$ 蕴含 $f(x)=f(x')$；存在时此映射唯一。
+\end{proposition}
+\begin{proof}
+若 $\overline f$ 存在，同一个等价类只能有一个像，故条件必要。若条件成立，则 $f(x)$ 不依赖 $[x]$ 的代表元选择，所给公式确定一个映射。每个等价类都形如 $[x]$，因而公式也唯一确定了所有取值。
+\end{proof}
+
+上述代表元无关性称为\emph{良定义性（well-definedness）}。类似地，若要由 $X$ 上的运算 $*$ 定义 $[x]\mathbin{\overline *}[y]=[x*y]$，必须且只需证明
+\begin{equation}\label{eq:operation-descends}
+  x\sim x',\quad y\sim y'\quad\Longrightarrow\quad x*y\sim x'*y'.
+\end{equation}
+
+\begin{example}[剩余类运算的良定义性]\label{ex:residue-operations}
+在 $\mathbb Z/n\mathbb Z$ 上令 $\overline a+\overline b=\overline{a+b}$、$\overline a\,\overline b=\overline{ab}$。若 $a'=a+nu$、$b'=b+nv$，其中 $u,v\in\mathbb Z$，则
+\[
+  (a'+b')-(a+b)=n(u+v),\qquad
+  a'b'-ab=n(av+bu+nuv).
+\]
+两种结果都不依赖代表元，因此加法、乘法均良定义。反之，在 $\mathbb Z$ 上定义 $a\sim b$ 当且仅当 $|a|=|b|$，虽然这是等价关系，公式 $[a]+[b]=[a+b]$ 却不良定义：$[1]=[-1]$，但 $[1+1]=[2]\ne[0]=[-1+1]$。等价关系本身并不保证运算能传到商集。
+\end{example}
+
+\section{整数整除与贝祖等式}\label{sec:integer-divisibility}
+
+对整数 $a,b$，若存在 $c\in\mathbb Z$ 使 $b=ac$，就说 $a$\emph{整除（divide）}$b$，记为 $a\mid b$。若 $a\mid b$ 且 $a\mid c$，则 $a$ 整除 $ub+vc$，其中 $u,v$ 为任意整数。这一简单性质把整除问题与整数线性组合联系起来。
+
+\begin{theorem}[带余除法]\label{thm:integer-division}
+对任意 $a\in\mathbb Z$ 与正整数 $b$，存在唯一整数 $q,r$ 满足 $a=bq+r$ 且 $0\leq r<b$。
+\end{theorem}
+\begin{proof}
+集合 $S=\{a-bq:q\in\mathbb Z,\ a-bq\geq0\}$ 非空，例如可取 $q=-|a|$。取其最小元 $r=a-bq$。若 $r\geq b$，则 $r-b=a-b(q+1)$ 仍在 $S$ 中，却小于 $r$，矛盾，故 $0\leq r<b$。若另有 $a=bq'+r'$ 满足同样条件，则 $b(q-q')=r'-r$，右端绝对值小于 $b$，只能为 $0$，于是 $q=q'$、$r=r'$。
+\end{proof}
+
+由此每个模 $n$ 剩余类都恰有一个代表元属于 $\{0,1,\ldots,n-1\}$，所以 $|\mathbb Z/n\mathbb Z|=n$。这里的唯一性是指选定这个代表元范围之后的唯一性。
+
+\begin{definition}[最大公因数与互素]
+对不全为零的整数 $a,b$，它们的\emph{最大公因数（greatest common divisor）}$\gcd(a,b)$ 是最大的正公因数。若 $\gcd(a,b)=1$，称 $a,b$\emph{互素（coprime）}。
+\end{definition}
+
+\begin{theorem}[贝祖等式]\label{thm:integer-bezout}
+设 $a,b\in\mathbb Z$ 不全为零，$d=\gcd(a,b)$。存在 $u,v\in\mathbb Z$ 使
+\begin{equation}\label{eq:integer-bezout}
+  d=ua+vb.
+\end{equation}
+并且每个公因数都整除 $d$。
+\end{theorem}
+\begin{proof}
+所有正整数线性组合 $ua+vb$ 构成非空集合，取其最小元 $d_0$。用带余除法写 $a=qd_0+r$，其中 $0\leq r<d_0$。由于 $d_0$ 是 $a,b$ 的整数线性组合，$r=a-qd_0$ 也是；若 $r>0$ 就违背最小性，故 $r=0$。同理 $d_0\mid b$。任一公因数 $c$ 都整除 $d_0$，所以每个正公因数不超过 $d_0$。于是 $d_0=d$，并得到所需表示及整除性质。
+\end{proof}
+
+\begin{corollary}[互素消去与欧几里得引理]\label{cor:coprime-cancellation}
+若 $\gcd(a,b)=1$ 且 $a\mid bc$，则 $a\mid c$。特别地，若素数 $p$ 整除 $bc$，则 $p\mid b$ 或 $p\mid c$；这里素数指大于 $1$、正因数只有 $1$ 与自身的整数。
+\end{corollary}
+\begin{proof}
+由 $ua+vb=1$ 得 $c=uac+vbc$，右端两项都被 $a$ 整除。若 $p\nmid b$，素数的定义给出 $\gcd(p,b)=1$，将前一结论用于 $p,b,c$ 即得 $p\mid c$。
+\end{proof}
+
+\begin{theorem}[整数的唯一素因子分解]\label{thm:integer-factorization}
+每个整数 $n>1$ 都能写成有限个素数的乘积；除因子的排列顺序外，这种分解唯一。
+\end{theorem}
+\begin{proof}
+对 $n$ 用强归纳法。若 $n$ 是素数，结论成立；否则 $n=ab$，其中 $1<a,b<n$，分别分解 $a,b$ 即得存在性。若 $p_1\cdots p_r=q_1\cdots q_s$ 是两种素数分解，推论\ref{cor:coprime-cancellation}反复用于右端可知 $p_1$ 整除某个 $q_j$，从而 $p_1=q_j$。消去这一对相等因子并继续；不可能一边先耗尽而另一边仍有素数因子，因为后者的乘积大于 $1$。因此因子及其重数相同。
+\end{proof}
+
+\emph{欧几里得算法（Euclidean algorithm）}计算最大公因数：先取 $|a|,|b|$；若第二项为 $0$，输出第一项，否则反复用“除数、余数”替换当前两项。其正确性来自 $\gcd(a,b)=\gcd(b,a-qb)$，因为两对整数有相同的公因数；非零余数严格递减，保证有限步终止。最后一个非零余数就是最大公因数，反向代入各步等式可得到式\eqref{eq:integer-bezout}的系数。
+
+\begin{example}[求最大公因数与贝祖系数]\label{ex:euclidean-algorithm}
+计算 $\gcd(252,198)$ 并求一组贝祖系数。
+\end{example}
+\begin{solve}
+连续除法给出
+\[
+  252=198+54,\quad 198=3\cdot54+36,\quad
+  54=36+18,\quad 36=2\cdot18.
+\]
+故最大公因数为 $18$。反向代入得到
+\[
+  18=54-36=4\cdot54-198=4\cdot252-5\cdot198.
+\]
+系数为 $u=4,v=-5$；贝祖系数一般不唯一，但最大公因数唯一。
+\end{solve}
+
+\begin{theorem}[线性同余方程]\label{thm:linear-congruence}
+设 $n\geq1$，$a,b\in\mathbb Z$，$d=\gcd(a,n)$。方程 $ax\equiv b\pmod n$ 有整数解当且仅当 $d\mid b$。若有解 $x_0$，则全部解为
+\begin{equation}\label{eq:linear-congruence-solutions}
+  x=x_0+k\frac nd,\qquad k\in\mathbb Z,
+\end{equation}
+在模 $n$ 意义下恰有 $d$ 个不同的解。
+\end{theorem}
+\begin{proof}
+若 $ax-b=ny$，则 $d\mid b$。反之，由 $ua+vn=d$ 且 $d\mid b$，取 $x_0=u(b/d)$ 即有 $ax_0\equiv b\pmod n$。任意两个解的差满足 $n\mid a(x-x_0)$；除去 $d$ 后，由 $\gcd(a/d,n/d)=1$ 和推论\ref{cor:coprime-cancellation}知 $n/d\mid x-x_0$，得到式\eqref{eq:linear-congruence-solutions}，反向代入也确为解。该式中两个参数给出相同剩余类当且仅当它们之差被 $d$ 整除，因此可取 $k=0,\ldots,d-1$。
+\end{proof}
+
+\section{例题、练习与自检}
+
+\begin{example}[求解线性同余]
+求 $14x\equiv8\pmod{30}$ 的全部整数解。
+\end{example}
+\begin{solve}
+有 $\gcd(14,30)=2\mid8$，方程可约为 $7x\equiv4\pmod{15}$。由 $7\cdot13\equiv1\pmod{15}$ 得 $x\equiv52\equiv7\pmod{15}$。全部整数解为 $x=7+15k$，$k\in\mathbb Z$；模 $30$ 的两个解是 $\overline7,\overline{22}$。
+\end{solve}
+
+\begin{enumerate}
+  \item\label{exer:quantifier-uniqueness} 写出“对每个 $x\in X$，存在唯一 $y\in Y$ 使 $P(x,y)$ 成立”的量词表达式及其否定。说明证明存在性与唯一性各需要完成什么任务。
+  \item\label{exer:composition-injective-surjective} 设 $f:X\to Y$、$g:Y\to Z$。证明：若 $g\circ f$ 为单射，则 $f$ 为单射；若 $g\circ f$ 为满射，则 $g$ 为满射。分别给出另一个映射不具有相应性质的例子。
+  \item\label{exer:image-preimage} 对 $f:X\to Y$ 与 $A\subseteq X$，证明 $A\subseteq f^{-1}(f(A))$；证明对每个 $A$ 都取等号当且仅当 $f$ 单射。
+  \item\label{exer:quotient-square-map} 在 $\mathbb Z$ 上定义 $a\sim b$ 当且仅当 $a-b$ 为偶数。求商集，并证明 $\overline a\mapsto\overline{a^2}$ 是该商集到自身的良定义映射。
+  \item\label{exer:absolute-value-quotient} 验证“具有相同绝对值”是 $\mathbb Z$ 上的等价关系。例\ref{ex:residue-operations}说明加法不能传到商集；判断乘法能否传到商集，并证明你的结论。
+  \item\label{exer:bezout-computation} 用欧几里得算法计算 $\gcd(391,299)$，再求一组贝祖系数。
+  \item\label{exer:linear-congruences} 求解 $18x\equiv12\pmod{30}$；判断 $18x\equiv7\pmod{30}$ 是否有解。
+  \item\label{exer:gcd-lcm-product} 设 $a,b$ 为正整数，证明 $\gcd(a,b)\operatorname{lcm}(a,b)=ab$，其中最小公倍数 $\operatorname{lcm}(a,b)$ 指最小的正公倍数。可使用定理\ref{thm:integer-factorization}。
+\end{enumerate}
+
+\textbf{部分提示与结果。} 第\ref{exer:composition-injective-surjective}题均可取 $X=Z=\{0\}$、$Y=\{0,1\}$，令 $f$ 为包含映射、$g$ 为常值映射。第\ref{exer:image-preimage}题的逆向证明可取单元素子集。第\ref{exer:absolute-value-quotient}题利用 $|ab|=|a||b|$。第\ref{exer:bezout-computation}题结果为 $23=-3\cdot391+4\cdot299$。第\ref{exer:linear-congruences}题第一个方程的解为 $x\equiv4\pmod5$，第二个无解。第\ref{exer:gcd-lcm-product}题比较各素因子在两边的指数。
+
+本章的关键检查顺序是：先确定对象与量词，再验证定义是否有意义，最后证明所需性质。尤其在商集上，必须先解决代表元无关性，才有资格讨论映射或运算的进一步性质。
+

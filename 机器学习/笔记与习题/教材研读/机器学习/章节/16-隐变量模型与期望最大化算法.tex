@@ -1,0 +1,73 @@
+% !TeX root = ../机器学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{15} % 保留原书章号。
+\chapter{隐变量模型与期望最大化算法}
+\label{chap:ml-em}
+
+隐变量表示未观测到的成分或状态。引入它往往简化条件模型，却使观测似然出现求和或积分；EM 在当前后验与参数优化之间交替，处理这类目标。
+
+\section{隐变量与边缘似然}
+
+记观测为 $x$、隐变量为 $Z$、参数为 $\theta$。模型给出完整数据分布 $p_\theta(x,z)$，观测分布为 $p_\theta(x)=\sum_zp_\theta(x,z)$；连续隐变量时使用积分。对数不穿过求和，因此 $\log p_\theta(x)$ 一般不等于某个完整数据对数概率。观测变量缺失与引入潜在类别都可产生隐变量模型，但两者的科学含义不同。
+
+独立观测的目标为 $\sum_i\log p_\theta(x_i)$。所谓“完整数据”是理论上同时观测 $x,z$ 的情形，并不意味着实际训练中知道隐变量的真实值。
+
+\section{有限混合模型}
+
+有限混合分布写为 $p_\theta(x)=\sum_{k=1}^K\pi_kp_{\theta_k}(x)$，其中 $\pi_k\geq0$、$\sum_k\pi_k=1$。隐变量 $Z=k$ 表示所用成分。高斯混合模型（Gaussian mixture model，GMM）取 $p_{\theta_k}=N(\mu_k,\Sigma_k)$，规定 $\Sigma_k$ 正定以使用普通密度。
+
+交换成分编号不改变观测分布，这是标签交换不辨识性。更严重的是，当一个成分中心落在某个样本上且协方差趋零时，该点密度可无限增大，无约束似然可能无上界。实际训练需控制协方差特征值、加入先验或采用合适约束，不能将这种退化称为优秀拟合。
+
+\section{期望最大化的下界推导}
+
+对隐变量分布 $q$，在所有积分和对数表达有意义时，定义证据下界（evidence lower bound，ELBO）
+\begin{equation}
+ \mathcal L(q,\theta)=\mathbb E_q[\log p_\theta(x,Z)]-\mathbb E_q[\log q(Z)].
+ \label{eq:ml-elbo}
+\end{equation}
+由贝叶斯公式把 $\log p_\theta(x,Z)$ 改写，得到
+\[
+ \log p_\theta(x)=\mathcal L(q,\theta)
+ +D_{\rm KL}(q\Vert p_\theta(\cdot\mid x)).
+\]
+因为 KL 非负，$\mathcal L$ 是下界；取 $q$ 为当前后验时等号成立。
+
+期望最大化（expectation-maximization，EM）的 E 步令 $q_t=p_{\theta_t}(Z\mid x)$；M 步选取使 $\mathbb E_{q_t}\log p_\theta(x,Z)$ 最大的参数。$q_t$ 固定后其熵与 $\theta$ 无关，因此 M 步也在提高同一下界。多样本时对各样本相应项求和。
+
+\section{高斯混合模型的 EM 更新}
+
+E 步计算责任度
+$r_{ik}=\pi_k\varphi(x_i;\mu_k,\Sigma_k)/\sum_l\pi_l\varphi(x_i;\mu_l,\Sigma_l)$。
+令 $N_k=\sum_i r_{ik}$，在 $N_k>0$ 时，无约束 M 步为
+\begin{equation}
+ \pi_k^+=N_k/n,\qquad
+ \mu_k^+=\frac{\sum_ir_{ik}x_i}{N_k},\qquad
+ \Sigma_k^+=\frac{\sum_ir_{ik}(x_i-\mu_k^+)(x_i-\mu_k^+)^\top}{N_k}.
+ \label{eq:ml-gmm-mstep}
+\end{equation}
+这些式子分别来自加权类别计数和加权 Gaussian 极大似然。零有效计数或奇异协方差须单独处理；加入协方差约束后应求对应的约束 M 步，不能声称任意数值修补仍是原始精确 EM。
+
+算法由初始权重、均值和协方差开始，交替两步，记录观测对数似然，在相对增量小或达到预算时停止。责任度宜用对数域及稳定的对数指数和计算，多次初始化可降低陷入较差局部解的风险。
+
+\section{单调性、局部解与推广}
+
+精确 E 步使 $\log p_{\theta_t}(x)=\mathcal L(q_t,\theta_t)$；若 M 步使下界不降，则
+$\log p_{\theta_{t+1}}(x)\geq\mathcal L(q_t,\theta_{t+1})\geq\mathcal L(q_t,\theta_t)$，
+这就证明观测似然不减。仅要求提高下界的 M 步称广义 EM。目标值有上界时，单调性保证目标值收敛；参数收敛、驻点性质和全局最优不是这一不等式自动给出的结论。
+
+以最可能隐状态作硬分配一般不等于对后验取期望。限制 $q$ 属于较简单分布族则产生变分方法，但下界不一定与当前似然相切，因而应评价新的优化目标及近似误差。
+
+\section{例题、练习与学习检查}
+
+\begin{example}[软责任度]
+两个一维 Gaussian 成分等权、方差均为一，均值为零和二。观测 $x=1$ 与 $x=0$ 的第一成分责任度各是多少？
+\end{example}
+\begin{solve}
+$x=1$ 到两均值距离相同，责任度为 $1/2$。$x=0$ 时两密度比为 $1:e^{-2}$，第一成分责任度为 $1/(1+e^{-2})\approx0.8808$。责任度是当前模型下的后验，不是已知真实标签。
+\end{solve}
+
+习题：从下界恒等式重新证明单调性；给定一组责任度手算一轮均值更新；解释无界似然与单调上升为何不矛盾；构造一个硬分配和软分配产生不同均值的样本集。
+
+
+
+

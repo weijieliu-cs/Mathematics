@@ -1,0 +1,593 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{4} % 保留原书章号。
+\chapter{决策树}
+\label{ch:lihang-decision-tree}
+
+本章对应教材第 5 章。决策树（decision tree）通过一系列特征测试，把输入空间逐步划分为若干区域，并在每个区域给出类别或数值预测。它把复杂的判断拆成可解释的条件分支，预测时只需沿一条路径进行测试。学习的困难在于：怎样选择划分、何时停止细分，以及怎样在拟合训练数据与控制模型复杂度之间取得平衡。以下先讨论分类树的三种理解方式，再建立信息增益、信息增益比和基尼指数等划分准则，最后说明树的生成、剪枝及分类与回归树算法。
+
+\section{决策树模型与学习}
+\label{sec:lihang-tree-model}
+
+\subsection{决策树模型}
+
+设输入空间为 $\mathcal X\subseteq\mathbb R^d$，类别集合为 $\mathcal Y=\{C_1,\ldots,C_K\}$，训练数据为
+\[
+  D=\{(x_i,y_i)\}_{i=1}^N,\qquad x_i\in\mathcal X,\quad y_i\in\mathcal Y.
+\]
+离散属性也可用有限集合中的取值表示；这里的向量记号并不要求所有属性都有数值大小的意义。$X$ 和 $Y$ 分别表示随机输入与随机类别，$x_i$ 和 $y_i$ 表示已经观测到的样本取值。
+
+\begin{definition}[分类决策树]
+分类决策树是一棵有限的有根有向树。内部结点规定对输入特征的测试，各条出边规定互斥的测试结果，叶结点规定一个类别。对输入 $x$，从根结点开始按测试结果逐层选择分支，到达叶结点后输出该叶的类别。每个内部结点的分支应覆盖所有允许到达该结点的输入。
+\end{definition}
+
+离散特征 $A$ 的测试可以按 $A(x)=a_1,\ldots,a_r$ 产生多个分支；数值特征的测试可以按 $x^{(j)}\leq s$ 与 $x^{(j)}>s$ 产生两个分支。测试的是输入的属性，输出的是类别，两者不能混淆。若一条预测路径包含 $h$ 个内部结点且每次测试为常数时间，则该输入的预测时间为 $O(h)$；树越深，预测所需的测试通常越多。
+
+\subsection{决策树与条件规则}
+
+从根到某个叶的路径可写为一条条件规则：若路径上的所有测试条件同时成立，则预测该叶的类别。例如，“有自己的房子，或者没有自己的房子但有工作”可以分别由两条路径表达。不同路径可以输出相同类别，但它们对应的输入区域仍然互斥。
+
+\begin{proposition}
+\label{prop:lihang-tree-partition}
+若每个内部结点的分支互斥且完备，则所有根到叶路径对应的非空区域构成 $\mathcal X$ 的一个划分；相应规则对每个输入恰好覆盖一次。
+\end{proposition}
+\begin{proof}
+任取 $x\in\mathcal X$。在根结点，完备性保证至少有一个分支可走，互斥性保证至多有一个分支可走。逐层应用同样的论证，由树的有限性可知 $x$ 最终到达唯一的叶。因此所有叶区域的并是 $\mathcal X$，任意两个不同叶区域的交为空。\qedhere
+\end{proof}
+
+\subsection{决策树与条件概率分布}
+
+设树的叶区域为 $R_1,\ldots,R_M$，其中第 $m$ 个区域包含 $N_m>0$ 个训练样本，第 $k$ 类的样本数为 $N_{mk}$。可以在该区域上定义分段常数的条件概率估计
+\begin{equation}
+  \widehat P_D(Y=C_k\mid X=x)=\frac{N_{mk}}{N_m},
+  \qquad x\in R_m,\quad k=1,\ldots,K.
+  \label{eq:lihang-tree-probability}
+\end{equation}
+这表示模型对同一区域中的输入使用同一个类别分布，并不声称真实分布在该区域内一定恒定。对没有训练样本的分支，经验比例没有定义，需要另行指定规则，例如沿用父结点的分布；后文的生成算法只对非空训练子集继续递归。
+
+在 $0$--$1$ 损失下，若预测类别为 $C_k$，模型给出的条件期望损失是 $1-\widehat P_D(Y=C_k\mid X=x)$，所以最优决策是选择概率最大的类别，即叶结点中的多数类。若多个类别并列最大，应事先固定一种打破平局的规则。概率估计、由概率导出的决策，以及真实的条件概率，是三个不同的对象。
+
+\subsection{决策树学习}
+
+一棵树同时规定划分结构和各叶的预测。若两个样本的全部可用特征相同而标签不同，任何确定性的特征测试树都不能把它们同时分对；即使数据可以完全分开，也可能有许多训练误差为零而泛化表现不同的树。因此，学习目标不能只描述为“把训练集完全分对”，还应约束模型复杂度。
+
+决策树学习通常包括\emph{特征选择、树的生成和剪枝}。在当前结点，特征选择比较不同测试的划分效果；树的生成从根向下递归使用局部最优测试；剪枝则在已经生成的树中回缩子树，以整体代价比较不同复杂度的模型。后文的典型目标为
+\begin{equation}
+  C_\alpha(T)=C(T)+\alpha|T|,\qquad \alpha\geq0,
+  \label{eq:lihang-tree-regularization}
+\end{equation}
+其中 $C(T)$ 是训练拟合代价，$|T|$ 始终表示叶结点数，而非全部结点数。$\alpha$ 越大，叶结点带来的复杂度代价越高。生成时的贪心选择一般不保证全局最优；剪枝的最优性也只针对固定初始树的可剪子树，不包括重新设计测试所能得到的全部决策树。
+
+\section{特征选择}
+\label{sec:lihang-tree-feature-selection}
+
+\subsection{特征选择问题}
+
+一个合适的测试应使子结点中的类别比父结点更集中。表~\ref{tab:lihang-loan-data} 给出教材使用的贷款申请数据，其中年龄、有工作、有自己的房子和信贷情况依次记为 $A_1,A_2,A_3,A_4$，类别表示是否同意贷款。这里的“是”“否”是数据中的取值；这个小样本只用于演示算法的计算。
+
+\begin{table}
+  \centering
+  \caption{贷款申请训练数据}
+  \label{tab:lihang-loan-data}
+  \begin{tabular}{cccccc}
+    \toprule
+    编号 & 年龄 & 有工作 & 有自己的房子 & 信贷情况 & 同意贷款 \\
+    \midrule
+    1 & 青年 & 否 & 否 & 一般 & 否 \\
+    2 & 青年 & 否 & 否 & 好 & 否 \\
+    3 & 青年 & 是 & 否 & 好 & 是 \\
+    4 & 青年 & 是 & 是 & 一般 & 是 \\
+    5 & 青年 & 否 & 否 & 一般 & 否 \\
+    6 & 中年 & 否 & 否 & 一般 & 否 \\
+    7 & 中年 & 否 & 否 & 好 & 否 \\
+    8 & 中年 & 是 & 是 & 好 & 是 \\
+    9 & 中年 & 否 & 是 & 非常好 & 是 \\
+    10 & 中年 & 否 & 是 & 非常好 & 是 \\
+    11 & 老年 & 否 & 是 & 非常好 & 是 \\
+    12 & 老年 & 否 & 是 & 好 & 是 \\
+    13 & 老年 & 是 & 否 & 好 & 是 \\
+    14 & 老年 & 是 & 否 & 非常好 & 是 \\
+    15 & 老年 & 否 & 否 & 一般 & 否 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+若按年龄划分，会得到三个子集；若按是否有房划分，会得到两个子集。分支数多并不自动意味着划分好，需要用同一准则度量划分前后的类别不确定性。
+
+\subsection{信息增益}
+
+\begin{definition}[熵与条件熵]
+设有限离散随机变量 $Y$ 的分布为 $p_k=P(Y=C_k)$。其\emph{熵}（entropy）定义为
+\begin{equation}
+  H(Y)=-\sum_{k=1}^K p_k\log_2p_k,\qquad 0\log_20:=0.
+  \label{eq:lihang-tree-entropy}
+\end{equation}
+设另一个有限离散随机变量 $A$ 的取值为 $a_1,\ldots,a_r$，则\emph{条件熵}（conditional entropy）为
+\[
+  H(Y\mid A)=\sum_{v:P(A=a_v)>0}P(A=a_v)H(Y\mid A=a_v).
+\]
+本章统一使用以 $2$ 为底的对数，熵的单位为比特（bit）。
+\end{definition}
+
+熵只依赖概率分布，不依赖类别的名称。它满足 $0\leq H(Y)\leq\log_2K$：类别确定时取下界，$K$ 类等概率时取上界。非负性来自 $-p_k\log_2p_k\geq0$；上界由 $\log_2K-H(Y)=\sum_kp_k\log_2(p_k/(1/K))\geq0$ 得到，后一不等式可由 $\ln u\leq u-1$ 推出。二分类时记
+\[
+  h(p)=-p\log_2p-(1-p)\log_2(1-p),\qquad 0\leq p\leq1.
+\]
+于是 $h(0)=h(1)=0$，$h(1/2)=1$；两类各占一半时最难仅凭类别比例作出判断。
+
+对当前非空训练子集 $D$，记 $N=|D|$，第 $k$ 类样本数为 $N_k$。特征 $A$ 将 $D$ 划分为非空子集 $D_1,\ldots,D_r$，其中 $N_v=|D_v|$，$N_{vk}$ 为 $D_v$ 中第 $k$ 类样本数。以经验频率代替真实概率，得到\emph{经验熵}与\emph{经验条件熵}
+\begin{align}
+  H(D)&=-\sum_{k=1}^K\frac{N_k}{N}\log_2\frac{N_k}{N},
+  \label{eq:lihang-tree-empirical-entropy}\\
+  H(D\mid A)&=\sum_{v=1}^r\frac{N_v}{N}H(D_v)
+  =-\sum_{v=1}^r\sum_{k=1}^K\frac{N_{vk}}{N}\log_2\frac{N_{vk}}{N_v}.
+  \label{eq:lihang-tree-conditional-entropy}
+\end{align}
+其中零计数项按 $0\log_20=0$ 处理。条件熵是各分支熵的样本比例加权平均，不能直接把分支熵相加，也不能一律取等权平均。
+
+\begin{definition}[信息增益]
+特征 $A$ 对当前数据集 $D$ 的\emph{信息增益}（information gain）定义为
+\begin{equation}
+  g(D,A)=H(D)-H(D\mid A).
+  \label{eq:lihang-tree-information-gain}
+\end{equation}
+信息增益准则在所有候选特征中选择 $g(D,A)$ 最大者。
+\end{definition}
+
+信息增益是经验分布下类别 $Y$ 与特征 $A$ 的\emph{互信息}（mutual information）。记 $\widehat p_{vk}=N_{vk}/N$、$\widehat p_v=N_v/N$、$\widehat p_k=N_k/N$，展开定义可得
+\begin{equation}
+  g(D,A)=\sum_{v,k:\widehat p_{vk}>0}\widehat p_{vk}
+  \log_2\frac{\widehat p_{vk}}{\widehat p_v\widehat p_k}\geq0.
+  \label{eq:lihang-tree-mutual-information}
+\end{equation}
+为核查非负性，令 $p$ 为联合经验分布、$q$ 为边缘分布的乘积；在 $p>0$ 的位置有 $q>0$，并且
+\[
+  -\sum_{p>0}p\ln(q/p)\geq\sum_{p>0}(p-q)\geq0.
+\]
+等号成立当且仅当两个经验随机变量独立。因此 $0\leq g(D,A)\leq H(D)$；若每个分支都是纯类，条件熵为零，增益达到 $H(D)$。这些结论针对当前样本的经验分布，不能据此断言新样本上的分类误差一定下降。
+
+\begin{example}
+\label{ex:lihang-loan-gain}
+对表~\ref{tab:lihang-loan-data} 的数据计算四个特征的信息增益，并选择根结点。
+\end{example}
+\begin{solve}
+训练集中有 $9$ 个同意贷款样本、$6$ 个不同意贷款样本，故 $H(D)=h(9/15)\approx0.970951$。按年龄划分后，青年、中年、老年组的同意贷款比例分别为 $2/5,3/5,4/5$，所以
+\[
+  H(D\mid A_1)=\frac13\bigl[h(2/5)+h(3/5)+h(4/5)\bigr]\approx0.887943.
+\]
+有工作的 $5$ 个样本全为同意，无工作的 $10$ 个样本中有 $4$ 个同意；有房的 $6$ 个样本全为同意，无房的 $9$ 个样本中有 $3$ 个同意。因此
+\[
+  H(D\mid A_2)=\frac{10}{15}h(4/10),\qquad
+  H(D\mid A_3)=\frac9{15}h(3/9).
+\]
+信贷一般、好、非常好的组大小分别为 $5,6,4$，同意贷款数分别为 $1,4,4$，故
+\[
+  H(D\mid A_4)=\frac5{15}h(1/5)+\frac6{15}h(4/6)+\frac4{15}h(1).
+\]
+相应信息增益为
+\[
+  g(D,A_1)\approx0.083008,\quad g(D,A_2)\approx0.323650,\quad
+  g(D,A_3)\approx0.419973,\quad g(D,A_4)\approx0.362990.
+\]
+最大者是 $A_3$，因此选择“有自己的房子”作为根结点的测试。
+\end{solve}
+
+\subsection{信息增益比}
+
+信息增益偏向取值较多的特征。例如，在同一训练集中，若把唯一的样本编号作为特征，每个编号对应一个样本，所有分支熵均为零，增益达到 $H(D)$，但这种划分并没有提供对新编号的可靠预测规则。
+
+\begin{definition}[信息增益比]
+用特征 $A$ 的取值划分 $D$，定义划分本身的经验熵
+\[
+  H_A(D)=-\sum_{v=1}^r\frac{N_v}{N}\log_2\frac{N_v}{N}.
+\]
+当 $H_A(D)>0$ 时，\emph{信息增益比}（information gain ratio）为
+\begin{equation}
+  g_R(D,A)=\frac{g(D,A)}{H_A(D)}.
+  \label{eq:lihang-tree-gain-ratio}
+\end{equation}
+\end{definition}
+
+分母度量特征自身的取值分散程度，不是 $H(D)$。若 $H_A(D)=0$，该特征在当前样本中为常量，不能产生非空的不同分支，应排除，而不能计算 $0/0$。由互信息的对称性及条件熵非负性，$0\leq g(D,A)\leq H_A(D)$，所以合法增益比在 $[0,1]$ 内。增益比对多取值偏好作了归一化修正，但比值较大仍不等于绝对增益较大；分母很小时应同时查看实际分支样本数和增益。
+
+\section{决策树的生成}
+\label{sec:lihang-tree-generation}
+
+\subsection{ID3 算法}
+
+ID3 在每个结点选择信息增益最大的离散特征，并沿其取值递归生成子树。设当前非空数据为 $D$，剩余特征集合为 $\mathcal A$，停止阈值为 $\varepsilon>0$。输入为 $(D,\mathcal A,\varepsilon)$，输出为带类别标记的决策树；类别和特征并列时均按固定规则选择。
+\begin{enumerate}
+  \item 若 $D$ 中标签全相同，输出以该类别为标记的叶；若 $\mathcal A=\varnothing$，输出以 $D$ 的多数类为标记的叶。
+  \item 否则计算所有能产生至少两个非空分支的候选特征的信息增益。若不存在这样的特征，或最大增益小于 $\varepsilon$，输出多数类叶。
+  \item 选择最大增益特征 $A^*$，建立测试结点。按 $A^*$ 的取值划分 $D$，对每个非空子集 $D_v$，以 $(D_v,\mathcal A\setminus\{A^*\},\varepsilon)$ 为输入递归调用上述步骤，并连接相应子树。
+\end{enumerate}
+训练中未出现的合法取值可预设为返回当前结点的多数类，以保证预测规则完整。在这里的离散多叉形式中，每沿一层路径至少删除一个特征，故路径深度至多为 $d$，算法有限终止。若用散列表计数且将基本计数与对数计算视为常数时间，一个有 $m$ 个样本、$q$ 个剩余特征的结点可用 $O(mq)$ 时间计算候选增益；深度为 $h$ 时，逐层累计有 $O(Ndh)$ 的上界，因此 $h\leq d$ 时可给出 $O(Nd^2)$ 的粗略上界。
+
+\begin{example}
+\label{ex:lihang-loan-id3}
+在例~\ref{ex:lihang-loan-gain} 的基础上继续生成 ID3 决策树，取足够小的正阈值。
+\end{example}
+\begin{solve}
+根结点按有房、无房分成两个子集。有房组的 $6$ 个样本全部同意贷款，直接成为“是”叶。无房组 $D_-$ 含 $9$ 个样本，其中 $3$ 个同意、$6$ 个不同意，故 $H(D_-)=h(1/3)\approx0.918296$。在该组重新计算，得到
+\[
+  g(D_-,A_1)\approx0.251629,\qquad
+  g(D_-,A_2)\approx0.918296,\qquad
+  g(D_-,A_4)\approx0.473851.
+\]
+因此第二层选择“有工作”：无房但有工作的 $3$ 个样本全部同意，无房且无工作的 $6$ 个样本全部不同意。最终预测规则为
+\begin{equation}
+  \widehat y(x)=
+  \begin{cases}
+    \text{是},& A_3(x)=\text{是},\\
+    \text{是},& A_3(x)=\text{否},\ A_2(x)=\text{是},\\
+    \text{否},& A_3(x)=\text{否},\ A_2(x)=\text{否}.
+  \end{cases}
+  \label{eq:lihang-loan-tree}
+\end{equation}
+该树有 $2$ 个内部结点、$3$ 个叶结点，对这 $15$ 个训练样本全部分对。
+\end{solve}
+
+最大信息增益只表示当前一步的熵下降最大，不能保证最终树最小或测试误差最小。一个直接的反例是四个等频二进制输入 $(0,0),(0,1),(1,0),(1,1)$，标签为两个特征的异或：两个单独特征的信息增益均为零，采用正阈值会在根停止，但深度为 $2$ 的树可以完全分类。这也说明仅按单个特征的当前增益筛除特征，可能丢失特征交互信息。
+
+\subsection{C4.5 的生成算法}
+
+教材给出的 C4.5 离散特征生成过程保留上述递归结构，将特征评分换成式~\eqref{eq:lihang-tree-gain-ratio} 的信息增益比：只在 $H_A(D)>0$ 的特征中选最大者，若最大比值小于预设阈值则输出多数类叶，否则按该特征分支并在各子集重新计算。纯类、无剩余特征以及无有效划分时同样停止。信息增益与增益比量纲和数值范围不同，停止阈值应针对所用评分设置。
+
+\begin{example}
+\label{ex:lihang-loan-c45}
+用信息增益比为表~\ref{tab:lihang-loan-data} 的数据生成决策树，对应教材习题 5.1。
+\end{example}
+\begin{solve}
+根结点的四个分母和比值如下；表中数值保留六位小数。
+\begin{center}
+  \begin{tabular}{cccc}
+    \toprule
+    特征 & $g(D,A_j)$ & $H_{A_j}(D)$ & $g_R(D,A_j)$ \\
+    \midrule
+    年龄 & 0.083008 & 1.584963 & 0.052372 \\
+    有工作 & 0.323650 & 0.918296 & 0.352447 \\
+    有自己的房子 & 0.419973 & 0.970951 & 0.432538 \\
+    信贷情况 & 0.362990 & 1.565596 & 0.231854 \\
+    \bottomrule
+  \end{tabular}
+\end{center}
+最大者仍是“有自己的房子”。有房分支为纯类；在无房子集 $D_-$ 中，年龄、有工作、信贷情况的增益比分别约为 $0.164411,1,0.340374$，因此第二层选择“有工作”。当阈值足够小时，得到的树仍为式~\eqref{eq:lihang-loan-tree}。本例中两种准则选出同一棵树，只是数据计算的结果，并不说明它们通常等价。
+\end{solve}
+
+\section{决策树的剪枝}
+\label{sec:lihang-tree-pruning}
+
+生成过程不断降低训练不纯度，过深的树可能把有限样本中的偶然差异也当作规则。\emph{剪枝}（pruning）把一个内部结点及其全部后代替换为一个叶结点，并在该结点重新确定类别或预测值。以下只考虑这种回缩操作，不允许改变保留结点原有的测试。
+
+设 $\mathcal L(T)$ 为树 $T$ 的叶集合。对叶 $t$，记其样本数为 $N_t$，第 $k$ 类样本数为 $N_{tk}$，经验熵为 $H_t=-\sum_k(N_{tk}/N_t)\log_2(N_{tk}/N_t)$。教材使用的熵代价为
+\begin{equation}
+  C_H(T)=\sum_{t\in\mathcal L(T)}N_tH_t,
+  \qquad C_{H,\alpha}(T)=C_H(T)+\alpha|T|.
+  \label{eq:lihang-tree-entropy-cost}
+\end{equation}
+这里用的是样本数加权的熵之和，不是各叶熵的简单平均，也不是误分类样本数。若改用 $C_H(T)/N$，为得到相同的最优树，应同时把复杂度系数改为 $\alpha/N$。
+
+\begin{proposition}[熵代价的似然解释]
+固定树的划分，对各叶分别用类别频率估计类别概率，则 $C_H(T)$ 恰好等于拟合后条件似然的以 $2$ 为底的负对数。
+\end{proposition}
+\begin{proof}
+叶 $t$ 的类别概率记为 $q_{t1},\ldots,q_{tK}$。在非负且和为 $1$ 的概率向量中，经验频率 $\widehat q_{tk}=N_{tk}/N_t$ 最大化该叶的多项式似然，因为
+\[
+  -\sum_k\widehat q_{tk}\log_2q_{tk}
+  =H_t+\sum_{k:\widehat q_{tk}>0}\widehat q_{tk}
+  \log_2\frac{\widehat q_{tk}}{q_{tk}}\geq H_t.
+\]
+若在正计数类别上令 $q_{tk}=0$，左端为正无穷，也不能改善目标。将最优概率代入全部样本的条件似然，得到
+\[
+  -\log_2\prod_{i=1}^N\widehat P_D(Y=y_i\mid X=x_i)
+  =-\sum_{t,k:N_{tk}>0}N_{tk}\log_2\frac{N_{tk}}{N_t}
+  =C_H(T).\qedhere
+\]
+\end{proof}
+
+因此，式~\eqref{eq:lihang-tree-entropy-cost} 的最小化是一种正则化的极大似然模型选择。若父结点 $t$ 的一次划分按特征 $A$ 产生各子结点，划分前后的熵代价之差为 $N_tg(D_t,A)$，这里 $D_t$ 为到达 $t$ 的训练样本集。这解释了信息增益与局部似然改善的联系；逐步贪心最大化该改善，仍不同于在全部树结构中求整体最优。
+
+设当前以 $t$ 为根的子树为 $T_t$，有 $L_t\geq2$ 个叶，回缩后单叶的未惩罚代价为 $C_H(t)=N_tH_t$。树外的代价在比较时抵消，剪去 $T_t$ 的条件为
+\begin{equation}
+  C_H(t)-C_H(T_t)\leq\alpha(L_t-1).
+  \label{eq:lihang-tree-local-pruning}
+\end{equation}
+左端是合并叶结点造成的拟合代价增加，右端是节省的复杂度代价。两边相等时取较小的树。这种局部比较要自下而上进行，并在比较父结点前先处理其子树。
+
+\begin{proposition}[固定初始树的最优剪枝]
+\label{prop:lihang-tree-pruning-dp}
+给定有限初始树 $T_0$、$\alpha\geq0$ 和对叶可加的代价 $C(T)=\sum_{t\in\mathcal L(T)}C(t)$。其中 $C(t)$ 是将结点 $t$ 作为叶时用到达该结点的固定训练样本重新拟合得到的代价。令 $F_\alpha(t)$ 为初始子树 $T_{0,t}$ 的所有可剪子树中的最小惩罚代价，则
+\begin{equation}
+  F_\alpha(t)=
+  \begin{cases}
+    C(t)+\alpha,&t\text{ 是初始叶},\\
+    \displaystyle\min\left\{C(t)+\alpha,
+      \sum_{u\in\operatorname{ch}(t)}F_\alpha(u)\right\},&t\text{ 是内部结点},
+  \end{cases}
+  \label{eq:lihang-tree-pruning-dp}
+\end{equation}
+其中 $\operatorname{ch}(t)$ 表示 $t$ 的直接子结点集合。最小值存在；若代价相等时选择回缩为叶，则得到唯一的最小最优子树，它是每棵最优子树的可剪子树。
+\end{proposition}
+\begin{proof}
+初始叶没有其他选择。对内部结点，任何可剪子树或者仅保留 $t$ 作为叶，或者保留 $t$ 的测试并在每个子结点下独立选择一棵可剪子树。代价可加，故保留测试时的最小代价为各 $F_\alpha(u)$ 之和，得到递推式。初始树有限，因此候选数有限，最小值存在。
+
+再从叶向上归纳最小最优子树的唯一性。若回缩的代价严格更小，所有最优树都必须回缩；若保留测试的代价严格更小，每个子结点都必须选择局部最优子树，而归纳假设给出唯一的最小选择；若两种代价相等，单叶本身最优且可由每棵保留测试的候选树剪得。三种情形都给出唯一且包含于所有最优树的最小选择。\qedhere
+\end{proof}
+
+该命题给出教材剪枝过程的动态规划解释：先计算结点的单叶代价，再按后序遍历计算递推式，并记录回缩或保留的选择。已有各结点代价时，一次遍历所需时间为 $O(|V(T_0)|)$，其中 $V(T_0)$ 表示初始树的全部结点集合。\emph[caution]{唯一的是最小最优子树；若不规定相等时选较小树，达到最小代价的树可能不唯一。}这也回答了教材习题 5.3 中“唯一的最小子树”的含义。
+
+\section{CART 算法}
+\label{sec:lihang-cart}
+
+\emph{分类与回归树}（classification and regression tree，CART）统一采用二叉划分。分类树通常用基尼指数选择测试，回归树通常用平方误差选择测试；树生成后再以代价复杂度剪枝产生候选序列，并用验证数据选择复杂度。内部结点回答一个“是或否”的问题，并不要求原特征只有两个取值。
+
+\subsection{CART 生成}
+
+\subsubsection{最小二乘回归树}
+
+回归时 $y_i\in\mathbb R$。设叶区域 $R_1,\ldots,R_M$ 构成输入空间的划分，各区域输出常数 $c_m$，则回归函数为
+\begin{equation}
+  f(x)=\sum_{m=1}^Mc_m\mathbf1\{x\in R_m\},
+  \label{eq:lihang-regression-tree}
+\end{equation}
+其中 $\mathbf1\{\cdot\}$ 为示性函数。固定划分后的平方误差目标为
+\[
+  \sum_{i=1}^N(y_i-f(x_i))^2
+  =\sum_{m=1}^M\sum_{i:x_i\in R_m}(y_i-c_m)^2.
+\]
+不同区域的参数可分别求解。
+
+\begin{proposition}[回归叶的最优常数]
+\label{prop:lihang-regression-leaf-mean}
+若区域 $R$ 中有 $n_R>0$ 个训练样本，则平方误差的唯一最优常数是其响应均值 $\overline y_R=n_R^{-1}\sum_{i:x_i\in R}y_i$。
+\end{proposition}
+\begin{proof}
+利用 $\sum_{i:x_i\in R}(y_i-\overline y_R)=0$，有
+\[
+  \sum_{i:x_i\in R}(y_i-c)^2
+  =\sum_{i:x_i\in R}(y_i-\overline y_R)^2+n_R(c-\overline y_R)^2.
+\]
+后一项非负，且仅在 $c=\overline y_R$ 时为零。\qedhere
+\end{proof}
+
+在当前区域内，数值特征 $j$ 和切分点 $s$ 产生两个子区域 $R_L=\{x:x^{(j)}\leq s\}$、$R_R=\{x:x^{(j)}>s\}$，这里两者都与当前区域取交。只比较两侧训练样本数均非零的划分，求解
+\begin{equation}
+  (j^*,s^*)\in\operatorname*{arg\,min}_{j,s}
+  \left\{\sum_{i:x_i\in R_L}(y_i-\overline y_L)^2
+  +\sum_{i:x_i\in R_R}(y_i-\overline y_R)^2\right\}.
+  \label{eq:lihang-cart-regression-split}
+\end{equation}
+选定切分后在两个子区域重复这一过程，直到达到预设最大深度、最小结点样本数、最小叶样本数，或没有满足条件的有效切分；若另设最小误差下降量，也应在生成前确定。输出为各叶区域及其响应均值，而非某个训练样本的标签。
+
+\begin{proposition}[平方误差的划分收益]
+设当前结点分为两个非空子结点，样本数分别为 $n_L,n_R$，均值分别为 $\overline y_L,\overline y_R$，则划分前后平方误差之差为
+\begin{equation}
+  \Delta_{\mathrm{SSE}}=
+  \frac{n_Ln_R}{n_L+n_R}(\overline y_L-\overline y_R)^2\geq0.
+  \label{eq:lihang-cart-sse-gain}
+\end{equation}
+\end{proposition}
+\begin{proof}
+父结点均值为 $\overline y=(n_L\overline y_L+n_R\overline y_R)/(n_L+n_R)$。分别对两组应用命题~\ref{prop:lihang-regression-leaf-mean} 证明中的平方和分解，误差下降等于 $n_L(\overline y_L-\overline y)^2+n_R(\overline y_R-\overline y)^2$，代入父均值并化简即得结论。\qedhere
+\end{proof}
+
+对一个有 $m$ 个样本的结点，将第 $j$ 个数值特征的不同值排序为 $v_1<\cdots<v_q$，只需比较相邻值之间的阈值，例如 $s=(v_\ell+v_{\ell+1})/2$，因为同一间隔内的阈值在训练集上产生相同分组。用某一侧的样本数 $n$、响应和 $S$、响应平方和 $Q$ 可计算其最小平方误差 $Q-S^2/n$，因此排序后可用前缀和线性扫描所有阈值。对 $d$ 个数值特征逐一排序并扫描，单结点的直接实现用时 $O(dm\log m)$；这是该实现的结点代价，不能当作整棵树的总训练代价。
+
+\begin{example}
+\label{ex:lihang-cart-regression-exercise}
+教材习题 5.2 给出 $x_i=i$，$i=1,\ldots,10$，响应依次为
+\[
+  4.50,\ 4.75,\ 4.91,\ 5.34,\ 5.80,\ 7.05,\ 7.90,\ 8.23,\ 8.70,\ 9.00.
+\]
+用平方误差准则生成二叉回归树。
+\end{example}
+\begin{solve}
+根结点的响应均值为 $6.618$，不切分时平方误差为 $27.63236$。枚举九个中点，各切分的两侧平方误差之和如下，表中误差保留四位小数。
+\begin{center}
+  \begin{tabular}{cccccc}
+    \toprule
+    $s$ & 误差 & $s$ & 误差 & $s$ & 误差 \\
+    \midrule
+    1.5 & 22.6480 & 4.5 & 7.3787 & 7.5 & 10.0525 \\
+    2.5 & 17.7022 & 5.5 & 3.3587 & 8.5 & 15.1778 \\
+    3.5 & 12.1935 & 6.5 & 5.0740 & 9.5 & 21.3280 \\
+    \bottomrule
+  \end{tabular}
+\end{center}
+因此第一刀取 $s=5.5$，两侧均值为 $5.060$ 和 $8.176$，只保留这一刀时
+\[
+  f_2(x)=
+  \begin{cases}
+    5.060,&x\leq5.5,\\
+    8.176,&x>5.5.
+  \end{cases}
+\]
+继续递归，左、右两组的最优切分分别为 $3.5$ 和 $7.5$。若在深度为 $2$ 时停止，得到四个区域，输出依次为 $4.720,5.570,7.475,8.643333\ldots$。若约定一直生长到每叶仅含一个样本，则所有内部结点可用下表描述，其中索引范围指到达该结点的训练样本，而非预先限定的输入定义域。
+\begin{center}
+  \begin{tabular}{cc}
+    \toprule
+    样本索引 & 切分点 \\
+    \midrule
+    $1$--$10$ & 5.5 \\
+    $1$--$5$ & 3.5 \\
+    $6$--$10$ & 7.5 \\
+    $1$--$3$ & 1.5 \\
+    $4$--$5$ & 4.5 \\
+    $6$--$7$ & 6.5 \\
+    $8$--$10$ & 8.5 \\
+    $2$--$3$ & 2.5 \\
+    $9$--$10$ & 9.5 \\
+    \bottomrule
+  \end{tabular}
+\end{center}
+最终十个叶的输出分别为原来的十个 $y_i$，训练平方误差为零。题目未指定停止条件时，树的最终大小并不唯一；上述约定给出了可复现的完整生成过程，实际预测仍应通过验证选择停止条件或剪枝强度。
+\end{solve}
+
+\subsubsection{分类树与基尼指数}
+
+\begin{definition}[基尼指数]
+设 $K$ 类的概率向量为 $p=(p_1,\ldots,p_K)$，定义\emph{基尼指数}（Gini index）为
+\begin{equation}
+  \operatorname{Gini}(p)=\sum_{k=1}^Kp_k(1-p_k)
+  =1-\sum_{k=1}^Kp_k^2.
+  \label{eq:lihang-gini}
+\end{equation}
+对非空样本集 $D$，用类别频率 $N_k/N$ 代入得到 $\operatorname{Gini}(D)$。若一个二叉测试将 $D$ 分成非空的 $D_L,D_R$，其划分后不纯度为
+\begin{equation}
+  G(D;D_L,D_R)=\frac{|D_L|}{|D|}\operatorname{Gini}(D_L)
+  +\frac{|D_R|}{|D|}\operatorname{Gini}(D_R).
+  \label{eq:lihang-cart-gini-split}
+\end{equation}
+\end{definition}
+
+基尼指数等于从分布 $p$ 中独立抽取两个类别时二者不同的概率，取值范围为 $[0,1-1/K]$；纯类时为零，均匀分布时最大。二分类时 $\operatorname{Gini}(p)=2p(1-p)$，多数类分类器的错误率则为 $\min\{p,1-p\}$。两者都反映混杂程度，但基尼指数并非多数类的实际误分类率，熵也不是该误分类率。
+
+记两子结点的类别比例向量为 $p_L,p_R$，$w=|D_L|/|D|$，则父结点的比例为 $p=wp_L+(1-w)p_R$。展开平方和得到
+\begin{equation}
+  \operatorname{Gini}(D)-G(D;D_L,D_R)
+  =w(1-w)\sum_{k=1}^K(p_{Lk}-p_{Rk})^2\geq0.
+  \label{eq:lihang-cart-gini-gain}
+\end{equation}
+因此，在同一父结点上最小化划分后的加权基尼指数，等价于最大化基尼下降。与回归划分收益一样，收益同时取决于两侧比例和两侧的差异。
+
+CART 分类树的输入为当前训练集与预先规定的停止条件。在每个结点枚举候选二叉测试，选择式~\eqref{eq:lihang-cart-gini-split} 最小者，建立两个子结点并递归；纯类、达到深度或样本数限制、无有效切分等情形输出多数类叶。对数值特征可比较 $x^{(j)}\leq s$；对离散特征，教材采用 $A=a$ 与 $A\ne a$ 的测试。更一般的离散二叉测试也可按取值子集与其补集划分，所允许的候选集合应事先确定。在二叉树中，一个多值或数值特征可能沿同一路径再次提供有效切分，因此不能像离散多叉 ID3 那样在第一次使用后统一删除该特征。
+
+\begin{example}
+\label{ex:lihang-loan-cart}
+对表~\ref{tab:lihang-loan-data} 的数据，按教材的离散二叉测试生成 CART 分类树。
+\end{example}
+\begin{solve}
+父结点的基尼指数为 $1-(9/15)^2-(6/15)^2=0.48$。四个特征的候选切分结果为
+\begin{center}
+  \begin{tabular}{ccc}
+    \toprule
+    特征 & 测试取值（另一分支为其补集） & 划分后的加权基尼指数 \\
+    \midrule
+    年龄 & 青年；中年；老年 & $0.44;\ 0.48;\ 0.44$ \\
+    有工作 & 是 & $0.32$ \\
+    有自己的房子 & 是 & $0.266667$ \\
+    信贷情况 & 一般；好；非常好 & $0.32;\ 0.474074;\ 0.363636$ \\
+    \bottomrule
+  \end{tabular}
+\end{center}
+例如，有房组为纯类，无房组的同意比例为 $1/3$，故该切分的加权指数为
+\[
+  \frac6{15}\times0+\frac9{15}\times2\times\frac13\times\frac23
+  =\frac4{15}\approx0.266667.
+\]
+它是所有候选中的最小者。在无房子集中再按“有工作”切分，两侧都变为纯类，加权指数降到零。因此本例的 CART 树也与式~\eqref{eq:lihang-loan-tree} 一致。
+\end{solve}
+
+\subsection{CART 剪枝}
+\label{subsec:lihang-cart-pruning}
+
+\subsubsection{代价复杂度与有效剪枝阈值}
+
+给定已生成的二叉树 $T_0$，记 $T\preceq T_0$ 表示 $T$ 可由 $T_0$ 回缩子树得到。\emph{代价复杂度剪枝}（cost-complexity pruning）求解
+\begin{equation}
+  \min_{T\preceq T_0}\bigl\{C(T)+\alpha|T|\bigr\},\qquad\alpha\geq0.
+  \label{eq:lihang-cart-cost-complexity}
+\end{equation}
+这里 $C$ 必须是统一约定的可加拟合代价。例如，回归树可取各叶平方误差之和，分类树可取 $\sum_tN_t\operatorname{Gini}(D_t)$ 或误分类数 $\sum_t(N_t-\max_kN_{tk})$。生成时选择测试所用的准则与剪枝代价是可以区分的，但一次剪枝序列中不能混用不同代价或归一化方式。上述代价都满足继续细分不会增加最优训练拟合代价。
+
+在当前树 $T$ 中，对任意内部结点 $t$，其当前子树为 $T_t$，若把它回缩为单叶，则两方案的代价差为
+\begin{equation}
+  C_\alpha(t)-C_\alpha(T_t)
+  =C(t)-C(T_t)-\alpha(|T_t|-1).
+  \label{eq:lihang-cart-pruning-difference}
+\end{equation}
+因此定义该结点的有效剪枝阈值
+\begin{equation}
+  \eta_T(t)=\frac{C(t)-C(T_t)}{|T_t|-1}.
+  \label{eq:lihang-cart-effective-alpha}
+\end{equation}
+分母是减少的叶数，分子是增加的训练代价，所以 $\eta_T(t)$ 表示每减少一个叶所付出的平均拟合代价。在 $\alpha<\eta_T(t)$ 时保留当前子树更好，在 $\alpha>\eta_T(t)$ 时回缩更好，等号处两者并列。\emph[caution]{该阈值不是整体损失下降量；它是使两种方案代价相等的复杂度系数。}
+
+\subsubsection{最弱环节剪枝与最优子树序列}
+
+\emph{最弱环节剪枝}（weakest-link pruning）每轮计算当前树所有内部结点的 $\eta_T(t)$，取最小值作为下一临界参数，剪去达到该值的子树。若并列结点存在祖先与后代关系，剪去祖先即已包含对后代的处理；等价地，在临界值处按命题~\ref{prop:lihang-tree-pruning-dp} 选择最小最优子树。每次剪枝后须重新计算剩余结点的子树代价与叶数，不能沿用初始树的全部阈值。
+
+\begin{theorem}[最小最优子树的嵌套性与剪枝路径]
+\label{thm:lihang-cart-pruning-path}
+设 $T_0$ 为有限二叉树，$C(T)$ 对叶可加，且细分不增加未惩罚代价。对每个 $\alpha\geq0$，在最小化式~\eqref{eq:lihang-cart-cost-complexity} 的树中取最小者，记为 $T_\alpha$。则 $T_\alpha$ 唯一，且 $\beta>\alpha$ 时有 $T_\beta\preceq T_\alpha$。先将 $T_0$ 在 $\alpha=0$ 时作零代价回缩，所得最小最优树记为 $S_0$；从 $S_0$ 开始的最弱环节剪枝产生有限嵌套序列
+\[
+  S_0\succ S_1\succ\cdots\succ S_J
+\]
+及严格递增的临界值 $0=a_0<a_1<\cdots<a_J$，其中 $S_J$ 仅含根结点。令 $a_{J+1}=+\infty$，则对 $\alpha\in[a_j,a_{j+1})$，最小最优树为 $S_j$。若 $S_0$ 已为单叶，结论退化为只有一个区间。
+\end{theorem}
+\begin{proof}
+存在性和最小最优树的唯一性由命题~\ref{prop:lihang-tree-pruning-dp} 给出。为证明嵌套性，设某个结点 $t$ 在参数 $\alpha$ 下被最小最优子树回缩为叶。对初始树中以 $t$ 为根的任意真正展开的候选树 $U$，局部最优性给出
+\[
+  C(U)+\alpha|U|\geq C(t)+\alpha.
+\]
+当 $\beta>\alpha$ 时，
+\[
+  C(U)+\beta|U|-C(t)-\beta
+  \geq(\beta-\alpha)(|U|-1)>0.
+\]
+因此参数增大后，若仍到达 $t$，该处依然必须取叶，不会重新展开。对所有已回缩结点应用这一论证，得到 $T_\beta\preceq T_\alpha$。
+
+现设当前最小最优树为 $S$，将其剪成任意候选 $U\preceq S$。存在一组互不为祖先后代的内部结点 $B$，使得 $U$ 恰好通过回缩各 $S_t$、$t\in B$ 得到。因此
+\begin{equation}
+  C_\alpha(U)-C_\alpha(S)
+  =\sum_{t\in B}(|S_t|-1)\bigl(\eta_S(t)-\alpha\bigr).
+  \label{eq:lihang-cart-subtree-comparison}
+\end{equation}
+记 $a=\min_t\eta_S(t)$。若 $\alpha<a$，任何真回缩都会严格增加代价；在 $\alpha=a$ 时，所有阈值等于 $a$ 的回缩均不增加代价，取它们共同给出的最小树即得下一棵最小最优树。由已证嵌套性，后续全局最优树都在 $S$ 的可剪子树内，因此这种比较没有遗漏需要重新展开的更优候选。
+
+在每个临界值处必须处理完全部并列最优的回缩；这样得到的树若仍有内部结点，其所有下一阈值都严格大于当前值，否则还可继续作同代价回缩，与当前树最小矛盾。每轮至少减少一个叶，故过程有限终止。最终只能留下根结点；在相邻临界值之间，式~\eqref{eq:lihang-cart-subtree-comparison} 表明最小最优树不变，得到所述区间。\qedhere
+\end{proof}
+
+该定理同时给出教材习题 5.4 的证明。若初始树不存在任何零代价回缩，就有 $S_0=T_0$；若存在零阈值，先消除它们才能把后续临界值写成严格递增序列。在临界值上，上一棵较大的树和剪后较小的树可以同时达到最小代价，因此以左闭右开区间记录较小的树，与“唯一的最小最优树”的约定一致。
+
+\begin{example}
+\label{ex:lihang-loan-pruning}
+对例~\ref{ex:lihang-loan-id3} 的三叶树使用熵代价剪枝，计算子树的临界参数。
+\end{example}
+\begin{solve}
+三叶都为纯类，故整树 $T$ 的 $C_H(T)=0$、$|T|=3$。无房子树有两个纯叶，回缩成单叶的代价为 $9h(1/3)\approx8.264663$，其有效阈值约为 $8.264663$。根结点回缩代价为 $15h(3/5)\approx14.564259$，其有效阈值则为
+\[
+  \frac{15h(3/5)-0}{3-1}\approx7.282129.
+\]
+因此先剪去根结点以下的整棵子树：$0\leq\alpha<7.282129\ldots$ 时最小最优树是三叶树，达到该临界值后最小最优树是仅含根的多数类叶。只把无房子树回缩所得的两叶树从未成为最优，这说明剪枝路径可以跳过某些叶数。
+\end{solve}
+
+\subsubsection{用验证选择最终模型}
+
+剪枝路径由训练集上的 $C(T)$ 计算得到；确定最终复杂度还需要验证。若采用独立验证集 $D_{\mathrm{val}}$，回归可比较
+\[
+  \widehat R_{\mathrm{val}}(S_j)
+  =\frac1{|D_{\mathrm{val}}|}\sum_{(x,y)\in D_{\mathrm{val}}}(y-f_{S_j}(x))^2,
+\]
+分类可比较平均 $0$--$1$ 损失或预先选定的概率损失。验证时保持训练得到的叶预测；若使用基尼等不纯度评价，也应明确其计算规则及与最终评价目标的关系。验证误差最小与训练惩罚代价最小是两次不同的选择，前者用于在候选复杂度之间估计泛化表现。
+
+若采用 $V$ 折交叉验证（$V$ 为折数），每一折都应仅用该折的训练部分重新生成树和剪枝路径，用留出部分比较共同候选复杂度参数的预测损失，最后在全体训练数据上重新拟合选定复杂度的模型。不能先在全数据上确定树结构，再把其中一部分称作独立验证数据。验证选出的树是给定候选集合和评价规则下的选择，并不保证在未知总体上达到真正的最小风险。
+
+\section{本章联系与学习检查}
+\label{sec:lihang-tree-review}
+
+决策树的三种表示互相补充：树结构给出测试顺序，路径规则给出局部判断条件，叶区域上的概率分布说明预测依据。ID3、教材所述 C4.5 生成过程与 CART 的主要区别如下。
+\begin{center}
+  \begin{tabular}{cccc}
+    \toprule
+    方法 & 主要任务 & 当前测试的选择准则 & 本章讨论的分支形式 \\
+    \midrule
+    ID3 & 分类 & 最大信息增益 & 离散特征多叉划分 \\
+    C4.5 生成 & 分类 & 最大信息增益比 & 离散特征多叉划分 \\
+    CART 分类 & 分类 & 最小加权基尼指数 & 二叉测试 \\
+    CART 回归 & 回归 & 最小两侧平方误差和 & 二叉测试 \\
+    \bottomrule
+  \end{tabular}
+\end{center}
+
+信息增益、基尼下降与平方误差下降都评价当前划分的训练效果；它们不能替代复杂度控制或独立验证。剪枝则在固定初始树上比较完整子树的拟合代价与叶数，动态规划说明固定 $\alpha$ 时怎样取最小最优子树，最弱环节算法说明怎样随 $\alpha$ 增大生成嵌套候选序列。
+
+复习时应能从样本计数写出经验熵、条件熵与各候选测试的加权不纯度，解释常量特征为何不能计算增益比，区分回归叶的均值与分类叶的多数类，并由式~\eqref{eq:lihang-cart-pruning-difference} 推出有效阈值。教材习题 5.1、5.2 的计算分别见例~\ref{ex:lihang-loan-c45} 与例~\ref{ex:lihang-cart-regression-exercise}；习题 5.3、5.4 的论证分别见命题~\ref{prop:lihang-tree-pruning-dp} 与定理~\ref{thm:lihang-cart-pruning-path}。这些练习共同检验从模型、局部划分到整体模型选择的逻辑链条。
+
+% 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-6.pdf。
+% 对应教材第 6 章，原书第 91--110 页；本文件采用自动章节编号。
+
+
+
+
+

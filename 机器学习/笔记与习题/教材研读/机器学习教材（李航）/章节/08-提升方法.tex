@@ -1,0 +1,500 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{7} % 保留原书章号。
+\chapter{提升方法}
+\label{chap:lh-boosting}
+
+提升（boosting）研究如何把一系列较简单的预测规则逐步组合成较强的模型。单个规则可能只能识别数据的一部分结构；后续规则根据当前模型的不足继续学习，最终由这些规则共同作出预测。本章沿着两条相互联系的线索展开：AdaBoost 通过调整样本权重学习二分类器，提升树则通过拟合残差或损失的负梯度逐步改进预测。二者都可以放在\emph{加法模型与前向分步优化}的框架中理解。本章对应教材第 8 章，先说明算法如何运行，再证明训练误差界，最后解释损失函数如何决定每轮学习的对象。
+
+本章记训练集为 $\mathcal D=\{(x_i,y_i)\}_{i=1}^{N}$，其中 $x_i\in\mathcal X\subseteq\mathbb R^d$，$N$ 为样本数，$d$ 为特征数；$M$ 为预先给定的最大迭代轮数。分类部分取 $y_i\in\{-1,+1\}$，回归部分取 $y_i\in\mathbb R$。损失写为 $L(y,t)$，第二个变量 $t$ 是模型在输入处的实数输出；$I(A)$ 表示事件或条件 $A$ 的示性函数，成立时为 $1$，否则为 $0$。下文关于训练误差的代数结论在固定训练集上成立，本身不需要随机抽样假设，也不直接给出新样本上的误差保证。
+
+\section{提升方法与 AdaBoost 算法}
+\label{sec:lh-boost-adaboost}
+
+\subsection{从弱学习到逐轮加权}
+\label{subsec:lh-boost-weak-learning}
+
+在二分类问题中，随机猜测的错误率为 $1/2$，因而错误率略低于 $1/2$ 的规则也含有可以利用的信息。教材以概率近似正确（probably approximately correct，PAC）学习中的\emph{弱可学习性}（weak learnability）与\emph{强可学习性}（strong learnability）说明提升的动机：前者要求学习结果以高概率比随机猜测好一个受控的幅度，后者要求对任意给定精度和置信要求达到相应保证，并满足相应的多项式资源要求。教材介绍的弱学习提升为强学习，是在该学习框架及其条件下的结论；某个规则只在一份训练集上碰巧优于随机猜测，并不足以得到这一结论。本章不证明 PAC 提升定理，而把每轮加权训练误差小于 $1/2$ 作为具体算法的工作条件。
+
+提升需要解决两个相连的问题：下一轮关注哪些样本，以及各轮规则怎样组合。AdaBoost 的做法是提高当前基本分类器误分样本的相对权重，使下一轮学习更多地关注这些样本；组合时采用加权表决，让当前加权误差较小的规则获得较大的系数。这里改变的是训练样本在优化目标中的权重，观测值与标签保持原样。权重集中反映当前加法模型拟合的困难程度，不表示数据生成分布本身发生了变化，也不意味着被赋予大权重的样本一定没有标注错误。
+
+\subsection{算法、权重更新与边界情形}
+\label{subsec:lh-boost-algorithm}
+
+设基本分类器来自给定集合 $\mathcal H$，每个 $G\in\mathcal H$ 都将 $\mathcal X$ 映射到 $\{-1,+1\}$。第 $m$ 轮的权重分布为 $D_m=(w_{m1},\ldots,w_{mN})$，满足 $w_{mi}>0$ 和 $\sum_iw_{mi}=1$。这里的概率分布定义在训练样本的\emph{索引集合}上：若随机索引 $K$ 满足 $\Pr_{D_m}(K=i)=w_{mi}$，则基本分类器的加权误差是
+\begin{equation}
+ e_m=\sum_{i=1}^{N}w_{mi}I\bigl(G_m(x_i)\ne y_i\bigr)
+     =\Pr_{K\sim D_m}\bigl(G_m(x_K)\ne y_K\bigr).
+ \label{eq:lh-boost-weighted-error}
+\end{equation}
+这一写法明确区分了对样本索引取概率与对给定样本计算示性函数，不能把每个固定样本的误分条件本身误写成未经定义的概率再求和。
+
+\textbf{AdaBoost 算法。}输入为训练集 $\mathcal D$、能够接受样本权重的基本学习算法及最大轮数 $M$，输出为实值打分函数 $f$ 与二分类器 $G$。采用以下步骤：
+\begin{enumerate}
+ \item 初始化 $f_0(x)=0$，$w_{1i}=1/N$，$i=1,\ldots,N$。
+ \item 对 $m=1,\ldots,M$，在权重 $D_m$ 下训练基本分类器 $G_m$，计算式~\eqref{eq:lh-boost-weighted-error} 中的 $e_m$。在 $0<e_m<1/2$ 时，取
+ \begin{equation}
+  \alpha_m=\frac12\log\frac{1-e_m}{e_m},\qquad
+  f_m(x)=f_{m-1}(x)+\alpha_mG_m(x),
+  \label{eq:lh-boost-alpha}
+ \end{equation}
+ 并按
+ \begin{equation}
+  Z_m=\sum_{i=1}^{N}w_{mi}e^{-\alpha_my_iG_m(x_i)},\qquad
+  w_{m+1,i}=\frac{w_{mi}e^{-\alpha_my_iG_m(x_i)}}{Z_m}
+  \label{eq:lh-boost-weight-update}
+ \end{equation}
+ 更新下一轮权重；对边界情形按下文说明处理。
+ \item 达到最大轮数或满足另行规定的停止条件后，设实际完成的轮数为 $\widehat M$，输出
+ \begin{equation}
+  f(x)=f_{\widehat M}(x)=\sum_{m=1}^{\widehat M}\alpha_mG_m(x),\qquad
+  G(x)=\operatorname{sign}_{+}\bigl(f(x)\bigr),
+  \label{eq:lh-boost-final-classifier}
+ \end{equation}
+ 其中 $\operatorname{sign}_{+}(t)=+1$ 当 $t\geq0$，否则为 $-1$。这一约定规定了表决平局时的输出。
+\end{enumerate}
+
+式~\eqref{eq:lh-boost-alpha} 中的对数是自然对数。系数 $\alpha_m$ 在 $0<e_m<1/2$ 时为正，并随 $e_m$ 减小而增大；这些系数不要求和为 $1$。比较不同轮的系数时，各轮的误差是在各自的分布 $D_m$ 下计算的，不能把它们当成同一个固定分布下的精度排名。$f(x)$ 是表决得分，$|f(x)|$ 可以作为该模型的表决强度，但未经额外论证或校准，不能直接解释为预测正确的概率。
+
+将式~\eqref{eq:lh-boost-weight-update} 按误分与正确分类分组，得到
+\begin{equation}
+ Z_m=(1-e_m)e^{-\alpha_m}+e_me^{\alpha_m}
+     =2\sqrt{e_m(1-e_m)}.
+ \label{eq:lh-boost-normalizer}
+\end{equation}
+代入系数的表达式，权重更新可进一步写为
+\begin{equation}
+ w_{m+1,i}=
+ \begin{cases}
+  \dfrac{w_{mi}}{2(1-e_m)},&G_m(x_i)=y_i,\\
+  \dfrac{w_{mi}}{2e_m},&G_m(x_i)\ne y_i.
+ \end{cases}
+ \label{eq:lh-boost-weight-factors}
+\end{equation}
+因此正确分类样本的权重确实下降，误分样本的权重确实上升；误分样本相对于正确分类样本的放大倍数为 $(1-e_m)/e_m=e^{2\alpha_m}$，并不是每个误分样本自身的绝对放大倍数。更新后，$G_m$ 原来误分的样本总权重与原来正确分类的样本总权重各为 $1/2$。这说明下一轮分布重新平衡了这两类样本，而不是简单地重复学习同一问题。
+
+\begin{notealert}[type=caution,title={有限系数公式的适用范围}]
+$e_m=0$ 时，式~\eqref{eq:lh-boost-alpha} 给出无穷大的系数，不能作为普通有限数值更新；可停止并输出这个在训练集上完全正确的基本分类器，或另行规定有限系数使它在训练样本上支配此前的表决。$e_m=1/2$ 时 $\alpha_m=0$，模型与权重均不变，应停止或重新寻找规则。$e_m>1/2$ 时，若允许使用 $-G_m$，可先反转预测，其误差变为 $1-e_m$；否则不能套用正系数弱学习步骤。若反转后误差为零，仍按零误差情形处理。有限系数的训练误差分析均假设各轮满足 $0<e_m<1/2$。
+\end{notealert}
+
+算法不要求每次都求出 $\mathcal H$ 内加权误差的全局最小值；找到满足弱学习条件的规则即可应用后面的误差界。但将它严格等同于逐步\emph{精确极小化}指数损失时，需要额外假设每轮确实选择最优基本分类器。若第 $m$ 轮基本学习的计算成本为 $C_m$，且每个基本分类器在单个样本上的求值成本有常数上界，则加权误差、得分和权重更新的额外总成本为 $O(MN)$，总训练成本为 $O(\sum_mC_m+MN)$；基本分类器本身较复杂时，应另计其求值成本。
+
+\subsection{用决策树桩完成三轮提升}
+\label{subsec:lh-boost-classification-example}
+
+\begin{example}
+\label{ex:lh-boost-stumps}
+取教材中的一维二分类数据，按 $x=0,1,\ldots,9$ 排列，其标签为
+\[
+ (y_1,\ldots,y_{10})=(1,1,1,-1,-1,-1,1,1,1,-1).
+\]
+基本分类器为决策树桩（decision stump），即只作一次阈值判断的二叶决策树。允许阈值两侧的预测方向互换；在每轮选择加权误差最小的树桩，误差相同时允许任选一个最优者。求三轮 AdaBoost 的分类结果。
+\end{example}
+\begin{solve}
+初始权重均为 $1/10$。第一轮可以选择
+\[
+ G_1(x)=\begin{cases}+1,&x<2.5,\\-1,&x\geq2.5.\end{cases}
+\]
+它误分 $x=6,7,8$，故 $e_1=3/10$，$\alpha_1=\tfrac12\log(7/3)\approx0.423649$。由式~\eqref{eq:lh-boost-weight-factors} 得
+\[
+ D_2=\left(\frac1{14},\frac1{14},\frac1{14},\frac1{14},\frac1{14},\frac1{14},
+            \frac16,\frac16,\frac16,\frac1{14}\right).
+\]
+第二轮在 $D_2$ 下选择
+\[
+ G_2(x)=\begin{cases}+1,&x<8.5,\\-1,&x\geq8.5.\end{cases}
+\]
+这次误分 $x=3,4,5$，其总权重为 $e_2=3/14$，因此 $\alpha_2=\tfrac12\log(11/3)\approx0.649641$，并有
+\[
+ D_3=\left(\frac1{22},\frac1{22},\frac1{22},\frac16,\frac16,\frac16,
+            \frac7{66},\frac7{66},\frac7{66},\frac1{22}\right).
+\]
+第三轮选择相反预测方向的树桩
+\[
+ G_3(x)=\begin{cases}-1,&x<5.5,\\+1,&x\geq5.5.\end{cases}
+\]
+其误分点为 $x=0,1,2,9$，故
+\[
+ e_3=\frac4{22}=\frac2{11},\qquad
+ \alpha_3=\frac12\log\frac92\approx0.752039.
+\]
+于是 $f_3=\alpha_1G_1+\alpha_2G_2+\alpha_3G_3$，在四个区间上的取值分别为
+\[
+ f_3(x)\approx
+ \begin{cases}
+  0.321252,&x<2.5,\\
+  -0.526046,&2.5\leq x<5.5,\\
+  0.978031,&5.5\leq x<8.5,\\
+  -0.321252,&x\geq8.5.
+ \end{cases}
+\]
+它在全部十个训练样本上的符号均与标签一致，训练错误率为零。第一轮与第二轮组合后的训练错误率都为 $3/10$，但误分对象已经改变；第三轮的组合利用前两轮积累的信息使全部训练样本分类正确。以上计算在轮间保留精确权重，仅在展示系数和得分时取近似值；由精确的 $e_3=2/11$ 计算得到 $\alpha_3\approx0.752039$，采用这一复算值而不沿用教材中的 $0.7514$。
+\end{solve}
+
+\section{AdaBoost 的训练误差分析}
+\label{sec:lh-boost-training-error}
+
+指数损失（exponential loss）$L(y,t)=e^{-yt}$ 把分类方向与分类强度联系起来。对样本 $(x_i,y_i)$，量 $y_if(x_i)$ 称为该样本的\emph{分类间隔}（classification margin，这里指未归一化的表决间隔）：它为正表示分类方向正确，为负表示方向错误，而其增大使指数损失减小。这一用法不同于支持向量机中经过参数范数归一化的几何间隔；此处的数值会随所有表决系数的共同缩放而改变。
+
+\begin{theorem}[训练误差的指数损失上界]
+\label{thm:lh-boost-training-bound}
+在均匀初始权重 $w_{1i}=1/N$ 下，设算法完成 $M$ 轮有限系数更新，$f_M$、$G$ 与 $Z_m$ 分别按式~\eqref{eq:lh-boost-final-classifier} 和式~\eqref{eq:lh-boost-weight-update} 定义。则经验分类错误率满足
+\begin{equation}
+ \widehat R_{01}(G):=\frac1N\sum_{i=1}^{N}I\bigl(G(x_i)\ne y_i\bigr)
+ \leq\frac1N\sum_{i=1}^{N}e^{-y_if_M(x_i)}
+ =\prod_{m=1}^{M}Z_m.
+ \label{eq:lh-boost-training-bound}
+\end{equation}
+\end{theorem}
+\begin{proof}
+若 $G(x_i)\ne y_i$，按所规定的平局规则仍有 $y_if_M(x_i)\leq0$，故 $e^{-y_if_M(x_i)}\geq1$；若分类正确，示性函数为零而指数函数为正。因此逐点成立
+\[
+ I\bigl(G(x_i)\ne y_i\bigr)\leq e^{-y_if_M(x_i)}.
+\]
+对 $i$ 求平均即得不等式。另一方面，逐次展开权重递推式，利用 $f_0=0$，得到
+\begin{equation}
+ w_{M+1,i}=\frac{(1/N)\exp\bigl(-y_i\sum_{m=1}^{M}\alpha_mG_m(x_i)\bigr)}
+                    {\prod_{m=1}^{M}Z_m}
+           =\frac{e^{-y_if_M(x_i)}}{N\prod_{m=1}^{M}Z_m}.
+ \label{eq:lh-boost-expanded-weight}
+\end{equation}
+每个 $D_{m+1}$ 均被规范化，故对式~\eqref{eq:lh-boost-expanded-weight} 求和并使用 $\sum_iw_{M+1,i}=1$，即得平均指数损失等于 $\prod_mZ_m$。
+\end{proof}
+
+式~\eqref{eq:lh-boost-expanded-weight} 也解释了权重的另一层含义：第 $m+1$ 轮权重正比于当前加法模型在样本上的指数损失。因此，大权重不仅可以由上一轮误分造成，也反映了此前各轮表决累积形成的较小间隔。该恒等式对任意有限实系数和取值为 $\{-1,+1\}$ 的基本分类器成立；只有代入 AdaBoost 的特定系数后，才能进一步得到下一结论。
+
+\begin{theorem}[弱学习优势与指数型误差界]
+\label{thm:lh-boost-edge-bound}
+若每轮均有 $0<e_m<1/2$ 并采用式~\eqref{eq:lh-boost-alpha} 中的系数，记弱分类器相对随机猜测的优势为 $\gamma_m=1/2-e_m$，则
+\begin{equation}
+ \prod_{m=1}^{M}Z_m
+ =\prod_{m=1}^{M}2\sqrt{e_m(1-e_m)}
+ =\prod_{m=1}^{M}\sqrt{1-4\gamma_m^2}
+ \leq\exp\left(-2\sum_{m=1}^{M}\gamma_m^2\right).
+ \label{eq:lh-boost-edge-bound}
+\end{equation}
+\end{theorem}
+\begin{proof}
+前两个等式分别来自式~\eqref{eq:lh-boost-normalizer} 与 $e_m=1/2-\gamma_m$。对 $0\leq u<1$，令 $h(u)=\log(1-u)+u$，则 $h(0)=0$ 且 $h'(u)=-u/(1-u)\leq0$，所以 $\log(1-u)\leq-u$。取 $u=4\gamma_m^2$，有
+\[
+ \log Z_m=\frac12\log(1-4\gamma_m^2)\leq-2\gamma_m^2.
+\]
+对各轮求和再取指数，得到式~\eqref{eq:lh-boost-edge-bound}。
+\end{proof}
+
+\begin{corollary}
+\label{cor:lh-boost-uniform-edge}
+在定理~\ref{thm:lh-boost-edge-bound} 的条件下，若还存在与轮次无关的 $\gamma>0$，使每轮 $\gamma_m\geq\gamma$，则
+\begin{equation}
+ \widehat R_{01}(G)\leq e^{-2M\gamma^2}.
+ \label{eq:lh-boost-uniform-edge}
+\end{equation}
+特别地，对 $0<\varepsilon<1$，取 $M\geq\log(1/\varepsilon)/(2\gamma^2)$ 足以使此上界不超过 $\varepsilon$。
+\end{corollary}
+\begin{proof}
+由 $\sum_{m=1}^{M}\gamma_m^2\geq M\gamma^2$，结合定理~\ref{thm:lh-boost-training-bound} 与定理~\ref{thm:lh-boost-edge-bound} 即得。最后解不等式 $e^{-2M\gamma^2}\leq\varepsilon$，得到轮数条件。
+\end{proof}
+
+算法本身使用各轮实际误差 $e_m$ 计算系数，不需要事先知道统一下界 $\gamma$。若无限迭代且始终满足有限系数条件，更一般地，只要 $\sum_m\gamma_m^2=\infty$，式~\eqref{eq:lh-boost-edge-bound} 中的上界就趋于零；仅有每轮 $e_m<1/2$ 而优势衰减过快，则不能从该界推出趋零。
+
+\begin{notealert}[type=caution,title={下降的量与结论的范围}]
+在 $0<e_m<1/2$ 时 $Z_m<1$，所以平均指数损失及其给出的训练错误率上界随轮数严格下降。上界下降并不推出实际的零一训练错误率每轮下降，后者取决于各个间隔是否穿过零。上述分析也没有给出测试错误率的单调性；迭代轮数与基本模型复杂度仍需结合独立验证数据等方式选择。对于难以拟合的异常点或错误标签，指数损失可能持续赋予较大权重，这需要与训练误差界分开考虑。
+\end{notealert}
+
+\section{加法模型与 AdaBoost 的前向分步解释}
+\label{sec:lh-boost-stagewise}
+
+\subsection{前向分步优化的目标}
+\label{subsec:lh-boost-additive}
+
+\begin{definition}
+\label{def:lh-boost-additive}
+设 $b(x;\theta)$ 是参数为 $\theta\in\Theta$ 的实值基函数。形如
+\begin{equation}
+ f_M(x)=f_0(x)+\sum_{m=1}^{M}\beta_mb(x;\theta_m)
+ \label{eq:lh-boost-additive-model}
+\end{equation}
+的模型称为\emph{加法模型}（additive model），其中 $\beta_m\in\mathbb R$ 为组合系数，$f_0$ 为初始函数。这里的“加法”指对基函数求和，基函数本身可以是输入 $x$ 的非线性函数。
+\end{definition}
+
+给定损失 $L$，联合学习所有参数的经验风险目标为
+\begin{equation}
+ \min_{\{\beta_m,\theta_m\}_{m=1}^{M}}
+ \sum_{i=1}^{N}L\left(y_i,f_0(x_i)+\sum_{m=1}^{M}\beta_mb(x_i;\theta_m)\right).
+ \label{eq:lh-boost-joint-objective}
+\end{equation}
+\emph{前向分步算法}（forward stagewise algorithm）以逐轮添加基函数代替同时优化：先选择 $f_0$，然后对 $m=1,\ldots,M$，固定已有模型，求
+\begin{equation}
+ (\beta_m,\theta_m)\in\operatorname*{arg\,min}_{\beta\in\mathbb R,\,\theta\in\Theta}
+ \sum_{i=1}^{N}L\bigl(y_i,f_{m-1}(x_i)+\beta b(x_i;\theta)\bigr),\qquad
+ f_m=f_{m-1}+\beta_mb(\cdot;\theta_m).
+ \label{eq:lh-boost-stagewise-update}
+\end{equation}
+输入是训练集、损失、基函数集合、初始模型和轮数或停止条件，输出是最后一个加法模型。式~\eqref{eq:lh-boost-stagewise-update} 假设每步最小值可达到；实际采用近似搜索时，应说明所得只是近似解。该方法不重新调整此前各轮参数，所以是贪心构造，并不自动求出式~\eqref{eq:lh-boost-joint-objective} 的全局最优解。若允许 $\beta=0$ 且精确求解每步子问题，经验损失至少不会增加。
+
+\subsection{从指数损失推导 AdaBoost}
+\label{subsec:lh-boost-exponential}
+
+\begin{proposition}
+\label{prop:lh-boost-stagewise-adaboost}
+设 $y_i\in\{-1,+1\}$，基本分类器集合 $\mathcal H$ 关于取负封闭，$f_0=0$。以 $L(y,t)=e^{-yt}$ 为损失，在每轮精确最小化加权误差，且最优误差满足 $0<e_m<1/2$，则式~\eqref{eq:lh-boost-stagewise-update} 的前向分步更新等同于 AdaBoost 更新。
+\end{proposition}
+\begin{proof}
+给定 $f_{m-1}$，定义未规范化权重及其总和
+\[
+ \widetilde w_{mi}=e^{-y_if_{m-1}(x_i)},\qquad
+ S_m=\sum_{i=1}^{N}\widetilde w_{mi},\qquad
+ w_{mi}=\widetilde w_{mi}/S_m.
+\]
+它们相对于本轮待优化的 $(\alpha,G)$ 都是已知量，但在不同样本之间不相同，不能从加权求和中删去。本轮目标写为
+\[
+ \sum_{i=1}^{N}e^{-y_i(f_{m-1}(x_i)+\alpha G(x_i))}
+ =S_m\sum_{i=1}^{N}w_{mi}e^{-\alpha y_iG(x_i)}.
+\]
+只有共同的正常数 $S_m$ 可以在确定极小点时省略。记 $e(G)=\sum_iw_{mi}I(G(x_i)\ne y_i)$，则规范化后的目标为
+\begin{equation}
+ Q_m(\alpha,G)=(1-e(G))e^{-\alpha}+e(G)e^{\alpha}
+              =e^{-\alpha}+(e^{\alpha}-e^{-\alpha})e(G).
+ \label{eq:lh-boost-stagewise-exponential}
+\end{equation}
+由于 $\mathcal H$ 对取负封闭，任意 $\alpha<0$ 的增量都可以写为 $(-\alpha)(-G)$，故只需考虑 $\alpha\geq0$。对每个固定的 $\alpha>0$，式~\eqref{eq:lh-boost-stagewise-exponential} 随 $e(G)$ 严格增加，最优基本分类器因此恰为加权错误率最小者 $G_m$。
+
+固定 $G_m$ 后，目标关于 $\alpha$ 的一、二阶导数分别为
+\[
+ \frac{\partial Q_m}{\partial\alpha}=-(1-e_m)e^{-\alpha}+e_me^{\alpha},\qquad
+ \frac{\partial^2Q_m}{\partial\alpha^2}=(1-e_m)e^{-\alpha}+e_me^{\alpha}>0.
+\]
+令一阶导数为零，唯一极小点就是 $\alpha_m=\tfrac12\log((1-e_m)/e_m)>0$，其目标值 $2\sqrt{e_m(1-e_m)}<1=Q_m(0,G)$。最后，由模型相加可得
+\[
+ \widetilde w_{m+1,i}=\widetilde w_{mi}e^{-\alpha_my_iG_m(x_i)}.
+\]
+两侧分别规范化后得到式~\eqref{eq:lh-boost-weight-update}。初始 $f_0=0$ 又给出 $w_{1i}=1/N$，故全部更新一致。
+\end{proof}
+
+这一推导把模型、损失与算法分开说明：模型是二值基函数的加权和，损失是指数损失，算法是在已有模型固定时选择下一项。若基本学习器只找到一个满足 $e_m<1/2$ 的规则，则系数仍精确最小化沿该规则方向的损失，但未必精确解出对所有 $G\in\mathcal H$ 的联合子问题；训练误差界仍然适用。
+
+\begin{remark}
+\label{rem:lh-boost-conditional-risk}
+可以从总体风险进一步理解指数损失的分类方向。令 $p(x)=\Pr(Y=+1\mid X=x)$，对满足 $0<p(x)<1$ 的输入，若暂时允许在该点自由选择实值输出 $t$，则条件期望损失为
+\[
+ r_x(t)=p(x)e^{-t}+(1-p(x))e^t.
+\]
+由 $r_x'(t)=-p(x)e^{-t}+(1-p(x))e^t$ 及 $r_x''(t)>0$，唯一最优值为
+\[
+ t^*(x)=\frac12\log\frac{p(x)}{1-p(x)}.
+\]
+因此 $t^*(x)$ 的符号与 $p(x)-1/2$ 一致，在 $p(x)=1/2$ 时任一类别都是最优决策；当 $p(x)=0$ 或 $1$ 时，下确界分别在 $t\to-\infty$ 或 $t\to+\infty$ 时逼近。这里讨论的是不受模型约束的总体条件风险，有限样本上有限轮数的 AdaBoost 得分一般不等于 $t^*(x)$，不能由此宣称其概率预测已经校准。
+\end{remark}
+
+\section{提升树与梯度提升}
+\label{sec:lh-boost-trees}
+
+\subsection{树的加法模型}
+\label{subsec:lh-boost-tree-model}
+
+以分类树或回归树为基函数的提升方法称为\emph{提升树}（boosting tree）。分类树输出离散类别；回归树在每个叶区域上输出一个常数。当用取值为 $\{-1,+1\}$ 的分类树作为 AdaBoost 的基本分类器时，得到的是分类提升树；对一般损失进行梯度提升时，即使最终任务是分类，也可以用输出实数的回归树逐步修正分类得分。这两种构造的输出形式与学习目标需要分别说明。
+
+设第 $m$ 棵回归树把输入空间划分为 $J_m$ 个互不相交且并集为 $\mathcal X$ 的叶区域 $R_{m1},\ldots,R_{mJ_m}$，每个叶区域均包含训练样本，其函数形式为
+\begin{equation}
+ T(x;\Theta_m)=\sum_{j=1}^{J_m}c_{mj}I(x\in R_{mj}),\qquad
+ \Theta_m=\{(R_{mj},c_{mj})\}_{j=1}^{J_m}.
+ \label{eq:lh-boost-regression-tree}
+\end{equation}
+区域由树中的递归划分产生，不能当成任意不受约束的集合来优化。树的叶值可以吸收加法系数，故模型写成
+\begin{equation}
+ f_M(x)=f_0(x)+\sum_{m=1}^{M}T(x;\Theta_m).
+ \label{eq:lh-boost-tree-ensemble}
+\end{equation}
+每轮固定 $f_{m-1}$，希望选择
+\begin{equation}
+ \Theta_m\in\operatorname*{arg\,min}_{\Theta}
+ \sum_{i=1}^{N}L\bigl(y_i,f_{m-1}(x_i)+T(x_i;\Theta)\bigr).
+ \label{eq:lh-boost-tree-stage}
+\end{equation}
+树结构的全局搜索一般很困难，通常以递归贪心划分近似求解，不能把这种构造直接视为对所有允许树结构的全局极小化。叶数、深度与树的棵数共同影响表达能力；每棵树简单并不意味着整个加法模型也简单。
+
+\subsection{平方损失下的残差拟合}
+\label{subsec:lh-boost-residual}
+
+对回归任务，取平方损失 $L(y,t)=(y-t)^2$。定义第 $m$ 轮拟合前的\emph{残差}（residual）为
+\begin{equation}
+ r_{mi}=y_i-f_{m-1}(x_i),\qquad i=1,\ldots,N.
+ \label{eq:lh-boost-residual}
+\end{equation}
+本轮优化目标随即成为
+\begin{equation}
+ \sum_{i=1}^{N}\bigl[y_i-f_{m-1}(x_i)-T(x_i;\Theta)\bigr]^2
+ =\sum_{i=1}^{N}\bigl[r_{mi}-T(x_i;\Theta)\bigr]^2.
+ \label{eq:lh-boost-residual-objective}
+\end{equation}
+所以\emph[tip]{拟合当前残差，就是求解平方损失下下一棵树的子问题}，不需要重新用原始标签拟合一棵独立的树。若区域划分已经确定，记 $n_{mj}=\#\{i:x_i\in R_{mj}\}>0$，则最优叶值为
+\begin{equation}
+ c_{mj}=\frac1{n_{mj}}\sum_{x_i\in R_{mj}}r_{mi}.
+ \label{eq:lh-boost-residual-leaf}
+\end{equation}
+这是因为对该叶内的损失求导得到 $-2\sum_{x_i\in R_{mj}}(r_{mi}-c)$，令其为零即得平均值，而二阶导数 $2n_{mj}>0$ 保证它是唯一极小点。
+
+\textbf{平方损失提升树算法。}输入为实值标签训练集、允许的回归树复杂度以及轮数 $M$。按教材取 $f_0=0$；对每一轮，先按式~\eqref{eq:lh-boost-residual} 计算残差，再以 $(x_i,r_{mi})$ 为新训练数据构造平方误差回归树 $T_m$，并用式~\eqref{eq:lh-boost-residual-leaf} 确定其叶值，最后更新 $f_m=f_{m-1}+T_m$。达到给定轮数或预设停止条件后输出 $f_M$。也可以从最优常数 $f_0=\bar y=N^{-1}\sum_i y_i$ 出发，但它会改变每轮树的数值；以下教材例题统一采用 $f_0=0$。
+
+\begin{proposition}
+\label{prop:lh-boost-squared-decrease}
+在第 $m$ 轮，若各叶非空且叶值取该叶残差平均值，则无论划分是否全局最优，都有
+\begin{equation}
+ \sum_{i=1}^{N}\bigl(y_i-f_{m-1}(x_i)\bigr)^2
+ -\sum_{i=1}^{N}\bigl(y_i-f_m(x_i)\bigr)^2
+ =\sum_{j=1}^{J_m}n_{mj}c_{mj}^2\geq0.
+ \label{eq:lh-boost-squared-decrease}
+\end{equation}
+\end{proposition}
+\begin{proof}
+在叶区域 $R_{mj}$ 上，展开两平方之差并使用 $\sum_{x_i\in R_{mj}}r_{mi}=n_{mj}c_{mj}$，得到
+\[
+ \sum_{x_i\in R_{mj}}\bigl[r_{mi}^2-(r_{mi}-c_{mj})^2\bigr]
+ =2c_{mj}\sum_{x_i\in R_{mj}}r_{mi}-n_{mj}c_{mj}^2
+ =n_{mj}c_{mj}^2.
+\]
+对所有叶求和即得。
+\end{proof}
+
+\begin{example}
+\label{ex:lh-boost-regression}
+取教材的十个回归样本 $x_i=i$，$i=1,\ldots,10$，其观测值为
+\[
+ (y_1,\ldots,y_{10})=(5.56,5.70,5.91,6.40,6.80,7.05,8.90,8.70,9.00,9.05).
+\]
+在输入范围 $[0.5,10.5]$ 上，以回归树桩为基函数，从 $f_0=0$ 开始进行提升。
+\end{example}
+\begin{solve}
+对候选阈值 $s\in\{1.5,2.5,\ldots,9.5\}$，令 $R_1(s)=\{x:x<s\}$、$R_2(s)=\{x:x\geq s\}$，在两个区域内分别用响应值平均数 $c_1(s),c_2(s)$ 拟合。第一轮比较
+\[
+ E(s)=\sum_{x_i<s}\bigl(y_i-c_1(s)\bigr)^2
+      +\sum_{x_i\geq s}\bigl(y_i-c_2(s)\bigr)^2.
+\]
+例如 $E(6.5)\approx1.930008$，而 $E(5.5)\approx3.911320$、$E(7.5)\approx8.009810$；枚举全部九个候选点，最小值在 $s=6.5$ 取得。两叶平均值为
+\[
+ c_{11}=\frac{37.42}{6}=6.236666\ldots,\qquad
+ c_{12}=\frac{35.65}{4}=8.9125,
+\]
+故 $T_1(x)=c_{11}$ 当 $x<6.5$，否则为 $c_{12}$，且 $f_1=T_1$。下一轮拟合前的残差约为
+\[
+ (r_{21},\ldots,r_{2,10})\approx
+ (-0.676667,-0.536667,-0.326667,0.163333,0.563333,0.813333,
+ -0.012500,-0.212500,0.087500,0.137500).
+\]
+对这些残差重复阈值枚举，第二轮最优阈值为 $3.5$，得到
+\[
+ T_2(x)=\begin{cases}-0.513333\ldots,&x<3.5,\\0.22,&x\geq3.5.\end{cases}
+\]
+于是 $f_2=f_1+T_2$ 在 $x<3.5$、$3.5\leq x<6.5$、$x\geq6.5$ 三段上的值分别为 $5.723333\ldots$、$6.456666\ldots$、$9.1325$，平方误差总和降为 $0.800675$。继续按同一规则迭代，结果见表~\ref{tab:lh-boost-regression-rounds}；表中 $c_{mL}$、$c_{mR}$ 分别表示阈值左侧与右侧的叶值。
+\begin{table}[htbp]
+ \centering
+ \caption{以精确残差逐轮拟合回归树桩的结果，显示值取六位小数}
+ \label{tab:lh-boost-regression-rounds}
+ \begin{tabular}{ccrrr}
+  \toprule
+  轮次 $m$ & 阈值 $s_m$ & $c_{mL}$ & $c_{mR}$ & $\sum_i(y_i-f_m(x_i))^2$\\
+  \midrule
+  1 & 6.5 & 6.236667 & 8.912500 & 1.930008\\
+  2 & 3.5 & -0.513333 & 0.220000 & 0.800675\\
+  3 & 6.5 & 0.146667 & -0.220000 & 0.478008\\
+  4 & 4.5 & -0.160833 & 0.107222 & 0.305559\\
+  5 & 6.5 & 0.071481 & -0.107222 & 0.228915\\
+  6 & 2.5 & -0.150648 & 0.037662 & 0.172178\\
+  \bottomrule
+ \end{tabular}
+\end{table}
+
+把六棵树相加，得到
+\[
+ f_6(x)\approx
+ \begin{cases}
+  5.630000,&0.5\leq x<2.5,\\
+  5.818310,&2.5\leq x<3.5,\\
+  6.551644,&3.5\leq x<4.5,\\
+  6.819699,&4.5\leq x<6.5,\\
+  8.950162,&6.5\leq x\leq10.5.
+ \end{cases}
+\]
+它是比任何单棵树桩更细的分段常数函数。若事先约定平方误差总和不超过 $0.18$ 即停止，则第六轮首次达到这一标准。所有内部运算均保留原始数据精度，表中的显示值不作为下一轮输入；教材给出的部分近似数值与这一复算结果不同，例如第二轮误差总和应约为 $0.800675$。这里的停止标准只针对本例的训练拟合，并不是测试性能保证。
+\end{solve}
+
+\subsection{一般可微损失下的梯度提升}
+\label{subsec:lh-boost-gradient}
+
+对于一般损失，直接求解式~\eqref{eq:lh-boost-tree-stage} 可能不方便。\emph{梯度提升}（gradient boosting）先在训练样本的预测值空间中寻找损失下降方向，再用回归树近似该方向。记当前预测向量为 $\boldsymbol t=(t_1,\ldots,t_N)^{\mathsf T}$，经验损失总和为 $\mathcal L(\boldsymbol t)=\sum_iL(y_i,t_i)$。假设每个 $L(y_i,\cdot)$ 在当前预测值处可微，则第 $m$ 轮的\emph{伪残差}（pseudo-residual）定义为
+\begin{equation}
+ r_{mi}=-\left.\frac{\partial L(y_i,t)}{\partial t}\right|_{t=f_{m-1}(x_i)}.
+ \label{eq:lh-boost-pseudo-residual}
+\end{equation}
+这里的 $r_{mi}$ 是损失对预测值的负导数，不是对输入 $x_i$ 求导；只有特定损失下它才等于通常的残差 $y_i-f_{m-1}(x_i)$。
+
+设 $\boldsymbol r_m=(r_{m1},\ldots,r_{mN})^{\mathsf T}$。可微性给出对任意固定方向 $\boldsymbol h$ 的一阶展开
+\[
+ \mathcal L(\boldsymbol t+\eta\boldsymbol h)
+ =\mathcal L(\boldsymbol t)-\eta\boldsymbol r_m^{\mathsf T}\boldsymbol h+o(\eta),
+ \qquad \eta\to0.
+\]
+在 $\boldsymbol r_m\ne0$ 时，单位范数方向中负梯度方向使一阶下降最大，但任意预测向量未必能表示为一棵受限回归树。对伪残差作最小二乘拟合，就是在可表示的树函数中近似这个方向。若按固定非空叶划分取伪残差平均值，拟合值向量 $\boldsymbol h$ 满足
+\[
+ \boldsymbol r_m^{\mathsf T}\boldsymbol h
+ =\sum_{j=1}^{J_m}n_{mj}\bar r_{mj}^2\geq0,
+ \qquad
+ \bar r_{mj}=\frac1{n_{mj}}\sum_{x_i\in R_{mj}}r_{mi}.
+\]
+因此只有在右侧严格为正时，这个方向才给出严格负的方向导数，并保证足够小的正步长下降；若所有叶平均值都为零，该树划分没有捕获非零的一阶下降分量。
+
+\textbf{梯度提升树算法。}输入为训练集、对第二变量可微的损失 $L$、允许的树复杂度及最大轮数 $M$；以下假设所写的一维最小化都有有限极小点，选择其中任一个即可。算法输出一个树的加法模型，步骤如下：
+\begin{enumerate}
+ \item 以最优常数初始化，取
+ \begin{equation}
+  c_0\in\operatorname*{arg\,min}_{c\in\mathbb R}\sum_{i=1}^{N}L(y_i,c),\qquad
+  f_0(x)=c_0.
+  \label{eq:lh-boost-gradient-initial}
+ \end{equation}
+ \item 对 $m=1,\ldots,M$，依次进行本轮更新：按式~\eqref{eq:lh-boost-pseudo-residual} 计算伪残差，以 $(x_i,r_{mi})$ 为数据拟合平方误差回归树，得到其叶区域 $R_{mj}$，$j=1,\ldots,J_m$；再在每个叶区域内回到\emph{原损失}，分别作一维搜索：
+ \begin{equation}
+  c_{mj}\in\operatorname*{arg\,min}_{c\in\mathbb R}
+  \sum_{x_i\in R_{mj}}L\bigl(y_i,f_{m-1}(x_i)+c\bigr).
+  \label{eq:lh-boost-gradient-leaf-search}
+ \end{equation}
+ 随后更新
+ \begin{equation}
+  f_m(x)=f_{m-1}(x)+\sum_{j=1}^{J_m}c_{mj}I(x\in R_{mj}).
+  \label{eq:lh-boost-gradient-update}
+ \end{equation}
+ \item 达到最大轮数或预定停止条件时，输出
+ \begin{equation}
+  f_M(x)=c_0+\sum_{m=1}^{M}\sum_{j=1}^{J_m}c_{mj}I(x\in R_{mj}),
+  \label{eq:lh-boost-gradient-output}
+ \end{equation}
+ 提前停止时把 $M$ 替换为实际完成轮数。
+\end{enumerate}
+
+每轮先通过拟合伪残差选择区域划分，再用原损失确定这些区域上的实际增量；最小二乘拟合伪残差得到的叶均值一般不等于原损失下的最优叶增量。因为各叶互不相交，式~\eqref{eq:lh-boost-gradient-leaf-search} 中的优化可以分别进行；精确求解时，每个叶都可以选择 $c=0$，所以式~\eqref{eq:lh-boost-gradient-update} 不会使训练损失增加。这一结论依赖叶内优化确实求到不劣于零增量的值，并不保证得到全局最优树结构或整个函数空间中的最优模型。
+
+对于 $L(y,t)=\tfrac12(y-t)^2$，负梯度恰为 $y-t$，叶内搜索也给出平均残差，因而恢复平方损失的残差拟合。若按教材使用 $L(y,t)=(y-t)^2$，负梯度实际为 $2(y-t)$；它与残差仅相差公共因子 $2$，不是逐字相等。在精确平方误差拟合、叶数等约束不变且约束不依赖响应尺度时，这个因子不改变最优划分，随后的原损失叶内搜索仍给出残差平均值。实践中若划分停止阈值等依赖响应尺度，则也需要相应调整，不能忽略该因子对具体实现的影响。
+
+以二分类指数损失为例，$-\partial L(y,t)/\partial t=ye^{-yt}$，所以伪残差是带符号的实数；回归树拟合的是这些实数，而 AdaBoost 直接最小化二值规则的加权误差。因此，二者共有逐步降低损失的思路，但使用一般回归树的梯度提升步骤不必逐轮等于 AdaBoost。对于绝对损失 $|y-t|$，在 $t=y$ 处不可微，不能直接无条件套用上述可微公式；若另行规定次梯度与相应的优化步骤，则叶内最优增量可取当前叶残差的中位数。
+
+\begin{notealert}[type=caution,title={初始化、有限极小点与输出形式}]
+最优常数 $c_0$ 一般不为零，最终模型必须保留式~\eqref{eq:lh-boost-gradient-output} 中的初始常数项。某些损失与数据组合的一维目标只有下确界而没有有限极小点，例如单一类别样本上的指数损失；这时需另行限制搜索范围或规定数值处理，不能把不存在的有限 $\operatorname*{arg\,min}$ 当作已求得。算法输出的是多棵树的加法模型；若用于分类，尚需明确从得分到类别的决策规则。
+\end{notealert}
+
+以上为教材所述的基本梯度提升步骤。常见的扩展是在更新中乘收缩系数（shrinkage factor）$0<\nu\leq1$，即把增量改为 $\nu\sum_jc_{mj}I(x\in R_{mj})$，再通过验证损失选择树数。$\nu<1$ 时，不再是沿各叶增量一次走到该轮的极小点；若叶内损失关于 $c$ 凸，且 $c_{mj}$ 是有限极小点，则由凸性可知这一步仍不增加训练损失，对一般非凸损失则需另行检查步长。这一扩展不能由前面的 AdaBoost 误差界直接获得泛化保证。
+
+\section{方法联系与习题讨论}
+\label{sec:lh-boost-review}
+
+教材的招聘分类习题要求把一维例题推广到多个属性。使用树桩时，先明确允许的划分规则：二值属性只有一种非平凡二分，有序属性可以在相邻等级间设阈值，并枚举两侧预测类别；若把属性当作无序类别，则应另外规定允许哪些类别子集划分。每轮用当前 $D_m$ 计算所有候选树桩的加权错误率，选择最优者，再按式~\eqref{eq:lh-boost-alpha} 与式~\eqref{eq:lh-boost-weight-update} 更新。手算时应逐轮记录误分样本、加权错误率、系数及组合模型的错误率；基本分类器的当前误差与组合模型的当前误差是两个不同的量，不能相互代用。
+
+比较支持向量机、AdaBoost 与逻辑斯谛回归时，可先统一二分类记号 $y\in\{-1,+1\}$，设实值分类得分为 $t=f(x)$。三者的典型分类损失分别是合页损失（hinge loss）$\max\{0,1-yt\}$、指数损失 $e^{-yt}$ 与逻辑斯谛损失（logistic loss）$\log(1+e^{-yt})$。软间隔支持向量机通常把合页损失与控制参数范数的正则项结合，通过凸二次规划、对偶或相应优化方法学习；逻辑斯谛回归把概率模型的负对数似然最小化，在线性得分下形成光滑凸问题，可用梯度法、牛顿法或拟牛顿法；本章 AdaBoost 则在基本分类器集合上逐轮构造加法模型，以重加权和一维系数优化实现下降。比较时还要固定或明确各自的函数空间与正则化方式，不能把模型表达能力的差异全部归因于损失函数。这里的损失对照采用同一得分尺度；备注~\ref{rem:lh-boost-conditional-risk} 中指数损失的最优得分是对数优势的一半，逻辑斯谛模型通常采用的得分尺度则是完整的对数优势。
+
+本章的统一关系是：选择基本函数集合确定模型可表达什么，选择损失确定“尚未拟合好”的含义，前向分步策略确定每轮如何添加修正。AdaBoost 用指数损失产生样本权重；平方损失提升树把下一轮目标化为残差；梯度提升进一步以一般损失的负梯度选择树划分，并用原损失确定叶增量。训练损失下降、训练分类正确与新样本预测可靠是三个需要分别判断的问题，阅读证明和实现算法时都应保持这一区分。
+% ===== 李航教材第 8 章笔记结束 =====
+
+% 研读来源：机器学习/textbooks/机器学习（分章原文）/机器学习-9.pdf，全部 18 页。
+% 本章对应教材第 9 章；笔记中的章节、公式和定理均按本文结构自动编号。
+
+
+
+

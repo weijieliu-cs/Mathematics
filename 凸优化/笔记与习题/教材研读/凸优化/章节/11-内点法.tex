@@ -1,0 +1,220 @@
+% !TeX root = ../凸优化笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{10} % 保留原书章号。
+\chapter{内点法}
+\label{ch:co-interior}
+
+内点法（interior-point method）把不等式约束转化为一系列内部子问题，再用牛顿法求解。对偶理论给出这些内部点距原最优值的界，因而将算法更新与精度认证联系起来。
+
+\section{不等式约束与严格可行域}
+
+考虑 $\min f_0(x)$，满足 $f_i(x)\leq0$、$Ax=b$，本章设不等式数量 $m\geq1$，$f_0,\ldots,f_m$ 在公共开凸域上二次连续可微且凸，$A$ 满行秩。严格可行域为满足全部 $f_i(x)<0$ 和仿射等式的点。基本障碍法从这样的点出发；没有严格可行点时，应先消去冗余约束、降低维数或采用其他问题表示。
+
+原最优点可能位于边界，例如 $\min_{x\geq0}x$ 的解为零。内点法在内部逐步逼近它，不要求某个有限迭代恰好到达边界。算法能否达到指定目标误差，还依赖子问题的存在性与求解精度。
+
+内点法与投影法处理边界的方式不同。投影法可以先走到外部再投影到边界；障碍法则通过一个在边界附近急剧增加的代价，使内部迭代避免碰到边界。这里“内部”是相对于仿射等式所确定的可行空间而言，不要求等式可行点拥有全空间中的开邻域。
+
+\section{对数障碍与中心路径}
+
+在严格不等式域上定义对数障碍（logarithmic barrier）
+\[
+ \phi(x)=-\sum_{i=1}^m\log(-f_i(x)).
+\]
+
+量 $s_i=-f_i(x)>0$ 是第 $i$ 条不等式的余量。$-\log s_i$ 在 $s_i\downarrow0$ 时趋于 $+\infty$，于是过分贴近任何一条边界都会付出很大代价。对于 $x\geq0$，障碍就是 $-\log x$；对于 $0\leq x\leq1$，障碍为 $-\log x-\log(1-x)$，同时阻止越过两个端点。
+$-\log(-u)$ 在 $u<0$ 上凸且递增，所以它与凸 $f_i$ 的复合凸。直接求导得到
+\[
+ \nabla\phi=-\sum_i\frac{\nabla f_i}{f_i},\qquad
+ \nabla^2\phi=\sum_i\left(\frac{\nabla f_i\nabla f_i^{\mathsf T}}{f_i^2}
+                         -\frac{\nabla^2f_i}{f_i}\right)\succeq0.
+\]
+对 $t>0$，中心化子问题为
+\begin{equation}
+ x(t)\in\mathop{\mathrm{arg\,min}}_{Ax=b}\{t f_0(x)+\phi(x)\}.
+ \label{eq:co-central-path}
+\end{equation}
+
+除以 $t$ 后，同一个问题写成最小化 $f_0(x)+\phi(x)/t$。所以增大 $t$ 等价于逐渐减弱障碍的权重，而不是增强它。较小的 $t$ 更重视与边界保持距离，较大的 $t$ 更重视原目标；极限中才可能逼近位于边界的原最优点。
+假设这些解存在；若目标在可行子空间上严格凸，则解唯一，由这些点构成中心路径（central path）。
+
+\begin{example}[一维中心路径]
+对 $\min_{x\geq0}x$，障碍子问题为 $\min_{x>0}tx-\log x$。驻点给出 $x(t)=1/t$，对偶乘子恒为 $1$，最优值下界为零，间隙恰为 $1/t$。内部点随 $t\to\infty$ 逼近边界解零。
+\end{example}
+
+\begin{theorem}[精确中心点的误差界]
+若 $x(t)$ 是精确中心点，则可构造对偶可行乘子，使原对偶间隙为 $m/t$，从而 $0\leq f_0(x(t))-p^\star\leq m/t$。
+\end{theorem}
+\begin{proof}
+中心化驻点条件为 $t\nabla f_0(x(t))+\nabla\phi(x(t))+A^{\mathsf T}w=0$。令
+\[
+ \lambda_i(t)=-\frac1{t f_i(x(t))}>0,\qquad\nu(t)=w/t.
+\]
+则原拉格朗日函数在 $x(t)$ 处梯度为零，由凸性知该点取到其下确界。因此
+\[
+ g(\lambda(t),\nu(t))=f_0(x(t))+\sum_i\lambda_i(t)f_i(x(t))
+ =f_0(x(t))-m/t.
+\]
+弱对偶即给出目标误差上界。
+\end{proof}
+这同时解释了互补松弛的近似形式 $\lambda_i(t)(-f_i(x(t)))=1/t$。若中心点只被近似求出，拉格朗日最小化不再精确成立，不能不计内层误差便断言同样的间隙等式。
+
+\begin{example}[区间上的中心点与误差证书]
+考虑 $\min x$，满足 $0\leq x\leq1$。求其中心路径，并解释 $m/t$ 代表什么。
+\end{example}
+\begin{solve}
+中心化目标为 $tx-\log x-\log(1-x)$，导数为 $t-1/x+1/(1-x)$，海塞矩阵恒正。解驻点式得到
+\[
+ x(t)=\frac{t+2-\sqrt{t^2+4}}{2t}
+     =\frac{2}{t+2+\sqrt{t^2+4}}\in(0,1/2).
+\]
+后一形式避免大数相减，数值计算更稳定。$t\downarrow0$ 时它趋于区间中点 $1/2$；$t\to+\infty$ 时趋于原最优点零。两条不等式的乘子分别为
+\[
+ \lambda_1=\frac1{tx(t)},\qquad
+ \lambda_2=\frac1{t(1-x(t))}.
+\]
+它们满足 $1-\lambda_1+\lambda_2=0$，故原对偶间隙为 $2/t$。但原目标误差是 $x(t)$，通常严格小于 $2/t$；证书给的是上界，不必等于真实误差。在 $t=10$ 时，$x(t)\approx0.0901$，证书为 $0.2$。
+\end{solve}
+
+若只有近似中心点，也可以在额外曲率条件下补偿内层误差。设当前 $x$ 严格可行且 $Ax=b$，取 $\lambda_i=-1/(tf_i(x))$ 和任意 $\nu$。假设对应的 $\mathcal L(\cdot,\lambda,\nu)$ 在公共定义域上为已知 $\mu_{\mathcal L}>0$ 的强凸函数，记 $r=\nabla_x\mathcal L(x,\lambda,\nu)$。强凸下界给出
+\[
+ g(\lambda,\nu)\geq
+ \mathcal L(x,\lambda,\nu)-\frac{\|r\|_2^2}{2\mu_{\mathcal L}},
+\]
+因此
+\begin{equation}
+ f_0(x)-p^\star
+ \leq\frac mt+\frac{\|r\|_2^2}{2\mu_{\mathcal L}}.
+ \label{eq:co-inexact-center-bound}
+\end{equation}
+右侧把中心路径误差与内层驻点误差分开。这个界要求明确的强凸常数；一般模型若没有该常数，应使用可直接计算的对偶函数或其他适用的中心化估计。
+
+\section{障碍方法的两层迭代}
+
+给定严格可行点 $x_0$、参数 $t_0>0$、增长因子 $\gamma>1$ 和最终精度 $\varepsilon>0$，基本障碍法如下。
+\begin{enumerate}
+ \item 在当前 $t$ 下，用第\ref{ch:co-equality}章的约束牛顿法最小化 $tf_0+\phi$。线搜索同时保持所有 $f_i(x)<0$。
+ \item 检查适用的中心化误差界及原问题误差证书。精确中心化的理想模型在 $m/t\leq\varepsilon$ 时可停止。
+ \item 否则令 $t\leftarrow\gamma t$，以上一个中心点热启动（warm start）新的子问题，重复迭代。
+\end{enumerate}
+理想精确中心化下，参数更新次数至多为 $\max\{0,\lceil\log(m/(t_0\varepsilon))/\log\gamma\rceil\}$。这只是外层次数；每层还需要若干牛顿步和线性求解。增长因子大减少外层次数，却可能让新子问题的初值离中心更远。
+
+\section{阶段一问题与可行性判断}
+
+阶段一方法（phase I method）通过辅助变量寻找严格可行点。例如求解
+\[
+ \min_{x,s}s,\qquad f_i(x)\leq s\ (i=1,\ldots,m),\quad Ax=b.
+\]
+若已经有定义域内的等式可行点 $x_0$，选择 $s_0>\max_i f_i(x_0)$ 即得到辅助问题的严格可行初值。任意目标值 $s<0$ 的辅助可行点都给出原问题严格可行点，无须继续求到辅助最优值。
+
+若辅助问题的最优值严格为正，则原问题不可行，因为原可行点必可与 $s=0$ 配成辅助可行点。若最优值为零且取到，则原问题可行，但没有严格可行点；若零下确界未取到，则仅凭数值接近零不能判断原可行性。实际计算需要适用的对偶证书来区分不可行与尚未找到可行点。
+
+\begin{example}[阶段一中零与正数的区别]
+比较系统 $x\leq0,\ -x\leq0$ 与系统 $x\leq0,\ 1-x\leq0$。
+\end{example}
+\begin{solve}
+第一个系统只有可行点零。其阶段一目标为 $\min_x\max\{x,-x\}=0$，在零点取到，但不存在使两条不等式同时严格成立的点。它可以等价改写为等式 $x=0$。第二个系统要求同时 $x\leq0$ 和 $x\geq1$，不可行；其阶段一目标 $\max\{x,1-x\}$ 的最小值为 $1/2>0$，在 $x=1/2$ 取到。两个问题都无法找到原始表示下的严格可行点，数学原因却不同。
+\end{solve}
+
+若只算得辅助可行点 $s=10^{-6}$，它只说明当前最大违约程度很小，没有证明辅助最优值为正。要认证原问题不可行，需要一个严格为正的辅助最优值下界；这又回到了对偶证书的作用。
+
+\section{自协调障碍与复杂度}
+
+本节为选读，目标是解释复杂度结论依赖的条件。掌握基本障碍法及误差证书后，可以暂时跳到原对偶方程；不要把这里的迭代次数界理解成任何凸模型在任何初始化下都具有相同运行时间。
+
+对开凸集 $C$，自协调障碍除满足第\ref{ch:co-unconstrained}章的三阶导数条件外，还在趋近边界时发散，并具有某个参数 $\vartheta>0$，使
+\[
+ |D\phi(x)[h]|\leq\sqrt{\vartheta}\sqrt{D^2\phi(x)[h,h]}
+\]
+对所有点和方向成立。参数控制障碍梯度相对于局部曲率的大小。线性目标 $t c^{\mathsf T}x+\phi(x)$ 的三阶与二阶导数不受线性项影响，所以可统一应用自协调牛顿分析。
+
+一个标准短步路径跟踪（short-step path-following）结论如下：在有界开凸可行域上，给定海塞矩阵正定的 $\vartheta$-自协调障碍，消去仿射等式后从 $t_0$ 的中心点或指定中心邻域出发，每次将 $t$ 乘以 $1+\eta/\sqrt\vartheta$，其中 $\eta>0$ 为足够小的固定常数，并用牛顿步维持固定的中心邻域，则达到原对偶间隙不超过 $\varepsilon$ 所需牛顿步数为
+\[
+ O\!\left(\sqrt\vartheta\,
+ \log\max\left\{2,\frac{\vartheta}{t_0\varepsilon}\right\}\right).
+\]
+此为选读复杂度结论，完整中心邻域估计见\cite{boyd-vandenberghe}的自协调分析。证明要点是每次参数变化只使中心偏移一个受控的局部距离，因而常数次牛顿校正足够；达到 $t$ 与 $\vartheta/\varepsilon$ 同阶所需更新次数即产生上式。
+
+该界不包含取得初始中心点的代价，也不等于浮点总运算量。一般凸不等式的对数障碍未必满足所需自协调条件；上一节任意固定大增长因子的障碍法也不能直接套用短步法的迭代界。
+
+\section{锥约束的障碍函数}
+
+三种常用锥的标准障碍及参数为：
+\[
+ \begin{array}{c|c|c}
+ \text{定义域}&\text{障碍函数}&\vartheta\\\hline
+ x\in\mathbb R_{++}^n&-\sum_i\log x_i&n\\
+ t>\|x\|_2&-\log(t^2-\|x\|_2^2)&2\\
+ X\in\mathbb S_{++}^n&-\log\det X&n
+ \end{array}
+\]
+这些是相应锥的自协调障碍，矩阵情形采用迹内积；这里引用其标准性质。积锥的障碍相加，参数相加。上述函数还满足 $\phi(\alpha x)=\phi(x)-\vartheta\log\alpha$，$\alpha>0$，称为对数齐次性（logarithmic homogeneity）。对 $\alpha$ 求导于 $1$，得到 $\langle\nabla\phi(x),x\rangle=-\vartheta$。
+
+对于变量位于锥内的线性目标问题，精确中心点对应的对偶锥变量为 $z=-\nabla\phi(x)/t$，其互补内积为 $\langle z,x\rangle=\vartheta/t$。因此锥形式的间隙由障碍参数控制，不能一律用标量不等式的条数代替。
+
+\section{原对偶内点法}
+
+引入松弛向量 $s>0$，使 $f(x)+s=0$，并保持乘子 $\lambda>0$。这里 $f=(f_1,\ldots,f_m)$，$J(x)$ 为以 $\nabla f_i(x)^{\mathsf T}$ 作行的雅可比矩阵，$S=\operatorname{diag}(s)$、$\Lambda=\operatorname{diag}(\lambda)$。定义
+\[
+ \begin{aligned}
+ r_{\mathrm d}&=\nabla f_0+J^{\mathsf T}\lambda+A^{\mathsf T}\nu,&
+ r_{\mathrm e}&=Ax-b,\\
+ r_{\mathrm i}&=f(x)+s,&
+ r_{\mathrm c}&=S\lambda-\sigma\bar\mu\mathbf1,
+ \end{aligned}
+ \qquad \bar\mu=\frac{s^{\mathsf T}\lambda}{m},\quad0<\sigma<1.
+\]
+将本步目标 $\sigma\bar\mu$ 固定，设 $H=\nabla^2f_0+\sum_i\lambda_i\nabla^2f_i$，对扰动 KKT 系统作牛顿线性化：
+\[
+ \begin{bmatrix}
+ H&A^{\mathsf T}&J^{\mathsf T}&0\\
+ A&0&0&0\\
+ J&0&0&I\\
+ 0&0&S&\Lambda
+ \end{bmatrix}
+ \begin{bmatrix}\Delta x\\\Delta\nu\\\Delta\lambda\\\Delta s\end{bmatrix}
+ =-\begin{bmatrix}r_{\mathrm d}\\r_{\mathrm e}\\r_{\mathrm i}\\r_{\mathrm c}\end{bmatrix}.
+\]
+在此系统非奇异时求出方向。先取不超过使 $s+t\Delta s>0$、$\lambda+t\Delta\lambda>0$ 的最大步长的固定比例，再回溯保证定义域和残差要求。更新全部变量，重新计算平均互补量，直到可行性残差、驻点残差和互补量均达到要求。
+
+$s^{\mathsf T}\lambda$ 常作为代理对偶间隙。只有原可行性成立且 $x$ 确实最小化对应拉格朗日函数时，它才等于真实的 $f_0(x)-g(\lambda,\nu)$；在不可行迭代点上不能仅凭它很小就宣称近似最优。
+
+保持正变量的步长可以直接计算。令
+\[
+ t_{\mathrm{pos}}=\min\left\{
+ \min_{\Delta s_i<0}\frac{-s_i}{\Delta s_i},
+ \ \min_{\Delta\lambda_i<0}\frac{-\lambda_i}{\Delta\lambda_i}
+ \right\},
+\]
+空指标集上的最小值按 $+\infty$ 处理。选取固定 $0<\tau<1$，从 $t=\min\{1,\tau t_{\mathrm{pos}}\}$ 开始回溯，就不会在一步中把正的松弛量或乘子变成零。对线性约束，原残差的线性化是精确的；对非线性凸约束，还须检查更新后的实际约束残差，不能只依赖线性预测。
+
+\section{综合实现与课程总结练习}
+
+把全书应用于带界最小二乘：最小化 $\|Ax-b\|_2^2/2$，满足 $0\leq x\leq u$，其中 $u>0$。这是 QP，$x=u/2$ 为严格可行初值。障碍为 $-\sum_j\log x_j-\sum_j\log(u_j-x_j)$，精确中心点间隙为 $2n/t$；中心化目标的海塞矩阵为 $tA^{\mathsf T}A$ 加正的对角矩阵，因此中心化方向唯一可解。即使 $A$ 秩亏，障碍子问题仍有严格曲率。
+
+记中心化目标为 $F_t(x)=t\|Ax-b\|_2^2/2+\phi(x)$，其梯度与海塞矩阵具体为
+\[
+ \nabla F_t(x)=tA^{\mathsf T}(Ax-b)
+  +\left(-\frac1{x_j}+\frac1{u_j-x_j}\right)_{j=1}^n,
+\]
+\[
+ \nabla^2F_t(x)=tA^{\mathsf T}A+
+ \operatorname{diag}\left(\frac1{x_j^2}+\frac1{(u_j-x_j)^2}\right)_{j=1}^n.
+\]
+初值 $u/2$ 严格位于盒内；每步解海塞矩阵方程得到方向 $d$。保持盒内可行的步长上界为
+\[
+ \eta_{\max}=\min\left\{
+ \min_{d_j<0}\frac{-x_j}{d_j},
+ \ \min_{d_j>0}\frac{u_j-x_j}{d_j}
+ \right\},
+\]
+其中 $\eta_{\max}$ 表示线搜索步长的上界，空指标集仍按 $+\infty$ 处理。取 $0<\tau<1$，从步长 $\eta=\min\{1,\tau\eta_{\max}\}$ 开始回溯，再检查中心化目标下降，便得到一套可实际执行的内层迭代。
+
+若 $A$ 满列秩，令 $\mu=\lambda_{\min}(A^{\mathsf T}A)>0$，两组盒约束均仿射，所以原拉格朗日函数的强凸常数仍为 $\mu$。采用当前障碍乘子时，$r=A^{\mathsf T}(Ax-b)+\lambda^{\mathrm{up}}-\lambda^{\mathrm{low}}$，其中 $\lambda_j^{\mathrm{low}}=1/(tx_j)$、$\lambda_j^{\mathrm{up}}=1/(t(u_j-x_j))$。式\eqref{eq:co-inexact-center-bound}于是给出 $2n/t+\|r\|_2^2/(2\mu)$ 的原目标误差上界。若 $A$ 秩亏，内层海塞矩阵仍正定，却不能据此把原拉格朗日函数的强凸常数当作正数；子问题好解与原问题误差可认证是两个条件。
+
+\begin{enumerate}
+ \item 独立推导上述模型的中心化梯度、海塞矩阵与步长上界；解释为什么障碍参数增大时仍需重新中心化。
+ \item 对 $\min_{0\leq x\leq1}(x-2)^2/2$ 求原问题最优点，写出中心路径方程，解释中心点如何趋于边界。
+ \item 举出一个可行但无严格可行点的凸约束系统，说明为什么基本障碍初始化失败不等于不可行。
+ \item 完成一个小规模实验：写出模型、凸性依据、KKT 条件和停止标准，记录残差及适用的误差证书。若用软件结果交叉核对，应比较相同目标、约束和精度，而不仅比较变量输出。
+\end{enumerate}
+

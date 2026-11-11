@@ -1,0 +1,67 @@
+% !TeX root = ../机器学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{14} % 保留原书章号。
+\chapter{降维、主成分分析与矩阵分解}
+\label{chap:ml-dimension}
+
+降维将输入表示为较少坐标。压缩重构误差、保留预测信息和获得便于观察的图像是不同目标，不能仅凭一个低维散点图同时证明三者都已实现。
+
+\section{降维目标与数据中心化}
+
+设训练均值为 $\bar x$，中心化矩阵 $\mathbf X$ 的第 $i$ 行为 $(x_i-\bar x)^\top$。线性降维使用列正交矩阵 $V_r\in\mathbb R^{d\times r}$，输出 $z=V_r^\top(x-\bar x)$。验证和测试样本使用同一个训练均值和变换，不能重新拟合来获得更有利的评价。
+
+中心化消除平移，标准化进一步改变各坐标的相对尺度。直接 PCA 使用原量纲方差，标准化后则相当于从相关结构出发；两者表达不同假设。特征选择保留原坐标的子集，特征提取允许形成线性或非线性组合。
+
+\section{主成分分析的最大方差形式}
+
+设 $S=\mathbf X^\top\mathbf X/n$。主成分分析（principal component analysis，PCA）的第一方向最大化 $v^\top Sv$，约束 $\|v\|=1$。若 $S=Q\Lambda Q^\top$，特征值依次为 $\lambda_1\geq\cdots\geq\lambda_d\geq0$，写 $v=Qa$ 后目标为 $\sum_j\lambda_ja_j^2$，在 $\sum_ja_j^2=1$ 下最大值是 $\lambda_1$。继续限制与已选方向正交，依次得到其余特征向量。
+
+保留前 $r$ 个方向的方差比例为 $\sum_{j\leq r}\lambda_j/\sum_j\lambda_j$，分母为零时数据没有中心化变化。方向符号可反转；重复特征值的特征子空间内可任意旋转正交基。因此比较两次 PCA 输出时，应关注子空间而不只逐坐标比较符号。
+
+\section{重构误差与截断奇异值分解}
+
+对列正交 $V_r$，重构为 $\widehat{\mathbf X}=\mathbf XV_rV_r^\top$。正交分解给出
+$\|\mathbf X-\widehat{\mathbf X}\|_F^2=\|\mathbf X\|_F^2-\operatorname{tr}(V_r^\top\mathbf X^\top\mathbf XV_r)$，
+所以最小重构误差与最大保留方差等价。
+
+\begin{theorem}[Frobenius 范数的最佳低秩近似]
+设 $r$ 是满足 $0\leq r\leq q$ 的整数。若 $\mathbf X=\sum_{j=1}^{q}\sigma_ju_jv_j^\top$，$\sigma_1\geq\cdots\geq\sigma_q>0$，则截断矩阵 $\mathbf X_r=\sum_{j=1}^{r}\sigma_ju_jv_j^\top$ 在所有秩不超过 $r$ 的矩阵中使误差最小，误差平方为 $\sum_{j>r}\sigma_j^2$。
+\end{theorem}
+\begin{proof}
+任取秩至多 $r$ 的矩阵 $B$，令 $P$ 是其行空间上的正交投影。因为 $B=BP$，
+\[
+ \|\mathbf X-B\|_F^2
+ =\|\mathbf X(I-P)\|_F^2+\|\mathbf XP-B\|_F^2
+ \geq\|\mathbf X\|_F^2-\operatorname{tr}(P\mathbf X^\top\mathbf X).
+\]
+在特征基中，投影的对角权重介于零和一之间，总和至多 $r$，故该迹至多为前 $r$ 个特征值之和，即 $\sum_{j\leq r}\sigma_j^2$。截断 SVD 达到此下界。
+\end{proof}
+若截断处有并列奇异值，最佳近似可能不唯一。
+
+\section{白化、监督降维与非线性表示}
+
+对白化（whitening），在正特征值方向把 PCA 坐标除以 $\sqrt{\lambda_j}$，所得训练协方差为单位矩阵。小特征值会放大噪声，零特征值方向不能直接除法处理。PCA 最大化总方差，不使用标签；监督降维则利用类别信息，例如比较类间变化与类内变化。
+
+核 PCA 对中心化的核 Gram 矩阵作谱分解，体现隐式特征空间中的 PCA。流形学习（manifold learning）依据局部邻域建立低维表示，目的常是保留局部几何而非全局距离。可视化算法的参数、距离和随机性可能改变图形，图上分离不等于原空间存在稳定类别。
+
+\section{低秩模型与矩阵分解应用}
+
+图像压缩、文本表示和推荐都可以使用低秩结构，但观测机制不同。完整矩阵近似评价所有元素，矩阵补全（matrix completion）只根据观测索引集合 $\Omega$ 拟合，例如最小化 $\sum_{(i,j)\in\Omega}(A_{ij}-u_i^\top v_j)^2$ 并加入正则项。未观测项一般不是零。
+
+低秩因子也不唯一：对可逆矩阵 $Q$，$UV^\top=(UQ)(VQ^{-\top})^\top$。因此某一因子坐标的语义需要额外约束或解释，不能只因分解维度较低就认为每一维都对应一个客观概念。
+
+\section{例题、练习与学习检查}
+
+\begin{example}[一个主方向]
+中心化点为 $(1,1),(-1,-1),(0,0)$。
+\end{example}
+\begin{solve}
+$S=\frac23\left(\begin{smallmatrix}1&1\\1&1\end{smallmatrix}\right)$，特征值为 $4/3,0$，第一方向为 $(1,1)^\top/\sqrt2$。所有点位于该直线上，保留一维即可零误差重构。若类别区别只在另一个极小方差方向上，最大方差准则则可能丢失分类信息。
+\end{solve}
+
+习题：推导正交重构误差恒等式；构造最大方差方向与分类方向不同的数据；证明因子变换的不唯一性；说明用全部数据拟合 PCA 再评价分类为何可能泄漏信息。
+
+
+
+
+

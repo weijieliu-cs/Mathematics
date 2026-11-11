@@ -1,0 +1,91 @@
+% !TeX root = ../偏微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{15} % 保留原书章号。
+\chapter{非线性守恒律与熵解}
+\label{chap:conservation}
+
+特征线相交说明经典描述已经失效，但物理量仍应守恒。允许间断后，积分守恒能够继续使用；问题是这样的弱解可能不唯一，还需要一个选择原则。
+
+\section{标量守恒律与经典解破裂}
+一维\emph{标量守恒律（scalar conservation law）}写成
+\begin{equation}
+ u_t+\partial_xF(u)=0,\qquad u(x,0)=g(x),
+ \label{eq:scalar-conservation}
+\end{equation}
+其中 $F\in C^2(\mathbb R)$ 为通量。光滑时它等价于 $u_t+F'(u)u_x=0$，特征速度为 $F'(u)$。若通量严格凸，即 $F''>0$，较大状态传播更快，后方较大的状态会追上前方较小的状态。伯格斯通量 $F(u)=u^2/2$ 正是第\ref{chap:characteristics}章的情形。
+
+出现间断后，$F'(u)u_x$ 是不连续函数与分布的乘积，通常没有直接的经典定义；而 $\partial_xF(u)$ 仍可按分布求导。因此应从守恒形式定义弱解，不能随意改写为非守恒乘积。
+
+\section{弱形式与间断传播}
+若 $u$ 局部有界，称其为给定初值的弱解，是指对所有在 $\mathbb R\times[0,\infty)$ 上光滑紧支集的测试函数 $\varphi$ 有
+\begin{equation}
+ \int_0^\infty\int_{\mathbb R}(u\varphi_t+F(u)\varphi_x)\,dxdt
+ +\int_{\mathbb R}g(x)\varphi(x,0)\,dx=0.
+ \label{eq:conservation-weak}
+\end{equation}
+初值项来自时间分部积分的下端点。
+
+设一个分段光滑解沿 $x=\gamma(t)$ 间断，两侧状态为 $u_L,u_R$，记 $[u]=u_R-u_L$、$[F]=F(u_R)-F(u_L)$。跨越曲线积分，或计算分布导数的点质量系数，得到
+\begin{equation}
+ \gamma'(t)[u]=[F],\qquad
+ s=\frac{F(u_R)-F(u_L)}{u_R-u_L}\quad(u_R\ne u_L).
+ \label{eq:rankine-hugoniot}
+\end{equation}
+这称\emph{兰金--雨贡纽条件（Rankine--Hugoniot condition）}。它确定间断速度，却没有说明该间断是否可由物理耗散的极限产生。
+
+对分段常数状态可以直接看出这个关系的符号。写成 $u=u_L+[u]H(x-st)$，其中 $H$ 为阶跃函数，则 $u_t=-s[u]\delta_{x=st}$；同样 $\partial_xF(u)=[F]\delta_{x=st}$。方程要求集中在运动界面上的系数相加为零，正是 $-s[u]+[F]=0$。若把空间导数错误地忽略为“在两侧都为零”，就会丢掉全部界面条件。这与上一章分段函数的分布求导规则完全一致。
+
+\section{黎曼问题、激波与稀疏波}
+\emph{黎曼问题（Riemann problem）}的初值为 $g=u_L$（$x<0$）、$g=u_R$（$x>0$）。对严格凸通量，$u_L>u_R$ 时构造速度由式\eqref{eq:rankine-hugoniot}给出的\emph{激波（shock wave）}。弦斜率介于端点导数之间，所以
+\[
+ F'(u_R)<s<F'(u_L),
+\]
+两侧特征均进入间断。
+
+若 $u_L<u_R$，特征向外分离，应填入连续的\emph{稀疏波（rarefaction wave）}。令 $u(x,t)=U(x/t)$，方程变成 $(F'(U)-x/t)U'=0$，由此得到
+\[
+ u(x,t)=\begin{cases}
+ u_L,&x/t\le F'(u_L),\\
+ (F')^{-1}(x/t),&F'(u_L)<x/t<F'(u_R),\\
+ u_R,&x/t\ge F'(u_R).
+ \end{cases}
+\]
+中间逆函数仅在两个状态之间的区间上使用。该解对每个 $t>0$ 连续，且在积分意义下取得阶跃初值。
+
+\begin{example}[同样守恒，为何仍需选择]
+伯格斯通量为 $F(u)=u^2/2$。当左侧状态为 $2$、右侧为 $0$ 时，左侧特征速度为 $2$，右侧为 $0$，特征互相追赶；间断速度为 $(2+0)/2=1$，恰夹在两侧特征速度之间。若交换为左侧 $0$、右侧 $2$，两侧特征彼此远离，缺出的扇区由 $u=x/t$ 填满：$x\le0$ 时为 $0$，$0<x<2t$ 时为 $x/t$，$x\ge2t$ 时为 $2$。仅用守恒关系，向右以速度 $1$ 移动的上升间断也满足弱方程，但它不能通过下面的耗散条件。守恒确定收支，熵条件进一步选择允许的演化方向。
+\end{example}
+
+\section{熵条件与消失黏性}
+给定凸函数 $\eta\in C^2(\mathbb R)$，取 $q'$ 满足 $q'=\eta'F'$。称 $(\eta,q)$ 为\emph{熵--熵通量对（entropy--entropy flux pair）}。光滑解满足 $\partial_t\eta(u)+\partial_xq(u)=0$；对于间断解，要求
+\begin{equation}
+ \partial_t\eta(u)+\partial_xq(u)\le0
+ \label{eq:entropy-inequality}
+\end{equation}
+对所有凸熵成立，且初值在局部 $L^1$ 意义下取得。分布不等式表示其对任意非负测试函数的作用不大于零。对激波，它等价于 $[q]-s[\eta]\le0$。
+
+这项选择可由\emph{消失黏性方法（vanishing viscosity method）}解释：对 $u_t+F(u)_x=\varepsilon u_{xx}$，链式法则给出
+\[
+ \partial_t\eta(u)+\partial_xq(u)
+ =\varepsilon\partial_{xx}\eta(u)-\varepsilon\eta''(u)u_x^2
+ \le\varepsilon\partial_{xx}\eta(u).
+\]
+在能够提取足够强收敛极限并使右端趋于零的条件下，得到式\eqref{eq:entropy-inequality}；存在这种极限仍需统一估计。
+
+对 $F\in C^2$ 与有界初值，克鲁日科夫理论用全部 $\eta_k(r)=|r-k|$ 的熵条件建立有界熵解的存在唯一性；若两组初值之差可积，则解满足 $L^1$ 收缩估计。该定理在此作为进阶结论引用，不展开倍变量法证明，原始理论见文献\cite{kruzhkov}。单独验证一个熵不等式通常不等于验证全部条件。
+
+\section{例题与习题}
+\begin{example}
+分别求伯格斯方程在 $(u_L,u_R)=(1,0)$ 与 $(0,1)$ 下的熵解。
+\end{example}
+\begin{solve}
+第一种情形是激波，速度 $s=(0-1/2)/(0-1)=1/2$，所以 $x<t/2$ 时 $u=1$，$x>t/2$ 时 $u=0$。第二种情形是稀疏波：$x\le0$ 时 $u=0$，$0<x<t$ 时 $u=x/t$，$x\ge t$ 时 $u=1$。
+
+第二组数据也允许速度 $1/2$ 的扩张间断弱解，但取 $\eta=u^2/2$、$q=u^3/3$，可得 $[q]-s[\eta]=1/3-1/4=1/12>0$，违反熵条件，因此被排除。
+\end{solve}
+\begin{enumerate}
+ \item 对一般常数 $u_L>u_R$ 的伯格斯激波求速度并验证特征进入条件。
+ \item 对稀疏波分别检查扇区内部、两条边界以及初值的弱意义。
+ \item 设车流密度为 $\rho$，速度模型为 $v(\rho)=v_0(1-\rho/\rho_{\max})$，写出通量并判断其凸凹性；不要直接套用凸通量的状态次序。
+\end{enumerate}
+

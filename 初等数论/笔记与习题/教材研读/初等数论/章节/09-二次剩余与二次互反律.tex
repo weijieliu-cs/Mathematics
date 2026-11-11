@@ -1,0 +1,186 @@
+% !TeX root = ../初等数论笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{8} % 保留原书章号。
+\chapter{二次剩余与二次互反律}
+\label{ch:quadratic-residues}
+
+一次同余可以用逆元求解，二次同余却增加了一个新的问题：并非每个非零类都是平方。例如模 $7$ 的非零平方只有 $1,2,4$，因此 $x^2\equiv3\pmod7$ 无解。本章先建立“是否为平方”的判别符号，再用二次互反律把大模数下的判别归结到较小模数。应始终区分判定可解性、计算平方根、计算根的个数这三个任务。
+
+\section{二次剩余与勒让德符号}
+
+设 $m\ge2$。本章在与 $m$ 互素的整数中讨论\emph{二次剩余（quadratic residue）}：若 $\gcd(a,m)=1$ 且 $x^2\equiv a\pmod m$ 有解，称 $a$ 为二次剩余；若 $\gcd(a,m)=1$ 而该方程无解，称二次非剩余。与 $m$ 不互素的情形另行讨论，不把它们一概称为二次非剩余。以下先固定奇素数 $p$。
+
+\begin{definition}
+\emph{勒让德符号（Legendre symbol）}定义为
+\[
+ \left(\frac ap\right)=
+ \begin{cases}
+ 0,&p\mid a,\\
+ 1,&a\text{ 是模 }p\text{ 的二次剩余},\\
+ -1,&a\text{ 是模 }p\text{ 的二次非剩余}.
+ \end{cases}
+\]
+\end{definition}
+
+若 $x^2\equiv y^2\pmod p$，则 $p\mid(x-y)(x+y)$，所以 $x\equiv\pm y$。非零的 $p-1$ 个类可分为 $(p-1)/2$ 对 $\{x,-x\}$，每对给出不同的平方。因此非零平方剩余恰有 $(p-1)/2$ 个，各有两个平方根类。
+
+以 $p=11$ 为例，只需计算 $1,2,3,4,5$ 的平方，便得到全部非零平方剩余 $1,4,9,5,3$；$6,7,8,9,10$ 的平方会重复同一列表。于是 $\left(\frac5{11}\right)=1$、$\left(\frac2{11}\right)=-1$、$\left(\frac{22}{11}\right)=0$。勒让德符号看起来像分数，但其值只可能是 $-1,0,1$，不执行分数的约分运算；分母必须是奇素数。
+
+\section{欧拉判别法与高斯引理}
+
+\begin{theorem}[欧拉判别法]
+\label{thm:euler-criterion}
+对奇素数 $p$ 与整数 $a$，
+\begin{equation}
+ a^{(p-1)/2}\equiv\left(\frac ap\right)\pmod p.
+ \label{eq:euler-criterion}
+\end{equation}
+\end{theorem}
+\begin{proof}
+$p\mid a$ 时成立。若 $a=b^2\not\equiv0$，由费马小定理得 $a^{(p-1)/2}=b^{p-1}\equiv1$。多项式 $X^{(p-1)/2}-1$ 至多有 $(p-1)/2$ 个根，已由平方剩余占满，故非剩余不能使此值为 $1$。又由费马小定理，此值的平方为 $1$，所以只能为 $-1$。
+\end{proof}
+
+\emph{欧拉判别法（Euler's criterion）}立即给出乘法性
+\[
+ \left(\frac{ab}{p}\right)=\left(\frac ap\right)\left(\frac bp\right).
+\]
+先由幂运算得到两侧模 $p$ 同余，再利用它们只取 $0,1,-1$ 且 $p$ 为奇素数，得到整数意义下的相等。
+
+乘法性表明，两个非剩余的乘积是剩余；剩余与非剩余的乘积是非剩余。但勒让德符号没有相应的加法性。例如模 $7$ 时 $1$ 和 $2$ 都是平方剩余，$1+2=3$ 却不是。实际计算应先对分子作乘法分解，再分别处理各因子，不能把分子上的加法直接移到符号外。
+
+\begin{lemma}[高斯引理（Gauss's lemma）]
+\label{lem:gauss}
+若 $p\nmid a$，在 $a,2a,\ldots,\frac{p-1}{2}a$ 的最小正余数中，大于 $p/2$ 的共有 $N$ 个，则 $\left(\frac ap\right)=(-1)^N$。
+\end{lemma}
+\begin{proof}
+记 $h=(p-1)/2$，将每个余数 $r>p/2$ 替换为 $r-p$，得到绝对值均在 $1,\ldots,h$ 中的带符号余数。若两个绝对值相同，则 $ia\equiv\pm ja$，进而 $i\equiv\pm j\pmod p$；由 $1\le i,j\le h$ 只能有 $i=j$。故这些绝对值恰为 $1,\ldots,h$ 的排列。相乘并约去 $h!$，得 $a^h\equiv(-1)^N$，再用欧拉判别法。
+\end{proof}
+
+\section{二次互反律及补充公式}
+
+在进入互反律之前，先把高斯引理落实到一次小计算。对 $p=11,a=3$，$3,6,9,12,15$ 的最小正余数为 $3,6,9,1,4$；超过 $11/2$ 的是 $6,9$，共两项，所以 $\left(\frac3{11}\right)=1$。将这两项改写为 $-5,-2$ 后，五个带符号余数的绝对值恰为 $1,2,3,4,5$。证明中“只差一个符号”的现象，在这里就是负号的数目决定最终结果。
+
+二次互反律把 $p$ 是否为模 $q$ 的平方，与 $q$ 是否为模 $p$ 的平方联系起来。它并不是说两者总相同，而是说差别完全由 $p,q$ 模 $4$ 的余数决定。下面的证明先把符号写成格点计数的奇偶性，再利用同一个矩形被一条直线分成两部分这一事实。
+
+\begin{theorem}[二次互反律]
+\label{thm:quadratic-reciprocity}
+若 $p,q$ 为不同奇素数，则
+\begin{equation}
+ \left(\frac pq\right)\left(\frac qp\right)
+ =(-1)^{\frac{p-1}{2}\frac{q-1}{2}}.
+ \label{eq:quadratic-reciprocity}
+\end{equation}
+对任意奇素数 $p$，
+\begin{equation}
+ \left(\frac{-1}{p}\right)=(-1)^{(p-1)/2},\qquad
+ \left(\frac2p\right)=(-1)^{(p^2-1)/8}.
+ \label{eq:quadratic-supplements}
+\end{equation}
+\end{theorem}
+\begin{proof}
+先把高斯引理改写为计数形式。令 $h=(p-1)/2$，写 $qj=pk_j+r_j$（$1\le r_j<p$），并记 $s_j=\min(r_j,p-r_j)$。由高斯引理的证明，$s_j$ 是 $1,\ldots,h$ 的排列。若 $N$ 个 $r_j>p/2$，则
+\[
+ \sum_jr_j=\sum_js_j+Np-2\sum_{r_j>p/2}s_j.
+\]
+因 $p,q$ 都为奇数，将 $q\sum_jj=p\sum_jk_j+\sum_jr_j$ 模 $2$ 化简，得到 $N\equiv\sum_jk_j\pmod2$。所以
+\[
+ \left(\frac qp\right)=(-1)^{\sum_{j=1}^{(p-1)/2}\lfloor qj/p\rfloor}.
+\]
+
+考虑矩形中的整数点 $1\le j\le(p-1)/2$、$1\le k\le(q-1)/2$。直线 $qj=pk$ 不经过任何这样的点，因为 $p,q$ 是不同素数。直线下方的点数为 $\sum_j\lfloor qj/p\rfloor$，上方的点数为 $\sum_k\lfloor pk/q\rfloor$。两者之和为 $(p-1)(q-1)/4$，这给出式\eqref{eq:quadratic-reciprocity}。
+
+第一条补充公式由欧拉判别法取 $a=-1$ 得到。第二条用高斯引理取 $a=2$：余数是 $2,4,\ldots,p-1$，故 $N=(p-1)/2-\lfloor p/4\rfloor$。按 $p\equiv1,3,5,7\pmod8$ 分别计算，其奇偶性依次为偶、奇、奇、偶，与 $(p^2-1)/8$ 相同。
+\end{proof}
+
+\emph{二次互反律（quadratic reciprocity law）}将大分母的符号化为较小分母的符号。两个奇素数不同时模 $4$ 余 $3$ 时，交换分子分母不变号；二者都余 $3$ 时变号。
+
+\begin{example}
+判断 $x^2\equiv5\pmod{11}$ 和 $x^2\equiv3\pmod{11}$ 是否可解。
+\end{example}
+\begin{solve}
+$\left(\frac5{11}\right)=\left(\frac{11}5\right)=\left(\frac15\right)=1$，且 $4^2\equiv5$，故根为 $4,7$。又 $\left(\frac3{11}\right)=-\left(\frac{11}3\right)=-\left(\frac23\right)=1$，根为 $5,6$。判别可解性不等于已求出平方根，还需额外计算。
+\end{solve}
+
+\section{雅可比符号与合数模数}
+
+\begin{example}[分解、互反与取余配合使用]
+计算 $\left(\frac{10}{13}\right)$ 与 $\left(\frac3{19}\right)$，据此判断相应二次同余是否可解。
+\end{example}
+\begin{solve}
+由乘法性及补充公式，$\left(\frac2{13}\right)=-1$；又因 $5\equiv1\pmod4$，有 $\left(\frac5{13}\right)=\left(\frac{13}5\right)=\left(\frac35\right)=-1$。故 $\left(\frac{10}{13}\right)=1$，而直接计算 $6^2\equiv10\pmod{13}$ 得到两根 $6,7$。对第二个符号，$3,19$ 都模 $4$ 余 $3$，所以
+\[
+ \left(\frac3{19}\right)=-\left(\frac{19}3\right)
+ =-\left(\frac13\right)=-1,
+\]
+故 $x^2\equiv3\pmod{19}$ 无解。符号变号的条件必须在每次互换时重新检查。
+\end{solve}
+
+若奇正整数 $n>1$ 分解为 $n=\prod_i p_i^{e_i}$，定义\emph{雅可比符号（Jacobi symbol）}
+\[
+ \left(\frac an\right)=\prod_i\left(\frac a{p_i}\right)^{e_i},
+ \qquad \left(\frac a1\right)=1.
+\]
+分母为素数时与勒让德符号一致。它对分子和奇正分母均具乘法性；对互素奇正整数 $m,n$，满足同样的互反式 $\left(\frac mn\right)\left(\frac nm\right)=(-1)^{(m-1)(n-1)/4}$。这是将素数互反律逐对相乘的结果：对奇数 $u,v$，$(uv-1)/2\equiv(u-1)/2+(v-1)/2\pmod2$，故各素因子的符号指数合并为所示指数。
+
+如果 $a$ 与 $n$ 互素且模 $n$ 为平方，则雅可比符号为 $1$；反向不成立。例如 $\left(\frac2{15}\right)=\left(\frac23\right)\left(\frac25\right)=(-1)(-1)=1$，但模 $3$ 已无平方根。模奇素数的非零平方根可用命题\ref{prop:hensel}逐次唯一提升至该素数的幂，合数模数则继续用中国剩余定理合并；模 $2$ 的幂须单独处理。
+
+\begin{proposition}[奇素数幂上的可逆平方]
+\label{prop:odd-prime-square-roots}
+若 $p$ 为奇素数、$k\ge1$ 且 $p\nmid a$，则 $x^2\equiv a\pmod{p^k}$ 可解当且仅当 $\left(\frac ap\right)=1$；可解时恰有两个根类。
+\end{proposition}
+\begin{proof}
+模 $p^k$ 的解约化后必是模 $p$ 的解，所以条件必要。反之，模 $p$ 恰有两个非零根。对 $f(x)=x^2-a$，每个根 $r$ 满足 $f'(r)=2r\not\equiv0\pmod p$，故由命题\ref{prop:hensel}逐次唯一提升到模 $p^k$。任何高模数根都必须约化为原来两根之一，而每次提升唯一，所以没有第三个根。
+\end{proof}
+
+对奇数 $n=\prod_{i=1}^r p_i^{e_i}$ 及 $\gcd(a,n)=1$，因此必须逐个检查所有 $\left(\frac a{p_i}\right)$，而不能只检查它们的带重数乘积。若全部为 $1$，中国剩余定理给出恰好 $2^r$ 个根类；只要一个为 $-1$，就无解。
+
+\section{模二的幂的平方与一般平方同余}
+
+奇素数的证明用到了 $2$ 可逆，因而不能直接搬到模 $2^k$ 的情形。最初几个模数给出正确的提示：奇数平方模 $4$ 恒为 $1$，模 $8$ 也恒为 $1$，而 $x^2\equiv1\pmod8$ 有四个奇数根。
+
+\begin{proposition}
+\label{prop:two-power-squares}
+设 $a$ 为奇数。模 $2$ 时 $x^2\equiv a$ 恰有一个根类；模 $4$ 时可解当且仅当 $a\equiv1\pmod4$，可解时恰有两个根类。对 $k\ge3$，$x^2\equiv a\pmod{2^k}$ 可解当且仅当 $a\equiv1\pmod8$，可解时恰有四个根类。
+\end{proposition}
+\begin{proof}
+前两种情形逐个列出余数即可。若 $k\ge3$ 且有根，根必为奇数，因此平方模 $8$ 为 $1$，必要性成立。为证充分性和根数，对 $k$ 归纳：$k=3$ 时四个奇数类都是根。
+
+设模 $2^k$ 已有四根。将根 $r$ 与 $r+2^{k-1}$ 配对；后者仍是模 $2^k$ 的根，且与前者不同。二者平方之差为
+\[
+ (r+2^{k-1})^2-r^2=2^kr+2^{2k-2}\equiv2^k\pmod{2^{k+1}},
+\]
+这里使用 $r$ 为奇数及 $k\ge3$。故一对根中恰有一个代表的平方已模 $2^{k+1}$ 同余于 $a$。对这个代表 $r$，$r$ 与 $r+2^k$ 给出两个提升，因为它们平方之差被 $2^{k+1}$ 整除；对另一个代表则两个提升都失败。两对根总共给出四根。任何高模数根都约化为低模数根，因此没有遗漏。
+\end{proof}
+
+\begin{example}[把奇素数幂与二的幂合并]
+求 $x^2\equiv1\pmod{72}$ 的全部根类。
+\end{example}
+\begin{solve}
+$72=8\cdot9$。模 $8$ 的根为 $1,3,5,7$，模 $9$ 的根为 $1,8$，所以共有 $4\cdot2=8$ 根。对模 $9$ 的第一类，列 $1+9t$（$0\le t<8$），其中奇数恰为 $1,19,37,55$；对第二类，列 $8+9t$，其中奇数恰为 $17,35,53,71$。它们模 $8$ 都是平方根 $1$，故全部根为 $1,17,19,35,37,53,55,71$。
+\end{solve}
+
+当 $a$ 与模数不互素时，根数还会变化。例如 $x^2\equiv0\pmod{p^k}$ 等价于 $p^{\lceil k/2\rceil}\mid x$，所以有 $p^{\lfloor k/2\rfloor}$ 个根类。若 $v_p(a)=t<k$ 且存在根，则 $t$ 必为偶数：两个模 $p^k$ 同余、其中一个素因子指数小于 $k$ 的整数具有相同的 $p$ 指数，故 $2v_p(x)=t$。写 $t=2s$、$x=p^sy$ 后，可以先约去 $p^{2s}$，归结为模 $p^{k-2s}$ 的可逆平方同余；最后恢复模 $p^k$ 的根时，还须计入不同的提升，不能只保留约分后的代表元。
+
+\begin{corollary}
+\label{cor:prime-three-mod-four}
+若素数 $p\equiv3\pmod4$ 且 $p\mid x^2+y^2$，则 $p\mid x$ 且 $p\mid y$。
+\end{corollary}
+\begin{proof}
+若 $p\nmid y$，则 $(xy^{-1})^2\equiv-1\pmod p$，与 $\left(\frac{-1}p\right)=-1$ 矛盾。故 $p\mid y$，进而 $p\mid x^2$，所以 $p\mid x$。
+\end{proof}
+
+\section{习题}
+
+勒让德符号在奇素数模数下准确判定非零平方，雅可比符号在合数模数下只保留较粗的信息。处理一般模数时，先逐个检查素数幂，再用中国剩余定理合并；模二的幂与不可逆右端都需要单独分析。
+
+\begin{enumerate}
+ \item 列出模 $13$ 的非零平方剩余，并用欧拉判别法核对。
+ \item 用互反律计算 $\left(\frac7{19}\right)$ 与 $\left(\frac{13}{17}\right)$。
+ \item 求 $x^2\equiv4\pmod{45}$ 的全部解。
+ \item 若奇素数 $p\mid a^2+1$，证明 $p\equiv1\pmod4$；解释为什么必须排除 $p=2$。
+ \item\label{ex:quadratic-sign} 计算 $\left(\frac3{17}\right)$、$\left(\frac5{29}\right)$，注明每一步是否使用互反律的变号。
+ \item\label{ex:quadratic-jacobi} 计算 $\left(\frac5{21}\right)$，判断 $x^2\equiv5\pmod{21}$ 是否可解，解释符号为 $1$ 为何仍可能无解。
+ \item\label{ex:quadratic-two-power} 求 $x^2\equiv9\pmod{32}$ 的全部根类，并核对根数。
+ \item\label{ex:quadratic-valuation} 求 $x^2\equiv9\pmod{27}$ 的全部根类，解释为什么约去 $9$ 后还要恢复多个模 $27$ 的类。
+\end{enumerate}
+

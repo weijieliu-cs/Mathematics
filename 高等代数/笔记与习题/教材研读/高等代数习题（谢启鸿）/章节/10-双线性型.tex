@@ -1,0 +1,607 @@
+% !TeX root = ../高等代数习题（谢启鸿）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{9} % 保留原书章号。
+\chapter{双线性型}
+\label{chap:laex-bilinear}
+
+% 教材来源：高等代数/textbooks/高等代数习题（谢启鸿）/高代习题-10.pdf。
+% 覆盖原书第 10 章 §§10.1--10.6，PDF 第 1--23 页，印刷页 604--626。
+% 按主题整合基本概念、例 10.1--10.30 及基础训练，不逐项抄录选择题答案。
+双线性型用一个标量记录两个向量之间的关系，对偶空间则把其中一个变量固定后得到的线性函数组织起来。本章先建立对偶基与零化子，再用矩阵表示双线性型，最后研究交错型和对称型所确定的几何结构。解题时要区分三种操作：线性映射换基产生相似变换，两个空间分别换基产生相抵变换，同一空间中的双线性型同时换基产生合同变换。它们所保留的信息不同，不能相互替代。
+
+以下 $\mathbb F$ 为数域，各空间均在 $\mathbb F$ 上；除明确说明外，空间有限维，坐标写成列向量。$V^*=\mathcal L(V,\mathbb F)$ 中的星号表示代数对偶，$A^{\mathsf T}$ 表示矩阵转置，$A^{\mathsf H}$ 表示共轭转置。本章讨论的复数域上的双线性型对两个变量都线性，不含共轭，因此也不同于复内积。
+
+\section{基本概念}
+\label{sec:laex-bilinear-basics}
+
+\subsection{对偶空间、对偶基与自然配对}
+
+\begin{definition}
+\label{def:laex-dual}
+线性函数（linear functional）是线性映射 $f:V\to\mathbb F$。所有线性函数按逐点加法和数乘构成的空间称为 $V$ 的\emph{代数对偶空间（algebraic dual space）}，记为 $V^*$，自然配对记为 $\langle f,v\rangle=f(v)$。若 $e_1,\ldots,e_n$ 是 $V$ 的基，定义坐标函数 $e^i$ 为
+\[
+ e^i\left(\sum_{j=1}^n x_je_j\right)=x_i,
+ \qquad e^i(e_j)=\delta_{ij}.
+\]
+则 $e^1,\ldots,e^n$ 称为这组基的\emph{对偶基（dual basis）}。
+\end{definition}
+
+任意 $f\in V^*$ 满足 $f=\sum_i f(e_i)e^i$，因为两边在每个基向量上的值相同；若 $\sum_i c_ie^i=0$，在 $e_j$ 处取值得 $c_j=0$。因此对偶基确为基，$\dim V^*=\dim V=n$，且有相互对应的展开式
+\begin{equation}
+ v=\sum_{i=1}^n e^i(v)e_i,\qquad
+ f=\sum_{i=1}^n f(e_i)e^i.
+ \label{eq:laex-dual-expansion}
+\end{equation}
+
+\begin{proposition}
+\label{prop:laex-double-dual}
+映射 $J_V:V\to V^{**}$，$J_V(v)(f)=f(v)$，是无需选基即可定义的线性同构。
+\end{proposition}
+\begin{proof}
+评价对 $v$ 和 $f$ 分别线性，故 $J_V$ 有定义且线性。若 $J_V(v)=0$，则所有坐标函数 $e^i$ 在 $v$ 上均为零，由式~\eqref{eq:laex-dual-expansion} 得 $v=0$。所以 $J_V$ 单射，再由 $\dim V^{**}=\dim V$ 得满射。
+\end{proof}
+
+$V$ 与 $V^*$ 虽然维数相同，但仅凭向量空间结构没有指定的同构；$V$ 与 $V^{**}$ 的上述同构则由评价自然确定。无限维时，坐标函数通常不能张成整个代数对偶，不能照搬有限维的维数等式或双重对偶满射结论。
+
+\subsection{对偶映射及其矩阵}
+
+\begin{definition}
+若 $T:V\to U$ 线性，定义其\emph{对偶映射（dual map）} $T^*:U^*\to V^*$ 为
+\begin{equation}
+ T^*f=f\circ T,\qquad
+ \langle T^*f,v\rangle=\langle f,Tv\rangle.
+ \label{eq:laex-dual-map}
+\end{equation}
+\end{definition}
+
+评价恒等式唯一确定 $T^*$，并直接给出
+\[
+ (aT+bS)^*=aT^*+bS^*,\qquad
+ (RT)^*=T^*R^*,\qquad I_V^*=I_{V^*}.
+\]
+第一式要求 $T,S$ 有相同的定义域和陪域，第二式要求 $T:V\to U$、$R:U\to W$。若 $T$ 可逆，则 $(T^{-1})^*=(T^*)^{-1}$。复数域上这里仍是线性的 $aT^*$，不会出现 $\overline a$。
+
+\begin{theorem}
+\label{thm:laex-dual-transpose}
+若 $T:V\to U$ 在基 $e_1,\ldots,e_n$ 与 $u_1,\ldots,u_m$ 下的矩阵为 $A$，则 $T^*$ 在相应对偶基 $u^1,\ldots,u^m$ 与 $e^1,\ldots,e^n$ 下的矩阵为 $A^{\mathsf T}$。因而
+\[
+ \operatorname{rank}T^*=\operatorname{rank}T,
+ \qquad \dim\ker T^*=m-\operatorname{rank}T,
+\]
+且 $T$ 单射当且仅当 $T^*$ 满射，$T$ 满射当且仅当 $T^*$ 单射。
+\end{theorem}
+\begin{proof}
+由 $Te_j=\sum_i a_{ij}u_i$ 得 $(T^*u^i)(e_j)=a_{ij}$，故 $T^*u^i=\sum_j a_{ij}e^j$，其坐标列正是 $A$ 第 $i$ 行的转置。其余结论由转置不改变秩及维数公式推出。
+\end{proof}
+
+\subsection{双线性型、根子空间与非退化性}
+
+\begin{definition}
+\label{def:laex-bilinear}
+映射 $g:U\times V\to\mathbb F$ 若对每个变量分别线性，则称为\emph{双线性型（bilinear form）}。给定 $U$ 的基 $u_1,\ldots,u_m$ 与 $V$ 的基 $v_1,\ldots,v_n$，矩阵 $G=(g(u_i,v_j))$ 称为其表示矩阵；若 $u,v$ 的坐标列分别为 $x,y$，则
+\begin{equation}
+ g(u,v)=x^{\mathsf T}Gy.
+ \label{eq:laex-bilinear-matrix}
+\end{equation}
+定义左、右\emph{根子空间（left and right radicals）}为
+\[
+ L_g=\{u\in U:g(u,V)=0\},\qquad
+ R_g=\{v\in V:g(U,v)=0\}.
+\]
+若 $L_g=0$ 且 $R_g=0$，称 $g$ \emph{非退化（nondegenerate）}。
+\end{definition}
+
+若两组基分别按可逆矩阵 $P,Q$ 变换，即新基向量的旧坐标列组成 $P,Q$，则 $x=Px'$、$y=Qy'$，所以
+\begin{equation}
+ G'=P^{\mathsf T}GQ.
+ \label{eq:laex-bilinear-change}
+\end{equation}
+因此 $\operatorname{rank}G$ 与基无关，称为型的秩；由相抵标准型可分别选基使 $G'=\begin{pmatrix}I_r&0\\0&0\end{pmatrix}$。又 $L_g$ 的坐标满足 $G^{\mathsf T}x=0$，$R_g$ 的坐标满足 $Gy=0$，故
+\begin{equation}
+ \dim L_g=m-r,\qquad \dim R_g=n-r.
+ \label{eq:laex-radical-dimensions}
+\end{equation}
+于是 $g$ 非退化当且仅当 $m=n=r$，即表示矩阵为可逆方阵。只要求一侧根子空间为零时，两个空间的维数可以不同。
+
+\subsection{纯量积、对称型与交错型}
+
+\begin{definition}
+\label{def:laex-scalar-form}
+同一空间上 $g:V\times V\to\mathbb F$ 的双线性型，教材称为\emph{纯量积（scalar product）}，这里不附加正定性。若 $g(x,y)=g(y,x)$，称为\emph{对称型（symmetric bilinear form）}；若 $g(x,x)=0$ 对每个 $x$ 成立，称为\emph{交错型（alternating bilinear form）}。由于数域的特征为零，后一条件等价于 $g(x,y)=-g(y,x)$。
+\end{definition}
+
+等价性来自 $0=g(x+y,x+y)=g(x,y)+g(y,x)$；反向令 $y=x$ 并除以 $2$。相应矩阵分别满足 $G^{\mathsf T}=G$ 与 $G^{\mathsf T}=-G$。任意纯量积唯一分解为
+\begin{equation}
+ g=g_{\mathrm s}+g_{\mathrm a},\qquad
+ g_{\mathrm s}(x,y)=\frac{g(x,y)+g(y,x)}2,\qquad
+ g_{\mathrm a}(x,y)=\frac{g(x,y)-g(y,x)}2.
+ \label{eq:laex-form-split}
+\end{equation}
+两部分分别对称与交错，唯一性来自一个型若同时具有两种性质就只能为零。纯量积换基必须对两个变量使用同一个 $P$，故矩阵变为 $P^{\mathsf T}GP$，这称为\emph{合同变换（congruence transformation）}。
+
+一般纯量积的正交关系有方向：$g(x,y)=0$ 不必推出 $g(y,x)=0$。对称型与交错型的正交关系都对称，因而可统一记
+\[
+ W^{\perp_g}=\{v\in V:g(v,w)=0\text{ 对所有 }w\in W\}.
+\]
+下标可避免将它与对偶空间中的零化子混淆。
+
+\begin{proposition}
+\label{prop:laex-reciprocal-orthogonality}
+若纯量积 $g$ 满足 $g(x,y)=0$ 当且仅当 $g(y,x)=0$，则 $g$ 为对称型或交错型。
+\end{proposition}
+\begin{proof}
+若所有 $g(x,x)$ 均为零，则按定义为交错型。否则选 $a$ 使 $d=g(a,a)\ne0$。任意 $x$ 都能唯一写成 $x=\alpha a+u$，其中 $g(a,u)=0$，由假设也有 $g(u,a)=0$。对任意这样的 $u,v$，置 $b=d^{-1}g(u,v)a-v$，则 $g(a+u,b)=0$；交换次序后得到 $0=g(b,a+u)=g(u,v)-g(v,u)$。故 $g$ 在 $a$ 的正交补上对称，在 $\mathbb Fa$ 上也对称，混合项为零，所以在整个 $V$ 上对称。
+\end{proof}
+
+\section{线性函数与对偶空间}
+\label{sec:laex-dual-methods}
+
+\subsection{用核空间刻画线性函数}
+
+\begin{proposition}
+\label{prop:laex-functional-kernels}
+对任意维数的 $V$，两个非零线性函数 $f,h$ 线性相关，当且仅当 $\ker f=\ker h$。有限维时，每个超平面都是某个非零线性函数的核，每个子空间都能表示为有限个这类核的交。
+\end{proposition}
+\begin{proof}
+若 $h=cf$，非零性使 $c\ne0$，两核相等。反过来，取 $a$ 使 $f(a)=1$；对任意 $v$，有 $v-f(v)a\in\ker f=\ker h$，故 $h(v)=h(a)f(v)$。若 $h(a)=0$ 就有 $h=0$，故比例系数非零。
+
+有限维时，取子空间 $W$ 的基 $e_1,\ldots,e_k$ 并扩张成 $V$ 的基，则
+\[
+ W=\bigcap_{i=k+1}^n\ker e^i.
+\]
+特别地 $k=n-1$ 时只需一个核；$W=V$ 时把空交理解为 $V$。
+\end{proof}
+
+\begin{example}
+\label{ex:laex-functional-decomposition}
+设 $f,h\in V^*$ 线性无关。证明任意 $v\in V$ 可写为 $v=u+w$，满足 $f(w)=f(v)$、$h(u)=h(v)$，并说明分解是否唯一。
+\end{example}
+\begin{solve}
+条件等价于 $u\in\ker f$、$w\in\ker h$。映射 $v\mapsto(f(v),h(v))$ 的秩为 $2$，否则两个分量线性相关；所以 $\dim(\ker f\cap\ker h)=n-2$，由维数公式得 $\ker f+\ker h=V$，所求分解存在。两个分解之差满足 $u'-u=-(w'-w)\in\ker f\cap\ker h$，故 $n=2$ 时唯一，$n>2$ 时不唯一。
+\end{solve}
+
+\subsection{零化子把子空间转成线性约束}
+
+\begin{definition}
+\label{def:laex-annihilator}
+对 $W\le V$，其\emph{零化子（annihilator）}定义为
+\[
+ W^\circ=\{f\in V^*:f(w)=0\text{ 对所有 }w\in W\}.
+\]
+对 $F\le V^*$，相应定义 $F^\circ=\{v\in V:f(v)=0\text{ 对所有 }f\in F\}$，即通过 $J_V$ 把双重零化子视为 $V$ 的子空间。
+\end{definition}
+
+\begin{theorem}
+\label{thm:laex-annihilator}
+若 $\dim V=n$，则对 $W,U\le V$ 有
+\begin{equation}
+ \dim W^\circ=n-\dim W,\qquad (W^\circ)^\circ=W,
+ \label{eq:laex-annihilator-dim}
+\end{equation}
+以及
+\begin{equation}
+ (U+W)^\circ=U^\circ\cap W^\circ,\qquad
+ (U\cap W)^\circ=U^\circ+W^\circ.
+ \label{eq:laex-annihilator-sum-intersection}
+\end{equation}
+包含关系在取零化子后反向：$U\le W$ 蕴含 $W^\circ\le U^\circ$。
+\end{theorem}
+\begin{proof}
+取 $W$ 的基并扩张成 $e_1,\ldots,e_n$，若前 $k$ 个生成 $W$，则 $W^\circ=\operatorname{span}\{e^{k+1},\ldots,e^n\}$，得到维数式。$W\subseteq(W^\circ)^\circ$ 由定义成立，两边同维即相等。一个函数在 $U+W$ 上为零，当且仅当它在 $U,W$ 上分别为零，得到第一个和交公式；将它应用于 $U^\circ,W^\circ$ 并取双重零化子，得到第二个公式。反向包含性质直接来自定义。
+\end{proof}
+
+这些关系把几何问题转成约束问题：生成空间增加时，能同时消去它的线性函数减少。计算 $W^\circ$ 时，若 $W$ 由坐标列 $w_1,\ldots,w_k$ 生成，令 $B=(w_1,\ldots,w_k)$，则 $f$ 的对偶基坐标列 $c$ 恰满足 $B^{\mathsf T}c=0$。
+
+\subsection{对偶映射的像、核与不变子空间}
+
+\begin{theorem}
+\label{thm:laex-dual-image-kernel}
+若 $T:V\to U$ 线性，则
+\begin{equation}
+ \ker T^*=(\operatorname{im}T)^\circ\subseteq U^*,\qquad
+ \operatorname{im}T^*=(\ker T)^\circ\subseteq V^*.
+ \label{eq:laex-dual-image-kernel}
+\end{equation}
+若 $T:V\to V$ 且 $W\le V$，则 $W$ 为 $T$ 的不变子空间，当且仅当 $W^\circ$ 为 $T^*$ 的不变子空间。
+\end{theorem}
+\begin{proof}
+$T^*f=0$ 等价于 $f(Tv)=0$ 对全部 $v$ 成立，即第一个等式。若 $f=T^*h$，则 $f$ 在 $\ker T$ 上为零，得到第二式的一个包含。反向证明不必只数维数：若 $f\in(\ker T)^\circ$，在 $\operatorname{im}T$ 上定义 $h_0(Tv)=f(v)$。若 $Tv=Tv'$，则 $v-v'\in\ker T$，故定义无歧义。把 $\operatorname{im}T$ 的基扩张成 $U$ 的基，即可将 $h_0$ 延拓为 $h\in U^*$，于是 $f=T^*h$。
+
+若 $TW\subseteq W$，则对 $f\in W^\circ,w\in W$，有 $(T^*f)(w)=f(Tw)=0$，所以 $T^*W^\circ\subseteq W^\circ$。反过来，该包含给出所有 $f\in W^\circ$ 在 $Tw$ 上都为零，于是 $Tw\in(W^\circ)^\circ=W$。
+\end{proof}
+
+\begin{notealert}[type=caution,title={代数对偶与无限维条件}]
+上述像、核公式使用的是全体线性函数组成的代数对偶。若允许无限维空间中的基扩张，延拓论证仍成立，因而 $\operatorname{im}T^*=(\ker T)^\circ$ 也成立；不能把它说成一般无法推广到无限维。连续对偶还要求函数连续，须另查拓扑条件。本章其余涉及维数的推导仍按有限维理解。
+\end{notealert}
+
+对任意维数的幂等变换 $P^2=P$，第二个等式还有无需基扩张的直接证明。若 $f$ 在 $\ker P$ 上为零，则 $v-Pv\in\ker P$，故 $f(v)=f(Pv)$，即 $f=P^*f$。这说明 $\operatorname{im}P^*$ 中恰为在 $\ker P$ 上消失的函数。
+
+\subsection{直和、双重对偶与欧氏空间中的识别}
+
+外直和的函数可分别限制在两分量上，从而有自然同构
+\[
+ (U\oplus V)^*\longrightarrow U^*\oplus V^*,\qquad
+ F\longmapsto\bigl(u\mapsto F(u,0),\ v\mapsto F(0,v)\bigr).
+\]
+其逆把 $(f,h)$ 送到 $(u,v)\mapsto f(u)+h(v)$，两者复合为恒等。这一论证不需要维数有限，但这里仅讨论两个分量的直和。
+
+对 $T:V\to U$，自然评价给出 $T^{**}J_V=J_UT$：两边在任意 $f\in U^*$ 上的值都为 $f(Tv)$。有限维时通过 $J_V,J_U$ 识别双重对偶，才可简记为 $T^{**}=T$。
+
+若 $V$ 是实欧氏空间，内积额外给出同构 $\iota:V\to V^*$，$\iota(u)(v)=(u,v)$。其单射性由正定性得出，有限维下再得满射。标准正交基经 $\iota$ 对应自身的对偶基；若 $T^\dagger$ 是满足 $(T^\dagger u,v)=(u,Tv)$ 的内积伴随，则
+\[
+ \iota^{-1}T^*\iota=T^\dagger.
+\]
+因此对偶变换与伴随变换的对应依赖内积提供的识别。一般基下不能直接把原基当作对偶基；复内积还涉及共轭线性，不能直接套用这里的实线性公式。
+
+\section{双线性型与纯量积}
+\label{sec:laex-bilinear-methods}
+
+\subsection{非退化配对与相对对偶变换}
+
+非退化配对 $g:U\times V\to\mathbb F$ 把 $U$ 通过 $u\mapsto g(u,-)$ 同构到 $V^*$。给定 $V$ 的任意基 $v_1,\ldots,v_n$，存在唯一一组 $U$ 的基 $u_1,\ldots,u_n$ 使 $g(u_i,v_j)=\delta_{ij}$，称为关于 $g$ 的一对对偶基。
+
+\begin{proposition}
+\label{prop:laex-relative-dual}
+对 $T\in\mathcal L(V)$，存在唯一的 $T^\vee\in\mathcal L(U)$ 满足
+\begin{equation}
+ g(T^\vee u,v)=g(u,Tv).
+ \label{eq:laex-relative-dual}
+\end{equation}
+在关于 $g$ 的对偶基下，若 $T$ 的矩阵为 $A$，则 $T^\vee$ 的矩阵为 $A^{\mathsf T}$。并有
+\[
+ (aT+bS)^\vee=aT^\vee+bS^\vee,\qquad
+ (TS)^\vee=S^\vee T^\vee,
+\]
+且 $T$ 可逆时 $(T^{-1})^\vee=(T^\vee)^{-1}$。
+\end{proposition}
+\begin{proof}
+令 $\iota_g:U\to V^*$，$\iota_g(u)=g(u,-)$，则取 $T^\vee=\iota_g^{-1}T^*\iota_g$ 即得存在性，非退化性保证唯一性。若 $T^\vee$ 的矩阵为 $B$，则 $b_{ji}=g(T^\vee u_i,v_j)=g(u_i,Tv_j)=a_{ij}$，所以 $B=A^{\mathsf T}$。运算法则由式~\eqref{eq:laex-relative-dual} 连续使用两次并利用唯一性得到。
+\end{proof}
+
+再次取相对对偶时，要交换 $U,V$ 并使用反向配对 $g^{\mathrm{op}}(v,u)=g(u,v)$，这时 $(T^\vee)^\vee=T$。若 $U=V$ 却始终使用同一个不对称配对，则不能无条件写出这个等式。
+
+\begin{example}
+\label{ex:laex-form-operator-matrix}
+设非退化纯量积 $g$ 与纯量积 $h$ 在同一组基下的矩阵分别为 $G,H$。求满足 $h(x,y)=g(Tx,y)$ 的变换 $T$，并与作用在第二个变量上的情形比较。
+\end{example}
+\begin{solve}
+若 $C$ 为 $T$ 的矩阵，则 $x^{\mathsf T}Hy=(Cx)^{\mathsf T}Gy=x^{\mathsf T}C^{\mathsf T}Gy$，故
+\begin{equation}
+ C^{\mathsf T}G=H,\qquad C=G^{-\mathsf T}H^{\mathsf T},
+ \label{eq:laex-left-form-operator}
+\end{equation}
+其中 $G^{-\mathsf T}=(G^{-1})^{\mathsf T}$。若改为 $h(x,y)=g(x,Ty)$，则 $GC=H$，所以 $C=G^{-1}H$。两者一般不同。若 $h$ 也非退化，则两种构造中的 $T$ 均可逆；这也证明两个非退化配对可通过其中一个变量的唯一可逆变换相互联系。
+\end{solve}
+
+\subsection{抽取非退化部分与分别变换两变量}
+
+\begin{proposition}
+\label{prop:laex-bilinear-core}
+设 $g:U\times V\to\mathbb F$ 的秩为 $r$。存在分解
+\[
+ U=U_0\oplus L_g,\qquad V=V_0\oplus R_g,
+ \qquad \dim U_0=\dim V_0=r,
+\]
+使 $g$ 在 $U_0\times V_0$ 上非退化。两个相同定义空间上的双线性型 $g,h$ 秩相同，当且仅当存在 $S\in\operatorname{GL}(U)$、$T\in\operatorname{GL}(V)$ 使
+\[
+ h(u,v)=g(Su,Tv).
+\]
+\end{proposition}
+\begin{proof}
+将表示矩阵按式~\eqref{eq:laex-bilinear-change} 化为相抵标准型，取前 $r$ 个基向量分别生成 $U_0,V_0$，剩余向量分别生成左右根子空间，限制矩阵为 $I_r$。对第二个结论，分别变换两变量得到 $H=C^{\mathsf T}GD$，因左右乘子可逆，必要性成立；若两矩阵同秩，由相抵标准型可取这样的可逆 $C,D$，从而得到 $S,T$。
+\end{proof}
+
+即使 $U=V$，这里仍允许 $S,T$ 不同，不能据此推出同秩纯量积合同。例如实对称型 $x_1y_1+x_2y_2$ 与 $x_1y_1-x_2y_2$ 同秩，却有不同的正负惯性指数。对一般不对称型，也不能把上述两个补空间强行选成同一个子空间。
+
+若 $W=U\oplus V$，在两分量上分别给定纯量积 $g,h$，则
+\[
+ q(u+v,u'+v')=g(u,u')+h(v,v')
+\]
+定义直和型，合并基下的矩阵为 $\operatorname{diag}(G,H)$。所以它非退化当且仅当两分量均非退化；两分量都对称或都交错时，直和型保留相应性质。
+
+\subsection{非退化限制与正交直和}
+
+\begin{theorem}
+\label{thm:laex-orthogonal-splitting}
+设 $g$ 为 $V$ 上的对称型或交错型，$W\le V$。其限制 $g|_{W\times W}$ 非退化，当且仅当 $W\cap W^{\perp_g}=0$；这时
+\begin{equation}
+ V=W\oplus W^{\perp_g},\qquad g(W,W^{\perp_g})=g(W^{\perp_g},W)=0.
+ \label{eq:laex-orthogonal-splitting}
+\end{equation}
+若 $g$ 在整个 $V$ 上也非退化，则对任意子空间 $W$ 有
+\[
+ \dim W^{\perp_g}=\dim V-\dim W,\qquad
+ (W^{\perp_g})^{\perp_g}=W.
+\]
+\end{theorem}
+\begin{proof}
+限制的根子空间就是 $W\cap W^{\perp_g}$，得到第一个等价关系。限制非退化时，映射 $\Phi:V\to W^*$，$\Phi(v)=g(v,-)|_W$，在 $W$ 上的限制已经是同构，故 $\Phi$ 满射，其核为 $W^{\perp_g}$。于是 $\dim V=\dim W+\dim W^{\perp_g}$，结合零交即得直和。
+
+若全空间上的型非退化，则 $V\to V^*$ 的配对同构与限制映射 $V^*\to W^*$ 的复合仍满射，后者满射由基扩张延拓函数得到。因此维数公式对任意 $W$ 成立；双重正交补包含 $W$ 且与它同维，所以相等。
+\end{proof}
+
+\subsection{矩阵空间中的两种典型配对}
+
+矩阵空间 $M_n(\mathbb F)$ 上的 $b(A,B)=\operatorname{tr}(AB)$ 是对称非退化双线性型。若对所有 $B$ 都有 $\operatorname{tr}(AB)=0$，取 $B=E_{ji}$ 得 $a_{ij}=0$，故 $A=0$。关于这一配对，基础矩阵 $E_{ij}$ 的对偶基为 $E_{ji}$。实数域上它不正定，例如 $A=\begin{pmatrix}0&1\\-1&0\end{pmatrix}$ 满足 $\operatorname{tr}(A^2)=-2$；Frobenius 内积则是 $(A,B)_{\mathrm F}=\operatorname{tr}(A^{\mathsf T}B)$，满足 $(A,A)_{\mathrm F}=\sum_{i,j}a_{ij}^2$。
+
+\begin{example}
+\label{ex:laex-frobenius-dual-identity}
+设 $A_1,\ldots,A_{n^2}$ 与 $B_1,\ldots,B_{n^2}$ 是 $M_n(\mathbb R)$ 关于 Frobenius 内积的对偶基，即 $(A_i,B_j)_{\mathrm F}=\delta_{ij}$。证明
+\[
+ \sum_{i=1}^{n^2}A_iB_i=I_n.
+\]
+\end{example}
+\begin{solve}
+把基础矩阵依次记为 $E_1,\ldots,E_{n^2}$，写 $A_i=\sum_k p_{ki}E_k$、$B_i=\sum_l q_{li}E_l$。因 $E_k$ 为标准正交基，对偶条件为 $P^{\mathsf T}Q=I_{n^2}$，故 $Q=P^{-\mathsf T}$，也有 $PQ^{\mathsf T}=I_{n^2}$。于是
+\[
+ \sum_i A_iB_i
+ =\sum_{k,l}\left(\sum_i p_{ki}q_{li}\right)E_kE_l
+ =\sum_k E_k^2
+ =\sum_{j=1}^n E_{jj}=I_n.
+\]
+最后一步用 $E_{ij}^2=0$（$i\ne j$）及 $E_{ii}^2=E_{ii}$。这里乘积没有转置；把配对公式中的转置机械移到结论里会得到另一恒等式。
+\end{solve}
+
+\section{交错型与辛几何}
+\label{sec:laex-symplectic}
+
+\subsection{交错标准型及其构造}
+
+\begin{theorem}
+\label{thm:laex-alternating-normal}
+任意有限维空间上的交错型 $g$，都存在一组基使表示矩阵为
+\begin{equation}
+ \operatorname{diag}(\underbrace{S,\ldots,S}_{r\text{ 个}},0_s),
+ \qquad S=\begin{pmatrix}0&1\\-1&0\end{pmatrix}.
+ \label{eq:laex-alternating-normal}
+\end{equation}
+因此交错型的秩为偶数 $2r$；同阶交错矩阵合同当且仅当秩相同。
+\end{theorem}
+\begin{proof}
+若 $g=0$，取任意基即可。否则存在 $e,f$ 使 $g(e,f)\ne0$，缩放 $f$ 后使 $g(e,f)=1$。在 $H=\operatorname{span}\{e,f\}$ 上的矩阵为 $S$，所以 $H$ 非退化。对任意 $v$，向量
+\begin{equation}
+ v'=v+g(f,v)e-g(e,v)f
+ \label{eq:laex-symplectic-elimination}
+\end{equation}
+同时满足 $g(e,v')=g(f,v')=0$，从而 $V=H\oplus H^{\perp_g}$。在正交补上递归；每一步减少二维，最终剩下零型，得到标准型。合同保持秩，反之同秩对应相同标准型。
+\end{proof}
+
+\begin{definition}
+配有非退化交错型的空间 $(V,g)$ 称为\emph{辛空间（symplectic vector space）}。其维数必为偶数 $2r$；使矩阵为 $J=\operatorname{diag}(S,\ldots,S)$ 的有序基 $e_1,f_1,\ldots,e_r,f_r$ 称为\emph{辛基（symplectic basis）}。即 $g(e_i,f_j)=\delta_{ij}$，而 $g(e_i,e_j)=g(f_i,f_j)=0$。
+\end{definition}
+
+\begin{example}
+\label{ex:laex-three-dimensional-alternating}
+设 $\dim V=3$，$h$ 是非零交错型。证明存在 $f,k\in V^*$ 使 $h(x,y)=f(x)k(y)-f(y)k(x)$。
+\end{example}
+\begin{solve}
+非零性及偶数秩说明 $h$ 的秩为 $2$。取标准型对应基 $e_1,f_1,z$，使 $h(e_1,f_1)=1$ 且 $z$ 在根子空间中。定义 $f(x)=h(x,f_1)$、$k(x)=h(e_1,x)$，它们分别抽取 $e_1,f_1$ 坐标，代入标准型即得结论。这个表示依赖三维中的秩至多为 $2$；高维交错型一般需要多个这样的项相加。
+\end{solve}
+
+\begin{example}
+\label{ex:laex-symplectic-basis}
+四维空间中的交错型在基 $e_1,e_2,e_3,e_4$ 下的矩阵为
+\[
+ A=\begin{pmatrix}
+ 0&2&-1&3\\-2&0&4&-2\\1&-4&0&1\\-3&2&-1&0
+ \end{pmatrix}.
+\]
+求一组辛基。
+\end{example}
+\begin{solve}
+先取 $u_1=e_1$、$v_1=\tfrac12e_2$，使 $g(u_1,v_1)=1$。用式~\eqref{eq:laex-symplectic-elimination} 消去另外两向量与这一对的配对，得到
+\[
+ w_3=e_3+2e_1+\tfrac12e_2,\qquad
+ w_4=e_4-e_1-\tfrac32e_2.
+\]
+两向量均在 $\operatorname{span}\{u_1,v_1\}^{\perp_g}$ 中，且直接计算得 $g(w_3,w_4)=6$。于是取 $u_2=w_3$、$v_2=\tfrac16w_4$，所求过渡矩阵为
+\[
+ C=\begin{pmatrix}
+ 1&0&2&-\tfrac16\\
+ 0&\tfrac12&\tfrac12&-\tfrac14\\
+ 0&0&1&0\\
+ 0&0&0&\tfrac16
+ \end{pmatrix},\qquad
+ C^{\mathsf T}AC=\operatorname{diag}(S,S).
+\]
+$C$ 可逆同时说明 $A$ 非退化。这一过程每次先归一化一对向量，再消去混合配对，适用于任意交错型。
+\end{solve}
+
+\subsection{辛变换及其矩阵判据}
+
+\begin{definition}
+辛空间上的可逆线性变换 $T$ 若满足 $g(Tx,Ty)=g(x,y)$，称为\emph{辛变换（symplectic transformation）}。在辛基下，其矩阵 $M$ 称为辛矩阵，并满足
+\begin{equation}
+ M^{\mathsf T}JM=J.
+ \label{eq:laex-symplectic-matrix}
+\end{equation}
+\end{definition}
+
+这一矩阵等式由 $g(Tx,Ty)=x^{\mathsf T}M^{\mathsf T}JMy$ 对所有坐标列成立得到；反过来也直接给出保型性，并由 $J$ 可逆推出 $M$ 可逆。辛变换恰把一组辛基变成另一组辛基：基向量的全部配对保持即保证任意线性组合的配对保持。恒等、复合及逆变换仍保型，因而组成辛群。由式~\eqref{eq:laex-symplectic-matrix} 得
+\[
+ M^{-1}=J^{-1}M^{\mathsf T}J,\qquad (\det M)^2=1.
+\]
+后一个等式只是取行列式得到的必要条件，不能取代完整的辛矩阵判据。二维时直接计算 $M^{\mathsf T}SM=(\det M)S$，故二维辛矩阵恰为行列式等于 $1$ 的矩阵。
+
+\section{对称型与正交几何}
+\label{sec:laex-orthogonal-geometry}
+
+\subsection{正交基、惯性指数与迷向性}
+
+\begin{theorem}
+\label{thm:laex-symmetric-normal}
+任意数域上的对称型都有一组正交基，使表示矩阵为 $\operatorname{diag}(d_1,\ldots,d_r,0,\ldots,0)$，其中 $d_i\ne0$。实数域上可归一化为 $\operatorname{diag}(I_p,-I_q,0_s)$，其中 $p,q,s$ 由型唯一确定；复数域上可归一化为 $\operatorname{diag}(I_r,0_s)$。
+\end{theorem}
+\begin{proof}
+若 $g\ne0$，必有 $v$ 使 $g(v,v)\ne0$，否则极化恒等式
+\[
+ 2g(x,y)=g(x+y,x+y)-g(x,x)-g(y,y)
+\]
+将使 $g=0$。一维空间 $\mathbb Fv$ 非退化，由定理~\ref{thm:laex-orthogonal-splitting} 分裂出其正交补，再归纳得到对角形。实数域中分别缩放正、负对角元使其成为 $1,-1$；复数域中每个非零数有平方根，故可全部化为 $1$。
+
+实数域中，$p$ 是正定限制子空间的最大维数：前 $p$ 个坐标方向实现它，而任何维数大于 $p$ 的子空间都与其余非正方向的空间有非零交，不可能正定。负定情形同理确定 $q$，根子空间维数确定 $s$，所以三者不依赖选基。
+\end{proof}
+
+\begin{definition}
+配有非退化对称型的 $(V,g)$ 称为\emph{正交空间（orthogonal space）}。非零向量 $v$ 若满足 $g(v,v)=0$，称为\emph{迷向向量（isotropic vector）}，亦称各向同性向量。含有迷向向量的子空间称为迷向子空间；若子空间 $W$ 上 $g(w,w)=0$ 对所有 $w$ 成立，则称为\emph{全迷向子空间（totally isotropic subspace）}。由极化恒等式，全迷向等价于 $g(W,W)=0$，也等价于 $W\subseteq W^{\perp_g}$。
+\end{definition}
+
+非退化意味着没有与所有向量正交的非零向量，并不排除迷向向量。例如双曲平面的矩阵 $\begin{pmatrix}0&1\\1&0\end{pmatrix}$ 可逆，但两个基向量都迷向。实正定空间没有迷向向量；实不定型则存在迷向向量，所以正交空间的几何不能一律按欧氏空间处理。
+
+\begin{theorem}
+\label{thm:laex-witt-real}
+设实非退化对称型的正、负惯性指数为 $p,q$。全迷向子空间的最大维数为 $\min\{p,q\}$；每个按包含关系极大的全迷向子空间也有这一维数。
+\end{theorem}
+\begin{proof}
+按正交标准型写 $V=V_+\oplus V_-$。若 $W$ 全迷向，向 $V_+$ 的投影在 $W$ 上单射：投影为零的非零向量会属于负定空间 $V_-$，不可能迷向。同理向 $V_-$ 的投影也单射，故 $\dim W\le\min\{p,q\}$。取正标准向量 $e_i$ 与负标准向量 $f_i$，$e_i+f_i$（$1\le i\le\min\{p,q\}$）张成全迷向子空间，达到上界。
+
+还需排除维数较小但无法扩大的情形。设 $W$ 的基为 $w_1,\ldots,w_k$。非退化性使可选 $z_1,\ldots,z_k$ 满足 $g(w_i,z_j)=\delta_{ij}$；这是因为这些线性函数独立，所确定的 $V\to\mathbb R^k$ 映射满射。将
+\[
+ z_i'=z_i-\frac12\sum_{j=1}^k g(z_i,z_j)w_j
+\]
+代入可得 $g(z_i',z_j')=0$，而 $g(w_i,z_j')=\delta_{ij}$ 不变。因此 $H=\operatorname{span}\{w_i,z_i':1\le i\le k\}$ 非退化，其矩阵为 $\begin{pmatrix}0&I_k\\I_k&0\end{pmatrix}$，惯性指数为 $(k,k)$。在分解 $V=H\oplus H^{\perp_g}$ 中，正交补的惯性指数为 $(p-k,q-k)$。若 $k<\min\{p,q\}$，其中仍能取到非零迷向向量 $a$，于是 $W+\mathbb Ra$ 是更大的全迷向子空间，矛盾。
+\end{proof}
+
+\subsection{正交变换、伴随与镜像}
+
+\begin{definition}
+正交空间上的可逆线性变换 $T$ 若满足 $g(Tx,Ty)=g(x,y)$，称为\emph{正交变换（orthogonal transformation）}。任意基下，若型的矩阵为可逆对称矩阵 $G$，变换的矩阵为 $M$，则等价条件是
+\begin{equation}
+ M^{\mathsf T}GM=G.
+ \label{eq:laex-orthogonal-matrix}
+\end{equation}
+\end{definition}
+
+关于 $g$ 的伴随 $T^\dagger$ 由 $g(T^\dagger x,y)=g(x,Ty)$ 唯一确定，其矩阵为 $G^{-1}M^{\mathsf T}G$。因此 $T$ 正交当且仅当 $T^\dagger T=I$，并有 $\det T=\pm1$。恒等、复合与逆仍为正交变换，它们组成正交群；只有在 $G=I$ 的标准正交基下，判据才简化为 $M^{\mathsf T}M=I$。
+
+\begin{proposition}
+\label{prop:laex-reflection}
+若 $a$ 满足 $g(a,a)\ne0$，则
+\begin{equation}
+ s_a(x)=x-\frac{2g(x,a)}{g(a,a)}a
+ \label{eq:laex-reflection}
+\end{equation}
+是正交变换，称为关于 $a^{\perp_g}$ 的\emph{镜像变换（reflection）}。它在 $\mathbb Fa$ 上作用为 $-I$，在 $a^{\perp_g}$ 上作用为 $I$，故 $s_a^2=I$、$\det s_a=-1$。
+\end{proposition}
+\begin{proof}
+将式~\eqref{eq:laex-reflection} 代入两个变量，两个交叉项之和为 $-4g(x,a)g(y,a)/g(a,a)$，二次修正项为其相反数，因此 $g(s_ax,s_ay)=g(x,y)$。其在两分量上的作用由公式得到，再用 $V=\mathbb Fa\oplus a^{\perp_g}$ 即得其余结论。
+\end{proof}
+
+\begin{example}
+\label{ex:laex-hyperbolic-reflection}
+设双曲平面有基 $u,v$ 满足 $g(u,u)=g(v,v)=0$、$g(u,v)=1$。证明其中行列式为 $-1$ 的正交变换必为镜像变换。
+\end{example}
+\begin{solve}
+矩阵 $\begin{pmatrix}a&b\\c&d\end{pmatrix}$ 的保型条件给出 $ac=bd=0$、$ad+bc=1$。结合可逆性，它或为 $\operatorname{diag}(t,t^{-1})$，或为 $\begin{pmatrix}0&t\\t^{-1}&0\end{pmatrix}$，其中 $t\ne0$。前者行列式为 $1$，故题设对应后者。令 $a_0=tu-v$，则 $g(a_0,a_0)=-2t\ne0$，由式~\eqref{eq:laex-reflection} 计算得 $s_{a_0}(u)=t^{-1}v$、$s_{a_0}(v)=tu$，正是所给变换。这个结论依赖二维条件。
+\end{solve}
+
+\subsection{分块保距同构与不动子空间}
+
+若 $V=U_1\mathbin{\perp_g}\cdots\mathbin{\perp_g}U_r=W_1\mathbin{\perp_g}\cdots\mathbin{\perp_g}W_r$ 是两组正交直和分解，且各有保距线性同构 $T_i:U_i\to W_i$，则
+\[
+ T(u_1+\cdots+u_r)=T_1u_1+\cdots+T_ru_r
+\]
+是 $V$ 上的正交变换。直和保证定义唯一及可逆，各分量间正交保证 $g(Tx,Ty)=\sum_i g(T_ix_i,T_iy_i)=g(x,y)$。
+
+任意线性变换 $T$ 的不动子空间为 $\operatorname{Fix}(T)=\ker(I-T)$，维数公式总给出
+\[
+ \dim V=\dim\operatorname{Fix}(T)+\dim\operatorname{im}(I-T).
+\]
+若 $T$ 为正交变换，则还有 $\operatorname{im}(I-T)=\operatorname{Fix}(T)^{\perp_g}$：对 $w=Tw$，$g((I-T)v,w)=g(v,w)-g(Tv,Tw)=0$，再比较维数即可。但不定型下二者可能有非零交，\emph[caution]{维数相加不等于已经得到直和分解}；正定情形下限制非退化，才可直接得到正交直和。
+
+\subsection{迹为零与迷向标准正交基}
+
+\begin{theorem}
+\label{thm:laex-isotropic-orthonormal}
+设 $V$ 是 $n$ 维实欧氏空间，$g$ 是另一个对称双线性型。存在一组关于欧氏内积的标准正交基 $u_1,\ldots,u_n$，使每个 $u_i$ 都是关于 $g$ 的迷向向量，当且仅当 $g$ 在一组欧氏标准正交基下的矩阵 $A$ 满足 $\operatorname{tr}A=0$。
+\end{theorem}
+\begin{proof}
+欧氏标准正交基之间的过渡矩阵 $Q$ 满足 $Q^{\mathsf T}Q=I$，故换基矩阵 $Q^{\mathsf T}AQ=Q^{-1}AQ$ 保持迹。若全部 $g(u_i,u_i)=0$，新矩阵对角元全零，必要性成立。
+
+对充分性按 $n$ 归纳。$n=1$ 时 $A=0$，结论成立。若 $A=0$，任意标准正交基均可。否则实对称矩阵的谱定理给出标准正交特征向量；其特征值之和为零且不全为零，故有 $\lambda>0>\mu$ 及相应单位向量 $e,f$。令
+\[
+ u=\sqrt{\frac{-\mu}{\lambda-\mu}}\,e
+   +\sqrt{\frac{\lambda}{\lambda-\mu}}\,f.
+\]
+则 $(u,u)=1$、$g(u,u)=0$。把 $u$ 扩张成欧氏标准正交基，此时 $A$ 的首个对角元为零，余下主块仍实对称且迹为零；在欧氏正交补上应用归纳假设即可。
+\end{proof}
+
+这里的两种关系由不同形式给出：标准正交性来自既定的正定欧氏内积，迷向性来自 $g$。不能将结论误读成非退化对称型存在一组关于自身既正交又全为迷向的基。
+
+\subsection{Minkowski 空间中的正交限制}
+
+\begin{example}
+\label{ex:laex-minkowski}
+在 $\mathbb R^4$ 上取
+\[
+ g(x,y)=x_1y_1+x_2y_2+x_3y_3-x_4y_4.
+\]
+按教材约定，$g(x,x)>0$ 称为空间向量，$g(x,x)<0$ 称为时间向量，非零且 $g(x,x)=0$ 称为光向量。证明时间向量不能与时间向量或光向量正交，两个光向量正交当且仅当它们线性相关。
+\end{example}
+\begin{solve}
+写时间向量为 $x=(a,t)$，其中 $a\in\mathbb R^3$ 且 $\lVert a\rVert^2<t^2$，故 $t\ne0$。若 $y=(b,s)\in x^{\perp_g}$，则 $s=(a\cdot b)/t$，由 Cauchy--Schwarz 不等式得
+\[
+ g(y,y)=\lVert b\rVert^2-\frac{(a\cdot b)^2}{t^2}
+ \ge\left(1-\frac{\lVert a\rVert^2}{t^2}\right)\lVert b\rVert^2.
+\]
+当 $y\ne0$ 时必有 $b\ne0$，故右边严格为正，得到前两个结论。
+
+若 $x=(a,t)$、$y=(b,s)$ 为光向量，则 $\lVert a\rVert=|t|>0$、$\lVert b\rVert=|s|>0$。正交时 $a\cdot b=ts$，Cauchy--Schwarz 不等式取等，故 $b=ca$；代入 $a\cdot b=ts$ 及 $\lVert a\rVert^2=t^2$，得 $s=ct$，于是 $y=cx$。反向由 $g(x,x)=0$ 立即得到。
+\end{solve}
+
+\section{基础训练与方法整合}
+\label{sec:laex-bilinear-training}
+
+\subsection{对偶基的逆转置与双线性型的维数}
+
+\begin{example}
+\label{ex:laex-dual-basis-change}
+若新旧基满足 $(e'_1,\ldots,e'_n)=(e_1,\ldots,e_n)P$，求对偶基的过渡矩阵，并计算三维基 $e'_1=e_1+e_2+e_3$、$e'_2=e_2+e_3$、$e'_3=e_3$ 的对偶基。
+\end{example}
+\begin{solve}
+设 $(e'^1,\ldots,e'^n)=(e^1,\ldots,e^n)Q$。由 $e'^i(e'_j)=\delta_{ij}$ 得 $Q^{\mathsf T}P=I$，故
+\begin{equation}
+ Q=P^{-\mathsf T}.
+ \label{eq:laex-dual-basis-change}
+\end{equation}
+在所给三维例子中，$P=\begin{pmatrix}1&0&0\\1&1&0\\1&1&1\end{pmatrix}$，所以 $e'^1=e^1$、$e'^2=-e^1+e^2$、$e'^3=-e^2+e^3$。可逐一在新基上取值检查。对偶映射的矩阵为转置，对偶基的过渡矩阵为逆转置，两者来自不同的问题。
+\end{solve}
+
+若 $\dim U=m$、$\dim V=n$，给定基后 $g\mapsto G$ 是双线性型空间到 $M_{m\times n}(\mathbb F)$ 的线性同构，故其维数为 $mn$。在 $n$ 维空间上，对称型的自由参数为主对角元与上三角元，维数为 $n(n+1)/2$；交错型对角元为零、下三角元由上三角元确定，维数为 $n(n-1)/2$。两者维数之和为 $n^2$，对应式~\eqref{eq:laex-form-split} 的直和分解。
+
+\subsection{由表达式识别矩阵、退化性与变量次序}
+
+判定一个函数是否双线性，应分别固定一个变量检验齐次性与可加性。形如 $\sum_{i,j}a_{ij}x_iy_j$ 的表达式是双线性的；常数项、仅依赖一个变量的非零一次项、$x_i^2y_j$ 等项一般破坏条件。对复数变量，$\overline{x_i}y_j$ 是半双线性项，不是这里的双线性项。矩阵 $G=(a_{ij})$ 的行指标对应第一个变量，列指标对应第二个变量。
+
+若 $T$ 的矩阵为 $B$，则 $h(x,y)=g(Tx,y)$ 的矩阵为 $B^{\mathsf T}G$，$h(x,y)=g(x,Ty)$ 的矩阵为 $GB$。例如 $g(x,y)=\langle f,x\rangle\langle h,y\rangle$ 的矩阵为 $ab^{\mathsf T}$，其中 $a,b$ 为两个函数的对偶基坐标列，非零时秩为 $1$。又若固定非退化配对 $b$ 并定义 $g(x,y)=b(x,Ty)$，则 $R_g=\ker T$；交换变量中 $T$ 的位置后，对应的则是左根子空间。
+
+\begin{example}
+\label{ex:laex-idempotent-form}
+设 $P\in M_n(\mathbb F)$ 满足 $P^2=P$，且 $P\ne I_n$。说明 $g(x,y)=x^{\mathsf T}Py$ 必退化。
+\end{example}
+\begin{solve}
+若 $P$ 可逆，$P^2=P$ 左乘 $P^{-1}$ 得 $P=I_n$，矛盾。因此 $P$ 奇异，$\ker P\ne0$，这正是 $g$ 的右根子空间；由式~\eqref{eq:laex-radical-dimensions}，方阵情形的左根子空间也非零。幂等性本身并不保证对称性或正定性。
+\end{solve}
+
+\subsection{积分配对与 Gram 矩阵}
+
+\begin{example}
+\label{ex:laex-polynomial-integral-form}
+设 $V=\{f\in\mathbb R[t]:\deg f<3\}$，定义 $g(f,h)=\int_0^1 f(t)h(t)\,dt$。求它在基 $1,t,t^2$ 下的矩阵并判定非退化性。
+\end{example}
+\begin{solve}
+积分对两个变量分别线性，且 $g(t^i,t^j)=1/(i+j+1)$（$0\le i,j\le2$），所以表示矩阵为
+\[
+ H=\begin{pmatrix}
+ 1&\tfrac12&\tfrac13\\
+ \tfrac12&\tfrac13&\tfrac14\\
+ \tfrac13&\tfrac14&\tfrac15
+ \end{pmatrix}.
+\]
+对非零实多项式 $f$，它不可能在整个 $[0,1]$ 上为零；由连续性，在某个正长度子区间上 $f^2$ 严格为正，故 $g(f,f)>0$。因此这是正定对称型，$H$ 可逆；直接计算也有 $\det H=1/2160>0$。非退化性证明来自积分的严格正性，比只计算一个行列式更能解释其原因。
+\end{solve}
+
+本章的计算可以沿同一条路线检查：先写出两个变量各自所在的空间及其坐标，再确认换基是分别进行还是同时进行；涉及对偶时用评价恒等式确定映射方向，涉及非退化性时计算根子空间，涉及几何分解时检查限制是否非退化。交错型通过成对选基消去混合项，对称型通过非迷向方向分裂出正交补；这两种选基过程都依赖非退化限制，而不只依赖维数相加。
+
+
+

@@ -1,0 +1,57 @@
+% !TeX root = ../深度学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{2} % 保留原书章号。
+\chapter{概率、统计与信息量}
+\label{chap:dl-probability}
+一个分类器输出 $0.8$，表达的是模型对某个事件赋予的概率，而不是保证该次判断有八成“正确成分”。概率用于描述不确定性、构造训练目标及研究有限样本误差；它的解释必须与数据来源和条件信息一致。
+
+\section{随机变量、分布与条件概率}
+随机变量记为大写字母，观察到的取值记为小写字母。离散变量用质量函数 $p(x)=P(X=x)$ 描述，连续变量的密度满足 $P(X\in A)=\int_Ap(x)\,dx$；密度值可以大于一，积分得到的概率才必须在 $[0,1]$ 内。对正概率事件 $B$，$P(A\mid B)=P(A\cap B)/P(B)$。有密度时相应关系为 $p(x,y)=p(y\mid x)p(x)$，条件密度在边缘密度为正处定义。
+
+伯努利变量 $Y\in\{0,1\}$ 满足 $p(y)=\pi^y(1-\pi)^{1-y}$；类别变量的概率向量 $\boldsymbol\pi$ 满足 $\pi_k\geq0,\sum_k\pi_k=1$。对均值 $\boldsymbol\mu\in\mathbb R^d$ 和正定协方差 $\boldsymbol\Sigma$，多元高斯密度为
+\[
+p(\mathbf x)=\frac{\exp[-\frac12(\mathbf x-\boldsymbol\mu)^\mathsf T\boldsymbol\Sigma^{-1}(\mathbf x-\boldsymbol\mu)]}{(2\pi)^{d/2}\det(\boldsymbol\Sigma)^{1/2}}.
+\]
+一般协方差矩阵 $\operatorname{Cov}(\mathbf X)=\mathbb E[(\mathbf X-\boldsymbol\mu)(\mathbf X-\boldsymbol\mu)^\mathsf T]$ 半正定，因为其任意二次型都是投影变量的方差；奇异高斯分布不具有相对于全维体积的上述密度。
+
+\section{期望、方差与蒙特卡洛估计}
+若 $\mathbb E|Z|<\infty$，期望是分布加权平均；若二阶矩有限，$\operatorname{Var}(Z)=\mathbb E[(Z-\mathbb EZ)^2]$。设 $Z_1,\ldots,Z_n$ 独立同分布，均值为 $\mu$、方差为 $\sigma^2$，则 $\bar Z=n^{-1}\sum_iZ_i$ 满足 $\mathbb E\bar Z=\mu$、$\operatorname{Var}(\bar Z)=\sigma^2/n$：展开和的方差后，独立性使交叉协方差为零。由切比雪夫不等式，$P(|\bar Z-\mu|\geq\varepsilon)\leq\sigma^2/(n\varepsilon^2)$。
+
+用随机样本平均近似期望称为\emph{蒙特卡洛估计（Monte Carlo estimation）}。相关样本的均值方差还包含协方差项，不能只看样本数。训练中的数据抽样、初始化、批量选择与随机失活是不同随机性来源；固定随机种子便于重现某条计算轨迹，不会消除估计误差，也不能代替多次独立实验。
+
+\section{似然、最大似然与最大后验}
+给定观察值后，$L(\theta)=\prod_ip_\theta(y_i\mid\mathbf x_i)$ 是参数的\emph{似然（likelihood）}，其乘积形式对应条件独立假设。\emph{最大似然估计（maximum likelihood estimation, MLE）}最大化 $\log L(\theta)$。若 $Y_i=f_\theta(\mathbf x_i)+\varepsilon_i$，独立噪声 $\varepsilon_i\sim\mathcal N(0,\sigma^2)$ 且 $\sigma^2$ 固定，则
+\[
+-\log L(\theta)=\frac1{2\sigma^2}\sum_i(y_i-f_\theta(\mathbf x_i))^2+\frac n2\log(2\pi\sigma^2),
+\]
+因此最大似然与最小平方误差等价。对伯努利输出则得到 $-y\log\pi-(1-y)\log(1-\pi)$，即二元交叉熵。
+
+给定先验密度 $p(\theta)$，\emph{最大后验估计（maximum a posteriori estimation, MAP）}最小化 $-\log L(\theta)-\log p(\theta)$。独立零均值高斯先验产生二次惩罚；若把似然求和改成平均，惩罚系数也须相应缩放。MAP 是一个参数点的估计，不等于对后验分布积分得到的贝叶斯预测。
+
+\section{熵、交叉熵与相对熵}
+对有限空间上的概率向量 $p,q$，定义\emph{熵（entropy）} $H(p)=-\sum_kp_k\log p_k$、\emph{交叉熵（cross-entropy）} $H(p,q)=-\sum_kp_k\log q_k$ 和\emph{KL 散度（Kullback--Leibler divergence）} $D_{\mathrm{KL}}(p\|q)=\sum_{p_k>0}p_k\log(p_k/q_k)$，约定 $0\log0=0$；若某个 $p_k>0$ 而 $q_k=0$，后两者取 $+\infty$。在有限情形逐项整理得到
+\begin{equation}
+H(p,q)=H(p)+D_{\mathrm{KL}}(p\|q).
+\label{eq:dl-cross-entropy}
+\end{equation}
+\begin{proposition}[KL 散度非负]
+对有限概率分布 $p,q$，有 $D_{\mathrm{KL}}(p\|q)\geq0$，等号成立当且仅当 $p=q$。
+\end{proposition}
+\begin{proof}
+无穷情形结论成立。否则由 $\log u\leq u-1$，有 $\sum_{p_k>0}p_k\log(q_k/p_k)\leq\sum_{p_k>0}(q_k-p_k)\leq0$。第一处取等须所有相关比值为一，第二处取等须 $q$ 在 $p$ 的零概率位置也为零，合起来恰为 $p=q$。
+\end{proof}
+KL 散度一般不对称，也不满足距离所要求的全部性质。式\eqref{eq:dl-cross-entropy}说明固定目标分布时，最小化交叉熵等价于最小化该方向的 KL 散度。
+
+\section{例题与习题}
+\begin{example}[置信度与对数损失]
+对真实类别 $y=1$，模型分别给出 $\pi=0.9,0.6,0.01$。比较三个预测的交叉熵。
+\end{example}
+\begin{solve}
+损失依次为 $-\log0.9\approx0.105$、$-\log0.6\approx0.511$ 和 $-\log0.01\approx4.605$。前两个在阈值 $1/2$ 下都分类正确，但对数损失不同；第三个高置信度错误受罚很大。交叉熵因而提供了比正确与否更连续的优化信号。
+\end{solve}
+\begin{enumerate}
+\item 对独立伯努利样本推导 $\pi$ 的最大似然估计，并单独检查全为零、全为一的边界情况。
+\item 若 $X$ 在 $[0,1/2]$ 上均匀分布，写出密度并计算 $P(X\leq1/4)$。
+\item 对两个取值相关的随机变量推导其平均值方差，解释为何重复复制一个样本不增加独立信息。
+\end{enumerate}
+

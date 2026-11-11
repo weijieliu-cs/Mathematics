@@ -1,0 +1,351 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{12} % 保留原书章号。
+\chapter{无监督学习概论}
+\label{ch:lh-unsupervised-overview}
+
+监督学习借助输入与标签之间的对应关系学习预测规则；当数据中只有观测样本，没有预先给定的目标标签时，仍然可以研究样本如何分组、哪些特征可以压缩、数据可能由什么机制生成。\emph{无监督学习}（unsupervised learning）正是从无标注数据中学习统计规律或潜在结构的机器学习问题。本章对应教材第13章，依次讨论基本原理、基本问题、机器学习三要素和典型方法，为后续的聚类、矩阵分解、概率话题模型与图分析建立共同语言。
+
+本章需要向量与矩阵、条件概率和基本微分知识；主成分分析中的正交投影和图分析中的概率转移在使用时说明。以下以 $X$ 表示观测随机向量，$x$ 表示其取值；$Z$ 表示潜在变量，$z$ 表示其取值；$\theta$ 表示待学习的参数。离散事件的概率记为 $P$，连续变量的密度或统一书写的概率模型记为 $p$。本章的计算例题另行构造，用于展开教材中的基本思想。
+
+\section{无监督学习基本原理}
+\label{sec:lh-unsup-principles}
+
+设无标注训练集为 $U=\{x_1,\ldots,x_N\}$，其中 $x_j\in\mathbb R^M$。沿用教材按列存放样本的约定，将数据写成
+\begin{equation}
+\mathbf X=(x_1,\ldots,x_N)
+=\begin{pmatrix}
+x_{11}&\cdots&x_{1N}\\
+\vdots&&\vdots\\
+x_{M1}&\cdots&x_{MN}
+\end{pmatrix}\in\mathbb R^{M\times N}.
+\label{eq:lh-unsup-data-matrix}
+\end{equation}
+这里 $x_{ij}$ 是第 $j$ 个样本的第 $i$ 个特征，行对应特征，列对应样本。数据中没有附带的监督标签 $y_j$，并不意味着学习过程没有目标函数，也不意味着模型不含类别变量；类别可以作为需要从数据中推断的潜在变量。
+
+\begin{definition}[无监督学习的模型形式]
+\label{def:lh-unsup-models}
+无监督学习根据数据选择参数及必要的模型结构，其分析结果可以用确定性映射 $z=g_\theta(x)$、条件分布 $p_\theta(z\mid x)$，或生成方向的条件分布 $p_\theta(x\mid z)$ 表示。映射给出类别或低维表示，$p_\theta(z\mid x)$ 表示给定观测后的潜在状态不确定性；若用 $p_\theta(x\mid z)$ 描述数据生成，还需要指定潜在变量的分布，才能确定完整的观测模型。
+\end{definition}
+
+教材用“压缩”概括发现结构的共同思路：聚类用较少的类别概括大量样本，降维用较少的坐标概括高维特征，概率模型用共享的结构与参数概括样本的分布。按式~\eqref{eq:lh-unsup-data-matrix} 的约定，这分别对应样本之间的结构、特征之间的结构，以及两者的联合结构；教材称其为纵向、横向及纵横向结构。这是一种组织问题的直观方式，而不是对所有算法的严格分类，例如协同聚类（co-clustering）会同时对样本和特征分组。
+
+\emph[caution]{压缩所得的结构取决于模型、损失和数据表示。}若不限制表示的维数、类别数或模型复杂度，逐点记忆样本也可能取得很小的训练损失，却没有解释或推广能力；反过来，过度压缩又会抹去有用差异。因此，“损失较小的压缩揭示本质结构”应理解为建模动机，不能视为保证发现真实语义类别的定理。距离的选择、特征尺度、复杂度限制和领域知识共同决定哪些差异被保留。
+
+无监督学习既可直接用于已有数据的探索、可视化和结构分析，也可作为监督学习的前处理，例如先学到低维表示，再训练分类器。若模型还定义了新样本的映射或概率分布，就可以用于新数据的表示、归类或概率评价；但某些方法只给出训练样本上的分组或坐标，不能未经额外定义就当作适用于任意输入的预测函数。没有外部标签使评价更依赖目标与假设，增加数据量也不能代替对这些假设的检查。
+
+\section{基本问题}
+\label{sec:lh-unsup-problems}
+
+\subsection{聚类}
+\label{subsec:lh-unsup-clustering}
+
+\emph{聚类}（clustering）依据给定的相似性或距离，将样本组织成若干组，使同组样本在所选标准下较相似。类别不是训练数据附带的答案，而是学习结果；类别数 $K$ 可以预先指定，也可以按模型选择规则决定。对欧氏数据，距离常由特征向量计算，但“距离近”并不自动等同于某种任务中的“语义相同”。
+
+\begin{definition}[硬聚类与概率软聚类]
+\label{def:lh-unsup-hard-soft}
+给定 $K$ 个类别，\emph{硬聚类}（hard clustering）将每个样本分配给唯一类别 $z_j\in\{1,\ldots,K\}$。若要求各类非空，则得到样本索引集的划分 $\mathcal C_1,\ldots,\mathcal C_K$，满足
+\[
+\mathcal C_k\ne\varnothing,\qquad
+\mathcal C_k\cap\mathcal C_\ell=\varnothing\ (k\ne\ell),\qquad
+\bigcup_{k=1}^K\mathcal C_k=\{1,\ldots,N\}.
+\]
+本章用\emph{软聚类}（soft clustering）主要指概率形式：对第 $j$ 个样本输出隶属概率
+\begin{equation}
+r_{kj}=P_\theta(Z=k\mid X=x_j),\qquad
+r_{kj}\geq0,\qquad \sum_{k=1}^Kr_{kj}=1.
+\label{eq:lh-unsup-responsibility}
+\end{equation}
+它描述类别的不确定性，而不是同时断言样本具有多个已知的真实标签。取 $\arg\max_k r_{kj}$ 并指定平局规则，可以进一步得到硬分配。
+\end{definition}
+
+硬聚类可在模型定义了新样本规则时写成 $z=g_\theta(x)$，软聚类则写成条件分布 $P_\theta(Z\mid X=x)$。聚类与监督分类虽然都可能输出类别编号，但前者没有训练标签用于规定编号的语义；同时置换全部类别编号不会改变分组本身。层次聚类和 $K$ 均值聚类（$K$-means clustering）是硬聚类的典型方法，利用高斯混合模型后验概率进行分配则属于软聚类。
+
+\subsection{降维}
+\label{subsec:lh-unsup-dimension-reduction}
+
+\begin{definition}[降维]
+\label{def:lh-unsup-dimension-reduction}
+\emph{降维}（dimensionality reduction）将高维样本 $x\in\mathbb R^M$ 转换为较低维表示 $z\in\mathbb R^d$，其中 $d<M$，通常写成
+\begin{equation}
+z=g_\theta(x),\qquad
+\mathbf Z=(z_1,\ldots,z_N)\in\mathbb R^{d\times N}.
+\label{eq:lh-unsup-representation}
+\end{equation}
+学习的目标是在所选评价标准下，尽可能保留原数据中有用的信息或关系。$g_\theta$ 可以是线性映射，也可以是非线性映射；若先中心化再作线性投影，对原坐标而言得到的是仿射映射。
+\end{definition}
+
+降维常基于数据近似位于低维线性子空间或低维流形（manifold）的假设：样本的坐标很多，但独立变化的自由度较少。这个假设需要由数据与任务支持；任意高维数据都能被映射到低维空间，却不能因此保证信息没有损失。所谓保留信息可以具体指重构误差小、保留较大方差、保持局部邻域，或近似保持某类距离；这些目标一般并不等价。
+
+降维得到的坐标通常是多个原始特征的组合，因而不同于只挑选部分原坐标的特征选择。它也不同于聚类：降维输出连续表示，聚类输出分组或分组概率。低维图上出现分离的点群可以为后续分析提供线索，但不构成原数据必然含有相应真实类别的证明。
+
+\subsection{概率模型估计}
+\label{subsec:lh-unsup-probability-estimation}
+
+\emph{概率模型估计}（probability model estimation）假设观测数据来自某个概率模型，在预先给定的候选模型族内学习其参数，必要时还要选择具体结构。为区分结构与样本的潜在状态，记 $s$ 为全局模型结构，$\theta$ 为该结构下的参数，$Z$ 为单个样本的潜在变量。对离散潜在变量，生成模型满足
+\begin{equation}
+p_{\theta,s}(x,z)=P_{\theta,s}(Z=z)\,p_{\theta,s}(x\mid z),\qquad
+p_{\theta,s}(x)=\sum_zP_{\theta,s}(Z=z)\,p_{\theta,s}(x\mid z).
+\label{eq:lh-unsup-latent-model}
+\end{equation}
+若 $Z$ 连续，则相应地对潜在状态积分。观测数据的概率或密度来自边缘化，不能只指定一个条件分布 $p_{\theta,s}(x\mid z)$ 而省略潜在状态的分布。
+
+教材在概率模型估计的概述中还用隐式结构表示混合成分数或图结构。这里将这类模型层面的选择统一放入 $s$，避免与“某个样本属于哪个成分”的潜在变量 $Z$ 混淆。例如，高斯混合模型的结构可以包含成分数 $K$，潜在变量取值 $Z=k$ 表示样本来自第 $k$ 个成分，参数则包括混合权重、各成分均值与协方差。在本章的频率学派估计中，$\theta$ 是未知但固定的量；只有另行引入参数先验时，才对其作贝叶斯随机建模。
+
+对固定结构 $s$，假设观测 $x_1,\ldots,x_N$ 来自独立同分布抽样，极大似然策略为
+\begin{equation}
+\widehat\theta_s\in\underset{\theta\in\Theta_s}{\arg\max}\;
+\ell_s(\theta),\qquad
+\ell_s(\theta)=\sum_{j=1}^N\log p_{\theta,s}(x_j),
+\label{eq:lh-unsup-likelihood}
+\end{equation}
+其中 $\Theta_s$ 是容许的参数集合，上式以最大值存在为前提。模型可以是混合模型，也可以是用有向图或无向图表达依赖关系的概率图模型；学到模型后，边缘分布与条件分布在数学上随之确定，但高维模型中的具体推断仍可能需要近似计算。若没有潜在变量，则直接估计 $p_\theta(x)$，例如估计一个高斯分布的均值和协方差。
+
+\emph[caution]{模型结构选择与固定结构下的参数估计是不同问题。}增加成分或参数通常会提高模型拟合数据的能力，不能据此直接认定结构更好；还需要复杂度限制、正则化、先验或适当的验证准则。即使结构固定，有限的极大似然解也未必存在。例如，对至少含两个成分且不限制协方差的高斯混合模型，可以保持一个正权重成分对全部观测给出正密度，同时令另一个正权重成分的均值等于某个观测点、协方差趋于零；该点的密度趋于无穷，其他点的密度仍有正下界，故观测对数似然无上界。因此，写下极大化目标并不等于已经证明估计问题有良好解。
+
+概率估计与软聚类通过贝叶斯公式联系起来。固定结构并省略下标 $s$，设 $\pi_k=P_\theta(Z=k)$、$p_k(x)=p_\theta(x\mid Z=k)$，则在分母为正时
+\begin{equation}
+P_\theta(Z=k\mid X=x)
+=\frac{\pi_kp_k(x)}{\sum_{\ell=1}^K\pi_\ell p_\ell(x)}.
+\label{eq:lh-unsup-bayes-clustering}
+\end{equation}
+\begin{proof}
+由联合分布分解有 $p_\theta(x,Z=k)=\pi_kp_k(x)$，再对 $k$ 求和得到观测边缘分布，二者之比即为后验概率。若各类先验均为 $1/K$，公共因子约去，后验与类条件密度成正比；若先验不均匀，则不能丢掉权重 $\pi_k$。
+\end{proof}
+因此，先估计生成模型再计算类别后验，是实现软聚类的一条路线；并不是所有软分配方法都必须先构建生成模型。
+
+\section{机器学习三要素}
+\label{sec:lh-unsup-three-elements}
+
+无监督学习同样可以从\emph{模型、策略、算法}三个层面理解。模型规定允许怎样表示数据结构，策略规定怎样比较候选模型，算法则规定怎样从初值和训练数据求出具体结果。三者相互联系，但不能混为一谈：选定一个目标函数不等于给出了求解步骤，算法使目标值下降也不等于证明已经找到全局最优解。
+
+在聚类中，模型可以是 $K$ 个中心及最近中心分配规则，策略可以是最小化样本到所属中心的平方距离和，算法可以交替更新分配与中心。在降维中，模型可以是 $d$ 维正交投影，策略可以是最小化平方重构误差，算法可以使用特征值分解或奇异值分解（singular value decomposition，SVD）。在概率模型估计中，模型可以是给定成分数的混合分布，策略可以是极大化观测对数似然，算法则可以采用期望最大化（expectation-maximization，EM）等迭代方法。
+
+用一般记号表示，学习策略常写成
+\begin{equation}
+\min_{\theta\in\Theta}\;
+\frac1N\sum_{j=1}^NL(x_j;\theta)+\lambda\Omega(\theta),
+\qquad \lambda\geq0,
+\label{eq:lh-unsup-general-objective}
+\end{equation}
+其中 $L$ 是由建模目标决定的单样本损失，$\Omega$ 是可选的复杂度惩罚，$\Theta$ 可以包含维数、正交性或概率归一化等约束。这里没有监督标签并不妨碍定义损失，例如 $L=-\log p_\theta(x)$ 就给出负对数似然。某些方法还需要同时优化样本的潜在分配或表示，这些量也属于优化变量。
+
+教材列举的算法并不都归结为梯度下降：层次聚类逐步合并或分裂样本组，$K$ 均值采用交替更新，主成分分析可用矩阵分解求解，概率潜在语义分析和潜在狄利克雷分配则涉及潜在变量推断。是否需要迭代、是否有闭式步骤、能保证怎样的最优性或收敛性，都要结合具体模型与目标判断。
+
+\section{无监督学习方法}
+\label{sec:lh-unsup-methods}
+
+\subsection{聚类：用中心概括样本}
+\label{subsec:lh-unsup-kmeans}
+
+层次聚类用一系列嵌套的分组描述不同尺度的相似关系；$K$ 均值则直接用 $K$ 个中心代表样本。对 $1\leq K\leq N$，以 $\mu_k\in\mathbb R^M$ 表示第 $k$ 类中心，$z_j\in\{1,\ldots,K\}$ 表示第 $j$ 个样本的分配，$K$ 均值的典型目标为
+\begin{equation}
+\min_{\mu_1,\ldots,\mu_K,\,z_1,\ldots,z_N}
+J(\mu,z)=\sum_{j=1}^N\|x_j-\mu_{z_j}\|_2^2.
+\label{eq:lh-unsup-kmeans-objective}
+\end{equation}
+它用欧氏平方距离定义组内差异，并不是对任意形状、任意相似性标准都合适的聚类准则。特征单位的改变会改变距离和结果，因而是否需要标准化应由任务决定。
+
+给定初始中心，每轮先固定中心，按最近中心分配样本；再固定分配，取各组样本的均值：
+\begin{equation}
+z_j^{(t+1)}\in\underset{1\leq k\leq K}{\arg\min}\,
+\|x_j-\mu_k^{(t)}\|_2^2,\qquad
+\mu_k^{(t+1)}=\frac1{n_k^{(t+1)}}
+\sum_{j:z_j^{(t+1)}=k}x_j,
+\label{eq:lh-unsup-kmeans-updates}
+\end{equation}
+其中 $n_k^{(t+1)}$ 是新分配中第 $k$ 类的样本数，均值公式要求其大于 $0$。实现时需指定平局规则和空类处理方式，例如重新初始化空类的中心；还应输入迭代上限，并以分配不再变化或目标改变量足够小作为停止条件。达到上限时返回当前近似结果，而不能声称已得到最优解。
+
+\begin{proposition}[$K$ 均值正常更新的单调性]
+\label{prop:lh-unsup-kmeans-descent}
+在每一类均非空、两步均按式~\eqref{eq:lh-unsup-kmeans-updates} 执行时，一次分配更新和一次中心更新均不增加目标~\eqref{eq:lh-unsup-kmeans-objective}。因此连续正常更新所得目标值单调不增且有下界，从而收敛；这个结论本身不保证达到全局最小值。
+\end{proposition}
+\begin{proof}
+固定中心时，各样本对目标的贡献相互独立，选择最近中心逐项最小化平方距离。固定某一非空类 $\mathcal C_k$，记其均值为 $\bar x_k$，则对任意 $\mu$，
+\[
+\sum_{j\in\mathcal C_k}\|x_j-\mu\|_2^2
+=\sum_{j\in\mathcal C_k}\|x_j-\bar x_k\|_2^2
++|\mathcal C_k|\,\|\mu-\bar x_k\|_2^2.
+\]
+交叉项因 $\sum_{j\in\mathcal C_k}(x_j-\bar x_k)=0$ 而消失，故取均值最小化该类误差。对全部类求和即得第二步的单调性；目标非负，故单调目标值有极限。
+\end{proof}
+
+\begin{example}
+\label{ex:lh-unsup-kmeans}
+取五个二维样本 $A=(0,0)$、$B=(0,2)$、$C=(1,1)$、$D=(4,3)$、$E=(4,5)$，令 $K=2$，初始中心为 $\mu_1^{(0)}=A$、$\mu_2^{(0)}=D$。求一次完整更新后的分组、中心与组内平方误差。
+\end{example}
+\begin{solve}
+比较到两中心的距离，得到第一组为 $A,B,C$，第二组为 $D,E$，在旧中心下的目标值为 $0+4+2+0+4=10$。更新后的中心为 $\mu_1^{(1)}=(1/3,1)$、$\mu_2^{(1)}=(4,4)$，故
+\[
+J=\frac{10}{9}+\frac{10}{9}+\frac49+1+1
+=\frac{14}{3}<10.
+\]
+再次分配时分组不变。这给出了当前初始化得到的稳定分组，但这一计算没有穷尽全部分组，不能单凭停止就宣称全局最优。一次稠密的分配与均值更新需要 $O(NKM)$ 次量级的运算，若执行 $T$ 轮，总时间量级为 $O(TNKM)$。
+\end{solve}
+
+\subsection{降维：用低维坐标保留主要变化}
+\label{subsec:lh-unsup-pca}
+
+\emph{主成分分析}（principal component analysis，PCA）提供了一个目标明确的线性降维例子。记样本均值为 $\bar x=N^{-1}\sum_jx_j$，中心化数据矩阵为 $\mathbf X_c=(x_1-\bar x,\ldots,x_N-\bar x)$，经验协方差矩阵取
+\[
+S=\frac1N\mathbf X_c\mathbf X_c^{\mathsf T}\in\mathbb R^{M\times M}.
+\]
+这里使用分母 $N$，改用 $N-1$ 只改变整体尺度，不改变主方向。令 $W=(w_1,\ldots,w_d)\in\mathbb R^{M\times d}$，约束 $W^{\mathsf T}W=I_d$，以
+\begin{equation}
+z_j=W^{\mathsf T}(x_j-\bar x),\qquad
+\widehat x_j=\bar x+Wz_j
+\label{eq:lh-unsup-pca-encoding}
+\end{equation}
+分别表示低维坐标和正交投影重构。
+
+\begin{proposition}[PCA 的两个等价目标]
+\label{prop:lh-unsup-pca-objective}
+在上述欧氏平方损失与正交约束下，最小化重构误差
+\begin{equation}
+\min_{W^{\mathsf T}W=I_d}
+\sum_{j=1}^N\|(x_j-\bar x)-WW^{\mathsf T}(x_j-\bar x)\|_2^2
+\label{eq:lh-unsup-pca-reconstruction}
+\end{equation}
+等价于最大化保留的总方差 $\operatorname{tr}(W^{\mathsf T}SW)$。若 $S$ 的特征值为 $\lambda_1\geq\cdots\geq\lambda_M\geq0$，取前 $d$ 个特征向量作为 $W$ 的列即可达到最优，最小重构误差为 $N\sum_{i=d+1}^M\lambda_i$。
+\end{proposition}
+\begin{proof}
+$WW^{\mathsf T}$ 是正交投影矩阵，由勾股分解可得总误差为
+\[
+\sum_j\|x_j-\bar x\|_2^2
+-\sum_j\|W^{\mathsf T}(x_j-\bar x)\|_2^2
+=N\operatorname{tr}(S)-N\operatorname{tr}(W^{\mathsf T}SW).
+\]
+第一项与 $W$ 无关，故得到两个目标的等价性。设 $u_i$ 是 $S$ 的一组标准正交特征向量，令 $a_i=\sum_{q=1}^d(u_i^{\mathsf T}w_q)^2$，则 $0\leq a_i\leq1$、$\sum_i a_i=d$，并且
+\[
+\operatorname{tr}(W^{\mathsf T}SW)=\sum_{i=1}^M\lambda_i a_i
+\leq\sum_{i=1}^d\lambda_i.
+\]
+最后的不等式可由把权重从较小特征值移向尚未取满的较大特征值得到。取 $w_q=u_q$ 时达到等号，将其代回误差表达式即得结论。
+\end{proof}
+
+若截断处有特征值重合，最优子空间可能不唯一；即使子空间唯一，其中的正交坐标基也不唯一。对 $\mathbf X_c$ 作 SVD 时，其左奇异向量给出同样的主方向，因此矩阵分解是实现这一目标的算法工具。非线性降维则需要另选映射族与评价准则，不能直接套用以上线性投影结论。
+
+\begin{example}
+\label{ex:lh-unsup-pca}
+样本为 $x_j=(t_j,2t_j)^{\mathsf T}$，其中 $t_j\in\{-2,-1,1,2\}$。求一个无重构损失的一维表示，并说明两个原特征之间的关系。
+\end{example}
+\begin{solve}
+样本均值为零，协方差矩阵为
+\[
+S=\frac52\begin{pmatrix}1&2\\2&4\end{pmatrix}.
+\]
+其特征值为 $25/2$ 和 $0$，第一主方向可取 $w_1=(1,2)^{\mathsf T}/\sqrt5$。于是 $z_j=w_1^{\mathsf T}x_j=\sqrt5\,t_j$，且 $w_1z_j=x_j$，重构误差为零。虽然观测有两个坐标，但它们满足第二坐标恒为第一坐标的两倍，样本实际位于一维子空间中。
+\end{solve}
+
+这个例子说明了“高维观测、低维结构”的含义。实际数据有噪声时，舍弃方向通常带来非零重构误差；保留最大方差也不保证保留某个监督任务中最有区分力的信息。教材用高维样本投影到二维后的点群说明探索性分析的用途，应将这种可视化观察与已经验证的类别结论区分开。
+
+\subsection{话题分析：文本的低维与概率表示}
+\label{subsec:lh-unsup-topic-analysis}
+
+\emph{话题分析}（topic analysis）希望从文档集合中发现语义相关的词语组，并描述每个文档由哪些话题构成。设词表大小为 $V$、文档数为 $D$，用词频矩阵 $\mathbf C\in\mathbb R^{V\times D}$ 表示语料，其中 $c_{vd}$ 是第 $v$ 个词在第 $d$ 个文档中的出现次数。这是式~\eqref{eq:lh-unsup-data-matrix} 的一个实例：特征是词，样本是文档；采用词频后，模型主要分析词的出现与共现，并未保留完整词序。
+
+从降维角度，\emph{潜在语义分析}（latent semantic analysis，LSA）利用矩阵分解构造较低维的文档和词语表示，例如用截断 SVD 得到
+\[
+\mathbf C\approx U_K\Sigma_KV_K^{\mathsf T},
+\qquad K<\min\{V,D\}.
+\]
+这种线性表示的坐标可以带符号，不能未经额外约束就解释为话题概率。从概率估计角度，则可将话题表示为词上的分布，将文档表示为话题上的分布。
+
+具体地，设话题数为 $K$，记 $\varphi_{kv}=P(\text{词}=v\mid\text{话题}=k)$、$\vartheta_{dk}=P(\text{话题}=k\mid\text{文档}=d)$，满足 $\varphi_{kv},\vartheta_{dk}\geq0$、$\sum_v\varphi_{kv}=1$、$\sum_k\vartheta_{dk}=1$。在这类混合表示中，文档内一个词的边缘分布为
+\begin{equation}
+P(\text{词}=v\mid\text{文档}=d)
+=\sum_{k=1}^K\vartheta_{dk}\varphi_{kv}.
+\label{eq:lh-unsup-topic-mixture}
+\end{equation}
+\emph{概率潜在语义分析}（probabilistic latent semantic analysis，PLSA）使用这种话题混合结构建模词与文档的关系；\emph{潜在狄利克雷分配}（latent Dirichlet allocation，LDA）进一步以狄利克雷分布（Dirichlet distribution）对文档的话题比例作生成建模，常见的贝叶斯形式也对话题的词分布设置先验。这里仅交代模型之间的联系，参数估计和后验推断留待相应专章；马尔可夫链蒙特卡罗法（Markov chain Monte Carlo，MCMC）是相关概率推断工具之一，并非话题模型本身。
+
+\begin{example}
+\label{ex:lh-unsup-topic-mixture}
+取六个词 $w_1,\ldots,w_6$，用两个理想化话题分布
+\[
+\varphi_1=(1/3,1/3,1/3,0,0,0),\qquad
+\varphi_2=(0,0,0,1/3,1/3,1/3)
+\]
+说明文档的混合表示。若某文档的话题比例为 $(3/4,1/4)$，求其词分布。
+\end{example}
+\begin{solve}
+由式~\eqref{eq:lh-unsup-topic-mixture}，前三个词各以概率 $(3/4)(1/3)=1/4$ 出现，后三个词各以概率 $(1/4)(1/3)=1/12$ 出现，总概率为 $3/4+1/4=1$。文档同时含有两个话题，只是比例不同，因此话题分析一般不是把每篇文档硬分配到唯一类别。这里的稀疏分布是人为给定的理想例子，不是声称从某个语料训练 LDA 后必然得到这些参数。
+\end{solve}
+
+可靠的话题发现需要语料提供足够的词语共现信息；少量、过短或缺乏差异的文档往往难以支持稳定的结构估计，但不存在脱离模型与数据条件的统一最少文档数。即使拟合较好，话题编号仍可置换，词语组的语义解释也需要结合内容核查，不能把模型分量直接当成人工定义的标准类别。
+
+\subsection{图分析：随机游走与结点重要性}
+\label{subsec:lh-unsup-graph-analysis}
+
+\emph{图分析}（graph analytics）研究以图表示的实体关系，数据可以是有向图、无向图或超图。\emph{链接分析}（link analysis）是其中一类问题，关注链接结构所反映的结点关系与重要性。PageRank 将有向图上的访问过程表示为随机游走（random walk），用长期访问概率定义一种结点重要性，因此不需要预先标注哪些结点重要。
+
+设有向图有 $n$ 个结点，暂设每个结点的出度 $d_j^+>0$。采用列表示出发结点的约定，定义转移矩阵
+\begin{equation}
+P_{ij}=\begin{cases}
+1/d_j^+,&\text{存在从结点 $j$ 到结点 $i$ 的边},\\
+0,&\text{否则}.
+\end{cases}
+\qquad \sum_{i=1}^nP_{ij}=1.
+\label{eq:lh-unsup-graph-transition}
+\end{equation}
+若 $q_j^{(t)}$ 是第 $t$ 步处于结点 $j$ 的概率，$q^{(t)}$ 是相应列向量，则全概率公式给出
+\begin{equation}
+q^{(t+1)}=Pq^{(t)},\qquad
+q^{(0)}\geq0,\qquad \mathbf1^{\mathsf T}q^{(0)}=1,
+\label{eq:lh-unsup-random-walk}
+\end{equation}
+其中 $\mathbf1$ 是全 $1$ 列向量。\emph{平稳分布}（stationary distribution）是满足 $q^*=Pq^*$、$q^*\geq0$、$\mathbf1^{\mathsf T}q^*=1$ 的概率向量；一旦访问分布等于它，下一步仍保持不变。
+
+\emph[caution]{存在平稳分布与从任意初值迭代收敛是不同结论。}有限状态链有平稳分布；不可约时平稳分布唯一，进一步非周期时，式~\eqref{eq:lh-unsup-random-walk} 才保证从任意初始分布收敛到它。不可约指任意两个状态之间均可沿正概率转移到达；非周期指返回某状态的所有可能正步数的最大公约数为 $1$，不可约链的各状态周期相同。这些是有限状态马尔可夫链的标准结论，证明留待相关专章。作为反例，只有 $A\to B$、$B\to A$ 的二结点图有唯一平稳分布 $(1/2,1/2)^{\mathsf T}$，但从 $(1,0)^{\mathsf T}$ 出发的分布在两个状态间交替，并不收敛。
+
+\begin{example}
+\label{ex:lh-unsup-pagerank}
+另取三结点图，边为 $A\to B$、$A\to C$、$B\to C$、$C\to A$。按结点顺序 $A,B,C$ 写出转移矩阵并求平稳分布。
+\end{example}
+\begin{solve}
+从 $A$ 出发以各 $1/2$ 的概率访问 $B,C$，从 $B,C$ 出发分别必到 $C,A$，故
+\[
+P=\begin{pmatrix}0&0&1\\1/2&0&0\\1/2&1&0\end{pmatrix}.
+\]
+平稳方程给出 $q_A^*=q_C^*$、$q_B^*=q_A^*/2$；再由概率和为 $1$，得到 $q^*=(2/5,1/5,2/5)^{\mathsf T}$。该图强连通，且从 $A$ 返回 $A$ 有长度为 $2$ 和 $3$ 的回路，所以对应链不可约且非周期，迭代从任意概率初值收敛。均匀初值的下一步为 $(1/3,1/6,1/2)^{\mathsf T}$，已经不同于均匀分布，说明链接关系会改变长期访问权重。
+\end{solve}
+
+真实链接图可能含有出度为零的悬挂结点，也可能不强连通或有周期。为补足教材概述中的收敛条件，可先用一个严格正的概率向量 $v$ 替代悬挂结点对应的转移列，再引入阻尼系数 $0<\alpha<1$，每步以概率 $\alpha$ 沿图转移，以概率 $1-\alpha$ 按 $v$ 重新选择结点。此时
+\begin{equation}
+G=\alpha P+(1-\alpha)v\mathbf1^{\mathsf T},\qquad
+q^{(t+1)}=\alpha Pq^{(t)}+(1-\alpha)v.
+\label{eq:lh-unsup-damped-pagerank}
+\end{equation}
+这是对基本随机游走模型的补充，并非假定任意原图已经满足收敛条件。
+
+\begin{proposition}[阻尼迭代的唯一性与收敛性]
+\label{prop:lh-unsup-pagerank-contraction}
+设 $P$ 非负且每列之和为 $1$，$v$ 是概率向量，$0<\alpha<1$。则式~\eqref{eq:lh-unsup-damped-pagerank} 在概率向量集合中有唯一不动点 $q^*$，从任意概率初值出发均收敛，且
+\begin{equation}
+\|q^{(t)}-q^*\|_1\leq\alpha^t\|q^{(0)}-q^*\|_1
+\leq2\alpha^t,
+\label{eq:lh-unsup-pagerank-rate}
+\end{equation}
+其中 $\|a\|_1=\sum_i|a_i|$。此结论只需 $v$ 为概率向量；取其各分量严格正，还使 $G$ 的全部元素为正。
+\end{proposition}
+\begin{proof}
+对任意向量 $a$，由三角不等式和列和约束有
+\[
+\|Pa\|_1\leq\sum_i\sum_jP_{ij}|a_j|
+=\sum_j|a_j|=\|a\|_1.
+\]
+令 $T(q)=\alpha Pq+(1-\alpha)v$，则 $T$ 将概率向量映为概率向量，且 $\|T(q)-T(r)\|_1\leq\alpha\|q-r\|_1$。连续迭代满足 $\|q^{(t+1)}-q^{(t)}\|_1\leq\alpha^t\|q^{(1)}-q^{(0)}\|_1$，几何级数的尾和趋于零，所以迭代是柯西列。概率向量集合闭，故极限仍在其中；由连续性极限是不动点。若存在两个不动点，其距离不超过自身的 $\alpha$ 倍，只能相等。最后反复应用压缩不等式，并用任意两个概率向量的 $1$ 范数距离至多为 $2$，得到误差界。
+\end{proof}
+
+实际算法输入图、$\alpha$、$v$、误差容限 $\varepsilon>0$ 与迭代上限，从均匀分布等概率初值开始反复更新。由同一压缩不等式可得 $\|q-q^*\|_1\leq\|q-T(q)\|_1/(1-\alpha)$，因此当一步残差不超过 $(1-\alpha)\varepsilon$ 时，当前结果与不动点的距离不超过 $\varepsilon$；否则继续迭代或在达到上限时报告近似结果。若按稀疏边表计算并单独累计悬挂结点概率，每轮运算量为 $O(|E|+n)$，其中 $|E|$ 为边数，无须显式存储稠密矩阵 $G$。
+
+在没有阻尼且满足平稳方程时，一个结点接收的权重为各入链来源结点权重除以其出度后的总和；在阻尼模型中，还要乘以 $\alpha$ 并加上重启项。因此，重要性取决于来源结点的重要程度与其分配给该边的份额，而不仅是入度，也不能保证多一条入边就一定在整个图中排名更高。PageRank 最初的网页链接解释可由此理解：网页是结点，超链接是有向边，长期访问概率提供一种结构性排序信号，而不是网页内容质量的绝对度量。
+
+本章的三类基本问题与四类应用并非互斥分类：概率模型可以导出软聚类，话题分析可以采用降维或概率建模，图分析可以利用概率转移刻画关系结构。阅读后续具体方法时，应始终对应其数据表示、待学习对象、优化或估计准则以及算法适用条件，判断所得结构在何种意义下概括了原始数据。
+
+% 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-14.pdf。
+% 对应教材第 14 章，原书第 255--269 页；本文件沿用自动章节编号。
+
+
+
+

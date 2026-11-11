@@ -1,0 +1,150 @@
+% !TeX root = ../凸优化笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{6} % 保留原书章号。
+\chapter{统计估计与实验设计}
+\label{ch:co-statistics}
+
+统计模型决定数据的分布及未知参数，优化决定按某个准则选择哪一个参数值。一个估计问题是否凸，取决于参数化、参数域和目标函数；统计一致性、偏差与泛化性质则需要另外的概率分析。
+
+例如投掷一枚硬币十次看到七次正面，统计建模首先决定是否把十次结果看成具有同一成功概率的独立伯努利观测；只有接受这个模型，才有下面的似然函数。优化随后回答“哪个参数让已观察到的数据具有最大似然”。计算出 $0.7$ 并不表示硬币的真实正面概率被精确确定，抽样误差仍需置信区间或后验分布等工具描述。
+
+\section{参数估计与最大似然}
+
+设随机观测 $Z_1,\ldots,Z_N$ 在参数 $\theta\in\Theta\subseteq\mathbb R^d$ 下独立，其观测值为 $z_1,\ldots,z_N$，概率质量函数或密度为 $p_\theta$。最大似然估计（maximum likelihood estimation，MLE）最大化观测数据的似然，等价于
+\begin{equation}
+ \widehat\theta\in\mathop{\mathrm{arg\,min}}_{\theta\in\Theta}
+ \left\{-\sum_{i=1}^N\log p_\theta(z_i)\right\}.
+ \label{eq:co-mle}
+\end{equation}
+零概率对应负对数似然 $+\infty$。当 $\Theta$ 凸且各负对数似然关于 $\theta$ 凸时，这是凸问题。若观测不独立，应使用联合密度，不能直接写成上述乘积或求和。
+
+对数变换有两个用途：它严格递增，因此不改变最大化的位置；它把独立观测的概率乘积变为求和，便于求导。似然是把数据固定后视为参数的函数，不是参数本身的概率分布。连续观测使用的是密度值，密度可以大于一，也不能把单个点的密度当作该点的概率。
+
+\begin{example}[伯努利参数]
+独立观测 $z_i\in\{0,1\}$，成功概率为 $q\in[0,1]$，记 $S=\sum_i z_i$。负对数似然为 $-S\log q-(N-S)\log(1-q)$。当 $0<S<N$ 时，令导数 $-S/q+(N-S)/(1-q)=0$，得到唯一解 $\widehat q=S/N$。当 $S=0$ 或 $S=N$ 时，解分别为端点 $0,1$，相应零计数项按连续延拓处理。
+\end{example}
+
+指数族在自然参数 $\theta$ 下写成 $p_\theta(z)=h(z)\exp(\theta^{\mathsf T}T(z)-A(\theta))$。对数配分函数 $A$ 凸，所以负对数似然是凸函数加仿射项。常用例子是逻辑回归：给定特征 $a_i$ 和标签 $y_i\in\{0,1\}$，目标为
+\[
+ \sum_i\bigl[\log(1+e^{a_i^{\mathsf T}\theta})-y_i a_i^{\mathsf T}\theta\bigr].
+\]
+海塞矩阵为 $\sum_iq_i(1-q_i)a_i a_i^{\mathsf T}\succeq0$，其中 $q_i=(1+e^{-a_i^{\mathsf T}\theta})^{-1}$。数据完全可分时，无正则项的最优值可能只在参数范数趋于无穷时逼近，凸性并不保证有限最优参数。
+
+上式可从伯努利模型逐步得到。令 $s_i=a_i^{\mathsf T}\theta$，通过 $q_i=1/(1+e^{-s_i})$ 把任意实数分数转为概率，则单点似然为 $q_i^{y_i}(1-q_i)^{1-y_i}$。取负对数并化简，得到 $\log(1+e^{s_i})-y_i s_i$；对 $\theta$ 求导得到 $(q_i-y_i)a_i$。梯度因此由“预测概率减观测标签”乘以特征向量组成。
+
+\begin{example}[只有截距的逻辑回归]
+十个二元标签中有七个一、三个零，所有特征都为 $a_i=1$，求逻辑回归参数。
+\end{example}
+\begin{solve}
+目标为 $F(\theta)=10\log(1+e^\theta)-7\theta$，梯度为 $10q-7$，所以 $q^\star=0.7$、$\theta^\star=\log(7/3)$。概率参数 $q$ 与对数优势参数 $\theta=\log(q/(1-q))$ 表示同一个模型，却使用不同坐标。若十个标签全为一，目标变成 $10\log(1+e^{-\theta})$，下确界为零，只能在 $\theta\to+\infty$ 时逼近；改回闭区间上的概率参数则有端点解 $q=1$。域的选择决定最优参数是否存在。
+\end{solve}
+
+指数族的配分函数也有类似的凸性原因。对有限支持，若 $Z(\theta)=\sum_z h(z)e^{\theta^{\mathsf T}T(z)}$、$A(\theta)=\log Z(\theta)$，直接求导得 $\nabla A(\theta)=\mathbb E_\theta T(Z)$，$\nabla^2 A(\theta)=\operatorname{Cov}_\theta(T(Z))\succeq0$。协方差半正定解释了自然参数下的凸性；连续支持时须先保证积分存在，并验证允许把微分移入积分号的条件。
+
+\section{最大后验估计与正则化}
+
+给定先验密度 $\pi(\theta)$，最大后验估计（maximum a posteriori estimation，MAP）最小化
+\[
+ -\sum_i\log p_\theta(z_i)-\log\pi(\theta),
+\]
+其中省略与 $\theta$ 无关的归一化常数。若似然和先验关于参数均对数凹，且共同支持集凸，则负对数后验凸。高斯先验产生平方正则项，独立拉普拉斯先验产生绝对值正则项；尺度决定对应系数。
+
+\begin{example}[高斯均值的 MAP]
+设 $Z_i\mid\theta\sim N(\theta,\sigma^2)$ 独立，$\sigma^2>0$ 已知；先验为 $\theta\sim N(m_0,\tau^2)$，$\tau^2>0$。负对数后验除常数外为
+\[
+ \frac1{2\sigma^2}\sum_i(z_i-\theta)^2+\frac1{2\tau^2}(\theta-m_0)^2.
+\]
+其唯一最小点为
+\[
+ \widehat\theta_{\mathrm{MAP}}
+ =\frac{(N/\sigma^2)\bar z+(1/\tau^2)m_0}{N/\sigma^2+1/\tau^2},
+ \qquad \bar z=\frac1N\sum_i z_i.
+\]
+这按精度对样本均值和先验均值加权。本例后验为高斯，众数与均值相同；一般 MAP 只给出后验众数，不能替代整个后验分布。
+\end{example}
+
+\section{有限支持上的分布估计}
+
+在给定有限支持 $\{z_1,\ldots,z_s\}$ 上，以概率向量 $q\in\Delta_s$ 为变量。已知矩条件可写为 $Bq=c$，例如均值条件 $\sum_jq_jz_j=\mu$。熵（entropy）为 $H(q)=-\sum_jq_j\log q_j$，约定 $0\log0=0$。由于 $t\log t$ 在 $t>0$ 上凸且可连续延拓到零，最大熵模型
+\[
+ \max_{q\geq0}\ H(q),\qquad \mathbf1^{\mathsf T}q=1,\quad Bq=c
+\]
+是凸优化。若可行集非空，它紧且熵连续，因此最优解存在；熵严格凹，故解唯一。
+
+无矩约束时，对称性和 Jensen 不等式给出均匀分布 $q_j=1/s$。若最优解全部为正，对负熵写 KKT 可得 $q_j$ 与 $\exp(-b_j^{\mathsf T}\nu)$ 成比例，其中 $b_j$ 为 $B$ 的第 $j$ 列，乘子 $\nu$ 由矩约束确定。
+
+给定参考分布 $r$，相对熵（relative entropy）为 $D(q\|r)=\sum_jq_j\log(q_j/r_j)$。当 $q_j>0,r_j=0$ 时定义该项为 $+\infty$；$q_j=0$ 时定义为零。固定 $r$ 时它关于 $q$ 凸。有限支持上的优化是有限维问题，将连续分布离散化后得到的解只对该离散模型直接最优。
+
+相对熵虽常用于衡量分布差别，却不是对称距离。例如一般有 $D(q\|r)\ne D(r\|q)$。其非负性可由 $\log u\leq u-1$ 推出：对所有 $q_j>0$ 的项取 $u=r_j/q_j$，得到
+\[
+ D(q\|r)\geq\sum_{j:q_j>0}(q_j-r_j)\geq0.
+\]
+若某个 $q_j>0$ 而 $r_j=0$，则非负性由无穷值约定直接成立。有限值时等号最终要求 $q=r$。这既说明参考分布本身代价最低，也说明支持集的零概率不能随意忽略。
+
+\section{检测器设计与假设检验}
+
+考虑两个假设 $H_0,H_1$，观测只能取有限值 $z_1,\ldots,z_s$，相应已知概率为 $p_{0\ell},p_{1\ell}$。令 $t_\ell\in[0,1]$ 表示观测 $z_\ell$ 后判为 $H_1$ 的概率。$t_\ell\in\{0,1\}$ 对应确定性检测器，允许区间值则为随机检测器（randomized detector）。
+
+虚警率为 $\alpha(t)=\sum_\ell p_{0\ell}t_\ell$，漏检率为 $\beta(t)=\sum_\ell p_{1\ell}(1-t_\ell)$。给定虚警上限 $a\in[0,1]$，最小化 $\beta(t)$，满足 $\alpha(t)\leq a$、$0\leq t\leq1$，是 LP。
+
+对虚警约束引入乘子 $\lambda\geq0$，拉格朗日目标中 $t_\ell$ 的系数为 $\lambda p_{0\ell}-p_{1\ell}$。故当该系数为负时选 $t_\ell=1$，为正时选零，相等时可随机化。对于 $p_{0\ell}>0$，这就是按似然比 $p_{1\ell}/p_{0\ell}$ 与阈值比较；阈值由虚警限制决定。优化变量是决策规则，输入分布是模型给定的数据。
+
+\begin{example}[随机化为什么会改善检测器]
+观测只有两个取值，两假设下的分布分别为 $p_0=(0.8,0.2)$、$p_1=(0.2,0.8)$，允许虚警率不超过 $0.1$。
+\end{example}
+\begin{solve}
+确定性检测器若在任一观测上判为 $H_1$，虚警至少为 $0.2$，因此唯一可行选择是永远判为 $H_0$，漏检率为一。允许随机化后取 $t=(0,1/2)$，虚警为 $0.1$、漏检为 $0.6$。这是最优的，因为检测成功率满足
+\[
+ 0.2t_1+0.8t_2\leq4(0.8t_1+0.2t_2)\leq0.4,
+\]
+而该规则恰好达到 $0.4$。随机化将离散规则的可行集合扩展为凸集，并在这个例子中带来严格改善。
+\end{solve}
+
+\section{概率界与优化表达}
+
+对非负随机变量 $Y$ 和 $a>0$，$\mathbb EY\geq a\mathbb P(Y\geq a)$ 给出 Markov 不等式。若 $Z$ 的均值为 $\mu$、方差为 $\sigma^2<\infty$，令 $Y=(Z-\mu)^2$，得切比雪夫界（Chebyshev bound）
+\[
+ \mathbb P(|Z-\mu|\geq a)\leq\sigma^2/a^2.
+\]
+若 $M_Z(t)=\mathbb E e^{tZ}$ 在某个 $t>0$ 处有限，再对 $e^{tZ}$ 使用 Markov 不等式，得到 Chernoff 界
+\[
+ \mathbb P(Z\geq a)\leq\inf_{t\geq0:\,M_Z(t)<\infty}
+       \exp\bigl(\log M_Z(t)-ta\bigr).
+\]
+对数矩母函数在有限性区间上凸；可由 Hölder 不等式得到。因此选取最紧的这一类上界是一个单变量凸问题。所得仍是概率的上界，不一定等于真实概率。
+
+若只知道有限支持上的若干矩，最大化指定事件的概率等于最大化 $\sum_{j:z_j\in E}q_j$，满足概率和矩约束，这是 LP。对连续支持，变量变为概率分布本身；有限维近似或矩方法给出的界应与原分布问题区分。
+
+\section{实验设计与信息矩阵}
+
+在线性观测模型 $Y=a_i^{\mathsf T}\theta+\varepsilon$ 中，假设噪声独立、均值为零且方差为已知 $\sigma^2$；若解释为 Fisher 信息，再假设噪声为高斯。候选测量向量为 $a_1,\ldots,a_s\in\mathbb R^d$，连续设计权重满足 $w\in\Delta_s$，定义归一化信息矩阵
+\[
+ M(w)=\sum_iw_i a_i a_i^{\mathsf T}.
+\]
+总测量数为 $N$、且各方向次数为 $Nw_i$ 时，总信息为 $NM(w)/\sigma^2$。在 $M(w)\succ0$ 的域上，D-最优设计最小化 $-\log\det M(w)$；A-最优设计最小化 $\operatorname{tr}(M(w)^{-1})$；E-最优设计最大化最小特征值，可写为最大化 $t$，满足 $M(w)\succeq tI$。
+
+这些准则来自估计误差的方向性。将实际测量向量组成设计矩阵 $A$，若满列秩且噪声协方差为 $\sigma^2I$，最小二乘估计满足
+\[
+ \widehat\theta-\theta=(A^{\mathsf T}A)^{-1}A^{\mathsf T}\varepsilon,
+ \qquad
+ \operatorname{Cov}(\widehat\theta)=\sigma^2(A^{\mathsf T}A)^{-1}.
+\]
+当 $A^{\mathsf T}A=NM(w)$ 时，信息矩阵某方向上的特征值越小，该方向上的估计方差越大。因此只测量一个方向，即使次数很多，也可能完全无法识别与它正交的参数。设计问题调整的是未来采集数据的比例，区别于拿到数据之后再拟合参数。
+
+A-最优设计的凸性可由 Schur 补看出：引入对称矩阵 $Z$，最小化 $\operatorname{tr}Z$，满足
+\[
+ \begin{bmatrix}M(w)&I\\I&Z\end{bmatrix}\succeq0,
+\]
+即要求 $Z\succeq M(w)^{-1}$。这些设计分别控制误差椭球体积、平均方差和最不利方向信息；连续权重是整数次数的松弛，取整后须重新检查矩阵的秩与目标值。
+
+\section{例题与学习检查}
+\begin{example}[两个正交测量方向]
+设 $a_1=(1,0)^{\mathsf T}$、$a_2=(0,1)^{\mathsf T}$，则 $M(w)=\operatorname{diag}(w,1-w)$，$0<w<1$。D-最优设计最大化 $w(1-w)$，A-最优设计最小化 $1/w+1/(1-w)$，E-最优设计最大化 $\min\{w,1-w\}$；三者均在 $w=1/2$ 取最优。这一重合来自该例的对称性，并非一般结论。
+\end{example}
+\begin{enumerate}
+ \item 推导独立 Poisson 观测的均值参数最大似然估计，分别在均值参数和对数均值参数下判断凸性。
+ \item 在三点支持 $\{0,1,2\}$ 上最大化熵，要求均值为 $1$。验证均匀分布最优，并说明只给定归一化与均值时为何解仍唯一。
+ \item 对 $Z\sim N(0,1)$，用 $\log M_Z(t)=t^2/2$ 优化 Chernoff 界，求 $a\geq0$ 时的结果 $e^{-a^2/2}$。
+ \item 综合练习：给只有截距的逻辑回归加入 $\alpha\theta^2/2$，$\alpha>0$。证明无论二元标签怎样分布，最优参数都存在且唯一。提示：平方项给出强凸性和强制性，不需要假设样本中两类都出现。
+\end{enumerate}
+

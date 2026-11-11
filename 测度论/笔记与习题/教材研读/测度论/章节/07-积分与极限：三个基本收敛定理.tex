@@ -1,0 +1,158 @@
+% !TeX root = ../测度论笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{6} % 保留原书章号。
+\chapter{积分与极限：三个基本收敛定理}
+\label{chap:mt-convergence}
+
+\section{单调收敛定理}
+\begin{theorem}[单调收敛定理]
+若 $0\leq f_n\uparrow f$，则
+\begin{equation}
+ \lim_{n\to\infty}\int f_n\,\mathrm d\mu=\int f\,\mathrm d\mu.
+ \label{eq:mt-mct}
+\end{equation}
+两侧允许为 $+\infty$。这一结论称为\emph{单调收敛定理（monotone convergence theorem）}。
+\label{thm:mt-mct}
+\end{theorem}
+\begin{proof}
+由保序性，$L=\lim_n\int f_n$ 存在，且 $L\leq\int f$。为证明反向不等式，任取非负简单函数 $s=\sum_{j=1}^{m}a_j\mathbf1_{A_j}\leq f$ 和 $0<c<1$，其中各 $a_j>0$、各 $A_j$ 两两不交。令 $E_n=\{f_n\geq cs\}\cap\{s>0\}$，则 $E_n\uparrow\{s>0\}$，因为 $f\geq s>cs$ 在该集合成立。因此
+\[
+ \int f_n\geq c\sum_{j=1}^{m}a_j\mu(A_j\cap E_n)
+ \longrightarrow c\sum_{j=1}^{m}a_j\mu(A_j)=c\int s.
+\]
+这里仅用了测度的从下连续性。令 $c\uparrow1$，再对所有 $s\leq f$ 取上确界，得 $L\geq\int f$。若简单函数积分无穷，上述不等式直接给出 $L=\infty$，不需要做无穷量的减法。
+\end{proof}
+
+定理\ref{thm:mt-simple-approximation}给出的任意单调简单逼近因此都能计算积分。对 $f,g\geq0$，分别取简单函数 $s_n\uparrow f$、$t_n\uparrow g$，于是 $s_n+t_n\uparrow f+g$。由简单函数加法性与单调收敛可得
+\[
+ \int(f+g)=\int f+\int g.
+\]
+正齐次性同理成立。再利用正负部分，即得到上一章的可积函数线性性。
+
+\begin{corollary}[非负级数与积分交换]
+若每个 $u_n\geq0$ 可测，则
+\begin{equation}
+ \int\sum_{n=1}^{\infty}u_n\,\mathrm d\mu
+ =\sum_{n=1}^{\infty}\int u_n\,\mathrm d\mu.
+ \label{eq:mt-series}
+\end{equation}
+\end{corollary}
+\begin{proof}
+有限部分和非负且递增，应用单调收敛定理与有限加法性即可。
+\end{proof}
+特别地，对两两不交的 $A_n$，取 $u_n=w\mathbf1_{A_n}$，就证明了 $\nu(A)=\int_Aw\,\mathrm d\mu$ 的可列可加性。对有符号函数级数，若 $\sum_n\int|u_n|<\infty$，先将本推论用于 $|u_n|$，可知级数几乎处处绝对收敛，再用下面的控制收敛定理交换求和与积分。
+
+\section{Fatou 引理}
+\begin{theorem}[Fatou 引理]
+若 $f_n\geq0$ 可测，则
+\begin{equation}
+ \int\liminf_{n\to\infty}f_n\,\mathrm d\mu
+ \leq\liminf_{n\to\infty}\int f_n\,\mathrm d\mu.
+ \label{eq:mt-fatou}
+\end{equation}
+\label{thm:mt-fatou}
+\end{theorem}
+\begin{proof}
+令 $g_m=\inf_{n\geq m}f_n$，则 $0\leq g_m\uparrow\liminf_nf_n$，并且 $\int g_m\leq\inf_{n\geq m}\int f_n$。对左侧用单调收敛，再令 $m\to\infty$ 即得结论。
+\end{proof}
+Fatou 引理不要求原序列单调，却只保证一个方向的不等式。绪论中的集中尖峰满足 $\int\liminf f_n=0<1=\liminf\int f_n$，说明等号可能失败。
+
+\section{控制收敛定理}
+\begin{theorem}[控制收敛定理]
+设 $f_n\to f$ 几乎处处，且存在非负可积函数 $g$，使对所有 $n$ 都有 $|f_n|\leq g$ 几乎处处。若 $f$ 可测，则 $f$ 可积，且
+\begin{equation}
+ \int|f_n-f|\,\mathrm d\mu\longrightarrow0,\qquad
+ \int f_n\,\mathrm d\mu\longrightarrow\int f\,\mathrm d\mu.
+ \label{eq:mt-dct}
+\end{equation}
+该结果称为\emph{控制收敛定理（dominated convergence theorem）}，也称支配收敛定理。
+\label{thm:mt-dct}
+\end{theorem}
+\begin{proof}
+合并可数个例外零测集后，有 $|f|\leq g$，所以 $f$ 可积，且 $|f_n-f|\leq2g$。对非负函数 $2g-|f_n-f|$ 使用 Fatou 引理，得到
+\[
+ 2\int g\leq
+ \liminf_n\left(2\int g-\int|f_n-f|\right)
+ =2\int g-\limsup_n\int|f_n-f|.
+\]
+由于 $\int g<\infty$，这里的减法合法，故 $\limsup_n\int|f_n-f|\leq0$。再由积分三角不等式得到积分收敛。
+\end{proof}
+
+若只知道几乎处处存在有限极限，可在一个可测零测集上将极限定义为零，从而取得可测版本。控制函数必须同时支配整个序列，而不能随 $n$ 任意变化；要求每个 $f_n$ 单独可积也不能代替共同控制。
+
+\begin{example}
+在 $(0,1)$ 上令 $f_n(x)=x^n$，则 $f_n(x)\to0$，且 $|f_n|\leq1$，常数 $1$ 在该区间可积，故 $\int_0^1x^n\,\mathrm dx\to0$。在整个 $\mathbb R$ 上，$|f_n|\leq1$ 本身不够，因为常数 $1$ 不可积。例如 $\mathbf1_{[n,n+1]}$ 处处趋于零，但积分恒为一。
+\end{example}
+
+\section{怎样选择定理与处理参数}
+若函数非负且单调递增，优先用单调收敛；若函数非负但缺少进一步控制，可先用 Fatou 引理获取单向估计；若有逐点或几乎处处收敛及一个共同的可积上界，则用控制收敛。有限测度空间上，共同的常数上界是可积控制函数；无限测度空间上则必须进一步检查。
+
+\begin{proposition}[一个积分号下求导的充分条件]
+设 $I\subseteq\mathbb R$ 是开区间，$t_0\in I$。对每个 $t$，$f(t,\cdot)$ 可测，且 $f(t_0,\cdot)$ 可积。假设存在 $\delta>0$、共同的可测零测集 $N$ 和 $g\in L^1(\mu)$，$g\geq0$，使 $(t_0-\delta,t_0+\delta)\subseteq I$，对每个 $s\notin N$，函数 $t\mapsto f(t,s)$ 在该区间可微，且 $|\partial_tf(t,s)|\leq g(s)$。则附近各 $f(t,\cdot)$ 可积，$F(t)=\int f(t,s)\,\mathrm d\mu(s)$ 在 $t_0$ 可微，并且
+\[
+ F'(t_0)=\int\partial_tf(t_0,s)\,\mathrm d\mu(s).
+\]
+\end{proposition}
+\begin{proof}
+由一元中值定理，$|f(t,s)-f(t_0,s)|\leq|t-t_0|g(s)$，故附近函数可积，且差商被 $g$ 控制。差商逐点趋于导数，导数可取为可测差商序列的极限并在 $N$ 上定义为零。沿任意非零 $h_n\to0$ 使用控制收敛，即得所有差商序列的积分趋于同一值，从而得到导数公式。
+\end{proof}
+
+\section{如何在证明中建立控制，而不是猜测控制}
+使用控制收敛定理时，最困难的步骤往往不是验证逐点极限，而是找到一个与序号无关的可积函数。寻找控制应从函数的结构出发。若序列只在某个有限测度集合上非零且幅度统一有界，常数乘示性函数就是控制；若分母含有可能趋零的参数，则应先把参数限制在远离奇点的小邻域；若存在指数衰减，则通常可以牺牲一部分衰减速率，吸收多项式增长。
+
+例如在 $[0,\infty)$ 上，$x^m e^{-ax}$ 对每个固定 $a>0$ 可积。若参数 $a$ 位于 $a_0$ 附近，可要求 $a\geq a_0/2$，从而统一控制为 $x^m e^{-a_0x/2}$。这个控制适用于局部参数极限，但不适用于让 $a$ 从正数趋于零的全过程。局部合法交换不等于在整个参数范围内拥有一个共同控制，这一点在统计模型的参数微分中尤其重要。
+
+还可以先将空间分成容易控制的部分。在有限区间内用常数控制，在远端用可积尾部控制，再将两者相加。若始终无法找到一个共同函数，不应立刻断言极限交换失败；控制收敛提供充分条件，不提供必要条件。此时可以使用单调性、截断估计，或下一章的一致可积性，以另一种方式阻止质量集中。
+
+\begin{example}[不能把各项可积误当成共同控制]
+在 $(0,1)$ 上，$f_n=n\mathbf1_{(0,1/n)}$ 的每一项都可积，且积分甚至统一有界。但若存在一个可积 $g$ 支配全部 $f_n$，控制收敛将推出 $\int f_n\to0$，与积分恒为一矛盾。因此共同的积分上界 $\sup_n\int|f_n|<\infty$ 与共同的逐点可积上界 $|f_n|\leq g$ 是不同条件，前者弱得多。
+\end{example}
+
+\section{带可积下界的 Fatou 引理与递减极限}
+Fatou 引理的非负性可以替换为一个共同可积下界。若 $f_n\geq h$，其中 $h\in L^1(\mu)$，则 $f_n-h\geq0$，对差使用原引理，再把有限数 $\int h$ 加回，得到
+\[
+ \int\liminf_nf_n\,\mathrm d\mu
+ \leq\liminf_n\int f_n\,\mathrm d\mu.
+\]
+这里被积函数的负部受到 $h^-$ 控制，因此各积分都有定义，不会出现正负两部分同时无穷的歧义。对只有共同可积上界的序列，可对其相反数应用这一版本，得到相应的反向上极限估计。
+
+若 $0\leq f_n\downarrow f$ 且 $\int f_1<\infty$，则 $f_1-f_n\uparrow f_1-f$。单调收敛给出差的积分收敛，再从有限的 $\int f_1$ 中相减，得到 $\int f_n\to\int f$。若没有第一项可积性，例如在 $\mathbb R$ 上取 $f_n=\mathbf1_{[n,\infty)}$，每点极限为零而每项积分无穷，结论便会失败。
+
+这个推导再次体现了非负递增与非负递减的不对称。递增极限通过累加质量构造，不需要减去一个无穷总量；递减极限通常要从某个有限背景量中剔除质量。集合测度的从下连续与从上连续，也正是这一积分现象在示性函数上的表现。
+
+\section{Scheffé 引理：由总质量恢复积分收敛}
+\begin{theorem}[Scheffé 引理]
+设 $f_n,f$ 均非负可积，$f_n\to f$ 几乎处处，并且 $\int f_n\,\mathrm d\mu\to\int f\,\mathrm d\mu$，则 $\int|f_n-f|\,\mathrm d\mu\to0$。
+\label{thm:mt-scheffe}
+\end{theorem}
+\begin{proof}
+令 $g_n=\min(f_n,f)$，则 $g_n\to f$ 几乎处处，且 $0\leq g_n\leq f$。控制收敛给出 $\int g_n\to\int f$。由非负数的恒等式 $|a-b|=a+b-2\min(a,b)$，得到
+\[
+ \int|f_n-f|=\int f_n+\int f-2\int g_n\longrightarrow0.
+\]
+\end{proof}
+该引理不要求直接找到同时支配全部 $f_n$ 的可积函数，而是把共同控制用于较小的函数 $\min(f_n,f)$，再利用总积分收敛排除剩余质量。这种改变待控制对象的思路，比机械寻找原序列的上界更灵活。
+
+一个重要应用是概率密度。若 $p_n,p$ 都是相对于同一测度的概率密度，且 $p_n\to p$ 几乎处处，则所有总积分都等于一，故 $p_n\to p$ 于 $L^1$。但必须确认极限 $p$ 本身的积分仍为一。例如 $\mathbf1_{[n,n+1]}$ 几乎处处趋于零，极限已经失去全部质量，因而不满足引理的总积分条件。仅知道每项都是密度，并不能保证逐点极限也是密度。
+
+\section{参数积分的连续性与微分例题}
+设 $t$ 属于某个实区间，$f(t,\cdot)$ 可测，并且在 $t_0$ 的邻域中存在共同可积控制。如果对几乎每个 $s$，$f(t,s)\to f(t_0,s)$ 当 $t\to t_0$，则 $F(t)=\int f(t,s)\,\mathrm d\mu(s)$ 在 $t_0$ 连续。严格证明可沿任意序列 $t_n\to t_0$ 使用控制收敛，再由实函数连续性的序列判别得到结论。参数连续性并不要求每个样本点上都连续，一个共同零测集之外成立即可。
+
+\begin{example}[拉普拉斯型积分]
+对 $a>0$，令 $F(a)=\int_0^\infty e^{-ax}\,\mathrm dx$。直接积分得 $F(a)=1/a$。若希望从积分内部求导，固定 $a_0>0$，将参数限制在 $a_0/2<a<3a_0/2$，便有
+$|\partial_ae^{-ax}|=xe^{-ax}\leq xe^{-a_0x/2}$，后者可积。因此
+\[
+ F'(a_0)=-\int_0^\infty xe^{-a_0x}\,\mathrm dx=-\frac1{a_0^2}.
+\]
+继续求导时，以 $x^me^{-a_0x/2}$ 控制相应阶导数，可同样验证每次微分交换。
+\end{example}
+
+在 $a=0$ 处，整体积分不再有限，因而不能把正参数内部的微分结论直接延伸到边界。这个例子说明，参数积分的理论并非只为难以计算的积分服务；即使数值可以显式求出，控制条件也能解释公式在哪个参数区域有效，以及边界为什么出现奇性。
+
+\section{习题}
+\begin{enumerate}
+ \item 构造可积函数 $f_n\to0$ 处处，但 $\int|f_n|$ 不趋于零的例子，并指出控制收敛定理的哪一条条件失败。
+ \item 证明若 $f_n\downarrow f\geq0$ 且 $\int f_1<\infty$，则 $\int f_n\to\int f$。说明为何需要有限性。
+ \item 若 $f\in L^1(\mu)$，证明 $\int_{\{|f|>M\}}|f|\,\mathrm d\mu\to0$，其中 $M\to\infty$。
+\end{enumerate}
+

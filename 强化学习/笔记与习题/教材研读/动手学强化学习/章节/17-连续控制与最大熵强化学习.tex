@@ -1,0 +1,72 @@
+% !TeX root = ../动手学强化学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{16} % 保留原书章号。
+\chapter{连续控制与最大熵强化学习}
+\label{ch:rl-continuous}
+
+连续动作无法逐项枚举最大 Q 值。演员可以直接输出动作或动作分布，评论家为其提供可微评价。DDPG、TD3 与 SAC 都复用回放数据，但其策略表示和优化目标不同\cite{lillicrap-ddpg,fujimoto-td3,haarnoja-sac}。
+
+\section{确定性策略梯度与 DDPG}
+
+确定性演员为 $a=\mu_\theta(s)$。在适当可微性、访问分布与可积条件下，确定性策略梯度包含链式因子 $\nabla_\theta\mu_\theta(s)\nabla_aq_\mu(s,a)|_{a=\mu_\theta(s)}$。对真实折扣目标应按当前策略的折扣访问权重平均；实际在回放状态上更新通常是相应的离策略近似\cite{silver-dpg}。
+
+深度确定性策略梯度（deep deterministic policy gradient，DDPG）维护演员 $\mu_\theta$、评论家 $Q_w$ 及各自目标参数 $\theta^-,w^-$。行为动作在演员输出上加入探索噪声。评论家拟合
+\[
+y=r+\gamma(1-d)Q_{w^-}(s',\mu_{\theta^-}(s')),
+\]
+演员在回放状态上增大 $Q_w(s,\mu_\theta(s))$，此时固定评论家参数但保留其对动作的导数。两组目标参数缓慢跟踪在线参数。没有环境模型求导，不等于没有任何可微性要求：演员依赖评论家对动作方向的梯度。
+
+\section{TD3 的三项修正}
+
+双延迟 DDPG（twin delayed DDPG，TD3）使用两个评论家。后继目标动作为 $a'=\operatorname{clip}(\mu_{\theta^-}(s')+\epsilon)$，其中 $\epsilon$ 为经过限制的零均值噪声，外层截断保证动作合法；目标为
+\[
+y=r+\gamma(1-d)\min_{j=1,2}Q_{w_j^-}(s',a').
+\]
+两评论家拟合同一目标，演员通常根据第一评论家更新，并以较低频率更新演员和目标网络。双评论家缓解高估，延迟策略更新减少跟随不成熟评价的频率，目标平滑降低对狭窄虚假峰值的利用。取最小值可能带来低估，它不构成对真实价值的普遍置信下界。
+
+\section{最大熵目标与软价值}
+
+给定温度 $\eta>0$，最大熵强化学习在任务奖励之外奖励策略熵。其折扣目标为 $\mathbb E[\sum_t\gamma^t(R_{t+1}+\eta\mathcal H(\pi(\cdot\mid S_t)))]$。定义软动作价值时不计入当前动作分布的熵，则软状态价值和动作价值满足
+\[
+V_\pi^{\rm soft}(s)=\mathbb E_{a\sim\pi}[Q_\pi^{\rm soft}(s,a)-\eta\log\pi(a\mid s)],\qquad
+Q_\pi^{\rm soft}(s,a)=r(s,a)+\gamma\mathbb E[V_\pi^{\rm soft}(S')\mid s,a].
+\]
+它们对应修改后的目标，通常不等于原始奖励任务的普通价值。
+
+对有限动作及固定数值 $Q(a)$，令 $Z=\sum_a e^{Q(a)/\eta}$、$p_*(a)=e^{Q(a)/\eta}/Z$，直接整理得到
+\[
+\sum_a p(a)Q(a)+\eta\mathcal H(p)
+=\eta\log Z-\eta D_{\rm KL}(p\|p_*).
+\]
+KL 非负，故最大值为 $\eta\log Z$，最优分布为 $p_*$。温度趋近零时逐渐集中于最大 Q 动作；有限温度允许收益与随机性取舍。连续动作使用微分熵，其数值依赖坐标尺度，因此动作缩放也会影响熵项的解释。
+
+\section{SAC 与重参数化}
+
+软演员--评论家（soft actor-critic，SAC）使用随机演员。本节采用后续常用的双 Q、无独立状态价值网络版本\cite{haarnoja-sac-applications}。从当前演员抽取后继动作 $a'\sim\pi_\theta(\cdot\mid s')$，构造
+\[
+y=r+\gamma(1-d)\left[\min_jQ_{w_j^-}(s',a')-\eta\log\pi_\theta(a'\mid s')\right].
+\]
+评论家对固定 $y$ 作回归。演员最小化 $\mathbb E_{s\sim\mathcal D,a\sim\pi_\theta}[\eta\log\pi_\theta(a\mid s)-\min_jQ_{w_j}(s,a)]$，其中 $\mathcal D$ 表示回放状态分布。
+
+对高斯隐变量 $u=m_\theta(s)+\sigma_\theta(s)\odot\xi$，$\xi\sim\mathcal N(0,I)$，令 $a=\tanh u$，即可通过重参数化（reparameterization）对动作路径求导。密度必须作变量变换：
+\[
+\log\pi_\theta(a\mid s)=\log p_\theta(u\mid s)-\sum_i\log(1-\tanh^2u_i).
+\]
+若还乘动作尺度，各维需再减对应正尺度的对数。数值实现应使用稳定形式计算，避免饱和处直接取零的对数。
+
+温度可固定，也可根据目标熵 $\mathcal H_0$ 调整。例如固定当前策略时，最小化关于 $\eta\geq0$ 的 $\eta\,\mathbb E[-\log\pi_\theta(A\mid S)-\mathcal H_0]$：熵低于目标时梯度下降增大温度。以 $\log\eta$ 参数化可保证正值；不同代码对目标熵的符号约定需与目标完整对应。这里的近似交替训练并不提供任意神经网络下的全局最优保证。
+
+\begin{example}[连续动作的梯度方向]
+一状态问题中评论家为 $Q(a)=-(a-2)^2$，演员为 $a=\theta$。当 $\theta=0$ 时，$\nabla_\theta Q=4$，步长 $0.1$ 将动作移到 $0.4$。若评论家错误地在别处形成峰值，演员同样会向错误峰值移动；这说明高质量策略梯度仍依赖评价函数。
+\end{example}
+
+\section{习题与实验}
+\begin{enumerate}
+\item 证明软价值的 KL 分解，并求 $Q=(0,\log3),\eta=1$ 时的最优动作概率和软价值。
+\item 推导一维变换 $a=c\tanh u+b$（$c>0$）的对数密度，说明直接裁剪高斯动作为什么不能沿用同一变换公式。
+\item 在低维连续控制中比较 TD3 与 SAC，统一动作范围、奖励尺度、交互预算及评价规则，并分别记录采样和梯度更新成本。
+\end{enumerate}
+
+
+
+

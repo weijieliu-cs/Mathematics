@@ -1,0 +1,100 @@
+% !TeX root = ../数值分析与科学计算笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{2} % 保留原书章号。
+\chapter{非线性方程与不动点迭代}
+\label{chap:na-roots}
+
+\section{求根问题与二分法}
+求根（root finding）要求给定 $f$ 后寻找 $x_*$ 使 $f(x_*)=0$。多个根、重根、定义域边界和不连续点都会改变算法行为。连续函数在区间两端异号保证至少有一根；二分法（bisection method）据此反复缩小包根区间。仅观察一张图或若干采样点不能替代连续异号条件。
+
+\begin{theorem}[二分法的误差界]
+设 $f\in C[a_0,b_0]$ 且 $f(a_0)f(b_0)<0$。每步取 $c_k=(a_k+b_k)/2$；若 $f(c_k)=0$ 则结束，否则保留两端异号的半区间作为 $[a_{k+1},b_{k+1}]$。在没有提前结束时，区间具有共同极限点 $x_*$，$f(x_*)=0$，且
+\begin{equation}
+ |c_k-x_*|\le\frac{b_0-a_0}{2^{k+1}}.
+ \label{eq:na-bisection-bound}
+\end{equation}
+\end{theorem}
+\begin{proof}
+区间嵌套，长度为 $(b_0-a_0)2^{-k}$，故由实数完备性其交集是单点 $x_*$。若 $f(x_*)\ne0$，连续性使充分小邻域中的函数值同号，与各区间两端异号矛盾。中点与区间内任何点的距离不超过半个区间长度，得到式~\eqref{eq:na-bisection-bound}。
+\end{proof}
+
+输入应包括连续函数、初始包根区间、绝对位置容差 $\varepsilon_x>0$ 和迭代上限。停止于半区间长度不超过 $\varepsilon_x$，可得到位置保证；若只有函数值容差，还需要导数下界才能推出位置误差。初始化要单独处理端点恰为根。实现中比较符号优于直接计算 $f(a)f(b)$，因为乘积可能溢出或下溢；浮点中点若等于某个端点，应报告精度停滞。函数评价的符号必须可靠，含噪声评价不自动继承此定理。
+
+\begin{example}[计算平方根的包根方法]
+$f(x)=x^2-2$ 在 $[1,2]$ 连续且两端异号。取初始中点为第 $0$ 步，若要求误差不超过 $10^{-6}$，则需 $2^{-(k+1)}\le10^{-6}$，取 $k=19$ 即可，即至多评价 $20$ 个中点。该结论依赖区间收缩，与根附近导数大小无关。
+\end{example}
+
+\section{压缩映射与先验、后验误差}
+满足 $g(x_*)=x_*$ 的点称为不动点（fixed point）；按 $x_{k+1}=g(x_k)$ 递推称为不动点迭代。压缩映射（contraction mapping）用一个小于 $1$ 的统一比例缩小任意两点的距离。
+
+\begin{theorem}[区间上的压缩映射]
+\label{thm:na-contraction}
+设 $g:[a,b]\to[a,b]$，且存在 $0\le q<1$ 使 $|g(x)-g(y)|\le q|x-y|$。则 $g$ 有唯一不动点 $x_*$，任取 $x_0\in[a,b]$，迭代 $x_{k+1}=g(x_k)$ 收敛，并满足
+\begin{align}
+ |x_k-x_*|&\le q^k|x_0-x_*|\le\frac{q^k}{1-q}|x_1-x_0|,\label{eq:na-fixed-priori}\\
+ |x_k-x_*|&\le\frac{q}{1-q}|x_k-x_{k-1}|\quad(k\ge1).\label{eq:na-fixed-posteriori}
+\end{align}
+\end{theorem}
+\begin{proof}
+连续两步差满足 $|x_{j+1}-x_j|\le q^j|x_1-x_0|$。几何级数尾和控制任意两项差，说明序列为 Cauchy 列；闭区间完备，极限属于区间。由 $g$ 的连续性，极限满足不动点等式。两个不动点距离不超过自身的 $q$ 倍，只能相同。把尾和从第 $k$ 步开始相加即得两个误差界；直接比较迭代点与不动点又得第一个不等式。
+\end{proof}
+
+若 $g$ 可微，$\max|g'|\le q<1$ 是压缩的充分条件，但还必须检查区间不变性 $g([a,b])\subseteq[a,b]$。局部条件 $|g'(x_*)|<1$ 在 $g'$ 连续时保证充分接近根的初值收敛，不保证任意初值收敛。
+
+\begin{example}[求解 $x=\cos x$]
+在 $[0,1]$ 上，$g(x)=\cos x$ 的值属于 $[\cos1,1]\subset[0,1]$，且 $|g'(x)|\le\sin1<1$。因此区间中有唯一不动点，任意区间内初值均收敛。式~\eqref{eq:na-fixed-posteriori} 将相邻迭代差转化为严格误差上界，而仅说“相邻两次差很小”没有这种保证。
+\end{example}
+
+\section{Newton 方法及其局部性质}
+Newton 方法（Newton's method）以 $x_k$ 处的切线近似 $f$，令线性近似为零，得到
+\begin{equation}
+ x_{k+1}=x_k-\frac{f(x_k)}{f'(x_k)}.
+ \label{eq:na-newton}
+\end{equation}
+这一步要求 $f'(x_k)\ne0$。每步需要函数与导数评价；比二分法更快的局部收敛必须与这些评价成本一起比较。
+
+\begin{theorem}[Newton 法的局部二次误差界]
+\label{thm:na-newton}
+设 $f\in C^2$ 于根 $x_*$ 的某邻域，$f(x_*)=0$ 且 $f'(x_*)\ne0$。存在 $r>0$，使 $|x_0-x_*|\le r$ 时迭代有定义、留在该邻域并收敛，且
+\[
+ |x_{k+1}-x_*|\le \frac{M}{2m}|x_k-x_*|^2,
+\]
+其中可在该邻域取 $|f'|\ge m>0$、$|f''|\le M$。若误差不提前为零且 $f''(x_*)\ne0$，则二次收敛的渐近常数为 $|f''(x_*)/(2f'(x_*))|$。
+\end{theorem}
+\begin{proof}
+在 $x_k$ 处对 $f(x_*)$ 作二阶 Taylor 展开，得
+\[
+ 0=f(x_k)+f'(x_k)(x_*-x_k)+\tfrac12 f''(\xi_k)(x_*-x_k)^2.
+\]
+与式~\eqref{eq:na-newton} 相减可得 $e_{k+1}=f''(\xi_k)e_k^2/(2f'(x_k))$。由导数连续性取到上述上下界，再缩小 $r$ 使 $Mr/(2m)<1$，即保证误差缩小且迭代不离开邻域。取极限给出渐近常数。
+\end{proof}
+
+若 $f(x)=(x-x_*)^m q(x)$，整数 $m>1$ 且 $q(x_*)\ne0$，普通 Newton 迭代通常只有线性主项 $e_{k+1}=(1-1/m)e_k+O(e_k^2)$。已知重数时，改为 $x_{k+1}=x_k-mf(x_k)/f'(x_k)$ 可在适当光滑条件下消去线性项。根附近 $f'$ 很小也表示求根问题可能敏感，不能把所有困难归结为算法实现。
+
+\begin{example}[局部结论不能当作全局结论]
+对 $f(x)=x^3-2x+2$，从 $x_0=0$ 开始的 Newton 迭代满足 $x_1=1$、$x_2=0$，因而形成二周期。虽然该函数存在实根，算法仍不从这个初值收敛。一个实用做法是在已知包根区间内尝试 Newton 步，若候选点不满足预定的区间收缩要求，则退回二分步。若接受准则保证每次新区间长度至多为原来的固定比例 $\rho<1$，即可保留全局区间收敛保证。
+\end{example}
+
+\section{割线法、方程组与停止判据}
+用差商替代导数得到\emph{割线法（secant method）}
+\[
+ x_{k+1}=x_k-f(x_k)\frac{x_k-x_{k-1}}{f(x_k)-f(x_{k-1})}.
+\]
+分母不能为零或因相消而过小。对充分光滑的简单根、足够接近的初值，在非退化情形下其收敛阶为 $(1+\sqrt5)/2$；直观上误差主项 $e_{k+1}\approx C e_ke_{k-1}$ 导出 $p^2=p+1$。这里是渐近关系的解释，并非局部收敛定理的完整证明。割线法每步新增一次函数评价，适合导数难求但函数评价可用的场合。
+
+对 $F:\mathbb R^n\to\mathbb R^n$，Jacobian 矩阵为 $J_F(x)=(\partial F_i/\partial x_j)$。Newton 步通过
+\[
+ J_F(x_k)s_k=-F(x_k),\qquad x_{k+1}=x_k+s_k
+\]
+求得，不应为此显式形成矩阵逆。若 $J_F$ 在根附近 Lipschitz 连续且 $J_F(x_*)$ 可逆，则充分近的初值有局部二次误差界；理由是积分形式的 Taylor 余项为 $O(\|e_k\|^2)$，而附近逆矩阵范数有界。实际常采用阻尼 $x_{k+1}=x_k+\alpha_ks_k$，但任取 $0<\alpha_k<1$ 并不自动保证全局收敛。
+
+停止时应同时观察步长和经过尺度化的残差，并报告达到容差、达到上限、导数失效等状态。标量情形若连接 $x$ 与唯一根 $x_*$ 的区间上 $|f'|\ge m>0$，中值定理给出 $|x-x_*|\le|f(x)|/m$。若 $f$ 整体乘以一个小常数，根不变而残差缩小，故未经尺度处理的固定残差阈值可能误导。
+
+\section{习题}
+\begin{enumerate}[label=\arabic*.]
+\item\label{exr:na-root-bisect} 在 $[1,2]$ 用二分法求 $x^3-x-1=0$。证明根唯一，并求保证中点误差不超过 $10^{-8}$ 所需的中点评价次数上界。
+\item\label{exr:na-root-fixed} 对 $x_{k+1}=(x_k+2/x_k)/2$，证明任意 $x_0>0$ 都收敛到 $\sqrt2$，并给出精确误差递推式。
+\item\label{exr:na-root-multiple} 对 $f(x)=(x-1)^3$，比较普通 Newton 法与已知重数的修正方法。
+\item\label{exr:na-root-system} 写出求解 $x^2+y^2=1$、$x-y=0$ 的 Newton 线性系统，并指出 Jacobian 何时奇异。
+\end{enumerate}
+

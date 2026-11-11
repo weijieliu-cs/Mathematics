@@ -1,0 +1,993 @@
+% !TeX root = ../数学分析习题（裴礼文）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{4} % 保留原书章号。
+\chapter{级数}
+\label{chap:pei-series}
+
+本章依据裴礼文《数学分析中的典型问题与方法》第五章整理。级数把有限求和推广为部分和序列的极限，其困难不仅在于计算和，还在于判断极限是否存在，以及何时可以交换求和与其他运算。数项级数提供敛散判别和尾和估计；函数项级数进一步要求控制自变量变化时的误差；幂级数在收敛区间内部具有稳定的逐项运算性质；Fourier 级数则通过正交性把函数展开问题转化为系数问题。四节的共同线索是：先确定收敛的意义和范围，再说明变形、积分或求导的依据。
+
+% 对应所给 PDF 第 1--47 页。
+\section{数项级数}
+\label{sec:pei-numerical-series}
+
+\subsection{部分和、求和方法与重排}
+
+\begin{definition}
+设 $(a_n)_{n\geq1}$ 为实数列或复数列，记部分和 $S_N=\sum_{n=1}^{N}a_n$。若 $S_N$ 趋于有限极限 $S$，则称\emph{无穷级数（infinite series）} $\sum_{n=1}^{\infty}a_n$ 收敛，$S$ 为其和；否则称其发散。收敛时的余和记为 $r_N=S-S_N$。若 $\sum_{n=1}^{\infty}|a_n|$ 收敛，则称原级数\emph{绝对收敛（absolute convergence）}；原级数收敛而绝对值级数发散时，称其\emph{条件收敛（conditional convergence）}。
+\end{definition}
+
+由 $a_n=S_n-S_{n-1}$ 可知，收敛必有 $a_n\to0$，但反过来不成立。求和首先应考察有限部分和：连锁消去、错位相减、建立部分和方程等方法，都应在有限和上完成，再检查剩余边界项的极限。绝对收敛级数可以任意重排；条件收敛级数的项次不能随意交换，即使重排后仍然收敛，其和也可能改变。
+
+\begin{example}
+\label{ex:pei-series-sums}
+计算 $\sum_{n=1}^{\infty}nq^n$（$|q|<1$）及 $\sum_{n=1}^{\infty}(\sqrt n-2\sqrt{n+1}+\sqrt{n+2})$。
+\end{example}
+\begin{solve}
+第一式令 $S_N=\sum_{n=1}^{N}nq^n$，则
+\[
+ (1-q)S_N=\sum_{n=1}^{N}q^n-Nq^{N+1}.
+\]
+因 $Nq^{N+1}\to0$，所以其和为 $q/(1-q)^2$。第二式按相邻差分消去中间项，得到
+\[
+ \sum_{n=1}^{N}(\sqrt n-2\sqrt{n+1}+\sqrt{n+2})
+ =1-\sqrt2-\sqrt{N+1}+\sqrt{N+2}\longrightarrow1-\sqrt2.
+\]
+这里每个通项为负并不影响差分法；关键是保留有限部分和的两端。\qedhere
+\end{solve}
+
+求 $\sum q^n\cos n\theta$、$\sum q^n\sin n\theta$ 时，可以先对有限等比和 $\sum(qe^{i\theta})^n$ 求和，再取实部和虚部；当 $|q|<1$ 时得到
+\[
+ \sum_{n=1}^{\infty}q^n\cos n\theta
+ =\frac{q\cos\theta-q^2}{1-2q\cos\theta+q^2},\qquad
+ \sum_{n=1}^{\infty}q^n\sin n\theta
+ =\frac{q\sin\theta}{1-2q\cos\theta+q^2}.
+\]
+若已知 $\sum a_n=S$，则部分和的算术平均也趋于 $S$，因而
+\begin{equation}
+ \frac1N\sum_{k=1}^{N}(N-k+1)a_k
+ =\frac{S_1+\cdots+S_N}{N}\longrightarrow S.
+ \label{eq:pei-cesaro-series}
+\end{equation}
+证明只需把平均值减去 $S$ 后，将前面固定的有限项与后面的统一小量分开；这就是 Cesàro 平均的基本性质。
+
+\begin{example}
+将交错调和级数按每次取 $p$ 个正项、再取 $q$ 个负项的规则重排，其中 $p,q$ 为固定正整数，求重排后的和。
+\end{example}
+\begin{solve}
+记 $H_m=\sum_{k=1}^{m}1/k$。完成 $N$ 个块后的部分和为
+\[
+ H_{2pN}-\frac12H_{pN}-\frac12H_{qN}.
+\]
+利用 $H_m=\log m+\gamma+o(1)$，其极限为 $\log2+\tfrac12\log(p/q)$。同一块内尚未加完的项数至多为 $p+q$，每项趋于零，所以全部部分和也趋于此极限。这里 $\gamma$ 为 Euler 常数；当 $p\ne q$ 时，重排后的和与原和 $\log2$ 不同。
+\end{solve}
+
+\subsection{Cauchy 准则与正项级数的比较}
+
+\begin{theorem}[级数的 Cauchy 准则]
+\label{thm:pei-series-cauchy}
+级数 $\sum a_n$ 收敛，当且仅当
+\[
+ \forall\varepsilon>0\ \exists N\ \forall m>n\geq N,
+ \qquad\left|\sum_{k=n+1}^{m}a_k\right|<\varepsilon.
+\]
+其发散的等价表述为：存在 $\varepsilon_0>0$，对每个 $N$ 都能找到 $m>n\geq N$，使上述尾段和的绝对值至少为 $\varepsilon_0$。
+\end{theorem}
+\begin{proof}
+因为尾段和恰为 $S_m-S_n$，结论就是实数或复数序列的 Cauchy 收敛准则。
+\end{proof}
+
+\emph[caution]{这里尾段长度 $m-n$ 可以随 $n$ 改变，不能只对每个固定长度验证极限为零。}例如调和级数满足对固定 $p$ 有 $\sum_{k=n+1}^{n+p}1/k\leq p/(n+1)\to0$，但
+\[
+ \sum_{k=n+1}^{2n}\frac1k\geq\frac12,
+\]
+故仍然发散。对非负项级数，部分和单调递增，因此收敛等价于部分和有上界；比较判别法、分组估计和积分判别法都可看作寻找这一上界的方法。
+
+\begin{theorem}[比较、比值与根值判别]
+\label{thm:pei-positive-tests}
+设 $a_n,b_n\geq0$。若充分大时 $a_n\leq Cb_n$，其中 $C>0$，则 $\sum b_n$ 收敛推出 $\sum a_n$ 收敛；若 $a_n/b_n\to c\in(0,\infty)$，则两级数同敛散。对最终为正的 $a_n$，若 $\limsup a_{n+1}/a_n<1$，则 $\sum a_n$ 收敛；若最终 $a_{n+1}/a_n\geq1$，则发散。对非负的 $a_n$，令 $\rho=\limsup\sqrt[n]{a_n}$，则 $\rho<1$ 时收敛，$\rho>1$ 时发散。
+\end{theorem}
+\begin{proof}
+比较结论直接由非负部分和的有界性得到。比值的上极限小于 $1$ 时，可取 $q<1$ 使最终 $a_{n+1}\leq qa_n$，于是尾部被等比级数控制；比值最终至少为 $1$ 时，正项不能趋于零。根值的上极限小于 $1$ 时，最终有 $a_n\leq q^n$；大于 $1$ 时，有无穷多项满足 $a_n>1$，违反收敛的必要条件。
+\end{proof}
+
+比值或根值等于 $1$ 时通常无法判断，例如 $\sum1/n$ 与 $\sum1/n^2$ 在这两种检验下给出相同的临界值。比较时也不能把“比 $1/n$ 高阶的无穷小量”作为收敛的充分条件：$1/(n\log n)=o(1/n)$，但对应级数发散。更准确的做法是找到可判定的比较对象，并证明最终不等式或正的有限比值极限。
+
+\begin{theorem}[积分判别法与凝聚判别法]
+\label{thm:pei-integral-condensation}
+若 $f:[1,\infty)\to[0,\infty)$ 单调递减，则 $\sum_{n=1}^{\infty}f(n)$ 与 $\int_1^{\infty}f(x)\,dx$ 同敛散；收敛时有
+\begin{equation}
+ \int_{N+1}^{\infty}f(x)\,dx
+ \leq\sum_{n=N+1}^{\infty}f(n)
+ \leq\int_N^{\infty}f(x)\,dx.
+ \label{eq:pei-integral-tail}
+\end{equation}
+若 $a_n\geq0$ 单调递减，则 $\sum a_n$ 与 $\sum_{j=0}^{\infty}2^ja_{2^j}$ 同敛散，此为 Cauchy 凝聚判别法（condensation test）。
+\end{theorem}
+\begin{proof}
+在每个单位区间上以端点函数值夹住积分，有限求和后取极限，即得积分判别及余和估计。对凝聚判别，在第 $j$ 个二进块上有
+\[
+ 2^ja_{2^{j+1}}\leq\sum_{n=2^j}^{2^{j+1}-1}a_n\leq2^ja_{2^j}.
+\]
+两侧分别是凝聚级数的移位和常数倍，故由比较判别得到结论。
+\end{proof}
+
+因此 $\sum1/n^p$ 恰在 $p>1$ 时收敛，而
+\[
+ \sum_{n=2}^{\infty}\frac1{n(\log n)^p}
+ \quad\text{恰在 }p>1\text{ 时收敛}.
+\]
+后一结论由变量代换 $t=\log x$ 化为 $\int t^{-p}\,dt$ 得到。若 $n$ 足够大且通项为 $(1-p\log n/n)^n$，其中 $p$ 是固定实数，则
+\[
+ n\log\!\left(1-\frac{p\log n}{n}\right)
+ =-p\log n+O\!\left(\frac{(\log n)^2}{n}\right),
+\]
+故通项与 $n^{-p}$ 等价，仍以 $p=1$ 为临界点。使用 Taylor 展开时，必须同时检查展开参数趋于零和余项经外部倍乘后仍趋于零。
+
+\begin{proposition}[Kummer 判别法]
+设 $u_n>0$、$c_n>0$。若存在 $\delta>0$ 使充分大时
+\[
+ c_n\frac{u_n}{u_{n+1}}-c_{n+1}\geq\delta,
+\]
+则 $\sum u_n$ 收敛；若 $\sum1/c_n$ 发散且充分大时左端不大于零，则 $\sum u_n$ 发散。
+\end{proposition}
+\begin{proof}
+第一种情形乘以 $u_{n+1}$ 后求和，得到
+\[
+ \delta\sum_{n=N}^{M}u_{n+1}
+ \leq c_Nu_N-c_{M+1}u_{M+1}\leq c_Nu_N,
+\]
+故部分和有界。第二种情形说明 $c_nu_n$ 最终不减，因而最终有 $u_n\geq C/c_n$，其中 $C>0$，由比较判别得发散。
+\end{proof}
+
+取 $c_n=n$ 即得 Raabe 判别法：若 $n(u_n/u_{n+1}-1)\to L$，则 $L>1$ 时收敛，$L<1$ 时发散，$L=1$ 时需进一步分析。取辅助数列的意义是把复杂通项转化为一个可以连锁消去的不等式，而非机械计算比值。
+
+\subsection{Abel 变换与变号级数}
+
+\begin{proposition}[Abel 变换]
+\label{prop:pei-abel-transform}
+给定整数 $m\geq n$，记 $A_k=\sum_{j=n}^{k}a_j$，则
+\begin{equation}
+ \sum_{k=n}^{m}a_kb_k
+ =A_mb_m+\sum_{k=n}^{m-1}A_k(b_k-b_{k+1}).
+ \label{eq:pei-abel-transform}
+\end{equation}
+若 $|A_k|\leq M$，则
+\[
+ \left|\sum_{k=n}^{m}a_kb_k\right|
+ \leq M\left(|b_m|+\sum_{k=n}^{m-1}|b_k-b_{k+1}|\right).
+\]
+特别地，若 $b_k\geq0$ 且单调递减，右侧不超过 $Mb_n$。
+\end{proposition}
+\begin{proof}
+令 $A_{n-1}=0$，把 $a_k=A_k-A_{k-1}$ 代入左侧并错位相减，即得恒等式；再用三角不等式及单调性得到估计。
+\end{proof}
+
+\begin{theorem}[Dirichlet、Abel 与 Leibniz 判别法]
+\label{thm:pei-dirichlet-abel}
+若 $\sum_{k=1}^{n}a_k$ 对 $n$ 一致有界，且实数列 $b_n$ 单调趋于零，则 $\sum a_nb_n$ 收敛，此为 Dirichlet 判别法。若 $\sum a_n$ 收敛且 $b_n$ 单调有界，则 $\sum a_nb_n$ 收敛，此为 Abel 判别法。特别地，$b_n\downarrow0$ 时，交错级数 $\sum_{n=1}^{\infty}(-1)^{n-1}b_n$ 收敛，且余和满足 $|r_N|\leq b_{N+1}$，此为 Leibniz 判别法及其余项估计。
+\end{theorem}
+\begin{proof}
+Dirichlet 判别中，任意尾段的 $a_k$ 部分和至多为原部分和上界的两倍。由式~\eqref{eq:pei-abel-transform}，乘积级数的尾段和被常数倍的 $|b_n|$ 控制，因此满足 Cauchy 准则。Abel 判别中令 $b=\lim b_n$，分解 $a_nb_n=a_n(b_n-b)+ba_n$，第一项用 Dirichlet 判别，第二项用原级数收敛性。交错级数的收敛是 Dirichlet 判别的特例；从余和首项开始两两分组，可知余和的符号与首项相同，绝对值不超过首项。
+\end{proof}
+
+\begin{example}
+\label{ex:pei-sine-harmonic}
+证明当 $\theta\notin2\pi\mathbb Z$ 时，$\sum_{n=1}^{\infty}\sin(n\theta)/n$ 收敛，并说明 $\sum_{n=1}^{\infty}\sin n/n$ 是条件收敛的。
+\end{example}
+\begin{solve}
+有限等比和给出
+\[
+ \sum_{k=1}^{N}\sin(k\theta)
+ =\frac{\cos(\theta/2)-\cos((N+1/2)\theta)}{2\sin(\theta/2)},
+\]
+对固定的 $\theta\notin2\pi\mathbb Z$，其绝对值有界，故用 Dirichlet 判别得到收敛。取 $\theta=1$，又有 $|\sin n|\geq\sin^2n=(1-\cos2n)/2$，而 $\sum\cos2n/n$ 由同一判别法收敛，调和级数发散，故 $\sum|\sin n|/n$ 发散。
+\end{solve}
+
+判断条件收敛必须分别证明原级数收敛和绝对值级数发散；仅仅发现比值或根值为 $1$，不能得到条件收敛。对交错形状也要检查绝对值的单调性，例如令 $a_{2k-1}=1/\sqrt k$、$a_{2k}=-1/(2\sqrt k)$，虽然项的符号交替且 $a_n\to0$，但每对之和为 $1/(2\sqrt k)$，级数发散。
+
+Abel 变换还能处理单调性以外的情形。若 $\sum a_n$ 收敛且 $\sum|b_{n+1}-b_n|<\infty$，则 $b_n$ 有界且 $\sum a_nb_n$ 收敛：在式~\eqref{eq:pei-abel-transform} 中，先用原级数的 Cauchy 准则使所有尾段 $A_k$ 同时小，再以 $b_n$ 的有界性和差分绝对和作统一估计。这里起作用的是数列的\emph{有界变差（bounded variation）}，即相邻差分的绝对和有限。
+
+\subsection{收敛性的应用与反例构造}
+
+\begin{proposition}
+\label{prop:pei-monotone-na}
+若 $a_n\geq0$ 单调递减且 $\sum a_n$ 收敛，则 $na_n\to0$。若仅假设 $\sum a_n$ 收敛，则仍有
+\begin{equation}
+ \frac1N\sum_{k=1}^{N}ka_k\longrightarrow0.
+ \label{eq:pei-weighted-small}
+\end{equation}
+第二个结论不要求非负性或单调性。
+\end{proposition}
+\begin{proof}
+令 $m=\lfloor n/2\rfloor$，则
+\[
+ 0\leq(n-m)a_n\leq\sum_{k=m+1}^{n}a_k\longrightarrow0,
+\]
+又 $n/(n-m)\leq2$，故第一式成立。对第二式，令 $S_k=\sum_{j=1}^{k}a_j\to S$，Abel 变换给出
+\[
+ \frac1N\sum_{k=1}^{N}ka_k
+ =S_N-\frac1N\sum_{k=1}^{N-1}S_k\longrightarrow S-S=0.
+\]
+\end{proof}
+
+\emph[caution]{单调性不能从命题~\ref{prop:pei-monotone-na} 的第一个结论中删去。}令 $a_n=1/n$ 当 $n$ 为完全平方数，其他情形令 $a_n=1/n^2$，则 $\sum a_n\leq\sum1/n^2+\sum1/k^2<\infty$，但 $na_n$ 在平方数指标处恒为 $1$。反过来，即使 $na_n\to0$ 也不能保证收敛，$a_n=1/(n\log n)$（$n\geq2$）就是反例。
+
+条件收敛的反例常按有限块构造。令
+\[
+ a_{3k-2}=k^{-1/3},\qquad
+ a_{3k-1}=-2k^{-1/3},\qquad
+ a_{3k}=k^{-1/3}.
+\]
+每块之和为零，块内偏离零的部分和也趋于零，所以 $\sum a_n$ 收敛；但每块立方之和为 $-6/k$，故 $\sum a_n^3$ 发散。这说明对条件收敛级数，不能只根据 $|a_n^3|\leq|a_n|$ 就断言其立方级数收敛，因为作为比较对象的绝对值级数本身未必收敛。
+
+\begin{example}
+构造在 $[0,1]$ 上单调递增、在每个有理点间断而在每个无理点连续的函数。
+\end{example}
+\begin{solve}
+把 $[0,1]$ 中的有理数无重复地排为 $(q_k)_{k\geq1}$，定义
+\[
+ f(x)=\sum_{k=1}^{\infty}2^{-k}h_k(x),\qquad
+ h_k(x)=
+ \begin{cases}
+  \mathbf1_{\{x>0\}},&q_k=0,\\
+  \mathbf1_{\{x\geq q_k\}},&q_k>0.
+ \end{cases}
+\]
+其中 $\mathbf1_E$ 为集合 $E$ 的示性函数。各项不减，故 $f$ 不减；在 $q_k\in(0,1]$ 处，其相对于左侧的跃度至少为 $2^{-k}$，在 $q_k=0$ 处相对于右侧的跃度至少为 $2^{-k}$，所以各有理点均不连续。对无理点 $x_0$，给定 $\varepsilon>0$，先取 $N$ 使 $\sum_{k>N}2^{-k}<\varepsilon$，再取 $x_0$ 的充分小邻域避开 $q_1,\ldots,q_N$，则邻域内前 $N$ 项不变，而 $|f(x)-f(x_0)|<\varepsilon$，故在 $x_0$ 连续。
+\end{solve}
+
+\subsection{部分和归一化与反常积分}
+
+\begin{proposition}
+设 $a_n>0$，$S_n=\sum_{k=1}^{n}a_k$，$\lambda>0$。若 $\lambda>1$，则 $\sum a_n/S_n^\lambda$ 总收敛；若 $0<\lambda\leq1$，则它与 $\sum a_n$ 同敛散。
+\end{proposition}
+\begin{proof}
+若 $S_n\to S<\infty$，则 $S_1\leq S_n\leq S$，归一化后的项与 $a_n$ 相差有界的正因子，故收敛。若 $S_n\to\infty$ 且 $\lambda>1$，对 $n\geq2$ 有
+\[
+ \frac{a_n}{S_n^\lambda}\leq
+ \int_{S_{n-1}}^{S_n}t^{-\lambda}\,dt,
+\]
+求和后用 $\int_{S_1}^{\infty}t^{-\lambda}\,dt<\infty$。当 $\lambda=1$，对固定 $n$，
+\[
+ \sum_{k=n+1}^{m}\frac{a_k}{S_k}
+ \geq\frac{S_m-S_n}{S_m}\longrightarrow1\qquad(m\to\infty),
+\]
+故违反 Cauchy 准则；当 $0<\lambda<1$，最终 $S_n\geq1$，有 $a_n/S_n^\lambda\geq a_n/S_n$，因此也发散。
+\end{proof}
+
+级数与反常积分之间的联系不仅用于判断敛散，还能用于余和的渐近估计和无穷区间的 Riemann 和。由式~\eqref{eq:pei-integral-tail}，若 $p>1$，则
+\[
+ \sum_{k=N+1}^{\infty}\frac1{k^p}
+ \sim\frac{N^{1-p}}{p-1}.
+\]
+若 $f:[0,\infty)\to[0,\infty)$ 单调递减且可积，则对 $h>0$，单位小区间的积分估计给出
+\[
+ \int_h^{\infty}f(x)\,dx
+ \leq h\sum_{n=1}^{\infty}f(nh)
+ \leq\int_0^{\infty}f(x)\,dx.
+\]
+令 $h\downarrow0$ 即得
+\begin{equation}
+ h\sum_{n=1}^{\infty}f(nh)\longrightarrow\int_0^{\infty}f(x)\,dx.
+ \label{eq:pei-infinite-riemann}
+\end{equation}
+例如取 $f(x)=1/(1+e^x)$，右端为 $\log2$。这种无穷区间上的求和极限不能仅凭“形式上像 Riemann 和”交换极限与无穷求和，单调可积性在此提供了对全部尾部的统一控制。
+
+% 对应所给 PDF 第 48--95 页。
+\section{函数项级数}
+\label{sec:pei-function-series}
+
+\emph{函数项级数（series of functions）}将每个数项替换为同一集合上定义的函数。固定自变量后可使用数项级数的判别方法；要研究和函数的性质，则需要进一步控制误差对自变量的依赖。
+
+\subsection{逐点收敛、一致收敛与否定方法}
+
+\begin{definition}
+设 $E\subset\mathbb R$，函数列 $f_n:E\to\mathbb R$ 逐点收敛于 $f$，是指对每个固定 $x\in E$ 都有 $f_n(x)\to f(x)$；若
+\[
+ \forall\varepsilon>0\ \exists N\ \forall n\geq N\ \forall x\in E,
+ \qquad |f_n(x)-f(x)|<\varepsilon,
+\]
+则称 $f_n$ 在 $E$ 上\emph{一致收敛（uniform convergence）}于 $f$，记为 $f_n\rightrightarrows f$。等价地，$\sup_{x\in E}|f_n(x)-f(x)|\to0$。函数项级数 $\sum u_n(x)$ 的一致收敛是指其部分和列一致收敛；在开区间每个内闭区间上一致收敛，称为\emph{内闭一致收敛或局部一致收敛（locally uniform convergence）}。
+\end{definition}
+
+逐点收敛中的指标可以依赖于 $x$，一致收敛要求所有点共用同一指标。证明一致收敛时可直接估计余项的上确界；证明非一致收敛时，可寻找随 $n$ 移动的点 $x_n$，使误差保持远离零。上确界不必在 $E$ 内取到，例如 $x^n$ 在 $[0,1)$ 上逐点趋于零，但 $\sup_{0\leq x<1}x^n=1$，故不一致收敛。
+
+\begin{theorem}[一致 Cauchy 准则]
+\label{thm:pei-uniform-cauchy}
+级数 $\sum u_n(x)$ 在 $E$ 上一致收敛，当且仅当
+\[
+ \forall\varepsilon>0\ \exists N\ \forall m>n\geq N,
+ \qquad\sup_{x\in E}\left|\sum_{k=n+1}^{m}u_k(x)\right|<\varepsilon.
+\]
+特别地，一致收敛必有 $\sup_{x\in E}|u_n(x)|\to0$，但此必要条件不充分。
+\end{theorem}
+\begin{proof}
+必要性由一致收敛和三角不等式得到。充分性中，对每个固定 $x$，部分和为 Cauchy 列，故存在和 $S(x)$；将一致 Cauchy 不等式中的 $m\to\infty$，可得 $|S(x)-S_n(x)|\leq\varepsilon$ 对全部 $x$ 同时成立，因此部分和一致收敛。
+\end{proof}
+
+例~\ref{ex:pei-sine-harmonic} 中的正弦级数虽然在每点收敛，却在 $0$ 的任何邻域内都不一致收敛。事实上令 $x_n=\pi/(4n)$，则对 $n<k\leq2n$ 有 $kx_n\in[\pi/4,\pi/2]$，从而
+\[
+ \sum_{k=n+1}^{2n}\frac{\sin(kx_n)}k
+ \geq\frac{\sqrt2}{2}\sum_{k=n+1}^{2n}\frac1k
+ \geq\frac{\sqrt2}{4}.
+\]
+这里通项 $\sin(nx)/n$ 确实一致趋于零，仍不足以保证整个级数一致收敛；尾段长度和检验点必须允许同时变化。
+
+\subsection{优级数与一致 Abel、Dirichlet 判别法}
+
+\begin{theorem}[Weierstrass 的 $M$ 判别法]
+\label{thm:pei-m-test}
+若 $|u_n(x)|\leq M_n$ 对所有 $x\in E$ 成立，且非负项级数 $\sum M_n$ 收敛，则 $\sum u_n(x)$ 和 $\sum|u_n(x)|$ 都在 $E$ 上一致收敛。
+\end{theorem}
+\begin{proof}
+任意尾段和的绝对值均不超过 $\sum_{k=n+1}^{m}M_k$，对 $x$ 无关；由数项级数及一致 Cauchy 准则得到结论。
+\end{proof}
+
+寻找优级数时，通常先求 $\sup_E|u_n|$，或用均值不等式、Taylor 余项和微分中值定理得到更简洁的上界。例如
+\[
+ \max_{0\leq x\leq1}x^n(1-x)^2
+ =\left(\frac n{n+2}\right)^n\frac4{(n+2)^2}
+ \leq\frac4{(n+2)^2},
+\]
+故 $\sum x^n(1-x)^2$ 在 $[0,1]$ 上一致收敛。$M$ 判别法是充分条件，不能因某个粗糙上界组成发散级数就断言原级数非一致收敛。
+
+\begin{theorem}[一致 Dirichlet 与 Abel 判别法]
+\label{thm:pei-uniform-dirichlet}
+若 $|\sum_{k=1}^{N}a_k(x)|\leq M$ 对全部 $x\in E$ 和 $N$ 成立，$b_n(x)$ 对每个固定 $x$ 关于 $n$ 单调，且 $b_n\rightrightarrows0$，则 $\sum a_n(x)b_n(x)$ 在 $E$ 上一致收敛。若改为 $\sum a_n(x)$ 在 $E$ 上一致收敛，$b_n(x)$ 对 $n$ 单调且对 $n,x$ 一致有界，也可得到相同结论。
+\end{theorem}
+\begin{proof}
+第一种情形，尾段的 $a_k(x)$ 部分和不超过 $2M$。对每个 $x$ 应用 Abel 变换，利用单调性将尾段和控制为常数倍的 $\sup_E|b_{n+1}|$，于是统一趋于零。第二种情形，先由 $\sum a_n(x)$ 的一致 Cauchy 性使尾段部分和不超过任意小的 $\varepsilon$；若 $|b_k(x)|\leq B$，单调性给出
+\[
+ |b_m(x)|+\sum_{k=n+1}^{m-1}|b_k(x)-b_{k+1}(x)|\leq3B.
+\]
+故乘积尾段和不超过 $3B\varepsilon$。
+\end{proof}
+
+在任意 $[\delta,2\pi-\delta]$（$0<\delta<\pi$）上，有限正弦和被 $1/\sin(\delta/2)$ 控制，因此 $\sum\sin(nx)/n$ 在这些区间上一致收敛；区间接近 $0$ 或 $2\pi$ 时，此上界不再统一，正是前述非一致收敛现象出现的位置。类似地，若数项级数 $\sum a_n$ 收敛，则 $n^{-x}$ 对 $n$ 单调且在 $x\geq0$ 上介于 $0$ 与 $1$ 之间，故 $\sum a_n/n^x$ 在 $[0,\infty)$ 上一致收敛。
+
+\begin{example}
+说明一致收敛、逐点绝对收敛和绝对值级数的一致收敛之间的区别。
+\end{example}
+\begin{solve}
+常函数项级数 $\sum(-1)^{n-1}/n$ 在任意集合上一致收敛，但在每点都不绝对收敛。再考虑
+\[
+ \sum_{n=0}^{\infty}(-1)^nx^n(1-x),\qquad 0\leq x\leq1.
+\]
+它在每点绝对收敛，由交错余项估计有 $|r_N(x)|\leq(1-x)x^{N+1}$，右端上确界趋于零，故原级数一致收敛。然而绝对值级数的和在 $x<1$ 时为 $1$，在 $x=1$ 时为 $0$，不连续；由一致收敛保连续性定理，绝对值级数不一致收敛。因而“一致收敛且每点绝对收敛”仍不等于绝对值级数一致收敛。
+\end{solve}
+
+\subsection{Dini 定理、等度连续与紧性}
+
+\begin{theorem}[Dini 定理]
+\label{thm:pei-dini}
+设连续函数列 $f_n$ 在闭区间 $[a,b]$ 上逐点收敛于连续函数 $f$，且对每个固定 $x$，$f_n(x)$ 关于 $n$ 单调，则 $f_n\rightrightarrows f$。
+\end{theorem}
+\begin{proof}
+记 $g_n(x)=|f_n(x)-f(x)|$，则 $g_n$ 连续且随 $n$ 单调降至零。对给定 $\varepsilon>0$，集合 $U_n=\{x:g_n(x)<\varepsilon\}$ 是递增的相对开集并覆盖 $[a,b]$。由有限覆盖性质，存在 $N$ 使整个区间包含于 $U_N$，因而 $n\geq N$ 时 $g_n(x)<\varepsilon$ 对全部 $x$ 成立。
+\end{proof}
+
+Dini 定理中的单调性是对指标 $n$ 而言，不能误解为各 $f_n$ 对 $x$ 单调。若 $u_n\geq0$ 连续且 $\sum u_n$ 的和在闭区间上连续，则其部分和满足 Dini 定理，级数一致收敛。闭区间和极限连续的条件都不可任意去掉：$x^n$ 在 $[0,1)$ 上单调趋于连续的零函数，却不一致收敛；在 $[0,1]$ 上则极限不连续。
+
+\begin{definition}
+函数族 $\mathcal F$ 在 $E$ 上\emph{等度连续（equicontinuous）}，是指对每个 $\varepsilon>0$，存在与 $g\in\mathcal F$ 无关的 $\delta>0$，使 $x,y\in E$ 且 $|x-y|<\delta$ 时都有 $|g(x)-g(y)|<\varepsilon$。在闭区间上，这等价于通常逐点定义的等度连续性；这里采用统一的表述。
+\end{definition}
+
+\begin{proposition}
+\label{prop:pei-equicontinuity}
+若 $f_n$ 在 $[a,b]$ 上等度连续且逐点收敛于 $f$，则 $f$ 连续且 $f_n\rightrightarrows f$。若函数列一致有界且等度连续，则它存在一致收敛的子列，此为 Arzelà--Ascoli 定理在闭区间上的形式。
+\end{proposition}
+\begin{proof}
+在等度连续不等式中令 $n\to\infty$，可知 $f$ 具有相同的连续模。给定 $\varepsilon>0$，用有限个网格点使每个 $x$ 都与某网格点相距小于相应的 $\delta$；网格点有限，可取公共指标使其上的 $|f_n-f|<\varepsilon/3$。再分别控制 $f_n$、$f$ 从网格点到 $x$ 的变化，即得全区间误差小于 $\varepsilon$。
+
+第二个结论中，先枚举闭区间中的一个可数稠密集，在其第一点取收敛子列，再在第二点取子列，依次进行并取对角子列，使它在全部稠密点收敛。等度连续性和有限网格将这些点上的 Cauchy 性提升为全区间上的一致 Cauchy 性，故该子列一致收敛。
+\end{proof}
+
+一个常用的充分条件是导数一致有界：若 $|f_n'(x)|\leq M$，则微分中值定理给出 $|f_n(x)-f_n(y)|\leq M|x-y|$。这能把部分和导数的统一估计转化为等度连续，再结合逐点收敛得到一致收敛；仅有每个函数分别连续或分别有界，并不足以替代上述统一条件。
+
+\subsection{交换极限、积分与微分的条件}
+
+\begin{theorem}[一致收敛的基本运算性质]
+\label{thm:pei-uniform-operations}
+若 $f_n\rightrightarrows f$ 于 $E$，且各 $f_n$ 在 $x_0\in E$ 连续，则 $f$ 在 $x_0$ 连续。若各 $f_n$ 在有限闭区间 $[a,b]$ 上 Riemann 可积且一致收敛于 $f$，则 $f$ 也可积，且
+\[
+ \int_a^bf(x)\,dx=\lim_{n\to\infty}\int_a^bf_n(x)\,dx.
+\]
+若 $f_n$ 在区间 $I$ 的聚点 $x_0$ 处有极限 $c_n$，且在该点的某个去心邻域与 $I$ 的交集上一致收敛于 $f$，则 $c_n$ 收敛，并有 $\lim_{x\to x_0}f(x)=\lim_{n\to\infty}c_n$。
+\end{theorem}
+\begin{proof}
+连续性与交换极限的结论都由三项分解得到：先用一致收敛控制 $f-f_N$，将 $N$ 固定，再利用 $f_N$ 的连续性或极限控制中间项。可积性可由 Darboux 上下和之差验证：若 $\|f-f_N\|_\infty<\eta$，则任一分割下 $f$ 的上下和之差不超过 $f_N$ 的相应差加 $2\eta(b-a)$；先取 $N$，再选取 $f_N$ 的合适分割即可。最后
+\[
+ \left|\int_a^b(f-f_n)\,dx\right|\leq(b-a)\|f-f_n\|_\infty\longrightarrow0.
+\]
+\end{proof}
+
+\begin{theorem}[逐项求导]
+\label{thm:pei-termwise-derivative}
+设 $u_n\in C^1([a,b])$，$\sum u_n(x_0)$ 在某个 $x_0\in[a,b]$ 收敛，且 $\sum u_n'$ 在 $[a,b]$ 上一致收敛于 $g$。则 $\sum u_n$ 在 $[a,b]$ 上一致收敛于连续函数 $S$，并且在内部可导，$S'=g=\sum u_n'$；端点取相应的单侧导数。
+\end{theorem}
+\begin{proof}
+对部分和 $S_N$，有 $S_N(x)=S_N(x_0)+\int_{x_0}^{x}S_N'(t)\,dt$。在导数级数中逐项积分，由积分误差不超过 $(b-a)\|S_N'-g\|_\infty$，可得 $S_N$ 一致趋于
+\[
+ S(x)=\sum_{n=1}^{\infty}u_n(x_0)+\int_{x_0}^{x}g(t)\,dt.
+\]
+$g$ 是连续函数的一致极限，因而连续，再由微积分基本定理得 $S'=g$。
+\end{proof}
+
+上述结论可在每个内闭区间上使用，因此局部一致收敛足以保证开区间内部的连续性；逐项求导则应检查\emph[caution]{导数级数}的局部一致收敛和原级数的一个收敛点。例如
+\[
+ F(x)=\sum_{n=1}^{\infty}ne^{-nx},\qquad x>0,
+\]
+在任意 $[\delta,A]$（$\delta>0$）上，其 $r$ 次导数级数的绝对值被 $\sum n^{r+1}e^{-n\delta}$ 控制，所以 $F\in C^\infty((0,\infty))$。但在整个 $(0,\infty)$ 上，通项的上确界为 $n$，原级数不一致收敛。由等比级数还可求得 $F(x)=e^{-x}/(1-e^{-x})^2$，与上述局部结论一致。
+
+一致收敛本身不保证导数收敛，例如 $f_n(x)=\sin(nx)/n$ 在实轴上一致趋于零，而 $f_n'(0)=1$。逐项积分的充分条件则可以弱于一致收敛：若和函数及部分和可积，所需的实际条件只是余和积分趋于零。
+
+\begin{example}
+\label{ex:pei-nonuniform-integration}
+令 $u_n(x)=x^n\log x$（$n\geq1$，$0<x<1$），并在 $x=0,1$ 处取连续延拓值 $0$。说明该级数不一致收敛，却可逐项积分。
+\end{example}
+\begin{solve}
+在 $0<x<1$ 时，$S(x)=x\log x/(1-x)$，而 $S(1)=0$；因 $\lim_{x\uparrow1}S(x)=-1$，连续性定理排除 $[0,1]$ 上的一致收敛。在开区间 $(0,1)$ 上，其余和为
+\[
+ r_N(x)=\frac{x^{N+1}\log x}{1-x}.
+\]
+由 $-\log x=\int_x^1dt/t\leq(1-x)/x$，得 $|r_N(x)|\leq x^N$，从而
+\[
+ \int_0^1|r_N(x)|\,dx\leq\frac1{N+1}\longrightarrow0.
+\]
+因此 $\int_0^1S=\sum_{n=1}^{\infty}\int_0^1u_n=-\sum_{n=1}^{\infty}1/(n+1)^2$。此外固定 $N$ 时 $r_N(x)\to-1$（$x\uparrow1$），故开区间上也不一致收敛。
+\end{solve}
+
+对极限集中在端点附近的积分，可采用先控制小邻域、再控制其余区间的方法。若 $p_n\geq0$ 可积，$\int_a^bp_n=1$，且每个 $\delta>0$ 都满足 $\int_{a+\delta}^{b}p_n\to0$，则对任意连续的 $g$ 有 $\int_a^bgp_n\to g(a)$：把 $g-g(a)$ 在 $[a,a+\delta]$ 上用连续性控制，在剩余区间用有界性及质量趋零控制。非负性在此用于把局部积分估计为总质量，不能在变号函数列上直接套用。
+
+\subsection{一致逼近及其适用区间}
+
+\begin{theorem}[Weierstrass 多项式逼近定理]
+\label{thm:pei-weierstrass-approximation}
+若 $f$ 在有限闭区间 $[a,b]$ 上连续，则存在多项式列 $P_n$ 在该区间上一致收敛于 $f$。
+\end{theorem}
+\begin{proof}
+线性换元后只需考虑 $[0,1]$。取 Bernstein 多项式
+\[
+ B_n(f;x)=\sum_{k=0}^{n}f(k/n)\binom nkx^k(1-x)^{n-k}.
+\]
+记权重 $w_{n,k}(x)=\binom nkx^k(1-x)^{n-k}\geq0$，二项式恒等式给出
+\[
+ \sum_{k=0}^{n}w_{n,k}=1,\qquad
+ \sum_{k=0}^{n}(k/n-x)^2w_{n,k}=\frac{x(1-x)}n\leq\frac1{4n}.
+\]
+设 $|f|\leq M$，由一致连续性选取 $\delta>0$，使 $|s-t|<\delta$ 时 $|f(s)-f(t)|<\varepsilon$。将和分为 $|k/n-x|<\delta$ 与其余两部分，得到
+\[
+ |B_n(f;x)-f(x)|
+ \leq\varepsilon+2M\sum_{|k/n-x|\geq\delta}w_{n,k}
+ \leq\varepsilon+\frac{M}{2n\delta^2}.
+\]
+这一估计对全部 $x\in[0,1]$ 成立，故一致逼近成立。
+\end{proof}
+
+作为应用，若连续函数 $f$ 满足 $\int_a^bx^kf(x)\,dx=0$ 对全部非负整数 $k$ 成立，则 $f\equiv0$。事实上，对逼近 $f$ 的多项式 $P_n$ 有 $\int fP_n=0$，而
+\[
+ \left|\int_a^bf(f-P_n)\,dx\right|
+ \leq(b-a)\|f\|_\infty\|f-P_n\|_\infty\longrightarrow0,
+\]
+故 $\int f^2=0$，再由连续性得到逐点为零。这里把对单项式的条件推广到一般连续函数，依靠的是一致逼近及积分误差控制。
+
+逼近区间无界时则有本质限制。若多项式列 $P_n$ 在一个无界区间上一致收敛，则其尾部满足 $\sup|P_n-P_m|<1$；非恒定多项式在无界区间上不可能有界，所以所有充分后的 $P_n$ 只相差常数。固定其中一个多项式后，这些常数收敛，因而极限仍为多项式。故有限闭区间上的逼近定理不能直接推广为整个实轴上的多项式一致逼近。
+
+\subsection{连续而处处不可导的级数构造}
+
+令 $\phi(t)=\operatorname{dist}(t,\mathbb Z)$，即 $t$ 到最近整数的距离。它是周期为 $1$、值域为 $[0,1/2]$ 的连续三角波，在相邻的整数与半整数之间斜率为 $1$ 或 $-1$。考虑
+\begin{equation}
+ W(x)=\sum_{k=0}^{\infty}4^{-k}\phi(4^kx),\qquad x\in\mathbb R.
+ \label{eq:pei-nowhere-differentiable}
+\end{equation}
+其通项绝对值不超过 $4^{-k}/2$，由 $M$ 判别法知 $W$ 在实轴上连续。下面核查它在每点都不存在有限导数，说明振幅趋零虽然能保证连续，却不能抵消频率不断增大对差商的影响。
+
+固定 $x$，对每个 $n\geq1$ 选择 $h_n=4^{-n}$ 或 $h_n=-4^{-n}$，使 $x$ 与 $x+h_n$ 位于 $\phi(4^{n-1}t)$ 的同一条直线段内。这样的方向总能选到，因为该直线段长为 $2\cdot4^{-n}$。较低频率的折点都属于这一层的折点网格，所以前 $n$ 项在所选小段上均为线性；当 $k\geq n$ 时，$4^kh_n$ 是整数，相应差分由周期性全部消失。因此
+\[
+ \frac{W(x+h_n)-W(x)}{h_n}
+ =\sum_{k=0}^{n-1}\sigma_{k,n},\qquad \sigma_{k,n}\in\{-1,1\}.
+\]
+若 $x$ 不属于任何折点网格，则每个较低频率在 $x$ 的斜率已经确定，$\sigma_{k,n}=\sigma_k$ 与 $n>k$ 无关；右端成为增量恒为 $1$ 或 $-1$ 的部分和列，不可能收敛。若 $x$ 属于某个折点网格，则从某一层起 $4^kx$ 都是整数，所有高频项在所选方向上的斜率相同，差商绝对值至少为 $n-C$，其中 $C$ 与 $n$ 无关，也不可能有有限极限。由此 $W$ 处处不可导；此构造同时核实了连续性和不可导性，而非仅凭图形的粗糙程度判断。
+
+% 对应所给 PDF 第 96--131 页。
+\section{幂级数}
+\label{sec:pei-power-series}
+
+\emph{幂级数（power series）}是通项为 $a_n(x-c)^n$ 的函数项级数，其中系数 $a_n$ 和展开中心 $c$ 固定。它的收敛集合具有由中心向外扩展的区间结构，这使局部一致收敛和逐项运算能够得到统一处理。
+
+\subsection{收敛半径、缺项与端点检验}
+
+\begin{theorem}[Cauchy--Hadamard 公式]
+\label{thm:pei-radius}
+幂级数 $\sum_{n=0}^{\infty}a_n(x-c)^n$ 的\emph{收敛半径（radius of convergence）}为
+\[
+ R=\frac1{\limsup_{n\to\infty}\sqrt[n]{|a_n|}},
+\]
+约定 $1/0=\infty$、$1/\infty=0$。在 $|x-c|<R$ 时绝对收敛，在 $|x-c|>R$ 时发散；当 $0<R<\infty$ 时，两个端点 $x=c\pm R$ 必须分别检验。若 $|a_n/a_{n+1}|$ 的极限存在，且系数最终非零，则也可用该极限计算 $R$。
+\end{theorem}
+\begin{proof}
+对固定 $x$，通项绝对值的 $n$ 次根之上极限为 $|x-c|\limsup\sqrt[n]{|a_n|}$；应用根值判别即可。比值公式由比值与根值的极限关系得到。
+\end{proof}
+
+对缺项级数必须按实际幂次处理，不能把“第几项”误当作“$x$ 的几次幂”。例如
+\[
+ \sum_{n=1}^{\infty}nx^{n^2}
+ \quad\text{的收敛范围为 }(-1,1),\qquad
+ \sum_{n=1}^{\infty}\frac{x^{n^2}}{2^n}
+ \quad\text{的收敛范围为 }[-1,1].
+\]
+两者补入零系数后的收敛半径都是 $1$：非零系数的幂次根分别为 $n^{1/n^2}\to1$、$2^{-1/n}\to1$。第一个在两端点通项不趋零，第二个在两端点都绝对收敛。对 $\sum a_n\psi(x)^n$，则先在新变量 $t=\psi(x)$ 中判断收敛范围，再解相应的不等式及端点方程。
+
+系数逐项相加时，两个幂级数之和的半径至少为两半径的较小者；两半径不同时恰等于较小者，否则在某个原来发散的点上用相减会导致矛盾。半径相同时可能因系数抵消而增大，不能总写成等号。对系数逐项相乘的级数 $\sum a_nb_nx^n$，当两原半径为有限正数时，有 $R\geq R_aR_b$，由根值上极限的不等式直接得到；这与通常 Cauchy 乘积的系数卷积不是同一种运算。
+
+\subsection{内部一致收敛与端点 Abel 定理}
+
+\begin{proposition}
+\label{prop:pei-power-interior}
+幂级数在收敛区间内部局部一致绝对收敛，可以任意次逐项微分和积分；所得级数的收敛半径保持不变。其和函数 $f$ 满足 $a_n=f^{(n)}(c)/n!$，故幂级数展开唯一。
+\end{proposition}
+\begin{proof}
+给定 $0<r<\rho<R$，$\sum|a_n|\rho^n$ 收敛，而 $|a_n(x-c)^n|\leq|a_n|\rho^n$ 对 $|x-c|\leq r$ 成立。导数级数中的附加因子为 $n$ 的固定次幂，由 $n^k(r/\rho)^n$ 有界，可继续用优级数控制。逐项积分亦同理；系数乘以 $n$ 或除以 $n+1$ 不改变根值上极限，所以半径不变。最后令 $x=c$ 即得到系数公式。
+\end{proof}
+
+\begin{theorem}[Abel 端点定理]
+\label{thm:pei-abel-endpoint}
+若 $\sum_{n=0}^{\infty}a_nR^n$ 收敛，其中 $R>0$，则 $\sum a_nx^n$ 在 $[0,R]$ 上一致收敛，且
+\[
+ \lim_{x\uparrow R}\sum_{n=0}^{\infty}a_nx^n
+ =\sum_{n=0}^{\infty}a_nR^n.
+\]
+左端点的结论可将 $x$ 换为 $-x$ 后得到。一般展开中心可通过平移处理。
+\end{theorem}
+\begin{proof}
+写成 $\sum (a_nR^n)(x/R)^n$。第一个因子组成收敛的数项级数，第二个因子对指标单调并在 $[0,R]$ 上一致有界，由一致 Abel 判别法得一致收敛；各项连续，再用一致收敛保连续性即可。
+\end{proof}
+
+\emph[caution]{端点处的级数收敛是此定理的假设，不能先取内部和函数的端点极限，再据此断言端点级数收敛。}例如 $\sum_{n=0}^{\infty}(-1)^nx^n=1/(1+x)$ 在 $x\uparrow1$ 时有极限 $1/2$，但端点级数 $1-1+1-1+\cdots$ 不收敛。另一方面，若非负系数幂级数在 $[0,1)$ 上有统一有限上界，则对每个有限 $N$ 令 $x\uparrow1$，可得 $\sum_{n=0}^{N}a_n$ 有共同上界，所以端点级数必收敛；非负性使这个逆向推理成立。
+
+\begin{proposition}[一个 Tauber 型逆命题]
+若 $f(x)=\sum_{n=1}^{\infty}a_nx^n$ 在 $|x|<1$ 收敛，$na_n\to0$，且 $\lim_{x\uparrow1}f(x)=S$ 存在，则 $\sum a_n=S$。
+\end{proposition}
+\begin{proof}
+取 $x_N=1-1/N$（$N\geq2$），将部分和与 $f(x_N)$ 相减。因 $0\leq1-x_N^k\leq k/N$，有限部分满足
+\[
+ \left|\sum_{k=1}^{N}a_k(1-x_N^k)\right|
+ \leq\frac1N\sum_{k=1}^{N}k|a_k|\longrightarrow0.
+\]
+记 $\eta_N=\sup_{k>N}k|a_k|\to0$，无穷尾部满足
+\[
+ \sum_{k>N}|a_k|x_N^k
+ \leq\frac{\eta_N}{N}\sum_{k>N}x_N^k
+ =\eta_Nx_N^{N+1}\leq\eta_N.
+\]
+故 $\sum_{k=1}^{N}a_k-f(x_N)\to0$，结合 $f(x_N)\to S$ 得证。
+\end{proof}
+
+\subsection{函数展开、系数递推与解析性}
+
+常用的基本展开为
+\begin{align*}
+ e^x&=\sum_{n=0}^{\infty}\frac{x^n}{n!},&
+ \sin x&=\sum_{n=0}^{\infty}\frac{(-1)^nx^{2n+1}}{(2n+1)!},&
+ \cos x&=\sum_{n=0}^{\infty}\frac{(-1)^nx^{2n}}{(2n)!},\\
+ \frac1{1-x}&=\sum_{n=0}^{\infty}x^n,&
+ \log(1+x)&=\sum_{n=1}^{\infty}\frac{(-1)^{n-1}x^n}{n},&
+ \arctan x&=\sum_{n=0}^{\infty}\frac{(-1)^nx^{2n+1}}{2n+1}.
+\end{align*}
+前三式在实轴上成立，几何级数在 $|x|<1$ 成立，对数展开在 $-1<x\leq1$ 成立，反正切展开在 $|x|\leq1$ 成立。几何级数在内闭区间上逐项积分得到后两式，再分别检验端点并用 Abel 定理确定端点和。对任意实数 $\alpha$，二项式展开为
+\[
+ (1+x)^\alpha=\sum_{n=0}^{\infty}\binom\alpha n x^n,\qquad |x|<1,
+ \qquad
+ \binom\alpha n=\frac{\alpha(\alpha-1)\cdots(\alpha-n+1)}{n!},
+\]
+其中 $\binom\alpha0=1$；非负整数 $\alpha$ 时该式成为有限多项式，其他情形的端点仍需另行讨论。
+
+\begin{example}
+求 $\log^2(1-x)$ 在原点的展开，并推导对 $x>0$ 成立的对数展开式。
+\end{example}
+\begin{solve}
+在 $|x|<1$ 内绝对收敛，故可作 Cauchy 乘积。记 $H_n=\sum_{k=1}^{n}1/k$，则
+\[
+ \log^2(1-x)
+ =\sum_{n=2}^{\infty}\left(\sum_{k=1}^{n-1}\frac1{k(n-k)}\right)x^n
+ =\sum_{n=2}^{\infty}\frac{2H_{n-1}}n x^n.
+\]
+这里用 $1/[k(n-k)]=(1/k+1/(n-k))/n$ 合并系数。再令 $t=(x-1)/(x+1)$，对 $x>0$ 有 $|t|<1$、$x=(1+t)/(1-t)$，所以
+\[
+ \log x=\log(1+t)-\log(1-t)
+ =2\sum_{n=0}^{\infty}\frac{t^{2n+1}}{2n+1}.
+\]
+当 $x$ 接近 $1$ 时，$|t|$ 小，后一式比直接在较大的变量上展开更适于近似计算。
+\end{solve}
+
+待定系数法须同时解决存在性与收敛范围。若令
+\[
+ \frac{x\sin\theta}{1-2x\cos\theta+x^2}=\sum_{n=0}^{\infty}c_nx^n,
+\]
+比较系数得到 $c_0=0$、$c_1=\sin\theta$、$c_{n+1}=2\cos\theta\,c_n-c_{n-1}$，由三角恒等式得 $c_n=\sin(n\theta)$。候选级数在 $|x|<1$ 绝对收敛，其与分母相乘确实等于分子，因而展开在该区间成立。一般地，可以先由微分方程得到系数递推，证明候选级数收敛并满足同一初值问题，再用解的唯一性确认其和；仅列出形式系数尚不是函数等于级数的证明。
+
+\begin{definition}
+函数 $f$ 在 $c$ 的某邻域内等于一个收敛幂级数，称其在 $c$ 处\emph{实解析（real analytic）}。由命题~\ref{prop:pei-power-interior}，该级数必为 $f$ 的 Taylor 级数。
+\end{definition}
+
+无穷次可微并不蕴含实解析。函数 $f(x)=e^{-1/x^2}$（$x\ne0$）、$f(0)=0$ 的每阶导数在 $x\ne0$ 时都是 $e^{-1/x^2}$ 与 $1/x$ 的某个多项式之积；任意固定幂次的 $1/|x|$ 都被此指数衰减压倒，逐阶取极限可得 $f^{(n)}(0)=0$。所以其 Taylor 级数恒为零，却不能表示邻域内的 $f$。反之，如果在某邻域有 $|f^{(n)}(x)|\leq MA^n$ 对全部 $n$ 成立，Taylor 余项被 $MA^{n+1}|x-c|^{n+1}/(n+1)!$ 控制，便能证明展开确实等于函数。
+
+解析函数还具有局部唯一性：若一个正收敛半径的幂级数之和在趋向中心的互异点列上为零，则所有系数均为零。否则取最小的非零系数 $a_m$，可写为 $(x-c)^m(a_m+o(1))$，在充分小的去心邻域内不会为零，与点列矛盾。这种结论不能直接用于一般的光滑函数。
+
+\subsection{借助参数求和与计算积分}
+
+将数项级数嵌入幂级数后，分母中的 $n$ 常可通过积分处理，分子中的 $n$ 常可通过微分处理。运算在收敛区间内部完成，若最终需要端点值，再独立检查端点收敛并使用 Abel 定理。例如
+\[
+ \sum_{n=1}^{\infty}\frac{x^n}{n(n+1)}
+ =1+\frac{1-x}{x}\log(1-x),\qquad |x|<1,
+\]
+其中 $x=0$ 处取连续延拓值 $0$。该式由 $1/[n(n+1)]=1/n-1/(n+1)$ 及对数展开相减得到，故端点 $x=1$ 的级数之和为 $1$。
+
+\begin{example}
+计算 $\sum_{k=1}^{\infty}(-1)^{k-1}/(3k-1)$。
+\end{example}
+\begin{solve}
+原级数由 Leibniz 判别收敛。令
+\[
+ F(x)=\sum_{k=1}^{\infty}\frac{(-1)^{k-1}x^{3k-1}}{3k-1},\qquad |x|<1.
+\]
+逐项求导得 $F'(x)=x/(1+x^3)$，又 $F(0)=0$，所以由 Abel 端点定理，所求和为
+\[
+ \int_0^1\frac{x}{1+x^3}\,dx
+ =\left[-\frac13\log(1+x)+\frac16\log(x^2-x+1)
+ +\frac1{\sqrt3}\arctan\frac{2x-1}{\sqrt3}\right]_0^1
+ =\frac{\pi}{3\sqrt3}-\frac13\log2.
+ \qedhere
+\]
+\end{solve}
+
+对带阶乘的和，算子 $D=x\,d/dx$ 特别方便：$D(x^n)=nx^n$，故
+\[
+ \sum_{n=0}^{\infty}\frac{n^kx^n}{n!}=D^k(e^x)=e^xP_k(x),
+\]
+其中 $k\geq1$，$P_0(x)=1$、$P_{k+1}(x)=x(P_k(x)+P_k'(x))$。递推可知 $P_k$ 为整数系数多项式，因此 $\sum_{n=0}^{\infty}n^k/n!=eP_k(1)$ 是 $e$ 的整数倍。这里原幂级数收敛半径为无穷大，逐项微分和取 $x=1$ 均有依据。
+
+把被积函数展开为幂级数后，在内闭区间逐项积分通常没有困难，涉及奇端点时还需估计积分尾部。例如
+\[
+ \int_0^1\frac{\log x}{1-x}\,dx=-\sum_{n=1}^{\infty}\frac1{n^2},\qquad
+ \int_0^1\frac{\log x}{1+x}\,dx=-\sum_{n=1}^{\infty}\frac{(-1)^{n-1}}{n^2}.
+\]
+第一式可分离 $\log x$ 后应用例~\ref{ex:pei-nonuniform-integration}；第二式有限几何展开后的余项积分绝对值不超过 $\int_0^1x^{N+1}|\log x|\,dx=1/(N+2)^2$。端点 $0$ 处以 $|\log x|$ 控制，第一式在 $1$ 处的被积函数有有限极限，故两个反常积分均存在。其具体值将在 Fourier 级数的求和例题中得到。
+
+\subsection{不等式、误差界与端点导数}
+
+非负系数展开常可逐项比较。例如对任意实数 $x$，
+\[
+ \cosh x=\sum_{n=0}^{\infty}\frac{x^{2n}}{(2n)!}
+ \leq\sum_{n=0}^{\infty}\frac{x^{2n}}{2^nn!}=e^{x^2/2},
+\]
+因为 $(2n)!\geq2^nn!$。两边都绝对收敛且 $x^{2n}\geq0$，所以比较成立；等号仅在 $x=0$ 成立，因为 $n=2$ 项在 $x\ne0$ 时已严格不等。近似计算则应先指定余项控制方式：对 $0<t\leq1$，
+\[
+ \left|\arctan t-\sum_{n=0}^{N-1}\frac{(-1)^nt^{2n+1}}{2n+1}\right|
+ \leq\frac{t^{2N+1}}{2N+1}.
+\]
+因此取项数须由目标误差反推，保留到某次幂不自动意味着对应的小数精度。
+
+\begin{example}
+\label{ex:pei-power-endpoint-derivative}
+讨论 $f(x)=\sum_{n=1}^{\infty}x^n/[n^2\log(n+1)]$ 在 $[-1,1]$ 上的连续性与端点可导性。
+\end{example}
+\begin{solve}
+原级数由 $\sum1/n^2$ 控制，在 $[-1,1]$ 上一致收敛，故 $f$ 连续。在内部
+\[
+ f'(x)=\sum_{n=1}^{\infty}\frac{x^{n-1}}{n\log(n+1)}.
+\]
+在 $[-1,0]$ 上，该导数级数由一致 Abel 判别法一致收敛，因为 $x=-1$ 处为收敛的交错级数；由逐项求导定理，$f$ 在 $-1$ 处存在有限右导数。在 $0<x<1$ 上，导数级数各项非负，且其在 $x=1$ 的部分和无界：$\sum1/[n\log(n+1)]$ 由积分比较发散。给定 $M>0$，先取有限部分和在 $1$ 处大于 $2M$，再令 $x$ 足够接近 $1$，即可得 $f'(x)>M$，故 $f'(x)\to+\infty$。对 $x<1$ 用微分中值定理，有
+\[
+ \frac{f(1)-f(x)}{1-x}=f'(\xi_x),\qquad x<\xi_x<1,
+\]
+因此左侧趋于 $+\infty$，$f$ 在 $1$ 处没有有限左导数。连续延伸到端点与导数能否延伸，是需要分别检查的问题。
+\end{solve}
+
+% 对应所给 PDF 第 131--162 页。
+\section{Fourier 级数}
+\label{sec:pei-fourier-series}
+
+\subsection{正交系与 Fourier 系数}
+
+在函数空间中，以积分 $\langle f,g\rangle=\int_a^bf(x)g(x)\,dx$ 代替向量的内积，便可讨论投影和正交展开。函数系 $(\phi_n)$ 为\emph{正交系（orthogonal system）}，是指每项平方积分非零，且 $m\ne n$ 时 $\langle\phi_m,\phi_n\rangle=0$。在 $[-\pi,\pi]$ 上，$1,\cos x,\sin x,\cos2x,\sin2x,\ldots$ 两两正交，常函数 $1$ 的平方积分为 $2\pi$，各正弦、余弦函数的平方积分为 $\pi$；这些结论可由积化和差公式和有限积分直接验证。
+
+\begin{definition}
+设实函数 $f$ 在 $[-\pi,\pi]$ 上 Riemann 可积。其\emph{Fourier 系数（Fourier coefficients）}定义为
+\[
+ a_n=\frac1\pi\int_{-\pi}^{\pi}f(x)\cos(nx)\,dx\quad(n\geq0),\qquad
+ b_n=\frac1\pi\int_{-\pi}^{\pi}f(x)\sin(nx)\,dx\quad(n\geq1).
+\]
+对应的 Fourier 级数写为
+\[
+ f(x)\sim\frac{a_0}{2}+\sum_{n=1}^{\infty}(a_n\cos nx+b_n\sin nx).
+\]
+符号 $\sim$ 在此只表示系数由上述积分确定，不预先断言级数收敛，更不预先断言其和等于 $f(x)$。部分和记为 $S_Nf$。
+\end{definition}
+
+在 $[-L,L]$ 上，相应频率改为 $n\pi/L$、系数前的归一化因子改为 $1/L$，常数项仍为 $a_0/2$。一般区间可平移到这种形式；无论选取哪一段完整周期，系数计算均须使用同一周期和同一自变量。偶函数的 $b_n$ 全部为零，奇函数的 $a_n$ 全部为零；若再满足 $f(x+\pi)=-f(x)$，则常数项和全部偶数频率系数消失。这些对称性应在计算积分前检查。
+
+\begin{example}
+说明 Legendre 多项式及微分方程如何产生正交系。
+\end{example}
+\begin{solve}
+Rodrigues 公式给出
+\[
+ P_n(x)=\frac1{2^nn!}\frac{d^n}{dx^n}(x^2-1)^n.
+\]
+对任意次数小于 $n$ 的多项式 $q$，分部积分 $n$ 次后，边界项为零，因为 $(x^2-1)^n$ 及其前 $n-1$ 阶导数在 $\pm1$ 都为零，而 $q^{(n)}=0$。故 $\int_{-1}^{1}P_nq=0$，从而 $P_n$ 两两正交。其首项系数为 $(2n)!/[2^n(n!)^2]$，再次分部积分可得
+\[
+ \int_{-1}^{1}P_n(x)^2\,dx
+ =\frac{(2n)!}{2^{2n}(n!)^2}\int_{-1}^{1}(1-x^2)^n\,dx
+ =\frac2{2n+1}.
+\]
+末一步中的积分由分部积分递推为 $2^{2n+1}(n!)^2/(2n+1)!$。更一般地，若 $y_m,y_n$ 满足
+\[
+ -(p y_j')'+q y_j=\lambda_jw y_j,
+\]
+其中 $p\in C^1([a,b])$ 且为正，$q,w$ 连续且 $w>0$，各解有使运算成立的二阶连续性，则将两式交叉相乘后相减、积分，得到
+\[
+ (\lambda_m-\lambda_n)\int_a^bw y_my_n\,dx
+ =\bigl[p(y_my_n'-y_m'y_n)\bigr]_a^b.
+\]
+若共同边界条件使右侧为零，例如两端均为齐次 Dirichlet 条件，且 $\lambda_m\ne\lambda_n$，则两解关于权 $w$ 正交。正交性来自共同边界条件和不同参数值，不能只由“满足同类微分方程”推出。
+\end{solve}
+
+\subsection{系数衰减与点态收敛}
+
+\begin{lemma}[Riemann--Lebesgue 引理]
+若 $f$ 在有限区间 $[a,b]$ 上 Riemann 可积，则当 $|\lambda|\to\infty$ 时，
+\[
+ \int_a^bf(x)\cos(\lambda x)\,dx\longrightarrow0,\qquad
+ \int_a^bf(x)\sin(\lambda x)\,dx\longrightarrow0.
+\]
+特别地，Fourier 系数 $a_n,b_n\to0$。
+\end{lemma}
+\begin{proof}
+由 Riemann 可积性，可取阶梯函数 $g$ 使 $\int_a^b|f-g|<\varepsilon$。$f-g$ 的振荡积分绝对值不超过 $\varepsilon$；$g$ 只有有限个常值区间，每个区间上正弦或余弦的积分均为 $O(1/|\lambda|)$，所以其振荡积分趋于零。先固定 $g$ 再令频率增大，最后令 $\varepsilon\downarrow0$ 即得结论。
+\end{proof}
+
+更多正则性通常给出更快的系数衰减。例如周期函数满足 Hölder 条件 $|f(x+h)-f(x)|\leq C|h|^\alpha$（$0<\alpha\leq1$）时，有 $a_n,b_n=O(n^{-\alpha})$。令复系数 $\widehat f(n)=(2\pi)^{-1}\int_{-\pi}^{\pi}f(x)e^{-inx}\,dx$，利用平移 $h=\pi/n$ 使指数变号，可得
+\[
+ 2|\widehat f(n)|\leq\frac1{2\pi}\int_{-\pi}^{\pi}|f(x+h)-f(x)|\,dx
+ \leq C(\pi/n)^\alpha,
+\]
+再由 $a_n=2\operatorname{Re}\widehat f(n)$、$b_n=-2\operatorname{Im}\widehat f(n)$ 得到结论。系数趋于零只是必要条件，尚不能保证 Fourier 级数收敛。
+
+\begin{theorem}[分段光滑函数的 Fourier 收敛定理]
+\label{thm:pei-fourier-dirichlet}
+设 $f$ 以 $2\pi$ 为周期，在一周期上分段 $C^1$，即有有限分割，使其在各开子区间上有连续导数，且函数及导数在分割点有有限单侧极限。则其 Fourier 级数在每点 $x$ 收敛于
+\[
+ \frac{f(x-0)+f(x+0)}2.
+\]
+在连续点上和为 $f(x)$；在周期接缝处须使用周期延拓后的左右极限。
+\end{theorem}
+\begin{proof}
+记 Dirichlet 核
+\[
+ D_N(t)=\frac12+\sum_{n=1}^{N}\cos nt
+ =\frac{\sin((N+1/2)t)}{2\sin(t/2)}.
+\]
+代入系数公式，有限求和与积分交换，得到
+\[
+ S_Nf(x)=\frac1\pi\int_{-\pi}^{\pi}f(x+t)D_N(t)\,dt,
+ \qquad \frac1\pi\int_{-\pi}^{\pi}D_N(t)\,dt=1.
+\]
+令 $\ell=[f(x-0)+f(x+0)]/2$，利用核的偶性可写为
+\[
+ S_Nf(x)-\ell
+ =\frac1\pi\int_0^\pi
+ \frac{f(x+t)+f(x-t)-2\ell}{2\sin(t/2)}
+ \sin((N+1/2)t)\,dt.
+\]
+分段光滑性使分子在 $t\downarrow0$ 时为 $O(t)$，故前面的商在零点附近有界，补充端点值后是分段连续的可积函数。由 Riemann--Lebesgue 引理，积分趋于零。
+\end{proof}
+
+在 $[0,L]$ 上求正弦展开，应先作奇延拓到 $[-L,L]$；求余弦展开则先作偶延拓。两种延拓产生不同的周期函数，所以同一个原区间上的函数可以有不同的三角展开；固定周期及原函数后，其 Fourier 系数则由积分唯一确定。端点的展开和由延拓后的单侧极限决定，不能只把原函数在孤立端点上的指定值代入。
+
+\subsection{Fejér 平均、最小二乘与 Parseval 等式}
+
+\begin{theorem}[Fejér 一致逼近]
+\label{thm:pei-fejer}
+若 $f$ 为连续的 $2\pi$ 周期函数，则其 Fourier 部分和的平均
+\[
+ \sigma_Nf=\frac{S_0f+S_1f+\cdots+S_Nf}{N+1}
+\]
+在实轴上一致收敛于 $f$。因此连续周期函数可由三角多项式一致逼近，即使原来的 Fourier 部分和不一定一致收敛。
+\end{theorem}
+\begin{proof}
+有限几何和及取平均给出
+\[
+ \sigma_Nf(x)=\frac1{2\pi}\int_{-\pi}^{\pi}f(x-t)K_N(t)\,dt,
+ \qquad
+ K_N(t)=\frac1{N+1}\left(\frac{\sin((N+1)t/2)}{\sin(t/2)}\right)^2.
+\]
+核非负，其积分为 $2\pi$；在 $\delta\leq|t|\leq\pi$ 上，有 $K_N(t)\leq[(N+1)\sin^2(\delta/2)]^{-1}$。将误差积分分为 $|t|<\delta$ 和其余部分，第一部分由周期函数的一致连续性控制为任意小的 $\varepsilon$，第二部分不超过 $2\|f\|_\infty/[(N+1)\sin^2(\delta/2)]$。先取 $\delta$，再令 $N\to\infty$，即得到统一于 $x$ 的误差趋零。
+\end{proof}
+
+\begin{theorem}[最佳均方逼近与 Bessel 不等式]
+\label{thm:pei-bessel}
+设 $f$ 在 $[-\pi,\pi]$ 上 Riemann 可积，$a_n,b_n$ 为其 Fourier 系数。在所有次数不超过 $N$ 的三角多项式
+\[
+ T_N(x)=\frac{\alpha_0}{2}+\sum_{n=1}^{N}(\alpha_n\cos nx+\beta_n\sin nx)
+\]
+中，使\emph{均方误差（mean square error）} $\int_{-\pi}^{\pi}|f-T_N|^2$ 最小的唯一选择是 $T_N=S_Nf$。并有 Bessel 不等式
+\begin{equation}
+ \frac{a_0^2}{2}+\sum_{n=1}^{N}(a_n^2+b_n^2)
+ \leq\frac1\pi\int_{-\pi}^{\pi}|f(x)|^2\,dx.
+ \label{eq:pei-bessel}
+\end{equation}
+\end{theorem}
+\begin{proof}
+由于 $f-S_Nf$ 与所有次数不超过 $N$ 的三角多项式正交，平方展开后交叉项为零，得到
+\begin{align*}
+ \int_{-\pi}^{\pi}|f-T_N|^2
+ &=\int_{-\pi}^{\pi}|f-S_Nf|^2
+ +\frac\pi2(\alpha_0-a_0)^2\\
+ &\quad+\pi\sum_{n=1}^{N}\bigl[(\alpha_n-a_n)^2+(\beta_n-b_n)^2\bigr].
+\end{align*}
+这证明最优性和唯一性。再展开第一项，得
+\[
+ \int_{-\pi}^{\pi}|f-S_Nf|^2
+ =\int_{-\pi}^{\pi}|f|^2-\pi\left[\frac{a_0^2}{2}+\sum_{n=1}^{N}(a_n^2+b_n^2)\right]\geq0,
+\]
+即为所需不等式。
+\end{proof}
+
+\begin{theorem}[Parseval 等式]
+\label{thm:pei-parseval}
+对上述 Riemann 可积函数 $f$，有
+\begin{equation}
+ \frac1\pi\int_{-\pi}^{\pi}|f(x)|^2\,dx
+ =\frac{a_0^2}{2}+\sum_{n=1}^{\infty}(a_n^2+b_n^2).
+ \label{eq:pei-parseval}
+\end{equation}
+等价地，$\int_{-\pi}^{\pi}|f-S_Nf|^2\to0$，即 Fourier 部分和\emph{均方收敛（mean square convergence）}于 $f$。若 $g$ 的 Fourier 系数为 $\alpha_n,\beta_n$，则
+\[
+ \frac1\pi\int_{-\pi}^{\pi}f(x)g(x)\,dx
+ =\frac{a_0\alpha_0}{2}+\sum_{n=1}^{\infty}(a_n\alpha_n+b_n\beta_n).
+\]
+\end{theorem}
+\begin{proof}
+先说明三角多项式在所需的均方意义下稠密。Riemann 可积函数有界，可用阶梯函数使平方积分误差任意小；再只在阶梯函数各跳点及周期接缝的充分小邻域内作线性连接，得到连续周期函数，并使新增平方积分误差任意小。由定理~\ref{thm:pei-fejer}，该连续函数可由三角多项式一致逼近，因而也可均方逼近。于是对每个 $\varepsilon>0$，存在三角多项式 $T$ 满足 $\int|f-T|^2<\varepsilon$。由最佳逼近性，当 $N$ 至少为 $T$ 的次数时，$\int|f-S_Nf|^2\leq\int|f-T|^2<\varepsilon$，结合误差恒等式即得 Parseval 等式。分别对 $f+g$ 与 $f-g$ 使用此式并相减，得到乘积公式；右侧由 Cauchy--Schwarz 不等式绝对收敛。
+\end{proof}
+
+均方收敛不等于逐点收敛或一致收敛，三者不可互相替换。若两个 Riemann 可积函数具有相同的 Fourier 系数，则对差函数使用式~\eqref{eq:pei-parseval} 可得其平方积分为零，等价于 $\int|f-g|=0$；如果两函数连续，便能进一步推出处处相等。没有连续性时，孤立点改值不影响系数，故不能据此确定每个点值。同样，系数趋于零不足以保证它们来自一个 Riemann 可积函数：三角级数 $\sum_{n=2}^{\infty}\sin(nx)/\log n$ 的系数虽然趋于零，但 $\sum1/(\log n)^2$ 发散，违反 Bessel 不等式。
+
+\subsection{典型展开与级数求和}
+
+\begin{example}
+\label{ex:pei-fourier-sums}
+求 $x$、$x^2$ 在 $[-\pi,\pi]$ 上的 Fourier 展开，并计算 $\sum1/n^2$、$\sum1/n^4$。
+\end{example}
+\begin{solve}
+$x$ 为奇函数，分部积分得 $b_n=2(-1)^{n+1}/n$。周期延拓在 $\pm\pi$ 处有跳跃，故
+\[
+ x=2\sum_{n=1}^{\infty}\frac{(-1)^{n+1}}n\sin nx,\qquad -\pi<x<\pi,
+\]
+而在 $x=\pm\pi$ 处级数和为零。$x^2$ 为偶函数，系数为 $a_0=2\pi^2/3$、$a_n=4(-1)^n/n^2$，其周期延拓连续，因而
+\begin{equation}
+ x^2=\frac{\pi^2}{3}+4\sum_{n=1}^{\infty}\frac{(-1)^n}{n^2}\cos nx,
+ \qquad -\pi\leq x\leq\pi.
+ \label{eq:pei-x-square-fourier}
+\end{equation}
+取 $x=\pi$，得 $\sum_{n=1}^{\infty}1/n^2=\pi^2/6$；取 $x=0$，得 $\sum_{n=1}^{\infty}(-1)^{n-1}/n^2=\pi^2/12$，再扣除偶数项可得 $\sum_{k=0}^{\infty}1/(2k+1)^2=\pi^2/8$。对 $x^2$ 使用 Parseval 等式，得到
+\[
+ \frac1\pi\int_{-\pi}^{\pi}x^4\,dx
+ =\frac{(2\pi^2/3)^2}{2}+16\sum_{n=1}^{\infty}\frac1{n^4},
+\]
+故 $\sum1/n^4=\pi^4/90$。这也确定了前节两个对数积分分别为 $-\pi^2/6$ 与 $-\pi^2/12$。
+\end{solve}
+
+同样由奇延拓或平移可得
+\begin{equation}
+ \sum_{n=1}^{\infty}\frac{\sin nx}{n}=\frac{\pi-x}{2},\qquad0<x<2\pi,
+ \label{eq:pei-sawtooth-fourier}
+\end{equation}
+在周期端点级数和为零。在 $[0,\pi]$ 上把常函数 $1$ 作奇延拓，则
+\[
+ 1=\frac4\pi\sum_{k=0}^{\infty}\frac{\sin((2k+1)x)}{2k+1},\qquad0<x<\pi,
+\]
+两端点的和仍为零。这些级数在避开跳点的内闭区间上一致收敛，却不能在整个开区间上一致收敛：若在开区间上一致 Cauchy，因各部分和在闭区间连续，其尾段估计可以取极限延至端点，从而会得到闭区间一致收敛，与和函数在端点的不连续矛盾。
+
+对于 $|q|<1$，还可利用等比级数和对数的幂级数直接计算
+\begin{align*}
+ \frac{1-q^2}{1-2q\cos x+q^2}
+ &=1+2\sum_{n=1}^{\infty}q^n\cos nx,\\
+ \log(1-2q\cos x+q^2)
+ &=-2\sum_{n=1}^{\infty}\frac{q^n}{n}\cos nx.
+\end{align*}
+两式对 $x\in\mathbb R$ 均绝对一致收敛。第二式可在复数 $qe^{ix}$ 的对数幂级数中取实部得到，因为 $|qe^{ix}|<1$ 且 $|1-qe^{ix}|^2=1-2q\cos x+q^2$。其常数项为零，故
+\[
+ \int_0^{2\pi}\log(1-2q\cos x+q^2)\,dx=0.
+\]
+若参数绝对值大于 $1$，先提出参数的平方再应用上述公式，积分变为 $4\pi\log|q|$；临界参数 $|q|=1$ 有对数奇点，需单独说明反常积分的存在及取极限依据。
+
+\subsection{一致收敛与逐项运算的边界}
+
+\begin{proposition}
+\label{prop:pei-fourier-uniform}
+若 $f$ 是连续的 $2\pi$ 周期函数，并在一周期上分段 $C^1$，则其 Fourier 级数在实轴上绝对一致收敛于 $f$。
+\end{proposition}
+\begin{proof}
+分段积分并利用 $f$ 在分割点及周期接缝处连续，可得 $f'$ 的 Fourier 系数为
+\[
+ a_0'=0,\qquad a_n'=nb_n,\qquad b_n'=-na_n.
+\]
+这里带撇的 $a_n',b_n'$ 表示 $f'$ 的系数，并非把数列对指标求导。由 $f'$ 的 Bessel 不等式，$\sum n^2(a_n^2+b_n^2)<\infty$。Cauchy--Schwarz 不等式给出
+\[
+ \sum_{n=1}^{\infty}(|a_n|+|b_n|)
+ \leq\left(\sum_{n=1}^{\infty}n^2(a_n^2+b_n^2)\right)^{1/2}
+ \left(2\sum_{n=1}^{\infty}\frac1{n^2}\right)^{1/2}<\infty.
+\]
+故由 $M$ 判别法绝对一致收敛，再由点态收敛定理确定和为 $f$。
+\end{proof}
+
+Fourier 级数的积分比微分稳定。对任意 Riemann 可积的 $f$，即使尚未证明其 Fourier 级数逐点收敛，也有
+\begin{equation}
+ \int_0^xf(t)\,dt
+ =\frac{a_0x}{2}+\sum_{n=1}^{\infty}
+ \left[\frac{a_n}{n}\sin nx+\frac{b_n}{n}(1-\cos nx)\right],
+ \quad -\pi\leq x\leq\pi.
+ \label{eq:pei-fourier-integration}
+\end{equation}
+事实上，有限部分和积分后的误差满足
+\[
+ \sup_{-\pi\leq x\leq\pi}
+ \left|\int_0^x(f-S_Nf)(t)\,dt\right|
+ \leq\sqrt\pi\left(\int_{-\pi}^{\pi}|f-S_Nf|^2\right)^{1/2}\longrightarrow0,
+\]
+而右侧级数由 Bessel 不等式和 $\sum1/n^2<\infty$ 绝对一致收敛。相反，形式求导会给系数增加因子 $n$，可能彻底破坏收敛性；式~\eqref{eq:pei-sawtooth-fourier} 的和在内部可导，但形式导数为 $\sum\cos nx$，其通项不趋于零，不能逐项求导。
+
+若 $f$ 连续周期且分段 $C^1$，其形式导数级数确实是 $f'$ 的 Fourier 级数，但还须判断后者是否收敛、收敛到哪个值。若进一步 $f'$ 也是连续周期且分段 $C^1$，命题~\ref{prop:pei-fourier-uniform} 保证导数级数一致收敛，再由定理~\ref{thm:pei-termwise-derivative} 才能把形式求导提升为实际的逐项求导。若 $f$ 本身在周期接缝处有跳跃，则分部积分会产生额外边界项，连系数关系也要相应修正。
+
+\subsection{平移、相关积分与均方不等式的应用}
+
+平移后的 Fourier 系数不必重新逐项积分。若 $f(x+t)$ 的系数记为 $A_n,B_n$，利用周期性换元与三角恒等式可得
+\[
+ A_0=a_0,\qquad
+ A_n=a_n\cos nt+b_n\sin nt,\qquad
+ B_n=b_n\cos nt-a_n\sin nt.
+\]
+令 $f$ 为连续周期函数，由 Parseval 的乘积公式得到其相关积分
+\begin{equation}
+ H(x)=\frac1\pi\int_{-\pi}^{\pi}f(t)f(t+x)\,dt
+ =\frac{a_0^2}{2}+\sum_{n=1}^{\infty}(a_n^2+b_n^2)\cos nx.
+ \label{eq:pei-fourier-correlation}
+\end{equation}
+右侧系数绝对可和，故在实轴上一致收敛；特别地 $H$ 为连续偶函数。取 $x=0$ 即回到 Parseval 等式。这个例子表明，积分中的平移可以转化为系数上的旋转，相关运算则把系数变成平方和。
+
+\begin{proposition}[周期零均值函数的 Wirtinger 不等式]
+设 $f\in C^1([0,L])$，$L>0$，$f(0)=f(L)$，且 $\int_0^Lf=0$。则
+\[
+ \int_0^L|f'(x)|^2\,dx
+ \geq\left(\frac{2\pi}{L}\right)^2\int_0^L|f(x)|^2\,dx.
+\]
+等号成立当且仅当 $f(x)=A\cos(2\pi x/L)+B\sin(2\pi x/L)$，其中 $A,B$ 为实常数。
+\end{proposition}
+\begin{proof}
+对 $L$ 周期展开，零均值使常数系数为零，分部积分使导数的系数增加频率因子 $2\pi n/L$。分别应用 Parseval 等式得到
+\[
+ \int_0^L|f|^2=\frac L2\sum_{n=1}^{\infty}(a_n^2+b_n^2),\qquad
+ \int_0^L|f'|^2=\frac L2\sum_{n=1}^{\infty}
+ \left(\frac{2\pi n}{L}\right)^2(a_n^2+b_n^2).
+\]
+逐项使用 $n^2\geq1$ 即得不等式。等号恰在全部 $n\geq2$ 的系数为零时成立，再由连续函数的系数唯一性得到所列函数形式。
+\end{proof}
+
+最后，振荡因子的平均也可用 Fourier 展开处理。由直接计算系数得到绝对一致收敛展开
+\[
+ |\sin x|=\frac2\pi-\frac4\pi\sum_{k=1}^{\infty}\frac{\cos(2kx)}{4k^2-1}.
+\]
+若 $f$ 在有限区间 $[a,b]$ 上 Riemann 可积，则
+\[
+ \lim_{n\to\infty}\int_a^bf(x)|\sin nx|\,dx
+ =\frac2\pi\int_a^bf(x)\,dx.
+\]
+证明时先用展开式代入并逐项积分；第 $k$ 项积分绝对值被 $\int_a^b|f|/(4k^2-1)$ 控制，对 $n$ 无关且关于 $k$ 可和，因此可以逐项令 $n\to\infty$，再由 Riemann--Lebesgue 引理消去所有非常数频率。这里起决定作用的仍是统一可和的控制，而不是单独知道每个振荡积分趋于零。
+
+
+
+
+
+

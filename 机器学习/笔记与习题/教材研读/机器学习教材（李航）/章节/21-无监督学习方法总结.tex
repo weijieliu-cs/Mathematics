@@ -1,0 +1,296 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{20} % 保留原书章号。
+\chapter{无监督学习方法总结}
+\label{chap:lh-unsupervised-summary}
+
+% 研读来源：机器学习/textbooks/机器学习（分章原文）/机器学习-22.pdf，教材第 435--438 页。
+% 沿用教材两节及第一节的三个小节；条件说明、公式推导与例题为学习补充。
+
+无监督学习从没有任务标签的数据中寻找结构，但“结构”可以指样本的分组、低维表示、文本中的潜在话题，也可以指图上结点的重要程度。这些任务并不共享一个唯一的模型或损失函数。本章沿用教材的两条总结路线：先区分具体任务、模型、学习策略和基础求解方法，再从矩阵分解与概率建模两个角度比较话题模型。比较时尤其要区分\emph{待求的数学对象}与\emph{求解它的算法}，以及算法的极限性质与有限计算得到的近似结果。
+
+\section{无监督学习方法的关系和特点}
+\label{sec:lh-unsup-relations}
+
+\subsection{各种方法之间的关系}
+\label{subsec:lh-unsup-method-relations}
+
+教材介绍的方法可以沿“任务---模型与目标---求解工具”理解。聚类要得到样本的组别或属于各组的程度，典型方法有层次聚类、$k$ 均值聚类与高斯混合模型；降维要得到保留某些信息的低维表示，主成分分析是线性降维方法；话题分析用较少的潜在成分解释词与文档的关联，包括潜在语义分析、非负矩阵分解、概率潜在语义分析与潜在狄利克雷分配；图分析中的 PageRank 则把结点的重要程度表示为一个马尔可夫链的平稳分布。这些任务可以交叉，例如话题表示同时具有软分组和降维的作用，但输出相似不意味着模型和目标相同。
+
+\emph{奇异值分解}（singular value decomposition，SVD）、\emph{非负矩阵分解}（nonnegative matrix factorization，NMF）、矩阵特征值求解，以及含隐变量概率模型的学习与推断，是可复用的基础工具。SVD 可以求主成分，也可以构造潜在语义表示；特征向量求解可以用于 PageRank；期望最大化算法、变分推断和马尔可夫链蒙特卡罗方法可以用于不同的隐变量模型。因此，SVD 本身并不规定数据来自什么分布，EM 也不对应一个固定的概率模型；这些工具还可以出现在监督学习或半监督学习中。
+
+需要保留三个层次的区别。\emph{模型}规定允许怎样表示数据，例如高斯混合分布或低秩矩阵；\emph{学习策略}规定评价表示的准则，例如似然最大、重构误差最小或后验推断；\emph{算法}规定怎样计算，例如交替更新、SVD、Gibbs 抽样或幂法。同一模型可有不同的估计策略，同一目标也可能由不同算法求解。NMF 这个名称既常指非负因子模型，也常统称求解该模型的一类方法，使用时应把具体损失函数和更新规则另行说明。
+
+\subsection{无监督学习方法}
+\label{subsec:lh-unsup-task-methods}
+
+\emph{硬聚类}（hard clustering）把每个样本分配到一个组，\emph{软聚类}（soft clustering）则保留各组的隶属程度；在概率模型中，这通常是给定观测后的隐类别后验概率。层次聚类在选定层次切割后给出硬划分，$k$ 均值直接给出硬划分，高斯混合模型通常给出软分配，也可以再取最大后验类别得到硬标签。层次聚类依赖距离、簇间连接准则和合并或分裂规则，并不普遍对应同一个“类内距离最小”的全局目标。
+
+设有 $n\geq1$ 个样本 $x_i\in\mathbb R^d$，$i=1,\ldots,n$，预先给定簇数 $1\leq K\leq n$。$k$ 均值的一个明确目标是
+\begin{equation}
+\label{eq:lh-unsup-summary-kmeans-objective}
+    \min_{\substack{c_i\in\{1,\ldots,K\}\\ \mu_1,\ldots,\mu_K\in\mathbb R^d}}
+    \sum_{i=1}^{n}\|x_i-\mu_{c_i}\|_2^2.
+\end{equation}
+这里 $c_i$ 是分组变量，$\mu_k$ 是簇中心。通常的交替分配与中心更新不会增加目标，但联合问题并不凸，初始化、并列分配及空簇处理会影响结果。高斯混合模型则最大化
+\[
+    \sum_{i=1}^{n}\log\left[\sum_{k=1}^{K}
+    \pi_k\mathcal N(x_i\mid\mu_k,\Sigma_k)\right],
+    \qquad \pi_k\geq0,\quad\sum_k\pi_k=1,\quad\Sigma_k\succ0,
+\]
+其中 $\mathcal N(\cdot\mid\mu,\Sigma)$ 表示高斯密度。它的隐类别通过后验概率参与 EM 更新；这与式~\eqref{eq:lh-unsup-summary-kmeans-objective} 的硬分配目标不同。若允许协方差任意趋于奇异，高斯混合似然还可能无上界，讨论最大值存在或算法收敛时需要额外约束或正则化。
+
+\emph{主成分分析}（principal component analysis，PCA）在线性正交子空间中保留尽量大的样本方差。令中心化数据矩阵为 $X\in\mathbb R^{d\times n}$，样本均值已从每列减去，$1\leq r\leq\min(d,n)$。其主方向矩阵可由
+\begin{equation}
+\label{eq:lh-unsup-pca-objective}
+    \max_{A\in\mathbb R^{d\times r},\ A^{\mathsf T}A=I_r}
+    \operatorname{tr}(A^{\mathsf T}XX^{\mathsf T}A)
+\end{equation}
+求得，$I_r$ 为 $r$ 阶单位矩阵，$\operatorname{tr}$ 为矩阵的迹。由
+\[
+    \|X-AA^{\mathsf T}X\|_F^2
+    =\|X\|_F^2-\operatorname{tr}(A^{\mathsf T}XX^{\mathsf T}A)
+\]
+可知，最大化保留方差等价于最小化正交投影的平方重构误差；$\|B\|_F^2$ 表示矩阵各元素平方之和。$A$ 可取 $X$ 的前 $r$ 个左奇异向量。中心化、是否按特征尺度标准化及保留维数都是问题设定的一部分，不能单由“使用 SVD”确定。
+
+\emph{潜在语义分析}（latent semantic analysis，LSA）对词---文档矩阵作截断 SVD，用低秩近似表示词与文档之间的关联。NMF 改用非负因子，便于把表示解释为非负成分的加和。\emph{概率潜在语义分析}（probabilistic latent semantic analysis，PLSA）通过离散隐话题解释词与文档的共现，通常以 EM 最大化观测似然；\emph{潜在狄利克雷分配}（latent Dirichlet allocation，LDA）进一步给文档的话题比例等量设置先验，通过后验推断学习。LSA 与平方损失 NMF 本身不要求概率解释；PLSA 的极大似然形式也没有给参数设置 LDA 那样的狄利克雷先验。具体联系见第~\ref{sec:lh-unsup-topic-relations} 节。
+
+PageRank 采用另一种结构。对含 $s$ 个结点的有向图，取列随机转移矩阵 $P\in\mathbb R^{s\times s}$，即 $P_{ij}\geq0$、$\sum_iP_{ij}=1$，其中第 $j$ 列表示从结点 $j$ 出发的转移概率；无出链结点需先补成合法概率列。给定阻尼参数 $0<\alpha<1$ 和概率向量 $v$，定义
+\begin{equation}
+\label{eq:lh-unsup-pagerank}
+    G=\alpha P+(1-\alpha)v\mathbf1^{\mathsf T},\qquad
+    p=Gp,\quad p\geq0,\quad\mathbf1^{\mathsf T}p=1,
+\end{equation}
+其中 $\mathbf1$ 为全 $1$ 列向量。$p$ 是修正后随机游走的平稳分布，可用 $p^{(t+1)}=Gp^{(t)}$ 求解。对两个概率向量 $a,b$，有 $\mathbf1^{\mathsf T}(a-b)=0$，因而
+\[
+    \|Ga-Gb\|_1=\alpha\|P(a-b)\|_1
+    \leq\alpha\|a-b\|_1.
+\]
+概率单纯形在 $\ell_1$ 距离下完备，映射 $G$ 将其映到自身，故压缩映射定理保证平稳概率向量唯一，并且从任意概率初值出发几何收敛。若 $v$ 的每个分量都正，$G$ 还严格为正，平稳分布也严格为正。此处算法目标是求一个概率向量，不是拟合带标签的结点分数。
+
+表~\ref{tab:lh-unsup-method-summary} 把以上任务按模型、策略与算法并列比较。表中的算法是常见选择，不能据此把某个模型限定为只能使用这一算法。
+\begin{table}[htbp]
+\centering
+\caption{无监督学习方法的模型、策略与常见算法（据教材总结并补明条件）}
+\label{tab:lh-unsup-method-summary}
+\begin{tabularx}{\textwidth}{lYYY}
+\toprule
+方法 & 模型或输出 & 学习或求解策略 & 常见算法 \\
+\midrule
+层次聚类 & 层次化的样本划分 & 按指定距离与连接准则组织层次 & 合并或分裂启发式 \\
+$k$ 均值 & $K$ 个中心与硬划分 & 类内平方距离和最小 & 分配与均值交替更新 \\
+高斯混合 & 高斯成分的概率混合 & 观测数据似然最大 & EM \\
+PCA & 低维正交子空间 & 投影方差最大或投影误差最小 & SVD 或对称特征值分解 \\
+LSA & 词---文档矩阵的低秩近似 & 平方重构误差最小 & 截断 SVD \\
+NMF & 两个非负因子的乘积 & 指定非负分解损失最小 & 交替优化等 \\
+PLSA & 词与文档的隐话题模型 & 观测词频的似然最大 & EM \\
+LDA & 带狄利克雷先验的话题模型 & 给定语料的后验推断 & Gibbs 抽样或变分推断 \\
+PageRank & 图上随机游走的平稳分布 & 求满足规范化条件的平稳向量 & 幂迭代等 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{基础机器学习方法}
+\label{subsec:lh-unsup-basic-methods}
+
+矩阵分解的主要区别来自因子的约束和逼近误差的定义。对任意实矩阵 $D$，SVD 都存在；左右奇异向量的正交性是分解的数学性质，\emph[caution]{不要求原始特征或样本彼此正交}。用于学习时，真正需要选择的是截断维数、数据表示与误差准则。NMF 要求输入矩阵和两个因子逐元素非负，通常只能求近似分解；低维非负因子是否足以准确重构数据，属于表示假设。NMF 联合优化一般非凸，因子还存在正比例缩放与置换等不唯一性。
+
+含隐变量概率模型的学习与推断则要处理对隐变量求和或积分。设 $x$ 为已观测数据，$Z$ 为隐变量，$\theta$ 为待估参数，联合概率或密度为 $p_\theta(x,z)$。对试探分布 $q(z)$，在下式各项有限且 $q$ 的支撑与模型相容的条件下，定义\emph{证据下界}（evidence lower bound，ELBO）
+\begin{equation}
+\label{eq:lh-unsup-elbo}
+    \mathcal F(q,\theta)
+    =\mathbb E_q[\log p_\theta(x,Z)]-\mathbb E_q[\log q(Z)].
+\end{equation}
+离散变量的期望为求和，连续变量的期望为积分。由 $p_\theta(x,z)=p_\theta(z\mid x)p_\theta(x)$，直接得到
+\begin{equation}
+\label{eq:lh-unsup-elbo-identity}
+    \log p_\theta(x)=\mathcal F(q,\theta)
+    +\operatorname{KL}\bigl(q\|p_\theta(\cdot\mid x)\bigr),
+\end{equation}
+其中 $\operatorname{KL}(q\|p)=\mathbb E_q[\log(q(Z)/p(Z))]\geq0$。该非负性可由 $\log t\leq t-1$ 推出；等号当且仅当两个分布几乎处处相等。因此下界在 $q$ 等于精确后验时取到观测对数似然。
+
+\emph{期望最大化算法}（expectation-maximization algorithm，EM）的 E 步取 $q_t(z)=p_{\theta_t}(z\mid x)$，M 步选择使 $\mathcal F(q_t,\theta)$ 不下降的新参数。在 E 步可精确计算、更新合法且各项有限的条件下，
+\[
+    \log p_{\theta_{t+1}}(x)
+    \geq\mathcal F(q_t,\theta_{t+1})
+    \geq\mathcal F(q_t,\theta_t)
+    =\log p_{\theta_t}(x).
+\]
+这是似然的单调性保证。若似然值另有有限上界，其数值序列收敛；参数序列收敛、极限点为驻点等结论还需要连续性、更新映射和有界性等条件，更不能由单调性推出全局最优。后验虽可能有解析式，整个 EM 优化仍可能需要多次迭代并依赖初值。
+
+\emph{变分推断}（variational inference）把 $q$ 限制在便于计算的分布族 $\mathcal Q$ 内。在固定参数下，由式~\eqref{eq:lh-unsup-elbo-identity}，最大化 $\mathcal F(q,\theta)$ 等价于最小化 $\operatorname{KL}(q\|p_\theta(\cdot\mid x))$；若 $\mathcal Q$ 不包含真实后验，最优下界通常仍有间隙。变分 EM 交替更新 $q$ 与 $\theta$，精确的坐标更新保证下界不下降，\emph[caution]{一般不保证真实观测似然逐步不下降}。在完全贝叶斯模型中，也可以把未知参数并入隐变量，一同近似其后验分布。
+
+\emph{马尔可夫链蒙特卡罗方法}（Markov chain Monte Carlo，MCMC）通过构造以目标分布为不变分布的马尔可夫链作随机近似。\emph{吉布斯抽样}（Gibbs sampling）是一种 MCMC 方法，逐个或分块从完整条件分布抽取隐变量或未知参数；Metropolis--Hastings 方法则利用提议与接受拒绝步骤构造转移。有限状态链不可约且非周期时，其分布趋近唯一平稳分布；一般状态空间可采用正 Harris 常返（positive Harris recurrence）及非周期性等条件保证相应的分布收敛。在遍历定理适用且 $f$ 可积时，样本平均
+\begin{equation}
+\label{eq:lh-unsup-mcmc-average}
+    \frac1T\sum_{t=1}^{T}f(Z^{(t)})
+    \longrightarrow\mathbb E_{\pi}[f(Z)]
+\end{equation}
+几乎必然成立，其中 $\pi$ 为目标分布。链中样本通常相关，有限运行的误差受混合速度和自相关影响。\emph[caution]{目标后验的渐近抽样保证不是参数全局最优的保证}；后验可能多峰，样本也不会因运行时间增加就全部集中到其众数。
+
+因此，EM 适合精确后验期望可计算、参数更新可处理的模型；变分推断适合能设计可计算近似分布族的模型；Gibbs 抽样适合完整条件分布可抽样、且链能有效探索后验的模型。不能仅按“简单模型用 EM，复杂模型用抽样”机械选择，更不能把后验分布近似和点参数优化混为同一问题。
+
+最后，\emph{幂法}（power method）是矩阵特征向量的基础求解方法。若方阵 $B$ 可对角化，有唯一模最大的特征值 $\lambda_1$，满足 $|\lambda_1|>|\lambda_2|\geq\cdots$，且初向量在第一特征向量方向上的展开系数不为零，则反复乘 $B$ 并规范化可以逼近主特征方向，误差渐近受 $|\lambda_2/\lambda_1|$ 控制。若主特征值为负或非实数，规范化向量还可能交替变号或旋转，应区分向量本身与其方向的收敛。PageRank 的正概率向量迭代具有式~\eqref{eq:lh-unsup-pagerank} 的特殊结构，可由压缩性直接论证，无须把任意矩阵上的幂法都视为必然收敛。
+
+\section{话题模型之间的关系和特点}
+\label{sec:lh-unsup-topic-relations}
+
+话题模型的共同出发点是用少量潜在成分表示较大的词---文档关联矩阵。统一记数据矩阵为 $D\in\mathbb R^{M\times N}$，$M$ 为词的数量，$N$ 为文档的数量；选取 $1\leq r\leq\min(M,N)$ 个成分，以
+\begin{equation}
+\label{eq:lh-unsup-factorization}
+    D\approx UV,\qquad U\in\mathbb R^{M\times r},\quad
+    V\in\mathbb R^{r\times N}
+\end{equation}
+表示。$U$ 的第 $k$ 列描述第 $k$ 个成分在词空间中的方向或分布，$V$ 的第 $n$ 列描述文档 $n$ 的成分系数。通常 $r$ 远小于 $M,N$，因此乘积的秩至多为 $r$，但不要求原矩阵恰好具有秩 $r$。不同模型对 $D$ 的预处理、误差和因子约束作不同规定，因而式~\eqref{eq:lh-unsup-factorization} 只给出共同形式，不给出模型等价性。
+
+\begin{definition}[矩阵上的 Bregman 散度]
+\label{def:lh-unsup-bregman}
+设 $\Phi$ 是某个凸矩阵域上可微的严格凸函数，$D$、$Q$ 属于其可微定义域。对应的\emph{Bregman 散度}（Bregman divergence）定义为
+\begin{equation}
+\label{eq:lh-unsup-bregman}
+    B_\Phi(D\|Q)=\Phi(D)-\Phi(Q)-\langle\nabla\Phi(Q),D-Q\rangle,
+\end{equation}
+其中 $\langle A,B\rangle=\sum_{m,n}a_{mn}b_{mn}$ 是矩阵内积。严格凸性保证其非负，且仅在 $D=Q$ 时为零；它一般不对称，也不满足三角不等式，故不应称为距离。边界元素为零时，需针对所选函数定义适当的极限延拓。
+\end{definition}
+
+取 $\Phi(D)=\tfrac12\|D\|_F^2$，由 $\nabla\Phi(Q)=Q$ 可得 $B_\Phi(D\|Q)=\tfrac12\|D-Q\|_F^2$。若矩阵逐元素为正，取 $\Phi(D)=\sum_{m,n}(d_{mn}\log d_{mn}-d_{mn})$，则
+\begin{equation}
+\label{eq:lh-unsup-generalized-kl}
+    B_\Phi(D\|Q)=\sum_{m,n}
+    \left[d_{mn}\log\frac{d_{mn}}{q_{mn}}-d_{mn}+q_{mn}\right].
+\end{equation}
+这一\emph{广义 KL 散度}（generalized Kullback--Leibler divergence）允许非负矩阵：当 $d_{mn}=0$ 时对数项按极限取 $0$，当 $d_{mn}>0,q_{mn}=0$ 时相应项为 $+\infty$。若 $D$、$Q$ 的元素和同为 $1$，线性项抵消，得到概率分布之间的 KL 散度。若两者未等质量规范化，则不能随意删去式~\eqref{eq:lh-unsup-generalized-kl} 的线性项。
+
+在这一框架下，LSA 对选定词权重矩阵最小化平方误差，NMF 对非负矩阵最小化指定损失并约束因子非负，PLSA 则对规范化词频分布最小化 KL 散度并约束因子具有概率解释。表~\ref{tab:lh-unsup-topic-factorizations} 采用下面推导中的参数化；其目的是把损失与约束写清，并非给三个模型强加相同的数据预处理。
+\begin{table}[htbp]
+\centering
+\caption{矩阵分解视角下的话题模型}
+\label{tab:lh-unsup-topic-factorizations}
+\begin{tabularx}{\textwidth}{lYY}
+\toprule
+方法 & 目标函数 & 因子约束与解释 \\
+\midrule
+LSA & $\|D-UV\|_F^2$ & 可取 $U^{\mathsf T}U=I_r$，$V$ 为实系数，吸收奇异值 \\
+平方损失 NMF & $\|D-UV\|_F^2$ & $D,U,V$ 逐元素非负 \\
+PLSA & $\sum_{m,n}d_{mn}\log\bigl(d_{mn}/(UV)_{mn}\bigr)$ & $U,V\geq0$，$U$ 各列和为 $1$，$V$ 第 $n$ 列和为文档概率 $p_n$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+对 LSA，设 $D=L\Sigma R^{\mathsf T}$ 为 SVD，取前 $r$ 个奇异向量，得到
+\begin{equation}
+\label{eq:lh-unsup-lsa-factors}
+    D_r=L_r\Sigma_rR_r^{\mathsf T}=UV,\qquad
+    U=L_r,\quad V=\Sigma_rR_r^{\mathsf T}.
+\end{equation}
+由定理~\ref{thm:lh-svd-best-approximation} 的最佳低秩近似性质，当 $r$ 不超过矩阵秩时直接应用该定理；当 $r$ 超过矩阵秩时补零奇异值并以 $D$ 本身重构，统一得到
+\[
+    \min_{\operatorname{rank}(Q)\leq r}\|D-Q\|_F^2
+    =\sum_{j>r}\sigma_j^2,
+\]
+其中 $\sigma_j$ 是降序排列的奇异值，求和遍及被舍弃的奇异值。因而式~\eqref{eq:lh-unsup-lsa-factors} 是平方误差下的全局最优低秩近似。这一参数化满足 $U^{\mathsf T}U=I_r$、$VV^{\mathsf T}=\Sigma_r^2$，所以 $V$ 的行两两正交，却一般不是单位长度。\emph[caution]{写成两因子 $UV$ 时，不能一面把奇异值吸收到 $V$，一面又要求 $V$ 的行全部单位正交}。若要把两个正交因子单独列出，就应保留中间的 $\Sigma_r$。重奇异值还可能导致最优子空间的基不唯一。
+
+对平方损失 NMF，约束是 $U\geq0,V\geq0$，各不等式均按元素理解。这里允许零元素，不应把“非负”误写成“严格正”。每个文档向量由非负成分加和得到，因子无需正交，联合优化一般无全局最优保证。对任意正对角矩阵 $S$，$UV=(US)(S^{-1}V)$，说明系数的尺度不能脱离规范化约定解释。也可以对 NMF 选择式~\eqref{eq:lh-unsup-generalized-kl} 的损失；“采用非负因子”与“采用平方损失”是两个分别作出的选择。
+
+PLSA 的概率约束需要先说明矩阵怎样规范化。设词频为非负整数 $c_{mn}$，总词数为 $C=\sum_{m,n}c_{mn}>0$，只保留非空文档，定义
+\begin{equation}
+\label{eq:lh-unsup-plsa-data}
+    d_{mn}=\frac{c_{mn}}C,\qquad p_n=\sum_m d_{mn}>0,
+    \qquad\sum_n p_n=1.
+\end{equation}
+记 $W$、$J$、$Z$ 分别为一个词出现的词类型、所属文档编号与隐话题，取值分别为 $m,n,k$。PLSA 设给定话题后词类型与文档条件独立，其一种等价参数化为
+\begin{equation}
+\label{eq:lh-unsup-plsa-factorization}
+    q_{mn}=P(W=m,J=n)=p_n\sum_{k=1}^{r}\phi_{mk}\theta_{kn},
+    \quad \sum_m\phi_{mk}=1,\quad\sum_k\theta_{kn}=1,
+    \quad\phi_{mk},\theta_{kn}\geq0.
+\end{equation}
+取 $u_{mk}=\phi_{mk}$、$v_{kn}=p_n\theta_{kn}$，就有 $Q=UV$、$\sum_m u_{mk}=1$、$\sum_k v_{kn}=p_n$，从而 $\sum_{m,n}q_{mn}=1$。这里 $U$ 的列是词分布，而 $V$ 的列带有文档概率质量；若把 $V$ 直接定义成条件话题比例 $\theta_{kn}$，便须另乘 $p_n$，不能混用两种参数化。
+
+\begin{proposition}[PLSA 似然与 KL 目标]
+\label{prop:lh-unsup-plsa-kl}
+在词频数据和文档概率按式~\eqref{eq:lh-unsup-plsa-data} 固定、词出现按式~\eqref{eq:lh-unsup-plsa-factorization} 的模型计算似然时，PLSA 的极大似然估计等价于在上述概率约束下最小化 $\operatorname{KL}(D\|UV)$。
+\end{proposition}
+
+\begin{proof}
+在模型所采用的条件独立词生成假设下，给定各文档词数的对数似然除去仅依赖计数的常数为
+\[
+    \ell(\phi,\theta)
+    =\sum_{m,n}c_{mn}\log\left(\sum_k\phi_{mk}\theta_{kn}\right)
+    =C\sum_{m,n}d_{mn}\log q_{mn}
+     -C\sum_n p_n\log p_n.
+\]
+最后一项与待优化因子无关，而
+\[
+    \operatorname{KL}(D\|Q)
+    =\sum_{m,n}d_{mn}\log d_{mn}
+     -\sum_{m,n}d_{mn}\log q_{mn}.
+\]
+第一项由数据固定，故两个优化等价。若某个正词频对应 $q_{mn}=0$，对数似然为 $-\infty$，KL 散度为 $+\infty$，两种表述在边界上仍一致。这里用的是原始词频的规范化；任意实值加权矩阵或未经说明的 TF--IDF 权重不能直接解释成同一个词频似然。
+\end{proof}
+
+这一联系也说明，KL 损失 NMF 在附加相应概率规范化条件后可获得 PLSA 解释，但一般的 NMF 不能仅凭“存在两个非负因子”就与 PLSA 等同。PLSA 的训练通常由 EM 计算隐话题后验责任度，再更新词分布与文档话题比例；有限样本下学到的是每个训练文档的参数，模型本身没有为新文档的话题比例规定 LDA 那样的先验。对新文档可固定词分布重新估计其话题比例，这与给新文档定义完整的先验生成机制是不同的做法。
+
+教材进一步从概率图模型的角度解释 LSA 和 NMF。把第 $n$ 个文档向量记为 $\boldsymbol d_n\in\mathbb R^M$，系数记为 $v_n\in\mathbb R^r$，在给定参数和系数时，假设各文档独立且
+\begin{equation}
+\label{eq:lh-unsup-gaussian-factor-model}
+    \boldsymbol D_n\mid U,v_n\sim\mathcal N(Uv_n,\sigma^2I_M),
+    \qquad \sigma^2>0.
+\end{equation}
+这里大写 $\boldsymbol D_n$ 为随机向量，小写 $\boldsymbol d_n$ 为观测值，$\sigma^2$ 先视为给定。对 $N$ 个文档，负对数似然为
+\[
+    -\log p(D\mid U,V)
+    =\frac{MN}{2}\log(2\pi\sigma^2)
+     +\frac{1}{2\sigma^2}\sum_{n=1}^{N}\|\boldsymbol d_n-Uv_n\|_2^2.
+\]
+因此，在相同的因子约束下最大化这一高斯似然，恰好等价于最小化平方重构误差。选正交基的约束可解释 LSA，选非负因子约束可解释平方损失 NMF；这是一种对文档数值向量的连续噪声模型解释，不会自动把向量的分量变成词概率，也不是对整数词频的多项分布建模。高斯噪声允许负观测值，非负约束限制的是分解因子和重构均值，不能混淆这两个层面。
+
+LDA 与 PLSA 的主要差别则来自层次化先验。令 $\phi_k$ 为第 $k$ 个话题的词概率向量，$\theta_n$ 为第 $n$ 个文档的话题概率向量；完全贝叶斯的常见形式为
+\begin{equation}
+\label{eq:lh-unsup-lda-generative}
+\begin{aligned}
+    \phi_k&\sim\operatorname{Dir}(\beta), & k&=1,\ldots,r,\\
+    \theta_n&\sim\operatorname{Dir}(\alpha), & n&=1,\ldots,N,\\
+    Z_{ni}\mid\theta_n&\sim\operatorname{Cat}(\theta_n),&
+    W_{ni}\mid Z_{ni}=k,\phi_k&\sim\operatorname{Cat}(\phi_k).
+\end{aligned}
+\end{equation}
+其中 $i=1,\ldots,L_n$ 为文档 $n$ 内的词位置，$L_n$ 为给定文档长度，$\operatorname{Dir}$、$\operatorname{Cat}$ 分别表示狄利克雷分布与类别分布，超参数 $\alpha\in\mathbb R_{>0}^{r}$、$\beta\in\mathbb R_{>0}^{M}$ 给定；各文档话题比例及各话题词分布按先验独立抽取，各词在给定相应变量后条件独立生成。实际推断目标是给定词观测的 $p(\Theta,\Phi,Z\mid W,\alpha,\beta)$，其中 $\Theta=(\theta_n)_{n=1}^{N}$、$\Phi=(\phi_k)_{k=1}^{r}$，可用 Gibbs 抽样或变分方法近似。PLSA 主要估计固定参数，LDA 则把相关量纳入随机生成与后验推断；这种先验结构会改变估计及新文档的建模方式，但不提供无条件的准确率或全局最优保证。
+
+\begin{example}
+\label{ex:lh-unsup-factor-constraints}
+设规范化词---文档矩阵为
+\[
+    D=\begin{pmatrix}1/2&0\\0&1/2\end{pmatrix},\qquad M=N=2,
+\]
+用一个成分 $r=1$ 比较平方误差低秩近似与 PLSA 的概率约束。
+\end{example}
+
+\begin{solve}
+两个奇异值都是 $1/2$，故任意秩至多为 $1$ 的矩阵，其最小平方重构误差为 $1/4$。例如
+\[
+    U=\begin{pmatrix}1\\0\end{pmatrix},\qquad
+    V=\begin{pmatrix}1/2&0\end{pmatrix}
+\]
+给出一个 LSA 最优解，同时也是平方损失 NMF 的可行最优解。但乘积矩阵的元素和仅为 $1/2$，第二列全为零，不能作为本例 PLSA 的联合概率分布；其对应的正词频还会产生无穷 KL 散度。
+
+PLSA 中 $p_1=p_2=1/2$，只有一个话题时两篇文档的词分布必须相同。写成
+\[
+    U=\begin{pmatrix}a\\1-a\end{pmatrix},\qquad
+    V=\begin{pmatrix}1/2&1/2\end{pmatrix},\qquad0\leq a\leq1,
+\]
+则有限 KL 目标要求 $0<a<1$，且
+\[
+    \operatorname{KL}(D\|UV)
+    =-\frac12\log a-\frac12\log(1-a).
+\]
+由 $a(1-a)\leq1/4$，最小值在 $a=1/2$ 取得，最小 KL 散度为 $\log2$，重构矩阵的四个元素均为 $1/4$。它的平方误差也恰为 $1/4$，但两个目标的数值不可直接比较；这个例子说明，即使平方误差最优解不唯一，概率约束仍会排除其中一些解，不能把任意低秩分解直接当作话题概率模型。
+\end{solve}
+
+本章各方法的联系可以据此把握：矩阵分解提供低维表示，概率模型说明数据和隐变量怎样生成，学习策略规定需要优化或推断什么，算法决定如何近似完成计算。判断两种方法是否等价，应逐一核对数据表示、损失、约束和概率规范化；判断算法保证，应明确它针对目标值、参数、分布还是样本平均。共同使用低维成分或同一种求解工具，都不足以跳过这些条件。
+
+
+
+
+
+

@@ -1,0 +1,1152 @@
+% !TeX root = ../数学分析教材（伍胜健）笔记.tex
+% 本文件由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{13} % 保留原书章号。
+\chapter{多元微分学}
+\label{chap:multivariable-differential-calculus}
+
+% 本章依据教材第 40--120 页（分章 PDF 第 1--81 页）整理；第 120 页起的习题十四不在本次范围内。
+一元函数的导数同时描述变化率与局部线性近似；自变量具有多个分量时，沿一条直线观察到的变化还不足以控制所有趋近方式，因此必须区分偏导数、方向导数与全微分。本章先用线性映射建立可微性的统一语言，再由链式法则和泰勒公式研究隐函数、局部逆映射、极值与切空间。除另有说明外，$D\subseteq\mathbb R^n$ 是开集，所论点均为其内点，向量采用列向量，$\|\cdot\|$ 表示欧氏范数，$\boldsymbol e_i$ 表示第 $i$ 个标准单位向量，$B(\boldsymbol a,r)=\{\boldsymbol x:\|\boldsymbol x-\boldsymbol a\|<r\}$ 表示开球；函数在区域上为常数的结论还要求该区域连通。
+
+\section{偏导数与全微分}
+\label{sec:partial-derivatives-and-total-differentials}
+
+% 教材第 40--57 页；分章 PDF 第 1--18 页。
+
+\subsection{偏导数}
+\label{subsec:partial-derivatives}
+
+\begin{definition}
+\label{def:multivariable-partial-derivative}
+设 $f:D\to\mathbb R$，$\boldsymbol x_0=(x_{01},\ldots,x_{0n})^{\mathsf T}\in D$。若有限极限
+\[
+    \frac{\partial f}{\partial x_i}(\boldsymbol x_0)
+    =\lim_{t\to0}\frac{f(\boldsymbol x_0+t\boldsymbol e_i)-f(\boldsymbol x_0)}{t}
+\]
+存在，则称 $f$ 在 $\boldsymbol x_0$ 处关于 $x_i$ 可偏导，该极限称为相应的\emph{偏导数}（partial derivative），也记为 $f_{x_i}(\boldsymbol x_0)$。若它在 $D$ 的每一点都存在，就得到定义在 $D$ 上的偏导函数 $f_{x_i}$。
+\end{definition}
+
+求偏导数就是固定其余自变量，只对一个自变量求一元导数。对于曲面 $z=f(x,y)$，$f_x(x_0,y_0)$ 是截线 $z=f(x,y_0)$ 在相应点的切线斜率，$f_y(x_0,y_0)$ 则对应另一条坐标截线。\emph[caution]{各个偏导数只考察有限个坐标方向，其存在不能保证函数连续。}例如，令 $f(x,y)$ 在 $xy\ne0$ 时为 $1$，在 $xy=0$ 时为 $0$，则 $f_x(0,0)=f_y(0,0)=0$，但沿 $y=x\ne0$ 趋近原点时函数值恒为 $1$。
+
+\begin{example}
+\label{ex:partial-derivative-computation-ch14}
+求 $f(x,y)=\tan(x^2/y)$ 在 $(0,1)$ 处的两个偏导数，并求 $g(x,y)=\arcsin\bigl(x/\sqrt{x^2+y^2}\bigr)$ 在 $y\ne0$ 时的偏导数。
+\end{example}
+\begin{solve}
+第一个函数在 $y\ne0$ 且正切有定义的点附近可按一元法则计算：
+\[
+    f_x=\frac{2x}{y}\sec^2\frac{x^2}{y},
+    \qquad f_y=-\frac{x^2}{y^2}\sec^2\frac{x^2}{y}.
+\]
+故 $f_x(0,1)=f_y(0,1)=0$。第二个函数中，令 $r=\sqrt{x^2+y^2}$。由于 $\sqrt{1-x^2/r^2}=|y|/r$，在 $y\ne0$ 时有
+\[
+    g_x=\frac{r}{|y|}\frac{y^2}{r^3}
+        =\frac{|y|}{x^2+y^2},
+    \qquad
+    g_y=-\frac{r}{|y|}\frac{xy}{r^3}
+        =-\frac{x\operatorname{sgn}y}{x^2+y^2}.
+\]
+这里绝对值来自平方根，不能将 $\sqrt{y^2}$ 直接写成 $y$。
+\end{solve}
+
+\subsection{方向导数}
+\label{subsec:directional-derivatives}
+
+\begin{definition}
+\label{def:one-sided-directional-derivative-ch14}
+设 $f$ 在 $\boldsymbol x_0$ 的邻域内有定义，$\boldsymbol v=(v_1,\ldots,v_n)^{\mathsf T}$ 为单位向量。若有限极限
+\begin{equation}
+\label{eq:one-sided-directional-derivative-ch14}
+    D_{\boldsymbol v}f(\boldsymbol x_0)
+    =\lim_{t\to0+}\frac{f(\boldsymbol x_0+t\boldsymbol v)-f(\boldsymbol x_0)}{t}
+\end{equation}
+存在，则称其为 $f$ 在 $\boldsymbol x_0$ 沿 $\boldsymbol v$ 的\emph{方向导数}（directional derivative），也记为 $\partial f/\partial\boldsymbol v$。教材采用 $t\to0+$ 的约定，因此它表示沿指定射线、按单位距离计算的变化率。$v_i=\cos\theta_i$ 称为该方向的方向余弦，满足 $\sum_i\cos^2\theta_i=1$。
+\end{definition}
+
+有些文献改用 $t\to0$ 定义方向导数；两种约定在可微函数上相同，在一般函数上须加区分。若 $f_{x_i}(\boldsymbol x_0)$ 存在，则
+\[
+    D_{\boldsymbol e_i}f(\boldsymbol x_0)=f_{x_i}(\boldsymbol x_0),
+    \qquad D_{-\boldsymbol e_i}f(\boldsymbol x_0)=-f_{x_i}(\boldsymbol x_0).
+\]
+反过来，两个单侧方向导数都存在且互为相反数，才可推出相应的双侧偏导数存在。对于非单位向量 $\boldsymbol w\ne0$，差商 $[f(\boldsymbol x_0+t\boldsymbol w)-f(\boldsymbol x_0)]/t$ 还包含速度因子 $\|\boldsymbol w\|$，与按单位距离定义的方向导数相差这一倍数。
+
+\begin{example}
+\label{ex:directional-derivatives-without-continuity-ch14}
+说明所有方向导数存在既不保证各个偏导数存在，也不保证函数连续。
+\end{example}
+\begin{solve}
+对于 $f(x,y)=\sqrt{x^2+y^2}$，任意单位向量 $\boldsymbol v$ 都满足
+\[
+    D_{\boldsymbol v}f(0,0)=\lim_{t\to0+}\frac{t}{t}=1.
+\]
+然而沿 $x$ 轴的双侧差商为 $|t|/t$，故 $f_x(0,0)$ 不存在，$f_y(0,0)$ 同样不存在。
+
+再令 $g(x,y)$ 在 $y=x^2$ 且 $x\ne0$ 时为 $1$，其余点为 $0$。任一固定射线在充分接近原点时不再与这条去掉原点的抛物线相交：若 $\boldsymbol v=(a,b)$ 且 $a\ne0$，非零交点的参数必须满足 $t=b/a^2$，至多一个；若 $a=0$，则没有非零交点。因此 $D_{\boldsymbol v}g(0,0)=0$ 对所有方向成立。但 $g(s,s^2)=1$（$s\ne0$），故 $g$ 在原点不连续。这里每个方向所需的邻域可以不同，不能将逐方向的信息当成对所有趋近方式的统一控制。
+\end{solve}
+
+\subsection{全微分}
+\label{subsec:total-differentials}
+
+\begin{definition}
+\label{def:total-differentiability-ch14}
+设 $f:D\to\mathbb R$。若存在与增量 $\boldsymbol h$ 无关的常数 $a_1,\ldots,a_n$，使
+\begin{equation}
+\label{eq:total-differentiability-ch14}
+    f(\boldsymbol x_0+\boldsymbol h)-f(\boldsymbol x_0)
+    =\sum_{i=1}^n a_i h_i+r(\boldsymbol h),
+    \qquad \frac{r(\boldsymbol h)}{\|\boldsymbol h\|}\longrightarrow0
+    \quad(\boldsymbol h\to\boldsymbol0),
+\end{equation}
+则称 $f$ 在 $\boldsymbol x_0$ \emph{可微}（differentiable）。线性映射
+$\mathrm df_{\boldsymbol x_0}(\boldsymbol h)=\sum_i a_i h_i$ 称为其\emph{全微分}（total differential）；令 $\mathrm dx_i=h_i$，也写为 $\mathrm df=\sum_i a_i\,\mathrm dx_i$。它是函数全增量的一阶线性主要部分。
+\end{definition}
+
+\begin{theorem}
+\label{thm:differentiability-implies-partials-ch14}
+若 $f$ 在 $\boldsymbol x_0$ 可微，则它在该点连续，各个偏导数都存在，且式~\eqref{eq:total-differentiability-ch14} 中的系数唯一，满足 $a_i=f_{x_i}(\boldsymbol x_0)$。
+\end{theorem}
+\begin{proof}
+由柯西不等式，$|\sum_i a_i h_i|\leq(\sum_i a_i^2)^{1/2}\|\boldsymbol h\|$，故全增量趋于零。再令 $\boldsymbol h=t\boldsymbol e_i$，在增量公式两边除以 $t\ne0$；由于 $r(t\boldsymbol e_i)/t\to0$，取极限得 $f_{x_i}(\boldsymbol x_0)=a_i$，也就证明了系数的唯一性。
+\end{proof}
+
+若各个偏导数已存在，判定可微性仍须验证
+\[
+    \frac{f(\boldsymbol x_0+\boldsymbol h)-f(\boldsymbol x_0)
+       -\sum_i f_{x_i}(\boldsymbol x_0)h_i}{\|\boldsymbol h\|}\longrightarrow0.
+\]
+仅仅写出形式上的 $\sum_i f_{x_i}\,\mathrm dx_i$ 不等于已经证明它是全微分。实际计算中，以下充分条件最常使用。
+
+\begin{theorem}
+\label{thm:continuous-partials-imply-differentiability-ch14}
+若 $f$ 在 $\boldsymbol x_0$ 的某邻域内存在各个偏导数，且这些偏导数都在 $\boldsymbol x_0$ 连续，则 $f$ 在 $\boldsymbol x_0$ 可微。若所有一阶偏导数在开集 $D$ 上连续，称 $f$ 在 $D$ 上\emph{连续可微}（continuously differentiable），记为 $f\in C^1(D)$。
+\end{theorem}
+\begin{proof}
+取完全包含在 $D$ 内的一个小球，使下面依次改变坐标的线段都在其中。令
+$\boldsymbol p_0=\boldsymbol x_0$，$\boldsymbol p_i=\boldsymbol x_0+\sum_{j=1}^i h_j\boldsymbol e_j$。逐段应用一元拉格朗日中值定理，有
+\[
+    f(\boldsymbol x_0+\boldsymbol h)-f(\boldsymbol x_0)
+    =\sum_{i=1}^n f_{x_i}(\boldsymbol\xi_i)h_i,
+\]
+其中 $\boldsymbol\xi_i$ 在 $\boldsymbol p_{i-1}$ 与 $\boldsymbol p_i$ 之间；当 $h_i=0$ 时相应项直接取零。每个 $\boldsymbol\xi_i\to\boldsymbol x_0$，故
+\[
+    \left|\sum_i\bigl(f_{x_i}(\boldsymbol\xi_i)-f_{x_i}(\boldsymbol x_0)\bigr)h_i\right|
+    \leq\sqrt n\max_i|f_{x_i}(\boldsymbol\xi_i)-f_{x_i}(\boldsymbol x_0)|\,
+       \|\boldsymbol h\|
+    =o(\|\boldsymbol h\|).
+\]
+这正是可微性的定义。
+\end{proof}
+
+\begin{example}
+\label{ex:differentiable-discontinuous-partials-ch14}
+可微函数的偏导数不必连续。令
+\[
+    f(x,y)=
+    \begin{cases}
+        (x^2+y^2)\sin\dfrac1{x^2+y^2},&(x,y)\ne(0,0),\\
+        0,&(x,y)=(0,0).
+    \end{cases}
+\]
+证明 $f$ 在原点可微，但两个偏导数在该点都不连续。
+\end{example}
+\begin{solve}
+记 $r=\sqrt{x^2+y^2}$，则 $|f(x,y)|/r\leq r\to0$，所以原点处的全微分为零。原点外
+\[
+    f_x=2x\sin\frac1{r^2}-\frac{2x}{r^2}\cos\frac1{r^2}.
+\]
+取 $x_k=(2\pi k)^{-1/2}$、$y_k=0$，有 $f_x(x_k,0)=-2/x_k\to-\infty$，而 $f_x(0,0)=0$。交换 $x,y$ 即得 $f_y$ 的不连续性。
+\end{solve}
+
+\begin{proposition}
+\label{prop:directional-derivative-of-differentiable-function-ch14}
+若 $f$ 在 $\boldsymbol x_0$ 可微，则每个单位方向的方向导数都存在，且
+\begin{equation}
+\label{eq:directional-derivative-formula-ch14}
+    D_{\boldsymbol v}f(\boldsymbol x_0)
+    =\sum_{i=1}^n f_{x_i}(\boldsymbol x_0)v_i.
+\end{equation}
+\end{proposition}
+\begin{proof}
+在可微增量式中代入 $\boldsymbol h=t\boldsymbol v$，除以 $t>0$，再令 $t\to0+$ 即得结论，因为 $\|t\boldsymbol v\|=t$。
+\end{proof}
+
+\begin{example}
+\label{ex:total-differential-approximation-ch14}
+利用全微分估计 $2.99^2\times1.02^3$。
+\end{example}
+\begin{solve}
+取 $f(x,y)=x^2y^3$，在 $(3,1)$ 处有 $f=9$、$f_x=6$、$f_y=27$。因此
+\[
+    f(2.99,1.02)\approx9+6(-0.01)+27(0.02)=9.48.
+\]
+这是舍去高于一阶增量所得的近似；可微性说明误差为 $o(\sqrt{(\Delta x)^2+(\Delta y)^2})$，给定增量下若要具体误差界，还需利用高阶导数估计余项。
+\end{solve}
+
+\subsection{梯度}
+\label{subsec:gradient}
+
+\begin{definition}
+\label{def:gradient-ch14}
+若 $f$ 在 $\boldsymbol x_0$ 可微，称列向量
+\[
+    \nabla f(\boldsymbol x_0)
+    =\operatorname{grad}f(\boldsymbol x_0)
+    =\bigl(f_{x_1}(\boldsymbol x_0),\ldots,f_{x_n}(\boldsymbol x_0)\bigr)^{\mathsf T}
+\]
+为其\emph{梯度}（gradient）。于是 $\mathrm df_{\boldsymbol x_0}(\boldsymbol h)=\nabla f(\boldsymbol x_0)^{\mathsf T}\boldsymbol h$，且 $D_{\boldsymbol v}f=\nabla f^{\mathsf T}\boldsymbol v$。
+\end{definition}
+
+由柯西不等式，当 $\nabla f(\boldsymbol x_0)\ne\boldsymbol0$ 时，方向导数的最大值为 $\|\nabla f(\boldsymbol x_0)\|$，唯一取最大值的单位方向是 $\nabla f/\|\nabla f\|$；最小值为其相反数，对应负梯度方向。与梯度正交的单位方向恰为方向导数为零的方向。若梯度为零，则所有方向导数都为零，却不能据此断言函数在该点取得极值。对于可微的 $f,g$ 与常数 $a,b$，逐分量使用一元求导法则可得
+\[
+    \nabla(af+bg)=a\nabla f+b\nabla g,\qquad
+    \nabla(fg)=f\nabla g+g\nabla f,\qquad
+    \nabla\frac fg=\frac{g\nabla f-f\nabla g}{g^2}\quad(g\ne0).
+\]
+
+\begin{example}
+\label{ex:continuous-all-directional-not-differentiable-ch14}
+设整数 $k\geq2$，用极坐标定义 $f(0,0)=0$，$f(r\cos\theta,r\sin\theta)=r\sin(k\theta)$（$r>0$）。证明该函数在原点连续，所有方向导数都存在，但不可微。
+\end{example}
+\begin{solve}
+由 $|f(x,y)|\leq\sqrt{x^2+y^2}$，函数在原点连续；沿方向 $\boldsymbol v=(\cos\theta,\sin\theta)$ 有 $D_{\boldsymbol v}f(0,0)=\sin(k\theta)$。若函数在原点可微，此方向导数应等于某个固定向量与 $\boldsymbol v$ 的内积。该向量不为零，因为方向导数取到 $1$，而非零向量的内积在单位圆上只有一个最大值方向；$\sin(k\theta)$ 却有 $k$ 个不同的最大值方向，产生矛盾。特别地，$k=2$ 时原点外 $f(x,y)=2xy/\sqrt{x^2+y^2}$，原点的两个偏导数都为零；它同时说明连续且各个偏导数存在仍不足以保证可微。
+\end{solve}
+
+\subsection{向量函数的导数与全微分}
+\label{subsec:derivatives-and-total-differentials-of-vector-functions}
+
+\begin{definition}
+\label{def:frechet-derivative-and-jacobian-ch14}
+设 $F:D\subseteq\mathbb R^n\to\mathbb R^m$。若存在 $m\times n$ 矩阵 $A$，使
+\[
+    F(\boldsymbol x_0+\boldsymbol h)-F(\boldsymbol x_0)
+    =A\boldsymbol h+R(\boldsymbol h),\qquad
+    \frac{\|R(\boldsymbol h)\|}{\|\boldsymbol h\|}\longrightarrow0,
+\]
+则称 $F$ 在 $\boldsymbol x_0$ 可微或可导，$A$ 为其\emph{弗雷歇导数}（Fr\'echet derivative），记为 $DF(\boldsymbol x_0)$ 或 $F'(\boldsymbol x_0)$；其全微分为 $\mathrm dF_{\boldsymbol x_0}(\boldsymbol h)=DF(\boldsymbol x_0)\boldsymbol h$。标量函数是 $m=1$ 的特例，此时 $Df=\nabla f^{\mathsf T}$ 为行矩阵。
+\end{definition}
+
+\begin{theorem}
+\label{thm:componentwise-vector-differentiability-ch14}
+向量函数 $F=(F_1,\ldots,F_m)^{\mathsf T}$ 在一点可微，当且仅当其每个分量函数在该点可微。此时
+\begin{equation}
+\label{eq:jacobian-matrix-ch14}
+    DF(\boldsymbol x_0)=J_F(\boldsymbol x_0)
+    =\left(\frac{\partial F_i}{\partial x_j}(\boldsymbol x_0)\right)_{
+        \substack{1\leq i\leq m\\1\leq j\leq n}}.
+\end{equation}
+该矩阵称为\emph{雅可比矩阵}（Jacobian matrix）；当 $m=n$ 时，$\det DF$ 称为\emph{雅可比行列式}（Jacobian determinant），也记为 $\partial(F_1,\ldots,F_n)/\partial(x_1,\ldots,x_n)$。
+\end{theorem}
+\begin{proof}
+若向量余项为 $o(\|\boldsymbol h\|)$，则每个分量的绝对值不超过其范数，故各分量可微。反之，若各分量的余项为 $r_i(\boldsymbol h)=o(\|\boldsymbol h\|)$，则
+\[
+    \frac{\|R(\boldsymbol h)\|}{\|\boldsymbol h\|}
+    =\left(\sum_{i=1}^m\frac{|r_i(\boldsymbol h)|^2}{\|\boldsymbol h\|^2}\right)^{1/2}
+    \longrightarrow0.
+\]
+将各分量全微分按行排列即得矩阵表达式。
+\end{proof}
+
+所有偏导数存在时可以形式地写出 $J_F$，但只有可微时它才表示函数增量的线性主要部分。若各分量都属于 $C^1(D)$，就记 $F\in C^1(D,\mathbb R^m)$。当 $F$ 是两个开集之间的双射，且 $F$ 与 $F^{-1}$ 都连续可微时，称为 $C^1$ 微分同胚（$C^1$ diffeomorphism）；教材也称之为 $C^1$ 变换，单有 $F\in C^1$ 不包含逆映射的存在。
+
+\begin{example}
+\label{ex:spherical-jacobian-ch14}
+对球坐标映射 $F(r,\varphi,\theta)=(r\sin\varphi\cos\theta,r\sin\varphi\sin\theta,r\cos\varphi)^{\mathsf T}$，求其导数与雅可比行列式，其中 $r>0$、$0<\varphi<\pi$、$0<\theta<2\pi$。
+\end{example}
+\begin{solve}
+各分量均光滑，故
+\[
+    DF=
+    \begin{pmatrix}
+    \sin\varphi\cos\theta&r\cos\varphi\cos\theta&-r\sin\varphi\sin\theta\\
+    \sin\varphi\sin\theta&r\cos\varphi\sin\theta&r\sin\varphi\cos\theta\\
+    \cos\varphi&-r\sin\varphi&0
+    \end{pmatrix},\qquad
+    \det DF=r^2\sin\varphi.
+\]
+三列分别对应 $r,\varphi,\theta$ 的变化；行列式的符号依赖于这一次序，交换两个变量会改变符号。
+\end{solve}
+
+\section{多元函数求导法}
+\label{sec:multivariable-differentiation-rules}
+
+% 教材第 57--74 页；分章 PDF 第 18--35 页。
+
+\subsection{导数的四则运算}
+\label{subsec:arithmetic-rules-for-multivariable-derivatives}
+
+若标量函数 $f,g$ 在同一点可微，则和、差、积仍可微，且在 $g\ne0$ 时商也可微：
+\[
+    D(f\pm g)=Df\pm Dg,\qquad
+    D(fg)=f\,Dg+g\,Df,\qquad
+    D\!\left(\frac fg\right)=\frac{g\,Df-f\,Dg}{g^2}.
+\]
+这些结论既可由增量公式证明，也可先逐分量计算偏导数，再核实余项。以积为例，展开 $(f+\Delta f)(g+\Delta g)-fg$，其中 $\Delta f\Delta g=O(\|\boldsymbol h\|^2)=o(\|\boldsymbol h\|)$，其余项便给出乘积法则；商法则由 $D(1/g)=-Dg/g^2$ 与乘积法则得到，分母在所论点非零及其连续性保证商在一个邻域内有定义。
+
+对于标量函数 $a$ 与列向量函数 $F:D\to\mathbb R^m$，有
+\[
+    D(aF)=a\,DF+F\,Da.
+\]
+这里 $F$ 为 $m\times1$ 矩阵、$Da$ 为 $1\times n$ 矩阵，$F\,Da$ 为外积。若 $F,G:D\to\mathbb R^m$ 均可微，则内积的求导法则为
+\[
+    D(F^{\mathsf T}G)=G^{\mathsf T}DF+F^{\mathsf T}DG.
+\]
+这可由 $F^{\mathsf T}G=\sum_iF_iG_i$ 逐项求导得到；矩阵乘法须保持次序，不能直接照抄标量乘法中的交换操作。
+
+\subsection{复合函数的求导法}
+\label{subsec:multivariable-chain-rule}
+
+\begin{theorem}[链式法则]
+\label{thm:multivariable-chain-rule-ch14}
+设 $U:D\subseteq\mathbb R^n\to\mathbb R^m$ 在 $\boldsymbol x_0$ 可微，$F:\Omega\subseteq\mathbb R^m\to\mathbb R^p$ 在 $\boldsymbol u_0=U(\boldsymbol x_0)$ 可微，且 $U$ 将 $\boldsymbol x_0$ 的某邻域映入 $\Omega$。则 $F\circ U$ 在 $\boldsymbol x_0$ 可微，且
+\begin{equation}
+\label{eq:multivariable-chain-rule-ch14}
+    D(F\circ U)(\boldsymbol x_0)
+    =DF(\boldsymbol u_0)\,DU(\boldsymbol x_0).
+\end{equation}
+右边是 $p\times m$ 矩阵乘以 $m\times n$ 矩阵，结果为 $p\times n$ 矩阵。
+\end{theorem}
+\begin{proof}
+记 $A=DU(\boldsymbol x_0)$、$B=DF(\boldsymbol u_0)$。由可微性，
+\[
+    \boldsymbol k=U(\boldsymbol x_0+\boldsymbol h)-U(\boldsymbol x_0)
+        =A\boldsymbol h+r(\boldsymbol h),\qquad
+    F(\boldsymbol u_0+\boldsymbol k)-F(\boldsymbol u_0)
+        =B\boldsymbol k+s(\boldsymbol k),
+\]
+其中 $r(\boldsymbol h)=o(\|\boldsymbol h\|)$、$s(\boldsymbol k)=o(\|\boldsymbol k\|)$，规定 $s(\boldsymbol0)=\boldsymbol0$。第一个等式给出 $\|\boldsymbol k\|=O(\|\boldsymbol h\|)$，故即使部分增量使 $\boldsymbol k=\boldsymbol0$，仍有 $s(\boldsymbol k)=o(\|\boldsymbol h\|)$。代入第二式得
+\[
+    F(U(\boldsymbol x_0+\boldsymbol h))-F(U(\boldsymbol x_0))
+    =BA\boldsymbol h+Br(\boldsymbol h)+s(\boldsymbol k)
+    =BA\boldsymbol h+o(\|\boldsymbol h\|),
+\]
+从而得到结论。
+\end{proof}
+
+当外层 $f$ 为标量函数时，链式法则的分量形式为
+\begin{equation}
+\label{eq:partial-chain-rule-ch14}
+    \frac{\partial(f\circ U)}{\partial x_j}(\boldsymbol x_0)
+    =\sum_{i=1}^m
+        f_{u_i}(\boldsymbol u_0)\frac{\partial U_i}{\partial x_j}(\boldsymbol x_0).
+\end{equation}
+若只求关于 $x_j$ 的一个偏导数，可以将内层的可微性减弱为 $U$ 关于 $x_j$ 的各个分量偏导数存在：将 $U$ 限制在直线 $\boldsymbol x_0+t\boldsymbol e_j$ 上，再应用一元参数的链式法则即可。\emph[caution]{外层函数可微这一条件不能仅用各个偏导数存在代替。}例如，取前述在 $uv\ne0$ 时等于 $1$、其余点等于 $0$ 的函数 $f(u,v)$，虽然原点处的两个偏导数都为零，但 $f(t,t)$ 在 $t=0$ 不连续，不能套用链式法则。
+
+若 $F$ 为 $C^1$ 微分同胚，令 $\boldsymbol y=F(\boldsymbol x)$，对 $F^{-1}\circ F$ 求导可得
+\begin{equation}
+\label{eq:inverse-derivative-ch14}
+    D(F^{-1})(\boldsymbol y)=[DF(\boldsymbol x)]^{-1},\qquad
+    \det D(F^{-1})(\boldsymbol y)\det DF(\boldsymbol x)=1.
+\end{equation}
+这是已知局部逆映射可微之后的求导公式，逆映射是否存在还需后面的存在定理。
+
+\begin{example}
+\label{ex:chain-rule-explicit-abstract-ch14}
+设 $u=e^{x^2+y^2+z^2}$，$z=x^2\sin y$，求复合后的 $u_x,u_y$；再设 $w=f(xy,y/x,z^2)$（$x\ne0$），其中 $f$ 可微，写出 $w$ 的各个偏导数。
+\end{example}
+\begin{solve}
+第一个问题中，求导既要计入 $x,y$ 的直接影响，也要计入经 $z$ 传递的影响：
+\[
+    u_x=(2x+2z\cdot2x\sin y)e^{x^2+y^2+z^2}
+        =2x(1+2x^2\sin^2y)e^{x^2+y^2+z^2},
+\]
+\[
+    u_y=(2y+2z\cdot x^2\cos y)e^{x^2+y^2+z^2}
+        =(2y+x^4\sin2y)e^{x^2+y^2+z^2},
+\]
+式中的 $z$ 均须取 $x^2\sin y$。第二个问题记 $f_i$ 为外层 $f$ 关于第 $i$ 个自变量的偏导数，均在 $(xy,y/x,z^2)$ 处取值，则
+\[
+    w_x=yf_1-\frac{y}{x^2}f_2,\qquad
+    w_y=xf_1+\frac1x f_2,\qquad
+    w_z=2zf_3.
+\]
+按中间变量逐条列出影响路径，可以避免遗漏直接项或间接项。
+\end{solve}
+
+\begin{example}
+\label{ex:polar-gradient-and-transport-ch14}
+用极坐标表示平面函数梯度的模，并用变量替换求解整个 $(x,t)$ 平面上的一阶方程 $u_t+\lambda u_x=0$，其中 $\lambda\in\mathbb R$ 为常数，$u\in C^1(\mathbb R^2)$。
+\end{example}
+\begin{solve}
+令 $\widetilde f(r,\theta)=f(r\cos\theta,r\sin\theta)$，$r>0$。链式法则给出
+\[
+    \widetilde f_r=f_x\cos\theta+f_y\sin\theta,\qquad
+    \widetilde f_\theta=-rf_x\sin\theta+rf_y\cos\theta.
+\]
+解此线性方程组得
+\[
+    f_x=\cos\theta\,\widetilde f_r-\frac{\sin\theta}{r}\widetilde f_\theta,
+    \qquad
+    f_y=\sin\theta\,\widetilde f_r+\frac{\cos\theta}{r}\widetilde f_\theta,
+\]
+从而 $\|\nabla f\|^2=\widetilde f_r^2+r^{-2}\widetilde f_\theta^2$。角度变量只需在局部选择连续分支，上述公式不用于 $r=0$。
+
+对于偏微分方程，令 $\xi=x-\lambda t$、$\tau=t$，并定义 $v(\xi,\tau)=u(\xi+\lambda\tau,\tau)$。于是 $v_\tau=\lambda u_x+u_t=0$。对每个固定 $\xi$，一元导数为零说明 $v$ 与 $\tau$ 无关，故 $u(x,t)=g(x-\lambda t)$，其中 $g\in C^1(\mathbb R)$；直接求导又可验证每个这样的函数都是解。若定义域只是一般开集，该结论首先是局部结论，不能忽略同一特征直线在定义域内可能有多个连通部分。
+\end{solve}
+
+\begin{example}
+\label{ex:hyperspherical-jacobian-ch14}
+设 $n\geq2$。在 $n$ 维球坐标
+\[
+    x_j=r\left(\prod_{\ell=1}^{j-1}\sin\theta_\ell\right)\cos\theta_j
+       \quad(1\leq j\leq n-1),\qquad
+    x_n=r\prod_{\ell=1}^{n-1}\sin\theta_\ell
+\]
+中，证明按 $(r,\theta_1,\ldots,\theta_{n-1})$ 排列的雅可比行列式为
+\[
+    \frac{\partial(x_1,\ldots,x_n)}{\partial(r,\theta_1,\ldots,\theta_{n-1})}
+    =r^{n-1}\prod_{j=1}^{n-2}\sin^{n-1-j}\theta_j,
+\]
+其中空乘积规定为 $1$。
+\end{example}
+\begin{solve}
+$n=2$ 时直接计算得 $r$。对 $n>2$，先令 $x_1=r\cos\theta_1$、$s=r\sin\theta_1$，再以 $s,\theta_2,\ldots,\theta_{n-1}$ 作其余 $n-1$ 个坐标的球坐标变换。第一步的雅可比行列式为 $r$，第二步由归纳假设为 $s^{n-2}\prod_{j=2}^{n-2}\sin^{n-1-j}\theta_j$，由链式法则取行列式并相乘即得公式。坐标计算通常取 $r>0$，前 $n-2$ 个角在 $(0,\pi)$ 内，最后一个角在一个长度为 $2\pi$ 的开区间内，以避开坐标退化与角度重复。
+\end{solve}
+
+\subsection{高阶偏导数}
+\label{subsec:higher-partial-derivatives}
+
+偏导函数仍是多元函数，继续求偏导便得到高阶偏导数。以下约定 $f_{x_ix_j}=\partial_{x_j}(\partial_{x_i}f)$，即先对下标左边的变量求导，再对右边求导；用分式写作 $\partial^2f/(\partial x_j\partial x_i)$。在尚未证明可以交换次序前，这两个次序必须区别。若 $f$ 的各阶偏导数直到 $k$ 阶都存在且连续，记为 $f\in C^k(D)$。
+
+\begin{example}
+\label{ex:unequal-mixed-partials-ch14}
+令 $f(0,0)=0$，原点外 $f(x,y)=xy(x^2-y^2)/(x^2+y^2)$，说明混合偏导数可能不相等。
+\end{example}
+\begin{solve}
+由定义直接计算轴线上的一阶偏导数，得 $f_x(0,y)=-y$，$f_y(x,0)=x$，包括原点处的零值。因此
+\[
+    \partial_y(\partial_xf)(0,0)=-1,\qquad
+    \partial_x(\partial_yf)(0,0)=1.
+\]
+原点外的表达式可以常规求导，但原点处仍应回到定义，不能把只在原点外成立的有理式直接代入原点。
+\end{solve}
+
+\begin{theorem}[混合偏导数交换定理]
+\label{thm:schwarz-mixed-partials-ch14}
+若 $f$ 在 $\boldsymbol x_0$ 的某邻域内存在 $f_{x_ix_j}$ 与 $f_{x_jx_i}$，且二者在 $\boldsymbol x_0$ 连续，则
+$f_{x_ix_j}(\boldsymbol x_0)=f_{x_jx_i}(\boldsymbol x_0)$。特别地，$C^k$ 函数的 $k$ 阶偏导数与求导顺序无关，只依赖各变量被求导的次数。
+\end{theorem}
+\begin{proof}
+固定其他坐标，只证二元情形。对 $h,k\ne0$，令
+\[
+    Q(h,k)=\frac{f(a+h,b+k)-f(a+h,b)-f(a,b+k)+f(a,b)}{hk}.
+\]
+先沿 $x$、再沿 $y$ 对差分应用一元中值定理，可将 $Q$ 写成小矩形内某点的 $f_{xy}$；反过来应用，则写成另一个点的 $f_{yx}$。两点都随 $(h,k)\to(0,0)$ 趋于 $(a,b)$，由连续性得到二者在该点相等。对高阶偏导数，可将两个相邻求导操作应用于相应的低阶偏导函数，再利用任意排列都由相邻交换组成，得到最后的结论。
+\end{proof}
+
+例如，$C^2$ 函数的二阶偏导数原本有 $n^2$ 个有序写法，交换定理使其中只有 $n(n+1)/2$ 类需要分别计算；这里说的是不同的求导类型，其数值还可能偶然相同。
+
+\subsection{复合函数的高阶偏导数}
+\label{subsec:higher-partial-derivatives-of-composite-functions}
+
+高阶链式法则要对一阶公式逐次求导，每次既要微分外层导数，也要微分内层导数。设 $U:D\subseteq\mathbb R^n\to\mathbb R^m$、$f:\Omega\to\mathbb R$ 均为 $C^2$，$u=f\circ U$，则
+\begin{equation}
+\label{eq:second-order-chain-rule-ch14}
+    u_{x_jx_k}
+    =\sum_{a,b=1}^m f_{u_au_b}(U)\,(U_a)_{x_j}(U_b)_{x_k}
+      +\sum_{a=1}^m f_{u_a}(U)\,(U_a)_{x_jx_k}.
+\end{equation}
+例如，当 $u(s,t)=f(x(s,t),y(s,t))$ 时，
+\[
+    u_{ss}=f_{xx}x_s^2+2f_{xy}x_sy_s+f_{yy}y_s^2
+        +f_x\,x_{ss}+f_y\,y_{ss}.
+\]
+最后两项反映内层变换的非线性，只有当相应内层二阶导数为零时才能省略。
+
+\begin{example}
+\label{ex:radial-harmonic-function-ch14}
+设 $u(x,y,z)=g(r)$，$r=\sqrt{x^2+y^2+z^2}>0$，$g$ 在 $(0,\infty)$ 上二阶连续可微。求使 $u_{xx}+u_{yy}+u_{zz}=0$ 成立的所有 $g$。
+\end{example}
+\begin{solve}
+由链式法则，
+\[
+    u_x=g'(r)\frac{x}{r},\qquad
+    u_{xx}=g''(r)\frac{x^2}{r^2}
+        +g'(r)\left(\frac1r-\frac{x^2}{r^3}\right).
+\]
+将 $y,z$ 对应的两式相加，得到\emph{拉普拉斯算子}（Laplacian）作用于径向函数的表达式
+\[
+    \Delta u=g''(r)+\frac2r g'(r).
+\]
+因 $r>0$，方程等价于 $(r^2g'(r))'=0$。积分得 $g(r)=A+B/r$，其中 $A,B$ 为任意实常数。若另外要求该函数在整个原点邻域连续，则必须 $B=0$；原题在 $r>0$ 上并不要求这一点。
+\end{solve}
+
+\subsection{一阶微分的形式不变性与高阶微分}
+\label{subsec:invariance-and-higher-multivariable-differentials}
+
+设 $f\in C^k(D)$，各 $x_i$ 为独立变量，并将增量 $\mathrm dx_i$ 视为固定量。连续微分得到
+\begin{equation}
+\label{eq:higher-total-differentials-ch14}
+    \mathrm d^k f(\boldsymbol x)
+    =\left(\sum_{i=1}^n\mathrm dx_i\frac{\partial}{\partial x_i}\right)^k
+       f(\boldsymbol x).
+\end{equation}
+二阶时 $\mathrm d^2f=\sum_{i,j}f_{x_ix_j}\,\mathrm dx_i\mathrm dx_j$，二元情形则为
+\[
+    \mathrm d^kf(x,y)=\sum_{j=0}^k\binom kj
+       \frac{\partial^kf}{\partial x^{k-j}\partial y^j}
+       (\mathrm dx)^{k-j}(\mathrm dy)^j.
+\]
+这里使用了混合偏导数交换定理，符号上的乘方表示固定增量方向的微分算子反复作用，不是把函数值求幂。
+
+若 $\boldsymbol u=U(\boldsymbol x)$ 是可微的中间变量，则链式法则给出
+\[
+    \mathrm d(f\circ U)=Df(U)\,DU\,\mathrm d\boldsymbol x
+        =Df(\boldsymbol u)\,\mathrm d\boldsymbol u.
+\]
+无论 $\boldsymbol u$ 是独立变量还是中间变量，最后的形式相同，这称为\emph{一阶微分的形式不变性}（invariance of the first differential）。二阶时若 $f,U\in C^2$，则
+\begin{equation}
+\label{eq:noninvariance-second-differential-ch14}
+    \mathrm d^2(f\circ U)
+    =\sum_{a,b}f_{u_au_b}\,\mathrm du_a\mathrm du_b
+       +\sum_a f_{u_a}\,\mathrm d^2u_a.
+\end{equation}
+中间变量的二阶微分通常不为零，所以高阶微分一般不具有上述形式不变性；若 $U$ 为仿射变换，则这些额外项消失。
+
+\begin{example}
+\label{ex:second-partials-by-differentials-ch14}
+设 $w(x,y)=f(xy,y/x)$，$x\ne0$，$f\in C^2$，利用二阶微分求 $w$ 的全部二阶偏导数。
+\end{example}
+\begin{solve}
+令 $u=xy$、$v=y/x$，则
+\[
+    \mathrm du=y\,\mathrm dx+x\,\mathrm dy,\quad
+    \mathrm dv=-\frac{y}{x^2}\,\mathrm dx+\frac1x\,\mathrm dy,
+    \quad\mathrm d^2u=2\,\mathrm dx\mathrm dy,
+\]
+\[
+    \mathrm d^2v=\frac{2y}{x^3}(\mathrm dx)^2
+       -\frac2{x^2}\,\mathrm dx\mathrm dy.
+\]
+代入式~\eqref{eq:noninvariance-second-differential-ch14}，比较 $(\mathrm dx)^2$、$2\,\mathrm dx\mathrm dy$、$(\mathrm dy)^2$ 的系数，得到
+\[
+    w_{xx}=y^2f_{11}-\frac{2y^2}{x^2}f_{12}
+       +\frac{y^2}{x^4}f_{22}+\frac{2y}{x^3}f_2,
+\]
+\[
+    w_{xy}=xyf_{11}-\frac{y}{x^3}f_{22}+f_1-\frac1{x^2}f_2,
+    \qquad
+    w_{yy}=x^2f_{11}+2f_{12}+\frac1{x^2}f_{22},
+\]
+其中外层导数均在 $(xy,y/x)$ 处取值，且 $w_{yx}=w_{xy}$。二阶微分中混合项的系数是混合偏导数的两倍，比较系数时应保留这一因子。
+\end{solve}
+
+\section{泰勒公式}
+\label{sec:multivariable-taylor-formula}
+
+% 教材第 74--79 页；分章 PDF 第 35--40 页。
+
+多元泰勒公式的基本思路是固定起点和增量，将函数限制在连接两点的线段上，再应用一元泰勒公式。为简化记号，对固定增量 $\boldsymbol h=(h_1,\ldots,h_n)^{\mathsf T}$ 记
+\[
+    L_{\boldsymbol h}=\sum_{i=1}^n h_i\frac{\partial}{\partial x_i},\qquad
+    L_{\boldsymbol h}^{\ell}f(\boldsymbol a)
+    =\sum_{i_1,\ldots,i_\ell=1}^n
+       h_{i_1}\cdots h_{i_\ell}
+       \partial_{x_{i_\ell}}\cdots\partial_{x_{i_1}}f(\boldsymbol a),
+\]
+并规定 $L_{\boldsymbol h}^0f=f$。该算子中各个 $h_i$ 始终视为常数。
+
+\begin{theorem}[带拉格朗日余项的多元泰勒公式]
+\label{thm:multivariable-taylor-lagrange-ch14}
+设 $K\geq0$ 为整数，$f\in C^{K+1}(D)$，且线段 $\{\boldsymbol a+t\boldsymbol h:0\leq t\leq1\}$ 包含在 $D$ 内。则存在依赖于 $\boldsymbol a,\boldsymbol h$ 的 $\theta\in(0,1)$，使
+\begin{equation}
+\label{eq:multivariable-taylor-lagrange-ch14}
+    f(\boldsymbol a+\boldsymbol h)
+    =\sum_{\ell=0}^K\frac1{\ell!}L_{\boldsymbol h}^{\ell}f(\boldsymbol a)
+      +\frac1{(K+1)!}L_{\boldsymbol h}^{K+1}f(\boldsymbol a+\theta\boldsymbol h).
+\end{equation}
+最后一项称为\emph{拉格朗日余项}（Lagrange remainder）。
+\end{theorem}
+\begin{proof}
+构造 $\phi(t)=f(\boldsymbol a+t\boldsymbol h)$。沿线段的链式法则给出 $\phi^{(\ell)}(t)=L_{\boldsymbol h}^{\ell}f(\boldsymbol a+t\boldsymbol h)$。将一元泰勒公式用于 $\phi(1)$ 在 $t=0$ 处的展开，再代入这些导数即可。
+\end{proof}
+
+\begin{corollary}[带佩亚诺余项的多元泰勒公式]
+\label{cor:multivariable-taylor-peano-ch14}
+若 $K\geq1$ 且 $f\in C^K$ 于 $\boldsymbol a$ 的某邻域，则
+\begin{equation}
+\label{eq:multivariable-taylor-peano-ch14}
+    f(\boldsymbol a+\boldsymbol h)
+    =\sum_{\ell=0}^K\frac1{\ell!}L_{\boldsymbol h}^{\ell}f(\boldsymbol a)
+       +o(\|\boldsymbol h\|^K)\qquad(\boldsymbol h\to\boldsymbol0).
+\end{equation}
+最后一项称为\emph{佩亚诺余项}（Peano remainder）。
+\end{corollary}
+\begin{proof}
+将定理用于 $K-1$ 阶展开，再加减 $L_{\boldsymbol h}^Kf(\boldsymbol a)/K!$。所得余项为
+\[
+    \frac1{K!}\left(
+       L_{\boldsymbol h}^Kf(\boldsymbol a+\theta\boldsymbol h)
+       -L_{\boldsymbol h}^Kf(\boldsymbol a)\right).
+\]
+展开后每项都是 $K$ 个 $h_i$ 的乘积乘以一个趋于零的 $K$ 阶偏导数差；因项数有限且 $|h_i|\leq\|\boldsymbol h\|$，余项即为 $o(\|\boldsymbol h\|^K)$。
+\end{proof}
+
+泰勒多项式在相应阶数内是唯一的：若两个次数不超过 $K$ 的多项式都给出余项为 $o(\|\boldsymbol h\|^K)$ 的展开，它们的差也满足这一估计；若差有最低次非零齐次部分，沿一个使该部分非零的固定方向代入 $\boldsymbol h=t\boldsymbol v$，并除以相应最低次幂，即产生矛盾。因此计算展开时可以使用代数变形和已知的一元展开，不必逐个求高阶偏导数，但必须控制总次数与余项。
+
+\begin{corollary}
+\label{cor:multivariable-mean-value-ch14}
+若 $f\in C^1(D)$，连接 $\boldsymbol a,\boldsymbol b$ 的线段在 $D$ 内，则存在 $\theta\in(0,1)$，使
+\[
+    f(\boldsymbol b)-f(\boldsymbol a)
+    =\nabla f(\boldsymbol a+\theta(\boldsymbol b-\boldsymbol a))^{\mathsf T}
+       (\boldsymbol b-\boldsymbol a).
+\]
+若 $D$ 还是连通开集，且各个偏导数在 $D$ 上恒为零，则 $f$ 在 $D$ 上为常数。
+\end{corollary}
+\begin{proof}
+第一式是式~\eqref{eq:multivariable-taylor-lagrange-ch14} 中 $K=0$ 的情形。对于第二个结论，先在 $D$ 内每个小球上应用第一式，得到 $f$ 局部为常数。固定 $\boldsymbol a\in D$ 后，集合 $\{\boldsymbol x\in D:f(\boldsymbol x)=f(\boldsymbol a)\}$ 与其补集都相对开；由连通性，前者只能是整个 $D$。
+\end{proof}
+
+上述共同中值点的等式适用于实值函数，不能直接推广为向量函数所有分量共用同一个 $\theta$。例如 $F(t)=(\cos t,\sin t)^{\mathsf T}$ 在 $[0,2\pi]$ 的端点增量为零，但 $F'(t)$ 处处非零，不存在使 $F(2\pi)-F(0)=2\pi F'(\theta)$ 成立的点。
+
+对二阶展开，定义\emph{海塞矩阵}（Hessian matrix，教材称海色矩阵）
+\[
+    H_f(\boldsymbol a)=\bigl(f_{x_ix_j}(\boldsymbol a)\bigr)_{1\leq i,j\leq n}.
+\]
+当 $f\in C^2$ 时它是对称矩阵，且
+\begin{equation}
+\label{eq:second-order-taylor-peano-ch14}
+    f(\boldsymbol a+\boldsymbol h)
+    =f(\boldsymbol a)+\nabla f(\boldsymbol a)^{\mathsf T}\boldsymbol h
+       +\frac12\boldsymbol h^{\mathsf T}H_f(\boldsymbol a)\boldsymbol h
+       +o(\|\boldsymbol h\|^2).
+\end{equation}
+这说明在一阶项消失时，局部增量首先由一个二次型决定，是后面极值判别的依据。
+
+\begin{example}
+\label{ex:multivariable-taylor-by-expansion-ch14}
+求 $f(x,y)=(x-y)/(x+y)$ 在 $(1,0)$ 附近到二次项的展开，并求 $g(x,y)=xe^{x+y}$ 在原点的所有四阶偏导数。
+\end{example}
+\begin{solve}
+记 $a=x-1$、$b=y$，利用 $(1+s)^{-1}=1-s+s^2+O(s^3)$，得到
+\[
+    \frac{1+a-b}{1+a+b}
+    =(1+a-b)\bigl(1-a-b+(a+b)^2\bigr)
+       +o(a^2+b^2)
+    =1-2b+2ab+2b^2+o(a^2+b^2).
+\]
+这里 $|a+b|\leq\sqrt2\sqrt{a^2+b^2}$，保证舍去项确为所需的小量。
+
+第二个函数的四阶泰勒多项式可由
+\[
+    xe^{x+y}
+    =x+x(x+y)+\frac{x}{2}(x+y)^2+\frac{x}{6}(x+y)^3
+       +o\bigl((x^2+y^2)^2\bigr)
+\]
+直接读出。四次齐次部分为 $(x^4+3x^3y+3x^2y^2+xy^3)/6$，故按 $x^4,x^3y,x^2y^2,xy^3,y^4$ 的顺序，相应四阶偏导数在原点的值依次为 $4,3,2,1,0$。读系数时应乘以各变量次数的阶乘，例如 $x^3y$ 的系数应乘 $3!1!$，而非统一乘 $4!$。
+\end{solve}
+
+\section{隐函数存在定理}
+\label{sec:implicit-function-existence-theorem}
+
+% 教材第 79--94 页；分章 PDF 第 40--55 页。
+
+\subsection{单个方程的情形}
+\label{subsec:implicit-function-for-one-equation}
+
+方程 $F(x,y)=0$ 描述一个零点集合。所谓由它确定\emph{隐函数}（implicit function），是指在指定零点附近，该零点集合恰好是一个函数 $y=\varphi(x)$ 的图像。圆周 $x^2+y^2=1$ 在 $(0,1)$ 附近可写成 $y=\sqrt{1-x^2}$，但在 $(1,0)$ 附近不能将所有邻近圆周点唯一地写成 $y$ 关于 $x$ 的函数；能否选定某个变量作为因变量，是一个局部问题。
+
+\begin{theorem}[单个方程的隐函数存在定理]
+\label{thm:scalar-implicit-function-ch14}
+设 $F(\boldsymbol x,y)$ 在 $(\boldsymbol x_0,y_0)\in\mathbb R^n\times\mathbb R$ 的某邻域内连续，$F_y$ 在该邻域内存在且连续，并且
+\[
+    F(\boldsymbol x_0,y_0)=0,\qquad F_y(\boldsymbol x_0,y_0)\ne0.
+\]
+则存在 $\boldsymbol x_0$ 的邻域 $U$ 与 $y_0$ 的开区间邻域 $I$，使对每个 $\boldsymbol x\in U$，方程在 $I$ 中恰有一个解 $y=\varphi(\boldsymbol x)$。函数 $\varphi:U\to I$ 连续，$\varphi(\boldsymbol x_0)=y_0$。若进一步有 $F\in C^1$，则 $\varphi\in C^1(U)$，且
+\begin{equation}
+\label{eq:scalar-implicit-derivative-ch14}
+    \frac{\partial\varphi}{\partial x_i}(\boldsymbol x)
+    =-\frac{F_{x_i}(\boldsymbol x,\varphi(\boldsymbol x))}
+             {F_y(\boldsymbol x,\varphi(\boldsymbol x))},
+    \qquad i=1,\ldots,n.
+\end{equation}
+\end{theorem}
+\begin{proof}
+不妨设 $F_y(\boldsymbol x_0,y_0)>0$。由连续性，在一个足够小的乘积邻域内 $F_y$ 恒正。选取 $b>0$，使上下端点仍在其中，则一元中值定理给出
+\[
+    F(\boldsymbol x_0,y_0-b)<0<F(\boldsymbol x_0,y_0+b).
+\]
+缩小 $\boldsymbol x$ 的邻域 $U$，由 $F$ 的连续性可使这两个严格不等式对所有 $\boldsymbol x\in U$ 保持成立。对固定的 $\boldsymbol x$，函数 $y\mapsto F(\boldsymbol x,y)$ 在 $I=(y_0-b,y_0+b)$ 上连续且严格增加，由介值定理存在唯一零点 $\varphi(\boldsymbol x)$。
+
+为证连续性，固定 $\overline{\boldsymbol x}\in U$，记 $\overline y=\varphi(\overline{\boldsymbol x})$。对任意充分小的 $\varepsilon>0$，有
+\[
+    F(\overline{\boldsymbol x},\overline y-\varepsilon)<0
+       <F(\overline{\boldsymbol x},\overline y+\varepsilon).
+\]
+当 $\boldsymbol x$ 充分接近 $\overline{\boldsymbol x}$ 时这两个符号不变，严格单调性便将唯一零点夹在 $(\overline y-\varepsilon,\overline y+\varepsilon)$ 内，得到连续性。
+
+若 $F\in C^1$，固定 $\boldsymbol x\in U$，沿第 $i$ 个坐标作增量 $h$，记 $y=\varphi(\boldsymbol x)$、$\Delta y=\varphi(\boldsymbol x+h\boldsymbol e_i)-\varphi(\boldsymbol x)$。将零点等式之差拆为先改变 $\boldsymbol x$、再改变 $y$ 的两项，并分别应用一元中值定理，得到
+\[
+    0=F_{x_i}(\boldsymbol x+\theta h\boldsymbol e_i,y+\Delta y)h
+       +F_y(\boldsymbol x,y+\eta\Delta y)\Delta y,
+       \qquad 0<\theta,\eta<1.
+\]
+当某个增量为零时相应项直接为零。由已证连续性，$\Delta y\to0$；除以 $h\ne0$ 后取极限，即得式~\eqref{eq:scalar-implicit-derivative-ch14}。右边随 $\boldsymbol x$ 连续，所以所有偏导数连续，$\varphi\in C^1(U)$。
+\end{proof}
+
+上述唯一性限于选定的乘积邻域，不排除方程在远处另有解。非零偏导数是一个充分条件，并非隐函数存在的必要条件：例如 $(y-x)^3=0$ 仍唯一确定光滑函数 $y=x$，但在零点集合上 $F_y=0$，定理的导数商式不能直接使用。若 $F\in C^k$（$k\geq1$）且满足非退化条件，则所确定的隐函数也属于 $C^k$；可由式~\eqref{eq:scalar-implicit-derivative-ch14} 反复求导归纳证明，分母在足够小的邻域内始终不为零。
+
+例如，开普勒方程 $E-e\sin E=M$（固定 $0<e<1$）中，关于 $E$ 的导数为 $1-e\cos E\geq1-e>0$，左边严格增加且趋向两端无穷，故每个 $M\in\mathbb R$ 都对应唯一 $E$。局部隐函数拼合成全局光滑函数，且 $\mathrm dE/\mathrm dM=(1-e\cos E)^{-1}$；这里无须先显式解出 $E$。
+
+\begin{example}
+\label{ex:cyclic-partial-derivative-ch14}
+设 $F(x,y,z)=0$ 在一点附近可分别解出三个变量，且 $F\in C^1$、$F_xF_yF_z\ne0$。解释偏导数的循环关系。
+\end{example}
+\begin{solve}
+在同一曲面点处，由隐函数求导公式，
+\[
+    \left(\frac{\partial x}{\partial y}\right)_z=-\frac{F_y}{F_x},\quad
+    \left(\frac{\partial y}{\partial z}\right)_x=-\frac{F_z}{F_y},\quad
+    \left(\frac{\partial z}{\partial x}\right)_y=-\frac{F_x}{F_z}.
+\]
+所以三个因子之积为 $-1$。此外，保持同一个第三变量不变时，$\left(\partial x/\partial y\right)_z\left(\partial y/\partial x\right)_z=1$。下标标明保持不变的变量；偏导数符号不能脱离这些条件当作普通分数任意约分，否则会错误地将循环乘积算成 $1$。
+\end{solve}
+
+\begin{example}
+\label{ex:implicit-taylor-expansion-ch14}
+证明方程 $-2x+y-x^2+y^2+z+\sin z=0$ 在原点附近唯一确定光滑函数 $z=\varphi(x,y)$，并求其到二次项的泰勒展开。
+\end{example}
+\begin{solve}
+令左边为 $F(x,y,z)$，则 $F(0,0,0)=0$、$F_z(0,0,0)=2\ne0$，故隐函数存在且光滑。因 $\varphi(0,0)=0$ 且可微，令 $r=\sqrt{x^2+y^2}$，有 $\varphi=O(r)$，所以 $\sin\varphi=\varphi+O(r^3)$。代回原方程得
+\[
+    \varphi(x,y)=x-\frac12y+\frac12x^2-\frac12y^2+o(x^2+y^2).
+\]
+先由存在定理保证光滑性，再比较多项式系数，才为这种隐式展开提供了依据。
+\end{solve}
+
+\subsection{方程组的情形}
+\label{subsec:implicit-functions-for-equation-systems}
+
+\begin{theorem}[隐函数组存在定理]
+\label{thm:implicit-function-system-ch14}
+设 $F=(F_1,\ldots,F_m)^{\mathsf T}$ 是 $(\boldsymbol x_0,\boldsymbol u_0)\in\mathbb R^n\times\mathbb R^m$ 某邻域内的 $C^1$ 映射，且
+\[
+    F(\boldsymbol x_0,\boldsymbol u_0)=\boldsymbol0,\qquad
+    \det D_{\boldsymbol u}F(\boldsymbol x_0,\boldsymbol u_0)\ne0.
+\]
+则存在邻域 $U\ni\boldsymbol x_0$、$V\ni\boldsymbol u_0$ 及唯一的 $C^1$ 映射 $\varphi:U\to V$，使 $\varphi(\boldsymbol x_0)=\boldsymbol u_0$，且对 $(\boldsymbol x,\boldsymbol u)\in U\times V$，
+\[
+    F(\boldsymbol x,\boldsymbol u)=\boldsymbol0
+       \quad\Longleftrightarrow\quad\boldsymbol u=\varphi(\boldsymbol x).
+\]
+缩小邻域使 $D_{\boldsymbol u}F$ 处处可逆后，导数为
+\begin{equation}
+\label{eq:implicit-system-derivative-ch14}
+    D\varphi(\boldsymbol x)
+    =-[D_{\boldsymbol u}F(\boldsymbol x,\varphi(\boldsymbol x))]^{-1}
+       D_{\boldsymbol x}F(\boldsymbol x,\varphi(\boldsymbol x)).
+\end{equation}
+其中 $D_{\boldsymbol u}F$ 为 $m\times m$ 矩阵，$D_{\boldsymbol x}F$ 与 $D\varphi$ 均为 $m\times n$ 矩阵。
+\end{theorem}
+\begin{proof}
+对方程个数 $m$ 归纳。$m=1$ 已证。设 $m>1$，可逆矩阵至少有一个非零元素，重新排列方程与因变量后可设 $(F_m)_{u_m}(\boldsymbol x_0,\boldsymbol u_0)\ne0$。由单个方程的定理，$F_m=0$ 在局部唯一确定
+$u_m=g(\boldsymbol x,\boldsymbol v)$，其中 $\boldsymbol v=(u_1,\ldots,u_{m-1})^{\mathsf T}$，$g\in C^1$。将它代入前 $m-1$ 个方程，得到约化方程组 $H(\boldsymbol x,\boldsymbol v)=\boldsymbol0$。
+
+在基点将原来的因变量雅可比矩阵分块写为
+\[
+    D_{\boldsymbol u}F=
+    \begin{pmatrix}A&\boldsymbol b\\\boldsymbol c^{\mathsf T}&d\end{pmatrix},
+    \qquad d\ne0.
+\]
+由隐函数求导公式 $D_{\boldsymbol v}g=-d^{-1}\boldsymbol c^{\mathsf T}$，可得
+\[
+    D_{\boldsymbol v}H=A-\boldsymbol b d^{-1}\boldsymbol c^{\mathsf T},\qquad
+    \det D_{\boldsymbol u}F=d\det D_{\boldsymbol v}H.
+\]
+后一等式可用分块消元验证，故约化雅可比行列式非零。由归纳假设，$H=0$ 唯一确定 $C^1$ 函数 $\boldsymbol v=\psi(\boldsymbol x)$，再代入 $g$ 就构造出 $\varphi$。适当缩小乘积邻域后，任何原方程组的解都必须先满足唯一的 $u_m=g(\boldsymbol x,\boldsymbol v)$，进而满足约化方程组，故只能是构造的解，这也证明局部唯一性。
+
+最后对恒等式 $F(\boldsymbol x,\varphi(\boldsymbol x))=\boldsymbol0$ 应用链式法则，得
+\[
+    D_{\boldsymbol x}F+D_{\boldsymbol u}F\,D\varphi=0.
+\]
+左乘可逆矩阵 $[D_{\boldsymbol u}F]^{-1}$，即得式~\eqref{eq:implicit-system-derivative-ch14}。
+\end{proof}
+
+定理中的行列式对应拟解出的因变量，选择不同变量时必须重新检查相应子矩阵。$F\in C^k$ 时同样有 $\varphi\in C^k$，依据仍是导数公式和可逆矩阵元素的光滑性。计算时通常直接微分原方程组，再解关于未知偏导数的线性方程组，比先求出隐函数的显式表达式更方便。
+
+\begin{example}
+\label{ex:implicit-system-computation-ch14}
+证明方程组
+\[
+    x^2+y^2+u^2-v^2=2,\qquad u+v+x+y=0
+\]
+在 $(1,1,-1,-1)$ 附近确定 $u=u(x,y)$、$v=v(x,y)$，并求其一阶偏导数。
+\end{example}
+\begin{solve}
+基点满足方程，关于 $(u,v)$ 的雅可比行列式为
+\[
+    \det\begin{pmatrix}2u&-2v\\1&1\end{pmatrix}
+    =2(u+v),
+\]
+在基点等于 $-4$，所以所求隐函数存在且光滑。对原方程组微分并将第一式除以 $2$，得到
+\[
+    u\,\mathrm du-v\,\mathrm dv=-x\,\mathrm dx-y\,\mathrm dy,
+    \qquad \mathrm du+\mathrm dv=-\mathrm dx-\mathrm dy.
+\]
+分别比较 $\mathrm dx,\mathrm dy$ 的系数并解线性方程组，得
+\[
+    u_x=-\frac{x+v}{u+v},\quad v_x=\frac{x-u}{u+v},\qquad
+    u_y=-\frac{y+v}{u+v},\quad v_y=\frac{y-u}{u+v}.
+\]
+这些公式中的 $u,v$ 是所确定的隐函数；分母在足够小的邻域内非零，基点处的四个偏导数依次为 $0,-1,0,-1$。
+\end{solve}
+
+\subsection{逆映射存在定理}
+\label{subsec:inverse-mapping-existence-theorem}
+
+\begin{theorem}[逆映射存在定理]
+\label{thm:inverse-function-ch14}
+设 $F:D\subseteq\mathbb R^n\to\mathbb R^n$ 属于 $C^1$，且 $\det DF(\boldsymbol x_0)\ne0$。令 $\boldsymbol y_0=F(\boldsymbol x_0)$，则存在开邻域 $U\ni\boldsymbol x_0$、$V\ni\boldsymbol y_0$，使 $F:U\to V$ 是 $C^1$ 微分同胚，其逆映射 $G$ 满足
+\[
+    DG(\boldsymbol y)=[DF(G(\boldsymbol y))]^{-1}.
+\]
+若 $F\in C^k$，则 $G\in C^k$。
+\end{theorem}
+\begin{proof}
+将 $F(\boldsymbol x)-\boldsymbol y=\boldsymbol0$ 看作以 $\boldsymbol x$ 为因变量、$\boldsymbol y$ 为自变量的方程组，关于因变量的雅可比矩阵为 $DF(\boldsymbol x_0)$。由隐函数组定理，在乘积邻域 $U_0\times V_0$ 内，方程的解恰为 $\boldsymbol x=G(\boldsymbol y)$，且 $G\in C^1$。缩小 $V_0$ 为开邻域 $V$，使 $G(V)\subseteq U_0$，并令 $U=U_0\cap F^{-1}(V)$。连续性使 $U$ 为开集；方程组的局部唯一性给出 $G(F(\boldsymbol x))=\boldsymbol x$（$\boldsymbol x\in U$），而构造又给出 $F(G(\boldsymbol y))=\boldsymbol y$（$\boldsymbol y\in V$），故二者互为逆映射。对后一恒等式求导便得逆映射导数公式；更高光滑性由隐函数组定理继承。
+\end{proof}
+
+若 $\det DF$ 在 $D$ 内处处非零，则 $F$ 是局部微分同胚，因而将开集映为开集；$D$ 连通时，$F(D)$ 还因连续性而连通。但局部可逆不蕴含整体单射。
+
+\begin{example}
+\label{ex:local-versus-global-invertibility-ch14}
+说明雅可比行列式处处非零不能保证全局逆映射存在，而连续逆映射的存在也不要求雅可比行列式处处非零。
+\end{example}
+\begin{solve}
+映射 $F(x,y)=(e^x\cos y,e^x\sin y)^{\mathsf T}$ 的雅可比行列式为 $e^{2x}>0$，但 $F(x,y+2\pi)=F(x,y)$，所以它虽处处局部可逆，却不是从 $\mathbb R^2$ 到其像的双射。另一方面，$H(x,y)=(x^3,y)^{\mathsf T}$ 是 $\mathbb R^2$ 到自身的同胚，逆映射为 $(u,v)\mapsto(\sqrt[3]u,v)$，但 $\det DH(0,y)=0$，逆映射在 $u=0$ 处不可微。非零雅可比是局部连续可微逆映射的条件，不能与只有连续性的逆映射混为一谈。
+\end{solve}
+
+\section{多元函数的极值}
+\label{sec:extrema-of-multivariable-functions}
+
+% 教材第 95--109 页；分章 PDF 第 56--70 页。
+
+\subsection{通常极值问题}
+\label{subsec:unconstrained-extrema}
+
+\begin{definition}
+\label{def:multivariable-local-extrema-ch14}
+设 $f:D\to\mathbb R$，$\boldsymbol x_0\in D$。若存在 $\delta>0$，使 $B(\boldsymbol x_0,\delta)\subseteq D$，且该球内恒有 $f(\boldsymbol x)\geq f(\boldsymbol x_0)$，则称 $\boldsymbol x_0$ 为\emph{局部极小值点}（local minimum point）；不等号反向则称为\emph{局部极大值点}（local maximum point）。若对球内 $\boldsymbol x\ne\boldsymbol x_0$ 不等式严格成立，则称为严格局部极值点。若 $f$ 可微且 $\nabla f(\boldsymbol x_0)=\boldsymbol0$，称 $\boldsymbol x_0$ 为\emph{驻点}（stationary point）。
+\end{definition}
+
+局部极值只与一个邻域有关，全局最值则要求相应不等式在整个指定集合上成立。驻点附近若既有比 $f(\boldsymbol x_0)$ 大的值，也有比它小的值，称为\emph{鞍点}（saddle point），例如 $f(x,y)=x^2-y^2$ 的原点。闭集上的最值还可能在边界取得，不能只求内点驻点。
+
+\begin{theorem}[极值的必要条件与二阶判别]
+\label{thm:multivariable-extremum-tests-ch14}
+若 $\boldsymbol x_0$ 为内点极值点，且 $f$ 在该点存在各个偏导数，则所有偏导数都为零。进一步设 $f\in C^2$ 于该点的某邻域，且 $\nabla f(\boldsymbol x_0)=\boldsymbol0$，则当 $H_f(\boldsymbol x_0)$ 正定时，$\boldsymbol x_0$ 为严格局部极小值点；负定时为严格局部极大值点；不定时为鞍点。反过来，局部极小值点的海塞矩阵必须半正定，局部极大值点的海塞矩阵必须半负定。
+\end{theorem}
+\begin{proof}
+将 $f$ 限制在过 $\boldsymbol x_0$ 的每条坐标直线上，所得一元函数仍在参数零点取得极值，由费马定理得到偏导数为零。对于二阶结论，由式~\eqref{eq:second-order-taylor-peano-ch14}，
+\[
+    f(\boldsymbol x_0+\boldsymbol h)-f(\boldsymbol x_0)
+    =\frac12\boldsymbol h^{\mathsf T}H_f(\boldsymbol x_0)\boldsymbol h
+       +o(\|\boldsymbol h\|^2).
+\]
+若矩阵正定，则二次型在单位球面上连续且处处正，由紧性存在 $c>0$，使其对所有 $\boldsymbol h$ 不小于 $c\|\boldsymbol h\|^2$。充分小时，余项的绝对值不超过 $c\|\boldsymbol h\|^2/4$，故非零增量使函数值严格增加。对 $-f$ 应用这一结论即得负定情形。若二次型不定，选取使其分别为正、负的两个固定方向，沿这两个方向取充分小的增量，便得到正、负两种函数增量。
+
+若 $\boldsymbol x_0$ 为局部极小值点，对每个固定向量 $\boldsymbol v$ 将上式代入 $\boldsymbol h=t\boldsymbol v$，除以 $t^2$ 后令 $t\to0$，即得 $\boldsymbol v^{\mathsf T}H_f(\boldsymbol x_0)\boldsymbol v\geq0$。极大值情形同理。
+\end{proof}
+
+若海塞矩阵只是半正定或半负定，二阶信息一般不能决定极值。例如 $x^4+y^4$、$-x^4-y^4$、$x^4-y^4$ 在原点具有相同的零海塞矩阵，却分别给出严格极小、严格极大与鞍点。对二元函数，记 $A=f_{xx}$、$B=f_{xy}$、$C=f_{yy}$，均在驻点取值，$\Delta=AC-B^2$，则 $\Delta>0,A>0$ 判为严格极小，$\Delta>0,A<0$ 判为严格极大，$\Delta<0$ 判为鞍点，$\Delta=0$ 时须另作分析。正定与负定可用顺序主子式等线性代数判据检验。
+
+\begin{example}
+\label{ex:quadratic-global-minimum-ch14}
+求 $f(x,y)=x^2+3xy+3y^2-6x-3y$ 的极值。
+\end{example}
+\begin{solve}
+驻点方程为 $2x+3y-6=0$、$3x+6y-3=0$，唯一解为 $(9,-4)$。海塞矩阵为 $\begin{pmatrix}2&3\\3&6\end{pmatrix}$，其首阶顺序主子式为 $2$，行列式为 $3$，故正定。再令 $a=x-9$、$b=y+4$，可直接得到
+\[
+    f(x,y)=-21+a^2+3ab+3b^2
+       =-21+\left(a+\frac32b\right)^2+\frac34b^2.
+\]
+所以 $-21$ 还是唯一的全局最小值，函数没有局部极大值。
+\end{solve}
+
+\begin{example}
+\label{ex:open-box-material-minimum-ch14}
+无盖长方体盒子的容积为 $1\,\mathrm m^3$，底板厚度为侧板厚度的三倍。采用忽略接缝与板厚对容积影响的薄壁模型，求最省材料的长、宽、高。
+\end{example}
+\begin{solve}
+设长、宽、高的米数分别为 $x,y,z>0$，共同的侧板厚度因子不影响最优尺寸。用料与 $3xy+2xz+2yz$ 成正比，约束为 $xyz=1$。消去 $z$ 后，目标函数为
+\[
+    S(x,y)=3xy+\frac2x+\frac2y,\qquad x,y>0.
+\]
+驻点方程 $3y-2/x^2=0$、$3x-2/y^2=0$ 给出 $x=y=a=(2/3)^{1/3}$。为确认全局最小值，使用三个正数的算术--几何平均不等式：
+\[
+    S(x,y)\geq3\sqrt[3]{(3xy)(2/x)(2/y)}=3\sqrt[3]{12},
+\]
+且等号当且仅当 $3xy=2/x=2/y$，恰对应 $x=y=a$。因此最优底面是正方形，高为 $z=a^{-2}=(3/2)^{2/3}=3a/2$，上述各长度的单位均为米。唯一驻点本身并不能代替这个全局最优性的论证。
+\end{solve}
+
+\begin{example}
+\label{ex:least-squares-line-ch14}
+给定平面上的 $N\geq2$ 个点 $(x_i,y_i)$，且 $x_i$ 不全相等，求使平方残差和 $Q(a,b)=\sum_{i=1}^N(ax_i+b-y_i)^2$ 最小的直线 $y=ax+b$。
+\end{example}
+\begin{solve}
+令 $\bar x=N^{-1}\sum_i x_i$、$\bar y=N^{-1}\sum_i y_i$。驻点方程为
+\[
+    a\sum_i x_i^2+b\sum_i x_i=\sum_i x_iy_i,\qquad
+    a\sum_i x_i+Nb=\sum_i y_i.
+\]
+因 $\sum_i(x_i-\bar x)^2>0$，它有唯一解
+\[
+    a_* =\frac{\sum_i(x_i-\bar x)(y_i-\bar y)}{\sum_i(x_i-\bar x)^2},
+    \qquad b_* =\bar y-a_*\bar x.
+\]
+记 $r_i=a_*x_i+b_*-y_i$。正规方程使 $\sum_i r_i=\sum_i x_ir_i=0$，故任意增量 $s,t$ 满足
+\[
+    Q(a_*+s,b_*+t)-Q(a_*,b_*)=\sum_i(sx_i+t)^2.
+\]
+若右边为零，则 $sx_i+t=0$ 对所有 $i$ 成立；由于至少有两个不同的 $x_i$，必有 $s=t=0$。因此该解是唯一的全局最小值点。这称为直线拟合的\emph{最小二乘法}（least squares method），其结论是一个确定性的优化结果，无须预设观测值的概率模型。
+\end{solve}
+
+\subsection{条件极值问题}
+\label{subsec:constrained-extrema}
+
+在等式约束 $\Phi(\boldsymbol x)=\boldsymbol0$ 下求 $f$ 的极值，只允许在可行集合内比较函数值。若能将约束解为参数函数，可以代入目标函数化为通常极值问题；隐函数定理则允许我们在不显式求出参数函数的情况下消去其导数，得到拉格朗日乘数法。
+
+\begin{theorem}[拉格朗日乘数法的必要条件]
+\label{thm:lagrange-multiplier-ch14}
+设 $f:D\to\mathbb R$、$\Phi=(\phi_1,\ldots,\phi_m)^{\mathsf T}:D\to\mathbb R^m$ 均为 $C^1$，$m<n$。若 $\boldsymbol x_0$ 是 $f$ 在约束 $\Phi=\boldsymbol0$ 下的局部极值点，且
+\[
+    \operatorname{rank}D\Phi(\boldsymbol x_0)=m,
+\]
+则存在唯一的乘数向量 $\boldsymbol\lambda=(\lambda_1,\ldots,\lambda_m)^{\mathsf T}$，使
+\begin{equation}
+\label{eq:lagrange-multiplier-ch14}
+    \nabla f(\boldsymbol x_0)+D\Phi(\boldsymbol x_0)^{\mathsf T}\boldsymbol\lambda
+       =\boldsymbol0,\qquad
+    \Phi(\boldsymbol x_0)=\boldsymbol0.
+\end{equation}
+等价地，令\emph{拉格朗日函数}（Lagrangian）
+$L(\boldsymbol x,\boldsymbol\lambda)=f(\boldsymbol x)+\sum_{j=1}^m\lambda_j\phi_j(\boldsymbol x)$，则候选点须满足 $\nabla_{\boldsymbol x}L=\boldsymbol0$、$\nabla_{\boldsymbol\lambda}L=\boldsymbol0$。
+\end{theorem}
+\begin{proof}
+由满秩条件，重新排列坐标后可写 $\boldsymbol x=(\boldsymbol s,\boldsymbol t)$，其中 $\boldsymbol t\in\mathbb R^m$，且 $B=D_{\boldsymbol t}\Phi(\boldsymbol x_0)$ 可逆。局部约束唯一写为 $\boldsymbol t=g(\boldsymbol s)$；令 $A=D_{\boldsymbol s}\Phi(\boldsymbol x_0)$，则 $Dg=-B^{-1}A$。将约束代入 $f$ 后，其关于 $\boldsymbol s$ 的导数在极值点为零，即
+\[
+    D_{\boldsymbol s}f-D_{\boldsymbol t}f\,B^{-1}A=0.
+\]
+取 $\boldsymbol\lambda^{\mathsf T}=-D_{\boldsymbol t}f\,B^{-1}$，上式与这一取法分别给出关于 $\boldsymbol s$、$\boldsymbol t$ 的乘数方程，合并即得结论。若两组乘数都满足条件，其差在 $D\Phi^{\mathsf T}$ 的核中；满行秩使该核为零，故乘数唯一。
+\end{proof}
+
+满秩条件表示约束梯度线性无关，不能省略。例如约束 $x^2+y^2=0$ 的可行集合只有原点，$f(x,y)=x$ 在其中既取最大值也取最小值，但原点约束梯度为零，不可能满足乘数方程。即使满秩，式~\eqref{eq:lagrange-multiplier-ch14} 仍只是必要条件；它没有把原问题变为对 $(\boldsymbol x,\boldsymbol\lambda)$ 无约束求极值的问题，乘数方向上的线性结构通常也不会产生这样的极值。要求全局最值时，还须处理约束退化点、边界以及最值存在性。
+
+若 $f,\Phi\in C^2$，在满足乘数方程的正则可行点定义约束的\emph{切空间}（tangent space）
+\[
+    T=\{\boldsymbol v\in\mathbb R^n:D\Phi(\boldsymbol x_0)\boldsymbol v=\boldsymbol0\}.
+\]
+二阶判别应使用固定乘数 $\boldsymbol\lambda_0$ 后的矩阵
+\[
+    H_{\boldsymbol x}L
+       =H_f+\sum_j\lambda_{0j}H_{\phi_j}
+\]
+在 $T$ 上的二次型：若它在 $T\setminus\{\boldsymbol0\}$ 上正定，则为严格条件极小值；负定则为严格条件极大值。条件极小值要求它在 $T$ 上半正定，条件极大值要求半负定。
+
+这些结论可由前面局部参数化验证。令可行参数化为 $\boldsymbol x=r(\boldsymbol s)$，则 $Dr$ 将参数空间一一映到 $T$。对 $\Phi\circ r=\boldsymbol0$ 求二阶导，并利用 $\nabla f=-D\Phi^{\mathsf T}\boldsymbol\lambda_0$，可得约化目标 $f\circ r$ 的海塞矩阵为
+\[
+    H_{f\circ r}=Dr^{\mathsf T}(H_{\boldsymbol x}L)Dr.
+\]
+于是通常极值的二阶判别直接给出上述结论。整个空间上正定或负定当然也是充分条件，但并非必要：例如 $f(x,y)=x^2-y^2$ 在约束 $y=0$ 下于原点取严格极小值，虽然相应海塞矩阵在整个平面上不定。
+
+\begin{example}
+\label{ex:ellipsoid-inscribed-box-ch14}
+求椭球面 $16x^2+4y^2+9z^2=144$ 内接、各面平行于坐标平面的长方体的最大体积。
+\end{example}
+\begin{solve}
+沿长方体任一条平行于 $x$ 轴的棱，其两端都在椭球面上；将两端的曲面方程相减可知，两端 $x$ 坐标的平方相等，故为互相反号的数。对另外两组棱同理，长方体的八个顶点必为 $(\pm x,\pm y,\pm z)$，其中 $x,y,z>0$，目标为 $V=8xyz$。先允许 $x,y,z\geq0$，则可行集合闭且有界，连续目标在其上取到最大值；有坐标为零的边缘部分满足 $V=0$，而三坐标均正时有 $V>0$，故最大值点的三个坐标均正，且约束梯度非零。乘数方程为
+\[
+    8yz+32\lambda x=0,\quad
+    8xz+8\lambda y=0,\quad
+    8xy+18\lambda z=0.
+\]
+分别乘以 $x,y,z$，由三个坐标均正可知 $\lambda\ne0$，进而
+\[
+    16x^2=4y^2=9z^2=48.
+\]
+因此唯一的正坐标候选点为 $x=\sqrt3$、$y=2\sqrt3$、$z=4\sqrt3/3$。存在性与边界分析已排除其他最大值位置，故 $V_{\max}=64\sqrt3$。
+\end{solve}
+
+\begin{example}
+\label{ex:product-maximum-and-amgm-ch14}
+固定 $n\geq2$ 个正数的和为 $c>0$，求乘积的最大值，并得到算术--几何平均不等式。
+\end{example}
+\begin{solve}
+将问题先扩充到紧集 $E=\{\boldsymbol x:x_i\geq0,\ \sum_i x_i=c\}$ 上。乘积 $P=\prod_i x_i$ 连续，故取到最大值；边界乘积为零，而等分点的乘积为正，所以最大值点满足每个 $x_i>0$。约束梯度为 $(1,\ldots,1)^{\mathsf T}$，满秩条件成立。乘数方程为 $P/x_i+\lambda=0$，从而所有 $x_i$ 相等。于是
+\[
+    \max_{\substack{x_i>0\\\sum_i x_i=c}}\prod_{i=1}^n x_i
+       =\left(\frac cn\right)^n,
+\]
+且等号仅在 $x_1=\cdots=x_n=c/n$ 时成立。对给定正数 $a_1,\ldots,a_n$ 取 $c=\sum_i a_i$，便得到
+\[
+    \sqrt[n]{a_1\cdots a_n}\leq\frac{a_1+\cdots+a_n}{n},
+\]
+等号当且仅当各数相等。先在闭包上证明最大值存在，再排除边界，避免了直接把开单纯形误当作紧集。
+\end{solve}
+
+\section{多元微分学的几何应用}
+\label{sec:geometric-applications-of-multivariable-differentiation}
+
+% 教材第 109--120 页；分章 PDF 第 70--81 页，止于习题十四之前。
+
+\subsection{空间曲线的切线与法平面}
+\label{subsec:tangent-lines-and-normal-planes-of-space-curves}
+
+连续映射 $\gamma:[a,b]\to\mathbb R^n$ 描述一条参数曲线。若它在 $[a,b]$ 上单射，称为\emph{简单曲线}（simple curve）；若在 $[a,b)$ 上单射且 $\gamma(a)=\gamma(b)$，称为\emph{简单闭曲线}（simple closed curve），也称\emph{约当曲线}（Jordan curve）。仅有连续性不能保证曲线具有切线；本节主要讨论 $\gamma\in C^1$ 且 $\gamma'(t)\ne\boldsymbol0$ 的\emph{正则曲线}（regular curve），教材称为光滑曲线。每一点附近至少有一个坐标分量的导数保持非零，因此该坐标沿参数严格单调，曲线局部为简单曲线。
+
+设空间曲线为 $\gamma(t)=(x(t),y(t),z(t))^{\mathsf T}$，$t_0$ 为参数区间的内点。由
+\[
+    \frac{\gamma(t)-\gamma(t_0)}{t-t_0}\longrightarrow\gamma'(t_0)\ne\boldsymbol0,
+\]
+割线的方向直线趋于 $\gamma'(t_0)$ 张成的直线，因此 $\boldsymbol p=\gamma(t_0)$ 处的\emph{切线}（tangent line）为
+\begin{equation}
+\label{eq:space-curve-tangent-ch14}
+    \boldsymbol x=\boldsymbol p+s\gamma'(t_0),\qquad s\in\mathbb R.
+\end{equation}
+过 $\boldsymbol p$ 且以该切向量为法向量的\emph{法平面}（normal plane）为
+\begin{equation}
+\label{eq:space-curve-normal-plane-ch14}
+    \gamma'(t_0)^{\mathsf T}(\boldsymbol x-\boldsymbol p)=0.
+\end{equation}
+切线的对称式 $(x-x_0)/x'(t_0)=(y-y_0)/y'(t_0)=(z-z_0)/z'(t_0)$ 只在各分母非零时直接使用；参数式始终适用。若 $\gamma'(t_0)=\boldsymbol0$，这些公式不能确定切线，但也不能据此断言几何曲线必无切线，例如 $\gamma(t)=(t^3,0,0)$。
+
+若空间曲线由 $F(x,y,z)=G(x,y,z)=0$ 给出，$F,G\in C^1$，且在公共零点 $\boldsymbol p$ 处两个梯度线性无关，则隐函数组定理保证它在局部是一条正则曲线。沿曲线求导得
+\[
+    \nabla F(\boldsymbol p)^{\mathsf T}\gamma'(t_0)=0,\qquad
+    \nabla G(\boldsymbol p)^{\mathsf T}\gamma'(t_0)=0.
+\]
+因此可取非零切向量
+\begin{equation}
+\label{eq:implicit-curve-tangent-vector-ch14}
+    \boldsymbol T=\nabla F(\boldsymbol p)\times\nabla G(\boldsymbol p)
+      =(A,B,C)^{\mathsf T},\quad
+    A=\frac{\partial(F,G)}{\partial(y,z)},\quad
+    B=\frac{\partial(F,G)}{\partial(z,x)},\quad
+    C=\frac{\partial(F,G)}{\partial(x,y)},
+\end{equation}
+各行列式均在 $\boldsymbol p$ 取值。以 $\boldsymbol T$ 代替前两式中的 $\gamma'(t_0)$ 即得切线和法平面；切线也就是两个方程各自的切平面的交线。若两个梯度相关，叉积为零，则该方法失效，需要重新分析零点集合，不能直接认定其仍为一条正则曲线。
+
+\begin{example}
+\label{ex:implicit-space-curve-tangent-ch14}
+求曲线 $x^2-y^2+2z^2=2$、$x+y+z=3$ 在 $(1,1,1)$ 处的切线与法平面。
+\end{example}
+\begin{solve}
+令 $F=x^2-y^2+2z^2-2$、$G=x+y+z-3$，则在该点
+\[
+    \nabla F=(2,-2,4)^{\mathsf T},\quad
+    \nabla G=(1,1,1)^{\mathsf T},\quad
+    \nabla F\times\nabla G=(-6,2,4)^{\mathsf T}.
+\]
+约去共同因子 $2$，切线可写为 $(x,y,z)=(1,1,1)+s(-3,1,2)$，法平面为 $-3(x-1)+(y-1)+2(z-1)=0$，即 $3x-y-2z=0$。另一种求切线的方法是取两个切平面的交线：
+\[
+    x-y+2z=2,\qquad x+y+z=3.
+\]
+两个平面法向量独立，其交线方向与上面求得的叉积一致。
+\end{solve}
+
+\subsection{曲面的切平面与法线}
+\label{subsec:tangent-planes-and-normal-lines-of-surfaces}
+
+设曲面在 $\boldsymbol p=(x_0,y_0,z_0)^{\mathsf T}$ 附近由 $F(x,y,z)=0$ 确定，其中 $F\in C^1$、$F(\boldsymbol p)=0$、$\nabla F(\boldsymbol p)\ne\boldsymbol0$。对曲面上任一过 $\boldsymbol p$ 的可微曲线 $\gamma$，链式法则给出 $\nabla F(\boldsymbol p)^{\mathsf T}\gamma'(t_0)=0$。反过来，隐函数定理给出曲面的局部参数化，其导数的像正好是这个二维核空间，故每个这样的切向量都可由曲面内曲线实现。因此曲面在该点的\emph{切平面}（tangent plane）与\emph{法线}（normal line）分别为
+\begin{equation}
+\label{eq:implicit-surface-tangent-normal-ch14}
+    \nabla F(\boldsymbol p)^{\mathsf T}(\boldsymbol x-\boldsymbol p)=0,
+    \qquad \boldsymbol x=\boldsymbol p+s\nabla F(\boldsymbol p),\quad s\in\mathbb R.
+\end{equation}
+具体地，切平面方程为 $F_x(\boldsymbol p)(x-x_0)+F_y(\boldsymbol p)(y-y_0)+F_z(\boldsymbol p)(z-z_0)=0$。对于图像 $z=f(x,y)$，取 $F=z-f(x,y)$，得到
+\[
+    z-z_0=f_x(x_0,y_0)(x-x_0)+f_y(x_0,y_0)(y-y_0),\qquad
+    \boldsymbol n=(-f_x,-f_y,1)^{\mathsf T}.
+\]
+这正是可微性的局部线性近似在几何上的表达。
+
+若曲面以 $\boldsymbol r(u,v)=(x(u,v),y(u,v),z(u,v))^{\mathsf T}$ 参数化，$\boldsymbol r\in C^1$，且 $D\boldsymbol r(u_0,v_0)$ 的秩为 $2$，则两条坐标曲线的切向量 $\boldsymbol r_u,\boldsymbol r_v$ 线性无关。对任意参数曲线应用链式法则，其切向量均在二者张成的平面内，因此可取
+\begin{equation}
+\label{eq:parametric-surface-normal-ch14}
+    \boldsymbol n=\boldsymbol r_u\times\boldsymbol r_v
+       =\left(\frac{\partial(y,z)}{\partial(u,v)},
+              \frac{\partial(z,x)}{\partial(u,v)},
+              \frac{\partial(x,y)}{\partial(u,v)}\right)^{\mathsf T}
+\end{equation}
+作为法向量，各项在 $(u_0,v_0)$ 计算。令 $\boldsymbol p=\boldsymbol r(u_0,v_0)$，则切平面为 $\boldsymbol n^{\mathsf T}(\boldsymbol x-\boldsymbol p)=0$，法线为 $\boldsymbol x=\boldsymbol p+s\boldsymbol n$。交换参数次序会改变法向量的符号，但不改变切平面与法线本身。
+
+两个正则曲面在公共点处的夹角由法向量决定，通常取两法线的锐角或直角，满足
+\[
+    \cos\alpha=\frac{|\boldsymbol n_1^{\mathsf T}\boldsymbol n_2|}
+       {\|\boldsymbol n_1\|\|\boldsymbol n_2\|},\qquad 0\leq\alpha\leq\frac\pi2.
+\]
+法向量正交时称曲面正交，相互平行时切平面相同而称相切；公共点处法向量均非零是这些判定的前提。推广到 $\mathbb R^n$，正则曲线的法平面相应成为 $\gamma'(t_0)^{\mathsf T}(\boldsymbol x-\boldsymbol p)=0$ 的法超平面；正则水平超曲面 $F=0$ 的切超平面仍由 $\nabla F(\boldsymbol p)^{\mathsf T}(\boldsymbol x-\boldsymbol p)=0$ 给出，其法线沿梯度方向。
+
+\begin{example}
+\label{ex:graph-and-parametric-surface-tangent-ch14}
+求抛物面 $z=x^2+y^2$ 在 $(1,1,2)$ 处的切平面与法线，并核对隐式与参数表示的结果。
+\end{example}
+\begin{solve}
+由图像公式，切平面为 $z-2=2(x-1)+2(y-1)$，即 $z=2x+2y-2$，法线为
+\[
+    (x,y,z)=(1,1,2)+s(-2,-2,1).
+\]
+取参数化 $\boldsymbol r(u,v)=(u,v,u^2+v^2)^{\mathsf T}$，在 $(1,1)$ 处 $\boldsymbol r_u=(1,0,2)^{\mathsf T}$、$\boldsymbol r_v=(0,1,2)^{\mathsf T}$，其叉积为 $(-2,-2,1)^{\mathsf T}$。这与隐式函数 $F=z-x^2-y^2$ 的梯度相同，两种方法给出一致结果。
+\end{solve}
+
+\subsection{多元凸函数}
+\label{subsec:multivariable-convex-functions}
+
+\begin{definition}
+\label{def:multivariable-convex-function-ch14}
+设 $D\subseteq\mathbb R^n$ 为凸集，即任意两点之间的整条线段仍在 $D$ 内。若 $f:D\to\mathbb R$ 满足
+\[
+    f((1-t)\boldsymbol x+t\boldsymbol y)
+       \leq(1-t)f(\boldsymbol x)+tf(\boldsymbol y),\qquad
+    \boldsymbol x,\boldsymbol y\in D,\quad 0<t<1,
+\]
+则称 $f$ 为\emph{凸函数}（convex function）。若对 $\boldsymbol x\ne\boldsymbol y$ 总成立严格不等式，称为\emph{严格凸函数}（strictly convex function）。$-f$ 凸时称 $f$ 为凹函数。凸性本身不要求可微，以下导数判别则在凸开集上讨论。
+\end{definition}
+
+\begin{theorem}[凸函数的一阶与二阶判别]
+\label{thm:multivariable-convexity-tests-ch14}
+设 $D$ 是凸开集，$f\in C^2(D)$，则下列条件等价：$f$ 在 $D$ 上凸；任意 $\boldsymbol x,\boldsymbol y\in D$ 满足
+\begin{equation}
+\label{eq:convex-first-order-inequality-ch14}
+    f(\boldsymbol y)\geq f(\boldsymbol x)
+       +\nabla f(\boldsymbol x)^{\mathsf T}(\boldsymbol y-\boldsymbol x);
+\end{equation}
+$H_f(\boldsymbol x)$ 在 $D$ 的每一点半正定。其中凸性与式~\eqref{eq:convex-first-order-inequality-ch14} 的等价只需 $f$ 可微。
+\end{theorem}
+\begin{proof}
+若 $f$ 凸，令 $\boldsymbol x_t=\boldsymbol x+t(\boldsymbol y-\boldsymbol x)$，则
+\[
+    \frac{f(\boldsymbol x_t)-f(\boldsymbol x)}t
+       \leq f(\boldsymbol y)-f(\boldsymbol x).
+\]
+令 $t\to0+$，由可微性得到式~\eqref{eq:convex-first-order-inequality-ch14}。反过来，对 $\boldsymbol z=(1-t)\boldsymbol x+t\boldsymbol y$，分别将一阶不等式用于 $f(\boldsymbol x)$ 与 $f(\boldsymbol y)$ 在 $\boldsymbol z$ 处的比较，再乘以 $1-t,t$ 相加，梯度项相消，即得凸性。这也证明了一阶判别只需可微。
+
+若一阶不等式成立，固定 $\boldsymbol x$ 和 $\boldsymbol v$，在足够小的 $s$ 下代入 $\boldsymbol y=\boldsymbol x+s\boldsymbol v$，并用二阶泰勒公式，得
+\[
+    \frac12s^2\boldsymbol v^{\mathsf T}H_f(\boldsymbol x)\boldsymbol v+o(s^2)\geq0.
+\]
+除以 $s^2$ 后取极限可知海塞矩阵半正定。反之，若海塞矩阵处处半正定，由沿线段的二阶泰勒公式，
+\[
+    f(\boldsymbol y)-f(\boldsymbol x)-\nabla f(\boldsymbol x)^{\mathsf T}(\boldsymbol y-\boldsymbol x)
+    =\frac12(\boldsymbol y-\boldsymbol x)^{\mathsf T}
+       H_f(\boldsymbol x+\theta(\boldsymbol y-\boldsymbol x))
+       (\boldsymbol y-\boldsymbol x)\geq0,
+\]
+故一阶不等式成立。
+\end{proof}
+
+几何上，一阶不等式说明函数图像位于任一点的切超平面上方；二阶判别说明沿每条直线的弯曲程度都非负。海塞矩阵处处正定足以保证严格凸性，因为限制到任意非平凡线段后，其二阶导数严格为正；但这不是必要条件，例如 $f(\boldsymbol x)=\sum_i x_i^4$ 严格凸，在原点的海塞矩阵却为零。对可微凸函数，$\nabla f(\boldsymbol x_0)=\boldsymbol0$ 由一阶不等式直接推出全局最小值；反之，开集上的最小值点必为驻点。严格凸函数的最小值点若存在则唯一，否则两个不同最小值点的中点会有更小的函数值。
+
+\begin{example}
+\label{ex:separable-convex-function-ch14}
+设一元函数 $g\in C^2((a,b))$ 为凸函数，证明 $f(x_1,\ldots,x_n)=\sum_{i=1}^n g(x_i)$ 在 $(a,b)^n$ 上凸。
+\end{example}
+\begin{solve}
+一元凸性给出 $g''\geq0$，而 $f$ 的海塞矩阵为对角矩阵
+\[
+    H_f(\boldsymbol x)=\operatorname{diag}(g''(x_1),\ldots,g''(x_n)).
+\]
+故对任意向量 $\boldsymbol v$，有 $\boldsymbol v^{\mathsf T}H_f\boldsymbol v=\sum_i g''(x_i)v_i^2\geq0$，由二阶判别即得凸性。若 $g''>0$，则该矩阵正定，$f$ 严格凸；更一般地，若 $g$ 本身严格凸，直接逐项应用定义，也可得到 $f$ 严格凸，而不必要求 $g''$ 处处严格为正。
+\end{solve}
+
+
+\section*{习题十四}
+\addcontentsline{toc}{section}{习题十四}

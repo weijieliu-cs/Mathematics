@@ -1,0 +1,108 @@
+% !TeX root = ../数值分析与科学计算笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{0} % 保留原书章号。
+\chapter{章末习题解答}
+\label{app:na-solutions}
+
+\section{第~\ref{chap:na-errors} 章}
+\begin{description}
+\item[习题~\ref{exr:na-error-rational}] 由半角公式，$1-\cos x=2\sin^2(x/2)$。后式避免从接近 $1$ 的两个数相减，减少已有舍入误差相对小结果的放大；它不消除输入 $x$ 自身的不确定性，也仍受三角函数评价精度影响。
+\item[习题~\ref{exr:na-error-norm}] 两列绝对值和分别为 $4,6$，故 $\|A\|_1=6$；两行分别为 $3,7$，故 $\|A\|_\infty=7$；$\|A\|_F=\sqrt{1+4+9+16}=\sqrt{30}$。
+\item[习题~\ref{exr:na-error-condition}] 绝对条件数为 $|F'(x)|=1/(2\sqrt x)$，相对条件数为 $|xF'(x)/F(x)|=1/2$。接近零时固定绝对扰动相对于输入可能非常大，而固定相对扰动随输入一起缩小，所以两种尺度下的结果并不矛盾；扰动还须保持输入为正。
+\item[习题~\ref{exr:na-error-balance}] 对上界求导得 $2C_1h-C_2u/h^2=0$，故 $h_*=(C_2u/(2C_1))^{1/3}$。二阶导数为正且两端趋于无穷，故它是上界的唯一最小点。上界可能不紧，真实误差还可能含抵消或高阶项，因此不能据此定位真实最小点。
+\end{description}
+
+\section{第~\ref{chap:na-roots} 章}
+\begin{description}
+\item[习题~\ref{exr:na-root-bisect}] 两端函数值为 $-1,5$，存在根；$f'(x)=3x^2-1\ge2$，所以严格递增且根唯一。第 $k$ 个中点从 $k=0$ 起计，误差界为 $2^{-(k+1)}$。$2^{-27}<10^{-8}<2^{-26}$，故至多 $27$ 次中点评价足够。
+\item[习题~\ref{exr:na-root-fixed}] 对正数 $x$，算术几何平均不等式给出 $(x+2/x)/2\ge\sqrt2$。故第一步后 $x_k\ge\sqrt2$；此时 $x_{k+1}\le x_k$，序列单调有下界，其正极限满足 $\ell=(\ell+2/\ell)/2$，即 $\ell=\sqrt2$。精确递推为 $x_{k+1}-\sqrt2=(x_k-\sqrt2)^2/(2x_k)$，说明局部二次收敛；已到根时直接结束。
+\item[习题~\ref{exr:na-root-multiple}] 对 $x_k\ne1$，普通更新为 $x_{k+1}-1=\tfrac23(x_k-1)$，故线性收敛。修正更新 $x_{k+1}=x_k-3f(x_k)/f'(x_k)=1$，一步到根。若已经在根上，应停止而非求 $0/0$。
+\item[习题~\ref{exr:na-root-system}] 设 $F=(x^2+y^2-1,x-y)^{\mathsf T}$，每步求
+\[
+ \begin{pmatrix}2x_k&2y_k\\1&-1\end{pmatrix}
+ \begin{pmatrix}s_1\\s_2\end{pmatrix}
+ =-\begin{pmatrix}x_k^2+y_k^2-1\\x_k-y_k\end{pmatrix},
+\]
+再同时更新两分量。行列式为 $-2(x_k+y_k)$，在 $x_k+y_k=0$ 时奇异。两个真实根为 $(1/\sqrt2,1/\sqrt2)$ 及其相反数，在两根处 Jacobian 均非奇异。
+\end{description}
+
+\section{第~\ref{chap:na-direct} 章}
+\begin{description}
+\item[习题~\ref{exr:na-direct-lu}] $L=\begin{pmatrix}1&0\\2&1\end{pmatrix}$、$U=\begin{pmatrix}2&1\\0&1\end{pmatrix}$。前代得 $y=(1,1)^{\mathsf T}$，回代得 $x=(0,1)^{\mathsf T}$。代回原方程得到 $(1,3)^{\mathsf T}$。
+\item[习题~\ref{exr:na-direct-cholesky}] $l_{11}=2$，$l_{21}=1$，$l_{22}=\sqrt{3-1}=\sqrt2$，所以 $L=\begin{pmatrix}2&0\\1&\sqrt2\end{pmatrix}$。直接相乘可恢复 $A$。
+\item[习题~\ref{exr:na-direct-condition}] 正交矩阵保二范数，故 $\|Q\|_2=\|Q^{-1}\|_2=1$，条件数为 $1$。给定对角矩阵的最大、最小奇异值为 $1,10^{-6}$，条件数为 $10^6$。
+\item[习题~\ref{exr:na-direct-residual}] 用相容范数下的残差界可保证相对前向误差至多 $10^{-5}$。这是最坏方向的上界，不是误差等式；残差可能指向较不敏感的方向，真实误差可远小于它。
+\end{description}
+
+\section{第~\ref{chap:na-ls} 章}
+\begin{description}
+\item[习题~\ref{exr:na-ls-constant}] 目标为 $\sum_i(c-b_i)^2$，求导得 $2mc-2\sum_i b_i=0$，二阶导数 $2m>0$，故 $c=\overline b$。正权情况下目标为 $\sum_iw_i(c-b_i)^2$，唯一极小点为 $c=\sum_iw_ib_i/\sum_iw_i$。
+\item[习题~\ref{exr:na-ls-householder}] 令 $P=vv^{\mathsf T}/(v^{\mathsf T}v)$，则 $P^{\mathsf T}=P$、$P^2=P$。因此 $H^{\mathsf T}H=(I-2P)^2=I$，保二范数；又 $Pv=v$，故 $Hv=-v$。
+\item[习题~\ref{exr:na-ls-rank}] 所有满足 $x_1+x_2=1$ 的向量都使残差为零，构成全部最小二乘解。写成 $(1/2+t,1/2-t)$，范数平方为 $1/2+2t^2$，故最小范数解为 $(1/2,1/2)^{\mathsf T}$。
+\item[习题~\ref{exr:na-ls-projection}] 奇偶性使常数系数为零，$x$ 的系数为 $\langle x^3,x\rangle/\langle x,x\rangle=(2/5)/(2/3)=3/5$。平方误差为 $2/7-(2/5)^2/(2/3)=8/175$。
+\end{description}
+
+\section{第~\ref{chap:na-iterative} 章}
+\begin{description}
+\item[习题~\ref{exr:na-iter-jacobi}] $B_J=\begin{pmatrix}0&-1/2\\-1/2&0\end{pmatrix}$，特征值为 $\pm1/2$，谱半径为 $1/2$；$B_G=\begin{pmatrix}0&-1/2\\0&1/4\end{pmatrix}$，谱半径为 $1/4$。
+\item[习题~\ref{exr:na-iter-nonnormal}] 写 $B=\tfrac12I+N$，其中 $N^2=0$，则对 $k\ge1$，$B^k=2^{-k}\begin{pmatrix}1&20k\\0&1\end{pmatrix}$。当 $e_0=(0,1)^{\mathsf T}$ 时，$\|Be_0\|_2=\sqrt{100+1/4}>1$，第一步放大；但 $k2^{-k}\to0$，最终误差仍趋于零。
+\item[习题~\ref{exr:na-iter-cg}] $r_0=p_0=(1,1)^{\mathsf T}$，$\alpha_0=2/3$，$x_1=(2/3,2/3)^{\mathsf T}$，$r_1=(1/3,-1/3)^{\mathsf T}$。于是 $\beta_0=1/9$，$p_1=(4/9,-2/9)^{\mathsf T}$，$\alpha_1=3/4$，$x_2=(1,1/2)^{\mathsf T}$，恰为解。
+\item[习题~\ref{exr:na-iter-energy}] 由 $r=-A(x-x_*)$，有 $r^{\mathsf T}A^{-1}r=(x-x_*)^{\mathsf T}A(x-x_*)=\|x-x_*\|_A^2$。正定性保证其为非负量并定义范数。
+\end{description}
+
+\section{第~\ref{chap:na-eigen} 章}
+\begin{description}
+\item[习题~\ref{exr:na-eigen-power}] 第 $k$ 次归一化结果为 $(4^k,2^k,1)^{\mathsf T}/\sqrt{16^k+4^k+1}$。第二分量相对第一分量为 $2^{-k}$，第三为 $4^{-k}$，所以主导方向误差量级为 $2^{-k}$。
+\item[习题~\ref{exr:na-eigen-rayleigh}] $\mu(v)=\lambda_1\cos^2\theta+\lambda_2\sin^2\theta$，故 $\mu(v)-\lambda_1=(\lambda_2-\lambda_1)\sin^2\theta$。特征向量夹角的一阶小量进入特征值估计时成为二阶。
+\item[习题~\ref{exr:na-eigen-shift}] 三个距离为 $1.8,0.2,5.2$，所以在初值第二分量非零的条件下趋向特征值 $3$ 对应的第二坐标轴。其余方向系数相对于该方向依次按距离比 $0.2/1.8$、$0.2/5.2$ 衰减。
+\item[习题~\ref{exr:na-eigen-rotation}] 特征多项式为 $\lambda^2+1$，根为 $\pm\mathrm i$。相似变换保持特征值，而实对角矩阵只有实特征值，因此不可能。实 Schur 分解保留此类 $2\times2$ 块。
+\end{description}
+
+\section{第~\ref{chap:na-interpolation} 章}
+\begin{description}
+\item[习题~\ref{exr:na-interp-poly}] Lagrange 形式为 $(x-1)(x-2)/2-2x(x-2)+5x(x-1)/2$。差商依次为 $1,1,1$，Newton 形式为 $1+x+x(x-1)$。两者都化为 $x^2+1$，故 $p(3/2)=13/4$。
+\item[习题~\ref{exr:na-interp-error}] 最大二阶导数为 $e$，$h=1/N$，故误差至多 $e/(8N^2)$。只要 $N\ge\lceil\sqrt{e/(8\times10^{-4})}\rceil=59$ 即足够。这是充分条件，未声称是最小可行段数。
+\item[习题~\ref{exr:na-interp-spline}] 自然边界给出 $M_0=M_2=0$，唯一内部方程为 $4M_1=6(-1-1)=-12$，故 $M_1=-3$。第一段 $0\le x\le1$ 上 $S(x)=-x^3/2+3x/2$，第二段由关于 $x=1$ 对称得到。
+\item[习题~\ref{exr:na-interp-cheb}] $T_2=2x^2-1$，$T_3=4x^3-3x$，零点为 $0,\pm\sqrt3/2$。首一化后为 $x^3-3x/4=T_3/4$，最大绝对值为 $1/4$，与 $n+1=3$ 时的 $2^{-n}$ 一致。
+\end{description}
+
+\section{第~\ref{chap:na-quadrature} 章}
+\begin{description}
+\item[习题~\ref{exr:na-quad-difference}] 分别展开 $f(x+h)$ 与 $f(x-h)$ 至三阶并保留四阶 Lagrange 余项。相加减去 $2f(x)$ 后，奇次项消失，除以 $h^2$ 得 $f''(x)+h^2[f^{(4)}(\xi_+)+f^{(4)}(\xi_-)]/24$，故误差不超过 $h^2\|f^{(4)}\|_\infty/12$。
+\item[习题~\ref{exr:na-quad-simpson}] 对 $x^3$，$S=(0+4/8+1)/6=1/4=I$。对 $x^4$，$S=(0+4/16+1)/6=5/24$，而 $I=1/5$，所以 $I-S=-1/120$。公式 $-(b-a)^5f^{(4)}/2880=-24/2880$ 给出同一值。
+\item[习题~\ref{exr:na-quad-gauss}] 设节点为 $\pm c$、共同权重为 $w$。常数精确要求 $2w=2$，故 $w=1$；二次项要求 $2c^2=2/3$，故 $c=1/\sqrt3$。一、三次项因对称性自动精确。
+\item[习题~\ref{exr:na-quad-richardson}] $(4A(h/2)-A(h))/3=A-dh^4/4+O(h^6)$。二阶项被消去，四阶系数由 $(4/16-1)/3=-1/4$ 得到。
+\end{description}
+
+\section{第~\ref{chap:na-ode} 章}
+\begin{description}
+\item[习题~\ref{exr:na-ode-euler}] 显式值为 $(1+1/N)^N<e$。隐式值为 $(1-1/N)^{-N}>e$，$N>1$。分别对数并使用 $\log(1+x)<x$、$-\log(1-x)>x$ 证明。两者都趋于 $e$，但来自不同方向。
+\item[习题~\ref{exr:na-ode-stability}] 要求 $|1-20h|\le1$，正步长范围为 $0<h\le0.1$。在 $h=0.1$ 时放大因子为 $-1$，数值解不衰减而交替变号；若希望非负且不振荡，还需 $0<h\le0.05$，在右端第一步即变为零。
+\item[习题~\ref{exr:na-ode-rk}] 令 $z=h\lambda$，逐个代入四阶段可得 $R(z)=1+z+z^2/2+z^3/6+z^4/24$。它与 $e^z$ 匹配到四次项，但只证明在线性测试方程上的展开，不能单独作为一般非线性 RK4 四阶性的证明。
+\item[习题~\ref{exr:na-ode-root}] 取 $\alpha=(2,-3,1)$、$\beta=(-1,0,0)$，有 $\sum\alpha_j=0$、$\sum j\alpha_j=-1=\sum\beta_j$，故一致。$\rho(\zeta)=\zeta^2-3\zeta+2=(\zeta-1)(\zeta-2)$ 存在模大于 $1$ 的根，因此非零稳定。即使对 $y'=0$，起步误差也可激发 $2^n$ 模态；例如 $y_0=0,y_1=h$ 时 $y_n=h(2^n-1)$，固定正时间、$n\approx t/h$ 时发散。
+\end{description}
+
+\section{第~\ref{chap:na-pde} 章}
+\begin{description}
+\item[习题~\ref{exr:na-pde-exact}] 精确解为 $u(x)=x(1-x)$。二次多项式的二阶中心差分等于精确二阶导数，故采样值满足全部离散方程和边界条件；由离散系统唯一性，数值解在节点上等于采样值。浮点实现仍可有代数舍入误差。
+\item[习题~\ref{exr:na-pde-spectrum}] 用 $\sin(\theta+\varphi)+\sin(\theta-\varphi)=2\sin\theta\cos\varphi$，得到 $\lambda_k=2h^{-2}(1-\cos(k\pi/N))=4h^{-2}\sin^2(k\pi/(2N))$。这些特征值均正；最大值与 $h^{-2}$ 同阶，最小值趋于 $\pi^2$。
+\item[习题~\ref{exr:na-pde-stability}] 该模态的相邻值与自身相反，放大因子为 $1-4r=-1.4$，故第 $n$ 步为 $(-1.4)^n(-1)^i$，振荡且绝对值指数增长。
+\item[习题~\ref{exr:na-pde-mesh}] 取 $\Delta t=ch^2$、固定 $c>0$ 可使 $O(\Delta t+h^2)=O(h^2)$。还必须满足 $\nu c\le1/2$ 的稳定充分条件，并检查初值、边界及解的光滑性条件。仅平衡误差而忽略稳定限制是不完整的设计。
+\end{description}
+
+\section{第~\ref{chap:na-fourier} 章}
+\begin{description}
+\item[习题~\ref{exr:na-fft-transform}] 只有 $j=0,2$ 非零，故 $\widehat v_k=1-e^{-\pi\mathrm i k}=1-(-1)^k$，变换为 $(0,2,0,2)$。逆变换得 $v_j=(e^{\pi\mathrm i j/2}+e^{3\pi\mathrm i j/2})/2$，在四个整数节点依次为 $1,0,-1,0$。
+\item[习题~\ref{exr:na-fft-alias}] $7\equiv-3\pmod{10}$，故样本无法区分频率 $7$ 与 $-3$。这不意味着连续函数本身相同。
+\item[习题~\ref{exr:na-fft-convolution}] 线性卷积为 $(3,10,8)$；长度为 $2$ 的周期卷积把下标 $2$ 绕回下标 $0$，得到 $(11,10)$。至少补零到长度 $3$ 才能避免绕回，取 FFT 友好的长度 $4$ 也可。
+\item[习题~\ref{exr:na-fft-periodic}] 由离散正交性，若 $N\nmid m$，节点平均为零，积分近似为 $0$；若 $N\mid m$，各节点余弦均为 $1$，结果为 $2\pi$。真实积分在 $m\ge1$ 时均为零，后一情形体现完全混叠。
+\end{description}
+
+\section{第~\ref{chap:na-montecarlo} 章}
+\begin{description}
+\item[习题~\ref{exr:na-mc-variance}] 估计器为样本平均 $\overline X$，期望 $1/2$，方差 $1/(12N)$，均方根误差 $1/\sqrt{12N}$。这里方差来自独立均匀样本，不能在相关样本下直接沿用。
+\item[习题~\ref{exr:na-mc-antithetic}] 每一对的平均为 $[U+(1-U)]/2=1/2$，因此方差为零。这个特殊结构并不说明任意函数的对偶变量法都零方差。
+\item[习题~\ref{exr:na-mc-control}] $\operatorname{Cov}(U^2,U)=1/4-(1/3)(1/2)=1/12$，$\operatorname{Var}(U)=1/12$，故 $c_*=1$。修正量为 $U^2-U+1/2$，方差为 $4/45-(1/12)^2/(1/12)=1/180$，比原方差 $4/45$ 小为原来的 $1/16$。
+\item[习题~\ref{exr:na-mc-importance}] 单样本权重为 $Y=1/(2X)$，其期望 $\int_0^1[1/(2x)]2x\,\mathrm dx=1$，但二阶矩为 $\int_0^1[1/(4x^2)]2x\,\mathrm dx=\tfrac12\int_0^1x^{-1}\,\mathrm dx=\infty$。因此无偏性并不蕴含有限方差，常规标准误差与有限方差中心极限定理的公式不适用。
+\end{description}
+

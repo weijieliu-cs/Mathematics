@@ -1,0 +1,135 @@
+% !TeX root = ../复分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{15} % 保留原书章号。
+\chapter{全纯逼近与综合专题}
+\label{chap:ca-approximation}
+
+\section{从泰勒多项式到一般紧集上的逼近}
+
+泰勒级数说明，全纯函数在以展开中心为圆心、未遇到奇点的圆盘内，可以由多项式局部一致逼近。但紧集可能包含孔洞，或者由几个彼此分离的部分组成；此时一个中心的泰勒级数不足以回答逼近问题。给定非空紧集 $K\subset\mathbb C$，记 $\|f\|_K=\sup_{z\in K}|f(z)|$。本章研究：若 $f$ 在 $K$ 的某个开邻域全纯，能否对每个 $\varepsilon>0$ 找到多项式或有理函数 $r$，使 $\|f-r\|_K<\varepsilon$？这里要求近似函数在 $K$ 上没有极点。
+
+\begin{example}[孔洞造成的多项式逼近障碍]
+取 $K=\{z:1\le |z|\le2\}$、$f(z)=1/z$。对任意多项式 $p$，沿正向单位圆有
+\[
+ 2\pi i=\oint_{|z|=1}\left(\frac1z-p(z)\right)\,\mathrm dz.
+\]
+由 $ML$ 估计，$\|f-p\|_K\ge1$，所以不能任意精确地用多项式逼近。若允许在孔洞中的 $0$ 放置极点，$f$ 本身已经是允许的有理函数。障碍来自闭路积分，而非函数在 $K$ 附近不够光滑。
+\end{example}
+
+\section{把柯西积分离散化}
+
+\begin{lemma}[以外部点为极点的有理逼近]
+\label{lem:ca-rational-cauchy}
+若 $K\subset\mathbb C$ 为非空紧集，$f$ 在包含 $K$ 的开集 $U$ 上全纯，则 $f|_K$ 是一列有理函数在 $K$ 上的一致极限，且这些有理函数的极点均在 $\mathbb C\setminus K$ 中。
+\end{lemma}
+\begin{proof}
+由紧性，存在 $\delta>0$，使 $K$ 的闭 $\delta$ 邻域包含于 $U$。选择边长充分小的方格网，取所有与 $K$ 相交的闭方格，再加入与这些方格有公共边或顶点的一层方格。它们只有有限个，其并集 $P$ 满足 $K\subset\operatorname{int}P$ 且 $P\subset U$；例如令方格边长小于 $\delta/(4\sqrt2)$ 即可保证包含关系。将所有方格的正向边界相加，公共边因方向相反抵消，留下有限条有向线段组成的边界链 $\Gamma$。由于 $K$ 位于 $P$ 内部，$\operatorname{dist}(K,\Gamma)>0$。
+
+若 $z\in\operatorname{int}P$ 不在网格线上，在含 $z$ 的方格上应用柯西公式，在其余方格上应用柯西定理，相加得到
+\[
+ f(z)=\frac1{2\pi i}\int_\Gamma\frac{f(\zeta)}{\zeta-z}\,\mathrm d\zeta.
+\]
+两侧在 $\operatorname{int}P$ 上连续，不在网格线上的点又稠密，所以公式也适用于 $K$ 中位于网格线上的点。
+
+在每条有向线段上作黎曼和，得到形如
+\[
+ r(z)=\frac1{2\pi i}\sum_{j=1}^N
+       \frac{f(\zeta_j)\,\Delta\zeta_j}{\zeta_j-z}
+\]
+的有理函数。核函数 $(\zeta,z)\mapsto f(\zeta)/(\zeta-z)$ 在紧集 $\Gamma\times K$ 上一致连续；各小段上的核函数振幅乘以 $\Gamma$ 的总长度控制积分与黎曼和之差，故当分割网格趋于零时，误差对 $z\in K$ 一致趋于零。所有 $\zeta_j\in\Gamma$ 均在 $K$ 外，结论成立。
+\end{proof}
+
+\section{龙格定理及极点的位置}
+
+\begin{theorem}[龙格逼近定理，Runge's theorem，紧集形式]
+\label{thm:ca-runge}
+设 $K\subset\mathbb C$ 为非空紧集，$A\subset\mathbb C\setminus K$ 与 $\mathbb C\setminus K$ 的每个有界连通分支都有交点。若 $f$ 在 $K$ 的某个开邻域全纯，则对任意 $\varepsilon>0$，存在一个有限极点全部属于 $A$ 的有理函数 $r$，使
+\[
+ \|f-r\|_K<\varepsilon.
+\]
+允许 $r$ 含有多项式部分。特别地，若 $\mathbb C\setminus K$ 连通，则可取 $r$ 为多项式。
+\end{theorem}
+\begin{proof}
+记 $\mathcal R_A$ 为所有有限极点属于 $A$ 的有理函数在 $K$ 上的限制，$\mathcal B$ 为它在一致范数下的闭包。$\mathcal R_A$ 是含常数的代数，$\mathcal B$ 也是如此：加法保持一致收敛；对乘法，若 $p_n\to p$、$q_n\to q$ 一致，则 $p_n$ 一致有界，而
+\[
+ \|p_nq_n-pq\|_K
+ \le\|p_n\|_K\|q_n-q\|_K+\|q\|_K\|p_n-p\|_K\longrightarrow0.
+\]
+定义可被近似的极点集合
+\[
+ S=\left\{b\in\mathbb C\setminus K:
+       \left.z\mapsto\frac1{z-b}\right|_K\in\mathcal B\right\}.
+\]
+首先 $A\subset S$。其次，$S$ 在 $\mathbb C\setminus K$ 中既开又闭。为证明开性，设 $c\in S$；若 $|b-c|<\operatorname{dist}(c,K)$，则
+\[
+ \frac1{z-b}=\sum_{j=0}^{\infty}\frac{(b-c)^j}{(z-c)^{j+1}}
+\]
+在 $K$ 上一致收敛。每个部分和属于 $\mathcal B$，闭性给出 $b\in S$。为证明相对闭性，若 $b_n\in S$、$b_n\to b\notin K$，则分母到零有统一正距离，因而 $1/(z-b_n)\to1/(z-b)$ 在 $K$ 上一致，仍有 $b\in S$。
+
+因此 $S$ 包含它所遇到的每个连通分支。每个有界分支都与 $A$ 相交，已经包含于 $S$。对充分大的 $|b|>\max_{z\in K}|z|$，展开
+\[
+ \frac1{z-b}=-\sum_{j=0}^{\infty}\frac{z^j}{b^{j+1}}
+\]
+给出一致多项式逼近，故无界分支也与 $S$ 相交。紧集的补集只有一个无界分支：包含 $K$ 的大圆盘之外连通，而每个无界分支都与其相交。于是 $S=\mathbb C\setminus K$。
+
+引理~\ref{lem:ca-rational-cauchy} 给出以 $K$ 外任意点为极点的有理逼近。这样的有理函数作部分分式分解后，是多项式与有限个 $(z-b)^{-j}$ 的线性组合；以上结果及 $\mathcal B$ 的代数性质说明它们均属于 $\mathcal B$。再次利用闭性，$f|_K\in\mathcal B$，即得所求。补集连通时没有有界分支，可取 $A=\varnothing$，此时 $\mathcal R_A$ 正是多项式。
+\end{proof}
+
+这个证明中的“移动极点”不是把同一个有理函数的极点直接改到别处并保持函数相等，而是在紧集上一致逼近意义下，用允许位置的极点逐步替代原来的极点。定理要求 $f$ 在整个 $K$ 的某个开邻域全纯；仅在 $\operatorname{int}K$ 全纯且在 $K$ 连续的更强版本属于梅尔盖良逼近定理，不由上述黎曼和论证直接推出，本书不使用该推广。
+
+\begin{example}[两个圆盘上分别逼近不同常数]
+设 $K_1,K_2$ 为互不相交的两个闭圆盘，$K=K_1\cup K_2$。选取互不相交的开邻域 $U_1,U_2$，在 $U_1$ 上令 $f=0$，在 $U_2$ 上令 $f=1$。这是开集 $U_1\cup U_2$ 上的全纯函数；定义域无须连通。$\mathbb C\setminus K$ 连通，因而对每个 $\varepsilon>0$，存在同一个多项式 $p$，使
+\[
+ \sup_{K_1}|p|<\varepsilon,\qquad
+ \sup_{K_2}|p-1|<\varepsilon.
+\]
+这与恒等定理不矛盾：近似不等于在两个开集上精确取这两个常数；恒等定理禁止后者，却不禁止任意小的非零误差。
+\end{example}
+
+\section{逼近怎样保留导数和零点}
+
+\begin{proposition}[稍大紧集上的误差控制内部导数]
+\label{prop:ca-approx-derivatives}
+设 $K\subset U$ 紧，存在 $\delta>0$ 使闭 $\delta$ 邻域
+$K_\delta=\{z:\operatorname{dist}(z,K)\le\delta\}$ 包含于开集 $U$。若 $f,r$ 均在 $U$ 全纯且 $\|f-r\|_{K_\delta}\le\varepsilon$，则对每个整数 $m\ge0$，
+\[
+ \sup_{a\in K}|f^{(m)}(a)-r^{(m)}(a)|
+ \le\frac{m!}{\delta^m}\varepsilon.
+\]
+\end{proposition}
+\begin{proof}
+对每个 $a\in K$，圆周 $|z-a|=\delta$ 都包含于 $K_\delta$。在该圆周上对 $f-r$ 应用柯西导数估计即得；$m=0$ 时只是原假设的限制。
+\end{proof}
+
+\begin{example}[用逼近转移零点计数]
+设 $f$ 在闭圆盘 $\overline{B(a,R)}$ 的邻域全纯，且在边界无零点。由紧性，$\eta=\min_{|z-a|=R}|f(z)|>0$。龙格定理给出多项式 $p$，使 $\|p-f\|_{\overline{B(a,R)}}<\eta$，于是鲁歇定理说明 $p$ 与 $f$ 在圆盘内按重数具有相同的零点总数。若还要控制每个零点所在的位置，应先用互不相交的小圆分别围住各零点，再在所有小圆边界上要求误差小于相应的最小模；总数相同本身并不保证零点逐一接近。
+\end{example}
+
+逼近、构造与紧性各自回答不同的问题。龙格定理在给定紧集上控制函数值；魏尔斯特拉斯乘积与米塔格--莱弗勒定理在离散点上指定零点或主部；蒙泰尔定理从具有局部一致界的函数列中抽取收敛子列。若某个存在性问题先构造了一列近似解，再希望取极限，必须另外证明局部一致有界，不能把“每一步都能逼近”直接当作“存在收敛子列”。对于边界插值或边界一致收敛，还需独立检查边界正则性与估计，域内局部一致收敛并不自动延伸到边界。
+
+\section{进一步学习的方向}
+
+本书中的局部展开与解析延拓可以继续发展为黎曼曲面上的函数论。其新的问题是：当不存在全局复坐标时，如何在坐标变换下定义微分形式、积分与亚纯函数？学习这一方向需要补充覆盖空间、基本群和曲面拓扑；本书对数曲面与平方根曲面的例子提供了从多值表达式转向单值几何对象的入口。
+
+整函数的零点构造可以进一步与增长速度结合。仅给定零点时，还可以任意乘以无零点整函数 $e^g$；加入增长阶的限制后，指数因子和基本因子的选择受到约束，这通向阿达马分解及更细的值分布问题。椭圆函数则研究具有两个实线性无关周期的亚纯函数：周期格把复平面组织为复环面，留数、零极点计数与周期几何由此相遇。这些主题需要在本书的整函数、亚纯函数和延拓理论上继续建立新结论。
+
+多复变量研究 $\mathbb C^n$（$n\ge2$）上的全纯函数。单变量中的某些直觉会失效，例如孤立点附近的可延拓性与零点集合的形状都发生变化；不能把单变量留数和奇点分类逐字照搬。开始学习前宜熟悉多元微积分、线性代数以及本书的柯西公式、局部一致收敛和逼近方法。本节只说明知识联系，不把这些后续理论作为前面证明的依据。
+
+\section{习题与解答}
+\begin{enumerate}
+ \item 在 $|z-2|\le1$ 上，用以 $2$ 为中心的多项式逼近 $1/z$，给出截断误差上界。
+ \item 设 $K$ 包含圆周 $|z|=r>0$，且 $0\notin K$。证明任意多项式 $p$ 均满足 $\|1/z-p\|_K\ge1/r$。
+ \item 若 $f_n,f$ 在开集 $U$ 全纯且 $f_n\to f$ 局部一致，证明任意固定阶的导数也局部一致收敛；解释为什么只知道一个紧集上的一致收敛还不够。
+ \item 设 $f$ 在 $\overline{B(0,2)}$ 的邻域全纯，并在 $|z|=1$ 上无零点。证明存在多项式 $p$，其在单位圆内的零点总数与 $f$ 相同，同时满足 $p'(0)=f'(0)$。
+\end{enumerate}
+\begin{solve}
+第一题令 $w=z-2$，取 $p_N(z)=\tfrac12\sum_{j=0}^N(-w/2)^j$。几何级数余项的模不超过
+$\tfrac12\sum_{j=N+1}^{\infty}2^{-j}=2^{-(N+1)}$。
+
+第二题沿该圆周积分，$\oint(1/z-p)\,\mathrm dz=2\pi i$，再用曲线长度 $2\pi r$ 的 $ML$ 估计，即得 $2\pi\le2\pi r\|1/z-p\|_K$。
+
+第三题对任意 $K\Subset U$ 选取 $K_\delta\Subset U$，在该稍大紧集上一致收敛，再用命题~\ref{prop:ca-approx-derivatives}。单个紧集缺少周围信息：例如 $K=\{0\}$、$f_n(z)=nz$，在 $K$ 上恒为零，导数却为 $n$，不收敛。
+
+第四题记 $\eta=\min_{|z|=1}|f(z)|>0$。取多项式 $q$ 使 $\|q-f\|_{\overline{B(0,2)}}<\varepsilon$，柯西估计给出 $|q'(0)-f'(0)|\le\varepsilon/2$。令 $p(z)=q(z)+(f'(0)-q'(0))z$，则 $p'(0)=f'(0)$，并且在 $|z|=1$ 上有 $|p-f|<3\varepsilon/2$。选 $\varepsilon<2\eta/3$，再用鲁歇定理即可。
+\end{solve}
+

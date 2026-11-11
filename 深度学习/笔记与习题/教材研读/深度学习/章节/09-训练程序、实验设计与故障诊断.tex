@@ -1,0 +1,52 @@
+% !TeX root = ../深度学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{8} % 保留原书章号。
+\chapter{训练程序、实验设计与故障诊断}
+\label{chap:dl-engineering}
+一个训练程序必须忠实实现所声明的目标。输入形状正确不代表标签语义正确，损失下降也不代表评价没有泄漏。本章用与具体框架版本无关的流程组织实现与检查。
+
+\section{数据管线与批量组织}
+先划分训练、验证和测试对象，再仅用训练数据拟合标准化、词表等需要估计的预处理步骤。若训练特征均值、标准差为 $\mu_j,s_j$，验证和测试沿用 $(x_j-\mu_j)/s_j$，零方差特征须删除或使用明确稳定规则。类别编号的映射在各划分中保持一致，图像通道和像素尺度也须一致。
+
+批量加载器按索引取样、变换并拼接。变长序列另存有效位置掩码 $m_{it}\in\{0,1\}$，目标损失应除以有效项总数 $N_{\mathrm{valid}}=\sum_{i,t}m_{it}>0$，即 $\sum_{i,t}m_{it}\ell_{it}/N_{\mathrm{valid}}$。这使每个有效词元等权；若任务要求每条序列等权，应先在各序列内平均，再对序列平均。两者不是实现细节上的任意替换。
+
+\section{最小训练循环与验证循环}
+给定训练集、模型、初始化、优化器、批量大小和更新预算，基本循环如下。伪代码中的 backward 计算梯度，step 使用该梯度和优化器状态更新参数；每步只调用一次 step。
+\begin{verbatim}
+initialize model parameters and optimizer state
+for each training batch within the update budget:
+    set training mode
+    clear gradient buffers
+    prediction = model(batch.inputs)
+    loss = objective(prediction, batch.targets, batch.mask)
+    backward(loss)
+    update parameters with optimizer.step()
+    record loss, sample count, and learning rate
+periodically evaluate on validation data
+save the checkpoint selected by the validation rule
+\end{verbatim}
+验证时切换推断模式，关闭不需要的梯度记录，并累计总损失和有效项数量；训练模式控制 dropout、批量归一化等行为，停止记录梯度控制计算图构造，二者并不等价。测试前恢复选定检查点。出现非有限损失时应保存诊断信息并检查原因，而非把无效更新继续计入正常训练。
+
+\section{检查点、随机性与可复现记录}
+用于预测的检查点至少包含模型参数和必要的运行统计；用于恢复训练还需优化器状态、学习率调度位置、随机数状态及数据读取位置。只恢复权重而丢弃动量，接下来的轨迹一般不同。实验记录应包含数据版本、划分规则、配置、实现版本、指标定义和计算环境；相同种子在不同算子与硬件上未必逐位一致。
+
+若有 $R\geq2$ 次独立运行，指标为 $s_1,\ldots,s_R$，可报告均值 $\bar s$ 与样本标准差 $[\sum_r(s_r-\bar s)^2/(R-1)]^{1/2}$。它描述不同运行的离散程度，不是自动成立的总体置信区间。独立重复训练与在一个固定测试集上重采样，衡量的随机性也不同。
+
+\section{调试顺序与消融实验}
+先查看原始样本、标签和变换后的输入，再验证输出形状、损失尺度、梯度与一次参数更新。容量足够、标签一致且关闭强增强和强正则时，尝试拟合极小子集是有效诊断：若仍不能降低训练误差，优先检查目标、梯度与优化设置。极小子集拟合成功只证明局部训练通路可用，仍需检查泛化。
+
+\emph{消融实验（ablation study）}移除或改变一个组件以检验其作用。应尽量固定数据、预算和选择协议，并报告参数量等随之变化的因素。若减少一个模块同时大幅缩小模型，结果只能说明这一联合改变的影响。失败样本应按输入条件、类别和误差类型检查，避免用总体均值掩盖系统错误。
+
+\section{例题与习题}
+\begin{example}[正确汇总不等大小批量]
+两个验证批量分别有 $8$ 和 $2$ 个样本，平均损失分别为 $1$ 和 $3$。求整个验证集的样本平均损失。
+\end{example}
+\begin{solve}
+总损失为 $8\times1+2\times3=14$，除以 $10$ 得 $1.4$。直接平均两个批量均值得到 $2$，错误地赋予小批量中每个样本更高权重。变长序列的词元平均也应按有效词元数加权。
+\end{solve}
+\begin{enumerate}
+\item 在简单分类任务中分别制造标签错位、漏清梯度和验证时保留 dropout 的故障，记录可区分它们的现象。
+\item 从线性基线到 MLP 完成一次训练，提交固定划分、配置、训练曲线、验证选择规则与测试结果。
+\item 设计一个比较两种网络模块的实验，列明需要匹配的预算、需要报告的变化和不能由结果推出的结论。
+\end{enumerate}
+

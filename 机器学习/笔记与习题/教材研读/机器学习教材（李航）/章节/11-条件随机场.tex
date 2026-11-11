@@ -1,0 +1,581 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{10} % 保留原书章号。
+\chapter{条件随机场}
+\label{chap:lihang-crf}
+
+% 研读来源：机器学习/textbooks/机器学习（分章原文）/机器学习-11.pdf，教材第 215--236 页。
+% 覆盖教材第 11 章全部小节、三个例题及四道习题；补充正性条件、边界约定与关键证明。
+
+序列标注要求根据一整段观测为各个位置选择标记。例如，词性标注既需要利用词语本身及其上下文，也需要考虑相邻词性之间的搭配。若逐位置独立分类，就不能直接约束输出标记的组合；若对所有标记序列逐一计算，长度为 $n$、每个位置有 $m$ 个候选标记时又要比较 $m^n$ 种可能。\emph{条件随机场}（conditional random field，CRF）直接建模给定输入后的输出联合分布，并利用输出图结构表达条件独立性。\emph{线性链条件随机场}（linear-chain CRF）把标记之间的作用限制在相邻位置，从而兼顾序列级建模与动态规划计算。本章先建立无向图模型与因子分解，再依次讨论 CRF 的表示、概率计算、参数学习和最优序列预测。
+
+\section{概率无向图模型}
+\label{sec:lihang-crf-undirected}
+
+\subsection{模型定义与三种马尔可夫性质}
+\label{subsec:lihang-crf-markov}
+
+设 $G=(V,E)$ 是有限无向图，$V$ 为结点集，$E$ 为无向边集。每个结点 $v$ 对应一个取值于有限集合 $\mathcal Y_v$ 的随机变量 $Y_v$；记 $Y=(Y_v)_{v\in V}$、$Y_A=(Y_v)_{v\in A}$，并以小写 $y,y_A$ 表示取值。以下条件独立关系只在条件事件具有正概率时解释。记 $N(v)=\{u\in V:\{u,v\}\in E\}$ 为 $v$ 的邻居集合，$A\perp B\mid C$ 表示随机对象 $A,B$ 在给定 $C$ 后条件独立。
+
+\begin{definition}
+\label{def:lihang-crf-markov-properties}
+联合分布 $p(y)$ 相对于 $G$ 的三种\emph{马尔可夫性质}（Markov properties）分别如下。
+\begin{enumerate}
+  \item \emph{成对马尔可夫性质}（pairwise Markov property）：对任意没有边相连的不同结点 $u,v$，有
+  \[
+    Y_u\perp Y_v\mid Y_{V\setminus\{u,v\}}.
+  \]
+  \item \emph{局部马尔可夫性质}（local Markov property）：对任意结点 $v$，有
+  \[
+    Y_v\perp Y_{V\setminus(\{v\}\cup N(v))}\mid Y_{N(v)}.
+  \]
+  \item \emph{全局马尔可夫性质}（global Markov property）：对任意两两不交的结点子集 $A,B,C$，若从 $A$ 到 $B$ 的每条路径都经过 $C$，即 $C$ 分离 $A,B$，则
+  \[
+    Y_A\perp Y_B\mid Y_C.
+  \]
+\end{enumerate}
+满足全局马尔可夫性质的分布称为相对于 $G$ 的\emph{概率无向图模型}（probabilistic undirected graphical model），也称\emph{马尔可夫随机场}（Markov random field，MRF）。在严格正的有限离散情形，三种性质等价，可以用其中任一种定义。
+\end{definition}
+
+这里无边表示给定其余变量后的条件独立，不表示两个变量在未给定其他变量时独立；有边则允许二者存在直接作用，但不保证特定参数下确实相关。对链 $1-2-3$，全局性质给出 $Y_1\perp Y_3\mid Y_2$，而 $Y_1,Y_3$ 的边缘分布仍可相关。全局性质蕴含局部性质，是因为邻居集合隔开了一个结点与其余结点；局部性质又蕴含成对性质，可由条件独立的分解与弱联合性质得到。反方向需要附加条件，下节给出的严格正性保证了这一点，不能对含零概率的任意分布直接宣称三者等价。
+
+\subsection{团、势函数与因子分解}
+\label{subsec:lihang-crf-factorization}
+
+\begin{definition}
+\label{def:lihang-crf-clique}
+图 $G$ 中任意两个不同结点均有边相连的非空结点子集称为\emph{团}（clique）。若一个团不真包含于其他团，则称为\emph{极大团}（maximal clique）。教材使用“最大团”指这一概念；它与在所有团中结点数最多的\emph{最大团}（maximum clique）应作区分。记全部极大团的集合为 $\mathcal C$。
+\end{definition}
+
+\begin{theorem}[有限离散情形的 Hammersley--Clifford 定理]
+\label{thm:lihang-crf-hammersley-clifford}
+设 $V\neq\varnothing$，每个 $\mathcal Y_v$ 有限，且对笛卡尔积 $\prod_{v\in V}\mathcal Y_v$ 中的每个配置 $y$ 都有 $p(y)>0$。则相对于 $G$ 的成对、局部、全局马尔可夫性质等价，并等价于极大团因子分解
+\begin{equation}
+\label{eq:lihang-crf-clique-factorization}
+  p(y)=\frac1Z\prod_{C\in\mathcal C}\psi_C(y_C),\qquad
+  Z=\sum_y\prod_{C\in\mathcal C}\psi_C(y_C),\qquad \psi_C(y_C)>0.
+\end{equation}
+这里 $Z$ 是\emph{配分函数}（partition function），亦称规范化因子；$\psi_C$ 是\emph{势函数}（potential function）。
+\end{theorem}
+
+\begin{proof}
+先证成对性质推出因子分解。固定基准配置 $y^0$，令 $\ell(y)=\log p(y)$。对每个 $A\subseteq V$ 定义
+\[
+  h_A(y_A)=\sum_{B\subseteq A}(-1)^{|A|-|B|}
+      \ell(y_B,y^0_{V\setminus B}).
+\]
+对 $A$ 求和并交换有限和，一个固定 $B$ 的系数为 $\sum_{A:B\subseteq A\subseteq V}(-1)^{|A|-|B|}$，该系数仅在 $B=V$ 时为 $1$，其余为 $0$，故 $\ell(y)=\sum_{A\subseteq V}h_A(y_A)$。若 $A$ 不是团，则存在不相邻的 $u,v\in A$。由成对条件独立及正性，对任意固定的其余配置 $z$ 都有
+\[
+  \ell(y_u,y_v,z)-\ell(y_u,y_v^0,z)
+  -\ell(y_u^0,y_v,z)+\ell(y_u^0,y_v^0,z)=0.
+\]
+将 $h_A$ 中的项按是否包含 $u,v$ 分组，每组恰为上述混合差分乘以一个符号，因此 $h_A=0$。剩余的非空 $A$ 都是团，分别把 $h_A$ 归入包含 $A$ 的某个极大团，并把常数 $h_\varnothing$ 归入任一极大团。将各组求和后取指数，便得到严格正的团势分解；规范化给出式~\eqref{eq:lihang-crf-clique-factorization}。
+
+再证因子分解推出全局性质。若 $C$ 分离 $A,B$，删去 $C$ 后，任何连通分支都不能同时与 $A,B$ 相交。将这些分支分成两组 $D_A,D_B$，使 $A\subseteq D_A$、$B\subseteq D_B$；其余分支可任意归入一组。没有团同时包含 $D_A,D_B$ 中的结点，故给定 $y_C$ 后，势函数乘积可写成 $g(y_{D_A},y_C)h(y_{D_B},y_C)$。其规范化因子也分成两个有限和的乘积，因此 $Y_{D_A}\perp Y_{D_B}\mid Y_C$，边缘化即得 $Y_A\perp Y_B\mid Y_C$。结合上节的全局性质蕴含局部性质、局部性质蕴含成对性质，得到全部等价关系。
+\end{proof}
+
+势函数给出局部配置的相对权重，不必逐项求和为 $1$，也一般不是某个边缘概率或条件概率。正势可以写成 $\psi_C(y_C)=\exp\{-E_C(y_C)\}$，其中 $E_C$ 称为局部能量（local energy）；总能量越小，配置的未归一化权重越大。有限取值及严格正势保证 $0<Z<\infty$。若允许零势来表达禁配，仍可以直接定义并规范化因子模型，但不能原样援用上述严格正版本的反向结论。
+
+\begin{example}
+\label{ex:lihang-crf-four-node-cliques}
+教材图 11.3 及习题 11.1 的四结点图，其边为 $\{1,2\},\{1,3\},\{2,3\},\{2,4\},\{3,4\}$。写出严格正的图模型因子分解，并说明缺边的含义。
+\end{example}
+\begin{solve}
+两个极大团是 $\{1,2,3\}$ 与 $\{2,3,4\}$，所以
+\[
+  p(y_1,y_2,y_3,y_4)
+  =\frac{\psi_{123}(y_1,y_2,y_3)\psi_{234}(y_2,y_3,y_4)}
+  {\displaystyle\sum_{z_1,z_2,z_3,z_4}
+       \psi_{123}(z_1,z_2,z_3)\psi_{234}(z_2,z_3,z_4)}.
+\]
+没有 $\{1,4\}$ 这条边，表示 $Y_1\perp Y_4\mid(Y_2,Y_3)$；不能据此删去任一团内部的其他作用，也不能断言 $Y_1,Y_4$ 边缘独立。
+\end{solve}
+
+\section{条件随机场的定义与形式}
+\label{sec:lihang-crf-representations}
+
+\subsection{条件随机场与线性链结构}
+\label{subsec:lihang-crf-definition}
+
+\begin{definition}
+\label{def:lihang-crf}
+设 $X$ 是输入随机对象，$Y=(Y_v)_{v\in V}$ 是输出随机变量族。若对输入分布几乎处处的 $x$，条件分布 $p(y\mid x)$ 相对于同一无向图 $G$ 满足全局马尔可夫性质，则称该条件分布模型为\emph{条件随机场}。在严格正的有限输出空间中，等价地可要求每个结点满足
+\begin{equation}
+\label{eq:lihang-crf-conditional-markov}
+  p(y_v\mid x,y_{V\setminus\{v\}})
+  =p(y_v\mid x,y_{N(v)}).
+\end{equation}
+\end{definition}
+
+这里约束的是给定整个 $X$ 后输出变量之间的依赖；不要求 $X$ 本身具有相同图结构，也不要求观测分量相互独立。模型直接指定 $p(y\mid x)$，无须同时估计 $p(x)$，因此属于判别模型。对连续输入，给定 $X=x$ 理解为使用条件分布的一个版本，模型公式可在所考虑的输入空间上直接定义。
+
+本章主要讨论 $X=(X_1,\ldots,X_n)$、$Y=(Y_1,\ldots,Y_n)$，其中 $n\geq1$，每个 $Y_i$ 取值于同一有限标记集 $\mathcal Y=\{1,\ldots,m\}$。若输出图的边为 $\{i,i+1\}$，则得到线性链 CRF；在严格正情形，其局部性质为
+\[
+  p(y_i\mid x,y_1,\ldots,y_{i-1},y_{i+1},\ldots,y_n)
+  =p(y_i\mid x,y_{i-1},y_{i+1}),
+\]
+端点只保留实际存在的邻居，$n=1$ 时没有其他输出变量。\emph[caution]{输出的局部马尔可夫性质不限制特征只能观察 $x_i$}：某个位置的势可以使用整个输入序列，只要它依赖的输出标记仍限于该结点或相邻结点。
+
+\subsection{参数化形式与局部特征}
+\label{subsec:lihang-crf-features}
+
+严格正的链式条件分布可以由相邻输出结点上的正势表示。实际建模时选定 $K_1$ 个\emph{转移特征}（transition features）$t_k(a,b,x,i)$ 与 $K_2$ 个\emph{状态特征}（state features）$s_l(b,x,i)$，再学习对应权重 $\lambda_k,\mu_l\in\mathbb R$，得到对数线性模型（log-linear model）
+\begin{align}
+\label{eq:lihang-crf-feature-score}
+  S_w(y,x)
+  &=\sum_{i=2}^{n}\sum_{k=1}^{K_1}\lambda_k t_k(y_{i-1},y_i,x,i)
+    +\sum_{i=1}^{n}\sum_{l=1}^{K_2}\mu_l s_l(y_i,x,i),\\
+\label{eq:lihang-crf-feature-model}
+  p_w(y\mid x)&=\frac{\exp S_w(y,x)}{Z_w(x)},\qquad
+  Z_w(x)=\sum_{z\in\mathcal Y^n}\exp S_w(z,x).
+\end{align}
+特征与权重均为有限实数时，输出空间有限，故条件概率严格正且和为 $1$。常用特征为取值 $0,1$ 的指示函数，例如 $t_k=\mathbf1\{y_{i-1}=a_0,y_i=b_0\}$ 或 $s_l=\mathbf1\{y_i=b_0,\ x_i\text{满足某条件}\}$；一般对数线性形式也允许实值特征。相同权重可以在多个位置共享，位置是否启用某个特征由其函数定义决定。选定的有限特征族规定了一个参数模型族，不能据此声称任意 CRF 都可由这一组预先固定的特征精确表示。
+
+与隐马尔可夫模型（hidden Markov model，HMM）相比，CRF 无须假定给定标记后各位置观测独立。例如，HMM 的联合概率形如
+\[
+  p(x,y)=\pi(y_1)b_{y_1}(x_1)
+         \prod_{i=2}^n a(y_{i-1},y_i)b_{y_i}(x_i).
+\]
+在 $p(x)>0$ 时，将它除以 $p(x)$ 就得到关于 $y$ 的链式条件分布；严格正因子取对数后可写成 CRF 的局部得分。反之，CRF 的特征可以任意依赖输入上下文，其势也无须满足 HMM 转移概率与发射概率各自的规范化约束，因此一般不必对应上述生成过程。
+
+\begin{example}
+\label{ex:lihang-crf-feature-example}
+教材例 11.1。固定输入 $x$，取 $n=3$、$\mathcal Y=\{1,2\}$。下表给出全部非零特征的触发条件与权重；不满足条件时特征为 $0$，满足时为 $1$。求 $y=(1,2,2)$ 的得分与未归一化权重。
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+特征 & 取值为 $1$ 的条件 & 权重\\
+\midrule
+$t_1(a,b,x,i)$ & $i\in\{2,3\},\ a=1,\ b=2$ & $\lambda_1=1$\\
+$t_2(a,b,x,i)$ & $i=2,\ a=1,\ b=1$ & $\lambda_2=0.6$\\
+$t_3(a,b,x,i)$ & $i=3,\ a=2,\ b=1$ & $\lambda_3=1$\\
+$t_4(a,b,x,i)$ & $i=2,\ a=2,\ b=1$ & $\lambda_4=1$\\
+$t_5(a,b,x,i)$ & $i=3,\ a=2,\ b=2$ & $\lambda_5=0.2$\\
+$s_1(b,x,i)$ & $i=1,\ b=1$ & $\mu_1=1$\\
+$s_2(b,x,i)$ & $i\in\{1,2\},\ b=2$ & $\mu_2=0.5$\\
+$s_3(b,x,i)$ & $i\in\{2,3\},\ b=1$ & $\mu_3=0.8$\\
+$s_4(b,x,i)$ & $i=3,\ b=2$ & $\mu_4=0.5$\\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{example}
+\begin{solve}
+转移特征在 $i=2$ 触发 $t_1$、在 $i=3$ 触发 $t_5$；状态特征依次触发 $s_1,s_2,s_4$。因此
+\[
+  S_w((1,2,2),x)=1+0.2+1+0.5+0.5=3.2,
+  \qquad \exp S_w((1,2,2),x)=e^{3.2}.
+\]
+其中 $3.2$ 是对数得分，$e^{3.2}$ 是正权重，二者都不是已经规范化的条件概率；条件概率还需除以 $Z_w(x)$。特别地，$s_2$ 只在前两个位置定义为可能非零，不能因为 $y_3=2$ 就再计入一次 $0.5$。
+\end{solve}
+
+\subsection{全局特征与向量形式}
+\label{subsec:lihang-crf-global-features}
+
+令 $K=K_1+K_2$、$w=(\lambda_1,\ldots,\lambda_{K_1},\mu_1,\ldots,\mu_{K_2})^{\mathsf T}$。为统一边界，固定虚拟标记 $y_0=\mathrm{start}$、$y_{n+1}=\mathrm{stop}$，它们不是额外待预测的随机变量。将转移与状态特征合并为局部特征 $f_k(y_{i-1},y_i,x,i)$：转移特征仅在 $2\leq i\leq n$ 启用，状态特征在 $1\leq i\leq n$ 启用并忽略第一个输出参数，其余位置取零。定义
+\begin{equation}
+\label{eq:lihang-crf-global-features}
+  F_k(y,x)=\sum_{i=1}^{n+1}f_k(y_{i-1},y_i,x,i),\qquad
+  F(y,x)=(F_1(y,x),\ldots,F_K(y,x))^{\mathsf T}.
+\end{equation}
+于是局部特征沿序列的累积构成全局特征，式~\eqref{eq:lihang-crf-feature-model} 化为
+\begin{equation}
+\label{eq:lihang-crf-vector-model}
+  p_w(y\mid x)=\exp\{w^{\mathsf T}F(y,x)-\log Z_w(x)\},\qquad
+  Z_w(x)=\sum_y\exp\{w^{\mathsf T}F(y,x)\}.
+\end{equation}
+后续也允许显式加入依赖 $y_1$ 的起始特征及依赖 $y_n$ 的终止特征，分别放在 $i=1,n+1$；若不加入，终止位置的局部得分为 $0$。给所有输出序列同时增加一个只依赖 $x$ 的得分，会在分子分母中抵消，因而参数表示不必唯一。
+
+\subsection{矩阵形式与路径权重}
+\label{subsec:lihang-crf-matrix}
+
+记 $\mathcal Y_0=\{\mathrm{start}\}$、$\mathcal Y_i=\mathcal Y$（$1\leq i\leq n$）、$\mathcal Y_{n+1}=\{\mathrm{stop}\}$，定义局部对数得分与转移势矩阵
+\begin{equation}
+\label{eq:lihang-crf-matrices}
+  W_i(a,b\mid x)=\sum_{k=1}^K w_kf_k(a,b,x,i),\qquad
+  M_i(a,b\mid x)=\exp W_i(a,b\mid x).
+\end{equation}
+矩阵 $M_i$ 的行对应前一个标记、列对应当前标记；$M_1$ 为 $1\times m$，$M_2,\ldots,M_n$ 为 $m\times m$，$M_{n+1}$ 为 $m\times1$。给定 $x,w$ 后这些都是确定的正矩阵，一般不是行和为 $1$ 的随机转移矩阵。其路径乘积与规范化关系为
+\begin{equation}
+\label{eq:lihang-crf-matrix-product}
+  p_w(y\mid x)=\frac{\displaystyle\prod_{i=1}^{n+1}M_i(y_{i-1},y_i\mid x)}{Z_w(x)},\qquad
+  Z_w(x)=M_1M_2\cdots M_{n+1}.
+\end{equation}
+右端矩阵乘积是一个 $1\times1$ 标量。矩阵乘法对全部中间指标求和，恰好枚举所有标记路径，因此该标量就是配分函数。教材把起止状态嵌入统一大小的方阵后取乘积的 $(\mathrm{start},\mathrm{stop})$ 元素，与这里的矩形矩阵表示等价；方阵中为屏蔽非法起止边而填入的零不属于合法路径上的正势。
+
+\begin{example}
+\label{ex:lihang-crf-symbolic-paths}
+教材例 11.2 的矩形表示为
+\[
+  M_1=(a_1,a_2),\quad
+  M_2=\begin{pmatrix}b_{11}&b_{12}\\b_{21}&b_{22}\end{pmatrix},\quad
+  M_3=\begin{pmatrix}c_{11}&c_{12}\\c_{21}&c_{22}\end{pmatrix},\quad
+  M_4=\begin{pmatrix}1\\1\end{pmatrix}.
+\]
+求全部路径的权重与配分函数，其中各 $a,b,c$ 均为正数。
+\end{example}
+\begin{solve}
+对任意 $y\in\{1,2\}^3$，路径权重统一为 $a_{y_1}b_{y_1y_2}c_{y_2y_3}$。例如 $(1,1,2)$ 对应 $a_1b_{11}c_{12}$，$(2,2,1)$ 对应 $a_2b_{22}c_{21}$。对最后一个标记先求和，再对前两个标记求和，得到
+\[
+  Z_w(x)=(a_1b_{11}+a_2b_{21})(c_{11}+c_{12})
+        +(a_1b_{12}+a_2b_{22})(c_{21}+c_{22}).
+\]
+展开正好有八项，每条路径各出现一次；这也直接说明矩阵乘法为何能代替显式枚举。
+\end{solve}
+
+\section{条件随机场的概率计算}
+\label{sec:lihang-crf-probabilities}
+
+\subsection{前向与后向递推}
+\label{subsec:lihang-crf-forward-backward}
+
+以下固定 $x,w$，必要时省略其记号。\emph{前向量}（forward quantity）$\alpha_i(b)$ 是从起点到位置 $i$、以 $b$ 结尾的所有前缀路径的权重和；\emph{后向量}（backward quantity）$\beta_i(b)$ 是固定位置 $i$ 的标记为 $b$ 后，从 $i+1$ 到终点的所有后缀路径的权重和。它们都是未归一化的量，后向量不再包含到达位置 $i$ 的那条边。初始化与递推为
+\begin{align}
+\label{eq:lihang-crf-forward}
+  \alpha_0(\mathrm{start})&=1,&
+  \alpha_i(b)&=\sum_{a\in\mathcal Y_{i-1}}\alpha_{i-1}(a)M_i(a,b),
+       &&1\leq i\leq n+1,\\
+\label{eq:lihang-crf-backward}
+  \beta_{n+1}(\mathrm{stop})&=1,&
+  \beta_i(a)&=\sum_{b\in\mathcal Y_{i+1}}M_{i+1}(a,b)\beta_{i+1}(b),
+       &&0\leq i\leq n.
+\end{align}
+若 $\alpha_i,\beta_i$ 均记为列向量，矩阵写法是 $\alpha_i^{\mathsf T}=\alpha_{i-1}^{\mathsf T}M_i$、$\beta_i=M_{i+1}\beta_{i+1}$。第 $i$ 步两者的维度均为 $|\mathcal Y_i|$；端点维度为 $1$，内部维度为 $m$。
+
+\begin{proposition}
+\label{prop:lihang-crf-partition-split}
+对任意 $i=0,1,\ldots,n+1$，有
+\begin{equation}
+\label{eq:lihang-crf-partition-split}
+  Z_w(x)=\sum_{b\in\mathcal Y_i}\alpha_i(b)\beta_i(b)
+        =\alpha_i^{\mathsf T}\beta_i
+        =\alpha_{n+1}(\mathrm{stop})=\beta_0(\mathrm{start}).
+\end{equation}
+\end{proposition}
+\begin{proof}
+每条完整路径在位置 $i$ 有唯一标记 $b$，并唯一分成到达 $b$ 的前缀和从 $b$ 出发的后缀。其边权乘积也相应分成两部分；固定 $b$ 后，分别对两部分求和，得到 $\alpha_i(b)\beta_i(b)$。再对 $b$ 求和即遍历全部完整路径，端点等式由初始化得到。
+\end{proof}
+
+\begin{notealert}[type=caution,title={首尾势与教材习题 11.2 的边界式}]
+当没有终止特征时，$M_{n+1}=\mathbf1$，故 $Z_w(x)=\alpha_n^{\mathsf T}\mathbf1$；起点处始终有 $Z_w(x)=M_1\beta_1=\alpha_1^{\mathsf T}\beta_1$。在本节的后向量定义下，直接写 $Z_w(x)=\mathbf1^{\mathsf T}\beta_1$ 一般会漏掉 $M_1$，只有起始权重全为 $1$ 或另行把首势吸收到后向量时才成立。例如 $n=1$、$M_1=(1,2)$、$M_2=(1,1)^{\mathsf T}$ 时，$Z_w(x)=3$，而 $\mathbf1^{\mathsf T}\beta_1=2$。因此教材习题 11.2 应连同端点与索引约定理解，其通用形式是式~\eqref{eq:lihang-crf-partition-split}。
+\end{notealert}
+
+\subsection{结点与相邻结点的边缘概率}
+\label{subsec:lihang-crf-marginals}
+
+将命题~\ref{prop:lihang-crf-partition-split} 的路径划分限制在固定标记上，就得到结点边缘分布（node marginal）
+\begin{equation}
+\label{eq:lihang-crf-node-marginal}
+  p_w(Y_i=b\mid x)=\frac{\alpha_i(b)\beta_i(b)}{Z_w(x)},\qquad 1\leq i\leq n.
+\end{equation}
+固定相邻两点及连接它们的边，得到边缘分布（edge marginal）
+\begin{equation}
+\label{eq:lihang-crf-edge-marginal}
+  p_w(Y_{i-1}=a,Y_i=b\mid x)
+  =\frac{\alpha_{i-1}(a)M_i(a,b)\beta_i(b)}{Z_w(x)},
+  \qquad 1\leq i\leq n+1.
+\end{equation}
+边界中的起止标记固定，因而 $i=1,n+1$ 的公式也有确定含义。对边缘分布求和应恢复相邻结点的边缘分布，而全部边缘概率之和应为 $1$；这些关系可用来检查递推是否漏乘或重复计算了某个局部势。已知完整 $y$ 时，其概率则由路径乘积除以 $Z_w(x)$ 直接计算。
+
+\subsection{特征期望、计算量与数值实现}
+\label{subsec:lihang-crf-expectations}
+
+全局特征是局部特征的和。利用期望的线性性及式~\eqref{eq:lihang-crf-edge-marginal}，得到
+\begin{equation}
+\label{eq:lihang-crf-feature-expectation}
+  \mathbb E_{p_w(\cdot\mid x)}[F_k(Y,x)]
+  =\sum_{i=1}^{n+1}\sum_{a\in\mathcal Y_{i-1}}\sum_{b\in\mathcal Y_i}
+     f_k(a,b,x,i)
+     \frac{\alpha_{i-1}(a)M_i(a,b)\beta_i(b)}{Z_w(x)}.
+\end{equation}
+若 $f_k$ 是仅依赖 $y_i$ 的状态特征，可以直接用结点边缘概率求和，避免对不相关的前一标记重复计算。设训练输入的经验分布为 $\widehat p_X(x)$，则模型与经验输入分布组合成联合分布 $q_w(x,y)=\widehat p_X(x)p_w(y\mid x)$，并有
+\[
+  \mathbb E_{q_w}[F_k(Y,X)]
+  =\sum_x\widehat p_X(x)\mathbb E_{p_w(\cdot\mid x)}[F_k(Y,x)].
+\]
+这只是用经验输入分布对条件期望加权，不等于未知真实总体联合分布下的期望，也不等于训练输出的经验特征平均。
+
+在局部势已经计算、每次标量运算视为常数时间的条件下，稠密链的一次前向与后向计算各需 $O(nm^2)$ 时间，而显式枚举需要考察 $m^n$ 条序列。只求 $Z_w(x)$ 时前向递推可滚动保存 $O(m)$ 个量；保存全部前后向量需要 $O(nm)$ 空间。构造势或计算所有特征期望还需计入特征求值成本，朴素地逐一处理 $K$ 个特征时可达 $O(Knm^2)$，不能将这部分成本也忽略。
+
+直接相乘指数势可能溢出或下溢。可在对数域定义 $A_i(b)=\log\alpha_i(b)$，将前向递推写成
+\[
+  A_i(b)=\operatorname{LSE}_{a}\{A_{i-1}(a)+W_i(a,b\mid x)\},\qquad
+  \operatorname{LSE}(z_1,\ldots,z_r)
+  =c+\log\sum_{j=1}^r e^{z_j-c},\quad c=\max_j z_j.
+\]
+这就是稳定的 log-sum-exp 计算，后向量同理；最后得到 $\log Z_w(x)$，再以局部对数权重减去它计算边缘概率。禁配边可设对数势为 $-\infty$，但须存在至少一条合法完整路径；若没有合法路径，$Z_w(x)=0$，条件分布本身便没有定义。
+
+\section{条件随机场的学习算法}
+\label{sec:lihang-crf-learning}
+
+设训练集 $D=\{(x^{(r)},y^{(r)})\}_{r=1}^N$，$N\geq1$，样本对独立同分布，各样本内部的标记依赖由 CRF 表示。样本长度可以不同，式~\eqref{eq:lihang-crf-global-features} 中的求和上限随相应输入长度变化。假设特征族固定，所有训练输入的输出空间有限、特征值有限，且训练标注是合法输出；本节优化变量仅为 $w\in\mathbb R^K$。经验分布及经验特征均值记为
+\[
+  \widehat p(x,y)=\frac1N\sum_{r=1}^N
+          \mathbf1\{(x^{(r)},y^{(r)})=(x,y)\},\quad
+  \widehat p_X(x)=\sum_y\widehat p(x,y),\quad
+  \widehat F_k=\frac1N\sum_{r=1}^N F_k(y^{(r)},x^{(r)}).
+\]
+这里经验分布是有限支持的概率测度，即使输入本身连续，上述对经验支持的求和仍然有意义。平均条件对数似然（conditional log-likelihood）与带二次正则项的平均负对数似然分别为
+\begin{align}
+\label{eq:lihang-crf-log-likelihood}
+  \ell(w)&=\frac1N\sum_{r=1}^N
+    \left[w^{\mathsf T}F(y^{(r)},x^{(r)})-\log Z_w(x^{(r)})\right],\\
+\label{eq:lihang-crf-objective}
+  J_\rho(w)&=-\ell(w)+\frac\rho2\lVert w\rVert_2^2,\qquad \rho\geq0.
+\end{align}
+极大化条件似然等价于最小化 $J_0$；$\rho>0$ 则给出正则化条件极大似然估计。使用平均量时，梯度、经验期望和正则化系数都应采用这一尺度，不能把总和与平均的公式混用。
+
+\subsection{改进的迭代尺度法}
+\label{subsec:lihang-crf-iis}
+
+\emph{改进的迭代尺度法}（improved iterative scaling，IIS）以增量 $\delta=(\delta_1,\ldots,\delta_K)^{\mathsf T}$ 更新 $w$。以下讨论无正则项的 $\ell(w)$，并额外假设全局特征 $F_k(y,x)\geq0$；指示型局部特征满足这一要求，但任意实值 CRF 特征未必满足。记
+\[
+  T(x,y)=\sum_{k=1}^K F_k(y,x),\qquad
+  \mathbb E_w[H]=\sum_x\widehat p_X(x)\sum_y p_w(y\mid x)H(x,y).
+\]
+与样本上的经验均值 $\widehat F_k$ 不同，$\mathbb E_w$ 中的输出按当前模型分布取平均。
+
+\begin{proposition}
+\label{prop:lihang-crf-iis-update}
+在上述非负特征假设下，若每个增量方程
+\begin{equation}
+\label{eq:lihang-crf-iis-equation}
+  \mathbb E_w\!\left[F_k(Y,X)e^{\delta_kT(X,Y)}\right]
+  =\widehat F_k,\qquad k=1,\ldots,K,
+\end{equation}
+都有有限解，则以同一个旧参数 $w$ 计算全部增量并同时更新为 $w+\delta$，不会降低平均对数似然。
+\end{proposition}
+\begin{proof}
+由配分函数之比，
+\[
+  \ell(w+\delta)-\ell(w)
+  =\delta^{\mathsf T}\widehat F
+   -\sum_x\widehat p_X(x)\log
+        \mathbb E_{p_w(\cdot\mid x)}e^{\delta^{\mathsf T}F(Y,x)}.
+\]
+用 $\log u\leq u-1$，并在 $T>0$ 时以 $F_k/T$ 为权重应用指数函数的凸性，得到
+\[
+  e^{\sum_k\delta_kF_k}
+  \leq\sum_k\frac{F_k}{T}e^{\delta_kT}.
+\]
+当 $T=0$ 时全部 $F_k=0$，该配置对似然增量下界的贡献为零。由此得到可分离的下界
+\[
+  G(\delta)=\sum_k\delta_k\widehat F_k
+    -\mathbb E_w\!\left[
+       \mathbf1\{T>0\}\sum_k\frac{F_k}{T}
+                     (e^{\delta_kT}-1)\right],
+  \qquad \ell(w+\delta)-\ell(w)\geq G(\delta),
+\]
+其中 $T=0$ 的被积项定义为 $0$，且 $G(0)=0$。对 $\delta_k$ 求导得到
+\[
+  \frac{\partial G}{\partial\delta_k}
+    =\widehat F_k-\mathbb E_w[F_ke^{\delta_kT}],\qquad
+  \frac{\partial^2G}{\partial\delta_k^2}
+    =-\mathbb E_w[F_kT e^{\delta_kT}]\leq0.
+\]
+式~\eqref{eq:lihang-crf-iis-equation} 因而逐坐标极大化这个凹下界，给出 $G(\delta)\geq G(0)=0$，从而似然不降。
+\end{proof}
+
+算法从 $w=0$ 等有限初值开始，在每一轮计算当前模型，求解全部标量方程，再同时更新；达到似然增量或参数增量容差时停止，并设置最大迭代次数。若改为逐坐标立刻更新，则下一坐标应使用已经更新的模型，不能混用两种约定。对活跃特征，方程左端关于 $\delta_k$ 严格递增，其导数为 $\mathbb E_w[F_kT e^{\delta_kT}]>0$，可采用带区间保护的牛顿法求根。若 $\widehat F_k=0$ 而模型期望始终为正，有限根一般不存在，增量会趋向 $-\infty$；需要删除无效特征、施加参数限制或改用适当的正则化目标，不能把无限增量当作普通更新。该推导也不保证未经修改的公式能优化带二次正则项的目标。
+
+基本 IIS 方程中 $T(x,y)$ 随输出变化，$F_k e^{\delta_kT}$ 已不一定是原有局部特征的线性和，因而仅靠普通结点、边缘分布一般不能直接计算它。教材进一步引入松弛特征，使指数项与输出序列脱离。选择常数
+\[
+  S>\max_{x\in\operatorname{supp}(\widehat p_X),\ y}T(x,y),\qquad
+  F_0(y,x)=S-T(x,y)\geq0,
+\]
+则扩充后全部特征之和恒为 $S$。$F_0$ 的权重带来的得分为 $w_0S-\sum_{k=1}^K w_0F_k$，其中 $w_0S$ 在条件规范化时抵消，因此加入它不扩大原有条件分布族。对扩充后的全部特征应用迭代尺度更新，得到教材的\emph{算法 S}：
+\begin{equation}
+\label{eq:lihang-crf-iis-S}
+  \delta_k=\frac1S\log\frac{\widehat F_k}{\mathbb E_w[F_k]},
+  \qquad k=0,1,\ldots,K,
+\end{equation}
+这里要求分子分母均为正，退化特征需另行处理。原有特征的期望由前向--后向计算，松弛特征的期望为 $S-\sum_{k=1}^K\mathbb E_w[F_k]$。在期望比相同的情况下，$S$ 越大，增量的绝对值越小，可能导致更新缓慢。
+
+\emph{算法 T} 对每个训练输入使用较紧的上界 $S(x)=\max_yT(x,y)$，并加入 $F_0(y,x)=S(x)-T(x,y)$。求这个最大值需要对局部特征总和运行最大加法动态规划，而不是把求和型前向递推原样使用。扩充后总特征数为 $S(x)$，更新方程变为
+\begin{equation}
+\label{eq:lihang-crf-iis-T}
+  \widehat F_k
+  =\sum_x\widehat p_X(x)
+     \mathbb E_{p_w(\cdot\mid x)}[F_k(Y,x)]e^{\delta_kS(x)}.
+\end{equation}
+若特征是非负整数计数，则 $S(x)$ 为整数。令 $u=e^{\delta_k}>0$，按 $S(x)$ 的取值分组，方程成为
+\[
+  \sum_{s=0}^{S_{\max}}a_{k,s}u^s=\widehat F_k,\qquad
+  a_{k,s}=\sum_{x:S(x)=s}\widehat p_X(x)
+                   \mathbb E_{p_w(\cdot\mid x)}[F_k(Y,x)].
+\]
+在目标期望为正、该特征活跃时，左端在 $u>0$ 上严格递增，因而有唯一正根；不是声称该多项式只有一个实根。非整数特征时仍可对 $\delta_k$ 解单调方程，但通常不再是多项式。以上两种松弛方式使模型输出期望可以通过原链的前向--后向递推计算，代价则是额外特征及可能较小的更新幅度。
+
+\subsection{梯度、凸性与拟牛顿法}
+\label{subsec:lihang-crf-gradient-bfgs}
+
+对有限输出空间，配分函数的和可以逐项微分，得到
+\begin{equation}
+\label{eq:lihang-crf-logZ-gradient}
+  \nabla_w\log Z_w(x)=\mathbb E_{p_w(\cdot\mid x)}[F(Y,x)].
+\end{equation}
+因此平均负对数似然的梯度为“模型期望减经验期望”：
+\begin{equation}
+\label{eq:lihang-crf-gradient}
+  \nabla J_\rho(w)=\frac1N\sum_{r=1}^N
+    \left[\mathbb E_{p_w(\cdot\mid x^{(r)})}F(Y,x^{(r)})
+           -F(y^{(r)},x^{(r)})\right]+\rho w.
+\end{equation}
+每个条件期望都由式~\eqref{eq:lihang-crf-feature-expectation} 计算，无须枚举所有标记序列。无正则且有限最优点存在时，梯度为零意味着模型特征期望与经验特征平均匹配；加入正则项后，驻点满足两者之差为 $-\rho w$，不再是逐项完全相等。
+
+\begin{proposition}
+\label{prop:lihang-crf-convexity}
+在固定特征、有限训练输出空间与有限特征值的条件下，$J_\rho$ 在 $\mathbb R^K$ 上可微且凸，其 Hessian 为
+\begin{equation}
+\label{eq:lihang-crf-hessian}
+  \nabla^2J_\rho(w)
+  =\frac1N\sum_{r=1}^N
+       \operatorname{Cov}_{p_w(\cdot\mid x^{(r)})}
+                    [F(Y,x^{(r)})]+\rho I_K.
+\end{equation}
+若 $\rho>0$，则 $J_\rho$ 强凸，存在唯一有限的最小点。
+\end{proposition}
+\begin{proof}
+继续对式~\eqref{eq:lihang-crf-logZ-gradient} 求导，第 $(k,l)$ 个元素为
+\[
+  \mathbb E_w[F_kF_l\mid x]
+     -\mathbb E_w[F_k\mid x]\mathbb E_w[F_l\mid x],
+\]
+从而得到式~\eqref{eq:lihang-crf-hessian}。任意方向 $a$ 上的二次型为各条件方差 $\operatorname{Var}_w(a^{\mathsf T}F\mid x^{(r)})$ 的平均加上 $\rho\lVert a\rVert_2^2$，故非负；$\rho>0$ 时至少为 $\rho\lVert a\rVert_2^2$。又因负对数概率非负，$J_\rho(w)\geq\rho\lVert w\rVert_2^2/2$，所以目标连续且随 $\lVert w\rVert_2\to\infty$ 趋向无穷，在某个有界闭集内达到最小值；强凸性保证该点唯一。
+\end{proof}
+
+无正则时，凸性只保证任意有限驻点都是全局最小点，不保证最小点存在或参数唯一。例如某个方向上的 $a^{\mathsf T}F(y,x)$ 对每个训练输入都与 $y$ 无关，则沿该方向改变参数不改变条件概率；若训练标注可被得分持续拉开，也可能只有参数趋向无穷时才能逼近似然上确界。上述凸性依赖特征固定；若特征本身由待训练的非线性网络产生，对全部参数联合训练时不能沿用这个凸性结论。
+
+教材习题 11.3 可直接由梯度式得到\emph{梯度下降法}（gradient descent）。输入为训练集、特征、$\rho\geq0$、初值 $w^{(0)}$、容差 $\varepsilon>0$ 及最大迭代次数；每轮先对全部样本计算局部势、前后向量、$\log Z$ 和特征期望，再组成 $g^{(t)}=\nabla J_\rho(w^{(t)})$。若 $\lVert g^{(t)}\rVert_\infty\leq\varepsilon$ 则停止，否则选择步长 $\eta_t>0$ 并更新
+\begin{equation}
+\label{eq:lihang-crf-gradient-descent}
+  w^{(t+1)}=w^{(t)}-\eta_tg^{(t)}.
+\end{equation}
+例如固定 $c,\gamma\in(0,1)$，从一个正试探步长开始反复乘以 $\gamma$，直到满足 Armijo 充分下降条件
+\[
+  J_\rho(w^{(t)}-\eta_tg^{(t)})
+  \leq J_\rho(w^{(t)})-c\eta_t\lVert g^{(t)}\rVert_2^2.
+\]
+非零梯度处足够小的步长会满足该条件。有限特征下 Hessian 有统一上界；在 $\rho>0$、每轮从固定正试探步长开始回溯且计算精确时，这给出到唯一最小点的收敛。达到次数上限时应返回当前近似值及未满足容差的状态，不能声称已经求得精确最优参数。
+
+\emph{拟牛顿法}（quasi-Newton method）利用梯度变化近似曲率，避免显式构造高维 Hessian。教材采用 BFGS 方法：以正定对称矩阵 $B_t$ 近似 Hessian，解
+\[
+  B_t p_t=-g^{(t)},\qquad
+  w^{(t+1)}=w^{(t)}+\eta_t p_t,
+\]
+并记 $s_t=w^{(t+1)}-w^{(t)}$、$z_t=g^{(t+1)}-g^{(t)}$，更新
+\begin{equation}
+\label{eq:lihang-crf-bfgs}
+  B_{t+1}=B_t-
+      \frac{B_ts_ts_t^{\mathsf T}B_t}{s_t^{\mathsf T}B_ts_t}
+      +\frac{z_tz_t^{\mathsf T}}{z_t^{\mathsf T}s_t}.
+\end{equation}
+非零梯度且 $B_t$ 正定时，$g^{(t)\mathsf T}p_t=-g^{(t)\mathsf T}B_t^{-1}g^{(t)}<0$，故 $p_t$ 是下降方向。线搜索应同时保证充分下降及曲率条件，例如采用 Wolfe 条件，从而得到 $z_t^{\mathsf T}s_t>0$ 并保持更新后的正定性；曲率退化时不能盲目使用含零分母的公式。算法重复计算目标、梯度、搜索方向、线搜索和矩阵更新，直到梯度足够小或达到迭代上限。完整 $B_t$ 需 $O(K^2)$ 存储，有限记忆的 L-BFGS 形式则只保存若干对 $s_t,z_t$。这些优化方法与 IIS 求解同一类条件似然目标，但不要求特征非负。
+
+\section{条件随机场的预测算法}
+\label{sec:lihang-crf-decoding}
+
+给定输入 $x$ 后，序列级最大后验预测（maximum a posteriori decoding）求
+\begin{equation}
+\label{eq:lihang-crf-map}
+  y^*\in\arg\max_y p_w(y\mid x)
+      =\arg\max_y w^{\mathsf T}F(y,x)
+      =\arg\max_y\sum_{i=1}^{n+1}W_i(y_{i-1},y_i\mid x).
+\end{equation}
+这是因为 $Z_w(x)$ 与待比较的 $y$ 无关，指数函数又严格递增。只求最优序列时可以省去配分函数；若还要报告该序列的条件概率，则仍须计算 $\log Z_w(x)$，不能把最优得分本身解释为置信概率。
+
+\subsection{维特比递推与回溯}
+\label{subsec:lihang-crf-viterbi}
+
+\emph{维特比算法}（Viterbi algorithm）保存到达每个末端标记的最高前缀得分 $d_i(b)$，并记录取得该值的前驱标记 $\pi_i(b)$。初始化 $d_0(\mathrm{start})=0$，对 $i=1,\ldots,n$ 依次计算
+\begin{align}
+\label{eq:lihang-crf-viterbi-score}
+  d_i(b)&=\max_{a\in\mathcal Y_{i-1}}
+       \{d_{i-1}(a)+W_i(a,b\mid x)\},\\
+\label{eq:lihang-crf-viterbi-backpointer}
+  \pi_i(b)&\in\arg\max_{a\in\mathcal Y_{i-1}}
+       \{d_{i-1}(a)+W_i(a,b\mid x)\}.
+\end{align}
+最后须计入终止势，令
+\[
+  y_n^*\in\arg\max_b\{d_n(b)+W_{n+1}(b,\mathrm{stop}\mid x)\},\qquad
+  S^*=\max_b\{d_n(b)+W_{n+1}(b,\mathrm{stop}\mid x)\}.
+\]
+再按 $y_{i-1}^*=\pi_i(y_i^*)$，从 $i=n$ 回溯至 $2$，得到 $y^*=(y_1^*,\ldots,y_n^*)$。所有并列选择采用预先固定的规则，例如取标记编号最小者。没有终止特征时最后一项为零，才可直接对 $d_n$ 取最大值。算法时间为 $O(nm^2)$；只求最优得分可用 $O(m)$ 滚动空间，恢复路径还需保存 $O(nm)$ 个回溯指针。
+
+\begin{proof}[递推正确性]
+对给定末端 $b$，任意长度 $i$ 的前缀均由某个以 $a$ 结尾的长度 $i-1$ 前缀和边 $(a,b)$ 组成。如果前一段不是到达 $a$ 的最优前缀，替换成更优者不会改变最后一条边，却会提高总得分，因此最优前缀必须由式~\eqref{eq:lihang-crf-viterbi-score} 给出。由起点得分为零开始归纳，再加上终止势，就得到完整路径的最高得分；回溯指针记录了每一步实际选取的前驱，因而恢复出达到该值的路径。
+\end{proof}
+
+前向算法在每个末端对全部前驱路径的权重求和，维特比算法则在对数域取最大值；二者利用相同的链式分解，却回答不同问题。此外，逐位置选择 $\arg\max_b p_w(Y_i=b\mid x)$ 一般不等于式~\eqref{eq:lihang-crf-map}：前者在允许任意标记序列作为决策时最小化逐位置错误数之和的条件期望，后者最小化整条序列的零一损失。即使使用同一模型，也应按评价损失区分这两种预测。
+
+\subsection{教材例题与数值练习}
+\label{subsec:lihang-crf-decoding-examples}
+
+\begin{example}
+\label{ex:lihang-crf-viterbi-example}
+教材例 11.3。对例~\ref{ex:lihang-crf-feature-example} 的特征模型，使用维特比算法求最优标记序列。
+\end{example}
+\begin{solve}
+把到达结点的状态得分合并到相应边上，起始得分与两个内部得分矩阵为
+\[
+  W_1=(1,0.5),\qquad
+  W_2=\begin{pmatrix}1.4&1.5\\1.8&0.5\end{pmatrix},\qquad
+  W_3=\begin{pmatrix}0.8&1.5\\1.8&0.7\end{pmatrix},
+\]
+并且终止得分为零。于是 $d_1=(1,0.5)$，第二步为
+\[
+  d_2(1)=\max\{1+1.4,\ 0.5+1.8\}=2.4,\quad \pi_2(1)=1,
+\]
+\[
+  d_2(2)=\max\{1+1.5,\ 0.5+0.5\}=2.5,\quad \pi_2(2)=1.
+\]
+第三步为
+\[
+  d_3(1)=\max\{2.4+0.8,\ 2.5+1.8\}=4.3,\quad \pi_3(1)=2,
+\]
+\[
+  d_3(2)=\max\{2.4+1.5,\ 2.5+0.7\}=3.9,\quad \pi_3(2)=1.
+\]
+因此末端为 $y_3^*=1$，依次回溯得 $y_2^*=2$、$y_1^*=1$，即 $y^*=(1,2,1)$、$S^*=4.3$。作为独立核对，按字典序列出八条路径的得分：
+\[
+\begin{array}{c|rrrrrrrr}
+ y&111&112&121&122&211&212&221&222\\\hline
+ S_w(y,x)&3.2&3.9&4.3&3.2&3.1&3.8&2.8&1.7
+\end{array}
+\]
+这里三位数只是三元标记序列的简写。由此 $Z_w(x)=\sum_y e^{S_w(y,x)}\approx260.9850$，最优路径的条件概率为 $e^{4.3}/Z_w(x)\approx0.282391$，而例~\ref{ex:lihang-crf-feature-example} 的路径概率约为 $0.0939998$。最高得分并不意味着该路径已经具有接近 $1$ 的概率。
+\end{solve}
+
+\begin{example}
+\label{ex:lihang-crf-exercise-paths}
+教材习题 11.4。给定方阵
+\[
+  \widetilde M_1=\begin{pmatrix}0&0\\0.5&0.5\end{pmatrix},\quad
+  \widetilde M_2=\begin{pmatrix}0.3&0.7\\0.7&0.3\end{pmatrix},\quad
+  \widetilde M_3=\begin{pmatrix}0.5&0.5\\0.6&0.4\end{pmatrix},\quad
+  \widetilde M_4=\begin{pmatrix}0&1\\0&1\end{pmatrix},
+\]
+固定 $\mathrm{start}=2$、$\mathrm{stop}=2$。求八条内部状态序列的概率及其中概率最大的序列。
+\end{example}
+\begin{solve}
+只取 $\widetilde M_1$ 的第 $2$ 行及 $\widetilde M_4$ 的第 $2$ 列，得到本章约定的 $M_1=(0.5,0.5)$、$M_4=(1,1)^{\mathsf T}$，内部矩阵保持不变。矩阵乘法给出
+\[
+  M_1M_2=(0.5,0.5),\qquad
+  M_1M_2M_3=(0.55,0.45),\qquad Z_w(x)=1.
+\]
+因此此例中路径权重恰好已经规范化，按 $M_1(y_1)M_2(y_1,y_2)M_3(y_2,y_3)$ 求得
+\[
+\begin{array}{c|rrrrrrrr}
+ y&111&112&121&122&211&212&221&222\\\hline
+ p_w(y\mid x)&0.075&0.075&0.210&0.140&0.175&0.175&0.090&0.060
+\end{array}
+\]
+八项相加为 $1$，唯一最大项对应 $y^*=(1,2,1)$，其概率为 $0.21$。本例的起始行和内部矩阵恰好都满足相应行和为 $1$，所以配分函数等于 $1$；一般 CRF 的势不具备这种性质，不能据此省略规范化。
+\end{solve}
+
+本章的计算围绕同一个局部得分展开：对所有路径求和得到配分函数，固定结点或边后求和得到边缘概率，对局部特征加权求和得到学习梯度所需的期望，对路径得分取最大值则得到维特比预测。教材习题 11.1 的因子分解已在例~\ref{ex:lihang-crf-four-node-cliques} 给出，习题 11.2 的通用边界恒等式由命题~\ref{prop:lihang-crf-partition-split} 证明，习题 11.3 的学习更新为式~\eqref{eq:lihang-crf-gradient-descent}，习题 11.4 的完整计算见例~\ref{ex:lihang-crf-exercise-paths}。应同时记住三类条件：无向图定理的严格正性、迭代尺度法的非负特征假设，以及前向--后向和维特比递推中一致的首尾边界约定。
+
+
+
+
+

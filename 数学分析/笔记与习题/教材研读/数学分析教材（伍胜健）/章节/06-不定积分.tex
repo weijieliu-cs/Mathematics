@@ -1,0 +1,781 @@
+% !TeX root = ../数学分析教材（伍胜健）笔记.tex
+% 本文件由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{5} % 保留原书章号。
+\chapter{不定积分}
+\label{chap:indefinite-integrals}
+
+% 本章正文依据教材第 241--270 页；分章 PDF 第 1--30 页，习题六不在本次整理范围内。
+求导从函数得到它的变化率，求原函数则由变化率反求函数。例如，直线运动中由位置 $s(t)$ 求速度是计算 $s'(t)$，由速度 $v(t)$ 求位置则要解 $s'(t)=v(t)$；仅有速度还不能确定初始位置，因此结果中自然出现任意常数。本章先说明原函数及其全体组成的不定积分，再由复合函数和乘积的求导法则导出换元法与分部积分法，最后讨论若干能够系统求解的函数类型。以下计算均在被积函数有定义的实开区间上进行，参数视为常数，根式取所声明的实分支。
+
+\section{原函数与不定积分}
+\label{sec:antiderivatives-and-indefinite-integrals}
+
+\subsection{原函数与不定积分的概念}
+\label{subsec:concepts-of-antiderivatives-and-indefinite-integrals}
+
+\begin{definition}
+\label{def:antiderivative-and-indefinite-integral}
+设 $f$ 定义在开区间 $I$ 上。若函数 $F$ 在 $I$ 上可导，且对每个 $x\in I$ 都有 $F'(x)=f(x)$，则称 $F$ 为 $f$ 在 $I$ 上的一个\emph{原函数}（antiderivative）。若这样的函数存在，则称 $f$ 在 $I$ 上的全体原函数为它的\emph{不定积分}（indefinite integral），记为
+\[
+    \int f(x)\,dx.
+\]
+其中 $f(x)$ 为被积函数，$x$ 为积分变量，$f(x)\,dx$ 为被积表达式。若讨论闭区间，端点处的导数相应理解为内侧单侧导数；本章主要使用开区间形式。
+\end{definition}
+
+\begin{theorem}[原函数之间的关系]
+\label{thm:antiderivatives-differ-by-constant}
+若 $F$ 是 $f$ 在区间 $I$ 上的一个原函数，则 $f$ 在 $I$ 上的全体原函数恰为
+\begin{equation}
+    \int f(x)\,dx=F(x)+C,\qquad C\in\mathbb{R}.
+    \label{eq:indefinite-integral-family}
+\end{equation}
+这里 $C$ 称为\emph{积分常数}（constant of integration）。
+\end{theorem}
+
+\begin{proof}
+对任意常数 $C$，有 $(F+C)'=f$，故 $F+C$ 都是原函数。反过来，若 $G$ 也是原函数，则 $(G-F)'=0$。任取 $x_1<x_2$ 且 $x_1,x_2\in I$，函数 $G-F$ 在 $[x_1,x_2]$ 上连续、在 $(x_1,x_2)$ 内可导，由拉格朗日中值定理得
+\[
+    (G-F)(x_2)-(G-F)(x_1)=0.
+\]
+因此 $G-F$ 在整个区间上为常数，结论成立。
+\end{proof}
+
+几何上，$F(x)+C$ 的图像由同一条曲线上下平移得到，它们在相同横坐标处具有相同的切线斜率。若再指定 $F(x_0)=y_0$，则积分常数由 $C=y_0-F_0(x_0)$ 唯一确定，其中 $F_0$ 是任取的一个原函数。\emph[caution]{定理中的区间条件保证积分常数在所讨论范围内统一；定义域不连通时，不同区间上的常数可以彼此独立。}例如，$1/x$ 在 $(-\infty,0)$ 和 $(0,\infty)$ 上分别有原函数 $\ln|x|+C_-$ 与 $\ln|x|+C_+$，没有理由要求 $C_-=C_+$。
+
+不定积分与微分互为逆运算，但两种运算顺序的结果应加以区别。对任意一个选定的原函数，均有
+\[
+    \frac{d}{dx}\left(\int f(x)\,dx\right)=f(x),
+    \qquad d\left(\int f(x)\,dx\right)=f(x)\,dx;
+\]
+而若 $F$ 可导，则
+\[
+    \int F'(x)\,dx=F(x)+C,
+    \qquad \int dF(x)=F(x)+C.
+\]
+前一组公式表示任取积分族中的一个成员再求导，都会还原被积函数；后一组公式表示由导数只能恢复函数到一个加法常数。\emph[tip]{核查一个不定积分结果的直接方法，是在声明的区间上对结果求导。}原函数的存在性也不能省略：下一章将证明连续函数在区间上必有原函数，而有跳跃间断的函数不可能在跨越跳跃点的区间上处处等于某个导函数，因为导函数具有达布介值性。
+
+\subsection{基本不定积分表和不定积分的线性性质}
+\label{subsec:basic-integrals-and-linearity}
+
+将基本求导公式反向使用，便得到基本积分表。下式中的 $C$ 各自独立；实幂公式先取 $x>0$，若某个指数允许在更大的实区间上定义且可导，则可在相应区间上使用。
+\begin{align}
+    \int x^\alpha\,dx&=\frac{x^{\alpha+1}}{\alpha+1}+C
+        &&(\alpha\neq-1),\label{eq:basic-power-integral}\\
+    \int\frac{dx}{x}&=\ln|x|+C
+        &&(x\neq0),\label{eq:basic-logarithmic-integral}\\
+    \int e^x\,dx&=e^x+C,\qquad
+    \int a^x\,dx=\frac{a^x}{\ln a}+C
+        &&(a>0,\ a\neq1),\notag\\
+    \int\cos x\,dx&=\sin x+C,\qquad
+    \int\sin x\,dx=-\cos x+C,\notag\\
+    \int\frac{dx}{\cos^2x}&=\tan x+C,\qquad
+    \int\frac{dx}{\sin^2x}=-\cot x+C,\notag\\
+    \int\frac{dx}{1+x^2}&=\arctan x+C,\qquad
+    \int\frac{dx}{\sqrt{1-x^2}}=\arcsin x+C
+        &&(|x|<1),\notag\\
+    \int\sinh x\,dx&=\cosh x+C,\qquad
+    \int\cosh x\,dx=\sinh x+C,\notag\\
+    \int\frac{dx}{\cosh^2x}&=\tanh x+C.
+        \label{eq:basic-hyperbolic-integrals}
+\end{align}
+其中 $\sinh x=(e^x-e^{-x})/2$、$\cosh x=(e^x+e^{-x})/2$、$\tanh x=\sinh x/\cosh x$。含 $\sin x$ 或 $\cos x$ 的分母不得为零，积分公式分别在去掉这些零点后的每个区间上理解。式~\eqref{eq:basic-power-integral} 不能代入 $\alpha=-1$，这一情形由式~\eqref{eq:basic-logarithmic-integral} 单独处理；$\ln|x|$ 的绝对值使同一表达式可以分别用于正、负半轴。
+
+\begin{proposition}[不定积分的线性性质]
+\label{prop:linearity-of-indefinite-integrals}
+设 $F'=f$、$G'=g$ 在同一区间 $I$ 上成立，$a,b\in\mathbb{R}$。则
+\begin{equation}
+    \int\bigl(af(x)+bg(x)\bigr)\,dx=aF(x)+bG(x)+C.
+    \label{eq:linearity-of-indefinite-integrals}
+\end{equation}
+特别地，和、差可以逐项积分，非零常数因子可以移到积分号外。
+\end{proposition}
+
+\begin{proof}
+由求导的线性性质，$(aF+bG)'=af+bg$，再由定理~\ref{thm:antiderivatives-differ-by-constant} 即得式~\eqref{eq:linearity-of-indefinite-integrals}。
+\end{proof}
+
+通常将线性性质简写为 $\int(af+bg)\,dx=a\int f\,dx+b\int g\,dx$，其含义是将右侧积分常数合并为左侧的一个任意常数。若把不定积分严格视为函数族，这一简写在 $a=b=0$ 时需要另加任意常数；直接使用式~\eqref{eq:linearity-of-indefinite-integrals} 则对所有 $a,b$ 都成立。线性性质只适用于线性组合，不能据此将乘积或商的不定积分拆成原函数的乘积或商。
+
+\begin{example}
+\label{ex:basic-indefinite-integral-transformations}
+求 $\displaystyle\int\frac{x^4}{1+x^2}\,dx$、$\displaystyle\int\tan^2x\,dx$ 和 $\displaystyle\int\frac{dx}{\sin^2 2x}$。
+\end{example}
+
+\begin{solve}
+积分表的使用往往先要做恒等变形。多项式除法给出
+\[
+    \frac{x^4}{1+x^2}=x^2-1+\frac1{1+x^2},
+\]
+故第一个积分为 $x^3/3-x+\arctan x+C$。利用 $\tan^2x=1/\cos^2x-1$，第二个积分为 $\tan x-x+C$。对第三个积分，由 $\sin2x=2\sin x\cos x$ 及 $\sin^2x+\cos^2x=1$，有
+\[
+    \frac1{\sin^2 2x}=\frac14\left(\frac1{\cos^2x}+\frac1{\sin^2x}\right),
+\]
+因而
+\[
+    \int\frac{dx}{\sin^2 2x}=\frac14(\tan x-\cot x)+C.
+    \qedhere
+\]
+\end{solve}
+
+\section{换元法与分部积分法}
+\label{sec:substitution-and-integration-by-parts}
+
+复合函数的链式法则对应换元积分，乘积的求导法则对应分部积分。换元法中，变量和微分必须同时替换；分部积分中，则通过重新分配微分使剩余积分更简单。这两类方法的有效性都来自求导公式，因而最终结果可以逐项求导核对。
+
+\subsection{第一换元法}
+\label{subsec:first-substitution-method}
+
+\begin{theorem}[第一换元积分法]
+\label{thm:first-substitution-indefinite-integral}
+设 $F'(u)=f(u)$ 在区间 $J$ 上成立，函数 $u=\varphi(x)$ 在区间 $I$ 上可导，且 $\varphi(I)\subseteq J$。则
+\begin{equation}
+    \int f(\varphi(x))\varphi'(x)\,dx
+       =F(\varphi(x))+C.
+    \label{eq:first-substitution-indefinite-integral}
+\end{equation}
+此法称为\emph{第一换元法}（first substitution method），也常称凑微分法。
+\end{theorem}
+
+\begin{proof}
+由链式法则，$\bigl(F(\varphi(x))\bigr)'=F'(\varphi(x))\varphi'(x)=f(\varphi(x))\varphi'(x)$，故右侧给出了被积函数的全部原函数。
+\end{proof}
+
+令 $u=\varphi(x)$，将 $du=\varphi'(x)\,dx$ 一并代入，公式便写成
+\[
+    \int f(\varphi(x))\varphi'(x)\,dx
+       =\int f(u)\,du=F(u)+C=F(\varphi(x))+C.
+\]
+这里中间的积分以 $u$ 为变量，最后须代回 $x$。这种写法依据的是复合函数微分公式，无须把 $dx$ 当成可以任意约去的普通数。\emph[tip]{选择内层函数后，要检查剩余因子是否恰好是它的导数，或只差一个常数倍。}第一换元法不要求 $\varphi$ 单调，也不要求它有反函数，例如 $u=x^2$ 可用于整个实轴上的 $\int 2x\cos(x^2)\,dx=\sin(x^2)+C$。
+
+分别取 $u=ax+b$（$a\neq0$）和 $u=f(x)$，可得
+\begin{align*}
+    \int\frac{dx}{ax+b}&=\frac1a\ln|ax+b|+C,\\
+    \int(ax+b)^\alpha\,dx
+        &=\frac{(ax+b)^{\alpha+1}}{a(\alpha+1)}+C
+        \qquad(\alpha\neq-1),\\
+    \int\frac{f'(x)}{f(x)}\,dx&=\ln|f(x)|+C
+        \qquad(f(x)\neq0).
+\end{align*}
+前两式中的 $1/a$ 正是由 $du=a\,dx$ 产生的因子；第三式要求 $f$ 在所讨论区间可导且处处不为零。对于 $a>0$，将积分表中的自变量缩放，还得到
+\begin{align}
+    \int\frac{dx}{a^2+x^2}&=\frac1a\arctan\frac xa+C,
+       \label{eq:scaled-arctangent-integral}\\
+    \int\frac{dx}{a^2-x^2}&=\frac1{2a}\ln\left|\frac{a+x}{a-x}\right|+C
+       \qquad(x\neq\pm a),\label{eq:difference-of-squares-integral}\\
+    \int\frac{dx}{\sqrt{a^2-x^2}}&=\arcsin\frac xa+C
+       \qquad(|x|<a).\label{eq:scaled-arcsine-integral}
+\end{align}
+其中第二式也可先用 $1/(a^2-x^2)=\bigl(1/(a+x)+1/(a-x)\bigr)/(2a)$ 分解后积分；两个途径都要求分别在避开 $\pm a$ 的区间上使用。
+
+\begin{example}
+\label{ex:two-substitutions-for-square-root-integral}
+求 $\displaystyle\int\frac{dx}{\sqrt{x-x^2}}$，其中 $0<x<1$，并比较两种表达式。
+\end{example}
+
+\begin{solve}
+配方 $x-x^2=\bigl(1-(2x-1)^2\bigr)/4$，令 $u=2x-1$，得到
+\[
+    \int\frac{dx}{\sqrt{x-x^2}}=\arcsin(2x-1)+C.
+\]
+另一方面，将 $\sqrt{x-x^2}$ 写成 $\sqrt{x}\sqrt{1-x}$，由 $dx/\sqrt{x}=2\,d\sqrt{x}$，得
+\[
+    \int\frac{dx}{\sqrt{x-x^2}}=2\arcsin\sqrt{x}+C.
+\]
+令 $\theta=\arcsin\sqrt{x}\in(0,\pi/2)$，则 $\sin(2\theta-\pi/2)=2x-1$，且 $2\theta-\pi/2\in(-\pi/2,\pi/2)$，故
+\[
+    2\arcsin\sqrt{x}=\arcsin(2x-1)+\frac\pi2.
+\]
+两种结果相差常数，因而表示同一原函数族。
+\end{solve}
+
+\begin{example}
+\label{ex:tangent-secant-integrals-and-recurrence}
+求 $\displaystyle\int\tan x\,dx$、$\displaystyle\int\frac{dx}{\cos x}$，并建立 $T_n=\int\tan^n x\,dx$ 的递推公式。
+\end{example}
+
+\begin{solve}
+在 $\cos x\neq0$ 的每个区间上，由 $d(\cos x)=-\sin x\,dx$，有
+\[
+    \int\tan x\,dx=-\ln|\cos x|+C.
+\]
+对第二个积分，用 $u=\sin x$ 凑微分，得
+\[
+    \int\frac{dx}{\cos x}
+       =\int\frac{d(\sin x)}{1-\sin^2x}
+       =\frac12\ln\left|\frac{1+\sin x}{1-\sin x}\right|+C
+       =\ln|\sec x+\tan x|+C,
+\]
+其中 $\sec x=1/\cos x$，最后一步使用 $1-\sin^2x=\cos^2x$。若 $n\geq2$ 为整数，由 $\tan^2x=\sec^2x-1$，得到
+\begin{equation}
+    T_n=\frac{\tan^{n-1}x}{n-1}-T_{n-2},
+    \qquad T_0=x,\quad T_1=-\ln|\cos x|.
+    \label{eq:tangent-power-integral-recurrence}
+\end{equation}
+这里及下文的递推式均按相差一个常数的意义理解，基式取一个代表原函数，最终统一加 $C$。例如 $T_4=\tan^3x/3-\tan x+x+C$。
+\end{solve}
+
+\subsection{第二换元法}
+\label{subsec:second-substitution-method}
+
+\begin{theorem}[第二换元积分法]
+\label{thm:second-substitution-indefinite-integral}
+设 $x=\varphi(t)$ 在开区间 $J$ 上可导，且 $\varphi'(t)\neq0$。记 $I=\varphi(J)$，$t=\psi(x)$ 为其反函数。若 $f$ 在 $I$ 上有定义，且
+\[
+    \int f(\varphi(t))\varphi'(t)\,dt=G(t)+C,
+\]
+则
+\begin{equation}
+    \int f(x)\,dx=G(\psi(x))+C.
+    \label{eq:second-substitution-indefinite-integral}
+\end{equation}
+此法称为\emph{第二换元法}（second substitution method）。
+\end{theorem}
+
+\begin{proof}
+导函数具有达布介值性，而 $\varphi'$ 从不为零，因此它在 $J$ 上不能变号。由拉格朗日中值定理，$\varphi$ 严格单调；它又连续，故 $I$ 是开区间，反函数 $\psi$ 存在且可导，满足 $\psi'(x)=1/\varphi'(\psi(x))$。于是
+\[
+    \frac{d}{dx}G(\psi(x))
+       =f(\varphi(\psi(x)))\varphi'(\psi(x))
+          \frac1{\varphi'(\psi(x))}=f(x).
+    \qedhere
+\]
+\end{proof}
+
+第一换元法从已有的复合结构中提取内层变量，第二换元法则主动选择 $x=\varphi(t)$，把原积分改成较容易处理的 $t$ 的积分，再通过反函数代回。\emph[caution]{第二换元法必须说明所取区间，特别是根式化简时不能漏掉绝对值。}例如 $\sqrt{a^2\cos^2t}=a|\cos t|$，只有先限制 $\cos t>0$ 才能写成 $a\cos t$。
+
+\begin{example}
+\label{ex:trigonometric-substitution-for-semicircle}
+求 $\displaystyle\int\sqrt{a^2-x^2}\,dx$，其中 $a>0$、$|x|<a$。
+\end{example}
+
+\begin{solve}
+令 $x=a\sin t$，$-\pi/2<t<\pi/2$。此时 $\cos t>0$，故 $dx=a\cos t\,dt$、$\sqrt{a^2-x^2}=a\cos t$，从而
+\[
+    \int\sqrt{a^2-x^2}\,dx
+      =a^2\int\cos^2t\,dt
+      =\frac{a^2}{2}(t+\sin t\cos t)+C.
+\]
+代回 $t=\arcsin(x/a)$、$\sin t=x/a$ 和 $\cos t=\sqrt{a^2-x^2}/a$，得
+\begin{equation}
+    \int\sqrt{a^2-x^2}\,dx
+      =\frac12\left(x\sqrt{a^2-x^2}+a^2\arcsin\frac xa\right)+C.
+    \label{eq:semicircle-antiderivative}
+\end{equation}
+\end{solve}
+
+\begin{example}
+\label{ex:logarithmic-integrals-of-quadratic-radicals}
+求 $\displaystyle\int\frac{dx}{\sqrt{x^2-a^2}}$ 和 $\displaystyle\int\frac{dx}{\sqrt{x^2+a^2}}$，其中 $a>0$。
+\end{example}
+
+\begin{solve}
+先在 $x>a$ 上令 $x=a\sec t$，$0<t<\pi/2$。由 $dx=a\sec t\tan t\,dt$、$\sqrt{x^2-a^2}=a\tan t$，有
+\[
+    \int\frac{dx}{\sqrt{x^2-a^2}}
+       =\int\sec t\,dt
+       =\ln|\sec t+\tan t|+C
+       =\ln|x+\sqrt{x^2-a^2}|+C.
+\]
+在 $x<-a$ 上可令 $x=-a\cosh t$（$t>0$），或直接对最后的表达式求导，同样得到
+\begin{equation}
+    \int\frac{dx}{\sqrt{x^2-a^2}}
+       =\ln|x+\sqrt{x^2-a^2}|+C,\qquad |x|>a,
+    \label{eq:reciprocal-difference-radical-integral}
+\end{equation}
+但两侧区间的常数可以不同。对第二个积分，令 $x=a\sinh t$，$t\in\mathbb{R}$，则 $\sqrt{x^2+a^2}=a\cosh t>0$，故积分为 $t+C$。解出 $t=\ln\bigl((x+\sqrt{x^2+a^2})/a\bigr)$，并将 $-\ln a$ 并入常数，得
+\begin{equation}
+    \int\frac{dx}{\sqrt{x^2+a^2}}
+       =\ln\bigl(x+\sqrt{x^2+a^2}\bigr)+C,
+       \qquad x\in\mathbb{R}.
+    \label{eq:reciprocal-sum-radical-integral}
+\end{equation}
+这里对数的真数恒正，因为 $\sqrt{x^2+a^2}>|x|$。也可用 $x=a\tan t$、$-\pi/2<t<\pi/2$ 将第二个积分化为 $\int\sec t\,dt$。
+\end{solve}
+
+上述换元分别利用 $1-\sin^2t=\cos^2t$、$\sec^2t-1=\tan^2t$ 和 $\cosh^2t-\sinh^2t=1$ 消去根号。对同一变量的多个有理次幂，则可按指数分母的最小公倍数选择换元。
+
+\begin{example}
+\label{ex:common-denominator-substitution-for-radicals}
+求 $\displaystyle\int\frac{dx}{\sqrt{x}+\sqrt[3]{x}}$，其中 $x>0$。
+\end{example}
+
+\begin{solve}
+令 $x=t^6$，$t>0$，则 $\sqrt{x}=t^3$、$\sqrt[3]{x}=t^2$，因此
+\begin{align*}
+    \int\frac{dx}{\sqrt{x}+\sqrt[3]{x}}
+       &=6\int\frac{t^3}{1+t}\,dt
+        =6\int\left(t^2-t+1-\frac1{1+t}\right)\,dt\\
+       &=2t^3-3t^2+6t-6\ln(1+t)+C\\
+       &=2\sqrt{x}-3\sqrt[3]{x}+6\sqrt[6]{x}
+           -6\ln\bigl(1+\sqrt[6]{x}\bigr)+C.
+\end{align*}
+这表明第二换元法除三角换元外，也可通过统一根指数将无理表达式化成有理函数。
+\end{solve}
+
+\subsection{分部积分法}
+\label{subsec:integration-by-parts}
+
+\begin{theorem}[分部积分公式]
+\label{thm:integration-by-parts-indefinite}
+设 $u,v$ 在区间 $I$ 上可导，且 $u'v$ 在 $I$ 上有原函数，则 $uv'$ 也有原函数，并有
+\begin{equation}
+    \int u(x)v'(x)\,dx=u(x)v(x)-\int u'(x)v(x)\,dx.
+    \label{eq:integration-by-parts-indefinite}
+\end{equation}
+这称为\emph{分部积分法}（integration by parts），通常简记为
+\[
+    \int u\,dv=uv-\int v\,du.
+\]
+式中的任意常数统一包含在右侧的不定积分中。
+\end{theorem}
+
+\begin{proof}
+若 $H'=u'v$，由乘积求导公式，$(uv-H)'=u'v+uv'-u'v=uv'$，所以 $uv-H$ 是 $uv'$ 的一个原函数，公式成立。
+\end{proof}
+
+分部积分的选择同时涉及两个目标：$dv$ 应当容易求出一个原函数 $v$，而 $v\,du$ 应当比原被积表达式简单，或能与原积分形成可解的线性关系。通常多项式求导会降低次数，对数和反三角函数求导会消去这类函数，指数与正弦、余弦则在反复求导、积分后保持同类形式；这些特点提供选择依据，但不构成无条件适用的固定次序。
+
+\begin{example}
+\label{ex:integration-by-parts-basic-examples}
+求 $\displaystyle\int\ln x\,dx$（$x>0$）、$\displaystyle\int\arctan x\,dx$ 和 $\displaystyle\int x^2\sin x\,dx$。
+\end{example}
+
+\begin{solve}
+将 $\ln x$ 看成 $\ln x\cdot1$，取 $u=\ln x$、$dv=dx$，有
+\[
+    \int\ln x\,dx=x\ln x-\int x\frac{dx}{x}
+       =x\ln x-x+C.
+\]
+类似地，取 $u=\arctan x$、$dv=dx$，有
+\[
+    \int\arctan x\,dx
+       =x\arctan x-\int\frac{x}{1+x^2}\,dx
+       =x\arctan x-\frac12\ln(1+x^2)+C.
+\]
+对最后一个积分，先取 $u=x^2$、$dv=\sin x\,dx$，再对剩余积分分部一次，得到
+\begin{align*}
+    \int x^2\sin x\,dx
+       &=-x^2\cos x+2\int x\cos x\,dx\\
+       &=-x^2\cos x+2x\sin x+2\cos x+C.
+\end{align*}
+多项式的次数每次降低一次，因此这里反复分部能够在有限步后结束。
+\end{solve}
+
+\begin{example}
+\label{ex:integration-by-parts-radical}
+求 $\displaystyle I=\int\sqrt{x^2-a^2}\,dx$，其中 $a>0$、$|x|>a$。
+\end{example}
+
+\begin{solve}
+取 $u=\sqrt{x^2-a^2}$、$dv=dx$，并将 $x^2$ 写成 $(x^2-a^2)+a^2$，得到
+\[
+    I=x\sqrt{x^2-a^2}-\int\frac{x^2}{\sqrt{x^2-a^2}}\,dx
+      =x\sqrt{x^2-a^2}-I-a^2\int\frac{dx}{\sqrt{x^2-a^2}}.
+\]
+在相差常数的意义下移项，再使用式~\eqref{eq:reciprocal-difference-radical-integral}，得
+\begin{equation}
+    \int\sqrt{x^2-a^2}\,dx
+      =\frac12\left(x\sqrt{x^2-a^2}
+             -a^2\ln|x+\sqrt{x^2-a^2}|\right)+C.
+    \label{eq:difference-radical-integral}
+\end{equation}
+这类计算并不是把未知积分当成已知量，而是通过分部积分建立了关于原函数的线性关系。
+\end{solve}
+
+\begin{example}
+\label{ex:cyclic-exponential-trigonometric-integrals}
+求 $\displaystyle I=\int e^{ax}\cos bx\,dx$ 与 $\displaystyle J=\int e^{ax}\sin bx\,dx$，其中 $a,b\in\mathbb{R}$、$a^2+b^2>0$。
+\end{example}
+
+\begin{solve}
+当 $a\neq0$ 时，对三角函数求导、对指数函数积分，分部公式给出 $aI=e^{ax}\cos bx+bJ$ 和 $aJ=e^{ax}\sin bx-bI$，均在相差常数的意义下成立。联立求解，并将常数合并，得到
+\begin{align}
+    \int e^{ax}\cos bx\,dx
+      &=\frac{e^{ax}}{a^2+b^2}(a\cos bx+b\sin bx)+C,
+        \label{eq:exponential-cosine-integral}\\
+    \int e^{ax}\sin bx\,dx
+      &=\frac{e^{ax}}{a^2+b^2}(a\sin bx-b\cos bx)+C.
+        \label{eq:exponential-sine-integral}
+\end{align}
+当 $a=0$ 时，条件保证 $b\neq0$，直接积分也得到同样的公式。若 $a=b=0$，则两个积分分别为 $x+C$ 与任意常数，应单独处理。
+\end{solve}
+
+联立积分的思路也适用于分子与分母有简单导数关系的表达式。记 $D(x)=a\cos x+b\sin x$，其中 $a^2+b^2>0$，在 $D(x)\neq0$ 的区间上令
+\[
+    I=\int\frac{\sin x}{D(x)}\,dx,\qquad
+    J=\int\frac{\cos x}{D(x)}\,dx.
+\]
+由 $bI+aJ=x$、$-aI+bJ=\ln|D(x)|$（相差常数意义下），得
+\[
+    I=\frac{bx-a\ln|D(x)|}{a^2+b^2}+C,
+    \qquad J=\frac{ax+b\ln|D(x)|}{a^2+b^2}+C.
+\]
+这里建立关系的依据是分子可分别组合成 $D$ 与 $D'$，无须机械地反复分部。
+
+\begin{proposition}[常用积分递推公式]
+\label{prop:power-integral-recurrences}
+对整数 $n\geq2$，记 $K_n=\int\cos^n x\,dx$、$S_n=\int\sin^n x\,dx$，则
+\begin{align}
+    K_n&=\frac{\sin x\cos^{n-1}x}{n}+\frac{n-1}{n}K_{n-2},
+       \label{eq:cosine-power-integral-recurrence}\\
+    S_n&=-\frac{\sin^{n-1}x\cos x}{n}+\frac{n-1}{n}S_{n-2}.
+       \label{eq:sine-power-integral-recurrence}
+\end{align}
+可取基式 $K_0=S_0=x$、$K_1=\sin x$、$S_1=-\cos x$。此外，对 $a>0$、整数 $n\geq1$，记 $H_n(x)=\int dx/(x^2+a^2)^n$，有
+\begin{equation}
+    H_{n+1}(x)=\frac{x}{2na^2(x^2+a^2)^n}
+          +\frac{2n-1}{2na^2}H_n(x),
+    \qquad H_1(x)=\frac1a\arctan\frac xa.
+    \label{eq:quadratic-denominator-integral-recurrence}
+\end{equation}
+这些等式均允许最后添加一个任意常数。
+\end{proposition}
+
+\begin{proof}
+在 $K_n=\int\cos^{n-1}x\,d(\sin x)$ 中分部，得到
+\[
+    K_n=\sin x\cos^{n-1}x
+          +(n-1)\int\sin^2x\cos^{n-2}x\,dx
+       =\sin x\cos^{n-1}x+(n-1)(K_{n-2}-K_n),
+\]
+移项即得第一式。同理，从 $S_n=-\int\sin^{n-1}x\,d(\cos x)$ 得到
+\[
+    S_n=-\sin^{n-1}x\cos x+(n-1)(S_{n-2}-S_n),
+\]
+移项即得第二式。最后，直接计算
+\[
+    \left(\frac{x}{(x^2+a^2)^n}\right)'
+       =\frac{2na^2}{(x^2+a^2)^{n+1}}
+           -\frac{2n-1}{(x^2+a^2)^n},
+\]
+移项并积分，即得式~\eqref{eq:quadratic-denominator-integral-recurrence}。
+\end{proof}
+
+例如，$K_2=x/2+\sin2x/4+C$、$S_2=x/2-\sin2x/4+C$，而
+\[
+    \int\frac{dx}{(x^2+a^2)^2}
+       =\frac{x}{2a^2(x^2+a^2)}+\frac1{2a^3}\arctan\frac xa+C.
+\]
+递推的作用是逐步降低正整数指数，因此需要同时给出起始积分。另一方面，\emph[caution]{存在原函数并不意味着原函数能用初等函数表示。}连续的初等函数在其定义区间上有原函数，但这些原函数未必仍是初等函数；这一存在性结论将在定积分理论中证明，不能因上述技巧未能奏效就断言原函数不存在。
+
+\section{其他类型函数的不定积分}
+\label{sec:indefinite-integrals-of-other-functions}
+
+这一节的共同思路是先辨认函数的代数结构，再通过分解或换元化成已知类型。有理函数的不定积分可以由有限个代数步骤求出；三角函数有理式以及某些无理函数则可经适当换元化成有理函数。这里的可求解性指原函数可以用初等函数表示，所采用的表达式仍须在相应的定义区间上理解。
+
+\subsection{有理函数的不定积分}
+\label{subsec:integrals-of-rational-functions}
+
+\begin{definition}
+\label{def:rational-function-and-proper-fraction}
+若 $P,Q$ 是实系数多项式且 $Q$ 不是零多项式，则 $R(x)=P(x)/Q(x)$ 称为\emph{有理函数}（rational function），定义域为 $Q(x)\neq0$ 的点集。约去公因子后，非零分式若满足 $\deg P<\deg Q$，称为\emph{真分式}（proper rational fraction）；否则称为假分式。
+\end{definition}
+
+多项式除法将任意有理函数写成 $P/Q=S+T/Q$，其中 $S,T$ 为多项式，$T=0$ 或 $\deg T<\deg Q$。多项式可以逐项积分，因此关键在于处理真分式。根据实系数多项式的因式分解，忽略非零常数因子，分母可写成
+\[
+    Q(x)=\prod_{i=1}^r(x-a_i)^{m_i}
+           \prod_{j=1}^s(x^2+p_jx+q_j)^{n_j},
+    \qquad p_j^2-4q_j<0,
+\]
+其中各一次因子互不相同，各二次因子互不相同，$m_i,n_j$ 为正整数；没有某类因子时，相应乘积省略。
+
+\begin{theorem}[部分分式分解]
+\label{thm:real-partial-fraction-decomposition}
+若 $T/Q$ 是上述形式的真分式，则存在唯一的实常数 $A_{ik},B_{jk},C_{jk}$，使
+\begin{equation}
+    \frac{T(x)}{Q(x)}
+       =\sum_{i=1}^r\sum_{k=1}^{m_i}\frac{A_{ik}}{(x-a_i)^k}
+        +\sum_{j=1}^s\sum_{k=1}^{n_j}
+           \frac{B_{jk}x+C_{jk}}{(x^2+p_jx+q_j)^k}.
+    \label{eq:real-partial-fraction-decomposition}
+\end{equation}
+这种表示称为\emph{部分分式分解}（partial fraction decomposition）。
+\end{theorem}
+
+\begin{proof}
+先说明存在性。若 $U,V$ 为互素多项式，多项式的贝祖恒等式给出 $AU+BV=1$，故
+\[
+    \frac{T}{UV}=\frac{AT}{V}+\frac{BT}{U}.
+\]
+逐次使用此式，可将分母拆为各个互素不可约因子的幂；再对分子作除法，并反复按对应的一次或二次因子展开余式，就得到分子次数分别小于 $1$ 或 $2$ 的各项。过程中可能产生多项式项，但原式和所有真分式项在无穷远处都趋于零，因此总多项式项只能为零。这便给出式~\eqref{eq:real-partial-fraction-decomposition}。
+
+为说明唯一性，将两个分解相减并乘以 $Q$。对任一不可约因子 $h$，设它在 $Q$ 中的次数为 $m$；所得多项式恒等式模 $h$ 化简后，只有分母为 $h^m$ 的项可能保留。其余因子与 $h$ 互素，故该项的分子被 $h$ 整除，而其次数小于 $\deg h$，因此分子必为零。将恒等式约去一个 $h$ 后重复此过程，再逐个处理其他因子，得所有系数均为零。
+\end{proof}
+
+\emph[caution]{重因子的各次幂必须全部列出；不可约二次因子上方要设一次多项式，不能一律设成常数。}将式~\eqref{eq:real-partial-fraction-decomposition} 通分后比较系数，可得到线性方程组；对一次因子，也可先代入其零点确定最高幂项的系数，再确定其余系数。分解之后只需处理以下四种基本形式：
+\[
+    \frac{A}{x-a},\qquad \frac{A}{(x-a)^k}\ (k\geq2),\qquad
+    \frac{Bx+C}{x^2+px+q},\qquad
+    \frac{Bx+C}{(x^2+px+q)^k}\ (k\geq2),
+\]
+其中 $p^2<4q$。前两类分别给出
+\[
+    \int\frac{A}{x-a}\,dx=A\ln|x-a|+C_0,
+    \qquad
+    \int\frac{A}{(x-a)^k}\,dx
+       =\frac{A}{1-k}(x-a)^{1-k}+C_0.
+\]
+这里用 $C_0$ 表示积分常数，以免与分子系数 $C$ 混淆。对后二类，记
+\[
+    Q_2(x)=x^2+px+q=\left(x+\frac p2\right)^2+\delta^2,
+    \qquad \delta=\sqrt{q-\frac{p^2}4}>0,
+\]
+并将分子写成 $Bx+C=(B/2)Q_2'(x)+(C-Bp/2)$，从而
+\begin{equation}
+    \int\frac{Bx+C}{Q_2(x)}\,dx
+       =\frac B2\ln Q_2(x)
+        +\frac{C-Bp/2}{\delta}\arctan\frac{x+p/2}{\delta}+C_0.
+    \label{eq:irreducible-quadratic-linear-numerator-integral}
+\end{equation}
+当 $k\geq2$ 时，同样的分子分解给出
+\[
+    \int\frac{Bx+C}{Q_2(x)^k}\,dx
+      =\frac{B}{2(1-k)}Q_2(x)^{1-k}
+        +\left(C-\frac{Bp}2\right)\int\frac{dy}{(y^2+\delta^2)^k},
+    \qquad y=x+\frac p2.
+\]
+最后的积分由式~\eqref{eq:quadratic-denominator-integral-recurrence} 递推到反正切积分。因此，\emph{任何实有理函数在每个无极点区间上的原函数，都可以写成有理函数、对数和反正切的有限组合。}
+
+\begin{example}
+\label{ex:partial-fractions-simple-factors}
+求 $\displaystyle\int\frac{x}{(x^2+1)(x-1)}\,dx$。
+\end{example}
+
+\begin{solve}
+设
+\[
+    \frac{x}{(x^2+1)(x-1)}=\frac{Ax+B}{x^2+1}+\frac D{x-1}.
+\]
+通分比较系数，得 $A+D=0$、$B-A=1$、$D-B=0$，故 $A=-1/2$、$B=D=1/2$。于是
+\begin{align*}
+    \int\frac{x}{(x^2+1)(x-1)}\,dx
+      &=-\frac12\int\frac{x}{x^2+1}\,dx
+          +\frac12\int\frac{dx}{x^2+1}+\frac12\int\frac{dx}{x-1}\\
+      &=-\frac14\ln(1+x^2)+\frac12\arctan x
+          +\frac12\ln|x-1|+C.
+\end{align*}
+结果分别在 $(-\infty,1)$ 和 $(1,\infty)$ 上成立。
+\end{solve}
+
+\begin{example}
+\label{ex:partial-fractions-repeated-factor}
+求 $\displaystyle\int\frac{x^3+1}{x(x-1)^3}\,dx$。
+\end{example}
+
+\begin{solve}
+对重因子 $(x-1)^3$ 列出全部三项，得到分解
+\[
+    \frac{x^3+1}{x(x-1)^3}
+      =-\frac1x+\frac2{x-1}+\frac1{(x-1)^2}+\frac2{(x-1)^3}.
+\]
+该恒等式可通过通分直接核对，故
+\[
+    \int\frac{x^3+1}{x(x-1)^3}\,dx
+      =-\ln|x|+2\ln|x-1|-\frac1{x-1}-\frac1{(x-1)^2}+C.
+\]
+这里分母的零点把定义域分为三个区间，积分常数应分别理解。
+\end{solve}
+
+\subsection{三角函数有理式的不定积分}
+\label{subsec:integrals-of-rational-trigonometric-expressions}
+
+设 $R(u,v)$ 是二元有理函数，即两个二元多项式之比。形如 $R(\sin x,\cos x)$ 的表达式称为\emph{三角函数有理式}（rational expression in trigonometric functions）；由 $\sin x,\cos x,\tan x,\cot x$ 等经有限次四则运算得到的表达式都属此类，而 $\sqrt{1+\sin^2x}$ 或 $\sin(x^2)$ 不属于这一类型。这里始终在原表达式的分母及所用三角函数均有定义的区间上积分。
+
+令
+\begin{equation}
+    t=\tan\frac x2,\qquad
+    \sin x=\frac{2t}{1+t^2},\qquad
+    \cos x=\frac{1-t^2}{1+t^2},\qquad
+    dx=\frac{2\,dt}{1+t^2}.
+    \label{eq:tangent-half-angle-substitution}
+\end{equation}
+在相邻奇数倍 $\pi$ 之间，这一换元可逆，反函数须按所在区间写成 $x=2\arctan t+2k\pi$，其中 $k\in\mathbb{Z}$。因此
+\begin{equation}
+    \int R(\sin x,\cos x)\,dx
+      =\int R\left(\frac{2t}{1+t^2},\frac{1-t^2}{1+t^2}\right)
+             \frac{2\,dt}{1+t^2},
+    \label{eq:rationalization-of-trigonometric-integral}
+\end{equation}
+右端为有理函数的不定积分。式~\eqref{eq:tangent-half-angle-substitution} 称为\emph{万能代换}（tangent half-angle substitution）；它说明三角函数有理式在各定义区间上都有初等原函数。不过，它会在 $x=(2k+1)\pi$ 处引入换元的分界；原被积函数若在这些点仍有定义，所得分段表达式需通过调整积分常数衔接，不能把换元失效误认为原函数在该处不存在。
+
+\begin{example}
+\label{ex:tangent-half-angle-integral}
+求 $\displaystyle\int\frac{dx}{5+4\sin x}$。
+\end{example}
+
+\begin{solve}
+令 $t=\tan(x/2)$，则
+\[
+    \int\frac{dx}{5+4\sin x}
+      =\int\frac{2\,dt}{5t^2+8t+5}
+      =\frac23\arctan\frac{5t+4}{3}+C.
+\]
+因此，在每个不跨越奇数倍 $\pi$ 的区间上，可以写成
+\[
+    \frac23\arctan\frac{5\tan(x/2)+4}{3}+C.
+\]
+由于 $5+4\sin x\geq1$，原被积函数在实轴上连续；上式中出现的分段来自换元和反正切主值分支，应按前述方式衔接。
+\end{solve}
+
+万能代换保证了可处理性，但具体计算常可利用奇偶结构选择更简单的变量。以下等式均指有理函数恒等式，并限于相应分母非零处。若 $R(u,-v)=-R(u,v)$，则可写成 $R(u,v)=vS(u,v^2)$，其中 $S$ 是有理函数；这是因为 $R(u,v)/v$ 关于 $v$ 为偶有理函数，故可写成 $v^2$ 的有理式。令 $t=\sin x$，有
+\[
+    \int R(\sin x,\cos x)\,dx
+       =\int S(t,1-t^2)\,dt.
+\]
+若 $R(-u,v)=-R(u,v)$，同理可写成 $R(u,v)=uS(u^2,v)$，令 $t=\cos x$，有
+\[
+    \int R(\sin x,\cos x)\,dx
+       =-\int S(1-t^2,t)\,dt.
+\]
+若 $R(-u,-v)=R(u,v)$，则在 $v\neq0$ 处可表示为 $S(u/v,v^2)$；令 $t=\tan x$，有
+\[
+    \int R(\sin x,\cos x)\,dx
+       =\int S\left(t,\frac1{1+t^2}\right)\frac{dt}{1+t^2}.
+\]
+最后一条只要求两个变量\emph{同时变号}时不变，不要求对每个变量分别为偶函数。这三种换元的共同作用，是利用一个微分因子或平方关系消去三角函数，从而减少有理式的次数。
+
+\begin{example}
+\label{ex:parity-substitutions-for-trigonometric-integrals}
+求 $\displaystyle\int\frac{\cos^3x}{1+\sin^2x}\,dx$ 和 $\displaystyle\int\frac{dx}{a^2\sin^2x+b^2\cos^2x}$，其中 $a,b>0$。
+\end{example}
+
+\begin{solve}
+第一个被积函数关于 $\cos x$ 为奇式，故用 $t=\sin x$，将 $\cos^2x$ 写成 $1-t^2$，得
+\[
+    \int\frac{\cos^3x}{1+\sin^2x}\,dx
+      =\int\frac{1-t^2}{1+t^2}\,dt
+      =2\arctan t-t+C
+      =2\arctan(\sin x)-\sin x+C.
+\]
+第二个被积函数同时变号不变，在 $\cos x\neq0$ 的区间上，将分子分母同除以 $\cos^2x$，再令 $t=\tan x$，得
+\[
+    \int\frac{dx}{a^2\sin^2x+b^2\cos^2x}
+       =\int\frac{dt}{a^2t^2+b^2}
+       =\frac1{ab}\arctan\left(\frac ab\tan x\right)+C.
+\]
+原被积函数处处有定义，后一表达式仍须在 $\cos x=0$ 处通过分支常数衔接。两例都比直接使用万能代换简洁。
+\end{solve}
+
+\subsection{无理函数的不定积分}
+\label{subsec:integrals-of-irrational-functions}
+
+本小节讨论教材中的两类无理函数：由线性分式的有理次根组成的有理式，以及二项式微分式。其核心都是选择新变量，使根式化为整数次幂；这并不意味着任意含根式的积分都能用同样方法求出初等原函数。
+
+先考虑
+\begin{equation}
+    \int R\left(x,\sqrt[m]{\frac{ax+b}{cx+d}}\right)\,dx,
+    \qquad m\in\mathbb{Z}_{>0},\quad ad-bc\neq0,
+    \label{eq:linear-fraction-radical-integral}
+\end{equation}
+其中 $R$ 为二元有理函数。令 $t=\sqrt[m]{(ax+b)/(cx+d)}$，则由 $t^m=(ax+b)/(cx+d)$ 解得
+\begin{equation}
+    x=\frac{dt^m-b}{a-ct^m},\qquad
+    dx=\frac{m(ad-bc)t^{m-1}}{(a-ct^m)^2}\,dt.
+    \label{eq:linear-fraction-radical-substitution}
+\end{equation}
+将式~\eqref{eq:linear-fraction-radical-substitution} 代入式~\eqref{eq:linear-fraction-radical-integral}，得到
+\[
+    \int R\left(\frac{dt^m-b}{a-ct^m},t\right)
+        \frac{m(ad-bc)t^{m-1}}{(a-ct^m)^2}\,dt,
+\]
+它是有理函数的不定积分。条件 $ad-bc\neq0$ 排除了线性分式为常数的退化情形，也保证逆变换的非退化性。实际应用中还须排除 $cx+d=0$、$a-ct^m=0$ 以及 $R$ 的其他分母零点；偶次根取非负实根，并在所选开区间上固定分支。若 $t=0$ 使逆变换导数为零，可先在其两侧适用的区间上计算，再核查结果能否延拓。
+
+若同时出现同一个线性分式的若干有理次幂，可取这些指数分母的最小公倍数 $M$，令 $t=((ax+b)/(cx+d))^{1/M}$，将它们同时化成 $t$ 的整数次幂。例~\ref{ex:common-denominator-substitution-for-radicals} 中的 $x=t^6$ 正是这一原则的简单情形。
+
+\begin{example}
+\label{ex:linear-fraction-radical-rationalization}
+求 $\displaystyle\int\sqrt{\frac{x-1}{x+1}}\,dx$，其中 $x>1$。
+\end{example}
+
+\begin{solve}
+令 $t=\sqrt{(x-1)/(x+1)}$，则 $0<t<1$，且
+\[
+    x=\frac{1+t^2}{1-t^2},\qquad dx=\frac{4t}{(1-t^2)^2}\,dt.
+\]
+因此
+\begin{align*}
+    \int\sqrt{\frac{x-1}{x+1}}\,dx
+       &=\int\frac{4t^2}{(1-t^2)^2}\,dt\\
+       &=\frac{2t}{1-t^2}-\int\frac{2\,dt}{1-t^2}
+        =\frac{2t}{1-t^2}-\ln\frac{1+t}{1-t}+C.
+\end{align*}
+由 $2t/(1-t^2)=\sqrt{x^2-1}$、$(1+t)/(1-t)=x+\sqrt{x^2-1}$，代回得
+\[
+    \int\sqrt{\frac{x-1}{x+1}}\,dx
+       =\sqrt{x^2-1}-\ln\bigl(x+\sqrt{x^2-1}\bigr)+C.
+    \qedhere
+\]
+\end{solve}
+
+第二类是\emph{二项式微分式}（binomial differential）
+\begin{equation}
+    x^m(a+bx^n)^p\,dx,
+    \qquad m,n,p\in\mathbb{Q},\quad n\neq0,\quad ab\neq0.
+    \label{eq:binomial-differential}
+\end{equation}
+为避免实有理幂的分支歧义，先限制在 $x>0$、$a+bx^n>0$ 的开区间上；其他有定义的实分支需另外核对。令 $t=x^n$，则
+\begin{equation}
+    \int x^m(a+bx^n)^p\,dx
+       =\frac1n\int t^q(a+bt)^p\,dt,
+    \qquad q=\frac{m+1}{n}-1.
+    \label{eq:binomial-differential-standard-form}
+\end{equation}
+这里 $q$ 表示换元后 $t$ 的指数；也有资料用 $(m+1)/n$ 作为参数，二者相差 $1$，判定整性时等价。
+
+\begin{theorem}[二项式微分式的初等可积条件]
+\label{thm:chebyshev-binomial-integrals}
+在式~\eqref{eq:binomial-differential} 的非退化条件下，二项式微分式有初等原函数，当且仅当
+\begin{equation}
+    p\in\mathbb{Z},\qquad q\in\mathbb{Z},\qquad
+    p+q\in\mathbb{Z}
+    \label{eq:binomial-elementary-integrability-conditions}
+\end{equation}
+三者至少有一个成立。这一结论称为\emph{切比雪夫二项式微分式定理}（Chebyshev's theorem on binomial differentials）。
+\end{theorem}
+
+\begin{proof}[充分性证明]
+若 $p$ 为整数，将 $q$ 写成 $s/k$，其中 $s\in\mathbb{Z}$、$k\in\mathbb{Z}_{>0}$，令 $t=u^k$，则
+\[
+    t^q(a+bt)^p\,dt=k u^{s+k-1}(a+bu^k)^p\,du,
+\]
+为有理表达式。若 $q$ 为整数，将 $p$ 写成 $s/k$，令 $a+bt=u^k$，则 $t=(u^k-a)/b$、$dt=(k/b)u^{k-1}\,du$，而 $(a+bt)^p=u^s$，所以也得到有理函数的积分。
+
+最后，若 $r=p+q$ 为整数，仍写 $p=s/k$，把被积式改写为 $t^r(b+a/t)^p\,dt$，令
+\[
+    b+\frac at=u^k,\qquad
+    t=\frac{a}{u^k-b},\qquad
+    dt=-\frac{ak u^{k-1}}{(u^k-b)^2}\,du.
+\]
+于是被积式成为
+\[
+    -\frac{k a^{r+1}u^{s+k-1}}{(u^k-b)^{r+2}}\,du,
+\]
+仍为有理表达式。这就证明了三种情形均可化为有理函数积分。必要性的证明超出本章范围，此处引用教材给出的切比雪夫结论。
+\end{proof}
+
+若 $a=0$、$b=0$ 或 $n=0$，原式通常直接退化为常数倍的幂函数，应先单独处理，不能套用定理中的非退化判据。三种换元也允许同时适用，应以所得有理式最简单为准。
+
+\begin{example}
+\label{ex:binomial-integrability-and-nonintegrability}
+比较 $\displaystyle\int\frac{dx}{\sqrt{1+x^2}}$ 与 $\displaystyle\int\frac{dx}{\sqrt{x+x^3}}$ 在 $x>0$ 上的初等可积性。
+\end{example}
+
+\begin{solve}
+第一个积分中 $m=0$、$n=2$、$p=-1/2$，故 $q=-1/2$、$p+q=-1\in\mathbb{Z}$，符合第三种情形。依照该情形令 $u=\sqrt{1+x^{-2}}>1$，也就是 $x=(u^2-1)^{-1/2}$，则
+\[
+    \int\frac{dx}{\sqrt{1+x^2}}
+      =-\int\frac{du}{u^2-1}
+      =\frac12\ln\frac{u+1}{u-1}+C
+      =\ln\bigl(x+\sqrt{1+x^2}\bigr)+C.
+\]
+这与式~\eqref{eq:reciprocal-sum-radical-integral} 在 $a=1$ 时一致。对第二个积分，先写成
+\[
+    \int x^{-1/2}(1+x^2)^{-1/2}\,dx.
+\]
+此时 $m=-1/2$、$n=2$、$p=-1/2$，故 $q=-3/4$、$p+q=-5/4$，三者均非整数。由定理的必要性，这个积分不能用初等函数表示；但被积函数在 $(0,\infty)$ 连续，因而仍有原函数。这里区分的是原函数的表达形式，而非它的存在与否。
+\end{solve}
+
+\section*{习题六}
+\addcontentsline{toc}{section}{习题六}
+
+% 第七至十七章目录根据用户提供的 8 张教材目录图片整理。

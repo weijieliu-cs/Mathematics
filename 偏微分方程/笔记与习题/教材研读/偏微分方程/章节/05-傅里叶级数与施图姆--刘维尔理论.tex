@@ -1,0 +1,125 @@
+% !TeX root = ../偏微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{4} % 保留原书章号。
+\chapter{傅里叶级数与施图姆--刘维尔理论}
+\label{chap:fourier-series}
+
+边界条件把允许的空间振型限制为一族特殊函数。把一般初值分解为这些振型后，偏微分方程可化为一列时间常微分方程。本章说明这种分解为什么成立。
+
+\section{正交函数系与傅里叶系数}
+在实空间 $L^2(a,b)$ 上定义内积 $(f,g)=\int_a^b fg\,dx$。若 $(\phi_j,\phi_k)=0$（$j\ne k$）且 $\|\phi_k\|_2=1$，称其为规范正交系。使 $\|f-\sum_{k=1}^N a_k\phi_k\|_2$ 最小的系数为 $a_k=(f,\phi_k)$：展开平方后，关于 $a_k$ 的部分恰是 $\sum_k|a_k-(f,\phi_k)|^2$。
+
+这与平面向量的坐标分解完全类似。向量沿两条垂直轴的投影互不干扰，函数沿正交函数的投影也互不干扰，只是点积换成积分。未规范化时，系数应除以基函数长度的平方，即 $(f,X_k)/(X_k,X_k)$。以正弦函数为例，积化和差公式给出
+\[
+ \int_0^\ell\sin\frac{j\pi x}{\ell}\sin\frac{k\pi x}{\ell}\,dx
+ =\begin{cases}0,&j\ne k,\\ \ell/2,&j=k,\end{cases}
+\]
+因为非零整数频率的余弦在整个区间上积分为零。于是只需把待展开函数乘以第 $k$ 个正弦并积分，其他频率便全部消失。这解释了系数公式中的 $2/\ell$，也提供了检查归一化常数的方法。
+
+在 $(-\ell,\ell)$ 上，\emph{傅里叶级数（Fourier series）}的约定为
+\begin{equation}
+ f(x)\sim\frac{a_0}{2}+\sum_{k=1}^\infty\left(a_k\cos\frac{k\pi x}{\ell}+b_k\sin\frac{k\pi x}{\ell}\right),
+ \quad
+ a_k=\frac1\ell\int_{-\ell}^\ell f(x)\cos\frac{k\pi x}{\ell}\,dx,
+ \quad
+ b_k=\frac1\ell\int_{-\ell}^\ell f(x)\sin\frac{k\pi x}{\ell}\,dx.
+ \label{eq:fourier-series-coefficients}
+\end{equation}
+其中 $a_0$ 按同一公式取 $k=0$。符号 $\sim$ 先表示按此计算系数，尚未指定收敛意义。区间 $(0,\ell)$ 上的正弦系数为 $\frac2\ell\int_0^\ell f\sin(k\pi x/\ell)\,dx$，余弦系数同理；它们分别对应奇延拓与偶延拓。延拓的端点光滑性会影响系数衰减。
+
+\section{收敛方式与逐项运算}
+\begin{theorem}[傅里叶收敛的两种基本形式]
+若 $f\in L^2(-\ell,\ell)$，其对称部分和在 $L^2$ 范数下收敛到 $f$，并有帕塞瓦尔等式（Parseval's identity）
+\[
+ \frac1\ell\int_{-\ell}^\ell |f|^2\,dx
+ =\frac{|a_0|^2}{2}+\sum_{k=1}^\infty(|a_k|^2+|b_k|^2).
+\]
+若 $f$ 的周期延拓分段 $C^1$，则在每一点傅里叶级数收敛到 $(f(x-)+f(x+))/2$，周期端点按周期延拓理解。
+\end{theorem}
+\begin{proof}[证明要点]
+有限和的正交性给出勾股恒等式及贝塞尔不等式。三角多项式在 $L^2$ 中稠密，因此正交投影误差趋于零，极限即帕塞瓦尔等式。稠密性可由连续周期函数的均匀三角多项式逼近和连续函数在 $L^2$ 中的稠密性得到。逐点结论则把部分和写成狄利克雷核积分，用对称差商和分段 $C^1$ 条件控制振荡积分；它不是仅由 $L^2$ 收敛推出的。
+\end{proof}
+跳跃附近的部分和会出现不随截断阶数消失的相对超调，称吉布斯现象（Gibbs phenomenon）；振荡区域会缩小，这与 $L^2$ 收敛并不矛盾。逐项微分尤其需要谨慎：若导数级数一致收敛且原级数在一点收敛，则可逐项求导；仅有原级数逐点收敛远远不够。
+
+\begin{example}[同一函数的两种展开]
+把 $g(x)=1$ 在 $(0,\ell)$ 上分别展开为余弦级数与正弦级数。
+\end{example}
+\begin{solve}
+余弦展开只有常数项，正好是 $1$。正弦展开的系数为
+\[
+ b_k=\frac2\ell\int_0^\ell\sin\frac{k\pi x}{\ell}\,dx
+ =\frac{2(1-(-1)^k)}{k\pi},\qquad
+ 1=\frac4\pi\sum_{j=0}^\infty\frac{\sin((2j+1)\pi x/\ell)}{2j+1}
+ \quad(0<x<\ell).
+\]
+正弦级数在端点恒为零，因而不能在闭区间上一致收敛到常数 $1$，但可以在 $L^2(0,\ell)$ 中收敛到它。物理上，绝热杆允许常数温度永远不变，所以余弦零模态恰当；突然把两端压到零温的杆仍可用这组正弦系数表示内部初温，但在初始边界角点出现不相容。选择哪种展开由边界条件决定，不是由函数外观决定。
+\end{solve}
+
+\subsection{为什么衰减速度与光滑性有关}
+对 $g\in C^2([0,\ell])$ 且 $g(0)=g(\ell)=0$，两次分部积分给出
+\[
+ \int_0^\ell g\sin(\omega_kx)\,dx
+ =\frac1{\omega_k}\int_0^\ell g'\cos(\omega_kx)\,dx
+ =-\frac1{\omega_k^2}\int_0^\ell g''\sin(\omega_kx)\,dx,
+ \qquad \omega_k=k\pi/\ell.
+\]
+故 $|b_k|\le 2\|g''\|_{L^1}/(\ell\omega_k^2)$。每多做一次合法的分部积分，就可能多得到一个 $k^{-1}$ 因子，但同时会出现新的端点项，不能只凭“函数很光滑”就断言任意快衰减。周期展开考察的是周期延拓的光滑性；原函数在区间内光滑而在拼接处跳跃时，系数仍可能只有 $k^{-1}$ 的衰减。
+
+\section{正则施图姆--刘维尔问题}
+考虑有限区间上的\emph{施图姆--刘维尔问题（Sturm--Liouville problem）}
+\begin{equation}
+ -(pX')'+qX=\lambda wX,\qquad a<x<b,
+ \label{eq:sturm-liouville}
+\end{equation}
+其中 $p\in C^1([a,b])$、$q,w\in C([a,b])$ 为实函数，$p,w>0$。两端分别规定 $\alpha_1X(a)+\alpha_2p(a)X'(a)=0$ 和 $\beta_1X(b)+\beta_2p(b)X'(b)=0$，每一对实系数不同时为零。存在非零解的参数 $\lambda$ 称\emph{本征值（eigenvalue）}，该解称本征函数（eigenfunction）。
+
+若 $X_j,X_k$ 对应不同本征值，两式交叉相乘相减再积分，得到
+\[
+ (\lambda_j-\lambda_k)\int_a^b wX_jX_k\,dx
+ =\bigl[p(X_jX_k'-X_j'X_k)\bigr]_a^b=0.
+\]
+边界项为零正是分离自伴边界条件的作用，因此本征函数在带权内积 $(f,g)_w=\int_a^b wfg$ 下正交。
+
+\begin{theorem}[正则谱结论]
+在上述假设下，本征值均为实数、各为单本征值，可递增排列为趋于 $+\infty$ 的序列；规范化本征函数构成 $L^2((a,b),w\,dx)$ 的正交基。
+\end{theorem}
+正交性已证；实性同样由共轭乘积积分得到。选取足够大的正数平移算子后，其逆算子自伴、正且紧，应用附录\ref{app:functional}的紧自伴谱定理得到离散性与完备性；单重性来自二阶常微分方程的初值唯一性和一端的一个边界约束。一般罗宾条件下可能存在负本征值，不能把实谱误写成正谱。
+
+\section{常见谱问题与零模态}
+对 $-X''=\lambda X$，将方程乘 $X$ 并积分可得
+\[
+ \lambda\int_0^\ell X^2\,dx=\int_0^\ell(X')^2\,dx-[XX']_0^\ell.
+\]
+狄利克雷、诺伊曼和一端各取一种的混合条件均使边界项为零，因而没有负本征值。直接解常系数方程得
+\[
+\begin{array}{c|c|c}
+ \text{边界条件}&\lambda&X\text{（相差非零常数）}\\\hline
+ X(0)=X(\ell)=0&(k\pi/\ell)^2,\ k\ge1&\sin(k\pi x/\ell)\\
+ X'(0)=X'(\ell)=0&(k\pi/\ell)^2,\ k\ge0&\cos(k\pi x/\ell)\\
+ X(0)=X'(\ell)=0&((k+\tfrac12)\pi/\ell)^2,\ k\ge0&\sin((k+\tfrac12)\pi x/\ell)
+\end{array}
+\]
+诺伊曼的 $k=0$ 模态是常数，对热方程意味着平均值不衰减。其余两类的最小本征值严格为正。
+
+以零端点为例，可以逐一检查三个参数范围，而不预先猜正弦函数。若 $\lambda=0$，则 $X=ax+b$，两端为零迫使 $X=0$；若 $\lambda=-\mu^2<0$，则 $X=A\cosh(\mu x)+B\sinh(\mu x)$，同样只有零解；若 $\lambda=\omega^2>0$，则 $X=A\cos(\omega x)+B\sin(\omega x)$，由 $X(0)=0$ 得 $A=0$，由 $X(\ell)=0$ 与 $B\ne0$ 得 $\sin(\omega\ell)=0$。因此 $\omega=k\pi/\ell$。离散频率并非人为截断的结果，而是两端条件共同筛选的结果。
+
+在诺伊曼条件下，$\lambda=0$ 对应的常数函数不能被丢掉。对波动方程，它的时间系数满足 $a_0''=0$，表示整根自由弦可作均匀平移；对热方程，系数满足 $a_0'=0$，表示平均温度守恒。同一个空间零模态，在不同时间方程中具有不同物理含义。
+
+\section{例题与习题}
+\begin{example}
+求 $g(x)=x(\ell-x)$ 在 $(0,\ell)$ 上的正弦展开。
+\end{example}
+\begin{solve}
+令 $\omega_k=k\pi/\ell$。连续分部积分两次，利用 $g(0)=g(\ell)=0$、$g''=-2$，得
+\[
+ b_k=\frac2\ell\int_0^\ell g(x)\sin(\omega_kx)\,dx
+ =\frac{4\ell^2(1-(-1)^k)}{k^3\pi^3}.
+\]
+因此仅奇数项非零，且系数绝对可和，级数一致收敛；在区间内等于 $g$，端点也取零值。该衰减阶是边界条件与两次分部积分共同产生的。
+\end{solve}
+\begin{enumerate}
+ \item 求常数函数 $1$ 的正弦展开，解释为何级数在端点不恢复原取值。
+ \item 证明区间上满足零端点的光滑函数有 $\int|v'|^2\ge(\pi/\ell)^2\int|v|^2$。
+ \item 完整讨论混合边界谱问题中 $\lambda=0$ 的情况，避免除以 $\sqrt\lambda$ 时漏解。
+\end{enumerate}
+

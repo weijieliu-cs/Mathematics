@@ -1,0 +1,122 @@
+% !TeX root = ../泛函分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{5} % 保留原书章号。
+\chapter{Hahn--Banach 定理与凸集分离}
+\label{chap:fa-hahn-banach}
+
+连续线性泛函可以看作对向量的标量测量。Hahn--Banach 定理说明，在子空间上已知的线性测量能够保持原有控制而延拓，从而保证对偶空间足够丰富。
+
+\section{受次线性泛函控制的延拓}
+实线性空间上的函数 $p:X\to\mathbb R$ 称为次线性泛函（sublinear functional），若 $p(x+y)\leq p(x)+p(y)$ 且 $p(tx)=tp(x)$ 对 $t\geq0$ 成立。
+
+范数是次线性泛函，但次线性泛函可以不对称，也可以取负值。例如 $\mathbb R$ 上的 $p(t)=\max(t,2t)$ 满足上述条件；$p(1)=2$、$p(-1)=-1$，所以不能把 $p$ 当作绝对值使用。定理中的 $f\leq p$ 是逐点的单侧控制，只有在 $p(x)=C\|x\|$ 这样的对称情形下，才自然转化为 $|f(x)|\leq C\|x\|$。
+\begin{theorem}[实 Hahn--Banach 定理]\label{thm:fa-hahn-banach-real}
+设 $M\subset X$ 为实线性子空间，$p$ 次线性，$f:M\to\mathbb R$ 线性且 $f(x)\leq p(x)$。则存在全空间线性泛函 $F$，使 $F|_M=f$ 且 $F\leq p$。
+\end{theorem}
+\begin{proof}
+先增加一个方向 $z\notin M$，令 $g(x+tz)=f(x)+tc$。当 $t>0$ 或 $t<0$ 时，要求 $g\leq p$ 分别等价于
+\[
+ \sup_{x\in M}\{f(x)-p(x-z)\}\leq c
+ \leq\inf_{y\in M}\{p(y+z)-f(y)\}.
+\]
+左侧不超过右侧，因为
+\[
+ f(x)+f(y)=f(x+y)\leq p(x+y)\leq p(x-z)+p(y+z).
+\]
+两端分别具有有限上界和有限下界，故可选 $c$，完成一步延拓。
+
+这里唯一未知的是新方向上的数值 $c=g(z)$。例如 $t>0$ 时，将 $f(x)+tc\leq p(x+tz)$ 除以 $t$，得到 $c\leq p(x/t+z)-f(x/t)$；$x/t$ 遍历 $M$，就得到右端所有上界。$t=-s<0$ 时，同样整理得到 $c\geq f(x/s)-p(x/s-z)$。只要每个下界都不超过每个上界，就能在中间选择一个实数；这正是次线性条件在证明中完成的工作。
+
+将所有受 $p$ 控制、延拓 $f$ 的线性泛函按“定义域包含且数值一致”排序。任一链上的泛函之并仍是受控线性泛函，因而是链的上界。Zorn 引理（附录\ref{app:fa-topology}）给出极大延拓。若其定义域不是 $X$，一步延拓又能扩大定义域，与极大性矛盾。
+\end{proof}
+
+\section{保范延拓与复数情形}
+\begin{corollary}\label{cor:fa-norm-preserving-extension}
+若 $M$ 是实或复赋范空间 $X$ 的线性子空间，每个 $f\in M^*$ 都有延拓 $F\in X^*$，满足 $\|F\|=\|f\|$。$M$ 无须闭，$X$ 无须完备。
+\end{corollary}
+\begin{proof}
+实情形取 $p(x)=\|f\|\|x\|$。所得 $F\leq p$ 同时应用于 $-x$，得 $|F(x)|\leq\|f\|\|x\|$；限制到 $M$ 又给出范数反向估计。
+
+复情形先将 $\operatorname{Re}f$ 作为实线性泛函延拓为 $u$，再令 $F(x)=u(x)-\mathrm i u(\mathrm ix)$。由实线性可检验 $F(\mathrm ix)=\mathrm iF(x)$，故 $F$ 复线性，且 $F|_M=f$。选择 $|\alpha|=1$ 使 $\alpha F(x)=|F(x)|$，便有 $|F(x)|=u(\alpha x)\leq\|f\|\|x\|$。
+\end{proof}
+这一结论针对标量值泛函；它不保证任意向量值有界算子都能保范延拓。
+
+从线性代数看，把一个子空间上的泛函延拓出去并不难：补足一组基，再任意指定新基向量的值即可。Hahn--Banach 定理的内容在于这些值不能任意选择，必须同时服从全空间上的同一个范数界。另一方面，若子空间稠密，连续延拓由极限唯一决定；一般不稠密的子空间没有这种唯一性，保范延拓可能有多个。
+
+\section{支撑泛函与范数的对偶刻画}
+\begin{proposition}\label{prop:fa-norming-functional}
+对每个非零 $x\in X$，存在 $f\in X^*$ 使 $\|f\|=1$ 且 $f(x)=\|x\|$。因此
+\begin{equation}
+ \|x\|=\sup_{\|f\|\leq1}|f(x)|.
+ \label{eq:fa-dual-norm}
+\end{equation}
+\end{proposition}
+\begin{proof}
+在一维子空间上定义 $f_0(\alpha x)=\alpha\|x\|$，其范数为一。由推论\ref{cor:fa-norm-preserving-extension}延拓即可。上确界不超过 $\|x\|$ 来自对偶范数定义，上述泛函给出相反不等式。
+\end{proof}
+由式\eqref{eq:fa-dual-norm}，典范映射 $J:X\to X^{**}$ 为线性等距嵌入。此外，对任意 $T\in\mathcal B(X,Y)$，
+\[
+ \|T\|=\sup_{\|x\|\leq1}\sup_{\|g\|\leq1}|g(Tx)|=\|T'\|.
+\]
+注意，此处为给定向量选择一个达到其范数的泛函，并不声称每个给定泛函都在单位球上达到自己的范数。
+
+二者的量词次序不同。式\eqref{eq:fa-dual-norm}先固定 $x$，再允许选择依赖于 $x$ 的 $f$；“每个泛函达到范数”则先固定 $f$，再寻找某个单位向量。在 $\ell^1$ 上取 $f(x)=\sum_j a_jx_j$、$a_j=1-1/(j+1)$，则 $\|f\|=\sup_ja_j=1$。然而对任意非零 $x$，有 $|f(x)|\leq\sum_ja_j|x_j|<\|x\|_1$，所以它在闭单位球上不能达到模为一的值。后面将看到，自反空间具有更强的范数达到性质。
+
+\section{凸集的分离}
+\begin{theorem}[点与闭凸集的严格分离]\label{thm:fa-separation}
+设 $C$ 是实赋范空间 $X$ 的非空闭凸子集，$x_0\notin C$。则存在 $f\in X^*$ 及实数 $a$，使
+\[
+ \sup_{c\in C}f(c)<a<f(x_0).
+\]
+在复空间中用 $\operatorname{Re}f$ 代替 $f$，结论仍成立。
+\end{theorem}
+\begin{proof}
+先考虑含零的开凸集 $U$。其 Minkowski 泛函定义为 $p_U(x)=\inf\{t>0:x\in tU\}$。由于 $U$ 含一个零点邻域，它吸收每个向量，故 $p_U$ 有限；由凸性验证次线性，且 $U=\{x:p_U(x)<1\}$。若 $z\notin U$，则 $p_U(z)\geq1$。在 $\mathbb Rz$ 上令 $h(tz)=tp_U(z)$；当 $t<0$ 时，由 $p_U(z)+p_U(-z)\geq0$ 仍有 $h(tz)\leq p_U(tz)$。Hahn--Banach 定理给出 $h$ 的延拓 $f\leq p_U$。若 $B(0,r)\subset U$，则 $|f(x)|\leq\|x\|/r$，所以 $f$ 连续，且 $f(u)<1\leq f(z)$。
+
+回到原问题，选 $r>0$ 使 $x_0\notin C+B(0,r)$，再将此开凸集平移为含零的开凸集。上一步给出非零连续泛函，使 $f(c+v)<f(x_0)$ 对 $c\in C$、$\|v\|<r$ 成立。对 $v$ 取上确界，得 $f(c)+r\|f\|\leq f(x_0)$，从而具有严格正间隙。复空间先在底层实空间分离，再以 $F(x)=f(x)-\mathrm if(\mathrm ix)$ 恢复复线性泛函。
+\end{proof}
+两个不交非空凸集若其中一个开，同样可通过对其差集分离零点，得到非零连续实线性泛函的非严格分离。没有开性或正距离等条件时，不能任意要求统一的严格间隙。
+
+\begin{example}[分离定理的二维图景]
+在欧氏平面中，令 $C=\{(u,v):(u-2)^2+v^2\leq1\}$，$x_0=(0,0)$。取 $f(u,v)=-u$，则 $\sup_C f=-1< -1/2<f(x_0)=0$。
+\end{example}
+\begin{solve}
+圆盘中横坐标 $u\geq1$，所以 $f\leq-1$；直线 $f=-1/2$，也就是 $u=1/2$，位于圆盘和原点之间。一般分离定理把这条直线推广为超平面 $\{x:f(x)=a\}$，并保证无限维中也能找到一个连续线性测量，把整个闭凸集与给定的外部点区分开。定理并不要求闭凸集有界。
+\end{solve}
+
+分离证明中使用的 Minkowski 泛函也可以视为相对于凸集的“尺度”。为看清其性质，设 $U$ 开、凸且包含零。若 $a>p_U(x)$、$b>p_U(y)$，则 $x/a,y/b\in U$，由凸性
+\[
+ \frac{x+y}{a+b}=\frac a{a+b}\frac xa+\frac b{a+b}\frac yb\in U,
+\]
+故 $p_U(x+y)\leq a+b$，让 $a,b$ 分别下降到下确界即可得次可加性。正齐次性由定义中的缩放得到。若 $p_U(x)<1$，可选 $t<1$ 使 $x\in tU\subset U$；若 $x\in U$，由开放性，可把 $x$ 沿射线稍微放大后仍留在 $U$，故 $p_U(x)<1$。这解释了 $U=\{p_U<1\}$，也解释了为何证明中要先把凸集扩大为一个开集，再使用代数形式的 Hahn--Banach 定理。
+
+\section{距离、闭包与零化子}
+\begin{proposition}\label{prop:fa-distance-dual}
+若 $M$ 是闭线性子空间，则
+\[
+ \operatorname{dist}(x,M)=
+ \sup\{|f(x)|:f\in X^*,\ \|f\|\leq1,\ f|_M=0\}.
+\]
+\end{proposition}
+\begin{proof}
+对右侧每个 $f$，$|f(x)|=|f(x-m)|\leq\|x-m\|$，故上确界不超过距离。反向在商空间 $X/M$ 的向量 $x+M$ 上应用命题\ref{prop:fa-norming-functional}，再与商映射复合，即得到所需泛函；$x\in M$ 时两侧均为零。
+\end{proof}
+于是对任意线性子空间 $M$，向量 $x$ 属于 $\overline M$ 当且仅当所有在 $M$ 上消失的连续泛函也在 $x$ 上消失。特别地，
+\[
+ \overline{\operatorname{Ran}T}=Y\quad\Longleftrightarrow\quad\ker T'=\{0\}.
+\]
+
+\section{例题与习题}
+\begin{example}[支撑泛函可以不唯一]
+在 $\mathbb R^2$ 的 $\ell^1$ 范数下，$x=(1,0)$ 的范数为一，而 $f_a(u,v)=u+av$ 对每个 $|a|\leq1$ 都满足 $\|f_a\|=1$、$f_a(x)=1$。
+\end{example}
+\begin{solve}
+$|u+av|\leq|u|+|v|$ 给出范数上界；在 $(1,0)$ 处达到一。这说明延拓存在性不包含唯一性，支撑泛函的几何性质还取决于范数。
+\end{solve}
+\begin{enumerate}
+ \item 证明有限维真子空间总可以被一个非零连续泛函零化。
+ \item 在欧氏平面中分离原点与闭球 $\{x:\|x-(2,0)\|_2\leq1\}$。
+ \item 证明赋范空间中任意两个不同向量可被连续线性泛函区分。
+ \item 对 $a\in\ell^\infty$、$a\ne0$，证明 $f(x)=\sum_ja_jx_j$ 在 $\ell^1$ 的闭单位球上达到范数，当且仅当某个坐标满足 $|a_j|=\|a\|_\infty$。
+\end{enumerate}
+

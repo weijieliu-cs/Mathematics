@@ -1,0 +1,87 @@
+% !TeX root = ../动手学强化学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{强化学习所需的数学基础}
+\label{ch:rl-math}
+
+强化学习中的大部分更新都具有“旧估计加上学习率乘预测误差”的形式。理解这一形式，需要同时回答误差的期望是什么、样本是否独立，以及更新所对应的方程是否具有稳定解。本章补充后文直接使用的概率、线性代数和优化工具。
+
+\section{随机变量、条件期望与全期望公式}
+
+设随机变量 $X$ 的离散取值为 $x_i$，其期望为 $\mathbb E[X]=\sum_i x_i\Pr(X=x_i)$，这里要求绝对可积。给定正概率事件 $Y=y$，条件期望为
+\[
+\mathbb E[X\mid Y=y]=\sum_i x_i\Pr(X=x_i\mid Y=y).
+\]
+将 $y$ 换成随机变量 $Y$，所得 $\mathbb E[X\mid Y]$ 本身也是随机变量。\emph{全期望公式}（law of total expectation）是 $\mathbb E[X]=\mathbb E[\mathbb E[X\mid Y]]$；在离散情形中，它由联合概率分解和求和得到。存在更细信息时，塔式性质写为 $\mathbb E[\mathbb E[X\mid Y,Z]\mid Y]=\mathbb E[X\mid Y]$。
+
+\begin{example}[先区分后继，再计算回报]
+某动作以概率 $0.7$ 到达状态 $u$，以概率 $0.3$ 到达状态 $v$；即时奖励恒为 $1$，两个后继的未来期望回报分别为 $4$ 和 $-2$。当 $\gamma=0.9$ 时，该动作的期望回报是
+\[
+1+0.9(0.7\times4+0.3\times(-2))=2.98.
+\]
+先对后继状态条件化，再按后继概率平均，正是贝尔曼方程的基本计算。
+\end{example}
+
+条件独立 $X\perp Z\mid Y$ 意味着已知 $Y$ 后，进一步知道 $Z$ 不改变 $X$ 的条件分布。它不意味着 $X$ 与 $Z$ 无条件独立。MDP 的状态正是为了使当前状态与动作足以确定下一步的条件分布；把相关历史压缩掉需要建模依据。
+
+\section{样本均值、误差与集中现象}
+
+设 $X_1,\ldots,X_n$ 独立同分布，均值为 $\mu$、有限方差为 $\sigma^2$。样本均值 $\widehat\mu_n=n^{-1}\sum_{i=1}^nX_i$ 满足 $\mathbb E[\widehat\mu_n]=\mu$ 与 $\operatorname{Var}(\widehat\mu_n)=\sigma^2/n$。对任意平方可积估计量 $\widehat\mu$，展开平方得到
+\[
+\mathbb E[(\widehat\mu-\mu)^2]
+=\operatorname{Var}(\widehat\mu)+(\mathbb E[\widehat\mu]-\mu)^2.
+\]
+右侧分别是方差与偏差的平方。无偏只约束平均误差，不保证单次估计准确。
+
+由 $n\widehat\mu_n=(n-1)\widehat\mu_{n-1}+X_n$ 得到
+\begin{equation}
+\widehat\mu_n=\widehat\mu_{n-1}+\frac1n(X_n-\widehat\mu_{n-1}).
+\label{eq:rl-incremental-mean}
+\end{equation}
+例如依次观测 $2,4,3$，估计依次为 $2,3,3$，无需存储全部数据。若将 $1/n$ 换成常数 $\alpha\in(0,1]$，则
+\[
+Q_n=(1-\alpha)^nQ_0+\alpha\sum_{i=1}^n(1-\alpha)^{n-i}X_i.
+\]
+近期数据权重更大，适合追踪变化；在有持续噪声时，固定步长一般不会使估计波动消失。
+
+独立同分布且 $\mathbb E|X_1|<\infty$ 时，强大数定律保证 $\widehat\mu_n\to\mu$ 几乎必然成立。若样本还满足 $a\leq X_i\leq b$ 且 $a<b$，霍夫丁不等式（Hoeffding's inequality）\cite{hoeffding}给出
+\[
+\Pr(|\widehat\mu_n-\mu|\geq\epsilon)
+\leq2\exp\!\left(-\frac{2n\epsilon^2}{(b-a)^2}\right),\qquad \epsilon>0.
+\]
+这里引用该集中不等式，不证明指数矩界。它描述固定样本量下的误差概率；相关轨迹样本、自适应停止后的均值或经过反复筛选的数据，需要另行核对适用条件。
+
+\section{向量、矩阵与压缩映射}
+
+有限状态价值可写成向量 $v\in\mathbb R^n$。定义 $\|v\|_\infty=\max_i|v_i|$，矩阵诱导范数为 $\|M\|_\infty=\max_i\sum_j|M_{ij}|$。若 $P$ 是非负且每行和为一的随机矩阵，则 $\|P\|_\infty=1$；因此 $0\leq\gamma<1$ 时矩阵级数 $\sum_{k=0}^\infty\gamma^kP^k$ 按范数收敛。其部分和与 $I-\gamma P$ 相乘等于 $I-\gamma^{N+1}P^{N+1}$，令 $N\to\infty$ 得
+\begin{equation}
+(I-\gamma P)^{-1}=\sum_{k=0}^\infty\gamma^kP^k.
+\label{eq:rl-matrix-inverse}
+\end{equation}
+
+\begin{theorem}[有限维压缩映射]
+若 $T:\mathbb R^n\to\mathbb R^n$ 满足 $\|Tx-Ty\|_\infty\leq c\|x-y\|_\infty$，其中 $0\leq c<1$，则 $T$ 有唯一不动点 $x_*$。迭代 $x_{k+1}=Tx_k$ 从任意初值收敛到它，且 $\|x_k-x_*\|_\infty\leq c^k\|x_0-x_*\|_\infty$。
+\end{theorem}
+\begin{proof}
+相邻两项之差至多为 $c^k\|x_1-x_0\|_\infty$。对后续项求和得到几何级数尾界，故序列为 Cauchy 序列，在 $\mathbb R^n$ 中有极限 $x_*$。压缩条件蕴含连续性，因而 $Tx_*=x_*$。若 $y_*$ 也为不动点，则两者距离不超过自身的 $c$ 倍，只能为零。最后反复应用压缩不等式即可得到误差界。
+\end{proof}
+
+\section{梯度优化与随机逼近}
+
+对可微目标 $J(\theta)$，梯度上升采用 $\theta_{k+1}=\theta_k+\alpha_k\nabla J(\theta_k)$；最小化损失 $L$ 时改用负号。随机梯度 $g_k$ 用样本近似梯度，若条件期望等于当前真梯度，则称其条件无偏；方差过大仍会导致更新不稳定。正学习率并不保证每个随机步骤都改善目标。
+
+更一般的随机逼近（stochastic approximation）迭代为 $x_{k+1}=x_k+\alpha_k(h(x_k)+M_{k+1})$，其中 $h$ 是平均更新方向，$M_{k+1}$ 是噪声。常见条件 $\sum_k\alpha_k=\infty$ 与 $\sum_k\alpha_k^2<\infty$ 分别防止过早停止学习并控制累计噪声，但还需关于条件均值、矩、稳定性和访问频率的假设。$\alpha_k=1/(k+1)$ 满足这两个级数条件，常数步长不满足第二个条件。
+
+若 $p_\theta(x)>0$ 可微，则 $\nabla_\theta p_\theta(x)=p_\theta(x)\nabla_\theta\log p_\theta(x)$。在可交换微分与求和或积分时，这个对数导数恒等式把分布参数的导数转换为样本期望，是策略梯度的基础。自动微分只计算所给计算图的导数：把某项停止梯度（stop-gradient），意味着将它在本次更新中当作常数，并不意味着它在数学上不依赖参数。
+
+\section{习题}
+\begin{enumerate}
+\item 对观测 $1,5,0,2$ 用增量式计算均值；再以 $Q_0=0,\alpha=1/2$ 更新，比较最后结果与样本均值。
+\item 证明均方误差的偏差方差分解。对取值于 $[0,1]$ 的独立同分布变量，用霍夫丁不等式给出误差不超过 $0.1$、置信水平至少 $0.95$ 所需的充分样本量。
+\item 若 $T$ 为压缩常数 $c<1$ 的映射，证明 $\|x-x_*\|\leq\|Tx-x\|/(1-c)$。解释为什么计算残差可以控制未知的解误差。
+\end{enumerate}
+
+
+
+
+

@@ -1,0 +1,108 @@
+% !TeX root = ../测度论笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{2} % 保留原书章号。
+\chapter{测度空间、连续性与零测集}
+\label{chap:mt-measures}
+
+\section{测度的定义与基本模型}
+\begin{definition}
+可测空间 $(S,\mathcal A)$ 上的\emph{测度（measure）}是映射 $\mu:\mathcal A\to[0,+\infty]$，满足 $\mu(\varnothing)=0$，且对两两不交的可测集 $A_1,A_2,\ldots$，
+\begin{equation}
+ \mu\!\left(\bigcup_{n=1}^{\infty}A_n\right)=\sum_{n=1}^{\infty}\mu(A_n).
+ \label{eq:mt-countable-additivity}
+\end{equation}
+三元组 $(S,\mathcal A,\mu)$ 称为测度空间。若 $\mu(S)<\infty$，称为有限测度；若存在 $S_n\in\mathcal A$ 使 $S=\bigcup_nS_n$ 且每个 $\mu(S_n)<\infty$，称为\emph{$\sigma$ 有限（sigma-finite）}；若 $\mu(S)=1$，称为概率测度。
+\end{definition}
+
+在 $\mathbb N$ 的幂集上，\emph{计数测度（counting measure）}将有限集合映为其元素个数，将无限集合映为 $+\infty$。固定 $s_0\in S$，定义 $\delta_{s_0}(A)=\mathbf1_A(s_0)$，得到\emph{Dirac 测度（Dirac measure）}。它测量一个集合是否包含指定点，并不是相对于长度测度的普通函数密度。
+
+第\ref{chap:mt-construction}章将构造实轴上的勒贝格测度 $\lambda$，使区间的测度等于长度。它在 $\mathbb R$ 上不是有限测度，却是 $\sigma$ 有限的，因为 $\mathbb R=\bigcup_n[-n,n]$。不可数集合上、定义于全部子集的计数测度不是 $\sigma$ 有限：有限测度集只能是有限集，而可数个有限集的并至多可数。
+
+\section{单调性、次可加性与集合极限}
+\begin{proposition}
+测度满足下列性质：
+\begin{enumerate}
+ \item 若 $A\subseteq B$，则 $\mu(A)\leq\mu(B)$；若另有 $\mu(A)<\infty$，则 $\mu(B\setminus A)=\mu(B)-\mu(A)$。
+ \item 对任意可测集列，$\mu(\bigcup_nA_n)\leq\sum_n\mu(A_n)$。
+ \item 若 $A_n\uparrow A$，则 $\mu(A_n)\uparrow\mu(A)$。
+ \item 若 $A_n\downarrow A$ 且 $\mu(A_1)<\infty$，则 $\mu(A_n)\downarrow\mu(A)$。
+\end{enumerate}
+\label{prop:mt-measure-continuity}
+\end{proposition}
+\begin{proof}
+由 $B=A\sqcup(B\setminus A)$ 得到单调性；只有在 $\mu(A)<\infty$ 时才能安全地移项，避免 $\infty-\infty$。对一般并集，令 $B_1=A_1$、$B_n=A_n\setminus\bigcup_{j<n}A_j$。这些 $B_n$ 两两不交、$B_n\subseteq A_n$，并且与原集合列有相同的并，故得到次可加性。
+
+对递增列，取 $B_1=A_1$、$B_n=A_n\setminus A_{n-1}$，可列可加性给出 $\mu(A)=\sum_n\mu(B_n)=\lim_n\mu(A_n)$。对递减列，$A_1\setminus A_n$ 递增到 $A_1\setminus A$；由于 $\mu(A_1)$ 有限，应用已经证明的递增情形并从 $\mu(A_1)$ 中相减即可。
+\end{proof}
+
+\begin{example}[从上连续性需要有限性条件]
+在 $\mathbb R$ 上令 $A_n=[n,\infty)$，则 $A_n\downarrow\varnothing$，但每个 $\lambda(A_n)=\infty$。因此不能省去从上连续性中的有限测度假设；若某个较后项测度有限，则可以从该项开始使用定理。
+\end{example}
+
+\section{几乎处处与测度完备化}
+\begin{definition}
+若可测集 $N$ 满足 $\mu(N)=0$，称其为\emph{零测集（null set）}。某性质在一个可测零测集之外成立，称其\emph{几乎处处成立（almost everywhere）}，简记为 $\mu$-a.e.。若每个可测零测集的任意子集都属于 $\mathcal A$，称测度空间是\emph{完备的（complete）}。
+\end{definition}
+
+可数个零测集的并仍为零测集，这是次可加性的直接推论。有限或可数次使用几乎处处成立的性质时，可以合并所有例外集合；不可数次合并则不能直接这样处理。几乎处处也不等于处处：$\mathbf1_{\{0\}}$ 与零函数在勒贝格测度下几乎处处相等，在 $\delta_0$ 下却不相等。
+
+\begin{proposition}[完备化]
+设 $\mathcal N$ 是所有可测零测集的任意子集组成的集合族。令
+\[
+ \overline{\mathcal A}=\{A\cup N:A\in\mathcal A,\ N\in\mathcal N\},\qquad
+ \overline\mu(A\cup N)=\mu(A).
+\]
+则 $\overline{\mathcal A}$ 是 $\sigma$ 代数，$\overline\mu$ 是良定义的完备测度，并在 $\mathcal A$ 上与 $\mu$ 相同。
+\label{prop:mt-completion}
+\end{proposition}
+\begin{proof}
+若 $A\cup N=B\cup M$，则 $A\triangle B$ 包含在一个可测零测集中；分解 $A,B$ 可知 $\mu(A)=\mu(B)$，因此定义不依赖表示。对补集，取可测零测集 $Z\supseteq N$，可写成
+\[
+ (A\cup N)^c=(A^c\setminus Z)\cup\bigl((A\cup N)^c\cap Z\bigr).
+\]
+第一部分可测，第二部分属于 $\mathcal N$。可数并的封闭性由可数个可测零测集之并仍为零测集得到。若 $A_j\cup N_j$ 两两不交，则 $A_j$ 也两两不交，故可列可加性直接归结为 $\mu$ 的可列可加性。最后，$\overline\mu$-零测集包含在一个原来可测的零测集中，它的任意子集均已被加入。
+\end{proof}
+
+\section{离散质量、限制测度与推前测度}
+给定可数集合 $S=\{s_1,s_2,\ldots\}$ 和非负权重 $w_n$，在 $\mathcal P(S)$ 上定义
+$\mu(A)=\sum_{n:s_n\in A}w_n$。对两两不交的集合列，每个点至多出现一次，非负级数可以重新分组，因而可列可加性成立。总质量为 $\sum_nw_n$；取所有权重为一得到计数测度，取权重和为一得到离散概率测度。定义并不要求每个单点都有正质量，权重为零的点可以存在。
+
+离散模型还说明测度不一定与几何位置有关。即使把这些点嵌入实轴，质量也由指定的权重决定，与相邻两点的欧氏距离无关。对同一个底集合选取不同测度，会得到不同的零测集、不同的可积函数和不同的几乎处处等价关系。因此，讨论“这个函数可积”或“这两个函数相等”时，测度是结论的一部分，不能始终隐藏不写。
+
+固定 $E\in\mathcal A$，可在原空间上定义限制测度 $\mu_E(A)=\mu(A\cap E)$；也可把底空间缩小为 $E$，使用\emph{迹 $\sigma$ 代数（trace sigma-algebra）}$\mathcal A|_E=\{A\cap E:A\in\mathcal A\}$。由于 $E$ 可测，迹集合仍属于原来的 $\mathcal A$，测度直接沿用。前者保留整个底空间但忽略外部质量，后者直接改变底空间；两种写法的积分在对应意义下一致。
+
+另一种构造是沿映射搬运质量。若 $T:(S,\mathcal A)\to(U,\mathcal D)$ 可测，定义
+$T_\#\mu(B)=\mu(T^{-1}(B))$。原像保持不交并，故 $T_\#\mu$ 是测度，称为推前测度。它的总质量与 $\mu$ 相同，因此有限性得以保留；但 $\sigma$ 有限性未必保留。例如把带计数测度的 $\mathbb N$ 全部映到一个点，则该单点的质量为无穷，所得空间不能由有限测度集覆盖。这个例子提示：看似温和的构造也可能改变定理所需条件。
+
+\section{可列可加性与连续性的关系}
+命题\ref{prop:mt-measure-continuity}从可列可加性推出从下连续性。反过来，若集合函数非负、有限可加、空集取零，并对所有递增可测集合列从下连续，则它可列可加。事实上，对两两不交的 $A_n$，令 $B_m=\bigcup_{n=1}^{m}A_n$，有限可加性给出 $\mu(B_m)=\sum_{n=1}^{m}\mu(A_n)$，从下连续性使左侧趋于全体并集的大小，而右侧按非负级数定义趋于总和。
+
+因此，可列可加性可以看作有限可加性与一种极限相容性结合后的结果。这解释了测度理论为何特别适合分析：有限分解保证局部计算，连续性保证计算可以通过可数过程传到极限。只满足有限可加性的集合函数通常无法支持同样的积分收敛理论，不能把这一区别视为纯粹的措辞变化。
+
+对有限总质量的有限可加函数，从上连续于空集也足够推出可列可加性。给定递增 $B_m\uparrow B$，差集 $B\setminus B_m\downarrow\varnothing$，于是有限可加性与从上连续性给出 $\mu(B_m)\to\mu(B)$。有限性在这里保证所有减法合法。若允许无穷总质量，就应优先使用不含无穷减法的从下连续形式。
+
+\section{$\sigma$ 有限性如何进入证明}
+设 $S=\bigcup_nE_n$，每个 $\mu(E_n)<\infty$。可以先令 $F_n=\bigcup_{j\leq n}E_j$，将覆盖变成递增覆盖；也可以令 $D_1=E_1$、$D_n=E_n\setminus\bigcup_{j<n}E_j$，将覆盖变成两两不交的有限测度分块。前者适合取极限，后者适合逐块定义对象后再拼接。它们保留有限测度性质，因为有限并的测度不超过各项之和。
+
+许多关于 $\sigma$ 有限空间的证明都遵循同一顺序：先在一个有限测度块上利用补集、积分估计或唯一性，再检查不同块上的结果相容，最后通过可数并或单调收敛合并。这里的可数性使例外零测集仍能统一处理。如果需要不可数多个块，合并后的例外集合未必零测，因此不能直接照搬同一论证。
+
+$\sigma$ 有限性不等于有限性，也不表示每个点都具有一个有限测度的开邻域。后一个条件涉及拓扑，而 $\sigma$ 有限性的定义只涉及可测集合。学习一般定理时，应先识别它需要的是测度结构还是拓扑结构，避免把欧氏空间中特别熟悉的性质误当成抽象测度空间的默认条件。
+
+\section{以集合差异定义距离}
+在有限测度空间中，可以用
+\[
+ d(A,B)=\mu(A\triangle B),\qquad
+ A\triangle B=(A\setminus B)\cup(B\setminus A)
+\]
+衡量两个可测集合的差异。因为 $A\triangle C\subseteq(A\triangle B)\cup(B\triangle C)$，次可加性给出三角不等式。该量对称且非负，但不同集合可能距离为零，所以在全部可测集合上它只是伪度量；把相差零测集的集合视为同一个元素后，才得到真正的度量。
+
+这个构造是 $L^1$ 空间思想的集合版本，因为
+$|\mathbf1_A-\mathbf1_B|=\mathbf1_{A\triangle B}$。集合在测度意义下接近，对应示性函数的积分误差很小；它不要求两个集合在每个位置都相似。例如可以在稠密的零测集上改变集合而不改变这个距离。这一观点有助于提前理解：后面函数空间中的等价类并非形式负担，而是积分所能识别的信息范围决定的。
+
+\section{习题}
+\begin{enumerate}
+ \item 证明有限测度 $\mu$ 非零时，$\mathbb P(A)=\mu(A)/\mu(S)$ 是概率测度；说明 $\mu(S)=\infty$ 时不能用同一公式归一化。
+ \item 证明 $\mu(A\cup B)+\mu(A\cap B)=\mu(A)+\mu(B)$，其中等式允许取无穷；说明为什么将其改写为含减法的形式需要附加条件。
+ \item 若 $\sum_n\mu(A_n)<\infty$，证明 $\mu(\limsup A_n)=0$。提示：从尾部并集的测度估计开始。
+\end{enumerate}
+

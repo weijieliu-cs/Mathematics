@@ -1,0 +1,70 @@
+% !TeX root = ../动手学强化学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{8} % 保留原书章号。
+\chapter{多步学习与资格迹}
+\label{ch:rl-multistep}
+
+一步 TD 迅速更新但较依赖后继估计，MC 等待完整结果而不自举。多步方法在两者之间选择信息传播的时间跨度。资格迹（eligibility trace）进一步把多个时间跨度的信用分配压缩为递推计算。
+
+\section{多步回报与多步 TD}
+
+设回合终止于 $T$，$h=\min(t+n,T)$。给定用于目标计算的价值表 $V$，定义
+\begin{equation}
+G_t^{(n)}=\sum_{k=0}^{h-t-1}\gamma^kR_{t+k+1}
++\mathbf1\{t+n<T\}\gamma^nV(S_{t+n}).
+\label{eq:rl-nstep-return}
+\end{equation}
+若恰好到达终止状态，自举项也为零。多步 TD 在所需数据到齐后更新 $V(S_t)\leftarrow V(S_t)+\alpha(G_t^{(n)}-V(S_t))$；在线实现中目标使用哪个时刻的参数须固定约定，最常见的是更新时可用的当前参数。
+
+增大 $n$ 可以较快传播远处奖励并减少对早期后继估计的依赖，但引入更多轨迹随机性和更新延迟。偏差、方差与总误差不必随 $n$ 单调变化。实现需维护至少相应长度的轨迹缓冲，回合结束后还要完成那些未积满 $n$ 步的尾部更新。
+
+\section{前向视角与混合回报}
+
+令 $N=T-t$，以同一固定价值表计算各步回报。有限回合的 $\lambda$-回报（lambda-return）为
+\begin{equation}
+G_t^\lambda=(1-\lambda)\sum_{n=1}^{N-1}\lambda^{n-1}G_t^{(n)}
++\lambda^{N-1}G_t^{(N)},\qquad 0\leq\lambda\leq1.
+\label{eq:rl-lambda-return}
+\end{equation}
+当 $\lambda=1$ 时按端点定义取完整回报，$N=1$ 时也直接取唯一回报。权重之和为一；$\lambda=0$ 得一步 TD，$\lambda=1$ 得 MC。若 $N=3,\lambda=1/2$，三个回报权重为 $1/2,1/4,1/4$。
+
+\begin{proposition}[回报误差的残差展开]
+在回合内保持 $V$ 固定，令终止价值为零，$\delta_k=R_{k+1}+\gamma V(S_{k+1})-V(S_k)$，则
+\[
+G_t^\lambda-V(S_t)=\sum_{k=t}^{T-1}(\gamma\lambda)^{k-t}\delta_k.
+\]
+\end{proposition}
+\begin{proof}
+对固定 $n$，相邻后继价值抵消，得到 $G_t^{(n)}-V(S_t)=\sum_{k=t}^{h-1}\gamma^{k-t}\delta_k$。按式\eqref{eq:rl-lambda-return}加权，每个 $\delta_k$ 所在全部回报的权重和为 $\lambda^{k-t}$，相乘即得结论。
+\end{proof}
+
+\section{后向视角与资格迹更新}
+
+累计资格迹初始化为 $e_{-1}(s)=0$，递推为
+\[
+e_t(s)=\gamma\lambda e_{t-1}(s)+\mathbf1\{S_t=s\},\qquad
+V(s)\leftarrow V(s)+\alpha\delta_t e_t(s).
+\]
+每次残差不仅更新当前状态，也按衰减权重更新近期访问的状态。若先固定 $V$ 计算全部残差，在回合结束后统一应用常数步长更新，交换有限求和可知累计变化与前向 $\lambda$-回报更新一致。这是离线固定估计下的前后视角等价。
+
+实际在线 TD($\lambda$) 每步改变 $V$，残差也随之改变，因此与“整个回合用同一固定表”的前向计算不完全相同。替换迹在访问某状态时将其迹置为一，而非累加，改变了重复访问的权重；真在线方法采用修正递推以匹配相应在线前向目标。这些变体应分别定义，不能仅更换名称后沿用同一等价证明。
+
+\section{多步控制与数值例子}
+
+多步 Sarsa 将式\eqref{eq:rl-nstep-return}中的 $V(S_{t+n})$ 换成 $Q(S_{t+n},A_{t+n})$，并更新 $Q(S_t,A_t)$。后续动作由目标同策略产生时无需概率比；若中间行为不同，多步回报的分布也会改变，需按下一章处理。
+
+\begin{example}[混合三种时间跨度]
+三步回合奖励为 $0,0,1$，$\gamma=1$，两个中间状态估计均为 $0.5$。从起点看，一步、两步和完整回报分别为 $0.5,0.5,1$。当 $\lambda=1/2$ 时混合回报为 $0.625$；当 $\lambda=1$ 时为 $1$。前者借用中间估计，后者完全依靠最终结果，二者都不能仅凭一次轨迹判断总体优劣。
+\end{example}
+
+\section{习题与实验}
+\begin{enumerate}
+\item 证明式\eqref{eq:rl-lambda-return}的权重和为一，并核对 $N=1$、$\lambda=0$ 和 $\lambda=1$ 的边界。
+\item 取 $\gamma=1,\lambda=1/2$，访问序列为 $s,u,s$。逐步计算累计迹和替换迹，比较最后一次残差赋给 $s$ 的权重。
+\item 在随机游走中扫描 $n$ 和 $\lambda$，固定交互预算与步长选择规则，比较价值误差。分析有限回合尾部更新和采样截断对结果的影响。
+\end{enumerate}
+
+
+
+
+

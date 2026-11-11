@@ -1,0 +1,876 @@
+% !TeX root = ../高等代数教材（谢启鸿）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{8} % 保留原书章号。
+\chapter{内积空间}
+
+线性空间刻画向量的加法与数乘，但尚不能比较长度、距离和夹角。本章在实、复线性空间上加入内积，以此建立正交分解，并研究与内积相容的线性算子。主线是从标准正交基与伴随出发，得到自伴随算子、正规算子的标准型，再讨论谱分解、极分解、奇异值分解及最小二乘问题。除第一节中明确给出的无限维例子外，后续关于算子标准型和矩阵分解的讨论均在有限维空间中进行。
+% 教材依据：高等代数-9.pdf，§9.1--§9.10；不整理各节习题及复习题九。
+
+\section{内积空间的概念}
+\label{sec:inner-product-concept}
+
+\begin{definition}
+\label{def:inner-product}
+设 $V$ 是数域 $\mathbb F$ 上的线性空间，其中 $\mathbb F=\mathbb R$ 或 $\mathbb C$。若映射 $(\cdot,\cdot):V\times V\to\mathbb F$ 对任意 $x,y,z\in V$ 及 $c\in\mathbb F$ 满足
+\[
+    (y,x)=\overline{(x,y)},\qquad
+    (x+y,z)=(x,z)+(y,z),\qquad
+    (cx,y)=c(x,y),
+\]
+且 $(x,x)$ 为非负实数、$(x,x)=0$ 当且仅当 $x=0$，则称它为 $V$ 上的\emph{内积}（inner product），$V$ 连同这一内积称为\emph{内积空间}（inner product space）。在实数域上，共轭对称性就是对称性。有限维实内积空间称为\emph{欧几里得空间}（Euclidean space，简称欧氏空间），有限维复内积空间称为\emph{酉空间}（unitary space）。
+\end{definition}
+
+本章沿用教材\emph[caution]{内积对第一变量线性、对第二变量共轭线性}的约定。由共轭对称性可得
+\[
+    (x,cy+dz)=\overline c\,(x,y)+\overline d\,(x,z),
+    \qquad (0,y)=(x,0)=0.
+\]
+复内积不是复双线性型；若在两个变量中都把复常数直接提出，正定性将与 $(ix,ix)=-(x,x)$ 矛盾。另一些文献采用第二变量线性的约定，使用其中公式时须同步核对共轭的位置。
+
+\begin{example}
+\label{ex:inner-product-models}
+在列向量空间 $\mathbb R^n$ 与 $\mathbb C^n$ 上，标准内积分别为
+\[
+    (x,y)=\sum_{j=1}^n x_jy_j=x^{\mathsf T}y,
+    \qquad
+    (x,y)=\sum_{j=1}^n x_j\overline{y_j}=y^*x,
+\]
+其中 $A^{\mathsf T}$ 表示转置，$A^*=\overline A^{\mathsf T}$ 表示共轭转置。更一般地，若 $H$ 为 $n$ 阶正定实对称矩阵或正定 Hermite 矩阵，则 $(x,y)=y^*Hx$ 也定义一个内积，实数域上 $*$ 即转置。例如，$\mathbb R^2$ 上
+\[
+    (x,y)=x_1y_1-x_2y_1-x_1y_2+4x_2y_2
+\]
+满足 $(x,x)=(x_1-x_2)^2+3x_2^2$，因而也是内积。
+\end{example}
+
+\begin{example}
+实线性空间 $C[a,b]$（$a<b$）上的
+\[
+    (f,g)=\int_a^b f(t)g(t)\,\mathrm dt
+\]
+是内积。其正定性用到了连续性：若 $f$ 在某点非零，则在某个正长度子区间上 $f(t)^2$ 有正下界，故积分为正。这给出无限维内积空间的例子。在复连续函数空间上，将被积函数改为 $f(t)\overline{g(t)}$ 即可。同型矩阵组成的实或复线性空间上还可定义\emph{Frobenius 内积}（Frobenius inner product）
+\[
+    (A,B)=\operatorname{tr}(AB^*)
+    =\sum_{i,j}a_{ij}\overline{b_{ij}},
+\]
+其中 $\operatorname{tr}$ 为迹；由各元素的标准内积可立即验证其四条性质。
+\end{example}
+
+\begin{definition}
+向量 $x$ 的\emph{范数}（norm，或长度）为 $\|x\|=\sqrt{(x,x)}$，向量 $x,y$ 的距离为 $d(x,y)=\|x-y\|$。若 $(x,y)=0$，则称 $x,y$ \emph{正交}（orthogonal），记为 $x\perp y$。零向量与所有向量正交。
+\end{definition}
+
+\begin{theorem}
+\label{thm:inner-product-inequalities}
+对内积空间中的任意 $x,y$ 及标量 $c$，有
+\[
+    \|cx\|=|c|\|x\|,\qquad
+    |(x,y)|\leq\|x\|\|y\|,\qquad
+    \|x+y\|\leq\|x\|+\|y\|.
+\]
+第二式称为\emph{Cauchy--Schwarz 不等式}，等号成立当且仅当 $x,y$ 线性相关；第三式称为\emph{三角不等式}，当两向量均非零时，其等号成立当且仅当 $y=tx$，其中 $t>0$ 为实数。
+\end{theorem}
+
+\begin{proof}
+由 $(cx,cx)=|c|^2(x,x)$ 得第一式。若 $x=0$，第二式及其等号条件成立；若 $x\ne0$，令 $z=y-\frac{(y,x)}{\|x\|^2}x$，则 $(z,x)=0$，展开得
+\[
+    0\leq\|z\|^2=\|y\|^2-\frac{|(y,x)|^2}{\|x\|^2}.
+\]
+于是第二式成立，且等号恰好对应 $z=0$，也就是 $y\in\operatorname{span}\{x\}$。最后，由
+\[
+    \|x+y\|^2=\|x\|^2+\|y\|^2+2\operatorname{Re}(x,y)
+    \leq(\|x\|+\|y\|)^2
+\]
+得三角不等式。若 $x,y\ne0$，等号要求 Cauchy--Schwarz 取等且 $(x,y)$ 为正实数；写 $y=cx$ 后，这等价于 $c$ 为正实数。若某向量为零，三角不等式也取等。
+\end{proof}
+
+距离由此满足非负性、对称性和三角不等式，并且 $d(x,y)=0$ 当且仅当 $x=y$。对实内积空间的两个非零向量，可定义夹角 $\theta\in[0,\pi]$，使
+\[
+    \cos\theta=\frac{(x,y)}{\|x\|\|y\|}.
+\]
+复内积未必为实数，教材采用 $\cos\theta=\frac{|(x,y)|}{\|x\|\|y\|}$、$\theta\in[0,\pi/2]$ 的约定；它忽略相位差，例如 $x$ 与 $ix$ 的夹角为零。两种定义的分式都由 Cauchy--Schwarz 不等式保证在所需范围内。若 $x\perp y$，展开范数平方可得\emph{勾股恒等式}
+\begin{equation}
+\label{eq:inner-product-pythagoras}
+    \|x+y\|^2=\|x\|^2+\|y\|^2.
+\end{equation}
+在 $\mathbb R^n$ 以及 $C[a,b]$ 的上述内积中，Cauchy--Schwarz 不等式分别给出
+\[
+    \left|\sum_j x_jy_j\right|^2\leq
+    \left(\sum_j x_j^2\right)\left(\sum_j y_j^2\right),\qquad
+    \left|\int_a^b fg\,\mathrm dt\right|^2\leq
+    \left(\int_a^b f^2\,\mathrm dt\right)
+    \left(\int_a^b g^2\,\mathrm dt\right).
+\]
+
+\section{内积的表示和正交基}
+\label{sec:gram-orthogonal-basis}
+
+设 $\mathcal E=(e_1,\ldots,e_n)$ 为 $V$ 的一组有序基，$x=\sum_i a_ie_i$、$y=\sum_j b_je_j$，其坐标列向量分别为 $a,b$。由内积的线性和共轭线性，
+\begin{equation}
+\label{eq:gram-coordinate-inner-product}
+    (x,y)=\sum_{i,j}a_i\overline{b_j}(e_i,e_j)
+    =a^{\mathsf T}G\overline b,
+    \qquad G=\bigl((e_i,e_j)\bigr)_{i,j=1}^n.
+\end{equation}
+矩阵 $G$ 称为这组基的\emph{Gram 矩阵}（Gram matrix）或\emph{度量矩阵}（metric matrix）。它满足 $G^*=G$，且对任意非零列向量 $c$，$c^*Gc=(\sum_i\overline{c_i}e_i,\sum_i\overline{c_i}e_i)>0$，所以 $G$ 为正定 Hermite 矩阵；实数域上就是正定实对称矩阵。反之，每个这样的 $G$ 都通过式~\eqref{eq:gram-coordinate-inner-product} 在 $V$ 上定义一个内积。这里 Gram 矩阵的定义与第一变量线性的约定配套，复数情形须保留 $\overline b$。
+
+若另一组基 $\mathcal F=\mathcal E C$，即 $f_j=\sum_i e_ic_{ij}$，则直接展开内积得到
+\[
+    G_{\mathcal F}=C^{\mathsf T}G_{\mathcal E}\overline C.
+\]
+因此度量矩阵取决于基，而内积本身不依赖于基。选取 $G=I_n$ 的基，就能把内积化为坐标的标准内积。
+
+\begin{definition}
+若基向量两两正交，则称该基为\emph{正交基}（orthogonal basis）；若还满足每个基向量的范数为 $1$，则称为\emph{标准正交基}（orthonormal basis）。标准正交基的 Gram 矩阵恰为 $I_n$。
+\end{definition}
+
+两两正交的非零向量 $v_1,\ldots,v_m$ 必线性无关：若 $\sum_j c_jv_j=0$，与 $v_i$ 作内积得 $c_i\|v_i\|^2=0$，从而各 $c_i=0$。此外，若 $x$ 与一组向量都正交，则它与这些向量张成的子空间都正交，这是第二变量共轭线性的直接结果。
+
+\begin{theorem}[Gram--Schmidt 正交化]
+\label{thm:gram-schmidt}
+设 $u_1,\ldots,u_m$ 是内积空间中线性无关的向量。依次令
+\begin{equation}
+\label{eq:gram-schmidt}
+    v_1=u_1,\qquad
+    v_k=u_k-\sum_{j=1}^{k-1}\frac{(u_k,v_j)}{(v_j,v_j)}v_j
+    \quad(2\leq k\leq m),
+    \qquad q_k=\frac{v_k}{\|v_k\|}.
+\end{equation}
+则 $v_1,\ldots,v_m$ 两两正交且均非零，$q_1,\ldots,q_m$ 为标准正交向量组；对每个 $k$，都有
+\[
+    \operatorname{span}\{q_1,\ldots,q_k\}
+    =\operatorname{span}\{u_1,\ldots,u_k\}.
+\]
+特别地，每个有限维内积空间均有标准正交基。
+\end{theorem}
+
+\begin{proof}
+对 $k$ 归纳。假设前 $k-1$ 个向量已经构成相应子空间的正交基。由式~\eqref{eq:gram-schmidt}，对 $i<k$ 有 $(v_k,v_i)=0$。若 $v_k=0$，则 $u_k$ 属于前 $k-1$ 个 $v_j$ 张成的空间，也就属于前 $k-1$ 个 $u_j$ 张成的空间，与线性无关性矛盾。该式又同时说明 $v_k$ 属于前 $k$ 个 $u_j$ 的张成空间，$u_k$ 属于前 $k$ 个 $v_j$ 的张成空间，因而两者相等。单位化不改变正交性和张成空间。
+\end{proof}
+
+\begin{example}
+在 $\mathbb R^3$ 的标准内积下，对
+\[
+    u_1=(3,0,4),\qquad u_2=(-1,0,7),\qquad u_3=(2,9,11)
+\]
+作标准正交化。
+\end{example}
+\begin{solve}
+先取 $v_1=(3,0,4)$。因为 $(u_2,v_1)=25=\|v_1\|^2$，故 $v_2=u_2-v_1=(-4,0,3)$。再由 $(u_3,v_1)=50$、$(u_3,v_2)=25$，得 $v_3=u_3-2v_1-v_2=(0,9,0)$。所求标准正交基为
+\[
+    q_1=\tfrac15(3,0,4),\qquad
+    q_2=\tfrac15(-4,0,3),\qquad q_3=(0,1,0).\qedhere
+\]
+\end{solve}
+
+\begin{definition}
+子空间 $U\subseteq V$ 的\emph{正交补}（orthogonal complement）为
+\[
+    U^\perp=\{x\in V:(x,u)=0\text{ 对所有 }u\in U\}.
+\]
+它是 $V$ 的子空间。若子空间 $U_1,\ldots,U_s$ 两两正交且和为 $V$，则称 $V$ 是它们的\emph{正交直和}（orthogonal direct sum），记为 $V=U_1\mathbin\perp\cdots\mathbin\perp U_s$。
+\end{definition}
+
+正交的子空间之和一定是直和：若 $\sum_i x_i=0$、$x_i\in U_i$，与 $x_j$ 作内积可得 $\|x_j\|^2=0$。这一论证也说明，正交直和中每个分量与其余分量之和正交。
+
+\begin{theorem}
+\label{thm:orthogonal-decomposition}
+若 $V$ 是有限维内积空间，$U\subseteq V$ 为子空间，则
+\[
+    V=U\mathbin\perp U^\perp,\qquad
+    \dim U^\perp=\dim V-\dim U.
+\]
+$U$ 的每一组标准正交基都能扩充为 $V$ 的一组标准正交基。若 $q_1,\ldots,q_m$ 为 $U$ 的标准正交基，则任意 $x\in V$ 的唯一正交分解为
+\begin{equation}
+\label{eq:orthogonal-projection}
+    x=P_Ux+(x-P_Ux),\qquad
+    P_Ux=\sum_{j=1}^m(x,q_j)q_j\in U,\qquad x-P_Ux\in U^\perp.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+由 $(x-P_Ux,q_i)=0$ 知后一项属于 $U^\perp$，故两子空间之和为 $V$。若 $z\in U\cap U^\perp$，则 $(z,z)=0$，所以 $z=0$，这给出直和性与分解唯一性。维数公式随之成立；将 $U^\perp$ 的任一组标准正交基接在 $U$ 的标准正交基之后，就得到所需扩充。
+\end{proof}
+
+式~\eqref{eq:orthogonal-projection} 定义的线性算子 $P_U$ 称为到 $U$ 上的\emph{正交投影}（orthogonal projection），满足
+\[
+    P_U^2=P_U,\qquad \operatorname{Im}P_U=U,\qquad
+    \ker P_U=U^\perp,\qquad (P_Ux,y)=(x,P_Uy).
+\]
+最后一个等式可由 $x=u+v$、$y=u'+v'$ 的正交分解验证：两边都等于 $(u,u')$。若 $V=U_1\mathbin\perp\cdots\mathbin\perp U_s$，相应投影还满足 $P_iP_j=0$（$i\ne j$）和 $\sum_iP_i=I$。特别地，在全空间的标准正交基下，$x=\sum_j(x,q_j)q_j$，且 $\|x\|^2=\sum_j|(x,q_j)|^2$。
+
+\begin{proposition}[Bessel 不等式]
+\label{prop:bessel}
+若 $v_1,\ldots,v_m$ 为两两正交的非零向量，则对任意 $x$ 有
+\[
+    \sum_{j=1}^m\frac{|(x,v_j)|^2}{\|v_j\|^2}\leq\|x\|^2,
+\]
+等号成立当且仅当 $x\in\operatorname{span}\{v_1,\ldots,v_m\}$。
+\end{proposition}
+\begin{proof}
+令 $u=\sum_j\frac{(x,v_j)}{\|v_j\|^2}v_j$，则 $x-u\perp u$，故
+\[
+    \|x\|^2=\|x-u\|^2+\|u\|^2
+    =\|x-u\|^2+\sum_j\frac{|(x,v_j)|^2}{\|v_j\|^2}.
+\]
+非负性给出不等式，而等号恰好对应 $x=u$。
+\end{proof}
+
+\section{伴随}
+\label{sec:adjoint-operator}
+
+线性变换在内积空间中也称为\emph{线性算子}（linear operator）。伴随把算子从内积的一个变量移到另一个变量；它依赖于内积，而不仅依赖于线性结构。
+
+\begin{definition}
+设 $T:V\to V$ 为线性算子。若线性算子 $T^*:V\to V$ 满足
+\begin{equation}
+\label{eq:adjoint-definition}
+    (Tx,y)=(x,T^*y)\qquad\text{对所有 }x,y\in V,
+\end{equation}
+则称 $T^*$ 为 $T$ 的\emph{伴随算子}（adjoint operator）。算子伴随与矩阵共轭转置都用 $*$ 表示，具体对象由上下文区分。
+\end{definition}
+
+\begin{theorem}
+\label{thm:adjoint-existence}
+有限维内积空间上每个线性算子都有唯一的伴随。在同一组标准正交基下，若 $T$ 的表示矩阵为 $A$，则 $T^*$ 的表示矩阵为 $A^*$；实数域上即为 $A^{\mathsf T}$。
+\end{theorem}
+\begin{proof}
+在标准正交坐标中，$(Ax,y)=(x,A^*y)$，因此由矩阵 $A^*$ 定义的算子满足所需等式。若 $S$ 也满足，则 $(x,(S-T^*)y)=0$ 对所有 $x,y$ 成立；固定 $y$ 并取 $x=(S-T^*)y$，得 $(S-T^*)y=0$，故 $S=T^*$。
+\end{proof}
+
+\emph[caution]{伴随的表示矩阵等于共轭转置，需要所用基是标准正交基}。例如，实内积空间在度量矩阵为 $G$ 的一般基下，若 $T,T^*$ 的矩阵分别为 $A,B$，则 $A^{\mathsf T}G=GB$，即 $B=G^{-1}A^{\mathsf T}G$。有限维条件则保证存在标准正交基及上面矩阵构造的适用性。
+
+\begin{proposition}
+\label{prop:adjoint-properties}
+对有限维内积空间上的线性算子 $S,T$ 及标量 $c$，有
+\[
+    (S+T)^*=S^*+T^*,\qquad (cT)^*=\overline c\,T^*,\qquad
+    (ST)^*=T^*S^*,\qquad (T^*)^*=T.
+\]
+若 $T$ 可逆，则 $(T^{-1})^*=(T^*)^{-1}$。
+\end{proposition}
+\begin{proof}
+以乘积为例，$(STx,y)=(Tx,S^*y)=(x,T^*S^*y)$，由伴随唯一性得结论；数乘公式中的共轭来自第二变量的共轭线性。其余等式可由定义逐项核对。最后，对 $TT^{-1}=T^{-1}T=I$ 取伴随即得逆算子的公式。
+\end{proof}
+
+\begin{proposition}
+\label{prop:adjoint-invariant-kernel}
+若子空间 $U$ 对 $T$ 不变，则 $U^\perp$ 对 $T^*$ 不变。并且
+\[
+    \ker T^*=(\operatorname{Im}T)^\perp,\qquad
+    \operatorname{Im}T^*=(\ker T)^\perp.
+\]
+在复数域上，$T^*$ 的特征值是 $T$ 的特征值的共轭，代数重数对应相同；实矩阵亦可在复数域上比较其全部特征值。
+\end{proposition}
+\begin{proof}
+若 $u\in U$、$v\in U^\perp$，则 $(u,T^*v)=(Tu,v)=0$，故 $T^*v\in U^\perp$。又 $T^*y=0$ 等价于 $(Tx,y)=0$ 对所有 $x$ 成立，给出第一个空间等式。将它应用于 $T^*$ 得 $\ker T=(\operatorname{Im}T^*)^\perp$，再利用有限维正交分解取正交补，即得第二式。在标准正交基下，由
+\[
+    \det(tI-A^*)=\overline{\det(\overline t I-A)}
+\]
+可知相应特征多项式的系数互为共轭，从而根及其重数具有所述关系。
+\end{proof}
+
+一般不能断言 $T,T^*$ 的对应共轭特征值有相同的特征向量；第~\ref{sec:complex-normal} 节将在正规性条件下建立这个更强的结论。若 $U$ 同时对 $T,T^*$ 不变，则限制算子满足 $(T|_U)^*=T^*|_U$，因为式~\eqref{eq:adjoint-definition} 可直接限制到 $U$ 上；这一点是后续按不变子空间归纳的依据。
+
+\section{内积空间的同构、正交变换和酉变换}
+\label{sec:isometry-unitary-qr}
+
+\begin{definition}
+设 $V,U$ 是同一数域上的内积空间。若线性映射 $T:V\to U$ 满足 $(Tx,Ty)=(x,y)$，则称其\emph{保持内积}；若它还是线性同构，则称为\emph{保积同构}（isometric isomorphism）。欧氏空间上的保积自同构称为\emph{正交变换}（orthogonal transformation），酉空间上的保积自同构称为\emph{酉变换}（unitary transformation）。
+\end{definition}
+
+保持内积的线性映射保持范数，因而必为单射。反过来，内积可由范数通过\emph{极化恒等式}（polarization identity）恢复：实数域上
+\[
+    (x,y)=\tfrac14\bigl(\|x+y\|^2-\|x-y\|^2\bigr),
+\]
+复数域上，按本章第一变量线性的约定，
+\begin{equation}
+\label{eq:polarization-identity}
+    (x,y)=\tfrac14\bigl(\|x+y\|^2-\|x-y\|^2
+    +i\|x+iy\|^2-i\|x-iy\|^2\bigr).
+\end{equation}
+两式均可展开右端直接验证。因此，\emph{线性}映射保持内积当且仅当保持范数，也当且仅当保持距离。复数情形的论证还用到 $T(ix)=iT(x)$，不能省去复线性条件。
+
+\begin{theorem}
+\label{thm:isometry-equivalences}
+设 $V,U$ 是同为实或同为复的 $n$ 维内积空间，$T:V\to U$ 线性。则下列条件等价：$T$ 保持内积；$T$ 为保积同构；$T$ 将任一组标准正交基映成标准正交基；$T$ 将某一组标准正交基映成标准正交基。因而，同一数域上的两个有限维内积空间保积同构，当且仅当它们的维数相等。
+\end{theorem}
+\begin{proof}
+保持内积蕴含单射，同维数使它也是满射，且保持内积显然将标准正交基映成标准正交基。反之，若 $T$ 将标准正交基 $e_1,\ldots,e_n$ 映成标准正交基，则对 $x=\sum_j a_je_j$、$y=\sum_j b_je_j$，有 $(Tx,Ty)=\sum_j a_j\overline{b_j}=(x,y)$。最后，对两个同维空间各取标准正交基，将对应基向量相互映射，就构造了保积同构；必要性由线性同构保持维数得到。
+\end{proof}
+
+\begin{proposition}
+\label{prop:unitary-matrix}
+有限维内积空间上的线性算子 $T$ 是正交或酉变换，当且仅当 $T^*T=I$，也当且仅当 $T$ 可逆且 $T^*=T^{-1}$。在标准正交基下，相应矩阵分别为\emph{正交矩阵}与\emph{酉矩阵}，其条件为
+\[
+    Q^{\mathsf T}Q=QQ^{\mathsf T}=I\quad(\mathbb R),
+    \qquad Q^*Q=QQ^*=I\quad(\mathbb C).
+\]
+等价地，方阵的各列构成标准正交基；也等价于各行构成标准正交基。
+\end{proposition}
+\begin{proof}
+由 $(Tx,Ty)=(x,T^*Ty)$，保积性等价于 $T^*T=I$；后者使 $T$ 单射，有限维下即可逆，故 $T^*=T^{-1}$。矩阵等式由伴随的表示得到，$Q^*Q$ 和 $QQ^*$ 的元素又分别给出各列、各行的内积条件。
+\end{proof}
+
+正交矩阵满足 $\det Q=\pm1$，酉矩阵满足 $|\det Q|=1$；两者的全部复特征值均在单位圆上。前者由对 $Q^*Q=I$ 取行列式得到，后者由 $Qx=\lambda x$、$x\ne0$ 时的 $\|x\|=\|Qx\|=|\lambda|\|x\|$ 得到。对于实正交矩阵的非实特征向量，在 $\mathbb C^n$ 的标准内积下作同一计算即可。正交或酉矩阵的乘积及逆仍属同类；对角矩阵为正交矩阵当且仅当对角元均为 $\pm1$，为酉矩阵当且仅当各对角元模长均为 $1$。平面旋转矩阵
+\[
+    \begin{pmatrix}\cos\theta&-\sin\theta\\
+    \sin\theta&\cos\theta\end{pmatrix}
+\]
+就是最基本的正交矩阵之一。
+
+\begin{theorem}[QR 分解]
+\label{thm:qr-decomposition}
+对任意 $A\in\mathbb F^{n\times n}$，存在正交矩阵（实数域）或酉矩阵（复数域）$Q$，以及对角元均非负的上三角矩阵 $R$，使 $A=QR$。若 $A$ 可逆，则 $R$ 的对角元均为正，且这一分解唯一。
+\end{theorem}
+\begin{proof}
+将 $A$ 按列写为 $(a_1,\ldots,a_n)$，依次构造标准正交向量 $q_k$。已有 $q_1,\ldots,q_{k-1}$ 时，令
+\[
+    v_k=a_k-\sum_{j<k}(a_k,q_j)q_j.
+\]
+若 $v_k\ne0$，取 $q_k=v_k/\|v_k\|$；若 $v_k=0$，则在前 $k-1$ 个向量的正交补中任选单位向量 $q_k$。于是
+\[
+    a_k=\sum_{j<k}r_{jk}q_j+r_{kk}q_k,
+    \qquad r_{jk}=(a_k,q_j),\quad r_{kk}=\|v_k\|\geq0.
+\]
+令 $Q=(q_1,\ldots,q_n)$，将这些系数排成上三角矩阵 $R$，即得 $A=QR$。若 $A$ 可逆，则 $R$ 可逆，因此其对角元均为正。
+
+若可逆矩阵还有分解 $A=Q_1R_1=Q_2R_2$，则 $Q_2^*Q_1=R_2R_1^{-1}$ 同时是酉矩阵与上三角矩阵。上三角酉矩阵必为对角阵：由首列范数为 $1$ 得首个对角元模长为 $1$，再由首行范数为 $1$ 得该行其余元素为零，逐阶归纳即可。这里对角元又是两个正数的比，所以都等于 $1$，从而 $Q_1=Q_2$、$R_1=R_2$。
+\end{proof}
+
+奇异矩阵的 QR 分解仍然存在，但通常不唯一。对 $m\times n$ 的列满秩矩阵（$m\geq n$），相同构造给出 $A=Q_1R$，其中 $Q_1^*Q_1=I_n$、$R$ 为对角元为正的 $n$ 阶上三角矩阵；这是后面求最小二乘解时所用的形式。
+
+\begin{example}
+\label{ex:qr-rank-deficient}
+求矩阵 $A=\begin{pmatrix}1&2&5\\1&0&1\\0&1&2\end{pmatrix}$ 的 QR 分解。
+\end{example}
+\begin{solve}
+其列向量依次为 $a_1,a_2,a_3$。正交化得到
+\[
+    q_1=\tfrac1{\sqrt2}(1,1,0)^{\mathsf T},\qquad
+    q_2=\tfrac1{\sqrt3}(1,-1,1)^{\mathsf T}.
+\]
+第三列满足 $a_3=3\sqrt2q_1+2\sqrt3q_2$，故第三步余量为零。选取 $q_3=\tfrac1{\sqrt6}(-1,1,2)^{\mathsf T}$，便有
+\[
+    Q=(q_1,q_2,q_3),\qquad
+    R=\begin{pmatrix}\sqrt2&\sqrt2&3\sqrt2\\
+    0&\sqrt3&2\sqrt3\\0&0&0\end{pmatrix},\qquad A=QR.
+\]
+将 $q_3$ 改为 $-q_3$，等式仍成立，这也展示了奇异情形的非唯一性。
+\end{solve}
+
+\section{自伴随算子}
+\label{sec:self-adjoint}
+
+若两组标准正交基满足 $\mathcal F=\mathcal E P$，则 $P$ 的各列是新基在旧基下的坐标，故 $P$ 为正交或酉矩阵。同一算子在两组基下的矩阵满足 $B=P^{-1}AP=P^*AP$。因此，以标准正交基寻找简单表示矩阵，对应于矩阵的\emph{正交相似}（orthogonal similarity）或\emph{酉相似}（unitary similarity）。它们保持内积结构，对换基的要求比一般相似更强。
+
+\begin{definition}
+线性算子 $T$ 若满足 $T^*=T$，则称为\emph{自伴随算子}（self-adjoint operator）。实内积空间上也称为\emph{对称算子}，复内积空间上也称为 \emph{Hermite 算子}。在标准正交基下，其表示矩阵分别是实对称矩阵 $A^{\mathsf T}=A$ 或 Hermite 矩阵 $A^*=A$；逆命题也成立。正交投影就是自伴随算子的例子。
+\end{definition}
+
+\begin{lemma}
+\label{lem:self-adjoint-eigenvalues}
+自伴随算子的特征值均为实数，不同特征值的特征向量正交。实对称矩阵的全部复特征值也都是实数，并可选取对应的实特征向量。
+\end{lemma}
+\begin{proof}
+若 $Tx=\lambda x$、$x\ne0$，则
+\[
+    \lambda(x,x)=(Tx,x)=(x,Tx)=\overline\lambda(x,x),
+\]
+从而 $\lambda\in\mathbb R$。若另有 $Ty=\mu y$ 且 $\lambda\ne\mu$，则
+\[
+    \lambda(x,y)=(Tx,y)=(x,Ty)=\mu(x,y),
+\]
+故 $(x,y)=0$。对于实对称矩阵，可先将其视为 Hermite 矩阵，得到特征值为实数；若复特征向量写为 $u+iv$，则 $Au=\lambda u$、$Av=\lambda v$，而 $u,v$ 至少有一个非零，所以有实特征向量。
+\end{proof}
+
+\begin{theorem}[自伴随算子的标准型]
+\label{thm:self-adjoint-diagonalization}
+有限维内积空间上每个自伴随算子都有一组由特征向量构成的标准正交基，在这组基下的表示矩阵为实对角阵。因此，实对称矩阵可正交相似于实对角阵，Hermite 矩阵可酉相似于实对角阵：
+\[
+    P^*AP=\operatorname{diag}(\lambda_1,\ldots,\lambda_n),
+\]
+其中 $P$ 的各列是相应的标准正交特征向量。
+\end{theorem}
+\begin{proof}
+对维数归纳。正维空间上，由特征多项式在复数域上有根及引理~\ref{lem:self-adjoint-eigenvalues}，可取一个单位特征向量 $e_1$，实数域上亦可取为实向量。令 $W=\operatorname{span}\{e_1\}$，则 $W$ 对 $T$ 不变；因为 $T^*=T$，命题~\ref{prop:adjoint-invariant-kernel} 说明 $W^\perp$ 也对 $T$ 不变。限制算子 $T|_{W^\perp}$ 仍自伴随，故可由归纳假设在其中选出标准正交特征基，与 $e_1$ 合并即得结论。维数为零或一时结论直接成立。
+\end{proof}
+
+对这两类矩阵，全体特征值连同代数重数构成相应正交相似或酉相似关系的\emph{全系不变量}：相似性保持特征值，反之，特征值相同的两个矩阵可先化为同一对角阵；调整对角元次序的置换矩阵也是正交或酉矩阵。
+
+\begin{corollary}
+\label{cor:quadratic-spectral-criterion}
+实二次型 $f(x)=x^{\mathsf T}Ax$（$A$ 实对称）在正交变量替换 $x=Py$ 下化为 $\sum_j\lambda_jy_j^2$。正、负惯性指数分别等于正、负特征值的个数，秩等于非零特征值的个数，均按重数计算。特别地，$A$ 正定当且仅当所有特征值为正，半正定当且仅当所有特征值非负；负定和半负定有相应结论。Hermite 矩阵的正定、半正定判别也相同。
+\end{corollary}
+\begin{proof}
+在 $P^*AP=\operatorname{diag}(\lambda_j)$ 下作变量替换，实二次型变为 $\sum_j\lambda_jy_j^2$，复 Hermite 型变为 $\sum_j\lambda_j|y_j|^2$。逐项考察符号即得全部结论。
+\end{proof}
+
+\begin{example}
+\label{ex:symmetric-diagonalization}
+对 $A=\begin{pmatrix}4&2&2\\2&4&2\\2&2&4\end{pmatrix}$ 求正交矩阵 $P$，使 $P^{\mathsf T}AP$ 为对角阵。
+\end{example}
+\begin{solve}
+写 $A=2I_3+2J$，其中 $J$ 的所有元素均为 $1$。向量 $(1,1,1)^{\mathsf T}$ 对应特征值 $8$，与它正交的平面 $x_1+x_2+x_3=0$ 对应特征值 $2$。在这个平面内选取标准正交基，得到
+\[
+    p_1=\tfrac1{\sqrt3}(1,1,1)^{\mathsf T},\qquad
+    p_2=\tfrac1{\sqrt2}(-1,1,0)^{\mathsf T},\qquad
+    p_3=\tfrac1{\sqrt6}(-1,-1,2)^{\mathsf T}.
+\]
+令 $P=(p_1,p_2,p_3)$，则 $P^{\mathsf T}AP=\operatorname{diag}(8,2,2)$。计算一般实对称或 Hermite 矩阵时，也应先求各特征子空间，再分别在每个特征子空间内标准正交化；不同特征子空间已经正交，无须相互消去分量。
+\end{solve}
+
+标准型还可用于重建矩阵及处理矩阵多项式条件。例如，若三阶实对称矩阵的特征值为 $0,3,3$，且 $u=\tfrac1{\sqrt3}(1,1,1)^{\mathsf T}$ 为零特征值的单位特征向量，则其余特征子空间必为 $u^\perp$，从而 $A=3(I_3-uu^{\mathsf T})$，即对角元为 $2$、非对角元为 $-1$。又若实对称矩阵满足 $A^3=I$，其每个特征值均为满足 $\lambda^3=1$ 的实数，故都等于 $1$；由正交对角化可知 $A=I$。
+
+\section{复正规算子}
+\label{sec:complex-normal}
+
+\begin{definition}
+有限维内积空间上的线性算子 $T$ 若满足 $TT^*=T^*T$，则称为\emph{正规算子}（normal operator）。矩阵 $A$ 若满足 $AA^*=A^*A$，则称为\emph{正规矩阵}（normal matrix）；实数域上即 $AA^{\mathsf T}=A^{\mathsf T}A$。算子正规当且仅当它在标准正交基下的矩阵正规，故正规性在酉相似或正交相似下保持不变。自伴随算子、正交算子和酉算子都是正规算子。
+\end{definition}
+
+若复线性算子在某组标准正交基下为对角阵，则它与其伴随在该基下分别为 $\operatorname{diag}(\lambda_j)$ 和 $\operatorname{diag}(\overline{\lambda_j})$，两者可交换，因此该算子必正规。本节证明这一必要条件也充分。
+
+\begin{lemma}
+\label{lem:normal-kernel}
+若 $T$ 正规，则对任意 $x$ 有 $\|Tx\|=\|T^*x\|$，因而 $\ker T=\ker T^*$。对任意 $\lambda\in\mathbb C$，$T-\lambda I$ 也正规，并且
+\[
+    Tx=\lambda x\quad\Longleftrightarrow\quad
+    T^*x=\overline\lambda x.
+\]
+正规算子属于不同特征值的特征向量相互正交。
+\end{lemma}
+\begin{proof}
+由
+\[
+    \|Tx\|^2=(x,T^*Tx)=(x,TT^*x)=\|T^*x\|^2
+\]
+得范数等式。展开乘积可验证 $T-\lambda I$ 正规，其伴随为 $T^*-\overline\lambda I$；对该算子使用核空间等式，就得到特征向量的结论。若 $Tx=\lambda x$、$Ty=\mu y$，则 $T^*y=\overline\mu y$，从而
+\[
+    \lambda(x,y)=(Tx,y)=(x,T^*y)=\mu(x,y).
+\]
+当 $\lambda\ne\mu$ 时，必有 $(x,y)=0$。
+\end{proof}
+
+\begin{theorem}[Schur 定理]
+\label{thm:schur-triangularization}
+每个复方阵都酉相似于上三角矩阵；等价地，每个有限维酉空间上的线性算子，在某组标准正交基下的表示矩阵为上三角阵。
+\end{theorem}
+\begin{proof}
+对矩阵阶数归纳。取单位特征向量 $q_1$，扩充为酉矩阵 $Q_0=(q_1,\ldots,q_n)$，则
+\[
+    Q_0^*AQ_0=\begin{pmatrix}\lambda&c\\0&B\end{pmatrix}.
+\]
+对 $(n-1)$ 阶复矩阵 $B$ 用归纳假设，存在酉矩阵 $U$ 使 $U^*BU$ 为上三角阵。再以 $\operatorname{diag}(1,U)$ 作酉相似变换，整个矩阵就成为上三角阵。一阶情形直接成立。
+\end{proof}
+
+\begin{lemma}
+\label{lem:triangular-normal-diagonal}
+上三角复矩阵正规，当且仅当它是对角矩阵。
+\end{lemma}
+\begin{proof}
+对角矩阵一定正规。反之，设上三角阵 $R=(r_{ij})$ 满足 $R^*R=RR^*$。比较两边的 $(1,1)$ 元素得
+\[
+    |r_{11}|^2=\sum_{j=1}^n|r_{1j}|^2,
+\]
+所以 $r_{1j}=0$（$j>1$），$R$ 分解为一阶块与较小的上三角正规块的直和。逐阶归纳得 $R$ 为对角矩阵。
+\end{proof}
+
+\begin{theorem}[复正规算子的标准型]
+\label{thm:normal-unitary-diagonalization}
+复线性算子 $T$ 正规，当且仅当存在一组由其特征向量组成的标准正交基；等价地，复矩阵 $A$ 正规，当且仅当存在酉矩阵 $Q$，使
+\[
+    Q^*AQ=\operatorname{diag}(\lambda_1,\ldots,\lambda_n).
+\]
+若 $\lambda_1,\ldots,\lambda_s$ 为 $T$ 的互不相同的特征值，$V_j=\ker(T-\lambda_jI)$，则正规性也等价于
+\begin{equation}
+\label{eq:normal-eigenspace-orthogonal-sum}
+    V=V_1\mathbin\perp\cdots\mathbin\perp V_s.
+\end{equation}
+\end{theorem}
+\begin{proof}
+由 Schur 定理可先将正规矩阵酉相似为上三角阵，正规性不变，再由引理~\ref{lem:triangular-normal-diagonal} 知它已经是对角阵。逆向结论由对角阵正规及正规性对酉相似的不变性得到。对角化给出各特征子空间之和为全空间，引理~\ref{lem:normal-kernel} 给出正交性。反之，若式~\eqref{eq:normal-eigenspace-orthogonal-sum} 成立，在各特征子空间内分别选标准正交基，合并后即为全空间的标准正交特征基。
+\end{proof}
+
+复正规矩阵的全体特征值及其重数构成酉相似关系的全系不变量。特别地，每个酉矩阵可酉相似为 $\operatorname{diag}(e^{i\theta_1},\ldots,e^{i\theta_n})$；反过来，正规矩阵若全部特征值模长为 $1$，也由这一标准型成为酉矩阵。\emph[caution]{一般可对角化只保证存在特征向量基，正规性还保证可选为标准正交基}。例如 $A=\begin{pmatrix}1&1\\0&2\end{pmatrix}$ 有两个不同特征值，因而可对角化，但它是非对角的上三角阵，由引理~\ref{lem:triangular-normal-diagonal} 知它不正规，故不能酉对角化。
+
+\section{实正规矩阵}
+\label{sec:real-normal}
+
+实正规矩阵未必有实特征值，例如平面上转角不是 $0$ 或 $\pi$ 的旋转矩阵。因此实数域上的标准型一般包含二维块，不能直接要求正交对角化。教材的证明路线是先按实极小多项式的不可约因式作正交分解，再处理二次不可约因式对应的子空间。
+
+\begin{lemma}
+\label{lem:real-normal-polynomial}
+若 $T$ 为欧氏空间上的正规算子，$f\in\mathbb R[t]$，则 $f(T)$ 也正规，且 $f(T)^*=f(T^*)$。若 $f,g\in\mathbb R[t]$ 互素，则
+\[
+    \ker f(T)\perp\ker g(T).
+\]
+\end{lemma}
+\begin{proof}
+因为 $T,T^*$ 可交换，它们的任意多项式也可交换，故 $f(T)f(T)^*=f(T)^*f(T)$。若 $sf+tg=1$，$x\in\ker f(T)$、$y\in\ker g(T)$，则 $x=t(T)g(T)x$。正规性与引理~\ref{lem:normal-kernel} 又给出 $g(T)^*y=0$，所以
+\[
+    (x,y)=(g(T)t(T)x,y)=(t(T)x,g(T)^*y)=0.\qedhere
+\]
+\end{proof}
+
+\begin{proposition}
+\label{prop:real-normal-primary-decomposition}
+设非零有限维欧氏空间上的正规算子 $T$ 的极小多项式为 $m(t)$。则 $m$ 无重不可约因式，可写成 $m=g_1\cdots g_s$，其中各 $g_j$ 为互不相同的首一实不可约多项式，次数为一或二。令 $W_j=\ker g_j(T)$，则
+\[
+    V=W_1\mathbin\perp\cdots\mathbin\perp W_s.
+\]
+每个 $W_j$ 同时对 $T,T^*$ 不变，限制算子 $T|_{W_j}$ 正规，极小多项式恰为 $g_j$。
+\end{proposition}
+\begin{proof}
+取标准正交基后，把 $T$ 的实正规矩阵看成复正规矩阵。它可酉对角化，故在复数域上极小多项式无重根。实数域与复数域上该实矩阵的极小多项式相同：若某个低次复多项式将它化为零，取实部和虚部就得到非零的低次实多项式也将它化为零，矛盾。因此 $m$ 无重不可约因式，而实不可约多项式的次数不超过二。
+
+令 $f_j=m/g_j$。这些多项式没有公共不可约因式，故存在实多项式 $h_j$，使 $\sum_jh_jf_j=1$。于是对每个 $x\in V$，
+\[
+    x=\sum_j h_j(T)f_j(T)x,
+    \qquad h_j(T)f_j(T)x\in\ker g_j(T).
+\]
+各核空间之和为 $V$，引理~\ref{lem:real-normal-polynomial} 又保证其两两正交。因为 $T,T^*$ 都与 $g_j(T)$ 可交换，$W_j$ 同时对两者不变，限制后的伴随仍为 $T^*|_{W_j}$，所以限制算子正规。各 $W_j$ 必非零，否则在其余分量上用 $m/g_j$ 已能消去 $T$，与极小性矛盾。限制算子的极小多项式为 $g_j$ 的非恒定首一因式，因 $g_j$ 不可约，只能是 $g_j$ 本身。
+\end{proof}
+
+一次因式 $g(t)=t-c$ 对应的限制算子就是 $cI$。对二次因式，可写 $g(t)=(t-a)^2+b^2$，其中 $a\in\mathbb R$、$b>0$。在对应分量上令 $S=(T-aI)/b$，则 $S$ 正规且 $S^2=-I$。此时 $S^*=-S$：事实上，正定自伴随算子 $K=S^*S$ 满足
+\[
+    K^2=(S^*)^2S^2=I,
+\]
+其特征值均为正且平方为 $1$，由自伴随标准型得 $K=I$；所以 $S^*=S^{-1}=-S$。任取单位向量 $v$ 并令 $u=Sv$，则 $\|u\|=1$，且
+\[
+    (u,v)=(Sv,v)=(v,-Sv)=-(v,u)=-(u,v),
+\]
+故 $u\perp v$。又
+\begin{equation}
+\label{eq:real-normal-two-dimensional-action}
+    Tu=au-bv,\qquad Tv=bu+av.
+\end{equation}
+平面 $\operatorname{span}\{u,v\}$ 同时对 $T,T^*$ 不变，其正交补也如此。在正交补上重复构造，就把整个二次因式分量分解为这些二维平面的正交直和。
+
+\begin{theorem}[实正规矩阵的标准型]
+\label{thm:real-normal-canonical}
+实方阵 $A$ 正规，当且仅当它正交相似于
+\begin{equation}
+\label{eq:real-normal-canonical}
+    \operatorname{diag}(B_1,\ldots,B_r,c_1,\ldots,c_k),
+    \qquad B_j=\begin{pmatrix}a_j&b_j\\-b_j&a_j\end{pmatrix},
+    \quad b_j>0,\quad 2r+k=n,
+\end{equation}
+其中 $a_j,c_\ell$ 都是实数。不计各块的排列顺序，这一标准型由全部复特征值及其重数唯一确定：$B_j$ 对应共轭对 $a_j\pm ib_j$，一阶块对应实特征值 $c_\ell$。
+\end{theorem}
+\begin{proof}
+必要性由命题~\ref{prop:real-normal-primary-decomposition} 及式~\eqref{eq:real-normal-two-dimensional-action} 的逐平面构造得到。反之，每个二维块满足 $B_jB_j^{\mathsf T}=B_j^{\mathsf T}B_j=(a_j^2+b_j^2)I_2$，一阶块也正规，故它们的直和正规；正交相似保持正规性。每个非实共轭特征值对确定一个 $a_j$ 和正数 $b_j$，实特征值确定一阶块，因此仅余分块次序的自由。
+\end{proof}
+
+\begin{corollary}
+\label{cor:orthogonal-skew-canonical}
+实正交矩阵正交相似于若干旋转块与 $1,-1$ 的直和，其中旋转块可写为
+\[
+    \begin{pmatrix}\cos\theta&\sin\theta\\
+    -\sin\theta&\cos\theta\end{pmatrix}.
+\]
+实反对称矩阵 $A^{\mathsf T}=-A$ 正交相似于若干块 $\begin{pmatrix}0&b_j\\-b_j&0\end{pmatrix}$（$b_j>0$）与零块的直和。因此实反对称矩阵的秩为偶数，全部非零复特征值都是成对出现的纯虚数 $\pm ib_j$。
+\end{corollary}
+\begin{proof}
+这两类矩阵都正规，可用定理~\ref{thm:real-normal-canonical}。正交性要求一阶块的平方为 $1$、二维块满足 $a_j^2+b_j^2=1$，故可用正弦与余弦表示。反对称性要求各一阶块为零、二维块的 $a_j=0$；每个非零二维块的秩为 $2$，特征值为 $\pm ib_j$，由此得到其余结论。
+\end{proof}
+
+\section{谱分解与极分解}
+\label{sec:spectral-polar-decomposition}
+
+\begin{theorem}[谱分解]
+\label{thm:spectral-decomposition}
+设 $T$ 是有限维酉空间上的正规算子，或有限维欧氏空间上的自伴随算子。记互不相同的特征值为 $\lambda_1,\ldots,\lambda_s$，$E_j$ 为到特征子空间 $V_j=\ker(T-\lambda_jI)$ 上的正交投影，则
+\begin{equation}
+\label{eq:spectral-decomposition}
+    T=\sum_{j=1}^s\lambda_jE_j,\qquad
+    \sum_{j=1}^sE_j=I,\qquad
+    E_j^*=E_j=E_j^2,\qquad E_jE_k=0\ (j\ne k).
+\end{equation}
+这称为 $T$ 的\emph{谱分解}（spectral decomposition）。
+\end{theorem}
+\begin{proof}
+相应的标准型定理给出 $V=V_1\mathbin\perp\cdots\mathbin\perp V_s$。每个 $x$ 唯一分解为 $\sum_jE_jx$，而 $TE_jx=\lambda_jE_jx$，所以 $Tx=\sum_j\lambda_jE_jx$。投影的其余性质来自正交直和。各特征子空间由 $T$ 唯一确定，因此它们的正交投影也唯一确定。
+\end{proof}
+
+复正规算子可直接按复特征值作上述谱分解；实正规算子若有非实特征值，则仍须采用第~\ref{sec:real-normal} 节的二维实块，而不能在实空间内写成实一维特征分量的直和。谱分解的矩阵版本是在标准正交坐标下用投影矩阵代替 $E_j$；它强调的是算子的各特征分量，不依赖于在同一特征子空间内选哪一组标准正交基。
+
+\begin{proposition}
+\label{prop:spectral-polynomial}
+在式~\eqref{eq:spectral-decomposition} 的条件下，对任意多项式 $f$，有
+\begin{equation}
+\label{eq:spectral-polynomial}
+    f(T)=\sum_{j=1}^s f(\lambda_j)E_j,\qquad
+    E_j=\prod_{k\ne j}\frac{T-\lambda_kI}{\lambda_j-\lambda_k}.
+\end{equation}
+当 $s=1$ 时，后一乘积为空积，等于 $I$。
+\end{proposition}
+\begin{proof}
+由 $E_jE_k=0$（$j\ne k$）、$E_j^2=E_j$，可得 $T^m=\sum_j\lambda_j^mE_j$，其中常数项用 $I=\sum_jE_j$ 处理，线性组合即给出第一式。多项式 $\ell_j(t)=\prod_{k\ne j}(t-\lambda_k)/(\lambda_j-\lambda_k)$ 在 $\lambda_j$ 处为 $1$、其余特征值处为 $0$，代入第一式就得到第二式。
+\end{proof}
+
+因此复线性算子 $T$ 正规，当且仅当存在复多项式 $f$ 使 $T^*=f(T)$。充分性来自 $T$ 与它的多项式可交换；必要性则由 $T^*=\sum_j\overline{\lambda_j}E_j$，再以 $f(t)=\sum_j\overline{\lambda_j}\ell_j(t)$ 构造得到。这也说明正规算子的伴随由它的谱及各谱投影决定。
+
+\begin{definition}
+自伴随算子 $H$ 若对所有非零 $x$ 满足 $(Hx,x)>0$，则称为\emph{正定}（positive definite）；若对所有 $x$ 满足 $(Hx,x)\geq0$，则称为\emph{半正定}（positive semidefinite），分别记为 $H>0$、$H\geq0$。
+\end{definition}
+
+由自伴随标准型，$H\geq0$ 当且仅当所有特征值非负，$H>0$ 当且仅当所有特征值为正。更一般地，对复正规算子 $T$，谱分解给出
+\[
+    (Tx,x)=\sum_j\lambda_j\|E_jx\|^2,\qquad
+    T^*=\sum_j\overline{\lambda_j}E_j.
+\]
+所以它自伴随当且仅当全部特征值为实数；半正定或正定分别对应全部特征值非负或为正；酉性则等价于 $T^*T=\sum_j|\lambda_j|^2E_j=I$，即全部特征值模长为 $1$。这些充分性结论都以正规性为前提。
+
+\begin{theorem}[半正定平方根]
+\label{thm:positive-square-root}
+每个有限维内积空间上的半正定自伴随算子 $H$，都有唯一的半正定自伴随平方根，记为 $H^{1/2}$。若 $H=\sum_j\lambda_jE_j$ 为谱分解，则
+\begin{equation}
+\label{eq:positive-square-root}
+    H^{1/2}=\sum_j\sqrt{\lambda_j}E_j.
+\end{equation}
+实对称半正定矩阵与 Hermite 半正定矩阵有相同结论。
+\end{theorem}
+\begin{proof}
+式~\eqref{eq:positive-square-root} 直接给出一个半正定自伴随平方根。若另有 $B\geq0$、$B^2=H$，则 $BH=HB$，所以 $B$ 保持 $H$ 的每个特征子空间 $V_j$。在 $V_j$ 上，$B$ 仍为半正定自伴随算子，且 $(B|_{V_j})^2=\lambda_jI$，所以其全部特征值都是非负数 $\sqrt{\lambda_j}$。由自伴随标准型，$B|_{V_j}=\sqrt{\lambda_j}I$，从而 $B$ 必等于式~\eqref{eq:positive-square-root}。这里的唯一性仅针对半正定自伴随平方根；一般平方根未必唯一。
+\end{proof}
+
+\begin{theorem}[极分解]
+\label{thm:polar-decomposition}
+设 $T$ 为有限维内积空间上的任意线性算子，则存在正交算子（实数域）或酉算子（复数域）$U$，以及半正定自伴随算子 $H$，使
+\begin{equation}
+\label{eq:polar-decomposition}
+    T=UH,\qquad H=(T^*T)^{1/2}.
+\end{equation}
+其中 $H$ 总是唯一；若 $T$ 可逆，则 $H>0$，$U=TH^{-1}$ 也唯一。还存在左侧半正定因子的形式 $T=KU$，其中 $K=(TT^*)^{1/2}=UHU^*$。
+\end{theorem}
+\begin{proof}
+$T^*T$ 自伴随，且 $(T^*Tx,x)=\|Tx\|^2\geq0$，所以 $H=(T^*T)^{1/2}$ 存在，并满足
+\begin{equation}
+\label{eq:polar-norm-identity}
+    \|Hx\|^2=(H^2x,x)=\|Tx\|^2,
+    \qquad \ker H=\ker T.
+\end{equation}
+若已存在 $T=UH$，则 $T^*T=HU^*UH=H^2$，平方根唯一性即确定 $H$。若 $T$ 可逆，$H$ 也可逆，此时取 $U=TH^{-1}$，则
+\[
+    U^*U=H^{-1}T^*TH^{-1}=I,
+\]
+所以 $U$ 正交或酉，且由分解式可知它唯一。
+
+对奇异的 $T$，先在 $\operatorname{Im}H$ 上定义 $U_0(Hx)=Tx$。式~\eqref{eq:polar-norm-identity} 保证该定义与 $x$ 的选取无关，并使 $U_0$ 为到 $\operatorname{Im}T$ 上的保范线性同构。两者维数相同，因此其正交补也同维；在两个正交补之间任选保积同构，将其与 $U_0$ 合并，就得到全空间的正交或酉算子 $U$，满足 $T=UH$。当 $\ker T\ne0$ 时，补空间上的选择一般不唯一。最后令 $K=UHU^*$，则 $T=KU$、$K\geq0$ 且 $K^2=TT^*$，由平方根唯一性得所述左极分解。
+\end{proof}
+
+矩阵形式为 $A=QH$，其中 $Q$ 为正交或酉矩阵、$H=(A^*A)^{1/2}\geq0$。几何上，$H$ 先沿相互正交的方向作非负伸缩，$Q$ 再保持内积地变换这些方向。计算可逆矩阵的极分解时，先对角化 $A^*A=P\operatorname{diag}(\lambda_j)P^*$，令 $H=P\operatorname{diag}(\sqrt{\lambda_j})P^*$，最后求 $Q=AH^{-1}$；奇异情形则可使用下一节的奇异值分解。
+
+\begin{example}
+为说明可逆情形的计算，求 $A=\begin{pmatrix}0&-2\\1&0\end{pmatrix}$ 的极分解。
+\end{example}
+\begin{solve}
+由 $A^{\mathsf T}A=\operatorname{diag}(1,4)$ 得 $H=\operatorname{diag}(1,2)$，于是
+\[
+    Q=AH^{-1}=\begin{pmatrix}0&-1\\1&0\end{pmatrix},\qquad
+    A=QH.
+\]
+$Q$ 为旋转矩阵，$H$ 分别将两个坐标方向伸缩 $1$ 倍和 $2$ 倍；因 $A$ 可逆，这两个因子均唯一。
+\end{solve}
+
+\section{奇异值分解}
+\label{sec:singular-value-decomposition}
+
+相似标准型研究一个空间上的线性算子，并要求定义域与值域同步换基；对一般线性映射 $T:V\to U$，则可在两个空间独立选择标准正交基。\emph{奇异值分解}（singular value decomposition，简称 SVD）正是这类问题的标准型，它适用于长方阵，也不要求矩阵正规。
+
+设 $\dim V=n$、$\dim U=m$。伴随的定义可推广为 $T^*:U\to V$，满足
+\[
+    (Tx,y)_U=(x,T^*y)_V\qquad(x\in V,\ y\in U).
+\]
+在两空间的标准正交基下，若 $T$ 的矩阵为 $A\in\mathbb F^{m\times n}$，则用 $A^*$ 定义的映射满足此式，非退化性又保证唯一性。因此有限维情形伴随仍存在且唯一，$T^*T$ 与 $TT^*$ 分别为 $V$ 与 $U$ 上的半正定自伴随算子；特别地，
+\[
+    \ker(T^*T)=\ker T,\qquad
+    \operatorname{rank}(T^*T)=\operatorname{rank}T.
+\]
+第一个等式由 $(T^*Tx,x)=\|Tx\|^2$ 得到，第二个由维数公式得到。
+
+\begin{definition}
+\label{def:singular-values}
+设 $A\in\mathbb F^{m\times n}$ 的秩为 $r$，$p=\min(m,n)$。$A^*A$ 的 $r$ 个正特征值的非负平方根，按重数排列为 $\sigma_1\geq\cdots\geq\sigma_r>0$，再补 $p-r$ 个零，所得 $p$ 个数称为 $A$ 的\emph{奇异值}（singular values）。对正奇异值 $\sigma$，满足
+\[
+    Av=\sigma u,\qquad A^*u=\sigma v
+\]
+的非零向量 $v\in\mathbb F^n$、$u\in\mathbb F^m$ 分别称为相应的\emph{右奇异向量}与\emph{左奇异向量}（right/left singular vectors），通常取为单位向量。
+\end{definition}
+
+这两个等式蕴含 $A^*Av=\sigma^2v$、$AA^*u=\sigma^2u$。反之，从 $A^*Av=\sigma^2v$、$\sigma>0$ 出发，取 $u=Av/\sigma$ 就得到这两个等式；单位 $v$ 对应单位 $u$。因此 $A^*A$ 与 $AA^*$ 的正特征值及其重数相同。零特征值的重数则分别为 $n-r$ 与 $m-r$；长方阵的奇异值按 $p$ 个列出时，须区别这两种零空间的维数。
+
+\begin{theorem}[奇异值分解]
+\label{thm:svd}
+对任意 $A\in\mathbb F^{m\times n}$，存在 $m$ 阶正交或酉矩阵 $U$、$n$ 阶正交或酉矩阵 $V$，使
+\begin{equation}
+\label{eq:svd}
+    A=U\Sigma V^*,\qquad
+    \Sigma=\begin{pmatrix}D&0\\0&0\end{pmatrix}\in\mathbb R^{m\times n},
+    \qquad D=\operatorname{diag}(\sigma_1,\ldots,\sigma_r).
+\end{equation}
+其中 $\sigma_1\geq\cdots\geq\sigma_r>0$，零分块的大小由 $m,n,r$ 决定；$r=0$ 时 $\Sigma$ 为零矩阵。若 $v_i,u_i$ 分别为 $V,U$ 的列向量，则
+\[
+    Av_i=\sigma_i u_i,\quad A^*u_i=\sigma_i v_i\quad(1\leq i\leq r),
+    \qquad Av_j=0\ (j>r),\quad A^*u_k=0\ (k>r).
+\]
+\end{theorem}
+\begin{proof}
+对半正定矩阵 $A^*A$ 取标准正交特征基 $v_1,\ldots,v_n$，使前 $r$ 个特征值依次为 $\sigma_1^2,\ldots,\sigma_r^2$，其余为零。对 $i\leq r$ 令 $u_i=Av_i/\sigma_i$。由于
+\[
+    (u_i,u_j)=\frac{(Av_i,Av_j)}{\sigma_i\sigma_j}
+    =\frac{(v_i,A^*Av_j)}{\sigma_i\sigma_j}=\delta_{ij},
+\]
+这些向量标准正交。对 $j>r$，$\|Av_j\|^2=(v_j,A^*Av_j)=0$，故 $Av_j=0$。因此 $u_1,\ldots,u_r$ 张成 $\operatorname{Im}A$，可将其扩充为值域空间的标准正交基 $u_1,\ldots,u_m$；新增向量位于 $(\operatorname{Im}A)^\perp=\ker A^*$ 中。令 $V=(v_1,\ldots,v_n)$、$U=(u_1,\ldots,u_m)$，则 $AV=U\Sigma$，即得分解式。对 $i\leq r$，还可由定义计算 $A^*u_i=A^*Av_i/\sigma_i=\sigma_iv_i$。
+\end{proof}
+
+从几何上看，$V^*$ 先将输入换到右奇异向量坐标，$\Sigma$ 沿各相互正交的方向按 $\sigma_i$ 伸缩，并将核空间压到零，$U$ 再把输出变到左奇异向量方向。奇异值由矩阵唯一确定，但奇异向量一般不唯一：重奇异值允许在相应子空间内选不同的标准正交基，正奇异值的左右向量还可同步改变符号或相位，零空间中的基也可自由选取。对固定大小的实矩阵，奇异值是\emph{正交相抵}关系 $B=P^{\mathsf T}AQ$ 的全系不变量；复数域上则对应酉相抵 $B=P^*AQ$。这由两矩阵能否化成同一个 $\Sigma$ 直接得到。
+
+方阵的 SVD 立即给出极分解：若 $A=U\Sigma V^*$，则
+\begin{equation}
+\label{eq:svd-to-polar}
+    A=(UV^*)(V\Sigma V^*)=QH,
+    \qquad Q=UV^*,\quad H=V\Sigma V^*\geq0.
+\end{equation}
+这里方阵的 $\Sigma$ 为非负对角阵，故 $H^2=A^*A$。特别地，即使 $A$ 奇异，也可通过补齐左右奇异向量基直接构造正交或酉因子。
+
+\begin{example}
+\label{ex:svd-rank-deficient}
+对例~\ref{ex:qr-rank-deficient} 中的矩阵 $A$ 求奇异值分解及极分解。
+\end{example}
+\begin{solve}
+先计算
+\[
+    A^{\mathsf T}A=\begin{pmatrix}2&2&6\\2&5&12\\6&12&30\end{pmatrix}.
+\]
+其特征值为 $36,1,0$，相应的一组标准正交特征向量为
+\[
+    v_1=\tfrac1{\sqrt{30}}(1,2,5)^{\mathsf T},\quad
+    v_2=\tfrac1{\sqrt5}(2,-1,0)^{\mathsf T},\quad
+    v_3=\tfrac1{\sqrt6}(1,2,-1)^{\mathsf T}.
+\]
+所以奇异值为 $6,1,0$。令
+\[
+    u_1=Av_1/6=\tfrac1{\sqrt{30}}(5,1,2)^{\mathsf T},\quad
+    u_2=Av_2=\tfrac1{\sqrt5}(0,2,-1)^{\mathsf T},\quad
+    u_3=\tfrac1{\sqrt6}(-1,1,2)^{\mathsf T}.
+\]
+则 $U=(u_1,u_2,u_3)$、$V=(v_1,v_2,v_3)$ 都正交，并且
+\[
+    A=U\operatorname{diag}(6,1,0)V^{\mathsf T}.
+\]
+其半正定极因子和一个正交极因子分别为
+\[
+    H=6v_1v_1^{\mathsf T}+v_2v_2^{\mathsf T}
+     =\begin{pmatrix}1&0&1\\0&1&2\\1&2&5\end{pmatrix},
+    \qquad
+    Q=UV^{\mathsf T}=\begin{pmatrix}0&0&1\\1&0&0\\0&1&0\end{pmatrix}.
+\]
+直接相乘可验证 $A=QH$。若仅将 $u_3$ 改成 $-u_3$，$\Sigma$ 的第三个对角元为零使 SVD 仍成立，$H$ 也不变，而 $Q$ 改变；这展示了奇异矩阵的正交极因子为何不唯一。
+\end{solve}
+
+\begin{proposition}
+\label{prop:equal-gram-isometry}
+若 $A,B\in\mathbb F^{m\times n}$，则 $A^*A=B^*B$，当且仅当存在 $m$ 阶正交或酉矩阵 $W$，使 $A=WB$。
+\end{proposition}
+\begin{proof}
+若 $A^*A=B^*B$，则 $\|Ax\|=\|Bx\|$，所以 $Bx\mapsto Ax$ 在 $\operatorname{Im}B$ 上定义了到 $\operatorname{Im}A$ 的保范线性同构。两像空间同维，故其正交补也同维；在补空间间任选保积同构，将它扩充为全空间的正交或酉变换 $W$，便有 $A=WB$。反之，由 $W^*W=I$ 得 $A^*A=B^*W^*WB=B^*B$。
+\end{proof}
+
+\section{最小二乘解}
+\label{sec:least-squares}
+
+最小二乘问题首先是一个最近点问题。若 $W$ 为有限维内积空间 $V$ 的子空间，$b\in V$，则由定理~\ref{thm:orthogonal-decomposition} 可写 $b=P_Wb+r$，其中 $r\perp W$。对任意 $w\in W$，由勾股恒等式得
+\begin{equation}
+\label{eq:projection-best-approximation}
+    \|b-w\|^2=\|r\|^2+\|P_Wb-w\|^2.
+\end{equation}
+因此 $P_Wb$ 是 $W$ 中使距离最小的唯一向量，最短距离为 $\|r\|$。若 $q_1,\ldots,q_k$ 为 $W$ 的标准正交基，并扩充为全空间的标准正交基 $q_1,\ldots,q_m$，则
+\[
+    P_Wb=\sum_{j=1}^k(b,q_j)q_j,\qquad
+    \operatorname{dist}(b,W)^2=\sum_{j=k+1}^m|(b,q_j)|^2.
+\]
+这把“垂线段最短”推广到任意有限维内积空间。
+
+\begin{definition}
+对给定 $A\in\mathbb F^{m\times n}$、$b\in\mathbb F^m$，优化问题
+\begin{equation}
+\label{eq:least-squares-objective}
+    \min_{x\in\mathbb F^n}\|Ax-b\|^2
+\end{equation}
+的任一最小化向量称为方程组 $Ax=b$ 的\emph{最小二乘解}（least-squares solution）。这里范数取标准内积诱导的范数，$A,b$ 为给定数据，$x$ 为待求变量；既不要求方程组相容，也不要求 $m>n$。
+\end{definition}
+
+因为全部 $Ax$ 恰好遍历列空间 $W=\operatorname{Im}A$，问题~\eqref{eq:least-squares-objective} 就是把 $b$ 投影到 $W$。即使 $Ax=b$ 无解，仍存在使平方残差最小的向量；若方程组有解，则最小残差为零，最小二乘解就是通常的解。
+
+\begin{theorem}[正规方程]
+\label{thm:normal-equations}
+向量 $\widehat x$ 为 $Ax=b$ 的最小二乘解，当且仅当它满足\emph{正规方程}（normal equations）
+\begin{equation}
+\label{eq:normal-equations}
+    A^*A\widehat x=A^*b.
+\end{equation}
+该方程组总相容。拟合向量 $A\widehat x=P_Wb$ 唯一，全部最小二乘解为 $\widehat x+\ker A$；最小二乘解唯一，当且仅当 $A$ 列满秩，此时
+\begin{equation}
+\label{eq:full-rank-least-squares}
+    \widehat x=(A^*A)^{-1}A^*b.
+\end{equation}
+\end{theorem}
+\begin{proof}
+由最近点的唯一性，$\widehat x$ 最优当且仅当 $b-A\widehat x\perp\operatorname{Im}A$，即对任意 $z\in\mathbb F^n$ 有
+\[
+    (Az,b-A\widehat x)=(z,A^*(b-A\widehat x))=0.
+\]
+内积非退化性将其化为式~\eqref{eq:normal-equations}。由于 $P_Wb\in\operatorname{Im}A$，一定存在 $\widehat x$ 满足 $A\widehat x=P_Wb$，所以正规方程总相容。同一拟合向量的原像构成 $\widehat x+\ker A$，因此唯一性恰好等价于 $\ker A=\{0\}$。这时对非零 $x$ 有 $x^*A^*Ax=\|Ax\|^2>0$，故 $A^*A$ 正定可逆，解出即得式~\eqref{eq:full-rank-least-squares}。
+\end{proof}
+
+\emph[caution]{投影向量唯一，并不自动意味着系数向量唯一}：秩亏时，多个系数可表示同一个列空间向量，不能使用 $(A^*A)^{-1}$。用上一节的 SVD $A=U\Sigma V^*$ 可以同时描述相容、矛盾和秩亏的情形。若秩为 $r$，则全部最小二乘解为
+\begin{equation}
+\label{eq:svd-least-squares}
+    x=\sum_{i=1}^r\frac{(b,u_i)}{\sigma_i}v_i
+      +\sum_{j=r+1}^n c_jv_j,\qquad c_j\in\mathbb F,
+\end{equation}
+最小残差平方为 $\sum_{i=r+1}^m|(b,u_i)|^2$。这是因为酉变换保持范数，将 $x$ 写成 $\sum_jz_jv_j$ 后，目标函数变为
+\[
+    \sum_{i=1}^r|\sigma_i z_i-(b,u_i)|^2
+    +\sum_{i=r+1}^m|(b,u_i)|^2,
+\]
+所以前 $r$ 项必须逐项为零，而核空间坐标自由。取各 $c_j=0$ 得到唯一的\emph{最小范数最小二乘解}，其唯一性来自两部分正交，增加非零核空间分量必增大范数。若将 $\Sigma$ 的正对角元取倒数并转置其大小，得到 $\Sigma^+\in\mathbb R^{n\times m}$，则这一解也可写为 $x=A^+b$，其中 $A^+=V\Sigma^+U^*$ 称为 \emph{Moore--Penrose 广义逆}（Moore--Penrose pseudoinverse）。
+
+列满秩时，QR 分解还给出另一种计算形式。设 $A=Q_1R$、$Q_1^*Q_1=I_n$，其中 $R$ 为可逆上三角阵，则
+\[
+    A^*(A\widehat x-b)=0
+    \quad\Longleftrightarrow\quad R\widehat x=Q_1^*b.
+\]
+因此可先求 $Q_1^*b$，再解上三角方程组，无须显式计算 $(A^*A)^{-1}$；这与式~\eqref{eq:full-rank-least-squares} 给出同一个理论解。
+
+\begin{example}
+\label{ex:least-squares-line}
+沿用教材用于说明线性拟合的示例数据，取三个点 $(t_i,y_i)$ 分别为 $(1.2,1.6)$、$(1.4,1.7)$、$(1.8,2.0)$，拟合关系 $y=a+bt$，使 $\sum_{i=1}^3(a+bt_i-y_i)^2$ 最小。这是给定数据下的线性近似模型，不把三点严格共线作为前提。
+\end{example}
+\begin{solve}
+令
+\[
+    A=\begin{pmatrix}1&1.2\\1&1.4\\1&1.8\end{pmatrix},\qquad
+    x=\begin{pmatrix}a\\b\end{pmatrix},\qquad
+    y=\begin{pmatrix}1.6\\1.7\\2.0\end{pmatrix}.
+\]
+两列线性无关，故最小二乘解唯一。计算正规方程为
+\[
+    \begin{pmatrix}3&4.4\\4.4&6.64\end{pmatrix}
+    \begin{pmatrix}a\\b\end{pmatrix}
+    =\begin{pmatrix}5.3\\7.9\end{pmatrix}.
+\]
+其系数矩阵行列式为 $0.56$，解得
+\[
+    a=\frac{27}{35}\approx0.77143,\qquad
+    b=\frac{19}{28}\approx0.67857.
+\]
+因此拟合直线为 $y=\frac{27}{35}+\frac{19}{28}t$。残差 $y-A\widehat x=\tfrac1{140}(2,-3,1)^{\mathsf T}$ 与 $A$ 的两列均正交，最小平方误差为 $1/1400$。这给出给定三点的平方偏差最优拟合；它仍是所选线性模型下的近似，不能由此推出新的数据一定严格服从该关系。
+\end{solve}
+
+
+
+
+
+

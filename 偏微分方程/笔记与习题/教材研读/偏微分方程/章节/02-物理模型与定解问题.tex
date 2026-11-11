@@ -1,0 +1,102 @@
+% !TeX root = ../偏微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{物理模型与定解问题}
+\label{chap:modeling}
+
+建模把三类信息合并起来：守恒定律描述收支，材料规律描述通量，初始与边界条件描述实验配置。数学推导应保留这些信息的来源。
+
+\section{守恒律与局部平衡}
+设 $\rho$ 为体密度，$J$ 为流出通量，$s$ 为单位体积源项。对任意固定的光滑控制体 $V$，收支关系为
+\begin{equation}
+ \frac{d}{dt}\int_V\rho\,dx
+ =-\int_{\partial V}J\cdot\nu\,dS+\int_Vs\,dx.
+ \label{eq:balance-integral}
+\end{equation}
+假设 $\rho$ 对时间连续可微、$J$ 对空间连续可微、$s$ 连续，则可交换微分与积分并使用散度定理，得到
+\[
+ \int_V(\rho_t+\operatorname{div}J-s)\,dx=0.
+\]
+被积函数连续，若它在一点为正或为负，则在充分小球上保持同号，与积分恒为零矛盾。因此
+\begin{equation}
+ \rho_t+\operatorname{div}J=s.
+ \label{eq:local-balance}
+\end{equation}
+守恒关系还不能单独决定 $\rho$ 与 $J$；描述材料响应的\emph{构成关系（constitutive relation）}负责把未知量联系起来。
+
+\section{热传导、扩散与平衡模型}
+设 $u$ 为温度，$C(x)>0$ 为体积热容量，$k(x)>0$ 为各向同性热导率，$Q$ 为热源。忽略材料参数随温度的变化，内能密度相对某参考温度为 $Cu$。\emph{傅里叶定律（Fourier's law）}$J=-k\nabla u$ 表示热从高温处流向低温处。代入式\eqref{eq:local-balance}得
+\begin{equation}
+ C u_t-\operatorname{div}(k\nabla u)=Q.
+ \label{eq:heat-model}
+\end{equation}
+常系数时令 $\kappa=k/C$、$f=Q/C$，得到 $u_t-\kappa\Delta u=f$。变系数时 $\operatorname{div}(k\nabla u)=k\Delta u+\nabla k\cdot\nabla u$，不能漏掉第二项。各向异性材料中 $k$ 应换成适当正定的矩阵。
+
+扩散浓度满足同样的收支结构，\emph{菲克定律（Fick's law）}以浓度梯度决定扩散通量。稳态时 $u_t=0$，常系数无源模型归结为 $\Delta u=0$；有源模型可统一写为 $-\Delta u=f$，这就是泊松方程。
+
+在一维中，傅里叶定律的符号可以直接解释。若从左到右温度升高，即 $u_x>0$，热量应向左流动，所以沿正 $x$ 方向测量的通量为 $J=-ku_x<0$。再考虑一小段杆：左端流入量减去右端流出量为 $J(x)-J(x+\delta x)$，除以长度后，在常热导率情形趋于 $-J_x=ku_{xx}$。于是无源常系数模型中，温度曲线局部向上弯、$u_{xx}>0$ 的位置正在升温，局部向下弯的位置正在降温。热方程通过这种机制削弱尖峰、填平低谷，而不是把整条温度曲线按同一速度降低。
+
+若长度、时间、温度的单位分别记为 $\mathrm{m}$、$\mathrm{s}$、$\mathrm{K}$，则 $\kappa$ 的单位为 $\mathrm{m}^2/\mathrm{s}$，$f$ 的单位为 $\mathrm{K}/\mathrm{s}$。温度 $u$ 与内能密度 $Cu$ 不应混用；在 $C$ 为常数、截面积固定的杆上，总热量与 $\int_0^\ell u\,dx$ 成正比，在变热容量材料中则应使用 $\int_0^\ell Cu\,dx$。
+
+\section{弦振动与波动模型}
+设弦的平衡位置为 $0<x<\ell$，横向位移为 $u(x,t)$，线密度为 $\rho_0>0$，恒定张力为 $\mathcal T>0$。假设斜率 $|u_x|\ll1$，忽略纵向运动与张力变化，则张力的竖直分量近似为 $\mathcal T u_x$。长度为 $\delta x$ 的弦段满足
+\[
+ \rho_0\delta x\,u_{tt}\approx
+ \mathcal T\bigl(u_x(x+\delta x,t)-u_x(x,t)\bigr)+q(x,t)\delta x.
+\]
+除以 $\delta x$ 并取极限得
+\begin{equation}
+ u_{tt}-c^2u_{xx}=f,\qquad
+ c=\sqrt{\mathcal T/\rho_0},\qquad f=q/\rho_0.
+ \label{eq:wave-model}
+\end{equation}
+小斜率与恒张力是模型假设，并非方程的推论。若单位长度阻力正比于速度，另得 $u_{tt}+\gamma u_t-c^2u_{xx}=f$，其中 $\gamma\ge0$。
+
+\section{初始条件、边界条件与相容性}
+热方程的典型\emph{初值（initial data）}为 $u(x,0)=g(x)$；波动方程还需要 $u_t(x,0)=h(x)$。这与其分别含一阶、二阶时间导数有关。空间边界常见三类条件：
+\[
+ \underbrace{u=g}_{\text{狄利克雷（Dirichlet）}},\qquad
+ \underbrace{\partial_\nu u=g}_{\text{诺伊曼（Neumann）}},\qquad
+ \underbrace{\alpha u+\beta\partial_\nu u=g}_{\text{罗宾（Robin）}}.
+\]
+具体问题必须说明系数与数据，并避免两个系数同时为零。热流给定通常规定的是 $-k\partial_\nu u$，而不直接是法向导数。
+
+若要求热方程解在闭区域上连续，初温与边温在交界处必须相等。若还要求方程一直成立到 $t=0$ 的边界，则需更高阶相容性。例如左端温度为 $b(t)$ 时，需 $g(0)=b(0)$，并在导数足够光滑时有 $\kappa g''(0)+f(0,0)=b'(0)$。较弱的解可以允许角点不相容，但应另行规定初值和边界的取得方式。
+
+\begin{example}[边界法向与总热量]
+设杆满足 $C u_t-ku_{xx}=Q$。在左端，外法向为 $-1$，所以 $\partial_\nu u=-u_x$、流出热通量为 $ku_x(0,t)$；在右端，流出通量为 $-ku_x(\ell,t)$。对方程积分得到
+\[
+ C\frac d{dt}\int_0^\ell u\,dx
+ =k u_x(\ell,t)-k u_x(0,t)+\int_0^\ell Q\,dx.
+\]
+右侧前两项恰是负的总流出量。两端绝热且 $Q=0$ 时积分守恒；两端保持零温时，积分一般不守恒，因为边界可以带走热量。若两端都与温度 $T_a$ 的环境以换热系数 $\eta>0$ 交换热量，左端条件为 $ku_x(0,t)=\eta(u(0,t)-T_a)$，右端条件为 $-ku_x(\ell,t)=\eta(u(\ell,t)-T_a)$。
+\end{example}
+
+给定初值与边值时，还应先问它们分别控制什么。演化问题的初值描述开始时的状态，边值描述随后每个时刻与外界的联系；稳态问题没有初始时刻，数据主要分布在空间边界。对于输运方程，只有信息进入区域的位置适合独立给数据，这一点将在下一章用特征线直接看出。
+
+\section{无量纲化与模型检查}
+令 $x=\ell\xi$、$t=t_*\tau$、$u=u_*v$，其中尺度均为正数。齐次热方程变为
+\[
+ v_\tau=\frac{\kappa t_*}{\ell^2}\Delta_\xi v.
+\]
+取 $t_*=\ell^2/\kappa$ 可将系数化为一；波动方程相应取 $t_*=\ell/c$。这两个时间尺度分别反映扩散和传播机制。无量纲化（nondimensionalization）既简化参数，也暴露量纲不一致的建模错误。
+
+\section{例题与习题}
+\begin{example}
+常系数细杆具有均匀体积热源 $Q$，左端保持温度 $T_L$，右端向温度 $T_a$ 的环境散热，换热系数为 $\eta>0$。写出定解问题。
+\end{example}
+\begin{solve}
+若初温为 $g(x)$，则
+\[
+ C u_t-ku_{xx}=Q,\quad 0<x<\ell,\qquad
+ u(0,t)=T_L,\quad -k u_x(\ell,t)=\eta(u(\ell,t)-T_a),\quad
+ u(x,0)=g(x).
+\]
+右端外法向沿正 $x$ 方向，所以流出热量为 $-ku_x$。若要求连续到初始边界，$g(0)=T_L$；若要求初始时刻也具有相应的一阶边界正则性，还需 $-kg'(\ell)=\eta(g(\ell)-T_a)$。
+\end{solve}
+\begin{enumerate}
+ \item 把例题中的左端改成对流散热，写出该端的正确符号。
+ \item 对齐次诺伊曼热方程积分，证明无源时总热量守恒。
+ \item 从式\eqref{eq:wave-model}核查波速的量纲，并说明张力加倍为何不使波速加倍。
+\end{enumerate}
+

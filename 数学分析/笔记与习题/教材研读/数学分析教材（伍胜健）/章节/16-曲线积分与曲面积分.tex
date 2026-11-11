@@ -1,0 +1,1067 @@
+% !TeX root = ../数学分析教材（伍胜健）笔记.tex
+% 本文件由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{15} % 保留原书章号。
+\chapter{曲线积分与曲面积分}
+\label{chap:line-and-surface-integrals}
+
+% 本章正文依据教材第 188--261 页（分章 PDF 第 1--74 页，止于习题十六之前）。
+重积分是在平面或空间区域上累积一个量，曲线积分与曲面积分则把积分的范围换成曲线和曲面。细线的质量、薄壳的质量属于沿长度或面积累积数量的模型；变力做功、流体通量则还要考虑切向或法向。这一区别产生了两类积分：\emph{第一型积分}（integral of the first kind）以弧长或面积为权重，\emph{第二型积分}（integral of the second kind）以有向位移或有向面积为权重。本章先分别建立四种积分，再用格林、高斯和斯托克斯公式联系区域内部与边界，最后讨论微分形式、路径无关性及场的局部性质。
+
+以下曲线、曲面通常由有限个光滑部分组成，接合处只在端点或边界上重合；被积函数取实值，向量场取值于相应的欧氏空间。光滑曲线的正则参数表示满足 $\boldsymbol r\in C^1$ 且 $\boldsymbol r'\neq0$，光滑曲面片的正则参数表示满足 $\boldsymbol r\in C^1$ 且 $\boldsymbol r_u\times\boldsymbol r_v\neq0$。闭曲线的首尾重合以及曲面参数图之间的边界重合均允许，但计算时不能重复计入一段弧或一块曲面。
+
+\section{第一型曲线积分}
+\label{sec:line-integrals-of-the-first-kind}
+
+\subsection{第一型曲线积分的定义}
+\label{subsec:definition-of-line-integrals-of-the-first-kind}
+
+设 $\Gamma$ 是端点为 $A,B$ 的连续简单曲线，按曲线上的先后次序取分点 $A=A_0,A_1,\ldots,A_N=B$。连接相邻分点所得折线的长度为 $\sum_{k=1}^N|A_k-A_{k-1}|$；若这些长度的上确界有限，则称 $\Gamma$ \emph{可求长}（rectifiable），该上确界就是弧长 $L$。可求长曲线的每一段子弧也可求长，故可用小弧段长度 $\Delta s_k$ 作为分割的权重。若细线在点 $M$ 的线密度为 $\rho(M)$，则 $\rho(M_k)\Delta s_k$ 近似于第 $k$ 段细线的质量，从而得到以下定义。
+
+\begin{definition}
+\label{def:line-integral-first-kind}
+设 $\Gamma$ 为可求长简单曲线，$f:\Gamma\to\mathbb R$。对任意弧段分割 $\mathcal P$，在第 $k$ 段子弧 $\Gamma_k$ 上任取 $M_k$，并记 $\lambda(\mathcal P)=\max_k\Delta s_k$。若存在 $I\in\mathbb R$，使对每个 $\varepsilon>0$，都存在 $\delta>0$，当 $\lambda(\mathcal P)<\delta$ 时，对任意这样的分割及取点均有
+\[
+    \left|\sum_{k=1}^N f(M_k)\Delta s_k-I\right|<\varepsilon,
+\]
+则称 $I$ 为 $f$ 沿 $\Gamma$ 的\emph{第一型曲线积分}，记为
+\[
+    I=\int_\Gamma f\,\mathrm ds
+      =\int_\Gamma f(x,y,z)\,\mathrm ds.
+\]
+平面曲线只需省去坐标 $z$；有限条子弧组成的分段曲线按各段积分之和定义。
+\end{definition}
+
+由定义，$\int_\Gamma1\,\mathrm ds=L$；若 $\rho\geq0$ 为线密度，则质量为 $m=\int_\Gamma\rho\,\mathrm ds$。对于平面曲线上的非负函数 $f$，还可把积分理解为以该曲线为底、沿垂直于曲线所在平面的方向立起、高为 $f$ 的柱形曲面面积。这里的长度权重始终非负，所以把曲线方向反过来并不改变积分。
+
+\begin{proposition}
+\label{prop:first-line-integral-properties}
+第一型曲线积分对被积函数具有线性性，对只在端点相交的有限条积分子弧具有可加性。在相关积分存在时，$f\leq g$ 蕴含 $\int_\Gamma f\,\mathrm ds\leq\int_\Gamma g\,\mathrm ds$，且
+\[
+    \left|\int_\Gamma f\,\mathrm ds\right|
+    \leq\int_\Gamma|f|\,\mathrm ds
+    \leq L\sup_{M\in\Gamma}|f(M)|.
+\]
+其中第一项比较要求 $|f|$ 可积，最后一项要求 $f$ 有界。特别地，$\int_{-\Gamma}f\,\mathrm ds=\int_\Gamma f\,\mathrm ds$，其中 $-\Gamma$ 表示反向曲线。
+\end{proposition}
+
+\begin{proof}
+线性性来自有限和及极限的线性性；把分割在接合点细分后，可分别在各子弧取极限，得到可加性。由于 $\Delta s_k\geq0$，和式保持大小关系，且其绝对值不超过 $\sum_k|f(M_k)|\Delta s_k$；令网格趋于零即得估计。反向只把子弧次序颠倒，既不改变取值也不改变长度，故积分不变。
+\end{proof}
+
+\subsection{第一型曲线积分的存在性与计算公式}
+\label{subsec:existence-and-evaluation-of-line-integrals-of-the-first-kind}
+
+\begin{theorem}
+\label{thm:first-line-integral-arclength}
+设 $\Gamma$ 为长度为 $L$ 的可求长简单曲线，$f$ 在 $\Gamma$ 上连续。以从端点 $A$ 起算的弧长 $s$ 为参数，记曲线为 $\boldsymbol r=\boldsymbol r(s)$，$0\leq s\leq L$，则第一型曲线积分存在，且
+\begin{equation}
+\label{eq:first-line-integral-arclength}
+    \int_\Gamma f\,\mathrm ds=\int_0^L f(\boldsymbol r(s))\,\mathrm ds.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+弧长参数表示连续，故 $f(\boldsymbol r(s))$ 在 $[0,L]$ 上连续。曲线分割对应于 $0=s_0<\cdots<s_N=L$，且 $\Delta s_k=s_k-s_{k-1}$；在子弧上取 $M_k$ 等价于取 $s_k^*\in[s_{k-1},s_k]$，使 $M_k=\boldsymbol r(s_k^*)$。定义中的和式于是恰为连续函数 $f\circ\boldsymbol r$ 的黎曼和，网格也相同，故收敛到式~\eqref{eq:first-line-integral-arclength} 的右端。
+\end{proof}
+
+\begin{theorem}
+\label{thm:first-line-integral-parametric}
+设 $\Gamma$ 有正则参数表示 $\boldsymbol r(t)=(x(t),y(t),z(t))$，$a\leq t\leq b$，且 $f$ 在 $\Gamma$ 上连续，则
+\begin{equation}
+\label{eq:first-line-integral-parametric}
+    \int_\Gamma f\,\mathrm ds
+    =\int_a^b f(\boldsymbol r(t))\,|\boldsymbol r'(t)|\,\mathrm dt,
+    \qquad
+    \mathrm ds=\sqrt{x'(t)^2+y'(t)^2+z'(t)^2}\,\mathrm dt.
+\end{equation}
+对分段光滑曲线逐段使用此式。若平面曲线为 $y=\varphi(x)$，$a\leq x\leq b$，则 $\mathrm ds=\sqrt{1+\varphi'(x)^2}\,\mathrm dx$。
+\end{theorem}
+
+\begin{proof}
+令 $s(t)=\int_a^t|\boldsymbol r'(\tau)|\,\mathrm d\tau$，则 $s'(t)=|\boldsymbol r'(t)|>0$。在式~\eqref{eq:first-line-integral-arclength} 中作一元换元即得结论。若改用反向参数，换元中的方向变化由速度的绝对值抵消，因此公式与第一型积分的方向无关性一致。
+\end{proof}
+
+\begin{example}
+\label{ex:first-line-integral-offset-circle}
+设 $\Gamma$ 为圆周 $x^2+y^2=x$，计算 $\int_\Gamma\sqrt{1-x^2-y^2}\,\mathrm ds$。
+\end{example}
+\begin{solve}
+取 $x=(1+\cos t)/2$、$y=\sin t/2$，$0\leq t\leq2\pi$，则 $\mathrm ds=\mathrm dt/2$，而圆周上 $1-x^2-y^2=1-x=(1-\cos t)/2$。所以
+\[
+    \int_\Gamma\sqrt{1-x^2-y^2}\,\mathrm ds
+    =\frac12\int_0^{2\pi}\left|\sin\frac t2\right|\,\mathrm dt=2.
+\]
+也可利用关于 $x$ 轴的对称性，将上半圆写成 $y=\sqrt{x-x^2}$，得到 $2\int_0^1\sqrt{1-x}\,[2\sqrt{x-x^2}]^{-1}\,\mathrm dx=2$。后一写法在端点处是瑕积分，需要按极限理解，不能把参数图在端点的导数发散误认为原曲线不光滑。
+\end{solve}
+
+\begin{example}
+\label{ex:first-line-integral-semicircle-boundary}
+设 $\Gamma$ 为上半单位圆盘的整个边界，计算 $\int_\Gamma(x+y)^2\,\mathrm ds$。
+\end{example}
+\begin{solve}
+边界由上半圆弧与直径组成。圆弧上 $x^2+y^2=1$，而 $xy$ 关于 $y$ 轴反号，故其贡献为 $\int_{\text{圆弧}}(1+2xy)\,\mathrm ds=\pi$。直径上 $y=0$，其贡献为 $\int_{-1}^1x^2\,\mathrm dx=2/3$，因此积分为 $\pi+2/3$。对称性只在被积函数、弧长权重和积分曲线同时相容时才能使用。
+\end{solve}
+
+\section{第二型曲线积分}
+\label{sec:line-integrals-of-the-second-kind}
+
+\subsection{第二型曲线积分的定义}
+\label{subsec:definition-of-line-integrals-of-the-second-kind}
+
+设力场 $\boldsymbol F=(P,Q,R)$ 作用下的质点沿曲线从 $A$ 移到 $B$。在一小段子弧上用常力和弦位移近似，所做的功为 $\boldsymbol F(M_k)\cdot(A_k-A_{k-1})$。它不仅取决于弧段长度，还取决于位移方向，这就引出第二型曲线积分。
+
+\begin{definition}
+\label{def:line-integral-second-kind}
+设 $\Gamma$ 为取定方向的分段光滑曲线，$\boldsymbol F=(P,Q,R)$ 在其上有定义。沿指定方向依次取分点 $A_0,\ldots,A_N$，在各子弧上任取 $M_k$，记 $A_k-A_{k-1}=(\Delta x_k,\Delta y_k,\Delta z_k)$，$\lambda(\mathcal P)=\max_k\Delta s_k$。若下列极限存在，且与分割及取点无关，则称为\emph{第二型曲线积分}：
+\begin{equation}
+\label{eq:second-line-integral-definition}
+    \int_\Gamma\boldsymbol F\cdot\mathrm d\boldsymbol r
+    =\int_\Gamma P\,\mathrm dx+Q\,\mathrm dy+R\,\mathrm dz
+    =\lim_{\lambda(\mathcal P)\to0}
+      \sum_{k=1}^N\bigl(P(M_k)\Delta x_k+Q(M_k)\Delta y_k+R(M_k)\Delta z_k\bigr).
+\end{equation}
+这里的极限同样要求对所有充分细分割和任意取点一致成立。闭曲线仍须另行指定方向，其积分常写成 $\oint_\Gamma$。
+\end{definition}
+
+积分对向量场具有线性性，对沿途相接的有向曲线具有可加性；反向时每个坐标增量均反号，所以
+\[
+    \int_{-\Gamma}\boldsymbol F\cdot\mathrm d\boldsymbol r
+    =-\int_\Gamma\boldsymbol F\cdot\mathrm d\boldsymbol r.
+\]
+若同一路段走过去再沿原路返回，两段积分相消。做功模型中的 $\boldsymbol F$ 是力，积分给出该力做的功；沿闭曲线的积分也称为向量场的\emph{环量}（circulation）。
+
+\subsection{第二型曲线积分的存在性与计算公式}
+\label{subsec:existence-and-evaluation-of-line-integrals-of-the-second-kind}
+
+\begin{theorem}
+\label{thm:second-line-integral-parametric}
+设 $\boldsymbol r:[a,b]\to\mathbb R^3$ 是 $\Gamma$ 的分段正则参数表示，$t$ 增大时沿 $\Gamma$ 的指定方向运动，$\boldsymbol F$ 在 $\Gamma$ 上连续，则第二型曲线积分存在，且
+\begin{equation}
+\label{eq:second-line-integral-parametric}
+    \int_\Gamma\boldsymbol F\cdot\mathrm d\boldsymbol r
+    =\int_a^b\boldsymbol F(\boldsymbol r(t))\cdot\boldsymbol r'(t)\,\mathrm dt
+    =\int_a^b\bigl(Px'+Qy'+Rz'\bigr)\,\mathrm dt,
+\end{equation}
+其中 $P,Q,R$ 均在 $\boldsymbol r(t)$ 处取值。在光滑部分令 $\boldsymbol\tau=\boldsymbol r'/|\boldsymbol r'|$ 为沿指定方向的单位切向量，则两类曲线积分满足
+\begin{equation}
+\label{eq:relation-two-line-integrals}
+    \int_\Gamma\boldsymbol F\cdot\mathrm d\boldsymbol r
+    =\int_\Gamma\boldsymbol F\cdot\boldsymbol\tau\,\mathrm ds.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+先在一个光滑参数段上讨论。将 $\Delta\boldsymbol r_k=\int_{t_{k-1}}^{t_k}\boldsymbol r'(t)\,\mathrm dt$ 代入定义中的和式，该和式与式~\eqref{eq:second-line-integral-parametric} 右端的差为
+\[
+    \sum_k\int_{t_{k-1}}^{t_k}
+    \bigl[\boldsymbol F(M_k)-\boldsymbol F(\boldsymbol r(t))\bigr]
+    \cdot\boldsymbol r'(t)\,\mathrm dt.
+\]
+同一子弧上两点的距离不超过该弧长度。由 $\boldsymbol F$ 在紧曲线上的一致连续性，记上述距离不超过 $\eta$ 时函数值差的模的上界为 $\omega(\eta)$，则差的绝对值不超过 $L\omega(\lambda(\mathcal P))\to0$。这证明积分存在及计算公式；再用 $\boldsymbol r'\,\mathrm dt=\boldsymbol\tau\,\mathrm ds$ 得到式~\eqref{eq:relation-two-line-integrals}。分段情形用可加性处理。
+\end{proof}
+
+\begin{notealert}[type=caution,title={长度微元与有向位移}]
+第一型积分代入 $\mathrm ds=|\boldsymbol r'|\,\mathrm dt$，第二型积分代入 $\mathrm d\boldsymbol r=\boldsymbol r'\,\mathrm dt$。若所选参数的增大方向与题目相反，应反转积分上下限或在结果前加负号，不能对 $x',y',z'$ 分别取绝对值。第二型积分化为第一型积分时，被积函数也变为 $\boldsymbol F\cdot\boldsymbol\tau$，反向会使它反号。
+\end{notealert}
+
+\begin{example}
+\label{ex:second-line-integral-semicircle}
+设 $\Gamma$ 为上半单位圆周，从 $(1,0)$ 到 $(-1,0)$，求 $\int_\Gamma-y\,\mathrm dx+x\,\mathrm dy$。
+\end{example}
+\begin{solve}
+取 $x=\cos t$、$y=\sin t$，$0\leq t\leq\pi$，方向与题意一致，故积分为
+\[
+    \int_0^\pi\bigl[(-\sin t)(-\sin t)+\cos^2t\bigr]\,\mathrm dt=\pi.
+\]
+若反向走同一半圆，结果为 $-\pi$。若把被积形式改成 $x\,\mathrm dx+y\,\mathrm dy$，则它在圆周上恒为零，因为位置向量与切向量正交。
+\end{solve}
+
+\begin{example}
+\label{ex:second-line-integral-variable-path}
+沿曲线 $y=x^a$（$a>0$）从 $(0,0)$ 到 $(1,1)$，计算 $\int_\Gamma(x^2-y^2)\,\mathrm dx-2xy\,\mathrm dy$。
+\end{example}
+\begin{solve}
+以 $x$ 为参数，代入 $y=x^a$、$\mathrm dy=ax^{a-1}\,\mathrm dx$，得到
+\[
+    \int_0^1\bigl[x^2-(1+2a)x^{2a}\bigr]\,\mathrm dx
+    =\frac13-1=-\frac23.
+\]
+当 $0<a<1$ 时，$y'(x)$ 在 $0$ 附近无界，可先在 $[\varepsilon,1]$ 上计算再取极限，或改用 $y$ 为参数。结果与 $a$ 无关；事实上该形式是 $x^3/3-xy^2$ 的全微分，其一般原理见第~\ref{sec:path-independence-of-line-integrals} 节。
+\end{solve}
+
+\begin{example}
+\label{ex:second-line-integral-sphere-circle}
+设 $\Gamma$ 是球面 $x^2+y^2+z^2=1$ 与平面 $x+y+z=0$ 的交线，计算 $\oint_\Gamma x\,\mathrm dx+y\,\mathrm dy+z\,\mathrm dz$。
+\end{example}
+\begin{solve}
+球面在 $\boldsymbol r$ 处的法向量平行于 $\boldsymbol r=(x,y,z)$，而交线切向量位于球面的切平面中，故 $\boldsymbol r\cdot\boldsymbol\tau=0$，由式~\eqref{eq:relation-two-line-integrals} 得积分为 $0$。也可沿曲线对 $x^2+y^2+z^2=1$ 求微分，直接得到被积形式恒为零；两种方向的结果均为零。
+\end{solve}
+
+\section{第一型曲面积分}
+\label{sec:surface-integrals-of-the-first-kind}
+
+\subsection{曲面的面积}
+\label{subsec:surface-area}
+
+曲面面积不能直接照搬弧长的定义，任意内接三角网的面积未必趋于同一极限。以半径和高均为 $1$ 的圆柱侧面为例，将高度分成 $m$ 层，每圈取 $n$ 个等分点，相邻两圈的分点错开半格，连成的内接三角网面积为
+\[
+    A_{m,n}=2n\sin\frac\pi n
+    \sqrt{1+m^2\left(1-\cos\frac\pi n\right)^2}.
+\]
+当 $m=n\to\infty$ 时，其极限为 $2\pi$；当 $m=n^3\to\infty$ 时，其极限为 $+\infty$，而两种情形中的小三角形直径都趋于零。这就是\emph{施瓦茨灯笼}（Schwarz lantern）现象：过于扁长的三角形所在平面未必逼近曲面切平面，只有网格变细还不足以保证面积逼近正确。
+
+设曲面片由 $\boldsymbol r(u,v)=(x(u,v),y(u,v),z(u,v))$，$(u,v)\in D$ 给出，其中 $D$ 是边界分段光滑的有界闭平面区域，$\boldsymbol r$ 在其邻域内为 $C^1$，在内部一一对应且正则。小参数矩形的两条邻边分别近似为 $\boldsymbol r_u\,\mathrm du$ 与 $\boldsymbol r_v\,\mathrm dv$，它们张成的切平行四边形面积为 $|\boldsymbol r_u\times\boldsymbol r_v|\,\mathrm du\,\mathrm dv$。因此用切平面的局部面积伸缩率定义曲面面积，而不取任意内接三角网面积的极限。
+
+\begin{definition}
+\label{def:surface-area-parametric}
+上述正则曲面片的面积定义为
+\begin{equation}
+\label{eq:surface-area-parametric}
+    |S|=\iint_D J_S(u,v)\,\mathrm du\,\mathrm dv,
+    \qquad J_S=|\boldsymbol r_u\times\boldsymbol r_v|.
+\end{equation}
+分片光滑曲面的面积为各片面积之和。参数图接缝只在边界上重合时，不影响面积积分。
+\end{definition}
+
+记
+\begin{equation}
+\label{eq:surface-normal-minors}
+    A=\frac{\partial(y,z)}{\partial(u,v)},\qquad
+    B=\frac{\partial(z,x)}{\partial(u,v)},\qquad
+    C=\frac{\partial(x,y)}{\partial(u,v)},
+\end{equation}
+则 $\boldsymbol r_u\times\boldsymbol r_v=(A,B,C)$。再令 $E=\boldsymbol r_u\cdot\boldsymbol r_u$、$F=\boldsymbol r_u\cdot\boldsymbol r_v$、$G=\boldsymbol r_v\cdot\boldsymbol r_v$，由叉积的模长恒等式得到
+\begin{equation}
+\label{eq:surface-area-element}
+    \mathrm dS=\sqrt{A^2+B^2+C^2}\,\mathrm du\,\mathrm dv
+    =\sqrt{EG-F^2}\,\mathrm du\,\mathrm dv.
+\end{equation}
+这里 $F$ 是第一基本形式中的一个系数，与向量场 $\boldsymbol F$ 有别。若作正则参数替换 $(u,v)=\phi(\xi,\eta)$，则新叉积等于原叉积乘以 $\det D\phi$；模长乘以 $|\det D\phi|$，再由二重积分换元公式，面积保持不变。这也说明上述定义与正则参数的选择无关。对一般光滑曲面，先用有限个参数图分片，再应用同一公式。
+
+对于图形曲面 $z=g(x,y)$，取 $\boldsymbol r(x,y)=(x,y,g(x,y))$，得到
+\begin{equation}
+\label{eq:surface-area-graph}
+    \mathrm dS=\sqrt{1+g_x^2+g_y^2}\,\mathrm dx\,\mathrm dy.
+\end{equation}
+相应地，$x=g(y,z)$ 或 $y=g(z,x)$ 也有循环换位后的公式。球坐标等参数在少数点失去正则性时，应分片计算，或先避开这些点再取极限，不能直接声称参数在整个闭参数域上处处正则。
+
+\begin{example}
+\label{ex:surface-area-cylinder-and-sphere}
+求单位圆柱面在 $0\leq z\leq1$ 之间的侧面积，并求单位球面被柱面 $x^2+y^2=x$ 截在柱内的部分的面积。
+\end{example}
+\begin{solve}
+圆柱取参数 $\boldsymbol r(\theta,z)=(\cos\theta,\sin\theta,z)$，面积伸缩率为 $1$，所以侧面积为 $\int_0^{2\pi}\int_0^1\mathrm dz\,\mathrm d\theta=2\pi$。球面所求部分关于 $z=0$ 对称，上半球写成 $z=\sqrt{1-x^2-y^2}$，其投影满足 $(x-1/2)^2+y^2\leq1/4$。用极坐标 $x=r\cos\theta$、$y=r\sin\theta$，有 $-\pi/2\leq\theta\leq\pi/2$、$0\leq r\leq\cos\theta$，故面积为
+\[
+    2\int_{-\pi/2}^{\pi/2}\int_0^{\cos\theta}
+    \frac r{\sqrt{1-r^2}}\,\mathrm dr\,\mathrm d\theta
+    =4\int_0^{\pi/2}(1-\sin\theta)\,\mathrm d\theta=2\pi-4.
+\]
+球面的图形表示在赤道处出现无界导数，上式按非负瑕积分理解，亦可改用分片球面参数避免这一问题。
+\end{solve}
+
+\subsection{第一型曲面积分的定义}
+\label{subsec:definition-of-surface-integrals-of-the-first-kind}
+
+\begin{definition}
+\label{def:surface-integral-first-kind}
+设 $S$ 为紧的分片光滑曲面，$f:S\to\mathbb R$。将 $S$ 分成只在边界相交的小曲面 $S_k$，各片面积为 $\Delta S_k$，令 $\lambda(\mathcal P)=\max_k\operatorname{diam}(S_k)$，并在各片上任取 $M_k$。若当 $\lambda(\mathcal P)\to0$ 时，和式 $\sum_k f(M_k)\Delta S_k$ 对任意分割及取点都趋于同一有限值，则称此值为 $f$ 在 $S$ 上的\emph{第一型曲面积分}，记为
+\[
+    \iint_S f\,\mathrm dS.
+\]
+分割需在各正则参数片内对应于可求面积的参数子区域，公共边界不重复计入面积。
+\end{definition}
+
+若薄壳面密度为 $\rho\geq0$，则质量为 $m=\iint_S\rho\,\mathrm dS$；取 $f=1$ 即得曲面面积。第一型曲面积分与曲面取哪一侧无关，具有线性性、曲面可加性、保序性和估计
+\[
+    \left|\iint_S f\,\mathrm dS\right|
+    \leq\iint_S|f|\,\mathrm dS
+    \leq |S|\sup_S|f|,
+\]
+条件与第一型曲线积分的对应性质相同。若 $S$ 是平面区域，面积权重就退化为平面面积元，因此相应积分为通常的二重积分。
+
+\subsection{第一型曲面积分的存在性与计算公式}
+\label{subsec:existence-and-evaluation-of-surface-integrals-of-the-first-kind}
+
+\begin{theorem}
+\label{thm:first-surface-integral-parametric}
+设 $S$ 是正则参数曲面片 $\boldsymbol r(D)$，$f$ 在 $S$ 上连续，则第一型曲面积分存在，且
+\begin{equation}
+\label{eq:first-surface-integral-parametric}
+    \iint_S f\,\mathrm dS
+    =\iint_D f(\boldsymbol r(u,v))J_S(u,v)\,\mathrm du\,\mathrm dv.
+\end{equation}
+特别地，对 $z=g(x,y)$ 有
+\[
+    \iint_S f\,\mathrm dS
+    =\iint_D f(x,y,g(x,y))\sqrt{1+g_x^2+g_y^2}\,\mathrm dx\,\mathrm dy.
+\]
+\end{theorem}
+
+\begin{proof}
+记参数子区域为 $D_k$，$M_k=\boldsymbol r(u_k,v_k)$，并令 $h=f\circ\boldsymbol r$。由面积定义，$\Delta S_k=\iint_{D_k}J_S$，所以积分和与 $\iint_DhJ_S$ 的差的绝对值不超过
+\[
+    \sum_k\iint_{D_k}
+    |h(u_k,v_k)-h(u,v)|J_S(u,v)\,\mathrm du\,\mathrm dv
+    \leq |S|\,\omega_f(\lambda(\mathcal P)),
+\]
+其中 $\omega_f$ 为 $f$ 在紧曲面上的连续模，且 $\omega_f(\eta)\to0$。该估计对所有取点成立，故定义中的极限存在且等于右端。有限个参数片再用可加性合并。
+\end{proof}
+
+\begin{example}
+\label{ex:first-surface-integral-sphere-oddness}
+计算 $\iint_Sx^2z\,\mathrm dS$，其中 $S$ 分别为上半单位球面和整个单位球面。
+\end{example}
+\begin{solve}
+在上半球令 $D=\{x^2+y^2\leq1\}$，则 $\mathrm dS=\mathrm dx\,\mathrm dy/\sqrt{1-x^2-y^2}$，故 $z$ 与面积元中的分母相消，得到
+\[
+    \iint_Sx^2z\,\mathrm dS
+    =\iint_Dx^2\,\mathrm dx\,\mathrm dy
+    =\int_0^{2\pi}\cos^2\theta\,\mathrm d\theta\int_0^1r^3\,\mathrm dr
+    =\frac\pi4.
+\]
+反射 $(x,y,z)\mapsto(x,y,-z)$ 保持面积而使被积函数反号，所以整个球面的积分为 $0$。
+\end{solve}
+
+\begin{example}
+\label{ex:first-surface-integral-paraboloid-centroid}
+设薄壳 $S$ 为抛物面 $z=2-x^2-y^2$ 在 $z\geq0$ 的部分，面密度均匀，求其质心。
+\end{example}
+\begin{solve}
+由对称性，$\bar x=\bar y=0$，而 $\bar z=(\iint_Sz\,\mathrm dS)/|S|$。投影为 $r\leq\sqrt2$，面积元为 $\sqrt{1+4r^2}\,r\,\mathrm dr\,\mathrm d\theta$，因此
+\[
+    |S|=2\pi\int_0^{\sqrt2}r\sqrt{1+4r^2}\,\mathrm dr=\frac{13\pi}3,
+    \qquad
+    \iint_Sz\,\mathrm dS
+    =2\pi\int_0^{\sqrt2}(2-r^2)r\sqrt{1+4r^2}\,\mathrm dr
+    =\frac{37\pi}{10}.
+\]
+故质心为 $(0,0,111/130)$。这里必须按曲面面积加权，不能用其平面投影上的平均高度代替薄壳质心高度。
+\end{solve}
+
+\section{第二型曲面积分}
+\label{sec:surface-integrals-of-the-second-kind}
+
+\subsection{曲面的侧}
+\label{subsec:sides-of-surfaces}
+
+\begin{definition}
+\label{def:orientable-surface}
+若在连通光滑曲面 $S$ 上可以连续选取单位法向量场 $\boldsymbol n$，则称 $S$ 为\emph{可定向曲面}（orientable surface），也称双侧曲面；$\boldsymbol n$ 与 $-\boldsymbol n$ 确定其两个定向或两侧。不存在这种全局连续法向选择时，称为不可定向曲面或单侧曲面。分片光滑曲面要求各光滑片的定向在接缝处相容。
+\end{definition}
+
+等价地，固定一点的法向朝向，沿曲面内任意闭路径连续移动法向，回到原点时应始终保持原朝向。莫比乌斯带（M\"obius strip）沿中线绕行一周会把法向翻转，因而不可定向；局部能选法向并不保证全局能选法向。若曲面由一个正则且一一对应的参数图给出，则 $\boldsymbol r_u\times\boldsymbol r_v$ 提供一个定向；多个图拼接时须检查相容性。
+
+图形曲面 $z=g(x,y)$ 的上侧取
+\[
+    \boldsymbol n=\frac{(-g_x,-g_y,1)}{\sqrt{1+g_x^2+g_y^2}},
+\]
+下侧取其相反数。所谓上侧是法向 $z$ 分量为正，并非曲面本身位于 $z>0$。闭曲面围成一个有界区域时，通常指定从区域内部指向外部的外侧；若区域有内腔，内腔边界的区域外法向指入空腔。
+
+\subsection{第二型曲面积分的定义}
+\label{subsec:definition-of-surface-integrals-of-the-second-kind}
+
+设流体速度场为 $\boldsymbol v$，单位法向为 $\boldsymbol n$，则单位时间通过面积 $\Delta S$ 的有向体积近似为 $(\boldsymbol v\cdot\boldsymbol n)\Delta S$。正值表示流体沿所选法向通过曲面，负值表示反向通过；若要计算质量流率，应把速度场换成质量通量密度 $\rho\boldsymbol v$。
+
+\begin{definition}
+\label{def:surface-integral-second-kind}
+设 $S$ 为已定向的分片光滑曲面，单位法向为 $\boldsymbol n=(n_x,n_y,n_z)$，$\boldsymbol F=(P,Q,R)$ 在其上有定义。若下列积分和在曲面分割网格趋于零时，对所有分割及任意取点都趋于同一有限值，则称其为\emph{第二型曲面积分}或\emph{通量积分}（flux integral）：
+\begin{equation}
+\label{eq:second-surface-integral-definition}
+    \iint_S\boldsymbol F\cdot\boldsymbol n\,\mathrm dS
+    =\lim_{\lambda(\mathcal P)\to0}
+      \sum_k\boldsymbol F(M_k)\cdot\boldsymbol n(M_k)\Delta S_k
+    =\iint_S P\,\mathrm dy\,\mathrm dz+Q\,\mathrm dz\,\mathrm dx+R\,\mathrm dx\,\mathrm dy.
+\end{equation}
+分割在各光滑片内进行，接缝上可由相邻光滑片取法向的单侧值，不影响积分。
+\end{definition}
+
+第二型曲面积分就是数量函数 $\boldsymbol F\cdot\boldsymbol n$ 的第一型曲面积分。记号的含义为
+\begin{equation}
+\label{eq:oriented-surface-elements}
+    \mathrm dy\,\mathrm dz=n_x\,\mathrm dS,\qquad
+    \mathrm dz\,\mathrm dx=n_y\,\mathrm dS,\qquad
+    \mathrm dx\,\mathrm dy=n_z\,\mathrm dS;
+\end{equation}
+它们是有向投影面积元，可能为负，不能一律取成投影面积的绝对值。积分具有线性性和定向相容的曲面可加性；把曲面定向反过来后积分反号。曲面有向面积元也记为 $\mathrm d\boldsymbol S=\boldsymbol n\,\mathrm dS$，从而通量可写成 $\iint_S\boldsymbol F\cdot\mathrm d\boldsymbol S$。
+
+\subsection{第二型曲面积分的存在性与计算公式}
+\label{subsec:existence-and-evaluation-of-surface-integrals-of-the-second-kind}
+
+\begin{theorem}
+\label{thm:second-surface-integral-parametric}
+设 $S=\boldsymbol r(D)$ 为正则曲面片，取定方向与 $\boldsymbol r_u\times\boldsymbol r_v$ 一致，且 $\boldsymbol F=(P,Q,R)$ 在 $S$ 上连续，则第二型曲面积分存在，且
+\begin{equation}
+\label{eq:second-surface-integral-parametric}
+    \iint_S\boldsymbol F\cdot\boldsymbol n\,\mathrm dS
+    =\iint_D\boldsymbol F(\boldsymbol r(u,v))\cdot
+      (\boldsymbol r_u\times\boldsymbol r_v)\,\mathrm du\,\mathrm dv
+    =\iint_D(PA+QB+RC)\,\mathrm du\,\mathrm dv,
+\end{equation}
+其中 $A,B,C$ 见式~\eqref{eq:surface-normal-minors}。若指定方向与叉积相反，右端整体取负号。
+\end{theorem}
+\begin{proof}
+单位法向 $\boldsymbol n=(\boldsymbol r_u\times\boldsymbol r_v)/J_S$ 连续，所以 $\boldsymbol F\cdot\boldsymbol n$ 连续，由定理~\ref{thm:first-surface-integral-parametric} 可积。代入第一型曲面积分公式，约去 $J_S$，即得结论。
+\end{proof}
+
+若 $S$ 为 $z=g(x,y)$ 并取上侧，公式化为
+\begin{equation}
+\label{eq:second-surface-integral-graph}
+    \iint_S P\,\mathrm dy\,\mathrm dz+Q\,\mathrm dz\,\mathrm dx+R\,\mathrm dx\,\mathrm dy
+    =\iint_D[-Pg_x-Qg_y+R]_{z=g(x,y)}\,\mathrm dx\,\mathrm dy.
+\end{equation}
+取下侧则整体反号。若以 $x=g(y,z)$ 为图形并取法向 $x$ 分量为正的一侧，则用 $[P-Qg_y-Rg_z]_{x=g(y,z)}\,\mathrm dy\,\mathrm dz$；若以 $y=g(z,x)$ 为图形并取法向 $y$ 分量为正的一侧，则用 $[-Pg_x+Q-Rg_z]_{y=g(z,x)}\,\mathrm dz\,\mathrm dx$。计算时先固定法向，再决定符号，比根据曲面位置猜正负更可靠。
+
+\begin{example}
+\label{ex:second-surface-integral-unit-sphere}
+设 $S$ 为单位球面的外侧，计算向量场 $(x,y,z)$ 与 $(x^2,y^2,z^2)$ 的通量。
+\end{example}
+\begin{solve}
+单位球面的外单位法向为 $\boldsymbol n=(x,y,z)$，因此第一个通量为 $\iint_S1\,\mathrm dS=4\pi$；第二个为 $\iint_S(x^3+y^3+z^3)\,\mathrm dS=0$，因为中心反射保持面积而使被积函数反号。这说明第二型曲面积分中的对称性必须同时考察场与法向，不能直接套用对坐标函数奇偶性的第一型积分判断。
+\end{solve}
+
+\begin{example}
+\label{ex:second-surface-integral-tetrahedron}
+设 $S$ 为三个坐标平面与平面 $x+y+z=1$ 围成的四面体边界，取外侧，求 $(x,y,z)$ 的通量。
+\end{example}
+\begin{solve}
+在三个坐标面上，位置向量与外法向正交，通量均为零。斜面 $z=1-x-y$ 的外侧为上侧，故由式~\eqref{eq:second-surface-integral-graph} 得其通量为
+\[
+    \iint_{\{x\geq0,\,y\geq0,\,x+y\leq1\}}
+    [x+y+(1-x-y)]\,\mathrm dx\,\mathrm dy=\frac12.
+\]
+总通量为 $1/2$；这也将在高斯公式中化为常数散度 $3$ 与体积 $1/6$ 的乘积。
+\end{solve}
+
+\section{各类积分之间的联系}
+\label{sec:relations-among-types-of-integrals}
+
+牛顿--莱布尼茨公式 $\int_a^bf'(x)\,\mathrm dx=f(b)-f(a)$ 将区间内部导数的积分化为端点函数值之差。格林、高斯和斯托克斯公式延续这一思想：区域或曲面上某种导数的积分，等于其有向边界上原来函数或向量场的积分。运用这些公式时，边界必须完整，定向必须匹配，被积场必须在所涉及的整个区域内满足光滑性条件。
+
+\subsection{格林公式}
+\label{subsec:green-formula}
+
+设 $D\subset\mathbb R^2$ 为有界闭区域，边界由有限条互不相交的分段光滑简单闭曲线组成。边界的\emph{正向}（positive orientation）规定为沿边界前进时区域位于左侧，所以外边界为逆时针方向，内孔边界为顺时针方向。只有一条外边界时区域没有平面孔洞；多条边界的积分必须按各自相对于 $D$ 的正向相加。
+
+\begin{theorem}[格林公式]
+\label{thm:green-formula}
+设 $D$ 如上，$P,Q$ 在包含 $D$ 的某个开集内具有连续一阶偏导数，则
+\begin{equation}
+\label{eq:green-formula}
+    \oint_{\partial D}P\,\mathrm dx+Q\,\mathrm dy
+    =\iint_D\left(\frac{\partial Q}{\partial x}-\frac{\partial P}{\partial y}\right)
+      \,\mathrm dx\,\mathrm dy.
+\end{equation}
+这称为\emph{格林公式}（Green's theorem），左端取 $D$ 的全部正向边界。
+\end{theorem}
+
+\begin{proof}[对标准简单区域及其有限剖分的证明]
+若 $D=\{a\leq x\leq b,\ \varphi_1(x)\leq y\leq\varphi_2(x)\}$，则正向边界的下边从左向右、上边从右向左，竖直边上的 $\mathrm dx=0$，所以
+\[
+    \oint_{\partial D}P\,\mathrm dx
+    =\int_a^b[P(x,\varphi_1(x))-P(x,\varphi_2(x))]\,\mathrm dx
+    =-\iint_D P_y\,\mathrm dx\,\mathrm dy.
+\]
+最后一步是在固定 $x$ 时应用牛顿--莱布尼茨公式。若 $D=\{c\leq y\leq d,\ \psi_1(y)\leq x\leq\psi_2(y)\}$，同理得
+\[
+    \oint_{\partial D}Q\,\mathrm dy
+    =\int_c^d[Q(\psi_2(y),y)-Q(\psi_1(y),y)]\,\mathrm dy
+    =\iint_D Q_x\,\mathrm dx\,\mathrm dy.
+\]
+当区域同时具有两种表示时，两式相加即得结论。若区域能有限剖分为这类小区域，则在每块上应用公式并相加；内部公共边界在相邻两块中方向相反，积分恰好相消，只剩原区域的正向边界。带孔区域的内边界也由同样的定向规则保留下来。
+\end{proof}
+
+对定理所容许的更一般分段光滑区域，可经局部分片与区域逼近把上面的证明推广；控制误差需要用到边界的分段光滑性以及场和偏导数在紧邻域上的连续有界性。这里与教材一样不展开该一般化步骤，上面的直接证明限于可作相应有限剖分的区域，不能仅以“任意区域都可这样剖分”代替论证。
+
+若 $\boldsymbol\tau=(\tau_x,\tau_y)$ 为正向单位切向量，则区域外单位法向为 $\boldsymbol n=(\tau_y,-\tau_x)$，从而 $n_x\,\mathrm ds=\mathrm dy$、$n_y\,\mathrm ds=-\mathrm dx$。把式~\eqref{eq:green-formula} 中的 $(P,Q)$ 换为 $(-Q,P)$，得到二维通量形式
+\begin{equation}
+\label{eq:green-flux-formula}
+    \oint_{\partial D}(P,Q)\cdot\boldsymbol n\,\mathrm ds
+    =\oint_{\partial D}-Q\,\mathrm dx+P\,\mathrm dy
+    =\iint_D(P_x+Q_y)\,\mathrm dx\,\mathrm dy.
+\end{equation}
+分别取 $(P,Q)=(0,x)$、$(-y,0)$ 或 $(-y/2,x/2)$，还可得到面积公式
+\begin{equation}
+\label{eq:green-area-formula}
+    |D|=\oint_{\partial D}x\,\mathrm dy
+       =-\oint_{\partial D}y\,\mathrm dx
+       =\frac12\oint_{\partial D}x\,\mathrm dy-y\,\mathrm dx.
+\end{equation}
+
+\begin{example}
+\label{ex:green-exact-integral}
+设 $\Gamma$ 从 $(0,0)$ 到 $(0,1)$，计算 $\int_\Gamma2xy\,\mathrm dx+(x^2-y^2)\,\mathrm dy$。
+\end{example}
+\begin{solve}
+这里 $Q_x-P_y=2x-2x=0$，可利用格林公式把合适闭合边界上的积分化为零，再改走 $y$ 轴线段。更直接地，令 $u=x^2y-y^3/3$，则被积形式就是 $\mathrm du$。沿分段光滑路径使用链式法则，积分为 $u(0,1)-u(0,0)=-1/3$，故对任意这样的路径结果相同。全微分的计算也避免了任意原路径不一定与补上线段围成简单区域的问题。
+\end{solve}
+
+\begin{example}
+\label{ex:green-angular-integral}
+设 $\Gamma$ 是不经过原点的分段光滑简单闭曲线，按其内部区域的正向定向，求
+\[
+    \oint_\Gamma\frac{x\,\mathrm dy-y\,\mathrm dx}{x^2+y^2}.
+\]
+\end{example}
+\begin{solve}
+令 $P=-y/(x^2+y^2)$、$Q=x/(x^2+y^2)$，则在原点以外 $Q_x-P_y=0$。若原点在曲线外部，格林公式给出积分为 $0$；若原点在内部，则必须挖去一个完全位于内部的小圆盘，不能直接对含原点的区域应用公式。圆环形区域上的格林公式表明原曲线积分等于小圆周的逆时针积分。令 $x=\varepsilon\cos t$、$y=\varepsilon\sin t$，得到小圆周积分为 $\int_0^{2\pi}\mathrm dt=2\pi$，故原积分为 $2\pi$。反向定向时结果整体反号。
+\end{solve}
+
+\subsection{高斯公式}
+\label{subsec:gauss-formula}
+
+\begin{theorem}[高斯公式]
+\label{thm:gauss-formula}
+设 $V\subset\mathbb R^3$ 为有界闭区域，其边界由有限块相容拼接的光滑曲面组成，取区域外侧的单位法向 $\boldsymbol n$。若 $\boldsymbol F=(P,Q,R)$ 在包含 $V$ 的某个开集内为 $C^1$，则
+\begin{equation}
+\label{eq:gauss-formula}
+    \iint_{\partial V}\boldsymbol F\cdot\boldsymbol n\,\mathrm dS
+    =\iiint_V(P_x+Q_y+R_z)\,\mathrm dx\,\mathrm dy\,\mathrm dz.
+\end{equation}
+这称为\emph{高斯公式}（Gauss's theorem），也称散度定理（divergence theorem）。有内腔时，应计入指向空腔的内边界通量。
+\end{theorem}
+
+\begin{proof}[对标准简单区域及其有限剖分的证明]
+先设 $V=\{(x,y,z):(x,y)\in D,\ \varphi_1(x,y)\leq z\leq\varphi_2(x,y)\}$，上下图形光滑，侧边为相应的竖直曲面。上边界的外法向向上，下边界向下；竖直侧边上 $n_z=0$，故
+\[
+    \iint_{\partial V}R\,\mathrm dx\,\mathrm dy
+    =\iint_D[R(x,y,\varphi_2)-R(x,y,\varphi_1)]\,\mathrm dx\,\mathrm dy
+    =\iiint_V R_z\,\mathrm dV.
+\]
+对沿 $x$ 和 $y$ 方向的简单区域同理有 $\iint_{\partial V}P\,\mathrm dy\,\mathrm dz=\iiint_VP_x\,\mathrm dV$ 与 $\iint_{\partial V}Q\,\mathrm dz\,\mathrm dx=\iiint_VQ_y\,\mathrm dV$。若区域同时具有三种表示，相加即得高斯公式。若可作相应有限剖分，相邻小区域在公共曲面上的外法向相反，内部通量相消，结论推广到整个区域。
+\end{proof}
+
+一般分片光滑区域的证明仍需局部分片与逼近步骤，这里只给出上述直接证明及推广思路。公式的实质是牛顿--莱布尼茨公式在各坐标方向上的累次应用，公共边界相消则解释了为什么最终只出现整体边界。
+
+\begin{example}
+\label{ex:gauss-close-hemisphere}
+设 $S$ 为上半单位球面，取上侧，求向量场
+\[
+    \boldsymbol F=(\sin(yz)+x,\ e^{xz}+y,\ xy+z)
+\]
+通过 $S$ 的通量。
+\end{example}
+\begin{solve}
+给 $S$ 补上底面圆盘 $D_0=\{z=0,\ x^2+y^2\leq1\}$ 并取下侧，则组成上半球体 $V$ 的完整外边界。由于 $P_x+Q_y+R_z=3$，总通量为 $3\operatorname{Vol}(V)=3(2\pi/3)=2\pi$。底面通量为 $-\iint_{x^2+y^2\leq1}xy\,\mathrm dx\,\mathrm dy=0$，故所求为 $2\pi$。补面法必须同时检查补面朝向并从总通量中减去补面的贡献。
+\end{solve}
+
+\begin{example}
+\label{ex:gauss-point-source-flux}
+设 $S=\partial V$ 为封闭分片光滑曲面的外侧，$\boldsymbol a\notin S$，求点源场
+\[
+    \boldsymbol F(\boldsymbol x)=\frac{\boldsymbol x-\boldsymbol a}{|\boldsymbol x-\boldsymbol a|^3}
+\]
+通过 $S$ 的通量。
+\end{example}
+\begin{solve}
+令 $r=|\boldsymbol x-\boldsymbol a|$，在 $r>0$ 处直接求导得
+\[
+    P_x+Q_y+R_z=\frac3{r^3}-\frac{3|\boldsymbol x-\boldsymbol a|^2}{r^5}=0.
+\]
+若 $\boldsymbol a\notin V$，则场在 $V$ 的邻域光滑，由高斯公式通量为 $0$。若 $\boldsymbol a$ 在 $V$ 内部，挖去以它为球心、半径充分小的球 $B_\varepsilon$，在剩余区域应用高斯公式，得 $S$ 的通量等于小球面的向外通量。在小球面上 $\boldsymbol F\cdot\boldsymbol n=\varepsilon^{-2}$，故通量为 $\varepsilon^{-2}(4\pi\varepsilon^2)=4\pi$。因此结果为内部点源 $4\pi$、外部点源 $0$；奇点处不能使用“散度为零”来忽略点源贡献。
+\end{solve}
+
+\subsection{斯托克斯公式}
+\label{subsec:stokes-formula}
+
+有向曲面 $S$ 的法向决定边界 $\partial S$ 的正向：沿选定法向站立并沿边界前进时，曲面应位于左侧。这与右手规则一致；对上侧平面圆盘，边界从 $z$ 轴正向看为逆时针。曲面有孔时，各内边界方向与外边界相反；反转曲面定向时，全部边界方向也随之反转。
+
+\begin{theorem}[斯托克斯公式]
+\label{thm:stokes-formula}
+设 $S$ 为紧的已定向分片 $C^2$ 正则曲面，边界由有限条分段光滑闭曲线组成，并取与曲面相容的正向。若 $\boldsymbol F=(P,Q,R)$ 在 $S$ 的某个开邻域内为 $C^1$，则
+\begin{equation}
+\label{eq:stokes-formula}
+    \oint_{\partial S}P\,\mathrm dx+Q\,\mathrm dy+R\,\mathrm dz
+    =\iint_S(R_y-Q_z)\,\mathrm dy\,\mathrm dz
+      +(P_z-R_x)\,\mathrm dz\,\mathrm dx
+      +(Q_x-P_y)\,\mathrm dx\,\mathrm dy.
+\end{equation}
+这称为\emph{斯托克斯公式}（Stokes' theorem）。记
+\[
+    \operatorname{curl}\boldsymbol F=(R_y-Q_z,\ P_z-R_x,\ Q_x-P_y),
+\]
+则右端为 $\iint_S(\operatorname{curl}\boldsymbol F)\cdot\boldsymbol n\,\mathrm dS$。
+\end{theorem}
+
+\begin{proof}
+先设 $S=\boldsymbol r(D)$ 为一个 $C^2$ 正则参数片，取定向 $\boldsymbol r_u\times\boldsymbol r_v$。令
+\[
+    p(u,v)=\boldsymbol F(\boldsymbol r(u,v))\cdot\boldsymbol r_u,
+    \qquad q(u,v)=\boldsymbol F(\boldsymbol r(u,v))\cdot\boldsymbol r_v.
+\]
+参数曲线积分公式及格林公式给出
+\[
+    \oint_{\partial S}\boldsymbol F\cdot\mathrm d\boldsymbol r
+    =\oint_{\partial D}p\,\mathrm du+q\,\mathrm dv
+    =\iint_D(q_u-p_v)\,\mathrm du\,\mathrm dv.
+\]
+链式法则中含 $\boldsymbol r_{uv}$ 与 $\boldsymbol r_{vu}$ 的两项相消，剩下
+\[
+    q_u-p_v
+    =[\operatorname{curl}\boldsymbol F](\boldsymbol r(u,v))
+      \cdot(\boldsymbol r_u\times\boldsymbol r_v).
+\]
+代入式~\eqref{eq:second-surface-integral-parametric} 即得结论。一般紧曲面作有限参数分片后相加，公共边界因诱导方向相反而相消。反向定向时等式两边同时反号。
+\end{proof}
+
+上述 $C^2$ 条件便于直接使用混合偏导数相等；斯托克斯公式也适用于适当的分片 $C^1$ 正则曲面，该推广可用光滑逼近处理，这里不展开。应用时可换用具有相同有向边界的另一曲面，只要场在所用曲面的邻域内光滑，就可得到相同的旋度通量；边界相同并不许可让替换曲面穿过场的奇点。
+
+\begin{example}
+\label{ex:stokes-sphere-plane-circle}
+设 $\Gamma$ 为单位球面与平面 $x+y+z=\sqrt3h$（$|h|<1$）的交线，从 $z$ 轴正向看取逆时针方向，求
+\[
+    \oint_\Gamma(y^2-z^2)\,\mathrm dx+(z^2-x^2)\,\mathrm dy+(x^2-y^2)\,\mathrm dz.
+\]
+\end{example}
+\begin{solve}
+取平面圆盘 $S_h$，法向为 $(1,1,1)/\sqrt3$，与指定边界方向相容。向量场的旋度为 $-2(y+z,z+x,x+y)$，故
+\[
+    (\operatorname{curl}\boldsymbol F)\cdot\boldsymbol n
+    =-\frac4{\sqrt3}(x+y+z)=-4h.
+\]
+圆心到原点的距离为 $|h|$，圆盘面积为 $\pi(1-h^2)$，由斯托克斯公式得到积分为 $-4\pi h(1-h^2)$。若将平面写成 $x+y+z=c$，则应同时把距离换成 $|c|/\sqrt3$，不能把平面方程中的常数直接当作到原点的距离。
+\end{solve}
+
+\section{微分形式简介}
+\label{sec:introduction-to-differential-forms}
+
+四种积分中，$P\,\mathrm dx+Q\,\mathrm dy+R\,\mathrm dz$ 自然沿曲线积分，$P\,\mathrm dy\,\mathrm dz+Q\,\mathrm dz\,\mathrm dx+R\,\mathrm dx\,\mathrm dy$ 自然在有向曲面上积分。微分形式把这些表达式的次数、反对称性和定向规律统一起来。第一型积分则使用非负长度或面积密度，不能仅靠把其中的乘积符号改成外积，就把它当成第二型积分。
+
+\subsection{微分形式}
+\label{subsec:differential-forms}
+
+设 $U\subset\mathbb R^n$ 为开区域，坐标为 $x_1,\ldots,x_n$。在每一点，$\mathrm dx_i$ 是从切向量 $\boldsymbol v=(v_1,\ldots,v_n)$ 中取出第 $i$ 个分量的线性函数，即 $\mathrm dx_i(\boldsymbol v)=v_i$。因而 $\mathrm df=\sum_i f_{x_i}\,\mathrm dx_i$ 对向量的作用就是 $f$ 的方向微分。
+
+\begin{definition}
+\label{def:differential-k-form}
+区域 $U$ 上的一个\emph{$k$ 次微分形式}（differential $k$-form）是在每点对 $k$ 个切向量作交替多线性作用的对象，其坐标表达式为
+\begin{equation}
+\label{eq:differential-form-standard}
+    \omega=\sum_{1\leq i_1<\cdots<i_k\leq n}
+    a_{i_1\cdots i_k}(x)\,
+    \mathrm dx_{i_1}\wedge\cdots\wedge\mathrm dx_{i_k}.
+\end{equation}
+称其为 $C^r$ 形式，是指全部系数函数均为 $C^r$。$0$ 次形式就是函数；$k>n$ 时交替性迫使该形式为零。$1$ 次形式写成 $\sum_i a_i\,\mathrm dx_i$，$n$ 次形式只有 $a(x)\,\mathrm dx_1\wedge\cdots\wedge\mathrm dx_n$ 一项。
+\end{definition}
+
+基本反对称规则是交换相邻两个 $\mathrm dx_i$ 后变号，特别地 $\mathrm dx_i\wedge\mathrm dx_i=0$。在一点处，基元素在 $k$ 个向量上的取值为
+\[
+    (\mathrm dx_{i_1}\wedge\cdots\wedge\mathrm dx_{i_k})
+    (\boldsymbol v_1,\ldots,\boldsymbol v_k)
+    =\det\bigl((v_j)_{i_\ell}\bigr)_{\ell,j=1}^k,
+\]
+所以交换两个向量也会使结果反号。这是形式能反映有向长度、面积和体积的代数原因。在 $\mathbb R^3$ 中常按循环顺序写 $2$ 次形式为
+\[
+    \omega=P\,\mathrm dy\wedge\mathrm dz+Q\,\mathrm dz\wedge\mathrm dx
+           +R\,\mathrm dx\wedge\mathrm dy,
+\]
+其中 $\mathrm dz\wedge\mathrm dx=-\mathrm dx\wedge\mathrm dz$，需与升序标准式的符号区别。
+
+形式可以逐项相加、乘实数，也可以乘相应光滑度的函数。\emph[caution]{“有 $\binom nk$ 个基元素”是指逐点的线性空间维数，或把系数函数作为标量时的模的秩。}若把所有系数可变的形式看成实线性空间，它通常是无限维的；特别地，全部 $0$ 次形式就是函数空间，不能因为只出现基元素 $1$ 就称它为一维实线性空间。
+
+\subsection{微分形式的外积}
+\label{subsec:exterior-products-of-differential-forms}
+
+\begin{definition}
+\label{def:exterior-product}
+若 $\omega=\sum_Ia_I\,\mathrm dx_I$ 为 $p$ 次形式，$\eta=\sum_Jb_J\,\mathrm dx_J$ 为 $q$ 次形式，则它们的\emph{外积}（exterior product）为
+\[
+    \omega\wedge\eta=\sum_{I,J}a_Ib_J\,
+    \mathrm dx_{i_1}\wedge\cdots\wedge\mathrm dx_{i_p}
+    \wedge\mathrm dx_{j_1}\wedge\cdots\wedge\mathrm dx_{j_q}.
+\]
+运算按双线性展开，再用相邻交换变号和重复指标项为零的规则化为标准形式；结果为 $p+q$ 次形式，$p+q>n$ 时恒为零。函数与形式的外积就是通常的函数乘法。
+\end{definition}
+
+\begin{proposition}
+\label{prop:exterior-product-rules}
+外积满足结合律、对加法的分配律及分次交换律
+\[
+    \omega\wedge\eta=(-1)^{pq}\eta\wedge\omega,
+    \qquad \deg\omega=p,\quad\deg\eta=q.
+\]
+因此 $1$ 次形式的自外积为零；更一般地，奇数次形式的自外积为零，偶数次形式则未必。
+\end{proposition}
+\begin{proof}
+结合律和分配律由基元素拼接及双线性展开得到。把 $p$ 个微分移过另外 $q$ 个微分需要 $pq$ 次相邻交换，故出现因子 $(-1)^{pq}$；逐项相加即得交换律。取 $\eta=\omega$ 且 $p$ 为奇数时，$\omega\wedge\omega=-\omega\wedge\omega$，所以为零。
+\end{proof}
+
+外积与坐标变换中的雅可比行列式直接相连。设 $(x,y)=(x(u,v),y(u,v))$ 为 $C^1$ 坐标变换，则
+\begin{align*}
+    \mathrm dx\wedge\mathrm dy
+    &=(x_u\,\mathrm du+x_v\,\mathrm dv)\wedge(y_u\,\mathrm du+y_v\,\mathrm dv)\\
+    &=(x_uy_v-x_vy_u)\,\mathrm du\wedge\mathrm dv
+     =\frac{\partial(x,y)}{\partial(u,v)}\,\mathrm du\wedge\mathrm dv.
+\end{align*}
+同理，在三维及更高维有
+\begin{equation}
+\label{eq:exterior-jacobian}
+    \mathrm dx_1\wedge\cdots\wedge\mathrm dx_n
+    =\det D\phi\,\mathrm du_1\wedge\cdots\wedge\mathrm du_n,
+    \qquad x=\phi(u).
+\end{equation}
+对微分形式作变量代入并把 $\mathrm dx_i$ 换成其全微分，称为把形式\emph{拉回}（pullback）到参数域。式~\eqref{eq:exterior-jacobian} 正是体积形式的拉回公式；曲面上 $\mathrm dy\wedge\mathrm dz$ 的拉回则为 $A\,\mathrm du\wedge\mathrm dv$，与式~\eqref{eq:surface-normal-minors} 一致。
+
+若 $\phi$ 为连通区域间的 $C^1$ 微分同胚，则 $\det D\phi$ 连续且处处非零，所以符号恒定；正号表示保向，负号表示反向。有向形式换元保留带符号行列式，目标区域与参数域的定向要相容；普通重积分按非负体积计算，仍须使用 $|\det D\phi|$。外积记录了定向，并没有取消普通重积分中的绝对值要求。
+
+\subsection{外微分}
+\label{subsec:exterior-derivative}
+
+\begin{definition}
+\label{def:exterior-derivative}
+对系数为 $C^1$ 的 $k$ 次形式 $\omega=\sum_Ia_I\,\mathrm dx_I$，定义其\emph{外微分}（exterior derivative）为
+\begin{equation}
+\label{eq:exterior-derivative-definition}
+    \mathrm d\omega=\sum_I\mathrm da_I\wedge\mathrm dx_I
+    =\sum_I\sum_{j=1}^n\frac{\partial a_I}{\partial x_j}
+      \,\mathrm dx_j\wedge\mathrm dx_I.
+\end{equation}
+它是系数连续的 $k+1$ 次形式。对于 $0$ 次形式，这就是函数的全微分；对于 $n$ 次形式，外微分为零。
+\end{definition}
+
+\begin{proposition}
+\label{prop:exterior-derivative-rules}
+外微分具有线性性。若 $\deg\omega=p$ 且 $\omega,\eta$ 为 $C^1$ 形式，则
+\begin{equation}
+\label{eq:exterior-product-derivative}
+    \mathrm d(\omega\wedge\eta)
+    =\mathrm d\omega\wedge\eta+(-1)^p\omega\wedge\mathrm d\eta.
+\end{equation}
+若 $\omega$ 为 $C^2$ 形式，则 $\mathrm d^2\omega=0$。
+\end{proposition}
+\begin{proof}
+线性性来自系数微分的线性性。对单项 $a\,\mathrm dx_I$ 和 $b\,\mathrm dx_J$ 使用 $\mathrm d(ab)=b\,\mathrm da+a\,\mathrm db$，把 $\mathrm db$ 移过 $p$ 个基微分时产生 $(-1)^p$，逐项相加即得式~\eqref{eq:exterior-product-derivative}。再次外微分时，系数中出现 $a_{x_ix_j}$；交换 $i,j$ 后混合偏导数相等，但 $\mathrm dx_i\wedge\mathrm dx_j$ 反号，两项相消，而 $i=j$ 时外积为零，故 $\mathrm d^2\omega=0$。
+\end{proof}
+
+平面上 $\omega=P\,\mathrm dx+Q\,\mathrm dy$ 满足
+\[
+    \mathrm d\omega=(Q_x-P_y)\,\mathrm dx\wedge\mathrm dy.
+\]
+在三维，若 $\eta=P\,\mathrm dx+Q\,\mathrm dy+R\,\mathrm dz$，则
+\[
+    \mathrm d\eta=(R_y-Q_z)\,\mathrm dy\wedge\mathrm dz
+      +(P_z-R_x)\,\mathrm dz\wedge\mathrm dx
+      +(Q_x-P_y)\,\mathrm dx\wedge\mathrm dy;
+\]
+若 $\theta=P\,\mathrm dy\wedge\mathrm dz+Q\,\mathrm dz\wedge\mathrm dx+R\,\mathrm dx\wedge\mathrm dy$，则
+\[
+    \mathrm d\theta=(P_x+Q_y+R_z)\,\mathrm dx\wedge\mathrm dy\wedge\mathrm dz.
+\]
+因此三个积分公式都可写成同一个表达式
+\begin{equation}
+\label{eq:generalized-stokes-formula}
+    \int_M\mathrm d\omega=\int_{\partial M}\omega,
+\end{equation}
+其中 $M$ 是相应的紧有向区域或曲面，$\omega$ 的次数比 $M$ 的维数小 $1$，并满足对应定理中的光滑性条件，边界取诱导定向。对区间 $[a,b]$，规定 $\int_{\partial[a,b]}f=f(b)-f(a)$，则同一表达式也包括牛顿--莱布尼茨公式。这个统一记号并不替代各定理的条件和证明；它说明边界积分与外微分之间具有共同结构。
+
+\section{曲线积分与路径的无关性}
+\label{sec:path-independence-of-line-integrals}
+
+设 $U\subset\mathbb R^3$ 为开连通区域，$\boldsymbol F=(P,Q,R)$ 在 $U$ 内连续。开连通性保证任意两点之间可用位于 $U$ 内的有限折线连接：固定一点，把可由折线到达的点组成集合，该集合及其补集在 $U$ 内都是开的，连通性便迫使前者等于 $U$。因此下面关于不同路径的比较都有实际意义。
+
+\begin{definition}
+\label{def:path-independent-and-potential}
+若对于 $U$ 中任意两点 $A,B$，积分 $\int_\Gamma\boldsymbol F\cdot\mathrm d\boldsymbol r$ 对所有从 $A$ 到 $B$ 的分段光滑路径均相等，则称该积分在 $U$ 内\emph{与路径无关}（path independent）。若存在 $u\in C^1(U)$，使
+\[
+    \mathrm du=P\,\mathrm dx+Q\,\mathrm dy+R\,\mathrm dz,
+    \qquad\text{即}\qquad \nabla u=\boldsymbol F,
+\]
+则称 $u$ 为这一微分形式的\emph{原函数}或\emph{势函数}（potential function），并称该形式为\emph{恰当形式}（exact form）。此时 $\boldsymbol F$ 称为保守场（conservative field）。物理学若约定力为势能的负梯度，则势能为 $-u$，应与这里的原函数符号区分。
+\end{definition}
+
+\begin{theorem}
+\label{thm:path-independence-equivalences}
+对开连通区域 $U$ 内的连续向量场 $\boldsymbol F$，以下三个条件等价：曲线积分在 $U$ 内与路径无关；沿 $U$ 内任意分段光滑闭路径的积分为零；存在 $u\in C^1(U)$ 使 $\nabla u=\boldsymbol F$。条件成立时，对从 $A$ 到 $B$ 的任意路径都有
+\begin{equation}
+\label{eq:gradient-line-integral-theorem}
+    \int_A^B\boldsymbol F\cdot\mathrm d\boldsymbol r=u(B)-u(A),
+\end{equation}
+且势函数在连通区域上只相差一个常数。
+\end{theorem}
+
+\begin{proof}
+若积分与路径无关，把闭路径与同点不动的常路径比较，即得闭路径积分为零。反过来，若所有闭路径积分均为零，任取从 $A$ 到 $B$ 的两条路径 $\Gamma_1,\Gamma_2$，则沿 $\Gamma_1$ 再沿 $-\Gamma_2$ 构成闭路径，故两积分之差为零。
+
+现在固定 $A_0\in U$，在路径无关条件下定义
+\[
+    u(A)=\int_{A_0}^A\boldsymbol F\cdot\mathrm d\boldsymbol r.
+\]
+对 $A=(x,y,z)$ 及充分小的 $h$，连接 $A$ 与 $(x+h,y,z)$ 的线段在 $U$ 内，因而
+\[
+    u(x+h,y,z)-u(x,y,z)=\int_x^{x+h}P(t,y,z)\,\mathrm dt.
+\]
+除以 $h$ 后令 $h\to0$，由 $P$ 的连续性得到 $u_x=P$；同理 $u_y=Q$、$u_z=R$。三个偏导数连续，故 $u\in C^1(U)$ 且为所求势函数。
+
+若反过来已知 $\nabla u=\boldsymbol F$，沿路径 $\boldsymbol r(t)$ 用链式法则，有 $\boldsymbol F(\boldsymbol r(t))\cdot\boldsymbol r'(t)=\frac{\mathrm d}{\mathrm dt}u(\boldsymbol r(t))$，逐段积分即得式~\eqref{eq:gradient-line-integral-theorem}，所以与路径无关。若 $u,v$ 是两个势函数，则 $\nabla(u-v)=0$，沿连接任意两点的折线积分可知 $u-v$ 为常数。
+\end{proof}
+
+在平面区域内，完全相同的结论适用于 $P\,\mathrm dx+Q\,\mathrm dy$，势函数条件为 $u_x=P$、$u_y=Q$。这里闭路径允许自交；采用所有闭路径的表述，可以直接用“去程加反向回程”证明等价性，而不必假定两条任意路径之并总是简单闭曲线。
+
+\begin{definition}
+\label{def:simply-connected-and-closed-form}
+若开连通区域 $U$ 内的每条闭路径都能在 $U$ 内连续收缩为一点，则称 $U$ \emph{单连通}（simply connected）。对 $C^1$ 的 $1$ 次形式 $\omega$，若 $\mathrm d\omega=0$，则称其为\emph{闭形式}（closed form）。在三维，这等价于 $\operatorname{curl}\boldsymbol F=0$；在二维，等价于 $Q_x=P_y$。
+\end{definition}
+
+单连通是关于闭路径能否收缩的条件，不能在三维直接解释成“没有任何空腔”。例如球壳区域 $a<|\boldsymbol x|<b$（$0<a<b$）是单连通的，而实心环面内部不是单连通的；前者的空腔阻碍某些封闭曲面收缩，却不阻碍闭路径收缩。凸区域及星形区域都是单连通的，因为可沿连向一个固定点的线段直接收缩。
+
+\begin{theorem}
+\label{thm:simply-connected-curl-free}
+设 $U\subset\mathbb R^3$ 为开连通区域，$\boldsymbol F=(P,Q,R)\in C^1(U)$。若曲线积分与路径无关，则必有
+\begin{equation}
+\label{eq:curl-free-conditions}
+    R_y=Q_z,\qquad P_z=R_x,\qquad Q_x=P_y.
+\end{equation}
+若 $U$ 进一步单连通，则式~\eqref{eq:curl-free-conditions} 也是路径无关的充分条件。对平面单连通区域，充分必要条件相应为 $Q_x=P_y$。
+\end{theorem}
+
+\begin{proof}
+必要性由定理~\ref{thm:path-independence-equivalences} 得到 $u_x=P$、$u_y=Q$、$u_z=R$；因 $P,Q,R\in C^1$，有 $u\in C^2$，混合偏导数相等给出式~\eqref{eq:curl-free-conditions}。
+
+为证明充分性，先在以 $\boldsymbol a$ 为中心、包含于 $U$ 的一个球内构造局部势函数
+\[
+    v(\boldsymbol x)=\int_0^1
+    \boldsymbol F(\boldsymbol a+t(\boldsymbol x-\boldsymbol a))
+    \cdot(\boldsymbol x-\boldsymbol a)\,\mathrm dt.
+\]
+记 $F_i$ 为第 $i$ 个分量。连续偏导数允许在积分号下求导，而闭形式条件为 $\partial_iF_j=\partial_jF_i$，所以
+\begin{align*}
+    \partial_i v
+    &=\int_0^1\left[F_i(\boldsymbol a+t(\boldsymbol x-\boldsymbol a))
+      +t\sum_j(\partial_iF_j)(\boldsymbol a+t(\boldsymbol x-\boldsymbol a))(x_j-a_j)\right]\,\mathrm dt\\
+    &=\int_0^1\frac{\mathrm d}{\mathrm dt}
+      \left[tF_i(\boldsymbol a+t(\boldsymbol x-\boldsymbol a))\right]\,\mathrm dt
+      =F_i(\boldsymbol x).
+\end{align*}
+故每个充分小球内的积分均与路径无关。
+
+任取 $U$ 内一条分段光滑闭路径，由单连通性，存在将它连续收缩到一点的同伦。这个同伦是紧参数正方形到 $U$ 的连续映射。用上述小球覆盖其像，并把参数正方形分得足够细，使每个小格的像落在某一小球内。把各格点的像用直线段连接；共享边的端点同时属于相邻两格对应的小球，由球的凸性，该直线段在两球内均可用。每个小格对应的闭折线积分为零，相加后内部边相消；收缩端及两条侧边的贡献也相消，故原路径所对应的边界折线积分为零。原路径每小段与替代线段在同一小球内，局部势函数保证二者积分相同，因此原闭路径积分为零。由定理~\ref{thm:path-independence-equivalences} 得到全局路径无关。二维证明完全相同。
+\end{proof}
+
+\begin{notealert}[type=caution,title={局部微分条件与全局结论}]
+无旋条件是局部条件，路径无关是全局条件。例~\ref{ex:green-angular-integral} 中的角形式在 $\mathbb R^2\setminus\{(0,0)\}$ 上满足 $Q_x=P_y$，却在绕原点一周时积分为 $2\pi$，所以不是全局恰当形式。单连通是使所有闭 $1$ 次形式都恰当的充分条件，但某一个具体形式恰当，并不要求其定义域单连通。
+\end{notealert}
+
+\begin{example}
+\label{ex:path-independent-difference-angular-forms}
+设 $E=\{(x,0):0\leq x\leq1\}$，$U=\mathbb R^2\setminus E$，证明
+\[
+    \omega=\frac{x\,\mathrm dy-y\,\mathrm dx}{x^2+y^2}
+     -\frac{(x-1)\,\mathrm dy-y\,\mathrm dx}{(x-1)^2+y^2}
+\]
+在 $U$ 内与路径无关。
+\end{example}
+\begin{solve}
+两项分别描述相对于 $(0,0)$ 和 $(1,0)$ 的角变化；闭曲线若不与线段 $E$ 相交，就不能只围住其中一个端点。为避免依赖图形判断，直接构造一个全局势函数。令
+\[
+    a=x(x-1)+y^2,\qquad b=-y,\qquad q=\sqrt{a^2+b^2},
+    \qquad u=2\arctan\frac b{q+a}.
+\]
+在 $U$ 内 $q>0$ 且 $q+a>0$：若 $b=0$，则 $y=0$ 且 $x\notin[0,1]$，故 $a=x(x-1)>0$；若 $b\neq0$，则 $q>|a|$。因此 $u$ 在整个 $U$ 内光滑。用反正切求导公式有
+\[
+    \mathrm du=\frac{a\,\mathrm db-b\,\mathrm da}{a^2+b^2}.
+\]
+再由 $a^2+b^2=(x^2+y^2)((x-1)^2+y^2)$ 化简即得 $\mathrm du=\omega$，所以积分与路径无关。若只删去两个端点而保留线段内部，则小圆可仅绕一个端点，积分不再与路径无关；决定结论的是定义域和形式共同的性质。
+\end{solve}
+
+\begin{example}
+\label{ex:path-independent-radial-field}
+设 $f:(0,+\infty)\to\mathbb R$ 连续，$r=\sqrt{x^2+y^2+z^2}$。证明 $f(r)(x\,\mathrm dx+y\,\mathrm dy+z\,\mathrm dz)$ 在任意不含原点的开区域内有原函数。
+\end{example}
+\begin{solve}
+令 $H(r)=\int_1^r t f(t)\,\mathrm dt$，则 $H'(r)=rf(r)$，而 $\mathrm dr=(x\,\mathrm dx+y\,\mathrm dy+z\,\mathrm dz)/r$，故
+\[
+    \mathrm dH(r)=f(r)(x\,\mathrm dx+y\,\mathrm dy+z\,\mathrm dz).
+\]
+因此 $H(r)$ 就是势函数。这里只要求 $f$ 连续，不能为了套用无旋判别而额外假设其可导；也不能漏掉构造 $H$ 时的因子 $t$。若被积形式本来是 $f(r)\,\mathrm dr$，才可直接取 $f$ 的一元原函数。
+\end{solve}
+
+求势函数通常有两种方法。第一种先把 $y,z$ 看作常数，对 $u_x=P$ 积分，写成 $u=\int P\,\mathrm dx+\varphi(y,z)$，再用 $u_y=Q$ 和 $u_z=R$ 逐步确定余下函数；“积分常数”在此必须允许依赖尚未积分的变量。第二种固定基点 $A_0$，选择位于定义域内的便于计算的路径，取 $u(A)=\int_{A_0}^A\boldsymbol F\cdot\mathrm d\boldsymbol r$。若区域允许依次沿坐标轴方向走折线，则可写成
+\begin{align*}
+    u(x,y,z)={}&\int_{x_0}^xP(t,y_0,z_0)\,\mathrm dt
+    +\int_{y_0}^yQ(x,t,z_0)\,\mathrm dt\\
+    &+\int_{z_0}^zR(x,y,t)\,\mathrm dt+C.
+\end{align*}
+这条折线必须完整地位于定义域内；一般带孔区域不能不加检查地使用坐标折线路径。
+
+\begin{example}
+\label{ex:potential-exponential-polynomial}
+在 $\mathbb R^3$ 中求原函数，使
+\[
+    \mathrm du=(yze^{xyz}+3x^2)\,\mathrm dx
+      +(xze^{xyz}+\sin y)\,\mathrm dy
+      +(xye^{xyz}+2z)\,\mathrm dz.
+\]
+\end{example}
+\begin{solve}
+先对 $x$ 积分得 $u=e^{xyz}+x^3+\varphi(y,z)$。与 $u_y=xze^{xyz}+\sin y$ 比较，得 $\varphi=-\cos y+\psi(z)$；再与 $u_z=xye^{xyz}+2z$ 比较，得 $\psi=z^2+C$。因此
+\[
+    u=e^{xyz}+x^3-\cos y+z^2+C.
+\]
+沿 $(0,0,0)\to(x,0,0)\to(x,y,0)\to(x,y,z)$ 的坐标折线积分也得到同一结果。最后逐项求偏导数，便可直接核查原函数，且看出所有原函数只差一个常数。
+\end{solve}
+
+\section{场论简介}
+\label{sec:introduction-to-field-theory}
+
+空间区域内每点所对应的物理量称为\emph{场}（field）。温度、密度可用标量函数描述，称为\emph{数量场}或标量场（scalar field）；速度、力等还需要大小和方向，称为\emph{向量场}（vector field）。不显含时间的场称为稳定场（steady field）；把实际现象看作稳定场是一种模型假设，是否适用取决于所研究的时间尺度。以下在固定的欧氏直角坐标系中讨论，只写空间变量。
+
+\subsection{数量场的梯度}
+\label{subsec:gradient-of-scalar-fields}
+
+\begin{definition}
+\label{def:scalar-field-gradient}
+设 $u:U\subset\mathbb R^3\to\mathbb R$ 在一点可微，定义其\emph{梯度}（gradient）为
+\[
+    \operatorname{grad}u=\nabla u=(u_x,u_y,u_z).
+\]
+对任意单位向量 $\boldsymbol e$，该点沿 $\boldsymbol e$ 的方向导数为 $D_{\boldsymbol e}u=\nabla u\cdot\boldsymbol e$。
+\end{definition}
+
+由柯西--施瓦茨不等式，$D_{\boldsymbol e}u\leq|\nabla u|$；当 $\nabla u\neq0$ 时，等号恰在 $\boldsymbol e=\nabla u/|\nabla u|$ 时成立。因此梯度方向为最快上升方向，最大上升率为梯度模长；反方向为最快下降方向。若梯度为零，所有方向导数都为零，此时没有唯一的最快上升方向，也不能据此断定该点为极值点。
+
+集合 $\{\boldsymbol x:u(\boldsymbol x)=c\}$ 称为\emph{等位集}或等值集（level set）。若 $u\in C^1$ 且某点处 $\nabla u\neq0$，隐函数定理保证该点附近的等位集是光滑曲面，称为等位面。沿其中任一光滑曲线求导，得 $\nabla u\cdot\boldsymbol r'=0$，所以梯度垂直于等位面。仅有 $u\in C^1$ 并不足以保证每个等位集都是曲面，梯度非零是这一局部正则结论的关键条件。
+
+\subsection{向量场的向量线}
+\label{subsec:field-lines-of-vector-fields}
+
+\begin{definition}
+\label{def:vector-field-lines}
+设 $\boldsymbol F=(P,Q,R)\in C^1(U)$。在 $\boldsymbol F\neq0$ 的区域，一条曲线若每点切线均与该点场向量平行，就称为\emph{向量线}或场线（field line）。沿场方向选择参数后，可将它表示为微分方程
+\begin{equation}
+\label{eq:field-line-ode}
+    \boldsymbol r'(t)=\boldsymbol F(\boldsymbol r(t)),
+    \qquad\text{即}\qquad x'=P,\quad y'=Q,\quad z'=R
+\end{equation}
+的非平衡解轨迹。
+\end{definition}
+
+常见写法 $\mathrm dx/P=\mathrm dy/Q=\mathrm dz/R$ 只是上述方程的简记；某个分量为零时不能真的除以该分量，应回到参数方程处理。由于 $C^1$ 向量场局部满足利普希茨条件，常微分方程的局部存在唯一性定理保证过每个初始点的解唯一，并可延拓为唯一的最大解。因此非零点处的最大场线不会分叉，相交的两条解轨迹实际上是同一条轨迹。这里借用常微分方程理论的结论，不在本章证明；最大解也未必对所有实数时间存在。
+
+若 $\boldsymbol F(\boldsymbol a)=0$，则 $\boldsymbol r(t)\equiv\boldsymbol a$ 为平衡解，不能据此称它为具有非零切向量的光滑场线。场线若以零点为极限，可在无限时间内接近它，但在唯一性条件下不能在有限时间到达该点后再沿另一条轨迹离开。
+
+\begin{example}
+\label{ex:radial-vector-field-lines}
+求 $\boldsymbol F(x,y,z)=(x,y,z)$ 在 $\mathbb R^3\setminus\{0\}$ 中的向量线。
+\end{example}
+\begin{solve}
+初值为 $\boldsymbol r(t_0)=\boldsymbol a\neq0$ 的解为 $\boldsymbol r(t)=e^{t-t_0}\boldsymbol a$，故每条场线是一条从原点出发但不包含原点的射线，方向朝外。用参数解能同时处理某些坐标为零的情形；只写 $y=C_1x$、$z=C_2x$ 会遗漏 $x=0$ 的场线，也会把同一直线上的两条相反射线误并为一条。
+\end{solve}
+
+\subsection{向量场的散度}
+\label{subsec:divergence-of-vector-fields}
+
+\begin{definition}
+\label{def:vector-field-divergence}
+对 $C^1$ 向量场 $\boldsymbol F=(P,Q,R)$，定义其\emph{散度}（divergence）为数量场
+\[
+    \operatorname{div}\boldsymbol F=P_x+Q_y+R_z.
+\]
+\end{definition}
+
+散度是单位体积净外流通量的局部极限。具体地，设闭球 $\overline{B_\varepsilon(\boldsymbol a)}\subset U$，球面取外侧，由高斯公式有
+\begin{equation}
+\label{eq:divergence-local-flux}
+    \operatorname{div}\boldsymbol F(\boldsymbol a)
+    =\lim_{\varepsilon\to0+}
+      \frac1{\operatorname{Vol}(B_\varepsilon)}
+      \iint_{\partial B_\varepsilon(\boldsymbol a)}
+      \boldsymbol F\cdot\boldsymbol n\,\mathrm dS.
+\end{equation}
+因为右端在取极限前等于球内散度的体积平均，而连续函数在收缩球上的平均趋于中心值。通量和体积都具有几何意义，所以散度不依赖于欧氏直角坐标系的选取。
+
+散度在一点为正时，其邻域内充分小区域具有正的净外流，称该点具有源的性质；为负时具有汇的性质。若散度在整个区域恒为零，称为\emph{无源场}（solenoidal field）。仅在一点散度为零，只能说明该点的一阶净通量密度为零，不能推出它邻近的每个小闭曲面的通量都恰为零。例~\ref{ex:gauss-point-source-flux} 中的点源场在点源位置以外无源，含奇点的闭曲面却可有非零通量，二者没有矛盾。
+
+\subsection{向量场的旋度}
+\label{subsec:curl-of-vector-fields}
+
+\begin{definition}
+\label{def:vector-field-curl}
+对 $C^1$ 向量场 $\boldsymbol F=(P,Q,R)$，定义其\emph{旋度}（curl）为向量场
+\[
+    \operatorname{curl}\boldsymbol F
+    =\operatorname{rot}\boldsymbol F
+    =(R_y-Q_z,\ P_z-R_x,\ Q_x-P_y).
+\]
+恒满足 $\operatorname{curl}\boldsymbol F=0$ 的场称为\emph{无旋场}（irrotational field）。
+\end{definition}
+
+旋度在单位方向 $\boldsymbol n$ 上的分量，是垂直于该方向的小圆盘边界环量与圆盘面积之比的极限。设 $D_\varepsilon$ 是以 $\boldsymbol a$ 为中心、法向为 $\boldsymbol n$、半径为 $\varepsilon$ 的圆盘，其边界按右手规则定向。由斯托克斯公式及旋度的连续性，
+\begin{equation}
+\label{eq:curl-local-circulation}
+    (\operatorname{curl}\boldsymbol F)(\boldsymbol a)\cdot\boldsymbol n
+    =\lim_{\varepsilon\to0+}
+      \frac1{\pi\varepsilon^2}
+      \oint_{\partial D_\varepsilon}\boldsymbol F\cdot\mathrm d\boldsymbol r.
+\end{equation}
+不同方向的分量由此共同确定旋度；固定空间定向后，这一描述与所用的正交坐标无关。局部环量密度非零体现旋转趋势，但旋度并不表示每个质点都沿闭合圆周运动。
+
+例如 $\boldsymbol F=(-\Omega y,\Omega x,0)$ 表示绕 $z$ 轴的刚性转动速度场，其中 $\Omega$ 为常数。半径 $\varepsilon$ 的水平圆周环量为 $2\pi\Omega\varepsilon^2$，故 $\operatorname{curl}\boldsymbol F=(0,0,2\Omega)$；旋度模长是该模型角速度绝对值的两倍。路径无关必然推出无旋，反向结论还需第~\ref{sec:path-independence-of-line-integrals} 节中的定义域条件。
+
+\subsection{一些重要算子}
+\label{subsec:important-field-operators}
+
+把偏导数形式地排成向量，得到\emph{哈密尔顿算子}（Hamilton operator），又称 nabla 或 del 算子：
+\[
+    \nabla=\left(\frac{\partial}{\partial x_1},\ldots,
+    \frac{\partial}{\partial x_n}\right).
+\]
+它是作用于函数的微分算子，不能在乘积中把它当成普通常向量。对可微函数 $f,g$ 及常数 $c$，有 $\nabla(cf)=c\nabla f$、$\nabla(f+g)=\nabla f+\nabla g$ 和 $\nabla(fg)=f\nabla g+g\nabla f$。在三维，梯度、散度和旋度分别记为
+\[
+    \operatorname{grad}f=\nabla f,\qquad
+    \operatorname{div}\boldsymbol F=\nabla\cdot\boldsymbol F,\qquad
+    \operatorname{curl}\boldsymbol F=\nabla\times\boldsymbol F.
+\]
+叉积的形式行列式按第一行展开理解为各分量的偏导数组合，并不是把微分算子当作数的任意行列式运算。
+
+\begin{definition}
+\label{def:laplacian-and-harmonic-function}
+在 $\mathbb R^n$ 中，\emph{拉普拉斯算子}（Laplacian）定义为
+\begin{equation}
+\label{eq:laplace-operator}
+    \Delta=\nabla\cdot\nabla
+    =\sum_{i=1}^n\frac{\partial^2}{\partial x_i^2}.
+\end{equation}
+若 $u\in C^2(U)$ 且 $\Delta u=0$，则称 $u$ 为 $U$ 上的\emph{调和函数}（harmonic function）。一维连通区间内调和函数恰为仿射函数 $u(x)=ax+b$；二维时 $e^x\cos y$、$2xy$ 都是调和函数。
+\end{definition}
+
+\begin{proposition}
+\label{prop:basic-vector-calculus-identities}
+若 $u\in C^2(U)$、$\boldsymbol F\in C^2(U;\mathbb R^3)$，则
+\begin{equation}
+\label{eq:vector-calculus-identities}
+    \operatorname{curl}(\nabla u)=0,\qquad
+    \operatorname{div}(\operatorname{curl}\boldsymbol F)=0,
+    \qquad \operatorname{div}(\nabla u)=\Delta u.
+\end{equation}
+此外，逐分量定义 $\Delta\boldsymbol F=(\Delta P,\Delta Q,\Delta R)$ 时，有
+\[
+    \operatorname{curl}(\operatorname{curl}\boldsymbol F)
+    =\nabla(\operatorname{div}\boldsymbol F)-\Delta\boldsymbol F.
+\]
+\end{proposition}
+\begin{proof}
+第一式各分量均为 $u$ 的两个相等混合偏导数之差；第二式展开为六项，按混合偏导数相等两两相消；第三式由定义得到。最后一式的第一分量为
+\[
+    \partial_y(Q_x-P_y)-\partial_z(P_z-R_x)
+    =\partial_x(P_x+Q_y+R_z)-(P_{xx}+P_{yy}+P_{zz}),
+\]
+其余两分量由循环换位得到。前两式也分别对应微分形式中的 $\mathrm d^2u=0$ 和 $\mathrm d^2\eta=0$。
+\end{proof}
+
+因此调和函数的梯度场既无旋又无源。但从“无源”反推某个场必为梯度场没有依据；无源只是一条标量偏微分条件，梯度场还须满足无旋及适当的全局条件。
+
+\begin{example}
+\label{ex:harmonic-conjugate-potential}
+设 $U\subset\mathbb R^2$ 为单连通区域，$u\in C^2(U)$ 且 $u_{xx}+u_{yy}=0$。证明 $u_y\,\mathrm dx-u_x\,\mathrm dy$ 有原函数，且其原函数也是调和函数。
+\end{example}
+\begin{solve}
+令 $P=u_y$、$Q=-u_x$，则 $P,Q\in C^1$，且 $Q_x-P_y=-u_{xx}-u_{yy}=0$。由定理~\ref{thm:simply-connected-curl-free}，存在 $v$ 满足 $v_x=u_y$、$v_y=-u_x$。右端为 $C^1$ 函数，故 $v\in C^2$，而
+\[
+    \Delta v=(u_y)_x-(u_x)_y=0.
+\]
+所以 $v$ 也是调和函数。沿教材的符号约定可称其为共轭调和函数；若采用复函数 $u+\mathrm iv$ 的通常柯西--黎曼约定，则相应共轭函数应取这里的 $-v$。例如 $u=x^2-y^2$ 时，上述原函数为 $v=-2xy+C$，而通常与 $u$ 配成 $u+\mathrm iv$ 的共轭函数为 $2xy+C$。
+\end{solve}
+
+
+
+\section*{习题十六}
+\addcontentsline{toc}{section}{习题十六}

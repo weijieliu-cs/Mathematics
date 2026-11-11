@@ -1,0 +1,1108 @@
+% !TeX root = ../高等代数习题（谢启鸿）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{5} % 保留原书章号。
+\chapter{特征值}
+\label{chap:xie-ex-eig-eigenvalues}
+
+特征值研究线性变换在某些方向上只产生数乘的现象。特征向量给出这些方向，特征子空间把同一数乘规律的向量组织起来，特征多项式与极小多项式则分别记录特征值的重数信息和矩阵所满足的多项式关系。本章先讨论特征值的计算与估计，再研究乘法交换性、相似与可对角化问题，最后用多项式方法和 Kronecker 积统一处理矩阵方程及矩阵空间上的线性变换。
+
+全章以数域 $\mathbb F\subseteq\mathbb C$ 上的有限维线性空间和矩阵为对象，矩阵阶数均为正整数。全部不同的复特征值组成的集合称为矩阵的\emph{谱（spectrum）}，记为 $\sigma(A)$。除非明确讨论在 $\mathbb F$ 上的性质，计算全部特征值时允许扩充到复数域，并将特征值按代数重数计数。记 $I_n$ 为 $n$ 阶单位矩阵，$\operatorname{tr}A$、$\operatorname{rank}A$、$\operatorname{adj}A$ 分别表示迹、秩和伴随矩阵；$A^{\mathsf T}$ 表示转置，复矩阵的共轭转置写作 $A^{\mathsf H}$，以免将转置与伴随矩阵混淆。
+
+\section{基本概念}
+\label{sec:xie-ex-eig-eigen-basic}
+
+\subsection{特征值、特征子空间与两种重数}
+
+\begin{definition}
+设 $T\colon V\to V$ 为 $\mathbb F$ 上的线性变换。若存在 $\lambda\in\mathbb F$ 和 $0\ne v\in V$，使 $Tv=\lambda v$，则称 $\lambda$ 为 $T$ 的\emph{特征值（eigenvalue）}，$v$ 为属于 $\lambda$ 的\emph{特征向量（eigenvector）}。矩阵 $A\in\mathbb F^{n\times n}$ 的定义相应为 $Av=\lambda v$，其中 $0\ne v\in\mathbb F^n$。属于 $\lambda$ 的\emph{特征子空间（eigenspace）}为
+\[
+E_\lambda(T)=\ker(T-\lambda I_V),\qquad
+E_\lambda(A)=\ker(A-\lambda I_n).
+\]
+特征子空间包含零向量，而特征向量本身必须非零。
+\end{definition}
+
+\begin{definition}
+矩阵 $A$ 的\emph{特征多项式（characteristic polynomial）}定义为
+\begin{equation}
+\chi_A(t)=\det(tI_n-A)=t^n+c_1t^{n-1}+\cdots+c_n.
+\label{eq:xie-ex-eig-characteristic-polynomial}
+\end{equation}
+若 $\lambda$ 是其根，则根的重数 $a_A(\lambda)$ 称为 $\lambda$ 的\emph{代数重数（algebraic multiplicity）}，而
+\[
+g_A(\lambda)=\dim E_\lambda(A)=n-\operatorname{rank}(\lambda I_n-A)
+\]
+称为\emph{几何重数（geometric multiplicity）}。若两者相等，教材称该特征值有完全的特征向量系；若每个特征值都如此，则称矩阵有完全的特征向量系。
+\end{definition}
+
+对 $\lambda\in\mathbb F$，齐次方程组有非零解当且仅当系数矩阵奇异，故 $\lambda$ 是特征值当且仅当 $\chi_A(\lambda)=0$。这一说法必须连同数域理解：例如
+\[
+R=\begin{pmatrix}0&-1\\1&0\end{pmatrix}
+\]
+在 $\mathbb R$ 上没有特征值，在 $\mathbb C$ 上却有特征值 $i,-i$。复数域上的 $n$ 次特征多项式总有 $n$ 个根，不能据此断言任一实矩阵都有实特征向量。
+
+\begin{proposition}
+\label{prop:xie-ex-eig-geometric-algebraic}
+对任一特征值 $\lambda$，有 $1\le g_A(\lambda)\le a_A(\lambda)$。
+\end{proposition}
+\begin{proof}
+设 $g=g_A(\lambda)$，取 $E_\lambda(A)$ 的一组基并扩充为全空间的基。相应表示矩阵为
+\[
+\begin{pmatrix}\lambda I_g&C\\0&B\end{pmatrix},
+\]
+其特征多项式含因子 $(t-\lambda)^g$，所以代数重数至少为 $g$；特征子空间非零又保证 $g\ge1$。
+\end{proof}
+
+\subsection{相似与上三角化}
+
+\begin{definition}
+若存在 $P\in\mathbb F^{n\times n}$ 可逆，使 $B=P^{-1}AP$，则称 $A,B$ 在 $\mathbb F$ 上\emph{相似（similar）}，记作 $A\sim B$。这表示同一个线性变换在不同基下的矩阵；其中 $P$ 的列是新基在旧基下的坐标。
+\end{definition}
+
+由
+\[
+\det(tI_n-P^{-1}AP)=\det\bigl(P^{-1}(tI_n-A)P\bigr)=\chi_A(t)
+\]
+可知特征多项式是相似不变量，因此线性变换的特征多项式可以用任意一组基下的表示矩阵定义。相似还保持 $\operatorname{rank}f(A)$、$\operatorname{tr}A$ 和 $\det A$，因为 $f(P^{-1}AP)=P^{-1}f(A)P$。
+
+若矩阵相似于一个上三角矩阵，就称它可以\emph{上三角化（triangularization）}。
+
+\begin{theorem}
+\label{thm:xie-ex-eig-triangularization}
+$A$ 在 $\mathbb F$ 上可相似上三角化，当且仅当 $\chi_A(t)$ 在 $\mathbb F$ 上分裂为一次因式的乘积。特别地，每个复矩阵都可在复数域上相似上三角化。
+\end{theorem}
+\begin{proof}
+上三角矩阵的特征多项式是其对角元对应的一次因式之积，故必要性成立。充分性对阶数归纳。选取特征向量 $v_1\in\mathbb F^n$ 并扩充为一组基，得到
+\[
+P^{-1}AP=\begin{pmatrix}\lambda_1&*\\0&A_1\end{pmatrix}.
+\]
+由于 $\chi_{A_1}(t)=\chi_A(t)/(t-\lambda_1)$ 仍在 $\mathbb F$ 上分裂，可在后 $n-1$ 个坐标中继续上三角化；与第一步合成即得所需变换。
+\end{proof}
+
+\subsection{可对角化的基本判据}
+
+\begin{definition}
+若存在 $\mathbb F$ 上的可逆矩阵 $P$，使 $P^{-1}AP$ 为对角矩阵，则称 $A$ 在 $\mathbb F$ 上\emph{可对角化（diagonalizable）}。线性变换可对角化，是指存在一组由特征向量组成的基。
+\end{definition}
+
+\begin{lemma}
+\label{lem:xie-ex-eig-eigenspace-direct-sum}
+属于互异特征值 $\lambda_1,\ldots,\lambda_s$ 的特征子空间之和是直和。因此，从这些子空间各取一组线性无关向量，其合并仍线性无关。
+\end{lemma}
+\begin{proof}
+设 $v_i\in E_{\lambda_i}(T)$ 且 $\sum_i v_i=0$。固定 $i$，将 $\prod_{j\ne i}(T-\lambda_jI_V)$ 作用于等式，得到
+\[
+\left(\prod_{j\ne i}(\lambda_i-\lambda_j)\right)v_i=0.
+\]
+括号内的数非零，所以每个 $v_i$ 都为零，这正是直和的判据。
+\end{proof}
+
+\begin{theorem}
+\label{thm:xie-ex-eig-diagonalization-basic}
+设 $\chi_A(t)$ 在 $\mathbb F$ 上分裂，不同特征值为 $\lambda_1,\ldots,\lambda_s$。下列条件等价：$A$ 在 $\mathbb F$ 上可对角化；$A$ 有 $n$ 个线性无关的特征向量；$\mathbb F^n=\bigoplus_{i=1}^sE_{\lambda_i}(A)$；对每个 $i$ 均有 $g_A(\lambda_i)=a_A(\lambda_i)$。特别地，$n$ 个不同特征值足以保证可对角化。
+\end{theorem}
+\begin{proof}
+设 $P=(v_1,\ldots,v_n)$，则 $AP=P\operatorname{diag}(\mu_1,\ldots,\mu_n)$ 当且仅当 $Av_j=\mu_jv_j$，所以前两个条件等价。由引理~\ref{lem:xie-ex-eig-eigenspace-direct-sum}，所有特征子空间的基合并后线性无关，故它们构成全空间的基当且仅当几何重数之和等于 $n$。又由命题~\ref{prop:xie-ex-eig-geometric-algebraic}，每个几何重数不超过对应代数重数，而代数重数之和为 $n$，因此总和相等当且仅当逐个相等。
+\end{proof}
+
+\emph[caution]{重特征值本身不妨碍对角化，缺少足够的线性无关特征向量才是障碍。}例如 $I_n$ 只有一个不同的特征值，却已经是对角矩阵；$\begin{pmatrix}1&1\\0&1\end{pmatrix}$ 的特征值 $1$ 的代数重数为 $2$、几何重数为 $1$，因而不可对角化。
+
+\subsection{极小多项式与特征值估计的入口}
+
+\begin{definition}
+使 $m_A(A)=0$ 的非零多项式中，次数最低且首项系数为 $1$ 的多项式，称为 $A$ 的\emph{极小多项式（minimal polynomial）}。满足 $f(A)=0$ 时，也说 $A$ 适合多项式 $f$；非零的这样的 $f$ 称为 $A$ 的\emph{零化多项式（annihilating polynomial）}。
+\end{definition}
+
+特征多项式由行列式定义，极小多项式由矩阵所满足的关系定义。二者并不总相同，例如 $I_n$ 的特征多项式为 $(t-1)^n$，极小多项式为 $t-1$。极小多项式的存在唯一性及 Cayley--Hamilton 定理将在第~\ref{sec:xie-ex-eig-minimal-polynomial} 节证明；特征值不易精确求出时，则可用第~\ref{subsec:xie-ex-eig-gershgorin} 小节的圆盘定理估计其位置。
+
+\section{特征值和特征向量}
+\label{sec:xie-ex-eig-eigen-computation}
+
+\subsection{从定义和不变子空间出发}
+
+\begin{example}
+% 教材例6.1、例6.3、例6.4。
+设 $L_A\colon\mathbb F^{n\times n}\to\mathbb F^{n\times n}$ 定义为 $L_A(X)=AX$。说明 $L_A$ 与 $A$ 的特征值有何关系。
+\end{example}
+\begin{solve}
+若 $Av=\lambda v$ 且 $v\ne0$，则 $X=(v,0,\ldots,0)$ 是 $L_A$ 的特征向量。反之，$AX=\lambda X$ 且 $X\ne0$ 时，$X$ 至少有一个非零列，该列就是 $A$ 的特征向量。因此二者的不同特征值相同。进一步，按列排列矩阵空间的基，$L_A$ 的表示矩阵为 $n$ 个 $A$ 组成的分块对角矩阵，所以
+\[
+\chi_{L_A}(t)=\chi_A(t)^n,\qquad
+\dim E_\lambda(L_A)=n\dim E_\lambda(A).
+\]
+可见特征值相同并不意味着重数相同。
+\end{solve}
+
+一般地，若 $V=V_1\oplus\cdots\oplus V_r$，每个 $V_i$ 均为 $T$ 的不变子空间，则拼接各子空间的基可得分块对角表示，从而
+\begin{equation}
+\chi_T(t)=\prod_{i=1}^r\chi_{T|_{V_i}}(t),\qquad
+E_\lambda(T)=\bigoplus_{i=1}^rE_\lambda(T|_{V_i}).
+\label{eq:xie-ex-eig-block-eigenspaces}
+\end{equation}
+第二个等式来自直和分量的唯一性：将 $Tv=\lambda v$ 分解到各 $V_i$ 中，即逐项得到相同的特征向量方程。因此分块对角矩阵的代数重数与几何重数都按块相加，分块的特征向量只需在其余坐标处补零。
+
+\begin{example}
+% 教材例6.5。
+整数矩阵不可能有非整数的有理特征值。
+\end{example}
+\begin{solve}
+整数矩阵的特征多项式为首一整系数多项式。若互素整数 $p,q$ 满足 $q>0$ 且 $p/q$ 是其根，将等式乘以 $q^n$ 可得 $q\mid p^n$，因而 $q=1$。所以 $q>1$ 时，方程 $Ax=(p/q)x$ 只有零解。
+\end{solve}
+
+\subsection{正向使用矩阵多项式}
+
+\begin{theorem}
+\label{thm:xie-ex-eig-spectral-mapping}
+设 $A$ 的全部复特征值为 $\lambda_1,\ldots,\lambda_n$，$f\in\mathbb F[t]$，则 $f(A)$ 的全部特征值为 $f(\lambda_1),\ldots,f(\lambda_n)$，按此列表计重。
+\end{theorem}
+\begin{proof}
+由定理~\ref{thm:xie-ex-eig-triangularization}，可取 $P$ 使 $U=P^{-1}AP$ 为上三角矩阵，其对角元依次为 $\lambda_i$。于是 $P^{-1}f(A)P=f(U)$ 仍上三角，对角元依次为 $f(\lambda_i)$。
+\end{proof}
+
+对单个特征向量，$Av=\lambda v$ 可直接推出 $f(A)v=f(\lambda)v$；上述证明进一步保证列出了全部特征值及其代数重数。若不同的 $\lambda_i$ 经 $f$ 映到同一点，相应重数需要合并；也不能反过来断言 $f(A)$ 的每个特征向量都是 $A$ 的特征向量，例如 $f$ 为常数时便不成立。
+
+若 $A$ 可逆，则 $A^{-1}$ 的特征值为 $\lambda_i^{-1}$，因为 $U^{-1}$ 的对角元为 $\lambda_i^{-1}$。无论 $A$ 是否可逆，$\operatorname{adj}A$ 的特征值均为
+\[
+\prod_{j\ne1}\lambda_j,\quad\ldots,\quad\prod_{j\ne n}\lambda_j,
+\]
+其中 $n=1$ 时空积为 $1$。其理由是上三角矩阵的伴随矩阵仍上三角，且相似变换保持伴随运算；后者对可逆矩阵由 $\operatorname{adj}A=(\det A)A^{-1}$ 得到，对一般矩阵则用 $A+sI_n$ 的多项式恒等式延拓到 $s=0$。
+
+\begin{example}
+% 教材例6.8。
+若 $A$ 的特征值为 $\lambda_1,\ldots,\lambda_n$，求
+\[
+M=\begin{pmatrix}A&A^2\\A^2&A\end{pmatrix}
+\]
+的特征值。
+\end{example}
+\begin{solve}
+取 $S=\begin{pmatrix}I_n&I_n\\I_n&-I_n\end{pmatrix}$，直接相乘可得
+\[
+S^{-1}MS=\operatorname{diag}(A+A^2,A-A^2).
+\]
+故其特征值为 $\lambda_i+\lambda_i^2$ 与 $\lambda_i-\lambda_i^2$，$1\le i\le n$。这一结论无需假设 $A$ 可对角化。
+\end{solve}
+
+\begin{example}
+% 教材例6.10、例6.11；统一采用下次对角线为1的友阵。
+设 $p(t)=t^n+a_{n-1}t^{n-1}+\cdots+a_0$，其友阵为
+\[
+C_p=\begin{pmatrix}
+0&0&\cdots&0&-a_0\\
+1&0&\cdots&0&-a_1\\
+0&1&\cdots&0&-a_2\\
+\vdots&\vdots&\ddots&\vdots&\vdots\\
+0&0&\cdots&1&-a_{n-1}
+\end{pmatrix}.
+\]
+如何构造以 $f(\lambda_1),\ldots,f(\lambda_n)$ 为根的首一多项式，其中 $\lambda_i$ 是 $p$ 的根？
+\end{example}
+\begin{solve}
+沿 $\det(tI_n-C_p)$ 的第一行展开，最后一项的余子式为对角元均为 $-1$ 的三角矩阵，连同展开符号后贡献 $a_0$；第一项则为 $t$ 乘以系数为 $a_1,\ldots,a_{n-1}$ 的低一阶友阵的特征行列式。因此对阶数递推得到 $\chi_{C_p}(t)=t(t^{n-1}+a_{n-1}t^{n-2}+\cdots+a_1)+a_0=p(t)$；一阶时友阵为 $(-a_0)$，结论直接成立。由定理~\ref{thm:xie-ex-eig-spectral-mapping}，所求多项式为
+\[
+h(z)=\det\bigl(zI_n-f(C_p)\bigr).
+\]
+同时，$\det f(C_p)=\prod_i f(\lambda_i)$；按首一多项式的结式约定，此积正是 $\operatorname{Res}(p,f)$。一般的 $A$ 也满足 $\det f(A)=\operatorname{Res}(\chi_A,f)$。
+\end{solve}
+
+\subsection{反向使用矩阵适合的多项式}
+
+若 $q(A)=0$ 且 $Av=\lambda v$、$v\ne0$，则 $0=q(A)v=q(\lambda)v$，所以 $q(\lambda)=0$。这给出特征值的候选集合，\emph[caution]{并不保证 $q$ 的每个根都实际出现}。例如 $I_n$ 适合 $t^2-1$，但没有特征值 $-1$。
+
+\begin{proposition}
+\label{prop:xie-ex-eig-nilpotent-spectrum}
+$A$ 为\emph{幂零矩阵（nilpotent matrix）}，即存在正整数 $r$ 使 $A^r=0$，当且仅当它的全部复特征值都为零。此时一定有 $A^n=0$。
+\end{proposition}
+\begin{proof}
+$A^r=0$ 推出每个特征值满足 $\lambda^r=0$。反之，全部特征值为零时，$A$ 可复相似于严格上三角矩阵 $U$；$U$ 的每次相乘都使可能非零的位置至少向右移动一列，故 $U^n=0$，于是 $A^n=0$。
+\end{proof}
+
+若 $A^m=I_n$，则其特征值均为 $m$ 次单位根。每行每列恰有一个非零元、且非零元为 $\pm1$ 的矩阵也具有有限阶：这样的矩阵仅有 $2^nn!$ 个，乘法封闭且均可逆，所以某两个正整数次幂相等，约去可逆因子便得到 $A^m=I_n$。对合矩阵 $A^2=I_n$ 的特征值只能为 $\pm1$，幂等矩阵 $A^2=A$ 的特征值只能为 $0,1$；它们的可对角化性还需要第~\ref{sec:xie-ex-eig-diagonalization-tests} 节的无重根多项式判据。
+
+\begin{example}
+% 教材例6.16。
+设 $A$ 为实矩阵，$I_n-A$ 的所有特征值模长均小于 $1$，则 $0<\det A<2^n$。
+\end{example}
+\begin{solve}
+$A$ 的特征值满足 $|1-\lambda|<1$。实特征值因此属于 $(0,2)$；非实特征值按共轭成对出现，每对之积为 $|\lambda|^2\in(0,4)$。将这些正因子相乘，就得到所述严格不等式。
+\end{solve}
+
+\subsection{降阶公式、低秩结构与交织关系}
+
+\begin{theorem}
+\label{thm:xie-ex-eig-ab-ba}
+设 $A\in\mathbb F^{m\times n}$、$B\in\mathbb F^{n\times m}$ 且 $m\ge n$，则
+\begin{equation}
+\det(tI_m-AB)=t^{m-n}\det(tI_n-BA).
+\label{eq:xie-ex-eig-ab-ba-characteristic}
+\end{equation}
+因而 $AB,BA$ 的非零特征值连同代数重数相同；若 $m=n$，则特征多项式完全相同。
+\end{theorem}
+\begin{proof}
+当 $t\ne0$ 时，对分块矩阵 $\begin{pmatrix}tI_m&A\\B&I_n\end{pmatrix}$ 分别消去右上块和左下块，得到
+\[
+\det(tI_m-AB)=t^m\det(I_n-t^{-1}BA)
+=t^{m-n}\det(tI_n-BA).
+\]
+两端都是 $t$ 的多项式，且在无穷多个非零点相等，故恒等，也包括 $t=0$。
+\end{proof}
+
+\begin{example}
+\label{ex:xie-ex-eig-rank-one-spectrum}
+% 教材例6.20、例6.21。
+设 $u,v\in\mathbb F^n$，$R=uv^{\mathsf T}$。当 $n\ge2$ 时，降阶公式给出
+\[
+\chi_R(t)=t^{n-1}(t-v^{\mathsf T}u),\qquad
+R^2=(v^{\mathsf T}u)R.
+\]
+一阶时直接有 $R=(v^{\mathsf T}u)$。特别地，实单位列向量 $u$ 对应的矩阵 $H=I_n-2uu^{\mathsf T}$ 在 $\mathbb Ru$ 上为 $-I$，在 $\ker u^{\mathsf T}$ 上为 $I$，所以其特征值为 $-1$ 一重、$1$ 共 $n-1$ 重。
+\end{example}
+
+\begin{example}
+% 教材例6.22；说明退化时的重数合并。
+设 $n\ge2$，$a=(a_1,\ldots,a_n)^{\mathsf T}\in\mathbb R^n$ 满足 $\sum_i a_i=0$，$e=(1,\ldots,1)^{\mathsf T}$。求 $M=-I_n+aa^{\mathsf T}+ee^{\mathsf T}$ 的特征值。
+\end{example}
+\begin{solve}
+令 $U=(a,e)$，则 $M=-I_n+UU^{\mathsf T}$，而
+\[
+U^{\mathsf T}U=\operatorname{diag}(\|a\|^2,n).
+\]
+故
+\[
+\chi_M(t)=(t+1)^{n-2}(t+1-\|a\|^2)(t+1-n).
+\]
+根重合时应合并重数。若 $a\ne0$，则 $a,e$ 正交，分别给出特征值 $\|a\|^2-1,n-1$，它们的公共正交补上为 $-I$；若 $a=0$，只保留 $e$ 及其正交补。因此各种退化情形下 $M$ 都可在实数域上对角化。
+\end{solve}
+
+\begin{proposition}
+\label{prop:xie-ex-eig-intertwining}
+若 $A\in\mathbb F^{m\times m}$、$B\in\mathbb F^{n\times n}$、$X\in\mathbb F^{m\times n}$ 满足 $AX=XB$，且 $\operatorname{rank}X=r$，则 $\chi_A,\chi_B$ 有一个次数为 $r$ 的公共首一因式。特别地，它们至少有 $r$ 个公共特征值，按重数计。
+\end{proposition}
+\begin{proof}
+由交织等式可知 $\operatorname{Im}X$ 为 $A$ 的不变子空间，$\ker X$ 为 $B$ 的不变子空间。映射
+\[
+\overline X\colon\mathbb F^n/\ker X\longrightarrow\operatorname{Im}X,
+\qquad [v]\longmapsto Xv
+\]
+为线性同构，并将商空间上由 $B$ 诱导的变换与 $A|_{\operatorname{Im}X}$ 联系起来。因此二者有相同的 $r$ 次特征多项式；各自在扩充基下都是全矩阵的对角分块，故该多项式同时整除 $\chi_A,\chi_B$。
+\end{proof}
+
+\subsection{特征多项式系数、主子式与迹}
+
+对 $J\subseteq\{1,\ldots,n\}$，记 $A[J,J]$ 为同时保留 $J$ 中行列得到的主子矩阵。将行列式 $\det(tI_n-A)$ 按多重线性展开：选择 $k$ 个位置使用 $-A$ 的元素，其余位置使用 $tI_n$ 的对角元，便得到
+\begin{equation}
+c_k=(-1)^k\sum_{|J|=k}\det A[J,J]
+=(-1)^k\sum_{i_1<\cdots<i_k}\lambda_{i_1}\cdots\lambda_{i_k}.
+\label{eq:xie-ex-eig-principal-minors}
+\end{equation}
+这里 $c_k$ 沿用式~\eqref{eq:xie-ex-eig-characteristic-polynomial}。特别地，$\operatorname{tr}A=\sum_i\lambda_i$，$\det A=\prod_i\lambda_i$，而 $A$ 可逆当且仅当零不是其特征值。
+
+记 $p_k=\operatorname{tr}(A^k)=\sum_i\lambda_i^k$，并令 $c_0=1$。Newton 恒等式为
+\begin{equation}
+kc_k+\sum_{j=1}^k c_{k-j}p_j=0,\qquad 1\le k\le n.
+\label{eq:xie-ex-eig-newton-identities}
+\end{equation}
+它可由形式幂级数恒等式
+\[
+\frac{\mathrm d}{\mathrm dz}\prod_i(1-\lambda_i z)
+=-\prod_i(1-\lambda_i z)\sum_{j\ge1}p_jz^{j-1}
+\]
+比较系数得到，因而不涉及级数的解析收敛问题。由于数域的特征为零，可依次除以 $1,\ldots,n$，从前 $n$ 个幂次的迹恢复特征多项式。
+
+\begin{example}
+% 教材例6.30、例6.31、例6.32。
+若四阶矩阵满足 $\operatorname{tr}(A^k)=k$，$1\le k\le4$，则依次得到
+\[
+c_1=-1,\quad c_2=-\frac12,\quad c_3=-\frac16,\quad
+\det A=c_4=\frac1{24}.
+\]
+一般地，$n$ 阶矩阵幂零当且仅当 $\operatorname{tr}(A^k)=0$ 对 $1\le k\le n$ 均成立。
+\end{example}
+\begin{solve}
+四阶结论直接代入式~\eqref{eq:xie-ex-eig-newton-identities}。若前 $n$ 个迹均为零，递推给出 $c_1=\cdots=c_n=0$，于是 $\chi_A(t)=t^n$，由命题~\ref{prop:xie-ex-eig-nilpotent-spectrum} 得到幂零性；反向由全部特征值为零即得。
+\end{solve}
+
+\begin{example}
+\label{ex:xie-ex-eig-commutator-nilpotent}
+设 $C=AB-BA$。若 $AC=CA$，则 $C$ 幂零；假设 $BC=CB$ 也可得到相同结论。
+\end{example}
+\begin{solve}
+当 $AC=CA$ 时，对任意 $k\ge1$，
+\[
+C^k=A(C^{k-1}B)-(C^{k-1}B)A.
+\]
+乘积交换次序不改变迹，因此 $\operatorname{tr}(C^k)=0$，再用前一例。另一种条件下交换 $A,B$ 并对 $-C$ 作相同论证即可。这里并不需要同时假设两个交换关系。
+\end{solve}
+
+\subsection{Gershgorin 圆盘与特征值的估计}
+\label{subsec:xie-ex-eig-gershgorin}
+
+\begin{theorem}
+\label{thm:xie-ex-eig-gershgorin}
+设 $A=(a_{ij})\in\mathbb C^{n\times n}$，令
+\[
+R_i=\sum_{j\ne i}|a_{ij}|,\qquad
+D_i=\{z\in\mathbb C:|z-a_{ii}|\le R_i\}.
+\]
+则 $A$ 的全部特征值均在 $\bigcup_iD_i$ 内。若这一并集的某个连通分支由 $k$ 个圆盘组成，则该分支中恰有 $k$ 个特征值。圆盘及特征值都按重数计。这分别称为\emph{Gershgorin 第一、第二圆盘定理}。
+\end{theorem}
+\begin{proof}
+若 $Ax=\lambda x$，选取 $|x_i|=\max_j|x_j|>0$，则
+\[
+|\lambda-a_{ii}|\,|x_i|
+=\left|\sum_{j\ne i}a_{ij}x_j\right|
+\le R_i|x_i|,
+\]
+从而 $\lambda\in D_i$。第二个结论用连续变形说明。令 $A(s)$ 保留 $A$ 的对角元，将非对角元乘以 $s\in[0,1]$。其圆盘半径为 $sR_i$，始终包含于原圆盘内。原并集的不同连通分支都是彼此分离的紧集，可在它们之间选取不经过任何圆盘的分隔边界。多项式的根作为计重的多重集合随系数连续变化，因此没有特征值能穿过该边界，分支内根的总数保持不变。$s=0$ 时矩阵为对角矩阵，该分支包含的对角元恰为对应的 $k$ 个圆心，故 $s=1$ 时仍有 $k$ 个特征值。
+\end{proof}
+
+对 $A^{\mathsf T}$ 应用同一定理，还能得到以列的非对角元绝对值和为半径的圆盘；全部特征值同时受两组圆盘并集约束。第二圆盘定理对互相连接的圆盘给出的是整个分支的计数，不能未经分离就把每个圆盘各分配一个特征值。
+
+\begin{example}
+% 教材§6.2中的例3.83及例6.33。
+若 $|a_{ii}|>\sum_{j\ne i}|a_{ij}|$ 对所有 $i$ 成立，则 $A$ 可逆。若 $A$ 为实矩阵且进一步有 $a_{ii}>\sum_{j\ne i}|a_{ij}|$，则 $\det A>0$。
+\end{example}
+\begin{solve}
+第一种条件使所有圆盘避开原点，故零不是特征值。第二种条件使所有圆盘位于右半平面，故实特征值均为正，非实特征值按共轭成对出现、每对之积为正，因此行列式为正。若一个独立连通分支由两个外切圆盘组成，则在 $s<1$ 时它们缩小为互不相交的圆盘，各含一个特征值；令 $s\to1$ 可知，一个圆盘除去切点后不可能容纳这两个特征值。
+\end{solve}
+
+\begin{example}
+% 教材例6.34。
+任给 $A\in\mathbb C^{n\times n}$，存在 $\delta>0$，使
+\[
+A(s)=A+\operatorname{diag}(s,s^2,\ldots,s^n)
+\]
+在每个实参数 $0<s<\delta$ 时都有 $n$ 个不同特征值。
+\end{example}
+\begin{solve}
+当 $s$ 充分大时，不同圆心 $a_{ii}+s^i$ 之间的距离均大于相应两个固定半径之和，所以圆盘互不相交，各含一个特征值。$\chi_{A(s)}(t)$ 关于 $t$ 的判别式是 $s$ 的多项式；既然在充分大的 $s$ 处非零，它就不是零多项式，因而只有有限个零点。取 $\delta$ 小于其所有非零根模长的最小值；若没有非零根，任取 $\delta>0$。此时 $0<s<\delta$ 不会使判别式为零，于是特征值互异。这里先使用大参数证明判别式非恒零，再由零点有限性得到小参数结论。
+\end{solve}
+
+\section{乘法交换性诱导的同时性质}
+\label{sec:xie-ex-eig-simultaneous}
+
+\subsection{特征子空间的不变性与公共特征向量}
+
+\begin{proposition}
+\label{prop:xie-ex-eig-commuting-invariance}
+若 $ST=TS$，则 $S$ 的每个特征子空间都是 $T$ 的不变子空间，反之亦然。这个结论只要求所讨论的特征值属于当前数域。
+\end{proposition}
+\begin{proof}
+若 $Sv=\lambda v$，则 $S(Tv)=T(Sv)=\lambda Tv$，故 $Tv\in E_\lambda(S)$。
+\end{proof}
+
+\begin{theorem}
+\label{thm:xie-ex-eig-common-eigenvector}
+设 $T_1,\ldots,T_r$ 为非零有限维空间上的两两可交换线性变换，且各自的特征多项式均在 $\mathbb F$ 上分裂，则它们在 $\mathbb F$ 上有公共特征向量。
+\end{theorem}
+\begin{proof}
+先取 $T_1$ 的一个非零特征子空间 $W$，它对其余变换都不变。$T_2|_W$ 的特征多项式整除 $T_2$ 的特征多项式：将 $W$ 的基扩充后，$T_2$ 的矩阵为分块上三角矩阵。因此该限制仍有 $\mathbb F$ 中的特征值。再取它在 $W$ 中的非零特征子空间，所得空间对所有后续变换仍不变。有限次重复后，所得非零空间中的任一非零向量就是所需公共特征向量。
+\end{proof}
+
+需要分裂条件的是公共特征向量的存在性，特征子空间的不变性本身不依赖它。例如 $I_2$ 与实旋转矩阵 $R$ 可交换，但 $R$ 没有实特征向量，所以二者没有公共实特征向量。
+
+\begin{example}
+% 教材例6.36。
+设 $V$ 为非零有限维复线性空间，$\mathcal S$ 为一族线性变换，没有非平凡公共不变子空间。若 $T$ 与族内每个变换都可交换，则 $T$ 为纯量变换。
+\end{example}
+\begin{solve}
+复数域上 $T$ 有非零特征子空间 $E_\lambda(T)$。由命题~\ref{prop:xie-ex-eig-commuting-invariance}，它是 $\mathcal S$ 的公共不变子空间，因而只能等于 $V$，于是 $T=\lambda I_V$。
+\end{solve}
+
+\subsection{同时上三角化与同时对角化}
+
+\begin{theorem}
+\label{thm:xie-ex-eig-simultaneous-triangular}
+两两可交换且特征多项式均在 $\mathbb F$ 上分裂的有限个矩阵，可以在 $\mathbb F$ 上同时上三角化。
+\end{theorem}
+\begin{proof}
+对空间维数归纳。由定理~\ref{thm:xie-ex-eig-common-eigenvector}，可取公共特征向量作为首个基向量，扩充后各矩阵均为
+\[
+\begin{pmatrix}\lambda_i&*\\0&B_i\end{pmatrix}.
+\]
+原矩阵两两可交换，故比较右下分块得到 $B_iB_j=B_jB_i$，且各 $\chi_{B_i}$ 仍分裂。对右下块应用归纳假设，就得到同一组基下的上三角表示。
+\end{proof}
+
+\begin{lemma}
+\label{lem:xie-ex-eig-diagonal-restriction}
+若 $T$ 在 $\mathbb F$ 上可对角化，$W$ 为 $T$ 的不变子空间，则 $T|_W$ 及 $V/W$ 上的诱导变换也在 $\mathbb F$ 上可对角化。
+\end{lemma}
+\begin{proof}
+设 $\lambda_1,\ldots,\lambda_s$ 为不同特征值。多项式算子
+\[
+P_i=\prod_{j\ne i}\frac{T-\lambda_jI_V}{\lambda_i-\lambda_j}
+\]
+在 $E_{\lambda_i}(T)$ 上为恒等变换，在其余特征子空间上为零，故 $\sum_iP_i=I_V$。$W$ 对 $T$ 不变，因而对每个 $P_i$ 不变，于是
+\[
+W=\bigoplus_i\bigl(W\cap E_{\lambda_i}(T)\bigr).
+\]
+这给出 $W$ 的特征向量基。对各 $W\cap E_{\lambda_i}(T)$ 的基在对应 $E_{\lambda_i}(T)$ 内扩充，新增基向量的陪集构成 $V/W$ 的特征向量基，故商空间结论也成立。
+\end{proof}
+
+\begin{theorem}
+\label{thm:xie-ex-eig-simultaneous-diagonal}
+一族有限个在 $\mathbb F$ 上可对角化的矩阵可同时对角化，当且仅当它们两两可交换。
+\end{theorem}
+\begin{proof}
+同一组基下的对角矩阵两两可交换，故必要性成立。反之，按第一个变换的特征子空间分解全空间，其余变换都保持这些子空间，并且由引理~\ref{lem:xie-ex-eig-diagonal-restriction}，在其上的限制仍可对角化。再在各分量内按第二个变换的特征子空间细分，依次进行，最终得到由公共特征向量组成的基。
+\end{proof}
+
+\emph[caution]{交换性保证同时上三角化还需要分裂条件，保证同时对角化还需要每个矩阵分别可对角化。}例如 $I_2$ 与非对角化的 Jordan 块可交换，却不能同时对角化；反过来，同时上三角化本身也不推出交换性。
+
+\subsection{幂零扰动与交换子的应用}
+
+\begin{proposition}
+若 $NB=BN$ 且 $N$ 幂零，则 $\chi_{B+N}(t)=\chi_B(t)$，特别地 $\det(B+N)=\det B$。
+\end{proposition}
+\begin{proof}
+扩充到复数域后同时上三角化 $N,B$。$N$ 的对角元全为零，因此 $B+N$ 与 $B$ 的上三角表示有完全相同的对角元，从而特征多项式相同。两端本来均在 $\mathbb F[t]$ 中，所以所得恒等式也在原数域上成立。
+\end{proof}
+
+\begin{proposition}
+% 教材例6.32的延拓。
+在复数域上，若 $C=AB-BA$ 同时满足 $AC=CA$、$BC=CB$，则 $A,B,C$ 可同时上三角化。
+\end{proposition}
+\begin{proof}
+由例~\ref{ex:xie-ex-eig-commutator-nilpotent}，$C$ 幂零，所以 $W=\ker C\ne\{0\}$。交换关系使 $W$ 对 $A,B$ 都不变，而在 $W$ 上有 $A|_WB|_W=B|_WA|_W$。故这两个限制有公共特征向量，它同时也是 $C$ 的零特征向量。以此为首个基向量，在商空间上仍有同样的交换子等式与交换条件；对维数归纳便得到共同的上三角基。这里 $A,B$ 本身未必可交换，不能直接套用定理~\ref{thm:xie-ex-eig-simultaneous-triangular}。
+\end{proof}
+
+\section{矩阵相似和可对角化的计算}
+\label{sec:xie-ex-eig-similarity-computation}
+
+\subsection{相似初等变换及相似不变量}
+
+初等行变换一般只能保证矩阵相抵，不能单独保证相似。若左乘初等矩阵 $E$，就必须同时右乘 $E^{-1}$，得到 $EAE^{-1}$。例如，交换第 $i,j$ 行后同时交换第 $i,j$ 列；第 $i$ 行乘以 $c\ne0$ 后，第 $i$ 列乘以 $c^{-1}$；第 $i$ 行加上第 $j$ 行的 $c$ 倍后，第 $j$ 列减去第 $i$ 列的 $c$ 倍。最后一种对应 $E=I_n+cE_{ij}$，$i\ne j$，其中 $E_{ij}$ 是只有第 $(i,j)$ 个元素为 $1$ 的矩阵。分块变换也遵循相同原则，尤其要保持乘法次序：分块行左乘的逆操作，对应分块列右乘。
+
+因为每个可逆矩阵都是初等矩阵的乘积，每次相似变换都可以分解为若干次相似初等变换。计算中若要追踪总变换矩阵，必须按发生次序记录左右因子，最后直接检验 $AP=PB$，从而确认 $B=P^{-1}AP$。
+
+\begin{example}
+% 教材例6.46、例6.48及相似不变量的补充反例。
+分块对角矩阵的方块可任意重排而保持相似；另一方面，相同的特征多项式不足以保证相似。
+\end{example}
+\begin{solve}
+前一结论只需同时置换各块对应的行和列，即改变直和分量所用基的排列。对后一结论，$I_2$ 与 $J=\begin{pmatrix}1&1\\0&1\end{pmatrix}$ 都有特征多项式 $(t-1)^2$，但 $\operatorname{rank}(I_2-I_2)=0$，$\operatorname{rank}(J-I_2)=1$，因此不相似。类似地，$AB-BA$ 不可能相似于 $cI_n$，$c\ne0$，因为前者的迹为零，后者的迹为 $nc\ne0$。相似不变量不同时足以否定相似；只核对少量不变量相同，通常还不能肯定相似。
+\end{solve}
+
+\begin{example}
+% 教材例6.47。
+设 $A,B$ 同为 $n$ 阶矩阵，且 $\operatorname{rank}(ABA)=\operatorname{rank}B$，证明 $AB\sim BA$。
+\end{example}
+\begin{solve}
+若 $A=0$ 或 $A$ 可逆，结论分别由两个乘积均为零或 $BA=A^{-1}(AB)A$ 得到。其余情形，取可逆 $P,Q$，使 $PAQ=\operatorname{diag}(I_r,0)$，同时将 $B$ 换成 $Q^{-1}BP^{-1}$。此变换分别把 $AB,BA$ 换成与它们相似的矩阵，并保持秩条件，所以可设
+\[
+A=\begin{pmatrix}I_r&0\\0&0\end{pmatrix},\qquad
+B=\begin{pmatrix}B_{11}&B_{12}\\B_{21}&B_{22}\end{pmatrix}.
+\]
+此时 $\operatorname{rank}B_{11}=\operatorname{rank}B$。所以 $B_{12}$ 的列在 $B_{11}$ 的列空间内，$B_{21}$ 的行在 $B_{11}$ 的行空间内，可写成 $B_{12}=B_{11}N$、$B_{21}=MB_{11}$。于是
+\[
+AB=\begin{pmatrix}B_{11}&B_{11}N\\0&0\end{pmatrix},\qquad
+BA=\begin{pmatrix}B_{11}&0\\MB_{11}&0\end{pmatrix}.
+\]
+分别用 $S=\begin{pmatrix}I_r&-N\\0&I_{n-r}\end{pmatrix}$ 与 $T=\begin{pmatrix}I_r&0\\M&I_{n-r}\end{pmatrix}$ 作相似变换，得到
+\[
+S^{-1}(AB)S=T^{-1}(BA)T=\operatorname{diag}(B_{11},0).
+\]
+这说明附加的秩条件足以把降阶公式中的同特征多项式加强为相似。
+\end{solve}
+
+\subsection{过渡矩阵与含参数矩阵}
+
+若 $A$ 可对角化，计算可按以下顺序进行：先求 $\chi_A$ 并确定当前数域中的特征值及代数重数；对每个 $\lambda$ 解 $(A-\lambda I_n)x=0$，比较几何重数与代数重数；若全部相等，将各特征子空间的基拼成 $P$，并按列向量的对应次序写出对角矩阵 $D$，检验 $AP=PD$。特征向量可以数乘，也可以在同一特征子空间内换基，所以 $P$ 一般不唯一。
+
+\begin{example}
+% 教材例6.50。
+设三阶矩阵 $A$ 的特征值为 $1,1,4$，对应特征向量为 $(2,1,0)^{\mathsf T}$、$(-1,0,1)^{\mathsf T}$、$(0,1,1)^{\mathsf T}$，求 $A$。
+\end{example}
+\begin{solve}
+以所给向量为列组成
+\[
+P=\begin{pmatrix}2&-1&0\\1&0&1\\0&1&1\end{pmatrix},\qquad
+D=\operatorname{diag}(1,1,4).
+\]
+由于 $\det P=-1\ne0$，它们构成特征向量基，故唯一确定
+\[
+A=PDP^{-1}=\begin{pmatrix}1&0&0\\-3&7&-3\\-3&6&-2\end{pmatrix}.
+\]
+将此矩阵乘以 $P$ 即得 $PD$，可直接核对全部给定条件。
+\end{solve}
+
+\begin{example}
+% 补充例：说明教材例6.51、例6.52中的参数判定步骤。
+判定 $A_s=\begin{pmatrix}2&s&0\\0&2&0\\0&0&3\end{pmatrix}$ 何时可对角化。
+\end{example}
+\begin{solve}
+其特征多项式恒为 $(t-2)^2(t-3)$，参数不影响特征值，却影响特征子空间。特征值 $2$ 的几何重数为 $3-\operatorname{rank}(A_s-2I_3)$；当 $s=0$ 时秩为 $1$，当 $s\ne0$ 时秩为 $2$。特征值 $3$ 为单根，几何重数必为 $1$，所以 $A_s$ 可对角化当且仅当 $s=0$。含参数问题中，应先对重特征值施加秩条件，而不能只看特征多项式是否随参数改变。
+\end{solve}
+
+\subsection{矩阵幂与线性递推}
+
+若 $A=PDP^{-1}$，则对整数 $k\ge0$ 有 $A^k=PD^kP^{-1}$；当 $A$ 可逆时也适用于负整数。设不同特征值为 $\lambda_1,\ldots,\lambda_s$，还可以使用谱投影
+\begin{equation}
+\Pi_i=\prod_{j\ne i}\frac{A-\lambda_jI_n}{\lambda_i-\lambda_j},\qquad
+A^k=\sum_{i=1}^s\lambda_i^k\Pi_i.
+\label{eq:xie-ex-eig-spectral-projections}
+\end{equation}
+该公式在 $k=0$ 时将每个系数 $\lambda_i^0$ 约定为 $1$；它来自各特征子空间上逐一比较作用，因此仅在 $A$ 可对角化时这样使用。它也说明，可对角化矩阵的任意多项式仍可对角化，即使多项式把若干特征值合并也不影响结论。
+
+\begin{example}
+% 教材例6.54。
+设 Fibonacci 数列由 $F_0=0$、$F_1=1$、$F_{k+2}=F_{k+1}+F_k$ 定义，求其通项。
+\end{example}
+\begin{solve}
+将二阶递推改写为一阶向量递推：
+\[
+\begin{pmatrix}F_{k+1}\\F_k\end{pmatrix}
+=M^k\begin{pmatrix}1\\0\end{pmatrix},\qquad
+M=\begin{pmatrix}1&1\\1&0\end{pmatrix}.
+\]
+特征多项式 $t^2-t-1$ 有两个不同实根 $\alpha=(1+\sqrt5)/2$、$\beta=(1-\sqrt5)/2$，对应特征向量 $(\alpha,1)^{\mathsf T}$、$(\beta,1)^{\mathsf T}$。据此对角化并代入初值，得到
+\[
+F_k=\frac{\alpha^k-\beta^k}{\sqrt5},\qquad k\ge0.
+\]
+一般的常系数线性递推也可先组成状态向量，再研究递推矩阵的幂；若该矩阵不可对角化，就需要其他求幂方法，不能强行使用对角分解。
+\end{solve}
+
+\section{可对角化的判定（一）}
+\label{sec:xie-ex-eig-diagonalization-tests}
+
+\subsection{无重根零化多项式与特征子空间分解}
+
+\begin{theorem}
+\label{thm:xie-ex-eig-squarefree-annihilator}
+若 $A$ 适合多项式 $q(t)=\prod_{i=1}^s(t-\mu_i)$，其中 $\mu_i\in\mathbb F$ 两两不同，则 $A$ 在 $\mathbb F$ 上可对角化。反之，若 $A$ 在 $\mathbb F$ 上可对角化，则它适合以全部不同特征值为根的无重根多项式。
+\end{theorem}
+\begin{proof}
+定义 Lagrange 多项式
+\[
+\ell_i(t)=\prod_{j\ne i}\frac{t-\mu_j}{\mu_i-\mu_j}.
+\]
+$\sum_i\ell_i(t)-1$ 次数不超过 $s-1$，却有 $s$ 个不同的根，所以为零多项式。又 $(t-\mu_i)\ell_i(t)=q(t)/\prod_{j\ne i}(\mu_i-\mu_j)$，故 $q(A)=0$ 推出
+\[
+\sum_i\ell_i(A)=I_n,\qquad
+\operatorname{Im}\ell_i(A)\subseteq\ker(A-\mu_iI_n).
+\]
+这表明全空间为这些核的和；去掉零子空间后，由引理~\ref{lem:xie-ex-eig-eigenspace-direct-sum} 知其为特征子空间的直和，因而可对角化。反向在特征向量基下逐个对角元验证 $q(A)=0$ 即可。
+\end{proof}
+
+\emph[caution]{在 $\mathbb F$ 上无重根还不够，零化多项式必须在 $\mathbb F$ 上分裂。}例如 $R^2+I_2=0$，$t^2+1$ 在复数域中无重根，因此旋转矩阵 $R$ 可在复数域上对角化，但在实数域上不能。极小多项式形式的充要条件将在命题~\ref{prop:xie-ex-eig-minimal-diagonalization} 中统一给出；Jordan 块判据则需要后续的标准型理论。
+
+\begin{example}
+% 教材例6.14、例6.67、例6.69。
+对合矩阵与幂等矩阵在任一数域上均可对角化。更一般地，若 $A^m=I_n$，则 $A$ 可在复数域上对角化；在原数域上还须所有实际出现的特征值都属于该数域。
+\end{example}
+\begin{solve}
+对合矩阵适合 $(t-1)(t+1)$，幂等矩阵适合 $t(t-1)$，它们在数域上分裂且无重根。$t^m-1$ 与导数 $mt^{m-1}$ 互素，因而在复数域中无重根。作为矩阵空间的例子，设 $P$ 是次对角线上为 $1$ 的反序置换矩阵，$\Phi(X)=PX^{\mathsf T}P$，则 $\Phi^2=I$。写 $X=PY$，有 $\Phi(PY)=PY^{\mathsf T}$，故 $1$ 和 $-1$ 的特征子空间分别由 $Y^{\mathsf T}=Y$ 与 $Y^{\mathsf T}=-Y$ 给出，维数为 $n(n+1)/2$ 与 $n(n-1)/2$，合计 $n^2$。当 $n=1$ 时第二个空间为零，$-1$ 并非实际特征值。
+\end{solve}
+
+\subsection{构造完整的特征向量系}
+
+\begin{example}
+% 教材例6.9、例6.55；使用首行右移的循环约定。
+设 $S$ 为满足 $Se_1=e_n$、$Se_j=e_{j-1}$（$2\le j\le n$）的循环移位矩阵，$C=f(S)$，其中 $f(t)=a_0+a_1t+\cdots+a_{n-1}t^{n-1}$。证明循环矩阵 $C$ 在复数域上可对角化。
+\end{example}
+\begin{solve}
+记 $\omega_k=\exp(2\pi i k/n)$，$0\le k<n$，则
+\[
+v_k=(1,\omega_k,\ldots,\omega_k^{n-1})^{\mathsf T},\qquad
+Sv_k=\omega_kv_k,\qquad Cv_k=f(\omega_k)v_k.
+\]
+矩阵 $P=(v_0,\ldots,v_{n-1})$ 的行列式为 Vandermonde 行列式 $\prod_{j<k}(\omega_k-\omega_j)\ne0$，故
+\[
+P^{-1}CP=\operatorname{diag}\bigl(f(\omega_0),\ldots,f(\omega_{n-1})\bigr).
+\]
+即使某些 $f(\omega_k)$ 相等，这 $n$ 个向量仍线性无关，故不影响对角化。
+\end{solve}
+
+\begin{example}
+% 教材例6.57、例6.58。
+若 $A=P\operatorname{diag}(\lambda_1,\ldots,\lambda_n)P^{-1}$，则矩阵空间上的 $X\mapsto AXA$ 与 $X\mapsto AX-XA$ 都可对角化。
+\end{example}
+\begin{solve}
+取 $F_{ij}=PE_{ij}P^{-1}$。映射 $X\mapsto PXP^{-1}$ 为线性同构，所以这些 $F_{ij}$ 构成矩阵空间的一组基。直接计算得
+\[
+AF_{ij}A=\lambda_i\lambda_jF_{ij},\qquad
+AF_{ij}-F_{ij}A=(\lambda_i-\lambda_j)F_{ij}.
+\]
+因此它们构成两个变换的公共特征向量基。这里通过完整的基保证了可对角化性，并非仅仅列出 $n^2$ 个可能的特征值。
+\end{solve}
+
+\subsection{单谱矩阵、交换矩阵与插值}
+
+\begin{proposition}
+\label{prop:xie-ex-eig-simple-spectrum-centralizer}
+设 $A$ 有 $n$ 个不同的特征值 $\lambda_1,\ldots,\lambda_n\in\mathbb F$。若 $AB=BA$，则 $A,B$ 可同时在 $\mathbb F$ 上对角化，且存在唯一的次数小于 $n$ 的多项式 $f\in\mathbb F[t]$，使 $B=f(A)$。
+\end{proposition}
+\begin{proof}
+每个 $E_{\lambda_i}(A)$ 都是一维且对 $B$ 不变，故 $B$ 在其上为数乘 $\mu_i$。取这些一维空间的非零向量为基，就同时对角化了 $A,B$。Lagrange 插值给出
+\[
+f(t)=\sum_{i=1}^n\mu_i\prod_{j\ne i}\frac{t-\lambda_j}{\lambda_i-\lambda_j},
+\]
+在该基下逐个对角元验证可得 $B=f(A)$。若另一个次数小于 $n$ 的多项式也适用，两者之差在 $n$ 个不同点为零，只能是零多项式。
+\end{proof}
+
+固定任一具有 $n$ 个不同复特征值的矩阵 $A$，上述插值还说明：任一可对角化的复矩阵 $B$ 都相似于某个 $f(A)$，$\deg f<n$。先将 $B$ 对角化，再把它的对角元插值到 $A$ 的不同特征值上即可；反向因为 $f(A)$ 可对角化而成立。取 $A=S$ 为循环移位矩阵，便得到每个可对角化复矩阵都相似于某个循环矩阵。
+
+\begin{example}
+% 教材例6.59、例6.65。
+二阶实矩阵若行列式小于零，则可在实数域上对角化；三对角矩阵
+\[
+T_n=\begin{pmatrix}
+a&b&&&\\c&a&b&&\\&c&a&\ddots&\\&&\ddots&\ddots&b\\&&&c&a
+\end{pmatrix},\qquad bc\ne0,
+\]
+则可在复数域上对角化。
+\end{example}
+\begin{solve}
+前者的特征多项式为 $t^2-(\operatorname{tr}A)t+\det A$，判别式 $(\operatorname{tr}A)^2-4\det A>0$，所以有两个不同实根。对后者选取 $r\ne0$ 使 $r^2=c/b$，令 $d=br$、$D=\operatorname{diag}(1,r,\ldots,r^{n-1})$，则 $D^{-1}T_nD$ 的上下次对角元同为 $d\ne0$。向量的第 $j$ 个分量取 $\sin(jk\pi/(n+1))$，利用正弦加法公式和两端的零边界可得其特征值为
+\[
+\lambda_k=a+2d\cos\frac{k\pi}{n+1},\qquad 1\le k\le n.
+\]
+这些值互异，因此对应向量线性无关，足以对角化。换取另一个平方根只会把这一组特征值反序排列。
+\end{solve}
+
+\subsection{分块矩阵、低秩乘积与反例}
+
+\begin{proposition}
+\label{prop:xie-ex-eig-block-diagonalization}
+设 $M=\begin{pmatrix}A&C\\0&B\end{pmatrix}$。若 $M$ 可在 $\mathbb F$ 上对角化，则 $A,B$ 都可在 $\mathbb F$ 上对角化；若 $A,B$ 均可对角化且没有公共复特征值，则任意 $C$ 对应的 $M$ 都可在 $\mathbb F$ 上对角化。
+\end{proposition}
+\begin{proof}
+第一结论对前一坐标子空间及其商空间应用引理~\ref{lem:xie-ex-eig-diagonal-restriction}。对第二结论，取 $A$ 的特征向量基 $u_i$ 和 $B$ 的特征向量基 $v_j$，分别对应 $\lambda_i,\mu_j$。由于 $A-\mu_jI$ 可逆，方程
+\[
+(A-\mu_jI)x_j=-Cv_j
+\]
+有唯一解。于是 $(u_i,0)^{\mathsf T}$ 和 $(x_j,v_j)^{\mathsf T}$ 构成 $M$ 的特征向量组；它们组成的矩阵为对角块均可逆的分块上三角矩阵，故全体线性无关。第~\ref{subsec:xie-ex-eig-sylvester} 小节还将用矩阵方程直接消去 $C$。
+\end{proof}
+
+\begin{proposition}
+\label{prop:xie-ex-eig-ab-ba-diagonalization}
+设 $A\in\mathbb F^{m\times n}$、$B\in\mathbb F^{n\times m}$，且 $BA$ 可逆，则 $m\ge n$，并且 $AB\sim\operatorname{diag}(BA,0_{m-n})$。因此 $AB$ 在 $\mathbb F$ 上可对角化当且仅当 $BA$ 如此。
+\end{proposition}
+\begin{proof}
+$BA$ 可逆保证 $A$ 单射、$B$ 满射，故 $\dim\operatorname{Im}A=n$、$\dim\ker B=m-n$。若 $Ay\in\ker B$，则 $BAy=0$，从而 $y=0$，所以
+\[
+\mathbb F^m=\operatorname{Im}A\oplus\ker B.
+\]
+两分量都对 $AB$ 不变：第一分量上利用同构 $y\mapsto Ay$，有 $AB(Ay)=A(BAy)$；第二分量上 $AB$ 为零。选择相应基即得分块对角表示。
+\end{proof}
+
+\begin{example}
+\label{ex:xie-ex-eig-rank-one-diagonalization}
+% 教材例6.73、例6.74。
+当 $n>1$ 且 $\operatorname{rank}R=1$ 时，$R$ 可对角化当且仅当 $\operatorname{tr}R\ne0$。命题~\ref{prop:xie-ex-eig-ab-ba-diagonalization} 中 $BA$ 可逆的假设不能直接删去。
+\end{example}
+\begin{solve}
+写 $R=uv^{\mathsf T}$，则 $\operatorname{tr}R=v^{\mathsf T}u$。若该数非零，例~\ref{ex:xie-ex-eig-rank-one-spectrum} 给出的零化多项式 $t(t-\operatorname{tr}R)$ 无重根，故可对角化。若迹为零，则 $R^2=0$ 而 $R\ne0$；一个全部特征值为零的可对角化矩阵只能是零矩阵，因此矛盾。取 $A=(1,0)^{\mathsf T}$、$B=(0,1)$，便有 $BA=(0)$ 可对角化，$AB=\begin{pmatrix}0&1\\0&0\end{pmatrix}$ 却不可对角化。
+\end{solve}
+
+更一般地，若 $A$ 只有一个不同的特征值 $\lambda$，则 $A$ 可对角化当且仅当 $A=\lambda I_n$。有共同特征值的分块上三角矩阵，其非对角块可能阻碍对角化，例如 $\begin{pmatrix}1&1\\0&1\end{pmatrix}$；而没有共同特征值时，命题~\ref{prop:xie-ex-eig-block-diagonalization} 保证这种障碍可以消去。
+
+\section{极小多项式与 Cayley--Hamilton 定理}
+\label{sec:xie-ex-eig-minimal-polynomial}
+
+\subsection{存在唯一性、整除性质与不变量}
+
+\begin{theorem}
+\label{thm:xie-ex-eig-minimal-properties}
+任一 $n$ 阶矩阵 $A$ 的极小多项式 $m_A$ 存在且唯一，并且
+\[
+f(A)=0\quad\Longleftrightarrow\quad m_A(t)\mid f(t).
+\]
+若 $d=\deg m_A$，则代数 $\mathbb F[A]=\{f(A):f\in\mathbb F[t]\}$ 作为线性空间的维数为 $d$，一组基为 $I_n,A,\ldots,A^{d-1}$。
+\end{theorem}
+\begin{proof}
+矩阵空间维数为 $n^2$，所以 $I_n,A,\ldots,A^{n^2}$ 线性相关，存在非零零化多项式。在其中取次数最低者并首一化。对任一 $f$ 作带余除法 $f=qm_A+r$，$\deg r<\deg m_A$。若 $f(A)=0$，则 $r(A)=0$，最低次数性质迫使 $r=0$；反向直接代入可得。两个最低次数的首一零化多项式因此相互整除，只能相同。带余除法还说明每个 $f(A)$ 均在所列 $d$ 个矩阵的张成空间内；若这 $d$ 个矩阵线性相关，就产生次数低于 $d$ 的非零零化多项式，故它们线性无关。
+\end{proof}
+
+相似矩阵有相同的极小多项式，$A$ 与 $A^{\mathsf T}$ 也有相同的极小多项式，因为两种变换都保持 $f(A)=0$。对分块对角矩阵则有
+\begin{equation}
+m_{\operatorname{diag}(A_1,\ldots,A_r)}
+=\operatorname{lcm}(m_{A_1},\ldots,m_{A_r}),
+\label{eq:xie-ex-eig-block-minimal}
+\end{equation}
+其中最小公倍式取首一形式：$f$ 零化全矩阵当且仅当零化每个分块，也就当且仅当被每个 $m_{A_i}$ 整除。这与特征多项式按块相乘的规律不同。
+
+\begin{theorem}[Cayley--Hamilton 定理]
+\label{thm:xie-ex-eig-cayley-hamilton}
+矩阵适合自己的特征多项式，即 $\chi_A(A)=0$。
+\end{theorem}
+\begin{proof}
+沿用 $\chi_A(t)=t^n+c_1t^{n-1}+\cdots+c_n$，写
+\[
+\operatorname{adj}(tI_n-A)=B_0t^{n-1}+B_1t^{n-2}+\cdots+B_{n-1}.
+\]
+由 $(tI_n-A)\operatorname{adj}(tI_n-A)=\chi_A(t)I_n$ 比较 $t$ 的系数，得到
+\[
+B_0=I_n,\qquad B_j=AB_{j-1}+c_jI_n\ (1\le j<n),\qquad
+-AB_{n-1}=c_nI_n.
+\]
+逐次代入可得 $B_{n-1}=A^{n-1}+c_1A^{n-2}+\cdots+c_{n-1}I_n$，代入最后一个等式便是 $\chi_A(A)=0$。此证明通过系数递推处理矩阵乘法，未将带矩阵系数的恒等式未经说明地直接代入 $t=A$。
+\end{proof}
+
+由定理~\ref{thm:xie-ex-eig-minimal-properties}，立即有
+\begin{equation}
+m_A\mid\chi_A,\qquad 1\le\deg m_A\le n.
+\label{eq:xie-ex-eig-minimal-divides-characteristic}
+\end{equation}
+若 $\lambda$ 为特征值，取非零特征向量便得到 $m_A(\lambda)=0$；反之 $m_A$ 的根也是 $\chi_A$ 的根。因此二者在复数域中的不同根完全相同，区别在于重数，并且 $\chi_A\mid m_A^n$。特别地，$n$ 个不同特征值时有 $m_A=\chi_A$；幂零矩阵的极小多项式为 $t^r$，其中 $r$ 是使 $A^r=0$ 的最小正整数。
+
+\begin{proposition}
+\label{prop:xie-ex-eig-minimal-diagonalization}
+$A$ 在 $\mathbb F$ 上可对角化，当且仅当 $m_A$ 在 $\mathbb F$ 上分裂且无重根。此时
+\[
+m_A(t)=\prod_{\lambda\text{ 为不同特征值}}(t-\lambda).
+\]
+\end{proposition}
+\begin{proof}
+若可对角化，对角矩阵各纯量分块的极小多项式为 $t-\lambda$，由式~\eqref{eq:xie-ex-eig-block-minimal} 得到所列乘积。反向对 $m_A$ 应用定理~\ref{thm:xie-ex-eig-squarefree-annihilator}。
+\end{proof}
+
+当 $n>1$ 且 $\operatorname{rank}A=1$ 时，$m_A(t)=t^2-(\operatorname{tr}A)t$。因为 $A$ 适合此多项式而不能适合一次多项式：一次关系会使它成为纯量矩阵，而非零纯量矩阵的秩为 $n$。这也说明矩阵的极小多项式不一定不可约，不能照搬代数数极小多项式的不可约性。
+
+\subsection{多项式可逆性、逆矩阵与伴随矩阵}
+
+\begin{proposition}
+\label{prop:xie-ex-eig-polynomial-inverse}
+对 $g\in\mathbb F[t]$，下列条件等价：$g(A)$ 可逆；$\gcd(g,m_A)=1$；$\gcd(g,\chi_A)=1$；$g(\lambda)\ne0$ 对每个复特征值 $\lambda$ 成立。成立时 $g(A)^{-1}$ 可以表示为 $A$ 的次数小于 $\deg m_A$ 的多项式。
+\end{proposition}
+\begin{proof}
+谱映射定理给出第一个条件与最后一个条件的等价性，而 $m_A,\chi_A$ 有相同的不同根，故两个互素条件也与之等价。由 Bézout 恒等式，存在 $u,v\in\mathbb F[t]$，使 $ug+vm_A=1$。代入 $A$ 得 $u(A)g(A)=I_n$，故 $g(A)^{-1}=u(A)$；再用 $m_A$ 对 $u$ 取余即可降低次数。
+\end{proof}
+
+取 $g(t)=t$ 可知 $A$ 可逆当且仅当 $m_A(0)\ne0$。用特征多项式也能直接写出
+\begin{equation}
+A^{-1}=-\frac1{c_n}\left(A^{n-1}+c_1A^{n-2}+\cdots+c_{n-1}I_n\right),
+\qquad c_n\ne0.
+\label{eq:xie-ex-eig-inverse-polynomial}
+\end{equation}
+无论是否可逆，伴随矩阵都满足
+\begin{equation}
+\operatorname{adj}A=(-1)^{n-1}
+\left(A^{n-1}+c_1A^{n-2}+\cdots+c_{n-1}I_n\right).
+\label{eq:xie-ex-eig-adjugate-polynomial}
+\end{equation}
+这是 Cayley--Hamilton 定理证明中 $\operatorname{adj}(tI_n-A)$ 的常数项：$\operatorname{adj}(-A)=(-1)^{n-1}\operatorname{adj}A$，而该常数项正是 $B_{n-1}$。因此这里无需对奇异矩阵使用并不存在的逆矩阵。
+
+\subsection{Sylvester 矩阵方程及其应用}
+\label{subsec:xie-ex-eig-sylvester}
+
+\begin{theorem}
+\label{thm:xie-ex-eig-sylvester}
+设 $A\in\mathbb F^{m\times m}$、$B\in\mathbb F^{n\times n}$。对任意 $C\in\mathbb F^{m\times n}$，方程
+\begin{equation}
+AX-XB=C
+\label{eq:xie-ex-eig-sylvester-equation}
+\end{equation}
+均有唯一的 $\mathbb F$ 上的解，当且仅当 $A,B$ 没有公共复特征值。
+\end{theorem}
+\begin{proof}
+先设没有公共特征值，考虑齐次方程 $AX=XB$。对任意多项式 $f$，由幂次递推可得 $f(A)X=Xf(B)$。取 $f=\chi_A$，便有 $0=X\chi_A(B)$；两矩阵无公共特征值，故命题~\ref{prop:xie-ex-eig-polynomial-inverse} 保证 $\chi_A(B)$ 可逆，因此 $X=0$。映射 $\mathcal L\colon X\mapsto AX-XB$ 是有限维空间到自身的单射，因而也是满射，于是每个 $C$ 都有唯一解。
+
+反之，若有公共特征值 $\lambda$，在复数域中取 $Au=\lambda u$、$B^{\mathsf T}v=\lambda v$，$u,v$ 均非零，则 $uv^{\mathsf T}\ne0$ 且 $Auv^{\mathsf T}-uv^{\mathsf T}B=0$。故 $\mathcal L$ 的复表示矩阵奇异。它的元素原本在 $\mathbb F$ 中，行列式为零也意味着在 $\mathbb F$ 上奇异，所以在原数域上同样不能对每个 $C$ 存在唯一解。
+\end{proof}
+
+存在公共特征值时，应对具体的右端 $C$ 另外判断相容性：方程可能无解；若有解，因齐次核非零，解便不唯一。定理给出的是对所有右端都存在唯一解的判据，并非对相交谱情形的完整相容性条件。
+
+\begin{example}
+% 教材例6.70的第二种证明。
+若 $A,B$ 无公共复特征值，则任意分块上三角矩阵 $M=\begin{pmatrix}A&C\\0&B\end{pmatrix}$ 都相似于 $\operatorname{diag}(A,B)$。
+\end{example}
+\begin{solve}
+解 $AX-XB=C$，取 $P=\begin{pmatrix}I_m&-X\\0&I_n\end{pmatrix}$，则
+\[
+P^{-1}MP
+=\begin{pmatrix}A&-AX+C+XB\\0&B\end{pmatrix}
+=\operatorname{diag}(A,B).
+\]
+这比命题~\ref{prop:xie-ex-eig-block-diagonalization} 的结论更强，因为消去非对角块本身不要求 $A,B$ 可对角化。
+\end{solve}
+
+\begin{example}
+% 教材例6.89、例6.90、例6.92。
+Sylvester 方程可用于证明矩阵平方根的唯一性、交换矩阵的分块结构及实对称解的存在唯一性。
+\end{example}
+\begin{solve}
+若 $A^2=B^2$，且二者全部特征值均为正实数，令 $X=A-B$，则 $AX=X(-B)$。$A$ 与 $-B$ 无公共特征值，故 $X=0$，即 $A=B$，这一证明无需假设 $AB=BA$。若 $A=\operatorname{diag}(A_1,\ldots,A_r)$，各块的谱两两不交，且 $AB=BA$，按同样方式对 $B$ 分块，便有 $A_iB_{ij}=B_{ij}A_j$；当 $i\ne j$ 时只能 $B_{ij}=0$，所以 $B$ 也按同样方式分块对角。
+
+再设 $A$ 为实矩阵，全部特征值的实部为正，$C$ 为实对称矩阵。$A^{\mathsf T}$ 与 $-A$ 的谱分别在左右半平面，所以 $A^{\mathsf T}X+XA=C$ 有唯一实矩阵解。转置后可知 $X^{\mathsf T}$ 也是解，由唯一性得到 $X=X^{\mathsf T}$。教材假设所有特征值为正实数；由上述谱分离论证可见，实部为正已经足够。
+\end{solve}
+
+\subsection{互素因式诱导的不变子空间直和}
+
+\begin{theorem}
+\label{thm:xie-ex-eig-coprime-decomposition}
+设 $T\colon V\to V$ 为线性变换，$f_1,f_2\in\mathbb F[t]$ 为互素首一多项式，且 $f_1(T)f_2(T)=0$。令 $V_i=\ker f_i(T)$，则
+\begin{equation}
+V=V_1\oplus V_2,\qquad
+V_1=\operatorname{Im}f_2(T),\qquad
+V_2=\operatorname{Im}f_1(T),
+\label{eq:xie-ex-eig-coprime-decomposition}
+\end{equation}
+各 $V_i$ 均为 $T$ 的不变子空间。若 $\chi_T=f_1f_2$，则 $\chi_{T|_{V_i}}=f_i$；若 $m_T=f_1f_2$，则 $m_{T|_{V_i}}=f_i$。零维分量的特征多项式与极小多项式约定为 $1$。
+\end{theorem}
+\begin{proof}
+取 $u,v\in\mathbb F[t]$ 使 $uf_1+vf_2=1$。对任意 $x\in V$，有
+\[
+x=u(T)f_1(T)x+v(T)f_2(T)x.
+\]
+第一项属于 $V_2$，第二项属于 $V_1$，故二者之和为全空间。若 $x$ 同属两个核，上式两项均为零，所以交集为零。$f_i(T)$ 与 $T$ 可交换，因而各核不变。由 $f_1(T)f_2(T)=0$ 得到 $\operatorname{Im}f_2(T)\subseteq V_1$；而 $x\in V_1$ 时 $x=v(T)f_2(T)x$，又属于 $\operatorname{Im}f_2(T)$，从而相等，另一个等式同理。
+
+记 $g_i=\chi_{T|_{V_i}}$，由直和表示可得 $g_1g_2=\chi_T$，而 $f_i$ 零化 $T|_{V_i}$，所以 $g_i$ 的每个复根只能是 $f_i$ 的根。若 $\chi_T=f_1f_2$，因 $f_1,f_2$ 互素，比较根及重数便有 $g_i=f_i$。对极小多项式，记 $d_i=m_{T|_{V_i}}$，则 $d_i\mid f_i$，且 $m_T=\operatorname{lcm}(d_1,d_2)=d_1d_2$。若 $m_T=f_1f_2$，再由整除性得到 $d_i=f_i$。
+\end{proof}
+
+若只要求 $f_1(T)f_2(T)=0$，不能断言限制变换的特征多项式就是 $f_i$，因为零化多项式可能带有多余因子。若没有全空间零化的假设，仍有 $\ker(f_1(T)f_2(T))=\ker f_1(T)\oplus\ker f_2(T)$，只需把上述证明限制在左侧的核中。复数域上将特征多项式分解为 $(t-\lambda_i)^{a_i}$ 后，逐次应用定理便得到全空间的广义特征子空间直和分解，这是后续 Jordan 标准型的起点。
+
+\subsection{有限次幂生成的子空间与系数递推}
+
+\begin{example}
+% 教材例6.96。
+设 $A\in\mathbb F^{n\times n}$、$B\in\mathbb F^{n\times p}$，令
+\[
+\mathcal U=\operatorname{Im}B+\operatorname{Im}(AB)+\cdots+
+\operatorname{Im}(A^{n-1}B),\qquad \dim\mathcal U=r.
+\]
+则存在可逆矩阵 $P$，使
+\[
+P^{-1}AP=\begin{pmatrix}A_{11}&A_{12}\\0&A_{22}\end{pmatrix},\qquad
+P^{-1}B=\begin{pmatrix}B_1\\0\end{pmatrix},
+\]
+其中 $A_{11}$ 为 $r$ 阶矩阵。
+\end{example}
+\begin{solve}
+由 Cayley--Hamilton 定理，$A^nB$ 是 $B,AB,\ldots,A^{n-1}B$ 的线性组合，故 $A\mathcal U\subseteq\mathcal U$。取 $\mathcal U$ 的一组基并扩充为全空间的基，即得到所述形式。事实上 $\mathcal U$ 是包含 $\operatorname{Im}B$ 的最小 $A$ 不变子空间，因为任一这样的子空间都必须包含所有 $A^jB$ 的列空间。
+\end{solve}
+
+\begin{example}
+% 教材例6.95；使用等价的核与不变子空间证明。
+设 $C\in\mathbb C^{p\times n}$。矩阵
+\[
+\mathcal O=\begin{pmatrix}C\\CA\\\vdots\\CA^{n-1}\end{pmatrix}
+\]
+列满秩，当且仅当对每个 $\lambda\in\mathbb C$，$\begin{pmatrix}A-\lambda I_n\\C\end{pmatrix}$ 列满秩。此外，将 $A$ 换成 $A-\mu I_n$ 后得到的堆叠矩阵与 $\mathcal O$ 秩相同，$\mu\in\mathbb C$ 任意。
+\end{example}
+\begin{solve}
+令 $K=\bigcap_{j=0}^{n-1}\ker(CA^j)=\ker\mathcal O$。Cayley--Hamilton 定理保证 $K$ 对 $A$ 不变。若 $K\ne0$，则 $A|_K$ 有特征向量 $x\ne0$，满足 $(A-\lambda I_n)x=0$、$Cx=0$，所以对应堆叠矩阵不满秩。反之，若存在这样的非零 $x$，则 $CA^jx=\lambda^jCx=0$，于是 $x\in K$。最后，由二项式展开，$C(A-\mu I_n)^j$ 是 $C,CA,\ldots,CA^j$ 的线性组合，且 $CA^j$ 的系数为 $1$；全部行块之间的变换是对角块为单位矩阵的下三角变换，因此可逆并保持秩。
+\end{solve}
+
+\begin{example}
+% 教材例6.97；等价的 Faddeev--LeVerrier 递推。
+特征多项式系数可由下述有限递推计算：置 $B_0=I_n$，对 $k=1,\ldots,n$ 依次令
+\begin{equation}
+c_k=-\frac1k\operatorname{tr}(AB_{k-1}),\qquad
+B_k=AB_{k-1}+c_kI_n.
+\label{eq:xie-ex-eig-faddeev-leverrier}
+\end{equation}
+输出的 $c_1,\ldots,c_n$ 正是 $\chi_A(t)$ 的系数，并有 $B_n=0$。
+\end{example}
+\begin{solve}
+归纳得到 $B_k=A^k+c_1A^{k-1}+\cdots+c_kI_n$，故
+\[
+\operatorname{tr}(AB_{k-1})=p_k+c_1p_{k-1}+\cdots+c_{k-1}p_1.
+\]
+式~\eqref{eq:xie-ex-eig-newton-identities} 恰好说明递推算出的系数等于特征多项式系数，而 $B_n=\chi_A(A)=0$。这个递推给出精确代数关系；使用浮点数计算时，舍入误差可能累积，不能把理论上的终止等式当作数值计算中必然精确出现的零矩阵。
+\end{solve}
+
+\section{矩阵的 Kronecker 积}
+\label{sec:xie-ex-eig-kronecker}
+
+\subsection{定义、维度与基本运算}
+
+\begin{definition}
+设 $A=(a_{ij})\in\mathbb F^{m\times n}$、$B\in\mathbb F^{p\times q}$，其\emph{Kronecker 积（Kronecker product）}定义为 $mp\times nq$ 矩阵
+\[
+A\otimes B=\begin{pmatrix}
+a_{11}B&\cdots&a_{1n}B\\
+\vdots&&\vdots\\
+a_{m1}B&\cdots&a_{mn}B
+\end{pmatrix}.
+\]
+对应单个元素的索引为 $(A\otimes B)_{(i-1)p+\alpha,(j-1)q+\beta}=a_{ij}b_{\alpha\beta}$。
+\end{definition}
+
+这一运算对每个变量分别线性，满足结合律，并有
+\begin{equation}
+(A\otimes B)(C\otimes D)=(AC)\otimes(BD),\qquad
+(A\otimes B)^{\mathsf T}=A^{\mathsf T}\otimes B^{\mathsf T},
+\label{eq:xie-ex-eig-kronecker-rules}
+\end{equation}
+其中各普通矩阵乘积须有意义。第一式称为混合乘积公式：其第 $(i,j)$ 个分块为 $\sum_k a_{ik}c_{kj}BD=(AC)_{ij}BD$，从而得到结论。结合律则由两种括号顺序都产生元素 $a_{ij}b_{\alpha\beta}c_{uv}$ 验证。若 $A,B$ 分别是可逆方阵，则
+\[
+(A\otimes B)^{-1}=A^{-1}\otimes B^{-1},\qquad
+I_m\otimes I_n=I_{mn}.
+\]
+Kronecker 积通常不可交换，不能将 $A\otimes B$ 与 $B\otimes A$ 直接视为相同矩阵；它们交换的是索引次序，须由相应置换联系。
+
+\begin{proposition}
+\label{prop:xie-ex-eig-kronecker-rank}
+对任意矩形矩阵 $A,B$，有 $\operatorname{rank}(A\otimes B)=\operatorname{rank}A\operatorname{rank}B$。若 $A$ 为 $m$ 阶、$B$ 为 $n$ 阶，则
+\[
+\operatorname{tr}(A\otimes B)=\operatorname{tr}A\operatorname{tr}B,\qquad
+\det(A\otimes B)=(\det A)^n(\det B)^m.
+\]
+\end{proposition}
+\begin{proof}
+将 $A,B$ 分别用可逆的左右因子化为 $\operatorname{diag}(I_r,0)$、$\operatorname{diag}(I_s,0)$ 形式的矩形秩标准形。由混合乘积公式及逆矩阵公式，它们的 Kronecker 积与 $A\otimes B$ 相抵，恰有 $rs$ 个非零单位对角元，故秩为 $rs$。迹等式由对角元素相乘后求和得到。对行列式，先在复数域中分别相似上三角化 $A,B$，再由混合乘积公式同时变换其 Kronecker 积；对角元为所有 $\lambda_i\mu_j$，乘积就是 $(\prod_i\lambda_i)^n(\prod_j\mu_j)^m$。
+\end{proof}
+
+因此，在各维度均为正时，$A\otimes B$ 列满秩当且仅当 $A,B$ 均列满秩，行满秩也同理。对方阵，$A\otimes B$ 可逆当且仅当两个因子都可逆。
+
+\subsection{谱与矩阵空间上线性变换的表示}
+
+\begin{theorem}
+\label{thm:xie-ex-eig-kronecker-spectrum}
+设 $A\in\mathbb C^{m\times m}$、$B\in\mathbb C^{n\times n}$ 的特征值分别为 $\lambda_i$、$\mu_j$，则 $A\otimes B$ 的全部特征值为 $\lambda_i\mu_j$；$A\otimes I_n-I_m\otimes B$ 的全部特征值为 $\lambda_i-\mu_j$，其中 $1\le i\le m$、$1\le j\le n$，均计重。
+\end{theorem}
+\begin{proof}
+分别取 $P,Q$ 上三角化 $A,B$。利用 $P\otimes Q$ 作相似变换，两种矩阵分别变为两个上三角矩阵的 Kronecker 积，以及相应上三角矩阵与单位矩阵的 Kronecker 积之差，所得对角元恰为所列的乘积和差。这里无需假设 $A,B$ 可对角化。
+\end{proof}
+
+为把矩阵方程写成普通线性方程，约定 $\operatorname{vec}(X)$ 将 $X\in\mathbb F^{m\times n}$ 的各列从左到右堆叠。对应的矩阵空间基为 $E_{11},E_{21},\ldots,E_{m1},E_{12},\ldots,E_{mn}$。按每一列展开乘积得到
+\begin{equation}
+\operatorname{vec}(AXB)=(B^{\mathsf T}\otimes A)\operatorname{vec}(X),
+\label{eq:xie-ex-eig-vectorization-product}
+\end{equation}
+从而
+\begin{equation}
+\operatorname{vec}(AX-XB)
+=(I_n\otimes A-B^{\mathsf T}\otimes I_m)\operatorname{vec}(X).
+\label{eq:xie-ex-eig-vectorization-sylvester}
+\end{equation}
+教材按行排列基础矩阵时得到的表示分别是 $A\otimes B^{\mathsf T}$ 和 $A\otimes I_n-I_m\otimes B^{\mathsf T}$。两种表示来自不同的基次序，通过置换相似联系；使用时必须先固定向量化约定，不能将其中的转置和因子顺序混用。
+
+\begin{proposition}
+\label{prop:xie-ex-eig-matrix-space-spectrum}
+在 $m\times n$ 矩阵空间上，$\Phi(X)=AXB$ 的特征值为全部 $\lambda_i\mu_j$，$\Psi(X)=AX-XB$ 的特征值为全部 $\lambda_i-\mu_j$。此外，$\operatorname{rank}\Phi=\operatorname{rank}A\operatorname{rank}B$，$\Phi$ 为自同构当且仅当 $A,B$ 均可逆；$\Psi$ 为自同构当且仅当两者的谱不交。
+\end{proposition}
+\begin{proof}
+利用式~\eqref{eq:xie-ex-eig-vectorization-product}、式~\eqref{eq:xie-ex-eig-vectorization-sylvester}，分别应用命题~\ref{prop:xie-ex-eig-kronecker-rank} 与定理~\ref{thm:xie-ex-eig-kronecker-spectrum}，再注意 $B^{\mathsf T}$ 与 $B$ 的特征多项式相同。最后一条也给出了 Sylvester 方程定理的另一种证明。
+\end{proof}
+
+若 $A=P\Lambda P^{-1}$、$B=QMQ^{-1}$ 均可对角化，则 $PE_{ij}Q^{-1}$ 构成矩阵空间的一组基，且
+\[
+A(PE_{ij}Q^{-1})B=\lambda_i\mu_jPE_{ij}Q^{-1},\qquad
+A(PE_{ij}Q^{-1})-(PE_{ij}Q^{-1})B
+=(\lambda_i-\mu_j)PE_{ij}Q^{-1}.
+\]
+故这两个矩阵空间变换都可对角化。与单纯列出特征值不同，这里同时构造了完整的特征向量基。
+
+\subsection{幂零性与 Kronecker 和}
+
+\begin{proposition}
+在复数域上，变换 $X\mapsto AXB$ 幂零，当且仅当 $A,B$ 至少有一个幂零。若 $A,B$ 均幂零，则 $X\mapsto AX-XB$ 也幂零。特别地，$X\mapsto AX-XA$ 幂零，当且仅当存在 $\lambda\in\mathbb C$ 使 $A-\lambda I_n$ 幂零。
+\end{proposition}
+\begin{proof}
+若 $A^r=0$ 或 $B^r=0$，则 $\Phi^r(X)=A^rXB^r=0$。反之，若两者都不幂零，则各有一个非零特征值，乘积给出 $\Phi$ 的非零特征值，所以 $\Phi$ 不幂零。对差型变换，$A,B$ 均幂零时其全部特征值为零，故 $\Psi$ 幂零；也可以直接给出幂次界：若 $A^r=0$、$B^s=0$，左右乘法相互可交换，二项式展开表明 $\Psi^{r+s-1}=0$，因为每项中至少含 $A^r$ 或 $B^s$。最后，$AX-XA$ 的变换幂零当且仅当所有差 $\lambda_i-\lambda_j$ 都为零，即 $A$ 只有一个不同的特征值 $\lambda$，再由命题~\ref{prop:xie-ex-eig-nilpotent-spectrum} 即得结论。
+\end{proof}
+
+\begin{example}
+% 教材例6.108。
+令 $A$ 为 $n$ 阶矩阵，$g(t)=\det(tI_n+A)$，则 $K=A\otimes I_n+I_n\otimes A$ 可逆当且仅当 $g(A)$ 可逆。
+\end{example}
+\begin{solve}
+将差谱公式中的第二个矩阵取为 $-A$，可知 $K$ 的特征值为 $\lambda_i+\lambda_j$。因此
+\[
+\det K=\prod_{i,j}(\lambda_i+\lambda_j)
+=\prod_i g(\lambda_i)=\det g(A).
+\]
+行列式是否为零便同时决定两者的可逆性。这里 $K$ 称为相应的\emph{Kronecker 和（Kronecker sum）}，不能将它与矩阵乘积 $A\otimes A$ 混淆。
+\end{solve}
+
+\section{基础训练与方法整合}
+\label{sec:xie-ex-eig-eigen-exercises}
+
+教材基础训练可归结为几条反复使用的路线：由 $Av=\lambda v$ 提取参数约束，由矩阵适合的多项式限制特征值，由代数重数与核的维数判定可对角化，由不变子空间和互素多项式构造分解，再由谱分离判断矩阵方程的唯一可解性。以下选取能连接不同方法的训练题，给出完整推导。
+
+\subsection{基本概念与实矩阵的特征值}
+
+\begin{example}
+% 教材基础训练：单选题5、7及填空题14。
+证明：若每个非零向量都是 $A$ 的特征向量，则 $A$ 是纯量矩阵；若 $\operatorname{rank}A=r<n$，则零特征值的代数重数至少为 $n-r$。
+\end{example}
+\begin{solve}
+由 $Ae_i=\lambda_i e_i$，$A$ 首先是对角矩阵。对任意 $i\ne j$，$e_i+e_j$ 也是特征向量，所以 $\lambda_ie_i+\lambda_je_j=\mu(e_i+e_j)$，比较系数得到 $\lambda_i=\lambda_j$，故 $A=\lambda I_n$；一阶情形直接成立。第二问由 $\dim\ker A=n-r$ 以及几何重数不超过代数重数得到。注意，同一特征值的多个特征向量既可能相关，也可能无关，例如 $I_n$ 的全部标准基向量都属于特征值 $1$。
+\end{solve}
+
+\begin{example}
+% 教材基础训练：解答题3。
+设实矩阵 $A$ 满足 $x^{\mathsf T}Ax>0$ 对每个非零实列向量 $x$ 成立，教材称其为亚正定矩阵。证明 $A$ 的全部复特征值实部均为正。
+\end{example}
+\begin{solve}
+令 $H=(A+A^{\mathsf T})/2$，则 $H$ 为实对称矩阵，且 $x^{\mathsf T}Hx=x^{\mathsf T}Ax>0$。若 $Az=\lambda z$、$z=x+iy\ne0$，则
+\[
+\operatorname{Re}(z^{\mathsf H}Az)
+=z^{\mathsf H}Hz=x^{\mathsf T}Hx+y^{\mathsf T}Hy>0.
+\]
+另一方面，$z^{\mathsf H}Az=\lambda z^{\mathsf H}z$，所以
+\[
+\operatorname{Re}\lambda
+=\frac{x^{\mathsf T}Hx+y^{\mathsf T}Hy}{z^{\mathsf H}z}>0.
+\]
+条件只约束对称部分，不要求 $A$ 本身对称，故结论是实部为正，而不能加强为所有特征值均为正实数。
+\end{solve}
+
+\begin{example}
+% 教材基础训练：解答题6。
+设实矩阵 $A$ 的主对角元均为 $1$，特征值均为非负实数，证明 $\det A\le1$。
+\end{example}
+\begin{solve}
+由 $\sum_i\lambda_i=\operatorname{tr}A=n$ 及算术平均不小于几何平均，得到
+\[
+\det A=\prod_i\lambda_i\le\left(\frac1n\sum_i\lambda_i\right)^n=1.
+\]
+等号当且仅当全部特征值为 $1$，但不必有 $A=I_n$，例如非平凡的上三角 Jordan 块也可满足这些条件。若另加 $A$ 可对角化，才可由单一特征值得到 $A=I_n$。
+\end{solve}
+
+\subsection{互素关系、统一逆多项式与循环向量}
+
+\begin{example}
+% 教材基础训练：解答题11；明确复数域，避免把复对角化误写成原数域对角化。
+设 $A\in\mathbb C^{n\times n}$，$f,g\in\mathbb C[t]$ 互素且各自无重根。若 $\operatorname{rank}f(A)+\operatorname{rank}g(A)=n$，证明 $A$ 可对角化。
+\end{example}
+\begin{solve}
+Bézout 恒等式给出 $\ker f(A)\cap\ker g(A)=\{0\}$。由秩条件，两核的维数之和为 $n$，所以全空间是它们的直和。对第一分量，$f(A)$ 为零，故 $f(A)g(A)$ 也为零；对第二分量，$g(A)$ 为零，故乘积同样为零。于是 $A$ 适合 $fg$。由于 $f,g$ 互素且各自无重根，$fg$ 也无重根，再用定理~\ref{thm:xie-ex-eig-squarefree-annihilator}。若把条件写在一般数域 $\mathbb F$ 上，这只保证复对角化；要得到 $\mathbb F$ 上的对角化，还需保证实际特征值属于 $\mathbb F$。
+\end{solve}
+
+\begin{example}
+% 教材基础训练：解答题13。
+设 $A_1,\ldots,A_r$ 是 $\mathbb F$ 上的方阵，$g\in\mathbb F[t]$，且每个 $g(A_i)$ 都可逆。证明存在同一个多项式 $h\in\mathbb F[t]$，使 $g(A_i)^{-1}=h(A_i)$ 对所有 $i$ 成立。
+\end{example}
+\begin{solve}
+令 $m=\operatorname{lcm}(m_{A_1},\ldots,m_{A_r})$。由命题~\ref{prop:xie-ex-eig-polynomial-inverse}，$g$ 与每个 $m_{A_i}$ 互素，从而与 $m$ 互素。取 $h,u$ 使 $hg+um=1$，依次代入 $A_i$，便得到 $h(A_i)g(A_i)=I$。再将 $h$ 对 $m$ 取余，可令 $\deg h<\deg m$。用同一个 Bézout 恒等式即可统一处理所有矩阵，无需分别寻找不同的逆多项式。
+\end{solve}
+
+\begin{example}
+% 教材基础训练：解答题15。
+若 $v\in\mathbb F^n$ 使 $K=(A^{n-1}v,A^{n-2}v,\ldots,Av,v)$ 可逆，求 $\chi_A(t)=t^n+c_1t^{n-1}+\cdots+c_n$ 的系数。
+\end{example}
+\begin{solve}
+由 Cayley--Hamilton 定理作用于 $v$ 得
+\[
+A^nv+K(c_1,\ldots,c_n)^{\mathsf T}=0,
+\]
+因此 $(c_1,\ldots,c_n)^{\mathsf T}=-K^{-1}A^nv$。这样的 $v$ 称为\emph{循环向量（cyclic vector）}，因为 $v,Av,\ldots,A^{n-1}v$ 构成全空间的基。若存在次数小于 $n$ 的非零多项式零化 $A$，作用于 $v$ 就会与这组基的线性无关性矛盾，所以 $\deg m_A=n$，再由式~\eqref{eq:xie-ex-eig-minimal-divides-characteristic} 得 $m_A=\chi_A$。
+\end{solve}
+
+\subsection{有限乘法结构与非交换矩阵的同时化}
+
+\begin{example}
+% 教材基础训练：解答题7。
+设 $\mathcal S=\{A_1,\ldots,A_r\}$ 为有限个互异可逆矩阵组成的非空集合，且关于乘法封闭。证明 $\sum_iA_i=0$ 当且仅当 $\sum_i\operatorname{tr}A_i=0$。
+\end{example}
+\begin{solve}
+必要性由迹的线性性得到。令 $M=\sum_iA_i$。右乘任一 $A_j$ 在有限集合 $\mathcal S$ 上是单射，故也是置换，所以 $MA_j=M$。求和得到 $M^2=rM$，于是 $M$ 的特征值只能是 $0,r$。若 $\operatorname{tr}M=0$，因 $r>0$，特征值 $r$ 的重数只能为零，故 $M$ 幂零。设 $M^k=0$，由 $M^k=r^{k-1}M$ 得 $M=0$，充分性成立。
+\end{solve}
+
+\begin{example}
+% 教材基础训练：解答题8。
+设 $A,B$ 为复矩阵，且 $AB-BA=aA+bB$，其中 $a,b\in\mathbb C$。证明 $A,B$ 可同时上三角化。
+\end{example}
+\begin{solve}
+若 $a=b=0$，由定理~\ref{thm:xie-ex-eig-simultaneous-triangular} 得到结论。其余情形，必要时交换 $A,B$，可设 $a\ne0$。令 $D=aA+bB$、$E=B/a$，则 $DE-ED=D$，而 $A,B$ 均为 $D,E$ 的线性组合，所以只需同时上三角化 $D,E$。
+
+将例~\ref{ex:xie-ex-eig-commutator-nilpotent} 用于交换子 $D=DE-ED$，因 $D$ 与自身可交换，得到 $D$ 幂零。故 $W=\ker D\ne0$；由 $DE=ED+D$ 可知 $W$ 对 $E$ 不变。取 $E|_W$ 的特征向量，它就是 $D,E$ 的公共特征向量。在对应一维不变子空间的商空间上，仍有 $\overline D\,\overline E-\overline E\,\overline D=\overline D$。对维数归纳，得到共同上三角基，从而也同时上三角化 $A,B$。
+\end{solve}
+
+
+
+
+

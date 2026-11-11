@@ -1,0 +1,601 @@
+% !TeX root = ../高等代数教材（谢启鸿）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{9} % 保留原书章号。
+\chapter{双线性型}
+\label{chap:bilinear-forms}
+
+线性函数把向量变成数，双线性型则把两个向量之间的关系变成数。它一方面统一了对偶配对、二次型和实内积，另一方面说明：改变双线性型的性质，就会得到不同的几何。非退化对称型引出正交几何，非退化交错型引出辛几何；两者都保留了“正交”的代数关系，却不必具有欧氏空间中的长度和正定性。本章先建立对偶空间与双线性型的代数工具，再讨论这两类几何。除特别说明外，$\mathbb K$ 为数域，所讨论的线性空间均为有限维；因而 $2\neq0$，可以使用含有 $\frac12$ 的极化公式。
+
+\section{对偶空间}
+\label{sec:bilinear-dual-space}
+% 教材第 442--447 页，§10.1；不录入节后习题题单。
+
+\begin{definition}
+\label{def:bilinear-dual-space}
+设 $V$ 是 $\mathbb K$ 上的线性空间。线性映射 $f:V\to\mathbb K$ 称为 $V$ 上的\emph{线性函数或线性泛函}（linear functional）。全体线性泛函组成的集合记为
+\[
+    V^*=\operatorname{Hom}_{\mathbb K}(V,\mathbb K),
+\]
+并按 $(f+h)(x)=f(x)+h(x)$、$(af)(x)=af(x)$ 定义加法与数乘；它们使 $V^*$ 成为 $\mathbb K$ 上的线性空间，称为 $V$ 的\emph{对偶空间}（dual space）。
+\end{definition}
+
+这里的零向量是恒为零的泛函，$f=0$ 意味着 $f(x)=0$ 对所有 $x\in V$ 成立，而非只在某个向量处取零值。教材在一般维数下也称 $V^*$ 为共轭空间；这里讨论的是代数对偶，定义中不含复共轭。尤其当 $\mathbb K=\mathbb C$ 时，线性仍指 $f(ax)=af(x)$。
+
+\begin{theorem}
+\label{thm:bilinear-dual-basis}
+设 $\dim V=n$，$e_1,\ldots,e_n$ 是 $V$ 的一组基。存在唯一的一组泛函 $e^1,\ldots,e^n\in V^*$，满足
+\[
+    e^i(e_j)=\delta_{ij},\qquad 1\leq i,j\leq n,
+\]
+其中 $\delta_{ij}$ 为 Kronecker 符号。这组泛函是 $V^*$ 的一组基，称为原基的\emph{对偶基}（dual basis），且 $\dim V^*=n$。具体地，
+\begin{equation}
+\label{eq:bilinear-dual-expansion}
+    x=\sum_{i=1}^n x_i e_i\ \Longrightarrow\ e^i(x)=x_i,
+    \qquad f=\sum_{i=1}^n f(e_i)e^i\quad(f\in V^*).
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+由坐标表示的唯一性，取第 $i$ 个坐标的规则 $e^i(x)=x_i$ 是良定义的线性泛函，并满足所需条件；线性映射由一组基上的值唯一决定，所以它也是唯一的。任取 $f\in V^*$，线性性给出
+\[
+    f(x)=\sum_{i=1}^n x_i f(e_i)
+    =\left(\sum_{i=1}^n f(e_i)e^i\right)(x),
+\]
+故这些泛函张成 $V^*$。若 $\sum_i a_i e^i=0$，依次作用于 $e_j$ 得 $a_j=0$，故它们线性无关。
+\end{proof}
+
+记\emph{自然配对}（natural pairing）为 $\langle f,x\rangle=f(x)$，其中 $f\in V^*$、$x\in V$。它对两个变元分别线性，并且能分辨两侧的非零元素：若 $\langle f,x\rangle=0$ 对所有 $x$ 成立，则 $f=0$；若 $\langle f,x\rangle=0$ 对所有 $f$ 成立，则 $x=0$。后一结论可由坐标泛函看出：非零向量至少有一个非零坐标，相应的 $e^i$ 在它上面的值就不为零。这一“配对不遗漏非零向量”的性质，稍后将抽象为非退化性。
+
+若 $f$ 在对偶基下的坐标列向量为 $a$，$x$ 在原基下的坐标列向量为 $X$，则 $f(x)=a^{\mathsf T}X$。设另一组基满足
+\[
+    (\widetilde e_1,\ldots,\widetilde e_n)=(e_1,\ldots,e_n)P,
+\]
+其中 $P$ 可逆，则其对偶基满足
+\begin{equation}
+\label{eq:bilinear-dual-basis-change}
+    (\widetilde e^1,\ldots,\widetilde e^n)
+    =(e^1,\ldots,e^n)P^{-\mathsf T},
+    \qquad P^{-\mathsf T}=(P^{-1})^{\mathsf T}.
+\end{equation}
+事实上，若右端的变换矩阵记为 $Q$，则 $\widetilde e^i(\widetilde e_j)=\delta_{ij}$ 等价于 $Q^{\mathsf T}P=I$，故 $Q=P^{-\mathsf T}$。对偶基的变化由保持配对值决定。
+
+\begin{theorem}
+\label{thm:bilinear-double-dual}
+设 $V^{**}=(V^*)^*$。映射
+\[
+    \iota_V:V\longrightarrow V^{**},\qquad
+    \iota_V(x)(f)=f(x)
+\]
+是线性同构，称为 $V$ 到\emph{双对偶空间}（double dual space）的自然同构。
+\end{theorem}
+
+\begin{proof}
+固定 $x$ 后，$f\mapsto f(x)$ 对 $f$ 线性，所以 $\iota_V(x)\in V^{**}$；对 $x$ 的线性性也由泛函的线性性得到。若 $\iota_V(x)=0$，则所有泛函在 $x$ 处的值都为零，故 $x=0$，这证明了单射性。再由 $\dim V^{**}=\dim V^*=\dim V$，它也是满射。
+\end{proof}
+
+这个映射无需选择基，因此可以通过它把 $V$ 与 $V^{**}$ 等同起来。相比之下，虽有 $\dim V=\dim V^*$，一般还需要选择基或非退化双线性型才能指定 $V\to V^*$ 的同构。有限维假设也不可省略：一般维数下上述自然映射仍为单射，但不能沿用维数相等的论证来断言满射。
+
+\begin{definition}
+\label{def:bilinear-dual-map}
+设 $T:V\to U$ 是线性映射，定义
+\[
+    T^\vee:U^*\longrightarrow V^*,\qquad T^\vee(h)=h\circ T.
+\]
+称 $T^\vee$ 为 $T$ 的\emph{对偶映射}（dual map）。它是线性映射，且由下式唯一刻画：
+\begin{equation}
+\label{eq:bilinear-dual-map-pairing}
+    \langle T^\vee h,x\rangle=\langle h,Tx\rangle,
+    \qquad h\in U^*,\ x\in V.
+\end{equation}
+\end{definition}
+
+唯一性是因为式~\eqref{eq:bilinear-dual-map-pairing} 给出了 $T^\vee h$ 在每个 $x$ 上的值。对偶映射的方向与原映射相反：先把 $U$ 上的泛函沿 $T$ 拉回，得到 $V$ 上的泛函。本章用 $T^\vee$ 表示教材记作 $T^*$ 的代数对偶映射，以免和复内积空间中的伴随算子混淆。
+
+\begin{theorem}
+\label{thm:bilinear-dual-transpose}
+设 $e_1,\ldots,e_n$ 与 $u_1,\ldots,u_m$ 分别是 $V$、$U$ 的基，$T:V\to U$ 在这两组基下的矩阵为 $A\in\mathbb K^{m\times n}$。则 $T^\vee:U^*\to V^*$ 在相应的两组对偶基下的矩阵为 $A^{\mathsf T}$，从而
+\[
+    \operatorname{rank}T^\vee=\operatorname{rank}T.
+\]
+因此，$T$ 单射当且仅当 $T^\vee$ 满射，$T$ 满射当且仅当 $T^\vee$ 单射。
+\end{theorem}
+
+\begin{proof}
+记 $Te_j=\sum_i a_{ij}u_i$。对 $U$ 的对偶基向量 $u^i$，有
+\[
+    (T^\vee u^i)(e_j)=u^i(Te_j)=a_{ij},
+\]
+故 $T^\vee u^i=\sum_j a_{ij}e^j$，即其矩阵的第 $i$ 列为 $A$ 的第 $i$ 行的转置。转置不改变秩，而单射、满射分别由列满秩、行满秩刻画，结论随之成立。
+\end{proof}
+
+对偶运算保持线性组合，却颠倒复合的次序。若 $T_1,T_2:V\to U$、$S:U\to W$，则
+\begin{equation}
+\label{eq:bilinear-dual-rules}
+    (aT_1+bT_2)^\vee=aT_1^\vee+bT_2^\vee,
+    \qquad (S\circ T_1)^\vee=T_1^\vee\circ S^\vee,
+    \qquad I_V^\vee=I_{V^*}.
+\end{equation}
+例如，对 $h\in W^*$，有 $(S\circ T_1)^\vee h=h\circ S\circ T_1=T_1^\vee(S^\vee h)$，这直接解释了次序反转。若 $T$ 可逆，则对偶化 $T^{-1}T=I$ 与 $TT^{-1}=I$ 得
+\[
+    (T^\vee)^{-1}=(T^{-1})^\vee.
+\]
+这些公式都不涉及复共轭；即使 $\mathbb K=\mathbb C$，矩阵仍是转置而不是共轭转置。
+
+\begin{example}
+\label{ex:bilinear-row-column-duality}
+用行向量实现列向量空间 $V=\mathbb K^n$ 的对偶空间，并说明矩阵左乘的对偶运算。
+\end{example}
+
+\begin{solve}
+每个行向量 $a=(a_1,\ldots,a_n)$ 确定线性泛函 $f_a(X)=aX$。反过来，任一泛函由其在标准基上的值唯一确定，因而恰可写成这种形式。若 $T(X)=AX$，则
+\[
+    (T^\vee f_a)(X)=f_a(AX)=(aA)X,
+\]
+故在行向量的实现中，对偶映射表现为 $a\mapsto aA$；若把行向量的系数重新写成坐标列向量，则变成 $a^{\mathsf T}\mapsto A^{\mathsf T}a^{\mathsf T}$，与定理~\ref{thm:bilinear-dual-transpose} 一致。
+\end{solve}
+
+\section{双线性型}
+\label{sec:bilinear-forms}
+% 教材第 447--453 页，§10.2。
+
+自然配对是两个空间之间双线性关系的基本例子。要推广它，需要允许两个变元来自任意线性空间，并且分别保持线性；两个变元可以独立变化，取基时也应分别选择各自空间的基。
+
+\begin{definition}
+\label{def:bilinear-form}
+设 $U,V$ 是 $\mathbb K$ 上的线性空间。映射 $g:U\times V\to\mathbb K$ 称为\emph{双线性型}（bilinear form），若对任意 $x,x_1,x_2\in U$、$y,y_1,y_2\in V$ 及 $a,b\in\mathbb K$，有
+\[
+    g(ax_1+bx_2,y)=ag(x_1,y)+bg(x_2,y),
+    \qquad
+    g(x,ay_1+by_2)=ag(x,y_1)+bg(x,y_2).
+\]
+也就是说，固定任一变元后，关于另一变元的函数是线性泛函。
+\end{definition}
+
+设 $\dim U=m$、$\dim V=n$，在基 $e_1,\ldots,e_m$ 与 $v_1,\ldots,v_n$ 下，令
+\[
+    A=(a_{ij})\in\mathbb K^{m\times n},\qquad a_{ij}=g(e_i,v_j).
+\]
+若 $x=\sum_i x_i e_i$、$y=\sum_j y_j v_j$ 的坐标列向量分别为 $X$、$Y$，则双线性性给出
+\begin{equation}
+\label{eq:bilinear-matrix-representation}
+    g(x,y)=\sum_{i=1}^m\sum_{j=1}^n x_i a_{ij}y_j
+    =X^{\mathsf T}AY.
+\end{equation}
+反过来，任一 $m\times n$ 矩阵都通过此式定义一个双线性型。因此，固定两组基后，双线性型与矩阵一一对应；按逐点加法与数乘，全体双线性型组成一个 $mn$ 维线性空间。
+
+若两侧的新基分别由旧基乘可逆矩阵 $C\in\mathbb K^{m\times m}$、$D\in\mathbb K^{n\times n}$ 得到，则 $X=C\widetilde X$、$Y=D\widetilde Y$，故
+\begin{equation}
+\label{eq:bilinear-two-basis-change}
+    g(x,y)=\widetilde X^{\mathsf T}(C^{\mathsf T}AD)\widetilde Y,
+    \qquad \widetilde A=C^{\mathsf T}AD.
+\end{equation}
+这说明表示矩阵在两侧独立换基时按\emph{相抵}（matrix equivalence）变化。由于乘可逆矩阵不改变秩，$\operatorname{rank}A$ 只由 $g$ 决定，称为双线性型 $g$ 的\emph{秩}（rank），记为 $\operatorname{rank}g$。
+
+\begin{theorem}
+\label{thm:bilinear-rank-normal-form}
+设 $g:U\times V\to\mathbb K$ 的秩为 $r$。可以分别选取 $U$、$V$ 的基，使表示矩阵为
+\[
+    \begin{pmatrix}I_r&0\\0&0\end{pmatrix}_{m\times n},
+    \qquad g(x,y)=\sum_{i=1}^r x_i y_i.
+\]
+\end{theorem}
+
+\begin{proof}
+矩阵的相抵标准型表明，存在可逆矩阵 $P,Q$，使 $PAQ$ 等于所示矩阵。在式~\eqref{eq:bilinear-two-basis-change} 中取 $C=P^{\mathsf T}$、$D=Q$，即得所需的两组基。由式~\eqref{eq:bilinear-matrix-representation} 得到坐标表达式。
+\end{proof}
+
+\begin{definition}
+\label{def:bilinear-radicals}
+双线性型 $g$ 的\emph{左根子空间}（left radical）和\emph{右根子空间}（right radical）分别定义为
+\[
+\begin{aligned}
+    L_g&=\{x\in U:g(x,y)=0\text{ 对所有 }y\in V\},\\
+    R_g&=\{y\in V:g(x,y)=0\text{ 对所有 }x\in U\}.
+\end{aligned}
+\]
+若 $L_g=\{0\}$ 且 $R_g=\{0\}$，称 $g$ \emph{非退化}（nondegenerate）；否则称为退化。
+\end{definition}
+
+这两个集合确实是子空间：例如 $x_1,x_2\in L_g$ 时，对任意 $y$ 有 $g(ax_1+bx_2,y)=0$。在任意给定的两组基下，它们的坐标条件分别是 $A^{\mathsf T}X=0$ 与 $AY=0$，所以由秩与零度定理得到
+\begin{equation}
+\label{eq:bilinear-radical-dimensions}
+    \dim L_g=m-r,\qquad \dim R_g=n-r.
+\end{equation}
+因此，\emph{非退化当且仅当 $m=n=r$}，也当且仅当表示矩阵为可逆方阵。仅有一侧根子空间为零时，另一侧未必为零；当两个空间维数不同，双线性型不可能同时在两侧非退化。
+
+\begin{example}
+\label{ex:bilinear-rank-one}
+设 $U=\mathbb K^2$、$V=\mathbb K^3$，且
+\[
+    g(x,y)=(x_1+2x_2)(y_1+2y_2+3y_3).
+\]
+求它的秩及左右根子空间。
+\end{example}
+
+\begin{solve}
+在标准基下，
+\[
+    A=\begin{pmatrix}1&2&3\\2&4&6\end{pmatrix},\qquad
+    \operatorname{rank}g=1.
+\]
+两个线性因子都不是零泛函，所以
+\[
+    L_g=\{x:x_1+2x_2=0\},\qquad
+    R_g=\{y:y_1+2y_2+3y_3=0\}.
+\]
+它们的维数分别为 $1$、$2$，与式~\eqref{eq:bilinear-radical-dimensions} 一致。这个例子中，左右两侧无法与对方的整个对偶空间同构。
+\end{solve}
+
+\begin{theorem}
+\label{thm:bilinear-nondegenerate-duality}
+双线性型 $g:U\times V\to\mathbb K$ 确定两个线性映射
+\[
+    \Phi_g:U\to V^*,\quad \Phi_g(x)=g(x,-),
+    \qquad
+    \Psi_g:V\to U^*,\quad \Psi_g(y)=g(-,y).
+\]
+它们的核分别为 $L_g$、$R_g$。若 $g$ 非退化，则两个映射都是线性同构，因而 $g$ 可以把 $U$ 与 $V^*$、$V$ 与 $U^*$ 分别对应起来。
+\end{theorem}
+
+\begin{proof}
+映射的线性性由双线性性得到，核的描述就是根子空间的定义。非退化时二者均为单射，且 $\dim U=\dim V=\dim V^*=\dim U^*$，故均为同构。
+\end{proof}
+
+通过上述同构，有 $g(x,y)=\langle\Phi_g(x),y\rangle$，故非退化双线性型可化为自然配对来研究。这也解释了它的两侧为何必须等维：一侧的每个泛函都能且只能由另一侧的一个向量表示。
+
+\begin{proposition}
+\label{prop:bilinear-compare-pairings}
+设 $g_1,g_2$ 是 $U\times V$ 上的两个非退化双线性型。存在唯一的可逆线性变换 $S:U\to U$、$R:V\to V$，使
+\[
+    g_2(Sx,y)=g_1(x,y),\qquad
+    g_2(x,Ry)=g_1(x,y)
+\]
+对所有 $x\in U$、$y\in V$ 成立。
+\end{proposition}
+
+\begin{proof}
+第一个等式等价于 $\Phi_{g_2}S=\Phi_{g_1}$，故只能且确可取 $S=\Phi_{g_2}^{-1}\Phi_{g_1}$；第二个同理由 $R=\Psi_{g_2}^{-1}\Psi_{g_1}$ 得到。它们都是同构的复合，因而可逆。
+\end{proof}
+
+对偶映射也可以借助非退化配对在原空间之间表达。设 $T:V\to V$，$g_1,g_2$ 如上，则存在唯一的 $T^\vee_{g_1,g_2}:U\to U$，满足
+\begin{equation}
+\label{eq:bilinear-relative-dual}
+    g_2(T^\vee_{g_1,g_2}x,y)=g_1(x,Ty),
+    \qquad T^\vee_{g_1,g_2}=\Phi_{g_2}^{-1}T^\vee\Phi_{g_1}.
+\end{equation}
+右边的同构公式证明了存在性；若两个变换都满足左边等式，则它们在任意 $x$ 处的差属于 $L_{g_2}=\{0\}$，这证明唯一性。特别，若 $g_1=g_2=g$，称它为关于 $g$ 的对偶变换。若 $g_1,g_2,T$ 的矩阵分别是 $G_1,G_2,B$，则其矩阵 $D$ 满足
+\[
+    D^{\mathsf T}G_2=G_1B,\qquad
+    D=G_2^{-\mathsf T}B^{\mathsf T}G_1^{\mathsf T}.
+\]
+在两侧采用关于 $g$ 互为对偶的基，即 $G_1=G_2=I$ 时，这个表达式直接化为 $B^{\mathsf T}$。
+
+\section{纯量积}
+\label{sec:bilinear-scalar-products}
+% 教材第 453--458 页，§10.3。
+
+\begin{definition}
+\label{def:bilinear-scalar-product}
+当双线性型的两个变元属于同一个空间，即 $g:V\times V\to\mathbb K$ 时，称 $g$ 为 $V$ 上的\emph{纯量积或数量积}（scalar product）。若
+\[
+    g(x,y)=g(y,x)\quad\text{对所有 }x,y\in V\text{ 成立},
+\]
+称 $g$ 为\emph{对称型}（symmetric bilinear form）；若 $g(x,x)=0$ 对所有 $x\in V$ 成立，称 $g$ 为\emph{交错型}（alternating bilinear form）。在数域上，后一条件等价于
+\[
+    g(x,y)=-g(y,x),
+\]
+所以交错型也称反对称型（skew-symmetric bilinear form）。
+\end{definition}
+
+交错条件推出反对称性，是因为 $0=g(x+y,x+y)=g(x,y)+g(y,x)$；反过来，反对称性给出 $2g(x,x)=0$，再由 $2\neq0$ 得到交错条件。\emph[caution]{这里的“纯量积”不要求正定、对称或非退化，也不涉及复共轭}，因此不能直接套用内积空间中依赖正定性的结论。
+
+对于 $V$ 上的纯量积，要在两个位置使用同一组基。若 $A=(g(e_i,e_j))$，仍有 $g(x,y)=X^{\mathsf T}AY$，但换基矩阵必须同时取为同一个 $C$，于是
+\begin{equation}
+\label{eq:bilinear-congruence}
+    \widetilde A=C^{\mathsf T}AC.
+\end{equation}
+这正是矩阵的\emph{合同}（congruence）关系。对称型对应 $A^{\mathsf T}=A$，交错型对应 $A^{\mathsf T}=-A$；前节允许两组基独立变化得到的相抵标准型，不能直接当作这里的合同标准型。任一纯量积都可唯一分解为
+\[
+    g=g_{\mathrm s}+g_{\mathrm a},\qquad
+    g_{\mathrm s}(x,y)=\frac{g(x,y)+g(y,x)}2,\quad
+    g_{\mathrm a}(x,y)=\frac{g(x,y)-g(y,x)}2,
+\]
+其中前者对称，后者交错。唯一性来自一个型若同时对称且交错，则其所有值都为零。
+
+对一般纯量积，$g(x,y)=0$ 表示 $x$ 左垂直于 $y$，也表示 $y$ 右垂直于 $x$；交换两个向量未必仍成立。下面的结论刻画了何时可以不区分方向地说“正交”。
+
+\begin{theorem}
+\label{thm:bilinear-symmetric-orthogonality}
+设 $g$ 是数域 $\mathbb K$ 上的纯量积。对所有 $x,y\in V$，
+\[
+    g(x,y)=0\quad\Longleftrightarrow\quad g(y,x)=0
+\]
+成立，当且仅当 $g$ 为对称型或交错型。
+\end{theorem}
+
+\begin{proof}
+对称型和交错型都满足该条件。反过来，假设条件成立。若 $g(x,x)=0$ 对所有 $x$ 成立，则它是交错型。否则存在 $w$，使 $g(w,w)\neq0$。先考察任意满足 $g(v,v)\neq0$ 的向量 $v$：对任意 $y$，令
+\[
+    z=y-\frac{g(v,y)}{g(v,v)}v.
+\]
+有 $g(v,z)=0$，由假设得 $g(z,v)=0$，展开即得 $g(y,v)=g(v,y)$。再任取 $x$，多项式
+\[
+    g(x+tw,x+tw)
+    =g(x,x)+t\bigl(g(x,w)+g(w,x)\bigr)+t^2g(w,w)
+\]
+的二次项系数非零，所以至多有两个根。数域含有无穷多个元素，故可选 $t\in\mathbb K$ 使其非零。已证结论分别用于 $x+tw$ 与 $w$，相减即得 $g(x,y)=g(y,x)$ 对所有 $y$ 成立。因此 $g$ 是对称型。
+\end{proof}
+
+以下设 $g$ 为对称型或交错型，定义 $x\perp y$ 当且仅当 $g(x,y)=0$。对 $V$ 的子空间 $U$，定义其\emph{正交补}（orthogonal complement）为
+\[
+    U^\perp=\{x\in V:g(x,u)=0\text{ 对所有 }u\in U\}.
+\]
+由于正交关系对称，这也等于 $\{x:g(u,x)=0\text{ 对所有 }u\in U\}$，并且是 $V$ 的子空间。左右根子空间此时相同，记为
+\[
+    \operatorname{rad}g=V^\perp,
+\]
+称为 $g$ 的\emph{根子空间}（radical）。限制型 $g|_{U\times U}$ 的根子空间则为 $U\cap U^\perp$；其中的正交补仍是在整个 $V$ 中计算。
+
+\begin{theorem}
+\label{thm:bilinear-orthogonal-splitting}
+设 $g$ 是 $V$ 上的对称型或交错型，$U\subseteq V$ 是子空间。则 $g|_{U\times U}$ 非退化当且仅当 $U\cap U^\perp=\{0\}$。这些条件成立时，有正交直和分解
+\begin{equation}
+\label{eq:bilinear-orthogonal-splitting}
+    V=U\oplus U^\perp.
+\end{equation}
+这里不要求 $g$ 在整个 $V$ 上非退化。
+\end{theorem}
+
+\begin{proof}
+第一项等价性由限制型的根子空间描述得到。若限制型非退化，考虑
+\[
+    F:V\to U^*,\qquad F(x)(u)=g(x,u).
+\]
+其核为 $U^\perp$，且 $F|_U:U\to U^*$ 是同构，所以 $F$ 满射。由维数公式，$\dim V=\dim U^\perp+\dim U$；再结合交为零，得到式~\eqref{eq:bilinear-orthogonal-splitting}。
+\end{proof}
+
+若 $g$ 在整个 $V$ 上非退化，则对任意子空间 $U$ 还有
+\begin{equation}
+\label{eq:bilinear-perp-dimensions}
+    \dim U^\perp=\dim V-\dim U,\qquad (U^\perp)^\perp=U.
+\end{equation}
+证明维数公式时，可先将 $U$ 上任一泛函沿一组扩充基延拓到 $V$，再用同构 $\Phi_g:V\to V^*$ 表示为 $g(x,-)$，从而上面的 $F$ 仍满射。又有 $U\subseteq(U^\perp)^\perp$，两侧维数相等便得第二个等式。此时 $g$ 在 $U$ 上非退化当且仅当在 $U^\perp$ 上非退化，因为二者的根子空间同为 $U\cap U^\perp$。
+
+\begin{example}
+\label{ex:bilinear-isotropic-line}
+在 $V=\mathbb R^2$ 上取非退化对称型
+\[
+    g(x,y)=x_1y_1-x_2y_2,
+\]
+令 $u=(1,1)^{\mathsf T}$、$U=\operatorname{span}\{u\}$。求 $U^\perp$，并判断能否写成 $V=U\oplus U^\perp$。
+\end{example}
+
+\begin{solve}
+条件 $g(x,u)=x_1-x_2=0$ 给出 $U^\perp=U$，所以 $U\cap U^\perp=U\neq\{0\}$，不存在所述直和分解。虽然 $g$ 在整个空间上非退化，但 $g(u,u)=0$，它在 $U$ 上的限制恒为零。这说明环境空间非退化，并不能保证每个子空间都与其正交补交为零。
+\end{solve}
+
+最后，比较同一空间上的两个纯量积时，可以直接应用命题~\ref{prop:bilinear-compare-pairings}：若 $g,h$ 都非退化，则存在唯一的可逆 $T$，使
+\[
+    h(x,y)=g(Tx,y).
+\]
+若在同一基下 $g,h$ 的矩阵分别为 $G,H$，$T$ 的矩阵为 $B$，则 $B^{\mathsf T}G=H$，即 $B=G^{-\mathsf T}H^{\mathsf T}$。这个表示只改变第一个变元；同时改变两个变元所要求的合同关系是另一个问题。
+
+\section{交错型与辛几何}
+\label{sec:bilinear-symplectic-geometry}
+% 教材第 458--461 页，§10.4。
+
+交错型满足 $g(x,x)=0$，所以每个向量都与自身正交，无法用 $g(x,x)$ 定义正定长度。它的基本结构由成对向量之间的配对值给出。只要 $g$ 不恒为零，就可找到 $u,v$ 使 $g(u,v)\neq0$，再经数乘将这个值归一为 $1$；这一对向量张成的二维空间便构成标准型的基本单元。
+
+\begin{theorem}
+\label{thm:bilinear-alternating-normal-form}
+设 $g$ 是 $n$ 维空间 $V$ 上的交错型，则存在一组基
+\[
+    u_1,v_1,\ldots,u_r,v_r,z_1,\ldots,z_{n-2r},
+\]
+使 $g$ 的矩阵为
+\begin{equation}
+\label{eq:bilinear-alternating-normal-form}
+    \operatorname{diag}(\underbrace{S,\ldots,S}_{r\text{ 个}},0_{n-2r}),
+    \qquad S=\begin{pmatrix}0&1\\-1&0\end{pmatrix}.
+\end{equation}
+其中 $g(u_i,v_i)=1$，不同二维块之间相互正交，$z_1,\ldots,z_{n-2r}$ 张成 $\operatorname{rad}g$，且 $\operatorname{rank}g=2r$。
+\end{theorem}
+
+\begin{proof}
+对维数归纳。若 $g=0$，任意基即符合要求。若 $g\neq0$，选取 $u,v$ 并缩放，使 $g(u,v)=1$。若 $au+bv=0$，分别与 $u,v$ 配对得 $-b=0$、$a=0$，所以 $u,v$ 线性无关。在 $H=\operatorname{span}\{u,v\}$ 上，$g$ 的矩阵为 $S$，行列式为 $1$，因而限制型非退化。由定理~\ref{thm:bilinear-orthogonal-splitting}，有
+\[
+    V=H\oplus H^\perp.
+\]
+在维数小 $2$ 的 $H^\perp$ 上继续应用归纳假设，便得到所需的分块矩阵。非零块 $S$ 均可逆，末尾零块恰对应根子空间，故秩为 $2r$。
+\end{proof}
+
+这一证明也给出了构造方法。选出 $g(u,v)=1$ 的一对向量后，对任意 $x\in V$，
+\begin{equation}
+\label{eq:bilinear-symplectic-elimination}
+    x_\perp=x-g(x,v)u+g(x,u)v
+\end{equation}
+满足 $g(x_\perp,u)=g(x_\perp,v)=0$。因此可用式~\eqref{eq:bilinear-symplectic-elimination} 消去其他向量在该二维块上的配对，再在正交补中寻找下一对；当剩余空间上的限制型为零时终止。这里归一化所用的分母是已确认非零的配对值，无需开平方。
+
+\begin{corollary}
+\label{cor:bilinear-skew-matrix-classification}
+数域上的反对称矩阵的秩为偶数。同阶反对称矩阵合同当且仅当它们的秩相同；每个反对称方阵的行列式都是该数域中某个数的平方。
+\end{corollary}
+
+\begin{proof}
+偶数秩及合同分类直接来自定理~\ref{thm:bilinear-alternating-normal-form}，而合同保持秩。对行列式，若矩阵 $A$ 奇异，则 $\det A=0=0^2$；若非奇异，则存在可逆 $C$，使 $C^{\mathsf T}AC=\operatorname{diag}(S,\ldots,S)$，于是
+\[
+    (\det C)^2\det A=1,\qquad
+    \det A=\bigl((\det C)^{-1}\bigr)^2.\qedhere
+\]
+\end{proof}
+
+\begin{definition}
+\label{def:bilinear-symplectic-space}
+有限维线性空间 $V$ 配备非退化交错型 $g$ 后，称 $(V,g)$ 为\emph{辛空间}（symplectic vector space）。它的维数必为偶数 $2r$。使 $g$ 的矩阵为
+\[
+    J=\operatorname{diag}(S,\ldots,S)
+\]
+的有序基 $u_1,v_1,\ldots,u_r,v_r$ 称为\emph{辛基}（symplectic basis）。
+\end{definition}
+
+在辛基下，若 $x=\sum_i(a_i u_i+b_i v_i)$、$y=\sum_i(c_i u_i+d_i v_i)$，则
+\begin{equation}
+\label{eq:bilinear-symplectic-coordinate-form}
+    g(x,y)=\sum_{i=1}^r(a_i d_i-b_i c_i).
+\end{equation}
+若把基重新排列成 $u_1,\ldots,u_r,v_1,\ldots,v_r$，同一个型的矩阵变为 $\begin{pmatrix}0&I_r\\-I_r&0\end{pmatrix}$；使用辛矩阵公式时须和基的排列保持一致。
+
+\begin{definition}
+\label{def:bilinear-symplectic-transformation}
+辛空间 $(V,g)$ 上保持配对值的可逆线性变换 $T$，即满足
+\[
+    g(Tx,Ty)=g(x,y)\qquad(x,y\in V)
+\]
+的变换，称为\emph{辛变换}（symplectic transformation）。它在辛基下的矩阵称为\emph{辛矩阵}（symplectic matrix）。
+\end{definition}
+
+\begin{proposition}
+\label{prop:bilinear-symplectic-group}
+辛空间上的线性变换 $T$ 是辛变换，当且仅当它把一组辛基变成一组辛基；条件成立时，它把任一组辛基都变成辛基。在固定辛基下，矩阵 $P$ 是辛矩阵的充要条件为
+\begin{equation}
+\label{eq:bilinear-symplectic-matrix}
+    P^{\mathsf T}JP=J.
+\end{equation}
+辛变换对复合和求逆封闭，且包含恒等变换，因而组成\emph{辛群}（symplectic group），记为 $\operatorname{Sp}(V,g)$。
+\end{proposition}
+
+\begin{proof}
+若 $T$ 是辛变换，则像基的所有配对值与原辛基相同。反之，若 $T$ 将一组辛基变成辛基，则它可逆；将任意 $x,y$ 按该基展开，再用式~\eqref{eq:bilinear-symplectic-coordinate-form}，即得配对值保持不变。矩阵等式由
+\[
+    g(Tx,Ty)=X^{\mathsf T}P^{\mathsf T}JPY
+\]
+与 $g(x,y)=X^{\mathsf T}JY$ 比较得到。若直接从式~\eqref{eq:bilinear-symplectic-matrix} 出发，则 $PX=0$ 推出 $JX=0$，所以 $P$ 自动可逆。两个保持配对值的变换复合后仍保持配对值；恒等变换也保持配对值；对可逆 $T$，将保持等式中的 $x,y$ 换成 $T^{-1}x,T^{-1}y$ 即得逆变换也保持配对值。
+\end{proof}
+
+例如在二维辛空间中，$P=\begin{pmatrix}1&t\\0&1\end{pmatrix}$ 对任意 $t\in\mathbb K$ 都满足 $P^{\mathsf T}SP=S$，所以它是辛矩阵；当 $\mathbb K=\mathbb R$ 且 $t\neq0$ 时，它并不保持通常的欧氏长度。这表明辛几何保留的是交错配对的结构，二维时可理解为有向面积的代数表达。
+
+\section{对称型与正交几何}
+\label{sec:bilinear-orthogonal-geometry}
+% 教材第 461--465 页，§10.5；不纳入最后的“复习题十”。
+
+与交错型相反，对称型可以由向量与自身的配对完全恢复。设 $g$ 为对称型，定义 $q(x)=g(x,x)$，则在任意一组基下 $q(x)=X^{\mathsf T}AX$，其中 $A$ 对称，所以 $q$ 是二次型。反过来，若二次型 $q$ 的相伴对称矩阵为 $A$，则
+\begin{equation}
+\label{eq:bilinear-polarization}
+    g(x,y)=\frac12\bigl(q(x+y)-q(x)-q(y)\bigr)
+    =X^{\mathsf T}AY
+\end{equation}
+定义了一个对称双线性型，并满足 $g(x,x)=q(x)$。因此在数域上，对称型与二次型一一对应；式~\eqref{eq:bilinear-polarization} 称为\emph{极化恒等式}（polarization identity）。交错型的自配对恒为零，所以一般纯量积的自配对只能恢复它的对称部分。
+
+由对称矩阵的合同对角化结论，可选 $V$ 的一组基，使 $g$ 的矩阵为
+\[
+    \operatorname{diag}(d_1,\ldots,d_r,0,\ldots,0),\qquad d_i\neq0.
+\]
+这些基向量两两正交，称为 $g$ 的\emph{正交基}（orthogonal basis）。若 $g$ 非退化，则 $r=n$，正交基中每个向量的自配对均非零。在一般数域中，不能保证把所有非零 $d_i$ 都缩放成 $1$；在 $\mathbb C$ 上可以归一为 $\operatorname{diag}(I_r,0)$，在 $\mathbb R$ 上则可归一为 $\operatorname{diag}(I_p,-I_q,0)$，其中 $p,q$ 由惯性定理唯一确定。实内积对应正定对称型，而一般非退化对称型允许非零向量的自配对为零。
+
+\begin{definition}
+\label{def:bilinear-isometry}
+设 $(V_1,g_1)$、$(V_2,g_2)$ 为配备非退化对称型的有限维线性空间。线性同构 $T:V_1\to V_2$ 若满足
+\[
+    g_2(Tx,Ty)=g_1(x,y)\qquad(x,y\in V_1),
+\]
+称为\emph{保距同构}（linear isometry）。当 $(V_1,g_1)=(V_2,g_2)=(V,g)$ 时，称 $T$ 为 $(V,g)$ 上的\emph{正交变换}（orthogonal transformation）。
+\end{definition}
+
+这里的“保距”指保持给定的对称配对及相应二次型，只有在实正定情形才能直接解释为保持欧氏距离。若两组基下 $g_1,g_2$ 的矩阵分别为 $G_1,G_2$，$T$ 的矩阵为 $P$，则保距条件等价于 $P^{\mathsf T}G_2P=G_1$。特别，同一空间中正交变换满足
+\begin{equation}
+\label{eq:bilinear-orthogonal-matrix}
+    P^{\mathsf T}GP=G.
+\end{equation}
+该等式在 $G$ 可逆时也自动保证 $P$ 可逆。正交变换的复合、恒等变换及逆变换仍保持 $g$，验证与辛变换相同，故它们组成\emph{正交群}（orthogonal group）$\operatorname{O}(V,g)$。对式~\eqref{eq:bilinear-orthogonal-matrix} 取行列式得 $\det P=\pm1$。在使 $G=I$ 的基下，保持条件写成通常的 $P^{\mathsf T}P=I$；复数域上这里仍使用转置，讨论的是复双线性对称型。
+
+\begin{proposition}
+\label{prop:bilinear-reflection}
+设 $g$ 为 $V$ 上的非退化对称型，$u\in V$ 满足 $g(u,u)\neq0$。定义
+\begin{equation}
+\label{eq:bilinear-reflection}
+    S_u(x)=x-\frac{2g(x,u)}{g(u,u)}u.
+\end{equation}
+则 $S_u$ 是正交变换，称为关于 $u$ 的\emph{镜像变换或反射}（reflection）。它将 $u$ 映为 $-u$，在 $u^\perp=(\operatorname{span}\{u\})^\perp$ 上为恒等变换，并满足
+\[
+    S_u^2=I,\qquad \det S_u=-1.
+\]
+\end{proposition}
+
+\begin{proof}
+由对称性直接展开，有
+\[
+\begin{aligned}
+    g(S_ux,S_uy)
+    &=g(x,y)-\frac{2g(x,u)g(u,y)}{g(u,u)}
+      -\frac{2g(y,u)g(x,u)}{g(u,u)}\\
+    &\quad+\frac{4g(x,u)g(y,u)g(u,u)}{g(u,u)^2}
+    =g(x,y).
+\end{aligned}
+\]
+定义又给出 $S_u(u)=-u$，且 $x\in u^\perp$ 时 $S_u(x)=x$。由 $g(u,u)\neq0$ 和定理~\ref{thm:bilinear-orthogonal-splitting}，有 $V=\operatorname{span}\{u\}\oplus u^\perp$，所以 $S_u$ 在此分解下的矩阵为 $\operatorname{diag}(-1,I_{n-1})$，从而可逆、平方为恒等且行列式为 $-1$。
+\end{proof}
+
+\begin{theorem}[Cartan--Dieudonn\'e 定理]
+\label{thm:bilinear-cartan-dieudonne}
+设 $V$ 是数域上的 $n$ 维线性空间，$g$ 是 $V$ 上的非退化对称型，则任一正交变换都可表示为不超过 $n$ 个镜像变换之积。
+\end{theorem}
+
+教材在这里陈述该定理而未给证明，本节也只记录结论；每个镜像变换都须由满足 $g(u,u)\neq0$ 的向量构造。若某个分解含有 $k$ 个镜像变换，则其行列式为 $(-1)^k$，所以行列式决定了分解中镜像变换个数的奇偶性。
+
+\begin{definition}
+\label{def:bilinear-isotropic}
+设 $g$ 是 $V$ 上的非退化对称型。若 $x\neq0$ 且 $g(x,x)=0$，称 $x$ 为\emph{迷向向量}，也称各向同性向量（isotropic vector）。含有迷向向量的子空间称为迷向子空间；不含迷向向量的子空间称为\emph{全不迷向子空间}（anisotropic subspace）。若子空间的每个非零向量都是迷向向量，称它为\emph{全迷向子空间}（totally isotropic subspace）。
+\end{definition}
+
+迷向向量不包括零向量。一个子空间含有迷向向量，并不意味着限制型退化，例~\ref{ex:bilinear-isotropic-line} 所在的整个 $\mathbb R^2$ 就是反例；退化要求存在非零向量与该子空间的所有向量都正交。对于全迷向子空间 $U$，极化恒等式给出
+\[
+    q|_U=0\quad\Longleftrightarrow\quad g|_{U\times U}=0
+    \quad\Longleftrightarrow\quad U\subseteq U^\perp.
+\]
+由式~\eqref{eq:bilinear-perp-dimensions}，全迷向子空间满足 $2\dim U\leq\dim V$。正定情形没有非零的全迷向子空间，而不定对称型允许这种现象。
+
+\begin{theorem}
+\label{thm:bilinear-hyperbolic-plane}
+配备非退化对称型的二维空间称为\emph{双曲平面}（hyperbolic plane），若它含有迷向向量。它是双曲平面的充要条件为：存在一组基 $u,v$，满足
+\begin{equation}
+\label{eq:bilinear-hyperbolic-basis}
+    g(u,u)=g(v,v)=0,\qquad g(u,v)=g(v,u)=1,
+\end{equation}
+即表示矩阵为 $H=\begin{pmatrix}0&1\\1&0\end{pmatrix}$。在同一数域上，任意两个双曲平面保距同构；每个双曲平面恰有两个一维全迷向子空间。
+\end{theorem}
+
+\begin{proof}
+若空间含非零迷向向量 $u$，由非退化性可选 $v_0$，经缩放使 $g(u,v_0)=1$。令
+\[
+    v=v_0-\frac{g(v_0,v_0)}2u.
+\]
+由于 $g(u,u)=0$，有 $g(u,v)=1$，且
+\[
+    g(v,v)=g(v_0,v_0)-g(v_0,v_0)g(u,v_0)=0.
+\]
+若 $au+bv=0$，分别与 $u,v$ 配对得 $b=a=0$，所以 $u,v$ 是所需的基。反过来，矩阵 $H$ 的行列式为 $-1$，并且 $u$ 是迷向向量，故它确实给出双曲平面。对于两个双曲平面，将一组满足式~\eqref{eq:bilinear-hyperbolic-basis} 的基依次映到另一组对应基，即得保距同构。最后，
+\[
+    g(au+bv,au+bv)=2ab,
+\]
+所以非零迷向向量恰落在 $\mathbb K u$ 或 $\mathbb K v$ 上，这正是仅有的两个一维全迷向子空间。
+\end{proof}
+
+上述构造也适用于更高维的非退化对称空间：每个迷向向量 $u$ 都可以配成一个双曲平面 $\operatorname{span}\{u,v\}$，再由定理~\ref{thm:bilinear-orthogonal-splitting} 将它从整个空间中作正交直和分离。注意双曲平面与辛空间的基本二维块不同：前者的矩阵为 $H$，后者为 $S$，前者对称，后者反对称。
+
+\begin{example}
+\label{ex:bilinear-minkowski-space}
+设 $V$ 为四维实线性空间，$g$ 为非退化对称型，且正、负惯性指数分别为 $3,1$。在适当基下，其矩阵为 $G=\operatorname{diag}(1,1,1,-1)$。说明相应的二次型与向量分类。
+\end{example}
+
+\begin{solve}
+这一结构称为\emph{闵可夫斯基空间}（Minkowski space）。若 $x$ 的坐标为 $(x_1,x_2,x_3,t)^{\mathsf T}$，则
+\[
+    q(x)=g(x,x)=x_1^2+x_2^2+x_3^2-t^2.
+\]
+保持 $g$ 的正交变换称为\emph{洛伦兹变换}（Lorentz transformation），其矩阵满足 $P^{\mathsf T}GP=G$。在这里采用的符号约定下，$q(x)>0$ 的向量称为空间向量或类空向量（spacelike vector），$q(x)<0$ 的称为时间向量或类时向量（timelike vector），$x\neq0$ 且 $q(x)=0$ 的称为光向量或类光向量（lightlike vector）。例如 $(1,0,0,1)^{\mathsf T}$ 是光向量；它与自身正交，却不属于 $g$ 的根子空间，因为该根子空间为零。
+\end{solve}
+
+
+
+
+

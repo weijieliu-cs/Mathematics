@@ -1,0 +1,81 @@
+% !TeX root = ../机器学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{线性代数与微积分工具}
+\label{chap:ml-linear-algebra}
+
+机器学习中的样本往往很多，参数也可能组成向量或矩阵。矩阵表达既压缩了计算，又暴露了模型的几何结构。本章围绕最小二乘和复合函数，建立后文所需的线性代数与微分工具。
+
+\section{向量、矩阵与样本的表示}
+
+输入 $x=(x_1,\ldots,x_d)^\top\in\mathbb R^d$ 默认是列向量，内积为 $x^\top z=\sum_jx_jz_j$，欧氏范数为 $\|x\|_2=(x^\top x)^{1/2}$。Cauchy--Schwarz 不等式 $|x^\top z|\leq\|x\|_2\|z\|_2$ 表明内积受到两个向量长度的控制；当两者非零时，归一化内积是夹角余弦。矩阵 $A\in\mathbb R^{m\times d}$ 表示从 $\mathbb R^d$ 到 $\mathbb R^m$ 的线性映射，矩阵乘法对应映射复合。
+
+将 $n$ 个样本按行排列为 $\mathbf X\in\mathbb R^{n\times d}$，线性模型的全部预测为 $\mathbf Xw+b\mathbf1$，其中 $w\in\mathbb R^d$、$b\in\mathbb R$、$\mathbf1\in\mathbb R^n$。若将截距并入参数，就使用扩展矩阵 $A=[\mathbf1,\mathbf X]$ 和参数 $\beta=(b,w^\top)^\top$。$\mathbf Xw$ 是矩阵乘法；两个同维向量的逐元素乘积另写为 $x\odot z$。
+
+矩阵的秩是列空间的维数。若 $\mathbf Xv=0$ 且 $v\ne0$，则 $w$ 与 $w+v$ 产生相同的训练预测，因而仅凭这些样本无法区分两组系数。方阵的迹为对角元之和；维度相容时 $\operatorname{tr}(AB)=\operatorname{tr}(BA)$。矩阵的 Frobenius 范数为 $\|A\|_F^2=\sum_{ij}A_{ij}^2=\operatorname{tr}(A^\top A)$。
+
+\section{线性方程组与正交投影}
+
+设 $A\in\mathbb R^{n\times p}$、$y\in\mathbb R^n$。当 $A\beta=y$ 无解时，最小二乘寻找使 $\|A\beta-y\|_2^2$ 最小的 $\beta$，即寻找列空间 $\operatorname{col}(A)$ 中最接近 $y$ 的向量。
+\begin{proposition}[最小二乘与正规方程]
+$\widehat\beta$ 是最小二乘解当且仅当 $A^\top(A\widehat\beta-y)=0$。拟合向量 $A\widehat\beta$ 总是唯一；系数唯一当且仅当 $A$ 满列秩，此时 $\widehat\beta=(A^\top A)^{-1}A^\top y$。
+\end{proposition}
+\begin{proof}
+平方损失的梯度为 $2A^\top(A\beta-y)$，极小点必须满足正规方程。反之，若正规方程成立，令 $r=y-A\widehat\beta$，则 $r$ 与列空间正交。对任意 $\beta$，
+\[
+ \|y-A\beta\|_2^2=\|r\|_2^2+\|A(\widehat\beta-\beta)\|_2^2.
+\]
+故 $\widehat\beta$ 最优，所有最优解有同一拟合向量。$A^\top A$ 正定等价于 $\ker A=\{0\}$，这又等价于满列秩；不满秩时沿非零零空间方向移动参数不改变拟合。
+\end{proof}
+
+秩亏时，Moore--Penrose 伪逆（pseudoinverse）$A^+$ 给出唯一的最小欧氏范数解 $A^+y$。闭式公式主要用于分析，数值计算通常通过 QR 分解或 SVD 求解，避免显式计算逆矩阵；形成 $A^\top A$ 还可能放大病态性。
+
+\section{特征值、二次型与奇异值分解}
+
+实对称矩阵 $B$ 可写为 $B=Q\Lambda Q^\top$，其中 $Q$ 正交、$\Lambda$ 为实对角矩阵。若对所有 $v$ 有 $v^\top Bv\geq0$，称 $B$ 半正定（positive semidefinite）；若对所有非零 $v$ 严格大于零，称其正定。由谱分解可知，两种性质分别等价于特征值非负和严格为正。对于有限二阶矩随机向量，协方差矩阵 $\Sigma$ 满足 $v^\top\Sigma v=\operatorname{Var}(v^\top X)\geq0$，故总是半正定，但不一定可逆。
+
+任意实矩阵 $A\in\mathbb R^{m\times d}$ 都有奇异值分解（singular value decomposition，SVD）$A=U\Sigma V^\top$，其中 $U,V$ 正交，$\Sigma$ 只有主对角线上可能非零，其非负元素为奇异值。非零奇异值个数等于矩阵秩，奇异值平方是 $A^\top A$ 的非零特征值。伪逆由这些非零奇异值取倒数而得。SVD 将线性映射分解为坐标旋转、不同方向的伸缩和再次旋转，是降维与病态分析的共同工具。
+
+\section{多元函数的微分与链式法则}
+
+对可微标量函数 $F:\mathbb R^d\to\mathbb R$，梯度 $\nabla F$ 是偏导数组成的列向量，方向 $v$ 上的一阶变化为 $\nabla F(x)^\top v$。在 $\|v\|_2=1$ 的方向中，若梯度非零，负梯度方向使一阶变化最小。对向量函数 $g:\mathbb R^d\to\mathbb R^m$，Jacobian 矩阵 $J_g$ 的第 $(i,j)$ 元为 $\partial g_i/\partial x_j$；链式法则给出
+\[
+ \nabla_x F(g(x))=J_g(x)^\top\nabla F(g(x)).
+\]
+二阶偏导连续时，Hessian 矩阵 $\nabla^2F$ 对称，刻画局部曲率。
+
+令 $F(w)=\tfrac12\|Aw-y\|_2^2$，由微分
+\[
+ dF=(Aw-y)^\top A\,dw
+\]
+读出 $\nabla F=A^\top(Aw-y)$、$\nabla^2F=A^\top A$。当二次型为 $w^\top Bw$ 时，梯度一般是 $(B+B^\top)w$，只有 $B$ 对称时才简化为 $2Bw$。先检查函数是否标量、变量属于哪个空间，通常比机械记忆公式更可靠。
+
+\section{泰勒展开、曲率与数值稳定性}
+
+若 $F$ 二阶连续可微，则
+\[
+ F(x+h)=F(x)+\nabla F(x)^\top h+\tfrac12h^\top\nabla^2F(x)h+o(\|h\|_2^2).
+\]
+驻点处梯度为零；Hessian 正定足以保证严格局部极小，半正定则不足以单独作出判断，例如 $F(x)=x^3$ 在零点的二阶导数为零，却没有局部极小。
+
+满列秩矩阵的谱条件数为最大与最小奇异值之比。比值很大表示某些方向受到强烈压缩，微小数据扰动可能引起较大的参数变化。特征尺度调整有助于计算，但不能消除所有近似线性相关。另一个稳定性问题来自指数运算：对实数 $a_1,\ldots,a_m$，令 $c=\max_j a_j$，则
+\[
+ \log\sum_j e^{a_j}=c+\log\sum_j e^{a_j-c}.
+\]
+右侧指数不超过一，避免了直接计算大指数导致的上溢。数学上等价的表达式在浮点计算中可能表现不同。
+
+\section{例题、练习与学习检查}
+
+\begin{example}[投影求一条直线]
+用 $b+wx$ 拟合 $(0,1),(1,2),(2,2)$。
+\end{example}
+\begin{solve}
+$\bar x=1$、$\bar y=5/3$，中心化后的内积为 $1$、输入平方和为 $2$，故 $w=1/2$、$b=7/6$。拟合为 $(7/6,5/3,13/6)^\top$，残差为 $(-1/6,1/3,-1/6)^\top$。残差与常数列、输入列的内积均为零，平方和为 $1/6$，与正规方程一致。
+\end{solve}
+
+习题：证明 $\operatorname{rank}(A^\top A)=\operatorname{rank}(A)$；把例题的输入列复制一次，写出全部最小二乘系数并找出最小范数解；用中心差分检查一个二次函数的梯度，解释差分步长过小为何可能加大舍入误差。检查任何矩阵公式时，同时写出每个因子的维度。
+
+
+
+
+

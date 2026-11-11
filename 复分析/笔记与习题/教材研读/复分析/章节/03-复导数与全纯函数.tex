@@ -1,0 +1,169 @@
+% !TeX root = ../复分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{2} % 保留原书章号。
+\chapter{复导数与全纯函数}
+\label{chap:ca-derivative}
+
+\section{复函数、极限与连续性}
+
+一个复函数 $w=f(z)$ 可以拆成两个实函数：
+\[
+ f(x+iy)=u(x,y)+iv(x,y).
+\]
+例如 $f(z)=z^2$ 对应 $u=x^2-y^2$、$v=2xy$；$f(z)=\overline z$ 对应 $u=x$、$v=-y$。前者把一个点的辐角加倍，后者把复平面关于实轴反射。把复函数只看成两个实函数有助于计算，但会暂时遮住复数乘法带来的结构。
+
+\begin{definition}[复极限]
+设 $a$ 为函数定义域的聚点。若对任意 $\varepsilon>0$，存在 $\delta>0$，使定义域内满足 $0<|z-a|<\delta$ 的点都有 $|f(z)-L|<\varepsilon$，就称 $f(z)$ 在 $z\to a$ 时趋于 $L$，记为 $\lim_{z\to a}f(z)=L$。若 $f$ 在 $a$ 有定义且极限等于 $f(a)$，则称 $f$ 在 $a$ 连续。
+\end{definition}
+
+复极限存在等价于实部和虚部的二元函数极限都存在。必须允许所有方向、所有曲线的趋近；沿两条路径得到不同值，可以否定极限，沿若干条路径得到同值却一般不能证明极限。例如实函数 $xy/(x^2+y^2)$ 沿两条坐标轴趋于零，沿 $y=x$ 却趋于 $1/2$。这一点在检查复导数时尤其重要。
+
+\begin{example}[路径检验的限度]
+令 $g(x+iy)=x^2y/(x^4+y^2)$（$(x,y)\ne(0,0)$）。沿任意过原点的直线，其极限均为零：当 $y=mx$ 且 $m\ne0$ 时，$g=mx/(x^2+m^2)\to0$，水平线与竖直线上也为零；但沿 $y=x^2$，$g=1/2$。所以即使检验了所有直线，仍不足以证明二元极限存在。
+\end{example}
+
+\section{复可导比实可微多要求了什么}
+
+\begin{definition}[复导数与全纯性]
+设 $f$ 在 $a$ 的一个邻域内有定义。如果有限极限
+\begin{equation}
+ f'(a)=\lim_{h\to0}\frac{f(a+h)-f(a)}{h}
+ \label{eq:ca-derivative}
+\end{equation}
+存在，则称 $f$ 在 $a$ \emph{复可导（complex differentiable）}。若 $f$ 在开集 $U$ 的每一点都复可导，则称 $f$ 在 $U$ \emph{全纯（holomorphic）}。在整个 $\mathbb C$ 上全纯的函数称为\emph{整函数（entire function）}。
+\end{definition}
+
+式~\eqref{eq:ca-derivative} 中 $h$ 是复数，可以沿任意方向趋于零。等价地，存在复数 $c$ 使
+\begin{equation}
+ f(a+h)=f(a)+ch+o(|h|),\qquad h\to0,
+ \label{eq:ca-linearization}
+\end{equation}
+此时 $c=f'(a)$。这里 $o(|h|)$ 表示余项除以 $|h|$ 后趋于零。因而复可导蕴含连续；更重要的是，一阶近似只能是“乘以同一个复数”，不能是任意实线性变换。
+
+\begin{example}[三个外形简单但性质不同的函数]
+讨论 $z^2$、$\overline z$ 和 $|z|^2$ 的复可导性。
+\end{example}
+\begin{solve}
+对 $z^2$，差商为 $2a+h$，故处处可导且导数为 $2a$。对 $\overline z$，差商为 $\overline h/h$：沿实轴取值 $1$，沿虚轴取值 $-1$，故处处不可导。对 $|z|^2$，有
+\[
+ \frac{|a+h|^2-|a|^2}{h}
+ =\overline a+a\frac{\overline h}{h}+\overline h.
+\]
+沿实轴与虚轴的极限分别为 $\overline a+a$ 和 $\overline a-a$，二者相等要求 $a=0$。在 $a=0$ 时差商恰为 $\overline h\to0$，故只在原点可导。这说明“在一点可导”不等于“在该点附近全纯”；$|z|^2$ 不在任何非空开集上全纯。
+\end{solve}
+
+复导数的线性、乘积、商与链式法则和实导数相同，证明也由差商和极限法则得到。例如，若 $f$ 在 $a$ 可导，$g$ 在 $f(a)$ 可导，则 $(g\circ f)'(a)=g'(f(a))f'(a)$。商法则要求分母在所考察点不为零。因此，多项式是整函数，有理函数在分母不为零处全纯。一个有理表达式在分母为零处是否能延拓，要另行检查约分后的行为。
+
+\section{柯西--黎曼方程：必要条件与充分条件}
+
+设 $f=u+iv$ 在 $a=x_0+iy_0$ 复可导。沿实方向取差商，得到 $f'(a)=u_x+iv_x$；沿虚方向取差商，得到 $f'(a)=v_y-iu_y$。比较实部与虚部，必有
+\begin{equation}
+ u_x=v_y,\qquad u_y=-v_x.
+ \label{eq:ca-cr}
+\end{equation}
+这组关系称为\emph{柯西--黎曼方程（Cauchy--Riemann equations）}，简称 C--R 方程。它们表达了水平方向与竖直方向的一阶变化必须彼此相容。
+
+\begin{theorem}[复可导的实微分判别]
+\label{thm:ca-cr}
+函数 $f=u+iv$ 在 $a$ 复可导，当且仅当 $u,v$ 在 $(x_0,y_0)$ 实可微且满足 C--R 方程。特别地，若 $u,v$ 的一阶偏导数在 $a$ 的邻域存在，并在 $a$ 连续，且在 $a$ 满足 C--R 方程，则 $f$ 在 $a$ 复可导。
+\end{theorem}
+\begin{proof}
+若 $f$ 复可导，式~\eqref{eq:ca-linearization} 给出实可微性，并已推出 C--R 方程。反之，实可微性给出
+\[
+ f(a+h)-f(a)
+ =(u_x+iv_x)\Delta x+(u_y+iv_y)\Delta y+o(|h|),
+ \quad h=\Delta x+i\Delta y.
+\]
+由 C--R 方程，$u_y+iv_y=i(u_x+iv_x)$，故主部等于 $(u_x+iv_x)h$。除以 $h$ 后余项的模趋于零，于是 $f'(a)=u_x+iv_x$。最后的充分条件来自实分析中“偏导数在该点连续蕴含实可微”的定理。
+\end{proof}
+
+需要特别区分两个层次：C--R 方程配合实可微性，是一点复可导的充要条件；若只知道该点偏导数存在并满足方程，则一般不够，因为它们只控制沿坐标轴的变化。判断区域上全纯时，常用做法是先检查 $u,v$ 在整个区域为 $C^1$，再逐点验证 C--R 方程。
+
+\begin{example}[只验证偏导数为什么不够]
+定义
+\[
+ f(x+iy)=
+ \begin{cases}
+ \dfrac{x^3}{x^2+y^2}+i\dfrac{y^3}{x^2+y^2},&(x,y)\ne(0,0),\\
+ 0,&(x,y)=(0,0).
+ \end{cases}
+\]
+证明它在原点连续且满足 C--R 方程，但不复可导。
+\end{example}
+\begin{solve}
+实部的模不超过 $|x|$，虚部的模不超过 $|y|$，所以 $|f(z)|\le|z|$，原点连续。沿坐标轴求偏导得 $u_x=v_y=1$、$u_y=v_x=0$。然而沿 $y=0$ 有 $f(z)/z=1$，沿 $y=x\ne0$ 有 $f(z)=z/2$，故差商没有统一极限。这一反例也说明连续性不能代替实可微性。
+\end{solve}
+
+\begin{example}[判断一个函数在哪里全纯]
+设 $f(z)=x^2-y^2+i\alpha xy$，其中 $\alpha\in\mathbb R$。求其复可导点，并判断何时为整函数。
+\end{example}
+\begin{solve}
+分量是多项式，实可微性自动成立。C--R 方程为 $(2-\alpha)x=0$、$(\alpha-2)y=0$。若 $\alpha=2$，则 $f=z^2$，为整函数；若 $\alpha\ne2$，则只在原点可导，导数为零，并不在任何区域上全纯。
+\end{solve}
+
+\begin{example}[仅有偏导数的反例]
+定义
+\[
+ f(x+iy)=\begin{cases}
+ \dfrac{xy}{x^2+y^2}(x+iy),&(x,y)\ne(0,0),\\
+ 0,&(x,y)=(0,0).
+ \end{cases}
+\]
+因 $|xy|\le(x^2+y^2)/2$，有 $|f(z)|\le|z|/2$，故它在原点连续。两个坐标轴上函数恒为零，因此实部、虚部的四个偏导数在原点均为零，满足柯西--黎曼方程；但 $f(h)/h$ 沿实轴等于零，沿 $h=t(1+i)$ 等于 $1/2$。缺少的是实可微性，而非连续性。
+\end{example}
+
+\begin{example}[识别一个整函数]
+设 $u=x^3-3xy^2$、$v=3x^2y-y^3$。求 $f=u+iv$ 的导数。
+\end{example}
+\begin{solve}
+四个偏导数连续，且 $u_x=v_y=3x^2-3y^2$、$u_y=-v_x=-6xy$，故 $f$ 整，$f'=3(x^2-y^2)+6ixy=3z^2$。直接展开 $(x+iy)^3$ 也可识别 $f=z^3$；两种方法分别体现实变量判别和复代数计算。
+\end{solve}
+
+\section{导数的几何意义与调和性预告}
+
+若 $f'(a)=\rho e^{i\theta}\ne0$，则一阶近似把很小的向量 $h$ 变成 $\rho e^{i\theta}h$。因此，在足够小的尺度上，函数近似于统一伸缩与旋转。若两条光滑曲线在 $a$ 相交且切向量非零，像曲线的切向量同时乘以 $f'(a)$，二者夹角便保持不变。这里谈的是局部性质；例如 $e^z$ 的导数处处非零，却会把相差 $2\pi i$ 的点映到同一点，不能由局部保角推出整体单射。
+
+写 $f'(a)=p+iq$，对应的实雅可比矩阵为
+\[
+ \begin{pmatrix}p&-q\\q&p\end{pmatrix},\qquad
+ \det Df(a)=p^2+q^2=|f'(a)|^2.
+\]
+它表明非零复导数保持平面定向。反射 $z\mapsto\overline z$ 的实雅可比行列式为 $-1$，虽保持无向角的大小，却不是全纯映射。若 $f'(a)=0$，一阶近似退化，保角结论不能使用；$z\mapsto z^2$ 在原点把射线之间的角度加倍就是例子。
+
+若暂时进一步假设 $u,v\in C^2$，对 C--R 方程微分并交换连续混合偏导，得到
+\[
+ u_{xx}+u_{yy}=v_{yx}-v_{xy}=0,\qquad
+ v_{xx}+v_{yy}=0.
+\]
+满足这一拉普拉斯方程的实函数称为调和函数（harmonic function）。后面将证明全纯函数自动光滑，从而去掉这里额外列出的 $C^2$ 假设。但任意两个调和函数拼成 $u+iv$ 不一定全纯，它们之间还必须满足 C--R 方程。
+
+对实可微的复值函数，可定义\emph{维尔廷格导数（Wirtinger derivatives）}
+\[
+ \frac{\partial f}{\partial z}=\frac12(f_x-if_y),\qquad
+ \frac{\partial f}{\partial\overline z}=\frac12(f_x+if_y).
+\]
+实微分可写为 $df=(\partial f/\partial z)\,dz+(\partial f/\partial\overline z)\,d\overline z$。定理~\ref{thm:ca-cr} 因而等价于：实可微时，复可微恰好要求 $\partial f/\partial\overline z=0$，且复导数为 $\partial f/\partial z$。这是一种简洁记号，不能用来省略实可微假设。
+
+\begin{proposition}
+\label{prop:ca-zero-derivative}
+若 $f$ 在区域 $\Omega$ 上全纯且 $f'\equiv0$，则 $f$ 为常数。特别地，区域上的实值全纯函数为常数。
+\end{proposition}
+\begin{proof}
+由柯西--黎曼方程，$f'=0$ 使 $u,v$ 的四个一阶偏导数全为零。在区域内任一线段上，把 $u,v$ 与线段参数复合，实链式法则与一元中值定理说明二者不变。由命题~\ref{prop:ca-polygonal-connected}，任意两点间可用有限折线连接，故 $f$ 为常数。若 $f$ 实值，则 $v\equiv0$，柯西--黎曼方程直接给出 $u_x=u_y=0$。
+\end{proof}
+
+\section{习题}
+\label{sec:ca-derivative-ex}
+\begin{enumerate}
+ \item 求 $f(z)=z^3+2/z$ 的全纯区域与导数。
+ \item 判断 $f(z)=\operatorname{Re}z$ 和 $g(z)=z\overline z$ 的复可导点；比较二者与实可微性的关系。
+ \item 设 $f$ 在区域 $D$ 全纯且 $f'(z)=0$ 对所有 $z\in D$ 成立，证明 $f$ 为常数。提示：先在小圆盘内沿线段讨论，再用连通性。
+ \item 设 $f$ 在区域 $D$ 全纯且只取实数值，证明 $f$ 为常数。
+ \item 设 $u(x,y)=x^3-3xy^2$，求所有使 $u+iv$ 在 $\mathbb C$ 全纯的实函数 $v$。
+
+  \item\label{ex:ca-affine} 设 $f(z)=az+b\overline z+c$，其中 $a,b,c\in\mathbb{C}$。求其全部复可微点，并说明何时为整函数。
+  \item\label{ex:ca-c1-criterion} 求实数 $\alpha,\beta$，使 $f(x+iy)=x^2+\alpha y^2+i\beta xy$ 为整函数，并求 $f'$。
+  \item\label{ex:ca-real-constant} 设 $f$ 全纯，定义域为 $\{z:|\operatorname{Re}z|>1\}$，且 $f$ 实值。它是否必须在整个定义域上取同一常数？
+  \item\label{ex:ca-modulus-constant} 若区域上的全纯函数满足 $|f|\equiv c$（$c\ge0$），利用柯西--黎曼方程证明 $f$ 为常数，不使用最大模原理。
+\end{enumerate}
+

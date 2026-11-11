@@ -1,0 +1,77 @@
+% !TeX root = ../组合数学笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{13} % 保留原书章号。
+\chapter{极值组合与 Ramsey 理论}
+\label{ch:extremal-ramsey}
+
+精确计数研究合法对象总共有多少；极值组合则研究在避免某种结构的条件下，对象最多可以多大。Ramsey 理论从另一方向说明：规模足够大时，某些有序子结构无法避免。两种问题都需要严格区分构造给出的下界与普遍论证给出的上界。
+
+\section{极值函数与上下界的分工}
+
+\begin{definition}
+对固定简单图 $H$，记 $\operatorname{ex}(n,H)$ 为不含 $H$ 同构子图的 $n$ 顶点简单图的最大边数，称为相应的\emph{极值数（extremal number）}。此处不要求被禁止的子图为诱导子图。
+\end{definition}
+
+给出一个有 $m$ 条边的 $H$-无关图，只能推出 $\operatorname{ex}(n,H)\ge m$；证明每个此类图至多有 $m$ 条边，才能推出反向不等式。两者结合才确定精确值。有限性保证最大值存在，因为固定标号集上的简单图只有有限个。
+
+类似地，可研究 $[n]$ 的子集族在不出现某种包含关系时最多有多少成员；Sperner 定理就是禁止两个成员严格包含时的极值结论。不同问题的共同模式是“限制结构---构造候选---证明上界---判断能否相合”。
+
+\section{Mantel 定理与 Tur\'an 图}
+
+\begin{theorem}[Mantel 定理]
+对 $n\ge1$，$\operatorname{ex}(n,K_3)=\lfloor n^2/4\rfloor$，其中 $K_r$ 表示 $r$ 个顶点的完全图。
+\end{theorem}
+\begin{proof}
+若无三角形，则每条边 $uv$ 的两个邻点集不交，所以 $d(u)+d(v)\le n$。记边数为 $m$，对边求和得 $\sum_vd(v)^2\le mn$。另一方面，$\sum_v(d(v)-2m/n)^2\ge0$ 给出 $\sum_vd(v)^2\ge4m^2/n$。若 $m>0$，相合得 $m\le n^2/4$；$m=0$ 时同样成立。两部分大小为 $\lfloor n/2\rfloor,\lceil n/2\rceil$ 的完全二分图无三角形，且有 $\lfloor n^2/4\rfloor$ 条边，达到上界。
+\end{proof}
+
+把 $n$ 个顶点分成 $r\ge1$ 部，部内无边、部间全连，得到完全 $r$ 部图。若部大小为 $n_1,\ldots,n_r$，允许空部，则边数为 $(n^2-\sum_i n_i^2)/2$。当两个部大小相差至少二时，从大部移一个顶点到小部使平方和减小，故边数最大时各部大小相差至多一。此平衡图记为 $T_r(n)$，边数记为 $t_r(n)$。写 $n=qr+s$、$0\le s<r$，有
+\[
+ t_r(n)=\frac12\bigl(n^2-s(q+1)^2-(r-s)q^2\bigr).
+\]
+
+\begin{theorem}[Tur\'an 定理]
+对 $n\ge0,r\ge1$，$\operatorname{ex}(n,K_{r+1})=t_r(n)$。
+\end{theorem}
+\begin{proof}
+$T_r(n)$ 中任意团从每部至多取一点，故不含 $K_{r+1}$，给出下界。对 $r$ 归纳，并在固定 $r$ 时对 $n$ 归纳证明上界。$r=1$ 时图无边；$n<r$ 时 $t_r(n)=\binom n2$，结论成立。设 $r\ge2,n\ge r$。若图不含 $K_r$，由较小 $r$ 的结论，边数至多 $t_{r-1}(n)\le t_r(n)$，后一个不等式来自完全多部图的平衡极值。若含一个 $r$ 点团，则每个外部顶点至多与其中 $r-1$ 点邻接，否则出现 $K_{r+1}$。删除该团后，由较小 $n$ 的归纳假设，
+\[
+ |E|\le t_r(n-r)+(r-1)(n-r)+\binom r2=t_r(n).
+\]
+最后等号可通过向 $T_r(n-r)$ 的每一部各加一个顶点直接计算；平衡性保持不变。这完成双重归纳。
+\end{proof}
+
+定理给出极值数及达到它的构造；关于所有等号图的分类需进一步论证，本节不由边数公式直接声称这种分类。更多禁子图问题可参考\cite{zhao-graph-notes}。
+
+\section{Ramsey 数与有限性证明}
+
+\begin{definition}
+对 $r,s\ge2$，\emph{Ramsey 数（Ramsey number）} $R(r,s)$ 是使得每个 $K_n$ 的红蓝边染色都含红色 $K_r$ 或蓝色 $K_s$ 的最小 $n$。其存在性由下面的上界证明。
+\end{definition}
+
+边界为 $R(2,s)=s$、$R(r,2)=r$：若有红边即出现红色 $K_2$，否则全部边蓝色；反向下界取少一个顶点的全蓝图即可。对 $r,s\ge3$，有
+\begin{equation}
+ R(r,s)\le R(r-1,s)+R(r,s-1)
+       \le\binom{r+s-2}{r-1}.
+ \label{eq:ramsey-recursion}
+\end{equation}
+证明第一步时，令 $a=R(r-1,s)$、$b=R(r,s-1)$，在 $K_{a+b}$ 中取顶点 $v$。其 $a+b-1$ 个邻点中，或者红邻点至少为 $a$，或者蓝邻点至少为 $b$。前一种情形在红邻点中得到蓝色 $K_s$ 或红色 $K_{r-1}$，后者连同 $v$ 构成红色 $K_r$；另一种情形对称。由 $r+s$ 归纳可同时证明这些数存在，第二步再用 Pascal 恒等式及边界归纳。
+
+把红边看成某个图的边，蓝边就是补图的边，所以同一结论可表述为：足够大的图含 $r$ 点团或 $s$ 点独立集。\emph{独立集（independent set）}是内部没有边的顶点集，与团分别代表稠密和稀疏的局部结构。
+
+\section{小规模精确值与一般界}
+
+\begin{example}
+$R(3,3)=6$。在六点完全图中，某顶点至少有三个同色邻点，设为红邻点。如果三点之间有红边，便与原顶点组成红三角形；否则三点自身组成蓝三角形，故 $R(3,3)\le6$。在五点上把五边形的边染红、其余边染蓝，两种颜色都构成五圈，均无三角形，故 $R(3,3)>5$。
+\end{example}
+
+对更大参数，构造一个避免两种单色团的染色给出下界，递推或其他结构定理给出上界。不能把上界当作精确值，也不能因为一种搜索未找到反例就认为上界已经达到。下一章的随机染色将提供无需直接展示图案的下界证明；这仍是严格的存在性论证，但通常不是具体构造。
+
+\section{习题}
+\begin{enumerate}
+  \item\label{ex:extremal-ramsey-1} 七个顶点的无三角形图最多有多少条边？给出达到上界的图。
+  \item\label{ex:extremal-ramsey-2} 计算 $t_3(8)$，明确三个部分的大小，并验证它不含 $K_4$。
+  \item\label{ex:extremal-ramsey-3} 仅用 $R(3,3)=6$ 与式\eqref{eq:ramsey-recursion}求出 $R(3,4)$ 的一个上界；说明为何不能据此声称等号。
+  \item\label{ex:extremal-ramsey-4} 把“六人中必有三人两两相识或三人两两不相识”翻译成图论命题，列出对相识关系所作的假设。
+\end{enumerate}
+

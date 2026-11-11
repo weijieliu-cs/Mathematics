@@ -1,0 +1,715 @@
+% !TeX root = ../概率论与数理统计（缪柏其）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{6} % 保留原书章号。
+\chapter{区间估计}
+\label{chap:study-interval-estimation}
+
+点估计用一个数概括未知参数，却不能单独说明抽样误差的大小。本章在点估计的基础上，用由样本决定的区间表达估计的不确定性：先规定重复抽样时的可靠程度，再研究区间的长度和计算方法。学习的主线是\emph{抽样分布或其近似 $\longrightarrow$ 概率不等式 $\longrightarrow$ 对参数反解 $\longrightarrow$ 检查覆盖率与适用条件}。以下按教材第七章第 240--265 页的结构整理；涉及概率的区间端点使用大写样本，代入观测数据后的端点使用小写样本。
+
+\section{基本概念}
+\label{sec:study-interval-concepts}
+% 教材第 240--242 页。
+
+设 $X_1,\ldots,X_n$ 是来自某总体的独立同分布样本，$\theta\in\Theta\subseteq\mathbb R$ 是要估计的固定未知参数。希望寻找两个统计量 $L(X_1,\ldots,X_n)$、$U(X_1,\ldots,X_n)$，使 $L\le U$，并用随机区间 $[L,U]$ 估计 $\theta$。端点可以依赖样本、已知常数和预先指定的置信水平，但不能包含仍然未知的参数。例如，在总体均值估计中，$\bar X\pm1.96\sigma/\sqrt n$ 只有在 $\sigma$ 已知时才是可直接计算的区间。
+
+\begin{definition}
+\label{def:study-confidence-interval}
+给定 $\alpha\in(0,1)$。若对每个允许的参数值都有
+\begin{equation}
+  \mathbb P_\theta\{L(X_1,\ldots,X_n)\le\theta
+                         \le U(X_1,\ldots,X_n)\}\ge1-\alpha,
+  \label{eq:study-confidence-coverage}
+\end{equation}
+则称 $[L,U]$ 为 $\theta$ 的\emph{置信水平（confidence level）}至少为 $1-\alpha$ 的\emph{置信区间（confidence interval）}。左边称为该方法在参数 $\theta$ 处的\emph{覆盖率（coverage probability）}。若对所有 $\theta$ 都恰好等于 $1-\alpha$，便得到教材定义中的等式形式；一般地，覆盖率在参数空间上的下确界称为\emph{置信系数（confidence coefficient）}。
+\end{definition}
+
+下标 $\theta$ 表示按真实参数对应的抽样分布计算概率，并不是把 $\theta$ 当作随机变量。若模型中还有其他未知参数，式~\eqref{eq:study-confidence-coverage} 的要求必须对这些参数的所有允许取值同时成立。例如，正态总体中估计 $\mu$ 且 $\sigma^2$ 未知时，覆盖率应在每个 $\mu\in\mathbb R$、$\sigma^2>0$ 下得到保证。
+
+\emph[caution]{频率学派置信区间的随机性来自样本和区间，参数是固定的。}观测前可以说“该随机区间以 $95\%$ 的概率覆盖真实参数”；观测后得到具体数值区间，它对固定真值只有包含或不包含两种情况，不能由置信区间的定义推出“参数以 $95\%$ 的概率落在这个已经算出的区间内”。后一句若作概率陈述，需要另外建立参数的概率模型。
+
+重复抽样有助于理解这一点。假设某方法在真参数处的覆盖率恰为 $0.95$，独立抽取 $B$ 组样本，每组都用同一规则计算区间，则覆盖真值的区间个数服从二项分布 $\operatorname{Bin}(B,0.95)$；覆盖比例依概率趋于 $0.95$。当 $B=100$ 时，覆盖个数的均值为 $95$、标准差为 $\sqrt{100\times0.95\times0.05}\approx2.18$，所以一次模拟得到 $93$ 个或 $97$ 个覆盖区间并不反常，也不能要求每 $100$ 次恰有 $95$ 次覆盖。
+
+可靠性与精度需要同时考虑。可靠性由覆盖率表达，精度可由随机长度 $U-L$、其期望 $\mathbb E_\theta(U-L)$ 或某种预先规定的误差界限表达。在同一种构造中，提高置信水平通常要扩大区间，增加样本量则通常能缩短区间；但比较不同方法时，还要核对它们是否达到相同的覆盖要求，不能只看哪个区间更短。对称区间中的\emph{误差界限（margin of error）}是半宽度，不等于观测后已经知道的真实估计误差。
+
+\begin{example}
+\label{ex:study-confidence-interpretation}
+用同一组数据估计某总体均值，两个方法分别给出 $[150,170]$ 和 $[159,161]$。能否仅凭第二个区间较短，就认为它更好？
+\end{example}
+\begin{solve}
+不能。区间长度只表达精度的一方面，还必须说明抽样假设、置信水平及覆盖性质。如果第二个方法没有可靠的覆盖保证，其较短区间可能只是低估了抽样波动。相反，即使两个方法都有相同的名义置信水平，有限样本实际覆盖率也可能不同，仍需区分精确校准与近似校准。
+\end{solve}
+
+\section{枢轴变量法}
+\label{sec:study-pivotal-quantity}
+% 教材第 243--248 页。
+
+\subsection{构造原理与分位数约定}
+\label{subsec:study-pivot-construction}
+
+\begin{definition}
+\label{def:study-pivotal-quantity}
+由样本和待估参数构成的随机量 $Q(X_1,\ldots,X_n;\theta)$，若其分布完全已知，且不依赖任何未知参数，就称为\emph{枢轴变量或枢轴量（pivotal quantity）}。它可以显式含有 $\theta$，因此通常不是统计量；关键是其\emph{分布}不含未知参数。
+\end{definition}
+
+若能选取已知常数 $a<b$，使
+\[
+  \mathbb P_\theta\{a\le Q(X;\theta)\le b\}=1-\alpha,
+\]
+并将事件 $\{a\le Q(X;\theta)\le b\}$ 等价地改写成 $\{L(X)\le\theta\le U(X)\}$，就得到了精确置信区间。反解时必须同时考虑参数空间、分母的正负和函数的单调性；如果反解得到不相连的集合，则首先得到的是置信集合，不能未经说明直接写成一个区间。寻找良好点估计常能启发枢轴量的构造，但“无偏”或“最大似然”本身并不保证相应的区间有正确覆盖率。
+
+本章沿用教材的\emph{上尾分位数}约定。对这里使用的连续严格递增分布，$q(a)$ 满足 $\mathbb P\{Q>q(a)\}=a$。具体记
+\begin{equation}
+  \begin{aligned}
+    \mathbb P\{Z>u_a\}&=a, && Z\sim N(0,1),\\
+    \mathbb P\{T>t_\nu(a)\}&=a, && T\sim t_\nu,\\
+    \mathbb P\{V>\chi_\nu^2(a)\}&=a, && V\sim\chi_\nu^2,\\
+    \mathbb P\{W>F_{r,s}(a)\}&=a, && W\sim F_{r,s}.
+  \end{aligned}
+  \label{eq:study-upper-quantiles}
+\end{equation}
+因此 $a$ 越小，上尾分位数越大。正态和 $t$ 分布关于零对称，故 $u_{1-a}=-u_a$、$t_\nu(1-a)=-t_\nu(a)$；卡方和 $F$ 分布不能套用这种变号关系。常用数值为 $u_{0.025}\approx1.9600$、$u_{0.05}\approx1.6449$。选择上下两尾各留 $\alpha/2$ 的概率称为等尾构造，它易于计算，但对不对称分布不必给出最短区间。
+
+\subsection{正态总体均值与样本量}
+\label{subsec:study-normal-mean-intervals}
+
+设 $X_1,\ldots,X_n$ 独立同分布于 $N(\mu,\sigma^2)$，其中 $\sigma>0$。记
+\begin{equation}
+  \bar X=\frac1n\sum_{i=1}^nX_i,\qquad
+  S^2=\frac1{n-1}\sum_{i=1}^n(X_i-\bar X)^2\quad(n\ge2).
+  \label{eq:study-interval-sample-statistics}
+\end{equation}
+$S$ 度量单次观测的波动，$S/\sqrt n$ 则估计样本均值的标准差，后者称为\emph{标准误（standard error）}。总体标准差与均值的标准误不可混用。
+
+\begin{theorem}
+\label{thm:study-normal-mean-intervals}
+在上述正态简单随机样本模型下，$\mu$ 的置信系数为 $1-\alpha$ 的等尾区间为
+\begin{equation}
+  \left[\bar X-u_{\alpha/2}\frac\sigma{\sqrt n},\,
+        \bar X+u_{\alpha/2}\frac\sigma{\sqrt n}\right]
+  \quad(\sigma^2\text{ 已知}),
+  \label{eq:study-normal-known-variance-ci}
+\end{equation}
+以及
+\begin{equation}
+  \left[\bar X-t_{n-1}(\alpha/2)\frac S{\sqrt n},\,
+        \bar X+t_{n-1}(\alpha/2)\frac S{\sqrt n}\right]
+  \quad(\sigma^2\text{ 未知},\ n\ge2).
+  \label{eq:study-normal-unknown-variance-ci}
+\end{equation}
+\end{theorem}
+\begin{proof}
+方差已知时，$Z=\sqrt n(\bar X-\mu)/\sigma\sim N(0,1)$。将 $-u_{\alpha/2}\le Z\le u_{\alpha/2}$ 对 $\mu$ 反解，即得式~\eqref{eq:study-normal-known-variance-ci}。方差未知时，正态样本的抽样分布给出
+\[
+  V=\frac{(n-1)S^2}{\sigma^2}\sim\chi_{n-1}^2,
+  \qquad Z\text{ 与 }V\text{ 独立}.
+\]
+所以
+\[
+  T=\frac{Z}{\sqrt{V/(n-1)}}
+   =\frac{\sqrt n(\bar X-\mu)}S\sim t_{n-1}.
+\]
+再利用 $t$ 分布的对称性反解，得到式~\eqref{eq:study-normal-unknown-variance-ci}。这里的 $t$ 分布结论依赖总体正态性，不能只把已知方差公式中的 $\sigma$ 换成 $S$，同时仍声称标准化后精确服从正态分布。
+\end{proof}
+
+\begin{example}
+\label{ex:study-normal-mean-residents}
+教材例 7.3：假设某项居民月支出服从正态分布，独立抽取 $20$ 户，得到 $\bar x=160$ 元、$s=20$ 元，求总体平均支出 $\mu$ 的 $95\%$ 置信区间。
+\end{example}
+\begin{solve}
+总体方差未知，使用式~\eqref{eq:study-normal-unknown-variance-ci}，自由度为 $19$。由 $t_{19}(0.025)\approx2.0930$，得
+\[
+  160\pm2.0930\frac{20}{\sqrt{20}}
+  \approx[150.64,169.36]\text{ 元}.
+\]
+区间估计的对象是总体平均支出，并不表示 $95\%$ 的居民支出在该范围内，也不表示下一户的支出有 $95\%$ 的概率在其中。
+\end{solve}
+
+在正态总体方差已知时，若事先要求半宽度不超过 $d_0>0$，则
+\begin{equation}
+  u_{\alpha/2}\frac\sigma{\sqrt n}\le d_0
+  \quad\Longleftrightarrow\quad
+  n\ge\left(\frac{u_{\alpha/2}\sigma}{d_0}\right)^2.
+  \label{eq:study-normal-ci-sample-size}
+\end{equation}
+因此最小正整数样本量为右端向上取整，必要时至少取 $1$。教材例 7.4 中，$90\%$ 置信水平、$\sigma=200$ 元、$d_0=100$ 元给出 $n\ge10.82$，至少调查 $11$ 人。若 $\sigma$ 未知，可以用先导样本或可信经验作规划，但该规划的可靠性取决于所用标准差估计；仅知道一个经验取值范围，不能无条件推出严格的样本量保证。方差未知的 $t$ 区间宽度还依赖随机的 $S$，因而需要区分“规划的预期宽度”与“每次抽样都满足的宽度”。
+
+\subsection{正态总体方差}
+\label{subsec:study-normal-variance-intervals}
+
+\begin{theorem}
+\label{thm:study-normal-variance-interval}
+设 $X_1,\ldots,X_n$ 独立同分布于 $N(\mu,\sigma^2)$，均值未知且 $n\ge2$，则 $\sigma^2$ 的置信系数为 $1-\alpha$ 的等尾区间为
+\begin{equation}
+  \left[
+    \frac{(n-1)S^2}{\chi_{n-1}^2(\alpha/2)},\,
+    \frac{(n-1)S^2}{\chi_{n-1}^2(1-\alpha/2)}
+  \right].
+  \label{eq:study-normal-variance-ci}
+\end{equation}
+\end{theorem}
+\begin{proof}
+由正态样本方差的抽样分布，
+\[
+  \mathbb P_{\mu,\sigma^2}\left\{
+    \chi_{n-1}^2(1-\alpha/2)
+    \le\frac{(n-1)S^2}{\sigma^2}
+    \le\chi_{n-1}^2(\alpha/2)
+  \right\}=1-\alpha.
+\]
+两个分位数都为正，对 $\sigma^2$ 反解时不等号方向随取倒数改变，便得到式~\eqref{eq:study-normal-variance-ci}。
+\end{proof}
+
+上下端点分别除以较大和较小的卡方分位数，这是核对公式方向的直接办法。该区间通常不以 $S^2$ 为中心；对其两个端点开平方，就得到总体标准差 $\sigma$ 的同一置信水平区间，因为平方根在正数上严格递增。若总体均值 $\mu_0$ 已知，则应改用
+\begin{equation}
+  Q_0=\frac{\sum_{i=1}^n(X_i-\mu_0)^2}{\sigma^2}
+      \sim\chi_n^2,
+  \label{eq:study-normal-known-mean-variance-pivot}
+\end{equation}
+相应地以 $\sum(X_i-\mu_0)^2$ 替换分子、以 $n$ 替换自由度。\emph[caution]{已知均值与用样本均值估计均值，消耗的自由度不同。}
+
+\subsection{两个独立正态总体的均值差与方差比}
+\label{subsec:study-two-normal-intervals}
+
+设 $X_1,\ldots,X_m$ 来自 $N(\mu_1,\sigma_1^2)$，$Y_1,\ldots,Y_n$ 来自 $N(\mu_2,\sigma_2^2)$，两个样本相互独立。分别记样本均值为 $\bar X,\bar Y$，样本方差为 $S_1^2,S_2^2$，并统一估计
+\[
+  \delta=\mu_2-\mu_1,\qquad D=\bar Y-\bar X.
+\]
+若总体方差都已知，由独立正态变量之和的分布，
+\[
+  \frac{D-\delta}{\sqrt{\sigma_1^2/m+\sigma_2^2/n}}
+  \sim N(0,1),
+\]
+所以精确区间为
+\begin{equation}
+  D\pm u_{\alpha/2}\sqrt{\frac{\sigma_1^2}{m}
+                              +\frac{\sigma_2^2}{n}}.
+  \label{eq:study-two-normal-known-ci}
+\end{equation}
+这里及下文的 $A\pm d$ 均表示闭区间 $[A-d,A+d]$。
+
+若方差未知但可假设 $\sigma_1^2=\sigma_2^2=\sigma^2$，定义\emph{合并方差（pooled variance）}
+\begin{equation}
+  S_p^2=\frac{(m-1)S_1^2+(n-1)S_2^2}{m+n-2},
+  \qquad m,n\ge2.
+  \label{eq:study-interval-pooled-variance}
+\end{equation}
+两组样本方差对应的独立卡方量相加，给出 $(m+n-2)S_p^2/\sigma^2\sim\chi_{m+n-2}^2$；它又与两个样本均值独立。因此
+\[
+  \frac{D-\delta}{S_p\sqrt{1/m+1/n}}\sim t_{m+n-2},
+\]
+得到精确区间
+\begin{equation}
+  D\pm t_{m+n-2}(\alpha/2)S_p\sqrt{\frac1m+\frac1n}.
+  \label{eq:study-two-normal-pooled-ci}
+\end{equation}
+合并的依据是两个总体有共同方差，而不是单纯为了增加自由度；不能因为两个样本方差数值接近就把共同方差假设当作已经证实。
+
+\begin{example}
+\label{ex:study-two-production-lines}
+教材例 7.6：两条生产线满足上述独立正态、共同方差假设。数据为 $m=5$、$n=7$，$\bar x=62$、$\bar y=48$，$s_1^2=25$、$s_2^2=16$，求 $\mu_2-\mu_1$ 的 $90\%$ 置信区间。
+\end{example}
+\begin{solve}
+由式~\eqref{eq:study-interval-pooled-variance}，$s_p^2=(4\times25+6\times16)/10=19.6$。利用 $t_{10}(0.05)\approx1.8125$，得
+\[
+  -14\pm1.8125\sqrt{19.6}\sqrt{\frac15+\frac17}
+  \approx[-18.70,-9.30].
+\]
+整个区间为负，表明在模型及该区间方法下，数据支持第二条生产线的总体平均产量较低；这仍然需要两条生产线的抽样具有可比性。
+\end{solve}
+
+若不假设共同方差，式~\eqref{eq:study-two-normal-pooled-ci} 不再有上述精确覆盖保证。作为教材所述近似解的补充，常用\emph{韦尔奇近似（Welch approximation）}为
+\begin{equation}
+  D\pm t_{\widehat\nu}(\alpha/2)
+             \sqrt{\frac{S_1^2}{m}+\frac{S_2^2}{n}},\qquad
+  \widehat\nu=
+  \frac{(S_1^2/m+S_2^2/n)^2}
+       {(S_1^2/m)^2/(m-1)+(S_2^2/n)^2/(n-1)}.
+  \label{eq:study-welch-ci}
+\end{equation}
+这里自由度可以不是整数，所得区间是近似区间；独立性仍然必需。若数据按同一对象的前后测量配成对，应先构造每一对的差值，再对差值总体作单样本推断，不能直接使用独立两样本公式。
+
+方差比 $r=\sigma_1^2/\sigma_2^2$ 则有另一个精确枢轴量：
+\[
+  \frac{S_1^2/\sigma_1^2}{S_2^2/\sigma_2^2}
+   =\frac{S_1^2/S_2^2}{r}\sim F_{m-1,n-1}.
+\]
+故 $r$ 的等尾区间为
+\begin{equation}
+  \left[
+    \frac{S_1^2/S_2^2}{F_{m-1,n-1}(\alpha/2)},\,
+    \frac{S_1^2/S_2^2}{F_{m-1,n-1}(1-\alpha/2)}
+  \right].
+  \label{eq:study-normal-variance-ratio-ci}
+\end{equation}
+对 $a\in(0,1)$，利用 $F_{m-1,n-1}(1-a)=1/F_{n-1,m-1}(a)$，也可将其写为
+$[(S_1^2/S_2^2)F_{n-1,m-1}(1-\alpha/2),\,(S_1^2/S_2^2)F_{n-1,m-1}(\alpha/2)]$。交换两组自由度时必须同时取倒数，否则端点就会出错。
+
+\section{大样本方法}
+\label{sec:study-large-sample-intervals}
+% 教材第 248--253 页。
+
+当精确抽样分布难以得到时，可以用极限定理构造\emph{渐近置信区间（asymptotic confidence interval）}。若一列区间满足
+\[
+  \mathbb P_\theta\{L_n\le\theta\le U_n\}\longrightarrow1-\alpha
+  \qquad(n\to\infty),
+\]
+则有限样本覆盖率只是近似达到名义水平。这里若只证明了每个固定参数处的收敛，不能自动推出在整个参数空间上一致准确；参数接近边界时尤其需要谨慎。以下的 $\xrightarrow{d}$ 表示依分布收敛，$\xrightarrow{\mathbb P}$ 表示依概率收敛。
+
+\subsection{比例的得分区间与瓦尔德区间}
+\label{subsec:study-proportion-intervals}
+
+设 $X_i\in\{0,1\}$ 独立同分布，$\mathbb P_p(X_i=1)=p$，其中 $0<p<1$；令 $K=\sum_{i=1}^nX_i\sim\operatorname{Bin}(n,p)$、$\widehat p=K/n$。由中心极限定理，
+\begin{equation}
+  \frac{\sqrt n(\widehat p-p)}{\sqrt{p(1-p)}}
+  \xrightarrow{d}N(0,1).
+  \label{eq:study-proportion-clt}
+\end{equation}
+令 $z=u_{\alpha/2}$。保留分母中的未知参数，先考虑近似概率为 $1-\alpha$ 的事件
+\[
+  \left|\frac{\widehat p-p}{\sqrt{p(1-p)/n}}\right|\le z.
+\]
+在 $0<p<1$ 下平方并移项，得到
+\[
+  (n+z^2)p^2-(2n\widehat p+z^2)p+n\widehat p^{\,2}\le0.
+\]
+解这个二次不等式，便得到\emph{得分区间（score interval），亦称威尔逊区间（Wilson interval）}：
+\begin{equation}
+  \left[
+    \frac{\widehat p+z^2/(2n)
+          -z\sqrt{\widehat p(1-\widehat p)/n+z^2/(4n^2)}}{1+z^2/n},\,
+    \frac{\widehat p+z^2/(2n)
+          +z\sqrt{\widehat p(1-\widehat p)/n+z^2/(4n^2)}}{1+z^2/n}
+  \right].
+  \label{eq:study-wilson-ci}
+\end{equation}
+端点在 $[0,1]$ 内，中心一般不是 $\widehat p$；若 $K=0$，区间仍为 $[0,z^2/(n+z^2)]$，不会退化为单点。该公式仍由正态近似导出，不能因为端点形式较好就称为精确区间。
+
+另一种做法是先用 $\widehat p(1-\widehat p)$ 替换 $p(1-p)$。对固定的内部参数 $p\in(0,1)$，由大数定律和斯卢茨基定理得到\emph{瓦尔德区间（Wald interval）}
+\begin{equation}
+  \widehat p\pm u_{\alpha/2}
+       \sqrt{\frac{\widehat p(1-\widehat p)}n}.
+  \label{eq:study-proportion-wald-ci}
+\end{equation}
+它形式简单，却可能越出 $[0,1]$，并在 $K=0$ 或 $K=n$ 时退化。把端点截到 $[0,1]$ 不会修复其覆盖不足的问题，因为真参数本来就在该参数空间中。得分区间通常能改善边界附近的表现，但两者有限样本覆盖率都应结合 $np$、$n(1-p)$ 等实际信息判断；“$n>100$”或“两个观测频数都大于 $10$”只能作为经验检查，不能代替覆盖率分析。
+
+\begin{example}
+\label{ex:study-phishing-proportion}
+沿用教材例 7.7 的计数，在符合上述二项抽样模型的 $320$ 次观测中，有 $157$ 次发生目标事件，求事件概率 $p$ 的近似 $95\%$ 置信区间。
+\end{example}
+\begin{solve}
+取 $\widehat p=157/320=0.490625$、$z=u_{0.025}$，代入式~\eqref{eq:study-wilson-ci}，得到约
+\[
+  [0.4363,0.5452].
+\]
+计算时保留比例的完整数值，最后才舍入端点。这是在给定抽样与试验条件下对 $p$ 的估计，不能只凭这组计数推出改变另一项条件的因果效果。
+\end{solve}
+
+若关心百分数 $100p\%$，直接把比例区间的两个端点乘以 $100$ 后附上百分号即可，不应在含 $p(1-p)$ 的公式中仅把 $p$ 替换成百分数而保留其他项不变。对于稀少事件，可以补充使用二项分布尾概率的精确反演：当观测计数 $0<k<n$ 时，令 $p_L,p_U$ 分别满足
+\begin{equation}
+  \mathbb P_{p_L}\{K\ge k\}=\alpha/2,\qquad
+  \mathbb P_{p_U}\{K\le k\}=\alpha/2.
+  \label{eq:study-binomial-exact-inversion}
+\end{equation}
+取 $k=0$ 时的下端点为 $0$，$k=n$ 时的上端点为 $1$。由二项分布尾概率的单调性可得覆盖率至少为 $1-\alpha$ 的区间；由于计数离散，其覆盖率通常不处处恰等于名义水平。这也说明离散模型虽未必方便使用连续枢轴量，仍可构造精确覆盖的置信区间。
+
+\subsection{比例估计的样本量规划}
+\label{subsec:study-proportion-sample-size}
+
+令目标总宽度为 $w\in(0,1)$，注意它是半宽度的两倍。若采用瓦尔德区间作规划，并以先验规划值 $p_0$ 替代尚未观测到的比例，则要求
+\begin{equation}
+  n\ge\frac{4u_{\alpha/2}^2p_0(1-p_0)}{w^2}.
+  \label{eq:study-proportion-wald-size}
+\end{equation}
+这里的“先验规划值”只表示在本次调查前已有的参考信息，不意味着已经采用贝叶斯推断。没有可靠参考值时，由 $p(1-p)\le1/4$ 得保守规划 $n\ge u_{\alpha/2}^2/w^2$。
+
+得分区间的总宽度为
+\[
+  W_n(\widehat p)
+  =\frac{2z\sqrt{n\widehat p(1-\widehat p)+z^2/4}}{n+z^2},
+  \qquad z=u_{\alpha/2}.
+\]
+将 $\widehat p$ 替换成规划值 $p_0$，记 $r_0=p_0(1-p_0)$，由 $W_n(p_0)\le w$ 对 $n$ 解二次不等式，得到
+\begin{equation}
+  n\ge\frac{z^2}{w^2}
+       \left\{2r_0-w^2+
+        \sqrt{4r_0^2+(1-4r_0)w^2}\right\}.
+  \label{eq:study-proportion-wilson-size}
+\end{equation}
+由于宽度在 $\widehat p=1/2$ 处达到最大，直接要求所有观测比例对应的区间宽度都不超过 $w$，可用
+\begin{equation}
+  \sup_{0\le q\le1}W_n(q)=\frac z{\sqrt{n+z^2}}\le w,
+  \qquad n\ge z^2\left(\frac1{w^2}-1\right).
+  \label{eq:study-proportion-wilson-conservative-size}
+\end{equation}
+教材例 7.8 中，$1-\alpha=0.95$、$w=0.08$，得分区间所需样本量向上取整为 $597$，瓦尔德区间的保守规划为 $601$。这里“保守”指宽度规划采用最不利比例，并不把原有的近似覆盖变成有限样本精确保证。
+
+\subsection{一般总体均值及具体模型}
+\label{subsec:study-general-mean-intervals}
+
+设 $X_1,\ldots,X_n$ 独立同分布，$\mathbb E(X_i)=\mu$、$0<\operatorname{Var}(X_i)=\sigma^2<\infty$。由中心极限定理及样本方差的相合性，
+\begin{equation}
+  \frac{\sqrt n(\bar X-\mu)}\sigma\xrightarrow{d}N(0,1),
+  \qquad S^2\xrightarrow{\mathbb P}\sigma^2,
+  \qquad
+  \frac{\sqrt n(\bar X-\mu)}S\xrightarrow{d}N(0,1).
+  \label{eq:study-studentized-mean-clt}
+\end{equation}
+最后一步由斯卢茨基定理得到，在 $S>0$ 上使用该比值；在上述条件下 $\mathbb P(S>0)\to1$。因此均值的渐近区间为
+\begin{equation}
+  \bar X\pm u_{\alpha/2}\frac S{\sqrt n}.
+  \label{eq:study-general-mean-ci}
+\end{equation}
+它不要求总体正态，却要求抽样模型和矩条件成立。总体偏斜、重尾或存在强依赖时，某个固定样本量未必足以保证正态近似；尤其不能把“$n>30$”当作对一切总体都有效的数学定理。若总体为正态，式~\eqref{eq:study-normal-unknown-variance-ci} 已提供精确 $t$ 区间，无须先退回正态近似。
+
+两个独立总体的均值差也有类似构造。若两总体方差有限且为正，$m,n\to\infty$ 且 $m/n$ 趋于某个正的有限常数，则用各自样本方差替换总体方差，得到
+\[
+  (\bar Y-\bar X)\pm u_{\alpha/2}
+             \sqrt{\frac{S_1^2}{m}+\frac{S_2^2}{n}}
+\]
+这一渐近区间，不要求两个总体方差相同。该结论与小样本正态共同方差模型下的精确 $t$ 区间具有不同的假设与覆盖含义。
+
+\begin{example}
+\label{ex:study-poisson-mean-interval}
+教材例 7.9：$X_1,\ldots,X_n$ 独立同分布于泊松分布 $\operatorname{Pois}(\lambda)$，$\lambda>0$，求 $\lambda$ 的渐近区间。
+\end{example}
+\begin{solve}
+由于 $\mathbb E(X_i)=\operatorname{Var}(X_i)=\lambda$，有 $\sqrt n(\bar X-\lambda)/\sqrt\lambda\xrightarrow{d}N(0,1)$。令 $z=u_{\alpha/2}$，对事件 $n(\bar X-\lambda)^2\le z^2\lambda$ 反解，得到
+\begin{equation}
+  \left[
+    \bar X+\frac{z^2}{2n}
+      -\frac z{\sqrt n}\sqrt{\bar X+\frac{z^2}{4n}},\,
+    \bar X+\frac{z^2}{2n}
+      +\frac z{\sqrt n}\sqrt{\bar X+\frac{z^2}{4n}}
+  \right].
+  \label{eq:study-poisson-score-ci}
+\end{equation}
+若改用一般均值公式，则得到 $\bar X\pm zS/\sqrt n$；也可利用 $\lambda$ 的相合估计 $\bar X$，得到 $\bar X\pm z\sqrt{\bar X/n}$。这些区间的近似步骤不同，有限样本端点也不同。教材给出的 $n=20$、$\bar x=2.6$、$s=1.635$ 下，式~\eqref{eq:study-poisson-score-ci} 约为 $[1.983,3.409]$，一般均值公式约为 $[1.883,3.317]$。单个算例中端点相近，并不能证明两个方法对所有参数都有相近的实际覆盖率。
+\end{solve}
+
+\begin{example}
+\label{ex:study-exponential-mean-interval}
+教材例 7.10：$X_1,\ldots,X_n$ 独立同分布于率参数为 $\lambda>0$ 的指数分布，其密度为 $f(x)=\lambda e^{-\lambda x}$（$x>0$），求均值 $\theta=1/\lambda$ 的置信区间，并与大样本方法比较。
+\end{example}
+\begin{solve}
+先利用模型的精确分布。$2\lambda X_i$ 的密度为 $e^{-v/2}/2$（$v>0$），即 $\chi_2^2$ 密度；各项独立，卡方分布的可加性给出
+\[
+  Q=2\lambda\sum_{i=1}^nX_i
+   =\frac{2n\bar X}\theta\sim\chi_{2n}^2.
+\]
+因此 $\theta$ 的精确等尾区间为
+\begin{equation}
+  \left[
+    \frac{2n\bar X}{\chi_{2n}^2(\alpha/2)},\,
+    \frac{2n\bar X}{\chi_{2n}^2(1-\alpha/2)}
+  \right].
+  \label{eq:study-exponential-mean-exact-ci}
+\end{equation}
+另一方面，指数分布满足 $\operatorname{Var}(X_i)=\theta^2$，故 $\sqrt n(\bar X-\theta)/\theta\xrightarrow{d}N(0,1)$。在 $\sqrt n>z=u_{\alpha/2}$ 时，对 $|\sqrt n(\bar X-\theta)/\theta|\le z$ 反解，得到近似区间
+\begin{equation}
+  \left[\frac{\bar X}{1+z/\sqrt n},\,
+        \frac{\bar X}{1-z/\sqrt n}\right].
+  \label{eq:study-exponential-mean-asymptotic-ci}
+\end{equation}
+若 $\sqrt n\le z$，第二个分母不再为正，不能继续照写该有限上端点，而应重新求解不等式。取 $n=20$、$\bar x=5$、$\alpha=0.05$，精确区间约为 $[3.370,8.186]$，近似区间约为 $[3.476,8.901]$；在指数模型成立时，前者具有有限样本精确覆盖保证。
+\end{solve}
+
+\section{自助法置信区间}
+\label{sec:study-bootstrap-intervals}
+% 教材第 253--257 页。
+
+\emph{自助法（bootstrap）}用从现有样本重抽样所产生的波动近似原统计量的抽样波动。它的基本想法是：未知总体分布 $F$ 无法直接重复抽样，但可以先用经验分布
+\[
+  F_n(x)=\frac1n\sum_{i=1}^n\mathbf1_{\{X_i\le x\}}
+\]
+替代 $F$。给定观测值 $x_1,\ldots,x_n$ 后，$\mathbf1_{\{x_i\le x\}}$ 在条件满足时为 $1$、否则为 $0$；从 $F_n$ 抽样，就是把每个观测位置赋予概率 $1/n$，有放回地独立抽取 $n$ 次。即使若干观测值相同，它们对应的观测位置仍各有 $1/n$ 的抽取概率。
+
+非参数自助法不必指定正态等参数分布，却仍有统计条件。这里默认原始数据来自独立同分布抽样，经验分布能合理代表总体，且所估计的统计特征适合这种近似。样本很小时，重抽样不能补回未观察到的尾部或少数群体；对于样本极值、参数边界、非光滑或退化统计量，普通自助法还可能不一致。对时间序列或其他相关数据，逐个观测独立重抽样会破坏相关结构，需要相应的重抽样设计。\emph[caution]{不要求某个参数分布，不等于没有适用条件，也不等于小样本下自动准确。}
+
+\subsection{基本自助区间}
+\label{subsec:study-basic-bootstrap-ci}
+
+记参数 $\theta$ 的原始估计为 $\widehat\theta=t(x_1,\ldots,x_n)$。第 $b$ 次重抽样产生 $x_1^{*(b)},\ldots,x_n^{*(b)}$，并计算
+\[
+  \widehat\theta^{*(b)}
+   =t(x_1^{*(b)},\ldots,x_n^{*(b)}),\qquad b=1,\ldots,B.
+\]
+各次重抽样条件独立。给定原样本时，一个有序重抽样序列有 $n^n$ 种位置选择；忽略顺序而只记录各观测位置被抽取的次数，则有 $\binom{2n-1}{n}$ 种计数向量，这些计数向量并非等概率。实际通常以有限的 $B$ 次模拟近似整个自助分布，$B$ 增大只减少模拟误差，并不增加原始数据量。
+
+令 $\mathbb P^*$ 表示给定原样本后的重抽样概率，$q_\beta^*$ 表示 $\widehat\theta^*$ 的\emph{下尾} $\beta$ 分位数，例如定义为
+\[
+  q_\beta^*=\inf\{x:\mathbb P^*(\widehat\theta^*\le x)\ge\beta\}.
+\]
+实际以 $B$ 个自助估计的经验分位数近似它；这种下尾约定与式~\eqref{eq:study-upper-quantiles} 中的上尾分位数不同。自助法希望用给定数据后的 $\widehat\theta^*-\widehat\theta$ 分布近似原抽样中的 $\widehat\theta-\theta$ 分布。若这一近似成立且相关分位数足够稳定，就希望得到近似覆盖关系
+\[
+  \mathbb P_\theta\left\{
+    q_{\alpha/2}^*-\widehat\theta
+    \le\widehat\theta-\theta
+    \le q_{1-\alpha/2}^*-\widehat\theta
+  \right\}\approx1-\alpha.
+\]
+此处概率针对原始抽样，分位数本身也随原样本变化；它不是由重抽样次数足够大就自动成立的等式。对该事件反解 $\theta$，即可得到下面的区间。
+
+\begin{definition}
+\label{def:study-basic-bootstrap-ci}
+由上述误差分布近似反解得到的
+\begin{equation}
+  [\,2\widehat\theta-q_{1-\alpha/2}^*,\,
+      2\widehat\theta-q_{\alpha/2}^*\,]
+  \label{eq:study-basic-bootstrap-ci}
+\end{equation}
+称为 $\theta$ 的名义置信水平为 $1-\alpha$ 的\emph{基本自助置信区间（basic bootstrap confidence interval）}。其覆盖性质取决于自助分布对抽样误差分布的近似质量。
+\end{definition}
+
+\begin{example}
+\label{ex:study-basic-bootstrap-summary}
+沿用教材例 7.11 所列的自助计算汇总值：样本均值取 $\widehat\theta=18.53$，$B=1000$ 个自助均值的 $2.5\%$ 和 $97.5\%$ 分位数取 $16.76$、$20.62$。计算基本自助区间。
+\end{example}
+\begin{solve}
+由式~\eqref{eq:study-basic-bootstrap-ci}，区间为
+\[
+  [\,2\times18.53-20.62,\,2\times18.53-16.76\,]
+  =[16.44,20.30].
+\]
+这里使用教材给出的已舍入汇总值，重点是围绕原估计反射分位数的构造；它不同于直接取 $[16.76,20.62]$ 的\emph{百分位数自助区间（percentile bootstrap interval）}。实际重新抽样时，端点会随随机种子、重复次数和经验分位数的约定略有变化，报告结果时应保留这些计算信息。
+\end{solve}
+
+\subsection{学生化自助区间与嵌套重抽样}
+\label{subsec:study-bootstrap-t-ci}
+
+若能估计 $\widehat\theta$ 的标准误，记其估计为 $\widehat{\operatorname{se}}$，则可先将估计误差标准化。对第 $b$ 个外层自助样本，计算该样本下的标准误估计 $\widehat{\operatorname{se}}^{*(b)}$，并构造
+\begin{equation}
+  T^{*(b)}=
+  \frac{\widehat\theta^{*(b)}-\widehat\theta}
+       {\widehat{\operatorname{se}}^{*(b)}}.
+  \label{eq:study-bootstrap-studentized-statistic}
+\end{equation}
+设其自助分布的下尾分位数为 $c_{\alpha/2}^*,c_{1-\alpha/2}^*$，则\emph{自助 $t$ 置信区间（bootstrap-$t$ confidence interval）}为
+\begin{equation}
+  [\,\widehat\theta-c_{1-\alpha/2}^*
+                         \widehat{\operatorname{se}},\,
+      \widehat\theta-c_{\alpha/2}^*
+                         \widehat{\operatorname{se}}\,].
+  \label{eq:study-bootstrap-t-ci}
+\end{equation}
+“$t$”表示这种学生化构造，不意味着 $T^*$ 精确服从某个自由度的 $t$ 分布；分位数来自重抽样，而非直接查 $t$ 分布表。其依据是用 $T^*$ 的条件分布近似 $(\widehat\theta-\theta)/\widehat{\operatorname{se}}$ 的抽样分布，再反解参数。
+
+若原始标准误没有便于使用的解析估计，可以用外层自助估计的样本标准差
+\begin{equation}
+  \widehat{\operatorname{se}}_B
+  =\left\{\frac1{B-1}\sum_{b=1}^B
+       (\widehat\theta^{*(b)}-\overline\theta^*)^2\right\}^{1/2},
+  \qquad
+  \overline\theta^*=\frac1B\sum_{b=1}^B\widehat\theta^{*(b)},
+  \label{eq:study-bootstrap-standard-error}
+\end{equation}
+估计它。对每个外层样本的标准误，也可以从该外层样本再有放回抽取 $R$ 个内层样本，以这些内层估计的样本标准差估计 $\widehat{\operatorname{se}}^{*(b)}$。因此算法依次为：计算原估计；生成 $B$ 个外层样本及各自的估计、标准误和 $T^{*(b)}$；取 $T^*$ 的经验分位数；最后代入式~\eqref{eq:study-bootstrap-t-ci}。若使用嵌套抽样，内层统计量计算次数约为 $BR$，明显高于基本区间的 $B$ 次。
+
+若统计量是样本均值，可以直接以 $S/\sqrt n$ 估计原始标准误，以每个外层样本的 $S^{*(b)}/\sqrt n$ 估计其标准误，无须再做内层抽样。若某次重抽样产生零标准误，式~\eqref{eq:study-bootstrap-studentized-statistic} 就无法直接使用，必须检查数据、统计量和算法的适用性，不能悄悄删掉这些重复后仍按原公式解释覆盖率。教材还提及标准正态自助区间、百分位数区间和偏差校正加速区间；它们使用不同的校准方式，不应仅凭同一次模拟中哪个区间最短来选择方法。
+
+\section{置信限}
+\label{sec:study-confidence-bounds}
+% 教材第 257--258 页。
+
+若只关心参数是否足够小或足够大，可以把覆盖概率集中在一侧，而不必同时控制两个有限端点。
+
+\begin{definition}
+\label{def:study-confidence-bounds}
+若统计量 $U(X)$ 对所有允许参数值满足
+\[
+  \mathbb P_\theta\{\theta\le U(X)\}\ge1-\alpha,
+\]
+则称 $U(X)$ 为 $\theta$ 的置信水平至少为 $1-\alpha$ 的\emph{置信上限（upper confidence bound）}。若统计量 $L(X)$ 满足
+\[
+  \mathbb P_\theta\{L(X)\le\theta\}\ge1-\alpha,
+\]
+则称其为相应的\emph{置信下限（lower confidence bound）}。当等式对所有参数值成立时，得到精确的单侧置信系数。
+\end{definition}
+
+上限对应置信集合 $(-\infty,U]$，下限对应 $[L,\infty)$，并可与参数空间相交。二者分别具有各自的单侧覆盖保证；如果需要同时使用两个端点形成双侧区间，就必须重新分配两尾概率，不能把两个 $95\%$ 单侧界直接称为一个 $95\%$ 双侧区间。
+
+正态总体均值在方差已知时，由
+\[
+  \mathbb P\left\{\frac{\sqrt n(\bar X-\mu)}\sigma\ge-u_\alpha\right\}
+  =1-\alpha
+\]
+得 $\mu$ 的上限为 $\bar X+u_\alpha\sigma/\sqrt n$；同理，下限为 $\bar X-u_\alpha\sigma/\sqrt n$。方差未知且 $n\ge2$ 时，两个单侧界分别为
+\begin{equation}
+  L_\mu=\bar X-t_{n-1}(\alpha)\frac S{\sqrt n},\qquad
+  U_\mu=\bar X+t_{n-1}(\alpha)\frac S{\sqrt n}.
+  \label{eq:study-normal-mean-bounds}
+\end{equation}
+与双侧等尾区间比较，这里用 $\alpha$ 分位数，而不是 $\alpha/2$ 分位数。
+
+对于正态总体方差，在均值未知时令 $V=(n-1)S^2$、$\nu=n-1$，则
+\begin{equation}
+  L_{\sigma^2}=\frac V{\chi_\nu^2(\alpha)},\qquad
+  U_{\sigma^2}=\frac V{\chi_\nu^2(1-\alpha)}.
+  \label{eq:study-normal-variance-bounds}
+\end{equation}
+其依据分别是事件 $V/\sigma^2\le\chi_\nu^2(\alpha)$ 和 $V/\sigma^2\ge\chi_\nu^2(1-\alpha)$，各有概率 $1-\alpha$。若均值已知为 $\mu_0$，则改取 $V=\sum(X_i-\mu_0)^2$、$\nu=n$；对端点开平方得到标准差的单侧界。卡方分布不对称，不能只记“把 $\alpha/2$ 换成 $\alpha$”，却忽略上尾分位数在上下端点中的位置。
+
+\begin{example}
+\label{ex:study-one-sided-normal-mean}
+沿用教材例 7.13 的 $12$ 个观测值，只讨论其正态抽样模型下的总体均值：$\bar x=45.25$、$s\approx10.3934$，求均值的 $90\%$ 置信上限。
+\end{example}
+\begin{solve}
+由式~\eqref{eq:study-normal-mean-bounds}，上限为
+\[
+  45.25+t_{11}(0.1)\frac{10.3934}{\sqrt{12}}
+  \approx49.3407.
+\]
+这提供的是均值的单侧界；即使该上限低于某个给定阈值，也不能推出每个测量点都低于该阈值，更不能仅凭均值区间直接完成需要其他指标和规则的整体分类。
+\end{solve}
+
+大样本单侧均值界可以把式~\eqref{eq:study-general-mean-ci} 中的 $u_{\alpha/2}$ 改为 $u_\alpha$；比例的单侧得分界则取式~\eqref{eq:study-wilson-ci} 中 $z=u_\alpha$，分别使用所需的一个端点。自助法同样可用单侧分位数校准，例如基本自助上限为 $2\widehat\theta-q_\alpha^*$，下限为 $2\widehat\theta-q_{1-\alpha}^*$。这些方法各自继承其近似条件，不能因为只取一侧就省略分布或重抽样假设。
+
+\section{扩展阅读：“足球赛会杀人”的真假}
+\label{sec:study-football-claim}
+% 教材第 258--260 页；以下把教材叙述作为统计推断案例讨论。
+
+教材以一项足球比赛期间死亡计数的观察性研究说明，区间估计的解释取决于估计对象和概率模型。按教材列出的数据，某比赛日相关男性死亡计数为 $41$，前后各五天共十天的日均计数为 $27.2$。这些是教材案例提供的观察记录；单凭“比赛日的数值高于平日”或“高于某个区间端点”，不能直接推出观看比赛导致了死亡增加。
+
+首先必须分清\emph{平均水平的置信区间}与\emph{一次新观测的预测区间（prediction interval）}。若假定各日计数 $Y_1,\ldots,Y_m$ 独立同分布于 $\operatorname{Pois}(\lambda)$，则 $\lambda$ 是每日平均计数，$\bar Y$ 的方差为 $\lambda/m$，而一个新日期计数 $Y_{\mathrm{new}}$ 的方差为 $\lambda$。当新日期独立于用于估计均值的日期时，
+\begin{equation}
+  \operatorname{Var}(Y_{\mathrm{new}}-\bar Y)
+   =\lambda\left(1+\frac1m\right).
+  \label{eq:study-poisson-prediction-variance}
+\end{equation}
+因此，一个单日计数超出平均水平的置信区间，并不等价于它超出单日计数应有的预测波动范围；后者要同时计入新观测的随机性和均值估计误差。
+
+其次，泊松计算本身依赖建模假设。每天具有同一均值、相互独立，以及方差等于均值，都需要结合数据背景检查；季节、星期、其他共同因素或时间依赖可能改变结论。把估计得到的 $\widehat\lambda$ 当成真实已知参数来计算尾概率，只得到代入参数的概率计算，并未自动处理参数估计误差。若以“至少 $41$ 人”为事件，应计算 $\mathbb P_\lambda(Y\ge41)$，而“超过 $41$ 人”是 $\mathbb P_\lambda(Y\ge42)$；离散计数中两个事件不能混同。
+
+最后，研究问题和异常模式是否事先指定，会影响推断。若先浏览许多比赛、日期、年龄组和病因，再挑选最突出的组合，单个组合的尾概率不能直接代表整个搜索过程的误报概率。教材把某个连续十一日的特定模式概率倒数解释为大约每隔若干天出现一次，这种直观说法还需要说明模式定义、扫描窗口及其重叠依赖，不能仅凭一次事件概率就当作现实中的独立等待时间结论。
+
+本例的学习重点是明确可以支持到哪一层结论：观察记录可以描述变化；给定模型可以评价这种变化与模型的相容程度；因果判断则还需要暴露信息、可比对照和对混杂因素的处理。一个区间包含无效应值不能证明“没有效应”，一个区间排除无效应值也不能单独证明“存在因果效应”；统计不确定性与研究设计是相互联系的两部分。
+
+\section*{本章总结}
+\addcontentsline{toc}{section}{本章总结}
+
+置信区间首先是一条重复使用的推断规则。它用随机端点覆盖固定参数，其可靠性由抽样模型下的覆盖率描述。观测后的区间宽度表达估计精度，但既不是个体观测的取值范围，也不是未来观测的预测范围；比较区间优劣必须同时检查覆盖要求、长度准则和计算代价。
+
+构造方法有三条主线。枢轴变量法利用已知且不含未知参数的分布，正态均值、方差、独立两总体的均值差和方差比，以及指数均值，都提供了典型例子。大样本方法以极限分布近似有限样本分布，反解时保留未知方差函数可得到得分区间，先代入估计则常得到瓦尔德区间。自助法以经验分布重抽样近似抽样波动，基本区间反射误差分位数，自助 $t$ 区间进一步学生化。后两类方法的名义置信水平必须结合其近似条件解释。
+
+实际计算前应明确参数、抽样单位和独立性，区分单侧与双侧、已知与未知方差、独立样本与配对样本；计算中核对上尾分位数、自由度和反解不等号的方向；计算后说明估计对象、单位、置信水平和精确或近似的性质。增加样本量能改善随机误差，却不能自动消除抽样偏差、模型失配或研究设计中的混杂。
+
+\section*{习题}
+\addcontentsline{toc}{section}{习题}
+
+以下选取教材第七章中能突出不同构造方法及适用条件的习题，题号均指教材本章习题号。计算中所用标准差均以分母 $n-1$ 定义，结果在最后一步舍入。
+
+\begin{example}
+\label{ex:study-ci-exercise-glue}
+教材习题 1。假设胶合木板的断开力服从正态分布，$10$ 次独立试验观测为
+\[
+  561,459,534,601,476,516,522,490,480,550
+  \quad(\mathrm N).
+\]
+求总体平均断开力的 $90\%$ 置信区间。
+\end{example}
+\begin{solve}
+由数据得 $\bar x=518.9\,\mathrm N$、$s\approx44.0995\,\mathrm N$。总体方差未知，使用自由度为 $9$ 的 $t$ 区间，得到
+\[
+  518.9\pm t_9(0.05)\frac{44.0995}{\sqrt{10}}
+  \approx[493.34,544.46]\,\mathrm N.
+\]
+这里置信水平为 $90\%$，所以双侧各留 $5\%$ 的尾概率；不能误用上尾 $0.1$ 分位数。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ci-exercise-measurements}
+教材习题 7。测量误差独立同分布于 $N(0,10^2)$。至少重复测量多少次，才能使平均误差绝对值小于 $2$ 的概率不低于 $99\%$？
+\end{example}
+\begin{solve}
+平均误差的标准差为 $10/\sqrt n$，所求条件是
+\[
+  \mathbb P(|\bar X|<2)
+   =\mathbb P\left(|Z|<\frac{2\sqrt n}{10}\right)\ge0.99.
+\]
+因此 $n\ge(10u_{0.005}/2)^2\approx165.87$，至少需要 $166$ 次。总体均值为零意味着没有系统误差；增加重复次数缩小的是这里假定的独立随机误差。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ci-exercise-paired-sales}
+教材习题 11 第三问。同一组 $11$ 种商品分别记录经营策略改变前后的销售额，求“后减前”的总体平均差的 $95\%$ 置信区间。明确采用各商品的差值相互独立、同分布且服从正态分布的模型。
+\end{example}
+\begin{solve}
+按商品配对，差值为
+\[
+  3.2,-4.5,0.7,6.7,-6.1,-3.7,8.9,3.2,25.6,-17.3,11.8
+  \quad(\text{万元}).
+\]
+其样本均值为 $\bar d\approx2.5909$ 万元、样本标准差为 $s_d\approx11.1188$ 万元。用差值样本作单样本 $t$ 推断，得到
+\[
+  \bar d\pm t_{10}(0.025)\frac{s_d}{\sqrt{11}}
+  \approx[-4.879,10.061]\text{ 万元}.
+\]
+区间包含 $0$，说明按该模型和方法尚不能把总体平均变化的方向确定为正或负，并不证明改变策略没有作用。同一商品的前后值通常相关，不能未经假设把两组数据当作独立样本；仅假设前后边缘分布分别正态，也不足以推出差值正态。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ci-exercise-variance-df}
+教材习题 16。正态总体的 $10$ 个长度观测值为
+\[
+  49.5,50.4,49.7,51.1,49.4,49.7,50.8,49.9,50.3,50.0
+  \quad(\mathrm{mm}).
+\]
+分别在总体均值已知为 $50\,\mathrm{mm}$ 和均值未知时，求总体方差的 $95\%$ 置信区间。
+\end{example}
+\begin{solve}
+若均值已知为 $50$，则 $\sum(x_i-50)^2=2.900\,\mathrm{mm}^2$，由式~\eqref{eq:study-normal-known-mean-variance-pivot} 得
+\[
+  \left[\frac{2.900}{\chi_{10}^2(0.025)},\,
+        \frac{2.900}{\chi_{10}^2(0.975)}\right]
+  \approx[0.1416,0.8931]\,\mathrm{mm}^2.
+\]
+若均值未知，则 $\bar x=50.08\,\mathrm{mm}$，$\sum(x_i-\bar x)^2=2.836\,\mathrm{mm}^2$，由式~\eqref{eq:study-normal-variance-ci} 得
+\[
+  \left[\frac{2.836}{\chi_9^2(0.025)},\,
+        \frac{2.836}{\chi_9^2(0.975)}\right]
+  \approx[0.1491,1.0502]\,\mathrm{mm}^2.
+\]
+同一组数据下，是否知道总体均值会同时改变中心化的平方和与卡方自由度。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ci-exercise-uniform-maximum}
+教材习题 19。设 $X_1,\ldots,X_n$ 独立同分布于均匀分布 $U(0,\theta)$，$\theta>0$，记 $M=\max_iX_i$。求 $c_n$，使 $[M,c_nM]$ 是 $\theta$ 的置信系数为 $1-\alpha$ 的区间。
+\end{example}
+\begin{solve}
+对 $0\le v\le1$，独立性给出
+\[
+  \mathbb P_\theta(M/\theta\le v)
+   =\prod_{i=1}^n\mathbb P_\theta(X_i\le v\theta)=v^n.
+\]
+因此 $M/\theta$ 是枢轴量，且 $M\le\theta$ 几乎必然。要求区间覆盖等价于 $M/\theta\ge1/c_n$，故需 $c_n\ge1$ 且
+\[
+  1-c_n^{-n}=1-\alpha,
+  \qquad c_n=\alpha^{-1/n}.
+\]
+所以区间为 $[M,M\alpha^{-1/n}]$。这不是围绕点估计对称延伸的区间，说明区间形状应由抽样分布和参数空间决定。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ci-exercise-defects-bound}
+教材习题 22。独立检验 $120$ 件产品，发现 $9$ 件次品。在二项模型下求次品率的点估计、近似 $95\%$ 双侧置信区间和近似 $95\%$ 置信上限。
+\end{example}
+\begin{solve}
+点估计为 $\widehat p=9/120=0.075$。将 $z=u_{0.025}$ 代入式~\eqref{eq:study-wilson-ci}，得到双侧得分区间约为
+\[
+  [0.0400,0.1364].
+\]
+计算单侧上限时改用 $z=u_{0.05}$，并只取相应的上端点，得到约 $0.1246$。上限与双侧区间的上端点不同，是因为前者把全部 $\alpha=0.05$ 分配到同一侧，而后者只在该侧分配 $0.025$。次品数只有 $9$，这里仍需说明正态近似的局限；若要求有限样本覆盖保证，可按二项尾概率反演单侧上限。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ci-exercise-rare-defects}
+教材习题 26。在 $1000$ 件独立检验的产品中发现 $5$ 件次品，求次品率 $p$ 的 $95\%$ 置信区间，并判断能否仅凭 $n=1000$ 就认定瓦尔德近似充分准确。
+\end{example}
+\begin{solve}
+$\widehat p=0.005$，得分区间约为 $[0.00214,0.01165]$。虽然总样本量达到 $1000$，观测到的次品数却只有 $5$，且参数估计接近边界，因此不能仅凭 $n$ 很大就保证瓦尔德区间的覆盖率。这里应结合稀少计数检查近似，必要时使用式~\eqref{eq:study-binomial-exact-inversion} 的精确二项反演。总样本量和有效事件数提供的信息不同。
+\end{solve}
+
+
+
+
+

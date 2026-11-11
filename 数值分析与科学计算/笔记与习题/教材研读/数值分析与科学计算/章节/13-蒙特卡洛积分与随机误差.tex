@@ -1,0 +1,71 @@
+% !TeX root = ../数值分析与科学计算笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{12} % 保留原书章号。
+\chapter{蒙特卡洛积分与随机误差}
+\label{chap:na-montecarlo}
+
+\section{把积分表示为期望}
+高维积分的规则网格点数随维度快速增长。\emph{蒙特卡洛方法（Monte Carlo method）}用随机样本估计期望；其误差是随机变量，必须与确定性截断误差区分。设 $X_1,\ldots,X_N$ 独立同分布于 $[a,b]$ 上的均匀分布，定义
+\begin{equation}
+ \widehat I_N=\frac{b-a}{N}\sum_{j=1}^Nf(X_j).
+ \label{eq:na-mc}
+\end{equation}
+随机变量用大写表示，一次具体运行得到的 $x_j$ 是它们的取值。伪随机生成器给出可复现的确定性序列，理论分析通常以理想独立随机样本建模；固定种子用于复现实验，不会证明样本独立。
+
+\begin{theorem}[蒙特卡洛估计的均值和方差]
+若 $f$ 平方可积，令 $\sigma^2=\operatorname{Var}(f(X_1))$，则 $\mathbb E\widehat I_N=I$ 且
+\[
+ \operatorname{Var}(\widehat I_N)=\frac{(b-a)^2\sigma^2}{N},\qquad
+ \bigl(\mathbb E|\widehat I_N-I|^2\bigr)^{1/2}=\frac{(b-a)\sigma}{\sqrt N}.
+\]
+若进一步 $\sigma>0$，中心极限定理给出 $\sqrt N(\widehat I_N-I)/[(b-a)\sigma]$ 依分布趋于标准正态。
+\end{theorem}
+\begin{proof}
+均匀分布密度为 $1/(b-a)$，故 $\mathbb E f(X_1)=I/(b-a)$。独立性使不同样本的协方差为零，平均值的方差为单样本方差除以 $N$；估计无偏，均方误差等于方差。最后一句直接使用独立同分布、有限正方差条件下的中心极限定理。
+\end{proof}
+
+令 $\overline f=N^{-1}\sum_jf(X_j)$、$s^2=(N-1)^{-1}\sum_j(f(X_j)-\overline f)^2$，其中 $N\ge2$。大样本下可报告近似 $95\%$ 置信区间 $\widehat I_N\pm1.96(b-a)s/\sqrt N$。它是重复抽样意义下的渐近覆盖陈述，既不是本次误差必小于半宽的保证，也不表示未知固定积分值在给定区间内具有由频率学派赋予的后验概率。
+
+\begin{example}[估计平方函数的积分]
+对 $I=\int_0^1x^2\,\mathrm dx=1/3$，$\mathbb E X^4=1/5$，所以 $\operatorname{Var}(X^2)=1/5-1/9=4/45$。估计标准差为 $2/\sqrt{45N}$。把标准差缩小到原来的十分之一，需要样本量增加到一百倍。
+\end{example}
+
+\section{重要性抽样与方差存在条件}
+设 $p$ 是积分区域上的概率密度，在 $f\ne0$ 的地方几乎处处为正。若 $X_j$ 独立服从 $p$，则
+\[
+ I=\mathbb E_p\frac{f(X)}{p(X)},\qquad
+ \widehat I_N^{\mathrm{IS}}=\frac1N\sum_{j=1}^N\frac{f(X_j)}{p(X_j)}.
+\]
+这里 $\int|f|<\infty$ 保证期望有意义，而有限方差还要求 $\int f(x)^2/p(x)\,\mathrm dx<\infty$。重要性密度在重要区域过小会导致权重爆炸，不能只因抽样“更集中”就断言降低方差。
+
+若 $Z=\int|f|>0$ 已知，理想密度 $p_*=|f|/Z$ 最小化该类估计器的二阶矩：Cauchy--Schwarz 不等式给出 $(\int|f|)^2\le(\int f^2/p)(\int p)=\int f^2/p$，等号条件正是 $p\propto|f|$。若 $f$ 非负，该选择产生零方差，但归一化常数正是待求积分，因此通常只是设计方向，不能当作通用的可执行解法。
+
+\section{控制变量、对偶变量与分层}
+若 $Y=f(X)$，另有与它相关且期望 $\mu_Z$ 已知的变量 $Z$，则控制变量估计使用 $Y-c(Z-\mu_Z)$，其期望仍为 $\mathbb EY$。若二者二阶矩有限且 $\operatorname{Var}(Z)>0$，方差关于 $c$ 的二次函数在
+\[
+ c_* =\frac{\operatorname{Cov}(Y,Z)}{\operatorname{Var}(Z)}
+\]
+处最小。$c$ 由同一批样本估计时，简单的固定系数无偏证明不再直接适用；可用独立预实验估计参数，再固定它处理正式样本。
+
+对 $U\sim\operatorname{Unif}[0,1]$，用一对 $f(U),f(1-U)$ 的平均构造对偶变量估计。其方差为 $\tfrac12\operatorname{Var}(f(U))+\tfrac12\operatorname{Cov}(f(U),f(1-U))$。在相同两次函数评价成本下，只有协方差为负时才优于两个独立样本的平均；不能仅因为样本成对就保证改善。
+
+将区间划分为互不重叠的子区间，在第 $\ell$ 层独立取 $n_\ell$ 个均匀样本，层长度为 $h_\ell$、函数值方差为 $\sigma_\ell^2$，则分层积分估计的方差为 $\sum_\ell h_\ell^2\sigma_\ell^2/n_\ell$。在连续放松的固定总样本量约束下，最优分配满足 $n_\ell\propto h_\ell\sigma_\ell$；实际需要整数取整并用预实验估计未知方差。
+
+\section{高维与相关样本的边界}
+对 $d$ 维区域上的均匀抽样，式~\eqref{eq:na-mc} 中的区间长度替换为体积即可。$N^{-1/2}$ 的指数不显式依赖维数，但方差常数、函数评价成本和生成合适样本的难度都可能随维度恶化。因此“蒙特卡洛没有维数灾难”只能理解为特定误差率中的指数性质，不能理解为高维积分一律容易。
+
+马尔可夫链蒙特卡洛生成相关样本，不能直接套用独立样本的方差证明。对平稳序列 $Y_j$，若自协方差 $\gamma_k=\operatorname{Cov}(Y_1,Y_{1+k})$ 存在，则有限样本恒等式为
+\[
+ \operatorname{Var}\left(\frac1N\sum_{j=1}^NY_j\right)
+ =\frac1N\left[\gamma_0+2\sum_{k=1}^{N-1}\left(1-\frac{k}{N}\right)\gamma_k\right].
+\]
+由方差双重求和按时间差分组即可推导。进一步使用极限定理还需遍历性及相应依赖条件；平稳或“看起来已混合”本身不自动保证普通中心极限定理。具体采样算法与诊断属于后续概率计算课程，本章保留独立抽样作为可完整分析的基础。
+
+\section{习题}
+\begin{enumerate}[label=\arabic*.]
+\item\label{exr:na-mc-variance} 用均匀样本估计 $\int_0^1x\,\mathrm dx$，求均值、方差和均方根误差。
+\item\label{exr:na-mc-antithetic} 对同一积分使用对偶变量对 $(U,1-U)$，证明每一对得到的估计恰为积分值。
+\item\label{exr:na-mc-control} 取 $Y=U^2$、$Z=U$，求最佳控制变量系数以及单样本修正量的方差。
+\item\label{exr:na-mc-importance} 对 $f(x)=1$、$0<x<1$，取重要性密度 $p(x)=2x$。证明估计无偏但方差无穷，并说明普通有限方差中心极限定理不能直接使用。
+\end{enumerate}
+

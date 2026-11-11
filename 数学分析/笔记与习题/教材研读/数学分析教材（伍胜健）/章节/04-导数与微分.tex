@@ -1,0 +1,893 @@
+% !TeX root = ../数学分析教材（伍胜健）笔记.tex
+% 本文件由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{3} % 保留原书章号。
+\chapter{导数与微分}
+\label{chap:derivatives-and-differentials}
+
+% 依据教材第 134--170 页；分章 PDF 第 1--37 页的正文，不含习题四。
+上一章用极限描述函数值的趋近过程，本章进一步研究函数在一点附近如何变化。导数刻画局部变化率，微分把这一变化写成线性部分与高阶余项之和；二者在一元函数中等价，却侧重不同的问题。以下先从速度与切线引出导数，再建立各类表示下的求导法则，最后讨论微分近似和高阶运算。本章未特别说明时，可导均指\emph[caution]{有限导数存在}，自变量的增量可以取正值，也可以取负值。
+
+\section{导数}
+\label{sec:derivatives}
+
+\subsection{导数概念的引入}
+\label{subsec:introduction-to-derivatives}
+
+设物体沿一条直线运动，用带方向的位置函数 $s=s(t)$ 描述其运动。在时刻 $t_0$ 与 $t_0+\Delta t$ 之间，平均速度为
+\[
+    \frac{\Delta s}{\Delta t}
+    =\frac{s(t_0+\Delta t)-s(t_0)}{\Delta t},\qquad \Delta t\ne0.
+\]
+若此比值在 $\Delta t\to0$ 时趋于有限值，就用该极限定义时刻 $t_0$ 的\emph{瞬时速度}（instantaneous velocity）：
+\[
+    v(t_0)=\lim_{\Delta t\to0}
+    \frac{s(t_0+\Delta t)-s(t_0)}{\Delta t}.
+\]
+位置采用带方向的坐标，因此速度也带符号，其绝对值才是速率。若物体始终朝同一方向运动，也可以用所走路程来表示上述变化。这里取极限的理由是：一个固定时间段的平均量无法刻画某个时刻的局部运动状态，必须让时间段缩短到该时刻附近。
+
+几何中的切线问题具有相同的数学结构。对曲线 $y=f(x)$ 上的点 $P=(x_0,f(x_0))$，取相邻点 $Q=(x_0+h,f(x_0+h))$，割线 $PQ$ 的斜率为
+\[
+    \frac{f(x_0+h)-f(x_0)}h.
+\]
+若它在 $h\to0$ 时趋于有限值 $k$，则将过 $P$、斜率为 $k$ 的直线定义为曲线在 $P$ 处的切线，其方程为
+\begin{equation}
+\label{eq:tangent-line-from-derivative}
+    y-f(x_0)=k(x-x_0).
+\end{equation}
+这一切线概念描述割线的极限位置，不要求切线只与曲线相交一次，也不要求曲线位于切线的一侧。例如 $y=x^3$ 在原点的切线为 $y=0$，曲线在原点穿过切线。瞬时速度与切线斜率虽然背景不同，都归结为\emph{函数增量与自变量增量之比的极限}；密度、增长率等局部量也可由同一结构刻画。
+
+\subsection{导数的定义}
+\label{subsec:definition-of-derivatives}
+
+\begin{definition}
+\label{def:derivative-at-a-point}
+设函数 $f$ 在 $x_0$ 的某邻域内有定义。若有限极限
+\begin{equation}
+\label{eq:definition-of-derivative}
+    f'(x_0)=\lim_{h\to0}\frac{f(x_0+h)-f(x_0)}h
+    =\lim_{x\to x_0}\frac{f(x)-f(x_0)}{x-x_0}
+\end{equation}
+存在，则称 $f$ 在 $x_0$ \emph{可导}（differentiable），称 $f'(x_0)$ 为 $f$ 在 $x_0$ 的\emph{导数}（derivative）。若 $y=f(x)$，还可记为
+\[
+    \left.\frac{\mathrm dy}{\mathrm dx}\right|_{x=x_0},\qquad
+    \left.\frac{\mathrm df}{\mathrm dx}\right|_{x=x_0}.
+\]
+若 $f$ 在开区间 $I$ 的每一点均可导，则对应 $x\mapsto f'(x)$ 构成 $I$ 上的\emph{导函数}（derivative function），通常也简称导数。
+\end{definition}
+
+在一点的导数 $f'(x_0)$ 是一个数，导函数 $f'$ 才是函数。差商必须保留中心点的函数值 $f(x_0)$；改变这一个值便可能改变可导性。式~\eqref{eq:definition-of-derivative} 中 $h$ 的两侧趋近也不可省略，差商趋于 $+\infty$ 或 $-\infty$ 不属于本章定义的可导情形。几何上，此时可能出现竖直切线，但不能把无穷大当作有限斜率代入式~\eqref{eq:tangent-line-from-derivative}。
+
+\begin{example}
+\label{ex:derivatives-of-constant-and-square-root}
+用定义求常函数 $f(x)=C$ 的导数，以及 $g(x)=\sqrt{x}$ 在 $x_0>0$ 处的导数。
+\end{example}
+\begin{solve}
+常函数的差商恒为零，故 $f'(x)=0$。对平方根函数，利用有理化得
+\[
+    \frac{\sqrt{x_0+h}-\sqrt{x_0}}h
+    =\frac1{\sqrt{x_0+h}+\sqrt{x_0}}
+    \longrightarrow\frac1{2\sqrt{x_0}},
+\]
+所以 $g'(x_0)=1/(2\sqrt{x_0})$。这里 $x_0>0$ 保证充分小的正、负增量都在定义域内；端点 $0$ 处只能先讨论右侧差商，其值为 $1/\sqrt{h}\to+\infty$，并无有限右导数。
+\end{solve}
+
+基本初等函数的导数可直接由上一章的基本极限推出。对任意实数 $\alpha$，在 $x>0$ 时令 $t=h/x$，便有
+\[
+    \frac{(x+h)^\alpha-x^\alpha}h
+    =x^{\alpha-1}\frac{(1+t)^\alpha-1}t
+    \longrightarrow\alpha x^{\alpha-1}.
+\]
+同样，利用指数、对数的等价无穷小，有
+\[
+    \frac{a^{x+h}-a^x}h=a^x\frac{a^h-1}h
+    \longrightarrow a^x\ln a\quad(a>0),
+\]
+以及
+\[
+    \frac{\log_a(x+h)-\log_a x}h
+    =\frac1{x\ln a}\frac{\ln(1+h/x)}{h/x}
+    \longrightarrow\frac1{x\ln a}
+    \quad(x>0,\ a>0,\ a\ne1).
+\]
+对三角函数，用和差化积及 $\sin t/t\to1$，得到
+\[
+    \frac{\sin(x+h)-\sin x}h
+    =\cos\left(x+\frac h2\right)\frac{\sin(h/2)}{h/2}
+    \longrightarrow\cos x,
+\]
+余弦的计算类似。因此可集中记为
+\begin{equation}
+\label{eq:basic-power-exponential-trigonometric-derivatives}
+\begin{gathered}
+    (x^\alpha)'=\alpha x^{\alpha-1}\quad(x>0),\qquad
+    (a^x)'=a^x\ln a\quad(a>0),\qquad (e^x)'=e^x,\\
+    (\log_a x)'=\frac1{x\ln a},\qquad (\ln x)'=\frac1x\quad(x>0),\\
+    (\sin x)'=\cos x,\qquad (\cos x)'=-\sin x.
+\end{gathered}
+\end{equation}
+其中对数底数仍须满足 $a>0$ 且 $a\ne1$。幂函数公式在负半轴或原点能否使用，须另核对幂的定义域及可导性；例如非负整数次幂在全实轴上可导，不能因此把任意实指数的定义域也扩展到全实轴。
+
+\subsection{单侧导数}
+\label{subsec:one-sided-derivatives}
+
+\begin{definition}
+\label{def:one-sided-derivatives}
+设 $f$ 在 $[x_0,x_0+\delta)$ 上有定义。若有限极限
+\[
+    f'_+(x_0)=\lim_{h\to0+}\frac{f(x_0+h)-f(x_0)}h
+\]
+存在，则称其为 $f$ 在 $x_0$ 的\emph{右导数}（right derivative）。若 $f$ 在 $(x_0-\delta,x_0]$ 上有定义，则以 $h\to0-$ 定义\emph{左导数}（left derivative）$f'_-(x_0)$。函数在闭区间上可导，通常指内点均可导且两个端点具有相应的有限单侧导数。
+\end{definition}
+
+\begin{proposition}
+\label{prop:derivative-one-sided-and-continuity}
+若 $f$ 在 $x_0$ 的邻域内有定义，则它在 $x_0$ 可导，当且仅当 $f'_-(x_0)$、$f'_+(x_0)$ 均存在且相等。可导必连续；左可导必左连续，右可导必右连续。
+\end{proposition}
+\begin{proof}
+第一项是双侧极限存在的单侧刻画。若 $f'(x_0)$ 存在，则
+\[
+    f(x_0+h)-f(x_0)
+    =h\,\frac{f(x_0+h)-f(x_0)}h\longrightarrow0,
+\]
+故 $f$ 在 $x_0$ 连续。只让 $h$ 从一侧趋于零，就得到相应的单侧连续性。
+\end{proof}
+
+\begin{example}
+\label{ex:absolute-value-and-oscillatory-differentiability}
+比较 $f(x)=|x|$ 及由振荡函数
+\[
+    S(x)=\begin{cases}\sin(1/x),&x\ne0,\\0,&x=0\end{cases}
+\]
+构造的 $S(x)$、$xS(x)$、$x^2S(x)$ 在原点的连续性与可导性。
+\end{example}
+\begin{solve}
+对 $|x|$，有 $f'_+(0)=1$、$f'_-(0)=-1$，故其在原点连续却不可导。对 $S$，取趋于零且使 $\sin(1/x)$ 分别等于 $1$、$-1$ 的两列点，便知它在原点没有极限，是第二类间断。由 $|xS(x)|\leq|x|$，$xS(x)$ 在原点连续，但它的差商为 $S(h)$，即使单侧极限也不存在，因而不可导。再乘一个 $x$ 后，$x^2S(x)$ 的差商为 $h\sin(1/h)\to0$，故它在原点可导且导数为零。
+\end{solve}
+
+可导性要求函数增量在一阶尺度上稳定；仅有连续性只要求增量趋于零，并不控制它与自变量增量的比值。上述 $x^2S(x)$ 还说明切线可以在任意小邻域内与曲线反复相交：原点处的切线是 $y=0$，而 $x=1/(k\pi)$ 给出趋向原点的一列非零交点。后面求得其非零点处的导数后，还会看到\emph[caution]{可导也不意味着导函数连续}。
+
+\section{求导数的方法}
+\label{sec:differentiation-methods}
+
+通过定义推导基本函数的导数以后，应建立与函数构造方式对应的运算法则。四则运算、反函数与复合函数的法则构成基础；隐式、参数式和极坐标式求导则是这些法则在不同表示下的应用。运算前须先确认函数的定义域、所用表示对应的局部分支以及分母非零等条件。
+
+\subsection{函数四则运算的导数}
+\label{subsec:arithmetic-differentiation-rules}
+
+\begin{theorem}
+\label{thm:arithmetic-differentiation-rules}
+设 $f,g$ 在 $x_0$ 可导，$a,b$ 为常数，则 $af+bg$、$fg$ 在 $x_0$ 可导，且
+\begin{align}
+    (af+bg)'(x_0)&=af'(x_0)+bg'(x_0),\label{eq:derivative-linearity}\\
+    (fg)'(x_0)&=f'(x_0)g(x_0)+f(x_0)g'(x_0).\label{eq:derivative-product-rule}
+\end{align}
+若另有 $g(x_0)\ne0$，则 $f/g$ 在 $x_0$ 的某邻域内有定义并可导，且
+\begin{equation}
+\label{eq:derivative-quotient-rule}
+    \left(\frac fg\right)'(x_0)
+    =\frac{f'(x_0)g(x_0)-f(x_0)g'(x_0)}{g(x_0)^2}.
+\end{equation}
+\end{theorem}
+\begin{proof}
+线性法则直接来自差商的线性运算。对乘积，写成
+\[
+    \frac{f(x_0+h)g(x_0+h)-f(x_0)g(x_0)}h
+    =\frac{f(x_0+h)-f(x_0)}h\,g(x_0+h)
+    +f(x_0)\frac{g(x_0+h)-g(x_0)}h.
+\]
+由可导必连续，$g(x_0+h)\to g(x_0)$，取极限即得乘积法则。若 $g(x_0)\ne0$，连续性保证充分靠近 $x_0$ 时 $g$ 仍非零，并且
+\[
+    \frac{1/g(x_0+h)-1/g(x_0)}h
+    =-\frac1{g(x_0+h)g(x_0)}
+    \frac{g(x_0+h)-g(x_0)}h
+    \longrightarrow-\frac{g'(x_0)}{g(x_0)^2}.
+\]
+将 $f/g$ 写成 $f\cdot(1/g)$，再用乘积法则，得到商法则。
+\end{proof}
+
+有限个可导函数的线性组合可逐项求导，有限乘积则每次选取一个因子求导后相加：
+\[
+    \left(\prod_{j=1}^m f_j\right)'
+    =\sum_{k=1}^m f'_k\prod_{\substack{1\leq j\leq m\\j\ne k}}f_j.
+\]
+这里强调有限性，无穷项的求和与求导能否交换，需要后续另加条件。
+
+\begin{example}
+\label{ex:derivatives-of-tangent-and-cotangent}
+求 $\tan x$、$\cot x$ 的导数。
+\end{example}
+\begin{solve}
+在 $\cos x\ne0$ 处，由商法则，
+\[
+    (\tan x)'=\left(\frac{\sin x}{\cos x}\right)'
+    =\frac{\cos^2x+\sin^2x}{\cos^2x}=\frac1{\cos^2x}.
+\]
+同理，在 $\sin x\ne0$ 处，$(\cot x)'=-1/\sin^2x$。这些条件正是原函数有定义的条件；不能在三角函数的极点处套用求导公式。
+\end{solve}
+
+\subsection{反函数的求导法则}
+\label{subsec:inverse-function-rule}
+
+\begin{theorem}
+\label{thm:inverse-function-derivative}
+设 $f$ 在开区间 $I$ 上连续且严格单调，$J=f(I)$，反函数记为 $g=f^{-1}$。若 $x_0\in I$，$y_0=f(x_0)$，且 $f'(x_0)$ 存在并非零，则 $g$ 在 $y_0$ 可导，且
+\begin{equation}
+\label{eq:inverse-function-derivative}
+    g'(y_0)=\frac1{f'(x_0)}=\frac1{f'(g(y_0))}.
+\end{equation}
+特别地，若 $f$ 在 $I$ 上处处可导且导数非零，则其反函数在 $J$ 上处处可导。
+\end{theorem}
+\begin{proof}
+由定理~\ref{thm:continuity-of-inverse-functions}，反函数连续，故 $y\to y_0$ 时 $x=g(y)\to x_0$。又因单射性，$y\ne y_0$ 时 $x\ne x_0$，故
+\[
+    \frac{g(y)-g(y_0)}{y-y_0}
+    =\frac{x-x_0}{f(x)-f(x_0)}
+    \longrightarrow\frac1{f'(x_0)}.
+\]
+分母极限非零正是 $f'(x_0)\ne0$ 的作用。
+\end{proof}
+
+记成 $\mathrm dx/\mathrm dy=1/(\mathrm dy/\mathrm dx)$ 时，两边的导数必须取在同一对应点。反函数存在并不足以保证它可导，例如 $y=x^3$ 在原点的导数为零，其反函数 $x=\sqrt[3]{y}$ 在原点没有有限导数。
+
+\begin{example}
+\label{ex:derivatives-of-inverse-trigonometric-functions}
+求四个常用反三角函数的导数，并说明定义分支与适用区间。
+\end{example}
+\begin{solve}
+若 $y=\arctan x\in(-\pi/2,\pi/2)$，则 $x=\tan y$，从而
+\[
+    \frac{\mathrm dy}{\mathrm dx}
+    =\frac1{1+\tan^2y}=\frac1{1+x^2}.
+\]
+若 $y=\arcsin x\in[-\pi/2,\pi/2]$，则在 $|x|<1$ 时 $\cos y>0$，因此
+\[
+    \frac{\mathrm dy}{\mathrm dx}
+    =\frac1{\cos y}=\frac1{\sqrt{1-x^2}}.
+\]
+相同方法用于值域为 $[0,\pi]$ 的 $\arccos$，以及值域为 $(0,\pi)$ 的 $\operatorname{arccot}$，给出
+\begin{equation}
+\label{eq:inverse-trigonometric-derivatives}
+\begin{gathered}
+    (\arcsin x)'=\frac1{\sqrt{1-x^2}},\qquad
+    (\arccos x)'=-\frac1{\sqrt{1-x^2}}\quad(|x|<1),\\
+    (\arctan x)'=\frac1{1+x^2},\qquad
+    (\operatorname{arccot}x)'=-\frac1{1+x^2}\quad(x\in\mathbb R).
+\end{gathered}
+\end{equation}
+反正弦与反余弦在 $\pm1$ 处有定义，但相应的单侧差商无有限极限，因此公式中的区间不能改成闭区间。
+\end{solve}
+
+\subsection{复合函数的求导法则}
+\label{subsec:chain-rule}
+
+\begin{theorem}[链式法则]
+\label{thm:one-variable-chain-rule}
+设 $g$ 在 $x_0$ 的邻域内有定义且在 $x_0$ 可导，$u_0=g(x_0)$；设 $f$ 在 $u_0$ 的邻域内有定义且在 $u_0$ 可导，并且复合函数 $F=f\circ g$ 在 $x_0$ 的某邻域内有定义。则 $F$ 在 $x_0$ 可导，且
+\begin{equation}
+\label{eq:one-variable-chain-rule}
+    F'(x_0)=f'(g(x_0))g'(x_0).
+\end{equation}
+这称为\emph{链式法则}（chain rule），亦称链锁法则。若 $y=f(u)$、$u=g(x)$，则常记成
+\[
+    \frac{\mathrm dy}{\mathrm dx}
+    =\frac{\mathrm dy}{\mathrm du}\frac{\mathrm du}{\mathrm dx}.
+\]
+\end{theorem}
+\begin{proof}
+令
+\[
+    A(u)=\begin{cases}
+        \dfrac{f(u)-f(u_0)}{u-u_0},&u\ne u_0,\\[4pt]
+        f'(u_0),&u=u_0.
+    \end{cases}
+\]
+由可导性，$A$ 在 $u_0$ 连续，且对所有邻近 $u$ 都有 $f(u)-f(u_0)=A(u)(u-u_0)$。于是
+\[
+    \frac{F(x)-F(x_0)}{x-x_0}
+    =A(g(x))\frac{g(x)-g(x_0)}{x-x_0}.
+\]
+因 $g$ 在 $x_0$ 连续，$A(g(x))\to f'(u_0)$，取极限即可。
+\end{proof}
+
+证明中把差商在 $u=u_0$ 处连续补值，是为了容许 $g(x)=g(x_0)$ 在邻近点反复发生。若直接除以 $g(x)-g(x_0)$，就可能在这些点除以零，因此不能未经说明地把复合函数的差商拆成两个普通商的乘积。多层复合可逐层使用链式法则，顺序是外层在内层函数值处求导，再乘内层的导数。
+
+\begin{example}
+\label{ex:chain-rule-and-logarithm-derivatives}
+比较 $\sin(x^2)$ 与 $\sin^2x$ 的导数，并求 $\ln|x|$ 的导数。
+\end{example}
+\begin{solve}
+前两者的外层函数分别为正弦与平方，故
+\[
+    (\sin(x^2))'=2x\cos(x^2),\qquad
+    (\sin^2x)'=2\sin x\cos x=\sin2x.
+\]
+对 $\ln|x|$，在 $x>0$ 时导数为 $1/x$；在 $x<0$ 时写成 $\ln(-x)$，由链式法则仍得 $(-1)/(-x)=1/x$。因此
+\[
+    (\ln|x|)'=\frac1x\qquad(x\ne0).
+\]
+同理，由 $x^\alpha=e^{\alpha\ln x}$ 可重新得到 $x>0$ 上的幂函数求导公式，这也说明同一函数可以用不同的分解方式求导。
+\end{solve}
+
+\begin{example}
+\label{ex:binomial-square-sum-by-differentiation}
+设 $n\geq1$ 为整数，利用求导证明
+\[
+    \sum_{k=0}^n\binom nk k^2=n(n+1)2^{n-2}.
+\]
+\end{example}
+\begin{solve}
+对有限和恒等式 $(1+x)^n=\sum_{k=0}^n\binom nk x^k$ 求导，再乘 $x$ 后求导，得到
+\[
+    n(1+x)^{n-1}+n(n-1)x(1+x)^{n-2}
+    =\sum_{k=1}^n\binom nk k^2x^{k-1}.
+\]
+当 $n\geq2$ 时令 $x=1$，左边为 $n2^{n-1}+n(n-1)2^{n-2}=n(n+1)2^{n-2}$。$n=1$ 时直接验得两边均为 $1$。这里先乘 $x$ 再求导，是为了使单项式的系数连续获得两次因子 $k$。
+\end{solve}
+
+\subsection{隐函数的求导法}
+\label{subsec:implicit-differentiation}
+
+若变量 $x,y$ 通过方程 $F(x,y)=0$ 联系，且在某个指定范围及分支上，每个 $x$ 唯一对应一个 $y=y(x)$，则称这个函数为方程所确定的\emph{隐函数}（implicit function）。方程本身未必在整个范围内确定一个函数，例如 $x^2+y^2=1$ 对 $|x|<1$ 同时给出正、负两个分支。\emph[caution]{对方程形式求导不能代替隐函数存在性与可导性的证明}；除可直接化为反函数等情形外，本节先假定所选分支已经可导，一般的隐函数存在定理留待多元微分学讨论。
+
+隐函数求导的操作是：在恒等式 $F(x,y(x))=0$ 两边对 $x$ 求导，凡含 $y$ 的部分均用链式法则，再从所得等式解出 $y'(x)$。解出的公式只能在推导中所除因子非零的点使用；无法解出时，应重新判断分支、改用 $x=x(y)$，或检查曲线是否存在竖直切线或奇点。
+
+\begin{example}
+\label{ex:kepler-equation-implicit-derivative}
+设 $0<e<1$ 为常数，证明\emph{开普勒方程}（Kepler's equation）
+\[
+    y-x-e\sin y=0
+\]
+在全实轴上确定唯一可导函数 $y=y(x)$，并求其导数。
+\end{example}
+\begin{solve}
+令 $\varphi(y)=y-e\sin y$。它连续，且因 $e\sin y$ 有界，$\varphi(y)\to\pm\infty$ 当 $y\to\pm\infty$。对 $y_2>y_1$，由 $|\sin y_2-\sin y_1|\leq y_2-y_1$，有
+\[
+    \varphi(y_2)-\varphi(y_1)
+    \geq(1-e)(y_2-y_1)>0.
+\]
+所以 $\varphi$ 严格递增，由介值定理，它的值域为 $\mathbb R$。于是方程唯一确定 $y=\varphi^{-1}(x)$。又有 $\varphi'(y)=1-e\cos y\geq1-e>0$，可用反函数求导定理保证 $y$ 可导。对方程求导得
+\[
+    y'-1-e\cos y\,y'=0,
+    \qquad y'(x)=\frac1{1-e\cos y(x)}.
+\]
+虽然未得到 $y(x)$ 的显式表达式，导数却已由该方程及其唯一分支确定。
+\end{solve}
+
+\begin{example}
+\label{ex:circle-tangents-by-implicit-differentiation}
+求单位圆 $x^2+y^2=1$ 上斜率为 $-1/2$ 的切线。
+\end{example}
+\begin{solve}
+在 $y\ne0$ 的上、下半圆分支上，$2x+2yy'=0$，故 $y'=-x/y$。设切点为 $(x_0,y_0)$，则 $y_0=2x_0$，结合圆的方程得到
+\[
+    (x_0,y_0)=\left(\frac1{\sqrt5},\frac2{\sqrt5}\right)
+    \quad\text{或}\quad
+    \left(-\frac1{\sqrt5},-\frac2{\sqrt5}\right).
+\]
+将两点分别代入切线方程，得 $y=-x/2+\sqrt5/2$ 与 $y=-x/2-\sqrt5/2$。圆上 $y=0$ 的两点不能使用 $y'=-x/y$，它们的切线分别为 $x=1$、$x=-1$。
+\end{solve}
+
+对乘积、商或变指数幂函数，先取对数往往比直接展开简洁，这称为\emph{对数求导法}（logarithmic differentiation）。若 $y=u(x)^{v(x)}$，其中 $u>0$ 且 $u,v$ 均可导，则 $\ln y=v\ln u$，从而
+\begin{equation}
+\label{eq:logarithmic-differentiation-variable-power}
+    y'=u^v\left(v'\ln u+v\frac{u'}u\right).
+\end{equation}
+这里 $u>0$ 使任意实指数的幂及对数都有定义。对其他非零函数的乘积或商，可以在其非零邻域内使用 $\ln|y|$，而不能在零点直接除以 $y$。
+
+\begin{example}
+\label{ex:logarithmic-differentiation-examples}
+求 $y=x^{e^x}$（$x>0$）及 $z=(1+x^{-2})^{x^2}$（$x\ne0$）的导数。
+\end{example}
+\begin{solve}
+第一式取对数得 $\ln y=e^x\ln x$，所以
+\[
+    y'=x^{e^x}e^x\left(\ln x+\frac1x\right).
+\]
+第二式有 $\ln z=x^2\ln(1+x^{-2})$，故
+\[
+    \frac{z'}z
+    =2x\ln(1+x^{-2})-\frac{2x}{1+x^2},
+\]
+即
+\[
+    z'=2x(1+x^{-2})^{x^2}
+    \left(\ln(1+x^{-2})-\frac1{1+x^2}\right).
+\]
+两个例子中底数与指数均随 $x$ 改变，不能只套用常指数幂函数或常底数指数函数的求导公式。
+\end{solve}
+
+\subsection{参数式函数的求导法}
+\label{subsec:parametric-differentiation}
+
+设曲线由\emph{参数方程}（parametric equations）$x=\varphi(t)$、$y=\psi(t)$ 给出，$t_0$ 对应点 $(x_0,y_0)$。为保证它在这一点附近确实确定可导函数 $y=y(x)$，可假设 $\varphi,\psi$ 在 $t_0$ 的某邻域内可导，$\varphi$ 在该邻域内严格单调，且 $\varphi'(t_0)\ne0$。反函数与链式法则于是给出
+\begin{equation}
+\label{eq:parametric-first-derivative}
+    \left.\frac{\mathrm dy}{\mathrm dx}\right|_{x=x_0}
+    =\frac{\psi'(t_0)}{\varphi'(t_0)}.
+\end{equation}
+其依据是 $y(x)=\psi(\varphi^{-1}(x))$，而不是把两个无穷小增量形式地约掉。一个常用的充分条件是 $\varphi$ 在 $t_0$ 附近连续可导且 $\varphi'(t_0)\ne0$：连续性使导数在充分小邻域同号，再由下一章的定理~\ref{thm:derivative-monotonicity-test} 得局部严格单调。
+
+若 $\varphi'(t_0)=0$ 而 $\psi'(t_0)\ne0$，可在相应局部可逆条件下改以 $y$ 为自变量，此时曲线的切线竖直。若二者同时为零，上述公式没有结论，需要直接考察曲线；例如 $x=t^3,y=t^3$ 在 $t=0$ 的两个参数导数均为零，但曲线仍是直线 $y=x$。
+
+\begin{example}
+\label{ex:ellipse-tangent-parametric-and-implicit}
+设 $a,b>0$，求椭圆 $x^2/a^2+y^2/b^2=1$ 在任意点 $(x_0,y_0)$ 处的切线方程。
+\end{example}
+\begin{solve}
+当 $y_0\ne0$ 时，椭圆在切点附近选定的上、下分支可导，由隐函数求导得
+\[
+    \frac{2x}{a^2}+\frac{2yy'}{b^2}=0,
+    \qquad y'=-\frac{b^2x}{a^2y}.
+\]
+在切点代入直线方程，并利用 $x_0^2/a^2+y_0^2/b^2=1$，得到
+\begin{equation}
+\label{eq:ellipse-tangent-line}
+    \frac{x_0x}{a^2}+\frac{y_0y}{b^2}=1.
+\end{equation}
+也可用参数式 $x=a\cos t,y=b\sin t$，在 $\sin t_0\ne0$ 时求得 $\mathrm dy/\mathrm dx=-b\cos t/(a\sin t)$，化简后得到同一方程。当 $y_0=0$ 时，$x_0=\pm a$，可将 $x$ 看成 $y$ 的函数，求得 $\mathrm dx/\mathrm dy=0$，切线为 $x=\pm a$；这两条竖直切线也由式~\eqref{eq:ellipse-tangent-line} 统一表达。
+\end{solve}
+
+\subsection{极坐标式函数的求导法}
+\label{subsec:polar-differentiation}
+
+若曲线由\emph{极坐标方程}（polar equation）$r=r(\theta)$ 给出，其中 $r$ 为极径、$\theta$ 为极角，则可转为参数式
+\[
+    x=r(\theta)\cos\theta,\qquad y=r(\theta)\sin\theta.
+\]
+若 $r$ 在所考虑点附近连续可导，且 $r'\cos\theta-r\sin\theta\ne0$，则参数式求导公式给出
+\begin{equation}
+\label{eq:polar-curve-derivative}
+    \frac{\mathrm dy}{\mathrm dx}
+    =\frac{r'(\theta)\sin\theta+r(\theta)\cos\theta}
+    {r'(\theta)\cos\theta-r(\theta)\sin\theta}.
+\end{equation}
+分母为零而分子非零时切线竖直。事实上，
+\[
+    \left(\frac{\mathrm dx}{\mathrm d\theta}\right)^2
+    +\left(\frac{\mathrm dy}{\mathrm d\theta}\right)^2
+    =(r')^2+r^2,
+\]
+因此只要 $r,r'$ 不同时为零，参数曲线就有非零的切向方向；若二者同时为零，应另作分析。
+
+当 $r>0$ 时，把切向方向相对于向径分解，其沿向径和垂直向径的分量分别为 $r'$ 与 $r$。若 $\alpha$ 表示切线与 $x$ 轴的夹角，$\beta$ 表示从向径逆时针转到切线的角，并按模 $\pi$ 选取在 $[0,\pi)$ 内，则 $\beta\equiv\alpha-\theta\pmod\pi$，且在 $r'\ne0$ 时
+\begin{equation}
+\label{eq:polar-radius-tangent-angle}
+    \tan\beta=\frac r{r'}.
+\end{equation}
+当 $r'=0$ 而 $r>0$ 时，切线与向径垂直。用正切求角只能先得到模 $\pi$ 的关系，最终角度必须结合取值区间判断。
+
+\begin{example}
+\label{ex:lemniscate-radius-tangent-angle}
+设 $a>0$，双纽线在 $0<\theta<\pi/4$ 的分支由 $r^2=a^2\cos2\theta$、$r>0$ 给出，求向径与切线间的上述夹角 $\beta$。
+\end{example}
+\begin{solve}
+对极角求导，得 $2rr'=-2a^2\sin2\theta$，从而
+\[
+    \tan\beta=\frac r{r'}
+    =-\frac{r^2}{a^2\sin2\theta}
+    =-\cot2\theta
+    =\tan\left(2\theta+\frac\pi2\right).
+\]
+因 $2\theta+\pi/2\in(\pi/2,\pi)$，与所选角度范围一致，故 $\beta=2\theta+\pi/2$。
+\end{solve}
+
+\section{微分}
+\label{sec:differentials}
+
+\subsection{微分的定义}
+\label{subsec:definition-of-differentials}
+
+导数由差商极限定义，微分则直接从函数增量中提取线性部分。例如圆面积 $S(r)=\pi r^2$ 满足
+\[
+    S(r+h)-S(r)=2\pi rh+\pi h^2.
+\]
+当 $h\to0$ 时，第一项关于 $h$ 线性，第二项为 $o(|h|)$。这使我们能够用容易计算的线性项近似真实增量，同时用余项描述误差尺度。
+
+\begin{definition}
+\label{def:one-variable-differential}
+设 $f$ 在 $x_0$ 的某邻域内有定义。若存在常数 $A$，使
+\begin{equation}
+\label{eq:differentiability-linear-part}
+    \Delta y=f(x_0+h)-f(x_0)=Ah+o(|h|)\qquad(h\to0),
+\end{equation}
+则称 $f$ 在 $x_0$ \emph{可微}（differentiable），称线性映射 $h\mapsto Ah$ 为 $f$ 在 $x_0$ 的\emph{微分}（differential），其在增量 $h$ 上的值记为 $\mathrm df(x_0)=Ah$，或记作 $\mathrm dy=Ah$。这里 $o(|h|)$ 指余项与 $|h|$ 之比趋于零，也常简写为 $o(h)$。
+\end{definition}
+
+\begin{theorem}
+\label{thm:one-variable-differentiable-iff-derivable}
+一元函数 $f$ 在 $x_0$ 可微，当且仅当它在 $x_0$ 可导；微分的系数唯一，且等于 $f'(x_0)$。因此
+\begin{equation}
+\label{eq:one-variable-differential}
+    \mathrm dy=f'(x_0)\,\mathrm dx,\qquad \mathrm dx=h.
+\end{equation}
+\end{theorem}
+\begin{proof}
+若式~\eqref{eq:differentiability-linear-part} 成立，对 $h\ne0$ 除以 $h$，余项与 $h$ 的比仍趋于零，所以差商趋于 $A$，即 $f'(x_0)=A$。反之，若导数存在，记
+\[
+    \varepsilon(h)=\frac{f(x_0+h)-f(x_0)}h-f'(x_0)\longrightarrow0,
+\]
+便有 $f(x_0+h)-f(x_0)=f'(x_0)h+h\varepsilon(h)$，最后一项为 $o(|h|)$，故 $f$ 可微。因为极限唯一，系数也唯一。
+\end{proof}
+
+对独立变量本身，恒等函数的微分是 $\mathrm dx=h=\Delta x$；对因变量，$\mathrm dy$ 一般只等于增量的线性部分，并不等于 $\Delta y$。几何上，真实增量是曲线从 $x_0$ 到 $x_0+h$ 的纵向变化，微分是切线在同一横向增量下的纵向变化，二者相差 $o(|h|)$。于是
+\begin{equation}
+\label{eq:differential-linear-approximation}
+    f(x_0+h)=f(x_0)+f'(x_0)h+o(|h|)
+\end{equation}
+表达了函数在一点附近的线性近似。
+
+\emph[caution]{微分首先保证相对于自变量增量的一阶误差趋于零，不自动保证相对于函数增量的误差趋于零。}若 $f'(x_0)\ne0$，则充分小的非零 $h$ 满足 $\Delta y\ne0$，并且
+\[
+    \frac{\Delta y-\mathrm dy}{\Delta y}
+    =\frac{o(|h|)/h}{f'(x_0)+o(|h|)/h}\longrightarrow0.
+\]
+若 $f'(x_0)=0$，则线性部分为零，这一相对误差结论可能失效。例如 $f(x)=x^2$ 在原点有 $\mathrm dy=0$，而 $\Delta y=h^2$，用微分近似函数增量的相对误差恒为 $1$。
+
+\begin{example}
+\label{ex:fourth-root-linear-approximation}
+利用微分估算 $\sqrt[4]{80}$。
+\end{example}
+\begin{solve}
+取 $f(x)=x^{1/4}$、$x_0=81$、$h=-1$。因 $f(81)=3$，$f'(81)=1/(4\cdot81^{3/4})=1/108$，一阶近似给出
+\[
+    \sqrt[4]{80}\approx3-\frac1{108}\approx2.99074.
+\]
+选择 $81$ 的原因是函数值和导数都容易计算。这个数值来自一阶线性近似；若要保证具体误差上界，还须对余项作定量估计，不能只由 $o(|h|)$ 推断所写各位均准确。
+\end{solve}
+
+\begin{example}
+\label{ex:square-area-relative-error-differential}
+正方形面积由边长测量值计算。若希望面积的相对误差不超过 $1\%$，边长允许多大的相对误差？比较微分估计与严格保证。
+\end{example}
+\begin{solve}
+设真实边长为 $a>0$，测量增量为 $\Delta a$，$S=a^2$。由 $\mathrm dS=2a\,\mathrm da$，一阶估计为
+\[
+    \frac{|\Delta S|}{S}\approx\frac{|\mathrm dS|}{S}
+    =2\frac{|\Delta a|}a.
+\]
+因此边长相对误差约为 $0.5\%$ 时，面积相对误差约为 $1\%$。若要求对误差正负两种情形都严格保证，则令 $\varepsilon=\Delta a/a$，有精确关系
+\[
+    \frac{\Delta S}{S}=2\varepsilon+\varepsilon^2.
+\]
+当 $|\varepsilon|\leq\eta<1$ 时，其绝对值的最大值为 $2\eta+\eta^2$，故应取
+\[
+    \eta\leq\sqrt{1.01}-1\approx0.00498756,
+\]
+即约 $0.498756\%$。这与一阶估计接近，但揭示了近似精度与严格误差保证的区别。
+\end{solve}
+
+\subsection{一阶微分的形式不变性}
+\label{subsec:invariance-of-first-differentials}
+
+设 $y=f(u)$、$u=g(x)$，且 $g$ 在 $x$ 处可导、$f$ 在 $u=g(x)$ 处可导。以 $x$ 为独立变量时，由链式法则，
+\[
+    \mathrm dy=f'(u)g'(x)\,\mathrm dx,
+    \qquad \mathrm du=g'(x)\,\mathrm dx,
+\]
+因此仍有
+\begin{equation}
+\label{eq:invariance-of-first-differential}
+    \mathrm dy=f'(u)\,\mathrm du.
+\end{equation}
+若 $u$ 本身是独立变量，微分也是这一形式；若 $u$ 依赖于 $x$，形式仍相同。这称为\emph{一阶微分的形式不变性}（invariance of the first differential）。两种情形中 $\mathrm du$ 的含义不同：前者是自变量增量 $\Delta u$，后者是 $g'(x)\Delta x$，一般只与实际增量 $g(x+\Delta x)-g(x)$ 相差 $o(|\Delta x|)$。
+
+形式不变性使微分运算可以按函数本身的表达式展开，而不必在每一步写出最底层自变量。若 $u,v$ 都是同一自变量的可微函数，则
+\begin{equation}
+\label{eq:differential-arithmetic-rules}
+\begin{gathered}
+    \mathrm d(au+bv)=a\,\mathrm du+b\,\mathrm dv,\qquad
+    \mathrm d(uv)=v\,\mathrm du+u\,\mathrm dv,\\
+    \mathrm d\left(\frac uv\right)
+    =\frac{v\,\mathrm du-u\,\mathrm dv}{v^2}\quad(v\ne0),
+\end{gathered}
+\end{equation}
+其中 $a,b$ 为常数。基本函数的微分由其导数直接得到，例如
+\[
+\begin{gathered}
+    \mathrm d(u^\alpha)=\alpha u^{\alpha-1}\,\mathrm du\quad(u>0),\qquad
+    \mathrm d(\ln|u|)=\frac{\mathrm du}u\quad(u\ne0),\\
+    \mathrm d(e^u)=e^u\,\mathrm du,\qquad
+    \mathrm d(\sin u)=\cos u\,\mathrm du,\qquad
+    \mathrm d(\arctan u)=\frac{\mathrm du}{1+u^2}.
+\end{gathered}
+\]
+在相应局部可逆、分母非零的条件下，从 $\mathrm dy=f'(x)\mathrm dx$ 可以得到反函数求导公式；从参数式的 $\mathrm dx=\varphi'(t)\mathrm dt$、$\mathrm dy=\psi'(t)\mathrm dt$ 也可以读出式~\eqref{eq:parametric-first-derivative}。这些记号简化了运算，成立依据仍是前面证明过的求导法则。
+
+\begin{example}
+\label{ex:differentials-of-composite-and-fractional-functions}
+求 $y=\arctan(e^x)$ 的微分；再设 $|a|<1$、$|x|<1$，$z=(x-a)/(1-ax)$，证明
+\[
+    \frac{\mathrm dz}{1-z^2}=\frac{\mathrm dx}{1-x^2}.
+\]
+\end{example}
+\begin{solve}
+对第一式逐层微分，得
+\[
+    \mathrm dy=\frac1{1+e^{2x}}\,\mathrm d(e^x)
+    =\frac{e^x}{1+e^{2x}}\,\mathrm dx
+    =\frac{\mathrm dx}{e^x+e^{-x}}.
+\]
+对第二式，$1-ax>0$，商的微分给出
+\[
+    \mathrm dz=\frac{1-a^2}{(1-ax)^2}\,\mathrm dx,
+    \qquad
+    1-z^2=\frac{(1-a^2)(1-x^2)}{(1-ax)^2}>0.
+\]
+将二式相除即得所求恒等式，且上述条件同时保证各分母非零。
+\end{solve}
+
+\begin{example}
+\label{ex:implicit-differentiation-using-differentials}
+设 $x>0$，可导分支 $y=y(x)$ 满足 $\sin(y^2)=\cos\sqrt{x}$，求其导数。
+\end{example}
+\begin{solve}
+对方程微分，得
+\[
+    2y\cos(y^2)\,\mathrm dy
+    =-\frac{\sin\sqrt{x}}{2\sqrt{x}}\,\mathrm dx.
+\]
+因此在 $y\cos(y^2)\ne0$ 的点，
+\[
+    y'=-\frac{\sin\sqrt{x}}{4y\sqrt{x}\cos(y^2)}.
+\]
+此处只用了给定可导分支满足的恒等式；若某点的系数 $y\cos(y^2)$ 为零，就不能从该等式除法解出导数，也不能把 $y$ 在整个范围内一律写成同一个反正弦显式分支。
+\end{solve}
+
+\section{高阶导数与高阶微分}
+\label{sec:higher-derivatives-and-differentials}
+
+\subsection{高阶导数}
+\label{subsec:higher-derivatives}
+
+位置函数 $s(t)$ 的一阶导数是速度，速度的导数则是加速度，即 $s''(t)$。这说明变化率本身也可以作为新的研究对象，从而引出高阶导数。
+
+\begin{definition}
+\label{def:higher-order-derivatives}
+若 $f$ 在开区间上可导，且导函数 $f'$ 在 $x$ 处可导，则称 $(f')'(x)$ 为 $f$ 在 $x$ 处的\emph{二阶导数}（second derivative），记为 $f''(x)$。递归地，若 $f^{(n-1)}$ 在 $x$ 的某邻域内存在且在 $x$ 处可导，则定义
+\[
+    f^{(n)}(x)=\bigl(f^{(n-1)}\bigr)'(x),\qquad n\geq2,
+\]
+称为 $n$ 阶导数，也记为 $y^{(n)}$ 或 $\mathrm d^ny/\mathrm dx^n$；约定 $f^{(0)}=f$。若在区间上直至 $n$ 阶导数都存在，则称 $f$ 在该区间 $n$ 次可导；若这些导数还连续，则称 $f$ 为 $C^n$ 函数。
+\end{definition}
+
+高阶导数必须逐阶存在，$n$ 次可导与属于 $C^n$ 不应混为一谈。例如前面构造的 $f(x)=x^2\sin(1/x)$（$x\ne0$）、$f(0)=0$ 在全实轴可导，但当 $x\ne0$ 时
+\[
+    f'(x)=2x\sin(1/x)-\cos(1/x),\qquad f'(0)=0,
+\]
+导函数在原点没有极限，因而 $f\notin C^1(\mathbb R)$；也由于 $f'$ 在原点不连续，$f''(0)$ 不存在。
+
+\begin{proposition}
+\label{prop:standard-higher-derivative-formulas}
+对正整数 $n$，下列公式在所列定义域内成立：
+\begin{align}
+    (e^{ax})^{(n)}&=a^ne^{ax}\quad(a\in\mathbb R),\label{eq:exponential-higher-derivatives}\\
+    (x^\alpha)^{(n)}&=\alpha(\alpha-1)\cdots(\alpha-n+1)x^{\alpha-n}
+    \quad(x>0),\label{eq:power-higher-derivatives}\\
+    (\ln(1+x))^{(n)}&=(-1)^{n-1}\frac{(n-1)!}{(1+x)^n}
+    \quad(x>-1),\label{eq:logarithm-higher-derivatives}\\
+    (\sin x)^{(n)}&=\sin\left(x+\frac{n\pi}2\right),\qquad
+    (\cos x)^{(n)}=\cos\left(x+\frac{n\pi}2\right).
+    \label{eq:trigonometric-higher-derivatives}
+\end{align}
+其中 $0!=1$。若 $P$ 是 $m$ 次多项式，则在整个实轴上有 $P^{(n)}\equiv0$（$n>m$）。
+\end{proposition}
+\begin{proof}
+以上等式均以一阶公式为起点作数学归纳。指数函数每求导一次获得因子 $a$；幂函数每求导一次，系数多乘当前指数，指数减一。对对数，若公式对 $n$ 成立，则再求导得到
+\[
+    (-1)^{n-1}(n-1)!\,[-n(1+x)^{-n-1}]
+    =(-1)^n\frac{n!}{(1+x)^{n+1}},
+\]
+所以对 $n+1$ 也成立。正弦每求导一次相位增加 $\pi/2$，余弦亦然，归纳即得三角函数公式。多项式是有限个非负整数次幂的线性组合，每个单项式在求导次数超过其次数后都为零，故得到最后一项。
+\end{proof}
+
+求简单函数的高阶导数时，先算若干低阶结果以发现规律，再用归纳法验证，不能把有限次观察直接当作一般证明。三角函数的高阶公式也可由欧拉公式作形式上的提示，但上述归纳证明只使用实函数求导，不依赖尚未建立的复函数微分理论。
+
+\begin{example}
+\label{ex:arctangent-higher-derivatives}
+设 $y=\arctan x$，求 $y^{(n)}(x)$ 及它们在原点的值。
+\end{example}
+\begin{solve}
+由 $x=\tan y$，$y'=\cos^2y$。前几次求导提示下式：
+\begin{equation}
+\label{eq:arctangent-higher-derivatives}
+    y^{(n)}=(n-1)!\cos^ny\,
+    \sin\left(n\left(y+\frac\pi2\right)\right),\qquad n\geq1.
+\end{equation}
+当 $n=1$ 时，右边为 $\cos^2y$。若对 $n$ 成立，记 $\theta=y+\pi/2$，对 $x$ 再求导得
+\[
+\begin{aligned}
+    y^{(n+1)}
+    &=n!\cos^{n+1}y\,
+      [-\sin y\sin(n\theta)+\cos y\cos(n\theta)]\\
+    &=n!\cos^{n+1}y\cos(n\theta+y)
+     =n!\cos^{n+1}y\sin((n+1)\theta),
+\end{aligned}
+\]
+这正是 $n+1$ 的公式。由于 $y(0)=0$，故
+\[
+    y^{(2m)}(0)=0\quad(m\geq1),\qquad
+    y^{(2m+1)}(0)=(-1)^m(2m)!\quad(m\geq0).
+\]
+式~\eqref{eq:arctangent-higher-derivatives} 中的 $y$ 只是 $\arctan x$ 的简记；若需纯粹关于 $x$ 的表达式，可用 $\cos y=1/\sqrt{1+x^2}$ 代回。
+\end{solve}
+
+\subsection{莱布尼茨公式}
+\label{subsec:leibniz-formula}
+
+有限线性组合的高阶导数仍可逐项计算，即 $(af+bg)^{(n)}=af^{(n)}+bg^{(n)}$。乘积的高阶导数则涉及两因子之间的求导次数分配：总共求导 $n$ 次，其中 $k$ 次落在一个因子上，另外 $n-k$ 次落在另一个因子上。
+
+\begin{theorem}[莱布尼茨公式]
+\label{thm:leibniz-higher-product-rule}
+设 $u,v$ 在开区间 $I$ 上均 $n$ 次可导，则它们的乘积也 $n$ 次可导，且
+\begin{equation}
+\label{eq:leibniz-higher-product-rule}
+    (uv)^{(n)}(x)=\sum_{k=0}^n\binom nk
+    u^{(k)}(x)v^{(n-k)}(x),\qquad x\in I,
+\end{equation}
+其中 $u^{(0)}=u$、$v^{(0)}=v$，$\binom nk=n!/[k!(n-k)!]$。这称为\emph{莱布尼茨公式}（Leibniz formula）。
+\end{theorem}
+\begin{proof}
+对 $n$ 归纳。$n=1$ 时是乘积法则。假设结论对 $n$ 成立，且两函数均有 $n+1$ 阶导数，则
+\[
+\begin{aligned}
+    (uv)^{(n+1)}
+    &=\sum_{k=0}^n\binom nk u^{(k+1)}v^{(n-k)}
+      +\sum_{k=0}^n\binom nk u^{(k)}v^{(n+1-k)}\\
+    &=u^{(n+1)}v+uv^{(n+1)}
+      +\sum_{k=1}^n
+       \left(\binom n{k-1}+\binom nk\right)
+       u^{(k)}v^{(n+1-k)}.
+\end{aligned}
+\]
+利用 $\binom n{k-1}+\binom nk=\binom{n+1}k$，即得 $n+1$ 的结论。此证明只要求所讨论的有限阶导数存在，无须假定两函数具有任意阶导数。
+\end{proof}
+
+若只需要原点或其他指定点的高阶导数，直接逐阶求完整表达式常会产生大量无用项。更有效的办法是寻找函数满足的低阶恒等式，使用莱布尼茨公式求导后再代入指定点，建立递推关系。
+
+\begin{example}
+\label{ex:arcsine-derivative-recurrence-at-zero}
+设 $y=\arcsin x$，求 $y^{(n)}(0)$。
+\end{example}
+\begin{solve}
+在 $|x|<1$ 内，$y'=1/\sqrt{1-x^2}$，且各阶导数均存在。由此可得
+\[
+    (1-x^2)y''-xy'=0.
+\]
+对该式求 $n-2$ 阶导数，并用莱布尼茨公式处理二次多项式与一次多项式，得到对 $n\geq2$ 成立的关系
+\[
+    (1-x^2)y^{(n)}-(2n-3)xy^{(n-1)}
+    -(n-2)^2y^{(n-2)}=0.
+\]
+令 $x=0$，得到递推式
+\begin{equation}
+\label{eq:arcsine-derivatives-zero-recurrence}
+    y^{(n)}(0)=(n-2)^2y^{(n-2)}(0),\qquad n\geq2.
+\end{equation}
+再用初值 $y(0)=0$、$y'(0)=1$，可得
+\[
+    y^{(2m)}(0)=0\quad(m\geq0),\qquad
+    y^{(2m+1)}(0)=\bigl[(2m-1)!!\bigr]^2\quad(m\geq0).
+\]
+这里 $(2m-1)!!=1\cdot3\cdots(2m-1)$（$m\geq1$），并约定 $(-1)!!=1$。由于多项式因子在少数几次求导后即消失，递推式比完整高阶导数表达式简洁得多。
+\end{solve}
+
+\begin{example}
+\label{ex:tangent-derivatives-zero-through-eight}
+设 $y=\tan x$，求 $y^{(n)}(0)$，$1\leq n\leq8$。
+\end{example}
+\begin{solve}
+在原点附近，$y$ 有任意阶导数。由 $y(-x)=-y(x)$ 逐次求导并令 $x=0$，得到所有偶数阶导数在原点均为零。令 $a_j=y^{(j)}(0)$，对恒等式 $y\cos x=\sin x$ 求 $2m+1$ 阶导数，再令 $x=0$，由莱布尼茨公式得到
+\[
+    \sum_{j=0}^m(-1)^j\binom{2m+1}{2j}a_{2m+1-2j}
+    =(-1)^m.
+\]
+$m=0$ 时 $a_1=1$。依次取 $m=1,2,3$，有
+\[
+\begin{aligned}
+    a_3-3a_1&=-1,\\
+    a_5-10a_3+5a_1&=1,\\
+    a_7-21a_5+35a_3-7a_1&=-1.
+\end{aligned}
+\]
+所以
+\[
+    a_1=1,\quad a_3=2,\quad a_5=16,\quad a_7=272,
+    \qquad a_2=a_4=a_6=a_8=0.
+\]
+这些数值随后可以用于泰勒多项式的构造，但本例的计算本身只依赖求导法则与恒等式。
+\end{solve}
+
+\subsection{一般函数的高阶导数}
+\label{subsec:higher-derivatives-of-general-functions}
+
+一般复合函数、反函数、隐函数或参数式函数未必具有简洁的任意阶公式，通常应从低阶求导关系逐次计算，并始终注明对哪个变量求导。例如在 $f,g$ 相应的二阶导数存在时，
+\begin{equation}
+\label{eq:second-derivative-of-composite-function}
+    \frac{\mathrm d^2}{\mathrm dx^2}f(g(x))
+    =f''(g(x))(g'(x))^2+f'(g(x))g''(x).
+\end{equation}
+这是先对 $f'(g(x))g'(x)$ 使用乘积法则，再对第一因子使用链式法则的结果。反函数也须再次求导：若 $g=f^{-1}$，$f$ 在开区间上连续严格单调、二次可导且 $f'\ne0$，则
+\begin{equation}
+\label{eq:second-derivative-of-inverse-function}
+    g''(y)=-\frac{f''(g(y))}{(f'(g(y)))^3}.
+\end{equation}
+因而二阶导数之间并无一阶导数那样的简单倒数关系。
+
+若参数式 $x=\varphi(t)$、$y=\psi(t)$ 在所考虑的邻域内二次连续可导，且 $\varphi'\ne0$，则局部可把 $y$ 看成 $x$ 的函数。对任何可导的参数表达式，关于 $x$ 求导相当于先关于 $t$ 求导再除以 $\varphi'(t)$，所以
+\begin{equation}
+\label{eq:parametric-second-derivative}
+    \frac{\mathrm d^2y}{\mathrm dx^2}
+    =\frac1{\varphi'(t)}\frac{\mathrm d}{\mathrm dt}
+      \left(\frac{\psi'(t)}{\varphi'(t)}\right)
+    =\frac{\psi''(t)\varphi'(t)-\psi'(t)\varphi''(t)}{(\varphi'(t))^3}.
+\end{equation}
+不能把 $\mathrm d^2y/\mathrm dx^2$ 写成 $\psi''/\varphi''$；每增加一次关于 $x$ 的求导，都必须重新使用一次 $\mathrm d/\mathrm dx=(1/\varphi')\,\mathrm d/\mathrm dt$。
+
+\begin{example}
+\label{ex:ellipse-second-derivative-three-methods}
+设 $a,b>0$，上半椭圆由 $x^2/a^2+y^2/b^2=1$、$y>0$ 给出，分别用显式、参数式与隐式表示求 $y''$。
+\end{example}
+\begin{solve}
+显式表示为 $y=(b/a)\sqrt{a^2-x^2}$（$|x|<a$），直接求导得到
+\[
+    y'=-\frac{bx}{a\sqrt{a^2-x^2}},\qquad
+    y''=-\frac{ab}{(a^2-x^2)^{3/2}}
+        =-\frac{b^4}{a^2y^3}.
+\]
+参数表示为 $x=a\cos t$、$y=b\sin t$（$0<t<\pi$），于是
+\[
+    \frac{\mathrm dy}{\mathrm dx}=-\frac ba\cot t,\qquad
+    \frac{\mathrm d^2y}{\mathrm dx^2}
+    =\frac1{-a\sin t}\frac{\mathrm d}{\mathrm dt}
+      \left(-\frac ba\cot t\right)
+    =-\frac b{a^2\sin^3t}
+    =-\frac{b^4}{a^2y^3}.
+\]
+最后，不解出 $y$，直接把椭圆方程对 $x$ 连续求导两次，得到
+\[
+    \frac x{a^2}+\frac{yy'}{b^2}=0,\qquad
+    \frac1{a^2}+\frac{(y')^2+yy''}{b^2}=0.
+\]
+代入 $y'=-b^2x/(a^2y)$，并利用椭圆方程化简，仍得 $y''=-b^4/(a^2y^3)$。三种计算的定义域一致；本例中隐式表示可以避免反复处理根式。
+\end{solve}
+
+\subsection{高阶微分}
+\label{subsec:higher-differentials}
+
+以 $x$ 为独立变量时，把 $\mathrm dx$ 看成求微分过程中保持不变的增量。若 $f$ 二次可导，则对 $\mathrm df=f'(x)\mathrm dx$ 再求微分，得到\emph{二阶微分}（second differential）
+\[
+    \mathrm d^2f=\mathrm d(\mathrm df)=f''(x)(\mathrm dx)^2.
+\]
+递归地，当所需阶数的导数存在时，定义 $n$ 阶微分为 $\mathrm d^nf=\mathrm d(\mathrm d^{n-1}f)$，从而
+\begin{equation}
+\label{eq:higher-differentials-independent-variable}
+    \mathrm d^nf=f^{(n)}(x)(\mathrm dx)^n.
+\end{equation}
+常把 $(\mathrm dx)^n$ 简记为 $\mathrm dx^n$，因此高阶导数可记成 $\mathrm d^nf/\mathrm dx^n$。这里的 $\mathrm dx^2$ 表示 $(\mathrm dx)^2$，不能与 $\mathrm d(x^2)=2x\mathrm dx$ 或 $\mathrm d^2x$ 混淆；以 $x$ 为独立变量时，$\mathrm d^2x=0$。
+
+\emph[caution]{高阶微分一般不具有一阶微分的形式不变性。}设 $y=f(u)$、$u=g(x)$，并假定两函数在相应邻域内二次可导。若 $u$ 是独立变量，则 $\mathrm d^2y=f''(u)(\mathrm du)^2$；但以 $x$ 为独立变量时，由式~\eqref{eq:second-derivative-of-composite-function}，
+\begin{equation}
+\label{eq:second-differential-dependent-inner-variable}
+\begin{aligned}
+    \mathrm d^2y
+    &=\left[f''(u)(g'(x))^2+f'(u)g''(x)\right](\mathrm dx)^2\\
+    &=f''(u)(\mathrm du)^2+f'(u)\,\mathrm d^2u.
+\end{aligned}
+\end{equation}
+与把 $u$ 看作独立变量时相比，一般多出 $f'(u)\mathrm d^2u$。若 $g$ 为仿射函数，这个附加项为零；在一般非线性换元下则不能略去。
+
+\begin{example}
+\label{ex:failure-of-invariance-second-differential}
+设 $y=u^2$、$u=x^2$，比较以 $u$ 和以 $x$ 为独立变量时的二阶微分。
+\end{example}
+\begin{solve}
+以 $u$ 为独立变量，$\mathrm d^2y=2(\mathrm du)^2$。以 $x$ 为独立变量，则 $y=x^4$，所以 $\mathrm d^2y=12x^2(\mathrm dx)^2$。若只把 $\mathrm du=2x\mathrm dx$ 代入前一个形式，只能得到 $8x^2(\mathrm dx)^2$，遗漏的正是
+\[
+    f'(u)\mathrm d^2u=2u\cdot2(\mathrm dx)^2
+    =4x^2(\mathrm dx)^2.
+\]
+因此高阶微分计算必须先明确独立变量；其求值虽归结为高阶导数，变换自变量时却不能照搬一阶微分的形式不变性。
+\end{solve}
+
+\section*{习题四}
+\addcontentsline{toc}{section}{习题四}

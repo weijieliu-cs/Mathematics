@@ -1,0 +1,542 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{19} % 保留原书章号。
+\chapter{潜在狄利克雷分配}
+\label{ch:lh-lda}
+
+一篇文档可以同时讨论多个话题，同一话题也可以出现在不同文档中。\emph{潜在狄利克雷分配}（latent Dirichlet allocation，LDA）用两层概率向量描述这种混合结构：每篇文档具有一个话题分布，每个话题具有一个词分布；每个词位先抽取话题，再由该话题抽取词。与只估计混合权重的模型相比，LDA 进一步为这些概率向量指定狄利克雷先验，使文档之间能够共享统计结构，并通过先验约束缓和数据稀疏带来的估计问题。先验提供的是建模与正则化机制，其效果仍取决于数据、超参数与推断方法，不能理解为自动消除过拟合。
+
+本章依次讨论狄利克雷分布及其共轭性、LDA 的生成模型、收缩的吉布斯抽样和变分 EM。前一种推断方法对后验构造马尔可夫链，用样本近似后验期望；后一种在受限分布族中优化证据下界，用一个易处理的分布近似后验。二者都要区分模型本身、推断目标和有限计算得到的近似结果。以下均使用自然对数，文档长度视为已给定；词汇表大小、话题数与文档数分别记为 $V$、$K$、$M$，总词位数记为 $I=\sum_{m=1}^M N_m$。
+
+\section{狄利克雷分布}
+\label{sec:lh-lda-dirichlet}
+
+\subsection{分布定义}
+\label{subsec:lh-lda-dirichlet-definition}
+
+\begin{definition}[类别分布与多项分布]
+\label{def:lh-lda-categorical-multinomial}
+设 $d\geq2$，概率向量 $p=(p_1,\ldots,p_d)$ 满足 $p_j\geq0$、$\sum_jp_j=1$。若随机变量 $Y\in\{1,\ldots,d\}$ 满足 $P(Y=j)=p_j$，则称其服从\emph{类别分布}（categorical distribution），记为 $Y\sim\operatorname{Cat}(p)$。独立重复 $n$ 次这种试验，令 $X_j$ 为结果 $j$ 出现的次数，则计数向量 $X=(X_1,\ldots,X_d)$ 服从\emph{多项分布}（multinomial distribution），记为 $X\sim\operatorname{Mult}(n,p)$，其概率质量函数为
+\begin{equation}
+P(X_1=x_1,\ldots,X_d=x_d)
+=\frac{n!}{\prod_{j=1}^d x_j!}\prod_{j=1}^d p_j^{x_j},
+\quad x_j\in\{0,1,\ldots,n\},\quad\sum_{j=1}^d x_j=n.
+\label{eq:lh-lda-multinomial}
+\end{equation}
+其中零次幂按 $p_j^0=1$ 解释，包括 $p_j=0$ 的情形。
+\end{definition}
+
+类别变量记录一次试验的类别，多项变量记录多次试验的计数。$n=1$ 时，多项计数向量只有一个分量为 $1$，与类别变量的独热编码相对应。教材在 LDA 中有时将单次话题或单词抽样也称为多项抽样，以下用 $\operatorname{Cat}$ 明确这一点。若 $d=2$，只保留第一类的计数就得到二项分布；再取 $n=1$，便得到伯努利分布。
+
+\begin{definition}[狄利克雷分布]
+\label{def:lh-lda-dirichlet}
+令 $a=(a_1,\ldots,a_d)$，各 $a_j>0$，并记 $a_0=\sum_{j=1}^d a_j$。定义单纯形
+\[
+\Delta^{d-1}=\left\{\vartheta\in\mathbb R^d:
+\vartheta_j\geq0,\ \sum_{j=1}^d\vartheta_j=1\right\}.
+\]
+若随机概率向量 $\Theta=(\Theta_1,\ldots,\Theta_d)$ 在单纯形内部的密度为
+\begin{equation}
+p(\vartheta\mid a)=\frac1{B(a)}\prod_{j=1}^d\vartheta_j^{a_j-1},
+\qquad
+B(a)=\frac{\prod_{j=1}^d\Gamma(a_j)}{\Gamma(a_0)},
+\label{eq:lh-lda-dirichlet-density}
+\end{equation}
+则称 $\Theta$ 服从\emph{狄利克雷分布}（Dirichlet distribution），记为 $\Theta\sim\operatorname{Dir}(a)$。这里 $B(a)$ 称为多元贝塔函数，$\Gamma(s)=\int_0^\infty t^{s-1}e^{-t}\,\mathrm dt$，$s>0$，满足 $\Gamma(s+1)=s\Gamma(s)$。
+\end{definition}
+
+由于最后一个坐标由其余坐标决定，式~\eqref{eq:lh-lda-dirichlet-density} 的密度是相对于前 $d-1$ 个坐标的勒贝格测度定义的：积分区域为 $\vartheta_j>0$、$\sum_{j<d}\vartheta_j<1$，并令 $\vartheta_d=1-\sum_{j<d}\vartheta_j$。以下简写 $\mathrm d\vartheta$ 都采用这一约定，而不是在 $\mathbb R^d$ 中直接积分。边界的概率为 $0$，但当某些 $a_j<1$ 时，密度可以在靠近边界处趋于无穷。
+
+\begin{proposition}[归一化积分]
+\label{prop:lh-lda-dirichlet-normalization}
+对任意 $a_j>0$，有
+\begin{equation}
+\int_{\Delta^{d-1}}\prod_{j=1}^d\vartheta_j^{a_j-1}\,\mathrm d\vartheta
+=B(a).
+\label{eq:lh-lda-beta-integral}
+\end{equation}
+\end{proposition}
+\begin{proof}
+从 $\prod_j\Gamma(a_j)$ 的积分表示出发，令 $t_j=s\vartheta_j$，其中 $s=\sum_jt_j>0$、$\vartheta\in\Delta^{d-1}$。该变量替换的雅可比绝对值为 $s^{d-1}$，因而
+\[
+\prod_{j=1}^d\Gamma(a_j)
+=\int_0^\infty e^{-s}s^{a_0-1}\,\mathrm ds
+\int_{\Delta^{d-1}}\prod_{j=1}^d\vartheta_j^{a_j-1}\,\mathrm d\vartheta.
+\]
+被积函数非负，可由 Tonelli 定理交换积分次序；第一个积分等于 $\Gamma(a_0)$，相除即得结论。
+\end{proof}
+
+当 $d=2$，取 $\vartheta_1=t$、$\vartheta_2=1-t$，就得到\emph{贝塔分布}（beta distribution）$\operatorname{Beta}(a_1,a_2)$，密度为 $t^{a_1-1}(1-t)^{a_2-1}/B(a_1,a_2)$，$0<t<1$。因此“狄利克雷先验与多项观测”的二分类特例是“贝塔先验与二项观测”。先验描述的是未知概率向量的不确定性，类别分布或多项分布描述的是给定该向量后的观测，两种随机性位于不同层次。
+
+\subsection{共轭先验与基本性质}
+\label{subsec:lh-lda-dirichlet-conjugacy}
+
+\begin{proposition}[矩与对数矩]
+\label{prop:lh-lda-dirichlet-moments}
+若 $\Theta\sim\operatorname{Dir}(a)$，则
+\begin{align}
+\mathbb E[\Theta_j]&=\frac{a_j}{a_0},&
+\operatorname{Var}(\Theta_j)&=\frac{a_j(a_0-a_j)}{a_0^2(a_0+1)},
+\label{eq:lh-lda-dirichlet-moments}\\
+\operatorname{Cov}(\Theta_j,\Theta_\ell)&=-\frac{a_ja_\ell}{a_0^2(a_0+1)},\quad j\ne\ell,&
+\mathbb E[\log\Theta_j]&=\psi(a_j)-\psi(a_0),
+\label{eq:lh-lda-dirichlet-logmoment}
+\end{align}
+其中 $\psi(s)=\frac{\mathrm d}{\mathrm ds}\log\Gamma(s)$ 称为双伽马函数（digamma function）。
+\end{proposition}
+\begin{proof}
+令 $e_j$ 为第 $j$ 个单位向量。将 $\vartheta_j$ 乘入密度后，利用式~\eqref{eq:lh-lda-beta-integral} 得
+\[
+\mathbb E[\Theta_j]=\frac{B(a+e_j)}{B(a)}=\frac{a_j}{a_0},\qquad
+\mathbb E[\Theta_j^2]=\frac{B(a+2e_j)}{B(a)}
+=\frac{a_j(a_j+1)}{a_0(a_0+1)}.
+\]
+同理，$j\ne\ell$ 时 $\mathbb E[\Theta_j\Theta_\ell]=B(a+e_j+e_\ell)/B(a)=a_ja_\ell/(a_0(a_0+1))$，减去均值乘积即可得到方差和协方差。对式~\eqref{eq:lh-lda-beta-integral} 关于 $a_j$ 求导再除以 $B(a)$，得到 $\mathbb E[\log\Theta_j]=\partial\log B(a)/\partial a_j$，即所述对数矩。交换微分与积分是合法的，因为在任意给定正参数附近，可用仍具有正指数参数的可积幂函数乘 $|\log\vartheta_j|$ 控制导数。
+\end{proof}
+
+把 $a$ 写成 $a_0\mu$，其中 $\mu_j>0$、$\sum_j\mu_j=1$，则 $\mu$ 决定均值，$a_0$ 称为浓度参数（concentration parameter）；固定均值时，浓度越大，方差越小。对称情形 $a_j=a_\ast$ 的均值均为 $1/d$，但随机抽出的向量通常不等于均匀向量。$a_\ast=1$ 时密度在单纯形上均匀；$a_\ast<1$ 时偏好靠近边界的稀疏组成；$a_\ast>1$ 时密度在中心取得最大值。这里“稀疏”表示若干分量接近 $0$，并不表示它们以正概率恰好等于 $0$。
+
+取对数可将密度写成
+\[
+p(\vartheta\mid a)
+=\exp\left\{\sum_j(a_j-1)\log\vartheta_j-\log B(a)\right\}.
+\]
+因此它属于指数分布族，自然参数为 $(a_j-1)_j$，充分统计量为 $(\log\vartheta_j)_j$。这也解释了变分推断中反复出现的 $\mathbb E[\log\Theta_j]$，它一般不等于 $\log\mathbb E[\Theta_j]$。
+
+\begin{theorem}[狄利克雷与多项分布的共轭性]
+\label{thm:lh-lda-conjugacy}
+设 $\Theta\sim\operatorname{Dir}(a)$，给定 $\Theta=\vartheta$ 后，$Y_1,\ldots,Y_n$ 条件独立且均服从 $\operatorname{Cat}(\vartheta)$。观测序列 $y$ 的计数为 $c_j=\sum_{r=1}^n\mathbf1\{y_r=j\}$，则
+\begin{equation}
+\Theta\mid Y_1=y_1,\ldots,Y_n=y_n\sim\operatorname{Dir}(a+c).
+\label{eq:lh-lda-conjugate-posterior}
+\end{equation}
+下一次同机制观测的后验预测概率为
+\begin{equation}
+P(Y_{n+1}=j\mid y,a)=\frac{c_j+a_j}{n+a_0}.
+\label{eq:lh-lda-posterior-predictive}
+\end{equation}
+\end{theorem}
+\begin{proof}
+有序序列的似然为 $\prod_j\vartheta_j^{c_j}$，与先验相乘得到 $\prod_j\vartheta_j^{a_j+c_j-1}$，归一化即为 $\operatorname{Dir}(a+c)$。若只观测多项计数，似然还含 $n!/\prod_jc_j!$，但该因子不依赖 $\vartheta$，所以后验相同。预测概率为 $\int\vartheta_jp(\vartheta\mid y,a)\,\mathrm d\vartheta$，用命题~\ref{prop:lh-lda-dirichlet-moments} 的均值公式即可。
+\end{proof}
+
+先验与后验属于同一分布族，称为共轭；$a$ 是先验的参数，也是整个层次模型的\emph{超参数}（hyperparameter）。从后验均值看，$a_j$ 像预先加入的计数，故称先验伪计数（prior pseudo-count）。当 $n>0$ 时，式~\eqref{eq:lh-lda-posterior-predictive} 等于 $(n/(n+a_0))(c_j/n)+(a_0/(n+a_0))(a_j/a_0)$，明确显示了经验频率与先验均值的加权折中。伪计数不必为整数，也不能把后验均值与最大后验估计混用：只有各 $a_j+c_j>1$ 时，内部众数才为 $(a_j+c_j-1)/(a_0+n-d)$。
+
+\begin{example}
+\label{ex:lh-lda-beta-update}
+一个二类别概率 $\Theta_1$ 的先验为 $\operatorname{Beta}(2,1)$，四次观测中第一类出现一次、第二类出现三次，求后验及下一次第一类的预测概率。
+\end{example}
+\begin{solve}
+后验为 $\operatorname{Beta}(3,4)$，预测概率等于后验均值 $3/7$，也可写成 $(4/7)(1/4)+(3/7)(2/3)$。此时内部众数为 $(3-1)/(3+4-2)=2/5$，与均值不同。未出现某一类时，正超参数仍给出正预测概率，这正是先验平滑的作用。
+\end{solve}
+
+\section{潜在狄利克雷分配模型}
+\label{sec:lh-lda-model}
+
+\subsection{基本想法}
+\label{subsec:lh-lda-model-idea}
+
+LDA 是混合成员模型（mixed-membership model）：一个文档的不同词位可以由不同话题生成，而不是整篇文档只能归入一个类别。话题本身是词汇表上的概率分布，“体育”“经济”等名称是学习后依据高概率词给出的解释，并不是模型预先观察到的标签。同一词也可以在不同话题下具有不同概率，因此词与话题之间不存在固定的一一对应。
+
+概率潜在语义分析（probabilistic latent semantic analysis，PLSA）同样用“文档的话题混合、话题的词混合”表示词概率，但通常为训练文档分别估计混合权重。LDA 为文档权重引入共享的先验，因而对新文档也有明确的推断机制；本章完整模型还为话题的词分布设置先验。不能仅将 PLSA 与 LDA 的差别概括为“一个没有先验、一个有先验”，因为对文档混合权重的生成假设及其推断方式也随之改变。
+
+\subsection{模型定义与生成过程}
+\label{subsec:lh-lda-model-definition}
+
+令词汇表为 $\mathcal V=\{v_1,\ldots,v_V\}$，话题用整数 $1,\ldots,K$ 表示。第 $m$ 篇文档有 $N_m$ 个词位；随机变量 $W_{mn}\in\{1,\ldots,V\}$ 表示词的索引，$Z_{mn}\in\{1,\ldots,K\}$ 表示该词位的话题，观测值分别记为 $w_{mn}$、$z_{mn}$。记文档的话题概率向量为 $\Theta_m$，话题的词概率向量为 $\Phi_k$，其取值为 $\theta_m=(\theta_{m1},\ldots,\theta_{mK})$ 和 $\phi_k=(\phi_{k1},\ldots,\phi_{kV})$。全体取值组成矩阵 $\theta\in\mathbb R^{M\times K}$、$\phi\in\mathbb R^{K\times V}$，每行均为概率向量。
+
+\begin{definition}[完整 LDA 模型]
+\label{def:lh-lda-model}
+给定 $K,V\geq2$、$M\geq1$、各 $N_m\geq1$，以及正超参数向量 $\alpha\in(0,\infty)^K$、$\beta\in(0,\infty)^V$，LDA 按下述过程生成语料：
+\begin{enumerate}
+\item 对每个话题 $k$，独立抽取 $\Phi_k\sim\operatorname{Dir}(\beta)$；这些词分布在所有文档间共享。
+\item 对每篇文档 $m$，独立抽取 $\Theta_m\sim\operatorname{Dir}(\alpha)$，且这些变量与全体 $\Phi_k$ 先验独立。
+\item 给定上述概率向量，对每个词位 $(m,n)$，先抽取 $Z_{mn}\mid\Theta_m\sim\operatorname{Cat}(\Theta_m)$，再抽取 $W_{mn}\mid Z_{mn}=k,\Phi\sim\operatorname{Cat}(\Phi_k)$；给定这些父变量后，各次抽样独立。
+\end{enumerate}
+\end{definition}
+
+记 $\alpha_0=\sum_k\alpha_k$、$\beta_0=\sum_v\beta_v$。$\alpha_k/\alpha_0$ 是先验平均话题比例，$\alpha_0$ 控制文档话题组成围绕该均值的集中程度；$\beta_v/\beta_0$ 与 $\beta_0$ 对话题词分布起对应作用。取所有分量为 $1$ 得到单纯形上的均匀先验，不是强制所有文档、所有话题采用均匀分布。$K$ 是预先给定的模型规模，可以根据验证集表现或具体分析目标选择；该模型不会在一次推断中自动确定话题数。
+
+模型把真实词序中的语法、相邻依赖等信息舍去，采用词袋（bag of words）假设。文档长度在本章作为条件给定；若另建长度模型，其参数和独立性假设需要单独说明，不能从上述生成过程推出长度分布。生成算法输入词汇表、$K$、长度及超参数，输出词序列和隐变量；面对实际语料时，词序列已知，任务转为反向推断隐变量，两者的输入输出不同。
+
+\subsection{概率图模型}
+\label{subsec:lh-lda-graphical-model}
+
+用有向概率图描述时，主要依赖为 $\alpha\to\Theta_m\to Z_{mn}\to W_{mn}$ 和 $\beta\to\Phi_k\to W_{mn}$，最后一条表示 $Z_{mn}$ 选择相应话题的词分布。板块表示法（plate notation）用重复区域分别表示 $K$ 个话题、$M$ 篇文档和第 $m$ 篇的 $N_m$ 个词位；被重复的是不同随机变量，它们共享分布形式或父变量，并不是同一个随机变量被多次复制。
+
+可观测量只有 $W$，而 $Z$、$\Theta$、$\Phi$ 都是隐变量。尽管习惯上也称 $\theta$、$\phi$ 为“参数”，在完整贝叶斯模型中它们是带有先验和后验的随机概率向量；$\alpha$、$\beta$ 是本章暂时固定的超参数。先验中的独立性也不代表后验独立性：观察一个词会同时影响它的话题归属和相关概率向量，由此产生耦合，这正是精确推断困难的来源。
+
+\subsection{随机变量序列的可交换性}
+\label{subsec:lh-lda-exchangeability}
+
+\begin{definition}[可交换序列]
+\label{def:lh-lda-exchangeability}
+有限随机变量序列 $X_1,\ldots,X_N$ 若对任意排列 $\pi$ 都满足 $(X_1,\ldots,X_N)\overset{\mathrm d}=(X_{\pi(1)},\ldots,X_{\pi(N)})$，则称其可交换（exchangeable）。无限序列的任意有限子序列都可交换时，称其无限可交换（infinitely exchangeable）。
+\end{definition}
+
+独立同分布蕴含可交换，反向一般不成立。对有限类别空间，de Finetti 表示定理说明：一个无限可交换序列的有限维联合分布可表示为类别独立同分布的混合，即存在概率向量上的概率测度 $\mu$，使
+\begin{equation}
+P(X_1=x_1,\ldots,X_N=x_N)
+=\int_{\Delta^{d-1}}\prod_{n=1}^N\vartheta_{x_n}\,\mu(\mathrm d\vartheta).
+\label{eq:lh-lda-definetti}
+\end{equation}
+这一定理需要无限可交换性；只知道某个固定长度的序列可交换，不能直接得到同样结论。定理也不规定混合测度必须是狄利克雷分布，LDA 对先验族的选择是额外的建模假设。
+
+LDA 中，同一文档的 $Z_{mn}$ 给定 $\Theta_m$ 后独立同分布，积分消去 $\Theta_m$ 后仍可交换，却通常不独立。例如对 $n\ne r$，由条件独立性与全协方差公式可得
+\begin{equation}
+\operatorname{Cov}\bigl(\mathbf1\{Z_{mn}=k\},\mathbf1\{Z_{mr}=k\}\bigr)
+=\operatorname{Var}(\Theta_{mk})>0.
+\label{eq:lh-lda-topic-dependence}
+\end{equation}
+同样，给定 $\theta_m,\phi$ 后词位独立同分布，边缘化后文档内词序列可交换。词序无关来自模型假设，并不表示自然语言中的词序本来无关。
+
+\subsection{概率公式}
+\label{subsec:lh-lda-probability-formulas}
+
+对全体隐变量取值 $z,\theta,\phi$ 与观测 $w$，联合密度或质量函数为
+\begin{equation}
+p(w,z,\theta,\phi\mid\alpha,\beta)
+=\prod_{k=1}^K\operatorname{Dir}(\phi_k\mid\beta)
+\prod_{m=1}^M\left[
+\operatorname{Dir}(\theta_m\mid\alpha)
+\prod_{n=1}^{N_m}\theta_{m,z_{mn}}\phi_{z_{mn},w_{mn}}
+\right].
+\label{eq:lh-lda-full-joint}
+\end{equation}
+这里 $\operatorname{Dir}(\cdot\mid\cdot)$ 表示式~\eqref{eq:lh-lda-dirichlet-density} 的密度。求和消去每个词位的话题，得到
+\begin{equation}
+p(w_m\mid\theta_m,\phi)
+=\prod_{n=1}^{N_m}\left(\sum_{k=1}^K\theta_{mk}\phi_{k,w_{mn}}\right).
+\label{eq:lh-lda-document-conditional}
+\end{equation}
+再积分消去文档权重，可定义给定共享词分布时的文档概率
+\begin{equation}
+p(w_m\mid\alpha,\phi)
+=\int_{\Delta^{K-1}}\operatorname{Dir}(\theta_m\mid\alpha)
+\prod_{n=1}^{N_m}\left(\sum_{k=1}^K\theta_{mk}\phi_{k,w_{mn}}\right)\,\mathrm d\theta_m.
+\label{eq:lh-lda-document-marginal}
+\end{equation}
+完整模型的语料概率为
+\begin{equation}
+p(w\mid\alpha,\beta)
+=\int\left[\prod_{k=1}^K\operatorname{Dir}(\phi_k\mid\beta)\right]
+\prod_{m=1}^Mp(w_m\mid\alpha,\phi)\,\mathrm d\phi.
+\label{eq:lh-lda-corpus-marginal}
+\end{equation}
+所有文档共享同一组 $\Phi_k$，所以给定 $\Phi$ 时文档独立，积分消去 $\Phi$ 后一般不独立；不能将式~\eqref{eq:lh-lda-corpus-marginal} 改成各文档完全边缘概率的乘积。
+
+推断目标为
+\[
+p(z,\theta,\phi\mid w,\alpha,\beta)
+=\frac{p(w,z,\theta,\phi\mid\alpha,\beta)}{p(w\mid\alpha,\beta)}.
+\]
+分母涉及积分和话题指派的组合求和，直接枚举 $I$ 个词位的话题共有 $K^I$ 种可能。共轭性可以帮助消去连续隐变量或计算局部更新，但不会自动消除所有词位话题之间的耦合，因而仍需要下面的近似推断方法。
+
+\section{LDA 的吉布斯抽样算法}
+\label{sec:lh-lda-gibbs}
+
+\subsection{基本想法}
+\label{subsec:lh-lda-gibbs-idea}
+
+\emph{收缩的吉布斯抽样}（collapsed Gibbs sampling，也称折叠吉布斯抽样）先对式~\eqref{eq:lh-lda-full-joint} 中的 $\theta,\phi$ 积分，得到 $p(w,z\mid\alpha,\beta)$，再固定观测 $w$，以 $p(z\mid w,\alpha,\beta)$ 为目标分布轮流更新各个话题指派。此处“收缩”指解析边缘化连续变量，保留的抽样对象是 $z$；不是生成新的观测词，也不是直接抽样条件分布 $p(w\mid z,\alpha,\beta)$。
+
+为整理积分，定义文档与话题计数、话题与词计数及其总数：
+\begin{align}
+c_{mk}&=\sum_{n=1}^{N_m}\mathbf1\{z_{mn}=k\},&
+d_{kv}&=\sum_{m=1}^M\sum_{n=1}^{N_m}\mathbf1\{z_{mn}=k,\ w_{mn}=v\},\notag\\
+c_{m\cdot}&=\sum_kc_{mk}=N_m,&
+d_{k\cdot}&=\sum_vd_{kv}.
+\label{eq:lh-lda-counts}
+\end{align}
+记 $c_m=(c_{m1},\ldots,c_{mK})$、$d_k=(d_{k1},\ldots,d_{kV})$。计数由当前话题指派和固定词序列确定；$\sum_kd_{k\cdot}=I$，且 $d_{k\cdot}=\sum_mc_{mk}$，这些恒等式也可用于检查实现。
+
+\subsection{算法的主要部分}
+\label{subsec:lh-lda-gibbs-main}
+
+\begin{proposition}[收缩联合分布]
+\label{prop:lh-lda-collapsed-joint}
+对有序词序列和话题序列，有
+\begin{equation}
+p(w,z\mid\alpha,\beta)
+=\prod_{m=1}^M\frac{B(\alpha+c_m)}{B(\alpha)}
+\prod_{k=1}^K\frac{B(\beta+d_k)}{B(\beta)}.
+\label{eq:lh-lda-collapsed-joint}
+\end{equation}
+因此 $p(z\mid w,\alpha,\beta)$ 正比于式~\eqref{eq:lh-lda-collapsed-joint}。
+\end{proposition}
+\begin{proof}
+式~\eqref{eq:lh-lda-full-joint} 中涉及第 $m$ 个文档权重的部分为 $B(\alpha)^{-1}\prod_k\theta_{mk}^{\alpha_k+c_{mk}-1}$，积分得到 $B(\alpha+c_m)/B(\alpha)$。涉及第 $k$ 个词分布的部分同理得到 $B(\beta+d_k)/B(\beta)$，将这些因子相乘即可。这里描述的是具体有序序列的概率，不能再乘入多项计数的排列系数。
+\end{proof}
+
+\begin{proposition}[单词位的满条件分布]
+\label{prop:lh-lda-gibbs-conditional}
+令 $i=(m,n)$ 为当前词位，$w_i=v$，$z_{-i}$ 表示其余词位的话题指派。上标 $-i$ 表示所有计数都先排除当前词位，则
+\begin{equation}
+P(Z_i=k\mid z_{-i},w,\alpha,\beta)
+=\frac{r_k}{\sum_{\ell=1}^Kr_\ell},\qquad
+r_k=\frac{c_{mk}^{-i}+\alpha_k}{N_m-1+\alpha_0}
+\frac{d_{kv}^{-i}+\beta_v}{d_{k\cdot}^{-i}+\beta_0}.
+\label{eq:lh-lda-gibbs-conditional}
+\end{equation}
+第一个分母与候选话题 $k$ 无关，可在计算正比权重时省略；第二个分母通常随 $k$ 改变，必须保留。
+\end{proposition}
+\begin{proof}
+将当前词位设为候选话题 $k$，相对于删除该词位后的计数，只有 $c_{mk}$ 和 $d_{kv}$ 增加 $1$。利用 $\Gamma(t+1)=t\Gamma(t)$ 得
+\[
+\frac{B(\alpha+c_m^{-i}+e_k)}{B(\alpha+c_m^{-i})}
+=\frac{c_{mk}^{-i}+\alpha_k}{N_m-1+\alpha_0},\qquad
+\frac{B(\beta+d_k^{-i}+e_v)}{B(\beta+d_k^{-i})}
+=\frac{d_{kv}^{-i}+\beta_v}{d_{k\cdot}^{-i}+\beta_0}.
+\]
+其他因子对所有候选值相同，由式~\eqref{eq:lh-lda-collapsed-joint} 相消，最后对 $k$ 归一化即得。
+\end{proof}
+
+两个因子分别是排除当前词位后的“该文档倾向选哪个话题”和“该话题倾向生成哪个词”的后验预测概率。\emph[caution]{更新前必须先减去当前词位的旧计数。}否则旧指派会参与自身的条件概率计算，所得更新不再是上述目标分布的吉布斯更新。抽样也不能换成直接取最大权重：后者是另一种确定性更新，不再产生同一个后验分布的样本。
+
+\begin{example}
+\label{ex:lh-lda-gibbs-step}
+取 $K=2$、$V=3$、$\alpha=(1,1)$、$\beta=(1,1,1)$。某词位观测为第一个词，删除该词位后，其文档话题计数为 $(2,1)$，两个话题的词计数分别为 $(3,1,0)$ 和 $(0,2,2)$，求该词位的新话题分布。
+\end{example}
+\begin{solve}
+删除后文档长度为 $3$，两个话题总计数均为 $4$。由式~\eqref{eq:lh-lda-gibbs-conditional}，$r_1=(3/5)(4/7)=12/35$，$r_2=(2/5)(1/7)=2/35$，归一化后为 $(6/7,1/7)$。第一个话题既更符合当前文档的组成，也更常生成当前词；算法仍以 $1/7$ 的概率选择第二个话题，而不是必然选择第一个。
+\end{solve}
+
+\subsection{算法的后处理}
+\label{subsec:lh-lda-gibbs-postprocessing}
+
+给定一次完整指派 $z$，共轭性给出
+\begin{equation}
+\Theta_m\mid z,w,\alpha,\beta\sim\operatorname{Dir}(\alpha+c_m),\qquad
+\Phi_k\mid z,w,\alpha,\beta\sim\operatorname{Dir}(\beta+d_k).
+\label{eq:lh-lda-conditional-posteriors}
+\end{equation}
+在这个条件下，各文档权重与各话题词分布相互独立，条件后验均值为
+\begin{equation}
+\widehat\theta_{mk}(z)=\frac{c_{mk}+\alpha_k}{N_m+\alpha_0},\qquad
+\widehat\phi_{kv}(z)=\frac{d_{kv}+\beta_v}{d_{k\cdot}+\beta_0}.
+\label{eq:lh-lda-gibbs-posterior-means}
+\end{equation}
+这些是给定该次指派后的条件均值，不是完整后验已经精确求出的证明。若保留了 $S$ 次指派样本 $z^{(1)},\ldots,z^{(S)}$，则由全期望公式可用
+\begin{equation}
+\overline\theta_{mk}=\frac1S\sum_{s=1}^S\widehat\theta_{mk}(z^{(s)}),\qquad
+\overline\phi_{kv}=\frac1S\sum_{s=1}^S\widehat\phi_{kv}(z^{(s)})
+\label{eq:lh-lda-rao-blackwell}
+\end{equation}
+近似完整后验均值。特别地，$\phi$ 的分母随样本变化，一般不能用“平均计数之比”代替“各次比值的平均”。需要完整联合后验样本时，还可以在抽到 $z$ 后按式~\eqref{eq:lh-lda-conditional-posteriors} 抽取 $\Theta,\Phi$。
+
+对称话题先验下，交换话题编号不会改变模型，因而存在标签交换（label switching）。若样本或多条链发生整体标签置换，直接平均同一编号的词分布可能掩盖话题结构；解释具体话题时需要说明标签对齐方式，或报告不依赖话题编号的量。后验概率、后验均值、某次硬指派以及高概率词展示分别回答不同问题，不宜统称为唯一的“真实话题”。
+
+\subsection{算法与计算代价}
+\label{subsec:lh-lda-gibbs-algorithm}
+
+输入语料 $w$、话题数 $K$、正超参数 $\alpha,\beta$、预热轮数 $B_0\geq0$、保留间隔 $L\geq1$ 和样本数 $S\geq1$；一轮指完整扫描所有词位。输出话题指派样本及式~\eqref{eq:lh-lda-rao-blackwell} 的后验均值近似。实现时维护 $M\times K$ 的计数矩阵 $C=(c_{mk})$、$K\times V$ 的矩阵 $D=(d_{kv})$、各话题总数和当前指派，过程如下。
+\begin{enumerate}
+\item 为每个词位独立均匀抽取初始话题，累加 $C,D$ 与话题总数；检查式~\eqref{eq:lh-lda-counts} 的计数恒等式。
+\item 每轮按固定顺序扫描词位 $i=(m,n)$。先从旧话题的 $c_{mk}$、$d_{k,w_i}$、$d_{k\cdot}$ 中各减 $1$；再用排除后的计数计算式~\eqref{eq:lh-lda-gibbs-conditional}，抽取新话题并写回；最后给新话题对应的三个计数各加 $1$。
+\item 完成 $B_0$ 轮预热后继续迭代，每隔 $L$ 轮保留一次完整指派或所需的条件均值，累计 $S$ 次后停止，并报告所用轮数及诊断结果。
+\end{enumerate}
+
+正超参数使每个词位选取任一话题的条件概率均为正。对于固定有限语料，完整扫描所构成的马尔可夫链可以通过逐位重选到达任意指派，也能保持原指派不变，故在有限状态空间上不可约、非周期，并以 $p(z\mid w,\alpha,\beta)$ 为唯一平稳分布；当迭代轮数趋于无穷时，遍历平均满足相应的大数定律。这是渐近结论：有限预热并不保证已经到达平稳分布，相邻样本也通常相关。多链比较、后验统计量轨迹和有效样本量可帮助诊断；增加保留间隔本身不会保证独立性。
+
+朴素实现每个词位计算 $K$ 个权重，若维护话题总数使分母可在常数时间取得，一轮耗时 $O(IK)$，$T$ 轮抽样耗时 $O(TIK)$。稠密计数与指派占用 $O(MK+KV+I)$ 空间，存储全部 $S$ 次指派还需 $O(SI)$。若每次保留时显式计算所有条件均值，另需 $O(S(MK+KV))$ 时间；这些后处理和存储费用应与抽样费用分别计算。稀疏或其他加速实现可能改变实际代价，本章不将它们的复杂度归于上述朴素算法。
+
+\section{LDA 的变分 EM 算法}
+\label{sec:lh-lda-variational-em}
+
+\subsection{变分推理}
+\label{subsec:lh-lda-variational-inference}
+
+\emph{变分推理}（variational inference）把后验近似转化为优化问题。设 $x$ 是固定观测，$h$ 为全部隐变量，$\xi$ 为待固定或估计的模型参数，联合分布为 $p(x,h\mid\xi)$。选择易计算的分布族 $\mathcal Q$，在其中寻找使 $D_{\mathrm{KL}}(q(h)\Vert p(h\mid x,\xi))$ 最小的 $q$。这里的 KL 散度有方向，既不是距离，也不能在不改变目标的情况下交换两个分布的位置。
+
+\begin{proposition}[证据下界恒等式]
+\label{prop:lh-lda-elbo-identity}
+假设 $0<p(x\mid\xi)<\infty$，$q$ 在后验为零的集合上也为零，且以下期望有限。定义\emph{证据下界}（evidence lower bound，ELBO）
+\begin{equation}
+\mathcal L(q,\xi)=\mathbb E_q[\log p(x,h\mid\xi)]-\mathbb E_q[\log q(h)].
+\label{eq:lh-lda-elbo-definition}
+\end{equation}
+则
+\begin{equation}
+\log p(x\mid\xi)=\mathcal L(q,\xi)
++D_{\mathrm{KL}}\bigl(q(h)\Vert p(h\mid x,\xi)\bigr)
+\geq\mathcal L(q,\xi).
+\label{eq:lh-lda-elbo-identity}
+\end{equation}
+等号成立当且仅当 $q$ 与后验几乎处处相同。离散变量的积分解释为求和，混合变量同时进行积分与求和。
+\end{proposition}
+\begin{proof}
+将 $\log p(h\mid x,\xi)=\log p(x,h\mid\xi)-\log p(x\mid\xi)$ 代入 KL 散度定义，利用 $\int q(h)\,\mathrm dh=1$ 即得恒等式。KL 非负可由 $-\log t\geq1-t$ 积分得到；等号要求两个分布几乎处处一致。
+\end{proof}
+
+固定 $\xi$ 时，$\log p(x\mid\xi)$ 与 $q$ 无关，所以最小化上述 KL 散度等价于最大化 ELBO。观测数据的边缘概率称为证据（evidence），其对数为对数证据；下界约束的是对数证据。优化并未使真实后验变得简单，而是在所选分布族内寻找近似，近似偏差不会仅因增加迭代次数而消失。
+
+常用的\emph{平均场}（mean-field）分解为 $q(h)=\prod_jq_j(h_j)$。固定其他因子后，将 ELBO 中依赖 $q_j$ 的部分写成
+\[
+\int q_j(h_j)\,\mathbb E_{q_{-j}}[\log p(x,h\mid\xi)]\,\mathrm dh_j
+-\int q_j(h_j)\log q_j(h_j)\,\mathrm dh_j.
+\]
+若指数化后的函数可归一化，它等于某个常数减去 $q_j$ 到该归一化分布的 KL 散度。因此坐标最优解满足
+\begin{equation}
+\log q_j^*(h_j)=\mathbb E_{q_{-j}}[\log p(x,h\mid\xi)]+\text{与 $h_j$ 无关的常数}.
+\label{eq:lh-lda-mean-field-coordinate}
+\end{equation}
+轮流更新各因子便得到坐标上升变分推理。独立性是对近似分布 $q$ 的限制；它并不声称给定观测后的真实隐变量相互独立，且平均场中的一个因子仍可包含多个相依坐标。
+
+\subsection{变分 EM 算法与收敛含义}
+\label{subsec:lh-lda-variational-em-principle}
+
+模型参数也未知时，变分 EM 交替改进同一个 $\mathcal L(q,\xi)$：E 步固定 $\xi$，优化受限族内的 $q$；M 步固定 $q$，优化模型参数 $\xi$。不必要求每一步都求出全局最大值，但若要保证下界单调，所用更新必须使当前下界不减。精确 EM 是 E 步能够取到真实后验的特殊情形。
+
+\begin{proposition}[下界的单调性]
+\label{prop:lh-lda-vem-monotonicity}
+若每次 E、M 更新都不降低下界，则
+\begin{equation}
+\mathcal L(q^{(t)},\xi^{(t)})
+\leq\mathcal L(q^{(t+1)},\xi^{(t)})
+\leq\mathcal L(q^{(t+1)},\xi^{(t+1)}).
+\label{eq:lh-lda-vem-monotonicity}
+\end{equation}
+若这些下界值还有统一有限上界，则它们收敛。仅由该结论不能推出参数序列收敛、收敛到全局最优点，或真实边缘似然每轮不减。
+\end{proposition}
+\begin{proof}
+第一个不等式来自 E 步，第二个来自 M 步；单调有上界的实数序列收敛。由式~\eqref{eq:lh-lda-elbo-identity}，真实对数似然还包含随迭代变化的 KL 间隙，因此下界的增加不能控制两次真实似然的差。
+\end{proof}
+
+\begin{notealert}[type=caution,title={不能把精确 EM 的等号直接用于变分 EM}]
+教材式 (20.41) 用 $\log p(x\mid\xi^{(t)})=\mathcal L(q^{(t+1)},\xi^{(t)})$ 推出似然单调性。该等号要求 E 步得到真实后验；一般受限平均场分布只给出不等式，因此应使用式~\eqref{eq:lh-lda-vem-monotonicity}。目标值收敛也不等于每个迭代变量都收敛，局部驻点性质还需要相应的正则性与更新条件。
+\end{notealert}
+
+下面的简化 LDA 直接建模离散语料的概率，故 $p(w\mid\xi)\leq1$，其 ELBO 不超过 $0$；从有限初始下界出发，满足单调更新条件即可保证下界值收敛。达到最大迭代次数、下界相对增量很小和已经找到全局最优解是不同的停止描述，输出时应如实区分。
+
+\subsection{算法推导}
+\label{subsec:lh-lda-variational-derivation}
+
+本节先沿用教材的简化模型：将话题词矩阵 $\phi$ 作为待估计的确定性参数，不为它设置 $\operatorname{Dir}(\beta)$ 先验；只保留文档权重的狄利克雷先验。因此模型参数为 $\xi=(\alpha,\phi)$，$\beta$ 不参与本节这部分更新，不能直接把完整模型的条件均值当作简化模型的 M 步。为使初始下界有限，可将 $\phi$ 各行初始化为严格正的概率向量。
+
+暂略文档下标，令一篇文档为 $w=(w_1,\ldots,w_N)$，则
+\begin{equation}
+p(\theta,z,w\mid\alpha,\phi)
+=\operatorname{Dir}(\theta\mid\alpha)\prod_{n=1}^N\theta_{z_n}\phi_{z_n,w_n}.
+\label{eq:lh-lda-simplified-joint}
+\end{equation}
+选择近似分布
+\begin{equation}
+q(\theta,z\mid\gamma,\eta)
+=\operatorname{Dir}(\theta\mid\gamma)
+\prod_{n=1}^N\operatorname{Cat}(z_n\mid\eta_n),
+\quad\gamma_k>0,\quad\eta_{nk}\geq0,\quad\sum_k\eta_{nk}=1.
+\label{eq:lh-lda-variational-family}
+\end{equation}
+其中 $\gamma\in(0,\infty)^K$、$\eta\in\mathbb R^{N\times K}$ 是变分参数；$\eta_{nk}$ 是近似分布赋予词位 $n$ 的话题 $k$ 的概率。平均场把整向量 $\Theta$ 视为一个因子，并没有将其受和为 $1$ 约束的各坐标分成独立因子。记 $\gamma_0=\sum_k\gamma_k$、$h_k=\psi(\gamma_k)-\psi(\gamma_0)=\mathbb E_q[\log\Theta_k]$。
+
+\emph[tip]{先展开联合分布与近似分布的对数，再分别求期望。}这样 ELBO 自然分成先验、话题指派、词生成、狄利克雷因子熵与类别因子熵五项：
+\begin{equation}
+\begin{aligned}
+\mathcal L(\gamma,\eta;\alpha,\phi)
+={}&\log\Gamma(\alpha_0)-\sum_k\log\Gamma(\alpha_k)
++\sum_k(\alpha_k-1)h_k\\
+&+\sum_{n,k}\eta_{nk}h_k
++\sum_{n,k}\eta_{nk}\log\phi_{k,w_n}\\
+&-\log\Gamma(\gamma_0)+\sum_k\log\Gamma(\gamma_k)
+-\sum_k(\gamma_k-1)h_k\\
+&-\sum_{n,k}\eta_{nk}\log\eta_{nk}.
+\end{aligned}
+\label{eq:lh-lda-expanded-elbo}
+\end{equation}
+类别熵使用 $0\log0=0$ 的连续延拓；若 $\phi_{k,w_n}=0$，则该位置的 $\eta_{nk}$ 必须为 $0$，否则下界为负无穷。多文档总下界为各文档式~\eqref{eq:lh-lda-expanded-elbo} 的和，每篇具有自己的 $\gamma_m,\eta_m$，共享 $\alpha,\phi$。
+
+\begin{proposition}[E 步的坐标更新]
+\label{prop:lh-lda-variational-e-step}
+固定模型参数，在式~\eqref{eq:lh-lda-variational-family} 内交替优化各因子，可取
+\begin{align}
+\eta_{nk}&=\frac{\phi_{k,w_n}\exp\{\psi(\gamma_k)-\psi(\gamma_0)\}}
+{\sum_{\ell=1}^K\phi_{\ell,w_n}\exp\{\psi(\gamma_\ell)-\psi(\gamma_0)\}},
+\label{eq:lh-lda-eta-update}\\
+\gamma_k&=\alpha_k+\sum_{n=1}^N\eta_{nk}.
+\label{eq:lh-lda-gamma-update}
+\end{align}
+每次更新使用其他因子的当前值，并将 $\eta_n$ 归一化。$-\psi(\gamma_0)$ 对所有候选话题相同，可从式~\eqref{eq:lh-lda-eta-update} 的分子分母中约去。
+\end{proposition}
+\begin{proof}
+固定 $\gamma$ 时，与 $\eta_n$ 有关的目标为 $\sum_k\eta_{nk}(h_k+\log\phi_{k,w_n}-\log\eta_{nk})$。加上约束 $\sum_k\eta_{nk}=1$ 的拉格朗日项，对正分量求导，得 $h_k+\log\phi_{k,w_n}-\log\eta_{nk}-1+\lambda_n=0$，指数化、归一化即得第一式。固定所有 $\eta_n$ 时，由式~\eqref{eq:lh-lda-mean-field-coordinate}，
+\[
+\log q^*(\theta)
+=\sum_k\left(\alpha_k-1+\sum_n\eta_{nk}\right)\log\theta_k+\text{常数},
+\]
+故最优因子为参数 $\alpha_k+\sum_n\eta_{nk}$ 的狄利克雷分布，得到第二式。该推导直接确定整个因子的坐标最优解，无需把耦合的 $\gamma$ 坐标分别求导后错误地视作互不相关。
+\end{proof}
+
+式~\eqref{eq:lh-lda-gamma-update} 是“先验参数加期望话题计数”，对应共轭更新；式~\eqref{eq:lh-lda-eta-update} 则结合当前词的似然和话题对数概率的期望。\emph[caution]{其中使用的是 $\exp\{\mathbb E_q\log\Theta_k\}$，不是 $\mathbb E_q\Theta_k$。}例如 $\gamma=(2,1)$ 时，利用 $\psi(s+1)-\psi(s)=1/s$，两个指数化对数期望的比为 $e$，而两个均值的比为 $2$，二者不能互换。
+
+初始化可取 $\eta_{nk}=1/K$、$\gamma_k=\alpha_k+N/K$。每轮固定 $\gamma$ 更新全部 $\eta_n$，再更新整个 $\gamma$，重复至下界相对增量不超过给定容差或达到内层迭代上限。每个块更新都是当前块的最大化，因此下界不减；总体优化仍可能依赖初值。数值上可计算 $s_{nk}=\log\phi_{k,w_n}+\psi(\gamma_k)$，先减去 $\max_ks_{nk}$ 再指数化归一化，以避免溢出。
+
+恢复文档下标后，固定全部变分参数，定义期望词计数
+\begin{equation}
+\overline d_{kv}=\sum_{m=1}^M\sum_{n=1}^{N_m}
+\eta_{mnk}\mathbf1\{w_{mn}=v\},\qquad
+\overline d_{k\cdot}=\sum_v\overline d_{kv}.
+\label{eq:lh-lda-expected-counts}
+\end{equation}
+关于 $\phi$ 的 M 步为最大化 $\sum_{k,v}\overline d_{kv}\log\phi_{kv}$，约束每行非负且和为 $1$。逐行使用拉格朗日乘子得到
+\begin{equation}
+\phi_{kv}^{\mathrm{new}}=\frac{\overline d_{kv}}{\overline d_{k\cdot}},
+\qquad\overline d_{k\cdot}>0.
+\label{eq:lh-lda-phi-m-step}
+\end{equation}
+若某行总期望计数为 $0$，目标与该行无关，可保留原行；若某个词在语料中没有出现，无先验的该更新可能给它概率 $0$。这与完整贝叶斯模型中正 $\beta_v$ 带来的平滑不同。
+
+记 $h_{mk}=\psi(\gamma_{mk})-\psi(\gamma_{m0})$，$\gamma_{m0}=\sum_k\gamma_{mk}$。关于 $\alpha$ 的目标为
+\begin{equation}
+F(\alpha)=M\left[\log\Gamma(\alpha_0)-\sum_k\log\Gamma(\alpha_k)\right]
++\sum_{m,k}(\alpha_k-1)h_{mk},\qquad\alpha_k>0.
+\label{eq:lh-lda-alpha-objective}
+\end{equation}
+令 $g$ 为梯度、$H$ 为海森矩阵，则
+\begin{align}
+g_k&=M\bigl[\psi(\alpha_0)-\psi(\alpha_k)\bigr]+\sum_mh_{mk},
+\label{eq:lh-lda-alpha-gradient}\\
+H_{k\ell}&=M\psi'(\alpha_0)-M\mathbf1\{k=\ell\}\psi'(\alpha_k).
+\label{eq:lh-lda-alpha-hessian}
+\end{align}
+这里 $\psi'$ 为三伽马函数（trigamma function）。注意两项均含文档数 $M$；该式直接由梯度微分得到。由于 $\log B(\alpha)$ 是指数族的对数归一化函数，其海森矩阵是 $(\log\Theta_k)_k$ 的协方差矩阵，故 $F$ 为凹函数，但有限最优点的存在性及数值求解仍需具体检查。
+
+牛顿方向可通过解线性方程 $H\delta=-g$ 得到，再令 $\alpha^{\mathrm{new}}=\alpha+\rho\delta$，$0<\rho\leq1$。实现中不必显式求逆，并应通过回溯保持所有分量为正、使 $F$ 不减；未经阻尼的完整牛顿步不自动满足这些条件。$H$ 具有“对角矩阵加秩一矩阵”的结构：令 $a_k^{\mathrm H}=-M\psi'(\alpha_k)$、$b^{\mathrm H}=M\psi'(\alpha_0)$，则 $H=\operatorname{diag}(a^{\mathrm H})+b^{\mathrm H}\mathbf1\mathbf1^{\mathsf T}$。在矩阵可逆且分母非零时，
+\begin{equation}
+(H^{-1}g)_k=\frac{g_k-c^{\mathrm H}}{a_k^{\mathrm H}},\qquad
+c^{\mathrm H}=\frac{\sum_kg_k/a_k^{\mathrm H}}
+{1/b^{\mathrm H}+\sum_k1/a_k^{\mathrm H}}.
+\label{eq:lh-lda-alpha-newton-structure}
+\end{equation}
+因此给定梯度及特殊函数值后，可在线性于 $K$ 的时间内求出方向；接近奇异时仍要关注数值稳定性。若 $\alpha$ 事先固定，直接省略这一 M 步即可。
+
+\subsection{算法、完整模型推广与复杂度}
+\label{subsec:lh-lda-variational-algorithm}
+
+简化 LDA 的变分 EM 输入语料、$K$、初始正 $\alpha$、各行归一化且严格正的初始 $\phi$、内外层容差和迭代上限，输出模型参数近似 $\widehat\alpha,\widehat\phi$ 与各文档的变分参数 $\gamma_m,\eta_m$。交替执行以下两步，监测总 ELBO 的变化。
+\begin{enumerate}
+\item E 步：固定 $\alpha,\phi$，对各文档用式~\eqref{eq:lh-lda-eta-update} 和式~\eqref{eq:lh-lda-gamma-update} 交替更新，达到内层停止条件后保留局部变分参数。
+\item M 步：固定 $\gamma,\eta$，累加式~\eqref{eq:lh-lda-expected-counts} 的期望计数，用式~\eqref{eq:lh-lda-phi-m-step} 更新 $\phi$；需要学习 $\alpha$ 时，以式~\eqref{eq:lh-lda-alpha-gradient} 和式~\eqref{eq:lh-lda-alpha-hessian} 作阻尼牛顿更新。各步均检查下界不减，达到外层容差或迭代上限后停止。
+\end{enumerate}
+
+训练后，$\mathbb E_q[\Theta_{mk}]=\gamma_{mk}/\gamma_{m0}$ 是文档话题比例的变分近似，$q(Z_{mn}=k)=\eta_{mnk}$ 是词位话题概率的近似；$\arg\max_k\eta_{mnk}$ 只是一种额外的硬指派规则。对新文档固定学得的 $\alpha,\phi$，只执行局部 E 步即可得到话题表示，不必重新为整套模型拟合全局词分布。
+
+为连接到定义~\ref{def:lh-lda-model} 的完整模型，可在近似分布中再加入 $\prod_k\operatorname{Dir}(\phi_k\mid\lambda_k)$，其中 $\lambda_k\in(0,\infty)^V$。固定超参数 $\alpha,\beta$ 后，同样由式~\eqref{eq:lh-lda-mean-field-coordinate} 得到
+\begin{align}
+\eta_{mnk}&\propto\exp\left\{
+\psi(\gamma_{mk})-\psi(\gamma_{m0})
++\psi(\lambda_{k,w_{mn}})-\psi(\lambda_{k0})\right\},
+\label{eq:lh-lda-full-vi-eta}\\
+\gamma_{mk}&=\alpha_k+\sum_n\eta_{mnk},&
+\lambda_{kv}&=\beta_v+\overline d_{kv},\qquad\lambda_{k0}=\sum_v\lambda_{kv}.
+\label{eq:lh-lda-full-vi-dirichlet}
+\end{align}
+第一式仍需对 $k$ 归一化，词分布的变分均值为 $\lambda_{kv}/\lambda_{k0}$。这里 $\lambda$ 是随机词分布的变分参数，而简化模型中的 $\phi$ 是点估计；给定 $\alpha,\beta$ 的这些更新属于后验变分推理，若进一步学习超参数，才增加相应的外层 M 步。这个推广展示了共轭先验在两条推断路线中的共同作用：吉布斯抽样用它解析积分并恢复条件后验，平均场推断用它保持坐标更新的狄利克雷形式。
+
+最后明确朴素算法的计算量。对长度 $N_m$ 的文档，一轮局部坐标更新需 $O(N_mK)$；若第 $m$ 篇在一次外层 E 步中使用 $J_m$ 轮，则 E 步耗时 $O(\sum_mJ_mN_mK)$。M 步累加期望计数和归一化词分布需 $O(IK+KV)$；关于 $\alpha$ 的统计量 $\sum_mh_{mk}$ 可用 $O(MK)$ 预先累加，之后每次利用式~\eqref{eq:lh-lda-alpha-newton-structure} 的牛顿方向计算需 $O(K)$，另计线搜索费用。若各文档统一使用 $J$ 轮、外层共 $T$ 轮，则主项为 $O(T(JIK+IK+KV+MK))$，并加上超参数优化费用；不能在未说明迭代轮数时给出固定的总复杂度。
+
+稠密保存所有 $\eta,\gamma,\phi$ 需 $O(IK+MK+KV)$ 空间；固定全局参数进行 E 步时，可以逐文档处理并只累加充分统计量，将工作空间降为 $O(K\max_mN_m+MK+KV)$，不计输入语料的 $O(I)$ 存储。完整模型还需保存 $K\times V$ 的 $\lambda$，量级不变。抽样误差与变分近似误差不同：增加平稳链的样本量可以降低蒙特卡罗误差，而增加平均场迭代主要改善受限目标的优化，不能消除分布族限制带来的偏差；比较两种方法时应同时说明模型版本、超参数、计算预算和评价指标。
+
+
+
+
+

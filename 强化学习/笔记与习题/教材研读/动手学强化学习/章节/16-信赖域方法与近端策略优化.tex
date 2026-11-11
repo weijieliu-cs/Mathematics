@@ -1,0 +1,67 @@
+% !TeX root = ../动手学强化学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{15} % 保留原书章号。
+\chapter{信赖域方法与近端策略优化}
+\label{ch:rl-ppo}
+
+一次梯度估计依赖当前策略产生的数据。若反复用同一批数据把策略改变很多，原数据所代表的状态分布就可能失去代表性。信赖域策略优化（trust region policy optimization，TRPO）与近端策略优化（proximal policy optimization，PPO）围绕这一问题控制更新尺度\cite{schulman-trpo,schulman-ppo}。
+
+\section{性能变化与替代目标}
+
+在有界奖励的折扣模型中，给定旧策略 $\pi$ 和新策略 $\pi'$，性能差异恒等式为
+\begin{equation}
+J(\pi')-J(\pi)=\frac1{1-\gamma}
+\mathbb E_{S\sim d_{\mu,\pi'},A\sim\pi'}[A_\pi(S,A)].
+\label{eq:rl-performance-difference}
+\end{equation}
+其证明沿新策略轨迹累加 $R_{t+1}+\gamma v_\pi(S_{t+1})-v_\pi(S_t)$；价值项望远镜相消，尾项因折扣和有界性趋于零，剩下新策略回报减去旧策略的初始价值期望。
+
+直接计算右侧需要新策略状态分布。局部近似用 $d_{\mu,\pi}$ 替代它，得到旧分布上的替代目标。给定状态后再用动作概率比改写：
+\[
+\mathbb E_{d_{\mu,\pi},\pi'}[A_\pi]
+=\mathbb E_{d_{\mu,\pi},\pi}\left[\frac{\pi'(A\mid S)}{\pi(A\mid S)}A_\pi(S,A)\right].
+\]
+概率比要求目标动作被旧策略覆盖，并且只修正给定状态下的动作分布；它没有把旧状态访问分布变成新分布。小更新的意义是限制这部分近似误差，而不是将替代目标与真实回报混同。
+
+\section{信赖域与自然梯度}
+
+相对熵（Kullback--Leibler divergence，KL 散度）为 $D_{\rm KL}(p\|q)=\sum_a p(a)\log(p(a)/q(a))$，若 $p(a)>0,q(a)=0$ 则为无穷。TRPO 的实践形式以旧状态分布上的平均 KL 为约束，最大化局部替代目标。其理论动机来自控制策略差异后的性能界，但平均约束、采样估计和近似数值求解都与严格全状态条件有差别，不能保证每次实际更新单调改善真实回报。
+
+在旧参数 $\theta_0$ 附近，替代目标一阶近似为 $g^\top\Delta\theta$，KL 二阶近似为 $\tfrac12\Delta\theta^\top F\Delta\theta$，其中 $F$ 是对应策略分布的 Fisher 信息矩阵。在 $F$ 正定时，约束问题的方向为 $F^{-1}g$，称为自然梯度（natural gradient）；步长由 KL 半径确定。大模型通常用矩阵向量积、共轭梯度和线搜索近似实现；奇异或病态 $F$ 还需要适当阻尼。
+
+\section{PPO 的剪切目标}
+
+固定旧策略和采样得到的优势，定义 $\rho_t(\theta)=\pi_\theta(a_t\mid s_t)/\pi_{\rm old}(a_t\mid s_t)$。PPO-Clip 最大化
+\begin{equation}
+L^{\rm clip}(\theta)=\widehat{\mathbb E}_t
+\left[\min\left(\rho_t(\theta)\widehat A_t,
+\operatorname{clip}(\rho_t(\theta),1-\varepsilon,1+\varepsilon)\widehat A_t\right)\right],
+\label{eq:rl-ppo-clipping}
+\end{equation}
+其中 $0<\varepsilon<1$，$\widehat{\mathbb E}_t$ 是指定批次平均。给定单个样本，若 $\widehat A>0$，其目标为 $\widehat A\min(\rho,1+\varepsilon)$；若 $\widehat A<0$，则为 $\widehat A\max(\rho,1-\varepsilon)$。正优势限制继续增大概率的额外收益，负优势限制继续减小概率的额外收益。
+
+\begin{example}[剪切并非硬约束]
+取 $\varepsilon=0.2$。当优势为 $2$、概率比为 $1.4$，目标为 $2.4$，继续增大这个概率比不再提高该样本目标；当优势为 $-2$、概率比为 $0.6$，目标为 $-1.6$，继续减小也不再提高它。但负优势下概率比为 $1.4$ 时，目标为 $-2.8$，仍有减少该概率的更新动力。剪切只改变目标局部形状，没有把最终概率比投影到 $[0.8,1.2]$。
+\end{example}
+
+网络参数共享使其他样本的梯度仍可能把已剪切样本的概率比推得更远。因而剪切范围不是严格信赖域，有限样本最大化式\eqref{eq:rl-ppo-clipping}也不保证最大化真实性能。
+
+\section{完整训练过程与诊断}
+
+每个外层迭代先冻结采样策略，收集若干轨迹，保存状态、动作、奖励、边界信息、旧对数概率与旧价值。按第\ref{ch:rl-actor-critic}章计算优势和固定价值标签。随后打乱当前批次进行有限轮小批量更新，概率比用 $\exp(\log\pi_\theta-\log\pi_{\rm old})$ 计算；一轮内旧概率与优势不随新参数重算。最后丢弃或退出该批次，重新采样。
+
+若采用损失最小化，可写成 $-L^{\rm clip}+c_vL_V-c_e\widehat{\mathbb E}\mathcal H(\pi_\theta)$，其中 $L_V$ 是价值回归损失，$c_v,c_e\geq0$。这些附加项及是否共享参数必须记录。均匀时间步批次是常见实现选择，与严格折扣占用加权目标的差别仍应明确。KL 惩罚版本以额外 KL 项控制更新，与剪切版本是不同目标。
+
+首次更新前同批样本的概率比应接近一。还应监测评价回报、近似 KL、剪切比例、熵和价值误差；更新轮数过多会放大旧数据与新策略的失配。基于 KL 阈值提前结束内层更新是一种诊断性控制措施，不把经验阈值变成严格单调保证。
+
+\section{习题与实验}
+\begin{enumerate}
+\item 对优势 $\pm1$，分别画出单样本剪切目标关于 $\rho\geq0$ 的分段表达式，标明导数为零的区域及折点。
+\item 用两状态 MDP 说明仅有动作概率比不能修正状态访问分布，并验证式\eqref{eq:rl-performance-difference}。
+\item 固定采样预算，比较内层更新轮数与剪切范围；检查旧概率保存、GAE 掩码和评价规则，再解释实验结果。
+\end{enumerate}
+
+
+
+
+

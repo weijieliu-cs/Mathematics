@@ -1,0 +1,539 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{17} % 保留原书章号。
+\chapter{马尔可夫链蒙特卡罗法}
+\label{ch:lh-mcmc}
+
+复杂概率模型常能写出未归一化的密度，却难以计算归一化常数、边缘分布或后验期望。\emph{蒙特卡罗法}（Monte Carlo method）以随机样本的平均近似积分；\emph{马尔可夫链蒙特卡罗法}（Markov chain Monte Carlo，MCMC）进一步构造以目标分布为平稳分布的马尔可夫链，用一条相关的样本轨迹完成计算。关键是分别回答两个问题：所构造的链是否保持目标分布，以及从指定初值出发是否能够充分探索该分布。前者由不变性或细致平衡证明，后者还需要不可约性等遍历条件。
+
+本章依次讨论一般蒙特卡罗方法、马尔可夫链、MCMC 的计算框架、Metropolis--Hastings 算法和吉布斯抽样。记 $S$ 为状态空间，$X_t$ 为第 $t$ 步的随机状态，$x^{(t)}$ 为其一次实现；$p$ 表示目标密度或概率质量函数，$\pi$ 表示相应概率分布。积分在离散空间中相应改为求和；$\mathbb E_\pi$ 与 $\operatorname{Var}_\pi$ 分别表示在 $\pi$ 下的期望与方差。除特别说明外，所有抽样步骤使用新的、相互独立的辅助随机数。
+
+\section{蒙特卡罗法}
+\label{sec:lh-mcmc-monte-carlo}
+
+\subsection{随机抽样}
+\label{subsec:lh-mcmc-random-sampling}
+
+随机抽样（random sampling）的任务是在给定分布的条件下生成随机变量的实现，与根据已有数据估计未知分布的任务不同。直接抽样可利用已知分布的专门生成方法；例如连续严格递增的分布函数 $F$ 满足 $F^{-1}(U)\sim F$，其中 $U\sim\operatorname{Unif}(0,1)$。复杂目标未必能直接抽样，此时可以借助容易生成的建议分布。
+
+\begin{definition}[接受--拒绝抽样]
+\label{def:lh-mcmc-rejection}
+设 $p$ 与 $q$ 是同一参考测度下的概率密度，$q$ 可直接抽样，且存在已知有限常数 $c$，使 $p(x)\leq c q(x)$ 几乎处处成立。独立生成 $Y\sim q$ 和 $U\sim\operatorname{Unif}(0,1)$，若
+\begin{equation}
+U\leq\frac{p(Y)}{c q(Y)},
+\label{eq:lh-mcmc-rejection-rule}
+\end{equation}
+则接受 $Y$，否则重新生成一对 $(Y,U)$；重复至获得所需的 $N$ 个接受值。这称为\emph{接受--拒绝抽样}（accept--reject sampling）。
+\end{definition}
+
+\begin{proposition}[接受值的分布与抽样代价]
+\label{prop:lh-mcmc-rejection-correctness}
+在定义~\ref{def:lh-mcmc-rejection} 的条件下，单次尝试的接受概率为 $1/c$，接受值服从 $p$，重复独立尝试得到的接受值相互独立；生成 $N$ 个接受值所需尝试次数的期望为 $Nc$。
+\end{proposition}
+\begin{proof}
+对任意可测集合 $A$，由条件期望及 $U$ 的独立性，
+\[
+P(Y\in A,\text{接受})
+=\int_A q(y)\frac{p(y)}{c q(y)}\,\mathrm dy
+=\frac1c\int_A p(y)\,\mathrm dy.
+\]
+取 $A=S$ 得到接受概率 $1/c$，再除以此概率即得接受条件下的目标分布。每次接受后继续使用独立的新尝试，故各接受值独立；等待一次成功的尝试数服从成功概率为 $1/c$ 的几何分布，其期望为 $c$，累加便得 $Nc$。
+\end{proof}
+
+包络条件同时要求 $q$ 覆盖目标的支撑；$c$ 越大，拒绝越多。若仅知未归一化函数 $\widetilde p$，但已知 $0<Z=\int_S\widetilde p(x)\,\mathrm dx<\infty$ 且 $\widetilde p\leq Mq$，则接受概率改为 $\widetilde p(Y)/(Mq(Y))$，仍生成 $p=\widetilde p/Z$ 的样本，整体接受率为 $Z/M$。算法不必知道 $Z$，但仍需一个有效的全局包络 $M$；高维问题中这常是主要困难。
+
+\subsection{数学期望估计}
+\label{subsec:lh-mcmc-expectation}
+
+设 $X_1,\ldots,X_N$ 独立同分布于 $\pi$，$f:S\to\mathbb R$ 可测且 $\mathbb E_\pi|f(X)|<\infty$。强大数定律给出
+\begin{equation}
+\widehat\mu_N=\frac1N\sum_{i=1}^N f(X_i)
+\xrightarrow[N\to\infty]{\text{几乎必然}}
+\mu=\mathbb E_\pi f(X).
+\label{eq:lh-mcmc-iid-law}
+\end{equation}
+这里 $\mu$ 是总体量，$\widehat\mu_N$ 是由抽样引入随机性的估计量，$N^{-1}\sum_i f(x_i)$ 则是一次运行得到的数值。若还满足 $\sigma_f^2=\operatorname{Var}_\pi(f(X))<\infty$，则
+\begin{equation}
+\mathbb E\widehat\mu_N=\mu,\qquad
+\operatorname{Var}(\widehat\mu_N)=\frac{\sigma_f^2}{N}.
+\label{eq:lh-mcmc-iid-variance}
+\end{equation}
+当 $\sigma_f^2>0$ 时，独立同分布中心极限定理进一步给出 $\sqrt N(\widehat\mu_N-\mu)/\sigma_f$ 依分布趋于标准正态。因此有限方差下典型随机误差按 $N^{-1/2}$ 缩小；误差缩小到原来的十分之一，通常需要约一百倍样本。该阶数不显含维度，但函数方差与生成一个样本的成本都可能随维度急剧增长，不能据此断言高维计算没有困难。
+
+\subsection{积分计算}
+\label{subsec:lh-mcmc-integration}
+
+设 $h$ 可积，选取满足 $h(x)\ne0$ 的区域上几乎处处为正、且能够抽样的密度 $p$，令 $f=h/p$，在 $h=p=0$ 处可令 $f=0$，则
+\begin{equation}
+I=\int_S h(x)\,\mathrm dx
+=\int_S\frac{h(x)}{p(x)}p(x)\,\mathrm dx
+=\mathbb E_p\!\left[\frac{h(X)}{p(X)}\right]
+\approx\frac1N\sum_{i=1}^N\frac{h(X_i)}{p(X_i)}.
+\label{eq:lh-mcmc-integral}
+\end{equation}
+这称为\emph{蒙特卡罗积分}（Monte Carlo integration）。支撑覆盖保证比值有意义，$\int |h|<\infty$ 保证强大数定律适用；若要使用式~\eqref{eq:lh-mcmc-iid-variance} 的误差分析，还需 $\int h(x)^2/p(x)\,\mathrm dx<\infty$。改变抽样分布会改变估计方差，因此选择 $p$ 也是计算方法的一部分。
+
+\begin{example}
+\label{ex:lh-mcmc-integrals}
+分别把 $I_1=\int_0^1e^{-x^2}\,\mathrm dx$ 与 $I_2=\int_{\mathbb R}x\varphi(x)\,\mathrm dx$ 写成蒙特卡罗估计，其中 $\varphi(x)=(2\pi)^{-1/2}e^{-x^2/2}$。
+\end{example}
+\begin{solve}
+对第一个积分，取 $U_i$ 独立同分布于 $\operatorname{Unif}(0,1)$，则 $\widehat I_{1,N}=N^{-1}\sum_i e^{-U_i^2}$，被平均的变量有界，故估计几乎必然收敛且具有有限方差。对第二个积分，取 $Z_i$ 独立同分布于 $N(0,1)$，则 $\widehat I_{2,N}=N^{-1}\sum_i Z_i$，其期望为 $0$、方差为 $1/N$；积分本身由对称性等于 $0$。一次有限抽样的估计一般不恰为 $0$，也不保证每增加一个样本就更接近真值。
+\end{solve}
+
+教材还提到\emph{重要性抽样}（importance sampling）。它使用容易抽样的密度 $q$，把目标期望写成 $\mathbb E_p f(X)=\mathbb E_q[f(X)p(X)/q(X)]$；要求 $q$ 覆盖相关支撑及相应可积性。若目标只知到比例常数，可用自归一化比值 $\sum_i w_i f(Y_i)/\sum_i w_i$，其中 $Y_i\sim q$、$w_i=\widetilde p(Y_i)/q(Y_i)$。该比值在适当大数定律条件下一致，有限样本通常有偏；它与接受--拒绝法以及后文的 MCMC 是不同的抽样计算方案。
+
+\section{马尔可夫链}
+\label{sec:lh-mcmc-markov-chain}
+
+\subsection{基本定义}
+\label{subsec:lh-mcmc-markov-definition}
+
+\begin{definition}[马尔可夫链与时间齐次性]
+\label{def:lh-mcmc-markov}
+设随机过程 $(X_t)_{t\geq0}$ 取值于同一状态空间 $S$。若对任意可测集合 $A$，有
+\begin{equation}
+P(X_{t+1}\in A\mid X_0,\ldots,X_t)
+=P(X_{t+1}\in A\mid X_t)\quad\text{几乎必然},
+\label{eq:lh-mcmc-markov-property}
+\end{equation}
+则称其为\emph{马尔可夫链}（Markov chain）。若右侧可写为与 $t$ 无关的 $K(X_t,A)$，则称链为\emph{时间齐次的}（time homogeneous），$K$ 为其转移核，$X_0$ 的分布 $\mu_0$ 为初始分布。本章均讨论时间齐次的一阶链。
+\end{definition}
+
+马尔可夫性表达的是给定当前状态后的条件独立关系，不表示相邻状态独立。给定初始分布与转移规则便确定了整条链的有限维联合分布。若一个过程的下一步只依赖最近 $r$ 步，则可把 $(X_{t-r+1},\ldots,X_t)$ 视为一个增广状态，转成一阶链；代价是状态空间增大。把天气或词序列建模为马尔可夫链时，这种依赖范围是需要检验的模型假设，并非数据自动具有的性质。
+
+\subsection{离散状态马尔可夫链}
+\label{subsec:lh-mcmc-discrete-chain}
+
+设 $S$ 有限或可数。沿用教材的\emph{列随机矩阵}约定，令
+\begin{equation}
+P_{ij}=P(X_{t+1}=i\mid X_t=j),\qquad
+P_{ij}\geq0,\qquad\sum_iP_{ij}=1.
+\label{eq:lh-mcmc-column-matrix}
+\end{equation}
+因此列索引是出发状态，行索引是到达状态。设列向量 $\mu_t$ 的第 $i$ 个分量为 $P(X_t=i)$，由全概率公式，
+\begin{equation}
+(\mu_{t+1})_i=\sum_jP_{ij}(\mu_t)_j,
+\qquad\mu_{t+1}=P\mu_t,\qquad\mu_t=P^t\mu_0.
+\label{eq:lh-mcmc-distribution-evolution}
+\end{equation}
+$P^t$ 表示矩阵的 $t$ 次幂，转置另写为 $P^{\mathsf T}$。条件于中间状态还得到 Chapman--Kolmogorov 关系 $P^{r+s}_{ij}=\sum_kP^r_{ik}P^s_{kj}$。若改用行随机矩阵，状态分布应相应写为行向量并从右侧乘矩阵，不能混用两套约定。
+
+\begin{definition}[平稳分布]
+\label{def:lh-mcmc-stationarity}
+若概率列向量 $\pi$ 满足
+\begin{equation}
+P\pi=\pi,\qquad\pi_i\geq0,\qquad\sum_i\pi_i=1,
+\label{eq:lh-mcmc-stationary-system}
+\end{equation}
+则称 $\pi$ 为链的\emph{平稳分布}（stationary distribution）。以 $\pi$ 初始化时，每个 $X_t$ 都具有分布 $\pi$，但这些随机变量仍可能高度相关。
+\end{definition}
+
+求平稳分布就是解式~\eqref{eq:lh-mcmc-stationary-system}，其中非负性与归一化缺一不可。平稳分布的存在、唯一性，以及从其他初值出发是否收敛到它，是三个不同问题。
+
+\begin{example}
+\label{ex:lh-mcmc-stationary-matrices}
+求下列两个列随机矩阵的平稳分布，并比较唯一性：
+\[
+P=\begin{pmatrix}1/2&1/2&1/4\\1/4&0&1/4\\1/4&1/2&1/2\end{pmatrix},
+\qquad
+Q=\begin{pmatrix}1&1/3&0\\0&1/3&0\\0&1/3&1\end{pmatrix}.
+\]
+\end{example}
+\begin{solve}
+对 $P$，第二行方程给出 $\pi_2=(\pi_1+\pi_3)/4$，与归一化联立得 $\pi_2=1/5$；第一行方程再给出 $2\pi_1-\pi_3=2/5$，故唯一解为 $\pi=(2/5,1/5,2/5)^{\mathsf T}$。对 $Q$，第二行方程为 $\pi_2=\pi_2/3$，故 $\pi_2=0$，其余条件只要求 $\pi_1+\pi_3=1$。全部平稳分布为 $(a,0,1-a)^{\mathsf T}$，$0\leq a\leq1$；状态 $1$ 与 $3$ 分别吸收，长期行为保留了初始质量如何进入两个吸收类的信息。
+\end{solve}
+
+\subsection{连续状态马尔可夫链}
+\label{subsec:lh-mcmc-continuous-chain}
+
+对 $S\subseteq\mathbb R^d$，转移核 $K(x,A)$ 要求：固定 $x$ 时它是关于可测集合 $A$ 的概率测度，固定 $A$ 时它关于 $x$ 可测。它表示 $P(X_{t+1}\in A\mid X_t=x)$。若存在转移密度 $k(x,y)$，则
+\begin{equation}
+K(x,A)=\int_A k(x,y)\,\mathrm dy,\qquad
+k(x,y)\geq0,\qquad\int_S k(x,y)\,\mathrm dy=1.
+\label{eq:lh-mcmc-transition-density}
+\end{equation}
+分布 $\pi$ 的不变性要求
+\begin{equation}
+\pi(A)=\int_S K(x,A)\,\pi(\mathrm dx)
+\quad\text{对所有可测集合 }A.
+\label{eq:lh-mcmc-invariant-kernel}
+\end{equation}
+当 $\pi$ 具有密度 $p$ 且 $K$ 具有密度 $k$ 时，上式化为 $p(y)=\int_Sp(x)k(x,y)\,\mathrm dx$，几乎处处成立。转移核未必有普通的密度：例如拒绝候选后停在原地，会产生位于 $x$ 的点质量。因此式~\eqref{eq:lh-mcmc-invariant-kernel} 比仅用密度的表达更一般，也是后文证明的基本形式。
+
+\subsection{马尔可夫链的性质}
+\label{subsec:lh-mcmc-markov-properties}
+
+\begin{definition}[不可约、周期与正常返]
+\label{def:lh-mcmc-ergodic-conditions}
+对有限或可数状态链，若任意 $i,j\in S$ 都存在 $n\geq0$ 使 $(P^n)_{ij}>0$，称链\emph{不可约}（irreducible）；这允许多步可达，不要求每个一步转移概率都为正。对可返回的状态 $i$，定义周期
+\[
+d(i)=\gcd\{n\geq1:(P^n)_{ii}>0\}.
+\]
+若每个状态周期为 $1$，称链\emph{非周期}（aperiodic）。从 $i$ 出发定义首次返回时间 $\tau_i^+=\inf\{t\geq1:X_t=i\}$，约定空集的下确界为 $+\infty$；若 $P_i(\tau_i^+<\infty)=1$，称 $i$ 常返，若进一步 $\mathbb E_i\tau_i^+<\infty$，称 $i$ 为\emph{正常返}状态（positive recurrent）。不可约链的状态共享常返类型，故可直接称该链正常返。
+\end{definition}
+
+不可约链中的状态具有相同周期：若存在从 $i$ 到 $j$ 的 $a$ 步路径和从 $j$ 到 $i$ 的 $b$ 步路径，则 $a+b$ 是 $i$ 的可返回时长，且对 $j$ 的任一可返回时长 $n$，$a+n+b$ 也是 $i$ 的可返回时长。因此 $d(i)$ 整除所有这样的 $n$，故 $d(i)\mid d(j)$；交换 $i,j$ 得周期相等。特别地，不可约链只要某状态有正自环便非周期。正常返则控制返回的平均等待时间；有限不可约链自动正常返，无限链需要另行检查。
+
+\begin{notealert}[type=caution,title={正常返不能用首次返回概率的正极限定义}]
+设 $f_i(n)=P_i(\tau_i^+=n)$，则 $\sum_{n\geq1}f_i(n)\leq1$，所以必有 $f_i(n)\to0$。因此教材关于首次到达概率具有正极限的表述不能作为正常返的定义；应使用定义~\ref{def:lh-mcmc-ergodic-conditions} 中的有限平均返回时间条件。常返但平均返回时间无穷的状态称为零常返（null recurrent）。
+\end{notealert}
+
+\begin{theorem}[离散链的平稳分布与遍历结论]
+\label{thm:lh-mcmc-ergodic}
+设有限或可数状态链不可约且正常返，则存在唯一平稳概率分布 $\pi$，且每个 $\pi_i>0$。对任意初始状态和满足 $\sum_i\pi_i|f(i)|<\infty$ 的函数，
+\begin{equation}
+\frac1N\sum_{t=1}^N f(X_t)
+\xrightarrow[N\to\infty]{\text{几乎必然}}
+\sum_i\pi_i f(i).
+\label{eq:lh-mcmc-ergodic-average}
+\end{equation}
+若链还非周期，则对任意 $i,j$，
+\begin{equation}
+\lim_{t\to\infty}(P^t)_{ij}=\pi_i.
+\label{eq:lh-mcmc-marginal-limit}
+\end{equation}
+对不可约可数状态链，存在平稳概率分布也反过来蕴含正常返；有限不可约链总满足该条件。
+\end{theorem}
+
+这里引用马尔可夫链的标准遍历结论，对应教材的平稳分布与遍历定理；其完整证明依赖返回周期分解和更新理论，本章不展开。\emph[caution]{时间平均的收敛与单个时刻分布的收敛应分开。}例如确定性循环 $1\to2\to3\to1$ 的平稳分布唯一且均匀，但从固定状态出发的分布始终轮换，不收敛；沿轨迹的三个状态所占比例却趋于 $1/3$，因此时间平均仍收敛。连续状态下单点通常具有零概率，不能直接照搬逐点命中的定义；使用一般状态空间的遍历结论时，需检查相应条件，例如正 Harris 常返（positive Harris recurrence，即对适当非零参考测度下每个正测度集合，从任意初始状态都以概率 $1$ 最终进入，并且具有不变概率分布）及用于分布收敛的非周期性。
+
+\begin{example}
+\label{ex:lh-mcmc-birth-death}
+考虑 $S=\{0,1,2,\ldots\}$ 上的链：从 $i\geq1$ 以概率 $a$ 移到 $i-1$，以概率 $b$ 移到 $i+1$；从 $0$ 以概率 $a$ 留在原地，以概率 $b$ 移到 $1$，其中 $a,b>0$、$a+b=1$。判断何时存在平稳概率分布。
+\end{example}
+\begin{solve}
+平稳时对有限集合 $\{0,\ldots,i\}$ 的流入与流出相等，故 $b\pi_i=a\pi_{i+1}$，于是 $\pi_i=\pi_0(b/a)^i$。几何级数仅在 $a>b$ 时可归一化，此时 $\pi_i=(1-b/a)(b/a)^i$；该不可约链存在平稳概率分布，因而正常返。$a\leq b$ 时任何非零候选序列都不可归一化，因此没有平稳概率分布。边界 $a=b$ 的链实际为零常返：若 $h_i$ 为从 $i$ 出发先到 $0$ 而非 $m>i$ 的概率，则 $h_0=1$、$h_m=0$ 及 $h_i=(h_{i-1}+h_{i+1})/2$ 给出 $h_i=1-i/m$，令 $m\to\infty$ 得到最终到达 $0$ 的概率为 $1$；结合各状态互通及不存在平稳概率分布可知其为零常返。存在正自环虽然保证非周期，却不能替代正常返条件。
+\end{solve}
+
+\begin{definition}[细致平衡与可逆性]
+\label{def:lh-mcmc-reversibility}
+在列随机矩阵约定下，若概率分布 $\pi$ 满足
+\begin{equation}
+\pi_jP_{ij}=\pi_iP_{ji}\qquad\text{对所有 }i,j,
+\label{eq:lh-mcmc-detailed-balance}
+\end{equation}
+则称链关于 $\pi$ \emph{可逆}（reversible），上式称\emph{细致平衡方程}（detailed balance equation）。一般转移核的对应条件是测度 $\pi(\mathrm dx)K(x,\mathrm dy)$ 关于交换 $x,y$ 对称。
+\end{definition}
+
+\begin{proposition}[细致平衡蕴含不变性]
+\label{prop:lh-mcmc-balance-invariance}
+满足细致平衡的概率分布是平稳分布，但该条件本身不保证不可约、非周期或平稳分布唯一。
+\end{proposition}
+\begin{proof}
+在离散情形，对式~\eqref{eq:lh-mcmc-detailed-balance} 关于出发状态 $j$ 求和，得
+\[
+(P\pi)_i=\sum_jP_{ij}\pi_j
+=\pi_i\sum_jP_{ji}=\pi_i,
+\]
+最后一项为 $P$ 的第 $i$ 列之和。一般情形对对称测度的第一坐标积分，同样得到式~\eqref{eq:lh-mcmc-invariant-kernel}。反面例子中，$P=I_2$ 对每个概率向量都满足细致平衡，却可约且平稳分布不唯一；矩阵 $\left(\begin{smallmatrix}0&1\\1&0\end{smallmatrix}\right)$ 关于均匀分布可逆，却有周期 $2$。
+\end{proof}
+
+可逆性表示平稳状态下正向路径与反向路径具有相同概率，强于单纯的平稳性。前述三状态确定性循环保持均匀分布，却不满足细致平衡，说明细致平衡只是证明平稳性的充分条件。教材由可逆性直接推出唯一平稳分布及遍历性、以及相关习题要求证明可逆必不可约的说法，均需加上额外条件；上述反例已说明不能无条件使用。
+
+\section{马尔可夫链蒙特卡罗法}
+\label{sec:lh-mcmc-framework}
+
+\subsection{基本想法}
+\label{subsec:lh-mcmc-idea}
+
+设目标分布为 $\pi$，密度为 $p=\widetilde p/Z$，其中 $\widetilde p\geq0$、$0<Z<\infty$，而 $Z$ 难以直接计算。MCMC 不要求每一步直接生成一个独立的目标样本，而是选择转移核 $K$，使 $\pi$ 不变，并让链在目标支撑内充分探索。若适用的遍历定理成立，则沿轨迹平均可以近似 $\mathbb E_\pi f$；若再满足分布收敛条件，晚期单个状态的边缘分布也接近 $\pi$。这两种结论不要求轨迹中的状态相互独立。
+
+选定初始状态 $x^{(0)}$ 后，前 $m$ 步常被称为\emph{燃烧期}或预热期（burn-in），之后保留 $N$ 个状态，定义
+\begin{equation}
+\widehat\mu_{m,N}=\frac1N\sum_{t=m+1}^{m+N}f(X_t),
+\qquad
+\widehat\pi_{m,N}(A)=\frac1N\sum_{t=m+1}^{m+N}\mathbf1\{X_t\in A\}.
+\label{eq:lh-mcmc-estimators}
+\end{equation}
+在遍历条件及可积性成立时，固定 $m$ 后令 $N\to\infty$，这两个量分别几乎必然收敛到 $\mathbb E_\pi f$ 与 $\pi(A)$；删去固定有限项不改变时间平均极限。教材用总迭代数 $n$ 表示终点，其均值分母为 $n-m$；这里设 $n=m+N$，以区别预热长度与实际保留数。
+
+\emph[caution]{预热是控制初始分布影响的计算安排，不能把有限样本自动变成精确、独立、无偏的目标样本。}若 $X_0\sim\pi$，则由不变性每个时刻均服从 $\pi$，可积函数的样本均值无偏；若从一般固定初值出发，有限长度均值通常有初始化偏差。渐近遍历性没有直接给出充分的 $m$，不同目标和转移核的混合速度可能差别很大。
+
+\subsection{基本步骤}
+\label{subsec:lh-mcmc-steps}
+
+MCMC 的输入是目标未归一化密度 $\widetilde p$、待求期望的函数 $f$、初值、预热长度 $m\geq0$ 与保留数 $N\geq1$。先构造转移核并核查不变性及遍历条件，再模拟 $m+N$ 步，最后输出后 $N$ 个状态、式~\eqref{eq:lh-mcmc-estimators} 的均值和相应误差诊断。终止于预先规定的计算预算，或在可信的误差评估达到要求后终止；仅观察到均值暂时稳定，不能据此证明已访问所有重要区域。相距较远的初值所产生的多条链、轨迹和自相关的比较，可以帮助发现探索不足，但也不是有限运行已经收敛的数学证明。
+
+相关性改变了误差公式。设链以 $\pi$ 初始化，$\sigma_f^2=\operatorname{Var}_\pi f(X)>0$ 且有限，记
+$\rho_k=\operatorname{Cov}(f(X_0),f(X_k))/\sigma_f^2$。展开和的方差得到精确等式
+\begin{equation}
+\operatorname{Var}(\widehat\mu_{0,N})
+=\frac{\sigma_f^2}{N}
+\left[1+2\sum_{k=1}^{N-1}\left(1-\frac{k}{N}\right)\rho_k\right].
+\label{eq:lh-mcmc-correlated-variance}
+\end{equation}
+其中滞后 $k$ 的协方差出现 $N-k$ 次。若 $\sum_{k\geq1}|\rho_k|<\infty$，则支配收敛给出
+\begin{equation}
+N\operatorname{Var}(\widehat\mu_{0,N})\longrightarrow
+\sigma_f^2\tau_f,\qquad
+\tau_f=1+2\sum_{k=1}^{\infty}\rho_k.
+\label{eq:lh-mcmc-autocorrelation-time}
+\end{equation}
+当 $0<\tau_f<\infty$ 时，称 $\tau_f$ 为该函数的积分自相关时间（integrated autocorrelation time），并常用\emph{有效样本量}（effective sample size）$N_{\mathrm{eff}}\approx N/\tau_f$ 描述该函数均值的方差相当于多少独立样本。它依赖所考察的函数，不能给一条链赋予对所有统计量通用的精确有效样本数。式~\eqref{eq:lh-mcmc-autocorrelation-time} 只陈述方差渐近关系；正态置信区间还需另外满足马尔可夫链中心极限定理的条件。
+
+每隔 $\ell$ 步保留一个状态称为间隔取样或稀疏化（thinning），其新转移核是 $K^\ell$。这可能减弱相关性并节省存储，却一般不能使样本精确独立，也会丢弃计算得到的信息。MCMC 的效率应按单位计算成本的误差或有效样本量评价；不能只看接受率，也不能笼统断言它总优于接受--拒绝法。
+
+\subsection{马尔可夫链蒙特卡罗法与统计学习}
+\label{subsec:lh-mcmc-statistical-learning}
+
+设 $D$ 为观测数据，$\Theta$ 为未知参数，先验密度为 $p(\theta)$、似然为 $p(D\mid\theta)$。贝叶斯公式给出
+\begin{equation}
+p(\theta\mid D)
+=\frac{p(D\mid\theta)p(\theta)}{p(D)},
+\qquad
+p(D)=\int p(D\mid\vartheta)p(\vartheta)\,\mathrm d\vartheta.
+\label{eq:lh-mcmc-bayes}
+\end{equation}
+分母是归一化常数，也称模型证据；它须为有限正数，后验才是概率分布。对后验抽样，可以把 $\widetilde p(\theta)=p(D\mid\theta)p(\theta)$ 作为目标核。若还含隐变量 $Z$，则可对联合后验 $p(\theta,z\mid D)$ 抽样，忽略样本的 $z$ 分量即可获得参数边缘分布的相关样本，不必显式计算积分 $p(\theta\mid D)=\int p(\theta,z\mid D)\,\mathrm dz$。
+
+后验均值、方差以及预测分布都可由函数平均近似。例如若未来观测 $Y_*$ 给定参数后与 $D$ 条件独立，则后验预测密度满足
+\begin{equation}
+p(y_*\mid D)=\int p(y_*\mid\theta)p(\theta\mid D)\,\mathrm d\theta
+\approx\frac1N\sum_{t=m+1}^{m+N}p(y_*\mid\theta^{(t)}).
+\label{eq:lh-mcmc-posterior-prediction}
+\end{equation}
+这些是关于后验分布的积分计算，与寻找后验众数的最大后验估计不同。MH 中归一化常数相消使抽样成为可能，却不意味着该常数本身已经被估计；若目标是模型证据，还需要额外的估计方法。
+
+\section{Metropolis--Hastings 算法}
+\label{sec:lh-mcmc-mh}
+
+\subsection{基本原理}
+\label{subsec:lh-mcmc-mh-principle}
+
+设当前状态为 $x$，由建议密度 $q(y\mid x)$ 生成候选 $y$。若总接受建议，目标分布一般不会保持不变；Metropolis--Hastings（MH）算法用\emph{接受概率}（acceptance probability）修正正反两个方向的概率流。对 $\widetilde p(x)>0$ 且实际可能提出的候选，令
+\begin{equation}
+\alpha(x,y)=\min\left\{1,
+\frac{\widetilde p(y)q(x\mid y)}{\widetilde p(x)q(y\mid x)}\right\}.
+\label{eq:lh-mcmc-mh-acceptance}
+\end{equation}
+这里 $q(y\mid x)$ 是从 $x$ 提出 $y$ 的密度，$q(x\mid y)$ 是反向建议密度。若分子为零而分母为正，则接受概率为零；分母为零的候选在当前建议下不会以正概率出现，可在这些无关点任意约定。初值选在目标正密度区域内，可避免从零目标密度状态计算比值。正反式中的归一化常数 $Z$ 相消。
+
+对连续建议，完整转移核为
+\begin{equation}
+K(x,A)=\int_Aq(y\mid x)\alpha(x,y)\,\mathrm dy
++r(x)\mathbf1\{x\in A\},\qquad
+r(x)=1-\int_Sq(y\mid x)\alpha(x,y)\,\mathrm dy.
+\label{eq:lh-mcmc-mh-full-kernel}
+\end{equation}
+第二项是拒绝后留在原地的概率。离散情形则对 $y\ne x$ 定义 $K_{yx}=q(y\mid x)\alpha(x,y)$，并令 $K_{xx}=1-\sum_{y\ne x}K_{yx}$，得到列和为 $1$ 的随机矩阵。单独写 $q\alpha$ 只表示接受移动的部分，通常不能作为完整转移核。
+
+\begin{proposition}[MH 的细致平衡]
+\label{prop:lh-mcmc-mh-balance}
+设 $p=\widetilde p/Z$ 是正规概率密度，建议和接受规则如上，则式~\eqref{eq:lh-mcmc-mh-full-kernel} 关于 $\pi$ 可逆，因而 $\pi$ 是其平稳分布。
+\end{proposition}
+\begin{proof}
+在有定义的接受移动上，
+\begin{equation}
+p(x)q(y\mid x)\alpha(x,y)
+=\min\{p(x)q(y\mid x),p(y)q(x\mid y)\}
+=p(y)q(x\mid y)\alpha(y,x).
+\label{eq:lh-mcmc-mh-flow}
+\end{equation}
+该式关于 $x,y$ 对称。拒绝部分集中在对角线 $x=y$，其测度 $\pi(\mathrm dx)r(x)\delta_x(\mathrm dy)$ 同样对称，其中 $\delta_x$ 为位于 $x$ 的单位点质量。因此完整转移核满足细致平衡，由命题~\ref{prop:lh-mcmc-balance-invariance} 得不变性。
+\end{proof}
+
+上述证明只解决平稳性。建议的可达性、目标支撑是否连通，以及接受修正是否阻断路径，仍需检查；建议矩阵不可约并不总能使 MH 链不可约，因为只有单向建议而没有反向建议时，接受率可能为零。在有限目标支撑上，若接受后的链不可约，则自动正常返；若还有正自环或其他非周期依据，才可使用分布收敛结论。连续情形需检查相应的一般状态空间条件。必要时可将转移核改为 $\tfrac12 I+\tfrac12 K$，其中 $I(x,A)=\mathbf1\{x\in A\}$，加入留步保持不变性；它能处理周期性，却不能修复可约性。
+
+建议分布有两种常用形式。若 $q(y\mid x)=q(x\mid y)$，接受率化为
+\begin{equation}
+\alpha(x,y)=\min\{1,\widetilde p(y)/\widetilde p(x)\}.
+\label{eq:lh-mcmc-metropolis}
+\end{equation}
+这称为 Metropolis 选择，例如 $Y=x+\varepsilon$，其中 $\varepsilon\sim N(0,\Sigma)$、$\Sigma$ 为固定正定矩阵。步幅过小会使接受率高却移动缓慢，步幅过大则可能频繁拒绝；高接受率本身不代表误差小。若 $q(y\mid x)=q(y)$，则称\emph{独立建议}（independence proposal），有
+\begin{equation}
+\alpha(x,y)=\min\{1,w(y)/w(x)\},\qquad
+w(x)=\widetilde p(x)/q(x).
+\label{eq:lh-mcmc-independence-proposal}
+\end{equation}
+候选值的生成不依赖当前状态，但接受与否仍依赖它，所得链通常不独立。建议必须覆盖目标相关支撑，并应尽量避免在目标重要区域给出过小概率。
+
+对于多元状态 $x=(x_1,\ldots,x_d)$，记 $x_{-j}$ 为除第 $j$ 个坐标外的其余坐标。\emph{满条件分布}（full conditional distribution）指给定其余所有分量后的分布，例如
+\begin{equation}
+p(x_j\mid x_{-j})
+=\frac{\widetilde p(x_j,x_{-j})}
+{\int\widetilde p(u,x_{-j})\,\mathrm du},
+\label{eq:lh-mcmc-full-conditional}
+\end{equation}
+要求分母有限且为正。把一组坐标 $B$ 留作变量同样得到块满条件分布。若 $x,y$ 仅在第 $j$ 个坐标不同，即 $y_{-j}=x_{-j}$，则
+\begin{equation}
+\frac{p(y)}{p(x)}
+=\frac{p(y_j\mid x_{-j})}{p(x_j\mid x_{-j})}.
+\label{eq:lh-mcmc-conditional-ratio}
+\end{equation}
+这里固定的其余坐标必须相同；一般两个任意点之间不能省略边缘密度比。
+
+\begin{notealert}[type=caution,title={形式上的条件密度不保证联合分布正规}]
+以 $\widetilde p(x_1,x_2)=\exp\{-\tfrac12(x_1-1)^2(x_2-1)^2\}$ 为例，固定 $x_2\ne1$ 时可形式上识别出 $N(1,(x_2-1)^{-2})$ 的条件形状；但在整个 $\mathbb R^2$ 上，Tonelli 定理给出
+\[
+\int_{\mathbb R^2}\widetilde p\,\mathrm dx_1\mathrm dx_2
+=\sqrt{2\pi}\int_{\mathbb R}\frac{\mathrm dx_2}{|x_2-1|}
+=\infty.
+\]
+因此教材例 19.9 的这一乘积平方型表达式，在未补充支撑限制或其他因子的情况下不能归一化为联合概率密度；$x_2=1$ 时相应的一维核也不可归一化。识别满条件形式前，应先确认联合目标及所用条件分布均正规。
+\end{notealert}
+
+\subsection{Metropolis--Hastings 算法}
+\label{subsec:lh-mcmc-mh-algorithm}
+
+输入 $\widetilde p$、建议密度 $q(\cdot\mid\cdot)$、函数 $f$、满足 $\widetilde p(x^{(0)})>0$ 的初值、$m\geq0$ 与 $N\geq1$。对 $t=1,\ldots,m+N$，依次执行：在当前状态 $x=x^{(t-1)}$ 下生成候选 $y\sim q(\cdot\mid x)$，计算式~\eqref{eq:lh-mcmc-mh-acceptance}，独立生成 $u\sim\operatorname{Unif}(0,1)$，再令
+\begin{equation}
+x^{(t)}=\begin{cases}
+y,&u\leq\alpha(x,y),\\
+x^{(t-1)},&u>\alpha(x,y).
+\end{cases}
+\label{eq:lh-mcmc-mh-update}
+\end{equation}
+迭代完成后输出 $x^{(m+1)},\ldots,x^{(m+N)}$ 及函数均值。与接受--拒绝法不同，\emph[caution]{MH 每次拒绝后仍记下一次原状态，重复状态必须参与平均}；只保留接受时刻通常会改变状态权重，产生另一条跳链，不能直接用同一均值公式估计目标期望。
+
+计算时宜使用对数接受比
+\[
+\Delta=\log\widetilde p(y)-\log\widetilde p(x)
++\log q(x\mid y)-\log q(y\mid x),
+\]
+并比较 $\log u\leq\min\{0,\Delta\}$，以减少指数上溢或下溢；零密度对应直接拒绝或相应的负无穷对数。若一次建议生成和建议密度计算的成本为 $C_q$、一次目标核计算成本为 $C_p$，缓存当前目标值后每步通常需要 $O(C_p+C_q)$ 的计算，实际代价由目标结构决定。
+
+\begin{example}
+\label{ex:lh-mcmc-beta-posterior}
+十次条件独立的伯努利试验中观测到四次成功。令成功率 $\Theta$ 的先验为 $\operatorname{Beta}(1,1)$，构造 MH 算法估计后验均值与方差，并给出可核查的解析值。
+\end{example}
+\begin{solve}
+似然正比于 $\theta^4(1-\theta)^6$，先验在 $(0,1)$ 上为常数，故后验为 $\operatorname{Beta}(5,7)$。其中 $\operatorname{Beta}(a,b)$ 的密度为 $\theta^{a-1}(1-\theta)^{b-1}/B(a,b)$，$a,b>0$，$B(a,b)=\int_0^1u^{a-1}(1-u)^{b-1}\,\mathrm du$。初值取 $1/2$，提出 $y=x+\varepsilon$、$\varepsilon\sim N(0,s^2)$，其中 $s>0$；$y\notin(0,1)$ 时直接拒绝，否则使用
+\[
+\alpha(x,y)=\min\left\{1,
+\frac{y^4(1-y)^6}{x^4(1-x)^6}\right\}.
+\]
+保留状态的均值估计 $\mathbb E(\Theta\mid D)$，二阶矩均值减去均值平方估计后验方差；后者在一般有限运行中不无偏。作为计算核对，由 Beta 积分的递推关系得
+\[
+\mathbb E(\Theta\mid D)=\frac5{12},\qquad
+\operatorname{Var}(\Theta\mid D)=\frac{5\cdot7}{12^2\cdot13}=\frac{35}{1872}.
+\]
+这些是解析后验量，并非一次模拟所得数值。若改为不断重抽直到 $y\in(0,1)$，建议会变成依赖 $x$ 的截断正态，需重新计算正反建议密度，不能继续直接使用上述对称建议接受率。
+\end{solve}
+
+\subsection{单分量 Metropolis--Hastings 算法}
+\label{subsec:lh-mcmc-component-mh}
+
+若联合建议难以构造，可在每轮内依次更新各坐标。设第 $t$ 轮更新第 $j$ 个坐标之前，当前向量为
+\begin{equation}
+z^{(t,j-1)}=(x_1^{(t)},\ldots,x_{j-1}^{(t)},
+x_j^{(t-1)},\ldots,x_d^{(t-1)}).
+\label{eq:lh-mcmc-partial-sweep}
+\end{equation}
+记其中的第 $j$ 坐标为 $a=x_j^{(t-1)}$，其余坐标为 $z_{-j}$。从 $q_j(b\mid a,z_{-j})$ 提出新坐标 $b$，接受率为
+\begin{equation}
+\alpha_j=\min\left\{1,
+\frac{p(b\mid z_{-j})q_j(a\mid b,z_{-j})}
+{p(a\mid z_{-j})q_j(b\mid a,z_{-j})}\right\}.
+\label{eq:lh-mcmc-component-acceptance}
+\end{equation}
+按此接受率令 $x_j^{(t)}=b$ 或 $a$，其他坐标暂不改变；完成 $j=1,\ldots,d$ 称为一次完整扫描（sweep），得到 $x^{(t)}$。式~\eqref{eq:lh-mcmc-conditional-ratio} 说明这就是将一般 MH 应用于条件目标，每一步可只计算随该坐标变化的因子。
+
+每个坐标更新核都保持联合分布不变，故依次复合后仍保持该分布：若 $\pi K_j=\pi$，则 $\pi K_1\cdots K_d=\pi$，这里 $\pi K$ 表示式~\eqref{eq:lh-mcmc-invariant-kernel} 右侧的分布作用。\emph[caution]{保持同一分布的可逆核按固定次序复合，整体一般不再可逆}，但不变性依然成立。若在每个微步以与状态无关的固定概率随机选择坐标，则混合核保持各核共有的细致平衡。两种扫描方式仍分别需要检查遍历条件，逐坐标更新可能受支撑结构限制而无法跨越不同区域。
+
+\section{吉布斯抽样}
+\label{sec:lh-mcmc-gibbs}
+
+\subsection{基本原理}
+\label{subsec:lh-mcmc-gibbs-principle}
+
+\emph{吉布斯抽样}（Gibbs sampling）适用于联合分布难以直接抽样，而各满条件分布容易抽样的情形。固定其余坐标 $z_{-j}$，直接从 $p(\cdot\mid z_{-j})$ 生成新的第 $j$ 个坐标。将其作为单分量 MH 的建议，即取
+\[
+q_j(b\mid a,z_{-j})=p(b\mid z_{-j}),\qquad
+q_j(a\mid b,z_{-j})=p(a\mid z_{-j}),
+\]
+代入式~\eqref{eq:lh-mcmc-component-acceptance}，分子分母相等，故在相关正概率区域内 $\alpha_j=1$。这说明 Gibbs 是单分量 MH 的特例；其特点是用精确满条件抽样消除了接受判定，而不是生成了独立的联合样本。
+
+\begin{proposition}[Gibbs 更新保持联合分布]
+\label{prop:lh-mcmc-gibbs-invariance}
+设 $p(x_j,x_{-j})$ 是正规联合密度，相关满条件分布存在。固定其余坐标而从该满条件分布重新抽取第 $j$ 坐标的核，关于联合分布可逆；任意固定顺序的完整扫描均保持该联合分布不变。
+\end{proposition}
+\begin{proof}
+令其余坐标的共同值为 $v$，更新前后的第 $j$ 坐标为 $a,b$。正向联合概率流的密度为
+\[
+p(v)p(a\mid v)p(b\mid v),
+\]
+交换 $a,b$ 后不变，故单坐标核满足细致平衡。由不变核复合仍不变，完整扫描也保持 $p$；这里没有断言复合后的核必可逆。
+\end{proof}
+
+接受率为 $1$ 并不保证链能够探索整个支撑。例如目标只在两个离散点 $(0,0)$、$(1,1)$ 上各有质量 $1/2$，给定一个坐标就完全确定另一个坐标，逐坐标 Gibbs 会永远停留在初始点。这是可约链；同时更新两个坐标的块抽样才可能跨越两点。在离散或退化条件分布中，Gibbs 也可能抽回原值，因此“无拒绝”不能解释为“每步必移动”。
+
+\subsection{吉布斯抽样算法}
+\label{subsec:lh-mcmc-gibbs-algorithm}
+
+给定联合目标的满条件抽样器、函数 $f$、有效初值 $x^{(0)}$、预热轮数 $m$ 与保留轮数 $N$。对 $t=1,\ldots,m+N$，按顺序生成
+\begin{equation}
+\begin{aligned}
+x_1^{(t)}&\sim p(x_1\mid x_2^{(t-1)},\ldots,x_d^{(t-1)}),\\
+x_j^{(t)}&\sim p(x_j\mid x_1^{(t)},\ldots,x_{j-1}^{(t)},
+x_{j+1}^{(t-1)},\ldots,x_d^{(t-1)}),\quad 1<j<d,\\
+x_d^{(t)}&\sim p(x_d\mid x_1^{(t)},\ldots,x_{d-1}^{(t)}).
+\end{aligned}
+\label{eq:lh-mcmc-gibbs-sweep}
+\end{equation}
+每轮保留完整向量 $x^{(t)}$，最终输出后 $N$ 轮向量与函数均值。更新第 $j$ 个坐标时必须使用本轮已更新的前面坐标；把所有坐标同时按上一轮的条件值独立抽样，通常不保持目标联合分布。完整扫描的成本为各满条件生成成本之和。若某个满条件无法直接抽样，可以在该坐标内使用一次保持条件分布不变的 MH 更新，得到 Metropolis-within-Gibbs 方法；其不变性论证相同，仍需检查整体遍历条件。
+
+\begin{example}
+\label{ex:lh-mcmc-gaussian-gibbs}
+设二元正态目标为
+\[
+\begin{pmatrix}X_1\\X_2\end{pmatrix}
+\sim N\!\left(\begin{pmatrix}0\\0\end{pmatrix},
+\begin{pmatrix}1&\rho\\\rho&1\end{pmatrix}\right),\qquad |\rho|<1.
+\]
+推导满条件分布与 Gibbs 更新，并分析相关参数如何影响计算。
+\end{example}
+\begin{solve}
+联合密度的指数部分为
+\[
+-\frac{x_1^2-2\rho x_1x_2+x_2^2}{2(1-\rho^2)}
+=-\frac{(x_1-\rho x_2)^2}{2(1-\rho^2)}-\frac{x_2^2}{2}.
+\]
+固定 $x_2$ 后第二项与 $x_1$ 无关，故 $X_1\mid X_2=x_2\sim N(\rho x_2,1-\rho^2)$；交换两坐标即得另一个满条件。因此使用每轮相互独立的 $\varepsilon_1^{(t)},\varepsilon_2^{(t)}\sim N(0,1)$，可写为
+\begin{equation}
+\begin{aligned}
+x_1^{(t)}&=\rho x_2^{(t-1)}+\sqrt{1-\rho^2}\,\varepsilon_1^{(t)},\\
+x_2^{(t)}&=\rho x_1^{(t)}+\sqrt{1-\rho^2}\,\varepsilon_2^{(t)}.
+\end{aligned}
+\label{eq:lh-mcmc-gaussian-gibbs}
+\end{equation}
+这里第二个条件均值使用新生成的 $x_1^{(t)}$。代入消去该量，得到
+\[
+x_2^{(t)}=\rho^2x_2^{(t-1)}
++\sqrt{1-\rho^2}\bigl(\rho\varepsilon_1^{(t)}+\varepsilon_2^{(t)}\bigr).
+\]
+创新项独立于过去，方差为 $1-\rho^4$；初值的影响按 $(\rho^2)^t$ 衰减。以目标分布初始化后，第二坐标的滞后 $k$ 自相关为 $\rho^{2k}$，故估计该坐标均值时的 $\tau_f=(1+\rho^2)/(1-\rho^2)$。当 $|\rho|$ 接近 $1$ 时，尽管每次都接受，链的均值估计仍可能需要很多轮。$|\rho|=1$ 时协方差矩阵奇异，所用普通二元密度与正条件方差均不再成立，不能把这一边界情况直接代入算法。
+\end{solve}
+
+\subsection{抽样计算}
+\label{subsec:lh-mcmc-gibbs-computation}
+
+满条件计算的重要技巧是只保留与待更新变量有关的联合因子。设 $D$ 为固定观测，$A$ 为随机超参数，$\Theta$ 为模型参数，$Z$ 为隐变量，模型分解为
+\begin{equation}
+p(a,\theta,z,D)=p(a)p(\theta\mid a)p(z,D\mid\theta).
+\label{eq:lh-mcmc-hierarchical-model}
+\end{equation}
+若 $a_i$、$\theta_j$、$z_k$ 分别是各向量的一个分量，则
+\begin{equation}
+\begin{aligned}
+p(a_i\mid a_{-i},\theta,z,D)
+&\propto p(\theta\mid a)p(a),\\
+p(\theta_j\mid\theta_{-j},a,z,D)
+&\propto p(z,D\mid\theta)p(\theta\mid a),\\
+p(z_k\mid z_{-k},a,\theta,D)
+&\propto p(z,D\mid\theta).
+\end{aligned}
+\label{eq:lh-mcmc-hierarchical-conditionals}
+\end{equation}
+每行的比例都仅相对于左侧待抽变量而言，其他变量固定；右侧还可以继续删除与该分量无关的因子。例如更新 $a_i$ 时，$p(z,D\mid\theta)$ 为常数，因而不必反复计算。若模型进一步按图结构分解，只需保留含该变量的局部因子；这解释了 Gibbs 在稀疏概率模型中的计算优势。
+
+上述化简免去的是与当前变量无关的常数，并不自动提供一个可用的抽样器。识别出正态、Beta 等标准条件分布后，可直接使用相应生成方法；仅知道“正比于某函数”，还需确认其正规性并构造合适的抽样步骤。各满条件也必须来自同一个一致的联合目标，不能随意拼凑。若坐标间强依赖导致探索缓慢，可考虑块更新或重新参数化；若支撑使逐坐标路径断开，则必须改变可达路径，而不能单靠增加拒绝后的留步解决。
+
+本章的计算逻辑由三层组成：用函数平均表示待求积分，用不变转移核保证目标分布被保持，再用遍历条件与相关性分析解释平均的极限和有限运行的误差。MH 通过正反建议概率之比校正移动，Gibbs 则在满条件可直接抽样时使接受率等于 $1$。实际使用时，目标正规性、转移可达性、初始化影响与样本相关性都应在各自的位置核查，不能由一个细致平衡等式统一替代。
+
+% 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-18.pdf。
+% 对应教材第 18 章，原书第 339--349 页；沿用本文件的自动章节编号。
+
+
+
+

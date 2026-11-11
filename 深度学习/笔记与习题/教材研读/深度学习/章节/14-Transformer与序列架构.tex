@@ -1,0 +1,46 @@
+% !TeX root = ../深度学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{13} % 保留原书章号。
+\chapter{Transformer 与序列架构}
+\label{chap:dl-transformer}
+注意力负责位置之间的信息交换，逐位置前馈网络负责特征变换，残差和归一化组织深层计算。Transformer（通常保留英文名称）把这些模块组合成序列架构；原始模型见文献\cite{vaswani2017}，不同变体需要明确其实际计算顺序。
+
+\section{Transformer 块的计算结构}
+以预归一化块为例，行表示 $\mathbf H\in\mathbb R^{T\times d}$ 经过
+\begin{equation}
+\mathbf U=\mathbf H+\operatorname{MHA}(\operatorname{LN}(\mathbf H)),\qquad
+\mathbf H^+=\mathbf U+\operatorname{FFN}(\operatorname{LN}(\mathbf U)),
+\label{eq:dl-transformer-block}
+\end{equation}
+其中 MHA 表示多头注意力，LN 表示沿特征轴的层归一化。逐位置前馈网络可写成 $\operatorname{FFN}(\mathbf X)=\phi(\mathbf X\mathbf W_1+\mathbf1_T\mathbf b_1^\mathsf T)\mathbf W_2+\mathbf1_T\mathbf b_2^\mathsf T$，$\mathbf W_1\in\mathbb R^{d\times d_{\mathrm{ff}}}$、$\mathbf W_2\in\mathbb R^{d_{\mathrm{ff}}\times d}$。它在位置间共享参数，但不直接混合位置。
+
+后归一化结构则在残差相加后归一化，例如 $\mathbf U=\operatorname{LN}(\mathbf H+\operatorname{MHA}(\mathbf H))$。两者不可在同一公式中随意互换。忽略偏置、取各头总宽度为 $d$ 时，注意力投影约有 $4d^2$ 个权重，前馈部分有 $2dd_{\mathrm{ff}}$ 个权重；序列长度改变计算量而不改变这些权重数。
+
+\section{编码器、解码器与条件生成}
+仅编码器结构通常允许读取整个输入，适合分类和完整序列表示；仅解码器的自注意力采用因果约束，适合自回归预测。编码器--解码器先计算源序列表示，解码器再以目标前缀为查询，通过交叉注意力读取源表示。源侧完整可见与目标侧只能读前缀是两种不同约束。
+
+架构中的“解码器”是一组网络模块，生成时的“解码策略”是如何从输出分布选择词元的算法。双向编码器不能只把输出接到采样器就成为正确的因果模型，训练目标和可见范围必须一致。同样，使用 Transformer 不代表必然采用下一词元预测，也可以采用掩码预测或其他任务。
+
+\section{训练掩码、目标移位与损失}
+\emph{词元（token）}是离散序列单位，词表大小记为 $V$。\emph{嵌入（embedding）}矩阵 $\mathbf E\in\mathbb R^{V\times d}$ 将词元编号变成可学习向量。绝对位置向量可学习，也可按固定函数生成；例如偶数 $d$ 时，位置 $t$ 的第 $2j,2j+1$ 维可取 $\sin(t/10000^{2j/d})$、$\cos(t/10000^{2j/d})$，$j=0,\ldots,d/2-1$。
+
+给定目标序列 $(x_1,\ldots,x_T)$，用 $\mathrm{BOS}$ 表示序列起始标记，输入为 $(\mathrm{BOS},x_1,\ldots,x_{T-1})$，第 $t$ 个输出预测 $x_t$。因果掩码允许读取不晚于当前输入位置的内容，因此可以一次并行计算全部训练位置而不泄漏目标。损失在非填充目标上平均，源侧填充与目标侧因果规则分别处理。若直接把未移位目标暴露给同一位置，模型可能学习复制，训练损失虽低却不能正确生成。
+
+\section{自回归推断与缓存}
+生成时给定前缀，取最后位置的条件分布，选出新词元并附加，直到遇到结束符或达到预定长度。对确定性的因果推断、固定参数和位置规则，旧位置表示不受新增未来位置影响，因此每层可保存旧键和值，只为新位置计算新投影，称\emph{键值缓存（key--value cache, KV cache）}。
+
+\emph{预填充（prefill）}处理初始前缀，随后逐词元生成。标准多头结构、固定层数下，缓存规模随上下文长度线性增长；一个新查询仍需与可见历史键交互。缓存减少重复计算，不取消历史访问成本。能接受更长输入只说明形状或实现允许，还需测试位置外推和实际信息利用，不能由最大输入长度推出可靠记忆范围。
+
+\section{例题与习题}
+\begin{example}[一个小块的权重数]
+取模型宽度 $d=32$、四个头、每头查询键值维度均为 $8$、前馈宽度 $d_{\mathrm{ff}}=64$，忽略偏置和归一化参数。计算一个块的权重数。
+\end{example}
+\begin{solve}
+查询、键、值及输出四个投影共有 $4\times32^2=4096$ 个权重，前馈层共有 $32\times64+64\times32=4096$ 个，总计 $8192$。长度为十或一百不改变此数，但注意力分数的元素数随长度平方增长。
+\end{solve}
+\begin{enumerate}
+\item 写出输入为 $(\mathrm{BOS},a,b)$、目标为 $(a,b,c)$ 时每个位置的可见集合。
+\item 在固定推断模式下扰动未来输入位置，验证因果模型的较早位置输出保持不变。
+\item 在短符号序列任务上训练小型 Transformer，与参数量接近的 RNN 比较，并记录训练吞吐、生成延迟和任务正确率。
+\end{enumerate}
+

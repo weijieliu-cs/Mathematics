@@ -1,0 +1,140 @@
+% !TeX root = ../泛函分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{9} % 保留原书章号。
+\chapter{有界算子的谱理论}
+\label{chap:fa-spectrum}
+
+本章中 $X$ 为非零复 Banach 空间，$T\in\mathcal B(X)$。有限维矩阵不可逆等价于存在非零核；无限维中还可能因值域不满、逆映射无界等原因失败。谱把这些现象统一起来。
+
+\section{可逆算子与 Neumann 级数}
+\begin{proposition}\label{prop:fa-neumann}
+若 $S\in\mathcal B(X)$ 且 $\|S\|<1$，则 $I-S$ 可逆，且
+\begin{equation}
+ (I-S)^{-1}=\sum_{n=0}^{\infty}S^n,
+ \qquad\|(I-S)^{-1}\|\leq\frac1{1-\|S\|}.
+ \label{eq:fa-neumann-series}
+\end{equation}
+\end{proposition}
+\begin{proof}
+$\mathcal B(X)$ 完备，且 $\sum_n\|S^n\|\leq\sum_n\|S\|^n<\infty$，故级数按算子范数收敛。有限几何和左右乘 $I-S$ 均等于 $I-S^{N+1}$，令 $N\to\infty$ 即得双侧逆。
+\end{proof}
+若 $A$ 可逆且 $\|A^{-1}E\|<1$，则 $A+E=A(I+A^{-1}E)$ 可逆。因此可逆算子构成开集，小扰动不会立即破坏可逆性。
+
+这里的条件是充分条件，不是必要条件。例如 $S=2I$ 时 $\|S\|=2$，$I-S=-I$ 仍可逆，只是几何级数 $\sum S^n$ 不收敛。后面的定理\ref{thm:fa-spectral-radius}还会给出比 $\|S\|<1$ 更一般的级数收敛条件。证明方法的适用范围与所研究结论本身的适用范围应当区分。
+
+扰动估计还可以定量化。令 $\eta=\|A^{-1}E\|<1$，则
+\[
+ \|(A+E)^{-1}\|\leq\frac{\|A^{-1}\|}{1-\eta},\qquad
+ \|(A+E)^{-1}-A^{-1}\|
+ \leq\frac{\eta\|A^{-1}\|}{1-\eta}.
+\]
+第一式由 Neumann 估计得到；第二式由 $(I+A^{-1}E)^{-1}-I=-(I+A^{-1}E)^{-1}A^{-1}E$ 得到。这说明稳定性不仅取决于扰动 $E$ 小不小，还取决于原来逆算子的范数有多大。
+
+\section{预解集、谱与谱的分类}
+\begin{definition}
+\emph{预解集（resolvent set）}$\rho(T)$ 由所有使 $\lambda I-T$ 具有有界双侧逆的 $\lambda\in\mathbb C$ 组成。\emph{谱（spectrum）}为 $\sigma(T)=\mathbb C\setminus\rho(T)$。对 $\lambda\in\rho(T)$ 记 $R(\lambda,T)=(\lambda I-T)^{-1}$。
+\end{definition}
+由有界逆定理，$\lambda I-T$ 双射已足以保证逆有界。采用互不相交的分类：非单射时属于点谱（point spectrum）；单射、值域稠密但不满时属于连续谱（continuous spectrum）；单射且值域不稠密时属于剩余谱（residual spectrum）。点谱中的元素就是特征值。
+
+因此检查一个数 $\lambda$ 时，可以直接研究方程 $(\lambda I-T)x=y$：若齐次方程有非零解，就是点谱；若齐次解唯一但某些数据无法求解，再检查可解数据能否逼近任意数据，分别得到连续谱或剩余谱。有限维单射等价于满射，后两种情况不会出现；这正是无限维谱比矩阵特征值集合更大的原因。
+
+\begin{example}[对角算子的谱逐项可算]\label{ex:fa-diagonal-spectrum}
+设 $(a_j)$ 是有界复数列，$Dx=(a_jx_j)$ 作用于 $\ell^2$。则
+\[
+ \sigma(D)=\overline{\{a_j:j\geq1\}},\qquad
+ \sigma_{\mathrm p}(D)=\{a_j:j\geq1\},
+\]
+其中 $\sigma_{\mathrm p}$ 表示点谱。
+\end{example}
+\begin{solve}
+若 $\lambda$ 不在对角元集合的闭包中，则 $\delta=\inf_j|\lambda-a_j|>0$，逐坐标除法 $y_j\mapsto y_j/(\lambda-a_j)$ 给出范数至多 $1/\delta$ 的逆。若 $\lambda=a_j$，则 $e_j$ 为特征向量。剩下的情形是 $\lambda$ 为极限点但不等于任何 $a_j$：取 $j_k$ 使 $a_{j_k}\to\lambda$，则 $\|(\lambda I-D)e_{j_k}\|\to0$，排除有界逆；每个坐标系数非零又保证单射，且值域包含所有有限支撑数列，因而稠密。由有界逆定理，它不能满射，所以这种点属于连续谱。特别地，$a_j=1/j$ 时，非零谱点全为特征值，零是连续谱点。
+\end{solve}
+
+\begin{example}[右移算子的剩余谱]\label{ex:fa-shift-spectrum}
+在复 $\ell^2$ 上令 $R(x_1,x_2,\ldots)=(0,x_1,x_2,\ldots)$。则 $\sigma(R)$ 为闭单位圆盘，点谱为空，开单位圆盘为剩余谱，单位圆周为连续谱。
+\end{example}
+\begin{solve}
+先检查核。若 $Rx=\lambda x$，当 $\lambda\ne0$ 时，第一坐标给出 $x_1=0$，依次推出所有坐标为零；当 $\lambda=0$ 时，$R$ 本身单射，仍只有零解。因此点谱为空。$|\lambda|>1$ 时，由 $\|R\|=1$ 与 Neumann 级数得到可逆性。
+
+若 $|\lambda|<1$，向量 $y=(1,\overline\lambda,\overline\lambda^2,\ldots)$ 属于 $\ell^2$，而左移 $L=R^*$ 满足 $Ly=\overline\lambda y$。所以 $(\lambda I-R)^*y=0$；值域与非零向量 $y$ 正交，不稠密，属于剩余谱。特别地，$R$ 的值域是第一坐标为零的闭超平面，这已经解释了零点的情形。
+
+若 $|\lambda|=1$，取单位向量
+\[
+ x^{(N)}=\frac1{\sqrt N}(1,\lambda^{-1},\ldots,\lambda^{-(N-1)},0,\ldots).
+\]
+$ (\lambda I-R)x^{(N)}$ 只有第一坐标与第 $N+1$ 个坐标可能非零，各自模为 $1/\sqrt N$，所以其范数为 $\sqrt{2/N}\to0$，不可能有有界逆。同时 $Ly=\overline\lambda y$ 迫使 $y_j=\overline\lambda^{j-1}y_1$，平方可和性又迫使 $y_1=0$，故伴随核为零，值域稠密。结合单射与不可逆性，单位圆周上的点属于连续谱。
+\end{solve}
+这个算子没有任何特征值，谱却有整整一个圆盘。因而求出全部特征向量，并不等于已经了解一个无限维算子的全部谱。另一方面，伴随算子能把值域的稠密性问题转化为核的问题，这是判断剩余谱的直接工具。
+
+\section{谱的非空性与预解恒等式}
+直接将逆算子相减得到
+\[
+ R(\lambda,T)-R(\mu,T)=(\mu-\lambda)R(\lambda,T)R(\mu,T).
+\]
+若 $|h|\|R(\lambda,T)\|<1$，Neumann 展开还给出
+\[
+ R(\lambda+h,T)=\sum_{n=0}^{\infty}(-h)^nR(\lambda,T)^{n+1},
+\]
+所以预解集开，预解算子在其中解析。
+
+\begin{theorem}\label{thm:fa-spectrum-compact}
+$\sigma(T)$ 是非空紧集，且包含于 $\{\lambda:|\lambda|\leq\|T\|\}$。
+\end{theorem}
+\begin{proof}
+若 $|\lambda|>\|T\|$，则
+\[
+ R(\lambda,T)=\lambda^{-1}\sum_{n=0}^{\infty}(T/\lambda)^n,
+ \qquad\|R(\lambda,T)\|\leq\frac1{|\lambda|-\|T\|}.
+\]
+因此谱有界；预解集开保证谱闭。若谱为空，对每个 $x\in X,f\in X^*$，函数 $\lambda\mapsto f(R(\lambda,T)x)$ 为整函数，在大圆外有界且趋零，在圆内由连续性有界。Liouville 定理使其恒为零。由对偶分离点知 $R(\lambda,T)=0$，这与它是逆算子且 $X\ne\{0\}$ 矛盾。
+\end{proof}
+复标量域在非空性证明中至关重要；实矩阵的实特征值集合可能为空。实算子的谱通常通过附录\ref{app:fa-complex}中的复化定义。
+
+\section{谱半径与多项式谱映射}
+\begin{theorem}\label{thm:fa-spectral-radius}
+定义\emph{谱半径（spectral radius）}$r(T)=\max_{\lambda\in\sigma(T)}|\lambda|$，则
+\begin{equation}
+ r(T)=\lim_{n\to\infty}\|T^n\|^{1/n}.
+ \label{eq:fa-spectral-radius}
+\end{equation}
+对任意复系数多项式 $p$，有 $\sigma(p(T))=p(\sigma(T))$。
+\end{theorem}
+\begin{proof}
+次乘性 $\|T^{m+n}\|\leq\|T^m\|\|T^n\|$ 保证根式极限 $L$ 存在并等于其下确界：固定 $m$，写 $n=km+j$，用余数 $0\leq j<m$ 的有限个范数控制，再令 $n\to\infty$。若某次幂为零，则 $L=0$ 单独成立。当 $|\lambda|>L$ 时，根值判别保证 $\sum_nT^n/\lambda^{n+1}$ 收敛并给出逆，故 $r(T)\leq L$。
+
+反向取 $R>r(T)$。由大圆上的 Neumann 级数逐项积分，再在预解区域内变形路径，得到
+\[
+ T^n=\frac1{2\pi\mathrm i}\int_{|\lambda|=R}\lambda^nR(\lambda,T)\,\mathrm d\lambda.
+\]
+算子值积分的使用可逐个向量、泛函标量化，见附录\ref{app:fa-complex}。故 $\|T^n\|\leq R^{n+1}\max_{|\lambda|=R}\|R(\lambda,T)\|$，取 $n$ 次方根得 $L\leq R$，再令 $R\downarrow r(T)$。
+
+对非常数 $p$，将 $p(z)-\mu$ 分解为一次因子的乘积。相应算子因子两两交换；有限个交换因子的乘积可逆当且仅当每个因子可逆。因此 $\mu\notin\sigma(p(T))$ 当且仅当 $p(z)=\mu$ 的所有根均不在 $\sigma(T)$。常数多项式情形直接验证。
+\end{proof}
+一般有 $r(T)\leq\|T\|$，但不必相等；非零幂零矩阵的谱半径为零。
+
+例如欧氏平面上的矩阵 $T=\begin{pmatrix}0&M\\0&0\end{pmatrix}$ 满足 $T^2=0$、$\sigma(T)=\{0\}$，而 $\|T\|=|M|$ 可以很大。范数描述单次作用最大的放大程度，谱半径通过 $\|T^n\|^{1/n}$ 描述反复作用时的渐近尺度。本例第一次可能放大误差，第二次却使所有向量归零，因此两个量没有矛盾。
+
+\section{自伴与正算子的谱}
+\begin{proposition}\label{prop:fa-selfadjoint-spectrum}
+有界自伴算子 $T$ 的谱为实集，且 $r(T)=\|T\|$。正算子的谱包含于 $[0,\|T\|]$。
+\end{proposition}
+\begin{proof}
+对非实 $\lambda$，内积的虚部给出 $\|(\lambda I-T)x\|\geq|\operatorname{Im}\lambda|\|x\|$。这保证单射及闭值域：像序列收敛时，原像由下界为 Cauchy 序列。同时 $(\lambda I-T)^*=\overline\lambda I-T$ 的核为零，故值域稠密，因而满射。于是非实数均在预解集中。
+
+由 $\|T^*T\|=\|T\|^2$ 及自伴性，归纳得 $\|T^{2^k}\|=\|T\|^{2^k}$；谱半径公式即给出 $r(T)=\|T\|$。若 $T\geq0$、$a>0$，则 $\langle(T+aI)x,x\rangle\geq a\|x\|^2$，同样用下界与伴随核证明 $T+aI$ 可逆，排除负谱点。
+\end{proof}
+
+\section{例题与习题}
+\begin{example}[谱点不必是特征值]\label{ex:fa-multiplication-spectrum}
+在 $L^2(0,1)$ 上，$(Tf)(t)=tf(t)$ 的谱为 $[0,1]$，但点谱为空。
+\end{example}
+\begin{solve}
+若 $\lambda\notin[0,1]$，乘以 $(\lambda-t)^{-1}$ 为有界逆。若 $\lambda\in[0,1]$，取支撑在 $|t-\lambda|<1/n$ 内的归一化示性函数 $f_n$，则 $\|f_n\|_2=1$ 而 $\|(\lambda I-T)f_n\|_2\leq1/n$，排除有界逆。特征方程 $(t-\lambda)f(t)=0$ 迫使 $f$ 支撑在零测单点，故 $f=0$。因算子自伴且核为零，其值域稠密，所以这些谱点均为连续谱点。
+\end{solve}
+\begin{enumerate}
+ \item 对 $a_j=(-1)^j+1/j$ 的 $\ell^2$ 对角算子，求谱、点谱及连续谱，并讨论谱点的孤立性。
+ \item 求 $\ell^2$ 上左移 $L$ 的点谱，并证明其谱为闭单位圆盘、剩余谱为空，比较它与例\ref{ex:fa-shift-spectrum}中右移的谱分类。
+ \item 证明当 $|\lambda|>\|T\|$ 时，预解算子的上述上界成立，讨论 $T=cI$ 时何时达到等号。
+ \item 构造两个具有相同谱但范数不同的有限维算子。
+\end{enumerate}
+

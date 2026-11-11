@@ -1,0 +1,92 @@
+% !TeX root = ../偏微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{10} % 保留原书章号。
+\chapter{泊松方程、格林函数与位势}
+\label{chap:green}
+
+有源平衡问题的解可以分解为各点源响应的叠加。自由空间中的点源响应称基本解；为了同时满足区域边界，需要再加一个调和修正。
+
+\section{基本解与点源的解释}
+对 $n\ge2$，记 $\sigma_{n-1}$ 为单位球面面积，统一考虑算子 $-\Delta$。其\emph{基本解（fundamental solution）}为
+\begin{equation}
+ \Phi(x)=\begin{cases}
+ \displaystyle-\frac1{2\pi}\log|x|,&n=2,\\
+ \displaystyle\frac{|x|^{2-n}}{(n-2)\sigma_{n-1}},&n\ge3.
+ \end{cases}
+ \label{eq:laplace-fundamental}
+\end{equation}
+径向公式 $\Delta\Phi=\Phi''+(n-1)\Phi'/r$ 说明它在原点外调和；常数由 $-\int_{\partial B_r}\partial_\nu\Phi\,dS=1$ 确定。对任意光滑紧支集函数 $\varphi$，在去掉 $B_\varepsilon$ 的区域分部积分并令 $\varepsilon\downarrow0$，小球通量给出
+\[
+ \int_{\mathbb R^n}\Phi(x)(-\Delta\varphi(x))\,dx=\varphi(0).
+\]
+这就是 $-\Delta\Phi=\delta_0$ 的严格积分含义，其中 $\delta_0$ 为单位点源。基本解在原点奇异，却局部可积；不能以“原点外调和”断言它在全空间的拉普拉斯算子处处为零。
+
+以三维为例，先设点源具有旋转对称性，令 $\Phi=\Phi(r)$。源点外满足 $(r^2\Phi')'=0$，所以 $\Phi=A+B/r$；要求远处趋于零去掉常数 $A$，再由单位通量 $-4\pi r^2\Phi'(r)=1$ 得 $B=1/(4\pi)$。二维则把 $r^2$ 换成 $r$，积分产生对数。这表明基本解的幂次来自球面面积随半径的增长，而归一化常数来自源强。把 $\delta_0$ 写在方程右侧，是用一种集中源替代有限大小的源区，不是把普通函数在零点的值设为无穷大。
+
+\section{牛顿位势与源项正则性}
+设 $f\in C_c^\infty(\mathbb R^n)$，定义\emph{牛顿位势（Newtonian potential）}
+\[
+ u(x)=(\Phi*f)(x)=\int_{\mathbb R^n}\Phi(x-y)f(y)\,dy.
+\]
+局部可积性和紧支集保证积分存在。把导数转移到 $f$，即 $D^\alpha u=\Phi*D^\alpha f$，可证明 $u$ 光滑；用基本解恒等式得 $-\Delta u=f$。直接把两个导数作用在奇异核上反而需要处理非绝对可积项，因此上述转移是证明中的关键。
+
+当 $n\ge3$ 时位势在远处趋于零；二维中一般呈对数行为，是否消除该项取决于总源量 $\int f$。全空间泊松方程的解还可以加任意调和函数，因此远处增长或衰减条件承担额外的唯一性约束。
+
+\section{区域格林函数与表示公式}
+设 $\Omega$ 为有界光滑区域。固定 $x\in\Omega$，若 $H_x(y)$ 是边值 $\Phi(y-x)$ 的调和延拓，则
+\[
+ G(x,y)=\Phi(y-x)-H_x(y)
+\]
+满足 $-\Delta_yG(x,y)=\delta_x(y)$、$G(x,y)=0$（$y\in\partial\Omega$），称狄利克雷\emph{格林函数（Green's function）}。它同时依赖算子和区域，而基本解只描述全空间的点源。
+
+若 $u\in C^2(\overline\Omega)$、$-\Delta u=f$、边值为 $g$，对去掉源点小球的区域应用式\eqref{eq:green-second}并取极限，得到
+\begin{equation}
+ u(x)=\int_\Omega G(x,y)f(y)\,dy-
+       \int_{\partial\Omega}g(y)\partial_{\nu_y}G(x,y)\,dS_y.
+ \label{eq:green-representation}
+\end{equation}
+负号来自本书对 $-\Delta$ 的约定。故泊松核就是 $-\partial_{\nu_y}G$。对两个源点的格林函数应用同一恒等式并分别移去奇点，可得 $G(x,y)=G(y,x)$；这里使用了算子的对称性和相同的齐次边界条件。
+
+式\eqref{eq:green-representation}的两项有清楚的分工：体积分响应内部源 $f$，边界积分响应边值 $g$。若两者同时非零，不能仅写 $\int Gf$。构造 $G$ 时，$x$ 是固定的观察点，$y$ 是积分变量，法向导数也对 $y$ 求；虽然对称性允许交换两个变量的地位，推导中仍要保持所选约定一致。一般区域的格林函数可能没有简单闭式表达式，这并不影响表示公式与定性分析的意义。
+
+\section{镜像法与简单区域}
+在半空间 $\Omega=\{y_n>0\}$，令 $x^*=(x_1,\ldots,x_{n-1},-x_n)$。\emph{镜像法（method of images）}给出
+\[
+ G(x,y)=\Phi(y-x)-\Phi(y-x^*).
+\]
+第二个奇点位于区域外，因而只提供调和修正；边界上两个距离相等，函数值抵消。因此源点奇性和齐次边界条件都得到保留。
+
+球 $B_R(0)$ 中，当 $n\ge3$、$x\ne0$ 时令 $x^*=R^2x/|x|^2$，可得
+\[
+ G(x,y)=\Phi(y-x)-\left(\frac R{|x|}\right)^{n-2}\Phi(y-x^*).
+\]
+边界关系 $|y-x^*|=(R/|x|)|y-x|$ 验证了零边值；$x=0$ 的极限为 $\Phi(y)-\Phi(R)$，其中 $\Phi(R)$ 表示半径为 $R$ 处的径向值。对边界法向求导即恢复上一章的球泊松核。
+
+\section{诺伊曼问题的相容性与常数歧义}
+对 $-\Delta u=f$、$\partial_\nu u=g$，散度定理给出必要条件
+\begin{equation}
+ \int_\Omega f\,dx+\int_{\partial\Omega}g\,dS=0.
+ \label{eq:neumann-compatibility}
+\end{equation}
+若两个解对应相同数据，差 $w$ 满足 $\Delta w=0$、$\partial_\nu w=0$。在式\eqref{eq:green-first}中取 $u=v=w$，得 $\int|\nabla w|^2=0$；连通性说明 $w$ 为常数。因而可以附加 $\int_\Omega u=0$ 消除歧义。在有界利普希茨区域及适当平方可积数据下，相容条件也保证弱解存在，证明见第\ref{chap:elliptic-weak}章。
+
+\section{例题与习题}
+\begin{example}
+求 $-u''=f$、$u(0)=u(\ell)=0$ 的区间格林函数，并解 $f=1$ 的情形。
+\end{example}
+\begin{solve}
+固定 $y$ 后，格林函数在 $x<y$、$x>y$ 分别线性，在 $x=y$ 连续，且由 $-G_{xx}=\delta_y$ 得 $G_x(y+,y)-G_x(y-,y)=-1$。结合零端点得
+\[
+ G(x,y)=\frac{\min(x,y)(\ell-\max(x,y))}{\ell},\qquad
+ u(x)=\int_0^\ell G(x,y)f(y)\,dy.
+\]
+取 $f=1$，分成 $y<x$ 与 $y>x$ 两段积分可得 $u=x(\ell-x)/2$，与直接积分一致。
+\end{solve}
+
+上述构造还可以逐步写成一个二元方程组。固定 $y$，由零端点先写 $G(x,y)=a(y)x$（$x<y$）与 $G(x,y)=b(y)(\ell-x)$（$x>y$）；连续性给出 $ay=b(\ell-y)$，导数跳跃给出 $-b-a=-1$。解得 $a=(\ell-y)/\ell$、$b=y/\ell$，于是得到前述公式。若区间内在位置 $y_0$ 有强度 $P$ 的集中源，解就是 $P G(x,y_0)$：函数连续，斜率却下降 $P$。这比把点源看成“某一点无限大”更能准确反映它的作用。
+\begin{enumerate}
+ \item 判断 $-\Delta u=1$、$\partial_\nu u=0$ 在有界光滑区域上是否可解。
+ \item 验证半空间格林函数在源点附近与基本解有相同奇性。
+ \item 用式\eqref{eq:green-representation}检查零源项、常数边值时的符号与归一化。
+\end{enumerate}
+

@@ -1,0 +1,45 @@
+% !TeX root = ../深度学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{7} % 保留原书章号。
+\chapter{初始化、归一化与正则化}
+\label{chap:dl-regularization}
+网络的表示能力并不保证训练过程数值良好。初始化控制早期信号尺度，归一化改变层内计算，正则化限制拟合或引入随机扰动；它们可能相互影响，但解决的问题不同。
+
+\section{信号传播与参数初始化}
+对 $a=\sum_{j=1}^{d_{\mathrm{in}}}w_jh_j$，假设权重独立、零均值、方差为 $v$，并与输入独立，且各输入二阶矩同为 $q$。交叉项期望为零，故 $\mathbb E[a^2]=d_{\mathrm{in}}vq$。若 $a$ 的分布关于零对称，ReLU 输出二阶矩为 $\mathbb E[\rho(a)^2]=\mathbb E[a^2]/2$，因此保持二阶矩的启发式选择是 $v=2/d_{\mathrm{in}}$，即 He 初始化的常用尺度。这里保持的是二阶矩，不能把 ReLU 的非零均值忽略后称作严格方差保持。
+
+对近似线性激活，兼顾前向与反向尺度的 Xavier 方案常取 $v=2/(d_{\mathrm{in}}+d_{\mathrm{out}})$。这些计算依赖独立性等近似，训练后通常不再严格成立。反向传播连乘局部雅可比时，范数可能随深度衰减或放大，形成梯度消失或爆炸。相同隐藏单元若使用完全相同初值并接收对称梯度，会保持相同状态；随机初始化用于打破这种对称，不是训练成功的保证。
+
+\section{批量归一化与层归一化}
+对某一特征在一个批量中的数值 $a_1,\ldots,a_B$，\emph{批量归一化（batch normalization）}计算
+\[
+\mu_B=\frac1B\sum_i a_i,\quad s_B^2=\frac1B\sum_i(a_i-\mu_B)^2,\quad
+\widehat a_i=\frac{a_i-\mu_B}{\sqrt{s_B^2+\varepsilon}},\quad z_i=\gamma\widehat a_i+\beta,
+\]
+其中 $\gamma,\beta$ 可训练，$\varepsilon>0$。训练时单个输出依赖其他批量样本；常见推断实现使用训练期间积累的均值、方差，具体更新约定应随实现记录。卷积特征通常按通道汇总批量和空间位置。
+
+\emph{层归一化（layer normalization）}对单个样本或词元的特征轴计算均值方差，因此不依赖同批量的其他样本。归一化轴必须由张量语义指定：对 $B\times T\times d$ 的序列表示，沿最后的 $d$ 维归一化与沿时间轴归一化是不同运算。输入标准化使用训练数据的固定统计量，也不同于这些隐藏层操作。
+
+\section{显式正则化与随机失活}
+惩罚 $\lambda\|\theta\|_2^2/2$ 的梯度为 $\lambda\theta$，倾向于缩小权重；$L^1$ 惩罚 $\lambda\sum_j|\theta_j|$ 在零点不可微，合适的优化方法可以产生稀疏解。两者都改变目标，惩罚偏置或归一化参数与否需明确约定。
+
+\emph{随机失活（dropout）}在训练时对固定激活 $h_j$ 使用独立掩码 $M_j\sim\operatorname{Bernoulli}(q)$，$q\in(0,1]$，令 $\widetilde h_j=M_jh_j/q$。直接计算得 $\mathbb E\widetilde h_j=h_j$、$\operatorname{Var}(\widetilde h_j)=h_j^2(1-q)/q$。推断时通常关闭掩码并使用原激活。后续含非线性时，$\mathbb E f(\widetilde{\mathbf h})$ 一般不等于 $f(\mathbf h)$，所以保持局部期望不表示严格平均了所有子网络的输出。
+
+\section{数据增强、早停与训练曲线}
+\emph{数据增强（data augmentation）}从原样本构造变换样本，本质是假定某种变换保持标签，或已知标签怎样随变换变化。水平翻转可能适合某些物体识别，却不适合所有文字识别；错误增强会制造标签噪声。标签平滑把独热目标改成 $q_k=(1-\epsilon)\mathbf1\{k=y\}+\epsilon/K$，$0\leq\epsilon<1$，实际改变了监督分布。
+
+\emph{早停（early stopping）}按验证标准在过度拟合前选择检查点。训练、验证误差都高可能是表达不足、优化不足或标签问题；训练低而验证高也可能来自分布差异。训练中开启增强和 dropout 而验证时关闭，可能使训练指标暂时更差，因此比较曲线前要核对测量模式，不能只根据曲线形状诊断原因。
+
+\section{例题与习题}
+\begin{example}[归一化的具体计算]
+一批某特征的数值为 $1,3$，取 $\gamma=1,\beta=0$。计算归一化输出，并说明稳定常数的作用。
+\end{example}
+\begin{solve}
+均值为 $2$，以分母 $B=2$ 计算的方差为 $1$，输出为 $-1/\sqrt{1+\varepsilon},1/\sqrt{1+\varepsilon}$。若两数都为 $2$，方差为零，稳定常数使分母非零，中心化输出为零；它也使一般情况下输出方差不严格等于一。
+\end{solve}
+\begin{enumerate}
+\item 对 $h=2,q=1/2$ 列出 dropout 输出分布并核对均值和方差。
+\item 在相同网络和预算上分别改变初始化或正则化强度，每次只改变一个因素，记录激活和梯度尺度。
+\item 举出一个保持图像外观合理却改变真实标签的增强，解释为什么训练数据更多反而可能降低效果。
+\end{enumerate}
+

@@ -1,0 +1,96 @@
+% !TeX root = ../初等数论笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{6} % 保留原书章号。
+\chapter{费马、欧拉与威尔逊定理}
+\label{ch:classical-congruences}
+
+计算 $2^{1000}$ 的完整十进制展开很费力，但求它除以 $7$ 的余数只需抓住幂的周期。本章的费马、欧拉定理给出保证出现的周期，威尔逊定理则用阶乘刻画素数。三个定理都来自有限剩余类的结构，不过适用条件和逻辑方向不同；理解它们的证明，能够减少套公式时最常见的错误。
+
+\section{费马小定理及两种表述}
+
+\begin{theorem}[费马小定理]
+\label{thm:fermat}
+若 $p$ 为素数且 $p\nmid a$，则 $a^{p-1}\equiv1\pmod p$。等价地，对任意整数 $a$，$a^p\equiv a\pmod p$。
+\end{theorem}
+\begin{proof}
+$a,2a,\ldots,(p-1)a$ 均非零，且模 $p$ 两两不同，因为 $ia\equiv ja$ 可约去 $a$。故它们是 $1,\ldots,p-1$ 的一个排列，从而
+\[
+ a^{p-1}(p-1)!\equiv(p-1)!\pmod p.
+\]
+阶乘与 $p$ 互素，约去它便得结论。再乘以 $a$ 得第二种形式；$p\mid a$ 时第二式两侧均为零。反之，在 $p\nmid a$ 时第二式可约去 $a$。
+\end{proof}
+
+\emph{费马小定理（Fermat's little theorem）}控制模素数的幂。例如 $2^6\equiv1\pmod7$，而 $1000\equiv4\pmod6$，故 $2^{1000}\equiv2^4\equiv2\pmod7$。
+
+证明中的“排列”可以在模 $7$、$a=3$ 时直接看见：$3,6,9,12,15,18$ 的最小正余数依次为 $3,6,2,5,1,4$，只是把 $1,2,3,4,5,6$ 换了次序。相乘会多出六个因子 $3$，但余数的总乘积不变，所以可约去 $6!$ 得到 $3^6\equiv1\pmod7$。这是利用可逆乘法重新排列有限集合的证明模式，欧拉定理将把它推广到任意模数的可逆类。
+
+\section{欧拉定理与指数化简}
+
+\begin{theorem}[欧拉定理]
+\label{thm:euler}
+若 $m\ge2$ 且 $\gcd(a,m)=1$，则 $a^{\varphi(m)}\equiv1\pmod m$。
+\end{theorem}
+\begin{proof}
+取一个简化剩余系 $r_1,\ldots,r_{\varphi(m)}$。乘以 $a$ 后各项仍可逆，且由约分法则两两不同，故形成相同类的排列。两侧乘积同余，并可约去与 $m$ 互素的 $\prod_i r_i$，得到结论。
+\end{proof}
+
+\emph{欧拉定理（Euler's theorem）}包含费马小定理。若非负指数 $u\equiv v\pmod{\varphi(m)}$ 且底数与 $m$ 互素，则 $a^u\equiv a^v\pmod m$。去掉互素条件则不成立：$\varphi(8)=4$，但 $2^4\equiv0\not\equiv1=2^0\pmod8$。
+
+处理不互素底数时，可先按素数幂拆分模数；对整除底数的素因子，用指数增长判断何时变为零，对其他素数幂再应用欧拉定理，最后用中国剩余定理合并。
+
+\begin{example}[底数与模数不互素时的幂运算]
+求 $2^{100}$ 除以 $100$ 的余数。
+\end{example}
+\begin{solve}
+因为 $\gcd(2,100)\ne1$，不能直接按 $\varphi(100)=40$ 对指数约化。拆成 $100=4\cdot25$：模 $4$ 时，指数至少为 $2$，故 $2^{100}\equiv0$；模 $25$ 时，$\gcd(2,25)=1$ 且 $\varphi(25)=20$，故 $2^{100}\equiv1$。写所求余数 $r=1+25t$，模 $4$ 得 $1+t\equiv0$，所以 $t\equiv3\pmod4$，最终 $r\equiv76\pmod{100}$。最小非负余数为 $76$。
+\end{solve}
+
+\begin{example}[多层幂的模数需要逐层确定]
+求 $3^{,3^{10}}\pmod{17}$。
+\end{example}
+\begin{solve}
+外层底数 $3$ 与 $17$ 互素，所以只需先求指数 $3^{10}$ 模 $16$ 的值。由 $3^4\equiv1\pmod{16}$ 得 $3^{10}\equiv9\pmod{16}$；因此原式同余于 $3^9$。模 $17$ 依次平方得 $3^2\equiv9$、$3^4\equiv13$、$3^8\equiv16$，于是 $3^9\equiv14$。这里内层指数所用的模数是外层的周期 $16$，而不是外层模数 $17$。
+\end{solve}
+
+\section{威尔逊定理与逆命题辨析}
+
+\begin{theorem}[威尔逊定理]
+\label{thm:wilson}
+整数 $n>1$ 为素数，当且仅当 $(n-1)!\equiv-1\pmod n$。
+\end{theorem}
+\begin{proof}
+若 $n=p$ 为奇素数，在非零剩余类中，将每个元素与其逆元配对。满足自逆的元素恰为 $1,-1$：$x^2\equiv1$ 意味着 $p\mid(x-1)(x+1)$，由欧几里得引理得 $x\equiv\pm1$。其他配对乘积均为 $1$，所以总乘积为 $-1$。$p=2$ 时直接验证。
+
+反之，若 $n$ 合数，取 $1<d<n$ 且 $d\mid n$。因为 $d$ 是阶乘中的一项，$d\mid(n-1)!$；所给同余又使 $d\mid((n-1)!+1)$，于是 $d\mid1$，矛盾。
+\end{proof}
+
+\emph{威尔逊定理（Wilson's theorem）}是素性的充要条件，但直接计算长阶乘并不高效。费马同余只是必要条件：$341=11\cdot31$ 为合数，而 $2^{10}=1024\equiv1\pmod{341}$，故 $2^{340}\equiv1\pmod{341}$。
+
+例如模 $7$ 的逆元配对为 $(2,4)$、$(3,5)$，两对乘积都余 $1$，剩下自逆的 $1$ 与 $6=-1$，故 $6!\equiv-1$。逆命题则不需要逐个分析所有合数的阶乘余数，只要指出一个真因子会同时整除阶乘和阶乘加一，就已产生矛盾。数学上存在充要判据，与计算上能够迅速应用判据，是不同的问题。
+
+\section{快速模幂与计算验证}
+
+\emph{快速模幂（modular exponentiation by repeated squaring）}直接计算 $a^e\pmod m$，适用于任意整数 $a$、非负整数 $e$ 和 $m\ge2$。初始化 $R=1$、$B$ 为 $a$ 的最小非负余数、$E=e$；在 $E>0$ 时重复：
+\begin{enumerate}
+ \item 若 $E$ 为奇数，令 $R$ 为 $RB$ 模 $m$ 的最小非负余数。
+ \item 令 $B$ 为 $B^2$ 模 $m$ 的最小非负余数，令 $E\leftarrow\lfloor E/2\rfloor$。
+\end{enumerate}
+循环不变式为 $RB^E\equiv a^e\pmod m$。偶数步将 $B^E$ 写成 $(B^2)^{E/2}$；奇数步先提取一个 $B$，因此不变式保持。$E$ 每步约减半，最终为零，此时 $R$ 即所求。$e=0$ 时直接返回 $1$。
+
+例如计算 $3^{13}\pmod{17}$，平方得到 $3^2\equiv9$、$3^4\equiv13$、$3^8\equiv16$；由 $13=8+4+1$ 得 $3^{13}\equiv16\cdot13\cdot3\equiv12\pmod{17}$。模幂算法本身不需要互素条件。
+
+\section{习题}
+
+费马与欧拉定理给出可逆底数的幂周期，威尔逊定理刻画素性，快速模幂则直接执行计算。约化指数前先确认底数可逆；若不互素，可拆分模数或直接采用快速模幂，不应机械套用周期。
+
+\begin{enumerate}
+ \item 求 $7^{222}\pmod{13}$ 与 $3^{100}\pmod{20}$。
+ \item 证明对素数 $p>3$，$p^2\equiv1\pmod{24}$。
+ \item 若奇素数 $p\equiv1\pmod4$，证明 $\bigl(((p-1)/2)!\bigr)^2\equiv-1\pmod p$。
+ \item 用快速模幂计算 $5^{117}\pmod{19}$，并用欧拉定理核对。
+ \item\label{ex:classical-noncoprime} 求 $6^{100}\pmod{35}$ 与 $6^{100}\pmod{40}$，分别说明所用周期或局部整除条件。
+ \item\label{ex:classical-factorial} 求 $10!\pmod{13}$。提示：把缺少的两项补成 $12!$。
+ \item\label{ex:classical-fermat-all} 用费马小定理证明每个整数 $a$ 都满足 $30\mid a^5-a$，注意分别处理底数被素数整除的情形。
+ \item\label{ex:classical-pseudoprime} 验证 $341$ 通过底数 $2$ 的费马检验，再用模 $31$ 的计算说明它不能通过底数 $3$ 的费马检验。
+\end{enumerate}
+

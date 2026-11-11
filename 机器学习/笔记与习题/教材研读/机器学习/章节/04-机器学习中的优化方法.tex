@@ -1,0 +1,90 @@
+% !TeX root = ../机器学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{3} % 保留原书章号。
+\chapter{机器学习中的优化方法}
+\label{chap:ml-optimization}
+
+训练通常是在参数空间内最小化某个目标。优化回答给定目标如何求解，统计学习还要判断这个目标是否对应所关心的预测任务。即使训练目标达到全局最优，模型也可能因假设错误而泛化不佳。
+
+\section{目标函数、约束与最优性}
+
+优化问题写为 $\min_{\theta\in\Theta}F(\theta)$，其中 $\Theta$ 是可行域。全局最优点不劣于所有可行点，局部最优点只需不劣于某个邻域内的可行点。集合 $\Theta$ 为凸集，是指任意两点的连线仍在集合内；函数 $F$ 为凸函数，是指
+\[
+ F(tu+(1-t)v)\leq tF(u)+(1-t)F(v),\qquad 0\leq t\leq1.
+\]
+对可微凸函数，这等价于 $F(v)\geq F(u)+\nabla F(u)^\top(v-u)$。因此无约束问题的驻点是全局最优点。若进一步有 $\mu>0$ 使右侧可加上 $\frac\mu2\|v-u\|^2$，则称强凸；最优解若存在便唯一。
+
+可微非凸目标的梯度为零只是必要条件，鞍点和局部极大点也可能满足它。有约束时最优点的梯度甚至可以不为零，例如 $\min_{\theta\geq0}\theta$ 的最优点为零，导数恒为一。判断最优性时必须同时考虑可行方向。
+
+\section{梯度下降与步长选择}
+
+梯度下降（gradient descent）从 $\theta_0$ 出发，反复执行 $\theta_{t+1}=\theta_t-\eta_t\nabla F(\theta_t)$。给定迭代上限、梯度容差或相对目标变化阈值后停止；达到上限只意味着计算预算耗尽。若梯度是 $L$-Lipschitz，即 $\|\nabla F(u)-\nabla F(v)\|\leq L\|u-v\|$，沿线段积分梯度可得下降引理
+\[
+ F(v)\leq F(u)+\nabla F(u)^\top(v-u)+\frac L2\|v-u\|^2.
+\]
+代入更新得到 $F(\theta_{t+1})\leq F(\theta_t)-\eta_t(1-L\eta_t/2)\|\nabla F(\theta_t)\|^2$。固定 $0<\eta_t<2/L$ 时，每个非驻点步骤都使目标下降。
+
+\begin{proposition}[光滑凸目标的梯度下降界]
+设 $F$ 在 $\mathbb R^d$ 上凸、梯度 $L$-Lipschitz，$L>0$，且最优点 $\theta^*$ 存在。采用步长 $1/L$，则对 $T\geq1$，
+\[
+ F(\theta_T)-F(\theta^*)\leq\frac{L\|\theta_0-\theta^*\|^2}{2T}.
+\]
+\end{proposition}
+\begin{proof}
+记 $g_t=\nabla F(\theta_t)$。由凸性和下降引理，
+\[
+ F(\theta_{t+1})-F(\theta^*)\leq
+ g_t^\top(\theta_t-\theta^*)-\frac{\|g_t\|^2}{2L}
+ =\frac L2\bigl(\|\theta_t-\theta^*\|^2-\|\theta_{t+1}-\theta^*\|^2\bigr).
+\]
+求和使右侧望远镜消去，再利用目标值不增，左侧至少为 $T[F(\theta_T)-F(\theta^*)]$，即得结论。
+\end{proof}
+
+非凸光滑目标若有下界，同样的下降关系可控制梯度平方和，但不把驻点变成全局最优解。
+
+\section{随机梯度与小批量训练}
+
+对 $F(\theta)=n^{-1}\sum_i f_i(\theta)$，每步独立均匀抽取 $b$ 个索引构成小批量，以 $g_t=b^{-1}\sum_{i\in B_t}\nabla f_i(\theta_t)$ 更新 $\theta_{t+1}=\theta_t-\eta_tg_t$。在给定当前参数与过去历史后，有 $\mathbb E[g_t\mid\theta_t,\text{过去}]=\nabla F(\theta_t)$。这就是随机梯度下降（stochastic gradient descent，SGD）；有放回独立采样下，批量平均可以降低估计方差，随机重排则不直接满足相同的逐步条件无偏性。
+
+若条件方差至多为 $\sigma^2$，光滑性给出
+\[
+ \mathbb E[F(\theta_{t+1})\mid\text{过去}]
+ \leq F(\theta_t)-\eta_t(1-L\eta_t/2)\|\nabla F(\theta_t)\|^2
+ +\frac{L\eta_t^2\sigma^2}{2}.
+\]
+最后一项显示固定步长的噪声代价。递减步长通常用于逐渐减少这种影响；$\sum_t\eta_t=\infty$、$\sum_t\eta_t^2<\infty$ 是常见条件，但完整收敛结论还依赖凸性、稳定性和矩条件，不能只凭步长形式判断。
+
+\section{二阶方法、坐标下降与近端方法}
+
+Newton 法用局部二次模型产生方向 $d_t$，解 $\nabla^2F(\theta_t)d_t=-\nabla F(\theta_t)$。若 Hessian 正定，这一方向下降；非正定或病态时常需阻尼和线搜索。拟 Newton 方法以历史梯度变化近似曲率，坐标下降则每次只优化一部分参数。二阶方法单步较昂贵，迭代次数少并不自动等于总成本低。
+
+对 $F(w)=g(w)+\lambda\|w\|_1$，绝对值在零处不可微，其次梯度为 $[-1,1]$。近端梯度先令 $v=w-\eta\nabla g(w)$，再逐坐标计算
+\begin{equation}
+ w_j^{+}=\operatorname{sign}(v_j)\max(|v_j|-\eta\lambda,0).
+ \label{eq:ml-soft-threshold}
+\end{equation}
+这是最小化 $\frac1{2\eta}\|u-v\|^2+\lambda\|u\|_1$ 的解；分别讨论 $u_j>0$、$u_j<0$ 和 $u_j=0$ 即可得到软阈值公式。将足够小的坐标直接置零，解释了绝对值惩罚的稀疏效应。
+
+\section{约束优化、拉格朗日对偶与 KKT 条件}
+
+考虑最小化 $F(\theta)$，约束为 $g_j(\theta)\leq0$、$h_k(\theta)=0$。拉格朗日函数
+$\mathcal J(\theta,\alpha,\beta)=F(\theta)+\sum_j\alpha_jg_j(\theta)+\sum_k\beta_kh_k(\theta)$，
+其中 $\alpha_j\geq0$。对偶函数 $q(\alpha,\beta)=\inf_\theta\mathcal J(\theta,\alpha,\beta)$ 给出原问题最优值的下界，因为对任何可行 $\theta$，都有 $\mathcal J(\theta,\alpha,\beta)\leq F(\theta)$。
+
+Karush--Kuhn--Tucker（KKT）条件包括原始可行性、$\alpha_j\geq0$、驻点条件 $\nabla_\theta\mathcal J=0$ 和互补松弛 $\alpha_jg_j(\theta)=0$。对于可微凸目标、凸不等式约束和仿射等式约束，满足 KKT 的点是全局最优点。反向必要性需要约束资格；一个常用的引用结果是：在函数定义于全空间、最优解存在且存在满足等式并严格满足全部不等式的可行点时，Slater 条件保证强对偶及相应最优乘子的存在；证明见文献\cite[第5章]{ml-convex}。非凸问题的 KKT 点一般不能保证全局最优。
+
+\section{例题、练习与学习检查}
+
+\begin{example}[步长决定更新行为]
+令 $F(u,v)=\tfrac12u^2+2v^2$，初始点为 $(1,1)$。求步长 $1/4$ 的一次梯度更新。
+\end{example}
+\begin{solve}
+梯度为 $(u,4v)$，新点为 $(3/4,0)$，目标由 $5/2$ 下降为 $9/32$。最大 Hessian 特征值为 $L=4$，所用步长正是 $1/L$。若把步长改为 $1$，第二个坐标每步乘以 $-3$，除非起点该坐标为零，否则发散。
+\end{solve}
+
+习题：推导软阈值更新；解 $\min_{x\geq1}x^2$ 并验证 KKT；比较记录目标值、梯度范数和测试误差所能回答的问题。实现时同时保存停止原因，以区分数值异常、预算耗尽与达到容差。
+
+
+
+
+

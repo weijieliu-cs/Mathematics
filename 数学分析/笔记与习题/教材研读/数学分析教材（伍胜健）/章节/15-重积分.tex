@@ -1,0 +1,872 @@
+% !TeX root = ../数学分析教材（伍胜健）笔记.tex
+% 本文件由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{14} % 保留原书章号。
+\chapter{重积分}
+\label{chap:multiple-integrals}
+
+一元定积分把区间上的局部贡献累加起来；多元函数的\emph{重积分}（multiple integral）把同样的思想用于平面或高维空间中的区域。例如，物体占据区域 $D\subset\mathbb R^3$，密度为 $\rho(x,y,z)$，把 $D$ 分成小块后，以每块的密度乘体积近似其质量，便得到 $\sum_k\rho(\xi_k)\Delta V_k$。重积分所研究的是这些和式何时具有与分割、取点无关的极限，以及怎样计算这一极限。与一元情形相比，主要的新问题是区域的形状：必须先定义体积，再处理分割、切片和坐标变换，最后区分无界区域或无界函数的广义积分。
+
+% 本章依据《数学分析（伍胜健）》第十五章正文整理；对应数学分析-15.pdf 第 1--51 页，不含习题十五。
+
+\section{重积分的定义}
+\label{sec:definition-of-multiple-integrals}
+
+\subsection{\texorpdfstring{$\mathbb{R}^n$}{R^n} 空间中集合的体积}
+\label{subsec:volumes-of-sets-in-euclidean-space}
+
+对 $x=(x_1,\ldots,x_n)$，采用欧氏距离 $|x-y|=(\sum_{j=1}^n(x_j-y_j)^2)^{1/2}$。坐标长方体 $Q=\prod_{j=1}^n[a_j,b_j]$ 的体积规定为 $V(Q)=\prod_{j=1}^n(b_j-a_j)$；一般集合的体积用有限个这种长方体从内外逼近。这里的体积是\emph{若尔当体积}（Jordan content），只讨论有界集合，不能预先赋予它对任意可数并的可加性。
+
+\begin{definition}
+\label{def:multiple-jordan-volume}
+设 $E\subset\mathbb R^n$ 有界，取包含 $E$ 的长方体 $Q$，用有限组平行于坐标超平面的平面把 $Q$ 分成小长方体，所得分割记为 $\mathcal P$。定义内、外体积和
+\[
+    v_*(E,\mathcal P)=\sum_{Q_k\subset E}V(Q_k),\qquad
+    v^*(E,\mathcal P)=\sum_{Q_k\cap E\ne\varnothing}V(Q_k),
+\]
+以及内、外体积
+\[
+    v_*(E)=\sup_{\mathcal P}v_*(E,\mathcal P),\qquad
+    v^*(E)=\inf_{\mathcal P}v^*(E,\mathcal P).
+\]
+若 $v_*(E)=v^*(E)$，则称 $E$ \emph{可求体积}（Jordan measurable），公共值记为 $V(E)$。当 $V(E)=0$ 时，称 $E$ 为\emph{零体积集}（set of Jordan content zero）；二维时也称可求面积、零面积集，面积有时记为 $\sigma(E)$。
+\end{definition}
+
+细分使内和不减、外和不增；任意两个网格有公共细分，因而总有 $v_*(E)\leq v^*(E)$。定义不依赖包含 $E$ 的大长方体：扩大长方体只增加不与 $E$ 相交的部分，两个候选长方体又可放进同一个更大的长方体比较。由定义，$E$ 为零体积集，当且仅当对每个 $\varepsilon>0$，都能用有限个长方体覆盖 $E$，且这些长方体的体积总和小于 $\varepsilon$。
+
+\begin{theorem}
+\label{thm:multiple-jordan-boundary}
+有界集合 $E\subset\mathbb R^n$ 可求体积，当且仅当其边界 $\partial E$ 是零体积集。
+\end{theorem}
+\begin{proof}
+先设 $E$ 可求体积。给定 $\varepsilon>0$，选网格使外和与内和之差小于 $\varepsilon$。除网格平面上的点外，$\partial E$ 的点所在的小长方体必既接触 $E$ 又不完全含于 $E$，故这些长方体的总体积小于 $\varepsilon$。有限个网格平面在大长方体内的部分，可用总厚度任意小的薄长方体覆盖，体积也可任意小。因此 $\partial E$ 为零体积集。
+
+反过来，设 $\partial E$ 为零体积集。将它覆盖在有限个开长方体的并 $G$ 中，使其体积总和小于 $\varepsilon$；这是把零体积覆盖略微扩大所得的。由于 $\partial E$ 紧，存在 $\delta>0$，使 $\partial E$ 的 $\delta$ 邻域包含在 $G$ 中。取直径小于 $\delta$ 的网格。凡既与 $E$ 相交又不完全含于 $E$ 的小长方体，都接触 $\partial E$，从而含于 $G$。这些小长方体内部互不相交，体积总和小于 $\varepsilon$，故 $v^*(E)-v_*(E)<\varepsilon$。令 $\varepsilon\downarrow0$ 即得结论。
+\end{proof}
+
+\begin{corollary}
+\label{cor:multiple-jordan-set-operations}
+若有界集合 $A,B$ 可求体积，则 $A\cup B$、$A\cap B$、$A\setminus B$ 均可求体积。可求体积的有界区域 $U$ 与其闭包 $\overline U$ 具有相同体积；若另有 $U=\operatorname{int}\overline U$，则 $U$ 可求体积当且仅当 $\overline U$ 可求体积。
+\end{corollary}
+\begin{proof}
+前三个集合的边界均包含在 $\partial A\cup\partial B$ 中，有限个零体积集的并仍为零体积集。若开区域 $U$ 可求体积，则 $\partial\overline U\subset\partial U$，从而 $\overline U$ 可求体积，两者只相差零体积边界。另有 $U=\operatorname{int}\overline U$ 时，$\partial U=\partial\overline U$，逆向结论也成立。
+\end{proof}
+
+\begin{example}
+\label{ex:multiple-rectifiable-boundary}
+证明：若平面有界区域的边界由有限条可求长曲线组成，则它可求面积。
+\end{example}
+\begin{solve}
+设其中一条曲线长为 $L>0$，按弧长分成 $N$ 段，每段的直径不超过 $L/N$，可包含在一个边长 $2L/N$ 的正方形内。全部覆盖的面积不超过 $4L^2/N\to0$，故该曲线面积为零；长度为零的曲线退化为一点，也有相同结论。有限条曲线的并面积为零，再用定理~\ref{thm:multiple-jordan-boundary} 即得所述区域可求面积。特别地，有限条分段光滑曲线围成的有界区域符合这一条件。
+\end{solve}
+
+\begin{notealert}[type=caution,title={有界与可求体积是不同条件}]
+有界集合未必可求体积，判定时仍须检查边界条件。有限零体积覆盖不能任意换成可数覆盖；本章始终使用若尔当体积。
+\end{notealert}
+
+\subsection{重积分的定义}
+\label{subsec:definition-of-multiple-integrals}
+
+以下把\emph{有界闭区域}理解为某个有界区域的闭包，因而 $D=\overline{D^\circ}$；另行要求 $D$ 可求体积。这一约定排除了在主体外另添孤立点等情形，有助于准确表述可积函数必有界等结论。
+
+\begin{definition}
+\label{def:multiple-riemann-integral}
+设 $D\subset\mathbb R^n$ 为可求体积的有界闭区域。它的\emph{分割} $\mathcal P=\{D_1,\ldots,D_N\}$ 是有限个可求体积闭子集，满足
+\[
+    D=\bigcup_{k=1}^ND_k,\qquad V(D_j\cap D_k)=0\quad(j\ne k).
+\]
+记 $\Delta V_k=V(D_k)$，网格宽度 $\|\mathcal P\|=\max_k\operatorname{diam}D_k$，并在每个非空 $D_k$ 任取标记点 $\xi_k$。若存在 $I\in\mathbb R$，使对每个 $\varepsilon>0$，都有 $\delta>0$，且对任何满足 $\|\mathcal P\|<\delta$ 的分割及任何标记点，均有
+\[
+    \left|\sum_{k=1}^Nf(\xi_k)\Delta V_k-I\right|<\varepsilon,
+\]
+则称 $f$ 在 $D$ 上\emph{黎曼可积}，$I$ 称为其 $n$ 重积分，记为
+\begin{equation}
+    \int_D f\,dV=\lim_{\|\mathcal P\|\to0}
+    \sum_{k=1}^Nf(\xi_k)\Delta V_k,
+    \qquad dV=dx_1\cdots dx_n.
+    \label{eq:multiple-riemann-definition}
+\end{equation}
+\end{definition}
+
+二维、三维分别写成 $\iint_D f(x,y)\,dx\,dy$、$\iiint_D f(x,y,z)\,dx\,dy\,dz$，也可用 $d\sigma$、$dV$ 表示面积元、体积元。这里的 $\int_D$ 统一表示维数由区域决定的重积分，$\iint$、$\iiint$ 则把维数明确写出。极限必须同时独立于分割方式和标记点；一列特殊黎曼和收敛只能在已经证明可积后用于计算积分值。与一元定积分的有向上下限不同，本章区域体积总非负，交换坐标名称或改变坐标方向本身不会产生积分的负号。
+
+若 $f\geq0$ 连续，$\iint_D f\,d\sigma$ 表示曲顶柱体 $\{(x,y,z):(x,y)\in D,\ 0\leq z\leq f(x,y)\}$ 的体积；若 $f$ 变号，它表示正、负两部分体积之差。特别地，$\int_D1\,dV=V(D)$。若 $\rho\geq0$ 是物体的连续密度，则质量为 $m=\iiint_D\rho\,dV$；在 $m>0$ 时，质心坐标为
+\begin{equation}
+    (\overline x,\overline y,\overline z)
+    =\frac1m\left(\iiint_Dx\rho\,dV,
+    \iiint_Dy\rho\,dV,\iiint_Dz\rho\,dV\right).
+    \label{eq:multiple-mass-centroid}
+\end{equation}
+
+\section{多元函数的可积性理论与重积分的性质}
+\label{sec:multivariable-integrability-and-multiple-integral-properties}
+
+\subsection{达布理论}
+\label{subsec:multivariable-darboux-theory}
+
+\begin{theorem}
+\label{thm:multiple-integrable-bounded}
+可求体积的有界闭区域上的黎曼可积函数必有界。
+\end{theorem}
+\begin{proof}
+若 $f$ 无界，紧性保证存在 $x_0\in D$，使 $f$ 在 $x_0$ 的每个相对邻域内无界；否则有限个局部有界邻域便给出全局界。给定任意小的网格宽度，先取足够小的闭球与 $D$ 的交作为一个分块，再把其余部分用网格细分。此分块可求体积，且因 $D=\overline{D^\circ}$ 而具有正体积，$f$ 在其中仍无界。固定其他标记点，仅改变该块的取点，就能使黎曼和的绝对值任意大，这与足够细的所有黎曼和都接近同一有限数矛盾。
+\end{proof}
+
+设 $f$ 有界，对分割 $\mathcal P$ 记
+\[
+    m_k=\inf_{D_k}f,\quad M_k=\sup_{D_k}f,\quad
+    \omega_k=M_k-m_k,
+\]
+并定义\emph{达布下和、上和}（lower and upper Darboux sums）及下、上积分
+\[
+    L(f,\mathcal P)=\sum_km_k\Delta V_k,\qquad
+    U(f,\mathcal P)=\sum_kM_k\Delta V_k,
+\]
+\[
+    \underline{\int_D}f\,dV=\sup_{\mathcal P}L(f,\mathcal P),\qquad
+    \overline{\int_D}f\,dV=\inf_{\mathcal P}U(f,\mathcal P).
+\]
+任一黎曼和介于对应的上下和之间；细分使下和不减、上和不增。两个分割可由所有非空交集构成公共细分，故任一下和不大于任一上和。
+
+\begin{theorem}
+\label{thm:multiple-darboux-criterion}
+设 $f$ 在可求体积的有界闭区域 $D$ 上有界，则当 $\|\mathcal P\|\to0$ 时，达布下和、上和分别趋于下积分、上积分。并且下列条件等价：$f$ 可积；上、下积分相等；对每个 $\varepsilon>0$，存在一个分割 $\mathcal P$ 使
+\begin{equation}
+    U(f,\mathcal P)-L(f,\mathcal P)
+    =\sum_k\omega_k\Delta V_k<\varepsilon.
+    \label{eq:multiple-darboux-criterion}
+\end{equation}
+\end{theorem}
+\begin{proof}
+固定一个分割 $\mathcal P_0$。它的各块边界均为零体积集，故这些边界的有限并可覆盖在体积任意小的开集内。对任意足够细的另一个分割 $\mathcal P$，凡不能归入 $\mathcal P_0$ 某一块的分块，都落在这一边界邻域内；若 $|f|\leq M$，这些块在比较上下和时造成的误差至多为 $2M$ 乘其总体积。其余块可直接用细分单调性比较。因此当 $\|\mathcal P\|\to0$ 时，$U(f,\mathcal P)$ 不超过 $U(f,\mathcal P_0)$ 加任意小的误差；再对 $\mathcal P_0$ 取下确界，便得上和极限等于上积分。下和同理。
+
+若上下积分相等，则所有充分细的黎曼和被夹在趋于同一数的上下和之间，故可积。若 $f$ 可积，在每块选取函数值任意接近上、下确界的点，再用黎曼和极限的任意性，得到上下和具有同一极限。最后，若式~\eqref{eq:multiple-darboux-criterion} 成立，则上下积分之差介于 $0$ 与任意 $\varepsilon$ 之间；反之，分别选取接近公共积分值的上和与下和，再取公共细分即可。
+\end{proof}
+
+实际计算常只用小坐标长方体。取包含 $D$ 的长方体 $Q$，将 $f$ 在 $Q\setminus D$ 上延拓为 $0$，得到 $\widetilde f$。由于 $\partial D$ 为零体积集，接触边界的网格块的体积总和趋于 $0$，故 $f$ 在 $D$ 上可积等价于 $\widetilde f$ 在 $Q$ 上可积，积分值也相等。同理，在足够细的坐标网格中可以省略接触 $\partial D$ 的块，只对完全落在 $D^\circ$ 的小长方体作黎曼和；省去部分的绝对值不超过 $\sup_D|f|$ 乘边界块总体积，因而仍趋于同一积分。
+
+\begin{theorem}
+\label{thm:multiple-continuous-integrable}
+可求体积的有界闭区域上的连续函数可积。更一般地，若 $f$ 有界，且其间断点集包含于一个零体积集，则 $f$ 可积。
+\end{theorem}
+\begin{proof}
+连续情形由紧集上的一致连续性得出：给定 $\varepsilon>0$，令各块直径充分小，就有 $\omega_k<\varepsilon/V(D)$，于是式~\eqref{eq:multiple-darboux-criterion} 成立。若 $V(D)=0$，任何有界函数的上下和均为 $0$，无需此除法。
+
+一般情形中，先把间断点包含在一个总体积任意小的有限开长方体并 $G$ 中。在紧集 $D\setminus G$ 上，每点都是 $f$ 相对于整个 $D$ 的连续点；由连续性邻域的有限覆盖，可令所有与该紧集相交的充分小分块的振幅一致地小。其余分块全部落在 $G$ 中，振幅至多为 $2\sup_D|f|$。两类分块的振幅体积和分别由连续性和 $G$ 的小体积控制，故可积。
+\end{proof}
+
+\begin{example}
+\label{ex:multiple-dense-line-discontinuities}
+将 $[0,1]$ 中有理数无重复地枚举为 $q_1,q_2,\ldots$，在 $D=[0,1]^2$ 上定义
+\[
+    h(x,y)=\begin{cases}1/k,&x=q_k,\\0,&x\notin\mathbb Q.\end{cases}
+\]
+证明 $h$ 可积且积分为 $0$。
+\end{example}
+\begin{solve}
+给定 $\varepsilon>0$，先取 $K$ 使 $1/(K+1)<\varepsilon/2$。用总宽度小于 $\varepsilon/2$ 的有限竖条覆盖前 $K$ 条直线 $x=q_k$，把竖条边界加入网格。竖条内 $h\leq1$，其余部分 $h\leq1/(K+1)$，故可使达布上和小于 $\varepsilon$；每个有正面积的小矩形都含横坐标无理的点，达布下和为 $0$。因此积分为 $0$。这个例子在每条 $x=q_k$ 上间断，间断点集在正方形内稠密，因而并非若尔当零面积集；它说明上一充分条件不是必要条件，不能把有限零面积集并的性质直接用于可数并。
+\end{solve}
+
+\subsection{重积分的性质}
+\label{subsec:properties-of-multiple-integrals}
+
+\begin{theorem}
+\label{thm:multiple-integral-algebra-order}
+设 $f,g$ 在可求体积的有界闭区域 $D$ 上可积，$a,b\in\mathbb R$。则 $af+bg$、$fg$、$|f|$ 均可积，且
+\[
+    \int_D(af+bg)\,dV=a\int_Df\,dV+b\int_Dg\,dV,
+    \qquad
+    \left|\int_Df\,dV\right|\leq\int_D|f|\,dV.
+\]
+若 $f\leq g$，则 $\int_Df\,dV\leq\int_Dg\,dV$；特别地，当 $m\leq f\leq M$ 时，
+\begin{equation}
+    mV(D)\leq\int_Df\,dV\leq MV(D).
+    \label{eq:multiple-integral-bounds}
+\end{equation}
+\end{theorem}
+\begin{proof}
+线性和保序性直接由黎曼和取极限得到。对任一分块，$|f|$ 的振幅不超过 $f$ 的振幅；若 $|f|\leq A$、$|g|\leq B$，则 $fg$ 的振幅至多为 $A\omega_g+B\omega_f$。将分别控制两函数振幅和的分割取公共细分，达布判据即给出乘积和绝对值的可积性。由 $-|f|\leq f\leq|f|$ 得积分的绝对值估计，再以常数函数比较即得式~\eqref{eq:multiple-integral-bounds}。
+\end{proof}
+
+\begin{proposition}
+\label{prop:multiple-domain-additivity}
+若 $D=\bigcup_{j=1}^mD_j$，各 $D_j$ 可求体积且两两交集体积为零，则有界函数 $f$ 在 $D$ 上可积当且仅当各限制 $f|_{D_j}$ 可积，并且
+\begin{equation}
+    \int_Df\,dV=\sum_{j=1}^m\int_{D_j}f\,dV.
+    \label{eq:multiple-domain-additivity}
+\end{equation}
+这里也据此定义有限个互不相接的闭区域之并上的积分。
+\end{proposition}
+\begin{proof}
+用所有 $\partial D_j$ 对分割作公共细分，上下和分别相加，零体积交集不贡献体积项。各区域上达布上下和之差均非负，故其和能任意小，等价于每一项都能任意小；积分的等式随之成立。
+\end{proof}
+
+在零体积集上有界地改变函数值不改变可积性及积分值：用总体积任意小的有限长方体覆盖该集合，差函数的振幅和只在这些覆盖中贡献。这里的有界性不能省略，否则所讨论的已不再是通常的黎曼积分。
+
+\begin{theorem}[重积分第一中值定理]
+\label{thm:multiple-weighted-mean-value}
+设 $D$ 是连通的可求体积有界闭区域，$f\in C(D)$，$g$ 可积且不变号，则存在 $\xi\in D$，使
+\begin{equation}
+    \int_Dfg\,dV=f(\xi)\int_Dg\,dV.
+    \label{eq:multiple-weighted-mean-value}
+\end{equation}
+特别地，$\int_Df\,dV=f(\xi)V(D)$。
+\end{theorem}
+\begin{proof}
+改变 $g$ 的符号可设 $g\geq0$。令 $m=\min_Df$、$M=\max_Df$，由 $mg\leq fg\leq Mg$ 得到相应积分不等式。若 $\int_Dg\,dV=0$，则 $\int_Dfg\,dV=0$，任取 $\xi$ 即可；否则两边除以 $\int_Dg\,dV$，所得比值位于 $[m,M]$ 内。连续函数把连通集映成区间，故该比值等于某个 $f(\xi)$。
+\end{proof}
+
+连通性保证均值确由某一点取到。若积分区域有互不相接的两个分量，而 $f$ 在两分量上分别恒为 $0$、$1$，平均值可能严格介于 $0$ 与 $1$ 之间，却不是任何函数值；积分估计仍成立，中值形式则需相应条件。
+
+\section{化重积分为累次积分}
+\label{sec:reduction-of-multiple-integrals-to-iterated-integrals}
+
+\subsection{化二重积分为累次积分}
+\label{subsec:reduction-of-double-integrals-to-iterated-integrals}
+
+重积分的定义同时细分全部坐标方向，\emph{累次积分}（iterated integral）则先固定部分坐标，把余下坐标积分后再继续积分。两者相等需要切片积分存在等条件，不能仅凭积分号的书写顺序推断。
+
+\begin{theorem}[矩形上的累次积分公式]
+\label{thm:multiple-rectangle-fubini}
+设 $f$ 在矩形 $R=[a,b]\times[c,d]$ 上黎曼可积，且对每个 $x\in[a,b]$，一元积分 $F(x)=\int_c^df(x,y)\,dy$ 都存在。则 $F$ 在 $[a,b]$ 上可积，且
+\begin{equation}
+    \iint_Rf(x,y)\,dx\,dy
+    =\int_a^b\left(\int_c^df(x,y)\,dy\right)dx.
+    \label{eq:multiple-rectangle-fubini}
+\end{equation}
+交换 $x,y$ 后有对应结论；若两个方向的所有切片积分都存在，则两种累次积分相等。连续函数满足这些条件。
+\end{theorem}
+\begin{proof}
+分别分割 $[a,b]$、$[c,d]$，所得网格小矩形为 $R_{ij}$，其上 $f$ 的下、上确界记为 $m_{ij},M_{ij}$。当 $x$ 属于第 $i$ 个横坐标小区间时，切片积分满足
+\[
+    \sum_jm_{ij}\Delta y_j\leq F(x)
+    \leq\sum_jM_{ij}\Delta y_j.
+\]
+因此 $F$ 的下、上和被夹在 $f$ 关于该矩形网格的下、上和之间。先让二维网格足够细，$f$ 的上下和之差任意小，便知 $F$ 的上、下积分相等；其公共值又夹在趋于 $\iint_Rf$ 的上下和之间，故得公式。
+\end{proof}
+
+\begin{example}
+\label{ex:multiple-integrable-bad-slices}
+二重积分存在，却有一条切片不可积。取 $D=[0,1]^2$，定义
+\[
+    f(x,y)=\begin{cases}1,&x=1/2\text{ 且 }y\in\mathbb Q,\\0,&\text{其他}。\end{cases}
+\]
+\end{example}
+\begin{solve}
+$f$ 有界，且只在零面积线段 $x=1/2$ 上可能非零，故它在 $D$ 上可积、积分为 $0$。但 $f(1/2,y)$ 是 $[0,1]$ 上的\emph{狄利克雷函数}（Dirichlet function），每个小区间内上下确界分别为 $1,0$，其一元黎曼积分不存在。因此不能直接把该二重积分写成所有切片均存在的 $\int_0^1(\int_0^1f(x,y)\,dy)dx$。本章采用黎曼积分，这里不以忽略个别切片的其他积分理论替代其假设。
+\end{solve}
+
+\begin{example}
+\label{ex:multiple-square-polynomial}
+计算 $\iint_{[0,1]^2}x(x-y)^2\,dx\,dy$。
+\end{example}
+\begin{solve}
+被积函数连续，故
+\[
+    \int_0^1x\left(\int_0^1(x-y)^2\,dy\right)dx
+    =\int_0^1\left(x^3-x^2+\frac{x}{3}\right)dx
+    =\frac1{12}.
+\]
+\end{solve}
+
+\begin{definition}
+\label{def:multiple-normal-domains}
+设 $\varphi_1,\varphi_2\in C([a,b])$，且在 $(a,b)$ 内 $\varphi_1<\varphi_2$，则
+\[
+    D=\{(x,y):a\leq x\leq b,\ \varphi_1(x)\leq y\leq\varphi_2(x)\}
+\]
+称为 $X$ 型区域，即对 $x$ 的\emph{简单区域}（$x$-simple region）。相应地，
+\[
+    D=\{(x,y):c\leq y\leq d,\ \psi_1(y)\leq x\leq\psi_2(y)\}
+\]
+在边界函数连续、内部严格有序时称为 $Y$ 型区域。这里 $X$ 型意指先固定 $x$ 作竖直切片，计算时内层变量是 $y$。
+\end{definition}
+
+这些区域可求面积。以连续图像 $y=\varphi(x)$ 为例，把 $[a,b]$ 分成足够短的小区间，各段图像覆盖矩形的总面积不超过 $(b-a)$ 乘各段最大振幅，再加任意小的扩大覆盖误差；一致连续性使其趋于零。区域边界由两条这种图像及端点竖线组成，故面积为零。
+
+\begin{theorem}
+\label{thm:multiple-normal-domain-fubini}
+若 $f$ 在上述 $X$ 型区域 $D$ 上可积，且每条竖直切片上的一元积分均存在，则
+\begin{equation}
+    \iint_Df(x,y)\,dx\,dy
+    =\int_a^b\left(\int_{\varphi_1(x)}^{\varphi_2(x)}f(x,y)\,dy\right)dx.
+    \label{eq:multiple-x-simple-integral}
+\end{equation}
+在 $Y$ 型区域上，相应公式为
+\begin{equation}
+    \iint_Df(x,y)\,dx\,dy
+    =\int_c^d\left(\int_{\psi_1(y)}^{\psi_2(y)}f(x,y)\,dx\right)dy.
+    \label{eq:multiple-y-simple-integral}
+\end{equation}
+\end{theorem}
+\begin{proof}
+取包含 $D$ 的矩形，将 $f$ 在矩形内的 $D$ 外部置为 $0$。由边界零面积性，此延拓仍可积；每条切片的延拓仅在相应一元区间外取零，其积分就是原切片积分。应用定理~\ref{thm:multiple-rectangle-fubini} 即得结论。
+\end{proof}
+
+若一般区域能用有限条零面积边界分成若干简单区域，就先用区域可加性分块。确定积分界限时，先把区域写成不等式，再说明固定外层变量后内层变量的起点和终点；换序改变的是同一区域的描述，被积函数仍取同一函数。
+
+\begin{example}
+\label{ex:multiple-cubic-line-domain}
+设 $D$ 由 $y=0$、$y=x^3$、$x+y=2$ 围成，$f\in C(D)$，写出两种累次积分。
+\end{example}
+\begin{solve}
+曲线与斜线的交点为 $(1,1)$。固定 $y\in[0,1]$ 时，$y^{1/3}\leq x\leq2-y$；固定 $x$ 时，上边界在 $x=1$ 处改变。因此
+\[
+    \iint_Df\,d\sigma
+    =\int_0^1\left(\int_{y^{1/3}}^{2-y}f(x,y)\,dx\right)dy
+\]
+\[
+    =\int_0^1\left(\int_0^{x^3}f(x,y)\,dy\right)dx
+    +\int_1^2\left(\int_0^{2-x}f(x,y)\,dy\right)dx.
+\]
+一种顺序只需一个区域，另一种顺序必须分段，这也是选择积分次序时应先考虑的因素。
+\end{solve}
+
+\begin{example}
+\label{ex:multiple-change-order-sinc}
+计算 $\displaystyle I=\int_0^1\left(\int_x^{\sqrt x}\frac{\sin y}{y}\,dy\right)dx$，其中 $\sin y/y$ 在 $y=0$ 处连续延拓为 $1$。
+\end{example}
+\begin{solve}
+积分区域为 $0\leq x\leq1$、$x\leq y\leq\sqrt x$，等价于 $0\leq y\leq1$、$y^2\leq x\leq y$。被积函数连续，换序得到
+\[
+    I=\int_0^1\left(\int_{y^2}^y\frac{\sin y}{y}\,dx\right)dy
+    =\int_0^1(1-y)\sin y\,dy=1-\sin1.
+\]
+这里先对 $x$ 积分消去了分母 $y$，避免直接寻找 $\sin y/y$ 的初等原函数。
+\end{solve}
+
+\begin{example}
+\label{ex:multiple-two-cylinders-volume}
+求由 $x^2+y^2\leq a^2$、$x^2+z^2\leq a^2$ 确定的相交圆柱体的体积，其中 $a>0$。
+\end{example}
+\begin{solve}
+八个卦限的体积相等。第一卦限的底面为 $0\leq x\leq a$、$0\leq y\leq\sqrt{a^2-x^2}$，顶面为 $z=\sqrt{a^2-x^2}$，故
+\[
+    V=8\int_0^a\left(\int_0^{\sqrt{a^2-x^2}}\sqrt{a^2-x^2}\,dy\right)dx
+    =8\int_0^a(a^2-x^2)\,dx=\frac{16a^3}{3}.
+\]
+\end{solve}
+
+\subsection{化三重积分为累次积分}
+\label{subsec:reduction-of-triple-integrals-to-iterated-integrals}
+
+三重积分有两种常用的切片方式。第一种先固定平面坐标 $(x,y)$，沿竖直线积分；第二种先固定高度 $z$，在整个水平截面上作二重积分。它们分别适合上下表面易描述、截面形状易描述的立体。
+
+\begin{theorem}
+\label{thm:multiple-triple-slicing}
+设 $\Omega\subset\mathbb R^2$ 是可求面积的有界闭区域，$\varphi,\psi\in C(\Omega)$，在 $\Omega^\circ$ 内 $\varphi<\psi$，并令
+\[
+    D=\{(x,y,z):(x,y)\in\Omega,\ \varphi(x,y)\leq z\leq\psi(x,y)\}.
+\]
+则 $D$ 可求体积。若 $f\in C(D)$，则
+\begin{equation}
+    \iiint_Df\,dV
+    =\iint_\Omega\left(\int_{\varphi(x,y)}^{\psi(x,y)}f(x,y,z)\,dz\right)dx\,dy.
+    \label{eq:multiple-triple-line-slicing}
+\end{equation}
+另一种情形中，设 $D$ 是可求体积的有界闭区域，$a\leq z\leq b$，每个截面 $D_z=\{(x,y):(x,y,z)\in D\}$ 均可求面积。若 $f\in C(D)$，则
+\begin{equation}
+    \iiint_Df\,dV
+    =\int_a^b\left(\iint_{D_z}f(x,y,z)\,dx\,dy\right)dz.
+    \label{eq:multiple-triple-plane-slicing}
+\end{equation}
+坐标互换后有相应公式。
+\end{theorem}
+\begin{proof}
+连续函数的图像具有三维零体积：用底面小矩形乘图像在其上的振幅作覆盖，再用一致连续性控制总体积；接触 $\partial\Omega$ 的底面块总体积趋于零，高度又有界。故第一种立体的边界，即上下图像和底面边界上方的侧面，均为零体积集，$D$ 可求体积。
+
+将 $f$ 零延拓至包含 $D$ 的长方体。第一种情形中，对每个 $(x,y)$ 的竖直切片可积；相应切片积分是 $\Omega$ 上的连续函数，因为边界函数连续且 $f$ 一致连续，函数变化和上下限变化造成的积分误差都趋于零。将矩形情形的达布上下和夹逼推广到两个外层变量，即得式~\eqref{eq:multiple-triple-line-slicing}。第二种情形的每个水平切片也可积，同样的上下和比较表明截面积分作为 $z$ 的函数可积，并给出式~\eqref{eq:multiple-triple-plane-slicing}。截面退化为零面积集时，其积分取 $0$。
+\end{proof}
+
+\begin{example}
+\label{ex:multiple-tetrahedron-integral}
+在四面体 $D=\{(x,y,z):x,y,z\geq0,\ x+y+z\leq1\}$ 上计算 $\displaystyle I=\iiint_D(1+x+y+z)^{-3}\,dV$。
+\end{example}
+\begin{solve}
+依次固定 $x,y$，得到 $0\leq z\leq1-x-y$，因此
+\[
+    I=\int_0^1\int_0^{1-x}\int_0^{1-x-y}
+    \frac{dz\,dy\,dx}{(1+x+y+z)^3}
+    =\frac12\int_0^1\int_0^{1-x}
+    \left(\frac1{(1+x+y)^2}-\frac14\right)dy\,dx
+\]
+\[
+    =\frac12\int_0^1\left(\frac1{1+x}-\frac12-\frac{1-x}{4}\right)dx
+    =\frac12\log2-\frac5{16}.
+\]
+\end{solve}
+
+\begin{example}
+\label{ex:multiple-ellipsoid-second-moment}
+设 $D=\{(x,y,z):x^2/a^2+y^2/b^2+z^2/c^2\leq1\}$，$a,b,c>0$，求 $\iiint_D(x+y+z)^2\,dV$。
+\end{example}
+\begin{solve}
+区域关于各坐标平面反射对称，含 $xy,xz,yz$ 的混合项积分均为 $0$。固定 $x$ 时，椭圆截面的面积为 $\pi bc(1-x^2/a^2)$，所以
+\[
+    \iiint_Dx^2\,dV
+    =\pi bc\int_{-a}^ax^2\left(1-\frac{x^2}{a^2}\right)dx
+    =\frac{4\pi a^3bc}{15}.
+\]
+其余两项交换坐标即得，故原积分为
+\[
+    \frac{4\pi abc}{15}(a^2+b^2+c^2).
+\]
+利用对称性前应同时检查区域和被积函数；单凭区域对称不能使偶函数的积分消失。
+\end{solve}
+
+\section{重积分的变量替换}
+\label{sec:change-of-variables-in-multiple-integrals}
+
+\subsection{重积分的变量替换公式}
+\label{subsec:change-of-variables-formula-for-multiple-integrals}
+
+累次积分改变积分的先后次序，\emph{变量替换}（change of variables）则用新坐标重新描述区域和局部体积。对平面变换 $T(u,v)=(x(u,v),y(u,v))$，线性近似把边向量 $(du,0)$、$(0,dv)$ 分别映为 $T_u\,du$、$T_v\,dv$，它们张成的平行四边形面积为
+\[
+    |J_T(u,v)|\,du\,dv,\qquad
+    J_T(u,v)=\frac{\partial(x,y)}{\partial(u,v)}
+    =\begin{vmatrix}x_u&x_v\\y_u&y_v\end{vmatrix}.
+\]
+$J_T$ 称为\emph{雅可比行列式}（Jacobian determinant）。行列式的正负反映定向，而重积分中的体积非负，所以换元因子必须取绝对值。
+
+\begin{theorem}[重积分的变量替换公式]
+\label{thm:multiple-change-of-variables}
+设 $D\subset\mathbb R^n$ 为可求体积的有界闭区域，$T:U\to T(U)$ 是包含 $D$ 的开集 $U$ 上的 $C^1$ \emph{微分同胚}（diffeomorphism），即 $T$ 一一对应、$T,T^{-1}$ 均为 $C^1$ 映射。记
+\[
+    T(u)=\bigl(x_1(u),\ldots,x_n(u)\bigr),\qquad
+    J_T(u)=\det DT(u)=\frac{\partial(x_1,\ldots,x_n)}{\partial(u_1,\ldots,u_n)},
+    \qquad \Omega=T(D).
+\]
+则 $\Omega$ 可求体积；若 $f$ 在 $\Omega$ 上黎曼可积，则 $(f\circ T)|J_T|$ 在 $D$ 上可积，且
+\begin{equation}
+    \int_\Omega f(x)\,dx_1\cdots dx_n
+    =\int_D f(T(u))|J_T(u)|\,du_1\cdots du_n.
+    \label{eq:multiple-change-of-variables}
+\end{equation}
+特别地，$V(\Omega)=\int_D|J_T(u)|\,du$。由逆函数定理，也可把上述微分同胚条件表述为：$T$ 在 $U$ 上为 $C^1$、一一且 $J_T$ 处处非零。
+\end{theorem}
+\begin{proof}
+先说明局部体积变化。紧集附近 $DT$ 有界，最小伸缩率又有正下界；因此 $T$ 与逆映射在足够小的邻域内均满足统一的\emph{利普希茨估计}（Lipschitz estimate），即像点距离不超过原像距离乘某个固定常数。此类映射把零体积集映为零体积集：把原集合用总体积任意小的小立方体覆盖，每个像可放进边长至多为原边长固定倍数的立方体中，总体积仍可任意小。因而 $\partial\Omega=T(\partial D)$ 为零体积集，$\Omega$ 可求体积。
+
+设 $Q\subset D^\circ$ 是边长为 $h$、中心为 $u_Q$ 的小立方体，$A=DT(u_Q)$。导数的一致连续性给出
+\[
+    T(u)=T(u_Q)+A(u-u_Q)+r_Q(u),\qquad
+    \sup_{u\in Q}|r_Q(u)|\leq\eta(h)h,\quad \eta(h)\to0,
+\]
+其中估计对全部这样的 $Q$ 一致成立。记线性近似像为平行多面体 $P=T(u_Q)+A(Q-u_Q)$。由此 $T(Q)$ 包含在 $P$ 的 $\eta(h)h$ 邻域内，而其边界 $T(\partial Q)$ 落在 $\partial P$ 的同样小邻域内。$P$ 中离边界超过 $\eta(h)h$ 的内部部分为连通集，含中心 $T(u_Q)$ 且不接触 $\partial T(Q)$，所以也含于 $T(Q)$。这些内外薄层的体积至多为 $C\eta(h)h^n$，这里 $C$ 只依赖导数及逆导数的统一界。故
+\begin{equation}
+    V(T(Q))=|J_T(u_Q)|V(Q)+e_QV(Q),
+    \qquad \sup_Q|e_Q|\to0\quad(h\to0).
+    \label{eq:multiple-local-volume-change}
+\end{equation}
+
+以细立方体网格分割 $D$。接触 $\partial D$ 的部分总体积趋于零，其像的总体积也由局部利普希茨估计趋于零，故两边都可暂时舍去这些块。内部立方体的像构成 $\Omega$ 的分割主体，其直径一致趋于零，且由式~\eqref{eq:multiple-local-volume-change} 有 $V(T(Q))\geq cV(Q)$，其中 $c>0$ 与小立方体无关。记 $\operatorname{osc}_Af=\sup_Af-\inf_Af$ 为振幅，则
+\[
+    \sum_Q\operatorname{osc}_Q(f\circ T)V(Q)
+    \leq c^{-1}\sum_Q\operatorname{osc}_{T(Q)}f\,V(T(Q))\to0.
+\]
+达布判据说明 $f\circ T$ 可积；连续函数 $|J_T|$ 与它的乘积也可积。
+
+在像块中取标记点 $T(u_Q)$，将 $\Omega$ 上的黎曼和与 $D$ 上的黎曼和比较，差的绝对值至多为
+\[
+    \sup_\Omega|f|\,\sup_Q|e_Q|\,V(D)
+\]
+再加两边边界块的积分误差，故差趋于零。两种黎曼和的极限分别为式~\eqref{eq:multiple-change-of-variables} 两边，公式得证。
+\end{proof}
+
+此定理用开邻域上的微分同胚陈述，便于把导数、逆导数和边界条件说清楚。计算中还常见在坐标轴、角度接缝等零体积集上退化的变换。应先在去掉这些集合的小邻域后应用定理，再令被去掉部分趋于零；对于本章的有界可积函数，误差可由函数上界乘被去掉部分的体积控制。不能仅因某个雅可比行列式写得出来，就忽略映射的一一性或重复覆盖次数。
+
+\subsection{利用变量替换计算重积分}
+\label{subsec:evaluating-multiple-integrals-by-change-of-variables}
+
+平面\emph{极坐标}（polar coordinates）为
+\begin{equation}
+    x=r\cos\theta,\qquad y=r\sin\theta,\qquad
+    \left|\frac{\partial(x,y)}{\partial(r,\theta)}\right|=r,
+    \qquad dx\,dy=r\,dr\,d\theta.
+    \label{eq:multiple-polar-coordinates}
+\end{equation}
+通常取 $r\geq0$，角度选取长度不超过 $2\pi$ 的区间，内部避免重复覆盖。$r=0$ 时雅可比为零，$\theta$ 相差 $2\pi$ 时像点相同；在有界区域中可先排除一个小圆和一条窄角带，最后令其面积趋于零。半径为 $a$ 的圆盘面积于是为 $\int_0^{2\pi}\int_0^ar\,dr\,d\theta=\pi a^2$。
+
+\begin{example}
+\label{ex:multiple-lemniscate-integral}
+设 $a>0$，$D$ 为双纽线 $(x^2+y^2)^2=a^2(x^2-y^2)$ 的右叶所围闭区域，计算 $\iint_D(x^2+y^2)\,dx\,dy$。
+\end{example}
+\begin{solve}
+极坐标下边界为 $r^2=a^2\cos2\theta$，右叶对应 $-\pi/4\leq\theta\leq\pi/4$、$0\leq r\leq a\sqrt{\cos2\theta}$。故
+\[
+    \iint_D(x^2+y^2)\,dx\,dy
+    =\int_{-\pi/4}^{\pi/4}\int_0^{a\sqrt{\cos2\theta}}r^3\,dr\,d\theta
+    =\frac{a^4}{4}\int_{-\pi/4}^{\pi/4}\cos^22\theta\,d\theta
+    =\frac{\pi a^4}{16}.
+\]
+\end{solve}
+
+\begin{example}
+\label{ex:multiple-hyperbolic-substitution}
+设 $D$ 是第一象限内由 $x^2-y^2=1,9$ 和 $xy=2,4$ 围成的闭区域，计算 $\iint_D(x^2+y^2)\,dx\,dy$。
+\end{example}
+\begin{solve}
+取 $u=x^2-y^2$、$v=2xy$，则 $D$ 对应矩形 $1\leq u\leq9$、$4\leq v\leq8$，并有
+\[
+    \frac{\partial(u,v)}{\partial(x,y)}=4(x^2+y^2)>0,\qquad
+    x^2+y^2=\sqrt{u^2+v^2}.
+\]
+第一象限内取正平方根可唯一恢复 $x,y$，所以该变换一一。原积分化为
+\[
+    \int_1^9\int_4^8\frac14\,dv\,du=8.
+\]
+选择第一象限这一分支保证了逆映射唯一；若把第三象限的另一分量也纳入积分区域，需另计它的贡献。
+\end{solve}
+
+\begin{example}
+\label{ex:multiple-ellipsoid-volume}
+求椭球体 $x^2/a^2+y^2/b^2+z^2/c^2\leq1$ 的体积，其中 $a,b,c>0$。
+\end{example}
+\begin{solve}
+以 $xy$ 平面上的椭圆为底，体积为 $2c\iint_{x^2/a^2+y^2/b^2\leq1}\sqrt{1-x^2/a^2-y^2/b^2}\,dx\,dy$。取广义极坐标 $x=ar\cos\theta$、$y=br\sin\theta$，雅可比为 $abr$，于是
+\[
+    V=2abc\int_0^{2\pi}\int_0^1r\sqrt{1-r^2}\,dr\,d\theta
+    =\frac{4\pi abc}{3}.
+\]
+\end{solve}
+
+\begin{example}
+\label{ex:multiple-simplex-squared-angle}
+在 $D=\{(x,y):x,y\geq0,\ x+y\leq1\}$ 上计算 $\displaystyle\iint_D\frac{xy}{\sqrt{x+y}}\,dx\,dy$，原点处取连续延拓值 $0$。
+\end{example}
+\begin{solve}
+为使 $x+y$ 只依赖一个变量，取 $x=r\cos^2\theta$、$y=r\sin^2\theta$，其中 $0\leq r\leq1$、$0\leq\theta\leq\pi/2$。内部变换一一，雅可比绝对值为 $r\sin2\theta$。因此
+\[
+    \iint_D\frac{xy}{\sqrt{x+y}}\,dx\,dy
+    =2\int_0^1r^{5/2}\,dr\int_0^{\pi/2}\cos^3\theta\sin^3\theta\,d\theta
+    =2\cdot\frac27\cdot\frac1{12}=\frac1{21}.
+\]
+被积函数在原点的延拓连续，因为 $0\leq xy/\sqrt{x+y}\leq(x+y)^{3/2}/4\to0$。
+\end{solve}
+
+三维\emph{柱坐标}（cylindrical coordinates）仅把水平投影改写为极坐标：
+\begin{equation}
+    x=r\cos\theta,\qquad y=r\sin\theta,\qquad z=z,
+    \qquad dV=r\,dr\,d\theta\,dz.
+    \label{eq:multiple-cylindrical-coordinates}
+\end{equation}
+\emph{球坐标}（spherical coordinates）则同时使用到原点的距离和两个角：
+\begin{equation}
+    x=r\sin\varphi\cos\theta,\quad
+    y=r\sin\varphi\sin\theta,\quad z=r\cos\varphi,
+    \qquad dV=r^2\sin\varphi\,dr\,d\varphi\,d\theta,
+    \label{eq:multiple-spherical-coordinates}
+\end{equation}
+其中 $r\geq0$、$0\leq\varphi\leq\pi$，$\theta$ 取一周。$\varphi$ 是从正 $z$ 轴量起的极角，$\theta$ 是水平投影的方位角；本式雅可比按 $(r,\varphi,\theta)$ 的顺序为 $r^2\sin\varphi$。球面给出 $r$ 的界，圆锥面常给出 $\varphi$ 的界，绕 $z$ 轴的半平面给出 $\theta$ 的界。
+
+\begin{example}
+\label{ex:multiple-paraboloid-volume}
+求由 $z=25-x^2-y^2$ 与 $z=0$ 围成的立体体积。
+\end{example}
+\begin{solve}
+柱坐标中 $0\leq\theta\leq2\pi$、$0\leq r\leq5$、$0\leq z\leq25-r^2$，故
+\[
+    V=\int_0^{2\pi}\int_0^5\int_0^{25-r^2}r\,dz\,dr\,d\theta
+    =2\pi\int_0^5r(25-r^2)\,dr=\frac{625\pi}{2}.
+\]
+\end{solve}
+
+\begin{example}
+\label{ex:multiple-spherical-cone-centroid}
+求均匀物体 $D=\{(x,y,z):x^2+y^2+z^2\leq1,\ z\geq\sqrt{x^2+y^2}\}$ 的质心。
+\end{example}
+\begin{solve}
+设密度为 $1$，轴对称性给出 $\overline x=\overline y=0$。球坐标中 $0\leq r\leq1$、$0\leq\varphi\leq\pi/4$、$0\leq\theta\leq2\pi$，故
+\[
+    V=2\pi\int_0^{\pi/4}\sin\varphi\,d\varphi\int_0^1r^2\,dr
+    =\frac{2\pi}{3}\left(1-\frac1{\sqrt2}\right),
+\]
+\[
+    M_{xy}=\iiint_Dz\,dV
+    =2\pi\int_0^{\pi/4}\cos\varphi\sin\varphi\,d\varphi\int_0^1r^3\,dr
+    =\frac\pi8.
+\]
+由式~\eqref{eq:multiple-mass-centroid}，质心为 $\bigl(0,0,3(2+\sqrt2)/16\bigr)$。
+\end{solve}
+
+\section{广义重积分}
+\label{sec:improper-multiple-integrals}
+
+当积分区域无界，或被积函数在有界区域内无界时，通常的黎曼重积分不再直接适用。前者称\emph{无穷重积分}（improper multiple integral over an unbounded domain），后者称\emph{瑕重积分}（improper multiple integral with singularities），统称\emph{广义重积分}（improper multiple integral）。关键是明确以哪些有界子区域逼近原区域；指定一种特殊逼近方式可能产生另一个概念。
+
+\subsection{无穷重积分的基本概念}
+\label{subsec:basic-concepts-of-infinite-multiple-integrals}
+
+先讨论平面情形，记 $B_R=\{(x,y):x^2+y^2\leq R^2\}$。设 $D$ 是无界闭区域，并假定充分大的圆盘截断 $D\cap B_R$、圆环截断 $D\cap(B_S\setminus B_R^\circ)$ 都是可求面积的有界闭区域或有限个这类区域之并。这样的假设保证以下截断和差集上的积分有意义。称此类位于 $D$ 内的有界闭子区域及其有限并为允许的截断区域，积分按区域可加性计算。
+
+\begin{definition}
+\label{def:multiple-improper-at-infinity}
+设 $f$ 在 $D$ 的每个允许的有界闭子区域上黎曼可积。若存在 $I\in\mathbb R$，使对每个 $\varepsilon>0$ 都有 $R>0$，对任何允许的截断区域 $K\subset D$，只要 $D\cap B_R\subset K$，就有
+\begin{equation}
+    \left|\iint_Kf\,d\sigma-I\right|<\varepsilon,
+    \label{eq:multiple-improper-unrestricted-limit}
+\end{equation}
+则称 $f$ 在 $D$ 上的无穷重积分\emph{收敛}，记作 $\iint_Df\,d\sigma=I$；否则称其发散。高维情形把圆盘、面积分别换成闭球、体积即可。
+\end{definition}
+
+定义中的量词是\emph[caution]{对任何包含充分大中心部分的允许截断区域}。因此收敛时圆盘截断积分必趋于 $I$，但仅有 $\lim_{R\to\infty}\iint_{D\cap B_R}f$ 存在，尚不足以证明收敛。只按对称圆盘截断取得的极限有时称为相应的\emph{柯西主值}（Cauchy principal value），必须明确所用的截断方式。
+
+\begin{example}
+\label{ex:multiple-principal-value-not-convergence}
+讨论 $\displaystyle\iint_{\mathbb R^2}\frac{x}{1+x^2+y^2}\,dx\,dy$。
+\end{example}
+\begin{solve}
+每个中心圆盘上的积分由关于 $y$ 轴的奇对称性等于 $0$，所以圆盘主值为 $0$。但取
+\[
+    Q_R=[R,2R]\times[-R,R],\qquad K_R=B_R\cup Q_R,
+\]
+则 $K_R$ 包含 $B_R$，两部分的交集面积为零，而在 $Q_R$ 上 $x\geq R$、$1+x^2+y^2\leq1+5R^2$。因此
+\[
+    \iint_{K_R}\frac{x}{1+x^2+y^2}\,d\sigma
+    =\iint_{Q_R}\frac{x}{1+x^2+y^2}\,d\sigma
+    \geq\frac{2R^3}{1+5R^2}\to+\infty.
+\]
+这与圆盘截断的值不一致，故无穷重积分发散。若要求每个截断区域连通，可把矩形向左稍微延长，使它与圆盘内部相接；新增部分位于 $x>0$，仍保留同一发散下界。
+\end{solve}
+
+\subsection{无穷重积分敛散性的判定}
+\label{subsec:convergence-of-infinite-multiple-integrals}
+
+\begin{definition}
+\label{def:multiple-exhaustion}
+若允许的有界闭子区域列 $K_1\subset K_2\subset\cdots\subset D$ 满足：对每个 $R>0$，从某项起都有 $D\cap B_R\subset K_k$，则称 $\{K_k\}$ 为 $D$ 的\emph{穷尽列}（exhaustion）。这一要求比单纯 $\bigcup_kK_k=D$ 更明确，它要求每个固定的中心截断最终整体包含于 $K_k$。
+\end{definition}
+
+\begin{theorem}
+\label{thm:multiple-improper-exhaustion}
+在定义~\ref{def:multiple-improper-at-infinity} 的局部可积性条件下，无穷重积分收敛，当且仅当对每个穷尽列 $\{K_k\}$，序列 $\iint_{K_k}f\,d\sigma$ 都收敛；此时所有极限相同，均等于无穷重积分值。
+\end{theorem}
+\begin{proof}
+必要性直接由定义得到。反过来，若每个穷尽列的积分都收敛，先取圆盘截断列，记其极限为 $I$。任意两个穷尽列都可交替抽取子列，使其集合依次包含，因为每个集合有界，而另一个穷尽列最终包含它。交替所得仍是穷尽列，所以两列的极限必须一致。
+
+若定义中的一致截断要求对 $I$ 不成立，则存在 $\varepsilon_0>0$，对任意大的 $R$ 都有包含 $D\cap B_R$ 的允许 $K$，其积分与 $I$ 相差至少 $\varepsilon_0$。逐步把 $R$ 取得大到包含上一选出的有界集合，便得到一个嵌套的坏截断穷尽列；在其间再交替插入包含前一集合的圆盘截断，会得到一个积分不能收敛的穷尽列，矛盾。
+\end{proof}
+
+\begin{theorem}[非负函数的有界性判据]
+\label{thm:multiple-nonnegative-exhaustion}
+若 $f\geq0$ 且满足上述局部可积性条件，则无穷重积分收敛，当且仅当存在一个穷尽列 $\{K_k\}$，使 $\{\iint_{K_k}f\,d\sigma\}$ 有上界。此时任一穷尽列均给出相同积分值；若该单调序列无界，则积分发散到 $+\infty$。
+\end{theorem}
+\begin{proof}
+若积分收敛，则任一穷尽列积分收敛，因而有界。反过来，给定一个积分有界的穷尽列，其积分由非负性单调增加，故趋于某个有限 $I$。任一有界允许区域都包含在该列的某个集合内，所以其积分不超过 $I$。又可选 $K_k$ 使其积分大于 $I-\varepsilon$，再取 $R$ 使 $K_k\subset D\cap B_R$；于是任何包含此中心部分的截断积分都在 $[I-\varepsilon,I]$ 内，满足定义。无界情形按同一比较得到所有足够大截断积分都超过任意给定常数。
+\end{proof}
+
+\begin{proposition}[柯西尾部判据]
+\label{prop:multiple-improper-cauchy}
+无穷重积分收敛，当且仅当对每个 $\varepsilon>0$，存在 $R>0$，使任何位于 $D\setminus B_R$ 的允许有界子区域 $H$ 都满足
+\begin{equation}
+    \left|\iint_Hf\,d\sigma\right|<\varepsilon.
+    \label{eq:multiple-improper-cauchy}
+\end{equation}
+\end{proposition}
+\begin{proof}
+若积分收敛，把充分大的中心截断 $C=D\cap B_R$ 与 $C\cup H$ 的积分相减，即得尾部估计。反过来，取 $H$ 为两个大圆盘截断之间的部分，知圆盘截断积分是柯西族，故趋于有限 $I$。一般截断 $K\supset D\cap B_R$ 与中心截断的积分之差，又是外部区域 $K\setminus B_R$ 上的积分，按假设可任意小；让中心半径充分大即得定义。边界圆周上的取值不影响任何有界积分。
+\end{proof}
+
+\begin{theorem}[收敛与绝对收敛等价]
+\label{thm:multiple-improper-absolute}
+在上述局部可积性条件下，
+\begin{equation}
+    \iint_Df\,d\sigma\text{ 收敛}
+    \quad\Longleftrightarrow\quad
+    \iint_D|f|\,d\sigma<+\infty.
+    \label{eq:multiple-improper-absolute}
+\end{equation}
+因此，在这里采用的任意区域截断定义下，不存在条件收敛的无穷重积分。
+\end{theorem}
+\begin{proof}
+若 $|f|$ 的积分收敛，由有界区域上的 $|\iint_Hf|\leq\iint_H|f|$ 及尾部判据立即得 $f$ 的积分收敛。
+
+反过来，设 $f$ 的积分收敛。给定 $\varepsilon>0$，取 $R$ 使式~\eqref{eq:multiple-improper-cauchy} 对所有外部允许区域 $H$ 成立。令 $f_+=\max(f,0)$、$f_-=\max(-f,0)$。在任一有界外部区域 $A$ 内，达布判据允许将 $f_+$ 的积分从下方用有限个小长方体上的正下和逼近：舍去接触边界的块，并只保留 $\inf_Q f>0$ 的块。设这些块的并为 $H\subset A$，则对任意 $\delta>0$ 可使
+\[
+    \iint_Af_+\,d\sigma-\delta
+    <\sum_{Q\subset H}(\inf_Q f)V(Q)
+    \leq\iint_Hf\,d\sigma<\varepsilon.
+\]
+这里舍去边界块的误差由局部有界性与零面积边界控制，正下和的逼近由 $f_+$ 的可积性保证。令 $\delta\downarrow0$，得 $\iint_Af_+\leq\varepsilon$；对 $-f$ 同理得 $\iint_Af_-\leq\varepsilon$。故 $\iint_A|f|\leq2\varepsilon$。取 $A$ 为任意大的外部圆环截断，加上固定中心部分的有限积分，便使非负函数 $|f|$ 的圆盘截断积分有上界；由定理~\ref{thm:multiple-nonnegative-exhaustion}，$|f|$ 的积分收敛。
+\end{proof}
+
+以上论证说明，任意形状的外部小块可以分别收集正、负贡献，因而仅靠相消不能保证收敛。这与一元广义积分通常只让区间端点趋于无穷的定义具有不同的截断自由度。
+
+\begin{proposition}[比较判别法]
+\label{prop:multiple-improper-comparison}
+设局部可积函数在充分远处满足 $0\leq f\leq g$。若 $\iint_Dg<+\infty$，则 $\iint_Df<+\infty$；若 $\iint_Df=+\infty$，则 $\iint_Dg=+\infty$。若 $f,g>0$ 且在 $|x|\to\infty$、$x\in D$ 时 $f(x)/g(x)\to c\in(0,+\infty)$，则二者同敛散。若 $|f|\leq g$ 且 $g$ 可积，则 $f$ 的广义重积分收敛。
+\end{proposition}
+\begin{proof}
+在共同的充分大中心截断之外逐个比较非负截断积分，再用有界性判据。极限比较中，充分远处有 $c_1g\leq f\leq c_2g$，其中 $0<c_1<c<c_2$，两次比较即得结论。最后一项先比较 $|f|$，再用绝对收敛判据。
+\end{proof}
+
+\begin{example}
+\label{ex:multiple-infinity-sector-strip}
+比较 $r^{-\alpha}=(x^2+y^2)^{-\alpha/2}$ 在无界扇形与条带上的敛散性，其中 $\alpha\in\mathbb R$。
+\end{example}
+\begin{solve}
+在 $D_1=\{(r\cos\theta,r\sin\theta):r\geq1,\ \theta_1\leq\theta\leq\theta_2\}$ 上，设 $0<\theta_2-\theta_1\leq2\pi$。非负性允许只检查扇形截断，极坐标给出
+\[
+    \iint_{D_1}r^{-\alpha}\,d\sigma
+    =(\theta_2-\theta_1)\int_1^\infty r^{1-\alpha}\,dr.
+\]
+因此恰在 $\alpha>2$ 时收敛。另一方面，在 $D_2=\{(x,y):x\geq1,\ 0\leq y\leq1\}$ 上，$r/x\in[1,\sqrt2]$，所以对每个固定 $\alpha$，$r^{-\alpha}$ 与 $x^{-\alpha}$ 之比被两个正常数夹住。条带积分遂与 $\int_1^\infty x^{-\alpha}\,dx$ 同敛散，恰在 $\alpha>1$ 时收敛。相同函数的收敛阈值取决于区域在无穷远处的宽度，不能只看环境空间维数。
+\end{solve}
+
+\begin{theorem}[广义重积分的累次积分与换元]
+\label{thm:multiple-improper-fubini-change}
+设 $f$ 在 $D=[a,+\infty)\times[b,+\infty)$ 上连续。若
+\begin{equation}
+    \int_a^\infty\left(\int_b^\infty|f(x,y)|\,dy\right)dx<+\infty,
+    \label{eq:multiple-improper-fubini-absolute}
+\end{equation}
+其中内层广义积分对每个 $x$ 存在，外层被积函数在每个有限区间上可积，则 $\iint_Df$ 收敛，且在相应内、外层积分都存在时
+\[
+    \iint_Df\,d\sigma
+    =\int_a^\infty\left(\int_b^\infty f(x,y)\,dy\right)dx.
+\]
+交换积分次序后有相应结论。对于无界区域之间的 $C^1$ 微分同胚 $T:D\to\Omega$，在有限截断上满足换元条件、且截断像与逆像构成允许穷尽的条件下，广义换元公式
+\begin{equation}
+    \int_\Omega f(x)\,dx=\int_Df(T(u))|J_T(u)|\,du
+    \label{eq:multiple-improper-change-of-variables}
+\end{equation}
+表示一边收敛当且仅当另一边收敛，收敛时两值相等；非负情形也允许两边同时为 $+\infty$。
+\end{theorem}
+
+累次积分部分采用一组便于直接核对的充分条件，\emph{此处仅给证明思路}：先在有限矩形上对 $|f|$ 用累次积分公式，式~\eqref{eq:multiple-improper-fubini-absolute} 给出这些非负积分的统一上界，因而 $\iint_D|f|$ 收敛。再以绝对值积分控制被截去的尾部，得到所写累次积分与重积分一致。换元部分则可直接证明：在每个允许截断上使用式~\eqref{eq:multiple-change-of-variables}，先对 $|f|$ 用非负有界性判据比较两边的穷尽积分，再对 $f$ 取极限。这样不依赖未经证明的正负相消，也不把两个已存在的条件累次积分当成绝对收敛的依据。
+
+\begin{example}
+\label{ex:multiple-two-iterates-divergent}
+设 $D=[1,+\infty)^2$，$\displaystyle f(x,y)=\frac{x^2-y^2}{(x^2+y^2)^2}$。说明两个累次积分都存在仍不能保证广义重积分收敛。
+\end{example}
+\begin{solve}
+因为
+\[
+    \frac{\partial}{\partial y}\frac{y}{x^2+y^2}=f(x,y),
+    \qquad
+    \frac{\partial}{\partial x}\frac{x}{x^2+y^2}=-f(x,y),
+\]
+故
+\[
+    \int_1^\infty\left(\int_1^\infty f(x,y)\,dy\right)dx=-\frac\pi4,
+    \qquad
+    \int_1^\infty\left(\int_1^\infty f(x,y)\,dx\right)dy=\frac\pi4.
+\]
+严格的发散判定可直接检查绝对值。取 $0<\theta_1<\theta_2<\pi/8$，半径足够大的这一扇形落在 $D$ 内，其上
+\[
+    |f|=\frac{\cos2\theta}{r^2},\qquad
+    \int_{\theta_1}^{\theta_2}\int_{R_0}^R|f|r\,dr\,d\theta
+    =\left(\int_{\theta_1}^{\theta_2}\cos2\theta\,d\theta\right)\log\frac R{R_0}\to+\infty.
+\]
+由定理~\ref{thm:multiple-improper-absolute}，原无穷重积分发散。
+\end{solve}
+
+\begin{example}
+\label{ex:multiple-gaussian-integral}
+利用二重积分计算 $\displaystyle\int_0^\infty e^{-x^2}\,dx$。
+\end{example}
+\begin{solve}
+先对非负函数 $e^{-(x^2+y^2)}$ 用圆盘截断和极坐标计算：
+\[
+    \iint_{B_R}e^{-(x^2+y^2)}\,d\sigma
+    =2\pi\int_0^Re^{-r^2}r\,dr
+    =\pi(1-e^{-R^2})\to\pi.
+\]
+由非负有界性判据，全平面广义积分收敛且等于 $\pi$。再取正方形穷尽 $[-R,R]^2$，有限区域上的累次积分公式给出
+\[
+    \left(\int_{-R}^Re^{-x^2}\,dx\right)^2
+    =\iint_{[-R,R]^2}e^{-(x^2+y^2)}\,d\sigma\to\pi.
+\]
+括号内非负，故其极限为 $\sqrt\pi$；由偶性
+\[
+    \int_0^\infty e^{-x^2}\,dx=\frac{\sqrt\pi}{2}.
+\]
+这一过程先证明非负二重积分有限，再用两个穷尽列的共同极限，避免预先交换尚未证明收敛的无穷积分。
+\end{solve}
+
+\subsection{瑕重积分}
+\label{subsec:singular-multiple-integrals}
+
+设 $D\subset\mathbb R^2$ 是可求面积的有界闭区域，$x_0\in D$，$f$ 在 $D\setminus\{x_0\}$ 上有定义，并在每个避开 $x_0$ 的允许闭子区域上黎曼可积。若 $f$ 在 $x_0$ 附近无界，称 $x_0$ 为\emph{瑕点}（singular point）。假定充分小的去心截断 $D\setminus B_\delta(x_0)^\circ$ 以及环形部分都是允许的有限区域并，以保证下述逼近有意义。
+
+\begin{definition}
+\label{def:multiple-singular-integral}
+若存在 $I\in\mathbb R$，使对每个 $\varepsilon>0$，都有 $\delta>0$，对任何满足
+\[
+    D\setminus B_\delta(x_0)^\circ\subset K\subset D\setminus\{x_0\}
+\]
+的允许闭子区域 $K$，均有 $|\iint_Kf\,d\sigma-I|<\varepsilon$，则称瑕重积分收敛，记为 $\iint_Df\,d\sigma=I$；否则称其发散。瑕点本身的函数值不参与这一定义。
+\end{definition}
+
+相应的穷尽列是嵌套的允许闭子区域 $K_k\subset D\setminus\{x_0\}$，要求每个固定的去心截断最终包含在 $K_k$ 中。与无穷重积分一样，必须控制所有允许的挖去方式；只对以瑕点为中心的圆孔检查极限，对变号函数一般不够。
+
+\begin{theorem}
+\label{thm:multiple-singular-criteria}
+在上述局部可积与区域条件下，瑕重积分具有下列判据：它收敛当且仅当任一穷尽列的积分都收敛，且此时各极限相同；对非负函数，只须存在一个穷尽列使其积分有上界；对一般实值函数，收敛当且仅当 $|f|$ 的瑕重积分有限。非负函数的比较、极限比较判别法仍成立，只须把比较范围改为瑕点的充分小去心邻域。
+\end{theorem}
+\begin{proof}
+用去心截断代替中心圆盘，将定理~\ref{thm:multiple-improper-exhaustion}、定理~\ref{thm:multiple-nonnegative-exhaustion} 中的包含关系逐项对应，分别得到穷尽列判据及非负判据。柯西条件相应变为：对每个 $\varepsilon>0$，存在 $\delta>0$，使任何位于 $D\cap(B_\delta(x_0)\setminus\{x_0\})$ 内的允许闭子区域 $H$ 都有 $|\iint_Hf|<\varepsilon$。在这样的局部尾部内，对 $f_+$、$f_-$ 仍可分别以正下和选取有限小长方体，完全重复定理~\ref{thm:multiple-improper-absolute} 的估计，得 $|f|$ 在瑕点附近的积分有限；反向则由绝对值不等式立即成立。比较判据由非负积分的单调性得到。
+\end{proof}
+
+\begin{example}
+\label{ex:multiple-singular-radial-power}
+讨论单位圆盘 $D=\{(x,y):x^2+y^2\leq1\}$ 上 $\displaystyle\iint_D(x^2+y^2)^{-\alpha/2}\,dx\,dy$ 的敛散性，其中 $\alpha\in\mathbb R$。
+\end{example}
+\begin{solve}
+对去心圆环用极坐标，有
+\[
+    \iint_{\delta\leq\sqrt{x^2+y^2}\leq1}
+    (x^2+y^2)^{-\alpha/2}\,d\sigma
+    =2\pi\int_\delta^1r^{1-\alpha}\,dr.
+\]
+被积函数非负，所以只须检查这一穷尽方式。$\alpha<2$ 时极限为 $2\pi/(2-\alpha)$；$\alpha=2$ 时为 $2\pi\log(1/\delta)\to+\infty$；$\alpha>2$ 时也趋于 $+\infty$。故收敛当且仅当 $\alpha<2$。当 $\alpha\leq0$ 时，原点处可有界延拓，这时结论也可作为通常积分理解。
+
+也可用反演把瑕点移到无穷远。取
+\[
+    x=\frac{s}{s^2+t^2},\qquad y=-\frac{t}{s^2+t^2},\qquad
+    \left|\frac{\partial(x,y)}{\partial(s,t)}\right|
+    =\frac1{(s^2+t^2)^2}.
+\]
+它将 $s^2+t^2\geq1$ 映到去心单位圆盘，且原积分化为
+\[
+    \iint_{s^2+t^2\geq1}(s^2+t^2)^{\alpha/2-2}\,ds\,dt.
+\]
+由例~\ref{ex:multiple-infinity-sector-strip} 的扇形判据，它收敛当且仅当 $4-\alpha>2$，仍为 $\alpha<2$。
+\end{solve}
+
+因此 $r^{-\alpha}$ 在全平面上的广义积分对任何 $\alpha$ 都发散：原点附近要求 $\alpha<2$，无穷远处要求 $\alpha>2$，两条件不能同时满足。对应地，在 $n$ 维完整球邻域及完整球外部，径向体积增长为常数乘 $r^{n-1}\,dr$，分别得到原点附近 $\alpha<n$、无穷远处 $\alpha>n$ 的阈值；区域若在瑕点附近变窄，则须重新比较其实际宽度。
+
+\begin{example}
+\label{ex:multiple-singular-thin-domain}
+说明在单位圆盘内的尖角区域上，$r^{-\alpha}$ 即使在 $2\leq\alpha<3$ 时仍可能可积。
+\end{example}
+\begin{solve}
+取条带 $G=\{(s,t):s\geq1,\ 0\leq t\leq1\}$，用上一例的反演 $T$ 定义 $\Omega=T(G)\cup\{(0,0)\}$。因 $|T(s,t)|=(s^2+t^2)^{-1/2}\leq1$，$\Omega$ 位于单位圆盘内，原点在其边界。两条长边的像在原点相接，构成逐渐变窄的区域；其边界为有限条光滑弧及原点，故可求面积。换元后
+\[
+    \iint_\Omega r^{-\alpha}\,d\sigma
+    =\iint_G(s^2+t^2)^{-(4-\alpha)/2}\,ds\,dt.
+\]
+由条带判据，右边恰在 $4-\alpha>1$ 即 $\alpha<3$ 时收敛，因而 $2\leq\alpha<3$ 给出所求例子。完整圆盘的阈值不能不加条件地套用于所有以原点为边界点的子区域。
+\end{solve}
+
+多个瑕点可用互不相交的小邻域分别处理；在去掉这些邻域的紧区域上，若函数连续，则只有通常积分问题。更一般地，若瑕点集是零面积闭集 $S$，例如一条连续函数图像，定义中可用 $S$ 的任意充分小邻域替代点的圆邻域，并要求对所有允许的避开 $S$ 的闭子区域有同一极限。判别时应考察奇性沿整条集合的累积，不能只把某一个点的径向判据照搬过去。
+
+\begin{example}
+\label{ex:multiple-singular-curve}
+设 $a\in C([0,1])$ 且 $a(x)>0$，$D=\{(x,y):0\leq x\leq1,\ 0\leq y\leq a(x)\}$。讨论 $\displaystyle\iint_D|y-a(x)|^{-\alpha}\,dx\,dy$，其中瑕点集为上边界图像。
+\end{example}
+\begin{solve}
+由紧性 $m=\min a>0$。对 $0<\varepsilon<m$，取截断区域 $D_\varepsilon=\{0\leq x\leq1,\ 0\leq y\leq a(x)-\varepsilon\}$，被积函数在其上连续，故可化为累次积分。令 $t=a(x)-y$，得
+\[
+    \iint_{D_\varepsilon}|y-a(x)|^{-\alpha}\,d\sigma
+    =\int_0^1\left(\int_\varepsilon^{a(x)}t^{-\alpha}\,dt\right)dx.
+\]
+这些区域随 $\varepsilon\downarrow0$ 构成避开上边界的穷尽，且函数非负。$\alpha<1$ 时，右边等于
+\[
+    \frac1{1-\alpha}\int_0^1a(x)^{1-\alpha}\,dx
+    -\frac{\varepsilon^{1-\alpha}}{1-\alpha},
+\]
+极限有限；$\alpha=1$ 时积分为 $\int_0^1\log a(x)\,dx-\log\varepsilon\to+\infty$；$\alpha>1$ 时 $\varepsilon^{1-\alpha}/(\alpha-1)$ 使积分趋于 $+\infty$。因此恰在 $\alpha<1$ 时收敛，积分值为 $\frac1{1-\alpha}\int_0^1a(x)^{1-\alpha}\,dx$。这里上边界的高度只要求连续，一元换元是在每条固定 $x$ 的切片内进行，未对 $a$ 求导。
+\end{solve}
+
+\section*{习题十五}
+\addcontentsline{toc}{section}{习题十五}

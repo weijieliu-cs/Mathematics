@@ -1,0 +1,102 @@
+% !TeX root = ../常微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{5} % 保留原书章号。
+\chapter{高阶线性微分方程}
+\label{chap:ode-linear-scalar}
+
+固定区间 $I$，设各系数与 $g$ 连续，研究标准线性方程
+\begin{equation}
+ L[y]:=y^{(n)}+a_{n-1}(t)y^{(n-1)}+\cdots+a_0(t)y=g(t).
+ \label{eq:ode-linear-standard}
+\end{equation}
+若原式最高阶系数不恒为 $1$，须先限制到它不为零的区间再归一化。
+
+\section{线性方程的解空间与叠加原理}
+\begin{theorem}
+方程 $L[y]=0$ 在 $I$ 上的解构成 $n$ 维向量空间。若 $y_1,\ldots,y_n$ 是其一组基，$y_p$ 是 $L[y]=g$ 的一个特解，则全部非齐次解为
+\[
+ y=y_p+C_1y_1+\cdots+C_ny_n.
+\]
+\end{theorem}
+\begin{proof}
+线性性保证齐次解对线性组合封闭。将高阶方程化为一阶系统后，局部存在唯一性成立；在 $I$ 的每个紧时间段上，连续系数有界，线性增长估计保证解可延拓。因此给定 $t_0\in I$，初值映射 $y\mapsto(y(t_0),\ldots,y^{(n-1)}(t_0))$ 是解空间到 $\mathbb R^n$ 的线性双射，维数为 $n$。最后，$L[y]=L[y_p]$ 等价于 $L[y-y_p]=0$。
+\end{proof}
+
+齐次解空间的一组基称基本解组（fundamental set of solutions）。非齐次解集是该空间的平移，一般不包含零函数。
+
+\section{Wronski 行列式与 Abel 公式}
+对 $n$ 个 $C^{n-1}$ 函数定义 Wronski 行列式（Wronskian）
+\[
+ W(t)=\det\bigl(y_j^{(i-1)}(t)\bigr)_{i,j=1}^n.
+\]
+若这些函数都是式\eqref{eq:ode-linear-standard}的齐次解，由初值映射可知：它们构成基本解组当且仅当某一点 $W(t_0)\ne0$。
+
+\begin{proposition}[Abel 公式]
+对于同一标准齐次线性方程的 $n$ 个解，
+\begin{equation}
+ W(t)=W(t_0)\exp\!\left(-\int_{t_0}^t a_{n-1}(s)\,\mathrm ds\right).
+ \label{eq:ode-abel}
+\end{equation}
+\end{proposition}
+\begin{proof}
+按行对行列式求导。前 $n-1$ 行求导后分别与下一行相同，相应项为零。最后一行用方程替换，除 $-a_{n-1}$ 倍原行外，其余项均与前面某行重复，故 $W'=-a_{n-1}W$。应用一阶线性公式即得结论。
+\end{proof}
+
+此结论依赖这些函数满足同一正则线性方程。任意函数族不能只凭 $W\equiv0$ 推出线性相关：$t^2$ 与 $t|t|$ 在 $\mathbb R$ 上均为 $C^1$，其 Wronskian 恒为零，但比较正、负半轴可知它们线性无关。
+
+\section{常系数齐次方程与特征根}
+若系数为常数，记 $D=\mathrm d/\mathrm dt$，对应多项式 $P(r)=r^n+a_{n-1}r^{n-1}+\cdots+a_0$。由 $P(D)e^{rt}=P(r)e^{rt}$，每个特征根 $r$ 给出指数解。若 $r$ 的重数为 $m$，则
+\[
+ e^{rt},te^{rt},\ldots,t^{m-1}e^{rt}
+\]
+都是解，因为 $P(D)(e^{rt}v)=e^{rt}P(D+r)v$。不同根对应的这些函数线性无关：对某根的多项式指数项，施加其余根的消去算子，只留下该根的项；其余因子在有限维多项式空间上可逆，从而该多项式必须为零。函数总数为 $n$，所以构成基本解组。
+
+对于共轭根 $\alpha\pm i\beta$，取实部与虚部得到 $t^ke^{\alpha t}\cos\beta t$、$t^ke^{\alpha t}\sin\beta t$。例如 $(D-1)^2(D^2+4)y=0$ 的实通解为 $(C_1+C_2t)e^t+C_3\cos2t+C_4\sin2t$。
+
+\section{非齐次方程的待定系数法与常数变易法}
+对常系数方程，若右端为 $e^{\alpha t}$ 乘多项式，或其与正弦、余弦的组合，可用待定系数法（method of undetermined coefficients）。例如复形式右端 $e^{\lambda t}Q_m(t)$，若 $\lambda$ 是 $P$ 的 $s$ 重根，试取 $y_p=t^se^{\lambda t}R_m(t)$，其中 $R_m$ 为待定的至多 $m$ 次多项式。因子 $t^s$ 用于避开齐次核；该规则来自前述移位算子恒等式。
+
+\begin{example}
+求 $y''-2y'+y=e^t$ 的通解。
+\end{example}
+\begin{solve}
+特征根 $1$ 为二重根，令 $y=e^tv$，则 $(D-1)^2y=e^tv''$。于是 $v''=1$，故 $y=e^t(C_1+C_2t+t^2/2)$。
+\end{solve}
+
+对于二阶方程 $y''+py'+qy=g$，已知基本解组 $y_1,y_2$ 时，令 $y_p=u_1y_1+u_2y_2$，附加 $u_1'y_1+u_2'y_2=0$。代入得
+\[
+ u_1'y_1'+u_2'y_2'=g,\qquad
+ u_1'=-\frac{y_2g}{W},\quad u_2'=\frac{y_1g}{W},
+\]
+其中 $W=y_1y_2'-y_1'y_2\ne0$。积分即得到常数变易公式。高阶情形同理，对 $u_j'$ 建立由 Wronski 矩阵组成的线性方程组。
+
+\section{Euler 方程与已知一解时的降阶}
+等维 Euler 方程（Cauchy--Euler equation）如 $t^2y''+aty'+by=0$。在任一不含零的半轴上令 $\tau=\log|t|$、$u(\tau)=y(t)$，则 $ty'=u'$、$t^2y''=u''-u'$，故
+\[
+ u''+(a-1)u'+bu=0.
+\]
+例如 $t^2y''-ty'+y=0$ 的解可写成 $y=|t|(C_1+C_2\log|t|)$，在固定半轴也可将 $|t|$ 改为 $t$ 并吸收常数。
+
+若已知 $y''+py'+qy=0$ 的解 $y_1$，在 $y_1\ne0$ 的子区间令 $y=v y_1$，得到 $v''+(2y_1'/y_1+p)v'=0$。因此可取第二解
+\[
+ y_2(t)=y_1(t)\int^t\frac{e^{-\int^s p(\tau)\,\mathrm d\tau}}{y_1(s)^2}\,\mathrm ds.
+\]
+选定积分基点后，该式在所用区间给出与 $y_1$ 线性无关的解。
+
+\section{振动、阻尼与共振}
+对 $my''+cy'+ky=F_0\cos\Omega t$，设 $m,k>0$、$c\geq0$。齐次特征根由 $mr^2+cr+k=0$ 给出：$0<c<2\sqrt{mk}$ 为欠阻尼，等号为临界阻尼，更大时为过阻尼。三种情况下 $c>0$ 均使自由响应趋于零。
+
+当 $c>0$ 时，受迫稳态振幅为
+\[
+ A(\Omega)=\frac{|F_0|}{\sqrt{(k-m\Omega^2)^2+c^2\Omega^2}},
+\]
+可由复试探解 $Ce^{i\Omega t}$ 求得。若 $c=0$ 且 $\Omega=\omega_0=\sqrt{k/m}$，出现特解 $F_0t\sin(\omega_0t)/(2m\omega_0)$，振幅随时间增长，这才是理想无阻尼的共振增长。有阻尼系统的频率响应峰值与此不同，且峰值未必在 $\omega_0$。
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-constant} 解 $y''+4y=0$、$y(0)=1$、$y'(0)=2$。
+ \item\label{ex:ode-resonance} 求 $y''+y=\sin t$ 的一个特解，并解释试取 $A\sin t+B\cos t$ 为什么失败。
+ \item 用常数变易法求 $y''+y=\sec t$ 在 $(-\pi/2,\pi/2)$ 上的特解。
+ \item 由振幅公式证明：当 $c^2<2mk$ 时正频率峰值在 $\Omega=\sqrt{k/m-c^2/(2m^2)}$；否则振幅在非负频率上最大于零频率。
+\end{enumerate}
+

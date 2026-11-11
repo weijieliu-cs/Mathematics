@@ -1,0 +1,1233 @@
+% !TeX root = ../数学分析教材（伍胜健）笔记.tex
+% 本文件由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{6} % 保留原书章号。
+\chapter{定积分}
+\label{chap:definite-integrals}
+
+本章研究由“分割、近似求和、取极限”得到的累积量。面积、路程和质量虽有不同背景，却具有共同的数学结构：先把整体分成小块，用局部的简单量近似各块，再证明近似和在分割充分细时趋于同一个数。以下首先建立黎曼积分，继而讨论可积性、积分性质与原函数，最后将这一思想用于几何和物理问题。除另有说明外，均设 $a<b$；$C([a,b])$ 表示闭区间上的连续函数类，$R[a,b]$ 表示其上的黎曼可积函数类。
+% 教材依据：数学分析/textbooks/数学分析（分章原文）/数学分析-7.pdf，正文第 1--82 页；不含习题七。
+
+\section{定积分的概念与微积分基本定理}
+\label{sec:definite-integrals-and-fundamental-theorem}
+
+\subsection{曲边梯形的面积}
+\label{subsec:area-of-curvilinear-trapezoids}
+
+设 $f\in C([a,b])$ 且 $f\geq0$，考虑曲线 $y=f(x)$、$x$ 轴与直线 $x=a,x=b$ 围成的曲边梯形。取分点 $a=x_0<x_1<\cdots<x_n=b$，记 $\Delta x_i=x_i-x_{i-1}$，在第 $i$ 个小区间任取 $\xi_i$。以高 $f(\xi_i)$ 的矩形近似相应部分，所得面积近似值为 $\sum_{i=1}^n f(\xi_i)\Delta x_i$。若记
+\[
+    m_i=\min_{[x_{i-1},x_i]}f,\qquad
+    M_i=\max_{[x_{i-1},x_i]}f,
+\]
+则上下两组矩形夹住曲边梯形，且两组面积之差为 $\sum_i(M_i-m_i)\Delta x_i$。连续函数在闭区间上一致连续，因而只要所有小区间足够短，就能使这一差小于任意给定的正数。这既解释了矩形近似为何有效，也提示我们以矩形和的共同极限刻画面积；这里的图形直观用于引出定义，后面的可积性证明不预先假定该面积已经存在。
+
+\begin{example}
+\label{ex:riemann-area-square-function}
+用矩形和求曲线 $y=x^2$ 在 $[0,1]$ 上的曲边梯形面积。
+\end{example}
+\begin{solve}
+将 $[0,1]$ 等分为 $n$ 份。由于 $x^2$ 单调增加，任意取点的矩形和均夹在
+\[
+    \frac1{n^3}\sum_{i=1}^n(i-1)^2
+    \quad\text{与}\quad
+    \frac1{n^3}\sum_{i=1}^n i^2
+\]
+之间。利用 $\sum_{i=1}^n i^2=n(n+1)(2n+1)/6$，两端均趋于 $1/3$，故所求面积为 $1/3$。对于任意足够细的分割，同样可用上述上下矩形之差控制误差；等分计算给出了极限的具体值。
+\end{solve}
+
+若质点沿直线同向运动，连续速度为 $v(t)\geq0$，则小时间段上的路程近似为 $v(\xi_i)\Delta t_i$，总路程也由同类和式的极限给出。允许改变运动方向时，速度可以取负；速度的积分对应位移，速率 $|v|$ 的积分才对应路程。
+
+\subsection{定积分的定义}
+\label{subsec:definition-of-definite-integrals}
+
+\begin{definition}
+\label{def:partition-and-riemann-sum}
+区间 $[a,b]$ 的一个\emph{分割}（partition）是有限点集
+\[
+    P:\quad a=x_0<x_1<\cdots<x_n=b,
+    \qquad \|P\|=\max_{1\leq i\leq n}\Delta x_i.
+\]
+$\|P\|$ 称为分割的\emph{网格宽度}（mesh）。对于定义在 $[a,b]$ 上的实值函数 $f$，在每个 $[x_{i-1},x_i]$ 中任取标记点 $\xi_i$，称
+\[
+    S(f;P,\xi)=\sum_{i=1}^n f(\xi_i)\Delta x_i
+\]
+为相应的\emph{黎曼和}（Riemann sum）。
+\end{definition}
+
+\begin{definition}
+\label{def:riemann-definite-integral}
+若存在 $I\in\mathbb R$，使对每个 $\varepsilon>0$，都存在 $\delta>0$，对 $[a,b]$ 的任何分割 $P$ 和任何标记点选取 $\xi$，只要 $\|P\|<\delta$，便有
+\[
+    |S(f;P,\xi)-I|<\varepsilon,
+\]
+则称 $f$ 在 $[a,b]$ 上\emph{黎曼可积}（Riemann integrable），并将 $I$ 称为它的\emph{定积分}（definite integral），记作
+\begin{equation}
+    \int_a^b f(x)\,dx=\lim_{\|P\|\to0}S(f;P,\xi).
+    \label{eq:riemann-integral-definition}
+\end{equation}
+其中 $a,b$ 分别是积分下限、上限，$f$ 是被积函数，$x$ 是积分变量。
+\end{definition}
+
+定义同时要求\emph[caution]{分割与标记点两方面的任意性}；仅证明某一列特殊黎曼和收敛，尚不足以证明可积。积分变量是求和过程中使用的哑变量，故 $\int_a^b f(x)\,dx=\int_a^b f(t)\,dt$，但更换变量字母与换元公式所做的变量变换是不同的操作。
+
+积分值具有唯一性。若 $I,J$ 都满足定义，对给定 $\varepsilon>0$ 取一份同时满足两个误差要求的足够细分割，则 $|I-J|\leq|I-S|+|S-J|<2\varepsilon$；由 $\varepsilon$ 任意可知 $I=J$。
+
+\subsection{定积分的几何意义}
+\label{subsec:geometric-meaning-of-definite-integrals}
+
+对于连续的非负函数，$\int_a^b f(x)\,dx$ 给出相应曲边梯形的面积；对于非正函数，其值等于面积的相反数。一般情况下，定积分表示\emph{有向面积}（signed area），即轴上方的面积减去轴下方的面积。当零点很多时也不必把图形预先分成有限块，可令 $f_+(x)=\max\{f(x),0\}$、$f_-(x)=\max\{-f(x),0\}$，将两部分面积分别表示为 $\int_a^b f_+(x)\,dx$ 和 $\int_a^b f_-(x)\,dx$。
+
+因此 $\int_a^b f(x)\,dx$ 可能为负，也可能因正负抵消而为零；图像与 $x$ 轴之间的总面积应写为 $\int_a^b|f(x)|\,dx$。例如 $\int_{-1}^1x\,dx=0$，而 $\int_{-1}^1|x|\,dx=1$。
+
+\subsection{连续函数的可积性}
+\label{subsec:integrability-of-continuous-functions}
+
+\begin{theorem}
+\label{thm:continuous-functions-riemann-integrable}
+每个 $f\in C([a,b])$ 都在 $[a,b]$ 上黎曼可积。
+\end{theorem}
+\begin{proof}
+记 $f$ 在 $[a,b]$ 上的连续模为
+\[
+    \omega_f(h)=\sup\{|f(x)-f(y)|:x,y\in[a,b],\ |x-y|\leq h\}.
+\]
+一致连续性给出 $\omega_f(h)\to0$（$h\to0^+$）。若 $P'$ 是 $P$ 的细分，则任意两个分别对应 $P,P'$ 的黎曼和满足
+\[
+    |S(f;P,\xi)-S(f;P',\eta)|
+    \leq\omega_f(\|P\|)(b-a),
+\]
+因为细分前后的标记点均位于同一个原小区间内。对任意两个分割 $P,Q$，以它们的公共细分 $P\cup Q$ 作中介，得到
+\[
+    |S(f;P,\xi)-S(f;Q,\eta)|
+    \leq[\omega_f(\|P\|)+\omega_f(\|Q\|)](b-a).
+\]
+取一列网格宽度趋于零的等分分割及任意标记点，上式说明相应和式是柯西序列，因实数完备性而收敛，设极限为 $I$。再固定任意 $P,\xi$，使该等分序列趋于极限，便有
+\[
+    |S(f;P,\xi)-I|\leq\omega_f(\|P\|)(b-a).
+\]
+右边随 $\|P\|\to0$ 趋于零，故 $I$ 满足定积分定义。
+\end{proof}
+
+证明中的关键是统一控制所有小区间上的振幅，而非分别对每个点使用连续性。它还给出连续函数矩形求积的误差估计：若 $\|P\|\leq h$，则误差至多为 $(b-a)\omega_f(h)$。
+
+\subsection{微积分基本定理}
+\label{subsec:fundamental-theorem-of-calculus}
+
+积分定义提供累积量的理论含义，但直接计算黎曼和通常很繁琐。微积分基本定理把积分与原函数联系起来，从而将求和极限转化为端点值之差。
+
+\begin{theorem}[牛顿--莱布尼茨公式]
+\label{thm:newton-leibniz-integrable-antiderivative}
+设 $f\in R[a,b]$，$F$ 在 $[a,b]$ 上连续、在 $(a,b)$ 内可导，且 $F'(x)=f(x)$（$a<x<b$），则
+\begin{equation}
+    \int_a^b f(x)\,dx=F(b)-F(a)
+    =\left.F(x)\right|_a^b.
+    \label{eq:newton-leibniz-formula}
+\end{equation}
+这一公式称为\emph{牛顿--莱布尼茨公式}（Newton--Leibniz formula），也是\emph{微积分基本定理}（fundamental theorem of calculus）的一个形式。
+\end{theorem}
+\begin{proof}
+对任意分割 $P$，在每个 $[x_{i-1},x_i]$ 上用拉格朗日中值定理，存在 $\xi_i\in(x_{i-1},x_i)$，使
+\[
+    F(x_i)-F(x_{i-1})=F'(\xi_i)\Delta x_i=f(\xi_i)\Delta x_i.
+\]
+将这些等式相加，得到 $F(b)-F(a)=S(f;P,\xi)$。令 $\|P\|\to0$，由 $f$ 可积即得结论。
+\end{proof}
+
+定理同时要求可积性与原函数；目前尚未证明任意连续函数都有原函数，这将在第~\ref{subsec:definite-integrals-with-variable-limits} 小节由变限积分构造出来。定积分是一个数，不定积分则表示原函数族，不能混淆两者。
+
+\begin{example}
+\label{ex:power-sum-limit-by-integral}
+设 $\alpha>0$，求 $\displaystyle\lim_{n\to\infty}\frac{1^\alpha+2^\alpha+\cdots+n^\alpha}{n^{\alpha+1}}$。
+\end{example}
+\begin{solve}
+原式是 $x^\alpha$ 在 $[0,1]$ 上的等分右端点黎曼和：
+\[
+    \frac1n\sum_{k=1}^n\left(\frac kn\right)^\alpha
+    \longrightarrow\int_0^1x^\alpha\,dx
+    =\left.\frac{x^{\alpha+1}}{\alpha+1}\right|_0^1
+    =\frac1{\alpha+1}.
+\]
+这里先由连续性确认可积，再识别黎曼和并用原函数求值；若负指数导致函数在零点无界，就须使用下一章的广义积分理论。
+\end{solve}
+
+\section{可积性问题}
+\label{sec:integrability}
+
+可积性研究要回答哪些函数具有定义~\ref{def:riemann-definite-integral} 中的共同极限。连续性只是充分条件，许多不连续函数仍然可积；达布理论通过上下确界消去标记点的任意性，使这一问题转化为可控制的振幅估计。
+
+\subsection{可积的必要条件}
+\label{subsec:necessary-conditions-for-integrability}
+
+\begin{theorem}
+\label{thm:riemann-integrable-implies-bounded}
+若 $f\in R[a,b]$，则 $f$ 在 $[a,b]$ 上有界。
+\end{theorem}
+\begin{proof}
+若 $f$ 无界，则任意有限分割中至少有一个小区间上的 $f$ 无界，否则有限个局部界会给出整体界。由可积定义取 $\varepsilon=1$ 所对应的 $\delta>0$，固定一份 $\|P\|<\delta$ 的分割，再固定其他小区间的标记点。在无界的那个小区间内改变标记点，可使相应项的绝对值任意大，因而使整个黎曼和的绝对值任意大。这与所有这些黎曼和都位于 $(I-1,I+1)$ 中矛盾。
+\end{proof}
+
+\begin{example}
+\label{ex:dirichlet-function-not-riemann-integrable}
+狄利克雷函数 $D(x)=1$（$x\in\mathbb Q$）、$D(x)=0$（$x\notin\mathbb Q$）在任何非退化闭区间上都不可积。
+\end{example}
+\begin{solve}
+每个正长度区间内都有有理数与无理数。对于同一个分割，全部选有理标记点得到黎曼和 $b-a$，全部选无理标记点得到 $0$。这两个值不随网格变细而接近，故不可能存在共同极限。特别地，在 $[0,1]$ 上，等分分割的右端点和恒为 $1$，仍不能据此判定可积。
+\end{solve}
+
+\subsection{达布理论}
+\label{subsec:darboux-theory}
+
+\begin{definition}
+\label{def:darboux-sums-and-integrals}
+设 $f$ 在 $[a,b]$ 上有界。对分割 $P$ 记
+\[
+    M_i=\sup_{[x_{i-1},x_i]}f,\qquad
+    m_i=\inf_{[x_{i-1},x_i]}f,\qquad \omega_i=M_i-m_i.
+\]
+称 $\omega_i$ 为该小区间上的\emph{振幅}（oscillation），称
+\[
+    U(f,P)=\sum_{i=1}^nM_i\Delta x_i,\qquad
+    L(f,P)=\sum_{i=1}^nm_i\Delta x_i
+\]
+分别为\emph{达布上和、下和}（upper and lower Darboux sums）。再定义\emph{上积分、下积分}为
+\[
+    \overline{\int_a^b}f=\inf_P U(f,P),\qquad
+    \underline{\int_a^b}f=\sup_P L(f,P),
+\]
+其中上下确界遍取 $[a,b]$ 的全部分割。
+\end{definition}
+
+每个黎曼和都满足 $L(f,P)\leq S(f;P,\xi)\leq U(f,P)$。若 $f$ 不连续，上下确界未必能取到，达布和因而未必是某一组标记点给出的黎曼和，但可以由适当选点的黎曼和任意逼近。
+
+\begin{proposition}
+\label{prop:darboux-refinement}
+若 $P'$ 是 $P$ 的细分，则
+\[
+    L(f,P)\leq L(f,P')\leq U(f,P')\leq U(f,P).
+\]
+对任意两个分割 $P,Q$，都有 $L(f,P)\leq U(f,Q)$，从而下积分不大于上积分。
+\end{proposition}
+\begin{proof}
+在小区间内增加分点后，各新小区间的上确界不超过原上确界，下确界不小于原下确界，而长度之和不变，故细分使上和不增、下和不减。任意 $P,Q$ 的公共细分给出
+\[
+    L(f,P)\leq L(f,P\cup Q)\leq U(f,P\cup Q)\leq U(f,Q).
+\]
+再分别取上下确界即得最后的结论。
+\end{proof}
+
+\begin{theorem}[达布定理]
+\label{thm:darboux-sum-limits}
+对 $[a,b]$ 上的任意有界函数 $f$，都有
+\[
+    \lim_{\|P\|\to0}U(f,P)=\overline{\int_a^b}f,\qquad
+    \lim_{\|P\|\to0}L(f,P)=\underline{\int_a^b}f.
+\]
+\end{theorem}
+\begin{proof}
+只证上和。记 $m=\inf f,M=\sup f$，$I^*=\overline{\int_a^b}f$。给定 $\varepsilon>0$，选一份固定分割 $Q$，使 $U(f,Q)<I^*+\varepsilon/2$，并设 $Q$ 有 $N$ 个内分点。任取 $P$，加入 $Q$ 的内分点时，只有内部含这些分点的小区间会改变；它们的总长度不超过 $N\|P\|$，故
+\[
+    0\leq U(f,P)-U(f,P\cup Q)\leq(M-m)N\|P\|.
+\]
+利用 $U(f,P\cup Q)\leq U(f,Q)$，得到
+\[
+    0\leq U(f,P)-I^*
+    <\frac{\varepsilon}{2}+(M-m)N\|P\|.
+\]
+取网格足够小即可。$M=m$ 或 $N=0$ 时后一项为零；下和可对 $-f$ 应用同一论证。
+\end{proof}
+
+\begin{theorem}[黎曼可积判据]
+\label{thm:darboux-integrability-criteria}
+设 $f$ 在 $[a,b]$ 上有界，则以下条件等价：$f\in R[a,b]$；上积分等于下积分；对每个 $\varepsilon>0$，存在分割 $P$，使
+\begin{equation}
+    U(f,P)-L(f,P)=\sum_{i=1}^n\omega_i\Delta x_i<\varepsilon.
+    \label{eq:darboux-oscillation-criterion}
+\end{equation}
+这些条件又等价于：对任意 $\eta>0,\rho>0$，存在分割，使振幅 $\omega_i\geq\eta$ 的那些小区间的长度总和小于 $\rho$。
+\end{theorem}
+\begin{proof}
+若 $f$ 可积且积分为 $I$，则对足够细的分割，所有黎曼和都在 $I$ 附近。利用上下确界定义逐个选点，可使黎曼和任意逼近上和或下和，故它们也都在 $I$ 附近，上下积分相等。反之，若二者同为 $I$，则由定理~\ref{thm:darboux-sum-limits} 及 $L\leq S\leq U$，任何足够细分割的任意黎曼和都趋于 $I$。
+
+若上下积分相等，分别选下和、上和逼近共同值，再取公共细分，便得到式~\eqref{eq:darboux-oscillation-criterion}。反之，任意分割均有
+\[
+    0\leq\overline{\int_a^b}f-\underline{\int_a^b}f
+    \leq U(f,P)-L(f,P),
+\]
+故任意小的右边迫使两个积分相等。
+
+若振幅和能任意小，取其小于 $\eta\rho$，则 $\omega_i\geq\eta$ 的区间总长度至多为 $\eta^{-1}\sum_i\omega_i\Delta x_i<\rho$。反之，记整体振幅为 $\Omega$，把和式按 $\omega_i<\eta$ 与 $\omega_i\geq\eta$ 分成两部分，便有
+\[
+    \sum_i\omega_i\Delta x_i
+    \leq\eta(b-a)+\Omega\sum_{\omega_i\geq\eta}\Delta x_i
+    <\eta(b-a)+\Omega\rho.
+\]
+先取足够小的 $\eta,\rho$ 即得所需估计；$\Omega=0$ 的常数函数情形直接成立。
+\end{proof}
+
+判据只要求\emph[tip]{对每个精度找到一份振幅和足够小的分割}，不必一开始就检查所有分割。例如若 $\|P_n\|\to0$，且这些分割上的所有标记点和一致趋于同一个数，则 $U(f,P_n)-L(f,P_n)\to0$，足以推出可积；这里“所有标记点和”不能替换成“各取一组标记点的和”。
+
+\subsection{可积函数类}
+\label{subsec:classes-of-integrable-functions}
+
+\begin{theorem}
+\label{thm:finite-discontinuities-integrable}
+闭区间上的有界函数若只有有限个间断点，则黎曼可积。
+\end{theorem}
+\begin{proof}
+设 $|f|\leq B$，可取 $B>0$。用有限个小区间包住所有间断点，使它们的总长度小于 $\varepsilon/(4B)$，并使内部间断点落在所选区间的内部。去掉这些区间内部后，剩下有限个闭区间，$f$ 在其上连续，因而可分别细分，使这些部分上的振幅和小于 $\varepsilon/2$。合并分点得到的总振幅和小于
+\[
+    2B\frac{\varepsilon}{4B}+\frac{\varepsilon}{2}=\varepsilon.
+\]
+由达布判据可积。
+\end{proof}
+
+在有限个点上改变可积函数的值，仍然得到可积函数，而且积分不变。事实上，两函数之差 $h$ 只在有限个点非零，是一个有界函数；用总长度任意小的区间包住这些点，便可使 $|h|$ 的上和任意小，从而 $\int_a^b h=0$。同样的包围方法还表明：有界函数的间断点集若只有有限多个聚点，也可积；先用总长度很小的区间包住聚点，剩余部分的间断点必为有限个，否则紧致性会在该部分产生新的聚点。
+
+\begin{theorem}
+\label{thm:monotone-functions-riemann-integrable}
+闭区间上的单调函数黎曼可积。
+\end{theorem}
+\begin{proof}
+以单调增加为例，函数由两个端点值夹住，故有界。对于 $n$ 等分分割，$\omega_i=f(x_i)-f(x_{i-1})$，于是
+\[
+    \sum_i\omega_i\Delta x_i
+    =\frac{b-a}{n}\sum_i[f(x_i)-f(x_{i-1})]
+    =\frac{(b-a)[f(b)-f(a)]}{n}\longrightarrow0.
+\]
+单调减少时对 $-f$ 应用同一结论。
+\end{proof}
+
+\begin{example}
+\label{ex:thomae-function-riemann-integrable}
+在 $[0,1]$ 上定义\emph{黎曼函数}（Thomae's function）
+\[
+    T(x)=
+    \begin{cases}
+        1/q,&x=p/q\in(0,1]\cap\mathbb Q,\quad p,q\in\mathbb N,\ (p,q)=1,\\
+        1,&x=0,\\
+        0,&x\notin\mathbb Q.
+    \end{cases}
+\]
+证明它可积且积分为零。
+\end{example}
+\begin{solve}
+给定 $\eta>0$，满足 $T(x)\geq\eta$ 的点只有有限个，因为这些有理数的既约分母满足 $q\leq1/\eta$。用总长度小于任给 $\rho>0$ 的有限个小区间将它们包住，并使这些点不落在内部小区间的边界上。取包含这些端点的分割后，振幅不小于 $\eta$ 的小区间只能出现在被包住的部分，其长度总和小于 $\rho$，故 $T$ 可积。每个小区间均可取无理标记点，所得黎曼和恒为零，故 $\int_0^1T(x)\,dx=0$。每个有理点都因附近存在无理数而不连续；每个无理点则可避开上述有限个高取值点而得到连续性。这说明稠密的间断点并不必然妨碍可积。
+\end{solve}
+
+\begin{example}
+\label{ex:oscillatory-sine-riemann-integrable}
+函数 $g(x)=\sin(1/x)$（$x\neq0$）、$g(0)=0$ 在每个有限闭区间上可积。
+\end{example}
+\begin{solve}
+$|g|\leq1$，且除零点外连续，因此至多有一个间断点，由定理~\ref{thm:finite-discontinuities-integrable} 即可。零点附近振荡很快，但这一部分可被总长度任意小的区间包住，其振幅和贡献因有界性而可控制。
+\end{solve}
+
+\begin{theorem}[勒贝格可积性判据]
+\label{thm:lebesgue-criterion-riemann-integrability}
+设 $f$ 在 $[a,b]$ 上有界，则 $f$ 黎曼可积的充分必要条件是其间断点集 $E$ 为\emph{零测集}（set of measure zero）：对每个 $\varepsilon>0$，都存在有限或可数个开区间 $(\alpha_k,\beta_k)$ 覆盖 $E$，且 $\sum_k(\beta_k-\alpha_k)<\varepsilon$。
+\end{theorem}
+
+这里给出该判据作为可积函数类的整体刻画，证明留待实变函数论。有限集、可数集都是零测集，但零测集也可能不可数；不能把“间断点有限”误当作黎曼可积的必要条件。
+
+\section{定积分的性质}
+\label{sec:properties-of-definite-integrals}
+
+为统一端点次序，约定 $\int_a^a f(x)\,dx=0$，以及 $\int_b^a f(x)\,dx=-\int_a^b f(x)\,dx$。以下涉及某个区间时均要求被积函数在该区间可积；积分保序等不等式首先按 $a<b$ 陈述，交换上下限时须相应改变不等号方向。
+
+\begin{theorem}[线性、区间可加性与保序性]
+\label{thm:basic-properties-riemann-integral}
+若 $f,g\in R[a,b]$，$\alpha,\beta\in\mathbb R$，则 $\alpha f+\beta g\in R[a,b]$，且
+\begin{equation}
+    \int_a^b(\alpha f+\beta g)\,dx
+    =\alpha\int_a^b f\,dx+\beta\int_a^b g\,dx.
+    \label{eq:integral-linearity}
+\end{equation}
+若 $a<c<b$，则 $f\in R[a,b]$ 当且仅当它在 $[a,c]$、$[c,b]$ 上都可积，此时
+\begin{equation}
+    \int_a^b f\,dx=\int_a^c f\,dx+\int_c^b f\,dx.
+    \label{eq:integral-interval-additivity}
+\end{equation}
+若 $f(x)\leq g(x)$ 对所有 $x\in[a,b]$ 成立，则 $\int_a^b f\leq\int_a^b g$。特别地，若 $m\leq f\leq M$，则
+\begin{equation}
+    m(b-a)\leq\int_a^b f(x)\,dx\leq M(b-a).
+    \label{eq:integral-bounds}
+\end{equation}
+\end{theorem}
+\begin{proof}
+线性由同一分割、同一标记点下的黎曼和恒等式及极限的线性得到。对区间可加性，若整体可积，则先把 $c$ 加入振幅和足够小的分割，再限制到两个子区间，各自的振幅和都不超过整体振幅和。反之，将两个子区间上振幅和分别小于 $\varepsilon/2$ 的分割合并，便得到整体可积性。在包含 $c$ 的分割上，整体黎曼和恰为两个子区间黎曼和之和，取极限即得式~\eqref{eq:integral-interval-additivity}。保序性来自每一项 $f(\xi_i)\Delta x_i\leq g(\xi_i)\Delta x_i$；取常数函数比较即得上下界估计。
+\end{proof}
+
+式~\eqref{eq:integral-interval-additivity} 在 $a,b,c$ 次序任意时仍成立，只须三个端点所涉及的区间上可积，并使用有向积分的约定。
+
+\begin{theorem}[绝对值、乘积与连续复合]
+\label{thm:riemann-integrable-closure}
+若 $f,g\in R[a,b]$，则 $|f|,fg\in R[a,b]$，且
+\begin{equation}
+    \left|\int_a^b f(x)\,dx\right|
+    \leq\int_a^b|f(x)|\,dx.
+    \label{eq:integral-triangle-inequality}
+\end{equation}
+若 $m\leq f\leq M$，$\varphi$ 在 $[m,M]$ 上连续，则 $\varphi\circ f\in R[a,b]$。因此若再有 $|g(x)|\geq c>0$，则 $f/g\in R[a,b]$。
+\end{theorem}
+\begin{proof}
+由 $||f(x)|-|f(y)||\leq|f(x)-f(y)|$，绝对值函数在每个小区间上的振幅不超过 $f$ 的振幅，故 $|f|$ 可积。对 $-|f|\leq f\leq|f|$ 积分即可得到式~\eqref{eq:integral-triangle-inequality}。设 $|f|,|g|\leq B$，则
+\[
+    |f(x)g(x)-f(y)g(y)|
+    \leq B|f(x)-f(y)|+B|g(x)-g(y)|,
+\]
+故 $\omega_i(fg)\leq B[\omega_i(f)+\omega_i(g)]$。分别取两函数振幅和足够小的分割，再取公共细分，便知乘积可积。
+
+对于连续复合，$\varphi$ 在紧区间 $[m,M]$ 上有界且一致连续。给定 $\varepsilon>0$，取 $\eta>0$，使 $|u-v|<\eta$ 时 $|\varphi(u)-\varphi(v)|<\varepsilon/[2(b-a)]$。由 $f$ 可积，选分割使振幅不小于 $\eta$ 的小区间总长度足够小；在其余小区间上，$\varphi\circ f$ 的振幅不超过 $\varepsilon/[2(b-a)]$，而坏区间的贡献由 $\varphi$ 的整体振幅乘以它们的总长度控制。两部分之和可小于 $\varepsilon$，故复合可积。最后，若 $|g|\geq c$，则
+\[
+    \left|\frac1{g(x)}-\frac1{g(y)}\right|
+    \leq c^{-2}|g(x)-g(y)|,
+\]
+所以 $1/g$ 可积，再用乘积结论即可。
+\end{proof}
+
+商的分母仅仅“不为零”还不够：在 $[0,1]$ 上令 $g(x)=x$（$x>0$）、$g(0)=1$，则 $g$ 可积且处处非零，但 $1/g$ 无界。两个可积函数的复合也未必可积：取例~\ref{ex:thomae-function-riemann-integrable} 中的 $T$，再令 $\varphi(0)=0$、$\varphi(u)=1$（$0<u\leq1$），则 $\varphi$ 可积，$\varphi(T(x))$ 却是狄利克雷函数。
+
+\begin{example}
+\label{ex:step-and-continuous-integral-approximation}
+设 $f\in R[a,b]$。证明对每个 $\varepsilon>0$，存在阶梯函数 $h$ 与连续函数 $g$，使
+\[
+    \int_a^b|f-h|\,dx<\varepsilon,\qquad
+    \int_a^b|f-g|\,dx<\varepsilon.
+\]
+还可以使 $\int_a^b|f-g|^2\,dx$ 任意小。
+\end{example}
+\begin{solve}
+\emph{阶梯函数}（step function）是由有限个分点分段、在各开小区间内为常数的函数，分点处可另行赋值。选取满足 $\sum_i\omega_i\Delta x_i<\varepsilon$ 的分割，在每个开小区间令 $h=m_i$，在分点任意赋有限值，则除有限个点外 $|f-h|\leq\omega_i$，故其积分小于 $\varepsilon$。
+
+再令 $g$ 为依次连接 $(x_i,f(x_i))$ 的分段线性函数。对于 $x\in[x_{i-1},x_i]$，线性插值 $g(x)$ 与 $f(x)$ 都在 $[m_i,M_i]$ 内，故 $|f(x)-g(x)|\leq\omega_i$，得到相同的积分估计。若 $|f|\leq B$，则构造还保证 $|g|\leq B$，因而
+\[
+    \int_a^b|f-g|^2\,dx\leq2B\int_a^b|f-g|\,dx.
+\]
+把右边的近似精度进一步缩小即可；$B=0$ 时取 $g=0$。这里得到的是积分意义下的近似，不声称 $\max|f-g|$ 能任意小。
+\end{solve}
+
+\begin{proposition}
+\label{prop:zero-integral-continuous-functions}
+设 $f\in C([a,b])$。若 $f\geq0$ 且 $\int_a^b f=0$，则 $f\equiv0$；若 $f$ 在每个子区间上的积分都是零，也有 $f\equiv0$。
+\end{proposition}
+\begin{proof}
+若存在 $x_0$ 使 $f(x_0)>0$，连续性保证在一个正长度的子区间上 $f(x)\geq f(x_0)/2$，其积分严格为正。这在第一种情形下与整体积分为零矛盾，在第二种情形下与子区间积分为零矛盾。第二种情形若只有负值点，对 $-f$ 作同一论证即可；端点处非零时使用单侧邻域。
+\end{proof}
+
+非负条件排除了正负抵消，连续性排除了仅在孤立点取正值的情形，两者的作用不同。例如只有一个点取值为 $1$、其余点为 $0$ 的函数积分为零，却不恒为零。
+
+\begin{example}
+\label{ex:logarithm-integral-inequality}
+设 $p,q>0$，证明 $\displaystyle\frac{p-q}{p}\leq\ln\frac pq\leq\frac{p-q}{q}$。
+\end{example}
+\begin{solve}
+若 $q<p$，则在 $[q,p]$ 上有 $1/p\leq1/x\leq1/q$，积分得到结论。若 $p<q$，则先在 $[p,q]$ 上积分 $1/q\leq1/x\leq1/p$，再改变符号，也得到同一结论。$p=q$ 时两边均为零；$p\neq q$ 时，由 $1/x$ 的严格单调性，两处不等号均严格。
+\end{solve}
+
+\section{原函数的存在性与定积分的计算}
+\label{sec:antiderivative-existence-and-definite-integration}
+
+\subsection{变限定积分}
+\label{subsec:definite-integrals-with-variable-limits}
+
+设 $f\in R[a,b]$，定义\emph{变上限积分}（integral with variable upper limit）与变下限积分
+\[
+    \Phi(x)=\int_a^x f(t)\,dt,\qquad
+    \Psi(x)=\int_x^b f(t)\,dt,\qquad x\in[a,b].
+\]
+这里 $x$ 是函数的自变量，$t$ 是积分内的哑变量，不能因积分变量改名而抹去上限对 $x$ 的依赖。
+
+\begin{theorem}[变限积分与原函数]
+\label{thm:variable-integral-and-antiderivative}
+若 $f\in R[a,b]$ 且 $|f|\leq B$，则 $\Phi$ 满足
+\[
+    |\Phi(x)-\Phi(y)|\leq B|x-y|,
+\]
+故它是\emph{利普希茨连续}（Lipschitz continuous）的，特别地连续。若 $f$ 在 $x_0$ 连续，则 $\Phi'(x_0)=f(x_0)$，端点导数按单侧理解。因此每个连续函数都有原函数，且 $\Psi'=-f$。
+\end{theorem}
+\begin{proof}
+由区间可加性与积分估计，
+\[
+    |\Phi(x)-\Phi(y)|=\left|\int_y^x f(t)\,dt\right|\leq B|x-y|.
+\]
+若 $f$ 在 $x_0$ 连续，则对充分小且使 $x_0+h\in[a,b]$ 的非零 $h$，
+\[
+    \left|\frac{\Phi(x_0+h)-\Phi(x_0)}h-f(x_0)\right|
+    =\left|\frac1h\int_{x_0}^{x_0+h}[f(t)-f(x_0)]\,dt\right|
+    \leq\sup_{t\text{ 在 }x_0\text{ 与 }x_0+h\text{ 之间}}|f(t)-f(x_0)|
+    \longrightarrow0.
+\]
+最后利用 $\Psi(x)=\int_a^b f-\Phi(x)$ 即得下限求导公式。
+\end{proof}
+
+若 $f$ 连续，任一原函数 $F$ 与 $\Phi$ 的导数相同，故 $F-\Phi$ 为常数，由此也能推出牛顿--莱布尼茨公式。反之，可积函数未必存在原函数，例如阶跃函数违背定理~\ref{thm:darboux-derivative-intermediate-value} 中导数的介值性；存在原函数也未必黎曼可积，例如
+\[
+    F(x)=
+    \begin{cases}x^2\sin(1/x^2),&x\neq0,\\0,&x=0,\end{cases}
+    \quad
+    F'(x)=
+    \begin{cases}2x\sin(1/x^2)-\dfrac2x\cos(1/x^2),&x\neq0,\\0,&x=0.\end{cases}
+\]
+$F'$ 在零点附近无界，因而在包含零点的非退化闭区间上不可积。可积性、存在原函数和连续性是三个不同层次的性质。
+
+设 $f$ 连续，$u,v$ 在所论区间可导，且它们的值均落在 $f$ 的定义区间内。利用固定下限的 $\Phi$ 和链式法则，
+\begin{equation}
+    \frac{d}{dx}\int_{u(x)}^{v(x)}f(t)\,dt
+    =f(v(x))v'(x)-f(u(x))u'(x).
+    \label{eq:variable-integral-chain-rule}
+\end{equation}
+这一公式适用于被积函数仅依赖 $t$ 的情形；若被积函数还含参数 $x$，则还须处理其对参数的变化，不能直接套用。
+
+\begin{example}
+\label{ex:variable-gaussian-integral-derivative}
+求 $\displaystyle\frac{d}{dx}\int_x^{x^2}e^{-t^2}\,dt$。
+\end{example}
+\begin{solve}
+由式~\eqref{eq:variable-integral-chain-rule}，
+\[
+    \frac{d}{dx}\int_x^{x^2}e^{-t^2}\,dt
+    =2xe^{-x^4}-e^{-x^2}.
+\]
+即使 $e^{-t^2}$ 的原函数不能用初等函数表示，变限积分仍可直接求导。
+\end{solve}
+
+\begin{example}
+\label{ex:variable-integral-limit}
+求 $\displaystyle\lim_{x\to0}\frac{\int_0^{x^2}\sin t\,dt}{x^4}$。
+\end{example}
+\begin{solve}
+由 $\int_0^{x^2}\sin t\,dt=1-\cos(x^2)$ 及 $1-\cos u\sim u^2/2$，极限为 $1/2$。也可先确认其为 $0/0$ 型，再用洛必达法则得到
+\[
+    \lim_{x\to0}\frac{2x\sin(x^2)}{4x^3}
+    =\frac12\lim_{x\to0}\frac{\sin(x^2)}{x^2}=\frac12.
+\]
+\end{solve}
+
+\subsection{定积分的计算}
+\label{subsec:evaluation-of-definite-integrals}
+
+计算时先检查可积性，再按表达式的分段点、对称性或适当换元化简。对于分段函数，分别使用各段的原函数即可，不必强求一个统一表达式。例如令 $f(x)=x$（$x<0$）、$f(x)=-\sin x$（$x\geq0$），则对任意 $c>0$，
+\[
+    \int_{-c}^{\pi}f(x)\,dx
+    =\int_{-c}^0x\,dx-\int_0^\pi\sin x\,dx
+    =-\frac{c^2}{2}-2.
+\]
+
+\begin{theorem}[定积分换元公式]
+\label{thm:definite-integral-substitution}
+设 $f\in C([a,b])$，$\varphi\in C^1([\alpha,\beta])$，且 $\varphi([\alpha,\beta])\subseteq[a,b]$，则
+\begin{equation}
+    \int_\alpha^\beta f(\varphi(t))\varphi'(t)\,dt
+    =\int_{\varphi(\alpha)}^{\varphi(\beta)}f(x)\,dx.
+    \label{eq:definite-integral-substitution}
+\end{equation}
+此公式不要求 $\varphi$ 单调；若将 $\varphi^{-1}$ 作为计算工具，则需另行保证相应区间上的可逆性。
+\end{theorem}
+\begin{proof}
+连续函数 $f$ 有原函数 $F$，而 $F\circ\varphi$ 的导数是 $f(\varphi(t))\varphi'(t)$。两边分别使用牛顿--莱布尼茨公式，均得到 $F(\varphi(\beta))-F(\varphi(\alpha))$。
+\end{proof}
+
+若 $\varphi$ 在闭区间上连续、内部可导，且 $\varphi'\in R[\alpha,\beta]$，则其余条件不变时同一换元公式仍成立：$f\circ\varphi$ 连续，与可积的 $\varphi'$ 相乘仍可积，因而上述原函数论证仍适用。
+
+换元时须同时变换被积式、微分和上下限；新上下限已经表示同一对端点，不必再将结果换回旧变量。例如 $a>0$ 时，令 $x=a\sin t$，可得
+\[
+    \int_0^a\sqrt{a^2-x^2}\,dx
+    =a^2\int_0^{\pi/2}\cos^2t\,dt=\frac{\pi a^2}{4}.
+\]
+
+\begin{proposition}[对称性与周期性]
+\label{prop:integral-symmetry-and-periodicity}
+若 $f\in R[-a,a]$ 且 $a>0$，则偶函数满足 $\int_{-a}^a f=2\int_0^a f$，奇函数满足 $\int_{-a}^a f=0$。若 $f$ 连续且以 $T>0$ 为周期，则对任意 $c\in\mathbb R$，
+\[
+    \int_c^{c+T}f(x)\,dx=\int_0^T f(x)\,dx.
+\]
+\end{proposition}
+\begin{proof}
+在负半段作反射变换，得到 $\int_{-a}^0f(x)\,dx=\int_0^af(-t)\,dt$，分别代入奇偶关系即得前两式；反射关系对可积函数也可直接由反向排列分割证明。对于周期函数，将积分拆成 $\int_c^T f+\int_T^{c+T}f$，后一项令 $x=t+T$ 得 $\int_0^cf$，相加即得；有向积分约定保证任意 $c$ 时都有效。
+\end{proof}
+
+\begin{example}
+\label{ex:reflection-integral-x-sine}
+求 $\displaystyle I=\int_0^\pi\frac{x\sin x}{1+\cos^2x}\,dx$。
+\end{example}
+\begin{solve}
+令 $x=\pi-t$，得到 $I=\int_0^\pi(\pi-x)\sin x/(1+\cos^2x)\,dx$。将两式相加，
+\[
+    2I=\pi\int_0^\pi\frac{\sin x}{1+\cos^2x}\,dx
+    =-\pi\left.\arctan(\cos x)\right|_0^\pi=\frac{\pi^2}{2},
+\]
+故 $I=\pi^2/4$。反射对称性消去了原式中难处理的因子 $x$。
+\end{solve}
+
+\begin{example}
+\label{ex:hyperbolic-distance-on-interval}
+在 $(-1,1)$ 内定义
+\[
+    d(x,y)=\left|\int_x^y\frac{dt}{1-t^2}\right|.
+\]
+验证它是距离，并说明变换 $T_c(x)=(x-c)/(1-cx)$（$|c|<1$）保持此距离。
+\end{example}
+\begin{solve}
+令 $H(x)=\frac12\ln\frac{1+x}{1-x}$，则 $H'(x)=1/(1-x^2)>0$，且 $H$ 将 $(-1,1)$ 严格递增地映到 $\mathbb R$ 上。于是 $d(x,y)=|H(y)-H(x)|$，非负性、正定性、对称性及三角不等式都由实数上的绝对值性质得到。又有
+\[
+    1-T_c(x)^2=\frac{(1-c^2)(1-x^2)}{(1-cx)^2}>0,\qquad
+    T_c'(x)=\frac{1-c^2}{(1-cx)^2},
+\]
+故 $T_c(x)\in(-1,1)$，且 $T_c'(x)/(1-T_c(x)^2)=1/(1-x^2)$。用换元公式可得 $d(T_c(x),T_c(y))=d(x,y)$。
+
+固定 $x_0$ 时，$x\to1^-$ 或 $x\to-1^+$ 均有 $d(x_0,x)\to+\infty$。若 $(x_n)$ 在此距离下为柯西序列，则 $(H(x_n))$ 是实数柯西序列，收敛于某个 $u\in\mathbb R$，从而 $x_n$ 在 $d$ 下收敛于 $H^{-1}(u)\in(-1,1)$。因此这个度量空间完备。这是区间上的\emph{双曲距离}（hyperbolic distance）的一种归一化。
+\end{solve}
+
+\begin{theorem}[定积分分部积分公式]
+\label{thm:definite-integration-by-parts}
+设 $u,v$ 在 $[a,b]$ 上连续、在内部可导，且 $u',v'$ 具有端点赋值后属于 $R[a,b]$，则
+\begin{equation}
+    \int_a^b u(x)v'(x)\,dx
+    =\left.u(x)v(x)\right|_a^b-\int_a^b u'(x)v(x)\,dx.
+    \label{eq:definite-integration-by-parts}
+\end{equation}
+特别地，$u,v\in C^1([a,b])$ 时适用。
+\end{theorem}
+\begin{proof}
+由乘积可积性，$u'v$、$uv'$ 可积，而 $(uv)'=u'v+uv'$。对该等式积分，并对左边用牛顿--莱布尼茨公式，即得结论。
+\end{proof}
+
+\begin{example}
+\label{ex:integration-by-parts-logarithm}
+求 $\displaystyle\int_0^1x\ln(1+x)\,dx$。
+\end{example}
+\begin{solve}
+取 $u=\ln(1+x)$、$dv=x\,dx$，则
+\[
+    \int_0^1x\ln(1+x)\,dx
+    =\frac{\ln2}{2}-\frac12\int_0^1\frac{x^2}{1+x}\,dx
+    =\frac{\ln2}{2}-\frac12\int_0^1\left(x-1+\frac1{1+x}\right)\,dx
+    =\frac14.
+\]
+\end{solve}
+
+\begin{example}
+\label{ex:wallis-recurrence-and-product}
+求 $I_n=\int_0^{\pi/2}\sin^nx\,dx$（$n=0,1,2,\ldots$），并推导瓦利斯公式。
+\end{example}
+\begin{solve}
+反射换元 $x=\pi/2-t$ 给出 $I_n=\int_0^{\pi/2}\cos^nx\,dx$。$I_0=\pi/2$、$I_1=1$；当 $n\geq2$ 时，分部积分得到
+\[
+    I_n=\int_0^{\pi/2}\sin^{n-1}x\,d(-\cos x)
+    =(n-1)\int_0^{\pi/2}\sin^{n-2}x\cos^2x\,dx
+    =(n-1)(I_{n-2}-I_n).
+\]
+因此 $I_n=(n-1)I_{n-2}/n$。记双阶乘为同奇偶正整数的连乘，约定 $0!!=(-1)!!=1$，则
+\[
+    I_{2k}=\frac{(2k-1)!!}{(2k)!!}\frac{\pi}{2},\qquad
+    I_{2k+1}=\frac{(2k)!!}{(2k+1)!!}.
+\]
+由于 $0\leq\sin x\leq1$，有 $I_{2n+1}\leq I_{2n}\leq I_{2n-1}$；又由递推式，$I_{2n-1}/I_{2n+1}=(2n+1)/(2n)\to1$，故夹逼得到 $I_{2n}/I_{2n+1}\to1$。代入显式表达式，得到\emph{瓦利斯公式}（Wallis formula）
+\begin{equation}
+    \lim_{n\to\infty}
+    \frac1{2n+1}\left(\frac{(2n)!!}{(2n-1)!!}\right)^2
+    =\frac{\pi}{2}.
+    \label{eq:wallis-product-limit}
+\end{equation}
+\end{solve}
+
+\section{定积分中值定理}
+\label{sec:integral-mean-value-theorems}
+
+\subsection{定积分第一中值定理}
+\label{subsec:first-integral-mean-value-theorem}
+
+\begin{theorem}[定积分第一中值定理]
+\label{thm:first-integral-mean-value}
+设 $f\in C([a,b])$，$g\in R[a,b]$，且 $g$ 在 $[a,b]$ 上不变号，则存在 $\xi\in[a,b]$，使
+\begin{equation}
+    \int_a^b f(x)g(x)\,dx=f(\xi)\int_a^b g(x)\,dx.
+    \label{eq:first-integral-mean-value}
+\end{equation}
+特别地，取 $g\equiv1$，有 $\int_a^b f(x)\,dx=f(\xi)(b-a)$。
+\end{theorem}
+\begin{proof}
+不妨设 $g\geq0$，记 $m=\min f,M=\max f$。由 $mg\leq fg\leq Mg$，积分得到
+\[
+    m\int_a^b g\leq\int_a^b fg\leq M\int_a^b g.
+\]
+若 $\int g=0$，则 $\int fg=0$，任意 $\xi$ 都适用；否则 $\int fg/\int g\in[m,M]$，由 $f$ 的连续性和介值性可取到相应的 $f(\xi)$。$g\leq0$ 时对 $-g$ 应用结论。
+\end{proof}
+
+第一中值定理将加权平均表示为某点的函数值，$g$ 不变号是保证平均值落在 $f$ 的取值范围内的关键。若只假定 $f$ 可积，仍可得到 $\int fg=\mu\int g$，其中 $\inf f\leq\mu\leq\sup f$，但未必有 $\mu=f(\xi)$。若 $f,g$ 都连续且 $g$ 不变号，则还可选 $\xi\in(a,b)$：若 $f$ 在内部已经取到该平均值即无须再证；否则 $f$ 与平均值之差在内部连续且严格同号，当 $g$ 不恒为零时，其乘积的积分也严格同号，与平均值定义矛盾。
+
+\begin{example}
+\label{ex:concentrating-integral-kernel}
+设 $f\in C([0,1])$，求 $\displaystyle\lim_{n\to\infty}\int_0^1\frac{nf(x)}{1+n^2x^2}\,dx$。
+\end{example}
+\begin{solve}
+设 $|f|\leq B$，在 $r_n=n^{-1/2}$ 处分段。远离零点的部分满足
+\[
+    \left|\int_{r_n}^1\frac{nf(x)}{1+n^2x^2}\,dx\right|
+    \leq\frac Bn\int_{r_n}^1\frac{dx}{x^2}
+    \leq\frac B{\sqrt n}\longrightarrow0.
+\]
+近零点部分的权函数非负，由第一中值定理，存在 $\xi_n\in[0,r_n]$，使
+\[
+    \int_0^{r_n}\frac{nf(x)}{1+n^2x^2}\,dx
+    =f(\xi_n)\arctan(nr_n)
+    =f(\xi_n)\arctan\sqrt n
+    \longrightarrow\frac{\pi}{2}f(0).
+\]
+所以原极限为 $\pi f(0)/2$。此处权函数在零点附近集中，不能仅凭它在每个 $x>0$ 处趋于零就把极限移入积分号。
+\end{solve}
+
+\begin{theorem}[带积分余项的泰勒公式]
+\label{thm:taylor-integral-remainder}
+设 $n\geq0$，$f$ 在包含 $x_0,x$ 的区间上具有 $n+1$ 阶连续导数，则
+\begin{equation}
+    f(x)=\sum_{k=0}^n\frac{f^{(k)}(x_0)}{k!}(x-x_0)^k+R_n(x),
+    \qquad
+    R_n(x)=\frac1{n!}\int_{x_0}^x(x-t)^n f^{(n+1)}(t)\,dt.
+    \label{eq:taylor-integral-remainder}
+\end{equation}
+\end{theorem}
+\begin{proof}
+当 $n=0$ 时，这就是 $f(x)-f(x_0)=\int_{x_0}^x f'(t)\,dt$。当 $n\geq1$ 时，对余项中的积分分部积分，
+\[
+    R_n(x)
+    =-\frac{f^{(n)}(x_0)}{n!}(x-x_0)^n
+      +\frac1{(n-1)!}\int_{x_0}^x(x-t)^{n-1}f^{(n)}(t)\,dt
+    =R_{n-1}(x)-\frac{f^{(n)}(x_0)}{n!}(x-x_0)^n.
+\]
+从 $R_0=f(x)-f(x_0)$ 逐次代入即得公式，积分方向的约定保证 $x<x_0$ 时也成立。
+\end{proof}
+
+令 $t=x_0+s(x-x_0)$，可把余项写成
+\[
+    R_n(x)=\frac{(x-x_0)^{n+1}}{n!}
+    \int_0^1(1-s)^n f^{(n+1)}(x_0+s(x-x_0))\,ds.
+\]
+以 $(1-s)^n$ 为权函数用第一中值定理，便得到某个 $\xi$ 严格位于 $x_0,x$ 之间的拉格朗日余项
+\[
+    R_n(x)=\frac{f^{(n+1)}(\xi)}{(n+1)!}(x-x_0)^{n+1}.
+\]
+改对整个连续被积函数取通常的积分平均值，则对某个 $\theta\in(0,1)$ 得到柯西余项
+\[
+    R_n(x)=\frac{(1-\theta)^n}{n!}
+    f^{(n+1)}(x_0+\theta(x-x_0))(x-x_0)^{n+1}.
+\]
+这里默认 $x\neq x_0$，相等时余项为零。不同余项公式中的中间点一般不同，不能当作同一个点；它们在本定理较强的连续可导条件下都可由积分余项推出。
+
+\subsection{定积分第二中值定理}
+\label{subsec:second-integral-mean-value-theorem}
+
+第一中值定理适合把连续因子移出积分；第二中值定理则利用单调性，把一个单调因子替换成端点值，并允许另一个因子变号。证明的核心是有限和的分部求和，而非对单调函数直接求导。
+
+\begin{lemma}[阿贝尔变换]
+\label{lem:abel-summation-finite}
+设 $a_1,\ldots,a_n$、$b_1,\ldots,b_n$ 为实数，记 $B_0=0$、$B_k=\sum_{i=1}^kb_i$，则
+\begin{equation}
+    \sum_{i=1}^na_ib_i
+    =\sum_{i=1}^{n-1}(a_i-a_{i+1})B_i+a_nB_n.
+    \label{eq:abel-summation-finite}
+\end{equation}
+\end{lemma}
+\begin{proof}
+将 $b_i=B_i-B_{i-1}$ 代入左边，再将两组有限和错位相减，即得右边；$B_0=0$ 消去了起始项。
+\end{proof}
+
+\begin{theorem}[定积分第二中值定理]
+\label{thm:second-integral-mean-value}
+设 $g\in R[a,b]$。若 $f$ 非负且单调增加，则存在 $\xi_1\in[a,b]$，使
+\[
+    \int_a^b f(x)g(x)\,dx=f(b)\int_{\xi_1}^b g(x)\,dx;
+\]
+若 $f$ 非负且单调减少，则存在 $\xi_2\in[a,b]$，使
+\[
+    \int_a^b f(x)g(x)\,dx=f(a)\int_a^{\xi_2}g(x)\,dx.
+\]
+一般地，只要 $f$ 单调，就存在 $\xi\in[a,b]$，使
+\begin{equation}
+    \int_a^b f(x)g(x)\,dx
+    =f(a)\int_a^\xi g(x)\,dx+f(b)\int_\xi^b g(x)\,dx.
+    \label{eq:second-integral-mean-value}
+\end{equation}
+\end{theorem}
+\begin{proof}
+先证非负单调减少的情形。令 $G(x)=\int_a^x g(t)\,dt$，则 $G$ 连续；记 $m=\min G,M=\max G$。对分割 $P$ 设
+\[
+    Q_P=\sum_{i=1}^n f(x_{i-1})\int_{x_{i-1}}^{x_i}g(t)\,dt.
+\]
+取 $a_i=f(x_{i-1})$、$b_i=G(x_i)-G(x_{i-1})$，由阿贝尔变换，
+\[
+    Q_P=\sum_{i=1}^{n-1}[f(x_{i-1})-f(x_i)]G(x_i)
+          +f(x_{n-1})G(b).
+\]
+所有系数非负，且总和为 $f(a)$，故 $mf(a)\leq Q_P\leq Mf(a)$。设 $|g|\leq B$，由 $f$ 单调可得
+\[
+    \left|\int_a^bfg-Q_P\right|
+    \leq B\sum_i[f(x_{i-1})-f(x_i)]\Delta x_i
+    \leq B\|P\|[f(a)-f(b)]\longrightarrow0.
+\]
+所以 $mf(a)\leq\int fg\leq Mf(a)$。若 $f(a)=0$，则 $f\equiv0$；否则 $\int fg/f(a)$ 是 $G$ 的某个函数值，第二式得证。反射变量 $x=a+b-t$ 即把非负单调增加情形化为已证情形，得到第一式。
+
+若 $f$ 单调增加，则 $F=f-f(a)$ 非负单调增加，因而对某个 $\xi$，
+\[
+    \int_a^bfg=f(a)\int_a^bg+[f(b)-f(a)]\int_\xi^bg,
+\]
+整理即得式~\eqref{eq:second-integral-mean-value}。单调减少时改用 $F=f-f(b)$ 及非负单调减少的结论，同样得到该式。
+\end{proof}
+
+\begin{example}
+\label{ex:monotone-weighted-first-moment}
+设 $f$ 在 $[a,b]$ 上单调增加，证明
+\[
+    \int_a^bxf(x)\,dx\geq\frac{a+b}{2}\int_a^bf(x)\,dx.
+\]
+\end{example}
+\begin{solve}
+令 $c=(a+b)/2$，对 $f(x)$ 和 $g(x)=x-c$ 用式~\eqref{eq:second-integral-mean-value}。由于 $\int_a^b(x-c)\,dx=0$，有
+\[
+    \int_a^bf(x)(x-c)\,dx
+    =[f(b)-f(a)]\int_\xi^b(x-c)\,dx
+    =\frac{f(b)-f(a)}2(\xi-a)(b-\xi)\geq0,
+\]
+整理即得结论。此结论不要求 $f$ 非负。
+\end{solve}
+
+\begin{example}
+\label{ex:oscillatory-integral-at-zero}
+令 $g(t)=\sin(1/t)$（$t\neq0$）、$g(0)=0$，$\Phi(x)=\int_0^xg(t)\,dt$。估计零点附近的 $\Phi(x)$，并考察
+\[
+    f(x)=
+    \begin{cases}|x|^{-1/2}\Phi(x),&x\neq0,\\0,&x=0.\end{cases}
+\]
+在零点的可导性。
+\end{example}
+\begin{solve}
+先设 $0<\delta<x$，换元 $u=1/t$ 得
+\[
+    \int_\delta^x\sin(1/t)\,dt
+    =\int_{1/x}^{1/\delta}\frac{\sin u}{u^2}\,du.
+\]
+$u^{-2}$ 非负单调减少，由第二中值定理，存在 $\eta\in[1/x,1/\delta]$，使右边等于 $x^2\int_{1/x}^{\eta}\sin u\,du$，其绝对值不超过 $2x^2$。由 $|\int_0^\delta g|\leq\delta$，令 $\delta\to0^+$ 得 $|\Phi(x)|\leq2x^2$。$g$ 为奇函数，故 $\Phi$ 为偶函数，这一估计对 $x<0$ 也成立。
+
+于是 $\Phi'(0)=0$，而
+\[
+    \left|\frac{f(x)-f(0)}x\right|
+    \leq2|x|^{1/2}\longrightarrow0,
+\]
+故 $f'(0)=0$。尽管 $g$ 在零点不连续，其变限积分仍可能在那里可导；连续性是定理~\ref{thm:variable-integral-and-antiderivative} 的充分条件，不能反向推断为必要条件。
+\end{solve}
+
+\section{定积分在几何学中的应用}
+\label{sec:geometric-applications-of-definite-integrals}
+
+\subsection{直角坐标系下平面图形的面积}
+\label{subsec:plane-areas-in-cartesian-coordinates}
+
+设 $f,g\in C([a,b])$ 且 $g\leq f$。对于\emph{$X$ 型区域}（$x$-simple region）
+\[
+    D=\{(x,y):a\leq x\leq b,\ g(x)\leq y\leq f(x)\},
+\]
+每个竖直细条的高度为上边界减下边界，故
+\begin{equation}
+    A(D)=\int_a^b[f(x)-g(x)]\,dx.
+    \label{eq:cartesian-area-x-simple}
+\end{equation}
+同理，若 $D=\{(x,y):c\leq y\leq d,\ \varphi(y)\leq x\leq\psi(y)\}$ 为\emph{$Y$ 型区域}（$y$-simple region），则
+\[
+    A(D)=\int_c^d[\psi(y)-\varphi(y)]\,dy.
+\]
+一般图形可在内部不重叠的前提下分块求和；交点会影响上下或左右边界的次序，应先解出交点再决定分段。
+
+\begin{example}
+\label{ex:area-line-hyperbola}
+求直线 $y=2,y=x$ 与第一象限内的双曲线 $xy=1$ 所围图形的面积。
+\end{example}
+\begin{solve}
+沿水平方向切片时，$1\leq y\leq2$，左边界 $x=1/y$、右边界 $x=y$，所以
+\[
+    A=\int_1^2\left(y-\frac1y\right)\,dy=\frac32-\ln2.
+\]
+若沿竖直方向切片，则须在 $x=1$ 处分段：
+\[
+    A=\int_{1/2}^1\left(2-\frac1x\right)\,dx+\int_1^2(2-x)\,dx.
+\]
+两者结果相同，选取切片方向能减少分段和计算。
+\end{solve}
+
+\begin{example}
+\label{ex:young-inequality-integral-form}
+设 $f:[0,\infty)\to[0,\infty)$ 连续且严格增加，$f(0)=0$。对 $a\geq0$ 及属于 $f$ 值域的 $b\geq0$，证明\emph{杨氏不等式}（Young's inequality）
+\begin{equation}
+    ab\leq\int_0^af(x)\,dx+\int_0^bf^{-1}(y)\,dy,
+    \label{eq:young-integral-inequality}
+\end{equation}
+等号成立当且仅当 $b=f(a)$。若要求对任意 $b\geq0$ 使用此式，还须假定 $f(x)\to+\infty$。
+\end{example}
+\begin{solve}
+令 $c=f^{-1}(b)$。矩形 $[0,c]\times[0,b]$ 被曲线 $y=f(x)$ 分成两部分，按竖直与水平切片分别计算，得到
+\[
+    \int_0^cf(x)\,dx+\int_0^bf^{-1}(y)\,dy=bc.
+\]
+因此式~\eqref{eq:young-integral-inequality} 右边减去左边恰为
+\[
+    \int_c^a[f(x)-b]\,dx.
+\]
+若 $a>c$，被积函数在 $(c,a]$ 上严格为正；若 $a<c$，则在 $[a,c)$ 上严格为负，但积分方向相反，结果仍严格为正。只有 $a=c$ 时为零，故结论成立。反函数仅在原函数值域上定义，不能省略这一范围条件。
+\end{solve}
+
+\subsection{参数方程表示的曲线所围平面图形的面积}
+\label{subsec:plane-areas-enclosed-by-parametric-curves}
+
+设简单闭曲线由分段 $C^1$ 参数方程 $x=x(t),y=y(t)$（$\alpha\leq t\leq\beta$）描绘一周，除首尾重合外不自交，并按\emph{正向}（positive orientation）行进，即所围区域始终在前进方向的左侧。对于可分成有限个 $X$ 型或 $Y$ 型区域的图形，由直角坐标面积公式换元可得
+\begin{equation}
+    A=\int_\alpha^\beta x(t)y'(t)\,dt
+     =-\int_\alpha^\beta y(t)x'(t)\,dt
+     =\frac12\int_\alpha^\beta[x(t)y'(t)-y(t)x'(t)]\,dt.
+    \label{eq:parametric-enclosed-area}
+\end{equation}
+具体地，每个 $X$ 型区域的下边界由左向右、上边界由右向左，故 $-\int y\,dx$ 等于上、下边界高度差的积分。分块时内部公共边界被反向经过两次，其贡献相消；闭曲线上又有 $\int_\alpha^\beta(xy)'\,dt=0$，得到另外两个表达式。这里的 $\int y\,dx$ 只是 $\int y(t)x'(t)\,dt$ 的简写，曲线积分的系统定义留待后文。
+
+若参数反向，公式右边变号；若重复描绘，则会重复累计面积。对一条描绘一次的简单闭曲线，未知方向时可取右边的绝对值；对自交曲线，直接取绝对值未必得到各部分几何面积之和。
+
+\begin{example}
+\label{ex:ellipse-area-by-parameter}
+求椭圆 $x^2/a^2+y^2/b^2=1$（$a,b>0$）所围面积。
+\end{example}
+\begin{solve}
+取 $x=a\cos t,y=b\sin t$，$0\leq t\leq2\pi$，该参数按正向描绘一周。因此
+\[
+    A=\int_0^{2\pi}ab\cos^2t\,dt=\pi ab.
+\]
+也可把椭圆视为 $X$ 型区域，计算 $\int_{-a}^a2b\sqrt{1-x^2/a^2}\,dx$；两种方法表达的是同一面积。
+\end{solve}
+
+\subsection{微元法}
+\label{subsec:differential-element-method}
+
+\emph{微元法}（differential element method）是把可加的整体量写成局部近似量之和，再取极限的方法。设 $Q([a,b])$ 对子区间可加，且对任意足够细的分割，每个部分满足
+\[
+    Q([x_{i-1},x_i])=q(\xi_i)\Delta x_i+r_i,\qquad
+    |r_i|\leq\eta(\|P\|)\Delta x_i,\qquad \eta(h)\to0,
+\]
+其中 $q$ 可积，则
+\[
+    \left|Q([a,b])-\sum_iq(\xi_i)\Delta x_i\right|
+    \leq\eta(\|P\|)(b-a)\longrightarrow0,
+\]
+从而 $Q([a,b])=\int_a^bq(x)\,dx$。常将局部的一阶主部记作 $dQ=q(x)\,dx$，称为该量的微元。
+
+这一记法不是把有限增量 $\Delta Q$ 与 $q(x)\Delta x$ 无条件画等号，而是概括有误差控制的极限过程；仅有逐点的近似，尚不能保证任意细分后误差总和趋于零。例如曲边梯形从 $a$ 累积到 $x$ 的面积 $A(x)=\int_a^xf(t)\,dt$ 在 $f$ 连续时满足 $A'(x)=f(x)$，因而 $dA=f(x)\,dx$。实际使用时应先确认量的可加性、选定自变量、求出微元，并检查它覆盖的范围。
+
+\subsection{极坐标方程表示的曲线所围平面图形的面积}
+\label{subsec:plane-areas-enclosed-by-polar-curves}
+
+设 $r=r(\theta)\geq0$ 在 $[\alpha,\beta]$ 上连续，$0<\beta-\alpha\leq2\pi$，曲线与两条边界射线围成区域，每条中间射线上的部分是从原点到 $r(\theta)$ 的线段，且内部不被重复扫过。一个小角段的内、外扇形面积分别为 $\frac12m_i^2\Delta\theta_i$、$\frac12M_i^2\Delta\theta_i$，其中 $m_i,M_i$ 是该段半径的最小值、最大值。由一致连续性，上下扇形面积和之差趋于零，故
+\begin{equation}
+    A=\frac12\int_\alpha^\beta r(\theta)^2\,d\theta,
+    \qquad dA=\frac12r(\theta)^2\,d\theta.
+    \label{eq:polar-area}
+\end{equation}
+若同一角度下区域位于内、外半径 $r_1,r_2$ 之间，则面积为 $\frac12\int(r_2^2-r_1^2)\,d\theta$。应用时先检查描绘区间，尤其多叶曲线可能在一个参数周期内重复描绘。
+
+\begin{example}
+\label{ex:cardioid-polar-area}
+求心形线 $r=a(1+\cos\theta)$（$a>0$）所围面积。
+\end{example}
+\begin{solve}
+$0\leq\theta\leq2\pi$ 描绘其边界一次，故
+\[
+    A=\frac{a^2}{2}\int_0^{2\pi}(1+2\cos\theta+\cos^2\theta)\,d\theta
+    =\frac{3\pi a^2}{2}.
+\]
+\end{solve}
+
+\begin{example}
+\label{ex:circular-arc-area-two-methods}
+单位圆弧 $x=\cos t,y=\sin t$（$0\leq t\leq3\pi/4$）与 $x$ 轴、直线 $x=-1/\sqrt2$ 围成图形，求其面积。
+\end{example}
+\begin{solve}
+在正向边界的另外两条线段上，分别有 $dx=0$ 或 $y=0$，所以
+\[
+    A=-\int_0^{3\pi/4}\sin t(-\sin t)\,dt
+    =\frac{3\pi}{8}+\frac14.
+\]
+也可将图形分成张角 $3\pi/4$ 的单位扇形与两直角边均为 $1/\sqrt2$ 的直角三角形，分别得到 $3\pi/8$ 与 $1/4$。
+\end{solve}
+
+\subsection{平行截面面积为已知的立体的体积}
+\label{subsec:volumes-from-parallel-cross-sections}
+
+设边界分片光滑的有界立体介于平面 $x=a,x=b$ 之间，垂直于 $x$ 轴的截面面积为连续函数 $A(x)\geq0$。在通常的分片光滑几何情形下，薄片体积的一阶主部为 $A(x)\,dx$，故由微元法得到
+\begin{equation}
+    V=\int_a^b A(x)\,dx.
+    \label{eq:volume-by-cross-sections}
+\end{equation}
+这里使用了薄片体积可由相邻柱体近似的几何性质；严格的一般体积定义与截面积分原理将在重积分中建立，不能仅凭一条截面积函数就省略对立体本身的可测性条件。
+
+若 $0\leq y\leq f(x)$ 绕 $x$ 轴旋转一周，截面为半径 $f(x)$ 的圆盘，故
+\[
+    V=\pi\int_a^b f(x)^2\,dx.
+\]
+若区域为 $0\leq r(x)\leq y\leq R(x)$，则截面为圆环，$V=\pi\int_a^b[R(x)^2-r(x)^2]\,dx$。半径是到旋转轴的距离，图形跨过旋转轴时应先确定实际截面，不能机械相减。
+
+\begin{example}
+\label{ex:ellipsoid-volume-cross-sections}
+求椭球体 $x^2/a^2+y^2/b^2+z^2/c^2\leq1$（$a,b,c>0$）的体积。
+\end{example}
+\begin{solve}
+固定 $x\in[-a,a]$，截面为半轴 $b\sqrt{1-x^2/a^2}$、$c\sqrt{1-x^2/a^2}$ 的椭圆，故
+\[
+    V=\int_{-a}^a\pi bc\left(1-\frac{x^2}{a^2}\right)\,dx
+    =\frac{4\pi abc}{3}.
+\]
+\end{solve}
+
+\begin{example}
+\label{ex:astroid-solid-volume}
+星形线 $x^{2/3}+y^{2/3}=a^{2/3}$（$a>0$）所围区域绕 $x$ 轴旋转一周，求所得立体体积。
+\end{example}
+\begin{solve}
+上半支为 $y=(a^{2/3}-|x|^{2/3})^{3/2}$，截面为圆盘。利用对称性并令 $x=at$，
+\[
+    V=2\pi\int_0^a(a^{2/3}-x^{2/3})^3\,dx
+    =2\pi a^3\int_0^1(1-t^{2/3})^3\,dt
+    =\frac{32\pi a^3}{105},
+\]
+其中最后一个积分展开为 $1-9/5+9/7-1/3=16/105$。
+\end{solve}
+
+\subsection{曲线的弧长}
+\label{subsec:arc-length-of-curves}
+
+\begin{definition}
+\label{def:rectifiable-curve-length}
+设 $\gamma:[\alpha,\beta]\to\mathbb R^m$ 为连续参数曲线。对参数分割 $P:\alpha=t_0<\cdots<t_n=\beta$，作依次连接 $\gamma(t_i)$ 的内接折线，定义其长度为
+\[
+    \ell(P)=\sum_{i=1}^n\|\gamma(t_i)-\gamma(t_{i-1})\|.
+\]
+若 $\sup_P\ell(P)<\infty$，则称曲线\emph{可求长}（rectifiable），并定义\emph{弧长}（arc length）$L=\sup_P\ell(P)$；否则称其长度无穷。这里 $\|\cdot\|$ 是欧氏范数，曲线若被重复经过，相应路段按经过次数计入。
+\end{definition}
+
+细分使折线长不减，但连续曲线未必可求长。例如 $\gamma(t)=(t,t\sin(1/t))$（$t>0$）、$\gamma(0)=(0,0)$ 在 $[0,1]$ 上连续。取 $t_n^+=1/(2n\pi+\pi/2)$、$t_n^-=1/(2n\pi+3\pi/2)$，对应纵坐标为 $t_n^+$、$-t_n^-$；连接这一对点的弦长至少为 $t_n^++t_n^-$。把前 $N$ 对点按参数次序列入同一分割，折线长至少为 $\sum_{n=1}^N(t_n^++t_n^-)$，此和随 $N$ 发散，故曲线不可求长。
+
+\begin{theorem}[弧长积分公式]
+\label{thm:arc-length-integral}
+若 $\gamma\in C^1([\alpha,\beta];\mathbb R^m)$，则曲线可求长，且
+\begin{equation}
+    L=\int_\alpha^\beta\|\gamma'(t)\|\,dt.
+    \label{eq:parametric-arc-length}
+\end{equation}
+分段 $C^1$ 曲线可逐段求和。若还要求 $\gamma'(t)\neq0$，则称参数曲线\emph{正则}（regular）；公式本身也允许导数在某些点为零。
+\end{theorem}
+\begin{proof}
+记 $\gamma'$ 的连续模为 $\omega(h)$。由各坐标上的牛顿--莱布尼茨公式，对任意 $\tau_i\in[t_{i-1},t_i]$，
+\[
+    \|\gamma(t_i)-\gamma(t_{i-1})-\gamma'(\tau_i)\Delta t_i\|
+    \leq\omega(\|P\|)\Delta t_i.
+\]
+利用范数的反三角不等式，得到
+\[
+    \left|\ell(P)-\sum_i\|\gamma'(\tau_i)\|\Delta t_i\right|
+    \leq\omega(\|P\|)(\beta-\alpha).
+\]
+故网格趋于零时，折线长趋于式~\eqref{eq:parametric-arc-length} 的右边。对任意固定分割 $Q$，取包含 $Q$ 且网格趋于零的细分，因折线长随细分不减，知 $\ell(Q)$ 不超过该积分；另一方面，足够细的折线长能任意逼近该积分，故其上确界恰为该积分。
+\end{proof}
+
+平面参数曲线的弧长微元为 $ds=\sqrt{x'(t)^2+y'(t)^2}\,dt$，空间曲线则为 $ds=\sqrt{x'^2+y'^2+z'^2}\,dt$，此处参数按增加方向积分。对于函数图像 $y=f(x)$，$f\in C^1([a,b])$，有
+\[
+    L=\int_a^b\sqrt{1+f'(x)^2}\,dx.
+\]
+极坐标下 $x=r(\theta)\cos\theta,y=r(\theta)\sin\theta$，交叉项消去，得到
+\begin{equation}
+    L=\int_\alpha^\beta\sqrt{r(\theta)^2+r'(\theta)^2}\,d\theta.
+    \label{eq:polar-arc-length}
+\end{equation}
+
+\begin{example}
+\label{ex:parabola-arc-length}
+求抛物线 $y=x^2$ 在 $0\leq x\leq1$ 上的弧长。
+\end{example}
+\begin{solve}
+由图像弧长公式，
+\[
+    L=\int_0^1\sqrt{1+4x^2}\,dx
+    =\left.\left(\frac{x}{2}\sqrt{1+4x^2}
+       +\frac14\ln(2x+\sqrt{1+4x^2})\right)\right|_0^1
+    =\frac{\sqrt5}{2}+\frac14\ln(2+\sqrt5).
+\]
+\end{solve}
+
+\begin{example}
+\label{ex:lemniscate-elliptic-arc-length}
+设 $a>0$、$0<\beta<\pi/4$，双纽线 $r^2=2a^2\cos2\theta$ 在 $0\leq\theta\leq\beta$ 上的弧长可表示为什么积分？
+\end{example}
+\begin{solve}
+该区间上 $r>0$ 且光滑，由 $2rr'=-4a^2\sin2\theta$ 得
+\[
+    \sqrt{r^2+r'^2}
+    =\frac{\sqrt2a}{\sqrt{\cos2\theta}}
+    =\frac{\sqrt2a}{\sqrt{1-2\sin^2\theta}},
+    \qquad
+    L=\int_0^\beta\frac{\sqrt2a}{\sqrt{1-2\sin^2\theta}}\,d\theta.
+\]
+这属于\emph{椭圆积分}（elliptic integral）。建立积分表示已经解决了弧长的表达问题，实际数值可再用数值积分求出；不能把“没有初等形式”理解为该积分不存在。
+\end{solve}
+
+\subsection{旋转体的侧面积}
+\label{subsec:lateral-areas-of-solids-of-revolution}
+
+设曲线 $x=x(t),y=y(t)\geq0$（$\alpha\leq t\leq\beta$）分段 $C^1$，绕 $x$ 轴旋转后不重复覆盖曲面内部。一个小弧段可用弦段近似，弦段旋转所得圆台的侧面积为 $\pi(y_i+y_{i+1})\ell_i$；在足够细的分割下，以连续性及弧长公式控制误差，得到微元 $dS=2\pi y\,ds$，从而
+\begin{equation}
+    S=2\pi\int_\alpha^\beta
+      y(t)\sqrt{x'(t)^2+y'(t)^2}\,dt.
+    \label{eq:surface-of-revolution-area}
+\end{equation}
+这是对分片光滑旋转曲面的面积公式，面积的系统定义将在曲面积分中给出。特别地，$y=f(x)\geq0$ 时，
+\[
+    S=2\pi\int_a^b f(x)\sqrt{1+f'(x)^2}\,dx.
+\]
+绕 $y$ 轴时，把半径换成 $|x(t)|$；绕 $x$ 轴但 $y$ 可负时使用 $|y(t)|$，并先检查是否有不同弧段旋转后覆盖同一片曲面。侧面积不包括端面圆盘，曲线重复描绘会使该积分重复计数。
+
+\begin{example}
+\label{ex:spherical-zone-volume-and-area}
+半径为 $R>0$ 的球在 $x=a$ 与 $x=a+h$ 之间的部分，其中 $-R\leq a<a+h\leq R$，求其体积与球面部分的面积。
+\end{example}
+\begin{solve}
+母线为 $y=\sqrt{R^2-x^2}$，截面面积是 $\pi(R^2-x^2)$，故
+\[
+    V=\pi\int_a^{a+h}(R^2-x^2)\,dx
+    =\pi h\left(R^2-a^2-ah-\frac{h^2}{3}\right).
+\]
+在 $|x|<R$ 时，$y\sqrt{1+y'^2}=R$，所以球面部分面积为 $S=2\pi Rh$。若端点达到 $\pm R$，可取正则参数 $x=R\sin t,y=R\cos t$ 直接应用式~\eqref{eq:surface-of-revolution-area}，得到同一结果，无须在导数发散的端点强用图像形式的 $C^1$ 条件。取 $a=-R,h=2R$，分别得到球体体积 $4\pi R^3/3$ 与球面积 $4\pi R^2$。球面带面积只由高度 $h$ 决定，而体积还与所在位置 $a$ 有关。
+\end{solve}
+
+\section{定积分在物理学中的应用}
+\label{sec:physical-applications-of-definite-integrals}
+
+质量、静力矩与转动惯量都是可加量，因此可从有限个质点的定义出发，借助微元法推广到连续分布。设平面内有限个质点的位置为 $(x_i,y_i)$、质量为 $m_i\geq0$，总质量 $M=\sum_i m_i>0$，其关于坐标轴的\emph{静力矩}（first moment of mass）、\emph{质心}（center of mass）坐标与\emph{转动惯量}（moment of inertia）分别定义为
+\[
+    M_x=\sum_i m_i y_i,\qquad M_y=\sum_i m_i x_i,\qquad
+    \bar x=\frac{M_y}{M},\qquad \bar y=\frac{M_x}{M},
+\]
+\[
+    I_x=\sum_i m_i y_i^2,\qquad I_y=\sum_i m_i x_i^2.
+\]
+静力矩使用到轴的有向坐标，可能为负；转动惯量使用到轴距离的平方，必非负。静力矩的量纲为质量乘长度，转动惯量的量纲为质量乘长度平方，这也可用于检查微元是否写对。
+
+考虑分段 $C^1$ 的物质曲线 $\gamma(t)=(x(t),y(t))$（$\alpha\leq t\leq\beta$），假定按参数描绘一次，其\emph{线密度}（linear mass density）$\rho(t)\geq0$ 连续。线密度表示单位弧长的质量，记速度大小 $v_\gamma(t)=\sqrt{x'(t)^2+y'(t)^2}$，则
+\[
+    ds=v_\gamma(t)\,dt,\qquad dm=\rho(t)v_\gamma(t)\,dt.
+\]
+因此质量与静力矩为
+\begin{equation}
+    \begin{aligned}
+        M&=\int_\alpha^\beta\rho(t)v_\gamma(t)\,dt,\\
+        M_x&=\int_\alpha^\beta y(t)\rho(t)v_\gamma(t)\,dt,\qquad
+        M_y=\int_\alpha^\beta x(t)\rho(t)v_\gamma(t)\,dt.
+    \end{aligned}
+    \label{eq:curve-mass-and-first-moments}
+\end{equation}
+当 $M>0$ 时，$\bar x=M_y/M$、$\bar y=M_x/M$；转动惯量则为
+\begin{equation}
+    I_x=\int_\alpha^\beta y(t)^2\rho(t)v_\gamma(t)\,dt,\qquad
+    I_y=\int_\alpha^\beta x(t)^2\rho(t)v_\gamma(t)\,dt.
+    \label{eq:curve-moments-of-inertia}
+\end{equation}
+这些公式是把小弧段近似为集中在段内一点的质点，再取分割极限得到的；由于被积量连续，局部近似误差可统一控制。特别要区分单位弧长的密度与单位参数的质量变化率，后者为 $\rho(t)v_\gamma(t)$，一般不等于 $\rho(t)$。
+
+若 $\rho$ 为正常数，则它在质心公式中约去，质心就是曲线的\emph{形心}（centroid）；取 $\rho=1$，总质量等于弧长 $L$，有
+\[
+    \bar x=\frac1L\int_\alpha^\beta x(t)v_\gamma(t)\,dt,\qquad
+    \bar y=\frac1L\int_\alpha^\beta y(t)v_\gamma(t)\,dt.
+\]
+形心只取决于几何形状；质量分布不均匀时，质心还取决于密度。
+
+\begin{theorem}[古鲁金第一定理]
+\label{thm:guldin-surface-area}
+设可求长的分段光滑平面曲线长为 $L>0$，均匀分布的形心到旋转轴的距离为 $d$。若曲线位于轴的同一侧，旋转一周所得曲面没有重复覆盖，则其面积为
+\[
+    S=2\pi dL.
+\]
+这一结论也称\emph{帕普斯--古鲁金定理}（Pappus--Guldinus theorem）的曲面面积形式。
+\end{theorem}
+\begin{proof}
+取旋转轴为 $x$ 轴，曲线位于 $y\geq0$ 一侧，则 $d=\bar y$。由式~\eqref{eq:surface-of-revolution-area} 及均匀曲线的形心公式，
+\[
+    S=2\pi\int_\alpha^\beta y(t)v_\gamma(t)\,dt=2\pi\bar yL.
+\]
+\end{proof}
+
+\begin{example}
+\label{ex:torus-surface-area-guldin}
+圆周 $x^2+(y-a)^2=R^2$（$a>R>0$）绕 $x$ 轴旋转一周，求环面的面积。
+\end{example}
+\begin{solve}
+圆周均匀分布的形心在圆心 $(0,a)$，长为 $2\pi R$，且圆周不与旋转轴相交，旋转生成的曲面没有重复覆盖。由古鲁金第一定理，
+\[
+    S=2\pi a\cdot2\pi R=4\pi^2aR.
+\]
+\end{solve}
+
+再考虑平面薄片 $D=\{(x,y):a\leq x\leq b,\ y_1(x)\leq y\leq y_2(x)\}$，其中 $y_1,y_2$ 连续，质量均匀分布，取单位面密度。设面积 $A=\int_a^b(y_2-y_1)\,dx>0$，则总质量为 $M=A$。一条竖直薄片的质量微元为 $dm=(y_2-y_1)\,dx$，其形心的一阶近似坐标为 $(x,(y_1+y_2)/2)$，故
+\[
+    dM_y=x(y_2-y_1)\,dx,\qquad
+    dM_x=\frac{y_1+y_2}{2}(y_2-y_1)\,dx.
+\]
+由此得到形心公式
+\begin{equation}
+    \bar x=\frac{\int_a^bx[y_2(x)-y_1(x)]\,dx}{A},\qquad
+    \bar y=\frac{\frac12\int_a^b[y_2(x)^2-y_1(x)^2]\,dx}{A}.
+    \label{eq:plane-region-centroid}
+\end{equation}
+若面密度为其他正常数，同一因子在分子分母约去，形心不变。沿竖条再对 $y^2$ 累加，还可得单位面密度薄片的转动惯量
+\[
+    I_x=\frac13\int_a^b[y_2(x)^3-y_1(x)^3]\,dx,\qquad
+    I_y=\int_a^bx^2[y_2(x)-y_1(x)]\,dx.
+\]
+计算 $I_x$ 时不能把整条竖条的质量都放在其形心而忽略竖条本身沿 $y$ 方向的分布；静力矩允许这一替换，转动惯量一般不允许。
+
+\begin{theorem}[古鲁金第二定理]
+\label{thm:guldin-volume}
+设面积为 $A>0$、可分为有限个上述类型区域的平面图形位于旋转轴的一侧，形心到轴的距离为 $d$，绕轴旋转一周不重复计入体积，则所得旋转体的体积为
+\[
+    V=2\pi dA.
+\]
+这是帕普斯--古鲁金定理的体积形式。
+\end{theorem}
+\begin{proof}
+先对满足 $0\leq y_1\leq y_2$ 的 $X$ 型区域，利用圆环截面公式与式~\eqref{eq:plane-region-centroid}，
+\[
+    V=\pi\int_a^b(y_2^2-y_1^2)\,dx=2\pi\bar yA.
+\]
+对于可由有限块此类区域拼成、旋转后各块内部不重叠的区域，由体积与静力矩的可加性求和，得到同一等式。
+\end{proof}
+
+\begin{example}
+\label{ex:semidisk-centroid}
+求半圆盘 $D=\{(x,y):x^2+y^2\leq R^2,\ y\geq0\}$ 的形心。
+\end{example}
+\begin{solve}
+由关于 $y$ 轴的对称性，$\bar x=0$。半圆盘面积为 $\pi R^2/2$，绕 $x$ 轴旋转一周得到体积 $4\pi R^3/3$ 的球。古鲁金第二定理给出
+\[
+    \frac{4\pi R^3}{3}
+    =2\pi\bar y\frac{\pi R^2}{2},
+    \qquad
+    (\bar x,\bar y)=\left(0,\frac{4R}{3\pi}\right).
+\]
+这是均匀半圆盘的形心；弧线与薄片的质量分布不同，其形心也不同。
+\end{solve}
+
+\begin{example}
+\label{ex:polar-wire-moment-of-inertia}
+设平面曲线由 $r=r(\theta)\geq0$（$\alpha\leq\theta\leq\beta$）给出，$r\in C^1$，线密度为 $1$，求它关于极轴的转动惯量。
+\end{example}
+\begin{solve}
+极轴即 $x$ 轴，点到轴的距离为 $|r(\theta)\sin\theta|$，而 $dm=ds=\sqrt{r(\theta)^2+r'(\theta)^2}\,d\theta$。因此
+\[
+    I_x=\int_\alpha^\beta
+    r(\theta)^2\sin^2\theta
+    \sqrt{r(\theta)^2+r'(\theta)^2}\,d\theta.
+\]
+若线密度为非负连续函数 $\rho(\theta)$，在被积式中再乘 $\rho(\theta)$ 即可；若改求关于原点的极转动惯量，则距离平方改为 $r(\theta)^2$。
+\end{solve}
+
+\section*{习题七}
+\addcontentsline{toc}{section}{习题七}

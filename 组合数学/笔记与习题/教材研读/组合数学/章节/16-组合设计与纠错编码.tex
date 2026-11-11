@@ -1,0 +1,76 @@
+% !TeX root = ../组合数学笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{15} % 保留原书章号。
+\chapter{组合设计与纠错编码}
+\label{ch:designs-codes}
+
+组合设计要求局部关联均匀，例如每对试验对象共同出现相同次数；纠错编码则要求信息表示彼此足够分离，以便容忍传输错误。前者通过双重计数约束参数，后者通过距离与不相交球约束规模。
+
+\section{区组设计与参数约束}
+
+\begin{definition}
+设 $V$ 为 $v$ 点集合，$2\le k\le v$、$\lambda\ge1$。一族不同的 $k$ 元子集称为一个 $2$-$(v,k,\lambda)$ \emph{区组设计（block design）}，若每对不同点恰出现在 $\lambda$ 个子集中。各子集称为区组，其数量记为 $b$。
+\end{definition}
+
+固定一个点 $x$，计数包含 $x$ 的区组与其中另一个点形成的关联对。若 $x$ 出现在 $r_x$ 个区组中，该数为 $r_x(k-1)$；先选另一点，该数为 $\lambda(v-1)$。所以 $r_x$ 与 $x$ 无关，统一记为 $r$。再计数点与区组的关联对，得到
+\begin{equation}
+ r(k-1)=\lambda(v-1),\qquad vr=bk.
+ \label{eq:design-parameters}
+\end{equation}
+由此 $r,b$ 必须是整数，并且在区组不重复的约定下 $b\le\binom vk$。这些是必要条件，仅有参数通过检查并不能替代实际构造。
+
+还有一个有用的限制：若 $k<v$，则 $b\ge v$，称为 Fisher 不等式。令 $M$ 为 $v\times b$ 的零一关联矩阵，每列记录一个区组，则 $MM^{\mathsf T}=(r-\lambda)I+\lambda J$，其中 $J$ 为全一矩阵。由式\eqref{eq:design-parameters}及 $k<v$ 得 $r>\lambda$；任意非零实向量 $z$ 满足
+\[
+ z^{\mathsf T}MM^{\mathsf T}z=(r-\lambda)\sum_i z_i^2+
+                       \lambda\left(\sum_i z_i\right)^2>0.
+\]
+故该矩阵秩为 $v$，而秩至多为 $b$，证明不等式。
+
+\section{小设计与有限几何的例子}
+
+七点集合上的七个区组
+\[
+ 123,\quad145,\quad167,\quad246,\quad257,\quad347,\quad356
+\]
+构成 $2$-$(7,3,1)$ 设计，这里 $abc$ 简写集合 $\{a,b,c\}$。每个区组贡献三对点，七个区组共贡献 $21=\binom72$ 对，逐项可核查这些点对互不重复；因此每对恰出现一次。由式\eqref{eq:design-parameters}得 $r=3,b=7$，与逐点核对相符。
+
+这一结构称为\emph{Fano 平面（Fano plane）}。令 $\mathbb F_2=\{0,1\}$，加法与乘法均模二进行；更系统的构造把七点视为 $\mathbb F_2^3$ 的七个非零向量，向量运算逐坐标进行，每条线为 $\{x,y,x+y\}$，其中 $x\ne y$。任意两不同非零向量确定唯一这样的三元组，所以关联条件自动成立。取编号 $1=100,2=010,3=110,4=001,5=101,6=011,7=111$，正好得到上面的区组。有限几何中的“线”是关联对象，不要求在普通平面上都画成直线。
+
+\section{拉丁方与正交性}
+
+\begin{definition}
+$n\times n$ 表格使用 $n$ 个符号，每行每列各恰出现一次每个符号，称为 $n$ 阶\emph{拉丁方（Latin square）}。两个同阶拉丁方若叠加后的 $n^2$ 个有序符号对互不相同，称为\emph{正交（orthogonal）}。
+\end{definition}
+
+对素数 $p$，以模 $p$ 剩余类标记行列，令 $L_a(i,j)=i+aj\pmod p$，其中 $a\ne0$。固定一行时乘以 $a$ 可逆，固定一列时平移可逆，所以每个 $L_a$ 都是拉丁方。若 $a\ne b$，给定叠加符号 $(u,v)$，方程 $i+aj=u,i+bj=v$ 有唯一解 $j=(v-u)/(b-a)$、$i=u-aj$，故 $L_a,L_b$ 正交。这构造了 $p-1$ 个两两正交的拉丁方。
+
+例如 $p=3$ 时，$L_1$ 的三行为 $012,120,201$，$L_2$ 的三行为 $021,102,210$，叠加后九个有序对各出现一次。模合数运算中非零元素未必可逆；例如模 $6$ 乘以 $2$ 会重复余数，不能照搬上述证明。单个拉丁方、两个正交拉丁方以及最大的正交族是不同的存在性问题。
+
+\section{Hamming 距离与编码界}
+
+设字母表 $\mathcal A$ 有 $q\ge2$ 个符号，长度为 $n\ge1$ 的\emph{码（code）}是子集 $C\subseteq\mathcal A^n$。字符串 $x,y$ 的\emph{Hamming 距离（Hamming distance）} $d_H(x,y)$ 是不同坐标数；对至少含两个码字的 $C$，定义最小距离 $d=\min_{x\ne y\in C}d_H(x,y)$。它满足三角不等式，因为 $x,z$ 不同的坐标必在 $x,y$ 或 $y,z$ 中至少不同一次。
+
+最小距离为 $d$ 的码可以检测至多 $d-1$ 个符号替换错误：这样得到的字符串不可能是另一码字。它能唯一纠正任意至多 $t$ 个替换错误，当且仅当 $2t<d$。充分性来自两个半径 $t$ 的球若相交，会由三角不等式得到码字距离至多 $2t$。必要性来自一对距离为 $d\le2t$ 的码字：在它们不同的坐标中分别选取两方的符号，可构造与两者距离都不超过 $t$ 的接收串，导致歧义。
+
+\begin{theorem}[Hamming 界与 Singleton 界]
+令 $t=\lfloor(d-1)/2\rfloor$，则
+\begin{equation}
+ |C|\sum_{i=0}^t\binom ni(q-1)^i\le q^n,
+ \qquad |C|\le q^{n-d+1}.
+ \label{eq:coding-bounds}
+\end{equation}
+\end{theorem}
+\begin{proof}
+距一个固定码字恰为 $i$ 的字符串通过选择 $i$ 个位置、各换成其他 $q-1$ 个符号之一得到，共 $\binom ni(q-1)^i$ 个。纠错球两两不交，且都包含在 $q^n$ 个字符串中，得到第一式。对第二式，删除任意 $d-1$ 个坐标；若两个码字删除后相同，它们原来的距离至多为 $d-1$，矛盾。因此删坐标映射在 $C$ 上为单射，目标空间有 $q^{n-d+1}$ 个元素。
+\end{proof}
+
+二元重复码 $C=\{000,111\}$ 的最小距离为 $3$，可纠正一个替换错误、检测两个错误，两个半径一球恰好覆盖全部八个字符串。若字母表是给定的\emph{有限域（finite field）} $\mathbb F_q$，且 $C$ 为 $\mathbb F_q^n$ 的 $k$ 维子空间，则称为 $[n,k,d]_q$ 线性码，含 $q^k$ 个码字。向量的重量是其非零坐标数；线性码中两码字之差仍在码中，所以最小距离等于非零码字的最小重量。例取一个 $3\times7$ 二元矩阵 $H$，其列为七个不同的非零三维向量，令 $C=\{c:Hc^{\mathsf T}=0\}$，称 $H$ 为该码的\emph{校验矩阵（parity-check matrix）}。$H$ 包含三个标准基列，秩为三，故 $C$ 维数四；单列非零且两列不同，排除了重量一、二的非零码字，三列 $x,y,x+y$ 又给出重量三码字。因此它是 $[7,4,3]_2$ 码，且 $2^4(1+7)=2^7$，达到半径一的 Hamming 界。
+
+\section{习题}
+\begin{enumerate}
+  \item\label{ex:designs-codes-1} 设存在 $2$-$(9,3,1)$ 设计，求 $r,b$。仅由这两个整数能否认为已经证明该设计存在？
+  \item\label{ex:designs-codes-2} 核对七点设计中每个点所处的区组，说明每两条线也恰好交于一个点。
+  \item\label{ex:designs-codes-3} 对 $p=5$ 构造两个正交拉丁方，不必列完表格，但须证明每个有序符号对只出现一次。
+  \item\label{ex:designs-codes-4} 若二元长度为 $7$ 的码可纠正任意一次替换错误，利用 Hamming 界求其大小上界，并给出本章中达到上界的例子。
+\end{enumerate}
+

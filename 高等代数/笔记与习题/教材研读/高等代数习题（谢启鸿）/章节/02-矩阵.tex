@@ -1,0 +1,977 @@
+% !TeX root = ../高等代数习题（谢启鸿）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{矩阵}
+\label{chap:matrices}
+
+% 教材来源：高等代数/textbooks/高等代数习题（谢启鸿）/高代习题-2.pdf。
+% 覆盖原书第 2 章 §§2.1--2.12，印刷页 54--115；按主题整合，不逐题抄录。
+矩阵把线性关系组织成可以运算的对象。本章围绕两类问题展开：怎样利用矩阵结构简化乘法、乘方和求逆，怎样把行列式或矩阵恒等式转化为更容易处理的问题。前半章建立基本运算、特殊矩阵与初等变换的工具，后半章通过伴随矩阵、迹、矩阵分解、Cauchy--Binet 公式和分块消元组织解题方法，最后说明如何将可逆情形的恒等式推广到一般矩阵。
+
+除另有说明外，矩阵元素取自数域 $\mathbb F\subseteq\mathbb C$，$M_{m,n}(\mathbb F)$ 表示所有 $m\times n$ 矩阵，$M_n(\mathbb F)=M_{n,n}(\mathbb F)$，$I_n$ 表示 $n$ 阶单位矩阵，$0$ 的尺寸由上下文确定。记 $A^{\mathsf T}$ 为转置，$\overline A$ 为逐元素共轭，$A^{\mathsf H}=\overline A^{\mathsf T}$ 为共轭转置。本章沿用教材记号 $A^*$ 表示\emph{伴随矩阵}，不把它用于共轭转置；涉及平方和的非负性时，另行注明实数或复数条件。
+
+\section{基本概念}
+\label{sec:matrix-basic}
+
+\subsection{矩阵及其运算}
+
+\begin{definition}
+\label{def:matrix-operations}
+由 $mn$ 个数 $a_{ij}$ 按 $m$ 行、$n$ 列排成的阵列 $A=(a_{ij})$ 称为\emph{矩阵（matrix）}，其中 $1\le i\le m$、$1\le j\le n$。两个矩阵相等，当且仅当它们的尺寸相同且对应元素相等。同型矩阵的加法与数乘逐元素定义；若 $A\in M_{m,k}(\mathbb F)$、$B\in M_{k,n}(\mathbb F)$，则乘积 $AB\in M_{m,n}(\mathbb F)$ 定义为
+\begin{equation}
+ (AB)_{ij}=\sum_{\ell=1}^{k}a_{i\ell}b_{\ell j}.
+ \label{eq:matrix-product-entry}
+\end{equation}
+\end{definition}
+
+矩阵加法和数乘满足通常的交换、结合与分配律；矩阵乘法满足结合律和左右分配律，但一般不满足交换律。使用结合律前仍须检查各步尺寸，例如 $A\in M_{m,k}$、$B\in M_{k,\ell}$、$C\in M_{\ell,n}$ 时，$(AB)C=A(BC)\in M_{m,n}$。方阵的非负整数次幂规定为 $A^0=I_n$、$A^{r+1}=A^rA$，因此 $A^rA^s=A^{r+s}$。只有在 $AB=BA$ 时，才能直接使用通常的二项式展开 $(A+B)^k=\sum_{j=0}^k\binom{k}{j}A^{k-j}B^j$。
+
+\begin{example}
+\label{ex:matrix-noncommutative}
+说明非零矩阵不能任意约去，且非零矩阵的乘积可能为零。
+\end{example}
+\begin{solve}
+取二阶矩阵 $E_{ij}$，其第 $(i,j)$ 个元素为 $1$，其余为 $0$。有 $E_{12}E_{21}=E_{11}$ 而 $E_{21}E_{12}=E_{22}$，故乘法不交换；又有 $E_{11}E_{22}=0$，两因子却都非零。于是从 $AB=AC$ 只能得到 $A(B-C)=0$，若没有可逆性等附加条件，不能推出 $B=C$。即使两个加数均可逆，其和也可能不可逆，例如 $I_n+(-I_n)=0$。
+\end{solve}
+
+\begin{proposition}
+\label{prop:matrix-transpose}
+在各式运算有定义时，
+\[
+ (A+B)^{\mathsf T}=A^{\mathsf T}+B^{\mathsf T},\qquad
+ (cA)^{\mathsf T}=cA^{\mathsf T},\qquad
+ (AB)^{\mathsf T}=B^{\mathsf T}A^{\mathsf T},
+\]
+\[
+ \overline{AB}=\overline A\,\overline B,\qquad
+ \overline{cA}=\overline c\,\overline A,\qquad
+ (AB)^{\mathsf H}=B^{\mathsf H}A^{\mathsf H}.
+\]
+\end{proposition}
+\begin{proof}
+加法和数乘的结论逐元素成立。对乘法，由式~\eqref{eq:matrix-product-entry}，$(AB)^{\mathsf T}$ 的第 $(i,j)$ 个元素为 $\sum_\ell a_{j\ell}b_{\ell i}$，恰是 $B^{\mathsf T}A^{\mathsf T}$ 的对应元素。共轭保持有限和与乘积，再与转置公式结合即得其余结论。
+\end{proof}
+
+\subsection{逆矩阵与伴随矩阵}
+
+\begin{definition}
+\label{def:matrix-inverse-adjugate}
+若 $A\in M_n(\mathbb F)$ 存在同阶矩阵 $B$ 满足 $AB=BA=I_n$，则称 $A$ \emph{可逆（invertible）}或非奇异，$B$ 称为逆矩阵，记为 $A^{-1}$；否则称 $A$ 奇异。记 $C_{ij}=(-1)^{i+j}\det A[\widehat i,\widehat j]$ 为 $a_{ij}$ 的代数余子式，其中方括号表示删除第 $i$ 行与第 $j$ 列后所得矩阵，则
+\[
+ A^*=(C_{ji})_{1\le i,j\le n}
+\]
+称为 $A$ 的\emph{伴随矩阵（adjugate matrix）}。规定零阶行列式为 $1$，因而一阶矩阵 $(a)$ 的伴随为 $(1)$。
+\end{definition}
+
+\begin{theorem}
+\label{thm:matrix-invertibility}
+对任意 $n$ 阶矩阵 $A$，有
+\begin{equation}
+ AA^*=A^*A=(\det A)I_n.
+ \label{eq:matrix-adjugate-identity}
+\end{equation}
+矩阵 $A$ 可逆当且仅当 $\det A\ne0$，此时 $A^{-1}=(\det A)^{-1}A^*$。对同阶方阵，若 $AB=I_n$ 或 $BA=I_n$ 中任一等式成立，则另一等式也成立。
+\end{theorem}
+\begin{proof}
+$AA^*$ 的第 $(i,j)$ 个元素为 $\sum_k a_{ik}C_{jk}$：当 $i=j$ 时，这是 $\det A$ 按第 $i$ 行的展开；当 $i\ne j$ 时，这是将第 $j$ 行替换为第 $i$ 行所得行列式按第 $j$ 行的展开，因两行相同而为零。$A^*A$ 同理。若 $\det A\ne0$，式~\eqref{eq:matrix-adjugate-identity} 直接给出逆；若 $A$ 可逆，则由方阵乘积的行列式公式 $\det(AA^{-1})=\det A\det A^{-1}=1$ 得 $\det A\ne0$，该乘积公式亦由定理~\ref{thm:cauchy-binet} 推出。最后，$AB=I_n$ 蕴含 $\det A\det B=1$，故 $A$ 可逆且 $B=A^{-1}$；另一情形同理。
+\end{proof}
+
+逆矩阵唯一：若 $B,C$ 都是 $A$ 的逆，则 $B=B(AC)=(BA)C=C$。对可逆矩阵和非零标量 $c$，直接相乘验证可得
+\begin{equation}
+ (AB)^{-1}=B^{-1}A^{-1},\qquad
+ (cA)^{-1}=c^{-1}A^{-1},\qquad
+ (A^{\mathsf T})^{-1}=(A^{-1})^{\mathsf T}.
+ \label{eq:matrix-inverse-rules}
+\end{equation}
+因此同阶可逆矩阵之积仍可逆；若一个方阵因子奇异，则乘积奇异。可逆性还能恢复消去律，例如 $A$ 可逆时，$AB=AC$ 蕴含 $B=C$。
+
+\subsection{初等变换、初等矩阵与相抵}
+\label{subsec:matrix-elementary-basic}
+
+\begin{definition}
+交换两行、以非零数乘某行、将某行的倍数加到另一行，分别称为三类\emph{初等行变换（elementary row operations）}；对应地定义初等列变换。对 $I_n$ 作一次初等变换得到\emph{初等矩阵（elementary matrix）}。同型矩阵 $A,B$ 若可经有限次初等行、列变换相互转化，则称它们\emph{相抵（equivalent）}，亦称等价。
+\end{definition}
+
+若 $i\ne j$，记 $P_{ij}$ 为交换 $I_n$ 第 $i,j$ 行所得矩阵，$D_i(c)=I_n+(c-1)E_{ii}$（$c\ne0$），$T_{ij}(c)=I_n+cE_{ij}$。左乘 $T_{ij}(c)$ 的含义是将第 $j$ 行的 $c$ 倍加到第 $i$ 行；右乘同一矩阵则将第 $i$ 列的 $c$ 倍加到第 $j$ 列。三类初等矩阵的行列式分别为 $-1,c,1$，其逆分别为 $P_{ij},D_i(c^{-1}),T_{ij}(-c)$。所以初等行变换是左乘适当初等矩阵，初等列变换是右乘适当初等矩阵，均保持矩阵的可逆性。
+
+\begin{theorem}
+\label{thm:matrix-equivalence-normal}
+任意 $A\in M_{m,n}(\mathbb F)$ 均存在可逆矩阵 $P\in M_m(\mathbb F)$、$Q\in M_n(\mathbb F)$，使
+\begin{equation}
+ PAQ=\begin{pmatrix}I_r&0\\0&0\end{pmatrix}_{m\times n}.
+ \label{eq:matrix-equivalence-normal}
+\end{equation}
+这里 $r$ 唯一，等于 $A$ 的最大非零子式阶数，称为 $A$ 的\emph{秩（rank）}；零矩阵的秩为 $0$。同型矩阵相抵当且仅当秩相同。
+\end{theorem}
+\begin{proof}
+若矩阵非零，先将一个非零元素移到左上角并化为 $1$，再用行、列变换消去第一列与第一行其余元素，对剩余子块重复，最终得到式~\eqref{eq:matrix-equivalence-normal}。可逆行、列变换不改变所有 $s$ 阶子式是否全零：以行变换为例，新子式可按行列式的多线性展开为旧 $s$ 阶子式的线性组合，逆变换给出反向蕴含，列变换同理。标准型的最大非零子式阶数正好为 $r$，故 $r$ 唯一；两个秩相同的矩阵均可化为同一标准型，结论成立。
+\end{proof}
+
+对方阵，上述标准型给出可逆、秩为 $n$、相抵于 $I_n$、能表示为有限个初等矩阵之积之间的等价关系。把 $Ax=0$ 化为标准型对应的方程，还可知 $A$ 可逆当且仅当齐次方程只有零解，这也等价于其列向量线性无关；对转置应用同一结论得到行向量版本。若 $A$ 可逆，对增广矩阵 $(A\mid I_n)$ 只作行变换得到 $(I_n\mid A^{-1})$：所有行变换的乘积 $P$ 满足 $PA=I_n$，故右块恰为 $P=A^{-1}$。
+
+\subsection{分块矩阵}
+
+把相邻若干行、列分别组成一组，就把矩阵写成\emph{分块矩阵（block matrix）}。若 $A=(A_{ij})$、$B=(B_{jk})$ 的分块尺寸相容，则 $(AB)_{ik}=\sum_jA_{ij}B_{jk}$；这只是式~\eqref{eq:matrix-product-entry} 按索引分组。分块运算必须保留因子的先后次序，不能把矩阵块当作可交换的数。特别地，分块对角阵满足
+\[
+ \operatorname{diag}(A_1,\ldots,A_s)\operatorname{diag}(B_1,\ldots,B_s)
+ =\operatorname{diag}(A_1B_1,\ldots,A_sB_s),
+\]
+其幂、逆逐块计算，逆存在当且仅当每一对角块可逆，行列式为各对角块行列式的乘积。分块行变换中的乘子在左侧，分块列变换中的乘子在右侧；详细的消元与降阶方法见第~\ref{sec:matrix-block-elimination} 节。
+
+\subsection{Cauchy--Binet 公式}
+
+\begin{theorem}
+\label{thm:cauchy-binet}
+设 $A\in M_{m,n}(\mathbb F)$、$B\in M_{n,m}(\mathbb F)$。若 $m>n$，则 $\det(AB)=0$；若 $m\le n$，则
+\begin{equation}
+ \det(AB)=\sum_{\substack{J\subseteq\{1,\ldots,n\}\\|J|=m}}
+ \det A[:,J]\det B[J,:].
+ \label{eq:cauchy-binet}
+\end{equation}
+这里 $J$ 中索引按递增次序排列，$A[:,J]$ 表示保留这些列，$B[J,:]$ 表示保留这些行。更一般地，$A\in M_{m,n}$、$B\in M_{n,p}$ 时，对大小均为 $r$ 的行、列索引集 $I,K$，
+\begin{equation}
+ \det\bigl((AB)[I,K]\bigr)
+ =\sum_{\substack{J\subseteq\{1,\ldots,n\}\\|J|=r}}
+ \det A[I,J]\det B[J,K],
+ \label{eq:cauchy-binet-minor}
+\end{equation}
+$r>n$ 时右侧为空和，值为 $0$。这称为\emph{柯西--比内公式（Cauchy--Binet formula）}。
+\end{theorem}
+\begin{proof}
+记 $A$ 的列为 $a_1,\ldots,a_n$，则 $AB$ 的第 $j$ 列为 $\sum_{k=1}^n b_{kj}a_k$。按列多线性展开，$\det(AB)$ 是所有有序索引 $(k_1,\ldots,k_m)$ 对应项 $\det(a_{k_1},\ldots,a_{k_m})\prod_{j=1}^m b_{k_jj}$ 之和。索引重复时行列式为零；若 $m>n$，每一项都如此。否则将互异索引按集合 $J=\{j_1<\cdots<j_m\}$ 分组，在组内将 $A$ 的列恢复递增顺序，置换符号与 $B$ 的系数乘积之和恰为 $\det B[J,:]$，得到式~\eqref{eq:cauchy-binet}。最后对 $A[I,:]B[:,K]$ 应用同一结论即得子式公式。
+\end{proof}
+
+当 $m=n$ 时求和只有一项，故 $\det(AB)=\det A\det B$；矩形矩阵则不能直接套用这个方阵公式。一般的子式公式还说明 $\operatorname{rank}(AB)\le\min\{\operatorname{rank}A,\operatorname{rank}B\}$，因为超过任一因子秩的阶数时，每个乘积项都为零。
+
+\section{特殊矩阵}
+\label{sec:matrix-special}
+
+\subsection{标准单位向量与基础矩阵}
+
+记 $e_i^{(n)}$ 为第 $i$ 个分量为 $1$、其余分量为 $0$ 的 $n$ 维标准单位列向量；尺寸明确时简写为 $e_i$。若 $A\in M_{m,n}$，则 $Ae_j^{(n)}$ 为第 $j$ 列，$(e_i^{(m)})^{\mathsf T}A$ 为第 $i$ 行，并有 $(e_i^{(m)})^{\mathsf T}Ae_j^{(n)}=a_{ij}$。所以证明两个同型矩阵相等，可以验证它们对全部标准单位向量的作用相同。
+
+\begin{proposition}
+\label{prop:matrix-units}
+$n$ 阶\emph{基础矩阵（matrix units）} $E_{ij}=e_ie_j^{\mathsf T}$ 满足
+\begin{equation}
+ E_{ij}E_{k\ell}=\delta_{jk}E_{i\ell},\qquad
+ A=\sum_{i,j=1}^n a_{ij}E_{ij},\qquad
+ E_{ij}AE_{k\ell}=a_{jk}E_{i\ell},
+ \label{eq:matrix-unit-rules}
+\end{equation}
+其中 $\delta_{jk}$ 在 $j=k$ 时为 $1$，否则为 $0$。
+\end{proposition}
+\begin{proof}
+利用 $e_j^{\mathsf T}e_k=\delta_{jk}$ 及 $e_j^{\mathsf T}Ae_k=a_{jk}$ 即得第一、三式，第二式逐元素验证即可。特别地，$E_{ij}A$ 仅第 $i$ 行可能非零，该行为 $A$ 的第 $j$ 行；$AE_{ij}$ 仅第 $j$ 列可能非零，该列为 $A$ 的第 $i$ 列。
+\end{proof}
+
+\emph[caution]{基础矩阵与初等矩阵是不同的概念。}前者用于提取、组合元素，后者表示可逆的初等变换；例如 $n\ge2$ 时 $E_{11}$ 奇异，而初等矩阵总可逆。
+
+\subsection{循环移位、幂零块与多项式友阵}
+
+对 $n\ge2$，定义基础循环矩阵 $J$ 与幂零 Jordan 块 $N$ 为
+\[
+ J=\begin{pmatrix}0&1&&0\\ &0&\ddots&\\ &&\ddots&1\\1&&&0\end{pmatrix},\qquad
+ N=\begin{pmatrix}0&1&&0\\ &0&\ddots&\\ &&\ddots&1\\0&&&0\end{pmatrix}.
+\]
+空白位置均为零；$n=1$ 时另定 $J=(1)$、$N=(0)$。$Je_1=e_n$、$Je_j=e_{j-1}$（$j\ge2$），故 $J^n=I_n$；$Ne_1=0$、$Ne_j=e_{j-1}$（$j\ge2$），故当 $1\le k<n$ 时，$N^k$ 恰在第 $k$ 条上副对角线上为 $1$、其余元素为零，且 $N^n=0$。这些结论从单位向量的作用即可得到，不必逐次进行完整矩阵乘法。
+
+\begin{definition}
+若存在正整数 $s$ 使 $A^s=0$，则称 $A$ 为\emph{幂零矩阵（nilpotent matrix）}。对首一多项式 $f(t)=t^n+a_1t^{n-1}+\cdots+a_n$，矩阵
+\[
+ C(f)=\begin{pmatrix}
+ 0&0&\cdots&0&-a_n\\
+ 1&0&\cdots&0&-a_{n-1}\\
+ 0&1&\cdots&0&-a_{n-2}\\
+ \vdots&\vdots&\ddots&\vdots&\vdots\\
+ 0&0&\cdots&1&-a_1
+ \end{pmatrix}
+\]
+称为它的\emph{友阵（companion matrix）}；其转置称为相应的 Frobenius 块。
+\end{definition}
+
+\begin{proposition}
+\label{prop:matrix-companion}
+友阵满足 $\det(tI_n-C(f))=f(t)$，因而 $C(f)$ 可逆当且仅当 $a_n\ne0$。
+\end{proposition}
+\begin{proof}
+$tI_n-C(f)$ 的前 $n-1$ 列只有主对角元 $t$ 与其下方元素 $-1$ 可能非零。沿末列展开，第 $i<n$ 行的元素 $a_{n-i+1}$ 所对应代数余子式为 $t^{i-1}$：删除该行与末列后，前段贡献 $t^{i-1}$，后段的 $-1$ 因子与余子式符号抵消。末行贡献 $(t+a_1)t^{n-1}$，故展开结果为 $a_n+a_{n-1}t+\cdots+a_2t^{n-2}+(t+a_1)t^{n-1}=f(t)$。取 $t=0$ 得 $\det C(f)=(-1)^na_n$；$n=1$ 的结论直接成立。
+\end{proof}
+
+\subsection{对称、反对称与三角结构}
+
+\begin{definition}
+$A^{\mathsf T}=A$ 时称 $A$ 为\emph{对称矩阵（symmetric matrix）}，$A^{\mathsf T}=-A$ 时称其为\emph{反对称矩阵（skew-symmetric matrix）}。主对角线下方元素全为零的方阵称上三角矩阵；若其主对角元也全为零，则称严格上三角矩阵。下三角矩阵作对称定义。
+\end{definition}
+
+\begin{proposition}
+\label{prop:matrix-symmetric-test}
+任意方阵均唯一分解为
+\begin{equation}
+ A=\frac{A+A^{\mathsf T}}2+\frac{A-A^{\mathsf T}}2,
+ \label{eq:matrix-symmetric-split}
+\end{equation}
+其中前项对称、后项反对称。又有 $x^{\mathsf T}Ax=0$ 对所有 $x\in\mathbb F^n$ 成立，当且仅当 $A$ 反对称；特别地，对称矩阵若满足这一条件，则必为零矩阵。
+\end{proposition}
+\begin{proof}
+两部分的转置性质直接验证；若一个矩阵同时对称与反对称，则 $2A=0$，故为零，这给出分解的唯一性。反对称时，标量 $x^{\mathsf T}Ax$ 等于其转置 $x^{\mathsf T}A^{\mathsf T}x=-x^{\mathsf T}Ax$，因此为零。反之，取 $x=e_i$ 得 $a_{ii}=0$，再取 $x=e_i+e_j$ 得 $a_{ij}+a_{ji}=0$，于是 $A^{\mathsf T}=-A$。
+\end{proof}
+
+\begin{proposition}
+\label{prop:matrix-triangular}
+同阶上三角矩阵对加减、数乘、乘法及多项式运算封闭；其行列式为主对角元之积，可逆当且仅当各主对角元非零，此时逆仍为上三角矩阵，主对角元逐项取倒数。严格上三角 $n$ 阶矩阵 $U$ 满足 $U^n=0$。下三角情形相同。
+\end{proposition}
+\begin{proof}
+若 $A,B$ 上三角，则 $(AB)_{ij}=\sum_k a_{ik}b_{kj}$ 中非零项必须满足 $i\le k\le j$，故 $i>j$ 时为零，且 $(AB)_{ii}=a_{ii}b_{ii}$。行列式的置换展开只有主对角项可能非零。可逆时逐列回代解 $Ax=e_j$，得到 $x_i=0$（$i>j$）和 $x_j=a_{jj}^{-1}$，故逆具有所述结构。严格上三角情形下，$(U^k)_{ij}$ 的非零项必须对应链 $i<i_1<\cdots<i_{k-1}<j$；当 $k=n$ 时不存在这样的索引链，故 $U^n=0$。
+\end{proof}
+
+对上三角矩阵，伴随矩阵也上三角，且第 $i$ 个主对角元为 $\prod_{j\ne i}a_{jj}$。可逆时这由 $A^*=(\det A)A^{-1}$ 得到；奇异时对 $A+tI_n$ 使用第~\ref{sec:matrix-perturbation} 节的摄动论证，再令 $t\to0$。相同结论可用于具有方形对角块的分块三角矩阵，但分块行列式的进一步化简仍须检查交换条件。
+
+\section{矩阵运算中的结构方法}
+\label{sec:matrix-calculation}
+
+\begin{example}
+\label{ex:matrix-positive-products}
+设 $A\in M_{m,n}(\mathbb R)$、$B\in M_{n,p}(\mathbb R)$ 的元素均非负，且 $AB$ 的第 $i$ 行全为零。证明：或者 $A$ 的第 $i$ 行全为零，或者 $B$ 至少有一行全为零。
+\end{example}
+\begin{solve}
+若 $A$ 的第 $i$ 行不全为零，选 $k$ 使 $a_{ik}>0$。对每个 $j$，$0=(AB)_{ij}=\sum_\ell a_{i\ell}b_{\ell j}$ 是非负数之和，故 $a_{ik}b_{kj}=0$，从而 $b_{kj}=0$。这对所有 $j$ 成立，因此 $B$ 的第 $k$ 行全为零。这里的非负条件排除了正负项相消，不能省略。
+\end{solve}
+
+\begin{proposition}
+\label{prop:matrix-positive-zero}
+实矩阵 $A$ 满足 $AA^{\mathsf T}=0$ 当且仅当 $A=0$；复矩阵 $A$ 满足 $AA^{\mathsf H}=0$ 当且仅当 $A=0$。
+\end{proposition}
+\begin{proof}
+$AA^{\mathsf T}$ 的第 $i$ 个主对角元为 $\sum_j a_{ij}^2$，实数平方和为零迫使每项为零。复数情形用 $\sum_j|a_{ij}|^2$。若对复矩阵误用转置，结论可能失败，例如 $A=(1,\mathrm i)$ 非零却有 $AA^{\mathsf T}=0$。
+\end{proof}
+
+\begin{example}
+\label{ex:matrix-center}
+证明与所有 $n$ 阶矩阵乘法可交换的矩阵恰为纯量矩阵 $cI_n$。
+\end{example}
+\begin{solve}
+设 $AE_{ii}=E_{ii}A$ 对每个 $i$ 成立，比较第 $i$ 行、第 $i$ 列可知所有非对角元都为零，故 $A=\operatorname{diag}(d_1,\ldots,d_n)$。再由 $AE_{ij}=E_{ij}A$ 得 $d_iE_{ij}=d_jE_{ij}$，因此所有 $d_i$ 相等。反之纯量矩阵与所有同阶矩阵可交换。
+\end{solve}
+
+\begin{example}
+\label{ex:matrix-powers}
+计算 $aI_n+N$ 与 $uv^{\mathsf T}$ 的正整数次幂，其中 $N^s=0$，$u,v\in\mathbb F^n$。
+\end{example}
+\begin{solve}
+由于 $aI_n$ 与 $N$ 可交换，
+\begin{equation}
+ (aI_n+N)^k=\sum_{j=0}^{\min\{k,s-1\}}\binom{k}{j}a^{k-j}N^j.
+ \label{eq:matrix-nilpotent-power}
+\end{equation}
+这里零次幂按多项式约定取 $1$，因此 $a=0$ 时也成立。对外积 $R=uv^{\mathsf T}$，中间的 $v^{\mathsf T}u$ 是标量，结合律给出 $R^2=(v^{\mathsf T}u)R$，进而
+\begin{equation}
+ R^k=(v^{\mathsf T}u)^{k-1}R\qquad(k\ge1).
+ \label{eq:matrix-rank-one-power}
+\end{equation}
+例如 $u=(1,2,3)^{\mathsf T}$、$v=(1,2,4)^{\mathsf T}$ 时 $v^{\mathsf T}u=17$，故 $R^k=17^{k-1}R$。又若二阶矩阵 $A$ 满足某个正整数 $k$ 对应的 $A^k=0$，则 $\det A=0$；非零时 $A$ 的秩为 $1$，可写成 $uv^{\mathsf T}$，再由式~\eqref{eq:matrix-rank-one-power} 得 $v^{\mathsf T}u=0$，故总有 $A^2=0$。
+\end{solve}
+
+\begin{proposition}
+\label{prop:matrix-circulant-polynomial}
+同阶\emph{循环矩阵（circulant matrix）}
+\[
+ A=\begin{pmatrix}
+ a_1&a_2&\cdots&a_n\\
+ a_n&a_1&\cdots&a_{n-1}\\
+ \vdots&\vdots&\ddots&\vdots\\
+ a_2&a_3&\cdots&a_1
+ \end{pmatrix}
+\]
+恰是基础循环矩阵 $J$ 的多项式 $A=a_1I_n+a_2J+\cdots+a_nJ^{n-1}$。所以同阶循环矩阵的积仍为循环矩阵，且彼此可交换。
+\end{proposition}
+\begin{proof}
+由 $J$ 的移位作用逐行核对即可得到多项式表示。两个多项式相乘后，利用 $J^n=I_n$ 把幂次约化到 $0,\ldots,n-1$，因此乘积仍有同样表示；同一矩阵的两个多项式相互可交换。
+\end{proof}
+
+\begin{example}
+\label{ex:matrix-row-sums}
+设 $A\in M_n(\mathbb F)$ 每行元素之和均为 $c$，证明 $A^k$ 每行元素之和为 $c^k$；若 $A$ 可逆，则 $c\ne0$，且 $A^{-1}$ 每行元素之和为 $c^{-1}$。
+\end{example}
+\begin{solve}
+令 $\mathbf1=(1,\ldots,1)^{\mathsf T}$。行和条件等价于 $A\mathbf1=c\mathbf1$，反复相乘得 $A^k\mathbf1=c^k\mathbf1$。若 $A$ 可逆而 $c=0$，则 $A\mathbf1=0$ 与 $\mathbf1\ne0$ 矛盾；$c\ne0$ 时原等式左乘 $c^{-1}A^{-1}$ 得 $A^{-1}\mathbf1=c^{-1}\mathbf1$。列和问题可对转置使用同一方法。
+\end{solve}
+
+\section{可逆矩阵的判定与求逆}
+\label{sec:matrix-inverse-methods}
+
+判定可逆性时，先观察已知条件能否给出非零行列式、非零核向量或一个直接的逆因子，再决定是否展开元素。Vandermonde 矩阵的行列式为各节点差之积，故节点两两不同时可逆；对满足多项式关系的矩阵，重组关系往往比计算行列式更直接。
+
+\begin{example}
+\label{ex:matrix-invertibility-tests}
+分别证明以下结论：非零实矩阵若 $A^*=A^{\mathsf T}$，则 $A$ 可逆；实反对称矩阵 $K$ 的 $I_n-K$ 可逆；奇数阶实正交矩阵 $Q$ 若 $\det Q>0$，则 $I_n-Q$ 奇异。
+\end{example}
+\begin{solve}
+第一问中有 $C_{ij}=a_{ij}$，选取非零行按该行展开，得到 $\det A=\sum_j a_{ij}^2>0$。第二问若 $(I_n-K)x=0$ 有非零实解，则 $Kx=x$，于是 $x^{\mathsf T}x=x^{\mathsf T}Kx=0$，与实平方和的正性矛盾，故齐次方程只有零解。第三问由 $QQ^{\mathsf T}=I_n$ 得 $\det Q=1$；又
+\[
+ \det(I_n-Q)=\det((I_n-Q)Q^{\mathsf T})
+ =\det(Q^{\mathsf T}-I_n)=(-1)^n\det(I_n-Q),
+\]
+$n$ 为奇数，故该行列式为零。这里正交矩阵指满足 $QQ^{\mathsf T}=I_n$ 的实方阵。
+\end{solve}
+
+\begin{example}
+\label{ex:matrix-polynomial-inverse}
+设 $A^2-3A+2I_n=0$，求 $A^{-1}$ 与 $(A+I_n)^{-1}$，并证明 $A\ne I_n$ 时 $A-2I_n$ 奇异。
+\end{example}
+\begin{solve}
+由 $A(3I_n-A)=2I_n$ 与 $(A+I_n)(4I_n-A)=6I_n$ 得
+\[
+ A^{-1}=\frac{3I_n-A}{2},\qquad
+ (A+I_n)^{-1}=\frac{4I_n-A}{6}.
+\]
+又 $(A-I_n)(A-2I_n)=0$；若后一因子可逆，右乘其逆便得 $A=I_n$，与条件矛盾。一般地，若 $p(A)=0$ 且 $p(0)\ne0$，把常数项移到另一侧即可凑出 $A$ 的逆多项式。
+\end{solve}
+
+\begin{example}
+若同阶方阵满足 $A+B=AB$，证明 $I_n-A$ 可逆且 $AB=BA$。
+\end{example}
+\begin{solve}
+由 $(I_n-A)(I_n-B)=I_n$，定理~\ref{thm:matrix-invertibility} 保证 $(I_n-A)^{-1}=I_n-B$，因此反向乘积也为 $I_n$。展开反向乘积得 $BA=A+B=AB$。单侧逆推出双侧逆的结论依赖于这里两者都是同阶方阵。
+\end{solve}
+
+\begin{theorem}
+\label{thm:matrix-inverse-transfer}
+设 $U\in M_{m,n}(\mathbb F)$、$V\in M_{n,m}(\mathbb F)$。则 $I_m+UV$ 可逆当且仅当 $I_n+VU$ 可逆，此时
+\begin{equation}
+ (I_n+VU)^{-1}=I_n-V(I_m+UV)^{-1}U.
+ \label{eq:matrix-inverse-transfer}
+\end{equation}
+\end{theorem}
+\begin{proof}
+设 $M=I_m+UV$ 可逆，由 $U(I_n+VU)=MU$ 得
+\[
+ \bigl(I_n-VM^{-1}U\bigr)(I_n+VU)
+ =I_n+VU-VM^{-1}MU=I_n.
+\]
+于是右侧矩阵可逆且逆由式~\eqref{eq:matrix-inverse-transfer} 给出。交换 $U,V$ 的角色即得反向蕴含。
+\end{proof}
+
+\begin{theorem}
+\label{thm:matrix-woodbury}
+设 $A\in M_n(\mathbb F)$、$C\in M_m(\mathbb F)$ 可逆，$B\in M_{n,m}(\mathbb F)$、$D\in M_{m,n}(\mathbb F)$，且 $S=C^{-1}+DA^{-1}B$ 可逆，则
+\begin{equation}
+ (A+BCD)^{-1}
+ =A^{-1}-A^{-1}BS^{-1}DA^{-1}.
+ \label{eq:matrix-woodbury}
+\end{equation}
+这称为 Sherman--Morrison--Woodbury 公式。特别地，若 $u,v\in\mathbb F^n$ 且 $1+v^{\mathsf T}A^{-1}u\ne0$，则有 Sherman--Morrison 公式
+\begin{equation}
+ (A+uv^{\mathsf T})^{-1}
+ =A^{-1}-\frac{A^{-1}uv^{\mathsf T}A^{-1}}{1+v^{\mathsf T}A^{-1}u}.
+ \label{eq:matrix-sherman-morrison}
+\end{equation}
+\end{theorem}
+\begin{proof}
+令 $U=A^{-1}B$、$V=CD$，则 $I_m+VU=CS$ 可逆。由定理~\ref{thm:matrix-inverse-transfer}，
+\[
+ (I_n+UV)^{-1}
+ =I_n-A^{-1}B(CS)^{-1}CD
+ =I_n-A^{-1}BS^{-1}D.
+\]
+再由 $A+BCD=A(I_n+UV)$ 得第一式。取 $m=1$、$C=(1)$、$B=u$、$D=v^{\mathsf T}$ 得第二式。公式中的分母必须非零，矩阵因子的次序也必须保持。
+\end{proof}
+
+\begin{example}
+\label{ex:matrix-diagonal-rank-one-inverse}
+设 $D=\operatorname{diag}(d_1,\ldots,d_n)$、$d_i\ne0$，求 $D+\mathbf1\mathbf1^{\mathsf T}$ 的可逆条件和逆，并处理主对角元为零、其余元素全为 $1$ 的矩阵。
+\end{example}
+\begin{solve}
+记 $s=1+\sum_{i=1}^n d_i^{-1}$。由定理~\ref{thm:matrix-inverse-transfer}，$D+\mathbf1\mathbf1^{\mathsf T}$ 可逆当且仅当 $s\ne0$；此时
+\begin{equation}
+ (D+\mathbf1\mathbf1^{\mathsf T})^{-1}
+ =D^{-1}-\frac{D^{-1}\mathbf1\mathbf1^{\mathsf T}D^{-1}}s,
+ \qquad (A^{-1})_{ij}=\frac{\delta_{ij}}{d_i}-\frac1{sd_id_j}.
+ \label{eq:matrix-diagonal-rank-one-inverse}
+\end{equation}
+这里第二式记 $A=D+\mathbf1\mathbf1^{\mathsf T}$。若 $s=0$，则非零向量 $D^{-1}\mathbf1$ 满足 $A(D^{-1}\mathbf1)=0$，也可直接看出奇异。令 $D=-I_n$，当 $n\ge2$ 时得到
+\[
+ (-I_n+\mathbf1\mathbf1^{\mathsf T})^{-1}
+ =-I_n+\frac1{n-1}\mathbf1\mathbf1^{\mathsf T}.
+\]
+$n=1$ 时原矩阵为零，不能使用这个分式。
+\end{solve}
+
+若 $A,B$ 均可逆，则
+\[
+ A+B=A(A^{-1}+B^{-1})B.
+\]
+所以 $A+B$ 与 $A^{-1}+B^{-1}$ 同时可逆，且在可逆时
+\[
+ (A^{-1}+B^{-1})^{-1}=B(A+B)^{-1}A=A(A+B)^{-1}B.
+\]
+后一种写法可由 $A(A+B)^{-1}B=A-A(A+B)^{-1}A$ 验证；这并不意味着各因子可以任意交换。
+
+\section{初等变换及其应用}
+\label{sec:matrix-elementary-applications}
+
+\begin{proposition}
+\label{prop:matrix-singular-witness}
+对 $A\in M_n(\mathbb F)$，以下条件等价：$A$ 奇异；存在非零列向量 $x$ 使 $Ax=0$；存在非零同阶矩阵 $B$ 使 $AB=0$。
+\end{proposition}
+\begin{proof}
+可逆时由左乘 $A^{-1}$ 可排除后两种情形。奇异时，由式~\eqref{eq:matrix-equivalence-normal} 取 $PAQ=\operatorname{diag}(I_r,0)$、$r<n$，令 $x=Qe_n\ne0$，便有 $PAx=0$，从而 $Ax=0$。再令 $B=xe_1^{\mathsf T}\ne0$ 即得 $AB=0$。若已知非零 $B$ 满足 $AB=0$，选取它的一个非零列也给出相应的 $x$。
+\end{proof}
+
+\begin{proposition}
+\label{prop:matrix-transvection-reduction}
+任意可逆 $n$ 阶矩阵仅用第三类初等行、列变换便可化为 $\operatorname{diag}(1,\ldots,1,\det A)$。任意 $n$ 阶矩阵均可表示为有限个形如 $I_n+cE_{ij}$ 的矩阵之积，此处允许 $i=j$，也允许因子奇异。
+\end{proposition}
+\begin{proof}
+可逆矩阵若左上角为零，可把某个使该位置非零的行加到第一行；然后利用非零主元，仅通过行、列倍加消去第一列、第一行其余元素。剩余子块仍可逆，递归可将矩阵化为非零对角阵。对非零 $a,b$，变换
+\[
+ \begin{pmatrix}a&0\\0&b\end{pmatrix}
+ \longrightarrow\begin{pmatrix}a&0\\1-a&b\end{pmatrix}
+ \longrightarrow\begin{pmatrix}1&b\\1-a&b\end{pmatrix}
+ \longrightarrow\begin{pmatrix}1&0\\1-a&ab\end{pmatrix}
+ \longrightarrow\begin{pmatrix}1&0\\0&ab\end{pmatrix}
+\]
+依次对应 $R_2\gets R_2+(a^{-1}-1)R_1$、$R_1\gets R_1+R_2$、$C_2\gets C_2-bC_1$、$R_2\gets R_2-(1-a)R_1$，全是第三类变换。逐对合并对角元即得第一结论，$n=1$ 时无需变换。
+
+一般矩阵的相抵标准型为 $D_r=\operatorname{diag}(I_r,0)$，且 $D_r=\prod_{i=r+1}^n(I_n-E_{ii})$。第三类初等矩阵已具有所需形式，第二类为 $I_n+(c-1)E_{ii}$；第一类初等矩阵由第一结论可表示为第三类矩阵与 $\operatorname{diag}(1,\ldots,1,-1)$ 的积。将 $A=P^{-1}D_rQ^{-1}$ 中各部分分解即可。奇异矩阵不能表示为可逆初等矩阵之积，故这里允许奇异因子是必要的。
+\end{proof}
+
+\begin{example}
+\label{ex:matrix-geometric-triangular-inverse}
+设 $N$ 为 $n$ 阶幂零 Jordan 块，求上三角矩阵
+\[
+ T=I_n+aN+a^2N^2+\cdots+a^{n-1}N^{n-1}
+\]
+的逆。
+\end{example}
+\begin{solve}
+把有限等比和作为整体，相乘得 $(I_n-aN)T=T(I_n-aN)=I_n-a^nN^n=I_n$，故 $T^{-1}=I_n-aN$。从初等消元看，这相当于按适当次序用相邻行的倍数消去各条上副对角线；从结构看，只须识别有限几何级数。这一方法也说明任何幂零矩阵 $H$ 若 $H^s=0$，则 $(I_n-H)^{-1}=I_n+H+\cdots+H^{s-1}$。
+\end{solve}
+
+实际使用增广矩阵法时，每一步必须作用于整个增广矩阵，不能只消去左块而忘记同步更新右块。对有参数的矩阵，要记录主元非零的条件；若计算中出现新的分母，应回到原矩阵检查该条件是否确为可逆条件，例如例~\ref{ex:matrix-diagonal-rank-one-inverse} 中除 $d_i\ne0$ 外还必须有 $s\ne0$。
+
+\section{伴随矩阵}
+\label{sec:matrix-adjugate}
+
+伴随矩阵由子式定义，对奇异矩阵仍有意义；公式 $A^*=(\det A)A^{-1}$ 则只适用于可逆矩阵。因此讨论一般恒等式时，应优先使用子式或相抵标准型，或者先证明可逆情形，再核实能否用摄动延拓。
+
+\begin{theorem}
+\label{thm:matrix-adjugate-rules}
+对同阶方阵 $A,B$，有
+\begin{equation}
+ (AB)^*=B^*A^*,\qquad
+ (A^{\mathsf T})^*=(A^*)^{\mathsf T}.
+ \label{eq:matrix-adjugate-rules}
+\end{equation}
+当 $n\ge2$ 时，$(cA)^*=c^{n-1}A^*$ 对所有标量 $c$ 成立，且
+\begin{equation}
+ \det A^*=(\det A)^{n-1}.
+ \label{eq:matrix-adjugate-determinant}
+\end{equation}
+当 $A$ 可逆时，$A^*$ 也可逆，$(A^*)^{-1}=(A^{-1})^*$。当 $n=2$ 时 $(A^*)^*=A$；当 $n\ge3$ 时
+\begin{equation}
+ (A^*)^*=(\det A)^{n-2}A.
+ \label{eq:matrix-double-adjugate}
+\end{equation}
+\end{theorem}
+\begin{proof}
+转置与数乘公式直接由余子式得到。对 $n\ge2$，将式~\eqref{eq:cauchy-binet-minor} 应用于 $AB$ 的 $(n-1)$ 阶子式，所得求和索引集均为删除一个索引 $k$ 的集合，故
+\[
+ \bigl((AB)^*\bigr)_{ij}
+ =(-1)^{i+j}\sum_{k=1}^n
+ \det A[\widehat j,\widehat k]\det B[\widehat k,\widehat i]
+ =\sum_{k=1}^n (B^*)_{ik}(A^*)_{kj}.
+\]
+$n=1$ 时两边均为 $(1)$。对可逆矩阵，将 $A^*=(\det A)A^{-1}$ 代入即可得到行列式公式及二次伴随公式；又由乘积伴随公式，$A^*(A^{-1})^*=(A^{-1}A)^*=I_n$，得到求逆公式。二阶二次伴随公式可直接逐元素验证。
+
+为处理奇异情形，取 $PAQ=D_r$ 为相抵标准型。乘积伴随公式给出 $D_r^*=Q^*A^*P^*$，其中 $P^*,Q^*$ 可逆。若 $r\le n-2$，则 $D_r^*=0$，故 $A^*=0$；若 $r=n-1$，则 $D_r^*$ 仅末个主对角元为 $1$，故 $A^*$ 的秩为 $1$。因此 $n\ge2$ 时奇异 $A$ 的 $A^*$ 也奇异，得到式~\eqref{eq:matrix-adjugate-determinant}；$n\ge3$ 时上述两种情况下 $A^*$ 的秩均不超过 $n-2$，故 $(A^*)^*=0$，恰等于式~\eqref{eq:matrix-double-adjugate} 右侧。
+\end{proof}
+
+由证明同时得到 $n\ge2$ 时的重要判别：$\operatorname{rank}A=n$、$n-1$、不超过 $n-2$ 时，$\operatorname{rank}A^*$ 分别为 $n$、$1$、$0$。一阶情形需单独记住 $A^*=(1)$，不能照搬奇异性判别。若正整数 $m$ 满足 $A^m=I_n$，则 $(A^*)^m=(A^m)^*=I_n$，这也表明矩阵的有限阶关系可通过伴随乘积公式传递。
+
+\begin{proposition}
+\label{prop:matrix-block-adjugate}
+设 $A\in M_m(\mathbb F)$、$B\in M_n(\mathbb F)$，则
+\begin{equation}
+ \begin{pmatrix}A&0\\0&B\end{pmatrix}^*
+ =\begin{pmatrix}(\det B)A^*&0\\0&(\det A)B^*\end{pmatrix}.
+ \label{eq:matrix-block-adjugate}
+\end{equation}
+\end{proposition}
+\begin{proof}
+左上块中的代数余子式等于 $A$ 中相应代数余子式乘 $\det B$，右下块同理。对非对角块的代数余子式，删除的行与列位于不同的对角块，剩下的行、列数失衡：例如保留了 $B$ 所在的 $n$ 行，却只有 $n-1$ 个相应列可供非零匹配，故该余子式为零。这给出全部块，而无须假设 $A,B$ 可逆。
+\end{proof}
+
+\begin{example}
+\label{ex:matrix-cofactor-sum}
+设 $A=(a_{ij})$ 的代数余子式为 $C_{ij}$，说明如何把 $\sum_{i,j}C_{ij}$ 转化为矩阵运算或行列式。
+\end{example}
+\begin{solve}
+由于伴随是代数余子式矩阵的转置，$\sum_{i,j}C_{ij}=\mathbf1^{\mathsf T}A^*\mathbf1$；若 $A$ 可逆，还等于 $(\det A)\mathbf1^{\mathsf T}A^{-1}\mathbf1$。另一方法利用列多线性：$A+t\mathbf1\mathbf1^{\mathsf T}$ 的各列均为原列加 $t\mathbf1$，同时取两列以上的新增项时因列相同而为零，因此
+\[
+ \det(A+t\mathbf1\mathbf1^{\mathsf T})
+ =\det A+t\sum_{i,j=1}^n C_{ij}.
+\]
+由此可以选择适当 $t$ 简化行列式，再求出余子式总和；该方法对奇异矩阵同样成立。
+\end{solve}
+
+\section{矩阵的迹}
+\label{sec:matrix-trace}
+
+\begin{definition}
+方阵 $A=(a_{ij})\in M_n(\mathbb F)$ 的\emph{迹（trace）}定义为 $\operatorname{tr}A=\sum_{i=1}^n a_{ii}$。
+\end{definition}
+
+\begin{proposition}
+\label{prop:matrix-trace-rules}
+迹对矩阵加法与数乘线性，且 $\operatorname{tr}(A^{\mathsf T})=\operatorname{tr}A$。若 $A\in M_{m,n}$、$B\in M_{n,m}$，则
+\begin{equation}
+ \operatorname{tr}(AB)=\operatorname{tr}(BA).
+ \label{eq:matrix-trace-cyclic}
+\end{equation}
+因此可循环移动乘积因子，且对可逆矩阵 $P$，$\operatorname{tr}(P^{-1}AP)=\operatorname{tr}A$。
+\end{proposition}
+\begin{proof}
+线性与转置性质由定义给出，而 $\operatorname{tr}(AB)=\sum_{i=1}^m\sum_{j=1}^n a_{ij}b_{ji}=\sum_{j=1}^n\sum_{i=1}^m b_{ji}a_{ij}=\operatorname{tr}(BA)$。把若干相邻因子视为整体即可循环移动，取整体 $P^{-1}A$ 与 $P$ 便得到相似不变性。循环移动不允许任意交换两个相邻因子。
+\end{proof}
+
+\begin{example}
+证明不存在 $A,B\in M_n(\mathbb F)$ 满足 $AB-BA=cI_n$，其中 $c\ne0$。
+\end{example}
+\begin{solve}
+两边取迹得 $0=nc$，与 $\mathbb F$ 为数域、$n\ge1$、$c\ne0$ 矛盾。这里数域的特征为零这一条件是论证的一部分。
+\end{solve}
+
+\begin{proposition}
+\label{prop:matrix-trace-positive}
+复矩阵 $A\in M_{m,n}(\mathbb C)$ 满足
+\begin{equation}
+ \operatorname{tr}(AA^{\mathsf H})=\sum_{i,j}|a_{ij}|^2\ge0,
+ \label{eq:matrix-trace-positive}
+\end{equation}
+等号当且仅当 $A=0$。实矩阵可将共轭转置换为转置。特别地，对实方阵有
+\begin{equation}
+ \operatorname{tr}(A^2)\le\operatorname{tr}(AA^{\mathsf T}),
+ \label{eq:matrix-trace-square-bound}
+\end{equation}
+等号当且仅当 $A$ 对称。
+\end{proposition}
+\begin{proof}
+第一式逐元素展开即可。对实方阵，利用线性、转置与循环性质得到
+\[
+ 0\le\operatorname{tr}\bigl((A-A^{\mathsf T})(A-A^{\mathsf T})^{\mathsf T}\bigr)
+ =2\operatorname{tr}(AA^{\mathsf T})-2\operatorname{tr}(A^2).
+\]
+由第一式，等号当且仅当 $A-A^{\mathsf T}=0$。
+\end{proof}
+
+例如，若实对称矩阵 $A_1,\ldots,A_s$ 满足 $\sum_jA_j^2=0$，取迹后每项均为 $\operatorname{tr}(A_jA_j^{\mathsf T})\ge0$，故每个 $A_j=0$。若实反对称矩阵 $K$ 满足 $KB=B$，则左乘 $B^{\mathsf T}$ 得 $B^{\mathsf T}KB=B^{\mathsf T}B$，左边反对称、右边对称，故均为零，再由式~\eqref{eq:matrix-trace-positive} 得 $B=0$；复数情形相应使用 $K^{\mathsf H}=-K$ 与共轭转置。
+
+\begin{proposition}
+\label{prop:matrix-trace-pairing}
+若 $X\in M_n(\mathbb F)$ 满足 $\operatorname{tr}(XC)=0$ 对每个 $C\in M_n(\mathbb F)$ 成立，则 $X=0$。因此，若对所有 $C$ 有 $\operatorname{tr}(ABC)=\operatorname{tr}(CBA)$，则 $AB=BA$。
+\end{proposition}
+\begin{proof}
+取 $C=E_{ji}$，则 $\operatorname{tr}(XE_{ji})=x_{ij}$，故所有元素均为零。第二问中由迹的循环性质把条件化为 $\operatorname{tr}((AB-BA)C)=0$，再应用第一结论。
+\end{proof}
+
+\begin{proposition}
+\label{prop:matrix-trace-characterization}
+若 $f:M_n(\mathbb F)\to\mathbb F$ 为 $\mathbb F$ 线性映射，且对任意 $A,B$ 满足 $f(AB)=f(BA)$、$f(I_n)=n$，则 $f(A)=\operatorname{tr}A$。
+\end{proposition}
+\begin{proof}
+由 $E_{ij}E_{ji}=E_{ii}$ 与 $E_{ji}E_{ij}=E_{jj}$ 得 $f(E_{ii})=f(E_{jj})$，再由 $\sum_iE_{ii}=I_n$ 得每个 $f(E_{ii})=1$。若 $i\ne j$，则 $E_{ii}E_{ij}=E_{ij}$ 而 $E_{ij}E_{ii}=0$，所以 $f(E_{ij})=0$。最后按式~\eqref{eq:matrix-unit-rules} 展开 $A$ 并用线性性即得结论。
+\end{proof}
+
+\section{矩阵乘法与行列式计算}
+\label{sec:matrix-factor-determinant}
+
+计算行列式时可以寻找 $M=AB$，也可以构造容易求行列式的 $V,W$ 使 $MV=W$，再由 $\det M\det V=\det W$ 求解；后一方法只有在已知 $\det V\ne0$ 时才能除以它。若矩阵元素是两组变量的乘积、幂或和，往往可按变量将其分解；若分解通过较低维的中间空间，还可以直接判定高阶行列式为零。
+
+\begin{example}
+\label{ex:matrix-low-rank-factor}
+设 $n\ge3$，证明 $M=(1+x_iy_j)_{i,j=1}^n$ 与 $K=(\cos(\alpha_i-\beta_j))_{i,j=1}^n$ 都奇异。
+\end{example}
+\begin{solve}
+分别分解为
+\[
+ M=\begin{pmatrix}1&x_1\\\vdots&\vdots\\1&x_n\end{pmatrix}
+ \begin{pmatrix}1&\cdots&1\\y_1&\cdots&y_n\end{pmatrix},\qquad
+ K=\begin{pmatrix}\cos\alpha_1&\sin\alpha_1\\\vdots&\vdots\\\cos\alpha_n&\sin\alpha_n\end{pmatrix}
+ \begin{pmatrix}\cos\beta_1&\cdots&\cos\beta_n\\\sin\beta_1&\cdots&\sin\beta_n\end{pmatrix}.
+\]
+两个乘积的中间维数都为 $2$，故秩均不超过 $2<n$，从而行列式为零。同理，若 $n$ 个多项式 $f_j$ 的次数均不超过 $n-2$，则评价矩阵 $(f_j(x_i))$ 可分解为 $n\times(n-1)$ 的幂矩阵乘 $(n-1)\times n$ 的系数矩阵，因此必奇异。
+\end{solve}
+
+\begin{example}
+\label{ex:matrix-binomial-determinant}
+对整数 $r\ge0$，求 $(r+1)$ 阶矩阵 $M=((x_i+y_j)^r)_{i,j=0}^r$ 的行列式。
+\end{example}
+\begin{solve}
+二项式公式给出 $M=V_xDW_y$，其中 $(V_x)_{ik}=x_i^k$、$D=\operatorname{diag}(\binom r0,\ldots,\binom rr)$、$(W_y)_{kj}=y_j^{r-k}$，各索引从 $0$ 到 $r$。$V_x$ 为 Vandermonde 矩阵，$W_y$ 为幂次倒序的转置 Vandermonde 矩阵，故
+\begin{equation}
+ \det M=\left(\prod_{k=0}^r\binom rk\right)
+ \prod_{0\le i<j\le r}(x_j-x_i)(y_i-y_j).
+ \label{eq:matrix-binomial-determinant}
+\end{equation}
+即使节点重复，上式仍成立，此时对应的差为零。这一分解还解释了符号的来源：将 $r+1$ 个幂次逆序，共引入 $(-1)^{r(r+1)/2}$。
+\end{solve}
+
+\begin{example}
+\label{ex:matrix-hankel-moments}
+设 $s_k=\sum_{\ell=1}^n x_\ell^k$（$k\ge0$，其中 $s_0=n$），求 $H_q=(s_{i+j+q})_{i,j=0}^{n-1}$ 的行列式，其中 $q$ 为非负整数。
+\end{example}
+\begin{solve}
+令 $V=(x_\ell^i)_{0\le i\le n-1,\,1\le\ell\le n}$，则
+\[
+ H_q=V\operatorname{diag}(x_1^q,\ldots,x_n^q)V^{\mathsf T},
+\]
+因而
+\begin{equation}
+ \det H_q=\left(\prod_{\ell=1}^n x_\ell^q\right)
+ \prod_{1\le i<j\le n}(x_j-x_i)^2.
+ \label{eq:matrix-hankel-determinant}
+\end{equation}
+$q=0$ 时对角块为 $I_n$，无须节点非零；节点为实数时 $H_0=VV^{\mathsf T}$，其行列式非负，且恰在节点两两不同时为正。$q=1$ 则给出整体平移一个下标的幂和行列式，额外出现因子 $\prod_\ell x_\ell$。
+\end{solve}
+
+\begin{example}
+\label{ex:matrix-circulant-determinant}
+设循环矩阵 $A=f(J)$，$f(t)=a_1+a_2t+\cdots+a_nt^{n-1}$，求 $\det A$。
+\end{example}
+\begin{solve}
+在 $\mathbb C$ 中取全部 $n$ 次单位根 $\zeta_1,\ldots,\zeta_n$。对 $v_j=(1,\zeta_j,\ldots,\zeta_j^{n-1})^{\mathsf T}$，有 $Jv_j=\zeta_jv_j$，故 $Av_j=f(\zeta_j)v_j$。矩阵 $V=(v_1,\ldots,v_n)$ 为节点互异的 Vandermonde 矩阵，所以可逆，并且 $AV=V\operatorname{diag}(f(\zeta_1),\ldots,f(\zeta_n))$，从而
+\begin{equation}
+ \det A=\prod_{j=1}^n f(\zeta_j).
+ \label{eq:matrix-circulant-determinant}
+\end{equation}
+即使 $A$ 的元素属于实数域，也可在复数域中完成计算，因为行列式值并不随扩充数域而改变。若某个 $f(\zeta_j)=0$，则 $v_j$ 同时给出一个非零核向量。
+\end{solve}
+
+\section{Cauchy--Binet 公式的应用}
+\label{sec:matrix-cauchy-binet-applications}
+
+\begin{proposition}
+\label{prop:matrix-gram-minors}
+设 $A\in M_{m,n}(\mathbb R)$，则 $AA^{\mathsf T}$ 的所有主子式均非负。更具体地，对任意大小为 $r$ 的行索引集 $I$，
+\begin{equation}
+ \det\bigl((AA^{\mathsf T})[I,I]\bigr)
+ =\sum_{\substack{J\subseteq\{1,\ldots,n\}\\|J|=r}}\bigl(\det A[I,J]\bigr)^2.
+ \label{eq:matrix-gram-minors}
+\end{equation}
+$r>n$ 时其值为 $0$；复矩阵 $AA^{\mathsf H}$ 的对应公式为绝对值平方之和。
+\end{proposition}
+\begin{proof}
+由式~\eqref{eq:cauchy-binet-minor}，第二因子的子式为第一因子相应子式的转置行列式，故得到平方和；共轭转置时得到共轭乘积。若 $AA^{\mathsf T}=I_m$，则任意 $r\le m$ 个固定行所产生的 $r$ 阶子式平方和均为 $1$，这是同一公式的直接应用。
+\end{proof}
+
+\begin{proposition}
+\label{prop:matrix-principal-minor-sums}
+设 $A\in M_{m,n}(\mathbb F)$、$B\in M_{n,m}(\mathbb F)$，则 $AB$ 与 $BA$ 的 $r$ 阶主子式之和相等，其中 $1\le r\le\min\{m,n\}$。
+\end{proposition}
+\begin{proof}
+对 $AB$ 的全部 $r$ 阶主子式使用式~\eqref{eq:cauchy-binet-minor}，得到
+\[
+ \sum_{|I|=r}\det\bigl((AB)[I,I]\bigr)
+ =\sum_{|I|=r}\sum_{|J|=r}\det A[I,J]\det B[J,I].
+\]
+交换有限求和顺序并再次使用该公式，得到 $\sum_{|J|=r}\det\bigl((BA)[J,J]\bigr)$。$r=1$ 时正是迹的交换公式；更高阶主子式之和可视为它的推广。
+\end{proof}
+
+\begin{theorem}
+\label{thm:matrix-lagrange-cauchy}
+对实向量 $a,b\in\mathbb R^n$，有 Lagrange 恒等式
+\begin{equation}
+ \left(\sum_i a_i^2\right)\left(\sum_i b_i^2\right)
+ -\left(\sum_i a_ib_i\right)^2
+ =\sum_{i<j}(a_ib_j-a_jb_i)^2.
+ \label{eq:matrix-lagrange}
+\end{equation}
+因此有\emph{柯西--施瓦茨不等式（Cauchy--Schwarz inequality）}
+\begin{equation}
+ \left(\sum_i a_ib_i\right)^2
+ \le\left(\sum_i a_i^2\right)\left(\sum_i b_i^2\right),
+ \label{eq:matrix-cauchy-schwarz}
+\end{equation}
+等号当且仅当 $a,b$ 线性相关，包括某个向量为零的情形。
+\end{theorem}
+\begin{proof}
+对两行矩阵 $R=\begin{pmatrix}a^{\mathsf T}\\b^{\mathsf T}\end{pmatrix}$，$\det(RR^{\mathsf T})$ 展开即为左侧，Cauchy--Binet 公式则把它写成所有二阶子式的平方和，得到恒等式与不等式。等号当且仅当全部 $a_ib_j-a_jb_i=0$；若 $a\ne0$，取 $a_k\ne0$，即可得到 $b_i=(b_k/a_k)a_i$ 对所有 $i$ 成立，零向量情形另行直接成立。
+\end{proof}
+
+\begin{corollary}
+\label{cor:matrix-determinant-cauchy}
+若 $A,B\in M_{m,n}(\mathbb R)$，则
+\begin{equation}
+ \bigl(\det(AB^{\mathsf T})\bigr)^2
+ \le\det(AA^{\mathsf T})\det(BB^{\mathsf T}).
+ \label{eq:matrix-determinant-cauchy}
+\end{equation}
+当 $m\le n$ 时，等号当且仅当以所有 $m$ 阶子式为分量的两个向量 $(\det A[:,J])_J$、$(\det B[:,J])_J$ 线性相关；$m>n$ 时各行列式均为零。
+\end{corollary}
+\begin{proof}
+$m\le n$ 时 Cauchy--Binet 公式把 $\det(AB^{\mathsf T})$ 写为上述两个子式向量的内积，把另外两个行列式写为各自平方和，再应用定理~\ref{thm:matrix-lagrange-cauchy}。$m>n$ 时由定理~\ref{thm:cauchy-binet} 得到零值。
+\end{proof}
+
+\section{分块初等变换与降阶公式}
+\label{sec:matrix-block-elimination}
+
+分块消元把若干元素的消去合并为一次矩阵运算。对
+$M=\begin{pmatrix}A&B\\C&D\end{pmatrix}$，约定 $A\in M_m$、$D\in M_n$、$B\in M_{m,n}$、$C\in M_{n,m}$，于是每个乘法的尺寸都确定。第三类分块行变换对应左乘形如 $\begin{pmatrix}I_m&0\\X&I_n\end{pmatrix}$ 的矩阵，分块列变换对应右乘相应矩阵，它们的行列式均为 $1$。若交换两个含 $p,q$ 行的相邻分块行，行列式因子为 $(-1)^{pq}$，不能一概按普通两行交换的 $-1$ 处理。
+
+\begin{theorem}
+\label{thm:matrix-schur-determinant}
+若 $A$ 可逆，则称 $S=D-CA^{-1}B$ 为关于块 $A$ 的\emph{舒尔补（Schur complement）}，并有
+\begin{equation}
+ \det\begin{pmatrix}A&B\\C&D\end{pmatrix}
+ =\det A\det(D-CA^{-1}B).
+ \label{eq:matrix-schur-a}
+\end{equation}
+若 $D$ 可逆，则相应地有
+\begin{equation}
+ \det\begin{pmatrix}A&B\\C&D\end{pmatrix}
+ =\det D\det(A-BD^{-1}C).
+ \label{eq:matrix-schur-d}
+\end{equation}
+\end{theorem}
+\begin{proof}
+$A$ 可逆时，左乘第三类分块初等矩阵得到
+\[
+ \begin{pmatrix}I_m&0\\-CA^{-1}&I_n\end{pmatrix}
+ \begin{pmatrix}A&B\\C&D\end{pmatrix}
+ =\begin{pmatrix}A&B\\0&D-CA^{-1}B\end{pmatrix}.
+\]
+左乘因子行列式为 $1$，右侧分块上三角，得到第一式。$D$ 可逆时用 $\begin{pmatrix}I_m&-BD^{-1}\\0&I_n\end{pmatrix}$ 左乘，消去右上块，得到第二式。
+\end{proof}
+
+\begin{corollary}
+\label{cor:matrix-sylvester-determinant}
+设 $U\in M_{m,n}(\mathbb F)$、$V\in M_{n,m}(\mathbb F)$，则
+\begin{equation}
+ \det(I_m+UV)=\det(I_n+VU).
+ \label{eq:matrix-sylvester-determinant}
+\end{equation}
+若 $A\in M_m$ 可逆，$u,v\in\mathbb F^m$，则
+\begin{equation}
+ \det(A+uv^{\mathsf T})=\det A\,(1+v^{\mathsf T}A^{-1}u).
+ \label{eq:matrix-determinant-lemma}
+\end{equation}
+\end{corollary}
+\begin{proof}
+对 $\begin{pmatrix}I_m&U\\-V&I_n\end{pmatrix}$ 分别按两个对角块消元，得到第一式。再分解 $A+uv^{\mathsf T}=A(I_m+A^{-1}uv^{\mathsf T})$，并将第一式用于中间维数为 $1$ 的情形，得到第二式。
+\end{proof}
+
+式~\eqref{eq:matrix-sylvester-determinant} 能把高阶行列式降为低阶行列式：例如 $D$ 为可逆对角矩阵、$U\in M_{m,r}$、$V\in M_{r,m}$ 时，$\det(D+UV)=\det D\det(I_r+VD^{-1}U)$，当 $r\ll m$ 时只须计算一个较小的行列式。特别地，$\det(I_n+aa^{\mathsf T})=1+a^{\mathsf T}a$；若 $a$ 为实向量，此值严格为正。对含参数问题，保留降阶后的多项式形式，通常比展开原行列式更易判断零点。
+
+\begin{example}
+\label{ex:matrix-bordered-determinant}
+设 $A\in M_n(\mathbb F)$、$u,v\in\mathbb F^n$、$b\in\mathbb F$，证明
+\begin{equation}
+ \det\begin{pmatrix}A&u\\v^{\mathsf T}&b\end{pmatrix}
+ =b\det A-v^{\mathsf T}A^*u.
+ \label{eq:matrix-bordered-determinant}
+\end{equation}
+若 $A$ 可逆，给出这个加边矩阵的可逆条件。
+\end{example}
+\begin{solve}
+$A$ 可逆时，由式~\eqref{eq:matrix-schur-a}，左侧为 $\det A\,(b-v^{\mathsf T}A^{-1}u)$，即所求表达式；因此加边矩阵可逆当且仅当 $b-v^{\mathsf T}A^{-1}u\ne0$。奇异时，式~\eqref{eq:matrix-bordered-determinant} 两侧均为 $A$ 元素的多项式，可按第~\ref{sec:matrix-perturbation} 节令 $A$ 替换为 $A+tI_n$ 后取极限；所得恒等式对所有 $A$ 成立，但含 $A^{-1}$ 的可逆条件仍只适用于 $A$ 可逆时。
+\end{solve}
+
+\begin{proposition}
+\label{prop:matrix-symmetric-block-determinants}
+对任意同阶方阵 $A,B$，无需交换假设即有
+\begin{equation}
+ \det\begin{pmatrix}A&B\\B&A\end{pmatrix}
+ =\det(A+B)\det(A-B).
+ \label{eq:matrix-symmetric-block-determinant}
+\end{equation}
+对复方阵还有
+\begin{equation}
+ \det\begin{pmatrix}A&B\\-B&A\end{pmatrix}
+ =\det(A+\mathrm iB)\det(A-\mathrm iB).
+ \label{eq:matrix-complex-block-determinant}
+\end{equation}
+若 $AB=BA$，第二式可进一步写为 $\det(A^2+B^2)$；若 $A,B$ 为实矩阵，则第二式等于 $|\det(A+\mathrm iB)|^2\ge0$。
+\end{proposition}
+\begin{proof}
+第一式先把第二分块行加到第一分块行，再把第一分块列从第二分块列中减去，得到 $\begin{pmatrix}A+B&0\\B&A-B\end{pmatrix}$。第二式把第二分块行的 $\mathrm i$ 倍加到第一分块行，再把第一分块列的 $-\mathrm i$ 倍加到第二分块列，得到 $\begin{pmatrix}A-\mathrm iB&0\\-B&A+\mathrm iB\end{pmatrix}$。所用变换均不改变行列式。只有在 $AB=BA$ 时，$(A+\mathrm iB)(A-\mathrm iB)=A^2+B^2$；实数情形两个行列式互为共轭，得到非负性。
+\end{proof}
+
+\begin{proposition}
+\label{prop:matrix-block-inverse}
+若 $A,D$ 可逆，则
+\begin{equation}
+ \begin{pmatrix}A&B\\0&D\end{pmatrix}^{-1}
+ =\begin{pmatrix}A^{-1}&-A^{-1}BD^{-1}\\0&D^{-1}\end{pmatrix}.
+ \label{eq:matrix-block-triangular-inverse}
+\end{equation}
+更一般地，若 $A$ 与 $S=D-CA^{-1}B$ 均可逆，则
+\begin{equation}
+ \begin{pmatrix}A&B\\C&D\end{pmatrix}^{-1}
+ =\begin{pmatrix}
+ A^{-1}+A^{-1}BS^{-1}CA^{-1}&-A^{-1}BS^{-1}\\
+ -S^{-1}CA^{-1}&S^{-1}
+ \end{pmatrix}.
+ \label{eq:matrix-schur-inverse}
+\end{equation}
+\end{proposition}
+\begin{proof}
+分块消元给出分解
+\[
+ \begin{pmatrix}A&B\\C&D\end{pmatrix}
+ =\begin{pmatrix}I_m&0\\CA^{-1}&I_n\end{pmatrix}
+ \begin{pmatrix}A&B\\0&S\end{pmatrix}.
+\]
+上三角块矩阵的逆由逐块求解乘积等于单位矩阵得到，正是式~\eqref{eq:matrix-block-triangular-inverse}；再按反次序乘两个因子的逆即得一般公式。由定理~\ref{thm:matrix-schur-determinant}，在 $A$ 可逆的前提下，整个矩阵可逆当且仅当 $S$ 可逆。
+\end{proof}
+
+\section{摄动法及其应用}
+\label{sec:matrix-perturbation}
+
+\begin{lemma}
+\label{lem:matrix-perturbation}
+对任意 $A\in M_n(\mathbb F)$，存在 $\varepsilon>0$，使每个满足 $0<t<\varepsilon$ 的实数 $t$ 都有 $\det(A+tI_n)\ne0$。可以选取有理数列 $t_k\to0$，使 $A+t_kI_n$ 均为可逆矩阵且元素仍在 $\mathbb F$ 中；对有限多个给定方阵，可以使用同一数列。
+\end{lemma}
+\begin{proof}
+$\det(A+tI_n)$ 是关于 $t$ 的首一 $n$ 次多项式，故只有有限个复根。若存在非零根，取 $\varepsilon$ 小于这些根的模的最小值；若不存在非零根，任取 $\varepsilon>0$。于是所述区间没有根，区间内趋于零的有理数列即可使用。对有限多个方阵避开它们全部非零根的模，即可同时保证可逆。
+\end{proof}
+
+\emph{摄动法（perturbation method）}先在可逆情形证明结论，再以 $A+t_kI_n$ 代入，最后令 $t_k\to0$。这要求摄动后仍满足题设，而且所取极限中的表达式在目标矩阵处连续。行列式、伴随矩阵与有限矩阵乘积都是元素的多项式，因此连续；逆矩阵则只在可逆矩阵集合内连续，接近奇异矩阵时可能发散，不能直接把含逆的表达式带到极限中。交换关系 $AC=CA$ 在 $A\mapsto A+tI_n$ 下保持，但反对称、幂零或幂等条件通常不保持，须逐项检查。
+
+例如，对可逆 $A,B$，由逆矩阵公式可直接证明 $(AB)^*=B^*A^*$；对一般 $A,B$，选同一数列使 $A+t_kI_n$ 与 $B+t_kI_n$ 都可逆，得到
+\[
+ \bigl((A+t_kI_n)(B+t_kI_n)\bigr)^*
+ =(B+t_kI_n)^*(A+t_kI_n)^*.
+\]
+两侧均连续，取极限便得到一般的乘积伴随公式。同样，$\det A^*=(\det A)^{n-1}$（$n\ge2$）、二次伴随公式及分块对角伴随公式，都可先用逆阵证明，再用这一方法推广；它提供了定理~\ref{thm:matrix-adjugate-rules} 和命题~\ref{prop:matrix-block-adjugate} 的另一条证明路线。
+
+\begin{proposition}
+\label{prop:matrix-commuting-block-determinant}
+设 $A,B,C,D\in M_n(\mathbb F)$ 且 $AC=CA$，则
+\begin{equation}
+ \det\begin{pmatrix}A&B\\C&D\end{pmatrix}=\det(AD-CB).
+ \label{eq:matrix-commuting-block-determinant}
+\end{equation}
+\end{proposition}
+\begin{proof}
+若 $A$ 可逆，由 $AC=CA$ 得 $ACA^{-1}=C$，于是
+\[
+ \det\begin{pmatrix}A&B\\C&D\end{pmatrix}
+ =\det A\det(D-CA^{-1}B)
+ =\det(AD-ACA^{-1}B)=\det(AD-CB).
+\]
+一般情况下，$A+t_kI_n$ 仍与 $C$ 可交换，且可选为可逆。将其代入已证等式，两侧都是关于 $t_k$ 的多项式，令 $t_k\to0$ 即得结论。这里的条件指定的是 $A,C$ 可交换；不能只凭块的形式就将分块行列式写为 $\det(AD-CB)$。
+\end{proof}
+
+\begin{example}
+\label{ex:matrix-adjugate-commutation}
+若 $AB=BA$，证明 $AB^*=B^*A$。
+\end{example}
+\begin{solve}
+$B$ 可逆时，$AB^{-1}=B^{-1}A$，乘 $\det B$ 得到结论。一般情况下，$A$ 仍与 $B+t_kI_n$ 可交换，故 $A(B+t_kI_n)^*=(B+t_kI_n)^*A$；利用伴随矩阵的连续性取极限即可。这个证明没有把奇异矩阵的伴随误写成行列式乘逆矩阵。
+\end{solve}
+
+\section{基础训练与方法整合}
+\label{sec:matrix-training}
+
+基础题首先检验运算能否进行、乘法次序是否保留、是否偷偷约去了奇异因子。由 $AB$ 的第 $j$ 列等于 $A(Be_j)$ 可知，$B$ 的零列必传递给乘积的对应列；但零行的传递方向不同。初等矩阵都可逆，乘积也可逆，却未必仍是一次初等变换的矩阵；初等变换一般改变行列式值，只保持其是否为零。另由式~\eqref{eq:matrix-adjugate-identity} 应区分 $AA^*=(\det A)I_n$ 与 $\det(AA^*)=(\det A)^n$，不能把矩阵等式与标量等式混用。以下将教材训练题中能联结多个方法的题目集中展开。
+
+\begin{example}
+\label{ex:matrix-training-polynomial}
+证明以下结论：若 $A^2+A+I_n=0$，则 $A$ 可逆；若 $P^2=P$，则 $I_n-2P$ 可逆；若 $A$ 幂零且 $AB+BA=B$，则 $B=0$。
+\end{example}
+\begin{solve}
+第一问由 $A(-A-I_n)=I_n$ 得 $A^{-1}=-A-I_n$。第二问由 $(I_n-2P)^2=I_n$，得到 $(I_n-2P)^{-1}=I_n-2P$。第三问把条件写为 $AB=B(I_n-A)$，归纳得 $A^kB=B(I_n-A)^k$。取 $A^s=0$ 得 $B(I_n-A)^s=0$；$I_n-A$ 的逆是有限几何级数，故右乘其 $s$ 次逆幂即可得到 $B=0$。这里不能仅从 $A^sB=0$ 约去 $A^s$。
+\end{solve}
+
+\begin{example}
+\label{ex:matrix-training-companion-inverse}
+设 $n\ge2$、$a_n\ne0$，求命题~\ref{prop:matrix-companion} 中友阵 $C(f)$ 的逆。
+\end{example}
+\begin{solve}
+设 $C(f)x=y$。第一行给出 $x_n=-y_1/a_n$，其余各行给出 $x_{i-1}=y_i-(a_{n-i+1}/a_n)y_1$（$2\le i\le n$），因此
+\[
+ C(f)^{-1}=\begin{pmatrix}
+ -a_{n-1}/a_n&1&0&\cdots&0\\
+ -a_{n-2}/a_n&0&1&\cdots&0\\
+ \vdots&\vdots&\vdots&\ddots&\vdots\\
+ -a_1/a_n&0&0&\cdots&1\\
+ -1/a_n&0&0&\cdots&0
+ \end{pmatrix}.
+\]
+这相当于对增广矩阵进行消元，但直接逐行求解更能显示哪些未知量由哪一行确定。
+\end{solve}
+
+\begin{example}
+\label{ex:matrix-training-trace-inequality}
+设 $A,B$ 为实对称矩阵，证明 $\operatorname{tr}((AB)^2)\le\operatorname{tr}(A^2B^2)$，并确定等号条件。
+\end{example}
+\begin{solve}
+将式~\eqref{eq:matrix-trace-square-bound} 应用于 $X=AB$。由 $X^{\mathsf T}=BA$ 与迹的循环性质，
+\[
+ \operatorname{tr}((AB)^2)\le\operatorname{tr}(ABBA)=\operatorname{tr}(A^2B^2).
+\]
+等号当且仅当 $AB$ 对称，即 $AB=(AB)^{\mathsf T}=BA$。这说明迹的不等式可以检测两个对称矩阵是否可交换。
+\end{solve}
+
+\begin{example}
+\label{ex:matrix-training-orthogonal}
+证明不存在实正交矩阵 $A,B$ 满足 $A^2=cAB+B^2$，其中 $c\ne0$ 为实数。
+\end{example}
+\begin{solve}
+假设等式成立，左乘 $A^{\mathsf T}$、右乘 $B^{\mathsf T}$ 得 $AB^{\mathsf T}=cI_n+A^{\mathsf T}B$。但是
+\[
+ \operatorname{tr}(AB^{\mathsf T})
+ =\operatorname{tr}((AB^{\mathsf T})^{\mathsf T})
+ =\operatorname{tr}(BA^{\mathsf T})
+ =\operatorname{tr}(A^{\mathsf T}B),
+\]
+因此两边取迹得到 $nc=0$，矛盾。正交性用于消去逆因子，迹用于消去剩余的两个乘积项。
+\end{solve}
+
+\begin{example}
+\label{ex:matrix-training-b-circulant}
+设 $b\ne0$，令 $J_b$ 的上副对角元均为 $1$、左下角为 $b$、其余为 $0$。把
+\[
+ A=a_1I_n+a_2J_b+\cdots+a_nJ_b^{n-1}
+\]
+称为 $b$-循环矩阵。证明同阶 $b$-循环矩阵对乘法封闭，并求其行列式。
+\end{example}
+\begin{solve}
+由移位作用知 $J_b^n=bI_n$，所以两个关于 $J_b$ 的多项式相乘后可以约化为次数不超过 $n-1$ 的多项式，得到封闭性。设 $f(t)=a_1+a_2t+\cdots+a_nt^{n-1}$，在复数域取 $z^n=b$ 的全部根 $\eta_1,\ldots,\eta_n$。因为 $b\ne0$，这些根互异；向量 $(1,\eta_j,\ldots,\eta_j^{n-1})^{\mathsf T}$ 满足 $J_bv_j=\eta_jv_j$。与例~\ref{ex:matrix-circulant-determinant} 相同，Vandermonde 矩阵可逆，故
+\[
+ \det A=\prod_{j=1}^n f(\eta_j).
+\]
+$b=1$ 即退化为普通循环矩阵。这里定义的 $b$-循环矩阵第一行为 $(a_1,\ldots,a_n)$，每次右移时越过右端的元素须乘 $b$。
+\end{solve}
+
+\begin{example}
+\label{ex:matrix-training-cofactors-equal}
+设 $n\ge2$，$A\in M_n(\mathbb F)$ 的每行与每列元素之和都为零，证明所有代数余子式相等。
+\end{example}
+\begin{solve}
+条件给出 $A\mathbf1=0$ 与 $\mathbf1^{\mathsf T}A=0$，故 $A$ 奇异。若秩不超过 $n-2$，则所有 $(n-1)$ 阶子式为零，结论成立。若秩为 $n-1$，其核为一维，且由 $A\mathbf1=0$ 知其核由 $\mathbf1$ 张成。由 $AA^*=0$，$A^*$ 每列都是 $\mathbf1$ 的倍数，故 $A^*=\mathbf1w^{\mathsf T}$。同理左核由 $\mathbf1^{\mathsf T}$ 张成，$A^*A=0$ 迫使 $w^{\mathsf T}=c\mathbf1^{\mathsf T}$。于是 $A^*=c\mathbf1\mathbf1^{\mathsf T}$，所有代数余子式都为 $c$。这里核的维数由相抵标准型中的 $n-r$ 个自由分量得到。
+\end{solve}
+
+\begin{example}
+\label{ex:matrix-training-norm-similarity}
+设 $P\in M_n(\mathbb R)$ 可逆，记 $F(X)=\sum_{i,j}x_{ij}^2$。证明：对每个实方阵 $X$ 均有 $F(PXP^{-1})=F(X)$，当且仅当 $P^{\mathsf T}P=cI_n$，其中 $c>0$。
+\end{example}
+\begin{solve}
+记 $S=P^{\mathsf T}P$，它正定且可逆。由 $PE_{ij}P^{-1}=(Pe_i)(P^{-\mathsf T}e_j)^{\mathsf T}$，外积的元素平方和等于两向量平方和之积，故题设给出 $S_{ii}(S^{-1})_{jj}=1$。当 $i\ne k$ 时，将同一条件用于 $E_{ij}+E_{kj}$ 并减去两项各自的等式，得到 $2S_{ik}(S^{-1})_{jj}=0$；由于 $(S^{-1})_{jj}>0$，故 $S_{ik}=0$。因此 $S$ 对角，而 $S_{ii}(S^{-1})_{jj}=1$ 化为 $S_{ii}/S_{jj}=1$，所有对角元相等且为正，即 $S=cI_n$。$n=1$ 时结论直接成立。
+
+反之，若 $S=cI_n$，则由迹的循环性质与式~\eqref{eq:matrix-trace-positive}，
+\[
+ F(PXP^{-1})
+ =\operatorname{tr}(SXS^{-1}X^{\mathsf T})
+ =\operatorname{tr}(XX^{\mathsf T})=F(X).
+\]
+所以保持全部矩阵元素平方和的相似变换，恰由正交矩阵的非零实数倍实施，因为 $P/\sqrt c$ 为正交矩阵。
+\end{solve}
+
+本章方法的共同点是先识别可以保留的信息：单位向量与基础矩阵提取行列及元素，初等变换保留秩和可逆性，迹提取乘积中能循环比较的标量，矩阵分解暴露中间维数，分块消元把高维问题降到舒尔补，而摄动只把满足连续性与条件保持要求的结论传到奇异情形。选择方法时应先检查这些条件，再进行具体运算。
+
+
+
+
+

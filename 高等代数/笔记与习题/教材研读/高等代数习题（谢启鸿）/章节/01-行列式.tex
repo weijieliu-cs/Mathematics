@@ -1,0 +1,1061 @@
+% !TeX root = ../高等代数习题（谢启鸿）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{0} % 保留原书章号。
+\chapter{行列式}
+\label{chap:determinants}
+
+% 研读来源：高等代数/textbooks/高等代数习题（谢启鸿）/高代习题-1.pdf，
+% PDF 第 1--53 页，即原书第 1 章 §1.1--§1.12。
+行列式（determinant）把一个方阵对应到一个数，既能判断方程组是否具有唯一解，又能把消元、排列符号、多项式因子与递推关系联系起来。本章按教材的十二节整理基本概念和计算方法，选择能够说明方法及其条件的例题展开推导，并在基础训练中处理易混的符号和操作。计算时应先观察零元素、重复部分、行列和及参数结构，再决定如何化简，而不是立即展开全部乘积。
+
+除另有说明外，元素取自实数域或复数域，$n$ 为正整数，$I_n$ 为 $n$ 阶单位矩阵，$\mathbf1$ 为适当维数的全一列向量。方阵记为 $A=(a_{ij})$，行列式记为 $\det A$ 或 $|A|$；绝对值另写为 $|\det A|$。约定空乘积和零阶行列式均为 $1$，以便降阶公式在最低阶处保持一致。
+
+\section{基本概念}
+\label{sec:xie-ex-det-basics}
+
+\subsection{排列定义与余子式展开}
+
+\begin{definition}
+\label{def:xie-ex-det-leibniz}
+设 $S_n$ 为 $1,\ldots,n$ 的所有排列组成的集合。排列 $\sigma=(\sigma(1),\ldots,\sigma(n))$ 的\emph{逆序数}（inversion number）为
+\[
+N(\sigma)=\#\{(i,j):1\leq i<j\leq n,\ \sigma(i)>\sigma(j)\},
+\]
+其符号为 $\operatorname{sgn}(\sigma)=(-1)^{N(\sigma)}$。$n$ 阶方阵的行列式定义为
+\begin{equation}
+\label{eq:xie-ex-det-leibniz}
+\det A=\sum_{\sigma\in S_n}\operatorname{sgn}(\sigma)
+\prod_{i=1}^{n}a_{i,\sigma(i)}.
+\end{equation}
+每个乘积从每行、每列各取一个元素，共有 $n!$ 个带符号的项。特别地，$\det(a_{11})=a_{11}$。
+\end{definition}
+
+\begin{definition}
+\label{def:xie-ex-det-cofactor}
+删除 $A$ 的第 $i$ 行和第 $j$ 列，余下元素保持原有次序组成的行列式，称为元素 $a_{ij}$ 的\emph{余子式}（minor），记为 $M_{ij}$；$C_{ij}=(-1)^{i+j}M_{ij}$ 称为该元素的\emph{代数余子式}（cofactor）。这里用 $C_{ij}$ 区分矩阵 $A$ 与教材常用的代数余子式记号 $A_{ij}$。当 $n=1$ 时，$M_{11}=C_{11}=1$。
+\end{definition}
+
+\begin{theorem}[按一行或一列展开]
+\label{thm:xie-ex-det-expansion}
+对任意固定的行指标 $i$ 和列指标 $j$，
+\begin{equation}
+\label{eq:xie-ex-det-expansion}
+\det A=\sum_{k=1}^{n}a_{ik}C_{ik}
+=\sum_{k=1}^{n}a_{kj}C_{kj}.
+\end{equation}
+因而可以从一阶开始，按任一固定行或列递归定义行列式，所得结果与排列定义相同。
+\end{theorem}
+
+\begin{proof}
+在式~\eqref{eq:xie-ex-det-leibniz} 中，把选中 $a_{ij}$ 的项归为一组。将第 $i$ 行和第 $j$ 列分别移到首位，需要 $i-1$ 次和 $j-1$ 次相邻对换，故这组的符号因子为 $(-1)^{i+j}$，剩余排列的求和为 $M_{ij}$。按固定行中的不同列分组，就得到行展开；列展开同理。递归定义与排列定义的等价性再由阶数归纳得到。
+\end{proof}
+
+\subsection{性质与行列变换}
+
+\begin{proposition}
+\label{prop:xie-ex-det-properties}
+行列式对每行、每列分别是线性的；对换两行或两列，行列式变号；转置不改变行列式。某行或某列全零、两行或两列相同或成比例时，行列式为零。上三角或下三角矩阵的行列式等于主对角元素之积。
+\end{proposition}
+
+\begin{proof}
+排列展开的每项恰含指定行中的一个元素，因此对该行具有可加性和齐次性，列的情形相同。对换两行相当于把排列复合一个对换，故符号改变。两行相同时，对换后矩阵不变而行列式变号，在实数域或复数域中便有行列式为零；成比例的情形再用齐次性。转置的项与原矩阵的逆排列项对应，逆排列具有相同符号。对于上三角矩阵，非零项要求 $\sigma(i)\geq i$；又因 $\sum_i\sigma(i)=\sum_i i$，只能处处相等，故只剩对角乘积。下三角情形由转置得到。
+\end{proof}
+
+用 $R_i,K_j$ 表示第 $i$ 行和第 $j$ 列。$R_i\leftarrow R_i+cR_k$（$i\ne k$）保持行列式不变，因为拆开后增加的行列式有两行成比例；列变换同理。把某行乘以 $c$ 会使行列式乘以 $c$，交换两行则变号，消元时必须记录这些因子。\emph[caution]{多重线性是对一行或一列分别线性，并不意味着 $\det(A+B)=\det A+\det B$。}把全部元素乘以 $c$，所得行列式为 $c^n\det A$，而不是 $c\det A$。
+
+\begin{proposition}[分块三角性质]
+\label{prop:xie-ex-det-basic-blocks}
+若 $P,Q$ 为方阵，$X$ 为相应大小的矩阵，则 $\det\begin{pmatrix}P&X\\0&Q\end{pmatrix}=\det P\det Q$；分块下三角矩阵也有相同结论，不要求两个对角块可逆。
+\end{proposition}
+
+\begin{proof}
+设 $P$ 为 $p$ 阶、$Q$ 为 $q$ 阶。非零排列项中，最后 $q$ 行只能选择最后 $q$ 列，因而必须恰好占满这些列；最前 $p$ 行便只能选择最前 $p$ 列。两组内部排列独立，符号为各自符号之积，分别求和即得两个对角块行列式的乘积。下三角情形由转置得到。
+\end{proof}
+
+\begin{proposition}
+\label{prop:xie-ex-det-cross-cofactor}
+同一行元素与另一行的对应代数余子式的乘积之和为零。完整地写成
+\begin{equation}
+\label{eq:xie-ex-det-cross-cofactor}
+\sum_{j=1}^{n}a_{ij}C_{kj}
+=\begin{cases}\det A,&i=k,\\0,&i\ne k.\end{cases}
+\end{equation}
+列也有相应公式 $\sum_i a_{ij}C_{i\ell}=\delta_{j\ell}\det A$，其中 $\delta_{j\ell}$ 在 $j=\ell$ 时为 $1$，否则为 $0$。
+\end{proposition}
+
+\begin{proof}
+$i=k$ 时就是展开公式。$i\ne k$ 时，以第 $i$ 行替换第 $k$ 行，新矩阵有两行相同，行列式为零；删除第 $k$ 行后余子式不受替换影响，按这一行展开便得到左端。列公式同理。
+\end{proof}
+
+\subsection{Cramer 法则}
+
+\begin{theorem}[Cramer 法则]
+\label{thm:xie-ex-det-cramer}
+设 $Ax=b$ 是 $n$ 个方程、$n$ 个未知量的线性方程组。若系数行列式 $D=\det A\ne0$，则方程组有唯一解
+\begin{equation}
+\label{eq:xie-ex-det-cramer}
+x_j=\frac{D_j}{D},\qquad 1\leq j\leq n,
+\end{equation}
+其中 $D_j$ 是以常数列 $b$ 替换 $A$ 的第 $j$ 列后所得的行列式。
+\end{theorem}
+
+\begin{proof}
+若 $x$ 为解，把 $b=\sum_k x_kA_{\cdot k}$ 代入 $D_j$ 并按替换列拆开，除 $k=j$ 外的项都有重复列，故 $D_j=x_jD$。这证明任何解都必须有上述形式。为证明存在性，按替换列展开得 $D_j=\sum_k b_kC_{kj}$，由式~\eqref{eq:xie-ex-det-cross-cofactor}，
+\[
+\sum_j a_{ij}\frac{D_j}{D}
+=\frac1D\sum_k b_k\sum_j a_{ij}C_{kj}=b_i.
+\]
+因此给出的向量满足所有方程，且解唯一。
+\end{proof}
+
+$D\ne0$ 是比值公式的前提。若 $D=0$，不能仅凭这一点判定无解或只有零解：$0x=0$ 有无穷多解，$0x=1$ 无解。对齐次方程组，$D\ne0$ 保证只有零解；系数行列式为零时应进一步消元，或使用后续的秩理论。
+
+\section{降阶法}
+\label{sec:xie-ex-det-reduction}
+
+降阶法先用行列变换制造零元素，再沿零最多的行或列展开。连续作差时操作次序也是推导的一部分：要让每个新行等于两个原行之差，通常应从下向上操作，避免前一行已经被改写。
+
+% 原书例 1.1；引入平移参数准确描述降阶后的同类结构。
+\begin{example}
+\label{ex:xie-ex-det-binomial}
+设 $s$ 为非负整数，求
+\[
+P_n(s)=\det\left(\binom{s+i+j-2}{j-1}\right)_{i,j=1}^{n}.
+\]
+特别地，$P_n(0)$ 的第一行和第一列均为 $1$。
+\end{example}
+
+\begin{solve}
+从 $i=n$ 到 $i=2$ 作 $R_i\leftarrow R_i-R_{i-1}$。第一列除首项外全零，且对 $i,j\geq2$，
+\[
+\binom{s+i+j-2}{j-1}-\binom{s+i+j-3}{j-1}
+=\binom{s+i+j-3}{j-2}.
+\]
+按第一列展开并重新编号，得到 $P_n(s)=P_{n-1}(s+1)$。由 $P_1(s)=1$ 得 $P_n(s)=1$。平移参数 $s$ 用于说明降阶后的结构，不能未经核对便把新行列式视为原式的简单缩小。
+\end{solve}
+
+% 原书例 1.4。
+\begin{example}
+\label{ex:xie-ex-det-arrow}
+计算\emph{爪型行列式}（arrowhead determinant）
+\[
+H=\begin{vmatrix}
+a_1&b_2&b_3&\cdots&b_n\\
+c_2&a_2&0&\cdots&0\\
+c_3&0&a_3&\cdots&0\\
+\vdots&\vdots&\vdots&\ddots&\vdots\\
+c_n&0&0&\cdots&a_n
+\end{vmatrix},\qquad n\geq2.
+\]
+\end{example}
+
+\begin{solve}
+若 $a_2,\ldots,a_n$ 全非零，把第 $j$ 列的 $-c_j/a_j$ 倍加到第一列，$2\leq j\leq n$，即得上三角矩阵，所以
+\begin{equation}
+\label{eq:xie-ex-det-arrow-nonzero}
+H=\left(a_1-\sum_{j=2}^{n}\frac{b_jc_j}{a_j}\right)\prod_{j=2}^{n}a_j.
+\end{equation}
+不作非零假设时，仍有
+\begin{equation}
+\label{eq:xie-ex-det-arrow-polynomial}
+H=a_1\prod_{j=2}^{n}a_j-
+\sum_{i=2}^{n}b_ic_i\prod_{\substack{2\leq j\leq n\\j\ne i}}a_j.
+\end{equation}
+由排列定义，非零项或者全部取对角元素，或者只交换指标 $1$ 与某个 $i$；后一种排列的符号为负。其余排列必取到某个非对角的零元素。这也直接证明了不含分母的公式，包括部分 $a_i=0$ 的情形。
+\end{solve}
+
+% 原书例 1.5，使用对角修正量 d_i。
+\begin{example}
+\label{ex:xie-ex-det-common-rows}
+设 $B$ 的非对角元素为 $b_{ij}=x_j$，主对角元素为 $b_{ii}=x_i+d_i$。求 $\det B$。
+\end{example}
+
+\begin{solve}
+写成 $B=\operatorname{diag}(d_1,\ldots,d_n)+\mathbf1(x_1,\ldots,x_n)$。按列拆分，至少两列都选公共部分的项具有成比例列，因而为零；恰在第 $i$ 列选择公共部分时，其余列的对角元素迫使该列只取第 $i$ 项。因此
+\begin{equation}
+\label{eq:xie-ex-det-common-rows}
+\det B=\prod_j d_j+\sum_i x_i\prod_{j\ne i}d_j.
+\end{equation}
+各 $d_i\ne0$ 时可写成 $\prod_i d_i(1+\sum_i x_i/d_i)$；有零参数时应使用前一个多项式公式。教材主对角元素为 $x_i-a_i$ 的模板对应于 $d_i=-a_i$。
+\end{solve}
+
+% 原书例 1.7。
+\begin{proposition}[添加一行一列]
+\label{prop:xie-ex-det-border}
+设 $u,v$ 为 $n$ 维列向量，$z$ 为一个数，则
+\begin{equation}
+\label{eq:xie-ex-det-border}
+\det\begin{pmatrix}A&u\\v^{\mathsf T}&z\end{pmatrix}
+=z\det A-\sum_{i,j=1}^{n}C_{ij}u_iv_j.
+\end{equation}
+此式不要求 $A$ 可逆。
+\end{proposition}
+
+\begin{proof}
+先按最后一列展开，最后一个元素贡献 $z\det A$。对 $u_i$ 的余子式再按其中的最后一行展开，$v_j$ 对应的余子式为 $M_{ij}$，两次展开的符号之积为 $(-1)^{i+n+1}(-1)^{n+j}=(-1)^{i+j+1}$，故其贡献为 $-u_iv_jC_{ij}$。
+\end{proof}
+
+\section{求和法}
+\label{sec:xie-ex-det-summing}
+
+各行元素和相同时，把所有列加到一列，就产生一个常数列；各列元素和相同时则合并行。这种操作利用整体的和，不要求原矩阵已有大量零元素。
+
+\begin{proposition}
+\label{prop:xie-ex-det-row-sum}
+设 $n\geq2$，$A$ 的各行元素和均为 $\lambda$，则
+\begin{equation}
+\label{eq:xie-ex-det-row-sum}
+\det A=\lambda\det(a_{ij}-a_{1j})_{i,j=2}^{n}.
+\end{equation}
+特别地，$\lambda=0$ 时 $\det A=0$。
+\end{proposition}
+
+\begin{proof}
+把第 $2$ 至第 $n$ 列加到第一列，第一列变成 $\lambda\mathbf1$。提出 $\lambda$，再把第一行从其余行中减去，按第一列展开即得。提出因子只用了齐次性，没有除以 $\lambda$，所以也包括 $\lambda=0$。
+\end{proof}
+
+% 原书例 1.8、1.10、1.11。
+\begin{example}
+\label{ex:xie-ex-det-equal-sums}
+求主对角元素为零、其余元素为 $1$ 的行列式，并计算 $\det(bI_n+\mathbf1a^{\mathsf T})$，其中 $a=(a_1,\ldots,a_n)^{\mathsf T}$。
+\end{example}
+
+\begin{solve}
+第一个矩阵各行和为 $n-1$，合并列、提出该因子后，用第一行消去其余行的第一列，得到 $\det(\mathbf1\mathbf1^{\mathsf T}-I_n)=(-1)^{n-1}(n-1)$。第二个矩阵各行和为 $b+\sum_i a_i$，相同操作使降阶矩阵成为 $bI_{n-1}$，故
+\begin{equation}
+\label{eq:xie-ex-det-scalar-rank-one}
+\det(bI_n+\mathbf1a^{\mathsf T})=b^{n-1}\left(b+\sum_i a_i\right).
+\end{equation}
+这些多项式公式包括 $b=0$ 或行和为零的情形，$n=1$ 可直接核对。另如三次方程 $t^3+pt+q=0$ 的三个根按循环次序组成三阶矩阵，Vieta 关系给出根之和为零，故行列式也为零。
+\end{solve}
+
+% 原书例 1.12。
+\begin{example}
+\label{ex:xie-ex-det-cyclic-rows}
+设 $n\geq2$，第一行为 $(1,2,\ldots,n)$，以后每行由上一行循环右移一位得到，求所得行列式。
+\end{example}
+
+\begin{solve}
+从下向上作 $R_i\leftarrow R_i-R_{i-1}$，$i=n,\ldots,2$，第 $i$ 行在第 $i-1$ 列为 $n-1$，其余位置为 $-1$。再把前 $n-1$ 列加到最后一列，该列只有首项 $n(n+1)/2$ 非零。按该列展开，剩下的矩阵为 $nI_{n-1}-\mathbf1\mathbf1^{\mathsf T}$，其行列式由式~\eqref{eq:xie-ex-det-scalar-rank-one} 得到 $n^{n-2}$。故结果为
+\[
+(-1)^{n+1}\frac{n(n+1)}2\,n^{n-2}
+=(-1)^{n-1}\frac{n+1}{2}\,n^{n-1}.\qedhere
+\]
+\end{solve}
+
+\section{递推法与数学归纳法}
+\label{sec:xie-ex-det-recurrence}
+
+递推法把 $n$ 阶行列式与低阶的同类行列式联系起来，再由初值确定结果。数学归纳法则在知道或猜到通式之后，验证它满足递推式和初值；猜测本身不是证明。写递推关系时必须同时说明适用阶数和所需初值。
+
+% 原书例 1.13。
+\begin{proposition}[三对角行列式]
+\label{prop:xie-ex-det-tridiagonal}
+设 $D_k$ 为下列矩阵左上角的 $k$ 阶行列式：
+\[
+\begin{pmatrix}
+a_1&c_1&0&\cdots&0\\
+b_1&a_2&c_2&\ddots&\vdots\\
+0&b_2&a_3&\ddots&0\\
+\vdots&\ddots&\ddots&\ddots&c_{n-1}\\
+0&\cdots&0&b_{n-1}&a_n
+\end{pmatrix}.
+\]
+则
+\begin{equation}
+\label{eq:xie-ex-det-tridiagonal}
+D_0=1,\quad D_1=a_1,\quad
+D_n=a_nD_{n-1}-b_{n-1}c_{n-1}D_{n-2}\quad(n\geq2).
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+按最后一列展开，$a_n$ 贡献 $a_nD_{n-1}$；$c_{n-1}$ 的代数余子式带负号，其余子式再按最后一行展开，只留下 $b_{n-1}D_{n-2}$。当 $n=2$ 时，公式为 $a_1a_2-b_1c_1$，与 $D_0=1$ 相容。
+\end{proof}
+
+% 原书例 1.14。
+\begin{example}
+\label{ex:xie-ex-det-constant-tridiagonal}
+若主对角元素全为 $a$，上、下副对角元素分别全为 $c,b$，求 $D_n$。
+\end{example}
+
+\begin{solve}
+递推式为 $D_n=aD_{n-1}-bcD_{n-2}$。设 $\alpha,\beta$ 为 $r^2-ar+bc=0$ 的两个复根。当 $\alpha\ne\beta$ 时，
+\begin{equation}
+\label{eq:xie-ex-det-tridiagonal-distinct}
+D_n=\frac{\alpha^{n+1}-\beta^{n+1}}{\alpha-\beta}.
+\end{equation}
+把右端代入递推式，并核对 $D_0=1,D_1=\alpha+\beta=a$ 即可证明。当 $\alpha=\beta=a/2$，即 $a^2=4bc$ 时，应另用
+\begin{equation}
+\label{eq:xie-ex-det-tridiagonal-repeated}
+D_n=(n+1)(a/2)^n\quad(n\geq1),\qquad D_0=1.
+\end{equation}
+这一式也可直接核对递推式和初值，包括 $a=0,bc=0$ 的退化情形。\emph[caution]{重根时不能继续使用以 $\alpha-\beta$ 为分母的式子。}
+\end{solve}
+
+% 原书例 1.15、1.19。
+\begin{example}
+\label{ex:xie-ex-det-induction}
+求两类三对角行列式：第一类的主对角元素为 $\cos\theta,2\cos\theta,\ldots,2\cos\theta$，两条副对角线均为 $1$；第二类的主对角元素为 $a_0+a_1,a_1+a_2,\ldots,a_{n-1}+a_n$，第 $i$ 个上、下副对角元素均为 $a_i$。
+\end{example}
+
+\begin{solve}
+第一类记为 $T_n$，则 $T_0=1,T_1=\cos\theta$，且 $T_n=2\cos\theta\,T_{n-1}-T_{n-2}$。余弦加法公式给出相同递推关系，故 $T_n=\cos(n\theta)$。证明没有除以 $\sin\theta$，因此也包括 $\theta\in\pi\mathbb Z$。
+
+第二类记为 $E_n$，则不论各 $a_i$ 是否为零，都有
+\begin{equation}
+\label{eq:xie-ex-det-weighted-tridiagonal}
+E_n=\sum_{i=0}^{n}\prod_{\substack{0\leq j\leq n\\j\ne i}}a_j.
+\end{equation}
+设右端为 $P_n$，则 $P_n=a_nP_{n-1}+\prod_{j=0}^{n-1}a_j$，且 $P_{n-1}-a_{n-1}P_{n-2}=\prod_{j=0}^{n-2}a_j$。合并得
+\[
+P_n=(a_{n-1}+a_n)P_{n-1}-a_{n-1}^2P_{n-2},
+\]
+与 $E_n$ 的递推相同，再核对 $P_0=1,P_1=a_0+a_1$ 即得。若各 $a_i\ne0$，才可改写成 $a_0\cdots a_n\sum_{i=0}^{n}1/a_i$。
+\end{solve}
+
+\section{拆分法}
+\label{sec:xie-ex-det-splitting}
+
+有效的拆分不是把全部元素逐一展开，而是把列写成对角部分与公共方向之和，使含有重复列或成比例列的项自动消失。
+
+% 原书例 1.22 及其推论，统一为两个任意向量。
+\begin{theorem}[公共方向的增量]
+\label{thm:xie-ex-det-rank-one-update}
+设 $u,v$ 为 $n$ 维列向量，$t$ 为参数，$C_{ij}$ 为原矩阵 $A$ 的代数余子式，则
+\begin{equation}
+\label{eq:xie-ex-det-rank-one-update}
+\det(A+tuv^{\mathsf T})=\det A+t\sum_{i,j=1}^{n}C_{ij}u_iv_j.
+\end{equation}
+特别地，全体元素同时增加 $t$ 时，
+\begin{equation}
+\label{eq:xie-ex-det-all-increment}
+\det(A+t\mathbf1\mathbf1^{\mathsf T})=\det A+t\sum_{i,j=1}^{n}C_{ij}.
+\end{equation}
+这些公式不要求 $A$ 可逆。
+\end{theorem}
+
+\begin{proof}
+第 $j$ 列为 $A_{\cdot j}+tv_ju$，按所有列拆分。至少两列都选增量的项具有成比例列，因而为零；不选增量的项为 $\det A$，只在第 $j$ 列选增量的项按该列展开为 $tv_j\sum_i u_iC_{ij}$，求和即得。
+\end{proof}
+
+参数次数至多为一的原因在于增量列共用一个方向 $u$，不能据此认定任何元素中含 $t$ 的行列式都对 $t$ 线性。类似地，例~\ref{ex:xie-ex-det-common-rows} 的拆分给出
+\begin{equation}
+\label{eq:xie-ex-det-diagonal-rank-one}
+\det\bigl(\operatorname{diag}(d_1,\ldots,d_n)+uv^{\mathsf T}\bigr)
+=\prod_i d_i+\sum_i u_iv_i\prod_{j\ne i}d_j.
+\end{equation}
+矩阵 $uv^{\mathsf T}$ 的各列都是同一向量的倍数，称为秩至多为一的矩阵；本处的推导只需这一具体结构。
+
+% 原书例 1.25。
+\begin{example}
+\label{ex:xie-ex-det-identity-update}
+设 $u=(u_1,\ldots,u_n)^{\mathsf T}$，求 $\det(I_n+uu^{\mathsf T})$。
+\end{example}
+
+\begin{solve}
+在式~\eqref{eq:xie-ex-det-diagonal-rank-one} 中令各 $d_i=1,v=u$，得 $\det(I_n+uu^{\mathsf T})=1+\sum_i u_i^2$。实向量情形下结果严格为正；若 $u$ 为复向量，此处没有取共轭，不能将 $\sum_i u_i^2$ 当成平方模之和。
+\end{solve}
+
+% 原书例 1.23。
+\begin{example}
+\label{ex:xie-ex-det-uniform-triangle}
+设 $U_n$ 主对角元素均为 $a$，上方元素均为 $b$，下方元素均为 $c$，求 $\det U_n$。
+\end{example}
+
+\begin{solve}
+令 $F(t)=\det(U_n+t\mathbf1\mathbf1^{\mathsf T})$。$F$ 的次数至多为一，且 $F(-b)=(a-b)^n$、$F(-c)=(a-c)^n$，因为这时分别得到下三角和上三角矩阵。$b\ne c$ 时，两点确定 $F$，所以
+\begin{equation}
+\label{eq:xie-ex-det-uniform-triangle}
+\det U_n=\frac{b(a-c)^n-c(a-b)^n}{b-c}.
+\end{equation}
+$b=c$ 时不能由这两个重合的取值求斜率，应直接使用式~\eqref{eq:xie-ex-det-scalar-rank-one}，得到 $(a-b)^{n-1}(a+(n-1)b)$。
+\end{solve}
+
+% 原书例 1.16。
+\begin{example}
+\label{ex:xie-ex-det-variable-diagonal}
+将上一例的主对角元素改为 $x_1,\ldots,x_n$，求所得行列式 $D_n$。
+\end{example}
+
+\begin{solve}
+同样设置 $F(t)$，则 $F(-b)=\prod_i(x_i-b),F(-c)=\prod_i(x_i-c)$，故
+\begin{equation}
+\label{eq:xie-ex-det-variable-diagonal}
+D_n=\begin{cases}
+\displaystyle\frac{b\prod_i(x_i-c)-c\prod_i(x_i-b)}{b-c},&b\ne c,\\
+\displaystyle\prod_i(x_i-b)+b\sum_i\prod_{j\ne i}(x_j-b),&b=c.
+\end{cases}
+\end{equation}
+第二种情形直接由式~\eqref{eq:xie-ex-det-diagonal-rank-one} 得到，不要求 $x_i\ne b$。拆分最后一列还得到递推式
+\[
+D_n=(x_n-b)D_{n-1}+b\prod_{i=1}^{n-1}(x_i-c).
+\]
+其中选择常数列的部分，可用该列消去其余列的公共部分，只留下对角元素 $x_i-c$。这也说明拆分法与递推法可以配合使用。
+\end{solve}
+
+% 原书例 1.24。
+\begin{proposition}
+\label{prop:xie-ex-det-low-degree}
+设 $n\geq2$，多项式 $f_1,\ldots,f_n$ 的次数均不超过 $n-2$，则对任意 $x_1,\ldots,x_n$，$\det(f_j(x_i))_{i,j=1}^{n}=0$。
+\end{proposition}
+
+\begin{proof}
+每个 $f_j$ 都是 $1,t,\ldots,t^{n-2}$ 的线性组合。按列拆分后，每个行列式的 $n$ 列只能从 $n-1$ 种列向量 $(x_1^k,\ldots,x_n^k)^{\mathsf T}$ 中选取，至少两列成比例，故各项都为零。次数上界不能随意改为 $n-1$：取 $f_j(t)=t^{j-1}$ 就会得到下一节中通常非零的行列式。
+\end{proof}
+
+\section{Vandermonde 行列式}
+\label{sec:xie-ex-det-vandermonde}
+
+\begin{theorem}[Vandermonde 行列式]
+\label{thm:xie-ex-det-vandermonde}
+对任意 $x_1,\ldots,x_n$，\emph{范德蒙行列式}（Vandermonde determinant）满足
+\begin{equation}
+\label{eq:xie-ex-det-vandermonde}
+V_n(x_1,\ldots,x_n)
+=\begin{vmatrix}
+1&x_1&x_1^2&\cdots&x_1^{n-1}\\
+1&x_2&x_2^2&\cdots&x_2^{n-1}\\
+\vdots&\vdots&\vdots&\ddots&\vdots\\
+1&x_n&x_n^2&\cdots&x_n^{n-1}
+\end{vmatrix}
+=\prod_{1\leq i<j\leq n}(x_j-x_i).
+\end{equation}
+因此它非零当且仅当各节点两两不同。
+\end{theorem}
+
+\begin{proof}
+从最后一列向前作 $K_j\leftarrow K_j-x_1K_{j-1}$，$j=n,\ldots,2$。第一行变成 $(1,0,\ldots,0)$，其余行在后 $n-1$ 列的元素为 $(x_i-x_1)x_i^{j-2}$。按第一行展开并逐行提出 $x_i-x_1$，得
+\[
+V_n(x_1,\ldots,x_n)=\prod_{i=2}^{n}(x_i-x_1)V_{n-1}(x_2,\ldots,x_n).
+\]
+由 $V_1=1$ 递推即得。这里只提取因子，没有除以节点之差，所以节点重合时公式也成立。
+\end{proof}
+
+% 原书例 1.27。
+\begin{proposition}[多项式列的化简]
+\label{prop:xie-ex-det-polynomial-columns}
+设 $f_k(t)$ 是次数为 $k$、最高次项系数为 $c_k\ne0$ 的多项式，$0\leq k\leq n-1$，则
+\begin{equation}
+\label{eq:xie-ex-det-polynomial-columns}
+\det(f_{j-1}(x_i))_{i,j=1}^{n}
+=\left(\prod_{k=0}^{n-1}c_k\right)V_n(x_1,\ldots,x_n).
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+从常数列开始，利用前面的列依次消去每列的低次项，再提出该列的最高次项系数，剩下的就是标准 Vandermonde 行列式。前面各列的最高次项系数非零，保证消元系数可以选取。
+\end{proof}
+
+% 原书例 1.26。
+\begin{example}
+\label{ex:xie-ex-det-homogeneous-vandermonde}
+求 $\det(a_i^{n-j}b_i^{j-1})_{i,j=1}^{n}$。
+\end{example}
+
+\begin{solve}
+先设各 $a_i\ne0$，从第 $i$ 行提出 $a_i^{n-1}$，得到以 $b_i/a_i$ 为节点的 Vandermonde 行列式，因而
+\begin{equation}
+\label{eq:xie-ex-det-homogeneous-vandermonde}
+\det(a_i^{n-j}b_i^{j-1})_{i,j=1}^{n}
+=\prod_{i<j}(a_ib_j-a_jb_i).
+\end{equation}
+两端都是所有参数的多项式，故连续。让任意为零的 $a_i$ 由非零数趋近于零，就证明该公式也适用于零参数；最终公式本身没有任何分母。
+\end{solve}
+
+% 原书例 1.28、1.29。
+\begin{example}
+\label{ex:xie-ex-det-trigonometric-vandermonde}
+设 $n\geq2$，计算 $\det(\cos((j-1)\theta_i))_{i,j=1}^{n}$ 和 $\det(\sin(j\theta_i))_{i,j=1}^{n}$。
+\end{example}
+
+\begin{solve}
+令 $t=\cos\theta$。由余弦递推关系，$\cos(k\theta)$ 是 $t$ 的 $k$ 次多项式；$k=0$ 的系数为 $1$，$k\geq1$ 时最高次项系数为 $2^{k-1}$。由式~\eqref{eq:xie-ex-det-polynomial-columns}，
+\begin{equation}
+\label{eq:xie-ex-det-cosine}
+\det(\cos((j-1)\theta_i))
+=2^{(n-1)(n-2)/2}\prod_{i<j}(\cos\theta_j-\cos\theta_i).
+\end{equation}
+类似地，由正弦递推可构造多项式 $q_{j-1}$，使 $\sin(j\theta)=\sin\theta\,q_{j-1}(\cos\theta)$，其中 $q_{j-1}$ 的次数为 $j-1$、最高次项系数为 $2^{j-1}$。逐行提出 $\sin\theta_i$ 后得到
+\begin{equation}
+\label{eq:xie-ex-det-sine}
+\det(\sin(j\theta_i))
+=2^{n(n-1)/2}\prod_i\sin\theta_i
+\prod_{i<j}(\cos\theta_j-\cos\theta_i).
+\end{equation}
+这里用的是乘法恒等式，没有除以 $\sin\theta_i$；因此某个正弦为零时也成立。余弦节点重复时，乘积和行列式同时为零。
+\end{solve}
+
+% 原书例 1.30。
+\begin{corollary}
+\label{cor:xie-ex-det-polynomial-uniqueness}
+次数不超过 $m$ 的多项式若在 $m+1$ 个互异节点处取零值，就一定是零多项式。因此同次数范围内的多项式由这 $m+1$ 个节点值唯一确定。
+\end{corollary}
+
+\begin{proof}
+把多项式的 $m+1$ 个系数视为未知量，节点处的零值给出一个系数矩阵为 Vandermonde 矩阵的齐次方程组。节点互异使其行列式非零，由 Cramer 法则只有零解。对两个具有相同节点值的多项式之差应用此结论，就得到唯一性。
+\end{proof}
+
+\section{升阶法}
+\label{sec:xie-ex-det-bordering}
+
+升阶法添加适当的行或列，把原式嵌入一个更容易识别的行列式。关键是同时证明新旧行列式的关系；若添加一行一列后按其展开恰好恢复原式，就不会引入未知的比例因子。缺少某个幂次列、含有公共常数项或具有少数几个公共列方向时，都适合考虑升阶。
+
+% 原书例 1.31。
+\begin{example}
+\label{ex:xie-ex-det-one-plus-powers}
+求 $D=\det(1+x_i^j)_{i,j=1}^{n}$。
+\end{example}
+
+\begin{solve}
+构造
+\[
+B=\begin{pmatrix}
+1&-1&-1&\cdots&-1\\
+1&x_1&x_1^2&\cdots&x_1^n\\
+\vdots&\vdots&\vdots&\ddots&\vdots\\
+1&x_n&x_n^2&\cdots&x_n^n
+\end{pmatrix}.
+\]
+把第一行从其余行中减去，再按第一列展开，得到 $\det B=D$。将第一行拆成 $(2,0,\ldots,0)-(1,1,\ldots,1)$，第一部分贡献 $2\det(x_i^j)=2\prod_i x_iV_n(x_1,\ldots,x_n)$；第二部分为节点 $1,x_1,\ldots,x_n$ 的 Vandermonde 行列式。因此
+\begin{equation}
+\label{eq:xie-ex-det-one-plus-powers}
+D=\left(2\prod_i x_i-\prod_i(x_i-1)\right)V_n(x_1,\ldots,x_n).
+\end{equation}
+公式不要求节点互异，也不排除节点为 $0$ 或 $1$。
+\end{solve}
+
+% 原书例 1.32。
+\begin{example}
+\label{ex:xie-ex-det-missing-power}
+在幂次 $0,1,\ldots,n$ 中删去第 $k$ 次幂，按剩余幂次递增组成 $n$ 列，求节点 $x_1,\ldots,x_n$ 对应的行列式 $W_k$，其中 $0\leq k\leq n$。
+\end{example}
+
+\begin{solve}
+定义初等对称多项式
+\[
+e_r(x_1,\ldots,x_n)=\sum_{1\leq i_1<\cdots<i_r\leq n}x_{i_1}\cdots x_{i_r},
+\qquad e_0=1.
+\]
+在完整的 $n+1$ 列幂次下添加最后一行 $(1,y,\ldots,y^n)$，得到
+\[
+V_{n+1}(x_1,\ldots,x_n,y)
+=V_n(x_1,\ldots,x_n)\prod_{i=1}^{n}(y-x_i).
+\]
+左端按最后一行展开时，$y^k$ 的系数为 $(-1)^{n+k}W_k$；右端对应系数为 $(-1)^{n-k}e_{n-k}V_n$。比较系数，两个符号相同，故
+\begin{equation}
+\label{eq:xie-ex-det-missing-power}
+W_k=e_{n-k}(x_1,\ldots,x_n)V_n(x_1,\ldots,x_n).
+\end{equation}
+边界 $k=n$ 恢复标准 Vandermonde 公式，$k=0$ 对应每行提出 $x_i$。
+\end{solve}
+
+% 原书例 1.33；直接描述两次升阶后的分块消元。
+\begin{example}
+\label{ex:xie-ex-det-offdiagonal-sums}
+设 $n\geq2$，各 $a_i\ne0$，矩阵 $G$ 满足 $g_{ii}=0$、$g_{ij}=a_i+a_j$（$i\ne j$），求 $\det G$。
+\end{example}
+
+\begin{solve}
+令 $a=(a_1,\ldots,a_n)^{\mathsf T}$，$D=-2\operatorname{diag}(a_1,\ldots,a_n)$，$U=(\mathbf1,a)$，$V=(a,\mathbf1)$，则 $G=D+UV^{\mathsf T}$。考虑 $n+2$ 阶矩阵
+\[
+B=\begin{pmatrix}I_2&-V^{\mathsf T}\\U&D\end{pmatrix}.
+\]
+以最上面两行为基准消去左下块，得到右下块 $D+UV^{\mathsf T}=G$，所以 $\det B=\det G$。另一方面，各 $a_i\ne0$ 保证 $D$ 的对角元非零，可以用最后 $n$ 列消去左下块，得到左上块 $I_2+V^{\mathsf T}D^{-1}U$。这里 $D^{-1}=\operatorname{diag}(-1/(2a_i))$，只是逐个对角元素取倒数。令 $S=\sum_i a_i,T=\sum_i1/a_i$，则
+\[
+I_2+V^{\mathsf T}D^{-1}U
+=\begin{pmatrix}1-n/2&-S/2\\-T/2&1-n/2\end{pmatrix}.
+\]
+对两种消元后的分块三角矩阵，应用命题~\ref{prop:xie-ex-det-basic-blocks}，行列式都是对角块行列式之积，因而
+\begin{equation}
+\label{eq:xie-ex-det-offdiagonal-sums}
+\det G=(-2)^{n-2}\left(\prod_i a_i\right)
+\left((n-2)^2-\left(\sum_i a_i\right)\left(\sum_i\frac1{a_i}\right)\right).
+\end{equation}
+本式保留了题设的非零条件；若需代入零参数，必须先消去分母，不能直接使用 $1/a_i$。
+\end{solve}
+
+\section{求根法}
+\label{sec:xie-ex-det-polynomial-roots}
+
+行列式的元素为多项式时，其排列展开仍是多项式。求根法先估计次数，再找出使行列式出现相同行、相关列或零行的参数值，从而找到因子，最后确定尚未知道的常数。次数为 $d$ 的非零一元多项式，只有找齐按重数计算的 $d$ 个根并确定最高次项系数后，才能恢复整个多项式；只找出若干根不能排除额外因子。若次数估计为“至多 $d$”，还要防止最高次项相消。
+
+因式定理的依据是多项式除法：$p(r)=0$ 当且仅当 $t-r$ 整除 $p(t)$。多个不同根可以依次提出因子；重根则须另行核对，例如检查导数或继续作整除。多参数问题可先把参数看作独立未定元，证明多项式恒等式，再代入特殊值；不能在参数已经相等时仍把相同根算作多个不同根。
+
+% 原书例 1.34。
+\begin{example}
+\label{ex:xie-ex-det-vandermonde-roots}
+用求根法再证 Vandermonde 公式。
+\end{example}
+
+\begin{solve}
+把 $x_n$ 看成主未定元，$V_n$ 的次数至多为 $n-1$，$x_n=x_i$（$i<n$）时有两行相同，故含因子 $\prod_{i<n}(x_n-x_i)$。先把其余节点视为独立参数；按最后一行展开，$x_n^{n-1}$ 的系数为 $V_{n-1}$，所以
+\[
+V_n=V_{n-1}\prod_{i<n}(x_n-x_i).
+\]
+再对 $n$ 归纳得到式~\eqref{eq:xie-ex-det-vandermonde}。所得是多项式恒等式，因此任意节点重合的代入也成立。
+\end{solve}
+
+% 原书例 1.18 的两种解法；此处采用清分母后的因子比较。
+\begin{theorem}[Cauchy 行列式]
+\label{thm:xie-ex-det-cauchy}
+设所有 $a_i+b_j\ne0$，则\emph{柯西行列式}（Cauchy determinant）为
+\begin{equation}
+\label{eq:xie-ex-det-cauchy}
+\det\left(\frac1{a_i+b_j}\right)_{i,j=1}^{n}
+=\frac{\prod_{i<j}(a_j-a_i)(b_j-b_i)}{\prod_{i,j=1}^{n}(a_i+b_j)}.
+\end{equation}
+在分母均非零的前提下，它非零当且仅当 $a_i$ 两两不同且 $b_j$ 两两不同。
+\end{theorem}
+
+\begin{proof}
+逐行清分母，令 $B_{ij}=\prod_{k\ne j}(a_i+b_k)$，则左端等于 $\det B/\prod_{i,j}(a_i+b_j)$。多项式 $\det B$ 的总次数至多为 $n(n-1)$；交换两个 $a_i$ 相当于交换两行，交换两个 $b_j$ 相当于交换两列。因此 $a_i=a_j$ 或 $b_i=b_j$ 时它为零，所有一次因子 $a_j-a_i,b_j-b_i$ 均整除它。这些不同的一次因子在实数或复数系数多项式环中互不相伴，且均为素因子，故它们的乘积也整除 $\det B$。乘积总次数已为 $n(n-1)$，所以
+\[
+\det B=K\prod_{i<j}(a_j-a_i)(b_j-b_i)
+\]
+且 $K$ 为常数。为确定 $K$，在\emph{已经清分母的多项式}中令 $a_i=-b_i$，并取互异的 $b_i$。此时 $B$ 为对角矩阵，其对角元为 $\prod_{k\ne i}(b_k-b_i)$；两两配对后，对角元乘积恰等于右侧的两个差积，因此 $K=1$。此代入不能用于原来的分式矩阵，但用于多项式 $B$ 完全合法。
+\end{proof}
+
+% 原书例 1.36，按同一四元对称模式排列。
+\begin{example}
+\label{ex:xie-ex-det-four-factors}
+求
+\[
+Q=\begin{vmatrix}
+x&y&z&w\\y&x&w&z\\z&w&x&y\\w&z&y&x
+\end{vmatrix}.
+\]
+\end{example}
+
+\begin{solve}
+行向量分别作全加、前两行减后两行、第一与第三行减第二与第四行、第一与第四行减第二与第三行，可以看出下列任一因子为零时，四行就有一个非平凡线性关系：
+\[
+x+y+z+w,\quad x+y-z-w,\quad x-y+z-w,\quad x-y-z+w.
+\]
+故这四个不同的一次多项式因子都整除 $Q$。总次数为四，且 $x^4$ 的系数为 $1$，所以
+\[
+Q=(x+y+z+w)(x+y-z-w)(x-y+z-w)(x-y-z+w).
+\]
+这是多参数的恒等式，某些参数取特殊值导致因子重合时仍然有效。
+\end{solve}
+
+\section{组合定义}
+\label{sec:xie-ex-det-combinatorics}
+
+组合定义适合追踪哪些排列项可能非零、某个参数的最高次数来自哪里，以及整数整除或共轭运算如何传递到行列式。它通常用于证明结构性结论，而不是直接计算全部 $n!$ 项。
+
+% 原书例 1.39。
+\begin{example}
+\label{ex:xie-ex-det-sparse}
+证明：若 $A$ 的零元素超过 $n^2-n$ 个，则 $\det A=0$。另求只在副对角线上可能非零的行列式。
+\end{example}
+
+\begin{solve}
+第一个条件说明非零元素少于 $n$ 个。任一排列项必须从不同位置选择 $n$ 个元素，其中至少一个为零，因此所有项均为零；也可由抽屉原理得到至少有一整行为零。这个充分条件不能反过来使用，例如全一矩阵有 $n^2$ 个非零元素，$n\geq2$ 时行列式仍为零。
+
+只在副对角线上可能非零时，唯一可能保留的排列为 $(n,n-1,\ldots,1)$，其逆序数为 $n(n-1)/2$，所以
+\begin{equation}
+\label{eq:xie-ex-det-antidiagonal}
+\det A=(-1)^{n(n-1)/2}\prod_{i=1}^{n}a_{i,n+1-i}.
+\end{equation}
+其中某个副对角元素为零时，两端也同时为零。
+\end{solve}
+
+% 原书例 1.40。
+\begin{proposition}
+\label{prop:xie-ex-det-leading-characteristic}
+对任意 $n$ 阶矩阵 $A$，$p_A(t)=\det(tI_n-A)$ 是最高次项系数为 $1$ 的 $n$ 次多项式，且 $t^{n-1}$ 的系数为 $-\sum_i a_{ii}$。
+\end{proposition}
+
+\begin{proof}
+恒等排列贡献 $\prod_i(t-a_{ii})$，其最高两项为 $t^n-(\sum_i a_{ii})t^{n-1}$。非恒等排列至少移动两个指标，而参数 $t$ 只出现在主对角上，所以其余排列项的次数至多为 $n-2$，不影响最高两项。
+\end{proof}
+
+% 原书例 1.41、1.43。
+\begin{proposition}
+\label{prop:xie-ex-det-conjugate-skew}
+对复矩阵，$\det\overline A=\overline{\det A}$，其中横线表示逐元素复共轭。若 $A^{\mathsf T}=-A$，称 $A$ 为\emph{反对称矩阵}（skew-symmetric matrix）；实数域或复数域上奇数阶反对称矩阵的行列式为零。
+\end{proposition}
+
+\begin{proof}
+共轭保持有限和与乘积，排列系数 $\pm1$ 也不变，对式~\eqref{eq:xie-ex-det-leibniz} 逐项取共轭即得第一式。反对称情形由
+\[
+\det A=\det A^{\mathsf T}=\det(-A)=(-1)^n\det A
+\]
+得出 $n$ 为奇数时 $2\det A=0$，因而 $\det A=0$。这里的反对称使用转置，不能换成共轭转置后仍直接照用结论。
+\end{proof}
+
+% 原书例 1.42，以及例 1.20 和基础训练中的奇偶性。
+\begin{example}
+\label{ex:xie-ex-det-integrality}
+设 $n\geq2$，整数矩阵 $A$ 的行列式 $D\ne0$，且 $D$ 整除每个元素，证明 $D=\pm1$。再说明元素均为 $1$ 或 $-1$ 的行列式具有怎样的整除性。
+\end{example}
+
+\begin{solve}
+每个排列项是 $n$ 个元素之积，均被 $D^n$ 整除，所以 $D^n$ 整除它们的带符号之和 $D$。因 $D\ne0$，有 $D^{n-1}$ 整除 $1$，故整数 $D$ 只能为 $\pm1$。$n\geq2$ 不能删去：一阶矩阵 $(2)$ 就不满足结论。
+
+若全体元素为 $\pm1$，将第一行从其余每行中减去，后 $n-1$ 行的元素都为 $0$ 或 $\pm2$，所以
+\begin{equation}
+\label{eq:xie-ex-det-sign-divisibility}
+2^{n-1}\mid\det A.
+\end{equation}
+这比仅说行列式为偶数更精确。教材还给出界 $|\det A|\leq\frac23n!$（$n\geq3$）：$n=3$ 时先对各行、列乘 $-1$，可使第一列全为 $1$、第一行其余元素全为 $-1$，绝对值不变；将第一列加到其余两列后，按第一行展开，剩余二阶矩阵的元素均为 $0$ 或 $2$，故绝对值至多为 $4=\frac23\,3!$。若结论对 $n-1$ 成立，按第一行展开并用三角不等式，则绝对值至多为 $n\cdot\frac23(n-1)!=\frac23n!$，完成归纳。
+\end{solve}
+
+% 原书例 1.21 的组合定义证明。
+\begin{theorem}[行列式求导]
+\label{thm:xie-ex-det-differentiation}
+设每个 $f_{ij}(t)$ 在区间 $J$ 上可微，$F(t)=\det(f_{ij}(t))$。令 $F_j(t)$ 表示只将第 $j$ 列逐元素求导、其余列保持不变所得的行列式，则
+\begin{equation}
+\label{eq:xie-ex-det-differentiation}
+F'(t)=\sum_{j=1}^{n}F_j(t)
+=\sum_{i,j=1}^{n}C_{ij}(t)f'_{ij}(t).
+\end{equation}
+也可逐行求导后求和，但不能把所有元素同时求导所得的一个行列式当成 $F'(t)$。
+\end{theorem}
+
+\begin{proof}
+排列定义是有限和，每项是 $n$ 个可微函数之积。逐项使用乘积求导法则，再按被求导元素所在的列分组，就得到 $\sum_jF_j$。每个 $F_j$ 按第 $j$ 列展开后，其余子式都来自原矩阵，得到第二个表达式。整个过程只涉及有限和，不需要额外的极限交换条件。
+\end{proof}
+
+\section{Laplace 定理}
+\label{sec:xie-ex-det-laplace}
+
+\begin{definition}
+\label{def:xie-ex-det-general-minor}
+记 $[n]=\{1,\ldots,n\}$。设 $I=\{i_1<\cdots<i_k\}$、$J=\{j_1<\cdots<j_k\}$，$A[I,J]$ 表示保留这些行列、并按原次序排列的 $k$ 阶子矩阵；$\det A[I,J]$ 为相应的 $k$ 阶子式。记 $I^{\mathrm c}=[n]\setminus I$，$\Sigma I=\sum_{i\in I}i$。该子式的代数余子式定义为
+\[
+(-1)^{\Sigma I+\Sigma J}\det A[I^{\mathrm c},J^{\mathrm c}].
+\]
+当 $I=J$ 时，称 $\det A[I,I]$ 为\emph{主子式}（principal minor）。
+\end{definition}
+
+\begin{theorem}[Laplace 展开]
+\label{thm:xie-ex-det-laplace}
+固定 $k$ 行组成的指标集 $I$，则
+\begin{equation}
+\label{eq:xie-ex-det-laplace}
+\det A=\sum_{\substack{J\subseteq[n]\\|J|=k}}
+(-1)^{\Sigma I+\Sigma J}\det A[I,J]\det A[I^{\mathrm c},J^{\mathrm c}].
+\end{equation}
+固定列集、对行集求和也有同样公式。$k=1$ 时退化为一行或一列展开。
+\end{theorem}
+
+\begin{proof}
+按所选 $k$ 行中使用的列集 $J$，把排列定义中的项分组。保持内部次序，将 $I,J$ 分别移到前 $k$ 个位置，所需相邻对换次数为
+\[
+\Sigma I-\frac{k(k+1)}2+\Sigma J-\frac{k(k+1)}2,
+\]
+与 $\Sigma I+\Sigma J$ 同奇偶。固定 $J$ 后，选中部分与补集部分的排列独立求和，分别给出 $\det A[I,J]$ 和 $\det A[I^{\mathrm c},J^{\mathrm c}]$，再乘这一符号并对 $J$ 求和即可。
+\end{proof}
+
+\begin{corollary}[分块三角与分块反对角]
+\label{cor:xie-ex-det-blocks}
+设 $P,Q$ 分别为 $p,q$ 阶方阵，$X,Y$ 为相应大小的任意矩阵，则
+\begin{equation}
+\label{eq:xie-ex-det-block-triangular}
+\det\begin{pmatrix}P&X\\0&Q\end{pmatrix}
+=\det\begin{pmatrix}P&0\\Y&Q\end{pmatrix}
+=\det P\det Q,
+\end{equation}
+并且
+\begin{equation}
+\label{eq:xie-ex-det-block-antidiagonal}
+\det\begin{pmatrix}0_{p\times q}&P\\Q&0_{q\times p}\end{pmatrix}
+=(-1)^{pq}\det P\det Q.
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+对上三角分块矩阵按最后 $q$ 行作 Laplace 展开，只有选中最后 $q$ 列的子式可能非零，得到对角块乘积；下三角情形同理。分块反对角式把最前 $q$ 列整体移到最后，需要 $pq$ 次相邻列对换，得到分块对角矩阵，因此增加符号 $(-1)^{pq}$。例如 $p=q=5$、$\det P=2,\det Q=3$ 时，分块反对角行列式为 $-6$，不能漏掉块交换的符号。
+\end{proof}
+
+% 原书例 1.44。
+\begin{example}
+\label{ex:xie-ex-det-plucker}
+证明恒等式
+\[
+(ab'-a'b)(cd'-c'd)-(ac'-a'c)(bd'-b'd)
++(ad'-a'd)(bc'-b'c)=0.
+\]
+\end{example}
+
+\begin{solve}
+考虑四阶矩阵，其四行依次为 $(a,a',a,a')$、$(b,b',b,b')$、$(c,c',c,c')$、$(d,d',d,d')$。它有重复列，行列式为零。按前两列作 Laplace 展开，行集 $\{1,2\},\{1,3\},\{1,4\}$ 分别给出括号中的正、负、正三项；互补行集又各给出同样的一项。因此展开结果为所证左端的 $2$ 倍，除以 $2$ 即得。
+\end{solve}
+
+% 原书例 1.46。
+\begin{proposition}[两个矩阵之和的行列式]
+\label{prop:xie-ex-det-sum-minors}
+若 $A,B$ 均为 $n$ 阶矩阵，则
+\begin{equation}
+\label{eq:xie-ex-det-sum-minors}
+\det(A+B)=\sum_{k=0}^{n}
+\sum_{\substack{I,J\subseteq[n]\\|I|=|J|=k}}
+(-1)^{\Sigma I+\Sigma J}\det A[I,J]\det B[I^{\mathrm c},J^{\mathrm c}].
+\end{equation}
+$k=0,n$ 分别贡献 $\det B,\det A$，其余项是不能省略的混合项。
+\end{proposition}
+
+\begin{proof}
+将每一行拆为来自 $A$ 与来自 $B$ 的两部分。固定从 $A$ 取行的指标集 $I$，对这一混合矩阵按 $I$ 作 Laplace 展开，得到对应的内层和。对所有 $I$ 求和，就把行的全部 $2^n$ 种选择计入一次。
+\end{proof}
+
+% 原书例 1.47。
+\begin{corollary}[特征多项式的系数]
+\label{cor:xie-ex-det-characteristic-coefficients}
+设 $p_A(t)=\det(tI_n-A)=t^n+c_1t^{n-1}+\cdots+c_n$，则
+\begin{equation}
+\label{eq:xie-ex-det-characteristic-coefficients}
+c_k=(-1)^k\sum_{\substack{I\subseteq[n]\\|I|=k}}\det A[I,I],
+\qquad 1\leq k\leq n.
+\end{equation}
+特别地，$c_1=-\sum_i a_{ii}$，$c_n=(-1)^n\det A$。
+\end{corollary}
+
+\begin{proof}
+在式~\eqref{eq:xie-ex-det-sum-minors} 中对 $-A+tI_n$ 展开。单位矩阵的补子式只有行、列指标相同才可能非零，这时等于 $t^{n-k}$，外部符号为 $(-1)^{2\Sigma I}=1$；$-A$ 的 $k$ 阶子式则贡献 $(-1)^k$，比较系数即得。
+\end{proof}
+
+\section{综合运用}
+\label{sec:xie-ex-det-synthesis}
+
+选择方法时先识别结构：零多就直接展开；相邻行列差简单就先作差；行列和相同就合并；主对角加公共方向就拆分；幂次或递增次数的多项式列就化为 Vandermonde；缺少幂次列就升阶；低次数参数式就找因子并比较系数；三对角等带状结构则优先找递推。方法可以组合，但每一步都应能说明行列式是否改变、乘了什么因子，以及是否引入非零条件。
+
+% 原书例 1.9。
+\begin{example}
+\label{ex:xie-ex-det-row-complements}
+令 $s_i=\sum_j a_{ij}$，$b_{ij}=s_i-a_{ij}$，证明 $\det B=(-1)^{n-1}(n-1)\det A$。
+\end{example}
+
+\begin{solve}
+设 $A$ 的列为 $\alpha_1,\ldots,\alpha_n$，$s=\sum_j\alpha_j$，则 $B$ 的列为 $s-\alpha_j$。按列拆分，选取至少两个 $s$ 的项为零。不选 $s$ 的项为 $(-1)^n\det A$；只在第 $j$ 列选 $s$ 的项为 $(-1)^{n-1}\det A$，因为将 $s=\sum_k\alpha_k$ 代入该列后仅有 $k=j$ 不出现重复列。这样的项共有 $n$ 个，求和即得。$n=1$ 时两端也同为零。
+\end{solve}
+
+% 原书例 1.48。
+\begin{example}
+\label{ex:xie-ex-det-squared-diagonal}
+设 $A(x)$ 的第 $j$ 列除第 $j$ 行外均为 $a_j^2$，而第 $(j,j)$ 个元素为 $(x-a_j)^2$，求 $\det A(x)$。
+\end{example}
+
+\begin{solve}
+由 $(x-a_j)^2=a_j^2+(x^2-2a_jx)$，令 $d_j=x^2-2a_jx$，可写成 $A(x)=\operatorname{diag}(d_1,\ldots,d_n)+\mathbf1(a_1^2,\ldots,a_n^2)$。式~\eqref{eq:xie-ex-det-diagonal-rank-one} 给出
+\[
+\det A(x)=\prod_j(x^2-2a_jx)
++\sum_i a_i^2\prod_{j\ne i}(x^2-2a_jx).
+\]
+这个表达式在 $x=0$、$x=2a_i$ 或 $a_i=0$ 时均有效；若先改写为含 $1/d_i$ 的形式，就必须另外处理这些取值。
+\end{solve}
+
+% 原书例 1.49。
+\begin{example}
+\label{ex:xie-ex-det-cofactor-sum}
+设 $A=(\alpha_1,\ldots,\alpha_n)$，证明
+\[
+\det(\alpha_1-\alpha_2,\alpha_2-\alpha_3,\ldots,
+\alpha_{n-1}-\alpha_n,\mathbf1)=\sum_{i,j=1}^{n}C_{ij}.
+\]
+\end{example}
+
+\begin{solve}
+令 $F(t)=\det(A+t\mathbf1\mathbf1^{\mathsf T})$。从 $j=1$ 到 $j=n-1$ 依次作 $K_j\leftarrow K_j-K_{j+1}$，此时右侧的列尚未改写，所以
+\[
+F(t)=\det(\alpha_1-\alpha_2,\ldots,\alpha_{n-1}-\alpha_n,
+\alpha_n+t\mathbf1).
+\]
+由最后一列的线性，$F(1)-F(0)$ 就是题目左端；由式~\eqref{eq:xie-ex-det-all-increment}，这一差又等于全部代数余子式之和。
+\end{solve}
+
+% 原书例 1.50。
+\begin{theorem}[行列式的刻画]
+\label{thm:xie-ex-det-characterization}
+设实数域或复数域上的函数 $f$ 把每个 $n$ 阶方阵对应到一个数，并且对每一列分别线性、交换任意两列时变号，且 $f(I_n)=1$，则 $f(A)=\det A$。
+\end{theorem}
+
+\begin{proof}
+设 $e_1,\ldots,e_n$ 为标准单位列向量，将第 $j$ 列写成 $\alpha_j=\sum_i a_{ij}e_i$，按各列的线性展开得
+\[
+f(A)=\sum_{k_1,\ldots,k_n=1}^{n}
+a_{k_1,1}\cdots a_{k_n,n}f(e_{k_1},\ldots,e_{k_n}).
+\]
+若有两个 $k_j$ 相同，交换对应两列使函数值变号而输入不变，故函数值为零。其余项的 $(k_1,\ldots,k_n)$ 是排列，通过相邻交换恢复 $(1,\ldots,n)$，得到函数值 $(-1)^{N(k_1,\ldots,k_n)}f(I_n)$。于是剩下的求和正是按列选元素的排列定义，等于 $\det A$。
+\end{proof}
+
+\section{基础训练与方法核查}
+\label{sec:xie-ex-det-exercises}
+
+本节从教材的选择、填空与解答题中提取有代表性的训练，重点说明理由，不逐项抄录选择项。同类小题应回到行列式性质核对，而不是仅记住某个数值答案。例如，第一列移到末列要作 $n-1$ 次相邻交换，行列式乘以 $(-1)^{n-1}$；同时颠倒行序和列序的总符号为 $(-1)^{n(n-1)}=1$；将 $a_{ij}$ 换为 $(-1)^{i+j}a_{ij}$，等价于逐行、逐列提出符号，总符号也为 $1$。若换为 $r^{i-j}a_{ij}$ 且 $r\ne0$，行因子与列因子相消，行列式不变；若换为 $b_ib_ja_{ij}$，行列式则乘以 $\prod_i b_i^2$。
+
+\subsection{余子式、操作次序与循环结构}
+
+% 原书解答题 7，以及代数余子式求和的填空题。
+\begin{example}
+\label{ex:xie-ex-det-triangular-cofactors}
+设 $A$ 为上三角矩阵，证明 $i<j$ 时 $M_{ij}=C_{ij}=0$，并说明如何计算某一行的代数余子式之和。
+\end{example}
+
+\begin{solve}
+删除第 $i$ 行、第 $j$ 列且 $i<j$ 后，原来的前 $j-1$ 列在剩余矩阵中仍有 $j-1$ 列。上三角性使这些列的非零元素只能落在原前 $j-1$ 行；但其中第 $i$ 行已被删去，只剩 $j-2$ 行。每个排列项要从这 $j-1$ 列选取不同的行，必然选到零，因此 $M_{ij}=0$，从而 $C_{ij}=0$。不能将条件改成 $i>j$：例如二阶上三角矩阵的 $C_{21}=-a_{12}$ 未必为零。
+
+若求第 $k$ 行的 $\sum_j C_{kj}$，把该行替换为全一行，再沿该行展开即可；代数余子式因删除了这一行而保持原值。这与将原来各行相加或求所有元素之和是不同操作。
+\end{solve}
+
+% 原书填空题 15，强调同时使用原列。
+\begin{example}
+\label{ex:xie-ex-det-cyclic-column-addition}
+设 $n\geq2$，$A=(\alpha_1,\ldots,\alpha_n)$。同时令 $\beta_1=\alpha_1+\alpha_n$、$\beta_j=\alpha_j+\alpha_{j-1}$（$2\leq j\leq n$），求 $\det(\beta_1,\ldots,\beta_n)$。
+\end{example}
+
+\begin{solve}
+按列拆分，每列选本列或前一原列。若某列选前一原列，而前一列仍选本列，就出现重复列；要避免重复，这种选择必须沿圆周传播，直到所有列都选前一原列。因此只有全部取本列或全部取前一原列的两项可能非零，得到
+\[
+\det(\beta_1,\ldots,\beta_n)
+=\bigl(1+(-1)^{n-1}\bigr)\det A
+=\begin{cases}2\det A,&n\text{ 为奇数},\\0,&n\text{ 为偶数}.\end{cases}
+\]
+题意是同时使用原列，不能逐列就地更新后再引用已改变的列；否则计算的会是另一矩阵。
+\end{solve}
+
+% 原书解答题 10、12。
+\begin{example}
+\label{ex:xie-ex-det-cyclic-bidiagonal}
+设 $n\geq2$，$B$ 主对角元素均为 $a$，上副对角元素及左下角元素均为 $b$，其余元素为零。另设 $S$ 主对角元素为 $x$，上方元素为 $h$，下方元素为 $-h$。分别求其行列式。
+\end{example}
+
+\begin{solve}
+$B$ 的非零排列项只有恒等排列和沿上副对角及左下角绕行一周的循环排列：只要一行选择上副对角元素，就会迫使下一行继续选择上副对角元素，直到绕回起点。因此
+\[
+\det B=a^n+(-1)^{n-1}b^n.
+\]
+对 $S$，在式~\eqref{eq:xie-ex-det-uniform-triangle} 中取 $a=x,b=h,c=-h$，$h\ne0$ 时得
+\[
+\det S=\frac{(x-h)^n+(x+h)^n}{2}.
+\]
+两端为多项式，或直接检查 $h=0$ 的对角情形，就知这一式也包括 $h=0$。
+\end{solve}
+
+\subsection{递推与结构矩阵}
+
+% 原书解答题 8。
+\begin{example}
+\label{ex:xie-ex-det-continued-fraction}
+令 $K(a_1,\ldots,a_n)$ 为主对角元素依次为 $a_1,\ldots,a_n$、上副对角均为 $1$、下副对角均为 $-1$ 的三对角行列式，约定 $K(\varnothing)=1$。将有限连分数表示为行列式之比。
+\end{example}
+
+\begin{solve}
+按第一行展开，$n\geq2$ 时有
+\[
+K(a_1,\ldots,a_n)
+=a_1K(a_2,\ldots,a_n)+K(a_3,\ldots,a_n),
+\]
+其中 $n=2$ 时最后一项为 $K(\varnothing)=1$；一阶值为 $K(a_1)=a_1$。若每个尾部 $K(a_k,\ldots,a_n)\ne0$（$2\leq k\leq n$），则各层分母都有定义，归纳得到
+\begin{equation}
+\label{eq:xie-ex-det-continued-fraction}
+a_1+\cfrac1{a_2+\cfrac1{a_3+\cfrac1{\ddots+\cfrac1{a_n}}}}
+=\frac{K(a_1,\ldots,a_n)}{K(a_2,\ldots,a_n)}.
+\end{equation}
+归纳步骤就是将递推式除以 $K(a_2,\ldots,a_n)$。这些尾部非零条件不能省去，否则原来的逐层除法可能没有意义。若所有 $a_i=1$，则 $K_n=K_{n-1}+K_{n-2}$，$K_0=K_1=1$，与 Fibonacci 数列相联系。
+\end{solve}
+
+% 原书解答题 13、14。
+\begin{example}
+\label{ex:xie-ex-det-max-distance}
+分别求 $M=(\max\{i,j\})_{i,j=1}^{n}$ 和 $L=(|i-j|)_{i,j=1}^{n}$ 的行列式，第二个问题设 $n\geq2$。
+\end{example}
+
+\begin{solve}
+对 $M$，从 $i=1$ 到 $i=n-1$ 依次作 $R_i\leftarrow R_i-R_{i+1}$。第 $i$ 行前 $i$ 个元素为 $-1$，其余元素为零，最后一行全为 $n$，所以成为下三角矩阵，得到
+\begin{equation}
+\label{eq:xie-ex-det-max}
+\det M=(-1)^{n-1}n.
+\end{equation}
+对 $L$，先从下向上作 $R_i\leftarrow R_i-R_{i-1}$，$i=n,\ldots,2$；再从右向左作 $K_j\leftarrow K_j-K_{j-1}$，$j=n,\ldots,2$。直接由 $|i-j|$ 的差分可得新矩阵
+\[
+\begin{pmatrix}
+0&1&1&\cdots&1\\
+1&-2&0&\cdots&0\\
+1&0&-2&\cdots&0\\
+\vdots&\vdots&\vdots&\ddots&\vdots\\
+1&0&0&\cdots&-2
+\end{pmatrix}.
+\]
+由爪型公式~\eqref{eq:xie-ex-det-arrow-nonzero}，
+\begin{equation}
+\label{eq:xie-ex-det-distance}
+\det L=(-2)^{n-1}\frac{n-1}{2}
+=(-1)^{n-1}(n-1)2^{n-2}.
+\end{equation}
+这两题中的差分方向不同，均是为了确保被减去的行或列仍为原来的对象。
+\end{solve}
+
+\subsection{Vandermonde 方程组与升阶训练}
+
+% 原书解答题 3、4；唯一解之外补出显式解。
+\begin{example}
+\label{ex:xie-ex-det-vandermonde-system}
+设 $a_1,\ldots,a_n$ 两两不同，证明方程组
+\[
+\sum_{i=1}^{n}a_i^kx_i=b^k,\qquad k=0,1,\ldots,n-1,
+\]
+有唯一解，并求出解。再求以 $t,a_1,\ldots,a_{n-1}$ 为节点的 Vandermonde 行列式等于零时的全部 $t$。
+\end{example}
+
+\begin{solve}
+系数矩阵是 Vandermonde 矩阵的转置，行列式非零，所以解唯一。定义
+\[
+\ell_i(t)=\prod_{j\ne i}\frac{t-a_j}{a_i-a_j}.
+\]
+它满足 $\ell_i(a_j)=\delta_{ij}$。对任意次数不超过 $n-1$ 的多项式 $q$，差 $q(t)-\sum_iq(a_i)\ell_i(t)$ 在 $n$ 个不同节点为零，由推论~\ref{cor:xie-ex-det-polynomial-uniqueness} 可知恒为零。取 $q(t)=t^k$ 并代入 $t=b$，就得到
+\[
+x_i=\ell_i(b)=\prod_{j\ne i}\frac{b-a_j}{a_i-a_j}.
+\]
+若 $b$ 恰等于某一节点，也可直接代入，得到该位置为 $1$、其余为零的解。第二问由 Vandermonde 差积得到全部根 $t=a_1,\ldots,a_{n-1}$，没有其他根。
+\end{solve}
+
+% 原书解答题 5。
+\begin{example}
+\label{ex:xie-ex-det-neighboring-powers}
+设 $n\geq2$，矩阵第 $i$ 行依次为
+\[
+1,\quad x_i+1,\quad x_i^2+x_i,\quad\ldots,\quad x_i^{n-1}+x_i^{n-2}.
+\]
+求其行列式。
+\end{example}
+
+\begin{solve}
+第 $j$ 列是 $x_i$ 的 $j-1$ 次首一多项式在各节点的值，直接由式~\eqref{eq:xie-ex-det-polynomial-columns} 得到 $V_n(x_1,\ldots,x_n)$。若逐列消去低次项，应从第二列向右进行：每列减去已经化成纯幂的前一列。这里恰好需要使用更新后的前列，和“所有列同时减去原前列”的操作不同。
+\end{solve}
+
+% 原书解答题 15。
+\begin{example}
+\label{ex:xie-ex-det-shifted-missing-power}
+设 $n\geq2$，求第 $i$ 行为
+\[
+1,\quad x_i(x_i-a),\quad x_i^2(x_i-a),\quad\ldots,\quad x_i^{n-1}(x_i-a)
+\]
+的 $n$ 阶行列式 $D$。
+\end{example}
+
+\begin{solve}
+添加缺少的一次多项式列，并添加最后一行对应于节点 $y$ 的值，得到列多项式为 $1,t-a,t(t-a),\ldots,t^{n-1}(t-a)$ 的 $n+1$ 阶行列式 $B(y)$。这些列多项式依次为 $0$ 至 $n$ 次的首一多项式，故
+\[
+B(y)=V_n(x_1,\ldots,x_n)\prod_i(y-x_i).
+\]
+按最后一行展开，分别代入 $y=a$ 和 $y=0$ 并相减：第一列的贡献相消，第二列贡献 $a(-1)^{n+3}D$，其余列在两个取值下均为零。因此
+\[
+aD=V_n(x_1,\ldots,x_n)\left(\prod_i x_i-\prod_i(x_i-a)\right).
+\]
+当 $a\ne0$ 时得到
+\begin{equation}
+\label{eq:xie-ex-det-shifted-missing-power}
+D=\frac{\prod_i x_i-\prod_i(x_i-a)}{a}V_n(x_1,\ldots,x_n).
+\end{equation}
+当 $a=0$ 时，幂次恰好为 $0,2,\ldots,n$，由式~\eqref{eq:xie-ex-det-missing-power} 得到 $D=e_{n-1}(x_1,\ldots,x_n)V_n(x_1,\ldots,x_n)$。这也等于前式消去可约因子 $a$ 后的取值。
+\end{solve}
+
+本章的模板都应连同条件一起使用：展开式中的余子式来自哪一个原矩阵，行列变换引用的是原行列还是更新后的行列，提取因子是否被误当成除法，以及含参数公式是否覆盖零值和重根，都会直接影响结论。把结果代回一阶或二阶、检查对角或零参数情形，可以发现许多符号错误；这些核对帮助检验推导，但不能代替对一般阶数的证明。
+
+
+
+
+

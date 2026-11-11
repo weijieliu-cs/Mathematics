@@ -1,0 +1,116 @@
+% !TeX root = ../偏微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{14} % 保留原书章号。
+\chapter{演化方程的弱解与能量估计}
+\label{chap:evolution-weak}
+
+时间依赖问题需要同时控制空间导数和时间变化。有限维投影提供近似解，统一能量估计则保证其极限仍满足方程。这一证明路线与数值方法密切相连。
+
+本章是经典展开法与抽象存在性理论之间的桥梁。第一遍阅读时，可以始终把 $\Omega$ 想成区间，把 $\phi_k$ 想成正弦函数，把 $u_N$ 想成只保留前 $N$ 项的近似温度。证明的关键不是写出更多项，而是得到一个不随 $N$ 增大的能量上界，并说明极限仍保留方程和初值。向量值函数空间只是把这些要求准确写出的语言。
+
+\section{时间依赖的函数空间}
+取 $\Omega$ 为有界利普希茨区域，$V=H_0^1(\Omega)$、$H=L^2(\Omega)$、$V^*=H^{-1}(\Omega)$，在 $V$ 中采用范数 $\|v\|_V=\|\nabla v\|_2$，得到\emph{希尔伯特三重空间（Hilbert triple）}$V\hookrightarrow H\hookrightarrow V^*$；$h\in H$ 通过 $v\mapsto(h,v)_H$ 视为 $V^*$ 元素。对应的 $V^*$ 范数也按此 $V$ 范数定义。
+
+\emph{玻赫纳空间（Bochner space）}$L^2(0,T;V)$ 由强可测且 $\int_0^T\|u(t)\|_V^2dt<\infty$ 的函数构成。若 $w\in L^2(0,T;V^*)$ 满足
+\[
+ \int_0^T(u(t),v)_H\eta'(t)\,dt
+ =-\int_0^T\langle w(t),v\rangle\eta(t)\,dt
+\]
+对所有 $v\in V$、$\eta\in C_c^\infty(0,T)$ 成立，则记 $u_t=w$。
+
+\begin{theorem}[能量空间的时间连续性]
+若 $u\in L^2(0,T;V)$、$u_t\in L^2(0,T;V^*)$，则 $u$ 有唯一 $C([0,T];H)$ 代表，且
+\begin{equation}
+ \frac12\|u(t)\|_H^2-\frac12\|u(s)\|_H^2
+ =\int_s^t\langle u_\tau,u\rangle\,d\tau.
+ \label{eq:hilbert-triple-energy}
+\end{equation}
+\end{theorem}
+其证明先对时间磨光后的函数应用普通乘积法则，再用 $L^2(V)$ 与 $L^2(V^*)$ 的对偶估计传递极限；范数连续性结合弱连续性给出强连续代表。此处保留证明思路，详细向量值函数论可参见文献\cite{hunter}附录6.A、6.B。该结论使 $u(0)=g$ 成为 $H$ 中有意义的条件，而非任取时间切片的点值。
+
+\section{热方程的弱形式与伽辽金近似}
+对 $g\in H$、$f\in L^2(0,T;V^*)$，弱热方程定义为
+\begin{equation}
+ \langle u_t,v\rangle+\kappa\int_\Omega\nabla u\cdot\nabla v\,dx
+ =\langle f,v\rangle\quad(v\in V),\qquad u(0)=g,
+ \label{eq:weak-heat}
+\end{equation}
+对几乎处处时间成立，且 $u,u_t$ 属于上一节的能量空间。
+
+选择 $H$ 规范正交的狄利克雷拉普拉斯本征函数 $\phi_k$，令 $V_N=\operatorname{span}\{\phi_1,\ldots,\phi_N\}$。\emph{伽辽金方法（Galerkin method）}取 $u_N=\sum_{k=1}^Na_k(t)\phi_k$，要求式\eqref{eq:weak-heat}对 $v\in V_N$ 成立，即
+\[
+ a_k'+\kappa\lambda_ka_k=\langle f,\phi_k\rangle,
+ \qquad a_k(0)=(g,\phi_k)_H.
+\]
+右端平方可积，每个有限维系统都有唯一绝对连续解。基函数既满足边界，又把空间能量对角化。
+
+\begin{example}[前两个模态的近似解]
+在 $(0,\pi)$ 上取 $\kappa=1$、零边界、初温 $g=\sin x+2\sin2x+\sin3x$，源项为 $f=\sin2x$。用未规范化的正弦基保留前两项，令 $u_2=A_1(t)\sin x+A_2(t)\sin2x$。正交性给出
+\[
+ A_1'+A_1=0,\quad A_1(0)=1;\qquad
+ A_2'+4A_2=1,\quad A_2(0)=2,
+\]
+所以 $u_2=e^{-t}\sin x+(1/4+7e^{-4t}/4)\sin2x$。完整解还含 $e^{-9t}\sin3x$，因此
+\[
+ \|u(t)-u_2(t)\|_{L^2(0,\pi)}=\sqrt{\pi/2}\,e^{-9t}.
+\]
+近似解没有逐点满足全部初温，而是满足其前两模态投影。这个例子把投影初值、有限维系统和截断误差三个概念区分开来。
+\end{example}
+
+\section{统一估计、取极限与唯一性}
+在有限维方程中取 $v=u_N$，用杨氏不等式得
+\[
+ \frac12\frac d{dt}\|u_N\|_H^2+\kappa\|u_N\|_V^2
+ \le\frac\kappa2\|u_N\|_V^2+\frac1{2\kappa}\|f\|_{V^*}^2.
+\]
+积分得到不依赖 $N$ 的估计
+\begin{equation}
+ \sup_{0\le t\le T}\|u_N(t)\|_H^2
+ +\kappa\int_0^T\|u_N\|_V^2dt
+ \le 2\|g\|_H^2+\frac2\kappa\int_0^T\|f\|_{V^*}^2dt.
+ \label{eq:galerkin-bound}
+\end{equation}
+常数二来自把各自的上界相加。又因本征投影在 $V$ 范数下不增，方程给出 $\|(u_N)_t\|_{V^*}\le\kappa\|u_N\|_V+\|f\|_{V^*}$。于是可提取 $u_N$ 在 $L^2(V)$ 及导数在 $L^2(V^*)$ 中的弱收敛子列。
+
+为了识别极限，先取有限个基函数的空间组合和光滑时间函数测试，并在时间上分部积分。每项对未知量都是连续线性的，所以可传递弱极限；再由有限维空间的稠密性扩展到所有 $v\in V$。初始投影趋于 $g$，积分式中的初始项因而也恢复为 $g$。式\eqref{eq:hilbert-triple-energy}保证极限具有时间连续代表并满足初值。这给出存在性。
+
+若 $u_1,u_2$ 数据相同，令 $w=u_1-u_2$，由式\eqref{eq:hilbert-triple-energy}合法地取测试函数 $w$，得 $\frac12\|w(t)\|_H^2+\kappa\int_0^t\|w\|_V^2=0$，故唯一。对不同数据同样估计得到连续依赖。这些结论只用弱收敛，不需要声称近似解逐点收敛。
+
+为什么线性问题中弱收敛已经足够？对固定测试函数 $v$，映射 $u\mapsto\int\nabla u\cdot\nabla v$ 是连续线性的，正符合弱收敛的定义。如果方程里出现 $u_N^2$，则不能只凭 $u_N\rightharpoonup u$ 就推出 $u_N^2\rightharpoonup u^2$：例如 $\sin(kx)$ 在 $(0,\pi)$ 上弱收敛到零，但平方的积分始终为 $\pi/2$。非线性极限往往需要强收敛、单调性或其他结构；线性证明中的每一步都有明确适用范围。
+
+\section{波动方程的能量解}
+对 $g\in V$、$h\in H$、$f\in L^2(0,T;H)$，\emph{能量解（energy solution）}满足
+\[
+ u\in C([0,T];V),\quad u_t\in C([0,T];H),\quad u_{tt}\in L^2(0,T;V^*),
+\]
+以及 $\langle u_{tt},v\rangle+c^2(\nabla u,\nabla v)=(f,v)_H$，初值为 $u(0)=g$、$u_t(0)=h$。本征投影给出 $a_k''+c^2\lambda_ka_k=(f,\phi_k)$。
+
+对有限维系统应用第\ref{chap:wave-multi}章的能量估计。由于初始投影在 $V\times H$ 中收敛、源项投影在 $L^2(0,T;H)$ 中收敛，同一估计应用于两个截断之差，说明 $u_N$ 在 $C([0,T];V)$、$(u_N)_t$ 在 $C([0,T];H)$ 中为柯西列。极限提供存在性、初值和能量估计；对差解再用估计得到唯一性。弱解的 $u_t$ 未必属于 $V$，因此直接在未证明合法性的弱式中取 $v=u_t$ 并不严谨，上述有限维逼近正是补足这一点。
+
+\section{半群观点与长时间行为}
+对无源热方程定义解算子
+\[
+ S(t)g=\sum_{k\ge1}e^{-\kappa\lambda_kt}(g,\phi_k)_H\phi_k.
+\]
+其满足 $S(0)=I$、$S(t+s)=S(t)S(s)$、$\|S(t)g\|_H\le\|g\|_H$，且由平方可和系数的控制收敛有 $S(t)g\to g$ 于 $H$。这称\emph{强连续收缩半群（strongly continuous contraction semigroup）}。
+
+它的\emph{生成元（generator）}是强极限 $Ag=\lim_{t\downarrow0}(S(t)g-g)/t$ 存在时所定义的算子；本例 $A\phi_k=-\kappa\lambda_k\phi_k$，定义域为 $\sum\lambda_k^2|(g,\phi_k)|^2<\infty$ 的函数。对 $H$ 值可积源项，$u(t)=S(t)g+\int_0^tS(t-s)f(s)ds$。抽象记号统一了公式，但生成元的定义域仍不可省略。
+
+\section{例题与习题}
+\begin{example}
+两个无源弱热解的初值分别为 $g_1,g_2\in H$，估计它们的差。
+\end{example}
+\begin{solve}
+差解满足同一齐次弱方程，能量恒等式给出
+\[
+ \|u_1(t)-u_2(t)\|_H^2+
+ 2\kappa\int_0^t\|\nabla(u_1-u_2)\|_2^2ds=\|g_1-g_2\|_H^2.
+\]
+特别地，解算子在 $H$ 中不放大初值误差。若使用第一本征值，还能得到指数衰减界。
+\end{solve}
+\begin{enumerate}
+ \item 写出有限区间前两个正弦模态的伽辽金系统，比较热方程与波动方程的时间因子。
+ \item 在初值不同、源项也不同的情形中推导对应的稳定估计。
+ \item 解释为何 $L^2(0,T;V)$ 中的等价类本身没有确定的 $t=0$ 点值。
+\end{enumerate}
+

@@ -1,0 +1,81 @@
+% !TeX root = ../深度学习与大语言模型技术原理.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{11} % 保留原书章号。
+\chapter{策略梯度、PPO、RLOO 与 GRPO}
+\label{ch:policy}
+
+\section{把文本生成写成决策过程}
+
+在单轮生成中，状态 $s_t=(x,y_{<t})$ 是提示和已生成前缀，动作 $a_t=y_t$ 是下一个词元，转移是把动作追加到前缀。终止于结束词元或预算限制。设轨迹为 $\tau$，奖励为 $r_t$，折扣因子 $\gamma\in[0,1]$，回报为 $G_t=\sum_{k=t}^{T}\gamma^{k-t}r_k$。语言回答的最终评分常只在终止时非零，有限时域任务可取 $\gamma=1$。
+
+若环境转移不含 $\theta$，轨迹概率的参数依赖来自策略。对有限轨迹空间或满足可交换求导与期望的可积条件，固定奖励目标 $J(\theta)=\mathbb E_{\tau\sim\pi_\theta}[R(\tau)]$ 有
+\begin{equation}
+\nabla_\theta J=\mathbb E\left[R(\tau)\sum_t\nabla_\theta\log\pi_\theta(a_t\mid s_t)\right].
+\label{eq:policy-gradient}
+\end{equation}
+这是对数导数恒等式。若奖励本身显式依赖参数，还需处理该依赖，不能不加说明地使用固定奖励公式。
+
+给每个状态减去与当前动作无关的基线 $b(s_t)$ 不改变该时刻 score-function 项的期望，因为 $\sum_a\pi_\theta(a\mid s)\nabla\log\pi_\theta(a\mid s)=\nabla1=0$。价值函数 $V^\pi(s)=\mathbb E[G_t\mid s_t=s]$ 作为基线，可降低方差。优势 $A^\pi(s,a)=Q^\pi(s,a)-V^\pi(s)$ 表示动作相对该状态平均水平的价值。
+
+\section{RLHF 中的四种模型角色}
+
+基于人类反馈的强化学习（reinforcement learning from human feedback, RLHF）常以 SFT 模型初始化演员（actor）策略，用奖励模型评估回答，再用策略优化改变生成分布。评论家（critic）估计前缀价值，参考模型提供固定行为锚点；它们有不同职责，即使某些实现共享底层参数，也不应混淆其目标。
+
+参考模型约束通常以 KL 惩罚表达。完整序列 KL 可由链式法则分解为策略自身前缀分布下的逐词元条件 KL 之和。采样 log-ratio $\log\pi_\theta(a_t\mid s_t)-\log\pi_{\mathrm{ref}}(a_t\mid s_t)$ 在当前策略动作下的期望等于条件 KL，但单个样本值可为负。把它加入奖励形成正则化训练，需要明确采样策略和梯度处理。
+
+旧策略 $\pi_{\mathrm{old}}$ 是生成本轮数据的快照，参考策略 $\pi_{\mathrm{ref}}$ 是约束锚点。前者用于估计当前策略相对采样分布的变化，后者用于定义允许偏离的行为。PPO 本身不要求外加参考模型；参考模型是 RLHF 中常见的正则化设计。
+
+\section{PPO 的裁剪代理目标与价值估计}
+
+\emph{近端策略优化（proximal policy optimization, PPO）}使用旧策略轨迹，定义概率比 $\rho_t(\theta)=\pi_\theta(a_t\mid s_t)/\pi_{\mathrm{old}}(a_t\mid s_t)$，最大化
+\begin{equation}
+\mathcal J_{\mathrm{clip}}=\mathbb E_{\pi_{\mathrm{old}}}\left[
+\min\bigl(\rho_t\widehat A_t,
+\operatorname{clip}(\rho_t,1-\epsilon,1+\epsilon)\widehat A_t\bigr)\right].
+\label{eq:ppo}
+\end{equation}
+正优势动作增大概率超过上界后，该样本的增益被截平；负优势动作减小概率超过相应界限后亦如此。但另一方向可能仍有梯度，所以这不是对全部概率比施加硬约束，也不保证单调提升真实回报\cite{ppo}。
+
+广义优势估计（generalized advantage estimation, GAE）先构造时序差分残差 $\delta_t=r_t+\gamma V_\psi(s_{t+1})-V_\psi(s_t)$，再取 $\widehat A_t=\sum_{l=0}^{T-t}(\gamma\lambda)^l\delta_{t+l}$。真正终止时后续价值为零；由于采样长度限制而截断时，是否继续自举取决于任务定义。$\lambda$ 调节估计偏差与方差，价值模型则拟合相应回报目标。
+
+一次训练迭代先冻结旧策略并采样，保存动作对数概率、奖励和终止标记；然后计算优势与价值目标，在有限个小批更新中优化裁剪策略目标和价值损失，最后刷新采样策略。熵奖励可以鼓励探索，参考 KL 用于约束行为。多轮复用旧数据会增大分布偏移，因此要监测 KL、裁剪比例、价值误差、梯度范数与真实任务成功率。
+
+\section{RLOO 的留一基线}
+
+REINFORCE 留一法（REINFORCE Leave-One-Out, RLOO）对同一提示独立采样 $G\ge2$ 个完整回答，评分为 $R_i$，令
+\[
+b_i=\frac1{G-1}\sum_{j\ne i}R_j,\qquad
+\widehat A_i=R_i-b_i.
+\]
+在给定提示下独立采样、奖励函数固定且基线停止梯度时，$b_i$ 不依赖第 $i$ 个回答，因而保留式~\eqref{eq:policy-gradient} 的无偏基线性质。它省去学习价值模型的成本，代价是同题多次生成以及序列级反馈较粗\cite{rloo}。
+
+若改用包含自身的均值 $\bar R$，有 $R_i-\bar R=(G-1)(R_i-b_i)/G$。在未做标准差归一化且条件相同的情形，这只是固定缩放；再除以随机组内标准差后，就不能继续声称只是同一无偏估计的常数倍。RLOO 属于在线策略梯度方法，与离线 DPO 变体处于不同分类维度。
+
+\section{GRPO 的组内优势与实际目标}
+
+\emph{组相对策略优化（group relative policy optimization, GRPO）}以同提示多回答的相对奖励替代独立评论家\cite{grpo}。一种常用定义为
+\begin{equation}
+\bar R=\frac1G\sum_iR_i,\qquad
+\widehat\sigma_R=\sqrt{\frac1G\sum_i(R_i-\bar R)^2},\qquad
+\widehat A_i=\frac{R_i-\bar R}{\widehat\sigma_R+\varepsilon}.
+\label{eq:grpo-adv}
+\end{equation}
+把序列优势分配给回答中的词元，形成一种序列等权的代理目标
+\[
+\frac1G\sum_{i=1}^G\frac1{T_i}\sum_{t=1}^{T_i}
+\left[\min\!\left(\rho_{it}\widehat A_i,
+\operatorname{clip}(\rho_{it},1-\epsilon,1+\epsilon)\widehat A_i\right)
+-\beta K_{it}(\theta)\right].
+\]
+这里 $\rho_{it}$ 相对旧策略计算，$K_{it}$ 可取当前策略相对参考策略在该前缀上的条件 KL。若用动作采样近似 KL，必须说明动作来自哪一分布及相应校正；不同实现并不完全相同。
+
+组内奖励相同，则奖励优势全为零，不能产生区分回答的信号，但 KL 项仍可能产生梯度。题目全部过难或过易都会降低有效学习信号。除以组内标准差会改变不同题目的相对权重，按 $1/T_i$ 平均也改变长度权重，因此“去掉评论家”不是 GRPO 的全部数学内容。长度偏置、裁剪方式和奖励缩放都应通过消融验证。
+
+\section{可验证奖励与过程监督}
+
+\emph{可验证奖励强化学习（reinforcement learning with verifiable rewards, RLVR）}描述奖励来源，不是另一个与 PPO、GRPO 平行的唯一优化算法。数学任务可检查最终结果，代码任务可运行测试，结构化任务可验证模式或数据库结果。规则奖励可以减少人工逐条比较，却依然受测试覆盖、解析和环境可靠性限制。DeepSeek-R1 提供了推理后训练的具体研究实例\cite{r1}，不应据此认为任意模型只加二值奖励就能获得相同效果。
+
+结果奖励模型（outcome reward model, ORM）评价最终结果，过程奖励模型（process reward model, PRM）评价中间步骤。过程监督能提供更细信用分配，但需要定义步骤边界与步骤正确性，不能仅凭最终答案正确就把每个中间步骤标为正确\cite{prm}。多个步骤概率相乘还隐含条件独立或条件概率链式解释，不能把独立打分器的分数随意相乘后称为严格正确率。
+
+若奖励含正确性、格式和长度项，应明确 $R=w_cR_c+w_fR_f-w_lC$ 的权重与量纲。高权重的易得格式奖励可能压倒真正任务成功。一个稳健训练流程先验证评分器，再用小规模 rollout 检查奖励分布和成功率，最后扩大采样；评测必须包含未参与奖励设计的独立任务。
+

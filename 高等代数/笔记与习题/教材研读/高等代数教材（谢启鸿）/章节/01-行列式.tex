@@ -1,0 +1,997 @@
+% !TeX root = ../高等代数教材（谢启鸿）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{0} % 保留原书章号。
+\chapter{行列式}
+\label{chap:determinants}
+
+% 依据教材第一章第 1.1--1.7 节整理正文，不收录节末及章末习题。
+求解线性方程组时，共同分母和列替换的结构自然引出行列式。本章先从二元、三元情形引入这一数值，再通过余子式递归定义任意阶行列式，依次建立基本性质、展开公式与 Cramer 法则；随后研究消元及特殊结构的计算方法，并用排列展开与 Laplace 定理说明各项的组成和符号。本章中的系数、常数及参数若无另行说明，均在实数或复数范围内取值。
+
+\section{二阶行列式}
+
+中学学习的二元一次方程组、三元一次方程组，都属于线性方程组。为了讨论未知数更多的情形，先给出一般的定义；本章将从两个方程、两个未知数的情形出发，引入行列式作为研究线性方程组的工具。
+
+\begin{definition}
+\label{def:linear-system}
+设 $m,n$ 为正整数，在实数范围或复数范围内，$x_1,\ldots,x_n$ 为未知数，$a_{ij}$（$1\leq i\leq m$，$1\leq j\leq n$）与 $b_i$（$1\leq i\leq m$）为给定的常数。形如
+\begin{equation}
+\label{eq:linear-system-standard}
+    \left\{
+    \begin{aligned}
+        a_{11}x_1+a_{12}x_2+\cdots+a_{1n}x_n&=b_1,\\
+        a_{21}x_1+a_{22}x_2+\cdots+a_{2n}x_n&=b_2,\\
+        &\vdots\\
+        a_{m1}x_1+a_{m2}x_2+\cdots+a_{mn}x_n&=b_m
+    \end{aligned}
+    \right.
+\end{equation}
+的方程组称为\emph{$n$ 元线性方程组}（system of linear equations in $n$ unknowns），式~\eqref{eq:linear-system-standard} 称为它的标准形式。其中，$a_{ij}$ 是第 $i$ 个方程中未知数 $x_j$ 的\emph{系数}（coefficient），$b_i$ 是第 $i$ 个方程的\emph{常数项}（constant term）。凡经过有限次移项和合并同类项能够化为这一标准形式的方程组，也称为线性方程组。
+\end{definition}
+
+这里的“线性”是指，整理后的每个方程左端都是未知数的常数倍之和，不含未知数的高次幂或未知数之间的乘积。系数允许为零，因此某个未知数可以不出现在某个方程中。\emph[caution]{$n$ 表示未知数的个数，$m$ 表示方程的个数，二者不必相等}；“$n$ 元”并不意味着方程组一定含有 $n$ 个方程。本章主要讨论 $m=n$ 的情形，二元二方程组是其中最基本的例子。
+
+求解方程组，就是在所讨论的数的范围内找出所有使每个方程同时成立的有序数组 $(x_1,\ldots,x_n)$；每个这样的数组称为方程组的一个\emph{解}（solution）。各分量依次对应相应的未知数，必须同时满足全部方程，而不仅是其中某一个方程。
+
+
+消元法通过等价变形逐步减少未知数，是求解线性方程组的基本方法。例如，由 $2x-y=5$ 得 $y=2x-5$，代入 $3x+2y=11$，得到 $7x=21$，再回代得到 $(x,y)=(3,1)$。为了把解与系数之间的关系写成统一的公式，考虑
+\[
+    \left\{
+    \begin{aligned}
+        a_{11}x_1+a_{12}x_2&=b_1,\\
+        a_{21}x_1+a_{22}x_2&=b_2.
+    \end{aligned}
+    \right.
+\]
+分别消去 $x_2$ 与 $x_1$，可得
+\[
+    \begin{aligned}
+        (a_{11}a_{22}-a_{12}a_{21})x_1&=b_1a_{22}-a_{12}b_2,\\
+        (a_{11}a_{22}-a_{12}a_{21})x_2&=a_{11}b_2-a_{21}b_1.
+    \end{aligned}
+\]
+两个式子的左端有相同的系数，而右端也有同样的“两个乘积之差”的结构，这正是引入二阶行列式的动机。
+
+\begin{definition}
+\label{def:determinant-order-two}
+由四个实数或复数按两行、两列排列而成的记号
+\[
+    \begin{vmatrix}a&b\\c&d\end{vmatrix}
+\]
+称为\emph{二阶行列式}（determinant of order two），其值定义为
+\[
+    \begin{vmatrix}a&b\\c&d\end{vmatrix}=ad-bc.
+\]
+其中水平方向的两组元素称为行，竖直方向的两组元素称为列，$a,d$ 称为主对角线元素。行列式表示一个数，竖线在这里不表示绝对值；例如 $\begin{vmatrix}1&2\\3&4\end{vmatrix}=-2$。
+\end{definition}
+
+记\emph{系数行列式}（coefficient determinant）及两个替换列行列式为
+\[
+    D=\begin{vmatrix}a_{11}&a_{12}\\a_{21}&a_{22}\end{vmatrix},\qquad
+    D_1=\begin{vmatrix}b_1&a_{12}\\b_2&a_{22}\end{vmatrix},\qquad
+    D_2=\begin{vmatrix}a_{11}&b_1\\a_{21}&b_2\end{vmatrix}.
+\]
+上面的消元等式说明，任何解都必须满足 $Dx_1=D_1$、$Dx_2=D_2$。当 $D\ne0$ 时，解因而只能是
+\begin{equation}
+\label{eq:cramer-order-two}
+    x_1=\frac{D_1}{D},\qquad x_2=\frac{D_2}{D}.
+\end{equation}
+另一方面，直接计算得到
+\[
+    a_{11}D_1+a_{12}D_2=b_1D,\qquad
+    a_{21}D_1+a_{22}D_2=b_2D.
+\]
+除以 $D$ 后即知式~\eqref{eq:cramer-order-two} 确实满足原方程组，因此它给出了唯一解。分子的记忆规则是：\emph{求哪个未知数，就把系数行列式中该未知数对应的那一列换成常数列}。对前面的方程组，$D=7$、$D_1=21$、$D_2=7$，同样得到 $x=3,y=1$。\emph[caution]{只有在 $D\ne0$ 时才能使用这个商式}；当 $D=0$ 时，上述等式仍成立，却不能通过除法求解。
+
+由 $ad-bc$ 可以直接核验二阶行列式的基本规律：上三角行列式等于主对角线元素之积；有零行或零列时值为零；某一行或某一列乘以常数 $c$ 时，行列式的值也乘以 $c$；交换两行或两列时值变号；两行或两列成比例时值为零；固定其余行或列后，行列式对所选的一行或一列具有可加性；将一行或一列的倍数加到另一行或另一列上时值不变；行、列互换形成的转置行列式与原行列式同值。例如，
+\[
+    \begin{vmatrix}a&b\\c_1+c_2&d_1+d_2\end{vmatrix}
+    =\begin{vmatrix}a&b\\c_1&d_1\end{vmatrix}
+     +\begin{vmatrix}a&b\\c_2&d_2\end{vmatrix},\qquad
+    \begin{vmatrix}a&b\\c+ka&d+kb\end{vmatrix}
+    =ad-bc.
+\]
+第一式由展开两边得到，第二式中的两个新增项 $kab$ 与 $kba$ 相消。可加性要求只拆分一行或一列；若同时拆分两行，就会出现四项，不能只保留两项。这些规律将在第~\ref{sec:determinant-order-n} 节及第~\ref{sec:determinant-expansion-transpose} 节推广到任意阶数并给出证明。
+
+\section{三阶行列式}
+
+对三元三方程的线性方程组，也希望得到用系数和常数项表示解的公式。推广二阶行列式时，需要同时保留两方面的结构：每一项从每行、每列各取一个元素，以及交换两行或两列后整体变号。教材由二阶情形的性质寻找可能的定义；这种讨论首先提供定义的动机，定义给出后，其性质仍需另行证明。
+
+\begin{definition}
+\label{def:determinant-order-three}
+三阶行列式的值定义为
+\begin{equation}
+\label{eq:determinant-order-three}
+    \begin{aligned}
+    D&=\begin{vmatrix}
+        a_{11}&a_{12}&a_{13}\\
+        a_{21}&a_{22}&a_{23}\\
+        a_{31}&a_{32}&a_{33}
+    \end{vmatrix}\\
+     &=a_{11}\begin{vmatrix}a_{22}&a_{23}\\a_{32}&a_{33}\end{vmatrix}
+       -a_{21}\begin{vmatrix}a_{12}&a_{13}\\a_{32}&a_{33}\end{vmatrix}
+       +a_{31}\begin{vmatrix}a_{12}&a_{13}\\a_{22}&a_{23}\end{vmatrix}.
+    \end{aligned}
+\end{equation}
+右端的三个二阶行列式分别由删去第一列及第一、第二、第三行后剩下的元素按原顺序组成，称为相应元素的余子式。这个定义称为按第一列展开。
+\end{definition}
+
+把三个二阶行列式展开，就得到六项公式
+\begin{equation}
+\label{eq:determinant-three-six-terms}
+    \begin{aligned}
+    D={}&a_{11}a_{22}a_{33}+a_{21}a_{32}a_{13}+a_{31}a_{12}a_{23}\\
+       &-a_{11}a_{32}a_{23}-a_{21}a_{12}a_{33}-a_{31}a_{22}a_{13}.
+    \end{aligned}
+\end{equation}
+每个乘积确实从每行、每列各取一个元素，但不同项的符号不同。三阶时可以借助对角线法则记忆这六项；\emph[caution]{这种六项记忆法不能直接推广到四阶及更高阶行列式}。高阶情形将由余子式递归定义，而每项符号的统一描述将在第~\ref{sec:determinant-equivalent-definition} 节给出。
+
+\begin{example}
+计算行列式 $D=\begin{vmatrix}2&-1&1\\1&1&-1\\3&2&1\end{vmatrix}$。
+\end{example}
+\begin{solve}
+按第一列展开，得到
+\[
+    D=2\begin{vmatrix}1&-1\\2&1\end{vmatrix}
+      -\begin{vmatrix}-1&1\\2&1\end{vmatrix}
+      +3\begin{vmatrix}-1&1\\1&-1\end{vmatrix}
+     =2\cdot3-(-3)+3\cdot0=9.\qedhere
+\]
+\end{solve}
+
+对于三元三方程的线性方程组 $\sum_{j=1}^{3}a_{ij}x_j=b_i$（$i=1,2,3$），记系数行列式为 $D$，把其中第 $j$ 列换成 $b_1,b_2,b_3$ 得到 $D_j$。若 $(x_1,x_2,x_3)$ 是一个解，把 $b_i=\sum_{j=1}^{3}a_{ij}x_j$ 代入 $D_1$，再从第一列减去第二列的 $x_2$ 倍和第三列的 $x_3$ 倍，便得到
+\[
+    D_1=\begin{vmatrix}
+        a_{11}x_1&a_{12}&a_{13}\\
+        a_{21}x_1&a_{22}&a_{23}\\
+        a_{31}x_1&a_{32}&a_{33}
+    \end{vmatrix}=x_1D.
+\]
+同理有 $D_2=x_2D$、$D_3=x_3D$。这里使用的列倍加与常数因子性质可以由六项公式核验，也包含在随后对任意阶数的证明中。因此当 $D\ne0$ 时，任何解都必须满足 $x_j=D_j/D$。这些商式确实构成一个解，将由定理~\ref{thm:cramer-rule} 对一般的 $n$ 元情形统一验证。
+
+例如，对方程组
+\[
+    \left\{\begin{aligned}
+        2x_1-x_2+x_3&=3,\\
+        x_1+x_2-x_3&=0,\\
+        3x_1+2x_2+x_3&=10,
+    \end{aligned}\right.
+\]
+系数行列式就是上例中的 $D=9$。按相同方法算得 $D_1=9,D_2=18,D_3=27$，从而唯一解为 $(1,2,3)$；代入三个方程可逐一验证。
+
+\section{\texorpdfstring{$n$}{n} 阶行列式}
+\label{sec:determinant-order-n}
+
+% 依据教材第 12--13 页第 1.3 节，定义 1.3.1--1.3.3。
+从二阶行列式推广到一般的 $n$ 阶行列式，关键是找到一条对所有阶数都适用的计算规则。教材采用的思路是：先规定最简单的一阶行列式的值，再用低一阶行列式的值定义高一阶行列式的值。这种\emph{递归定义}（recursive definition）需要明确起点和降阶规则；余子式正是描述降阶过程所需的概念。
+
+设 $n$ 为正整数，将 $n^2$ 个实数或复数 $a_{ij}$（$1\leq i,j\leq n$）按 $n$ 行 $n$ 列排列，相应的\emph{$n$ 阶行列式}（determinant of order $n$）记为
+\[
+    |A|=
+    \begin{vmatrix}
+        a_{11} & a_{12} & \cdots & a_{1n} \\
+        a_{21} & a_{22} & \cdots & a_{2n} \\
+        \vdots & \vdots & \ddots & \vdots \\
+        a_{n1} & a_{n2} & \cdots & a_{nn}
+    \end{vmatrix}.
+\]
+其中，$a_{ij}$ 称为第 $(i,j)$ 元素，位于第 $i$ 行与第 $j$ 列的交点；$a_{11},a_{22},\ldots,a_{nn}$ 称为主对角线元素。行列式的阶数 $n$ 是它的行数，也是列数，而元素总数是 $n^2$。这一方形排列记录了各个元素及其位置，行列式的值则是由这些数据按照下面的规则确定的一个数。
+
+\begin{definition}
+\label{def:determinant-minor}
+设 $n\geq 2$。在 $n$ 阶行列式 $|A|$ 中，划去元素 $a_{ij}$ 所在的第 $i$ 行和第 $j$ 列，将剩余元素保持原有的行、列次序组成的 $n-1$ 阶行列式，称为 $a_{ij}$ 的\emph{余子式}（minor），记为 $M_{ij}$。
+\end{definition}
+
+这里划去的是一整行和一整列，因而剩余部分恰有 $n-1$ 行、$n-1$ 列。下标 $i,j$ 记录的是在原行列式中删去的行、列位置；特别地，第一列元素 $a_{i1}$ 的余子式 $M_{i1}$ 由原行列式的第 $2$ 至第 $n$ 列删去第 $i$ 行后组成，这些余子式正是下面定义中用到的低阶行列式。
+
+\begin{definition}
+\label{def:determinant-recursive}
+当 $n=1$ 时，定义一阶行列式的值为
+\[
+    \begin{vmatrix}a_{11}\end{vmatrix}=a_{11}.
+\]
+当 $n\geq 2$ 时，假设所有 $n-1$ 阶行列式的值已经定义，则各个余子式 $M_{ij}$ 的值也已确定。定义 $n$ 阶行列式 $|A|$ 的值为
+\begin{equation}
+\label{eq:determinant-first-column-definition}
+    |A|=\sum_{i=1}^{n}(-1)^{i+1}a_{i1}M_{i1}
+    =a_{11}M_{11}-a_{21}M_{21}+\cdots+(-1)^{n+1}a_{n1}M_{n1}.
+\end{equation}
+\end{definition}
+
+式~\eqref{eq:determinant-first-column-definition} 称为行列式\emph{按第一列展开的展开式}。具体计算时，将第一列的每个元素与它自己的余子式相乘，再按 $+,-,+,-,\ldots$ 的符号依次求和。右端只涉及低一阶的行列式，每降一阶，所需的值都由前一步定义提供；最终到达一阶时，数值已经直接给定，因此这不是循环定义，而是逐阶确定了任意正整数阶行列式的唯一数值。这里的一阶行列式 $\begin{vmatrix}a_{11}\end{vmatrix}$ 等于 $a_{11}$ 本身，不能将其竖线理解为绝对值符号。
+
+\begin{definition}
+\label{def:determinant-cofactor}
+设 $n\geq 2$。在 $n$ 阶行列式 $|A|$ 中，元素 $a_{ij}$ 的\emph{代数余子式}（cofactor）定义为
+\[
+    A_{ij}=(-1)^{i+j}M_{ij}.
+\]
+\end{definition}
+
+代数余子式把位置决定的符号因子并入了余子式：当 $i+j$ 为偶数时，$A_{ij}=M_{ij}$；当 $i+j$ 为奇数时，$A_{ij}=-M_{ij}$。这里的正、负号描述的是二者之间的关系。在实数情形下，不能据此直接判断 $A_{ij}$ 的数值是正还是负；例如，若 $M_{21}<0$，则 $A_{21}=-M_{21}>0$。
+
+利用代数余子式，式~\eqref{eq:determinant-first-column-definition} 可写为
+\[
+    |A|=\sum_{i=1}^{n}a_{i1}A_{i1}
+    =a_{11}A_{11}+a_{21}A_{21}+\cdots+a_{n1}A_{n1}.
+\]
+这一定义与二阶、三阶行列式的定义一致。例如，当 $n=2$ 时，$M_{11}=a_{22}$，$M_{21}=a_{12}$，所以
+\[
+    \begin{vmatrix}
+        a_{11} & a_{12} \\
+        a_{21} & a_{22}
+    \end{vmatrix}
+    =a_{11}a_{22}-a_{21}a_{12}
+    =a_{11}a_{22}-a_{12}a_{21}.
+\]
+
+
+% 依据教材第 14--20 页的性质 1--7 及其列形式，重新组织证明。
+下面从按第一列展开的定义出发，依次建立行列式的前七个基本性质。由于定义首先选定了第一列，行与列在形式上尚不对称，因而需要分别说明行运算和列运算的依据；第八个性质，即转置不改变行列式的值，将在第~\ref{sec:determinant-expansion-transpose} 节证明。
+
+\begin{property}[三角行列式的值]
+\label{prop:determinant-triangular}
+若 $n$ 阶行列式 $|A|$ 满足 $a_{ij}=0$（$i>j$），称其为\emph{上三角行列式}（upper triangular determinant）；若满足 $a_{ij}=0$（$i<j$），称其为\emph{下三角行列式}（lower triangular determinant）。这两种情形下，\emph{行列式的值等于主对角线元素的乘积}，即
+\[
+    |A|=a_{11}a_{22}\cdots a_{nn}.
+\]
+\end{property}
+
+\begin{proof}
+对阶数 $n$ 作数学归纳。$n=1$ 时，结论由定义成立。设 $n\geq 2$，并假设所有 $n-1$ 阶上、下三角行列式的值都等于各自主对角线元素的乘积。
+
+若 $|A|$ 为上三角行列式，第一列除 $a_{11}$ 外全为零，按第一列展开只剩 $a_{11}M_{11}$。删去第一行、第一列后，$M_{11}$ 仍为上三角行列式，主对角线元素为 $a_{22},\ldots,a_{nn}$。由归纳假设，
+\[
+    |A|=a_{11}M_{11}
+        =a_{11}(a_{22}\cdots a_{nn})
+        =a_{11}a_{22}\cdots a_{nn}.
+\]
+
+若 $|A|$ 为下三角行列式，$M_{11}$ 仍为下三角行列式，故 $M_{11}=a_{22}\cdots a_{nn}$。对于 $i>1$，$M_{i1}$ 也保持下三角结构：删行位置上方的各行只向左移一列，下方的各行还向上移一行，主对角线上方仍全为零。同时，原第一行被保留，删去第一列后成为零行，因此 $M_{i1}$ 的第一个主对角线元素为零。由归纳假设，$M_{i1}$ 等于这个含零因子的主对角线元素之积，故 $M_{i1}=0$。代入第一列展开式，得到
+\[
+    |A|=a_{11}M_{11}+\sum_{i=2}^{n}(-1)^{i+1}a_{i1}M_{i1}
+        =a_{11}M_{11}
+        =a_{11}a_{22}\cdots a_{nn}.
+\]
+两种情形均成立，归纳证明完成。
+\end{proof}
+
+\begin{property}[零行或零列]
+\label{prop:determinant-zero-line}
+若行列式有\emph{一行或一列的元素全为零}，则\emph{其值为零}。
+\end{property}
+
+\begin{proof}
+对阶数 $n$ 作归纳。$n=1$ 时结论由定义成立，设结论对 $n-1$ 阶行列式成立。
+
+先设第 $r$ 行全为零。在第一列展开式中，$a_{r1}=0$；对于 $i\ne r$，删去第 $i$ 行和第一列后，原来的零行仍保留在 $M_{i1}$ 中，由归纳假设有 $M_{i1}=0$。因此，每一项都含有一个零因子，得到
+\[
+    |A|=(-1)^{r+1}a_{r1}M_{r1}
+        +\sum_{\substack{i=1\\i\ne r}}^{n}(-1)^{i+1}a_{i1}M_{i1}=0.
+\]
+
+再设第 $s$ 列全为零。若 $s=1$，第一列展开式中的系数 $a_{i1}$ 全为零；若 $s>1$，每个余子式 $M_{i1}$ 都保留了这一零列，由归纳假设，其值全为零。两种情形都使展开式的每一项为零，故 $|A|=0$。
+\end{proof}
+
+\begin{property}[一行或一列的常数因子]
+\label{prop:determinant-scaling}
+将行列式 $|A|$ 的某一行或某一列的\emph{所有元素乘以常数 $c$}，\emph[caution]{其余元素保持不变}，所得行列式记为 $|B|$，则\emph{其值为原行列式的 $c$ 倍}，即
+\[
+    |B|=c|A|.
+\]
+这里允许 $c=0$。
+\end{property}
+
+\begin{proof}
+对阶数 $n$ 作归纳。$n=1$ 时结论由定义成立，设结论对 $n-1$ 阶行列式成立。记 $b_{ij}$ 为 $|B|$ 的元素，$M_{i1}$、$N_{i1}$ 分别为 $|A|$、$|B|$ 中第一列元素的余子式。
+
+若乘以 $c$ 的是第 $r$ 行，删去这一行后，余子式不受影响；删去其他行时，余子式中仍有一行乘以 $c$。由归纳假设，
+\[
+    N_{r1}=M_{r1},\qquad N_{i1}=cM_{i1}\quad(i\ne r).
+\]
+又有 $b_{r1}=ca_{r1}$，其余 $b_{i1}=a_{i1}$，所以无论 $i=r$ 还是 $i\ne r$，均有 $b_{i1}N_{i1}=c\,a_{i1}M_{i1}$。按第一列展开，便得
+\[
+    |B|=\sum_{i=1}^{n}(-1)^{i+1}b_{i1}N_{i1}
+        =c\sum_{i=1}^{n}(-1)^{i+1}a_{i1}M_{i1}=c|A|.
+\]
+
+若乘以 $c$ 的是第一列，各个余子式不变，展开式的系数都乘以 $c$。若乘以 $c$ 的是其他列，第一列的系数不变，每个余子式中相应的一列乘以 $c$，由归纳假设，其值都乘以 $c$。因此列的情形也有 $|B|=c|A|$。
+\end{proof}
+
+\begin{property}[交换两行]
+\label{prop:determinant-row-swap}
+对于 $n\geq 2$，交换 $n$ 阶行列式中\emph[caution]{任意两个不同行}的位置，其余各行不变，则\emph{行列式的值变为原值的相反数}。
+\end{property}
+
+\begin{proof}
+对阶数 $n$ 作归纳。$n=2$ 时，交换两行将 $a_{11}a_{22}-a_{12}a_{21}$ 变为 $a_{21}a_{12}-a_{22}a_{11}$，结论成立。设结论对 $n-1$ 阶行列式成立，先考虑交换相邻的第 $r$ 行和第 $r+1$ 行，所得行列式记为 $|B|$。
+
+记 $M_{i1}$、$N_{i1}$ 为交换前后的余子式。若 $i\ne r,r+1$，两行仍保留在余子式中，由归纳假设有 $N_{i1}=-M_{i1}$；若删去被交换的其中一行，剩余各行的次序恰与原来删去另一行时相同。因此
+\[
+    N_{i1}=\begin{cases}
+        -M_{i1}, & i\ne r,r+1,\\
+        M_{r+1,1}, & i=r,\\
+        M_{r1}, & i=r+1.
+    \end{cases}
+\]
+在第一列展开式中，除第 $r,r+1$ 项外，各项的系数不变而余子式变号。另外两项中的第一列元素与余子式成对交换，但相邻两项的符号因子相反，所以它们分别变为原第 $r+1,r$ 项的相反数。求和后得到 $|B|=-|A|$。
+
+对于任意两行 $r<s$，先用 $s-r$ 次相邻交换把原第 $r$ 行移到第 $s$ 行，再用 $s-r-1$ 次把原第 $s$ 行从第 $s-1$ 行移到第 $r$ 行，其余各行恢复原次序。总交换次数为奇数，故
+\[
+    |B|=(-1)^{(s-r)+(s-r-1)}|A|=-|A|.\qedhere
+\]
+\end{proof}
+
+\begin{property}[两行成比例]
+\label{prop:determinant-proportional-rows}
+若行列式中有两个不同行，其中\emph{一行是另一行的常数倍}，则\emph{行列式的值为零}。特别地，\emph{两行相同}的行列式的值为零。
+\end{property}
+
+\begin{proof}
+先设两行相同。交换这两行后，元素的排列没有改变，但由性质~\ref{prop:determinant-row-swap}，行列式的值应变号，因而 $|A|=-|A|$，即 $2|A|=0$。在实数或复数范围内，这就给出 $|A|=0$。
+
+再设第 $s$ 行是第 $r$ 行的 $c$ 倍。将第 $s$ 行换成第 $r$ 行，得到两行相同的行列式 $|B|$，所以 $|B|=0$。原行列式可由 $|B|$ 的第 $s$ 行乘以 $c$ 得到，利用性质~\ref{prop:determinant-scaling}，
+\[
+    |A|=c|B|=0.
+\]
+这里没有除以 $c$，因此也包含 $c=0$ 的情形。
+\end{proof}
+
+\begin{property}[对一行的可加性]
+\label{prop:determinant-row-additivity}
+设 $|A|$、$|B|$、$|C|$ 为三个 $n$ 阶行列式，\emph[caution]{除第 $r$ 行外，对应元素完全相同}，而第 $r$ 行满足
+\[
+    c_{rj}=a_{rj}+b_{rj}\qquad (1\leq j\leq n).
+\]
+则\emph{$|C|=|A|+|B|$}。也就是说，当一行的各个元素都写成两数之和时，可以\emph{沿这一行将行列式拆成两个行列式之和}，拆分时其余各行保持不变。
+\end{property}
+
+\begin{proof}
+对阶数 $n$ 作归纳。$n=1$ 时结论就是 $c_{11}=a_{11}+b_{11}$。设结论对 $n-1$ 阶行列式成立，分别用 $M_{i1}$、$N_{i1}$、$P_{i1}$ 表示 $|A|$、$|B|$、$|C|$ 的余子式。
+
+当 $i=r$ 时，被拆分的行已经删去，故 $P_{r1}=M_{r1}=N_{r1}$；当 $i\ne r$ 时，这一行仍保留在余子式中，由归纳假设有 $P_{i1}=M_{i1}+N_{i1}$。结合 $c_{r1}=a_{r1}+b_{r1}$ 以及 $c_{i1}=a_{i1}=b_{i1}$（$i\ne r$），两种情形都给出
+\[
+    c_{i1}P_{i1}=a_{i1}M_{i1}+b_{i1}N_{i1}
+    \qquad(1\leq i\leq n).
+\]
+将这一关系代入第一列展开式，并把两部分分别求和，得到
+\[
+    \begin{aligned}
+    |C|&=\sum_{i=1}^{n}(-1)^{i+1}
+        \bigl(a_{i1}M_{i1}+b_{i1}N_{i1}\bigr)\\
+       &=\sum_{i=1}^{n}(-1)^{i+1}a_{i1}M_{i1}
+        +\sum_{i=1}^{n}(-1)^{i+1}b_{i1}N_{i1}
+        =|A|+|B|.
+    \end{aligned}
+\]
+\end{proof}
+
+性质~\ref{prop:determinant-scaling} 与性质~\ref{prop:determinant-row-additivity} 合起来说明，在固定其他各行时，行列式关于所选的一行是线性的。这里必须固定其他各行，不能把所有位置同时相加的行列式直接拆成两个行列式之和。
+
+\begin{property}[一行的倍数加到另一行]
+\label{prop:determinant-row-addition}
+设\emph[caution]{$r\ne s$}。将行列式的第 $s$ 行替换为\emph{该行与第 $r$ 行的 $c$ 倍之和}，其余各行保持不变，则\emph{行列式的值不变}。
+\end{property}
+
+\begin{proof}
+记变换后的行列式为 $|B|$。由性质~\ref{prop:determinant-row-additivity}，沿第 $s$ 行拆分：保留原第 $s$ 行的部分给出 $|A|$，取原第 $r$ 行的 $c$ 倍的部分给出另一个行列式 $|C|$，其余各行均不变。
+
+$|C|$ 的第 $r$ 行仍是原第 $r$ 行，而第 $s$ 行为它的 $c$ 倍。由于 $r\ne s$，这是两个成比例的行，由性质~\ref{prop:determinant-proportional-rows} 得 $|C|=0$。因此
+\[
+    |B|=|A|+|C|=|A|.
+\]
+\end{proof}
+
+前面已分别证明零列和列的常数因子性质。下面补足其余列运算的依据；证明先处理两列相同的情形，再建立列的可加性，最后推出列交换与列倍加的结论。
+
+\begin{proposition}[对应的列运算性质]
+\label{prop:determinant-column-operations}
+性质~\ref{prop:determinant-row-swap} 至性质~\ref{prop:determinant-row-addition} 中关于行的结论对列也成立：交换两个不同列使行列式变号；两列成比例时行列式为零；在固定其他各列时，行列式对所选的一列具有可加性；将一列的常数倍加到另一个不同列上，行列式的值不变。
+\end{proposition}
+
+\begin{proof}
+先证明两列相同时行列式为零。二阶情形由定义直接验证，设结论对 $n-1$ 阶行列式成立。若相同的两列都不是第一列，则每个 $M_{i1}$ 都保留这两列，由归纳假设，它们的值全为零，故 $|A|=0$。
+
+若相同的两列是第一列和第 $s$ 列，第一列全为零时，由性质~\ref{prop:determinant-zero-line} 已有结论；否则通过行交换可令 $a_{11}\ne 0$，以下仍用 $a_{ij}$ 记交换后的元素。行交换至多改变整体符号，不影响是否为零。对 $i=2,\ldots,n$，将第一行的 $-a_{i1}/a_{11}$ 倍加到第 $i$ 行，所得行列式记为 $|B|$，其余子式记为 $N_{i1}$。由性质~\ref{prop:determinant-row-addition}，这些倍加操作不改变行列式的值，且这两列都只剩首个元素 $a_{11}$ 非零。因此 $N_{11}$ 中有一列全为零，按第一列展开得
+\[
+    |B|=a_{11}N_{11}=0.
+\]
+所以原行列式也为零。两列成比例的情形，再由性质~\ref{prop:determinant-scaling} 提出比例系数即可得到。
+
+再证明对一列的可加性。$n=1$ 时结论就是两个数相加，设结论对 $n-1$ 阶行列式成立。若拆分第一列，余子式都不变，直接将展开式中的系数拆开即可；若拆分其他列，第一列系数不变，每个余子式中的相应列可由归纳假设拆分。把两部分分别求和，就得到拆分后的两个 $n$ 阶行列式之和。
+
+接着固定其他各列，用 $\Delta(u,v)$ 表示第 $r$ 列、第 $s$ 列分别取为列数据 $u,v$ 时的值，其中 $r\ne s$，列的加法和数乘均按对应元素进行。连续使用列的可加性，有
+\[
+    \begin{aligned}
+    0=\Delta(u+v,u+v)
+     &=\Delta(u,u)+\Delta(u,v)+\Delta(v,u)+\Delta(v,v)\\
+     &=\Delta(u,v)+\Delta(v,u).
+    \end{aligned}
+\]
+最左端以及被消去的两项都因两列相同而为零，因此 $\Delta(v,u)=-\Delta(u,v)$，即交换两列使行列式变号。
+
+最后，由列的可加性和常数因子性质，
+\[
+    \Delta(u,v+cu)=\Delta(u,v)+c\Delta(u,u)=\Delta(u,v).
+\]
+其中 $\Delta(u,u)=0$，故将一列的倍数加到另一列上不改变行列式的值。
+\end{proof}
+
+
+\section{行列式的展开和转置}
+\label{sec:determinant-expansion-transpose}
+
+% 依据教材第 21--24 页的按列展开、按第一行展开及性质 8。
+第一列在行列式的定义中承担了递归计算的作用，但已经证明的列交换性质允许我们把任意一列移到第一列，从而得到按其他列展开的公式。再结合对一行的可加性，就能得到按第一行展开的公式；这两步为证明转置性质提供依据。
+
+\begin{lemma}[按任意一列展开]
+\label{lem:determinant-column-expansion}
+设 $n\geq 2$，$A_{ij}=(-1)^{i+j}M_{ij}$ 为 $n$ 阶行列式 $|A|$ 中元素 $a_{ij}$ 的代数余子式。对于任意 $j\in\{1,\ldots,n\}$，都有
+\begin{equation}
+\label{eq:determinant-arbitrary-column-expansion}
+    |A|=\sum_{i=1}^{n}(-1)^{i+j}a_{ij}M_{ij}
+        =\sum_{i=1}^{n}a_{ij}A_{ij}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+通过 $j-1$ 次相邻列交换，把原来的第 $j$ 列移到第一列，同时保持其余各列的相对次序，所得行列式记为 $|B|$。由命题~\ref{prop:determinant-column-operations}，$|B|=(-1)^{j-1}|A|$。$|B|$ 的第 $i$ 行第一列元素为 $a_{ij}$，删去这一行和第一列后，余下的各行、各列与原余子式 $M_{ij}$ 完全相同，因此按定义展开得
+\[
+    (-1)^{j-1}|A|=|B|=\sum_{i=1}^{n}(-1)^{i+1}a_{ij}M_{ij}.
+\]
+两边再乘以 $(-1)^{j-1}$，利用 $(-1)^{j-1}(-1)^{i+1}=(-1)^{i+j}$，便得到所需公式。
+\end{proof}
+
+\begin{lemma}[按第一行展开]
+\label{lem:determinant-first-row-expansion}
+对于任意 $n\geq 2$ 的行列式 $|A|$，有
+\begin{equation}
+\label{eq:determinant-first-row-expansion}
+    |A|=\sum_{j=1}^{n}(-1)^{1+j}a_{1j}M_{1j}
+        =\sum_{j=1}^{n}a_{1j}A_{1j}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+将第一行写成 $n$ 组行数据的和，其中第 $j$ 组只在第 $j$ 个位置取值 $a_{1j}$，其余位置为零。反复使用性质~\ref{prop:determinant-row-additivity}，得到 $|A|=\sum_{j=1}^{n}|B_j|$，这里 $|B_j|$ 与原行列式只有第一行不同，其第一行只保留元素 $a_{1j}$。
+
+固定 $j$，利用引理~\ref{lem:determinant-column-expansion} 将 $|B_j|$ 按第 $j$ 列展开。对于第 $i$ 项，若 $i>1$，则删去第 $i$ 行和第 $j$ 列后，余子式的第一行全为零，所以由性质~\ref{prop:determinant-zero-line}，该项为零。若 $i=1$，删去的正是被改动的第一行，余子式仍为原来的 $M_{1j}$，故
+\[
+    |B_j|=(-1)^{1+j}a_{1j}M_{1j}.
+\]
+对 $j=1,\ldots,n$ 求和，即得结论。
+\end{proof}
+
+\begin{definition}
+\label{def:determinant-transpose}
+将行列式的行、列位置互换，使原来的第 $(i,j)$ 元素成为新的第 $(j,i)$ 元素，所得行列式称为原行列式的\emph{转置}（transpose），记为
+\[
+    |A^{\mathsf T}|=
+    \begin{vmatrix}
+        a_{11} & a_{21} & \cdots & a_{n1} \\
+        a_{12} & a_{22} & \cdots & a_{n2} \\
+        \vdots & \vdots & \ddots & \vdots \\
+        a_{1n} & a_{2n} & \cdots & a_{nn}
+    \end{vmatrix}.
+\]
+因此，转置后的第 $i$ 行就是原来的第 $i$ 列，转置后的第 $j$ 列就是原来的第 $j$ 行。
+\end{definition}
+
+\begin{property}[转置不改变行列式的值]
+\label{prop:determinant-transpose}
+对于任意正整数 $n$ 和任意 $n$ 阶行列式 $|A|$，\emph{转置不改变其值}，即
+\[
+    |A^{\mathsf T}|=|A|.
+\]
+\end{property}
+
+\begin{proof}
+对阶数 $n$ 作归纳。$n=1$ 时，转置没有改变唯一的元素，结论成立。设结论对 $n-1$ 阶行列式成立，分别用 $M_{ij}$、$N_{ij}$ 表示 $|A|$、$|A^{\mathsf T}|$ 的余子式。
+
+转置把行、列位置互换，所以删去转置后的第 $i$ 行、第 $j$ 列，相当于先删去原来的第 $j$ 行、第 $i$ 列，再转置。于是 $N_{ij}$ 是 $M_{ji}$ 的转置，二者均为 $n-1$ 阶，由归纳假设有 $N_{ij}=M_{ji}$。
+
+$|A^{\mathsf T}|$ 的第一行依次为 $a_{11},a_{21},\ldots,a_{n1}$。利用引理~\ref{lem:determinant-first-row-expansion} 按第一行展开，并代入 $N_{1j}=M_{j1}$，得到
+\[
+    |A^{\mathsf T}|
+    =\sum_{j=1}^{n}(-1)^{1+j}a_{j1}N_{1j}
+    =\sum_{j=1}^{n}(-1)^{j+1}a_{j1}M_{j1}
+    =|A|.
+\]
+最后一个等号就是 $|A|$ 按第一列展开的定义，归纳证明完成。
+\end{proof}
+
+转置把行与列互换而不改变数值，这就解释了前面各性质中行、列结论的对应关系。使用时可以通过转置将关于列的问题化为关于行的问题；不过，在建立这套性质时，转置不变性本身依赖于前面已经证明的展开公式，不能预先用它代替那些公式所需的证明。
+
+
+\begin{theorem}[按行展开及异行、异列的代数余子式恒等式]
+\label{thm:determinant-cofactor-identities}
+设 $n\geq2$，$D=|A|$，$A_{ij}$ 为元素 $a_{ij}$ 的代数余子式。对任意 $r,s\in\{1,\ldots,n\}$，有
+\begin{equation}
+\label{eq:determinant-row-cofactor-identity}
+    \sum_{j=1}^{n}a_{rj}A_{sj}
+    =\begin{cases}D,&r=s,\\0,&r\ne s,\end{cases}
+\end{equation}
+以及
+\begin{equation}
+\label{eq:determinant-column-cofactor-identity}
+    \sum_{i=1}^{n}a_{ir}A_{is}
+    =\begin{cases}D,&r=s,\\0,&r\ne s.\end{cases}
+\end{equation}
+特别地，式~\eqref{eq:determinant-row-cofactor-identity} 在 $r=s$ 时给出按任意第 $r$ 行展开的公式 $D=\sum_{j=1}^{n}a_{rj}A_{rj}$。
+\end{theorem}
+
+\begin{proof}
+转置后按任意一列展开，再利用转置前后的代数余子式满足对应关系，就得到按任意一行展开的公式，因而第一式在 $r=s$ 时成立。若 $r\ne s$，将原行列式的第 $s$ 行替换为第 $r$ 行，得到 $|B|$。此时两行相同，故 $|B|=0$；另一方面，第 $s$ 行各元素的余子式都要删去第 $s$ 行，所以不受替换影响，按第 $s$ 行展开得
+\[
+    0=|B|=\sum_{j=1}^{n}a_{rj}A_{sj}.
+\]
+这就证明了第一式。第二式在 $r=s$ 时由按列展开成立；在 $r\ne s$ 时，将第 $s$ 列替换为第 $r$ 列，再按第 $s$ 列展开即可。
+\end{proof}
+
+这两式的区别只在所配对的行或列：\emph{同一行（列）的元素与自己的代数余子式相乘求和，得到原行列式；一行（列）的元素与另一行（列）相应位置的代数余子式相乘求和，得到零}。必须始终使用原行列式的代数余子式，不能在求和中任意更换它们。
+
+\begin{theorem}[Cramer 法则]
+\label{thm:cramer-rule}
+设有实数或复数范围内的 $n$ 元 $n$ 个方程的线性方程组
+\[
+    \sum_{j=1}^{n}a_{ij}x_j=b_i\qquad(i=1,\ldots,n),
+\]
+其系数行列式为 $D=|A|$。记 $D_j$ 为将 $D$ 的第 $j$ 列替换为常数列 $b_1,\ldots,b_n$ 得到的行列式。若 $D\ne0$，则方程组有且仅有一个解，且
+\begin{equation}
+\label{eq:cramer-rule}
+    x_j=\frac{D_j}{D}\qquad(j=1,\ldots,n).
+\end{equation}
+这一结论称为\emph{克莱姆法则}（Cramer's rule）。
+\end{theorem}
+
+\begin{proof}
+$n=1$ 时结论就是 $a_{11}x_1=b_1$ 在 $a_{11}\ne0$ 时的解公式，以下设 $n\geq2$。先证明唯一性：若 $x_1,\ldots,x_n$ 是一个解，就可在 $D_j$ 中将替换列写成各系数列的 $x_1,\ldots,x_n$ 倍之和。把其他各列的 $x_\ell$ 倍（$\ell\ne j$）从第 $j$ 列减去，再提出 $x_j$，得到 $D_j=x_jD$。由于 $D\ne0$，任何解都只能是式~\eqref{eq:cramer-rule}。
+
+再证明存在性。替换第 $j$ 列不改变这一列各位置的代数余子式，因此按第 $j$ 列展开有
+\[
+    D_j=\sum_{i=1}^{n}b_iA_{ij}.
+\]
+取 $x_j=D_j/D$，对任意固定的 $r\in\{1,\ldots,n\}$，利用式~\eqref{eq:determinant-row-cofactor-identity} 及有限求和的交换，得到
+\[
+    \begin{aligned}
+    \sum_{j=1}^{n}a_{rj}x_j
+      &=\frac{1}{D}\sum_{j=1}^{n}a_{rj}\sum_{i=1}^{n}b_iA_{ij}\\
+      &=\frac{1}{D}\sum_{i=1}^{n}b_i
+          \left(\sum_{j=1}^{n}a_{rj}A_{ij}\right)
+       =\frac{b_rD}{D}=b_r.
+    \end{aligned}
+\]
+所以这些数满足全部方程，存在性与唯一性均得证。
+\end{proof}
+
+\emph[caution]{Cramer 法则要求方程数等于未知数个数，且系数行列式非零}。当 $D=0$ 时，方程组可能无解，也可能有无穷多解：例如 $x+y=1,\ 2x+2y=3$ 无解，而将第二式改成 $2x+2y=2$ 后有无穷多解。若方程组的常数项全为零，称为\emph{齐次线性方程组}（homogeneous linear system）；当 $D\ne0$ 时，它的唯一解是 $x_1=\cdots=x_n=0$。由此也知，齐次方程组若有非零解，则必有 $D=0$；其逆命题留待一般线性方程组理论建立后讨论。Cramer 法则清楚揭示了解与系数的关系，实际求解高阶方程组时则通常采用消元法。
+
+\section{行列式的计算}
+\label{sec:determinant-computation}
+
+直接反复按定义展开，往往会产生大量低阶行列式。更有效的原则是\emph[tip]{先利用行、列变换制造零元素，再选择非零元素较少的行或列展开}。若第 $j$ 列只有第 $i$ 个元素可能非零，则
+\[
+    D=(-1)^{i+j}a_{ij}M_{ij};
+\]
+若第 $i$ 行只有第 $j$ 个元素可能非零，也有同样的公式。降阶时既要保留元素及其余子式，也要保留位置决定的符号 $(-1)^{i+j}$，不能因为一行或一列只剩一个元素就省略符号。
+
+当 $a_{11}\ne0$ 时，依次作行变换
+\[
+    R_i\longleftarrow R_i-\frac{a_{i1}}{a_{11}}R_1
+    \qquad(i=2,\ldots,n),
+\]
+其中 $R_i$ 表示第 $i$ 行，就可把第一列除首项外的元素消为零。于是 $D=a_{11}M_{11}$，问题降为 $n-1$ 阶。若 $a_{11}=0$ 而第一列有非零元素，可以先交换两行，将非零元素移到首位，同时记录一次变号；若第一列全为零，则 $D=0$。同一办法可在降阶后的行列式中继续使用，直到一阶为止，也可根据零元素和公因子的分布改用列变换。
+
+这一过程也称为\emph{消元法}（elimination）。对给定的 $n$ 阶行列式，在每一步当前待处理部分的第一列中选取非零的\emph{主元}（pivot），必要时交换行，再用倍加消去其下方元素；若该列全为零，则当前行列式及原行列式均为零。若各步都能选到非零主元，最终得到上三角行列式，其主对角线元素记为 $u_{11},\ldots,u_{nn}$，总行交换次数记为 $s$，则
+\begin{equation}
+\label{eq:determinant-elimination-product}
+    D=(-1)^s\prod_{i=1}^{n}u_{ii}.
+\end{equation}
+这里全过程只使用行交换和行倍加；若另行把一行除以某个非零数，还必须记录相应的数乘因子。将一次精确四则运算视为单位代价时，第 $k$ 步至多需要更新 $(n-k)^2$ 个元素，逐列消元的总运算次数为 $O(n^3)$。这一计数不包括精确数值表示所需的位数增长；浮点计算中的主元选择则还涉及舍入误差。
+
+\begin{example}
+计算 $D=\begin{vmatrix}0&1&2\\1&2&3\\2&4&7\end{vmatrix}$，说明首个元素为零时如何消元。
+\end{example}
+\begin{solve}
+先交换第一、第二行，再从第三行减去新的第一行的两倍，得到
+\[
+    D=-\begin{vmatrix}1&2&3\\0&1&2\\2&4&7\end{vmatrix}
+     =-\begin{vmatrix}1&2&3\\0&1&2\\0&0&1\end{vmatrix}=-1.
+\]
+首个元素为零只说明不能用它作除数，并不意味着整个行列式为零。
+\end{solve}
+
+\begin{example}
+计算 $D=\begin{vmatrix}3&6&12\\2&-3&0\\5&1&2\end{vmatrix}$。
+\end{example}
+\begin{solve}
+先提出第一行的公因子 $3$，再分别从第二、第三行减去第一行的 $2$ 倍、$5$ 倍，得到
+\[
+    D=3\begin{vmatrix}1&2&4\\2&-3&0\\5&1&2\end{vmatrix}
+     =3\begin{vmatrix}1&2&4\\0&-7&-8\\0&-9&-18\end{vmatrix}
+     =3\bigl(126-72\bigr)=162.
+\]
+先提出公因子使主元成为 $1$，可以减少消元中的分数运算。
+\end{solve}
+
+对于含参数的行列式，变换后若仍保留原来的结构，就能建立递推关系。下面的范德蒙行列式是这一方法的典型例子。
+
+% 依据教材例 1.5.6，采用列消去法建立递推关系。
+\begin{example}
+\label{ex:determinant-vandermonde}
+设 $n$ 为正整数，$x_1,\ldots,x_n$ 为实数或复数。计算 $n$ 阶\emph{范德蒙行列式}（Vandermonde determinant）
+\begin{equation}
+\label{eq:vandermonde-definition}
+    V_n(x_1,\ldots,x_n)=
+    \begin{vmatrix}
+        1 & x_1 & x_1^2 & \cdots & x_1^{n-1} \\
+        1 & x_2 & x_2^2 & \cdots & x_2^{n-1} \\
+        \vdots & \vdots & \vdots & & \vdots \\
+        1 & x_{n-1} & x_{n-1}^2 & \cdots & x_{n-1}^{n-1} \\
+        1 & x_n & x_n^2 & \cdots & x_n^{n-1}
+    \end{vmatrix}.
+\end{equation}
+其中第一列的元素均为 $1$，第 $j$ 列的元素为各参数的 $j-1$ 次幂；当 $n=1$ 时，约定 $V_1(x_1)=1$。参数 $x_1,\ldots,x_n$ 不要求两两不同。
+\end{example}
+
+\begin{solve}
+当 $n=1$ 时，$V_1(x_1)=1$。以下设 $n\geq 2$，并在参数明确时将 $V_n(x_1,\ldots,x_n)$ 简记为 $V_n$。为了使最后一行除第一项外全为零，记第 $j$ 列为 $C_j$，按照 $j=n,n-1,\ldots,2$ 的顺序依次作列变换
+\[
+    C_j\longleftarrow C_j-x_nC_{j-1}.
+\]
+由命题~\ref{prop:determinant-column-operations}，每次变换都不改变行列式的值。这里\emph[tip]{从右向左依次变换}，是为了保证用来消去的第 $j-1$ 列尚未改变，使变换后第 $(i,j)$ 元素为
+\[
+    x_i^{j-1}-x_nx_i^{j-2}
+    =x_i^{j-2}(x_i-x_n)\qquad(2\leq j\leq n).
+\]
+特别地，当 $i=n$ 时这些元素全为零，而第一列保持不变，故
+\[
+    V_n=
+    \begin{vmatrix}
+        1 & x_1-x_n & x_1(x_1-x_n) & \cdots & x_1^{n-2}(x_1-x_n) \\
+        1 & x_2-x_n & x_2(x_2-x_n) & \cdots & x_2^{n-2}(x_2-x_n) \\
+        \vdots & \vdots & \vdots & & \vdots \\
+        1 & x_{n-1}-x_n & x_{n-1}(x_{n-1}-x_n) & \cdots & x_{n-1}^{n-2}(x_{n-1}-x_n) \\
+        1 & 0 & 0 & \cdots & 0
+    \end{vmatrix}.
+\]
+
+按第一列展开时，前 $n-1$ 项的余子式都保留了最后一行；删去第一列后，这一行全为零，所以这些余子式的值均为零。因此，只需保留第 $(n,1)$ 元素对应的项，得到
+\[
+    V_n=(-1)^{n+1}
+    \begin{vmatrix}
+        x_1-x_n & x_1(x_1-x_n) & \cdots & x_1^{n-2}(x_1-x_n) \\
+        x_2-x_n & x_2(x_2-x_n) & \cdots & x_2^{n-2}(x_2-x_n) \\
+        \vdots & \vdots & & \vdots \\
+        x_{n-1}-x_n & x_{n-1}(x_{n-1}-x_n) & \cdots & x_{n-1}^{n-2}(x_{n-1}-x_n)
+    \end{vmatrix}.
+\]
+余下行列式的第 $i$ 行有公因子 $x_i-x_n$。利用性质~\ref{prop:determinant-scaling} 逐行提出这些因子，剩下的恰是参数 $x_1,\ldots,x_{n-1}$ 对应的 $n-1$ 阶范德蒙行列式，于是
+\[
+    V_n=(-1)^{n+1}\left(\prod_{i=1}^{n-1}(x_i-x_n)\right)
+        V_{n-1}(x_1,\ldots,x_{n-1}).
+\]
+将每个 $x_i-x_n$ 改写成 $-(x_n-x_i)$，共引入 $n-1$ 个负号。它们与展开时的符号相乘为 $(-1)^{n+1}(-1)^{n-1}=1$，因此得到\emph{递推公式}
+\begin{equation}
+\label{eq:vandermonde-recurrence}
+    V_n(x_1,\ldots,x_n)
+    =\left(\prod_{i=1}^{n-1}(x_n-x_i)\right)
+        V_{n-1}(x_1,\ldots,x_{n-1})\qquad(n\geq 2).
+\end{equation}
+这里提出公因子是运用行列式的数乘性质，并没有除以 $x_i-x_n$；即使某个因子为零，上述等式也仍然成立。
+
+从式~\eqref{eq:vandermonde-recurrence} 逐次降阶，直到 $V_1(x_1)=1$，每一阶 $j$ 都贡献因子 $(x_j-x_1)\cdots(x_j-x_{j-1})$，故
+\begin{equation}
+\label{eq:vandermonde-product}
+    V_n(x_1,\ldots,x_n)
+    =\prod_{j=2}^{n}\prod_{i=1}^{j-1}(x_j-x_i)
+    =\prod_{1\leq i<j\leq n}(x_j-x_i).
+\end{equation}
+符号 $\prod$ 表示连乘，末式遍历所有满足 $1\leq i<j\leq n$ 的下标对，共有 $n(n-1)/2$ 个因子；当 $n=1$ 时，乘积中没有因子，按空积等于 $1$ 的约定，公式同样成立。例如，
+\[
+    \begin{aligned}
+        V_4&=(x_4-x_1)(x_4-x_2)(x_4-x_3)
+              (x_3-x_1)(x_3-x_2)(x_2-x_1),\\
+        V_5&=(x_5-x_1)(x_5-x_2)(x_5-x_3)(x_5-x_4)V_4.
+    \end{aligned}
+\]
+对于式~\eqref{eq:vandermonde-definition} 中的行、列排列，每个因子都写成\emph[caution]{下标较大的参数减去下标较小的参数}。由乘积公式还可知，$V_n\ne 0$ 当且仅当 $x_1,\ldots,x_n$ 两两不同；若 $x_i=x_j$（$i<j$），对应因子为零，此时原行列式的第 $i,j$ 行也恰好相同。
+\end{solve}
+
+
+\begin{example}
+\label{ex:determinant-polynomial-recurrence}
+设 $a_1,\ldots,a_n$ 为常数。对 $n\geq2$，计算
+\[
+    F_n(\lambda)=\begin{vmatrix}
+        \lambda&0&\cdots&0&a_n\\
+        -1&\lambda&\cdots&0&a_{n-1}\\
+        0&-1&\ddots&0&a_{n-2}\\
+        \vdots&\vdots&\ddots&\lambda&a_2\\
+        0&0&\cdots&-1&\lambda+a_1
+    \end{vmatrix}.
+\]
+此处前 $n-1$ 列只在主对角线和紧邻其下的位置分别取 $\lambda$ 与 $-1$，最后一列从上到下为 $a_n,a_{n-1},\ldots,a_2,\lambda+a_1$；当 $n=1$ 时定义 $F_1(\lambda)=\lambda+a_1$。
+\end{example}
+\begin{solve}
+按第一行展开。$\lambda$ 的余子式与原式具有相同结构，恰为 $F_{n-1}(\lambda)$；$a_n$ 的余子式为主对角线全是 $-1$ 的上三角行列式，其值为 $(-1)^{n-1}$。因此
+\[
+    F_n(\lambda)=\lambda F_{n-1}(\lambda)
+      +(-1)^{1+n}a_n(-1)^{n-1}
+      =\lambda F_{n-1}(\lambda)+a_n.
+\]
+反复使用这一递推式及 $F_1(\lambda)=\lambda+a_1$，得到
+\[
+    F_n(\lambda)=\lambda^n+a_1\lambda^{n-1}
+       +a_2\lambda^{n-2}+\cdots+a_{n-1}\lambda+a_n.
+\]
+推导没有除以 $\lambda$，所以也适用于 $\lambda=0$。
+\end{solve}
+
+\begin{example}
+设 $u,v,w$ 是各含三个分量的列，列的加法、数乘都按对应分量进行，以 $|u,v,w|$ 表示以这三列依次组成的三阶行列式。证明对任意常数 $a,b$，有
+\[
+    |au+bv,\ av+bw,\ aw+bu|=(a^3+b^3)|u,v,w|.
+\]
+\end{example}
+\begin{solve}
+依次拆分三列，共得到 $2^3=8$ 项。三个取含 $a$ 的部分，给出 $a^3|u,v,w|$；三个取含 $b$ 的部分，给出 $b^3|v,w,u|$。其余六种选法都会使两列相同，例如 $|u,v,u|$、$|u,w,w|$，所以全部为零。将 $|v,w,u|$ 的最后一列移到最前面需要两次列交换，故其值等于 $|u,v,w|$，结论成立。这说明遇到各列均为两部分之和时，可以先判断拆分后的重复列，而不必逐项展开成标量乘积。
+\end{solve}
+
+\begin{example}
+\label{ex:determinant-constant-off-diagonal}
+设 $n\geq2$，计算主对角线元素都为 $x$、其余元素都为 $a$ 的 $n$ 阶行列式
+\[
+    D_n=\begin{vmatrix}
+        x&a&\cdots&a\\
+        a&x&\cdots&a\\
+        \vdots&\vdots&\ddots&\vdots\\
+        a&a&\cdots&x
+    \end{vmatrix}.
+\]
+\end{example}
+\begin{solve}
+将第二至第 $n$ 行全部加到第一行，第一行每个元素都变为 $s=x+(n-1)a$。从第一行提出 $s$ 后，该行全为 $1$；再从其余每行减去第一行的 $a$ 倍，就得到主对角线为 $1,x-a,\ldots,x-a$ 的上三角行列式。因此
+\begin{equation}
+\label{eq:determinant-constant-off-diagonal}
+    D_n=\bigl(x+(n-1)a\bigr)(x-a)^{n-1}.
+\end{equation}
+提出 $s$ 是使用数乘性质，并没有除以 $s$，故 $s=0$ 或 $x=a$ 时公式仍然成立。
+\end{solve}
+
+\begin{example}
+计算具有成对对称结构的行列式
+\[
+    D=\begin{vmatrix}
+        x&y&z&w\\
+        y&x&w&z\\
+        z&w&x&y\\
+        w&z&y&x
+    \end{vmatrix}.
+\]
+\end{example}
+\begin{solve}
+记 $u=x+y,v=z+w,p=x-y,q=z-w$。先作 $C_1\leftarrow C_1+C_2$、$C_3\leftarrow C_3+C_4$，再作 $R_2\leftarrow R_2-R_1$、$R_4\leftarrow R_4-R_3$，得到
+\[
+    D=\begin{vmatrix}
+        u&y&v&w\\
+        0&p&0&q\\
+        v&w&u&y\\
+        0&q&0&p
+    \end{vmatrix}
+     =\begin{vmatrix}
+        u&v&y&w\\
+        v&u&w&y\\
+        0&0&p&q\\
+        0&0&q&p
+    \end{vmatrix}.
+\]
+最后一步交换了第二、第三行及第二、第三列，共两次变号，数值不变。对最后一个行列式连续按前两列展开，得到
+\[
+    D=\begin{vmatrix}u&v\\v&u\end{vmatrix}
+      \begin{vmatrix}p&q\\q&p\end{vmatrix}
+     =(u^2-v^2)(p^2-q^2).
+\]
+代回并分解平方差，即
+\[
+    D=(x+y+z+w)(x+y-z-w)(x+z-y-w)(x+w-y-z).
+\]
+整个过程只用了倍加、交换及展开，因而不需要对参数附加非零条件。
+\end{solve}
+
+\section{行列式的等价定义}
+\label{sec:determinant-equivalent-definition}
+
+递归定义适合逐阶建立行列式的性质，但还没有直接说明完全展开后有哪些乘积、各自带什么符号。本节利用对各列的线性性质，把行列式写成有限个乘积之和，并用排列的逆序数统一确定符号。
+
+\begin{definition}
+\label{def:permutation-inversion}
+设 $n$ 为正整数。将 $1,2,\ldots,n$ 各使用一次排成的有序数组 $(k_1,\ldots,k_n)$ 称为这 $n$ 个数的一个\emph{排列}（permutation），全部这样的排列构成的集合记为 $S_n$，共有 $n!$ 个。$(1,2,\ldots,n)$ 称为\emph{常序排列}。若位置 $r<s$ 而 $k_r>k_s$，则称 $(k_r,k_s)$ 是一个\emph{逆序对}（inversion）；逆序对总数
+\[
+    N(k_1,\ldots,k_n)
+      =\#\{(r,s):1\leq r<s\leq n,\ k_r>k_s\}
+\]
+称为排列的\emph{逆序数}（inversion number），其中 $\#$ 表示集合的元素个数。逆序数为偶数的排列称为\emph{偶排列}（even permutation），逆序数为奇数的排列称为\emph{奇排列}（odd permutation）；记
+\[
+    \operatorname{sgn}(k_1,\ldots,k_n)=(-1)^{N(k_1,\ldots,k_n)}
+\]
+为排列的\emph{符号}（sign）。
+\end{definition}
+
+计算逆序数时，可依次数出每个数右侧比它小的数，再把这些数目相加。例如，$(4,1,3,2)$ 中，$4$ 的右侧有三个较小的数，$1$ 的右侧没有较小的数，$3$ 的右侧有一个较小的数，故 $N(4,1,3,2)=3+0+1=4$，它是偶排列。常序排列的逆序数为零，而逆序排列 $(n,n-1,\ldots,1)$ 的每对位置都构成逆序，逆序数为 $n(n-1)/2$。
+
+\begin{lemma}[交换与排列的奇偶性]
+\label{lem:permutation-parity}
+交换一个排列中任意两个不同位置的数，其奇偶性改变。对 $n\geq2$，$S_n$ 中奇排列和偶排列各有 $n!/2$ 个。任何排列都能经过恰好 $N(k_1,\ldots,k_n)$ 次相邻位置的交换变成常序排列。
+\end{lemma}
+\begin{proof}
+先交换相邻位置的 $k_r,k_{r+1}$。其他数与这两个数形成的逆序对总数不变，只有这两个数之间的逆序状态改变，所以逆序数增加或减少 $1$，奇偶性改变。交换位置 $r<s$ 的两个数，可以先用 $s-r$ 次相邻交换将原第 $r$ 个数移至第 $s$ 位，再用 $s-r-1$ 次将原第 $s$ 个数移至第 $r$ 位；其余数的相对位置恢复，交换总数为 $2(s-r)-1$，是奇数，故任意两位置交换也改变奇偶性。
+
+当 $n\geq2$ 时，交换前两个位置把每个奇排列对应到一个偶排列，再交换一次就回到原排列。因此这是奇、偶排列之间的一一对应，它们各占 $n!$ 个排列的一半。
+
+最后，若一个排列不是常序排列，就必有相邻逆序：否则每一对相邻位置都递增，整个排列便已是常序。每次交换一个相邻逆序，逆序数恰好减少 $1$。从非负整数 $N(k_1,\ldots,k_n)$ 出发，经过这么多次交换后逆序数降为零，排列变成常序，所需次数恰为原逆序数。
+\end{proof}
+
+为展开行列式，记其第 $j$ 列为 $c_j$，并以 $|c_1,\ldots,c_n|$ 表示由这些列依次组成的行列式。令 $e_i$ 表示第 $i$ 个分量为 $1$、其余分量为 $0$ 的 $n$ 分量列，列的加法及数乘按对应分量进行，则
+\[
+    c_j=\sum_{i=1}^{n}a_{ij}e_i.
+\]
+依次对全部 $n$ 列使用可加性和数乘性质，有
+\begin{equation}
+\label{eq:determinant-multilinear-expansion}
+    |A|=\sum_{k_1=1}^{n}\cdots\sum_{k_n=1}^{n}
+       a_{k_1,1}a_{k_2,2}\cdots a_{k_n,n}
+       |e_{k_1},e_{k_2},\ldots,e_{k_n}|.
+\end{equation}
+这里暂时共有 $n^n$ 个按下标标记的求和项。若有 $k_r=k_s$（$r\ne s$），相应行列式有两列相同，所以为零；剩余下标恰好是 $S_n$ 中的排列。对一个排列 $(k_1,\ldots,k_n)$，将其通过相邻交换变成常序，相当于对列 $e_{k_1},\ldots,e_{k_n}$ 作相同次数的交换。由引理~\ref{lem:permutation-parity} 及 $|e_1,\ldots,e_n|=1$，可得
+\[
+    |e_{k_1},\ldots,e_{k_n}|=(-1)^{N(k_1,\ldots,k_n)}.
+\]
+
+\begin{theorem}[行列式的排列展开式]
+\label{thm:determinant-permutation-formula}
+任意 $n$ 阶行列式均可写成
+\begin{equation}
+\label{eq:determinant-permutation-column}
+    |A|=\sum_{(k_1,\ldots,k_n)\in S_n}
+       (-1)^{N(k_1,\ldots,k_n)}
+       a_{k_1,1}a_{k_2,2}\cdots a_{k_n,n}.
+\end{equation}
+同样有按行选取元素的公式
+\begin{equation}
+\label{eq:determinant-permutation-row}
+    |A|=\sum_{(k_1,\ldots,k_n)\in S_n}
+       (-1)^{N(k_1,\ldots,k_n)}
+       a_{1,k_1}a_{2,k_2}\cdots a_{n,k_n}.
+\end{equation}
+\end{theorem}
+\begin{proof}
+在式~\eqref{eq:determinant-multilinear-expansion} 中去掉重复下标对应的零项，再代入其余简单行列式的值，就得到式~\eqref{eq:determinant-permutation-column}。对转置行列式使用这一公式，结合转置不改变值，即得式~\eqref{eq:determinant-permutation-row}。
+\end{proof}
+
+这两个公式称为行列式的\emph{排列展开式}，也常称为\emph{莱布尼茨公式}（Leibniz formula）。完全展开时共有 $n!$ 个按位置选取的项，每项都是从各行、各列各取一个元素的乘积，符号由相应排列的逆序数决定；这里的项数不表示一定有 $n!$ 个非零或数值互异的项。主对角线乘积的符号总是正号，而副对角线乘积 $a_{1n}a_{2,n-1}\cdots a_{n1}$ 的符号为 $(-1)^{n(n-1)/2}$。当 $n\geq2$ 时，排列所给出的正号与负号各有 $n!/2$ 个，但具体项的数值正负还取决于各元素。
+
+排列公式确实可以代替递归公式作为定义。为核实这一点，将式~\eqref{eq:determinant-permutation-column} 中的排列按 $k_1=i$ 分组：首个数 $i$ 与其右侧的 $1,\ldots,i-1$ 形成 $i-1$ 个逆序，删去 $i$ 后，把其余数按大小重新编号为 $1,\ldots,n-1$，所得排列的逆序数记为 $N'$。于是原逆序数为 $i-1+N'$，而这一组的和正是
+\[
+    (-1)^{i-1}a_{i1}M_{i1}=(-1)^{i+1}a_{i1}M_{i1}.
+\]
+对 $i$ 求和，便恢复按第一列展开的递归式；$n=1$ 时排列公式也给出 $|A|=a_{11}$。因此两种定义有相同起点和相同递归关系，逐阶确定同一个数。排列公式适合分析各项结构与符号，实际计算高阶行列式时，通常仍使用第~\ref{sec:determinant-computation} 节的消元与降阶方法。
+
+\section{Laplace 定理}
+\label{sec:determinant-laplace}
+
+按一行展开时，每项由该行的一个元素与它的代数余子式相乘得到。若同时选定 $k$ 行，就应把这 $k$ 行中的 $k$ 阶行列式与剩余 $n-k$ 行中的行列式配对。\emph{拉普拉斯定理}（Laplace's theorem）给出了这种推广；关键是保留所选行、列的原有次序，并确定配对所需的符号。
+
+\begin{definition}
+\label{def:determinant-higher-minor}
+设 $D=|A|$ 为 $n$ 阶行列式，$1\leq k<n$，取递增下标组
+\[
+    I=(i_1,\ldots,i_k),\quad J=(j_1,\ldots,j_k),\qquad
+    1\leq i_1<\cdots<i_k\leq n,\quad
+    1\leq j_1<\cdots<j_k\leq n.
+\]
+由这些行、列交点处的元素按原次序组成的行列式
+\[
+    D_{I,J}=\begin{vmatrix}
+        a_{i_1j_1}&\cdots&a_{i_1j_k}\\
+        \vdots&\ddots&\vdots\\
+        a_{i_kj_1}&\cdots&a_{i_kj_k}
+    \end{vmatrix}
+\]
+称为 $D$ 的一个\emph{$k$ 阶子式}（minor of order $k$）。以 $I^{\mathrm c},J^{\mathrm c}$ 分别表示其余行号、列号按递增次序组成的下标组，定义其\emph{余子式}与\emph{代数余子式}分别为
+\begin{equation}
+\label{eq:determinant-higher-cofactor}
+    M_{I,J}=D_{I^{\mathrm c},J^{\mathrm c}},\qquad
+    \mathcal A_{I,J}=(-1)^{\sigma(I)+\sigma(J)}M_{I,J},
+    \qquad \sigma(I)=\sum_{r=1}^{k}i_r,\quad
+           \sigma(J)=\sum_{r=1}^{k}j_r.
+\end{equation}
+\end{definition}
+
+子式取所选行、列的交点，余子式则要把这些行、列全部删去后再取剩余交点，二者的阶数分别为 $k$ 与 $n-k$。$k=1$ 时，$D_{(i),(j)}=a_{ij}$，$M_{(i),(j)}=M_{ij}$，$\mathcal A_{(i),(j)}=A_{ij}$，正好回到元素的余子式与代数余子式。固定 $k$ 行后，所含的 $k$ 阶子式由列号组 $J$ 决定，共有 $\binom{n}{k}$ 个；这里 $\binom{n}{k}=n!/[k!(n-k)!]$ 表示从 $n$ 列中选择 $k$ 列的方法数。
+
+\begin{theorem}[Laplace 定理]
+\label{thm:determinant-laplace}
+设 $D=|A|$ 为 $n$ 阶行列式，$1\leq k<n$，采用定义~\ref{def:determinant-higher-minor} 的记号。对任意固定的 $k$ 行 $I=(i_1,\ldots,i_k)$，有
+\begin{equation}
+\label{eq:determinant-laplace-rows}
+    D=\sum_{1\leq j_1<\cdots<j_k\leq n}
+       D_{I,J}\mathcal A_{I,J},\qquad J=(j_1,\ldots,j_k).
+\end{equation}
+对任意固定的 $k$ 列 $J=(j_1,\ldots,j_k)$，也有
+\begin{equation}
+\label{eq:determinant-laplace-columns}
+    D=\sum_{1\leq i_1<\cdots<i_k\leq n}
+       D_{I,J}\mathcal A_{I,J},\qquad I=(i_1,\ldots,i_k).
+\end{equation}
+即固定 $k$ 行或 $k$ 列后，其中全部 $k$ 阶子式与各自代数余子式的乘积之和等于原行列式。
+\end{theorem}
+
+\begin{proof}
+先核实每一对子式与余子式的符号。若 $I=J=(1,\ldots,k)$，它们分别位于左上角与右下角。展开 $D_{I,J}M_{I,J}$ 时，每个乘积在前 $k$ 行、前 $k$ 列中各取一个元素，又在后 $n-k$ 行、后 $n-k$ 列中各取一个元素，所以是原行列式排列展开式中的一项。按式~\eqref{eq:determinant-permutation-row} 看它的列号排列，前一组列号全小于后一组，组间没有逆序，因此总逆序数等于两组内部逆序数之和，其符号正好是两个子式中符号的乘积。
+
+对一般的 $I,J$，保持所选行及其余行各自的相对次序，将第 $i_1,\ldots,i_k$ 行依次移到最前面，需要
+\[
+    \sum_{r=1}^{k}(i_r-r)=\sigma(I)-\frac{k(k+1)}{2}
+\]
+次相邻行交换；同样移动所选列，需要 $\sigma(J)-k(k+1)/2$ 次相邻列交换。所得行列式记为 $D'$，则
+\[
+    D'=(-1)^{\sigma(I)+\sigma(J)-k(k+1)}D
+       =(-1)^{\sigma(I)+\sigma(J)}D,
+\]
+因为 $k(k+1)$ 为偶数。移动之后，$D_{I,J}$ 位于左上角，$M_{I,J}$ 位于右下角，二者内部的行、列次序都没有改变。由刚才的特殊情形，其乘积的各项属于 $D'$ 的展开式；恢复原行、列次序时乘上同一符号因子，故 $D_{I,J}\mathcal A_{I,J}$ 的各项带着正确符号出现在 $D$ 的展开式中。这就解释了式~\eqref{eq:determinant-higher-cofactor} 的符号来源。
+
+现在固定 $I$。原行列式的任意一个排列项，在这 $k$ 行中选出的列号恰好构成唯一的 $J$，该项因而恰好出现在相应的 $D_{I,J}\mathcal A_{I,J}$ 中。不同 $J$ 对应的选取方式没有重复，并且覆盖全部排列项；也可用
+\[
+    \binom{n}{k}k!(n-k)!=n!
+\]
+核对按位置标记的项数。因此对所有 $J$ 求和就得到式~\eqref{eq:determinant-laplace-rows}。对转置行列式使用行展开形式，便得到列展开形式。
+\end{proof}
+
+\begin{example}
+利用第二、第三行作 Laplace 展开，计算
+\[
+    D=\begin{vmatrix}
+        1&2&-1&3\\
+        7&0&5&2\\
+        -2&4&6&1\\
+        2&3&1&4
+    \end{vmatrix}.
+\]
+\end{example}
+\begin{solve}
+取 $I=(2,3)$，故 $\sigma(I)=5$。按 $J=(1,2),(1,3),(1,4),(2,3),(2,4),(3,4)$ 的次序，六个子式与相应的代数余子式为
+\[
+    \begin{array}{c|rrrrrr}
+        J&(1,2)&(1,3)&(1,4)&(2,3)&(2,4)&(3,4)\\ \hline
+        D_{I,J}&28&52&11&-20&-8&-7\\
+        \mathcal A_{I,J}&-7&1&5&-2&-3&-1
+    \end{array}
+\]
+例如，$J=(1,3)$ 时子式为 $\begin{vmatrix}7&5\\-2&6\end{vmatrix}=52$，余子式为 $\begin{vmatrix}2&3\\3&4\end{vmatrix}=-1$，而符号因子为 $(-1)^{2+3+1+3}=-1$，所以代数余子式为 $1$。由 Laplace 定理，
+\[
+    D=28(-7)+52\cdot1+11\cdot5+(-20)(-2)+(-8)(-3)+(-7)(-1)=-18.
+\]
+这里展开的是固定两行内的全部六个子式，不能任意只挑选其中一部分。
+\end{solve}
+
+\begin{proposition}[具有整块零元素的行列式]
+\label{prop:determinant-block-triangular}
+设 $B,C$ 分别为 $k$ 阶与 $n-k$ 阶方形数组，$1\leq k<n$。用 $*$ 表示大小适当、元素任意的数组，用 $0$ 表示相应位置的元素全为零，则
+\begin{equation}
+\label{eq:determinant-block-triangular}
+    \begin{vmatrix}B&0\\ *&C\end{vmatrix}=|B|\,|C|,
+    \qquad
+    \begin{vmatrix}B&*\\ 0&C\end{vmatrix}=|B|\,|C|.
+\end{equation}
+\end{proposition}
+\begin{proof}
+对第一个行列式，固定前 $k$ 行作 Laplace 展开。若所选列不全为前 $k$ 列，子式就含有一列零元素，因而为零。唯一可能非零的项是 $I=J=(1,\ldots,k)$，其子式为 $|B|$，余子式为 $|C|$，符号因子为 $(-1)^{2(1+\cdots+k)}=1$，因此得到乘积 $|B|\,|C|$。第二式由第一式的转置及行列式的转置不变性得到。
+\end{proof}
+
+Laplace 展开适合所选几行或几列中零元素较多、只有少数子式可能非零的情形。一般的稠密行列式若取中间大小的 $k$，需要计算 $\binom{n}{k}$ 对子式，未必比消元更省计算；它的主要作用是按成组的行、列揭示行列式结构。按单行或单列展开、排列展开以及 Laplace 展开描述的是同一个行列式，只是组织各项的方式不同。
+
+
+
+
+
+

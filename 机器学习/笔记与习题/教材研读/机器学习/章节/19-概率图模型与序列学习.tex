@@ -1,0 +1,71 @@
+% !TeX root = ../机器学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{18} % 保留原书章号。
+\chapter{概率图模型与序列学习}
+\label{chap:ml-graphical}
+
+概率图模型（probabilistic graphical model）用图表达变量之间的条件结构。图首先规定分布如何分解，随后才能讨论如何计算边缘概率、寻找最可能状态或学习参数。
+
+\section{有向图模型与因子分解}
+
+贝叶斯网络（Bayesian network）由有向无环图和各节点给定父节点的条件分布组成。若节点变量为 $Z_1,\ldots,Z_m$，父节点集合为 $\operatorname{pa}(j)$，联合分布规定为
+$p(z_1,\ldots,z_m)=\prod_jp(z_j\mid z_{\operatorname{pa}(j)})$。
+按拓扑顺序逐个求和或积分，可验证它归一化。
+
+链 $X\to Z\to Y$ 和分叉 $X\leftarrow Z\to Y$ 均给出 $X\perp Y\mid Z$。碰撞结构 $X\to Z\leftarrow Y$ 的两个根节点边缘独立，但观察 $Z$ 后可能相关，例如两个独立原因竞争解释同一结果。图上的边默认表达概率因子结构；把它解释为因果方向需要额外的生成和干预假设。
+
+\section{无向图模型与概率推断}
+
+无向模型可写为 $p(z)=Z^{-1}\prod_C\psi_C(z_C)$，其中非负势函数作用于若干变量集合，配分函数 $Z$ 是所有配置权重之和，必须正且有限。因子图（factor graph）把变量和因子分别作为节点，直接展示乘积分解。势函数不必各自归一，联合归一化由 $Z$ 完成。
+
+边缘化对其他变量求和，最可能配置则对配置取最大，两者不是同一运算。变量消元利用分配律，将与一个变量有关的因子先乘后求和，再形成新因子。计算成本取决于中间因子包含多少变量，而非仅取决于原图边数；不恰当消元顺序会产生很大中间表。
+
+\section{隐马尔可夫模型}
+
+隐马尔可夫模型（hidden Markov model，HMM）包含状态 $Z_t\in\{1,\ldots,K\}$ 和观测 $X_t$，假定一阶状态转移及给定当前状态后的观测条件独立。令初始概率为 $\pi_j$、转移为 $a_{ij}$、发射概率或密度为 $b_j(x)$，则
+\begin{equation}
+ p(z_{1:T},x_{1:T})=\pi_{z_1}b_{z_1}(x_1)
+ \prod_{t=2}^Ta_{z_{t-1},z_t}b_{z_t}(x_t).
+ \label{eq:ml-hmm-joint}
+\end{equation}
+观测似然对全部状态路径求和，平滑后验给每个位置的状态概率，路径解码则寻找联合概率最大的完整路径。逐位置最大后验组合可能不是最大概率路径，甚至在含零转移的模型中形成不允许的路径。
+
+\section{前向后向、路径解码与参数学习}
+
+前向量 $\alpha_t(j)=p(x_{1:t},Z_t=j)$ 满足
+$\alpha_1(j)=\pi_jb_j(x_1)$、
+$\alpha_t(j)=b_j(x_t)\sum_i\alpha_{t-1}(i)a_{ij}$，
+似然为 $\sum_j\alpha_T(j)$。后向量 $\beta_t(i)=p(x_{t+1:T}\mid Z_t=i)$ 满足
+$\beta_T(i)=1$、
+$\beta_t(i)=\sum_ja_{ij}b_j(x_{t+1})\beta_{t+1}(j)$。
+观测似然为正时，$\gamma_t(i)=P(Z_t=i\mid x_{1:T})$ 正比于 $\alpha_t(i)\beta_t(i)$。
+
+两相邻状态的后验 $\xi_t(i,j)$ 正比于 $\alpha_t(i)a_{ij}b_j(x_{t+1})\beta_{t+1}(j)$。Baum--Welch 是相应 EM：新转移为 $\sum_{t<T}\xi_t(i,j)/\sum_{t<T}\gamma_t(i)$，离散发射概率用后验加权频数更新，零分母另行处理。Viterbi 解码把前向求和改成取最大并保存前驱，最后回溯。稠密转移下这些递推为 $O(TK^2)$ 时间，应使用缩放或对数域防止下溢。
+
+\section{条件随机场与结构化预测}
+
+线性链条件随机场（conditional random field，CRF）定义
+\begin{equation}
+ p_\theta(y_{1:T}\mid x)=
+ \frac{\exp[\sum_t\theta^\top\phi_t(y_{t-1},y_t,x)]}{Z_\theta(x)},
+ \label{eq:ml-crf}
+\end{equation}
+其中起始标签约定固定，$Z_\theta(x)$ 对所有标签路径求和。对一条标注路径，负对数似然梯度为模型下的总特征期望减去观测总特征；期望和配分函数可用前向后向计算，最大概率路径可用 Viterbi 求解。
+
+HMM 建模观测与状态的联合分布，CRF 直接建模给定完整输入后的标签条件分布，因而可使用依赖整个输入的特征。线性链的动态规划效率依赖链结构，一般图上的 CRF 不自动保留同样复杂度。
+
+\section{例题、练习与学习检查}
+
+\begin{example}[两状态的一步滤波]
+初始状态等概率，观测符号 $a$ 在两状态下的概率为 $0.8,0.2$。
+\end{example}
+\begin{solve}
+前向量为 $(0.4,0.1)$，观测概率为 $0.5$，归一后状态后验为 $(0.8,0.2)$。有下一次观测时，应先按转移传播这组权重再乘发射概率，而不是独立重复同一个分类。
+\end{solve}
+
+习题：手算两步前向与后向并核对总似然；比较逐位置最大后验与 Viterbi 路径；从条件对数似然推导 CRF 梯度；说明按完整序列划分数据为何比随机拆分位置更符合序列泛化评价。
+
+
+
+
+

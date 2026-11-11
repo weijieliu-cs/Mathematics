@@ -1,0 +1,212 @@
+% !TeX root = ../测度论笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{12} % 保留原书章号。
+\chapter{与概率论的衔接：分布、期望和条件期望}
+\label{chap:mt-probability}
+
+\section{概率空间与随机变量的分布}
+\emph{概率空间（probability space）}是总测度为一的测度空间 $(\Omega,\mathcal F,\mathbb P)$；可测集称为事件，几乎处处成立称为\emph{几乎必然成立（almost surely）}，简记 a.s.。实值\emph{随机变量（random variable）}是可测映射 $X:\Omega\to\mathbb R$。在这一形式化中，$X$ 是确定的映射，随机性由样本结果 $\omega$ 的概率模型描述。
+
+随机变量的\emph{分布（distribution）}是实轴 Borel 集上的概率测度
+\begin{equation}
+ \mathbb P_X(B)=\mathbb P(X^{-1}(B)),\qquad B\in\mathcal B(\mathbb R),
+ \label{eq:mt-pushforward}
+\end{equation}
+也称\emph{推前测度（pushforward measure）}。同一分布可能由不同概率空间上的随机变量产生；只给出边缘分布，不能确定多个随机变量之间的依赖关系。
+
+若 $\mathbb P_X\ll\lambda$，则由 Radon--Nikodym 定理存在密度 $p$，满足 $\mathbb P_X(B)=\int_Bp\,\mathrm d\lambda$。若 $X$ 只取可数个值，则可使用相应可数取值空间的计数测度，将各点概率作为密度。连续密度、离散质量函数与不具有勒贝格密度的分布，都可用分布测度统一描述。
+
+\section{分布函数如何编码一个概率测度}
+对实值随机变量 $X$，定义\emph{分布函数（cumulative distribution function）}
+$F_X(t)=\mathbb P(X\leq t)$。它非减、右连续，并满足当 $t\to-\infty$ 时趋零、当 $t\to\infty$ 时趋一。非减性来自事件包含关系；右连续性来自事件 $\{X\leq t_n\}$ 在 $t_n\downarrow t$ 时递减到 $\{X\leq t\}$；两端极限则由实值随机变量在每个样本点取有限值，以及测度对集合极限的连续性得到。
+
+对 $a<b$，区间概率为 $F_X(b)-F_X(a)$，对应半开区间 $(a,b]$。这些区间及适当的射线生成实轴 Borel $\sigma$ 代数，因此分布函数唯一确定分布测度。若两个概率测度具有相同分布函数，在生成射线族上数值相同，有限测度唯一性便使它们在所有 Borel 集上相同。这解释了为什么只用一个实变量函数，就能编码全体 Borel 事件的概率。
+
+在一点 $t$ 的概率质量为 $F_X(t)-F_X(t-)$，其中左极限存在是因为分布函数非减。因而跳跃对应原子，连续分布函数对应没有单点原子，但连续仍不保证存在概率密度。Cantor 分布提供了连续而奇异的例子；只有当分布测度关于长度绝对连续时，才能将分布函数写为某个非负可积密度从负无穷积分到 $t$ 的结果。
+
+反过来，每个具有上述单调性、右连续性和两端极限的函数，都通过 Stieltjes 构造定义一个概率测度。这里不是任意指定一条曲线就能得到分布：右连续性保证端点约定与集合极限相容，两端极限保证总质量恰好为一。这样的构造把随机变量分布与前一章的一般测度构造联系起来。
+
+\section{期望与独立性}
+对非负随机变量或可积随机变量，\emph{期望（expectation）}定义为 $\mathbb E[X]=\int_\Omega X\,\mathrm d\mathbb P$。若 $g:\mathbb R\to\mathbb R$ Borel 可测，且 $g(X)\geq0$ 或 $\mathbb E|g(X)|<\infty$，则
+\begin{equation}
+ \mathbb E[g(X)]=\int_{\mathbb R}g(x)\,\mathrm d\mathbb P_X(x).
+ \label{eq:mt-distribution-integral}
+\end{equation}
+证明从 $g=\mathbf1_B$ 开始，此时等式就是分布定义；再由简单逼近、单调收敛与正负部分分解推广。若分布有密度，进一步得到熟悉的 $\int g(x)p(x)\,\mathrm dx$。
+
+实值随机变量 $X,Y$ \emph{独立（independent）}，是指对任意 Borel 集 $A,B$，
+$\mathbb P(X\in A,Y\in B)=\mathbb P_X(A)\mathbb P_Y(B)$。由概率测度在生成矩形族上的唯一性，这等价于联合分布 $\mathbb P_{(X,Y)}=\mathbb P_X\otimes\mathbb P_Y$。若 $X,Y$ 独立且各自可积，Tonelli 定理先给出 $\mathbb E|XY|=\mathbb E|X|\mathbb E|Y|<\infty$，Fubini 定理再给出 $\mathbb E[XY]=\mathbb E[X]\mathbb E[Y]$。只知道乘积期望分解，并不足以反推独立。
+
+\section{条件期望为何需要一个子 $\sigma$ 代数}
+给定子 $\sigma$ 代数 $\mathcal G\subseteq\mathcal F$，可以把它理解为当前可辨认的事件所组成的信息。若只观察随机变量 $Y$，相应信息写为 $\sigma(Y)=\{Y^{-1}(B):B\in\mathcal B(\mathbb R)\}$；这些原像组成 $\sigma$ 代数。条件期望要找一个仅依赖这些信息的随机变量，同时在每个已能辨认的事件上保留原来的积分。
+
+\begin{definition}
+设 $X\in L^1(\mathbb P)$。若 $Z$ 关于 $\mathcal G$ 可测、可积，且
+\begin{equation}
+ \int_AZ\,\mathrm d\mathbb P=\int_AX\,\mathrm d\mathbb P
+ \quad\text{对每个 }A\in\mathcal G,
+ \label{eq:mt-conditional-expectation}
+\end{equation}
+则称 $Z$ 是 $X$ 关于 $\mathcal G$ 的\emph{条件期望（conditional expectation）}，记为 $\mathbb E[X\mid\mathcal G]$。这一记号指几乎必然相等意义下的等价类，具体函数称为它的一个版本。
+\end{definition}
+
+\begin{theorem}[条件期望的存在与唯一性]
+对每个 $X\in L^1(\mathbb P)$ 和子 $\sigma$ 代数 $\mathcal G$，条件期望存在且几乎必然唯一。
+\end{theorem}
+\begin{proof}
+在可测空间 $(\Omega,\mathcal G)$ 上定义 $\nu(A)=\int_AX\,\mathrm d\mathbb P$。它是有限有符号测度，且 $\nu\ll\mathbb P|_{\mathcal G}$。由于限制后的概率测度有限，定理\ref{thm:mt-rn}给出 $\mathcal G$ 可测的可积密度 $Z$，恰好满足式\eqref{eq:mt-conditional-expectation}。该定理的几乎处处唯一性就是这里的几乎必然唯一性。
+\end{proof}
+
+\begin{example}[有限分割上的条件平均]
+设 $\Omega=\{1,2,3,4\}$，四个结果等概率，$X$ 在四点的取值依次为 $0,2,4,10$，而 $\mathcal G=\sigma(\{1,2\},\{3,4\})$。$\mathcal G$ 可测函数只能在每个分组中取相同值。为保留每个组上的积分，必须有
+\[
+ \mathbb E[X\mid\mathcal G](\omega)=
+ \begin{cases}
+  1,&\omega\in\{1,2\},\\
+  7,&\omega\in\{3,4\}.
+ \end{cases}
+\]
+例如在第一组上，原积分为 $(0+2)/4=1/2$，新积分为 $1\cdot(1/2)=1/2$。条件期望一般是随可用信息变化的随机变量，而不是一个固定常数；再取总体期望才得到 $\mathbb E[X]=4$。
+\end{example}
+
+\section{塔式性质与概率收敛语言}
+取 $A=\Omega$，立即得到 $\mathbb E[\mathbb E[X\mid\mathcal G]]=\mathbb E[X]$。若 $\mathcal H\subseteq\mathcal G$，则
+\begin{equation}
+ \mathbb E[\mathbb E[X\mid\mathcal G]\mid\mathcal H]
+ =\mathbb E[X\mid\mathcal H]\quad\text{几乎必然}.
+ \label{eq:mt-tower}
+\end{equation}
+证明时，左侧 $\mathcal H$ 可测；对任意 $A\in\mathcal H$，先使用关于 $\mathcal H$ 的积分恒等式，再因 $A\in\mathcal G$ 使用关于 $\mathcal G$ 的恒等式，得到其在 $A$ 上的积分等于 $\int_AX$，最后调用唯一性。这就是\emph{塔式性质（tower property）}，它以包含关系准确表达信息由细变粗。
+
+在概率空间上，依测度收敛称为\emph{依概率收敛（convergence in probability）}，$L^p$ 收敛称为 $p$ 阶均值收敛。因为总测度为一，几乎必然收敛蕴含依概率收敛；反向一般只能选取几乎必然收敛的子列。概率论还研究由分布本身定义的收敛方式，不能把所有“收敛”都理解为随机变量逐点收敛。
+
+测度论提供积分与极限的基本语言，概率论进一步研究独立性、条件化和随机结构产生的规律。例如，若 $X_1,X_2,\ldots$ 两两独立、同均值 $m$、同有限方差 $\sigma^2$，则对 $\overline X_n=n^{-1}\sum_{j=1}^{n}X_j$，
+\[
+ \mathbb P(|\overline X_n-m|>\varepsilon)
+ \leq\frac{\mathbb E[(\overline X_n-m)^2]}{\varepsilon^2}
+ =\frac{\sigma^2}{n\varepsilon^2}\longrightarrow0.
+\]
+第一步来自非负积分的基本估计，第二步使用独立性使不同项的协方差为零。这给出一个弱大数定律的特例，也说明概率结论需要测度论工具与随机变量间的结构共同作用。
+
+\section{可观测函数为何能写成观测值的函数}
+若 $Z$ 关于 $\sigma(Y)$ 可测，常将它写成 $m(Y)$。这个写法并不是把一个抽象随机变量随意改成函数符号，而是依赖可测因子分解：对实值 $Y,Z$，$\sigma(Y)$ 可测性保证存在 Borel 可测函数 $m:\mathbb R\to\mathbb R$，使 $Z=m(Y)$。
+
+证明可以从简单函数开始。若 $Z=\sum_jc_j\mathbf1_{A_j}$，每个 $A_j\in\sigma(Y)$ 都可写成 $Y^{-1}(B_j)$，其中 $B_j$ 为 Borel 集，于是取 $m(y)=\sum_jc_j\mathbf1_{B_j}(y)$ 即可。一般有限实值 $Z$ 用简单函数 $Z_n$ 逐点逼近，得到对应的 Borel 函数 $m_n$。在 $m_n$ 具有有限极限的位置定义 $m$ 为其极限，在其余位置定义为零。这个收敛位置集合可测，而在 $Y$ 的实际取值上，极限必然等于 $Z$。
+
+因子分解说明，条件期望 $\mathbb E[X\mid\sigma(Y)]$ 可以理解为一个由观测值输入、输出预测值的函数。但 $m$ 通常只在 $Y$ 的分布几乎处处意义下唯一；在从不出现或仅构成零概率集合的输入处，函数值可以改变。数学模型给出的这种唯一性范围，与实际计算时希望函数在每个输入处都有明确值之间，需要通过选择版本来衔接。
+
+如果所说的可测性是关于 $\sigma(Y)$ 的完备化而非原集合族，则一般先选择一个与 $Z$ 几乎必然相等的 $\sigma(Y)$ 可测版本，再作分解。这样得到的是几乎必然等式，而非未经选择就保证处处成立的等式。这个区别在本科阶段不需要发展成完整的条件分布理论，但应知道它来自集合族与零测修改的关系。
+
+\section{条件期望的线性、保序与提出已知量}
+条件期望的基本性质应从定义中的两项要求推出：结果关于 $\mathcal G$ 可测，并在每个 $A\in\mathcal G$ 上保留积分。不能只验证保留整体期望，因为很多不同的 $\mathcal G$ 可测函数都有相同的整体期望，而未必满足所有局部事件上的约束。
+
+若 $X,Y$ 可积，$a,b\in\mathbb R$，则
+$a\mathbb E[X\mid\mathcal G]+b\mathbb E[Y\mid\mathcal G]$
+关于 $\mathcal G$ 可测、可积，并在每个 $A$ 上具有与 $aX+bY$ 相同的积分，故由唯一性得到线性性。若 $X\geq0$，记 $Z=\mathbb E[X\mid\mathcal G]$，对 $A_m=\{Z\leq-1/m\}\in\mathcal G$ 有
+$0\leq\int_{A_m}X=\int_{A_m}Z\leq-\mathbb P(A_m)/m$，所以每个 $A_m$ 都为零概率事件，进而 $Z\geq0$ 几乎必然。结合线性性，得到条件期望的保序性。
+
+由 $-|X|\leq X\leq|X|$ 可得
+\[
+ |\mathbb E[X\mid\mathcal G]|
+ \leq\mathbb E[|X|\mid\mathcal G]\quad\text{几乎必然},
+ \qquad
+ \|\mathbb E[X\mid\mathcal G]\|_1\leq\|X\|_1.
+\]
+因此条件期望是 $L^1$ 上的非扩张线性算子，即不增大两函数之间的 $L^1$ 距离。该估计并不保证存在严格小于一的统一比例，不能把它直接套入需要严格收缩系数的不动点定理。
+
+\begin{proposition}[提出已知量的有界版本]
+若 $X\in L^1(\mathbb P)$，$U$ 是有界的 $\mathcal G$ 可测函数，则
+\[
+ \mathbb E[UX\mid\mathcal G]=U\mathbb E[X\mid\mathcal G]
+ \quad\text{几乎必然}.
+\]
+\end{proposition}
+\begin{proof}
+先取 $U=\mathbf1_B$，$B\in\mathcal G$。对任意 $A\in\mathcal G$，所需积分等式正是条件期望定义在 $A\cap B$ 上的应用。线性性推广到简单函数。一般有界 $U$ 可由统一有界的简单函数逐点逼近，对 $UX$ 和 $U\mathbb E[X\mid\mathcal G]$ 分别使用可积控制，就能将积分恒等式传到极限。右侧的可测性和可积性也由有界性保证，最后使用唯一性。
+\end{proof}
+“已知量”在这里有准确含义：$U$ 关于当前信息 $\mathcal G$ 可测。它不表示 $U$ 必须为常数，也不表示任何与问题同时出现的随机变量都可以提出。若 $U$ 不关于 $\mathcal G$ 可测，右侧甚至可能不满足条件期望要求的可测性。
+
+\section{连续观测下的条件分布例题}
+\begin{example}[三角形区域上的联合密度]
+设 $(X,Y)$ 的联合密度为 $p(x,y)=2\mathbf1_{\{0<x<y<1\}}$。固定 $y\in(0,1)$，对 $x$ 积分得到边缘密度 $p_Y(y)=2y$；归一化后的截面密度为
+\[
+ p_{X\mid Y}(x\mid y)=\frac1y\mathbf1_{(0,y)}(x).
+\]
+它表明给定观测值 $y$ 时，$X$ 的条件分布可取为 $(0,y)$ 上的均匀分布，因此候选条件均值为 $m(y)=y/2$。
+\end{example}
+为了严格验证这一候选，不使用 $\mathbb P(Y=y)$ 作分母，因为该事件的概率为零。对任意 Borel 集 $B$，用联合密度和 Fubini 定理计算
+\[
+ \mathbb E[X\mathbf1_{\{Y\in B\}}]
+ =\int_{B\cap(0,1)}\left(\int_0^y2x\,\mathrm dx\right)\mathrm dy
+ =\int_{B\cap(0,1)}y^2\,\mathrm dy
+ =\mathbb E[(Y/2)\mathbf1_{\{Y\in B\}}].
+\]
+而 $Y/2$ 关于 $\sigma(Y)$ 可测，所以它就是 $\mathbb E[X\mid\sigma(Y)]$ 的一个版本。再取总体期望得到 $\mathbb E[X]=\mathbb E[Y]/2=1/3$，与直接积分一致。
+
+这个例子说明连续条件化的正确逻辑：先定义一个随观测值变化的可测函数，再通过所有可观测事件上的积分等式验证，而不是把零概率事件代入有限条件概率的比值公式。条件密度在边缘密度为零的观测值上可以任意指定合适版本，因为这些值不会改变联合概率模型。
+
+\section{条件期望作为 $L^2$ 中的最佳预测}
+\begin{theorem}
+设 $X\in L^2(\mathbb P)$，$Z=\mathbb E[X\mid\mathcal G]$。则 $Z\in L^2(\mathbb P)$，并对每个 $\mathcal G$ 可测的 $Y\in L^2$ 满足
+\[
+ \mathbb E[(X-Z)Y]=0.
+\]
+因此，对任意这样的预测量 $Y$，
+\begin{equation}
+ \mathbb E[(X-Y)^2]
+ =\mathbb E[(X-Z)^2]+\mathbb E[(Z-Y)^2],
+ \label{eq:mt-conditional-projection}
+\end{equation}
+从而 $Z$ 在几乎必然相等意义下唯一地最小化均方误差。
+\label{thm:mt-conditional-projection}
+\end{theorem}
+\begin{proof}
+先证明 $Z$ 平方可积，不能直接假设这一点。令 $Z_M=\max(-M,\min(Z,M))$。由有界 $\mathcal G$ 可测测试函数的积分恒等式，
+$\mathbb E[XZ_M]=\mathbb E[ZZ_M]\geq\mathbb E[Z_M^2]$。
+Cauchy--Schwarz 不等式给出
+$\|Z_M\|_2^2\leq\|X\|_2\|Z_M\|_2$，故 $\|Z_M\|_2\leq\|X\|_2$。对 $Z_M^2\uparrow Z^2$ 用单调收敛，得到 $Z\in L^2$。
+
+对有界 $\mathcal G$ 可测 $Y$，正交恒等式由定义已经成立。对一般 $Y\in L^2$，取截断 $Y_M$，则 $\|Y_M-Y\|_2\to0$。用 Hölder 不等式控制
+$|\mathbb E[(X-Z)(Y_M-Y)]|\leq\|X-Z\|_2\|Y_M-Y\|_2$，
+便将正交恒等式传到极限。最后在平方误差中写 $X-Y=(X-Z)+(Z-Y)$，交叉项由正交性为零，得到式\eqref{eq:mt-conditional-projection}及唯一性。
+\end{proof}
+
+该结论将条件期望解释为只使用当前信息所能作出的最佳平方误差预测。信息限制不是额外的口头条件，而是要求预测量 $\mathcal G$ 可测。若允许使用更多信息，候选函数空间变大，最优误差不会增加；若只有平凡信息，可选函数只能为常数，最佳预测就退化为普通期望。
+
+最小均方误差性质依赖二阶可积性和平方损失。对绝对误差损失，最优预测一般是条件中位数；对其他损失函数，最优对象也可能改变。因此，不能把“条件期望是最佳预测”脱离损失函数而无条件陈述。测度定义中的条件期望始终存在于 $L^1$，但其正交投影解释需要进入 $L^2$。
+
+\section{分布的弱收敛与随机变量的收敛}
+前面讨论的几乎必然、依概率和均值收敛，都需要比较同一个样本结果下的随机变量值。若随机变量定义在不同概率空间上，仍然可以比较它们的分布。设 $\mu_n,\mu$ 是实轴上的概率测度，若对每个有界连续函数 $\varphi:\mathbb R\to\mathbb R$，
+$\int\varphi\,\mathrm d\mu_n\to\int\varphi\,\mathrm d\mu$，称 $\mu_n$ \emph{弱收敛（weak convergence）}于 $\mu$。随机变量分布的弱收敛也称依分布收敛。
+
+定义只测试有界连续函数，既限制了对高值尾部的敏感性，也避免在跳跃边界上提出过强要求。例如 $\delta_{1/n}$ 弱收敛于 $\delta_0$，因为 $\varphi(1/n)\to\varphi(0)$；但事件 $\{0\}$ 在前者下的概率始终为零，在极限下为一，故事件概率不对所有集合逐一收敛，更不在全变差距离下收敛。弱收敛的“弱”正体现在测试对象受到了限制。
+
+若同一概率空间上的 $X_n\to X$ 依概率，则它们依分布收敛。对有界连续 $\varphi$，任取一个子列，都能再选出使 $X_{n_k}\to X$ 几乎必然的子列；连续性和有界收敛给出这条子列上的 $\mathbb E[\varphi(X_{n_k})]\to\mathbb E[\varphi(X)]$。若原期望序列不收敛，就可选出与目标保持固定正距离的子列，与上述性质矛盾。这一证明展示了“每个子列都有进一步好子列”如何恢复整列结论。
+
+反向一般不成立。取等概率为正一和负一的随机变量 $X$，并令 $X_n=(-1)^nX$，则各项分布完全相同，因而依分布收敛于 $X$ 的分布。但奇数项与 $X$ 的差的绝对值恒为二，不依概率收敛于 $X$。分布只描述各随机变量的边缘行为，不规定它们在同一空间上如何配对；依概率收敛却对这种配对有明确要求。
+
+弱收敛也不能单独保证普通期望收敛，因为恒等函数 $\varphi(x)=x$ 不有界。若要从分布极限推断均值、方差或损失期望，必须额外控制尾部，例如通过高阶矩界或一致可积性。这样就能理解为何一个分布近似看起来十分准确，某些对极端值敏感的统计量仍可能相差很大。
+
+\section{总体期望、经验测度与机器学习中的积分}
+设观测 $Z_1,\ldots,Z_n$ 取值于某个可测空间。给定观测结果后，\emph{经验测度（empirical measure）}定义为
+$\mathbb P_n=n^{-1}\sum_{i=1}^{n}\delta_{Z_i}$。对任意可测函数 $\ell$，只要样本值处有定义，就有
+$\int\ell\,\mathrm d\mathbb P_n=n^{-1}\sum_i\ell(Z_i)$。
+这一等式是测度定义的精确结果，不需要大数定律；大数定律研究的是当样本具有适当随机结构时，这个经验积分是否逼近总体积分 $\int\ell\,\mathrm d\mathbb P$。
+
+在监督学习中，$\ell_\theta(x,y)$ 可以表示模型参数 $\theta$ 下的损失。总体风险
+$R(\theta)=\int\ell_\theta\,\mathrm d\mathbb P$
+与经验风险
+$R_n(\theta)=\int\ell_\theta\,\mathrm d\mathbb P_n$
+是两个不同对象。即使每个固定 $\theta$ 都满足经验风险收敛，也不能立即推出经验最优参数收敛；后者还需要控制整个参数族上的误差以及最小化问题本身。测度论提供积分语言，并不单独代替统计学习中的一致收敛和可识别性分析。
+
+若希望将梯度移入期望，应逐坐标检查参数微分定理的条件：参数附近的损失导数是否存在，是否有共同可积控制，以及数据分布是否固定。若分布本身也随参数变化，还必须处理测度或密度的变化。把有限样本求和的求导规则直接套到任意总体期望上，会漏掉这些分析条件。
+
+在强化学习中，状态转移常由概率核描述：对每个状态 $s$，$K(s,\cdot)$ 是概率测度；对每个可测集合 $A$，$s\mapsto K(s,A)$ 可测。对有界可测的价值函数 $V$，积分 $\int V(s')K(s,\mathrm ds')$ 仍是可测函数，可从示性函数到简单函数，再经有界或非负逼近验证。这样，随机转移后的期望仍属于可供下一步运算的函数类。马尔可夫性质则是关于条件信息的额外结构，并不由“存在一个积分公式”自动得到。
+
+\section{习题}
+\begin{enumerate}
+ \item 证明当 $\mathcal G=\{\varnothing,\Omega\}$ 时，$\mathbb E[X\mid\mathcal G]=\mathbb E[X]$；当 $X$ 本身 $\mathcal G$ 可测时，条件期望等于 $X$。
+ \item 对由有限分割 $A_1,\ldots,A_m$ 生成的 $\mathcal G$，证明在 $\mathbb P(A_j)>0$ 的分组上，条件期望取常数 $\mathbb E[X\mathbf1_{A_j}]/\mathbb P(A_j)$；说明零概率分组应如何处理。
+ \item 设 $X$ 在 $\{-1,0,1\}$ 上均匀取值，$Y=X^2$。证明 $\mathbb E[XY]=\mathbb E[X]\mathbb E[Y]$，但 $X,Y$ 不独立。
+\end{enumerate}
+

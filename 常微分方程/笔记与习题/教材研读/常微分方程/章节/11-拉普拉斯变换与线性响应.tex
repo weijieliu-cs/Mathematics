@@ -1,0 +1,103 @@
+% !TeX root = ../常微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{10} % 保留原书章号。
+\chapter{拉普拉斯变换与线性响应}
+\label{chap:ode-laplace}
+
+拉普拉斯变换把常系数线性微分运算转化为代数运算，并将初值直接带入方程。对于分段外力和延迟输入，它尤其方便。
+
+\section{拉普拉斯变换的定义与存在条件}
+\begin{definition}
+对定义于 $t\geq0$ 的函数 $g$，其单边拉普拉斯变换（Laplace transform）为
+\[
+ G(s)=\mathcal L\{g\}(s)=\int_0^\infty e^{-st}g(t)\,\mathrm dt,
+\]
+其中首先取实数 $s$，并只在积分收敛处使用该式。若存在 $M,a,T$ 使 $|g(t)|\leq Me^{at}$ 对 $t\geq T$ 成立，则称 $g$ 为指数阶函数。
+\end{definition}
+
+若 $g$ 在每个有限区间分段连续且为指数阶，则变换对充分大的 $s$ 绝对收敛：尾部可被 $Me^{-(s-a)t}$ 的积分控制，有限区间部分可积。在这一函数类内，相同变换决定函数在其连续点处的值；若两函数连续，则处处相同。此处采用拉普拉斯变换唯一性定理，证明省略，参见\cite[第6章]{lebl-diffyqs}。孤立点的取值不会改变积分。
+
+直接积分和分部积分得到基本公式（在各自收敛范围内）：
+\[
+ \mathcal L\{1\}=\frac1s,\quad
+ \mathcal L\{t^n\}=\frac{n!}{s^{n+1}},\quad
+ \mathcal L\{e^{at}\}=\frac1{s-a},\quad
+ \mathcal L\{\cos\omega t\}=\frac{s}{s^2+\omega^2},\quad
+ \mathcal L\{\sin\omega t\}=\frac{\omega}{s^2+\omega^2}.
+\]
+这里 $n$ 为非负整数，三角函数公式可由复指数积分或两次分部积分导出。
+
+\section{导数、平移与尺度变换}
+若 $g$ 局部绝对连续，$g,g'$ 的加权积分满足收敛条件且 $e^{-st}g(t)\to0$，分部积分给出
+\[
+ \mathcal L\{g'\}=sG(s)-g(0^+).
+\]
+逐次应用，在相应导数满足同类条件时得到
+\begin{equation}
+ \mathcal L\{g^{(n)}\}=s^nG(s)-\sum_{j=0}^{n-1}s^{n-1-j}g^{(j)}(0^+).
+ \label{eq:ode-laplace-derivative}
+\end{equation}
+若函数在内部有跳跃，不能把其分段普通导数直接代入而忽略跳跃项。
+
+令 $H(t-a)$ 为 Heaviside 阶跃函数（Heaviside step function），在 $t<a$ 为零，在 $t>a$ 为一，单点 $t=a$ 的取值不影响变换。变量代换给出
+\begin{align*}
+ \mathcal L\{e^{at}g(t)\}(s)&=G(s-a),\\
+ \mathcal L\{H(t-a)g(t-a)\}(s)&=e^{-as}G(s),\qquad a\geq0,\\
+ \mathcal L\{g(bt)\}(s)&=b^{-1}G(s/b),\qquad b>0.
+\end{align*}
+时间延迟必须同时作用于阶跃与后面的函数，$H(t-a)g(t)$ 一般不能直接用第二个公式。
+
+\section{用变换求解线性初值问题}
+\begin{example}
+求 $y''+3y'+2y=1$、$y(0)=y'(0)=0$。
+\end{example}
+\begin{solve}
+设 $Y=\mathcal L\{y\}$。应用式\eqref{eq:ode-laplace-derivative}得 $(s^2+3s+2)Y=1/s$，所以
+\[
+ Y=\frac{1}{s(s+1)(s+2)}=\frac1{2s}-\frac1{s+1}+\frac1{2(s+2)}.
+\]
+逆变换给出 $y=1/2-e^{-t}+e^{-2t}/2$。求导可核验两个初值与原方程；其极限 $1/2$ 也与常值稳态方程 $2y=1$ 一致。
+\end{solve}
+
+一般步骤为：带入初值进行变换，解关于 $Y$ 的代数式，分解成已知变换，再检验解。该方法主要适用于常系数方程；变系数乘积并不总能转成简单代数关系。
+
+\section{卷积与零状态响应}
+定义卷积（convolution）
+\[
+ (g*h)(t)=\int_0^t g(t-\tau)h(\tau)\,\mathrm d\tau.
+\]
+若 $g,h$ 分段连续且为指数阶，则对充分大的 $s$ 有绝对收敛，故可用 Fubini 定理交换积分，令 $u=t-\tau$，得到
+\[
+ \mathcal L\{g*h\}(s)
+ =\int_0^\infty\int_0^\infty e^{-s(u+\tau)}g(u)h(\tau)\,\mathrm du\,\mathrm d\tau
+ =G(s)H(s).
+\]
+
+对于零初值线性系统 $x'=Ax+b(t)$，式\eqref{eq:ode-system-variation}正是矩阵核 $e^{At}$ 与输入 $b$ 的卷积。标量方程 $y''+y=f$、$y(0)=y'(0)=0$ 则给出
+\[
+ y(t)=\int_0^t\sin(t-\tau)f(\tau)\,\mathrm d\tau.
+\]
+每一时刻的输入都按同一个核传播，线性叠加后形成总响应。
+
+\section{分段输入与脉冲输入（脉冲部分选学）}
+\begin{example}
+求零初值系统 $y''+y=H(t-a)$，其中 $a>0$。
+\end{example}
+\begin{solve}
+$Y=e^{-as}/[s(s^2+1)]$，因此 $y=H(t-a)[1-\cos(t-a)]$。在开启时刻 $a$，$y$ 与 $y'$ 都连续，$y''$ 在两侧有跳跃；原方程按分段经典意义成立。
+\end{solve}
+
+Dirac $\delta$（Dirac delta）是分布，不是普通函数，其作用由 $\langle\delta_a,\phi\rangle=\phi(a)$ 定义，其中 $\phi$ 为光滑紧支撑测试函数，$a>0$。因此 $\mathcal L\{\delta_a\}=e^{-as}$。对 $y''+y=J\delta_a$，在 $a$ 附近积分得
+\[
+ y(a^+)=y(a^-),\qquad y'(a^+)-y'(a^-)=J.
+\]
+第一式还可由分布求导看出：若 $y$ 自身跳跃，$y''$ 会产生右端没有的 $\delta_a'$ 项。零初值响应为 $JH(t-a)\sin(t-a)$。它是在分布意义下满足方程的解，而不是处处 $C^2$ 的经典解。
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-laplace} 用变换求 $y'+2y=1$、$y(0)=0$。
+ \item\label{ex:ode-delay} 求 $\mathcal L\{H(t-2)(t-2)^2\}$。
+ \item 用卷积求零初值 $y''+y=e^{-t}$ 的解，并代回验证。
+ \item 将作用于区间 $[a,b]$、$0<a<b$ 的单位矩形输入写成阶跃函数之差，求其对 $y''+y=f$ 的零初值响应。
+\end{enumerate}
+

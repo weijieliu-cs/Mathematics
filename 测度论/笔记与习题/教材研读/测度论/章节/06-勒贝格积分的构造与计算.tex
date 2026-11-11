@@ -1,0 +1,137 @@
+% !TeX root = ../测度论笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{5} % 保留原书章号。
+\chapter{勒贝格积分的构造与计算}
+\label{chap:mt-integral}
+
+\section{从简单函数到非负函数}
+对非负简单函数 $s=\sum_{j=1}^{m}a_j\mathbf1_{A_j}$，其中 $A_j$ 两两不交，定义
+\begin{equation}
+ \int_Ss\,\mathrm d\mu=\sum_{j=1}^{m}a_j\mu(A_j),
+ \qquad 0\cdot\infty:=0.
+ \label{eq:mt-simple-integral}
+\end{equation}
+将两种表示的集合共同细分为交集，并使用有限可加性，可验证结果与表示方式无关。这一积分满足非负齐次性、加法性和保序性。
+
+\begin{definition}
+对非负可测函数 $f:S\to[0,\infty]$，定义\emph{勒贝格积分（Lebesgue integral）}
+\begin{equation}
+ \int_Sf\,\mathrm d\mu
+ =\sup\left\{\int_Ss\,\mathrm d\mu:s\text{ 为非负简单函数， }s\leq f\right\}.
+ \label{eq:mt-nonnegative-integral}
+\end{equation}
+对可测集 $A$，记 $\int_Af\,\mathrm d\mu=\int_Sf\mathbf1_A\,\mathrm d\mu$；即使 $f$ 在某些点为无穷，也约定在 $A$ 外将乘积取为零。
+\end{definition}
+若 $0\leq f\leq g$，参与 $f$ 的上确界的简单函数也可用于 $g$，所以 $\int f\leq\int g$。非负函数的积分总有定义，但可以为无穷。定义只用下方简单函数；任意选取的逼近列为何能恢复这个上确界，将由第\ref{chap:mt-convergence}章的单调收敛定理保证。
+
+\begin{proposition}[零积分与几乎处处]
+对非负可测函数 $f$，$\int f\,\mathrm d\mu=0$ 当且仅当 $f=0$ 几乎处处。
+\label{prop:mt-zero-integral}
+\end{proposition}
+\begin{proof}
+若积分为零，则 $f\geq n^{-1}\mathbf1_{\{f\geq1/n\}}$ 给出 $\mu(\{f\geq1/n\})=0$。这些集合的可数并是 $\{f>0\}$，因此它为零测集。反向若 $f$ 只在零测集上可能非零，则每个满足 $0\leq s\leq f$ 的简单函数都具有零积分，取上确界仍为零。
+\end{proof}
+
+\section{有符号函数与可积性}
+对扩展实值可测函数 $f$，令 $f^+=\max(f,0)$、$f^-=\max(-f,0)$，则 $f=f^+-f^-$，$|f|=f^++f^-$。当 $\int f^+$ 与 $\int f^-$ 至少一个有限时，可定义扩展积分 $\int f=\int f^+-\int f^-$；若二者都无穷，则该积分不定义。称 $f$ \emph{可积（integrable）}，是指 $\int|f|\,\mathrm d\mu<\infty$，此时 $\int f$ 为有限实数。后文用 $f\in L^1(\mu)$ 简记这一条件；把几乎处处相等的函数取为同一元素后的正式空间定义见第\ref{chap:mt-lp}章。
+
+可积函数几乎处处有限。事实上，若 $A=\{|f|=\infty\}$，则 $\int|f|\geq M\mu(A)$ 对每个 $M>0$ 成立，所以 $\mu(A)=0$。讨论函数空间时可以在这一零测集上将函数改为零，从而选取有限实值代表。
+
+对可积的 $f,g$ 与实数 $a,b$，有
+\[
+ \int(af+bg)\,\mathrm d\mu
+ =a\int f\,\mathrm d\mu+b\int g\,\mathrm d\mu,\qquad
+ \left|\int f\,\mathrm d\mu\right|\leq\int|f|\,\mathrm d\mu.
+\]
+这些性质由非负函数加法性和正负部分分解得到；非负加法性在下一章通过简单逼近与单调收敛定理证明，从而避免把它当作定义中的额外假设。
+
+\section{计数积分、长度积分与密度}
+对 $\mathbb N$ 上的计数测度，非负函数 $f$ 的积分等于 $\sum_{n=1}^{\infty}f(n)$。这是因为前 $m$ 项的截断给出部分和，而任意下方简单函数的积分均不超过完整非负级数。一般实函数可积恰好对应 $\sum_n|f(n)|<\infty$。因此“积分与求和交换”的许多问题，本质上是两个积分之间的交换。
+
+\begin{example}[零测修改改变黎曼可积性]
+在 $[0,1]$ 上，$f=\mathbf1_{\mathbb Q\cap[0,1]}$ 几乎处处为零，所以勒贝格积分为零。每个非退化子区间同时包含有理数和无理数，导致所有黎曼下和为零、上和为一，故 $f$ 不黎曼可积。勒贝格积分容许这种稠密零测集上的修改。
+\end{example}
+
+对紧区间上的有界黎曼可积函数，其勒贝格积分与黎曼积分一致。这里还需先说明该函数勒贝格可测。选取逐次加细的分割，使上、下阶梯函数 $u_n,l_n$ 的积分之差趋零。在可数个分割端点之外，有 $l_n\uparrow l$、$u_n\downarrow u$，且 $l\leq f\leq u$；端点本身组成零测集。由 $\int(u_n-l_n)\to0$ 及后文的 Fatou 引理（定理\ref{thm:mt-fatou}），有 $u=l$ 几乎处处。因勒贝格测度完备，与可测函数 $l$ 几乎处处相等的 $f$ 也可测。最后，阶梯函数的两种积分都等于对应有限和，利用上下和夹逼即得两种积分一致。
+
+\begin{example}[非负函数生成新的测度]
+设 $w:S\to[0,\infty]$ 可测，定义 $\nu(A)=\int_Aw\,\mathrm d\mu$。下一章的单调收敛定理将保证 $\nu$ 可列可加，因而它是测度。若 $\int_Sw\,\mathrm d\mu=1$，则 $\nu$ 是概率测度，$w$ 是它相对于 $\mu$ 的密度。在 $[0,1]$ 上取 $w(x)=2x$，便有
+\[
+ \nu([a,b])=\int_a^b2x\,\mathrm dx=b^2-a^2,\qquad 0\leq a\leq b\leq1.
+\]
+密度值可以大于一；要求处于 $[0,1]$ 的是事件的概率，而不是密度的点值。
+\end{example}
+
+\section{积分作为加权总量：几个完整模型}
+积分中的测度决定权重，被积函数决定每个位置的数值。在有限集合上，设单点质量依次为 $w_1,\ldots,w_m$，则 $\int f\,\mathrm d\mu=\sum_jf(s_j)w_j$，这就是加权求和。只有当权重和为一时，才可以直接把它称为加权平均；总质量为其他有限正数时，平均值应写成 $\mu(S)^{-1}\int f\,\mathrm d\mu$。无穷总质量空间通常不存在这种统一归一化。
+
+同一个函数对不同测度积分，结果可以完全不同。例如在 $[0,1]$ 上取 $f(x)=x$，对长度测度的积分为 $1/2$，对 $\delta_0$ 的积分为零，对 $\delta_1$ 的积分为一。若取混合概率测度 $\mu=\tfrac12\lambda+\tfrac12\delta_1$，则积分为 $3/4$。这个例子不需要把原子质量硬写成普通密度，也说明离散部分和连续部分可以在同一个模型中自然共存。
+
+\begin{example}[具有不同权重的可数模型]
+在 $\mathbb N$ 上令 $\mathbb P(\{n\})=2^{-n}$。总质量为一。对 $X(n)=n$，利用非负级数求和可得
+\[
+ \mathbb E[X]=\sum_{n=1}^{\infty}n2^{-n}
+ =\sum_{k=1}^{\infty}\sum_{n=k}^{\infty}2^{-n}=2.
+\]
+第二步把正整数 $n$ 写成 $n$ 个一，再重新排列非负项。若将同一函数放在计数测度下，则 $\int X=\sum_nn=\infty$。因此函数值增长本身不能决定可积性，还必须同时考察权重衰减。
+\end{example}
+
+\section{勒贝格可积与反常积分的区别}
+在有限区间上，函数可能因为端点附近无界而需要反常积分；在无界区间上，也可能因为积分范围无限而需要取截断极限。对非负函数，反常积分与勒贝格积分的关系通常由单调收敛解释：逐步扩大截断区域，积分递增到整体积分，允许结果无穷。但对变号函数，反常积分可能依赖正负振荡的抵消，而勒贝格可积性要求绝对值积分有限。
+
+\begin{example}[条件收敛的反常积分不等于勒贝格可积]
+在 $[1,\infty)$ 上取 $f(x)=\sin x/x$。对 $R<T$，分部积分给出
+\[
+ \int_R^T\frac{\sin x}{x}\,\mathrm dx
+ =\left[-\frac{\cos x}{x}\right]_R^T-\int_R^T\frac{\cos x}{x^2}\,\mathrm dx.
+\]
+右侧的绝对值不超过 $3/R$，故截断积分满足 Cauchy 条件，反常积分收敛。然而，在每个区间
+$[k\pi+\pi/6,k\pi+5\pi/6]$ 上有 $|\sin x|\geq1/2$，该段绝对积分至少为某个与 $k$ 无关的正常数乘以 $1/(k+1)$。调和级数发散，故 $\int_1^\infty|f|=\infty$。
+\end{example}
+
+若该例中 $\int f^+$ 或 $\int f^-$ 有一个有限，由截断有符号积分收敛可知另一个也必须有限，与绝对积分发散矛盾。因此两个非负部分的积分都为无穷，整体勒贝格有符号积分不定义。写出一个反常积分的有限极限，并不能据此使用需要 $L^1$ 条件的 Fubini 定理或积分连续性结论。
+
+\section{由非负积分得到尾部估计}
+\begin{proposition}[Markov 型估计]
+若 $f\geq0$ 可测，$a>0$，则
+\[
+ \mu(\{f\geq a\})\leq\frac1a\int f\,\mathrm d\mu.
+\]
+更一般地，若 $p>0$，则
+$\mu(\{|g|\geq a\})\leq a^{-p}\int|g|^p\,\mathrm d\mu$。
+\label{prop:mt-markov}
+\end{proposition}
+\begin{proof}
+在 $\{f\geq a\}$ 上，函数至少为 $a$，故 $a\mathbf1_{\{f\geq a\}}\leq f$。积分并除以正数 $a$ 即得第一式；将其用于 $|g|^p$ 和阈值 $a^p$ 得到第二式。
+\end{proof}
+估计的含义是：若总体非负质量有限，函数就不可能在太大的集合上持续超过一个高阈值。它不利用函数的连续性，也不需要底空间具有几何结构。概率空间上的 Markov 不等式、Chebyshev 不等式，以及 $L^p$ 收敛蕴含依测度收敛，都是这一基本积分估计的不同应用。
+
+反向推理一般不成立。知道某个固定阈值以上的集合很小，不足以控制积分，因为更高位置可能仍携带大量质量。若希望从所有阈值的尾部信息恢复积分，就需要将尾部测度沿阈值积分，得到第\ref{chap:mt-product}章的水平集公式。因此，单个尾部概率与整个期望之间并非等量信息。
+
+\section{凸函数与 Jensen 不等式}
+凸性把有限加权平均的不等式推广为一般积分不等式。设 $I$ 是开区间，函数 $\varphi:I\to\mathbb R$ 凸，即对 $x,y\in I$、$0\leq t\leq1$，
+$\varphi(tx+(1-t)y)\leq t\varphi(x)+(1-t)\varphi(y)$。几何上，图像位于连接两点的弦的下方；分析上，任意内部点处都存在一条支撑直线，位于整张图像下方。
+
+\begin{theorem}[Jensen 不等式的可积版本]
+设 $\mu$ 为概率测度，$f$ 可积且取值于开区间 $I$，$\varphi:I\to\mathbb R$ 凸，并假设 $\varphi\circ f$ 可积。则
+\[
+ \varphi\!\left(\int f\,\mathrm d\mu\right)
+ \leq\int\varphi(f)\,\mathrm d\mu.
+\]
+\label{thm:mt-jensen}
+\end{theorem}
+\begin{proof}
+记 $m=\int f\,\mathrm d\mu$。由于 $f$ 的取值严格位于 $I$ 的端点之间，积分的保序性及非负零积分判别保证 $m\in I$。凸函数的割线斜率单调，因而可在 $m$ 处选择实数 $c$，使
+$\varphi(x)\geq\varphi(m)+c(x-m)$ 对所有 $x\in I$ 成立；若函数可微，可取 $c=\varphi'(m)$。对该支撑直线不等式积分，线性项的积分为零，得到结论。
+\end{proof}
+非可微情形的支撑斜率来自左侧割线斜率的上确界与右侧割线斜率的下确界之间的任意数；凸性保证前者不超过后者，而 $m$ 位于内部保证可以取有限实数。这样，证明不需要错误地假设每个凸函数处处可微。
+
+例如取 $\varphi(x)=x^2$，得到 $(\mathbb E X)^2\leq\mathbb E[X^2]$，其差就是方差；取 $\varphi(x)=|x|$，得到积分三角不等式。若底空间总质量不是一，应先归一化，再应用 Jensen。不经归一化直接把普通积分当作平均，可能导致错误的系数。
+
+\section{习题}
+\begin{enumerate}
+ \item 证明若可测函数 $f,g$ 几乎处处相等，则其非负积分相等；在可积情形下推广到有符号积分。
+ \item 判断 $x^{-\alpha}$ 在 $(0,1)$ 上何时可积，并解释端点奇性怎样影响结论。
+ \item 在 $\mathbb N$ 上给单点赋质量 $2^{-n}$。证明所得测度总质量为一，并计算函数 $f(n)=n$ 的积分。
+\end{enumerate}
+

@@ -1,0 +1,118 @@
+% !TeX root = ../偏微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{13} % 保留原书章号。
+\chapter{椭圆方程的弱解与变分方法}
+\label{chap:elliptic-weak}
+
+显式公式依赖区域几何，弱形式则依靠积分和能量，能够统一处理一般区域。核心步骤是：选定解空间，把方程写为连续双线性型，再检查能量能否控制未知量。
+
+\section{从经典方程到弱形式}
+设 $\Omega$ 为有界利普希茨区域，$f\in L^2(\Omega)$。若 $u$ 是 $-\Delta u=f$、$u|_{\partial\Omega}=0$ 的足够光滑解，与零边界测试函数 $v$ 相乘并积分，得到
+\begin{equation}
+ \int_\Omega\nabla u\cdot\nabla v\,dx=\int_\Omega fv\,dx.
+ \label{eq:poisson-weak}
+\end{equation}
+两边仅要求一阶导数平方可积。因此定义弱解为满足 $u\in H_0^1(\Omega)$，且式\eqref{eq:poisson-weak}对所有 $v\in H_0^1(\Omega)$ 成立的函数。左侧由柯西--施瓦茨控制，右侧由 $|\int fv|\le C_P\|f\|_2\|\nabla v\|_2$ 控制。
+
+经典解蕴含弱解。反之，若弱解额外属于 $C^2(\Omega)\cap C(\overline\Omega)$ 且 $f$ 连续，则先在紧支集测试函数上分部积分，得到 $\int(-\Delta u-f)\varphi=0$；连续性迫使被积函数为零，零迹与连续性则恢复零边界。额外正则性是这个逆向推理的必要环节。
+
+\begin{example}[集中载荷的弱解]
+在 $(0,1)$ 上考虑 $-u''=P\delta_{1/2}$、$u(0)=u(1)=0$。令
+\[
+ u(x)=\begin{cases}Px/2,&0\le x\le1/2,\\P(1-x)/2,&1/2\le x\le1.\end{cases}
+\]
+这是一个具有尖角的三角形函数。对任意 $v\in H_0^1(0,1)$，利用其连续代表和分段积分，得到
+\[
+ \int_0^1u'v'\,dx
+ =\frac P2(v(1/2)-v(0))-\frac P2(v(1)-v(1/2))=Pv(1/2).
+\]
+点值作用在一维 $H_0^1$ 中连续，所以右端是合法的连续线性泛函。该函数不可能是全区间上的经典二阶解，却是自然的弱解。这个一维结论不能直接推广为任意维数中点源都属于 $H^{-1}$；点值在高维 $H_0^1$ 上一般不连续。
+\end{example}
+
+\section{有界性、强制性与存在唯一性}
+\begin{theorem}[拉克斯--米尔格拉姆定理（Lax--Milgram theorem）]
+设 $V$ 为实希尔伯特空间，双线性型 $a$ 满足
+\[
+ |a(u,v)|\le M\|u\|_V\|v\|_V,\qquad
+ a(v,v)\ge\alpha\|v\|_V^2,
+ \qquad M<\infty,\quad\alpha>0.
+\]
+则每个连续线性泛函 $F\in V^*$ 唯一确定 $u\in V$，使 $a(u,v)=F(v)$ 对所有 $v\in V$ 成立，且 $\|u\|_V\le\alpha^{-1}\|F\|_{V^*}$。第二个条件称\emph{强制性（coercivity）}。
+\end{theorem}
+\begin{proof}
+由里斯表示定理，有有界线性算子 $A:V\to V$，使 $a(u,v)=(Au,v)_V$。强制性给出 $\|Au\|_V\ge\alpha\|u\|_V$，所以 $A$ 单射且值域闭：若 $Au_j$ 收敛，此估计使 $u_j$ 为柯西列，极限仍映到该值域点。若 $w$ 垂直于值域，则 $a(v,w)=0$ 对所有 $v$ 成立；取 $v=w$ 得 $w=0$，故值域也稠密，从而等于 $V$。再把 $F$ 用里斯表示成内积即可求得唯一 $u$；取测试函数 $u$ 得范数估计。
+\end{proof}
+取 $V=H_0^1(\Omega)$、$\|v\|_V=\|\nabla v\|_2$，庞加莱不等式保证这是完备且等价的范数。泊松弱形式对应 $a(u,v)=\int\nabla u\cdot\nabla v$，可取 $M=\alpha=1$，于是存在唯一弱解，且
+\[
+ \|\nabla u\|_2\le C_P\|f\|_2.
+\]
+更一般地，右端可取任意 $F\in H^{-1}(\Omega):=(H_0^1(\Omega))^*$，此时右边写成对偶配对 $\langle F,v\rangle$。
+
+应用抽象定理时，可以把它与正定线性方程组比较。有限维中 $Ku=b$ 的正定性排除零能量方向，使未知量受到右端控制；这里双线性型承担矩阵的角色，强制性承担统一正定下界的角色。一次完整应用必须写出空间 $V$、范数、$a$ 和 $F$，分别证明两者连续，再说明 $a(v,v)$ 控制所选范数。只写“由定理可得”而不检查强制性，容易把带零本征值的诺伊曼问题误当成唯一可解的问题。
+
+\section{狄利克雷原理与能量极小化}
+考虑
+\begin{equation}
+ \min_{v\in H_0^1(\Omega)}J(v),\qquad
+ J(v)=\frac12\int_\Omega|\nabla v|^2\,dx-\int_\Omega fv\,dx.
+ \label{eq:dirichlet-functional}
+\end{equation}
+若 $u$ 为极小点，对任意 $v\in H_0^1$，标量函数 $\varepsilon\mapsto J(u+\varepsilon v)$ 在零点导数为零，即式\eqref{eq:poisson-weak}。反过来若 $u$ 满足弱方程，则展开平方得到
+\[
+ J(u+v)-J(u)=\frac12\int_\Omega|\nabla v|^2\,dx\ge0.
+\]
+等号只在 $v=0$ 时成立。因此弱解就是唯一极小点，这称\emph{狄利克雷原理（Dirichlet principle）}。一般变分问题的驻点未必是极小点；这里的二次型正定性承担了关键作用。非对称双线性型虽可用拉克斯--米尔格拉姆定理，却通常不来自上述二次能量。
+
+\begin{example}[只用一个试探函数作变分近似]
+在 $(0,1)$ 上解 $-u''=1$、零端点，若只在 $v(x)=a\sin(\pi x)$ 中寻找近似，应怎样确定 $a$？
+\end{example}
+\begin{solve}
+将试探函数代入能量，得到
+\[
+ J(a\sin\pi x)=\frac{a^2\pi^2}{4}-\frac{2a}{\pi}.
+\]
+对实参数 $a$ 求导并令其为零，得 $a=4/\pi^3$，二阶导数为 $\pi^2/2>0$。同样，把 $u_1=a\sin\pi x$ 代入弱式并只取测试函数 $\sin\pi x$，也得到 $a\pi^2/2=2/\pi$。这说明限制能量极小化与限制弱方程在本例等价。精确解为 $x(1-x)/2$，一般不等于这个单模态近似；增加试探空间的维数，才有望逐渐逼近精确解。
+\end{solve}
+
+\section{变系数、不同边界与谱问题}
+令 $A\in L^\infty(\Omega;\mathbb R^{n\times n})$，且对几乎处处 $x$ 和所有 $\xi$ 有 $\xi^{\mathsf T}A(x)\xi\ge\theta|\xi|^2$，$\theta>0$。若 $q\in L^\infty$、$q\ge0$，则
+\[
+ a(u,v)=\int_\Omega A\nabla u\cdot\nabla v+quv\,dx
+\]
+在 $H_0^1$ 上有界且强制，给出 $-\operatorname{div}(A\nabla u)+qu=f$ 的唯一弱解。非齐次狄利克雷数据必须先有 $H^1$ 提升 $G$，再令 $w=u-G\in H_0^1$，右端随之变成 $F(v)-a(G,v)$。
+
+泊松诺伊曼问题在 $V=\{v\in H^1(\Omega):\int v=0\}$ 上处理。若 $f\in L^2(\Omega)$、$g\in L^2(\partial\Omega)$ 满足式\eqref{eq:neumann-compatibility}，则
+\[
+ a(u,v)=\int\nabla u\cdot\nabla v,\qquad
+ F(v)=\int_\Omega fv+\int_{\partial\Omega}g\operatorname{Tr}v
+\]
+满足有界性和强制性，得到唯一零均值弱解。相容条件使该恒等式也对常数测试函数成立。对罗宾条件 $\partial_\nu u+\beta u=g$，若 $\beta\in L^\infty(\partial\Omega)$ 且 $\beta\ge\beta_0>0$ 几乎处处成立，则把 $\int_{\partial\Omega}\beta\operatorname{Tr}u\operatorname{Tr}v$ 加入双线性型，可在整个 $H^1$ 上得到有界性和强制性。变系数散度算子的自然边界量是 $A\nabla u\cdot\nu$，一般不是 $\partial_\nu u$。
+
+在有界光滑区域上，设 $\{\phi_k\}$ 是狄利克雷拉普拉斯算子的规范本征基，$-\Delta\phi_k=\lambda_k\phi_k$。方程 $-\Delta u-\lambda u=f$ 的系数满足 $(\lambda_k-\lambda)u_k=f_k$。因此 $\lambda$ 不是本征值时唯一可解；若为本征值，则可解当且仅当 $f$ 与对应整个本征空间正交，解可加任意同一本征空间元素。这是\emph{弗雷德霍姆择一定理（Fredholm alternative）}在本问题中的形式。
+
+\section{内部与边界正则性}
+对于泊松方程，$f\in L^2_{\mathrm{loc}}$ 的弱解具有 $H^2_{\mathrm{loc}}$ 正则性；证明可用差商估计先控制一阶导数的差商，再识别二阶弱导数。如果 $\Omega$ 有界且边界为 $C^{1,1}$，零狄利克雷问题还满足整体估计
+\[
+ \|u\|_{H^2(\Omega)}\le C_\Omega\|f\|_{L^2(\Omega)}.
+\]
+这里 $C^{1,1}$ 表示局部边界图函数的一阶导数利普希茨连续。完整的边界差商证明超出基础课程范围，可参见文献\cite{hunter}第4章的正则性讨论。
+
+边界几何不能省略。平面扇形 $0<r<1$、$0<\theta<\omega$，若 $\pi<\omega<2\pi$，则 $v=r^{\pi/\omega}\sin(\pi\theta/\omega)$ 调和且在两条径向边上为零。其梯度在角点附近平方可积，但二阶导数不平方可积，因为径向积分分别与 $\int_0^1r^{2\pi/\omega-1}dr$ 和 $\int_0^1r^{2\pi/\omega-3}dr$ 同阶。这说明凹角可以阻碍整体 $H^2$ 正则性。
+
+\section{例题与习题}
+\begin{example}
+对 $-\Delta u+u=f$、零狄利克雷边界，证明弱解存在唯一且 $\|u\|_{H^1}\le\|f\|_2$。
+\end{example}
+\begin{solve}
+取 $a(u,v)=\int(\nabla u\cdot\nabla v+uv)$，它在 $H_0^1$ 的通常 $H^1$ 范数下有界且强制常数为一，右端连续，故存在唯一弱解。取 $v=u$ 得
+\[
+ \|u\|_{H^1}^2=\int fu\le\|f\|_2\|u\|_2\le\|f\|_2\|u\|_{H^1}.
+\]
+若 $u=0$ 估计成立，否则约去一项即可。
+\end{solve}
+\begin{enumerate}
+ \item 对非齐次狄利克雷问题写出提升后的右端，说明提升不唯一为何不影响最终解。
+ \item 在区间上取 $\lambda=(\pi/\ell)^2$，分别构造谱参数泊松问题可解与不可解的源项。
+ \item 用相同方法说明诺伊曼问题没有均值约束时为何不能直接使用梯度范数。
+\end{enumerate}
+

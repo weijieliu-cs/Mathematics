@@ -1,0 +1,79 @@
+% !TeX root = ../常微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{12} % 保留原书章号。
+\chapter{常微分方程数值方法}
+\label{chap:ode-numerical}
+
+数值方法以有限步计算近似解。可靠的结论需要同时考虑离散误差、误差传播和浮点运算，不能仅凭曲线平滑或程序未报错判断结果正确。
+
+\section{离散网格与误差的基本概念}
+对 $x'=f(t,x)$、$x(t_0)=x_0\in\mathbb R^d$，先取等步长网格 $t_n=t_0+nh$，其中 $h=(T-t_0)/N>0$。用 $x_n$ 近似 $x(t_n)$。单步法写为 $x_{n+1}=\Psi_h(t_n,x_n)$。
+
+定义全局误差 $e_n=x(t_n)-x_n$，定义从精确状态出发的一步缺陷
+\[
+ d_{n+1}=x(t_{n+1})-\Psi_h(t_n,x(t_n)).
+\]
+本章的一步缺陷不除以 $h$；某些文献把 $d_{n+1}/h$ 称局部截断误差，二者的阶数相差一。若在固定 $[t_0,T]$ 上有 $\max_n\|e_n\|\leq Ch^p$，且 $C$ 与 $h$ 无关，则称该方法具有 $p$ 阶全局精度。
+
+\section{Euler 方法与改进方法}
+以积分方程中的左端矩形近似积分，得到显式 Euler 方法（explicit Euler method）
+\begin{equation}
+ x_{n+1}=x_n+hf(t_n,x_n).
+ \label{eq:ode-euler}
+\end{equation}
+若精确解为 $C^2$ 且 $\|x''(t)\|\leq M$，Taylor 积分余项给出 $\|d_{n+1}\|\leq Mh^2/2$。一步算法输入为 $(t_n,x_n,h)$，输出为 $x_{n+1}$；从初值初始化后执行 $N$ 步到达终点。
+
+显式梯形法（Heun 方法）先预测再平均斜率：
+\[
+ k_1=f(t_n,x_n),\quad k_2=f(t_n+h,x_n+hk_1),\quad
+ x_{n+1}=x_n+\tfrac h2(k_1+k_2).
+\]
+显式中点法则用 $k_1=f(t_n,x_n)$、$k_2=f(t_n+h/2,x_n+hk_1/2)$，再令 $x_{n+1}=x_n+hk_2$。在右端及解足够光滑时，两者的一步缺陷均为 $O(h^3)$，全局二阶；每步需要两次右端求值。它们与需要解代数方程的隐式梯形法不同。
+
+\section{Runge--Kutta 方法与自适应步长}
+经典四阶 Runge--Kutta 方法（Runge--Kutta method，RK4）为
+\begin{align*}
+ k_1&=f(t_n,x_n),&
+ k_2&=f(t_n+h/2,x_n+hk_1/2),\\
+ k_3&=f(t_n+h/2,x_n+hk_2/2),&
+ k_4&=f(t_n+h,x_n+hk_3),\\
+ x_{n+1}&=x_n+\tfrac h6(k_1+2k_2+2k_3+k_4).
+\end{align*}
+各 $k_i$ 均为 $d$ 维向量。若 $f$ 在受控邻域内具有足够多的有界连续导数，例如 $C^5$，Taylor 展开可验证一步缺陷为 $O(h^5)$；配合 Lipschitz 误差传播，得到固定时间段上的四阶全局精度。展开计算较长，此处不逐项列出。每步四次右端求值；若单次求值代价为 $C_f$，共 $N$ 步代价为 $O(NC_f)$，只保存当前状态时工作存储为 $O(d)$。
+
+一种不需要另建公式的局部估计是步长加倍法：分别计算一步 $h$ 的结果 $x_c$ 和两步 $h/2$ 的结果 $x_f$。若方法阶数为 $p$ 且处于渐近误差区，则 $\|x_f-x_c\|/(2^p-1)$ 估计较精细结果的一步误差。逐分量用 $\mathrm{atol}_i+\mathrm{rtol}\max(|x_{n,i}|,|x_{f,i}|)$ 缩放，再取最大值为 $E$。$E\leq1$ 时接受精细结果，否则拒绝并重算；可用带安全因子的 $h_{\mathrm{new}}=\eta h E^{-1/(p+1)}$ 建议新步长，并限制放缩倍数、最小步长与剩余区间。$E=0$ 时按最大允许倍数增长。该估计并非严格的全局误差保证。
+
+\section{一致性、收敛性与全局误差估计}
+\begin{theorem}[Euler 的一阶误差界]
+设精确解在 $[t_0,T]$ 上为 $C^2$，$\|x''\|\leq M$；在包含精确状态、数值状态及二者连线的区域中，$f$ 关于状态的 Lipschitz 常数为 $L$。若初始值精确，则
+\[
+ \max_{0\leq n\leq N}\|e_n\|\leq
+ \begin{cases}\dfrac{Mh}{2L}(e^{L(T-t_0)}-1),&L>0,\\
+ \dfrac{Mh}{2}(T-t_0),&L=0.
+ \end{cases}
+\]
+\end{theorem}
+\begin{proof}
+将精确一步公式减去式\eqref{eq:ode-euler}，得 $\|e_{n+1}\|\leq(1+hL)\|e_n\|+Mh^2/2$。从 $e_0=0$ 迭代并求几何和，有 $\|e_n\|\leq Mh[(1+hL)^n-1]/(2L)$。用 $1+hL\leq e^{hL}$ 即得结论；$L=0$ 时直接累加一步缺陷。
+\end{proof}
+
+一般单步法若满足传播界 $\|\Psi_h(t,u)-\Psi_h(t,v)\|\leq(1+Ch)\|u-v\|$，并有一致的一步缺陷 $O(h^{p+1})$，同样的递推给出 $O(h^p)$ 全局误差。可见局部精度必须配合适当稳定性才能推出收敛。若控制条件仅在局部邻域成立，还需用小步长误差界和首次离开论证保证数值轨道留在该邻域。
+
+\section{绝对稳定性与刚性问题}
+对测试方程 $z'=\lambda z$，$\lambda\in\mathbb C$、$\operatorname{Re}\lambda<0$，单步法常给出 $z_{n+1}=R(h\lambda)z_n$。满足 $|R(h\lambda)|<1$ 的参数构成绝对稳定区域（region of absolute stability）。显式 Euler 的 $R(\zeta)=1+\zeta$，所以要求
+\[
+ |1+h\lambda|<1.
+\]
+当 $\lambda=-a<0$ 时即 $0<h<2/a$。例如 $z'=-100z$ 的精确解衰减，但取 $h=0.03$ 时显式 Euler 每步乘以 $-2$，数值解反而增长。
+
+刚性（stiffness）常表现为稳定性所需步长远小于描述所关心慢过程的步长。隐式 Euler 为 $x_{n+1}=x_n+hf(t_{n+1},x_{n+1})$，测试方程的放大因子是 $(1-h\lambda)^{-1}$，整个左半平面都稳定。但每步需要解代数方程；若迭代映射将某非空闭集映入自身，且其上 $f$ 的状态 Lipschitz 常数 $L$ 满足 $hL<1$，则压缩映射原理保证简单不动点迭代收敛。更大步长可能需要 Newton 方法及额外条件。稳定不等于精确，也不意味着任意非线性隐式步都有唯一解。
+
+\section{数值实验与习题}
+实验应固定终止时刻，记录误差范数、步长和参考解。若 $E(h)\approx Ch^p$，则 $\log_2(E(h)/E(h/2))$ 近似观测阶；步长过小时舍入误差会破坏该比例，不能无限减小步长来证明方法更准确。
+\begin{enumerate}
+ \item\label{ex:ode-euler-value} 对 $y'=y$、$y(0)=1$，用显式 Euler 取 $h=0.1$，写出 $t=1$ 的近似值并与 $e$ 比较。
+ \item\label{ex:ode-euler-stability} 对 $y'=-20y$ 求显式 Euler 的稳定步长范围，并比较 $h=0.05$ 与 $h=0.15$。
+ \item 对 $y''+y=0$ 改写为一阶系统，证明显式 Euler 每步使平方范数乘以 $1+h^2$，解释数值能量漂移。
+ \item 对精确解为 $e^{-t}$ 的问题比较三种阶数的方法，通过步长减半估计观测阶，并说明参考解与误差的计算方式。
+\end{enumerate}
+

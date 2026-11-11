@@ -1,0 +1,65 @@
+% !TeX root = ../动手学强化学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{14} % 保留原书章号。
+\chapter{演员--评论家与优势估计}
+\label{ch:rl-actor-critic}
+
+演员--评论家（actor--critic）用学习到的价值函数评价动作，再据此更新策略。演员参数 $\theta$ 决定动作分布，评论家参数 $w$ 决定价值估计。两者共享经验，但优化的是不同目标；评价误差会反馈到策略学习中。
+
+\section{从完整回报到学习型评价信号}
+
+设演员为 $\pi_\theta$，评论家为 $V_w$。一步同策略交互给出 $\delta_t=R_{t+1}+\gamma V_w(S_{t+1})-V_w(S_t)$。评论家用半梯度 TD 修正价值，演员用 $\delta_t\nabla_\theta\log\pi_\theta(A_t\mid S_t)$ 指示动作概率应如何变化；对从固定起点定义的折扣目标，还应采用相应时间权重或占用分布采样。
+
+这比等待完整回合更及时，但评论家近似误差会使评价信号产生偏差。共享特征时，评论家梯度还可能直接改变演员表示，因而“两个损失分别下降”不代表联合过程必然稳定。
+
+\section{一步优势与多步优势}
+
+\begin{proposition}[精确价值下的 TD 优势]
+固定策略 $\pi$，若 $V=v_\pi$，则
+\[
+\mathbb E_\pi[R_{t+1}+\gamma V(S_{t+1})-V(S_t)\mid S_t=s,A_t=a]=A_\pi(s,a).
+\]
+\end{proposition}
+\begin{proof}
+前两项的条件期望由式\eqref{eq:rl-bellman-q}等于 $q_\pi(s,a)$，减去 $v_\pi(s)$ 即得结论。
+\end{proof}
+
+若误差为 $e(s)=V(s)-v_\pi(s)$，则一步优势的条件偏差为 $\gamma\sum_{s'}P(s'\mid s,a)e(s')-e(s)$。它包含动作相关的后继误差，不一定能被基线抵消。多步优势使用 $G_t^{(n)}-V(S_t)$，以更长采样替换部分自举，同样需要正确处理终止和截断。
+
+\section{广义优势估计与边界处理}
+
+广义优势估计（generalized advantage estimation，GAE）\cite{schulman-gae}对 TD 残差指数加权。在长度 $L$ 的连续片段内，以固定评论家计算
+\[
+\widehat A_t=\sum_{\ell=0}^{L-1}(\gamma\lambda)^\ell\delta_{t+\ell}.
+\]
+其递推为 $\widehat A_t=\delta_t+\gamma\lambda\widehat A_{t+1}$，从片段末端向前计算。$\lambda=0$ 为一步残差；$\lambda=1$ 时残差望远镜相消，成为带片段边界自举的回报减去当前价值。评论家不精确时，$\lambda$ 在自举偏差与采样波动之间产生取舍。
+
+实际缓冲区需区分两个掩码。令 $b_t=0$ 当且仅当转移真正终止，否则为一；令 $c_t=1$ 当且仅当缓冲区中下一条数据是同一回合的连续转移，否则为零。于是
+\begin{equation}
+\delta_t=r_{t+1}+\gamma b_tV_w(s_{t+1})-V_w(s_t),\qquad
+\widehat A_t=\delta_t+\gamma\lambda c_t\widehat A_{t+1}.
+\label{eq:rl-gae-masks}
+\end{equation}
+人工截断处可以有 $b_t=1,c_t=0$：残差保留最终观测的后继价值，但不连接重置后的新回合。这里的 $s_{t+1}$ 必须是截断前最终观测，而不是环境重置后的初始观测。
+
+\section{批量训练、熵与梯度边界}
+
+固定采样策略和旧评论家，收集一批轨迹并计算优势，构造评论家回归标签 $\widehat V_t=\widehat A_t+V_{w_{\rm old}}(s_t)$。演员把优势视为固定权重，评论家拟合固定标签；若在内层更新中随时重新改变这些量，所优化的目标也随之变化，必须另行说明算法版本。
+
+离散策略熵为 $\mathcal H(\pi(\cdot\mid s))=-\sum_a\pi(a\mid s)\log\pi(a\mid s)$。加入熵奖励鼓励较分散动作分布，同时改变优化目标。价值损失系数、熵系数和优势标准化均是需要记录的实现选择；特别是有限批次减均值与除标准差，不应不加条件地宣称完全保持原始梯度估计的无偏性。
+
+\begin{example}[三步 GAE]
+取 $\gamma=0.9,\lambda=0.5$，三次奖励为 $0,0,1$，旧价值为 $(0.5,0.4,0.2)$，末步真实终止。残差依次为 $-0.14,-0.22,0.8$，逆序优势为 $0.8,0.14,-0.077$。起点优势为负说明在当前评论家和加权规则下，这条轨迹不支持提高起点所选动作概率；它并不否认最终获得了正奖励。
+\end{example}
+
+\section{习题与实验}
+\begin{enumerate}
+\item 将例子末尾改为人工截断，最终观测价值为 $0.6$，重新计算残差与优势，并说明两个掩码如何设置。
+\item 证明 $\lambda=1$ 时片段内残差和等于带边界自举的回报减当前价值。
+\item 固定环境与批量预算，比较一步优势、完整回报基线和 GAE 的梯度波动与评价回报；构造跨回合数据以检查递推不会错误连接。
+\end{enumerate}
+
+
+
+
+

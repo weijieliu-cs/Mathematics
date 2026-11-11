@@ -1,0 +1,397 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{14} % 保留原书章号。
+\chapter{奇异值分解}
+\label{ch:lh-svd}
+
+把一个大矩阵表示成若干简单矩阵的乘积，可以揭示其主要变化方向，也为近似计算和数据压缩提供依据。\emph{奇异值分解}（singular value decomposition，SVD）把任意实矩阵分解为两个正交矩阵与一个非负矩形对角矩阵的乘积：正交矩阵确定输入、输出空间中的方向，奇异值刻画各方向的伸缩程度。保留全部非零奇异值可精确重构原矩阵，只保留最大的若干个则得到平方损失意义下的最优低秩近似；这也是主成分分析和潜在语义分析的重要线性代数基础。
+
+本章按教材的“定义与性质、计算、矩阵近似”展开，并补充关键证明与适用条件。除另有说明，设 $A\in\mathbb R^{m\times n}$，$m,n$ 为正整数，$p=\min\{m,n\}$，$r=\operatorname{rank}(A)$；向量均为列向量，$\|x\|_2=(x^{\mathsf T}x)^{1/2}$，$I_d$ 表示 $d$ 阶单位矩阵。记 $\mathcal R(A)=\{Ax:x\in\mathbb R^n\}$ 为值域，即列空间，$\mathcal N(A)=\{x\in\mathbb R^n:Ax=0\}$ 为零空间；$\operatorname{span}\{x_1,\ldots,x_s\}$ 表示这些向量张成的子空间，$\mathcal S^\perp$ 表示子空间 $\mathcal S$ 的正交补。
+
+\section{奇异值分解的定义与性质}
+\label{sec:lh-svd-definition-properties}
+
+\subsection{定义与定理}
+\label{subsec:lh-svd-definition}
+
+\begin{definition}[完全奇异值分解]
+\label{def:lh-full-svd}
+若 $A$ 可以写成
+\begin{equation}
+A=U\Sigma V^{\mathsf T},\qquad
+U\in\mathbb R^{m\times m},\quad
+\Sigma\in\mathbb R^{m\times n},\quad
+V\in\mathbb R^{n\times n},
+\label{eq:lh-full-svd}
+\end{equation}
+其中 $U,V$ 为\emph{正交矩阵}（orthogonal matrix），即 $U^{\mathsf T}U=UU^{\mathsf T}=I_m$、$V^{\mathsf T}V=VV^{\mathsf T}=I_n$；$\Sigma$ 为\emph{矩形对角矩阵}（rectangular diagonal matrix），满足
+\begin{equation}
+\Sigma_{ij}=
+\begin{cases}
+\sigma_i,&i=j\leq p,\\
+0,&\text{其他情形},
+\end{cases}
+\qquad \sigma_1\geq\sigma_2\geq\cdots\geq\sigma_p\geq0,
+\label{eq:lh-svd-rectangular-diagonal}
+\end{equation}
+则称式~\eqref{eq:lh-full-svd} 为 $A$ 的\emph{完全奇异值分解}（full singular value decomposition）。$\sigma_i$ 称为\emph{奇异值}（singular value）；写 $U=(u_1,\ldots,u_m)$、$V=(v_1,\ldots,v_n)$，其列分别称为\emph{左奇异向量}（left singular vector）与\emph{右奇异向量}（right singular vector）。
+\end{definition}
+
+矩形对角矩阵共有 $p$ 个对角位置，不能在 $m<n$ 时仍把 $n$ 个数全部写到其对角线上。两个正交矩阵保持各自空间中的内积和长度；$\Sigma$ 则允许伸缩、消去某些方向，以及在不同维度的空间之间进行映射。因此 SVD 不要求 $A$ 为方阵，也不要求它对称或可逆。
+
+\begin{theorem}[奇异值分解的存在性]
+\label{thm:lh-svd-existence}
+任意实矩阵 $A\in\mathbb R^{m\times n}$ 均有完全奇异值分解，恰有 $r$ 个正奇异值。其余奇异值为零；当 $r=0$ 时 $A=0$。
+\end{theorem}
+\begin{proof}
+从输入空间中的对称矩阵 $A^{\mathsf T}A$ 出发。对任意 $x\in\mathbb R^n$，有 $x^{\mathsf T}A^{\mathsf T}Ax=\|Ax\|_2^2\geq0$，故 $A^{\mathsf T}A$ 为半正定矩阵。由实对称矩阵的谱定理，存在一组标准正交特征向量 $v_1,\ldots,v_n$，对应特征值可按 $\lambda_1\geq\cdots\geq\lambda_n\geq0$ 排列。又因为
+\[
+A^{\mathsf T}Ax=0\ \Longleftrightarrow\ Ax=0,
+\]
+其中正向由 $\|Ax\|_2^2=0$ 得到，反向由直接代入得到，所以两矩阵的零空间相同，由秩与零度之和等于列数可知 $\operatorname{rank}(A^{\mathsf T}A)=r$。因此前 $r$ 个特征值为正，其余为零。
+
+令 $\sigma_i=\sqrt{\lambda_i}$（$1\leq i\leq p$），并对 $1\leq i\leq r$ 定义
+\begin{equation}
+u_i=\frac{Av_i}{\sigma_i}.
+\label{eq:lh-svd-left-construction}
+\end{equation}
+这些向量满足
+\[
+u_i^{\mathsf T}u_j
+=\frac{v_i^{\mathsf T}A^{\mathsf T}Av_j}{\sigma_i\sigma_j}
+=\frac{\lambda_j}{\sigma_i\sigma_j}v_i^{\mathsf T}v_j
+=\begin{cases}1,&i=j,\\0,&i\ne j.\end{cases}
+\]
+因而它们是 $\mathcal R(A)$ 中的 $r$ 个标准正交向量，构成该空间的一组基。利用
+\[
+y\in\mathcal R(A)^\perp
+\ \Longleftrightarrow\ y^{\mathsf T}Ax=0\ \text{对一切 }x\in\mathbb R^n
+\ \Longleftrightarrow\ A^{\mathsf T}y=0,
+\]
+可在 $\mathcal N(A^{\mathsf T})$ 中选取标准正交基 $u_{r+1},\ldots,u_m$，把前面的向量补成 $\mathbb R^m$ 的标准正交基。令 $U=(u_1,\ldots,u_m)$、$V=(v_1,\ldots,v_n)$，并按式~\eqref{eq:lh-svd-rectangular-diagonal} 构造 $\Sigma$。由于 $Av_i=\sigma_i u_i$ 对 $i\leq r$ 成立，而 $Av_i=0$ 对 $i>r$ 成立，逐列比较得到 $AV=U\Sigma$，右乘 $V^{\mathsf T}$ 即得所需分解。若 $r=0$，取任意正交矩阵 $U,V$ 与零矩阵 $\Sigma$ 即可。
+\end{proof}
+
+这个构造明确区分了两类方向：正奇异值对应的左右奇异向量由 $Av_i=\sigma_i u_i$ 联系，零奇异值对应的方向通过零空间补齐。\emph[caution]{式~\eqref{eq:lh-svd-left-construction} 只能用于正奇异值}，不能在 $\sigma_i=0$ 时用除法求左奇异向量。
+
+\subsection{紧奇异值分解与截断奇异值分解}
+\label{subsec:lh-compact-truncated-svd}
+
+完全分解包含了零空间的基，而重构 $A$ 只需要非零奇异值及其对应向量。下面先考虑 $r\geq1$，令 $U_r=(u_1,\ldots,u_r)\in\mathbb R^{m\times r}$、$V_r=(v_1,\ldots,v_r)\in\mathbb R^{n\times r}$，并令 $\Sigma_r=\operatorname{diag}(\sigma_1,\ldots,\sigma_r)\in\mathbb R^{r\times r}$。
+
+\begin{definition}[紧分解与截断分解]
+\label{def:lh-compact-truncated-svd}
+精确等式
+\begin{equation}
+A=U_r\Sigma_rV_r^{\mathsf T}
+\label{eq:lh-compact-svd}
+\end{equation}
+称为 $A$ 的\emph{紧奇异值分解}（compact singular value decomposition）。对整数 $1\leq k<r$，仅保留前 $k$ 个奇异值及其对应向量，得到
+\begin{equation}
+A_k=U_k\Sigma_kV_k^{\mathsf T},\qquad
+U_k\in\mathbb R^{m\times k},\quad
+\Sigma_k\in\mathbb R^{k\times k},\quad
+V_k\in\mathbb R^{n\times k},
+\label{eq:lh-truncated-svd}
+\end{equation}
+称为 $A$ 的\emph{截断奇异值分解}（truncated singular value decomposition）所给出的秩 $k$ 近似。其中 $\Sigma_k=\operatorname{diag}(\sigma_1,\ldots,\sigma_k)$，$U_k,V_k$ 分别取相应矩阵的前 $k$ 列。
+\end{definition}
+
+紧分解与原矩阵的秩相同，且保持精确等式；当 $k<r$ 时 $A_k\ne A$，应写 $A\approx A_k$，不能把近似关系当作精确分解。由于 $U_k^{\mathsf T}U_k=V_k^{\mathsf T}V_k=I_k$、$\Sigma_k$ 可逆，式~\eqref{eq:lh-truncated-svd} 的秩恰为 $k$。为统一后面的结论，约定 $A_0=0$、$A_r=A$。当 $r=0$ 时只需使用 $A_0=0$，无须另写含正奇异值的分解。
+
+这里 $U_r,V_r$ 的列标准正交，但当它们不是方阵时，并非定义中的正交矩阵：一般只有 $U_r^{\mathsf T}U_r=I_r$，而 $U_rU_r^{\mathsf T}$ 是到 $\mathcal R(A)$ 的\emph{正交投影}（orthogonal projection），把向量映到该子空间并使残差与子空间正交，未必等于 $I_m$。若以稠密数组存储矩阵，并只存对角线上的奇异值，秩 $k$ 因子需要约 $k(m+n+1)$ 个数，而原矩阵需要 $mn$ 个数；只有前者更小时才有这种存储意义上的压缩。因此紧分解在代数上无损，却不必对任意矩阵节省存储。
+
+\begin{example}
+\label{ex:lh-svd-five-by-four}
+教材例 15.1--15.3 使用同一个矩阵说明完全、紧与截断分解。设
+\[
+A=\begin{pmatrix}
+1&0&0&0\\
+0&0&0&4\\
+0&3&0&0\\
+0&0&0&0\\
+2&0&0&0
+\end{pmatrix}.
+\]
+求其紧奇异值分解，并写出一个完全分解以及保留两个奇异值的近似。
+\end{example}
+\begin{solve}
+计算 $A^{\mathsf T}A=\operatorname{diag}(5,9,0,16)$，按降序排列可得奇异值 $4,3,\sqrt5,0$，所以 $r=3$。取
+\[
+U_3=\begin{pmatrix}
+0&0&1/\sqrt5\\
+1&0&0\\
+0&1&0\\
+0&0&0\\
+0&0&2/\sqrt5
+\end{pmatrix},\qquad
+\Sigma_3=\operatorname{diag}(4,3,\sqrt5),\qquad
+V_3^{\mathsf T}=\begin{pmatrix}0&0&0&1\\0&1&0&0\\1&0&0&0\end{pmatrix}.
+\]
+三列 $u_i$ 和三列 $v_i$ 各自标准正交，逐项相乘得到 $A=U_3\Sigma_3V_3^{\mathsf T}$。在 $U_3$ 后补上
+\[
+u_4=(0,0,0,1,0)^{\mathsf T},\qquad
+u_5=(2,0,0,0,-1)^{\mathsf T}/\sqrt5,
+\]
+在 $V_3$ 后补上 $v_4=(0,0,1,0)^{\mathsf T}$，并令 $\Sigma\in\mathbb R^{5\times4}$ 的对角线为 $4,3,\sqrt5,0$，即得一个完全分解。仅保留前两项则得到
+\begin{equation}
+A_2=\begin{pmatrix}
+0&0&0&0\\
+0&0&0&4\\
+0&3&0&0\\
+0&0&0&0\\
+0&0&0&0
+\end{pmatrix}.
+\label{eq:lh-svd-five-by-four-rank-two}
+\end{equation}
+这个近似舍去了第三个奇异方向上的贡献，原矩阵中的 $1$ 和 $2$ 因此同时消失。
+\end{solve}
+
+\subsection{几何解释}
+\label{subsec:lh-svd-geometry}
+
+把 $A$ 看作从 $\mathbb R^n$ 到 $\mathbb R^m$ 的线性映射。式~\eqref{eq:lh-full-svd} 把它分成三个连续作用：$V^{\mathsf T}$ 将输入改写到右奇异向量构成的正交坐标系，$\Sigma$ 沿坐标方向按奇异值缩放并处理维度差异，$U$ 再把结果变换到输出空间。正交变换可以包含旋转和反射，不能一概称为旋转；当 $m\ne n$ 时，中间一步也不能只理解成同一空间内的缩放。
+
+对任意输入 $x$，令 $c_i=v_i^{\mathsf T}x$，便有
+\begin{equation}
+Ax=\sum_{i=1}^r\sigma_i c_i u_i,\qquad
+\|Ax\|_2^2=\sum_{i=1}^r\sigma_i^2c_i^2.
+\label{eq:lh-svd-directional-action}
+\end{equation}
+因此沿 $v_i$ 的单位输入被变成沿 $u_i$、长度为 $\sigma_i$ 的输出；属于 $\mathcal N(A)$ 的输入分量完全消失。单位球 $\{x:\|x\|_2\leq1\}$ 的像是在 $\mathcal R(A)$ 中、以 $u_i$ 为主轴方向、以 $\sigma_i$ 为半轴长的椭球体。若 $r<p$，它在相应方向上退化；若 $r=0$，整个像只有原点。由式~\eqref{eq:lh-svd-directional-action} 还可得 $\max_{\|x\|_2=1}\|Ax\|_2=\sigma_1$，因为上界由 $\sum_i c_i^2=1$ 得到，取 $x=v_1$ 可达到。
+
+\begin{example}
+\label{ex:lh-svd-geometric-two-by-two}
+教材例 15.4 的线性变换由矩阵 $B=\begin{pmatrix}3&1\\2&1\end{pmatrix}$ 给出。求单位圆在该变换下所得椭圆的半轴长，并解释其与矩阵两列的区别。
+\end{example}
+\begin{solve}
+有 $B^{\mathsf T}B=\begin{pmatrix}13&5\\5&2\end{pmatrix}$，特征方程为 $\lambda^2-15\lambda+1=0$，所以两个半轴长为
+\[
+\sigma_1=\sqrt{\frac{15+\sqrt{221}}2}\approx3.8643,\qquad
+\sigma_2=\sqrt{\frac{15-\sqrt{221}}2}\approx0.2588.
+\]
+先取这两个特征值对应的单位特征向量 $v_i$，再令 $u_i=Bv_i/\sigma_i$，即可得到输入、输出的主轴方向。矩阵两列则是标准基的像 $Be_1=(3,2)^{\mathsf T}$、$Be_2=(1,1)^{\mathsf T}$，其内积为 $5$，并不正交；它们通常不是椭圆主轴。SVD 正是通过改变输入与输出两侧的正交基，把一般方向上的变换改写成互不混合的主轴伸缩。
+\end{solve}
+
+\subsection{主要性质}
+\label{subsec:lh-svd-properties}
+
+\begin{proposition}[奇异值与两侧特征分解]
+\label{prop:lh-svd-eigen-relations}
+若 $A=U\Sigma V^{\mathsf T}$，则
+\begin{equation}
+A^{\mathsf T}A=V(\Sigma^{\mathsf T}\Sigma)V^{\mathsf T},\qquad
+AA^{\mathsf T}=U(\Sigma\Sigma^{\mathsf T})U^{\mathsf T}.
+\label{eq:lh-svd-two-gram-matrices}
+\end{equation}
+两矩阵具有相同的正特征值 $\sigma_1^2,\ldots,\sigma_r^2$，重数也相同，但零特征值的个数分别为 $n-r$、$m-r$。对 $1\leq i\leq p$ 有
+\begin{equation}
+Av_i=\sigma_i u_i,\qquad A^{\mathsf T}u_i=\sigma_i v_i.
+\label{eq:lh-svd-paired-vectors}
+\end{equation}
+若 $n>p$，余下的 $v_{p+1},\ldots,v_n$ 满足 $Av_i=0$；若 $m>p$，余下的 $u_{p+1},\ldots,u_m$ 满足 $A^{\mathsf T}u_i=0$。
+\end{proposition}
+\begin{proof}
+对式~\eqref{eq:lh-full-svd} 转置并相乘，利用 $U^{\mathsf T}U=I_m$、$V^{\mathsf T}V=I_n$ 即得式~\eqref{eq:lh-svd-two-gram-matrices}。两个对角矩阵中非零的对角元均为 $\sigma_1^2,\ldots,\sigma_r^2$。再从 $AV=U\Sigma$、$A^{\mathsf T}U=V\Sigma^{\mathsf T}$ 逐列读取，就得到配对关系和多余方向上的零映射。
+\end{proof}
+
+\begin{proposition}[秩与四个基本子空间]
+\label{prop:lh-svd-four-subspaces}
+正奇异值的个数等于 $\operatorname{rank}(A)$，并且
+\begin{equation}
+\begin{aligned}
+\mathcal R(A)&=\operatorname{span}\{u_1,\ldots,u_r\},&
+\mathcal N(A^{\mathsf T})&=\operatorname{span}\{u_{r+1},\ldots,u_m\},\\
+\mathcal R(A^{\mathsf T})&=\operatorname{span}\{v_1,\ldots,v_r\},&
+\mathcal N(A)&=\operatorname{span}\{v_{r+1},\ldots,v_n\}.
+\end{aligned}
+\label{eq:lh-svd-four-subspaces}
+\end{equation}
+空向量组张成零子空间。这些基均标准正交，特别地 $\mathcal R(A)^\perp=\mathcal N(A^{\mathsf T})$、$\mathcal R(A^{\mathsf T})^\perp=\mathcal N(A)$。
+\end{proposition}
+\begin{proof}
+左右乘可逆矩阵不改变秩，所以 $\operatorname{rank}(A)=\operatorname{rank}(\Sigma)=r$。式~\eqref{eq:lh-svd-directional-action} 给出 $\mathcal R(A)$ 的基，转置后同理得到 $\mathcal R(A^{\mathsf T})$ 的基。又由 $\|Ax\|_2^2=\sum_{i=1}^r\sigma_i^2(v_i^{\mathsf T}x)^2$ 可知，$Ax=0$ 当且仅当 $v_i^{\mathsf T}x=0$ 对所有 $i\leq r$ 成立，从而确定 $\mathcal N(A)$；对 $A^{\mathsf T}$ 重复同一论证即可确定另一个零空间。
+\end{proof}
+
+\emph{奇异值唯一，奇异向量一般不唯一。}排序后的奇异值由 $A^{\mathsf T}A$ 的特征值唯一确定；每一对正奇异值对应的向量同时变号，不改变 $\sigma_i u_iv_i^{\mathsf T}$。若同一正奇异值 $\sigma$ 的重数大于 $1$，在对应的左右子空间中同时使用相同的正交矩阵 $Q$ 换基，也不改变乘积，因为 $(U_*Q)(\sigma I)(V_*Q)^{\mathsf T}=\sigma U_*V_*^{\mathsf T}$。零空间的左右基则可分别任意正交换基。因此不能把一次数值计算得到的奇异向量符号或重根子空间中的具体基看作唯一答案。
+
+与对称矩阵的正交对角化相比，SVD 允许矩形矩阵，并在定义域和值域分别选基；对称矩阵的分解 $A=Q\Lambda Q^{\mathsf T}$ 则在同一个空间中使用同一组基。若 $A$ 为实对称矩阵，把其特征值按绝对值降序排列，令 $\Sigma$ 的对角元为这些绝对值，并把负特征值的符号吸收到相应左奇异向量中，就得到一个 SVD；零特征值处可任选符号。故对称矩阵的奇异值是特征值的绝对值，只有半正定时才可直接令 $U=V=Q$、$\Sigma=\Lambda$。
+
+\section{奇异值分解的计算}
+\label{sec:lh-svd-computation}
+
+定理~\ref{thm:lh-svd-existence} 已给出一种通过特征分解构造 SVD 的方法，适于手算小矩阵和理解原理。其输入为实矩阵 $A$，输出为满足式~\eqref{eq:lh-full-svd} 的 $U,\Sigma,V$；若只需紧分解，则不必求零空间的全部基。在精确算术下可以按以下有限步骤完成。
+\begin{enumerate}
+\item 计算 $G=A^{\mathsf T}A$，求其全部特征值，并按降序排列为 $\lambda_1,\ldots,\lambda_n$；取相应的标准正交特征向量 $v_1,\ldots,v_n$，组成 $V$。重复特征值的特征子空间内也要选取标准正交基，单纯把任意一组特征向量分别单位化不足以保证正交。
+\item 以正特征值的个数确定 $r$，取 $\sigma_i=\sqrt{\lambda_i}$（$1\leq i\leq p$），构造 $m\times n$ 的矩形对角矩阵 $\Sigma$。当 $m<n$ 时，余下的 $n-m$ 个特征值必为零。
+\item 对 $1\leq i\leq r$，计算 $u_i=Av_i/\sigma_i$；求解 $A^{\mathsf T}y=0$，在其解空间中取标准正交基补足 $u_{r+1},\ldots,u_m$，组成 $U$。若 $r=0$，直接取任意正交矩阵 $U$。
+\item 返回 $U,\Sigma,V$；可用 $U^{\mathsf T}U=I_m$、$V^{\mathsf T}V=I_n$ 与 $U\Sigma V^{\mathsf T}=A$ 核对结果。只需紧分解时，返回前 $r$ 列和 $r$ 阶正对角块；若只需秩 $k$ 近似，则返回相应前 $k$ 项。
+\end{enumerate}
+
+\begin{example}
+\label{ex:lh-svd-rank-one-computation}
+求教材例 15.5 中矩阵 $C=\begin{pmatrix}1&1\\2&2\\0&0\end{pmatrix}$ 的完全奇异值分解。
+\end{example}
+\begin{solve}
+有 $C^{\mathsf T}C=\begin{pmatrix}5&5\\5&5\end{pmatrix}$，其特征值为 $10,0$，可取标准正交特征向量
+\[
+v_1=\frac1{\sqrt2}(1,1)^{\mathsf T},\qquad
+v_2=\frac1{\sqrt2}(1,-1)^{\mathsf T}.
+\]
+于是 $\sigma_1=\sqrt{10}$、$\sigma_2=0$，且 $u_1=Cv_1/\sqrt{10}=(1,2,0)^{\mathsf T}/\sqrt5$。零空间 $\mathcal N(C^{\mathsf T})$ 由方程 $y_1+2y_2=0$ 确定，可取标准正交基 $u_2=(-2,1,0)^{\mathsf T}/\sqrt5$、$u_3=(0,0,1)^{\mathsf T}$。因此
+\[
+U=\begin{pmatrix}
+1/\sqrt5&-2/\sqrt5&0\\
+2/\sqrt5&1/\sqrt5&0\\
+0&0&1
+\end{pmatrix},\quad
+\Sigma=\begin{pmatrix}\sqrt{10}&0\\0&0\\0&0\end{pmatrix},\quad
+V=\frac1{\sqrt2}\begin{pmatrix}1&1\\1&-1\end{pmatrix}.
+\]
+直接相乘得到 $C=U\Sigma V^{\mathsf T}$。由于只有一个正奇异值，紧分解进一步写成 $C=\sqrt{10}\,u_1v_1^{\mathsf T}$，不需要保留补入的三个零空间方向。
+\end{solve}
+
+上面的特征分解方法是原理性的构造。对 $m\geq n$ 的稠密矩阵，显式形成 $A^{\mathsf T}A$ 约需 $O(mn^2)$ 运算，其稠密特征分解约需 $O(n^3)$ 运算；构造全部正奇异值对应的左向量还需 $O(mnr)$，这些估计未计入补齐完整 $U$ 的工作。当 $m<n$ 时，也可先对较小的 $AA^{\mathsf T}$ 求特征分解，再用 $v_i=A^{\mathsf T}u_i/\sigma_i$ 构造正奇异值对应的右向量。
+
+数值计算中不宜据此直接形成 Gram 矩阵后再求全部特征值。例如 $A$ 列满秩时，若以最大、最小奇异值之比定义条件数 $\kappa_2(A)=\sigma_1/\sigma_n$，则 $\kappa_2(A^{\mathsf T}A)=\kappa_2(A)^2$，小奇异值的信息更容易受到舍入误差影响。常用数值 SVD 通过正交变换先把原矩阵化为双对角形式，再求相应分解，避免显式构造 $A^{\mathsf T}A$。浮点计算还必须用与数据尺度、精度相称的容差判断数值秩，而不能简单把计算结果是否严格等于零作为标准；数值秩随容差变化，应与精确代数秩区别。教材中的手算过程不提供某一种迭代算法的停止准则或误差保证。
+
+\section{奇异值分解与矩阵近似}
+\label{sec:lh-svd-approximation}
+
+\subsection{弗罗贝尼乌斯范数}
+\label{subsec:lh-svd-frobenius}
+
+\begin{definition}[弗罗贝尼乌斯范数]
+\label{def:lh-frobenius-norm}
+对实矩阵 $A=(a_{ij})\in\mathbb R^{m\times n}$，其\emph{弗罗贝尼乌斯范数}（Frobenius norm）定义为
+\begin{equation}
+\|A\|_{\mathrm F}=\left(\sum_{i=1}^m\sum_{j=1}^n a_{ij}^2\right)^{1/2}.
+\label{eq:lh-frobenius-definition}
+\end{equation}
+相应内积为 $\langle B,C\rangle_{\mathrm F}=\sum_{i,j}b_{ij}c_{ij}=\operatorname{tr}(B^{\mathsf T}C)$，其中 $B,C$ 同型，$\operatorname{tr}$ 表示方阵对角元之和。
+\end{definition}
+
+把矩阵所有元素依次排列成向量，式~\eqref{eq:lh-frobenius-definition} 就是该向量的欧氏范数。因此 $\|A-B\|_{\mathrm F}^2$ 是逐元素平方误差的总和，$\|A-B\|_{\mathrm F}$ 则是其平方根；二者具有相同的最小化解，但数值和单位并不相同。这里所有元素具有相同权重，并假定都已观测；若只在部分位置计算误差，或对不同位置加权，后面的最优近似结论不能直接套用。
+
+\begin{lemma}[正交不变性与奇异值表示]
+\label{lem:lh-frobenius-orthogonal-invariance}
+若 $Q\in\mathbb R^{m\times m}$、$P\in\mathbb R^{n\times n}$ 为正交矩阵，则
+\begin{equation}
+\|QAP^{\mathsf T}\|_{\mathrm F}=\|A\|_{\mathrm F},\qquad
+\|A\|_{\mathrm F}^2=\sum_{i=1}^p\sigma_i^2=\sum_{i=1}^r\sigma_i^2.
+\label{eq:lh-frobenius-singular-values}
+\end{equation}
+\end{lemma}
+\begin{proof}
+设 $A$ 的列为 $a_1,\ldots,a_n$，则 $\|QA\|_{\mathrm F}^2=\sum_j\|Qa_j\|_2^2=\sum_j\|a_j\|_2^2=\|A\|_{\mathrm F}^2$。对各行或对转置矩阵使用同一论证，得到右乘 $P^{\mathsf T}$ 也不改变范数。将 $A=U\Sigma V^{\mathsf T}$ 代入，便有 $\|A\|_{\mathrm F}^2=\|\Sigma\|_{\mathrm F}^2=\sum_{i=1}^p\sigma_i^2$；零奇异值不贡献平方和。
+\end{proof}
+
+\subsection{矩阵的最优近似}
+\label{subsec:lh-svd-best-approximation}
+
+低秩近似的目标是，在限制模型秩的同时尽量减小原矩阵各元素的重构误差。对给定整数 $0\leq k\leq r$，考虑
+\begin{equation}
+\min_{B\in\mathbb R^{m\times n},\ \operatorname{rank}(B)\leq k}
+\|A-B\|_{\mathrm F}^2.
+\label{eq:lh-svd-low-rank-objective}
+\end{equation}
+这里优化变量是整个矩阵 $B$，秩是约束，SVD 是求解这个目标的工具；不能仅从“奇异值按大小排列”就认定最优性，还需证明任何其他秩不超过 $k$ 的矩阵都不可能取得更小误差。
+
+\begin{theorem}[截断 SVD 的最优性]
+\label{thm:lh-svd-best-approximation}
+设 $A$ 的秩为 $r$，$A_k$ 按式~\eqref{eq:lh-truncated-svd} 及 $A_0=0$、$A_r=A$ 定义。则对每个整数 $0\leq k\leq r$，式~\eqref{eq:lh-svd-low-rank-objective} 的最小值均可达到，且
+\begin{equation}
+\min_{\operatorname{rank}(B)\leq k}\|A-B\|_{\mathrm F}^2
+=\|A-A_k\|_{\mathrm F}^2
+=\sum_{i=k+1}^r\sigma_i^2.
+\label{eq:lh-svd-optimal-tail-error}
+\end{equation}
+相应的最小范数误差为 $\bigl(\sum_{i=k+1}^r\sigma_i^2\bigr)^{1/2}$。若 $1\leq k<r$，则最优解的秩恰为 $k$；若还满足 $\sigma_k>\sigma_{k+1}$，最优近似矩阵唯一。
+\end{theorem}
+\begin{proof}
+当 $k=0$ 时可行矩阵只有零矩阵，当 $k=r$ 时 $A$ 本身可行，两种情形直接成立。以下设 $1\leq k<r$。任取可行矩阵 $B$，设 $P_B$ 是到其列空间的正交投影，$d=\operatorname{rank}(B)\leq k$。分解
+\[
+A-B=(I_m-P_B)A+(P_BA-B).
+\]
+等式右端两个矩阵的每一对对应列相互正交，因此
+\begin{equation}
+\|A-B\|_{\mathrm F}^2
+=\|(I_m-P_B)A\|_{\mathrm F}^2+\|P_BA-B\|_{\mathrm F}^2
+\geq\|A\|_{\mathrm F}^2-\|P_BA\|_{\mathrm F}^2.
+\label{eq:lh-svd-projection-lower-bound}
+\end{equation}
+由紧分解及右侧正交变换的不变性，令 $t_i=\|P_Bu_i\|_2^2$，可得
+\[
+\|P_BA\|_{\mathrm F}^2=\sum_{i=1}^r\sigma_i^2t_i,\qquad
+0\leq t_i\leq1,\qquad
+\sum_{i=1}^r t_i\leq\sum_{i=1}^m\|P_Bu_i\|_2^2=d\leq k.
+\]
+最后一个等式可由 $\|P_BU\|_{\mathrm F}^2=\|P_B\|_{\mathrm F}^2=d$ 得到；正交投影的特征值只有 $0,1$，其中有 $d$ 个 $1$。利用奇异值的降序排列，进一步有
+\begin{align*}
+\sum_{i=1}^r\sigma_i^2t_i
+&\leq\sum_{i=1}^k\sigma_i^2t_i+
+\sigma_k^2\sum_{i=k+1}^r t_i\\
+&\leq\sum_{i=1}^k\sigma_i^2t_i+
+\sigma_k^2\left(k-\sum_{i=1}^k t_i\right)\\
+&=\sum_{i=1}^k\bigl[\sigma_k^2+(\sigma_i^2-\sigma_k^2)t_i\bigr]
+\leq\sum_{i=1}^k\sigma_i^2.
+\end{align*}
+代入式~\eqref{eq:lh-svd-projection-lower-bound} 及引理~\ref{lem:lh-frobenius-orthogonal-invariance}，得到任意可行矩阵都满足 $\|A-B\|_{\mathrm F}^2\geq\sum_{i=k+1}^r\sigma_i^2$。另一方面，$A_k$ 的秩为 $k$，且 $A-A_k$ 在奇异坐标中仅有尾部奇异值，故其误差恰为该平方和，证明了最优解的存在性和最优值公式。秩小于 $k$ 时，同一结论在其实际秩处给出的下界严格更大，因为前 $k$ 个奇异值均为正，所以最优解必须有秩 $k$。
+
+若 $\sigma_k>\sigma_{k+1}$，上述加权和达到上界时必须有 $t_1=\cdots=t_k=1$，且 $t_{k+1}=\cdots=t_r=0$。理由是只要前 $k$ 个位置尚有未分配的权重，把尾部权重移到这些位置，或在总权重不足 $k$ 时补入权重，都会严格增大加权和。于是最优矩阵的列空间只能是 $\operatorname{span}\{u_1,\ldots,u_k\}$；式~\eqref{eq:lh-svd-projection-lower-bound} 取等又要求 $B=P_BA$，所以 $B=U_kU_k^{\mathsf T}A=A_k$，唯一性得证。
+\end{proof}
+
+严格的间隙条件约束的是截断位置，并不要求前 $k$ 个奇异值各不相同。若 $\sigma_k=\sigma_{k+1}>0$，可以在跨越截断位置的重根子空间内选择不同方向，得到不同的最优矩阵；例如 $A=I_2$、$k=1$ 时，每个单位向量 $q\in\mathbb R^2$ 给出的 $qq^{\mathsf T}$ 都是最优近似，误差平方均为 $1$。这也说明，奇异向量不唯一与最优近似矩阵不唯一需要分别判断。
+
+\begin{example}
+\label{ex:lh-svd-optimal-error}
+续例~\ref{ex:lh-svd-five-by-four}，求秩至多为 $1$、$2$ 的最优近似误差，并判断式~\eqref{eq:lh-svd-five-by-four-rank-two} 是否为唯一的秩至多为 $2$ 的最优近似。
+\end{example}
+\begin{solve}
+三个正奇异值为 $4,3,\sqrt5$，故 $\|A\|_{\mathrm F}^2=16+9+5=30$。秩至多为 $1$ 时，最小误差平方为 $9+5=14$，最小范数误差为 $\sqrt{14}$；秩至多为 $2$ 时，二者分别为 $5$ 与 $\sqrt5$。因为 $\sigma_2=3>\sqrt5=\sigma_3$，式~\eqref{eq:lh-svd-five-by-four-rank-two} 是唯一的最优秩 $2$ 近似。这正是教材例 15.6 所求的近似；若将 $\sqrt5$ 误写成误差平方，就混淆了范数与平方损失。
+\end{solve}
+
+\subsection{矩阵的外积展开式}
+\label{subsec:lh-svd-outer-products}
+
+\begin{proposition}[外积展开]
+\label{prop:lh-svd-outer-product-expansion}
+矩阵 $A$ 及其截断近似可写为
+\begin{equation}
+A=\sum_{i=1}^r\sigma_i u_iv_i^{\mathsf T},\qquad
+A_k=\sum_{i=1}^k\sigma_i u_iv_i^{\mathsf T}.
+\label{eq:lh-svd-outer-products}
+\end{equation}
+每个 $u_iv_i^{\mathsf T}$ 是秩为 $1$ 的 $m\times n$ 矩阵，它们在弗罗贝尼乌斯内积下标准正交。
+\end{proposition}
+\begin{proof}
+当 $r=0$ 时以空和表示零矩阵；当 $r\geq1$ 时，把 $U_r\Sigma_r$ 按列、$V_r^{\mathsf T}$ 按行分块相乘，即得两个求和式。\emph{外积}（outer product）$u_iv_i^{\mathsf T}$ 的各列是 $u_i$ 的标量倍数，且两向量都非零，故其秩为 $1$。又有
+\[
+\langle u_iv_i^{\mathsf T},u_jv_j^{\mathsf T}\rangle_{\mathrm F}
+=(u_i^{\mathsf T}u_j)(v_i^{\mathsf T}v_j)
+=\begin{cases}1,&i=j,\\0,&i\ne j,\end{cases}
+\]
+因此这些秩一矩阵相互正交且范数均为 $1$。
+\end{proof}
+
+外积 $u_iv_i^{\mathsf T}$ 的第 $s$ 行第 $t$ 列元素为 $(u_i)_s(v_i)_t$，所以它同时描述一个输出方向与一个输入方向之间的配合。一般而言，任意非零秩一矩阵也能写成两个非零向量的外积：取其非零列 $a$，其余各列均为 $a$ 的倍数，记这些倍数组成向量 $b$，就得到 $ab^{\mathsf T}$。例如例~\ref{ex:lh-svd-rank-one-computation} 中的矩阵为 $(1,2,0)^{\mathsf T}(1,1)$；SVD 进一步把两向量单位化，并用非负奇异值记录整体尺度。这给出了教材习题 15.4 所要求的秩一表示及实例。
+
+由外积的正交性，每加入一项 $\sigma_i u_iv_i^{\mathsf T}$，重构误差平方恰好减少 $\sigma_i^2$。若 $A\ne0$，可定义保留的\emph{能量比例}
+\begin{equation}
+\rho_k=\frac{\sum_{i=1}^k\sigma_i^2}{\sum_{i=1}^r\sigma_i^2},\qquad
+\frac{\|A-A_k\|_{\mathrm F}}{\|A\|_{\mathrm F}}=\sqrt{1-\rho_k}.
+\label{eq:lh-svd-retained-energy}
+\end{equation}
+给定目标比例 $\rho\in(0,1]$，可以选取满足 $\rho_k\geq\rho$ 的最小整数 $k$；给定相对范数误差容许值 $\varepsilon\in[0,1)$，则选择满足 $\sum_{i=k+1}^r\sigma_i^2\leq\varepsilon^2\sum_{i=1}^r\sigma_i^2$ 的 $k$。例~\ref{ex:lh-svd-five-by-four} 中，保留两项的能量比例为 $25/30=5/6$，相对范数误差为 $1/\sqrt6$。奇异值是否快速衰减取决于数据；只有尾部平方和较小时，小 $k$ 才能得到高精度近似。能量比例描述本矩阵的重构程度，本身不保证分类准确率或预测效果。
+
+教材习题 15.5 用查询与网页之间的点击关系说明矩阵分解的含义。一般地，令 $A\in\mathbb R^{M\times N}$ 的行对应 $M$ 条查询、列对应 $N$ 个网页，$a_{ij}$ 为对应点击次数。截断分解可以把查询表示为 $Z=U_k\Sigma_k\in\mathbb R^{M\times k}$，把网页表示为 $H=V_k\in\mathbb R^{N\times k}$，从而
+\[
+a_{ij}\approx (A_k)_{ij}=Z_{i,:}H_{j,:}^{\mathsf T}.
+\]
+这里 $Z_{i,:}$、$H_{j,:}$ 分别表示矩阵的第 $i$ 行、第 $j$ 行。也可将尺度对称分配，使用 $U_k\Sigma_k^{1/2}$ 与 $V_k\Sigma_k^{1/2}$ 作为两侧表示。奇异值刻画各潜在方向对重构的贡献，但方向中的坐标可为负，近似矩阵也未必逐元素非负，不能直接把它们解释为概率或唯一的语义主题。SVD 本身不要求数据中心化；若用于主成分分析，则还需结合该模型对中心化与样本协方差的定义说明其关系。
+
+% 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-16.pdf。
+% 对应教材第 16 章，原书第 297--320 页；沿用本文件的自动章节编号。
+
+
+
+

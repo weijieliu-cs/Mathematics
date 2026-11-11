@@ -1,0 +1,66 @@
+% !TeX root = ../数值分析与科学计算笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{11} % 保留原书章号。
+\chapter{离散傅里叶变换与快速算法}
+\label{chap:na-fourier}
+
+\section{周期采样与离散正交性}
+周期现象适合用三角函数而非全局单项式表示。本章把长度为 $N$ 的复数数据 $v_0,\ldots,v_{N-1}$ 理解为周期区间 $[0,2\pi)$ 上的采样，节点 $x_j=2\pi j/N$。规定离散傅里叶变换（discrete Fourier transform，DFT）的归一化为
+\begin{equation}
+ \widehat v_k=\sum_{j=0}^{N-1}v_j e^{-2\pi\mathrm i jk/N},\quad
+ v_j=\frac1N\sum_{k=0}^{N-1}\widehat v_k e^{2\pi\mathrm i jk/N}.
+ \label{eq:na-dft}
+\end{equation}
+不同软件的归一化可能不同，应先核对正变换与逆变换的系数和指数符号。
+
+\begin{proposition}[离散正交与 Parseval 等式]
+对整数 $k,\ell$，有
+\[
+ \sum_{j=0}^{N-1}e^{2\pi\mathrm i j(k-\ell)/N}
+ =\begin{cases}N,&k\equiv\ell\pmod N,\\0,&\text{其余情形}.
+ \end{cases}
+\]
+因此式~\eqref{eq:na-dft} 的逆公式成立，且 $\sum_j|v_j|^2=N^{-1}\sum_k|\widehat v_k|^2$。
+\end{proposition}
+\begin{proof}
+当公比为 $1$ 时求和为 $N$，否则用几何级数公式，分子为 $1-e^{2\pi\mathrm i(k-\ell)}=0$，分母非零。把正变换代入逆变换可恢复每个 $v_j$。再把逆变换代入平方和，并利用共轭和上述正交关系，交叉项全部消失，得到 Parseval 等式。
+\end{proof}
+
+\section{混叠与频率解释}
+频率 $k$ 与 $k+qN$ 在网格上取值相同，这称为\emph{混叠（aliasing）}。仅由这组样本无法区分它们；增加输出曲线上的绘制点不能补回已丢失的采样信息。实数据满足 $\widehat v_{N-k}=\overline{\widehat v_k}$，索引按模 $N$ 解释，因而后一半索引通常代表负频率。
+
+为避免偶数点数的最高频模式约定问题，先设 $N=2m+1$ 为奇数，用频率 $-m,\ldots,m$，令 $c_k=\widehat v_{k\bmod N}/N$。三角插值多项式为 $p(x)=\sum_{k=-m}^{m}c_ke^{\mathrm i kx}$，在全部节点匹配数据。偶数 $N$ 时的 Nyquist 频率 $N/2$ 与 $-N/2$ 在样本上重合，求导等运算需要明确处理这一特殊模态，不能把数组索引全部视为非负物理频率。
+
+\begin{example}[样本无法识别的两种振荡]
+在 $N=8$ 的网格上，$e^{\mathrm i x}$ 与 $e^{9\mathrm i x}$ 的取值完全相同，因为 $e^{8\mathrm i x_j}=1$。它们在采样点之外不同，导数也不同。以样本作插值隐含了对可表示频率范围的限制。
+\end{example}
+
+\section{快速傅里叶变换与卷积}
+直接计算 DFT 需要 $O(N^2)$ 次复运算。若 $N$ 为偶数，把下标分成偶数和奇数，定义长度 $N/2$ 的两个 DFT 为 $E_k,O_k$，则
+\[
+ \widehat v_k=E_k+e^{-2\pi\mathrm i k/N}O_k,\qquad
+ \widehat v_{k+N/2}=E_k-e^{-2\pi\mathrm i k/N}O_k,
+ \quad0\le k<N/2.
+\]
+当 $N=2^s$ 时递归应用，运算量满足 $T(N)=2T(N/2)+O(N)$，故为 $O(N\log N)$。这类计算 DFT 的快速算法称 FFT；FFT 改变计算方式，并没有改变所定义的变换或提高采样所含信息量。
+
+周期卷积定义为 $c_j=\sum_{\ell=0}^{N-1}a_\ell b_{(j-\ell)\bmod N}$。代入 DFT 并重新编号有限求和可得 $\widehat c_k=\widehat a_k\widehat b_k$，故可通过两次正变换、逐点相乘和一次逆变换求卷积。若要求长度 $M$ 与 $K$ 的序列的普通线性卷积，应先补零至至少 $M+K-1$，否则周期绕回会污染结果。
+
+\section{谱微分与周期梯形积分}
+对上述奇数节点的三角插值，有 $p'(x)=\sum_{k=-m}^{m}(\mathrm i k)c_ke^{\mathrm i kx}$。因此谱微分可以通过 DFT、频率乘子和逆 DFT 实现。高频乘子 $|k|$ 同时放大高频噪声，所以快速或高阶方法不意味着对含噪数据稳定地求导。
+
+若 $2\pi$ 周期函数有绝对可和的傅里叶级数 $f(x)=\sum_{k\in\mathbb Z}c_ke^{\mathrm i kx}$，则可以交换有限节点求和与级数，得到周期梯形值
+\[
+ Q_N=\frac{2\pi}{N}\sum_{j=0}^{N-1}f(x_j)=2\pi\sum_{q\in\mathbb Z}c_{qN},\qquad
+ \int_0^{2\pi}f(x)\,\mathrm dx=2\pi c_0.
+\]
+由此 $|Q_N-I|\le2\pi\sum_{q\ne0}|c_{qN}|$。若 $|c_k|\le C|k|^{-s}$、$s>1$，误差为 $O(N^{-s})$；若系数指数衰减，则积分误差也指数衰减。这解释了光滑周期问题中梯形法可能远快于一般二阶估计的原因。端点不匹配的周期延拓会降低光滑性，不能期待同样速度。
+
+\section{习题}
+\begin{enumerate}[label=\arabic*.]
+\item\label{exr:na-fft-transform} 按式~\eqref{eq:na-dft} 计算序列 $(1,0,-1,0)$ 的 DFT，并用逆变换核验。
+\item\label{exr:na-fft-alias} 在 $N=10$ 的网格上，频率 $7$ 与哪个位于 $[-5,4]$ 中的频率不可区分？
+\item\label{exr:na-fft-convolution} 计算 $(1,2)$ 与 $(3,4)$ 的线性卷积，并说明直接做长度为 $2$ 的周期卷积得到什么。
+\item\label{exr:na-fft-periodic} 对整数 $m\ge1$，求周期梯形公式作用于 $\cos(mx)$ 的结果，并讨论 $N$ 是否整除 $m$。
+\end{enumerate}
+

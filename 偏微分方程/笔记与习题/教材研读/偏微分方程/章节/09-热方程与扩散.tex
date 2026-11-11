@@ -1,0 +1,135 @@
+% !TeX root = ../偏微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{8} % 保留原书章号。
+\chapter{热方程与扩散}
+\label{chap:heat}
+
+与波动的能量守恒不同，扩散削弱空间不均匀性。热核给出显式解，最大值原理控制振幅，能量法控制平均平方大小；三者从不同角度描述同一机制。
+
+\section{热核与全空间初值问题}
+先在一维寻找单位热量集中在原点后产生的温度分布。扩散长度应与 $\sqrt{\kappa t}$ 同阶，因此尝试\emph{自相似形式（self-similar form）}
+\[
+ K(x,t)=(\kappa t)^{-1/2}F(z),\qquad z=x/\sqrt{\kappa t}.
+\]
+前面的因子使空间积分不随时间变化。代入 $K_t=\kappa K_{xx}$，得到 $F''+(z/2)F'+F/2=0$，即 $(F'+zF/2)'=0$。寻找非负、可积且在无穷远充分衰减的轮廓时，积分常数必须为零，故 $F'=-(z/2)F$，于是 $F=Ae^{-z^2/4}$。最后由单位质量条件确定 $A=(4\pi)^{-1/2}$。各坐标方向的乘积给出高维形式。这个推导解释了核的来源，接下来的直接验证则确认它确实满足方程。
+
+定义\emph{热核（heat kernel）}
+\begin{equation}
+ K_\kappa(x,t)=(4\pi\kappa t)^{-n/2}\exp\left(-\frac{|x|^2}{4\kappa t}\right),\qquad t>0.
+ \label{eq:heat-kernel}
+\end{equation}
+直接求导有
+\[
+ \partial_tK_\kappa=\left(-\frac n{2t}+\frac{|x|^2}{4\kappa t^2}\right)K_\kappa
+ =\kappa\Delta K_\kappa,
+ \qquad \int_{\mathbb R^n}K_\kappa(x,t)\,dx=1.
+\]
+后一等式由一维高斯积分的乘积得到。初值 $g\in L^p(\mathbb R^n)$、$1\le p<\infty$ 时，定义
+\begin{equation}
+ u(x,t)=(K_\kappa(t)*g)(x)=\int_{\mathbb R^n}K_\kappa(x-y,t)g(y)\,dy.
+ \label{eq:heat-convolution}
+\end{equation}
+高斯及其导数的衰减允许在正时间内微分积分，故解光滑且满足方程。记 $\tau_y g(x)=g(x-y)$，则
+\[
+ \|K_\kappa(t)*g-g\|_p
+ \le\int K_\kappa(y,t)\|\tau_y g-g\|_p\,dy\longrightarrow0.
+\]
+证明时把积分分为 $|y|<\delta$ 与其外部：前者用 $L^p$ 中平移连续性，后者用高斯质量集中和 $\|\tau_yg-g\|_p\le2\|g\|_p$。这称逼近恒等算子性质。对有界连续数据可在每个连续点恢复初值；若数据有界且一致连续，则恢复是上确界范数一致的。
+
+卷积可以理解为把所有初始位置的贡献相加。位置 $y$ 附近的初始热量为 $g(y)\,dy$，经过时间 $t$ 后按照以 $y$ 为中心的核 $K_\kappa(x-y,t)$ 分布，积分便叠加了全部位置的响应。热核在 $t=0$ 不具有普通函数值，它的“初值是单位点源”应理解为：对任意连续紧支集函数 $\varphi$，$\int K_\kappa(x,t)\varphi(x)dx\to\varphi(0)$。这里的极限描述积分作用，而不是一个处处有限函数的逐点极限。
+
+\begin{example}[从阶跃温度到平滑过渡层]
+在全轴上取初温 $g(x)=1$（$x>0$）、$g(x)=0$（$x<0$）。虽然它不可积，却有界，热核卷积仍然绝对收敛，并给出
+\[
+ u(x,t)=\int_0^\infty K_\kappa(x-y,t)\,dy
+ =\frac12\left(1+\operatorname{erf}\frac{x}{2\sqrt{\kappa t}}\right),
+ \qquad \operatorname{erf}z=\frac2{\sqrt\pi}\int_0^z e^{-r^2}\,dr.
+\]
+对每个固定 $x\ne0$，$t\downarrow0$ 时恢复原初温；在 $x=0$ 始终取两侧平均值 $1/2$。过渡层的宽度与 $\sqrt{\kappa t}$ 成正比。初值在单个跳点上的赋值不会改变卷积解，也不应要求正时间光滑解在该点恢复任意指定数值。
+\end{example}
+
+\section{最大值原理与比较原理}
+设 $Q_T=\Omega\times(0,T]$，其中 $\Omega$ 有界；其\emph{抛物边界（parabolic boundary）}为 $(\overline\Omega\times\{0\})\cup(\partial\Omega\times[0,T])$。
+\begin{theorem}[弱最大值原理]
+若 $u\in C(\overline Q_T)\cap C^{2,1}(Q_T)$ 且 $u_t-\kappa\Delta u\le0$，则 $\max_{\overline Q_T}u\le\max_{\partial_pQ_T}u$。
+\end{theorem}
+\begin{proof}
+令 $v=u-\varepsilon t$。若 $v$ 的最大值在空间内部且时间正的点取得，则该点有 $\Delta v\le0$、$v_t\ge0$，终止时刻取左时间导数即可，故 $v_t-\kappa\Delta v\ge0$，与其严格小于零矛盾。因此 $v$ 的最大值在抛物边界，令 $\varepsilon\downarrow0$ 得结论。
+\end{proof}
+对两个函数之差应用定理可得\emph{比较原理（comparison principle）}，再分别用于 $u-v$ 和 $v-u$ 得狄利克雷初边值问题唯一性及边界数据的上确界稳定估计。强最大值原理进一步指出：无源热解若在 $(x_0,t_0)$（$x_0\in\Omega,t_0>0$）取得此前整个闭柱体上的最大值，且 $\Omega$ 连通，则在 $\Omega\times(0,t_0]$ 为常数。强形式的证明需要局部传播论证，这里仅陈述供选读。
+
+抛物边界没有包括顶部内部 $\Omega\times\{T\}$，因为演化问题由过去决定未来，终态不是独立给定的数据。证明中 $u-\varepsilon t$ 的作用也值得注意：普通极大点只给出 $u_t-\kappa\Delta u\ge0$，与原式中的“$\le0$”未必矛盾；减去 $\varepsilon t$ 后产生严格负号，才排除内部极大点。
+
+\begin{proposition}[有源问题的振幅估计]
+设上述有界柱体上的经典解满足 $u_t-\kappa\Delta u=f$，抛物边界上 $|u|\le M$，且柱体内 $|f|\le F$，其中 $M,F\ge0$。则 $|u(x,t)|\le M+Ft$。
+\end{proposition}
+\begin{proof}
+函数 $u-M-Ft$ 满足热不等式且抛物边界值非正，最大值原理给出 $u\le M+Ft$。对 $-u-M-Ft$ 作同样处理，得到另一侧估计。
+\end{proof}
+对两组数据的差使用该命题，可同时控制初值、边值及源项的误差。全空间没有紧的闭柱体，不能直接照搬“最大值必取得”的步骤；例如在每个有限时间段有界的经典解类中，可以用 $\varepsilon(|x|^2+(2n\kappa+1)t+1)$ 作屏障，在大球内应用原理再取极限，得到唯一性。若完全不限制空间无穷远处的增长，则不应宣称全空间热方程在任意光滑函数类中都唯一。
+
+\section{平滑效应与瞬时传播}
+对 $g\in L^1$，核的任意空间导数都满足正时间估计，从而 $u(\cdot,t)$ 为光滑函数，这称\emph{平滑效应（smoothing effect）}。例如
+\[
+ \|u(t)\|_\infty\le(4\pi\kappa t)^{-n/2}\|g\|_1.
+\]
+若 $g\ge0$ 且不几乎处处为零，则式\eqref{eq:heat-convolution}的被积函数非负，并在一个正测度集合上为正，所以任意 $x$ 和 $t>0$ 都有 $u(x,t)>0$。这是全空间模型中的瞬时传播，与波动方程的有限传播不同。若 $g$ 变号，则不能照搬该严格正性结论。
+
+\section{能量耗散与长时间行为}
+对光滑解和齐次狄利克雷或诺伊曼边界，乘方程以 $u$ 并积分可得
+\begin{equation}
+ \frac12\frac d{dt}\|u(t)\|_2^2+\kappa\|\nabla u(t)\|_2^2=0.
+ \label{eq:heat-energy}
+\end{equation}
+在有界连通利普希茨区域上，零边界函数满足 $\|\nabla v\|_2^2\ge\lambda_1\|v\|_2^2$，其中 $\lambda_1>0$ 为第一狄利克雷本征值。故
+\[
+ \|u(t)\|_2\le e^{-\kappa\lambda_1t}\|g\|_2.
+\]
+诺伊曼情形中，积分方程得到平均值 $\bar g=|\Omega|^{-1}\int_\Omega g$ 不变；对 $u-\bar g$ 使用零平均值庞加莱不等式，便知解趋于 $\bar g$。若有不随时间变化的源项，应先求稳态并对偏离稳态的量作估计。
+
+\begin{example}[绝热杆的长期温度]
+在 $0<x<\ell$ 上令 $u_x(0,t)=u_x(\ell,t)=0$、$g(x)=2+\cos(\pi x/\ell)$。余弦展开直接给出
+\[
+ u(x,t)=2+e^{-\kappa(\pi/\ell)^2t}\cos(\pi x/\ell).
+\]
+空间积分恒为 $2\ell$，温度逐渐趋于 $2$。虽然 $\|u\|_2$ 不趋于零，但 $\|u-2\|_2$ 指数趋于零；扩散消除的是温度差，并不会在绝热条件下自动移走平均热量。这里 $\int u$ 表示总量，而 $\int u^2$ 是分析中使用的二次能量，两者不是同一个守恒量。
+\end{example}
+
+在全空间中，若 $g\ge0$ 且具有有限二阶矩，热核卷积还给出
+\[
+ \int_{\mathbb R^n}|x|^2u(x,t)\,dx
+ =\int_{\mathbb R^n}|y|^2g(y)\,dy+2n\kappa t\int_{\mathbb R^n}g(y)\,dy.
+\]
+证明只需在卷积中令 $x=y+z$，展开 $|y+z|^2$；核的对称性使交叉项为零，每个坐标的二阶矩为 $2\kappa t$。非负性允许用托内利定理交换积分，有限二阶矩保证结果有限。这从总量分布的角度再次说明扩散尺度为 $\sqrt t$。
+
+\section{受迫热方程与逆向不适定性}
+对光滑且满足适当可积性的源项，杜阿梅尔公式为
+\[
+ u(t)=K_\kappa(t)*g+\int_0^t K_\kappa(t-s)*f(s)\,ds.
+\]
+核在 $t=s$ 附近的意义可先通过光滑数据直接验证，再以范数估计扩展。
+
+逆向恢复初值则不同。在区间零边界问题中取规范模态 $\phi_m=\sqrt{2/\ell}\sin(m\pi x/\ell)$，令
+\[
+ u_m(x,t)=e^{-\kappa(m\pi/\ell)^2t}\phi_m(x).
+\]
+初值的 $L^2$ 范数恒为一，但对固定 $T>0$，终值范数趋于零。因此在可达终值集合上，终值到初值的逆映射在 $L^2$ 范数下不连续：任意小的终值误差也可能对应不可忽略的初值误差。
+
+\section{例题与习题}
+\begin{example}
+设 $g(x)=M(4\pi\alpha)^{-n/2}e^{-|x|^2/(4\alpha)}$，$M>0$、$\alpha>0$。求全空间热方程的解。
+\end{example}
+\begin{solve}
+高斯卷积通过配方得到参数相加，故
+\[
+ u(x,t)=M\,[4\pi(\alpha+\kappa t)]^{-n/2}
+ \exp\left(-\frac{|x|^2}{4(\alpha+\kappa t)}\right).
+\]
+空间积分始终为 $M$，峰值下降，而每个坐标方向的方差由 $2\alpha$ 增为 $2(\alpha+\kappa t)$。扩散降低峰值但不消灭总量。
+\end{solve}
+\begin{enumerate}
+ \item 对非负可积初值证明全空间总质量守恒，并说明交换积分的依据。
+ \item 比较同一初温在绝热杆与零温端点杆中的极限状态。
+ \item 将高频反例改为终值中任意小扰动会引起指定大小初值误差的表述。
+\end{enumerate}
+

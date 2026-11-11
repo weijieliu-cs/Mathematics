@@ -1,0 +1,80 @@
+% !TeX root = ../泛函分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{0} % 保留原书章号。
+\chapter{测度与积分的必要知识}
+\label{app:fa-measure}
+
+本附录补充 $L^p$ 理论中直接用到的概念与估计。测度构造、一般测度表示和乘积测度理论只陈述所需结果；它们可在实分析课程中系统学习，相关测度、积分、对偶表示及 Sobolev 空间内容参阅\cite{teschl-ra}。
+
+\section{测度、可测函数与几乎处处}
+集合 $\Omega$ 上的 $\sigma$ 代数 $\mathcal A$ 包含 $\Omega$，并对补集与可数并封闭。测度 $\mu:\mathcal A\to[0,\infty]$ 满足 $\mu(\varnothing)=0$，且对两两不交的 $E_n$，$\mu(\bigcup_nE_n)=\sum_n\mu(E_n)$。若 $\Omega$ 可由可数个有限测度集覆盖，称测度 $\sigma$ 有限。
+
+实函数 $f$ 可测，是指 $\{x:f(x)>a\}\in\mathcal A$ 对每个实数 $a$ 成立；复函数的实部与虚部均可测时称可测。某性质在一个零测集之外成立，称其几乎处处（almost everywhere）成立。零测集的任意子集仍可测时，称测度完备。欧氏空间的 Borel $\sigma$ 代数由开集生成；Lebesgue 可测集还包括对 Borel 测度作完备化时加入的零测子集。
+
+\section{积分与收敛定理}
+非负简单函数写为 $s=\sum_{j=1}^ma_j\mathbf1_{E_j}$，其中 $a_j\geq0$ 且 $E_j$ 两两不交，定义 $\int s\,\mathrm d\mu=\sum_ja_j\mu(E_j)$，约定 $0\cdot\infty=0$。对非负可测 $f$，定义
+\[
+ \int f\,\mathrm d\mu=\sup\left\{\int s\,\mathrm d\mu:0\leq s\leq f,\ s\text{ 为简单函数}\right\}.
+\]
+对实函数使用正负部分之差；当 $\int|f|<\infty$ 时称可积，复函数再分别积分实部与虚部。
+
+\begin{theorem}[三个收敛工具]\label{thm:fa-measure-convergence}
+以下函数均可测，等式与不等式允许非负积分为无穷。
+\begin{enumerate}
+ \item 若 $0\leq f_n\uparrow f$ 几乎处处，则 $\int f_n\uparrow\int f$（单调收敛定理）。
+ \item 若 $f_n\geq0$，则 $\int\liminf_nf_n\leq\liminf_n\int f_n$（Fatou 引理）。
+ \item 若 $f_n\to f$ 几乎处处，且 $|f_n|\leq g$，其中 $g$ 非负可积，则 $\int|f_n-f|\to0$，从而 $\int f_n\to\int f$（支配收敛定理）。
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+单调情形中，$\lim_n\int f_n\leq\int f$。反向任取简单函数 $0\leq s\leq f$ 与 $0<\alpha<1$，在 $\{s>0\}$ 上集合 $E_n=\{f_n\geq\alpha s\}$ 递增并覆盖该集合。由测度的从下连续性，$\int\alpha s\mathbf1_{E_n}\to\alpha\int s$，而每一项不超过 $\int f_n$。令 $\alpha\uparrow1$ 再对 $s$ 取上确界得到等式。
+
+令 $h_n=\inf_{k\geq n}f_k$，则 $h_n\uparrow\liminf f_n$ 且 $\int h_n\leq\inf_{k\geq n}\int f_k$，由单调收敛得到 Fatou 引理。支配情形中 $|f|\leq g$，对非负函数 $2g-|f_n-f|$ 用 Fatou 引理，得到 $\limsup_n\int|f_n-f|\leq0$。
+\end{proof}
+对两个 $\sigma$ 有限测度空间，本书引用 Tonelli--Fubini 定理：非负可测函数可交换积分次序，允许结果无穷；若函数的绝对值在乘积测度下可积，则两次迭代积分存在并等于乘积积分。交换极限、积分或求和前，应先说明使用的是哪一项条件。
+
+\begin{example}[为什么极限与积分不能随意交换]
+在 $(0,1)$ 上，$f_n(t)=n\mathbf1_{(0,1/n)}(t)$ 几乎处处趋于零，但 $\int_0^1f_n=1$ 对每个 $n$ 成立。
+\end{example}
+\begin{solve}
+固定 $t>0$ 后，只要 $n>1/t$ 就有 $f_n(t)=0$；积分却等于高度乘宽度 $n\cdot(1/n)=1$。这里质量越来越集中在零点附近，缺少一个统一的可积控制函数。若存在 $g\in L^1$ 支配全部 $f_n$，支配收敛定理会给出积分趋零，矛盾。因此逐点极限只观察每个固定位置，不能单独排除移动或集中的质量。Fatou 引理在本例仍给出正确的不等式 $0\leq1$，但并不声称等号。
+\end{solve}
+
+\section{Hölder 与 Minkowski 不等式}
+\begin{proposition}\label{prop:fa-holder-minkowski}
+若 $1\leq p,q\leq\infty$、$1/p+1/q=1$，则对 $f\in L^p(\mu)$、$g\in L^q(\mu)$，
+\[
+ \int|fg|\,\mathrm d\mu\leq\|f\|_p\|g\|_q.
+\]
+对 $1\leq p\leq\infty$ 及 $f,g\in L^p(\mu)$，还成立 $\|f+g\|_p\leq\|f\|_p+\|g\|_p$。
+\end{proposition}
+\begin{proof}
+当 $1<p<\infty$ 时，Young 不等式 $ab\leq a^p/p+b^q/q$ 可通过对 $a$ 的一元极值计算证明。把 $f,g$ 分别除以其非零范数，积分后即得 Hölder；范数为零时直接成立，端点 $p=1,q=\infty$ 用几乎处处上界。
+
+对 $1<p<\infty$，先由 $|f+g|^p\leq2^{p-1}(|f|^p+|g|^p)$ 保证可积，再写
+\[
+ \|f+g\|_p^p
+ \leq\int(|f|+|g|)|f+g|^{p-1}
+ \leq(\|f\|_p+\|g\|_p)\|f+g\|_p^{p-1}.
+\]
+除去公共因子得到 Minkowski；若该因子为零则结论直接成立。端点 $p=1,\infty$ 由三角不等式得到。
+\end{proof}
+简单函数在 $L^p(\mu)$（$p<\infty$）中稠密：先截断函数的幅值与小值部分，使所剩非零支撑有限测度，再将值域划分为有限小区间，最后用支配收敛控制误差。在 $\mathbb R^d$ 的 Lebesgue 测度下，进一步有 $C_c^\infty$ 在 $L^p$ 中稠密；该光滑逼近结论在本书作为实分析结果引用，不对任意抽象测度空间无条件使用。
+
+\section{对偶表示所用结果}
+有限有符号或复测度 $\nu$ 的全变差记为 $|\nu|$；对可测集 $E$，$|\nu|(E)$ 是有限可测分割 $E=\bigcup_jE_j$ 上 $\sum_j|\nu(E_j)|$ 的上确界。若 $\mu(E)=0$ 蕴含 $\nu(E)=0$，记 $\nu\ll\mu$，称为绝对连续。
+
+本书引用 Radon--Nikodym 定理的如下形式：若 $\mu$ 为 $\sigma$ 有限正测度、$\nu$ 为全变差有限且 $\nu\ll\mu$ 的有符号或复测度，则存在 $g\in L^1(\mu)$，使 $\nu(E)=\int_Eg\,\mathrm d\mu$，且 $g$ 几乎处处唯一。
+
+它给出 $L^p$ 对偶表示的基本思路：对 $L^p$ 上的有界泛函，在有限测度区域内定义 $\nu(E)=F(\mathbf1_E)$，验证可数可加性与绝对连续性；用 Radon--Nikodym 得到密度，再用 Hölder 型测试证明密度属于 $L^q$ 且范数相等。将可数个有限测度区域拼接，就得到 $\sigma$ 有限情形。这里仅说明表示证明的路线，不代替测度论中的完整论证。
+
+另一项引用结果是 Riesz--Markov 表示：若 $K$ 为紧度量空间，$C(K)$ 上每个连续线性泛函都唯一写为 $F(f)=\int_Kf\,\mathrm d\nu$，其中 $\nu$ 为有限正则 Borel 有符号测度或复测度，且 $\|F\|=|\nu|(K)$。正则性指其全变差可由内侧紧集和外侧开集逼近。它与 Hilbert 空间的 Riesz 表示有不同的表示对象，不可混同。
+
+\section{习题}
+\begin{enumerate}
+ \item 用计数测度从积分不等式推出数列版本。
+ \item 若 $\mu(\Omega)<\infty$、$1\leq p<q<\infty$，证明 $\|f\|_p\leq\mu(\Omega)^{1/p-1/q}\|f\|_q$。
+ \item 取 $f_n=n\mathbf1_{(0,1/n)}$，说明几乎处处趋零为何不保证积分趋零。
+ \item 用 $L^p$ 的稠密性区分“连续函数可逼近可积函数”与“可积函数本身连续”。
+\end{enumerate}
+

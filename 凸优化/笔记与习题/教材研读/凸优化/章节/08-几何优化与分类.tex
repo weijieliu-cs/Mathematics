@@ -1,0 +1,123 @@
+% !TeX root = ../凸优化笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{7} % 保留原书章号。
+\chapter{几何优化与分类}
+\label{ch:co-geometry}
+
+距离、包含、分离和位置都可以转化为优化约束。建模的关键是选择合适的变量：同一个几何对象采用不同参数化，可能显露或遮蔽凸结构。
+
+\section{向凸集投影与最优性}
+
+对非空闭凸集 $C$，欧氏投影（Euclidean projection）定义为
+\begin{equation}
+ \Pi_C(z)=\mathop{\mathrm{arg\,min}}_{x\in C}\frac12\|x-z\|_2^2.
+ \label{eq:co-projection}
+\end{equation}
+根据定理\ref{thm:co-projection-existence}，最优解唯一，故这里将最优解集合与其中唯一元素认同。由一阶最优性条件，$u=\Pi_C(z)$ 当且仅当
+\[
+ (z-u)^{\mathsf T}(x-u)\leq0\quad\text{对所有 }x\in C.
+\]
+这表示从投影点指向给定点 $z$ 的方向，与所有可行位移都成非锐角。
+
+\begin{proposition}[投影的非扩张性]
+$\|\Pi_C(z)-\Pi_C(w)\|_2\leq\|z-w\|_2$。
+\end{proposition}
+\begin{proof}
+令 $u=\Pi_C(z)$、$v=\Pi_C(w)$，在两条投影不等式中分别取 $x=v,u$ 并相加，得 $\|u-v\|_2^2\leq(u-v)^{\mathsf T}(z-w)$。再用柯西--施瓦茨不等式；若 $u=v$ 则结论直接成立。
+\end{proof}
+
+到半空间的投影已在第\ref{ch:co-sets}章求出。点 $z$ 到球 $\{x:\|x-c\|_2\leq r\}$ 的投影在 $z$ 位于球内时为 $z$，在球外时为 $c+r(z-c)/\|z-c\|_2$。到满行秩仿射集合 $Ax=b$ 的投影为 $z-A^{\mathsf T}(AA^{\mathsf T})^{-1}(Az-b)$，可由最小范数修正求得。
+
+\begin{example}[投影到概率单纯形]
+给定 $z\in\mathbb R^n$，求使 $\|x-z\|_2^2/2$ 最小的概率向量 $x\geq0$、$\sum_i x_i=1$。
+\end{example}
+\begin{solve}
+给等式配乘子 $\tau$，给 $-x_i\leq0$ 配乘子 $\lambda_i$。驻点条件为 $x_i-z_i+\tau-\lambda_i=0$。若 $x_i>0$，则 $\lambda_i=0$，故 $x_i=z_i-\tau$；若 $x_i=0$，则 $\lambda_i=\tau-z_i\geq0$。两种情况合并为
+\begin{equation}
+ x_i^\star=\max\{z_i-\tau,0\},\qquad
+ \sum_i\max\{z_i-\tau,0\}=1.
+ \label{eq:co-simplex-projection}
+\end{equation}
+最后一式的左侧连续，在正值区域严格递减，且从 $+\infty$ 下降到零，所以恰有一个解 $\tau$。可用二分或排序寻找它。例如 $z=(0.8,0.5,-0.1)$ 时，取 $\tau=0.15$ 得 $x^\star=(0.65,0.35,0)$。投影同时满足非负与总和限制；只把负数截成零后再按比例归一化，一般不是欧氏距离下的最近点。
+\end{solve}
+
+投影也说明了怎样把一个不符合约束的试探方案修正为可行方案。非扩张性保证输入的小变化不会在修正后被放大，这正是第\ref{sec:co-projected-gradient}节投影梯度法的基础。它与第\ref{ch:co-sets}章中消去坐标的线性投影不同：到一般凸集的最近点映射通常是非线性的。
+
+\section{集合距离与分离问题}
+
+非空凸集 $C,D$ 的距离为 $\inf_{x\in C,y\in D}\|x-y\|_2$，是关于 $(x,y)$ 的凸优化。若一个集合紧、另一个闭，取极小化序列并利用有界性可得到收敛子列，因此距离取到；不相交时该距离严格为正。
+
+但两个闭凸集不相交时距离仍可能为零。例如 $C=\{(x,y):y\geq e^x\}$、$D=\{(x,y):y\leq0\}$，取 $(x,e^x)$ 与 $(x,0)$，令 $x\to-\infty$ 即可使距离趋零，且永不相交。
+
+支撑函数 $\sigma_C(v)=\sup_{x\in C}v^{\mathsf T}x$ 将点到集合的距离写为
+\[
+ \operatorname{dist}(z,C)=\max_{\|v\|_2\leq1}\{v^{\mathsf T}z-\sigma_C(v)\}
+\]
+，其中 $C$ 非空闭凸。任意可行 $v$ 和 $x\in C$ 满足 $v^{\mathsf T}z-\sigma_C(v)\leq\|z-x\|_2$；若 $z\notin C$，取 $v=(z-\Pi_C(z))/\|z-\Pi_C(z)\|_2$，投影不等式保证下界取等号。若 $z\in C$，取 $v=0$。这给出了距离问题的一个对偶解释。
+
+\section{距离矩阵、格拉姆矩阵与半正定表示}
+
+设未知点 $p_1,\ldots,p_N\in\mathbb R^d$ 作为矩阵 $P$ 的行，格拉姆矩阵（Gram matrix）为 $G=PP^{\mathsf T}\succeq0$。平方距离满足
+\[
+ \|p_i-p_j\|_2^2=G_{ii}+G_{jj}-2G_{ij}.
+\]
+因此给定部分平方距离会形成关于 $G$ 的仿射约束。反之，若 $G\succeq0$ 且秩为 $r$，由谱分解 $G=U_r\Lambda_rU_r^{\mathsf T}$，矩阵 $P=U_r\Lambda_r^{1/2}$ 的行给出 $\mathbb R^r$ 中的一组坐标。
+
+若要求固定低维空间，例如 $d=2$，还须加上 $\operatorname{rank}G\leq d$，这是非凸限制。删除秩约束得到 SDP 松弛，得到的点集可能需要更高维空间才能准确实现。截取最大的 $d$ 个特征值可以给出近似坐标，但应重新计算距离误差。
+
+距离不随整体平移而改变，格拉姆矩阵却会改变，所以仅从距离通常不能确定唯一的 $G$。可加入中心化条件 $G\mathbf1=0$，对应点集质心位于原点。即使如此，坐标仍可整体旋转或反射；这些变换不改变任何距离，不应被误认为求解有误。优化中的唯一性应针对所选变量和实际可识别的对象分别讨论。
+
+\section{极值体积椭球与不同中心}
+
+用 $E=\{x:\|Bx+d\|_2\leq1\}$ 表示椭球，其中 $B\succ0$。其体积为单位球体积除以 $\det B$，故包围点 $a_i$ 的最小体积椭球可求解
+\[
+ \min_{B\succ0,d}-\log\det B,
+ \qquad \|Ba_i+d\|_2\leq1\quad\text{对所有 }i.
+\]
+约束关于 $(B,d)$ 凸。若点集仿射张成全空间，则可得到非退化最小包围椭球；若点集低维，满维体积的下确界可能为零而不取到。
+
+对于多面体 $C=\{x:a_i^{\mathsf T}x\leq b_i\}$，内接椭球用 $E=\{c+Bu:\|u\|_2\leq1\}$、$B\succ0$ 表示。其包含条件等价于 $a_i^{\mathsf T}c+\|Ba_i\|_2\leq b_i$，体积正比于 $\det B$，故最大化 $\log\det B$ 是凸优化意义下的凹最大化。存在满维可行椭球需多面体有内点；有界性使最大体积有限。
+
+切比雪夫中心（Chebyshev center）选择最大内接球中心，可通过 LP 求得：最大化 $r\geq0$，满足 $a_i^{\mathsf T}c+r\|a_i\|_2\leq b_i$。解析中心（analytic center）则最小化 $-\sum_i\log(b_i-a_i^{\mathsf T}c)$，定义于严格可行域。对于有界、具有严格可行点的多面体，目标逼近边界时趋于无穷，故中心存在；不同的冗余约束表示可能改变解析中心。
+
+椭球模型的变量选择尤其值得注意。直接把中心 $c$ 和形状矩阵 $B$ 同时放进 $\|B(x-c)\|_2\leq1$，会出现变量乘积 $Bc$；包围椭球使用独立变量 $d=-Bc$ 后，样本约束 $\|Ba_i+d\|_2\leq1$ 才显出仿射复合结构。求解后再恢复 $c=-B^{-1}d$。等价重参数化的价值就在于把被变量乘积遮住的凸性显露出来。
+
+\section{线性分类与最大间隔}
+
+给定样本 $a_i\in\mathbb R^n$、标签 $y_i\in\{-1,1\}$，假设两类样本都存在，分类超平面为 $w^{\mathsf T}x+\beta=0$，其中 $w\ne0$。若数据线性可分，可缩放 $w,\beta$，使 $y_i(w^{\mathsf T}a_i+\beta)\geq1$。点到超平面的距离为 $|w^{\mathsf T}a_i+\beta|/\|w\|_2$，因此最大化规范化后的间隔等价于硬间隔支持向量机（support vector machine，SVM）：
+\[
+ \min_{w,\beta}\frac12\|w\|_2^2,
+ \qquad y_i(w^{\mathsf T}a_i+\beta)\geq1.
+\]
+不可分时引入松弛量 $\xi_i\geq0$，将右侧改为 $1-\xi_i$，目标加入 $C\sum_i\xi_i$，其中 $C>0$。消去松弛量就得到铰链损失 $\max\{0,1-y_i(w^{\mathsf T}a_i+\beta)\}$。
+
+硬间隔模型的驻点条件给出 $w=\sum_i\alpha_i y_i a_i$、$\sum_i\alpha_i y_i=0$、$\alpha_i\geq0$；互补松弛为 $\alpha_i[y_i(w^{\mathsf T}a_i+\beta)-1]=0$。因此只有间隔约束活跃的样本可能有非零乘子，它们决定分类法向量，称为支持向量。
+
+这一归一化不是对原始数据的额外假设。对有限个严格分离的样本，最小的带符号分数 $m=\min_i y_i(w^{\mathsf T}a_i+\beta)$ 为正；同时除以 $m$ 就使最小分数恰为一，几何超平面没有改变。规范化之后，两条支持平面 $w^{\mathsf T}x+\beta=\pm1$ 的距离为 $2/\|w\|_2$，所以最小化 $\|w\|_2^2/2$ 正是在最大化这个间隔。
+
+代入驻点条件还可得到硬间隔对偶：
+\[
+ \max_{\alpha\geq0}\
+ \sum_i\alpha_i-\frac12\left\|\sum_i\alpha_i y_i a_i\right\|_2^2,
+ \qquad \sum_i\alpha_i y_i=0.
+\]
+对偶把优化变量从特征维度转移到样本维度，并只通过内积 $a_i^{\mathsf T}a_j$ 使用特征。软间隔模型中，对 $\xi_i$ 的驻点条件进一步产生 $0\leq\alpha_i\leq C$；上界反映允许违反间隔时所支付的惩罚。这里仅解释线性模型，统计泛化能力仍取决于数据与模型假设。
+
+\section{设施定位、网络布局与平面布置}
+
+给定需求点 $a_i$ 和非负权重 $w_i$，设施位置 $x$ 可由 $\min_x\sum_iw_i\|x-a_i\|_2$ 确定。引入 $t_i\geq\|x-a_i\|_2$ 即为 SOCP；区域约束若为凸集，模型仍凸。多个设施且连接关系固定时，代价 $\sum_{(i,j)}w_{ij}\|x_i-x_j\|_2$ 也凸。
+
+若同时决定哪个设施服务哪个客户，会出现离散指派；这部分通常不能直接保留在纯凸模型中。矩形非重叠也包含“左、右、上、下”中的离散选择。只有预先固定相对关系，或采用其他具有明确保证的松弛，才可将相应位置限制写成单组凸约束。
+
+\section{例题与学习检查}
+\begin{example}[一维最大间隔]
+负类点为 $-2$，正类点为 $2$。硬间隔约束为 $2w-\beta\geq1$、$2w+\beta\geq1$，相加得 $w\geq1/2$。故最小化 $w^2/2$ 时取 $w=1/2$、$\beta=0$，分类边界为原点，两侧几何间隔均为 $2$。
+\end{example}
+\begin{enumerate}
+ \item 求 $(3,4)$ 到单位闭球的投影，验证距离为 $4$，投影为 $(3/5,4/5)$。
+ \item 推导盒状区域 $l_i\leq x_i\leq u_i$ 上的欧氏投影。答案为逐坐标截断。
+ \item 比较区间 $[0,3]$ 的最大内接球中心与解析中心；再添加冗余约束 $x<4$，检查解析中心是否改变。
+ \item 给定三点的部分距离，写出 $3\times3$ 格拉姆矩阵的 SDP 可行性模型，并指出若要求点都在直线上须补充什么条件。
+ \item 算法准备：按式\eqref{eq:co-simplex-projection}求 $z=(2,1,-1)$ 到三维概率单纯形的投影，写出全部 KKT 乘子。核对结果为 $(1,0,0)$，阈值为 $\tau=1$。
+\end{enumerate}
+

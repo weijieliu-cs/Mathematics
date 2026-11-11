@@ -1,0 +1,119 @@
+% !TeX root = ../本科微分几何笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{空间曲线的局部理论}
+\label{chap:dg-curves}
+
+\section{正则曲线、弧长与参数变换}
+\begin{definition}[正则参数曲线]
+设 $I\subset\R$ 为开区间，$\gamma:I\to\R^3$ 为光滑映射。若对每个 $t\in I$ 均有 $\gamma'(t)\ne0$，称其为\emph{正则参数曲线（regular parametrized curve）}。若 $\phi:J\to I$ 为光滑微分同胚，则 $\widetilde\gamma=\gamma\circ\phi$ 为可容许的重新参数化；$\phi'>0$ 时保持曲线方向，$\phi'<0$ 时反转曲线方向。
+\end{definition}
+曲线可以自交；在自交点，不同参数值对应不同的局部曲线分支。曲线的像集与参数化映射不是同一个对象，例如同一个圆可以绕行一次或多次。长度积分会记录绕行重数。
+
+以 $t_0\in I$ 为基点，定义有向\emph{弧长（arc length）}坐标
+\[
+ s(t)=\int_{t_0}^t\norm{\gamma'(\xi)}\dd\xi.
+\]
+它严格递增且 $s'(t)>0$，故由定理~\ref{thm:dg-ift} 有光滑逆 $t=t(s)$。于是
+\begin{equation}
+ \norm{\frac{\dd\gamma}{\dd s}}=1,
+ \qquad \frac{\dd}{\dd s}=\frac1{\norm{\gamma'(t)}}\frac{\dd}{\dd t}.
+ \label{eq:dg-arclength}
+\end{equation}
+在紧区间 $[a,b]\subset I$ 上，长度 $L=\int_a^b\norm{\gamma'}\dd t$ 在可容许参数变换下不变，这由一元积分换元公式直接推出。弧长参数把行进速度标准化，使后面的导数主要反映方向变化。
+
+\section{曲率、挠率与 Frenet 标架}
+设 $\gamma(s)$ 为单位速曲线，记单位切向量 $\mathbf t=\gamma'$。由 $\ip{\mathbf t}{\mathbf t}=1$ 得 $\ip{\mathbf t'}{\mathbf t}=0$，故切向量的导数垂直于切线。
+\begin{definition}[曲率与 Frenet 标架]
+单位速曲线的\emph{曲率（curvature）}为 $\kappa=\norm{\mathbf t'}$。在 $\kappa>0$ 的区间内，定义主法向量 $\mathbf n=\mathbf t'/\kappa$、次法向量 $\mathbf b=\mathbf t\times\mathbf n$。三者构成正向标准正交的\emph{Frenet 标架（Frenet frame）}。\emph{挠率（torsion）}定义为 $\tau=-\ip{\mathbf b'}{\mathbf n}$。
+\end{definition}
+
+\begin{theorem}[Frenet--Serret 公式]
+若 $\gamma$ 是 $C^3$ 单位速曲线且 $\kappa>0$，则
+\begin{equation}
+ \mathbf t'=\kappa\mathbf n,\qquad
+ \mathbf n'=-\kappa\mathbf t+\tau\mathbf b,\qquad
+ \mathbf b'=-\tau\mathbf n.
+ \label{eq:dg-frenet}
+\end{equation}
+\end{theorem}
+\begin{proof}
+第一式是定义。对各内积恒等式求导可知正交标架的导数系数矩阵反对称。又由 $\mathbf b\perp\mathbf t$ 和 $\mathbf t'=\kappa\mathbf n$ 得 $\ip{\mathbf b'}{\mathbf t}=0$；结合 $\mathbf b'\perp\mathbf b$，可知 $\mathbf b'$ 只沿 $\mathbf n$ 方向，其系数由挠率定义确定。最后对 $\ip{\mathbf n}{\mathbf t}=0$、$\ip{\mathbf n}{\mathbf b}=0$ 求导，即得第二式。
+\end{proof}
+
+\begin{proposition}[一般参数公式]
+若 $\gamma'(t)\ne0$，则
+\begin{equation}
+ \kappa=\frac{\norm{\gamma'\times\gamma''}}{\norm{\gamma'}^3}.
+ \label{eq:dg-curvature-general}
+\end{equation}
+若进一步 $\gamma'\times\gamma''\ne0$，则
+\begin{equation}
+ \tau=\frac{\det(\gamma',\gamma'',\gamma''')}{\norm{\gamma'\times\gamma''}^2}.
+ \label{eq:dg-torsion-general}
+\end{equation}
+\end{proposition}
+\begin{proof}
+记速度 $q=\dd s/\dd t>0$。由链式法则，$\gamma'=q\mathbf t$、$\gamma''=q'\mathbf t+q^2\kappa\mathbf n$，故 $\gamma'\times\gamma''=q^3\kappa\mathbf b$。再求导，$\gamma'''$ 沿 $\mathbf b$ 的分量为 $q^3\kappa\tau$，三重积因此为 $q^6\kappa^2\tau$。两式相除得到结论。
+\end{proof}
+曲率在反向参数化下不变，挠率也不变；空间反射则保持曲率而反转挠率。曲率为零时仍有切向量，但上述主法向量和挠率未定义，不能把含有 $1/\kappa$ 的公式直接延伸到该点。
+
+\begin{example}[圆柱螺线]\label{exam:dg-helix}
+给定 $a>0$、$b\in\R$，求 $\gamma(t)=(a\cos t,a\sin t,bt)$ 的曲率和挠率。
+\end{example}
+\begin{solve}
+速度为 $\sqrt{a^2+b^2}$。计算得
+\[
+ \gamma'\times\gamma''=(ab\sin t,-ab\cos t,a^2),\quad
+ \det(\gamma',\gamma'',\gamma''')=a^2b.
+\]
+代入式~\eqref{eq:dg-curvature-general}、\eqref{eq:dg-torsion-general} 得
+\[
+ \kappa=\frac a{a^2+b^2},\qquad \tau=\frac b{a^2+b^2}.
+\]
+当 $b=0$ 时退化为半径 $a$ 的圆；改变 $b$ 的符号改变螺旋的手性，恰好反映在挠率符号上。
+\end{solve}
+
+\section{曲线的局部近似与平面性}
+在 $s=0$ 处用 Frenet 标架作坐标轴，单位速曲线的 Taylor 展开为
+\begin{equation}
+ \gamma(s)=\gamma(0)+s\mathbf t_0+\frac{s^2}{2}\kappa_0\mathbf n_0
+ +\frac{s^3}{6}(-\kappa_0^2\mathbf t_0+\kappa'_0\mathbf n_0
+ +\kappa_0\tau_0\mathbf b_0)+o(s^3).
+ \label{eq:dg-curve-taylor}
+\end{equation}
+这里需 $C^3$ 且附近 $\kappa>0$。切线给出一阶近似，$\mathbf t_0,\mathbf n_0$ 张成的\emph{密切平面（osculating plane）}包含二阶近似；挠率控制三阶项离开密切平面的程度。中心为 $\gamma(0)+\mathbf n_0/\kappa_0$、半径为 $1/\kappa_0$ 的\emph{密切圆（osculating circle）}与曲线的适当单位速参数化在二阶导数上匹配。
+
+\begin{proposition}[零曲率与零挠率]
+单位速曲线在连通区间上若 $\kappa\equiv0$，则它是一段直线。若 $\kappa>0$，则曲线包含于某个平面的充要条件是 $\tau\equiv0$。
+\end{proposition}
+\begin{proof}
+第一种情形 $\gamma''=0$，积分即得直线。第二种情形若 $\tau=0$，则 $\mathbf b'=0$，于是 $\ip{\gamma(s)-\gamma(s_0)}{\mathbf b(s_0)}$ 的导数为零，曲线处于一个固定平面内。反过来，若曲线位于法向为常向量 $a$ 的平面，$\mathbf t,\mathbf n$ 均垂直于 $a$，故连续的 $\mathbf b$ 等于固定的 $a/\norm a$ 或其负向，挠率为零。
+\end{proof}
+
+\section{曲线论基本定理}
+\begin{theorem}[曲率与挠率决定曲线]
+设 $I$ 为区间，给定光滑函数 $\kappa:I\to(0,\infty)$、$\tau:I\to\R$、初始点 $p_0$ 及正向标准正交标架 $(t_0,n_0,b_0)$。对任意 $s_0\in I$，存在唯一单位速曲线 $\gamma:I\to\R^3$，使其在 $s_0$ 处具有这些初始数据，曲率与挠率分别为 $\kappa,\tau$。不固定初始数据时，曲线在保持定向的刚体运动意义下唯一。
+\label{thm:dg-curve-fundamental}
+\end{theorem}
+\begin{proof}
+把式~\eqref{eq:dg-frenet} 视为标架的线性常微分方程，系数光滑，故在整个 $I$ 上有唯一解。令 $Q$ 以三个标架向量为列，则 $Q'=QA$，其中 $A$ 反对称。矩阵 $Q^{\mathsf T}Q$ 满足线性方程 $G'=A^{\mathsf T}G+GA$，初值为 $I_3$，常矩阵 $I_3$ 也是解；唯一性给出正交性。行列式连续且初值为 $1$，故标架始终正向。
+
+定义 $\gamma(s)=p_0+\int_{s_0}^s\mathbf t(\sigma)\dd\sigma$，得到单位速曲线；由 $\mathbf t'=\kappa\mathbf n$ 及 $\kappa>0$，其 Frenet 标架就是所构造的标架。其他解必满足相同初值问题，因而相同。不同初始正向标架之间由唯一的旋转联系，再加上平移即可比较初始点。
+\end{proof}
+严格正曲率保证 Frenet 标架可定义。定理不声称构造出的曲线无自交，也不声称周期的 $\kappa,\tau$ 一定给出闭曲线；闭合还要求标架及位置满足整体相容条件。
+
+\section{习题}
+\begin{exercise}\label{ex:dg-curves-parabola}
+求 $\gamma(t)=(t,t^2,0)$ 的曲率及 $t=0$ 处的密切圆。
+\end{exercise}
+\begin{exercise}\label{ex:dg-curves-reverse}
+用一般参数公式证明：反转曲线参数不改变曲率和挠率，而空间反射改变挠率的符号。
+\end{exercise}
+\begin{exercise}\label{ex:dg-curves-lancret}
+设单位速曲线 $\kappa>0$。证明 $\tau/\kappa$ 为常数，当且仅当单位切向量与某个固定单位向量的夹角为常数。
+\end{exercise}
+\begin{exercise}\label{ex:dg-curves-circle}
+证明：单位速曲线满足 $\kappa\equiv c>0$、$\tau\equiv0$，当且仅当它是半径 $1/c$ 的圆的一段参数化。
+\end{exercise}
+

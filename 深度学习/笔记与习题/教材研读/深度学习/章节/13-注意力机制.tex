@@ -1,0 +1,50 @@
+% !TeX root = ../深度学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{12} % 保留原书章号。
+\chapter{注意力机制}
+\label{chap:dl-attention}
+单个循环状态必须把整个历史压缩到固定维度。注意力则保留一组候选表示，并根据当前需求选择性聚合：问题决定查询，候选提供可匹配的键，真正被汇总的信息存放在值中。
+
+\section{从固定状态到内容寻址}
+\emph{注意力（attention）}给定查询 $\mathbf q$、键 $\mathbf k_j$ 和值 $\mathbf v_j$，先计算分数 $e_j=s(\mathbf q,\mathbf k_j)$，再令 $a_j=e^{e_j}/\sum_re^{e_r}$，输出 $\sum_ja_j\mathbf v_j$。$\mathbf q$、$\mathbf k_j$、$\mathbf v_j$ 分别称\emph{查询（query）}、\emph{键（key）}和\emph{值（value）}。同一批值可以因查询不同得到不同组合，区别于固定权重的平均。
+
+点积打分使用 $\mathbf q^\mathsf T\mathbf k$；加性打分可用 $\mathbf a^\mathsf T\tanh(\mathbf W_q\mathbf q+\mathbf W_k\mathbf k+\mathbf b)$，各投影尺寸须保证相加。归一化权重非负且和为一，聚合结果位于值向量的凸包中；后续投影与非线性仍可改变这一几何关系。较大权重说明当前计算中的相对分配，不自动构成因果解释。
+
+\section{缩放点积注意力及维度}
+设 $\mathbf Q\in\mathbb R^{n_q\times d_k}$、$\mathbf K\in\mathbb R^{n_k\times d_k}$、$\mathbf V\in\mathbb R^{n_k\times d_v}$，批量查询输出为
+\begin{equation}
+\operatorname{Attention}(\mathbf Q,\mathbf K,\mathbf V)
+=\operatorname{softmax}\!\left(\frac{\mathbf Q\mathbf K^\mathsf T}{\sqrt{d_k}}+\mathbf M\right)\mathbf V.
+\label{eq:dl-attention}
+\end{equation}
+分数和掩码 $\mathbf M$ 的形状均为 $n_q\times n_k$，softmax 逐行沿键位置计算，输出为 $n_q\times d_v$。允许位置的掩码取零，禁止位置用 $-\infty$ 表示概率为零；每行须至少允许一个位置，否则归一化无定义。
+
+若查询与键的各分量相互独立、均值零且方差一，则点积各项方差为一，总方差为 $d_k$，除以 $\sqrt{d_k}$ 后方差为一。这说明缩放的初始尺度动机；训练后的特征不必满足这些独立条件。计算 softmax 时仍应减去每行允许分数的最大值以保持数值稳定。
+
+\section{自注意力、交叉注意力与多头机制}
+\emph{自注意力（self-attention）}从同一序列产生查询、键和值；\emph{交叉注意力（cross-attention）}的查询来自一组表示，键值来自另一组。对行表示 $\mathbf H\in\mathbb R^{T\times d}$，可令 $\mathbf Q=\mathbf H\mathbf W_Q$，其中 $\mathbf W_Q\in\mathbb R^{d\times d_k}$，其他投影同理；这里投影矩阵采用右乘记号。
+
+\emph{多头注意力（multi-head attention）}用不同投影形成 $m$ 个头 $\mathbf Z_j$，拼接后计算 $[\mathbf Z_1|\cdots|\mathbf Z_m]\mathbf W_O$，$\mathbf W_O\in\mathbb R^{md_v\times d}$。因果掩码禁止未来位置，填充掩码禁止占位符，局部窗口掩码限制邻域；这些规则可以组合，但各自解决不同问题。标准因果自注意力的第 $i$ 行允许 $j\leq i$，具体输入目标移位见下一章。
+
+\section{位置信息与计算成本}
+\begin{proposition}[无位置自注意力的置换等变性]
+若所有位置共享投影，且不加入位置编码或位置相关掩码，则同时置换输入位置会同样置换自注意力输出。
+\end{proposition}
+\begin{proof}
+令 $\mathbf P$ 为置换矩阵。输入变为 $\mathbf P\mathbf H$ 时，分数矩阵变为 $\mathbf P\mathbf Q\mathbf K^\mathsf T\mathbf P^\mathsf T$。逐行 softmax 与相应行列置换相容，故权重变为 $\mathbf P\mathbf A\mathbf P^\mathsf T$；乘以 $\mathbf P\mathbf V$ 后输出为 $\mathbf P\mathbf A\mathbf V$。
+\end{proof}
+因此没有位置机制时，自注意力无法仅凭排列区分相同词元集合的不同顺序。绝对位置编码给位置附加表示，相对位置机制直接影响位置间的相互作用。对固定头数、长度 $T$ 和宽度 $d$，标准稠密分数矩阵需 $O(T^2)$ 存储，注意力乘法需 $O(T^2d)$ 运算，投影另需 $O(Td^2)$。不显式保存全部分数的实现可以降低实际内存，不能据此声称数学上少算了所有成对关系。
+
+\section{例题与习题}
+\begin{example}[查询改变加权平均]
+取标量键 $k_1=0,k_2=\log3$，值 $v_1=1,v_2=3$，无掩码且 $d_k=1$。比较查询 $q=1$ 与 $q=0$ 的输出。
+\end{example}
+\begin{solve}
+$q=1$ 时分数为 $(0,\log3)$，权重为 $(1/4,3/4)$，输出为 $2.5$；$q=0$ 时权重为 $(1/2,1/2)$，输出为 $2$。若禁止第二个键，则两种查询的输出都为 $1$。值保持不变，查询和可见集合共同决定聚合。
+\end{solve}
+\begin{enumerate}
+\item 对本例加入第三个键和值，自选分数后手算输出，核对结果属于值的凸包。
+\item 写出长度四的因果掩码，解释不能对每列而应对每行归一化的原因。
+\item 实现一个小型键值检索实验，同时检查权重和输出正确率；改变序列长度后记录运算与内存变化。
+\end{enumerate}
+

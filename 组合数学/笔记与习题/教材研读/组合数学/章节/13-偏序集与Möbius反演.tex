@@ -1,0 +1,80 @@
+% !TeX root = ../组合数学笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{12} % 保留原书章号。
+\chapter{偏序集与 M\"obius 反演}
+\label{ch:posets}
+
+子集包含和整数整除都允许比较某些对象，却不要求任意两个对象可比。偏序描述这种结构，而 M\"obius 反演从一般的偏序求和中恢复原始数据。容斥只是这一机制在子集偏序上的一个实例。
+
+\section{偏序、链、反链与 Hasse 图}
+
+\begin{definition}
+集合 $P$ 上的关系 $\le$ 若具有自反性、反对称性和传递性，称为\emph{偏序（partial order）}，$(P,\le)$ 称为偏序集。任意两元素可比的子集称为\emph{链（chain）}；任意两个不同元素均不可比的子集称为\emph{反链（antichain）}。
+\end{definition}
+
+极小元是没有严格更小元素的元素；最小元则小于等于每个元素。极小元可有多个，最小元若存在则唯一。若 $x<y$ 且不存在 $x<z<y$，称 $y$ 覆盖 $x$；Hasse 图只画覆盖关系，并把较大的元素画在上方，通过向上的路径恢复整个偏序。
+
+$2^{[n]}$ 配备包含关系称为布尔格。若偏序集中每对元素都有最大下界与最小上界，称为\emph{格（lattice）}；在布尔格中它们分别为交集与并集。正整数 $N$ 的因子集按整除排序也构成格，最大下界为最大公因数，最小上界为最小公倍数，二者仍是 $N$ 的因子。
+
+\section{关联代数与 M\"obius 函数}
+
+本章只处理有限偏序集。对定义在可比对 $x\le y$ 上的实值函数，定义卷积
+\[
+ (f*g)(x,y)=\sum_{x\le z\le y}f(x,z)g(z,y).
+\]
+交换有限求和可验证结合律；单位元为 $\delta(x,y)$，当 $x=y$ 时为 $1$，否则为零。令 $\zeta(x,y)=1$，并递归定义
+\[
+ \mu(x,x)=1,\qquad
+ \mu(x,y)=-\sum_{x\le z<y}\mu(x,z)\quad(x<y).
+\]
+递归按区间元素数进行，每次用到的区间严格较小，所以定义唯一。它直接给出 $\mu*\zeta=\delta$。
+
+不断删除一个极小元，可以把有限偏序集列成与偏序相容的线性顺序。按此顺序把上述函数写成上三角矩阵，卷积对应矩阵乘法；$\zeta$ 的对角元全为 $1$，故可逆。于是右逆也是左逆，得到 $\zeta*\mu=\delta$。这类函数与卷积形成\emph{关联代数（incidence algebra）}，$\mu$ 称为该偏序集的 M\"obius 函数。
+
+\section{反演公式与容斥的统一解释}
+
+\begin{theorem}[M\"obius 反演]
+有限偏序集上，若 $F(x)=\sum_{y\le x}f(y)$，则
+\[
+ f(x)=\sum_{y\le x}\mu(y,x)F(y).
+\]
+\end{theorem}
+\begin{proof}
+右侧代入 $F$ 并换序，得 $\sum_{z\le x}f(z)\sum_{z\le y\le x}\mu(y,x)$。内层和为 $(\zeta*\mu)(z,x)=\delta(z,x)$，故仅保留 $f(x)$。
+\end{proof}
+
+在布尔格上，$\mu(A,B)=(-1)^{|B\setminus A|}$：固定差集大小后，递归所需的和就是二项式交错和。因而
+\[
+ F(S)=\sum_{T\subseteq S}f(T)
+ \quad\Longrightarrow\quad
+ f(S)=\sum_{T\subseteq S}(-1)^{|S\setminus T|}F(T).
+\]
+按某种性质的实际支撑集分类，便回到容斥；若计数只依赖支撑大小，则再按大小汇总得到二项式反演。
+
+在整数整除偏序上，令数论 M\"obius 函数 $\mu_{\mathrm{ar}}(m)$ 在 $m$ 含平方素因子时为零，在 $m$ 是 $r$ 个不同素数之积时为 $(-1)^r$，并置 $\mu_{\mathrm{ar}}(1)=1$。利用素因数唯一分解，$\sum_{d\mid m}\mu_{\mathrm{ar}}(d)$ 在 $m>1$ 时等于 $(1-1)^r=0$，在 $m=1$ 时为 $1$，故偏序函数满足 $\mu(a,b)=\mu_{\mathrm{ar}}(b/a)$。例如在 $12$ 的因子偏序中，$\mu(1,12)=0$，而 $\mu(2,12)=1$。
+
+\section{Sperner 定理、LYM 不等式与链分解}
+
+\begin{theorem}
+设 $\mathcal A$ 为 $2^{[n]}$ 中的反链，则
+\begin{equation}
+ \sum_{A\in\mathcal A}\binom n{|A|}^{-1}\le1,
+ \qquad |\mathcal A|\le\binom n{\lfloor n/2\rfloor}.
+ \label{eq:sperner}
+\end{equation}
+第一式称为 LYM 不等式，第二式为 Sperner 定理。
+\end{theorem}
+\begin{proof}
+每个 $[n]$ 的排列按前缀生成一条从空集到全集的最大链，反链至多与它相交一次。固定 $A$ 出现在此链中，当且仅当前 $|A|$ 个位置恰是 $A$ 的元素，共有 $|A|!(n-|A|)!$ 个排列。对所有排列与其链上的反链元素计数，得 $\sum_{A\in\mathcal A}|A|!(n-|A|)!\le n!$，相除即得第一式。二项式系数在中间层最大，故每个倒数至少为 $1/\binom n{\lfloor n/2\rfloor}$，推出第二式。全体大小为 $\lfloor n/2\rfloor$ 的子集构成达到上界的反链。
+\end{proof}
+
+另一个结构结论是 Dilworth 定理：有限偏序集的最大反链大小等于把全部元素划分成链所需的最少条数。给出一个基于匹配的证明。将 $n=|P|$ 个元素复制为左右两份，当 $x<y$ 时连边 $x_Ly_R$；设最大匹配大小为 $m$。匹配在原偏序中形成每点入度、出度至多为一的有向边，而且不可能有圈，故分成 $n-m$ 条覆盖全部元素的链。另一方面，由 K\H{o}nig 定理有大小为 $m$ 的顶点覆盖；取左右两个副本都不在覆盖中的原元素，至少有 $n-m$ 个，且构成反链，否则对应边未被覆盖。任意反链与每条链至多相交一次，因而两界相合，定理得证。
+
+\section{习题}
+\begin{enumerate}
+  \item\label{ex:posets-1} 在 $\{2,3,6\}$ 的整除偏序中，找出极小元、最小元、极大元与最大元。
+  \item\label{ex:posets-2} 列出 $6$ 的全部正因子，计算各区间的 M\"obius 值，并验证反演公式的一个实例。
+  \item\label{ex:posets-3} 在 $2^{[5]}$ 中构造最大反链，并说明最大大小。
+  \item\label{ex:posets-4} 将 $\{1,2,3,4,6,12\}$ 按整除关系划分成最少条链，给出同样大小的反链作为最优性证书。
+\end{enumerate}
+

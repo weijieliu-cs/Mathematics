@@ -1,0 +1,1299 @@
+% !TeX root = ../数学分析教材（伍胜健）笔记.tex
+% 本文件由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{序列的极限}
+\label{chap:sequence-limits}
+
+\section{序列极限的定义}
+\label{sec:definition-of-sequence-limits}
+
+本节研究一列实数随下标增大时的变化趋势。\emph{序列趋近某个实数，意味着无论给定多小的正数作为允许的误差，都能找到一项，使这一项及其后面所有项与该实数的距离都小于给定的误差。}本节还将介绍无穷小量与无穷大量，分别讨论序列趋于零和绝对值无限增大的情形。以下下标均取正整数，并约定 $\mathbb{N}=\{1,2,\ldots\}$。
+
+\subsection{序列}
+\label{subsec:sequences}
+
+\begin{definition}
+\label{def:real-sequence}
+从正整数集到实数集的函数 $x:\mathbb{N}\to\mathbb{R}$ 称为\emph{实数序列}（real sequence），简称序列或数列。记 $x_n=x(n)$，通常把它写成
+\[
+    x_1,x_2,\ldots,x_n,\ldots,
+    \qquad\text{或简记为 }\{x_n\},
+\]
+其中 $x_n$ 称为第 $n$ 项，也称\emph{通项}（general term）。
+\end{definition}
+
+给出序列不要求一定有简单的通项公式，也可以用递推关系或其他确定规则指定每一项。例如，$1,1/2,1/3,\ldots$ 的通项为 $1/n$；将 $\pi$ 依次截断到小数点后 $n-1$ 位得到 $3,3.1,3.14,\ldots$，也确定了一个序列。区间 $[0,1)$ 中的有理数还能不重复地排成序列：先列出 $0$，再将既约分数 $p/q$ 按分母 $q=2,3,\ldots$ 递增排列，同一分母内按分子递增排列，得到
+\[
+    0,\ \frac12,\ \frac13,\ \frac23,\ \frac14,\ \frac34,\ \frac15,\ \frac25,\ldots.
+\]
+每个有理数都有唯一的既约表示，且排在任一固定分母之前的分数只有有限个，因而每个数都会在某个有限位置被列到。
+
+\subsection{序列极限的定义}
+\label{subsec:definition-of-sequence-limits}
+
+对于 $x_n=1/n$，各项始终在零的右侧；对于 $x_n=(-1)^n/n$，各项在零的两侧交替出现；若令 $x_{2k-1}=1/k$、$x_{2k}=0$，序列还会反复取到零。三者的变化方式不同，但其全部充分靠后的项都能任意接近零。可见，趋近极限并不要求始终从同一侧逼近，也不要求误差逐项减小或各项始终异于极限。
+
+\begin{definition}
+\label{def:sequence-limit}
+设 $\{x_n\}$ 为实数列。若存在实数 $a$，使
+\begin{equation}
+    \forall\varepsilon>0,\quad\exists N\in\mathbb{N},\quad
+    \forall n>N,\quad |x_n-a|<\varepsilon,
+    \label{eq:epsilon-N-sequence-limit}
+\end{equation}
+则称序列\emph{收敛}（convergent），称 $a$ 为它的\emph{极限}（limit），记为
+\[
+    \lim_{n\to\infty}x_n=a,
+    \qquad\text{或}\qquad x_n\to a\quad(n\to\infty).
+\]
+若不存在这样的实数 $a$，则称序列\emph{发散}（divergent）。
+\end{definition}
+
+这里 $\varepsilon$ 是事先任意给定的误差，$N$ 可以依赖 $\varepsilon$，但选定后必须对全部 $n>N$ 同时有效。把 $n>N$ 改成 $n\geq N$ 得到等价定义，因为可以把阈值增减一个整数。若某个 $N$ 已经适用，更大的阈值也适用；因此证明不需要找最小的 $N$，适当放大估计往往更方便。
+
+从数轴上看，式~\eqref{eq:epsilon-N-sequence-limit} 表示：对每个 $\varepsilon>0$，开区间 $(a-\varepsilon,a+\varepsilon)$ 包含从某项起的全部项，等价地，落在这个区间外的项只有有限项。\emph[caution]{这里按下标计数，要求的是“最终所有项都接近”，而不只是“有无穷多项接近”。}例如，$(-1)^n$ 有无穷多项等于 $1$，却不趋于 $1$。把序列画成离散点 $(n,x_n)$，收敛则表示足够靠右的所有点都位于水平带 $a-\varepsilon<y<a+\varepsilon$ 内。
+
+\begin{example}
+\label{ex:geometric-sequence-limit}
+证明 $|q|<1$ 时 $q^n\to0$。
+\end{example}
+
+\begin{solve}
+若 $q=0$，则 $q^n=0$，结论成立。以下设 $0<|q|<1$。给定 $\varepsilon>0$，由对数函数的严格单调递增性，
+\[
+    |q^n-0|=|q|^n<\varepsilon
+    \quad\Longleftrightarrow\quad
+    n\ln|q|<\ln\varepsilon
+    \quad\Longleftrightarrow\quad
+    n>\frac{\ln\varepsilon}{\ln|q|}.
+\]
+其中最后一步用到 $\ln|q|<0$，除以它时不等号反向。因此，取正整数 $N>\ln\varepsilon/\ln|q|$，则当 $n>N$ 时，就有 $|q^n-0|<\varepsilon$，故 $q^n\to0$。
+\end{solve}
+
+\begin{example}
+\label{ex:fixed-root-sequence-limit}
+证明对任意固定的 $a>0$，都有 $\sqrt[n]{a}\to1$。
+\end{example}
+
+\begin{solve}
+若 $a>1$，令 $t_n=\sqrt[n]{a}-1>0$，由伯努利不等式~\eqref{eq:bernoulli-inequality}，得到 $a=(1+t_n)^n\geq1+nt_n$，故
+\[
+    0<t_n\leq\frac{a-1}{n}.
+\]
+取 $N>(a-1)/\varepsilon$ 就能使 $|\sqrt[n]{a}-1|<\varepsilon$。$a=1$ 时序列恒为 $1$；$0<a<1$ 时令 $b=1/a>1$，则
+\[
+    0<1-\sqrt[n]{a}
+    =\frac{\sqrt[n]{b}-1}{\sqrt[n]{b}}
+    \leq\sqrt[n]{b}-1\leq\frac{b-1}{n},
+\]
+同样按定义得到极限为 $1$。
+\end{solve}
+
+为了否定以某个给定的实数 $a$ 为极限，必须逐个否定量词：
+\begin{equation}
+    x_n\not\to a
+    \quad\Longleftrightarrow\quad
+    \exists\varepsilon_0>0,\quad\forall N\in\mathbb{N},\quad
+    \exists n>N,\quad |x_n-a|\geq\varepsilon_0.
+    \label{eq:negation-of-sequence-limit}
+\end{equation}
+所以序列发散的完整表述是：\emph{对每个 $a\in\mathbb{R}$}，都满足式~\eqref{eq:negation-of-sequence-limit}；其中 $\varepsilon_0$ 可以随 $a$ 改变，但不能随 $N$ 改变。只证明不趋于一个候选值，还没有排除其他实数成为极限的可能。
+
+\begin{example}
+\label{ex:alternating-sequence-divergence-by-definition}
+用定义证明 $x_n=(-1)^n$ 发散。
+\end{example}
+
+\begin{solve}
+任取 $a\in\mathbb{R}$。由 $2=|1-(-1)|\leq|1-a|+|-1-a|$，至少有 $|1-a|\geq1$ 或 $|-1-a|\geq1$。取 $\varepsilon_0=1$；前一种情形可在任意 $N$ 后选偶数下标，后一种情形可选奇数下标，都得到 $|x_n-a|\geq1$。因此任意实数 $a$ 都不是极限，序列发散。
+\end{solve}
+
+\subsection{无穷小量}
+\label{subsec:infinitesimal-sequences}
+
+\begin{definition}
+\label{def:infinitesimal-sequence}
+若实数列 $\{\alpha_n\}$ 满足 $\alpha_n\to0$，则称它为\emph{无穷小量}（infinitesimal），也记为 $\alpha_n=o(1)$（$n\to\infty$）。
+\end{definition}
+
+无穷小量是变化过程的性质，不是某个固定实数的大小。非零常数即使很小，组成的常值序列也不是无穷小量；恒为零的序列则是无穷小量。由极限定义中的绝对值可直接得到
+\begin{equation}
+    \alpha_n\to0\ \Longleftrightarrow\ |\alpha_n|\to0,
+    \qquad
+    x_n\to a\ \Longleftrightarrow\ x_n=a+\alpha_n,\quad\alpha_n\to0.
+    \label{eq:sequence-limit-and-infinitesimal-error}
+\end{equation}
+后一关系把一般收敛问题转化为误差是否为无穷小量的问题。若 $c\in\mathbb{R}$ 固定，则 $c\alpha_n\to0$：$c=0$ 时直接成立，$c\neq0$ 时把原来的误差容限改成 $\varepsilon/|c|$ 即可。无穷小量的更多运算性质将在第~\ref{sec:properties-of-sequence-limits} 节给出。
+
+\begin{example}
+\label{ex:factorial-dominates-geometric-sequence}
+设 $a>1$，证明 $a^n/n!$ 是无穷小量，其中 $n!=1\cdot2\cdots n$。
+\end{example}
+
+\begin{solve}
+记 $u_n=a^n/n!>0$。选正整数 $K$ 使 $K+1\geq2a$，则对 $n\geq K$，
+\[
+    \frac{u_{n+1}}{u_n}=\frac{a}{n+1}\leq\frac12.
+\]
+反复使用这一估计，得 $0<u_n\leq u_K(1/2)^{n-K}$（$n\geq K$）。由例~\ref{ex:geometric-sequence-limit}，右端的几何因子趋于零，因此给定 $\varepsilon>0$，可选 $N\geq K$，使所有 $n>N$ 都满足 $u_K(1/2)^{n-K}<\varepsilon$，于是 $u_n<\varepsilon$。这直接按定义证明了 $u_n\to0$，也说明比较相邻项有时能把复杂表达式的误差控制转化为几何衰减。
+\end{solve}
+
+\subsection{无穷大量}
+\label{subsec:infinite-sequences}
+
+并非所有发散序列都具有相同的变化方式。$(-1)^n$ 始终在两个值之间振荡，$n$ 则最终超过每一个固定的界，$(-1)^n n$ 虽然符号交替，绝对值也最终超过每一个界。后两类变化由无穷大量描述。
+
+\begin{definition}
+\label{def:infinite-sequence}
+若实数列 $\{x_n\}$ 满足
+\begin{equation}
+    \forall M>0,\quad\exists N\in\mathbb{N},\quad
+    n>N\ \Longrightarrow\ x_n>M,
+    \label{eq:positive-infinite-sequence}
+\end{equation}
+则称它为\emph{正无穷大量}，记为 $x_n\to+\infty$。将结论换成 $x_n<-M$，定义\emph{负无穷大量}，记为 $x_n\to-\infty$；换成 $|x_n|>M$，定义\emph{无穷大量}（infinitely large sequence），记为 $x_n\to\infty$，即 $|x_n|\to+\infty$。其中不带正负号的 $\infty$ 表示绝对值趋于无穷，不要求符号最终固定。
+\end{definition}
+
+正、负无穷大量都是无穷大量，反过来不一定成立，如 $(-1)^n n$。趋于无穷的序列在有限极限意义下仍然发散；若允许有限极限以及上述无穷趋向，则讨论的是\emph{广义极限}（generalized limit）。在采用扩展实数系 $\mathbb{R}\cup\{-\infty,+\infty\}$ 时，还要注意 $(-1)^n n$ 没有单一的扩展实数极限，尽管它满足这里的绝对值趋于无穷。
+
+\emph[caution]{无界只要求能找到任意大的绝对值，无穷大量则要求所有充分靠后的项都具有任意大的绝对值。}例如，令 $x_{2k}=2k$、$x_{2k-1}=1$，则序列无界，也不能收敛于任何实数：对任意候选值 $a$，偶数项最终与它的距离超过 $1$。但奇数项始终为 $1$，所以它不是无穷大量。无界序列必发散还将在下一节由“收敛必有界”统一说明。
+
+\begin{example}
+\label{ex:harmonic-sequence-positive-infinity}
+证明 $s_n=\sum_{j=1}^n1/j\to+\infty$。
+\end{example}
+
+\begin{solve}
+按下标位于 $2$ 的相邻幂之间分组。第 $j$ 组从 $2^{j-1}+1$ 到 $2^j$，有 $2^{j-1}$ 项，每项至少为 $1/2^j$，因此
+\[
+    s_{2^k}=1+\sum_{j=1}^k\sum_{r=2^{j-1}+1}^{2^j}\frac1r
+    \geq1+\frac{k}{2}.
+\]
+任给 $M>0$，选正整数 $k$ 使 $1+k/2>M$，再令 $N=2^k$。由于所有加项为正，对每个 $n>N$ 都有 $s_n\geq s_{2^k}>M$，故 $s_n\to+\infty$。证明不仅找到了任意大的若干项，还利用正项累加控制了它们后面的全部项。
+\end{solve}
+
+\begin{proposition}[无穷小量与倒数的关系]
+\label{prop:infinitesimal-sequence-reciprocal}
+若 $x_n$ 从某项起恒不为零，则
+\begin{equation}
+    x_n\to0\quad\Longleftrightarrow\quad
+    \left|\frac1{x_n}\right|\to+\infty,
+    \qquad
+    |x_n|\to+\infty\quad\Longleftrightarrow\quad\frac1{x_n}\to0.
+    \label{eq:sequence-infinitesimal-reciprocal}
+\end{equation}
+只需对倒数有定义的尾部讨论；有限个起始位置不影响这些极限。
+\end{proposition}
+
+\begin{proof}
+对任意 $M>0$，不等式 $0<|x_n|<1/M$ 等价于 $|1/x_n|>M$，给出第一条等价关系。第二条同理由 $|x_n|>1/\varepsilon$ 与 $|1/x_n|<\varepsilon$ 的等价性得到。趋于无穷时，取 $M=1$ 即能保证原序列最终非零。
+\end{proof}
+
+\begin{theorem}[算术平均保持极限]
+\label{thm:cesaro-mean-of-convergent-sequence}
+设 $\{x_n\}$ 为实数列，记前 $n$ 项的算术平均为
+\[
+    A_n=\frac{x_1+\cdots+x_n}{n}.
+\]
+若 $x_n\to a\in\mathbb{R}$，则 $A_n\to a$；若 $x_n\to+\infty$ 或 $x_n\to-\infty$，则分别有 $A_n\to+\infty$ 或 $A_n\to-\infty$。有限极限的这一结论也称\emph{切萨罗平均定理}（Cesàro mean theorem）。
+\end{theorem}
+
+\begin{proof}
+先设 $a$ 有限。给定 $\varepsilon>0$，选正整数 $K$ 使 $k>K$ 时 $|x_k-a|<\varepsilon/2$，并记固定的有限和 $C=\sum_{k=1}^K|x_k-a|$。对 $n>K$，
+\[
+    |A_n-a|\leq\frac{C}{n}+\frac1n\sum_{k=K+1}^n|x_k-a|
+    \leq\frac{C}{n}+\frac{\varepsilon}{2}.
+\]
+再选正整数 $N>\max\{K,2C/\varepsilon\}$，便有 $n>N$ 时 $|A_n-a|<\varepsilon$。证明将有限个可能较大的起始误差与统一较小的尾部误差分开控制。
+
+若 $x_n\to+\infty$，给定 $M>0$，选 $K$ 使 $k>K$ 时 $x_k>4M$，记 $S=x_1+\cdots+x_K$。当 $n>\max\{2K,|S|/M\}$ 时，
+\[
+    A_n=\frac{S}{n}+\frac1n\sum_{k=K+1}^n x_k
+    >-M+4M\frac{n-K}{n}>M,
+\]
+故 $A_n\to+\infty$。若 $x_n\to-\infty$，对 $-x_n$ 使用已证结论即可。
+\end{proof}
+
+这个定理的逆命题不成立：$x_n=(-1)^n$ 不收敛，但其算术平均的绝对值不超过 $1/n$，所以 $A_n\to0$。此外，条件 $|x_n|\to+\infty$ 不能替代具有确定符号的无穷趋向；例如 $x_n=(-1)^n n$ 的平均满足
+\[
+    A_{2k}=\frac12,\qquad A_{2k-1}=-\frac{k}{2k-1},
+\]
+始终有界，因此并非无穷大量。
+
+\section{序列极限的性质}
+\label{sec:properties-of-sequence-limits}
+
+% 根据教材第 2.2 节整理，第 40--49 页；分章 PDF 第 12--21 页。
+极限定义适合直接估计误差，但面对复杂表达式，每次重新寻找 $N$ 会使计算繁琐。本节从定义推出极限的基本性质与运算法则，把新的极限问题分解为已知问题；使用这些法则时，必须先核对有关极限是否存在，以及分母是否满足条件。
+
+\begin{definition}
+\label{def:bounded-sequence}
+若实数列 $\{x_n\}$ 满足
+\[
+    \exists M>0,\quad\forall n\in\mathbb{N},\quad |x_n|\leq M,
+\]
+则称它为\emph{有界序列}（bounded sequence），也记为 $x_n=O(1)$（$n\to\infty$）。这等价于取值集合 $\{x_n:n\in\mathbb{N}\}$ 有界。上界、下界及相应的无界性均按定义~\ref{def:upper-and-lower-bounds} 和定义~\ref{def:bounded-and-unbounded-sets} 理解。
+\end{definition}
+
+\begin{theorem}[有限项不变性、唯一性与有界性]
+\label{thm:basic-properties-of-sequence-limits}
+改变序列的有限多项不改变其敛散性，收敛时也不改变极限。每个收敛实数列的极限唯一，并且序列有界。
+\end{theorem}
+
+\begin{proof}
+若两个序列从第 $K$ 项后相同，只需把原来的误差阈值 $N$ 换成 $\max\{N,K\}$，两者便满足同一个极限估计，给出有限项不变性。
+
+若同一序列同时趋于 $a,b$ 且 $a\neq b$，取 $\varepsilon=|a-b|/3$，使充分大的 $n$ 同时满足 $|x_n-a|<\varepsilon$、$|x_n-b|<\varepsilon$，则
+\[
+    |a-b|\leq|a-x_n|+|x_n-b|<\frac23|a-b|,
+\]
+矛盾，故极限唯一。
+
+若 $x_n\to a$，在定义中取 $\varepsilon=1$，得到正整数 $N$，使 $n>N$ 时 $|x_n|\leq|a|+|x_n-a|<|a|+1$。令
+\[
+    M=\max\{|x_1|,\ldots,|x_N|,|a|+1\},
+\]
+便有 $|x_n|\leq M$ 对所有 $n$ 成立。尾部的统一界与有限个起始值共同给出了整个序列的界。
+\end{proof}
+
+因此，删去或增加有限个首项也不会改变极限；特别地，对固定非负整数 $r$，若 $x_n\to a$，则 $x_{n+r}\to a$，反之亦然。这是后文在递推式两边取极限时需要核对的一点。\emph[caution]{有界性是收敛的必要条件，不是充分条件。}例如，$(-1)^n$ 有界而发散；无界序列则由上述定理必定发散。有限项不变性还说明，只要尾部有界，补上前面有限项后仍然有界。
+
+\begin{theorem}[保序性与最终保号性]
+\label{thm:sequence-limit-order-properties}
+设 $x_n\to a$、$y_n\to b$，其中 $a,b\in\mathbb{R}$。若 $a<b$，则对任意 $c\in(a,b)$，存在正整数 $N$，使 $n>N$ 时 $x_n<c<y_n$。若从某项起恒有 $x_n\leq y_n$，则 $a\leq b$。特别地，若 $a>0$，则对每个 $c\in(0,a)$，最终有 $x_n>c$；若 $a<0$，则有对应的负值结论。
+\end{theorem}
+
+\begin{proof}
+当 $a<b$ 时，取 $\varepsilon=\min\{c-a,b-c\}>0$，并使两个序列在同一阈值后均满足各自的误差估计，便得 $x_n<a+\varepsilon\leq c$、$y_n>b-\varepsilon\geq c$。若最终有 $x_n\leq y_n$ 而 $a>b$，将已证结论用于 $y_n,x_n$ 及中间值 $(a+b)/2$，就会得到最终 $y_n<x_n$，矛盾。取一个适当的常值序列作比较，便得到保号结论。
+\end{proof}
+
+\emph[caution]{取极限通常只能保留非严格不等式。}例如，$1-1/n<1+1/n$ 对每个 $n$ 成立，但两侧都趋于 $1$。反过来，若极限 $a\neq0$，则最终可使 $|x_n-a|<|a|/2$，从而
+\begin{equation}
+    \frac{|a|}{2}<|x_n|<\frac{3|a|}{2}.
+    \label{eq:nonzero-sequence-limit-away-from-zero}
+\end{equation}
+这比“最终非零”更强：它给出了绝对值的统一正下界，是控制倒数及商的关键。
+
+\begin{theorem}[极限的四则运算]
+\label{thm:sequence-limit-arithmetic}
+设 $x_n\to a$、$y_n\to b$，其中 $a,b\in\mathbb{R}$，则
+\begin{equation}
+    \begin{aligned}
+        \lim_{n\to\infty}(x_n\pm y_n)&=a\pm b,\\
+        \lim_{n\to\infty}x_ny_n&=ab,\\
+        \lim_{n\to\infty}\frac{x_n}{y_n}&=\frac ab\qquad(b\neq0).
+    \end{aligned}
+    \label{eq:sequence-limit-arithmetic}
+\end{equation}
+商在 $y_n\neq0$ 的尾部上讨论，有限个分母为零的起始位置不影响尾部极限。
+\end{theorem}
+
+\begin{proof}
+对于和、差，利用
+\[
+    |(x_n\pm y_n)-(a\pm b)|\leq|x_n-a|+|y_n-b|,
+\]
+使右端两项分别小于 $\varepsilon/2$ 即可。
+
+对于乘积，\emph[tip]{通过加减中间项，把乘积误差分解成已知的两个收敛误差。}由 $\{y_n\}$ 有界，可取 $M\geq1$ 使所有 $|y_n|\leq M$，于是
+\[
+    |x_ny_n-ab|
+    =|y_n(x_n-a)+a(y_n-b)|
+    \leq M|x_n-a|+|a|\,|y_n-b|.
+\]
+使 $|x_n-a|<\varepsilon/(2M)$ 且 $|y_n-b|<\varepsilon/(2(|a|+1))$ 同时成立，右端即小于 $\varepsilon$。
+
+若 $b\neq0$，由式~\eqref{eq:nonzero-sequence-limit-away-from-zero}，最终有 $|y_n|>|b|/2$，故
+\[
+    \left|\frac1{y_n}-\frac1b\right|
+    =\frac{|y_n-b|}{|b|\,|y_n|}
+    \leq\frac2{|b|^2}|y_n-b|\to0.
+\]
+再对 $x_n\cdot(1/y_n)$ 使用乘积法则，便得到商的结论。
+\end{proof}
+
+四则运算可以反复用于有限个收敛序列，特别地，$c x_n\to ca$、$x_n^m\to a^m$（$m$ 为固定正整数）。由反向三角不等式，还有
+\[
+    \bigl||x_n|-|a|\bigr|\leq|x_n-a|,
+\]
+所以 $|x_n|\to|a|$；反向不能直接成立，例如 $|(-1)^n|\to1$ 而原序列发散。\emph[caution]{这些运算法则的前提是各部分已有相应的有限极限；不能用“拆开后出现无穷”的形式计算替代条件核对。}
+
+\begin{example}
+\label{ex:sequence-limit-arithmetic-applications}
+求
+\[
+    \lim_{n\to\infty}\frac{3n^2+4n-100}{4n^2+5n+105},
+    \qquad
+    \lim_{n\to\infty}(1+q+\cdots+q^n)\quad(|q|<1).
+\]
+\end{example}
+
+\begin{solve}
+第一问将分子、分母同除以 $n^2$，得到
+\[
+    \frac{3+4/n-100/n^2}{4+5/n+105/n^2}\to\frac34,
+\]
+此时分母的极限为 $4\neq0$，商的法则才可使用。第二问先用有限几何和的恒等式，再由 $q^{n+1}\to0$，得到
+\[
+    1+q+\cdots+q^n=\frac{1-q^{n+1}}{1-q}\to\frac1{1-q}.
+\]
+这里处理的是含有 $n+1$ 项的整个有限和，不能将每一项分别取极限后任意交换无限次求和与极限。
+\end{solve}
+
+\begin{theorem}[夹逼收敛原理]
+\label{thm:squeeze-principle-for-sequences}
+设三个实数列从某项起满足 $x_n\leq z_n\leq y_n$。若 $x_n\to a$、$y_n\to a$，其中 $a\in\mathbb{R}$，则 $z_n\to a$。
+\end{theorem}
+
+\begin{proof}
+给定 $\varepsilon>0$，取足够大的阈值，使其后既满足夹逼不等式，又满足 $|x_n-a|<\varepsilon$ 与 $|y_n-a|<\varepsilon$，于是
+\[
+    a-\varepsilon<x_n\leq z_n\leq y_n<a+\varepsilon,
+\]
+即 $|z_n-a|<\varepsilon$。
+\end{proof}
+
+夹逼的关键在于两端趋于同一个数，而不在于给中间序列找到任意上、下界。常用的误差形式是：若 $|u_n-a|\leq v_n$ 最终成立且 $v_n\to0$，则 $u_n\to a$。特别地，\emph{无穷小量与有界序列的乘积仍为无穷小量}：若 $\alpha_n\to0$、$|b_n|\leq M$，则 $|\alpha_n b_n|\leq M|\alpha_n|\to0$，这里 $\{b_n\}$ 本身不必收敛。
+
+\begin{example}
+\label{ex:nth-root-limits-by-squeeze}
+证明
+\[
+    \lim_{n\to\infty}\sqrt[n]{n}=1,
+    \qquad
+    \lim_{n\to\infty}\left(a_1^n+\cdots+a_m^n\right)^{1/n}
+    =\max\{a_1,\ldots,a_m\},
+\]
+其中 $m$ 是固定正整数，$a_1,\ldots,a_m$ 是固定正实数。
+\end{example}
+
+\begin{solve}
+对 $n\geq2$，令 $h_n=\sqrt[n]{n}-1>0$。由二项式展开中各项非负，
+\[
+    n=(1+h_n)^n\geq\frac{n(n-1)}2h_n^2,
+    \qquad 0<h_n\leq\sqrt{\frac2{n-1}}.
+\]
+右端趋于零可由定义核实：给定 $\varepsilon>0$，只需 $n>1+2/\varepsilon^2$。故夹逼原理给出 $h_n\to0$，即 $\sqrt[n]{n}\to1$。例~\ref{ex:fixed-root-sequence-limit} 只讨论固定底数，不能直接把其中的 $a$ 换成随 $n$ 变化的 $n$。
+
+记 $A=\max\{a_1,\ldots,a_m\}>0$，则
+\[
+    A^n\leq a_1^n+\cdots+a_m^n\leq mA^n,
+\]
+从而
+\[
+    A\leq\left(a_1^n+\cdots+a_m^n\right)^{1/n}\leq A\sqrt[n]{m}.
+\]
+因为 $m$ 固定，由 $\sqrt[n]{m}\to1$ 及夹逼原理，得到所求极限。该结论表示，取很高的正整数幂后，最大项控制了这个有限和的 $n$ 次方根。
+\end{solve}
+
+另一个常用结论是：若 $u_n\to0$，$p$ 为固定正整数，则 $\sqrt[p]{1+u_n}\to1$，其中只需考察 $|u_n|<1$ 的尾部，使被开方数为正。事实上，正数开方保持大小关系，且 $0\leq t\leq1$ 时 $t^p\leq t$、$t\geq1$ 时 $t^p\geq t$，所以
+\[
+    1-|u_n|\leq\sqrt[p]{1-|u_n|}
+    \leq\sqrt[p]{1+u_n}\leq\sqrt[p]{1+|u_n|}\leq1+|u_n|.
+\]
+两端都趋于 $1$，故结论成立。这一证明不需要预先引用后续的函数连续性理论。
+
+\begin{example}
+\label{ex:recurrence-sequence-geometric-error-bound}
+设 $a_1=2$，$a_{n+1}=2+1/a_n$（$n\geq1$）。证明序列收敛并求其极限。
+\end{example}
+
+\begin{analyze}
+若序列收敛于非零数 $L$，四则运算法则要求 $L=2+1/L$，其正根为 $L=1+\sqrt2$。这一计算只找到候选值，还没有证明收敛；下面直接估计 $|a_n-L|$，使误差被一个趋于零的几何序列控制。
+\end{analyze}
+
+\begin{solve}
+由递推式归纳可得 $a_n\geq2$，故分母始终为正。令 $L=1+\sqrt2$，利用 $L=2+1/L$，有
+\[
+    a_{n+1}-L=\frac1{a_n}-\frac1L=-\frac{a_n-L}{La_n}.
+\]
+因此，令 $r=1/(2L)\in(0,1)$，得到
+\[
+    |a_{n+1}-L|\leq r|a_n-L|,
+    \qquad |a_n-L|\leq r^{n-1}|a_1-L|.
+\]
+右端趋于零，由夹逼原理得 $a_n\to1+\sqrt2$。证明把候选值用于构造误差，没有把“假设收敛后满足的方程”当成收敛性的依据。
+\end{solve}
+
+由四则运算法则，有限个无穷小量的和、差与积仍为无穷小量，但商不能只由“分子、分母都趋于零”来判断。以共同分母 $y_n=1/n$ 为例，分别取分子 $1/n^2$、$1/n$、$1/\sqrt n$、$(-1)^n/n$，它们都趋于零，对应的商却分别趋于 $0$、$1$、$+\infty$，或振荡而无极限。因而 $0/0$ 只是\emph{不定式}（indeterminate form）的形式记号，并不是数值。
+
+无穷大量的运算也须区分确定情形与不定情形。同趋于 $+\infty$ 的两列相加仍趋于 $+\infty$，同趋于 $-\infty$ 时相加仍趋于 $-\infty$；两个绝对值趋于无穷的序列相乘，乘积的绝对值仍趋于无穷。若 $|x_n|\to+\infty$ 且最终 $|y_n|\geq c>0$，则 $|x_ny_n|\geq c|x_n|\to+\infty$，这里不必要求 $y_n$ 另外有上界。反之，$\infty-\infty$、$0\cdot\infty$、$\infty/\infty$ 等形式一般不能确定结果；例如，$n-(n-1)=1$ 与 $n-2n=-n$ 已给出不同趋向。所有这些记号都应还原为具体序列及其极限条件，不能把 $\infty$ 当作实数参与运算。
+
+\begin{proposition}[多项式序列由最高次项决定无穷趋向]
+\label{prop:polynomial-sequence-leading-term-infinity}
+设 $P(n)=a_kn^k+a_{k-1}n^{k-1}+\cdots+a_0$，其中 $k\geq1$、$a_k\neq0$。则 $a_k>0$ 时 $P(n)\to+\infty$，$a_k<0$ 时 $P(n)\to-\infty$。
+\end{proposition}
+
+\begin{proof}
+将最高次幂提出，得到
+\[
+    P(n)=n^k\left(a_k+\frac{a_{k-1}}n+\cdots+\frac{a_0}{n^k}\right).
+\]
+括号中的序列由有限次运算法则趋于 $a_k$。若 $a_k>0$，则最终括号大于 $a_k/2>0$，而 $n^k\to+\infty$，故 $P(n)\to+\infty$；若 $a_k<0$，对 $-P(n)$ 使用同一结论即可。这个证明避免了把各项分别记成无穷后相加，因为低次项的系数可能与最高次项异号，直接相加会出现尚未确定的无穷差。
+\end{proof}
+
+\section{单调收敛原理}
+\label{sec:monotone-convergence}
+
+\subsection{单调收敛原理}
+\label{subsec:monotone-convergence-principle}
+
+% 根据教材第 2.3.1 小节整理，第 49--52 页；分章 PDF 第 21--24 页。
+用极限定义验证收敛，通常要先找到候选极限；但对递推给出的序列，极限值往往并不容易预先看出。单调收敛原理提供了另一条途径：先利用单调性和有界性证明极限存在，再借助递推关系求出极限。以下讨论的都是实数列，下标取正整数。
+
+\begin{definition}
+\label{def:monotone-sequences}
+若序列 $\{x_n\}$ 满足
+\[
+    x_n\leq x_{n+1},\qquad \forall n\geq1,
+\]
+则称它为\emph{单调递增序列}（monotonically increasing sequence），也称单调上升序列或非减序列；若满足
+\[
+    x_n\geq x_{n+1},\qquad \forall n\geq1,
+\]
+则称它为\emph{单调递减序列}（monotonically decreasing sequence），也称单调下降序列或非增序列。这两类序列统称为\emph{单调序列}（monotone sequence）。若相应的不等式对每个 $n$ 都严格成立，则分别称为严格递增序列或严格递减序列。
+\end{definition}
+
+这里的递增、递减都允许相邻项相等，常值序列同时属于这两类。将序列看作定义在正整数集上的函数，序列的单调性就是该函数的单调性；比较相邻两项已经足够，因为连续使用 $x_k\leq x_{k+1}$，便得到 $m<n$ 时 $x_m\leq x_n$。
+
+\begin{theorem}[单调收敛原理]
+\label{thm:monotone-convergence-principle}
+单调有界的实数列必收敛。更具体地，若 $\{x_n\}$ 单调递增且有上界，则
+\begin{equation}
+    \lim_{n\to\infty}x_n=\sup\{x_n:n\geq1\};
+    \label{eq:increasing-sequence-limit-supremum}
+\end{equation}
+若 $\{x_n\}$ 单调递减且有下界，则
+\begin{equation}
+    \lim_{n\to\infty}x_n=\inf\{x_n:n\geq1\}.
+    \label{eq:decreasing-sequence-limit-infimum}
+\end{equation}
+这里的极限都是有限实数。
+\end{theorem}
+
+\begin{proof}
+先设 $\{x_n\}$ 单调递增且有上界。由实数的确界定理，非空有上界的集合 $E=\{x_n:n\geq1\}$ 存在上确界，记为 $a=\sup E$。\emph[tip]{先用上确界的逼近性质找到一项靠近 $a$，再用单调性控制它后面的全部项。}事实上，$x_n\leq a$ 对每个 $n$ 成立；又由定义~\ref{def:supremum}，任给 $\varepsilon>0$，存在正整数 $N$，使得
+\[
+    a-\varepsilon<x_N\leq a.
+\]
+当 $n\geq N$ 时，由单调性得
+\[
+    a-\varepsilon<x_N\leq x_n\leq a,
+\]
+故 $|x_n-a|=a-x_n<\varepsilon$。这就证明了 $x_n\to a$。
+
+再设 $\{x_n\}$ 单调递减且有下界，令 $b=\inf E$。由定义~\ref{def:infimum}，任给 $\varepsilon>0$，存在正整数 $N$，使 $b\leq x_N<b+\varepsilon$。当 $n\geq N$ 时，
+\[
+    b\leq x_n\leq x_N<b+\varepsilon,
+\]
+所以 $|x_n-b|=x_n-b<\varepsilon$，即 $x_n\to b$。
+\end{proof}
+
+递增序列自动以首项 $x_1$ 为下界，因而只需另外寻找上界；递减序列自动以首项为上界，只需另外寻找下界。证明中的确界定理体现了实数系的完备性：单调性保证序列始终朝同一方向变化，而有限的确界为它提供了最终趋近的位置。\emph[caution]{一个任意选取的上界不一定是递增序列的极限，极限对应的是其取值集合的上确界。}例如，$x_n=1-1/n$ 有上界 $2$，但它的上确界及极限都是 $1$。
+
+若单调递增序列收敛于 $a$，则它的每一项都不超过 $a$；若某一项 $x_N=a$，则对所有 $n\geq N$，都有 $a=x_N\leq x_n\leq a$，所以此后的各项恒等于 $a$。因此，这类序列或者始终严格小于极限，或者从某一项起恒等于极限；递减序列有对应的结论。
+
+\begin{corollary}
+\label{cor:monotone-sequence-generalized-limit}
+每个单调实数列都有广义极限：单调递增且无上界时，$x_n\to+\infty$；单调递减且无下界时，$x_n\to-\infty$。若允许确界取扩展实数值，则式~\eqref{eq:increasing-sequence-limit-supremum} 和式~\eqref{eq:decreasing-sequence-limit-infimum} 对无界的相应情形也成立。
+\end{corollary}
+
+\begin{proof}
+若 $\{x_n\}$ 单调递增且无上界，则任给 $M>0$，存在正整数 $N$，使 $x_N>M$。当 $n\geq N$ 时，$x_n\geq x_N>M$，故 $x_n\to+\infty$。若序列单调递减且无下界，则任给 $M>0$，可选 $N$ 使 $x_N<-M$；对所有 $n\geq N$，有 $x_n\leq x_N<-M$，故 $x_n\to-\infty$。
+\end{proof}
+
+\emph[caution]{趋于无穷不属于通常所说的收敛，单调性和有界性也不能单独保证收敛。}例如，$x_n=n$ 单调递增却无上界，$x_n=(-1)^n$ 有界却不收敛；反过来，收敛序列也不一定单调，例如 $x_n=(-1)^n/n\to0$。若序列只是从某一项起单调且有界，仍可对这一尾部应用单调收敛原理，因为删去有限个首项不改变收敛性及极限。
+
+\begin{example}
+\label{ex:monotone-square-root-iteration}
+% 教材例 2.3.1，第 50--51 页。
+设 $A>0$、$x_1>0$，递推定义
+\begin{equation}
+    x_{n+1}=\frac12\left(x_n+\frac{A}{x_n}\right),\qquad n\geq1.
+    \label{eq:monotone-square-root-iteration}
+\end{equation}
+证明 $\{x_n\}$ 收敛，并求出它的极限。
+\end{example}
+
+\begin{solve}
+由 $x_1>0$ 和递推式归纳可知，每一项都为正，故递推过程始终有定义。又因为
+\[
+    x_{n+1}-\sqrt A
+    =\frac{x_n^2-2\sqrt A\,x_n+A}{2x_n}
+    =\frac{(x_n-\sqrt A)^2}{2x_n}\geq0,
+\]
+所以 $x_n\geq\sqrt A$ 对所有 $n\geq2$ 成立。在此基础上，对 $n\geq2$ 有
+\[
+    x_{n+1}-x_n
+    =\frac{A-x_n^2}{2x_n}\leq0.
+\]
+因此，尾部序列 $\{x_n\}_{n\geq2}$ 单调递减且有下界 $\sqrt A$。由定理~\ref{thm:monotone-convergence-principle}，原序列收敛；记极限为 $a$，则 $a\geq\sqrt A>0$。
+
+现在才可在式~\eqref{eq:monotone-square-root-iteration} 两边取极限。由于 $a>0$，倒数的极限运算法则适用，得到
+\[
+    a=\frac12\left(a+\frac{A}{a}\right),
+    \qquad a^2=A.
+\]
+结合 $a>0$，可知 $\lim_{n\to\infty}x_n=\sqrt A$。注意，当 $x_1<\sqrt A$ 时，第一步会使 $x_2>x_1$，所以这里应证明从第二项起递减，不能直接声称整个序列递减。
+\end{solve}
+
+这个递推过程给出了求平方根的近似方法。例如，取 $A=2$、$x_1=2$，依次得到
+\[
+    x_2=\frac32,\qquad x_3=\frac{17}{12},\qquad
+    x_4=\frac{577}{408}\approx1.41421569.
+\]
+上述恒等式还给出了误差关系 $x_{n+1}-\sqrt A=(x_n-\sqrt A)^2/(2x_n)$，说明每一步近似误差如何由前一步的误差决定。
+
+\begin{example}
+\label{ex:recurrence-fixed-point-without-convergence}
+% 教材例 2.3.2，第 51 页。
+设 $x_1=1$、$x_{n+1}=-x_n$。说明为什么不能仅凭递推式中形式上的极限方程判断 $\{x_n\}$ 的极限。
+\end{example}
+
+\begin{solve}
+由递推式得到 $x_n=(-1)^{n-1}$，其奇数项恒为 $1$，偶数项恒为 $-1$，因而序列不收敛。若未经证明便设 $x_n\to a$，再在递推式两边取极限，就会得到 $a=-a$，进而算出 $a=0$；但这个数并不是该序列的极限。方程 $a=-a$ 只说明：\emph{如果序列有有限极限，那么该极限只能是 $0$}，并没有证明极限存在。
+\end{solve}
+
+一般地，对递推式 $x_{n+1}=f(x_n)$，若已证明 $x_n\to a$，还须确认 $f(x_n)\to f(a)$，才能得到极限方程 $a=f(a)$；例如可核对所用极限运算法则的条件，或在后续连续性理论中核对 $f$ 在 $a$ 处连续。仅求出方程的解，不能替代对序列收敛性的证明。
+
+\begin{example}
+\label{ex:monotone-odd-even-golden-ratio}
+% 教材例 2.3.3，第 51--52 页。
+设 $a_1=1$，并且
+\begin{equation}
+    a_{n+1}=1+\frac1{a_n},\qquad n\geq1.
+    \label{eq:golden-ratio-recurrence}
+\end{equation}
+证明 $\{a_n\}$ 收敛，并求其极限。
+\end{example}
+
+\begin{analyze}
+前五项为 $1,2,3/2,5/3,8/5$，它们满足 $a_1<a_3<a_5<a_4<a_2$。原序列并不单调，但奇数项可能递增、偶数项可能递减。\emph[tip]{对隔一项的递推关系应用单调收敛原理，再证明两个子列趋于同一个数。}
+\end{analyze}
+
+\begin{solve}
+首先归纳证明 $1\leq a_n\leq2$：首项满足此条件；若 $1\leq a_n\leq2$，则 $3/2\leq1+1/a_n\leq2$，故下一项仍满足此条件。特别地，所有分母均为正，序列有界。
+
+连续使用两次式~\eqref{eq:golden-ratio-recurrence}，得到
+\begin{equation}
+    a_{n+2}=1+\frac1{1+1/a_n}
+    =2-\frac1{a_n+1},\qquad n\geq1.
+    \label{eq:golden-ratio-two-step-recurrence}
+\end{equation}
+因此对每个 $n\geq1$，有
+\[
+    a_{n+4}-a_{n+2}
+    =\frac1{a_n+1}-\frac1{a_{n+2}+1}
+    =\frac{a_{n+2}-a_n}{(a_n+1)(a_{n+2}+1)}.
+\]
+分母为正，所以相邻两次的同奇偶项之差同号。由 $a_3-a_1=1/2>0$ 和 $a_4-a_2=-1/3<0$ 归纳可知，奇数项子列 $\{a_{2k-1}\}$ 严格递增，偶数项子列 $\{a_{2k}\}$ 严格递减。两个子列均有界，由单调收敛原理，存在 $\alpha,\beta\in[1,2]$，使
+\[
+    \lim_{k\to\infty}a_{2k-1}=\alpha,\qquad
+    \lim_{k\to\infty}a_{2k}=\beta.
+\]
+分别沿奇数、偶数下标在式~\eqref{eq:golden-ratio-two-step-recurrence} 中取极限，得到
+\[
+    \alpha=2-\frac1{\alpha+1},\qquad
+    \beta=2-\frac1{\beta+1}.
+\]
+两者都满足 $t^2-t-1=0$。由于 $\alpha,\beta>0$，负根被排除，故
+\[
+    \alpha=\beta=\frac{1+\sqrt5}{2}=:L.
+\]
+
+最后验证整个序列也趋于 $L$。任给 $\varepsilon>0$，由两个子列都趋于 $L$，存在正整数 $K$，使 $k\geq K$ 时同时有 $|a_{2k-1}-L|<\varepsilon$ 和 $|a_{2k}-L|<\varepsilon$。每个 $n\geq2K$ 都属于这两类下标之一，因而均满足 $|a_n-L|<\varepsilon$。所以
+\[
+    \lim_{n\to\infty}a_n=\frac{1+\sqrt5}{2}.\qedhere
+\]
+\end{solve}
+
+这三个例子体现了单调收敛原理的使用次序：先检查递推式是否始终有定义，再寻找单调性与适当方向的界；原序列不单调时，可以考察从某一项起的尾部，或分别考察奇、偶子列。确认有关序列收敛后，才利用递推式求候选值，并结合取值范围排除不合条件的根；若拆成子列，还必须说明这些子列的极限相同且能控制原序列的全部充分靠后的项。
+
+\subsection{无理数 \texorpdfstring{$e$}{e} 和欧拉常数 \texorpdfstring{$\gamma$}{gamma}}
+\label{subsec:e-and-euler-constant}
+
+\section{实数系连续性的基本定理}
+\label{sec:fundamental-theorems-of-real-continuity}
+
+实数系的连续性可以通过闭区间套、有限覆盖、聚点及柯西序列等不同形式来表述，这些结论各有适合的应用场合。本节沿用教材的论证顺序：由单调收敛原理得到闭区间套定理，再依次证明有限覆盖定理、聚点原理、有界序列的子列定理和柯西收敛准则。以下序列的下标均取正整数。
+
+\subsection{闭区间套定理}
+\label{subsec:nested-interval-theorem}
+
+不断缩小一个非空闭区间，并要求后一个区间包含在前一个区间中，直观上应当能保留至少一个公共点。闭区间套定理把这一事实表述为严格的存在性结论；若区间长度还趋于零，则公共点唯一。
+
+\begin{definition}
+\label{def:nested-closed-intervals}
+设 $I_n=[a_n,b_n]$ 为非空有界闭区间，即 $a_n,b_n\in\mathbb{R}$ 且 $a_n\leq b_n$。若
+\[
+    I_{n+1}\subseteq I_n\qquad(n=1,2,\ldots),
+\]
+则称 $\{I_n\}$ 为\emph{闭区间套}（nested closed intervals）。这一包含关系等价于
+\[
+    a_n\leq a_{n+1}\leq b_{n+1}\leq b_n.
+\]
+下面的定理在嵌套条件之外，另要求区间长度趋于零。
+\end{definition}
+
+\begin{theorem}[闭区间套定理]
+\label{thm:nested-closed-intervals}
+设 $\{[a_n,b_n]\}$ 为一列非空有界闭区间，满足
+\[
+    [a_{n+1},b_{n+1}]\subseteq[a_n,b_n]\quad(n=1,2,\ldots),
+    \qquad
+    \lim_{n\to\infty}(b_n-a_n)=0.
+\]
+则存在唯一实数 $c$ 属于每个区间，即
+\[
+    \bigcap_{n=1}^{\infty}[a_n,b_n]=\{c\},
+\]
+并且
+\[
+    \lim_{n\to\infty}a_n=\lim_{n\to\infty}b_n=c.
+\]
+\end{theorem}
+
+\begin{proof}
+由嵌套条件，有 $a_n\leq a_{n+1}\leq b_{n+1}\leq b_n$，所以 $\{a_n\}$ 单调上升且以 $b_1$ 为上界，$\{b_n\}$ 单调下降且以 $a_1$ 为下界。\emph[tip]{分别对左右端点应用单调收敛原理。}记
+\[
+    a=\lim_{n\to\infty}a_n=\sup\{a_n:n\geq1\},
+    \qquad
+    b=\lim_{n\to\infty}b_n=\inf\{b_n:n\geq1\}.
+\]
+对任意 $m,n$，若 $m\leq n$，则 $a_m\leq a_n\leq b_n$；若 $m>n$，则 $a_m\leq b_m\leq b_n$。因此每个右端点都是左端点集合的上界，每个左端点都是右端点集合的下界，从而
+\[
+    a_n\leq a\leq b\leq b_n\qquad(n=1,2,\ldots).
+\]
+又由长度趋于零及极限的运算法则，
+\[
+    b-a=\lim_{n\to\infty}(b_n-a_n)=0.
+\]
+令 $c=a=b$，便有 $a_n\leq c\leq b_n$，所以 $c$ 属于每个区间。若另有 $c'$ 也属于所有区间，则 $a_n\leq c'\leq b_n$ 对每个 $n$ 成立；由夹逼收敛原理，$c'=c$，故公共点唯一。
+\end{proof}
+
+\begin{example}
+\label{ex:sqrt-two-bisection}
+利用\emph{二分法}（bisection method）构造一列闭区间，证明存在唯一的正实数 $c$ 满足 $c^2=2$，并给出用区间中点近似 $c$ 时的误差估计。
+\end{example}
+
+\begin{solve}
+取 $a_1=1$、$b_1=2$，令 $I_1=[a_1,b_1]$。已得到区间 $I_n=[a_n,b_n]$ 后，取其中点 $m_n=(a_n+b_n)/2$，根据 $m_n^2$ 与 $2$ 的大小关系定义
+\begin{equation}
+    I_{n+1}=[a_{n+1},b_{n+1}]=
+    \begin{cases}
+        [m_n,b_n], & m_n^2\leq2,\\
+        [a_n,m_n], & m_n^2>2.
+    \end{cases}
+    \label{eq:sqrt-two-bisection-update}
+\end{equation}
+\emph[tip]{每次保留端点平方仍分处 $2$ 两侧的半区间。}初始时 $a_1^2\leq2\leq b_1^2$；若 $a_n^2\leq2\leq b_n^2$，则第一种情形有 $m_n^2\leq2\leq b_n^2$，第二种情形有 $a_n^2\leq2<m_n^2$。因此由归纳可知，对所有 $n$ 都有
+\[
+    1\leq a_n<b_n\leq2,
+    \qquad a_n^2\leq2\leq b_n^2.
+\]
+同时，由式~\eqref{eq:sqrt-two-bisection-update}，这些非空闭区间逐个嵌套，且每次长度减半，故
+\[
+    b_n-a_n=\frac{1}{2^{n-1}}\longrightarrow0.
+\]
+由闭区间套定理~\ref{thm:nested-closed-intervals}，存在唯一公共点 $c\in[1,2]$，并且 $a_n\to c$、$b_n\to c$。利用极限的乘法法则，在 $a_n^2\leq2\leq b_n^2$ 中取极限，得到 $c^2\leq2\leq c^2$，所以 $c^2=2$，且 $c>0$。若另有正实数 $d$ 满足 $d^2=2$，则 $(c-d)(c+d)=c^2-d^2=0$；由于 $c+d>0$，必有 $c=d$。因此满足该方程的正实数存在且唯一，将它记为 $\sqrt2$。
+
+由于 $c\in[a_n,b_n]$，用区间中点 $m_n$ 近似 $c$ 时，绝对误差不超过区间长度的一半，即
+\begin{equation}
+    \left|\sqrt2-m_n\right|
+    =\left|c-\frac{a_n+b_n}{2}\right|
+    \leq\frac{b_n-a_n}{2}
+    =\frac1{2^n}.
+    \label{eq:sqrt-two-bisection-error}
+\end{equation}
+这里 $I_n$ 由初始区间经过 $n-1$ 次二分得到。给定允许的绝对误差 $\varepsilon>0$，取满足 $2^{-n}\leq\varepsilon$ 的正整数 $n$，构造出 $I_n$ 后输出 $m_n$，便可保证误差不超过 $\varepsilon$。因此，闭区间套定理既保证了所构造实数的存在，也使二分过程获得了明确的近似误差估计。
+\end{solve}
+
+\begin{remark}
+\label{rem:nested-interval-assumptions}
+\emph[caution]{闭性保证极限位置不会被排除，长度趋于零保证公共点唯一。}例如，开区间 $(0,1/n)$ 逐个嵌套且长度趋于零，却没有公共点。若进一步要求开区间严格嵌套，即 $a_n<a_{n+1}<b_{n+1}<b_n$，并且 $b_n-a_n\to0$，则结论仍成立：对相应的闭区间套应用定理，所得公共点 $c$ 满足 $a_n<a_{n+1}\leq c\leq b_{n+1}<b_n$，因而属于每个开区间。
+
+若保留闭区间的嵌套条件而不要求长度趋于零，则同样由单调收敛原理得到 $\alpha=\lim a_n=\sup\{a_n:n\geq1\}$、$\beta=\lim b_n=\inf\{b_n:n\geq1\}$，且
+\begin{equation}
+    \bigcap_{n=1}^{\infty}[a_n,b_n]=[\alpha,\beta].
+    \label{eq:nested-interval-intersection}
+\end{equation}
+这是因为 $a_n\leq\alpha\leq\beta\leq b_n$，而任一公共点 $x$ 满足 $a_n\leq x\leq b_n$，取极限便得 $\alpha\leq x\leq\beta$。例如，$[0,1+1/n]$ 的交集为 $[0,1]$。另外，$[n,+\infty)$ 虽逐个嵌套且均为非空闭集，交集却为空；它们不是有界闭区间，不满足定理的假设。
+\end{remark}
+
+\begin{example}
+% 教材例 2.4.1，第 58 页。
+设 $\{[a_n,b_n]\}$ 为一列非空有界闭区间，且任意两个区间都有公共点。证明这些区间有公共点，即存在 $c\in\mathbb{R}$ 使 $c\in[a_n,b_n]$ 对每个 $n$ 成立。
+\end{example}
+
+\begin{solve}
+由 $[a_i,b_i]\cap[a_j,b_j]\neq\varnothing$，可知 $a_i\leq b_j$ 对任意 $i,j$ 成立。因此每个 $b_j$ 都是集合 $\{a_n:n\geq1\}$ 的上界，令 $c=\sup\{a_n:n\geq1\}$，便有 $a_n\leq c\leq b_n$ 对每个 $n$ 成立。这里仅要求区间两两相交，并不要求它们构成区间套。
+\end{solve}
+
+\subsection{有限覆盖定理}
+\label{subsec:finite-covering-theorem}
+
+有限覆盖定理研究用许多开区间覆盖一个闭区间时，能否从中选出有限个仍覆盖它。它常用于把函数在各点附近的局部性质推广为整个闭区间上的性质。
+
+\begin{definition}
+\label{def:real-neighborhood}
+设 $x\in\mathbb{R}$，$\delta>0$。开区间
+\[
+    U(x,\delta)=(x-\delta,x+\delta)
+\]
+称为 $x$ 的一个\emph{邻域}（neighborhood），相应的\emph{去心邻域}（punctured neighborhood）记为
+\[
+    U_0(x,\delta)=U(x,\delta)\setminus\{x\}
+    =\{y\in\mathbb{R}:0<|y-x|<\delta\}.
+\]
+\end{definition}
+
+\begin{definition}
+\label{def:open-cover-and-finite-subcover}
+设 $A\subseteq\mathbb{R}$，$\{E_\lambda\}_{\lambda\in\Lambda}$ 为一族实数集，其中指标集 $\Lambda$ 不要求有限或可数。若
+\[
+    A\subseteq\bigcup_{\lambda\in\Lambda}E_\lambda,
+\]
+则称这族集合为 $A$ 的一个\emph{覆盖}（cover）。若其中每个 $E_\lambda$ 都是开区间，则称它为 $A$ 的一个\emph{开覆盖}（open cover）；若指标集 $\Lambda$ 只有有限多个元素，则称它为一个\emph{有限覆盖}（finite cover）。这里采用教材本节的表述，以开区间作为开覆盖的成员。
+
+若能从原覆盖中选出有限个集合 $E_{\lambda_1},\ldots,E_{\lambda_N}$，仍满足
+\[
+    A\subseteq E_{\lambda_1}\cup\cdots\cup E_{\lambda_N},
+\]
+则称它们组成一个\emph{有限子覆盖}（finite subcover）。
+\end{definition}
+
+\begin{theorem}[有限覆盖定理]
+\label{thm:finite-covering}
+设 $a,b\in\mathbb{R}$ 且 $a\leq b$，则闭区间 $[a,b]$ 的任意开覆盖都有有限子覆盖。这是\emph{海涅--博雷尔定理}（Heine--Borel theorem）的闭区间形式。
+\end{theorem}
+
+\begin{proof}
+设给定的开覆盖为 $\{E_\lambda\}_{\lambda\in\Lambda}$。当 $a=b$ 时，选取其中任意一个包含 $a$ 的开区间即可。以下设 $a<b$，并反设不能从该覆盖中选出 $[a,b]$ 的有限子覆盖。\emph[tip]{将区间二等分，始终保留不能被原覆盖中的有限个开区间覆盖的那一半。}因为若左右两个闭半区间各有有限子覆盖，将二者合并便得到整个区间的有限子覆盖，所以至少一个半区间仍不能被有限覆盖。
+
+将第一次选出的半区间记为 $[a_1,b_1]$，反复二等分并作同样选择，得到闭区间套 $\{[a_n,b_n]\}$，其中每个区间都不能被原覆盖中的有限个开区间覆盖，且
+\[
+    b_n-a_n=\frac{b-a}{2^n}\longrightarrow0.
+\]
+由定理~\ref{thm:nested-closed-intervals}，存在唯一公共点 $\xi$，并且 $a_n\to\xi$、$b_n\to\xi$。由于 $\xi\in[a,b]$，原覆盖中存在开区间 $E_{\lambda_0}=(c,d)$ 包含 $\xi$，即 $c<\xi<d$。由端点序列的收敛性，充分大的 $n$ 满足
+\[
+    c<a_n\leq\xi\leq b_n<d,
+\]
+于是 $[a_n,b_n]\subseteq E_{\lambda_0}$。这说明只用原覆盖中的一个开区间就能覆盖 $[a_n,b_n]$，与其选择方式矛盾。
+\end{proof}
+
+\begin{remark}
+\emph[caution]{有限覆盖定理要求从给定的任意开覆盖中选取有限子覆盖。}如果只要求另找有限个开区间覆盖 $[a,b]$，那么一个开区间 $(a-1,b+1)$ 就已经足够，这并不是定理要说明的内容。
+
+开区间 $(0,1)$ 有开覆盖 $\{(1/n,1):n\geq2\}$。任取有限个这样的区间，记其下标的最大值为 $N$，则它们的并集为 $(1/N,1)$，不能覆盖 $(0,1)$。无界闭集 $\mathbb{R}$ 有开覆盖 $\{(-n,n):n\geq1\}$，任意有限个成员的并集都是有界的，也不能覆盖 $\mathbb{R}$。这说明若去掉被覆盖集合的闭性或有界性，结论未必成立。
+
+另一方面，单点集族 $\{\{x\}:x\in[0,1]\}$ 覆盖闭区间 $[0,1]$，但任取有限个成员只能覆盖有限个点，所以没有有限子覆盖。这些单点集不是开区间，说明不能将定理中的开覆盖任意换成一般的覆盖。
+\end{remark}
+
+\begin{example}
+% 教材例 2.4.2，第 60--61 页。
+设实函数 $f$ 定义在 $[a,b]$ 上，且对任意 $x\in[a,b]$，都存在 $\delta(x)>0$，使 $f$ 在 $U(x,\delta(x))\cap[a,b]$ 上有界。证明 $f$ 在整个 $[a,b]$ 上有界。
+\end{example}
+
+\begin{solve}
+对每个 $x\in[a,b]$，取上述邻域及实数 $M_x>0$，使得当 $y\in U(x,\delta(x))\cap[a,b]$ 时，$|f(y)|\leq M_x$。这些邻域组成 $[a,b]$ 的一个开覆盖，故由定理~\ref{thm:finite-covering}，可选出有限个邻域 $U(x_1,\delta(x_1)),\ldots,U(x_N,\delta(x_N))$，仍覆盖 $[a,b]$。令
+\[
+    M=\max\{M_{x_1},\ldots,M_{x_N}\}.
+\]
+任取 $y\in[a,b]$，总有某个 $k$ 使 $y\in U(x_k,\delta(x_k))$，从而 $|f(y)|\leq M_{x_k}\leq M$。因此 $f$ 在 $[a,b]$ 上有统一的界。有限子覆盖的作用在于把随点变化的局部界归结为有限多个数，再取它们的最大值。
+\end{solve}
+
+\begin{example}
+\label{ex:continuous-function-bounded-by-finite-cover}
+设 $a,b\in\mathbb{R}$ 且 $a<b$，实函数 $f:[a,b]\to\mathbb{R}$ 在 $[a,b]$ 上连续。利用有限覆盖定理~\ref{thm:finite-covering} 证明 $f$ 在 $[a,b]$ 上有界，即存在 $M>0$，使得对任意 $x\in[a,b]$ 都有 $|f(x)|\leq M$。
+\end{example}
+
+\subsection{聚点原理}
+\label{subsec:accumulation-point-principle}
+
+本小节先讨论实数集的聚点，再通过聚点原理研究序列的子列。集合的聚点描述的是集合中的点在某个位置附近不断聚集；子列则保留原序列中所选各项的先后顺序，二者需要加以区分。
+
+\begin{definition}
+\label{def:accumulation-point-of-real-set}
+设 $E\subseteq\mathbb{R}$。若 $x_0\in\mathbb{R}$ 满足
+\[
+    \forall\delta>0,\quad U_0(x_0,\delta)\cap E\neq\varnothing,
+\]
+则称 $x_0$ 为 $E$ 的一个\emph{聚点}（accumulation point）。等价地，对每个 $\delta>0$，存在 $x\in E$ 使 $0<|x-x_0|<\delta$。这里 $x_0$ 不一定属于 $E$。
+\end{definition}
+
+教材给出了聚点的另外两个等价刻画：$x_0$ 的每个邻域都含有 $E$ 中无穷多个不同的点；存在由 $E$ 中互不相同的点组成的序列 $\{x_n\}$，使 $x_n\to x_0$。为说明等价性，先设 $x_0$ 为聚点。若某个邻域只含有限个异于 $x_0$ 的点，便可缩小半径以排除这些点，与定义矛盾，故每个邻域都含有无穷多个点。进而可逐次选取 $x_n\in E\cap U(x_0,1/n)$，并排除 $x_0$ 和此前选过的有限个点，使各 $x_n$ 互不相同；由 $|x_n-x_0|<1/n$ 得 $x_n\to x_0$。反过来，若互不相同的点列 $\{x_n\}\subseteq E$ 趋于 $x_0$，则任一邻域内都有该序列充分靠后的项，其中至多一项等于 $x_0$，故该去心邻域与 $E$ 相交，$x_0$ 是聚点。
+
+若 $x_0\in E$，但 $x_0$ 不是 $E$ 的聚点，则称它为 $E$ 的\emph{孤立点}（isolated point）。由定义，此时存在 $\delta>0$，使 $U(x_0,\delta)\cap E=\{x_0\}$。例如，$E=\{1/n:n\geq1\}$ 的唯一聚点是 $0$，且 $0\notin E$，而 $E$ 的每个点都是孤立点。$0$ 是聚点可由 $1/n\to0$ 得到；对任意 $x_0\neq0$，先取不含 $0$ 的充分小邻域，其中仅有有限个 $1/n$，再缩小邻域便能排除异于 $x_0$ 的这些点，故 $x_0$ 不是聚点。
+
+\begin{theorem}[聚点原理]
+\label{thm:accumulation-point-principle}
+实数集中的任何有界无限子集至少有一个聚点。
+\end{theorem}
+
+\begin{proof}
+设 $E\subseteq\mathbb{R}$ 有界且含有无穷多个不同的点，取闭区间 $[a,b]$ 使 $E\subseteq[a,b]$。反设 $E$ 没有聚点，则对每个 $x\in[a,b]$，存在 $\delta_x>0$，使
+\[
+    U_0(x,\delta_x)\cap E=\varnothing.
+\]
+因此 $U(x,\delta_x)$ 中至多有 $E$ 的一个点，即可能存在的中心点 $x$。这些邻域组成 $[a,b]$ 的一个开覆盖，由定理~\ref{thm:finite-covering}，可选取有限个邻域，使
+\[
+    [a,b]\subseteq\bigcup_{j=1}^{m}U(x_j,\delta_{x_j}).
+\]
+由于每个邻域至多含有 $E$ 的一个点，而它们覆盖了 $E$，故 $E$ 至多有 $m$ 个点，与 $E$ 为无限集矛盾。因此 $E$ 必有聚点。
+\end{proof}
+
+\begin{definition}
+\label{def:subsequence-and-sequence-cluster-point}
+设 $\{x_n\}$ 为实数列，$n_1<n_2<\cdots$ 为严格递增的正整数列，则 $\{x_{n_k}\}$ 称为 $\{x_n\}$ 的一个\emph{子列}（subsequence）。若某个子列满足 $x_{n_k}\to\xi$，则称 $\xi$ 为原序列的一个\emph{聚点}（cluster point），也称\emph{子列极限}（subsequential limit）。这里 $n_k\geq k$，因而子列的下标必趋于无穷。
+\end{definition}
+
+\begin{theorem}[收敛序列的子列]
+\label{thm:subsequence-of-convergent-sequence}
+若 $x_n\to a$，则 $\{x_n\}$ 的任意子列 $\{x_{n_k}\}$ 都满足 $x_{n_k}\to a$。
+\end{theorem}
+
+\begin{proof}
+对任意 $\varepsilon>0$，存在正整数 $N$，使 $n>N$ 时 $|x_n-a|<\varepsilon$。当 $k>N$ 时，由 $n_k\geq k>N$，得到 $|x_{n_k}-a|<\varepsilon$，所以 $x_{n_k}\to a$。
+\end{proof}
+
+这一结论给出常用的发散判据：若一个序列存在两个收敛子列，且它们的极限不同，则原序列必发散。
+
+\begin{theorem}[波尔查诺--魏尔斯特拉斯定理]
+\label{thm:bolzano-weierstrass-sequence}
+每个有界实数列都至少有一个收敛子列。这一结论称为\emph{波尔查诺--魏尔斯特拉斯定理}（Bolzano--Weierstrass theorem），是聚点原理在序列问题中的应用。
+\end{theorem}
+
+\begin{proof}
+设 $\{x_n\}$ 有界。若它只取有限多个不同的值，则其中至少有一个值出现无穷多次；否则每个值都只出现有限次，整个序列便只有有限项，产生矛盾。选出等于该值的各项，即得一个收敛的常值子列。
+
+若它取无穷多个不同的值，则取值集合 $E=\{x_n:n\geq1\}$ 为有界无限实数集。由定理~\ref{thm:accumulation-point-principle}，$E$ 至少有一个聚点，记为 $a$。对每个正整数 $k$，邻域 $U(a,1/k)$ 内都有 $E$ 的无穷多个不同的点，因此也有原序列的无穷多项。先取 $x_{n_1}\in U(a,1)$；选定 $n_{k-1}$ 后，再取 $n_k>n_{k-1}$，使 $x_{n_k}\in U(a,1/k)$。这样便得到子列 $\{x_{n_k}\}$，且
+\[
+    |x_{n_k}-a|<\frac1k\longrightarrow0.
+\]
+所以 $x_{n_k}\to a$，定理得证。
+\end{proof}
+
+\begin{notealert}[title={波尔查诺--魏尔斯特拉斯定理的直观理解}]
+定理~\ref{thm:bolzano-weierstrass-sequence} 说明，一串数即使一直在不同位置之间跳动，只要始终被限制在某个有限区间内，就一定能按原来的先后顺序挑出无穷多项，使这些项趋于某个固定的实数。这里，\emph{有界只限制取值范围}，并不要求数列逐渐稳定；选取子列时可以跳过一些项，但必须保留所选各项在原数列中的先后顺序。
+
+例如，数列 $x_n=(-1)^n$ 的各项依次为
+\[
+    -1,\ 1,\ -1,\ 1,\ -1,\ 1,\ \ldots,
+\]
+始终位于 $[-1,1]$ 内。挑出偶数位置的项，得到常值子列 $x_{2k}=1$，它收敛于 $1$；挑出奇数位置的项，得到常值子列 $x_{2k-1}=-1$，它收敛于 $-1$。两个子列的极限不同，由定理~\ref{thm:subsequence-of-convergent-sequence} 可知原数列不收敛。
+
+因此，该定理保证的是\emph{至少能选出一个收敛子列}，并不保证原数列收敛，也不保证所有收敛子列具有相同的极限。
+\end{notealert}
+
+\begin{remark}
+\label{rem:set-and-sequence-cluster-points}
+\emph[caution]{序列的聚点不能简单地等同于其取值集合的聚点。}例如，常值序列 $x_n=c$ 的每个子列都趋于 $c$，但取值集合 $\{c\}$ 没有聚点。这也是上述证明先区分取值集合有限与无限两种情况的原因；若取值集合有限，不能直接对它应用集合的聚点原理。
+\end{remark}
+
+\subsection{柯西收敛准则}
+\label{subsec:cauchy-convergence-criterion}
+
+用极限定义证明 $x_n\to a$，需要确定候选极限 $a$。柯西收敛准则改为比较序列后面的项彼此之间的距离，因此可以在尚不知道极限值时判断收敛性。
+
+\begin{definition}
+\label{def:cauchy-sequence}
+若实数列 $\{x_n\}$ 满足
+\begin{equation}
+    \forall\varepsilon>0,\quad\exists N\geq1,\quad
+    \forall m,n>N,\quad |x_m-x_n|<\varepsilon,
+    \label{eq:cauchy-sequence-condition}
+\end{equation}
+其中 $N,m,n$ 均为正整数，则称它为\emph{柯西序列}（Cauchy sequence），简称柯西列，也称基本列。等价地，对每个 $\varepsilon>0$，存在正整数 $N$，使得对所有 $n>N$ 及所有正整数 $p$ 都有 $|x_{n+p}-x_n|<\varepsilon$。
+\end{definition}
+
+条件~\eqref{eq:cauchy-sequence-condition} 要求足够靠后的\emph{任意两项}都彼此接近。$N$ 可以依赖于 $\varepsilon$，但一旦选定，就必须同时适用于所有 $m,n>N$；在等价写法中，$N$ 也不能随 $p$ 改变。
+
+\begin{theorem}[柯西收敛准则]
+\label{thm:cauchy-convergence-criterion}
+实数列收敛的充分必要条件是它为柯西列。
+\end{theorem}
+
+\begin{proof}
+先证必要性。若 $x_n\to a\in\mathbb{R}$，则对任意 $\varepsilon>0$，存在正整数 $N$，使得 $n>N$ 时 $|x_n-a|<\varepsilon/2$。于是对任意 $m,n>N$，由三角不等式得
+\[
+    |x_m-x_n|\leq|x_m-a|+|x_n-a|<\varepsilon,
+\]
+故 $\{x_n\}$ 是柯西列。
+
+再证充分性。\emph[tip]{先证明柯西列有界，再取收敛子列，最后利用柯西条件把子列的收敛推广到整个序列。}在式~\eqref{eq:cauchy-sequence-condition} 中取 $\varepsilon=1$，得到正整数 $N_0$，使 $n>N_0$ 时
+\[
+    |x_n-x_{N_0+1}|<1,
+    \qquad |x_n|<1+|x_{N_0+1}|.
+\]
+令 $M=\max\{|x_1|,\ldots,|x_{N_0}|,1+|x_{N_0+1}|\}$，便有 $|x_n|\leq M$ 对所有 $n$ 成立，所以该序列有界。由定理~\ref{thm:bolzano-weierstrass-sequence}，存在子列 $x_{n_k}\to a\in\mathbb{R}$。
+
+给定 $\varepsilon>0$，由子列收敛，存在正整数 $K$，使 $k>K$ 时 $|x_{n_k}-a|<\varepsilon/2$；由柯西条件，存在正整数 $N$，使 $m,n>N$ 时 $|x_m-x_n|<\varepsilon/2$。固定一个 $k>K$ 且 $n_k>N$，则对所有 $n>N$，都有
+\[
+    |x_n-a|\leq|x_n-x_{n_k}|+|x_{n_k}-a|<\varepsilon.
+\]
+因此 $x_n\to a$。
+\end{proof}
+
+\begin{example}
+% 教材例 2.4.8，第 66--67 页；同时说明相邻项之差趋于零并不足以保证收敛。
+设 $s_n=\sum_{k=1}^{n}1/k$。证明相邻项之差 $s_{n+1}-s_n\to0$，但 $\{s_n\}$ 不收敛。
+\end{example}
+
+\begin{solve}
+由定义，$s_{n+1}-s_n=1/(n+1)\to0$。然而对任意正整数 $n$，都有
+\[
+    s_{2n}-s_n=\sum_{k=n+1}^{2n}\frac1k
+    \geq n\cdot\frac1{2n}=\frac12.
+\]
+取 $\varepsilon_0=1/2$，无论给定多大的正整数 $N$，总可选取 $n>N$，使下标 $n,2n$ 都大于 $N$，而 $|s_{2n}-s_n|\geq\varepsilon_0$。因此它不满足柯西条件，由定理~\ref{thm:cauchy-convergence-criterion} 可知该序列不收敛。\emph[caution]{相邻两项的距离趋于零，不能替代尾部任意两项的距离一致变小。}
+\end{solve}
+
+\begin{example}
+% 教材例 2.4.9，第 67 页。
+证明序列 $y_n=\sum_{k=1}^{n}1/k^2$ 收敛。
+\end{example}
+
+\begin{solve}
+对正整数 $n>m$，由 $1/k^2<1/((k-1)k)$，有
+\[
+    |y_n-y_m|=\sum_{k=m+1}^{n}\frac1{k^2}
+    <\sum_{k=m+1}^{n}\left(\frac1{k-1}-\frac1k\right)
+    =\frac1m-\frac1n<\frac1m.
+\]
+给定 $\varepsilon>0$，取正整数 $N>1/\varepsilon$。当 $n,m>N$ 且 $n>m$ 时，上式给出 $|y_n-y_m|<1/m<\varepsilon$；$m>n$ 时交换两者即可，$m=n$ 时差为零。因此 $\{y_n\}$ 是柯西序列，由定理~\ref{thm:cauchy-convergence-criterion} 可知它收敛。这个证明不需要预先确定极限值。
+\end{solve}
+
+\begin{remark}
+\label{rem:completeness-of-real-numbers}
+设 $K\subseteq\mathbb{R}$，若由 $K$ 中的点组成的任意柯西序列都收敛到 $K$ 中某一点，则称 $K$ 是\emph{完备的}（complete），这称为 $K$ 的\emph{完备性}（completeness）。柯西收敛准则说明 $\mathbb{R}$ 是完备的。$\mathbb{Q}$ 则不完备：设 $q_n$ 为 $\sqrt2$ 保留小数点后 $n$ 位得到的截断小数，由 $0\leq\sqrt2-q_n<10^{-n}$ 可知 $q_n\to\sqrt2$，所以 $\{q_n\}$ 是有理数柯西序列，却没有有理数极限。
+
+任意非空有界开区间 $(a,b)$ 也不完备。例如，$x_n=b-(b-a)/(n+1)$ 的每一项都在 $(a,b)$ 中，并且 $x_n\to b$，所以它是柯西序列，但极限 $b$ 不属于 $(a,b)$。因此，讨论完备性时必须明确要求极限存在于哪个集合中。
+\end{remark}
+
+\section{序列的上下极限}
+\label{sec:upper-and-lower-sequence-limits}
+
+% 根据《数学分析》第一册第 2.5 节整理，教材第 68--76 页；分章 PDF 第 40--48 页。
+普通极限要求序列的所有充分靠后的项都趋近同一个数，但有界序列也可能不断振荡。上一节的波尔查诺--魏尔斯特拉斯定理保证有界序列至少有一个收敛子列，却不保证这些子列具有相同的极限。为了描述序列在尾部的取值范围，本节引入上下极限：先求每一段尾部的上、下确界，再考察这些确界随起始位置后移而趋向何处。以下 $\{x_n\}$ 均为实数列，下标取正整数。
+
+\subsection{从尾部确界定义上下极限}
+\label{subsec:liminf-limsup-definitions}
+
+先设 $\{x_n\}$ 有界，记它从第 $n$ 项开始的取值集合为 $E_n=\{x_k:k\geq n\}$，并令
+\begin{equation}
+    l_n=\inf E_n=\inf_{k\geq n}x_k,
+    \qquad h_n=\sup E_n=\sup_{k\geq n}x_k.
+    \label{eq:sequence-tail-bounds}
+\end{equation}
+由于 $E_{n+1}\subseteq E_n$，缩小取值集合不会使下确界减小，也不会使上确界增大，因此
+\[
+    l_n\leq l_{n+1}\leq h_{n+1}\leq h_n,
+    \qquad l_n\leq x_n\leq h_n.
+\]
+于是 $\{l_n\}$ 单调增加，$\{h_n\}$ 单调减少，并且两者都有界。由单调收敛原理，它们分别收敛于 $\sup_{n\geq1}l_n$ 和 $\inf_{n\geq1}h_n$。
+
+\begin{definition}
+\label{def:liminf-limsup}
+设 $\{x_n\}$ 是有界实数列，$l_n,h_n$ 由式~\eqref{eq:sequence-tail-bounds} 定义。称
+\begin{equation}
+    \begin{aligned}
+        \liminf_{n\to\infty}x_n
+        &=\lim_{n\to\infty}l_n
+        =\sup_{n\geq1}\inf_{k\geq n}x_k,\\
+        \limsup_{n\to\infty}x_n
+        &=\lim_{n\to\infty}h_n
+        =\inf_{n\geq1}\sup_{k\geq n}x_k
+    \end{aligned}
+    \label{eq:liminf-limsup-tail-formulas}
+\end{equation}
+分别为序列的\emph{下极限}（limit inferior）和\emph{上极限}（limit superior），也分别记为 $\underline{\lim}_{n\to\infty}x_n$ 和 $\overline{\lim}_{n\to\infty}x_n$。
+\end{definition}
+
+上述定义可以推广到无界实数列。记 $\overline{\mathbb{R}}=\mathbb{R}\cup\{-\infty,+\infty\}$ 为\emph{扩展实数系}（extended real number system），约定非空无上界实数集的上确界为 $+\infty$，非空无下界实数集的下确界为 $-\infty$。在这一约定下，式~\eqref{eq:sequence-tail-bounds} 对任意实数列都有意义，而式~\eqref{eq:liminf-limsup-tail-formulas} 中的极限按广义极限理解。具体地，若原序列无上界，删去有限项后仍无上界，故所有 $h_n=+\infty$，上极限为 $+\infty$；若原序列无下界，则所有 $l_n=-\infty$，下极限为 $-\infty$。若原序列有下界，则 $l_n$ 为单调增加的实数列，其极限可能有限，也可能为 $+\infty$；有上界时，$h_n$ 的极限同理可能有限，也可能为 $-\infty$。因此，\emph{每个实数列的上下极限都在扩展实数系中存在}，并且恒有
+\begin{equation}
+    \liminf_{n\to\infty}x_n\leq\limsup_{n\to\infty}x_n.
+    \label{eq:liminf-le-limsup}
+\end{equation}
+
+\begin{notealert}[title={上下极限描述尾部的边界}]
+下极限和上极限考察的是不断舍去前面有限项之后，剩余各项的下、上确界最终趋向哪里，而不是原序列的最小值和最大值。例如，$x_n=1/n$ 的上确界为 $1$，但其尾部上确界 $h_n=1/n\to0$，所以上极限为 $0$。改变、增加或删去开头有限项都不会改变上下极限；特别地，对固定非负整数 $r$，$\{x_{n+r}\}$ 与 $\{x_n\}$ 具有相同的上下极限，因为前者的尾部确界就是后者的 $l_{n+r}$ 与 $h_{n+r}$。
+\end{notealert}
+
+\begin{example}
+% 参照教材例 2.5.1，第 69--70 页。
+求下列四个序列的上下极限：
+\[
+    \sin\frac{n\pi}{2},\qquad n^{(-1)^n},\qquad (-1)^n n,\qquad n.
+\]
+\end{example}
+
+\begin{solve}
+对于 $\sin(n\pi/2)$，每个尾部都含有 $1$ 和 $-1$，且所有项均在 $[-1,1]$ 内，故 $l_n=-1$、$h_n=1$。对于 $n^{(-1)^n}$，偶数位置的项等于 $n$，奇数位置的项等于 $1/n$；每个尾部都无上界，同时含有任意接近 $0$ 的正数，故 $l_n=0$、$h_n=+\infty$。因此
+\[
+    \begin{aligned}
+        \liminf_{n\to\infty}\sin\frac{n\pi}{2}&=-1,
+        &\limsup_{n\to\infty}\sin\frac{n\pi}{2}&=1,\\
+        \liminf_{n\to\infty}n^{(-1)^n}&=0,
+        &\limsup_{n\to\infty}n^{(-1)^n}&=+\infty.
+    \end{aligned}
+\]
+对于 $(-1)^n n$，每个尾部既无上界又无下界，故 $l_n=-\infty$、$h_n=+\infty$。对于 $x_n=n$，有 $l_n=n$、$h_n=+\infty$。于是
+\[
+    \begin{aligned}
+        \liminf_{n\to\infty}(-1)^n n&=-\infty,
+        &\limsup_{n\to\infty}(-1)^n n&=+\infty,\\
+        \liminf_{n\to\infty}n&=+\infty,
+        &\limsup_{n\to\infty}n&=+\infty.
+    \end{aligned}
+\]
+最后一个例子说明，上下极限相等时，其共同值仍可能是无穷大；这时原序列具有广义极限，但不在通常的有限极限意义下收敛。
+\end{solve}
+
+\subsection{等价刻画、子列与收敛判据}
+\label{subsec:liminf-limsup-characterizations}
+
+\begin{theorem}[上下极限的等价刻画]
+\label{thm:liminf-limsup-characterizations}
+设 $\{x_n\}$ 为有界实数列，$h\in\mathbb{R}$。则 $h=\limsup_{n\to\infty}x_n$ 当且仅当对任意 $\varepsilon>0$，以下两个条件同时成立：
+\begin{equation}
+    \begin{aligned}
+        &\exists N\geq1,\quad\forall n\geq N,\quad x_n<h+\varepsilon;\\
+        &\forall K\geq1,\quad\exists n\geq K,\quad x_n>h-\varepsilon.
+    \end{aligned}
+    \label{eq:limsup-epsilon-characterization}
+\end{equation}
+这里 $N,K,n$ 均为正整数。等价地，存在子列趋于 $h$，且任何收敛子列的极限都不超过 $h$，即上极限是所有子列极限中的最大值。
+
+相应地，对实数 $l$，$l=\liminf_{n\to\infty}x_n$ 当且仅当对任意 $\varepsilon>0$，同时有
+\begin{equation}
+    \begin{aligned}
+        &\exists N\geq1,\quad\forall n\geq N,\quad x_n>l-\varepsilon;\\
+        &\forall K\geq1,\quad\exists n\geq K,\quad x_n<l+\varepsilon.
+    \end{aligned}
+    \label{eq:liminf-epsilon-characterization}
+\end{equation}
+等价地，下极限是所有子列极限中的最小值。
+\end{theorem}
+
+\begin{proof}
+先证上极限的刻画。若 $h_n\to h$，则给定 $\varepsilon>0$，充分大的 $n$ 满足 $x_n\leq h_n<h+\varepsilon$。另一方面，对任意正整数 $K$，有 $h_K\geq h>h-\varepsilon$；由上确界的定义，必存在 $n\geq K$ 使 $x_n>h-\varepsilon$，否则 $h-\varepsilon$ 就是该尾部的上界，产生矛盾。因此式~\eqref{eq:limsup-epsilon-characterization} 成立。
+
+反过来，若式~\eqref{eq:limsup-epsilon-characterization} 成立，则第一条给出充分大的 $n$ 满足 $h_n\leq h+\varepsilon$，第二条给出每个 $h_n\geq h-\varepsilon$。记 $H=\lim h_n$，取极限得到 $h-\varepsilon\leq H\leq h+\varepsilon$；由 $\varepsilon$ 的任意性，$H=h$。
+
+下面证明子列极限的刻画。在式~\eqref{eq:limsup-epsilon-characterization} 中依次取 $\varepsilon=1/k$，由第一条选取正整数 $N_k$，使 $n\geq N_k$ 时 $x_n<h+1/k$。令 $n_0=0$，再由第二条递归选取 $n_k\geq\max\{N_k,n_{k-1}+1\}$，使 $x_{n_k}>h-1/k$，便得到下标严格递增的子列，且有
+\[
+    h-\frac1k<x_{n_k}<h+\frac1k.
+\]
+故 $x_{n_k}\to h$。若另一子列 $x_{m_k}\to b$，则第一条保证它充分靠后的项小于 $h+\varepsilon$，取极限得 $b\leq h+\varepsilon$，再由 $\varepsilon$ 的任意性得 $b\leq h$。这说明实际的上极限是子列极限中的最大值；反之，若某个数也具有这一最大值性质，它必等于实际的上极限。
+
+由于 $\sup_{k\geq n}(-x_k)=-\inf_{k\geq n}x_k=-l_n$，对序列 $\{-x_n\}$ 应用已经证明的结论，便得到下极限的两个等价刻画。
+\end{proof}
+
+\emph[caution]{“充分靠后的所有项”与“无穷多项”不能互换。}式~\eqref{eq:limsup-epsilon-characterization} 的第一条说，最终所有项都低于 $h+\varepsilon$；第二条说，无论下标走到多远，后面仍有项高于 $h-\varepsilon$。它不要求最终所有项都高于 $h-\varepsilon$，因此有上极限并不意味着原序列收敛。
+
+\begin{remark}
+\label{rem:liminf-limsup-and-set-cluster-points}
+按定义~\ref{def:subsequence-and-sequence-cluster-point}，对任意有界序列，上、下极限分别是它的最大、最小序列聚点。如果进一步要求各项互不相同，那么它们也是取值集合 $E=\{x_n:n\geq1\}$ 的最大、最小聚点：趋于上下极限的子列由互不相同的数组成，故其极限是 $E$ 的聚点；反过来，$E$ 的任一聚点的每个邻域都含有无穷多个不同的点，可以逐次选取下标递增的项趋于该点，所以它也是子列极限。教材对取值集合聚点所作的互异性假设不能直接省略，常值序列便是反例，参见备注~\ref{rem:set-and-sequence-cluster-points}。
+\end{remark}
+
+\begin{theorem}[子列的上下极限与收敛判据]
+\label{thm:subsequence-limits-and-convergence}
+设 $\{x_n\}$ 为任意实数列，$\{x_{n_j}\}$ 为其任一子列，则在扩展实数系中有
+\begin{equation}
+    \liminf_{n\to\infty}x_n
+    \leq\liminf_{j\to\infty}x_{n_j}
+    \leq\limsup_{j\to\infty}x_{n_j}
+    \leq\limsup_{n\to\infty}x_n.
+    \label{eq:subsequence-liminf-limsup-bounds}
+\end{equation}
+此外，对任意 $a\in\overline{\mathbb{R}}$，都有
+\begin{equation}
+    \lim_{n\to\infty}x_n=a
+    \quad\Longleftrightarrow\quad
+    \liminf_{n\to\infty}x_n=\limsup_{n\to\infty}x_n=a.
+    \label{eq:convergence-via-liminf-limsup}
+\end{equation}
+当 $a=\pm\infty$ 时，左端按广义极限理解。
+\end{theorem}
+
+\begin{proof}
+对子列从第 $j$ 项开始的尾部，记
+\[
+    \widetilde l_j=\inf_{i\geq j}x_{n_i},
+    \qquad \widetilde h_j=\sup_{i\geq j}x_{n_i}.
+\]
+该尾部取值集合包含于原序列从第 $n_j$ 项开始的尾部，所以
+\[
+    l_{n_j}\leq\widetilde l_j\leq\widetilde h_j\leq h_{n_j}.
+\]
+因 $n_j\to\infty$，单调尾部确界序列的这两个子列仍趋于原来的广义极限。令 $j\to\infty$，即得式~\eqref{eq:subsequence-liminf-limsup-bounds}。
+
+对于收敛判据，先设 $a\in\mathbb{R}$。若上下极限都等于 $a$，则由 $l_n\leq x_n\leq h_n$ 和夹逼收敛原理得到 $x_n\to a$。反之，若 $x_n\to a$，则对任意 $\varepsilon>0$，充分大的 $n$ 及所有 $k\geq n$ 都满足 $a-\varepsilon<x_k<a+\varepsilon$，从而 $a-\varepsilon\leq l_n\leq h_n\leq a+\varepsilon$，这说明 $l_n,h_n$ 都趋于 $a$。
+
+若 $a=+\infty$，则 $x_n\to+\infty$ 意味着对每个实数 $M$，最终所有项都大于 $M$，因而最终 $l_n\geq M$，所以 $l_n\to+\infty$；由 $h_n\geq l_n$，也有 $h_n\to+\infty$。反之，由 $x_n\geq l_n\to+\infty$ 得 $x_n\to+\infty$。当 $a=-\infty$ 时，利用尾部上确界 $h_n$ 作对称论证即可。
+\end{proof}
+
+\begin{example}
+% 教材例 2.5.2，第 74 页。
+将 $[0,1]\cap\mathbb{Q}$ 中的所有有理数不重复地排成序列 $\{x_n\}$，求它的上下极限。
+\end{example}
+
+\begin{solve}
+任意非空开区间 $(a,b)\subseteq(0,1)$ 都含有无穷多个有理数：由有理数的稠密性，其中有一个有理数；若其中只有有限个有理数，则可在去掉这些点后选出一个非空开子区间，与稠密性矛盾。因此，删去开头有限项后，剩余项仍在 $[0,1]$ 中稠密，尤其仍有任意接近 $0$ 和 $1$ 的项。于是对每个 $n$，都有 $l_n=0$、$h_n=1$，故
+\[
+    \liminf_{n\to\infty}x_n=0,
+    \qquad \limsup_{n\to\infty}x_n=1.
+\]
+也可从聚点看：上述性质保证 $[0,1]$ 中每一点都是取值集合的聚点，区间外的点则不是；其最小、最大聚点分别为 $0$ 和 $1$，由备注~\ref{rem:liminf-limsup-and-set-cluster-points} 得到同一结论。由上下极限不相等可知，该序列不收敛。
+\end{solve}
+
+\subsection{上下极限的保序性与运算性质}
+\label{subsec:liminf-limsup-operations}
+
+\begin{theorem}
+\label{thm:liminf-limsup-operations}
+设 $\{x_n\}$、$\{y_n\}$ 为有界实数列，简记
+\[
+    \underline x=\liminf_{n\to\infty}x_n,\quad
+    \overline x=\limsup_{n\to\infty}x_n,\quad
+    \underline y=\liminf_{n\to\infty}y_n,\quad
+    \overline y=\limsup_{n\to\infty}y_n.
+\]
+若充分大的 $n$ 都满足 $x_n\leq y_n$，则 $\underline x\leq\underline y$ 且 $\overline x\leq\overline y$。取相反数时，上下极限交换位置并变号：
+\begin{equation}
+    \liminf_{n\to\infty}(-x_n)=-\overline x,
+    \qquad \limsup_{n\to\infty}(-x_n)=-\underline x.
+    \label{eq:liminf-limsup-negation}
+\end{equation}
+对于和，有
+\begin{equation}
+    \begin{aligned}
+        \underline x+\underline y
+        &\leq\liminf_{n\to\infty}(x_n+y_n)
+        \leq\underline x+\overline y,\\
+        \underline x+\overline y
+        &\leq\limsup_{n\to\infty}(x_n+y_n)
+        \leq\overline x+\overline y.
+    \end{aligned}
+    \label{eq:liminf-limsup-sum}
+\end{equation}
+交换 $x_n,y_n$ 后，同样得到含 $\overline x+\underline y$ 的两个中间界。若进一步有 $x_n\geq0$、$y_n\geq0$ 对所有 $n$ 成立，则
+\begin{equation}
+    \begin{aligned}
+        \underline x\,\underline y
+        &\leq\liminf_{n\to\infty}(x_ny_n)
+        \leq\underline x\,\overline y,\\
+        \underline x\,\overline y
+        &\leq\limsup_{n\to\infty}(x_ny_n)
+        \leq\overline x\,\overline y.
+    \end{aligned}
+    \label{eq:liminf-limsup-product}
+\end{equation}
+交换两列后，也得到含 $\overline x\,\underline y$ 的相应界。
+\end{theorem}
+
+\begin{proof}
+保序性由充分靠后的每个尾部上的下确界、上确界比较得到；有限个起始项不影响结论。取相反数的公式则由 $\inf_{k\geq n}(-x_k)=-\sup_{k\geq n}x_k$ 及其对偶式取极限得到。
+
+为证明和的不等式，分别用 $l_n^x,h_n^x$ 与 $l_n^y,h_n^y$ 表示两列的尾部确界。对所有 $k\geq n$，有
+\[
+    l_n^x+l_n^y\leq x_k+y_k\leq h_n^x+h_n^y.
+\]
+取尾部确界，再令 $n\to\infty$，得到式~\eqref{eq:liminf-limsup-sum} 最左端和最右端的界。为证明 $\liminf(x_n+y_n)\leq\underline x+\overline y$，由定理~\ref{thm:liminf-limsup-characterizations} 选取 $x_{n_j}\to\underline x$；由于 $\{y_{n_j}\}$ 有界，再由定理~\ref{thm:bolzano-weierstrass-sequence} 选取子列 $y_{n_{j_i}}\to b$。这时 $b\leq\overline y$，且
+\[
+    x_{n_{j_i}}+y_{n_{j_i}}\longrightarrow\underline x+b
+    \leq\underline x+\overline y.
+\]
+由定理~\ref{thm:subsequence-limits-and-convergence}，原序列的下极限不超过该子列极限，所需不等式成立。再选取 $y_{m_j}\to\overline y$，并从有界的 $\{x_{m_j}\}$ 中选出趋于某个 $c\geq\underline x$ 的子列，便得到和的一个子列极限 $c+\overline y\geq\underline x+\overline y$，故 $\limsup(x_n+y_n)\geq\underline x+\overline y$。
+
+当两列非负时，有 $0\leq l_n^x,l_n^y$，从而
+\[
+    l_n^x l_n^y\leq x_k y_k\leq h_n^x h_n^y
+    \qquad(k\geq n),
+\]
+取尾部确界并令 $n\to\infty$，得到乘积的两个外侧界。沿用上一段选出的子列，分别得到乘积的子列极限 $\underline x\,b\leq\underline x\,\overline y$ 与 $c\,\overline y\geq\underline x\,\overline y$；这里乘法保序依赖于 $\underline x,\overline y\geq0$。再应用式~\eqref{eq:subsequence-liminf-limsup-bounds}，即得两个中间界。
+\end{proof}
+
+\emph[caution]{一般不能把上下极限直接拆成两个上下极限的和或积。}例如，取 $x_n=(-1)^n$、$y_n=-(-1)^n$，则两列的上极限都为 $1$，但 $x_n+y_n=0$ 的上极限为 $0$。再取非负序列 $u_n=1+(-1)^n$、$v_n=1-(-1)^n$，则两列的上极限都为 $2$，但 $u_nv_n=0$。不同序列接近各自上极限的项未必出现在相同下标处。以上运算定理针对有界序列，不能在无界情形下不加条件地使用含 $+\infty-\infty$ 或 $0\cdot\infty$ 的表达式。
+
+\begin{corollary}[收敛项与常数因子]
+\label{cor:liminf-limsup-affine-rules}
+设 $a_n\to a\in\mathbb{R}$，$\{x_n\}$ 有界，则
+\[
+    \liminf_{n\to\infty}(a_n+x_n)=a+\liminf_{n\to\infty}x_n,
+    \qquad
+    \limsup_{n\to\infty}(a_n+x_n)=a+\limsup_{n\to\infty}x_n.
+\]
+若 $c>0$，则乘以 $c$ 时上下极限分别乘以 $c$；若 $c<0$，则
+\[
+    \liminf_{n\to\infty}(cx_n)=c\limsup_{n\to\infty}x_n,
+    \qquad
+    \limsup_{n\to\infty}(cx_n)=c\liminf_{n\to\infty}x_n.
+\]
+当 $c=0$ 时，两者均为 $0$。
+\end{corollary}
+
+\begin{proof}
+由 $\liminf a_n=\limsup a_n=a$，在式~\eqref{eq:liminf-limsup-sum} 中交换两列后使用中间界，即得
+\[
+    a+\liminf x_n\leq\liminf(a_n+x_n)\leq a+\liminf x_n,
+\]
+上极限同理。对于 $c>0$，由 $\inf_{k\geq n}(cx_k)=c\inf_{k\geq n}x_k$ 及对应的上确界等式取极限即可；$c<0$ 时，再结合式~\eqref{eq:liminf-limsup-negation} 得到结论。
+\end{proof}
+
+\subsection{用上下极限研究序列的敛散性}
+\label{subsec:liminf-limsup-applications}
+
+\begin{example}
+% 教材例 2.5.3，第 75--76 页。
+设 $\{x_n\}$ 为实数列，$\alpha\geq2$ 为常数，令 $y_n=x_n+\alpha x_{n+1}$。证明：$\{y_n\}$ 收敛的充分必要条件是 $\{x_n\}$ 收敛，并求两者极限之间的关系。
+\end{example}
+
+\begin{solve}
+若 $x_n\to a$，则由极限的运算法则，$y_n\to(1+\alpha)a$。反过来，设 $y_n\to b$。\emph[tip]{先证明原序列有界，再由关系式求出上下极限之间的约束。}由 $\{y_n\}$ 有界，可取 $M>0$，使 $|x_1|\leq M$ 且所有 $|y_n|\leq M$。若 $|x_n|\leq M$，则
+\[
+    |x_{n+1}|=\frac1\alpha|y_n-x_n|
+    \leq\frac{|y_n|+|x_n|}{\alpha}
+    \leq\frac{2M}{\alpha}\leq M.
+\]
+由数学归纳法，$|x_n|\leq M$ 对所有 $n$ 成立，故原序列有界。
+
+记 $l=\liminf x_n$、$h=\limsup x_n$。因为移去首项不改变上下极限，在 $x_n=y_n-\alpha x_{n+1}$ 两边应用推论~\ref{cor:liminf-limsup-affine-rules}，得到
+\[
+    h=b-\alpha l,\qquad l=b-\alpha h.
+\]
+两式相减，得 $h-l=\alpha(h-l)$。由于 $\alpha\geq2$，故 $h=l$，再代回即得 $h=l=b/(1+\alpha)$。由定理~\ref{thm:subsequence-limits-and-convergence}，$x_n\to b/(1+\alpha)$。条件不能任意去掉：若 $\alpha=1$ 且 $x_n=(-1)^n$，则 $y_n=0$ 收敛，但 $\{x_n\}$ 不收敛。
+\end{solve}
+
+\begin{example}
+% 参照教材例 2.5.4，第 76 页。
+利用上下极限证明序列 $\{\sin n\}$ 发散，其中角度以弧度计。
+\end{example}
+
+\begin{solve}
+目标是找到两组下标，使相应的正弦值分别保持在一个正数以上和一个负数以下。记 $\lfloor t\rfloor$ 为不超过 $t$ 的最大整数，对正整数 $k$ 取
+\[
+    n_k=\left\lfloor2k\pi+\frac\pi4\right\rfloor+1,
+    \qquad
+    m_k=\left\lfloor(2k+1)\pi+\frac\pi4\right\rfloor+1.
+\]
+两列下标都严格增加。利用 $t<\lfloor t\rfloor+1\leq t+1$ 以及 $1<\pi/2$，得到
+\[
+    2k\pi+\frac\pi4<n_k<2k\pi+\frac{3\pi}4,
+    \qquad
+    (2k+1)\pi+\frac\pi4<m_k<(2k+1)\pi+\frac{3\pi}4.
+\]
+因此 $\sin n_k>\sqrt2/2$，而 $\sin m_k<-\sqrt2/2$。由式~\eqref{eq:subsequence-liminf-limsup-bounds}，
+\[
+    \liminf_{n\to\infty}\sin n
+    \leq\liminf_{k\to\infty}\sin m_k
+    \leq-\frac{\sqrt2}{2}
+    <\frac{\sqrt2}{2}
+    \leq\limsup_{k\to\infty}\sin n_k
+    \leq\limsup_{n\to\infty}\sin n.
+\]
+所以上下极限不同，原序列发散。这里仅需将上下极限分开，无须求出它们的精确值。
+\end{solve}
+
+\section*{习题二}
+\addcontentsline{toc}{section}{习题二}

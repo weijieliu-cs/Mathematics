@@ -1,0 +1,615 @@
+% !TeX root = ../概率论与数理统计（缪柏其）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{4} % 保留原书章号。
+\chapter{统计学基本概念}
+\label{chap:study-statistics-basics}
+
+% 依据教材第 5 章，正文第 180--206 页（PDF 第 192--218 页）整理。
+前四章从给定的概率模型推导随机现象的规律，本章转向统计学的出发点：模型中的某些因素未知，需要利用观测数据认识它们。统计推断的基本链条是\emph{明确总体及研究目标，规定获取样本的方式，构造统计量，再利用统计量的分布评价结论的误差}。本章首先区分总体、样本和统计量，继而研究常见统计量的抽样分布，为后续的参数估计和假设检验准备工具；民意调查与双盲对照试验则说明，数据的取得方式也是统计结论成立的条件。
+
+\section{统计学发展简史}
+\label{sec:study-statistics-history}
+
+教材从两条相互汇合的线索介绍统计学的发展。一条源于人口、经济和社会状况的记录与整理，逐渐形成描述数据和开展抽样调查的方法；另一条以概率论为基础，围绕测量误差、参数估计和科学假设的判断发展数学理论。前者强调如何取得和概括数据，后者强调如何从有限且有随机波动的数据中推断未知规律。两者共同说明，统计学既依赖实际问题和数据，也依赖对不确定性的数学刻画。
+
+沿教材的叙述，最小二乘法和正态误差理论为处理重复测量提供了工具，相关与回归把研究对象扩展到变量之间的关系，Student 的 $t$ 分布使小样本下的均值推断有了精确依据；此后，估计、假设检验、方差分析和试验设计逐渐形成系统方法。计算工具的发展又推动了复杂模型和大规模数据分析。理解这条路线时，重点是看到\emph{统计方法来自具体的推断需求，其有效性同时依赖模型、数据获取方式和数学条件}，而不只是记忆人名与公式。
+
+\section{基本概念}
+\label{sec:study-statistical-concepts}
+
+描述性统计（descriptive statistics）利用均值、分位数、方差及图形概括已有数据；探索性数据分析（exploratory data analysis）帮助发现结构、异常和可能的关系；预测分析（predictive analysis）利用已知变量预测尚未观测的结果；统计推断（statistical inference）则由样本对总体中的未知因素作出判断。本笔记后续主要讨论参数估计、区间估计与假设检验。它们不仅要给出一个答案，还要说明答案如何受抽样波动影响。
+
+例如，沿用教材的面料瑕疵问题，假定单位长度面料的瑕疵点数 $X$ 服从参数为 $\lambda>0$ 的泊松分布，则总体平均瑕疵点数为 $\mathbb E(X)=\lambda$。观测 $n$ 段面料后，可以用样本均值估计 $\lambda$，也可以判断平均瑕疵点数是否超过给定标准 $\lambda_0$。前者是估计问题，后者是检验问题。即使真实的 $\lambda\le\lambda_0$，某次样本均值也可能超过标准；反过来，真实不合格的产品也可能在一次抽检中表现良好。因此，样本中的差异和关于总体的结论之间，需要由抽样分布建立联系。
+
+\subsection{总体与统计模型}
+
+\begin{definition}[统计总体]
+\label{def:study-population}
+针对明确的研究对象及其数量指标，该指标所有可能取值及其概率分布构成\emph{统计总体（statistical population）}，简称总体。用随机变量 $X$ 表示这一指标，用 $F(x)=\mathbb P(X\le x)$ 表示总体分布函数。若总体分布属于一个由未知参数 $\theta$ 标记的分布族，则记为 $\{F_\theta:\theta\in\Theta\}$，其中 $\Theta$ 为参数空间。
+\end{definition}
+
+总体首先由研究问题确定：研究灯管寿命时指标是寿命，研究废品率时指标是产品是否为废品，不能仅列出一批物品而不说明关心什么性质。对含 $N$ 件产品、其中有 $M$ 件废品的有限总体，均匀随机抽取一件，令废品对应 $X=1$、正品对应 $X=0$，便有
+\[
+  \mathbb P(X=1)=p=\frac MN,\qquad
+  \mathbb P(X=0)=1-p.
+\]
+这里 $N$ 是总体容量，$p$ 是总体废品率；在通常的频率学派模型中，$p$ 是固定而未知的量，随机性来自抽样，并不因为 $p$ 未知就把它视为随机变量。
+
+\emph{统计模型（statistical model）}还要规定全部观测的联合分布。例如，重复称量某物件时，可写为 $X_i=\mu+\varepsilon_i$，其中 $\mu$ 是真实质量，$\varepsilon_i$ 是第 $i$ 次测量误差。若假定各次误差独立、条件稳定、没有系统偏差，并采用 $\varepsilon_i\sim N(0,\sigma^2)$ 的误差模型，则
+\begin{equation}
+  f_{\mu,\sigma^2}(x_1,\ldots,x_n)
+  =(2\pi\sigma^2)^{-n/2}
+    \exp\left\{-\frac1{2\sigma^2}\sum_{i=1}^{n}(x_i-\mu)^2\right\},
+  \qquad \mu\in\mathbb R,\quad \sigma^2>0.
+  \label{eq:study-normal-sample-density}
+\end{equation}
+大量微小误差叠加可以为正态近似提供动机，但不能仅凭“重复测量”就断言独立或精确正态。式~\eqref{eq:study-normal-sample-density} 是在这些假设下选定的模型；若仪器有漂移、共同环境扰动或系统偏差，联合分布便需要相应改变。
+
+\subsection{样本及其二重性}
+
+\begin{definition}[样本与简单随机样本]
+\label{def:study-iid-sample}
+按一定抽样或试验方案得到的 $n$ 个观测指标组成随机向量 $(X_1,\ldots,X_n)$，称为\emph{样本（sample）}，$n$ 称为\emph{样本量（sample size）}。若 $X_1,\ldots,X_n$ 相互独立，且都具有总体分布 $F$，则称其为\emph{简单随机样本（simple random sample）}，也称独立同分布样本，简记为 $X_1,\ldots,X_n\overset{\mathrm{i.i.d.}}{\sim}F$。
+\end{definition}
+
+抽样前，每个 $X_i$ 的取值尚未确定，样本是随机向量；抽样后，得到具体的\emph{样本值（sample realization）} $(x_1,\ldots,x_n)$。研究某种方法在重复抽样中的误差时使用大写随机变量，计算这一次观测的结果时使用小写数据。这称为样本的二重性，并不意味着某一已记录数值仍会自行变化。一次抽取 $n$ 件产品得到的是一个样本量为 $n$ 的样本，而不是 $n$ 个样本。
+
+对简单随机样本，独立性给出联合分布函数
+\begin{equation}
+  \mathbb P(X_1\le x_1,\ldots,X_n\le x_n)
+  =\prod_{i=1}^{n}F(x_i).
+  \label{eq:study-iid-joint-cdf}
+\end{equation}
+若总体有密度 $f$，联合密度为 $\prod_{i=1}^{n}f(x_i)$；若总体为离散型，联合概率质量同样按各分量相乘。\emph[caution]{同分布只规定单次观测的规律，独立性才允许将联合分布写为乘积。}
+
+\begin{example}
+\label{ex:study-replacement-sampling}
+教材例 5.3 的抽样模型。设一批产品共有 $N\ge2$ 件，其中 $M$ 件为废品，$p=M/N$。用 $X_i=1$ 表示第 $i$ 次抽到废品，$X_i=0$ 表示抽到正品，比较均匀有放回抽样与均匀无放回抽样得到的样本分布。
+\end{example}
+
+\begin{solve}
+有放回且每次独立均匀抽取时，$X_i$ 独立同分布于 $0$--$1$ 分布。对任意 $x_i\in\{0,1\}$，记 $a=\sum_{i=1}^{n}x_i$，则
+\begin{equation}
+  \mathbb P(X_1=x_1,\ldots,X_n=x_n)=p^a(1-p)^{n-a}.
+  \label{eq:study-replacement-sample-law}
+\end{equation}
+边界情形 $p=0,1$ 按相应的退化分布理解。此时 $K=\sum_{i=1}^{n}X_i\sim\operatorname{Bin}(n,p)$。
+
+无放回时设 $1\le n\le N$，并用 $(b)_r=b(b-1)\cdots(b-r+1)$ 表示下降阶乘，约定 $(b)_0=1$。每一有序的不同产品序列等可能；指定一个含 $a$ 个 $1$ 的指标序列，可供相应位置选取的废品及正品序列分别有 $(M)_a$ 和 $(N-M)_{n-a}$ 种，故
+\begin{equation}
+  \mathbb P(X_1=x_1,\ldots,X_n=x_n)
+  =\frac{(M)_a(N-M)_{n-a}}{(N)_n},
+  \label{eq:study-without-replacement-law}
+\end{equation}
+其中 $0\le a\le M$、$0\le n-a\le N-M$，不可行序列的概率为 $0$。每个位置仍满足 $\mathbb P(X_i=1)=p$，但在 $0<M<N$ 时
+\[
+  \mathbb P(X_2=1\mid X_1=1)=\frac{M-1}{N-1}\ne\frac MN.
+\]
+因此指标同分布而不独立，不能使用式~\eqref{eq:study-replacement-sample-law}。共有 $\binom na$ 个含 $a$ 个 $1$ 的指标序列，求和得到超几何分布
+\[
+  \mathbb P(K=a)=\frac{\binom Ma\binom{N-M}{n-a}}{\binom Nn}.
+\]
+进一步，$i\ne j$ 时 $\mathbb E(X_iX_j)=M(M-1)/[N(N-1)]$，故 $\operatorname{Cov}(X_i,X_j)=-p(1-p)/(N-1)$，从而
+\begin{equation}
+  \operatorname{Var}(\overline X)
+  =\frac{p(1-p)}n\frac{N-n}{N-1},
+  \qquad \overline X=\frac1n\sum_{i=1}^{n}X_i.
+  \label{eq:study-finite-population-variance}
+\end{equation}
+当抽样比例 $n/N$ 很小时，在样本均值的方差等计算中忽略有限总体修正通常是合理近似，但原始样本并未因此变成严格独立。
+\end{solve}
+
+有限总体抽样中，“简单随机抽样”也常用于每个固定容量子集等可能的无放回设计；本章沿用教材的概率论约定，以独立同分布定义简单随机样本。使用结论时应先看抽样设计及独立性，不能只看名称。随机抽样也不保证每一次样本都与总体完全相似；它提供的是可以分析抽样误差的概率机制。
+
+\subsection{统计量与常用的数据概括}
+
+\begin{definition}[统计量]
+\label{def:study-statistic}
+设样本为 $(X_1,\ldots,X_n)$。若一个可测函数 $T=t(X_1,\ldots,X_n)$ 的计算规则完全由样本和已知常数确定，不含未知参数，则称 $T$ 为\emph{统计量（statistic）}。对应的观测值为 $t(x_1,\ldots,x_n)$。
+\end{definition}
+
+例如，$\overline X=n^{-1}\sum_iX_i$ 是统计量；当 $\mu$ 未知时，$\overline X-\mu$ 不是统计量，而 $\overline X-\mu_0$ 在 $\mu_0$ 已知时是统计量。\emph[caution]{计算规则不含未知参数，并不意味着统计量的分布不依赖未知参数。}例如正态样本的 $\overline X$ 的分布仍含 $\mu$ 和 $\sigma^2$。研究含未知参数的标准化随机变量也很有用，只是要与统计量的定义区分。
+
+对实值样本，常用的\emph{样本均值（sample mean）}、\emph{样本方差（sample variance）}与\emph{样本标准差（sample standard deviation）}定义为
+\begin{equation}
+  \overline X=\frac1n\sum_{i=1}^{n}X_i,\qquad
+  S^2=\frac1{n-1}\sum_{i=1}^{n}(X_i-\overline X)^2,\qquad
+  S=\sqrt{S^2},\quad n\ge2.
+  \label{eq:study-sample-mean-variance}
+\end{equation}
+若样本独立同分布，$\mathbb E(X_i)=\mu$、$\operatorname{Var}(X_i)=\sigma^2<\infty$，则
+\begin{equation}
+  \mathbb E(\overline X)=\mu,\qquad
+  \operatorname{Var}(\overline X)=\frac{\sigma^2}{n},\qquad
+  \mathbb E(S^2)=\sigma^2.
+  \label{eq:study-sample-mean-variance-moments}
+\end{equation}
+前两式来自期望的线性性与独立性；第三式可由恒等式
+\begin{equation}
+  \sum_{i=1}^{n}(X_i-\overline X)^2
+  =\sum_{i=1}^{n}(X_i-\mu)^2-n(\overline X-\mu)^2
+  =\sum_{i=1}^{n}X_i^2-n\overline X^{,2}
+  \label{eq:study-residual-squares}
+\end{equation}
+取期望得到：右端前两项的期望分别为 $n\sigma^2$ 和 $\sigma^2$，所以除以 $n-1$ 后期望恰为 $\sigma^2$。这解释了样本方差分母的选择，并不要求总体正态；分母为 $n$ 的样本二阶中心矩则有期望 $(n-1)\sigma^2/n$。
+
+\emph{样本矩（sample moment）}包括 $k$ 阶原点矩与中心矩
+\[
+  A_k=\frac1n\sum_{i=1}^{n}X_i^k\quad(k\ge1),\qquad
+  B_k=\frac1n\sum_{i=1}^{n}(X_i-\overline X)^k\quad(k\ge2).
+\]
+特别地，$A_1=\overline X$，$B_2=(n-1)S^2/n$。对独立同分布样本，若 $\mathbb E|X|^k<\infty$，由大数定律及中心矩的多项式展开，$A_k$、$B_k$ 分别依概率收敛到 $\mathbb E(X^k)$、$\mathbb E[(X-\mu)^k]$。在 $B_2>0$ 时，样本偏度（sample skewness）可定义为 $g_1=B_3/B_2^{3/2}$，样本峰度（sample kurtosis）可用 $B_4/B_2^2$ 表示；若采用使正态总体峰度为 $0$ 的约定，则用超额峰度（excess kurtosis）$g_2=B_4/B_2^2-3$。两种峰度约定应明确区分，不能直接混用。
+
+对于二维总体的样本 $(X_i,Y_i)$，\emph{样本相关系数（sample correlation coefficient）}为
+\[
+  r=\frac{\sum_{i=1}^{n}(X_i-\overline X)(Y_i-\overline Y)}
+  {\sqrt{\sum_{i=1}^{n}(X_i-\overline X)^2
+               \sum_{i=1}^{n}(Y_i-\overline Y)^2}},
+  \qquad \overline Y=\frac1n\sum_{i=1}^{n}Y_i,
+\]
+其中两组数据的离差平方和都须为正。柯西--施瓦茨不等式给出 $|r|\le1$。这些量分别概括位置、离散程度、形状及线性关联，但不能由一个统计量恢复样本的全部特征。
+
+将样本按大小排列为 $X_{(1)}\le\cdots\le X_{(n)}$，得到\emph{次序统计量（order statistics）}。样本中位数（sample median）通常取为
+\[
+  M_n=
+  \begin{cases}
+    X_{((n+1)/2)},&n\text{ 为奇数},\\
+    \dfrac{X_{(n/2)}+X_{(n/2+1)}}2,&n\text{ 为偶数}.
+  \end{cases}
+\]
+极小值、极大值及极差分别为 $X_{(1)}$、$X_{(n)}$、$R_n=X_{(n)}-X_{(1)}$。对称总体的对称中心可以作为中位数；只有在均值存在时，均值才也等于该中心，例如柯西总体就没有均值。
+
+\begin{definition}[经验分布函数]
+\label{def:study-empirical-cdf}
+对样本 $(X_1,\ldots,X_n)$，定义\emph{经验分布函数（empirical distribution function）}
+\begin{equation}
+  F_n(x)=\frac1n\sum_{i=1}^{n}\mathbf 1_{\{X_i\le x\}},
+  \qquad x\in\mathbb R,
+  \label{eq:study-empirical-cdf}
+\end{equation}
+其中示性变量（indicator variable）$\mathbf 1_{\{X_i\le x\}}$ 在 $X_i\le x$ 时取 $1$，否则取 $0$。它表示样本中不大于 $x$ 的观测所占的比例。
+\end{definition}
+
+$F_n$ 单调不减、右连续，在左右无穷远处分别趋于 $0,1$，因而确为分布函数；一个不同观测值出现 $r$ 次，就在该点跳跃 $r/n$，不能在重复值处只记一次 $1/n$ 的跳跃。对固定 $x$，若样本独立同分布于 $F$，则各示性变量独立且服从参数为 $F(x)$ 的 $0$--$1$ 分布，故
+\begin{equation}
+  nF_n(x)\sim\operatorname{Bin}(n,F(x)),\qquad
+  \mathbb E[F_n(x)]=F(x),\qquad
+  \operatorname{Var}[F_n(x)]=\frac{F(x)[1-F(x)]}{n}.
+  \label{eq:study-empirical-cdf-law}
+\end{equation}
+切比雪夫不等式进而给出 $\mathbb P(|F_n(x)-F(x)|>\varepsilon)\le1/(4n\varepsilon^2)$，所以对每个固定的 $x$，$F_n(x)$ 依概率收敛到 $F(x)$。这是逐点结论，不能不加论证就换成对全部 $x$ 同时成立的一致误差界。
+
+样本分位数（sample quantile）存在多种有限样本约定。为使定义覆盖全部 $0<p<1$，本笔记用经验分布的广义逆定义
+\[
+  Q_n(p)=\inf\{x:F_n(x)\ge p\}=X_{(\lceil np\rceil)}.
+\]
+其中 $\lceil np\rceil$ 表示向上取整。教材采用基于 $\lfloor(n+1)p\rfloor$ 的次序位置约定，使用时须另行处理位置为 $0$ 的边界；采用插值的其他约定也很常见。应说明所用规则，特别是偶数样本量时 $Q_n(1/2)$ 与上述取两点平均的 $M_n$ 未必相同。以同一规则取 $p=1/4,3/4$ 的分位数，相减得到样本四分位距。
+
+\section{抽样分布}
+\label{sec:study-sampling-distributions}
+
+\begin{definition}[抽样分布]
+\label{def:study-sampling-distribution}
+在给定总体及抽样方案下，统计量 $T=t(X_1,\ldots,X_n)$ 的概率分布称为它的\emph{抽样分布（sampling distribution）}。样本分布描述整个随机向量 $(X_1,\ldots,X_n)$ 的联合规律，抽样分布描述由该向量构成的某个统计量的规律。
+\end{definition}
+
+例如，$0$--$1$ 总体的独立样本具有式~\eqref{eq:study-replacement-sample-law} 的联合概率质量，而统计量 $K=\sum_iX_i$ 的抽样分布是二项分布。这两个分布的对象和样本空间不同。抽样分布回答的是“如果按相同规则反复抽样，所得统计量怎样变化”，它可能依赖未知总体参数，也可能是精确分布或仅有大样本近似。
+
+\begin{example}
+\label{ex:study-uniform-maximum}
+教材例 5.6。设 $X_1,\ldots,X_n$ 独立同分布于均匀总体 $U(0,\theta)$，其中 $\theta>0$ 未知，求样本最大值 $T=X_{(n)}$ 的抽样分布。
+\end{example}
+
+\begin{solve}
+对任意 $t$，事件 $\{T\le t\}$ 等价于所有 $X_i\le t$，故由独立性
+\begin{equation}
+  F_T(t)=F(t)^n=
+  \begin{cases}
+    0,&t\le0,\\
+    (t/\theta)^n,&0<t<\theta,\\
+    1,&t\ge\theta.
+  \end{cases}
+  \label{eq:study-uniform-maximum-cdf}
+\end{equation}
+在 $(0,\theta)$ 内求导，得到 $f_T(t)=nt^{n-1}/\theta^n$，区间外密度取 $0$。因此 $T$ 的分布依赖未知的 $\theta$，但 $T$ 本身只由样本计算，仍为统计量。积分还给出 $\mathbb E(T)=n\theta/(n+1)$，说明最大值通常低估上端点；这一性质将在点估计中再次用到。
+\end{solve}
+
+\subsection{统计三大分布及其构造}
+
+正态总体的均值与方差推断需要处理标准正态变量的平方和，以及标准正态变量与独立平方和构成的比值。\emph{卡方分布（chi-square distribution）}、\emph{Student 的 $t$ 分布（Student's $t$ distribution）}和 $F$ 分布（$F$ distribution）正是从这些结构产生的，通常合称统计三大分布。
+
+\begin{definition}[卡方分布]
+\label{def:study-chi-square}
+设 $Z_1,\ldots,Z_\nu$ 相互独立且都服从 $N(0,1)$，其中 $\nu\ge1$ 为整数。则
+\[
+  U=\sum_{i=1}^{\nu}Z_i^2
+\]
+服从自由度（degrees of freedom）为 $\nu$ 的卡方分布，记为 $U\sim\chi^2_\nu$。
+\end{definition}
+
+记伽马函数 $\Gamma(a)=\int_0^\infty u^{a-1}e^{-u}\,\mathrm du$，$a>0$。由平方变换可得 $Z_i^2$ 的密度为 $x^{-1/2}e^{-x/2}/\sqrt{2\pi}$，$x>0$；独立求和的卷积给出
+\begin{equation}
+  f_{\chi^2_\nu}(x)
+  =\frac{x^{\nu/2-1}e^{-x/2}}{2^{\nu/2}\Gamma(\nu/2)},
+  \quad x>0,
+  \label{eq:study-chi-square-density}
+\end{equation}
+在 $x\le0$ 处可取密度为 $0$。若以形状参数 $a>0$、\emph{率参数} $\lambda>0$ 定义伽马分布（gamma distribution）
+\[
+  f_{\operatorname{Ga}(a,\lambda)}(x)
+  =\frac{\lambda^a}{\Gamma(a)}x^{a-1}e^{-\lambda x},\qquad x>0,
+\]
+则 $\chi^2_\nu=\operatorname{Ga}(\nu/2,1/2)$；这里第二参数不是尺度参数。由 $\mathbb E(Z_i^2)=1$、$\mathbb E(Z_i^4)=3$ 得
+\[
+  \mathbb E(U)=\nu,\qquad \operatorname{Var}(U)=2\nu.
+\]
+若 $U\sim\chi^2_m$、$V\sim\chi^2_\nu$ 且相互独立，则 $U+V\sim\chi^2_{m+\nu}$，可将它们表示为相互独立的标准正态平方和来理解。密度在自由度 $1,2$ 时递减，在 $\nu>2$ 时于 $x=\nu-2$ 处达到最大。
+
+\begin{definition}[$t$ 分布]
+\label{def:study-student-t}
+若 $Z\sim N(0,1)$、$U\sim\chi^2_\nu$，其中 $\nu\ge1$ 为整数，且 $Z,U$ 相互独立，则
+\begin{equation}
+  T=\frac{Z}{\sqrt{U/\nu}}\sim t_\nu.
+  \label{eq:study-t-construction}
+\end{equation}
+称 $T$ 服从自由度为 $\nu$ 的 $t$ 分布。
+\end{definition}
+
+对联合密度作变换 $z=t\sqrt{u/\nu}$，其雅可比因子为 $\sqrt{u/\nu}$，积分消去 $u$ 后得到
+\begin{equation}
+  f_{t_\nu}(t)
+  =\frac{\Gamma((\nu+1)/2)}{\sqrt{\nu\pi}\,\Gamma(\nu/2)}
+     \left(1+\frac{t^2}{\nu}\right)^{-(\nu+1)/2},
+  \qquad t\in\mathbb R.
+  \label{eq:study-t-density}
+\end{equation}
+它关于 $0$ 对称，但尾部比标准正态分布更厚。自由度为 $1$ 时是标准柯西分布，没有期望；自由度 $\nu>1$ 时 $\mathbb E(T)=0$，$\nu>2$ 时 $\operatorname{Var}(T)=\nu/(\nu-2)$。这些条件可由密度尾部为 $|t|^{-(\nu+1)}$ 的阶及相应积分检验，再用伽马积分计算得到。\emph[caution]{对称性只有结合绝对可积性才能推出期望为零。}又因 $\mathbb E(U/\nu)=1$、$\operatorname{Var}(U/\nu)=2/\nu$，当 $\nu\to\infty$ 时 $U/\nu$ 依概率趋于 $1$，式~\eqref{eq:study-t-construction} 的分布因而趋于 $N(0,1)$；有限自由度时二者一般不相同。
+
+\begin{definition}[$F$ 分布]
+\label{def:study-f-distribution}
+若 $U\sim\chi^2_m$、$V\sim\chi^2_\nu$，其中 $m,\nu\ge1$ 为整数，且 $U,V$ 相互独立，则
+\begin{equation}
+  W=\frac{U/m}{V/\nu}\sim F_{m,\nu}.
+  \label{eq:study-f-construction}
+\end{equation}
+称 $W$ 服从第一自由度为 $m$、第二自由度为 $\nu$ 的 $F$ 分布。
+\end{definition}
+
+令 $u=mwv/\nu$，用雅可比因子 $mv/\nu$ 对联合密度积分，得到
+\begin{equation}
+  f_{F_{m,\nu}}(w)
+  =\frac{\Gamma((m+\nu)/2)}{\Gamma(m/2)\Gamma(\nu/2)}
+    \left(\frac m\nu\right)^{m/2}
+    w^{m/2-1}\left(1+\frac m\nu w\right)^{-(m+\nu)/2},
+  \quad w>0.
+  \label{eq:study-f-density}
+\end{equation}
+在 $w\le0$ 处密度取 $0$。由构造直接得到
+\begin{equation}
+  W\sim F_{m,\nu}\ \Longrightarrow\ W^{-1}\sim F_{\nu,m},
+  \qquad
+  T\sim t_\nu\ \Longrightarrow\ T^2\sim F_{1,\nu}.
+  \label{eq:study-f-relations}
+\end{equation}
+第一式须同时交换两个自由度；第二式使用了 $Z^2\sim\chi^2_1$。三大分布的定义均要求分子、分母所用的随机量独立，只有边缘分布正确还不足以识别比值的分布。
+
+\subsection{上分位数及尾概率的转换}
+
+对本章的连续分布，\emph{上 $\alpha$ 分位数（upper-tail quantile）} $q(\alpha)$ 由 $\mathbb P(W>q(\alpha))=\alpha$ 定义，其中 $0<\alpha<1$。本笔记分别使用 $z(\alpha)$、$\chi^2_\nu(\alpha)$、$t_\nu(\alpha)$、$F_{m,\nu}(\alpha)$ 表示标准正态、卡方、$t$ 和 $F$ 分布的上分位数。这里的 $\alpha$ 是右侧尾概率，若软件采用累计概率 $u$，应输入 $u=1-\alpha$。
+
+由对称性及式~\eqref{eq:study-f-relations}，有
+\begin{equation}
+  t_\nu(1-\alpha)=-t_\nu(\alpha),\qquad
+  F_{m,\nu}(1-\alpha)=\frac1{F_{\nu,m}(\alpha)}.
+  \label{eq:study-upper-quantile-conversion}
+\end{equation}
+第二式的依据是 $\mathbb P(W>c)=\mathbb P(W^{-1}<1/c)$，再利用连续性转换尾概率。双侧对称区域则应各留 $\alpha/2$ 的尾概率，例如
+\[
+  \mathbb P\{-t_\nu(\alpha/2)\le T\le t_\nu(\alpha/2)\}=1-\alpha.
+\]
+卡方和 $F$ 分布不关于某个中心对称，不能照搬这组正负对称端点；其等尾区间的下、上端点分别使用上 $1-\alpha/2$ 与上 $\alpha/2$ 分位数。
+
+\subsection{正态总体的样本均值与样本方差}
+
+\begin{theorem}[正态样本的基本抽样分布]
+\label{thm:study-normal-sampling}
+设 $X_1,\ldots,X_n\overset{\mathrm{i.i.d.}}{\sim}N(\mu,\sigma^2)$，其中 $\sigma^2>0$、$n\ge2$，$\overline X,S^2$ 由式~\eqref{eq:study-sample-mean-variance} 定义。对不全为零的实常数 $c_1,\ldots,c_n$，
+\begin{align}
+  \sum_{i=1}^{n}c_iX_i
+    &\sim N\left(\mu\sum_{i=1}^{n}c_i,
+                  \sigma^2\sum_{i=1}^{n}c_i^2\right),
+       \label{eq:study-normal-linear-combination}\\
+  \overline X&\sim N(\mu,\sigma^2/n),
+  \qquad Z=\frac{\sqrt n(\overline X-\mu)}{\sigma}\sim N(0,1),
+       \label{eq:study-normal-mean-law}\\
+  U=\frac{(n-1)S^2}{\sigma^2}&\sim\chi^2_{n-1}.
+       \label{eq:study-normal-variance-law}
+\end{align}
+并且 $\overline X$ 与 $S^2$ 相互独立，从而
+\begin{equation}
+  \frac{\sqrt n(\overline X-\mu)}{S}\sim t_{n-1}.
+  \label{eq:study-normal-t-law}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+记 $L=\sum_i c_iX_i$。由独立性，$L$ 的矩母函数为
+\[
+  \mathbb E(e^{tL})
+  =\prod_{i=1}^{n}\exp\left(\mu c_it+\frac{\sigma^2c_i^2t^2}{2}\right)
+  =\exp\left(\mu t\sum_i c_i+\frac{\sigma^2t^2}{2}\sum_i c_i^2\right),
+  \qquad t\in\mathbb R.
+\]
+这正是式~\eqref{eq:study-normal-linear-combination} 中正态分布的矩母函数，由矩母函数的唯一性得到其分布；取 $c_i=1/n$ 即得式~\eqref{eq:study-normal-mean-law}。为同时证明方差的分布与独立性，令 $Z_i=(X_i-\mu)/\sigma$，$\boldsymbol Z=(Z_1,\ldots,Z_n)^{\mathsf T}$。将单位向量 $(1,\ldots,1)/\sqrt n$ 扩充为一组正交规范基，得到以它为第一行的正交矩阵 $A$，再令 $\boldsymbol Y=A\boldsymbol Z$。
+
+正交变换保持长度，且雅可比绝对值为 $1$，所以变换后联合密度仍为
+\[
+  (2\pi)^{-n/2}\exp\left(-\frac12\sum_{i=1}^{n}y_i^2\right)
+  =\prod_{i=1}^{n}\frac1{\sqrt{2\pi}}e^{-y_i^2/2}.
+\]
+因此 $Y_1,\ldots,Y_n$ 独立且均为标准正态变量，而
+\[
+  Y_1=\frac{\sqrt n(\overline X-\mu)}\sigma,\qquad
+  \frac{(n-1)S^2}{\sigma^2}
+    =\sum_{i=1}^{n}Z_i^2-Y_1^2
+    =\sum_{i=2}^{n}Y_i^2.
+\]
+后一式是 $n-1$ 个独立标准正态变量的平方和，故服从 $\chi^2_{n-1}$。$\overline X$ 只依赖 $Y_1$，$S^2$ 只依赖 $Y_2,\ldots,Y_n$，故二者独立。将 $Y_1$ 除以 $\sqrt{U/(n-1)}=S/\sigma$，由 $t$ 分布定义得到式~\eqref{eq:study-normal-t-law}。
+\end{proof}
+
+这里的自由度 $n-1$ 来自中心化后 $\sum_i(X_i-\overline X)=0$ 的一个线性约束；正交变换把这个约束具体化为只剩 $n-1$ 个独立正态方向。\emph[caution]{样本方差的无偏性只需独立同分布和有限方差，但它的卡方分布、与样本均值独立及上述精确 $t$ 分布还依赖正态假设。}对非正态总体，不能只把 $\sigma$ 换为 $S$ 就断言得到精确的 $t$ 分布。
+
+\subsection{两个独立正态样本}
+
+\begin{corollary}
+\label{cor:study-two-normal-samples}
+设 $X_1,\ldots,X_m$ 来自 $N(\mu_1,\sigma_1^2)$，$Y_1,\ldots,Y_n$ 来自 $N(\mu_2,\sigma_2^2)$，两组均为简单随机样本且相互独立，$m,n\ge2$、$\sigma_1^2,\sigma_2^2>0$。记各自样本均值为 $\overline X,\overline Y$，样本方差为 $S_X^2,S_Y^2$，则
+\begin{equation}
+  \frac{S_X^2/\sigma_1^2}{S_Y^2/\sigma_2^2}
+  \sim F_{m-1,n-1}.
+  \label{eq:study-two-normal-f}
+\end{equation}
+若还假定 $\sigma_1^2=\sigma_2^2=\sigma^2$，定义合并样本方差
+\begin{equation}
+  S_p^2=\frac{(m-1)S_X^2+(n-1)S_Y^2}{m+n-2},
+  \label{eq:study-ch5-pooled-variance}
+\end{equation}
+则
+\begin{equation}
+  \frac{(\overline X-\overline Y)-(\mu_1-\mu_2)}
+       {S_p\sqrt{1/m+1/n}}
+  \sim t_{m+n-2}.
+  \label{eq:study-two-normal-t}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+由定理~\ref{thm:study-normal-sampling}，$(m-1)S_X^2/\sigma_1^2$ 与 $(n-1)S_Y^2/\sigma_2^2$ 分别服从自由度为 $m-1,n-1$ 的独立卡方分布，除以相应自由度后作比即得式~\eqref{eq:study-two-normal-f}。若方差相等，这两个卡方变量的和为 $(m+n-2)S_p^2/\sigma^2\sim\chi^2_{m+n-2}$。又由两组样本独立及组内均值与方差独立，$S_p^2$ 与 $\overline X-\overline Y$ 独立，而
+\[
+  \frac{(\overline X-\overline Y)-(\mu_1-\mu_2)}
+       {\sigma\sqrt{1/m+1/n}}\sim N(0,1).
+\]
+由 $t$ 分布的定义得到式~\eqref{eq:study-two-normal-t}。
+\end{proof}
+
+合并方差是以各自自由度加权，不能一般地写成 $(S_X^2+S_Y^2)/2$。精确的合并方差 $t$ 结论要求两个总体方差相等；方差比的 $F$ 结论则无此要求。它们分别用于后续的均值差和方差比推断。
+
+\subsection{其他常见总体的抽样分布}
+
+若 $X_1,\ldots,X_n$ 为独立同分布样本，样本和 $K=\sum_iX_i=n\overline X$ 的分布常可利用总体分布的再生性求出。对 $0$--$1$ 总体，$K\sim\operatorname{Bin}(n,p)$，因而
+\[
+  \mathbb P\left(\overline X=\frac kn\right)
+    =\binom nk p^k(1-p)^{n-k},\qquad k=0,\ldots,n.
+\]
+对泊松总体 $X_i\sim\operatorname{Pois}(\lambda)$，则 $K\sim\operatorname{Pois}(n\lambda)$，故
+\begin{equation}
+  \mathbb P\left(\overline X=\frac kn\right)
+    =e^{-n\lambda}\frac{(n\lambda)^k}{k!},\qquad k=0,1,\ldots.
+  \label{eq:study-poisson-mean-law}
+\end{equation}
+注意样本均值的取值为 $k/n$；样本和是泊松变量，不意味着样本均值仍服从某个泊松分布。
+
+对率参数为 $\lambda>0$ 的指数总体 $f(x)=\lambda e^{-\lambda x}$，$x>0$，变换 $u=2\lambda x$ 给出 $2\lambda X_i$ 的密度为 $e^{-u/2}/2$，这正是 $\chi^2_2$ 的密度。因此由独立性和卡方分布的可加性，
+\begin{equation}
+  2\lambda\sum_{i=1}^{n}X_i=2n\lambda\overline X\sim\chi^2_{2n},
+  \qquad
+  \sum_{i=1}^{n}X_i\sim\operatorname{Ga}(n,\lambda),\qquad
+  \overline X\sim\operatorname{Ga}(n,n\lambda).
+  \label{eq:study-exponential-sampling-law}
+\end{equation}
+这些都是有限样本下的精确结果，不需要先使用中心极限定理。一般总体若仅知 $\mathbb E(X)=\mu$、$0<\operatorname{Var}(X)=\sigma^2<\infty$，则独立同分布条件下只有渐近结论 $\sqrt n(\overline X-\mu)/\sigma$ 依分布收敛到 $N(0,1)$；应将这种近似与上述精确分布分开。
+
+\section{扩展阅读1：民意调查}
+\label{sec:study-opinion-polls}
+
+民意调查用部分受访者的数据认识目标人群对某一明确问题的态度。首先应规定目标人群、调查时间、问题措辞和抽样框，即实际可以被抽取的对象范围。若抽样框遗漏某些群体，或者被抽中者是否回应与其态度有关，即使收集大量问卷也可能产生系统偏差。教材的选举民调例子旨在说明：\emph{样本量控制随机波动，抽样与回应机制决定数据能否有效反映目标人群，两者不能互相替代。}
+
+以支持某一观点的比例为例，令 $X_i=1$ 表示第 $i$ 位受访者支持，$X_i=0$ 表示不支持。暂以独立同分布的 $0$--$1$ 模型描述数据，设总体支持率为 $0<p<1$，样本支持率为
+\[
+  \widehat p=\overline X=\frac1n\sum_{i=1}^{n}X_i,
+  \qquad \mathbb E(\widehat p)=p,\qquad
+  \operatorname{Var}(\widehat p)=\frac{p(1-p)}n.
+\]
+对固定的 $p\in(0,1)$，由中心极限定理及 $\widehat p$ 依概率趋于 $p$，当 $n$ 增大时可得常用的近似置信区间
+\begin{equation}
+  \left[\widehat p-z(\alpha/2)
+                   \sqrt{\frac{\widehat p(1-\widehat p)}n},\quad
+        \widehat p+z(\alpha/2)
+                   \sqrt{\frac{\widehat p(1-\widehat p)}n}\right],
+  \label{eq:study-poll-wald-interval}
+\end{equation}
+名义置信水平为 $1-\alpha$。其含义是，在模型成立并反复抽样时，按此规则构造的随机区间包含固定参数 $p$ 的比例近似为 $1-\alpha$；观测后区间端点成为具体数值。这个近似通常要求支持和不支持的预期人数都足够大，$p$ 接近 $0,1$ 或样本很小时可能表现较差，不能仅因算出了端点就认为覆盖率得到保证。置信区间的严格定义与其他构造将在后续章节展开。
+
+若希望在近似置信水平 $1-\alpha$ 下将绝对误差控制在 $d>0$ 内，以正态近似的半宽为准，需要计划
+\begin{equation}
+  n\ge\frac{z(\alpha/2)^2p(1-p)}{d^2}.
+  \label{eq:study-poll-sample-size}
+\end{equation}
+抽样前 $p$ 未知，可用可靠的先验调查结果规划，或利用 $p(1-p)\le1/4$ 取保守样本量
+\[
+  n_0=\left\lceil\frac{z(\alpha/2)^2}{4d^2}\right\rceil.
+\]
+例如取 $1-\alpha=0.95$、$d=0.03$、$z(0.025)\approx1.96$，计算得到 $1067.11\ldots$，按整数样本量向上取整为 $1068$。这是正态近似下的设计计算，不能解释为“每次误差必定不超过 $3\%$”，也没有包含无回应、覆盖不足等误差。
+
+当有限总体容量为 $N$ 且采用均匀无放回抽样时，应以式~\eqref{eq:study-finite-population-variance} 代替独立样本的方差。若记未取整的无限总体样本量为 $c=z(\alpha/2)^2/(4d^2)$，相同的近似半宽条件给出 $n\ge Nc/(N-1+c)$。所以“所需样本量与总人口数量无关”只是在总体足够大、抽样比例很小并忽略有限总体修正时的近似说法。分层、整群等设计也要使用对应的方差，不能直接套用独立样本公式。此外，调查反映的是规定时点与问题下的态度，不能将某次调查比例当作永久不变的总体属性。
+
+\section{扩展阅读2：双盲对照试验}
+\label{sec:study-double-blind-trials}
+
+观察某组对象在采取措施后有所改善，还不能仅凭前后变化把原因归于该措施：自然变化、对象选择、共同环境，以及参与者或评价者的预期都可能产生影响。\emph{对照试验（controlled experiment）}通过设置可比较的处理组与对照组，使这些因素能够得到区分；\emph{随机分组（random assignment）}用随机机制决定对象接受哪种处理，以减少处理选择与原有特征之间的系统联系。
+
+\emph{双盲（double blinding）}通常指试验参与者与直接实施或评价结果的相关人员不知道具体分组，以减少预期对行为、测量和评价的影响；实施时应明确到底对哪些人员设盲。对照措施应与试验目的相匹配，例如在适用时采用安慰剂，使两组在目标处理以外尽量可比。教材的胃冷冻案例所要强调的是：没有对照的早期观察难以排除非目标因素，随机、对照与设盲分别解决不同环节的问题，不能只凭“有改善”就确认处理效果。
+
+随机抽样与随机分组还应区分：前者主要服务于由样本向目标总体的推广，后者主要服务于所比较处理之间的因果解释。随机分组使组间差异具有可分析的随机化机制，却不保证每一次分组都在所有特征上完全平衡，也不自动使参与者代表全部人群。试验仍需关注失访、处理执行和结果测量等条件。最后，\emph[caution]{某次试验未发现显著差异，不能直接推出两种处理完全相同。}是否能排除有实际意义的差异，还取决于效应估计的精度和研究设计，这将在区间估计与假设检验中进一步讨论。
+
+\section*{本章总结}
+\addcontentsline{toc}{section}{本章总结}
+
+统计总体由研究指标及其分布刻画，统计模型还规定全部观测的联合规律；样本是按给定方案取得的随机向量，样本值是它的一次实现，统计量则是由样本和已知量计算的函数。独立同分布条件允许将样本的联合分布写成乘积，但有限总体无放回抽样通常不独立。使用均值、方差、矩、次序统计量和经验分布函数概括数据时，应始终分清总体量、随机统计量与具体计算值。
+
+抽样分布把一次观测和重复抽样中的误差联系起来。正态样本的均值为正态变量，残差平方和经标准化后服从卡方分布，且均值与方差独立，从而产生精确的 $t$ 和 $F$ 分布；二项、泊松与指数总体也有各自的精确分布关系。识别这些分布时，要核对独立性、标准化常数、自由度及参数约定；处理尾概率时，要核对分位数的方向。民意调查与对照试验进一步提醒我们，数学公式对误差的刻画建立在数据获取机制和模型条件之上。
+
+\section*{习题}
+\addcontentsline{toc}{section}{习题}
+
+以下选取教材本章的代表性习题，练习概念辨析、经验分布和抽样分布的推导；题目中注明原题号，节选或改写处另作说明。
+
+\begin{example}
+\label{ex:study-sample-duality-exercise}
+教材习题 1、2。说明样本的二重性。某人独立射击 $5$ 次，结果为 $8,9,7,10,6$ 环，如何描述总体、样本与样本值？
+\end{example}
+
+\begin{solve}
+研究指标是该人在规定条件下一次射击的环数，故总体用环数随机变量 $X$ 的分布表示。仅由这 $5$ 次结果不能确定整个总体分布；若再假定射击条件稳定、各次环数同分布，则 $(X_1,\ldots,X_5)$ 为来自该总体的简单随机样本，$(8,9,7,10,6)$ 为其一次实现。理论中的 $\overline X$ 随重复抽样变化，本次样本均值则是确定的 $\overline x=8$。独立性本身不足以推出同分布，故是否采用简单随机样本模型仍要看相同试验条件的假定。
+\end{solve}
+
+\begin{example}
+\label{ex:study-bernoulli-statistic-exercise}
+教材习题 8 节选。设 $X_1,\ldots,X_5$ 为参数 $p\in(0,1)$ 未知的 $0$--$1$ 总体的简单样本，写出样本空间及样本分布，并判断 $X_1+X_2$、$\min_{1\le i\le5}X_i$、$X_5+2p$ 是否为统计量。
+\end{example}
+
+\begin{solve}
+样本空间为 $\{0,1\}^5$；对 $x_i\in\{0,1\}$，联合概率为 $p^{\sum_i x_i}(1-p)^{5-\sum_i x_i}$。前两个量只由样本计算，都是统计量；最后一个量需要未知的 $p$，因而不是统计量。若进一步求前两个量的抽样分布，则 $X_1+X_2\sim\operatorname{Bin}(2,p)$，而最小值只有在全部五个观测均为 $1$ 时才取 $1$，所以它服从参数为 $p^5$ 的 $0$--$1$ 分布。这也区分了样本的联合分布与特定统计量的抽样分布。
+\end{solve}
+
+\begin{example}
+\label{ex:study-empirical-cdf-exercise}
+教材习题 10。样本值为 $0.4,0.3,-0.3,-0.1,1.7,0.6,-0.1,0.9,2.6,0.5$，求经验分布函数。
+\end{example}
+
+\begin{solve}
+由小到大排列为 $-0.3,-0.1,-0.1,0.3,0.4,0.5,0.6,0.9,1.7,2.6$，按不大于 $x$ 的个数计数，得到
+\[
+  F_{10}(x)=
+  \begin{cases}
+    0,&x<-0.3,\\
+    1/10,&-0.3\le x<-0.1,\\
+    3/10,&-0.1\le x<0.3,\\
+    4/10,&0.3\le x<0.4,\\
+    5/10,&0.4\le x<0.5,\\
+    6/10,&0.5\le x<0.6,\\
+    7/10,&0.6\le x<0.9,\\
+    8/10,&0.9\le x<1.7,\\
+    9/10,&1.7\le x<2.6,\\
+    1,&x\ge2.6.
+  \end{cases}
+\]
+在 $-0.1$ 处有两个重复观测，跳跃大小为 $2/10$；每个区间包含左端点，体现了 $F_{10}$ 的右连续性。
+\end{solve}
+
+\begin{example}
+\label{ex:study-normal-variance-moments-exercise}
+教材习题 11。设 $X_1,\ldots,X_n$ 为正态总体 $N(\mu,\sigma^2)$ 的简单随机样本，$n\ge2$、$\sigma>0$。求样本方差 $S^2$ 的方差和样本标准差 $S$ 的期望。
+\end{example}
+
+\begin{solve}
+令 $\nu=n-1$，则 $U=\nu S^2/\sigma^2\sim\chi^2_\nu$，所以
+\[
+  \operatorname{Var}(S^2)
+  =\frac{\sigma^4}{\nu^2}\operatorname{Var}(U)
+  =\frac{2\sigma^4}{n-1}.
+\]
+为求 $\mathbb E(S)$，对式~\eqref{eq:study-chi-square-density} 积分：当 $r>-\nu/2$ 时，令 $v=u/2$ 可得
+\[
+  \mathbb E(U^r)
+   =2^r\frac{\Gamma(\nu/2+r)}{\Gamma(\nu/2)}.
+\]
+取 $r=1/2$，利用 $S=\sigma\sqrt{U/\nu}$，得到
+\[
+  \mathbb E(S)
+  =\sigma\sqrt{\frac2{n-1}}\,
+       \frac{\Gamma(n/2)}{\Gamma((n-1)/2)}.
+\]
+因此 $S^2$ 对总体方差无偏，并不意味着开平方后的 $S$ 对总体标准差也无偏。事实上 $S^2$ 非退化，平方根严格凹，由詹森不等式 $\mathbb E(S)<\sqrt{\mathbb E(S^2)}=\sigma$。
+\end{solve}
+
+\begin{example}
+\label{ex:study-reciprocal-t-square-exercise}
+教材习题 12。设 $X\sim t_\nu$，求 $Y=1/X^2$ 的分布，其中 $\nu>1$ 为整数。
+\end{example}
+
+\begin{solve}
+由式~\eqref{eq:study-f-relations}，$X^2\sim F_{1,\nu}$，故 $Y\sim F_{\nu,1}$。由于 $X$ 有连续密度，$\mathbb P(X=0)=0$，倒数几乎处处有定义；此分布关系实际上对 $\nu=1$ 也成立，不依赖 $t$ 分布的均值或方差是否存在。
+\end{solve}
+
+\begin{example}
+\label{ex:study-sample-mean-laws-exercise}
+教材习题 18。样本为简单随机样本，分别来自 $N(\mu,\sigma^2)$、参数为 $\lambda$ 的泊松总体，以及率参数为 $\lambda$ 的指数总体，求样本均值的分布。
+\end{example}
+
+\begin{solve}
+正态总体有 $\overline X\sim N(\mu,\sigma^2/n)$；泊松总体有 $n\overline X\sim\operatorname{Pois}(n\lambda)$，其样本均值的概率质量由式~\eqref{eq:study-poisson-mean-law} 给出；指数总体有 $\overline X\sim\operatorname{Ga}(n,n\lambda)$，等价地 $2n\lambda\overline X\sim\chi^2_{2n}$。关键是先求和的分布，再作除以 $n$ 的尺度变换，不能只把总体分布中的参数机械地除以 $n$。
+\end{solve}
+
+\begin{example}
+\label{ex:study-bernoulli-central-moment-exercise}
+教材习题 19。设 $X_1,\ldots,X_n$ 为参数 $0<p<1$ 的 $0$--$1$ 总体的简单样本，求 $B_2=n^{-1}\sum_i(X_i-\overline X)^2$ 的期望。
+\end{example}
+
+\begin{solve}
+由 $X_i^2=X_i$ 及式~\eqref{eq:study-residual-squares}，有 $B_2=\overline X-\overline X^{,2}$。又 $\mathbb E(\overline X)=p$、$\mathbb E(\overline X^{,2})=p^2+p(1-p)/n$，因此
+\[
+  \mathbb E(B_2)=\frac{n-1}{n}p(1-p).
+\]
+这与 $n\ge2$ 时 $B_2=(n-1)S^2/n$ 及 $S^2$ 的无偏性一致，也表明样本二阶中心矩与样本方差的区别。
+\end{solve}
+
+\begin{example}
+\label{ex:study-normal-prediction-exercise}
+教材习题 20。设 $X_1,\ldots,X_n$ 为 $N(\mu,\sigma^2)$ 的简单样本，$n\ge2$，其样本均值与标准差为 $\overline X,S$。若 $X_{n+1}$ 与前 $n$ 个观测独立且服从相同总体，求
+\[
+  T=\sqrt{\frac n{n+1}}\,\frac{X_{n+1}-\overline X}{S}
+\]
+的分布。
+\end{example}
+
+\begin{solve}
+由独立正态变量的线性组合性质，$X_{n+1}-\overline X\sim N(0,\sigma^2(1+1/n))$。$X_{n+1}$ 与整个原样本独立，且原样本中 $\overline X$ 与 $S$ 独立，因此向量 $(X_{n+1},\overline X)$ 与 $S$ 独立，进而差值也与 $S$ 独立。于是
+\[
+  Z=\frac{X_{n+1}-\overline X}{\sigma\sqrt{1+1/n}}\sim N(0,1),
+  \qquad U=\frac{(n-1)S^2}{\sigma^2}\sim\chi^2_{n-1},
+\]
+且 $Z,U$ 独立，所以 $T=Z/\sqrt{U/(n-1)}\sim t_{n-1}$。新观测与样本均值之差的方差包含两部分，不能沿用仅标准化 $\overline X-\mu$ 时的 $\sigma^2/n$。
+\end{solve}
+
+\begin{example}
+\label{ex:study-uniform-range-exercise}
+教材习题 22。设 $X_{(1)},\ldots,X_{(n)}$ 来自均匀总体 $U(0,1)$ 的简单样本。求使 $\mathbb P(X_{(n)}>0.99)\ge0.95$ 成立的最小整数 $n$，以及极差 $R_n=X_{(n)}-X_{(1)}$ 的期望。
+\end{example}
+
+\begin{solve}
+由式~\eqref{eq:study-uniform-maximum-cdf}，$\mathbb P(X_{(n)}>0.99)=1-0.99^n$，故条件等价于 $0.99^n\le0.05$。因 $\ln0.99<0$，取对数并相除时不等号反向，得到
+\[
+  n\ge\frac{\ln0.05}{\ln0.99}=298.07\ldots,
+\]
+最小整数为 $299$。又对 $0<x<1$，最小值满足 $\mathbb P(X_{(1)}>x)=(1-x)^n$，所以其密度为 $n(1-x)^{n-1}$；最大值密度为 $nx^{n-1}$。积分得到 $\mathbb E(X_{(1)})=1/(n+1)$、$\mathbb E(X_{(n)})=n/(n+1)$，由期望的线性性
+\[
+  \mathbb E(R_n)=\frac{n-1}{n+1}.
+\]
+这里计算期望之差不要求最大值与最小值独立。
+\end{solve}
+
+
+
+
+

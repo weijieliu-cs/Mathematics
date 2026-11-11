@@ -1,0 +1,690 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{6} % 保留原书章号。
+\chapter{支持向量机}
+\label{chap:lihang-svm}
+
+分类正确并不能唯一确定一个分类器：即使训练数据线性可分，通常也有许多超平面能够把两类样本分开。\emph{支持向量机}（support vector machine，SVM）进一步要求分离边界与最靠近它的训练样本之间保留较大的距离，由此把选择分类器的问题转化为有明确约束的优化问题。本章依次讨论硬间隔、软间隔、核函数和求解对偶问题的序列最小最优化算法；所需基础是向量内积与范数、凸函数、拉格朗日对偶及最优性条件，相关条件将在使用时说明。
+
+记训练集为 $T=\{(x_i,y_i)\}_{i=1}^{N}$，其中 $x_i\in\mathbb R^d$，$y_i\in\{-1,+1\}$，并假设两类样本均非空。随机输入与标签记为 $X,Y$，$x_i,y_i$ 是其观测值。在线性模型中，分数函数与分类决策分别为
+\begin{equation}
+  g_{w,b}(x)=w^\top x+b,
+  \qquad f_{w,b}(x)=\operatorname{sign}(g_{w,b}(x)),
+  \label{eq:lihang-svm-score}
+\end{equation}
+其中 $w\in\mathbb R^d$，$b\in\mathbb R$。为使决策有定义，约定零分数判为 $+1$；涉及严格分离时仍要求 $y_i g_{w,b}(x_i)>0$，不会依靠零分数的并列规则。本章的优化结论针对给定训练集，不能仅由训练间隔大就推出任意测试分布上的错误率小。
+
+% 教材 7.1。
+\section{线性可分支持向量机与硬间隔最大化}
+\label{sec:lihang-svm-hard}
+
+\subsection{函数间隔与几何间隔}
+
+\begin{definition}[线性可分与两种间隔]
+若存在 $w\ne0,b$，使所有 $i$ 都满足 $y_i(w^\top x_i+b)>0$，则称训练集线性可分（linearly separable）。对任意 $w\ne0$，定义超平面 $(w,b)$ 关于样本 $(x_i,y_i)$ 的\emph{函数间隔}（functional margin）和\emph{几何间隔}（geometric margin）为
+\begin{equation}
+  \widehat\gamma_i=y_i(w^\top x_i+b),
+  \qquad
+  \gamma_i=\frac{y_i(w^\top x_i+b)}{\lVert w\rVert_2}.
+  \label{eq:lihang-svm-margins}
+\end{equation}
+相对于整个训练集的间隔分别为 $\widehat\gamma=\min_i\widehat\gamma_i$ 和 $\gamma=\min_i\gamma_i$。
+\end{definition}
+
+点 $x_i$ 到超平面 $w^\top x+b=0$ 的距离是 $|w^\top x_i+b|/\lVert w\rVert_2$。因此 $\gamma_i$ 是按真实标签定向的带符号距离：严格分类正确时为正，误分类时为负，落在超平面上时为零。若把 $(w,b)$ 同时乘以正数 $a$，超平面和分类方向不变，函数间隔变为原来的 $a$ 倍，几何间隔保持不变；只最大化未经规范化的函数间隔会得到无意义的尺度放大。
+
+线性可分时可以选择使最小几何间隔最大的超平面，写成
+\[
+  \max_{w\ne0,b,\gamma}\ \gamma,
+  \qquad
+  y_i(w^\top x_i+b)\ge\gamma\lVert w\rVert_2,
+  \quad i=1,\ldots,N.
+\]
+有限训练集上的严格分离保证 $\widehat\gamma>0$，故可将参数除以 $\widehat\gamma$，使最小函数间隔为 $1$。在这个规范下，最大化 $1/\lVert w\rVert_2$ 等价于最小化 $\lVert w\rVert_2^2/2$，得到\emph{硬间隔支持向量机}（hard-margin SVM）的原始问题（primal problem）：
+\begin{equation}
+  \begin{aligned}
+    \min_{w,b}\quad &\frac12\lVert w\rVert_2^2,\\
+    \text{s.t.}\quad &y_i(w^\top x_i+b)\ge1,
+      \quad i=1,\ldots,N.
+  \end{aligned}
+  \label{eq:lihang-svm-hard-primal}
+\end{equation}
+目标为凸二次函数，约束为仿射不等式，所以这是凸二次规划（convex quadratic programming）。其最优解必有至少一个约束取等号；否则把 $(w,b)$ 同时适当缩小仍然可行，却能减小目标值。
+
+\subsection{最大间隔解的存在性、唯一性与支持向量}
+
+\begin{theorem}[硬间隔解的存在唯一性]
+\label{thm:lihang-svm-hard-unique}
+设有限训练集线性可分，且正负两类均非空，则问题~\eqref{eq:lihang-svm-hard-primal} 存在唯一最优解 $(w^*,b^*)$，其中 $w^*\ne0$。其超平面严格分开两类训练样本，并使最小几何间隔最大。
+\end{theorem}
+\begin{proof}
+严格分离参数经正比例放大后满足全部约束，故可行集非空。取目标值趋于下确界的可行序列 $(w_k,b_k)$，并令其目标值有共同上界，于是 $w_k$ 有界。固定一个正例 $x_p$ 和一个负例 $x_n$，可行性给出
+\[
+  1-w_k^\top x_p\le b_k\le-1-w_k^\top x_n.
+\]
+故 $b_k$ 也有界。这一序列存在收敛子列，闭约束和目标的连续性保证极限达到最小值。由于两类均非空，$w=0$ 不可能同时满足正负类约束，所以 $w^*\ne0$。这里使用了有界子列与闭性，不能只从目标有下界推出最小值一定能取到。
+
+若有两个最优解的法向量不同，则它们的中点仍可行，而平方范数关于 $w$ 严格凸，导致中点的目标严格更小，矛盾。因此最优法向量唯一。对这一法向量记
+\[
+  a=\min_{i:y_i=+1}(w^*)^\top x_i,
+  \qquad c=\max_{i:y_i=-1}(w^*)^\top x_i.
+\]
+可行截距满足 $1-a\le b\le-1-c$，所以 $a-c\ge2$。若 $a-c>2$，取 $t=2/(a-c)<1$，则 $w'=tw^*$、$b'=-t(a+c)/2$ 仍满足所有间隔约束，却有更小范数，矛盾。故 $a-c=2$，截距区间缩为一点，$b^*=-(a+c)/2$ 也唯一。约束保证严格分离，与几何间隔最大化的等价性已由规范化说明。
+\end{proof}
+
+在最优规范下，两条\emph{间隔边界}（margin boundaries）为
+\[
+  H_+:(w^*)^\top x+b^*=1,
+  \qquad H_-:(w^*)^\top x+b^*=-1.
+\]
+分离超平面位于两者中央，每侧到分离面的距离为 $1/\lVert w^*\rVert_2$，两边界之间的总宽度为 $2/\lVert w^*\rVert_2$。本章用 $\gamma$ 表示单侧最小几何间隔，避免把这两个相差一倍的量混用。训练集中满足 $y_i g_{w^*,b^*}(x_i)=1$ 的点是几何意义上的边界支持向量；它们约束了间隔继续扩大。
+
+\subsection{拉格朗日对偶与最优性条件}
+\label{subsec:lihang-svm-hard-dual}
+
+给每个约束 $1-y_i(w^\top x_i+b)\le0$ 配置乘子 $\alpha_i\ge0$，拉格朗日函数为
+\begin{equation}
+  L(w,b,\alpha)=\frac12\lVert w\rVert_2^2
+    +\sum_{i=1}^{N}\alpha_i\{1-y_i(w^\top x_i+b)\}.
+  \label{eq:lihang-svm-hard-lagrangian}
+\end{equation}
+先对 $w,b$ 求下确界。关于 $w$ 的驻点条件给出 $w=\sum_i\alpha_i y_i x_i$；关于不受约束的 $b$，只有 $\sum_i\alpha_i y_i=0$ 时下确界才有限，否则沿适当方向令 $b$ 发散即可使 $L$ 趋于负无穷。代回得到对偶问题（dual problem）
+\begin{equation}
+  \begin{aligned}
+    \max_{\alpha\in\mathbb R^N}\quad
+      &D(\alpha)=\sum_{i=1}^{N}\alpha_i
+       -\frac12\sum_{i,j=1}^{N}\alpha_i\alpha_j y_i y_j x_i^\top x_j,\\
+    \text{s.t.}\quad
+      &\alpha_i\ge0\ (i=1,\ldots,N),\qquad
+       \sum_{i=1}^{N}\alpha_i y_i=0.
+  \end{aligned}
+  \label{eq:lihang-svm-hard-dual}
+\end{equation}
+若写成最小化形式，只需对 $D$ 取负号。矩阵 $Q_{ij}=y_i y_j x_i^\top x_j$ 半正定，因为对任意 $v\in\mathbb R^N$，有 $v^\top Qv=\lVert\sum_i v_i y_i x_i\rVert_2^2\ge0$，故 $D$ 为凹函数。
+
+严格分离参数可继续放大，使每个约束都严格满足，即满足 Slater 严格可行条件。结合凸性与原始最优解的存在性，原始与对偶最优值相等，并存在最优乘子；\emph{Karush--Kuhn--Tucker 条件}（KKT conditions）在这里是最优性的充要条件：
+\begin{equation}
+  \begin{gathered}
+    w=\sum_i\alpha_i y_i x_i,\qquad \sum_i\alpha_i y_i=0,\\
+    \alpha_i\ge0,\qquad y_i(w^\top x_i+b)\ge1,\\
+    \alpha_i\{y_i(w^\top x_i+b)-1\}=0,
+       \qquad i=1,\ldots,N.
+  \end{gathered}
+  \label{eq:lihang-svm-hard-kkt}
+\end{equation}
+最后一行是互补松弛（complementary slackness）：若 $\alpha_i>0$，对应样本必在间隔边界上；若 $y_i g(x_i)>1$，则必有 $\alpha_i=0$。
+
+给定对偶最优解 $\alpha^*$，可以恢复
+\begin{equation}
+  w^*=\sum_i\alpha_i^*y_i x_i,
+  \qquad
+  b^*=y_j-\sum_i\alpha_i^*y_i x_i^\top x_j
+       \quad(\alpha_j^*>0).
+  \label{eq:lihang-svm-hard-recovery}
+\end{equation}
+这样的 $j$ 必存在，否则 $\alpha^*=0$ 将给出不可行的 $w^*=0$。因此学习时可以先求对偶最优乘子，再恢复截距，最后用
+\begin{equation}
+  g^*(x)=\sum_i\alpha_i^*y_i x_i^\top x+b^*,
+  \qquad f^*(x)=\operatorname{sign}(g^*(x))
+  \label{eq:lihang-svm-hard-prediction}
+\end{equation}
+进行预测。所有训练输入只通过内积出现，这是后续引入核函数的关键。
+
+\begin{notealert}[type=caution,title={边界点与正乘子不能无条件等同}]
+对一个选定的对偶最优解，通常把 $\alpha_i^*>0$ 的样本称为对偶表示中的支持向量。KKT 条件只保证“正乘子推出位于边界”，不保证反向蕴含；有重复样本或其他退化情况时，某个边界点的乘子可以为零。原始参数唯一也不意味着乘子唯一。删除一个严格位于间隔外、乘子为零的点会保留原有最优证书；但不能据此断言每一个边界点都不可删除，或每次移动支持向量都必然改变分类器。
+\end{notealert}
+
+\begin{example}
+\label{ex:lihang-svm-three-points}
+教材例 7.1 与例 7.2 的训练数据为正例 $x_1=(3,3)^\top$、$x_2=(4,3)^\top$，负例 $x_3=(1,1)^\top$。求最大间隔分类器，并核对原始解与对偶解。
+\end{example}
+\begin{solve}
+原始约束为 $3w_1+3w_2+b\ge1$、$4w_1+3w_2+b\ge1$、$-w_1-w_2-b\ge1$。对偶等式给出 $\alpha_3=\alpha_1+\alpha_2$，代入负对偶目标后得到
+\[
+  F(\alpha_1,\alpha_2)
+    =4\alpha_1^2+\frac{13}{2}\alpha_2^2
+      +10\alpha_1\alpha_2-2\alpha_1-2\alpha_2,
+  \qquad \alpha_1,\alpha_2\ge0.
+\]
+在 $(\alpha_1,\alpha_2)=(1/4,0)$ 处，两个偏导数分别为 $0$ 和 $1/2$，满足非负象限上凸函数最小化的最优性条件。因此 $\alpha^*=(1/4,0,1/4)^\top$，并由式~\eqref{eq:lihang-svm-hard-recovery} 得
+\[
+  w^*=\frac14(3,3)^\top-\frac14(1,1)^\top
+      =\left(\frac12,\frac12\right)^\top,
+  \qquad b^*=-2.
+\]
+三个样本的函数间隔分别为 $1,3/2,1$，因此 $x_1,x_3$ 是支持向量。分离面与决策函数为
+\[
+  \frac12x^{(1)}+\frac12x^{(2)}-2=0,
+  \qquad
+  f^*(x)=\operatorname{sign}\left(\frac12x^{(1)}+\frac12x^{(2)}-2\right),
+\]
+其中 $x^{(k)}$ 表示输入的第 $k$ 个坐标。原始最优值与对偶最优值均为 $1/4$，单侧间隔为 $\sqrt2$，两边界间距为 $2\sqrt2$。
+\end{solve}
+
+% 教材 7.2。
+\section{线性支持向量机与软间隔最大化}
+\label{sec:lihang-svm-soft}
+
+\subsection{松弛变量与惩罚参数}
+
+训练样本可能因噪声、类别重叠或特征表达不足而不可分，硬间隔约束此时无可行解。\emph{软间隔支持向量机}（soft-margin SVM）引入\emph{松弛变量}（slack variable）$\xi_i\ge0$，允许一部分样本未达到单位函数间隔，并通过目标函数支付代价：
+\begin{equation}
+  \begin{aligned}
+    \min_{w,b,\xi}\quad
+      &\frac12\lVert w\rVert_2^2+C\sum_{i=1}^{N}\xi_i,\\
+    \text{s.t.}\quad
+      &y_i(w^\top x_i+b)\ge1-\xi_i,\qquad
+       \xi_i\ge0,\quad i=1,\ldots,N,
+  \end{aligned}
+  \qquad C>0.
+  \label{eq:lihang-svm-soft-primal}
+\end{equation}
+对固定的 $w,b$，最优松弛量为 $\xi_i=[1-y_i g_{w,b}(x_i)]_+$，其中 $[u]_+=\max(0,u)$。因此 $\xi_i$ 衡量单位函数间隔的缺失程度：$0<\xi_i<1$ 时仍严格分类正确，$\xi_i=1$ 时分数为零，$\xi_i>1$ 时严格误分类。\emph[caution]{$\sum_i\xi_i$ 惩罚的是间隔违反的总量，不是误分类样本数。}
+
+在式~\eqref{eq:lihang-svm-soft-primal} 的求和约定下，$C$ 越大，目标越重视压低间隔损失；$C$ 越小，平方范数的相对作用越强。这是目标权重的比较，不能推出每个样本的误分类状态都随 $C$ 单调变化。软间隔对可分和不可分数据都适用，但可分时也不必与硬间隔给出相同解，尤其在 $C$ 较小时。
+
+该问题总有可行点，例如 $w=b=0,\xi_i=1$。最优解也存在：有界目标值同时控制 $\lVert w\rVert_2$ 与全部 $\xi_i$，正负类约束进而给出 $b$ 的上下界，再用闭性取极限即可。严格凸性保证最优 $w^*$ 唯一，但目标不直接惩罚 $b$，所以 $b^*$ 可能不唯一。极端情况下 $w^*=0$，模型成为常数分数函数，此时不再有法向量非零的分离超平面，也不能使用 $1/\lVert w^*\rVert_2$ 解释间隔。
+
+\subsection{软间隔的对偶与支持向量的分类}
+\label{subsec:lihang-svm-soft-kkt}
+
+分别给间隔约束与非负约束配置乘子 $\alpha_i\ge0$、$\mu_i\ge0$，拉格朗日函数为
+\[
+  L=\frac12\lVert w\rVert_2^2+C\sum_i\xi_i
+    +\sum_i\alpha_i\{1-\xi_i-y_i(w^\top x_i+b)\}
+    -\sum_i\mu_i\xi_i.
+\]
+对 $w,b,\xi$ 的驻点条件分别给出
+\[
+  w=\sum_i\alpha_i y_i x_i,
+  \qquad\sum_i\alpha_i y_i=0,
+  \qquad C-\alpha_i-\mu_i=0.
+\]
+由 $\mu_i\ge0$ 得到盒约束 $0\le\alpha_i\le C$。消去原始变量后，对偶为
+\begin{equation}
+  \begin{aligned}
+    \max_\alpha\quad
+      &D(\alpha)=\sum_i\alpha_i
+        -\frac12\sum_{i,j}\alpha_i\alpha_j y_i y_j x_i^\top x_j,\\
+    \text{s.t.}\quad
+      &\sum_i\alpha_i y_i=0,\qquad
+       0\le\alpha_i\le C\quad(i=1,\ldots,N).
+  \end{aligned}
+  \label{eq:lihang-svm-soft-dual}
+\end{equation}
+相对于硬间隔，对偶目标不变，只给每个乘子加了上界。原始问题可取 $w=b=0,\xi_i=2$ 得到严格可行点，故强对偶成立。除原始可行性、盒约束与上述驻点条件外，KKT 条件还包含
+\begin{equation}
+  \alpha_i\{y_i g(x_i)-1+\xi_i\}=0,
+  \qquad (C-\alpha_i)\xi_i=0.
+  \label{eq:lihang-svm-soft-complementarity}
+\end{equation}
+令 $m_i=y_i g(x_i)$，可将这些条件等价地整理为
+\begin{equation}
+  \begin{array}{c|c|c}
+    \text{乘子状态}&\text{函数间隔}&\text{最优松弛量}\\ \hline
+    \alpha_i=0&m_i\ge1&\xi_i=0\\
+    0<\alpha_i<C&m_i=1&\xi_i=0\\
+    \alpha_i=C&m_i\le1&\xi_i=1-m_i
+  \end{array}
+  \label{eq:lihang-svm-soft-status}
+\end{equation}
+因此 $0<\alpha_i<C$ 的\emph{自由支持向量}（free support vector）位于间隔边界上；$\alpha_i=C$ 的支持向量可能位于边界、间隔内部或误分类一侧。特别地，$\alpha_i=C$ 不必意味着误分类，甚至不必有 $\xi_i>0$。
+
+\subsection{截距恢复与没有自由支持向量的情形}
+\label{subsec:lihang-svm-intercept}
+
+对偶最优解给出唯一的 $w^*=\sum_i\alpha_i^*y_i x_i$。若存在 $0<\alpha_j^*<C$，由 $y_jg(x_j)=1$ 得
+\begin{equation}
+  b^*=y_j-\sum_i\alpha_i^*y_i x_i^\top x_j.
+  \label{eq:lihang-svm-soft-b-free}
+\end{equation}
+精确最优解下，所有自由支持向量给出的截距相同；数值近似时可对这些候选值取平均，再检查全部 KKT 条件。
+
+不能预先假设自由支持向量必存在。令 $h_i=\sum_j\alpha_j^*y_j x_j^\top x_i$，若每个乘子都在 $0$ 或 $C$ 上，则式~\eqref{eq:lihang-svm-soft-status} 要求
+\begin{align}
+  b_{\mathrm{lo}}
+    &=\max\bigl(\{1-h_i:y_i=+1,\alpha_i^*=0\}
+           \cup\{-1-h_i:y_i=-1,\alpha_i^*=C\}\bigr),\\
+  b_{\mathrm{hi}}
+    &=\min\bigl(\{-1-h_i:y_i=-1,\alpha_i^*=0\}
+           \cup\{1-h_i:y_i=+1,\alpha_i^*=C\}\bigr),\\
+  b_{\mathrm{lo}}&\le b^*\le b_{\mathrm{hi}}.
+  \label{eq:lihang-svm-b-interval}
+\end{align}
+在本章两类非空、$C>0$ 的约定下，无自由分量时上下界集合均非空：否则盒约束的端点状态将与 $\sum_i\alpha_i^*y_i=0$ 冲突。精确对偶最优解保证区间非空，任选其中一点即可；它可能是一点，也可能有正长度。这一求法同样适用于后文的核模型，只需把内积换成核函数。
+
+\begin{example}
+\label{ex:lihang-svm-nonunique-b}
+训练集只有两个观测 $x_1=x_2=0$，标签分别为 $+1,-1$。说明软间隔截距可能不唯一。
+\end{example}
+\begin{solve}
+最优 $w^*=0$，其余目标是 $C([1-b]_++[1+b]_+)$，在任意 $b\in[-1,1]$ 上均取最小值 $2C$。对偶约束要求 $\alpha_1=\alpha_2$，对偶目标为 $2\alpha_1$，故 $\alpha_1^*=\alpha_2^*=C$，没有自由支持向量。式~\eqref{eq:lihang-svm-b-interval} 恰给出 $[-1,1]$，展示了唯一法向量与非唯一截距可以同时出现。
+\end{solve}
+
+\subsection{合页损失与正则化经验风险}
+
+\begin{definition}[合页损失]
+\emph{合页损失}（hinge loss）定义为 $\ell_{\mathrm{hinge}}(g(x),y)=[1-yg(x)]_+$。它不仅要求分类方向正确，还要求函数间隔达到 $1$ 才给出零损失。
+\end{definition}
+
+\begin{proposition}[消去松弛变量]
+\label{prop:lihang-svm-hinge}
+软间隔原始问题~\eqref{eq:lihang-svm-soft-primal} 等价于无约束凸优化问题
+\begin{equation}
+  \min_{w,b}\ \frac12\lVert w\rVert_2^2
+      +C\sum_{i=1}^{N}[1-y_i(w^\top x_i+b)]_+.
+  \label{eq:lihang-svm-hinge-objective}
+\end{equation}
+这里的等价指最优 $(w,b)$ 相同，最优松弛量由 $\xi_i^*=[1-y_i g_{w^*,b^*}(x_i)]_+$ 恢复。
+\end{proposition}
+\begin{proof}
+固定 $w,b$ 后，约束对第 $i$ 个松弛量的要求为 $\xi_i\ge\max(0,1-y_i g(x_i))$。由于 $C>0$，目标随每个 $\xi_i$ 严格递增，故其最优值必取这个下界。逐个消去 $\xi_i$ 即得式~\eqref{eq:lihang-svm-hinge-objective}，反向代回也满足全部约束。
+\end{proof}
+
+对任意实数间隔 $m$，有 $\mathbf1\{m\le0\}\le[1-m]_+$，故合页损失是把零间隔也计入的分类错误指标的凸上界，是一种\emph{代理损失}（surrogate loss）。相比之下，感知机损失为 $[-m]_+$，在 $m=0$ 时已经为零，不会像合页损失那样要求正的安全间隔。合页损失连续且凸，但在 $m=1$ 处不可微；使用凸优化并不要求目标处处可微。
+
+不同的正则化记法需要先统一尺度。将式~\eqref{eq:lihang-svm-hinge-objective} 除以 $C$，可写成 $\sum_i[1-m_i]_++\lambda\lVert w\rVert_2^2$，此时 $\lambda=1/(2C)$；若采用平均损失
+\begin{equation}
+  \frac1N\sum_i[1-m_i]_+
+       +\frac{\lambda}{2}\lVert w\rVert_2^2,
+  \qquad \lambda=\frac1{NC}.
+  \label{eq:lihang-svm-average-risk}
+\end{equation}
+两种 $\lambda$ 的定义不同，不能混用。在上述模型中截距 $b$ 不受平方范数惩罚；若把常数特征并入 $w$ 且一并惩罚，便改变了优化问题及其对偶约束。
+
+% 教材 7.3。
+\section{非线性支持向量机与核函数}
+\label{sec:lihang-svm-kernel}
+
+\subsection{从非线性变换到核技巧}
+
+输入空间中的非线性边界可以在适当的特征空间中变成超平面。例如对 $x=(x^{(1)},x^{(2)})^\top$，取映射 $\phi(x)=((x^{(1)})^2,(x^{(2)})^2)^\top$，则边界 $a(x^{(1)})^2+c(x^{(2)})^2+b=0$ 在新坐标中成为直线。这个例子说明的是边界表示方式的变化，并不意味着任何映射都能把任意带噪数据变为可分数据。
+
+\begin{definition}[核函数]
+设 $\mathcal X$ 为非空输入集合。若存在实希尔伯特空间 $\mathcal H$（Hilbert space，即关于内积范数完备的内积空间）及映射 $\phi:\mathcal X\to\mathcal H$，使
+\begin{equation}
+  K(x,z)=\langle\phi(x),\phi(z)\rangle_{\mathcal H},
+  \qquad x,z\in\mathcal X,
+  \label{eq:lihang-svm-kernel-definition}
+\end{equation}
+则称 $K$ 为\emph{核函数}（kernel function），$\mathcal H$ 为相应的特征空间，$\phi$ 为特征映射。这里的核是实对称半正定核，教材也称其为正定核（positive definite kernel）。
+\end{definition}
+
+把软间隔模型中的输入改为 $\phi(x_i)$，其对偶与预测只需计算 $\langle\phi(x_i),\phi(x_j)\rangle_{\mathcal H}$。因此只要直接计算 $K(x_i,x_j)$，就可在不显式构造特征坐标的情况下完成学习与预测，这称为\emph{核技巧}（kernel trick）。给定同一个核，特征映射不唯一，例如在特征空间中作正交变换不会改变内积；核确定的是相关内积结构。
+
+\begin{example}
+\label{ex:lihang-svm-quadratic-kernel}
+教材例 7.3 给定 $x,z\in\mathbb R^2$ 及 $K(x,z)=(x^\top z)^2$，求一个特征映射。
+\end{example}
+\begin{solve}
+展开可得
+\[
+  (x^\top z)^2=(x^{(1)})^2(z^{(1)})^2
+       +2x^{(1)}x^{(2)}z^{(1)}z^{(2)}
+       +(x^{(2)})^2(z^{(2)})^2.
+\]
+故可取 $\mathcal H=\mathbb R^3$，以及
+\[
+  \phi(x)=\bigl((x^{(1)})^2,\sqrt2x^{(1)}x^{(2)},(x^{(2)})^2\bigr)^\top.
+\]
+中间的 $\sqrt2$ 保证内积展开时交叉项的系数为 $2$。也可在 $\mathbb R^4$ 中取 $((x^{(1)})^2,x^{(1)}x^{(2)},x^{(1)}x^{(2)},(x^{(2)})^2)^\top$，说明映射与特征空间的表示均可不同。
+\end{solve}
+
+\subsection{正定核的判别与再生核希尔伯特空间}
+\label{subsec:lihang-svm-psd-kernel}
+
+\begin{theorem}[核函数的 Gram 矩阵判别]
+\label{thm:lihang-svm-gram}
+实对称函数 $K:\mathcal X\times\mathcal X\to\mathbb R$ 是式~\eqref{eq:lihang-svm-kernel-definition} 意义下的核，当且仅当对任意正整数 $m$、任意 $z_1,\ldots,z_m\in\mathcal X$，\emph{Gram 矩阵}（Gram matrix）$G=[K(z_i,z_j)]_{i,j=1}^{m}$ 均为半正定，即对所有 $c\in\mathbb R^m$ 有 $c^\top Gc\ge0$。
+\end{theorem}
+\begin{proof}
+必要性来自内积：若有特征映射，则
+\[
+  \sum_{i,j}c_i c_j K(z_i,z_j)
+    =\left\lVert\sum_i c_i\phi(z_i)\right\rVert_{\mathcal H}^2\ge0.
+\]
+为证充分性，考虑函数空间
+\[
+  S=\left\{f(\cdot)=\sum_{i=1}^{m}a_iK(\cdot,z_i):
+      m<\infty,\ a_i\in\mathbb R,\ z_i\in\mathcal X\right\}.
+\]
+对 $f=\sum_i a_iK(\cdot,z_i)$、$h=\sum_j b_jK(\cdot,u_j)$，定义
+\begin{equation}
+  B(f,h)=\sum_{i,j}a_i b_jK(z_i,u_j).
+  \label{eq:lihang-svm-rkhs-inner}
+\end{equation}
+先核对这一运算不依赖表示：右端等于 $\sum_j b_j f(u_j)$，故表示零函数的任何 $f$ 都与所有 $h$ 配对为零；再利用 $K$ 的对称性可得关于 $h$ 的同样结论。因此改变任一函数的有限和表示不会改变 $B$。
+
+由 Gram 矩阵半正定性，$B(f,f)\ge0$。对任意 $t\in\mathbb R$，$B(f+th,f+th)\ge0$，由此得到半内积的 Cauchy--Schwarz 不等式 $|B(f,h)|^2\le B(f,f)B(h,h)$；当 $B(h,h)=0$ 时，直接由该一次式对全部 $t$ 非负可得 $B(f,h)=0$。又有
+\[
+  B(f,K(\cdot,x))=f(x),
+  \qquad |f(x)|^2\le B(f,f)K(x,x).
+\]
+若 $B(f,f)=0$，则对所有 $x$ 都有 $f(x)=0$，故 $f$ 是零函数。于是 $B$ 实际上是 $S$ 上的内积。
+
+将此内积空间完备化得到 $\mathcal H$。上述点值不等式保证每个求值映射 $f\mapsto f(x)$ 有界，因而能唯一连续延拓到 $\mathcal H$，并保留\emph{再生性质}（reproducing property）
+\begin{equation}
+  f(x)=\langle f,K(\cdot,x)\rangle_{\mathcal H}.
+  \label{eq:lihang-svm-reproducing}
+\end{equation}
+这些延拓仍把元素识别为函数：若某个元素在所有 $x$ 的取值都为零，它与稠密子空间 $S$ 正交，故只能为零。取 $\phi(x)=K(\cdot,x)$，便有 $\langle\phi(x),\phi(z)\rangle_{\mathcal H}=K(x,z)$，完成构造。
+\end{proof}
+
+以上构造的空间称为\emph{再生核希尔伯特空间}（reproducing kernel Hilbert space，RKHS）。教材使用的“正定核”允许 Gram 矩阵仅半正定，不要求对每个非零 $c$ 都严格为正；例如 $K(x,z)=1$ 是合法核，却在多个样本上产生秩为一的矩阵。判别定理要求对\emph[caution]{任意有限输入集合}成立，仅检查某一个训练集的核矩阵半正定，不能证明候选函数在整个输入域上都是核。
+
+\subsection{多项式核、高斯核与字符串核}
+
+\emph{多项式核}（polynomial kernel）的常用形式为
+\begin{equation}
+  K(x,z)=(x^\top z+1)^p,
+  \qquad p\in\{1,2,\ldots\}.
+  \label{eq:lihang-svm-polynomial-kernel}
+\end{equation}
+令 $\widetilde x=(1,x^\top)^\top$，则该式等于 $(\widetilde x^\top\widetilde z)^p$。取所有 $p$ 重坐标乘积作为特征，就得到一个显式内积表示；合并重复单项式后，对应于不超过 $p$ 次的多项式特征。齐次形式 $(x^\top z)^p$ 的详细展开见例~\ref{ex:lihang-svm-power-kernel}。这里限定 $p$ 为正整数；不能随意改成实数幂而仍假定它在整个 $\mathbb R^d$ 上是核。
+
+\emph{高斯核}（Gaussian kernel）为
+\begin{equation}
+  K_\sigma(x,z)=\exp\left(-\frac{\lVert x-z\rVert_2^2}{2\sigma^2}\right),
+  \qquad \sigma>0,
+  \label{eq:lihang-svm-gaussian-kernel}
+\end{equation}
+也称高斯径向基核（Gaussian radial basis function kernel，Gaussian RBF kernel）。它的半正定性可以从级数展开核对：
+\[
+  K_\sigma(x,z)
+   =e^{-\lVert x\rVert_2^2/(2\sigma^2)}
+    e^{-\lVert z\rVert_2^2/(2\sigma^2)}
+      \sum_{r=0}^{\infty}\frac{(x^\top z)^r}{r!\sigma^{2r}}.
+\]
+每个整数次幂都是核，非负线性组合仍是核；对核乘以 $a(x)a(z)$，相应的 Gram 二次型只需把系数 $c_i$ 换为 $c_i a(x_i)$，所以仍半正定。上式级数在每对固定输入上收敛，在任意有限 Gram 二次型中可逐项取极限，因此高斯核也半正定。它一般对应无限维特征空间，但计算一个核值只需计算原空间距离。
+
+当固定的两个输入不同时，$\sigma\downarrow0$ 使核值趋于零；$\sigma\to\infty$ 则使有限样本间的核值趋于一。前者使相似性更加局部，后者使样本在核中趋于相似。核宽度与 $C$ 共同影响拟合行为，训练时应根据验证数据选择，不能仅比较训练分类率。输入的尺度会改变距离，因而特征缩放也是模型选择的一部分，其统计量应只由训练数据估计。
+
+核的输入不必是实向量。设 $\Sigma$ 是有限字母表，$\Sigma^*$ 为全部有限字符串的集合；给定正整数 $q$ 和衰减参数 $0<\rho<1$。对字符串 $s=s_1\cdots s_{|s|}$，用严格递增的指标组 $I=(i_1,\ldots,i_q)$ 表示子序列 $s[I]=s_{i_1}\cdots s_{i_q}$，跨度定义为 $\ell(I)=i_q-i_1+1$。子序列允许字符之间有间隔；它不同于必须连续的子串。
+
+定义特征映射 $\phi_q(s)\in\mathbb R^{|\Sigma|^q}$，其坐标由 $u\in\Sigma^q$ 索引，且
+\begin{equation}
+  [\phi_q(s)]_u=\sum_{I:s[I]=u}\rho^{\ell(I)}.
+  \label{eq:lihang-svm-string-feature}
+\end{equation}
+若没有这样的指标组，和为零。于是\emph{字符串子序列核}（string subsequence kernel）为
+\begin{equation}
+  K_q(s,t)=\sum_{u\in\Sigma^q}[\phi_q(s)]_u[\phi_q(t)]_u
+    =\sum_{u\in\Sigma^q}\sum_{I,J:s[I]=t[J]=u}
+           \rho^{\ell(I)+\ell(J)}.
+  \label{eq:lihang-svm-string-kernel}
+\end{equation}
+这是显式特征向量的内积，故必为核。相同的长度为 $q$ 的子序列越多、出现跨度越短，对核值的贡献通常越大；实际计算可利用动态规划组织重叠子问题，无须先列出全部特征坐标。
+
+例如取 $q=3,u=\texttt{asd}$，$\texttt{Nasdaq}$ 中相应位置为 $(2,3,4)$，故该坐标为 $\rho^3$；$\texttt{lass das}$ 中的空格也占一个字符位置，相应位置为 $(2,3,6)$、$(2,4,6)$，故该坐标为 $2\rho^5$。它们对核值的这一坐标贡献是 $2\rho^8$，核值本身还须对其他共同子序列求和。式~\eqref{eq:lihang-svm-string-kernel} 是内积；当两边特征均非零时，只有进一步归一化为
+\[
+  \widetilde K_q(s,t)
+    =\frac{K_q(s,t)}{\sqrt{K_q(s,s)K_q(t,t)}}
+\]
+才是特征向量的余弦相似度（cosine similarity）。
+
+\subsection{非线性支持向量机的目标与预测}
+
+给定核 $K$，特征空间中的原始模型是 $g(x)=\langle w,\phi(x)\rangle_{\mathcal H}+b$，并最小化
+\[
+  \frac12\lVert w\rVert_{\mathcal H}^2+C\sum_i\xi_i,
+  \qquad y_i(\langle w,\phi(x_i)\rangle_{\mathcal H}+b)\ge1-\xi_i,
+  \quad\xi_i\ge0.
+\]
+其最优 $w$ 可以取在训练特征张成的有限维子空间中：将任意 $w$ 分解为该子空间上的投影 $w_{\parallel}$ 与正交分量 $w_{\perp}$，训练分数只依赖前者，而 $\lVert w\rVert^2=\lVert w_{\parallel}\rVert^2+\lVert w_{\perp}\rVert^2$，故去掉正交分量不会增加目标。即使 $\mathcal H$ 无限维，求解也能归结为有限个系数。
+
+以核替换内积，得到统一的对偶最小化形式
+\begin{equation}
+  \begin{aligned}
+    \min_\alpha\quad
+      &F(\alpha)=\frac12\sum_{i,j=1}^{N}
+          \alpha_i\alpha_j y_i y_j K(x_i,x_j)-\sum_i\alpha_i,\\
+    \text{s.t.}\quad
+      &\sum_i\alpha_i y_i=0,\qquad
+       0\le\alpha_i\le C\quad(i=1,\ldots,N).
+  \end{aligned}
+  \label{eq:lihang-svm-kernel-dual}
+\end{equation}
+由定理~\ref{thm:lihang-svm-gram}，$Q_{ij}=y_i y_jK(x_i,x_j)$ 半正定，故这是凸二次规划。可行集非空且紧，连续目标必能取到最小值；乘子解可能不唯一。求得 $\alpha^*$ 后，用自由支持向量恢复
+\begin{equation}
+  b^*=y_j-\sum_i\alpha_i^*y_i K(x_i,x_j)
+       \quad(0<\alpha_j^*<C),
+  \qquad
+  f^*(x)=\operatorname{sign}\left(\sum_i\alpha_i^*y_iK(x_i,x)+b^*\right).
+  \label{eq:lihang-svm-kernel-prediction}
+\end{equation}
+若没有自由支持向量，则用第~\ref{subsec:lihang-svm-intercept} 小节的截距区间，并令其中 $h_i=\sum_j\alpha_j^*y_jK(x_j,x_i)$。从输入空间看决策边界可以是非线性的；从特征空间看仍是带正则化的线性分数模型。
+
+训练时存储完整核矩阵需要 $O(N^2)$ 个数，计算它需要 $O(N^2)$ 次核求值；也可按需计算并缓存核行。预测若有 $M$ 个正乘子，只需 $M$ 次核求值及相应求和。支持向量带来的是这种表示上的稀疏性，并没有保证 $M$ 总比 $N$ 小很多；在线性核情形，还可先显式合并 $w^*$，把每次预测化为一次 $d$ 维内积。
+
+% 教材 7.4。
+\section{序列最小最优化算法}
+\label{sec:lihang-svm-smo}
+
+\emph{序列最小最优化}（sequential minimal optimization，SMO）把式~\eqref{eq:lihang-svm-kernel-dual} 分解为一系列只更新两个乘子的子问题，并用解析公式求解每个子问题。之所以不能只改变一个乘子，是因为当其他分量固定时，等式 $\sum_i\alpha_i y_i=0$ 已经唯一确定了剩下的分量；选择两个分量，才留有一个自由度。以下取一对不同下标，并为简便将它们记为 $1,2$。
+
+\subsection{两个乘子的可行区间}
+
+记更新前乘子为 $\alpha_1,\alpha_2$，更新后为 $\alpha_1^+,\alpha_2^+$，其他乘子保持不变。等式约束要求
+\begin{equation}
+  \alpha_1^+=\alpha_1+y_1y_2(\alpha_2-\alpha_2^+).
+  \label{eq:lihang-svm-smo-equality}
+\end{equation}
+因此子问题是在盒子 $[0,C]^2$ 与一条直线的交线上优化。将 $\alpha_2^+$ 作为自由变量，两者的盒约束等价于 $L\le\alpha_2^+\le H$，其中
+\begin{equation}
+  \begin{array}{c|c|c}
+    &L&H\\ \hline
+    y_1\ne y_2&\max(0,\alpha_2-\alpha_1)
+              &\min(C,C+\alpha_2-\alpha_1)\\
+    y_1=y_2&\max(0,\alpha_1+\alpha_2-C)
+            &\min(C,\alpha_1+\alpha_2)
+  \end{array}
+  \label{eq:lihang-svm-smo-bounds}
+\end{equation}
+这是分别消去 $\alpha_1^+$ 后，由 $0\le\alpha_1^+,\alpha_2^+\le C$ 得到的交集，不能只把第二个乘子截断到 $[0,C]$。若 $L=H$，这一对没有可行移动方向，应另选工作变量。
+
+\subsection{解析更新、剪辑与零曲率}
+
+记 $K_{ij}=K(x_i,x_j)$，使用当前参数定义
+\begin{equation}
+  g(x)=\sum_j\alpha_j y_jK(x_j,x)+b,
+  \qquad E_i=g(x_i)-y_i.
+  \label{eq:lihang-svm-smo-error}
+\end{equation}
+$E_i$ 是实值分数与数值标签之差，不是分类错误指示，也不是概率误差。令
+\begin{equation}
+  \eta=K_{11}+K_{22}-2K_{12}
+       =\lVert\phi(x_1)-\phi(x_2)\rVert_{\mathcal H}^2\ge0.
+  \label{eq:lihang-svm-smo-curvature}
+\end{equation}
+以 $t=\alpha_2^+$、$\delta=t-\alpha_2$ 表示这一可行方向上的变化，把式~\eqref{eq:lihang-svm-smo-equality} 代入二次目标可得
+\begin{equation}
+  F(\alpha^+)-F(\alpha)
+      =\frac12\eta\delta^2+y_2(E_2-E_1)\delta.
+  \label{eq:lihang-svm-smo-reduced}
+\end{equation}
+其中 $E_2-E_1$ 中的 $b$ 抵消，符合对偶目标本身不含截距的事实。式~\eqref{eq:lihang-svm-smo-reduced} 也给出了更新公式的直接推导：若 $\eta>0$，令关于 $t$ 的导数为零，得到未经约束的极小点
+\[
+  \widetilde\alpha_2=\alpha_2+\frac{y_2(E_1-E_2)}{\eta}.
+\]
+由于单变量目标是凸二次函数，在闭区间上的极小点就是该点到区间的投影：
+\begin{equation}
+  \alpha_2^+=\min\{H,\max\{L,\widetilde\alpha_2\}\},
+  \qquad
+  \alpha_1^+=\alpha_1+y_1y_2(\alpha_2-\alpha_2^+).
+  \label{eq:lihang-svm-smo-update}
+\end{equation}
+第二个等式恢复等式可行性，式~\eqref{eq:lihang-svm-smo-bounds} 同时保证两个新乘子都满足盒约束。
+
+若 $\eta=0$，不能使用含 $1/\eta$ 的公式。这时式~\eqref{eq:lihang-svm-smo-reduced} 是线性函数，比较 $t=L,H$ 的目标值即可选出最优端点；若线性系数也为零，则整条线段目标相同，可保留原点并另选一对。重复输入或不同输入具有相同特征映射时都可能出现这一情况。合法核在精确运算中保证 $\eta\ge0$，实现时遇到显著负曲率需要检查核矩阵或数值计算。
+
+\subsection{截距与误差缓存的更新}
+
+令 $\Delta\alpha_i=\alpha_i^+-\alpha_i$，根据更新后的第一个或第二个样本达到单位间隔的要求，构造
+\begin{align}
+  b_1&=b-E_1-y_1\Delta\alpha_1K_{11}
+                   -y_2\Delta\alpha_2K_{12},\\
+  b_2&=b-E_2-y_1\Delta\alpha_1K_{12}
+                   -y_2\Delta\alpha_2K_{22}.
+  \label{eq:lihang-svm-smo-b-candidates}
+\end{align}
+若 $0<\alpha_1^+<C$，取 $b^+=b_1$；否则若 $0<\alpha_2^+<C$，取 $b^+=b_2$；两个乘子都在内部时，精确算术下两个候选值相同。若两者均在盒边界，可取 $b^+=(b_1+b_2)/2$；对子问题而言，该取法满足这一对样本对截距的 KKT 要求，但尚不能保证其他全部样本的 KKT 条件，仍须继续迭代。
+
+对每一个样本 $k$，误差可增量更新为
+\begin{equation}
+  E_k^+=E_k+y_1\Delta\alpha_1K(x_1,x_k)
+              +y_2\Delta\alpha_2K(x_2,x_k)+(b^+-b).
+  \label{eq:lihang-svm-smo-error-update}
+\end{equation}
+与重新对所有正乘子求和相比，缓存 $E_k$ 并使用两条核行可减少重复计算；但缓存必须随乘子与截距一起更新，否则后续变量选择与停止判断会使用过时分数。
+
+\subsection{变量选择、停止条件与完整流程}
+
+由式~\eqref{eq:lihang-svm-soft-status}，令 $r_i=y_i g(x_i)-1$，精确 KKT 条件为 $\alpha_i=0$ 时 $r_i\ge0$、$0<\alpha_i<C$ 时 $r_i=0$、$\alpha_i=C$ 时 $r_i\le0$。可用违反量
+\begin{equation}
+  v_i=
+  \begin{cases}
+    \max(0,-r_i),&\alpha_i=0,\\
+    |r_i|,&0<\alpha_i<C,\\
+    \max(0,r_i),&\alpha_i=C
+  \end{cases}
+  \label{eq:lihang-svm-kkt-residual}
+\end{equation}
+衡量当前误差，选取 $v_i$ 较大的分量作为第一个工作变量。数值实现中应另设判断乘子是否贴近 $0,C$ 的边界容差，并同时监控盒约束和 $\sum_i\alpha_i y_i=0$ 的可行性误差。
+
+固定第一个变量后，常从自由乘子中选择使 $|E_1-E_2|$ 较大的第二个变量。其动机来自未经剪辑的位移公式，但实际下降量还取决于 $\eta$ 和可行区间，所以这只是启发式选择，不保证每次选到全体变量对中的最优者。若所选变量对的 $L=H$、位移过小或目标无足够下降，应依次尝试其他自由乘子和其他训练样本，必要时更换第一个变量；扫描自由乘子后还必须回到全训练集检查，避免遗漏边界变量上的违反。
+
+对给定训练集、核函数、$C>0$、KKT 容差 $\varepsilon>0$ 和迭代预算，一次完整求解可以按下述顺序组织。
+\begin{enumerate}
+  \item 初始化 $\alpha=0,b=0$，于是等式与盒约束均满足，并令 $E_i=-y_i$；准备核值与误差缓存。
+  \item 检查当前 KKT 违反，选取两个不同工作变量，计算 $L,H$；若该对无法产生有效移动，则按上述规则继续选取。
+  \item 按正曲率解析公式或零曲率端点比较精确求解子问题，更新两个乘子，再更新 $b$ 与全部误差缓存。
+  \item 交替扫描自由乘子与全部样本，只有全体样本均满足 $v_i\le\varepsilon$，且可行性误差在容差内时，才按该精度结束；否则继续迭代。
+  \item 输出当前 $\alpha,b$ 及核决策函数；若预算先耗尽，报告尚未满足的 KKT 违反量，所得结果只能称为当前近似解。
+\end{enumerate}
+
+每次精确求解子问题都不会增大 $F$，而可行域紧且目标有下界，所以目标值序列收敛。\emph[caution]{这并不单独证明乘子序列收敛，更不保证任意变量选择规则都达到全局最优。}达到全局最优的充分证书是全部 KKT 条件成立；算法的收敛分析还需要变量选择与有效下降的相应条件，不能仅从目标值单调推出。教材的启发式过程也不提供与数据无关的固定迭代次数界。
+
+若需要直接评估最优性差距，可以利用当前可行 $\alpha$ 令 $w=\sum_i\alpha_i y_i\phi(x_i)$、$\xi_i=[1-y_i g(x_i)]_+$，并记 $Q_{ij}=y_i y_jK_{ij}$，则
+\begin{equation}
+  \begin{aligned}
+    P&=\frac12\alpha^\top Q\alpha+C\sum_i\xi_i,\\
+    D&=\sum_i\alpha_i-\frac12\alpha^\top Q\alpha,\\
+    P-D&=\alpha^\top Q\alpha+C\sum_i\xi_i-\sum_i\alpha_i\ge0.
+  \end{aligned}
+  \label{eq:lihang-svm-duality-gap}
+\end{equation}
+由弱对偶，原始最优值位于 $[D,P]$，因此对偶间隙给出目标值精度的可核查界。这一数值证书仍只针对训练优化目标，不是测试风险的保证。若核行已缓存，一步更新全部误差需要 $O(N)$ 次标量运算；未缓存时还需相应核求值，不能把两个乘子的解析更新误认为整轮训练只有常数代价。
+
+\begin{example}
+\label{ex:lihang-svm-smo-step}
+对例~\ref{ex:lihang-svm-three-points} 的三个样本取 $C=1$，从 $\alpha=0,b=0$ 出发，选择样本 $1,3$ 进行一次 SMO 更新。
+\end{example}
+\begin{solve}
+两样本异类，$L=0,H=1$。线性核下 $\eta=18+2-2\times6=8$，初始误差为 $E_1=-1,E_3=1$，故
+\[
+  \alpha_3^+=0+\frac{(-1)(-1-1)}8=\frac14,
+  \qquad \alpha_1^+=\frac14.
+\]
+两个新乘子都严格位于 $(0,1)$，两个截距候选值均为 $-2$。更新后 $w=(1/2,1/2)^\top$，三个函数间隔为 $1,3/2,1$，其余乘子 $\alpha_2=0$，所以全部 KKT 条件均成立，对偶间隙为零。这组特殊数据一次更新即达到最优，不能据此推断一般数据的迭代次数。
+\end{solve}
+
+% 教材章末习题 7.1--7.4；不复现其中要求的作图，仅保留可核查的解析结果。
+\section{教材习题与进一步理解}
+\label{sec:lihang-svm-exercises}
+
+\begin{example}
+\label{ex:lihang-svm-perceptron-dual}
+教材习题 7.1：比较感知机的对偶表示与线性可分支持向量机的对偶表示。
+\end{example}
+\begin{solve}
+从 $w=b=0$ 出发，感知机对满足 $y_i(w^\top x_i+b)\le0$ 的样本执行 $w\leftarrow w+\tau y_i x_i$、$b\leftarrow b+\tau y_i$，其中 $\tau>0$ 是固定步长。若第 $i$ 个样本被更新 $n_i$ 次，令 $\beta_i=\tau n_i$，则
+\[
+  w=\sum_i\beta_i y_i x_i,
+  \qquad b=\sum_i\beta_i y_i,
+  \qquad g(x)=\sum_i\beta_i y_i x_i^\top x+b.
+\]
+因此两者都可把分数表示为训练输入的线性组合，并通过 Gram 内积计算训练分数。但感知机的 $\beta_i$ 记录误分更新次数，不是式~\eqref{eq:lihang-svm-hard-dual} 的最优拉格朗日乘子，也不要求 $\sum_i\beta_i y_i=0$；其截距由更新规则累积。支持向量机的乘子则由最大间隔凸优化确定，满足对偶等式和互补条件，截距由支持向量约束恢复。在线性可分条件下，感知机寻找某个分离面，所得结果可依赖扫描顺序；硬间隔支持向量机的规范化原始解由定理~\ref{thm:lihang-svm-hard-unique} 保证唯一。二者共享内积表示，不共享同一学习目标。
+\end{solve}
+
+\begin{example}
+\label{ex:lihang-svm-five-points}
+教材习题 7.2：正例为 $x_1=(1,2)^\top$、$x_2=(2,3)^\top$、$x_3=(3,3)^\top$，负例为 $x_4=(2,1)^\top$、$x_5=(3,2)^\top$。求最大间隔分离面、间隔边界和支持向量。
+\end{example}
+\begin{solve}
+考虑由正类边界点 $x_1,x_3$ 确定法向方向，并令负类点 $x_5$ 位于另一条间隔边界。解
+\[
+  w^\top x_1+b=w^\top x_3+b=1,
+  \qquad w^\top x_5+b=-1
+\]
+得到 $w=(-1,2)^\top,b=-2$。不能仅凭这三个等式断定最优，还须检查全部约束及对偶证书：五个样本的函数间隔依次为 $1,2,1,2,1$，均满足硬间隔约束；取
+\[
+  \alpha=\left(\frac12,0,2,0,\frac52\right)^\top,
+  \qquad \sum_i\alpha_i y_i=0,
+  \qquad\sum_i\alpha_i y_i x_i=(-1,2)^\top,
+\]
+并且正乘子只对应间隔为 $1$ 的样本，故全部 KKT 条件成立。由此分离面为 $-x^{(1)}+2x^{(2)}-2=0$，决策为其左端的符号；两条边界分别为 $-x^{(1)}+2x^{(2)}=3$ 和 $-x^{(1)}+2x^{(2)}=1$，支持向量为 $x_1,x_3,x_5$。单侧间隔为 $1/\sqrt5$，总宽度为 $2/\sqrt5$；原始与对偶最优值均为 $5/2$。这些方程也完整确定了教材作图题中需要标出的几何对象。
+\end{solve}
+
+\begin{example}
+\label{ex:lihang-svm-squared-slack}
+教材习题 7.3：把线性松弛惩罚改成平方惩罚，求下列模型的对偶：
+\begin{equation}
+  \min_{w,b,\xi}\ \frac12\lVert w\rVert_2^2+C\sum_i\xi_i^2,
+  \qquad y_i(w^\top x_i+b)\ge1-\xi_i,
+  \quad\xi_i\ge0,\quad C>0.
+  \label{eq:lihang-svm-squared-primal}
+\end{equation}
+\end{example}
+\begin{solve}
+对固定 $w,b$，最优松弛量仍为 $[1-y_i g(x_i)]_+$；即使不另列 $\xi_i\ge0$，在半直线 $\xi_i\ge1-y_i g(x_i)$ 上最小化平方也给出同一结果。因此可以先用与之等价、允许 $\xi_i\in\mathbb R$ 的问题推导对偶。给间隔约束配置 $\alpha_i\ge0$，拉格朗日函数为
+\[
+  L=\frac12\lVert w\rVert_2^2+C\sum_i\xi_i^2
+     +\sum_i\alpha_i\{1-\xi_i-y_i(w^\top x_i+b)\}.
+\]
+分别对 $w,b,\xi$ 求极小，得到
+\[
+  w=\sum_i\alpha_i y_i x_i,
+  \qquad\sum_i\alpha_i y_i=0,
+  \qquad\xi_i=\frac{\alpha_i}{2C}.
+\]
+代回即得对偶最大化形式
+\begin{equation}
+  \begin{aligned}
+    \max_\alpha\quad
+      &\sum_i\alpha_i
+        -\frac12\sum_{i,j}\alpha_i\alpha_j y_i y_j x_i^\top x_j
+        -\frac1{4C}\sum_i\alpha_i^2,\\
+    \text{s.t.}\quad
+      &\alpha_i\ge0\ (i=1,\ldots,N),\qquad
+       \sum_i\alpha_i y_i=0.
+  \end{aligned}
+  \label{eq:lihang-svm-squared-dual}
+\end{equation}
+平方惩罚把原来的乘子上界替换成了对偶目标中的二次项；此时没有 $\alpha_i\le C$ 的盒上界。相应最小化目标的 Hessian 为 $Q+I/(2C)$，严格正定，所以对偶最优乘子唯一。消去原始松弛变量则得到平方合页损失 $[1-y_i g(x_i)]_+^2$，不能沿用线性松弛模型的全部 SMO 边界公式。
+\end{solve}
+
+\begin{example}
+\label{ex:lihang-svm-power-kernel}
+教材习题 7.4：证明 $K(x,z)=(x^\top z)^p$ 是核，其中 $x,z\in\mathbb R^d$，$p$ 为正整数。
+\end{example}
+\begin{solve}
+取多重指标 $\beta=(\beta_1,\ldots,\beta_d)$，各分量为非负整数，并记 $|\beta|=\sum_k\beta_k$、$\beta!=\prod_k\beta_k!$、$x^\beta=\prod_k(x^{(k)})^{\beta_k}$。多项式定理给出
+\[
+  (x^\top z)^p
+    =\sum_{|\beta|=p}\frac{p!}{\beta!}x^\beta z^\beta.
+\]
+令特征向量由所有 $|\beta|=p$ 的坐标 $[\phi_p(x)]_\beta=\sqrt{p!/\beta!}\,x^\beta$ 组成，便有 $K(x,z)=\phi_p(x)^\top\phi_p(z)$，特征维数为 $\binom{d+p-1}{p}$。于是对任意有限输入和系数 $c_i$，
+\[
+  \sum_{i,j}c_i c_jK(x_i,x_j)
+    =\left\lVert\sum_i c_i\phi_p(x_i)\right\rVert_2^2\ge0,
+\]
+由定义或定理~\ref{thm:lihang-svm-gram} 即知它是正定核。$p=2,d=2$ 时正好恢复例~\ref{ex:lihang-svm-quadratic-kernel} 的三维映射；$p=0$ 的常数函数 $K=1$ 也可单独作为核处理。
+\end{solve}
+
+硬间隔通过严格分离约束确定最大几何间隔，软间隔以合页损失允许违反，核函数改变特征空间的内积结构，SMO 则负责数值求解同一个有限维对偶问题。学习时应分别检查数据是否满足建模条件、核是否半正定、参数与截距是否满足 KKT 条件，以及最终模型在独立数据上的表现；其中任何一项都不能由另一项自动代替。
+
+% ===== 李航教材第 8 章：提升方法（对应 机器学习-8.pdf） =====
+
+
+
+

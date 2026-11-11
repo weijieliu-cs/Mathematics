@@ -1,0 +1,148 @@
+% !TeX root = ../复分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{12} % 保留原书章号。
+\chapter{正规族与黎曼映射定理}
+\label{chap:ca-normal}
+
+有限维空间中的有界序列可以抽取收敛子列；函数空间中，仅逐点有界不足以获得同样的结论。本章先用柯西估计把全纯函数的局部有界性转化为等度连续性，再抽取局部一致收敛子列。这样得到的紧性工具能够把一列越来越好的映射变成真正达到极值的映射，最终证明黎曼映射定理。所需基础是第~\ref{chap:ca-series} 章的局部一致极限定理、第~\ref{chap:ca-counting} 章的鲁歇定理，以及第~\ref{chap:ca-conformal} 章的圆盘自同构。
+
+\section{函数族的局部有界性与紧性}
+
+\begin{definition}[局部一致有界与等度连续]
+设 $\mathcal F$ 是区域 $D$ 上的一族复值函数。若对每个紧集 $K\subset D$ 都存在有限常数 $M_K$，使 $|f(z)|\le M_K$ 对所有 $f\in\mathcal F$、$z\in K$ 成立，称 $\mathcal F$ \emph{局部一致有界（locally uniformly bounded）}。若对每个紧集 $K\subset D$ 和每个 $\varepsilon>0$，存在 $\delta>0$，使 $z,w\in K$、$|z-w|<\delta$ 时对所有 $f\in\mathcal F$ 都有 $|f(z)-f(w)|<\varepsilon$，称该族在各紧集上等度连续（equicontinuous）。
+\end{definition}
+
+这里的界与连续性尺度都不能依赖所选函数。每个常值函数 $f_n(z)=n$ 分别有界，但整个族没有统一界；逐点有界也不能直接替代紧集上的统一控制。
+
+\begin{lemma}[柯西估计产生等度连续性]
+\label{lem:ca-equicontinuity}
+局部一致有界的全纯函数族在每个紧子集上等度连续，其任意固定阶导数也构成局部一致有界族。
+\end{lemma}
+\begin{proof}
+固定 $K\subset D$ 紧，选 $r>0$ 使闭 $3r$ 邻域 $K_{3r}=\{z:\operatorname{dist}(z,K)\le3r\}$ 紧含于 $D$。在 $K_{3r}$ 上取统一界 $M$。对 $z\in K_{2r}$，以 $z$ 为心、半径 $r$ 的圆位于 $K_{3r}$，柯西估计给出 $|f^{(j)}(z)|\le j!M/r^j$。当 $z,w\in K$ 且 $|z-w|<r$ 时，线段 $[z,w]\subset K_r$，沿线段积分得到
+\[
+ |f(z)-f(w)|\le(M/r)|z-w|.
+\]
+选择 $\delta<\min(r,\varepsilon r/M)$ 即可；$M=0$ 时结论直接成立。
+\end{proof}
+
+\begin{lemma}[紧集上的抽取原理，Arzelà--Ascoli theorem]
+\label{lem:ca-ascoli}
+设 $K$ 为紧度量空间，连续函数列 $f_n:K\to\mathbb C$ 一致有界且等度连续，则有一个子列在 $K$ 上一致收敛到连续函数。
+\end{lemma}
+\begin{proof}
+紧度量空间对每个正整数 $m$ 都有有限个半径 $1/m$ 的球覆盖，因此这些球心的并包含一个可数稠密集 $\{a_j\}$。先在 $a_1$ 处抽取收敛子列，再在其中取使 $a_2$ 处收敛的子列，依此类推，取对角子列 $g_n$，使每个 $g_n(a_j)$ 都收敛。
+
+给定 $\varepsilon>0$，由等度连续性选 $\delta$，使距离小于 $\delta$ 时任一函数值之差小于 $\varepsilon/3$。从稠密集中选有限个点 $a_{j_1},\ldots,a_{j_s}$，其 $\delta$ 邻域覆盖 $K$。在这有限个点上，当 $n,k$ 足够大时都有 $|g_n(a_{j_l})-g_k(a_{j_l})|<\varepsilon/3$。对任意 $z\in K$ 选相邻球心，三角不等式给出 $|g_n(z)-g_k(z)|<\varepsilon$。故 $g_n$ 一致柯西；由 $\mathbb C$ 完备性得到一致极限，其连续性来自一致收敛。
+\end{proof}
+
+\section{蒙泰尔定理与局部一致极限}
+
+本章把从任意序列中都能抽取局部一致收敛到有限值全纯函数的子列的函数族称为\emph{有限值意义下的正规族（normal family）}。更一般的定义允许趋于无穷，或对亚纯函数使用球面距离；下述局部有界情形不会出现无穷极限，故不需要那些推广。
+
+\begin{theorem}[蒙泰尔定理的局部有界形式，Montel's theorem]
+\label{thm:ca-montel}
+区域 $D$ 上局部一致有界的全纯函数族，在有限值意义下正规。
+\end{theorem}
+\begin{proof}
+取紧集穷竭
+\[
+ K_m=\{z\in D:|z|\le m,\ \operatorname{dist}(z,\mathbb C\setminus D)\ge1/m\},
+\]
+当 $D=\mathbb C$ 时约定到空集的距离为无穷。空的 $K_m$ 可跳过；有 $K_m\subset\operatorname{int}K_{m+1}$，且每个紧子集最终包含于某个 $K_m$。对任意函数列，利用引理~\ref{lem:ca-equicontinuity} 和引理~\ref{lem:ca-ascoli}，先在 $K_1$ 抽取一致收敛子列，再在 $K_2$、$K_3$ 上逐次抽取。对角子列在每个 $K_m$ 一致收敛，所得极限在交叠处一致，因此给出 $D$ 上的函数 $f$。这是局部一致收敛；第~\ref{chap:ca-series} 章的全纯函数列极限定理保证 $f$ 全纯，且各阶导数也局部一致收敛。
+\end{proof}
+
+\begin{example}[同一序列在不同区域上的表现]
+研究 $f_n(z)=z^n$。在 $\mathbb D$ 的紧集 $K$ 上，存在 $r<1$ 使 $K\subset\{|z|\le r\}$，于是 $\sup_K|f_n|\le r^n\to0$，但 $\sup_{\mathbb D}|f_n|=1$，所以不是在整个开圆盘上一致收敛。在任何含有单位圆上一点的开邻域中，该序列都没有有限值局部一致收敛子列：邻域内存在 $|z|>1$ 的点，该点处任意子列的模都趋于无穷。正规性与选定区域不可分离。
+\end{example}
+
+\section{零点与单射性在极限下的保持}
+
+\begin{theorem}[赫尔维茨定理，Hurwitz's theorem]
+\label{thm:ca-hurwitz}
+设 $f_n$ 在区域 $D$ 上全纯并局部一致收敛于不恒为零的 $f$。若闭圆盘 $\overline{B(a,r)}\subset D$ 且 $f$ 在其边界无零点，则当 $n$ 足够大时，$f_n$ 与 $f$ 在圆盘内的零点总数相同，均按重数计。特别地，若每个 $f_n$ 处处非零，则局部一致极限要么处处非零，要么恒为零。
+\end{theorem}
+\begin{proof}
+边界上连续函数 $|f|$ 的最小值 $m$ 为正。局部一致收敛使边界上最终有 $|f_n-f|<m\le|f|$，鲁歇定理立即给出相同零点数。若 $f$ 不恒为零而在 $a$ 有零点，恒等定理保证可选充分小的圆周使其上无零点；此时 $f_n$ 必须在圆内有零点，与处处非零矛盾。
+\end{proof}
+
+\begin{proposition}[单射函数列的极限]
+\label{prop:ca-univalent-limit}
+区域 $D$ 上单射全纯函数列的局部一致极限，要么单射，要么为常数。
+\end{proposition}
+\begin{proof}
+设极限 $f$ 非常数。固定 $a\in D$，函数 $f_n(z)-f_n(a)$ 在 $D\setminus\{a\}$ 处处非零，局部一致趋于 $f(z)-f(a)$。去掉一点的平面区域仍连通：可用区域内折线连接两点，若折线通过 $a$，在一个包含于区域的小圆盘内以小圆弧绕开即可。由赫尔维茨定理，$f-f(a)$ 在这个去点区域要么无零点，要么恒零。后一情形由连续性使 $f$ 在 $D$ 恒为常数，故不可能。因此 $z\ne a$ 时 $f(z)\ne f(a)$；$a$ 任意，得到单射。
+\end{proof}
+
+\begin{example}[退化为常数不能排除]
+在单位圆盘上，$f_n(z)=z/n$ 均单射，且局部一致趋于零。这说明“单射函数的极限单射”缺少非退化条件。在后面的极值构造中，我们通过保证极限在指定点的导数为正来排除这种退化。
+\end{example}
+
+\section{黎曼映射定理的完整证明}
+
+\begin{theorem}[黎曼映射定理，Riemann mapping theorem]
+\label{thm:ca-riemann-mapping}
+每个非空单连通真子域 $D\subsetneq\mathbb C$ 都与 $\mathbb D$ 双全纯等价。给定 $a\in D$，存在唯一的双全纯映射 $f:D\to\mathbb D$ 满足 $f(a)=0$ 且 $f'(a)>0$；最后的不等式指导数为正实数。
+\end{theorem}
+\begin{proof}
+证明分为建立候选族、取到极值和证明满射三个环节。
+
+\textbf{候选族非空。}取 $b\notin D$。由单连通区域上非零全纯函数存在全纯对数，$z-b$ 有全纯平方根 $g$。它单射，因为 $g(z)=g(w)$ 蕴含 $z-b=w-b$；并且 $g(D)$ 与 $-g(D)$ 不交，否则 $g(z)=-g(w)$ 仍推出 $z=w$，继而 $g(z)=0$，不可能。记 $c=g(a)\ne0$。开映射定理给出 $r>0$ 使 $B(c,r)\subset g(D)$，故 $B(-c,r)$ 与 $g(D)$ 不交。于是
+\[
+ h(z)=\frac{r}{2(g(z)+c)}
+\]
+单射全纯且 $|h(z)|\le1/2$。再复合圆盘自同构把 $h(a)$ 移到零，并乘一个模为一的常数使导数为正。由此，下列族非空：
+\[
+ \mathcal S=\{F:D\to\mathbb D:F\text{ 单射全纯},\ F(a)=0,\ F'(a)>0\}.
+\]
+
+\textbf{导数极值能够取到。}取 $\overline{B(a,\rho)}\subset D$，柯西估计使 $F'(a)\le1/\rho$ 对所有 $F\in\mathcal S$ 成立。因此
+\[
+ 0<M=\sup_{F\in\mathcal S}F'(a)<\infty.
+\]
+选 $F_n\in\mathcal S$ 使 $F_n'(a)\to M$。由蒙泰尔定理抽取局部一致收敛子列，仍记为 $F_n\to f$。导数收敛给出 $f'(a)=M$，故 $f$ 非常数；命题~\ref{prop:ca-univalent-limit} 使 $f$ 单射。又有 $f(a)=0$、$|f|\le1$，最大模原理把后一不等式加强为 $|f|<1$。所以 $f\in\mathcal S$，且确实达到极值。
+
+\textbf{极值映射必须满射。}若 $w\in\mathbb D\setminus f(D)$，则 $w\ne0$。记
+\[
+ \phi_w(\zeta)=\frac{\zeta-w}{1-\overline w\zeta}.
+\]
+函数 $\phi_w\circ f$ 在单连通区域 $D$ 上无零点，因而有全纯平方根 $g$。它仍单射，且 $|g|<1$。设 $c=g(a)$，则 $c^2=-w$，故 $0<|c|=\sqrt{|w|}<1$。令 $G=\phi_c\circ g$，再旋转使 $G'(a)>0$，则 $G\in\mathcal S$。对 $g^2=\phi_w\circ f$ 求导，并用 $|\phi_c'(c)|=1/(1-|c|^2)$，得到
+\begin{equation}
+ |G'(a)|=\frac{1-|w|^2}{2\sqrt{|w|}(1-|w|)}M
+ =\frac{1+|w|}{2\sqrt{|w|}}M>M.
+ \label{eq:ca-riemann-extremal-contradiction}
+\end{equation}
+严格不等式来自 $(1-\sqrt{|w|})^2>0$，与 $M$ 的定义矛盾。因此 $f(D)=\mathbb D$，单射全纯函数的逆也全纯。
+
+最后，若 $f_1,f_2$ 都满足归一化条件，则 $f_2\circ f_1^{-1}$ 是固定零点的圆盘自同构，故为 $e^{i\theta}z$。其在零点的导数为正实数，因而 $e^{i\theta}=1$，得到唯一性。
+\end{proof}
+
+式~\eqref{eq:ca-riemann-extremal-contradiction} 直接计算了导数增益，避免把只在某个真子域上定义的逆映射误当成整个圆盘上的函数来套用施瓦茨引理。上述证明建立存在性，但不自动提供初等表达式或数值算法。
+
+\section{定理的边界、显式例子与边界值}
+
+\begin{example}[三个假设各有作用]
+整个 $\mathbb C$ 不可能与 $\mathbb D$ 双全纯等价，否则映射本身是非常数有界整函数，违背刘维尔定理。圆环不可能与圆盘双全纯等价，因为双全纯映射及其逆均连续，会把闭曲线收缩相互转移，保持单连通性。正方形内部则满足定理条件，因此存在归一化圆盘映射；没有写出显式公式，不影响存在性的结论。
+\end{example}
+
+\begin{example}[上半平面的归一化映射]
+设 $a=x_0+iy_0$，$y_0>0$。函数
+\[
+ f(z)=i\frac{z-a}{z-\overline a}
+\]
+把上半平面双全纯映到圆盘，且 $f(a)=0$、$f'(a)=1/(2y_0)>0$，因此由唯一性，它就是该点的归一化黎曼映射。这里分母零点位于下半平面，先修章节中的凯莱变换保证像集与单射性。
+\end{example}
+
+黎曼映射定理仅讨论开区域内部，不包含任意边界上的连续延拓结论。对由简单闭曲线围成的若当区域，经典的卡拉泰奥多里边界定理进一步保证黎曼映射延拓为两个闭包间的同胚；这一平面边界定理的来源见附录~\ref{sec:ca-jordan-tool}，不用于上面的存在性证明。对不满足此条件的区域，不能直接宣称边界一一对应。若已知 $f:D\to\mathbb D$ 有这样的边界同胚延拓，则连续实值边界数据 $\psi$ 可先移到圆周成为 $\psi\circ f^{-1}$，取其泊松积分 $v$，再令 $u=v\circ f$。共形不变性给出调和性，边界连续性给出所需边值，最大值原理给出唯一性；三个步骤各自使用不同的条件。
+
+\section{习题与解答}
+
+\begin{enumerate}
+ \item 设 $f_n:\mathbb D\to\mathbb D$ 全纯、$f_n(0)=0$ 且 $f_n'(0)\to1$。证明 $f_n\to z$ 局部一致。
+ \item 说明非空区域上族 $\{n:n\ge1\}$ 为什么不满足本章有限值正规性的定义，并解释允许无穷极限后有什么变化。
+ \item 求 $B(a,R)$ 到单位圆盘满足 $f(a)=0$、$f'(a)>0$ 的双全纯映射。
+\end{enumerate}
+\begin{solve}[解答]
+第一题中，任意子列由蒙泰尔定理都有再收敛子列；极限 $g$ 满足 $g(0)=0$、$g'(0)=1$，施瓦茨引理的等号条件给出 $g(z)=z$。若原列不局部一致趋于 $z$，则存在紧集、正数 $\varepsilon$ 和子列使误差始终不小于 $\varepsilon$；再抽取上述收敛子列便矛盾。第二题中任何子列在任一点都无有限极限，但在球面意义下整个序列一致趋于无穷，说明必须先固定正规性的约定。第三题的映射为 $f(z)=(z-a)/R$，导数 $1/R>0$，唯一性由定理~\ref{thm:ca-riemann-mapping} 保证。
+\end{solve}
+

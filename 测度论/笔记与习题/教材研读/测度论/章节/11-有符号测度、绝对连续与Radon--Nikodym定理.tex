@@ -1,0 +1,161 @@
+% !TeX root = ../测度论笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{10} % 保留原书章号。
+\chapter{有符号测度、绝对连续与 Radon--Nikodym 定理}
+\label{chap:mt-rn}
+
+\section{从非负大小到有正负的质量}
+普通测度只能非负，但对可积函数 $f$，集合函数 $\nu(A)=\int_Af\,\mathrm d\mu$ 可能有正有负。为了研究这种对象，本章只讨论总变差有限的实有符号测度，避免同时处理正、负无穷带来的定义问题。
+
+\begin{definition}
+在 $(S,\mathcal A)$ 上，本书讨论的\emph{有限有符号测度（finite signed measure）}是取有限实值的集合函数 $\nu$，满足 $\nu(\varnothing)=0$，并对任意两两不交的可测集列满足 $\nu(\bigcup_nA_n)=\sum_n\nu(A_n)$，其中右侧级数绝对收敛；同时将有限变差条件明确写入本章约定，即所有有限可测分割 $S=\bigsqcup_{j=1}^{m}A_j$ 上的 $\sum_j|\nu(A_j)|$ 有统一有限上界。可测集 $P$ 称为正集，若其每个可测子集的 $\nu$ 值均非负；负集类似定义。
+\end{definition}
+
+\begin{theorem}[Hahn 分解定理]
+对每个有限有符号测度 $\nu$，存在可测分解 $S=P\sqcup N$，使 $P$ 为正集、$N$ 为负集。
+\label{thm:mt-hahn}
+\end{theorem}
+注意正集的要求比 $\nu(P)\geq0$ 强：它要求内部没有带负质量的可测子集。证明的思路是在所有集合中找到一个负质量尽可能大的部分，再证明它内部不能藏有正质量，否则还可以继续改进。
+
+\begin{proof}
+先说明有限有符号测度也对单调集合列连续。对递增列，将并集分解成相邻差的可数不交并，可列可加性与绝对收敛给出连续性；对递减列，改看补集，再从有限数 $\nu(S)$ 中相减即可。
+
+令 $\alpha=\inf_{A\in\mathcal A}\nu(A)$。有限变差条件保证 $\alpha>-\infty$，而空集给出 $\alpha\leq0$。选择 $E_n$ 使 $\nu(E_n)<\alpha+2^{-n}$。对任意两个可测集，
+\[
+ \nu(A\cup B)=\nu(A)+\nu(B)-\nu(A\cap B)
+ \leq\nu(A)+\nu(B)-\alpha.
+\]
+因此，有限个 $E_n$ 的并，其测度不超过 $\alpha$ 加上相应误差之和。令 $N_m=\bigcup_{n\geq m}E_n$，通过从下连续性得
+$\alpha\leq\nu(N_m)\leq\alpha+\sum_{n\geq m}2^{-n}$。
+再令 $N=\bigcap_mN_m$，从上连续性给出 $\nu(N)=\alpha$。
+
+若 $B\subseteq N$ 可测且 $\nu(B)>0$，则 $\nu(N\setminus B)<\alpha$，矛盾，所以 $N$ 是负集。若 $B\subseteq S\setminus N$ 可测且 $\nu(B)<0$，则 $\nu(N\cup B)<\alpha$，同样矛盾，所以 $P=S\setminus N$ 是正集。
+\end{proof}
+
+定义 $\nu^+(A)=\nu(A\cap P)$、$\nu^-(A)=-\nu(A\cap N)$，则 $\nu^\pm$ 是有限非负测度，$\nu=\nu^+-\nu^-$，称为\emph{Jordan 分解（Jordan decomposition）}。分解不依赖所选 Hahn 集：两种分解中符号相反的交集，其每个可测子集同时具有非负与非正质量，故质量为零。测度 $|\nu|=\nu^++\nu^-$ 称为\emph{全变差（total variation）}。
+
+\section{绝对连续与相互奇异}
+\begin{definition}
+若每个满足 $\mu(A)=0$ 的可测集也满足 $\nu(A)=0$，称 $\nu$ 关于 $\mu$ \emph{绝对连续（absolutely continuous）}，记为 $\nu\ll\mu$。若存在可测集 $N$，使 $\mu(N)=0$ 且 $|\nu|(S\setminus N)=0$，称 $\nu$ 与 $\mu$ \emph{相互奇异（mutually singular）}，记为 $\nu\perp\mu$。
+\end{definition}
+绝对连续说明 $\nu$ 不在 $\mu$ 的零测集上放置质量；相互奇异说明 $\nu$ 的全部质量恰好集中于某个 $\mu$-零测集。二者不是互为否定：测度可能同时包含一部分连续质量与一部分奇异质量。
+
+\begin{example}
+在 $[0,1]$ 上，$\nu(A)=\int_A2x\,\mathrm dx$ 满足 $\nu\ll\lambda$；$\delta_0\perp\lambda$，因为其质量集中在 $\{0\}$。概率测度 $\rho=\tfrac12\lambda+\tfrac12\delta_0$ 既不关于 $\lambda$ 绝对连续，也不与它相互奇异；第一项分散于区间，第二项集中在一个点。
+\end{example}
+
+\section{Radon--Nikodym 定理及其证明}
+\begin{theorem}[Radon--Nikodym 定理，有限有符号版本]
+设 $\mu$ 为 $\sigma$ 有限非负测度，$\nu$ 为同一可测空间上的有限有符号测度，且 $\nu\ll\mu$。则存在 $h\in L^1(\mu)$，使对每个 $A\in\mathcal A$，
+\begin{equation}
+ \nu(A)=\int_Ah\,\mathrm d\mu.
+ \label{eq:mt-radon-nikodym}
+\end{equation}
+$h$ 在 $\mu$-几乎处处相等的意义下唯一，称为\emph{Radon--Nikodym 导数（Radon--Nikodym derivative）}，记为 $\mathrm d\nu/\mathrm d\mu$。若 $\nu$ 非负，则可取 $h\geq0$。
+\label{thm:mt-rn}
+\end{theorem}
+\begin{proof}
+先设 $\nu$ 为有限非负测度。考虑所有非负可测函数组成的集合
+\[
+ \mathcal H=\{g\geq0:\text{对每个 }A\in\mathcal A,\ \int_Ag\,\mathrm d\mu\leq\nu(A)\},
+ \qquad \alpha=\sup_{g\in\mathcal H}\int_Sg\,\mathrm d\mu.
+\]
+零函数属于 $\mathcal H$，且 $0\leq\alpha\leq\nu(S)<\infty$。若 $g_1,g_2\in\mathcal H$，按 $\{g_1\geq g_2\}$ 与其补集分割每个 $A$，可知 $\max(g_1,g_2)\in\mathcal H$。因此先取积分趋于 $\alpha$ 的函数列，再逐项取累计最大值，可得到 $g_n\uparrow h$，每个 $g_n\in\mathcal H$。单调收敛给出 $h\in\mathcal H$ 且 $\int h=\alpha$。
+
+剩余质量 $\rho(A)=\nu(A)-\int_Ah\,\mathrm d\mu$ 是有限非负测度，且 $\rho\ll\mu$。若 $\rho(S)>0$，利用 $\mu$ 的 $\sigma$ 有限覆盖，存在 $E\in\mathcal A$，满足 $\mu(E)<\infty$、$\rho(E)>0$；绝对连续性还给出 $\mu(E)>0$。选择 $c>0$ 使 $\rho(E)>c\mu(E)$。在 $E$ 上对有限有符号测度 $\rho-c\mu$ 应用 Hahn 分解，得到正集 $P\subseteq E$。因为该有符号测度在整个 $E$ 上取正值，而负集部分取非正值，故
+\[
+ \rho(P)-c\mu(P)>0,\qquad \mu(P)>0.
+\]
+第二个结论来自 $\rho\ll\mu$。由正集的定义，对每个可测 $B\subseteq P$，$\rho(B)\geq c\mu(B)$，于是对任意 $A$，
+\[
+ \int_A(h+c\mathbf1_P)\,\mathrm d\mu
+ \leq\int_Ah\,\mathrm d\mu+\rho(A)=\nu(A).
+\]
+这表明 $h+c\mathbf1_P\in\mathcal H$，但它的积分为 $\alpha+c\mu(P)>\alpha$，矛盾。因此 $\rho=0$，非负情形得证。
+
+一般有限有符号测度先作 Jordan 分解。由 $\nu\ll\mu$ 可知 $\nu^\pm\ll\mu$，分别应用非负情形，再将两个可积密度相减，得到 $h$。若 $h,k$ 都表示 $\nu$，则对每个 $A$，$\int_A(h-k)=0$；取 $A=\{h>k\}$，非负零积分判别给出该集合上的差几乎处处为零，再交换 $h,k$，得到唯一性。
+\end{proof}
+
+这里的“导数”表达两个测度之间的密度关系，并不要求对自变量做通常的微分。对勒贝格测度的密度和对计数测度的概率质量函数，都是同一种表示的不同特例。定理并未声称每个概率分布都有相对于勒贝格测度的密度；例如 Dirac 测度不满足所需绝对连续性。
+
+\section{换测度公式与适用条件}
+若 $\nu$ 为有限非负测度、$\nu\ll\mu$，令 $h=\mathrm d\nu/\mathrm d\mu$，则对非负可测函数 $\varphi$，
+\begin{equation}
+ \int\varphi\,\mathrm d\nu=\int\varphi h\,\mathrm d\mu.
+ \label{eq:mt-change-measure}
+\end{equation}
+先对示性函数使用定义，再推广到简单函数，最后用单调收敛即可证明。对 $\nu$-可积的有符号 $\varphi$，先对 $|\varphi|$ 使用非负公式，再分别处理正负部分，公式仍成立。
+
+特别地，若概率测度 $\mathbb Q\ll\mathbb P$，则
+$\mathbb E_{\mathbb Q}[X]=\mathbb E_{\mathbb P}[LX]$，其中
+$L=\mathrm d\mathbb Q/\mathrm d\mathbb P$，要求 $X$ 在 $\mathbb Q$ 下可积，或 $X\geq0$。这一关系是加权期望的基础。要反向更换测度，则必须另行检查 $\mathbb P\ll\mathbb Q$，不能仅将 $L$ 形式上取倒数。
+
+\section{全变差为何是正确的大小}
+对正测度，用 $\nu(S)$ 就能表示整体质量；对有符号测度，总质量可能因正负抵消而很小，甚至为零。例如在两个不同点放置质量一与负一，得到 $\delta_a-\delta_b$，其总质量为零，但对集合的作用并不为零。全变差把正、负质量的绝对值分别累计，因而避免这种抵消。
+
+对任意可测集 $A$，Jordan 分解给出
+\[
+ |\nu|(A)=\sup\left\{\sum_{j=1}^{m}|\nu(A_j)|:
+ A=\bigsqcup_{j=1}^{m}A_j,\ A_j\in\mathcal A\right\}.
+\]
+证明时，任意分割的和都不超过 $\nu^+(A)+\nu^-(A)$；反向选择由 $A\cap P$ 和 $A\cap N$ 组成的分割，即可达到这个上界。因此先前约定中的有限变差与这里构造出的全变差测度一致。特别地，$|\nu(A)|\leq|\nu|(A)$，这一估计比只考察 $\nu(S)$ 稳定得多。
+
+若 $\nu(A)=\int_Af\,\mathrm d\mu$，则可取正集 $\{f\geq0\}$ 与负集 $\{f<0\}$，从而
+$\nu^+(A)=\int_Af^+\,\mathrm d\mu$、
+$\nu^-(A)=\int_Af^-\,\mathrm d\mu$、
+$|\nu|(A)=\int_A|f|\,\mathrm d\mu$。
+这解释了为何有符号积分的稳定性依赖绝对值积分，而非仅依赖带符号的总积分：全变差正好记录了所有可能被抵消掩盖的质量。
+
+\section{Lebesgue 分解：连续质量与奇异质量}
+\begin{theorem}[有限非负测度的 Lebesgue 分解]
+设 $\mu,\nu$ 是同一可测空间上的有限非负测度。则存在唯一的非负测度分解
+$\nu=\nu_{\mathrm{ac}}+\nu_{\mathrm{s}}$，其中
+$\nu_{\mathrm{ac}}\ll\mu$，$\nu_{\mathrm{s}}\perp\mu$。
+\label{thm:mt-lebesgue-decomposition}
+\end{theorem}
+\begin{proof}
+令 $\tau=\mu+\nu$，则二者均关于有限测度 $\tau$ 绝对连续。由 Radon--Nikodym 定理，存在非负可积密度 $h=\mathrm d\mu/\mathrm d\tau$ 与 $g=\mathrm d\nu/\mathrm d\tau$。唯一性说明 $h+g=1$ 几乎处处。令 $N=\{h=0\}$，定义
+$\nu_{\mathrm s}(A)=\nu(A\cap N)$、
+$\nu_{\mathrm{ac}}(A)=\nu(A\setminus N)$。
+因为 $\mu(N)=\int_Nh\,\mathrm d\tau=0$，第一部分奇异。第二部分可写成
+\[
+ \nu_{\mathrm{ac}}(A)=\int_A k\,\mathrm d\mu,\qquad
+ k=\begin{cases}g/h,&h>0,\\0,&h=0.\end{cases}
+\]
+该等式由换测度公式直接验证，故第二部分绝对连续。
+
+若存在两种分解，将两个奇异部分各自集中的 $\mu$-零测集取并，记为 $Z$。在 $Z$ 外，两种绝对连续部分都等于 $\nu$；在 $Z$ 上，两者都为零。因此绝对连续部分相同，奇异部分也随之相同。
+\end{proof}
+
+定理把前面的混合例子推广为一般结构。奇异不等于离散：集中于一个不可数零测集上的非原子测度也是奇异测度。离散质量通常表现为单点原子，奇异连续质量则可以在每个单点上都取零，却仍集中于长度为零的集合。下一章的 Cantor 型分布将说明这种第三种可能性，避免把所有分布机械划分为“离散或有密度”两类。
+
+\section{密度的链式法则与零分母}
+设 $\kappa,\nu,\mu$ 是有限非负测度，且 $\kappa\ll\nu\ll\mu$。若 $k=\mathrm d\kappa/\mathrm d\nu$、$h=\mathrm d\nu/\mathrm d\mu$，则对每个可测 $A$，
+\[
+ \kappa(A)=\int_Ak\,\mathrm d\nu=\int_Akh\,\mathrm d\mu.
+\]
+由唯一性得到 $\mathrm d\kappa/\mathrm d\mu=kh$ 几乎处处，这就是密度的链式法则。若某个版本在零测集上出现未定义值，可以先选择有限版本，再在 $h=0$ 的相关位置将乘积定义为零；最终对象仍由几乎处处等价类确定。
+
+与普通导数的形式相似不意味着可以无条件相除。只有当 $\mu$ 与 $\nu$ 相互绝对连续时，才有 $h>0$ 在 $\mu$-几乎处处意义下成立，并可用 $1/h$ 表示反向密度。如果 $\nu$ 完全忽略一个具有正 $\mu$ 测度的区域，反向密度根本不存在，任何“除以零”的形式操作都不能修复这个结构障碍。
+
+在重要性加权中，这个条件对应支撑覆盖：用于采样的分布必须覆盖目标分布可能放置质量的位置。测度论只保证满足可积性时加权期望相等，并不自动保证估计方差小。权重很大时，等式虽然正确，数值估计仍可能不稳定；这是积分恒等式与统计效率之间应有的区分。
+
+\section{概率测度的全变差距离}
+对两个概率测度 $\mathbb P,\mathbb Q$，定义
+$d_{\mathrm{TV}}(\mathbb P,\mathbb Q)=\sup_{A\in\mathcal F}|\mathbb P(A)-\mathbb Q(A)|$。它表示同一个事件在两种模型下的概率最多相差多少。这里采用的概率距离约定与有符号测度全变差总质量相差一个因子二，必须明确区分。
+
+若二者相对于同一测度具有密度 $p,q$，令 $r=p-q$。因为 $\int r=0$，有 $\int r^+=\int r^-=\tfrac12\int|r|$。任意事件上的积分差都不超过其中的正质量，也不小于负质量的相反数；选取事件 $\{r>0\}$ 即达到正上界。因此
+\[
+ d_{\mathrm{TV}}(\mathbb P,\mathbb Q)
+ =\frac12\int|p-q|\,\mathrm d\mu
+ =\frac12|\mathbb P-\mathbb Q|(S).
+\]
+结合 Scheffé 引理，如果概率密度几乎处处收敛到一个仍归一化的密度，就不仅能得到每个固定事件概率收敛，还能得到对全部事件统一的误差控制。这把函数的积分收敛转化成了概率模型之间可解释的距离。
+
+\section{习题}
+\begin{enumerate}
+ \item 对 $\nu(A)=\int_Af\,\mathrm d\mu$，$f\in L^1(\mu)$，证明 $|\nu|(A)=\int_A|f|\,\mathrm d\mu$。
+ \item 设两个概率测度相对于同一测度的密度为 $p,q$，且 $q=0$ 在 $\{p=0\}$ 上几乎处处成立。证明 $\mathbb Q\ll\mathbb P$，并说明 $\mathrm d\mathbb Q/\mathrm d\mathbb P=q/p$ 应如何在 $\{p=0\}$ 上定义。
+ \item 解释上述混合概率测度 $\rho$ 为何不能仅用一个相对于勒贝格测度的密度表示。
+\end{enumerate}
+

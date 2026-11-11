@@ -1,0 +1,73 @@
+% !TeX root = ../机器学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{19} % 保留原书章号。
+\chapter{贝叶斯学习与近似推断}
+\label{chap:ml-bayesian}
+
+贝叶斯预测对参数不确定性求平均。困难往往不是写出后验比例式，而是计算归一化常数和预测积分；采样与变分方法分别以随机平均和受限优化近似这些量。
+
+\section{贝叶斯参数学习与后验预测}
+
+对线性模型 $y=\mathbf Xw+\varepsilon$，假定 $\varepsilon\sim N(0,\sigma^2I)$、$w\sim N(0,\tau^2I)$，$\sigma,\tau>0$ 已知。配方得到后验 $N(m,S)$，其中
+\begin{equation}
+ S^{-1}=\tau^{-2}I+\sigma^{-2}\mathbf X^\top\mathbf X,\qquad
+ m=S\sigma^{-2}\mathbf X^\top y.
+ \label{eq:ml-bayesian-regression}
+\end{equation}
+对新输入 $x_*$，独立新响应的预测分布为
+$N(x_*^\top m,\sigma^2+x_*^\top Sx_*)$。
+后一项反映参数不确定性，$\sigma^2$ 反映观测噪声。
+
+后验不确定性以假定模型为条件。错误的噪声分布、漏掉的特征或不合理先验都可能产生集中却失准的预测分布。参数后验的集中程度不等于模型假设已经受到验证。
+
+\section{Monte Carlo 积分与重要性采样}
+
+若可从目标分布 $p$ 独立抽取 $Z_1,\ldots,Z_M$，则 Monte Carlo 估计 $\widehat\mu=M^{-1}\sum_mh(Z_m)$ 估计 $\mu=\mathbb E_ph(Z)$。可积性给出大数定律意义下的一致性；有限方差时估计无偏，均方误差为 $\operatorname{Var}_p(h)/M$。标准误下降为 $M^{-1/2}$ 量级，因此提高十倍精度通常需要约百倍独立样本。
+
+若改从 $q$ 采样，且 $p$ 的相关支持被 $q$ 覆盖，则 $\mu=\mathbb E_q[h(Z)p(Z)/q(Z)]$。方差还要求相应加权平方可积。仅知未归一密度 $\widetilde p$ 时，可使用自归一估计 $\sum_m\widetilde w_mh(Z_m)/\sum_m\widetilde w_m$，其中 $\widetilde w_m=\widetilde p(Z_m)/q(Z_m)$；它一般有限样本有偏，少量极大权重会使估计不稳定。
+
+\section{马尔可夫链与平稳分布}
+
+有限状态链由行随机矩阵 $P$ 描述，平稳分布 $\pi$ 满足 $\pi^\top P=\pi^\top$。细致平衡 $\pi_iP_{ij}=\pi_jP_{ji}$ 对 $i$ 求和即推出平稳性，但不是平稳性的必要条件。不可约意味着各状态相互可达，非周期排除确定的周期循环。
+
+这里引用有限状态链的标准结论：不可约链具有唯一平稳分布，若再非周期，则从任意初始分布出发的分布收敛到它。两状态必然交替的链说明平稳分布存在不代表分布收敛；从非平稳初态出发，状态分布持续振荡。上述有限链结论及证明可参见文献\cite[第1、4章]{ml-markov}。连续状态的对应结论需更一般的遍历条件，不能只照搬有限矩阵判据。
+
+\section{马尔可夫链蒙特卡罗}
+
+马尔可夫链蒙特卡罗（Markov chain Monte Carlo，MCMC）构造以目标为平稳分布的链。Metropolis--Hastings 从当前 $z$ 按提议 $q(z'\mid z)$ 产生候选，以
+\begin{equation}
+ a(z,z')=\min\left\{1,\frac{\widetilde p(z')q(z\mid z')}
+ {\widetilde p(z)q(z'\mid z)}\right\}
+ \label{eq:ml-mh-acceptance}
+\end{equation}
+接受，否则留在原点，退化概率另行约定。正向接受流量与反向接受流量同为两种提议流量的较小者，因此满足细致平衡；归一常数在比值中消去。链还需能到达目标支持中的相关区域，平稳性不能替代可达性。
+
+Gibbs 采样逐次从各坐标的全条件分布抽样，其单坐标转移保持联合目标分布。链样本通常相关，估计误差不能用独立样本公式直接计算；有效样本量基于相关性近似量化信息量。多链、轨迹和自相关诊断有助于发现问题，但一张平滑轨迹图或固定的预热长度不能证明充分混合。
+
+\section{变分推断与其他近似}
+
+变分推断（variational inference）在选定分布族 $\mathcal Q$ 中最大化式\eqref{eq:ml-elbo}。对固定模型，这等价于最小化 $D_{\rm KL}(q\Vert p(\cdot\mid x))$，因为观测对数似然不随 $q$ 改变。均值场族取 $q(z)=\prod_jq_j(z_j)$，固定其他因子时，
+\begin{equation}
+ q_j^*(z_j)\propto
+ \exp\bigl(\mathbb E_{q_{-j}}\log p(x,z)\bigr),
+ \label{eq:ml-mean-field}
+\end{equation}
+前提是右侧可归一化。把目标中依赖 $q_j$ 的部分写为相对于该归一分布的负 KL，即可证明更新式。
+
+受限分布族会引入近似偏差，$D_{\rm KL}(q\Vert p)$ 也不等于反向 KL。Laplace 近似在内部后验模态附近作二阶展开，以正定负对数 Hessian 的逆近似协方差；多峰、边界或明显偏斜后验可能不适合这一局部 Gaussian 近似。
+
+\section{例题、练习与学习检查}
+
+\begin{example}[先用解析解检验近似]
+均匀先验 $\operatorname{Beta}(1,1)$ 下，三次 Bernoulli 试验成功两次。
+\end{example}
+\begin{solve}
+后验为 $\operatorname{Beta}(3,2)$，均值为 $3/5$，方差为 $3\cdot2/(5^2\cdot6)=1/25$。独立后验抽样 $M$ 次的均值估计标准差为 $1/(5\sqrt M)$；若样本来自相关链，则不能直接使用此式。
+\end{solve}
+
+习题：验证 Metropolis--Hastings 的流量对称性；构造不可约但周期的链；用上例比较解析积分、直接采样和重要性采样；解释极大后验点与后验预测均值为什么可能不同。
+
+
+
+
+

@@ -1,0 +1,516 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{21} % 保留原书章号。
+\chapter{PageRank 算法}
+\label{chap:lihang-pagerank}
+
+% 研读来源：机器学习/textbooks/机器学习（分章原文）/机器学习-21.pdf，教材第 415--433 页。
+% 沿用教材的两节、七个小节；补充悬挂结点修正、收敛证明、误差界与习题解答。
+% 教材一般定义中的 M 须为列随机矩阵；零列修正不能仅由阻尼平滑项替代。
+
+网页、引文和社交关系都可以表示为有向图。若只用入边数衡量结点的重要程度，就把所有来源看得同样重要，也没有考虑一个来源把注意力分给了多少结点。\emph{PageRank} 是一种无监督的链接分析（link analysis）方法：让游走者沿有向边随机移动，以长期访问各结点的概率刻画其相对重要程度。一个结点得到的权重取决于指向它的结点已有的权重，因此问题归结为概率分布的递推及其不动点（fixed point）。本章先定义图上的随机游走，说明基本 PageRank 的条件，再通过悬挂结点修正与随机跳转得到适用于任意有限有向图的一般定义，最后讨论迭代算法、幂法和线性方程组解法。
+
+\section{PageRank 的定义}
+\label{sec:lihang-pr-definition}
+
+\subsection{基本想法}
+\label{subsec:lihang-pr-idea}
+
+把网页看作结点，把网页 $v_j$ 指向网页 $v_i$ 的超链接看作有向边 $v_j\to v_i$。设一个游走者到达 $v_j$ 后，在该结点的所有出边中等概率选择一条，并沿边访问下一个结点。如果这种访问过程的状态分布趋于稳定，就用稳定概率作为各结点的 PageRank 值。这里的概率由指定的图结构和游走机制决定，不是对真实用户行为频率的直接测量；在网页检索中，它给出与查询无关的链接重要度，实际排序还需要考虑网页与查询的相关程度。
+
+记结点 $v_j$ 的出度为 $k_j$。若其 PageRank 值为 $R_j$，它沿每条出边贡献 $R_j/k_j$ 的权重，结点 $v_i$ 的权重则由所有入边的贡献相加得到。因此，\emph{来源的重要程度与来源的出度共同决定一条链接的贡献}：来自高权重结点的链接贡献可能较大，同一来源连出的链接越多，单条链接分得的权重越少。这一递归关系需要连同非负性和总和为 $1$ 的条件一起求解，不能靠一次入度统计完成。
+
+\subsection{有向图和随机游走模型}
+\label{subsec:lihang-pr-graph-walk}
+
+\begin{definition}[有向图与连通性]
+\label{def:lihang-pr-directed-graph}
+有限\emph{有向图}（directed graph）记为 $G=(V,E)$，其中 $V=\{v_1,\ldots,v_n\}$，$n\geq1$，$E\subseteq V\times V$ 是有向边集合。本章允许自环，不考虑重边。按边的方向依次连接的边序列称为有向路径，其长度是所经过的边数；若任意两个不同结点之间均有双向可达的有向路径，则称图为\emph{强连通图}（strongly connected graph）。记
+\[
+    k_j=\bigl|\{i:(v_j,v_i)\in E\}\bigr|,\qquad
+    \mathcal I_i=\{j:(v_j,v_i)\in E\},\qquad
+    \mathcal D=\{j:k_j=0\},
+\]
+分别为出度、指向 $v_i$ 的结点索引集合和\emph{悬挂结点}（dangling node）的索引集合。
+\end{definition}
+
+先假定所有 $k_j>0$。令随机变量 $X_t\in\{1,\ldots,n\}$ 表示时刻 $t$ 所在结点的索引，$t=0,1,\ldots$。沿出边等概率移动给出时间齐次的一阶马尔可夫链（time-homogeneous first-order Markov chain）：在具有正概率的历史上，给定当前状态后，下一个状态的条件分布与更早的状态无关，且
+\begin{equation}
+\label{eq:lihang-pr-transition}
+    P(X_{t+1}=i\mid X_t=j)=m_{ij},\qquad
+    m_{ij}=\begin{cases}
+        1/k_j,&(v_j,v_i)\in E,\\
+        0,&(v_j,v_i)\notin E.
+    \end{cases}
+\end{equation}
+矩阵 $M=(m_{ij})\in\mathbb R^{n\times n}$ 称为转移矩阵（transition matrix）。本章沿用教材的\emph{列随机矩阵}（column-stochastic matrix）约定：第 $j$ 列表示从 $v_j$ 出发的转移分布，因此
+\begin{equation}
+\label{eq:lihang-pr-stochastic}
+    m_{ij}\geq0,\qquad \sum_{i=1}^{n}m_{ij}=1,\qquad
+    \boldsymbol 1^{\mathsf T}M=\boldsymbol 1^{\mathsf T},
+\end{equation}
+其中 $\boldsymbol 1$ 是 $n$ 维全 $1$ 列向量。采用行分布向量的文献会使用转置后的约定，不能把两种方向的矩阵与递推公式混用。
+
+定义概率单纯形（probability simplex）与时刻 $t$ 的状态分布为
+\[
+    \Delta_n=\{r\in\mathbb R^n:r_i\geq0,\ \boldsymbol 1^{\mathsf T}r=1\},\qquad
+    R_t=\bigl(P(X_t=1),\ldots,P(X_t=n)\bigr)^{\mathsf T}\in\Delta_n.
+\]
+由全概率公式，$P(X_{t+1}=i)=\sum_jm_{ij}P(X_t=j)$，从而
+\begin{equation}
+\label{eq:lihang-pr-distribution-update}
+    R_{t+1}=MR_t,\qquad R_t=M^tR_0.
+\end{equation}
+$X_t$ 是一次随机游走中的随机状态，$R_t$ 则是该状态的完整分布；矩阵迭代直接计算分布，并不需要实际抽样一条游走轨迹。
+
+\begin{definition}[平稳分布与周期]
+\label{def:lihang-pr-stationarity-period}
+若 $R\in\Delta_n$ 满足 $MR=R$，则称 $R$ 为该链的\emph{平稳分布}（stationary distribution）。对至少能返回自身的状态 $j$，其周期定义为
+\[
+    h_j=\gcd\{t\geq1:(M^t)_{jj}>0\}.
+\]
+若 $h_j=1$，称该状态非周期；若 $h_j>1$，称其具有周期性。有限强连通图且各结点有出边时，所有状态可以相互到达，马尔可夫链称为\emph{不可约}（irreducible），各状态具有相同周期；该共同周期为 $1$ 时，称图及链\emph{非周期}（aperiodic）。
+\end{definition}
+
+由于各条已有边的转移概率为正，$(M^t)_{ij}>0$ 当且仅当存在从 $v_j$ 到 $v_i$ 的长度为 $t$ 的有向路径。周期是所有正长度返回路径长度的最大公约数，并不是任取一条闭合路径的长度。例如，单向三环的返回长度都是 $3$ 的倍数，周期为 $3$；强连通图中若有一个自环，则共同周期为 $1$；没有自环也可能非周期，例如同一结点存在长度为 $2$ 和 $3$ 的返回路径时，最大公约数也是 $1$。
+
+\subsection{PageRank 的基本定义}
+\label{subsec:lihang-pr-basic-definition}
+
+\begin{theorem}[有限不可约非周期链的收敛]
+\label{thm:lihang-pr-finite-chain}
+设 $M$ 为有限维列随机矩阵，对应链不可约且非周期。则存在唯一平稳分布 $R\in\Delta_n$，其各分量严格为正，并且对任意初始分布 $R_0\in\Delta_n$，都有
+\begin{equation}
+\label{eq:lihang-pr-basic-limit}
+    \lim_{t\to\infty}M^tR_0=R.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+先说明平稳分布的存在，这一步只需要有限性与列随机性。任取 $q\in\Delta_n$，令 $\bar q_N=N^{-1}\sum_{t=0}^{N-1}M^tq$，则 $\bar q_N\in\Delta_n$，且
+\[
+    M\bar q_N-\bar q_N=\frac{M^Nq-q}{N},\qquad
+    \|M\bar q_N-\bar q_N\|_1\leq\frac2N,
+\]
+其中 $\|x\|_1=\sum_i|x_i|$。单纯形为紧集，可取收敛子列 $\bar q_{N_l}\to R\in\Delta_n$；利用矩阵乘法的连续性取极限，得到 $MR=R$。
+
+不可约与非周期性进一步保证存在整数 $L\geq1$，使 $B=M^L$ 的全部元素严格为正。其图论依据是：每个结点的返回长度集合的最大公约数为 $1$，可以选出有限多个返回长度使其最大公约数仍为 $1$；这些长度的非负整数线性组合包含所有充分大的整数。将相应返回路径拼接，再接上一条到达目标结点的固定路径，就能得到任意两个结点之间所有充分大的长度的路径；结点对有限，故可选一个共同的 $L$。
+
+令 $\eta=\min_{i,j}b_{ij}>0$、$\beta=n\eta\in(0,1]$，并记 $u=\boldsymbol1/n$。若 $\beta<1$，则
+\[
+    B=\beta u\boldsymbol1^{\mathsf T}+(1-\beta)C,
+\]
+其中 $C=(B-\eta\boldsymbol1\boldsymbol1^{\mathsf T})/(1-\beta)$ 仍为列随机矩阵。任意列随机矩阵 $C$ 都满足
+\[
+    \|Cz\|_1
+    \leq\sum_i\sum_j c_{ij}|z_j|=\|z\|_1.
+\]
+对 $p,q\in\Delta_n$，因 $\boldsymbol1^{\mathsf T}(p-q)=0$，有
+\[
+    \|Bp-Bq\|_1\leq(1-\beta)\|p-q\|_1.
+\]
+若 $\beta=1$，则 $B=u\boldsymbol1^{\mathsf T}$，上述差直接为零。因而两个 $M$ 的平稳分布也必为 $B$ 的不动点，收缩不等式迫使它们相同。对已得到的平稳分布，$R=BR$ 给出 $R_i\geq\eta\sum_jR_j=\eta>0$。最后写 $t=kL+r$，其中 $0\leq r<L$，利用 $M^r$ 不增大 $1$ 范数，得到
+\[
+    \|M^tR_0-R\|_1
+    \leq\|B^kR_0-R\|_1
+    \leq(1-\beta)^k\|R_0-R\|_1\longrightarrow0.
+\]
+在 $\beta=1$ 时，$k\geq1$ 后该差已为零。
+\end{proof}
+
+\begin{definition}[基本 PageRank]
+\label{def:lihang-pr-basic}
+给定有限强连通、非周期且各结点均有出边的有向图，按式~\eqref{eq:lihang-pr-transition} 定义随机游走。其唯一平稳分布 $R$ 称为该图的基本 PageRank，结点 $v_i$ 的 PageRank 值记为 $\operatorname{PR}(v_i)=R_i$。它由
+\begin{equation}
+\label{eq:lihang-pr-basic-equations}
+    MR=R,\qquad R_i>0,\qquad \sum_iR_i=1
+\end{equation}
+确定，分量形式为
+\begin{equation}
+\label{eq:lihang-pr-basic-components}
+    R_i=\sum_{j\in\mathcal I_i}\frac{R_j}{k_j},\qquad i=1,\ldots,n.
+\end{equation}
+\end{definition}
+
+\begin{example}
+\label{ex:lihang-pr-basic-four}
+考虑教材的四结点图，按 $(A,B,C,D)$ 排列结点，边为 $A\to B,C,D$，$B\to A,D$，$C\to A$，$D\to B,C$。从均匀初始分布出发，求基本 PageRank。
+\end{example}
+
+\begin{solve}
+按出发结点逐列填写矩阵，得到
+\begin{equation}
+\label{eq:lihang-pr-four-matrix}
+    M=\begin{pmatrix}
+        0&1/2&1&0\\
+        1/3&0&0&1/2\\
+        1/3&0&0&1/2\\
+        1/3&1/2&0&0
+    \end{pmatrix}.
+\end{equation}
+图是强连通的，且从 $A$ 出发有长度为 $2$ 的返回路径 $A\to B\to A$ 和长度为 $3$ 的返回路径 $A\to D\to C\to A$，故非周期。取 $R_0=(1,1,1,1)^{\mathsf T}/4$，前两次迭代为
+\[
+    R_1=\frac1{24}(9,5,5,5)^{\mathsf T},\qquad
+    R_2=\frac1{48}(15,11,11,11)^{\mathsf T}.
+\]
+为求精确极限，令 $R=(a,b,c,e)^{\mathsf T}$。方程 $MR=R$ 给出
+\[
+    a=b/2+c,\qquad b=a/3+e/2,\qquad
+    c=a/3+e/2,\qquad e=a/3+b/2.
+\]
+由中间两式得 $b=c$，再比较关于 $b,e$ 的两式得 $b=e$，继而 $a=3b/2$。结合 $a+b+c+e=1$，得到
+\begin{equation}
+\label{eq:lihang-pr-four-basic-result}
+    R=\frac19(3,2,2,2)^{\mathsf T}.
+\end{equation}
+迭代不必逐步单调接近各分量的极限；定理~\ref{thm:lihang-pr-finite-chain} 保证的是整个分布向量收敛。结点 $A$ 的权重最高，虽然其入度与其他结点相同，这也说明 PageRank 不等同于入度排序。
+\end{solve}
+
+基本定义的条件各有作用。不可约性使所有结点相互可达，并保证平稳分布唯一且严格为正；非周期性进一步保证从任意初态的分布收敛。若取单向三环，均匀分布仍然平稳，但从单个结点出发的分布不断循环，不能收敛；若 $M=I$，则每个分布都平稳，极限依赖初态。\emph[caution]{平稳分布存在、平稳分布唯一和从任意初态收敛是不同结论}。有限列随机矩阵总有平稳分布，一般有向图的直接链接矩阵却未必已经是列随机矩阵，悬挂结点正是需要先处理的情形。
+
+\begin{example}
+\label{ex:lihang-pr-dangling-loss}
+在例~\ref{ex:lihang-pr-basic-four} 中去掉 $C\to A$，把 $C$ 对应的整列设为零，得到矩阵 $H$。说明为什么不能继续把 $H^tR_0$ 当作状态分布。
+\end{example}
+
+\begin{solve}
+$H$ 的第三列和为零，其余列和为 $1$。对任意非负向量 $r$，有 $\boldsymbol1^{\mathsf T}Hr=\boldsymbol1^{\mathsf T}r-r_C$。因此，从均匀分布出发，
+\[
+    HR_0=\frac1{24}(3,5,5,5)^{\mathsf T},\qquad
+    \boldsymbol1^{\mathsf T}HR_0=\frac34<1.
+\]
+丢失的质量来自没有规定下一步去向的结点 $C$。在这个具体图中，到达 $C$ 的质量在下一次乘以 $H$ 时被移出系统；从任一结点出发，在三次更新内被移出的概率至少为 $1/3$。例如，从 $B$ 出发前两步到达 $C$ 的概率为 $(1/2)(1/3)+(1/2)(1/2)=5/12$，第三步移出这些质量。于是 $\|H^{3k}R_0\|_1\leq(2/3)^k$，中间各步质量也不增加，故 $H^tR_0\to0$。这不是链的平稳概率分布，而是把游走提前终止造成的质量损失；并非所有带零列矩阵的幂都趋于零，若另有无法到达悬挂结点的封闭部分，就可能保留质量。
+\end{solve}
+
+\subsection{PageRank 的一般定义}
+\label{subsec:lihang-pr-general-definition}
+
+一般图既可能含悬挂结点，也可能不强连通或具有周期。为得到对所有初始分布都收敛的模型，先把链接规则补成完整的概率转移，再加入随机跳转。对任意有限有向图，定义
+\begin{equation}
+\label{eq:lihang-pr-dangling-correction}
+    h_{ij}=\begin{cases}
+        1/k_j,&k_j>0\text{ 且 }(v_j,v_i)\in E,\\
+        0,&\text{其他情形},
+    \end{cases}
+    \qquad a_j=\begin{cases}1,&j\in\mathcal D,\\0,&j\notin\mathcal D,\end{cases}
+    \qquad u=\frac1n\boldsymbol1,\qquad M=H+ua^{\mathsf T}.
+\end{equation}
+其中 $a=(a_1,\ldots,a_n)^{\mathsf T}$。非悬挂列保持原来的链接分布，悬挂列改为 $u$，表示到达无出边结点后均匀选择下一结点。这样定义的 $M$ 才是列随机矩阵；无悬挂结点时，它就是原来的链接转移矩阵。除非特别说明，下文的 $M$ 都已完成这一修正。
+
+\begin{definition}[一般 PageRank]
+\label{def:lihang-pr-general}
+给定经式~\eqref{eq:lihang-pr-dangling-correction} 修正的列随机矩阵 $M$ 和\emph{阻尼因子}（damping factor）$d\in(0,1)$，定义一般转移矩阵
+\begin{equation}
+\label{eq:lihang-pr-google-matrix}
+    A=dM+(1-d)u\boldsymbol1^{\mathsf T}.
+\end{equation}
+其唯一平稳分布称为一般 PageRank，记为 $R$。由于 $\boldsymbol1^{\mathsf T}R=1$，它等价地满足
+\begin{equation}
+\label{eq:lihang-pr-general-fixed-point}
+    R=dMR+(1-d)u,\qquad R\in\Delta_n.
+\end{equation}
+\end{definition}
+
+这一机制表示每一步以概率 $d$ 按 $M$ 移动，以概率 $1-d$ 重新均匀选择结点；在悬挂结点处，两种分支都采用均匀分布。$A$ 的每列和为 $1$，且 $A_{ij}\geq(1-d)/n>0$。由此所有结点一步即可相互到达，且每个结点都有正的自转移概率，定理~\ref{thm:lihang-pr-finite-chain} 适用。阻尼因子控制保留链接结构的程度；$d$ 越接近 $1$，连续沿链接游走的影响越强，$d$ 越接近 $0$，分布越接近均匀分布。教材采用 $0.85$ 作为常见取值示例，这不是对任意应用都最优的数学结论。
+
+\begin{proposition}[一般 PageRank 的存在性、唯一性与误差界]
+\label{prop:lihang-pr-contraction}
+对任意列随机矩阵 $M$ 及 $0<d<1$，映射 $T(r)=dMr+(1-d)u$ 在 $\Delta_n$ 上有唯一不动点 $R$，并且
+\begin{equation}
+\label{eq:lihang-pr-contraction}
+    \|T(p)-T(q)\|_1\leq d\|p-q\|_1,\qquad p,q\in\Delta_n.
+\end{equation}
+从任意 $R_0\in\Delta_n$ 迭代 $R_{t+1}=T(R_t)$，都有
+\begin{equation}
+\label{eq:lihang-pr-priori-bound}
+    \|R_t-R\|_1\leq d^t\|R_0-R\|_1\leq2d^t,
+\end{equation}
+以及可计算的后验误差界
+\begin{equation}
+\label{eq:lihang-pr-posteriori-bound}
+    \|R_t-R\|_1\leq\frac{\|R_{t+1}-R_t\|_1}{1-d},\qquad
+    \|R_{t+1}-R\|_1\leq\frac{d}{1-d}\|R_{t+1}-R_t\|_1.
+\end{equation}
+此外，$R_i\geq(1-d)/n>0$。
+\end{proposition}
+
+\begin{proof}
+列随机性保证 $T(\Delta_n)\subseteq\Delta_n$。由 $\|Mz\|_1\leq\|z\|_1$ 得到式~\eqref{eq:lihang-pr-contraction}。概率单纯形在 $1$ 范数下完备，因此压缩映射定理给出唯一不动点和迭代收敛；连续应用收缩不等式，并用两个概率向量的 $1$ 范数距离不超过 $2$，即得式~\eqref{eq:lihang-pr-priori-bound}。为得到不依赖未知 $R$ 的误差估计，注意
+\[
+    \|R_t-R\|_1
+    \leq\|R_t-T(R_t)\|_1+\|T(R_t)-T(R)\|_1
+    \leq\|R_{t+1}-R_t\|_1+d\|R_t-R\|_1.
+\]
+移项得到第一个后验界，再应用一次收缩得到第二个。最后由 $R_i=d(MR)_i+(1-d)/n$ 及 $(MR)_i\geq0$ 得到严格正性。
+\end{proof}
+
+将固定点方程展开，可以看到悬挂结点修正如何进入各结点的得分：
+\begin{equation}
+\label{eq:lihang-pr-general-components}
+    R_i=d\sum_{j\in\mathcal I_i}\frac{R_j}{k_j}
+        +\frac d n\sum_{j\in\mathcal D}R_j+\frac{1-d}{n},
+    \qquad i=1,\ldots,n.
+\end{equation}
+有入边的来源必有正出度，所以第一项没有除以零的问题；第二项把全部悬挂质量均匀分给各结点。无悬挂结点时，第二项为零，即得到教材写出的通常分量公式。
+
+\begin{notealert}[type=caution,title={阻尼平滑不能代替零列修正}]
+教材先展示悬挂结点造成的零列，随后给出一般 PageRank 方程；要使后面的马尔可夫链解释与归一化同时成立，必须明确其中的 $M$ 已是列随机矩阵。若仍用含零列的 $H$，对概率向量 $r$ 有
+\[
+    \boldsymbol1^{\mathsf T}\bigl(dHr+(1-d)u\bigr)
+    =1-d\sum_{j\in\mathcal D}r_j,
+\]
+只要悬挂结点有正质量，结果就不再是概率分布，不能把这一未经修正的迭代直接解释为分布的演化。把悬挂结点设为自环同样可以形成另一种完整模型，但其结果可能与均匀补列不同，因此需要明确所采用的转移规则。
+\end{notealert}
+
+\section{PageRank 的计算}
+\label{sec:lihang-pr-computation}
+
+\subsection{迭代算法}
+\label{subsec:lihang-pr-iteration}
+
+固定点方程本身给出一个确定性的分布迭代算法。输入为图的稀疏链接矩阵 $H$、悬挂指示向量 $a$、阻尼因子 $d\in(0,1)$、初始分布 $R_0\in\Delta_n$ 和误差要求 $\varepsilon>0$；输出为一般 PageRank 的近似值。具体计算不必显式形成通常稠密的 $M$ 或 $A$。
+\begin{enumerate}
+    \item 由各结点出度建立 $H$ 与 $a$，令 $u=\boldsymbol1/n$、$t=0$；可取 $R_0=u$，并设置最大迭代次数 $T_{\max}\geq1$。
+    \item 计算当前悬挂质量 $s_t=a^{\mathsf T}R_t$，再更新
+    \begin{equation}
+    \label{eq:lihang-pr-sparse-update}
+        R_{t+1}=dHR_t+\bigl(ds_t+1-d\bigr)u.
+    \end{equation}
+    令 $\delta_t=\|R_{t+1}-R_t\|_1$。
+    \item 若 $d\delta_t/(1-d)\leq\varepsilon$，返回 $R_{t+1}$；由式~\eqref{eq:lihang-pr-posteriori-bound}，其 $1$ 范数误差不超过 $\varepsilon$。若未满足且尚未达到 $T_{\max}$，令 $t\gets t+1$ 并继续；达到次数上限时，返回当前近似值、后验误差界以及未达到精度要求的说明。
+\end{enumerate}
+上述误差界针对精确算术；浮点实现还应监测概率和与舍入误差。仅把“前后两次差很小”作为停止条件，需要同时说明采用的范数和阈值；当 $d$ 接近 $1$ 时，差值还要乘上 $d/(1-d)$ 才能控制输出误差，不能把差值本身等同于真实误差。
+
+设边数为 $m=|E|$，采用稀疏存储时，一步矩阵向量乘法、悬挂质量求和与均匀向量更新共需 $O(m+n)$ 时间，存储量为 $O(m+n)$。由 $2d^t\leq\varepsilon$，
+\[
+    t\geq\left\lceil\frac{\log(2/\varepsilon)}{-\log d}\right\rceil
+\]
+是满足误差要求的充分迭代次数；它是适用于所有初态的上界，实际停止可能更早。$d$ 接近 $1$ 时，$-\log d$ 与 $1-d$ 同阶，这一最坏情形界说明收敛可能变慢。随机跳转项虽然对应一个稠密矩阵，却是秩一结构，不应为了实现迭代而存储 $n^2$ 个元素。
+
+\begin{example}
+\label{ex:lihang-pr-self-loop}
+把例~\ref{ex:lihang-pr-basic-four} 中的 $C\to A$ 改为 $C\to C$，其余边不变，取 $d=0.8$，求一般 PageRank。这是教材用于演示迭代算法的图；$C$ 在这里具有自环，并非一个尚待补列的悬挂结点。
+\end{example}
+
+\begin{solve}
+转移矩阵及平滑向量分别为
+\[
+    M=\begin{pmatrix}
+        0&1/2&0&0\\
+        1/3&0&0&1/2\\
+        1/3&0&1&1/2\\
+        1/3&1/2&0&0
+    \end{pmatrix},\qquad (1-d)u=\frac1{20}\boldsymbol1.
+\]
+从 $R_0=\boldsymbol1/4$ 出发，前两步为
+\[
+    R_1=\frac1{60}(9,13,25,13)^{\mathsf T},\qquad
+    R_2=\frac1{300}(41,53,153,53)^{\mathsf T}.
+\]
+为核对极限，写 $R=(a,b,c,e)^{\mathsf T}$。关于 $b,e$ 的固定点方程为
+\[
+    b=\frac4{15}a+\frac25e+\frac1{20},\qquad
+    e=\frac4{15}a+\frac25b+\frac1{20},
+\]
+相减得 $b=e$。又 $a=2b/5+1/20$，代入上式可得 $b=e=19/148$、$a=15/148$；最后由归一化得到
+\begin{equation}
+\label{eq:lihang-pr-self-loop-result}
+    R=\frac1{148}(15,19,95,19)^{\mathsf T}.
+\end{equation}
+$C$ 的权重超过一半，因为沿链接到达 $C$ 后会持续停留，只有随机跳转机制提供离开机会。该现象体现了封闭链接结构对权重的聚集作用；阻尼项仍保证其他结点的权重为正。
+\end{solve}
+
+\subsection{幂法}
+\label{subsec:lihang-pr-power-method}
+
+\emph{幂法}（power method）通过反复进行矩阵向量乘法，提取绝对值最大的特征值及对应特征向量的方向。对一般方阵 $B\in\mathbb R^{n\times n}$，其复特征值中绝对值最大的称为主特征值（dominant eigenvalue），相应非零向量称为主特征向量（dominant eigenvector）。具有最大绝对值的特征值可能不止一个，因此幂法收敛需要附加条件。
+
+为说明原理，假定 $B$ 在复数域可对角化，存在一组特征向量基 $w_1,\ldots,w_n$，主特征值 $\lambda_1\neq0$，且
+\[
+    |\lambda_1|>|\lambda_2|\geq\cdots\geq|\lambda_n|,\qquad
+    x_0=\sum_{j=1}^{n}c_jw_j,\qquad c_1\neq0.
+\]
+直接展开有
+\begin{equation}
+\label{eq:lihang-pr-power-expansion}
+    B^kx_0=c_1\lambda_1^k\left[
+        w_1+\sum_{j=2}^{n}\frac{c_j}{c_1}
+        \left(\frac{\lambda_j}{\lambda_1}\right)^kw_j
+    \right].
+\end{equation}
+由于各 $|\lambda_j/\lambda_1|<1$，括号中的向量趋于 $w_1$，从而得到主特征向量的方向。若 $c_1=0$，初态没有主方向分量，这一论证失效；若模最大的特征值不唯一，可能出现振荡。对一般实矩阵，负特征值还可能使规范化向量交替变号，因此需要区分方向趋近与带符号向量本身收敛。若用未规范化的 $z_k=B^kx_0$ 估计特征值，只有在 $(w_1)_j\neq0$ 的分量上，才可由式~\eqref{eq:lihang-pr-power-expansion} 得到 $(z_{k+1})_j/(z_k)_j\to\lambda_1$。
+
+实际计算为避免向量过大或过小，可每步规范化：
+\begin{equation}
+\label{eq:lihang-pr-power-normalization}
+    y_{t+1}=Bx_t,\qquad
+    x_{t+1}=\frac{y_{t+1}}{\|y_{t+1}\|_\infty},\qquad
+    \|x\|_\infty=\max_i|x_i|,
+\end{equation}
+前提是 $y_{t+1}\neq0$。这只是改变向量的尺度，没有把无穷范数等于 $1$ 的向量自动变成概率分布。
+
+对 PageRank 的矩阵 $A=dM+(1-d)u\boldsymbol1^{\mathsf T}$，所有元素严格为正，且 $A$ 列随机，故 Perron--Frobenius 定理保证主特征值为 $1$、对应的正特征向量方向唯一，其余特征值的模小于 $1$。这里还可得到更具体的界：若 $Az=\lambda z$ 且 $\lambda\neq1$，则由 $\boldsymbol1^{\mathsf T}A=\boldsymbol1^{\mathsf T}$ 得 $\boldsymbol1^{\mathsf T}z=0$，于是
+\[
+    Az=dMz,\qquad |\lambda|\|z\|_1=d\|Mz\|_1\leq d\|z\|_1,
+\]
+即 $|\lambda|\leq d<1$；对复向量的 $1$ 范数，三角不等式同样适用。前面的可对角化假设只用于一般幂法的特征展开说明，PageRank 的收敛已由命题~\ref{prop:lihang-pr-contraction} 保证，不要求另外假定 $A$ 可对角化。
+
+因此，可取任意非零非负 $x_0$，将式~\eqref{eq:lihang-pr-power-normalization} 中的 $B$ 换为 $A$ 进行迭代；每步 $y_{t+1}$ 严格为正，不会出现零分母。若采用教材的无穷范数规范化，最后必须返回
+\begin{equation}
+\label{eq:lihang-pr-power-probability}
+    \widehat R=\frac{x_t}{\boldsymbol1^{\mathsf T}x_t}.
+\end{equation}
+为使停止条件直接控制概率误差，可每步先形成 $q_t=x_t/(\boldsymbol1^{\mathsf T}x_t)$，再检验 $\|Aq_t-q_t\|_1/(1-d)\leq\varepsilon$，达到次数上限仍未满足时报告未达到精度要求。计算 $Ax_t$ 同样不必形成稠密矩阵：
+\begin{equation}
+\label{eq:lihang-pr-power-sparse}
+    Ax_t=dHx_t+
+    \left[da^{\mathsf T}x_t+(1-d)\boldsymbol1^{\mathsf T}x_t\right]u.
+\end{equation}
+与式~\eqref{eq:lihang-pr-sparse-update} 相比，未归一的 $x_t$ 不一定满足 $\boldsymbol1^{\mathsf T}x_t=1$，所以不能把这里的最后一项直接写成 $(1-d)u$。
+
+两种算法实际上在计算同一条概率分布序列：由于 $\boldsymbol1^{\mathsf T}A=\boldsymbol1^{\mathsf T}$，把 $x_{t+1}$ 再按分量和归一化，得到 $q_{t+1}=Aq_t=dMq_t+(1-d)u$。也就是说，概率向量迭代已经是对一般转移矩阵的幂法；无穷范数规范化只是中间尺度的另一种选择，不是另一套 PageRank 定义。
+
+\begin{example}
+\label{ex:lihang-pr-power-three}
+考虑三结点图 $A\to B,C$，$B\to C$，$C\to A$。取 $d=0.85$，用幂法计算一般 PageRank，并区分无穷范数规范化结果与概率向量。
+\end{example}
+
+\begin{solve}
+按 $(A,B,C)$ 排列，转移矩阵及一般转移矩阵为
+\[
+    M=\begin{pmatrix}0&0&1\\1/2&0&0\\1/2&1&0\end{pmatrix},\qquad
+    A=\begin{pmatrix}
+        0.05&0.05&0.9\\
+        0.475&0.05&0.05\\
+        0.475&0.9&0.05
+    \end{pmatrix}.
+\]
+取 $x_0=(1,1,1)^{\mathsf T}$，第一步为
+\[
+    y_1=(1,0.575,1.425)^{\mathsf T},\qquad
+    x_1=\frac1{57}(40,23,57)^{\mathsf T}
+        \approx(0.701754,0.403509,1)^{\mathsf T}.
+\]
+继续计算，得到
+\[
+    x_2\approx(1,0.422406,0.781451)^{\mathsf T},\qquad
+    x_3\approx(0.866018,0.598490,1)^{\mathsf T}.
+\]
+这些显示值只用于展示过程，继续迭代时应保留计算精度。由固定点方程和归一化可求得精确概率向量
+\begin{equation}
+\label{eq:lihang-pr-three-result}
+    R=\frac1{1769}(686,380,703)^{\mathsf T}
+      \approx(0.387790,0.214811,0.397400)^{\mathsf T}.
+\end{equation}
+无穷范数规范化的极限则为 $(686/703,380/703,1)^{\mathsf T}$，分量之和并不等于 $1$。两者给出相同的排序 $C>A>B$，但只有按分量和归一化的结果具有平稳概率的含义。
+\end{solve}
+
+\subsection{代数算法}
+\label{subsec:lihang-pr-algebra}
+
+把一般 PageRank 方程中的未知项移至左侧，得到
+\begin{equation}
+\label{eq:lihang-pr-linear-system}
+    (I-dM)R=(1-d)u.
+\end{equation}
+其中 $I$ 为 $n$ 阶单位矩阵。列随机矩阵的诱导 $1$ 范数为 $\|M\|_1=\max_j\sum_i|m_{ij}|=1$，所以 $\|dM\|_1=d<1$，矩阵几何级数在该范数下绝对收敛。其部分和满足
+\[
+    (I-dM)\sum_{k=0}^{N}(dM)^k=I-(dM)^{N+1},\qquad
+    \|(dM)^{N+1}\|_1\leq d^{N+1}\longrightarrow0.
+\]
+右乘时也得到相同恒等式，取极限证明 $I-dM$ 可逆，并给出
+\begin{equation}
+\label{eq:lihang-pr-neumann-series}
+    R=(1-d)(I-dM)^{-1}u
+      =(1-d)\sum_{k=0}^{\infty}d^kM^ku.
+\end{equation}
+这既证明线性方程组有唯一解，也说明它确为概率向量：各项非负，而取分量和后得到 $(1-d)\sum_{k=0}^{\infty}d^k=1$。有限维求和是连续线性运算，范数收敛保证了这里可以将它与级数求和交换。
+
+式~\eqref{eq:lihang-pr-neumann-series} 还给出游走长度的解释。设非负整数随机变量 $K$ 满足 $P(K=k)=(1-d)d^k$，独立于初始结点和各次按 $M$ 的转移；从均匀分布出发走 $K$ 步，终点的分布就是 $R$。阻尼因子因此决定了不同长度游走的权重，而不是只给所有结点加上同一常数后就结束计算。保留 $k=0,\ldots,N$ 项时，被省略项的总质量恰为 $d^{N+1}$，这也是该截断近似的 $1$ 范数误差。
+
+代数算法的输入是 $M,d$，输出是式~\eqref{eq:lihang-pr-linear-system} 的解。逆矩阵表达式用于理论推导，数值实现通常直接解线性方程组；对稠密 $n$ 阶矩阵，常规消元需 $O(n^3)$ 时间与 $O(n^2)$ 存储，不适于直接处理超大规模图。稀疏直接法的存储与计算还受消元填充影响，不能只按原图边数估算。无论采用哪种解法，对所得近似 $\widehat R\in\Delta_n$ 都可用残差
+\begin{equation}
+\label{eq:lihang-pr-linear-residual}
+    b=(1-d)u-(I-dM)\widehat R,\qquad
+    \|\widehat R-R\|_1\leq\frac{\|b\|_1}{1-d}
+\end{equation}
+检验误差，因为 $b=T(\widehat R)-\widehat R$，也可由 $\|(I-dM)^{-1}\|_1\leq\sum_{k\geq0}d^k=1/(1-d)$ 直接推出。
+
+\section{本章概要与习题}
+\label{sec:lihang-pr-summary-exercises}
+
+本章的三个等价对象是随机游走的平稳分布、列随机矩阵 $A$ 的归一化正特征向量和线性方程组~\eqref{eq:lihang-pr-linear-system} 的解。基本模型依赖不可约与非周期条件，一般模型则通过完整的悬挂转移和随机跳转保证存在唯一正分布。迭代算法直接更新概率，幂法提取同一不动点的方向，代数算法直接求解固定点方程；三者的输出只有在总和为 $1$ 时才具有概率解释。当 $d=0$ 时，解直接为 $u$；当 $d=1$ 时，收缩保证消失，需要重新检查基本链的结构条件，不能沿用 $d<1$ 的唯一性与误差界。
+
+\begin{example}
+\label{ex:lihang-pr-exercise-powers}
+教材习题 21.1：设 $S$ 为列随机矩阵，证明对任意非负整数 $k$，$S^k$ 仍为列随机矩阵。
+\end{example}
+
+\begin{proof}
+$S^0=I$ 满足要求。若 $S^k$ 元素非负，则 $S^{k+1}=SS^k$ 的每个元素都是非负乘积之和，仍然非负；另一方面，
+\[
+    \boldsymbol1^{\mathsf T}S^{k+1}
+    =(\boldsymbol1^{\mathsf T}S)S^k
+    =\boldsymbol1^{\mathsf T}S^k
+    =\boldsymbol1^{\mathsf T}.
+\]
+由归纳法结论成立。概率上，$S^k$ 的第 $j$ 列就是从结点 $j$ 出发经过 $k$ 步后的状态分布。
+\end{proof}
+
+\begin{example}
+\label{ex:lihang-pr-exercise-initialization}
+教材习题 21.2：在例~\ref{ex:lihang-pr-basic-four} 的图中，改用不同初始分布进行迭代，验证仍得到同一个基本 PageRank。
+\end{example}
+
+\begin{solve}
+令 $e_A=(1,0,0,0)^{\mathsf T}$、$e_C=(0,0,1,0)^{\mathsf T}$，分别表示初始时确定地位于 $A$ 和 $C$。直接计算得
+\[
+    Me_A=(0,1/3,1/3,1/3)^{\mathsf T},\qquad
+    M^2e_A=(1/2,1/6,1/6,1/6)^{\mathsf T},\qquad
+    Me_C=e_A.
+\]
+由于 $M$ 不可约且非周期，定理~\ref{thm:lihang-pr-finite-chain} 保证两组分布均收敛到式~\eqref{eq:lihang-pr-four-basic-result}；第二组从第一步起就是第一组序列延迟一拍的结果。一般初始分布 $R_0=\sum_j(R_0)_je_j$ 是有限凸组合，故
+\[
+    M^tR_0=\sum_j(R_0)_jM^te_j
+    \longrightarrow\sum_j(R_0)_jR=R.
+\]
+这证明了初态无关性，有限次迭代中看到相近数值本身并不能替代这一极限论证。
+\end{solve}
+
+\begin{example}
+\label{ex:lihang-pr-exercise-general-existence}
+教材习题 21.3：证明一般 PageRank 对应的马尔可夫链有平稳分布，并写出结点得分公式。
+\end{example}
+
+\begin{proof}
+先按式~\eqref{eq:lihang-pr-dangling-correction} 补全悬挂列，保证 $M$ 列随机；再令 $A=dM+(1-d)u\boldsymbol1^{\mathsf T}$。其每个元素至少为 $(1-d)/n>0$，所以对应有限链不可约且非周期，由定理~\ref{thm:lihang-pr-finite-chain} 存在唯一平稳分布。也可直接应用命题~\ref{prop:lihang-pr-contraction}，得到唯一的 $R=T(R)\in\Delta_n$。逐分量展开就是式~\eqref{eq:lihang-pr-general-components}；在无悬挂结点时，它化为教材的公式
+\[
+    \operatorname{PR}(v_i)
+    =d\sum_{j\in\mathcal I_i}\frac{\operatorname{PR}(v_j)}{k_j}
+        +\frac{1-d}{n}.
+\]
+若没有列随机性的前提，这一证明不能成立。
+\end{proof}
+
+\begin{example}
+\label{ex:lihang-pr-exercise-spectrum}
+教材习题 21.4：证明随机矩阵的最大特征值为 $1$。这里将“最大”精确表述为谱半径（spectral radius）等于 $1$，且 $1$ 本身是特征值。
+\end{example}
+
+\begin{proof}
+设 $S$ 为列随机矩阵。由 $S^{\mathsf T}\boldsymbol1=\boldsymbol1$，知 $1$ 是 $S^{\mathsf T}$ 的特征值；矩阵与其转置具有相同的特征多项式，所以 $1$ 也是 $S$ 的特征值。对任意复特征对 $Sz=\lambda z$，$z\neq0$，有
+\[
+    |\lambda|\|z\|_1=\|Sz\|_1
+    \leq\sum_i\sum_js_{ij}|z_j|
+    =\sum_j|z_j|=\|z\|_1.
+\]
+故所有特征值均满足 $|\lambda|\leq1$，结合 $1$ 是特征值，得到谱半径 $\rho(S)=\max_{\lambda}|\lambda|=1$。
+\end{proof}
+
+这一结论不保证 $1$ 是单特征值，也不排除其他模为 $1$ 的特征值。例如，单向三环的转移矩阵还具有两个非实的单位模特征值，其幂可能持续振荡。一般 PageRank 的严格正矩阵及其收缩性质排除了这些障碍，因此“随机矩阵的谱半径为 $1$”与“幂法从任意概率初态收敛到唯一方向”不能混为一谈。
+
+教材还提及个性化 PageRank（personalized PageRank）、按主题调整的 PageRank 和其他链接分析方法。与本章直接相关的扩展是将均匀重启分布 $u$ 换成给定的概率向量 $v$，并明确悬挂列的补全分布。对任意已补成列随机矩阵的 $M$，方程 $R=dMR+(1-d)v$ 在 $0<d<1$ 时仍以同样的 $1$ 范数收缩率保证唯一概率解；若 $v$ 各分量严格为正，则该解也严格为正。允许 $v$ 含零分量时，唯一性依然成立，但不能无条件断言每个结点都获得正权重。这一扩展进一步说明，PageRank 取决于图结构和指定的游走规则，其“重要度”应在模型含义下理解。
+
+
+
+

@@ -1,0 +1,99 @@
+% !TeX root = ../数值分析与科学计算笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{9} % 保留原书章号。
+\chapter{常微分方程初值问题}
+\label{chap:na-ode}
+
+\section{初值问题与误差传播}
+考虑向量初值问题 $y'(t)=F(t,y(t))$、$y(t_0)=y_0\in\mathbb R^d$，目标是在有限区间 $[t_0,T]$ 上近似解。若 $F$ 关于 $t$ 连续、关于 $y$ 在相关区域局部 Lipschitz，则初值附近有唯一局部解；是否延拓到 $T$ 还需排除有限时间发散。本章的收敛讨论均假定所研究的精确解在整个区间存在，且所需光滑性和 Lipschitz 界在包含解与数值轨迹的区域成立。向量与矩阵范数采用相容的选定范数。
+
+若两个精确解 $y,z$ 的初始数据不同，而 $F$ 对 $y$ 的 Lipschitz 常数为 $L$，则积分方程和 Gronwall 不等式给出 $\|y(t)-z(t)\|\le e^{L(t-t_0)}\|y(t_0)-z(t_0)\|$。这说明初值扰动随时间积累，长时间计算的困难可能来自方程本身。数值方法还会在每一步不断注入局部误差。
+
+\section{Euler 方法与全局一阶收敛}
+在均匀网格 $t_n=t_0+nh$ 上，显式 Euler 方法为
+\begin{equation}
+ y_{n+1}=y_n+hF(t_n,y_n).
+ \label{eq:na-euler}
+\end{equation}
+它把一个时间段内的导数冻结在左端点。输入为 $F$、初值、步长和终点，输出为网格近似值；每步一次函数评价，若 $d$ 固定且评价代价固定，总成本与步数同阶。非整步到达终点时应缩短最后一步，而不是越过终点后仍报告为终点解。
+
+\begin{definition}[局部缺陷与全局误差]
+对一步法 $y_{n+1}=\Phi_h(t_n,y_n)$，用精确解代入一步得到的局部缺陷为 $d_{n+1}=y(t_{n+1})-\Phi_h(t_n,y(t_n))$；全局误差为 $e_n=y_n-y(t_n)$。本书不把局部缺陷除以 $h$；有些文献把 $d_{n+1}/h$ 称为局部截断误差，比较阶数时需先核对约定。
+\end{definition}
+
+\begin{theorem}[Euler 的全局误差界]
+若 $F$ 关于 $y$ 的 Lipschitz 常数为 $L\ge0$，$\max_{[t_0,T]}\|y''(t)\|\le M$，且 $y_0=y(t_0)$，则显式 Euler 满足
+\[
+ \|e_n\|\le\frac{Mh}{2L}\bigl(e^{L(t_n-t_0)}-1\bigr)\quad(L>0),
+\]
+当 $L=0$ 时右端取 $Mh(t_n-t_0)/2$。
+\end{theorem}
+\begin{proof}
+积分形式的 Taylor 余项给出 $\|d_{n+1}\|\le Mh^2/2$。相减并取范数得 $\|e_{n+1}\|\le(1+hL)\|e_n\|+Mh^2/2$。展开几何级数，得到 $Mh[(1+hL)^n-1]/(2L)$，再用 $1+hL\le e^{hL}$。当 $L=0$ 时直接累加。
+\end{proof}
+
+更一般地，若一步映射满足 $\|\Phi_h(t,u)-\Phi_h(t,v)\|\le(1+Ch)\|u-v\|$，局部缺陷一致为 $O(h^{p+1})$，初始误差为 $O(h^p)$，相同论证给出固定时间区间上的全局误差 $O(h^p)$。这明确展示了一致性与误差传播控制怎样共同导致收敛。
+
+隐式 Euler 方法为 $y_{n+1}=y_n+hF(t_{n+1},y_{n+1})$。每一步需要解代数方程；$hL<1$ 时其不动点映射为压缩，在全空间全局 Lipschitz 的设置下可保证该步唯一可解。其他结构可能允许更大步长，故不能把这个充分条件误认为必要条件。隐式性带来的稳定优势需付出求解代数系统的代价。
+
+\section{Runge--Kutta 方法}
+显式中点法通过一个中间预测改善导数近似：
+\[
+ k_1=F(t_n,y_n),\quad k_2=F(t_n+h/2,y_n+hk_1/2),\quad y_{n+1}=y_n+hk_2.
+\]
+若 $F$ 充分光滑，展开 $k_2=F+\tfrac h2(F_t+F_yF)+O(h^2)$，其更新匹配精确解的二阶 Taylor 展开，故局部缺陷为 $O(h^3)$，在上述 Lipschitz 条件下全局二阶。改进 Euler 又称显式梯形法，使用 $k_2=F(t_n+h,y_n+hk_1)$ 及 $y_{n+1}=y_n+h(k_1+k_2)/2$，同样为二阶，但与中点法不是同一个更新式。
+
+经典四阶 Runge--Kutta（RK4）为
+\begin{align}
+ k_1&=F(t_n,y_n),\notag\\
+ k_2&=F(t_n+h/2,y_n+hk_1/2),\notag\\
+ k_3&=F(t_n+h/2,y_n+hk_2/2),\notag\\
+ k_4&=F(t_n+h,y_n+hk_3),\notag\\
+ y_{n+1}&=y_n+\frac h6(k_1+2k_2+2k_3+k_4).
+ \label{eq:na-rk4}
+\end{align}
+在 $F$ 具有所需连续至四阶偏导且相关导数有界的区域中，展开各阶段并匹配精确解至四次项，可得局部缺陷 $O(h^5)$，因此固定时间区间上全局四阶。这里只说明阶数证明的匹配方法，不列出全部多元 Taylor 项；把该公式直接视为对时间积分使用 Simpson 而忽略阶段值误差，不构成四阶证明。
+
+一般显式 $s$ 阶段方法写为 $k_i=F(t_n+c_ih,y_n+h\sum_{j<i}a_{ij}k_j)$、$y_{n+1}=y_n+h\sum_i b_ik_i$。本书采用 $c_i=\sum_{j<i}a_{ij}$。一阶条件为 $\sum b_i=1$，二阶还需 $\sum b_ic_i=1/2$；高阶需要更多独立条件。方法名称中的“阶段数”和“精度阶数”不是同一概念。
+
+\section{绝对稳定性与刚性}
+\label{sec:na-ode-stability}
+\begin{definition}[稳定函数与绝对稳定域]
+将一步法用于标量测试方程 $y'=\lambda y$、$\lambda\in\mathbb C$，若得到 $y_{n+1}=R(z)y_n$、$z=h\lambda$，则 $R$ 为稳定函数。集合 $\{z:|R(z)|\le1\}$ 称闭绝对稳定域；其严格内部 $|R(z)|<1$ 对应随步数衰减。若该闭域包含整个左半平面 $\operatorname{Re}z\le0$，称方法 A 稳定。
+\end{definition}
+
+显式 Euler 有 $R(z)=1+z$，因此对实 $\lambda<0$ 要求 $0<h\le2/|\lambda|$ 才不增长，严格衰减要求严格小于上限。隐式 Euler 有 $R(z)=1/(1-z)$，对 $\operatorname{Re}z\le0$ 有 $|1-z|\ge1$，故 A 稳定。隐式梯形法
+\[
+ y_{n+1}=y_n+\tfrac h2\bigl[F(t_n,y_n)+F(t_{n+1},y_{n+1})\bigr]
+\]
+为二阶，其 $R(z)=(1+z/2)/(1-z/2)$ 也 A 稳定，但当实 $z\to-\infty$ 时趋于 $-1$。隐式 Euler 的稳定函数则趋于零，因而更有效地抑制快速衰减模态。A 稳定且在左半平面趋于无穷远时 $R(z)\to0$ 的方法称 L 稳定；隐式 Euler 满足这一性质。
+
+\emph{刚性（stiffness）}描述这样一类计算现象：解的主要变化尺度允许较大步长，但显式方法为了稳定必须采用很小步长。它依赖方程、区间、方法和精度要求，不仅由某个系数“大”来定义。
+
+\begin{example}[平滑解与快速扰动模态]
+令 $y'=-1000(y-\cos t)-\sin t$，$y(0)=1$，则精确解为 $y(t)=\cos t$。任意偏离该解的扰动满足 $e'=-1000e$。显式 Euler 的稳定限制为 $h\le0.002$，尽管余弦本身在单位时间尺度平缓变化。隐式方法能够缓解稳定步长约束，但步长仍须满足精度要求。
+\end{example}
+
+标量稳定域分析是理解线性系统的起点。对可正交对角化的系统，它逐模态适用；对非正规矩阵，特征值位置还不能完全描述短时范数增长。非线性系统则需要局部线性化及更具体的稳定分析。
+
+\section{线性多步法与步长控制}
+线性 $s$ 步法写为 $\sum_{j=0}^s\alpha_jy_{n+j}=h\sum_{j=0}^s\beta_jF(t_{n+j},y_{n+j})$，其中 $\alpha_s\ne0$。它复用历史函数值，例如二步 Adams--Bashforth 法为
+\[
+ y_{n+2}=y_{n+1}+\frac h2(3F_{n+1}-F_n),\qquad F_j=F(t_j,y_j).
+\]
+初始的 $y_1$ 需要另用足够精度的一步法产生。$\beta_s=0$ 时为显式，否则通常为隐式。
+
+对固定步长与固定系数，一致性至少要求 $\sum\alpha_j=0$、$\sum j\alpha_j=\sum\beta_j$。\emph{零稳定性（zero-stability）}要求有限时间内初值及局部扰动的影响在 $h\to0$ 时不会无限放大；对这类线性多步法等价于特征多项式 $\rho(\zeta)=\sum\alpha_j\zeta^j$ 的全部根满足 $|\zeta|\le1$，且单位圆上的根均简单。对满足标准 Lipschitz 条件的初值问题，一致性与零稳定性共同保证收敛，前提是起步值也收敛。这是线性多步法的基本等价定理，本书陈述其使用条件，不展开差分方程理论中的完整证明。
+
+零稳定性研究步长趋零时的误差传播，绝对稳定性研究固定 $h\lambda$ 下的长步数行为，两者不能互相替代。Adams--Bashforth 二步法的 $\rho(\zeta)=\zeta^2-\zeta$，根为 $0,1$，故零稳定；其显式稳定域仍有限。
+
+自适应步长通常比较一对嵌入式方法，形成局部误差估计 $E$。若 $E$ 的主项与 $h^{q+1}$ 成比例，可用安全因子 $0<s<1$ 建议 $h_{\mathrm{new}}=sh(\mathrm{tol}/E)^{1/(q+1)}$，并限制增长与缩小倍数。向量分量宜按 $\varepsilon_{\mathrm{abs},i}+\varepsilon_{\mathrm{rel}}|y_i|$ 归一化。局部容差控制不自动等于最终全局误差保证，尤其在不稳定动力系统或长时间积分中。
+
+\section{习题}
+\begin{enumerate}[label=\arabic*.]
+\item\label{exr:na-ode-euler} 对 $y'=y$、$y(0)=1$，写出显式与隐式 Euler 在 $t=1$、$h=1/N$ 下的数值值，并判断偏大还是偏小，隐式情形取 $N>1$。
+\item\label{exr:na-ode-stability} 对 $y'=-20y$，求显式 Euler 不增长的步长范围，并解释边界步长处的行为。
+\item\label{exr:na-ode-rk} 将 RK4 用于 $y'=\lambda y$，推导稳定函数。
+\item\label{exr:na-ode-root} 考察多步格式 $y_{n+2}-3y_{n+1}+2y_n=-hF_n$：检查一致性与零稳定性，说明即使局部缺陷趋零也可能不收敛。
+\end{enumerate}
+

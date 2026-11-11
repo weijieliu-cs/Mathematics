@@ -1,0 +1,132 @@
+% !TeX root = ../凸优化笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{0} % 保留原书章号。
+\chapter{绪论与优化建模}
+\label{ch:co-introduction}
+
+优化从一个选择问题开始：在允许的方案中，按给定准则选择最好的一种。数学模型必须分别说明哪些量可以改变、哪些限制必须满足，以及用什么量衡量优劣。
+
+先看一个只有一个变量的选择。某次测量给出数值 $3$，希望选择与它接近的非负数 $x$，同时设备要求 $x\leq2$。用平方误差衡量接近程度，问题就是在区间 $[0,2]$ 上最小化 $(x-3)^2$。没有约束时答案为 $3$；加入上界后答案变为 $2$。这个例子已经包含优化的三个组成部分：$x$ 是可以选择的量，$(x-3)^2$ 是比较方案的准则，$[0,2]$ 是允许选择的范围。以后变量可以有几万个，但这三个问题始终不变。
+
+\section{研究对象与基本语言}
+
+设决策变量为 $x\in\mathbb R^n$，公共定义域为非空集合 $D\subseteq\mathbb R^n$。给定目标函数 $f_0:D\to\mathbb R$、不等式约束函数 $f_i:D\to\mathbb R$ 和等式约束函数 $h_j:D\to\mathbb R$，一般优化问题写为
+\begin{equation}
+ \begin{aligned}
+ \mathop{\mathrm{minimize}}_{x\in D}\quad &f_0(x)\\
+ \mathrm{subject\ to}\quad &f_i(x)\leq0,\quad i=1,\ldots,m,\\
+ &h_j(x)=0,\quad j=1,\ldots,p.
+ \end{aligned}
+ \label{eq:co-general-problem}
+\end{equation}
+这里 $m,p$ 为约束数量，允许为零。$D$ 不可省略，例如含 $\log x_i$ 的函数要求 $x_i>0$。
+
+\begin{definition}
+满足全部约束且属于 $D$ 的点称为\emph{可行点（feasible point）}，其集合称为可行集 $\mathcal F$。最优值与最优解集分别为
+\[
+ p^\star=\inf_{x\in\mathcal F}f_0(x),\qquad
+ X^\star=\{x\in\mathcal F:f_0(x)=p^\star\}.
+\]
+若 $x^\star\in X^\star$，则称它为全局最优解（global optimum）。若存在 $\delta>0$，使所有满足 $x\in\mathcal F$、$\|x-x^\star\|_2<\delta$ 的点都有 $f_0(x)\geq f_0(x^\star)$，则称 $x^\star$ 为局部最优解（local optimum）。
+\end{definition}
+
+约定 $\inf\varnothing=+\infty$。因此不可行问题有 $p^\star=+\infty$；若目标在可行集上无下界，则 $p^\star=-\infty$。有限最优值也可能不取到：$\inf_{x\in\mathbb R}e^x=0$，但不存在 $e^x=0$ 的实数。相反，常数目标在非空可行集上的每个点都是最优解。可行、有限、存在最优解和最优解唯一，是四个不同性质。
+
+下确界可以理解为所有目标值共同承认的最大下界。例如在 $x>0$ 上最小化 $x$，所有可行目标值都大于零，而任意正数都不是下界，因为还可以取它的一半。因此下确界为零，却没有达到零的可行方案。这个区别会在统计估计和内点法中再次出现：一串方案越来越好，并不自动意味着它趋向某个可行最优点。
+
+\begin{example}[四种问题状态]
+比较以下问题：在 $x\geq1$ 且 $x\leq0$ 下最小化 $x^2$；在实轴上最小化 $x$；在 $x>0$ 上最小化 $x$；在 $0\leq x\leq1$ 上最小化常数零。
+\end{example}
+\begin{solve}
+第一个问题没有可行点；第二个问题可行，但目标可以任意小；第三个问题有有限下确界而没有最优解；第四个问题中整个区间都是最优解集。因而“求解器没有给出唯一数值”可能对应完全不同的数学原因。分析时应先问可行性，再问有无下界、能否取到以及是否唯一。
+\end{solve}
+
+\section{从实际问题到数学模型}
+
+建模通常依次确定决策变量与单位、目标、约束及数据。最大化收益可转为最小化其相反数；这种变换改变目标值的符号，但保留最优方案。
+
+\begin{example}[资源分配]
+两种产品的产量为 $x_1,x_2\geq0$，单位收益为 $3,2$，资源限制为 $x_1+x_2\leq4$、$2x_1+x_2\leq6$。求最大收益。
+\end{example}
+\begin{solve}
+模型为最大化 $3x_1+2x_2$，满足上述四个线性不等式。对任意可行点，
+\[
+ 3x_1+2x_2=(x_1+x_2)+(2x_1+x_2)\leq4+6=10.
+\]
+点 $(2,2)$ 可行且收益为 $10$，故它最优。两条资源约束的加权和给出了上界；这正是第\ref{ch:co-duality}章对偶证书的基本思想。
+\end{solve}
+
+硬约束要求条件必须满足；惩罚项允许违反条件并支付代价。例如约束 $x=0$ 与在目标中加入 $\alpha x^2$ 一般不等价，有限 $\alpha>0$ 未必迫使最优点为零。优化模型的正确求解也不保证建模假设符合实际。
+
+以最小化 $(x-2)^2$ 为例，硬约束 $x=0$ 只允许答案零；若改为最小化 $(x-2)^2+\alpha x^2$，求导得到 $x_\alpha=2/(1+\alpha)$，对每个有限 $\alpha>0$ 都不为零。惩罚越大，违反原要求的程度越小，但这与严格满足约束仍有差别。另一方面，若把产量限制为整数，前面的资源分配就成为整数规划；只有当连续产量有实际意义，或者明确接受连续松弛时，才可直接使用凸模型。
+
+变量的单位还决定系数的含义。如果一个变量以千克计、另一个以吨计，直接惩罚 $x_1^2+x_2^2$ 就隐含了不对称的偏好。归一化不是单纯的记号整理：在保留原问题的变量替换中，目标与约束的系数必须同时变换；若只改变正则项的尺度，则实际改变了模型。
+
+\section{最小二乘与线性规划两个原型}
+
+给定 $A\in\mathbb R^{r\times n}$、$b\in\mathbb R^r$，\emph{最小二乘（least squares）}以残差平方和衡量误差：
+\begin{equation}
+ \min_{x\in\mathbb R^n}\frac12\|Ax-b\|_2^2.
+ \label{eq:co-least-squares}
+\end{equation}
+直接展开可得梯度 $A^{\mathsf T}(Ax-b)$，故候选解满足正规方程 $A^{\mathsf T}Ax=A^{\mathsf T}b$。若 $\widehat x$ 满足此式，则对任意 $d$，
+\[
+ \frac12\|A(\widehat x+d)-b\|_2^2
+ =\frac12\|A\widehat x-b\|_2^2+\frac12\|Ad\|_2^2,
+\]
+交叉项因正规方程为零，因此 $\widehat x$ 最优。最优解总存在，因为 $b$ 到有限维闭子空间 $\operatorname{range}A$ 的正交投影存在；满列秩时 $A^{\mathsf T}A\succ0$，解唯一且为 $(A^{\mathsf T}A)^{-1}A^{\mathsf T}b$，秩亏时沿 $\ker A$ 移动不改变残差。
+
+\emph{线性规划（linear programming，LP）}的目标和约束均为仿射函数，例如 $\min c^{\mathsf T}x$，满足 $Gx\leq h$、$Ax=b$。前一节资源分配即为 LP。最小二乘靠二次曲率刻画误差，LP 靠多面体约束限制方案，两者都属于凸优化。
+
+\begin{example}[一条拟合直线的完整计算]
+在位置 $t=0,1,2$ 观测到 $b=1,2,2$，用直线 $g(t)=u+vt$ 作最小二乘拟合。
+\end{example}
+\begin{solve}
+参数是截距和斜率 $x=(u,v)^{\mathsf T}$，不是观测位置。设计矩阵、正规方程及解为
+\[
+ A=\begin{bmatrix}1&0\\1&1\\1&2\end{bmatrix},\quad
+ b=\begin{bmatrix}1\\2\\2\end{bmatrix},\qquad
+ \begin{bmatrix}3&3\\3&5\end{bmatrix}
+ \begin{bmatrix}u\\v\end{bmatrix}
+ =\begin{bmatrix}5\\6\end{bmatrix},\qquad
+ u=\frac76,\quad v=\frac12.
+\]
+残差为 $(1/6,-1/3,1/6)^{\mathsf T}$，与 $A$ 的两列都正交，目标值为 $\|Ax-b\|_2^2/2=1/12$。任意其他直线都只能在这个正交残差上增加一个属于 $\operatorname{range}A$ 的向量；两部分平方长度相加，因此不能进一步减小误差。这给正规方程提供了几何解释。
+\end{solve}
+
+\section{凸优化的核心特征与边界}
+
+集合是凸的，意指其中两点间的线段仍在集合内；函数是凸的，意指沿线段的函数值不超过端点函数值的加权平均。正式定义见第\ref{ch:co-sets}、\ref{ch:co-functions}章。凸问题的局部最优解必为全局最优解，但解的存在性和唯一性需要另外分析。
+
+\emph{等价改写（equivalent reformulation）}应保持可行方案或最优方案的可恢复对应。\emph{凸松弛（convex relaxation）}则通常扩大可行集，用较易求解的问题提供界。例如对 $x\in\{0,1\}$ 的限制改用 $0\leq x\leq1$，极小化问题的最优值只能下降或不变，所得解未必满足原来的整数要求。
+
+“凸”描述结构，计算成本还取决于规模、稀疏性、数据条件和精度。数值算法返回的通常是近似解：当 $p^\star$ 有限时，可行点 $x$ 若满足 $f_0(x)-p^\star\leq\varepsilon$，称为 $\varepsilon$-次优解。由于 $p^\star$ 未知，需要利用对偶下界等可计算量认证精度。
+
+例如某个可行方案的成本为 $10.03$，另一个计算给出所有可行方案的成本都不小于 $10$，便得到最优值位于 $[10,10.03]$，当前方案距最优最多差 $0.03$。无需知道精确最优解，也可以作出有依据的停止判断。本书将反复使用这种“可行方案给上界，证书给下界”的思路。
+
+\section{全书符号与表述约定}
+
+向量默认为列向量，内积为 $x^{\mathsf T}y$，欧氏范数为 $\|x\|_2=\sqrt{x^{\mathsf T}x}$。$\|x\|_1=\sum_i|x_i|$，$\|x\|_\infty=\max_i|x_i|$。$x_k$ 表示迭代点，$(x_k)_i$ 表示其第 $i$ 个分量。$\mathbb R_+^n$、$\mathbb R_{++}^n$ 分别表示分量非负、严格为正的向量。
+
+实对称矩阵空间为 $\mathbb S^n$。$X\succeq0$ 表示 $v^{\mathsf T}Xv\geq0$ 对所有 $v$ 成立；$X\succ0$ 表示该值对非零 $v$ 严格为正。相应集合为 $\mathbb S_+^n$、$\mathbb S_{++}^n$；$X\succeq Y$ 指 $X-Y\succeq0$，不同于逐元素比较。矩阵内积为 $\langle X,Y\rangle=\operatorname{tr}(X^{\mathsf T}Y)$，其中 $\operatorname{tr}$ 为迹。
+
+函数的有效定义域记为 $\operatorname{dom}f$，梯度和海塞矩阵（Hessian matrix）记为 $\nabla f$、$\nabla^2f$。符号 $\inf$ 表示下确界，$\min$ 还断言该值取到；$\operatorname{arg\,min}$ 表示最优解集合。随机变量用大写字母，观测值通常用相应小写字母。
+
+\section{例题与学习检查}
+\begin{example}[均值作为最小二乘解]
+给定实数观测 $b_1,\ldots,b_N$，求使 $\sum_{i=1}^N(x-b_i)^2$ 最小的常数 $x$。
+\end{example}
+\begin{solve}
+令 $\bar b=N^{-1}\sum_i b_i$，利用 $\sum_i(b_i-\bar b)=0$ 得
+\[
+ \sum_i(x-b_i)^2=N(x-\bar b)^2+\sum_i(\bar b-b_i)^2.
+\]
+第二项与 $x$ 无关，第一项在且仅在 $x=\bar b$ 时为零，故均值是唯一最优解。
+\end{solve}
+\begin{enumerate}
+ \item 分别构造不可行、无下界、有限但无最优解、存在多个最优解的问题。说明它们的 $p^\star$ 与 $X^\star$。
+ \item 求 $\min_{x\geq1}(x-2)^2$ 和 $\min_{x\geq3}(x-2)^2$；比较最优点的导数。答案分别为 $2$ 和 $3$，约束边界最优点不必有零导数。
+ \item 资源分配例中若第一项资源上限由 $4$ 改为 $4+u$，在 $u=0$ 附近求最优收益。提示：交点为 $(2-u,2+2u)$，收益为 $10+u$，须同时检查非负性。
+ \item 基础练习：在 $0\leq x\leq2$ 上最小化 $(x-a)^2$，按 $a$ 所处区间给出答案。提示：最优解是把 $a$ 截断到 $[0,2]$，再解释它与硬约束的关系。
+\end{enumerate}
+

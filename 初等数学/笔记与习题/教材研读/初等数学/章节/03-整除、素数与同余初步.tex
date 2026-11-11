@@ -1,0 +1,74 @@
+% !TeX root = ../初等数学笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{2} % 保留原书章号。
+\chapter{整除、素数与同余初步}
+\label{chap:em-integers}
+整数问题同时受到运算关系和取值离散性的约束。方程在实数中可解，并不保证在整数中可解；整除、余数与最大公因数正是表达这类约束的基本工具。
+
+\section{整除与带余除法}
+对整数 $a,b$，若存在 $k\in\mathbb Z$ 使 $b=ak$，称 $a$ \emph{整除}（divide）$b$，记为 $a\mid b$。若 $d\mid a,d\mid b$，则对任意整数 $u,v$ 有 $d\mid(ua+vb)$，因为整数倍之和仍为整数倍。
+
+\begin{theorem}[带余除法]
+对整数 $a$ 和正整数 $d$，存在唯一整数 $q,r$ 使 $a=qd+r$ 且 $0\le r<d$。
+\end{theorem}
+\begin{proof}
+集合 $\{a-kd:k\in\mathbb Z,\ a-kd\ge0\}$ 非空，取其最小元素 $r=a-qd$。若 $r\ge d$，则 $r-d$ 也是其中更小的元素，矛盾。若另有 $a=q'd+r'$ 且 $0\le r'<d$，则 $(q-q')d=r'-r$，右端绝对值小于 $d$，只能为零。
+\end{proof}
+例如 $-17=(-4)\cdot5+3$。负数除法也按非负余数约定，商不是把 $-17/5$ 向零截断所得的数。
+
+\section{最大公因数与欧几里得算法}
+不全为零的整数 $a,b$ 的最大正公因数记为 $\gcd(a,b)$；若其为 $1$，称两数互素。由于 $a,b$ 与 $b,a-qb$ 的公因数集合相同，
+\[
+ \gcd(a,b)=\gcd(b,a-qb).
+\]
+\emph{欧几里得算法}（Euclidean algorithm）以 $|a|,|b|$ 为输入，第二数非零时重复用带余除法得到的余数替换它，同时以前一第二数替换第一数；第二数为零时输出第一数。非负余数严格下降，保证算法有限步终止。
+
+每个余数是前两个数的整数线性组合，反向代入得到 \emph{Bézout 等式}（Bézout identity）
+\begin{equation}\label{eq:em-bezout}
+ ua+vb=\gcd(a,b),\qquad u,v\in\mathbb Z.
+\end{equation}
+例如 $84=2\cdot30+24$、$30=24+6$，故 $\gcd(84,30)=6=3\cdot30-84$。算法同时计算公因数并提供线性组合的构造方法。
+
+\section{素数与唯一分解}
+大于 $1$ 且正因数只有 $1$ 与自身的整数称为\emph{素数}（prime number）；大于 $1$ 的其他整数称为合数。若素数 $p$ 不整除 $a$，则 $\gcd(p,a)=1$；由式 \eqref{eq:em-bezout}，存在 $u,v$ 使 $up+va=1$，乘以 $b$ 可知
+\[
+ p\mid ab\quad\Longrightarrow\quad p\mid a\ \text{或}\ p\mid b.
+\]
+\begin{theorem}[算术基本定理]
+每个大于 $1$ 的整数都能写成素数乘积，且除因子的排列次序外表示唯一。
+\end{theorem}
+\begin{proof}
+存在性用强归纳法：素数已符合要求，合数 $n=ab$ 中 $1<a,b<n$，分别分解 $a,b$ 即可。若同一数有两种素数分解，第一种的任一素因子整除第二种的乘积，反复使用上述性质可知它等于其中某一素因子。约去该因子继续比较，最终各因子及重数一致。
+\end{proof}
+素数有无穷多个：若全部素数为 $p_1,\ldots,p_k$，则 $p_1\cdots p_k+1>1$ 必有素因子，却不被其中任何一个整除，矛盾。若把正整数 $a,b$ 的素因数幂次分别列出，则最大公因数取各幂次的较小者，最小公倍数取较大者，所以 $\gcd(a,b)\operatorname{lcm}(a,b)=ab$。
+
+\section{同余与余数计算}
+对正整数 $m$，若 $m\mid(a-b)$，称 $a,b$ 模 $m$ \emph{同余}（congruent），记为 $a\equiv b\pmod m$。它等价于两数除以 $m$ 的余数相同。由整除的线性组合性质，同余可相加、相减、相乘，因而可取非负整数次幂。
+
+同余不能任意约去因子。例如 $2\cdot1\equiv2\cdot3\pmod4$，却有 $1\not\equiv3\pmod4$。若 $\gcd(c,m)=1$，则由 Bézout 等式可把 $c$ 消去：$m\mid c(a-b)$ 蕴含 $m\mid(a-b)$。十进制整数模 $9$ 等于各位数字和模 $9$，因为 $10\equiv1\pmod9$；求末位则在模 $10$ 下计算幂。
+
+\section{整数方程与整除论证}
+\begin{theorem}
+设 $a,b$ 为正整数，$c\in\mathbb Z$，$d=\gcd(a,b)$。方程 $ax+by=c$ 有整数解当且仅当 $d\mid c$。若 $(x_0,y_0)$ 是一个解，则全部整数解为
+\[
+ x=x_0+\frac bd t,\qquad y=y_0-\frac ad t,\qquad t\in\mathbb Z.
+\]
+\end{theorem}
+\begin{proof}
+必要性来自 $d$ 整除左端；充分性由式 \eqref{eq:em-bezout} 乘以整数 $c/d$ 得到。任意两解之差满足 $(a/d)(x-x_0)=-(b/d)(y-y_0)$。两系数互素，因此 $b/d$ 整除 $x-x_0$，得到上述表示；反向代入验证每个这样的数对都是解。
+\end{proof}
+若还要求非负解，只需对参数 $t$ 加上对应的两个线性不等式。模运算也能排除解：整数平方模 $4$ 只可能为 $0$ 或 $1$，故 $x^2+y^2=4k+3$ 没有整数解。
+
+\section{例题、习题与学习检查}
+\begin{example}
+求 $6x+15y=21$ 的全部非负整数解。
+\end{example}
+\begin{solve}
+除以 $3$ 得 $2x+5y=7$，特解为 $(1,1)$，全部整数解为 $x=1+5t,y=1-2t$。非负要求 $t\ge-1/5$ 且 $t\le1/2$，整数 $t$ 只能为 $0$，故答案为 $(1,1)$。
+\end{solve}
+\begin{enumerate}
+\item 求 $\gcd(252,198)$ 及一个 Bézout 表示。答：$18=4\cdot252-5\cdot198$。
+\item 求 $7^{2026}$ 的末位数字。答：$9$；幂的末位以 $7,9,3,1$ 循环。
+\item 证明两个连续整数互素，并据此证明 $n(n+1)$ 为偶数。第一问取公因数整除两者之差，第二问也可直接按奇偶分类。
+\end{enumerate}
+

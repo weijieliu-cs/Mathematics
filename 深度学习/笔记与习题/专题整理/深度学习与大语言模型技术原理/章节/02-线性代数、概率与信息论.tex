@@ -1,0 +1,101 @@
+% !TeX root = ../深度学习与大语言模型技术原理.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{线性代数、概率与信息论}
+\label{ch:probability}
+
+\section{矩阵、子空间与低秩近似}
+
+神经网络中的矩阵既是参数数组，也是从输入空间到输出空间的线性映射。若 $W\in\mathbb R^{m\times n}$，则其秩等于输出能够张成的子空间维数。$W=BA$、$A\in\mathbb R^{r\times n}$、$B\in\mathbb R^{m\times r}$ 表示先把输入压到 $r$ 维，再映回 $m$ 维，因此 $\operatorname{rank}(BA)\le r$。这一事实是低秩适配节省参数的代数基础，却并不证明任意任务的最优更新都具有低秩。
+
+特征值描述方阵在某个方向上的缩放：$Wv=\lambda v$。非方阵也有\emph{奇异值分解（singular value decomposition, SVD）}：$W=U\Sigma V^\top$，其中 $U,V$ 为正交矩阵，$\Sigma$ 的对角元为非负奇异值 $\sigma_1\ge\sigma_2\ge\cdots$。截断展开 $W_r=\sum_{i=1}^r\sigma_i u_iv_i^\top$ 可以用 $r(m+n)$ 个因子参数近似原矩阵。
+
+\begin{proposition}
+\label{prop:svd-error}
+对上述截断矩阵，$\|W-W_r\|_F^2=\sum_{i>r}\sigma_i^2$，其中 $\|M\|_F^2=\sum_{i,j}M_{ij}^2$。
+\end{proposition}
+\begin{proof}
+矩阵 $u_iv_i^\top$ 关于 Frobenius 内积正交，因为
+\[
+\langle u_iv_i^\top,u_jv_j^\top\rangle_F
+=(u_i^\top u_j)(v_i^\top v_j)=\mathbf 1\{i=j\}.
+\]
+对 $W-W_r=\sum_{i>r}\sigma_i u_iv_i^\top$ 展开平方范数，交叉项均为零，即得结论。
+\end{proof}
+
+这个误差衡量权重矩阵本身的变化，真正关心的输出误差还依赖输入。若输入随机向量 $X$ 有有限二阶矩，令 $\Delta W=\widehat W-W$，则
+\begin{equation}
+\mathbb E\|\Delta W X\|_2^2
+=\operatorname{tr}\!\left(\Delta W\,\mathbb E[XX^\top]\,\Delta W^\top\right).
+\label{eq:activation-error}
+\end{equation}
+因此同样大小的权重误差，落在高频激活方向上时可能产生更大输出误差。这一观察连接后文的激活感知量化与剪枝。
+
+\section{条件分布、最大似然与交叉熵}
+
+给定输入 $x$ 和离散目标 $y\in\{1,\ldots,V\}$，模型输出实数得分 $z_\theta(x)\in\mathbb R^V$，称为 logits。\emph{软最大函数（softmax）}把它变成分布：
+\[
+p_\theta(y=j\mid x)=\frac{\exp(z_j)}{\sum_{k=1}^V\exp(z_k)}.
+\]
+计算时先减去 $m=\max_jz_j$，因为同时平移所有得分不改变概率，却能避免指数上溢。不要先在低精度中计算极小概率再取对数；应直接计算 $\log p_j=z_j-\operatorname{logsumexp}(z)$。
+
+对独立同分布样本 $(x_i,y_i)_{i=1}^N$，条件最大似然等价于最小化经验负对数似然
+\begin{equation}
+\widehat{\mathcal L}(\theta)=-\frac1N\sum_{i=1}^N\log p_\theta(y_i\mid x_i).
+\label{eq:nll}
+\end{equation}
+这里的独立性是假设样本级似然可以相乘，并不要求单个句子中的词元独立。对 one-hot 标签向量 $e_y$，单样本损失也写为交叉熵 $-\sum_j(e_y)_j\log p_j$。直接求导得到
+\begin{equation}
+\frac{\partial\mathcal L}{\partial z_j}=p_j-\mathbf1\{j=y\}.
+\label{eq:ce-gradient}
+\end{equation}
+它一方面抬高正确类别的得分，另一方面按当前概率降低其他类别的得分。交叉熵适用于语言建模，根本原因是语言模型要学习条件概率，而不只是因为该损失容易求导。
+
+\section{熵、散度与互信息}
+
+\begin{definition}
+设 $p,q$ 是同一有限集合上的概率分布。其熵、交叉熵与 Kullback--Leibler 散度分别为
+\[
+H(p)=-\sum_xp(x)\log p(x),\qquad
+H(p,q)=-\sum_xp(x)\log q(x),
+\]
+\[
+D_{\mathrm{KL}}(p\|q)=\sum_xp(x)\log\frac{p(x)}{q(x)}.
+\]
+约定 $0\log0=0$；若存在 $p(x)>0$ 而 $q(x)=0$，后两式取 $+\infty$。
+\end{definition}
+
+在值有限时，$H(p,q)=H(p)+D_{\mathrm{KL}}(p\|q)$。总体目标中的真实数据分布 $p$ 固定，因此最小化交叉熵等价于最小化该方向的 KL 散度；有限样本、有限模型容量和不充分优化都会使结果偏离真实分布。
+
+\begin{proposition}
+\label{prop:kl-nonnegative}
+有限集合上的 $D_{\mathrm{KL}}(p\|q)\ge0$，且等号当且仅当 $p=q$。
+\end{proposition}
+\begin{proof}
+若散度无穷大，结论成立。否则在 $p(x)>0$ 的点上使用 $-\log u\ge1-u$，得
+\[
+D_{\mathrm{KL}}(p\|q)\ge\sum_{p(x)>0}(p(x)-q(x))\ge0.
+\]
+等号要求每个这样的点上 $q(x)/p(x)=1$，且 $q$ 在其余点上没有质量，所以 $p=q$。
+\end{proof}
+
+KL 不对称。$D_{\mathrm{KL}}(p\|q)$ 在 $p$ 的高概率区域惩罚 $q$ 过小，反向散度则在 $q$ 经常访问的位置评估差异。所谓前向 KL 更重覆盖、反向 KL 更易集中于部分峰，是对受限模型族优化行为的常见解释，并不是不加条件的定理。Jensen--Shannon 散度定义为
+\[
+D_{\mathrm{JS}}(p,q)=\tfrac12D_{\mathrm{KL}}(p\|m)+\tfrac12D_{\mathrm{KL}}(q\|m),\qquad m=\tfrac12(p+q),
+\]
+它对称且在自然对数下位于 $[0,\log2]$，因为每点上 $p/m\le2$、$q/m\le2$。
+
+随机变量 $X,Y$ 的\emph{互信息（mutual information）}为 $I(X;Y)=D_{\mathrm{KL}}(p_{XY}\|p_Xp_Y)$，刻画联合分布偏离独立的程度。在熵有限时有 $I(X;Y)=H(X)-H(X\mid Y)$。相关性或互信息都不自动给出因果关系；模型用某个特征成功预测标签，也不说明干预该特征就能控制目标。
+
+\section{采样、估计与训练分布}
+
+模型生成通常是从条件类别分布逐步采样。若 $Y_i$ 独立同分布且 $f(Y_i)$ 有有限方差，样本均值 $\widehat\mu=N^{-1}\sum_i f(Y_i)$ 无偏，方差为 $\operatorname{Var}(f(Y))/N$。重复生成的候选若相关，或者经筛选后只保留成功样本，就不能继续把它们当成原分布的无偏样本。
+
+当样本来自 $q$ 而目标期望属于 $p$ 时，在 $q$ 覆盖 $p$ 的支持集且相关期望存在的条件下，可用重要性采样恒等式
+\begin{equation}
+\mathbb E_{Y\sim p}[f(Y)]
+=\mathbb E_{Y\sim q}\!\left[\frac{p(Y)}{q(Y)}f(Y)\right].
+\label{eq:importance}
+\end{equation}
+这是后文策略概率比的来源。恒等式并不保证估计方差小，尤其当 $q$ 在 $p$ 的重要区域分配很少质量时，少数极大权重会支配估计。裁剪权重可以降低这种影响，但通常引入偏差。
+

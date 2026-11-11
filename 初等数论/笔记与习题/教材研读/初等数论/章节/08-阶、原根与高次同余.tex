@@ -1,0 +1,158 @@
+% !TeX root = ../初等数论笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{7} % 保留原书章号。
+\chapter{阶、原根与高次同余}
+\label{ch:primitive-roots}
+
+欧拉定理保证 $a^{\varphi(m)}\equiv1\pmod m$，但第一次回到 $1$ 往往更早。例如 $2^3\equiv1\pmod7$，而 $\varphi(7)=6$。最短周期称为乘法阶；若这个周期恰好遍历所有可逆类，对应的底数就是原根。原根的价值在于给乘法建立一个指数坐标，从而把高次同余转化为一次同余。
+
+\section{乘法阶及其整除性质}
+
+\begin{definition}
+若 $m\ge2$ 且 $\gcd(a,m)=1$，使 $a^t\equiv1\pmod m$ 成立的最小正整数 $t$ 称为 $a$ 模 $m$ 的\emph{乘法阶（multiplicative order）}，记为 $\operatorname{ord}_m(a)$。
+\end{definition}
+
+欧拉定理保证至少有一个这样的正指数，因此最小值存在。
+
+模 $7$ 时，$2^0,2^1,2^2,2^3,\ldots$ 的余数为 $1,2,4,1,\ldots$，故 $\operatorname{ord}_7(2)=3$；底数 $3$ 的幂却要经过 $1,3,2,6,4,5$ 六个类后才回到 $1$。阶依赖底数和模数两者，不能只从 $m$ 推断所有底数的阶都等于 $\varphi(m)$。此外，若 $a$ 不可逆，就不存在 $a^t\equiv1$ 的正指数，否则 $a^{t-1}$ 已给出逆元，所以定义中的互素条件不可省略。
+
+\begin{proposition}
+\label{prop:order}
+令 $t=\operatorname{ord}_m(a)$。对正整数 $k$，$a^k\equiv1\pmod m$ 当且仅当 $t\mid k$；特别地，$t\mid\varphi(m)$。此外
+\begin{equation}
+ \operatorname{ord}_m(a^k)=\frac{t}{\gcd(t,k)}.
+ \label{eq:order-power}
+\end{equation}
+\end{proposition}
+\begin{proof}
+写 $k=qt+r$、$0\le r<t$，则 $a^k\equiv a^r$；由 $t$ 的最小性，$a^k\equiv1$ 当且仅当 $r=0$。对第二式，$(a^k)^s\equiv1$ 等价于 $t\mid ks$，满足该条件的最小正整数 $s$ 为 $t/\gcd(t,k)$。
+\end{proof}
+
+若 $b>1$ 且 $\gcd(b,10)=1$，长除法产生的余数序列是 $10^j\pmod b$；首次回到余数 $1$ 的时间恰为 $\operatorname{ord}_b(10)$，这就是 $1/b$ 的十进制最小循环节长度。例如 $10\equiv3\pmod7$，$3$ 模 $7$ 的阶为 $6$，故 $1/7$ 的循环节长为 $6$。
+
+\begin{example}[先列周期的约数，再排除]
+求 $\operatorname{ord}_{17}(4)$。
+\end{example}
+\begin{solve}
+阶必须整除 $16$，候选值只有 $1,2,4,8,16$。计算 $4^2\equiv-1\pmod{17}$，得 $4^4\equiv1$，而 $4\not\equiv1$、$4^2\not\equiv1$，所以阶为 $4$。先用整除关系缩小范围，比逐项计算直至重复更有条理。
+\end{solve}
+
+更一般地，对与 $10$ 互素的 $b>1$ 及 $1\le a<b$、$\gcd(a,b)=1$，分数 $a/b$ 的最小循环节也为 $\operatorname{ord}_b(10)$。长除法每一步的余数满足 $r_{j+1}\equiv10r_j\pmod b$，初值 $r_0=a$；回到初始余数等价于 $10^ja\equiv a$，约去 $a$ 后便得到阶的条件。这说明同分母的既约分数可以有不同的循环数位，却有相同的循环长度。
+
+\section{原根的含义与存在范围}
+
+\begin{definition}
+若 $\operatorname{ord}_m(g)=\varphi(m)$，称 $g$ 为模 $m$ 的\emph{原根（primitive root）}。
+\end{definition}
+
+此时 $g^0,g^1,\ldots,g^{\varphi(m)-1}$ 两两不同，恰好遍历全部可逆类。模 $7$ 时，$3$ 的幂依次为 $1,3,2,6,4,5$，故 $3$ 是原根；模 $8$ 的每个奇数平方均为 $1$，所以没有阶为 $\varphi(8)=4$ 的元素。
+
+\begin{proposition}[原根的实用检验]
+\label{prop:primitive-root-test}
+设 $\gcd(g,m)=1$，$h=\varphi(m)>1$。则 $g$ 为模 $m$ 的原根，当且仅当对 $h$ 的每个不同素因子 $q$，都有 $g^{h/q}\not\equiv1\pmod m$。
+\end{proposition}
+\begin{proof}
+若阶为 $h$，任何正整数 $h/q<h$ 都不能使幂为 $1$。反之，设阶 $t$ 是 $h$ 的真约数，取整数 $h/t>1$ 的一个素因子 $q$，则 $t\mid h/q$，所以 $g^{h/q}\equiv1$，与条件矛盾。
+\end{proof}
+
+例如检验 $2$ 是否为模 $11$ 的原根，只需检查 $10$ 的不同素因子 $2,5$：$2^5\equiv-1$、$2^2\equiv4$，均不为 $1$，所以阶为 $10$。这个方法需要先知道 $\varphi(m)$ 的素因子分解；它是候选原根的检验方法，本身并不证明每个模数都有原根。
+
+\begin{lemma}[模素数的根数界]
+\label{lem:polynomial-roots}
+若整系数多项式 $f$ 模素数 $p$ 后为次数 $d$ 的非零多项式，则 $f(x)\equiv0\pmod p$ 至多有 $d$ 个根类。
+\end{lemma}
+\begin{proof}
+对 $d$ 归纳。非零常数无根。若 $a$ 是根，注意每个差 $x^j-a^j$ 都被多项式 $x-a$ 整除，因为
+\[
+ x^j-a^j=(x-a)(x^{j-1}+ax^{j-2}+\cdots+a^{j-1}).
+\]
+因此 $f(x)-f(a)=(x-a)g(x)$；将系数模 $p$ 约化并使用 $f(a)\equiv0$，得到 $f(x)=(x-a)g(x)$，其中 $g$ 次数为 $d-1$。任意不同于 $a$ 的根 $b$ 都满足 $(b-a)g(b)\equiv0$，由于 $b-a$ 可逆，$g(b)\equiv0$。故除 $a$ 外至多还有 $d-1$ 个根，归纳完成。
+\end{proof}
+
+\begin{theorem}
+\label{thm:prime-primitive-root}
+每个素数模数都有原根。
+\end{theorem}
+\begin{proof}
+目标是构造阶恰为 $p-1$ 的元素。直接寻找可能不容易，但可以先对 $p-1$ 中的每个素数幂构造对应阶的元素，再利用互素性把这些局部周期相乘。
+
+$p=2$ 时取 $1$。对奇素数 $p$，写 $p-1=\prod_i\ell_i^{e_i}$。对每个 $i$，多项式 $X^{(p-1)/\ell_i}-1$ 的根数小于 $p-1$，故存在非零类 $a_i$ 不满足该方程。由阶整除 $p-1$，$\operatorname{ord}_p(a_i)$ 的 $\ell_i$ 因子指数必为 $e_i$。令 $b_i=a_i^{(p-1)/\ell_i^{e_i}}$，由式\eqref{eq:order-power}，$b_i$ 的阶为 $\ell_i^{e_i}$。
+
+若两个可逆类 $u,v$ 的阶为互素的 $r,s$，则 $uv$ 的阶为 $rs$。事实上，$(uv)^k=1$ 给出 $u^k=v^{-k}$，这一公共类的阶同时整除 $r,s$，故它为 $1$，于是 $r\mid k,s\mid k$；反向 $(uv)^{rs}=1$。逐次应用可知 $\prod_i b_i$ 的阶为 $p-1$。
+\end{proof}
+
+\begin{theorem}[原根分类]
+\label{thm:primitive-root-classification}
+整数 $m\ge2$ 存在原根，当且仅当 $m=2,4,p^k,2p^k$，其中 $p$ 为奇素数、$k\ge1$。
+\end{theorem}
+\begin{proof}
+证明分为“这些模数确实有原根”和“其余模数没有原根”。前一部分把模 $p$ 的原根提升到 $p^k$；后一部分把模数拆开，证明不同部分的偶周期会重叠，使总周期达不到全部可逆类的个数。
+
+先证明存在性。$2,4$ 分别取 $1,3$。若 $g$ 为模奇素数 $p$ 的原根，则 $g$ 与 $g+p$ 中至少一个数 $h$ 满足 $h^{p-1}\not\equiv1\pmod{p^2}$，因为二者的 $(p-1)$ 次幂之差模 $p^2$ 为 $(p-1)g^{p-2}p\not\equiv0$。故 $v_p(h^{p-1}-1)=1$。
+
+对 $p\nmid c$、$s\ge1$，二项展开给出
+\[
+ (1+cp^s)^p\equiv1+cp^{s+1}\pmod{p^{s+2}}.
+\]
+这里使用 $p$ 为奇素数。归纳得到 $v_p(h^{(p-1)p^j}-1)=j+1$。模 $p^k$ 的阶既是 $p-1$ 的倍数，又整除 $(p-1)p^{k-1}$；上述指数关系迫使它等于 $(p-1)p^{k-1}$，故 $h$ 为原根。取同一模 $p^k$ 类的奇数代表元，由中国剩余定理，其模 $2p^k$ 的阶不变。
+
+具体地，模 $p^k$ 的阶必形如 $(p-1)p^r$，其中 $0\le r\le k-1$。若 $r<k-1$，上式给出 $v_p(h^{(p-1)p^r}-1)=r+1<k$，这与该幂模 $p^k$ 为 $1$ 矛盾。这一步说明提升后的周期必须达到最大值，而不只是“比原来更长”。
+
+再证必要性。若 $m=uv$，其中 $u,v>2$ 互素，则可逆类的阶整除 $\operatorname{lcm}(\varphi(u),\varphi(v))$；两欧拉函数值均为偶数，所以该最小公倍数严格小于 $\varphi(u)\varphi(v)=\varphi(m)$。这里 $\varphi(n)$ 在 $n>2$ 时为偶数，是因为可逆类可不重复地配成 $a,-a$。于是 $m$ 不能同时含两个不同的奇素因子，也不能既被 $4$ 整除又有奇素因子。余下只需排除 $m=2^k$、$k\ge3$：奇数 $a$ 满足 $a^2\equiv1\pmod8$，逐次平方得 $a^{2^{k-2}}\equiv1\pmod{2^k}$，所以阶小于 $\varphi(2^k)$。
+\end{proof}
+
+\section{指标与幂同余方程}
+
+固定模 $m$ 的原根 $g$，令 $h=\varphi(m)$。每个可逆类 $a$ 唯一写为 $a\equiv g^s\pmod m$，其中 $s$ 在模 $h$ 意义下唯一，称为关于 $g$ 的\emph{指标（index）}或\emph{离散对数（discrete logarithm）}。指标把可逆类的乘法转化为模 $h$ 的加法。
+
+\begin{proposition}
+若模 $m$ 有原根，$k\ge1$、$\gcd(a,m)=1$，令 $d=\gcd(k,\varphi(m))$，则 $x^k\equiv a\pmod m$ 可解当且仅当 $a^{\varphi(m)/d}\equiv1\pmod m$；可解时恰有 $d$ 个根类。
+\end{proposition}
+\begin{proof}
+任何解 $x$ 必可逆，否则其与 $m$ 的某个公共素因子也整除 $a$。写 $x=g^t,a=g^s$，原方程等价于 $kt\equiv s\pmod h$，可解当且仅当 $d\mid s$，且恰有 $d$ 个指数类。另一方面，$a^{h/d}=1$ 等价于 $h\mid sh/d$，也就是 $d\mid s$。
+\end{proof}
+
+例如模 $7$ 取原根 $3$，$2\equiv3^2$，则 $x^2\equiv2$ 等价于 $2t\equiv2\pmod6$，得到 $t\equiv1,4\pmod6$，即 $x\equiv3,4\pmod7$。无原根的模数不能直接使用这一化简。
+
+\begin{example}[先求指数，再还原根]
+求 $x^3\equiv8\pmod{13}$ 的全部根类。
+\end{example}
+\begin{solve}
+$2^6\equiv-1$、$2^4\equiv3\pmod{13}$，由命题\ref{prop:primitive-root-test}，$2$ 是模 $13$ 的原根。因 $8=2^3$，写 $x\equiv2^t$，原式等价于 $3t\equiv3\pmod{12}$，故 $t\equiv1,5,9\pmod{12}$。还原得到 $x\equiv2,6,5\pmod{13}$。三个指数类不同，原根的幂也不同，所以恰有三根；只找出 $x=2$ 会遗漏另外两根。
+\end{solve}
+
+\section{多项式同余与解的提升（选学）}
+
+已知模 $p^j$ 的一个根后，可以尝试保留已有余数，再寻找下一位修正。下述命题中的 $f'(x)$ 是多项式的形式导数：若 $f(x)=\sum_i c_ix^i$，则 $f'(x)=\sum_{i\ge1}ic_ix^{i-1}$。所需恒等式由二项展开即可推出，不要求先学习微积分。
+
+\begin{proposition}[简单根的亨泽尔提升]
+\label{prop:hensel}
+设 $f\in\mathbb Z[x]$，$p$ 为素数，$j\ge1$，$f(r)\equiv0\pmod{p^j}$ 且 $f'(r)\not\equiv0\pmod p$。则根类 $r\pmod{p^j}$ 唯一提升为模 $p^{j+1}$ 的根类。
+\end{proposition}
+\begin{proof}
+所有提升写为 $r+tp^j$，其中 $t\pmod p$。由二项展开，
+\[
+ f(r+tp^j)\equiv f(r)+tp^jf'(r)\pmod{p^{j+1}},
+\]
+因为高次项含 $p^{2j}$，而 $2j\ge j+1$。故所求条件为 $f(r)/p^j+tf'(r)\equiv0\pmod p$，其系数可逆，所以 $t$ 唯一。
+\end{proof}
+
+这称为\emph{亨泽尔提升（Hensel lifting）}。例如 $f(x)=x^2-2$ 的模 $7$ 根 $3$ 提升至模 $49$ 时，$f(3)/7=1$、$f'(3)=6$，故 $1+6t\equiv0\pmod7$，得到 $t=1$，根为 $10$。若导数为零，则可能无提升，也可能有多个提升，需重新求解。
+
+将 $r$ 替换为 $r+tp^j$，等于保留已有的模 $p^j$ 信息，只寻找下一位的修正量 $t$。例如模 $3$ 时 $x=0$ 同时是 $x^2\equiv0$ 与 $x^2\equiv3$ 的根；提升到模 $9$，前者有 $0,3,6$ 三个提升，后者一个也没有。这正说明导数不为零的条件保证的是唯一提升。
+
+\section{习题}
+
+乘法阶是最短正周期，原根使幂恰好遍历全部可逆类。求阶时先检查欧拉函数的约数，解幂同余时先确认原根存在，再将根与指数一一对应。提升根的唯一性还需单独检查导数条件。
+
+\begin{enumerate}
+ \item 求模 $7$ 的全部原根，证明存在原根的模数 $m$ 恰有 $\varphi(\varphi(m))$ 个原根类。
+ \item 求 $1/13$ 的最小循环节长度。
+ \item 求 $x^3\equiv1\pmod7$ 的全部解。
+ \item 将 $x^2\equiv2\pmod7$ 的两个根提升至模 $49$，再代入核查。
+ \item\label{ex:order-list} 求模 $9$ 的每个可逆类的阶，并列出全部原根。
+ \item\label{ex:order-composite} 设整数 $m,n\ge2$。若 $\gcd(m,n)=1$ 且 $\gcd(a,mn)=1$，证明 $\operatorname{ord}_{mn}(a)=\operatorname{lcm}(\operatorname{ord}_m(a),\operatorname{ord}_n(a))$。
+ \item\label{ex:order-sixth} 求 $x^6\equiv1\pmod{13}$ 的全部根类。
+ \item\label{ex:order-singular} 比较模 $3$ 的根 $0$ 在 $x^2\equiv0$ 与 $x^2\equiv3$ 中提升到模 $9$ 的结果；再求 $x^2\equiv0\pmod{27}$ 的全部根类。
+\end{enumerate}
+

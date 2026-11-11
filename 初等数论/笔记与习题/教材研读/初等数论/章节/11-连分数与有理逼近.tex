@@ -1,0 +1,210 @@
+% !TeX root = ../初等数论笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{10} % 保留原书章号。
+\chapter{连分数与有理逼近}
+\label{ch:continued-fractions}
+
+小数展开按十进制位逼近实数，连分数则按分母的大小寻找有理近似。例如 $\sqrt2$ 的近似 $1,3/2,7/5,17/12$，分母并不是 $10$ 的幂，却能迅速提高精度。连分数算法其实就是不断“取整数部分，再把剩余部分取倒数”，与欧几里得算法紧密相连。本章先处理有限展开，再建立无穷展开的误差估计，最后为 Pell 方程准备平方根的周期结构。
+
+\section{有限简单连分数与有理数}
+
+\begin{definition}
+\emph{简单连分数（simple continued fraction）}写为
+\begin{equation}
+ [a_0;a_1,\ldots,a_n]
+ =a_0+\cfrac1{a_1+\cfrac1{\ddots+\cfrac1{a_n}}},
+ \label{eq:finite-continued-fraction}
+\end{equation}
+其中 $a_0\in\mathbb Z$，$a_1,\ldots,a_n$ 为正整数；$n=0$ 时值为 $a_0$。
+\end{definition}
+
+对有理数 $\alpha$，令 $a_0=\lfloor\alpha\rfloor$。若余下的小数部分非零，取倒数再重复取整；这是欧几里得算法的另一种写法，分母随带余除法下降，因而有限步终止。反之，有限连分数由有理运算构成，值必为有理数。
+
+若末项为 $1$，可用 $[\ldots,a,1]=[\ldots,a+1]$ 合并。规定非整数的有限展开末项至少为 $2$，则每步的整数部分被唯一确定，得到唯一的规范展开。例如
+\[
+ 415=4\cdot93+43,\quad93=2\cdot43+7,\quad43=6\cdot7+1,
+\]
+故 $415/93=[4;2,6,7]$。
+
+将除法写成分数形式，更容易看见每个部分商的来源：
+\[
+ \frac{415}{93}=4+\frac{43}{93},\qquad
+ \frac{93}{43}=2+\frac7{43},\qquad
+ \frac{43}{7}=6+\frac17.
+\]
+依次代回就得到 $4+1/(2+1/(6+1/7))$。规范条件也有实际作用，例如 $[1;2]=3/2=[1;1,1]$，所以不限制最后一项就谈不上展开唯一。对负数仍采用向下取整：$-7/3=-3+2/3$，从而规范展开为 $[-3;1,2]$。
+
+\section{渐近分数与递推关系}
+
+截取前 $k+1$ 项得到的 $P_k/Q_k=[a_0;a_1,\ldots,a_k]$ 称为\emph{渐近分数（convergent，又称收敛分数）}。令
+\begin{equation}
+ P_{-2}=0,\quad P_{-1}=1,\qquad Q_{-2}=1,\quad Q_{-1}=0,
+ \label{eq:convergent-initial}
+\end{equation}
+并递推
+\begin{equation}
+ P_k=a_kP_{k-1}+P_{k-2},\qquad
+ Q_k=a_kQ_{k-1}+Q_{k-2}.
+ \label{eq:convergent-recurrence}
+\end{equation}
+这些公式可由矩阵恒等式直接验证：
+\[
+ \begin{pmatrix}a_0&1\\1&0\end{pmatrix}\cdots
+ \begin{pmatrix}a_k&1\\1&0\end{pmatrix}
+ =\begin{pmatrix}P_k&P_{k-1}\\Q_k&Q_{k-1}\end{pmatrix}.
+\]
+每个左侧矩阵表示分式变换 $t\mapsto a_j+1/t$，连乘表示依次代入；取行列式得到
+\begin{equation}
+ P_kQ_{k-1}-P_{k-1}Q_k=(-1)^{k+1},\qquad k\ge0.
+ \label{eq:convergent-determinant}
+\end{equation}
+因此 $\gcd(P_k,Q_k)=1$，相邻渐近分数之差的绝对值为 $1/(Q_kQ_{k-1})$（$k\ge1$）。$Q_0=1$，$Q_k>0$，且 $Q_{k+2}\ge Q_{k+1}+Q_k$，所以无限展开的分母趋于无穷。
+
+初始值中的负下标只是统一递推的辅助记号，不代表额外的连分数项。代入 $k=0$ 得 $P_0=a_0,Q_0=1$；代入 $k=1$ 得 $P_1=a_1a_0+1,Q_1=a_1$，恰为 $a_0+1/a_1$。对 $[4;2,6,7]$，计算如下：
+\[
+\begin{array}{c|r|r|r|c}
+k&a_k&P_k&Q_k&P_k/Q_k\\\hline
+0&4&4&1&4\\
+1&2&9&2&9/2\\
+2&6&58&13&58/13\\
+3&7&415&93&415/93
+\end{array}
+\]
+例如 $58\cdot2-9\cdot13=-1$，所以 $58,13$ 的任何公因数都整除 $1$。行列式恒等式同时解释了约分后的分母为什么已经是 $Q_k$，以及相邻分数为何彼此接近。
+
+\section{无限连分数与误差估计}
+
+对无理实数 $\alpha$，定义完整商 $\alpha_0=\alpha$、$a_k=\lfloor\alpha_k\rfloor$、$\alpha_{k+1}=1/(\alpha_k-a_k)$。过程不会终止，否则反向代入会使 $\alpha$ 为有理数；并且 $k\ge1$ 时 $\alpha_k>1$、$a_k\ge1$。矩阵恒等式给出
+\begin{equation}
+ \alpha=\frac{P_k\alpha_{k+1}+P_{k-1}}
+ {Q_k\alpha_{k+1}+Q_{k-1}}.
+ \label{eq:complete-quotient}
+\end{equation}
+由式\eqref{eq:convergent-determinant}，
+\begin{equation}
+ \alpha-\frac{P_k}{Q_k}
+ =\frac{(-1)^k}{Q_k(Q_k\alpha_{k+1}+Q_{k-1})},\qquad
+ \left|\alpha-\frac{P_k}{Q_k}\right|<\frac1{Q_kQ_{k+1}}.
+ \label{eq:convergent-error}
+\end{equation}
+后一不等式使用 $\alpha_{k+1}>a_{k+1}$。因此偶数下标的渐近分数在 $\alpha$ 左侧，奇数下标的在右侧，且都收敛于 $\alpha$。
+
+误差式也说明下一个部分商的意义：若 $a_{k+1}$ 较大，则 $Q_{k+1}=a_{k+1}Q_k+Q_{k-1}$ 较大，当前近似 $P_k/Q_k$ 的误差就更小。误差应与分母一起比较，不能只看小数位数；分母很大的分数获得较小误差，本身未必说明它是高效的逼近。
+
+\begin{example}[不依赖小数展开的误差计算]
+比较 $7/5$、$17/12$ 与 $\sqrt2$ 的大小，并估计后一个近似的误差。
+\end{example}
+\begin{solve}
+因为 $7^2-2\cdot5^2=-1$、$17^2-2\cdot12^2=1$，有 $7/5<\sqrt2<17/12$。有理化给出精确表达式
+\[
+ \frac{17}{12}-\sqrt2
+ =\frac{1}{12^2(17/12+\sqrt2)}.
+\]
+下一渐近分数为 $41/29$，所以式\eqref{eq:convergent-error}还给出误差小于 $1/(12\cdot29)$。前式来自平方差，后式来自连分数的一般理论；两条路线相互核对，并为后章的 Pell 方程建立联系。
+\end{solve}
+
+反过来，任意满足部分商条件的无限序列也确定一个无理极限。由递推，偶数子列严格递增、奇数子列严格递减，二者交错且相邻差趋于零，所以趋于同一实数。若极限为既约分数 $A/B$，它不同于每个渐近分数，故误差至少为 $1/(BQ_k)$；但嵌套区间给出的误差至多为 $1/(Q_kQ_{k+1})$，当 $Q_{k+1}>B$ 时矛盾。分式变换的连续性又使极限的取整展开恢复原部分商序列。
+
+\begin{lemma}[第二类逼近性质]
+\label{lem:best-approximation}
+设 $\alpha$ 无理，$k\ge0$。若整数 $a,b$ 满足 $0<b<Q_{k+1}$，且 $a/b\ne P_k/Q_k$，则
+\[
+ |b\alpha-a|\ge|Q_k\alpha-P_k|.
+\]
+\end{lemma}
+\begin{proof}
+由式\eqref{eq:convergent-determinant}，相邻两列组成的矩阵行列式为 $\pm1$，消元所得逆矩阵仍为整数矩阵，故唯一存在整数 $u,v$ 使
+\[
+ (a,b)=u(P_k,Q_k)+v(P_{k+1},Q_{k+1}).
+\]
+$v=0$ 会使分数相等，故 $v\ne0$。由 $0<b<Q_{k+1}$，若 $v>0$ 必有 $u<0$，若 $v<0$ 必有 $u>0$。两误差 $Q_k\alpha-P_k$ 与 $Q_{k+1}\alpha-P_{k+1}$ 符号相反，因此乘以异号的 $u,v$ 后同号相加，绝对值至少为 $|Q_k\alpha-P_k|$。
+\end{proof}
+
+\begin{theorem}[勒让德逼近判据（Legendre's approximation criterion）]
+\label{thm:legendre-approximation}
+若 $a/b$ 既约、$b>0$，且 $|\alpha-a/b|<1/(2b^2)$，则 $a/b$ 是无理数 $\alpha$ 的一个渐近分数。
+\end{theorem}
+\begin{proof}
+选取最大的 $k$ 使 $Q_k\le b$，则 $b<Q_{k+1}$。若分数不等于 $P_k/Q_k$，由引理\ref{lem:best-approximation}得
+\[
+ 1\le|aQ_k-bP_k|
+ \le Q_k|a-b\alpha|+b|Q_k\alpha-P_k|
+ \le(Q_k+b)|a-b\alpha|<1,
+\]
+矛盾。这里最后使用 $Q_k\le b$ 与假定误差界。
+\end{proof}
+
+该引理比较的是 $|b\alpha-a|$，不是在任意分母范围内无条件最小化 $|\alpha-a/b|$；两类“最佳逼近”不能混用。
+
+勒让德判据的方向同样需要留意：满足 $1/(2b^2)$ 的严格误差界，足以保证一个既约分数是渐近分数；它没有断言每个渐近分数都满足这个更强的误差界。下一章会从整数方程导出这一误差界，进而把无限多个可能的分数缩小为一个按递推生成的序列。
+
+\section{周期连分数与二次无理数}
+
+\emph{二次无理数（quadratic irrational）}是满足整系数二次方程的无理实数。以下证明后章所需的平方根周期性。
+
+\begin{theorem}[平方根的周期展开]
+\label{thm:sqrt-period}
+若 $D$ 为非平方正整数，$a_0=\lfloor\sqrt D\rfloor$，则
+\[
+ \sqrt D=[a_0;\overline{a_1,\ldots,a_{\ell-1},2a_0}],
+\]
+其中横线表示不断重复，$\ell\ge1$ 为最小周期长度。
+\end{theorem}
+\begin{proof}
+将完整商写为 $\alpha_j=(\sqrt D+B_j)/C_j$，从 $B_0=0,C_0=1$ 开始，直接有理化得到
+\begin{equation}
+ B_{j+1}=a_jC_j-B_j,\qquad
+ C_{j+1}=\frac{D-B_{j+1}^2}{C_j}.
+ \label{eq:surd-recurrence}
+\end{equation}
+由 $C_j\mid D-B_j^2$ 归纳知各 $B_j,C_j$ 均为整数且保持这一整除条件。
+
+记 $\alpha_j'=(B_j-\sqrt D)/C_j$ 为共轭值。$\alpha_1>1$ 且 $-1<\alpha_1'=1/(-\sqrt D-a_0)<0$。若此性质对 $j$ 成立，则 $\alpha_{j+1}>1$，且 $\alpha_{j+1}'=1/(\alpha_j'-a_j)\in(-1,0)$。所以对 $j\ge1$，$C_j>0$，并由
+\[
+ \alpha_j-\alpha_j'=\frac{2\sqrt D}{C_j}>1
+\]
+得 $C_j<2\sqrt D$，又有 $-\sqrt D<B_j<\sqrt D$。整数状态 $(B_j,C_j)$ 只有有限种，故必重复。
+
+转移在这些状态上可逆：给定 $\alpha_{j+1}'$，由 $-1/\alpha_{j+1}'=a_j-\alpha_j'\in(a_j,a_j+1)$ 唯一恢复 $a_j$，进而恢复 $\alpha_j$。因此从 $\alpha_1$ 起即为一个循环。数 $\beta=\sqrt D+a_0$ 同样满足 $\beta>1,-1<\beta'<0$，且其下一完整商为 $\alpha_1$，所以它是循环中 $\alpha_1$ 的前一项，即 $\alpha_\ell=\beta$。其整数部分为 $2a_0$，定理得证。
+\end{proof}
+
+证明还给出整数算法：用式\eqref{eq:surd-recurrence}迭代，并取 $a_j=\lfloor(a_0+B_j)/C_j\rfloor$。无需浮点近似 $\sqrt D$，因为 $0<\sqrt D-a_0<1$ 不会改变该商的整数部分。对 $j\ge1$，$C_j=1$ 当且仅当 $B_j=a_0$，也即当且仅当 $\ell\mid j$；这由 $-1<B_j-\sqrt D<0$ 和循环中状态互异得到。
+
+证明里“状态有限”首先只给出最终重复，而“转移可逆”才进一步排除进入循环前的一段尾巴。若一个确定过程允许两个不同状态进入同一状态，就可能先经过非周期部分再进入周期。这里能从后一个完整商的共轭唯一恢复前一步，所以从 $\alpha_1$ 起就是循环。这是周期证明中不能省略的逻辑环节。
+
+\begin{example}[平方根展开的整数计算表]
+求 $\sqrt{14}$ 的周期连分数。
+\end{example}
+\begin{solve}
+$a_0=3$，从 $(B_0,C_0)=(0,1)$ 开始，使用式\eqref{eq:surd-recurrence}，得到
+\[
+\begin{array}{c|r|r|r}
+j&B_j&C_j&a_j\\\hline
+0&0&1&3\\
+1&3&5&1\\
+2&2&2&2\\
+3&2&5&1\\
+4&3&1&6\\
+5&3&5&1
+\end{array}
+\]
+第 $5$ 行的状态首次回到第 $1$ 行，故 $\sqrt{14}=[3;\overline{1,2,1,6}]$，最小周期为 $4$。例如第二次更新是 $B_2=1\cdot5-3=2$、$C_2=(14-2^2)/5=2$。整个过程只使用整数除法，避免了舍入误差导致部分商取错的问题。
+\end{solve}
+
+一般的拉格朗日周期定理（Lagrange's periodicity theorem）断言：实数的无限简单连分数最终周期，当且仅当它为二次无理数。这里仅引用一般情形，证明见\cite{mit-periodic}；“最终周期”允许周期前有有限项，不能与从起点开始的纯周期混同。后章只依赖上面已证明的平方根情形。
+
+\section{习题}
+
+连分数递推同时控制分子、分母和误差，相邻渐近分数的行列式为正负一是核心恒等式。平方根展开的周期来自有限整数状态及可逆转移；计算中应分清部分商、完整商和渐近分数三个不同对象。
+
+\begin{enumerate}
+ \item 由递推计算 $[4;2,6,7]$ 的所有渐近分数。
+ \item 证明 $\sqrt2=[1;\overline2]$，计算前五个渐近分数并核对误差符号。
+ \item 用整数状态递推求 $\sqrt3$ 与 $\sqrt{13}$ 的周期。
+ \item 若 $a_k=1$ 对所有 $k\ge1$ 成立，说明分母递推与斐波那契数列的关系。
+ \item\label{ex:cf-negative} 求 $-7/3$ 的规范简单连分数，说明第一项为什么是 $-3$ 而不是 $-2$。
+ \item\label{ex:cf-sqrt-seven} 求 $\sqrt7$ 的最小周期与前四个渐近分数，并核对它们在 $\sqrt7$ 两侧交错。
+ \item\label{ex:cf-neighbors} 设正整数 $a,b,c,d$ 满足 $a/b<c/d$ 且 $bc-ad=1$。若整数 $u,v$ 满足 $v>0$、$a/b<u/v<c/d$，证明 $v\ge b+d$。
+ \item\label{ex:cf-golden} 设 $\alpha=[1;\overline1]$，求 $\alpha$ 满足的二次方程，并由 $\alpha>1$ 确定其值。
+\end{enumerate}
+

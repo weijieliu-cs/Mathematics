@@ -1,0 +1,51 @@
+% !TeX root = ../深度学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{11} % 保留原书章号。
+\chapter{循环神经网络与序列建模}
+\label{chap:dl-rnn}
+预测下一个字符需要过去的信息，处理完整句子又需要适应不同长度。循环网络通过一个重复更新的状态压缩历史，每个时刻使用相同参数；这种共享使模型长度可变，也使梯度沿时间反复通过同一结构。
+
+\section{序列任务、时间信息与因果约束}
+序列到单值任务可用整段输入判断类别，序列到序列任务输出一串目标。\emph{自回归（autoregressive）}预测在位置 $t$ 仅使用此前位置，条件分布写成 $p_\theta(x_t\mid x_{<t})$；在线时间预测还须明确哪些外生信息在预测时已知。离线分析整段数据可使用未来位置，在线预测一般不允许，因此同一网络结构在不同任务中可能有不同合法性。
+
+变长序列需要掩码控制有效损失和状态更新；填充值只是计算占位，不应无意充当真实观测。时间预测的训练验证划分通常保持时间顺序，对重叠窗口还应避免相同目标跨划分复用。双向网络同时读入左右上下文，适合允许完整输入的分析任务，不能直接作为不读取未来的在线预测器。
+
+\section{循环状态与参数共享}
+\emph{循环神经网络（recurrent neural network, RNN）}的基本状态更新为
+\begin{equation}
+\mathbf h_t=\phi(\mathbf W_x\mathbf x_t+\mathbf W_h\mathbf h_{t-1}+\mathbf b),
+\qquad \widehat{\mathbf y}_t=\mathbf W_o\mathbf h_t+\mathbf b_o.
+\label{eq:dl-rnn-state}
+\end{equation}
+若输入维度为 $d$、隐藏维度为 $h$、输出维度为 $m$，则 $\mathbf W_x\in\mathbb R^{h\times d}$、$\mathbf W_h\in\mathbb R^{h\times h}$、$\mathbf W_o\in\mathbb R^{m\times h}$。初始状态可设零或另行学习，所有时刻共享这些参数，因此参数量不随序列长度增长。
+
+状态 $\mathbf h_t$ 是整个前缀的确定性函数，但有限维状态不保证完整保存所有历史。多层 RNN 把下层同一时刻的输出送入上层，时间方向和深度方向是两种不同索引。把不相关序列拼进一个批量时应各自维护初始状态，不能让上一条样本的状态意外成为下一条样本的历史。
+
+\section{沿时间反向传播与梯度控制}
+\emph{沿时间反向传播（backpropagation through time, BPTT）}把有限序列展开成普通计算图。设 $\ell=\sum_t\ell_t$，每个共享参数的梯度是它在所有时间结点上的贡献之和。在逐元素可微激活下，令 $\mathbf a_t=\mathbf W_x\mathbf x_t+\mathbf W_h\mathbf h_{t-1}+\mathbf b$，相邻状态的雅可比为 $\mathbf J_t=\operatorname{diag}(\phi'(\mathbf a_t))\mathbf W_h$，远处依赖包含 $\mathbf J_t\cdots\mathbf J_{s+1}$。
+
+由矩阵范数次乘性，乘积范数不超过各因子范数乘积，因此反复收缩可能使远期梯度很小，反复放大可能导致爆炸；单个权重矩阵的特征值不能完全刻画状态依赖的非线性乘积。截断 BPTT 将超过指定窗口的状态视作常量，减少成本但舍弃远期梯度。全局梯度裁剪 $\mathbf g\leftarrow\mathbf g\min(1,c/\|\mathbf g\|_2)$（零梯度保持零）限制大梯度，不能恢复已经消失的信息。
+
+\section{门控循环单元与编码器--解码器}
+\emph{长短期记忆（long short-term memory, LSTM）}引入细胞状态 $\mathbf c_t$。令 $\mathbf u_t=[\mathbf x_t;\mathbf h_{t-1}]$，定义遗忘门、输入门、输出门 $\mathbf f_t=\sigma(\mathbf W_f\mathbf u_t+\mathbf b_f)$、$\mathbf i_t=\sigma(\mathbf W_i\mathbf u_t+\mathbf b_i)$、$\mathbf o_t=\sigma(\mathbf W_o\mathbf u_t+\mathbf b_o)$，候选 $\widetilde{\mathbf c}_t=\tanh(\mathbf W_c\mathbf u_t+\mathbf b_c)$，并更新
+\[
+\mathbf c_t=\mathbf f_t\odot\mathbf c_{t-1}+\mathbf i_t\odot\widetilde{\mathbf c}_t,
+\qquad \mathbf h_t=\mathbf o_t\odot\tanh\mathbf c_t.
+\]
+这里各门与状态同维，$\mathbf W_o$ 在本段是输出门参数。加性路径使信息可在遗忘门接近一时保留，仍不保证任意长依赖都能学得。
+
+\emph{门控循环单元（gated recurrent unit, GRU）}可采用 $\mathbf r_t=\sigma(\mathbf W_r\mathbf x_t+\mathbf U_r\mathbf h_{t-1}+\mathbf b_r)$、$\mathbf z_t=\sigma(\mathbf W_z\mathbf x_t+\mathbf U_z\mathbf h_{t-1}+\mathbf b_z)$，候选 $\widetilde{\mathbf h}_t=\tanh(\mathbf W\mathbf x_t+\mathbf U(\mathbf r_t\odot\mathbf h_{t-1})+\mathbf b)$，再令 $\mathbf h_t=(1-\mathbf z_t)\odot\mathbf h_{t-1}+\mathbf z_t\odot\widetilde{\mathbf h}_t$。此处更新门定义为新候选的权重，其他约定可能相反。编码器--解码器先编码输入，再条件生成目标；\emph{教师强制（teacher forcing）}在训练时给解码器真实前一目标，生成时则使用自身已生成内容，二者前缀分布可能不同。
+
+\section{例题与习题}
+\begin{example}[共享权重的时间梯度]
+考虑标量线性递推 $h_t=wh_{t-1}+x_t$，$h_0=0$，输入 $x_1=1,x_2=2$，损失为 $h_2^2/2$。求 $w=1$ 时的损失和梯度。
+\end{example}
+\begin{solve}
+$h_1=1,h_2=w+2$，故 $w=1$ 时损失为 $9/2$，梯度为 $h_2\,dh_2/dw=3$。递推求导也得到 $dh_1/dw=0$、$dh_2/dw=h_1+w\,dh_1/dw=1$。较长序列须继续累积共享参数的各时刻贡献。
+\end{solve}
+\begin{enumerate}
+\item 写出 $h_t=wh_{t-1}+x_t$ 的 $dh_t/dw$ 递推，说明直接依赖和经历史状态的依赖各是什么。
+\item 在上述 GRU 约定下讨论更新门趋近零或一的行为，核对各矩阵维度。
+\item 用延迟复制任务比较简单 RNN 与门控网络，固定参数量范围和训练预算，并测试不同序列长度。
+\end{enumerate}
+

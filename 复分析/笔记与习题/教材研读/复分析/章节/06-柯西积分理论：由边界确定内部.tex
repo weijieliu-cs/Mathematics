@@ -1,0 +1,229 @@
+% !TeX root = ../复分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{5} % 保留原书章号。
+\chapter{柯西积分理论：由边界确定内部}
+\label{chap:ca-cauchy}
+
+\section{三角形上的柯西--古尔萨定理}
+
+第~\ref{chap:ca-integral} 章已经说明，有原函数就有闭路积分为零。现在反过来问：只知道函数全纯，能否推出闭路积分为零？答案首先在小三角形上成立，再通过定义域的拓扑性质推广到较大的路径。局部结论只用复可导性，不需要事先假设导数连续。
+
+\begin{theorem}[柯西--古尔萨定理的三角形形式]
+\label{thm:ca-goursat}
+设闭三角形 $T$ 及其边界包含于开集 $U$，$f$ 在 $U$ 全纯，则
+\[
+ \oint_{\partial T}f(z)\,\mathrm dz=0.
+\]
+边界按正向行进。
+\end{theorem}
+\begin{proof}
+将三边中点连接，把 $T$ 分成四个小三角形。按正向相加各小三角形的边界积分，内部边方向相反而抵消，所以至少有一个小三角形 $T_1$ 的积分模不小于原积分模的 $1/4$。反复选择，得到嵌套三角形 $T_n$，其直径和周长分别为原来的 $2^{-n}$，且
+\[
+ \left|\oint_{\partial T}f\,\mathrm dz\right|
+ \le4^n\left|\oint_{\partial T_n}f\,\mathrm dz\right|.
+\]
+由闭集嵌套和直径趋零，交集只有一点 $a\in T$。复可导性给出
+\[
+ f(z)=f(a)+f'(a)(z-a)+(z-a)\varepsilon(z),
+ \qquad\varepsilon(z)\to0\quad(z\to a).
+\]
+前两项有原函数，其闭路积分为零。给定 $\eta>0$，取 $n$ 足够大，使 $T_n$ 上的余项系数满足 $|\varepsilon(z)|\le\eta$。若原三角形直径为 $d$、周长为 $L$，则长乘高估计给出
+\[
+ \left|\oint_{\partial T_n}f\,\mathrm dz\right|
+ \le\eta\frac d{2^n}\frac L{2^n}.
+\]
+故原积分的模不超过 $\eta dL$。由于 $\eta$ 任意，原积分为零。
+\end{proof}
+
+证明中的关键是两个缩小因子：三角形的尺度缩小控制了余项中的 $|z-a|$，周长缩小又提供一个因子，两者恰好抵消反复选取时出现的 $4^n$。这个证明避免了提前使用 $f'$ 连续，也避免了提前假设泰勒展开。
+
+\begin{corollary}[凸区域上的原函数]
+\label{cor:ca-convex-primitive}
+若 $D$ 为凸区域，$f$ 在 $D$ 全纯，则 $f$ 在 $D$ 有原函数，因而所有位于 $D$ 的分段 $C^1$ 闭曲线积分均为零。
+\end{corollary}
+\begin{proof}
+固定 $z_0\in D$，沿线段定义 $F(z)=\int_{[z_0,z]}f(\zeta)\,\mathrm d\zeta$。由凸性，顶点为 $z_0,z,z+h$ 的三角形完全位于 $D$，三角形积分为零使
+\[
+ F(z+h)-F(z)=\int_{[z,z+h]}f(\zeta)\,\mathrm d\zeta.
+\]
+与定理~\ref{thm:ca-primitive-equivalence} 中的差商计算相同，得到 $F'=f$。特别地，每个全纯函数在足够小的圆盘上都有原函数。
+\end{proof}
+
+\section{从局部到整体：路径变形与孔洞}
+
+\begin{theorem}[同伦不变性与单连通形式]
+\label{thm:ca-cauchy-domain}
+设 $f$ 在区域 $D$ 全纯。两条具有相同端点的分段 $C^1$ 路径，若能在 $D$ 内保持端点不动地连续变形为彼此，则积分相同；闭曲线在 $D$ 内连续变形时，积分也不变。因此，若 $D$ 单连通，则 $D$ 内所有分段 $C^1$ 闭曲线积分为零，且 $f$ 在 $D$ 有原函数。
+\end{theorem}
+\begin{proof}
+设同伦为 $H:[0,1]^2\to D$。其像紧，故可用包含于 $D$、且上面各有 $f$ 的原函数的小圆盘覆盖。由紧性与 $H$ 的一致连续性，可把参数正方形分成足够细的有限矩形网格，使每个小矩形的像包含于某一个这样的圆盘。
+
+把每条网格边的两个像端点用直线段连接。相邻矩形共用同一条线段；由于圆盘凸，这条线段包含于两侧各自选定的圆盘内。每个小矩形所对应的四段折线的积分为零，因为它们在同一个原函数的定义域内。将这些等式相加，内部边相消，只留下外边界。上、下边的折线积分等于原曲线相应子弧的积分，因为每对子弧与线段在同一圆盘内且端点相同。定端点同伦的左右边为常值；闭曲线同伦的左右边相同且方向相反。两种情形都只剩两条待比较曲线的积分之差，因而其差为零。
+\end{proof}
+
+对正向分段光滑简单闭曲线 $\Gamma$，若 $f$ 在曲线及其内部的一个开邻域全纯，则 $\oint_\Gamma f\,\mathrm dz=0$。这里“内部”不可省略。$1/z$ 在单位圆附近全纯，但在内部的原点不全纯，故单位圆积分为 $2\pi i$，并不违背柯西定理。
+
+在同伦不变性中取 $f(z)=1/(z-a)$，可知绕数在避开 $a$ 的闭路同伦下保持不变。绕 $a$ 的圆周绕数为一，常值曲线绕数为零，所以该圆周不能在去掉 $a$ 的区域中收缩。这补足了圆环与去心平面不单连通的依据。单连通区域中的闭路可收缩为常值曲线，其积分因此为零，再由定理~\ref{thm:ca-primitive-equivalence} 得到全局原函数。
+
+还会用到多连通区域的边界形式：若一个有界区域的边界由一条外边界 $\Gamma_0$ 与有限条互不相交的孔洞边界 $\Gamma_1,\ldots,\Gamma_m$ 组成，均为分段光滑简单闭曲线，且 $f$ 在区域闭包的邻域全纯，那么将每条曲线都按逆时针方向记号时，
+\begin{equation}
+ \oint_{\Gamma_0}f\,\mathrm dz
+ =\sum_{j=1}^m\oint_{\Gamma_j}f\,\mathrm dz.
+ \label{eq:ca-boundary-deformation}
+\end{equation}
+理解这个符号的办法是把区域切开成无孔部分：切口两侧积分相消，真正按区域正向行进时，孔洞边界应为顺时针，移到等式右侧才变成逆时针。该切割论证是前述局部原函数与路径变形结论的应用。它允许把围住奇点的大路径变形成奇点附近的小圆，但不能穿过奇点。
+
+\section{柯西积分公式}
+
+\begin{theorem}[柯西积分公式]
+\label{thm:ca-cauchy-formula}
+设 $\Gamma$ 为正向分段光滑简单闭曲线，$f$ 在 $\Gamma$ 及其内部的一个开邻域全纯。对其内部任意一点 $a$，
+\begin{equation}
+ f(a)=\frac1{2\pi i}\oint_\Gamma\frac{f(z)}{z-a}\,\mathrm dz.
+ \label{eq:ca-cauchy-formula}
+\end{equation}
+\end{theorem}
+\begin{proof}
+取以 $a$ 为中心、完全位于内部的小圆 $C_r$。函数 $f(z)/(z-a)$ 在两条曲线之间全纯，故由式~\eqref{eq:ca-boundary-deformation}，大曲线积分等于小圆积分。再拆成
+\[
+ \oint_{C_r}\frac{f(z)}{z-a}\,\mathrm dz
+ =f(a)\oint_{C_r}\frac{\mathrm dz}{z-a}
+ +\oint_{C_r}\frac{f(z)-f(a)}{z-a}\,\mathrm dz.
+\]
+第一项为 $2\pi i f(a)$，第二项的模不超过
+$2\pi\max_{|z-a|=r}|f(z)-f(a)|$，由连续性随 $r\downarrow0$ 趋于零。因此得到公式。
+\end{proof}
+
+公式的含义不是“任何函数都由边界决定”，而是全纯性把内部取值与边界强烈联系起来。若两函数在边界上相同且都满足定理条件，则内部也相同；若只给任意连续边界数据，不一定有全纯函数把它作为完整的复值边界值。第~\ref{chap:ca-harmonic} 章讨论只给实部边界值的另一类问题。
+
+\begin{lemma}
+\label{lem:ca-one-exception}
+设 $g$ 在开集 $U$ 连续，且除一点 $a\in U$ 外全纯，则 $g$ 在 $U$ 内每个圆盘上都有原函数。
+\end{lemma}
+\begin{proof}
+只须验证引理~\ref{lem:ca-triangle-primitive} 的三角形条件。若闭三角形不含 $a$，应用古尔萨定理。若含 $a$，从 $a$ 向顶点连线，将其分成至多三个以 $a$ 为顶点的非退化三角形。在每个子三角形的 $a$ 附近切去一个尺度为 $\varepsilon$ 的小三角形，剩余多边形可以分成有限个避开 $a$ 的三角形，其边界积分为零。由于 $g$ 在 $a$ 附近有界，切除后改变的边界积分由 $ML$ 估计为 $O(\varepsilon)$。令 $\varepsilon\to0$，得到原来各子三角形的边界积分为零，再相加即可。
+\end{proof}
+
+\begin{proof}[柯西积分公式的另一证明]
+令 $U$ 为定理中的开邻域，记正向曲线为 $\gamma=\Gamma$，固定其内部点 $z$，在 $U$ 上定义
+\[
+ g(\zeta)=\begin{cases}
+ \dfrac{f(\zeta)-f(z)}{\zeta-z},&\zeta\ne z,\\
+ f'(z),&\zeta=z.
+ \end{cases}
+\]
+$g$ 连续，且除 $z$ 外全纯。由引理~\ref{lem:ca-one-exception}，它有局部原函数；应用定理~\ref{thm:ca-cauchy-domain} 的同一证明及曲线的可收缩性，得 $\int_\gamma g\,d\zeta=0$。故
+\[
+ \int_\gamma\frac{f(\zeta)}{\zeta-z}\,d\zeta
+ =f(z)\int_\gamma\frac{d\zeta}{\zeta-z}
+ =2\pi i\operatorname{Ind}(\gamma,z)f(z).
+\]
+正向简单闭曲线绕内部点的绕数为 $1$，见附录~\ref{sec:ca-jordan-tool}，于是得到公式。圆周的相应绕数已在式~\eqref{eq:ca-index} 后直接说明，因此圆盘情形不依赖该附录中的一般拓扑结果。
+\end{proof}
+
+\begin{example}[先判断点的位置，再套用公式]
+沿正向圆 $|z|=2$ 计算 $\oint e^z/(z-1)\,\mathrm dz$；再沿正向圆 $|z|=1/2$ 计算同一积分。
+\end{example}
+\begin{solve}
+第一条圆包围 $1$，由柯西积分公式得 $2\pi i e$。第二条圆的内部不含 $1$，整个被积函数在该闭圆盘附近全纯，由柯西定理得零。如果路径恰好经过 $1$，普通曲线积分没有定义，以上两个结论都不能直接使用。
+\end{solve}
+
+\section{高阶导数公式与柯西估计}
+
+\begin{theorem}[高阶导数公式]
+\label{thm:ca-higher-cauchy}
+在定理~\ref{thm:ca-cauchy-formula} 的条件下，$f$ 在曲线内部具有任意阶复导数，且对整数 $n\ge0$，
+\begin{equation}
+ f^{(n)}(a)=\frac{n!}{2\pi i}\oint_\Gamma
+ \frac{f(z)}{(z-a)^{n+1}}\,\mathrm dz.
+ \label{eq:ca-higher-cauchy}
+\end{equation}
+\end{theorem}
+\begin{proof}
+先把 $a$ 限制在内部的一个小闭圆盘内，该闭圆盘与 $\Gamma$ 的距离为正。核 $1/(z-a)$ 对 $a$ 的差商一致趋于 $1/(z-a)^2$：分母因正距离而统一远离零，误差可由常数乘以增量的模控制。因此可把差商极限移入固定曲线积分，得到一阶公式。重复这一论证，每次对核求导产生因子 $n+1$，便得到任意阶公式。核及其各阶导数随 $a$ 连续，因而这些导数也连续。
+
+具体地，记该小闭圆盘到曲线的距离为 $d>0$，当 $0<|h|<d/2$ 时，
+\[
+ \frac1h\left(\frac1{z-a-h}-\frac1{z-a}\right)
+ =\frac1{(z-a-h)(z-a)}.
+\]
+它与 $(z-a)^{-2}$ 之差为 $h/[(z-a-h)(z-a)^2]$，在 $z\in\Gamma$ 上的模不超过 $2|h|/d^3$，这给出所用的一致收敛估计。对高次核重复此论证时，同样保留正距离。每阶导数又有下一阶复导数，因此各阶导数全纯；任意定义域中的点都可先选一个小圆盘，故局部结论覆盖整个定义域。
+\end{proof}
+
+由复导数与实偏导的关系反复使用，全纯函数的实部和虚部都有任意阶连续偏导。这补足了第~\ref{chap:ca-derivative} 章调和性推导中的光滑性条件。
+
+\begin{corollary}[柯西估计]
+\label{cor:ca-cauchy-estimate}
+若 $f$ 在闭圆盘 $\overline{B(a,R)}$ 的邻域全纯，且 $M_R=\max_{|z-a|=R}|f(z)|$，则
+\begin{equation}
+ |f^{(n)}(a)|\le\frac{n!M_R}{R^n},\qquad n\ge0.
+ \label{eq:ca-cauchy-estimate}
+\end{equation}
+\end{corollary}
+\begin{proof}
+在高阶公式中取半径 $R$ 的圆，分母模为 $R^{n+1}$，圆周长为 $2\pi R$。代入长乘高估计即得。
+\end{proof}
+
+\begin{example}[高阶核的积分]
+沿正向圆 $|z|=2$ 计算 $\oint e^{2z}/(z-1)^3\,\mathrm dz$。
+\end{example}
+\begin{solve}
+核的分母三次方对应二阶导数，因此
+\[
+ \oint_{|z|=2}\frac{e^{2z}}{(z-1)^3}\,\mathrm dz
+ =\frac{2\pi i}{2!}\left.\frac{\mathrm d^2}{\mathrm dz^2}e^{2z}\right|_{z=1}
+ =4\pi i e^2.
+\]
+阶数是分母幂次减一，阶乘位于分母，这是计算时常见的失误点。
+\end{solve}
+
+\begin{example}[用导数公式计算积分]
+沿正向圆 $|z|=2$，计算 $I=\int e^z/(z-1)^3\,dz$。
+\end{example}
+\begin{solve}
+$e^z$ 在闭圆盘邻域全纯，$1$ 是圆内点。式~\eqref{eq:ca-higher-cauchy} 中取 $n=2$，得 $I=(2\pi i/2!)(e^z)''|_{z=1}=\pi i e$。若把路径改为 $|z|=1/2$，被积函数在整个闭圆盘邻域全纯，由积分定理得积分为零；若改为 $|z|=1$，路径经过分母零点，不能按原式直接计算。
+\end{solve}
+
+\section{刘维尔定理、代数基本定理与莫雷拉定理}
+
+\begin{theorem}[刘维尔定理]
+\label{thm:ca-liouville}
+有界整函数必为常数。
+\end{theorem}
+\begin{proof}
+设 $|f(z)|\le M$ 对所有 $z$ 成立。对任意 $a$ 与任意 $R>0$ 使用柯西估计，得 $|f'(a)|\le M/R$。令 $R\to\infty$ 得 $f'(a)=0$。由于整个平面连通，函数为常数。
+\end{proof}
+
+这里的“有界”指整个复平面上的统一有界；$\sin z$ 在实轴有界并不满足条件。定理还揭示一种常用方法：先用积分公式得到局部导数估计，再让可选圆的半径趋于无穷，把整体增长信息转化为导数消失。
+
+\begin{theorem}[代数基本定理]
+\label{thm:ca-fta}
+每个次数至少为一的复系数多项式在 $\mathbb C$ 至少有一个零点，因此次数为 $n$ 的多项式按重数恰有 $n$ 个复根。
+\end{theorem}
+\begin{proof}
+若非常数多项式 $P$ 没有零点，则 $1/P$ 是整函数。由最高次项占优，$|P(z)|\to\infty$ 当 $|z|\to\infty$，故 $1/P$ 在充分大的圆外有界；在剩下的闭圆盘上，连续性和无零点性给出有界性。刘维尔定理使 $1/P$ 为常数，矛盾。因此存在一个根；用多项式除法提出相应的一次因子后归纳，得到按重数计数的结论。
+\end{proof}
+
+\begin{theorem}[莫雷拉定理]
+\label{thm:ca-morera}
+若 $f$ 在开集 $U$ 连续，且每个连同内部位于 $U$ 的三角形 $T$ 都满足 $\oint_{\partial T}f\,\mathrm dz=0$，则 $f$ 在 $U$ 全纯。
+\end{theorem}
+\begin{proof}
+在每个小圆盘内，仿照推论~\ref{cor:ca-convex-primitive} 由线段积分构造 $F$。三角形积分条件和连续性保证 $F'=f$，所以 $F$ 全纯。由高阶导数公式，$F'$ 也全纯，即 $f$ 在每个小圆盘内全纯，因此在 $U$ 全纯。
+\end{proof}
+
+\section{习题}
+\label{sec:ca-cauchy-ex}
+\begin{enumerate}
+ \item 沿正向圆 $|z|=2$ 计算 $\oint\sin z/z^2\,\mathrm dz$。
+ \item 沿正向圆 $|z|=3$ 计算 $\oint z/[(z-1)(z-2)]\,\mathrm dz$，先做部分分式分解。
+ \item 设整函数 $f$ 满足 $|f(z)|\le C(1+|z|^m)$，其中 $m$ 为非负整数，证明 $f$ 是次数不超过 $m$ 的多项式。
+ \item 证明任意整函数若实部有上界，则必为常数。提示：对 $e^f$ 使用刘维尔定理。
+ \item 解释为何 $1/z$ 在圆环 $1<|z|<2$ 全纯，但没有该圆环上的原函数。
+
+  \item\label{ex:ca-cauchy-integrals} 沿正向圆 $|z|=2$，分别计算 $\int e^z/z^3\,dz$ 与 $\int\cos z/(z-1)^2\,dz$。
+  \item\label{ex:ca-derivative-bound} 设 $f$ 在 $B(0,R)$ 上全纯且 $|f|\le M$。证明对 $|a|<R$，有 $|f'(a)|\le M/(R-|a|)$；注意没有假设 $f$ 在大圆边界上连续。
+  \item\label{ex:ca-entire-bounded} 用柯西估计证明有界整函数必为常数，并说明这不适用于仅在一个固定圆盘内有界的全纯函数。
+  \item\label{ex:ca-uniform-holomorphic} 设 $f_n$ 在开集 $U$ 上全纯，并在 $U$ 的每个紧子集上一致收敛于 $f$。用莫雷拉定理证明 $f$ 全纯，并说明为什么需要先检验 $f$ 连续。
+\end{enumerate}
+

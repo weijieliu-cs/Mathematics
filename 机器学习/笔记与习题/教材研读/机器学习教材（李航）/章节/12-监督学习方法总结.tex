@@ -1,0 +1,293 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{11} % 保留原书章号。
+\chapter{监督学习方法总结}
+\label{ch:lh-supervised-summary}
+
+监督学习方法的差别，可以依次从四个问题理解：预测什么对象，允许使用什么模型，用什么准则评价模型，以及怎样从数据中求出模型。本章沿用教材的“适用问题、模型、学习策略、学习算法”四条线索，串联感知机、$k$ 近邻法、朴素贝叶斯法、决策树、逻辑斯谛回归与最大熵模型、支持向量机、提升方法、EM 算法、隐马尔可夫模型和条件随机场。这里把逻辑斯谛回归与最大熵模型合为一组，沿用教材的十组方法口径；其中 EM 是适用于多种模型的参数估计算法，并不单独规定一种预测模型。
+
+本章统一以 $X,Y$ 表示随机输入与输出，以 $x,y$ 表示其取值；训练集记为 $\mathcal D=\{(x_i,y_i)\}_{i=1}^N$，需要用样本平均估计总体期望时，假定样本独立同分布。$\mathcal X,\mathcal Y$ 分别表示输入、输出空间，$\mathcal H$ 表示候选函数集合，$\mathbf1\{A\}$ 表示条件 $A$ 成立时为 $1$、否则为 $0$ 的示性函数。除特别说明外，对数均为自然对数；这一区分会影响损失函数之间的数值比较。
+
+\section{适用问题}
+\label{sec:lh-summary-tasks}
+
+\emph{分类}（classification）预测有限集合中的类别，\emph{回归}（regression）预测实数或实向量，\emph{标注}（sequence labeling）则为输入序列预测相应的标签序列。教材本篇主要讨论分类与标注，不能由此认为监督学习只包含这两种任务。设每个位置有 $K\geq2$ 种标签，序列长度为 $n$，且不额外限制合法标签序列，则标注的输出空间为 $\mathcal Y^n$，共有 $K^n$ 个候选结果；普通分类可视为长度为 $1$ 的情形。标注的困难不仅来自类别较多，还来自相邻标签之间的依赖，逐位置选择最大概率标签未必得到概率最大的完整序列。
+
+感知机、$k$ 近邻法（$k$-nearest neighbors，$k$-NN）、朴素贝叶斯法、决策树、逻辑斯谛回归与最大熵模型、支持向量机、提升方法都可用于分类。教材中的基本感知机、基本支持向量机和 AdaBoost 先处理二分类，多分类需要另行规定模型和策略，例如一对其余、一对一或直接定义多类目标。$k$ 近邻法、决策树与提升方法也有回归版本，但其输出和损失函数须随任务改变，不能直接照搬二分类公式。隐马尔可夫模型（hidden Markov model，HMM）与线性链条件随机场（conditional random field，CRF）主要用于序列标注；在一阶链结构、每个位置 $K$ 个状态且局部得分已知时，维特比动态规划可用 $O(nK^2)$ 次量级的运算寻找最优标签序列，因而不必枚举全部 $K^n$ 个候选。
+
+\emph{期望极大算法}（expectation-maximization algorithm，EM）的适用条件是概率模型含有未观测变量，而不是任务必须带有类别标签。例如，朴素贝叶斯模型在类别已知时可以通过计数学习，在类别未知时可将类别作为隐变量；HMM 的状态序列已知时属于完全数据估计，未知时可用 EM 学习。两者的概率结构可以保持相同，变化的是训练数据中哪些变量可见。因此，\emph{生成或判别描述建模方式，监督或无监督描述可用数据与学习任务}，两组概念不能相互替代。
+
+教材关于方法准确率的比较应理解为经验倾向。条件随机场可以直接利用丰富的观测特征，支持向量机与提升方法也具有较强的表示或拟合能力，但没有一种方法仅凭名称就必然优于另一种。数据规模、特征表示、噪声、正则化和评价指标都会影响结果；实际选择应在相同数据划分与指标下验证，并把训练成本、预测成本和概率解释的需要一起考虑。
+
+\section{模型}
+\label{sec:lh-summary-models}
+
+\subsection{概率描述、决策函数与生成判别之分}
+\label{subsec:lh-summary-model-types}
+
+\emph{概率模型}为输出指定概率分布，例如 $p_\theta(y\mid x)=P_\theta(Y=y\mid X=x)$；$\theta$ 表示参数。\emph{决策函数}则直接给出预测 $d(x)\in\mathcal Y$。两者并不互斥：在有限类别、误判代价相等的条件下，可以从条件分布导出
+\begin{equation}
+d_\theta(x)\in\operatorname*{arg\,max}_{y\in\mathcal Y}p_\theta(y\mid x),
+\label{eq:lh-summary-bayes-decision}
+\end{equation}
+并为并列最大值固定一种选择规则。若误判代价不同，应最小化条件期望代价，最大概率规则便未必适用。反过来，只知道 $d(x)$ 或一个实值得分，通常不能唯一恢复条件概率；支持向量机的间隔、提升分类器的加权得分都不能未经建模或校准就当作概率。
+
+\begin{definition}[生成模型与判别模型]
+\label{def:lh-summary-generative-discriminative}
+在带类别或标签的预测问题中，\emph{生成模型}（generative model）对联合分布 $p_\theta(x,y)$ 建模，再在边缘概率或密度为正的输入处，通过
+\begin{equation}
+p_\theta(y\mid x)=\frac{p_\theta(x,y)}{\sum_{u\in\mathcal Y}p_\theta(x,u)}
+\label{eq:lh-summary-generative-conditional}
+\end{equation}
+获得条件分布；此式针对离散输出，连续输出时将求和换为相应积分。\emph{判别模型}（discriminative model）直接对条件分布 $p_\theta(y\mid x)$ 或决策函数建模，其学习不要求同时拟合输入的边缘分布。
+\end{definition}
+
+朴素贝叶斯法与 HMM 属于生成方法；感知机、$k$ 近邻法、决策树、逻辑斯谛回归与最大熵模型、支持向量机、提升方法和 CRF 属于判别方法。逻辑斯谛回归、最大熵模型与 CRF 本身有明确的条件概率解释，也可以通过式~\eqref{eq:lh-summary-bayes-decision} 输出类别或序列。分类树的叶节点既可保存多数类，也可保存经验类别分布；$k$ 近邻法的邻域类别比例也可用作局部概率估计。这些不同输出方式不改变它们是否学习联合分布的区别。
+
+生成与判别、分类与标注是两个相互独立的比较方向，表~\ref{tab:lh-summary-model-relations} 用教材讨论的四种概率模型说明这一点。同一行比较联合建模与条件建模，同一列比较分类与序列标注；这些对应关系并不意味着生成模型与判别模型具有相同的参数约束或训练目标。
+\begin{table}[htbp]
+\centering
+\caption{分类与标注中的生成模型和判别模型}
+\label{tab:lh-summary-model-relations}
+\begin{tabularx}{\textwidth}{lYY}
+\toprule
+预测任务 & 生成模型：联合分布 & 判别模型：条件分布 \\
+\midrule
+分类 & 朴素贝叶斯法 $p(x,y)$ & 逻辑斯谛回归、最大熵模型 $p(y\mid x)$ \\
+序列标注 & HMM $p(x_{1:n},y_{1:n})$ & 线性链 CRF $p(y_{1:n}\mid x_{1:n})$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+以二分类朴素贝叶斯为例，设 $Y\in\{-1,+1\}$，$X=(X_1,\ldots,X_d)$，并假定各输入分量在给定 $Y$ 后条件独立。在所涉及的先验与条件概率或密度均为正时，
+\begin{equation}
+\log\frac{p(Y=+1\mid x)}{p(Y=-1\mid x)}
+=\log\frac{p(Y=+1)}{p(Y=-1)}
++\sum_{j=1}^d\log\frac{p(x_j\mid Y=+1)}{p(x_j\mid Y=-1)}.
+\label{eq:lh-summary-naive-bayes-odds}
+\end{equation}
+右端是各分量贡献之和。对于离散特征，可用各取值的示性函数把它写成对数线性形式，其系数由满足归一化条件的生成模型参数导出。逻辑斯谛回归则直接估计条件模型的系数，不要求上述条件独立假设。因此，相似的判别边界表达式不代表相同的建模假设或估计目标；比较模型族是否等价，还须检查具体的特征与参数化。
+
+在序列情形，记 $x_{1:n}=(x_1,\ldots,x_n)$、$y_{1:n}=(y_1,\ldots,y_n)$。一阶 HMM 的联合分布写为
+\begin{equation}
+p_\theta(x_{1:n},y_{1:n})
+=\pi_{y_1}\prod_{t=2}^n a_{y_{t-1},y_t}\prod_{t=1}^n b_{y_t}(x_t),
+\label{eq:lh-summary-hmm-factorization}
+\end{equation}
+其中 $\pi_k$ 为初始状态概率，$a_{jk}$ 为转移概率，$b_k(x)$ 为发射概率或密度。它要求状态满足一阶马尔可夫性，且给定状态序列后各观测相互独立、每个观测只依赖相应状态。线性链 CRF 则直接设
+\begin{equation}
+p_\theta(y_{1:n}\mid x_{1:n})
+=\frac{\exp\!\bigl(\theta^{\mathsf T}\Phi(x_{1:n},y_{1:n})\bigr)}
+{\sum_{u_{1:n}}\exp\!\bigl(\theta^{\mathsf T}\Phi(x_{1:n},u_{1:n})\bigr)},
+\label{eq:lh-summary-crf-model}
+\end{equation}
+其中 $\Phi$ 是由相邻标签与观测序列的局部特征求和得到的固定特征向量，分母对合法标签序列求和。它可以让局部特征依赖整段已知观测，不要求观测满足 HMM 的生成假设；但标签之间仍须保持指定的链结构，才能直接使用相应动态规划。长度为 $1$ 时，上式具有分类最大熵模型的形式。
+
+\subsection{特征空间与线性、非线性的含义}
+\label{subsec:lh-summary-representations}
+
+感知机与线性支持向量机通常在欧氏空间中使用仿射得分 $s(x)=w^{\mathsf T}x+b$。逻辑斯谛回归将这一得分映射为概率；更一般的\emph{对数线性模型}（log-linear model）写为
+\begin{equation}
+p_\theta(y\mid x)=\frac{\exp(\theta^{\mathsf T}\Phi(x,y))}{Z_\theta(x)},
+\qquad Z_\theta(x)=\sum_{u\in\mathcal Y}\exp(\theta^{\mathsf T}\Phi(x,u)).
+\label{eq:lh-summary-log-linear}
+\end{equation}
+这里对数概率关于参数的表达式含有归一化项，准确地说，是未归一化的对数得分对参数线性。概率本身通常非线性；若采用非线性特征，分类边界在原输入空间也可以非线性。因此，“线性”必须说明是相对于原始输入、特征表示，还是模型参数而言。
+
+核支持向量机以 $K(x,x')=\langle\phi(x),\phi(x')\rangle$ 隐式使用希尔伯特空间中的特征映射，其得分在该特征空间中线性，含偏置时为仿射，在原空间中可以非线性；内积、范数或距离的计算须与所用核和空间一致。$k$ 近邻法依靠选定距离进行局部比较，通常用于欧氏空间，也可用于具有适当距离的一般对象，并不在定义上要求一定存在内积。决策树按特征与切分规则划分输入空间，可以处理数值或离散属性，在叶区域内输出常数或类别分布，通常形成分段的非线性预测。
+
+提升方法使用\emph{加法模型}（additive model）$F_M(x)=\sum_{m=1}^M\alpha_m h_m(x)$，其中 $h_m$ 为基学习器、$\alpha_m$ 为系数。它对给定基学习器的系数是线性的，但整体函数可以随基学习器而非线性。若所有 $h_m$ 都是同一特征表示下的仿射实值函数，其线性组合仍为仿射函数；若 $h_m$ 是树或阈值分类器，则不再有此结论。模型的输入类型由基学习器支持的表示决定，组合本身不会自动消除基学习器的限制。
+
+\section{学习策略}
+\label{sec:lh-summary-strategies}
+
+\subsection{从分类错误到代理损失与正则化}
+\label{subsec:lh-summary-surrogate-losses}
+
+对二分类 $Y\in\{-1,+1\}$，设 $f(x)\in\mathbb R$ 为分类得分，以其符号预测类别。定义\emph{函数间隔}（functional margin）$m=yf(x)$；正间隔表示分类正确，负间隔表示分类错误。为统一比较，下文把零间隔也记为错误，使用 $\ell_{01}(m)=\mathbf1\{m\leq0\}$；若实际预测在零分处固定选择某一类别，其真正的 0--1 损失不会超过这个保守的记法。0--1 损失不连续且不凸，直接优化往往困难，因此使用较易计算的\emph{代理损失}（surrogate loss）：
+\begin{align}
+\ell_{\mathrm h}(m)&=[1-m]_+=\max\{0,1-m\},
+&&\text{合页损失（hinge loss）},\label{eq:lh-summary-hinge}\\
+\ell_{\log}(m)&=\log(1+e^{-m}),
+&&\text{逻辑斯谛损失（logistic loss）},\label{eq:lh-summary-logistic-loss}\\
+\ell_{\exp}(m)&=e^{-m},
+&&\text{指数损失（exponential loss）}.\label{eq:lh-summary-exp-loss}
+\end{align}
+三者均为间隔的非增凸函数。合页损失在 $m\geq1$ 时为零，并在 $m=1$ 处不可微；其余两者光滑且在有限间隔处严格为正。指数损失对很大的负间隔增长最快，因此被严重误分的样本可能产生很大影响；这解释了其对某些噪声较敏感的原因，但并非对任意数据的性能结论。
+
+\begin{proposition}[代理损失与分类错误的上界]
+\label{prop:lh-summary-loss-bounds}
+对任意实数 $m$，有
+\begin{equation}
+\ell_{01}(m)\leq\ell_{\mathrm h}(m),\qquad
+\ell_{01}(m)\leq\ell_{\exp}(m),\qquad
+\ell_{01}(m)\leq\frac{\ell_{\log}(m)}{\log2}.
+\label{eq:lh-summary-loss-bounds}
+\end{equation}
+自然对数形式的 $\ell_{\log}$ 本身并不总是 $\ell_{01}$ 的上界。
+\end{proposition}
+\begin{proof}
+当 $m>0$ 时，左端为零，三个右端均非负。当 $m\leq0$ 时，$1-m\geq1$、$e^{-m}\geq1$，且 $\log(1+e^{-m})\geq\log2$，于是得到三个不等式。若取 $m=-0.1$，则分类错误，但 $\ell_{\log}(-0.1)=\log(1+e^{0.1})\approx0.7444<1$，故最后一个结论也成立。
+\end{proof}
+
+因此，教材把三种损失都称为 0--1 损失上界时，需要为逻辑斯谛损失补上底数或尺度约定：以 $2$ 为底的对数可直接给出上界；采用自然对数时用式~\eqref{eq:lh-summary-loss-bounds}。损失乘以正数不会改变无正则化问题的最优解，但若存在正则化项，保持同一优化问题还须让正则化系数乘以相同常数。代理损失之间的上界关系也不意味着其训练最优解必然同时最小化有限样本上的 0--1 损失。
+
+给定损失 $L$，\emph{总体风险}为 $R(f)=\mathbb E[L(Y,f(X))]$，假定相应期望存在；训练数据给出的\emph{经验风险}为 $\widehat R_N(f)=N^{-1}\sum_{i=1}^N L(y_i,f(x_i))$。前者依赖未知数据分布，后者可以计算。教材所用的正则化风险形式为
+\begin{equation}
+\min_{f\in\mathcal H}\left\{
+\frac1N\sum_{i=1}^N L(y_i,f(x_i))+\lambda J(f)\right\},
+\qquad\lambda\geq0,
+\label{eq:lh-summary-regularized-risk}
+\end{equation}
+其中 $J(f)$ 衡量或约束模型复杂度。令 $\lambda=0$ 得到经验风险最小化；$\lambda>0$ 时在拟合与复杂度之间权衡。这里的正则化目标表达的是学习策略，优化算法如何求解以及预测能否泛化，仍是另外两个问题。
+
+对软间隔线性支持向量机，一种常用参数形式为
+\begin{equation}
+\min_{w,b}\left\{\frac12\|w\|_2^2
++C\sum_{i=1}^N[1-y_i(w^{\mathsf T}x_i+b)]_+\right\},\qquad C>0.
+\label{eq:lh-summary-svm-objective}
+\end{equation}
+这里惩罚的是权向量的平方范数，通常不惩罚偏置；换成经验平均形式时须相应调整系数。逻辑斯谛回归和最大熵模型常用负对数似然，也可以加入二次正则化。基本 AdaBoost 以指数损失进行前向分步拟合，没有必须显式出现的 $\lambda J$，但可用轮数、基学习器复杂度和缩减步长控制拟合程度。\emph{早停止}（early stopping）通常依据验证结果选择迭代轮数，属于隐式控制复杂度的做法，不能未经证明就等同于某个固定的范数惩罚。
+
+\subsection{似然、后验与树的学习准则}
+\label{subsec:lh-summary-likelihood}
+
+对条件概率模型，\emph{极大似然估计}（maximum likelihood estimation，MLE）在给定输入后最大化标签的条件似然，等价于
+\begin{equation}
+\min_\theta\left\{-\frac1N\sum_{i=1}^N\log p_\theta(y_i\mid x_i)\right\}.
+\label{eq:lh-summary-conditional-mle}
+\end{equation}
+该式要求给定输入后的标签按样本分解；独立同分布抽样是充分条件。生成模型的完全数据 MLE 则使用 $p_\theta(x_i,y_i)$，并同时拟合输入与输出的联合分布。两种似然的目标通常不同，即使最后都通过条件分布做预测，也不能把训练目标直接互换。
+
+对于 $y\in\{-1,+1\}$，若 $p_\theta(y\mid x)=1/(1+e^{-yf_\theta(x)})$，则
+\[
+-\log p_\theta(y\mid x)=\log(1+e^{-yf_\theta(x)}),
+\]
+所以二分类逻辑斯谛损失恰为条件负对数似然。对一般的对数线性分类模型或 CRF，式~\eqref{eq:lh-summary-log-linear} 给出
+\begin{equation}
+-\log p_\theta(y\mid x)=\log Z_\theta(x)-\theta^{\mathsf T}\Phi(x,y).
+\label{eq:lh-summary-loglinear-nll}
+\end{equation}
+它是多类或结构化输出的对数损失；只有特定二分类参数化才化为单个标量间隔的 $\log(1+e^{-m})$。CRF 的归一化因子对整个输出序列求和，不能用逐位置独立的二分类损失替代。
+
+\emph{最大后验估计}（maximum a posteriori estimation，MAP）加入参数先验密度 $\pi(\theta)$，在后验可定义且最大值存在的条件下，等价于最小化
+\begin{equation}
+-\sum_{i=1}^N\log p_\theta(y_i\mid x_i)-\log\pi(\theta).
+\label{eq:lh-summary-map-objective}
+\end{equation}
+因此先验负对数可以解释为正则化项。若 $\theta\in\mathbb R^q$ 且先验为均值零、协方差 $\tau^2 I_q$ 的正态分布，$\tau>0$、$I_q$ 为 $q$ 阶单位矩阵，则除去与参数无关的常数，并把目标除以 $N$，得到
+\begin{equation}
+-\frac1N\sum_{i=1}^N\log p_\theta(y_i\mid x_i)
++\frac{\|\theta\|_2^2}{2N\tau^2}.
+\label{eq:lh-summary-gaussian-map}
+\end{equation}
+若把 $J(\theta)$ 定义为 $\|\theta\|_2^2/2$，此处 $\lambda=1/(N\tau^2)$。系数随使用似然总和还是平均而改变，且这里只对真正赋予该正态先验的参数施加相应惩罚。MAP 给出参数点估计，并不等同于对参数后验积分得到的贝叶斯预测。
+
+分类树在使用叶节点类别分布与对数损失时，也有似然解释。设树 $\mathcal T$ 有叶节点 $\ell$，其中第 $k$ 类有 $n_{\ell k}$ 个样本，$n_\ell=\sum_k n_{\ell k}>0$。在每个叶内用频率 $\widehat p_{\ell k}=n_{\ell k}/n_\ell$ 估计类别概率，完全数据负对数似然为
+\begin{equation}
+-\sum_\ell\sum_k n_{\ell k}\log\widehat p_{\ell k}
+=\sum_\ell n_\ell H(\widehat p_\ell),
+\qquad H(p)=-\sum_k p_k\log p_k,
+\label{eq:lh-summary-tree-entropy}
+\end{equation}
+其中约定 $0\log0=0$。再加叶节点数惩罚 $\alpha|\mathcal L(\mathcal T)|$，$\alpha\geq0$、$\mathcal L(\mathcal T)$ 为叶集合，就得到一种正则化似然准则。但树结构的搜索仍是离散组合问题，贪心切分不保证得到其全局最优树；采用基尼指数的分类 CART 或平方损失的回归 CART，也不能不加区分地说成使用了上述对数似然损失。
+
+当训练变量不完全可见时，似然须先边缘化隐变量。例如对独立样本 $(x_i,z_i)$，仅观测 $x_i$，观测数据对数似然为 $\sum_i\log\sum_{z_i}p_\theta(x_i,z_i)$，而不是把未知 $z_i$ 当作已经观测到的固定标签。内层求和使优化结构发生变化，这正是下一节讨论 EM 的原因。
+
+\section{学习算法}
+\label{sec:lh-summary-algorithms}
+
+\subsection{解析估计、数值优化与结构搜索}
+\label{subsec:lh-summary-optimization-methods}
+
+模型与准则确定后，学习通常归结为估计参数、搜索结构或保存供预测使用的数据。完全观测的离散朴素贝叶斯模型，其 MLE 可以由类别频数与类内特征频数归一化得到；完全观测的离散 HMM，同样可以由初始状态、状态转移和发射事件的计数估计相应概率。这里需要被归一化的计数总和为正；未出现的条件下参数未必由数据唯一确定，平滑还会改变估计公式。若 HMM 的状态不可见，就不能直接使用状态计数，须改为后验期望计数等方法。维特比算法用于给定模型后的最优路径预测，Baum--Welch 算法是用于参数学习的 EM，两者解决的问题不同。
+
+$k$ 近邻法通常没有一个必须预先求出的有限维参数最优解，训练主要保存样本并可建立近邻搜索索引，预测时根据距离和投票规则计算输出；$k$、距离及权重规则可用验证数据选择。感知机按误分类样本更新权值，其经典有限步收敛结论要求有限训练集线性可分等条件；不可分时不能据此保证算法停止。逻辑斯谛回归、最大熵模型与固定特征的 CRF 则常用梯度法、拟牛顿法等数值优化方法，算法输出达到给定容差的近似参数，而不是自动得到某个解析公式。
+
+对正半定核与标准软间隔准则，支持向量机可以通过凸二次规划学习；\emph{序列最小最优化}（sequential minimal optimization，SMO）每次选择少量对偶变量，在维持约束的条件下优化子问题。决策树采用局部特征选择、递归生成及剪枝，属于利用问题结构的搜索方法。AdaBoost 则在已有加法模型上逐轮选择基学习器和系数，使当前指数经验损失下降；它并非每一轮都重新联合优化全部基学习器。弱学习器集合的限制与前向选择方式意味着，损失关于函数值凸，也不能直接推出这一训练过程已找到整个候选模型集合的全局最优解。
+
+\subsection{EM 的单调性与凸优化的边界}
+\label{subsec:lh-summary-guarantees}
+
+\begin{proposition}[EM 的似然单调性]
+\label{prop:lh-summary-em-monotonicity}
+设观测数据为 $D$，隐变量 $Z$ 取有限多个值，模型在所讨论参数处满足 $p_\theta(D,z)>0$。记观测对数似然为 $\ell(\theta)=\log\sum_z p_\theta(D,z)$，在当前参数 $\theta^{(r)}$ 下定义
+\[
+q_r(z)=p_{\theta^{(r)}}(z\mid D),\qquad
+Q(\theta\mid\theta^{(r)})=\sum_z q_r(z)\log p_\theta(D,z).
+\]
+若更新满足 $Q(\theta^{(r+1)}\mid\theta^{(r)})\geq Q(\theta^{(r)}\mid\theta^{(r)})$，则 $\ell(\theta^{(r+1)})\geq\ell(\theta^{(r)})$。精确最大化 $Q$ 的 M 步是这一条件的充分条件。
+\end{proposition}
+\begin{proof}
+定义熵 $H(q_r)=-\sum_zq_r(z)\log q_r(z)$，以及相对熵
+$D_{\mathrm{KL}}(q_r\|p_\theta)=\sum_zq_r(z)\log(q_r(z)/p_\theta(z\mid D))$。由 $p_\theta(D,z)=p_\theta(z\mid D)p_\theta(D)$，有恒等式
+\[
+\ell(\theta)=Q(\theta\mid\theta^{(r)})+H(q_r)
++D_{\mathrm{KL}}(q_r\|p_\theta).
+\]
+相对熵非负：对正概率分布使用 $\log u\leq u-1$，可得
+$-D_{\mathrm{KL}}(q\|p)=\sum_zq(z)\log(p(z)/q(z))\leq\sum_z(p(z)-q(z))=0$。
+在 $\theta=\theta^{(r)}$ 时，相对熵为零。将两个参数处的恒等式相减，便得
+\[
+\ell(\theta^{(r+1)})-\ell(\theta^{(r)})
+\geq Q(\theta^{(r+1)}\mid\theta^{(r)})-Q(\theta^{(r)}\mid\theta^{(r)})\geq0.\qedhere
+\]
+\end{proof}
+
+EM 的输入是含隐变量的概率模型与观测数据，初始化选择使后验可定义的参数；E 步计算当前隐变量后验，M 步提高上述 $Q$，然后迭代。实现时可按相邻对数似然差小于容差或达到迭代上限终止，输出当前参数，并检查 M 步是否真正满足所需改进条件。命题~\ref{prop:lh-summary-em-monotonicity} 在有限正概率情形下给出证明；连续隐变量或允许零概率时，需要另外检查积分、支持及有限性条件。若似然值还存在有限上界，单调性保证似然值序列收敛，但\emph[caution]{不单凭这一点保证参数序列收敛，也不保证收敛到全局最大点}。驻点性质需要进一步的正则条件，实际结果还可能依赖初始化。
+
+固定特征的条件对数线性模型具有更强的优化结构。设参数可取整个 $\mathbb R^q$，候选输出集合有限且特征有限，则 $\log Z_\theta(x)$ 的梯度为模型下的特征期望，海森矩阵为
+\begin{equation}
+\nabla_\theta^2\log Z_\theta(x)
+=\operatorname{Cov}_\theta\bigl(\Phi(x,Y)\mid X=x\bigr)\succeq0.
+\label{eq:lh-summary-logpartition-hessian}
+\end{equation}
+这是因为对有限和逐项求导，二阶导数等于特征外积的期望减去均值的外积；任意向量 $v$ 对应的二次型是 $v^{\mathsf T}\Phi(x,Y)$ 的条件方差，故非负。因此式~\eqref{eq:lh-summary-loglinear-nll} 关于参数凸，加入凸正则化后仍凸。逻辑斯谛回归、最大熵模型与无隐标签的固定特征 CRF 属于这一情形；标准支持向量机也有凸目标与凸约束。但改变为含隐变量的模型或同时学习非线性特征参数后，不能直接沿用这一结论。
+
+\begin{example}
+\label{ex:lh-summary-convex-nonattainment}
+取两条二分类样本 $(x_1,y_1)=(-1,-1)$、$(x_2,y_2)=(1,+1)$，使用无偏置得分 $f_w(x)=wx$，$w\in\mathbb R$。判断无正则化逻辑斯谛经验损失是否存在有限最优参数。
+\end{example}
+\begin{solve}
+两条样本的间隔都为 $w$，故平均损失 $J(w)=\log(1+e^{-w})$。它满足
+\[
+J'(w)=-\frac1{1+e^w}<0,\qquad
+J''(w)=\frac{e^w}{(1+e^w)^2}>0.
+\]
+因此 $J$ 严格凸且处处递减，有限 $w$ 时总为正，而 $w\to+\infty$ 时趋于零。其下确界为零，却不存在有限最小点。若改为 $J(w)+\lambda w^2/2$、$\lambda>0$，目标连续、强凸且在 $|w|\to\infty$ 时趋于无穷，于是存在唯一有限最小点。这说明凸性、最小值能否达到与最优参数是否唯一必须分别判断。
+\end{solve}
+
+由例~\ref{ex:lh-summary-convex-nonattainment} 可知，教材“凸优化问题的全局最优解保证存在”的表述需要补上存在性条件。凸性保证凸可行集上已有局部最小点是全局最小点；对无约束可微凸函数，已有驻点也是全局最小点。连续目标在非空紧可行集上可以达到最小值；在非空有限维闭可行集上，若连续目标在可行变量的范数趋于无穷时也趋于无穷，则可由有界子水平集保证存在性。对固定特征的非负负对数似然，惩罚全部参数的正系数平方范数给出一种充分条件；若有未惩罚方向，则须另行检查。硬间隔支持向量机还要求训练数据可分以保证可行。其他方法也不宜统一说成“都不是凸问题”：例如完全观测的离散概率模型在概率单纯形上有凸负对数似然，而 $k$ 近邻法通常不以同一类参数优化问题来定义。
+
+表~\ref{tab:lh-summary-ten-methods} 按教材涉及的基本版本重新归纳十组方法。它同时列出任务、模型、策略与算法，便于区分“选了什么函数”“以什么为好”以及“怎样求解”；不同变体的损失、约束和算法仍须单独说明。
+\begin{longtable}{L{0.15\textwidth}L{0.25\textwidth}L{0.27\textwidth}L{0.21\textwidth}}
+\caption{十组学习方法的模型、准则与主要学习方式}\label{tab:lh-summary-ten-methods}\\
+\toprule
+方法 & 任务与模型特点 & 典型学习准则 & 主要学习方式 \\
+\midrule
+\endfirsthead
+\toprule
+方法 & 任务与模型特点 & 典型学习准则 & 主要学习方式 \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+感知机 & 基本版本为二分类；线性判别函数 & 按误分类点的负间隔构造感知机准则，寻找分离面 & 误分类驱动的迭代更新；可分时有经典收敛保证 \\
+$k$ 近邻法 & 分类；基于距离与邻域投票的局部判别 & 基本形式不显式求解统一的参数风险最小化 & 保存样本、搜索近邻；验证选择 $k$ 等超参数 \\
+朴素贝叶斯法 & 分类；条件独立假设下的生成概率模型 & 完全数据极大似然或带先验的估计 & 离散情形用频数归一化；可加平滑 \\
+决策树 & 分类；递归区域划分与叶输出 & 熵、基尼指数等局部准则，并以剪枝控制复杂度 & 贪心特征选择、生成与剪枝 \\
+逻辑斯谛回归与最大熵模型 & 分类；条件对数线性模型 & 条件负对数似然，可加凸正则化 & 梯度法、拟牛顿法；最大熵模型也可用迭代尺度法 \\
+支持向量机 & 基本版本为二分类；线性或核判别函数 & 合页损失与平方范数惩罚，或硬间隔约束 & 凸二次规划、SMO 等 \\
+提升方法 & 分类；基学习器的加法组合 & 基本 AdaBoost 使用指数损失 & 前向分步拟合；控制轮数与基学习器复杂度 \\
+EM 算法 & 含隐变量概率模型的参数估计；无独立的预测模型 & 提高观测数据似然，或相应的带先验目标 & 后验期望的 E 步与提高辅助目标的 M 步 \\
+隐马尔可夫模型 & 标注；马尔可夫状态与条件独立观测的联合模型 & 完全数据或观测数据似然 & 状态已知时计数；未知时可用 Baum--Welch \\
+条件随机场 & 标注；固定特征下的条件对数线性模型 & 结构化条件负对数似然，可加正则化 & 梯度法、拟牛顿法；链上用动态规划算所需期望 \\
+\end{longtable}
+
+% 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-13.pdf。
+% 对应教材第 13 章，原书第 245--254 页；本文件沿用自动章节编号。
+% 原文部分图表的文本层不完整，以下不转录其数值，计算例题均另行构造。
+
+
+
+

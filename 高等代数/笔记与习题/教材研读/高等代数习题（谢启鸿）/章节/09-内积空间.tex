@@ -1,0 +1,1070 @@
+% !TeX root = ../高等代数习题（谢启鸿）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{8} % 保留原书章号。
+\chapter{内积空间}
+\label{chap:xie-ip}
+
+线性空间的基、维数和线性映射只涉及加法与数乘；要讨论长度、夹角、垂直和最佳逼近，还需要内积这一度量结构。本章沿着“内积与 Gram 矩阵、正交分解与伴随、特殊算子的标准型、矩阵分解及其应用”的路线整理教材第 9 章。矩阵问题中首先应辨明允许的变换：换一般基对应相似，改变二次型的坐标对应合同，换标准正交基则对应正交相似或酉相似。它们保留的信息不同，不能仅因都得到对角矩阵就相互替代。
+
+\section{基本概念}
+\label{sec:xie-ip-basics}
+% 对应教材 9.1；各类算子与分解在后续各节展开。
+
+\begin{definition}
+设 $\mathbb F=\mathbb R$ 或 $\mathbb C$，$V$ 为 $\mathbb F$ 上的线性空间。若二元运算 $\langle\cdot,\cdot\rangle:V\times V\to\mathbb F$ 满足共轭对称性、第一变量的线性及正定性，即
+\[
+\langle y,x\rangle=\overline{\langle x,y\rangle},\qquad
+\langle ax+bz,y\rangle=a\langle x,y\rangle+b\langle z,y\rangle,
+\qquad \langle x,x\rangle\geq0,
+\]
+且 $\langle x,x\rangle=0$ 当且仅当 $x=0$，则称其为\emph{内积（inner product）}。带有内积的有限维实线性空间称为欧氏空间（Euclidean space），有限维复线性空间称为酉空间（unitary space）。定义范数 $\|x\|=\sqrt{\langle x,x\rangle}$ 和距离 $d(x,y)=\|x-y\|$；若 $\langle x,y\rangle=0$，称 $x,y$ 正交，记为 $x\perp y$。
+\end{definition}
+
+本章沿用教材\emph[caution]{第一变量线性、第二变量共轭线性}的约定，因而 $\langle x,ay+bz\rangle=\bar a\langle x,y\rangle+\bar b\langle x,z\rangle$。对列向量，标准内积为 $\langle x,y\rangle=y^{\mathsf H}x$，其中 $A^{\mathsf T}$ 表示转置，$A^{\mathsf H}=\bar A^{\mathsf T}$ 表示共轭转置；对实矩阵，$A^{\mathsf H}=A^{\mathsf T}$。沿用前文的矩阵记号，上标 $\mathsf H$ 不与伴随矩阵混用；抽象算子 $T$ 的伴随则记为 $T^*$。实空间中非零向量的夹角 $\theta\in[0,\pi]$ 由 $\cos\theta=\langle x,y\rangle/(\|x\|\|y\|)$ 定义。若采用教材的复空间夹角约定，则以 $|\langle x,y\rangle|/(\|x\|\|y\|)$ 定义余弦，所得角在 $[0,\pi/2]$ 内；它不记录复相位。
+
+\begin{theorem}
+\label{thm:xie-ip-cauchy}
+对内积空间中的任意 $x,y$，有 Cauchy--Schwarz 不等式与三角不等式
+\[
+|\langle x,y\rangle|\leq\|x\|\|y\|,
+\qquad \|x+y\|\leq\|x\|+\|y\|.
+\]
+前一个不等式取等号当且仅当 $x,y$ 线性相关；当 $x,y$ 都非零时，后一个取等号当且仅当 $x=ty$，其中 $t>0$ 为实数。
+\end{theorem}
+\begin{proof}
+若 $y\ne0$，令 $c=\langle x,y\rangle/\|y\|^2$，则
+\[
+0\leq\|x-cy\|^2
+=\|x\|^2-\frac{|\langle x,y\rangle|^2}{\|y\|^2}.
+\]
+这给出第一个不等式，取等号等价于 $x=cy$；$y=0$ 时结论也成立。再由
+\[
+\|x+y\|^2=\|x\|^2+\|y\|^2+2\operatorname{Re}\langle x,y\rangle
+\leq(\|x\|+\|y\|)^2
+\]
+得到三角不等式。当两向量非零时，取等号要求同时有线性相关及 $\langle x,y\rangle=\|x\|\|y\|>0$，故比例系数为正实数。
+\end{proof}
+
+内积的正定性还给出常用的\emph[tip]{非退化性检验}：若 $\langle x,y\rangle=0$ 对所有 $y$ 成立，取 $y=x$ 即得 $x=0$；若 $x-y$ 与一组基的每个向量都正交，则 $x=y$。范数所包含的信息也足以恢复内积：实空间中
+\[
+\langle x,y\rangle=\frac14\bigl(\|x+y\|^2-\|x-y\|^2\bigr),
+\]
+复空间中则为
+\begin{equation}
+\label{eq:xie-ip-polarization}
+\langle x,y\rangle=\frac14\bigl(\|x+y\|^2-\|x-y\|^2
++i\|x+iy\|^2-i\|x-iy\|^2\bigr).
+\end{equation}
+直接展开即可验证；同时得到平行四边形恒等式 $\|x+y\|^2+\|x-y\|^2=2\|x\|^2+2\|y\|^2$。式~\eqref{eq:xie-ip-polarization} 中虚部的符号依赖于内积约定。
+
+\section{内积空间与 Gram 矩阵}
+\label{sec:xie-ip-gram}
+% 对应教材 9.2，例 9.1--9.10，并整合例 9.14、9.33 的基础结论。
+
+\begin{definition}
+复方阵 $H$ 满足 $H^{\mathsf H}=H$ 时称为 Hermite 矩阵（Hermitian matrix）；实情形就是对称矩阵。若对所有非零列向量 $z$，均有 $z^{\mathsf H}Hz>0$，称其正定；若对所有 $z$，均有 $z^{\mathsf H}Hz\geq0$，称其半正定。Hermite 条件保证这些二次型取实数值。
+\end{definition}
+
+\begin{example}
+教材中的几类典型内积可以统一理解为“把坐标或函数的乘积相加”。在实多项式空间中，$\langle\sum a_it^i,\sum b_it^i\rangle=\sum a_ib_i$ 是系数内积；在 $C[a,b]$（$a<b$）及其多项式子空间中，$\langle f,g\rangle=\int_a^bf(t)g(t)\,dt$ 是积分内积；在复矩阵空间中，
+\[
+\langle X,Y\rangle_F=\operatorname{tr}(Y^{\mathsf H}X)
+=\sum_{i,j}x_{ij}\overline{y_{ij}}
+\]
+是 Frobenius 内积（Frobenius inner product），对应范数为 $\|X\|_F=(\sum_{i,j}|x_{ij}|^2)^{1/2}$。
+\end{example}
+\begin{solve}
+对称性或共轭对称性及线性都可由运算性质验证。正定性需要分别落实：系数或矩阵内积为各系数模平方之和，只有全部为零时才为零；积分内积中，若连续函数 $f\ne0$，则在某个非退化子区间上 $|f|$ 有正下界，故 $\int_a^bf(t)^2\,dt>0$。这里连续性不可随意删去，否则仅在单点非零的函数也可能具有零积分。
+\end{solve}
+
+\begin{definition}
+向量组 $v_1,\ldots,v_m$ 的 \emph{Gram 矩阵（Gram matrix）}定义为
+\[
+G(v_1,\ldots,v_m)=(\langle v_i,v_j\rangle)_{i,j=1}^m.
+\]
+当向量组为一组基时，也称度量矩阵。若 $e=(e_1,\ldots,e_n)$ 为基，$x=e\xi,y=e\eta$，则
+\begin{equation}
+\label{eq:xie-ip-gram-coordinates}
+\langle x,y\rangle=\xi^{\mathsf T}G\bar\eta.
+\end{equation}
+若另一组基为 $f=eC$，其 Gram 矩阵为 $H$，则
+\begin{equation}
+\label{eq:xie-ip-gram-change}
+H=C^{\mathsf T}G\bar C;
+\qquad \mathbb F=\mathbb R\text{ 时 }H=C^{\mathsf T}GC.
+\end{equation}
+\end{definition}
+
+上述公式均由逐项展开内积得到。\emph[caution]{在第一变量线性且 $G_{ij}=\langle e_i,e_j\rangle$ 的约定下，复情形不能把式~\eqref{eq:xie-ip-gram-coordinates} 直接写成 $\xi^{\mathsf H}G\eta$。}若改用 $M=\bar G$，同一公式可写成 $\eta^{\mathsf H}M\xi$，换基公式相应变为 $\bar H=C^{\mathsf H}\bar G C$。固定一组基后，内积与正定实对称矩阵或正定 Hermite 矩阵一一对应；例如给定正定 Hermite 矩阵 $G$，以 $\xi^{\mathsf T}G\bar\eta$ 定义内积，其正定性可由 $\xi^{\mathsf T}G\bar\xi=(\bar\xi)^{\mathsf H}G\bar\xi>0$ 验证。
+
+\begin{proposition}
+\label{prop:xie-ip-gram-rank}
+Gram 矩阵 $G=G(v_1,\ldots,v_m)$ 是半正定 Hermite 矩阵，且
+\[
+\operatorname{rank}G=\dim\operatorname{span}\{v_1,\ldots,v_m\}.
+\]
+因此向量组线性无关当且仅当 $G$ 正定，也当且仅当 $\det G\ne0$。反之，任意 $m$ 阶半正定 Hermite 矩阵，只要其秩不超过 $\dim V$，都能成为 $V$ 中某组向量的 Gram 矩阵。
+\end{proposition}
+\begin{proof}
+令 $L(c)=\sum_jc_jv_j$。由定义，$\|L(c)\|^2=c^{\mathsf T}G\bar c\geq0$；共轭对称性给出 $G^{\mathsf H}=G$，故 $G$ 半正定。又
+\[
+L(c)=0\quad\Longleftrightarrow\quad G\bar c=0.
+\]
+向右的蕴含由逐项内积得到；向左则由 $c^{\mathsf T}G\bar c=0$ 及正定性得到。因此 $\ker L$ 的维数为 $m-\operatorname{rank}G$，秩的结论随之成立。对于反向构造，$\bar G$ 也是半正定 Hermite 矩阵，故存在 $r\times m$ 矩阵 $X$ 使 $\bar G=X^{\mathsf H}X$，其中 $r=\operatorname{rank}G$。取 $V$ 中 $r$ 个标准正交向量，以 $X$ 的各列为坐标构造 $v_j$，其 Gram 矩阵就是 $X^{\mathsf T}\bar X=G$。这里的半正定矩阵分解也可由后文的谱定理构造。
+\end{proof}
+
+\begin{example}
+在 $\mathbb R[t]$ 上取 $\langle f,g\rangle=\int_0^1f(t)g(t)\,dt$。向量组 $1,t,\ldots,t^{n-1}$ 的 Gram 矩阵为 Hilbert 矩阵
+\[
+H_n=\left(\frac1{i+j-1}\right)_{i,j=1}^n.
+\]
+证明 $H_n$ 正定。
+\end{example}
+\begin{solve}
+对任意非零 $a=(a_1,\ldots,a_n)^{\mathsf T}$，非零多项式 $p(t)=\sum_{j=1}^na_jt^{j-1}$ 不可能在整个 $[0,1]$ 上恒为零，故
+\[
+a^{\mathsf T}H_na=\int_0^1p(t)^2\,dt>0.
+\]
+这种证明把分母相互交错的矩阵转化为向量组的度量问题，无须展开行列式。
+\end{solve}
+
+\begin{example}
+在 $n$ 维欧氏空间中，两两夹角大于直角的非零向量至多有 $n+1$ 个，且该上界可达到。
+\end{example}
+\begin{solve}
+若存在 $n+2$ 个这样的向量 $v_1,\ldots,v_{n+2}$，则前 $n+1$ 个满足非平凡关系 $\sum_{i=1}^{n+1}c_iv_i=0$。将正系数项移到一边，得 $w=\sum_{c_i>0}c_iv_i=\sum_{c_j<0}(-c_j)v_j$，并可令正系数项非空。若 $w=0$，与 $v_{n+2}$ 作内积即得 $0<0$；故 $w\ne0$，负系数项也非空。再将两种表达式作内积，得到
+\[
+0<\|w\|^2=\sum_{c_i>0,\,c_j<0}c_i(-c_j)\langle v_i,v_j\rangle<0,
+\]
+矛盾。取 $\mathbb R^n$ 中 $v_i=(n+1)e_i-\boldsymbol1$（$1\leq i\leq n$）及 $v_{n+1}=-\boldsymbol1$，其中 $\boldsymbol1=(1,\ldots,1)^{\mathsf T}$，任意两个不同向量的内积分别为 $-n-2$ 或 $-1$，均小于零，故上界达到。
+\end{solve}
+
+\section{Gram--Schmidt 正交化与正交补}
+\label{sec:xie-ip-orthogonalization}
+% 对应教材 9.3，例 9.11--9.22。
+
+\begin{definition}
+由两两正交向量组成的一组基称为正交基（orthogonal basis）；若每个基向量还具有单位长度，则称为标准正交基（orthonormal basis）。任意两两正交的非零向量组都线性无关：若 $\sum_jc_jv_j=0$，依次与 $v_i$ 作内积，便有 $c_i\|v_i\|^2=0$，从而所有 $c_i=0$。
+\end{definition}
+
+\begin{theorem}
+\label{thm:xie-ip-gs}
+对线性无关向量组 $u_1,\ldots,u_m$，递推定义
+\begin{equation}
+\label{eq:xie-ip-gs}
+v_k=u_k-\sum_{j<k}\frac{\langle u_k,v_j\rangle}{\|v_j\|^2}v_j,
+\qquad e_k=\frac{v_k}{\|v_k\|},\qquad 1\leq k\leq m.
+\end{equation}
+则 $v_1,\ldots,v_m$ 两两正交且非零，并且对每个 $k$，$\operatorname{span}(u_1,\ldots,u_k)=\operatorname{span}(v_1,\ldots,v_k)$。因此每个有限维内积空间都有标准正交基，任一子空间的标准正交基都可以扩张为全空间的标准正交基。
+\end{theorem}
+\begin{proof}
+设前 $k-1$ 个向量已满足结论。对 $i<k$，式~\eqref{eq:xie-ip-gs} 与 $v_i$ 作内积，求和中只有 $j=i$ 的项保留，故 $\langle v_k,v_i\rangle=0$。该式同时给出两组前 $k$ 个向量张成空间相同。若 $v_k=0$，则 $u_k$ 属于前 $k-1$ 个向量的张成空间，与线性无关矛盾。归纳完成证明。扩张结论可先将子空间的基扩张为一般基，再从已有正交向量继续正交化。
+\end{proof}
+
+\begin{theorem}
+\label{thm:xie-ip-projection}
+设 $U$ 是有限维内积空间 $V$ 的子空间，定义 $U^\perp=\{x:\langle x,u\rangle=0,\ \forall u\in U\}$。则
+\[
+V=U\mathbin{\oplus^\perp}U^\perp,\qquad \dim U^\perp=\dim V-\dim U.
+\]
+若 $e_1,\ldots,e_r$ 是 $U$ 的标准正交基，则到 $U$ 上的正交投影（orthogonal projection）为
+\begin{equation}
+\label{eq:xie-ip-projection}
+P_Ux=\sum_{j=1}^r\langle x,e_j\rangle e_j,
+\qquad \|x-u\|^2=\|x-P_Ux\|^2+\|P_Ux-u\|^2\quad(u\in U).
+\end{equation}
+因而 $P_Ux$ 是 $U$ 中唯一使 $\|x-u\|$ 最小的向量，并且
+\[
+\sum_{j=1}^r|\langle x,e_j\rangle|^2\leq\|x\|^2.
+\]
+最后的不等式称为 Bessel 不等式，等号成立当且仅当 $x\in U$；$U=V$ 时给出 Parseval 等式。
+\end{theorem}
+\begin{proof}
+将 $U$ 的标准正交基扩张为 $V$ 的标准正交基，新增向量恰好张成 $U^\perp$，由此得到正交直和与维数公式。逐项验证 $x-P_Ux\perp U$，再对 $x-u=(x-P_Ux)+(P_Ux-u)$ 使用勾股恒等式，即得式~\eqref{eq:xie-ip-projection} 及唯一性。取 $u=0$ 得到 Bessel 不等式。
+\end{proof}
+
+在有限维空间中，正交补满足
+\[
+(U^\perp)^\perp=U,\qquad
+(U+W)^\perp=U^\perp\cap W^\perp,\qquad
+(U\cap W)^\perp=U^\perp+W^\perp.
+\]
+第二式由定义直接验证，第三式对第二式取正交补得到。对任意子集 $S$，有 $S^\perp=(\operatorname{span}S)^\perp$ 及 $(S^\perp)^\perp=\operatorname{span}S$。在 $\mathbb F^n$ 中，$\ker A=(\operatorname{Im}A^{\mathsf H})^\perp$，故
+\begin{equation}
+\label{eq:xie-ip-fredholm}
+Ax=b\text{ 有解}\quad\Longleftrightarrow\quad b\perp\ker A^{\mathsf H}.
+\end{equation}
+这些等式依赖有限维条件；一般无限维空间中的双重正交补不能在不加条件时直接换成原子空间。
+
+\begin{example}
+在 $\mathbb R[t]_{\leq n}$ 上取积分内积 $\langle f,g\rangle=\int_{-1}^1f(t)g(t)\,dt$。由 $1,t,\ldots,t^n$ 正交化得到的标准正交多项式为
+\[
+p_k(t)=\sqrt{\frac{2k+1}{2}}P_k(t),\qquad
+P_k(t)=\frac1{2^kk!}\frac{d^k}{dt^k}(t^2-1)^k.
+\]
+其中 $P_k$ 是 Legendre 多项式（Legendre polynomial）。
+\end{example}
+\begin{solve}
+多项式 $(t^2-1)^k$ 在端点的零点重数为 $k$，故对任意 $\deg q<k$，分部积分 $k$ 次且所有边界项均为零，得到 $\int_{-1}^1P_kq=0$。$P_k$ 的首项系数为 $L_k=(2k)!/(2^k(k!)^2)>0$；再次分部积分得
+\[
+\int_{-1}^1P_k(t)^2\,dt
+=\frac{L_k}{2^k}\int_{-1}^1(1-t^2)^k\,dt
+=\frac2{2k+1}.
+\]
+这里 $I_k=\int_{-1}^1(1-t^2)^k\,dt$ 满足 $I_0=2$、$I_k=\frac{2k}{2k+1}I_{k-1}$，故 $I_k=2^{2k+1}(k!)^2/(2k+1)!$。每个 $p_k$ 均为首项系数为正的单位向量，且属于 $\mathbb R[t]_{\leq k}$ 对 $\mathbb R[t]_{\leq k-1}$ 的一维正交补，因此正是按原顺序正交化所得的向量。特别地，
+\[
+p_0=\frac1{\sqrt2},\quad p_1=\sqrt{\frac32}t,\quad
+p_2=\sqrt{\frac58}(3t^2-1),\quad p_3=\sqrt{\frac78}(5t^3-3t).
+\]
+\end{solve}
+
+\begin{example}
+求次数不超过 $3$ 的实多项式 $f$，使 $\int_{-1}^1(e^t-f(t))^2\,dt$ 最小。
+\end{example}
+\begin{solve}
+由定理~\ref{thm:xie-ip-projection}，唯一最优多项式为 $f_*=\sum_{k=0}^3c_kp_k$，其中
+\[
+(c_0,c_1,c_2,c_3)=\left(
+\frac{e-e^{-1}}{\sqrt2},\ \sqrt6\,e^{-1},\
+\sqrt{\frac52}(e-7e^{-1}),\
+\sqrt{\frac72}(37e^{-1}-5e)\right).
+\]
+各系数由分部积分计算 $c_k=\int_{-1}^1e^tp_k(t)\,dt$ 得到。最小误差平方为
+\[
+\frac{e^2-e^{-2}}2-\sum_{k=0}^3c_k^2
+\approx 2.228887\times10^{-5}.
+\]
+最佳逼近的条件是残差与整个多项式子空间正交，不能仅令几个采样点上的误差为零。
+\end{solve}
+
+\begin{proposition}
+\label{prop:xie-ip-qr}
+若 $A\in\mathbb F^{m\times n}$ 列满秩，则 $m\geq n$，并有唯一分解 $A=QR$，其中 $Q\in\mathbb F^{m\times n}$ 满足 $Q^{\mathsf H}Q=I_n$，$R\in\mathbb F^{n\times n}$ 是对角元全为正实数的上三角矩阵。这称为薄 QR 分解（thin QR decomposition）。实情形中，$A^{\mathsf T}A=R^{\mathsf T}R$ 正是其 Gram 矩阵的 Cholesky 分解。
+\end{proposition}
+\begin{proof}
+依次对 $A$ 的列向量作标准正交化，将每列表示为所得前几个标准正交向量的线性组合，即得 $A=QR$，且 $r_{kk}=\|v_k\|>0$。若还有 $A=\widetilde Q\widetilde R$，两组 $Q$ 的列空间均为 $\operatorname{Im}A$，故 $Q^{\mathsf H}\widetilde Q=R\widetilde R^{-1}$ 为酉上三角矩阵。酉上三角矩阵必为对角矩阵，而其对角元又是正实数，故只能为 $I_n$，唯一性得证。两边计算 $A^{\mathsf H}A$ 得 $R^{\mathsf H}R$；这也说明正定矩阵的 Cholesky 分解与正交化之间的联系。
+\end{proof}
+
+对奇异方阵，补选正交向量仍可得到 $A=QR$，其中 $Q$ 为正交或酉矩阵，$R$ 为对角元非负的上三角矩阵，但不再保证唯一。无论实复，正交化中的单位上三角过渡矩阵均使 Gram 行列式保持不变，因而
+\begin{equation}
+\label{eq:xie-ip-gram-hadamard}
+0\leq\det G(u_1,\ldots,u_m)\leq\prod_{j=1}^m\|u_j\|^2.
+\end{equation}
+当向量组线性无关时，左边等于正交化残差范数平方的乘积，而每个残差范数不超过原向量范数；线性相关时左边为零。右侧等号成立当且仅当向量两两正交或至少有一个零向量。将此式用于方阵的列向量，得到 Hadamard 不等式 $|\det A|\leq\prod_j\|a_j\|$。实向量组的 $\sqrt{\det G}$ 还等于其张成的平行多面体体积。
+
+\section{伴随}
+\label{sec:xie-ip-adjoint}
+% 对应教材 9.4，例 9.23--9.31。
+
+\begin{theorem}
+设 $V,W$ 为有限维内积空间，$T:V\to W$ 为线性映射，则存在唯一线性映射 $T^*:W\to V$，使
+\begin{equation}
+\label{eq:xie-ip-adjoint}
+\langle Tx,y\rangle_W=\langle x,T^*y\rangle_V
+\qquad(x\in V,\ y\in W).
+\end{equation}
+$T^*$ 称为\emph{伴随映射（adjoint map）}。在定义域和值域的标准正交基下，若 $T$ 的矩阵为 $A$，则 $T^*$ 的矩阵为 $A^{\mathsf H}$。
+\end{theorem}
+\begin{proof}
+取两空间的标准正交基，以 $A^{\mathsf H}$ 定义 $T^*$，由 $\langle A\xi,\eta\rangle=\eta^{\mathsf H}A\xi=\langle\xi,A^{\mathsf H}\eta\rangle$ 验证存在性。如果 $S$ 也满足式~\eqref{eq:xie-ip-adjoint}，则 $\langle x,(T^*-S)y\rangle=0$ 对任意 $x$ 成立，由非退化性得 $(T^*-S)y=0$，唯一性成立。
+\end{proof}
+
+\begin{definition}
+内积空间上的线性算子 $T$ 称为正规算子（normal operator），若 $T^*T=TT^*$；称为自伴随算子（self-adjoint operator），若 $T=T^*$；称为斜自伴随算子（skew-adjoint operator），若 $T^*=-T$。复标准坐标中对应正规矩阵、Hermite 矩阵与斜 Hermite 矩阵；实自伴随算子也称对称变换。自伴随算子 $T$ 若对所有非零 $x$ 满足 $\langle Tx,x\rangle>0$，称为正定；若对所有 $x$ 满足 $\langle Tx,x\rangle\geq0$，称为半正定。
+\end{definition}
+
+在允许复合的情况下，伴随满足
+\[
+(S+T)^*=S^*+T^*,\quad(cT)^*=\bar cT^*,\quad
+(ST)^*=T^*S^*,\quad(T^*)^*=T,
+\]
+以及可逆时 $(T^{-1})^*=(T^*)^{-1}$。这些式子既可由定义逐一验证，也可在标准正交基中转化为共轭转置的恒等式。对于一般基，若定义域和值域的 Gram 矩阵分别为 $G_V,G_W$，由 $A^{\mathsf T}G_W=G_V\bar B$ 得到伴随矩阵
+\[
+B=\bar G_V^{-1}A^{\mathsf H}\bar G_W.
+\]
+实空间自同态的公式简化为 $B=G^{-1}A^{\mathsf T}G$。因此\emph[caution]{伴随的矩阵等于转置或共轭转置，必须以前述标准正交基为条件}。
+
+\begin{proposition}
+\label{prop:xie-ip-adjoint-kernel}
+有限维线性映射 $T:V\to W$ 满足
+\[
+\ker T=(\operatorname{Im}T^*)^\perp,\qquad
+\operatorname{Im}T=(\ker T^*)^\perp.
+\]
+若 $T:V\to V$ 且 $U$ 是 $T$ 的不变子空间，则 $U^\perp$ 是 $T^*$ 的不变子空间。
+\end{proposition}
+\begin{proof}
+$x\in\ker T$ 等价于 $\langle Tx,y\rangle=0$ 对所有 $y\in W$ 成立，再由伴随定义即等价于 $x\perp\operatorname{Im}T^*$。对 $T^*$ 使用这一等式并取正交补得到第二式。若 $u\in U,z\in U^\perp$，则 $\langle u,T^*z\rangle=\langle Tu,z\rangle=0$，故 $T^*z\in U^\perp$。
+\end{proof}
+
+伴随还使特征多项式与极小多项式的系数取共轭：若 $p_T(t)$、$m_T(t)$ 分别为二者，则 $p_{T^*}(t)=\overline{p_T}(t)$、$m_{T^*}(t)=\overline{m_T}(t)$，这里横线只对系数取共轭。特征多项式结论由行列式与共轭转置得到；极小多项式结论则由 $q(T)=0\Longleftrightarrow\bar q(T^*)=0$ 及首一最小次数得到。特别地，$T^*$ 的特征值是 $T$ 的特征值的共轭，重数相同。
+
+\begin{example}
+在 $M_n(\mathbb F)$ 上取 Frobenius 内积，设 $T(X)=PXQ$，求 $T^*$。
+\end{example}
+\begin{solve}
+利用迹的循环性质，
+\[
+\langle PXQ,Y\rangle_F=\operatorname{tr}(Y^{\mathsf H}PXQ)
+=\operatorname{tr}(QY^{\mathsf H}PX)=\langle X,P^{\mathsf H}YQ^{\mathsf H}\rangle_F,
+\]
+故 $T^*(Y)=P^{\mathsf H}YQ^{\mathsf H}$。例如左乘算子 $X\mapsto PX$ 自伴随当且仅当 $P=P^{\mathsf H}$，保持内积当且仅当 $P^{\mathsf H}P=I$，两者均可取 $X=I$ 检验必要性。在实对称矩阵空间上，$X\mapsto R^{\mathsf T}XR$ 的伴随是 $Y\mapsto RYR^{\mathsf T}$，此时还需确认所得矩阵仍属于该子空间。
+\end{solve}
+
+\begin{example}
+说明有限维条件在伴随存在性中不可直接删去。在 $\mathbb R[t]$ 上取系数内积，定义 $D(f)=f'$ 及 $S(t^k)=1+t+\cdots+t^k$，线性延拓到所有多项式。
+\end{example}
+\begin{solve}
+对单项式核对可得 $D^*(t^j)=(j+1)t^{j+1}$，故 $D^*g=t^2g'+tg$，它确实把多项式映为多项式。然而若 $S^*$ 存在，则
+\[
+\langle t^k,S^*1\rangle=\langle S(t^k),1\rangle=1\qquad(k\geq0),
+\]
+要求多项式 $S^*1$ 的每个系数均为 $1$，矛盾。因此无限维内积空间中的线性算子可能有伴随，也可能没有，不能只照搬有限维矩阵的构造。
+\end{solve}
+
+\section{保积同构、正交变换与镜像变换}
+\label{sec:xie-ip-isometry}
+% 对应教材 9.5，例 9.32--9.47。
+
+\begin{definition}
+内积空间之间保持内积的线性同构称为保积同构（isometric isomorphism）。欧氏空间上的保积自同构称为正交变换（orthogonal transformation），酉空间上的保积自同构称为酉变换（unitary transformation）。对应的标准正交基表示矩阵分别满足 $Q^{\mathsf T}Q=I$ 与 $U^{\mathsf H}U=I$。
+\end{definition}
+
+对维数相同的有限维内积空间之间的线性映射，保持内积、保持范数、把一组标准正交基映为标准正交基三者等价：前两者由极化恒等式联系，后一条件经坐标展开即可验证。保持内积的线性映射是单射，维数相同才进一步保证满射。因此同一基域上的两个有限维内积空间保积同构当且仅当维数相同。对自同态 $T$，上述条件还等价于 $T^*T=I$，也等价于 $T^*=T^{-1}$。
+
+\begin{proposition}
+\label{prop:xie-ip-equal-gram}
+设 $V,W$ 为维数相同的有限维内积空间。存在保积同构 $T:V\to W$ 使 $T(v_j)=w_j$（$1\leq j\leq m$）的充要条件是两组向量的 Gram 矩阵相同。特别地，对 $A,B\in\mathbb F^{m\times n}$，
+\[
+A^{\mathsf H}A=B^{\mathsf H}B\quad\Longleftrightarrow\quad A=UB
+\]
+其中 $U$ 为某个 $m$ 阶酉矩阵；实情形中可取正交矩阵。
+\end{proposition}
+\begin{proof}
+必要性由保积性得到。若两组 Gram 矩阵相等，则对应线性组合的范数相等，故 $\sum c_jv_j=0$ 当且仅当 $\sum c_jw_j=0$。于是
+\[
+T_0\left(\sum_jc_jv_j\right)=\sum_jc_jw_j
+\]
+是两张成空间之间良定义的保积同构。分别在其正交补中选标准正交基并一一对应，可将 $T_0$ 扩张到全空间。矩阵结论应用于列向量组；按本章约定，列向量的 Gram 矩阵是 $\overline{A^{\mathsf H}A}$，所以条件仍等价于两组 Gram 矩阵相等。
+\end{proof}
+
+\begin{proposition}
+\label{prop:xie-ip-householder}
+设 $u$ 是欧氏空间中的单位向量，则
+\[
+H_u(x)=x-2\langle x,u\rangle u
+\]
+是关于超平面 $u^\perp$ 的镜像变换（reflection）。它在 $\operatorname{span}\{u\}$ 上为 $-I$，在 $u^\perp$ 上为 $I$，故 $H_u^*=H_u$、$H_u^2=I$、$\det H_u=-1$。在标准坐标中，其矩阵为 Householder 矩阵 $I-2uu^{\mathsf T}$。
+\end{proposition}
+\begin{proof}
+由正交分解 $x=\langle x,u\rangle u+z$（$z\perp u$），有 $H_u(x)=-\langle x,u\rangle u+z$，其全部性质由这一分解得到。若 $a\ne b$ 且 $\|a\|=\|b\|$，取 $u=(a-b)/\|a-b\|$，利用
+\[
+2\langle a,a-b\rangle=\|a-b\|^2
+\]
+可核对 $H_u(a)=b$，这给出将等长向量互相映送的具体构造。
+\end{proof}
+
+\begin{theorem}
+$n$ 维欧氏空间中的任意正交变换都能表示为至多 $n$ 个镜像变换之积。
+\end{theorem}
+\begin{proof}
+对 $n$ 归纳。恒等变换是零个镜像变换之积。若正交变换 $T\ne I$，取单位向量 $e$ 使 $Te\ne e$，由命题~\ref{prop:xie-ip-householder} 构造 $H$ 满足 $HTe=e$。正交变换 $HT$ 保持 $e^\perp$，在这一 $n-1$ 维空间上由归纳假设是至多 $n-1$ 个镜像之积。将这些镜像按固定 $e$ 的方式延拓到全空间，再在左边乘 $H=H^{-1}$，即得结论。这就是实欧氏空间中的 Cartan--Dieudonn\'e 定理。
+\end{proof}
+
+正交或酉矩阵的列向量与行向量都是标准正交向量组。由 $Ux=\lambda x$ 及范数不变性，任一特征值满足 $|\lambda|=1$；实正交矩阵的行列式为 $\pm1$，酉矩阵的行列式模长为 $1$。此外，任一方形子阵 $B$ 都满足 $\|Bx\|\leq\|x\|$：将 $x$ 嵌入原矩阵相应列的位置，再选取相应行，只会减小范数。因此 $B$ 的特征值模长不超过 $1$。这些性质都不意味着正交矩阵的特征值必须是实数。
+
+\begin{proposition}
+\label{prop:xie-ip-conformal}
+设 $T$ 是有限维实或复内积空间上的非零线性变换。$T$ 把每对正交向量映为正交向量，当且仅当存在 $c>0$ 使 $T^*T=cI$。因此这类映射恰为 $T=\sqrt c\,U$，其中 $U$ 为正交或酉变换。
+\end{proposition}
+\begin{proof}
+取标准正交基 $e_1,\ldots,e_n$。像向量 $Te_i$ 两两正交；对 $i\ne j$，再由 $e_i+e_j\perp e_i-e_j$ 得到 $\|Te_i\|^2=\|Te_j\|^2$。若 $n=1$，同一结论只涉及唯一的基向量。由于 $T\ne0$，这一公共值 $c>0$，故 $T/\sqrt c$ 将标准正交基映为标准正交基。逆向结论由 $\langle Tx,Ty\rangle=\langle x,T^*Ty\rangle=c\langle x,y\rangle$ 得到。
+\end{proof}
+
+实空间中，命题~\ref{prop:xie-ip-conformal} 还表明可逆线性变换保持正交性当且仅当保持所有非零向量的夹角。但保持夹角只限定统一缩放，并不强制 $c=1$；保持长度才给出正交变换。
+
+\section{用正交变换化简二次型}
+\label{sec:xie-ip-quadratic}
+% 对应教材 9.6，例 9.48--9.51 及前章例题的新解法。
+
+实二次型 $q(x)=x^{\mathsf T}Ax$ 的系数矩阵应取为实对称矩阵，混合项 $x_ix_j$ 的系数是 $2a_{ij}$。实对称矩阵的谱定理说明存在正交矩阵 $Q$，使 $Q^{\mathsf T}AQ=\operatorname{diag}(\lambda_1,\ldots,\lambda_n)$，于是正交代换 $x=Qy$ 将二次型化为 $\sum_i\lambda_iy_i^2$。该定理将在定理~\ref{thm:xie-ip-spectral-normal} 中证明。实际计算时，先求各特征子空间，在同一特征子空间内部正交化并单位化，再按特征值顺序把单位特征向量排成 $Q$ 的列；不同特征值的特征向量已经正交。
+
+正交相似同时是相似和合同：它既保留所有特征值，也保留正负惯性指数。一般合同只保留惯性，允许把非零对角元进一步缩放为 $\pm1$。因此含参题中常先用 $\operatorname{tr}A=\sum\lambda_i$、$\det A=\prod\lambda_i$ 以及 $\operatorname{rank}(A-\lambda I)=n-\dim\ker(A-\lambda I)$ 求参数，再求正交矩阵；不能只凭正负惯性指数确定正交标准型。
+
+\begin{example}
+已知 $q(x_1,x_2,x_3)=x_1^2+ax_2^2+x_3^2+2bx_1x_2+2x_1x_3+2x_2x_3$ 可经正交变换化为 $y_2^2+4y_3^2$，求 $a,b$ 及一组正交变换。
+\end{example}
+\begin{solve}
+系数矩阵为 $A=\begin{pmatrix}1&b&1\\b&a&1\\1&1&1\end{pmatrix}$，目标特征值为 $0,1,4$。比较迹得 $a=3$，再由 $\det A=-(b-1)^2=0$ 得 $b=1$。此时相应特征向量可取 $(1,0,-1)^{\mathsf T}$、$(1,-1,1)^{\mathsf T}$、$(1,2,1)^{\mathsf T}$，它们已经两两正交。令
+\[
+Q=\begin{pmatrix}
+1/\sqrt2&1/\sqrt3&1/\sqrt6\\
+0&-1/\sqrt3&2/\sqrt6\\
+-1/\sqrt2&1/\sqrt3&1/\sqrt6
+\end{pmatrix},
+\]
+则 $Q^{\mathsf T}Q=I$、$Q^{\mathsf T}AQ=\operatorname{diag}(0,1,4)$，故 $x=Qy$ 满足要求。
+\end{solve}
+
+\begin{example}
+四阶实对称矩阵 $A$ 的特征值为 $0,0,0,4$，且零特征子空间由 $(-1,1,0,0)^{\mathsf T}$、$(-1,0,1,0)^{\mathsf T}$、$(-1,0,0,1)^{\mathsf T}$ 张成，求 $A$。
+\end{example}
+\begin{solve}
+特征值 $4$ 的特征子空间是上述空间的正交补，故单位特征向量为 $u=\tfrac12(1,1,1,1)^{\mathsf T}$。于是对任意 $x$，有 $Ax=4\langle x,u\rangle u$，从而 $A=4uu^{\mathsf T}$ 是所有元素均为 $1$ 的矩阵。只需构造非零特征值对应的正交投影，无须把三维零特征子空间的基逐一正交化。
+\end{solve}
+
+\section{实对称矩阵的标准型及其应用}
+\label{sec:xie-ip-symmetric}
+% 对应教材 9.7，例 9.52--9.74。
+
+\begin{theorem}
+\label{thm:xie-ip-rayleigh}
+设 $A=A^{\mathsf H}\in\mathbb F^{n\times n}$，特征值为 $\lambda_1\leq\cdots\leq\lambda_n$。则对所有 $x$，
+\[
+\lambda_1\|x\|^2\leq x^{\mathsf H}Ax\leq\lambda_n\|x\|^2.
+\]
+左右等号分别等价于 $x\in\ker(A-\lambda_1I)$、$x\in\ker(A-\lambda_nI)$。因此 Rayleigh 商 $R_A(x)=x^{\mathsf H}Ax/(x^{\mathsf H}x)$（$x\ne0$）的最小值与最大值恰为这两个极端特征值。
+\end{theorem}
+\begin{proof}
+以标准正交特征基表示 $x=\sum_i c_ie_i$，则 $x^{\mathsf H}Ax=\sum_i\lambda_i|c_i|^2$、$\|x\|^2=\sum_i|c_i|^2$。上界等号成立等价于所有满足 $\lambda_i<\lambda_n$ 的 $c_i$ 均为零；下界同理。
+\end{proof}
+
+由定理~\ref{thm:xie-ip-rayleigh}，若 $A,B$ 都是 Hermite 矩阵，则 $A+B$ 的特征值落在 $[\lambda_{\min}(A)+\lambda_{\min}(B),\lambda_{\max}(A)+\lambda_{\max}(B)]$ 内。对一般矩阵 $C$ 及其特征值 $\lambda$，在特征向量上估计 $C^{\mathsf H}C$ 的二次型还得到
+\begin{equation}
+\label{eq:xie-ip-eigen-singular-bound}
+\sqrt{\lambda_{\min}(C^{\mathsf H}C)}\leq|\lambda|
+\leq\sqrt{\lambda_{\max}(C^{\mathsf H}C)}.
+\end{equation}
+同样，由 $H=(C+C^{\mathsf H})/2$、$K=(C-C^{\mathsf H})/(2i)$ 的 Rayleigh 商，可以分别估计 $\operatorname{Re}\lambda$ 与 $\operatorname{Im}\lambda$。把实矩阵当作复矩阵考察时，必须使用 $x^{\mathsf H}$ 与模平方，不能继续把复特征向量当作实向量。
+
+对 Hermite 矩阵，以 $A\succeq0$、$A\succ0$ 分别表示半正定与正定，并以 $A\succeq B$ 表示 $A-B\succeq0$，这称为 Loewner 序（Loewner order）。它是对二次型的比较，不是逐元素比较。谱定理给出
+\[
+A\succeq0\Longleftrightarrow\lambda_i(A)\geq0\ (\forall i),
+\qquad A\succ0\Longleftrightarrow\lambda_i(A)>0\ (\forall i).
+\]
+例如 $A\succ0$ 时，$A+A^{-1}\succeq2I$，等号当且仅当 $A=I$；其依据是对每个正特征值使用 $t+t^{-1}\geq2$。
+
+\begin{proposition}
+\label{prop:xie-ip-root}
+半正定 Hermite 矩阵 $A$ 对每个正整数 $k\geq2$ 都有唯一半正定 Hermite $k$ 次方根
+\[
+A^{1/k}=U\operatorname{diag}(\lambda_1^{1/k},\ldots,\lambda_n^{1/k})U^{\mathsf H},
+\]
+其中 $A=U\operatorname{diag}(\lambda_1,\ldots,\lambda_n)U^{\mathsf H}$。实对称矩阵的根仍可取为实对称矩阵。若 $C$ 与 $A$ 交换，则 $C$ 与 $A^{1/k}$ 也交换。
+\end{proposition}
+\begin{proof}
+公式直接给出存在性。若 $B\succeq0$ 且 $B^k=A$，则 $AB=BA$，故每个 $A$ 的特征子空间都在 $B$ 下不变。在特征值 $\lambda$ 的子空间中，$B$ 的所有特征值非负且满足 $\mu^k=\lambda$，所以其限制只能是 $\lambda^{1/k}I$，唯一性成立。对 $A$ 的不同特征值作 Lagrange 插值，可得多项式 $p$ 满足 $p(\lambda)=\lambda^{1/k}$，故 $A^{1/k}=p(A)$，交换性随之成立。
+\end{proof}
+
+\begin{proposition}
+若 $A\succeq0$，则对任意列向量 $x,y$，有
+\[
+|x^{\mathsf H}Ay|^2\leq(x^{\mathsf H}Ax)(y^{\mathsf H}Ay),
+\]
+等号当且仅当 $A^{1/2}x,A^{1/2}y$ 线性相关。若另有 $B\succeq0$，则 $\operatorname{tr}(AB)\geq0$，且等号当且仅当 $AB=0$。
+\end{proposition}
+\begin{proof}
+第一个不等式对 $A^{1/2}x,A^{1/2}y$ 使用 Cauchy--Schwarz 不等式即得；即使 $A$ 奇异，这一方法也仍适用，取等条件同样由这两个像向量决定。第二个结论利用
+\[
+\operatorname{tr}(AB)=\operatorname{tr}(B^{1/2}AB^{1/2})
+=\|A^{1/2}B^{1/2}\|_F^2\geq0.
+\]
+若迹为零，则 $A^{1/2}B^{1/2}=0$，从而 $AB=A^{1/2}(A^{1/2}B^{1/2})B^{1/2}=0$；逆向由取迹直接得到。
+\end{proof}
+
+\begin{proposition}
+\label{prop:xie-ip-positive-products}
+若 $A\succ0$、$B=B^{\mathsf H}$，则 $AB$ 相似于 Hermite 矩阵 $A^{1/2}BA^{1/2}$，因而可对角化且特征值全实。若 $A,B\succeq0$，则 $AB$ 的特征值非负，且仍可对角化。特别地，对半正定 Hermite 矩阵 $A,B$，$AB$ 是半正定 Hermite 矩阵当且仅当 $AB=BA$。
+\end{proposition}
+\begin{proof}
+第一种情形中，$A^{-1/2}(AB)A^{1/2}=A^{1/2}BA^{1/2}$，结论由谱定理得到。对实半正定 $A,B$，取可逆 $C$ 使 $C^{\mathsf T}AC=\operatorname{diag}(I_r,0)$，同时将 $B$ 变为 $C^{-1}BC^{-\mathsf T}$，它仍半正定；此时两矩阵的乘积为 $C^{\mathsf T}(AB)C^{-\mathsf T}$，只发生相似变化。以下沿用 $A,B$ 表示变换后的矩阵。写成分块后，乘积为 $\begin{pmatrix}B_{11}&B_{12}\\0&0\end{pmatrix}$。若 $z\in\ker B_{11}$，则半正定性使 $B\binom{z}{0}=0$，从而 $B_{21}z=0$。因此 $\operatorname{Im}B_{12}\subseteq\operatorname{Im}B_{11}$，可写 $B_{12}=B_{11}M$，进而
+\[
+\begin{pmatrix}I&M\\0&I\end{pmatrix}
+\begin{pmatrix}B_{11}&B_{11}M\\0&0\end{pmatrix}
+\begin{pmatrix}I&-M\\0&I\end{pmatrix}
+=\begin{pmatrix}B_{11}&0\\0&0\end{pmatrix}.
+\]
+右端半正定且可对角化。复情形以共轭转置代替转置，证明相同。最后，$AB$ 为 Hermite 矩阵等价于 $AB=(AB)^{\mathsf H}=BA$，再结合已证的非负特征值结论即可。
+\end{proof}
+
+这里使用的事实 $H\succeq0$ 且 $x^{\mathsf H}Hx=0\Rightarrow Hx=0$，可由 $x^{\mathsf H}Hx=\|H^{1/2}x\|^2$ 证明。上述正定或半正定条件各有用途：若只有 $A\succeq0$ 而 $B=B^{\mathsf H}$，乘积不一定可对角化。例如
+\[
+A=\begin{pmatrix}1&0\\0&0\end{pmatrix},\quad
+B=\begin{pmatrix}0&1\\1&0\end{pmatrix},\quad
+AB=\begin{pmatrix}0&1\\0&0\end{pmatrix}.
+\]
+$AB$ 的特征值都是零，却不是零矩阵，因而不可对角化。
+
+\begin{example}
+设 $A,C$ 为正定实对称矩阵，证明矩阵方程 $AX+XA=C$ 有唯一解，且该解正定实对称。
+\end{example}
+\begin{solve}
+取正交矩阵 $Q$ 使 $Q^{\mathsf T}AQ=\operatorname{diag}(\lambda_1,\ldots,\lambda_n)$，其中 $\lambda_i>0$。令 $Y=Q^{\mathsf T}XQ$、$D=Q^{\mathsf T}CQ$，方程等价于
+\[
+(\lambda_i+\lambda_j)y_{ij}=d_{ij},\qquad
+ y_{ij}=\frac{d_{ij}}{\lambda_i+\lambda_j}.
+\]
+这给出唯一解且 $Y=Y^{\mathsf T}$。若该实对称解 $X$ 有特征向量 $u\ne0$、特征值 $\mu$，则
+\[
+0<u^{\mathsf T}Cu=u^{\mathsf T}(AX+XA)u
+=2\mu\,u^{\mathsf T}Au,
+\]
+故 $\mu>0$，于是 $X\succ0$。由 $A,X\succ0$ 不能反过来直接断定 $AX+XA\succ0$，上述论证是从已给定的正定右端推出解的正定性。
+\end{solve}
+
+\begin{proposition}
+若实矩阵 $T$ 满足 $T^{\mathsf T}G=GT$，其中 $G\succ0$ 为实对称矩阵，则 $T$ 在实数域上可对角化且特征值全实。
+\end{proposition}
+\begin{proof}
+$G^{1/2}TG^{-1/2}$ 的转置等于自身，故它是实对称矩阵；而它与 $T$ 相似。几何上，$T$ 对由 $G$ 定义的内积自伴随，这说明某个矩阵在普通坐标中不对称，并不排除它是另一种内积下的自伴随算子。
+\end{proof}
+
+\section{同时合同对角化}
+\label{sec:xie-ip-congruence}
+% 对应教材 9.8，例 9.75--9.84。
+
+\begin{theorem}
+\label{thm:xie-ip-simultaneous-congruence}
+设 $A\succ0$ 为实对称矩阵，$B$ 为同阶实对称矩阵，则存在可逆矩阵 $C$，使
+\begin{equation}
+\label{eq:xie-ip-congruence}
+C^{\mathsf T}AC=I,\qquad C^{\mathsf T}BC=\operatorname{diag}(\lambda_1,\ldots,\lambda_n),
+\end{equation}
+其中 $\lambda_i$ 是 $A^{-1}B$ 的特征值，也是广义特征值问题 $Bx=\lambda Ax$ 的全部特征值。
+\end{theorem}
+\begin{proof}
+矩阵 $A^{-1/2}BA^{-1/2}$ 实对称，取正交矩阵 $Q$ 将它对角化，令 $C=A^{-1/2}Q$ 即得式~\eqref{eq:xie-ip-congruence}。又
+\[
+A^{1/2}(A^{-1}B)A^{-1/2}=A^{-1/2}BA^{-1/2},
+\]
+故二者特征值相同。这里 $C$ 通常不是正交矩阵，也不要求 $AB=BA$。
+\end{proof}
+
+同时合同对角化的关键是先用 $A$ 把度量化为单位矩阵，再在这一度量中正交对角化 $B$。行列式不等式尤其适合此法，但须同时保留每个行列式引入的 $\det(C)^2$。例如当 $A\succ0,B\succeq0$ 时，上式中的 $\lambda_i\geq0$，于是
+\[
+\det(A+B)=\det A\prod_i(1+\lambda_i)
+\geq\det A+\det B.
+\]
+$n\geq2$ 时，等号要求所有中间阶的非负乘积项为零，特别要求 $\sum_i\lambda_i=0$，故等价于 $B=0$；$n=1$ 时恒取等号。若 $A,B\succ0$，则逐项使用 $1+\lambda_i\geq2\sqrt{\lambda_i}$ 得
+\begin{equation}
+\label{eq:xie-ip-determinant-amgm}
+\det(A+B)\geq2^n\sqrt{\det A\det B},
+\end{equation}
+等号当且仅当 $A=B$。
+
+\begin{proposition}
+若 $A\succeq B\succ0$，则 $B^{-1}\succeq A^{-1}$ 且 $\det A\geq\det B$。若 $A,B\succ0$ 且 $A^2\succeq B^2$，则 $A\succeq B$。
+\end{proposition}
+\begin{proof}
+对前一结论，在式~\eqref{eq:xie-ip-congruence} 中 $0<\lambda_i\leq1$，于是 $\lambda_i^{-1}\geq1$。对逆矩阵使用 $C^{-1}(\cdot)(C^{\mathsf T})^{-1}$ 的合同变换，得到 $B^{-1}-A^{-1}\succeq0$；行列式结论来自 $\det B=\det A\prod_i\lambda_i$。
+
+对后一结论，仍写 $A=C^{-\mathsf T}C^{-1}$、$B=C^{-\mathsf T}\Lambda C^{-1}$，其中 $\Lambda=\operatorname{diag}(\lambda_i)\succ0$，并令 $D=C^{-1}C^{-\mathsf T}\succ0$。假设化为 $D-\Lambda D\Lambda\succeq0$，所以其每个对角元 $d_{ii}(1-\lambda_i^2)\geq0$。由于 $d_{ii}>0$，有 $\lambda_i\leq1$，故 $I-\Lambda\succeq0$，再作合同变换得 $A-B\succeq0$。
+\end{proof}
+
+\begin{notealert}[type=caution,title={矩阵序不能任意平方}]
+一般不能由 $A\succeq B\succ0$ 推出 $A^2\succeq B^2$。例如 $B=\operatorname{diag}(2,1)$、$A=\begin{pmatrix}3&1\\1&2\end{pmatrix}$ 满足 $A-B=\begin{pmatrix}1&1\\1&1\end{pmatrix}\succeq0$，但 $A^2-B^2=\begin{pmatrix}6&5\\5&4\end{pmatrix}$ 的行列式为 $-1$，不是半正定矩阵。若另有 $AB=BA$，则可在公共特征基中逐项比较正特征值，平方等价才成立。
+\end{notealert}
+
+\begin{example}
+设 $M=\begin{pmatrix}A&B\\B^{\mathsf T}&D\end{pmatrix}\succ0$，证明 $\det M\leq\det A\det D$，并确定等号条件。
+\end{example}
+\begin{solve}
+对 $M$ 作对称分块消元，得到合同矩阵
+\[
+\begin{pmatrix}I&0\\-B^{\mathsf T}A^{-1}&I\end{pmatrix}
+M
+\begin{pmatrix}I&-A^{-1}B\\0&I\end{pmatrix}
+=\begin{pmatrix}A&0\\0&D-B^{\mathsf T}A^{-1}B\end{pmatrix}.
+\]
+故 Schur 补 $S=D-B^{\mathsf T}A^{-1}B\succ0$，且 $D\succeq S$，于是 $\det M=\det A\det S\leq\det A\det D$。正定矩阵行列式单调性的等号要求 $D=S$，即 $B^{\mathsf T}A^{-1}B=0$，等价于 $A^{-1/2}B=0$，故等价于 $B=0$。
+\end{solve}
+
+两个半正定实对称矩阵仍可同时合同对角化。一个简洁的证明是在 $(\ker A\cap\ker B)^\perp$ 上考察 $A+B$：它在该空间正定，先将 $A+B$ 化为 $I$，再将 $A$ 正交对角化，$B=I-A$ 也随之对角化；在公共核上二者均为零。由 $\ker(A+B)=\ker A\cap\ker B$ 还得到
+\[
+\operatorname{rank}(A+B)=\operatorname{rank}(A\ B).
+\]
+但“一个半正定、另一个仅对称”不足以保证同时合同对角化；命题~\ref{prop:xie-ip-positive-products} 后的两个二阶矩阵即构成反例。若有公共对角化基，则 $A=\operatorname{diag}(1,0)$ 在此基中的对角元恰有一个非零，故两个基向量中必有一个为 $v=(0,v_2)^{\mathsf T}$，$v_2\ne0$，另一个 $u=(u_1,u_2)^{\mathsf T}$ 满足 $u_1\ne0$。然而对 $B=\begin{pmatrix}0&1\1&0\end{pmatrix}$，有 $u^{\mathsf T}Bv=u_1v_2\ne0$，与公共对角化要求的非对角元为零矛盾。
+
+\section{Schur 定理}
+\label{sec:xie-ip-schur}
+% 对应教材 9.9，例 9.85--9.90。
+
+\begin{theorem}
+\label{thm:xie-ip-schur}
+任一复方阵 $A$ 都酉相似于上三角矩阵：存在酉矩阵 $U$，使 $U^{\mathsf H}AU=R$ 为上三角矩阵，且其对角元为 $A$ 的全部特征值。
+\end{theorem}
+\begin{proof}
+对阶数归纳。复矩阵存在特征值 $\lambda$ 及单位特征向量 $u_1$。把 $u_1$ 扩张为标准正交基，所得酉矩阵 $U_1$ 满足
+\[
+U_1^{\mathsf H}AU_1=\begin{pmatrix}\lambda&*\\0&A_1\end{pmatrix}.
+\]
+由归纳假设，存在酉矩阵 $U_2$ 把 $A_1$ 化为上三角矩阵；用 $U_1\operatorname{diag}(1,U_2)$ 即完成归纳。上三角矩阵的特征多项式为对角元对应一次因子的乘积，故对角元就是全部特征值。
+\end{proof}
+
+教材还给出 QR 分解的证明：先取可逆 $P$ 使 $P^{-1}AP=M$ 上三角，写 $P=UR$，则 $U^{\mathsf H}AU=RMR^{-1}$ 仍上三角。这个方法说明，正交化不会破坏由前几个基向量张成的不变子空间链。Schur 定理适用于任意复方阵，并不要求可对角化。
+
+实矩阵未必存在实特征值，故其一般形式只能是\emph{实 Schur 分解（real Schur decomposition）}：经正交相似化为分块上三角矩阵，对角块为实的一阶块或有共轭非实特征值的二阶块。其构造依赖于实不变子空间：若 $A(u+iv)=(a+ib)(u+iv)$ 且 $b\ne0$，比较实虚部得 $Au=au-bv$、$Av=bu+av$，且 $u,v$ 线性无关。若二者相关，则实特征向量会有非实特征值，矛盾。因此可先在一维或二维不变子空间内选正交基，再对其余的压缩矩阵归纳。只有当全部特征值为实时，才保证可以化为实上三角矩阵；一般的二阶 Schur 块也尚未具有正规矩阵的旋转伸缩形式。
+
+\begin{lemma}
+\label{lem:xie-ip-normal-block}
+若分块上三角矩阵 $N=\begin{pmatrix}A&C\\0&B\end{pmatrix}$ 为正规矩阵，即 $N^{\mathsf H}N=NN^{\mathsf H}$，则 $C=0$，并且 $A,B$ 均正规。
+\end{lemma}
+\begin{proof}
+比较左上角分块得 $A^{\mathsf H}A=AA^{\mathsf H}+CC^{\mathsf H}$。两边取迹，因 $\operatorname{tr}(A^{\mathsf H}A)=\operatorname{tr}(AA^{\mathsf H})$，有 $\operatorname{tr}(CC^{\mathsf H})=\sum_{i,j}|c_{ij}|^2=0$，从而 $C=0$。再比较对角分块即得 $A,B$ 正规。
+\end{proof}
+
+\section{复正规算子与复正规矩阵}
+\label{sec:xie-ip-complex-normal}
+% 对应教材 9.10，例 9.91--9.102。
+
+
+
+\begin{theorem}
+\label{thm:xie-ip-spectral-normal}
+复矩阵 $A$ 正规当且仅当它可酉对角化。自伴随算子的特征值全为实数；实自伴随算子有由实特征向量组成的标准正交基，即任一实对称矩阵可正交对角化。
+\end{theorem}
+\begin{proof}
+先对复矩阵应用 Schur 定理，再反复应用引理~\ref{lem:xie-ip-normal-block}，可知正规上三角矩阵必为对角矩阵。反之，对角矩阵正规，而正规性在酉相似下保持。若 $Ax=\lambda x$ 且 $A=A^{\mathsf H}$，则
+\[
+\lambda\|x\|^2=\langle Ax,x\rangle
+=\langle x,Ax\rangle=\bar\lambda\|x\|^2,
+\]
+故 $\lambda\in\mathbb R$。实对称矩阵视为 Hermite 矩阵后，所有特征值均实；每个实特征值的复特征向量的实部或虚部中至少一个是非零实特征向量。取一个实单位特征向量，其正交补仍为不变子空间，限制后仍自伴随，对维数归纳即得实标准正交特征基。
+\end{proof}
+
+不同特征值的正规算子特征子空间互相正交；这既可由标准正交特征基看出，也可利用下述伴随性质验证。自伴随算子的特征值全实，酉算子的特征值模长全为 $1$，斜自伴随算子的特征值为纯虚数或零。\emph[caution]{“可对角化且特征值全实”不自动意味着自伴随；必须要求标准正交特征基。}例如 $\begin{pmatrix}1&1\\0&2\end{pmatrix}$ 可对角化，但不是 Hermite 矩阵，也不是正规矩阵。
+
+\begin{proposition}
+\label{prop:xie-ip-normal-tests}
+有限维实或复内积空间上的算子 $T$ 正规当且仅当 $\|Tx\|=\|T^*x\|$ 对所有 $x$ 成立。正规时，
+\begin{equation}
+\label{eq:xie-ip-eigen-adjoint}
+\ker(T-\lambda I)=\ker(T^*-\bar\lambda I)
+\end{equation}
+对基域中的所有 $\lambda$ 成立，故 $\ker T=\ker T^*$。在复空间中，正规性还等价于对每个特征值 $\lambda$ 有
+\[
+V=\ker(T-\lambda I)\mathbin{\oplus^\perp}\operatorname{Im}(T-\lambda I).
+\]
+\end{proposition}
+\begin{proof}
+正规时 $\|Tx\|^2=\langle x,T^*Tx\rangle=\langle x,TT^*x\rangle=\|T^*x\|^2$。反之，$H=T^*T-TT^*$ 自伴随，范数相等说明 $\langle x,Hx\rangle=0$ 对所有 $x$ 成立；在 $H$ 的标准正交特征基上检验可知每个特征值为零，故 $H=0$。由于 $T-\lambda I$ 仍正规，对其使用范数等式即得式~\eqref{eq:xie-ip-eigen-adjoint}。
+
+复空间中，必要性由特征子空间的正交直和得到。反之，题设正交分解意味着 $\operatorname{Im}(T-\lambda I)=(\ker(T-\lambda I))^\perp$，再由命题~\ref{prop:xie-ip-adjoint-kernel} 得到 $\ker(T-\lambda I)=\ker(T^*-\bar\lambda I)$。取单位特征向量 $e$，它同时为 $T^*$ 的特征向量，故 $e^\perp$ 同时在 $T,T^*$ 下不变。限制后每个特征向量仍满足这一伴随关系，归纳即可构造标准正交特征基，从而 $T$ 正规。
+\end{proof}
+
+\begin{proposition}
+\label{prop:xie-ip-normal-polynomial}
+复正规算子 $T$ 满足 $T^*=p(T)$，其中 $p$ 是某个复系数多项式；反之，若 $T^*=p(T)$，则 $T$ 正规。因而任何与 $T$ 交换的算子也与 $T^*$ 交换。此外，$T=H+iK$ 的分解中，
+\[
+H=\frac{T+T^*}{2},\qquad K=\frac{T-T^*}{2i}
+\]
+均自伴随，且 $T$ 正规当且仅当 $HK=KH$。
+\end{proposition}
+\begin{proof}
+设 $T$ 的不同特征值为 $\lambda_1,\ldots,\lambda_s$，取 Lagrange 插值多项式
+\[
+p(t)=\sum_{j=1}^s\bar\lambda_j
+\prod_{\ell\ne j}\frac{t-\lambda_\ell}{\lambda_j-\lambda_\ell}.
+\]
+在标准正交特征基下有 $p(T)=T^*$。逆向结论来自 $T$ 与自身多项式交换。关于 $H,K$ 的结论可将 $T^*T$ 与 $TT^*$ 展开，相减后得到 $T^*T-TT^*=2i(HK-KH)$。
+\end{proof}
+
+\begin{proposition}
+设复方阵 $A=(a_{ij})$ 的特征值按代数重数记为 $\lambda_1,\ldots,\lambda_n$，则
+\begin{equation}
+\label{eq:xie-ip-frobenius-spectrum}
+\sum_i|\lambda_i|^2\leq\|A\|_F^2=\sum_{i,j}|a_{ij}|^2,
+\end{equation}
+等号当且仅当 $A$ 正规。
+\end{proposition}
+\begin{proof}
+Frobenius 范数在左右乘酉矩阵时不变。将 $A$ 酉相似为 Schur 上三角矩阵 $R$ 后，
+\[
+\|A\|_F^2=\|R\|_F^2
+=\sum_i|\lambda_i|^2+\sum_{i<j}|r_{ij}|^2.
+\]
+等号成立当且仅当 $R$ 对角，由定理~\ref{thm:xie-ip-spectral-normal} 即得结论。若 $A$ 是实矩阵且所有特征值均实，则等号进一步等价于 $A$ 实对称。
+\end{proof}
+
+\begin{example}
+斜 Hermite 矩阵 $K$ 与不含特征值 $-1$ 的酉矩阵 $U$ 通过 Cayley 变换（Cayley transform）一一对应：
+\[
+U=(I-K)(I+K)^{-1},\qquad K=(I-U)(I+U)^{-1}.
+\]
+\end{example}
+\begin{solve}
+$K^{\mathsf H}=-K$ 使其特征值为纯虚数或零，故 $I+K$ 可逆；利用 $I-K$ 与 $I+K$ 交换，直接计算得 $U^{\mathsf H}U=I$，且 $I+U=2(I+K)^{-1}$ 可逆。反过来，若 $U$ 酉且 $I+U$ 可逆，以 $U^{\mathsf H}=U^{-1}$ 代入可得所定义的 $K^{\mathsf H}=-K$。再把两式相互代入，得到原矩阵，故为双射。实矩阵的情形即为实反对称矩阵与不含特征值 $-1$ 的正交矩阵的对应。
+\end{solve}
+
+\section{实正规算子与实正规矩阵}
+\label{sec:xie-ip-real-normal}
+% 对应教材 9.11，例 9.103--9.113。
+
+\begin{theorem}
+\label{thm:xie-ip-real-normal}
+任一实正规矩阵 $A$ 都正交相似于分块对角矩阵
+\begin{equation}
+\label{eq:xie-ip-real-normal-form}
+\operatorname{diag}\bigl(C(a_1,b_1),\ldots,C(a_r,b_r),c_1,\ldots,c_s\bigr),
+\qquad C(a,b)=\begin{pmatrix}a&-b\\b&a\end{pmatrix},
+\end{equation}
+其中 $b_j\ne0$、$2r+s=n$；各二阶块对应共轭特征值 $a_j\pm ib_j$。因此实正规矩阵在复数域可对角化，在实数域却可能只能分成一维与二维的正交不变子空间。
+\end{theorem}
+\begin{proof}
+实 Schur 分解与引理~\ref{lem:xie-ip-normal-block} 已使所有非对角分块消失。若有非实特征值 $a+ib$ 及特征向量 $z=u+iv$，则 $\bar z$ 对应 $a-ib$。把 $A$ 看作复正规矩阵，由不同特征子空间正交得到 $\langle z,\bar z\rangle=0$，亦即
+\[
+\|u\|^2-\|v\|^2+2i\langle u,v\rangle=0.
+\]
+故 $u\perp v$ 且 $\|u\|=\|v\|>0$。在实标准正交基 $u/\|u\|,-v/\|v\|$ 下，限制矩阵恰为 $C(a,b)$。其二维空间同时在 $A,A^{\mathsf T}$ 下不变，正交补亦然；对维数归纳即可得到所需分解。
+\end{proof}
+
+复正规算子的若干判定有实版本，但须照顾非实特征值。实算子总能唯一写成 $T=H+K$，其中 $H=(T+T^*)/2$ 自伴随、$K=(T-T^*)/2$ 斜自伴随；$T$ 正规当且仅当 $HK=KH$。对实正规矩阵，把命题~\ref{prop:xie-ip-normal-polynomial} 中插值多项式写成 $p=g+ih$，其中 $g,h$ 为实系数多项式，则 $A^{\mathsf T}=g(A)+ih(A)$ 的两边比较实虚部可知 $A^{\mathsf T}=g(A)$。故与实正规矩阵交换也自动与其转置交换。若只检查“实特征向量是否为伴随的特征向量”，当矩阵没有实特征值时条件可能完全为空，不能据此判定正规性。
+
+\begin{proposition}
+\label{prop:xie-ip-reducing}
+有限维内积空间中，正规算子 $T$ 的每个不变子空间 $U$ 都同时在 $T^*$ 下不变，且 $U^\perp$ 也同时在 $T,T^*$ 下不变；$T|_U$ 仍为正规算子。
+\end{proposition}
+\begin{proof}
+取 $U$ 及 $U^\perp$ 的标准正交基，$T$ 的表示矩阵为 $\begin{pmatrix}A&C\\0&B\end{pmatrix}$。由引理~\ref{lem:xie-ip-normal-block} 得 $C=0$，矩阵成为分块对角形；取伴随后仍保持此分块，且两限制矩阵正规。这个证明同时适用于实空间与复空间。
+\end{proof}
+
+\begin{example}
+比较实、复空间中条件 $Tx\perp x$ 对算子的约束。
+\end{example}
+\begin{solve}
+实空间中，若 $\langle Tx,x\rangle=0$ 对所有 $x$ 成立，把 $x+y$ 代入并减去两个对角项，得 $\langle Tx,y\rangle+\langle Ty,x\rangle=0$，故 $T^*=-T$；反向也由对称性直接成立。因此非零实反对称矩阵给出非零实例，例如 $\begin{pmatrix}0&-1\\1&0\end{pmatrix}$。
+
+复空间中，同样代入 $x+y$ 得 $a+b=0$，其中 $a=\langle Tx,y\rangle$、$b=\langle Ty,x\rangle$；再代入 $x+iy$，扣除对角项，得 $-ia+ib=0$，故 $a=b=0$。任意固定 $x$ 后取 $y=Tx$，即得 $Tx=0$，所以只能 $T=0$。实空间的斜自伴随判据不能直接搬到复空间；复斜自伴随算子的 $\langle Tx,x\rangle$ 一般是纯虚数，并非必为零。
+\end{solve}
+
+\section{实正规矩阵标准型的应用}
+\label{sec:xie-ip-real-normal-applications}
+% 对应教材 9.12，例 9.114--9.122。
+
+实正交矩阵在式~\eqref{eq:xie-ip-real-normal-form} 中的二阶块满足 $a^2+b^2=1$，故为平面旋转块
+\[
+R(\theta)=\begin{pmatrix}\cos\theta&-\sin\theta\\\sin\theta&\cos\theta\end{pmatrix},
+\]
+一阶块为 $1$ 或 $-1$。实反对称矩阵则由 $\begin{pmatrix}0&-b_j\\b_j&0\end{pmatrix}$ 与零块构成，故秩为偶数，非零特征值成对为 $\pm ib_j$。若正交矩阵的标准型中有 $t$ 个 $-1$ 块，则 $\det Q=(-1)^t$；奇数维且 $\det Q=1$ 时必有特征值 $1$，而 $\det Q=-1$ 时必有特征值 $-1$。在三维，行列式为 $1$ 的情形有固定轴，行列式为 $-1$ 的一般情形是轴向反向与垂直平面旋转的复合，不一定是单独一个超平面镜像。
+
+\begin{proposition}
+若 $A\succ0$ 实对称、$S$ 实反对称，则存在可逆 $C$，使 $C^{\mathsf T}AC=I$，且 $C^{\mathsf T}SC$ 为上述反对称分块标准型。于是
+\[
+\det(A+S)\geq\det A>0,
+\]
+等号当且仅当 $S=0$。
+\end{proposition}
+\begin{proof}
+先取 $A^{-1/2}$ 将 $A$ 化为 $I$，再正交标准化 $A^{-1/2}SA^{-1/2}$，即得 $C$。比较合同变换后的行列式，有
+\[
+\frac{\det(A+S)}{\det A}=\prod_j(1+b_j^2)\geq1,
+\]
+等号要求所有非零二阶块消失，即 $S=0$。
+\end{proof}
+
+\begin{example}
+若实矩阵 $M$ 的对称部分 $H=(M+M^{\mathsf T})/2$ 正定，证明 $\det(M+M^{\mathsf T})\leq2^n\det M$，并求等号条件。
+\end{example}
+\begin{solve}
+写 $M=H+S$，其中 $S=(M-M^{\mathsf T})/2$ 反对称。由上一命题，$\det M\geq\det H>0$，因此 $\det(M+M^{\mathsf T})=2^n\det H\leq2^n\det M$。等号当且仅当 $S=0$，即 $M$ 本身对称。
+\end{solve}
+
+\begin{proposition}
+任一实正交矩阵都能表示为至多两个实对称矩阵之积；任一实方阵都能表示为至多三个实对称矩阵之积。
+\end{proposition}
+\begin{proof}
+在每个旋转块上有
+\[
+R(\theta)=
+\begin{pmatrix}\cos\theta&\sin\theta\\\sin\theta&-\cos\theta\end{pmatrix}
+\begin{pmatrix}1&0\\0&-1\end{pmatrix},
+\]
+两因子均实对称；在 $\pm1$ 的一阶块上也可如此配成两个对称因子。将各块组合，再用原正交矩阵作相同的正交相似变换，得到整个矩阵的分解。对任意实方阵，由定理~\ref{thm:xie-ip-polar} 的极分解 $A=QS$，$Q$ 正交且 $S$ 半正定实对称，便得到三个对称因子。
+\end{proof}
+
+还有两类常见结论可直接从标准型读取：对正交矩阵 $Q$，有 $\operatorname{rank}(I-Q)=\operatorname{rank}((I-Q)^2)$；两个实正规矩阵若相似，则必正交相似，因为含重数的复特征值完全确定一阶块与共轭二阶块，块内 $b$ 的符号又可由正交换基改变。另一方面，对称正交矩阵只有 $\pm1$ 特征值，故按负特征值个数分成 $n+1$ 个正交相似类。
+
+\section{同时正交对角化与同时正交标准化}
+\label{sec:xie-ip-simultaneous-orthogonal}
+% 对应教材 9.13，例 9.123--9.130。
+
+\begin{theorem}
+\label{thm:xie-ip-simultaneous-normal}
+有限个实对称矩阵可以同时正交对角化，当且仅当它们两两交换；有限个复正规矩阵可以同时酉对角化，当且仅当它们两两交换。
+\end{theorem}
+\begin{proof}
+必要性由对角矩阵交换得到。对充分性，若所有矩阵均为纯量矩阵则结论成立。否则任选一个非纯量矩阵，以其特征子空间作正交直和分解。与它交换的各矩阵均保持每个特征子空间，且由命题~\ref{prop:xie-ip-reducing}，各限制仍自伴随或正规，并保持两两交换。每个子空间维数均严格小于原空间，故对维数归纳，在各子空间选公共标准正交特征基，合并即得全空间所需的基。
+\end{proof}
+
+对于两两交换的实正规矩阵，同样存在公共的实标准正交基，使每个矩阵均由一阶块和 $C(a,b)$ 二阶块组成，并且各矩阵采用同一组一维、二维子空间。其理由是先在复数域同时酉对角化：若公共特征值全实，可在相应公共特征子空间内选实基；若某个公共特征值非实，就把公共特征向量的实部和虚部配成二维实空间，由定理~\ref{thm:xie-ip-real-normal} 的论证得到该空间的标准正交基。正交补对所有算子及其伴随均不变，再作归纳。这里称为同时正交标准化，不能一般要求所有二阶块也化成实对角块。
+
+同时合同与同时正交对角化的条件不同。对多个实对称矩阵 $A_1\succ0,A_2,\ldots,A_m$，存在可逆 $C$ 使 $C^{\mathsf T}A_1C=I$ 且其余全部对角化，当且仅当
+\begin{equation}
+\label{eq:xie-ip-multiple-congruence}
+A_iA_1^{-1}A_j=A_jA_1^{-1}A_i\qquad(2\leq i,j\leq m).
+\end{equation}
+事实上，将 $A_1$ 化为单位矩阵后，待对角化的是实对称矩阵 $A_1^{-1/2}A_iA_1^{-1/2}$；它们两两交换正好等价于式~\eqref{eq:xie-ip-multiple-congruence}。若其余矩阵为实反对称矩阵，同一交换条件则给出共同的一阶、二阶合同标准化。
+
+\begin{example}
+设 $A\succ0$、$B,C\succeq0$ 均为实对称矩阵，并满足 $BA^{-1}C=CA^{-1}B$。证明
+\[
+\det A\det(A+B+C)\leq\det(A+B)\det(A+C),
+\]
+并求等号条件。
+\end{example}
+\begin{solve}
+由式~\eqref{eq:xie-ip-multiple-congruence} 同时合同对角化，使三者变为 $I,\operatorname{diag}(b_i),\operatorname{diag}(c_i)$，其中 $b_i,c_i\geq0$。两边有相同的行列式变换因子，故问题化为
+\[
+\prod_i(1+b_i+c_i)\leq\prod_i(1+b_i)(1+c_i),
+\]
+由 $1+b_i+c_i\leq(1+b_i)(1+c_i)$ 即得。所有因子均正，等号当且仅当每个 $b_ic_i=0$，等价于 $BA^{-1}C=0$。
+\end{solve}
+
+\begin{example}
+设 $A,B$ 实对称，$A\succeq0$，且 $AB+BA=0$，证明 $AB=BA=0$，并说明二者可以同时正交对角化。
+\end{example}
+\begin{solve}
+先把 $A$ 正交化为 $\operatorname{diag}(\lambda_i)$，其中 $\lambda_i\geq0$。矩阵方程逐项为 $(\lambda_i+\lambda_j)b_{ij}=0$，故只要 $\lambda_i$ 或 $\lambda_j$ 非零，相应的 $b_{ij}$ 必为零。因此 $B$ 仅在 $\ker A$ 上可能非零，从而 $AB=BA=0$；再在 $\ker A$ 中正交对角化 $B$ 即得到公共标准型。若把 $B$ 换为反对称矩阵 $S$，同一逐项论证也给出 $AS=SA=0$，随后应使用同时正交标准化。
+\end{solve}
+
+\section{谱分解、极分解、奇异值分解及其应用}
+\label{sec:xie-ip-decompositions}
+% 对应教材 9.14，例 9.131--9.140。
+
+\subsection{谱分解与函数演算}
+
+\begin{theorem}
+\label{thm:xie-ip-spectral-resolution}
+设 $T$ 为复内积空间上的正规算子，或实内积空间上的自伴随算子，$\lambda_1,\ldots,\lambda_s$ 为其不同特征值，$E_j$ 为到 $\ker(T-\lambda_jI)$ 的正交投影，则
+\begin{equation}
+\label{eq:xie-ip-spectral-resolution}
+T=\sum_{j=1}^s\lambda_jE_j,\qquad
+E_j^*=E_j,\quad E_j^2=E_j,\quad
+E_iE_j=0\ (i\ne j),\quad \sum_jE_j=I.
+\end{equation}
+这些投影由 $T$ 及特征值唯一确定，并且
+\begin{equation}
+\label{eq:xie-ip-spectral-projector}
+E_j=\prod_{\ell\ne j}\frac{T-\lambda_\ell I}{\lambda_j-\lambda_\ell}.
+\end{equation}
+\end{theorem}
+\begin{proof}
+标准正交特征基把全空间分解为各特征子空间的正交直和。在第 $j$ 个子空间上，$T$ 为 $\lambda_jI$，相应 $E_j$ 为恒等，其余投影为零，故式~\eqref{eq:xie-ip-spectral-resolution} 逐子空间成立。同样检验式~\eqref{eq:xie-ip-spectral-projector}，它在第 $j$ 个子空间上为 $I$，在其他子空间上为零，因此它等于 $E_j$，也给出唯一性。
+\end{proof}
+
+谱分解（spectral decomposition）把算子计算化为有限个标量计算：对定义在谱上的任意函数 $f$，定义 $f(T)=\sum_jf(\lambda_j)E_j$；多项式情形与通常的代入一致。自伴随算子正定、半正定与否可逐特征值判断；半正定算子的算术平方根是 $\sum_j\sqrt{\lambda_j}E_j$；正规算子为酉算子当且仅当全部 $|\lambda_j|=1$。对实正规但非自伴随的算子，一般不能把实空间分解为实特征子空间的正交直和，应使用一维与二维的实标准型，或明确在复数域中讨论。
+
+反过来，若一组算子 $E_j$ 满足式~\eqref{eq:xie-ip-spectral-resolution} 中的自伴随、幂等、两两乘积为零及和为 $I$ 的条件，则对任意复数 $\lambda_j$，$T=\sum_j\lambda_jE_j$ 均为正规算子，因为 $T^*T=TT^*=\sum_j|\lambda_j|^2E_j$。若所有 $\lambda_j$ 为实数，$T$ 还自伴随。这说明谱分解的条件本身也是一个正规性判据。
+
+\subsection{极分解与唯一性}
+
+\begin{theorem}
+\label{thm:xie-ip-polar}
+任一 $n$ 阶实或复矩阵 $A$ 均有\emph{极分解（polar decomposition）}
+\begin{equation}
+\label{eq:xie-ip-polar}
+A=US,\qquad S=(A^{\mathsf H}A)^{1/2}\succeq0,
+\end{equation}
+其中 $U$ 为正交或酉矩阵。$S$ 总是唯一；若 $A$ 可逆，则 $U=AS^{-1}$ 也唯一。另有左极分解 $A=HU$，其中 $H=(AA^{\mathsf H})^{1/2}$。若 $A$ 奇异，全空间上的酉因子一般不唯一，但其在 $(\ker A)^\perp$ 上的作用已由 $A$ 唯一确定。
+\end{theorem}
+\begin{proof}
+$S^2=A^{\mathsf H}A$ 使 $\|Sx\|=\|Ax\|$，故 $\ker S=\ker A$，且 $S$ 在 $E=(\ker A)^\perp$ 上可逆。定义 $U_0(Sx)=Ax$，其中 $x\in E$，则由范数等式及极化恒等式可知 $U_0:E\to\operatorname{Im}A$ 为保积同构。两边正交补维数相等，把 $U_0$ 扩张为全空间的酉或正交矩阵 $U$，即可得到 $A=US$。若还有 $A=\widetilde U\widetilde S$，则 $A^{\mathsf H}A=\widetilde S^2$，由半正定平方根唯一性得 $\widetilde S=S$。当 $S$ 可逆时再得 $U=AS^{-1}$；当其有核时，酉因子在核上的延拓仍有选择。由 $AA^{\mathsf H}=US^2U^{\mathsf H}$ 得 $H=USU^{\mathsf H}$，所以 $A=HU$。
+\end{proof}
+
+正规矩阵还可以选择彼此交换的极因子。复情形中，若 $A=\sum_j\lambda_jE_j$，取
+\[
+S=\sum_j|\lambda_j|E_j,\qquad
+U=\sum_{\lambda_j\ne0}\frac{\lambda_j}{|\lambda_j|}E_j
++\sum_{\lambda_j=0}E_j,
+\]
+则 $A=US$ 且 $US=SU$。实正规矩阵按每个旋转伸缩块取模与旋转、按每个实特征值取绝对值与符号，也得到实的交换极分解。反过来，若 $A=US$ 且 $U$ 酉、$S\succeq0$、$US=SU$，则 $A^{\mathsf H}A=S^2=AA^{\mathsf H}$，所以 $A$ 正规。一般矩阵的极分解并不要求两因子交换。
+
+\subsection{奇异值分解}
+
+\begin{theorem}
+\label{thm:xie-ip-svd}
+设 $A\in\mathbb F^{m\times n}$，$\operatorname{rank}A=r$，则存在 $m$ 阶、$n$ 阶酉矩阵 $U,V$，实情形中可取正交矩阵，使
+\begin{equation}
+\label{eq:xie-ip-svd}
+A=U\Sigma V^{\mathsf H},\qquad
+\Sigma=\begin{pmatrix}D&0\\0&0\end{pmatrix}\in\mathbb R^{m\times n},
+\qquad D=\operatorname{diag}(\sigma_1,\ldots,\sigma_r),
+\end{equation}
+其中 $\sigma_1\geq\cdots\geq\sigma_r>0$。这称为\emph{奇异值分解（singular value decomposition，SVD）}；这些正数是 $A^{\mathsf H}A$ 的正特征值的算术平方根，称为正奇异值。零块的大小由 $m,n,r$ 决定，$r=0$ 时 $A=0$。
+\end{theorem}
+\begin{proof}
+对半正定 Hermite 矩阵 $A^{\mathsf H}A$ 取标准正交特征基 $v_1,\ldots,v_n$，令其正特征值为 $\sigma_j^2$。对 $1\leq j\leq r$ 定义 $u_j=Av_j/\sigma_j$，则
+\[
+u_i^{\mathsf H}u_j=\frac{v_i^{\mathsf H}A^{\mathsf H}Av_j}{\sigma_i\sigma_j}=\delta_{ij}.
+\]
+其中 $\delta_{ij}$ 是 Kronecker 符号。把 $u_1,\ldots,u_r$ 扩张为 $\mathbb F^m$ 的标准正交基。对 $j>r$，$\|Av_j\|^2=v_j^{\mathsf H}A^{\mathsf H}Av_j=0$，故 $Av_j=0$。令 $U,V$ 分别由这两组基组成，便有 $AV=U\Sigma$，即式~\eqref{eq:xie-ip-svd}。同时，$A^{\mathsf H}u_j=\sigma_jv_j$，说明 $u_j,v_j$ 分别是相应的左、右奇异向量。
+\end{proof}
+
+SVD 的定义域与值域通常使用\emph[caution]{两组独立选择的标准正交基}；它是左右酉等价分解，一般不是相似分解。即使是方阵，奇异值也不等于特征值的绝对值，只有正规矩阵才有这一对应。例如 $\begin{pmatrix}0&1\\0&0\end{pmatrix}$ 的特征值全零，正奇异值却为 $1$。按式~\eqref{eq:xie-ip-svd} 还可直接读取
+\[
+\operatorname{Im}A=\operatorname{span}(u_1,\ldots,u_r),\quad
+\ker A=\operatorname{span}(v_{r+1},\ldots,v_n),\quad
+\|A\|_F^2=\sum_{j=1}^r\sigma_j^2.
+\]
+定义算子 $2$-范数为 $\|A\|_2=\max_{\|x\|=1}\|Ax\|$，则非零矩阵满足 $\|A\|_2=\sigma_1$。记 $\operatorname{spec}(A)$ 为方阵 $A$ 的特征值集合，则其谱半径 $\rho(A)=\max_{\lambda\in\operatorname{spec}(A)}|\lambda|$ 满足 $\rho(A)\leq\sigma_1$，也可由式~\eqref{eq:xie-ip-eigen-singular-bound} 得到。
+
+方阵的 SVD 与极分解可以互相联系：由 $A=U\Sigma V^{\mathsf H}$ 得 $A=(UV^{\mathsf H})(V\Sigma V^{\mathsf H})$，后一个因子正是 $(A^{\mathsf H}A)^{1/2}$。但 SVD 的左右奇异向量在重奇异值空间内可共同旋转，零奇异值空间内也可选不同基；奇异值有序后唯一，分解矩阵一般并不唯一。
+
+\begin{example}
+设 $A$ 为秩 $r$ 的实方阵，证明 $(\operatorname{tr}A)^2\leq r\operatorname{tr}(A^{\mathsf T}A)$，并求等号条件。
+\end{example}
+\begin{solve}
+令 $P$ 为到 $\operatorname{Im}A$ 的正交投影，则 $PA=A$、$\|P\|_F^2=\operatorname{tr}P=r$，并有
+\[
+\langle A,P\rangle_F=\operatorname{tr}(PA)=\operatorname{tr}A.
+\]
+由 Frobenius 内积的 Cauchy--Schwarz 不等式得所需结论。若 $r>0$，等号当且仅当 $A=cP$，其中 $c\ne0$ 为实数，亦即 $A$ 实对称且所有非零特征值都相同；$A=0$ 时也取等号。该证明把教材的奇异值分析改写为正交投影上的一次内积估计。
+\end{solve}
+
+\subsection{Moore--Penrose 广义逆与最小二乘}
+
+\begin{theorem}
+\label{thm:xie-ip-pseudoinverse}
+对任意 $A\in\mathbb F^{m\times n}$，存在唯一 $A^\dagger\in\mathbb F^{n\times m}$，满足
+\begin{equation}
+\label{eq:xie-ip-penrose}
+AA^\dagger A=A,\qquad A^\dagger AA^\dagger=A^\dagger,
+\qquad(AA^\dagger)^{\mathsf H}=AA^\dagger,\qquad
+(A^\dagger A)^{\mathsf H}=A^\dagger A.
+\end{equation}
+它称为 Moore--Penrose 广义逆（Moore--Penrose pseudoinverse）。若 $A=U\Sigma V^{\mathsf H}$ 为 SVD，则
+\[
+A^\dagger=V\Sigma^\dagger U^{\mathsf H},\qquad
+\Sigma^\dagger=\begin{pmatrix}D^{-1}&0\\0&0\end{pmatrix}\in\mathbb R^{n\times m}.
+\]
+特别地，$AA^\dagger$ 是到 $\operatorname{Im}A$ 的正交投影，$A^\dagger A$ 是到 $(\ker A)^\perp$ 的正交投影。
+\end{theorem}
+\begin{proof}
+用 SVD 代入可逐块验证四个等式，同时得到两个投影结论。对唯一性，设 $B$ 也满足四个条件。$AB$ 自伴随且幂等，$\operatorname{Im}(AB)=\operatorname{Im}A$：一侧由乘积形式得到，另一侧由 $ABA=A$ 得到。因此 $AB$ 必为到 $\operatorname{Im}A$ 的正交投影。同样，$BA$ 自伴随幂等，且由 $ABA=A$ 有 $\ker(BA)=\ker A$，所以它是到 $(\ker A)^\perp$ 的正交投影。若 $b=Ax$，则 $Bb=BAx$ 是 $x$ 在 $(\ker A)^\perp$ 上的唯一投影；若 $b\perp\operatorname{Im}A$，则 $ABb=0$，再由 $BAB=B$ 得 $Bb=BABb=0$。由于这两个子空间正交直和为整个值域空间，$B$ 的作用处处唯一，故 $B=A^\dagger$。
+\end{proof}
+
+\begin{theorem}
+\label{thm:xie-ip-least-squares}
+对任意 $A\in\mathbb F^{m\times n}$ 与 $b\in\mathbb F^m$，向量 $x_*=A^\dagger b$ 是所有使 $\|Ax-b\|$ 最小的向量中唯一范数最小者。全体最小二乘解为
+\begin{equation}
+\label{eq:xie-ip-least-squares}
+x=A^\dagger b+(I-A^\dagger A)z,\qquad z\in\mathbb F^n,
+\end{equation}
+等价地，它们是正规方程 $A^{\mathsf H}Ax=A^{\mathsf H}b$ 的全部解。若 $Ax=b$ 有解，则上述向量恰为其全部解，$A^\dagger b$ 为唯一最小范数解。
+\end{theorem}
+\begin{proof}
+令 $p=AA^\dagger b$，它是 $b$ 在 $\operatorname{Im}A$ 上的正交投影，因此
+\[
+\|Ax-b\|^2=\|Ax-p\|^2+\|p-b\|^2.
+\]
+故最小二乘解恰满足 $Ax=p$，等价于 $x-x_*\in\ker A$，从而得到式~\eqref{eq:xie-ip-least-squares}。又 $x_*\in(\ker A)^\perp$，故对 $v\in\ker A$，$\|x_*+v\|^2=\|x_*\|^2+\|v\|^2$，唯一最小范数性质成立。另一方面，$Ax-b\perp\operatorname{Im}A$ 等价于 $A^{\mathsf H}(Ax-b)=0$，所以正规方程总有解，即使原方程无解也是如此。
+\end{proof}
+
+当 $A$ 列满秩时，$A^{\mathsf H}A$ 正定，$A^\dagger=(A^{\mathsf H}A)^{-1}A^{\mathsf H}$，最小二乘解唯一；当 $A$ 行满秩时，$A^\dagger=A^{\mathsf H}(AA^{\mathsf H})^{-1}$，所有右端都有解，而该公式选出最小范数解。若方阵 $A$ 可逆，则 $A^\dagger=A^{-1}$；零矩阵的广义逆仍为零。这里的“正规方程”是最小二乘的驻点方程，与“正规矩阵”是不同概念。
+
+\begin{example}
+设 $A=\begin{pmatrix}1&1\\1&1\\0&0\end{pmatrix}$、$b=(1,0,1)^{\mathsf T}$，求全部最小二乘解及其中范数最小者。
+\end{example}
+\begin{solve}
+$A$ 的秩为 $1$，唯一正奇异值为 $2$，且
+\[
+A^\dagger=\frac14\begin{pmatrix}1&1&0\\1&1&0\end{pmatrix},
+\qquad x_*=\begin{pmatrix}1/4\\1/4\end{pmatrix},
+\qquad Ax_*=\begin{pmatrix}1/2\\1/2\\0\end{pmatrix}.
+\]
+残差 $b-Ax_*=(1/2,-1/2,1)^{\mathsf T}$ 与列空间 $\operatorname{span}\{(1,1,0)^{\mathsf T}\}$ 正交。因此全部最小二乘解为 $(1/4,1/4)^{\mathsf T}+t(1,-1)^{\mathsf T}$（$t\in\mathbb R$），最小残差平方为 $3/2$；其中 $t=0$ 时的解范数最小。这个例子同时区分了“残差最小”与“解向量范数最小”两个目标。
+\end{solve}
+
+\section{基础训练：综合方法与易错辨析}
+\label{sec:xie-ip-training}
+% 对应教材 9.15；将选择、填空与解答训练按概念整合。
+
+基础训练首先检验\emph[tip]{条件是否足以保证所用的标准型}。实对称矩阵有标准正交特征基，但不一定有互异特征值，同一重特征值的任意特征向量也未必两两正交；自伴随算子在一般基中的矩阵未必对称，实情形中正确判据是 $A^{\mathsf T}G=GA$。正交变换在标准正交基中的表示矩阵正交，在一般基中则只保证 $A^{\mathsf T}GA=G$。任意可逆矩阵作相似变换并不保持矩阵的正交性，例如 $Q=\begin{pmatrix}0&-1\\1&0\end{pmatrix}$、$P=\operatorname{diag}(2,1)$ 时，$P^{-1}QP=\begin{pmatrix}0&-1/2\\2&0\end{pmatrix}$ 已不正交。
+
+分类问题还要区分特征多项式与极小多项式：实对称矩阵由含重数的特征值决定其正交相似类，因此特征多项式相同就正交相似；但 $\operatorname{diag}(1,1,2)$ 与 $\operatorname{diag}(1,2,2)$ 的极小多项式同为 $(t-1)(t-2)$，却不相似。类似地，正规且幂零的算子必为零，复正规算子特征值全实时必自伴随；如果只知道在某组一般基中可对角化，这两类正规性结论都不能无条件使用。
+
+\begin{example}
+设 $u_1,\ldots,u_r$ 线性无关，$U=\operatorname{span}(u_1,\ldots,u_r)$。用 Gram 行列式表示 $x$ 到 $U$ 的距离。
+\end{example}
+\begin{solve}
+写 $x=P_Ux+z$，其中 $z\perp U$。从向量组 $(u_1,\ldots,u_r,x)$ 的最后一个向量减去 $P_Ux$，对应行列式为 $1$ 的基变换，故 Gram 行列式不变。新 Gram 矩阵是 $G(u_1,\ldots,u_r)$ 与 $\|z\|^2$ 的分块对角矩阵，因此
+\[
+d(x,U)^2=\|z\|^2
+=\frac{\det G(u_1,\ldots,u_r,x)}{\det G(u_1,\ldots,u_r)}.
+\]
+分母正定非零；当 $x\in U$ 时分子为零，公式仍成立。实情形中，它就是“体积等于底面积乘以高”的平方形式。
+\end{solve}
+
+\begin{example}
+设 $n$ 维欧氏空间中有 $n+1$ 个点 $a_0,\ldots,a_n$，任意两点的距离均为 $d>0$。证明 $a_i-a_0$（$1\leq i\leq n$）构成一组基。
+\end{example}
+\begin{solve}
+令 $v_i=a_i-a_0$，则 $\|v_i\|=d$，而 $\|v_i-v_j\|^2=d^2$ 给出 $\langle v_i,v_j\rangle=d^2/2$（$i\ne j$）。所以
+\[
+G(v_1,\ldots,v_n)=\frac{d^2}{2}(I_n+\boldsymbol1\boldsymbol1^{\mathsf T}),
+\qquad \det G=(n+1)\left(\frac{d^2}{2}\right)^n>0.
+\]
+由命题~\ref{prop:xie-ip-gram-rank} 即得线性无关。这说明这 $n+1$ 个等距点确实张成一个非退化的 $n$ 维单纯形。
+\end{solve}
+
+\begin{example}
+设 $a,b$ 是内积空间中的非零向量，定义秩一算子 $T(x)=\langle x,a\rangle b$。求其伴随，并判定它何时正规。
+\end{example}
+\begin{solve}
+由
+\[
+\langle Tx,y\rangle=\langle x,a\rangle\langle b,y\rangle
+=\langle x,\langle y,b\rangle a\rangle
+\]
+得 $T^*(y)=\langle y,b\rangle a$。进而
+\[
+T^*Tx=\|b\|^2\langle x,a\rangle a,\qquad
+TT^*x=\|a\|^2\langle x,b\rangle b.
+\]
+二者相等必使像空间 $\operatorname{span}\{a\}$ 与 $\operatorname{span}\{b\}$ 相同，故 $a,b$ 线性相关；反之若 $b=ca$，则 $T$ 是秩一正交投影的某个标量倍数，确实正规。特别地，$a,b$ 为正交单位向量时，在以它们开头的标准正交基下，$T,T^*$ 的矩阵分别是 $E_{21},E_{12}$，该算子不正规。
+\end{solve}
+
+\begin{example}
+设 $P^2=P$。证明 $\|Px\|\leq\|x\|$ 对所有 $x$ 成立，当且仅当 $P$ 是正交投影，也当且仅当 $P=P^*$。
+\end{example}
+\begin{solve}
+幂等性给出 $V=\operatorname{Im}P\oplus\ker P$。若 $u\in\operatorname{Im}P$、$v\in\ker P$，则 $P(u+tv)=u$，收缩性使 $\|u\|^2\leq\|u+tv\|^2$ 对所有实数 $t$ 成立，因而展开后一次项必须为零，即 $\operatorname{Re}\langle u,v\rangle=0$；在复空间中再以 $iv$ 代替 $v$，得到虚部也为零。因此两子空间正交，$P$ 即正交投影，其矩阵在相应标准正交基下为 $\operatorname{diag}(I,0)$，所以自伴随。反之，自伴随幂等矩阵具有这一标准型，因而是正交投影并满足范数收缩。
+\end{solve}
+
+\begin{example}
+证明八阶实正交矩阵中不可能出现所有元素均为 $1/\sqrt8$ 的三阶子矩阵。
+\end{example}
+\begin{solve}
+若该子矩阵为 $B$，将所在的三行在其他五列上的元素记为 $C$。由这三行标准正交，
+\[
+CC^{\mathsf T}=I_3-BB^{\mathsf T}
+=I_3-\frac38\boldsymbol1\boldsymbol1^{\mathsf T}.
+\]
+右边在 $\boldsymbol1=(1,1,1)^{\mathsf T}$ 上的特征值为 $1-9/8=-1/8$，与 $CC^{\mathsf T}\succeq0$ 矛盾。利用子向量组的 Gram 矩阵，可以将“某些元素能否同时出现”转化为半正定性检验。
+\end{solve}
+
+\begin{example}
+设 $A\in\mathbb F^{m\times n}$ 列满秩，证明 $P=A(A^{\mathsf H}A)^{-1}A^{\mathsf H}$ 可写为 $P=QQ^{\mathsf H}$，其中 $Q^{\mathsf H}Q=I_n$。
+\end{example}
+\begin{solve}
+取 $Q=A(A^{\mathsf H}A)^{-1/2}$，则 $Q^{\mathsf H}Q=I_n$ 且 $QQ^{\mathsf H}=P$。因而 $P$ 是到 $\operatorname{Im}A$ 上的正交投影；也可由薄 QR 分解 $A=QR$ 得到同一个投影。这里 $A$ 的列向量未必标准正交，而乘以 $(A^{\mathsf H}A)^{-1/2}$ 正是把其度量归一化。
+\end{solve}
+
+\begin{example}
+不预先假设线性。设映射 $F:V\to V$ 满足 $\langle F(x),F(y)\rangle=\langle x,y\rangle$ 对所有 $x,y$ 成立，其中 $V$ 为有限维实或复内积空间。证明 $F$ 自动是线性的保积自同构。
+\end{example}
+\begin{solve}
+取标准正交基 $e_1,\ldots,e_n$，则 $F(e_1),\ldots,F(e_n)$ 也是标准正交基。任意 $x$ 的像在此基下展开为
+\[
+F(x)=\sum_{j=1}^n\langle F(x),F(e_j)\rangle F(e_j)
+=\sum_{j=1}^n\langle x,e_j\rangle F(e_j).
+\]
+右端关于 $x$ 线性，故 $F$ 线性；它将一组基映为一组基，因而为同构。这个证明先利用有限维性把像基变成全空间的基，再由坐标恢复线性，避免把题目未给出的线性当作已知条件。
+\end{solve}
+% END textbook-xie-exercises-ch9
+
+
+
+
+
+

@@ -1,0 +1,56 @@
+% !TeX root = ../凸优化笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{两个二次函数相关问题}
+\label{app:co-quadratic}
+
+本附录为选读。它展示某些非凸二次问题仍有精确的半正定证书；这种特殊结构不能推广为一般非凸优化的结论。
+
+\section{单个二次约束与信赖域问题}
+
+信赖域子问题（trust-region subproblem）为
+\[
+ \min_{\|x\|_2\leq\Delta}\left\{\frac12x^{\mathsf T}Qx+c^{\mathsf T}x\right\},
+ \qquad Q=Q^{\mathsf T},\quad\Delta>0.
+\]
+即使 $Q$ 不半正定，连续目标在紧球上仍取到最小值。其全局最优点可由以下条件刻画：存在 $\lambda\geq0$，使
+\[
+ (Q+\lambda I)x=-c,\quad Q+\lambda I\succeq0,\quad
+ \|x\|_2\leq\Delta,\quad\lambda(\|x\|_2^2-\Delta^2)=0.
+\]
+充分性可直接验证：拉格朗日函数 $\mathcal L(x,\lambda)=x^{\mathsf T}Qx/2+c^{\mathsf T}x+\lambda(\|x\|_2^2-\Delta^2)/2$ 在该点全局最小，且互补性使其值等于原目标，弱对偶给出最优性。必要性由下一节的 S 引理推出，这里引用该标准结论。
+
+\begin{example}
+令 $Q=\operatorname{diag}(-2,2)$、$c=0$、$\Delta=1$，目标为 $-x_1^2+x_2^2$。其最小值为 $-1$，在 $(1,0)$、$(-1,0)$ 取到；取 $\lambda=2$ 时 $Q+\lambda I=\operatorname{diag}(0,4)\succeq0$，符合上述条件。这也说明最优点不必唯一，修正海塞矩阵也不必正定。
+\end{example}
+
+\section{S 引理与半正定证书}
+
+\begin{theorem}[S 引理]
+设 $q_0,q_1$ 为实二次函数，存在 $\bar x$ 使 $q_1(\bar x)<0$。则下列两项等价：对所有 $x$，$q_1(x)\leq0$ 蕴含 $q_0(x)\geq0$；存在 $\lambda\geq0$，使 $q_0(x)+\lambda q_1(x)\geq0$ 对所有 $x$ 成立。
+\end{theorem}
+由第二项推出第一项只需移项；反向是引理的实质，本书引用其结论，证明可参见\cite{ahmadi-slemma}。严格可行性不可直接删除，多约束时通常也只保留乘子证书的充分性。
+
+写 $q_i(x)=x^{\mathsf T}Q_i x+2a_i^{\mathsf T}x+c_i$，其全空间非负性证书等价于
+\[
+ \begin{bmatrix}
+ Q_0+\lambda Q_1&a_0+\lambda a_1\\
+ (a_0+\lambda a_1)^{\mathsf T}&c_0+\lambda c_1
+ \end{bmatrix}\succeq0.
+\]
+这把无限多个点上的不等式化成有限维矩阵条件。二次函数全空间非负等价于相应提升矩阵半正定：末坐标非零的向量可缩放为 $(x,1)$，末坐标为零的情形由连续性补上。将 $q_0$ 换为 $q_0-\gamma$，最大化可认证的下界 $\gamma$，就得到单约束二次问题的精确 SDP 值表示。
+
+在信赖域问题中，可以把这一必要性论证写完整。令原目标为 $f$、最优值为 $p^\star$，取 $q_0=f-p^\star$、$q_1=(\|x\|_2^2-\Delta^2)/2$。原点严格满足 $q_1<0$，且在球上 $q_0\geq0$，S 引理给出 $\lambda\geq0$ 使 $q_0+\lambda q_1$ 在全空间非负。在任意原最优点 $x^\star$，这个非负量又等于 $\lambda q_1(x^\star)\leq0$，故它为零并满足互补松弛。非负二次函数在这个零点取全局最小值，因此其梯度为零、二次项半正定，恰好得到前述完整条件。这个推导明确说明了单约束的严格可行性在哪一步发挥作用。
+
+\section{联合值域与应用练习}
+
+对两个对称矩阵 $A,B$，齐次二次型的联合值域 $\{(x^{\mathsf T}Ax,x^{\mathsf T}Bx):x\in\mathbb R^n\}$ 是凸锥；这是两二次型的经典凸性结论，此处引用，详见\cite{boyd-vandenberghe}附录中的论述。该锥未必闭，例如 $(x^2,2xy)$ 的值域包含所有第一坐标正的点及原点，却不包含 $(0,1)$。
+
+不能将此结论直接推广到任意非齐次二次函数：$\{(x,x^2):x\in\mathbb R\}$ 是抛物线，两个不同点的中点通常不在其上。单约束 S 引理中的资格条件正是把联合值域几何与分离证书联系起来所需的关键假设之一。
+
+\begin{enumerate}
+ \item 用 $q_1(x)=x^2-1$、$q_0(x)=1-x^2$ 验证 S 引理，给出乘子 $\lambda=1$。
+ \item 取 $q_1(x)=x^2$、$q_0(x)=x$。验证蕴含关系成立，却不存在有限 $\lambda\geq0$ 使 $x+\lambda x^2$ 对所有实数非负，说明严格可行性的作用。
+ \item 对球内二次函数的下界认证写出 SDP，并与直接计算的最小特征值例题核对。
+\end{enumerate}
+

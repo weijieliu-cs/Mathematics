@@ -1,0 +1,90 @@
+% !TeX root = ../常微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{6} % 保留原书章号。
+\chapter{线性微分方程组}
+\label{chap:ode-linear-system}
+
+设 $A:I\to\mathbb R^{d\times d}$、$b:I\to\mathbb R^d$ 连续，考虑 $x'=A(t)x+b(t)$。矩阵语言把多个耦合变量作为一个状态处理，并统一高阶标量方程与耦合系统。
+
+\section{基本矩阵与状态转移矩阵}
+齐次系统的解空间为 $d$ 维。以一组基解为列构成的矩阵 $\Phi(t)$ 称基本矩阵（fundamental matrix），满足 $\Phi'=A\Phi$，且处处可逆。可逆性来自初值唯一性：若 $\Phi(t_*)c=0$，则解 $\Phi(t)c$ 与零解具有相同初值，所以恒为零，基解的线性无关性迫使 $c=0$。
+
+两个基本矩阵满足 $\Psi=\Phi C$，其中 $C$ 是常可逆矩阵，因为
+\[
+ (\Phi^{-1}\Psi)'=-\Phi^{-1}A\Psi+\Phi^{-1}A\Psi=0.
+\]
+状态转移矩阵（state transition matrix）定义为
+\[
+ U(t,s)=\Phi(t)\Phi(s)^{-1}.
+\]
+它不依赖基的选择，并满足 $U(t,s)U(s,r)=U(t,r)$、$U(s,s)=I_d$。初值解就是 $x(t)=U(t,t_0)x_0$。
+
+\section{Liouville 公式与常数变易}
+由行列式求导及 $\Phi'=A\Phi$，得到 Liouville 公式（Liouville formula）
+\[
+ \det\Phi(t)=\det\Phi(t_0)\exp\!\left(\int_{t_0}^t\operatorname{tr}A(s)\,\mathrm ds\right).
+\]
+也可按行列式多线性直接推导 $(\det\Phi)'=(\operatorname{tr}A)\det\Phi$。它描述线性系统对有向体积的缩放。
+
+对非齐次系统令 $x=\Phi c(t)$，则 $c'=\Phi^{-1}b$，所以
+\begin{equation}
+ x(t)=U(t,t_0)x_0+\int_{t_0}^t U(t,s)b(s)\,\mathrm ds.
+ \label{eq:ode-system-variation}
+\end{equation}
+第一项是初始状态的自由演化，第二项是各时刻输入经过后续演化后的累积；该解释将在拉普拉斯变换中再次出现。
+
+\section{常系数系统与矩阵指数}
+对常矩阵 $A$，定义矩阵指数（matrix exponential）
+\[
+ e^{tA}=\sum_{k=0}^\infty\frac{t^kA^k}{k!}.
+\]
+因 $\|A^k\|\leq\|A\|^k$，此级数及其逐项导数级数在紧时间段上一致收敛，故 $(e^{tA})'=Ae^{tA}$、$e^{0A}=I_d$。唯一性给出 $U(t,s)=e^{(t-s)A}$。若 $A=SDS^{-1}$，则 $e^{tA}=Se^{tD}S^{-1}$。
+
+当 $AB=BA$ 时，由二项式展开与绝对收敛可得 $e^{A+B}=e^Ae^B$；一般不成立。例如取
+\[
+ A=\begin{pmatrix}0&1\\0&0\end{pmatrix},\qquad B=\begin{pmatrix}0&0\\1&0\end{pmatrix}.
+\]
+有 $e^Ae^B=\begin{pmatrix}2&1\\1&1\end{pmatrix}$，而 $A+B$ 对称，其指数也对称且两对角元相同，故二者不同。
+
+\section{重特征值、Jordan 链与实解}
+若 $Av=\lambda v$，则 $e^{\lambda t}v$ 为解。若 $(A-\lambda I)w=v$，则 $e^{\lambda t}(w+tv)$ 也是解；求导可直接验证。更一般的 Jordan 块 $J=\lambda I+N$、$N^m=0$ 给出
+\[
+ e^{tJ}=e^{\lambda t}\left(I+tN+\cdots+\frac{t^{m-1}N^{m-1}}{(m-1)!}\right).
+\]
+重根本身不一定产生多项式因子，只有非平凡 Jordan 块才产生。若 $A$ 为实矩阵且 $\lambda=\alpha+i\beta$、$v=u+iw$，则实解对为
+\[
+ e^{\alpha t}(u\cos\beta t-w\sin\beta t),\qquad
+ e^{\alpha t}(u\sin\beta t+w\cos\beta t).
+\]
+
+\begin{example}
+解 $x'=\begin{pmatrix}-1&1\\0&-1\end{pmatrix}x$、$x(0)=(a,b)^{\mathsf T}$。
+\end{example}
+\begin{solve}
+$A=-I+N$、$N^2=0$，所以 $e^{tA}=e^{-t}\begin{pmatrix}1&t\\0&1\end{pmatrix}$，得到 $x(t)=e^{-t}(a+bt,b)^{\mathsf T}$。虽有因子 $t$，指数衰减最终仍占主导。
+\end{solve}
+
+\section{变系数系统与周期系数简介}
+一般不能写 $U(t,t_0)=\exp(\int_{t_0}^t A(s)\,\mathrm ds)$。若所有 $A(t)$ 两两可交换，则 $B(t)=\int_{t_0}^t A(s)\,\mathrm ds$ 与 $B'(t)=A(t)$ 可交换，逐项求导给出 $(e^{B(t)})'=A(t)e^{B(t)}$，此时该式成立。
+
+若 $A(t+T)=A(t)$，$T>0$，令 $\Phi(t)=U(t,0)$、$M=\Phi(T)$。唯一性给出
+\[
+ \Phi(t+T)=\Phi(t)M,\qquad \Phi(nT)=M^n.
+\]
+$M$ 称单周期矩阵，其特征值称 Floquet 乘子（Floquet multipliers）。当所有乘子模小于 $1$ 时，$M^n$ 指数衰减；结合 $\Phi$ 在 $[0,T]$ 上有界，可知连续时间解也指数衰减。完整 Floquet 分解属于进一步理论，本节不需要它。
+
+\section{线性系统的增长与衰减}
+若 $A$ 的全部特征值实部为负，可取 $\alpha>0$ 小于这些衰减率的最小值。Jordan 公式中有限次多项式均可被略慢的指数吸收，故存在 $C\geq1$ 使
+\[
+ \|e^{tA}\|\leq Ce^{-\alpha t},\qquad t\geq0.
+\]
+若有特征值实部为正，则相应实解或复解的实二维表示中存在增长方向。虚轴上的特征值是否产生增长还取决于 Jordan 块：$A=0$ 产生常值解，而 $A=\begin{pmatrix}0&1\\0&0\end{pmatrix}$ 产生线性增长。这些区别是稳定性判据的基础。
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-system} 解 $x_1'=x_1+x_2$、$x_2'=x_1+x_2$，初值为 $(1,0)^{\mathsf T}$。
+ \item 验证基本矩阵 $\Phi C$ 与 $\Phi$ 产生相同的 $U(t,s)$，其中 $C$ 为常可逆矩阵。
+ \item\label{ex:ode-nilpotent} 若 $A^3=0$，求 $e^{tA}$ 并直接验证导数公式。
+ \item 对 $x'=A(t)x+b(t)$，从式\eqref{eq:ode-system-variation}验证微分方程和初值，而非仅记忆公式。
+\end{enumerate}
+

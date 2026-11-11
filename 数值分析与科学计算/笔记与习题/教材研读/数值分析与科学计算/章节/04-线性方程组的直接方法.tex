@@ -1,0 +1,101 @@
+% !TeX root = ../数值分析与科学计算笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{3} % 保留原书章号。
+\chapter{线性方程组的直接方法}
+\label{chap:na-direct}
+
+\section{线性系统、条件数与残差}
+考虑 $Ax=b$，其中 $A\in\mathbb R^{n\times n}$ 非奇异。数学上 $x=A^{-1}b$，但计算上通常先分解 $A$ 再解三角系统。显式求逆要计算多余信息，且不比直接解方程自动更准确。
+
+\begin{definition}[矩阵条件数]
+在同一种诱导范数下，非奇异矩阵的条件数为 $\kappa(A)=\|A\|\|A^{-1}\|$。由于 $\|I\|=1$，有 $\kappa(A)\ge1$。二范数条件数等于最大奇异值与最小奇异值之比。
+\end{definition}
+若只扰动右端项，则 $A\Delta x=\Delta b$。当 $b\ne0$ 时，结合 $\|b\|\le\|A\|\|x\|$ 得
+\begin{equation}
+ \frac{\|\Delta x\|}{\|x\|}\le\kappa(A)\frac{\|\Delta b\|}{\|b\|}.
+ \label{eq:na-rhs-perturbation}
+\end{equation}
+
+\begin{theorem}[系数与右端项同时扰动]
+\label{thm:na-linear-perturbation}
+设 $(A+\Delta A)(x+\Delta x)=b+\Delta b$，$Ax=b\ne0$，并令 $\eta_A=\|\Delta A\|/\|A\|$、$\eta_b=\|\Delta b\|/\|b\|$。若 $\kappa(A)\eta_A<1$，则 $A+\Delta A$ 非奇异，而且
+\[
+ \frac{\|\Delta x\|}{\|x\|}\le
+ \frac{\kappa(A)}{1-\kappa(A)\eta_A}(\eta_A+\eta_b).
+\]
+\end{theorem}
+\begin{proof}
+令 $E=A^{-1}\Delta A$。由 $\|E\|<1$，矩阵级数 $\sum_{j=0}^{\infty}(-E)^j$ 在范数下绝对收敛，乘以 $I+E$ 后为 $I$，故 $\|(I+E)^{-1}\|\le(1-\|E\|)^{-1}$。两方程相减给出 $(I+E)\Delta x=A^{-1}\Delta b-Ex$。取范数，再用 $\|b\|/\|x\|\le\|A\|$ 即得结论。
+\end{proof}
+
+对近似解 $\widehat x$ 定义残差 $r=b-A\widehat x$。因为 $A(x-\widehat x)=r$，有
+\[
+ \frac{\|x-\widehat x\|}{\|x\|}\le\kappa(A)\frac{\|r\|}{\|b\|}.
+\]
+若只允许右端项改变，$\widehat x$ 是 $A\widehat x=b-r$ 的精确解，因此 $\|r\|/\|b\|$ 是相应相对后向误差。常见尺度化指标 $\|r\|/(\|A\|\|\widehat x\|+\|b\|)$ 还考虑了系数与解的尺度；报告时应注明范数，不能把它直接称为前向误差。
+
+\begin{example}[病态系统中的小残差]
+令 $A=\operatorname{diag}(1,\varepsilon)$、$b=(1,\varepsilon)^{\mathsf T}$，其中 $0<\varepsilon<1$。精确解为 $(1,1)^{\mathsf T}$，近似解 $(1,0)^{\mathsf T}$ 的无穷范数相对误差为 $1$，相对残差为 $\varepsilon$，而 $\kappa_\infty(A)=1/\varepsilon$。残差界恰能解释误差为何没有随残差一起变小。
+\end{example}
+
+\section{消元、三角求解与选主元}
+\emph{高斯消元（Gaussian elimination）}逐列消去主对角线下方元素。第 $k$ 步用非零主元 $u_{kk}$ 形成乘子 $l_{ik}=a_{ik}^{(k)}/u_{kk}$，再更新
+\[
+ a_{ij}^{(k+1)}=a_{ij}^{(k)}-l_{ik}a_{kj}^{(k)},\qquad i,j>k.
+\]
+若各步主元非零，消元等价于 $A=LU$，其中 $L$ 是单位下三角矩阵，$U$ 是上三角矩阵。先解 $Ly=b$，再解 $Ux=y$。回代公式为
+\[
+ x_i=\frac{y_i-\sum_{j=i+1}^{n}u_{ij}x_j}{u_{ii}},\qquad i=n,n-1,\ldots,1.
+\]
+前代与回代各需 $O(n^2)$ 次运算；稠密消元约需 $2n^3/3$ 次浮点运算。对同一矩阵的多个右端项应复用分解。
+
+\begin{proposition}[无换行 LU 分解的充分条件]
+若 $A$ 的所有顺序主子式均非零，则存在唯一的单位下三角 $L$ 与非奇异上三角 $U$，使 $A=LU$。
+\end{proposition}
+\begin{proof}
+按阶数归纳。第一主元非零，可消去第一列，其余块为 Schur 补。该块前 $k$ 阶主子式等于原矩阵前 $k+1$ 阶主子式除以第一主元，因而非零，可继续归纳。唯一性来自 $L_2^{-1}L_1=U_2U_1^{-1}$：该矩阵同时为单位下三角与上三角，只能等于 $I$。
+\end{proof}
+
+\emph{部分选主元（partial pivoting）}在当前列的剩余元素中选绝对值最大的作为主元，必要时交换行，得到
+\begin{equation}
+ PA=LU,
+ \label{eq:na-plu}
+\end{equation}
+其中 $P$ 是置换矩阵。交换行时，已经存入 $L$ 的前几列乘子也必须相应交换。输入为方阵 $A$ 与右端项，输出为解或奇异、近奇异等状态；选主元为零说明精确算术下矩阵奇异，浮点下则还应结合矩阵尺度判断过小主元。
+
+\begin{example}[小主元引起的中间量放大]
+对 $A=\begin{pmatrix}\varepsilon&1\\1&1\end{pmatrix}$，直接以 $\varepsilon$ 为主元产生乘子 $1/\varepsilon$。当 $\varepsilon$ 很小时，中间量很大；先交换两行则乘子为 $\varepsilon$。原矩阵在 $\varepsilon\to0$ 时仍趋于非奇异矩阵，这说明坏消元步骤可以出现在良态问题上。
+\end{example}
+
+部分选主元保证乘子绝对值不超过 $1$，但并不禁止 $U$ 的元素增长。标准误差分析在通常浮点模型下给出与 $u|L||U|$ 同阶的分量后向误差界，常数依赖维数。由此可知其稳定性还受消元增长因子影响；不能断言它对一切矩阵都有与数据无关的小误差常数。工程中它通常可靠，严格分析仍需保留增长因素。
+
+\section{对称正定系统与 Cholesky 分解}
+\begin{definition}[对称正定矩阵]
+实对称矩阵 $A$ 若对所有 $x\ne0$ 满足 $x^{\mathsf T}Ax>0$，称为对称正定矩阵（symmetric positive definite matrix，SPD）。
+\end{definition}
+\begin{theorem}[Cholesky 分解]
+若 $A$ 对称正定，则存在唯一的下三角矩阵 $L$，其对角元为正，使 $A=LL^{\mathsf T}$。
+\end{theorem}
+\begin{proof}
+写 $A=\begin{pmatrix}a&v^{\mathsf T}\\v&B\end{pmatrix}$，则 $a>0$。对 $y\ne0$，令 $z=(-v^{\mathsf T}y/a,y^{\mathsf T})^{\mathsf T}$，有 $y^{\mathsf T}(B-vv^{\mathsf T}/a)y=z^{\mathsf T}Az>0$，故 Schur 补仍正定。取 $l_{11}=\sqrt a$、首列下部为 $v/\sqrt a$，对子块递归即可存在。逐列公式与正对角元约定又确定了唯一性。
+\end{proof}
+具体公式为
+\[
+ l_{jj}=\left(a_{jj}-\sum_{k<j}l_{jk}^2\right)^{1/2},\qquad
+ l_{ij}=\frac{a_{ij}-\sum_{k<j}l_{ik}l_{jk}}{l_{jj}},\quad i>j.
+\]
+稠密计算约需 $n^3/3$ 次浮点运算。若实际计算出现非正开方量，应报告分解失败并检查正定性、尺度和舍入影响；不应把负值随意取绝对值来强行完成分解。
+
+\section{结构化系统与迭代改进}
+三对角系统只在主对角线及两侧相邻对角线上有非零元。无换行消元若每个主元非零，只需 $O(n)$ 存储和运算；一般三对角矩阵仍可能出现零主元，正定三对角情形则可使用其结构化 Cholesky 分解。稀疏矩阵的消元还会产生原先不存在的非零元，称为\emph{填充（fill-in）}，所以“输入稀疏”不等于“分解仍同样稀疏”。
+
+\emph{迭代改进（iterative refinement）}先求近似解 $\widehat x$，再计算 $r=b-A\widehat x$，用已有分解近似求解 $Ad=r$，更新 $\widehat x\leftarrow\widehat x+d$。精确算术下若修正方程解得精确，一次修正即可恢复真解；浮点效果取决于分解误差、条件数与残差评价精度。以较高精度算残差常有帮助，但并非对任意病态问题都保证恢复全部有效数字。
+
+\section{习题}
+\begin{enumerate}[label=\arabic*.]
+\item\label{exr:na-direct-lu} 求 $A=\begin{pmatrix}2&1\\4&3\end{pmatrix}$ 的无换行 LU 分解，并解 $Ax=(1,3)^{\mathsf T}$。
+\item\label{exr:na-direct-cholesky} 求 $A=\begin{pmatrix}4&2\\2&3\end{pmatrix}$ 的 Cholesky 分解。
+\item\label{exr:na-direct-condition} 证明 $\kappa_2(Q)=1$ 对任意实正交矩阵成立，并求 $\operatorname{diag}(1,10^{-6})$ 的二范数条件数。
+\item\label{exr:na-direct-residual} 已知 $\kappa(A)=10^5$，某近似解的相对残差为 $10^{-10}$。能保证怎样的相对前向误差上界？能否由此断言误差恰为该上界？
+\end{enumerate}
+

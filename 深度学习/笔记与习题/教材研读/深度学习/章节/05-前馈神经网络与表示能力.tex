@@ -1,0 +1,53 @@
+% !TeX root = ../深度学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{4} % 保留原书章号。
+\chapter{前馈神经网络与表示能力}
+\label{chap:dl-mlp}
+线性分类器只能产生超平面决策边界；如果先把输入变换到新的表示空间，原来不可分的数据可能变得可分。前馈网络把这一变换和最后的预测器一起学习，其基本单元是仿射映射与非线性激活的复合。
+
+\section{神经元、隐藏层与前向传播}
+\begin{definition}[前馈网络]
+令 $\mathbf h^{(0)}=\mathbf x\in\mathbb R^{d_0}$。具有 $L$ 层变换的\emph{前馈神经网络（feedforward neural network）}按
+\begin{equation}
+\mathbf a^{(l)}=\mathbf W^{(l)}\mathbf h^{(l-1)}+\mathbf b^{(l)},\qquad
+\mathbf h^{(l)}=\phi_l(\mathbf a^{(l)}),\quad l=1,\ldots,L
+\label{eq:dl-forward-layer}
+\end{equation}
+计算，权重 $\mathbf W^{(l)}\in\mathbb R^{d_l\times d_{l-1}}$，偏置 $\mathbf b^{(l)}\in\mathbb R^{d_l}$，输出为 $f_\theta(\mathbf x)=\mathbf h^{(L)}$。中间的 $\mathbf h^{(l)}$ 称隐藏表示，$\phi_l$ 称激活映射。
+\end{definition}
+全连接前馈网络也称\emph{多层感知机（multilayer perceptron, MLP）}。单个隐藏单元先求输入的加权和，再进行标量非线性变换；每一层同时计算多个这样的单元。回归输出可用恒等映射，分类输出可保留逻辑值并由损失内部处理 sigmoid 或 softmax。所谓“层数”有时是否计入输入层存在惯例差异，本书 $L$ 始终指带参数的变换层数。
+
+\section{激活函数与非线性来源}
+常用逐元素激活包括 $\sigma(a)=1/(1+e^{-a})$、$\tanh a$ 和\emph{修正线性单元（rectified linear unit, ReLU）} $\rho(a)=\max(0,a)$。前两者的导数分别为 $\sigma(a)(1-\sigma(a))$、$1-\tanh^2a$，在输入绝对值很大时接近零，称为饱和；ReLU 在正半轴导数为一，在负半轴为零，在零点不存在普通导数。实际反向计算通常在零点选定零等约定值，这是一条计算规则。
+
+\begin{proposition}[仿射层的合并]
+任意有限个没有非线性激活的仿射层，其复合仍是仿射映射。
+\end{proposition}
+\begin{proof}
+两层的复合为 $\mathbf W_2(\mathbf W_1\mathbf x+\mathbf b_1)+\mathbf b_2=(\mathbf W_2\mathbf W_1)\mathbf x+(\mathbf W_2\mathbf b_1+\mathbf b_2)$。对层数归纳即得结论。
+\end{proof}
+因此深度本身不足以产生非线性表达能力。中间维度还可能限制复合矩阵的秩，多个线性层的参数化与单层虽然描述相近函数，优化行为却未必相同。
+
+\section{决策边界、宽度与深度}
+对二元输入的异或（exclusive OR, XOR），$(0,0),(1,1)$ 标为零，$(1,0),(0,1)$ 标为一。若仿射分数以正数判一、非正数判零，则后两点要求 $w_1+b>0,w_2+b>0$，相加得 $w_1+w_2+2b>0$；前两点要求 $b\leq0,w_1+w_2+b\leq0$，相加得到相反不等式，故线性分类器不能完成此任务。
+
+ReLU 网络在固定激活模式下是仿射函数，不同模式拼接成分段仿射函数。深度和宽度通过改变可实现的分区与组合方式影响表示能力。一个常用的通用逼近结论是：对任意 $d\geq1$、立方体 $[-1,1]^d$ 上连续函数 $f$ 和 $\varepsilon>0$，存在有限宽度 $m$ 及实参数，使 $c+\sum_{j=1}^ma_j\rho(\mathbf w_j^\mathsf T\mathbf x+b_j)$ 与 $f$ 的一致误差小于 $\varepsilon$。这是关于存在性的引用结论，证明不在本书范围内；它不提供给定小宽度、有限数据或具体训练算法的成功保证。
+
+\section{参数化、损失与批量计算}
+全连接第 $l$ 层有 $d_ld_{l-1}+d_l$ 个参数，总数为各层之和。以批量为行，令 $\mathbf H^{(0)}=\mathbf X_{\mathrm{batch}}$，则 $\mathbf A^{(l)}=\mathbf H^{(l-1)}(\mathbf W^{(l)})^\mathsf T+\mathbf1_B(\mathbf b^{(l)})^\mathsf T$。激活沿每个样本计算，偏置沿批量轴广播；批量并未增加模型参数，只使同一模型同时作用于多条输入。
+
+平方损失针对实数预测，二元交叉熵针对一个伯努利目标，多分类交叉熵针对互斥类别。若一张图像可同时属于多个标签，应对每个标签建立适当的二分类目标，而非用强制概率和为一的 softmax 混淆问题。损失中的求和或平均也必须明确，因为它会改变梯度尺度。
+
+\section{例题与习题}
+\begin{example}[两隐藏单元实现 XOR]
+令 $s=x_1+x_2$，$h_1=\rho(s)$、$h_2=\rho(s-1)$，输出 $f=h_1-2h_2$。检查四个二元输入的输出。
+\end{example}
+\begin{solve}
+当 $s=0,1,2$ 时，$(h_1,h_2)$ 分别是 $(0,0),(1,0),(2,1)$，输出分别为 $0,1,0$，恰好实现 XOR。该构造的作用是证明表示存在，并不意味着随机初始化后任何训练算法都会找到它。若按完整的 $2$--$2$--$1$ 网络计入全部偏置，共有 $4+2+2+1=9$ 个参数槽位。
+\end{solve}
+\begin{enumerate}
+\item 写出上述网络的两层权重和偏置，并计算非二元输入 $(0.2,0.4)$ 的输出。
+\item 求宽度为 $d_0,d_1,d_2$ 的两层网络参数总数；若两层间强制共享部分参数，计数应怎样改变？
+\item 在固定二维数据和训练预算下比较线性模型与 ReLU 网络，分别记录可分性、训练误差和验证误差。
+\end{enumerate}
+

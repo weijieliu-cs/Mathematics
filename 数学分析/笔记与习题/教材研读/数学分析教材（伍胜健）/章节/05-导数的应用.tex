@@ -1,0 +1,1503 @@
+% !TeX root = ../数学分析教材（伍胜健）笔记.tex
+% 本文件由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{4} % 保留原书章号。
+\chapter{导数的应用}
+\label{chap:applications-of-derivatives}
+
+% 本章正文依据教材第 177--229 页；分章 PDF 第 1--53 页，习题五不在本次整理范围内。
+导数描述函数在一点的局部变化，而函数的单调性、极值和图像形状涉及一段区间上的整体性质。连接二者的基本工具是微分中值定理：它把区间两端的函数值之差表示为某个内点处导数与自变量增量的乘积。本章先建立这一联系，再讨论用导数求极限、用多项式逼近函数，以及通过导数确定函数的升降、凹凸与渐近行为。以下所说的可导均指有限导数存在，闭区间端点若涉及导数，则另行说明单侧导数。
+
+\section{微分中值定理}
+\label{sec:differential-mean-value-theorems}
+
+% 教材第 177--186 页；分章 PDF 第 1--10 页。
+微分中值定理的基本证明路线是：由极值点处的必要条件得到罗尔定理，再通过减去适当的辅助函数，依次得到拉格朗日定理和柯西定理。证明中的辅助函数不是额外假设，而是为了把待证结论转化成某个函数导数为零的问题。
+
+\subsection{费马定理}
+\label{subsec:fermat-theorem}
+
+\begin{definition}
+\label{def:local-extrema-and-stationary-points}
+设 $f$ 在 $x_0$ 的某邻域内有定义。若存在 $\delta>0$，使得 $|x-x_0|<\delta$ 时恒有 $f(x)\leq f(x_0)$，则称 $x_0$ 为 $f$ 的\emph{极大值点}（local maximum point），$f(x_0)$ 为相应的极大值；将不等号反向便得到\emph{极小值点}（local minimum point）和极小值。若在 $0<|x-x_0|<\delta$ 时相应不等式严格成立，则称为严格极大值或严格极小值。二者统称\emph{极值}（local extremum）。若 $f'(x_0)=0$，则称 $x_0$ 为\emph{驻点}（stationary point）。
+\end{definition}
+
+\begin{theorem}[费马定理]
+\label{thm:fermat-stationary-point}
+设 $f$ 在 $x_0$ 的某邻域内有定义。若 $x_0$ 是 $f$ 的极值点，且 $f$ 在 $x_0$ 可导，则 $f'(x_0)=0$。这一结论称为\emph{费马定理}（Fermat's theorem）。
+\end{theorem}
+
+\begin{proof}
+以极大值点 $x_0$ 为例，令 $h=x-x_0$。由极大值点的定义，存在 $\delta>0$，使得当 $0<|h|<\delta$ 时，附近点 $x_0+h$ 的函数值不超过 $f(x_0)$，即
+\[
+    f(x_0+h)\leq f(x_0)
+    \quad\Longrightarrow\quad
+    f(x_0+h)-f(x_0)\leq0.
+\]
+这个结论对正、负两种 $h$ 都成立，因此无论从左侧还是右侧接近 $x_0$，差商的分子始终非正。
+
+当 $0<h<\delta$ 时，分子非正、分母为正，所以
+\[
+    \frac{f(x_0+h)-f(x_0)}{h}\leq0.
+\]
+令 $h\to0^+$，由于 $f$ 在 $x_0$ 可导，这些差商的极限就是 $f'(x_0)$；非正差商的极限仍然非正，因此
+\[
+    f'(x_0)
+    =\lim_{h\to0^+}\frac{f(x_0+h)-f(x_0)}{h}
+    \leq0.
+\]
+
+当 $-\delta<h<0$ 时，分子仍然非正，但分母为负，除以负数时不等号反向，于是
+\[
+    \frac{f(x_0+h)-f(x_0)}{h}\geq0.
+\]
+再令 $h\to0^-$，同样由可导性及极限的保序性，得到
+\[
+    f'(x_0)
+    =\lim_{h\to0^-}\frac{f(x_0+h)-f(x_0)}{h}
+    \geq0.
+\]
+上述两个单侧极限都等于同一个 $f'(x_0)$，故 $f'(x_0)$ 同时非正、非负，只能等于零。极小值情形将上述不等号反向即可。
+\emph[tip]{极大值条件控制差商分子的符号，$h$ 的正负决定差商的符号，而可导性保证左右两侧的差商趋向同一个数。}
+\end{proof}
+
+费马定理给出的是可导内点取得极值的必要条件。$f(x)=x^3$ 在 $0$ 处为驻点，却不取极值；$f(x)=|x|$ 在 $0$ 处取得严格极小值，却不可导。闭区间上的最值还可能出现在端点，例如 $f(x)=x$ 在 $[0,1]$ 上的最大值出现在 $1$，因而不能将费马定理直接用于端点。
+
+\subsection{罗尔微分中值定理}
+\label{subsec:rolle-theorem}
+
+\begin{theorem}[罗尔微分中值定理]
+\label{thm:rolle-mean-value}
+设 $a<b$，$f\in C([a,b])$，$f$ 在 $(a,b)$ 内可导，且 $f(a)=f(b)$。则至少存在 $\xi\in(a,b)$，使
+\[
+    f'(\xi)=0.
+\]
+这一结论称为\emph{罗尔微分中值定理}（Rolle's theorem）。
+\end{theorem}
+
+\begin{proof}
+由闭区间上连续函数的最值定理，$f$ 在 $[a,b]$ 上取得最大值 $M$ 和最小值 $m$。若 $M=m$，则 $f$ 为常函数，任取 $\xi\in(a,b)$ 即可。若 $M>m$，则 $M,m$ 中至少有一个不等于共同的端点值 $f(a)=f(b)$，这一最值必在内点 $\xi$ 取得。由费马定理，$f'(\xi)=0$。
+\end{proof}
+
+几何上，端点等高的可导曲线至少有一条水平切线。定理保证中值点存在，但通常既不能确定其具体位置，也不保证唯一。三个条件各有作用：$f(x)=x$ 不满足端点等值，$f(x)=|x|$ 在 $[-1,1]$ 内不可导，二者都没有导数为零的内点；在 $[0,1]$ 上定义 $f(0)=1$、$f(x)=x$（$x>0$），则端点等值且内点可导，但端点不连续，结论同样不成立。
+
+\begin{example}
+\label{ex:rolle-auxiliary-function-and-root-count}
+设 $f$ 在 $(a,b)$ 内可导，证明：$f$ 的任意两个不同零点之间都有 $f'+f$ 的零点。
+\end{example}
+
+\begin{solve}
+设 $u<v$ 是 $f$ 的两个零点。取 $F(x)=e^xf(x)$，则 $F$ 在 $[u,v]$ 上连续、在 $(u,v)$ 内可导，且 $F(u)=F(v)=0$。罗尔定理给出 $\xi\in(u,v)$，使
+\[
+    0=F'(\xi)=e^\xi\bigl(f'(\xi)+f(\xi)\bigr),
+\]
+故 $f'(\xi)+f(\xi)=0$。这里乘以 $e^x$ 的目的，是让乘积的导数产生所需的 $f'+f$。
+\end{solve}
+
+\begin{example}
+\label{ex:rolle-exponential-polynomial-root-count}
+设 $n$ 为非负整数，$P_n$ 为次数不超过 $n$ 的实多项式。证明：方程 $e^x-P_n(x)=0$ 至多有 $n+1$ 个不同实根。
+\end{example}
+
+\begin{solve}
+令 $F(x)=e^x-P_n(x)$，则 $F$ 在 $\mathbb R$ 上任意阶可导。反设方程至少有 $n+2$ 个不同实根，取其中 $n+2$ 个，按大小排列为 $x_1<\cdots<x_{n+2}$，则 $F(x_i)=0$（$i=1,\ldots,n+2$）。
+
+对每个 $i=1,\ldots,n+1$，$F$ 在 $[x_i,x_{i+1}]$ 上连续、在 $(x_i,x_{i+1})$ 内可导，且两端点函数值均为零。由罗尔定理，存在 $\xi_i\in(x_i,x_{i+1})$，使 $F'(\xi_i)=0$。这些开区间两两不交，故 $\xi_1,\ldots,\xi_{n+1}$ 互不相同，因而 $F'$ 至少有 $n+1$ 个不同零点。对各阶导数重复这一过程，每应用一次罗尔定理，所能保证的不同零点个数减少一个；于是 $F^{(k)}$ 至少有 $n+2-k$ 个不同零点（$k=1,\ldots,n+1$），特别地，$F^{(n+1)}$ 至少有一个零点。
+
+然而，$P_n$ 的次数不超过 $n$，故 $P_n^{(n+1)}(x)=0$，从而
+\[
+    F^{(n+1)}(x)=e^x-P_n^{(n+1)}(x)=e^x>0,
+    \qquad x\in\mathbb R.
+\]
+这与 $F^{(n+1)}$ 存在零点矛盾。因此原方程至多有 $n+1$ 个不同实根。
+\end{solve}
+
+\begin{example}
+\label{ex:rolle-with-prescribed-interior-value}
+设 $f\in C([0,1])$，在 $(0,1)$ 内可导，$f(0)=f(1)=0$，且某个 $t_0\in(0,1)$ 满足 $f(t_0)=A$。证明存在 $\xi\in(0,1)$，使 $f'(\xi)=A$。
+\end{example}
+
+\begin{solve}
+若 $A=0$，直接使用罗尔定理。若 $A\neq0$，令 $F(x)=f(x)-Ax$，则
+\[
+    F(0)=0,\qquad F(t_0)=(1-t_0)A,\qquad F(1)=-A.
+\]
+后两个值异号，故由介值定理存在 $\eta\in(t_0,1)$，使 $F(\eta)=0$。在 $[0,\eta]$ 上应用罗尔定理，得到 $F'(\xi)=f'(\xi)-A=0$。
+\end{solve}
+
+\subsection{拉格朗日微分中值定理}
+\label{subsec:lagrange-mean-value-theorem}
+
+当两端点的函数值不相等时，将曲线减去通过两端点的直线，便可恢复罗尔定理所需的端点等值条件。
+
+\begin{theorem}[拉格朗日微分中值定理]
+\label{thm:lagrange-mean-value}
+设 $a<b$，$f\in C([a,b])$，且 $f$ 在 $(a,b)$ 内可导。则存在 $\xi\in(a,b)$，使
+\begin{equation}
+    f(b)-f(a)=f'(\xi)(b-a).
+    \label{eq:lagrange-mean-value}
+\end{equation}
+这一结论称为\emph{拉格朗日微分中值定理}（Lagrange mean value theorem）。
+\end{theorem}
+
+\begin{proof}
+令
+\[
+    F(x)=f(x)-\left[f(a)+\frac{f(b)-f(a)}{b-a}(x-a)\right].
+\]
+则 $F$ 在闭区间连续、开区间可导，且 $F(a)=F(b)=0$。罗尔定理给出 $F'(\xi)=0$，即 $f'(\xi)=(f(b)-f(a))/(b-a)$。
+\end{proof}
+
+式~\eqref{eq:lagrange-mean-value} 表示某条切线平行于端点之间的割线，即某个瞬时变化率等于区间上的平均变化率。若 $h\neq0$，且 $f$ 在以 $x_0$、$x_0+h$ 为端点的闭区间上连续、内部可导，则也可写成
+\begin{equation}
+    f(x_0+h)=f(x_0)+f'(x_0+\theta h)h,
+    \qquad 0<\theta<1.
+    \label{eq:lagrange-increment-form}
+\end{equation}
+此式同时适用于正、负增量，但 $\theta$ 通常依赖于 $x_0,h$，不能当作固定常数。
+
+\begin{corollary}[导数恒为零]
+\label{cor:zero-derivative-constant}
+设 $I$ 为非空区间，$f$ 在 $I$ 上连续、内部可导。若 $I$ 的内部每一点都满足 $f'(x)=0$，则存在常数 $C$，使 $f(x)=C$ 对所有 $x\in I$ 成立。
+\end{corollary}
+
+\begin{proof}
+任取 $x,y\in I$ 且 $x<y$。因为 $I$ 是区间，所以 $[x,y]\subseteq I$，从而 $f$ 在 $[x,y]$ 上连续、在 $(x,y)$ 内可导。由拉格朗日中值定理，存在 $\xi\in(x,y)$，使
+\[
+    f(y)-f(x)=f'(\xi)(y-x)=0.
+\]
+因此任意两个不同点的函数值均相等。固定 $x_0\in I$，取 $C=f(x_0)$，便有 $f(x)=C$ 对所有 $x\in I$ 成立；$I$ 只有一个点时，结论也成立。
+\end{proof}
+
+这里的区间条件不能删除：在 $\mathbb{R}\setminus\{0\}$ 上分别取 $f(x)=0$（$x<0$）和 $f(x)=1$（$x>0$），虽处处有 $f'=0$，却不是整个定义域上的常函数。
+
+\begin{corollary}[导数相等]
+\label{cor:equal-derivatives-constant-difference}
+设 $I$ 为非空区间，$f,g$ 都在 $I$ 上连续、内部可导。若 $I$ 的内部每一点都满足 $f'(x)=g'(x)$，则存在常数 $C$，使 $f(x)=g(x)+C$ 对所有 $x\in I$ 成立，即 $f$ 与 $g$ 只相差一个常数。
+\end{corollary}
+
+\begin{proof}
+令 $H(x)=f(x)-g(x)$，则 $H$ 在 $I$ 上连续、内部可导，且内部每一点都满足
+\[
+    H'(x)=f'(x)-g'(x)=0.
+\]
+由推论~\ref{cor:zero-derivative-constant}，$H$ 在 $I$ 上为常数。因此固定 $x_0\in I$，取 $C=H(x_0)=f(x_0)-g(x_0)$，便有 $f(x)-g(x)=C$ 对所有 $x\in I$ 成立。
+\end{proof}
+
+\begin{corollary}[导数有界]
+\label{cor:bounded-derivative-lipschitz}
+设 $I$ 为非空区间，$f$ 在 $I$ 上连续、内部可导。若存在常数 $M\geq0$，使 $I$ 的内部每一点都满足 $|f'(x)|\leq M$，则
+\begin{equation}
+    |f(x)-f(y)|\leq M|x-y|,\qquad x,y\in I.
+    \label{eq:bounded-derivative-lipschitz}
+\end{equation}
+特别地，$f$ 在 $I$ 上一致连续。这里的 $M$ 是在整个区间内部都适用的同一个上界，不能随所选的点而改变。
+\end{corollary}
+
+\begin{proof}
+任取 $x,y\in I$ 且 $x<y$。因为 $[x,y]\subseteq I$，所以 $f$ 在 $[x,y]$ 上连续、在 $(x,y)$ 内可导。由拉格朗日中值定理，存在 $\xi\in(x,y)$，使 $f(y)-f(x)=f'(\xi)(y-x)$。结合 $|f'(\xi)|\leq M$，得到
+\[
+    |f(y)-f(x)|=|f'(\xi)|\,|y-x|\leq M|y-x|.
+\]
+交换 $x,y$ 不改变这个不等式，$x=y$ 时两边均为零，因此式~\eqref{eq:bounded-derivative-lipschitz} 对任意 $x,y\in I$ 都成立。
+
+由式~\eqref{eq:bounded-derivative-lipschitz} 及下文命题~\ref{prop:lipschitz-implies-uniform-continuity}，可知 $f$ 在 $I$ 上一致连续。
+\end{proof}
+
+\begin{notealert}[title={什么是一致连续}]
+\emph{一致连续}（uniform continuity）要求在整个区间内用同一个距离标准控制函数值的变化。为理解这一要求，先回顾普通连续性：$f$ 在区间 $I$ 上连续，是指它在每一点 $x_0\in I$ 都连续，即给定任意 $\varepsilon>0$，总能找到 $\delta>0$，使对任意 $x\in I$ 都有
+\[
+    |x-x_0|<\delta\quad\Longrightarrow\quad|f(x)-f(x_0)|<\varepsilon.
+\]
+这里先固定位置 $x_0$，再寻找合适的 $\delta$，所以 $\delta$ 可以同时依赖于 $\varepsilon$ 和 $x_0$，允许不同位置使用不同的距离标准。
+
+一致连续则要求：给定任意 $\varepsilon>0$，都能先找到一个统一的 $\delta>0$，使对任意两点 $x,y\in I$ 都有
+\[
+    |x-y|<\delta\quad\Longrightarrow\quad|f(x)-f(y)|<\varepsilon.
+\]
+对于固定的函数 $f$ 和区间 $I$，这个 $\delta$ 可以依赖于 $\varepsilon$，但\emph{不能依赖于所选点的位置}。直观地说，普通连续是“每个位置都能找到适合自己的距离标准”，一致连续是“所有位置都能共用一个距离标准”；“一致”指这个标准统一，并不是说函数各处的变化率相同。将 $y$ 固定为任意一点 $x_0$，便得到 $f$ 在 $x_0$ 处连续，因此\emph{一致连续蕴含连续}；反向一般不成立，例如 $x^2$ 在 $\mathbb{R}$ 上连续却不一致连续，具体见下文例~\ref{ex:lipschitz-absolute-value-and-square}。
+
+在本推论中，由于 $M\geq0$ 是整个区间共用的常数，给定任意 $\varepsilon>0$，统一取 $\delta=\varepsilon/(M+1)>0$，则任意满足 $|x-y|<\delta$ 的 $x,y\in I$ 都有
+\[
+    |f(x)-f(y)|\leq M|x-y|\leq(M+1)|x-y|<\varepsilon.
+\]
+这个 $\delta$ 与两点的位置无关，并且上述取法也适用于 $M=0$。因此，推论中的“特别地”表示：式~\eqref{eq:bounded-derivative-lipschitz} 给出了整个区间统一适用的变化量估计，从而保证一致连续。
+\end{notealert}
+
+\emph[tip]{导数 $f'(x)$ 描述某一点附近的变化率，而式~\eqref{eq:bounded-derivative-lipschitz} 把这种局部控制推广到了区间内任意两点之间。几何上，$|f'(x)|\leq M$ 表示区间内部各点处切线的斜率绝对值都不超过 $M$，结论则说明连接图像上任意两个不同点的割线，其斜率绝对值也不超过 $M$。}这种用同一个常数控制所有点对的性质，可以脱离可导性单独定义。
+
+\begin{definition}
+\label{def:lipschitz-continuity}
+设 $I$ 为非空区间，$f:I\to\mathbb{R}$。若存在常数 $L\geq0$，使对任意 $x,y\in I$ 都有
+\[
+    |f(x)-f(y)|\leq L|x-y|,
+\]
+则称 $f$ 在 $I$ 上满足\emph{利普希茨条件}（Lipschitz condition），也称 $f$ 在 $I$ 上\emph{利普希茨连续}（Lipschitz continuous）；这样的 $L$ 称为 $f$ 在 $I$ 上的一个\emph{利普希茨常数}（Lipschitz constant）。
+\end{definition}
+
+这个定义的关键是\emph{先选定一个有限常数 $L$，再要求它对区间内所有点对都有效}。当 $x\neq y$ 时，不等式等价于
+\[
+    \left|\frac{f(x)-f(y)}{x-y}\right|\leq L,
+\]
+即函数图像上任意一条割线的斜率绝对值都不超过 $L$。利普希茨常数通常不唯一：若 $L$ 可用，则任意 $L'\geq L$ 也可用；$L=0$ 对应常函数。这里限制的是函数值的变化速度，并不要求函数值本身有界，例如 $f(x)=x$ 在 $\mathbb{R}$ 上可取 $L=1$，却是无界函数。
+
+\begin{proposition}[利普希茨连续蕴含一致连续]
+\label{prop:lipschitz-implies-uniform-continuity}
+设 $I$ 为非空区间，$f:I\to\mathbb{R}$。若 $f$ 在 $I$ 上利普希茨连续，则 $f$ 在 $I$ 上一致连续。
+\end{proposition}
+
+\begin{proof}
+由利普希茨连续的定义，存在固定常数 $L\geq0$，使对任意 $x,y\in I$ 都有
+\[
+    |f(x)-f(y)|\leq L|x-y|.
+\]
+若 $L>0$，给定任意 $\varepsilon>0$，取 $\delta=\varepsilon/L>0$。任取满足 $|x-y|<\delta$ 的 $x,y\in I$，便有
+\[
+    |f(x)-f(y)|\leq L|x-y|<L\delta=\varepsilon.
+\]
+这里的 $\delta$ 只依赖于 $\varepsilon$ 和固定的利普希茨常数 $L$，与点对 $x,y$ 的位置无关，因此同时适用于区间内所有点对。
+
+若 $L=0$，则对任意 $x,y\in I$ 都有 $|f(x)-f(y)|=0$，所以 $f$ 是常函数。给定任意 $\varepsilon>0$，例如取 $\delta=1$，所有满足 $|x-y|<\delta$ 的点对都满足 $|f(x)-f(y)|=0<\varepsilon$。因此，无论 $L>0$ 还是 $L=0$，都满足一致连续的定义，故 $f$ 在 $I$ 上一致连续。
+\end{proof}
+
+将上述证明用于推论~\ref{cor:bounded-derivative-lipschitz} 时，只需令 $L=M$：当 $M>0$ 时，统一取 $\delta=\varepsilon/M$ 即可；当 $M=0$ 时，函数为常函数。这个证明只使用函数增量的不等式，不需要预先假设 $f$ 可导。由此得到\emph{利普希茨连续蕴含一致连续，进而蕴含连续}。利普希茨条件给出了明确的线性控制，而一致连续只要求对每个 $\varepsilon>0$ 能找到统一的 $\delta>0$，不要求这种线性关系；后面的例~\ref{ex:power-function-uniform-continuity-by-mean-value} 将说明一致连续不能反推出利普希茨连续。
+
+\begin{proposition}
+\label{prop:lipschitz-derivative-criterion}
+设 $f$ 在非空区间 $I$ 上连续、内部可导，$L\geq0$ 为给定常数。则 $f$ 在 $I$ 上以 $L$ 为利普希茨常数，当且仅当 $I$ 的内部每一点都满足 $|f'(x)|\leq L$。
+\end{proposition}
+
+\begin{proof}
+若内部恒有 $|f'|\leq L$，由推论~\ref{cor:bounded-derivative-lipschitz} 即得利普希茨条件。反之，设该条件成立。对任意内部点 $x$，当 $h\neq0$ 且 $|h|$ 充分小时，$x+h\in I$，故
+\[
+    \left|\frac{f(x+h)-f(x)}{h}\right|\leq L.
+\]
+令 $h\to0$，利用 $f$ 在 $x$ 处可导以及绝对值函数的连续性，得到 $|f'(x)|\leq L$。
+\end{proof}
+
+\begin{example}
+\label{ex:lipschitz-absolute-value-and-square}
+判断 $f(x)=|x|$ 与 $g(x)=x^2$ 在 $\mathbb{R}$ 上是否满足利普希茨条件，证明 $g$ 在 $\mathbb{R}$ 上连续但不一致连续，并讨论 $g$ 限制在 $[-R,R]$（$R>0$）以及 $[0,1]$ 上时的一致连续性。
+\end{example}
+
+\begin{solve}
+由三角不等式 $|x|\leq|x-y|+|y|$ 及交换 $x,y$ 后的不等式，得到
+\[
+    \bigl||x|-|y|\bigr|\leq|x-y|.
+\]
+因此 $f(x)=|x|$ 在 $\mathbb{R}$ 上满足利普希茨条件，可取 $L=1$。但它在零点的左右导数分别为 $-1$ 和 $1$，所以在零点不可导。这说明利普希茨条件本身不保证处处可导；命题~\ref{prop:lipschitz-derivative-criterion} 中的可导性是预先给定的假设。
+
+对于 $g(x)=x^2$，先考察它在一个固定位置 $x_0\in\mathbb{R}$ 处的连续性。由
+\[
+    |g(x)-g(x_0)|=|x^2-x_0^2|=|x-x_0|\,|x+x_0|,
+\]
+给定任意 $\varepsilon>0$，取
+\[
+    \delta=\min\left\{1,\frac{\varepsilon}{2|x_0|+1}\right\}>0.
+\]
+当 $|x-x_0|<\delta$ 时，$|x+x_0|\leq|x-x_0|+2|x_0|<2|x_0|+1$，从而
+\[
+    |g(x)-g(x_0)|\leq|x-x_0|(2|x_0|+1)
+    <\delta(2|x_0|+1)\leq\varepsilon.
+\]
+因此 $g$ 在 $x_0$ 处连续。由于 $x_0$ 任意，$g$ 在整个 $\mathbb{R}$ 上连续。这里的 $\delta$ 允许依赖于位置 $x_0$；对固定的 $\varepsilon>0$，上述取法在 $|x_0|\to+\infty$ 时趋于零，但仅凭某一种取法依赖于 $x_0$，还不能断定不存在统一的 $\delta$，需要进一步验证。
+
+为了否定一致连续性，取
+\[
+    x_n=n,\qquad y_n=n+\frac1n,\qquad n=1,2,\ldots.
+\]
+这两点的距离满足 $|y_n-x_n|=1/n\to0$，但函数值的距离为
+\[
+    |g(y_n)-g(x_n)|=\left(n+\frac1n\right)^2-n^2
+    =2+\frac1{n^2}>2.
+\]
+具体地，固定 $\varepsilon_0=1$。无论给出多小的 $\delta>0$，都能取正整数 $n>1/\delta$，使 $|y_n-x_n|=1/n<\delta$，而 $|g(y_n)-g(x_n)|>2>\varepsilon_0$。因此不存在对整个实轴上所有点对都有效的 $\delta$，$g$ 在 $\mathbb{R}$ 上不一致连续；由命题~\ref{prop:lipschitz-implies-uniform-continuity}，它也不满足整个实轴上的利普希茨条件。
+
+若将定义域限制在 $[-R,R]$，则任意 $x,y\in[-R,R]$ 都满足
+\[
+    |x^2-y^2|=|x-y|\,|x+y|\leq2R|x-y|,
+\]
+所以可取利普希茨常数 $L=2R$，并由上述命题得到一致连续性。特别地，在 $[0,1]$ 上有 $|x^2-y^2|\leq2|x-y|$，给定任意 $\varepsilon>0$，统一取 $\delta=\varepsilon/2$，就能保证 $|x-y|<\delta$ 时 $|x^2-y^2|<\varepsilon$。
+
+从图像上看，$x^2$ 在 $|x|$ 越大的位置越陡，为保持同样的函数值误差，需要越来越小的自变量变化尺度；上述点列把这一现象转化为了严格的反例。将定义域限制在有界区间后，变化速度可以用一个有限常数统一控制。因此，连续、一致连续及利普希茨条件的区别，既体现在量词和增量估计上，也与所考察的定义域有关。
+\end{solve}
+
+\begin{example}
+\label{ex:mean-value-logarithm-and-identity}
+证明当 $x>-1$ 且 $x\neq0$ 时，
+\[
+    \frac{x}{1+x}<\ln(1+x)<x,
+\]
+并证明对任意 $x\in\mathbb{R}$，
+\[
+    \arctan x=\arcsin\frac{x}{\sqrt{1+x^2}}.
+\]
+\end{example}
+
+\begin{solve}
+对 $\ln(1+t)$ 在以 $0,x$ 为端点的区间上应用中值定理，得 $\ln(1+x)=x/(1+\xi)$，其中 $\xi$ 严格介于 $0,x$ 之间。若 $x>0$，则 $1/(1+x)<1/(1+\xi)<1$；若 $-1<x<0$，倒数的次序反向，而乘以负数 $x$ 后再次反向。两种情形都给出所需不等式。
+
+第二式中，$u(x)=x/\sqrt{1+x^2}$ 满足 $|u(x)|<1$，且
+\[
+    u'(x)=\frac1{(1+x^2)^{3/2}},\qquad
+    \frac{d}{dx}\arcsin u(x)
+    =\frac{u'(x)}{\sqrt{1-u(x)^2}}=\frac1{1+x^2}.
+\]
+这与 $\arctan x$ 的导数相同，故二者之差为常数；再代入 $x=0$，知常数为零。
+\end{solve}
+
+\begin{example}
+\label{ex:power-function-uniform-continuity-by-mean-value}
+证明当 $0<\alpha<1$ 时，$f(x)=x^\alpha$ 在 $[0,+\infty)$ 上一致连续，但在该区间上不满足利普希茨条件。
+\end{example}
+
+\begin{solve}
+$f$ 在 $[0,2]$ 上连续，故由康托尔定理在该区间上一致连续。在 $[1,+\infty)$ 上，$|f'(x)|=\alpha x^{\alpha-1}\leq\alpha<1$，因此 $|f(x)-f(y)|\leq|x-y|$。给定 $\varepsilon>0$，取 $[0,2]$ 上对应的 $\delta_1>0$，并令 $\delta=\min\{\delta_1,\varepsilon,1\}$。任意 $x,y\geq0$ 若满足 $|x-y|<\delta$，则二者或者都属于 $[0,2]$，或者都属于 $[1,+\infty)$：若有一个点大于 $2$，另一个点与它的距离小于 $1$，便也大于 $1$。在第一种情形下使用 $\delta_1$，在第二种情形下使用导数给出的增量估计，均得 $|f(x)-f(y)|<\varepsilon$，故 $f$ 在整个 $[0,+\infty)$ 上一致连续。
+
+另一方面，取 $y=0$、$x>0$，则
+\[
+    \frac{|f(x)-f(0)|}{|x-0|}=x^{\alpha-1}\longrightarrow+\infty
+    \qquad(x\to0^+).
+\]
+因此不存在有限常数 $L$ 能控制所有这样的点对，$f$ 在 $[0,+\infty)$ 上不满足利普希茨条件。这说明一致连续不能反推出利普希茨连续。与此同时，$f'(x)=\alpha x^{\alpha-1}$ 在 $x\to0^+$ 时无界，也说明导数有界是区间上一致连续的充分条件，却不是必要条件。
+\end{solve}
+
+\subsection{柯西微分中值定理}
+\label{subsec:cauchy-mean-value-theorem}
+
+拉格朗日公式中的 $b-a$ 是函数 $g(x)=x$ 的端点增量。将它换成一般函数的增量，就得到比较两个函数变化率的工具。
+
+\begin{theorem}[柯西微分中值定理]
+\label{thm:cauchy-mean-value}
+设 $a<b$，$f,g\in C([a,b])$，且二者在 $(a,b)$ 内可导。则存在 $\xi\in(a,b)$，使
+\begin{equation}
+    \bigl(f(b)-f(a)\bigr)g'(\xi)
+    =\bigl(g(b)-g(a)\bigr)f'(\xi).
+    \label{eq:cauchy-mean-value-product}
+\end{equation}
+若另有 $g'(x)\neq0$ 对所有 $x\in(a,b)$ 成立，则 $g(b)\neq g(a)$，并有
+\begin{equation}
+    \frac{f(b)-f(a)}{g(b)-g(a)}=\frac{f'(\xi)}{g'(\xi)}.
+    \label{eq:cauchy-mean-value-quotient}
+\end{equation}
+这一结论称为\emph{柯西微分中值定理}（Cauchy mean value theorem）。
+\end{theorem}
+
+\begin{proof}
+先从待证结论寻找辅助函数。记 $f,g$ 在固定区间 $[a,b]$ 上的增量为
+\[
+    \Delta f=f(b)-f(a),\qquad \Delta g=g(b)-g(a).
+\]
+式~\eqref{eq:cauchy-mean-value-product} 等价于存在 $\xi\in(a,b)$，使
+\[
+    \Delta g\,f'(\xi)-\Delta f\,g'(\xi)=0.
+\]
+这提示我们：若能找到一个函数，其导数恰好是 $\Delta g\,f'(x)-\Delta f\,g'(x)$，就可以尝试用罗尔定理证明这个导数在某处等于零。
+
+由于 $\Delta f,\Delta g$ 都是常数，直接取
+\[
+    F_0(x)=\Delta g\,f(x)-\Delta f\,g(x),
+\]
+便有
+\[
+    F_0'(x)=\Delta g\,f'(x)-\Delta f\,g'(x).
+\]
+这样，待证结论就转化为存在 $\xi\in(a,b)$ 使 $F_0'(\xi)=0$。
+
+下面检查罗尔定理的条件。由 $f,g$ 的连续性与可导性，$F_0$ 在 $[a,b]$ 上连续，在 $(a,b)$ 内可导。罗尔定理只要求两个端点的函数值相等，因此计算
+\[
+    \begin{aligned}
+        F_0(b)-F_0(a)
+        &=\Delta g\,[f(b)-f(a)]-\Delta f\,[g(b)-g(a)]\\
+        &=\Delta g\,\Delta f-\Delta f\,\Delta g=0.
+    \end{aligned}
+\]
+于是 $F_0(a)=F_0(b)$，端点条件也得到满足，无须再通过减去常数将端点函数值调整为零。
+
+由罗尔定理~\ref{thm:rolle-mean-value}，存在 $\xi\in(a,b)$，使
+\[
+    0=F_0'(\xi)=\Delta g\,f'(\xi)-\Delta f\,g'(\xi).
+\]
+移项并代回 $\Delta f,\Delta g$ 的定义，即得式~\eqref{eq:cauchy-mean-value-product}。这一推导没有使用除法，因此不要求 $g(b)-g(a)$ 或 $g'(\xi)$ 非零。
+
+若进一步假设 $g'(x)\neq0$ 对所有 $x\in(a,b)$ 成立，则必有 $g(b)\neq g(a)$。否则，由 $g(a)=g(b)$ 及 $g$ 的连续性、可导性，对 $g$ 应用罗尔定理，便存在 $\eta\in(a,b)$ 使 $g'(\eta)=0$，与假设矛盾。又因 $\xi\in(a,b)$，有 $g'(\xi)\neq0$，故可将式~\eqref{eq:cauchy-mean-value-product} 两边同时除以非零量 $\bigl(g(b)-g(a)\bigr)g'(\xi)$，得到商式~\eqref{eq:cauchy-mean-value-quotient}。
+\end{proof}
+
+分别对 $f,g$ 使用拉格朗日公式，只会得到 $f'(\xi_1)/g'(\xi_2)$，两个中值点未必相同，不能据此推出式~\eqref{eq:cauchy-mean-value-quotient}。几何上，把 $x$ 看作参数，则该式表示参数曲线 $(g(x),f(x))$ 的某条切线平行于端点连线。
+
+\begin{example}
+\label{ex:cauchy-mean-value-weighted-derivative}
+设 $f$ 在 $(0,1]$ 上连续、在 $(0,1)$ 内可导，且 $\lim_{x\to0+}\sqrt{x}\,f'(x)$ 存在且有限。证明 $f$ 在 $(0,1]$ 上一致连续。
+\end{example}
+
+\begin{solve}
+由极限的局部有界性，存在 $M>0$ 和 $c\in(0,1)$，使 $0<x<c$ 时有 $|\sqrt{x}f'(x)|\leq M$。在任意不同的 $x,y\in(0,c)$ 之间，对 $f(t)$ 和 $g(t)=\sqrt{t}$ 使用柯西定理，得到
+\[
+    \frac{f(x)-f(y)}{\sqrt{x}-\sqrt{y}}=2\sqrt{\xi}\,f'(\xi),
+\]
+从而
+\[
+    |f(x)-f(y)|\leq2M|\sqrt{x}-\sqrt{y}|
+    \leq2M\sqrt{|x-y|}.
+\]
+相同点的情形也满足该估计。于是当 $x,y\to0+$ 时，函数值之差趋于零，由函数极限的柯西准则，$f(0+)$ 存在且有限。以此值补定义 $f(0)$，得到 $[0,1]$ 上的连续函数，康托尔定理给出其一致连续性，限制回 $(0,1]$ 后结论仍成立。
+\end{solve}
+
+\section{洛必达法则}
+\label{sec:lhopital-rule}
+
+% 教材第 186--196 页；分章 PDF 第 10--20 页。
+当分子、分母分别趋于零或同时无界时，仅凭它们各自的极限不能确定商的极限；$0/0$、$\infty/\infty$ 因而称为\emph{不定式}（indeterminate form）。它们是极限过程的类型标记，不是可以进行普通算术的数。\emph{洛必达法则}（L'H\^opital's rule）利用柯西中值定理，将某些函数商的极限化为导数商的极限。以下的无穷极限允许取 $+\infty$ 或 $-\infty$，双侧结论须在两侧分别满足条件并取得相同的极限。
+
+\subsection{\texorpdfstring{$\frac{0}{0}$}{0/0}型不定式}
+\label{subsec:zero-over-zero-indeterminate-form}
+
+\begin{theorem}[$0/0$ 型洛必达法则]
+\label{thm:lhopital-zero-over-zero}
+设 $f,g$ 在有限点 $a$ 的某个右侧去心邻域 $(a,a+\delta)$ 内可导，并满足
+\[
+    f(x)\to0,\qquad g(x)\to0,\qquad g'(x)\neq0.
+\]
+若
+\[
+    \lim_{x\to a+}\frac{f'(x)}{g'(x)}=L,
+    \qquad L\in\mathbb{R}\cup\{-\infty,+\infty\},
+\]
+则 $g$ 在该邻域内不为零，且
+\begin{equation}
+    \lim_{x\to a+}\frac{f(x)}{g(x)}=L.
+    \label{eq:lhopital-zero-over-zero}
+\end{equation}
+同一结论适用于 $x\to a-$，并适用于满足相应条件的 $x\to+\infty$ 或 $x\to-\infty$。
+\end{theorem}
+
+\begin{proof}
+补定义 $f(a)=g(a)=0$，使二者在 $a$ 处连续。若某个 $x>a$ 满足 $g(x)=0$，罗尔定理会给出 $(a,x)$ 内的 $g'$ 零点，与假设矛盾。对 $[a,x]$ 使用柯西中值定理，得到
+\[
+    \frac{f(x)}{g(x)}=\frac{f'(\xi_x)}{g'(\xi_x)},
+    \qquad a<\xi_x<x.
+\]
+当 $x\to a+$ 时，$\xi_x\to a+$，故由导数商的极限得到结论，$L$ 有限或为有符号无穷时均成立。左侧极限的证明相同。对于 $x\to+\infty$，令 $t=1/x\to0+$，则
+\[
+    \frac{\frac{d}{dt}f(1/t)}{\frac{d}{dt}g(1/t)}
+    =\frac{f'(1/t)(-1/t^2)}{g'(1/t)(-1/t^2)}
+    =\frac{f'(1/t)}{g'(1/t)},
+\]
+因而转化为已证的有限端点情形；$x\to-\infty$ 用 $t\to0-$ 同理。
+\end{proof}
+
+\begin{example}
+\label{ex:lhopital-zero-over-zero-calculations}
+计算
+\[
+    \lim_{x\to0}\frac{\sinh x-x}{\sin x-x},
+    \qquad
+    \lim_{x\to0+}\frac{\sqrt{x}}{1-e^{2\sqrt{x}}},
+\]
+其中 $\sinh x=(e^x-e^{-x})/2$、$\cosh x=(e^x+e^{-x})/2$。
+\end{example}
+
+\begin{solve}
+第一式在每次求导后仍为 $0/0$ 型，且各步分母的导数在充分小的去心邻域内均不为零。依次使用洛必达法则，得
+\[
+    \lim_{x\to0}\frac{\sinh x-x}{\sin x-x}
+    =\lim_{x\to0}\frac{\cosh x-1}{\cos x-1}
+    =\lim_{x\to0}\frac{\sinh x}{-\sin x}
+    =\lim_{x\to0}\frac{\cosh x}{-\cos x}=-1.
+\]
+第二式先令 $t=\sqrt{x}\to0+$，避免对根式反复求导，再得
+\[
+    \lim_{t\to0+}\frac{t}{1-e^{2t}}
+    =\lim_{t\to0+}\frac1{-2e^{2t}}=-\frac12.
+    \qedhere
+\]
+\end{solve}
+
+\subsection{\texorpdfstring{$\frac{\infty}{\infty}$}{infinity/infinity}型不定式}
+\label{subsec:infinity-over-infinity-indeterminate-form}
+
+\begin{theorem}[分母无界时的洛必达法则]
+\label{thm:lhopital-infinite-denominator}
+设 $f,g$ 在某个单侧去心邻域内可导，或在某条趋向无穷远的半直线上可导，且在相应极限过程中
+\[
+    |g(x)|\to+\infty,\qquad g'(x)\neq0,
+    \qquad \frac{f'(x)}{g'(x)}\to L
+    \in\mathbb{R}\cup\{-\infty,+\infty\}.
+\]
+则
+\begin{equation}
+    \frac{f(x)}{g(x)}\to L.
+    \label{eq:lhopital-infinite-denominator}
+\end{equation}
+特别地，$\infty/\infty$ 型不定式可用此定理处理；定理本身\emph[caution]{只要求分母绝对值趋于无穷，不要求分子也趋于无穷，甚至不要求分子预先存在极限}。
+\end{theorem}
+
+\begin{proof}
+先设 $L$ 有限。给定 $\varepsilon>0$，在足够靠近所考察端点的区间内，有 $|f'/g'-L|<\varepsilon$。在该区间固定一点 $y$，对更靠近端点的 $x$，将柯西定理用于 $f-Lg$ 与 $g$，得到
+\[
+    |f(x)-Lg(x)-f(y)+Lg(y)|
+    \leq\varepsilon|g(x)-g(y)|.
+\]
+由于 $|g(x)|\to+\infty$，除以 $|g(x)|$ 后有
+\[
+    \left|\frac{f(x)}{g(x)}-L\right|
+    \leq\varepsilon\left|1-\frac{g(y)}{g(x)}\right|
+       +\frac{|f(y)-Lg(y)|}{|g(x)|}.
+\]
+右端的极限为 $\varepsilon$，由 $\varepsilon$ 的任意性得到结论。这里先按 $\varepsilon$ 选取区间和固定点 $y$，再令 $x$ 趋近端点，不能误认为相应的中值点必自动趋于端点。
+
+若 $L=+\infty$，给定任意 $A>0$，可在足够靠近端点的区间内使 $f'/g'>2A$。同样固定 $y$，柯西定理给出
+\[
+    Q_x:=\frac{f(x)-f(y)}{g(x)-g(y)}>2A,
+    \qquad
+    \frac{f(x)}{g(x)}
+    =Q_x\left(1-\frac{g(y)}{g(x)}\right)+\frac{f(y)}{g(x)}.
+\]
+括号内的因子趋于 $1$ 且最终为正，末项趋于零，故最终 $f(x)/g(x)>A$，即商趋于 $+\infty$。$L=-\infty$ 时对 $-f$ 使用此结论即可。上述论证同时适用于有限端点和无穷远处。
+\end{proof}
+
+\begin{example}
+\label{ex:lhopital-growth-rates}
+设 $\alpha>0$，用洛必达法则验证
+\[
+    \lim_{x\to+\infty}\frac{\ln x}{x^\alpha}=0,
+    \qquad
+    \lim_{x\to+\infty}\frac{x^\alpha}{e^x}=0.
+\]
+\end{example}
+
+\begin{solve}
+第一式的导数商为 $1/(\alpha x^\alpha)\to0$，故结论成立。第二式取正整数 $m>\alpha$，先对 $x^m/e^x$ 连续应用 $m$ 次洛必达法则，最后得到 $m!/e^x\to0$；每次使用前的商都是 $\infty/\infty$ 型，分母导数始终非零。当 $x\geq1$ 时，$0\leq x^\alpha/e^x\leq x^m/e^x$，再由夹逼原理得到所需极限。这为命题~\ref{prop:logarithm-power-exponential-orders} 的增长次序提供了另一种证明。
+\end{solve}
+
+以下用 $C^n(I)$ 表示在区间 $I$ 上具有 $n$ 阶连续导数的函数类，约定 $C^0(I)=C(I)$；用 $C^\infty(I)$ 表示任意阶连续可导函数类，其元素称为\emph{光滑函数}（smooth function）。闭区间上的 $C^n$ 要求内部的各阶导数连续延拓至端点，端点导数按单侧意义理解。
+
+\begin{example}
+\label{ex:smooth-flat-exponential-function}
+定义
+\[
+    f(x)=
+    \begin{cases}
+        e^{-1/x^2},&x\neq0,\\
+        0,&x=0.
+    \end{cases}
+\]
+证明 $f$ 在 $\mathbb{R}$ 上具有任意阶连续导数，且 $f^{(n)}(0)=0$ 对一切非负整数 $n$ 成立。
+\end{example}
+
+\begin{solve}
+先注意，对任意 $m\geq0$，令 $t=1/x^2\to+\infty$，由幂与指数的增长比较得到
+\[
+    |x|^{-m}e^{-1/x^2}=t^{m/2}e^{-t}\to0.
+\]
+归纳证明：存在多项式 $P_n$，使 $x\neq0$ 时有 $f^{(n)}(x)=P_n(1/x)e^{-1/x^2}$，而 $f^{(n)}(0)=0$ 且 $f^{(n)}$ 在零点连续。$n=0$ 时取 $P_0=1$ 即可。若结论对 $n$ 成立，则
+\[
+    f^{(n+1)}(0)=\lim_{x\to0}\frac{P_n(1/x)e^{-1/x^2}}x=0.
+\]
+在非零点直接求导，则所得多项式满足
+\[
+    P_{n+1}(t)=-t^2P_n'(t)+2t^3P_n(t),
+\]
+故 $f^{(n+1)}(x)\to0=f^{(n+1)}(0)$，归纳完成，因而 $f\in C^\infty(\mathbb{R})$。
+\end{solve}
+
+\subsection{其他类型的不定式}
+\label{subsec:other-indeterminate-forms}
+
+$0\cdot\infty$ 型可改写成 $u/(1/v)$ 或 $v/(1/u)$；$\infty-\infty$ 型可通分、有理化或提取主项；对 $u(x)^{v(x)}$，若 $u(x)>0$，则先研究
+\[
+    \ln\bigl(u(x)^{v(x)}\bigr)=v(x)\ln u(x).
+\]
+这样，$1^\infty$、$0^0$ 和 $\infty^0$ 型通常转为乘积，再转为商。所作变形须在相应去心邻域内有意义，最后通过指数函数还原极限。选择变形的标准是让导数商更简单，而不是机械地把每个表达式都交给洛必达法则。
+
+\begin{example}
+\label{ex:other-indeterminate-form-transformations}
+设 $\alpha>0$，计算
+\[
+    \lim_{x\to0+}x^\alpha\ln x,
+    \qquad \lim_{x\to0+}x^x,
+    \qquad \lim_{x\to+\infty}\bigl(\sqrt{x^2+x}-x\bigr).
+\]
+\end{example}
+
+\begin{solve}
+第一式写成 $\ln x/x^{-\alpha}$，是 $\infty/\infty$ 型，导数商为 $-x^\alpha/\alpha\to0$，故极限为零。第二式取对数得 $\ln(x^x)=x\ln x\to0$，故 $x^x\to e^0=1$。第三式直接有理化便有
+\[
+    \sqrt{x^2+x}-x
+    =\frac{x}{\sqrt{x^2+x}+x}
+    =\frac1{\sqrt{1+1/x}+1}\to\frac12.
+    \qedhere
+\]
+\end{solve}
+
+\begin{example}
+\label{ex:power-means-parameter-limits}
+设 $a_1,\ldots,a_n>0$，对 $r\neq0$ 定义\emph{幂平均}（power mean）
+\[
+    M_r=\left(\frac1n\sum_{i=1}^n a_i^r\right)^{1/r}.
+\]
+求 $r\to0$、$r\to+\infty$ 和 $r\to-\infty$ 时的极限。
+\end{example}
+
+\begin{solve}
+当 $r\to0$ 时，
+\[
+    \ln M_r=\frac{\ln\bigl(\frac1n\sum_i a_i^r\bigr)}r
+    \longrightarrow\frac1n\sum_{i=1}^n\ln a_i,
+\]
+其中使用了 $0/0$ 型洛必达法则。因此可连续补定义
+\begin{equation}
+    M_0=\left(\prod_{i=1}^n a_i\right)^{1/n}.
+    \label{eq:power-mean-zero-parameter}
+\end{equation}
+记 $A=\max_i a_i$。当 $r>0$ 时，$A^r/n\leq\frac1n\sum_i a_i^r\leq A^r$，故
+\[
+    A n^{-1/r}\leq M_r\leq A,
+\]
+夹逼得到 $M_r\to A$。再利用 $M_r(a_1,\ldots,a_n)=1/M_{-r}(1/a_1,\ldots,1/a_n)$，得到
+\begin{equation}
+    \lim_{r\to-\infty}M_r=\min_i a_i,
+    \qquad \lim_{r\to+\infty}M_r=\max_i a_i.
+    \label{eq:power-mean-infinite-parameter-limits}
+\end{equation}
+这些极限说明几何平均和最大、最小值都可纳入同一参数族；其单调性将在第~\ref{subsec:convexity-and-concavity} 小节中证明。
+\end{solve}
+
+\begin{example}
+\label{ex:iterated-sine-asymptotic-rate}
+设 $0<x_1<\pi$，$x_{n+1}=\sin x_n$。证明 $\sqrt{n}\,x_n\to\sqrt{3}$。
+\end{example}
+
+\begin{solve}
+由 $0<\sin x<x$（$0<x<\pi$），序列正且严格递减，故收敛。设极限为 $\ell\geq0$，由连续性得 $\ell=\sin\ell$，因而 $\ell=0$。为了求收敛速度，先由洛必达法则和 $\sin t/t\to1$ 得到
+\[
+    \lim_{t\to0}\frac{t-\sin t}{t^3}
+    =\lim_{t\to0}\frac{1-\cos t}{3t^2}
+    =\lim_{t\to0}\frac{\sin t}{6t}=\frac16.
+\]
+于是，令 $u_n=1/x_n^2$，有
+\[
+    u_{n+1}-u_n
+    =\frac{x_n^2-\sin^2x_n}{x_n^2\sin^2x_n}
+    \longrightarrow\frac13.
+\]
+由定理~\ref{thm:cesaro-mean-of-convergent-sequence}，这些增量的算术平均也趋于 $1/3$，故
+\[
+    \frac{u_n}n=\frac{u_1}n+
+    \frac1n\sum_{k=1}^{n-1}(u_{k+1}-u_k)\longrightarrow\frac13.
+\]
+因此 $nx_n^2\to3$，再由 $x_n>0$ 得到结论。
+\end{solve}
+
+\emph[caution]{洛必达法则是有条件的充分判据，不能由函数商有极限反推导数商有极限。}例如，$x\to+\infty$ 时 $(x+\sin x)/x\to1$，但导数商 $1+\cos x$ 没有极限。每次重复使用法则，都须重新核对不定式类型、可导性、分母导数非零及导数商的极限；若这些条件不满足，当前的求导链便不能作为证明。例如 $(x-\sin x)/(x+\sin x)\to1$，但第一次形式求导后的分母导数 $1+\cos x$ 有任意大的零点，导数商本身也无极限，继续求导得出 $-1$ 是无效推理。
+
+\section{泰勒公式}
+\label{sec:taylor-formula}
+
+% 教材第 197--210 页；分章 PDF 第 21--34 页。
+在一个函数值容易计算的参考点 $x_0$ 附近，可以先用常数 $f(x_0)$ 估计 $f(x)$，再利用导数逐步修正函数值的变化。泰勒公式将这一思想推广到高阶：通过匹配函数及其若干阶导数，用多项式逼近函数，并单独研究逼近误差。佩亚诺余项描述靠近展开点时误差的阶，拉格朗日余项则通过高阶导数给出可计算的误差界；插值多项式处理的是在多个指定节点上匹配函数值的另一类逼近问题。
+
+\subsection{带佩亚诺余项的泰勒公式}
+\label{subsec:taylor-formula-with-peano-remainder}
+
+理解佩亚诺余项，首先要区分误差趋于零与误差相对于某个尺度趋于零。沿用定义~\ref{def:little-o-big-o-and-asymptotic-equivalence}，以下专门解释连续性与可导性中出现的两种余项。固定展开点 $x_0$，令 $h=x-x_0$，则 $x\to x_0$ 等价于 $h\to0$；把余项写成 $h$ 的函数后，原变量中的 $o(x-x_0)$ 就对应于 $o(h)$。
+
+\begin{definition}
+\label{def:peano-little-o-scales}
+设 $r(h)$ 在某个去心邻域 $0<|h|<\rho$ 内有定义，其中 $\rho>0$。当 $h\to0$ 时，
+\begin{equation}
+    \begin{aligned}
+        r(h)=o(1)
+        &\quad\Longleftrightarrow\quad \lim_{h\to0}r(h)=0,\\
+        r(h)=o(h)
+        &\quad\Longleftrightarrow\quad \lim_{h\to0}\frac{r(h)}h=0
+        \quad\Longleftrightarrow\quad
+        \lim_{h\to0}\frac{|r(h)|}{|h|}=0.
+    \end{aligned}
+    \label{eq:peano-little-o-scales}
+\end{equation}
+具体地，$r(h)=o(1)$ 表示对任意 $\varepsilon>0$，存在 $\delta\in(0,\rho]$，使
+\[
+    0<|h|<\delta\quad\Longrightarrow\quad |r(h)|<\varepsilon;
+\]
+而 $r(h)=o(h)$ 表示对任意 $\varepsilon>0$，存在 $\delta\in(0,\rho]$，使
+\[
+    0<|h|<\delta\quad\Longrightarrow\quad |r(h)|<\varepsilon|h|.
+\]
+\end{definition}
+
+$o(1)$ 中的 $1$ 是比较尺度，所表达的是 $r(h)/1\to0$，并不表示误差趋于 $1$，也不表示某个固定的小常数。$o(h)$ 则要求误差除以自变量增量后仍趋于零，即误差是比 $h$ 高阶的无穷小量；这里比较的是绝对值的大小，故双侧趋近时 $h$ 的正负不会影响结论，$o(h)$ 与 $o(|h|)$ 表示相同的余项要求。两种记号都描述一个极限过程，不要求余项在 $h=0$ 处预先有定义，也不单独给出某个指定非零 $h$ 上的数值误差界。
+
+由定义，$r(h)=o(h)$ 等价于存在满足 $\varepsilon(h)\to0$ 的函数 $\varepsilon(h)$，使
+\begin{equation}
+    r(h)=h\varepsilon(h)\qquad(h\ne0).
+    \label{eq:peano-little-o-factorization}
+\end{equation}
+事实上，正向取 $\varepsilon(h)=r(h)/h$，反向则直接除以 $h$。由于 $h\varepsilon(h)\to0$，有 $r(h)=o(h)\Longrightarrow r(h)=o(1)$，反向一般不成立。因此，\emph{$o(h)$ 比 $o(1)$ 给出了更强的误差控制}：前者不仅要求误差消失，还要求误差与 $|h|$ 的比值消失。
+
+\begin{example}
+\label{ex:peano-little-o-basic-comparisons}
+当 $h\to0$ 时，判断 $h$、$h^2$ 与 $\sqrt{|h|}$ 是否为 $o(1)$，以及是否为 $o(h)$。
+\end{example}
+
+\begin{solve}
+三个函数都趋于零，因而都是 $o(1)$。为了进一步判断是否为 $o(h)$，分别计算
+\[
+    \frac{|h|}{|h|}=1,\qquad
+    \frac{h^2}{|h|}=|h|\to0,\qquad
+    \frac{\sqrt{|h|}}{|h|}=\frac1{\sqrt{|h|}}\to+\infty.
+\]
+所以只有 $h^2=o(h)$，而 $h$ 与 $\sqrt{|h|}$ 均不是 $o(h)$。其中 $h$ 与比较尺度同样大，$\sqrt{|h|}$ 虽然趋于零，却比 $|h|$ 大得多。这也说明，仅知道误差趋于零，还不能确定它相对于自变量增量的大小。
+\end{solve}
+
+\emph[caution]{不能仅由两个误差分别写成 $o(h)$ 与 $o(1)$，就断言前一个一定更小。}这些记号描述的是一类满足相应条件的函数，不是两个固定的函数；同一个余项可以同时属于两类，例如 $h^2$ 既是 $o(h)$，也是 $o(1)$。甚至可以取 $r_1(h)=h^2$、$r_0(h)=h^3$，此时 $r_1(h)=o(h)$、$r_0(h)=o(1)$，但 $|r_1(h)|/|r_0(h)|=1/|h|\to+\infty$。因此，要比较两种具体近似的误差，必须利用它们之间的实际关系。
+
+现在设 $f$ 在 $x_0$ 的某邻域内有定义。若 $f$ 在 $x_0$ 连续，则
+\begin{equation}
+    f(x_0+h)=f(x_0)+o(1)\qquad(h\to0).
+    \label{eq:peano-continuous-constant-approximation}
+\end{equation}
+这说明用 $f(x_0)$ 作常数近似时，只要 $h$ 足够小，绝对误差就可以任意小。它相当于暂时忽略从 $x_0$ 到 $x_0+h$ 引起的全部函数值变化；连续性本身没有保证这种误差相对于 $|h|$ 也趋于零。例如 $f(x)=\sqrt{|x|}$ 在零点连续，但用 $f(0)=0$ 近似时，误差 $\sqrt{|h|}$ 不是 $o(h)$。
+
+若 $f$ 在 $x_0$ 可导，令 $a=f'(x_0)$，则导数定义给出
+\[
+    \varepsilon(h)=\frac{f(x_0+h)-f(x_0)}h-a\longrightarrow0.
+\]
+移项便得到
+\begin{equation}
+    f(x_0+h)=f(x_0)+ah+h\varepsilon(h)
+           =f(x_0)+f'(x_0)h+o(h).
+    \label{eq:peano-first-order-decomposition}
+\end{equation}
+这与式~\eqref{eq:differential-linear-approximation}一致。$ah$ 是由变化率预测的函数增量，$h\varepsilon(h)$ 是预测后剩下的余项；几何上，$f(x_0)+ah$ 是切线在横坐标 $x_0+h$ 处的纵坐标。通常所说的\emph{线性近似}（linear approximation）指这个关于增量 $h$ 的一次近似；它包含常数项，作为 $x$ 的函数是仿射函数（affine function）。
+
+\begin{proposition}[常数近似与线性近似的误差比较]
+\label{prop:peano-constant-linear-error-comparison}
+设 $f$ 在 $x_0$ 的某邻域内有定义，并在 $x_0$ 可导。记两种近似的带符号误差为
+\begin{equation}
+    \begin{aligned}
+        E_0(h)&=f(x_0+h)-f(x_0),\\
+        E_1(h)&=f(x_0+h)-\bigl[f(x_0)+f'(x_0)h\bigr],
+    \end{aligned}
+    \label{eq:peano-constant-linear-errors}
+\end{equation}
+则绝对误差分别是 $|E_0(h)|$ 与 $|E_1(h)|$。若 $f'(x_0)\ne0$，则充分小的非零 $h$ 满足 $E_0(h)\ne0$，且
+\begin{equation}
+    \lim_{h\to0}\frac{|E_1(h)|}{|E_0(h)|}=0.
+    \label{eq:peano-relative-error-improvement}
+\end{equation}
+若 $f'(x_0)=0$，则两种近似完全相同，且 $E_0(h)=E_1(h)=o(h)$。
+\end{proposition}
+
+\begin{proof}
+沿用式~\eqref{eq:peano-first-order-decomposition} 中的 $a=f'(x_0)$ 与 $\varepsilon(h)\to0$，有
+\[
+    E_0(h)=h\bigl(a+\varepsilon(h)\bigr),\qquad
+    E_1(h)=h\varepsilon(h).
+\]
+若 $a\ne0$，可取充分小的邻域，使 $|\varepsilon(h)|<|a|/2$。于是 $|a+\varepsilon(h)|\geq|a|-|\varepsilon(h)|>|a|/2$，从而对其中的非零 $h$ 有 $E_0(h)\ne0$，并且
+\[
+    \frac{|E_1(h)|}{|E_0(h)|}
+    =\frac{|\varepsilon(h)|}{|a+\varepsilon(h)|}
+    \leq\frac{2|\varepsilon(h)|}{|a|}\longrightarrow0.
+\]
+若 $a=0$，则两种近似均为 $f(x_0)$，两个误差均为 $h\varepsilon(h)=o(h)$。
+\end{proof}
+
+当 $f'(x_0)\ne0$ 时，常数近似的误差满足 $E_0(h)/h\to f'(x_0)\ne0$，其中的一阶主项是 $f'(x_0)h$。加入这个修正后，一阶主项被消去，只留下与 $h$ 的比值趋于零的余项。式~\eqref{eq:peano-relative-error-improvement} 还意味着：对任意给定的 $\eta\in(0,1)$，都存在 $\delta>0$，使 $0<|h|<\delta$ 时有 $|E_1(h)|<\eta|E_0(h)|$。这就是线性近似在展开点附近误差“小得多”的严格含义；它是充分靠近展开点时的结论，不保证在任意远处也成立。这里比较的是两种近似的绝对误差之比，并非误差与函数值 $f(x_0+h)$ 的比值。
+
+\emph[caution]{当 $f'(x_0)=0$ 时，一次修正项为零，不能声称线性近似比常数近似更准确。}此时可导性已经保证常数近似的误差为 $o(h)$，而仅用 $o(1)$ 描述它只是没有充分利用已有信息。导数为零也不意味着函数在附近恒定，更不意味着近似误差为零；若还存在更高阶导数，可以继续寻找第一个非零的高阶修正项。
+
+\begin{example}
+\label{ex:peano-quadratic-linear-error-comparison}
+设 $f(x)=x^2$，比较在 $x_0=2$ 与 $x_0=0$ 处的常数近似和线性近似。
+\end{example}
+
+\begin{solve}
+在 $x_0=2$ 处，$f(2)=4$、$f'(2)=4$，且
+\[
+    f(2+h)=4+4h+h^2.
+\]
+用常数 $4$ 近似时，$E_0(h)=4h+h^2$；用切线给出的 $4+4h$ 近似时，$E_1(h)=h^2$。因此
+\[
+    \frac{|E_1(h)|}{|E_0(h)|}
+    =\frac{|h|}{|4+h|}\longrightarrow0.
+\]
+例如，$h=0.01$ 时真实值为 $4.0401$，两种近似分别为 $4$ 与 $4.04$，绝对误差分别为 $0.0401$ 与 $0.0001$。这里误差减少，是因为一次修正恰好补上了增量中的 $0.04$。
+
+在 $x_0=0$ 处，$f(0)=f'(0)=0$，两种近似都为 $0$，故 $E_0(h)=E_1(h)=h^2=o(h)$。对任意非零 $h$，两种绝对误差的比值都为 $1$，并没有因为写出线性近似公式而改善；若再加入二次项 $h^2$，则在本例中恰好得到原函数，误差才变为零。
+\end{solve}
+
+还应区分 $o(h)$ 与二阶误差控制：仅有一阶可导，不能保证余项是 $O(h^2)$。例如 $f(x)=|x|^{3/2}$ 在零点满足
+\[
+    \left|\frac{f(h)-f(0)}h\right|=|h|^{1/2}\to0,
+\]
+故 $f'(0)=0$。其常数近似与线性近似的误差都是 $|h|^{3/2}=o(h)$，但 $|h|^{3/2}/h^2=1/\sqrt{|h|}\to+\infty$，所以不是 $O(h^2)$。相应的高阶可导性能够保证更高阶的余项估计；这正是下面泰勒公式所说明的内容。
+
+\begin{theorem}[带佩亚诺余项的泰勒公式]
+\label{thm:taylor-peano}
+设 $n\geq1$，$f$ 在 $x_0$ 处具有 $n$ 阶导数；这里指 $f$ 在 $x_0$ 附近具有直到 $n-1$ 阶的导数，且 $f^{(n-1)}$ 在 $x_0$ 可导，不要求 $f^{(n)}$ 在邻域内连续。则当 $x\to x_0$ 时，
+\begin{equation}
+    f(x)=\sum_{k=0}^n\frac{f^{(k)}(x_0)}{k!}(x-x_0)^k
+         +o\bigl((x-x_0)^n\bigr),
+    \label{eq:taylor-peano}
+\end{equation}
+其中约定 $f^{(0)}=f$、$0!=1$。多项式
+\[
+    T_n(x)=\sum_{k=0}^n\frac{f^{(k)}(x_0)}{k!}(x-x_0)^k
+\]
+称为 $f$ 在 $x_0$ 处的 $n$ 阶\emph{泰勒多项式}（Taylor polynomial）；$R_n(x)=f(x)-T_n(x)$ 称为余项，式~\eqref{eq:taylor-peano} 中的余项称为\emph{佩亚诺余项}（Peano remainder）。当 $x_0=0$ 时，称为\emph{麦克劳林公式}（Maclaurin formula）。
+\end{theorem}
+
+\begin{proof}
+当 $n=1$ 时就是导数定义。对 $n\geq2$，只需证明 $R_n(x)/(x-x_0)^n\to0$。由于各阶导数在 $x_0$ 的相应连续性，逐次求导后直到第 $n-2$ 次的商均为 $0/0$ 型，分母的下一阶导数在去心邻域内非零。连续使用 $n-1$ 次洛必达法则，原极限归结为
+\[
+    \lim_{x\to x_0}
+    \frac{f^{(n-1)}(x)-f^{(n-1)}(x_0)-f^{(n)}(x_0)(x-x_0)}
+         {n!(x-x_0)}=0.
+\]
+最后一步由 $f^{(n-1)}$ 在 $x_0$ 的可导性成立，再沿各步洛必达法则反推即得结论。
+\end{proof}
+
+式~\eqref{eq:taylor-peano} 将一次近似推广为 $n$ 阶近似，其误差满足 $R_n(x_0+h)/h^n\to0$。为了看清新增一项怎样改变误差，约定 $T_0(x)=f(x_0)$，并令 $R_k(x)=f(x)-T_k(x)$。对于 $1\leq k\leq n$，记 $c_k=f^{(k)}(x_0)/k!$，则
+\[
+    R_{k-1}(x_0+h)=c_kh^k+R_k(x_0+h),\qquad
+    R_k(x_0+h)=o(h^k).
+\]
+若 $c_k\ne0$，除以 $h^k$ 后，$R_{k-1}(x_0+h)/h^k\to c_k$，因而与命题~\ref{prop:peano-constant-linear-error-comparison} 相同的比较给出 $|R_k(x_0+h)|/|R_{k-1}(x_0+h)|\to0$；若 $c_k=0$，则 $T_k=T_{k-1}$，两种余项完全相同。特别地，当 $f'(x_0)=0$ 而 $f''(x_0)\ne0$ 时，二次修正 $f''(x_0)h^2/2$ 才消去常数近似误差的首个非零主项，使余项成为 $o(h^2)$。因此，逐阶改善的实质在于消去非零的主项，不能只根据多项式名义上的阶数判断两次近似的误差大小。
+
+\begin{proposition}[多项式逼近的唯一性]
+\label{prop:taylor-polynomial-uniqueness}
+若次数不超过 $n$ 的多项式 $P,Q$ 都满足
+\[
+    f(x)-P(x)=o\bigl((x-x_0)^n\bigr),\qquad
+    f(x)-Q(x)=o\bigl((x-x_0)^n\bigr),
+\]
+则 $P=Q$。因此在定理~\ref{thm:taylor-peano} 的条件下，任何具有这一余项阶的多项式逼近，其系数必为 $f^{(k)}(x_0)/k!$。
+\end{proposition}
+
+\begin{proof}
+相减得到 $P-Q=o((x-x_0)^n)$。若 $P-Q$ 不恒为零，设其关于 $x-x_0$ 的最低非零项为 $c_m(x-x_0)^m$，其中 $m\leq n$、$c_m\neq0$。除以 $(x-x_0)^m$ 并令 $x\to x_0$，左端趋于 $c_m$，右端趋于零，矛盾。
+\end{proof}
+
+由唯一性，可以通过恒等变形、有限展开的相乘与复合来求泰勒多项式，无须总是直接计算所有高阶导数；每一步仍须核对余项的阶。\emph[caution]{不能在没有额外条件时逐项微分一个带小 $o$ 余项的等式，因为小 $o$ 关系本身不控制余项的导数。}
+
+\begin{proposition}[常用麦克劳林公式]
+\label{prop:standard-maclaurin-formulas}
+对固定的正整数 $n$，当 $x\to0$ 时，有
+\begin{align}
+    e^x&=\sum_{k=0}^n\frac{x^k}{k!}+o(x^n),
+        \label{eq:maclaurin-exponential}\\
+    \sin x&=\sum_{k=0}^n\frac{(-1)^kx^{2k+1}}{(2k+1)!}
+              +o(x^{2n+1}),
+        \label{eq:maclaurin-sine}\\
+    \cos x&=\sum_{k=0}^n\frac{(-1)^kx^{2k}}{(2k)!}
+              +o(x^{2n}),
+        \label{eq:maclaurin-cosine}\\
+    \ln(1+x)&=\sum_{k=1}^n\frac{(-1)^{k-1}}k x^k+o(x^n),
+        \label{eq:maclaurin-logarithm}\\
+    (1+x)^\alpha&=\sum_{k=0}^n\binom\alpha k x^k+o(x^n),
+        \label{eq:maclaurin-real-power}
+\end{align}
+其中 $\alpha\in\mathbb{R}$，$\binom\alpha0=1$，且
+\[
+    \binom\alpha k=\frac{\alpha(\alpha-1)\cdots(\alpha-k+1)}{k!}
+    \quad(k\geq1).
+\]
+对数和实幂取 $x>-1$ 的零点邻域。此外，
+\begin{align}
+    \arctan x&=\sum_{k=0}^n\frac{(-1)^k}{2k+1}x^{2k+1}
+                  +o(x^{2n+1}),
+        \label{eq:maclaurin-arctangent}\\
+    \arcsin x&=\sum_{k=0}^n
+        \frac{(2k-1)!!}{(2k)!!(2k+1)}x^{2k+1}
+                  +o(x^{2n+1}),
+        \label{eq:maclaurin-arcsine}
+\end{align}
+其中 $(2k)!!=2\cdot4\cdots(2k)$、$(2k-1)!!=1\cdot3\cdots(2k-1)$，并约定 $0!!=(-1)!!=1$。
+\end{proposition}
+
+\begin{proof}
+$e^x$ 的各阶导数在零点均为 $1$；正弦与余弦的导数循环给出交替系数及相应的零系数。又对 $k\geq1$，
+\[
+    \frac{d^k}{dx^k}\ln(1+x)
+    =\frac{(-1)^{k-1}(k-1)!}{(1+x)^k},\qquad
+    \frac{d^k}{dx^k}(1+x)^\alpha
+    =\alpha(\alpha-1)\cdots(\alpha-k+1)(1+x)^{\alpha-k}.
+\]
+在零点代入泰勒公式，便得前五式。反正切和反正弦在 $(-1,1)$ 内光滑，它们的导函数分别为 $(1+x^2)^{-1}$ 与 $(1-x^2)^{-1/2}$。由实幂公式及唯一性，这两个导函数的 $x^{2k}$ 项系数分别为 $(-1)^k$ 和 $(2k-1)!!/(2k)!!$，奇次项系数为零。由于导函数的这些泰勒系数分别等于原函数相应导数除以 $(2k)!$，原函数的 $x^{2k+1}$ 项系数还须除以 $2k+1$。再结合两函数在零点的值为零，即得后两式；此处使用的是光滑函数的泰勒系数关系，没有对未知的余项求导。
+\end{proof}
+
+\begin{example}
+\label{ex:taylor-composition-and-product}
+求 $e^{\cos x}$、$e^x\ln(1+x)$ 和 $\sin^2(1+x^2)$ 在零点展开到四次项、余项为 $o(x^4)$ 的公式。
+\end{example}
+
+\begin{solve}
+令 $u=\cos x-1=-x^2/2+x^4/24+o(x^4)$，则 $u=O(x^2)$、$u^2=x^4/4+o(x^4)$，所以
+\[
+    e^{\cos x}=e\,e^u
+    =e\left(1+u+\frac{u^2}{2}+o(u^2)\right)
+    =e\left(1-\frac{x^2}{2}+\frac{x^4}{6}+o(x^4)\right).
+\]
+第二式将两个有限展开相乘，保留总次数不超过 $4$ 的项，得
+\[
+    e^x\ln(1+x)=x+\frac{x^2}{2}+\frac{x^3}{3}+0\cdot x^4+o(x^4).
+\]
+四次项系数为 $-1/4+1/3-1/4+1/6=0$，不能未经计算就将它漏去。第三式利用二倍角公式，得
+\[
+    \sin^2(1+x^2)
+    =\frac{1-\cos2\cos(2x^2)+\sin2\sin(2x^2)}2
+    =\sin^21+\sin2\,x^2+\cos2\,x^4+o(x^4).
+    \qedhere
+\]
+\end{solve}
+
+\begin{example}
+\label{ex:taylor-peano-sequence-limit}
+计算 $\lim_{n\to\infty}n^2(1-n\sin(1/n))$。
+\end{example}
+
+\begin{solve}
+由 $\sin t=t-t^3/6+o(t^3)$，令 $t=1/n$，得到
+\[
+    n^2\left(1-n\sin\frac1n\right)
+    =n^2\left(\frac1{6n^2}+o(n^{-2})\right)\longrightarrow\frac16.
+    \qedhere
+\]
+\end{solve}
+
+佩亚诺公式是固定阶数 $n$、令 $x\to x_0$ 的局部结论，不直接给出某个指定 $x$ 上的数值误差，也不允许未经证明地令 $n\to\infty$。例~\ref{ex:smooth-flat-exponential-function} 中的函数在零点的每个泰勒多项式都恒为零，但任意 $x\neq0$ 处函数值为正，说明即使具有任意阶连续导数，也未必等于由其导数组成的无限展开。
+
+\subsection{带拉格朗日余项的泰勒公式}
+\label{subsec:taylor-formula-with-lagrange-remainder}
+
+\begin{theorem}[带拉格朗日余项的泰勒公式]
+\label{thm:taylor-lagrange}
+设 $n\geq0$，$f\in C^n([a,b])$，且 $f^{(n+1)}$ 在 $(a,b)$ 内存在。则对任意不同的 $x_0,x\in[a,b]$，存在严格介于二者之间的 $\xi$，使
+\begin{equation}
+    f(x)=\sum_{k=0}^n\frac{f^{(k)}(x_0)}{k!}(x-x_0)^k
+       +\frac{f^{(n+1)}(\xi)}{(n+1)!}(x-x_0)^{n+1}.
+    \label{eq:taylor-lagrange}
+\end{equation}
+最后一项称为\emph{拉格朗日余项}（Lagrange remainder），其中 $\xi=x_0+\theta(x-x_0)$、$0<\theta<1$。
+\end{theorem}
+
+\begin{proof}
+固定 $x$，以 $t$ 为变量，在 $x_0,x$ 之间定义
+\[
+    F(t)=f(x)-\sum_{k=0}^n\frac{f^{(k)}(t)}{k!}(x-t)^k,
+    \qquad G(t)=(x-t)^{n+1}.
+\]
+二者在相应闭区间连续、内部可导，且 $F(x)=G(x)=0$。求导时相邻项抵消，得到
+\[
+    F'(t)=-\frac{f^{(n+1)}(t)}{n!}(x-t)^n,
+    \qquad G'(t)=-(n+1)(x-t)^n.
+\]
+$G'$ 在该开区间内非零，由柯西中值定理，
+\[
+    \frac{F(x_0)}{G(x_0)}
+    =\frac{F(x_0)-F(x)}{G(x_0)-G(x)}
+    =\frac{F'(\xi)}{G'(\xi)}
+    =\frac{f^{(n+1)}(\xi)}{(n+1)!},
+\]
+整理即得所需公式。
+\end{proof}
+
+\begin{corollary}[泰勒逼近的误差界]
+\label{cor:taylor-lagrange-error-bound}
+在定理~\ref{thm:taylor-lagrange} 的条件下，若 $|f^{(n+1)}(t)|\leq M$ 对 $a<t<b$ 成立，则
+\begin{equation}
+    |f(x)-T_n(x)|\leq\frac{M}{(n+1)!}|x-x_0|^{n+1},
+    \qquad x\in[a,b].
+    \label{eq:taylor-lagrange-error-bound}
+\end{equation}
+当 $x=x_0$ 时，两端均为零。因此只要控制相应区间上的高阶导数，就能按给定精度选择多项式次数。
+\end{corollary}
+
+常用麦克劳林公式的余项也可写成这一形式。例如对 $n\geq1$，
+\begin{align*}
+    e^x&=\sum_{k=0}^n\frac{x^k}{k!}
+        +\frac{e^{\theta_1x}}{(n+1)!}x^{n+1},\\
+    \ln(1+x)&=\sum_{k=1}^n\frac{(-1)^{k-1}}k x^k
+        +\frac{(-1)^nx^{n+1}}{(n+1)(1+\theta_2x)^{n+1}},\\
+    (1+x)^\alpha&=\sum_{k=0}^n\binom\alpha k x^k
+        +\binom\alpha{n+1}(1+\theta_3x)^{\alpha-n-1}x^{n+1},
+\end{align*}
+其中各 $\theta_i\in(0,1)$ 可互不相同；指数公式适用于任意实数 $x$，后两式在 $x>-1$ 时适用。对正弦展开到 $x^{2m+1}$ 项时，可在泰勒多项式中同时保留系数为零的 $x^{2m+2}$ 项，从而得到绝对值不超过 $|x|^{2m+3}/(2m+3)!$ 的余项；余弦展开到 $x^{2m}$ 项时，同理得到绝对值不超过 $|x|^{2m+2}/(2m+2)!$ 的余项。上述两项估计对 $m\geq0$ 和任意实数 $x$ 成立。
+
+\begin{example}
+\label{ex:taylor-approximation-and-irrationality-of-e}
+用有限和近似 $e$，使绝对误差小于 $10^{-5}$，并用泰勒余项证明 $e$ 为无理数。
+\end{example}
+
+\begin{solve}
+将指数函数在零点展开并令 $x=1$，有
+\[
+    e=\sum_{k=0}^n\frac1{k!}+\frac{e^\theta}{(n+1)!},
+    \qquad 0<\theta<1.
+\]
+这里可先取 $n=2$，由 $e^\theta<e$ 得 $e<5/2+e/6$，从而 $e<3$。因此取 $n=8$ 时，
+\[
+    0<e-\sum_{k=0}^8\frac1{k!}<\frac3{9!}<10^{-5}.
+\]
+有限和为 $2.7182787698\ldots$；若交付小数近似，还须把舍入误差计入总误差。
+
+若 $e=p/q$ 为有理数，其中 $p,q$ 为正整数，取整数 $n>\max\{q,3\}$，将上述等式乘以 $n!$，得到
+\[
+    n!e-\sum_{k=0}^n\frac{n!}{k!}=\frac{e^\theta}{n+1}.
+\]
+左端为整数，右端却严格介于 $0$ 与 $3/(n+1)<1$ 之间，矛盾。因此 $e$ 为无理数。
+\end{solve}
+
+\begin{example}
+\label{ex:taylor-factorial-exponential-limit}
+计算 $\lim_{n\to\infty}n\sin(2\pi n!e)$。
+\end{example}
+
+\begin{solve}
+将 $e^x$ 展开到 $n+1$ 次并令 $x=1$，乘以 $n!$，可得
+\[
+    n!e=N_n+d_n,\qquad
+    N_n=\sum_{k=0}^n\frac{n!}{k!}\in\mathbb{Z},\qquad
+    d_n=\frac1{n+1}+\frac{e^{\theta_n}}{(n+1)(n+2)},
+\]
+其中 $0<\theta_n<1$。由 $1<e^{\theta_n}<3$，得 $d_n\to0$ 且 $nd_n\to1$。利用正弦的周期性及 $\sin t/t\to1$，得到
+\[
+    n\sin(2\pi n!e)=n\sin(2\pi d_n)
+    =2\pi nd_n\frac{\sin(2\pi d_n)}{2\pi d_n}\longrightarrow2\pi.
+    \qedhere
+\]
+\end{solve}
+
+\subsection{拉格朗日插值多项式}
+\label{subsec:lagrange-interpolation-polynomial}
+
+泰勒多项式匹配一个点上的多阶导数；若已知的是不同节点上的函数值，则应改用\emph{多项式插值}（polynomial interpolation）。设 $n\geq0$ 为整数，互不相同的节点为 $x_0,\ldots,x_n$，给定数据 $y_0,\ldots,y_n$，目标是寻找次数不超过 $n$ 的多项式 $L_n$，使 $L_n(x_i)=y_i$。
+
+\begin{theorem}[拉格朗日插值公式]
+\label{thm:lagrange-interpolation}
+上述插值问题存在唯一解，且
+\begin{equation}
+    L_n(x)=\sum_{i=0}^n y_i\ell_i(x),\qquad
+    \ell_i(x)=\prod_{\substack{0\leq j\leq n\\j\neq i}}
+                  \frac{x-x_j}{x_i-x_j}.
+    \label{eq:lagrange-interpolation}
+\end{equation}
+这里约定空乘积为 $1$。$\ell_i$ 称为\emph{拉格朗日插值基函数}（Lagrange basis polynomial），满足 $\ell_i(x_j)=1$（$i=j$）或 $0$（$i\neq j$）。$L_n$ 称为\emph{拉格朗日插值多项式}（Lagrange interpolation polynomial）；其实际次数可以小于 $n$。
+\end{theorem}
+
+\begin{proof}
+节点互异保证各分母非零。基函数在本节点取 $1$，在其他节点取 $0$，因而式~\eqref{eq:lagrange-interpolation} 满足全部插值条件且次数不超过 $n$，给出存在性。若另有同次数上界的多项式 $P_n$ 满足条件，则 $P_n-L_n$ 有 $n+1$ 个不同零点。次数不超过 $n$ 的非零多项式不可能有这么多零点，故 $P_n=L_n$。
+\end{proof}
+
+\begin{theorem}[插值余项]
+\label{thm:lagrange-interpolation-remainder}
+设 $f\in C^{n+1}([a,b])$，$x_0,\ldots,x_n\in[a,b]$ 互不相同，且 $L_n(x_i)=f(x_i)$。对任意不是插值节点的 $x\in[a,b]$，存在位于 $x,x_0,\ldots,x_n$ 的最小值与最大值之间的 $\xi$，使
+\begin{equation}
+    f(x)-L_n(x)=\frac{f^{(n+1)}(\xi)}{(n+1)!}\omega_{n+1}(x),
+    \qquad \omega_{n+1}(x)=\prod_{i=0}^n(x-x_i).
+    \label{eq:lagrange-interpolation-remainder}
+\end{equation}
+当 $x$ 是节点时误差为零。若 $|f^{(n+1)}|\leq M$，则全部 $x\in[a,b]$ 均满足
+\[
+    |f(x)-L_n(x)|\leq\frac{M}{(n+1)!}
+        \prod_{i=0}^n|x-x_i|.
+\]
+\end{theorem}
+
+\begin{proof}
+固定非节点 $x$，令 $K=(f(x)-L_n(x))/\omega_{n+1}(x)$，并构造关于 $t$ 的函数
+\[
+    F(t)=f(t)-L_n(t)-K\omega_{n+1}(t).
+\]
+$F$ 在互不相同的 $x,x_0,\ldots,x_n$ 上都为零，故连续使用 $n+1$ 次罗尔定理，存在严格位于这些点的最小值与最大值之间的 $\xi$，使 $F^{(n+1)}(\xi)=0$。由于 $L_n^{(n+1)}=0$，而首一多项式 $\omega_{n+1}$ 的 $n+1$ 阶导数为 $(n+1)!$，得 $K=f^{(n+1)}(\xi)/(n+1)!$，代回即得余项公式。节点处单独使用插值条件，不能在那里直接除以 $\omega_{n+1}(x)$。
+\end{proof}
+
+\begin{example}
+\label{ex:quadratic-interpolation-data}
+给定三组数据 $(1,0.0000)$、$(1.5,0.4055)$、$(2,0.6931)$，求相应的二次插值多项式，并估算 $f(1.2)$。
+\end{example}
+
+\begin{solve}
+第一组数据的函数值为零，故
+\[
+    L_2(x)=-1.6220(x-1)(x-2)+1.3862(x-1)(x-1.5),
+\]
+从而 $L_2(1.2)=0.176348$，按四位小数可写为 $f(1.2)\approx0.1763$。这个数是根据所给数据得到的插值估计；仅有三组数据不能给出真实函数的误差保证。若这些数据还经过舍入，则总误差除式~\eqref{eq:lagrange-interpolation-remainder} 的函数插值误差外，还包括数据误差。具体地，节点数据误差为 $\varepsilon_i$ 时，多项式的变化为 $\sum_i\varepsilon_i\ell_i(x)$，其绝对值不超过 $\sum_i|\varepsilon_i\ell_i(x)|$。
+\end{solve}
+
+\section{利用导数研究函数}
+\label{sec:studying-functions-with-derivatives}
+
+% 教材第 210--229 页；分章 PDF 第 34--53 页。
+中值定理把导数的符号转化为函数增量的符号，泰勒公式则用局部主项决定函数在一点附近的行为。因此，研究函数时应先确定定义域和连续性，再在适用的区间上考察一阶、二阶或更高阶导数；跨越不连续点或定义域空缺时，不能直接沿用同一个区间上的判别。
+
+\subsection{函数的单调性}
+\label{subsec:derivative-tests-for-monotonicity}
+
+\begin{theorem}[单调性的导数判别]
+\label{thm:derivative-monotonicity-test}
+设 $I$ 为非退化区间，$f$ 在 $I$ 上连续、内部可导。则 $f$ 在 $I$ 上单调递增（即非减）的充分必要条件是内部恒有 $f'\geq0$；单调递减（即非增）的充分必要条件是内部恒有 $f'\leq0$。
+\end{theorem}
+
+\begin{proof}
+若 $f$ 非减，则任意内点 $x$ 处充分小的非零增量 $h$ 满足 $(f(x+h)-f(x))/h\geq0$，取极限得 $f'(x)\geq0$。反之，若内部 $f'\geq0$，则对任意 $u<v$、$u,v\in I$，由拉格朗日定理，
+\[
+    f(v)-f(u)=f'(\xi)(v-u)\geq0,
+\]
+故 $f$ 非减。对 $-f$ 使用该结论即可得到非增情形。
+\end{proof}
+
+\begin{corollary}[严格单调的判据]
+\label{cor:strict-monotonicity-test}
+在定理~\ref{thm:derivative-monotonicity-test} 的条件下，$f$ 严格递增的充分必要条件是 $f'\geq0$，且 $f'$ 在内部任意非退化子区间上都不恒为零。相应地，严格递减等价于 $f'\leq0$ 且 $f'$ 在任何此类子区间上不恒为零。特别地，内部处处有 $f'>0$ 或 $f'<0$ 是相应严格单调性的充分条件。
+\end{corollary}
+
+\begin{proof}
+严格递增必非减，故 $f'\geq0$；若 $f'$ 在某个子区间上恒为零，则 $f$ 在其上为常数，矛盾。反之，由 $f'\geq0$ 知 $f$ 非减，若存在 $u<v$ 而 $f(u)=f(v)$，则对 $u<t<v$ 有 $f(u)\leq f(t)\leq f(v)$，故 $f$ 在 $(u,v)$ 上为常数，违反第二个条件。严格递减的情形同理。
+\end{proof}
+
+$f(x)=x^3$ 在实轴上严格递增，但 $f'(0)=0$，说明严格递增不等于导数处处为正。利用单调性也可证明不等式：对 $0<x<\pi/2$，$x-\sin x$ 的导数为 $1-\cos x>0$，$\tan x-x$ 的导数为 $\tan^2x>0$，二者在零点的值均为零，因此 $\sin x<x<\tan x$。这种方法的关键是把待证不等式改写成一个函数与其已知初值的比较。
+
+\subsection{函数的极值}
+\label{subsec:extrema-of-functions}
+
+费马定理只筛选可导极值点的候选位置；要确定候选点是否真正取得极值，还需比较其两侧函数值。最直接的方法是通过导数符号确定两侧的升降。
+
+\begin{theorem}[极值的第一导数判别]
+\label{thm:first-derivative-extremum-test}
+设 $f$ 在 $x_0$ 处连续，在某个去心邻域 $0<|x-x_0|<\delta$ 内可导。若 $f'$ 在 $x_0$ 左侧为正、右侧为负，则 $x_0$ 为严格极大值点；若左侧为负、右侧为正，则为严格极小值点；若两侧均为正，或两侧均为负，则 $x_0$ 不是极值点。这里不要求 $f'(x_0)$ 存在。
+\end{theorem}
+
+\begin{proof}
+对邻域内任意 $x<x_0$，可在 $[x,x_0]$ 上使用中值定理；对 $x>x_0$，可在 $[x_0,x]$ 上使用。若左侧导数为正、右侧为负，则分别得到 $f(x)<f(x_0)$，故为严格极大值。反向变号时得到两侧均有 $f(x)>f(x_0)$。两侧同为正时，左侧函数值小于 $f(x_0)$、右侧大于 $f(x_0)$；同为负时次序相反，均不可能取得极值。
+\end{proof}
+
+本判据的同号、异号描述指在某个完整的单侧邻域内保持所列符号，并不保证导数任意振荡时也可用简单的符号表判定。连续性也不能省略，否则 $x_0$ 的函数值可能脱离两侧的升降趋势。
+
+\begin{example}
+\label{ex:polynomial-stationary-point-classification}
+求 $f(x)=(x+2)^2(x-1)^3$ 在实轴上的极值。
+\end{example}
+
+\begin{solve}
+求导得
+\[
+    f'(x)=(x+2)(x-1)^2(5x+4).
+\]
+驻点为 $-2,-4/5,1$。导数在由它们分出的四个开区间上依次为正、负、正、正，故 $x=-2$ 为严格极大值点，极大值为 $0$；$x=-4/5$ 为严格极小值点，极小值为
+\[
+    \left(\frac65\right)^2\left(-\frac95\right)^3
+    =-\frac{26244}{3125}.
+\]
+$x=1$ 两侧导数均为正，不是极值点。
+\end{solve}
+
+\begin{theorem}[极值的高阶导数判别]
+\label{thm:higher-derivative-extremum-test}
+设 $n\geq2$，$f$ 在 $x_0$ 处具有 $n$ 阶导数，且
+\[
+    f'(x_0)=\cdots=f^{(n-1)}(x_0)=0,
+    \qquad f^{(n)}(x_0)\neq0.
+\]
+若 $n$ 为偶数，则 $f^{(n)}(x_0)>0$ 时取得严格极小值，$f^{(n)}(x_0)<0$ 时取得严格极大值；若 $n$ 为奇数，则 $x_0$ 不是极值点。特别地，$f'(x_0)=0$ 且 $f''(x_0)\neq0$ 时，二阶导数的正、负分别对应严格极小、极大值。
+\end{theorem}
+
+\begin{proof}
+由佩亚诺公式，
+\[
+    f(x)-f(x_0)
+    =\left(\frac{f^{(n)}(x_0)}{n!}+o(1)\right)(x-x_0)^n.
+\]
+括号内的量在充分小的去心邻域内与 $f^{(n)}(x_0)$ 同号。偶次幂在两侧均为正，故差值保持相应符号；奇次幂在左右两侧异号，故差值变号，不可能取得极值。
+\end{proof}
+
+若 $f''(x_0)=0$，二阶判据没有结论：$x^4,-x^4,x^3$ 在零点分别有极小值、极大值和无极值。若所有阶导数都为零，高阶判据也可能无法使用，此时仍可回到定义或考察导数符号。
+
+\begin{theorem}[达布定理]
+\label{thm:darboux-derivative-intermediate-value}
+设 $f$ 在 $[a,b]$ 上连续、在 $(a,b)$ 内可导，有限单侧导数 $f'_+(a)$、$f'_-(b)$ 存在。则对严格介于这两个导数之间的任意实数 $\lambda$，存在 $\xi\in(a,b)$，使 $f'(\xi)=\lambda$。在开区间内任取两个点作端点，便知\emph{导函数具有介值性}；这一结论称为\emph{达布定理}（Darboux's theorem）。
+\end{theorem}
+
+\begin{proof}
+令 $F(x)=f(x)-\lambda x$。若 $f'_+(a)<\lambda<f'_-(b)$，则 $F'_+(a)<0$，故在 $a$ 的右侧存在函数值严格小于 $F(a)$ 的点；又 $F'_-(b)>0$，故在 $b$ 的左侧存在函数值严格小于 $F(b)$ 的点。因此连续函数 $F$ 在闭区间上取得的最小值不可能位于任一端点，必在内点 $\xi$ 取得。费马定理给出 $F'(\xi)=0$，即 $f'(\xi)=\lambda$。若端点导数的大小次序相反，则改取内点最大值，证明相同。
+\end{proof}
+
+达布定理不要求导函数连续。例如 $f(x)=x^2\sin(1/x)$（$x\neq0$）、$f(0)=0$ 在实轴上处处可导，但
+\[
+    f'(x)=2x\sin(1/x)-\cos(1/x)\quad(x\neq0),\qquad f'(0)=0,
+\]
+在零点不连续，仍然具有介值性。因此若函数在一个区间内处处可导且 $f'$ 从不为零，则 $f'$ 不能由正变负，必保持同一个符号，函数便严格单调；不能仅凭“导函数连续”来解释这一事实，因为连续性未必成立。
+
+局部极值与整个定义范围上的最大、最小值需要区分。若 $f\in C([a,b])$，则最值存在，且最值点必属于端点、内部驻点或内部不可导点；这是由费马定理排除其余内点得到的。求最值时应检查全部候选点，而不能只解 $f'=0$；若候选点无穷多，还须进一步分析，不能预设总能作有限次比较。
+
+\begin{example}
+\label{ex:weighted-cylinder-material-minimization}
+在薄壁近似下制作无盖圆柱形容器，设侧壁厚度为固定的 $\delta>0$，底厚为 $3\delta$，给定内部容积 $V>0$。忽略边缘及厚度对半径、容积关系的修正，求用料最省的底面半径与高度关系。
+\end{example}
+
+\begin{solve}
+设底面半径为 $r>0$、高度为 $h>0$，以 $V=\pi r^2h$ 为体积约束。用料体积在此模型中为
+\[
+    S=3\delta\pi r^2+2\delta\pi rh,
+\]
+故消去 $h$ 后，问题化为在 $r>0$ 上最小化
+\[
+    S(r)=\delta\left(3\pi r^2+\frac{2V}{r}\right),\qquad
+    S'(r)=\delta\left(6\pi r-\frac{2V}{r^2}\right).
+\]
+唯一驻点为 $r_0=(V/(3\pi))^{1/3}$，其左侧导数为负、右侧为正，故是整个正半轴上的唯一最小值点。相应高度满足
+\[
+    h_0=\frac{V}{\pi r_0^2}=3r_0.
+\]
+这一结论来自所列薄壁模型；改变底与侧壁的厚度比例时，目标函数及最优比例也会随之改变。
+\end{solve}
+
+\subsection{函数的凹凸性}
+\label{subsec:convexity-and-concavity}
+
+单调性描述函数值怎样变化，凹凸性则描述割线和切线斜率怎样变化。本节沿用教材及凸分析中的约定：\emph{图像位于弦线下方的函数称为凸函数}，以免与仅凭“向上凹”“向下凹”等图形用语产生混淆。
+
+\begin{definition}
+\label{def:convex-and-concave-functions}
+设 $I$ 为区间，$f:I\to\mathbb{R}$。若对任意 $x,y\in I$ 和 $t\in(0,1)$ 均有
+\begin{equation}
+    f\bigl(tx+(1-t)y\bigr)\leq tf(x)+(1-t)f(y),
+    \label{eq:convex-function-definition}
+\end{equation}
+则称 $f$ 为 $I$ 上的\emph{凸函数}（convex function）；若 $x\neq y$ 时不等式总严格成立，则称为\emph{严格凸函数}（strictly convex function）。将不等号反向，得到\emph{凹函数}（concave function）及严格凹函数。$f$ 为凹函数等价于 $-f$ 为凸函数。
+\end{definition}
+
+仿射函数 $f(x)=Ax+B$ 同时为凸函数和凹函数；反之，在非退化区间上同时凸、凹的函数，由式~\eqref{eq:convex-function-definition} 处处取等号可知，其任意三点共线，故必为仿射函数。二次函数 $ax^2+bx+c$ 在 $a>0$ 时严格凸，在 $a<0$ 时严格凹。定义本身不以可导为前提，例如 $|x|$ 是实轴上的凸函数，却在零点不可导。
+
+\begin{lemma}[割线斜率的刻画]
+\label{lem:convex-secant-slopes}
+$f$ 在区间 $I$ 上为凸函数，当且仅当对任意 $u<v<w$、$u,v,w\in I$，均有
+\begin{equation}
+    \frac{f(v)-f(u)}{v-u}
+    \leq\frac{f(w)-f(u)}{w-u}
+    \leq\frac{f(w)-f(v)}{w-v}.
+    \label{eq:convex-secant-slopes}
+\end{equation}
+严格凸对应于上述不等式对任意这类三点均严格成立。
+\end{lemma}
+
+\begin{proof}
+将 $v$ 写为 $v=\frac{w-v}{w-u}u+\frac{v-u}{w-u}w$。代入凸函数定义，移项即得式~\eqref{eq:convex-secant-slopes} 中的两个不等式；每一步都是等价变形，故也给出充分性及严格情形。
+\end{proof}
+
+\begin{theorem}[凹凸性的导数判别]
+\label{thm:convexity-derivative-tests}
+设 $f\in C([a,b])$，且在 $(a,b)$ 内可导。则 $f$ 在 $[a,b]$ 上为凸函数，当且仅当 $f'$ 在 $(a,b)$ 内非减；$f$ 严格凸，当且仅当 $f'$ 严格递增。若 $f$ 在 $(a,b)$ 内二阶可导，则凸性等价于 $f''\geq0$；严格凸等价于 $f''\geq0$，且 $f''$ 在任意非退化子区间上都不恒为零。凹性和严格凹性分别对应于导数非增、严格递减，或相应的二阶导数反向不等式。
+\end{theorem}
+
+\begin{proof}
+若 $f$ 凸，对任意内点 $u<v$，由割线斜率的比较并令相邻端点趋向 $u,v$，得
+\begin{equation}
+    f'(u)\leq\frac{f(v)-f(u)}{v-u}\leq f'(v),
+    \label{eq:convex-derivative-secant-bounds}
+\end{equation}
+因此 $f'$ 非减。若 $f$ 严格凸而某两个内点有 $f'(u)=f'(v)$，则非减性迫使 $f'$ 在 $[u,v]$ 上为常数，中值定理又迫使 $f$ 在其上为仿射函数，与严格凸矛盾，故 $f'$ 严格递增。
+
+反之，对任意 $u<v<w$、$u,v,w\in[a,b]$，在 $[u,v]$ 和 $[v,w]$ 上分别使用中值定理，得到两个相邻割线斜率为 $f'(\xi_1)$ 与 $f'(\xi_2)$，其中 $\xi_1<v<\xi_2$。若 $f'$ 非减，则前者不大于后者，由引理~\ref{lem:convex-secant-slopes} 得凸性；若 $f'$ 严格递增，则得到严格凸性。二阶导数的判据再对 $f'$ 使用定理~\ref{thm:derivative-monotonicity-test} 及推论~\ref{cor:strict-monotonicity-test} 即得。
+\end{proof}
+
+在二阶可导情形，$f''>0$ 是严格凸的充分条件，却不是必要条件；例如 $x^4$ 严格凸，但在零点有 $f''(0)=0$。另一个等价刻画是切线支撑不等式：在上述可导条件下，凸性等价于对任意内点 $u$ 和任意 $x\in[a,b]$ 有
+\begin{equation}
+    f(x)\geq f(u)+f'(u)(x-u).
+    \label{eq:convex-supporting-tangent}
+\end{equation}
+凸性推出该式可由割线斜率取极限得到。反之，令 $z=tx+(1-t)y$ 为内点，将以 $z$ 为切点、分别取 $x,y$ 的两个不等式加权相加，便得到式~\eqref{eq:convex-function-definition}。因此凸函数的图像位于每条切线上方，同时位于相应的弦线下方。
+
+\begin{theorem}[詹森不等式]
+\label{thm:jensen-finite-convex-combinations}
+设 $f$ 为区间 $I$ 上的凸函数，$x_1,\ldots,x_n\in I$，权重 $t_i\geq0$ 满足 $\sum_{i=1}^n t_i=1$。则
+\begin{equation}
+    f\left(\sum_{i=1}^n t_ix_i\right)
+    \leq\sum_{i=1}^n t_if(x_i).
+    \label{eq:jensen-finite-convex-combinations}
+\end{equation}
+这称为\emph{詹森不等式}（Jensen's inequality）。若 $f$ 严格凸，则等号成立当且仅当所有正权重所对应的 $x_i$ 都相等。凹函数满足反向不等式。
+\end{theorem}
+
+\begin{proof}
+删除零权重项，以下设权重均为正。$n=1$ 无须证明，$n=2$ 为凸性的定义。若结论对 $n-1$ 成立，令 $s=1-t_n$，则当 $n\geq2$ 时 $0<s<1$，且
+\[
+    \sum_{i=1}^nt_ix_i
+    =s\left(\sum_{i=1}^{n-1}\frac{t_i}s x_i\right)+t_nx_n.
+\]
+先对这两个点使用凸性，再对括号内的凸组合使用归纳假设，得到所需不等式。严格凸时，若前 $n-1$ 个点不全相等，归纳步骤已经严格；若它们全相等但与 $x_n$ 不同，最外层的二点不等式严格。因此只有全部正权重点相等时才能取等号。凹函数对 $-f$ 使用结论即可。
+\end{proof}
+
+\begin{example}
+\label{ex:power-mean-monotonicity-by-convexity}
+对例~\ref{ex:power-means-parameter-limits} 的幂平均，证明 $M_r$ 关于实参数 $r$ 非减；若 $a_i$ 不全相等，则严格递增，并导出调和、几何与算术平均不等式。
+\end{example}
+
+\begin{solve}
+若 $a_i$ 全相等，则所有幂平均都等于这个共同值。以下设不全相等，记 $S_r=\sum_i a_i^r$。当 $r\neq0$ 时，直接求导得
+\[
+    \frac{d}{dr}\ln M_r
+    =\frac1{r^2}\left(
+       r\frac{\sum_i a_i^r\ln a_i}{S_r}-\ln\frac{S_r}n\right).
+\]
+令 $u_i=na_i^r/S_r$，则 $u_i>0$、$\frac1n\sum_i u_i=1$，且因 $r\neq0$，这些 $u_i$ 不全相等。函数 $\varphi(u)=u\ln u$ 在 $(0,+\infty)$ 上满足 $\varphi''(u)=1/u>0$，为严格凸函数。由严格詹森不等式，
+\[
+    r\frac{\sum_i a_i^r\ln a_i}{S_r}-\ln\frac{S_r}n
+    =\frac1n\sum_i u_i\ln u_i>\varphi(1)=0.
+\]
+因此 $M_r$ 在两个半轴上分别严格递增。由式~\eqref{eq:power-mean-zero-parameter} 的连续补定义，严格递增性也跨过 $r=0$：例如对 $r<0$，有 $M_r<M_{r/2}\leq M_0$，正半轴同理。
+
+取 $r=-1,0,1$ 并结合式~\eqref{eq:power-mean-infinite-parameter-limits}，得到
+\begin{equation}
+    \min_i a_i
+    \leq\frac{n}{\sum_i1/a_i}
+    \leq\left(\prod_i a_i\right)^{1/n}
+    \leq\frac1n\sum_i a_i
+    \leq\max_i a_i.
+    \label{eq:harmonic-geometric-arithmetic-mean-chain}
+\end{equation}
+当 $a_i$ 不全相等时，三个平均之间均严格不等；最小、最大值与这些平均之间也严格不等，因为有限参数下正数的平均只有在各项相等时才达到相应极端值。全相等时各式同时取等号。
+\end{solve}
+
+\begin{example}
+\label{ex:holder-inequality-from-concavity}
+设 $a_i,b_i>0$（$1\leq i\leq n$），$p,q>1$ 且 $1/p+1/q=1$。证明\emph{赫尔德不等式}（H\"older's inequality）
+\begin{equation}
+    \sum_{i=1}^n a_ib_i
+    \leq\left(\sum_{i=1}^n a_i^p\right)^{1/p}
+         \left(\sum_{i=1}^n b_i^q\right)^{1/q},
+    \label{eq:holder-inequality-finite}
+\end{equation}
+并确定等号条件。
+\end{example}
+
+\begin{solve}
+记 $A=\sum_i a_i^p$、$B=\sum_i b_i^q$，取权重 $t_i=b_i^q/B$，以及 $z_i=a_i^p/b_i^q$。函数 $\varphi(z)=z^{1/p}$ 在正半轴上满足 $\varphi''(z)<0$，因而严格凹。对它使用反向詹森不等式，得
+\[
+    \frac1B\sum_i a_ib_i
+    =\sum_i t_i z_i^{1/p}
+    \leq\left(\sum_i t_i z_i\right)^{1/p}
+    =\left(\frac AB\right)^{1/p},
+\]
+其中使用了 $q-q/p=1$。两边乘以 $B$，再由 $1-1/p=1/q$ 得到式~\eqref{eq:holder-inequality-finite}。等号成立当且仅当所有 $z_i$ 相等，即存在常数 $c>0$，使 $a_i^p=cb_i^q$ 对全部 $i$ 成立。取 $p=q=2$ 即得柯西--施瓦茨不等式；先对正数使用结论，再由连续性允许零项，并以绝对值替代实数项，可得常用的实向量形式
+\[
+    \left|\sum_i a_ib_i\right|
+    \leq\left(\sum_i a_i^2\right)^{1/2}
+         \left(\sum_i b_i^2\right)^{1/2}.
+    \qedhere
+\]
+\end{solve}
+
+\subsection{拐点}
+\label{subsec:inflection-points}
+
+\begin{definition}
+\label{def:inflection-point}
+设 $f$ 在 $x_0$ 的某邻域内连续。若在 $x_0$ 的某个左、右邻域内，函数分别为凸、凹，或分别为凹、凸，并在 $x_0$ 处实际发生凹凸性的改变，则称 $(x_0,f(x_0))$ 为图像的\emph{拐点}（inflection point），也常简称 $x_0$ 为拐点横坐标。这里“实际改变”要求对任意充分小的 $\eta>0$，$f$ 在 $(x_0-\eta,x_0)$ 和 $(x_0,x_0+\eta)$ 上均不恒为仿射函数，以排除没有实际凹凸变化的退化情形；一侧严格凸、另一侧严格凹时自然满足此要求。
+\end{definition}
+
+定义关注的是凹凸性的改变，本身不要求二阶导数存在。若 $f$ 在去心邻域内二阶可导，且 $f''$ 在 $x_0$ 两侧分别严格为正、严格为负，或次序相反，则由凹凸性判别立即知 $x_0$ 对应一个拐点。
+
+\begin{theorem}[拐点的必要条件与一个充分条件]
+\label{thm:inflection-derivative-tests}
+若 $x_0$ 为拐点横坐标，且 $f''(x_0)$ 存在，则 $f''(x_0)=0$。若 $f$ 在 $x_0$ 的某邻域内二阶可导，且
+\[
+    f''(x_0)=0,\qquad f'''(x_0)\neq0,
+\]
+其中三阶导数只需在 $x_0$ 存在，则 $x_0$ 对应一个拐点。
+\end{theorem}
+
+\begin{proof}
+先证必要性。$f''(x_0)$ 存在保证 $f'$ 在附近有定义并在 $x_0$ 连续。若 $f$ 左凸右凹，则 $f'$ 左侧非减、右侧非增，再结合其在 $x_0$ 的连续性，知 $f'$ 在 $x_0$ 取得局部极大值；左凹右凸时则取得局部极小值。将费马定理用于 $f'$，得到 $f''(x_0)=0$。
+
+对充分性，由 $f''$ 在 $x_0$ 可导且 $f''(x_0)=0$，有
+\[
+    f''(x)=f'''(x_0)(x-x_0)+o(x-x_0)
+           =\bigl(f'''(x_0)+o(1)\bigr)(x-x_0).
+\]
+由于 $f'''(x_0)\neq0$，$f''$ 在充分小的左右邻域内严格异号，因此凹凸性在该点改变。
+\end{proof}
+
+$f''(x_0)=0$ 仍只是候选条件：$x^4$ 在零点二阶导数为零，却始终凸，没有拐点；$x^3$ 在零点确实改变凹凸性，因而有拐点。实立方根函数 $x^{1/3}$ 在零点连续，左侧严格凸、右侧严格凹，也有拐点，但在零点没有有限的一阶导数，更没有二阶导数。因此寻找拐点时，除 $f''=0$ 的点外，还应检查函数连续而二阶导数不存在的点，并逐一核对两侧的凹凸性。导函数取得局部极值是上述必要性证明中的结论，不能不加单侧单调性条件就反过来认定原函数有拐点。
+
+\subsection{渐近线}
+\label{subsec:asymptotes}
+
+函数图像的一条分支向无穷远延伸时，若其上的点到某条直线的距离趋于零，则称这条直线为该分支的\emph{渐近线}（asymptote）。这一概念只限制远端行为，不要求图像永远位于直线的一侧，也不禁止二者相交。
+
+\begin{definition}
+\label{def:vertical-horizontal-oblique-asymptotes}
+若 $x\to x_0+$ 或 $x\to x_0-$ 时有 $|f(x)|\to+\infty$，则直线 $x=x_0$ 称为相应分支的\emph{垂直渐近线}（vertical asymptote）。若在 $x\to+\infty$ 或 $x\to-\infty$ 的某一个过程中有
+\begin{equation}
+    f(x)-(kx+b)\to0,\qquad k,b\in\mathbb{R},
+    \label{eq:nonvertical-asymptote-definition}
+\end{equation}
+则 $y=kx+b$ 是该方向上的非垂直渐近线；$k=0$ 时称为\emph{水平渐近线}（horizontal asymptote），$k\neq0$ 时称为\emph{斜渐近线}（oblique asymptote）。
+\end{definition}
+
+图像上点 $(x,f(x))$ 到 $y=kx+b$ 的距离为 $|f(x)-kx-b|/\sqrt{1+k^2}$，因此式~\eqref{eq:nonvertical-asymptote-definition} 正好等价于几何定义。垂直渐近线通常只需有一侧无穷分支，不要求两侧都发散，更不要求两侧有相同的无穷符号。
+
+\begin{proposition}[非垂直渐近线的计算]
+\label{prop:asymptote-slope-and-intercept}
+在固定的 $x\to+\infty$ 或 $x\to-\infty$ 方向上，非垂直渐近线存在，当且仅当以下两个极限依次存在且有限：
+\begin{equation}
+    k=\lim\frac{f(x)}x,\qquad
+    b=\lim\bigl(f(x)-kx\bigr).
+    \label{eq:asymptote-slope-and-intercept}
+\end{equation}
+此时渐近线唯一，为 $y=kx+b$；特别地，若 $f(x)\to b\in\mathbb{R}$，则水平渐近线为 $y=b$。
+\end{proposition}
+
+\begin{proof}
+若式~\eqref{eq:nonvertical-asymptote-definition} 成立，则 $f(x)=kx+b+o(1)$，除以 $x$ 得 $f(x)/x\to k$，再相减得 $f(x)-kx\to b$。反之，第二个极限直接给出 $f(x)-(kx+b)\to0$。两个系数均由极限唯一确定，故渐近线唯一。
+\end{proof}
+
+必须分别研究两个无穷方向；例如 $f(x)=\sqrt{x^2+1}$ 在 $+\infty$ 处的渐近线是 $y=x$，在 $-\infty$ 处是 $y=-x$。仅有有限的斜率极限也不足以保证存在渐近线：$f(x)=x+\sqrt{x}$ 在 $x\to+\infty$ 时有 $f(x)/x\to1$，但 $f(x)-x\to+\infty$，故无斜渐近线。另一方面，$f(x)=\sin x/x$ 在 $+\infty$ 处以 $y=0$ 为渐近线，却与它相交无穷多次。
+
+\subsection{函数的作图}
+\label{subsec:graphing-functions}
+
+作图的目标是把已经证明的性质组合成一致的图像描述。先求定义域，检查奇偶性、周期性、间断点与边界极限；再用 $f'$ 的零点和不可导点划分区间，确定升降及极值；用 $f''$ 的零点和不存在点划分凹凸区间，核实拐点；最后确定各个方向的渐近线，并计算截距和必要的特殊点。列表时必须把定义域的断点列入分界，函数不存在的点不能作为极值点或拐点。有限个采样点不能代替这些区间性质的证明。
+
+\begin{example}
+\label{ex:graphing-gaussian-function}
+研究 $f(x)=e^{-x^2}$ 的图像特征。
+\end{example}
+
+\begin{solve}
+定义域为 $\mathbb{R}$，$f$ 为偶函数，且 $0<f(x)\leq1$，故图像关于纵轴对称，与纵轴交于 $(0,1)$，不与横轴相交。由 $x\to\pm\infty$ 时 $f(x)\to0$，知 $y=0$ 是两个方向的水平渐近线。求导得
+\[
+    f'(x)=-2xe^{-x^2},\qquad
+    f''(x)=(4x^2-2)e^{-x^2}.
+\]
+因此 $f$ 在 $(-\infty,0)$ 上严格递增，在 $(0,+\infty)$ 上严格递减，$x=0$ 是唯一极大值点，也是全局最大值点，最大值为 $1$。函数在 $(-\infty,-1/\sqrt2)$ 和 $(1/\sqrt2,+\infty)$ 上严格凸，在 $(-1/\sqrt2,1/\sqrt2)$ 上严格凹，两个拐点为
+\[
+    \left(-\frac1{\sqrt2},e^{-1/2}\right),\qquad
+    \left(\frac1{\sqrt2},e^{-1/2}\right).
+\]
+据此可画出从两端趋近横轴、在中央达到峰值的光滑曲线。零是函数的下确界，但从不取得，因此函数在实轴上没有最小值。
+\end{solve}
+
+\begin{example}
+\label{ex:graphing-rational-function}
+研究 $g(x)=(x-1)^3/(x+1)^2$ 的图像特征。
+\end{example}
+
+\begin{solve}
+定义域为 $\mathbb{R}\setminus\{-1\}$，横、纵轴截距分别为 $(1,0)$ 与 $(0,-1)$。当 $x\to-1\pm$ 时，分子趋于 $-8$、分母从正侧趋于零，故两侧均有 $g(x)\to-\infty$，垂直渐近线为 $x=-1$。多项式除法给出
+\[
+    g(x)=x-5+\frac{12x+4}{(x+1)^2},
+\]
+因此两个无穷方向均以 $y=x-5$ 为斜渐近线。导数为
+\[
+    g'(x)=\frac{(x-1)^2(x+5)}{(x+1)^3},\qquad
+    g''(x)=\frac{24(x-1)}{(x+1)^4}.
+\]
+一阶导数的符号说明，$g$ 在 $(-\infty,-5)$ 上严格递增，在 $(-5,-1)$ 上严格递减，在 $(-1,+\infty)$ 上严格递增；最后一个区间中 $g'(1)=0$ 只是一个孤立零点，不妨碍严格递增。因此 $x=-5$ 是唯一极大值点，极大值为 $g(-5)=-27/2$；$x=1$ 是驻点，却不是极值点。
+
+二阶导数在 $(-\infty,-1)$ 和 $(-1,1)$ 上为负，在 $(1,+\infty)$ 上为正，故图像在前两个区间严格凹，在最后一个区间严格凸，$(1,0)$ 为具有水平切线的拐点。$x=-1$ 不在定义域内，不能作为拐点。将这些区间性质与渐近线、截距结合，即可确定两个分支的变化趋势；两个分支分别向无穷延伸，函数在整个定义域上没有最大值或最小值。
+\end{solve}
+
+\section*{习题五}
+\addcontentsline{toc}{section}{习题五}

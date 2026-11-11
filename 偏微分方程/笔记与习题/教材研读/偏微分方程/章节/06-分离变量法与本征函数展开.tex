@@ -1,0 +1,110 @@
+% !TeX root = ../偏微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{5} % 保留原书章号。
+\chapter{分离变量法与本征函数展开}
+\label{chap:separation}
+
+分离变量不是猜测一般解，而是寻找可以叠加的基本模态。其有效性依赖线性结构、空间谱问题和展开的收敛性。
+
+\section{分离变量的基本步骤}
+考虑 $u_t=\kappa u_{xx}$、$u(0,t)=u(\ell,t)=0$。代入 $u=X(x)T(t)$，在非零处得到 $T'/(\kappa T)=X''/X=-\lambda$，故
+\[
+ -X''=\lambda X,\qquad T'+\kappa\lambda T=0.
+\]
+左边只依赖 $t$，右边只依赖 $x$，如果它们在一个乘积区域内处处相等，就必须同为常数：固定一个 $x$ 即知时间表达式不随 $t$ 变化。写成 $-\lambda$ 是为了与非负算子 $-d^2/dx^2$ 的谱约定一致。乘积解中 $X$ 可以有零点，因此上述除法只用于非零处推导，最后用不含分母的两个常微分方程在整个区间上验证。单个乘积通常无法匹配任意初温，线性叠加与本征函数完备性才把它提升为一般求解方法。
+
+第\ref{chap:fourier-series}章给出 $\lambda_k=(k\pi/\ell)^2$，所以初温 $g$ 对应
+\begin{equation}
+ u(x,t)=\sum_{k=1}^\infty b_k e^{-\kappa\lambda_kt}\sin(k\pi x/\ell),
+ \qquad b_k=\frac2\ell\int_0^\ell g(x)\sin(k\pi x/\ell)\,dx.
+ \label{eq:heat-sine-solution}
+\end{equation}
+若 $g\in L^2(0,\ell)$，则对每个 $\varepsilon>0$，在 $t\ge\varepsilon$ 上任意有限阶导数级数都一致收敛：微分只带来 $k$ 的幂，而 $e^{-\kappa\lambda_k\varepsilon}$ 压倒任意幂，系数还满足平方可和。故正时间内可逐项微分并验证方程。初值则由帕塞瓦尔等式和级数控制收敛得到 $\|u(t)-g\|_2\to0$；不能把任意 $L^2$ 数据都解释为逐点边界数据。
+
+\begin{example}[两种空间尺度的消退]
+在 $0<x<\pi$ 上取 $\kappa=1$、零端点和初温 $g(x)=3\sin x+\sin3x$。两个频率分别满足 $a_1'=-a_1$、$a_3'=-9a_3$，所以
+\[
+ u(x,t)=3e^{-t}\sin x+e^{-9t}\sin3x.
+\]
+时间 $t$ 后，第三模态与第一模态的振幅之比由 $1/3$ 变为 $e^{-8t}/3$。细小起伏比大尺度轮廓更快消失，因而长时间图形主要由最低的非零频率决定。这里“主要”是渐近描述，精确解仍包含两个模态。
+\end{example}
+
+\section{初始数据、源项与模态方程}
+使用规范基 $\phi_k=\sqrt{2/\ell}\sin(k\pi x/\ell)$，将 $u_t-\kappa u_{xx}=f$ 投影到每个模态，得到
+\[
+ a_k'+\kappa\lambda_k a_k=f_k(t),\qquad a_k(0)=g_k,
+ \qquad f_k=(f,\phi_k),\quad g_k=(g,\phi_k).
+\]
+由积分因子法，
+\begin{equation}
+ a_k(t)=e^{-\kappa\lambda_kt}g_k+
+ \int_0^t e^{-\kappa\lambda_k(t-s)}f_k(s)\,ds.
+ \label{eq:heat-mode-forcing}
+\end{equation}
+对 $f\in C([0,T];L^2)$，它首先给出 $L^2$ 值解；若数据具有使相关导数级数局部一致收敛的额外正则性，则恢复经典解。波动方程的对应模态方程为 $a_k''+c^2\lambda_k a_k=f_k$，还须给出 $a_k'(0)$。
+
+\section{非齐次边界条件的处理}
+若 $u(0,t)=\alpha(t)$、$u(\ell,t)=\beta(t)$，取
+\[
+ v(x,t)=\alpha(t)+\frac{x}{\ell}(\beta(t)-\alpha(t)),\qquad w=u-v.
+\]
+则 $w$ 满足零边界，而
+\[
+ w_t-\kappa w_{xx}=f-v_t+\kappa v_{xx}=f-v_t,\qquad
+ w(x,0)=g(x)-v(x,0).
+\]
+边值随时间变化时必须保留 $v_t$。辅助函数的选择不唯一，但只要变换完整，最终的 $u$ 应相同。
+
+\begin{example}[均匀加热的杆]
+求 $u_t-\kappa u_{xx}=q$、$u(0,t)=u(\ell,t)=0$、$u(x,0)=0$，其中 $q>0$ 为常数。
+\end{example}
+\begin{solve}
+先求稳态 $v$，它满足 $-\kappa v''=q$ 和零端点，故 $v=q x(\ell-x)/(2\kappa)$。差 $w=u-v$ 满足无源热方程，初值为 $-v$。由上一章的多项式正弦展开，令
+\[
+ V_k=\frac{2q\ell^2(1-(-1)^k)}{\kappa k^3\pi^3},
+ \qquad
+ u(x,t)=\sum_{k=1}^\infty V_k
+ \bigl(1-e^{-\kappa(k\pi/\ell)^2t}\bigr)\sin\frac{k\pi x}{\ell}.
+\]
+这个表达式也可由源项的逐模态积分得到。$t\downarrow0$ 时初值为零，$t\to\infty$ 时趋于抛物线稳态。持续加热并不必然使温度无限增长，因为端点持续散热；若改为绝热端点，则平均温度会以速率 $q$ 增长。零初值与固定零边值虽在函数值层次相容，却在方程的初始角点不满足二阶相容性，所以这里只在正时间内部断言经典方程成立。
+\end{solve}
+
+\section{矩形、圆域与特殊函数}
+在矩形 $0<x<a$、$0<y<b$ 上，令拉普拉斯方程的左右边及下边为零，上边为 $g(x)$。对光滑且在两端附近为零的 $g$，分离变量得到
+\begin{equation}
+ u(x,y)=\sum_{k=1}^\infty g_k
+ \frac{\sinh(k\pi y/a)}{\sinh(k\pi b/a)}\sin(k\pi x/a),
+ \qquad g_k=\frac2a\int_0^a g(x)\sin(k\pi x/a)\,dx.
+ \label{eq:rectangle-laplace}
+\end{equation}
+双曲正弦来自 $Y''-(k\pi/a)^2Y=0$，比例系数同时保证下边为零、上边恢复傅里叶数据。
+
+这也说明同一空间频率在不同问题中为何出现不同函数。热方程中剩余变量是时间，满足一阶衰减方程；波动方程中满足二阶振子方程；矩形拉普拉斯问题中，分去 $x$ 方向以后得到 $Y''-\lambda Y=0$，所以是双曲函数。公式的形状由分离后的常微分方程决定，不能只根据“用了正弦展开”便统一写成指数衰减。
+
+圆域需要极坐标：链式法则给出 $\Delta u=u_{rr}+r^{-1}u_r+r^{-2}u_{\theta\theta}$。求 $-\Delta\phi=\lambda\phi$ 时令 $\phi=R(r)\Theta(\theta)$，角向周期性给出 $\Theta=\cos(m\theta)$ 或 $\sin(m\theta)$，$m$ 为非负整数，而
+\[
+ r^2R''+rR'+(\lambda r^2-m^2)R=0.
+\]
+原点正则的解为贝塞尔函数（Bessel function）$J_m(\sqrt\lambda r)$；对整数 $m\ge0$，可由收敛级数
+\[
+ J_m(z)=\sum_{j=0}^\infty\frac{(-1)^j}{j!(j+m)!}\left(\frac z2\right)^{2j+m}
+\]
+定义并代入验证。半径 $R_0$ 的零边界给出 $\sqrt\lambda R_0$ 必须是 $J_m$ 的正零点。球域轴对称的角向方程为 $((1-z^2)P')'+m(m+1)P=0$，其中 $z$ 为极角的余弦，其多项式解是勒让德多项式（Legendre polynomial）。这些特殊函数由区域几何和分离后的常微分方程共同确定。
+
+\section{例题与习题}
+\begin{example}
+求两端恒温 $u(0,t)=A$、$u(\ell,t)=B$ 的无源热方程，初值为 $A+(B-A)x/\ell+\sin(\pi x/\ell)$。
+\end{example}
+\begin{solve}
+稳态 $v=A+(B-A)x/\ell$ 满足 $v''=0$。减去 $v$ 后只有一个正弦模态，故
+\[
+ u(x,t)=A+\frac{B-A}{\ell}x+e^{-\kappa(\pi/\ell)^2t}\sin(\pi x/\ell).
+\]
+首项承担边界数据，末项描述向稳态衰减的瞬态。
+\end{solve}
+\begin{enumerate}
+ \item 把第\ref{chap:fourier-series}章中 $x(\ell-x)$ 的系数代入式\eqref{eq:heat-sine-solution}，写出完整解。
+ \item 用式\eqref{eq:heat-mode-forcing}求零初值、源项 $f(x,t)=\sin(\pi x/\ell)$ 的热方程。
+ \item 对矩形问题取上边 $\sin(2\pi x/a)$，写出单模态解并直接验证。
+\end{enumerate}
+

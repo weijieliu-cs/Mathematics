@@ -1,0 +1,196 @@
+% !TeX root = ../抽象代数笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{群、子群与生成}\label{ch:groups}
+
+正三角形的旋转与反射可以复合，每个变换可以撤销，恒等变换不改变图形。这些性质不依赖三角形的具体大小，也出现在可逆矩阵与双射的复合中。群的公理抽取的正是“具有单位元的可逆结合运算”。本章先从公理推出基本运算法则，再研究保留同一运算的子结构及其生成方式。
+
+\section{从对称性与可逆运算到群}\label{sec:group-axioms}
+
+\begin{definition}[群]
+非空集合 $G$ 配上二元运算 $(a,b)\mapsto ab$，若满足下列条件，就称为群：
+\begin{enumerate}
+  \item 对任意 $a,b,c\in G$，有 $(ab)c=a(bc)$；
+  \item 存在 $e\in G$，使任意 $a\in G$ 都满足 $ea=ae=a$；
+  \item 对每个 $a\in G$，存在 $b\in G$，使 $ab=ba=e$。
+\end{enumerate}
+元素 $e$ 称为\emph{单位元（identity element）}，$b$ 称为 $a$ 的\emph{逆元（inverse element）}。若还满足 $ab=ba$ 对任意 $a,b\in G$ 成立，则称为\emph{阿贝尔群（abelian group）}，亦称交换群。
+\end{definition}
+
+群的\emph{阶（order）}指集合 $G$ 的基数，记为 $|G|$；有限阶群称为有限群。只含单位元的群称为平凡群。结合律使有限乘积不依赖加括号的方式，因此通常省略括号；它并不允许任意交换因子的次序。
+
+\begin{proposition}[单位元与逆元的唯一性]\label{prop:group-uniqueness}
+群的单位元唯一，每个元素的逆元唯一。
+\end{proposition}
+\begin{proof}
+若 $e,e'$ 都是单位元，则 $e=ee'=e'$。固定单位元，若 $b,c$ 都是 $a$ 的逆元，则 $b=be=b(ac)=(ba)c=ec=c$。
+\end{proof}
+
+因此可将 $a$ 的逆元记为 $a^{-1}$。加法记号下，单位元写成 $0$，逆元写成 $-a$；这种记号通常用于阿贝尔群。
+
+\begin{proposition}[基本运算法则]\label{prop:group-calculation}
+设 $a,b,c$ 为群 $G$ 的元素，则
+\[
+  (a^{-1})^{-1}=a,\qquad (ab)^{-1}=b^{-1}a^{-1},\qquad e^{-1}=e.
+\]
+并且有左、右消去律：$ab=ac\Rightarrow b=c$，$ba=ca\Rightarrow b=c$。方程 $ax=b$ 与 $ya=b$ 分别有唯一解 $x=a^{-1}b$、$y=ba^{-1}$。
+\end{proposition}
+\begin{proof}
+$a$ 是 $a^{-1}$ 的逆元，$e$ 是自身的逆元，由唯一性得到相应等式。又
+\[
+  (ab)(b^{-1}a^{-1})=a(bb^{-1})a^{-1}=e,\qquad
+  (b^{-1}a^{-1})(ab)=b^{-1}(a^{-1}a)b=e,
+\]
+故得到乘积的逆元公式。对 $ab=ac$ 左乘 $a^{-1}$ 得 $b=c$；右消去同理。解方程时分别左乘、右乘逆元得到候选解，代回验证存在性，消去律保证唯一性。
+\end{proof}
+
+\begin{example}[加法群与乘法群]
+$(\mathbb Z,+)$、$(\mathbb Q,+)$、$(\mathbb R,+)$ 都是阿贝尔群。由例\ref{ex:residue-operations}，$\mathbb Z/n\mathbb Z$ 上的加法良定义；结合律来自整数加法，单位元为 $\overline0$，$\overline a$ 的逆元为 $\overline{-a}$，所以它也是阿贝尔群。非零实数 $\mathbb R^\times=\mathbb R\setminus\{0\}$ 在乘法下为阿贝尔群，但 $\mathbb Z\setminus\{0\}$ 在乘法下不是群，因为 $2$ 没有整数乘法逆元。
+\end{example}
+
+\begin{example}[双射的复合]
+集合 $X$ 的全部双射组成集合 $\operatorname{Sym}(X)$。复合在此集合内封闭且满足结合律，单位元为 $\operatorname{id}_X$，命题\ref{prop:inverse-map}给出每个双射的逆。因此 $\operatorname{Sym}(X)$ 在复合下为群。这一构造保证几何对称与置换可以用同一套群论语言研究。
+\end{example}
+
+\section{子群与子群判别法}\label{sec:subgroups}
+
+\begin{definition}[子群]
+群 $G$ 的非空子集 $H$，若在 $G$ 的运算限制下也构成群，就称为 $G$ 的\emph{子群（subgroup）}，记为 $H\leq G$。$\{e\}$ 与 $G$ 总是子群；若 $H\ne G$，则称为真子群。
+\end{definition}
+
+子群的单位元与逆元必与原群一致。事实上，若 $h_0$ 是子群单位元，则 $h_0h_0=h_0=h_0e$，在 $G$ 中消去左因子得 $h_0=e$；逆元的一致性再由命题\ref{prop:group-uniqueness}得到。
+
+\begin{theorem}[子群判别法]\label{thm:subgroup-test}
+设 $G$ 为群，$H\subseteq G$。则 $H\leq G$ 当且仅当 $H\ne\varnothing$，并且对任意 $a,b\in H$ 都有 $ab^{-1}\in H$。
+\end{theorem}
+\begin{proof}
+必要性由子群对逆元和乘法封闭得到。反之，先取 $a\in H$，得 $e=aa^{-1}\in H$。对任意 $b\in H$，得 $b^{-1}=eb^{-1}\in H$；于是对 $a,b\in H$，有 $ab=a(b^{-1})^{-1}\in H$。结合律直接继承自 $G$，故 $H$ 为群。
+\end{proof}
+
+非空条件不能省略，因为空集也形式上满足“对任意 $a,b\in H$”之后的条件。加法群中，判别条件写成 $a-b\in H$。
+
+\begin{proposition}[有限子集的判别法]\label{prop:finite-subgroup-test}
+群 $G$ 的非空有限子集 $H$ 为子群，当且仅当 $H$ 对乘法封闭。
+\end{proposition}
+\begin{proof}
+只需证明充分性。固定 $a\in H$，左乘映射 $L_a:H\to H$、$x\mapsto ax$ 由消去律为单射。有限集合上的单射必为满射，故存在 $x\in H$ 使 $ax=a$，从而 $x=e$，所以 $e\in H$。再由 $L_a$ 满射，存在 $b\in H$ 使 $ab=e$，于是 $b=a^{-1}$。对所有 $a\in H$ 都成立，结合乘法封闭即得子群。
+\end{proof}
+
+有限性不可删除：$\mathbb N\subseteq(\mathbb Z,+)$ 包含 $0$ 且对加法封闭，但不包含 $1$ 的加法逆元。另一个常用事实是子群的交仍为子群。
+
+\begin{proposition}[子群的交]\label{prop:subgroup-intersection}
+同一个群 $G$ 的任意一族子群的交仍为子群，其中空族的交约定为 $G$。
+\end{proposition}
+\begin{proof}
+非空族中每个子群都包含 $e$，故交非空；若 $a,b$ 同时属于所有子群，则 $ab^{-1}$ 也同时属于它们。应用定理\ref{thm:subgroup-test}即可。空族的情形由约定成立。
+\end{proof}
+
+\section{生成子群与元素的阶}\label{sec:generated-subgroups}
+
+对 $a\in G$，定义 $a^0=e$，正整数次幂为相应个 $a$ 的乘积，并对 $n>0$ 令 $a^{-n}=(a^{-1})^n$。对任意整数 $m,n$，有
+\begin{equation}\label{eq:group-power-laws}
+  a^ma^n=a^{m+n},\qquad (a^m)^n=a^{mn}.
+\end{equation}
+第一式在指数同为非负或同为非正时由合并乘积得到，异号时逐对消去 $a$ 与 $a^{-1}$ 得到；第二式在 $n>0$ 时反复用第一式，在 $n<0$ 时再取逆元。式\eqref{eq:group-power-laws}只涉及同一个元素，不允许在非交换群中直接写 $(ab)^n=a^nb^n$。
+
+\begin{definition}[生成子群]
+对 $S\subseteq G$，定义由 $S$\emph{生成的子群（generated subgroup）}为
+\[
+  \langle S\rangle=\bigcap_{S\subseteq H\leq G}H.
+\]
+若 $\langle S\rangle=G$，称 $S$ 为 $G$ 的生成集。单元素集生成的子群记为 $\langle a\rangle$；若一个群由一个元素生成，称为\emph{循环群（cyclic group）}。
+\end{definition}
+
+由于 $G$ 本身包含 $S$，上式所取的子群族非空。由命题\ref{prop:subgroup-intersection}，$\langle S\rangle$ 是子群，并且是包含 $S$ 的最小子群。这里最小是指包含于其他每个包含 $S$ 的子群。
+
+\begin{proposition}[生成子群的元素描述]\label{prop:generated-words}
+$\langle S\rangle$ 恰由所有有限乘积 $s_1^{\varepsilon_1}\cdots s_k^{\varepsilon_k}$ 组成，其中 $k\geq0$、$s_i\in S$、$\varepsilon_i\in\{1,-1\}$；$k=0$ 时约定空乘积为 $e$。特别地，$\langle a\rangle=\{a^m:m\in\mathbb Z\}$，且 $\langle\varnothing\rangle=\{e\}$。
+\end{proposition}
+\begin{proof}
+记所有这类乘积组成的集合为 $W$。拼接乘积表明 $W$ 对乘法封闭，逆元公式表明取逆相当于逆序排列并改变各指数符号，故仍在 $W$ 中；又 $e\in W$，所以 $W$ 为包含 $S$ 的子群。反过来，任何包含 $S$ 的子群必须包含这些有限乘积，故 $W$ 等于所有这些子群的交。
+\end{proof}
+
+\begin{definition}[元素的阶]
+若存在正整数 $d$ 使 $a^d=e$，就把其中最小者称为 $a$ 的阶，记为 $\operatorname{ord}(a)$；若不存在，则称 $a$ 为无限阶元素，记为 $\operatorname{ord}(a)=\infty$。
+\end{definition}
+
+\begin{proposition}[幂相等的判别]\label{prop:order-divisibility}
+若 $\operatorname{ord}(a)=d<\infty$，则对整数 $k,m,n$ 有
+\[
+  a^k=e\ \Longleftrightarrow\ d\mid k,\qquad
+  a^m=a^n\ \Longleftrightarrow\ m\equiv n\pmod d.
+\]
+此时 $\langle a\rangle=\{e,a,\ldots,a^{d-1}\}$，这些元素两两不同。若 $a$ 无限阶，则所有整数次幂两两不同。
+\end{proposition}
+\begin{proof}
+若 $d\mid k$，用幂法则即得 $a^k=e$。反之，写 $k=qd+r$，其中 $0\leq r<d$，则 $e=a^k=a^r$；由 $d$ 的最小性必有 $r=0$。再将 $a^m=a^n$ 化成 $a^{m-n}=e$，得到其余有限阶结论。无限阶时，若 $a^m=a^n$ 且 $m\ne n$，则某个正整数次幂为 $e$，与定义矛盾。
+\end{proof}
+
+因此元素的阶恰是其生成子群的阶。有限群中的每个元素都有有限阶，但目前尚不能据此断言其阶整除群阶；后一结论需要第\ref{ch:cosets}章的拉格朗日定理。
+
+\section{基本例子与反例库}\label{sec:basic-group-examples}
+
+\begin{example}[矩阵群]
+对 $n\geq1$，全体可逆 $n$ 阶实矩阵组成\emph{一般线性群（general linear group）}$\operatorname{GL}_n(\mathbb R)$。乘积可逆，因为 $(AB)^{-1}=B^{-1}A^{-1}$；单位元为单位矩阵 $I_n$，结合律继承自矩阵乘法。行列式等于 $1$ 的矩阵组成子群 $\operatorname{SL}_n(\mathbb R)$，称为\emph{特殊线性群（special linear group）}，因为 $\det(AB^{-1})=\det A/\det B=1$。
+\end{example}
+
+当 $n\geq2$ 时，$\operatorname{GL}_n(\mathbb R)$ 不是阿贝尔群。例如在 $n=2$ 时，取
+\[
+  A=\begin{pmatrix}1&1\\0&1\end{pmatrix},\qquad
+  B=\begin{pmatrix}1&0\\1&1\end{pmatrix},
+\]
+则 $AB=\left(\begin{smallmatrix}2&1\\1&1\end{smallmatrix}\right)$，$BA=\left(\begin{smallmatrix}1&1\\1&2\end{smallmatrix}\right)$，二者不等。对 $n>2$，取以这两个矩阵及 $I_{n-2}$ 为对角块的分块对角矩阵，即得同样的反例。矩阵集合在加法下的群结构与这里的乘法群结构不同，不能混用单位元和逆元。
+
+\begin{example}[二面体群]\label{ex:dihedral-group}
+正 $n$ 边形（$n\geq3$）的全部刚性对称组成\emph{二面体群（dihedral group）}$D_{2n}$。将顶点标为 $\mathbb Z/n\mathbb Z$，旋转 $r$ 与一个反射 $s$ 在顶点上的作用为 $r(k)=k+1$、$s(k)=-k$，所有计算均模 $n$。从作用直接得到
+\begin{equation}\label{eq:dihedral-relations}
+  r^n=e,\qquad s^2=e,\qquad sr=r^{-1}s.
+\end{equation}
+全部对称为 $r^a$ 或 $r^as$，其中 $0\leq a<n$：一个对称由某顶点的像和相邻顶点的像确定，至多有 $2n$ 种，而这 $2n$ 个变换两两不同并且都是对称。因此 $|D_{2n}|=2n$，且 $D_{2n}=\langle r,s\rangle$。
+\end{example}
+
+利用式\eqref{eq:dihedral-relations}，可将任意乘积化为统一形式：
+\begin{equation}\label{eq:dihedral-multiplication}
+  (r^as^b)(r^cs^d)=r^{a+(-1)^bc}s^{b+d},
+  \qquad b,d\in\{0,1\},
+\end{equation}
+其中 $r$ 的指数模 $n$，$s$ 的指数模 $2$。特别地，$(r^as)^2=e$，所以每个反射的阶为 $2$。关系式来自已经构造出的变换群，因此不会把形式符号的运算误当作未经验证的群。
+
+\begin{example}[四元数群]\label{ex:quaternion-group}
+令 $i\in\mathbb C$ 满足 $i^2=-1$，取复矩阵
+\[
+  P=\begin{pmatrix}i&0\\0&-i\end{pmatrix},\qquad
+  Q=\begin{pmatrix}0&1\\-1&0\end{pmatrix}.
+\]
+直接相乘得到 $P^2=Q^2=-I_2$、$QP=-PQ$。集合
+\[
+  Q_8=\{\pm I_2,\pm P,\pm Q,\pm PQ\}
+\]
+含八个不同的可逆矩阵；上述关系把任意乘积化为 $\pm P^aQ^b$，其中 $a,b\in\{0,1\}$，故它对乘法封闭。由命题\ref{prop:finite-subgroup-test}，这是群，称为\emph{四元数群（quaternion group）}。常将 $P,Q,PQ$ 分别记为 $\boldsymbol i,\boldsymbol j,\boldsymbol k$；矩阵构造同时保证了结合律。
+\end{example}
+
+\section{例题、练习与自检}
+
+\begin{example}[整数加法群的全部子群]\label{ex:integer-subgroups}
+证明 $(\mathbb Z,+)$ 的每个子群都唯一地形如 $m\mathbb Z=\{mk:k\in\mathbb Z\}$，其中 $m\geq0$。
+\end{example}
+\begin{solve}
+先由差的封闭性验证 $m\mathbb Z$ 是子群。反过来，设 $H\leq\mathbb Z$。若 $H=\{0\}$，取 $m=0$；否则 $H$ 包含某个非零数及其相反数，因而包含正数。取其中最小的正数 $m$。对子群中任意 $a$ 作带余除法 $a=qm+r$，$0\leq r<m$；由于 $r=a-qm\in H$，最小性迫使 $r=0$，故 $H\subseteq m\mathbb Z$。另一包含关系由 $m\in H$ 得到。非零子群的最小正数唯一，平凡子群对应 $m=0$，故表示唯一。
+\end{solve}
+
+\begin{example}[区分两个八阶群]
+在 $D_8$ 中，$r,r^3$ 的阶为 $4$，$r^2$ 与四个反射的阶为 $2$；在 $Q_8$ 中，只有 $-I_2$ 的阶为 $2$，其余六个非单位元的阶均为 $4$。因此两个群虽有相同阶，却不能通过保持乘法的双射相互对应：这样的双射保持每个等式 $a^k=e$，从而保持元素阶及其分布。
+\end{example}
+
+\begin{enumerate}
+  \item\label{exer:exponent-two-group} 设群 $G$ 的每个元素都满足 $a^2=e$。证明 $G$ 为阿贝尔群。逆命题是否成立？
+  \item\label{exer:subgroup-union} 设 $H,K\leq G$，证明 $H\cup K$ 是子群当且仅当 $H\subseteq K$ 或 $K\subseteq H$。
+  \item\label{exer:generated-minimality} 设 $S\subseteq G$、$H\leq G$。证明 $S\subseteq H$ 当且仅当 $\langle S\rangle\subseteq H$，并说明 $S$ 不必对子群运算封闭。
+  \item\label{exer:dihedral-products} 在 $D_{10}$ 中化简 $(r^2s)(r^4s)$ 与 $sr^3s$，并求每种形式元素的逆元。
+  \item\label{exer:quaternion-relations} 证明 $Q_8=\langle P,Q\rangle$，求 $PQ$ 的逆，并验证 $PQP^{-1}=Q^{-1}$。
+  \item\label{exer:integer-two-generators} 求 $(\mathbb Z,+)$ 中由 $18$ 与 $30$ 生成的子群，并推广到由任意不全为零的整数 $a,b$ 生成的情形。
+  \item\label{exer:conjugate-order} 设 $a\in G$ 为有限阶元素。证明 $a$ 与 $a^{-1}$ 阶相同，并证明 $gag^{-1}$ 与 $a$ 阶相同，其中 $g\in G$。
+\end{enumerate}
+
+\textbf{部分提示与结果。} 第\ref{exer:exponent-two-group}题比较 $(ab)^{-1}$ 的两种表达。第\ref{exer:subgroup-union}题若两个子群互不包含，取 $h\in H\setminus K$、$k\in K\setminus H$，分析 $hk$ 属于哪一边会导致矛盾。第\ref{exer:dihedral-products}题两式分别为 $r^3$、$r^2$；反射均为自身的逆。第\ref{exer:integer-two-generators}题答案为 $6\mathbb Z$，一般结果为 $\gcd(a,b)\mathbb Z$，使用贝祖等式。第\ref{exer:conjugate-order}题先证明 $(gag^{-1})^k=ga^kg^{-1}$。
+

@@ -1,0 +1,1173 @@
+% !TeX root = ../数学分析习题（裴礼文）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{6} % 保留原书章号。
+\chapter{多元积分学}
+\label{chap:pei-multivariate-integrals}
+
+% 教材依据：数分习题-7.pdf，第 1--203 页（书内第 655--857 页）。
+% 本章按原书 §§7.1--7.5 整理理论、方法与代表性问题，不逐题转录单元练习。
+本章讨论的积分有两条相互联系的主线：一条把积分看作参变量的函数，研究何时能够交换极限、微分与积分；另一条把积分放到平面区域、空间区域、曲线和曲面上，研究坐标变换以及区域内部与边界之间的关系。前一条主线的关键是控制余项，尤其是含参变量反常积分的一致收敛性；后一条主线的关键是同时辨认积分对象、体积或面积元素以及定向。以下依次整理含参变量积分、重积分、曲线积分、曲面积分与场论，计算结果均应连同其成立条件一起使用。
+
+\section{含参变量积分}
+\label{sec:pei-parameter-integrals}
+% 对应原书 §7.1：PDF 第 1--58 页。
+
+\subsection{正常积分的连续性与积分号下运算}
+
+积分变量与参变量承担不同角色。例如
+\[
+F(t)=\int_a^b f(x,t)\,dx
+\]
+中，$x$ 在积分完成后消失，$t$ 决定函数 $F$ 的取值；把被积函数关于 $t$ 的性质传递给 $F$，需要对整个积分区间统一控制误差。积分区间有限且被积函数无不可积奇点时，称为\emph{正常积分（proper integral）}。
+
+\begin{theorem}
+\label{thm:pei-proper-parameter}
+设 $a<b$，$I$ 为实区间，$f$ 在 $[a,b]\times I$ 上连续，则 $F(t)=\int_a^b f(x,t)\,dx$ 在 $I$ 上连续。若 $f_t=\partial f/\partial t$ 也连续，则在 $I$ 的内部有
+\begin{equation}
+\label{eq:pei-proper-leibniz}
+F'(t)=\int_a^b f_t(x,t)\,dx.
+\end{equation}
+若 $[c,d]\subset I$，则
+\begin{equation}
+\label{eq:pei-proper-interchange}
+\int_c^d\!\left(\int_a^b f(x,t)\,dx\right)dt
+=\int_a^b\!\left(\int_c^d f(x,t)\,dt\right)dx.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+固定 $t_0\in I$，在其附近取一个包含于 $I$ 的紧区间 $J$；端点处取单侧区间。由 $f$ 在 $[a,b]\times J$ 上一致连续，
+\[
+|F(t)-F(t_0)|\le (b-a)\sup_{x\in[a,b]}|f(x,t)-f(x,t_0)|\longrightarrow0.
+\]
+若 $f_t$ 连续，则由微积分基本定理，差商与 $f_t(x,t)$ 的差等于
+\[
+\frac1h\int_t^{t+h}\bigl(f_t(x,s)-f_t(x,t)\bigr)\,ds,
+\]
+它关于 $x\in[a,b]$ 一致趋于零，故可对差商取积分，得到式~\eqref{eq:pei-proper-leibniz}。式~\eqref{eq:pei-proper-interchange} 可由矩形分划的有限双重求和交换次序并取极限得到；连续性保证相应的 Riemann 和均收敛。
+\end{proof}
+
+若上下限也随 $t$ 变化，设 $\alpha,\beta\in C^1(I)$，$f,f_t$ 在所有相关点的一个邻域内连续，则 \emph{Leibniz 公式（Leibniz integral rule）}为
+\begin{equation}
+\label{eq:pei-moving-leibniz}
+\frac{d}{dt}\int_{\alpha(t)}^{\beta(t)}f(x,t)\,dx
+=f(\beta(t),t)\beta'(t)-f(\alpha(t),t)\alpha'(t)
++\int_{\alpha(t)}^{\beta(t)}f_t(x,t)\,dx.
+\end{equation}
+证明时先把积分写成两个从同一固定点出发的变上限积分，再分别用链式法则。两个边界项反映积分区间的变化，不能因被积函数含有参数就遗漏。
+
+\begin{example}
+\label{ex:pei-absolute-kernel}
+设 $f\in C([a,b])$，$F(t)=\int_a^b|x-t|f(x)\,dx$。求 $F$ 在 $(a,b)$ 内的二阶导数。
+\end{example}
+\begin{solve}
+绝对值在 $x=t$ 处不可直接按光滑核处理，应先分段：
+\[
+F(t)=\int_a^t(t-x)f(x)\,dx+\int_t^b(x-t)f(x)\,dx.
+\]
+利用式~\eqref{eq:pei-moving-leibniz}，两个活动端点的被积函数均为零，故
+\[
+F'(t)=\int_a^t f(x)\,dx-\int_t^b f(x)\,dx,
+\qquad F''(t)=2f(t)\quad(a<t<b).
+\]
+在 $t<a$ 或 $t>b$ 时，$F$ 是 $t$ 的一次函数，二阶导数为零；因此不能把内部的二阶导数公式未经检验地延伸到端点。
+\end{solve}
+
+\subsection{反常积分的一致收敛与一致 Cauchy 准则}
+
+对无穷区间上的积分，有限区间上的连续性只能控制积分的前段；还必须控制被截去的尾部。设对每个 $t\in I$，$f(\cdot,t)$ 在任意 $[a,A]$ 上可积，且
+\[
+F(t)=\int_a^{+\infty}f(x,t)\,dx
+=\lim_{A\to+\infty}\int_a^A f(x,t)\,dx
+\]
+存在。这里的收敛最初只是对每个固定 $t$ 成立。
+
+\begin{definition}
+\label{def:pei-uniform-improper}
+若对任意 $\varepsilon>0$，存在与 $t$ 无关的 $A_0>a$，使得 $A\ge A_0$ 时，对所有 $t\in I$ 均有
+\[
+\left|\int_A^{+\infty}f(x,t)\,dx\right|<\varepsilon,
+\]
+则称该反常积分关于 $t\in I$ \emph{一致收敛（uniform convergence）}。若它在 $I$ 的每个紧子区间上一致收敛，则称为\emph{局部一致收敛（locally uniform convergence）}，亦称内闭一致收敛。
+\end{definition}
+
+\begin{theorem}
+\label{thm:pei-improper-uniform-cauchy}
+上述反常积分在 $I$ 上一致收敛，当且仅当对任意 $\varepsilon>0$，存在 $A_0>a$，使得对所有 $B>A\ge A_0$ 及所有 $t\in I$，均有
+\begin{equation}
+\label{eq:pei-uniform-cauchy}
+\left|\int_A^B f(x,t)\,dx\right|<\varepsilon.
+\end{equation}
+此条件本身也保证每个固定 $t$ 对应的反常积分收敛。
+\end{theorem}
+\begin{proof}
+一致收敛时，将 $[A,B]$ 上的积分写成两个尾积分之差，并分别用 $\varepsilon/2$ 控制。反之，先固定 $t$，由实数完备性及通常的 Cauchy 准则得到 $F(t)$ 存在；再将式~\eqref{eq:pei-uniform-cauchy} 中的 $B$ 趋于无穷，即得到与 $t$ 无关的尾积分估计。
+\end{proof}
+
+在有限端点 $b$ 有奇点时，把尾积分换成 $\int_{b-\delta}^b f(x,t)\,dx$，并令 $\delta\downarrow0$；若有多个固定奇点，则应分别控制各奇点附近的积分。有活动奇点 $x=t$ 时，应明确截去的是哪一个邻域，并分别估计左右两侧，不能只检查无穷远处。证明非一致收敛时，常选取 $A_n\to\infty$、$B_n>A_n$ 与参数 $t_n$，使 $|\int_{A_n}^{B_n}f(x,t_n)\,dx|$ 保持大于某个固定正常数；有限区间上的这一估计通常比直接估计无限尾积分容易。
+
+\begin{example}
+\label{ex:pei-nonuniform-exponential}
+证明 $\int_0^{+\infty}xe^{-tx}\,dx$ 在每个 $[t_0,+\infty)$（$t_0>0$）上一致收敛，但在 $(0,+\infty)$ 上非一致收敛。
+\end{example}
+\begin{solve}
+直接计算尾积分得到
+\[
+\int_A^{+\infty}xe^{-tx}\,dx
+=e^{-tA}\left(\frac At+\frac1{t^2}\right).
+\]
+当 $t\ge t_0$ 时，它不超过 $e^{-t_0A}(A/t_0+1/t_0^2)$，后者趋于零，故一致收敛。另一方面，对任意固定 $A>0$，当 $t\downarrow0$ 时，该尾积分趋于无穷，不可能有适用于所有 $t>0$ 的统一尾部估计。这里每个积分都存在且等于 $1/t^2$，仍不足以推出整个参数区间上的一致收敛。
+\end{solve}
+
+\subsection{控制尾部的三个判别法}
+
+\begin{theorem}
+\label{thm:pei-improper-tests}
+设下述函数对积分变量局部可积，所出现的乘积也局部可积。
+
+若存在非负可积函数 $M$，使 $|f(x,t)|\le M(x)$ 对所有 $x\ge a,t\in I$ 成立，且 $\int_a^{+\infty}M(x)\,dx<\infty$，则 $\int_a^{+\infty}f(x,t)\,dx$ 一致收敛，$\int_a^{+\infty}|f(x,t)|\,dx$ 也一致收敛。这是 \emph{Weierstrass 优函数判别法（Weierstrass $M$-test）}。
+
+设 $G(X,t)=\int_a^X g(x,t)\,dx$ 对 $X\ge a,t\in I$ 一致有界。若每个固定 $t$ 对应的 $h(x,t)$ 关于 $x$ 单调，且 $\sup_{t\in I}|h(X,t)|\to0$，则 $\int_a^{+\infty}g(x,t)h(x,t)\,dx$ 一致收敛。这是 \emph{Dirichlet 判别法（Dirichlet test）}。
+
+若 $\int_a^{+\infty}g(x,t)\,dx$ 已在 $I$ 上一致收敛，而 $h(x,t)$ 对每个固定 $t$ 关于 $x$ 单调，且对 $x,t$ 一致有界，则乘积积分 $\int_a^{+\infty}g(x,t)h(x,t)\,dx$ 一致收敛。这是 \emph{Abel 判别法（Abel test）}。
+\end{theorem}
+\begin{proof}
+优函数判别法直接来自 $\int_A^B|f|\le\int_A^{+\infty}M$。为说明另外两个判别法，先取光滑单调的 $h$，置 $G_A(x,t)=\int_A^xg(s,t)\,ds$，分部积分得
+\[
+\int_A^B gh\,dx=G_A(B,t)h(B,t)-\int_A^B G_A(x,t)h_x(x,t)\,dx.
+\]
+因此其绝对值不超过
+\[
+\sup_{A\le x\le B}|G_A(x,t)|
+\bigl(|h(B,t)|+|h(B,t)-h(A,t)|\bigr).
+\]
+Dirichlet 条件使第一因子一致有界、第二因子在 $A\to\infty$ 时一致趋零；Abel 条件使第一因子由一致 Cauchy 准则一致趋零、第二因子一致有界。一般单调 $h$ 可用积分第二中值定理得到同样的估计，不要求其可微。最后应用定理~\ref{thm:pei-improper-uniform-cauchy}。
+\end{proof}
+
+优函数适合控制绝对值；有振荡时应保留抵消结构，优先检查 Dirichlet 或 Abel 条件。例如，对 $p\in[p_0,+\infty)$、$p_0>0$，$\int_1^{+\infty}x^{-p}\sin x\,dx$ 由 Dirichlet 判别法一致收敛，而当 $0<p\le1$ 时它不绝对收敛。\emph[caution]{参数相关的单调性不等于关于参数的一致有界或一致趋零}，使用这些判别法时，三个量词都要逐项核验；优函数判别法只是充分条件，找不到优函数不能反推出非一致收敛。
+
+\begin{example}
+\label{ex:pei-moving-singularity}
+设 $0<q<1$，$f$ 是 $[0,1]$ 上有界的 Riemann 可积函数。说明活动奇点积分
+\[
+F(t)=\int_0^1\frac{f(x)}{|x-t|^q}\,dx,\qquad 0\le t\le1,
+\]
+的奇点附近可被一致控制。
+\end{example}
+\begin{solve}
+设 $|f|\le M$。在奇点左右分别取不超过 $\delta$ 的区间，便有
+\[
+\int_{[0,1]\cap\{|x-t|<\delta\}}
+\frac{|f(x)|}{|x-t|^q}\,dx
+\le\frac{2M}{1-q}\delta^{1-q},
+\]
+右端与 $t$ 无关且趋于零。离开奇点后，被积函数是 Riemann 可积函数与连续有界函数的乘积，故正常可积；上述估计由此保证全部 $F(t)$ 都绝对收敛，并给出关于活动奇点的统一余项控制。若还要证明 $F$ 连续，可把积分分为靠近参数极限点的小邻域与其补集，前者用此估计，后者用核函数的一致连续性。
+\end{solve}
+
+\subsection{反常积分的极限、连续性、求导与换序}
+
+\begin{theorem}
+\label{thm:pei-improper-limit}
+设 $f_n$ 在 $[a,+\infty)$ 上局部可积，在每个 $[a,A]$ 上一致收敛于 $f$，且积分 $\int_a^{+\infty}f_n(x)\,dx$ 关于 $n\in\mathbb N$ 一致收敛。则 $f$ 的反常积分存在，且
+\begin{equation}
+\label{eq:pei-improper-limit}
+\lim_{n\to\infty}\int_a^{+\infty}f_n(x)\,dx
+=\int_a^{+\infty}f(x)\,dx.
+\end{equation}
+相应地，若 $f(x,t)$ 连续且其反常积分关于 $t$ 局部一致收敛，则该积分所定义的函数在参数区间内连续。
+\end{theorem}
+\begin{proof}
+由一致 Cauchy 准则，充分大的 $B>A$ 满足 $|\int_A^B f_n|<\varepsilon$，估计与 $n$ 无关。先在固定的 $[A,B]$ 上令 $n\to\infty$，得到 $f$ 的 Cauchy 估计，故其反常积分存在。再分解
+\[
+\int_a^{+\infty}(f_n-f)
+=\int_a^A(f_n-f)+\int_A^{+\infty}f_n-\int_A^{+\infty}f.
+\]
+先取 $A$ 同时控制后两项，再取 $n$ 控制第一项，即证式~\eqref{eq:pei-improper-limit}。参数连续性的证明采用同样的分段估计，并在有限前段利用定理~\ref{thm:pei-proper-parameter}。
+\end{proof}
+
+\begin{theorem}
+\label{thm:pei-improper-differentiation}
+设 $I$ 是开区间，$f,f_t$ 在 $[a,+\infty)\times I$ 上连续；存在 $t_*\in I$ 使 $\int_a^{+\infty}f(x,t_*)\,dx$ 收敛，且 $\int_a^{+\infty}f_t(x,t)\,dx$ 关于 $t$ 局部一致收敛。则原积分对每个 $t\in I$ 收敛，并定义一个 $C^1$ 函数，满足
+\begin{equation}
+\label{eq:pei-improper-differentiation}
+\frac{d}{dt}\int_a^{+\infty}f(x,t)\,dx
+=\int_a^{+\infty}f_t(x,t)\,dx.
+\end{equation}
+\end{theorem}
+\begin{proof}
+在包含 $t_*,t$ 的任意紧子区间 $J\subset I$ 上，对有限截断积分应用正常积分的公式，得到
+\[
+F_A(t)=F_A(t_*)+\int_{t_*}^t\left(\int_a^A f_t(x,s)\,dx\right)ds.
+\]
+右端内层积分关于 $s\in J$ 一致收敛，因此可令 $A\to\infty$，得到
+\[
+F(t)=F(t_*)+\int_{t_*}^t H(s)\,ds,
+\qquad H(s)=\int_a^{+\infty}f_t(x,s)\,dx.
+\]
+由定理~\ref{thm:pei-improper-limit}，$H$ 连续，再用微积分基本定理即得结论。
+\end{proof}
+
+求导定理控制的是\emph[caution]{求导后的积分}；原积分一致收敛本身不足以保证积分号下求导。对积分号下再求积分，若 $f$ 在 $[a,+\infty)\times[c,d]$ 连续且原积分关于 $t\in[c,d]$ 一致收敛，则
+\begin{equation}
+\label{eq:pei-improper-parameter-interchange}
+\int_c^d\!\left(\int_a^{+\infty}f(x,t)\,dx\right)dt
+=\int_a^{+\infty}\!\left(\int_c^d f(x,t)\,dt\right)dx.
+\end{equation}
+证明是先在 $[a,A]\times[c,d]$ 上换序，再用一致尾部估计令 $A\to\infty$。若两个积分区间都无界，不能直接套用此式；应另外建立非负性或绝对可积性等换序依据，参见第~\ref{sec:pei-multiple-integrals} 节。
+
+\subsection{引入参数、建立微分方程与收敛因子}
+
+计算含对数、反三角函数或振荡因子的积分时，直接求原函数未必有效。\emph[tip]{把待求积分嵌入一个易于求导的函数族}，可先确定导数或微分方程，再用某个参数值或边界极限确定常数。引入参数后应先核验定理~\ref{thm:pei-improper-differentiation} 的条件；若条件失效，可考虑加入衰减因子，最后再证明去掉该因子的极限合法。
+
+\begin{example}
+\label{ex:pei-frullani}
+设 $f$ 在 $[0,+\infty)$ 上连续，$\lim_{x\to+\infty}f(x)=L$，$a,b>0$。证明 \emph{Frullani 公式（Frullani integral）}
+\begin{equation}
+\label{eq:pei-frullani}
+\int_0^{+\infty}\frac{f(ax)-f(bx)}x\,dx
+=(f(0)-L)\log\frac ba.
+\end{equation}
+\end{example}
+\begin{solve}
+先设 $a<b$，对 $0<\delta<R$ 换元并消去公共区间，得到
+\[
+\int_\delta^R\frac{f(ax)-f(bx)}x\,dx
+=\int_{a\delta}^{b\delta}\frac{f(u)}u\,du
+-\int_{aR}^{bR}\frac{f(u)}u\,du.
+\]
+第一项与 $f(0)\log(b/a)$ 的差不超过
+$\sup_{a\delta\le u\le b\delta}|f(u)-f(0)|\log(b/a)$，第二项与 $L\log(b/a)$ 的差也有类似估计。因此两个端点的极限可分别控制，反常积分存在且满足式~\eqref{eq:pei-frullani}。$a=b$ 时两端均为零，$a>b$ 时交换 $a,b$ 即可。例如取 $f(x)=e^{-x}$，得到 $\int_0^{+\infty}(e^{-ax}-e^{-bx})\,dx/x=\log(b/a)$。
+\end{solve}
+
+\begin{example}
+\label{ex:pei-dirichlet-integral}
+利用收敛因子计算 $\int_0^{+\infty}\sin(bx)\,dx/x$，其中 $b\in\mathbb R$。
+\end{example}
+\begin{solve}
+原积分在零点补充连续定义后正常可积，在无穷远由 Dirichlet 判别法收敛，但直接对 $b$ 求导会产生通常不收敛的 $\int_0^{+\infty}\cos(bx)\,dx$。先取 $s>0$，令
+\[
+H(s,b)=\int_0^{+\infty}e^{-sx}\frac{\sin(bx)}x\,dx.
+\]
+对固定 $s$，求导后的被积函数被可积函数 $e^{-sx}$ 控制，故
+\[
+H_b(s,b)=\int_0^{+\infty}e^{-sx}\cos(bx)\,dx
+=\frac{s}{s^2+b^2},
+\qquad H(s,0)=0.
+\]
+积分得 $H(s,b)=\arctan(b/s)$。对固定 $b\ne0$，在 $[A,+\infty)$ 上把 $\sin(bx)$ 与单调因子 $e^{-sx}/x$ 配对，由 Dirichlet 估计得到
+\[
+\left|\int_A^{+\infty}e^{-sx}\frac{\sin(bx)}x\,dx\right|
+\le\frac{C}{|b|A}\qquad(s\ge0),
+\]
+其中 $C$ 是绝对常数。有限前段则可直接令 $s\downarrow0$，故去掉收敛因子是合法的，最终
+\begin{equation}
+\label{eq:pei-dirichlet-value}
+\int_0^{+\infty}\frac{\sin(bx)}x\,dx
+=\begin{cases}\pi/2,&b>0,\\0,&b=0,\\-\pi/2,&b<0.\end{cases}
+\end{equation}
+这个结果在 $b=0$ 处不连续，说明关于 $b$ 的一致收敛性不能跨过零点。
+\end{solve}
+
+\begin{example}
+\label{ex:pei-gaussian-transform}
+已知 $\int_0^{+\infty}e^{-x^2}\,dx=\sqrt\pi/2$，求
+$G(t)=\int_0^{+\infty}e^{-x^2}\cos(2tx)\,dx$。
+\end{example}
+\begin{solve}
+求导后的绝对值不超过 $2xe^{-x^2}$，故可在积分号下求导。利用 $(e^{-x^2})'=-2xe^{-x^2}$ 分部积分，端点项均为零，得到
+\[
+G'(t)=-2\int_0^{+\infty}xe^{-x^2}\sin(2tx)\,dx=-2tG(t).
+\]
+由初值 $G(0)=\sqrt\pi/2$，得 $G(t)=(\sqrt\pi/2)e^{-t^2}$。高斯积分的值将在例~\ref{ex:pei-gaussian-double} 中用二重积分独立求出，因此本例同时展示了先建立微分方程、再确定初值的计算路线。
+\end{solve}
+
+\subsection{Euler 积分及其转换}
+
+\begin{definition}
+\label{def:pei-euler-integrals}
+对 $s>0$ 定义 \emph{Gamma 函数（Gamma function）}
+\begin{equation}
+\label{eq:pei-gamma-definition}
+\Gamma(s)=\int_0^{+\infty}x^{s-1}e^{-x}\,dx;
+\end{equation}
+对 $p,q>0$ 定义 \emph{Beta 函数（Beta function）}
+\begin{equation}
+\label{eq:pei-beta-definition}
+B(p,q)=\int_0^1x^{p-1}(1-x)^{q-1}\,dx.
+\end{equation}
+它们分别称为第二型与第一型 Euler 积分。
+\end{definition}
+
+$\Gamma$ 在零点附近与 $x^{s-1}$ 同阶，在无穷远由指数衰减控制；$B$ 的两个端点分别要求 $p,q>0$。在任意紧参数集 $s\in[\alpha,\beta]\subset(0,+\infty)$ 上，$\Gamma$ 的 $k$ 阶形式导数可分别由零点附近的 $x^{\alpha-1}|\log x|^k$ 和无穷远的 $x^{\beta-1}e^{-x}|\log x|^k$ 控制，因此
+\[
+\Gamma^{(k)}(s)=\int_0^{+\infty}x^{s-1}e^{-x}(\log x)^k\,dx
+\quad(k=0,1,\ldots).
+\]
+分部积分及 $x=u^2$ 的代换给出
+\[
+\Gamma(s+1)=s\Gamma(s),\qquad
+\Gamma(1)=1,\qquad \Gamma(n+1)=n!,\qquad
+\Gamma\!\left(\frac12\right)=\sqrt\pi.
+\]
+这里的积分定义只适用于 $s>0$；若使用递推关系延拓到负数，应另行说明定义域，并排除 $0,-1,-2,\ldots$。
+
+\begin{proposition}
+\label{prop:pei-beta-gamma}
+对 $p,q>0$，有
+\begin{align}
+B(p,q)&=B(q,p)=\frac{\Gamma(p)\Gamma(q)}{\Gamma(p+q)},
+\label{eq:pei-beta-gamma}\\
+B(p,q)&=2\int_0^{\pi/2}\sin^{2p-1}\theta\cos^{2q-1}\theta\,d\theta
+=\int_0^{+\infty}\frac{u^{p-1}}{(1+u)^{p+q}}\,du.
+\label{eq:pei-beta-variants}
+\end{align}
+\end{proposition}
+\begin{proof}
+对称性来自 $x=1-u$，式~\eqref{eq:pei-beta-variants} 分别来自 $x=\sin^2\theta$ 与 $x=u/(1+u)$。为证明式~\eqref{eq:pei-beta-gamma}，将两个非负积分的乘积写为第一象限上的二重积分，再作 $x=rv,y=r(1-v)$（$r>0,0<v<1$），Jacobian 的绝对值为 $r$，于是
+\[
+\Gamma(p)\Gamma(q)
+=\int_0^{+\infty}e^{-r}r^{p+q-1}\,dr
+\int_0^1v^{p-1}(1-v)^{q-1}\,dv.
+\]
+非负性保证截断后取极限与换序的合法性，故得到所求关系。
+\end{proof}
+
+由积分定义与式~\eqref{eq:pei-beta-gamma} 可得
+\[
+B(p+1,q)=\frac{p}{p+q}B(p,q),\qquad
+B(p,q+1)=\frac{q}{p+q}B(p,q),\qquad
+B(m,n)=\frac{(m-1)!(n-1)!}{(m+n-1)!}
+\]
+（$m,n$ 为正整数）。教材还给出了 \emph{Euler 反射公式（Euler reflection formula）}与 \emph{Legendre 倍增公式（Legendre duplication formula）}：
+\begin{equation}
+\label{eq:pei-gamma-reflection-duplication}
+\Gamma(s)\Gamma(1-s)=\frac{\pi}{\sin\pi s}\quad(0<s<1),\qquad
+\Gamma(s)\Gamma\!\left(s+\frac12\right)
+=2^{1-2s}\sqrt\pi\,\Gamma(2s)\quad(s>0).
+\end{equation}
+反射公式在此引用教材结论，不展开证明。倍增公式则可由 $x=(1+u)/2$ 与 $v=u^2$ 得到
+$B(s,s)=2^{1-2s}B(1/2,s)$，再代入式~\eqref{eq:pei-beta-gamma} 得证。运用这些公式时，先检查参数范围，再进行形式化简。
+
+\begin{example}
+\label{ex:pei-euler-model-integrals}
+将幂函数与指数、三角函数或有理函数组合的积分化为 Euler 积分。
+\end{example}
+\begin{solve}
+对 $\alpha,\beta,c>0$，令 $u=cx^\beta$，得
+\[
+\int_0^{+\infty}x^{\alpha-1}e^{-cx^\beta}\,dx
+=\frac1\beta c^{-\alpha/\beta}\Gamma\!\left(\frac\alpha\beta\right).
+\]
+对 $m,n>-1$，由式~\eqref{eq:pei-beta-variants}，
+\[
+\int_0^{\pi/2}\sin^m x\cos^n x\,dx
+=\frac12B\!\left(\frac{m+1}2,\frac{n+1}2\right).
+\]
+对 $0<a<b$，令 $u=x^b$，再用反射公式，得到
+\[
+\int_0^{+\infty}\frac{x^{a-1}}{1+x^b}\,dx
+=\frac1b B\!\left(\frac ab,1-\frac ab\right)
+=\frac{\pi}{b\sin(\pi a/b)}.
+\]
+最后一个积分在零点要求 $a>0$，在无穷远要求 $a<b$，这些条件与 Beta 参数的正性完全一致。
+\end{solve}
+
+\section{重积分}
+\label{sec:pei-multiple-integrals}
+% 对应原书 §7.2：PDF 第 58--119 页。
+
+\subsection{积分定义、可积性与积分和的极限}
+
+设 $D\subset\mathbb R^2$ 是有界 Jordan 可测区域，即其边界可由总面积任意小的有限个矩形覆盖；$f$ 在 $D$ 上有界。把 $D$ 分成有限个可求面积的小区域 $D_j$，在每块取代表点 $\xi_j$。若当分划最大直径趋于零时，积分和
+\[
+\sum_j f(\xi_j)|D_j|
+\]
+趋向一个与分划及代表点无关的数，就称 $f$ 在 $D$ 上 \emph{Riemann 可积（Riemann integrable）}，极限记为 $\iint_Df\,dA$，其中 $dA=dx\,dy$。三重积分与 $n$ 重积分的定义相同，只需把面积替换为体积或 $n$ 维体积。
+
+\begin{proposition}
+\label{prop:pei-darboux-integrable}
+记 $\omega_j=\sup_{D_j}f-\inf_{D_j}f$。有界函数 $f$ 在 $D$ 上可积，当且仅当对任意 $\varepsilon>0$，存在分划使
+\[
+\sum_j\omega_j|D_j|<\varepsilon.
+\]
+特别地，连续函数在紧的 Jordan 可测区域上可积；在有限条分段光滑曲线上有间断、其余处连续的有界函数也可积。后一个结论允许在这些曲线上任意改变有界函数值而不改变积分。
+\end{proposition}
+\begin{proof}
+上述和正是上和与下和之差，而积分和始终位于上下和之间，故结论由 Darboux 判别法得到。连续函数的一致连续性可使每块的振幅同时变小。对所述间断集，先用总面积很小的有限个矩形邻域盖住它，其上贡献由全局有界性控制；在补集上再用一致连续性控制振幅，两个部分的贡献都可任意小。
+\end{proof}
+
+\begin{example}
+\label{ex:pei-monotone-double-integrable}
+设 $f$ 在矩形 $[a,b]\times[c,d]$ 上有界，且固定任一坐标后关于另一坐标均单调递增。证明 $f$ 可积。
+\end{example}
+\begin{solve}
+把两个坐标区间均分为 $n$ 段，网点记为 $x_i,y_j$。每块上的振幅不超过
+\[
+f(x_i,y_j)-f(x_{i-1},y_{j-1})
+=\bigl[f(x_i,y_j)-f(x_{i-1},y_j)\bigr]
++\bigl[f(x_{i-1},y_j)-f(x_{i-1},y_{j-1})\bigr].
+\]
+设 $|f|\le M$，对所有 $i,j$ 求和时，每个中括号沿一个方向望远镜相消，其总和不超过 $4Mn$。乘每块面积 $(b-a)(d-c)/n^2$ 后，上下和之差不超过 $4M(b-a)(d-c)/n$，趋于零，故可积。
+\end{solve}
+
+反过来，积分定义也是计算极限的工具。若 $f$ 在 $[0,1]^2$ 连续，则
+\[
+\lim_{n\to\infty}\frac1{n^2}\sum_{i,j=1}^n
+f\!\left(\frac in,\frac jn\right)=\int_0^1\!\int_0^1f(x,y)\,dy\,dx.
+\]
+使用这种识别时，应明确网格面积与采样点；若求和含指数、乘积或对数，还应先估计展开余项的总和，不能只对每一项作点态近似后直接相加。
+
+\subsection{累次积分、换序、分区与对称性}
+
+\begin{theorem}
+\label{thm:pei-proper-fubini}
+设 $D=\{(x,y):a\le x\le b,\ \varphi_1(x)\le y\le\varphi_2(x)\}$，其中 $\varphi_1,\varphi_2$ 连续，$\varphi_1\le\varphi_2$。若 $f$ 在 $D$ 上连续，则
+\begin{equation}
+\label{eq:pei-double-iterated}
+\iint_Df(x,y)\,dA
+=\int_a^b\left(\int_{\varphi_1(x)}^{\varphi_2(x)}f(x,y)\,dy\right)dx.
+\end{equation}
+若 $D$ 也能沿水平方向表示为若干简单区域之并，则对这些区域分别积分，可以得到相应的先对 $x$、再对 $y$ 的表达式。
+\end{theorem}
+\begin{proof}
+先对矩形用积分和分组，将有限双重和写成迭代求和；一致连续性保证内层近似的误差可统一控制，故可依次取极限。一般区域可放入一个矩形，把 $f$ 在区域外延为零；新增间断只可能位于面积为零的边界上，仍可积，再按竖直截线分组，即得式~\eqref{eq:pei-double-iterated}。
+\end{proof}
+
+\emph[tip]{改变积分次序时，先把原有的上下限还原成区域不等式，再沿新的方向求截线}。例如，$a<b$ 时
+\begin{equation}
+\label{eq:pei-triangle-interchange}
+\int_a^b\!\int_a^x f(x,y)\,dy\,dx
+=\int_a^b\!\int_y^b f(x,y)\,dx\,dy.
+\end{equation}
+两端共同描述 $a\le y\le x\le b$。区域的边界表达式发生变化，或被积函数因绝对值、符号函数、取整函数而分段时，应先分区；换序不是把两个积分符号和上下限原样互换。
+
+对三重积分，若 $V=\{(x,y,z):(x,y)\in D,\ z_1(x,y)\le z\le z_2(x,y)\}$ 且 $f$ 连续，则
+\[
+\iiint_Vf\,dV=\iint_D\!\left(\int_{z_1(x,y)}^{z_2(x,y)}f(x,y,z)\,dz\right)dA.
+\]
+这称为投影法；若先固定 $z$，以 $D_z$ 表示水平截面，则也可写成
+$\int_{z_{\min}}^{z_{\max}}(\iint_{D_z}f\,dA)\,dz$，称为截面法。选法取决于哪一种截面的边界和被积函数更简单。
+
+对称性需要同时检查区域与被积函数。例如 $D$ 在反射 $(x,y)\mapsto(-x,y)$ 下不变，且 $f(-x,y)=-f(x,y)$，则积分为零；若变换后函数不变，可在半个区域上计算后乘二。更一般地，对可积函数，保持区域的正交变换 $T$ 满足
+\[
+\int_D f(x)\,dx=\int_D f(Tx)\,dx,
+\]
+因为 $|\det T|=1$。区域对称本身并不意味着任意函数的积分都能折半。
+
+\subsection{坐标变换、Jacobian 与典型区域}
+
+\begin{theorem}
+\label{thm:pei-change-variables}
+设 $T:U\to V$ 是开集之间的 $C^1$ 微分同胚，即一一对应且 $T,T^{-1}$ 均为 $C^1$；$E\subset U$ 是紧的 Jordan 可测区域，$f$ 在 $T(E)$ 上连续。则
+\begin{equation}
+\label{eq:pei-change-variables}
+\int_{T(E)}f(x)\,dx
+=\int_E f(T(u))|\det DT(u)|\,du.
+\end{equation}
+$\det DT$ 称为 \emph{Jacobian 行列式（Jacobian determinant）}。极坐标等变换若只在边界或可忽略的接缝处退化，可先避开这些位置，再取极限使用公式。
+\end{theorem}
+\begin{proof}[证明思路]
+在足够小的分块上，$T$ 由线性变换 $DT(u)$ 作一阶近似；线性变换把体积乘以 $|\det DT(u)|$。把各块上的函数变化与体积近似误差一致控制，再对 Riemann 和取极限，即得公式。一一对应保证内部各点不会被重复计数；绝对值保证体积元素非负。
+\end{proof}
+
+平面极坐标 $x=r\cos\theta,y=r\sin\theta$ 给出 $dA=r\,dr\,d\theta$；广义极坐标 $x=ar\cos\theta,y=br\sin\theta$（$a,b>0$）给出 $dA=ab\,r\,dr\,d\theta$。三维柱坐标与球坐标分别给出
+\begin{align*}
+&x=r\cos\theta,\ y=r\sin\theta,\ z=z,
+&&dV=r\,dr\,d\theta\,dz,\\
+&x=\rho\sin\varphi\cos\theta,\ y=\rho\sin\varphi\sin\theta,
+\ z=\rho\cos\varphi,
+&&dV=\rho^2\sin\varphi\,d\rho\,d\varphi\,d\theta,
+\end{align*}
+其中 $r,\rho\ge0$，球坐标的极角为 $0\le\varphi\le\pi$，方位角可取 $0\le\theta<2\pi$。选取新坐标时，应兼顾被积函数与区域；出现 $xy$ 和 $y/x$ 可考虑把它们作为新变量，但要先检查所在象限及一一对应性。
+
+\begin{example}
+\label{ex:pei-gaussian-double}
+计算高斯积分 $I=\int_0^{+\infty}e^{-x^2}\,dx$。
+\end{example}
+\begin{solve}
+$e^{-x^2}\le e^{-x}$ 在 $x\ge1$ 成立，故 $I$ 收敛。对非负函数可以按递增区域取极限；在第一象限改用极坐标，得到
+\[
+I^2=\iint_{x,y\ge0}e^{-(x^2+y^2)}\,dx\,dy
+=\int_0^{\pi/2}\!\int_0^{+\infty}e^{-r^2}r\,dr\,d\theta
+=\frac\pi4.
+\]
+因 $I>0$，故 $I=\sqrt\pi/2$。这一步利用的是二重积分的非负性与坐标变换，并未假定可以在两个反常积分之间任意交换极限。
+\end{solve}
+
+\begin{example}
+\label{ex:pei-ellipsoid-moment}
+设 $V=\{(x,y,z):x^2/a^2+y^2/b^2+z^2/c^2\le1\}$，其中 $a,b,c>0$，求其体积及 $\iiint_Vx^2\,dV$。
+\end{example}
+\begin{solve}
+令 $x=au,y=bv,z=cw$，体积元素变为 $abc\,du\,dv\,dw$，区域变为单位球 $B$。因此
+\[
+|V|=\frac{4\pi}3abc,
+\qquad
+\iiint_Vx^2\,dV=a^3bc\iiint_Bu^2\,du\,dv\,dw.
+\]
+由球的轮换对称性，三个坐标平方的积分相等，其总和为
+$\iiint_B(u^2+v^2+w^2)\,dV=4\pi\int_0^1\rho^4\,d\rho=4\pi/5$，故
+\[
+\iiint_Vx^2\,dV=\frac{4\pi}{15}a^3bc.
+\]
+同理可求另外两个坐标的二阶矩。对非负密度 $\mu$，总质量为 $M=\iiint_V\mu\,dV$；若 $M>0$，质心为 $M^{-1}\iiint_V(x,y,z)\mu\,dV$，绕 $z$ 轴的转动惯量为 $\iiint_V(x^2+y^2)\mu\,dV$。
+\end{solve}
+
+\subsection{反常重积分：截断方式、绝对收敛与奇点阶数}
+
+无界区域或无界被积函数需要先截断再积分。\emph[caution]{一般反常重积分的定义要求有限极限不依赖容许的截断方式}：若只沿特定的圆、球或矩形截断得到极限，尚不能据此断言一般反常积分收敛。对非负的局部可积函数，截断区域递增时积分单调增加，故只需检查它们是否有界；任何真正穷尽区域的递增截断都会给出相同的有限值或 $+\infty$。对变号函数，绝对可积性保证这种独立性。
+
+在允许任意容许截断的通常定义下，局部连续函数的反常重积分收敛等价于绝对收敛。其 Cauchy 条件要求：在一个足够大的紧的正常积分区域之外，任取有限个正常小区域，积分总和的绝对值都小。若正部与负部的剩余积分不能同时变小，就可优先截取其中一种符号的区域，使此条件失效。因而这一结论不能照搬到只用固定端点截断的一元条件收敛积分，也不能把特定对称截断所定义的\emph{主值（principal value）}与一般反常重积分混同。
+
+若 $f\ge0$，可用非负积分的换序性质，即 \emph{Tonelli 定理（Tonelli's theorem）}，把重积分化为非负累次积分，结果允许为 $+\infty$。若 $\int_D|f|<\infty$，则由 \emph{Fubini 定理（Fubini's theorem）}可换序计算变号函数。这里截线积分一般只保证对几乎所有外层变量存在；在初等反常积分计算中，应核对实际出现的截线积分，并对个别异常参数作相应解释。
+
+\begin{example}
+\label{ex:pei-fubini-failure}
+说明两个累次积分各自存在仍不足以保证可以换序。取
+\[
+f(x,y)=\frac{x^2-y^2}{(x^2+y^2)^2},\qquad 0<x,y<1.
+\]
+\end{example}
+\begin{solve}
+对 $x>0$，$f=\partial_y\bigl(y/(x^2+y^2)\bigr)$，故
+\[
+\int_0^1\!\left(\int_0^1f(x,y)\,dy\right)dx
+=\int_0^1\frac{dx}{1+x^2}=\frac\pi4.
+\]
+同理 $f=-\partial_x\bigl(x/(x^2+y^2)\bigr)$，反向换序所得值为 $-\pi/4$。原点附近用极坐标，$|f|\,dA=|\cos2\theta|\,dr\,d\theta/r$，其积分发散，因此绝对可积条件确实失效。对称地挖去原点小圆时，由交换 $x,y$ 的反对称性还会得到零；这只是特定截断的值，不是一般反常二重积分。
+\end{solve}
+
+\begin{proposition}
+\label{prop:pei-radial-singularity}
+在 $\mathbb R^n$ 中，径向核 $|x|^{-p}$ 在原点附近可积当且仅当 $p<n$，在无穷远可积当且仅当 $p>n$。临界情形 $p=n$ 均为对数发散。
+\end{proposition}
+\begin{proof}
+设单位球面面积为 $\sigma_{n-1}>0$，球坐标将两个积分分别化为
+\[
+\sigma_{n-1}\int_0^1r^{n-1-p}\,dr,
+\qquad
+\sigma_{n-1}\int_1^{+\infty}r^{n-1-p}\,dr,
+\]
+按幂函数积分的敛散条件即得结论。
+\end{proof}
+
+与此核比较时，上界给绝对收敛的充分条件；下界给发散结论则要求函数非负，或应用于绝对值，并且该下界要在具有正角度的锥形区域内成立。若积分区域向奇点收缩得很窄，结论会变化。例如在 $D=\{0<x<1,\ 0<y<x^2\}$ 上，
+\[
+\iint_D\frac{dA}{x^2+y^2}
+=\int_0^1\frac{\arctan x}{x}\,dx<\infty,
+\]
+因为被积的一元函数在零点有有限极限。又若奇点位于光滑曲面上，且核与到该曲面的距离的 $-p$ 次幂同阶，局部收敛阈值通常是 $p<1$，应沿法向坐标判断，不能套用孤立点的三维阈值 $p<3$。
+
+\subsection{高维积分、缩放与降维}
+
+$n$ 重积分沿用相同的换元原则。相似缩放 $x=au$（$a>0$）使体积乘以 $a^n$；若 $A$ 是实对称正定的 $n\times n$ 矩阵，变换 $u=A^{1/2}x$ 把椭球 $x^{\mathsf T}Ax\le1$ 化为单位球，体积元素乘以 $(\det A)^{-1/2}$。这类问题的困难常来自二次型，先作正交对角化比逐层直接定限更有效。
+
+\begin{proposition}
+\label{prop:pei-ball-simplex}
+$n$ 维半径为 $R$ 的球体体积及球面面积分别为
+\begin{equation}
+\label{eq:pei-ball-volume}
+V_n(R)=\frac{\pi^{n/2}}{\Gamma(n/2+1)}R^n,
+\qquad
+\sigma_{n-1}(R)=\frac{2\pi^{n/2}}{\Gamma(n/2)}R^{n-1}.
+\end{equation}
+截距均为 $a>0$ 的单纯形
+$\{x_i\ge0,\ \sum_{i=1}^nx_i\le a\}$ 的体积为 $a^n/n!$。
+\end{proposition}
+\begin{proof}
+记单位球体积为 $v_n$。由缩放关系，径向积分等于 $nv_n\int_0^{+\infty}h(r)r^{n-1}\,dr$。另一方面，由高斯积分的乘积，
+\[
+\pi^{n/2}=\int_{\mathbb R^n}e^{-|x|^2}\,dx
+=nv_n\int_0^{+\infty}e^{-r^2}r^{n-1}\,dr
+=\frac{nv_n}{2}\Gamma\!\left(\frac n2\right),
+\]
+从而得到球体积公式，球面面积为其关于 $R$ 的导数。单纯形先缩放到 $a=1$；固定 $x_n=t$ 时，截面是截距为 $1-t$ 的 $(n-1)$ 维单纯形，故其体积满足
+\[
+s_n(1)=s_{n-1}(1)\int_0^1(1-t)^{n-1}\,dt
+=\frac1n s_{n-1}(1).
+\]
+由 $s_1(1)=1$ 递推得 $s_n(1)=1/n!$，再乘 $a^n$ 即得结论。
+\end{proof}
+
+进一步，设 $\alpha_1,\ldots,\alpha_{n+1}>0$，逐次使用 Beta 积分可得 \emph{Dirichlet 单纯形积分（Dirichlet integral）}
+\begin{equation}
+\label{eq:pei-dirichlet-simplex}
+\int_{\substack{x_i\ge0\\\sum_{i=1}^nx_i\le1}}
+\left(\prod_{i=1}^nx_i^{\alpha_i-1}\right)
+\left(1-\sum_{i=1}^nx_i\right)^{\alpha_{n+1}-1}\,dx
+=\frac{\prod_{i=1}^{n+1}\Gamma(\alpha_i)}
+{\Gamma(\sum_{i=1}^{n+1}\alpha_i)}.
+\end{equation}
+证明时固定前 $n-1$ 个坐标，在最内层令 $x_n=(1-\sum_{i<n}x_i)t$，先取得一个 Beta 因子，再降一维递推；非负性保证这些操作可由截断取极限完成。各参数正性正是相应边界奇点可积的条件。所有参数取一，就回到单位单纯形体积公式。
+
+反复求原函数也能降维。设 $f\in C([a,b])$，$n\ge1$，则
+\begin{equation}
+\label{eq:pei-repeated-integration}
+\int_a^xdt_1\int_a^{t_1}dt_2\cdots
+\int_a^{t_{n-1}}f(t_n)\,dt_n
+=\frac1{(n-1)!}\int_a^x(x-t)^{n-1}f(t)\,dt
+\quad(a\le x\le b).
+\end{equation}
+固定最内层 $t_n=t$ 后，其余 $n-1$ 个变量构成一个体积为 $(x-t)^{n-1}/(n-1)!$ 的有序单纯形，故由换序立即得到公式。这说明某些高重累次积分的本质是一维积分乘以截面体积。
+
+\section{曲线积分与 Green 公式}
+\label{sec:pei-line-green}
+% 对应原书 §7.3：PDF 第 119--150 页。
+
+\subsection{两类曲线积分及其参数化}
+
+设 $C$ 是分段 $C^1$ 的正则曲线，一组按指定方向遍历的参数方程为 $\boldsymbol r(t)=(x(t),y(t),z(t))$，$\alpha\le t\le\beta$，每段上 $\boldsymbol r'(t)\ne0$。\emph{第一型曲线积分（scalar line integral）}以弧长为积分元素：
+\begin{equation}
+\label{eq:pei-scalar-line}
+\int_Cf\,ds=\int_\alpha^\beta f(\boldsymbol r(t))\|\boldsymbol r'(t)\|\,dt.
+\end{equation}
+\emph{第二型曲线积分（line integral of a vector field）}则对向量场 $\boldsymbol F=(P,Q,R)$ 定义为
+\begin{equation}
+\label{eq:pei-vector-line}
+\int_C\boldsymbol F\cdot d\boldsymbol r
+=\int_C P\,dx+Q\,dy+R\,dz
+=\int_\alpha^\beta\boldsymbol F(\boldsymbol r(t))\cdot\boldsymbol r'(t)\,dt.
+\end{equation}
+两式均对各光滑段求和。第一型积分与方向无关，第二型积分反向后变号；参数化应按所需次数遍历曲线，重复遍历会按重数计入积分。
+
+令 $\boldsymbol\tau$ 是沿指定方向的单位切向量，则 $d\boldsymbol r=\boldsymbol\tau\,ds$，从而
+\[
+\int_C\boldsymbol F\cdot d\boldsymbol r
+=\int_C(\boldsymbol F\cdot\boldsymbol\tau)\,ds,
+\qquad
+\left|\int_C\boldsymbol F\cdot d\boldsymbol r\right|
+\le\int_C\|\boldsymbol F\|\,ds
+\le L\max_C\|\boldsymbol F\|,
+\]
+其中 $L$ 为曲线长度。第一型积分的非负性、单调性和连续函数的积分中值定理来自 $ds\ge0$；第二型积分的 $dx,dy,dz$ 带符号，不能逐分量照搬这些性质。特别地，不能一般地写成 $\int_Cf\,dx=f(\xi)\int_Cdx$。
+
+\begin{example}
+\label{ex:pei-line-orientation}
+设 $C$ 为单位圆，取逆时针方向。计算 $\int_Cx^2\,ds$ 与 $\int_Cy\,dx$。
+\end{example}
+\begin{solve}
+令 $x=\cos t,y=\sin t$，$0\le t\le2\pi$，则 $ds=dt$、$dx=-\sin t\,dt$，故
+\[
+\int_Cx^2\,ds=\int_0^{2\pi}\cos^2t\,dt=\pi,
+\qquad
+\int_Cy\,dx=-\int_0^{2\pi}\sin^2t\,dt=-\pi.
+\]
+反向后第一式仍为 $\pi$，第二式变为 $\pi$。又因 $\int_Cdx=0$，第二式同时反驳了上述未经条件限制的积分中值表达式。
+\end{solve}
+
+对称性也应通过参数或积分元素检查：反射可能保持 $ds$，却改变某个坐标微分和曲线方向。计算空间交线上的积分时，可先消去一个变量，把交线投影到易于参数化的平面；若曲线由球面与平面相交而成，旋转坐标使该平面水平通常更方便。
+
+作为第一型积分的几何应用，若平面曲线 $C$ 绕同平面直线 $\ell:ax+by+c=0$ 旋转，局部弧段 $ds$ 产生的面积为 $2\pi\,\operatorname{dist}((x,y),\ell)\,ds$，因此
+\[
+S=\frac{2\pi}{\sqrt{a^2+b^2}}\int_C|ax+by+c|\,ds.
+\]
+这一式子按参数化的重数计算旋转面积；若曲线不同部分旋转后覆盖同一片曲面，要先选取只生成一次的弧段，否则会重复计数。
+
+\subsection{Green 公式、补线与挖去奇点}
+
+\begin{theorem}
+\label{thm:pei-green}
+设 $D\subset\mathbb R^2$ 为有界区域，边界由有限条互不相交的分段光滑简单闭曲线组成，$P,Q$ 在 $\overline D$ 的一个开邻域内有连续的一阶偏导数。边界正向规定为沿行进方向看区域始终在左侧，即外边界逆时针、洞的边界顺时针。则 \emph{Green 公式（Green's theorem）}为
+\begin{equation}
+\label{eq:pei-green}
+\oint_{\partial D}P\,dx+Q\,dy
+=\iint_D(Q_x-P_y)\,dx\,dy.
+\end{equation}
+\end{theorem}
+\begin{proof}[证明思路]
+若 $D$ 是竖直简单区域，沿上下两条边界曲线积分并利用微积分基本定理，可得 $\oint_{\partial D}P\,dx=-\iint_DP_y\,dA$；在水平简单区域上同理得到 $\oint_{\partial D}Q\,dy=\iint_DQ_x\,dA$。对可分成有限个简单区域的区域求和时，公共边被相反方向遍历而抵消，留下外边界及洞壁边界。一般所述分段光滑区域可通过局部化与区域逼近得到同一公式。
+\end{proof}
+
+若 $\boldsymbol n$ 为平面边界的单位外法向量，边界取正向时有 $\boldsymbol n\,ds=(dy,-dx)$，因此 Green 公式还有平面通量形式
+\begin{equation}
+\label{eq:pei-planar-flux}
+\oint_{\partial D}(P,Q)\cdot\boldsymbol n\,ds
+=\oint_{\partial D}P\,dy-Q\,dx
+=\iint_D(P_x+Q_y)\,dA.
+\end{equation}
+取适当的 $P,Q$，可得面积公式
+\begin{equation}
+\label{eq:pei-green-area}
+|D|=\oint_{\partial D}x\,dy
+=-\oint_{\partial D}y\,dx
+=\frac12\oint_{\partial D}(x\,dy-y\,dx).
+\end{equation}
+如果原曲线是从 $A$ 到 $B$ 的开曲线，可补一条从 $B$ 回到 $A$ 的方便曲线 $L$，先用 Green 公式计算闭路 $C+L$，再减去 $L$ 上的积分。
+
+\begin{example}
+\label{ex:pei-punctured-circulation}
+设 $C$ 为不过原点的逆时针分段光滑简单闭曲线，计算
+\[
+\oint_C\frac{-y\,dx+x\,dy}{x^2+y^2}.
+\]
+\end{example}
+\begin{solve}
+置 $P=-y/(x^2+y^2)$，$Q=x/(x^2+y^2)$。在原点以外，直接求导得 $Q_x-P_y=0$。若 $C$ 不包围原点，Green 公式给出积分为零。若 $C$ 包围原点，则不能直接在整个内部使用公式；应挖去一个足够小的圆盘，内圆 $C_\varepsilon$ 取逆时针方向时，剩余区域的正向边界为 $C-C_\varepsilon$，故
+\[
+\oint_C P\,dx+Q\,dy=\oint_{C_\varepsilon}P\,dx+Q\,dy
+=\int_0^{2\pi}dt=2\pi.
+\]
+结果只由是否包围奇点决定。一般闭路绕原点 $k$ 圈时，积分为 $2\pi k$，其中 $k$ 为带方向的绕数；这也说明局部导数条件并未包含全部的全局信息。
+\end{solve}
+
+\begin{example}
+\label{ex:pei-linear-ellipse-line}
+设 $a d-b c\ne0$，$C$ 是椭圆 $(ax+by)^2+(cx+dy)^2=1$ 的逆时针边界，求
+\[
+\oint_C\frac{x\,dy-y\,dx}{(ax+by)^2+(cx+dy)^2}.
+\]
+\end{example}
+\begin{solve}
+分母在曲线上恒为一，故由式~\eqref{eq:pei-green-area}，所求值是椭圆面积的两倍。线性变换 $u=ax+by,v=cx+dy$ 把椭圆域映为单位圆盘，面积为 $\pi/|ad-bc|$，因此积分为 $2\pi/|ad-bc|$。若改用参数 $u=\cos t,v=\sin t$，还须检查逆变换是否翻转方向；用面积公式已经把这一方向问题统一处理。
+\end{solve}
+
+\subsection{路径无关、恰当微分与势函数}
+
+\begin{theorem}
+\label{thm:pei-path-independent}
+设 $D\subset\mathbb R^2$ 为连通开集，$P,Q\in C^1(D)$。以下三个条件等价：从任意 $A$ 到任意 $B$ 的分段光滑曲线积分 $\int(P\,dx+Q\,dy)$ 与路径无关；每条分段光滑闭路的积分为零；存在 $u\in C^2(D)$ 使
+\begin{equation}
+\label{eq:pei-exact-differential}
+du=P\,dx+Q\,dy,\qquad u_x=P,\quad u_y=Q.
+\end{equation}
+此时称 $P\,dx+Q\,dy$ 为\emph{恰当微分（exact differential）}，$u$ 为势函数或原函数，在 $D$ 上相差常数。上述条件均推出 $Q_x=P_y$；若 $D$ 还\emph{单连通（simply connected）}，即每条闭路都能在 $D$ 内连续收缩为一点，则 $Q_x=P_y$ 也是充分条件。
+\end{theorem}
+\begin{proof}
+两条同端点路径一正一反组成闭路，因此路径无关与闭路积分为零等价。固定基点 $A$，定义 $u(X)=\int_A^X(P\,dx+Q\,dy)$；在 $X$ 附近用短水平或竖直线段计算增量，得到 $u_x=P,u_y=Q$。反之，若有势函数，链式法则给出任意曲线上的积分为 $u(B)-u(A)$。由混合偏导相等可得 $P_y=Q_x$。最后，在单连通域内，利用闭路的收缩及局部 Green 公式，闭路积分保持不变而最终为零，故导数条件也充分。
+\end{proof}
+
+例~\ref{ex:pei-punctured-circulation} 的定义域 $\mathbb R^2\setminus\{0\}$ 不是单连通的，虽然 $Q_x=P_y$ 处处成立，但绕原点的闭路积分不为零，故不存在全域单值势函数。在不跨越所选射线的角度分支内，它可以写成 $d\theta$；角度的局部表达式不能直接充当穿孔平面上的全局原函数。若平面区域只有有限个洞，且 $Q_x=P_y$，则只需再检查绕各个洞的一组生成闭路积分均为零，就能保证全域路径无关。
+
+求势函数时可先由 $u_x=P$ 积分，写成 $u(x,y)=\int P(x,y)\,dx+C(y)$，再用 $u_y=Q$ 决定 $C$；也可选取完全落在定义域内的方便折线计算 $\int_A^X$。例如 $P=2xy+e^x,Q=x^2+2y$ 定义在全平面，$P_y=Q_x=2x$，积分后得到 $u=x^2y+e^x+y^2+C$。最后应对两个偏导数分别验算；只在某一分支或局部区域成立的表达式不能越出其定义域使用。
+
+\subsection{由边界积分恢复微分性质与调和函数}
+
+Green 公式还可把积分条件还原为点态条件。若连续函数 $g$ 在每个充分小的圆盘上积分均为零，则 $g\equiv0$：若某点 $g>0$ 或 $g<0$，由连续性可取一个保号小圆盘，其积分不可能为零。例如 $P,Q\in C^1(D)$，若每个闭圆盘 $B\subset D$ 都满足 $\oint_{\partial B}(P,Q)\cdot\boldsymbol n\,ds=0$，由式~\eqref{eq:pei-planar-flux} 便得到 $P_x+Q_y=0$。
+
+设 $u\in C^2(D)$，记 $\nabla u=(u_x,u_y)$，$\Delta u=u_{xx}+u_{yy}$；满足 $\Delta u=0$ 的函数称为\emph{调和函数（harmonic function）}。对边界分段光滑的有界区域，若 $u$ 在闭包的邻域内为 $C^2$，将式~\eqref{eq:pei-planar-flux} 用于 $u\nabla u$，得到能量恒等式
+\begin{equation}
+\label{eq:pei-planar-green-energy}
+\iint_D|\nabla u|^2\,dA
+=\oint_{\partial D}u\frac{\partial u}{\partial n}\,ds
+-\iint_Du\Delta u\,dA,
+\qquad \frac{\partial u}{\partial n}=\nabla u\cdot\boldsymbol n.
+\end{equation}
+其中散度的展开为 $\operatorname{div}(u\nabla u)=|\nabla u|^2+u\Delta u$。
+
+\begin{proposition}
+\label{prop:pei-harmonic-uniqueness}
+在上述正则性条件下，有界连通区域内的调和函数由其边界值唯一确定。
+\end{proposition}
+\begin{proof}
+若 $u_1,u_2$ 调和且边界值相同，令 $w=u_1-u_2$，则 $\Delta w=0$、$w|_{\partial D}=0$。由式~\eqref{eq:pei-planar-green-energy}，$\iint_D|\nabla w|^2\,dA=0$。被积函数连续非负，故每点都为零；$D$ 连通保证 $w$ 为常数，再由零边界值知 $w=0$。
+\end{proof}
+
+调和函数还满足圆周平均值性质。若闭圆盘 $\overline{B_r(X_0)}\subset D$，置
+$M(r)=(2\pi)^{-1}\int_0^{2\pi}u(X_0+r(\cos\theta,\sin\theta))\,d\theta$，则
+\[
+M'(r)=\frac1{2\pi r}\oint_{\partial B_r(X_0)}\frac{\partial u}{\partial n}\,ds
+=\frac1{2\pi r}\iint_{B_r(X_0)}\Delta u\,dA=0.
+\]
+由 $M(r)\to u(X_0)$（$r\downarrow0$），得到 $u(X_0)$ 等于任一这样的圆周上的平均值。这里圆周必须完全位于调和区域内，不能跨过奇点。
+
+\section{曲面积分、Gauss 公式与 Stokes 公式}
+\label{sec:pei-surface-gauss-stokes}
+% 对应原书 §7.4：PDF 第 150--189 页。
+
+\subsection{第一型曲面积分与面积元素}
+
+设曲面片由正则参数方程 $\boldsymbol r(u,v)=(x(u,v),y(u,v),z(u,v))$ 给出，$(u,v)\in E$，$\boldsymbol r\in C^1$ 且 $\boldsymbol r_u\times\boldsymbol r_v\ne0$；除边界接缝外不重复覆盖。\emph{第一型曲面积分（scalar surface integral）}定义为对面积的积分，其计算公式为
+\begin{equation}
+\label{eq:pei-scalar-surface}
+\iint_Sf\,dS
+=\iint_E f(\boldsymbol r(u,v))\|\boldsymbol r_u\times\boldsymbol r_v\|\,du\,dv.
+\end{equation}
+记 $E_1=\boldsymbol r_u\cdot\boldsymbol r_u$、$F_1=\boldsymbol r_u\cdot\boldsymbol r_v$、$G_1=\boldsymbol r_v\cdot\boldsymbol r_v$，则 $dS=\sqrt{E_1G_1-F_1^2}\,du\,dv$。面积积分不依赖法向的选择，分片曲面应分别积分再相加。
+
+若曲面是图像 $z=g(x,y)$，则 $\boldsymbol r=(x,y,g)$，故
+\begin{equation}
+\label{eq:pei-graph-area}
+dS=\sqrt{1+g_x^2+g_y^2}\,dx\,dy.
+\end{equation}
+若选投影后曲面有多层，应逐层表示，不能把整个曲面只算成一张图像。球面 $x=R\sin\varphi\cos\theta,y=R\sin\varphi\sin\theta,z=R\cos\varphi$ 的面积元素为 $R^2\sin\varphi\,d\varphi\,d\theta$；不能混用球面面积元素与球坐标体积元素 $\rho^2\sin\varphi\,d\rho\,d\varphi\,d\theta$。
+
+\begin{example}
+\label{ex:pei-spherical-average}
+设 $\boldsymbol a\in\mathbb R^3$，$f$ 在 $[-\|\boldsymbol a\|,\|\boldsymbol a\|]$ 上连续。证明单位球面上的公式
+\begin{equation}
+\label{eq:pei-spherical-average}
+\iint_{S^2}f(\boldsymbol a\cdot\boldsymbol x)\,dS
+=2\pi\int_{-1}^1f(\|\boldsymbol a\|t)\,dt.
+\end{equation}
+\end{example}
+\begin{solve}
+$\boldsymbol a\ne0$ 时旋转坐标，使新的 $z$ 轴沿 $\boldsymbol a$；球面与面积元素在正交变换下不变，内积变为 $\|\boldsymbol a\|\cos\varphi$。于是积分为
+\[
+\int_0^{2\pi}\!\int_0^\pi f(\|\boldsymbol a\|\cos\varphi)\sin\varphi\,d\varphi\,d\theta,
+\]
+令 $t=\cos\varphi$ 即得结论。$\boldsymbol a=0$ 时，两端均为 $4\pi f(0)$。特别地，取 $\boldsymbol a=(0,0,1)$、$f(t)=t^2$，得 $\iint_{S^2}z^2\,dS=4\pi/3$，与三个坐标平方的积分相等且总和为球面积 $4\pi$ 相一致。
+\end{solve}
+
+\subsection{第二型曲面积分与定向}
+
+若曲面能够连续地选取单位法向量 $\boldsymbol n$，称其\emph{可定向（orientable）}。选定 $\boldsymbol n$ 后，向量场 $\boldsymbol F=(P,Q,R)$ 穿过曲面的\emph{通量（flux）}为
+\begin{equation}
+\label{eq:pei-flux-definition}
+\iint_S\boldsymbol F\cdot\boldsymbol n\,dS
+=\iint_SP\,dy\,dz+Q\,dz\,dx+R\,dx\,dy,
+\end{equation}
+右端称为\emph{第二型曲面积分（flux integral）}。这里 $dy\,dz,dz\,dx,dx\,dy$ 表示带方向的投影面积元素，满足
+\[
+(dy\,dz,dz\,dx,dx\,dy)=\boldsymbol n\,dS.
+\]
+因此反向后通量变号，判断对称性时必须同时比较函数值与定向面积元素。
+
+若 $\boldsymbol r_u\times\boldsymbol r_v$ 与指定法向同向，则
+\begin{equation}
+\label{eq:pei-parametric-flux}
+\iint_S\boldsymbol F\cdot\boldsymbol n\,dS
+=\iint_E\boldsymbol F(\boldsymbol r(u,v))\cdot
+(\boldsymbol r_u\times\boldsymbol r_v)\,du\,dv;
+\end{equation}
+反向则加负号。对图像 $z=g(x,y)$ 的上侧，有 $\boldsymbol n\,dS=(-g_x,-g_y,1)\,dx\,dy$，故
+\begin{equation}
+\label{eq:pei-graph-flux}
+\iint_S\boldsymbol F\cdot\boldsymbol n\,dS
+=\iint_D\bigl[-P(x,y,g)g_x-Q(x,y,g)g_y+R(x,y,g)\bigr]\,dx\,dy.
+\end{equation}
+下侧将整式变号。这里有向投影已经吸收了面积因子，不能再乘一次 $\sqrt{1+g_x^2+g_y^2}$。
+
+\subsection{Gauss 公式与补面计算}
+
+\begin{theorem}
+\label{thm:pei-gauss}
+设 $V\subset\mathbb R^3$ 是有界区域，边界分片光滑，$\boldsymbol F=(P,Q,R)$ 在 $\overline V$ 的一个开邻域内为 $C^1$。令 $\boldsymbol n$ 为 $\partial V$ 的外单位法向量，则 \emph{Gauss 公式（divergence theorem）}为
+\begin{equation}
+\label{eq:pei-gauss}
+\iint_{\partial V}\boldsymbol F\cdot\boldsymbol n\,dS
+=\iiint_V\operatorname{div}\boldsymbol F\,dV,
+\qquad
+\operatorname{div}\boldsymbol F=P_x+Q_y+R_z.
+\end{equation}
+$\operatorname{div}\boldsymbol F$ 称为\emph{散度（divergence）}。若区域有空腔，洞壁上的外法向指向空腔内部。
+\end{theorem}
+\begin{proof}[证明思路]
+对沿 $x$ 方向简单的区域，利用一元微积分基本定理，$\iiint_VP_x\,dV$ 等于左右边界上 $P$ 的有向通量；对 $Q_y,R_z$ 同理。三式相加得到简单区域的公式。分块求和时，内部公共面法向相反，通量抵消，只剩区域的外边界；一般分片光滑区域可经局部化与逼近得到结论。
+\end{proof}
+
+取 $\boldsymbol F=(x,0,0)$ 或 $(x,y,z)/3$，有体积公式
+\[
+|V|=\iint_{\partial V}x\,dy\,dz
+=\frac13\iint_{\partial V}\boldsymbol x\cdot\boldsymbol n\,dS.
+\]
+若原曲面 $S$ 不封闭，可以补上易算的面 $S_0$，使 $S\cup S_0=\partial V$。当原定向与外侧一致时，
+\[
+\iint_S\boldsymbol F\cdot\boldsymbol n\,dS
+=\iiint_V\operatorname{div}\boldsymbol F\,dV
+-\iint_{S_0}\boldsymbol F\cdot\boldsymbol n\,dS.
+\]
+先在封闭曲面上统一指定外侧，再决定补面符号；补面的积分只有经核验才可以省略。
+
+\begin{example}
+\label{ex:pei-paraboloid-flux}
+计算 $\boldsymbol F=(x,y,z)$ 穿过抛物面 $S:z=1-x^2-y^2$、$z\ge0$ 上侧的通量。
+\end{example}
+\begin{solve}
+补上 $z=0$ 内的单位圆盘 $S_0$，其外法向为向下。因 $z=0$，补面通量为零；$\operatorname{div}\boldsymbol F=3$，故
+\[
+\iint_S\boldsymbol F\cdot\boldsymbol n\,dS
+=3\iiint_{\substack{x^2+y^2\le1\\0\le z\le1-x^2-y^2}}dV
+=3\int_0^{2\pi}\!\int_0^1(1-r^2)r\,dr\,d\theta
+=\frac{3\pi}2.
+\]
+也可用式~\eqref{eq:pei-graph-flux}，得到单位圆盘上 $1+x^2+y^2$ 的二重积分，结果相同。
+\end{solve}
+
+\subsection{奇点附近的通量与局部散度}
+
+\begin{example}
+\label{ex:pei-inverse-square-flux}
+设 $S=\partial V$ 为有界区域的分片光滑边界，原点不在 $S$ 上，取外侧。计算
+\[
+\iint_S\frac{\boldsymbol x}{|\boldsymbol x|^3}\cdot\boldsymbol n\,dS.
+\]
+\end{example}
+\begin{solve}
+在 $\boldsymbol x\ne0$ 处，直接求导得 $\operatorname{div}(\boldsymbol x/|\boldsymbol x|^3)=0$。若 $0\notin\overline V$，直接应用 Gauss 公式得零。若 $0\in V$，挖去完全位于 $V$ 内的半径 $\varepsilon$ 小球；对剩余区域，小球面的外法向是指向球心的，故
+\[
+\iint_S\frac{\boldsymbol x}{|\boldsymbol x|^3}\cdot\boldsymbol n\,dS
+=\iint_{|\boldsymbol x|=\varepsilon}
+\frac{\boldsymbol x}{\varepsilon^3}\cdot\frac{\boldsymbol x}{\varepsilon}\,dS
+=\frac1{\varepsilon^2}\,4\pi\varepsilon^2=4\pi.
+\]
+因此奇点外散度为零，并不允许忽略被曲面包围的奇点；此处无需把原点处的场强或散度强行定义为某个有限值。
+\end{solve}
+
+散度也能由局部通量恢复。若 $\boldsymbol F\in C^1(D)$，$X_0\in D$，取充分小的球 $B_r(X_0)\Subset D$，由 Gauss 公式及散度连续性，
+\begin{equation}
+\label{eq:pei-local-divergence}
+\operatorname{div}\boldsymbol F(X_0)
+=\lim_{r\downarrow0}\frac1{|B_r|}
+\iint_{\partial B_r(X_0)}\boldsymbol F\cdot\boldsymbol n\,dS.
+\end{equation}
+证明只需把右端写成散度在球内的平均值，其与中心值的差不超过球内振幅。因此每个充分小球的通量为零，当且仅当散度处处为零；若要推到域内任意闭曲面的通量，还须保证该曲面连同所围区域都落在场的定义域内。
+
+\subsection{Stokes 公式与空间曲线积分}
+
+\begin{theorem}
+\label{thm:pei-stokes}
+设 $S$ 是紧的、可定向的分片光滑曲面（各片可取正则 $C^2$ 参数化），边界为有限条分段光滑闭曲线；$\boldsymbol F=(P,Q,R)$ 在 $S$ 的一个开邻域内为 $C^1$。选定 $S$ 的单位法向量 $\boldsymbol n$，边界按右手法则取诱导正向：从法向指向的一侧看边界，其正向使曲面局部位于左侧。则 \emph{Stokes 公式（Stokes' theorem）}为
+\begin{equation}
+\label{eq:pei-stokes}
+\oint_{\partial S}\boldsymbol F\cdot d\boldsymbol r
+=\iint_S\operatorname{curl}\boldsymbol F\cdot\boldsymbol n\,dS,
+\qquad
+\operatorname{curl}\boldsymbol F=(R_y-Q_z,\ P_z-R_x,\ Q_x-P_y).
+\end{equation}
+$\operatorname{curl}\boldsymbol F$ 称为\emph{旋度（curl）}，亦记作 $\operatorname{rot}\boldsymbol F$。
+\end{theorem}
+\begin{proof}
+对一张参数曲面 $\boldsymbol r(u,v)$，曲线积分变为参数域边界上
+\[
+\oint_{\partial E}(\boldsymbol F(\boldsymbol r)\cdot\boldsymbol r_u)\,du
++(\boldsymbol F(\boldsymbol r)\cdot\boldsymbol r_v)\,dv.
+\]
+在参数域应用 Green 公式。利用链式法则并消去 $\boldsymbol r_{uv}=\boldsymbol r_{vu}$ 的项，所得被积函数为
+\[
+\partial_u(\boldsymbol F(\boldsymbol r)\cdot\boldsymbol r_v)
+-\partial_v(\boldsymbol F(\boldsymbol r)\cdot\boldsymbol r_u)
+=(\operatorname{curl}\boldsymbol F)(\boldsymbol r)\cdot
+(\boldsymbol r_u\times\boldsymbol r_v).
+\]
+这就是有向曲面积分公式。多张曲面片相加时，内部公共边按相反方向抵消，留下 $\partial S$。
+\end{proof}
+
+计算空间闭曲线积分时，先求旋度，再选边界为该曲线且积分方便的曲面；若边界位于平面上，通常取平面区域最简便。只要两张候选曲面都满足 Stokes 公式的正则性与定义域条件，所得旋度通量便相同；不能把曲面移过场的奇点后仍默认公式适用。
+
+\begin{example}
+\label{ex:pei-stokes-triangle}
+设 $a>0$，$C$ 为按 $A(a,0,0)\to B(0,a,0)\to C_0(0,0,a)\to A$ 顺序遍历的三角形边界，求 $\oint_C z\,dx+x\,dy+y\,dz$。
+\end{example}
+\begin{solve}
+取平面三角形 $S:x+y+z=a$。其向上法向与所给边界方向匹配，向量场 $\boldsymbol F=(z,x,y)$ 的旋度为 $(1,1,1)$。将 $S$ 投影到 $xy$ 平面，有
+\[
+\boldsymbol n\,dS=(1,1,1)\,dx\,dy,
+\qquad D=\{x,y\ge0,\ x+y\le a\}.
+\]
+因此由 Stokes 公式，原积分为 $\iint_D3\,dx\,dy=3a^2/2$。若边界反向则结果变号；这里向量面积元素已经包含曲面倾斜的影响。
+\end{solve}
+
+\section{场论}
+\label{sec:pei-vector-fields}
+% 对应原书 §7.5：PDF 第 189--203 页。
+
+\subsection{梯度、散度、旋度及其局部含义}
+
+设 $D\subset\mathbb R^3$ 为开集，$u$ 为标量场，$\boldsymbol F$ 为向量场。\emph{Hamilton 算符（nabla operator）}记为
+\[
+\nabla=\left(\frac\partial{\partial x},\frac\partial{\partial y},\frac\partial{\partial z}\right),
+\]
+它是微分算符的记号，必须结合所作用的函数及运算类型解释。\emph{梯度（gradient）}为 $\operatorname{grad}u=\nabla u=(u_x,u_y,u_z)$；散度与旋度分别记为 $\operatorname{div}\boldsymbol F=\nabla\cdot\boldsymbol F$ 与 $\operatorname{curl}\boldsymbol F=\nabla\times\boldsymbol F$，坐标表达式已在式~\eqref{eq:pei-gauss} 与式~\eqref{eq:pei-stokes} 中给出。\emph{Laplace 算符（Laplacian）}为
+\[
+\Delta=\nabla\cdot\nabla=\partial_x^2+\partial_y^2+\partial_z^2;
+\]
+作用于向量场时约定逐分量计算，即 $\Delta\boldsymbol F=(\Delta F_1,\Delta F_2,\Delta F_3)$。
+
+对单位方向 $\boldsymbol e$，方向导数为 $D_{\boldsymbol e}u=\nabla u\cdot\boldsymbol e$。由 Cauchy--Schwarz 不等式，若 $\nabla u\ne0$，最大方向导数为 $\|\nabla u\|$，在梯度方向达到；梯度同时垂直于正则等值面 $u=\text{常数}$。散度是单位体积的净外流率，精确表达为式~\eqref{eq:pei-local-divergence}。旋度的方向分量则是单位面积的局部环量：若 $D_r$ 是以 $X_0$ 为中心、单位法向为 $\boldsymbol e$ 的半径 $r$ 平面圆盘，边界取诱导正向，则
+\[
+\operatorname{curl}\boldsymbol F(X_0)\cdot\boldsymbol e
+=\lim_{r\downarrow0}\frac1{\pi r^2}
+\oint_{\partial D_r}\boldsymbol F\cdot d\boldsymbol r.
+\]
+这由 Stokes 公式及旋度连续性得到。三个算符中，梯度把标量变成向量，散度把向量变成标量，旋度把向量变成向量，计算前先核对输入与输出类型可避免许多形式错误。
+
+\subsection{乘积法则与混合微分恒等式}
+
+以下各式在相关一阶导数连续时成立；涉及二阶导数的恒等式要求相应场为 $C^2$。对标量场 $u,v$、向量场 $\boldsymbol A,\boldsymbol B$ 及可微一元函数 $\phi$，有
+\begin{align}
+\nabla(uv)&=u\nabla v+v\nabla u,
+&\nabla\phi(u)&=\phi'(u)\nabla u,
+\label{eq:pei-gradient-rules}\\
+\nabla\cdot(u\boldsymbol A)&=\nabla u\cdot\boldsymbol A+u\nabla\cdot\boldsymbol A,
+&\nabla\times(u\boldsymbol A)&=\nabla u\times\boldsymbol A+u\nabla\times\boldsymbol A.
+\label{eq:pei-field-product-rules}
+\end{align}
+当 $v\ne0$ 时，商法则为 $\nabla(u/v)=(v\nabla u-u\nabla v)/v^2$。更复杂的混合运算为
+\begin{align}
+\nabla\cdot(\boldsymbol A\times\boldsymbol B)
+&=\boldsymbol B\cdot(\nabla\times\boldsymbol A)
+-\boldsymbol A\cdot(\nabla\times\boldsymbol B),
+\label{eq:pei-div-cross}\\
+\nabla\times(\boldsymbol A\times\boldsymbol B)
+&=\boldsymbol A(\nabla\cdot\boldsymbol B)
+-\boldsymbol B(\nabla\cdot\boldsymbol A)
++(\boldsymbol B\cdot\nabla)\boldsymbol A
+-(\boldsymbol A\cdot\nabla)\boldsymbol B,
+\label{eq:pei-curl-cross}\\
+\nabla(\boldsymbol A\cdot\boldsymbol B)
+&=(\boldsymbol A\cdot\nabla)\boldsymbol B
++(\boldsymbol B\cdot\nabla)\boldsymbol A
++\boldsymbol A\times(\nabla\times\boldsymbol B)
++\boldsymbol B\times(\nabla\times\boldsymbol A).
+\label{eq:pei-grad-dot}
+\end{align}
+这里 $\boldsymbol A\cdot\nabla=A_1\partial_x+A_2\partial_y+A_3\partial_z$ 是作用在后面函数上的方向微分算符；不能把 $\nabla$ 当作一个普通常向量任意移动，否则会遗漏对系数求导的项。
+
+\begin{proposition}
+\label{prop:pei-differential-identities}
+若 $u\in C^2(D)$、$\boldsymbol A\in C^2(D;\mathbb R^3)$，则
+\begin{equation}
+\label{eq:pei-curl-grad-div-curl}
+\nabla\times\nabla u=\boldsymbol0,
+\qquad\nabla\cdot(\nabla\times\boldsymbol A)=0,
+\qquad\nabla\times(\nabla\times\boldsymbol A)
+=\nabla(\nabla\cdot\boldsymbol A)-\Delta\boldsymbol A.
+\end{equation}
+\end{proposition}
+\begin{proof}
+前两式把坐标表达式展开后，分别由成对的混合偏导相等而抵消。第三式的第一分量为
+\[
+\partial_y(\partial_x A_2-\partial_y A_1)
+-\partial_z(\partial_z A_1-\partial_x A_3)
+=\partial_x(\partial_x A_1+\partial_y A_2+\partial_z A_3)-\Delta A_1.
+\]
+其余两分量循环换标即可。乘积恒等式也可按同样的方法逐分量核验，例如 $\nabla\cdot(u\boldsymbol A)=\sum_i\partial_i(uA_i)$，逐项用普通乘积法则即得式~\eqref{eq:pei-field-product-rules} 的第一式。
+\end{proof}
+
+\begin{example}
+\label{ex:pei-rigid-rotation}
+设刚体以常角速度向量 $\boldsymbol\omega$ 绕过原点的轴旋转，求速度场与加速度场的散度和旋度。
+\end{example}
+\begin{solve}
+记位置向量为 $\boldsymbol x$，则
+\[
+\boldsymbol v=\boldsymbol\omega\times\boldsymbol x,
+\qquad
+\boldsymbol a=\boldsymbol\omega\times(\boldsymbol\omega\times\boldsymbol x)
+=(\boldsymbol\omega\cdot\boldsymbol x)\boldsymbol\omega
+-\|\boldsymbol\omega\|^2\boldsymbol x.
+\]
+旋转坐标使 $\boldsymbol\omega=(0,0,\omega)$，有 $\boldsymbol v=(-\omega y,\omega x,0)$、$\boldsymbol a=(-\omega^2x,-\omega^2y,0)$，逐项求导得
+\[
+\nabla\cdot\boldsymbol v=0,\quad
+\nabla\times\boldsymbol v=2\boldsymbol\omega,\quad
+\nabla\cdot\boldsymbol a=-2\|\boldsymbol\omega\|^2,\quad
+\nabla\times\boldsymbol a=\boldsymbol0.
+\]
+这里旋度为角速度的两倍。另由式~\eqref{eq:pei-grad-dot} 令 $\boldsymbol A=\boldsymbol B=\boldsymbol v$，可得
+$(\boldsymbol v\cdot\nabla)\boldsymbol v
+=\frac12\nabla\|\boldsymbol v\|^2-\boldsymbol v\times(\nabla\times\boldsymbol v)$，这给出同一加速度的另一种计算方式。
+\end{solve}
+
+\subsection{Green 恒等式与边值唯一性}
+
+设 $V$ 为边界分片光滑的有界区域，$u,v$ 在 $\overline V$ 的邻域内有连续二阶偏导数，$\boldsymbol n$ 为外单位法向量。把 Gauss 公式用于 $u\nabla v$，得到 \emph{Green 第一恒等式（Green's first identity）}
+\begin{equation}
+\label{eq:pei-green-first-identity}
+\iiint_Vu\Delta v\,dV
+=\iint_{\partial V}u\frac{\partial v}{\partial n}\,dS
+-\iiint_V\nabla u\cdot\nabla v\,dV.
+\end{equation}
+交换 $u,v$ 后相减，得到 \emph{Green 第二恒等式（Green's second identity）}
+\begin{equation}
+\label{eq:pei-green-second-identity}
+\iiint_V(u\Delta v-v\Delta u)\,dV
+=\iint_{\partial V}\left(u\frac{\partial v}{\partial n}
+-v\frac{\partial u}{\partial n}\right)dS.
+\end{equation}
+两式的证明只用乘积法则与 Gauss 公式；二维版本则来自平面通量公式，与式~\eqref{eq:pei-planar-green-energy} 一致。
+
+若 $V$ 连通，两个调和函数具有相同的边界值，其差 $w$ 满足 $\Delta w=0$、$w|_{\partial V}=0$，由第一恒等式得到 $\iiint_V|\nabla w|^2\,dV=0$，故 $w=0$。若改为法向导数相同，则同一推导给出 $\nabla w=0$，只能推出两函数相差常数。对于方程 $\Delta u=f$ 与边界条件 $\partial_nu=g$，Gauss 公式还给出存在解的必要兼容条件
+\[
+\iiint_V f\,dV=\iint_{\partial V}g\,dS.
+\]
+这里的能量方法证明的是给定正则性下的唯一性或必要条件，不能据此自动断言解一定存在。
+
+\subsection{保守场、有势场、无旋场与径向势}
+
+设 $D$ 为连通开集，$\boldsymbol F\in C^1(D;\mathbb R^3)$。若线积分只依赖端点，称为\emph{保守场（conservative field）}；若存在标量函数 $u$ 使 $\boldsymbol F=\nabla u$，称为\emph{有势场（potential field）}；若 $\nabla\times\boldsymbol F=\boldsymbol0$，称为\emph{无旋场（irrotational field）}。本文采用 $\boldsymbol F=\nabla u$ 的势函数约定；若采用力学中的 $\boldsymbol F=-\nabla V$，则 $V=-u$。
+
+沿用定理~\ref{thm:pei-path-independent} 的证明，在任意连通开集内都有
+\begin{equation}
+\label{eq:pei-conservative-equivalences}
+\boldsymbol F\text{ 为保守场}
+\quad\Longleftrightarrow\quad
+\text{每条闭路上的环量为零}
+\quad\Longleftrightarrow\quad
+\boldsymbol F=\nabla u
+\quad\Longrightarrow\quad
+\nabla\times\boldsymbol F=\boldsymbol0.
+\end{equation}
+若 $D$ 单连通，最后一个条件也充分；若没有这一全局条件，只能先得到局部势函数。把例~\ref{ex:pei-punctured-circulation} 的平面场扩展为
+$\boldsymbol F=(-y/(x^2+y^2),x/(x^2+y^2),0)$，其定义域为去掉 $z$ 轴的空间，便得到三维无旋但不保守的例子。
+
+在\emph{星形区域（star-shaped domain）}中，存在一点 $X_*$，使每个 $X\in D$ 与 $X_*$ 的连线段都在 $D$ 内。此时若 $\boldsymbol F$ 无旋，可以直接构造
+\begin{equation}
+\label{eq:pei-star-shaped-potential}
+u(X)=\int_0^1\boldsymbol F(X_*+t(X-X_*))\cdot(X-X_*)\,dt.
+\end{equation}
+为核验公式，可平移使 $X_*=0$。对第 $j$ 个坐标求导，并用无旋条件 $\partial_jF_i=\partial_iF_j$，得到
+\[
+\partial_j u(X)
+=\int_0^1\left[F_j(tX)+t\sum_iX_i\partial_iF_j(tX)\right]dt
+=\int_0^1\frac d{dt}\bigl(tF_j(tX)\bigr)dt=F_j(X).
+\]
+因而这不仅证明存在性，也给出了不需要猜测的势函数计算方法。
+
+\begin{example}
+\label{ex:pei-radial-potential}
+设 $r=|\boldsymbol x|>0$，$\boldsymbol F(\boldsymbol x)=f(r)\boldsymbol x$，其中 $f:(0,+\infty)\to\mathbb R$ 连续。求势函数，并在 $f\in C^1((0,+\infty))$ 时判定何时散度为零。
+\end{example}
+\begin{solve}
+因为 $\nabla r=\boldsymbol x/r$，任取 $r_0>0$，令
+\[
+u(\boldsymbol x)=\int_{r_0}^{r}s f(s)\,ds,
+\]
+便有 $\nabla u=rf(r)\nabla r=f(r)\boldsymbol x$。这在穿孔空间上仍给出全局单值势函数，无须依赖单连通性判别。若 $f\in C^1$，则
+\[
+\nabla\cdot\boldsymbol F=3f(r)+rf'(r).
+\]
+因此无源的径向场满足 $(r^3f(r))'=0$，即 $\boldsymbol F=c\boldsymbol x/r^3$，其势为 $u=-c/r+C$。等价地，三维径向调和函数 $u=h(r)$ 满足
+\[
+\Delta u=h''(r)+\frac2r h'(r)=0,
+\qquad h(r)=C_1+\frac{C_2}r.
+\]
+这些公式仅在 $r>0$ 成立；若要求函数在原点也为 $C^2$，则 $C_2$ 必须为零。
+\end{solve}
+
+例如，位于不同点 $a_i$ 的质量 $m_i>0$ 所产生的引力场，在所有质量点以外可写为
+\[
+\boldsymbol F(\boldsymbol x)
+=-G\sum_i m_i\frac{\boldsymbol x-a_i}{|\boldsymbol x-a_i|^3}
+=\nabla\left(G\sum_i\frac{m_i}{|\boldsymbol x-a_i|}\right),
+\]
+其中 $G>0$ 是引力常数。它在每个非奇点处既无旋又无源，但闭曲面若包围质量点，其通量一般不为零；可由例~\ref{ex:pei-inverse-square-flux} 平移并相加计算。
+
+\subsection{无源场、向量位与流管守恒}
+
+满足 $\nabla\cdot\boldsymbol F=0$ 的向量场称为\emph{无源场或管量场（solenoidal field）}。对任何连同所围区域一起位于定义域内的闭曲面，Gauss 公式保证其通量为零；反过来，若每个充分小球面的通量都为零，式~\eqref{eq:pei-local-divergence} 保证散度为零。\emph[caution]{“曲面位于定义域内”与“曲面所围区域也位于定义域内”是不同条件}，例~\ref{ex:pei-inverse-square-flux} 正是两者不能混同的反例。
+
+若存在 $\boldsymbol B$ 使 $\boldsymbol F=\nabla\times\boldsymbol B$，称 $\boldsymbol B$ 为 $\boldsymbol F$ 的\emph{向量位（vector potential）}。对 $C^2$ 向量位，由式~\eqref{eq:pei-curl-grad-div-curl}，$\boldsymbol F$ 必无源；而且任一位于其定义域内的闭定向曲面上的通量均为零，因为 Stokes 公式在无边界曲面上的右端对应零环量。无源条件本身一般不足以保证全局向量位存在：在 $\mathbb R^3\setminus\{0\}$ 上，$\boldsymbol x/r^3$ 散度为零，但单位球面通量为 $4\pi$，所以它不可能在整个穿孔空间上写成一个光滑场的旋度。这个区域虽单连通，却仍有不能忽略的二维拓扑障碍。
+
+若 $D$ 为星形区域，则无源场存在全局向量位。对 $\boldsymbol F\in C^2(D)$，把星形中心平移到原点后，一个构造为
+\begin{equation}
+\label{eq:pei-star-shaped-vector-potential}
+\boldsymbol B(X)=\int_0^1t\bigl(\boldsymbol F(tX)\times X\bigr)\,dt.
+\end{equation}
+利用式~\eqref{eq:pei-curl-cross} 及 $\nabla\cdot\boldsymbol F=0$，有
+\[
+\nabla\times\bigl(\boldsymbol F(tX)\times X\bigr)
+=2\boldsymbol F(tX)+t(X\cdot\nabla)\boldsymbol F(tX).
+\]
+再乘 $t$ 并积分，恰为 $\int_0^1\frac d{dt}(t^2\boldsymbol F(tX))\,dt=\boldsymbol F(X)$，从而验证了构造。若 $\boldsymbol B$ 为一个向量位，则 $\boldsymbol B+\nabla\phi$ 仍为向量位；反过来，两个向量位之差无旋，只有在相应定义域满足全局势函数条件时，才能断言其差必为某个全局梯度。
+
+最后，若一段流管的侧壁处处与 $\boldsymbol F$ 相切，且管段闭包位于无源场的定义域内，则侧壁通量为零。把管段的两个横截面均按同一流向定向，Gauss 公式给出
+\[
+\iint_{S_2}\boldsymbol F\cdot\boldsymbol n_2\,dS
+-\iint_{S_1}\boldsymbol F\cdot\boldsymbol n_1\,dS=0.
+\]
+负号来自入口横截面的指定方向与管段的外法向相反。由此同一流管不同横截面的通量相等；这一守恒关系同时说明了“管量场”一名的几何含义。
+
+
+
+

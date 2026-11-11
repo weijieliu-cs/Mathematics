@@ -1,0 +1,143 @@
+% !TeX root = ../泛函分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{12} % 保留原书章号。
+\chapter{变分方法与方程的弱解}
+\label{chap:fa-variational}
+
+许多方程可以从能量极小化或对所有测试函数成立的积分恒等式得到。以下以实空间为主，展示抽象定理怎样给出具体问题的存在性、唯一性和稳定性。
+
+\section{能量最小化的直接法}
+函数 $E:C\to\mathbb R\cup\{+\infty\}$ 称为弱序列下半连续，若 $u_n\rightharpoonup u$ 且 $u_n,u\in C$ 时，$E(u)\leq\liminf_nE(u_n)$；称为\emph{强制的（coercive）}，若沿 $C$ 中任意满足 $\|u_n\|\to\infty$ 的序列都有 $E(u_n)\to+\infty$。
+
+允许取 $+\infty$ 可以把不允许的状态并入目标函数；有效定义域是 $\operatorname{dom}E=\{u\in C:E(u)<+\infty\}$。所谓严格凸，是要求有效定义域为凸集，且不同的 $u,v$ 与 $0<t<1$ 满足 $E((1-t)u+tv)<(1-t)E(u)+tE(v)$。弱下半连续表示取弱极限时能量不会向上跳；这恰好适合证明极小点，因为极小化序列的极限只要能量不增，就必须达到下确界。
+
+\begin{theorem}[直接法]\label{thm:fa-direct-method}
+设 $X$ 为实自反 Banach 空间，$C\subset X$ 非空且弱序列闭。若 $E:C\to\mathbb R\cup\{+\infty\}$ 弱序列下半连续、强制，且 $-\infty<\inf_CE<+\infty$，则 $E$ 在 $C$ 上取得最小值。若 $C$ 凸且 $E$ 在有效定义域上严格凸，则极小点唯一。
+\end{theorem}
+\begin{proof}
+选 $u_n\in C$ 使 $E(u_n)\to m=\inf_CE$。若序列不有界，便可取范数趋于无穷的子列，强制性将迫使其能量趋于无穷，与趋于有限 $m$ 矛盾。因此存在弱收敛子列 $u_{n_k}\rightharpoonup u$。约束的弱序列闭性给出 $u\in C$，下半连续性给出 $E(u)\leq m$，所以等号成立。若存在两个不同极小点，严格凸性使其中点能量严格小于 $m$，矛盾。
+\end{proof}
+范数连续的凸函数弱下半连续：其各个下水平集是范数闭凸集，因而弱闭。这个判别常比直接估计弱极限更方便。
+
+\begin{example}[直接法的完整使用]
+在实 Hilbert 空间 $H$ 中，设 $C\subset H$ 非空、闭且凸，$g\in H$。则 $E(u)=\frac12\|u\|^2-\langle u,g\rangle$ 在 $C$ 上有唯一极小点。
+\end{example}
+\begin{solve}
+Cauchy--Schwarz 给出 $E(u)\geq\frac12\|u\|^2-\|g\|\|u\|$，所以 $E$ 有下界且强制；在任一固定 $u_0\in C$ 处有限，故下确界也是有限数。平方范数弱下半连续，线性项弱连续，所以 $E$ 弱下半连续。Hilbert 空间自反，闭凸集弱闭，直接法给出存在性。平方范数严格凸，减去线性项仍严格凸，所以极小点唯一。配方 $E(u)=\frac12\|u-g\|^2-\frac12\|g\|^2$ 又说明它恰为 $P_Cg$，把直接法与投影定理联系起来。
+\end{solve}
+
+\section{Lax--Milgram 定理}
+\begin{theorem}\label{thm:fa-lax-milgram}
+设 $H$ 为实 Hilbert 空间，双线性形式 $a:H\times H\to\mathbb R$ 满足
+\[
+ |a(u,v)|\leq M\|u\|\|v\|,\qquad
+ a(v,v)\geq\alpha\|v\|^2,
+ \qquad M<\infty,\quad\alpha>0.
+\]
+则对每个 $f\in H^*$，存在唯一 $u\in H$ 满足
+\begin{equation}
+ a(u,v)=f(v)\quad(v\in H),\qquad
+ \|u\|\leq\alpha^{-1}\|f\|.
+ \label{eq:fa-lax-milgram}
+\end{equation}
+\end{theorem}
+\begin{proof}
+由 Riesz 表示，存在有界线性算子 $A$ 使 $a(u,v)=\langle Au,v\rangle$，并存在 $g$ 使 $f(v)=\langle g,v\rangle$。强制性给出 $\|Au\|\geq\alpha\|u\|$，所以 $A$ 单射且值域闭。若 $z\perp\operatorname{Ran}A$，则 $a(v,z)=0$ 对所有 $v$ 成立，取 $v=z$ 得 $z=0$。故值域又稠密，从而等于 $H$。唯一解为 $A^{-1}g$，同一下界给出所述估计。
+\end{proof}
+若 $a$ 对称，解还等价于最小化 $E(v)=\frac12a(v,v)-f(v)$，因为
+\[
+ E(u+h)-E(u)=\tfrac12a(h,h)\geq\tfrac\alpha2\|h\|^2.
+\]
+反过来，在任意方向对能量的一元二次式取导，得到弱方程。非对称情形不能用这一能量直接替代原方程，因为能量只反映双线性形式的对称部分。
+
+\section{弱导数与 Sobolev 空间}
+Lax--Milgram 定理的下界 $a(v,v)\geq\alpha\|v\|^2$ 也称强椭圆性或强制性估计；它比仅有 $a(v,v)>0$（$v\ne0$）更强。在 $\ell^2$ 上，$a(u,v)=\sum_ju_jv_j/j$ 对非零 $v$ 确有 $a(v,v)>0$，但 $a(e_j,e_j)=1/j\to0$，不存在统一的 $\alpha>0$。对应算子正是 $u_j\mapsto u_j/j$，其值域不满，故并非每个连续右端都可解。这说明无限维中的正定性不能自动提供稳定下界。
+
+若右端从 $f$ 变为 $\widetilde f$，相减并再次使用定理，可得 $\|u-\widetilde u\|\leq\alpha^{-1}\|f-\widetilde f\|$。因此强制常数同时控制存在性证明中的逆算子和数据扰动的放大程度。接下来选择 Sobolev 空间，正是为了使微分方程转成满足这类估计的双线性形式。
+
+\section{弱导数与 Sobolev 空间}
+设 $\Omega\subset\mathbb R^d$ 开，$C_c^\infty(\Omega)$ 表示光滑且支撑为 $\Omega$ 内紧集的测试函数。对局部可积 $u$，若局部可积 $v_j$ 满足
+\[
+ \int_\Omega u\,\partial_j\varphi\,\mathrm dx
+ =-\int_\Omega v_j\varphi\,\mathrm dx
+ \quad(\varphi\in C_c^\infty(\Omega)),
+\]
+称 $v_j$ 为 $u$ 的第 $j$ 个\emph{弱导数（weak derivative）}，记为 $\partial_ju$。它在几乎处处意义下唯一；所用事实是局部可积函数若对所有测试函数积分为零，则几乎处处为零，可由光滑逼近恒等元证明。
+
+这个定义把导数转移到光滑测试函数上，使 $u$ 本身无需处处可微。测试函数支撑远离边界，所以没有边界项。若 $u$ 经典可微且导数局部可积，分部积分立即表明经典导数也是弱导数；新定义因此延续了原有微积分，而非另行指定一个不相关的量。
+
+\begin{example}[尖角允许，跳跃需要不同的导数概念]
+在 $(-1,1)$ 上，$u(t)=|t|$ 的弱导数为 $v(t)=-1$（$t<0$）、$v(t)=1$（$t>0$），在零点任意赋值均可；而阶跃函数 $w(t)=\mathbf1_{(0,1)}(t)$ 没有局部可积的弱导数。
+\end{example}
+\begin{solve}
+把 $\int |t|\varphi'(t)$ 在零点分开，两侧分部积分，零点处的边界项因 $|0|=0$ 消失，得到 $-\int v\varphi$。所以 $|t|\in H^1(-1,1)$，尽管它在零点没有经典导数。阶跃函数则满足 $\int w\varphi'=-\varphi(0)$。若存在局部可积 $v$，应有 $\int v\varphi=\varphi(0)$。选择满足 $0\leq\varphi_n\leq1$、$\varphi_n(0)=1$ 且支撑缩到零点的光滑函数，由局部可积性及支配收敛，左侧趋零，右侧却恒为一，矛盾。在分布理论中这个导数称为 Dirac 点质量，但它不是 $L^1_{\mathrm{loc}}$ 函数，因此阶跃函数不属于 $H^1(-1,1)$。
+\end{solve}
+
+\emph{Sobolev 空间（Sobolev space）}$H^1(\Omega)$ 定义为 $u\in L^2(\Omega)$ 且所有一阶弱导数属于 $L^2(\Omega)$ 的集合，赋予范数
+\[
+ \|u\|_{H^1}^2=\|u\|_2^2+\sum_{j=1}^d\|\partial_ju\|_2^2.
+\]
+它是 Hilbert 空间：若 $u_n$ 及各弱导数分别在 $L^2$ 中收敛到 $u,v_j$，则在测试恒等式中利用 Cauchy--Schwarz 取极限，得 $v_j=\partial_ju$。定义 $H_0^1(\Omega)$ 为 $C_c^\infty(\Omega)$ 在 $H^1$ 中的闭包，所以它也完备；这是齐次边界条件的一种不依赖逐点边界值的定义。
+
+若 $\Omega$ 有界，则存在 $C_\Omega$ 使
+\begin{equation}
+ \|u\|_2\leq C_\Omega\|\nabla u\|_2\quad(u\in H_0^1(\Omega)).
+ \label{eq:fa-poincare}
+\end{equation}
+这是 Poincaré 不等式。对测试函数，将其零延拓到包含 $\Omega$ 的有界长方体，沿一个坐标方向使用微积分基本定理及 Cauchy--Schwarz，再积分即可得估计；一般 $u$ 由定义中的稠密性取极限。因此 $\|\nabla u\|_2$ 是 $H_0^1$ 上与原范数等价的 Hilbert 范数。
+
+在区间 $(0,1)$ 上，上述计算尤其清楚：对 $u\in C_c^\infty(0,1)$，
+\[
+ |u(t)|^2=\left|\int_0^tu'(s)\,\mathrm ds\right|^2
+ \leq t\int_0^t|u'(s)|^2\,\mathrm ds\leq\|u'\|_2^2.
+\]
+再对 $t$ 积分，得到 $\|u\|_2\leq\|u'\|_2$，一般 $H_0^1$ 函数由稠密性得到同一结论。若换成 $H^1(0,1)$，常值函数 $u=1$ 的导数为零而函数范数非零，估计立刻失败。因此边界条件承担了排除常数核的作用。
+
+\section{Poisson 方程的弱形式}
+对有界开集 $\Omega$，用梯度范数赋予 $H_0^1(\Omega)$ Hilbert 结构，并定义 $H^{-1}(\Omega)=(H_0^1(\Omega))^*$。给定 $f\in H^{-1}(\Omega)$，求 $u\in H_0^1(\Omega)$ 满足
+\[
+ \int_\Omega\nabla u\cdot\nabla v\,\mathrm dx=f(v)
+ \quad(v\in H_0^1(\Omega)).
+\]
+这里 $a(u,v)=\int\nabla u\cdot\nabla v$ 的有界常数和强制常数都为一，故 Lax--Milgram 定理给出唯一解及 $\|\nabla u\|_2\leq\|f\|_{H^{-1}}$。若 $f\in L^2$，将其视为 $v\mapsto\int fv$，Poincaré 不等式给出连续性。
+
+若 $u$ 足够光滑，分部积分将该恒等式化为 $-\Delta u=f$ 及零边界条件；反之，弱解自动具有经典导数或逐点边界值并非形式推理的结果，还需要额外正则性条件。
+
+\section{Galerkin 逼近与 Céa 估计}
+取有限维子空间 $H_n\subset H$，求 $u_n\in H_n$ 使 $a(u_n,v_n)=f(v_n)$ 对所有 $v_n\in H_n$ 成立。限制后的形式仍有界且强制，所以离散解唯一。令 $e=u-u_n$，相减得到 Galerkin 正交性 $a(e,v_n)=0$，于是对任意 $w_n\in H_n$，
+\[
+ \alpha\|e\|^2\leq a(e,e)=a(e,u-w_n)
+ \leq M\|e\|\|u-w_n\|.
+\]
+因此
+\begin{equation}
+ \|u-u_n\|\leq\frac M\alpha\inf_{w_n\in H_n}\|u-w_n\|.
+ \label{eq:fa-cea}
+\end{equation}
+这称为 Céa 估计。若右侧最佳逼近误差趋零，则离散解收敛；单凭“子空间有限维”不能推出该逼近性质。
+
+取 $H_n$ 的基 $\phi_1,\ldots,\phi_m$，令 $u_n=\sum_jc_j\phi_j$，则待解的有限维系统为 $Ac=b$，其中 $A_{ij}=a(\phi_j,\phi_i)$、$b_i=f(\phi_i)$。如果 $a$ 对称，$A$ 对称正定；若 $a$ 不对称，不能称矩阵对称，但强制性仍保证齐次系统只有零解，因此有限维系统可逆。Céa 估计把离散求解的误差归结为所选子空间的逼近能力；它本身不指定逼近误差关于网格尺度的收敛阶，那还取决于解的光滑性和基函数的选择。
+
+\section{例题与习题}
+\begin{example}
+方程 $-u''=1$、$u(0)=u(1)=0$ 的弱解为 $u(t)=t(1-t)/2$。
+\end{example}
+\begin{solve}
+此函数属于 $H_0^1(0,1)$。先对光滑紧支撑 $v$ 分部积分得 $\int_0^1u'v'=\int_0^1v$，再由稠密性扩展到所有 $v\in H_0^1$，故它是弱解；唯一性由 Lax--Milgram 定理保证。若用分片线性基 $\phi_j$ 逼近，系数满足 $\sum_j(\int\phi_j'\phi_i')c_j=\int\phi_i$，刚度矩阵的正定性来自梯度能量。
+\end{solve}
+
+例如将区间分成三段，节点为 $0,1/3,2/3,1$，取在两个内部节点分别为一、其余节点为零的连续分片线性帽函数 $\phi_1,\phi_2$。每段斜率为 $3$、$-3$ 或零，直接积分得到
+\[
+ \begin{pmatrix}6&-3\\-3&6\end{pmatrix}
+ \begin{pmatrix}c_1\\c_2\end{pmatrix}
+ =\begin{pmatrix}1/3\\1/3\end{pmatrix},
+ \qquad c_1=c_2=1/9.
+\]
+因此近似解是依次经过 $(0,0),(1/3,1/9),(2/3,1/9),(1,0)$ 的折线。本例的节点值恰等于精确解的节点值，但两个节点之间的抛物线与折线仍有差别；节点上的相等不代表两函数处处相等。梯度范数下的误差由式\eqref{eq:fa-cea}控制，这才是相应函数空间中的收敛含义。
+\begin{enumerate}
+ \item 在 $H_0^1(0,1)$ 上证明 $\|u\|_2\leq\|u'\|_2$，不要求求最佳常数。
+ \item 用能量差证明对称强制形式的极小点唯一。
+ \item 说明若改在 $H^1(0,1)$ 上只使用 $a(u,v)=\int u'v'$，常数函数如何导致不唯一。
+ \item\label{exer:fa-galerkin} 对嵌套且并集稠密的 $H_n$，由式\eqref{eq:fa-cea}证明 $u_n\to u$。
+\end{enumerate}
+

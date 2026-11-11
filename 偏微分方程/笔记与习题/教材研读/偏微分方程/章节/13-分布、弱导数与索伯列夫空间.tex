@@ -1,0 +1,110 @@
+% !TeX root = ../偏微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{12} % 保留原书章号。
+\chapter{分布、弱导数与索伯列夫空间}
+\label{chap:sobolev}
+
+经典导数要求逐点极限存在，弱导数则用积分刻画变化。这样既能保留分部积分，也能使能量有界但不光滑的函数进入方程。本章起允许使用勒贝格积分；相关基础见附录\ref{app:analysis}。
+
+可以先回忆拨弦例题：三角形初位移具有有限能量，却在中点没有经典一阶导数。若只接受处处光滑的函数，就会把一个自然的初始形状排除在外。再看数值计算中的分片线性函数，它们在单元交界处也有尖角，但斜率的平方仍可积分。弱导数的目的，就是建立一种既容纳这些函数、又能进行能量估计的微分语言；它不是把导数的定义随意放松，而是把分部积分恒等式作为必须保留的规则。
+
+\section{测试函数与分布导数}
+\emph{测试函数（test function）}是 $\varphi\in C_c^\infty(\Omega)$，即光滑且支集紧含于 $\Omega$ 的函数。所谓 $\varphi_j\to0$，指它们的支集均含于同一紧集，且每阶导数都一致趋于零。\emph{分布（distribution）}是对此收敛连续的线性泛函 $S$，作用记为 $\langle S,\varphi\rangle$。
+
+局部可积函数通过 $\langle u,\varphi\rangle=\int u\varphi$ 定义分布；\emph{狄拉克分布（Dirac distribution）}则由 $\langle\delta_a,\varphi\rangle=\varphi(a)$ 定义，不是普通的可积函数。分布导数规定为
+\[
+ \langle\partial_jS,\varphi\rangle=-\langle S,\partial_j\varphi\rangle.
+\]
+这个负号恰好延续光滑函数的分部积分规则，且所有分布都可以任意次求导。
+
+测试函数可以理解为一个局部测量权重：$\int u\varphi$ 汇总 $\varphi$ 所在小区域内的数值，而紧支集保证靠近区域边界时权重已经为零，从而分部积分不留下外边界项。狄拉克分布的作用则是直接读取一点的测试值。若用宽度越来越小、面积始终为一的非负光滑峰近似它，峰的逐点形状不会收敛为普通可积函数，但对每个固定测试函数的积分却收敛为取值作用。分布收敛描述的正是这种测量结果的收敛。
+
+\section{弱导数与多重指标}
+令 $\alpha=(\alpha_1,\ldots,\alpha_n)$ 为非负整数多重指标，$|\alpha|=\sum\alpha_j$，$D^\alpha=\partial_1^{\alpha_1}\cdots\partial_n^{\alpha_n}$。
+\begin{definition}
+若 $u,v\in L^1_{\mathrm{loc}}(\Omega)$ 且
+\begin{equation}
+ \int_\Omega uD^\alpha\varphi\,dx=(-1)^{|\alpha|}\int_\Omega v\varphi\,dx
+ \quad\text{对所有 }\varphi\in C_c^\infty(\Omega),
+ \label{eq:weak-derivative}
+\end{equation}
+则称 $v$ 为 $u$ 的 $\alpha$ 阶\emph{弱导数（weak derivative）}。
+\end{definition}
+弱导数若存在则几乎处处唯一：两者之差与所有测试函数的积分为零，用光滑逼近或勒贝格微分定理即可推出该差几乎处处为零。经典导数在足够局部可积时也是弱导数，但一般分布导数未必可由函数表示。
+
+\begin{example}
+在 $(-1,1)$ 上，$u(x)=|x|$ 的弱导数为 $\operatorname{sgn}x$，二阶分布导数为 $2\delta_0$。阶跃函数 $H(x)=\mathbf1_{\{x>0\}}$ 的分布导数为 $\delta_0$。
+\end{example}
+\begin{proof}
+分别在负半轴和正半轴分部积分。$|x|$ 本身在零点连续，第一次求导的边界项抵消；其一阶导数从 $-1$ 跳到 $1$，第二次产生 $2\varphi(0)$。同理 $-\int_0^1\varphi'=\varphi(0)$，所以 $H'=\delta_0$。
+\end{proof}
+
+这些例子显示“几乎处处的经典导数”与“弱导数”不可混同。阶跃函数在零点之外的经典导数都是零，但它的弱导数并不是零函数，因为跨越跳跃时仍会产生测试值 $\varphi(0)$。一般地，若 $u$ 在一点 $a$ 两侧分别为 $C^1$，函数及其一阶导数在 $a$ 处均有有限单侧极限，则分布导数为
+\[
+ Du=u'_{\mathrm{piece}}+(u(a+)-u(a-))\delta_a,
+\]
+其中 $u'_{\mathrm{piece}}$ 是两侧普通导数组成的函数。函数本身连续时点质量消失；函数跳跃时则必须保留。这条计算规则将在守恒律中产生间断传播条件。
+
+\section{索伯列夫空间与光滑逼近}
+\begin{definition}
+对整数 $k\ge0$、$1\le p<\infty$，\emph{索伯列夫空间（Sobolev space）}定义为
+\[
+ W^{k,p}(\Omega)=\{u\in L^p(\Omega):D^\alpha u\in L^p(\Omega),\ |\alpha|\le k\},\qquad
+ \|u\|_{W^{k,p}}=\left(\sum_{|\alpha|\le k}\|D^\alpha u\|_p^p\right)^{1/p}.
+\]
+导数均按弱意义理解；$p=\infty$ 时改用这些导数的本性上确界范数之和。记 $H^k=W^{k,2}$，其自然内积使之成为希尔伯特空间。
+\end{definition}
+这些空间完备：若 $u_j$ 在该范数下为柯西列，则各阶导数分别在 $L^p$ 中收敛；在式\eqref{eq:weak-derivative}中传递极限，便可识别极限之间的弱导数关系。
+
+\begin{example}[尖角可以多尖]
+对 $u(x)=x^\alpha$、$0<x<1$，设 $\alpha>0$，判断何时属于 $H^1(0,1)$。
+\end{example}
+\begin{solve}
+函数本身平方可积，因为 $\int_0^1x^{2\alpha}dx<\infty$。区间内部的导数为 $\alpha x^{\alpha-1}$，它也是弱导数；其平方可积当且仅当
+\[
+ \int_0^1\alpha^2x^{2\alpha-2}dx<\infty
+ \quad\Longleftrightarrow\quad 2\alpha-2>-1
+ \quad\Longleftrightarrow\quad \alpha>\frac12.
+\]
+因此连续性本身不保证有限的 $H^1$ 能量，例如 $\sqrt{x}$ 连续但导数平方的积分对数发散。若 $\alpha=0$，函数是常数、导数为零，应单独处理，不能把它机械代入针对 $\alpha>0$ 的幂次判断。
+\end{solve}
+
+取 $\eta\in C_c^\infty(\mathbb R^n)$、$\eta\ge0$、$\int\eta=1$，令 $\eta_\varepsilon(x)=\varepsilon^{-n}\eta(x/\varepsilon)$。卷积 $u_\varepsilon=\eta_\varepsilon*u$ 称\emph{磨光（mollification）}。在远离边界的紧子区域上，$p<\infty$ 时 $u_\varepsilon\to u$ 于相应 $W^{k,p}$ 范数，且 $D^\alpha u_\varepsilon=\eta_\varepsilon*D^\alpha u$。靠近边界需延拓或截断，不能自动认为卷积保持零边值。
+
+\section{迹、零边界空间与庞加莱不等式}
+定义 $H_0^1(\Omega)$ 为 $C_c^\infty(\Omega)$ 在 $H^1$ 中的闭包。\emph{利普希茨区域（Lipschitz domain）}指边界在每一点附近经过刚体坐标变换后，能写成利普希茨函数的图像，且区域局部位于图像的一侧；利普希茨条件为 $|F(x)-F(y)|\le L|x-y|$，其中 $L$ 为有限常数。对有界利普希茨区域，存在连续的\emph{迹算子（trace operator）}$\operatorname{Tr}:H^1(\Omega)\to L^2(\partial\Omega)$，在光滑函数上等于边界限制，且其核恰为 $H_0^1(\Omega)$。这里的边界值由连续延拓定义，与改变函数在零测集上的代表无关。
+
+一维区间可以直接说明迹为何受到 $H^1$ 范数控制。对 $v\in C^1([0,\ell])$，由 $v(0)=v(x)-\int_0^xv'(s)ds$、$|a+b|^2\le2|a|^2+2|b|^2$ 与柯西--施瓦茨不等式，得到
+\[
+ |v(0)|^2\le2|v(x)|^2+2\ell\|v'\|_2^2.
+\]
+再对 $x$ 取平均，便有 $|v(0)|^2\le(2/\ell)\|v\|_2^2+2\ell\|v'\|_2^2$，右端控制光滑逼近序列的端点值，因此可把取值操作连续延拓到 $H^1$。如果只用 $L^2$ 范数，则宽度趋零而端点值为一的小三角峰就能反驳这种控制。迹定理依赖导数信息，而不是直接给等价类中的任意代表强行指定边值。
+
+\begin{theorem}[庞加莱不等式]
+若 $\Omega$ 有界，则存在 $C_P>0$，使 $\|v\|_2\le C_P\|\nabla v\|_2$ 对所有 $v\in H_0^1(\Omega)$ 成立。若 $\Omega$ 还连通且为利普希茨区域，则同类估计对零平均值的 $H^1$ 函数也成立。
+\end{theorem}
+\begin{proof}[零边界情形的证明]
+把 $\Omega$ 放在宽度 $L$ 的长方体内，对 $v\in C_c^\infty(\Omega)$ 作零延拓。沿第一坐标有 $v(x)=\int_a^{x_1}\partial_1v(s,x')\,ds$，由柯西--施瓦茨及再积分得 $\|v\|_2\le L\|\partial_1v\|_2$。再用定义中的稠密性推广到 $H_0^1$。
+\end{proof}
+零平均值情形可由下节紧性反证：若估计失败，取 $\|v_j\|_2=1$、$\|\nabla v_j\|_2\to0$、均值为零的序列，紧性给出 $L^2$ 极限 $v$；其弱梯度为零，连通性使 $v$ 为常数，均值为零又迫使 $v=0$，与范数为一矛盾。
+
+\section{嵌入与紧性}
+对有界利普希茨区域，\emph{索伯列夫嵌入（Sobolev embedding）}提供以下常用结论：$n>2$ 时 $H^1\hookrightarrow L^{2n/(n-2)}$；$n=2$ 时 $H^1\hookrightarrow L^q$ 对所有有限 $q$ 成立；$n=1$ 的区间上 $H^1$ 函数具有连续代表并嵌入 $L^\infty$。箭头表示存在控制相应范数的常数，不表示保持相同范数。
+
+\emph{雷利希--孔德拉绍夫紧性定理（Rellich--Kondrachov compactness theorem）}进一步给出 $H^1(\Omega)\hookrightarrow L^2(\Omega)$ 的紧嵌入：每个 $H^1$ 有界序列有一个 $L^2$ 强收敛子列。一般不能在临界指数处把连续嵌入改成紧嵌入。这些定理的完整证明需实分析工具，本书使用上述明确范围，进一步证明可参见文献\cite{hunter}第3章。
+
+连续嵌入只保证“有界的输入产生有界的输出”，紧嵌入还保证能抽出收敛子列。二者差别可由 $v_k(x)=\sin(kx)$（$0<x<\pi$）看出：$\|v_k\|_2$ 恒定，而 $\|v_k'\|_2$ 随 $k$ 增长，所以它们不构成 $H^1$ 有界序列，不能用上述紧性定理。梯度约束排除了振幅不降的任意快速振荡。在无界区域中，即使梯度有界，一个固定形状不断向远处平移，也会阻碍全空间 $L^2$ 紧性；区域有界这一假设有实际作用。
+
+\section{例题与习题}
+\begin{example}
+判断 $|x|$ 在 $(-1,1)$ 上是否属于 $H^1$、$H^2$ 和 $H_0^1$。
+\end{example}
+\begin{solve}
+$|x|$ 及其弱导数 $\operatorname{sgn}x$ 均平方可积，故属于 $H^1$；二阶导数为点质量，不能由 $L^2$ 函数表示，故不属于 $H^2$。它的两个端点迹均为 $1$，故不属于 $H_0^1$。相反 $1-|x|$ 属于 $H_0^1$，但仍不属于 $H^2$。
+\end{solve}
+\begin{enumerate}
+ \item 在区间上直接证明 $|v(x)-v(y)|\le\|v'\|_2|x-y|^{1/2}$，先对光滑函数再由逼近推广。
+ \item 说明非零常数为何反驳没有边界或均值约束的庞加莱不等式。
+ \item 举出弱收敛而不强收敛的 $L^2$ 序列，比较它与紧嵌入所要求的 $H^1$ 有界性。
+\end{enumerate}
+

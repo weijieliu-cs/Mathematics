@@ -1,0 +1,119 @@
+% !TeX root = ../数值分析与科学计算笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{8} % 保留原书章号。
+\chapter{数值微分与数值积分}
+\label{chap:na-quadrature}
+
+\section{差分公式与误差平衡}
+\emph{有限差分（finite difference）}用函数值的线性组合近似导数。Taylor 展开给出前向差分 $D_h^+f(x)=[f(x+h)-f(x)]/h=f'(x)+O(h)$，以及中心差分
+\begin{equation}
+ D_h^0f(x)=\frac{f(x+h)-f(x-h)}{2h}=f'(x)+O(h^2).
+ \label{eq:na-central-difference}
+\end{equation}
+前者要求局部二阶光滑，后者要求局部三阶光滑。若 $f\in C^3[x-h,x+h]$，中心差分的截断误差绝对值不超过 $h^2\|f'''\|_\infty/6$，由两端 Taylor 余项相加可得。
+
+如果每个函数值带有绝对误差至多 $\eta$，中心差分的输入误差贡献至多为 $\eta/h$。因此差分越细并非越准：截断误差随 $h$ 减小，数据与舍入误差却被除以 $h$ 放大。若 $\eta$ 与 $u$ 同阶且函数尺度固定，平衡 $C_1h^2+C_2u/h$ 得到 $h$ 的量级为 $u^{1/3}$；这只是尺度模型，不是对所有函数通用的最佳步长。
+
+二阶中心差分为
+\[
+ \frac{f(x+h)-2f(x)+f(x-h)}{h^2}=f''(x)+O(h^2),
+\]
+通常要求 $f\in C^4$。它把函数值噪声进一步放大到 $O(\eta/h^2)$，因而对含噪测量直接反复数值微分尤其需要谨慎。
+
+\section{求积公式与代数精度}
+\begin{definition}[求积公式的代数精度]
+对积分 $I(f)=\int_a^bf(x)\,\mathrm dx$，求积公式（quadrature rule）为 $Q(f)=\sum_{j=1}^m w_jf(x_j)$。若对所有次数不超过 $d$ 的多项式有 $Q(p)=I(p)$，但对某个 $d+1$ 次多项式不成立，则称其代数精度（degree of exactness）为 $d$。
+\end{definition}
+插值型求积先插值再积分，权重为 Lagrange 基函数的积分。梯形公式与 Simpson 公式分别为
+\[
+ T(f)=\frac{b-a}{2}[f(a)+f(b)],\qquad
+ S(f)=\frac{b-a}{6}\left[f(a)+4f\left(\frac{a+b}{2}\right)+f(b)\right].
+\]
+梯形代数精度为 $1$。Simpson 虽来自二次插值，但对称性使三次项也积得精确，其代数精度为 $3$。代数精度不是对任意函数都精确的声明，也不同于网格方法的全局收敛阶。
+
+\begin{theorem}[复合梯形与复合 Simpson 的误差]
+\label{thm:na-composite-quadrature}
+令 $x_i=a+ih$、$h=(b-a)/N$。复合梯形
+\[
+ T_h=h\left[\frac{f(a)+f(b)}2+\sum_{i=1}^{N-1}f(x_i)\right]
+\]
+在 $f\in C^2[a,b]$ 时满足
+\[
+ I(f)-T_h=-\frac{b-a}{12}h^2f''(\xi)
+\]
+对某个 $\xi\in(a,b)$ 成立。若 $N$ 为偶数且 $f\in C^4[a,b]$，复合 Simpson
+\[
+ S_h=\frac h3\left[f(a)+f(b)+4\sum_{\substack{1\le i<N\\i\text{ 为奇数}}}f(x_i)
+ +2\sum_{\substack{2\le i<N\\i\text{ 为偶数}}}f(x_i)\right]
+\]
+满足 $I(f)-S_h=-(b-a)h^4f^{(4)}(\xi)/180$，其中 $\xi$ 可与前式不同。
+\end{theorem}
+\begin{proof}[误差公式的推导要点]
+在单个宽为 $h$ 的区间，积分线性插值余项并利用节点乘积恒为非正，可得梯形误差 $-h^3f''(\xi_i)/12$。相加后由 $f''$ 连续性得到全局公式。Simpson 误差需要保留其三次精确性，不能仅积分二次插值余项便宣称四阶。令单段误差泛函为 $L=I-S$；由带积分余项的三阶 Taylor 公式及 $L$ 消去三次以下多项式，得 $L(f)=\int_a^b K(t)f^{(4)}(t)\,\mathrm dt$，其中 $K(t)=L((x-t)_+^3/6)$，$(s)_+=\max(s,0)$。在单位区间上直接代入有
+\[
+ K_0(t)=\begin{cases}
+ -t^3(2-3t)/72,&0\le t\le1/2,\\
+ -(1-t)^3(3t-1)/72,&1/2\le t\le1.
+ \end{cases}
+\]
+所以 $K_0\le0$，积分为 $-1/2880$。仿射变换给出一般区间上的 $K(t)=(b-a)^4K_0((t-a)/(b-a))$，故 $\int_a^bK(t)\,\mathrm dt=-(b-a)^5/2880$。因此每个宽 $2h$ 的 Simpson 段误差为 $-h^5f^{(4)}(\xi_i)/90$，相加即得全局公式。
+\end{proof}
+
+\begin{example}[带确定误差界的积分]
+对 $\int_0^1e^x\,\mathrm dx=e-1$，取 $N=10$，复合梯形误差上界为 $e/1200$，复合 Simpson 误差上界为 $e/(180\cdot10^4)$。二者都以同一最细网格为基础；这是可计算的先验界，实际误差通常更小，但不能仅用“通常”代替精度保证。
+\end{example}
+
+\section{Richardson 外推、Romberg 积分与自适应}
+\label{sec:na-richardson}
+若近似量满足 $A(h)=A+ch^p+O(h^{p+q})$，其中 $q>0$，则
+\begin{equation}
+ \frac{2^pA(h/2)-A(h)}{2^p-1}=A+O(h^{p+q}).
+ \label{eq:na-richardson}
+\end{equation}
+这是消去首个误差项的 Richardson 外推（Richardson extrapolation）。它依赖可用的渐近展开；函数不光滑、含奇点或舍入主导时，形式消项不代表真实改进。
+
+对足够光滑的积分函数，复合梯形误差具有偶次幂展开。令 $R_{j,0}=T_{(b-a)/2^j}$，递推
+\[
+ R_{j,k}=R_{j,k-1}+\frac{R_{j,k-1}-R_{j-1,k-1}}{4^k-1},\qquad1\le k\le j,
+\]
+得到 Romberg 表。每一列需要相应更高阶的光滑性才能解释其阶数；复用旧节点，只新增中点评价可以降低函数调用成本。
+
+自适应 Simpson 在一段上比较一次 Simpson 值 $S_1$ 与二等分后的和 $S_2$。若局部四阶误差展开有效，$|S_2-S_1|/15$ 近似估计较细结果的误差，修正值为 $S_2+(S_2-S_1)/15$。算法输入函数、区间、绝对容差和最大递归深度；若估计量未达局部容差，就把容差分给两个子区间并继续，最后相加。必须限制最小区间、递归深度和评价次数。因估计量可能漏掉节点间的尖峰或振荡，它是后验估计而非无条件严格上界。
+
+\section{Gauss 求积：把节点也作为未知量}
+令 $w$ 在 $[a,b]$ 上连续且严格为正，考虑 $I_w(f)=\int_a^bf(x)w(x)\,\mathrm dx$。对该权构造 $n$ 次首一正交多项式 $\pi_n$，即它与所有 $\mathcal P_{n-1}$ 中多项式正交。其存在唯一性可由对单项式作正交化得到。
+
+\begin{lemma}[正交多项式的零点]
+$\pi_n$ 在 $(a,b)$ 中有 $n$ 个互异实根。
+\end{lemma}
+\begin{proof}
+设区间内部实际发生变号的不同零点为 $\xi_1,\ldots,\xi_k$，令 $q(x)=\prod_{j=1}^k(x-\xi_j)$。若 $k<n$，$\pi_nq$ 在 $(a,b)$ 不变号且不恒为零，因此其正权积分非零；但 $\deg q<n$，正交性又使该积分为零，矛盾。故 $k=n$，次数限制说明所有根均简单且在内部。
+\end{proof}
+
+\begin{theorem}[Gauss 公式的精确性与误差]
+\label{thm:na-gauss}
+取 $\pi_n$ 的根为节点，以插值积分定义权重 $w_j=\int_a^b\ell_j(x)w(x)\,\mathrm dx$，则所得公式对所有次数不超过 $2n-1$ 的多项式精确，权重全部为正。若 $f\in C^{2n}[a,b]$，则
+\[
+ I_w(f)-\sum_{j=1}^nw_jf(x_j)
+ =\frac{f^{(2n)}(\xi)}{(2n)!}\int_a^b\pi_n(x)^2w(x)\,\mathrm dx
+\]
+对某个 $\xi\in(a,b)$ 成立。
+\end{theorem}
+\begin{proof}
+任取 $p\in\mathcal P_{2n-1}$，作带余除法 $p=q\pi_n+r$，其中 $q,r\in\mathcal P_{n-1}$。正交性使 $q\pi_n$ 的积分为零，节点求和也为零；$r$ 则由插值精确积分。对 $\ell_j^2$ 使用已证精确性，得 $w_j=\int_a^b\ell_j^2w>0$。令 $H$ 为同时匹配各节点函数值和一阶导数的 $2n-1$ 次 Hermite 插值，重复 Rolle 定理给出 $f-H=f^{(2n)}(\xi_x)\pi_n^2/(2n)!$。该余项被 $f^{(2n)}$ 的最小值和最大值乘非负权夹住，积分后由连续性得到一个共同的 $\xi$。因公式对 $H$ 精确，余项就是求积误差。
+\end{proof}
+
+代数精度恰为 $2n-1$：对 $\pi_n^2$，节点求和为零，而正权积分严格为正。对 $[-1,1]$ 上权 $1$，两点 Gauss--Legendre 公式为
+\[
+ \int_{-1}^1f(x)\,\mathrm dx\approx f(-1/\sqrt3)+f(1/\sqrt3).
+\]
+一般区间用仿射代换 $x=(a+b)/2+(b-a)t/2$，权重也乘 $(b-a)/2$。端点奇点或无限区间要求变量变换、特殊权函数或专用算法，不能直接继承有限闭区间上的光滑误差阶。
+
+\section{习题}
+\begin{enumerate}[label=\arabic*.]
+\item\label{exr:na-quad-difference} 用 Taylor 展开推导二阶中心差分，并给出 $f\in C^4$ 时其截断误差上界。
+\item\label{exr:na-quad-simpson} 在 $[0,1]$ 上对 $x^3$ 和 $x^4$ 使用单段 Simpson，核对精确性和 $I-S$ 的符号。
+\item\label{exr:na-quad-gauss} 推导 $[-1,1]$ 上对称两点公式的节点与权重，使其对三次以下多项式精确。
+\item\label{exr:na-quad-richardson} 已知 $A(h)=A+ch^2+dh^4+O(h^6)$，写出一次外推并求剩余的 $h^4$ 项系数。
+\end{enumerate}
+

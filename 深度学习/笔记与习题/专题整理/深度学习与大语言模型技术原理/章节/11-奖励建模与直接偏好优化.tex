@@ -1,0 +1,89 @@
+% !TeX root = ../深度学习与大语言模型技术原理.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{10} % 保留原书章号。
+\chapter{奖励建模与直接偏好优化}
+\label{ch:preference}
+
+\section{偏好对与奖励模型}
+
+有些任务难以给唯一标准答案，却能比较两个回答。偏好数据记为 $(x,y_w,y_l)$，其中 $y_w$ 被标为优于 $y_l$。奖励模型（reward model）$r_\phi(x,y)$ 输出实数分数。Bradley--Terry 模型假设
+\[
+\Pr(y_w\succ y_l\mid x)=\sigma\bigl(r_\phi(x,y_w)-r_\phi(x,y_l)\bigr),
+\qquad
+\mathcal L_{\mathrm{RM}}=-\mathbb E_{\mathcal D}\log\Pr(y_w\succ y_l\mid x).
+\]
+这是一种把成对选择映为标量差的建模假设，不保证表达所有非传递偏好。对同一提示给全部分数加任意常数，不改变成对概率，因此奖励的绝对零点不能由这些数据唯一识别。
+
+奖励过优化（reward overoptimization）发生在策略越来越擅长获得代理高分，却没有相应改善真实任务。奖励投机（reward hacking）是其中利用评分缺陷的行为表现，例如靠固定措辞、篇幅或格式取得高分。需要独立测试、分布外样本和对评分器的针对性检查；训练奖励上升本身不能作为质量提高的充分证据。
+
+\section{KL 正则化的最优策略}
+
+固定提示 $x$，考虑有限候选回答集合 $\mathcal Y$，参考策略 $\pi_{\mathrm{ref}}(y\mid x)>0$，奖励有限，$\beta>0$。在所有候选概率分布中最大化
+\begin{equation}
+J(\pi)=\sum_y\pi(y\mid x)r(x,y)
+-\beta D_{\mathrm{KL}}\bigl(\pi(\cdot\mid x)\|\pi_{\mathrm{ref}}(\cdot\mid x)\bigr).
+\label{eq:kl-control}
+\end{equation}
+参考策略通常固定，用于约束偏离既有行为；它不是下一章用于记录采样分布的旧策略。
+
+\begin{proposition}
+\label{prop:gibbs-policy}
+上述问题有唯一最优分布
+\begin{equation}
+\pi^*(y\mid x)=\frac{\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta}}{Z(x)},
+\qquad Z(x)=\sum_y\pi_{\mathrm{ref}}(y\mid x)e^{r(x,y)/\beta}.
+\label{eq:gibbs-policy}
+\end{equation}
+\end{proposition}
+\begin{proof}
+由定义有 $\log\pi^*=\log\pi_{\mathrm{ref}}+r/\beta-\log Z$，代入可得
+\[
+J(\pi)=\beta\log Z-\beta D_{\mathrm{KL}}(\pi\|\pi^*).
+\]
+利用命题~\ref{prop:kl-nonnegative}，唯一最大值在 $\pi=\pi^*$ 时取得。
+\end{proof}
+
+对于可数无限回答空间，还必须要求 $Z(x)<\infty$ 并保证相关期望有定义。神经网络只表示某个受限策略族，实际优化也不必达到该分布。该命题解释正则化问题的解析结构，而非宣称训练时能枚举全部回答。
+
+\section{DPO 的推导与梯度解释}
+
+由式~\eqref{eq:gibbs-policy} 反解奖励，有 $r(x,y)=\beta\log[\pi^*(y\mid x)/\pi_{\mathrm{ref}}(y\mid x)]+\beta\log Z(x)$。同一提示下两个回答的奖励差消去 $Z(x)$。把候选策略 $\pi_\theta$ 代入此隐式奖励，再放入成对偏好似然，就得到\emph{直接偏好优化（direct preference optimization, DPO）}\cite{dpo}：
+\begin{align}
+h_\theta(x,y_w,y_l)&=\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\mathrm{ref}}(y_w\mid x)}
+-\log\frac{\pi_\theta(y_l\mid x)}{\pi_{\mathrm{ref}}(y_l\mid x)},\\
+\mathcal L_{\mathrm{DPO}}(\theta)&=-\mathbb E_{\mathcal D}\log\sigma(\beta h_\theta).
+\label{eq:dpo}
+\end{align}
+其中完整回答对数概率是回答词元对数概率之和，提示不参与此求和。若擅自改成长度平均，就改变了目标，不能再直接套用刚才的推导。
+
+单对样本的导数为 $\partial\ell/\partial h=-\beta\sigma(-\beta h)$，因此模型会增大被偏好回答相对参考策略的概率优势。$\beta$ 同时参与隐式奖励参数化和梯度尺度，实际训练中不能把它简单解释为独立的“越大越保守”旋钮，尤其在固定数据和有限优化下。
+
+DPO 不需要在每次更新中在线训练奖励模型并执行 PPO rollout，但依然依赖偏好数据质量、覆盖范围和参考策略。离线偏好对未覆盖的输出区域可能被意外改变；两条回答概率也可能同时下降，只是拒绝回答下降更多。应同时检查偏好胜率、目标回答似然、长度和通用能力，必要时加入监督项或改进数据。
+
+\section{IPO、KTO、ORPO 与 SimPO 的目标差异}
+
+恒等偏好优化（Identity Preference Optimization, IPO）从更一般的偏好学习框架出发，采用有限目标间隔。在一种序列对数比约定下，其成对目标为
+\[
+\mathcal L_{\mathrm{IPO}}=\mathbb E_{\mathcal D}\left(h_\theta-\frac1{2\tau}\right)^2,\qquad \tau>0.
+\]
+与把可分偏好数据的 logit 不断推大的逻辑损失不同，这个平方目标惩罚超过目标间隔的情形。论文中的策略空间分析与具体语言模型实现的长度归一化应分别核对\cite{ipo}。
+
+Kahneman--Tversky 优化（KTO）可使用单个回答的“合意／不合意”标注，不要求同提示配对。令 $u_\theta(x,y)=\log[\pi_\theta(y\mid x)/\pi_{\mathrm{ref}}(y\mid x)]$，以条件 KL 为理论参考点 $z_0(x)$，单样本损失为
+\[
+\ell_{\mathrm{KTO}}(x,y)=
+\begin{cases}
+\lambda_+\bigl[1-\sigma(\beta(u_\theta(x,y)-z_0(x)))\bigr],&y\text{ 被标为合意},\\
+\lambda_-\bigl[1-\sigma(\beta(z_0(x)-u_\theta(x,y)))\bigr],&y\text{ 被标为不合意}.
+\end{cases}
+\]
+其中 $\lambda_+,\lambda_->0$ 为类别权重。实际训练使用参考点估计并停止其梯度；原方法包含用批内错配提示与回答构造共享参考点的有偏近似，不能把该近似称为条件 KL 的精确值。KTO 的区别在反馈单位和非线性效用，不能解释为把每个差评回答简单配上一个虚构好回答\cite{kto}。
+
+优势比偏好优化（Odds Ratio Preference Optimization, ORPO）把优选回答的监督项与偏好项合在一起。设 $\bar\ell_\theta(y\mid x)=|y|^{-1}\log\pi_\theta(y\mid x)$、$s_\theta=e^{\bar\ell_\theta}\in(0,1)$，构造 $o_\theta=s_\theta/(1-s_\theta)$，再用 $-\log\sigma(\log o_\theta(y_w)-\log o_\theta(y_l))$ 惩罚不合意相对优势。这里 $s_\theta$ 是词元概率的几何平均，通常不是回答空间上的归一化分布；该方法无需独立参考模型\cite{orpo}。
+
+简单偏好优化（Simple Preference Optimization, SimPO）采用长度平均对数概率形成无参考奖励，其核心形式为
+\[
+\mathcal L_{\mathrm{SimPO}}=-\mathbb E\log\sigma\!\left(
+\beta\bar\ell_\theta(y_w\mid x)-\beta\bar\ell_\theta(y_l\mid x)-\gamma_m\right),
+\]
+其中 $\gamma_m>0$ 是目标间隔\cite{simpo}。这些方法修改了不同假设与成本，不存在只凭名字即可判断的统一优劣；应比较反馈形式、参考策略、长度处理及独立评测结果。
+

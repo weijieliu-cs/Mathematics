@@ -1,0 +1,320 @@
+% !TeX root = ../凸优化笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{8} % 保留原书章号。
+\chapter{梯度方法与牛顿方法}
+\label{ch:co-unconstrained}
+
+本章从无约束问题 $\min_x f(x)$ 出发，再介绍处理简单约束和非光滑项的一阶方法，最后讨论牛顿法。除专门讨论非光滑问题的节外，函数凸且可微；出现 $x^\star$ 时假设最优解存在，以 $f^\star=f(x^\star)$ 记最优值。算法产生序列 $x_0,x_1,\ldots$，必须区分目标误差、点误差和计算成本。
+
+解析求解与数值求解回答同一个最优化问题，只是实现方式不同。例如最小二乘可写出正规方程，但高维时仍要数值解线性系统；其他模型甚至没有简洁的闭式方程解。迭代算法通过反复解决容易的局部问题，逐步改善当前方案。下面每种算法都应从“本步实际最小化了哪个简单模型”来理解。
+
+\section{算法问题、误差与基本假设}
+
+目标误差为 $f(x_k)-f^\star$，点误差为 $\|x_k-x^\star\|_2$，梯度范数 $\|\nabla f(x_k)\|_2$ 则直接可计算。一般情况下，函数值接近最优不保证点接近某个指定最优解；若函数为 $\mu$-强凸，则
+\[
+ \frac\mu2\|x-x^\star\|_2^2\leq f(x)-f^\star
+ \leq\frac1{2\mu}\|\nabla f(x)\|_2^2.
+\]
+左侧来自最优点处的强凸下界；右侧对 $f(y)\geq f(x)+\nabla f(x)^{\mathsf T}(y-x)+\mu\|y-x\|_2^2/2$ 关于 $y$ 取下确界得到。
+
+例如 $f(x_1,x_2)=x_1^2$ 的最优解集是整条直线 $x_1=0$。点 $(0,10^6)$ 已经最优，却离指定最优点 $(0,0)$ 很远，所以函数值收敛不能自动解释为靠近某个固定解。即使解唯一，函数过于平坦也会使小梯度缺乏精确意义；强凸参数正是把梯度、目标误差与点误差联系起来所需的定量信息。
+
+\begin{lemma}[下降引理]
+若 $f$ 在包含线段 $[x,y]$ 的开凸域上可微，且梯度以常数 $L$ 利普希茨连续，则
+\begin{equation}
+ f(y)\leq f(x)+\nabla f(x)^{\mathsf T}(y-x)+\frac L2\|y-x\|_2^2.
+ \label{eq:co-descent-lemma}
+\end{equation}
+\end{lemma}
+\begin{proof}
+令 $d=y-x$。由微积分基本定理，$f(y)-f(x)-\nabla f(x)^{\mathsf T}d=\int_0^1[\nabla f(x+td)-\nabla f(x)]^{\mathsf T}d\,dt$，其上界为 $\int_0^1Lt\|d\|_2^2\,dt=L\|d\|_2^2/2$。
+\end{proof}
+
+\section{下降方向与线搜索}
+
+统一更新为 $x_{k+1}=x_k+t_kd_k$，其中 $d_k$ 为方向，$t_k>0$ 为步长。当 $\nabla f(x_k)^{\mathsf T}d_k<0$ 时，称 $d_k$ 为下降方向（descent direction）。可微性保证充分小的正步长使目标下降，但过大步长可能越过低谷或离开定义域。
+
+Armijo 回溯线搜索（backtracking line search）取参数 $0<\alpha<1/2$、$0<\beta<1$，先令 $t=1$；若试探点不在定义域内，或
+\[
+ f(x+td)>f(x)+\alpha t\nabla f(x)^{\mathsf T}d,
+\]
+就令 $t\leftarrow\beta t$，直到满足条件。若当前点位于开定义域且 $d$ 为下降方向，则足够小步长必满足条件，因为一阶展开中的余项为 $o(t)$。精确线搜索直接最小化射线上的目标，通常比回溯更贵。
+
+例如 $f(x)=x^2/2$，在 $x=1$ 处沿 $d=-1$ 试探。真实变化为 $f(1-t)-f(1)=-t+t^2/2$，所以目标下降要求 $0<t<2$；Armijo 条件进一步要求 $t\leq2(1-\alpha)$。它不是只检查目标是否减少，而是要求减少量至少占一阶预测下降量的一定比例，避免接受过于微弱的改善。
+
+\section{梯度下降与收敛速度}
+
+\label{sec:co-gradient}
+
+梯度指向局部增长最快的欧氏方向，因此其相反方向自然适合减小目标。但只最小化线性模型 $f(x)+\nabla f(x)^{\mathsf T}(y-x)$ 会使非零梯度下的最小值无界。加入一个限制位移的二次项后，
+\[
+ \mathop{\mathrm{arg\,min}}_y
+ \left\{f(x)+\nabla f(x)^{\mathsf T}(y-x)+\frac1{2t}\|y-x\|_2^2\right\}
+ =x-t\nabla f(x).
+\]
+因此步长 $t$ 决定愿意在多大范围内相信当前的线性模型；$t$ 越小，对远距离移动的惩罚越强。
+
+梯度下降（gradient descent）采用 $d_k=-\nabla f(x_k)$。给定 $x_0$ 和误差要求，可使用已知 $L>0$ 的固定步长 $1/L$，或每步回溯；更新后重复计算梯度，达到适用的停止条件时返回当前点。
+
+\begin{example}[手算一次完整的梯度迭代]
+对 $f(x)=(x-3)^2/2$，从 $x_0=0$ 出发，采用步长 $t=1/2$。
+\end{example}
+\begin{solve}
+梯度为 $x-3$，递推为 $x_{k+1}=(x_k+3)/2$。前几步为 $0,3/2,9/4,21/8$，归纳得
+\[
+ x_k=3(1-2^{-k}),\qquad
+ f(x_k)-f^\star=\frac92\,4^{-k}.
+\]
+每一步都把点误差减半，把目标误差变成原来的四分之一。若换成步长 $t$，则 $x_k-3=(1-t)^k(x_0-3)$；$0<t<2$ 时收敛，$t=2$ 时一般在两点间振荡，$t>2$ 时误差增大。方向正确并不能补救任意过大的步长。
+\end{solve}
+
+\begin{theorem}[光滑凸情形的目标误差界]
+设 $f:\mathbb R^n\to\mathbb R$ 凸，梯度以常数 $L>0$ 利普希茨连续，且存在最优解。令 $x_{k+1}=x_k-\nabla f(x_k)/L$，则对 $k\geq1$，
+\begin{equation}
+ f(x_k)-f^\star\leq\frac{L\|x_0-x^\star\|_2^2}{2k}.
+ \label{eq:co-gradient-rate}
+\end{equation}
+\end{theorem}
+\begin{proof}
+记 $g_k=\nabla f(x_k)$。下降引理给出 $f(x_{k+1})\leq f(x_k)-\|g_k\|_2^2/(2L)$，故目标值不增。再用凸性 $f(x_k)-f^\star\leq g_k^{\mathsf T}(x_k-x^\star)$，得
+\[
+ f(x_{k+1})-f^\star
+ \leq\frac L2\bigl(\|x_k-x^\star\|_2^2-\|x_{k+1}-x^\star\|_2^2\bigr).
+\]
+从 $0$ 至 $k-1$ 求和，右侧望远镜消去；左侧至少为 $k[f(x_k)-f^\star]$，于是得到所述界。
+\end{proof}
+
+若再有 $\mu$-强凸性，则前节梯度误差界与下降引理给出
+\[
+ f(x_{k+1})-f^\star\leq(1-\mu/L)[f(x_k)-f^\star].
+\]
+因此目标误差按几何比例衰减，称为线性收敛（linear convergence）。达到给定误差所需迭代次数与条件比 $L/\mu$ 及精度对数相关；一般光滑凸情形只有式\eqref{eq:co-gradient-rate}的 $O(1/k)$ 目标误差界。这里 $O(1/k)$ 描述误差随迭代次数的衰减阶；反解误差要求后，所需迭代次数为 $O(1/\varepsilon)$，尚不包含每次梯度计算的成本。
+
+\section{投影梯度法：处理简单凸约束}
+\label{sec:co-projected-gradient}
+
+设 $C\subseteq\mathbb R^n$ 非空闭凸，目标 $f:\mathbb R^n\to\mathbb R$ 凸且梯度以 $L>0$ 利普希茨连续。直接作梯度步可能离开 $C$，可以先试探，再把结果投影回来：
+\begin{equation}
+ x_{k+1}=\Pi_C\bigl(x_k-t\nabla f(x_k)\bigr),\qquad x_0\in C.
+ \label{eq:co-projected-gradient}
+\end{equation}
+这称为投影梯度法（projected gradient method）。配方可知，它恰好在 $y\in C$ 上最小化前节的二次局部模型。盒约束、球和概率单纯形的投影较容易计算，所以该方法特别适合这些模型；若投影本身需要解一个大规模优化问题，每步就未必便宜。
+
+\begin{proposition}[投影梯度法的下降与误差界]
+在上述条件下，假设最优解 $x^\star$ 存在，取固定 $0<t\leq1/L$。则目标值不增，并对 $k\geq1$ 有
+\[
+ f(x_k)-f^\star\leq\frac{\|x_0-x^\star\|_2^2}{2tk}.
+\]
+\end{proposition}
+\begin{proof}
+记 $x^+=\Pi_C(x-t\nabla f(x))$。投影的一阶最优性给出
+\[
+ \left(\nabla f(x)+\frac{x^+-x}{t}\right)^{\mathsf T}(y-x^+)\geq0,
+ \qquad y\in C.
+\]
+将此式与 $f(x^+)\leq f(x)+\nabla f(x)^{\mathsf T}(x^+-x)+\|x^+-x\|_2^2/(2t)$、$f(y)\geq f(x)+\nabla f(x)^{\mathsf T}(y-x)$ 相结合，再展开平方，得到
+\begin{equation}
+ f(x^+)-f(y)\leq\frac1{2t}
+ \bigl(\|x-y\|_2^2-\|x^+-y\|_2^2\bigr).
+ \label{eq:co-projected-three-point}
+\end{equation}
+取 $y=x$ 得目标不增；取 $y=x^\star$ 并对各步求和，再用目标单调性，即得所述界。
+\end{proof}
+
+约束最优点的梯度可以不为零，因此停止时不能仍机械地检查 $\|\nabla f(x)\|_2$。定义投影梯度映射
+\[
+ G_t(x)=\frac{x-\Pi_C(x-t\nabla f(x))}{t}.
+\]
+由投影最优性，$G_t(x)=0$ 当且仅当式\eqref{eq:co-first-order-optimality}成立。小的 $\|G_t(x)\|_2$ 表示接近这一固定点条件；将它转成特定目标精度仍需额外误差界或对偶证书。
+
+\begin{example}[边界最优点的梯度不消失]
+最小化 $f(x)=(x-2)^2/2$，满足 $0\leq x\leq1$。从 $x_0=0$ 采用 $t=1$，先得到无约束试探点 $2$，再投影为 $x_1=1$，恰好达到最优点。此处 $f'(1)=-1$，但 $G_1(1)=1-\Pi_{[0,1]}(2)=0$。约束阻止了继续向右移动，算法应停止而不是等待普通梯度变成零。
+\end{example}
+
+\section{近端梯度法：处理可分离的非光滑项}
+\label{sec:co-proximal-gradient}
+
+Lasso 的绝对值项在零点不可微，普通梯度法不能直接套用。考虑复合目标
+\[
+ F(x)=h(x)+R(x),
+\]
+其中 $h:\mathbb R^n\to\mathbb R$ 凸且梯度以 $L>0$ 利普希茨连续，$R$ 为适当闭凸函数，可以取 $+\infty$ 来编码约束。对 $t>0$，定义近端算子（proximal operator）
+\[
+ \operatorname{prox}_{tR}(v)
+ =\mathop{\mathrm{arg\,min}}_y
+ \left\{R(y)+\frac1{2t}\|y-v\|_2^2\right\}.
+\]
+该最优点存在且唯一：适当闭凸函数在有限维空间中有一个仿射下界，这可由上图分离得到；加上正二次项后次水平集有界，闭性给出存在性，强凸性给出唯一性。当 $R=I_C$ 时，近端算子就是投影；当 $R(x)=\alpha\|x\|_1$ 时，就是逐坐标阈值为 $t\alpha$ 的软阈值。
+
+近端梯度法（proximal gradient method）只线性化光滑部分，保留非光滑部分的完整结构：
+\begin{equation}
+ x_{k+1}=\operatorname{prox}_{tR}\bigl(x_k-t\nabla h(x_k)\bigr).
+ \label{eq:co-proximal-gradient}
+\end{equation}
+它等价于最小化
+\[
+ Q_x(y)=h(x)+\nabla h(x)^{\mathsf T}(y-x)
+             +\frac1{2t}\|y-x\|_2^2+R(y).
+\]
+当 $t\leq1/L$ 时，$Q_x$ 在每一点都不小于 $F$，而在 $y=x$ 处与 $F$ 相等，因此每次精确最小化这个模型都会使原目标下降。
+
+\begin{proposition}[近端梯度法的基本收敛界]
+假设上述 $F$ 有最优解 $x^\star$，$x_0\in\operatorname{dom}R$，固定步长 $0<t\leq1/L$，并精确计算近端点。则
+\[
+ F(x_k)-F(x^\star)\leq\frac{\|x_0-x^\star\|_2^2}{2tk},
+ \qquad k\geq1.
+\]
+\end{proposition}
+\begin{proof}
+记 $x^+$ 为 $Q_x$ 的最小点。由 $Q_x$ 的 $1/t$-强凸性，对任何 $y\in\operatorname{dom}R$ 有
+\[
+ Q_x(x^+)+\frac1{2t}\|y-x^+\|_2^2\leq Q_x(y).
+\]
+此式也可不使用次微分直接证明：对 $x^+$ 与 $y$ 的凸组合应用强凸不等式，再用 $Q_x(x^+)$ 不大于组合点的值，最后令组合中 $y$ 的权重趋于零。
+又有 $F(x^+)\leq Q_x(x^+)$，以及由 $h$ 的凸性得到的
+$Q_x(y)\leq F(y)+\|y-x\|_2^2/(2t)$。相合便得到与式\eqref{eq:co-projected-three-point}相同的三点不等式，其中 $f$ 换为 $F$。取 $y=x$ 得目标不增，取 $y=x^\star$ 后累加即得结果。
+\end{proof}
+
+对 Lasso，$h(x)=\|Ax-b\|_2^2/2$，当 $A\ne0$ 时可取 $L=\|A\|_2^2$。算法从给定 $x_0$ 出发，每步计算残差、梯度 $A^{\mathsf T}(Ax_k-b)$，再作一次软阈值。$A=0$ 的退化情形可直接最小化正则项，无需采用 $1/L$。例如 $A=I$、$b=(3,1/2)$、$\alpha=1$、$t=1$，任意初值的试探点都为 $b$，一次软阈值就到达 $(2,0)$。
+
+一般情况下可以计算近端梯度映射
+\[
+ \mathcal G_t(x)=\frac{x-\operatorname{prox}_{tR}(x-t\nabla h(x))}{t}.
+\]
+近端子问题的一阶条件给出 $\mathcal G_t(x)=0$ 当且仅当
+$0\in\nabla h(x)+\partial R(x)$，也就是复合问题的最优性条件。实际算法应给出容差与最大迭代数；小映射范数的退出表示近似满足这一条件，若要声明目标误差不超过指定值，还应给出相应的误差界。
+
+\begin{example}[给 Lasso 迭代附上可计算的停止证书]
+设 $\alpha>0$，当前点为 $x$，原目标为 $F(x)=\|Ax-b\|_2^2/2+\alpha\|x\|_1$。构造一个不需要预先知道 $x^\star$ 的目标误差上界。
+\end{example}
+\begin{solve}
+引入残差变量 $r=Ax-b$，给等式 $Ax-b-r=0$ 配乘子 $u$。拉格朗日函数为
+\[
+ \frac12\|r\|_2^2+\alpha\|x\|_1+u^{\mathsf T}(Ax-b-r).
+\]
+对 $r$ 取下确界得到 $-\|u\|_2^2/2$；对 $x$ 取下确界在 $\|A^{\mathsf T}u\|_\infty\leq\alpha$ 时为零，否则为 $-\infty$。所以对偶问题为
+\[
+ \max_u d(u)=-\frac12\|u\|_2^2-b^{\mathsf T}u,
+ \qquad \|A^{\mathsf T}u\|_\infty\leq\alpha.
+\]
+计算当前残差 $r=Ax-b$，令
+\[
+ c=\max\{1,\|A^{\mathsf T}r\|_\infty/\alpha\},\qquad u=r/c.
+\]
+该 $u$ 必对偶可行，弱对偶直接给出 $0\leq F(x)-F^\star\leq F(x)-d(u)$。因此近端梯度迭代可以在这个可计算的差不超过 $\varepsilon$ 时停止。对 $A=I,b=(3,1/2),\alpha=1,x=(2,0)$，有 $u=(-1,-1/2)$，原对偶值同为 $21/8$，间隙为零，精确验证了前面的答案。
+\end{solve}
+
+投影、软阈值和一般近端算子的系统讨论可参见\cite{parikh-boyd}。本节只使用其中最基本的模型与精确迭代；若内层近端点近似计算，需把内层误差纳入收敛分析，不能直接照用上面的精确界。
+
+\section{次梯度法与非光滑性的代价}
+\label{sec:co-subgradient-method}
+
+当整个目标都非光滑，或者近端子问题不易求解时，可以使用次梯度法（subgradient method）。设 $f:\mathbb R^n\to\mathbb R$ 凸，每步选择 $g_k\in\partial f(x_k)$，按
+\[
+ x_{k+1}=x_k-t_k g_k,\qquad t_k>0
+\]
+更新。次梯度是全局仿射下界的斜率，负次梯度却不一定是下降方向。例如 $f(x)=|x|$ 在零点允许取 $g=1$，沿负次梯度移动反而使目标增大；在该点也允许选到零次梯度以识别最优性。因此一般不能把光滑函数的下降线搜索直接移用过来。
+
+\begin{proposition}[有界次梯度下的最佳历史值界]
+设最优解 $x^\star$ 存在，$\|x_0-x^\star\|_2\leq R$，且所选次梯度满足 $\|g_k\|_2\leq G$。对任意 $N\geq1$，
+\[
+ \min_{0\leq k<N}\bigl(f(x_k)-f^\star\bigr)
+ \leq\frac{R^2+G^2\sum_{k=0}^{N-1}t_k^2}
+              {2\sum_{k=0}^{N-1}t_k}.
+\]
+\end{proposition}
+\begin{proof}
+展开点误差平方，并用次梯度不等式
+$g_k^{\mathsf T}(x_k-x^\star)\geq f(x_k)-f^\star$，得到
+\[
+ \|x_{k+1}-x^\star\|_2^2
+ \leq\|x_k-x^\star\|_2^2
+ -2t_k(f(x_k)-f^\star)+t_k^2G^2.
+\]
+求和后舍去左端非负项，再用各项误差都不小于历史最小误差，便得结论。
+\end{proof}
+
+当 $R,G>0$ 且预先给定迭代总数 $N$，取恒定步长 $t_k=R/(G\sqrt N)$，便得到误差界 $RG/\sqrt N$。这个步长依赖计划运行的总步数；如果无限运行却一直保持某个固定正步长，上述界一般不会趋于零。另一种选择是让 $\sum_k t_k=+\infty$、$\sum_k t_k^2<+\infty$，从而历史最佳目标值趋于最优值。此处没有断言每一步目标都下降，也没有仅由该不等式证明全部迭代点收敛。
+
+算法应保存目标值最低的历史点，或输出平均点 $\bar x_N=(\sum_{k=0}^{N-1}t_kx_k)/(\sum_{k=0}^{N-1}t_k)$；凸性保证后者也满足同一上界。给定有限预算时，到达最大步数后可报告已有理论界；未知 $R,G$ 时，则不能把上述具体精度当成已验证的数值保证。与光滑梯度法的 $O(1/k)$ 比较，这里的 $O(1/\sqrt{k})$ 展示了在这些假设下非光滑一阶信息所能提供的较弱基本保证。
+
+\section{最速下降、尺度与条件数}
+
+给定范数 $\|\cdot\|$，归一化最速下降方向（steepest descent direction）最小化 $g^{\mathsf T}d$，约束 $\|d\|\leq1$。其最小值为 $-\|g\|_*$，其中对偶范数为 $\|g\|_*=\max_{\|d\|\leq1}g^{\mathsf T}d$。当 $g\ne0$ 时，欧氏范数下的归一化方向为 $-g/\|g\|_2$，与负梯度平行；$\ell_1$ 范数对应沿最大绝对梯度分量的坐标轴移动。
+
+在二次范数 $\|d\|_P=\sqrt{d^{\mathsf T}Pd}$、$P\succ0$ 下，方向与 $-P^{-1}g$ 平行。矩阵 $P$ 改变所用度量，称为预条件（preconditioning）的一种形式；它不改变原目标的最优点。
+
+对正定二次函数，梯度的变化常数可取最大特征值 $L$，强凸参数可取最小特征值 $\mu$，比值 $\kappa=L/\mu$ 为谱条件数。例 $f(x)=\tfrac12(x_1^2+100x_2^2)$，步长 $1/100$ 使第二个分量一步归零，却使第一个分量每步只乘以 $0.99$。选择 $P=\operatorname{diag}(1,100)$ 后，预条件方向配单位步长可一步到达最优点。
+
+\section{牛顿方向与阻尼牛顿法}
+
+设 $f$ 二次连续可微，当前 $H=\nabla^2f(x)\succ0$。二阶模型为 $m(d)=f(x)+g^{\mathsf T}d+d^{\mathsf T}Hd/2$，其唯一最小点满足
+\begin{equation}
+ Hd=-g.
+ \label{eq:co-newton-direction}
+\end{equation}
+这定义牛顿方向（Newton direction）。当 $g\ne0$ 时，$g^{\mathsf T}d=-g^{\mathsf T}H^{-1}g<0$，故可用回溯线搜索形成阻尼牛顿法（damped Newton method）。实现应解线性系统，不显式计算逆矩阵。
+
+\begin{example}[牛顿步为何需要阻尼]
+在 $x>0$ 上最小化 $f(x)=x-\log x$，其唯一最优点为 $x^\star=1$。
+\end{example}
+\begin{solve}
+梯度为 $1-1/x$，海塞矩阵为 $1/x^2$，所以牛顿方向为 $d=x-x^2$，单位步长更新为 $x^+=2x-x^2$。若 $x=3$，更新得到 $-3$，已经离开定义域；回溯必须先要求 $3-6t>0$，再检查充分下降。在 $x=1+e$ 且 $e$ 很小时，更新误差为 $e^+=-e^2$，表现为误差平方级缩小。相同的牛顿公式在远处可能不可行，在近处却很快，这正是全局阻尼与局部二次收敛需要分开讨论的原因。
+\end{solve}
+
+\begin{theorem}[局部二次收敛]
+设 $x^\star$ 为驻点，在其某邻域内 $\nabla^2f(x)\succeq\mu I$、$\mu>0$，且海塞矩阵关于谱范数以常数 $M$ 利普希茨连续。对充分接近 $x^\star$ 的初值，单位步长牛顿法保持在该邻域内，并满足
+\[
+ \|x_{k+1}-x^\star\|_2\leq\frac{M}{2\mu}\|x_k-x^\star\|_2^2.
+\]
+\end{theorem}
+\begin{proof}
+记 $e=x-x^\star$、$H=\nabla^2f(x)$。因 $\nabla f(x^\star)=0$，积分表示给出
+\[
+ e^+=H^{-1}\int_0^1[H-\nabla^2f(x^\star+te)]e\,dt.
+\]
+用 $\|H^{-1}\|_2\leq1/\mu$ 及海塞矩阵的利普希茨界，得到 $\|e^+\|_2\leq(M/(2\mu))\|e\|_2^2$。选初值足够近，使此上界既留在邻域内又小于原误差，即可归纳。
+\end{proof}
+
+局部定理不保证任意初值都适合单位步长。若初值次水平集紧、包含在定义域内，并在其邻域内有统一界 $0<\mu I\preceq\nabla^2f\preceq LI$，则回溯接受步长有正的统一下界，每次下降量可下界为常数乘 $\|\nabla f\|_2^2$，由目标有下界可推出梯度趋零；再由强凸性推出收敛到唯一解。正定二次目标的二阶模型本身精确，解准牛顿方程并取单位步长即可一步求解。
+
+牛顿法可按以下流程实现：给定定义域内的 $x_0$、线搜索参数及容差；在每步计算梯度和海塞矩阵，检查是否满足所用曲率条件，解 $H_kd_k=-g_k$；若已有适用的误差证书则检查停止，否则用回溯选取保持定义域和充分下降的步长；更新后重新计算。若 $H_k$ 奇异或非正定，原牛顿方向的定义和下降性证明不再适用。加入 $\rho I$ 的正则化牛顿步是一种不同的局部模型，需要说明 $\rho$ 的选择，不能把修正后的方向仍当作原方程的精确解。
+
+\section{牛顿减量与自协调分析}
+
+本节为选读。此前的分析用全局常数 $L,\mu$ 控制曲率，而障碍函数在边界附近曲率可能无界，找一个整个定义域都适用的 $L$ 很困难。自协调分析改为使用当前位置的海塞矩阵来衡量位移，再控制沿这段位移曲率能变化多少。这是它适合内点法的主要原因。
+
+在 $H\succ0$ 时定义牛顿减量（Newton decrement）
+\[
+ \delta(x)=\sqrt{\nabla f(x)^{\mathsf T}H^{-1}\nabla f(x)}.
+\]
+二阶模型预测的最大下降量为 $\delta(x)^2/2$，因为将 $d=-H^{-1}g$ 代入 $m(d)$ 可得此值。但它本身不是任意函数的全局目标误差界。
+
+自协调函数（self-concordant function，亦译自和谐函数）是开凸域上的三次连续可微凸函数，满足
+\[
+ |D^3f(x)[h,h,h]|\leq2\bigl(D^2f(x)[h,h]\bigr)^{3/2}
+\]
+对所有点和方向成立，其中 $D^j f(x)[h,\ldots,h]$ 为沿直线的 $j$ 阶导数。$-\log x$ 在正半轴上恰好满足等号；凸二次函数的三阶导数为零。该条件用局部曲率控制高阶变化，且保持仿射坐标变换下的形式。
+
+以下标准自协调估计作为选读结论引用，完整推导见\cite{boyd-vandenberghe}关于牛顿法的讨论：若 $f$ 为自协调函数，在域外取 $+\infty$ 后闭、海塞矩阵正定且最小值取到，则步长 $1/(1+\delta)$ 给出至少 $\delta-\log(1+\delta)$ 的目标下降；当 $\delta<1$ 时，
+\[
+ f(x)-f^\star\leq-\delta-\log(1-\delta).
+\]
+因此在这些条件下，减量可以转成严格误差证书。自协调性也为内点法的迭代分析提供工具。
+
+\section{实现、停止准则与数值实践}
+
+梯度法每步需要一个梯度和若干函数值；牛顿法还需要海塞矩阵及线性求解。稠密 $n\times n$ 正定矩阵的 Cholesky 分解需 $O(n^3)$ 运算、$O(n^2)$ 存储；稀疏结构、低秩结构和分解复用可能显著改变成本。迭代次数少不必然意味着总时间短。
+
+在已知强凸参数 $\mu$ 时，可用 $\|\nabla f(x)\|_2^2/(2\mu)\leq\varepsilon$ 停止；适用的自协调情形可用前节减量界。缺少误差界时，小梯度只直接表示近似驻点。实际实现还需设置最大迭代次数与线搜索失败状态，不能把这些退出状态等同于已满足最优性精度。
+
+\begin{enumerate}
+ \item 推导 $f(x)=x^2/2$ 上固定步长梯度法的序列。证明 $0<t<2$ 时收敛，$t=2$ 时一般振荡。
+ \item 对 $f(x)=\tfrac12(x_1^2+100x_2^2)$，比较固定步长梯度法与牛顿法，记录目标误差和线性求解代价。
+ \item 验证 $-\log x$ 的自协调条件，解释它虽然自协调却没有有限最小点，故不能直接套用含最小点的误差结论。
+ \item 证明若 $\mu$ 已知且目标误差不超过 $\varepsilon$，则点误差不超过 $\sqrt{2\varepsilon/\mu}$。
+ \item 基础练习：对 $\min_{x\geq0}(x+1)^2/2$ 从 $x_0=2$ 作步长 $t=1/2$ 的投影梯度迭代，列出前两步。答案为 $x_1=1/2,x_2=0$，此后保持为零。
+ \item 推导练习：对 $F(x)=(x-3)^2/2+|x|$，从 $x_0=0$ 作步长 $t=1/2$ 的近端梯度迭代。求得 $x_1=1,x_2=3/2$，证明 $x_k\to2$，并计算一个合法对偶点及其间隙。
+ \item 比较练习：对 $|x|$ 使用固定步长次梯度法，从 $x_0=1/4$、$t=1/2$ 开始，非零处取符号次梯度。证明它在 $\pm1/4$ 间振荡，解释为什么这不违反本章关于递减步长或有限预算的结论。
+\end{enumerate}
+

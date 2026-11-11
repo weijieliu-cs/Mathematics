@@ -1,0 +1,792 @@
+% !TeX root = ../数学分析教材（伍胜健）笔记.tex
+% 本文件由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{11} % 保留原书章号。
+\chapter{傅里叶级数}
+\label{chap:fourier-series}
+
+幂级数用 $1,x,x^2,\ldots$ 的无穷线性组合表示函数，适合研究函数在某一点附近的性质。对于周期现象，更自然的基本函数是具有共同周期的正弦、余弦。本章研究\emph{傅里叶级数}（Fourier series）：先由三角函数的正交性确定展开系数，再考察级数在给定点的收敛、一致逼近与均方逼近。系数能由积分确定，并不意味着相应级数已经收敛，更不意味着其和处处等于原函数；这些问题需要分别证明。
+
+\section{函数的傅里叶级数}
+\label{sec:fourier-series-of-functions}
+
+\subsection{基本三角函数系}
+\label{subsec:basic-trigonometric-system}
+
+函数系
+\[
+    1,\cos x,\sin x,\cos2x,\sin2x,\ldots,\cos nx,\sin nx,\ldots
+\]
+称为\emph{基本三角函数系}（basic trigonometric system），其中各函数均以 $2\pi$ 为周期。它们的有限线性组合称为\emph{三角多项式}（trigonometric polynomial）；形如
+\[
+    T_N(x)=\frac{\alpha_0}{2}
+      +\sum_{n=1}^N(\alpha_n\cos nx+\beta_n\sin nx)
+\]
+的函数称为至多 $N$ 阶的三角多项式。常数项写成 $\alpha_0/2$，是为了使以后余弦系数的积分公式在 $n=0$ 时仍然适用。
+
+对有限区间 $[a,b]$（$a<b$）上的实连续函数，定义\emph{内积}（inner product）$\langle f,g\rangle=\int_a^bf(x)g(x)\,dx$；若该积分为零，则称两函数\emph{正交}（orthogonal）。对于黎曼可积函数，同一积分也有意义，但 $\int f^2=0$ 不保证 $f$ 处处为零，因而要把零均方距离的函数视为同一个对象，才能得到通常的内积空间。以下正交计算只用到积分本身，不需要预先建立这一空间。
+
+\begin{proposition}[基本三角函数系的正交关系]
+\label{prop:trigonometric-orthogonality}
+对任意 $c\in\mathbb R$ 及正整数 $m,n$，有
+\begin{align}
+    \int_c^{c+2\pi}\cos mx\cos nx\,dx
+       &=\begin{cases}\pi,&m=n,\\0,&m\neq n,\end{cases}\notag\\
+    \int_c^{c+2\pi}\sin mx\sin nx\,dx
+       &=\begin{cases}\pi,&m=n,\\0,&m\neq n,\end{cases}\notag\\
+    \int_c^{c+2\pi}\cos mx\sin nx\,dx&=0.
+    \label{eq:trigonometric-orthogonality}
+\end{align}
+此外，$\int_c^{c+2\pi}1\,dx=2\pi$，而任意非恒定基本三角函数在该区间上的积分为零。
+\end{proposition}
+
+\begin{proof}
+由周期性，只须在 $[-\pi,\pi]$ 上验证。使用积化和差公式，例如
+\[
+    \sin mx\sin nx
+      =\frac12\bigl(\cos(m-n)x-\cos(m+n)x\bigr),
+\]
+当 $m\neq n$ 时，右边两项积分均为零；当 $m=n$ 时，右边为 $(1-\cos2nx)/2$，积分为 $\pi$。余弦与混合乘积同理，常数项的积分直接计算即可。
+\end{proof}
+
+正交性使不同频率之间的积分交叉项消失。特别地，若一个三角多项式恒为零，依次乘以 $1,\cos nx,\sin nx$ 并积分，就得到其全部系数为零，因此基本三角函数系线性无关。
+
+\subsection{周期为 \texorpdfstring{$2\pi$}{2pi} 的函数的傅里叶级数}
+\label{subsec:fourier-series-of-two-pi-periodic-functions}
+
+设 $f$ 为实值 $2\pi$ 周期函数，在一个周期内黎曼可积。若它已有一致收敛的三角展开，则将展开式分别乘以 $1,\cos nx,\sin nx$，由逐项积分定理与正交关系就能求出各系数。这一计算提示我们：即使尚未知道能否展开，也可先用积分定义系数。
+
+\begin{definition}
+\label{def:fourier-coefficients-and-series}
+函数 $f$ 的\emph{傅里叶系数}（Fourier coefficients）定义为
+\begin{align}
+    a_n&=\frac1\pi\int_{-\pi}^{\pi}f(x)\cos nx\,dx,
+          &&n=0,1,2,\ldots,\notag\\
+    b_n&=\frac1\pi\int_{-\pi}^{\pi}f(x)\sin nx\,dx,
+          &&n=1,2,\ldots.
+    \label{eq:fourier-coefficients-two-pi}
+\end{align}
+相应的傅里叶级数及其部分和记为
+\begin{equation}
+    f(x)\sim\frac{a_0}{2}
+          +\sum_{n=1}^\infty(a_n\cos nx+b_n\sin nx),
+    \qquad
+    S_N(f;x)=\frac{a_0}{2}
+          +\sum_{n=1}^N(a_n\cos nx+b_n\sin nx).
+    \label{eq:fourier-series-and-partial-sums}
+\end{equation}
+记号 $\sim$ 只表示右边的系数由左边函数按式~\eqref{eq:fourier-coefficients-two-pi} 确定，不预设级数的敛散性或和函数。
+\end{definition}
+
+被积函数均为 $2\pi$ 周期函数，故系数积分可以在任意一个完整周期上计算。改变 $f$ 在有限个点的值，不改变其傅里叶系数；因此傅里叶级数不可能在这些点同时恢复各种不同的赋值。若 $f$ 在对称区间内为奇函数，则所有 $a_n=0$；若为偶函数，则所有 $b_n=0$。这里的奇偶性应针对给定区间及其周期延拓判断，端点的有限个赋值不影响计算。
+
+\begin{theorem}[连续周期函数的傅里叶系数唯一性]
+\label{thm:fourier-uniqueness-continuous}
+若连续的 $2\pi$ 周期函数 $f$ 的全部傅里叶系数均为零，则 $f\equiv0$。因此，两个连续的 $2\pi$ 周期函数若傅里叶系数相同，它们就处处相等。
+\end{theorem}
+
+\begin{proof}
+全部系数为零意味着对任意三角多项式 $T$，都有 $\int_{x_0-\pi}^{x_0+\pi}f(x)T(x)\,dx=0$。若 $f$ 不恒为零，必要时改用 $-f$，可设 $f(x_0)>0$。取 $0<\delta<\pi/2$ 与 $M>0$，使 $|x-x_0|\leq\delta$ 时 $f(x)\geq M$，并记 $B=\max|f|$。令
+\[
+    H(x)=1+\cos(x-x_0)-\cos\delta,
+    \qquad q=1+\cos(\delta/2)-\cos\delta>1.
+\]
+在 $|x-x_0|\leq\delta/2$ 上有 $H\geq q$；在 $\delta\leq|x-x_0|\leq\pi$ 上有 $|H|\leq1$。$H^{2m}$ 是三角多项式，在 $|x-x_0|<\delta$ 上非负，故
+\[
+    0=\int_{x_0-\pi}^{x_0+\pi}f(x)H(x)^{2m}\,dx
+       \geq M\delta q^{2m}-2\pi B.
+\]
+右边在 $m\to\infty$ 时趋于 $+\infty$，矛盾。第二个结论应用于两函数之差。
+\end{proof}
+
+这个唯一性结论并未断言连续函数的傅里叶部分和处处收敛；它只说明系数作为整体能够唯一确定连续周期函数。后文的费叶平均将给出从系数恢复该函数的一种一致逼近方法。
+
+\begin{example}
+\label{ex:fourier-sawtooth-and-period-choice}
+分别求在 $[-\pi,\pi)$ 上取 $f(x)=x$、在 $[0,2\pi)$ 上取 $g(x)=x$ 的两个 $2\pi$ 周期函数的傅里叶级数。
+\end{example}
+
+\begin{solve}
+$f$ 在 $(-\pi,\pi)$ 内为奇函数，故 $a_n=0$，分部积分得
+\[
+    b_n=\frac2\pi\int_0^\pi x\sin nx\,dx
+        =\frac{2(-1)^{n+1}}n,
+    \qquad
+    f(x)\sim2\sum_{n=1}^\infty\frac{(-1)^{n+1}}n\sin nx.
+\]
+对 $g$ 在 $[0,2\pi]$ 上积分，则 $a_0=2\pi$、$a_n=0$（$n\geq1$）、$b_n=-2/n$，所以
+\[
+    g(x)\sim\pi-2\sum_{n=1}^\infty\frac{\sin nx}{n}.
+\]
+两种周期延拓的跳跃点位置不同，定义的是两个不同函数。另若在 $[0,2\pi)$ 上取 $h(x)=\pi-x$，其周期延拓为奇函数（跳跃点赋值除外），相应级数为 $2\sum_{n\geq1}\sin nx/n$；不能仅凭区间内的解析式判断延拓后的奇偶性。
+\end{solve}
+
+\begin{example}
+\label{ex:fourier-square-on-shifted-period}
+求在 $[0,2\pi)$ 上取值 $q(x)=x^2$ 的 $2\pi$ 周期函数的傅里叶级数。
+\end{example}
+
+\begin{solve}
+在给定周期上连续两次分部积分，得到
+\[
+    a_0=\frac{8\pi^2}{3},\qquad
+    a_n=\frac4{n^2},\qquad b_n=-\frac{4\pi}{n},\quad n\geq1.
+\]
+因此
+\begin{equation}
+    q(x)\sim\frac{4\pi^2}{3}
+       +4\sum_{n=1}^\infty\frac{\cos nx}{n^2}
+       -4\pi\sum_{n=1}^\infty\frac{\sin nx}{n}.
+    \label{eq:fourier-square-shifted-period}
+\end{equation}
+虽然 $x^2$ 在实轴上为偶函数，但这里的周期函数由 $[0,2\pi)$ 上的取值规定，并非将 $[-\pi,\pi)$ 上的 $x^2$ 周期延拓，因此正弦系数不为零。
+\end{solve}
+
+\subsection{正弦级数与余弦级数}
+\label{subsec:sine-and-cosine-series}
+
+只在半个周期上给定函数时，需要先选择如何延拓。设 $f$ 在 $(0,\pi)$ 上有定义，并能通过端点赋值成为 $[0,\pi]$ 上的黎曼可积函数。将它在 $(-\pi,0)$ 上分别定义为 $-f(-x)$ 或 $f(-x)$，就得到\emph{奇延拓}（odd extension）或\emph{偶延拓}（even extension），再作 $2\pi$ 周期延拓。奇延拓在零点及周期拼接点可取零，偶延拓可取任意有限端点值，若有端点极限也可按该极限赋值；有限个点的选择均不影响系数。
+
+\begin{definition}
+\label{def:half-range-fourier-expansions}
+$f$ 在 $(0,\pi)$ 上的\emph{正弦级数}（sine series）和\emph{余弦级数}（cosine series）分别为
+\begin{align}
+    f(x)&\sim\sum_{n=1}^\infty b_n\sin nx,
+       & b_n&=\frac2\pi\int_0^\pi f(x)\sin nx\,dx,\notag\\
+    f(x)&\sim\frac{a_0}{2}+\sum_{n=1}^\infty a_n\cos nx,
+       & a_n&=\frac2\pi\int_0^\pi f(x)\cos nx\,dx\quad(n\geq0).
+    \label{eq:half-range-fourier-coefficients}
+\end{align}
+它们分别是上述奇延拓、偶延拓的傅里叶级数，称为\emph{半区间展开}（half-range expansion）。
+\end{definition}
+
+\begin{example}
+\label{ex:half-range-fourier-square}
+求 $f(x)=x^2$（$0<x<\pi$）的正弦级数与余弦级数。
+\end{example}
+
+\begin{solve}
+分部积分给出
+\[
+    b_n=\frac{2\pi(-1)^{n+1}}n
+           +\frac{4\bigl((-1)^n-1\bigr)}{\pi n^3},
+    \qquad a_0=\frac{2\pi^2}{3},\qquad
+    a_n=\frac{4(-1)^n}{n^2}\quad(n\geq1).
+\]
+因此两种展开分别为
+\begin{align}
+    x^2&\sim2\pi\sum_{n=1}^\infty\frac{(-1)^{n+1}}n\sin nx
+       -\frac8\pi\sum_{n=1}^\infty
+                    \frac{\sin((2n-1)x)}{(2n-1)^3},
+       \label{eq:half-range-square-sine}\\
+    x^2&\sim\frac{\pi^2}{3}
+          +4\sum_{n=1}^\infty\frac{(-1)^n}{n^2}\cos nx.
+       \label{eq:half-range-square-cosine}
+\end{align}
+两个级数对应不同的全周期函数，故在区间端点的行为也可能不同；其确切收敛值将在点态收敛判别之后确定。
+\end{solve}
+
+\subsection{周期为 \texorpdfstring{$2T$}{2T} 的函数的傅里叶级数}
+\label{subsec:fourier-series-of-two-t-periodic-functions}
+
+设 $T>0$，$f$ 为 $2T$ 周期函数且在一个周期内可积。作变量代换 $t=\pi x/T$，则 $F(t)=f(Tt/\pi)$ 为 $2\pi$ 周期函数，把其傅里叶级数换回 $x$ 就得到
+\begin{equation}
+    f(x)\sim\frac{a_0}{2}
+       +\sum_{n=1}^\infty\left(
+          a_n\cos\frac{n\pi x}{T}
+          +b_n\sin\frac{n\pi x}{T}\right),
+    \label{eq:fourier-series-general-period}
+\end{equation}
+其中
+\begin{equation}
+    a_n=\frac1T\int_c^{c+2T}f(x)\cos\frac{n\pi x}{T}\,dx\quad(n\geq0),
+    \qquad
+    b_n=\frac1T\int_c^{c+2T}f(x)\sin\frac{n\pi x}{T}\,dx\quad(n\geq1).
+    \label{eq:fourier-coefficients-general-period}
+\end{equation}
+$c$ 任意。基本角频率为 $\pi/T$，不必是 $f$ 的最小正周期所对应的角频率；只要给定的 $2T$ 确为一个周期，公式就成立。相应地，在 $(0,T)$ 上的正弦、余弦半区间展开，把式~\eqref{eq:half-range-fourier-coefficients} 中的 $2/\pi$ 改为 $2/T$，并把 $nx$ 改为 $n\pi x/T$。
+
+\begin{example}
+\label{ex:fourier-x-cos-x-period-pi}
+将 $f(x)=x\cos x$（$-\pi/2\leq x<\pi/2$）作 $\pi$ 周期延拓，求其傅里叶级数。
+\end{example}
+
+\begin{solve}
+此时 $T=\pi/2$，延拓后的函数为奇函数，故只含 $\sin2nx$ 项。由积化和差及分部积分，
+\[
+    b_n=\frac4\pi\int_0^{\pi/2}x\cos x\sin2nx\,dx
+       =\frac{16n(-1)^{n+1}}{\pi(4n^2-1)^2},
+\]
+因此
+\begin{equation}
+    f(x)\sim\frac{16}{\pi}\sum_{n=1}^\infty
+             \frac{(-1)^{n+1}n}{(4n^2-1)^2}\sin2nx.
+    \label{eq:fourier-x-cos-x-period-pi}
+\end{equation}
+在端点 $x=\pm\pi/2$，左右延拓的函数值都趋于零，因此该周期函数在拼接点连续。后文的收敛结论通过相同的变量代换适用于这一展开。
+\end{solve}
+
+\section{傅里叶级数的敛散性}
+\label{sec:convergence-of-fourier-series}
+
+从本节起，除黎曼可积函数外，也允许在一个周期内有有限个瑕点的函数：它在避开瑕点的闭子区间上黎曼可积，且 $\int|f|$ 的相应瑕积分收敛。下文简称这两类情形为\emph{一个周期内绝对可积}，所有涉及瑕点的积分按绝对收敛的广义积分理解。该条件保证傅里叶系数存在，但尚不保证傅里叶级数在每点收敛。
+
+\subsection{狄利克雷积分}
+\label{subsec:dirichlet-integral}
+
+\begin{definition}
+\label{def:dirichlet-kernel}
+对非负整数 $N$，定义\emph{狄利克雷核}（Dirichlet kernel）
+\begin{equation}
+    D_N(t)=1+2\sum_{n=1}^N\cos nt
+       =\frac{\sin((N+\tfrac12)t)}{\sin(t/2)}
+       \quad(t\notin2\pi\mathbb Z).
+    \label{eq:dirichlet-kernel}
+\end{equation}
+在 $t\in2\pi\mathbb Z$ 处按连续延拓取 $D_N(t)=2N+1$。本章把归一化常数 $1/(2\pi)$ 放在积分公式外。
+\end{definition}
+
+利用 $2\sin(t/2)\cos nt=\sin((n+1/2)t)-\sin((n-1/2)t)$ 求和，就得到式~\eqref{eq:dirichlet-kernel}。将系数积分代入有限和，利用余弦差角公式及周期性，可得\emph{狄利克雷积分表示}（Dirichlet integral representation）
+\begin{align}
+    S_N(f;x)&=\frac1{2\pi}\int_{-\pi}^{\pi}f(x+t)D_N(t)\,dt\notag\\
+       &=\frac1{2\pi}\int_0^\pi
+         \bigl(f(x+t)+f(x-t)\bigr)
+         \frac{\sin((N+\tfrac12)t)}{\sin(t/2)}\,dt.
+    \label{eq:dirichlet-integral-representation}
+\end{align}
+这里交换的仅是有限和与积分。核为偶函数，并满足
+\begin{equation}
+    \int_{-\pi}^{\pi}D_N(t)\,dt=2\pi,
+    \qquad \int_0^\pi D_N(t)\,dt=\pi.
+    \label{eq:dirichlet-kernel-mass}
+\end{equation}
+因此，对于希望得到的极限 $s\in\mathbb R$，若记
+\[
+    \phi_{x,s}(t)=f(x+t)+f(x-t)-2s,
+\]
+就有
+\begin{equation}
+    S_N(f;x)-s=\frac1\pi\int_0^\pi
+       \frac{\phi_{x,s}(t)}{2\sin(t/2)}
+                    \sin((N+\tfrac12)t)\,dt.
+    \label{eq:fourier-pointwise-error-integral}
+\end{equation}
+傅里叶级数的点态收敛，由此转化为一个振荡积分趋于零的问题。
+
+\begin{lemma}[黎曼--勒贝格引理]
+\label{lem:riemann-lebesgue-finite-integral}
+若 $h$ 在有限区间 $[a,b]$ 上黎曼可积，或有有限个瑕点且绝对可积，则
+\begin{equation}
+    \lim_{\lambda\to+\infty}\int_a^bh(t)\sin\lambda t\,dt=0,
+    \qquad
+    \lim_{\lambda\to+\infty}\int_a^bh(t)\cos\lambda t\,dt=0.
+    \label{eq:riemann-lebesgue-finite-integral}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+先设 $h$ 黎曼可积。由达布可积准则，对任意 $\varepsilon>0$，可选一个固定分割及其上的阶梯函数 $p$，使 $\int_a^b|h-p|<\varepsilon/2$。若 $p=c_j$ 于第 $j$ 个子区间，则
+\[
+    \left|\int_a^bp(t)\sin\lambda t\,dt\right|
+        \leq\frac2\lambda\sum_j|c_j|\longrightarrow0.
+\]
+而 $|\int(h-p)\sin\lambda t|\leq\int|h-p|<\varepsilon/2$，即得正弦的结论，余弦同理。若存在瑕点，先取它们的有限个小邻域，使 $\int|h|$ 在这些邻域上的总和小于 $\varepsilon/2$；余下部分是有限个闭区间，对各段使用已证结论。瑕点邻域上的误差估计与 $\lambda$ 无关，故两种极限仍成立。
+\end{proof}
+
+把引理用于 $h=f$，得到 $a_n\to0$、$b_n\to0$。这只是傅里叶系数的必要性质，不能单独推出相应三角级数收敛。
+
+\begin{theorem}[黎曼局部化定理]
+\label{thm:riemann-localization-fourier}
+设 $f,g$ 均为一个周期内绝对可积的 $2\pi$ 周期函数。若存在 $\delta>0$，使它们在 $0<|t|<\delta$ 时满足 $f(x_0+t)=g(x_0+t)$，则
+\[
+    S_N(f;x_0)-S_N(g;x_0)\longrightarrow0.
+\]
+因而两级数在 $x_0$ 处同时收敛或同时发散；若收敛，其和相同。
+\end{theorem}
+
+\begin{proof}
+取 $0<\delta<\pi$。在部分和之差的积分表示中，$|t|<\delta$ 的积分为零，单点 $t=0$ 的取值不影响积分；而在 $\delta\leq|t|\leq\pi$ 上，$1/\sin(t/2)$ 有界。将
+\[
+    \frac{f(x_0+t)-g(x_0+t)}{\sin(t/2)}
+\]
+分别限制在这两个闭区间，使用黎曼--勒贝格引理即可。
+\end{proof}
+
+系数取决于一个完整周期的取值，某一点的收敛却只受该点任意小邻域内的行为控制。进一步，函数
+\[
+    r(t)=\frac1{2\sin(t/2)}-\frac1t\quad(t>0)
+\]
+在 $t\to0$ 时趋于零，可补成 $[0,\pi]$ 上的连续函数。对误差积分中由 $r(t)$ 产生的项应用黎曼--勒贝格引理，再去掉远离零点的一段，便得到：对任意固定的 $0<\delta<\pi$，
+\begin{equation}
+    S_N(f;x_0)-s
+       =\frac1\pi\int_0^\delta
+           \frac{\phi_{x_0,s}(t)}t
+                  \sin((N+\tfrac12)t)\,dt+o(1).
+    \label{eq:localized-fourier-error}
+\end{equation}
+这里 $o(1)$ 随 $N\to\infty$ 趋于零；即使 $\phi(t)/t$ 尚未绝对可积，对每个固定 $N$，$\sin((N+1/2)t)/t$ 在零点仍有有限极限，因此该积分存在。
+
+\begin{example}
+\label{ex:dirichlet-sine-integral-value}
+利用狄利克雷核计算 $\displaystyle\int_0^{+\infty}\frac{\sin u}{u}\,du$。
+\end{example}
+
+\begin{solve}
+由无穷积分的狄利克雷判别法，该积分收敛。在式~\eqref{eq:dirichlet-kernel-mass} 中，用 $1/t$ 代替 $1/(2\sin(t/2))$，二者之差乘以振荡因子后的积分由黎曼--勒贝格引理趋于零，故
+\[
+    1=\lim_{N\to\infty}\frac2\pi\int_0^\pi
+                  \frac{\sin((N+\tfrac12)t)}t\,dt
+      =\frac2\pi\int_0^{+\infty}\frac{\sin u}{u}\,du.
+\]
+最后一步作 $u=(N+1/2)t$，再使用已经证明的广义积分收敛性，得到积分值为 $\pi/2$。
+\end{solve}
+
+\subsection{傅里叶级数的收敛判别法}
+\label{subsec:convergence-tests-for-fourier-series}
+
+式~\eqref{eq:localized-fourier-error} 给出了收敛到 $s$ 的充要条件，但具体应用还需把它转化为便于检查的局部条件。以下始终假定 $f$ 为一个周期内绝对可积的 $2\pi$ 周期函数；在周期拼接点，单侧极限按周期延拓后的函数计算。
+
+\begin{theorem}[傅里叶级数的狄尼判别法]
+\label{thm:dini-fourier-convergence}
+若存在 $s\in\mathbb R$ 与 $\delta>0$，使
+\begin{equation}
+    \int_0^\delta
+       \frac{|f(x_0+t)+f(x_0-t)-2s|}{t}\,dt<+\infty,
+    \label{eq:dini-fourier-condition}
+\end{equation}
+则 $S_N(f;x_0)\to s$。
+\end{theorem}
+
+\begin{proof}
+对 $\phi_{x_0,s}(t)/t$ 在 $(0,\delta]$ 上使用黎曼--勒贝格引理，再用式~\eqref{eq:localized-fourier-error}。
+\end{proof}
+
+这里的狄尼判别法（Dini test）是振荡积分的局部可积条件，与前章关于单调函数序列一致收敛的狄尼定理是不同结论。若左右极限存在，通常取 $s=(f(x_0+0)+f(x_0-0))/2$；此时只要两项 $|f(x_0\pm t)-f(x_0\pm0)|/t$ 分别可积，就满足式~\eqref{eq:dini-fourier-condition}。
+
+\begin{corollary}[可导情形与分段可微情形]
+\label{cor:piecewise-differentiable-fourier-convergence}
+若 $f$ 在 $x_0$ 可导，则 $S_N(f;x_0)\to f(x_0)$。更一般地，若有限的左右极限存在，且下列两个极限均为有限实数：
+\[
+    \lim_{t\downarrow0}\frac{f(x_0+t)-f(x_0+0)}t,
+    \qquad
+    \lim_{t\downarrow0}\frac{f(x_0-t)-f(x_0-0)}{-t},
+\]
+则
+\begin{equation}
+    S_N(f;x_0)\longrightarrow
+          \frac{f(x_0+0)+f(x_0-0)}2.
+    \label{eq:fourier-midpoint-limit}
+\end{equation}
+特别地，一个周期内分段可微且各分段端点具有上述有限单侧导数的函数，傅里叶级数处处收敛到左右极限的平均值。
+\end{corollary}
+
+\begin{proof}
+两个差商在零点附近有界，故取式~\eqref{eq:fourier-midpoint-limit} 右边为 $s$ 时，$\phi_{x_0,s}(t)/t$ 在零点附近有界，满足狄尼条件。可导情形中两个单侧函数值均为 $f(x_0)$。
+\end{proof}
+
+这里\emph{分段可微}（piecewise differentiable）指存在有限分割，使函数在各开子区间可导，分点处具有有限左右极限及上述以单侧极限为基准的单侧导数；分点的实际赋值可以不同于相应极限。常用的分段 $C^1$ 函数满足此条件，但无需要求整个周期内处处连续。
+
+\begin{corollary}[李普西茨判别法]
+\label{cor:holder-fourier-convergence}
+若存在 $L>0$、$\delta>0$、$\alpha>0$，使 $|t|<\delta$ 时
+\[
+    |f(x_0+t)-f(x_0)|\leq L|t|^\alpha,
+\]
+即 $f$ 在 $x_0$ 满足\emph{赫尔德条件}（H\"older condition），则傅里叶级数在该点收敛到 $f(x_0)$。$\alpha=1$ 时称为\emph{李普西茨条件}（Lipschitz condition）。
+\end{corollary}
+
+\begin{proof}
+取 $s=f(x_0)$，则 $|\phi_{x_0,s}(t)|/t\leq2Lt^{\alpha-1}$，其在零点附近可积。左右两侧若分别以各自的极限满足正指数的赫尔德估计，同样得到式~\eqref{eq:fourier-midpoint-limit}。
+\end{proof}
+
+\begin{theorem}[狄利克雷判别法]
+\label{thm:dirichlet-fourier-convergence}
+若 $f$ 在 $(x_0-\delta_0,x_0)$ 和 $(x_0,x_0+\delta_0)$ 内分别单调，且 $f(x_0-0),f(x_0+0)$ 均为有限实数，则式~\eqref{eq:fourier-midpoint-limit} 成立。因而在一个周期内具有有限个单调段、各分点具有有限单侧极限的函数，其傅里叶级数处处收敛到左右极限的平均值。
+\end{theorem}
+
+\begin{proof}
+先考虑右侧，令 $h(t)=f(x_0+t)-f(x_0+0)$。$h$ 单调且 $h(t)\to0$（$t\downarrow0$）。广义积分 $\int_0^{+\infty}\sin u/u\,du$ 收敛，所以存在常数 $C$，使任意 $0\leq A<B$ 均满足
+\[
+    \left|\int_A^B\frac{\sin u}{u}\,du\right|\leq C.
+\]
+给定 $\varepsilon>0$，选 $0<\delta<\delta_0$，使 $|h(t)|<\varepsilon$ 于 $(0,\delta]$。对任意 $0<\eta<\delta$，使用定积分第二中值定理的端点形式，$\int_\eta^\delta h(t)\sin(\lambda t)/t\,dt$ 可写成 $h(\eta)$、$h(\delta)$ 与两个子区间上 $\sin(\lambda t)/t$ 的积分之线性组合；换元 $u=\lambda t$ 后，各积分绝对值至多为 $C$。故令 $\eta\downarrow0$，得到
+\[
+    \left|\int_0^\delta h(t)\frac{\sin\lambda t}{t}\,dt\right|
+        \leq2C\varepsilon.
+\]
+在 $[\delta,\delta_0]$ 上，$h(t)/t$ 可积，其振荡积分由黎曼--勒贝格引理趋于零。因此先令 $\lambda\to\infty$，再令 $\varepsilon\downarrow0$，右侧积分趋于零。左侧对 $f(x_0-t)-f(x_0-0)$ 作同样论证，再在式~\eqref{eq:localized-fourier-error} 中取 $s$ 为左右极限的平均值。
+\end{proof}
+
+\emph[caution]{在连续点，左右极限平均值等于函数值；在跳跃点，收敛值由两侧极限决定，与该点的单独赋值无关。}函数在一点连续本身不足以套用以上判别法；应检查可微性、赫尔德条件、狄尼条件或局部单调性中的适用条件。
+
+\begin{example}
+\label{ex:fourier-endpoint-sums}
+确定前面各个多项式型例子的傅里叶级数在区间内部与端点处的和。
+\end{example}
+
+\begin{solve}
+这些周期函数都分段可微。在例~\ref{ex:fourier-sawtooth-and-period-choice} 中，$f(x)=x$ 的级数在 $(-\pi,\pi)$ 内等于 $x$，在 $x=\pm\pi$ 处等于零；$g(x)=x$ 的级数在 $(0,2\pi)$ 内等于 $x$，在 $x=0,2\pi$ 处等于 $\pi$。相应地，
+\begin{equation}
+    2\sum_{n=1}^\infty\frac{\sin nx}{n}
+      =\begin{cases}\pi-x,&0<x<2\pi,\\0,&x=0,2\pi.\end{cases}
+    \label{eq:fourier-pi-minus-x-sum}
+\end{equation}
+式~\eqref{eq:fourier-square-shifted-period} 在 $(0,2\pi)$ 内的和为 $x^2$，在 $0,2\pi$ 处为 $(0+4\pi^2)/2=2\pi^2$。式~\eqref{eq:half-range-square-sine} 在 $0\leq x<\pi$ 的和为 $x^2$，在 $x=\pi$ 处为零；式~\eqref{eq:half-range-square-cosine} 则在整个 $[0,\pi]$ 上等于 $x^2$。奇延拓在 $\pi$ 处产生跳跃，而偶延拓在该点连续，这解释了两种端点结果的差异。式~\eqref{eq:fourier-x-cos-x-period-pi} 则在 $[-\pi/2,\pi/2]$ 上均等于 $x\cos x$。
+\end{solve}
+
+\begin{example}
+\label{ex:fourier-cos-noninteger-frequency}
+设 $0<\alpha<1$，将 $f(x)=\cos\alpha x$（$-\pi\leq x\leq\pi$）作 $2\pi$ 周期延拓，求其傅里叶级数及和函数。
+\end{example}
+
+\begin{solve}
+由偶性，$b_n=0$。积化和差给出
+\[
+    a_0=\frac{2\sin\alpha\pi}{\alpha\pi},\qquad
+    a_n=\frac{2\alpha(-1)^n\sin\alpha\pi}
+                       {\pi(\alpha^2-n^2)}\quad(n\geq1).
+\]
+该周期延拓连续且分段可微，故
+\begin{equation}
+    \cos\alpha x=\frac{\sin\alpha\pi}{\alpha\pi}
+       +\frac{2\alpha\sin\alpha\pi}{\pi}
+          \sum_{n=1}^\infty
+                    \frac{(-1)^n\cos nx}{\alpha^2-n^2},
+    \qquad -\pi\leq x\leq\pi.
+    \label{eq:fourier-cos-noninteger-frequency}
+\end{equation}
+区间外的和是左边在这一周期上的周期延拓，而不一定等于实轴上原来的 $\cos\alpha x$。端点左右函数值相接，因此端点处也成立等式。
+\end{solve}
+
+\section{傅里叶级数的其他收敛性}
+\label{sec:other-convergence-properties-of-fourier-series}
+
+点态收敛考察每个固定点的部分和极限，一致收敛要求对全体点给出统一的误差控制；均方收敛则用误差平方的积分衡量逼近。后两者研究的对象和条件不同。本节先通过部分和的算术平均构造一致逼近，再利用正交性证明部分和的均方最佳逼近，最后讨论在何种条件下原傅里叶级数本身一致收敛及允许逐项运算。
+
+\subsection{连续函数的三角多项式一致逼近}
+\label{subsec:uniform-trigonometric-approximation}
+
+若数列 $s_N\to s$，则它的算术平均 $(s_0+\cdots+s_N)/(N+1)$ 也趋于 $s$，反向推论一般不成立。平均能够减弱部分和的振荡，因此即使尚不能证明 $S_N(f;x)$ 收敛，也可以研究其平均。
+
+\begin{definition}
+\label{def:fejer-means-and-kernel}
+$f$ 的傅里叶部分和的\emph{费叶平均}（Fej\'er mean）定义为
+\begin{equation}
+    \sigma_N(f;x)=\frac1{N+1}\sum_{k=0}^NS_k(f;x)
+       =\frac{a_0}{2}+\sum_{n=1}^N
+           \left(1-\frac n{N+1}\right)
+                        (a_n\cos nx+b_n\sin nx).
+    \label{eq:fejer-means}
+\end{equation}
+相应的\emph{费叶核}（Fej\'er kernel）为
+\begin{equation}
+    F_N(t)=\frac1{N+1}\sum_{k=0}^ND_k(t)
+       =\frac1{N+1}
+             \left(\frac{\sin((N+1)t/2)}{\sin(t/2)}\right)^2,
+    \label{eq:fejer-kernel}
+\end{equation}
+在 $2\pi\mathbb Z$ 上取连续延拓值 $N+1$。
+\end{definition}
+
+求和公式可由式~\eqref{eq:dirichlet-kernel} 再次用积化和差得到。费叶核具有三个关键性质：非负性 $F_N\geq0$，归一化 $\int_{-\pi}^{\pi}F_N=2\pi$，以及对任意固定的 $0<\delta<\pi$，
+\begin{equation}
+    \sup_{\delta\leq|t|\leq\pi}F_N(t)
+       \leq\frac1{(N+1)\sin^2(\delta/2)}\longrightarrow0.
+    \label{eq:fejer-kernel-concentration}
+\end{equation}
+归一化来自各 $D_k$ 的积分，最后的估计来自分子不超过 $1$。它们说明核的总质量保持不变，而远离零点的质量逐渐消失。对有限个部分和的积分表示求平均，有
+\begin{equation}
+    \sigma_N(f;x)=\frac1{2\pi}\int_{-\pi}^{\pi}
+                                     f(x+t)F_N(t)\,dt.
+    \label{eq:fejer-convolution}
+\end{equation}
+
+\begin{theorem}[费叶定理与魏尔斯特拉斯第二逼近定理]
+\label{thm:fejer-uniform-approximation}
+若 $f$ 为连续的 $2\pi$ 周期函数，则 $\sigma_N(f;\cdot)$ 在整个实轴上一致收敛到 $f$。因此，连续周期函数可由三角多项式一致逼近。
+\end{theorem}
+
+\begin{proof}
+连续周期函数在实轴上有界且一致连续。记 $M=\max|f|$，给定 $\varepsilon>0$，取 $0<\delta<\pi$，使 $|t|<\delta$ 时对一切 $x$ 有 $|f(x+t)-f(x)|<\varepsilon/2$。由核的非负性和归一化，
+\[
+    |\sigma_N(f;x)-f(x)|
+       \leq\frac1{2\pi}\int_{-\pi}^{\pi}
+                  |f(x+t)-f(x)|F_N(t)\,dt.
+\]
+在 $|t|<\delta$ 上，积分的贡献至多为 $\varepsilon/2$；在其余部分，由式~\eqref{eq:fejer-kernel-concentration}，贡献至多为
+\[
+    \frac{2M}{(N+1)\sin^2(\delta/2)}.
+\]
+充分大的 $N$ 使此项小于 $\varepsilon/2$，且这个选择与 $x$ 无关。$\sigma_N$ 是至多 $N$ 阶的三角多项式，故一致逼近结论同时成立。
+\end{proof}
+
+此定理中的逼近多项式是 $\sigma_N$，它对第 $n$ 个频率的系数乘以 $1-n/(N+1)$，并非原来的傅里叶部分和 $S_N$。证明依赖费叶核的非负性；狄利克雷核会变号，不能照搬上述估计来证明连续函数的傅里叶部分和一致收敛。另一方面，若 $S_N(f;x_0)$ 在某一点已经收敛到 $\ell$，则其算术平均也趋于 $\ell$；费叶定理又给出 $\sigma_N(f;x_0)\to f(x_0)$，所以 $\ell=f(x_0)$。由此得到教材中的结论：连续周期函数的傅里叶级数若处处收敛，其和必处处为原函数。
+
+费叶定理也给出定理~\ref{thm:fourier-uniqueness-continuous} 的另一证明：全部系数为零时，每个 $\sigma_N$ 均为零，而它们一致趋于 $f$。任意周期 $2T$ 的情形只须作 $t=\pi x/T$ 的变量代换。
+
+\subsection{傅里叶级数的均方收敛}
+\label{subsec:mean-square-convergence-of-fourier-series}
+
+\begin{definition}
+\label{def:mean-square-convergence}
+设 $f$ 在有限区间 $[a,b]$ 上黎曼可积，或仅有有限个瑕点、在避开瑕点的闭子区间可积，且相应广义积分 $\int_a^bf(x)^2\,dx<+\infty$，则称其\emph{平方可积}（square integrable）。对平方可积的实函数 $f_n,f$，若
+\[
+    \int_a^b|f_n(x)-f(x)|^2\,dx\longrightarrow0,
+\]
+则称 $f_n$ \emph{均方收敛}（mean-square convergence）到 $f$。在 $[-\pi,\pi]$ 上，记
+\begin{equation}
+    \langle f,g\rangle_2=\frac1\pi\int_{-\pi}^{\pi}f(x)g(x)\,dx,
+    \qquad \|f\|_2=\left(\frac1\pi\int_{-\pi}^{\pi}|f(x)|^2\,dx\right)^{1/2}.
+    \label{eq:normalized-square-integral}
+\end{equation}
+后一个量称为归一化均方范数；严格地说，在未把零均方距离的函数等同之前，它是半范数。
+\end{definition}
+
+本节的平方可积首先按上述黎曼积分与有限瑕点的框架理解；更一般的 $L^2$ 理论需要勒贝格积分，此处不预先使用它。黎曼可积函数有界，故平方可积；平方可积函数绝对可积，因为 $2|f|\leq1+f^2$。平方可积比绝对可积要求更强，例如 $x^{-1/2}$ 在 $(0,1]$ 上绝对可积，而其平方的积分发散。
+
+\begin{proposition}[积分型柯西不等式与三角不等式]
+\label{prop:square-integral-inequalities}
+若 $f,g$ 在 $[a,b]$ 上平方可积，则 $fg$ 绝对可积，$f+g$ 平方可积，且
+\begin{align}
+    \left|\int_a^bf(x)g(x)\,dx\right|
+       &\leq\left(\int_a^bf^2\right)^{1/2}
+              \left(\int_a^bg^2\right)^{1/2},
+       \label{eq:integral-cauchy-schwarz-fourier}\\
+    \left(\int_a^b|f+g|^2\right)^{1/2}
+       &\leq\left(\int_a^bf^2\right)^{1/2}
+                 +\left(\int_a^bg^2\right)^{1/2}.
+       \label{eq:integral-triangle-fourier}
+\end{align}
+\end{proposition}
+
+\begin{proof}
+由 $2|fg|\leq f^2+g^2$ 与 $(f+g)^2\leq2f^2+2g^2$，先得到相应可积性。对每个实数 $t$，$\int_a^b(f+tg)^2\geq0$；若 $\int g^2>0$，此二次式的判别式非正，得到第一个不等式。若 $\int g^2=0$，其一次项也必须为零，结论仍成立。展开 $\int(f+g)^2$，再对交叉项使用第一个不等式，即得第二个不等式。
+\end{proof}
+
+在有限区间上，一致收敛推出均方收敛，因为 $\int|f_n-f|^2\leq(b-a)\|f_n-f\|_\infty^2$。反向推论不成立，而且均方极限不决定个别点的取值：在一个点取 $1$、其余点取 $0$ 的函数与零函数均方距离为零。更具体地，令 $h_n(x)=\max\{1-nx,0\}$ 于 $[0,1]$，则 $\int_0^1h_n^2=1/(3n)\to0$，但 $h_n(0)=1$，既不一致趋于零，也不在每点趋于零。
+
+\begin{theorem}[傅里叶部分和的最佳均方逼近]
+\label{thm:fourier-best-square-approximation}
+设 $f$ 在 $[-\pi,\pi]$ 上平方可积，其傅里叶系数为 $a_n,b_n$。对任意至多 $N$ 阶的三角多项式
+\[
+    T_N(x)=\frac{\alpha_0}{2}
+             +\sum_{n=1}^N(\alpha_n\cos nx+\beta_n\sin nx),
+\]
+有
+\begin{equation}
+    \|f-T_N\|_2^2=\|f-S_N(f)\|_2^2
+            +\frac{(\alpha_0-a_0)^2}{2}
+            +\sum_{n=1}^N\bigl((\alpha_n-a_n)^2+(\beta_n-b_n)^2\bigr).
+    \label{eq:fourier-square-error-decomposition}
+\end{equation}
+因此 $S_N(f)$ 是这一类多项式中唯一使均方误差最小者。
+\end{theorem}
+
+\begin{proof}
+由系数定义，$f-S_N(f)$ 与 $1,\cos nx,\sin nx$（$1\leq n\leq N$）均正交，故也与 $S_N(f)-T_N$ 正交。把
+\[
+    f-T_N=(f-S_N(f))+(S_N(f)-T_N)
+\]
+平方积分，交叉项为零，便得到两项范数平方的和；再对第二项应用正交关系即得式~\eqref{eq:fourier-square-error-decomposition}。等号达到最小值当且仅当每一个系数差均为零，即 $T_N=S_N(f)$。
+\end{proof}
+
+特别地，直接展开部分和的误差得到
+\begin{equation}
+    \|f-S_N(f)\|_2^2
+       =\|f\|_2^2-\frac{a_0^2}{2}
+                          -\sum_{n=1}^N(a_n^2+b_n^2)\geq0.
+    \label{eq:fourier-residual-energy}
+\end{equation}
+令 $N\to\infty$，便得到\emph{贝塞尔不等式}（Bessel's inequality）
+\begin{equation}
+    \frac{a_0^2}{2}+\sum_{n=1}^\infty(a_n^2+b_n^2)\leq\|f\|_2^2.
+    \label{eq:bessel-fourier-inequality}
+\end{equation}
+它还说明均方误差随 $N$ 单调不增。不过，误差非负且递减只保证存在极限，要证明极限为零，还需三角多项式对函数类具有充分的逼近能力。
+
+\begin{lemma}[平方可积函数的三角多项式逼近]
+\label{lem:trigonometric-density-square-integral}
+对本节定义的任意平方可积函数 $f$ 及任意 $\varepsilon>0$，存在三角多项式 $T$，使 $\|f-T\|_2<\varepsilon$。
+\end{lemma}
+
+\begin{proof}
+先设 $f$ 黎曼可积，$|f|\leq M$；$M=0$ 时无需证明。取分割，使 $\sum_j\omega_j(f)\Delta x_j$ 任意小，并在各段取 $f$ 的一个值组成阶梯函数 $p$，则
+\[
+    \int_{-\pi}^{\pi}|f-p|^2
+       \leq2M\sum_j\omega_j(f)\Delta x_j.
+\]
+阶梯函数只有有限个跳跃点。在这些点附近的小区间内用线段连接左右常值，在两端的小区间内再使端点值都变为零，便得到连续且 $g(-\pi)=g(\pi)$ 的函数 $g$，并保持 $|g|\leq M$。$p,g$ 只在总长度可任意小的集合内不同，且差的绝对值至多为 $2M$，所以 $\|p-g\|_2$ 可任意小。将 $g$ 作连续周期延拓，费叶定理给出三角多项式 $T$ 使 $\|g-T\|_\infty$ 任意小，故 $\|g-T\|_2\leq\sqrt2\|g-T\|_\infty$ 也任意小。用三角不等式合并三项误差，就得到结论。
+
+若 $f$ 有有限个瑕点，由 $\int f^2$ 收敛，可取这些点的小邻域，使其上 $f^2$ 的积分任意小。把这些邻域内的函数值改为零，得到一个有界黎曼可积函数 $f_0$，并使 $\|f-f_0\|_2$ 任意小。对 $f_0$ 用前面的结论，再次使用三角不等式即可。
+\end{proof}
+
+\begin{theorem}[傅里叶级数的均方收敛与帕塞瓦尔等式]
+\label{thm:fourier-mean-square-and-parseval}
+若 $f$ 在 $[-\pi,\pi]$ 上平方可积，则 $S_N(f)$ 均方收敛到 $f$，并且成立\emph{帕塞瓦尔等式}（Parseval's identity）
+\begin{equation}
+    \frac1\pi\int_{-\pi}^{\pi}f(x)^2\,dx
+       =\frac{a_0^2}{2}+\sum_{n=1}^\infty(a_n^2+b_n^2).
+    \label{eq:parseval-fourier-identity}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+给定 $\varepsilon>0$，由前一引理取三角多项式 $T$，使 $\|f-T\|_2<\varepsilon$。设其阶数为 $m$，则对一切 $N\geq m$，最佳逼近定理给出 $\|f-S_N(f)\|_2\leq\|f-T\|_2<\varepsilon$，从而均方收敛。再在式~\eqref{eq:fourier-residual-energy} 中令 $N\to\infty$ 即得帕塞瓦尔等式。
+\end{proof}
+
+等式说明函数的平方积分可以分解为各频率系数的平方和，这常称为能量分解。它在没有点态收敛保证时仍成立，因此证明中没有把一个未经核实的无穷展开直接平方并逐项积分。反过来，并非任意三角级数都是某个平方可积函数的傅里叶级数；例如 $\sum_{n\geq1}\cos nx/\sqrt n$ 的系数平方和发散，不能来自这样的函数。
+
+\begin{corollary}[广义帕塞瓦尔等式]
+\label{cor:generalized-parseval-fourier}
+若 $f,g$ 平方可积，傅里叶系数分别为 $a_n,b_n$ 和 $\alpha_n,\beta_n$，则
+\begin{equation}
+    \frac1\pi\int_{-\pi}^{\pi}f(x)g(x)\,dx
+       =\frac{a_0\alpha_0}{2}
+            +\sum_{n=1}^\infty(a_n\alpha_n+b_n\beta_n).
+    \label{eq:generalized-parseval-fourier}
+\end{equation}
+右边级数绝对收敛。
+\end{corollary}
+
+\begin{proof}
+由贝塞尔不等式及数列的柯西不等式，$\sum|a_n\alpha_n|$ 和 $\sum|b_n\beta_n|$ 收敛。分别对 $f+g$、$f-g$ 使用帕塞瓦尔等式，二式相减后除以 $4$，即得结论。
+\end{proof}
+
+\begin{example}
+\label{ex:parseval-sums-second-fourth-powers}
+用帕塞瓦尔等式计算 $\sum_{n=1}^\infty n^{-2}$ 和 $\sum_{n=1}^\infty n^{-4}$。
+\end{example}
+
+\begin{solve}
+对 $[-\pi,\pi]$ 上的 $f(x)=x$，由 $b_n=2(-1)^{n+1}/n$，得到
+\[
+    \frac1\pi\int_{-\pi}^{\pi}x^2\,dx
+       =4\sum_{n=1}^\infty\frac1{n^2},
+    \qquad \sum_{n=1}^\infty\frac1{n^2}=\frac{\pi^2}{6}.
+\]
+对同一区间上的 $g(x)=x^2$，式~\eqref{eq:half-range-square-cosine} 给出 $a_0=2\pi^2/3$、$a_n=4(-1)^n/n^2$，故
+\[
+    \frac{2\pi^4}{5}=\frac{2\pi^4}{9}
+                   +16\sum_{n=1}^\infty\frac1{n^4},
+    \qquad \sum_{n=1}^\infty\frac1{n^4}=\frac{\pi^4}{90}.
+\]
+两次运用只要求相应函数平方可积，不依赖它们的傅里叶级数先有一致收敛性。
+\end{solve}
+
+\subsection{傅里叶级数的一致收敛性}
+\label{subsec:uniform-convergence-of-fourier-series}
+
+光滑性使高频系数衰减得更快，而系数的绝对可和性又能给出一致收敛。联系这两者的关键是对系数积分作分部积分，再用导函数的贝塞尔不等式。
+
+\begin{theorem}[一个一致收敛的充分条件]
+\label{thm:fourier-absolute-uniform-convergence}
+设 $f$ 为连续的 $2\pi$ 周期函数，在一个周期内有限分段可导，且导函数可在分点处补值成为黎曼可积函数，则
+\begin{equation}
+    \sum_{n=1}^\infty(|a_n|+|b_n|)<+\infty,
+    \label{eq:fourier-absolute-coefficient-summability}
+\end{equation}
+其傅里叶级数在整个实轴上绝对且一致收敛到 $f$。特别地，教材中 $f$ 在整个周期上可导、$f'$ 黎曼可积的条件满足本定理；连续的周期分段 $C^1$ 函数也满足本定理。
+\end{theorem}
+
+\begin{proof}
+设 $f'$ 的傅里叶系数为 $A_n,B_n$。在各段上分部积分，因 $f$ 连续，内部分点的边界项相消；周期端点满足 $f(-\pi)=f(\pi)$，所以
+\begin{equation}
+    A_0=0,\qquad A_n=nb_n,\qquad B_n=-na_n\quad(n\geq1).
+    \label{eq:fourier-derivative-coefficients}
+\end{equation}
+这里可积导数的牛顿--莱布尼茨公式保证各段的分部积分成立。由于 $f'$ 黎曼可积，从而平方可积，贝塞尔不等式给出
+\[
+    \sum_{n=1}^\infty n^2(a_n^2+b_n^2)
+       =\sum_{n=1}^\infty(A_n^2+B_n^2)\leq\|f'\|_2^2.
+\]
+对有限和使用柯西不等式，再令上限趋于无穷，得到
+\[
+    \sum_{n=1}^\infty(|a_n|+|b_n|)
+       \leq\left(\sum_{n=1}^\infty n^2(a_n^2+b_n^2)\right)^{1/2}
+          \left(2\sum_{n=1}^\infty\frac1{n^2}\right)^{1/2}<+\infty.
+\]
+由 $M$ 判别法，级数在实轴上绝对且一致收敛。其连续和函数必为 $f$，这可由费叶定理关于已收敛部分和的结论得到。
+\end{proof}
+
+周期拼接处的连续性是这里的实质条件。例如，$x$ 在 $(-\pi,\pi)$ 内光滑，但它的周期延拓有跳跃，系数仅为 $1/n$ 量级；其部分和都是连续函数，不可能在整个周期上一致收敛到跳跃的和函数。另一方面，式~\eqref{eq:fourier-derivative-coefficients} 只是导函数的系数公式，不能仅凭形式微分就断言导数级数收敛。
+
+\begin{theorem}[傅里叶级数的逐项求导]
+\label{thm:fourier-termwise-differentiation}
+设 $f$ 为 $2\pi$ 周期函数，$f\in C^1(\mathbb R)$，且在一个周期内二阶可导、$f''$ 黎曼可积。则 $f$ 的傅里叶级数可逐项求导，并有
+\begin{equation}
+    f'(x)=\sum_{n=1}^\infty
+                       (nb_n\cos nx-na_n\sin nx),
+    \qquad x\in\mathbb R.
+    \label{eq:fourier-termwise-differentiation}
+\end{equation}
+原级数与上述导数级数都在实轴上一致收敛；特别地，$2\pi$ 周期的 $C^2$ 函数满足这些条件。
+\end{theorem}
+
+\begin{proof}
+$f'$ 连续且为 $2\pi$ 周期函数，对它使用前一定理，得到其傅里叶级数一致收敛到 $f'$。由式~\eqref{eq:fourier-derivative-coefficients}，这个级数正是原级数形式微分后的级数。原级数由前一定理收敛到 $f$，故在任一有限闭区间上，由推论~\ref{cor:termwise-differentiation-uniform-derivative-series} 可逐项求导，得到式~\eqref{eq:fourier-termwise-differentiation}。导数级数本身的实轴一致收敛由前述对 $f'$ 的应用保证。
+\end{proof}
+
+逐项积分需要的条件弱得多：原函数在一个周期内黎曼可积即可，原傅里叶级数本身无需先有逐点或一致收敛性。
+
+\begin{theorem}[傅里叶级数的逐项积分]
+\label{thm:fourier-termwise-integration}
+设 $f$ 为在一个周期内黎曼可积的 $2\pi$ 周期函数，其傅里叶系数为 $a_n,b_n$。则对 $0\leq x\leq2\pi$，
+\begin{equation}
+    \int_0^xf(t)\,dt=\frac{a_0x}{2}
+       +\sum_{n=1}^\infty
+          \left(\frac{a_n}{n}\sin nx
+                  +\frac{b_n}{n}(1-\cos nx)\right).
+    \label{eq:fourier-termwise-integration}
+\end{equation}
+右边级数绝对且一致收敛。更一般地，对任意实数 $u,v$，
+\begin{equation}
+    \int_u^vf(t)\,dt=\frac{a_0(v-u)}2
+       +\sum_{n=1}^\infty\left(
+          \frac{a_n}{n}(\sin nv-\sin nu)
+           +\frac{b_n}{n}(\cos nu-\cos nv)\right).
+    \label{eq:fourier-integral-arbitrary-endpoints}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+因 $f$ 黎曼可积，所以平方可积。固定 $x\in[0,2\pi]$，在 $[0,2\pi]$ 上定义 $g_x(t)$ 为 $(0,x)$ 的示性函数，并作周期延拓；端点赋值任意。其系数为
+\[
+    \alpha_0=\frac x\pi,\qquad
+    \alpha_n=\frac{\sin nx}{\pi n},\qquad
+    \beta_n=\frac{1-\cos nx}{\pi n}.
+\]
+广义帕塞瓦尔等式的积分可移到 $[0,2\pi]$ 上，对 $f,g_x$ 应用该式，再乘以 $\pi$，就得到式~\eqref{eq:fourier-termwise-integration}。由贝塞尔不等式与柯西不等式，
+\[
+    \sum_{n=1}^\infty\frac{|a_n|+2|b_n|}{n}
+       \leq\left(\sum_{n=1}^\infty(a_n^2+b_n^2)\right)^{1/2}
+           \left(5\sum_{n=1}^\infty\frac1{n^2}\right)^{1/2}<+\infty,
+\]
+故积分后的级数绝对且一致收敛。式~\eqref{eq:fourier-termwise-integration} 两边从 $x$ 到 $x+2\pi$ 都增加 $\pi a_0$，因而等式通过周期性延伸到所有实数 $x$；取 $x=v$ 与 $x=u$ 的差即得一般端点公式，$u>v$ 时按定积分的方向约定理解。
+\end{proof}
+
+这一证明先由均方理论确定积分结果，再证明积分后级数的一致收敛，没有把一般函数项级数的逐项积分定理用在一个尚未证明一致收敛的原级数上。常数项积分为 $a_0x/2$，除非 $a_0=0$，原函数的积分通常不再是周期函数。
+
+\begin{example}
+\label{ex:fourier-integrated-sawtooth}
+由 $\pi-x$ 在 $(0,2\pi)$ 上的正弦展开，求 $x^2/2-\pi x$ 的傅里叶级数及和函数。
+\end{example}
+
+\begin{solve}
+由式~\eqref{eq:fourier-pi-minus-x-sum} 及逐项积分定理，
+\[
+    \pi x-\frac{x^2}{2}
+       =2\sum_{n=1}^\infty\frac{1-\cos nx}{n^2},
+       \qquad 0\leq x\leq2\pi.
+\]
+使用 $\sum n^{-2}=\pi^2/6$，得到
+\begin{equation}
+    \frac{x^2}{2}-\pi x
+       =-\frac{\pi^2}{3}
+           +2\sum_{n=1}^\infty\frac{\cos nx}{n^2},
+       \qquad 0\leq x\leq2\pi.
+    \label{eq:fourier-integrated-sawtooth}
+\end{equation}
+右边绝对且一致收敛，可逐项积分验证它的傅里叶系数恰为常数项 $-\pi^2/3$ 与余弦系数 $2/n^2$，故这是所求傅里叶级数。左边在 $0,2\pi$ 处均为零，其周期延拓连续，右边的和正是这一连续周期函数。原来的 $\pi-x$ 的周期延拓有跳跃，积分后则具有更好的连续性与系数衰减。
+\end{solve}
+
+\section*{习题十二}
+\addcontentsline{toc}{section}{习题十二}

@@ -1,0 +1,838 @@
+% !TeX root = ../高等代数教材（谢启鸿）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{4} % 保留原书章号。
+\chapter{多项式}
+\label{chap:polynomials}
+
+% 依据《高等代数学》第四版第 5 章 §5.1--§5.10，教材第 213--261 页；不整理节末及章末习题。
+多项式既是研究代数方程的对象，也是把线性映射与矩阵联系起来的工具：把未定元替换为方阵或线性变换，就能用多项式的整除、互素和因式分解研究算子的结构。本章先在数域上建立一元多项式的运算与整除理论，再讨论根与系数的关系，最后推广到多元多项式，并用对称多项式、结式和判别式处理根的对称关系、公根及重根问题。除特别说明外，$\mathbb K$ 始终表示一个数域，即复数域 $\mathbb C$ 的子域；因此 $\mathbb K$ 包含 $\mathbb Q$，具有无限多个元素，且任意正整数在其中都不等于零。
+
+\section{一元多项式代数}
+\label{sec:polynomial-algebra}
+
+\begin{definition}
+设 $x$ 为一个\emph{未定元}（indeterminate），$a_0,\ldots,a_n\in\mathbb K$。形式表达式
+\[
+    f(x)=a_0+a_1x+\cdots+a_nx^n
+\]
+称为 $\mathbb K$ 上的\emph{一元多项式}（univariate polynomial），其全体记为 $\mathbb K[x]$。这里的 $x$ 不是预先选定的数；两个多项式相等，是指补齐系数为零的项后，各同次项的系数分别相等。若 $a_n\ne0$，则称 $n$ 为 $f$ 的\emph{次数}（degree），记为 $\deg f=n$，称 $a_nx^n$ 为首项，$a_n$ 为首项系数；首项系数为 $1$ 的多项式称为\emph{首一多项式}（monic polynomial）。非零常数多项式的次数为 $0$，零多项式的次数规定为 $-\infty$。
+\end{definition}
+
+多项式的加法是同次项系数相加，数乘是每个系数同乘一个数，乘法则由分配律与 $x^ix^j=x^{i+j}$ 确定。具体地，若 $f=\sum_{i=0}^n a_ix^i$，$g=\sum_{j=0}^m b_jx^j$，则
+\[
+    fg=\sum_{k=0}^{n+m}c_kx^k,
+    \qquad c_k=\sum_{i+j=k}a_ib_j,
+\]
+其中超出下标范围的系数按零处理。这些运算使 $\mathbb K[x]$ 成为 $\mathbb K$ 上的线性空间，并具有满足交换律、结合律和分配律的乘法，且数乘与乘法相容。因此称它为\emph{一元多项式代数}（polynomial algebra）；只考虑加法与乘法时，也称\emph{多项式环}（polynomial ring）。其乘法单位元为常数多项式 $1$，$1,x,x^2,\ldots$ 构成它作为线性空间的一组基，每个多项式都是这些基向量的有限线性组合。
+
+\begin{proposition}
+\label{prop:polynomial-degree}
+对 $f,g\in\mathbb K[x]$ 及 $c\in\mathbb K\setminus\{0\}$，有
+\[
+    \deg(fg)=\deg f+\deg g,\qquad
+    \deg(f+g)\leq\max\{\deg f,\deg g\},\qquad
+    \deg(cf)=\deg f.
+\]
+这里约定 $-\infty+d=-\infty$，包括 $d=-\infty$ 的情形。特别地，非零多项式的乘积非零；若 $f\ne0$ 且 $fg=fh$，则 $g=h$。
+\end{proposition}
+\begin{proof}
+若 $f,g$ 非零，设其首项分别为 $a_nx^n,b_mx^m$。乘积中 $x^{n+m}$ 的系数为 $a_nb_m\ne0$，且没有更高次项，故乘积次数为 $n+m$。相加时不会出现高于原有次数的项，但同次首项可能抵消，因而只能保证上述不等式；非零数乘则不改变最高非零系数的位置。涉及零多项式的情形由约定成立。最后由 $f(g-h)=0$ 及非零多项式乘积非零，得到 $g-h=0$。
+\end{proof}
+
+\emph[caution]{次数描述的是最高非零项，不能对加法直接相加。}例如 $(x^2+1)+(-x^2+x)=x+1$，次数由 $2$ 降为 $1$。另一方面，$\mathbb K[x]$ 中有乘法逆元的元素恰为非零常数：若 $fg=1$，则次数公式给出 $\deg f=\deg g=0$。因此多项式环通常不能像数域那样任意作除法，下一节需要以整除和带余除法取代它。
+
+\section{整除}
+\label{sec:polynomial-divisibility}
+
+\begin{definition}
+对 $f,g\in\mathbb K[x]$，若存在 $q\in\mathbb K[x]$ 使 $f=gq$，就称 $g$ \emph{整除}（divide）$f$，记为 $g\mid f$，并称 $g$ 为 $f$ 的因式。若两个非零多项式互相整除，则称它们\emph{相伴}（associate），记为 $f\sim g$。
+\end{definition}
+
+由定义，每个多项式都整除零，而零只整除零；每个非零常数整除任意多项式。整除具有传递性，且若 $d\mid f,d\mid g$，则对任意 $u,v\in\mathbb K[x]$ 都有 $d\mid uf+vg$。这些结论可直接把 $f=dp,g=dq$ 代入相应表达式验证。若 $f,g$ 非零且互相整除，写成 $f=gu,g=fv$，消去 $f$ 得 $uv=1$，于是 $u,v$ 均为非零常数；反之非零常数倍的多项式互相整除。因此相伴等价于 $f=cg$，其中 $c\in\mathbb K\setminus\{0\}$。
+
+\begin{theorem}[带余除法]
+\label{thm:polynomial-division}
+设 $f,g\in\mathbb K[x]$ 且 $g\ne0$，则存在唯一的 $q,r\in\mathbb K[x]$，使
+\begin{equation}
+\label{eq:polynomial-division}
+    f=gq+r,\qquad \deg r<\deg g.
+\end{equation}
+$q$ 称为商式，$r$ 称为余式。特别地，$g\mid f$ 当且仅当 $r=0$。
+\end{theorem}
+\begin{proof}
+若 $\deg f<\deg g$，取 $q=0,r=f$。否则设 $f,g$ 的首项分别为 $a_nx^n,b_mx^m$，其中 $n\geq m$。从 $f$ 减去 $(a_n/b_m)x^{n-m}g$，首项被消去，所得多项式的次数严格下降。只要当前余下多项式的次数仍不小于 $m$，就继续进行这一步；由于非负整数不能无限严格下降，过程有限步后终止。把各步减去的 $g$ 的倍式相加，便得到所需的 $q,r$。
+
+若还有 $f=g\widetilde q+\widetilde r$ 且 $\deg\widetilde r<\deg g$，则
+\[
+    g(q-\widetilde q)=\widetilde r-r.
+\]
+若 $q-\widetilde q\ne0$，左边次数至少为 $\deg g$，右边次数小于 $\deg g$，矛盾。因此 $q=\widetilde q,r=\widetilde r$。最后，余式为零时整除成立；反之若整除成立，利用商与余式的唯一性即可。
+\end{proof}
+
+带余除法的核心是\emph[tip]{用除式的适当倍式逐次消去当前首项}。除式的首项系数可以在 $\mathbb K$ 中取逆，这正是系数属于数域的作用；若只允许整系数，通常不能保证所得商与余式仍有整数系数。
+
+\begin{example}
+求 $f(x)=3x^4-4x^3+5x-1$ 除以 $g(x)=x^2-x+1$ 的商与余式。
+\end{example}
+\begin{solve}
+依次消去四次项、三次项和二次项，得到
+\[
+\begin{aligned}
+    f-3x^2g&=-x^3-3x^2+5x-1,\\
+    f-(3x^2-x)g&=-4x^2+6x-1,\\
+    f-(3x^2-x-4)g&=2x+3.
+\end{aligned}
+\]
+余下多项式的次数为 $1<2$，故 $q=3x^2-x-4$，$r=2x+3$。该例也说明，带余除法的终止条件是余式次数低于除式次数，而不要求余式一定为常数。
+\end{solve}
+
+\section{最大公因式}
+\label{sec:polynomial-gcd}
+
+\begin{definition}
+设 $f,g\in\mathbb K[x]$ 不全为零。若 $d\mid f,d\mid g$，且任意同时整除 $f,g$ 的多项式都整除 $d$，则称 $d$ 为它们的\emph{最大公因式}（greatest common divisor，gcd）。规定 $d$ 首一，并记为 $(f,g)$。若 $(f,g)=1$，则称 $f,g$ \emph{互素}（coprime）。另约定 $(0,0)=0$；此时不要求首一。
+\end{definition}
+
+这里的“最大”由整除关系刻画，不是比较系数大小。若两个多项式都满足最大公因式的整除性质，它们必互相整除，因而相伴；首一化才使非零最大公因式唯一。特别地，若 $f\ne0$ 的首项系数为 $a$，则 $(f,0)=a^{-1}f$。
+
+\begin{theorem}[Euclid 辗转相除法与 Bézout 等式]
+\label{thm:polynomial-bezout}
+任意两个不全为零的多项式 $f,g\in\mathbb K[x]$ 都有唯一的首一最大公因式 $d$，并存在 $u,v\in\mathbb K[x]$，使
+\begin{equation}
+\label{eq:polynomial-bezout}
+    uf+vg=d.
+\end{equation}
+若 $f,g$ 均非零，连续作带余除法，最后一个非零余式的首一化就是 $d$。
+\end{theorem}
+\begin{proof}
+先设 $g\ne0$，置 $r_0=f,r_1=g$，依次作
+\[
+    r_{i-1}=q_ir_i+r_{i+1},\qquad \deg r_{i+1}<\deg r_i.
+\]
+非零余式的次数严格下降，故存在 $s\geq1$，使 $r_s\ne0,r_{s+1}=0$。每一步中，$r_{i-1},r_i$ 的公因式恰为 $r_i,r_{i+1}$ 的公因式，因为 $r_{i+1}=r_{i-1}-q_ir_i$，而 $r_{i-1}=q_ir_i+r_{i+1}$。因此 $f,g$ 的公因式与 $r_s,0$ 的公因式相同，$r_s$ 的首一化即为 $d$。由这些等式逆向回代，$r_s$ 可表示为 $f,g$ 的多项式线性组合，再同除以 $r_s$ 的首项系数即可得到式~\eqref{eq:polynomial-bezout}。若 $g=0$，直接取 $d=f/a,u=1/a,v=0$，其中 $a$ 为 $f$ 的首项系数。唯一性由首一化和相伴关系得到。
+\end{proof}
+
+\begin{corollary}
+\label{cor:polynomial-coprime-bezout}
+$f,g\in\mathbb K[x]$ 互素，当且仅当存在 $u,v\in\mathbb K[x]$ 使 $uf+vg=1$。
+\end{corollary}
+\begin{proof}
+必要性由定理~\ref{thm:polynomial-bezout} 得到。反之，$f,g$ 的任意公因式都整除 $uf+vg=1$，所以它们的首一最大公因式为 $1$。
+\end{proof}
+
+\begin{example}
+求 $f=x^4-1$ 与 $g=x^3-1$ 的最大公因式，并把它写成 $f,g$ 的线性组合。
+\end{example}
+\begin{solve}
+带余除法给出
+\[
+    f=xg+(x-1),\qquad
+    g=(x^2+x+1)(x-1).
+\]
+最后一个非零余式 $x-1$ 已经首一，故 $(f,g)=x-1=f-xg$。注意“最大公因式可写成线性组合”还需要它确实是公因式；任意线性组合不一定是最大公因式，例如 $f+g$ 通常并不整除 $f,g$。
+\end{solve}
+
+\begin{proposition}
+\label{prop:polynomial-coprime-rules}
+在 $\mathbb K[x]$ 中，互素具有下列性质：若 $(f,g)=1$ 且 $f\mid gh$，则 $f\mid h$；若 $f\mid h,g\mid h$ 且 $(f,g)=1$，则 $fg\mid h$；若 $(f,h)=(g,h)=1$，则 $(fg,h)=1$。若 $d=(f,g)\ne0$，写成 $f=df_1,g=dg_1$，则 $(f_1,g_1)=1$。
+\end{proposition}
+\begin{proof}
+由 $uf+vg=1$ 得 $h=ufh+vgh$，故 $f\mid gh$ 时有 $f\mid h$。其次设 $h=fa$，由 $g\mid fa$ 及 $(g,f)=1$ 得 $g\mid a$，于是 $fg\mid h$。对第三个结论，取 $uf+vh=1$ 及 $sg+th=1$，两式相乘得到
+\[
+    usfg+(utf+vsg+vth)h=1,
+\]
+从而 $(fg,h)=1$。最后将 $f=df_1,g=dg_1$ 代入 $uf+vg=d$，消去非零的 $d$，便有 $uf_1+vg_1=1$。
+\end{proof}
+
+对有限个不全为零的多项式，同样以“整除每一个多项式，并被任一公因式整除”定义首一最大公因式。由定义可知
+\[
+    (f_1,f_2,\ldots,f_r)=((f_1,f_2),f_3,\ldots,f_r),
+\]
+从而可以逐次计算，并得到 $\sum_{i=1}^r u_if_i=(f_1,\ldots,f_r)$。当 $r\geq3$ 时，整体最大公因式为 $1$ 不保证两两互素，例如 $x(x-1),x(x+1),(x-1)(x+1)$。此外，若 $t\ne0$ 的首项系数为 $b$，则
+\[
+    (tf,tg)=b^{-1}t(f,g).
+\]
+这是因为 $t(f,g)$ 既是公因式，又由 Bézout 等式成为 $tf,tg$ 的线性组合；乘以 $b^{-1}$ 是为了遵守首一约定。
+
+\begin{definition}
+若多项式 $m$ 同时是 $f,g$ 的倍式，且整除它们的任意公倍式，就称 $m$ 为\emph{最小公倍式}（least common multiple，lcm），记为 $[f,g]$。非零的最小公倍式规定首一；若 $f=0$ 或 $g=0$，则规定 $[f,g]=0$。
+\end{definition}
+
+\begin{proposition}
+\label{prop:polynomial-lcm}
+设 $f,g\ne0$，$d=(f,g)$，$a,b$ 分别为 $f,g$ 的首项系数，则
+\[
+    [f,g]=\frac{fg}{ab\,d},\qquad fg=ab(f,g)[f,g].
+\]
+\end{proposition}
+\begin{proof}
+写 $f=df_1,g=dg_1$，其中 $(f_1,g_1)=1$。多项式 $df_1g_1=fg/d$ 是公倍式。若 $l=fu=gv$，消去 $d$ 得 $f_1u=g_1v$，由互素性得到 $g_1\mid u$，因此 $df_1g_1\mid l$。所以 $fg/d$ 满足最小公倍式的整除性质，其首项系数为 $ab$，首一化即得结论。
+\end{proof}
+
+\begin{theorem}[多项式的中国剩余定理]
+\label{thm:polynomial-crt}
+设 $g_1,\ldots,g_r$ 为两两互素的非常数多项式，$a_1,\ldots,a_r\in\mathbb K[x]$ 任意给定。记 $G=\prod_{i=1}^r g_i$，则存在 $f\in\mathbb K[x]$，使 $g_i\mid(f-a_i)$ 对每个 $i$ 成立，即
+\[
+    f\equiv a_i\pmod{g_i},\qquad i=1,\ldots,r.
+\]
+所有解相差 $G$ 的倍式，因而次数小于 $\deg G$ 的解恰有一个。
+\end{theorem}
+\begin{proof}
+置 $G_i=G/g_i$。由两两互素及命题~\ref{prop:polynomial-coprime-rules}，有 $(G_i,g_i)=1$，故存在 $u_i,v_i$ 使 $u_iG_i+v_ig_i=1$。令 $e_i=u_iG_i$，则 $e_i\equiv1\pmod{g_i}$，而对 $j\ne i$ 有 $e_i\equiv0\pmod{g_j}$，所以 $f=\sum_i a_ie_i$ 满足要求。若 $f,\widetilde f$ 均满足要求，则每个 $g_i$ 都整除 $f-\widetilde f$，由两两互素得到 $G\mid(f-\widetilde f)$。把任一解除以 $G$ 后取余式，得到次数小于 $\deg G$ 的解；两个这样的解之差不可能是 $G$ 的非零倍式，故唯一。
+\end{proof}
+
+\begin{example}
+求满足 $f\equiv1\pmod{x^2}$、$f\equiv0\pmod{x-1}$ 且次数小于 $3$ 的多项式。
+\end{example}
+\begin{solve}
+由第一个条件可设 $f=1+cx^2$，再由第二个条件得 $f(1)=1+c=0$，所以 $f=1-x^2$。由于 $(x^2,x-1)=1$，所有解为 $1-x^2+x^2(x-1)h$，其中 $h\in\mathbb K[x]$。
+\end{solve}
+
+\section{因式分解}
+\label{sec:polynomial-factorization}
+
+\begin{definition}
+设 $f\in\mathbb K[x]$ 为非常数多项式。若 $f$ 可以写成两个次数均大于零的 $\mathbb K$ 上多项式之积，就称它在 $\mathbb K$ 上\emph{可约}（reducible），否则称为\emph{不可约多项式}（irreducible polynomial）。
+\end{definition}
+
+由于乘积次数等于因式次数之和，定义中的两个因式也都比 $f$ 次数低。将非零常数提出不算可约分解，常数多项式也不列入不可约多项式。\emph[caution]{可约性必须相对于指定的系数域讨论。}例如 $x^2-2$ 在 $\mathbb Q$ 上不可约，因为若分解成两个有理系数一次式就会有有理根，而 $\sqrt2$ 不是有理数；在 $\mathbb R$ 上则有 $(x-\sqrt2)(x+\sqrt2)$。一次多项式在任何数域上都不可约。
+
+\begin{lemma}
+\label{lem:irreducible-prime}
+设 $p\in\mathbb K[x]$ 不可约。对任意 $f\in\mathbb K[x]$，或者 $p\mid f$，或者 $(p,f)=1$；若 $p\mid fg$，则 $p\mid f$ 或 $p\mid g$。
+\end{lemma}
+\begin{proof}
+因为 $(p,f)$ 整除不可约多项式 $p$，所以它只能是 $1$ 或 $p$ 的首一化，后一种情形等价于 $p\mid f$。若 $p\nmid f$ 且 $p\mid fg$，则 $(p,f)=1$，由命题~\ref{prop:polynomial-coprime-rules} 得到 $p\mid g$。
+\end{proof}
+
+\begin{theorem}[唯一因式分解定理]
+\label{thm:polynomial-unique-factorization}
+每个非常数多项式 $f\in\mathbb K[x]$ 都可写成
+\begin{equation}
+\label{eq:polynomial-standard-factorization}
+    f=c\prod_{i=1}^s p_i^{e_i},
+\end{equation}
+其中 $c\in\mathbb K\setminus\{0\}$，$p_1,\ldots,p_s$ 是两两不同的首一不可约多项式，$e_i$ 是正整数。除因式排列次序外，这一表示唯一，且 $c$ 就是 $f$ 的首项系数。非零常数也适用空积形式。
+\end{theorem}
+\begin{proof}
+存在性对次数归纳。一次多项式提出首项系数后即为首一不可约多项式。设低于 $n$ 次的情形已证；对 $n$ 次多项式，若它不可约则无需继续分解，若它可约就写成两个次数较低的多项式之积，分别应用归纳假设即可。最后把各因式首一化，将相同因式合并。
+
+为证唯一性，设有两个不可约分解。第一个分解中的某个因式 $p$ 整除另一个分解的乘积，由引理~\ref{lem:irreducible-prime}，它必整除其中某个不可约因式 $q$。于是 $p,q$ 相伴，首一化后相等。消去这个公共因式，重复此过程，所有因式及其重数都一一对应；比较首项系数后，常数因子也相同。
+\end{proof}
+
+式~\eqref{eq:polynomial-standard-factorization} 中的 $e_i$ 称为不可约因式 $p_i$ 的\emph{重数}（multiplicity）；$e_i=1$ 时为单因式，$e_i>1$ 时为重因式。若把两个非零多项式的不可约因式合并为同一组 $p_1,\ldots,p_s$，允许某些指数为零，写成 $f=a\prod_i p_i^{e_i}$、$g=b\prod_i p_i^{k_i}$，则
+\[
+    (f,g)=\prod_i p_i^{\min\{e_i,k_i\}},\qquad
+    [f,g]=\prod_i p_i^{\max\{e_i,k_i\}}.
+\]
+这是因为整除恰好等价于每个不可约因式的指数分别不大于被除式中的对应指数。这个描述清楚解释了最大公因式与最小公倍式的关系，但实际计算通常优先使用辗转相除法，因为完整因式分解可能更困难。
+
+\begin{definition}
+若 $f=\sum_{i=0}^n a_ix^i$，定义它的\emph{形式导数}（formal derivative）为
+\[
+    f'=\sum_{i=1}^n ia_ix^{i-1}.
+\]
+常数的形式导数为零，反复求导得到 $f^{(k)}$。这里的定义只涉及系数运算，不依赖极限。
+\end{definition}
+
+逐项计算可验证 $(f+g)'=f'+g'$、$(cf)'=cf'$ 以及 $(fg)'=f'g+fg'$。例如对单项式，$(x^ix^j)'=(i+j)x^{i+j-1}=ix^{i-1}x^j+jx^ix^{j-1}$，再由分配律即得乘积法则，进而归纳得到 $(f^m)'=mf^{m-1}f'$。由于 $\mathbb K$ 是数域，非零的 $n$ 次多项式在 $n\geq1$ 时满足 $\deg f'=n-1$。
+
+\begin{theorem}[重因式判别]
+\label{thm:polynomial-squarefree}
+设 $f\in\mathbb K[x]$ 非零，具有式~\eqref{eq:polynomial-standard-factorization} 中的标准分解，则
+\begin{equation}
+\label{eq:polynomial-derivative-gcd}
+    (f,f')=\prod_{i=1}^s p_i^{e_i-1}.
+\end{equation}
+因此 $f$ 没有重因式当且仅当 $(f,f')=1$。若 $d=(f,f')$，则 $f/d$ 没有重因式，且与 $f$ 具有相同的不可约因式。
+\end{theorem}
+\begin{proof}
+对任一不可约因式 $p$，设 $f=p^eh$ 且 $p\nmid h$。求导得
+\[
+    f'=p^{e-1}(ep'h+ph').
+\]
+由于 $\deg p'<\deg p$ 且 $p'\ne0$，$p$ 不整除 $p'$；又 $p\nmid h$，由不可约因式的素性，$p\nmid p'h$。正整数 $e$ 在 $\mathbb K$ 中非零，故 $p\nmid ep'h+ph'$。所以 $p$ 在 $f'$ 中的重数恰为 $e-1$。逐个考察所有 $p_i$，得到式~\eqref{eq:polynomial-derivative-gcd}，其余结论随即成立。若 $f$ 为非零常数，则 $(f,0)=1$，相应结论也成立。
+\end{proof}
+
+\begin{example}
+设 $f=(x-1)^3(x^2+1)^2$，求它与导数的最大公因式，并去除重因式。
+\end{example}
+\begin{solve}
+在 $\mathbb R[x]$ 中，$x-1$ 与 $x^2+1$ 是不同的首一不可约因式，故
+\[
+    (f,f')=(x-1)^2(x^2+1),\qquad
+    \frac{f}{(f,f')}=(x-1)(x^2+1).
+\]
+后者保留每一种不可约因式一次，因而称为 $f$ 的无重因式部分。若没有预先给出分解式，也可先求导，再用辗转相除法计算 $(f,f')$，无需先求根。
+\end{solve}
+
+\section{多项式函数}
+\label{sec:polynomial-functions}
+
+给定 $f(x)=\sum_{i=0}^n a_ix^i\in\mathbb K[x]$，对 $b\in\mathbb K$ 定义 $f(b)=\sum_{i=0}^n a_ib^i$，便得到一个\emph{多项式函数}（polynomial function）。代入保持加法和乘法，即 $(f+g)(b)=f(b)+g(b)$、$(fg)(b)=f(b)g(b)$。形式多项式由系数确定，多项式函数则由各点取值确定；两者能否互相确定，需要证明。
+
+\begin{theorem}[余数定理与因式定理]
+\label{thm:polynomial-remainder}
+对 $f\in\mathbb K[x]$ 及 $b\in\mathbb K$，存在 $q\in\mathbb K[x]$ 使
+\[
+    f(x)=(x-b)q(x)+f(b).
+\]
+因此 $f(b)=0$ 当且仅当 $(x-b)\mid f(x)$；此时称 $b$ 为 $f$ 的一个\emph{根}或\emph{零点}（root or zero）。
+\end{theorem}
+\begin{proof}
+把 $f$ 除以 $x-b$，余式次数小于 $1$，因而是常数 $r$。在 $f=(x-b)q+r$ 中代入 $x=b$，得到 $r=f(b)$。
+\end{proof}
+
+\begin{definition}
+设 $f\ne0$ 且 $b$ 是它的根。若 $(x-b)^k\mid f$ 而 $(x-b)^{k+1}\nmid f$，则称 $b$ 为 $f$ 的 $k$ 重根；$k=1$ 时称为单根。非零多项式的根的重数是有限的，因为 $k\leq\deg f$。零多项式在每一点的值均为零，但不对它定义有限的根的重数。
+\end{definition}
+
+\begin{theorem}
+\label{thm:polynomial-root-bound}
+数域上的非零 $n$ 次多项式至多有 $n$ 个根，按重数计数也成立。因此，若两个次数不超过 $n$ 的多项式在 $n+1$ 个不同点取值相同，则它们相等；两个多项式函数在 $\mathbb K$ 上处处相等，也必来自同一个形式多项式。
+\end{theorem}
+\begin{proof}
+设不同根为 $b_1,\ldots,b_r$，重数为 $k_1,\ldots,k_r$。不同的一次因式两两互素，故 $\prod_i(x-b_i)^{k_i}\mid f$，于是 $\sum_i k_i\leq n$。若 $f,g$ 在 $n+1$ 个不同点取值相同，则 $f-g$ 的次数不超过 $n$ 却有至少 $n+1$ 个不同根，所以 $f-g=0$。最后，数域包含无限多个不同的有理数，因而处处取值相同的情形可归结为前一结论。
+\end{proof}
+
+次数不低于 $2$ 的不可约多项式在系数域中没有根，否则由因式定理可以分出一个一次因式。反之，二次或三次多项式只要可约，便必有一次因式，所以对它们而言，无域内根等价于不可约。\emph[caution]{次数不低于 $4$ 时，无域内根通常不足以推出不可约。}例如 $(x^2+1)(x^2+2)$ 在 $\mathbb R$ 中无根，却已给出了非平凡分解。上述“函数相同则系数相同”也用到了数域的无限性；在有限域上不能直接照搬这一结论。
+
+\begin{proposition}
+\label{prop:polynomial-root-derivatives}
+设 $f\ne0$，$b\in\mathbb K$，则 $b$ 为 $k$ 重根当且仅当
+\[
+    f(b)=f'(b)=\cdots=f^{(k-1)}(b)=0,
+    \qquad f^{(k)}(b)\ne0.
+\]
+\end{proposition}
+\begin{proof}
+把 $f(b+t)$ 按 $t$ 的幂展开为 $\sum_{j=0}^n c_jt^j$。逐项求导并在 $t=0$ 取值得 $f^{(j)}(b)=j!c_j$，故
+\[
+    f(x)=\sum_{j=0}^n\frac{f^{(j)}(b)}{j!}(x-b)^j.
+\]
+这是有限的多项式恒等式。因 $j!\ne0$，最先出现的非零系数的位置恰为 $(x-b)$ 的重数，得到结论。
+\end{proof}
+
+\begin{example}
+\label{ex:polynomial-interpolation}
+给定 $\mathbb K$ 中两两不同的 $b_1,\ldots,b_r$ 及任意 $c_1,\ldots,c_r$，构造唯一的次数小于 $r$ 且满足 $f(b_i)=c_i$ 的多项式。
+\end{example}
+\begin{solve}
+令
+\[
+    L_i(x)=\prod_{j\ne i}\frac{x-b_j}{b_i-b_j},
+    \qquad f(x)=\sum_{i=1}^r c_iL_i(x).
+\]
+分母均非零，且 $L_i(b_j)$ 在 $i=j$ 时等于 $1$，否则等于 $0$，因此 $f$ 满足要求，次数不超过 $r-1$。若另有一个这样的多项式，两者之差次数小于 $r$ 却有 $r$ 个不同根，只能为零。这就是\emph{Lagrange 插值}（Lagrange interpolation），也可视为定理~\ref{thm:polynomial-crt} 在模数 $x-b_i$ 下的情形。
+\end{solve}
+
+\section{复系数多项式}
+\label{sec:complex-polynomials}
+
+\begin{theorem}[代数基本定理]
+\label{thm:fundamental-theorem-algebra}
+每个次数大于零的复系数一元多项式至少有一个复根。
+\end{theorem}
+\begin{proof}
+设 $f(z)=a_nz^n+\cdots+a_0$，其中 $n\geq1,a_n\ne0$。由三角不等式，
+\[
+    |f(z)|\geq |a_n||z|^n-\sum_{j=0}^{n-1}|a_j||z|^j\longrightarrow\infty
+    \quad (|z|\longrightarrow\infty).
+\]
+因此可取 $R>0$，使 $|z|>R$ 时 $|f(z)|>|f(0)|$。把 $z$ 写成两个实变量后，$|f(z)|$ 是连续函数，在闭圆盘 $|z|\leq R$ 上达到最小值，且这个最小值也是全平面上的最小值，设取于 $z_0$。这里使用了连续函数在紧集上达到最小值的分析结论。
+
+若 $f(z_0)\ne0$，将平移后的多项式除以 $f(z_0)$，可写为
+\[
+    \frac{f(z_0+h)}{f(z_0)}=1+c_kh^k+c_{k+1}h^{k+1}+\cdots+c_nh^n,
+\]
+其中 $k\geq1$ 且 $c_k\ne0$。由复数的极形式可选 $d\in\mathbb C$ 使 $c_kd^k=-1$。令 $h=td$，其中 $0<t<1$，并置 $M=\sum_{j=k+1}^n|c_jd^j|$。于是
+\[
+    \left|\frac{f(z_0+td)}{f(z_0)}\right|
+    \leq 1-t^k+Mt^{k+1}<1
+\]
+只需再取 $Mt<1$；若 $M=0$，此条件自动满足。这与 $|f(z_0)|$ 最小矛盾，故 $f(z_0)=0$。
+\end{proof}
+
+反复应用因式定理和代数基本定理，每个非零 $n$ 次复系数多项式都可写为
+\begin{equation}
+\label{eq:complex-polynomial-factorization}
+    f(x)=a_n\prod_{i=1}^n(x-\alpha_i).
+\end{equation}
+其中根按重数列出，因此恰有 $n$ 个复根；$\mathbb C[x]$ 的不可约多项式恰为一次多项式。这个结论保证根存在，却并未给出每个根的具体表达式。
+
+\begin{theorem}[Vieta 定理]
+\label{thm:polynomial-vieta}
+设 $f(x)=a_nx^n+a_{n-1}x^{n-1}+\cdots+a_0$，$a_n\ne0$，其复根按重数为 $\alpha_1,\ldots,\alpha_n$。则对 $1\leq k\leq n$，
+\begin{equation}
+\label{eq:polynomial-vieta}
+    \sum_{1\leq i_1<\cdots<i_k\leq n}
+    \alpha_{i_1}\cdots\alpha_{i_k}
+    =(-1)^k\frac{a_{n-k}}{a_n}.
+\end{equation}
+\end{theorem}
+\begin{proof}
+展开式~\eqref{eq:complex-polynomial-factorization} 时，$x^{n-k}$ 的系数来自选取 $k$ 个因子的常数项及其余因子的 $x$，故为左端乘以 $(-1)^ka_n$。与原多项式比较系数即得。
+\end{proof}
+
+三次方程可以通过平移去掉二次项。对 $x^3+Ax^2+Bx+C=0$，令 $x=y-A/3$，就得到
+\[
+    y^3+py+q=0,\qquad
+    p=B-\frac{A^2}{3},\qquad
+    q=\frac{2A^3}{27}-\frac{AB}{3}+C.
+\]
+令 $y=u+v$，则 $y^3=u^3+v^3+3uvy$，所以只需满足
+\[
+    u^3+v^3=-q,\qquad uv=-\frac p3.
+\]
+从而 $u^3,v^3$ 为二次方程 $T^2+qT-p^3/27=0$ 的根。记 $D=q^2/4+p^3/27$，当 $p\ne0$ 时，可选
+\[
+    u^3=-\frac q2+\sqrt D,\qquad v=-\frac{p}{3u}.
+\]
+此时 $u\ne0$，且由两数之积为 $-p^3/27$ 得 $v^3=-q/2-\sqrt D$。取 $\omega=(-1+\sqrt3\,i)/2$，则三个根按重数为
+\begin{equation}
+\label{eq:cardano-roots}
+    y_k=\omega^ku+\omega^{-k}v,\qquad k=0,1,2.
+\end{equation}
+这就是\emph{Cardano 公式}（Cardano's formula）。事实上 $\prod_{k=0}^2(y-y_k)=y^3-3uvy-(u^3+v^3)=y^3+py+q$，所以它给出了全部根。\emph[caution]{两个立方根的选择必须满足 $uv=-p/3$，不能彼此独立地任取分支。}若 $p=0$，直接求 $y^3=-q$ 的三个立方根；若 $q=0$，也可先分解为 $y(y^2+p)=0$。最后将各 $y_k$ 减去 $A/3$，还原为原方程的根。
+
+\begin{example}
+求解 $x^3-3x-2=0$，并核对公式中的重根。
+\end{example}
+\begin{solve}
+此时 $p=-3,q=-2,D=0$，可取 $u=v=1$。式~\eqref{eq:cardano-roots} 给出 $2,\omega+\omega^2,\omega^2+\omega$，即 $2,-1,-1$，与分解 $(x-2)(x+1)^2$ 一致。
+\end{solve}
+
+四次方程的\emph{Ferrari 解法}（Ferrari's method）同样先平移降去次高项。对 $x^4+Ax^3+Bx^2+Cx+D=0$，令 $x=y-A/4$，所得方程为 $y^4+py^2+qy+r=0$，其中
+\[
+    p=B-\frac{3A^2}{8},\qquad
+    q=C-\frac{AB}{2}+\frac{A^3}{8},\qquad
+    r=D-\frac{AC}{4}+\frac{A^2B}{16}-\frac{3A^4}{256}.
+\]
+若 $q=0$，先把 $y^2$ 看成一个未知数，解二次方程即可。若 $q\ne0$，引入参数 $w$，将方程改写为
+\[
+    \left(y^2+\frac w2\right)^2
+    =(w-p)y^2-qy+\frac{w^2}{4}-r.
+\]
+为使右边成为完全平方，要求
+\begin{equation}
+\label{eq:ferrari-resolvent}
+    (w-p)(w^2-4r)-q^2=0.
+\end{equation}
+这是一个三次\emph{预解方程}（resolvent equation）。取其中任一复根 $w$；由于 $q\ne0$，必有 $w-p\ne0$。取 $s^2=w-p$，便有
+\[
+    \left(y^2+\frac w2\right)^2
+    =\left(sy-\frac{q}{2s}\right)^2.
+\]
+于是原四次多项式分解为两个二次多项式，其根分别由
+\[
+    y^2+\frac w2-sy+\frac{q}{2s}=0,
+    \qquad
+    y^2+\frac w2+sy-\frac{q}{2s}=0
+\]
+求出。任取预解方程的一个根即可，改变选择只会改变四个根在两个二次因式中的分组，不会得到额外的根。
+
+三次、四次方程由此可用有限次四则运算和开方求解。一般五次及更高次方程不存在统一的根式求解公式，这是后续抽象代数中的 Abel--Ruffini 定理；此处只说明其结论，不作证明。它并不排除某些高次方程可用根式求解，也不否定复根的存在或数值求解的可能性。
+
+\section{实系数多项式和有理系数多项式}
+\label{sec:real-rational-polynomials}
+
+\begin{theorem}
+\label{thm:real-polynomial-factorization}
+实系数多项式的非实复根成共轭对出现，且共轭根的重数相同。$\mathbb R[x]$ 中的不可约多项式恰为一次多项式，以及判别式小于零的二次多项式。因此每个非零实系数多项式都能分解成一个非零实常数、若干实一次因式和若干不可约实二次因式的乘积。
+\end{theorem}
+\begin{proof}
+对 $f\in\mathbb R[x]$，有 $f(\overline z)=\overline{f(z)}$，所以 $f(\alpha)=0$ 蕴含 $f(\overline\alpha)=0$。对分解 $f(x)=(x-\alpha)^kh(x)$ 的系数取共轭，得到 $f(x)=(x-\overline\alpha)^k\overline h(x)$，再交换两根便知它们重数相同。
+
+若 $\alpha=a+bi$ 且 $b\ne0$，则一对共轭根对应实二次因式
+\[
+    (x-\alpha)(x-\overline\alpha)
+    =x^2-2ax+a^2+b^2,
+\]
+其判别式为 $-4b^2<0$。它确实在 $\mathbb R[x]$ 中整除 $f$：用这个实二次式除 $f$，余式为实系数一次或常数多项式，却在两个不同的复数 $\alpha,\overline\alpha$ 处都为零，故余式为零。由代数基本定理，任何次数至少为 $3$ 的实系数多项式都有复根；若为实根就有一次因式，若非实就有上述二次因式，因此必可约。二次多项式在实数域不可约当且仅当无实根，即判别式小于零，结论成立。
+\end{proof}
+
+奇数次实系数多项式必有实根，因为非实根按相同重数两两配对，不能占据奇数个根。实系数域与复系数域的不可约多项式次数因而都有上界，而有理数域的情形不同，需要先把有理系数化为整数系数。
+
+\begin{theorem}[有理根的必要条件]
+\label{thm:rational-root}
+设 $f(x)=a_nx^n+\cdots+a_0\in\mathbb Z[x]$，$a_n\ne0$。若非零有理数 $p/q$ 为 $f$ 的根，其中 $p,q$ 为互素整数且 $q>0$，则
+\[
+    p\mid a_0,\qquad q\mid a_n.
+\]
+特别地，首一整系数多项式的有理根必为整数，并整除常数项。零是否为根则由 $a_0=0$ 判定。
+\end{theorem}
+\begin{proof}
+将 $p/q$ 代入并乘以 $q^n$，得
+\[
+    a_np^n+a_{n-1}p^{n-1}q+\cdots+a_1pq^{n-1}+a_0q^n=0.
+\]
+除第一项外都被 $q$ 整除，故 $q\mid a_np^n$；由 $(p,q)=1$ 得 $q\mid a_n$。同理，除最后一项外都被 $p$ 整除，故 $p\mid a_0q^n$，于是 $p\mid a_0$。
+\end{proof}
+
+有理系数多项式可先乘以各系数分母的公倍数变成整系数多项式，这不改变根。上一定理仅给出候选有理根，仍须逐一代入确认；对二次或三次多项式，排除全部有理根便能证明在 $\mathbb Q$ 上不可约，对更高次多项式则还不够。
+
+\begin{definition}
+非零整系数多项式 $f$ 的各系数的正最大公约数称为它的\emph{内容}（content），记为 $c(f)$。若 $c(f)=1$，则称 $f$ 为\emph{本原多项式}（primitive polynomial）。因此 $f=c(f)f_0$，其中 $f_0$ 为本原多项式。
+\end{definition}
+
+\begin{lemma}[Gauss 引理]
+\label{lem:gauss-primitive}
+两个本原整系数多项式的乘积仍为本原多项式；更一般地，对非零 $f,g\in\mathbb Z[x]$，有 $c(fg)=c(f)c(g)$。
+\end{lemma}
+\begin{proof}
+设本原多项式 $f=\sum a_ix^i,g=\sum b_jx^j$ 的乘积不本原，则有素数 $\ell$ 整除乘积的全部系数。设 $i$ 是第一个使 $\ell\nmid a_i$ 的下标，$j$ 是第一个使 $\ell\nmid b_j$ 的下标。在乘积的 $x^{i+j}$ 系数中，除 $a_ib_j$ 外的每个乘积项 $a_kb_{i+j-k}$，或者 $k<i$，或者 $i+j-k<j$，因而都被 $\ell$ 整除；但 $a_ib_j$ 不被 $\ell$ 整除，矛盾。一般情形将 $f,g$ 分别提出内容后，应用已证结论即可。
+\end{proof}
+
+\begin{theorem}
+\label{thm:gauss-rational-factorization}
+非常数整系数多项式在 $\mathbb Q[x]$ 中可以分解为两个正次数多项式之积，当且仅当它可以分解为两个正次数整系数多项式之积。
+\end{theorem}
+\begin{proof}
+只需证明由有理系数分解可得整系数分解。设 $f=gh$，分别清除 $g,h$ 的系数分母并提出内容，可写 $g=ag_0,h=bh_0$，其中 $a,b\in\mathbb Q\setminus\{0\}$，$g_0,h_0$ 为本原整系数多项式。由 Gauss 引理，$g_0h_0$ 本原。若 $ab=r/s$ 为既约分数且 $s>0$，由 $f=(r/s)g_0h_0$ 的所有系数均为整数，可知 $s$ 整除 $g_0h_0$ 的全部系数，故 $s=1$。于是 $ab$ 是整数，$f=((ab)g_0)h_0$ 就是所需分解。
+\end{proof}
+
+这里仅讨论能否分出两个正次数因式，不能把整系数多项式可提出一个非单位整数因子，与它在 $\mathbb Q[x]$ 中可约混为一谈。例如 $2x+2$ 可以提出 $2$，但在 $\mathbb Q[x]$ 中仍是不可约的一次多项式。
+
+\begin{theorem}[Eisenstein 判别法]
+\label{thm:eisenstein}
+设 $f(x)=a_nx^n+\cdots+a_0\in\mathbb Z[x]$，$n\geq1$，$a_n\ne0$。若存在素数 $\ell$，使
+\[
+    \ell\nmid a_n,\qquad
+    \ell\mid a_i\ (0\leq i<n),\qquad
+    \ell^2\nmid a_0,
+\]
+则 $f$ 在 $\mathbb Q[x]$ 中不可约。
+\end{theorem}
+\begin{proof}
+若可约，由定理~\ref{thm:gauss-rational-factorization} 可写 $f=gh$，其中 $g=\sum_{i=0}^r b_ix^i,h=\sum_{j=0}^s c_jx^j\in\mathbb Z[x]$，$r,s\geq1,r+s=n$。由 $a_0=b_0c_0$ 及 $\ell\mid a_0,\ell^2\nmid a_0$，$b_0,c_0$ 中恰有一个被 $\ell$ 整除，不妨设 $\ell\mid b_0,\ell\nmid c_0$。又由 $\ell\nmid a_n=b_rc_s$，存在最小的 $k\geq1$ 使 $\ell\nmid b_k$。于是 $k\leq r<n$，而
+\[
+    a_k=b_kc_0+b_{k-1}c_1+\cdots+b_0c_k,
+\]
+其中超出 $h$ 次数的系数看作零。右边除第一项外均被 $\ell$ 整除，第一项不被整除，所以 $\ell\nmid a_k$，与假设矛盾。
+\end{proof}
+
+\begin{example}
+说明 $\mathbb Q[x]$ 中存在任意正次数的不可约多项式，并证明当 $\ell$ 为素数时，$1+x+\cdots+x^{\ell-1}$ 不可约。
+\end{example}
+\begin{solve}
+对每个 $n\geq1$，$x^n-2$ 满足以 $2$ 为素数的 Eisenstein 条件，故在 $\mathbb Q[x]$ 中不可约。对 $F(x)=1+x+\cdots+x^{\ell-1}$，直接使用判别法不方便，作平移 $x=y+1$ 得
+\[
+    F(y+1)=\frac{(y+1)^\ell-1}{y}
+    =\ell+\binom\ell2y+\cdots+\binom\ell{\ell-1}y^{\ell-2}+y^{\ell-1}.
+\]
+这里的分式表示约去因子 $y$ 后的多项式恒等式。因 $\ell$ 为素数，$\ell\mid\binom\ell j$ 对 $1\leq j<\ell$ 成立，而常数项为 $\ell$，首项系数为 $1$，故平移后的多项式满足 Eisenstein 条件。代换 $x=y+1$ 与逆代换 $y=x-1$ 都保持非零多项式的次数，因而保持可约性，所以 $F$ 不可约。
+\end{solve}
+
+同样，当 $n=\ell$ 为素数时，截断指数多项式 $1+x+x^2/2!+\cdots+x^\ell/\ell!$ 在 $\mathbb Q[x]$ 中不可约：乘以 $\ell!$ 后，除首项系数为 $1$ 外，其余系数均被 $\ell$ 整除，且常数项 $\ell!$ 不被 $\ell^2$ 整除。应用 Eisenstein 判别法，再除去非零常数即可。这里采用的通用思路是先清除分母，或作可逆平移，再寻找适用的素数。
+
+\section{多元多项式}
+\label{sec:multivariate-polynomials}
+
+\begin{definition}
+设 $x_1,\ldots,x_n$ 为两两不同的未定元，$\alpha=(\alpha_1,\ldots,\alpha_n)$ 为非负整数数组，记 $x^\alpha=x_1^{\alpha_1}\cdots x_n^{\alpha_n}$。$\mathbb K$ 上的\emph{$n$ 元多项式}（multivariate polynomial）是有限和
+\[
+    f(x_1,\ldots,x_n)=\sum_\alpha c_\alpha x^\alpha,
+    \qquad c_\alpha\in\mathbb K,
+\]
+其中只有有限个 $c_\alpha$ 非零，其全体记为 $\mathbb K[x_1,\ldots,x_n]$。两个多项式相等，是指每个指数数组对应的系数相等。非零单项式 $c_\alpha x^\alpha$ 的\emph{总次数}（total degree）为 $|\alpha|=\alpha_1+\cdots+\alpha_n$，非零多项式的总次数为各非零项总次数的最大值；零多项式的次数仍规定为 $-\infty$。
+\end{definition}
+
+多元多项式的加法是合并同类项，乘法由 $x^\alpha x^\beta=x^{\alpha+\beta}$ 和分配律确定，也构成交换的 $\mathbb K$ 代数。总次数不同于某个未定元单独的最高次数，例如 $x_1^2x_2^3+x_1^4$ 的总次数为 $5$，而关于 $x_1$ 的次数为 $4$，关于 $x_2$ 的次数为 $3$。同一总次数可能有多个不同的指数数组，因此需要另行约定项的排列次序。
+
+固定 $x_1,x_2,\ldots,x_n$ 的先后顺序，若 $\alpha,\beta$ 首次不相等的位置为 $j$，且 $\alpha_j>\beta_j$，就规定 $x^\alpha$ 排在 $x^\beta$ 前面。这称为\emph{字典序}（lexicographic order）。按字典序排列后，最前面的非零项称为首项，记为 $\operatorname{LT}(f)$。\emph[caution]{字典序首项未必具有最大总次数。}例如 $x_1^2+x_2^5$ 的首项为 $x_1^2$，但多项式的总次数为 $5$。
+
+\begin{lemma}
+\label{lem:multivariate-leading-term}
+对非零多项式 $f,g\in\mathbb K[x_1,\ldots,x_n]$，有
+\[
+    \operatorname{LT}(fg)=\operatorname{LT}(f)\operatorname{LT}(g).
+\]
+因此 $fg\ne0$，并且非零多项式满足乘法消去律。
+\end{lemma}
+\begin{proof}
+字典序与指数相加相容：若 $\alpha$ 排在 $\alpha'$ 前，则 $\alpha+\gamma$ 也排在 $\alpha'+\gamma$ 前。设 $f,g$ 的首项指数分别为 $\alpha,\beta$，任取其他项指数 $\alpha',\beta'$，都有 $\alpha'\leq\alpha,\beta'\leq\beta$，只要至少一处严格小于，就有 $\alpha'+\beta'<\alpha+\beta$。故乘积中最大的指数只来自两个首项相乘，系数为两个非零首项系数之积，不能抵消。消去律则由 $h(f-g)=0$ 且 $h\ne0$ 推出。
+\end{proof}
+
+\begin{definition}
+若非零多项式的每一项总次数都为 $d$，就称它为 $d$ 次\emph{齐次多项式}或 $d$ 次\emph{型}（homogeneous polynomial or form）。把同总次数的项归为一组，任意多项式都唯一地写为
+\[
+    f=f_0+f_1+\cdots+f_d,
+\]
+其中 $f_j$ 为 $j$ 次齐次部分，允许为零；对非零 $f$，有 $f_d\ne0$。
+\end{definition}
+
+同次数齐次多项式之和若非零，仍为该次数的齐次多项式；$r$ 次与 $s$ 次非零齐次多项式之积是 $r+s$ 次齐次多项式。若 $f_r,g_s$ 分别为 $f,g$ 的最高齐次部分，则乘积的最高齐次部分只能是 $f_rg_s$，由引理~\ref{lem:multivariate-leading-term} 它非零，故
+\[
+    \deg(fg)=\deg f+\deg g.
+\]
+所以多元多项式环中有乘法逆元的元素也恰为非零常数。齐次分解适合按总次数研究问题，而字典序适合比较首项，二者的作用不同。
+
+\begin{theorem}
+\label{thm:multivariate-polynomial-functions}
+若 $f\in\mathbb K[x_1,\ldots,x_n]$ 非零，则存在 $b_1,\ldots,b_n\in\mathbb K$，使 $f(b_1,\ldots,b_n)\ne0$。因此两个多元多项式相等，当且仅当它们在 $\mathbb K^n$ 上的取值处处相等。
+\end{theorem}
+\begin{proof}
+对未定元个数 $n$ 归纳。$n=1$ 时，非零多项式仅有有限个根，而 $\mathbb K$ 是无限集。对 $n>1$，将非零的 $f$ 按 $x_n$ 的幂整理为
+\[
+    f=\sum_{j=0}^m h_j(x_1,\ldots,x_{n-1})x_n^j,
+    \qquad h_m\ne0.
+\]
+由归纳假设，可选 $b_1,\ldots,b_{n-1}$ 使 $h_m(b_1,\ldots,b_{n-1})\ne0$，于是 $f(b_1,\ldots,b_{n-1},x_n)$ 为非零一元多项式，再选一个不是其根的 $b_n$ 即可。最后对两个多项式之差应用这个结论，就得到取值相等的判别。
+\end{proof}
+
+\section{对称多项式}
+\label{sec:symmetric-polynomials}
+
+\begin{definition}
+若 $f\in\mathbb K[x_1,\ldots,x_n]$ 在任意两个未定元互换后保持不变，就称它为\emph{对称多项式}（symmetric polynomial）。因为任意置换可分解成若干次对换，这也等价于对任意置换 $\pi$ 均有 $f(x_{\pi(1)},\ldots,x_{\pi(n)})=f(x_1,\ldots,x_n)$。定义
+\[
+    \sigma_k=\sum_{1\leq i_1<\cdots<i_k\leq n}x_{i_1}\cdots x_{i_k},
+    \qquad k=1,\ldots,n,
+\]
+为 $n$ 元\emph{初等对称多项式}（elementary symmetric polynomials），另记 $\sigma_0=1$。特别地，$\sigma_1=x_1+\cdots+x_n$，$\sigma_n=x_1\cdots x_n$。
+\end{definition}
+
+对称多项式的和、积与数乘仍为对称多项式，故把 $\sigma_1,\ldots,\sigma_n$ 代入任意 $n$ 元多项式后，总能得到对称多项式。下面的定理说明，这个构造给出了全部对称多项式，而且表示唯一。
+
+\begin{theorem}[对称多项式基本定理]
+\label{thm:fundamental-symmetric-polynomials}
+对任意对称多项式 $f\in\mathbb K[x_1,\ldots,x_n]$，存在唯一的 $F\in\mathbb K[y_1,\ldots,y_n]$，使
+\begin{equation}
+\label{eq:symmetric-polynomial-representation}
+    f=F(\sigma_1,\ldots,\sigma_n).
+\end{equation}
+\end{theorem}
+\begin{proof}
+先证存在性。若非零对称多项式 $f$ 的字典序首项为 $cx_1^{a_1}\cdots x_n^{a_n}$，则 $a_1\geq a_2\geq\cdots\geq a_n$。否则存在相邻的 $a_j<a_{j+1}$，交换 $x_j,x_{j+1}$ 后，$f$ 中将出现一个排在首项之前的项，与首项定义矛盾。由于 $\operatorname{LT}(\sigma_j)=x_1\cdots x_j$，多项式
+\[
+    g=c\sigma_1^{a_1-a_2}\sigma_2^{a_2-a_3}\cdots
+    \sigma_{n-1}^{a_{n-1}-a_n}\sigma_n^{a_n}
+\]
+与 $f$ 具有相同首项。因此 $f-g$ 仍对称，其首项严格后移，或者已经为零。设原 $f$ 的总次数为 $d$，则上述 $g$ 的总次数为 $a_1+\cdots+a_n\leq d$，每一步余下多项式的总次数也不超过 $d$。总次数不超过 $d$ 的单项式只有有限个，所以消首项过程必在有限步终止，给出所需表示。
+
+再证唯一性。单项式 $y_1^{k_1}\cdots y_n^{k_n}$ 代入后，其首项为
+\[
+    x_1^{k_1+\cdots+k_n}x_2^{k_2+\cdots+k_n}\cdots x_n^{k_n}.
+\]
+若记这些指数为 $a_1,\ldots,a_n$，则 $k_j=a_j-a_{j+1}$，其中 $a_{n+1}=0$，所以不同的 $k$ 数组对应不同的首项。若非零多项式 $H(y_1,\ldots,y_n)$ 代入 $\sigma_1,\ldots,\sigma_n$，在其有限个单项式所对应的首项中，排在最前的一个不可能被其他项抵消，故 $H(\sigma_1,\ldots,\sigma_n)\ne0$。对两个候选表示之差应用此结论，得到唯一性。
+\end{proof}
+
+上述唯一性也称 $\sigma_1,\ldots,\sigma_n$ \emph{代数无关}（algebraically independent）：不存在非零多项式 $H$ 使 $H(\sigma_1,\ldots,\sigma_n)=0$。存在性的证明同时提供了逐次消去首项的算法。若 $f$ 是 $d$ 次齐次对称多项式，则表示中只需使用满足 $k_1+2k_2+\cdots+nk_n=d$ 的项 $\sigma_1^{k_1}\cdots\sigma_n^{k_n}$；这是因为 $\sigma_j$ 的总次数为 $j$，按加权次数分组后，其余组必须分别为零，再由唯一性排除。这也为待定系数法限制了候选项的范围。
+
+\begin{example}
+将三元对称多项式 $\sum_{i\ne j}x_i^2x_j$ 以及 $(x_1^2+x_2^2)(x_1^2+x_3^2)(x_2^2+x_3^2)$ 表为初等对称多项式。
+\end{example}
+\begin{solve}
+展开 $\sigma_1\sigma_2$，六个形如 $x_i^2x_j$ 的项各出现一次，而 $x_1x_2x_3$ 出现三次，故
+\[
+    \sum_{i\ne j}x_i^2x_j=\sigma_1\sigma_2-3\sigma_3.
+\]
+对第二个式子，利用 $(a+b)(a+c)(b+c)=(a+b+c)(ab+ac+bc)-abc$，并注意
+\[
+    x_1^2+x_2^2+x_3^2=\sigma_1^2-2\sigma_2,
+    \qquad
+    x_1^2x_2^2+x_1^2x_3^2+x_2^2x_3^2=\sigma_2^2-2\sigma_1\sigma_3,
+\]
+即可得到
+\[
+\begin{aligned}
+    &(x_1^2+x_2^2)(x_1^2+x_3^2)(x_2^2+x_3^2)\\
+    &\quad=(\sigma_1^2-2\sigma_2)(\sigma_2^2-2\sigma_1\sigma_3)-\sigma_3^2\\
+    &\quad=\sigma_1^2\sigma_2^2-2\sigma_1^3\sigma_3-2\sigma_2^3
+    +4\sigma_1\sigma_2\sigma_3-\sigma_3^2.
+\end{aligned}
+\]
+利用已有对称恒等式通常比逐项展开或反复消首项更简便。
+\end{solve}
+
+\begin{proposition}[Newton 公式]
+\label{prop:newton-identities}
+令 $S_k=x_1^k+\cdots+x_n^k$（$k\geq1$），称为\emph{幂和}（power sums），并记 $S_0=n$。当 $1\leq k\leq n$ 时，
+\begin{equation}
+\label{eq:newton-identities-low}
+    S_k+\sum_{j=1}^{k-1}(-1)^j\sigma_jS_{k-j}+(-1)^kk\sigma_k=0,
+\end{equation}
+其中 $k=1$ 时中间的和为空，即 $S_1=\sigma_1$；当 $k>n$ 时，
+\begin{equation}
+\label{eq:newton-identities-high}
+    \sum_{j=0}^n(-1)^j\sigma_jS_{k-j}=0.
+\end{equation}
+\end{proposition}
+\begin{proof}
+引入辅助未定元 $t$，令
+\[
+    E(t)=\prod_{i=1}^n(1-x_it)=\sum_{j=0}^n(-1)^j\sigma_jt^j.
+\]
+对任意正整数 $N$，利用有限等比和，有
+\[
+    E(t)\sum_{k=1}^N x_i^kt^k
+    =\prod_{j\ne i}(1-x_jt)\bigl(x_it-(x_it)^{N+1}\bigr).
+\]
+对 $i$ 求和后，在 $t$ 的次数不超过 $N$ 的范围内，右边的系数与 $-tE'(t)=\sum_i x_it\prod_{j\ne i}(1-x_jt)$ 相同。因此
+\[
+    E(t)\sum_{k=1}^N S_kt^k
+    \quad\text{与}\quad -tE'(t)
+\]
+在各次 $t^k$（$k\leq N$）的系数相同。当 $k\leq n$ 时，右边系数为 $(-1)^{k-1}k\sigma_k$；当 $k>n$ 时为零。逐次比较便得到两组公式。整个论证只使用有限多项式恒等式，没有涉及级数收敛。
+\end{proof}
+
+例如，对足够多的未定元，前三个幂和分别为
+\[
+    S_1=\sigma_1,\qquad
+    S_2=\sigma_1^2-2\sigma_2,\qquad
+    S_3=\sigma_1^3-3\sigma_1\sigma_2+3\sigma_3;
+\]
+未定元不足三个时，将下标超过 $n$ 的 $\sigma_j$ 看作零，相应表达式仍成立。Newton 公式既可由初等对称多项式递推幂和，也可逐次除以 $k$ 从幂和求 $\sigma_k$；数域中 $k\ne0$ 保证后一过程可行。结合 Vieta 定理，任一关于方程全部根的对称多项式都能化为系数的有理表达式，从而不必先求出每个根。
+
+\section{结式和判别式}
+\label{sec:resultants-discriminants}
+
+公根问题可以转化为最大公因式问题，但若希望直接用系数写出判别条件，还需要把它转化为一个线性方程组。以下设
+\[
+    f(x)=a_nx^n+\cdots+a_0,\qquad
+    g(x)=b_mx^m+\cdots+b_0,
+    \qquad a_nb_m\ne0,\quad n,m\geq1.
+\]
+若 $d=(f,g)$ 为非常数多项式，则取 $u=g/d,v=-f/d$，便有 $fu+gv=0$，且 $\deg u<m,\deg v<n$。反过来，若存在不全为零的 $u,v$ 满足这三个条件，而 $(f,g)=1$，则 $f\mid gv$ 推出 $f\mid v$；结合 $\deg v<n$ 得 $v=0$，再得 $u=0$，矛盾。因此，\emph[tip]{有非常数公因式等价于有一个次数受限的非平凡线性关系}。
+
+\begin{definition}
+\label{def:polynomial-resultant}
+按 $x^{n+m-1},x^{n+m-2},\ldots,1$ 的次序，将
+\[
+    x^{m-1}f,\ x^{m-2}f,\ldots,f,
+    \quad x^{n-1}g,\ x^{n-2}g,\ldots,g
+\]
+的系数分别写为行向量，组成 $n+m$ 阶矩阵 $S(f,g)$，称为\emph{Sylvester 矩阵}（Sylvester matrix）；其行列式
+\begin{equation}
+\label{eq:polynomial-resultant-definition}
+    R(f,g)=\det S(f,g)
+\end{equation}
+称为 $f,g$ 的\emph{结式}（resultant）。矩阵中前 $m$ 行为 $(a_n,\ldots,a_0)$ 逐行右移的系数行，后 $n$ 行为 $(b_m,\ldots,b_0)$ 逐行右移的系数行，其余位置补零。
+\end{definition}
+
+\begin{theorem}
+\label{thm:resultant-common-root}
+对上述非零且次数大于零的多项式，以下条件等价：$R(f,g)=0$；$(f,g)$ 为非常数多项式；$f,g$ 在 $\mathbb C$ 中有公共根。
+\end{theorem}
+\begin{proof}
+将次数小于 $m,n$ 的 $u,v$ 分别按降幂排列系数，$fu+gv=0$ 所对应齐次线性方程组的系数矩阵就是 $S(f,g)^{\mathsf T}$。它有非零解当且仅当行列式为零，再由本节开头的论证，得到前两个条件等价。若 $(f,g)$ 非常数，则代数基本定理保证它有一个复根，该根也是 $f,g$ 的公根；若 $(f,g)=1$，则 Bézout 等式 $uf+vg=1$ 不允许在同一点同时有 $f=g=0$，故无复公根。
+\end{proof}
+
+\begin{example}
+设 $f=x^2+px+q$，$g=x-c$，计算结式并解释其意义。
+\end{example}
+\begin{solve}
+按定义，
+\[
+    R(f,g)=
+    \begin{vmatrix}
+        1&p&q\\
+        1&-c&0\\
+        0&1&-c
+    \end{vmatrix}
+    =c^2+pc+q=f(c).
+\]
+因此结式为零恰好表示 $c$ 是 $f$ 的根。对一般 $n$ 次 $f$，对应的公式为 $R(f,x-c)=(-1)^nf(c)$，符号取决于本节固定的行排列次序。
+\end{solve}
+
+\begin{theorem}[结式的根表示]
+\label{thm:resultant-root-product}
+若 $f=a_n\prod_{i=1}^n(x-\alpha_i)$，$g=b_m\prod_{j=1}^m(x-\beta_j)$，其中根按重数列出，则
+\begin{equation}
+\label{eq:resultant-root-product}
+\begin{aligned}
+    R(f,g)
+    &=a_n^mb_m^n\prod_{i=1}^n\prod_{j=1}^m(\alpha_i-\beta_j)\\
+    &=a_n^m\prod_{i=1}^n g(\alpha_i)
+     =(-1)^{nm}b_m^n\prod_{j=1}^m f(\beta_j).
+\end{aligned}
+\end{equation}
+\end{theorem}
+\begin{proof}
+先将 $f,g$ 首一化；从 Sylvester 矩阵前 $m$ 行和后 $n$ 行分别提出首项系数，得到总因子 $a_n^mb_m^n$。将首一多项式的系数改写为根的初等对称多项式，结式就成为根变量的多项式 $P(\alpha_1,\ldots,\alpha_n,\beta_1,\ldots,\beta_m)$。只要 $\alpha_i=\beta_j$ 就有公根，故 $P$ 含因子 $\alpha_i-\beta_j$。这些因子可以逐一提出：在提出一个因子之后，把另一个等式 $\alpha_k=\beta_l$ 代入，已提出因子的乘积仍为非零多项式，由多元多项式消去律知，余下部分仍在该等式下为零，因而也可提出对应的一次因子。
+
+再核对次数。将矩阵的列从 $0$ 到 $n+m-1$ 编号，一行右移 $r$ 格后，第 $j$ 列的非零系数作为根的多项式具有次数 $j-r$。行列式展开的每个非零乘积项，根的总次数均为
+\[
+    \sum_{j=0}^{n+m-1}j-\sum_{r=0}^{m-1}r-\sum_{s=0}^{n-1}s=nm.
+\]
+所以 $P=C\prod_{i,j}(\alpha_i-\beta_j)$，其中 $C$ 为常数。取 $f=x^n,g=x^m-1$，Sylvester 矩阵前 $m$ 行在前 $m$ 列组成单位矩阵，右上块为零，右下块为对角元全为 $-1$ 的三角矩阵，故结式为 $(-1)^n$；根乘积也等于 $\prod_i g(0)=(-1)^n$，所以 $C=1$。恢复首项系数便得第一式，其余两式由根分解直接得到。这是多项式恒等式，重根情形同样适用。
+\end{proof}
+
+根表示立即给出交换公式 $R(g,f)=(-1)^{nm}R(f,g)$，以及乘法公式
+\[
+    R(f,g_1g_2)=R(f,g_1)R(f,g_2).
+\]
+非零常数缩放满足 $R(cf,dg)=c^md^nR(f,g)$。若把结式扩充到非零常数多项式，可规定 $R(f,c)=c^n$、$R(c,g)=c^m$，这些公式仍相容。它们既能简化计算，也说明结式不仅判定公根，还把各对根之间的差集中到一个由系数确定的数中。
+
+\begin{definition}
+\label{def:polynomial-discriminant}
+设 $f=a_nx^n+\cdots+a_0$，$a_n\ne0,n\geq2$。定义它的\emph{判别式}（discriminant）为
+\begin{equation}
+\label{eq:polynomial-discriminant-definition}
+    \Delta(f)=(-1)^{n(n-1)/2}\frac{R(f,f')}{a_n}.
+\end{equation}
+对一次多项式约定判别式为 $1$。
+\end{definition}
+
+\begin{theorem}
+\label{thm:discriminant-root-product}
+若 $f=a_n\prod_{i=1}^n(x-\alpha_i)$，则
+\begin{equation}
+\label{eq:discriminant-root-product}
+    \Delta(f)=a_n^{2n-2}\prod_{1\leq i<j\leq n}(\alpha_i-\alpha_j)^2.
+\end{equation}
+因此 $f$ 有重根当且仅当 $\Delta(f)=0$。
+\end{theorem}
+\begin{proof}
+由 $\deg f'=n-1$ 及式~\eqref{eq:resultant-root-product}，有 $R(f,f')=a_n^{n-1}\prod_i f'(\alpha_i)$。逐项求导给出 $f'(\alpha_i)=a_n\prod_{j\ne i}(\alpha_i-\alpha_j)$，从而
+\[
+    R(f,f')
+    =(-1)^{n(n-1)/2}a_n^{2n-1}
+    \prod_{i<j}(\alpha_i-\alpha_j)^2.
+\]
+代入定义即得结论；若存在重根，上式两边同为零，因此无需假设根互异。
+\end{proof}
+
+二次多项式 $ax^2+bx+c$ 的判别式由此为 $b^2-4ac$，与熟悉的实根判别一致。对更高次数，判别式为零仍准确判定重根，但仅凭正负号通常不能确定全部实根的数目。
+
+\begin{example}
+求 $f(x)=x^3+px+q$ 的判别式，并判断何时有重根。
+\end{example}
+\begin{solve}
+设其根为 $\alpha_1,\alpha_2,\alpha_3$。由 Vieta 定理及 Newton 公式，
+\[
+    \sum_i\alpha_i^2=-2p,\qquad
+    \sum_{i<j}\alpha_i^2\alpha_j^2=p^2,\qquad
+    \alpha_1^2\alpha_2^2\alpha_3^2=q^2.
+\]
+于是
+\[
+\begin{aligned}
+    R(f,f')&=\prod_{i=1}^3(3\alpha_i^2+p)\\
+    &=27q^2+9p\cdot p^2+3p^2(-2p)+p^3
+      =27q^2+4p^3.
+\end{aligned}
+\]
+由于 $(-1)^{3\cdot2/2}=-1$，有 $\Delta(f)=-4p^3-27q^2$，重根条件为 $4p^3+27q^2=0$。这也解释了 Cardano 公式中 $q^2/4+p^3/27$ 为零与重根之间的关系。
+\end{solve}
+
+结式还可以用于\emph{消元}（elimination）。给定二元多项式方程 $F(x,y)=G(x,y)=0$，先把两式视为关于 $x$ 的多项式，用其关于 $y$ 的系数构成 Sylvester 行列式，记为 $R_x(F,G)(y)$。若 $(\alpha,\beta)$ 是公共零点，则将 $y=\beta$ 代入后，各系数行与非零列向量 $(\alpha^{n+m-1},\ldots,\alpha,1)^{\mathsf T}$ 的乘积都为零，故 $R_x(F,G)(\beta)=0$。因此，当这个结式不是零多项式时，可先解关于 $y$ 的一元方程，再将候选值代回原方程求 $x$。
+
+\emph[caution]{结式给出的消元条件必须经过回代核验，尤其要检查代入后首项系数是否为零。}若 $F(x,\beta),G(x,\beta)$ 的次数都保持不变且均大于零，则结式为零等价于它们有复公根；若次数下降，按原次数构成的行列式可能为零却没有有限公根。例如 $F=yx+1,G=yx+2$ 的 $x$ 结式为 $y$，但 $y=0$ 时原方程变成 $1=0,2=0$，并无解。若结式恒为零，也不能通过求它的有限个根来枚举解，应进一步检查公共因式或改变消元方式。
+
+\begin{example}
+用消元法求复数范围内方程组 $x+y=1$、$x^2+y^2=1$ 的全部解。
+\end{example}
+\begin{solve}
+令 $F=x+y-1,G=x^2+y^2-1$。因 $F$ 关于 $x$ 首一且为一次式，
+\[
+    R_x(F,G)=G(1-y,y)=(1-y)^2+y^2-1=2y(y-1).
+\]
+故候选值为 $y=0,1$，回代 $x=1-y$ 得 $(x,y)=(1,0),(0,1)$，它们都满足原方程，且消元过程没有遗漏其他解。
+\end{solve}
+
+
+
+
+
+

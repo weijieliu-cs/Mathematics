@@ -1,0 +1,164 @@
+% !TeX root = ../复分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{4} % 保留原书章号。
+\chapter{复曲线积分与原函数}
+\label{chap:ca-integral}
+
+\section{从路径参数化定义积分}
+
+实定积分沿实轴累加函数值，复积分则沿平面中的曲线累加。由于复数乘法包含方向信息，积分中不仅有函数值，还要有沿曲线前进的复增量 $\mathrm dz$。同一个函数沿不同路径积分，结果可能不同。
+
+\begin{definition}[复曲线积分]
+设 $\gamma:[a,b]\to\mathbb C$ 为分段 $C^1$ 曲线，$f$ 在其轨迹上连续，定义
+\begin{equation}
+ \int_\gamma f(z)\,\mathrm dz
+ =\int_a^b f(\gamma(t))\gamma'(t)\,\mathrm dt.
+ \label{eq:ca-path-integral}
+\end{equation}
+右侧复值实变量积分按实部、虚部分别积分；分段点处将积分拆开。曲线长度定义为 $\ell(\gamma)=\int_a^b|\gamma'(t)|\,\mathrm dt$。
+\end{definition}
+
+若 $f=u+iv$、$z=x+iy$，则
+\[
+ \int_\gamma f(z)\,\mathrm dz
+ =\int_\gamma(u\,\mathrm dx-v\,\mathrm dy)
+ +i\int_\gamma(v\,\mathrm dx+u\,\mathrm dy).
+\]
+这表明复积分可还原成两个实曲线积分，不过直接参数化通常更简洁。保持方向的适当参数替换不改变积分值；反向曲线 $-\gamma$ 使积分变号；首尾相接的曲线积分等于各段积分之和。这些性质均来自实积分的换元和区间可加性。
+
+\begin{example}[同一端点，不同路径]
+计算 $\int_\gamma\overline z\,\mathrm dz$，其中 $\gamma$ 从 $0$ 到 $1+i$，分别取直线段及依次经过 $0,1,1+i$ 的折线。
+\end{example}
+\begin{solve}
+沿直线段取 $z=(1+i)t$，$0\le t\le1$，有 $\overline z\,\mathrm dz=2t\,\mathrm dt$，积分为 $1$。沿折线第一段 $z=t$，积分为 $1/2$；第二段 $z=1+it$，有 $\overline z\,\mathrm dz=(t+i)\,\mathrm dt$，积分为 $1/2+i$。故折线积分为 $1+i$。端点相同并不保证复积分相同，必须有额外的函数或定义域条件。
+\end{solve}
+
+\begin{example}[圆周积分的基本模型]
+\label{ex:ca-circle-power}
+设 $\gamma$ 为以 $a$ 为中心、半径 $r$ 的正向圆周。对任意整数 $n$，
+\begin{equation}
+ \oint_\gamma(z-a)^n\,\mathrm dz
+ =\begin{cases}2\pi i,&n=-1,\\0,&n\ne-1.\end{cases}
+ \label{eq:ca-circle-power}
+\end{equation}
+\end{example}
+\begin{solve}
+令 $z=a+re^{it}$，$0\le t\le2\pi$，则积分为
+\[
+ ir^{n+1}\int_0^{2\pi}e^{i(n+1)t}\,\mathrm dt.
+\]
+$n=-1$ 时被积函数为常数 $i$，其余整数情形由周期性得零。以后留数定理的核心就是这一事实：沿圆积分时，洛朗级数中只有 $-1$ 次幂留下贡献。
+\end{solve}
+
+\section{积分估计与极限交换}
+
+\begin{theorem}[长乘高估计]
+\label{thm:ca-ml}
+若 $|f(z)|\le M$ 对 $\gamma$ 上每一点成立，则
+\begin{equation}
+ \left|\int_\gamma f(z)\,\mathrm dz\right|
+ \le\int_a^b|f(\gamma(t))||\gamma'(t)|\,\mathrm dt
+ \le M\ell(\gamma).
+ \label{eq:ca-ml}
+\end{equation}
+\end{theorem}
+\begin{proof}
+记 $I=\int_a^b g(t)\,\mathrm dt$。若 $I\ne0$，取 $|\lambda|=1$ 使 $\lambda I=|I|$，则
+\[
+ |I|=\int_a^b\operatorname{Re}(\lambda g(t))\,\mathrm dt
+ \le\int_a^b|g(t)|\,\mathrm dt.
+\]
+$I=0$ 时也成立。取 $g(t)=f(\gamma(t))\gamma'(t)$，再以 $M$ 控制 $|f|$，得到所需估计。
+\end{proof}
+
+估计时应同时看函数有多小、曲线有多长。例如半径为 $R$ 的半圆弧长度为 $\pi R$；若其上 $|f|\le C/R^2$，则弧积分为 $O(1/R)$，趋于零。若只有 $|f|\le C/R$，长度相乘后仅得到常数界，不能据此宣布积分趋于零。符号 $A_R=O(B_R)$ 表示存在与足够大的 $R$ 无关的常数 $C$，使 $|A_R|\le C|B_R|$。
+
+若连续函数列 $f_n$ 在固定曲线 $\gamma$ 上一致收敛到 $f$，则
+\[
+ \left|\int_\gamma(f_n-f)\,\mathrm dz\right|
+ \le\ell(\gamma)\sup_{z\in\gamma}|f_n(z)-f(z)|\longrightarrow0.
+\]
+因此可以交换这一极限与积分。这里一致收敛是把所有点上的误差同时压小；逐点收敛一般不能提供右侧的统一上界。后面将几何级数代入柯西积分公式时，就要反复使用这个理由。
+
+\begin{example}[圆弧上的量级]
+对半径 $R>1$ 的上半圆 $\gamma_R$，由于 $|z^2+1|\ge R^2-1$，
+\[
+ \left|\int_{\gamma_R}\frac{dz}{z^2+1}\right|
+ \le\frac{\pi R}{R^2-1}\longrightarrow0\quad(R\to\infty).
+\]
+对半径 $\varepsilon$ 的圆周，若 $|f(z)|\le C|z|^{-\alpha}$，则积分模不超过 $2\pi C\varepsilon^{1-\alpha}$。当 $\alpha<1$ 时它趋于零；$\alpha=1$ 时这一估计不再保证消失。
+\end{example}
+
+\section{原函数与路径无关}
+
+\begin{definition}[原函数]
+若全纯函数 $F$ 在开集 $U$ 上满足 $F'=f$，则称 $F$ 为 $f$ 在 $U$ 上的\emph{原函数（primitive）}。
+\end{definition}
+
+\begin{theorem}[复积分的基本定理]
+\label{thm:ca-fundamental}
+若 $f$ 在开集 $U$ 上连续且有原函数 $F$，则对从 $a$ 到 $b$、位于 $U$ 内的任意分段 $C^1$ 曲线 $\gamma$，
+\[
+ \int_\gamma f(z)\,\mathrm dz=F(b)-F(a).
+\]
+特别地，所有闭曲线积分为零。
+\end{theorem}
+\begin{proof}
+在每段光滑参数区间上，由链式法则，$(F\circ\gamma)'(t)=F'(\gamma(t))\gamma'(t)=f(\gamma(t))\gamma'(t)$。应用实积分基本定理并把各段端点值相消，便得到结论。
+\end{proof}
+
+\begin{theorem}[原函数存在的等价条件]
+\label{thm:ca-primitive-equivalence}
+设 $f$ 在区域 $D$ 上连续，则以下三者等价：$f$ 在 $D$ 有原函数；任意连接相同端点的分段 $C^1$ 路径积分相同；$D$ 内每条分段 $C^1$ 闭曲线的积分为零。
+\end{theorem}
+\begin{proof}
+第一条蕴含第二条，由上一条定理得到；把闭曲线与固定端点的常值路径比较，第二条蕴含第三条；将一条路径与另一条反向路径拼接，第三条蕴含第二条。现由第二条构造原函数：固定 $z_0\in D$，令 $F(z)=\int_{z_0}^z f(\zeta)\,\mathrm d\zeta$，由路径无关性定义良好。当 $h$ 足够小时，线段 $[z,z+h]\subset D$，于是
+\[
+ \frac{F(z+h)-F(z)}h=\int_0^1f(z+th)\,\mathrm dt\longrightarrow f(z).
+\]
+最后一步由 $f$ 在 $z$ 的连续性得到，且对 $0\le t\le1$ 误差统一受控。因此 $F'=f$。
+\end{proof}
+
+例如 $z^n$ 在 $\mathbb C$ 上有原函数 $z^{n+1}/(n+1)$，其中 $n\ge0$；但 $1/z$ 在整个去心平面上没有原函数，因为单位圆积分等于 $2\pi i$。在裂平面 $\Omega_0$ 上它又有原函数 $\operatorname{Log}z$。这说明原函数是否存在，既取决于函数，也取决于定义域。不能看到形式 $1/z$ 就直接在任意路径上套用对数端点差。
+
+\begin{lemma}[圆盘上的三角形判别]
+\label{lem:ca-triangle-primitive}
+若 $f$ 在圆盘 $D$ 上连续，并且沿每个闭三角形包含于 $D$ 的三角形正向边界积分为零，则 $f$ 在 $D$ 上有原函数。
+\end{lemma}
+\begin{proof}
+固定 $a\in D$，令 $F(z)$ 为沿线段 $[a,z]$ 的积分。对充分小的 $h$，三角形 $a,z,z+h$ 包含于 $D$，其边界积分为零给出 $F(z+h)-F(z)=\int_{[z,z+h]}f$。沿用定理~\ref{thm:ca-primitive-equivalence} 最后一段的估计，得到 $F'=f$。
+\end{proof}
+
+\section{绕数：闭曲线围绕一个点转了几圈}
+
+\begin{definition}[绕数]
+对不经过 $a$ 的分段 $C^1$ 闭曲线 $\gamma$，定义其关于 $a$ 的\emph{绕数（winding number）}
+\begin{equation}
+ \operatorname{Ind}(\gamma,a)=\frac1{2\pi i}\oint_\gamma\frac{\mathrm dz}{z-a}.
+ \label{eq:ca-index}
+\end{equation}
+\end{definition}
+
+沿一条参数区间上的非零连续路径，可以从起始辐角出发连续选取辐角 $\theta(t)$：将区间分成有限个足够短的小段，使每段像都落在允许局部辐角的圆盘中，再在接合点加上合适的 $2k\pi$。因此可写 $\gamma(t)-a=r(t)e^{i\theta(t)}$，其中 $r(t)>0$。在各光滑小段上，
+\[
+ \frac{\gamma'(t)}{\gamma(t)-a}=\frac{r'(t)}{r(t)}+i\theta'(t).
+\]
+闭曲线首尾模相同、辐角相差 $2k\pi$，故绕数等于整数 $k$。沿参数区间连续选择辐角不要求首尾辐角相同，所以不与去心平面上不存在全局对数的结论矛盾。
+
+正向圆关于圆心的绕数为 $1$，反向为 $-1$，绕两圈为 $2$。绕数随点 $a$ 在曲线补集中连续变化而保持不变，因为它连续且只取整数；在无界分支上为零。对正向简单闭曲线，内部绕数为 $1$、外部为 $0$，这是若当曲线定理与绕数的平面拓扑性质。本书一般先在圆和分段光滑简单闭曲线上使用它，再根据需要解释更一般路径。
+
+\section{习题}
+\label{sec:ca-integral-ex}
+\begin{enumerate}
+ \item 沿从 $0$ 到 $1+i$ 的任意分段光滑路径计算 $\int z^2\,\mathrm dz$。
+ \item 沿正向单位圆计算 $\oint\overline z\,\mathrm dz$。再用 $\overline z=1/z$ 验证。
+ \item 沿从 $1$ 到 $-1$ 的上半单位圆计算 $\int\mathrm dz/z$，并与下半单位圆从 $1$ 到 $-1$ 的结果比较。
+ \item 设 $\gamma_R$ 为上半圆 $|z|=R>2$，证明 $\left|\int_{\gamma_R}\mathrm dz/(z^2+1)\right|\le\pi R/(R^2-1)$。
+ \item 设 $f$ 在区域上有两个原函数 $F,G$，证明 $F-G$ 为常数，并指出连通性的作用。
+
+  \item\label{ex:ca-circle-conjugate} 设 $\gamma$ 为半径 $R>0$ 的正向圆 $|z|=R$，计算 $\int_\gamma\overline z\,dz$；再说明反向时结果如何变化。
+  \item\label{ex:ca-log-integral} 设路径包含于右半平面，从 $1$ 到 $1+i$。计算 $\int_\gamma dz/z$，并说明为何与所选路径无关。
+  \item\label{ex:ca-winding-path} 对 $\gamma(t)=a+re^{ikt}$（$0\le t\le2\pi$），其中 $r>0$、$k\in\mathbb{Z}$，求 $\operatorname{Ind}(\gamma,a)$；包括 $k=0$ 的情形。
+  \item\label{ex:ca-arc-estimate} 设 $p>1$，大半圆 $\gamma_R$ 上的连续函数满足 $|f(z)|\le C/R^p$，其中 $C$ 与 $R$ 无关。证明 $\int_{\gamma_R}f\,dz\to0$，并用 $1/z$ 说明 $p=1$ 时结论可能失败。
+\end{enumerate}
+

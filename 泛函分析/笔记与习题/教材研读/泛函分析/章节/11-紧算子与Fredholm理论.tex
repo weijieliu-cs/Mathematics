@@ -1,0 +1,148 @@
+% !TeX root = ../泛函分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{10} % 保留原书章号。
+\chapter{紧算子与 Fredholm 理论}
+\label{chap:fa-compact}
+
+紧算子把有界输入转化为具有收敛子列的输出。这一性质弱于有限秩，却足以使非零谱点及方程不可解的障碍具有有限维结构。
+
+\section{紧算子的定义与基本性质}
+\begin{definition}
+线性算子 $K:X\to Y$ 称为\emph{紧算子（compact operator）}，若每个有界集的像相对紧，即其闭包紧。对赋范空间，这等价于每个有界序列 $(x_n)$ 都有子列，使 $(Kx_{n_j})$ 在 $Y$ 中收敛。
+\end{definition}
+紧算子有界，因为单位球像的紧闭包有界。有限秩有界算子紧，因为其有界像位于有限维空间。紧算子与有界算子在任意一侧复合仍紧：一侧保持输入有界，另一侧把输出收敛序列连续地映为收敛序列。有限个紧算子之和也紧，可依次选子列证明。
+
+\begin{proposition}\label{prop:fa-compact-closed}
+若 $Y$ 完备，$K_n:X\to Y$ 紧且 $\|K_n-K\|\to0$，则 $K$ 紧。
+\end{proposition}
+\begin{proof}
+给定 $\varepsilon>0$，取 $n$ 使 $\|K_n-K\|<\varepsilon/3$。$K_n(B_X)$ 有有限个半径 $\varepsilon/3$ 的球覆盖，因此 $K(B_X)$ 有有限个半径 $\varepsilon$ 的球覆盖。其闭包全有界，且作为完备空间的闭集完备，由定理\ref{thm:fa-metric-compactness}可知紧。
+\end{proof}
+在无限维空间中，恒等算子不紧，这是推论\ref{cor:fa-unit-ball}的另一种表述。
+
+\begin{example}[尾部衰减怎样产生紧性]\label{ex:fa-diagonal-compactness}
+$\ell^2$ 上的有界对角算子 $Dx=(a_jx_j)$ 紧，当且仅当 $a_j\to0$。
+\end{example}
+\begin{solve}
+若 $a_j\to0$，只保留前 $N$ 个输出坐标，得到有限秩算子 $D_N$，且 $\|D-D_N\|=\sup_{j>N}|a_j|\to0$，所以 $D$ 紧。反之，若对角元不趋零，可取子列使 $|a_{j_k}|\geq\varepsilon>0$。输入 $e_{j_k}$ 全在单位球中，输出却两两相距至少 $\sqrt2\varepsilon$，不可能有收敛子列，矛盾。紧性在这里表示：无论单位输入怎样分布，高编号坐标对输出的影响最终都统一变小。
+\end{solve}
+
+这个例子也说明紧性与把距离缩小不是一回事。无限维空间上的 $I/2$ 把任意距离缩小一半，但不紧；有限秩算子 $100P$ 可以显著放大长度，却仍然紧。压缩性控制任意两个输入之间的距离，紧性控制整族有界输出的子列行为。
+
+\section{有限秩逼近与积分算子}
+若 $K:H_1\to H_2$ 是 Hilbert 空间间的紧算子，对 $K(B_{H_1})$ 取有限 $\varepsilon$ 网 $y_1,\ldots,y_m$。设 $P$ 为到其线性张成空间的正交投影，则最佳逼近性质给出 $\|(I-P)K\|\leq\varepsilon$，而 $PK$ 为有限秩。因此 Hilbert 空间间的紧算子恰为有限秩算子的范数极限；这一逆向逼近结论不能无条件推广到所有 Banach 空间。
+
+\begin{theorem}[Arzelà--Ascoli]\label{thm:fa-ascoli}
+设 $Q$ 为紧度量空间。$\mathcal F\subset C(Q)$ 在一致范数下相对紧，当且仅当它一致有界且等度连续。等度连续指对每个 $\varepsilon>0$ 存在 $\delta>0$，使 $d(s,t)<\delta$ 时 $|f(s)-f(t)|<\varepsilon$ 对所有 $f\in\mathcal F$ 成立。
+\end{theorem}
+\begin{proof}
+相对紧集可用有限个一致范数小球覆盖。有限个中心函数均有界且一致连续，利用三角不等式把这两种性质传给整个函数族。
+
+反之，由等度连续性选 $\delta$，再以有限个 $\delta$ 球覆盖 $Q$，记球心为 $t_1,\ldots,t_m$。一致有界性保证向量 $(f(t_j))_{j=1}^m$ 处于有限维有界集，故可取有限细网，并从每个非空网格选择一个函数。两个函数若各球心处数值足够接近，利用等度连续性即可在整个 $Q$ 上一致接近。因此 $\mathcal F$ 全有界；$C(Q)$ 完备，故闭包紧。
+\end{proof}
+若 $k\in C([a,b]^2)$，则
+\[
+ (Kf)(t)=\int_a^b k(t,s)f(s)\,\mathrm ds
+\]
+在 $C([a,b])$ 上紧：单位球的像由 $(b-a)\|k\|_\infty$ 控制，而 $|Kf(t)-Kf(t')|\leq\int_a^b|k(t,s)-k(t',s)|\,\mathrm ds$ 给出等度连续性。在 $L^2$ 框架中，若核平方可积，则 Cauchy--Schwarz 给出 $\|K\|\leq\|k\|_{L^2}$；用有限个乘积函数逼近核，可得有限秩逼近，故算子也紧。
+
+\section{紧扰动的核与闭值域}
+在 Arzelà--Ascoli 定理中，等度连续要求先选择同一个 $\delta$，再对函数族中所有函数使用它。各个函数分别连续还不够：$f_n(t)=t^n$ 在 $[0,1]$ 上一致有界，但在 $1$ 附近越来越陡，不能选择统一的 $\delta$。任何子列的逐点极限在 $[0,1)$ 上为零、在 $1$ 处为一，因此不可能一致收敛到连续函数。另一方面，常值函数族 $f_n(t)=n$ 等度连续，却不一致有界，也没有一致收敛子列。
+
+\begin{proposition}[紧算子把弱收敛变为范数收敛]\label{prop:fa-compact-weak-strong}
+若 $K:X\to Y$ 是赋范空间间的紧线性算子，$x_n\rightharpoonup x$，则 $\|Kx_n-Kx\|\to0$。
+\end{proposition}
+\begin{proof}
+弱收敛序列有界。若结论不成立，可取 $\varepsilon>0$ 与子列，使 $\|Kx_{n_j}-Kx\|\geq\varepsilon$。紧性使其有进一步子列在范数下趋于某个 $y\in Y$。有界线性算子保持弱收敛，故该子列也弱趋于 $Kx$；范数收敛又蕴含弱趋于 $y$。连续对偶分离点，迫使 $y=Kx$，与距离下界矛盾。
+\end{proof}
+证明中的“任取一个反常子列，再提取更好的子列”是常用方法。只证明存在一个子列收敛到 $Kx$，不足以证明整个输出序列收敛。
+
+\section{紧扰动的核与闭值域}
+本节设 $X$ 为 Banach 空间，$K\in\mathcal B(X)$ 紧，$A=I-K$。
+\begin{lemma}\label{lem:fa-compact-range}
+$\ker A$ 有限维，$\operatorname{Ran}A$ 闭，并存在 $C>0$ 使
+\[
+ \operatorname{dist}(x,\ker A)\leq C\|Ax\|\quad(x\in X).
+\]
+\end{lemma}
+\begin{proof}
+在 $\ker A$ 上 $K=I$，故其单位球紧，核有限维。若距离估计失败，可缩放并减去核内向量，得到 $\operatorname{dist}(x_n,\ker A)=1$、$\|x_n\|\leq2$ 且 $Ax_n\to0$。紧性给出 $Kx_n$ 的收敛子列，于是 $x_n=Ax_n+Kx_n$ 的相应子列收敛到 $x\in\ker A$，与距离为一矛盾。
+
+若 $Ax_n\to y$，由距离估计可在不改变 $Ax_n$ 的条件下选取有界代表元。再由紧性选 $Kx_n$ 收敛子列，便有 $x_n\to x$ 且 $Ax=y$，所以值域闭。
+\end{proof}
+
+\section{Fredholm 二择一与指数}
+\begin{theorem}[Fredholm 二择一]\label{thm:fa-fredholm-alternative}
+设 $X$ 为 Banach 空间，$K\in\mathcal B(X)$ 为紧算子，$A=I-K$。则 $A$ 单射当且仅当满射，此时逆有界。一般地，$A$ 的核有限维、值域闭，且
+\[
+ \dim\ker A=\dim(X/\operatorname{Ran}A).
+\]
+方程 $Ax=y$ 可解当且仅当 $f(y)=0$ 对所有 $f\in\ker A'$ 成立。
+\end{theorem}
+\begin{proof}
+考虑 $N_j=\ker A^j$ 与 $R_j=\operatorname{Ran}A^j$。因 $A^j=I-K_j$，其中 $K_j$ 是含因子 $K$ 的算子多项式，故 $K_j$ 紧；由引理\ref{lem:fa-compact-range}，$N_j$ 有限维且 $R_j$ 闭。
+
+两个链都必在有限步稳定。若 $N_j$ 严格递增，用 Riesz 引理选单位向量 $x_j\in N_j$，到 $N_{j-1}$ 的距离大于 $1/2$。当 $j>i$ 时，$Ax_j,Kx_i\in N_{j-1}$，故 $\|Kx_j-Kx_i\|>1/2$，违反紧性。若 $R_j$ 严格递减，选单位向量 $x_j\in R_{j-1}$，到 $R_j$ 的距离大于 $1/2$；当 $j>i$ 时，$Kx_j,Ax_i\in R_i$，再次得到像之间距离大于 $1/2$。链一旦相邻相等，以取原像或取像可知后面也都相等。
+
+取足够大 $m$ 使两链稳定。则
+\[
+ X=N_m\oplus R_m.
+\]
+确实，若 $x=A^my\in N_m$，则 $y\in N_{2m}=N_m$，所以 $x=0$。又因 $R_m=R_{2m}$，任意 $x$ 都可选 $y$ 使 $A^mx=A^{2m}y$，从而 $x-A^my\in N_m$。在 $R_m$ 上，$A$ 单射且满射；在有限维 $N_m$ 上，核维数等于值域余维。分块考察便得全空间的维数等式，所以单射与满射等价，逆的有界性由有界逆定理得到。
+
+最后，$\ker A'=(\operatorname{Ran}A)^\perp$。由值域闭及命题\ref{prop:fa-distance-dual}，一个 $y$ 属于值域当且仅当所有这些泛函都在 $y$ 上消失。
+\end{proof}
+有界线性算子 $A:X\to Y$ 若核有限维、值域闭且值域余维有限，称为\emph{Fredholm 算子（Fredholm operator）}。其指数定义为
+\begin{equation}
+ \operatorname{ind}A=\dim\ker A-\dim(Y/\operatorname{Ran}A).
+ \label{eq:fa-fredholm-index}
+\end{equation}
+上面的定理说明 $I-K$ 的指数为零。在 Hilbert 空间中，相容条件写成 $y\perp\ker(I-K^*)$。
+
+\begin{example}[把 Fredholm 相容条件算出来]\label{ex:fa-rank-one-fredholm}
+在实 $C([0,1])$ 中求解
+\[
+ u(t)-\alpha t\int_0^1u(s)\,\mathrm ds=g(t),
+ \qquad g\in C([0,1]),\quad\alpha\in\mathbb R.
+\]
+\end{example}
+\begin{solve}
+令 $c=\int_0^1u$、$b=\int_0^1g$。原方程给出 $u(t)=g(t)+\alpha tc$，两侧积分得到 $(1-\alpha/2)c=b$。当 $\alpha\ne2$ 时，
+\[
+ u(t)=g(t)+\frac{\alpha b}{1-\alpha/2}t
+\]
+是唯一解。当 $\alpha=2$ 时，必须有 $b=0$；若此条件成立，每个 $u(t)=g(t)+2ct$ 都是解，$c$ 任意。算子 $Ku(t)=\alpha t\int u$ 的值域至多一维，所以紧。在临界参数 $\alpha=2$ 时，齐次解空间为 $\operatorname{span}\{t\}$，值域为 $\{g:\int g=0\}$，核维数与值域余维同为一；泛函 $g\mapsto\int g$ 正是检测可解性的观测。分母还表明，接近临界参数时，唯一解虽然存在，却可能对数据十分敏感。
+\end{solve}
+
+\section{紧算子的非零谱}
+\begin{theorem}\label{thm:fa-compact-spectrum}
+复 Banach 空间上紧算子 $K$ 的每个非零谱点都是特征值，其特征空间有限维；对每个 $\varepsilon>0$，模至少为 $\varepsilon$ 的谱点只有有限个。因此非零谱至多可数，唯一可能的聚点是零。
+\end{theorem}
+\begin{proof}
+对 $\lambda\ne0$，将 $\lambda I-K$ 写为 $\lambda(I-K/\lambda)$，Fredholm 二择一及有限维核立即给出前两项。
+
+若有互异特征值 $\lambda_n$ 满足 $|\lambda_n|\geq\varepsilon$，取相应特征向量，令其前 $n$ 个的张成空间为 $E_n$。不同特征值的特征向量线性无关，且 $(K-\lambda_n I)E_n\subset E_{n-1}$。由 Riesz 引理取 $x_n\in E_n$，$\|x_n\|=1$，到 $E_{n-1}$ 距离大于 $1/2$。若 $n>m$，则 $Kx_n-Kx_m$ 与 $\lambda_nx_n$ 相差 $E_{n-1}$ 中的向量，故其范数大于 $\varepsilon/2$，与紧性矛盾。
+\end{proof}
+无限维空间上零必在紧算子的谱中，否则 $I=K^{-1}K$ 紧，违反闭单位球不紧。但零未必是特征值，如 $\ell^2$ 上对角元为 $1/n$ 的算子。
+
+\section{例题与习题}
+\begin{example}[Volterra 算子]
+$C([0,1])$ 上 $(Vf)(t)=\int_0^t f(s)\,\mathrm ds$ 紧，且 $\sigma(V)=\{0\}$。
+\end{example}
+\begin{solve}
+单位球像一致有界且满足 $|Vf(t)-Vf(s)|\leq|t-s|$，由 Arzelà--Ascoli 得紧性。逐次积分或归纳得 $\|V^n\|\leq1/n!$，故谱半径为零。谱非空，所以只有零；$V$ 单射，表明零可以是紧算子的非特征谱点。
+\end{solve}
+
+这里可以把幂算子写得更具体：对 $n\geq1$，反复积分得到
+\[
+ V^nf(t)=\frac1{(n-1)!}\int_0^t(t-s)^{n-1}f(s)\,\mathrm ds,
+ \qquad \|V^n\|=\frac1{n!}.
+\]
+上界由积分核的绝对值积分得到，下界用 $f=1$、$t=1$ 达到。于是对任意标量 $\alpha$，$\sum_{n\geq0}\alpha^nV^n$ 都在算子范数下绝对收敛，并给出 $(I-\alpha V)^{-1}$。所以某个简单的压缩估计要求 $|\alpha|<1$，并不意味着参数超出这个范围后方程就没有唯一解；更精确的幂估计能扩大求解范围。
+\begin{enumerate}
+ \item 在 $\ell^2$ 上令 $Kx=(x_j/j^a)$，其中 $a>0$。求前 $N$ 项有限秩截断的精确算子范数误差，并给出误差不超过 $\varepsilon>0$ 所需的 $N$。
+ \item 将例\ref{ex:fa-rank-one-fredholm}推广为 $Ku=\phi\,\ell(u)$，其中 $\phi\in X$、$\ell\in X^*$。分别在 $\ell(\phi)\ne1$ 与 $\ell(\phi)=1$ 时讨论 $I-K$。
+ \item 设 $K$ 为 Hilbert 空间上的紧算子，$(e_n)$ 为标准正交序列。证明 $\|Ke_n\|\to0$，并用它再次说明无限维恒等算子不紧。
+ \item 说明紧算子的有限秩近似为何不意味着它具有有限维值域。
+\end{enumerate}
+

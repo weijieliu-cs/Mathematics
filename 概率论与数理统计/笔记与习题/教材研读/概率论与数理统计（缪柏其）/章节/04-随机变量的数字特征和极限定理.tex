@@ -1,0 +1,1025 @@
+% !TeX root = ../概率论与数理统计（缪柏其）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{3} % 保留原书章号。
+\chapter{随机变量的数字特征和极限定理}
+\label{chap:study-moments-limits}
+
+% 依据缪柏其、张伟平《概率论与数理统计》（2022）第 4 章，教材第 123--179 页。
+
+分布描述随机变量的全部取值规律，数字特征则提取其中便于比较和计算的部分信息：期望、中位数与众数刻画位置，方差与矩刻画波动及形状，协方差与相关系数刻画两个变量之间的线性联系，熵从另一角度度量不确定性。这些量一般不能代替完整分布，但在分布难以直接求出时，仍可能通过分解、条件化或对称性计算。极限定理进一步说明，在适当条件下，大量随机变量的平均会集中在期望附近，而经过适当放大的随机波动具有近似正态分布。
+
+\section{数学期望和中位数}
+\label{sec:study-expectation-median}
+
+\subsection{数学期望的定义、存在条件与运算}
+\label{subsec:study-expectation-properties}
+
+例~\ref{ex:points-original} 中，若比赛继续，甲以概率 $3/4$ 得到 $300$ 元，以概率 $1/4$ 得到 $0$ 元，因而按当前信息计算的平均所得为 $300\times3/4+0\times1/4=225$ 元。这种按概率加权的平均就是\emph{数学期望（expectation）}，也称\emph{均值（mean）}。期望是由分布决定的常数，不必是随机变量实际能够取到的值；例如公平骰子的点数期望为 $3.5$，却不可能掷出 $3.5$ 点。
+
+\begin{definition}
+\label{def:study-expectation}
+设离散型随机变量 $X$ 的不同取值为 $x_k$，相应概率为 $p_k$。若
+\[
+  \mathbb E|X|=\sum_k|x_k|p_k<\infty,
+\]
+则称 $X$ \emph{可积（integrable）}，定义其期望为
+\begin{equation}
+  \mathbb E X=\sum_k x_kp_k.
+  \label{eq:study-discrete-expectation}
+\end{equation}
+若 $X$ 为具有密度 $f_X$ 的连续型随机变量，则可积条件及期望分别为
+\begin{equation}
+  \mathbb E|X|=\int_{-\infty}^{\infty}|x|f_X(x)\,dx<\infty,
+  \qquad
+  \mathbb E X=\int_{-\infty}^{\infty}xf_X(x)\,dx.
+  \label{eq:study-continuous-expectation}
+\end{equation}
+本章所说“期望存在”均指上述有限期望存在。
+\end{definition}
+
+绝对收敛保证离散求和不依赖取值的排列次序；连续情形中，绝对可积排除了正、负部分都发散时的无意义抵消。对一般实值随机变量，写 $X^+=\max\{X,0\}$、$X^-=\max\{-X,0\}$，则 $X=X^+-X^-$、$|X|=X^++X^-$。可积等价于这两部分的期望都有限。非负随机变量的期望还可以按扩展实数理解为 $+\infty$，但不能把 $\infty-\infty$ 当作一个期望值。同分布随机变量的期望相同；这不要求它们相互独立。
+
+\begin{example}
+\label{ex:study-cauchy-no-mean}
+设 $X$ 具有标准柯西密度 $f_X(x)=1/[\pi(1+x^2)]$。判断其期望是否存在。
+\end{example}
+
+\begin{solve}
+由
+\[
+  \mathbb E|X|=\frac2\pi\int_0^\infty\frac{x}{1+x^2}\,dx=\infty,
+\]
+知 $X$ 不可积。尽管对任意 $R>0$，对称截断积分 $\int_{-R}^Rxf_X(x)\,dx=0$，这只给出了柯西主值；正半轴与负半轴上的积分分别发散，不能据此写 $\mathbb E X=0$。\emph[caution]{分布对称只有在期望存在时，才保证期望等于对称中心。}
+\end{solve}
+
+\begin{theorem}
+\label{thm:study-expectation-properties}
+设 $X_1,\ldots,X_n$ 可积，$a_1,\ldots,a_n,b$ 为实常数，则
+\begin{equation}
+  \mathbb E\left(b+\sum_{i=1}^na_iX_i\right)
+    =b+\sum_{i=1}^na_i\mathbb E X_i.
+  \label{eq:study-expectation-linearity}
+\end{equation}
+若 $X\le Y$ 以概率 $1$ 成立且二者可积，则 $\mathbb E X\le\mathbb E Y$。若 $X_1,\ldots,X_n$ 还相互独立，则它们的乘积可积，且
+\begin{equation}
+  \mathbb E\left(\prod_{i=1}^nX_i\right)
+    =\prod_{i=1}^n\mathbb E X_i.
+  \label{eq:study-independent-product-mean}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+线性组合的绝对值不超过 $|b|+\sum_i|a_i||X_i|$，故其期望存在。以两个离散型变量为例，记联合概率为 $p_{ij}=\mathbb P(X=x_i,Y=y_j)$，利用绝对收敛重排求和得
+\[
+  \mathbb E(aX+cY)=\sum_{i,j}(ax_i+cy_j)p_{ij}
+    =a\sum_i x_i\sum_jp_{ij}+c\sum_jy_j\sum_ip_{ij}
+    =a\mathbb E X+c\mathbb E Y.
+\]
+连续型情形用绝对可积时的积分换序作相同推导。一般情形可用有限值随机变量在平均绝对误差意义下逼近各个可积变量，再用 $|\mathbb E(U-V)|\le\mathbb E|U-V|$ 将有限值情形的线性等式取极限。单调性来自 $\mathbb E(Y-X)\ge0$。独立时联合分布可分解为边缘分布的乘积，先对非负函数 $\prod_i|X_i|$ 求和或积分，得其期望等于 $\prod_i\mathbb E|X_i|<\infty$，再分解乘积的期望，即得式~\eqref{eq:study-independent-product-mean}。
+\end{proof}
+
+\emph[caution]{有限和的期望可直接相加，不需要独立性；乘积的期望一般不能直接相乘。}例如 $X\sim\mathrm{Bern}(p)$，$0<p<1$，则 $\mathbb E(X^2)=p\ne p^2=(\mathbb E X)^2$。同样，一般不能把 $\mathbb E[g(X)]$ 写成 $g(\mathbb E X)$。
+
+\begin{proposition}
+\label{prop:study-function-expectation}
+设 $g$ 为可测实值函数，且 $\mathbb E|g(X)|<\infty$，则
+\begin{equation}
+  \mathbb E[g(X)]=
+  \begin{cases}
+    \displaystyle\sum_k g(x_k)p_k,&X\text{ 为离散型},\\
+    \displaystyle\int_{-\infty}^{\infty}g(x)f_X(x)\,dx,
+      &X\text{ 具有密度 }f_X.
+  \end{cases}
+  \label{eq:study-function-expectation}
+\end{equation}
+对随机向量 $(X,Y)$ 的可积函数 $g(X,Y)$，可相应使用联合概率或联合密度作二重求和或积分。
+\end{proposition}
+
+离散情形可把产生相同 $g(x_k)$ 的取值归组，由绝对收敛得到公式；连续情形的公式是分布变换下积分的基本性质，对一般可测变换的严格证明需要更一般的积分理论。应用时无须先求 $g(X)$ 的分布。例如 $X\sim U(-1,1)$ 时，$\mathbb E(2|X|)=\int_{-1}^1|x|\,dx=1$。
+
+\begin{example}
+\label{ex:study-poisson-binomial-means}
+求二项分布和泊松分布的期望，并说明如何利用随机变量的分解简化计算。
+\end{example}
+
+\begin{solve}
+若 $X\sim\mathrm{Bin}(n,p)$，写成独立伯努利变量之和 $X=\sum_{i=1}^nI_i$，由 $\mathbb E I_i=p$ 得 $\mathbb E X=np$。若 $X\sim\mathrm{Pois}(\lambda)$，$\lambda>0$，则
+\[
+  \mathbb E X=\sum_{k=1}^{\infty}k e^{-\lambda}\frac{\lambda^k}{k!}
+    =\lambda e^{-\lambda}\sum_{j=0}^{\infty}\frac{\lambda^j}{j!}
+    =\lambda.
+\]
+若每次成功概率为 $p\in(0,1)$，各次试验独立，以 $G$ 表示首次成功所需的试验次数，则 $\mathbb P(G=k)=p(1-p)^{k-1}$，$k\ge1$，几何级数求导给出 $\mathbb E G=1/p$。第 $r$ 次成功所需的总次数是 $r$ 个独立同分布的这种等待时间之和，因此其负二项分布的期望为 $r/p$。这里计数包含成功的试验；若改为成功前的失败次数，期望相应减少 $r$。
+\end{solve}
+
+\subsection{条件期望与全期望公式}
+\label{subsec:study-conditional-expectation}
+
+\emph{条件期望（conditional expectation）}是在已知信息下，按条件分布计算的平均值。设 $Y$ 可积。当 $X$ 离散且 $\mathbb P(X=x)>0$ 时，
+\[
+  h(x):=\mathbb E(Y\mid X=x)=\sum_y y\,\mathbb P(Y=y\mid X=x),
+\]
+其中右侧按 $Y$ 的可能取值求和，且在相应条件绝对期望有限时定义。若 $(X,Y)$ 有联合密度 $f_{X,Y}$，则在 $f_X(x)>0$ 且条件绝对积分有限的点，可取
+\begin{equation}
+  h(x)=\mathbb E(Y\mid X=x)
+    =\int_{-\infty}^{\infty}y\frac{f_{X,Y}(x,y)}{f_X(x)}\,dy.
+  \label{eq:study-conditional-mean-density}
+\end{equation}
+连续情形中 $\mathbb P(X=x)=0$，因此这不是把单点事件的概率直接代入条件概率商式。$Y$ 可积保证上述条件平均对 $X$ 的分布几乎处处有定义；在剩余的零概率部分任意赋值，不改变后续结论。固定 $x$ 时 $h(x)$ 是数，而
+\[
+  \mathbb E(Y\mid X):=h(X)
+\]
+是 $X$ 的函数，通常仍为随机变量。它作为 $x$ 的函数也称 $Y$ 关于 $X$ 的\emph{回归函数（regression function）}。
+
+\begin{theorem}
+\label{thm:study-total-expectation}
+若 $Y$ 可积，则 $\mathbb E(Y\mid X)$ 也可积，并且
+\begin{equation}
+  \mathbb E[\mathbb E(Y\mid X)]=\mathbb E Y.
+  \label{eq:study-total-expectation}
+\end{equation}
+这称为\emph{全期望公式（law of total expectation）}或平滑公式。
+\end{theorem}
+
+\begin{proof}
+条件平均满足 $|h(X)|\le\mathbb E(|Y|\mid X)$。离散情形按联合概率求和即得 $\mathbb E|h(X)|\le\mathbb E|Y|<\infty$，并有
+\[
+  \sum_xh(x)\mathbb P(X=x)
+    =\sum_{x,y}y\,\mathbb P(X=x,Y=y)=\mathbb E Y.
+\]
+有联合密度时，由 $\iint|y|f_{X,Y}(x,y)\,dx\,dy=\mathbb E|Y|<\infty$ 可合法换序，故
+\[
+  \int h(x)f_X(x)\,dx
+    =\iint y f_{X,Y}(x,y)\,dy\,dx
+    =\int y f_Y(y)\,dy=\mathbb E Y.
+\]
+一般情形可由条件期望的积分定义得到相同结论。
+\end{proof}
+
+\begin{example}
+\label{ex:study-normal-conditional-mean}
+设 $(X,Y)$ 服从二元正态分布，边缘均值为 $\mu_X,\mu_Y$，标准差为 $\sigma_X,\sigma_Y>0$，相关参数为 $\rho\in(-1,1)$。求 $\mathbb E(Y\mid X=x)$。
+\end{example}
+
+\begin{solve}
+由联合正态密度除以 $X$ 的边缘密度，并对关于 $y$ 的二次式配方，可得
+\[
+  Y\mid X=x\sim N\left(\mu_Y+\rho\frac{\sigma_Y}{\sigma_X}(x-\mu_X),
+                       \sigma_Y^2(1-\rho^2)\right).
+\]
+因此 $\mathbb E(Y\mid X=x)=\mu_Y+\rho(\sigma_Y/\sigma_X)(x-\mu_X)$。全期望公式给出 $\mathbb E[\mathbb E(Y\mid X)]=\mu_Y$，因为 $\mathbb E(X-\mu_X)=0$。条件平均随 $x$ 线性变化是联合正态模型的性质，一般条件期望可以是非线性函数。
+\end{solve}
+
+\subsection{中位数、众数与分位数}
+\label{subsec:study-location-quantiles}
+
+均值用全部取值按概率加权，因此少量极端值也可能明显影响它。中位数按两侧的概率划分位置，众数则关注概率或密度最大的地方，三者回答的问题不同。
+
+\begin{definition}
+\label{def:study-median-quantile}
+设 $X$ 的分布函数为 $F$。若实数 $m$ 满足
+\begin{equation}
+  \mathbb P(X\le m)\ge\frac12,\qquad
+  \mathbb P(X\ge m)\ge\frac12,
+  \label{eq:study-median}
+\end{equation}
+则称 $m$ 为 $X$ 的\emph{中位数（median）}。更一般地，对 $p\in(0,1)$，若 $q$ 满足 $F(q-)\le p\le F(q)$，即 $\mathbb P(X\le q)\ge p$ 且 $\mathbb P(X\ge q)\ge1-p$，则称 $q$ 为一个 $p$ \emph{分位数（quantile）}。为统一选取一个代表值，通常约定
+\begin{equation}
+  Q(p)=\inf\{x\in\mathbb R:F(x)\ge p\}.
+  \label{eq:study-generalized-quantile}
+\end{equation}
+\end{definition}
+
+由分布函数在两端的极限，式~\eqref{eq:study-generalized-quantile} 的下确界有限；由单调性和右连续性，$F(Q(p)-)\le p\le F(Q(p))$，故任意实值随机变量都有中位数和上述分位数，即使其均值不存在。满足分位数不等式的点可能不唯一，但选定下确界的约定后 $Q(p)$ 是确定的。若 $F$ 连续且严格递增，则 $F(Q(p))=p$ 且解唯一。只假设 $F$ 连续时，水平区间仍可能造成不唯一。
+
+\begin{example}
+\label{ex:study-bernoulli-medians}
+若 $X\sim\mathrm{Bern}(1/2)$，求全部中位数。
+\end{example}
+
+\begin{solve}
+当 $0<m<1$ 时，两侧概率均为 $1/2$；在 $m=0$ 或 $m=1$ 时，两侧概率仍均不小于 $1/2$。区间外则至少一侧概率为 $0$。所以全部中位数组成闭区间 $[0,1]$，其中按式~\eqref{eq:study-generalized-quantile} 选取的 $Q(1/2)=0$。中位数不一定是具有正概率的实际取值。
+\end{solve}
+
+\begin{definition}
+\label{def:study-mode-iqr}
+离散分布中使概率质量函数达到全局最大值的取值，称为\emph{众数（mode）}；对选定的连续密度，若它达到最大值，相应位置称为众数。众数可以不唯一，也可能不存在；连续分布通常针对其自然的连续密度讨论众数，以免单点修改密度造成歧义。称 $Q(1/4),Q(1/2),Q(3/4)$ 为四分位数，称
+\[
+  \operatorname{IQR}(X)=Q(3/4)-Q(1/4)
+\]
+为\emph{四分位距（interquartile range）}。
+\end{definition}
+
+\begin{example}
+\label{ex:study-lognormal-location}
+设 $\ln X\sim N(\mu,\sigma^2)$，$\sigma>0$，求对数正态分布的均值、中位数与众数。
+\end{example}
+
+\begin{solve}
+作变换 $z=(\ln x-\mu)/\sigma$，得到密度
+\[
+  f_X(x)=\frac1{x\sigma\sqrt{2\pi}}
+    \exp\left(-\frac{(\ln x-\mu)^2}{2\sigma^2}\right),\quad x>0.
+\]
+对任意实数 $k$，利用 $k\sigma z-z^2/2=-(z-k\sigma)^2/2+k^2\sigma^2/2$ 可得
+\begin{equation}
+  \mathbb E(X^k)
+    =e^{k\mu}\int_{-\infty}^{\infty}e^{k\sigma z}
+       \frac{e^{-z^2/2}}{\sqrt{2\pi}}\,dz
+    =\exp\left(k\mu+\frac{k^2\sigma^2}{2}\right).
+  \label{eq:study-lognormal-moments}
+\end{equation}
+于是均值为 $e^{\mu+\sigma^2/2}$；由 $\mathbb P(X\le e^\mu)=1/2$，中位数为 $e^\mu$。又
+\[
+  \frac{d}{dx}\ln f_X(x)
+    =-\frac1x\left(1+\frac{\ln x-\mu}{\sigma^2}\right),
+\]
+其符号在 $x=e^{\mu-\sigma^2}$ 处由正变负，故唯一众数为 $e^{\mu-\sigma^2}$。三者依次为众数、中位数、均值，说明右侧长尾会使均值向较大取值偏移。
+\end{solve}
+
+若 $X\sim N(\mu,\sigma^2)$，用 $\Phi$ 表示标准正态分布函数，则 $Q(p)=\mu+\sigma\Phi^{-1}(p)$，所以 $\operatorname{IQR}(X)=2\Phi^{-1}(3/4)\sigma\approx1.349\sigma$。这体现了分位距也可描述散布程度，但它与标准差的关系依赖分布，不能把这个系数用于任意总体。
+
+\section{方差和矩}
+\label{sec:study-variance-moments}
+
+\subsection{方差、标准差与概率界}
+\label{subsec:study-variance-inequalities}
+
+若 $\mathbb E X=\mu$，则 $\mathbb E(X-\mu)=0$，正负偏差会相互抵消，不能用它衡量波动。把偏差平方后再平均，就得到方差。它便于展开计算，但量纲是原变量量纲的平方；标准差恢复了原量纲。
+
+\begin{definition}
+\label{def:study-variance}
+若 $X$ \emph{平方可积（square-integrable）}，即 $\mathbb E(X^2)<\infty$，定义其\emph{方差（variance）}和\emph{标准差（standard deviation）}为
+\begin{equation}
+  \operatorname{Var}(X)=\mathbb E[(X-\mathbb E X)^2],\qquad
+  \sigma_X=\sqrt{\operatorname{Var}(X)}.
+  \label{eq:study-variance-definition}
+\end{equation}
+\end{definition}
+
+平方可积蕴含可积，因为 $|x|\le1+x^2$。展开定义并用期望的线性性，可得
+\begin{equation}
+  \operatorname{Var}(X)=\mathbb E(X^2)-(\mathbb E X)^2,
+  \qquad
+  \operatorname{Var}(aX+b)=a^2\operatorname{Var}(X).
+  \label{eq:study-variance-calculation}
+\end{equation}
+因此平移不改变方差，尺度变化使方差乘以尺度的平方；特别是 $\operatorname{Var}(-X)=\operatorname{Var}(X)$。
+
+\begin{proposition}
+\label{prop:study-variance-minimum}
+设 $X$ 平方可积，$\mu=\mathbb E X$。对任意常数 $c\in\mathbb R$，
+\begin{equation}
+  \mathbb E[(X-c)^2]=\operatorname{Var}(X)+(\mu-c)^2.
+  \label{eq:study-mean-square-decomposition}
+\end{equation}
+故均值是使平均平方误差最小的唯一常数，最小值为方差；且 $\operatorname{Var}(X)=0$ 当且仅当 $\mathbb P(X=\mu)=1$。
+\end{proposition}
+
+\begin{proof}
+将 $X-c=(X-\mu)+(\mu-c)$ 平方并取期望，交叉项因 $\mathbb E(X-\mu)=0$ 消失，得到分解式。若 $Z\ge0$ 且 $\mathbb E Z=0$，则对每个正整数 $k$，$0\ge k^{-1}\mathbb P(Z\ge k^{-1})$，故 $\mathbb P(Z>0)=0$。应用于 $Z=(X-\mu)^2$，即得方差为零的必要性；充分性直接来自定义。
+\end{proof}
+
+“以概率 $1$ 成立”也称\emph{几乎必然（almost surely）}成立，允许在一个零概率集合上例外。若 $0<\sigma_X<\infty$，则
+\[
+  Z=\frac{X-\mathbb E X}{\sigma_X}
+\]
+称为 $X$ 的\emph{标准化（standardization）}，满足 $\mathbb E Z=0$、$\operatorname{Var}(Z)=1$。标准化消除了位置与尺度，但一般不会把原分布变成正态分布。若原变量确为正态分布，则 $Z\sim N(0,1)$，并有 $\mathbb P(|Z|>3)\approx0.0027$；这一数值不是任意分布都有的性质。
+
+\begin{example}
+\label{ex:study-common-variances}
+求伯努利、二项与泊松分布的方差，并整理常见分布的均值和方差。
+\end{example}
+
+\begin{solve}
+若 $I\sim\mathrm{Bern}(p)$，则 $I^2=I$，故 $\operatorname{Var}(I)=p-p^2$。将二项变量分解为 $n$ 个独立伯努利变量之和，利用下文证明的独立和方差公式得 $\operatorname{Var}(X)=np(1-p)$。若 $X\sim\mathrm{Pois}(\lambda)$，则
+\[
+  \mathbb E[X(X-1)]
+    =\sum_{k=2}^{\infty}k(k-1)e^{-\lambda}\frac{\lambda^k}{k!}
+    =\lambda^2,
+\]
+因此 $\mathbb E(X^2)=\lambda^2+\lambda$，$\operatorname{Var}(X)=\lambda$。常见结果可合写为
+\[
+\begin{array}{c|c|c}
+  \text{分布及参数条件}&\mathbb E X&\operatorname{Var}(X)\\ \hline
+  \mathrm{Bern}(p),\ 0\le p\le1&p&p(1-p)\\
+  \mathrm{Bin}(n,p),\ n\ge1&np&np(1-p)\\
+  \mathrm{Pois}(\lambda),\ \lambda>0&\lambda&\lambda\\
+  \mathrm{Ge}(p),\ 0<p<1&1/p&(1-p)/p^2\\
+  U(a,b),\ a<b&(a+b)/2&(b-a)^2/12\\
+  \mathrm{Exp}(\lambda),\ \lambda>0&1/\lambda&1/\lambda^2\\
+  N(\mu,\sigma^2),\ \sigma>0&\mu&\sigma^2
+\end{array}
+\]
+其中 $n$ 为正整数，二项分布参数 $p\in[0,1]$；几何分布的支持为 $1,2,\ldots$，指数分布采用速率参数，即密度为 $\lambda e^{-\lambda x}$，$x>0$。均匀分布可对 $X-(a+b)/2$ 直接积分；几何分布的二阶矩可对几何级数再次求导；指数分布的二阶矩由两次分部积分得 $2/\lambda^2$。对标准正态密度 $\varphi$，$\varphi'(z)=-z\varphi(z)$，分部积分得 $\int z^2\varphi(z)\,dz=1$，再作位置尺度变换即得正态分布的结果。
+\end{solve}
+
+\begin{theorem}
+\label{thm:study-markov-chebyshev}
+若 $Y\ge0$ 且 $\mathbb E Y<\infty$，则对任意 $a>0$，有\emph{马尔可夫不等式（Markov's inequality）}
+\begin{equation}
+  \mathbb P(Y\ge a)\le\frac{\mathbb E Y}{a}.
+  \label{eq:study-markov-inequality}
+\end{equation}
+若 $X$ 的均值为 $\mu$、方差为 $\sigma^2<\infty$，则对任意 $\varepsilon>0$，有\emph{切比雪夫不等式（Chebyshev's inequality）}
+\begin{equation}
+  \mathbb P(|X-\mu|\ge\varepsilon)
+    \le\frac{\sigma^2}{\varepsilon^2}.
+  \label{eq:study-chebyshev-inequality}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+以 $\mathbf1_A$ 表示事件 $A$ 的示性变量，由逐点不等式 $Y\ge a\mathbf1_{\{Y\ge a\}}$ 和期望单调性得 $\mathbb E Y\ge a\mathbb P(Y\ge a)$。将非负变量 $Y$ 取为 $(X-\mu)^2$、阈值取为 $\varepsilon^2$，即得第二式。
+\end{proof}
+
+这些界只利用少量矩信息，不依赖具体分布，因而应用范围广，但可能比较保守；右端大于 $1$ 时还应与平凡上界 $1$ 取较小值。切比雪夫不等式是用已知方差控制偏离概率，不表示任意分布的尾部都像正态分布。
+
+\subsection{矩、偏度、峰度与矩母函数}
+\label{subsec:study-moments-mgf}
+
+\begin{definition}
+\label{def:study-moments}
+设正整数 $k$ 满足 $\mathbb E|X|^k<\infty$。称 $\alpha_k=\mathbb E(X^k)$ 为 $k$ 阶\emph{原点矩（raw moment）}，称 $\mu_k=\mathbb E[(X-\mathbb E X)^k]$ 为 $k$ 阶\emph{中心矩（central moment）}，更一般地，$\mathbb E[(X-c)^k]$ 为关于常数 $c$ 的 $k$ 阶矩。若 $\sigma_X>0$，并且相应矩存在，则
+\begin{equation}
+  \gamma_1=\frac{\mu_3}{\sigma_X^3},\qquad
+  \beta_2=\frac{\mu_4}{\sigma_X^4},\qquad
+  \gamma_2=\beta_2-3
+  \label{eq:study-skewness-kurtosis}
+\end{equation}
+分别称为\emph{偏度（skewness）}、\emph{峰度（kurtosis）}与\emph{超额峰度（excess kurtosis）}。
+\end{definition}
+
+一阶原点矩是均值，二阶中心矩是方差。偏度的正负通常反映较大或较小取值一侧的尾部对三次偏差的影响，不能机械地解释为密度最高点在均值哪一侧。关于均值对称且三阶绝对矩有限时，偏度为零；反向结论一般不成立。峰度更适合解释为标准化后极端偏差的敏感指标，不能只凭它判断密度曲线是否尖峭。正态分布满足 $\gamma_1=0$、$\beta_2=3$、$\gamma_2=0$，使用“峰度”一词时应先确认是否减去了 $3$。
+
+计算矩时可用\emph{伽马函数（gamma function）}
+\[
+  \Gamma(t)=\int_0^\infty x^{t-1}e^{-x}\,dx,\quad t>0.
+\]
+分部积分给出 $\Gamma(t+1)=t\Gamma(t)$，并有 $\Gamma(1)=1$、$\Gamma(1/2)=\sqrt\pi$。对 $\alpha>-1$、$\beta>0$，换元 $u=\beta x^2$ 得
+\begin{equation}
+  \int_0^\infty x^\alpha e^{-\beta x^2}\,dx
+    =\frac{\Gamma((\alpha+1)/2)}{2\beta^{(\alpha+1)/2}}.
+  \label{eq:study-gamma-integral}
+\end{equation}
+例如标准正态变量 $Z$ 的奇数阶矩为零，偶数阶矩为 $\mathbb E(Z^{2r})=(2r)!/(2^rr!)$，$r\ge1$，由此特别得到四阶矩为 $3$。
+
+\begin{definition}
+\label{def:study-mgf}
+称 $M_X(t)=\mathbb E(e^{tX})$ 为 $X$ 的\emph{矩母函数（moment generating function，MGF）}。若存在 $a>0$，使 $M_X(t)$ 对所有 $|t|<a$ 都有限，则称其在零点附近存在。
+\end{definition}
+
+零点附近存在是实质条件，因为 $M_X(0)=1$ 对任何随机变量都成立。在该条件下，取 $0<b<a$，有 $e^{b|X|}\le e^{bX}+e^{-bX}$，因此 $\mathbb E e^{b|X|}<\infty$。对 $|t|<b$，可用稍大的指数函数控制 $|X|^k e^{tX}$，从而合法地交换微分与期望，得到
+\begin{equation}
+  M_X^{(k)}(0)=\mathbb E(X^k),\qquad
+  M_X(t)=\sum_{k=0}^{\infty}\frac{\mathbb E(X^k)}{k!}t^k,
+  \quad |t|<a.
+  \label{eq:study-mgf-moments}
+\end{equation}
+级数交换也可由 $\mathbb E e^{|t||X|}<\infty$ 直接保证。独立变量之和满足
+\begin{equation}
+  M_{X_1+\cdots+X_n}(t)=\prod_{i=1}^nM_{X_i}(t),
+  \label{eq:study-mgf-independent-sum}
+\end{equation}
+其中 $t$ 取在各矩母函数共同有限的邻域内。常见例子为 $M_X(t)=(1-p+pe^t)^n$（二项分布）、$\exp[\lambda(e^t-1)]$（泊松分布）、$\lambda/(\lambda-t)$（速率为 $\lambda$ 的指数分布，$t<\lambda$），以及 $\exp(\mu t+\sigma^2t^2/2)$（正态分布）。这些式子也给出了计算矩和识别独立和分布的方法。
+
+\begin{theorem}
+\label{thm:study-mgf-uniqueness}
+若 $X,Y$ 的矩母函数在零点的某个共同开邻域内有限且相等，则 $X,Y$ 同分布。
+\end{theorem}
+
+这里引用矩母函数的唯一性定理而不证明。例如 $M_X(t)=2/(2-t)$ 在零点附近成立，便可识别 $X\sim\mathrm{Exp}(2)$。\emph[caution]{所有阶矩都存在，不保证矩母函数在零点附近存在。}例~\ref{ex:study-lognormal-location} 的对数正态分布就具有所有正整数阶矩，但对任意 $t>0$，其矩母函数发散：在密度积分中，$tx$ 最终压过 $(\ln x-\mu)^2/(2\sigma^2)+\ln x$，使被积函数不能在无穷远处可积。因此不能不核对条件便把矩的形式级数当成矩母函数，也不能把一般分布的全部矩必然唯一确定分布作为本定理的结论。
+
+\subsection{协方差、相关系数与独立性}
+\label{subsec:study-covariance-correlation}
+
+\begin{definition}
+\label{def:study-covariance-correlation}
+设 $X,Y$ 平方可积，定义\emph{协方差（covariance）}
+\begin{equation}
+  \operatorname{Cov}(X,Y)
+    =\mathbb E[(X-\mathbb E X)(Y-\mathbb E Y)]
+    =\mathbb E(XY)-\mathbb E X\,\mathbb E Y.
+  \label{eq:study-covariance}
+\end{equation}
+若二者方差还均为正，定义\emph{相关系数（correlation coefficient）}
+\begin{equation}
+  \rho_{X,Y}=\frac{\operatorname{Cov}(X,Y)}{\sigma_X\sigma_Y}.
+  \label{eq:study-correlation}
+\end{equation}
+若协方差为零，称二者\emph{不相关（uncorrelated）}。方差为零的变量仍可讨论协方差，但上述相关系数无定义。
+\end{definition}
+
+由 $2|XY|\le X^2+Y^2$ 可知协方差中的期望存在。协方差关于两个变量分别线性，且 $\operatorname{Cov}(X,Y)=\operatorname{Cov}(Y,X)$、$\operatorname{Cov}(X,X)=\operatorname{Var}(X)$，所以
+\begin{equation}
+  \operatorname{Var}\left(\sum_{i=1}^na_iX_i\right)
+    =\sum_{i=1}^na_i^2\operatorname{Var}(X_i)
+      +2\sum_{i<j}a_ia_j\operatorname{Cov}(X_i,X_j).
+  \label{eq:study-variance-linear-combination}
+\end{equation}
+这是将中心化的和平方、再逐项取期望得到的。两两不相关时交叉项消失，独立是保证这一点的充分条件。因此独立变量相减时，$\operatorname{Var}(X-Y)=\operatorname{Var}(X)+\operatorname{Var}(Y)$，方差并不相减。对独立同分布、公共方差为 $\sigma^2$ 的 $X_1,\ldots,X_n$，样本均值 $\overline X_n=n^{-1}\sum_iX_i$ 的方差为 $\sigma^2/n$。
+
+\begin{proposition}
+\label{prop:study-correlation-bound}
+若 $X,Y$ 平方可积，则
+\begin{equation}
+  |\operatorname{Cov}(X,Y)|^2
+    \le\operatorname{Var}(X)\operatorname{Var}(Y).
+  \label{eq:study-covariance-cauchy-schwarz}
+\end{equation}
+若二者方差均为正，则 $|\rho_{X,Y}|\le1$，且等号成立当且仅当存在常数 $a\ne0,b$，使 $Y=aX+b$ 几乎必然成立；此时相关系数的符号与 $a$ 相同。
+\end{proposition}
+
+\begin{proof}
+记 $U=X-\mathbb E X$、$V=Y-\mathbb E Y$。若 $\operatorname{Var}(X)=0$，则 $U=0$ 几乎必然成立，结论直接成立。否则对任意实数 $t$，
+\[
+  0\le\mathbb E(V-tU)^2
+    =\operatorname{Var}(Y)-2t\operatorname{Cov}(X,Y)
+       +t^2\operatorname{Var}(X).
+\]
+在 $t=\operatorname{Cov}(X,Y)/\operatorname{Var}(X)$ 处取最小值，得到不等式。两方差均正时，等号成立等价于该最小值为零，由命题~\ref{prop:study-variance-minimum} 证明中的非负变量性质，等价于 $V=tU$ 几乎必然成立。此时 $t\ne0$，反向代入也立即得到 $|\rho|=1$。
+\end{proof}
+
+相关系数正是两个标准化变量乘积的期望。在把几乎必然相等的变量视为同一元素后，中心化的平方可积变量构成内积空间，内积为 $\langle U,V\rangle=\mathbb E(UV)$；相关系数就是其中的夹角余弦，零相关对应正交。必须先中心化：在全部平方可积变量上直接用协方差作内积，会使非零常数的“长度”为零，因而不满足内积的正定性。
+
+\begin{example}
+\label{ex:study-uncorrelated-dependent}
+设 $X\sim U(-1,1)$，$Y=X^2$。证明 $X,Y$ 不相关但不独立。
+\end{example}
+
+\begin{solve}
+由对称性 $\mathbb E X=\mathbb E(X^3)=0$，故 $\operatorname{Cov}(X,Y)=\mathbb E(X^3)-\mathbb E X\,\mathbb E(X^2)=0$。但令 $A=\{|X|\le1/2\}$、$B=\{Y\le1/4\}$，则 $A=B$，所以
+\[
+  \mathbb P(A\cap B)=\frac12\ne\frac14=\mathbb P(A)\mathbb P(B).
+\]
+因此不独立。零相关仅排除了这种二阶线性联系，并未排除非线性依赖。
+\end{solve}
+
+独立且平方可积蕴含不相关，反向一般不成立。若 $(X,Y)$ \emph{联合服从二元正态分布}，则不相关与独立等价：当相关参数 $\rho=0$ 时，联合正态密度分解为两个边缘正态密度的乘积。这里只知道两个边缘都正态还不够。例如 $X\sim N(0,1)$，$S$ 独立于 $X$ 且等概率取 $\pm1$，令 $Y=SX$，则 $Y\sim N(0,1)$ 且 $\operatorname{Cov}(X,Y)=0$，但 $|Y|=|X|$ 使二者不独立。
+
+条件期望还能简化协方差与方差的计算。平方可积条件下，条件分布积分给出 $\mathbb E[Xg(Y)]=\mathbb E[g(Y)\mathbb E(X\mid Y)]$，只要两边可积；特别地，
+\begin{equation}
+  \operatorname{Cov}(X,Y)=\operatorname{Cov}(\mathbb E(X\mid Y),Y).
+  \label{eq:study-covariance-conditional-mean}
+\end{equation}
+对 $\mathbb E(Y^2)<\infty$，定义 $\operatorname{Var}(Y\mid X)=\mathbb E[(Y-\mathbb E(Y\mid X))^2\mid X]$。将 $Y-\mathbb E Y$ 分解为 $Y-\mathbb E(Y\mid X)$ 与 $\mathbb E(Y\mid X)-\mathbb E Y$，交叉项的条件期望为零，得到\emph{全方差公式（law of total variance）}
+\begin{equation}
+  \operatorname{Var}(Y)=\mathbb E[\operatorname{Var}(Y\mid X)]
+    +\operatorname{Var}(\mathbb E(Y\mid X)).
+  \label{eq:study-total-variance}
+\end{equation}
+这把总波动分为条件内的平均波动和不同条件平均值之间的波动。式~\eqref{eq:study-covariance-conditional-mean} 应用于例~\ref{ex:study-normal-conditional-mean} 的线性条件均值，还可直接得到二元正态分布的协方差为 $\rho\sigma_X\sigma_Y$，从而验证其参数 $\rho$ 就是相关系数。
+
+\section{熵的基本概念}
+\label{sec:study-entropy}
+
+\subsection{离散熵与微分熵}
+\label{subsec:study-entropy-definitions}
+
+均值和方差涉及取值的大小，熵则从概率分配的角度描述不确定性。若一项结果的概率为 $p>0$，可用 $-\log_2p$ 表示观察到它时的信息量：越罕见的结果，所带来的信息量越大。对这个量取平均得到离散熵。
+
+\begin{definition}
+\label{def:study-entropy}
+设离散型随机变量 $X$ 的不同取值的概率为 $p_k$，定义其\emph{熵（entropy）}
+\begin{equation}
+  H(X)=-\sum_kp_k\log_2p_k,
+  \label{eq:study-discrete-entropy}
+\end{equation}
+约定 $0\log_20=0$。它可以为 $+\infty$，以 $2$ 为底时单位为比特（bit）。若 $X$ 有密度 $f$，则在积分有定义时，定义\emph{微分熵（differential entropy）}
+\begin{equation}
+  h(X)=-\int_{-\infty}^{\infty}f(x)\ln f(x)\,dx,
+  \label{eq:study-differential-entropy}
+\end{equation}
+约定 $0\ln0=0$，使用自然对数时单位为奈特（nat）。
+\end{definition}
+
+这里分别用 $H$ 和 $h$ 区分两类量。离散熵非负，且与各个取值的数值大小无关；只要重新标号不合并不同取值，熵就不变。微分熵则不是离散熵的直接替代品，它可以为负，并且依赖坐标尺度。由密度变换公式，对 $a\ne0$，在有关积分存在时，
+\begin{equation}
+  h(aX+b)=h(X)+\ln|a|.
+  \label{eq:study-entropy-scale}
+\end{equation}
+因此二者都平移不变，但只有离散熵在非零线性缩放下也不变。例如 $X\sim U(0,c)$ 时，$h(X)=\ln c$，$0<c<1$ 时为负。比较微分熵时必须固定单位和坐标约定，也不能在任意分布间把较大方差直接等同于较大熵。
+
+\begin{proposition}
+\label{prop:study-discrete-max-entropy}
+若 $X$ 至多取 $n$ 个值，则 $0\le H(X)\le\log_2n$。上界等号成立当且仅当这 $n$ 个值的概率全为 $1/n$；下界等号成立当且仅当分布集中于一个值。
+\end{proposition}
+
+\begin{proof}
+因为 $0\le p_k\le1$，各项 $-p_k\log_2p_k$ 非负，且在 $0<p_k<1$ 时严格为正，得到下界及其等号条件。补齐零概率项，使共有 $n$ 项；由 $\ln u\le u-1$，
+\[
+  H(X)-\log_2n
+    =\frac1{\ln2}\sum_{p_k>0}p_k\ln\frac1{np_k}
+    \le\frac1{\ln2}\left(\frac{\#\{k:p_k>0\}}n-1\right)
+    \le0.
+\]
+等号要求所有 $n$ 项均为正，并且每项 $1/(np_k)=1$，即均匀分布。
+\end{proof}
+
+\begin{example}
+\label{ex:study-bernoulli-entropy}
+若 $X\sim\mathrm{Bern}(p)$，则
+\[
+  H(X)=-p\log_2p-(1-p)\log_2(1-p).
+\]
+在 $0<p<1$ 上，其导数为 $\log_2[(1-p)/p]$，因此 $p=1/2$ 时达到最大值 $1$；$p=0,1$ 时熵为零。均匀的两种结果最难在观察前预测，而确定结果不提供这种随机信息量。
+\end{example}
+
+\subsection{约束下的最大熵分布}
+\label{subsec:study-maximum-entropy}
+
+已知的支持、均值与方差等条件限制了可选分布；最大熵问题是在这些约束内寻找熵最大的密度。它提供一种建模原则，不能据此认定真实数据必然服从所得分布。下面用积分不等式证明最优性，避免只求出变分方程的驻点便断言获得全局最大值。
+
+\begin{lemma}
+\label{lem:study-gibbs-inequality}
+设 $f,g$ 为概率密度，且在 $f>0$ 处 $g>0$ 几乎处处成立。则\emph{相对熵（relative entropy）}满足
+\begin{equation}
+  D(f\Vert g):=\int f(x)\ln\frac{f(x)}{g(x)}\,dx\ge0,
+  \label{eq:study-gibbs-inequality}
+\end{equation}
+其中允许 $D=+\infty$。等号成立当且仅当 $f=g$ 几乎处处成立。
+\end{lemma}
+
+\begin{proof}
+在集合 $A=\{x:f(x)>0\}$ 上，$-\ln(g/f)\ge1-g/f$。乘以 $f$ 再积分，得到 $D(f\Vert g)\ge1-\int_Ag\ge0$。该积分的负部分有限，因为令 $r=f/g$，在 $r<1$ 处有 $-r\ln r\le1/e$，故负部分积分不超过 $\int g/e=1/e$。等号要求 $g/f=1$ 在 $A$ 上几乎处处成立，且 $g$ 在 $A$ 外没有质量，等价于两密度几乎处处相等。
+\end{proof}
+
+\begin{theorem}
+\label{thm:study-maximum-entropy}
+在具有密度的实值随机变量中，有以下最大微分熵结论：若支持限制在有限区间 $[a,b]$，$a<b$，则
+\[
+  h(X)\le\ln(b-a),
+\]
+等号当且仅当 $X\sim U(a,b)$。若 $X\ge0$ 且 $\mathbb E X=1/\lambda$，$\lambda>0$，则
+\[
+  h(X)\le1-\ln\lambda,
+\]
+等号当且仅当 $X\sim\mathrm{Exp}(\lambda)$。若 $\mathbb E X=\mu$、$\operatorname{Var}(X)=\sigma^2>0$，则
+\begin{equation}
+  h(X)\le\frac12\ln(2\pi e\sigma^2),
+  \label{eq:study-normal-max-entropy}
+\end{equation}
+等号当且仅当 $X\sim N(\mu,\sigma^2)$。
+\end{theorem}
+
+\begin{proof}
+分别以相应的均匀、指数和正态密度作为 $g$。在每一组约束下，$-\int f\ln g$ 都是同一个有限常数，依次为
+\[
+  \ln(b-a),\qquad -\ln\lambda+\lambda\mathbb E X=1-\ln\lambda,
+  \qquad
+  \frac12\ln(2\pi\sigma^2)+\frac{\mathbb E[(X-\mu)^2]}{2\sigma^2}
+    =\frac12\ln(2\pi e\sigma^2).
+\]
+由引理~\ref{lem:study-gibbs-inequality}，$D(f\Vert g)=-h(X)-\int f\ln g\ge0$，从而得到三条上界和等号条件。若 $D=+\infty$，则对应 $h(X)=-\infty$，也不可能达到最大值。
+\end{proof}
+
+\section{大数定律和中心极限定理}
+\label{sec:study-limit-theorems}
+
+\subsection{依概率收敛与依分布收敛}
+\label{subsec:study-probability-distribution-convergence}
+
+随机变量序列的取值随样本点而变，因此必须说明“趋近”是哪一种意义。依概率收敛关注同一样本点上两个变量差得很远的概率；依分布收敛只比较分布函数，不要求变量取值逐个接近。
+
+\begin{definition}
+\label{def:study-convergence-probability}
+设 $X_1,X_2,\ldots,X$ 定义在同一概率空间上。若对每个 $\varepsilon>0$，
+\begin{equation}
+  \mathbb P(|X_n-X|>\varepsilon)\longrightarrow0,
+  \label{eq:study-convergence-probability}
+\end{equation}
+则称 $X_n$ \emph{依概率收敛（convergence in probability）}于 $X$，记作 $X_n\xrightarrow{\mathbb P}X$。把事件中的 $>$ 改成 $\ge$ 得到等价定义，可由阈值 $\varepsilon$ 与 $\varepsilon/2$ 比较验证。
+\end{definition}
+
+例如 $X_n\sim\mathrm{Exp}(n)$ 时，对 $\varepsilon>0$ 有 $\mathbb P(|X_n|>\varepsilon)=e^{-n\varepsilon}\to0$，故 $X_n\xrightarrow{\mathbb P}0$。这里不需要假设不同 $n$ 的变量独立。
+
+\begin{definition}
+\label{def:study-convergence-distribution}
+设 $F_n,F$ 分别为 $X_n,X$ 的分布函数。若在 $F$ 的每一个连续点 $x$ 都有
+\begin{equation}
+  F_n(x)\longrightarrow F(x),
+  \label{eq:study-convergence-distribution}
+\end{equation}
+则称 $X_n$ \emph{依分布收敛（convergence in distribution）}或\emph{弱收敛（weak convergence）}于 $X$，记作 $X_n\xrightarrow{\mathrm d}X$。此定义不要求这些变量定义在同一概率空间上。
+\end{definition}
+
+只要求极限分布函数的连续点是必要的。例如 $X_n\sim U(0,1/n)$，极限变量恒等于 $0$。对每个固定 $x<0$，$F_n(x)=0$；对每个固定 $x>0$，充分大的 $n$ 使 $F_n(x)=1$，所以依分布收敛成立。但 $F_n(0)=0$，而极限分布函数在 $0$ 处为 $1$，该不连续点不需要收敛。
+
+\begin{proposition}
+\label{prop:study-convergence-relations}
+若 $X_n\xrightarrow{\mathbb P}X$，则 $X_n\xrightarrow{\mathrm d}X$。若 $c$ 为常数，则 $X_n\xrightarrow{\mathrm d}c$ 与 $X_n\xrightarrow{\mathbb P}c$ 等价。
+\end{proposition}
+
+\begin{proof}
+若 $X_n\xrightarrow{\mathbb P}X$，由事件包含关系，对任意 $\delta>0$ 有
+\[
+  F(x-\delta)-\mathbb P(|X_n-X|>\delta)
+    \le F_n(x)
+    \le F(x+\delta)+\mathbb P(|X_n-X|>\delta).
+\]
+先令 $n\to\infty$，再在 $F$ 的连续点令 $\delta\downarrow0$，便得 $F_n(x)\to F(x)$。若 $X_n\xrightarrow{\mathrm d}c$，则对任意 $\varepsilon>0$，点 $c\pm\varepsilon$ 都是极限分布函数的连续点，且
+\[
+  \mathbb P(|X_n-c|>\varepsilon)
+    \le F_n(c-\varepsilon)+1-F_n(c+\varepsilon)\longrightarrow0.
+\]
+反向由第一条结论得到。
+\end{proof}
+
+一般极限变量不是常数时，依分布收敛不能推出依概率收敛。例如令 $X,X_1,X_2,\ldots$ 为独立的 $\mathrm{Bern}(1/2)$ 变量，各个 $X_n$ 与 $X$ 同分布，当然依分布收敛于 $X$，但 $\mathbb P(|X_n-X|>1/2)=1/2$ 恒成立。
+
+\subsection{大数定律：平均值的集中}
+\label{subsec:study-law-large-numbers}
+
+\begin{theorem}
+\label{thm:study-weak-law}
+设 $X_1,X_2,\ldots$ \emph{独立同分布（independent and identically distributed，i.i.d.）}，公共均值为 $\mu$、公共方差为 $\sigma^2<\infty$。令 $S_n=\sum_{i=1}^nX_i$、$\overline X_n=S_n/n$，则
+\begin{equation}
+  \overline X_n\xrightarrow{\mathbb P}\mu.
+  \label{eq:study-weak-law}
+\end{equation}
+这称为有限方差情形的\emph{弱大数定律（weak law of large numbers）}。
+\end{theorem}
+
+\begin{proof}
+由期望线性性和独立和的方差公式，$\mathbb E\overline X_n=\mu$、$\operatorname{Var}(\overline X_n)=\sigma^2/n$。对每个 $\varepsilon>0$，切比雪夫不等式给出
+\begin{equation}
+  \mathbb P(|\overline X_n-\mu|\ge\varepsilon)
+    \le\frac{\sigma^2}{n\varepsilon^2}\longrightarrow0.
+  \label{eq:study-weak-law-bound}
+\end{equation}
+因此依概率收敛成立；若 $\sigma^2=0$，各变量几乎必然等于 $\mu$，结论仍成立。
+\end{proof}
+
+上述证明实际只需各变量有共同均值、两两不相关且方差有统一有限上界。独立同分布并不是唯一的充分条件，但不能在应用时随意删去控制依赖和波动的假设。另有\emph{强大数定律（strong law of large numbers）}，其结论是 $\mathbb P(\lim_n\overline X_n=\mu)=1$；独立同分布且 $\mathbb E|X_1|<\infty$ 时它成立，这里仅引用而不证明。它描述几乎每一条样本路径上的收敛，比本节直接证明的依概率收敛更强；两种收敛均不意味着误差在每次增加样本时都会减小。
+
+若 $I_i$ 是独立重复试验中事件 $A$ 的示性变量，$\mathbb P(A)=p$，则 $\overline I_n$ 是事件发生的频率，弱大数定律给出 $\overline I_n\xrightarrow{\mathbb P}p$，这就是\emph{伯努利大数定律（Bernoulli's law of large numbers）}。它为以频率估计概率、以样本均值估计总体均值提供依据，前提是实际抽样与模型条件相符。
+
+\begin{example}
+\label{ex:study-survey-sample-size}
+设 $I_1,\ldots,I_n$ 独立且均服从 $\mathrm{Bern}(p)$，以 $\widehat p_n=n^{-1}\sum_iI_i$ 估计未知比例 $p$。要使 $\mathbb P(|\widehat p_n-p|<0.005)\ge0.95$，用切比雪夫不等式给出统一适用于 $p\in[0,1]$ 的充分样本量。
+\end{example}
+
+\begin{solve}
+由 $p(1-p)\le1/4$，
+\[
+  \mathbb P(|\widehat p_n-p|\ge0.005)
+    \le\frac{p(1-p)}{n(0.005)^2}
+    \le\frac1{4n(0.005)^2}.
+\]
+要求右端不超过 $0.05$，得到 $n\ge200000$。这是模型下的严格充分界，通常较保守，不是实际所需最小样本量。随机抽样也未必自动意味着独立；若从有限总体不放回抽样，须按相应抽样模型另行处理。
+\end{solve}
+
+\subsection{中心极限定理与正态近似}
+\label{subsec:study-central-limit-theorem}
+
+\begin{theorem}
+\label{thm:study-iid-clt}
+设 $X_1,X_2,\ldots$ 独立同分布，$\mathbb E X_i=\mu$，$\operatorname{Var}(X_i)=\sigma^2\in(0,\infty)$。则
+\begin{equation}
+  Z_n=\frac{S_n-n\mu}{\sigma\sqrt n}
+    =\frac{\sqrt n(\overline X_n-\mu)}\sigma
+    \xrightarrow{\mathrm d}N(0,1),
+  \label{eq:study-iid-clt}
+\end{equation}
+即对每个 $x\in\mathbb R$，$\mathbb P(Z_n\le x)\to\Phi(x)$。这称为\emph{林德伯格--莱维中心极限定理（Lindeberg--Lévy central limit theorem）}。
+\end{theorem}
+
+\begin{proof}[在矩母函数存在这一附加条件下的证明]
+这里额外假设 $X_1$ 的矩母函数在零点附近存在；一般有限方差版本引用上述定理，本证明只覆盖这个较强条件。令 $W_i=(X_i-\mu)/\sigma$，则 $\mathbb E W_i=0$、$\mathbb E(W_i^2)=1$，其矩母函数在零点处满足
+\[
+  M_W(u)=1+\frac{u^2}{2}+o(u^2),\qquad u\to0.
+\]
+由独立性，对每个固定 $t$，当 $n$ 充分大时，
+\[
+  M_{Z_n}(t)=\left[M_W\left(\frac{t}{\sqrt n}\right)\right]^n
+    =\left[1+\frac{t^2}{2n}+o(n^{-1})\right]^n
+    \longrightarrow e^{t^2/2}.
+\]
+最后引用矩母函数的收敛定理：若矩母函数在零点某邻域内逐点趋于一个分布在该邻域内有限的矩母函数，则对应变量依分布收敛于该分布。此处极限 $e^{t^2/2}$ 正是标准正态矩母函数，故结论成立。这个步骤用的是收敛定理，不能仅由矩母函数的唯一性直接替代。
+\end{proof}
+
+大数定律说明 $\overline X_n$ 集中于常数 $\mu$，中心极限定理则描述放大后的误差 $\sqrt n(\overline X_n-\mu)$ 的极限分布。有限 $n$ 时常近似写作 $S_n\approx N(n\mu,n\sigma^2)$、$\overline X_n\approx N(\mu,\sigma^2/n)$，这不是一般总体下的精确分布等式。它也不是说未经放大的样本均值收敛到一个固定的非退化正态分布。
+
+\begin{notealert}[type=caution,title={核对条件与近似精度}]
+不存在仅凭 $n\ge30$ 就对所有有限方差分布保证良好正态近似的规则；偏斜程度、尾部及所求是否为极端概率都会影响精度。把结论推广到独立但不同分布的变量时，还需要控制单个大偏差对总和的影响，不能只由各方差夹在两个正数之间便断言中心极限定理成立。本章采用定理~\ref{thm:study-iid-clt} 的独立同分布条件。
+\end{notealert}
+
+若 $X_i\sim\mathrm{Bern}(p)$，$0<p<1$，则 $S_n\sim\mathrm{Bin}(n,p)$，代入定理得到\emph{棣莫弗--拉普拉斯中心极限定理（de Moivre--Laplace central limit theorem）}
+\begin{equation}
+  \frac{S_n-np}{\sqrt{np(1-p)}}\xrightarrow{\mathrm d}N(0,1).
+  \label{eq:study-binomial-clt}
+\end{equation}
+在有限样本中，$np$ 与 $n(1-p)$ 都不宜太小；概率很靠近 $0$ 或 $1$ 时，仅有 $n$ 大仍可能不足。小 $p$ 且适当控制 $np$ 时，可另考虑泊松近似，而不是仅由 $np$ 小就断定泊松近似适用。
+
+二项变量取整数，正态变量连续。对整数 $a\le b$，把每个整数看作宽为 $1$ 的小区间，有\emph{连续性修正（continuity correction）}
+\begin{equation}
+  \mathbb P(a\le S_n\le b)
+    \approx\Phi\left(\frac{b+1/2-np}{\sqrt{np(1-p)}}\right)
+      -\Phi\left(\frac{a-1/2-np}{\sqrt{np(1-p)}}\right).
+  \label{eq:study-continuity-correction}
+\end{equation}
+特别地，$\mathbb P(S_n\ge a)\approx1-\Phi((a-1/2-np)/\sqrt{np(1-p)})$。连续性修正通常改善整数边界带来的误差，但不提供对所有参数的统一精度保证。
+
+\begin{example}
+\label{ex:study-binomial-normal-approximation}
+设 $X\sim\mathrm{Bin}(20,0.3)$，比较精确值与正态近似所得的 $\mathbb P(1\le X\le3)$。
+\end{example}
+
+\begin{solve}
+精确值为 $\sum_{k=1}^3\binom{20}k0.3^k0.7^{20-k}\approx0.10629$。均值为 $6$、方差为 $4.2$，用连续性修正得
+\[
+  \mathbb P(1\le X\le3)
+    \approx\Phi\left(\frac{3.5-6}{\sqrt{4.2}}\right)
+      -\Phi\left(\frac{0.5-6}{\sqrt{4.2}}\right)
+    \approx0.10762.
+\]
+若直接用 $1,3$ 作正态积分边界，得到约 $0.0643$，遗漏的边界宽度在这个例子中影响较大。这是一个具体参数下的数值比较，不表明 $n=20$ 时对任意二项分布都准确。
+\end{solve}
+
+例~\ref{ex:study-survey-sample-size} 中，对固定 $p\in(0,1)$，中心极限定理给出近似覆盖概率
+\[
+  \mathbb P(|\widehat p_n-p|<0.005)
+    \approx2\Phi\left(\frac{0.005\sqrt n}{\sqrt{p(1-p)}}\right)-1.
+\]
+用 $p(1-p)\le1/4$ 和 $\Phi^{-1}(0.975)\approx1.96$ 作保守的正态样本量规划，得到 $n\gtrsim1.96^2/[4(0.005)^2]=38416$。这个数来自渐近近似，不能与切比雪夫给出的严格有限样本保证混同；若需精确保证，应直接检查二项尾概率或使用适当的有限样本界。
+
+\section{扩展阅读：数学期望的计算}
+\label{sec:study-expectation-calculation}
+
+\subsection{分解、示性变量与对称性}
+\label{subsec:study-indicator-expectation-method}
+
+计算期望不一定需要先求目标变量的分布。对计数问题，优先把总数写成示性变量之和，再用 $\mathbb E\mathbf1_A=\mathbb P(A)$。对等待问题，可以拆成若干阶段；对对称模型，可以先证明若干部分同分布，再利用总和恒定求出各自的均值。这里使用的有限和线性性均不要求这些部分相互独立。
+
+\begin{example}
+\label{ex:study-hypergeometric-mean}
+在例~\ref{ex:study-capture-recapture} 的模型中，从 $N$ 条鱼中不放回均匀抽取 $n$ 条，其中 $M$ 条带标记。求抽到的带标记鱼数 $X$ 的期望。
+\end{example}
+
+\begin{solve}
+把均匀抽样等价地看成先将全部鱼随机排列，再取前 $n$ 条。令 $I_i$ 表示第 $i$ 条抽到的鱼是否带标记，则各个位置的边缘概率均为 $M/N$，而 $X=\sum_{i=1}^nI_i$。所以
+\[
+  \mathbb E X=\sum_{i=1}^n\mathbb E I_i=\frac{nM}{N}.
+\]
+抽到带标记鱼后，余下样本的组成会改变，故这些示性变量一般不独立；这不影响上述期望计算。
+\end{solve}
+
+\begin{example}
+\label{ex:study-matching-runs}
+均匀随机排列 $n$ 顶各有主人的帽子后分给 $n$ 个人，求拿回自己帽子的人数期望。再设含 $m$ 个 $0$、$n$ 个 $1$ 的序列在所有不同排列中均匀选取，其中 $m,n\ge1$，求游程数 $R$ 的期望；游程是一个极大的连续同值片段。
+\end{example}
+
+\begin{solve}
+对配对问题，令 $I_i$ 表示第 $i$ 人是否拿回自己的帽子。每人拿到每顶帽子的概率为 $1/n$，因此总人数 $X=\sum_iI_i$ 满足 $\mathbb E X=n\times1/n=1$。这个结论与总人数无关，并不意味着每一次恰有一个人拿对。
+
+对游程问题，令 $L=m+n$，依次记序列元素为 $Z_1,\ldots,Z_L$。第一个位置开始一个游程，此后每发生一次相邻值变化就开始一个新游程，因此
+\[
+  R=1+\sum_{i=2}^L\mathbf1_{\{Z_{i-1}\ne Z_i\}}.
+\]
+任意两个相邻位置出现 $01$ 的概率为 $mn/[L(L-1)]$，出现 $10$ 的概率相同，故
+\begin{equation}
+  \mathbb E R=1+(L-1)\frac{2mn}{L(L-1)}
+    =1+\frac{2mn}{m+n}.
+  \label{eq:study-expected-runs}
+\end{equation}
+关键是选择“一个游程从哪里开始”作为计数单位，而不是先枚举整个游程数分布。
+\end{solve}
+
+\begin{example}
+\label{ex:study-lottery-order-means}
+从 $1,2,\ldots,33$ 中等可能地抽出 $6$ 个不同号码，按升序记为 $X_1<\cdots<X_6$，求各 $\mathbb E X_i$。
+\end{example}
+
+\begin{solve}
+定义七个空隙数 $G_0=X_1-1$、$G_i=X_{i+1}-X_i-1$（$1\le i\le5$）、$G_6=33-X_6$。它们均为非负整数，且总和为 $27$。每个六号码子集与一个满足总和为 $27$ 的七元非负整数向量一一对应；子集等可能，所以这些向量也等可能。交换任意两个分量仍在同一集合中，故七个空隙同分布，$\mathbb E G_i=27/7$。于是
+\[
+  X_i=i+\sum_{j=0}^{i-1}G_j,
+  \qquad \mathbb E X_i=i+i\frac{27}{7}=\frac{34i}{7}.
+\]
+这里需要的是交换空隙后等可能性的论证，不能仅凭“看起来对称”便假定各部分独立；它们的总和固定，实际并不独立。
+\end{solve}
+
+\subsection{条件化、递推与尾概率公式}
+\label{subsec:study-conditioning-tail-method}
+
+全期望公式的使用通常分为两步：选择一个分布容易掌握且能简化目标问题的条件变量 $Y$，先求 $\mathbb E(X\mid Y=y)$，再对 $Y$ 平均。若问题回到起点后重新开始，这种条件化常给出关于期望的递推方程；在解方程前，必须说明所求期望有限，否则形如 $a=b+ca$ 的式子在 $a=\infty$ 时不能直接移项。
+
+\begin{example}
+\label{ex:study-baghdad-thief}
+窃贼每次独立等概率选择三扇门：第一扇经过 $3$ 小时到达地面；第二、第三扇分别经过 $5$、$7$ 小时回到起点，随后按相同规则重新选门。求到达地面所需总时间 $T$ 的期望。
+\end{example}
+
+\begin{solve}
+以 $N$ 表示首次选到第一扇门所需的选择次数，则 $N\sim\mathrm{Ge}(1/3)$，$\mathbb E N=3$。因每次行走时间至多为 $7$，有 $T\le7N$，故 $\mathbb E T<\infty$。再按第一次选择 $J$ 条件化；返回起点后未来过程独立且与原过程同分布，所以
+\[
+  \mathbb E(T\mid J=1)=3,\quad
+  \mathbb E(T\mid J=2)=5+\mathbb E T,\quad
+  \mathbb E(T\mid J=3)=7+\mathbb E T.
+\]
+全期望公式给出 $\mathbb E T=[3+5+\mathbb E T+7+\mathbb E T]/3$，解得 $\mathbb E T=15$ 小时。独立且重新按原规则选择是建立该递推式的模型条件。
+\end{solve}
+
+\begin{proposition}
+\label{prop:study-tail-expectation}
+若 $X\ge0$，则
+\begin{equation}
+  \mathbb E X=\int_0^\infty\mathbb P(X>t)\,dt.
+  \label{eq:study-tail-expectation}
+\end{equation}
+若 $X$ 还为整数值，则
+\begin{equation}
+  \mathbb E X=\sum_{n=0}^{\infty}\mathbb P(X>n)
+    =\sum_{n=1}^{\infty}\mathbb P(X\ge n).
+  \label{eq:study-integer-tail-expectation}
+\end{equation}
+这些等式允许两端同时为 $+\infty$，也可用于判断有限期望是否存在。
+\end{proposition}
+
+\begin{proof}
+对每个非负实数 $x$，有 $x=\int_0^\infty\mathbf1_{\{x>t\}}\,dt$。先在有限区间积分，再利用非负函数的积分换序及单调收敛，得到式~\eqref{eq:study-tail-expectation}。整数值情形也可直接从 $X=\sum_{n=0}^{\infty}\mathbf1_{\{X>n\}}$ 出发，对有限部分和取期望后用单调收敛。这是教材习题 2 的尾概率表达，并不只适用于有密度的随机变量。
+\end{proof}
+
+\begin{example}
+\label{ex:study-uniform-sum-stopping}
+设 $U_1,U_2,\ldots$ 独立且均服从 $U(0,1)$，记
+\[
+  T=\min\left\{n\ge1:\sum_{i=1}^nU_i>1\right\},
+\]
+求 $\mathbb E T$。
+\end{example}
+
+\begin{solve}
+对 $n\ge1$，$\{T>n\}$ 等价于 $\sum_{i=1}^nU_i\le1$，故其概率是单位立方体中单纯形 $\{u_i\ge0,\sum_i u_i\le1\}$ 的体积 $1/n!$。这一体积可归纳验证：若 $n-1$ 维、总和上限为 $s$ 的体积为 $s^{n-1}/(n-1)!$，再对第 $n$ 个坐标积分，得到 $\int_0^1(1-u)^{n-1}/(n-1)!\,du=1/n!$。又 $\mathbb P(T>0)=1$，因此
+\[
+  \mathbb E T=\sum_{n=0}^{\infty}\mathbb P(T>n)
+    =\sum_{n=0}^{\infty}\frac1{n!}=e.
+\]
+上述尾概率趋于零，说明 $T$ 几乎必然有限；级数有限进一步证明它可积，无须先求 $T$ 的完整分布。
+
+还可按第一次取值建立条件期望方程。对 $0\le t\le1$ 定义首次使部分和超过 $t$ 的次数为 $T_t$，并记 $h(t)=\mathbb E T_t$。由于 $T_t\le T$，各期望有限。给定 $U_1=u$，若 $u>t$ 则立即停止，否则仍需一个与 $T_{t-u}$ 同分布的等待过程，因而
+\[
+  h(t)=1+\int_0^t h(t-u)\,du=1+\int_0^t h(s)\,ds.
+\]
+有界性保证右侧先连续，再可微，于是 $h'(t)=h(t)$、$h(0)=1$，得到 $h(t)=e^t$，特别有 $h(1)=e$。这里先由尾概率法保证可积，再对递推方程求导，避免把未核实的无穷期望代入微分方程。
+\end{solve}
+
+\section*{本章总结}
+\addcontentsline{toc}{section}{本章总结}
+
+期望、中位数和众数分别由加权平均、两侧概率和最大概率或密度定义，不能互相替代。计算有限期望先核对绝对可积；计算函数的期望时可直接在原分布下积分；计算计数或等待时间时，分解为示性变量、利用对称性、按第一步条件化以及尾概率公式，往往比先求完整分布更有效。条件期望 $\mathbb E(Y\mid X=x)$ 是固定条件下的数，$\mathbb E(Y\mid X)$ 是随机变量；对后者取平均才还原总体期望。
+
+方差是中心化平方的期望，均值使常数预测的平均平方误差最小；中位数则使平均绝对误差最小，见后面的习题选解。和的方差必须保留协方差项，只有两两不相关时才简化为方差之和。独立且平方可积蕴含不相关，反向结论一般不成立；联合正态分布是等价成立的重要特例。偏度、峰度与矩母函数均有各自的存在条件，不能由形式运算跳过可积性要求。
+
+离散熵描述概率分配的不确定性，微分熵还受尺度影响；最大熵结论依赖明确的支持与矩约束。大数定律回答平均值是否集中，中心极限定理回答标准化波动的极限形状；前者给出依概率收敛，后者给出依分布收敛。实际使用中要分别检查独立同分布、有限矩与正方差等条件，并区分严格的概率界、渐近结论和有限样本的数值近似。
+
+\section*{习题}
+\addcontentsline{toc}{section}{习题}
+
+以下选解教材习题 8、22、27、34、39、45、55、56，分别练习等待时间分解、条件期望与全方差、矩母函数、不相关与独立的区别，以及概率界和位置特征的最优化解释；习题 2 已在命题~\ref{prop:study-tail-expectation} 中证明。题号在正文中保留，例题编号仍由共享环境统一生成。
+
+\begin{example}
+\label{ex:study-exercise4-8}
+教材习题 8。每袋零食独立等概率地含有 $n$ 种卡片之一，记集齐全部种类所需袋数为 $T_n$。求 $\mathbb E T_n$ 以及 $\lim_{n\to\infty}\mathbb E T_n/(n\ln n)$；并求 $n=12$ 时的均值。
+\end{example}
+
+\begin{solve}
+已有 $k$ 种不同卡片后，下一袋出现新种类的概率为 $(n-k)/n$。令 $G_k$ 为从已有 $k$ 种到获得第 $k+1$ 种所需的袋数，则 $G_k$ 的条件等待分布总是参数为 $(n-k)/n$、支持从 $1$ 开始的几何分布，因而 $\mathbb E G_k=n/(n-k)$。由 $T_n=\sum_{k=0}^{n-1}G_k$ 和期望线性性，
+\[
+  \mathbb E T_n=n\sum_{j=1}^n\frac1j=nH_n,
+\]
+其中 $H_n$ 为调和和。积分比较给出 $\ln(n+1)\le H_n\le1+\ln n$，所以所求极限为 $1$。当 $n=12$ 时，均值为 $12H_{12}\approx37.24$ 袋。均值不是集齐的确定保证；接近集齐时获得最后少数新卡的概率小，是等待时间明显增加的原因。
+\end{solve}
+
+\begin{example}
+\label{ex:study-exercise4-22}
+教材习题 22。设 $X$ 等概率取 $0,1,2$，且 $Y\mid X=k\sim N(k,1)$。求 $Y$ 的密度与期望、$X+Y$ 的分布函数及 $\operatorname{Cov}(X,Y)$，并补充计算 $\operatorname{Var}(Y)$。
+\end{example}
+
+\begin{solve}
+用 $\varphi,\Phi$ 分别表示标准正态密度与分布函数。按 $X$ 条件化可得
+\[
+  f_Y(y)=\frac13\sum_{k=0}^2\varphi(y-k),\qquad
+  \mathbb E Y=\mathbb E[\mathbb E(Y\mid X)]=\mathbb E X=1.
+\]
+给定 $X=k$ 时，$X+Y\sim N(2k,1)$，因此其分布函数为 $F_{X+Y}(s)=\frac13\sum_{k=0}^2\Phi(s-2k)$。由 $\mathbb E(Y\mid X)=X$、$\mathbb E(X^2)=5/3$，
+\[
+  \operatorname{Cov}(X,Y)
+    =\operatorname{Cov}(X,\mathbb E(Y\mid X))
+    =\operatorname{Var}(X)=\frac23.
+\]
+全方差公式又给出 $\operatorname{Var}(Y)=1+2/3=5/3$。这是混合正态分布，一般不能把它仅因每个条件分布都正态便当作一个正态分布。
+\end{solve}
+
+\begin{example}
+\label{ex:study-exercise4-27}
+教材习题 27。分别求二项、泊松、指数和正态分布的矩母函数，并核对存在区间。
+\end{example}
+
+\begin{solve}
+二项分布的有限和由二项式定理给出
+\[
+  M_X(t)=\sum_{k=0}^n\binom nk(pe^t)^k(1-p)^{n-k}
+    =(1-p+pe^t)^n,\quad t\in\mathbb R.
+\]
+泊松分布用指数级数得 $M_X(t)=e^{-\lambda}\sum_{k=0}^{\infty}(\lambda e^t)^k/k!=\exp[\lambda(e^t-1)]$，对全部实数 $t$ 有限。速率为 $\lambda$ 的指数分布满足
+\[
+  M_X(t)=\int_0^\infty\lambda e^{-(\lambda-t)x}\,dx
+    =\frac{\lambda}{\lambda-t},\quad t<\lambda,
+\]
+而 $t\ge\lambda$ 时发散。若 $X\sim N(\mu,\sigma^2)$，先写 $X=\mu+\sigma Z$（分布意义下），再用 $t\sigma z-z^2/2=-(z-t\sigma)^2/2+t^2\sigma^2/2$，得 $M_X(t)=\exp(\mu t+\sigma^2t^2/2)$，对全部实数 $t$ 有限。四个矩母函数均在零点附近存在，故可在零点求导得到矩。
+\end{solve}
+
+\begin{example}
+\label{ex:study-exercise4-34}
+教材习题 34。设 $(X,Y)$ 在菱形 $G=\{(x,y):|x|+|y|\le1\}$ 内均匀分布。求协方差并判断独立性。
+\end{example}
+
+\begin{solve}
+$G$ 的面积为 $2$，故联合密度在 $G$ 内为 $1/2$。由关于两坐标轴的对称性，$\mathbb E X=\mathbb E Y=\mathbb E(XY)=0$，所以协方差为零。边缘密度为
+\[
+  f_X(x)=1-|x|,\quad |x|<1,
+  \qquad f_Y(y)=1-|y|,\quad |y|<1.
+\]
+取事件 $A=\{X>3/4\}$、$B=\{Y>3/4\}$，则 $\mathbb P(A)=\mathbb P(B)=\int_{3/4}^1(1-x)\,dx=1/32$，但两事件不可能同时发生。因此 $\mathbb P(A\cap B)=0\ne\mathbb P(A)\mathbb P(B)$，二者不独立。
+\end{solve}
+
+\begin{example}
+\label{ex:study-exercise4-39}
+教材习题 39。设 $X_1,X_2,\ldots$ 独立且均服从支持为 $1,2,\ldots$ 的几何分布 $\mathrm{Ge}(p)$，$p\in(0,1)$；$N\sim\mathrm{Bin}(m,q)$ 独立于整个序列，其中 $m\ge1$、$q\in(0,1)$。令 $S=\sum_{i=1}^NX_i$，$N=0$ 时取 $S=0$，求条件均值、条件方差与 $\operatorname{Var}(S)$。
+\end{example}
+
+\begin{solve}
+给定 $N=n$ 后，独立性保证被加变量仍具有原来的独立几何分布，因此
+\[
+  \mathbb E(S\mid N=n)=\frac np,\qquad
+  \operatorname{Var}(S\mid N=n)=\frac{n(1-p)}{p^2}.
+\]
+全期望给出 $\mathbb E S=mq/p$，全方差公式给出
+\[
+  \operatorname{Var}(S)
+    =\frac{(1-p)\mathbb E N}{p^2}
+      +\frac{\operatorname{Var}(N)}{p^2}
+    =\frac{mq(2-p-q)}{p^2}.
+\]
+随机项数自身的波动产生第二项，不能把 $N$ 直接换成其均值后就当作固定项数之和。
+\end{solve}
+
+\begin{example}
+\label{ex:study-exercise4-45}
+教材习题 45。独立重复试验 $500$ 次，每次事件发生的概率为 $0.2$，记总次数为 $K$。用切比雪夫不等式与正态近似估计 $\mathbb P(80\le K\le120)$；这里将题中的“在 80 到 120 之间”按包含两端解释。
+\end{example}
+
+\begin{solve}
+$K\sim\mathrm{Bin}(500,0.2)$，均值为 $100$、方差为 $80$。因 $K$ 为整数，所求事件的补集是 $\{|K-100|\ge21\}$，故
+\[
+  \mathbb P(80\le K\le120)\ge1-\frac{80}{21^2}
+    =\frac{361}{441}\approx0.81859.
+\]
+若不利用整数边界而只控制 $|K-100|<20$，也能得到较粗的下界 $0.8$。连续性修正给出
+\[
+  \mathbb P(80\le K\le120)
+    \approx\Phi\left(\frac{120.5-100}{\sqrt{80}}\right)
+      -\Phi\left(\frac{79.5-100}{\sqrt{80}}\right)
+    =2\Phi\left(\frac{20.5}{\sqrt{80}}\right)-1
+    \approx0.97809.
+\]
+第一种结果是下界，第二种是近似值，两者具有不同含义。
+\end{solve}
+
+\begin{example}
+\label{ex:study-exercise4-55}
+教材习题 55。若 $a\le X\le b$ 几乎必然成立，$a<b$，证明 $\operatorname{Var}(X)\le(b-a)^2/4$ 并给出等号条件。
+\end{example}
+
+\begin{solve}
+取区间中点 $c=(a+b)/2$，由式~\eqref{eq:study-mean-square-decomposition}，
+\[
+  \operatorname{Var}(X)\le\mathbb E[(X-c)^2]\le\frac{(b-a)^2}{4}.
+\]
+第一处等号要求 $\mathbb E X=c$，第二处等号要求 $X$ 只在端点 $a,b$ 取值，概率为 $1$。二者合起来等价于 $\mathbb P(X=a)=\mathbb P(X=b)=1/2$。特别地，$0\le X\le1$ 时方差至多为 $1/4$，等概率取 $0,1$ 时达到上界。
+\end{solve}
+
+\begin{example}
+\label{ex:study-exercise4-56}
+教材习题 56。设 $X$ 可积，中位数为 $m$。证明对任意 $a\in\mathbb R$，$\mathbb E|X-m|\le\mathbb E|X-a|$；若方差为 $\sigma^2<\infty$，再证 $|m-\mathbb E X|\le\sigma$。
+\end{example}
+
+\begin{solve}
+记 $F$ 为分布函数。对任意 $a,m$，逐点考察绝对值函数的分段斜率，并对有限区间换序积分，可得
+\[
+  \mathbb E|X-a|-\mathbb E|X-m|
+    =\int_m^a(2F(t)-1)\,dt.
+\]
+因为积分区间有限、被积函数有界，换序合法；$\mathbb P(X=t)$ 的非零点至多可数，不影响关于 $t$ 的积分。若 $a>m$，对 $t>m$ 有 $F(t)\ge F(m)\ge1/2$，右端非负；若 $a<m$，对 $t<m$ 有 $F(t)\le F(m-)\le1/2$，反向积分也非负，得到第一条结论。
+
+记 $\mu=\mathbb E X$。若 $m>\mu$，令 $d=m-\mu>0$、$W=X-\mu$。对任意 $s\ge0$，事件 $\{W\ge d\}$ 包含于 $\{(W+s)^2\ge(d+s)^2\}$，故由马尔可夫不等式，
+\[
+  \mathbb P(W\ge d)\le\frac{\sigma^2+s^2}{(d+s)^2}.
+\]
+取 $s=\sigma^2/d$，得到单侧界 $\mathbb P(W\ge d)\le\sigma^2/(\sigma^2+d^2)$。中位数条件使左端至少为 $1/2$，所以 $d^2\le\sigma^2$。若 $m<\mu$，对 $-W$ 作同样论证；$m=\mu$ 时结论直接成立。于是 $|m-\mu|\le\sigma$。这也说明只用双侧切比雪夫界会损失信息，利用单侧事件才能直接得到此处的系数 $1$。
+\end{solve}
+
+
+
+
+

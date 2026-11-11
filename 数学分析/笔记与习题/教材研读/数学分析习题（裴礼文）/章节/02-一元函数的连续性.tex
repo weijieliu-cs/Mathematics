@@ -1,0 +1,642 @@
+% !TeX root = ../数学分析习题（裴礼文）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{一元函数的连续性}
+\label{chap:pei-continuity}
+
+本章依据所给教材第二章“一元函数的连续性”整理，围绕连续性的证明与应用、一致连续性、上与下半连续、函数方程四个主题展开。连续性把自变量的逼近传递为函数值的逼近；闭区间的紧性则把逐点的局部信息转化为有界性、最值和统一的误差控制。学习时应区分三种不同任务：由已知条件推出连续，由连续性推出存在性或结构性质，以及用连续性排除函数方程中的非标准解。以下保留教材的主题次序，合并同类方法，并选取代表例题及单元练习补足论证。
+
+\section{连续性的证明与应用}
+\label{sec:pei-continuity-proofs}
+
+\subsection{从局部定义到集合刻画}
+
+\begin{definition}
+设 $E\subseteq\mathbb R$，$f:E\to\mathbb R$，$x_0\in E$。若对每个 $\varepsilon>0$，存在 $\delta>0$，使得对所有 $x\in E$，
+\[
+|x-x_0|<\delta\quad\Longrightarrow\quad |f(x)-f(x_0)|<\varepsilon,
+\]
+则称 $f$ 在 $x_0$ 处\emph{连续（continuous）}。这里的邻域应与定义域 $E$ 相交；因此区间端点采用相应的单侧条件，孤立点处则自动连续。
+\end{definition}
+
+证明连续性时，首先检查已有的和、积、商、复合运算能否直接使用；商的分母在所讨论的点不能为零，复合函数的内层取值必须落在外层定义域中。若条件以数列形式给出，通常使用序列判别；若条件涉及单调性、介值性或集合的开闭性，则应把函数值的限制转成邻域或水平集的限制。无论采用哪种形式，待证结论始终是在一个任意但固定的点控制所有充分接近的自变量。
+
+\begin{proposition}
+\label{prop:pei-continuity-characterizations}
+对 $f:E\to\mathbb R$，以下三个条件等价：$f$ 在 $E$ 上连续；每当 $x_n\in E$ 且 $x_n\to x_0\in E$ 时，都有 $f(x_n)\to f(x_0)$；每个开集 $U\subseteq\mathbb R$ 的逆像 $f^{-1}(U)$ 都是 $E$ 中的相对开集。最后一个条件又等价于：对每个 $c\in\mathbb R$，集合 $\{x\in E:f(x)<c\}$ 与 $\{x\in E:f(x)>c\}$ 都相对开；也等价于每个闭集的逆像都相对闭。
+\end{proposition}
+
+\begin{proof}
+连续性直接保证收敛数列的像收敛。反之，若 $f$ 在 $x_0$ 不连续，则有 $\varepsilon_0>0$，使每个 $n$ 都能选到 $x_n\in E$，满足 $|x_n-x_0|<1/n$ 而 $|f(x_n)-f(x_0)|\ge\varepsilon_0$，与序列条件矛盾。
+
+若 $f$ 连续，$x_0\in f^{-1}(U)$，则可先取 $\varepsilon>0$ 使 $(f(x_0)-\varepsilon,f(x_0)+\varepsilon)\subseteq U$，再用连续性找到 $x_0$ 的相对邻域包含在 $f^{-1}(U)$ 中。反之，将逆像条件用于这个以 $f(x_0)$ 为中心的开区间，便得到连续性的定义。两个严格水平集的交给出开区间的逆像，任意开集是开区间的并，故水平集条件也充分。闭集形式由取补集得到。
+\end{proof}
+
+\begin{example}
+\label{ex:pei-thomae}
+教材的 Riemann 函数也常称为 Thomae 函数，定义为
+\[
+R(x)=\begin{cases}
+1/q,&x=p/q\in\mathbb Q,\ \gcd(p,q)=1,\ q>0,\\
+0,&x\notin\mathbb Q.
+\end{cases}
+\]
+证明它在无理点连续、在有理点不连续。
+\end{example}
+
+\begin{solve}
+若 $x_0=p/q$ 为既约有理数，取无理数列 $x_n\to x_0$，则 $R(x_n)=0$ 而 $R(x_0)=1/q>0$，故不连续。若 $x_0$ 无理，给定 $\varepsilon>0$，在有界区间 $[x_0-1,x_0+1]$ 内使 $R(x)\ge\varepsilon$ 的点只能是分母 $q\le1/\varepsilon$ 的既约分数。分母只有有限种选择，而每个分母对应的分子在该区间内也只有有限个，故这类点构成有限集 $F$。由于 $x_0\notin F$，可以取 $0<\delta<1$，使 $(x_0-\delta,x_0+\delta)$ 与 $F$ 不交；于是 $|x-x_0|<\delta$ 时有 $|R(x)-R(x_0)|=R(x)<\varepsilon$。注意 $R(0)=1$，因为 $0$ 的既约表示为 $0/1$。
+\end{solve}
+
+\begin{example}
+设 $u,v:E\to\mathbb R$ 连续，证明 $\max\{u,v\}$、$\min\{u,v\}$ 连续，并说明三个连续函数的中间值也连续。
+\end{example}
+
+\begin{solve}
+利用恒等式
+\[
+\max\{u,v\}=\frac{u+v+|u-v|}{2},\qquad
+\min\{u,v\}=\frac{u+v-|u-v|}{2},
+\]
+即可归结为连续函数的运算。三个实数的中间值等于三者之和减去最大值与最小值，故三个连续函数逐点取中间值也连续。类似地，对 $n\in\mathbb N$ 定义截断函数 $T_n(t)=\max\{-n,\min\{t,n\}\}$，则 $f$ 连续当且仅当每个 $T_n\circ f$ 连续。充分性的关键是局部恢复原函数：固定 $x_0$，取整数 $n>|f(x_0)|$，由 $T_n\circ f$ 的连续性，使其在 $x_0$ 附近的值严格位于 $(-n,n)$ 内；此时截断没有发生，因而 $T_n(f(x))=f(x)$。
+\end{solve}
+
+\subsection{介值性、单调性与紧性}
+
+\begin{theorem}
+\label{thm:pei-compact-continuity}
+若 $f$ 在非退化闭区间 $[a,b]$ 上连续，则 $f$ 有界且达到最大值与最小值；其像为闭区间
+\[
+f([a,b])=[m,M],\qquad m=\min_{[a,b]}f,\quad M=\max_{[a,b]}f.
+\]
+特别地，若 $f(a)f(b)<0$，则存在 $c\in(a,b)$ 使 $f(c)=0$；若 $f(x)>0$ 对每个 $x\in[a,b]$ 成立，则存在统一的 $m>0$ 使 $f(x)\ge m$。
+\end{theorem}
+
+\begin{proof}
+连续性保证每点 $x$ 附近都有 $|f(t)|<|f(x)|+1$。这些邻域覆盖 $[a,b]$，取有限子覆盖后，将有限个上界取最大值便得到整体有界性。设 $M=\sup f([a,b])$，按确界定义选 $x_n$ 使 $f(x_n)\to M$。闭区间的序列紧性给出子列 $x_{n_k}\to c\in[a,b]$，故 $f(c)=M$；最小值同理。
+
+零点结论也可直接由确界原理证明。不妨 $f(a)<0<f(b)$，令 $A=\{x\in[a,b]:f(x)\le0\}$，$c=\sup A$。端点处的局部保号性保证 $a<c<b$。由 $A$ 中趋于 $c$ 的数列和连续性有 $f(c)\le0$；若 $f(c)<0$，则 $c$ 右侧仍有 $A$ 中的点，违反上确界定义，故 $f(c)=0$。对 $f-y$ 使用这一结论可得介值性，进而得到像区间的表达式。最后，正值函数所达到的最小值必严格为正。
+\end{proof}
+
+上述结论中的闭区间条件不能遗漏。例如 $f(x)=1/x$ 在 $(0,1)$ 上连续却无界，$f(x)=x$ 在 $(0,1)$ 上有界却不达到两端确界，而同一个 $f(x)=x$ 处处为正却没有正的统一下界。若 $f$ 在 $[a,+\infty)$ 上连续且在 $+\infty$ 有有限极限，则先在尾部利用极限控制函数值，再在剩余的闭区间应用有界性定理，即知 $f$ 整体有界；若 $f$ 在 $(a,b)$ 上连续，且两端极限均为 $-\infty$，则可先排除端点附近比某个内点函数值更小的部分，再在中间闭区间找到全局最大值。
+
+\begin{proposition}
+\label{prop:pei-injective-ivt}
+设 $I$ 是区间，$f:I\to\mathbb R$ 具有\emph{介值性（intermediate value property）}且为单射，则 $f$ 严格单调，并且 $f$ 与逆函数 $f^{-1}:f(I)\to I$ 都连续。特别地，连续单射在区间上必严格单调。
+\end{proposition}
+
+\begin{proof}
+若单射 $f$ 不严格单调，就能在 $I$ 中找到 $x_1<x_2<x_3$，使 $f(x_2)$ 严格大于两端函数值或严格小于两端函数值。在前一种情形，在 $\max\{f(x_1),f(x_3)\}$ 与 $f(x_2)$ 之间取一数，由介值性，它在 $(x_1,x_2)$ 与 $(x_2,x_3)$ 内各有一个原像，违反单射性；另一情形同理。因此 $f$ 严格单调。单调函数若在某点不连续，函数值与单侧极限之间就有未被取到的值，违反介值性，故 $f$ 连续。严格单调函数的逆函数仍严格单调，而任取 $y_1<y<y_2$ 属于像区间，其原像也夹在两端原像之间，故逆函数具有介值性，从而也连续。端点按单侧条件处理。
+\end{proof}
+
+\begin{notealert}[type=caution,title={严格单调与非严格单调}]
+若只知 $f$ 单调不减且像集闭，并不能推出连续：阶跃函数的像集 $\{0,1\}$ 就是反例。若改为 $f$ 在 $[0,1]$ 上严格递增且像集闭，则可以推出连续。事实上，左极限 $L=\lim_{x\uparrow x_0}f(x)$ 属于闭像集；若 $L<f(x_0)$，则 $L=f(t)$ 的原像只能满足 $t<x_0$，但取 $t<s<x_0$ 又有 $f(t)<f(s)\le L$，矛盾。右极限同理。使用教材的“单调递增”条件时，应先明确其是否表示严格递增。
+\end{notealert}
+
+\begin{example}
+\label{ex:pei-running-extrema}
+设 $f\in C([a,b])$，定义
+\[
+M(x)=\max_{a\le t\le x}f(t),\qquad m(x)=\min_{a\le t\le x}f(t).
+\]
+证明 $M,m$ 在 $[a,b]$ 连续。
+\end{example}
+
+\begin{solve}
+$M$ 随区间扩大而单调不减。固定 $x_0$，由 $f$ 在 $x_0$ 连续，对充分接近且大于 $x_0$ 的 $x$，新增区间上的函数值均不超过 $f(x_0)+\varepsilon\le M(x_0)+\varepsilon$，所以 $M(x_0)\le M(x)\le M(x_0)+\varepsilon$。再看左侧，在 $[a,x_0]$ 选最大值点 $t_0$。若 $t_0<x_0$，则 $t_0<x<x_0$ 时已有 $M(x)=M(x_0)$；若最大值只能在 $x_0$ 取得，则 $f(x)\le M(x)\le M(x_0)=f(x_0)$，由连续性仍有 $M(x)\to M(x_0)$。端点只需相应一侧。对 $-f$ 使用同一结论，并注意 $m=-\max_{a\le t\le x}(-f(t))$，便得 $m$ 连续。
+\end{solve}
+
+\begin{example}
+设 $f:[0,1]\to[0,1]$ 的图像在 $[0,1]^2$ 中为闭集，证明 $f$ 连续。
+\end{example}
+
+\begin{solve}
+若不连续，则存在 $x_n\to x_0$ 与 $\varepsilon_0>0$，使 $|f(x_n)-f(x_0)|\ge\varepsilon_0$。像序列位于紧区间 $[0,1]$，故有子列 $f(x_{n_k})\to y$。图像闭保证 $(x_0,y)$ 仍在图像上，即 $y=f(x_0)$，与距离下界矛盾。这里有界的像空间不可随意去掉：在 $[0,1]$ 上定义 $f(0)=0$、$f(x)=1/x$（$x>0$），图像在 $[0,1]\times\mathbb R$ 中闭，但函数在 $0$ 处不连续。
+\end{solve}
+
+\subsection{构造辅助函数与利用连续的极限传递}
+
+存在性问题通常不直接求未知点，而是构造连续函数 $F$，使目标等式等价于 $F(x)=0$。关键是找到能保证 $F$ 异号的两点；它们可能是区间端点、原函数的最值点，也可能来自一串差值的望远镜求和。若条件含平移、周期或递推关系，则应尝试构造趋于已知连续点的自变量序列。
+
+\begin{example}
+若 $f\in C([0,1])$，$f\ge0$，且 $f(0)=f(1)=0$，证明对每个 $h\in(0,1)$，存在 $x\in[0,1-h]$ 使 $f(x+h)=f(x)$。再证明：仅假定 $f(0)=f(1)$ 时，对每个整数 $n\ge2$，步长 $h=1/n$ 仍有这一结论。
+\end{example}
+
+\begin{solve}
+令 $F(x)=f(x+h)-f(x)$。在第一个问题中，$F(0)=f(h)\ge0$、$F(1-h)=-f(1-h)\le0$，故有零点。在第二个问题中，
+\[
+\sum_{k=0}^{n-1}F(k/n)=f(1)-f(0)=0.
+\]
+若所有差值为零，则已经得解；否则这些差值中必同时出现正数与负数，再由 $F$ 的连续性得到零点。这说明“任意步长”与“等分步长”依赖的条件不同。
+\end{solve}
+
+\begin{example}
+连续函数在圆周上取实值，证明存在一对对径点函数值相同。另设 $f,g\in C([a,b])$ 且 $\max f=\max g$，证明存在 $x_0$ 使 $e^{f(x_0)}+3f(x_0)=e^{g(x_0)}+3g(x_0)$。
+\end{example}
+
+\begin{solve}
+将圆周参数化，记对应的 $2\pi$ 周期连续函数为 $u(\theta)$，取 $F(\theta)=u(\theta)-u(\theta+\pi)$，则 $F(\pi)=-F(0)$，由介值性得零点。第二问令 $H(t)=e^t+3t$，它严格递增，故只需证明某点 $f=g$。在 $f$ 的最大值点 $x_1$ 有 $f(x_1)\ge g(x_1)$，在 $g$ 的最大值点 $x_2$ 有 $f(x_2)\le g(x_2)$，对 $f-g$ 用介值性即可。
+\end{solve}
+
+\begin{example}
+\label{ex:pei-minimal-period}
+证明：非常数的连续周期函数 $f:\mathbb R\to\mathbb R$ 存在最小正周期 $T_0$，所有正周期恰为 $T_0$ 的正整数倍。
+\end{example}
+
+\begin{solve}
+设 $P$ 为所有正周期的集合，$T_0=\inf P\ge0$。取 $T_n\in P$ 使 $T_n\to T_0$，则对每个 $x$，由连续性有 $f(x+T_0)=\lim_n f(x+T_n)=f(x)$。还须证明 $T_0>0$。若 $T_n\to0$，对任意 $x\in\mathbb R$，取整数 $k_n=\lfloor x/T_n\rfloor$，则 $k_nT_n\to x$，而 $f(k_nT_n)=f(0)$，所以 $f(x)=f(0)$，违反非常数条件。
+
+因此 $T_0$ 是最小正周期。任意 $T\in P$ 可写成 $T=kT_0+r$，其中 $k\in\mathbb N$、$0\le r<T_0$。周期的整数倍及两个周期之差仍满足平移不变关系，故若 $r>0$，便得到更小的正周期，矛盾。因此 $r=0$。特别地，若一个非常数连续函数有两个正周期，则它们的比必为有理数。
+\end{solve}
+
+\begin{example}
+证明不存在连续函数 $f:\mathbb R\to\mathbb R$ 满足 $f(f(x))=e^{-x}$；也不存在在非退化区间上连续、在每个有理点取无理值而在每个无理点取有理值的函数。
+\end{example}
+
+\begin{solve}
+第一问中，$e^{-x}$ 是单射，故 $f$ 必为单射；由命题~\ref{prop:pei-injective-ivt}，$f$ 严格单调。但无论 $f$ 递增还是递减，$f\circ f$ 都严格递增，与 $e^{-x}$ 严格递减矛盾。
+
+第二问中，有理点只有可数多个，其像至多可数；无理点的像包含在 $\mathbb Q$ 中，也至多可数。因此整个像集可数。若 $f$ 不是常数，连续性和介值性使其像包含一个非退化区间，这个区间不可数，矛盾；若 $f$ 为常数，则由于定义域同时含有有理点与无理点，同一个常数又不可能同时是无理数和有理数，仍矛盾。
+\end{solve}
+
+\subsection{连续映射的迭代}
+
+\begin{proposition}
+若连续函数 $f:\mathbb R\to\mathbb R$ 没有不动点，则从任意 $x_0$ 出发的迭代 $x_{n+1}=f(x_n)$ 严格单调，且趋于 $+\infty$ 或 $-\infty$。
+\end{proposition}
+
+\begin{proof}
+连续函数 $f(x)-x$ 无零点，由介值性，它在实轴上恒正或恒负。因此每次迭代都向同一方向严格移动。若单调轨道有有限极限 $\ell$，则连续性给出 $\ell=f(\ell)$，矛盾；所以只能向相应方向无界发散。这里单调的是迭代数列，结论并未要求 $f$ 本身单调。
+\end{proof}
+
+\begin{theorem}
+\label{thm:pei-iteration-small-step}
+设 $f:[a,b]\to[a,b]$ 连续，$x_{n+1}=f(x_n)$。则 $\{x_n\}$ 收敛当且仅当 $x_{n+1}-x_n\to0$。
+\end{theorem}
+
+\begin{proof}
+必要性直接成立。反之，设步差趋于零而数列不收敛，令 $\alpha=\liminf x_n$、$\beta=\limsup x_n$，则 $a\le\alpha<\beta\le b$。先证明每个 $c\in(\alpha,\beta)$ 都是聚点：取充分小的 $\eta>0$，由于数列无限多次出现在 $c-\eta$ 左侧和 $c+\eta$ 右侧，且充分靠后的每一步长度小于 $\eta$，在这些穿越中必有任意靠后的项落入 $(c-\eta,c+\eta)$。令 $\eta\downarrow0$ 并依次选指标，便得到趋于 $c$ 的子列。
+
+对任意聚点 $c$，若 $x_{n_k}\to c$，则步差趋零给出 $x_{n_k+1}\to c$，另一方面连续性给出 $x_{n_k+1}=f(x_{n_k})\to f(c)$，所以 $f(c)=c$。因而 $(\alpha,\beta)$ 内每一点都是不动点。数列既然以其中一点为聚点，就必有某项进入该开区间，之后立即保持常数，与 $\alpha<\beta$ 矛盾。故数列收敛。
+\end{proof}
+
+\emph[caution]{步差趋零本身不是一般数列收敛的充分条件}。例如 $\sin(\log(n+1))$ 有界、相邻项之差趋零却不收敛；定理依赖紧区间上的连续自治迭代结构，不能仅凭步差小就对任意递推式断言收敛。
+
+\section{一致连续性}
+\label{sec:pei-uniform-continuity}
+
+\subsection{量词、序列判别与基本估计}
+
+\begin{definition}
+设 $E\subseteq\mathbb R$，$f:E\to\mathbb R$。若
+\begin{equation}
+\label{eq:pei-uniform-definition}
+\forall\varepsilon>0\ \exists\delta>0\ \forall x,y\in E:
+\quad |x-y|<\delta\Longrightarrow |f(x)-f(y)|<\varepsilon,
+\end{equation}
+则称 $f$ 在 $E$ 上\emph{一致连续（uniformly continuous）}。这里 $\delta$ 只依赖误差 $\varepsilon$，不依赖点的位置。否定形式为
+\[
+\exists\varepsilon_0>0\ \forall\delta>0\ \exists x,y\in E:
+\quad |x-y|<\delta,\qquad |f(x)-f(y)|\ge\varepsilon_0.
+\]
+\end{definition}
+
+\begin{proposition}
+\label{prop:pei-uniform-sequences}
+$f$ 在 $E$ 上一致连续，当且仅当对任意 $x_n,y_n\in E$，$|x_n-y_n|\to0$ 都能推出 $|f(x_n)-f(y_n)|\to0$。特别地，要证明不一致连续，只需找到两列距离趋零而函数值之差保持正下界的点。
+\end{proposition}
+
+\begin{proof}
+必要性将式~\eqref{eq:pei-uniform-definition} 用于每对 $x_n,y_n$ 即得。若不一致连续，在否定形式中依次取 $\delta=1/n$，便得到 $|x_n-y_n|<1/n$ 而 $|f(x_n)-f(y_n)|\ge\varepsilon_0$，违反所给序列条件。
+\end{proof}
+
+\begin{definition}
+若存在常数 $L\ge0$ 使所有 $x,y\in E$ 都满足 $|f(x)-f(y)|\le L|x-y|$，则称 $f$ 满足 \emph{Lipschitz 条件}。更一般地，若对某个 $0<\gamma\le1$ 及常数 $C\ge0$ 有 $|f(x)-f(y)|\le C|x-y|^\gamma$，则称其满足 $\gamma$ 阶 \emph{H\"older 条件}。两种条件均推出一致连续。
+\end{definition}
+
+若 $f$ 在区间上可导且 $|f'|\le L$，由中值定理可推出 Lipschitz 条件；在尚未学习微分学时，可直接对差值作代数估计。反向蕴含一般不成立：$\sqrt{x}$ 在 $[0,+\infty)$ 上由
+\[
+|\sqrt{x}-\sqrt{y}|\le\sqrt{|x-y|}
+\]
+一致连续，却不满足全局 Lipschitz 条件，因为 $\sqrt{x}/x\to+\infty$（$x\downarrow0$）。有界导数是方便的充分条件，不能作为一致连续性的定义或必要条件。
+
+\begin{example}
+判断 $1/x$、$x^2$ 与 $\sin(x^2)$ 在相应区间上的一致连续性。
+\end{example}
+
+\begin{solve}
+在 $(0,1)$ 上取 $x_n=1/(n+1)$、$y_n=1/(n+2)$，两点距离趋零，但 $|1/x_n-1/y_n|=1$，故 $1/x$ 不一致连续；在 $[a,+\infty)$（$a>0$）上则有
+\[
+\left|\frac1x-\frac1y\right|=\frac{|x-y|}{xy}\le\frac{|x-y|}{a^2},
+\]
+因而一致连续。对 $x^2$ 在 $[0,+\infty)$ 或 $\mathbb R$ 上取 $x_n=n$、$y_n=n+1/n$，平方之差为 $2+1/n^2$，故不一致连续。对 $\sin(x^2)$ 取
+\[
+x_n=\sqrt{2\pi n+\pi/2},\qquad y_n=\sqrt{2\pi n+3\pi/2}.
+\]
+两点距离等于 $\pi/(x_n+y_n)\to0$，函数值之差却恒为 $2$。这个例子同时说明，有界、连续乃至处处可导，都不能单独保证无穷区间上的一致连续性。
+\end{solve}
+
+\begin{proposition}
+一致连续函数的和、差及一致连续映射的复合仍一致连续。有界且一致连续的两个函数之积一致连续；若其中作为分母的函数绝对值还有正下界，则商也一致连续。
+\end{proposition}
+
+\begin{proof}
+和、差由三角不等式分别分配误差；复合时先对外层选择自变量误差，再由内层将该误差转成原自变量的距离限制。若 $|f|\le M$、$|g|\le N$，则
+\[
+|f(x)g(x)-f(y)g(y)|\le M|g(x)-g(y)|+N|f(x)-f(y)|.
+\]
+若另有 $|g|\ge c>0$，则 $|1/g(x)-1/g(y)|\le c^{-2}|g(x)-g(y)|$，再用积的结论。无穷区间上不能删去积的有界条件：$f(x)=g(x)=x$ 都一致连续，但乘积 $x^2$ 不一致连续。分母处处非零也不能代替正下界，例如 $(0,1)$ 上的 $1$ 与 $x$ 都一致连续，商 $1/x$ 却不是。
+\end{proof}
+
+\subsection{紧区间、端点延拓与 Cauchy 序列}
+
+\begin{theorem}[Heine--Cantor 定理]
+\label{thm:pei-heine-cantor}
+闭区间上的连续函数一致连续。
+\end{theorem}
+
+\begin{proof}
+若 $f\in C([a,b])$ 不一致连续，则由命题~\ref{prop:pei-uniform-sequences} 的否定形式，可取 $x_n,y_n\in[a,b]$，使 $|x_n-y_n|\to0$ 而函数值之差不小于某个 $\varepsilon_0>0$。取子列 $x_{n_k}\to c$，则 $y_{n_k}\to c$，由连续性两列函数值都趋于 $f(c)$，矛盾。
+\end{proof}
+
+\begin{theorem}
+\label{thm:pei-endpoint-extension}
+设 $a<b$ 为有限实数，$f\in C((a,b))$。则 $f$ 在 $(a,b)$ 上一致连续，当且仅当有限极限 $f(a+)$ 与 $f(b-)$ 都存在；等价地，$f$ 能连续延拓至 $[a,b]$。因此有限区间上的一致连续函数必有界。
+\end{theorem}
+
+\begin{proof}
+若 $f$ 一致连续，给定 $\varepsilon>0$，取定义中的 $\delta>0$。当 $a<x,y<a+\delta$ 时有 $|x-y|<\delta$，故 $|f(x)-f(y)|<\varepsilon$。由函数极限的 Cauchy 准则，$f(a+)$ 存在且有限；右端同理。以这两个极限补定义端点值，便得到闭区间上的连续函数，再由定理~\ref{thm:pei-heine-cantor} 得到充分性及有界性。其他有限区间按其缺失的端点作同样处理。
+\end{proof}
+
+例如 $\sin x/x$ 在 $(0,1)$ 上可于 $0$ 补值为 $1$，故一致连续；$\sin(1/x)$ 在 $(0,1)$ 上虽有界连续，却无 $0$ 处的右极限，故不一致连续。有限开区间上，两个一致连续函数都自动有界，因而乘积一致连续；这一推论不能直接推广到无穷区间。
+
+\begin{proposition}
+\label{prop:pei-cauchy-preserving}
+一致连续映射将 Cauchy 序列映为 Cauchy 序列。若 $E\subseteq\mathbb R$ 有界，则反之也成立：$f:E\to\mathbb R$ 将每个 $E$ 中的 Cauchy 序列映为 Cauchy 序列，当且仅当 $f$ 一致连续。
+\end{proposition}
+
+\begin{proof}
+必要性直接将输入序列的 Cauchy 条件与一致连续的 $\delta$ 相接。反之，若 $f$ 不一致连续，则有距离趋零但像距离保持正下界的两列 $x_n,y_n\in E$。有界性使某子列 $x_{n_k}\to c$，同时 $y_{n_k}\to c$。交错排列 $x_{n_1},y_{n_1},x_{n_2},y_{n_2},\ldots$ 得到 $E$ 中的 Cauchy 序列，但其像中每对相邻指定项之差均不小于 $\varepsilon_0$，不是 Cauchy 序列，矛盾。这里不要求极限 $c$ 属于 $E$。
+\end{proof}
+
+在无界集合上，保持 Cauchy 序列未必推出一致连续。实轴上的 $x^2$ 就是反例：每个实数 Cauchy 序列都收敛，平方后的序列仍收敛，但平方函数在实轴上不一致连续。这一限制来自充分性证明所用的有界子列抽取，不能省略。
+
+\begin{theorem}
+\label{thm:pei-dense-extension}
+设 $D$ 在 $E\subseteq\mathbb R$ 中稠密。若 $u:D\to\mathbb R$ 一致连续，则存在唯一的连续延拓 $f:E\to\mathbb R$，且 $f$ 仍一致连续。更一般地，若 $u$ 在 $D$ 的每个有界子集上一致连续，则它也有唯一的连续延拓，并且延拓在 $E$ 的每个有界子集上一致连续。
+\end{theorem}
+
+\begin{proof}
+对 $x\in E$，由稠密性取 $x_n\in D$，$x_n\to x$。这些点构成有界 Cauchy 序列，由相应的一致连续性，$u(x_n)$ 是实数 Cauchy 序列，故可定义 $f(x)=\lim_nu(x_n)$。若另取 $y_n\to x$，将两列交错排列便知两列像有相同极限，故定义与选择无关。对 $x\in D$ 取常值列即知 $f(x)=u(x)$。
+
+先考虑全局一致连续的情形。对 $\varepsilon/2$ 取 $u$ 的统一尺度 $\delta$。若 $x,y\in E$ 且 $|x-y|<\delta/2$，分别选 $D$ 中的逼近列，则充分靠后的两列点距离小于 $\delta$，从而 $|u(x_n)-u(y_n)|<\varepsilon/2$；取极限有 $|f(x)-f(y)|\le\varepsilon/2<\varepsilon$。若仅有有界子集上的一致连续性，对任意有界 $B\subseteq E$，可在一个固定的更大有界区间内选择所有逼近列，重复论证便知 $f|_B$ 一致连续。因此 $f$ 在各点连续。最后，任意两个连续延拓在稠密集 $D$ 上相同，沿逼近列取极限便在 $E$ 上处处相同。
+\end{proof}
+
+这一定理特别给出：$D$ 上的一致连续实函数能唯一延拓至闭包 $\overline D$。值域取 $\mathbb R$ 的完备性保证像 Cauchy 序列有极限；若值域不是完备空间，就不能直接照搬这一存在性结论。
+
+\subsection{无穷区间上的尾部控制}
+
+\begin{proposition}
+\label{prop:pei-uniform-gluing}
+若 $f$ 在 $[a,c]$ 与 $[c,b]$ 上分别一致连续，且在公共点采用同一函数值，则它在 $[a,b]$ 上一致连续；任一端点允许为无穷远，此时按对应的半无限区间理解。
+\end{proposition}
+
+\begin{proof}
+对 $\varepsilon/2$ 分别取两个尺度，令 $\delta$ 为二者的最小值。若两点属于同一段，直接使用相应估计；若 $x<c<y$ 且 $|x-y|<\delta$，则 $|x-c|,|y-c|<\delta$，通过公共点 $c$ 使用三角不等式，有 $|f(x)-f(y)|<\varepsilon$。
+\end{proof}
+
+\begin{theorem}
+\label{thm:pei-uniform-tail}
+若 $f\in C([a,+\infty))$ 且 $\lim_{x\to+\infty}f(x)=L\in\mathbb R$，则 $f$ 一致连续。更一般地，若 $g$ 在 $[a,+\infty)$ 上一致连续，$f$ 连续且 $f(x)-g(x)\to0$，则 $f$ 也一致连续。
+\end{theorem}
+
+\begin{proof}
+对第一种情形，给定 $\varepsilon>0$，取 $A>a$，使 $x\ge A$ 时有 $|f(x)-L|<\varepsilon/2$；于是两点均在尾部时，函数值之差小于 $\varepsilon$。又由 Heine--Cantor 定理，$f$ 在固定于本次误差的闭区间 $[a,A+1]$ 上一致连续，取其尺度 $\delta_0$，再令 $\delta=\min\{\delta_0,1\}$。距离小于 $\delta$ 的两点，若较小者不超过 $A$，两者都在 $[a,A+1]$；否则两者都在尾部。这就覆盖了全部情形。
+
+对一般情形，将误差拆成三份。先取 $A$ 使 $|f-g|<\varepsilon/3$ 在尾部成立，再取 $g$ 对 $\varepsilon/3$ 的全局尺度，以及 $f$ 在 $[a,A+1]$ 上对 $\varepsilon$ 的尺度，并使最终尺度不超过 $1$。尾部使用
+\[
+|f(x)-f(y)|\le|f(x)-g(x)|+|g(x)-g(y)|+|g(y)-f(y)|,
+\]
+其余情形使用闭区间估计，结论即得。
+\end{proof}
+
+此证明需要重叠区间 $[a,A+1]$ 来处理跨过分界点的两点。还要注意，由“对每个误差可以选出一个尾部，使其中任意两点的像很接近”不能断言存在一个固定尾区间在所有误差下都满足同一性质，因为 $A$ 本身依赖误差。两端均有有限极限的实轴连续函数也一致连续；连续周期函数则可把任意两点同时平移到一个固定的、长度略大于周期的闭区间，在该区间应用 Heine--Cantor 定理。具体地，若周期为 $T>0$，先要求 $|x-y|<T$，再同时平移使 $x\in[0,T]$，则 $y\in[-T,2T]$，从而有统一尺度。
+
+\begin{proposition}
+\label{prop:pei-uniform-linear-growth}
+若 $f:\mathbb R\to\mathbb R$ 一致连续，则存在 $A,B\ge0$，使 $|f(x)|\le A|x|+B$ 对所有实数 $x$ 成立。
+\end{proposition}
+
+\begin{proof}
+对误差 $1$ 取统一尺度 $\delta>0$，令 $h=\delta/2$。对 $x\ne0$，取 $N=\lceil |x|/h\rceil$，将 $0$ 到 $x$ 等分成 $N$ 段，每段长度不超过 $h<\delta$，故
+\[
+|f(x)-f(0)|\le\sum_{j=1}^N|f(jx/N)-f((j-1)x/N)|<N\le |x|/h+1.
+\]
+取 $A=1/h$、$B=|f(0)|+1$ 即可。$x=0$ 时也成立。
+\end{proof}
+
+增长至多线性只是必要条件，不能反推一致连续，前面的有界反例 $\sin(x^2)$ 已经说明这一点。对可导函数还有一种尾部判别：若 $f\in C([0,+\infty))$，在 $(0,+\infty)$ 可导，且 $\lim_{x\to\infty}|f'(x)|=A$ 存在，则 $A<\infty$ 时可用尾部有界导数与头部紧区间拼接，得到一致连续；若 $A=+\infty$，可选 $x_n\ge n$，使 $x\ge x_n$ 时 $|f'(x)|\ge n$，再令 $y_n=x_n+1/n$，由中值定理有 $|f(y_n)-f(x_n)|\ge1$，故不一致连续。该判别以导数绝对值的极限存在为前提。
+
+\begin{example}
+设 $f$ 在 $[0,+\infty)$ 上一致连续，且每个固定的 $t\ge0$ 都满足 $f(n+t)\to0$（$n\to\infty$，$n\in\mathbb N$）。证明 $f(x)\to0$（$x\to+\infty$）。
+\end{example}
+
+\begin{solve}
+给定 $\varepsilon>0$，取一致连续性对 $\varepsilon/2$ 的尺度 $\delta$，再在 $[0,1]$ 内选择有限个网格点 $t_1,\ldots,t_m$，使每个 $r\in[0,1]$ 与某个 $t_i$ 距离小于 $\delta$。对每个 $i$，存在 $N_i$，使 $n\ge N_i$ 时 $|f(n+t_i)|<\varepsilon/2$。令 $N=\max_iN_i$。任意充分大的 $x$ 可写成 $x=n+r$，其中 $n=\lfloor x\rfloor\ge N$、$r\in[0,1)$，选相应网格点便有
+\[
+|f(x)|\le|f(n+r)-f(n+t_i)|+|f(n+t_i)|<\varepsilon.
+\]
+有限网格使有限个收敛起点可以取最大值，一致连续性则把网格控制传递到全部实数。
+\end{solve}
+
+\subsection{连续模数}
+
+\begin{definition}
+设 $I$ 是区间，$f:I\to\mathbb R$。对 $t\ge0$，定义\emph{连续模数（modulus of continuity）}
+\begin{equation}
+\label{eq:pei-modulus}
+\omega_f(t)=\sup\{|f(x)-f(y)|:x,y\in I,\ |x-y|\le t\}.
+\end{equation}
+一般允许其值为 $+\infty$。它非负、单调不减，且 $\omega_f(0)=0$；$f$ 一致连续当且仅当 $\omega_f(t)\to0$（$t\downarrow0$）。
+\end{definition}
+
+\begin{proof}
+若 $f$ 一致连续，先对 $\varepsilon/2$ 取 $\delta$，当 $0<t<\delta$ 时，定义中的每个差值均小于 $\varepsilon/2$，故上确界不超过 $\varepsilon/2<\varepsilon$。反之，选 $\delta>0$ 使 $\omega_f(\delta)<\varepsilon$，则 $|x-y|<\delta$ 时的差值都小于 $\varepsilon$。
+\end{proof}
+
+在区间上还可沿两点之间分段，得到 $\omega_f(s+t)\le\omega_f(s)+\omega_f(t)$。若 $f$ 一致连续，先找一个小尺度使其模数有限，再把任意有限距离分成有限段，即知所有有限 $t$ 的模数都有限。例如在 $[0,+\infty)$ 上，$\omega_{\sqrt{\cdot}}(t)=\sqrt t$；在 $[a,+\infty)$（$a>0$）上，
+\[
+\omega_{1/\cdot}(t)=\frac{t}{a(a+t)};
+\]
+在实轴上，$\omega_{\sin}(t)\le\min\{t,2\}$。连续模数记录的是给定水平尺度下的最大振幅，比只看某点的斜率更适合判断一致性。
+
+\section{上、下半连续}
+\label{sec:pei-semicontinuity}
+
+\subsection{定义与等价描述}
+
+\begin{definition}
+设 $f:E\to\mathbb R$、$x_0\in E$。若对每个 $\varepsilon>0$，存在 $\delta>0$，使 $x\in E$、$|x-x_0|<\delta$ 时有 $f(x)<f(x_0)+\varepsilon$，则称 $f$ 在 $x_0$ \emph{上半连续（upper semicontinuous）}。若相应地有 $f(x)>f(x_0)-\varepsilon$，则称其\emph{下半连续（lower semicontinuous）}。两者同时成立当且仅当 $f$ 在该点连续。
+\end{definition}
+
+\begin{proposition}
+\label{prop:pei-semicontinuity-characterization}
+$f$ 在 $E$ 上上半连续，当且仅当对每个收敛于 $x_0\in E$ 的序列 $x_n\in E$，有 $\limsup_nf(x_n)\le f(x_0)$；也等价于每个严格下水平集 $\{f<c\}$ 在 $E$ 中相对开，或每个上水平集 $\{f\ge c\}$ 在 $E$ 中相对闭。下半连续的对应条件为 $\liminf_nf(x_n)\ge f(x_0)$、$\{f>c\}$ 相对开、$\{f\le c\}$ 相对闭。若 $E$ 本身闭，这些相对闭集也都是实轴中的闭集。
+\end{proposition}
+
+\begin{proof}
+从上半连续定义可直接取序列的上极限。若定义不成立，则存在 $\varepsilon_0>0$，对每个 $n$ 能取 $|x_n-x_0|<1/n$ 而 $f(x_n)\ge f(x_0)+\varepsilon_0$，违反序列条件。若上半连续且 $f(x_0)<c$，对小于 $c-f(x_0)$ 的误差使用定义，可得 $x_0$ 的相对邻域仍在 $\{f<c\}$ 中。反之，在 $c=f(x_0)+\varepsilon$ 时使用水平集的开性即得定义。闭集形式由补集得到；下半连续的结论通过将 $f$ 换为 $-f$ 得到。
+\end{proof}
+
+上半连续限制函数从附近逼近时不能超过点值，却允许点值向上跳；下半连续具有对偶方向。因此上半连续在负值点保负，下半连续在正值点保正；反方向一般不成立，介值性也不随半连续性保留。Dirichlet 函数 $D=\boldsymbol{1}_{\mathbb Q}$ 在有理点上半连续而不下半连续，在无理点下半连续而不上半连续。例~\ref{ex:pei-thomae} 的 Riemann 函数处处上半连续：无理点已经连续；在有理点，对给定的高度阈值排除附近有限个分母较小的其他有理点，即得上半连续，而无理数列趋近该点说明它不下半连续。
+
+\subsection{运算、最值与单调极限}
+
+\begin{proposition}
+有限个上半连续实函数的和、最大值与最小值仍上半连续，乘以非负常数也保持上半连续；取负号则变成下半连续。非负上半连续函数的乘积上半连续。任意一族上半连续函数的逐点下确界若为有限实值，仍上半连续；任意一族下半连续函数的逐点上确界若为有限实值，仍下半连续。
+\end{proposition}
+
+\begin{proof}
+和的结论将误差分配给各项即可。最大值的严格下水平集是有限个相应开集的交，最小值的严格下水平集是相应开集的并，故都上半连续。对非负乘积，设点值为 $A,B\ge0$，在邻域中分别用 $A+\eta$、$B+\eta$ 从上控制两因子，再令 $\eta$ 足够小，使 $(A+\eta)(B+\eta)<AB+\varepsilon$。最后，若 $h=\inf_{\lambda}f_\lambda$，则
+\[
+\{h<c\}=\bigcup_\lambda\{f_\lambda<c\},
+\]
+为相对开集。下半连续的对偶结论由取负号得到。
+\end{proof}
+
+乘积的符号条件有实质作用。例如 $\boldsymbol{1}_{\{0\}}$ 与常函数 $-1$ 都上半连续，但二者之积在 $0$ 处不上半连续。由下确界的结论可知，递减上半连续函数列的有限逐点极限仍上半连续；递增下半连续函数列的有限逐点极限仍下半连续。这里单调方向不可随意交换。
+
+\begin{theorem}
+\label{thm:pei-semicontinuity-extrema}
+闭区间上的有限实值上半连续函数有上界并达到最大值；有限实值下半连续函数有下界并达到最小值。
+\end{theorem}
+
+\begin{proof}
+对每个点 $x$，由上半连续性取相对邻域，使其中 $f(t)<f(x)+1$；有限子覆盖便给出统一上界。记 $M=\sup f$，取 $f(x_n)\to M$，再抽取 $x_{n_k}\to c\in[a,b]$。由命题~\ref{prop:pei-semicontinuity-characterization}，有 $M\le f(c)$，而上确界定义又给出 $f(c)\le M$，所以 $f(c)=M$。下半连续情形对 $-f$ 使用结论。
+\end{proof}
+
+上半连续并不保证下界。例如在 $[0,1]$ 上令 $f(0)=0$，$f(x)=-1/x$（$x>0$），它上半连续、最大值为 $0$，却无下界。若只在开区间上上半连续，连上界也未必存在。不过仍有一个较弱的局部结论：任意有限实值半连续函数都能在某个非退化内闭区间上同时有上、下界。
+
+\begin{proof}
+只证上半连续情形。若每个非退化内闭区间上都无下界，从任一 $I_0\subset(a,b)$ 出发，可在 $I_0$ 的内部取 $x_1$ 使 $f(x_1)<-1$，再由上半连续性取非退化闭区间 $I_1\subset\operatorname{int}I_0$，使 $f<-1$ 在 $I_1$ 上成立。依次在 $\operatorname{int}I_{n-1}$ 内取 $f<-n$ 的点，并缩成长度不超过 $2^{-n}$、其上恒有 $f<-n$ 的闭区间 $I_n$。闭区间套定理给出 $c\in\bigcap_nI_n$，于是 $f(c)<-n$ 对所有 $n$ 成立，与 $f(c)$ 为有限实数矛盾。因此某个内闭区间上有下界；再由定理~\ref{thm:pei-semicontinuity-extrema} 得到上界。下半连续的情形对 $-f$ 处理。
+\end{proof}
+
+\subsection{用连续函数单调逼近}
+
+\begin{theorem}
+\label{thm:pei-semicontinuity-approximation}
+设 $f:[a,b]\to\mathbb R$ 上半连续。则存在递减的连续函数列 $f_n$，使 $f_n(x)\downarrow f(x)$ 对每个 $x\in[a,b]$ 成立。下半连续函数则可由递增连续函数列逐点逼近。
+\end{theorem}
+
+\begin{proof}
+由定理~\ref{thm:pei-semicontinuity-extrema}，$f$ 有有限上界 $M$。对 $n\in\mathbb N$ 定义
+\begin{equation}
+\label{eq:pei-semicontinuity-envelope}
+f_n(x)=\sup_{y\in[a,b]}\bigl(f(y)-n|x-y|\bigr).
+\end{equation}
+取 $y=x$ 得 $f_n(x)\ge f(x)$，而 $f_n(x)\le M$，故函数有限；随 $n$ 增大它单调不增。三角不等式给出 $f(y)-n|x-y|\le f(y)-n|z-y|+n|x-z|$，取上确界并交换 $x,z$ 后得 $|f_n(x)-f_n(z)|\le n|x-z|$，因此 $f_n$ 连续。
+
+固定 $x$ 与 $\varepsilon>0$，由上半连续性选 $\delta>0$，使 $|y-x|<\delta$ 时有 $f(y)<f(x)+\varepsilon$。对于其余 $y$，有 $f(y)-n|x-y|\le M-n\delta$，在充分大的 $n$ 时不超过 $f(x)+\varepsilon$。分开这两类点取上确界，就有 $f(x)\le f_n(x)\le f(x)+\varepsilon$，故 $f_n(x)\downarrow f(x)$。对下半连续函数 $g$，先逼近 $-g$ 再取负号即可。
+\end{proof}
+
+式~\eqref{eq:pei-semicontinuity-envelope} 给出的是逐点收敛；若 $f$ 不连续，就不可能是一致收敛，因为连续函数列的一致极限连续。这个构造也说明，上半连续函数可以看成一列连续上界逐步下降所形成的极限，而下半连续函数具有对偶的连续下界逼近。
+
+\section{函数方程}
+\label{sec:pei-functional-equations}
+
+\subsection{加法方程与从有理数到实数的推归}
+
+函数方程同时约束不同自变量处的函数值。有效的起点通常是令某个变量为 $0$、$1$、另一个变量或其相反数，先确定特殊值、奇偶性和整数倍关系，再推到有理倍，最后利用连续性或单调性补足实数。连续性等正则条件是方程假设的一部分，不能在推导完成前默认所有代数解都连续。
+
+\begin{theorem}[Cauchy 加法方程]
+\label{thm:pei-cauchy-additive}
+设 $f:\mathbb R\to\mathbb R$ 满足
+\begin{equation}
+\label{eq:pei-cauchy-additive}
+f(x+y)=f(x)+f(y)\qquad(x,y\in\mathbb R).
+\end{equation}
+若 $f$ 在 $0$ 处连续，则存在 $c\in\mathbb R$ 使 $f(x)=cx$ 对所有实数成立。在任意一点连续、在某个非退化区间上有界、在实轴上单调，都分别足以替代在 $0$ 处连续的条件。
+\end{theorem}
+
+\begin{proof}
+令 $x=y=0$ 得 $f(0)=0$，再令 $y=-x$ 得 $f(-x)=-f(x)$。归纳得 $f(nx)=nf(x)$（$n\in\mathbb Z$），对 $nx/n=x$ 有 $f(x/n)=f(x)/n$，所以 $f(qx)=qf(x)$ 对有理数 $q$ 成立。记 $c=f(1)$，则 $f(q)=cq$。任给实数 $x$，取有理数列 $q_n\to x$，由在 $0$ 处连续及
+\[
+f(x)-f(q_n)=f(x-q_n)\to0,
+\]
+得到 $f(x)=\lim_ncq_n=cx$，并直接代回检验。
+
+若 $f$ 在 $x_0$ 连续，则 $f(h)=f(x_0+h)-f(x_0)\to0$，故在 $0$ 连续。若 $|f|\le M$ 在某个非退化区间上成立，在其中选内点 $x_0$ 和 $r>0$，使 $x_0+h$ 在该区间内（$|h|<r$），则 $|f(h)|\le2M$。给定 $\varepsilon>0$，取整数 $N$ 使 $2M/N<\varepsilon$，当 $|h|<r/N$ 时有
+\[
+|f(h)|=\frac{|f(Nh)|}{N}\le\frac{2M}{N}<\varepsilon.
+\]
+因此仍在 $0$ 连续。单调函数在任意固定的有限闭区间上有界，故也适用。若 $f$ 在某个非退化闭区间上 Riemann 可积，也由其有界性归入同一情形。
+\end{proof}
+
+\begin{example}
+求连续的 Jensen 中点方程
+\[
+f\left(\frac{x+y}{2}\right)=\frac{f(x)+f(y)}2\qquad(x,y\in\mathbb R)
+\]
+的全部解，并讨论二阶差分为零的条件。
+\end{example}
+
+\begin{solve}
+令 $b=f(0)$、$g=f-b$，则 $g(0)=0$。在中点方程中取 $(x,y)=(2t,0)$，得到 $g(2t)=2g(t)$，因此 $g(x+y)=g(x)+g(y)$，由定理~\ref{thm:pei-cauchy-additive} 知 $f(x)=cx+b$。反之，所有仿射函数都满足方程。
+
+若以 $\Delta_hf(x)=f(x+h)-f(x)$ 记差分，则要求 $\Delta_h^2f(x)=0$ 对\emph{所有 $x,h\in\mathbb R$} 成立，等价于 $f(x+2h)+f(x)=2f(x+h)$，也就是任意两点的中点方程，所以连续解仍为仿射函数。若只固定一个非零步长 $h$，结论就不成立，例如 $f(x)=x+\sin(2\pi x/h)$ 的该步长二阶差分恒为零，却不是仿射函数。
+\end{solve}
+
+\subsection{通过换元化为加法方程}
+
+\begin{proposition}
+\label{prop:pei-exponential-equations}
+在各自定义域上连续的下列方程，其全部实值解分别为
+\[
+\begin{aligned}
+f(x+y)=f(x)f(y)\quad &(x,y\in\mathbb R):
+&&f\equiv0\ \text{或}\ f(x)=e^{cx};\\
+f(xy)=f(x)+f(y)\quad &(x,y>0):
+&&f(x)=c\log x;\\
+f(xy)=f(x)f(y)\quad &(x,y>0):
+&&f\equiv0\ \text{或}\ f(x)=x^c,
+\end{aligned}
+\]
+其中 $c\in\mathbb R$，$\log$ 表示自然对数。
+\end{proposition}
+
+\begin{proof}
+第一式若非零解，则取 $y=0$ 得 $f(0)=1$，再由 $f(x)f(-x)=1$ 知处处非零；同时 $f(x)=f(x/2)^2>0$。于是 $F(x)=\log f(x)$ 连续且可加，故 $F(x)=cx$。第二式令 $F(t)=f(e^t)$，则 $F(s+t)=F(s)+F(t)$，故 $F(t)=ct$。第三式若非零解，先由 $f(1)=1$、$f(x)f(1/x)=1$ 排除零点，再由 $f(x)=f(\sqrt{x})^2>0$ 得到正值；令 $F(t)=\log f(e^t)$，便又化为连续加法方程。这些候选函数代回原式均成立。
+\end{proof}
+
+对数换元必须先证明取对数的对象为正，不能从“连续”直接推出正值。乘法方程的定义域也影响解的形式：若要求 $f:\mathbb R\to\mathbb R$ 连续且满足 $f(xy)=f(x)f(y)$，则全部解为 $f\equiv0$、$f\equiv1$，以及对 $c>0$ 的
+\[
+f(0)=0,\qquad f(x)=|x|^c\ (x\ne0),
+\]
+或 $f(0)=0$、$f(x)=\operatorname{sgn}(x)|x|^c$（$x\ne0$）。事实上，正半轴上的非零解是 $x^c$，$f(-1)^2=1$ 决定负半轴的两种符号；若不是常函数 $1$，方程迫使 $f(0)=0$，原点连续又迫使 $c>0$。若去掉原点连续，$\operatorname{sgn}x$ 也满足乘法方程，这说明检查特殊点不能省略。
+
+\subsection{余弦方程与联立加法公式}
+
+\begin{theorem}
+\label{thm:pei-dalembert}
+连续函数 $f:\mathbb R\to\mathbb R$ 满足 d'Alembert 方程
+\begin{equation}
+\label{eq:pei-dalembert}
+f(x+y)+f(x-y)=2f(x)f(y)
+\end{equation}
+当且仅当它属于 $f\equiv0$、$f(x)=\cos(cx)$、$f(x)=\cosh(cx)$ 这三类，其中 $c\ge0$，$\cosh t=(e^t+e^{-t})/2$。
+\end{theorem}
+
+\begin{proof}
+零函数可直接检验。对非零解，取 $y=0$ 得 $f(0)=1$，取 $x=0$ 得 $f(-y)=f(y)$。再令 $x=y=t$ 得
+\begin{equation}
+\label{eq:pei-dalembert-halving}
+f(2t)=2f(t)^2-1.
+\end{equation}
+由连续性可取 $r>0$，使 $f>0$ 在 $[0,r]$ 上成立。若 $0<f(r)\le1$，写成 $f(r)=\cos\theta$，$0\le\theta<\pi/2$。由式~\eqref{eq:pei-dalembert-halving} 及正值条件，每次开方只能取正根，因此
+\[
+f(r/2^n)=\cos(\theta/2^n).
+\]
+固定 $n$、令 $h=r/2^n$，原方程给出递推
+\[
+f((m+1)h)=2f(mh)f(h)-f((m-1)h).
+\]
+由 $f(0)=1$、$f(h)=\cos(\theta/2^n)$ 归纳可得 $f(mr/2^n)=\cos(m\theta/2^n)$（$m\ge0$）。这些非负二进有理网格点在 $[0,+\infty)$ 稠密，由连续性得到 $f(x)=\cos(\theta x/r)$，再由偶性扩至实轴。
+
+若 $f(r)>1$，写成 $f(r)=\cosh\theta$（$\theta>0$）。同一正根选择与递推，将上式中的 $\cos$ 换为 $\cosh$，得到 $f(x)=\cosh(\theta x/r)$。反过来，用余弦或双曲余弦加法公式检验即可。这一证明只用连续性、二分与递推，不预设可导性。
+\end{proof}
+
+\begin{example}
+设连续有界实函数 $f,g$ 满足
+\[
+\begin{aligned}
+f(x+y)&=f(x)f(y)-g(x)g(y),\\
+g(x+y)&=f(x)g(y)+g(x)f(y),
+\end{aligned}
+\qquad f(0)=1,\quad g(0)=0.
+\]
+证明它们恰为 $f(x)=\cos(cx)$、$g(x)=\sin(cx)$（$c\in\mathbb R$）。
+\end{example}
+
+\begin{solve}
+令 $H=f^2+g^2$，两式平方相加得到 $H(x+y)=H(x)H(y)$，且 $H(0)=1$，由命题~\ref{prop:pei-exponential-equations} 知 $H(x)=e^{kx}$。因为 $H$ 在整个实轴有界，只能 $k=0$，故 $f^2+g^2=1$。将 $y=-x$ 代入原方程，解二元线性方程可得 $f(-x)=f(x)$、$g(-x)=-g(x)$。把 $y$ 与 $-y$ 的第一式相加，即得 $f$ 满足式~\eqref{eq:pei-dalembert}。又 $f(0)=1$、$|f|\le1$，所以 $f(x)=\cos(ax)$，其中 $a\ge0$。
+
+若 $a=0$，则 $g\equiv0$。若 $a>0$，取 $t$ 使 $\sin(at)\ne0$，则 $g(t)^2=\sin^2(at)$，且第一式给出
+\[
+2g(x)g(t)=f(x-t)-f(x+t)=2\sin(ax)\sin(at).
+\]
+因此 $g$ 的符号选择在整个实轴一致，$g(x)=\sin(ax)$ 或 $g(x)=-\sin(ax)$；将后一种情形吸收到参数 $c=-a$ 中，即得结论。
+\end{solve}
+
+\subsection{缩放迭代与连续点的作用}
+
+\begin{example}
+若 $f:(0,+\infty)\to\mathbb R$ 满足 $f(2x)=f(x)$ 且 $\lim_{x\downarrow0}f(x)=A$，证明 $f\equiv A$。若改为 $f:\mathbb R\to\mathbb R$ 在 $0$ 连续，$f(0)=1$，并满足 $f(2x)=f(x)\cos x$，求全部解。
+\end{example}
+
+\begin{solve}
+第一问反复将自变量减半，有 $f(x)=f(x/2^n)\to A$。第二问同样迭代得
+\[
+f(x)=f(x/2^n)\prod_{k=1}^n\cos(x/2^k).
+\]
+由反复使用 $\sin(2t)=2\sin t\cos t$，对 $x\ne0$、充分大的 $n$ 有
+\[
+\prod_{k=1}^n\cos(x/2^k)=\frac{\sin x}{2^n\sin(x/2^n)}\longrightarrow\frac{\sin x}{x}.
+\]
+这里分母的极限为 $x$，而 $f(x/2^n)\to1$，所以唯一可能的解为 $f(x)=\sin x/x$（$x\ne0$）、$f(0)=1$。补值后的函数连续且代回满足方程，故确为唯一解。这类方法的核心是把任意点沿迭代送到一个已知极限或连续点。
+\end{solve}
+
+\subsection{转化为微分方程时的定义域检查}
+
+以下方法需要导数及一阶微分方程知识，可在学习微分学后再读。若函数方程能把任意 $x$ 处的差商写成 $0$ 处的差商乘以一个连续因子，那么在 $0$ 处可导常能推出处处可导；随后解微分方程只是必要步骤，仍须把所得函数放回原来的定义域检验。
+
+\begin{example}
+\label{ex:pei-tangent-domain}
+设 $\lambda>0$，实函数 $f$ 连续、在 $0$ 处可导，且满足
+\begin{equation}
+\label{eq:pei-tangent-equation}
+f(x+y)=\frac{f(x)+f(y)}{1-\lambda f(x)f(y)}.
+\end{equation}
+在原点附近求其局部形式，并判断若该等式要求对所有 $x,y\in\mathbb R$ 成立且分母始终非零，有哪些全实轴解。
+\end{example}
+
+\begin{solve}
+令 $x=y=0$，由实值及 $\lambda>0$ 得 $f(0)=0$。记 $c=f'(0)$，将 $y=h$ 代入并移项，有
+\[
+\frac{f(x+h)-f(x)}h=
+\frac{f(h)}h\,\frac{1+\lambda f(x)^2}{1-\lambda f(x)f(h)}.
+\]
+因 $f(h)\to0$，每个所讨论的内点均可取极限，从而 $f'(x)=c(1+\lambda f(x)^2)$。利用链式法则积分并代入初值，得到
+\[
+\arctan(\sqrt\lambda f(x))=c\sqrt\lambda\,x,
+\qquad
+f(x)=\frac1{\sqrt\lambda}\tan(c\sqrt\lambda\,x).
+\]
+这是包含 $0$ 且避开极点的区间内的局部解，原方程只在 $x,y,x+y$ 均属于相应区间、分母非零时使用。若要求 $f$ 定义于整个实轴，则左边的反正切有界，右边只有在 $c=0$ 时才能对全部实数成立，所以全实轴解只有 $f\equiv0$。不能把有极点的正切函数直接称为全实轴连续解。
+\end{solve}
+
+\begin{example}
+设 $f:\mathbb R\to\mathbb R$ 连续，在 $0$ 处可导，$f(0)=0$，并对所有实数 $x,y$ 满足
+\[
+f(x+y)=\frac{f(x)+f(y)}{1+f(x)f(y)},
+\]
+且分母非零。求 $f$。
+\end{example}
+
+\begin{solve}
+令 $c=f'(0)$，与例~\ref{ex:pei-tangent-domain} 相同的差商运算给出 $f'(x)=c(1-f(x)^2)$、$f(0)=0$。在原点附近 $|f|<1$，分离变量得到
+\[
+\frac12\log\frac{1+f(x)}{1-f(x)}=cx,
+\qquad f(x)=\tanh(cx)=\frac{e^{2cx}-1}{e^{2cx}+1}.
+\]
+这一表达式在实轴上始终位于 $(-1,1)$；由微分方程右端对未知函数值局部 Lipschitz 所保证的初值解唯一性，原函数在全实轴上都与它相同。直接代入双曲正切加法公式可验算原方程，且 $1+f(x)f(y)>0$，所以所有 $c\in\mathbb R$ 均给出解。这里假设 $f(0)=0$ 已排除常函数 $1$ 与 $-1$；若不加该初值，它们也满足原方程。
+\end{solve}
+
+函数方程的完整解答因此需要同时检查四件事：代数推导是否涵盖零解或常值解，连续等正则条件在何处使用，换元与取对数是否保持定义域，以及求得的公式是否在原先要求的全部自变量上有意义。这些检查既决定解的唯一性，也决定某个公式究竟只是局部解还是全局解。
+
+% 教材来源：数学分析/textbooks/数分习题（分章原文）/数分习题-3.pdf。
+% 对应原书第三章“一元微分学”，本 PDF 第 1--102 页；按主题整合要点与代表例题，不逐题誊录。
+% 扫描原文通过嵌入扫描数据 OCR 核对；无法可靠辨识的个别题目不按原题转写。
+
+
+
+

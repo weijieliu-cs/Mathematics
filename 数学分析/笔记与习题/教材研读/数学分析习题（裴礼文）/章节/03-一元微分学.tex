@@ -1,0 +1,922 @@
+% !TeX root = ../数学分析习题（裴礼文）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{2} % 保留原书章号。
+\chapter{一元微分学}
+\label{chap:pei-diff}
+
+一元微分学以函数的局部线性近似为出发点，通过中值定理把局部变化率与区间上的函数增量联系起来，再用 Taylor 公式描述更高阶的局部变化。本章依据教材第三章，依次讨论导数、微分中值定理、Taylor 公式、不等式与凸函数以及导数的综合应用。学习的重点是从题目条件中辨认可以使用的定理，并把目标式转化为适当的函数值、导数或余项；计算中的技巧必须建立在可导性、区间条件和极限存在性已经核实的基础上。
+
+\section{导数}
+\label{sec:pei-diff-derivative}
+% 教材对应：PDF 第 1--17 页。
+
+\subsection{导数定义与可微性的判定}
+
+\begin{definition}
+设实函数 $f$ 在 $x_0$ 的某邻域内有定义。若有限极限
+\begin{equation}
+  f'(x_0)=\lim_{h\to0}\frac{f(x_0+h)-f(x_0)}{h}
+  \label{eq:pei-diff-derivative-definition}
+\end{equation}
+存在，则称 $f$ 在 $x_0$ 处\emph{可导（differentiable）}。若存在常数 $A$，使
+\begin{equation}
+  f(x_0+h)=f(x_0)+Ah+o(h),\qquad h\to0,
+  \label{eq:pei-diff-differentiability}
+\end{equation}
+则称 $f$ 在 $x_0$ 处\emph{可微}，并记 $\mathrm{d}f=A\,\mathrm{d}x$。一元实函数在一点可导与可微等价，且 $A=f'(x_0)$；这里 $r(h)=o(h)$ 表示 $r(h)/h\to0$。
+\end{definition}
+
+上述等价性直接来自差商极限：若差商趋于 $A$，则余项为 $h$ 乘以趋于零的量；反之，将式~\eqref{eq:pei-diff-differentiability} 除以 $h\ne0$ 即得导数。它也说明可导必连续，因为 $Ah+o(h)\to0$。在分段点，应先检验函数值与两侧极限是否一致，再分别计算左右差商；左右导数都存在且相等，才有双侧导数。只计算两段表达式的导数并令其极限相等，不能替代对分段点本身的检验。
+
+\begin{proposition}
+\label{prop:pei-diff-caratheodory}
+函数 $f$ 在 $x_0$ 处可导，当且仅当存在一个在 $x_0$ 连续的函数 $g$，使其在 $x_0$ 的某邻域内满足
+\[
+  f(x)-f(x_0)=(x-x_0)g(x).
+\]
+此时 $g(x_0)=f'(x_0)$。
+\end{proposition}
+\begin{proof}
+必要性只需对 $x\ne x_0$ 取 $g(x)=[f(x)-f(x_0)]/(x-x_0)$，并定义 $g(x_0)=f'(x_0)$。充分性则由差商等于 $g(x)$ 及其在 $x_0$ 的连续性得到。这一形式把可导性转化为连续因子的存在，尤其适合处理含 $(x-x_0)$ 的乘积。
+\end{proof}
+
+\begin{example}
+\label{ex:pei-diff-oscillation-derivative}
+对正整数 $m$，令
+\[
+ f_m(x)=\begin{cases}x^m\sin(1/x),&x\ne0,\\0,&x=0.\end{cases}
+\]
+讨论它在原点的连续性、可导性及导函数的连续性。
+\end{example}
+\begin{solve}
+由 $|f_m(x)|\le |x|^m$，所有这些函数在原点都连续。原点处的差商为 $x^{m-1}\sin(1/x)$，故 $m\ge2$ 时可导且 $f_m'(0)=0$；$m=1$ 时差商振荡，导数不存在。对 $x\ne0$，
+\[
+ f_m'(x)=mx^{m-1}\sin(1/x)-x^{m-2}\cos(1/x).
+\]
+所以 $m\ge3$ 时 $f_m'(x)\to0=f_m'(0)$，而 $m=2$ 时导函数不连续。由此可见，\emph[caution]{可导不蕴含导函数连续}；在原点附近可用求导公式，并不意味着该公式可以不经检验地代入原点。
+\end{solve}
+
+
+\begin{example}
+\label{ex:pei-diff-riemann-nondifferentiable}
+令 $R$ 为 $[0,1]$ 上的 Riemann 函数，也称 Thomae 函数：若 $x=p/q\in(0,1)$ 为既约分数，取 $R(x)=1/q$；若 $x$ 为无理数或 $x=0,1$，取 $R(x)=0$。证明它在每个内点都不可导，且两个端点的相应单侧导数也不存在。
+\end{example}
+\begin{solve}
+在内部有理点 $p/q$，沿无理点趋近时函数值恒为零，与 $R(p/q)>0$ 不符，故函数不连续，从而不可导。设 $x_0\in(0,1)$ 为无理数，并取十进制截断 $r_n=\lfloor10^n x_0\rfloor/10^n$。当 $n$ 充分大时 $r_n\in(0,1)$，其既约分母至多为 $10^n$，且 $0<x_0-r_n<10^{-n}$，因而
+\[
+ \left|\frac{R(r_n)-R(x_0)}{r_n-x_0}\right|\ge1.
+\]
+另一方面，沿无理点趋近 $x_0$ 的差商恒为零，因此双侧导数不存在。在 $0$ 处沿 $1/q\to0$ 的右差商为 $1$，沿无理点的右差商为零；在 $1$ 处沿 $(q-1)/q\to1$ 的左差商为 $-1$，沿无理点则为零。两端的单侧导数也不存在。
+\end{solve}
+
+\begin{notealert}[type=caution,title={对称差商不能替代导数}]
+可导必推出 $[f(x_0+h)-f(x_0-h)]/(2h)\to f'(x_0)$，逆命题不成立。例如 $f(x)=|x|$ 在原点的对称差商恒为零，但左右导数分别为 $-1$ 与 $1$。证明不可导时，只需找到两列趋近方式给出不同的差商极限，或证明连续性等必要条件不成立。
+\end{notealert}
+
+\subsection{由差分条件恢复导数}
+
+\begin{proposition}
+\label{prop:pei-diff-dyadic-derivative}
+设 $f$ 在原点连续，且
+\[
+ \lim_{x\to0}\frac{f(2x)-f(x)}{x}=A\in\mathbb R.
+\]
+则 $f'(0)$ 存在且等于 $A$。
+\end{proposition}
+\begin{proof}
+任给 $\varepsilon>0$，取 $\delta>0$，使 $0<|t|<\delta$ 时有
+$|f(2t)-f(t)-At|\le\varepsilon|t|$。固定 $0<|x|<\delta$，依次取 $t=x/2^k$，将 $k=1,\ldots,n$ 对应的不等式相加，得
+\[
+ \left|f(x)-f(x/2^n)-Ax(1-2^{-n})\right|
+ \le\varepsilon|x|(1-2^{-n}).
+\]
+先让 $n\to\infty$，利用原点连续性得到
+$|f(x)-f(0)-Ax|\le\varepsilon|x|$，再按导数定义得结论。这里对固定的 $x$ 先作有限次伸缩与求和，避免了预先假定待证差商有极限。
+\end{proof}
+
+\begin{remark}
+原点连续性不能删除。例如令 $f(0)=0$，而 $x\ne0$ 时 $f(x)=1$，则 $f(2x)-f(x)=0$，但原点不可导。即使已经知道 $f(2x)-f(x)=Ax+o(x)$，也不能直接设 $[f(x)-f(0)]/x$ 有极限后解方程；只有独立证明极限存在，这种运算才成立。
+\end{remark}
+
+\begin{proposition}
+\label{prop:pei-diff-uniform-differentiability}
+设 $f$ 在 $[a,b]$ 上可导，端点按向内的单侧导数理解。则 $f'\in C([a,b])$ 当且仅当 $f$ 在该区间上\emph{一致可微（uniformly differentiable）}，即对每个 $\varepsilon>0$，存在 $\delta>0$，使对所有满足 $x,x+h\in[a,b]$、$0<|h|<\delta$ 的 $x,h$，都有
+\[
+ \left|\frac{f(x+h)-f(x)}h-f'(x)\right|<\varepsilon.
+\]
+\end{proposition}
+\begin{proof}
+若 $f'$ 连续，则它在紧区间上一致连续；对 $[x,x+h]$ 应用 Lagrange 中值定理，差商等于两端之间某点的导数，故上述估计对所有 $x$ 一致成立。反之，固定 $x_0$ 和 $\varepsilon$，选一个足够小且使 $x_0+h\in(a,b)$ 的非零 $h$；在 $x_0$ 的相对邻域内，$x+h$ 仍在区间中。一致可微性使 $f'(x)$ 与连续函数 $[f(x+h)-f(x)]/h$ 的差一致小于 $\varepsilon$。再令 $x\to x_0$，由两次这样的近似得 $\limsup_{x\to x_0}|f'(x)-f'(x_0)|\le2\varepsilon$，遂得连续性。
+\end{proof}
+
+\subsection{高阶导数与求导方法的选择}
+
+\emph{高阶导数（higher derivatives）}递归定义为 $f^{(n)}=(f^{(n-1)})'$，其中 $f^{(0)}=f$；声称某点有 $n$ 阶导数时，前一阶导函数须在该点附近有定义。求高阶导数通常先整理结构：三角乘积用积化和差降为基本频率的和，真分式尽量分解为简单分式，复合一次函数则保留链式法则产生的幂因子。例如
+\[
+ \frac{\mathrm d^n}{\mathrm dx^n}\sin(ax+b)
+ =a^n\sin\left(ax+b+\frac{n\pi}{2}\right),\qquad
+ \frac{\mathrm d^n}{\mathrm dx^n}\frac1{x-c}
+ =\frac{(-1)^n n!}{(x-c)^{n+1}}.
+\]
+这些公式分别在全部实数与 $x\ne c$ 的范围内使用；先拆项可以避免把简单结构掩盖在多次商法则之中。
+
+\begin{theorem}[Leibniz 公式]
+\label{thm:pei-diff-leibniz}
+若 $u,v$ 在某区间内具有直到 $n$ 阶导数，则
+\begin{equation}
+ (uv)^{(n)}=\sum_{k=0}^n\binom nk u^{(k)}v^{(n-k)}.
+ \label{eq:pei-diff-leibniz}
+\end{equation}
+更一般地，$m$ 个具有这些导数的函数满足
+\[
+ (u_1\cdots u_m)^{(n)}
+ =\sum_{k_1+\cdots+k_m=n}
+ \frac{n!}{k_1!\cdots k_m!}\prod_{j=1}^m u_j^{(k_j)},
+ \qquad k_j\ge0.
+\]
+\end{theorem}
+\begin{proof}
+$n=1$ 时为乘积法则。对 $n$ 阶公式逐项求导，并把相同的 $u^{(k)}v^{(n+1-k)}$ 合并，系数由
+$\binom nk+\binom n{k-1}=\binom{n+1}k$ 给出，完成归纳。多因子形式再按因子个数归纳，系数化简为多项式系数即可。
+\end{proof}
+
+直接反复求导时，应把前几阶的结构猜测写成命题，再用归纳法核实；若函数满足微分恒等式，则可对恒等式求导，将高阶导数变成递推问题。后一种方法在只求某点的导数时尤其有效，不必求出一般的 $f^{(n)}(x)$。与之不同，通过 Taylor 系数读取导数时，应先证明相应展开具有足够阶数的余项，不能只凭一个形式级数作结论。
+
+\begin{example}
+\label{ex:pei-diff-arcsin-recurrence}
+求 $y(x)=(\arcsin x)^2$ 在原点的各阶导数。
+\end{example}
+\begin{solve}
+在 $(-1,1)$ 内，直接求导得到
+\[
+ (1-x^2)y''-xy'=2.
+\]
+令 $a_n=y^{(n)}(0)$。由 $a_0=a_1=0$ 得 $a_2=2$；对恒等式求 $n$ 阶导数并代入原点，由 Leibniz 公式可得
+\[
+ a_{n+2}=n^2a_n,\qquad n\ge1.
+\]
+于是所有奇数阶导数为零，而
+\[
+ y^{(2m)}(0)=2\bigl((2m-2)!!\bigr)^2,\qquad m\ge1,
+\]
+其中 $0!!=1$。递推的起始值与奇偶两条链缺一不可。
+\end{solve}
+
+\begin{example}
+\label{ex:pei-diff-flat-function}
+令 $\phi(x)=e^{-1/x^2}$（$x\ne0$），$\phi(0)=0$。证明它无穷次可导，且每阶导数在原点都等于零。
+\end{example}
+\begin{solve}
+对任意 $N\ge0$，令 $t=1/x^2$，由 $t^{N/2}e^{-t}\to0$ 得
+$|x|^{-N}e^{-1/x^2}\to0$。在 $x\ne0$ 处反复求导，归纳得到 $\phi^{(n)}(x)=P_n(1/x)e^{-1/x^2}$，其中 $P_n$ 是多项式。若已知 $\phi^{(n)}(0)=0$，则 $\phi^{(n)}(h)/h\to0$，由定义得 $\phi^{(n+1)}(0)=0$；同一估计也说明该阶导函数在原点连续。逐阶归纳即得结论。这个例子说明，无穷次可导并不足以保证函数等于自己的 Taylor 级数。
+\end{solve}
+
+对不同方式给出的函数，应先确定求导变量及局部可解性。参数曲线 $x=x(t),y=y(t)$ 在 $x'(t)\ne0$ 处满足 $\mathrm dy/\mathrm dx=y'(t)/x'(t)$，再次求导须使用 $\mathrm d/\mathrm dx=[1/x'(t)]\mathrm d/\mathrm dt$。若 $F$ 在相关点的邻域内连续可微，且已知可微函数 $y=y(x)$ 满足 $F(x,y(x))=0$、$F_y\ne0$，则链式法则给出 $y'=-F_x/F_y$；函数 $y$ 的局部存在性应由题设或隐函数定理另行保证。反函数的求导同样要求局部可逆，并在相应点满足原函数导数非零。
+
+\section{微分中值定理}
+\label{sec:pei-diff-mean-value}
+% 教材对应：PDF 第 17--50 页。
+
+\subsection{Rolle 定理、零点与辅助函数}
+
+\begin{theorem}[Fermat 定理与 Rolle 定理]
+若 $f$ 在内点 $c$ 取得局部极值且在 $c$ 可导，则 $f'(c)=0$。若 $f\in C([a,b])$，在 $(a,b)$ 内可导，且 $f(a)=f(b)$，则存在 $c\in(a,b)$ 使 $f'(c)=0$。
+\end{theorem}
+\begin{proof}
+以内点极大值为例，充分小的正、负 $h$ 对应的差商分别非正、非负；若它们有共同极限，该极限只能为零。对 Rolle 定理，常函数的结论直接成立；非常函数在紧区间上取得最大值与最小值，由两端值相等，至少有一个非平凡极值在内点取得，遂应用前一结论。
+\end{proof}
+
+Rolle 定理把两个函数零点转化为其间的一个导数零点。反复使用可知：若 $f$ 在区间内 $n$ 次可导且有 $n+1$ 个不同零点，则 $f^{(n)}$ 至少有一个零点。需要证明零点唯一时，则可证明函数严格单调，或反设有两个零点再推出导数出现不可能的零点。\emph[tip]{目标中若出现 $f'-\lambda f$，可先乘以积分因子}，因为
+\[
+ (e^{-\lambda x}f(x))'=e^{-\lambda x}(f'(x)-\lambda f(x)).
+\]
+因此，$f$ 的两个零点之间至少有一个 $f'-\lambda f$ 的零点；对若干实数 $\lambda_j$ 依次使用，就能处理 $(D-\lambda_1)\cdots(D-\lambda_n)f$，其中 $D$ 表示求导算子。
+
+\begin{example}
+\label{ex:pei-diff-real-roots}
+设实系数 $n$ 次多项式 $P$ 的全部根均为实数。证明 $P',\ldots,P^{(n-1)}$ 的全部根也都是实数。
+\end{example}
+\begin{solve}
+设 $P$ 的不同实根为 $r_1<\cdots<r_m$，重数分别为 $k_1,\ldots,k_m$，且 $\sum k_j=n$。在 $r_j$ 处，$P'$ 至少保留 $k_j-1$ 重根；相邻不同根之间，Rolle 定理另给出一个实根。合计实根重数至少为
+\[
+ \sum_{j=1}^m(k_j-1)+(m-1)=n-1.
+\]
+而 $P'$ 的次数正是 $n-1$，故其根全部为实数。对各阶导数重复论证即可。计数时必须同时考虑原有重根及根间新增的根。
+\end{solve}
+
+\begin{example}
+\label{ex:pei-diff-legendre-roots}
+对 $n\ge1$，证明 Legendre 多项式
+\[
+ P_n(x)=\frac1{2^n n!}\frac{\mathrm d^n}{\mathrm dx^n}(x^2-1)^n
+\]
+在 $(-1,1)$ 内有 $n$ 个不同的实根。
+\end{example}
+\begin{solve}
+令 $Q(x)=(x^2-1)^n$。它在 $-1,1$ 各有 $n$ 重零点。对 $k=0,\ldots,n$ 归纳：$Q^{(k)}$ 在 $(-1,1)$ 至少有 $k$ 个不同零点，而 $k<n$ 时两个端点仍为零点。将这些零点依次排列，在相邻零点间使用 Rolle 定理，得到下一阶导数的至少 $k+1$ 个内部零点。故 $Q^{(n)}$ 有至少 $n$ 个内部零点；它本身只有 $n$ 次，所以恰有这些根且均为单根。
+\end{solve}
+
+需要证明一个复杂的中值等式时，可先把目标写成 $F'(c)=0$，再检查能否让 $F(a)=F(b)$。例如 $f,g,h$ 在 $[a,b]$ 连续、在内部可导时，取
+\[
+ F(x)=\begin{vmatrix}
+ f(a)&g(a)&h(a)\\f(b)&g(b)&h(b)\\f(x)&g(x)&h(x)
+ \end{vmatrix}.
+\]
+两端均有重复行，故 $F(a)=F(b)=0$，于是存在 $c\in(a,b)$，使把第三行换成 $(f'(c),g'(c),h'(c))$ 后的行列式为零。这是把端点条件直接编码到辅助函数中的一种方法。
+
+\subsection{Lagrange 定理与增量估计}
+
+\begin{theorem}[Lagrange 中值定理]
+\label{thm:pei-diff-lagrange}
+若 $f\in C([a,b])$ 且在 $(a,b)$ 内可导，则存在 $c\in(a,b)$ 使
+\begin{equation}
+ f(b)-f(a)=f'(c)(b-a).
+ \label{eq:pei-diff-lagrange}
+\end{equation}
+\end{theorem}
+\begin{proof}
+对 $F(x)=f(x)-f(a)-[f(b)-f(a)](x-a)/(b-a)$ 应用 Rolle 定理即可。几何上，割线的斜率等于区间内某条切线的斜率，但定理一般不确定 $c$ 的具体位置。
+\end{proof}
+
+若 $|f'|\le M$，式~\eqref{eq:pei-diff-lagrange} 给出 $|f(y)-f(x)|\le M|y-x|$，即 \emph{Lipschitz 条件（Lipschitz condition）}，从而一致连续。若 $f'\equiv0$，则 $f$ 为常数；若 $f'\ge0$，则 $f$ 单调不减。严格递增不要求每一点导数都为正，例如 $x^3$ 在原点的导数为零；而 $f'>0$ 是严格递增的充分条件。比较两条割线时，可以在相邻区间分别使用中值定理，再用两个中值点的位置关系比较导数，这比试图求出中值点更有效。
+
+\begin{example}
+\label{ex:pei-diff-increasing-derivative-chord}
+若 $f$ 在 $[a,b]$ 连续、在内部可导，$f'$ 严格递增且 $f(a)=f(b)$，证明 $a<x<b$ 时 $f(x)<f(a)$。
+\end{example}
+\begin{solve}
+分别对 $[a,x]$ 与 $[x,b]$ 使用中值定理，得到 $u\in(a,x)$、$v\in(x,b)$，使
+\[
+ \frac{f(x)-f(a)}{x-a}=f'(u)<f'(v)
+ =\frac{f(b)-f(x)}{b-x}.
+\]
+令 $f(a)=f(b)=A$，移项得 $(b-a)(f(x)-A)<0$，即得结论。这也预示了导数单调性与凸性的联系。
+\end{solve}
+
+\begin{example}
+\label{ex:pei-diff-sublinear}
+设 $f$ 在某半直线上可导。证明：若 $f'(x)\to0$（$x\to+\infty$），则 $f(x)/x\to0$；反过来，若 $f(x)/x\to0$，则至少有一列 $c_n\to+\infty$，使 $f'(c_n)\to0$。
+\end{example}
+\begin{solve}
+任给 $\varepsilon>0$，取 $A$ 使 $t>A$ 时 $|f'(t)|<\varepsilon$。对 $x>A$，中值定理给出
+$|f(x)|\le|f(A)|+\varepsilon(x-A)$；除以 $x$ 再令 $x\to\infty$，得所需极限。反向命题中，对充分大的正整数 $n$，在 $[n,2n]$ 上取中值点 $c_n$，则
+\[
+ f'(c_n)=\frac{f(2n)-f(n)}n
+ =2\frac{f(2n)}{2n}-\frac{f(n)}n\longrightarrow0.
+\]
+反向只能保证这样一列点，不能推出整个导函数趋于零，例如有界函数 $f(x)=\sin x$ 的导函数 $\cos x$ 没有极限。
+\end{solve}
+
+\begin{example}
+\label{ex:pei-diff-differential-uniqueness}
+设 $f$ 在 $[0,+\infty)$ 上连续、在 $(0,+\infty)$ 内可导，$f(0)=0$，并存在常数 $A\ge0$ 使 $|f'(x)|\le A|f(x)|$ 对所有 $x>0$ 成立。证明 $f\equiv0$。
+\end{example}
+\begin{solve}
+$A=0$ 时由中值定理即可。设 $A>0$，取 $\ell>0$ 使 $A\ell<1$。在 $[0,\ell]$ 上令 $M=\max|f|$，对每个 $x$ 使用中值定理，有 $|f(x)|\le AxM\le A\ell M$，于是 $M\le A\ell M$，只能有 $M=0$。已知 $f(\ell)=0$ 后，在 $[\ell,2\ell]$ 重复同一论证，逐段推进即得结论。此处的有限区间最大值来自连续性，推进步长由 $A$ 统一控制。
+\end{solve}
+
+\subsection{导数的介值性与间断点}
+
+\begin{theorem}[Darboux 定理]
+\label{thm:pei-diff-darboux}
+设 $f$ 在一个区间内处处可导。若 $u<v$ 且 $\lambda$ 严格介于 $f'(u)$ 与 $f'(v)$ 之间，则存在 $c\in(u,v)$ 使 $f'(c)=\lambda$。这一性质称为导数的\emph{介值性（intermediate value property）}。
+\end{theorem}
+\begin{proof}
+先设 $f'(u)<\lambda<f'(v)$，令 $F(x)=f(x)-\lambda x$。由 $F'(u)<0$ 可知，$u$ 右侧有点使函数值小于 $F(u)$；由 $F'(v)>0$ 可知，$v$ 左侧也有点使函数值小于 $F(v)$。连续函数 $F$ 在 $[u,v]$ 达到最小值，而两端均不能为最小值点，故在内点 $c$ 有 $F'(c)=0$。另一种次序对 $-f$ 使用同一论证即可。证明没有假定 $f'$ 连续。
+\end{proof}
+
+\begin{proposition}
+\label{prop:pei-diff-derivative-no-jump}
+若 $f$ 在 $x_0$ 的某邻域内处处可导，且有限单侧极限 $\lim_{x\to x_0+}f'(x)=L$ 存在，则 $L=f'(x_0)$；左侧同理。因此导函数没有可去间断点或跳跃间断点，它的间断点只能是第二类间断点。
+\end{proposition}
+\begin{proof}
+对 $h>0$，中值定理给出
+$[f(x_0+h)-f(x_0)]/h=f'(c_h)$，其中 $x_0<c_h<x_0+h$。当 $h\to0+$ 时，左端趋于 $f'(x_0)$，右端趋于 $L$。若左右有限极限都存在，它们都必须等于函数值，故导函数在该点连续。
+\end{proof}
+
+\begin{example}
+\label{ex:pei-diff-bounded-second-zero}
+设 $f$ 在 $\mathbb R$ 上二次可导且有界，证明存在 $c\in\mathbb R$ 使 $f''(c)=0$。
+\end{example}
+\begin{solve}
+反设 $f''$ 处处不为零。因它也是导函数，由 Darboux 定理，$f''$ 只能恒正或恒负。设恒正，则 $f'$ 严格递增。若某点 $x_0$ 有 $f'(x_0)>0$，则在其右侧 $f'(x)\ge f'(x_0)>0$，由中值定理得 $f$ 向右无界；若 $f'(x_0)<0$，向左作相同估计也使 $f$ 无界。若每点的 $f'$ 都为零，又与严格递增矛盾。恒负的情形对 $-f$ 处理。故反设不成立。
+\end{solve}
+
+\subsection{Cauchy 中值定理与 L'Hospital 法则}
+
+\begin{theorem}[Cauchy 中值定理]
+\label{thm:pei-diff-cauchy}
+设 $F,G\in C([a,b])$，在 $(a,b)$ 内可导，则存在 $c\in(a,b)$，使
+\[
+ [F(b)-F(a)]G'(c)=[G(b)-G(a)]F'(c).
+\]
+若进一步有 $G'(x)\ne0$ 对所有 $x\in(a,b)$ 成立，则 $G(b)\ne G(a)$，且
+\begin{equation}
+ \frac{F(b)-F(a)}{G(b)-G(a)}=\frac{F'(c)}{G'(c)}.
+ \label{eq:pei-diff-cauchy}
+\end{equation}
+\end{theorem}
+\begin{proof}
+对 $[F(b)-F(a)]G(x)-[G(b)-G(a)]F(x)$ 使用 Rolle 定理可得第一式。如果 $G(b)=G(a)$，Rolle 定理会迫使某处 $G'=0$，故在附加条件下可除以相应的两个量，得到比值形式。分别对 $F,G$ 使用 Lagrange 定理所产生的中值点一般不同，不能因此直接得到同一点 $c$ 的比值公式。
+\end{proof}
+
+\begin{theorem}[L'Hospital 法则的常用形式]
+\label{thm:pei-diff-lhospital}
+设 $f,g$ 在趋近点的某个单侧去心邻域内可导，$g'$ 处处非零，且 $f'/g'\to L$，其中 $L$ 可以是有限数或正、负无穷。若满足 $f\to0$、$g\to0$，或满足 $|g|\to\infty$，则 $f/g\to L$。趋近点也可为正、负无穷；在第二种情形中不必另假定 $f$ 本身趋于无穷。
+\end{theorem}
+\begin{proof}
+先说明有限趋近点、$0/0$ 型的情形。把端点函数值补为零，对端点与邻近点之间应用式~\eqref{eq:pei-diff-cauchy}，所得中值点趋于该端点，故比值趋于 $L$。对 $|g|\to\infty$ 型，固定一个足够靠近趋近端的点 $t$，有
+\[
+ \frac{f(x)}{g(x)}
+ =\frac{f(x)-f(t)}{g(x)-g(t)}
+   \left(1-\frac{g(t)}{g(x)}\right)+\frac{f(t)}{g(x)}.
+\]
+若 $L$ 有限，先选 $t$ 使其与趋近端之间的全部导数比都与 $L$ 相差小于给定的 $\varepsilon$；Cauchy 定理使上式中的差分比也满足此估计。再令 $x$ 趋近该端，另两项中的固定点比值趋于零，便得结论。若 $L$ 为无穷，则以任意给定实数为界，对导数比作相应的单侧估计，沿用同一式子即可；无穷远端点的 $0/0$ 型可先对 $x,t$ 使用 Cauchy 定理，再令 $t$ 趋向无穷远端点。
+\end{proof}
+
+\begin{notealert}[type=caution,title={使用法则前先辨认条件}]
+L'Hospital 法则的逻辑是从导数比的极限推出原比值的极限，导数比没有极限时不能反推原比值没有极限。例如 $(x+\sin x)/x\to1$，而导数比 $1+\cos x$ 无极限。遇到 $0\cdot\infty$、$\infty-\infty$ 或幂型未定式，应先作代数变形或取对数，转成满足条件的比值；每次重复使用，都要重新核实可导性、分母导数非零及未定式类型。
+\end{notealert}
+
+\begin{example}
+\label{ex:pei-diff-f-plus-derivative}
+设 $f$ 在某半直线上可导，且 $f(x)+f'(x)\to A\in\mathbb R$。证明 $f(x)\to A$ 且 $f'(x)\to0$。
+\end{example}
+\begin{solve}
+将 $f(x)$ 写成 $[e^x f(x)]/e^x$。分母趋于无穷，其导数非零，而导数比为
+\[
+ \frac{(e^xf(x))'}{(e^x)'}=f(x)+f'(x)\longrightarrow A.
+\]
+由定理~\ref{thm:pei-diff-lhospital} 的无穷分母形式得 $f(x)\to A$，再由 $f'=(f+f')-f$ 得 $f'(x)\to0$。使用此法不需要预先知道分子 $e^xf(x)$ 的极限。
+\end{solve}
+
+\subsection{对称导数与连续性条件}
+
+教材附录讨论了导数的推广。对内点 $x$，若极限存在，可分别定义\emph{对称导数（symmetric derivative）}与\emph{二阶对称差商极限}
+\[
+ D_s f(x)=\lim_{h\to0}\frac{f(x+h)-f(x-h)}{2h},\qquad
+ D_s^2 f(x)=\lim_{h\to0}\frac{f(x+h)-2f(x)+f(x-h)}{h^2}.
+\]
+这里的 $D_s^2$ 表示二阶对称差商的极限，不是对 $D_s f$ 再求一次对称导数。普通一、二阶导数存在时，相应的对称差商极限分别等于 $f'$、$f''$，二阶情形可由定理~\ref{thm:pei-diff-taylor-peano} 的展开式看出；逆命题一般不成立。特别地，一阶对称差商不含中心点的函数值，所以它存在甚至不保证函数在该点连续。连续性等正则条件在推广结论中须单独核实。
+
+\begin{proposition}[Schwarz 型结论]
+\label{prop:pei-diff-symmetric-affine}
+设 $f\in C([a,b])$，且对所有 $x\in(a,b)$，$D_s^2 f(x)$ 都存在并等于零。则 $f$ 在 $[a,b]$ 上为仿射函数，即 $f(x)=\alpha x+\beta$。
+\end{proposition}
+\begin{proof}
+设 $L$ 为连接两个端点的仿射函数，令 $K=f-L$，于是 $K(a)=K(b)=0$ 且 $D_s^2K=0$。任给 $\varepsilon>0$，函数
+$K_\varepsilon(x)=K(x)+\varepsilon(x-a)(x-b)$ 的二阶对称差商极限为 $2\varepsilon>0$。若它有正值，由连续性及端点值为零，必在内点取得正的最大值；但最大值点的二阶对称差商均非正，矛盾。因此 $K_\varepsilon\le0$。对 $K(x)-\varepsilon(x-a)(x-b)$ 同理可知它非负。令 $\varepsilon\to0$，得到 $K\equiv0$。
+\end{proof}
+
+\section{Taylor 公式}
+\label{sec:pei-diff-taylor}
+% 教材对应：PDF 第 50--68 页。
+
+\subsection{两种余项及其使用范围}
+
+\begin{theorem}[带 Lagrange 余项的 Taylor 公式]
+\label{thm:pei-diff-taylor-lagrange}
+设 $n\ge0$，$f$ 在连接 $x_0,x$ 的闭区间上有连续的直到 $n$ 阶导数，并在内部有 $n+1$ 阶导数。则存在严格位于 $x_0,x$ 之间的 $\xi$，使
+\begin{equation}
+ f(x)=\sum_{k=0}^n\frac{f^{(k)}(x_0)}{k!}(x-x_0)^k
+       +\frac{f^{(n+1)}(\xi)}{(n+1)!}(x-x_0)^{n+1}.
+ \label{eq:pei-diff-taylor-lagrange}
+\end{equation}
+$n=0$ 时连续性条件只要求 $f$ 本身连续。
+\end{theorem}
+\begin{proof}
+设 $x\ne x_0$，记前面的 $n$ 次多项式为 $T_n(t)$，并取常数 $K$ 使
+$F(t)=f(t)-T_n(t)-K(t-x_0)^{n+1}$ 在 $t=x$ 时为零。它在 $x_0$ 的直到 $n$ 阶导数都为零；反复使用 Rolle 定理，可得内点 $\xi$ 使 $F^{(n+1)}(\xi)=0$。所以 $K=f^{(n+1)}(\xi)/(n+1)!$，代回即得公式。$x=x_0$ 时等式直接成立，无须选取中值点。
+\end{proof}
+
+\begin{theorem}[带 Peano 余项的 Taylor 公式]
+\label{thm:pei-diff-taylor-peano}
+设 $n\ge1$，$f$ 在 $x_0$ 的某邻域内有直到 $n-1$ 阶导数，且 $f^{(n-1)}$ 在 $x_0$ 可导。则
+\begin{equation}
+ f(x)=\sum_{k=0}^n\frac{f^{(k)}(x_0)}{k!}(x-x_0)^k
+       +o\bigl((x-x_0)^n\bigr),\qquad x\to x_0.
+ \label{eq:pei-diff-taylor-peano}
+\end{equation}
+\end{theorem}
+\begin{proof}
+记差值为 $r(x)=f(x)-T_n(x)$。当 $n=1$ 时，结论就是可导的定义。当 $n\ge2$ 时，连续使用 $0/0$ 型 L'Hospital 法则到 $n-1$ 次，把 $r(x)/(x-x_0)^n$ 的极限归结为
+\[
+ \lim_{x\to x_0}
+ \frac{f^{(n-1)}(x)-f^{(n-1)}(x_0)-f^{(n)}(x_0)(x-x_0)}{n!(x-x_0)}=0.
+\]
+最后一步用 $f^{(n-1)}$ 在 $x_0$ 可导，不需要假定 $f^{(n)}$ 在去心邻域存在或连续。
+\end{proof}
+
+Lagrange 余项在一段区间上用某个中值点的高阶导数控制误差，适合证明不等式、构造中值公式与估计函数或导数的界；Peano 余项只描述展开点附近的阶数，适合局部极限、极值判别及系数比较。\emph[caution]{不能对一般的 $o(x^n)$ 余项任意求导}：例如 $r(x)=x^3\sin(1/x^2)$ 在原点补为零后满足 $r(x)=o(x^2)$，但对 $x\ne0$，$r'(x)=3x^2\sin(1/x^2)-2\cos(1/x^2)$，并不趋于零。求导后的余项必须另有依据。
+
+\subsection{中值公式、不等式与导数估计}
+
+Taylor 公式的展开点应由条件决定：已知某点的若干阶导数为零，就围绕该点展开；含两个端点的函数值，可以向同一内点展开并消去一阶项；含对称的自变量，则分别在 $x_0\pm h$ 展开以消去奇次项或偶次项。若已知 $f^{(n+1)}$ 的符号，式~\eqref{eq:pei-diff-taylor-lagrange} 还给出了函数与 Taylor 多项式的大小关系，其中必须连同 $(x-x_0)^{n+1}$ 的符号一起判断。
+
+\begin{example}
+\label{ex:pei-diff-second-difference}
+设 $f\in C^2([a,b])$，$m=(a+b)/2$。证明存在 $c\in(a,b)$，使
+\[
+ f(a)-2f(m)+f(b)=\frac{(b-a)^2}{4}f''(c).
+\]
+\end{example}
+\begin{solve}
+将两个端点在 $m$ 处展开到一次项，得
+\[
+ f(a)-2f(m)+f(b)
+ =\frac{(b-a)^2}{8}\bigl(f''(\xi)+f''(\eta)\bigr),
+ \quad \xi\in(a,m),\quad\eta\in(m,b).
+\]
+由 $f''$ 的连续性，它在 $\xi,\eta$ 之间取得两值的平均数，即得结论。两个展开式的中值点一般不同；将它们合并成同一个点，需要介值性这样的额外依据。
+\end{solve}
+
+\begin{example}
+\label{ex:pei-diff-curvature-bound}
+设 $f\in C^2([0,1])$，$f(0)=f(1)=0$，且 $\min_{[0,1]}f=-1$。证明存在 $c\in(0,1)$ 使 $f''(c)\ge8$。
+\end{example}
+\begin{solve}
+取内点 $x_0$ 使 $f(x_0)=-1$，则 $f'(x_0)=0$。向两个端点展开，分别得到
+\[
+ 1=\tfrac12f''(\xi)x_0^2,\qquad
+ 1=\tfrac12f''(\eta)(1-x_0)^2.
+\]
+因为 $\min\{x_0,1-x_0\}\le1/2$，相应一个中值点的二阶导数至少为 $8$。常数 $8$ 可由 $f(x)=4x(x-1)$ 达到，因此不能改大。
+\end{solve}
+
+\begin{example}
+\label{ex:pei-diff-finite-interval-bound}
+设 $f\in C^2([0,1])$，$|f(x)|\le1$，$|f''(x)|\le2$。证明 $|f'(x)|\le3$。
+\end{example}
+\begin{solve}
+固定 $x\in(0,1)$，把 $f(0),f(1)$ 都在 $x$ 处展开。相减后有
+\[
+ f(1)-f(0)=f'(x)+\tfrac12f''(\xi)(1-x)^2
+                         -\tfrac12f''(\eta)x^2.
+\]
+故 $|f'(x)|\le2+(1-x)^2+x^2\le3$。端点处由 $f'$ 连续取极限得到同一估计。这里把两端向同一点展开，正是为了得到系数为 $1$ 的 $f'(x)$。
+\end{solve}
+
+\begin{proposition}[全实轴上的导数界]
+\label{prop:pei-diff-landau-bound}
+设 $f$ 在 $\mathbb R$ 上二次可导，且
+$M_0=\sup_{\mathbb R}|f|<\infty$、$M_2=\sup_{\mathbb R}|f''|<\infty$。则 $M_1=\sup_{\mathbb R}|f'|<\infty$，并且
+\begin{equation}
+ M_1^2\le2M_0M_2.
+ \label{eq:pei-diff-landau-bound}
+\end{equation}
+\end{proposition}
+\begin{proof}
+对任意 $x\in\mathbb R$、$h>0$，向 $x+h$ 与 $x-h$ 展开再相减，得
+\[
+ 2h|f'(x)|\le2M_0+M_2h^2,
+ \qquad |f'(x)|\le\frac{M_0}{h}+\frac{M_2h}{2}.
+\]
+若 $M_0M_2>0$，取 $h=\sqrt{2M_0/M_2}$，右端为 $\sqrt{2M_0M_2}$，对 $x$ 取上确界即得结论。若 $M_0=0$，则 $f\equiv0$；若 $M_2=0$，则 $f$ 为仿射函数，再由全实轴上有界知它为常数。任意选择正步长的自由依赖于定义域为整个实轴，不能直接在有限区间套用同一常数。
+\end{proof}
+
+\subsection{无穷远处的极限与中间阶导数}
+
+\begin{proposition}
+\label{prop:pei-diff-limit-bounded-second}
+设 $f$ 在某半直线上二次可导，$\lim_{x\to+\infty}f(x)$ 存在且有限，且 $|f''|\le M$。则 $f'(x)\to0$。
+\end{proposition}
+\begin{proof}
+固定 $h>0$，由 Taylor 公式，
+\[
+ |f'(x)|\le\frac{|f(x+h)-f(x)|}{h}+\frac{Mh}{2}.
+\]
+先保持 $h$ 不变令 $x\to+\infty$，利用函数极限有限，得 $\limsup|f'(x)|\le Mh/2$。这一估计对任意 $h>0$ 都成立，再令 $h\to0+$，即得结论。这两个极限有先后顺序，并没有交换极限运算。
+\end{proof}
+
+\begin{proposition}
+\label{prop:pei-diff-intermediate-derivative-limit}
+设 $n\ge2$，$f$ 在某半直线上有 $n$ 阶导数，且 $f(x)\to A\in\mathbb R$、$f^{(n)}(x)\to0$。则 $f^{(j)}(x)\to0$ 对 $j=1,\ldots,n-1$ 都成立。
+\end{proposition}
+\begin{proof}
+对 $m=1,\ldots,n-1$，在 $x$ 处将 $f(x+m)$ 展开到 $n-1$ 阶。因每个余项中的中值点位于 $[x,x+n-1]$，且 $f^{(n)}$ 趋于零，得到
+\[
+ f(x+m)-f(x)=\sum_{j=1}^{n-1}\frac{m^j}{j!}f^{(j)}(x)+o(1).
+\]
+左端都趋于零。这个关于 $f'(x),\ldots,f^{(n-1)}(x)$ 的线性方程组有常数系数矩阵 $(m^j/j!)$；从各行提出 $m$、各列提出 $1/j!$ 后，剩下的是节点 $1,\ldots,n-1$ 的 Vandermonde 矩阵，行列式非零。因此各个未知导数都是有限个趋零量的固定线性组合，结论成立。
+\end{proof}
+
+仅有 $f(x)$ 的极限有限，并不能断言 $f'(x)\to0$。例如 $f(x)=\sin(x^2)/x$ 在 $x\ge1$ 上趋于零，但 $f'(x)=2\cos(x^2)-\sin(x^2)/x^2$ 无极限；上面的有界高阶导数或高阶导数趋零条件，正是用来排除这种越来越快的振荡。
+
+\subsection{中值点的极限}
+
+\begin{proposition}
+\label{prop:pei-diff-mean-point-limit}
+设 $n\ge2$，$f\in C^n$ 于 $x_0$ 的某邻域，
+$f^{(2)}(x_0)=\cdots=f^{(n-1)}(x_0)=0$、$f^{(n)}(x_0)\ne0$；$n=2$ 时中间的零值条件为空。对每个充分小的非零 $h$，任取满足
+\[
+ \frac{f(x_0+h)-f(x_0)}h=f'(x_0+\theta(h)h),
+ \qquad 0<\theta(h)<1
+\]
+的中值参数。则
+\[
+ \lim_{h\to0}\theta(h)=n^{-1/(n-1)}.
+\]
+\end{proposition}
+\begin{proof}
+把左边的 $f$ 与右边的 $f'$ 都在 $x_0$ 展开，并消去共同的一阶导数项，得
+\[
+ \frac{f^{(n)}(x_0)}{n!}h^{n-1}+o(h^{n-1})
+ =\frac{f^{(n)}(x_0)}{(n-1)!}\theta(h)^{n-1}h^{n-1}
+  +o(h^{n-1}).
+\]
+右侧余项可统一写成 $o(h^{n-1})$，因为其原形式为 $o((\theta(h)h)^{n-1})$，且 $0<\theta(h)<1$。除以非零的 $f^{(n)}(x_0)h^{n-1}$，得到 $\theta(h)^{n-1}\to1/n$。由于 $\theta(h)>0$，便得所需极限。证明也说明，不必先假定 $\theta(h)$ 有极限或中值点唯一。
+\end{proof}
+
+\begin{example}
+\label{ex:pei-diff-arctan-mean-point}
+对 $f(x)=\arctan x$，若 $[f(h)-f(0)]/h=f'(\theta(h)h)$，求 $h\to0$ 时 $\theta(h)$ 的极限。
+\end{example}
+\begin{solve}
+因为 $f''(0)=0$、$f'''(0)=-2\ne0$，命题~\ref{prop:pei-diff-mean-point-limit} 取 $n=3$ 给出 $\theta(h)\to1/\sqrt3$。也可由 $\arctan h/h=1-h^2/3+o(h^2)$ 与 $1/[1+\theta(h)^2h^2]$ 比较得到同一结果。只有首个非零的高阶项为二阶时，中值参数才由这一论证趋于 $1/2$。
+\end{solve}
+
+\subsection{函数方程与展开系数的唯一性}
+
+\begin{example}
+\label{ex:pei-diff-fixed-mean-parameter}
+设 $f\in C^3(\mathbb R)$。假设存在固定的 $\theta\in(0,1)$，使对任意 $x$ 及充分小的 $h$ 恒有
+\[
+ f(x+h)-f(x)=h f'(x+\theta h).
+\]
+证明：$\theta\ne1/2$ 时 $f$ 为至多一次多项式；$\theta=1/2$ 时 $f$ 为至多二次多项式。
+\end{example}
+\begin{solve}
+在固定的 $x$ 处展开并除以 $h$，得
+\[
+ f'(x)+\tfrac12h f''(x)+\tfrac16h^2f'''(x)+o(h^2)
+ =f'(x)+\theta h f''(x)+\tfrac12\theta^2h^2f'''(x)+o(h^2).
+\]
+若 $\theta\ne1/2$，比较一次项得 $f''(x)=0$ 对每个 $x$ 成立。若 $\theta=1/2$，一次项抵消，比较二次项得 $(1/6-1/8)f'''(x)=0$，故 $f'''\equiv0$。逐次由中值定理得到所述多项式形式。这里的固定参数恒等式远强于中值定理中允许中值点随 $x,h$ 改变的存在性结论。
+\end{solve}
+
+\begin{proposition}[有限阶渐近展开的唯一性]
+\label{prop:pei-diff-taylor-unique}
+若在 $x\to x_0$ 时
+\[
+ f(x)=\sum_{k=0}^n a_k(x-x_0)^k+o((x-x_0)^n)
+     =\sum_{k=0}^n b_k(x-x_0)^k+o((x-x_0)^n),
+\]
+则 $a_k=b_k$ 对所有 $k=0,\ldots,n$ 成立。若 $f$ 满足定理~\ref{thm:pei-diff-taylor-peano} 的条件，这些系数必为 $f^{(k)}(x_0)/k!$。
+\end{proposition}
+\begin{proof}
+相减后得到一个多项式等于 $o((x-x_0)^n)$。若有系数不同，取最小的下标 $j$ 使 $a_j\ne b_j$，再除以 $(x-x_0)^j$ 并令 $x\to x_0$，左端趋于非零常数 $a_j-b_j$，右端趋于零，矛盾。后一结论由 Taylor 公式与唯一性比较得到，不能仅凭展开形式反推所有阶导数存在。
+\end{proof}
+
+\subsection{大小阶记号与求和中的一致控制}
+
+固定一个趋近过程，并设比较函数 $g$ 在相应去心邻域内非零。记 $r=O(g)$，表示存在常数 $C$ 使最终有 $|r|\le C|g|$；记 $r=o(g)$，表示 $r/g\to0$。特别地，$O(1)$ 只表示有界，$o(1)$ 才表示趋于零。有限个同阶小量可以相加，但当项数也趋于无穷时，必须控制每一项的误差是否对下标一致；仅仅把每项写成 $o(1)$，不足以推出总和也是 $o(1)$。
+
+\begin{example}
+\label{ex:pei-diff-uniform-small-remainders}
+设 $f(0)=0$ 且 $f'(0)=A$。求
+$\displaystyle\lim_{n\to\infty}\sum_{k=1}^n f(k/n^2)$。
+\end{example}
+\begin{solve}
+写 $f(t)=At+t\varepsilon(t)$，其中 $\varepsilon(t)\to0$。对充分大的 $n$，所有采样点都在 $(0,1/n]$ 内，令 $\eta_n=\sup_{0<t\le1/n}|\varepsilon(t)|$，则 $\eta_n\to0$。因此
+\[
+ \sum_{k=1}^n f(k/n^2)
+ =A\frac{n+1}{2n}+E_n,
+ \qquad |E_n|\le\eta_n\frac{n+1}{2n}\longrightarrow0.
+\]
+极限为 $A/2$。关键不在于每个固定下标的余项趋零，而在于全部采样点共同趋于展开点，且权重之和保持有界。
+\end{solve}
+
+\section{不等式与凸函数}
+\label{sec:pei-diff-convexity}
+% 教材对应：PDF 第 68--89 页。
+
+\subsection{用单调性、中值定理和余项证明不等式}
+
+将待证不等式写成 $F(x)\ge0$ 后，先寻找有利的基准点 $x_0$：若 $F(x_0)=0$，就可通过 $F'$ 的符号证明 $x_0$ 为最小值点；若 $F'$ 仍难判断，可继续求导，直到出现能确定符号的表达式，再逐层返回。中值定理适合把函数差转成导数的上下界，Taylor 公式适合让低阶项抵消后由高阶余项决定符号。对于“求所有参数，使不等式对所有自变量成立”，应将其转化为参数与某函数上确界或下确界的比较，再核实界是否达到以及原不等式是否严格。
+
+\begin{example}
+\label{ex:pei-diff-log-inequalities}
+证明对所有 $x>-1$，
+\[
+ \frac{x}{1+x}\le\ln(1+x)\le x,
+\]
+且两个等号都仅在 $x=0$ 成立。
+\end{example}
+\begin{solve}
+令 $F(x)=x-\ln(1+x)$、$G(x)=\ln(1+x)-x/(1+x)$，则
+\[
+ F'(x)=\frac{x}{1+x},\qquad G'(x)=\frac{x}{(1+x)^2}.
+\]
+二者在 $(-1,0)$ 上严格递减、在 $(0,+\infty)$ 上严格递增，且 $F(0)=G(0)=0$，所以都以零为唯一最小值。这个证明同时处理正、负 $x$；只在正半轴证明导数非负，并不足以得到整个定义域的结论。
+\end{solve}
+
+\begin{example}
+\label{ex:pei-diff-power-sum}
+设 $s\ge0$ 为实数、$n\ge1$ 为整数，证明
+\[
+ \frac{n^{s+1}}{s+1}\le\sum_{k=1}^n k^s
+ \le\frac{(n+1)^{s+1}-1}{s+1}.
+\]
+\end{example}
+\begin{solve}
+对 $H(t)=t^{s+1}/(s+1)$，分别在 $[k-1,k]$ 与 $[k,k+1]$ 上用中值定理。因为 $H'(t)=t^s$ 在正半轴单调不减，得到
+\[
+ H(k)-H(k-1)\le k^s\le H(k+1)-H(k).
+\]
+对 $k=1,\ldots,n$ 求和，函数增量依次抵消，即得所求界。$s=0$ 时函数增量直接等于 $1$，同样成立；$s>0$ 时两端均为严格不等式。此法把幂和比较转化为原函数的单位区间增量比较。
+\end{solve}
+
+\begin{example}
+\label{ex:pei-diff-best-constant}
+求使
+\[
+ \left(1+\frac1x\right)^{x+a}>e\qquad\text{对所有 }x>0
+\]
+成立的最小实数 $a$。
+\end{example}
+\begin{solve}
+取对数后，条件等价于
+$a>F(x)=1/\ln(1+1/x)-x$ 对所有 $x>0$ 成立。先证明 $F$ 严格递增。令
+$Q(t)=t/\sqrt{1+t}-\ln(1+t)$，则 $Q(0)=0$，且对 $t>0$，
+\[
+ Q'(t)=\frac{1+t/2-\sqrt{1+t}}{(1+t)^{3/2}}>0,
+\]
+因为 $(1+t/2)^2>1+t$。因此 $\ln(1+1/x)<1/\sqrt{x(x+1)}$，从而
+\[
+ F'(x)=\frac1{x(x+1)\ln^2(1+1/x)}-1>0.
+\]
+又由 $\ln(1+t)=t-t^2/2+o(t^2)$ 可得
+$F(x)=1/2+o(1)$（$x\to+\infty$）。严格递增且有极限说明 $F(x)<1/2$ 对每个有限 $x$ 成立，所以 $a=1/2$ 已满足原严格不等式；任意 $a<1/2$ 都会在足够大的 $x$ 处失败。故所求最小值为 $1/2$。上确界未达到，使最优参数仍可满足严格不等式。
+\end{solve}
+
+\subsection{凸性的定义、中点条件与 Jensen 不等式}
+
+\begin{definition}
+\label{def:pei-diff-convex}
+设 $I$ 为区间，$f:I\to\mathbb R$。若任意 $x,y\in I$ 及 $\lambda\in[0,1]$ 都满足
+\begin{equation}
+ f(\lambda x+(1-\lambda)y)
+ \le\lambda f(x)+(1-\lambda)f(y),
+ \label{eq:pei-diff-convex-definition}
+\end{equation}
+则称 $f$ 为\emph{凸函数（convex function）}。若 $x\ne y$、$0<\lambda<1$ 时不等式总是严格的，则称为\emph{严格凸函数（strictly convex function）}。把不等号反向得到凹函数与严格凹函数；等价地，$f$ 为凹函数当且仅当 $-f$ 为凸函数。
+\end{definition}
+
+这个约定表示函数图像位于任意弦的下方。若只要求
+$f((x+y)/2)\le[f(x)+f(y)]/2$，称为\emph{中点凸（midpoint convex）}。完整凸性必推出中点凸性；反向则需要正则条件。例如，当 $f$ 连续时，反复二等分可先证明式~\eqref{eq:pei-diff-convex-definition} 对所有二进有理权重成立，再利用这些权重在 $[0,1]$ 中稠密及函数连续性，推广到任意权重。\emph[caution]{不能删去正则条件，直接把中点不等式当作完整凸性的定义}。
+
+\begin{theorem}[Jensen 不等式]
+\label{thm:pei-diff-jensen}
+若 $f$ 在区间 $I$ 上为凸函数，$x_1,\ldots,x_n\in I$，$\lambda_i\ge0$ 且 $\sum_{i=1}^n\lambda_i=1$，则
+\begin{equation}
+ f\left(\sum_{i=1}^n\lambda_i x_i\right)
+ \le\sum_{i=1}^n\lambda_i f(x_i).
+ \label{eq:pei-diff-jensen}
+\end{equation}
+若 $f$ 严格凸，则等号当且仅当所有正权重所对应的 $x_i$ 相同。
+\end{theorem}
+\begin{proof}
+零权重可以删除。对正权重的个数归纳：两个点时就是定义；若结论对 $n-1$ 个点成立，将前 $n-1$ 个点合并成加权均值
+$z=(\sum_{i<n}\lambda_i x_i)/(1-\lambda_n)$，先对 $z,x_n$ 使用凸性，再对 $z$ 使用归纳假设。严格凸时，任意一次合并了不同的正权重点都会产生严格不等式；只有所有这些点都相同时才能始终取等号。
+\end{proof}
+
+\begin{example}
+\label{ex:pei-diff-weighted-amgm}
+设 $a_i>0$、$\lambda_i>0$、$\sum\lambda_i=1$。由 $\ln t$ 在 $(0,+\infty)$ 上严格凹，
+\[
+ \sum_i\lambda_i\ln a_i\le\ln\left(\sum_i\lambda_i a_i\right),
+ \qquad
+ \prod_i a_i^{\lambda_i}\le\sum_i\lambda_i a_i.
+\]
+两式等号都当且仅当 $a_1=\cdots=a_n$。这是加权算术平均与几何平均不等式；使用对数前的正值条件和严格凹性给出的等号条件都应保留。
+\end{example}
+
+\subsection{割线、单侧导数与支撑直线}
+
+\begin{proposition}
+\label{prop:pei-diff-convex-slopes}
+函数 $f$ 在区间 $I$ 上凸，当且仅当任意 $u<v<w$ 都有
+\begin{equation}
+ \frac{f(v)-f(u)}{v-u}
+ \le\frac{f(w)-f(u)}{w-u}
+ \le\frac{f(w)-f(v)}{w-v}.
+ \label{eq:pei-diff-convex-slopes}
+\end{equation}
+\end{proposition}
+\begin{proof}
+写 $v=\lambda u+(1-\lambda)w$，其中 $\lambda=(w-v)/(w-u)$。把定义中的凸性不等式乘以 $w-u$ 并移项，即得两条割线斜率不等式。反过来，任取两点之间的凸组合，可由相同变形还原定义。几何上，这表示从左到右的割线斜率依次增大。
+\end{proof}
+
+\begin{proposition}
+\label{prop:pei-diff-convex-local-properties}
+有限值凸函数在定义区间的每个内部紧子区间上满足 Lipschitz 条件，因而在每个内点连续；其左右导数在每个内点都存在且有限，并满足
+\[
+ f'_-(x)\le f'_+(x),\qquad
+ f'_+(x)\le f'_-(y)\quad(x<y).
+\]
+对任一内点 $x_0$ 及任一
+$s\in[f'_-(x_0),f'_+(x_0)]$，都有
+\begin{equation}
+ f(x)\ge f(x_0)+s(x-x_0),\qquad x\in I.
+ \label{eq:pei-diff-supporting-line}
+\end{equation}
+相应直线称为 $f$ 在 $x_0$ 处的\emph{支撑直线（supporting line）}。
+\end{proposition}
+\begin{proof}
+先取定义区间内的闭区间 $[u,v]$。凸性给出上界 $M=\max\{f(u),f(v)\}$；以 $c=(u+v)/2$ 为中心，对每个 $x\in[u,v]$ 取对称点 $x^*=u+v-x$，有 $2f(c)\le f(x)+f(x^*)$，故还有下界 $m=2f(c)-M$。对内部紧子区间 $[\alpha,\beta]\subset(u,v)$，用式~\eqref{eq:pei-diff-convex-slopes} 把任意两点间的割线斜率夹在通向外侧端点的割线斜率之间；分母分别至少为 $\alpha-u$、$v-\beta$，分子绝对值至多为 $M-m$，所以斜率绝对值有统一上界，得到 Lipschitz 条件。
+
+固定内点后，左右差商分别随端点位置单调变化，并被通向更外侧固定点的割线斜率夹住，所以单侧极限有限且存在。对割线斜率取相应的单侧极限，即得上述导数次序。最后，$x>x_0$ 时割线斜率不小于 $f'_+(x_0)\ge s$；$x<x_0$ 时割线斜率不大于 $f'_-(x_0)\le s$，再注意乘以负的 $x-x_0$ 要反向，便得支撑不等式。
+\end{proof}
+
+\begin{notealert}[type=caution,title={凸性不保证端点连续或处处可导}]
+函数 $f(x)=|x|$ 为凸函数，但原点只有左右导数，没有普通导数。函数 $f(0)=1$、$f(x)=0$（$0<x\le1$）在 $[0,1]$ 上仍凸，却在左端点不连续。因此上述连续性、局部 Lipschitz 性及有限单侧导数的结论，均须保留“内点”这一范围。
+\end{notealert}
+
+\subsection{导数判别、严格凸性与应用}
+
+\begin{theorem}
+\label{thm:pei-diff-convex-derivatives}
+设 $f$ 在开区间 $I$ 内可导。下列条件等价：$f$ 凸；$f'$ 单调不减；任意 $x,x_0\in I$ 都有
+\[
+ f(x)\ge f(x_0)+f'(x_0)(x-x_0).
+\]
+在此条件下，$f$ 严格凸当且仅当 $f'$ 严格递增。若 $f$ 二次可导，则凸性等价于 $f''\ge0$；严格凸性等价于 $f''\ge0$ 且 $f''$ 在任一非退化子区间上都不恒为零。
+\end{theorem}
+\begin{proof}
+凸性推出导数单调与支撑不等式，见命题~\ref{prop:pei-diff-convex-local-properties}。若 $f'$ 单调，则对 $u<v<w$ 的两个相邻区间使用中值定理，可得左割线斜率不大于右割线斜率，从而由命题~\ref{prop:pei-diff-convex-slopes} 得凸性。若已知切线支撑不等式，在两端 $u,w$ 分别以它们之间的点 $v$ 为支撑点，乘以使 $v=\lambda u+(1-\lambda)w$ 的权重再相加，导数项抵消，即得定义中的凸性。
+
+当导数严格递增时，割线比较也严格，故严格凸。反过来，凸函数的导数已经单调；若不同两点有相同导数，它在两点间必恒定，由中值定理 $f$ 在该段为仿射函数，与严格凸矛盾。二阶判别来自 $f'$ 的单调性判别；在 $f''\ge0$ 时，导数在某段不严格增加恰意味着它在该段恒定，也恰意味着 $f''$ 在该段恒为零。
+\end{proof}
+
+\emph[caution]{$f''>0$ 是严格凸的充分条件，并非必要条件}。例如 $f(x)=x^4$ 的导数 $4x^3$ 严格递增，所以它严格凸，虽然 $f''(0)=0$。严格凸函数的极小值若存在则唯一：若在两个不同点取得相同的最小值，内部凸组合的函数值会严格更小。凸函数的任何内点局部最小值也是全局最小值，因为只要另一点函数值更低，靠近该局部最小点的凸组合就已违反局部最小性。凹函数的对应结论由取负得到。
+
+\begin{example}
+\label{ex:pei-diff-convex-ratio}
+设 $f$ 在 $[0,+\infty)$ 上非负且严格凸，$f(0)=0$。证明 $f(x)/x$ 在 $(0,+\infty)$ 上严格递增，且 $f$ 本身在 $[0,+\infty)$ 上严格递增。
+\end{example}
+\begin{solve}
+对 $0<x<y$，将 $x$ 写成 $(x/y)y+(1-x/y)0$，严格凸性给出 $f(x)<(x/y)f(y)$，即 $f(x)/x<f(y)/y$。又 $f$ 在正点不能为零，否则该点与原点之间的严格凸性会迫使函数出现负值。因此 $f(y)>0$，再由 $x/y<1$ 得 $f(x)<f(y)$；与原点比较也严格成立。
+\end{solve}
+
+\begin{example}
+\label{ex:pei-diff-positive-composition}
+是否存在 $C^1(\mathbb R)$ 函数，满足对所有 $x\in\mathbb R$ 都有 $f(x)>0$ 且 $f'(x)=f(f(x))$？
+\end{example}
+\begin{solve}
+不存在。由等式及正值性得 $f'>0$，故 $f$ 严格递增。记 $c=f(0)>0$，因 $f(x)>0$，有 $f'(x)=f(f(x))>f(0)=c$ 对所有实数成立。取 $x<-1$，在 $[x,0]$ 上用中值定理，得到
+$f(0)-f(x)>-cx$，即 $f(x)<c(1+x)<0$，矛盾。此题的关键是定义域为整个实轴及函数始终正值；仅凭局部微分关系不能推出同样的不存在性结论。
+\end{solve}
+
+\section{导数的综合应用}
+\label{sec:pei-diff-derivative-applications}
+% 教材对应：PDF 第 89--102 页。
+
+\subsection{极值、最值与高阶判别}
+
+\begin{definition}
+设 $x_0$ 为定义域 $D$ 中的一点。若存在 $\delta>0$，使对所有 $x\in D\cap(x_0-\delta,x_0+\delta)$ 都有 $f(x)\le f(x_0)$，则称 $x_0$ 为\emph{局部极大值点（local maximum point）}；若对 $x\ne x_0$ 不等式严格，则称为严格局部极大值点。局部极小值点反向定义。若相应比较对所有 $x\in D$ 成立，则为全局最大值或全局最小值。可导且导数为零的点称为\emph{驻点（stationary point）}。
+\end{definition}
+
+求最值时，候选位置包括内部驻点、内部不可导点及包含在定义域中的端点；在开区间或无界区间上，还须考察边界极限及无穷远处的行为。Fermat 定理只说明可导的内部极值点一定是驻点，驻点未必有极值，例如 $x^3$ 在原点。若函数连续，且候选点左、右邻域内导数由正变负，则为严格局部极大值；由负变正，则为严格局部极小值。仅仅把候选点的函数值比较一遍，须以已经证明全局最值存在且候选位置完整为前提。
+
+\begin{proposition}[首个非零高阶导数判别]
+\label{prop:pei-diff-higher-extremum}
+设 $f$ 满足在 $x_0$ 处使用 $n$ 阶 Peano 公式的条件，且
+$f'(x_0)=\cdots=f^{(n-1)}(x_0)=0$、$f^{(n)}(x_0)\ne0$。若 $n$ 为偶数，则 $f^{(n)}(x_0)>0$ 时为严格局部极小值，$f^{(n)}(x_0)<0$ 时为严格局部极大值；若 $n$ 为奇数，则不是局部极值点。
+\end{proposition}
+\begin{proof}
+由定理~\ref{thm:pei-diff-taylor-peano}，
+\[
+ f(x)-f(x_0)=(x-x_0)^n
+ \left(\frac{f^{(n)}(x_0)}{n!}+o(1)\right).
+\]
+括号内在充分小的去心邻域中与非零的首项同号，结论便由 $(x-x_0)^n$ 在两侧的符号得到。这里无需高阶导函数在整个邻域中连续。
+\end{proof}
+
+偶函数在原点可导时导数为零，但偶性本身不能判断极值类型。若二阶导数非零，可用上述 $n=2$ 的判别；若各阶导数都为零，仍可能有严格极值，例如例~\ref{ex:pei-diff-flat-function} 的函数在原点为严格全局最小值。反过来，极值点也不必彼此孤立：连续函数 $f(x)=x\sin(1/x)+2|x|$（$x\ne0$）、$f(0)=0$ 在原点有严格最小值，同时有其他极值点不断趋近原点：在正半轴上，$f'(1/(2m\pi))=2-2m\pi<0$，而 $f'(1/((2m+1)\pi))=2+(2m+1)\pi>0$（$m\ge1$），两列点之间交替出现的导数符号保证了不断出现的极值。
+
+\begin{proposition}
+\label{prop:pei-diff-countable-strict-extrema}
+任意实函数的严格局部极大值点至多可数，严格局部极小值点也至多可数；非严格极值点不满足这一结论。
+\end{proposition}
+\begin{proof}
+对每个严格局部极大值点 $x$，选取有理数 $p<x<q$，使 $(p,q)$ 包含在它的严格极大值邻域中，则 $x$ 是 $(p,q)$ 上唯一的最大值点。两个不同的这类点不可能选到同一对 $(p,q)$，而有理数对只有可数多个，故这些点至多可数。极小值对 $-f$ 使用同一论证。常函数的每个点都是非严格极大值点和极小值点，说明不能删除“严格”。
+\end{proof}
+
+\begin{remark}
+严格极值点在有界闭区间上仍可有无穷多个，不能用紧致性直接断言它们只有有限个。两个严格局部极大值点之间，连续函数在连接两点的闭区间上取得最小值；两个端点都不能是最小值点，故至少有一个内部局部极小值点。但在没有进一步条件时，不能保证得到的极小值点也是严格的。
+\end{remark}
+
+\subsection{利用导数判断方程实根}
+
+零点问题应分别证明存在性、唯一性与根的个数。连续性及端点异号可以证明存在；严格单调可以证明唯一；若导数只有有限个零点，可将定义域分为若干单调区间，逐段比较端点值。若要证明没有实根，寻找正的全局最小值往往比直接解方程更有效。遇到多项式，Rolle 定理还可以将原函数的根数与导数的根数联系起来，但重根必须计入，不能只数相邻根之间的零点。
+
+\begin{example}
+\label{ex:pei-diff-alternating-polynomial-roots}
+设 $n\ge1$，
+\[
+ P_n(x)=1+\sum_{k=1}^n\frac{(-1)^k}{k}x^k.
+\]
+证明 $n$ 为奇数时方程 $P_n(x)=0$ 恰有一个实根，$n$ 为偶数时没有实根。
+\end{example}
+\begin{solve}
+对 $x\ne-1$，等比求和给出
+\[
+ P_n'(x)=\sum_{k=1}^n(-1)^kx^{k-1}
+        =\frac{-1+(-1)^n x^n}{1+x};
+\]
+在 $x=-1$ 处由原多项式求导得 $P_n'(-1)=-n$。若 $n$ 为奇数，则这个导数在全部实轴上严格为负，且由最高次项知 $P_n(-\infty)=+\infty$、$P_n(+\infty)=-\infty$，所以恰有一根。若 $n=2m$，则 $P_n'<0$ 于 $x<1$，$P_n'>0$ 于 $x>1$，故全局最小值在 $x=1$；而
+\[
+ P_{2m}(1)=\sum_{j=1}^{m-1}\left(\frac1{2j}-\frac1{2j+1}\right)
+                  +\frac1{2m}>0.
+\]
+因此偶数情形没有实根。分式导数表达式在 $x=-1$ 的表面奇点应回到原多项式处理。
+\end{solve}
+
+\subsection{切线、法线、曲率圆与函数形状}
+
+对可微曲线 $y=f(x)$，在 $x=x_0$ 处记 $y_0=f(x_0)$、$p=f'(x_0)$，切线方程为 $Y-y_0=p(X-x_0)$，法线可写成 $X-x_0+p(Y-y_0)=0$，该形式也适用于 $p=0$。对正则参数曲线 $(x(t),y(t))$，即切向量 $(x'(t_0),y'(t_0))\ne(0,0)$，更统一的写法为
+\[
+ y'(t_0)(X-x(t_0))-x'(t_0)(Y-y(t_0))=0
+\]
+和
+\[
+ x'(t_0)(X-x(t_0))+y'(t_0)(Y-y(t_0))=0.
+\]
+前者为切线，后者为法线；不必为了使用斜率形式而除以可能为零的分量。
+
+\begin{example}
+\label{ex:pei-diff-tangent-triangle}
+在曲线 $y=x^2-1$ 的 $x>0$ 部分取点 $P$，其切线与两坐标轴围成三角形。求面积的最小值及相应切点。
+\end{example}
+\begin{solve}
+设 $P=(x,x^2-1)$，切线为 $Y=2xX-x^2-1$。两个截距分别为 $(x^2+1)/(2x)$ 与 $-(x^2+1)$，故面积为
+\[
+ S(x)=\frac{(x^2+1)^2}{4x},\qquad
+ S'(x)=\frac{(x^2+1)(3x^2-1)}{4x^2}.
+\]
+它在 $(0,1/\sqrt3)$ 下降，在 $(1/\sqrt3,+\infty)$ 上升，所以唯一最小值为 $4\sqrt3/9$，切点为 $(1/\sqrt3,-2/3)$。面积应使用截距乘积的绝对值，避免把第二个负截距误当作负面积。
+\end{solve}
+
+\begin{proposition}[曲率圆]
+\label{prop:pei-diff-osculating-circle}
+设 $f\in C^2$ 于 $x_0$ 附近，记 $p=f'(x_0)$、$q=f''(x_0)\ne0$。与曲线在 $(x_0,f(x_0))$ 处相切且具有相同二阶导数的\emph{曲率圆（osculating circle）}的圆心 $(a,b)$ 与半径 $R$ 为
+\[
+ a=x_0-\frac{p(1+p^2)}q,\qquad
+ b=f(x_0)+\frac{1+p^2}q,\qquad
+ R=\frac{(1+p^2)^{3/2}}{|q|}.
+\]
+相应的\emph{曲率（curvature）}为 $\kappa=1/R=|q|/(1+p^2)^{3/2}$。
+\end{proposition}
+\begin{proof}
+对圆方程 $(X-a)^2+(Y-b)^2=R^2$ 视 $Y$ 为 $X$ 的局部函数，连续求导得
+$X-a+(Y-b)Y'=0$ 和 $1+(Y')^2+(Y-b)Y''=0$。在切点代入 $Y'=p$、$Y''=q$，先解得圆心，再用切点到圆心的距离求出 $R$。条件 $q\ne0$ 保证这里得到有限半径的圆。
+\end{proof}
+
+函数形状的研究应先确定定义域、连续点与不可导点，再用 $f'$ 的符号判定增减、用 $f''$ 的符号判定凸凹，并考察端点与无穷远的极限。\emph{拐点（inflection point）}要求图像在该点两侧的凸凹性发生改变；$f''(x_0)=0$ 既不是充分条件，也不适用于所有不可二次求导的情形。若 $f(x)\to\pm\infty$ 于有限端点，则可得到垂直渐近线；若在某一无穷远方向有
+\[
+ k=\lim\frac{f(x)}x,\qquad b=\lim(f(x)-kx)
+\]
+且两极限有限，则 $y=kx+b$ 是该方向的渐近线，其中 $k=0$ 为水平渐近线。左右无穷远方向应分别计算。
+
+\subsection{实际问题的目标函数与变化率}
+
+实际应用先把几何、运动或物理条件转成明确模型，再选择一个自变量，写出目标函数及可行范围，最后证明候选点确为全局最优。模型中出现的“速度”要说明是哪一个量对时间的导数；若使用物理平衡原理，也须说明所采用的物理假设，不能只凭求出一个驻点就断言平衡或最优。
+
+\begin{example}
+\label{ex:pei-diff-circumscribed-cone}
+给定半径为 $r>0$ 的球，求外切于它的直圆锥的最小体积。
+\end{example}
+\begin{solve}
+记圆锥高为 $h$、底面半径为 $R$，球心在圆锥轴线上且距底面为 $r$。由轴截面中球心到母线的距离等于 $r$，有
+\[
+ \frac{R(h-r)}{\sqrt{h^2+R^2}}=r,
+ \qquad R^2=\frac{r^2h}{h-2r},\qquad h>2r.
+\]
+因此体积与导数分别为
+\[
+ V(h)=\frac{\pi r^2}{3}\frac{h^2}{h-2r},\qquad
+ V'(h)=\frac{\pi r^2}{3}\frac{h(h-4r)}{(h-2r)^2}.
+\]
+在可行范围内，$V$ 先减后增，唯一全局最小值在 $h=4r$ 取得；此时 $R=\sqrt2r$，故 $V_{\min}=8\pi r^3/3$。可行条件 $h>2r$ 排除了代数求导所得的无效候选点。
+\end{solve}
+
+\begin{example}
+\label{ex:pei-diff-angular-speed}
+船从点 $B$ 以恒定线速度 $v>0$ 向东航行，观察者位于 $B$ 正南、相距 $s>0$ 的固定点。若用视线相对初始方向的角速度衡量视线转动的快慢，求它与初始角速度的比值。
+\end{example}
+\begin{solve}
+令时间为 $t\ge0$，视线偏转角为 $\theta(t)\in[0,\pi/2)$，并以弧度为单位。直角三角形关系给出 $s\tan\theta=vt$，对时间求导得到
+\[
+ \theta'(t)=\frac vs\cos^2\theta(t),\qquad
+ \frac{\theta'(t)}{\theta'(0)}=\cos^2\theta(t).
+\]
+所以比值为 $3/4,1/2,1/4$ 时，偏转角分别为 $30^\circ,45^\circ,60^\circ$。船的线速度始终为 $v$，发生变化的是模型所选定的视线角速度。
+\end{solve}
+
+导数用于求极限时，可以依据定理~\ref{thm:pei-diff-lhospital} 将比值问题转化为导数比，也可以依据 Taylor 公式提取首个非零项。前者要逐次检验法则条件，后者要确定足以越过相消项的展开阶数，并控制余项。若极限涉及移动的中值点，可参考命题~\ref{prop:pei-diff-mean-point-limit}；若涉及项数变化的求和，则需像例~\ref{ex:pei-diff-uniform-small-remainders} 一样给出对下标一致的误差估计。
+
+
+
+
+

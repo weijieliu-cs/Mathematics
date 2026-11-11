@@ -1,0 +1,843 @@
+% !TeX root = ../高等代数习题（谢启鸿）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{7} % 保留原书章号。
+\chapter{二次型}
+\label{chap:xie-ex-quadratic-forms}
+
+二次型将二次齐次多项式与对称矩阵联系起来：对变量作可逆线性替换，对应于对系数矩阵作合同变换。研究的中心是消去交叉项，再利用标准型说明哪些量不随变量替换而改变。本章依照教材第八章的主题，先建立合同、惯性和正定性的基本概念，再以对称分块消元为线索，讨论归纳证明、多变元计算以及正定、半正定矩阵的性质。计算中既要判断表达式的正负，也要检查变量替换是否可逆；证明中则要区分合同不变量与仅在相似变换下保持的量。
+
+\section{基本概念}
+\label{sec:xie-ex-qf-basics}
+
+\subsection{二次型、合同与对角化}
+
+本章的数域 $\mathbb F$ 为 $\mathbb C$ 的子域，例如 $\mathbb Q$、$\mathbb R$ 或 $\mathbb C$ 本身；$x$、$y$ 均表示列向量，$A^{\mathsf T}$ 表示转置。实矩阵的正定性与惯性指数均在实数域上讨论，复矩阵的相应概念另用共轭转置定义。记 $I_k$ 为 $k$ 阶单位矩阵，零矩阵的尺寸由上下文确定，$\|x\|^2=x^{\mathsf T}x$ 为实向量的欧几里得范数平方。
+
+\begin{definition}
+数域 $\mathbb F$ 上的 $n$ 元\emph{二次型（quadratic form）}是二次齐次多项式
+\[
+ f(x)=\sum_{i=1}^n a_{ii}x_i^2+2\sum_{1\le i<j\le n}a_{ij}x_ix_j
+     =x^{\mathsf T}Ax,
+ \qquad A=A^{\mathsf T}\in\mathbb F^{n\times n}.
+\]
+矩阵 $A$ 称为它的系数矩阵或相伴矩阵。交叉项 $x_ix_j$ 的系数是 $2a_{ij}$，故由多项式写矩阵时应将交叉项系数除以 $2$。
+\end{definition}
+
+对称性保证系数矩阵唯一。事实上，若对称矩阵 $H$ 满足 $x^{\mathsf T}Hx=0$ 对所有 $x$ 成立，依次取标准单位向量 $e_i$ 和 $e_i+e_j$，得到 $h_{ii}=0$ 和 $2h_{ij}=0$，于是 $H=0$。若允许系数矩阵不对称，则 $x^{\mathsf T}Mx=x^{\mathsf T}(M+M^{\mathsf T})x/2$，其反对称部分不影响二次型，矩阵表示便不再唯一。
+
+\begin{definition}
+设 $A,B\in\mathbb F^{n\times n}$。若存在可逆矩阵 $C$ 使
+\begin{equation}
+ B=C^{\mathsf T}AC,
+ \label{eq:xie-ex-qf-congruence}
+\end{equation}
+则称 $A$ 与 $B$ 在 $\mathbb F$ 上\emph{合同（congruent）}，记为 $A\sim_{\mathrm c}B$。
+\end{definition}
+
+将 $x=Cy$ 代入二次型，恰得 $x^{\mathsf T}Ax=y^{\mathsf T}(C^{\mathsf T}AC)y$。因此合同描述同一二次型在不同坐标下的系数矩阵。合同是等价关系，并保持秩；由
+\[
+ \det B=(\det C)^2\det A
+\]
+可知，实合同还保持行列式的符号，但一般不保持行列式的数值、迹或特征值。相似变换为 $C^{-1}AC$，与合同的表达式不同；当 $C$ 正交时，两者才在这一变换上重合。
+
+\begin{theorem}
+\label{thm:xie-ex-qf-diagonalization}
+数域 $\mathbb F$ 上的每个对称矩阵均合同于对角矩阵，因而每个二次型均可经可逆线性替换化为只含平方项的\emph{标准型（diagonal form）}。
+\end{theorem}
+\begin{proof}
+对矩阵阶数归纳。零矩阵已经对角化。若某个对角元非零，先同时置换行、列，将其移至首位，写成
+\[
+ A=\begin{pmatrix}a&b^{\mathsf T}\\b&D\end{pmatrix},\qquad a\ne0.
+\]
+配方给出
+\[
+ x^{\mathsf T}Ax
+ =a\left(x_1+a^{-1}b^{\mathsf T}x'\right)^2
+  +(x')^{\mathsf T}(D-a^{-1}bb^{\mathsf T})x',
+ \qquad x'=(x_2,\ldots,x_n)^{\mathsf T}.
+\]
+所用替换为可逆的三角替换，余下系数矩阵仍对称，可用归纳假设。若所有对角元为零但 $A\ne0$，取 $a_{ij}\ne0$，则 $(e_i+e_j)^{\mathsf T}A(e_i+e_j)=2a_{ij}\ne0$；将 $e_i+e_j$ 扩充为一组基后，就得到非零对角元，归入前一种情况。
+\end{proof}
+
+\subsection{惯性定理与正负定性}
+
+\begin{theorem}[Sylvester 惯性定理]
+\label{thm:xie-ex-qf-inertia}
+任意 $n$ 阶实对称矩阵均合同于
+\begin{equation}
+ \operatorname{diag}(I_p,-I_q,0_{n-p-q}),\qquad p,q\ge0,\quad p+q\le n,
+ \label{eq:xie-ex-qf-inertia-form}
+\end{equation}
+其中 $p,q$ 由原矩阵唯一确定，分别称为正、负惯性指数，记为 $p(A),q(A)$。相应二次型称为\emph{规范标准型}；其秩为 $r=p+q$，符号差为 $s=p-q$。
+\end{theorem}
+\begin{proof}
+先由定理~\ref{thm:xie-ex-qf-diagonalization} 对角化，再将非零对角系数的绝对值开平方并吸收到变量中，得到式~\eqref{eq:xie-ex-qf-inertia-form}。为证唯一性，说明 $p$ 等于二次型在其上为正定的子空间的最大维数。标准型的前 $p$ 个坐标张成一个正定子空间；若某子空间维数超过 $p$，它与由后 $n-p$ 个坐标张成的非正子空间必有非零交向量，故不可能正定。这一最大维数在可逆坐标替换下不变，因而 $p$ 唯一；对二次型取负，同理得到 $q$ 唯一。
+\end{proof}
+
+实对称矩阵合同的充要条件是阶数及正、负惯性指数相同。在复数域上，每个非零数都有平方根，复对称矩阵的合同标准型为 $\operatorname{diag}(I_r,0)$，只由秩决定；这一结论不能直接搬到有理数域，也不能与下文 Hermite 矩阵的复相合混同。
+
+\begin{definition}
+实对称矩阵 $A$ 及二次型 $x^{\mathsf T}Ax$ 称为\emph{正定（positive definite）}，若对一切 $x\ne0$ 有 $x^{\mathsf T}Ax>0$；称为\emph{半正定（positive semidefinite）}，若对一切 $x$ 有 $x^{\mathsf T}Ax\ge0$，分别记为 $A\succ0$、$A\succeq0$。负定、半负定通过 $-A\succ0$、$-A\succeq0$ 定义；若二次型既取正值又取负值，则称为不定型。
+\end{definition}
+
+由惯性定理，正定等价于 $p=n$，半正定等价于 $q=0$；负定等价于 $q=n$，半负定等价于 $p=0$；不定等价于 $p,q$ 均大于零。半正定允许零矩阵与正定矩阵在内，不能把“半正定”理解成“恰好有零方向”。若 $x^{\mathsf T}Ax$ 对每个非零 $x$ 均不为零，则它必正定或负定：退化标准型在零坐标方向取零，不定标准型在一正一负坐标均取 $1$ 时取零，两者都被假设排除。
+
+\subsection{Hermite 型与复相合}
+
+沿用前文记号，对复矩阵用 $A^{\mathsf H}=\overline A^{\mathsf T}$ 表示共轭转置，用 $\operatorname{adj}(A)$ 表示伴随矩阵；二者是不同的运算。对复向量定义 $\|z\|^2=z^{\mathsf H}z$。
+\begin{definition}
+若 $A=A^{\mathsf H}\in\mathbb C^{n\times n}$，则称 $A$ 为\emph{厄米矩阵（Hermitian matrix，亦称 Hermite 矩阵）}，实值函数
+\[
+ h(z)=z^{\mathsf H}Az=\sum_{i,j=1}^n\overline z_i a_{ij}z_j
+\]
+称为 Hermite 型。若 $B=C^{\mathsf H}AC$ 且 $C$ 为可逆复矩阵，则称 $A,B$ \emph{复相合（$*$-congruent）}。
+\end{definition}
+
+Hermite 型也有唯一的规范标准型 $\operatorname{diag}(I_p,-I_q,0)$。其对角化仍可通过配方归纳完成：非零 Hermite 矩阵总有 $v$ 使 $v^{\mathsf H}Av\ne0$，因为若所有对角元为零，依次用 $e_i+e_j$ 和 $e_i+\mathrm i e_j$ 检验，就可检测非零非对角元的实部与虚部；对角化后各对角系数为实数，再按绝对值开平方缩放。惯性唯一性的子空间维数证明同样成立，但子空间维数取复维数。正定、半正定的定义改为对所有非零复列向量检验 $z^{\mathsf H}Az$；实对称正定矩阵在这一意义下仍然正定，因为 $z=u+\mathrm i v$ 时
+\[
+ z^{\mathsf H}Az=u^{\mathsf T}Au+v^{\mathsf T}Av.
+\]
+
+\section{对称初等变换与矩阵合同}
+\label{sec:xie-ex-qf-block-congruence}
+
+对矩阵作初等行变换 $A\mapsto EA$ 后，再作对应的列变换 $EA\mapsto EAE^{\mathsf T}$，所得矩阵与 $A$ 合同，并保持对称性。对应操作包括同时对换两行、两列，同时用同一非零数乘某行、某列，以及将某行的倍数加到另一行后再作对应列加法。分块时，左乘块矩阵必须配合右乘其转置，不能把矩阵乘法次序当作标量运算处理。若要同时求出变量替换矩阵，应记录总乘子，使最后结果写成 $C^{\mathsf T}AC$。
+
+\begin{theorem}[对称分块消元]
+\label{thm:xie-ex-qf-schur}
+设
+\[
+ M=\begin{pmatrix}A&B\\B^{\mathsf T}&D\end{pmatrix},\qquad
+ A=A^{\mathsf T}\in\mathbb F^{r\times r},\quad
+ D=D^{\mathsf T}\in\mathbb F^{s\times s},\quad B\in\mathbb F^{r\times s}.
+\]
+若 $A$ 可逆，则
+\begin{equation}
+ C^{\mathsf T}MC=
+ \begin{pmatrix}A&0\\0&D-B^{\mathsf T}A^{-1}B\end{pmatrix},
+ \qquad C=\begin{pmatrix}I_r&-A^{-1}B\\0&I_s\end{pmatrix}.
+ \label{eq:xie-ex-qf-schur}
+\end{equation}
+矩阵 $D-B^{\mathsf T}A^{-1}B$ 称为关于 $A$ 的\emph{Schur 补（Schur complement）}。在实对称情形下，
+\begin{align}
+ p(M)&=p(A)+p(D-B^{\mathsf T}A^{-1}B),\\
+ q(M)&=q(A)+q(D-B^{\mathsf T}A^{-1}B),
+ \label{eq:xie-ex-qf-schur-inertia}
+\end{align}
+并且 $\det M=\det A\det(D-B^{\mathsf T}A^{-1}B)$。
+\end{theorem}
+\begin{proof}
+直接分块相乘即得式~\eqref{eq:xie-ex-qf-schur}，其中 $C$ 可逆且行列式为 $1$。分块对角矩阵可分别对各块进行合同对角化，所以其正、负惯性指数分别是各块相应指数之和；同时取行列式便得到最后一个等式。
+\end{proof}
+
+若 $D$ 也可逆，换用 $D$ 消元，可得
+\[
+ p(A)+p(D-B^{\mathsf T}A^{-1}B)
+ =p(D)+p(A-BD^{-1}B^{\mathsf T}),
+\]
+负惯性指数亦有相同形式。这就是教材中正、负惯性指数降阶公式的实质。特别地，$M\succ0$ 当且仅当 $A\succ0$ 且 $D-B^{\mathsf T}A^{-1}B\succ0$；若已知 $A\succ0$，则 $M\succeq0$ 当且仅当该 Schur 补半正定。\emph[caution]{当主对角块奇异时不能写出其逆矩阵；半正定情形下的消元需要额外检验非对角块的列空间条件。}
+
+\begin{example}
+\label{ex:xie-ex-qf-reflection}
+设 $u\in\mathbb R^n$ 且 $u^{\mathsf T}u=1$，求 $I_n-2uu^{\mathsf T}$ 的正、负惯性指数。
+\end{example}
+\begin{solve}
+考虑 $M=\begin{pmatrix}I_n&\sqrt2u\\\sqrt2u^{\mathsf T}&1\end{pmatrix}$。用 $I_n$ 消元，得 $M\sim_{\mathrm c}\operatorname{diag}(I_n,-1)$；用右下角的 $1$ 消元，得 $M\sim_{\mathrm c}\operatorname{diag}(I_n-2uu^{\mathsf T},1)$。比较惯性指数，得到 $p=n-1$、$q=1$。也可将 $u$ 扩充成正交基：矩阵在 $\mathbb Ru$ 上作用为 $-1$，在 $u^\perp$ 上作用为 $1$。
+\end{solve}
+
+\begin{example}
+设 $B\in\mathbb R^{n\times n}$ 可逆，求 $H=\begin{pmatrix}0&B\\B^{\mathsf T}&0\end{pmatrix}$ 的惯性；另设 $A\succ0$，判断 $K=\begin{pmatrix}A&-I_n\\-I_n&A^{-1}\end{pmatrix}$ 的正负定性。
+\end{example}
+\begin{solve}
+对 $H$ 用 $\operatorname{diag}(B^{-\mathsf T},I_n)$ 作合同变换，化为 $\begin{pmatrix}0&I_n\\I_n&0\end{pmatrix}$；再令 $u=(y+z)/\sqrt2$、$v=(y-z)/\sqrt2$，二次型 $2u^{\mathsf T}v$ 化为 $y^{\mathsf T}y-z^{\mathsf T}z$，故 $p(H)=q(H)=n$。对 $K$ 用 $A$ 消元，其 Schur 补为零，故 $K\sim_{\mathrm c}\operatorname{diag}(A,0)$，从而 $K\succeq0$ 且秩为 $n$。
+\end{solve}
+
+同时置换行、列还可将任意主子阵移到左上角。若 $A\succ0$ 或 $A\succeq0$，把主子阵上的向量用零补足成完整向量，就知每个主子阵也相应正定或半正定。由二阶主子阵可得
+\begin{equation}
+ |a_{ij}|^2\le a_{ii}a_{jj}\quad(A\succeq0),\qquad
+ |a_{ij}|^2<a_{ii}a_{jj}\quad(A\succ0,\ i\ne j).
+ \label{eq:xie-ex-qf-entry-bound}
+\end{equation}
+因此正定矩阵的元素绝对值的最大值只能在主对角线上取得。更一般地，若对称或反对称矩阵秩为 $r$，它总有非零的 $r$ 阶主子式：同时置换行、列，使前 $r$ 行构成行空间的一组基，则后面的行都是前面行的线性组合；前 $r$ 列也因对称或反对称而线性无关，所以它们在前 $r$ 行上的限制仍线性无关，否则该限制的一个非零线性关系会扩展为全列的关系。
+
+\section{归纳法的应用}
+\label{sec:xie-ex-qf-induction}
+
+\subsection{顺序主子式与三角分解}
+
+记 $A_k=A[1\!:\!k,1\!:\!k]$ 为前 $k$ 行、列构成的顺序主子阵，$\Delta_k=\det A_k$ 为\emph{顺序主子式（leading principal minor）}，并约定 $\Delta_0=1$。Schur 补将一个问题分成较低阶的问题，因此适合同时证明判据和构造分解。
+
+\begin{theorem}[Jacobi 对角化与 Sylvester 判据]
+\label{thm:xie-ex-qf-jacobi}
+设 $A$ 为 $n$ 阶实对称矩阵，若 $\Delta_1,\ldots,\Delta_{n-1}$ 均非零，则存在主对角元均为 $1$ 的上三角矩阵 $U$，使
+\begin{equation}
+ A=U^{\mathsf T}\operatorname{diag}(d_1,\ldots,d_n)U,
+ \qquad d_k=\frac{\Delta_k}{\Delta_{k-1}}.
+ \label{eq:xie-ex-qf-jacobi}
+\end{equation}
+特别地，$A\succ0$ 当且仅当 $\Delta_k>0$ 对每个 $1\le k\le n$ 成立。
+\end{theorem}
+\begin{proof}
+当 $n=1$ 时直接成立。对 $n>1$，写 $A=\begin{pmatrix}A_{n-1}&b\\b^{\mathsf T}&a\end{pmatrix}$，用式~\eqref{eq:xie-ex-qf-schur} 消元得到 $\operatorname{diag}(A_{n-1},a-b^{\mathsf T}A_{n-1}^{-1}b)$。归纳假设处理第一块，而行列式等式给出末项为 $\Delta_n/\Delta_{n-1}$；消元矩阵及归纳中的变换都是单位上三角矩阵，故合并后得到所述分解。若所有 $\Delta_k>0$，每个 $d_k>0$，合同标准型表明 $A\succ0$。反之，正定矩阵的各顺序主子阵均正定，其行列式由惯性定理为正。
+\end{proof}
+
+若某个中间的 $\Delta_k=0$，比值公式便不适用，不能据此判断矩阵退化；应改用对称置换或一个可逆的二阶主块消元。例如 $\begin{pmatrix}0&1\\1&0\end{pmatrix}$ 的一阶顺序主子式为零，但矩阵可逆。
+
+\begin{theorem}[正定矩阵的 Cholesky 分解]
+\label{thm:xie-ex-qf-cholesky}
+对实对称矩阵 $A$，下列条件等价：$A\succ0$；$A=U^{\mathsf T}DU$，其中 $U$ 为单位上三角矩阵、$D$ 为正对角矩阵；$A=R^{\mathsf T}R$，其中 $R$ 为主对角元均为正的上三角矩阵。后两种分解分别唯一，后一分解称为\emph{Cholesky 分解}。
+\end{theorem}
+\begin{proof}
+存在性由定理~\ref{thm:xie-ex-qf-jacobi} 及 $R=D^{1/2}U$ 得到；反之，$R$ 可逆，$x^{\mathsf T}Ax=\|Rx\|^2>0$。若 $R^{\mathsf T}R=S^{\mathsf T}S$，则 $Q=RS^{-1}$ 既上三角又正交。其逆矩阵既上三角又等于 $Q^{\mathsf T}$，所以 $Q$ 为对角矩阵；正的对角元再给出 $Q=I_n$。于是 $R=S$，而 $D$ 及 $U$ 分别由 $R$ 的对角元平方和行缩放唯一确定。
+\end{proof}
+
+\begin{example}
+设 $A\succ0$、$A^{-1}=(b_{ij})$。证明 $a_{ii}b_{ii}\ge1$，并说明何时等号成立；若 $A$ 的所有非对角元都严格为负，证明 $A^{-1}$ 的所有元素都严格为正。
+\end{example}
+\begin{solve}
+同时置换行、列可将所考察的 $a_{ii}$ 移至末位，写 $A=\begin{pmatrix}H&u\\u^{\mathsf T}&a\end{pmatrix}$。令 $s=a-u^{\mathsf T}H^{-1}u>0$，分块求逆得
+\begin{equation}
+ A^{-1}=\begin{pmatrix}
+ H^{-1}+s^{-1}H^{-1}uu^{\mathsf T}H^{-1}&-s^{-1}H^{-1}u\\
+ -s^{-1}u^{\mathsf T}H^{-1}&s^{-1}
+ \end{pmatrix}.
+ \label{eq:xie-ex-qf-block-inverse}
+\end{equation}
+所以 $ab_{nn}=a/s\ge1$，等号当且仅当 $u=0$，即原来第 $i$ 行、列除对角元外全为零。对于第二问，对阶数归纳；$n=1$ 时成立。若 $n>1$，归纳假设给出 $H^{-1}$ 的每个元素为正，$u$ 的每个分量为负，故 $H^{-1}u$ 的每个分量为负。式~\eqref{eq:xie-ex-qf-block-inverse} 的各块因而都逐项为正。
+\end{solve}
+
+\subsection{反对称矩阵的合同标准型}
+
+\begin{theorem}
+\label{thm:xie-ex-qf-skew-form}
+数域 $\mathbb F$ 上每个反对称矩阵 $S^{\mathsf T}=-S$ 均合同于
+\[
+ \operatorname{diag}(J,\ldots,J,0),\qquad
+ J=\begin{pmatrix}0&1\\-1&0\end{pmatrix}.
+\]
+因此反对称矩阵的秩为偶数；实反对称矩阵的行列式非负。
+\end{theorem}
+\begin{proof}
+若 $S\ne0$，将一个非零非对角元通过对称置换移到 $(1,2)$，再同时缩放相应行、列，将首个二阶主块化为 $J$。此时
+\[
+ S=\begin{pmatrix}J&B\\-B^{\mathsf T}&D\end{pmatrix}
+ \sim_{\mathrm c}\operatorname{diag}(J,D+B^{\mathsf T}J^{-1}B).
+\]
+这一等式由与式~\eqref{eq:xie-ex-qf-schur} 相同的分块乘法验证，余块仍反对称，故每次将阶数降低 $2$，直至余块为零。每个 $J$ 的秩为 $2$、行列式为 $1$，于是秩为偶数。在实数域上，奇异时行列式为零，可逆时由合同等式得 $(\det C)^2\det S=1$，故 $\det S>0$。
+\end{proof}
+
+\begin{corollary}
+\label{cor:xie-ex-qf-skew-det}
+若 $S$ 为 $n$ 阶实反对称矩阵，则
+\[
+ \det(I_n+S)\ge1+\det S\ge1.
+\]
+第一处等号当且仅当 $n\le2$ 或 $S=0$；$\det(I_n+S)=1$ 当且仅当 $S=0$。
+\end{corollary}
+\begin{proof}
+按主子式展开，$\det(I_n+S)$ 等于常数 $1$ 加上所有非空主子式之和。各主子阵仍反对称，其行列式均非负。当 $n\ge3$，第一处等号要求所有二阶主子式 $s_{ij}^2$ 为零，故 $S=0$；$n\le2$ 可直接验证。第二个等号判定也由所有二阶主子式必须为零得到，$n=1$ 时反对称矩阵本来就是零矩阵。
+\end{proof}
+
+\section{合同标准型的应用}
+\label{sec:xie-ex-qf-standard-applications}
+
+\subsection{分解、逆矩阵与伴随矩阵}
+
+标准型的应用应分为两步：先在对角矩阵上验证，再说明条件和结论怎样随合同变换转回。不能仅因原矩阵可对角化，就把不在合同下保持的乘积、迹或特征值一并替换。
+
+\begin{proposition}
+\label{prop:xie-ex-qf-gram}
+秩为 $r$ 的对称矩阵可以写成 $r$ 个秩一对称矩阵之和。复对称矩阵总可写成 $A=T^{\mathsf T}T$，且 $\operatorname{rank}T=\operatorname{rank}A$。对于实对称矩阵，
+\[
+ A\succeq0\ \Longleftrightarrow\ A=T^{\mathsf T}T\text{，其中 $T$ 为某实矩阵};
+ \qquad
+ A\succ0\ \Longleftrightarrow\ A=T^{\mathsf T}T\text{，其中 $T$ 为可逆实方阵}.
+\]
+\end{proposition}
+\begin{proof}
+由合同对角化可写 $A=C^{\mathsf T}\operatorname{diag}(d_1,\ldots,d_r,0)C$，其中 $d_i\ne0$。若 $c_i^{\mathsf T}$ 为 $C$ 的第 $i$ 行，则 $A=\sum_{i=1}^r d_ic_ic_i^{\mathsf T}$，每项秩为一。在复数域中选取 $t_i^2=d_i$，令 $T=\operatorname{diag}(t_1,\ldots,t_r,0)C$ 即得分解；在实半正定情形可令前 $r$ 个 $d_i$ 均为 $1$。反之，实 Gram 形式满足 $x^{\mathsf T}T^{\mathsf T}Tx=\|Tx\|^2\ge0$，若 $T$ 可逆则对非零 $x$ 严格为正。
+\end{proof}
+
+在实数域上 $\ker(T^{\mathsf T}T)=\ker T$，故二者秩相同；在复数域中若只有转置而没有共轭，这一秩等式对任意 $T$ 未必成立，上述复对称分解的秩结论来自具体构造。若 $A\succeq0$ 且秩为 $r>0$，还可删去构造中的零行，使 $T$ 为满行秩的 $r\times n$ 矩阵；$r=0$ 时就是 $A=0$。
+
+若 $A$ 为可逆实对称矩阵，则 $A^{-1}= (A^{-1})^{\mathsf T}A A^{-1}$，所以 $A^{-1}\sim_{\mathrm c}A$，具有相同惯性。因而 $A\succ0$ 时 $A^{-1}$ 和 $\operatorname{adj}(A)=\det(A)A^{-1}$ 都正定；若 $A\prec0$，则 $A^{-1}\prec0$，且伴随矩阵在 $n$ 为奇数时正定、在 $n$ 为偶数时负定。对 $A\succeq0$，先对 $A+\varepsilon I_n\succ0$ 使用上述结论，再令 $\varepsilon\downarrow0$；伴随矩阵的各元素是原矩阵元素的多项式，故极限给出 $\operatorname{adj}(A)\succeq0$。
+
+复对称矩阵的分解还说明，每个复方阵都相似于某个复对称矩阵。为说明这一点，可先取该矩阵的 Jordan 标准形 $J$；对每个 Jordan 块选取反序置换矩阵，组成分块对角矩阵 $E$，则 $E=E^{\mathsf T}=E^{-1}$ 且 $JE$ 对称。写 $E=T^{\mathsf T}T$，其中 $T$ 可逆，于是
+\[
+ TJT^{-1}=T(JE)T^{\mathsf T}
+\]
+为复对称矩阵。这里应用的是复对称分解，不能据此宣称任意实方阵都相似于实对称矩阵。
+
+\subsection{二次型不等式与迹判据}
+
+\begin{proposition}
+\label{prop:xie-ex-qf-weighted-inequalities}
+若 $A\succ0$，$u,v\in\mathbb R^n$，则
+\begin{align}
+ u^{\mathsf T}Au+v^{\mathsf T}A^{-1}v&\ge2u^{\mathsf T}v,
+ \label{eq:xie-ex-qf-young}\\
+ (u^{\mathsf T}v)^2&\le(u^{\mathsf T}Au)(v^{\mathsf T}A^{-1}v).
+ \label{eq:xie-ex-qf-cauchy}
+\end{align}
+前式等号当且仅当 $Au=v$，后式等号当且仅当 $Au$ 与 $v$ 线性相关。
+\end{proposition}
+\begin{proof}
+写 $A=R^{\mathsf T}R$，则式~\eqref{eq:xie-ex-qf-young} 两边之差为 $\|Ru-R^{-\mathsf T}v\|^2$，等号条件为 $Ru=R^{-\mathsf T}v$。对向量 $Ru$ 与 $R^{-\mathsf T}v$ 使用 Cauchy--Schwarz 不等式，便得到式~\eqref{eq:xie-ex-qf-cauchy} 及其等号条件。
+\end{proof}
+
+\begin{proposition}
+\label{prop:xie-ex-qf-trace}
+设 $A$ 为实对称矩阵，则 $A\succeq0$ 当且仅当对每个实对称 $B\succeq0$ 有 $\operatorname{tr}(AB)\ge0$。若另外已知 $A$ 可逆，则 $A\succ0$ 当且仅当对每个 $B\succ0$ 有 $\operatorname{tr}(AB)>0$。当 $A,B\succeq0$ 时，还有
+\begin{equation}
+ \operatorname{tr}(AB)=0\quad\Longleftrightarrow\quad AB=0.
+ \label{eq:xie-ex-qf-trace-zero}
+\end{equation}
+\end{proposition}
+\begin{proof}
+若 $A=C^{\mathsf T}C$、$B=D^{\mathsf T}D$，由迹的循环性质，
+\[
+ \operatorname{tr}(AB)=\operatorname{tr}(CD^{\mathsf T}DC^{\mathsf T})
+ =\|DC^{\mathsf T}\|_{\mathrm F}^2\ge0,
+\]
+其中 $\|X\|_{\mathrm F}^2=\sum_{i,j}x_{ij}^2$。等号时 $DC^{\mathsf T}=0$，其转置也为零，所以 $AB=C^{\mathsf T}(CD^{\mathsf T})D=0$；反向直接成立。若对所有 $B\succeq0$ 满足迹条件，取 $B=xx^{\mathsf T}$ 即得 $x^{\mathsf T}Ax\ge0$。对于正定判据，必要性由 $CBC^{\mathsf T}\succ0$ 的迹为正得到，其中 $C$ 可逆。反之，对每个 $x$ 取 $B=xx^{\mathsf T}+tI_n\succ0$，令 $t\downarrow0$ 得 $A\succeq0$，再由可逆性排除零惯性方向。
+\end{proof}
+
+正定迹判据中的可逆性不能省略。例如 $A=\operatorname{diag}(1,0)$ 满足对每个二阶 $B\succ0$ 都有 $\operatorname{tr}(AB)=b_{11}>0$，但 $A$ 只有半正定性。另一个常见误区是把行列式为正当成正定的充分条件；例如 $-I_2$ 的行列式为正，却为负定矩阵。行列式为负的实对称矩阵一定有负惯性方向，但未必为负定。
+
+\section{多变元二次型的计算}
+\label{sec:xie-ex-qf-computation}
+
+多变元题目不一定需要逐项配方。链状耦合可用二阶分块递推，平方和可先求核空间，具有求和或均值结构的表达式可用秩一矩阵描述。若题目只问规范标准型，确定正、负惯性指数和秩就已足够；若要求具体变量替换，则还应给出变换及其可逆性验证。
+
+\begin{example}
+设实二次型 $f$ 的秩大于 $1$。证明它能分解为两个实齐次一次式之积，当且仅当它的惯性指数为 $(1,1)$。
+\end{example}
+\begin{solve}
+若 $f=(a^{\mathsf T}x)(b^{\mathsf T}x)$，则 $a,b$ 必线性无关，否则 $f$ 的秩至多为一。将这两个线性形式扩充为对偶空间的一组基，得到可逆替换 $y_1=a^{\mathsf T}x$、$y_2=b^{\mathsf T}x$ 及其他坐标；再用 $y_1=u+v$、$y_2=u-v$，便有 $f=u^2-v^2$。反之，惯性指数为 $(1,1)$ 时，规范标准型为 $y_1^2-y_2^2=(y_1+y_2)(y_1-y_2)$，代回原变量就得到分解。等价地，条件为秩等于 $2$ 且符号差等于零。
+\end{solve}
+
+\begin{example}
+\label{ex:xie-ex-qf-chain}
+求链式二次型 $f_n(x)=\sum_{i=1}^{n-1}x_ix_{i+1}$ 的规范标准型，其中 $n\ge1$。
+\end{example}
+\begin{solve}
+令 $T_n$ 为主对角元为零、相邻两条副对角线均为 $1$ 的三对角矩阵，则 $2f_n=x^{\mathsf T}T_nx$。$n\ge3$ 时将前两个坐标分出，写
+\[
+ T_n=\begin{pmatrix}H&B\\B^{\mathsf T}&T_{n-2}\end{pmatrix},
+ \qquad H=\begin{pmatrix}0&1\\1&0\end{pmatrix}.
+\]
+$B$ 只有第 $(2,1)$ 个元素为 $1$，其余为零，故 $B^{\mathsf T}H^{-1}B=0$，于是 $T_n\sim_{\mathrm c}H\oplus T_{n-2}$。由 $T_1=(0)$、$T_2=H$，以及 $H\sim_{\mathrm c}\operatorname{diag}(1,-1)$，得到
+\[
+ p(f_n)=q(f_n)=\left\lfloor\frac n2\right\rfloor,
+ \qquad \operatorname{rank}f_n=2\left\lfloor\frac n2\right\rfloor.
+\]
+故规范标准型有 $\lfloor n/2\rfloor$ 个正平方与同样多个负平方，$n$ 为奇数时另有一个零方向。乘以正数 $2$ 不改变惯性，故这一结论也适用于 $f_n$。
+\end{solve}
+
+\begin{example}
+\label{ex:xie-ex-qf-all-cross}
+求 $f(x)=\sum_{i=1}^n x_i^2+\sum_{i<j}x_ix_j$ 的正负定性与标准型。
+\end{example}
+\begin{solve}
+利用求和结构，
+\[
+ f(x)=\frac12\sum_{i=1}^n x_i^2+\frac12\left(\sum_{i=1}^n x_i\right)^2>0\qquad(x\ne0).
+\]
+所以规范标准型为 $\sum_{i=1}^n y_i^2$。若要得到一个具体的对角型，系数矩阵为 $A=(I_n+\mathbf1\mathbf1^{\mathsf T})/2$，其中 $\mathbf1=(1,\ldots,1)^{\mathsf T}$。矩阵 $I_k+\mathbf1\mathbf1^{\mathsf T}$ 在常数向量方向的特征值为 $k+1$，在坐标和为零的子空间上作用为恒等，故 $\Delta_k=(k+1)/2^k$。由定理~\ref{thm:xie-ex-qf-jacobi}，存在可逆替换将 $f$ 化为 $\sum_{k=1}^n\frac{k+1}{2k}y_k^2$。
+\end{solve}
+
+\begin{example}
+\label{ex:xie-ex-qf-centering}
+设 $\bar x=(x_1+\cdots+x_n)/n$，求 $f(x)=\sum_{i=1}^n(x_i-\bar x)^2$ 的规范标准型。
+\end{example}
+\begin{solve}
+每项均非负，而 $f(x)=0$ 当且仅当 $x_1=\cdots=x_n$，故零集是维数为 $1$ 的线性空间。令 $P=I_n-\mathbf1\mathbf1^{\mathsf T}/n$，则 $f(x)=\|Px\|^2$，且 $\ker P=\mathbb R\mathbf1$。由 $\ker(P^{\mathsf T}P)=\ker P$，可得秩为 $n-1$，正、负惯性指数分别为 $n-1$、$0$，规范标准型为 $y_1^2+\cdots+y_{n-1}^2$。当 $n=1$ 时这表示零型；当 $n\ge2$ 时也有
+\[
+ \sum_{i<j}(x_i-x_j)^2=n\sum_{i=1}^n(x_i-\bar x)^2,
+\]
+所以这一差分平方和有相同惯性。
+\end{solve}
+
+\begin{example}
+\label{ex:xie-ex-qf-cycle}
+设 $n\ge2$、$a_1,\ldots,a_n\in\mathbb R$，求
+\[
+ f(x)=\sum_{i=1}^{n-1}(x_i-a_ix_{i+1})^2+(x_n-a_nx_1)^2
+\]
+的规范标准型。
+\end{example}
+\begin{solve}
+写 $f=\|Lx\|^2$，其中 $Lx=(x_1-a_1x_2,\ldots,x_{n-1}-a_{n-1}x_n,x_n-a_nx_1)^{\mathsf T}$。展开可得 $\det L=1-a_1\cdots a_n$，而 $L$ 的左上角 $n-1$ 阶子式为 $1$。因此乘积不等于 $1$ 时 $L$ 可逆，$f\succ0$，规范标准型为 $\sum_{i=1}^n y_i^2$；乘积等于 $1$ 时 $\operatorname{rank}L=n-1$，故规范标准型为 $\sum_{i=1}^{n-1}y_i^2$。这里 $f$ 的系数矩阵为 $L^{\mathsf T}L$，而不是 $L$ 本身。
+\end{solve}
+
+\begin{example}
+以实矩阵 $X=(x_{ij})\in\mathbb R^{n\times n}$ 的 $n^2$ 个元素为变量，求二次型 $f(X)=\operatorname{tr}(X^2)$ 的惯性指数。
+\end{example}
+\begin{solve}
+展开得到 $f=\sum_i x_{ii}^2+2\sum_{i<j}x_{ij}x_{ji}$。对每一对 $i<j$，令 $u_{ij}=(x_{ij}+x_{ji})/\sqrt2$、$v_{ij}=(x_{ij}-x_{ji})/\sqrt2$，这是可逆替换，且 $2x_{ij}x_{ji}=u_{ij}^2-v_{ij}^2$。所以
+\[
+ p(f)=\frac{n(n+1)}2,\qquad q(f)=\frac{n(n-1)}2.
+\]
+它在对称矩阵子空间上为正定，在反对称矩阵子空间上为负定；二者维数正好给出上述指数。这里 $\operatorname{tr}(X^2)$ 一般不同于恒非负的 $\operatorname{tr}(X^{\mathsf T}X)$。
+\end{solve}
+
+\begin{proposition}
+\label{prop:xie-ex-qf-inertia-compression}
+若 $A$ 为 $m$ 阶实对称矩阵、$C\in\mathbb R^{m\times n}$，则
+\[
+ p(C^{\mathsf T}AC)\le p(A),\qquad q(C^{\mathsf T}AC)\le q(A).
+\]
+从而对同阶实对称矩阵 $A,B$，有 $p(A+B)\le p(A)+p(B)$ 及 $q(A+B)\le q(A)+q(B)$。
+\end{proposition}
+\begin{proof}
+若 $W$ 是 $C^{\mathsf T}AC$ 的正定子空间，则 $C$ 在 $W$ 上单射，否则某非零 $x\in W$ 满足 $Cx=0$，与正定性矛盾；其像 $CW$ 是 $A$ 的正定子空间，且维数等于 $\dim W$。使用定理~\ref{thm:xie-ex-qf-inertia} 中的最大维数刻画即得第一式，对 $-A$ 同理。最后写成
+\[
+ A+B=\begin{pmatrix}I_n\\I_n\end{pmatrix}^{\mathsf T}
+       \operatorname{diag}(A,B)
+       \begin{pmatrix}I_n\\I_n\end{pmatrix}
+\]
+并用分块惯性的可加性。
+\end{proof}
+
+\section{矩阵与二次型}
+\label{sec:xie-ex-qf-matrix-view}
+
+\subsection{由矩阵求二次型的极值与标准型}
+
+\begin{example}
+\label{ex:xie-ex-qf-minimum}
+设 $A\succ0$、$b\in\mathbb R^n$、$c\in\mathbb R$，求 $g(x)=x^{\mathsf T}Ax+2b^{\mathsf T}x+c$ 的最小值。
+\end{example}
+\begin{solve}
+矩阵配方给出
+\[
+ g(x)=(x+A^{-1}b)^{\mathsf T}A(x+A^{-1}b)+c-b^{\mathsf T}A^{-1}b.
+\]
+故唯一最小点为 $x=-A^{-1}b$，最小值为 $c-b^{\mathsf T}A^{-1}b$。这也就是将增广对称矩阵 $\begin{pmatrix}A&b\\b^{\mathsf T}&c\end{pmatrix}$ 关于 $A$ 消元后的末项；增广矩阵本身未必正定。
+\end{solve}
+
+如果只有 $A\succeq0$，则不能直接套用逆矩阵公式。此时最小值存在当且仅当 $b\in\operatorname{im}A$：若 $Az=b$，则 $g(x)=(x+z)^{\mathsf T}A(x+z)+c-z^{\mathsf T}Az$，所有最小点为 $-z+\ker A$；若 $b\notin\operatorname{im}A=(\ker A)^\perp$，可取 $u\in\ker A$ 使 $b^{\mathsf T}u\ne0$，沿 $x=tu$ 便得函数无下界。
+
+\begin{example}
+设 $A=(\max\{i,j\})_{1\le i,j\le n}$，求 $x^{\mathsf T}Ax$ 的惯性。
+\end{example}
+\begin{solve}
+对第 $k$ 阶顺序主子阵，依次在 $i=1,\ldots,k-1$ 时作“第 $i$ 行减去第 $i+1$ 行”。此时被减的行尚未变动，新第 $i$ 行的前 $i$ 个元素为 $-1$，其余为零，末行全为 $k$，所以得到下三角矩阵，行列式为 $\Delta_k=(-1)^{k-1}k$。于是 $\Delta_1=1$，而 $\Delta_k/\Delta_{k-1}=-k/(k-1)<0$ 对 $k\ge2$ 成立。由式~\eqref{eq:xie-ex-qf-jacobi}，规范标准型为 $y_1^2-y_2^2-\cdots-y_n^2$。
+\end{solve}
+
+\subsection{用二次型证明矩阵性质}
+
+\begin{example}
+设 $n\ge2$，求距离矩阵 $D=(|i-j|)_{i,j=1}^n$ 的惯性。
+\end{example}
+\begin{solve}
+令 $S=\sum_{i=1}^n x_i$、$S_k=\sum_{i=1}^k x_i$，将每个距离 $|i-j|$ 分解为它跨过的相邻区间数，得到
+\[
+ x^{\mathsf T}Dx=2\sum_{k=1}^{n-1}S_k(S-S_k).
+\]
+在 $S=0$ 的 $n-1$ 维子空间上，它等于 $-2\sum_{k=1}^{n-1}S_k^2$，且只有 $x=0$ 才为零，故 $q(D)\ge n-1$。另一方面，取 $x=e_1+e_n$ 得值 $2(n-1)>0$，故 $p(D)\ge1$。两者之和不超过 $n$，所以 $p(D)=1$、$q(D)=n-1$，规范标准型也为一正、$n-1$ 负。
+\end{solve}
+
+\begin{theorem}[Hadamard 乘积的保正性]
+\label{thm:xie-ex-qf-hadamard-product}
+若 $A=(a_{ij})$、$B=(b_{ij})$ 为同阶实半正定矩阵，则逐元素乘积 $A\circ B=(a_{ij}b_{ij})$ 也半正定；若二者均正定，则 $A\circ B$ 正定。
+\end{theorem}
+\begin{proof}
+写 $B=C^{\mathsf T}C$，令 $D_k=\operatorname{diag}(c_{k1},\ldots,c_{kn})$。逐项计算得到
+\[
+ A\circ B=\sum_{k=1}^nD_kAD_k,
+ \qquad x^{\mathsf T}(A\circ B)x=\sum_{k=1}^n(D_kx)^{\mathsf T}A(D_kx)\ge0.
+\]
+若 $A,B\succ0$，可取 $C$ 可逆。对任一 $x\ne0$，至少存在一个 $D_kx\ne0$；否则，取 $x_j\ne0$，将推出 $C$ 的第 $j$ 列全为零。故上式至少有一项严格为正。
+\end{proof}
+
+\begin{example}
+若 $A$ 为可逆实对称矩阵，$S$ 为实反对称矩阵，并且 $AS=SA$，证明 $A+S$ 可逆。
+\end{example}
+\begin{solve}
+利用交换性消去交叉项，
+\[
+ (A+S)^{\mathsf T}(A+S)=A^{\mathsf T}A+S^{\mathsf T}S.
+\]
+右边第一项正定、第二项半正定，故整个矩阵正定，因而 $A+S$ 的核为零。这里 $A$ 不必正定，但交换性参与了交叉项相消；若已知 $A\succ0$，则无需交换性，见第~\ref{sec:xie-ex-qf-positive} 节的行列式结论。
+\end{solve}
+
+\section{正定型与正定矩阵}
+\label{sec:xie-ex-qf-positive}
+
+\subsection{判定、构造与矩阵次序}
+
+综合前面的结论，实对称矩阵正定等价于合同于 $I_n$、存在可逆实 Gram 分解、所有顺序主子式为正，也等价于所有主子式为正。最后一个条件的必要性来自主子阵的正定性，充分性只需选取其中的顺序主子式。由实对称矩阵的正交对角化，它还等价于所有特征值严格为正；这一谱判据使用的是正交相似标准型，不能由一般合同变换保持特征值来解释。Hermite 矩阵具有对应的正定判据，其中转置换成共轭转置，主子式仍为实数。
+
+\begin{proposition}
+\label{prop:xie-ex-qf-diagonal-dominance}
+若实对称矩阵满足 $a_{ii}>\sum_{j\ne i}|a_{ij}|$ 对所有 $i$ 成立，则 $A\succ0$。此外，对任意实对称矩阵 $A$，存在 $K>0$ 使 $|x^{\mathsf T}Ax|\le K\|x\|^2$ 对所有 $x$ 成立。
+\end{proposition}
+\begin{proof}
+由 $2|x_ix_j|\le x_i^2+x_j^2$，
+\[
+ x^{\mathsf T}Ax\ge\sum_i\left(a_{ii}-\sum_{j\ne i}|a_{ij}|\right)x_i^2>0\qquad(x\ne0).
+\]
+同一估计取绝对值得 $|x^{\mathsf T}Ax|\le\sum_i(\sum_j|a_{ij}|)x_i^2$，故取 $K=1+\max_i\sum_j|a_{ij}|$ 即可。
+\end{proof}
+
+\begin{example}
+证明 Cauchy 型矩阵 $H=(1/(i+j))_{i,j=1}^n$ 正定。
+\end{example}
+\begin{solve}
+利用 $1/(i+j)=\int_0^1t^{i+j-1}\,\mathrm dt$，有限求和可与积分交换，得到
+\[
+ x^{\mathsf T}Hx=\int_0^1t\left(\sum_{i=1}^n x_it^{i-1}\right)^2\,\mathrm dt.
+\]
+$x\ne0$ 时括号内是非零多项式，在 $(0,1)$ 上不可能恒为零，并由连续性在某个区间上平方严格为正，故积分为正。这给出了教材中 Cauchy 行列式判据之外的一个直接验证。
+\end{solve}
+
+对同阶实对称矩阵，约定 $A\succ B$ 表示 $A-B\succ0$，$A\succeq B$ 表示 $A-B\succeq0$，称为由半正定性诱导的矩阵次序。它不是逐元素大小关系。正定矩阵的和、正数倍、可逆合同像及逆矩阵仍正定；若 $A\succ0$、$B\succeq0$，则 $A+B\succ0$。两个正定矩阵的乘积却未必对称，例如
+\[
+ \begin{pmatrix}2&1\\1&2\end{pmatrix}
+ \begin{pmatrix}1&0\\0&2\end{pmatrix}
+ =\begin{pmatrix}2&2\\1&4\end{pmatrix},
+\]
+所以不能一般地将其称为正定矩阵。
+
+\begin{proposition}
+\label{prop:xie-ex-qf-inverse-order}
+若 $A\succ B\succ0$，则 $B^{-1}\succ A^{-1}$。
+\end{proposition}
+\begin{proof}
+令 $H=A-B\succ0$。分块求逆或直接相乘可验证
+\[
+ B^{-1}-A^{-1}=(B+BH^{-1}B)^{-1}.
+\]
+右边括号内正定，因此其逆也正定。
+\end{proof}
+
+\begin{example}
+\label{ex:xie-ex-qf-positive-construction}
+给定非零实列向量 $u,v$，证明存在 $A\succ0$ 使 $Av=u$ 当且仅当 $u^{\mathsf T}v>0$。
+\end{example}
+\begin{solve}
+必要性来自 $u^{\mathsf T}v=v^{\mathsf T}Av>0$。若 $u^{\mathsf T}v>0$，构造
+\[
+ A=I_n-\frac{vv^{\mathsf T}}{v^{\mathsf T}v}
+     +\frac{uu^{\mathsf T}}{u^{\mathsf T}v}.
+\]
+直接计算得 $Av=u$。第一项与第二项之和是到 $v^\perp$ 的正交投影，第三项半正定；若 $x^{\mathsf T}Ax=0$，前一部分要求 $x=tv$，后一部分要求 $u^{\mathsf T}x=0$，由 $u^{\mathsf T}v>0$ 得 $t=0$。故 $A\succ0$。更一般地，教材中的修正
+\[
+ H=G-\frac{Gvv^{\mathsf T}G}{v^{\mathsf T}Gv}
+       +\frac{uu^{\mathsf T}}{u^{\mathsf T}v}\qquad(G\succ0)
+\]
+同样正定：加权 Cauchy--Schwarz 不等式表明前两项的二次型非负，等号恰在 $x\in\mathbb Rv$ 时成立，再用第三项排除非零零方向。
+\end{solve}
+
+\subsection{行列式不等式}
+
+\begin{proposition}[Hadamard 与分块行列式不等式]
+\label{prop:xie-ex-qf-hadamard-det}
+若 $A=(a_{ij})\succ0$，则
+\begin{equation}
+ 0<\det A\le\prod_{i=1}^n a_{ii},
+ \label{eq:xie-ex-qf-hadamard-det}
+\end{equation}
+等号当且仅当 $A$ 为对角矩阵。若 $M=\begin{pmatrix}A&B\\B^{\mathsf T}&D\end{pmatrix}\succ0$，则 $\det M\le\det A\det D$，等号当且仅当 $B=0$。
+\end{proposition}
+\begin{proof}
+写 $A=\begin{pmatrix}A_{n-1}&u\\u^{\mathsf T}&a_{nn}\end{pmatrix}$，由 Schur 补有
+\[
+ \det A=\det A_{n-1}(a_{nn}-u^{\mathsf T}A_{n-1}^{-1}u)
+ \le a_{nn}\det A_{n-1}.
+\]
+等号当且仅当 $u=0$。反复降阶便得到式~\eqref{eq:xie-ex-qf-hadamard-det} 及等号条件。对于分块不等式，分别用可逆合同将 $A,D$ 化为单位矩阵，得到 $\widetilde M=\begin{pmatrix}I&K\\K^{\mathsf T}&I\end{pmatrix}\succ0$。它的对角元全为 $1$，故 $\det\widetilde M\le1$，等号当且仅当 $K=0$，即 $B=0$；按合同的行列式缩放关系还原即可。
+\end{proof}
+
+若实方阵 $X=(Y,Z)$ 按列分块，则
+\[
+ (\det X)^2\le\det(Y^{\mathsf T}Y)\det(Z^{\mathsf T}Z).
+\]
+当 $X$ 可逆时，对 $X^{\mathsf T}X$ 使用分块不等式即得；奇异时左边为零，右边由两个 Gram 矩阵的半正定性非负。若 $X$ 可逆，等号条件为 $Y^{\mathsf T}Z=0$，即两组列向量张成的子空间正交。
+
+\begin{proposition}
+\label{prop:xie-ex-qf-positive-skew-det}
+若 $A\succ0$、$S^{\mathsf T}=-S$ 均为 $n$ 阶实矩阵，则
+\[
+ \det(A+S)\ge\det A+\det S\ge\det A>0.
+\]
+第一处等号当且仅当 $n\le2$ 或 $S=0$，且 $\det(A+S)=\det A$ 当且仅当 $S=0$。
+\end{proposition}
+\begin{proof}
+取可逆实矩阵 $C$ 使 $C^{\mathsf T}AC=I_n$，令 $T=C^{\mathsf T}SC$，则 $T$ 仍反对称。对 $I_n+T$ 使用推论~\ref{cor:xie-ex-qf-skew-det}，再将各行列式同时除以 $(\det C)^2$，便得到不等式及等号条件。
+\end{proof}
+
+\subsection{非对称矩阵的对称部分与复向量方法}
+
+负定矩阵的判定可统一转化为对 $-A$ 使用正定判据。特别地，$A\prec0$ 当且仅当 $(-1)^k\Delta_k>0$ 对所有 $k$ 成立。若 $A\succ0$，则关于 $x$ 的加边行列式
+\[
+ h(x)=\det\begin{pmatrix}A&x\\x^{\mathsf T}&0\end{pmatrix}
+     =-\det(A)x^{\mathsf T}A^{-1}x
+     =-x^{\mathsf T}\operatorname{adj}(A)x
+\]
+是负定二次型。这一计算同时说明，加边行列式问题往往可转化为逆矩阵或伴随矩阵的正定性问题。
+
+\begin{definition}
+教材将满足 $x^{\mathsf T}Mx>0$ 对所有非零实向量 $x$ 成立的实矩阵 $M$ 称为\emph{亚正定矩阵}，将处处非负的情形称为\emph{亚半正定矩阵}。这里沿用教材术语，其本质是矩阵的对称部分正定或半正定。
+\end{definition}
+
+唯一分解
+\[
+ M=H+S,\qquad H=\frac{M+M^{\mathsf T}}2,\quad
+ S=\frac{M-M^{\mathsf T}}2
+\]
+满足 $x^{\mathsf T}Mx=x^{\mathsf T}Hx$，所以亚正定等价于 $H\succ0$。由命题~\ref{prop:xie-ex-qf-positive-skew-det} 可得亚正定矩阵的行列式为正，因而可逆；其转置与逆矩阵也亚正定，因为对 $y=M^{-1}x\ne0$，
+\[
+ x^{\mathsf T}M^{-1}x=(My)^{\mathsf T}y=y^{\mathsf T}M^{\mathsf T}y>0.
+\]
+伴随矩阵为正数 $\det M$ 乘以 $M^{-1}$，故也亚正定；正数倍、和及可逆实合同像亦保持这一性质。若 $Mz=\lambda z$、$z\in\mathbb C^n\setminus\{0\}$，则 $z^{\mathsf H}Sz$ 为纯虚数，从而
+\[
+ \operatorname{Re}\lambda=\frac{z^{\mathsf H}Hz}{z^{\mathsf H}z}>0.
+\]
+这里使用复向量时必须改用共轭转置。反过来，仅有特征值实部为正不足以保证亚正定，例如 $\begin{pmatrix}1&4\\0&1\end{pmatrix}$ 的对称部分不定。
+
+\begin{example}
+设 $A,B,C\succ0$，证明 $g(t)=\det(t^2A+tB+C)$ 的所有复根实部都小于零。
+\end{example}
+\begin{solve}
+若 $t_0$ 为根，存在非零复向量 $z$ 使 $(t_0^2A+t_0B+C)z=0$。左乘 $z^{\mathsf H}$，得到 $at_0^2+bt_0+c=0$，其中 $a=z^{\mathsf H}Az$、$b=z^{\mathsf H}Bz$、$c=z^{\mathsf H}Cz$ 均为正实数。若 $t_0$ 为实根，则非负数不可能满足此方程，故 $t_0<0$；若为非实根，其共轭也是该实系数二次方程的根，由根和得 $\operatorname{Re}t_0=-b/(2a)<0$。三个系数依赖于所选的根与向量，但对该根的这一结论已经足够。
+\end{solve}
+
+\section{半正定型与半正定矩阵}
+\label{sec:xie-ex-qf-semidefinite}
+
+\subsection{极限性质与主子式判据}
+
+\begin{theorem}
+\label{thm:xie-ex-qf-psd-minors}
+设 $A$ 为 $n$ 阶实对称矩阵，则下列条件等价：$A\succeq0$；对每个 $\varepsilon>0$ 都有 $A+\varepsilon I_n\succ0$；$A$ 的所有主子式非负。它们也等价于存在实 Gram 分解，以及所有特征值非负。
+\end{theorem}
+\begin{proof}
+若 $A\succeq0$，则对 $x\ne0$ 有 $x^{\mathsf T}(A+\varepsilon I_n)x\ge\varepsilon\|x\|^2>0$；反之，让此不等式中的 $\varepsilon\downarrow0$ 即得半正定性。半正定矩阵的每个主子阵都半正定，其行列式由 Gram 分解非负。若所有主子式非负，则对每个顺序主子阵 $A_k$，展开得
+\[
+ \det(A_k+\varepsilon I_k)
+ =\varepsilon^k+\sum_{j=1}^k e_j(A_k)\varepsilon^{k-j}>0,
+\]
+其中 $e_j(A_k)$ 为 $A_k$ 的所有 $j$ 阶主子式之和。每个系数非负，首项严格为正，所以 $A+\varepsilon I_n$ 的所有顺序主子式为正，由 Sylvester 判据得其正定，再取极限。Gram 条件已在命题~\ref{prop:xie-ex-qf-gram} 中证明，谱条件则由实对称矩阵的正交对角化得到。
+\end{proof}
+
+\begin{notealert}[type=caution,title={顺序主子式的非负性不够}]
+矩阵 $\operatorname{diag}(1,0,-1)$ 的顺序主子式为 $1,0,0$，但它有负方向。因此，将正定判据中的每个严格不等号直接改为非严格不等号，会得到错误结论；半正定的主子式判据要求\emph[caution]{所有主子式}非负。
+\end{notealert}
+
+半正定矩阵是正定矩阵的极限，且半正定性对矩阵元素的极限封闭：若 $A_j\succeq0$ 且逐元素趋于 $A$，则固定任意 $x$ 后由 $x^{\mathsf T}A_jx\ge0$ 取极限即可。这种方法能延拓由连续表达式构成的不等式，但不能未经检查就延拓严格不等号、等号条件或含逆矩阵的表达式。
+
+例如对 $A\succeq0$，式~\eqref{eq:xie-ex-qf-hadamard-det} 延拓为 $0\le\det A\le\prod_i a_{ii}$。等号当且仅当 $A$ 为对角矩阵或至少有一个 $a_{ii}=0$：若 $A$ 非奇异，就用正定情形的等号条件；若 $A$ 奇异，则等号等价于对角元之积为零。类似地，若 $S$ 实反对称，对 $A+\varepsilon I_n$ 使用命题~\ref{prop:xie-ex-qf-positive-skew-det} 并取极限，得到
+\begin{equation}
+ \det(A+S)\ge\det A+\det S\ge0\qquad(A\succeq0).
+ \label{eq:xie-ex-qf-psd-skew-det}
+\end{equation}
+
+\begin{example}
+设 $A,B\succeq0$，证明 $\operatorname{tr}(AB)/n\ge\sqrt[n]{\det A\det B}$，并求等号条件。
+\end{example}
+\begin{solve}
+写 $B=C^{\mathsf T}C$，令 $T=CAC^{\mathsf T}\succeq0$。则 $\operatorname{tr}T=\operatorname{tr}(AB)$、$\det T=\det A\det B$，由半正定的 Hadamard 不等式和非负数的算术几何平均不等式，
+\[
+ \sqrt[n]{\det A\det B}
+ =\sqrt[n]{\det T}
+ \le\sqrt[n]{\prod_i t_{ii}}
+ \le\frac1n\sum_i t_{ii}.
+\]
+若行列式之积为零，等号要求迹为零，由式~\eqref{eq:xie-ex-qf-trace-zero} 等价于 $AB=0$。若行列式之积为正，则 $C$ 可逆，两个等号要求 $T=cI_n$、$c>0$，这等价于 $AB=cI_n$。故统一的等号条件是 $AB=cI_n$，其中 $c\ge0$。
+\end{solve}
+
+\subsection{零对角元与零二次型值}
+
+\begin{proposition}
+\label{prop:xie-ex-qf-psd-kernel}
+若 $A\succeq0$，则 $a_{ii}=0$ 蕴含第 $i$ 行、列全为零；对任意实向量 $x$，有
+\begin{equation}
+ x^{\mathsf T}Ax=0\quad\Longleftrightarrow\quad Ax=0.
+ \label{eq:xie-ex-qf-psd-kernel}
+\end{equation}
+因此二次型的零集为 $\ker A$，其维数为 $n-\operatorname{rank}A$。
+\end{proposition}
+\begin{proof}
+第一条由式~\eqref{eq:xie-ex-qf-entry-bound} 的 $|a_{ij}|^2\le a_{ii}a_{jj}$ 得到。第二条写 $A=C^{\mathsf T}C$，则 $x^{\mathsf T}Ax=\|Cx\|^2=0$ 等价于 $Cx=0$，从而蕴含 $Ax=0$；逆向直接成立。最后使用秩与零空间维数公式。
+\end{proof}
+
+这两条性质分别是教材的第二、第三个核心性质。第一条将一个零对角元扩展为零行、零列；第二条将一个标量等式提升为向量等式。例如例~\ref{ex:xie-ex-qf-centering} 与例~\ref{ex:xie-ex-qf-cycle} 的求解，只需找出平方和的零集并计算维数，即可得到秩和规范标准型。\emph[caution]{一般不定二次型的零集未必是线性空间，也不能从 $x^{\mathsf T}Ax=0$ 推出 $Ax=0$。}例如 $A=\operatorname{diag}(1,-1)$、$x=(1,1)^{\mathsf T}$ 就是反例。
+
+更精确地，对实对称矩阵 $A$，性质“对每个 $x$，由 $x^{\mathsf T}Ax=0$ 均能推出 $Ax=0$”等价于 $A$ 半正定或半负定。若 $A$ 半正定或半负定，只需对 $A$ 或 $-A$ 使用命题~\ref{prop:xie-ex-qf-psd-kernel}；反之，若 $A$ 不定，规范标准型的一正、一负坐标均取 $1$ 就给出零二次型值却非零矩阵像，经可逆替换转回便与所述性质矛盾。
+
+\begin{proposition}
+\label{prop:xie-ex-qf-kernel-sums}
+若 $A,B\succeq0$、$S^{\mathsf T}=-S$ 均为 $n$ 阶实矩阵，则
+\begin{align*}
+ \ker(A+B)&=\ker A\cap\ker B,\\
+ \ker(A+S)&=\ker A\cap\ker S.
+\end{align*}
+故
+\[
+ \operatorname{rank}(A+B)=\operatorname{rank}\begin{pmatrix}A\\B\end{pmatrix},
+ \qquad
+ \operatorname{rank}(A+S)=\operatorname{rank}\begin{pmatrix}A\\S\end{pmatrix}.
+\]
+特别地，$A+B\succ0$ 当且仅当 $\ker A\cap\ker B=\{0\}$；$\det(A+S)>0$ 当且仅当 $\ker A\cap\ker S=\{0\}$。
+\end{proposition}
+\begin{proof}
+若 $(A+B)x=0$，则 $0=x^{\mathsf T}Ax+x^{\mathsf T}Bx$，两项非负，故分别为零，再用式~\eqref{eq:xie-ex-qf-psd-kernel} 得 $Ax=Bx=0$。若 $(A+S)x=0$，左乘 $x^{\mathsf T}$，利用 $x^{\mathsf T}Sx=0$ 得 $x^{\mathsf T}Ax=0$，从而 $Ax=0$，继而 $Sx=0$。两个逆向都直接成立。秩等式来自相同的核；最后，$A+B$ 已经半正定，而 $\det(A+S)\ge0$ 由式~\eqref{eq:xie-ex-qf-psd-skew-det} 得到，所以非奇异分别等价于正定与行列式严格为正。
+\end{proof}
+
+由对称性与反对称性，堆叠矩阵的转置具有相同秩，上述秩也可写成横向拼接矩阵 $(A,B)$、$(A,S)$ 的秩。如果 $0\preceq B\preceq A$，则对 $Ax=0$ 的 $x$，等式 $A=(A-B)+B$ 表明 $Bx=0$；因此 $\ker A\subseteq\ker B$，并有 $\operatorname{rank}(A,B)=\operatorname{rank}A$。
+
+\begin{example}
+设 $A,B$ 为实对称矩阵，$B\succeq0$。若 $\det(A+\mathrm iB)=0$，证明存在非零实向量 $u$ 使 $Au=Bu=0$。
+\end{example}
+\begin{solve}
+取非零复向量 $z$ 满足 $(A+\mathrm iB)z=0$，左乘 $z^{\mathsf H}$。由于 $z^{\mathsf H}Az,z^{\mathsf H}Bz$ 都为实数，虚部给出 $z^{\mathsf H}Bz=0$。实半正定矩阵对复向量仍半正定，Gram 分解于是给出 $Bz=0$，继而 $Az=0$。将 $z$ 分成实部与虚部，二者都被 $A,B$ 消去，且至少一个非零，取作 $u$ 即可。
+\end{solve}
+
+\subsection{主对角块的列空间控制与奇异消元}
+
+\begin{theorem}
+\label{thm:xie-ex-qf-singular-schur}
+设 $M=\begin{pmatrix}A&B\\B^{\mathsf T}&D\end{pmatrix}$ 为实对称矩阵，其中 $A$ 为 $r$ 阶。则 $M\succeq0$ 当且仅当 $A\succeq0$、$\operatorname{im}B\subseteq\operatorname{im}A$，并且对满足 $AX=B$ 的一个矩阵 $X$，有 $D-X^{\mathsf T}AX\succeq0$。此时
+\begin{equation}
+ \begin{pmatrix}I&0\\-X^{\mathsf T}&I\end{pmatrix}
+ M\begin{pmatrix}I&-X\\0&I\end{pmatrix}
+ =\operatorname{diag}(A,D-X^{\mathsf T}AX).
+ \label{eq:xie-ex-qf-singular-schur}
+\end{equation}
+特别地，半正定性蕴含 $\operatorname{rank}(A,B)=\operatorname{rank}A$。
+\end{theorem}
+\begin{proof}
+若 $M\succeq0$，则 $A\succeq0$。对 $u\in\ker A$，向量 $(u^{\mathsf T},0)^{\mathsf T}$ 在 $M$ 的二次型下取零，由命题~\ref{prop:xie-ex-qf-psd-kernel} 可得 $B^{\mathsf T}u=0$。所以 $\ker A\subseteq\ker B^{\mathsf T}$，取正交补得到 $\operatorname{im}B\subseteq\operatorname{im}A$，从而方程 $AX=B$ 可解。直接相乘验证式~\eqref{eq:xie-ex-qf-singular-schur}，右边的第二块作为半正定合同像的主子阵必半正定。反之，所述三个条件使右边分块对角矩阵半正定，故 $M$ 半正定。若 $AX_1=AX_2=B$，则 $A(X_1-X_2)=0$，所以 $X_1^{\mathsf T}AX_1=X_2^{\mathsf T}AX_2$，条件不依赖于解的选择。
+\end{proof}
+
+这是教材第四个核心性质“主对角块可消去同行、同列非对角块”的精确形式。它不要求主对角块可逆；真正需要的是非对角块的每一列都属于该主对角块的像空间。零对角元迫使零行、零列，是这一性质在一阶主块上的特殊情形。
+
+\begin{proposition}
+\label{prop:xie-ex-qf-semicholesky}
+每个实半正定矩阵均可写成 $A=U^{\mathsf T}DU$，其中 $U$ 为单位上三角矩阵、$D$ 为非负对角矩阵；也可写成 $A=R^{\mathsf T}R$，其中 $R$ 为对角元非负的上三角矩阵。反之，两种分解都蕴含半正定性，但一般不唯一。
+\end{proposition}
+\begin{proof}
+对阶数归纳。若首元 $a_{11}=0$，则第一行、列全为零，直接对余下主子阵使用归纳假设。若 $a_{11}>0$，用它作首个主元消去首行、列的非对角元，得到非负数 $a_{11}$ 与一个较低阶的半正定 Schur 补，再使用归纳假设。消元乘子均为单位上三角矩阵，故得到 $U^{\mathsf T}DU$；令 $R=D^{1/2}U$ 即得后一分解，逆向由平方范数非负得到。非唯一性可由
+\[
+ A=\begin{pmatrix}0&0\\0&1\end{pmatrix},\quad
+ R_1=\begin{pmatrix}0&1\\0&0\end{pmatrix},\quad
+ R_2=\begin{pmatrix}0&0\\0&1\end{pmatrix}
+\]
+验证：两者都是对角元非负的上三角矩阵，且 $R_1^{\mathsf T}R_1=R_2^{\mathsf T}R_2=A$。
+\end{proof}
+
+对于亚半正定矩阵 $M=H+S$，其中 $H\succeq0$、$S^{\mathsf T}=-S$，式~\eqref{eq:xie-ex-qf-psd-skew-det} 给出 $\det M\ge0$；同第~\ref{sec:xie-ex-qf-positive} 节的复向量计算，可知所有特征值实部非负。其和、非负数倍、转置以及任意实合同像仍亚半正定；伴随矩阵的亚半正定性可由 $M+\varepsilon I_n$ 的伴随矩阵取极限得到。但可逆的亚半正定矩阵未必亚正定：例如 $J=\begin{pmatrix}0&1\\-1&0\end{pmatrix}$ 可逆，却对所有实向量满足 $x^{\mathsf T}Jx=0$。
+
+\section{基础训练与综合应用}
+\label{sec:xie-ex-qf-training}
+
+\subsection{概念辨析}
+
+系数矩阵、坐标替换与惯性之间的对应关系是基础题的核心。若一个 $n$ 阶实对称矩阵的秩为 $r$、符号差为 $s$，则
+\[
+ p=\frac{r+s}{2},\qquad q=\frac{r-s}{2},\qquad
+ |s|\le r,\quad r\equiv s\pmod2.
+\]
+固定阶数 $n$ 时，合同类由非负整数对 $(p,q)$、$p+q\le n$ 决定，共有 $\sum_{r=0}^n(r+1)=(n+1)(n+2)/2$ 类。任意两个同阶正定实对称矩阵都合同；若非退化二次型与其相反数合同，则 $p=q=n/2$，所以 $n$ 必为偶数。可逆实对称矩阵与其逆矩阵合同，但与伴随矩阵未必合同，例如 $\operatorname{diag}(1,1,-1)$ 的伴随为 $\operatorname{diag}(-1,-1,1)$，惯性不同。
+
+正定性要求检验所有非零向量，不能只检验各分量均非零的向量。$\operatorname{diag}(1,0)$ 对各分量均非零的向量给出正值，却非正定；负惯性指数为零也只保证半正定。正定矩阵不要求所有元素为正，$\begin{pmatrix}2&-1\\-1&2\end{pmatrix}$ 就是反例；仅有所有元素为正也不足够，$\begin{pmatrix}1&2\\2&1\end{pmatrix}$ 就不定。对于实矩阵 $B\in\mathbb R^{m\times n}$，$B^{\mathsf T}B$ 总半正定，而其正定等价于 $B$ 满列秩；更一般地，若 $A\succ0$ 为 $m$ 阶矩阵，则 $B^{\mathsf T}AB\succ0$ 当且仅当 $\operatorname{rank}B=n$，因为它的二次型取零恰等价于 $Bx=0$。
+
+\begin{example}
+\label{ex:xie-ex-qf-dependent-squares}
+解释为什么写成若干个正平方的和，仍不能直接断言原二次型正定。
+\end{example}
+\begin{solve}
+例如 $f=(x_1-x_2)^2+(x_2-x_3)^2+(x_3-x_1)^2$。三个平方内部的线性形式之和为零，所定义的替换矩阵奇异；原变量 $x=(1,1,1)^{\mathsf T}$ 非零却使 $f=0$。其零空间为 $\mathbb R(1,1,1)^{\mathsf T}$，所以 $p=2$、$q=0$。平方和证明的是半正定；要得到正定，必须补证全部线性形式同时为零时只有零解。
+\end{solve}
+
+\subsection{综合训练选讲}
+
+\begin{example}
+% 对应原书基础训练解答题1。
+证明整数反对称矩阵的行列式是某个整数的平方。
+\end{example}
+\begin{solve}
+若矩阵奇异，行列式为 $0^2$。若非奇异，在有理数域上按定理~\ref{thm:xie-ex-qf-skew-form} 消元，得到可逆有理矩阵 $C$，使 $C^{\mathsf T}SC$ 为若干 $J$ 的直和，于是 $\det S=(1/\det C)^2$ 为有理数的平方。又 $\det S$ 为整数；若既约有理数 $a/b$ 的平方为整数，则 $b^2\mid a^2$ 与 $\gcd(a,b)=1$ 迫使 $b=1$，所以 $\det S$ 必为整数平方。
+\end{solve}
+
+\begin{example}
+% 对应原书基础训练填空题6。
+确定实参数 $\lambda$ 的范围，使
+\[
+ f(x)=\lambda(x_1^2+x_2^2+x_3^2)+x_4^2
+       +2x_1x_2+2x_1x_3-2x_2x_3
+\]
+正定。
+\end{example}
+\begin{solve}
+系数矩阵为 $A=\begin{pmatrix}\lambda&1&1&0\\1&\lambda&-1&0\\1&-1&\lambda&0\\0&0&0&1\end{pmatrix}$，顺序主子式依次为
+\[
+ \Delta_1=\lambda,\quad \Delta_2=\lambda^2-1,\quad
+ \Delta_3=(\lambda+1)^2(\lambda-2),\quad \Delta_4=\Delta_3.
+\]
+四者均为正当且仅当 $\lambda>2$。边界 $\lambda=2$ 时行列式为零，故不能纳入正定范围。
+\end{solve}
+
+\begin{example}
+% 对应原书基础训练解答题7的秩一更新主题。
+若 $A\succ0$，证明对任意 $x\in\mathbb R^n$，有 $0\le x^{\mathsf T}(A+xx^{\mathsf T})^{-1}x<1$；若 $A\succeq0$，证明存在 $x$ 使 $A+xx^{\mathsf T}\succ0$ 当且仅当 $\operatorname{rank}A\ge n-1$。
+\end{example}
+\begin{solve}
+记 $K=A+xx^{\mathsf T}$。考虑 $M=\begin{pmatrix}K&x\\x^{\mathsf T}&1\end{pmatrix}$，用右下角消元得到 $M\sim_{\mathrm c}\operatorname{diag}(A,1)$。若 $A\succ0$，则 $M\succ0$，再用 $K\succ0$ 消元，得到 $1-x^{\mathsf T}K^{-1}x>0$；下界由 $K^{-1}\succ0$ 得到。若 $A\succeq0$，则
+\[
+ \ker(A+xx^{\mathsf T})=\ker A\cap x^\perp.
+\]
+一个线性条件至多将核空间的维数降低 $1$，所以必要条件为 $\dim\ker A\le1$。若 $A$ 已正定，任取 $x$ 即可；若核为一维，选取非零 $x\in\ker A$，则 $\ker A\cap x^\perp=\{0\}$，从而 $K\succ0$。特别地，在 $A$ 奇异且存在这样的 $x$ 时，$\operatorname{rank}A=n-1$，上面的分块矩阵秩为 $n$；再按 $K$ 消元得末项为零，即 $x^{\mathsf T}K^{-1}x=1$。
+\end{solve}
+
+\begin{example}
+% 对应原书基础训练解答题10；用整数矩阵构造反例。
+若 $A\succ B\succ0$，是否必有 $A^2\succ B^2$？
+\end{example}
+\begin{solve}
+取
+\[
+ B=\begin{pmatrix}1&0\\0&10\end{pmatrix},\quad
+ A=\begin{pmatrix}2&1\\1&12\end{pmatrix},\quad
+ A-B=\begin{pmatrix}1&1\\1&2\end{pmatrix}.
+\]
+三个矩阵均由顺序主子式判据正定，但
+\[
+ A^2-B^2=\begin{pmatrix}4&14\\14&45\end{pmatrix},\qquad
+ \det(A^2-B^2)=-16<0,
+\]
+所以它不定。矩阵乘法一般不交换，不能将 $A^2-B^2$ 当作两个可交换正定因子的乘积；逆矩阵的反序结论也不能迁移到平方函数。
+\end{solve}
+
+\begin{example}
+% 对应原书基础训练解答题13。
+设 $A\succ0$、$B\in\mathbb R^{n\times n}$，且 $M=\begin{pmatrix}A&B^{\mathsf T}\\B&A^{-1}\end{pmatrix}\succeq0$。证明 $B$ 的每个复特征值 $\lambda$ 均满足 $|\lambda|\le1$。
+\end{example}
+\begin{solve}
+用右下角 $A^{-1}$ 消元得 $A-B^{\mathsf T}AB\succeq0$。取非零复向量 $z$ 满足 $Bz=\lambda z$，利用实半正定性对复向量的延拓，得到
+\[
+ 0\le z^{\mathsf H}(A-B^{\mathsf T}AB)z
+ =(1-|\lambda|^2)z^{\mathsf H}Az.
+\]
+$z^{\mathsf H}Az>0$，故 $|\lambda|\le1$。证明只使用特征向量，不要求 $B$ 可对角化。
+\end{solve}
+
+\begin{example}
+% 对应原书基础训练解答题15，并补充最大维数。
+设 $f$ 为非退化的 $n$ 元实二次型，符号差为 $s$。求满足 $f$ 在其上恒为零的线性子空间的最大维数。
+\end{example}
+\begin{solve}
+取可逆替换 $x=Cy$ 使 $f=\sum_{i=1}^p y_i^2-\sum_{j=1}^q y_{p+j}^2$，其中 $p+q=n$、$p-q=s$。记 $m=\min(p,q)=(n-|s|)/2$，则向量 $e_i+e_{p+i}$（$1\le i\le m$）线性无关，其张成空间中的任一向量都使正负平方相消，故其经 $C$ 映出的子空间具有维数 $m$ 且 $f$ 恒为零。反之，若 $W$ 上 $f$ 恒零，则从 $W$ 到前 $p$ 个坐标的投影单射：一个向量若前 $p$ 个坐标为零，由负平方和为零也只能是零向量。同理到后 $q$ 个坐标的投影也单射，故 $\dim W\le p,q$，最大维数正为 $m$。这里强调的是整个子空间上恒零，单独列出若干零点并不能保证其线性组合仍为零。
+\end{solve}
+% END textbook-xie-exercises-ch8
+
+
+% BEGIN textbook-xie-exercises-ch9
+% 教材：高代习题-9.pdf，PDF 第 1--118 页，原书第 486--603 页。
+% 覆盖第 9 章各节；基础训练按知识点整合，不逐题抄录题目与答案。
+
+
+
+

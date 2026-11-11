@@ -1,0 +1,85 @@
+% !TeX root = ../组合数学笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{11} % 保留原书章号。
+\chapter{群作用与对称计数}
+\label{ch:symmetry}
+
+四个位置的二色染色有 $2^4=16$ 种，但把它们排在正方形上并识别旋转后只剩六种。不能用 $16/4$ 计算，因为单色图案旋转任意角度都不变，而其他图案的旋转副本数可能为二或四。群作用提供了处理不同重复次数的统一方法。
+
+\section{对称变换、群与轨道}
+
+\begin{definition}
+集合 $G$ 配备满足结合律的乘法，具有单位元 $e$ 且每个元素都有逆元，称为\emph{群（group）}。群 $G$ 在集合 $X$ 上的\emph{作用（action）}是映射 $(g,x)\mapsto g\cdot x$，满足 $e\cdot x=x$ 与 $(gh)\cdot x=g\cdot(h\cdot x)$。
+\end{definition}
+
+每个群元素都诱导 $X$ 的一个置换，因为 $g^{-1}$ 给出其逆映射。正 $n$ 边形的旋转形成循环群，$n\ge3$ 时旋转与反射合起来形成含 $2n$ 个元素的二面体群。这里变换作用于位置，再由位置置换诱导图案变换；颜色名称保持不变。
+
+对 $x\in X$，\emph{轨道（orbit）}为 $G\cdot x=\{g\cdot x:g\in G\}$，\emph{稳定子（stabilizer）}为 $G_x=\{g:g\cdot x=x\}$；对 $g\in G$，固定点集为 $\operatorname{Fix}(g)=\{x:g\cdot x=x\}$。处于同一轨道是等价关系，轨道集合记为 $X/G$，它正是识别指定对称后的方案集合。稳定子固定一个对象，固定点集固定一个变换，二者不可混淆。
+
+\section{轨道--稳定子关系与平均固定点}
+
+\begin{proposition}
+若 $G$ 有限，则 $|G\cdot x|=|G|/|G_x|$。
+\end{proposition}
+\begin{proof}
+考虑满射 $g\mapsto g\cdot x$。若 $g_0\cdot x=y$，则 $g\cdot x=y$ 当且仅当 $g_0^{-1}g\in G_x$，所以该纤维恰为 $g_0G_x$，大小为 $|G_x|$。应用等重计数原理即得。
+\end{proof}
+
+\begin{theorem}[Burnside 引理]
+有限群 $G$ 作用于有限集合 $X$ 时，
+\begin{equation}
+ |X/G|=\frac1{|G|}\sum_{g\in G}|\operatorname{Fix}(g)|.
+ \label{eq:burnside}
+\end{equation}
+\end{theorem}
+\begin{proof}
+对关联对集合 $\{(g,x):g\cdot x=x\}$，先按 $g$ 求和得到右侧分子，按 $x$ 求和得到 $\sum_x|G_x|$。同一轨道 $O$ 中每个点的稳定子大小为 $|G|/|O|$，所以整条轨道贡献 $|G|$。轨道总贡献为 $|G||X/G|$，相除即得。
+\end{proof}
+
+所有非单位元都不固定任何对象时，轨道均有 $|G|$ 个元素，公式才退化为简单除以群大小。一般情形平均的是各变换的固定点数，并非任意猜测一种代表的重复次数。
+
+\section{项链、手链与置换循环}
+
+设 $g$ 是位置集上的置换，共有 $c(g)$ 个循环。一个用 $q\ge1$ 种有名称颜色染色的图案被 $g$ 固定，当且仅当每个循环上的颜色恒定；各循环独立选色，故固定图案数为 $q^{c(g)}$。
+
+在 $n$ 个圆周位置中，转动 $j$ 格产生 $\gcd(n,j)$ 个循环，约定 $\gcd(n,0)=n$。只识别旋转的\emph{项链（necklace）}数为
+\[
+ \frac1n\sum_{j=0}^{n-1}q^{\gcd(n,j)}.
+\]
+再识别反射得到\emph{手链（bracelet）}。当 $n\ge3$ 为奇数时，每个反射有一个不动位置和 $(n-1)/2$ 对位置；当 $n$ 为偶数时，$n/2$ 个反射固定两个位置，其余 $n/2$ 个不固定位置。因此在旋转固定点总和之外，反射部分分别贡献 $nq^{(n+1)/2}$ 或 $\frac n2(q^{n/2+1}+q^{n/2})$，总和除以 $2n$ 即得。
+
+\begin{example}[正方形顶点染色]
+正方形的旋转固定点总和为 $q^4+q^2+2q$，故旋转等价类数为 $(q^4+q^2+2q)/4$。四个反射中两个固定一对对角顶点，贡献 $2q^3$；两个交换两对顶点，贡献 $2q^2$，故完整对称下有 $(q^4+2q^3+3q^2+2q)/8$ 类。$q=2$ 时两者都为 $6$；$q=3$ 时分别为 $24$ 与 $21$。两种等价关系在一个小例中数值相同，并不意味着它们总相同。
+\end{example}
+
+\section{循环指标与 P\'olya 计数}
+
+设 $G$ 作用于 $n$ 个位置，$c_i(g)$ 为 $g$ 的长度为 $i$ 的循环数。定义\emph{循环指标（cycle index）}
+\begin{equation}
+ Z_G(s_1,\ldots,s_n)=\frac1{|G|}\sum_{g\in G}\prod_{i=1}^n s_i^{c_i(g)}.
+ \label{eq:cycle-index}
+\end{equation}
+将所有 $s_i$ 代为 $q$ 就得到不限颜色库存的轨道数。若用变量 $y_a$ 标记颜色 $a$ 的使用次数，一个长度为 $i$ 的循环被固定时必须整体染成某种颜色，贡献 $y_1^i+\cdots+y_q^i$。
+
+\begin{theorem}[P\'olya 计数的库存形式]
+颜色名称固定时，每个染色轨道按其颜色使用次数贡献一个单项式，所得多项式为
+\[
+ Z_G\left(\sum_{a=1}^q y_a,\sum_{a=1}^q y_a^2,\ldots,
+                 \sum_{a=1}^q y_a^n\right).
+\]
+因此指定颜色库存的轨道数为相应单项式的系数。
+\end{theorem}
+\begin{proof}
+对每个 $g$，固定染色的权重和为上述循环因子的乘积。权重在同一轨道上不变，故在 Burnside 双重计数中，一条轨道连同其稳定子贡献 $|G|$ 倍该轨道的权重。对 $g$ 的权重和取平均，便使每条轨道恰贡献一次。
+\end{proof}
+
+正方形旋转群的循环指标为 $(s_1^4+s_2^2+2s_4)/4$。两色库存各为二时，$[y_1^2y_2^2]$ 的值为 $(6+2+0)/4=2$，对应同色位置相邻和同色位置相对。限制库存后，不能仍以 $q^{c(g)}$ 作为固定点数。
+
+\section{习题}
+\begin{enumerate}
+  \item\label{ex:symmetry-1} 求五个圆周位置的二色项链数，再加入反射等价，比较结果。
+  \item\label{ex:symmetry-2} 写出正方形二面体群的循环指标，并求三色染色轨道数。
+  \item\label{ex:symmetry-3} 求六个圆周位置上恰有两个红色、四个蓝色的旋转等价类数。
+  \item\label{ex:symmetry-4} 给出一个群作用使不同轨道大小不同，逐个列出稳定子并验证 Burnside 引理。
+\end{enumerate}
+

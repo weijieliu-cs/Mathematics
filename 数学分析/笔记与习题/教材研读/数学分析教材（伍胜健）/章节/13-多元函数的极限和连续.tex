@@ -1,0 +1,789 @@
+% !TeX root = ../数学分析教材（伍胜健）笔记.tex
+% 本文件由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{12} % 保留原书章号。
+\chapter{多元函数的极限和连续}
+\label{chap:multivariable-limits-and-continuity}
+
+% 依据教材《数学分析》第十三章分章原文 PDF 第 1--34 页正文整理，不含章末习题。
+
+一个量往往同时依赖若干个变量，例如温度可依赖空间位置与时间。研究这类函数，需要把实直线上的极限与连续理论推广到 $\mathbb R^n$。推广的关键不是逐个增加自变量，而是用\emph{距离}统一描述自变量的接近程度：在高维空间中，一个点可以从不同方向、沿不同曲线趋近另一个点，极限必须同时控制所有允许的趋近方式。
+
+本章先建立欧氏空间中点列、点集和紧性的基础，再讨论实值与向量值函数的极限，最后把连续函数的局部性质推广为紧集或道路连通集上的整体性质。以下 $n,m$ 均为正整数；一般将 $x=(x_1,\ldots,x_n)$ 看作点或向量，用 $k$ 标记点列的项，用 $i$ 标记坐标，以免混淆维数与序号。对于二元、三元函数，仍沿用 $(x,y)$、$(x,y,z)$ 表示自变量。
+
+\section{欧氏空间 \texorpdfstring{$\mathbb{R}^n$}{R^n}}
+\label{sec:euclidean-space}
+
+\subsection{欧氏空间 \texorpdfstring{$\mathbb{R}^n$}{R^n}}
+\label{subsec:euclidean-space}
+
+集合 $\mathbb R^n=\{(x_1,\ldots,x_n):x_i\in\mathbb R\}$ 配备按坐标进行的加法与数乘
+\[
+    x+y=(x_1+y_1,\ldots,x_n+y_n),\qquad
+    \alpha x=(\alpha x_1,\ldots,\alpha x_n),\quad \alpha\in\mathbb R,
+\]
+构成 $n$ 维实向量空间。零向量为 $0=(0,\ldots,0)$，单位坐标向量为 $e_i=(0,\ldots,0,1,0,\ldots,0)$，其中第 $i$ 个坐标为 $1$，因而 $x=\sum_{i=1}^n x_i e_i$。在线性运算之外，定义\emph{内积}（inner product）
+\[
+    x\cdot y=\sum_{i=1}^n x_i y_i.
+\]
+它满足对称性、对每个变量的线性及正定性：$x\cdot y=y\cdot x$，$(\alpha x+\beta y)\cdot z=\alpha(x\cdot z)+\beta(y\cdot z)$，且 $x\cdot x\geq0$，等号当且仅当 $x=0$。赋予这一内积后的空间称为\emph{欧几里得空间}（Euclidean space），简称欧氏空间。
+
+\begin{definition}
+\label{def:euclidean-norm-and-distance}
+向量 $x\in\mathbb R^n$ 的\emph{欧氏范数}（Euclidean norm），也称模，定义为
+\[
+    \|x\|=\sqrt{x\cdot x}=\left(\sum_{i=1}^n x_i^2\right)^{1/2}.
+\]
+两点 $x,y$ 的\emph{距离}（distance）定义为 $d(x,y)=\|x-y\|$。以下也用 $|x|$、$|x-y|$ 分别表示向量的模与两点间距离；当对象为实数时，竖线仍表示绝对值。
+\end{definition}
+
+例~\ref{ex:holder-inequality-from-concavity} 中的柯西--施瓦茨不等式给出 $|x\cdot y|\leq|x||y|$。由此
+\[
+    |x+y|^2=|x|^2+2x\cdot y+|y|^2\leq(|x|+|y|)^2,
+\]
+开方得到\emph{三角不等式} $|x+y|\leq|x|+|y|$。同时有 $|\alpha x|=|\alpha||x|$ 及反三角不等式 $\bigl||x|-|y|\bigr|\leq|x-y|$。因此距离非负且仅在 $x=y$ 时为零，对称，并满足 $|x-z|\leq|x-y|+|y-z|$。对于非零向量，夹角 $\theta\in[0,\pi]$ 可由 $\cos\theta=(x\cdot y)/(|x||y|)$ 定义；在二维和三维中，这与通常的几何夹角一致。特别地，非零向量也可以满足 $x\cdot y=0$，这时称它们\emph{正交}（orthogonal）。
+
+欧氏范数与各坐标之间有以下反复使用的估计：
+\begin{equation}
+    \max_{1\leq i\leq n}|x_i|
+    \leq |x|\leq\sum_{i=1}^n|x_i|
+    \leq\sqrt n\,|x|,
+    \qquad
+    |x|\leq\sqrt n\max_{1\leq i\leq n}|x_i|.
+    \label{eq:euclidean-coordinate-norm-bounds}
+\end{equation}
+其中最后一个不等式来自 $\sum x_i^2\leq n\max_i|x_i|^2$，而 $\sum|x_i|\leq\sqrt n\,|x|$ 来自柯西--施瓦茨不等式。这些估计说明，在固定的有限维空间中，控制所有坐标与控制距离可以相互转化。
+
+\begin{example}
+\label{ex:matrix-frobenius-vector-bound}
+设 $A=(a_{ji})$ 为 $m\times n$ 实矩阵，定义其\emph{弗罗贝尼乌斯范数}（Frobenius norm）
+\[
+    \|A\|_{\mathrm F}=\left(\sum_{j=1}^m\sum_{i=1}^n a_{ji}^2\right)^{1/2}.
+\]
+证明对任意列向量 $x\in\mathbb R^n$，都有 $|Ax|\leq\|A\|_{\mathrm F}|x|$。
+\end{example}
+
+\begin{solve}
+分别对各行使用柯西--施瓦茨不等式，得
+\[
+    |Ax|^2=\sum_{j=1}^m\left(\sum_{i=1}^n a_{ji}x_i\right)^2
+    \leq\sum_{j=1}^m\left(\sum_{i=1}^n a_{ji}^2\right)
+                            \left(\sum_{i=1}^n x_i^2\right)
+    =\|A\|_{\mathrm F}^2|x|^2.
+\]
+两边开方即得结论。这里的范数明确指各矩阵元平方和的平方根，估计对任意 $m,n$ 均成立。
+\end{solve}
+
+\subsection{点列极限}
+\label{subsec:limits-of-point-sequences}
+
+\begin{definition}
+\label{def:euclidean-neighborhoods}
+给定 $a=(a_1,\ldots,a_n)\in\mathbb R^n$ 和 $\delta>0$，称
+\[
+    U(a,\delta)=\{x:|x-a|<\delta\},\qquad
+    U_0(a,\delta)=U(a,\delta)\setminus\{a\}
+\]
+为 $a$ 的\emph{球形邻域}（ball neighborhood）及\emph{去心邻域}（punctured neighborhood）；称
+\[
+    N(a,\delta)=\{x:|x_i-a_i|<\delta,\ i=1,\ldots,n\},\qquad
+    N_0(a,\delta)=N(a,\delta)\setminus\{a\}
+\]
+为 $a$ 的\emph{方形邻域}（cubical neighborhood）及方形去心邻域。
+\end{definition}
+
+由式~\eqref{eq:euclidean-coordinate-norm-bounds}，有
+\begin{equation}
+    U(a,\delta)\subseteq N(a,\delta)\subseteq U(a,\sqrt n\,\delta).
+    \label{eq:ball-cube-neighborhood-inclusions}
+\end{equation}
+因此，在用任意小邻域定义的概念中，两类邻域可以互换。在 $\mathbb R^2$ 中，它们分别是开圆盘与开正方形；在 $\mathbb R^3$ 中，分别是开球与开立方体。这里“方形”在高维时也指各边平行于坐标轴的开立方体。
+
+\begin{definition}
+\label{def:convergent-euclidean-sequence}
+设 $\{x_k\}\subseteq\mathbb R^n$。若存在 $a\in\mathbb R^n$，使得
+\[
+    \forall\varepsilon>0\ \exists K\in\mathbb N\ \forall k>K,
+    \qquad |x_k-a|<\varepsilon,
+\]
+则称点列 $\{x_k\}$ \emph{收敛}（convergent）于 $a$，记为 $x_k\to a$ 或 $\lim_{k\to\infty}x_k=a$；若不存在这样的 $a$，则称其发散。等价地，$x_k\to a$ 就是实数列 $|x_k-a|\to0$。
+\end{definition}
+
+\begin{theorem}[按分量判定收敛]
+\label{thm:euclidean-sequence-componentwise-convergence}
+设 $x_k=(x_{k,1},\ldots,x_{k,n})$，$a=(a_1,\ldots,a_n)$，则 $x_k\to a$ 当且仅当每个坐标数列 $x_{k,i}\to a_i$。
+\end{theorem}
+
+\begin{proof}
+若 $x_k\to a$，由 $|x_{k,i}-a_i|\leq|x_k-a|$ 得到各坐标收敛。反之，给定 $\varepsilon>0$，对每个 $i$ 取 $K_i$，使 $k>K_i$ 时 $|x_{k,i}-a_i|<\varepsilon/\sqrt n$。因维数有限，可取 $K=\max_i K_i$，从而 $k>K$ 时
+\[
+    |x_k-a|=\left(\sum_{i=1}^n|x_{k,i}-a_i|^2\right)^{1/2}<\varepsilon.
+    \qedhere
+\]
+\end{proof}
+
+集合 $E\subseteq\mathbb R^n$ 称为\emph{有界集}（bounded set），是指存在 $M>0$ 使 $|x|\leq M$ 对所有 $x\in E$ 成立；点列有界是指其各项组成的集合有界。按坐标判别可知，点列收敛蕴含有界，但有界并不蕴含收敛，例如 $x_k=(-1)^k e_1$。
+
+\begin{proposition}
+\label{prop:euclidean-sequence-limit-rules}
+收敛点列的极限唯一，任意子列与原点列有相同极限。若 $x_k\to a$、$y_k\to b$，且 $\alpha,\beta\in\mathbb R$，则
+\[
+    \alpha x_k+\beta y_k\to\alpha a+\beta b,\qquad
+    x_k\cdot y_k\to a\cdot b,\qquad |x_k|\to|a|.
+\]
+\end{proposition}
+
+\begin{proof}
+若同时有 $x_k\to a,b$，则 $|a-b|\leq|a-x_k|+|x_k-b|\to0$，故 $a=b$。收敛点列的尾项落在 $U(a,1)$ 中，再合并有限个首项即可得有界性。子列结论直接来自极限定义；线性运算与内积极限由按分量判别及有限次实数运算得到，范数极限由反三角不等式得到。
+\end{proof}
+
+\begin{example}
+\label{ex:four-dimensional-point-sequence-limit}
+求点列
+\[
+    x_k=\left(\frac{\sqrt k\sin k}{k},\ k^4e^{-k^2},
+              \cos k\ln\left(1+\frac1k\right),\ k\tan\frac1k\right)
+    \in\mathbb R^4
+\]
+的极限。
+\end{example}
+
+\begin{solve}
+第一、三坐标的绝对值分别不超过 $k^{-1/2}$、$\ln(1+1/k)$，均趋于零；指数衰减快于固定次幂，故第二坐标也趋于零；第四坐标由 $\tan t/t\to1$ 得到极限 $1$。由定理~\ref{thm:euclidean-sequence-componentwise-convergence}，$x_k\to(0,0,0,1)$。向量非零与内积非零是不同的条件，例如两个恒定点列 $e_1,e_2$ 都有非零极限，其内积却恒为零。
+\end{solve}
+
+\subsection{聚点}
+\label{subsec:accumulation-points-in-euclidean-space}
+
+\begin{definition}
+\label{def:euclidean-accumulation-and-isolated-points}
+设 $E\subseteq\mathbb R^n$。若对任意 $\delta>0$ 都有 $U_0(a,\delta)\cap E\neq\varnothing$，则称 $a$ 为 $E$ 的\emph{聚点}或\emph{极限点}（accumulation point, limit point）。全体聚点组成的集合记为 $E'$，称为\emph{导集}（derived set）。若 $a\in E$ 而 $a\notin E'$，则称 $a$ 是 $E$ 的\emph{孤立点}（isolated point）；这时存在 $\delta>0$ 使 $U(a,\delta)\cap E=\{a\}$。
+\end{definition}
+
+聚点未必属于原集合，孤立点则必须属于原集合。聚点的每个邻域中实际含有无穷多个 $E$ 中的点：若某个去心邻域只含有限个这样的点，便可再缩小半径，避开这有限个点，产生与聚点定义矛盾的空去心邻域。由式~\eqref{eq:ball-cube-neighborhood-inclusions}，也可用方形去心邻域定义聚点。
+
+\begin{theorem}[聚点的点列刻画]
+\label{thm:euclidean-accumulation-sequence-criterion}
+$a$ 是 $E\subseteq\mathbb R^n$ 的聚点，当且仅当存在 $E\setminus\{a\}$ 中两两不同的点 $x_k$，使 $x_k\to a$。
+\end{theorem}
+
+\begin{proof}
+若 $a\in E'$，可从 $U_0(a,1/k)\cap E$ 中逐次选取 $x_k$，每次避开先前已选的有限个点；上述无限性保证选择可行，且 $|x_k-a|<1/k$。反之，若这样的点列存在，则 $a$ 的任意去心邻域都包含充分靠后的 $x_k$，故 $a\in E'$。
+\end{proof}
+
+若 $B\subseteq A\subseteq\mathbb R^n$，且 $A$ 中每个点的每个邻域都与 $B$ 相交，则称 $B$ 在 $A$ 中\emph{稠密}（dense）。这里不要求交点异于邻域中心，因此“稠密”与“每点都是聚点”在定义上应加以区分。
+
+\begin{example}
+\label{ex:rational-coordinate-points-dense}
+求有理坐标点集 $\mathbb Q^n=\{(x_1,\ldots,x_n):x_i\in\mathbb Q\}$ 的导集，并说明其稠密性。
+\end{example}
+
+\begin{solve}
+任取 $a\in\mathbb R^n$ 和 $\delta>0$，在各区间 $(a_i-\delta/\sqrt n,a_i+\delta/\sqrt n)$ 中选取有理数 $q_i$，并使 $q_1\neq a_1$。于是 $q=(q_1,\ldots,q_n)\in\mathbb Q^n$，$q\neq a$ 且 $|q-a|<\delta$。故 $(\mathbb Q^n)'=\mathbb R^n$，从而 $\mathbb Q^n$ 在 $\mathbb R^n$ 中稠密。此例也说明，一个集合的聚点可以遍布整个空间，即使原集合只含有理坐标点。
+\end{solve}
+
+\subsection{开集与闭集}
+\label{subsec:open-and-closed-sets}
+
+\begin{definition}
+\label{def:euclidean-interior-exterior-boundary}
+设 $E\subseteq\mathbb R^n$，$E^c=\mathbb R^n\setminus E$。若存在 $\delta>0$ 使 $U(a,\delta)\subseteq E$，则称 $a$ 为 $E$ 的\emph{内点}（interior point），全体内点组成\emph{内部} $E^\circ$。若存在 $\delta>0$ 使 $U(a,\delta)\cap E=\varnothing$，则称 $a$ 为\emph{外点}（exterior point），全体外点组成 $(E^c)^\circ$。若每个 $U(a,\delta)$ 都同时与 $E$ 和 $E^c$ 相交，则称 $a$ 为\emph{边界点}（boundary point），全体边界点组成\emph{边界} $\partial E$。
+\end{definition}
+
+内点一定属于 $E$，外点一定不属于 $E$，边界点则可能属于或不属于 $E$。每个点恰属于内部、外部、边界三者之一，因而
+\[
+    \mathbb R^n=E^\circ\cup(E^c)^\circ\cup\partial E
+\]
+是两两不交的分解。\emph[caution]{边界点与聚点不是同一个概念}：孤立点属于边界，却不是聚点；开球的内点都是聚点，却不是边界点。
+
+\begin{definition}
+\label{def:euclidean-open-closed-closure}
+若 $E=E^\circ$，即每一点都是内点，则称 $E$ 为\emph{开集}（open set）；若 $E^c$ 为开集，则称 $E$ 为\emph{闭集}（closed set）。集合 $\overline E=E\cup E'$ 称为 $E$ 的\emph{闭包}（closure）。空集按定义既开又闭。
+\end{definition}
+
+球形邻域是开集：若 $x\in U(a,r)$，则 $U(x,r-|x-a|)\subseteq U(a,r)$。方形邻域同样是开集，可取各坐标到边界距离的最小值作为更小邻域的半径。$\mathbb R^n$ 也既开又闭；因此开与闭并非互为否定，一个集合还可能既不开也不闭。
+
+\begin{theorem}[开闭集的运算]
+\label{thm:euclidean-open-closed-set-operations}
+任意一族开集的并为开集，有限个开集的交为开集；任意一族闭集的交为闭集，有限个闭集的并为闭集。
+\end{theorem}
+
+\begin{proof}
+若一点属于一族开集的并，它属于其中某一个开集，该开集提供一个包含于并集的邻域。若 $x\in\bigcap_{j=1}^s O_j$ 且各 $O_j$ 开，对每个 $j$ 选 $r_j>0$ 使 $U(x,r_j)\subseteq O_j$，再取 $r=\min_jr_j>0$，就有 $U(x,r)\subseteq\bigcap_jO_j$。闭集结论由补集及德摩根公式
+\[
+    \left(\bigcup_{\lambda\in\Lambda}E_\lambda\right)^c
+       =\bigcap_{\lambda\in\Lambda}E_\lambda^c,\qquad
+    \left(\bigcap_{\lambda\in\Lambda}E_\lambda\right)^c
+       =\bigcup_{\lambda\in\Lambda}E_\lambda^c
+\]
+得到，其中指标集 $\Lambda$ 不必有限或可数。
+\end{proof}
+
+“有限个”的限制不可随意删除。例如
+\[
+    \bigcap_{k=1}^\infty U(a,1/k)=\{a\}
+\]
+不是开集；在 $\mathbb R$ 中，$\bigcup_{k=2}^\infty[1/k,1-1/k]=(0,1)$ 不是闭集。开集也未必只有一块，例如 $\bigcup_{k\in\mathbb Z}U((0,k),1/2)\subseteq\mathbb R^2$ 是互不相交的开圆盘之并。在实直线上，每个开集可分解为至多可数个互不相交的开区间，允许无界区间：对开集中的点，合并所有包含该点并且包含于开集的开区间，得到一个极大开区间；这些极大区间相交即相同，每个又含一个有理数，故至多可数。高维开集的边界与形状可以复杂得多，不能套用一维区间的直观。
+
+\begin{theorem}[闭集的聚点与点列刻画]
+\label{thm:euclidean-closed-set-criteria}
+对 $E\subseteq\mathbb R^n$，下列条件等价：$E$ 为闭集；$E'\subseteq E$；$\overline E=E$；$E$ 中任一收敛点列的极限仍属于 $E$。
+\end{theorem}
+
+\begin{proof}
+若 $E$ 闭，则每个 $a\notin E$ 都有一个包含于 $E^c$ 的邻域，故 $a\notin E'$，得到 $E'\subseteq E$。反之，若 $E'\subseteq E$，则 $a\notin E$ 时 $a\notin E'$，有一个去心邻域与 $E$ 不交；由于 $a\notin E$，整个邻域都与 $E$ 不交，故 $E^c$ 开。$E'\subseteq E$ 与 $E\cup E'=E$ 的等价性直接来自集合运算。
+
+若 $E$ 闭且 $x_k\in E$、$x_k\to a\notin E$，则 $a$ 在 $E^c$ 中的邻域最终包含 $x_k$，矛盾。反之，若收敛点列的极限均留在 $E$，则对 $a\in E'$ 应用定理~\ref{thm:euclidean-accumulation-sequence-criterion}，即可得到 $a\in E$，从而 $E$ 闭。
+\end{proof}
+
+闭包还可由邻域描述：$a\in\overline E$ 当且仅当 $a$ 的每个邻域都与 $E$ 相交。若 $a\notin\overline E$，可取一个与 $E$ 不交的邻域，其内每点都有更小邻域与 $E$ 不交，故 $(\overline E)^c$ 开，$\overline E$ 闭。由此及点的分类，有
+\begin{equation}
+    \overline E=E\cup\partial E,
+    \qquad \partial E=\overline E\setminus E^\circ
+                      =\overline E\cap\overline{E^c}.
+    \label{eq:euclidean-closure-boundary-identities}
+\end{equation}
+例如，若 $a\in\overline E\setminus E^\circ$，则每个邻域既与 $E$ 相交，又不包含于 $E$，所以 $a\in\partial E$；其余等式同样由邻域描述得到。特别地，$\overline E$ 是包含 $E$ 的最小闭集：若闭集 $F\supseteq E$，则 $E'\subseteq F'\subseteq F$，所以 $\overline E\subseteq F$。
+
+\begin{example}
+\label{ex:half-open-disk-interior-boundary}
+设 $E=\{(x,y):x^2+y^2<1,\ y\geq x\}$，求其内部、外部和边界。
+\end{example}
+
+\begin{solve}
+点在圆盘内部且严格位于直线 $y=x$ 上方时，可取足够小的圆盘保留两个严格不等式，故
+\[
+    E^\circ=\{(x,y):x^2+y^2<1,\ y>x\}.
+\]
+直线 $y=x$ 上位于圆盘内的点，其任意邻域都跨越直线；满足 $x^2+y^2=1$、$y\geq x$ 的圆周点，其任意邻域也同时含有 $E$ 与 $E^c$ 中的点，包括两个交点。因此
+\[
+    \overline E=\{(x,y):x^2+y^2\leq1,\ y\geq x\},\qquad
+    (E^c)^\circ=\mathbb R^2\setminus\overline E,
+\]
+\[
+    \partial E=\{(x,y):x^2+y^2=1,\ y\geq x\}
+          \cup\{(x,y):x^2+y^2<1,\ y=x\}.
+\]
+直线段的内部点属于 $E$，圆弧上的点不属于 $E$，所以本例同时展示了两类边界点。
+\end{solve}
+
+\subsection{欧氏空间 \texorpdfstring{$\mathbb{R}^n$}{R^n} 中的基本定理}
+\label{subsec:fundamental-theorems-of-euclidean-space}
+
+实数系中完备性、区间套、聚点原理与有限覆盖定理的证明，大多可以借助距离和有限个坐标推广。本小节按这一依赖关系建立相应结论，它们也是连续函数整体性质的基础。
+
+\begin{definition}
+\label{def:euclidean-cauchy-sequence-completeness}
+点列 $\{x_k\}\subseteq\mathbb R^n$ 称为\emph{柯西点列}（Cauchy sequence），是指
+\[
+    \forall\varepsilon>0\ \exists K\in\mathbb N\ \forall p,q>K,
+    \qquad |x_p-x_q|<\varepsilon.
+\]
+若子集 $X\subseteq\mathbb R^n$ 中每个柯西点列都收敛，且极限仍属于 $X$，则称 $X$ 在所继承的距离下\emph{完备}（complete）。
+\end{definition}
+
+\begin{theorem}[欧氏空间的完备性]
+\label{thm:euclidean-completeness}
+$\mathbb R^n$ 中的点列收敛，当且仅当它是柯西点列。特别地，$\mathbb R^n$ 完备。
+\end{theorem}
+
+\begin{proof}
+若 $x_k\to a$，三角不等式给出 $|x_p-x_q|\leq|x_p-a|+|x_q-a|$，因此满足柯西条件。反之，若 $\{x_k\}$ 是柯西点列，则 $|x_{p,i}-x_{q,i}|\leq|x_p-x_q|$ 说明每个坐标数列都是实数系中的柯西数列。由实数系的完备性，存在 $a_i=\lim_kx_{k,i}$；按分量判定收敛得到 $x_k\to(a_1,\ldots,a_n)$。
+\end{proof}
+
+完备性还要求极限留在所讨论的空间内，例如 $(0,1)$ 中的柯西数列 $1/(k+1)$ 的极限为 $0\notin(0,1)$，所以 $(0,1)$ 不完备；由闭集的点列刻画，$\mathbb R^n$ 的每个闭子集都是完备的。
+
+\begin{definition}
+\label{def:euclidean-set-diameter}
+非空集合 $E\subseteq\mathbb R^n$ 的\emph{直径}（diameter）定义为
+\[
+    \operatorname{diam}E=\sup\{|x-y|:x,y\in E\},
+\]
+无界时允许其值为 $+\infty$。
+\end{definition}
+
+\begin{theorem}[闭集套定理]
+\label{thm:euclidean-nested-closed-sets}
+设 $F_k\subseteq\mathbb R^n$ 为非空闭集，$F_{k+1}\subseteq F_k$，且 $\operatorname{diam}F_k\to0$。则存在唯一的 $a\in\mathbb R^n$，使
+\[
+    \bigcap_{k=1}^\infty F_k=\{a\}.
+\]
+\end{theorem}
+
+\begin{proof}
+任取 $x_k\in F_k$。给定 $\varepsilon>0$，取 $K$ 使 $\operatorname{diam}F_K<\varepsilon$。当 $p,q\geq K$ 时，嵌套性保证 $x_p,x_q\in F_K$，故 $|x_p-x_q|<\varepsilon$。由完备性，$x_k\to a$。对每个固定的 $j$，尾列均在闭集 $F_j$ 中，所以 $a\in F_j$，即 $a$ 属于全部 $F_j$。若 $b$ 也是公共点，则 $|a-b|\leq\operatorname{diam}F_k$ 对所有 $k$ 成立，令 $k\to\infty$ 得 $a=b$。
+\end{proof}
+
+闭性保证所构造的极限不被排除，直径趋于零保证唯一性，并使所选点列满足柯西条件。若把闭集换成 $(0,1/k)$，公共交为空；若仅保留非空、闭性和嵌套性，$[k,+\infty)$ 的公共交仍可为空。教材中的闭区间套定理是上述结论在一维的特例。
+
+\begin{theorem}[波尔查诺--魏尔斯特拉斯定理（Bolzano--Weierstrass theorem）]
+\label{thm:euclidean-bolzano-weierstrass}
+$\mathbb R^n$ 中任一有界点列都有收敛子列；任一有界无限集至少有一个聚点。
+\end{theorem}
+
+\begin{proof}
+设 $\{x_k\}$ 有界。先从第一坐标数列选取收敛子列，再在该子列中使第二坐标收敛，依次进行。每次再取子列不破坏之前坐标的收敛性，经过有限的 $n$ 次选取，得到所有坐标都收敛的同一个子列，因而得到收敛点列。若 $E$ 是有界无限集，先在其中选取两两不同的点 $x_k$，再取收敛子列；由聚点的点列刻画，其极限是 $E$ 的聚点，但未必属于 $E$。
+
+反过来，有界无限集存在聚点也能推出点列结论：若点列有无限个不同取值，聚点的每个邻域含无穷多个不同取值，便能递增选取原点列的下标，使相应项与聚点的距离小于 $1/j$；若只有有限个取值，则至少一个值出现无穷多次，提供常值子列。因此两种表述等价。
+\end{proof}
+
+\begin{definition}
+\label{def:euclidean-compact-set}
+设 $E\subseteq\mathbb R^n$。若一族 $\mathbb R^n$ 中的开集 $\{O_\lambda\}_{\lambda\in\Lambda}$ 满足 $E\subseteq\bigcup_{\lambda\in\Lambda}O_\lambda$，则称其为 $E$ 的\emph{开覆盖}（open cover）。若 $E$ 的每个开覆盖都能从原覆盖中选出有限个成员，仍覆盖 $E$，则称 $E$ 为\emph{紧集}（compact set），所选成员构成\emph{有限子覆盖}（finite subcover）。
+\end{definition}
+
+\emph[caution]{紧性要求对任意给定的开覆盖都能选出有限子覆盖。}仅仅找到一个有限开覆盖毫无判别力，因为单个开集 $\mathbb R^n$ 就能覆盖任何 $E$。空集也是紧集；下文涉及最大、最小值时则必须另加非空条件。
+
+\begin{theorem}[海涅--博雷尔定理（Heine--Borel theorem）]
+\label{thm:euclidean-heine-borel}
+集合 $E\subseteq\mathbb R^n$ 为紧集，当且仅当 $E$ 是有界闭集。
+\end{theorem}
+
+\begin{proof}
+空集的情形直接成立，以下设 $E\neq\varnothing$。若 $E$ 紧，则开覆盖 $\{U(0,k)\}_{k\geq1}$ 有有限子覆盖；这些球逐个包含，故 $E\subseteq U(0,K)$ 对某个 $K$ 成立，$E$ 有界。若 $a\in E'\setminus E$，对每个 $x\in E$ 令 $r_x=|x-a|/2>0$。球 $U(x,r_x)$ 覆盖 $E$，且与 $U(a,r_x)$ 不交。选出有限子覆盖 $U(x_j,r_{x_j})$，取 $r=\min_jr_{x_j}>0$，就有 $U(a,r)\cap E=\varnothing$，与 $a\in E'$ 矛盾。故 $E'\subseteq E$，$E$ 闭。
+
+反之，设 $E$ 是非空有界闭集。若某个开覆盖 $\{O_\lambda\}$ 无有限子覆盖，取闭立方体 $Q_0=[-a,a]^n\supseteq E$。把每条边二等分，将 $Q_0$ 分为 $2^n$ 个闭立方体，其中至少一个 $Q_1$ 满足 $E\cap Q_1$ 不能由原覆盖的有限个成员覆盖，否则合并各部分的有限子覆盖就能覆盖 $E$。反复二分并选取，可得嵌套的 $Q_k$，使每个 $E\cap Q_k$ 均无有限子覆盖，且 $\operatorname{diam}Q_k=2a\sqrt n/2^k\to0$。
+
+令 $F_k=E\cap Q_k$。它们是非空嵌套闭集，直径趋于零。由闭集套定理，存在唯一公共点 $x_0\in E$。选覆盖中包含 $x_0$ 的 $O_{\lambda_0}$，再取 $r>0$ 使 $U(x_0,r)\subseteq O_{\lambda_0}$。当 $k$ 充分大时，对所有 $x\in F_k$ 都有 $|x-x_0|\leq\operatorname{diam}F_k<r$，故 $F_k\subseteq O_{\lambda_0}$，这与 $F_k$ 没有有限子覆盖矛盾。因此 $E$ 紧。
+\end{proof}
+
+\begin{corollary}[紧性的点列刻画]
+\label{cor:euclidean-sequential-compactness}
+$E\subseteq\mathbb R^n$ 紧，当且仅当 $E$ 中每个点列都有一个极限仍在 $E$ 中的收敛子列。
+\end{corollary}
+
+\begin{proof}
+若 $E$ 紧，则有界性提供收敛子列，闭性保证极限属于 $E$。反之，若点列条件成立而 $E$ 无界，可选 $x_k\in E$ 使 $|x_k|>k$，它不可能有收敛子列，矛盾。若 $x_k\in E$ 收敛于 $a$，再取一个极限属于 $E$ 的收敛子列，子列仍收敛于 $a$，故 $a\in E$；于是 $E$ 闭，再由定理~\ref{thm:euclidean-heine-borel} 得紧性。
+\end{proof}
+
+例如 $\{1/k:k\in\mathbb N\}\subseteq\mathbb R$ 有界却不闭，因遗漏聚点 $0$ 而不紧；补上 $0$ 后就是紧集。有限维欧氏空间中“紧”等价于“有界且闭”，这一等价关系依赖当前的空间，不能不加条件地作为任意空间中紧性的定义。
+
+\section{多元函数与向量函数的极限}
+\label{sec:limits-of-multivariable-and-vector-functions}
+
+\subsection{多元函数的概念}
+\label{subsec:concept-of-multivariable-functions}
+
+\begin{definition}
+\label{def:multivariable-real-valued-function}
+设 $\varnothing\neq E\subseteq\mathbb R^n$。若对应法则 $f$ 为每个 $x=(x_1,\ldots,x_n)\in E$ 指定唯一实数 $u$，则称 $f:E\to\mathbb R$ 为 $E$ 上的一个\emph{$n$ 元实值函数}（real-valued function of $n$ variables），记为 $u=f(x)=f(x_1,\ldots,x_n)$。$E$ 为定义域，$f(E)=\{f(x):x\in E\}$ 为值域；当 $n\geq2$ 时，统称\emph{多元函数}（multivariable function）。
+\end{definition}
+
+对二元函数 $z=f(x,y)$，其图像是 $\mathbb R^3$ 中的点集 $\{(x,y,f(x,y)):(x,y)\in E\}$，具有适当正则性时可看作曲面。一般 $n$ 元实值函数的图像位于 $\mathbb R^{n+1}$，定义域则位于 $\mathbb R^n$，两者所在空间应当区分。函数有界是指存在 $M>0$ 使 $|f(x)|\leq M$ 对所有 $x\in E$ 成立；其上、下确界分别是实数集 $f(E)$ 的上、下确界。
+
+\begin{example}
+\label{ex:sphere-two-hemisphere-graphs}
+说明单位球面 $x^2+y^2+z^2=1$ 与二元函数图像的关系。
+\end{example}
+
+\begin{solve}
+在闭单位圆盘 $\overline\Delta=\{(x,y):x^2+y^2\leq1\}$ 上，两个函数
+\[
+    z=\sqrt{1-x^2-y^2},\qquad z=-\sqrt{1-x^2-y^2}
+\]
+分别表示上、下半球面。整个球面不能写成同一 $(x,y)$ 定义域上的单个 $z=f(x,y)$ 的图像，因为圆盘内部每个 $(x,y)$ 对应两个不同的 $z$；函数的单值性需要在选择上、下分支时保证。
+\end{solve}
+
+\subsection{多元函数的极限}
+\label{subsec:limits-of-multivariable-functions}
+
+\begin{definition}
+\label{def:multivariable-function-limit}
+设 $f:E\to\mathbb R$，$E\subseteq\mathbb R^n$，$a\in E'$。若存在 $A\in\mathbb R$，使
+\[
+    \forall\varepsilon>0\ \exists\delta>0\ \forall x\in E,
+    \qquad 0<|x-a|<\delta\ \Longrightarrow\ |f(x)-A|<\varepsilon,
+\]
+则称 $A$ 为 $x$ 在 $E$ 中趋于 $a$ 时 $f(x)$ 的\emph{极限}，记为 $\lim_{\substack{x\to a\\ x\in E}}f(x)=A$，也写成 $\lim_{E\ni x\to a}f(x)=A$。若 $E$ 包含 $a$ 的某个去心邻域，可省略 $x\in E$。
+\end{definition}
+
+条件 $a\in E'$ 保证任意小的去心邻域中都有可检验的自变量；极限不要求 $a\in E$，即使 $f(a)$ 有定义也不参与该极限的判定。对二元函数，$|(x,y)-(a,b)|=\sqrt{(x-a)^2+(y-b)^2}$，可等价地用方形去心邻域描述接近。\emph[caution]{方形去心邻域只删去中心点，并不删去穿过中心的两条坐标直线。}相对于 $E$ 的定义也统一包含一元函数的单侧极限以及从高维区域内部趋近边界的极限。
+
+\begin{theorem}[多元函数极限的点列准则]
+\label{thm:multivariable-heine-criterion}
+设 $f:E\to\mathbb R$，$a\in E'$，$A\in\mathbb R$。则 $\lim_{E\ni x\to a}f(x)=A$ 当且仅当对每个 $E\setminus\{a\}$ 中满足 $x_k\to a$ 的点列，都有 $f(x_k)\to A$。
+\end{theorem}
+
+\begin{proof}
+若函数极限存在，给定 $\varepsilon>0$ 后先取定义中的 $\delta$，再用 $x_k\to a$ 保证尾项满足 $0<|x_k-a|<\delta$，即可得 $f(x_k)\to A$。反之，若函数极限不等于 $A$，存在 $\varepsilon_0>0$，使对每个 $k$ 都能选取 $x_k\in E$ 满足
+\[
+    0<|x_k-a|<1/k,\qquad |f(x_k)-A|\geq\varepsilon_0.
+\]
+于是 $x_k\to a$，但 $f(x_k)$ 不趋于 $A$，与点列条件矛盾。
+\end{proof}
+
+与一元情形相同，有限极限唯一，存在时函数在某个相对去心邻域内有界；若 $A>0$，则在足够小的相对去心邻域内有 $f(x)>A/2$。唯一性可取一个趋于 $a$ 的点列，应用实数列极限的唯一性；后两个结论分别在定义中取 $\varepsilon=1$、$\varepsilon=A/2$ 即得。若同一定义域上的 $f,g$ 分别趋于有限的 $A,B$，则 $\alpha f+\beta g\to\alpha A+\beta B$、$fg\to AB$，且 $B\neq0$ 时 $f/g\to A/B$，最后一个商只需在足够小邻域内定义。实值函数的夹逼定理同样成立。这些结论均可由点列准则归结为实数列的对应定理。
+
+无穷极限也可用距离定义：$f(x)\to+\infty$ 是指对每个 $M>0$，存在 $\delta>0$，使 $x\in E$、$0<|x-a|<\delta$ 时 $f(x)>M$；$f(x)\to-\infty$ 类似，$|f(x)|\to+\infty$ 则用 $|f(x)|>M$ 描述。若定义域无界，还可把 $0<|x-a|<\delta$ 换成 $|x|>R$，定义 $x$ 趋于无穷远时的函数极限。点列准则对这些情形也成立，证明中的 $\varepsilon_0$ 条件相应换成固定阈值条件即可。
+
+\begin{example}
+\label{ex:multivariable-tangent-cubic-limit}
+求 $\displaystyle\lim_{(x,y)\to(0,0)}\frac{\tan(x^3+y^3)}{x^2+y^2}$。
+\end{example}
+
+\begin{solve}
+令 $r=\sqrt{x^2+y^2}$，则 $|x^3+y^3|\leq|x|^3+|y|^3\leq r(x^2+y^2)=r^3$。由 $\tan t/t\to1$，存在 $\eta>0$ 使 $|t|<\eta$ 时 $|\tan t|\leq2|t|$，其中 $t=0$ 也成立。因此对足够小的 $r>0$，
+\[
+    \left|\frac{\tan(x^3+y^3)}{x^2+y^2}\right|
+       \leq2\frac{|x^3+y^3|}{r^2}\leq2r\to0.
+\]
+所以所求极限为 $0$。这里得到的界只依赖距离 $r$，因而同时控制了所有趋近方向，也避免了在 $x^3+y^3=0$ 时使用未定义的比值。
+\end{solve}
+
+\begin{example}
+\label{ex:multivariable-xy-direction-dependent-limit}
+判断 $\displaystyle f(x,y)=\frac{xy}{x^2+y^2}$ 在 $(x,y)\to(0,0)$ 时是否有极限，其中 $(x,y)\neq(0,0)$。
+\end{example}
+
+\begin{solve}
+沿点列 $(0,1/k)$，函数值恒为 $0$；沿 $(1/k,1/k)$，函数值恒为 $1/2$。由点列准则，联合极限不存在。更一般地，沿直线 $y=cx$ 有 $f(x,cx)=c/(1+c^2)$，结果依赖斜率。用极坐标 $x=r\cos\theta$、$y=r\sin\theta$，则 $f=(1/2)\sin2\theta$，角度变化也显示了这种方向依赖。
+\end{solve}
+
+\begin{example}
+\label{ex:all-line-limits-insufficient}
+判断 $\displaystyle f(x,y)=\frac{x^2y}{x^4+y^2}$ 在原点是否有极限，其中 $(x,y)\neq(0,0)$。
+\end{example}
+
+\begin{solve}
+沿 $y=cx$，若 $c\neq0$，则 $f(x,cx)=cx/(x^2+c^2)\to0$；若 $c=0$，函数值恒为零，沿竖直线 $x=0$ 也为零。但沿抛物线 $y=x^2$，有 $f(x,x^2)=1/2$，所以联合极限不存在。\emph[caution]{沿所有直线所得极限相同，仍不足以推出多元极限存在。}若使用极坐标证明存在性，必须对所有角度给出统一控制；只对每个固定角度令 $r\to0$，仍然只检查了直线方向。
+\end{solve}
+
+\begin{example}
+\label{ex:ball-boundary-radial-logarithm-limit}
+设 $E=\{(x,y,z):x^2+y^2+z^2<1\}$，$a\in\partial E$，求
+\[
+    \lim_{E\ni(x,y,z)\to a}
+    [\sin1-\sin(x^2+y^2+z^2)]\ln[1-(x^2+y^2+z^2)].
+\]
+\end{example}
+
+\begin{solve}
+令 $t=x^2+y^2+z^2$。当自变量从 $E$ 趋于 $a$ 时，由范数的连续估计有 $t\to1^-$。一元中值定理给出 $|\sin1-\sin t|\leq1-t$，故原式绝对值不超过 $(1-t)|\ln(1-t)|\to0$。所求极限为 $0$，且对任意球面点 $a$ 结论相同。这里函数只在开球内定义，极限从该定义域取值，不涉及球外使对数无意义的点。
+\end{solve}
+
+\subsection{累次极限}
+\label{subsec:iterated-limits}
+
+联合极限同时约束全部自变量，而\emph{累次极限}（iterated limit）先固定一部分变量，对其余变量取极限，再对所得到的函数取极限；两者的量词和存在条件不同。以下以二元函数说明。
+
+\begin{definition}
+\label{def:iterated-multivariable-limits}
+设 $f$ 在 $N_0((a,b),\delta_0)$ 上有定义。若对每个 $0<|y-b|<\delta_0$，极限 $\varphi(y)=\lim_{x\to a}f(x,y)$ 存在，且 $\lim_{y\to b}\varphi(y)=A$，则称
+\[
+    \lim_{y\to b}\lim_{x\to a}f(x,y)=A
+\]
+为先 $x$ 后 $y$ 的累次极限。先 $y$ 后 $x$ 的累次极限 $\lim_{x\to a}\lim_{y\to b}f(x,y)$ 类似定义。
+\end{definition}
+
+两个累次极限都不涉及直线 $x=a$、$y=b$ 上的函数值：内层极限删去相应中心值，外层极限也删去另一变量的中心值；联合极限则仍须考虑这些直线上异于中心的点。例如
+\[
+    u(x,y)=\begin{cases}0,&xy=0,\\1,&xy\neq0\end{cases}
+\]
+的两个累次极限在原点都为 $1$，但沿坐标轴函数值为 $0$，沿 $y=x\neq0$ 为 $1$，联合极限不存在。即使避开坐标轴，这两类极限仍不等价：例~\ref{ex:multivariable-xy-direction-dependent-limit} 的两个累次极限都为 $0$，联合极限却不存在。
+
+联合极限存在也不保证内层极限存在。令
+\[
+    v(x,y)=\begin{cases}
+        (x+y)\sin(1/x)\sin(1/y),&xy\neq0,\\
+        0,&xy=0.
+    \end{cases}
+\]
+因为 $|v(x,y)|\leq|x|+|y|$，其联合极限为 $0$。但固定满足 $y\sin(1/y)\neq0$ 的 $y$ 时，写成
+\[
+    v(x,y)=y\sin(1/y)\sin(1/x)+x\sin(1/y)\sin(1/x),
+\]
+右边第二项趋于零，第一项振荡而没有极限。任意小的去心 $y$ 邻域都存在这样的 $y$，所以先 $x$ 后 $y$ 的累次极限不满足上述定义；对称地，另一顺序也不存在。
+
+\begin{theorem}[联合极限与已有的内层极限]
+\label{thm:joint-limit-implies-existing-iterated-limit}
+设 $f$ 在 $N_0((a,b),\delta_0)$ 上有定义，联合极限为有限数 $A$。若对每个 $0<|y-b|<\delta_0$ 都存在有限的 $\varphi(y)=\lim_{x\to a}f(x,y)$，则
+\[
+    \lim_{y\to b}\varphi(y)
+       =\lim_{y\to b}\lim_{x\to a}f(x,y)=A.
+\]
+交换 $x,y$ 有对应结论。因此，在联合极限及两组内层极限均存在的条件下，两个累次极限存在且等于联合极限。
+\end{theorem}
+
+\begin{proof}
+给定 $\varepsilon>0$，由联合极限的方形邻域描述，取 $0<\delta<\delta_0$，使 $0<\max\{|x-a|,|y-b|\}<\delta$ 时 $|f(x,y)-A|<\varepsilon/2$。固定任意 $0<|y-b|<\delta$，在此不等式中令 $x\to a$，得到 $|\varphi(y)-A|\leq\varepsilon/2<\varepsilon$，所以 $\varphi(y)\to A$。关键在于，联合极限给出的同一个 $\delta$ 对所有这些 $y$ 都有效。
+\end{proof}
+
+若联合极限为 $+\infty$，而各内层极限存在，则先用任意阈值 $M+1$ 代替上述误差界，再令 $x\to a$，得到 $\varphi(y)\geq M+1>M$，故累次极限也为 $+\infty$；$-\infty$ 的情形相同。不能跳过内层极限的存在性，直接把联合极限改写为累次极限。
+
+\subsection{向量函数的定义与极限}
+\label{subsec:definition-and-limits-of-vector-functions}
+
+一般地，\emph{映射}（mapping）$f:A\to B$ 把集合 $A$ 中每个元素指定为 $B$ 中唯一的一个元素；$f(A)\subseteq B$ 是像集。若不同元素有不同像，则为\emph{单射}（injection）；若 $f(A)=B$，则为\emph{满射}（surjection）；两者兼具时为\emph{双射}（bijection），这时存在逆映射 $f^{-1}:B\to A$。区分值域 $f(A)$ 与指定的目标集合 $B$，有助于准确判断满射性。
+
+\begin{definition}
+\label{def:multivariable-vector-valued-function}
+映射 $f:E\subseteq\mathbb R^n\to\mathbb R^m$ 称为一个 $m$ 维 $n$ 元\emph{向量函数}（vector-valued function）。它唯一表示为
+\[
+    f(x)=(f_1(x),\ldots,f_m(x)),
+\]
+其中 $f_j:E\to\mathbb R$ 是第 $j$ 个分量函数。若存在 $M>0$ 使 $|f(x)|\leq M$ 对所有 $x\in E$ 成立，则称 $f$ 有界。
+\end{definition}
+
+\begin{definition}
+\label{def:vector-valued-function-limit}
+设 $a\in E'$，$A\in\mathbb R^m$。若对任意 $\varepsilon>0$，存在 $\delta>0$，使 $x\in E$、$0<|x-a|<\delta$ 时 $|f(x)-A|<\varepsilon$，则称 $f(x)$ 趋于 $A$。由坐标与范数的估计，这等价于
+\[
+    \lim_{E\ni x\to a}f_j(x)=A_j\quad(j=1,\ldots,m),\qquad
+    A=(A_1,\ldots,A_m).
+\]
+\end{definition}
+
+必要性来自 $|f_j(x)-A_j|\leq|f(x)-A|$；充分性则对有限个分量分别取误差 $\varepsilon/\sqrt m$，再取相应 $\delta_j$ 的最小值。任一分量没有有限极限，就没有 $\mathbb R^m$ 中的向量极限，不能把实数的 $+\infty$ 当作向量的一个普通坐标。点列准则、极限唯一性及局部有界性仍成立；同维向量函数的线性组合、内积和范数的极限由各分量的实数运算得到。
+
+\begin{example}
+\label{ex:polar-map-boundary-limits}
+设 $P(r,\theta)=(r\cos\theta,r\sin\theta)$，定义域为 $D=(0,+\infty)\times[0,2\pi)$。说明此映射的单射性，并求固定 $r_0>0$ 时 $(r,\theta)\to(r_0,0)$ 与 $(r,\theta)\to(r_0,2\pi)$ 的极限。
+\end{example}
+
+\begin{solve}
+对每个非零平面点，半径 $r>0$ 及取在 $[0,2\pi)$ 内的角度唯一，所以 $P:D\to\mathbb R^2\setminus\{0\}$ 是双射。若允许 $r=0$，则不同角度都映成原点，不再单射。按分量取极限，有
+\[
+    \lim_{D\ni(r,\theta)\to(r_0,0)}P(r,\theta)
+       =\lim_{D\ni(r,\theta)\to(r_0,2\pi)}P(r,\theta)=(r_0,0).
+\]
+第二个参数点不属于 $D$，却是其聚点，因而相对定义域的极限有意义。两端角度在像中汇合的现象，将在同胚映射部分解释逆映射为何可能不连续。
+\end{solve}
+
+\section{多元连续函数}
+\label{sec:continuous-multivariable-functions}
+
+\subsection{多元连续函数}
+\label{subsec:continuous-multivariable-functions}
+
+\begin{definition}
+\label{def:relative-multivariable-continuity}
+设 $f:E\subseteq\mathbb R^n\to\mathbb R$，$a\in E$。若
+\[
+    \forall\varepsilon>0\ \exists\delta>0\ \forall x\in E,
+    \qquad |x-a|<\delta\ \Longrightarrow\ |f(x)-f(a)|<\varepsilon,
+\]
+则称 $f$ 在 $a$ 处\emph{连续}（continuous）；若在 $E$ 的每一点都连续，则称 $f$ 在 $E$ 上连续。不连续的点称为\emph{间断点}（point of discontinuity）。这里的连续性始终相对于定义域 $E$。
+\end{definition}
+
+若 $a\in E'$，连续等价于 $\lim_{E\ni x\to a}f(x)=f(a)$；若 $a$ 是 $E$ 的孤立点，取 $U(a,\delta)\cap E=\{a\}$，上述条件自动成立，所以任何函数在定义域的孤立点都连续。与函数极限不同，连续性要求 $a\in E$，并且比较的目标值固定为 $f(a)$。由点列准则，连续性还等价于：每个 $E$ 中收敛于 $a$ 的点列均满足 $f(x_k)\to f(a)$，其中允许 $x_k=a$。
+
+连续函数在每一点附近相对有界；若 $f(a)>0$，则在足够小的相对邻域内 $f(x)>f(a)/2$。同一定义域上的连续实值函数经过和、差、积仍连续，作商时必须保证分母在所考查点非零。这些局部结论不能自动升级为整个定义域上的有界性或统一的正下界；后者需要紧性等整体条件。
+
+\begin{example}
+\label{ex:oscillatory-multivariable-continuity-set}
+讨论函数
+\[
+    f(x,y)=\begin{cases}
+        x\sin(1/y),&xy\neq0,\\
+        0,&xy=0
+    \end{cases}
+\]
+在 $\mathbb R^2$ 上的连续性。
+\end{example}
+
+\begin{solve}
+当 $y_0\neq0$ 时，在该点附近有 $y\neq0$，两种写法均与 $x\sin(1/y)$ 一致，故函数连续。对任意 $y_0\in\mathbb R$，又有 $|f(x,y)|\leq|x|$，所以 $(x,y)\to(0,y_0)$ 时 $f(x,y)\to0=f(0,y_0)$，函数在整个 $y$ 轴上连续。
+
+若 $x_0\neq0$，固定 $x=x_0$，取
+\[
+    y_k=\frac1{2k\pi+\pi/2},\qquad
+    \widetilde y_k=\frac1{2k\pi+3\pi/2},
+\]
+则 $(x_0,y_k)$ 与 $(x_0,\widetilde y_k)$ 均趋于 $(x_0,0)$，函数值却分别为 $x_0$ 与 $-x_0$。所以间断点集恰为 $\{(x,0):x\neq0\}$。决定连续性的不是三角函数是否出现振荡，而是振荡的幅度是否被趋于零的因子统一控制。
+\end{solve}
+
+分别固定其余变量所得的一元连续性，称为\emph{分别连续}（separately continuous）。联合连续必然蕴含分别连续，但反向一般不成立。例如把例~\ref{ex:multivariable-xy-direction-dependent-limit} 的函数在原点补定义为 $0$，固定任一 $x$ 或 $y$ 后均得到连续的一元函数，它在原点却没有联合极限。
+
+\subsection{多元连续向量函数}
+\label{subsec:continuous-multivariable-vector-functions}
+
+\begin{definition}
+\label{def:relative-vector-function-continuity}
+设 $f:E\subseteq\mathbb R^n\to\mathbb R^m$，$a\in E$。若对任意 $\varepsilon>0$ 存在 $\delta>0$，使 $x\in E$、$|x-a|<\delta$ 时 $|f(x)-f(a)|<\varepsilon$，则称 $f$ 在 $a$ 处连续。若该条件在 $E$ 的每点成立，则称 $f$ 在 $E$ 上连续。
+\end{definition}
+
+按分量判别向量极限可知，$f=(f_1,\ldots,f_m)$ 连续当且仅当每个分量 $f_j$ 连续，包括定义域的孤立点情形。向量连续性同样有点列刻画。同维连续向量函数的和、差、常数倍仍连续；内积是连续实值函数，范数也连续，因为 $\bigl||f(x)|-|f(a)|\bigr|\leq|f(x)-f(a)|$。
+
+\begin{theorem}[复合向量函数的连续性]
+\label{thm:continuous-vector-function-composition}
+设 $f:E\subseteq\mathbb R^n\to\mathbb R^m$ 在 $a\in E$ 处连续，$g:F\subseteq\mathbb R^m\to\mathbb R^\ell$ 在 $f(a)$ 处连续，且 $f(E)\subseteq F$。则 $g\circ f:E\to\mathbb R^\ell$ 在 $a$ 处连续。特别地，若两映射分别在整个相应定义域上连续，则复合映射也连续。
+\end{theorem}
+
+\begin{proof}
+给定 $\varepsilon>0$，由 $g$ 在 $f(a)$ 连续取 $\eta>0$，使 $y\in F$、$|y-f(a)|<\eta$ 时 $|g(y)-g(f(a))|<\varepsilon$。再由 $f$ 连续取 $\delta>0$，使 $x\in E$、$|x-a|<\delta$ 时 $|f(x)-f(a)|<\eta$。代入 $y=f(x)$ 即得结论。这里允许 $f(x)=f(a)$，因此不存在复合函数极限中可能遇到的去心条件问题。
+\end{proof}
+
+\begin{example}
+\label{ex:disk-logarithm-continuous-extension}
+讨论定义在闭单位圆盘上的函数
+\[
+    f(x,y)=\begin{cases}
+        \sqrt{1-x^2-y^2}\ln(1-x^2-y^2),&x^2+y^2<1,\\
+        0,&x^2+y^2=1
+    \end{cases}
+\]
+的连续性。
+\end{example}
+
+\begin{solve}
+令 $H(s)=\sqrt s\ln s$（$0<s\leq1$），并补定义 $H(0)=0$。当 $s=e^{-t}\to0^+$ 时，$H(s)=-te^{-t/2}\to0$，所以 $H$ 在 $[0,1]$ 上连续。而闭圆盘上 $g(x,y)=1-x^2-y^2$ 连续，值落在 $[0,1]$，原函数正是 $H\circ g$。由复合函数连续性，$f$ 在整个闭圆盘上连续。这一论证同时涵盖从圆盘内部及沿圆周趋近边界点的情形；边界上连续并不要求将函数定义到圆盘外部。
+\end{solve}
+
+\subsection{集合的连通性}
+\label{subsec:connectedness-of-sets}
+
+连续映射 $h:[\alpha,\beta]\to\mathbb R^n$（$\alpha<\beta$）称为一条\emph{道路}或\emph{路径}（path），也称参数化的连续曲线。通过参数的线性变换，可把参数区间统一为 $[0,1]$；道路允许自交，也允许端点重合。
+
+\begin{definition}
+\label{def:path-connected-set-and-domain}
+若非空集合 $E\subseteq\mathbb R^n$ 中任意两点 $a,b$ 都能由一条完全位于 $E$ 内的道路连接，即存在连续的 $h:[0,1]\to E$ 满足 $h(0)=a$、$h(1)=b$，则称 $E$ \emph{道路连通}（path-connected）。非空道路连通开集称为\emph{区域}（domain），区域 $D$ 的闭包 $\overline D=D\cup\partial D$ 称为\emph{闭区域}。
+\end{definition}
+
+\begin{notealert}[type=caution,title={本章的连通性约定}]
+教材在本章及后续微积分讨论中，将“道路连通”简称为“连通”，以下沿用这一约定。一般拓扑学中的连通性有更广泛的定义，与道路连通并非对任意集合都等价；引用本章结论时应保留这里的约定。
+\end{notealert}
+
+在 $\mathbb R$ 中，非空集合道路连通当且仅当它是区间，允许单点区间及无界区间。若两点属于同一区间，线段 $h(t)=(1-t)a+tb$ 提供道路；反之，连接实数 $a<b$ 的连续道路由介值定理必须经过它们之间的每个数，所以道路连通集必为区间。在高维空间中，开圆盘、开球以及开圆盘闭包的外部都可成为区域；区域可以有孔，也未必有界。闭区域虽为闭集，却不必为紧集，还需有界性。
+
+若 $E\subseteq\mathbb R^n$ 对任意 $a,b\in E$、$t\in[0,1]$ 都有 $(1-t)a+tb\in E$，则称 $E$ 为\emph{凸集}（convex set）；非空开凸集称为\emph{凸域}（convex domain）。上述线段直接证明非空凸集道路连通，但道路连通不要求线段留在集合内。例如圆环 $\{(x,y):1<x^2+y^2<4\}$ 中两点可由径向线段与圆弧连接，却有经过孔洞的连线，因而不凸。
+
+\subsection{连续函数的性质}
+\label{subsec:properties-of-continuous-multivariable-functions}
+
+紧性控制点列的极限位置，道路连通性控制两点间能否由连续路径联系。它们分别对应连续函数的有界性、取到最值与一致连续性，以及介值性质，不能相互替代。
+
+\begin{theorem}[连续像保持紧性]
+\label{thm:continuous-image-of-euclidean-compact-set}
+若 $E\subseteq\mathbb R^n$ 为紧集，$f:E\to\mathbb R^m$ 连续，则 $f(E)$ 为 $\mathbb R^m$ 中的紧集。
+\end{theorem}
+
+\begin{proof}
+若 $f(E)$ 无界，可取 $x_k\in E$ 使 $|f(x_k)|>k$。由 $E$ 的紧性，存在子列 $x_{k_j}\to a\in E$，连续性给出 $f(x_{k_j})\to f(a)$，与其范数趋于无穷矛盾，所以 $f(E)$ 有界。
+
+若 $y\in(f(E))'$，取 $y_k\in f(E)$ 使 $y_k\to y$，并为每项选一个原像 $x_k\in E$，使 $f(x_k)=y_k$。再取 $x_{k_j}\to a\in E$，由连续性及极限唯一性得到 $y=\lim_jy_{k_j}=f(a)\in f(E)$。因此 $f(E)$ 包含其全部聚点，是闭集；由海涅--博雷尔定理，它是紧集。若 $E$ 为空，像集为空，结论同样成立。
+\end{proof}
+
+\begin{corollary}[有界性与最值定理]
+\label{cor:multivariable-extreme-value-theorem}
+设 $\varnothing\neq E\subseteq\mathbb R^n$ 紧，$f:E\to\mathbb R$ 连续。则 $f$ 有界，且存在 $a,b\in E$，使
+\[
+    f(a)=\min_{x\in E}f(x)=\inf f(E),\qquad
+    f(b)=\max_{x\in E}f(x)=\sup f(E).
+\]
+\end{corollary}
+
+\begin{proof}
+$f(E)$ 是非空有界闭实数集。令 $M=\sup f(E)$，对每个 $k$ 取 $u_k\in f(E)$ 使 $M-1/k<u_k\leq M$；则 $u_k\to M$，闭性保证 $M\in f(E)$。下确界同理。因此两个确界都有原像，最大、最小值均能取到。
+\end{proof}
+
+向量值函数的像集也有界，但 $\mathbb R^m$ 中没有本章所用的实数全序，不能笼统地说向量函数“取得最大值”。可以对每个实值分量或范数应用最值定理。例如连续且处处为正的实值函数在非空紧集上有严格正的最小值，因为取到最小值的点仍属于该定义域。
+
+\begin{theorem}[连续像保持道路连通性]
+\label{thm:continuous-image-path-connected}
+若非空集合 $E\subseteq\mathbb R^n$ 道路连通，$f:E\to\mathbb R^m$ 连续，则 $f(E)$ 道路连通。
+\end{theorem}
+
+\begin{proof}
+任取 $u,v\in f(E)$，选 $a,b\in E$ 使 $f(a)=u$、$f(b)=v$。取 $E$ 中连接 $a,b$ 的道路 $h:[0,1]\to E$，则 $f\circ h$ 连续，像包含于 $f(E)$，两端分别为 $u,v$，因而就是所需道路。
+\end{proof}
+
+\begin{corollary}[多元连续函数的介值定理]
+\label{cor:multivariable-intermediate-value-theorem}
+若 $E\subseteq\mathbb R^n$ 道路连通，$f:E\to\mathbb R$ 连续，且 $f(a)<c<f(b)$，则存在 $\xi\in E$ 使 $f(\xi)=c$。因此 $f(E)$ 是一个区间。若 $E$ 还非空且紧，则
+\[
+    f(E)=[\min_E f,\max_E f],
+\]
+允许两端点相同。
+\end{corollary}
+
+\begin{proof}
+在连接 $a,b$ 的道路 $h$ 上，实值函数 $f\circ h$ 连续，由一元介值定理存在 $t_0\in(0,1)$ 使 $f(h(t_0))=c$，取 $\xi=h(t_0)$。再结合最值定理，即得非空紧且道路连通情形的像集表达式。
+\end{proof}
+
+介值定理只保证中间值能取到，不保证其原像唯一。若定义域紧却不连通，函数的像也不必是区间；例如在紧集 $\{-1,1\}$ 上，连续函数 $f(x)=x$ 的像只含两个点。反之，连通而不紧的定义域上，连续函数也未必有界或取到其确界。
+
+\begin{definition}
+\label{def:uniform-continuity-vector-function}
+设 $f:E\subseteq\mathbb R^n\to\mathbb R^m$。若
+\[
+    \forall\varepsilon>0\ \exists\delta>0\ \forall x,y\in E,
+    \qquad |x-y|<\delta\ \Longrightarrow\ |f(x)-f(y)|<\varepsilon,
+\]
+则称 $f$ 在 $E$ 上\emph{一致连续}（uniformly continuous）。同一个 $\delta$ 对所有点对有效，不能依赖 $x,y$。有限维情形下，这等价于各实值分量都在 $E$ 上一致连续。
+\end{definition}
+
+\begin{theorem}[紧集上的一致连续性]
+\label{thm:multivariable-heine-cantor}
+若 $E\subseteq\mathbb R^n$ 紧，$f:E\to\mathbb R^m$ 连续，则 $f$ 在 $E$ 上一致连续。
+\end{theorem}
+
+\begin{proof}
+若不一致连续，则存在 $\varepsilon_0>0$，使每个 $k$ 都能选出 $x_k,y_k\in E$ 满足 $|x_k-y_k|<1/k$ 而 $|f(x_k)-f(y_k)|\geq\varepsilon_0$。紧性提供子列 $x_{k_j}\to a\in E$；由 $|y_{k_j}-a|\leq|y_{k_j}-x_{k_j}|+|x_{k_j}-a|$，还有 $y_{k_j}\to a$。连续性于是给出 $f(x_{k_j}),f(y_{k_j})\to f(a)$，两者之差的范数趋于零，矛盾。
+\end{proof}
+
+\begin{example}
+\label{ex:sine-product-not-uniformly-continuous}
+证明 $f(x,y)=\sin(xy)$ 在 $\mathbb R^2$ 的每个紧子集上一致连续，但在整个 $\mathbb R^2$ 上不一致连续。
+\end{example}
+
+\begin{solve}
+函数处处连续，故由定理~\ref{thm:multivariable-heine-cantor}，它在任意紧子集上一致连续。取
+\[
+    p_k=(k,1/k),\qquad q_k=(k,2/k),
+\]
+则 $|p_k-q_k|=1/k\to0$，但 $|f(p_k)-f(q_k)|=|\sin1-\sin2|>0$，不满足一致连续性。严格地取 $\varepsilon_0=|\sin1-\sin2|/2$，任意 $\delta>0$ 下都可选 $k>1/\delta$ 得到违反定义的点对。该例表明，“在每个紧子集上一致连续”不等于“在整个空间上一致连续”。
+\end{solve}
+
+\subsection{同胚映射}
+\label{subsec:homeomorphisms}
+
+\begin{definition}
+\label{def:euclidean-homeomorphism}
+设 $E\subseteq\mathbb R^n$，$F\subseteq\mathbb R^m$。若 $f:E\to F$ 是双射，且 $f$ 与逆映射 $f^{-1}:F\to E$ 都连续，则称 $f$ 为 $E$ 到 $F$ 的\emph{同胚映射}（homeomorphism），称 $E,F$ 同胚。两映射的连续性均相对于各自定义域；教材也将同胚映射称为变换，将其逆映射称为逆变换。
+\end{definition}
+
+同胚在两个方向都保持连续性。由连续像的性质，同胚集合同时为紧集或同时不为紧集，也同时道路连通或同时不道路连通；同胚的限制仍是相应子集之间的同胚。这些性质可用于排除某些看似可能存在的变换。
+
+\begin{example}
+\label{ex:real-line-plane-not-homeomorphic}
+证明 $\mathbb R$ 与 $\mathbb R^2$ 不同胚。
+\end{example}
+
+\begin{solve}
+若存在同胚 $f:\mathbb R\to\mathbb R^2$，删去点 $0$ 及其像 $p=f(0)$，得到同胚
+\[
+    f:\mathbb R\setminus\{0\}\longrightarrow\mathbb R^2\setminus\{p\}.
+\]
+平面删去一点后仍道路连通：给定 $u,v\neq p$，若线段 $[u,v]$ 不经过 $p$，可直接连接；否则选不在直线 $pu$ 与 $pv$ 上的点 $w$，折线 $u\to w\to v$ 就避开 $p$。但实直线删去零点后不道路连通，因为任何从 $-1$ 到 $1$ 的连续道路由介值定理都要经过 $0$。于是连续逆映射会把道路连通的 $\mathbb R^2\setminus\{p\}$ 映成非道路连通的 $\mathbb R\setminus\{0\}$，与定理~\ref{thm:continuous-image-path-connected} 矛盾。
+\end{solve}
+
+区间上的连续单射实值函数严格单调，因而其反函数连续；一般集合间的连续双射则未必是同胚。考虑例~\ref{ex:polar-map-boundary-limits} 的极坐标映射
+\[
+    P:D=(0,+\infty)\times[0,2\pi)\longrightarrow
+          \mathbb R^2\setminus\{0\},\qquad
+    P(r,\theta)=(r\cos\theta,r\sin\theta).
+\]
+它连续且为双射，逆映射的半径分量 $r=\sqrt{x^2+y^2}$ 连续，但角度取在 $[0,2\pi)$ 时为
+\[
+    \theta(x,y)=\begin{cases}
+        \arctan(y/x),&x>0,\ y\geq0,\\
+        \pi/2,&x=0,\ y>0,\\
+        \pi+\arctan(y/x),&x<0,\\
+        3\pi/2,&x=0,\ y<0,\\
+        2\pi+\arctan(y/x),&x>0,\ y<0.
+    \end{cases}
+\]
+固定 $r_0>0$，取 $z_k=(r_0\cos(1/k),-r_0\sin(1/k))\to(r_0,0)$，则
+\[
+    P^{-1}(z_k)=(r_0,2\pi-1/k)\to(r_0,2\pi)
+       \neq P^{-1}(r_0,0)=(r_0,0).
+\]
+这里左侧收敛是在环境空间 $\mathbb R^2$ 中讨论的，极限参数点不属于 $D$；它仍足以说明逆映射在正实轴上不连续，因此这个连续双射不是同胚。
+
+若改取开参数域 $D_0=(0,+\infty)\times(0,2\pi)$，则其像为
+\[
+    \Omega_0=\mathbb R^2\setminus\{(x,y):x\geq0,\ y=0\}.
+\]
+删去这一条射线后，每个像点附近都可选取无跳跃的角度分支：$x<0$ 时用 $\pi+\arctan(y/x)$，$x>0$ 时按 $y$ 的正负使用上述对应分支；在 $y>0$ 或 $y<0$ 且靠近 $x=0$ 时，也可分别使用 $\pi/2-\arctan(x/y)$ 或 $3\pi/2-\arctan(x/y)$。因此逆映射的角度与半径均连续，$P:D_0\to\Omega_0$ 就是同胚。需要检查的是角度分支在所选定义域内是否连续，不能仅凭坐标公式可逆便断言同胚。
+
+\section*{习题十三}
+\addcontentsline{toc}{section}{习题十三}

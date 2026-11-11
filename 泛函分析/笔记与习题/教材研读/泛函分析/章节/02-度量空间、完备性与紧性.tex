@@ -1,0 +1,138 @@
+% !TeX root = ../泛函分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{度量空间、完备性与紧性}
+\label{chap:fa-metric}
+
+函数列可以逐点收敛，也可以一致收敛；同一列函数在不同意义下可能具有不同的极限性质。度量把“接近”变成可以估计的数值，完备性保证 Cauchy 逼近有极限，紧性则保证从任意序列中选出收敛子列。
+
+\section{度量与基本拓扑概念}
+\begin{definition}
+集合 $M$ 上的\emph{度量（metric）}是映射 $d:M\times M\to[0,\infty)$，满足对所有 $x,y,z\in M$，
+\[
+ d(x,y)=0\iff x=y,\qquad d(x,y)=d(y,x),\qquad
+ d(x,z)\leq d(x,y)+d(y,z).
+\]
+二元组 $(M,d)$ 称为度量空间。开球记为 $B(x,r)=\{y:d(x,y)<r\}$，其中 $r>0$。
+\end{definition}
+集合 $U$ 开，是指每个 $x\in U$ 都有某个开球 $B(x,r)\subset U$；集合 $F$ 闭，是指 $M\setminus F$ 开。集合 $A$ 的闭包 $\overline A$ 由所有满足 $B(x,r)\cap A\ne\varnothing$（对每个 $r>0$）的点组成。若 $\overline A=M$，称 $A$ 稠密；存在可数稠密子集的空间称为\emph{可分空间（separable space）}。
+
+度量空间中，$x\in\overline A$ 当且仅当存在 $a_n\in A$ 使 $d(a_n,x)\to0$：一个方向由三角不等式得到，另一个方向在每个 $B(x,1/n)$ 中选择一点即可。因此，闭集恰是包含其所有收敛序列极限的集合。
+
+这里的开、闭总是相对于所在空间而言。比如 $[0,1)$ 在 $\mathbb R$ 中既不开也不闭，在子空间 $[0,2]$ 中却是开集，因为它等于 $(-1,1)\cap[0,2]$。闭性也不表示集合“没有空隙”：整数集在 $\mathbb R$ 中闭，但并不是区间。它只表示从集合内取点所得到的、在环境空间中存在的极限不会离开集合。开集与闭集不是互为否定的两个类别，整个空间和空集既开又闭。
+
+\begin{proposition}[距离函数的连续性]\label{prop:fa-distance-lipschitz}
+对度量空间中的非空集合 $A$，令 $d(x,A)=\inf_{a\in A}d(x,a)$，则
+\[
+ |d(x,A)-d(y,A)|\leq d(x,y),\qquad
+ d(x,A)=0\iff x\in\overline A.
+\]
+\end{proposition}
+\begin{proof}
+对任意 $a\in A$，三角不等式给出 $d(x,a)\leq d(x,y)+d(y,a)$。对 $a$ 取下确界，再交换 $x,y$，便得第一式。距离为零表示每个正半径的球都与 $A$ 相交，这恰是闭包的定义。下确界不一定达到；例如 $0$ 到 $(0,1)$ 的距离为零，但集合中没有距离为零的点。
+\end{proof}
+
+\begin{example}
+在 $C([0,1])$ 上，$d_\infty(f,g)=\max_{t\in[0,1]}|f(t)-g(t)|$ 给出一致收敛。另一个度量 $d_1(f,g)=\int_0^1|f-g|\,\mathrm dt$ 给出不同的收敛：$f_n(t)=t^n$ 满足 $d_1(f_n,0)=1/(n+1)\to0$，但 $d_\infty(f_n,0)=1$。
+\end{example}
+
+\section{连续性与完备性}
+映射 $F:(M,d)\to(N,\rho)$ 在 $x$ 连续，是指对每个 $\varepsilon>0$ 存在 $\delta>0$，使 $d(x,y)<\delta$ 蕴含 $\rho(Fx,Fy)<\varepsilon$。若 $\delta$ 可对所有 $x$ 统一选择，则称一致连续。用半径 $1/n$ 选择反例可证明：度量空间中的连续性等价于保持序列极限。
+
+\begin{definition}
+若对每个 $\varepsilon>0$，存在 $N$ 使 $m,n\geq N$ 时 $d(x_m,x_n)<\varepsilon$，则称 $(x_n)$ 为 Cauchy 序列。每个 Cauchy 序列都在空间内收敛时，称空间\emph{完备（complete）}。
+\end{definition}
+收敛序列必为 Cauchy 序列，因为 $d(x_m,x_n)\leq d(x_m,x)+d(x_n,x)$。逆命题需要空间本身的性质：有理数列可以在实数中趋于 $\sqrt2$，却在 $\mathbb Q$ 中没有极限。
+
+这两个定义的区别在于，收敛先指定一个候选极限 $x$，Cauchy 条件只比较已经算出的两项。在迭代计算中，通常先得到的是后者。证明一个空间完备的常用过程是：先在更简单的环境中找出候选极限，再证明它属于原空间，最后证明原序列按指定的度量趋于它。这三个步骤缺少任何一个，都不能完成完备性证明。
+
+\begin{proposition}\label{prop:fa-closed-complete}
+完备度量空间的子集在诱导度量下完备，当且仅当它闭。任意度量空间中的完备子集都是闭集。
+\end{proposition}
+\begin{proof}
+闭子集中的 Cauchy 序列先在完备环境中收敛，再由闭性知极限仍在子集中。反之，若子集 $A$ 完备且 $x\in\overline A$，取 $a_n\in A$ 收敛到 $x$。此列为 Cauchy 序列，故在 $A$ 中有极限；度量极限唯一，因而 $x\in A$。
+\end{proof}
+
+\begin{example}[一致极限与完备性]
+$C([0,1])$ 在 $d_\infty$ 下完备。
+\end{example}
+\begin{proof}
+若 $(f_n)$ 为一致距离下的 Cauchy 序列，则对每个 $t$，$(f_n(t))$ 在 $\mathbb K$ 中收敛，记极限为 $f(t)$。在 $|f_n(t)-f_m(t)|<\varepsilon$ 中令 $m\to\infty$，得到对所有 $t$ 同时成立的 $|f_n(t)-f(t)|\leq\varepsilon$，故收敛一致。给定 $t_0$，将 $|f(t)-f(t_0)|$ 分解为两个一致逼近误差与 $|f_n(t)-f_n(t_0)|$，即知 $f$ 连续。
+\end{proof}
+
+最后一步可具体写成
+\[
+ |f(t)-f(t_0)|\leq |f(t)-f_n(t)|
+ +|f_n(t)-f_n(t_0)|+|f_n(t_0)-f(t_0)|.
+\]
+先选一个固定的 $n$，使首尾两项各小于 $\varepsilon/3$；再用这个 $f_n$ 的连续性选择 $\delta$，使中间一项小于 $\varepsilon/3$。先选 $n$、后选 $\delta$ 的次序很关键：逐点收敛允许 $n$ 随 $t$ 改变，就不能直接作上述统一控制。
+
+\section{完备化与连续延拓}
+\begin{theorem}[完备化]
+每个度量空间 $M$ 都可等距嵌入一个完备空间 $\widehat M$，且其像稠密。这样的完备化在保持原空间嵌入的等距同构意义下唯一。
+\end{theorem}
+\begin{proof}
+在 $M$ 的 Cauchy 序列之间规定 $(x_n)\sim(y_n)$ 当且仅当 $d(x_n,y_n)\to0$，并令
+\[
+ \widehat d([x_n],[y_n])=\lim_n d(x_n,y_n).
+\]
+三角不等式保证右侧存在、与代表元无关，并使其成为等价类集合上的度量。常值序列给出等距嵌入 $\iota$；由于 $\iota(x_n)\to[x_n]$，其像稠密。
+
+若 $(\xi_n)$ 为 $\widehat M$ 中的 Cauchy 序列，由稠密性取 $z_n\in M$ 使 $\widehat d(\iota(z_n),\xi_n)<1/n$。于是 $(z_n)$ 为 Cauchy 序列，而 $\xi_n\to[z_n]$，所以 $\widehat M$ 完备。在另一完备化中，把 $[x_n]$ 映为嵌入序列的极限；这个映射良定义、保距且满射，给出唯一性。
+\end{proof}
+
+若 $A$ 在 $M$ 中稠密，$F:A\to N$ 一致连续且 $N$ 完备，则令 $\overline F(x)=\lim_nF(a_n)$，其中 $a_n\to x$，可得唯一的一致连续延拓。存在性来自一致连续映射将 Cauchy 序列映为 Cauchy 序列；两种逼近序列交错排列即可验证极限无关性。仅有连续性通常不足，例如 $x\mapsto1/x$ 不能从 $(0,1)$ 连续延拓到 $[0,1]$。
+
+\section{紧性、列紧性与全有界性}
+\begin{definition}
+度量空间称为\emph{紧的（compact）}，若每个开覆盖都有有限子覆盖；称为\emph{列紧的（sequentially compact）}，若每个序列都有收敛子列；称为\emph{全有界的（totally bounded）}，若对每个 $\varepsilon>0$，有限多个半径为 $\varepsilon$ 的开球就能覆盖整个空间。
+\end{definition}
+\begin{theorem}\label{thm:fa-metric-compactness}
+对度量空间，紧、列紧、完备且全有界三者等价。
+\end{theorem}
+\begin{proof}
+紧空间必全有界，因为全体半径 $\varepsilon$ 的球构成开覆盖。若一个序列没有收敛子列，每个点都有仅包含有限多个序列指标的邻域；否则可逐次选点得到收敛子列。这些邻域的有限子覆盖不可能覆盖所有指标，故紧空间列紧。
+
+列紧空间完备，因为 Cauchy 序列一旦有收敛子列，整个序列就收敛。若不全有界，可递归构造点列，使任意两点距离至少为某个 $\varepsilon>0$，与列紧性矛盾。
+
+完备且全有界时，对半径 $2^{-k}$ 的有限覆盖逐次保留含无穷多项的球，抽得 Cauchy 子列，故列紧。最后，列紧空间的任意开覆盖具有 Lebesgue 数：存在 $\delta>0$，每个半径 $\delta$ 的球都包含于某个覆盖成员。否则选择 $x_n$ 使 $B(x_n,1/n)$ 不被任何成员包含，取 $x_n$ 的收敛子列，在极限点附近的一个覆盖成员内即得矛盾。再取有限个半径 $\delta/2$ 的球覆盖空间，得到有限子覆盖。
+\end{proof}
+完备与有界并不保证紧。例如无穷集合上的离散度量 $d(x,y)=1$（$x\ne y$）完备且有界，但半径 $1/2$ 的球都是单点，故不全有界。
+
+\begin{example}[三种条件分别控制什么]
+在通常距离下，$(0,1)$ 全有界但不完备，$\mathbb R$ 完备但不全有界，$[0,1]$ 同时满足两者，因而紧。
+\end{example}
+\begin{solve}
+任意小的正数 $\varepsilon$ 都允许把 $(0,1)$ 分成有限个长度小于 $\varepsilon$ 的区间，所以它全有界；但 $1/n$ 的极限 $0$ 不在其中。实数空间完备，而有限个固定半径的球只能覆盖一个有界区域，不能覆盖全部实数。闭区间既保留所有 Cauchy 极限，又能被有限小区间覆盖。完备性防止极限落到空间外，全有界性防止序列在固定精度下出现无穷多个彼此分离的位置。
+\end{solve}
+
+紧性的一个直接用途是证明最值存在。若非空紧集 $K$ 上的实连续函数 $g$ 无界，可取 $x_n\in K$ 使 $|g(x_n)|>n$，收敛子列与连续性立刻造成矛盾。于是 $m=\inf_Kg$ 为有限数；取 $g(x_n)\to m$，再提取收敛子列 $x_{n_k}\to x_*$，便有 $g(x_*)=m$。后面证明能量极小点存在时，仍采用“取极小化序列、提取子列、传递极限”的结构，只是所用紧性和连续性会改变。
+
+\section{压缩映射原理}
+\begin{theorem}[Banach 不动点定理]\label{thm:fa-contraction}
+设 $(M,d)$ 非空且完备，$F:M\to M$ 满足 $d(Fx,Fy)\leq qd(x,y)$，其中 $0\leq q<1$。则 $F$ 有唯一不动点 $x_*$。任取 $x_0\in M$，迭代 $x_{n+1}=F(x_n)$ 收敛到 $x_*$，且
+\[
+ d(x_n,x_*)\leq\frac{q^n}{1-q}d(x_1,x_0),\qquad
+ d(x_n,x_*)\leq\frac{q}{1-q}d(x_n,x_{n-1})\quad(n\geq1).
+\]
+\end{theorem}
+\begin{proof}
+归纳得 $d(x_{n+1},x_n)\leq q^nd(x_1,x_0)$。对相邻距离求和可知 $(x_n)$ 为 Cauchy 序列，故有极限 $x_*$。压缩条件蕴含连续性，因此 $F(x_*)=x_*$。若 $y_*$ 也是不动点，则 $d(x_*,y_*)\leq qd(x_*,y_*)$，只能有 $x_*=y_*$。将上述尾部几何级数求和即得两项误差估计。
+\end{proof}
+
+\section{例题与习题}
+\begin{example}
+方程 $x=\cos x$ 在 $[0,1]$ 中有唯一解，迭代 $x_{n+1}=\cos x_n$ 对任意 $x_0\in[0,1]$ 收敛。
+\end{example}
+\begin{solve}
+$F([0,1])\subset[0,1]$，且由中值定理 $|F(x)-F(y)|\leq(\sin1)|x-y|$。区间完备且 $\sin1<1$，故可用定理\ref{thm:fa-contraction}。若希望误差不超过 $\varepsilon$，可在 $\frac{\sin1}{1-\sin1}|x_n-x_{n-1}|\leq\varepsilon$ 时停止。
+\end{solve}
+
+使用压缩映射原理时，应分别验证集合非空、完备、映射保持集合以及统一收缩常数小于一。比如 $F(x)=x/2$ 在 $(0,1)$ 上是压缩自映射，却没有不动点，因为唯一可能的不动点 $0$ 被排除；在 $[1,2]$ 上同一个公式虽然满足收缩估计，却不保持集合。再如 $F(x)=x+1$ 在 $\mathbb R$ 上满足 Lipschitz 常数一而没有不动点，$F(x)=x$ 则有无穷多个不动点。这些例子分别指出各项条件的作用。
+\begin{enumerate}
+ \item\label{exer:fa-cauchy} 证明 Cauchy 序列有界，并证明它若有收敛子列则整个序列收敛。
+ \item 比较 $(0,1)$、$[0,1]$、$\mathbb R$ 的完备性、全有界性和紧性。
+ \item 证明紧度量空间上的连续映射一致连续。
+ \item 给出 $q=1$ 时不动点不存在或不唯一的例子。
+\end{enumerate}
+

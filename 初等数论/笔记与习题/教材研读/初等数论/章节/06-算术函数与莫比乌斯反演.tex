@@ -1,0 +1,188 @@
+% !TeX root = ../初等数论笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{5} % 保留原书章号。
+\chapter{算术函数与莫比乌斯反演}
+\label{ch:arithmetic-functions}
+
+前面研究一个整数能否整除另一个整数，本章转而统计一个整数附带的数量：有多少个约数、约数之和是多少、一个周期中有多少个数与它互素。唯一分解使这些数量常能拆成素数幂上的计算。莫比乌斯反演进一步回答一个反向问题：如果已知每个整数的“约数累计量”，能否恢复每个约数原本的贡献？
+
+\section{算术函数、积性与约数求和}
+
+\begin{definition}
+\emph{算术函数（arithmetic function）}是定义在正整数集上的函数，本章允许其取复数值。若 $f(1)=1$，且 $\gcd(m,n)=1$ 时 $f(mn)=f(m)f(n)$，则称 $f$ 为\emph{积性函数（multiplicative function）}；若乘法等式对所有正整数 $m,n$ 成立，则称完全积性。
+\end{definition}
+
+记 $\tau(n)$ 为正约数个数，$\sigma(n)$ 为正约数和；$\sum_{d\mid n}$ 总对正约数求和。由唯一分解，若 $n=\prod_{i=1}^r p_i^{\alpha_i}$，每个约数对应唯一的指数选择，故
+\begin{equation}
+ \tau(n)=\prod_i(\alpha_i+1),\qquad
+ \sigma(n)=\prod_i(1+p_i+\cdots+p_i^{\alpha_i}).
+ \label{eq:divisor-functions}
+\end{equation}
+$n=1$ 时均为 $1$。互素两数的素因子集合不交，所以两函数均积性；但 $\tau(4)=3\ne\tau(2)^2$，故 $\tau$ 不完全积性。一般积性函数由所有素数幂上的取值唯一确定。
+
+以 $12=2^2\cdot3$ 为例，它的每个正约数唯一写为 $2^i3^j$，其中 $i\in\{0,1,2\}$、$j\in\{0,1\}$。共有 $3\cdot2=6$ 种选择；把约数相加则是将 $(1+2+4)(1+3)$ 展开，得到 $1+2+3+4+6+12=28$。乘积公式的根据是各个素因子指数可以独立选择，不是单纯地把一个数分成乘积后就能分开计算。
+
+\begin{proposition}[约数求和保持积性]
+\label{prop:divisor-sum-multiplicative}
+若 $f$ 为积性函数，定义 $F(n)=\sum_{d\mid n}f(d)$，则 $F$ 也为积性函数。
+\end{proposition}
+\begin{proof}
+$F(1)=f(1)=1$。若 $\gcd(m,n)=1$，则 $mn$ 的每个正约数唯一写为 $uv$，其中 $u\mid m,v\mid n$，并且 $\gcd(u,v)=1$。故
+\[
+ F(mn)=\sum_{u\mid m}\sum_{v\mid n}f(uv)
+ =\sum_{u\mid m}\sum_{v\mid n}f(u)f(v)=F(m)F(n).
+\]
+\end{proof}
+
+取 $f(d)=1$ 得到 $\tau$ 的积性，取 $f(d)=d$ 得到 $\sigma$ 的积性。一个常见误区是只知道所有 $f(p)$ 就认为确定了积性函数；实际还要知道 $f(p^2),f(p^3),\ldots$。只有完全积性函数才满足 $f(p^k)=f(p)^k$。
+
+\section{欧拉函数与互素计数}
+
+\begin{definition}
+\emph{欧拉函数（Euler's totient function）}为
+\[
+ \varphi(n)=\#\{a:1\le a\le n,\ \gcd(a,n)=1\}.
+\]
+特别地，$\varphi(1)=1$。
+\end{definition}
+
+\begin{theorem}
+\label{thm:totient}
+欧拉函数积性，且
+\begin{equation}
+ \varphi(n)=n\prod_{p\mid n}\left(1-\frac1p\right),
+ \qquad \sum_{d\mid n}\varphi(d)=n.
+ \label{eq:totient-product}
+\end{equation}
+乘积遍历 $n$ 的不同素因子。
+\end{theorem}
+\begin{proof}
+在 $1,\ldots,p^k$ 中，恰有 $p^{k-1}$ 个数被 $p$ 整除，故 $\varphi(p^k)=p^k-p^{k-1}$。若 $m,n$ 互素，中国剩余定理把模 $mn$ 的可逆类与模 $m,n$ 的可逆类对一一对应，故 $\varphi(mn)=\varphi(m)\varphi(n)$，乘积公式随之成立。
+
+将 $1\le a\le n$ 按 $\gcd(a,n)=g$ 分类，其中 $g\mid n$。写 $a=gb$，则 $1\le b\le n/g$ 且 $\gcd(b,n/g)=1$，这一类有 $\varphi(n/g)$ 个数。各类不交且覆盖全部 $n$ 个数，得到约数求和式。
+\end{proof}
+
+\begin{example}
+计算 $360$ 的约数个数、约数和与欧拉函数值。
+\end{example}
+\begin{solve}
+$360=2^3\cdot3^2\cdot5$，所以 $\tau(360)=4\cdot3\cdot2=24$，$\sigma(360)=15\cdot13\cdot6=1170$，$\varphi(360)=360\cdot\frac12\cdot\frac23\cdot\frac45=96$。
+\end{solve}
+
+\section{狄利克雷卷积与莫比乌斯函数}
+
+先观察 $n=6$ 的约数累计式：$F(6)=f(1)+f(2)+f(3)+f(6)$。若还知道 $F(1),F(2),F(3)$，则消去重复贡献后得到
+\[
+ f(6)=F(6)-F(3)-F(2)+F(1).
+\]
+这里加回 $F(1)$，是因为它在前两次减法中被多减了一次。这与有限集合的容斥原理相同；莫比乌斯函数将这种加减规律统一记录下来。
+
+\begin{definition}
+算术函数 $f,g$ 的\emph{狄利克雷卷积（Dirichlet convolution）}定义为
+\begin{equation}
+ (f*g)(n)=\sum_{d\mid n}f(d)g(n/d).
+ \label{eq:dirichlet-convolution}
+\end{equation}
+记 $\mathbf1(n)=1$，$\varepsilon(1)=1$、$\varepsilon(n)=0$（$n>1$）。
+\end{definition}
+
+换元 $d\leftrightarrow n/d$ 证明交换律；两种结合方式都等于有限和 $\sum_{abc=n}f(a)g(b)h(c)$，故结合律成立；直接计算得 $f*\varepsilon=f$。若 $f,g$ 积性，互素 $m,n$ 的每个约数唯一写为 $uv$（$u\mid m,v\mid n$），将双重和分离即可证明 $f*g$ 积性。
+
+卷积与逐点乘法不同。例如 $(f*g)(6)$ 要累加四项
+\[
+ f(1)g(6)+f(2)g(3)+f(3)g(2)+f(6)g(1),
+\]
+而逐点乘法只有 $f(6)g(6)$。恒一函数 $\mathbf1$ 的作用是进行约数累加，单位函数 $\varepsilon$ 的作用才是保持原函数不变。学习卷积时，把这两种函数区分开，比记忆形式相似的运算规则更重要。
+
+\begin{definition}
+\emph{莫比乌斯函数（Möbius function）}定义为
+\[
+ \mu(n)=
+ \begin{cases}
+ 1,&n=1,\\
+ (-1)^r,&n\text{ 是 }r\text{ 个不同素数的乘积},\\
+ 0,&n\text{ 被某个素数的平方整除}.
+ \end{cases}
+\]
+\end{definition}
+
+$\mu$ 的积性直接来自不交素因子集合。若 $n>1$ 有 $r$ 个不同素因子，只有无平方因子的约数对 $\sum_{d\mid n}\mu(d)$ 有贡献；选出 $j$ 个素因子共有 $\binom rj$ 种，故该和为 $(1-1)^r=0$。加上 $n=1$ 的情形，得到
+\begin{equation}
+ \mu*\mathbf1=\varepsilon.
+ \label{eq:mobius-unit}
+\end{equation}
+
+\section{莫比乌斯反演及计数应用}
+
+\begin{theorem}[莫比乌斯反演]
+\label{thm:mobius-inversion}
+对算术函数 $f,F$，
+\begin{equation}
+ F(n)=\sum_{d\mid n}f(d)
+ \quad\Longleftrightarrow\quad
+ f(n)=\sum_{d\mid n}\mu(d)F(n/d).
+ \label{eq:mobius-inversion}
+\end{equation}
+\end{theorem}
+\begin{proof}
+左式为 $F=f*\mathbf1$，两侧与 $\mu$ 卷积，利用结合律和式\eqref{eq:mobius-unit}得 $F*\mu=f$。反之，对右式与 $\mathbf1$ 卷积即可恢复左式。所有求和均有限。
+\end{proof}
+
+\emph{莫比乌斯反演（Möbius inversion）}把按约数累加的信息还原。令 $F(n)=n$，由欧拉函数的约数和式得到 $\varphi(n)=\sum_{d\mid n}\mu(d)n/d$，也可再次推出乘积公式。
+
+也可以展开一次求和，看清为什么原始贡献恰好留下。若 $F(n)=\sum_{e\mid n}f(e)$，则
+\[
+ \sum_{d\mid n}\mu(d)F(n/d)
+ =\sum_{e\mid n}f(e)\sum_{d\mid n/e}\mu(d).
+\]
+内层和在 $e<n$ 时为零，在 $e=n$ 时为 $1$，所以只剩 $f(n)$。这说明反演不是神秘的形式消去，而是用权重 $\mu(d)$ 抵消所有来自真约数的重复计数。实际应用时，应先明确 $F(n)$ 是否确实按约数累加；普通的前缀和 $\sum_{k=1}^n f(k)$ 不能直接套用同一公式。
+
+\begin{example}
+求 $1\le a,b\le N$ 中互素有序数对的个数 $C(N)$，其中 $N\in\mathbb Z_{>0}$。
+\end{example}
+\begin{solve}
+由式\eqref{eq:mobius-unit}，$\sum_{d\mid\gcd(a,b)}\mu(d)$ 在两数互素时为 $1$，否则为 $0$。交换有限求和得到
+\begin{equation}
+ C(N)=\sum_{d=1}^N\mu(d)\left\lfloor\frac Nd\right\rfloor^2.
+ \label{eq:coprime-pairs}
+\end{equation}
+平方项分别选择被 $d$ 整除的两个坐标，已包括 $(1,1)$；当 $N=3$ 时结果为 $9-1-1=7$。
+\end{solve}
+
+\section{无平方因子的整数与另一种计数}
+
+正整数若不被任何素数的平方整除，称为\emph{无平方因子整数（squarefree integer）}；$1$ 也属于这一类。定义表明 $\mu(n)^2$ 正好是这类整数的示性值：满足条件时为 $1$，否则为 $0$。
+
+\begin{proposition}
+\label{prop:squarefree-count}
+对正整数 $n$，有
+\[
+ \mu(n)^2=\sum_{d^2\mid n}\mu(d).
+\]
+因此，不超过正整数 $N$ 的无平方因子整数个数为
+\[
+ \sum_{d=1}^{\lfloor\sqrt N\rfloor}\mu(d)
+ \left\lfloor\frac{N}{d^2}\right\rfloor.
+\]
+\end{proposition}
+\begin{proof}
+设 $n$ 中指数至少为 $2$ 的不同素因子共有 $r$ 个。对右侧有非零贡献的 $d$，只能从这 $r$ 个素数中各取零次或一次，因此总和为 $(1-1)^r$。当 $r=0$ 时，唯一的这种 $d$ 是 $1$，总和为 $1$；当 $r>0$ 时总和为零。这正是 $\mu(n)^2$。再对 $1\le n\le N$ 求和并交换有限求和次序，每个 $d$ 对应 $\lfloor N/d^2\rfloor$ 个倍数，得到计数式。
+\end{proof}
+
+例如 $N=10$ 时，公式给出 $10-2-1=7$，对应 $1,2,3,5,6,7,10$。与互素数对计数相比，这里的共同结构是先构造取值为 $0$ 或 $1$ 的判别和，再交换求和次序。它是将整除条件转化为可计算公式的一种常用方法。
+
+\section{习题}
+
+积性允许沿互素因子分解计算，不能忽略互素条件。约数求和是卷积的一种，莫比乌斯反演则撤销这种累加。计数应用的关键是先构造正确的示性值，再交换有限求和；应能解释每个取整项数的是什么。
+
+\begin{enumerate}
+ \item 计算 $\varphi(840)$、$\tau(840)$ 和 $\mu(840)$。
+ \item 证明 $\sum_{d\mid n}\mu(d)\tau(n/d)=1$。
+ \item 证明 $\sum_{d\mid n}\mu(d)^2=2^r$，其中 $r$ 为 $n$ 的不同素因子个数。
+ \item 通过计数对称性证明 $C(N)=2\sum_{k=1}^N\varphi(k)-1$，并与式\eqref{eq:coprime-pairs}比较。
+ \item\label{ex:arith-noncoprime} 计算 $\varphi(12),\varphi(18),\varphi(216)$，说明为什么不能用前两者的乘积计算第三者。
+ \item\label{ex:arith-invert-twelve} 若 $F(n)=\sum_{d\mid n}f(d)$，将 $f(12)$ 写成若干个 $F$ 值的加减，并逐项解释系数。
+ \item\label{ex:arith-squarefree} 用命题\ref{prop:squarefree-count}计算不超过 $20$ 的无平方因子整数个数，再用枚举核对。
+ \item\label{ex:arith-inverse} 证明算术函数 $f$ 存在卷积逆元 $g$（即 $f*g=\varepsilon$）当且仅当 $f(1)\ne0$，且逆元唯一。给出按 $n$ 递增求 $g(n)$ 的递推式。
+\end{enumerate}
+

@@ -1,0 +1,562 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{感知机}
+\label{chap:lh-perceptron}
+
+给定带有两类标签的训练样本，最直接的分类思路是寻找一个超平面，使两类样本分别位于它的两侧。\emph{感知机（perceptron）}采用这一线性判别规则，并通过逐次纠正误分样本来确定超平面。它提供了理解监督学习的一条完整路线：先规定预测模型，再设计可计算的损失，最后研究更新算法在什么条件下能够终止。这里的收敛性是对有限训练集的分离保证，不直接给出未知数据上的分类误差保证。
+
+全章使用训练集 $T=\{(x_i,y_i)\}_{i=1}^{N}$，其中 $N\geq 1$，$x_i\in\mathbb R^d$ 为第 $i$ 个样本的特征向量，$y_i\in\{-1,+1\}$ 为其类别标签。向量均视为列向量，$u^\top v$ 表示欧氏内积，$\|u\|$ 表示欧氏范数。样本下标写在右下角，向量坐标写为 $x^{(j)}$，以免混淆样本编号与特征编号。
+
+\section{感知机模型}
+\label{sec:lh-perceptron-model}
+
+\begin{definition}[感知机模型]
+\label{def:lh-perceptron}
+设输入空间 $\mathcal X\subseteq\mathbb R^d$，输出空间 $\mathcal Y=\{-1,+1\}$。给定权重向量（weight vector）$w\in\mathbb R^d$ 和偏置（bias）$b\in\mathbb R$，感知机的得分函数和分类函数分别为
+\begin{equation}
+\label{eq:lh-perceptron-model}
+s_{w,b}(x)=w^\top x+b,
+\qquad
+f_{w,b}(x)=\operatorname{sign}\bigl(s_{w,b}(x)\bigr).
+\end{equation}
+本笔记将符号函数在零点的取值约定为
+\[
+\operatorname{sign}(z)=
+\begin{cases}
++1,&z\geq 0,\\
+-1,&z<0.
+\end{cases}
+\]
+这一约定只决定恰落在决策边界上的输入如何预测；训练时另行规定边界样本仍须触发更新。
+\end{definition}
+
+感知机直接由特征给出类别，属于\emph{判别模型（discriminative model）}。其假设空间是
+\[
+\mathcal H=
+\left\{x\longmapsto\operatorname{sign}(w^\top x+b):
+w\in\mathbb R^d,\ b\in\mathbb R\right\}.
+\]
+其中 $s_{w,b}$ 是实值得分，$f_{w,b}$ 才是取两个类别值的分类器；二者不能混作同一个函数。得分本身没有被建模为概率，也不能直接解释为分类置信概率。
+
+当 $w\neq 0$ 时，方程
+\begin{equation}
+\label{eq:lh-perceptron-hyperplane}
+S=\{x\in\mathbb R^d:w^\top x+b=0\}
+\end{equation}
+定义一个超平面（hyperplane），其法向量为 $w$，两个开半空间分别满足 $s_{w,b}(x)>0$ 和 $s_{w,b}(x)<0$。正方向由 $w$ 指向得分增加的一侧。对任意 $c>0$，$(w,b)$ 与 $(cw,cb)$ 给出同一分类器，因此参数通常不唯一。$w=0$ 时得分为常数，不能将式~\eqref{eq:lh-perceptron-hyperplane} 解释为通常的超平面，但这样的参数可作为算法的初始状态。
+
+训练阶段利用标签确定 $w,b$；预测阶段则固定所得参数，对新输入 $x$ 计算式~\eqref{eq:lh-perceptron-model}。训练集能否被分开，首先取决于它相对于当前特征表示是否线性可分，而不是取决于训练算法运行了多少次。
+
+\section{感知机学习策略}
+\label{sec:lh-perceptron-strategy}
+
+\subsection{数据集的线性可分性}
+\label{subsec:lh-perceptron-separability}
+
+\begin{definition}[线性可分性]
+\label{def:lh-linear-separability}
+若存在 $w\in\mathbb R^d$、$b\in\mathbb R$，使训练集中每个样本都满足
+\begin{equation}
+\label{eq:lh-perceptron-separable}
+y_i(w^\top x_i+b)>0,
+\qquad i=1,\ldots,N,
+\end{equation}
+则称 $T$ 为\emph{线性可分数据集（linearly separable data set）}；否则称为线性不可分。满足上述不等式的超平面称为分离超平面（separating hyperplane）。
+\end{definition}
+
+式~\eqref{eq:lh-perceptron-separable} 将两类样本的条件合为一个式子：$y_i=+1$ 时要求得分严格为正，$y_i=-1$ 时要求得分严格为负。这里强调严格不等式，因而没有训练样本落在分离超平面上。当两类样本均存在时，分离向量必有 $w\neq0$；若训练集只有一类，则可以用常数偏置完成分类。
+
+\begin{definition}[函数间隔与几何间隔]
+\label{def:lh-perceptron-margin}
+对参数 $(w,b)$，第 $i$ 个样本的\emph{函数间隔（functional margin）}为
+\begin{equation}
+\label{eq:lh-perceptron-functional-margin}
+m_i(w,b)=y_i(w^\top x_i+b).
+\end{equation}
+当 $w\neq0$ 时，其有符号几何间隔（geometric margin）为 $m_i(w,b)/\|w\|$，点 $x_i$ 到超平面的无符号距离为 $|w^\top x_i+b|/\|w\|$。
+\end{definition}
+
+上述距离公式可由正交分解得到：从 $x_i$ 沿法向量方向移动至超平面，垂足为
+\[
+x_i-\frac{w^\top x_i+b}{\|w\|^2}w,
+\]
+移动长度就是 $|w^\top x_i+b|/\|w\|$。函数间隔为正表示样本处于正确一侧，为负表示误分，为零表示落在边界上。正比例缩放参数会改变函数间隔，但不改变几何间隔。
+
+\subsection{从误分类到感知机损失}
+\label{subsec:lh-perceptron-loss}
+
+直接最小化误分类数需要优化不连续的类别判断，不利于利用梯度信息。教材从误分点到分离超平面的距离引出替代目标：对于 $m_i(w,b)<0$ 的点，其到超平面的距离为 $-m_i(w,b)/\|w\|$。去掉公共归一化因子 $1/\|w\|$ 后，可得到只惩罚负函数间隔的感知机损失。\emph[caution]{由于 $\|w\|$ 也随参数改变，去掉该因子是选择新的损失函数，并非保持原距离最小化问题不变的代数化简。}
+
+\begin{definition}[感知机损失]
+\label{def:lh-perceptron-loss}
+单个样本的感知机损失和训练集的总损失分别定义为
+\begin{equation}
+\label{eq:lh-perceptron-loss}
+\ell_i(w,b)=\max\{0,-y_i(w^\top x_i+b)\},
+\qquad
+L(w,b)=\sum_{i=1}^{N}\ell_i(w,b).
+\end{equation}
+若将误分或位于边界的样本指标集记为
+\[
+M(w,b)=\{i:y_i(w^\top x_i+b)\leq0\},
+\]
+则等价地有
+\begin{equation}
+\label{eq:lh-perceptron-loss-active}
+L(w,b)=-\sum_{i\in M(w,b)}y_i(w^\top x_i+b).
+\end{equation}
+边界样本在和式中的贡献为零。采用平均损失 $L/N$ 只改变整体尺度，不改变其最小值点集合。
+\end{definition}
+
+若 $w\neq0$，全部误分点到超平面的距离之和为 $L(w,b)/\|w\|$，而 $L$ 本身是负函数间隔之和。不同参数之间不能只凭误分点个数判断 $L$ 的大小：误分点较少时，某个点的负间隔仍可能很大。反过来，参数整体缩小时，$L$ 可以减小而分类结果完全不变。
+
+\begin{proposition}[损失的基本性质]
+\label{prop:lh-perceptron-loss-properties}
+函数 $L$ 非负、连续、凸且分段线性，但一般不处处可导。它满足
+\begin{equation}
+\label{eq:lh-perceptron-zero-loss}
+L(w,b)=0
+\quad\Longleftrightarrow\quad
+y_i(w^\top x_i+b)\geq0\quad\text{对所有 }i.
+\end{equation}
+严格分离蕴含零损失，零损失一般不蕴含严格分离。
+\end{proposition}
+
+\begin{proof}
+每个 $\ell_i$ 是常数函数 $0$ 与仿射函数 $-y_i(w^\top x_i+b)$ 的最大值，因此非负、连续、凸且分段线性，有限求和保留这些性质。两个分支交界处的斜率一般不同，所以不能据此声称函数处处可导。有限个非负项之和为零当且仅当每项均为零，这就得到式~\eqref{eq:lh-perceptron-zero-loss}。严格正间隔当然满足非负间隔；反例是 $(w,b)=(0,0)$，此时任何训练集都满足 $L(0,0)=0$，但所有间隔均为零。
+\end{proof}
+
+教材将学习策略写为
+\begin{equation}
+\label{eq:lh-perceptron-objective}
+\min_{w\in\mathbb R^d,\ b\in\mathbb R} L(w,b).
+\end{equation}
+理解这一表达时必须同时保留算法的更新和停止规则：由于零参数总是式~\eqref{eq:lh-perceptron-objective} 的最小值点，单独求解这个无约束最小化问题并不能保证找到严格分离器。感知机在间隔为零时仍更新，直至所有训练间隔严格为正。因此，\emph{零损失条件与算法终止条件并不相同}，线性可分条件也不会因为损失函数是凸函数而自动成立。
+
+\section{感知机学习算法}
+\label{sec:lh-perceptron-algorithm}
+
+\subsection{原始形式与逐次更新}
+\label{subsec:lh-perceptron-primal}
+
+在没有样本跨越边界的局部区域内，负间隔样本集保持不变，此时损失的梯度为
+\[
+\nabla_w L=-\sum_{i:m_i<0}y_i x_i,
+\qquad
+\frac{\partial L}{\partial b}=-\sum_{i:m_i<0}y_i.
+\]
+若一次只选择一个间隔非正的样本 $(x_i,y_i)$，就得到原始形式（primal form）的更新
+\begin{equation}
+\label{eq:lh-perceptron-primal-update}
+w\leftarrow w+\eta y_i x_i,
+\qquad
+b\leftarrow b+\eta y_i,
+\qquad \eta>0.
+\end{equation}
+其中 $\eta$ 为固定学习率（learning rate）。教材采用不大于 $1$ 的步长，并在例题中取 $1$；本章的有限更新证明只要求它是固定正常数。
+
+从优化角度看，这是逐样本的\emph{次梯度（subgradient）}更新。对凸函数 $h$，若向量 $g$ 满足对所有 $v$ 都有 $h(v)\geq h(u)+g^\top(v-u)$，则称 $g$ 为 $h$ 在 $u$ 处的次梯度，所有这样的向量组成次微分 $\partial h(u)$。令扩充参数 $\widetilde w=(w^\top,b)^\top$，扩充输入 $\widetilde x_i=(x_i^\top,1)^\top$，则
+\[
+\partial\ell_i(\widetilde w)=
+\begin{cases}
+\{-y_i\widetilde x_i\},&m_i<0,\\
+\{-\lambda y_i\widetilde x_i:0\leq\lambda\leq1\},&m_i=0,\\
+\{0\},&m_i>0.
+\end{cases}
+\]
+边界处选择 $\lambda=1$ 就得到式~\eqref{eq:lh-perceptron-primal-update}，而选择 $\lambda=0$ 会允许算法停在零参数。教材用随机梯度下降（stochastic gradient descent）描述逐点修正过程；严格地说，在不可导位置应使用次梯度，且固定顺序遍历样本也能得到后面的有限更新保证，无须依赖随机抽样。
+
+原始形式的输入是训练集 $T$、学习率 $\eta>0$ 和初值 $(w_0,b_0)$，输出是分类参数与式~\eqref{eq:lh-perceptron-model} 中的分类器。为使选点与停止条件明确，可采用下面的循环遍历实现。
+\begin{enumerate}
+  \item 初始化 $w=w_0$、$b=b_0$，常用 $w_0=0$、$b_0=0$。
+  \item 开始一轮训练，将本轮更新次数置为零，依次访问 $i=1,\ldots,N$。
+  \item 每访问一个样本，计算当前间隔 $m_i=y_i(w^\top x_i+b)$；若 $m_i\leq0$，执行式~\eqref{eq:lh-perceptron-primal-update} 并累计一次更新；否则保持参数不变。
+  \item 完整一轮没有发生更新时停止；否则开始下一轮。在线性可分性未知时另设最大轮数，达到上限只能报告尚未找到严格分离器，不能判定数据必定不可分。
+\end{enumerate}
+
+一轮无更新意味着参数在整轮中固定，故所有样本在最终参数下的间隔均为正；仅仅在一轮中让每个点都曾经被正确分类，并不足以停止，因为后续更新可能破坏先前点的分类。教材允许直接选择任意间隔非正的点；循环遍历则保证只要还有这样的点，就会继续发现并处理它。
+
+更新对当前点的作用可以精确写成
+\begin{equation}
+\label{eq:lh-perceptron-margin-increase}
+y_i\bigl((w+\eta y_i x_i)^\top x_i+b+\eta y_i\bigr)
+=m_i+\eta(\|x_i\|^2+1)>m_i.
+\end{equation}
+但一次更新未必把该点的间隔直接变为正。对其他样本 $(x_j,y_j)$，间隔改变量为 $\eta y_i y_j(x_i^\top x_j+1)$，可正可负，所以不能由式~\eqref{eq:lh-perceptron-margin-increase} 推出总损失每步下降，或所有样本同时得到改善。
+
+\begin{example}
+\label{ex:lh-perceptron-primal}
+教材例 2.1：正例为 $x_1=(3,3)^\top$、$x_2=(4,3)^\top$，负例为 $x_3=(1,1)^\top$。从 $w_0=0$、$b_0=0$ 出发，取 $\eta=1$，用原始形式求一个感知机分类器。
+\end{example}
+
+\begin{solve}
+每次从样本 $1$ 开始检查，选择第一个间隔非正的点更新，再重新检查。这样得到的更新点顺序为 $x_1,x_3,x_3,x_3,x_1,x_3,x_3$。下表中 $k$ 只计发生参数更新的次数。
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+$k$ & 更新所用样本 & $w_k^\top$ & $b_k$ \\
+\midrule
+0 & 初值 & $(0,0)$ & $0$ \\
+1 & $x_1$ & $(3,3)$ & $1$ \\
+2 & $x_3$ & $(2,2)$ & $0$ \\
+3 & $x_3$ & $(1,1)$ & $-1$ \\
+4 & $x_3$ & $(0,0)$ & $-2$ \\
+5 & $x_1$ & $(3,3)$ & $-1$ \\
+6 & $x_3$ & $(2,2)$ & $-2$ \\
+7 & $x_3$ & $(1,1)$ & $-3$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+例如第 $4$ 次更新前，$x_3$ 的间隔为 $-((1,1)(1,1)^\top-1)=-1$，故仍需修正；更新后 $w=0$、$b=-2$，两个正例又需要重新检查。这说明中间状态不必始终对应非退化的超平面，也不必保持先前的分类结果。
+
+最终三个样本的间隔依次为 $3,4,1$，均严格为正，因此得到分离直线 $x^{(1)}+x^{(2)}-3=0$ 和分类器
+\[
+f(x)=\operatorname{sign}\bigl(x^{(1)}+x^{(2)}-3\bigr).
+\]
+这一解不是唯一的。例如 $2x^{(1)}+x^{(2)}-5=0$ 也能严格分离相同数据，其三个间隔分别为 $4,6,2$。感知机没有规定从多个分离器中选择最大间隔者，不同选点顺序或初值可能给出不同结果。
+\end{solve}
+
+\begin{notealert}[type=caution,title={损失值不能替代训练停止检查}]
+例~\ref{ex:lh-perceptron-primal} 中初始总损失为 $0$，第一次更新后负例的得分为 $7$，总损失反而变为 $7$。这并不违反后面的收敛定理：该定理控制的是间隔非正所触发的更新次数，并不要求 $L$ 沿迭代单调递减。实现时应检查所有训练间隔是否严格为正，不能以“总损失已为零”替代算法的停止规则。
+\end{notealert}
+
+\subsection{算法的收敛性}
+\label{subsec:lh-perceptron-convergence}
+
+为统一处理权重与偏置，沿用扩充表示
+\begin{equation}
+\label{eq:lh-perceptron-augmentation}
+\widetilde x_i=(x_i^\top,1)^\top\in\mathbb R^{d+1},
+\qquad
+\widetilde w=(w^\top,b)^\top\in\mathbb R^{d+1}.
+\end{equation}
+于是 $\widetilde w^\top\widetilde x_i=w^\top x_i+b$，更新成为 $\widetilde w\leftarrow\widetilde w+\eta y_i\widetilde x_i$。\emph[caution]{扩充参数的范数为 $\sqrt{\|w\|^2+b^2}$，与输入空间超平面距离公式中使用的 $\|w\|$ 不同。}
+
+\begin{theorem}[感知机有限更新定理，Novikoff]
+\label{thm:lh-perceptron-convergence}
+设有限训练集 $T$ 线性可分，使用固定学习率 $\eta>0$，从 $\widetilde w_0=0$ 开始，只在 $y_i\widetilde w^\top\widetilde x_i\leq0$ 时更新。则存在单位向量 $\widetilde u\in\mathbb R^{d+1}$ 及常数 $\gamma>0$，使
+\begin{equation}
+\label{eq:lh-perceptron-separator-margin}
+\|\widetilde u\|=1,
+\qquad
+y_i\widetilde u^\top\widetilde x_i\geq\gamma,
+\quad i=1,\ldots,N.
+\end{equation}
+令 $R=\max_{1\leq i\leq N}\|\widetilde x_i\|$，则算法发生的更新总次数 $K$ 满足
+\begin{equation}
+\label{eq:lh-perceptron-mistake-bound}
+K\leq\left(\frac{R}{\gamma}\right)^2.
+\end{equation}
+只要选点规则保证持续检查整个训练集，算法就会在有限次检查后得到所有训练间隔严格为正的参数。
+\end{theorem}
+
+\begin{proof}
+先说明单位分离向量及正间隔的存在性。由线性可分性，存在非零扩充参数 $\widetilde v$，使 $y_i\widetilde v^\top\widetilde x_i>0$ 对所有 $i$ 成立。令 $\widetilde u=\widetilde v/\|\widetilde v\|$，并取
+\[
+\gamma=\min_{1\leq i\leq N}y_i\widetilde u^\top\widetilde x_i.
+\]
+因为样本数有限，有限个严格正数的最小值仍严格为正，故式~\eqref{eq:lh-perceptron-separator-margin} 成立。$\widetilde u$ 在这里仅是用于分析的一个单位分离向量，无须预先求得，更没有假设它使间隔达到最大。
+
+用 $i_k$ 表示第 $k$ 次更新选中的样本编号。更新前有
+\[
+y_{i_k}\widetilde w_{k-1}^\top\widetilde x_{i_k}\leq0,
+\qquad
+\widetilde w_k=\widetilde w_{k-1}+\eta y_{i_k}\widetilde x_{i_k}.
+\]
+证明的关键是比较两个增长速度：参数在正确分离方向上的投影至少按 $k$ 线性增长，而参数范数至多按 $\sqrt{k}$ 增长。
+
+对投影，由式~\eqref{eq:lh-perceptron-separator-margin} 得
+\[
+\widetilde w_k^\top\widetilde u
+=\widetilde w_{k-1}^\top\widetilde u
++\eta y_{i_k}\widetilde u^\top\widetilde x_{i_k}
+\geq\widetilde w_{k-1}^\top\widetilde u+\eta\gamma.
+\]
+从零初值递推可得
+\begin{equation}
+\label{eq:lh-perceptron-projection-bound}
+\widetilde w_k^\top\widetilde u\geq k\eta\gamma.
+\end{equation}
+另一方面，由更新条件及 $\|\widetilde x_{i_k}\|\leq R$，
+\[
+\begin{aligned}
+\|\widetilde w_k\|^2
+&=\|\widetilde w_{k-1}\|^2
++2\eta y_{i_k}\widetilde w_{k-1}^\top\widetilde x_{i_k}
++\eta^2\|\widetilde x_{i_k}\|^2\\
+&\leq\|\widetilde w_{k-1}\|^2+\eta^2R^2.
+\end{aligned}
+\]
+继续递推得到
+\begin{equation}
+\label{eq:lh-perceptron-norm-bound}
+\|\widetilde w_k\|^2\leq k\eta^2R^2.
+\end{equation}
+若 $k\geq1$，结合式~\eqref{eq:lh-perceptron-projection-bound}、式~\eqref{eq:lh-perceptron-norm-bound} 和 Cauchy--Schwarz 不等式，有
+\[
+k\eta\gamma
+\leq\widetilde w_k^\top\widetilde u
+\leq\|\widetilde w_k\|\|\widetilde u\|
+\leq\eta R\sqrt{k}.
+\]
+除以正数 $\eta\sqrt{k}\gamma$ 并平方，得到 $k\leq(R/\gamma)^2$；$k=0$ 时同样满足该界。因此不可能出现无限次更新。若循环遍历的某一阶段仍有非正间隔样本，则至多再检查一整轮就会发现可更新样本；故更新次数有限必然导致某一整轮无更新，并在严格分离状态停止。
+\end{proof}
+
+式~\eqref{eq:lh-perceptron-mistake-bound} 中的 $K$ 是更新次数，包含落在边界时的更新，不是遍历轮数，也不是程序运行时间。证明不依赖误分点的具体选择顺序；对于给定的单位分离向量，$R/\gamma$ 越大，所得最坏情况上界越宽松。这里的 $\gamma$ 是扩充空间中相对于单位参数的间隔，不能直接与输入空间中除以 $\|w\|$ 的几何间隔混用。
+
+上界不含固定学习率 $\eta$，这也可以从零初值的缩放性质理解：在相同选点规则下，将学习率由 $1$ 改为 $\eta>0$，每一步参数都恰为原参数的 $\eta$ 倍，间隔符号与更新点顺序不变。该结论针对本章没有额外阈值或正则项的更新规则，并不表示一般优化算法的行为都与学习率无关。
+
+对任意固定非零初值，有限更新性也可由同一思路得到，但不能原样套用式~\eqref{eq:lh-perceptron-mistake-bound}。此时两条递推分别成为
+\[
+\widetilde w_k^\top\widetilde u
+\geq\widetilde w_0^\top\widetilde u+k\eta\gamma,
+\qquad
+\|\widetilde w_k\|^2
+\leq\|\widetilde w_0\|^2+k\eta^2R^2.
+\]
+若更新次数能够无限增长，左侧投影的线性下界最终会超过由范数给出的平方根上界，产生矛盾。因此仍会有限终止，只是次数界还依赖初值。
+
+若训练集线性不可分，就不存在满足式~\eqref{eq:lh-perceptron-separator-margin} 的正数 $\gamma$，上述证明失去前提。持续遍历并坚持严格正间隔的停止条件时，算法无法终止；参数可能反复变化，不能把有限可分情形的结论推广过去。最大轮数只是计算预算，若要处理不可分数据，需要另行选择允许误差的目标或算法。即使训练集可分，所得分类器对未见数据的表现仍需独立评价。
+
+\subsection{对偶形式与 Gram 矩阵}
+\label{subsec:lh-perceptron-dual}
+
+从 $w_0=0$、$b_0=0$ 出发，每次只增加 $\eta y_i x_i$ 和 $\eta y_i$。若第 $i$ 个样本共触发 $n_i$ 次更新，令 $\alpha_i=\eta n_i\geq0$，则任一迭代时刻都有
+\begin{equation}
+\label{eq:lh-perceptron-dual-representation}
+w=\sum_{j=1}^{N}\alpha_jy_jx_j,
+\qquad
+b=\sum_{j=1}^{N}\alpha_jy_j.
+\end{equation}
+将其代入得分可得
+\begin{equation}
+\label{eq:lh-perceptron-dual-score}
+s(x)=\sum_{j=1}^{N}\alpha_jy_jx_j^\top x+b.
+\end{equation}
+这就是\emph{对偶形式（dual form）}的基本想法：以样本线性组合的系数表示权重，用内积完成训练和预测。这里的“对偶”首先是一种等价参数表示，不需要另行声称已经推导出某个拉格朗日对偶优化问题。
+
+\begin{definition}[Gram 矩阵]
+\label{def:lh-perceptron-gram}
+训练样本的\emph{Gram 矩阵（Gram matrix）}定义为
+\begin{equation}
+\label{eq:lh-perceptron-gram}
+G=(G_{ij})_{N\times N},
+\qquad G_{ij}=x_i^\top x_j.
+\end{equation}
+它是对称半正定矩阵。事实上，对任意 $c\in\mathbb R^N$，
+\[
+c^\top Gc
+=\left\|\sum_{i=1}^{N}c_i x_i\right\|^2\geq0.
+\]
+若采用扩充输入，则相应矩阵为 $\widetilde G_{ij}=G_{ij}+1$。
+\end{definition}
+
+对偶算法输入训练集 $T$ 和固定学习率 $\eta>0$，输出系数 $\alpha$、偏置 $b$ 及式~\eqref{eq:lh-perceptron-dual-score} 对应的分类器。先计算 $G$，并初始化 $\alpha_1=\cdots=\alpha_N=0$、$b=0$；按原始形式相同的规则访问样本。当
+\begin{equation}
+\label{eq:lh-perceptron-dual-condition}
+y_i\left(\sum_{j=1}^{N}\alpha_jy_jG_{ji}+b\right)\leq0
+\end{equation}
+时，执行
+\begin{equation}
+\label{eq:lh-perceptron-dual-update}
+\alpha_i\leftarrow\alpha_i+\eta,
+\qquad
+b\leftarrow b+\eta y_i,
+\end{equation}
+其余系数不变。完整一轮没有更新时停止；可分性未知时使用与原始形式相同的轮数上限及未完成说明。由于 $G$ 对称，式~\eqref{eq:lh-perceptron-dual-condition} 中也可写 $G_{ij}$，但必须保留求和系数中的标签 $y_j$。
+
+\begin{proposition}[两种形式的逐步等价性]
+\label{prop:lh-perceptron-primal-dual}
+若原始形式与对偶形式都从零初值开始，使用相同学习率，并按相同规则访问和选择样本，则每次更新后两者的 $w,b$ 都满足式~\eqref{eq:lh-perceptron-dual-representation}，得分及更新条件完全一致。
+\end{proposition}
+
+\begin{proof}
+初始时所有参数为零，等式成立。假设某一步成立，则原始形式在样本 $x_i$ 上的得分为
+\[
+w^\top x_i+b
+=\sum_{j=1}^{N}\alpha_jy_jG_{ji}+b,
+\]
+因而两种形式决定是否更新的条件相同。若更新，对偶形式只令 $\alpha_i$ 增加 $\eta$，故所表示的权重增加 $\eta y_i x_i$，偏置增加 $\eta y_i$，恰好与原始形式一致；不更新时等式保持。由归纳法，结论对所有迭代成立。
+\end{proof}
+
+偏置既可以作为独立变量递推，也可以每次由 $b=\sum_j\alpha_jy_j$ 恢复，两者不能重复累加。若直接使用扩充 Gram 矩阵，则得分应写成 $\sum_j\alpha_jy_j\widetilde G_{ji}$，此时已经包含偏置贡献，不能再加一个 $b$。零初始化是式~\eqref{eq:lh-perceptron-dual-representation} 的前提；一般初值时还需保留 $w_0,b_0$ 项。
+
+\begin{example}
+\label{ex:lh-perceptron-dual}
+教材例 2.2：对例~\ref{ex:lh-perceptron-primal} 的三个样本，使用同一更新点顺序，以对偶形式求感知机模型。
+\end{example}
+
+\begin{solve}
+直接计算内积得到
+\[
+G=
+\begin{pmatrix}
+18&21&6\\
+21&25&7\\
+6&7&2
+\end{pmatrix}.
+\]
+取 $\eta=1$，按更新点顺序 $x_1,x_3,x_3,x_3,x_1,x_3,x_3$ 计算，有
+\begin{center}
+\begin{tabular}{ccccc}
+\toprule
+$k$ & $\alpha_1$ & $\alpha_2$ & $\alpha_3$ & $b$ \\
+\midrule
+0 & 0 & 0 & 0 & 0 \\
+1 & 1 & 0 & 0 & 1 \\
+2 & 1 & 0 & 1 & 0 \\
+3 & 1 & 0 & 2 & $-1$ \\
+4 & 1 & 0 & 3 & $-2$ \\
+5 & 2 & 0 & 3 & $-1$ \\
+6 & 2 & 0 & 4 & $-2$ \\
+7 & 2 & 0 & 5 & $-3$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+因此
+\[
+w=2x_1-5x_3=(1,1)^\top,
+\qquad
+b=2-5=-3,
+\]
+所得模型与例~\ref{ex:lh-perceptron-primal} 相同。$\alpha_2=0$ 表示该点在这次训练轨迹中没有触发更新，并不表示它的标签没有约束训练结果；算法停止时仍须核查它的间隔为正。
+\end{solve}
+
+对稠密 $d$ 维特征，原始形式一次得分计算和一次权重更新各需 $O(d)$ 运算。预计算 Gram 矩阵通常需 $O(N^2d)$ 运算、$O(N^2)$ 存储，之后按式~\eqref{eq:lh-perceptron-dual-condition} 计算一个训练点的得分需 $O(N)$ 运算，而系数更新只涉及一个分量。因此对偶形式并非无条件更快，是否合算取决于样本数、维数及存储条件。训练完成后，也可以先恢复 $w$ 再用原始形式预测；若保留系数表示，则预测只需对非零 $\alpha_j$ 对应的样本求和。
+
+系数 $\alpha_i/\eta$ 记录样本在特定训练轨迹中的更新次数，反映其对这条轨迹的累积贡献，但不能单凭更新次数断定该点到最终超平面的距离更小。它还依赖样本访问顺序及中间参数。对偶形式揭示了内积的作用，为以后引入核函数提供入口；本章的等价性与收敛性论证仍针对这里明确给出的线性内积。
+
+\section{章末习题与进一步理解}
+\label{sec:lh-perceptron-exercises}
+
+\subsection{异或问题的不可分性}
+\label{subsec:lh-perceptron-xor}
+
+\begin{example}
+\label{ex:lh-perceptron-xor}
+教材习题 2.1：将二元异或（exclusive OR，XOR）的输出 $1$ 编为标签 $+1$，输出 $0$ 编为标签 $-1$，得到
+\[
+(0,0)\mapsto-1,\qquad
+(1,0)\mapsto+1,\qquad
+(0,1)\mapsto+1,\qquad
+(1,1)\mapsto-1.
+\]
+证明单个感知机不能表示这一分类规则。
+\end{example}
+
+\begin{solve}
+若存在严格分离参数 $w=(w_1,w_2)^\top,b$，四个样本依次要求
+\[
+b<0,\qquad w_1+b>0,\qquad w_2+b>0,\qquad w_1+w_2+b<0.
+\]
+两个正例的约束相加得 $w_1+w_2+2b>0$，两个负例的约束相加则得 $w_1+w_2+2b<0$，矛盾。因此数据不满足定义~\ref{def:lh-linear-separability}。
+
+即使允许正例落在边界，并按定义~\ref{def:lh-perceptron} 将零得分判为 $+1$，也不能表示 XOR：此时两个正例仍要求 $w_1+w_2+2b\geq0$，两个负例仍要求该量严格小于零，矛盾不变。这个限制来自原始特征空间中单个线性边界的表达能力，增加训练轮数无法消除它。
+\end{solve}
+
+\subsection{自行构造训练例子}
+\label{subsec:lh-perceptron-constructed-example}
+
+\begin{example}
+\label{ex:lh-perceptron-constructed}
+教材习题 2.2 要求构造从训练集求感知机模型的例子。取一维数据 $x_1=2,y_1=+1$，$x_2=1,y_2=-1$，从 $w_0=b_0=0$ 开始，令 $\eta=1$，每次重新按 $x_1,x_2$ 的顺序寻找间隔非正的样本。求迭代结果，并核查是否严格分离。
+\end{example}
+
+\begin{solve}
+一维时参数 $w$ 为实数。逐步计算得到
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+$k$ & 更新所用样本 & $w_k$ & $b_k$ \\
+\midrule
+0 & 初值 & 0 & 0 \\
+1 & $x_1$ & 2 & 1 \\
+2 & $x_2$ & 1 & 0 \\
+3 & $x_2$ & 0 & $-1$ \\
+4 & $x_1$ & 2 & 0 \\
+5 & $x_2$ & 1 & $-1$ \\
+6 & $x_2$ & 0 & $-2$ \\
+7 & $x_1$ & 2 & $-1$ \\
+8 & $x_2$ & 1 & $-2$ \\
+9 & $x_1$ & 3 & $-1$ \\
+10 & $x_2$ & 2 & $-2$ \\
+11 & $x_2$ & 1 & $-3$ \\
+12 & $x_1$ & 3 & $-2$ \\
+13 & $x_2$ & 2 & $-3$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+例如 $(w,b)=(1,-2)$ 时，正例的得分为零，必须继续更新；$(w,b)=(2,-2)$ 时，负例的得分为零，也必须更新。最终得到 $f(x)=\operatorname{sign}(2x-3)$，两个训练间隔均为 $1$，严格分离点为 $x=3/2$。这一例子突出边界处理：若将判据误写为 $m_i<0$，从零初值出发就不会发生任何更新。
+\end{solve}
+
+\subsection{线性可分与两类凸包不相交}
+\label{subsec:lh-perceptron-convex-hulls}
+
+\begin{definition}[有限点集的凸包]
+\label{def:lh-perceptron-convex-hull}
+对非空有限点集 $A=\{a_1,\ldots,a_r\}\subset\mathbb R^d$，其\emph{凸包（convex hull）}为所有凸组合构成的集合：
+\[
+\operatorname{conv}(A)=
+\left\{\sum_{j=1}^{r}\lambda_j a_j:
+\lambda_j\geq0,\ \sum_{j=1}^{r}\lambda_j=1\right\}.
+\]
+它是非空紧凸集：非负且和为 $1$ 的系数集合是有限维闭有界单纯形，凸包是该紧集在线性映射下的像；两组凸组合再作凸组合仍为凸组合。
+\end{definition}
+
+\begin{theorem}[两类凸包判据]
+\label{thm:lh-perceptron-convex-hulls}
+教材习题 2.3：设有限训练集的正例点集 $A=\{x_i:y_i=+1\}$ 与负例点集 $B=\{x_i:y_i=-1\}$ 均非空。则训练集线性可分，当且仅当
+\begin{equation}
+\label{eq:lh-perceptron-disjoint-hulls}
+\operatorname{conv}(A)\cap\operatorname{conv}(B)=\varnothing.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+记 $C_+=\operatorname{conv}(A)$、$C_-=\operatorname{conv}(B)$。先证必要性。若 $s(x)=w^\top x+b$ 严格分离两个点集，则任意正例凸组合 $a=\sum_j\lambda_j a_j$ 满足
+\[
+s(a)=\sum_j\lambda_j s(a_j)>0,
+\]
+这里用了系数非负、和为 $1$，且至少有一个系数为正。同理，每个 $c\in C_-$ 都满足 $s(c)<0$。一个点不可能同时具有正得分和负得分，故两个凸包不相交。
+
+再证充分性。假设两个凸包不相交。由于它们是非空紧集，连续函数 $(a,c)\mapsto\|a-c\|$ 在 $C_+\times C_-$ 上取得最小值。取最近点对 $p\in C_+$、$q\in C_-$，则 $p\neq q$，令
+\[
+w=p-q\neq0,
+\qquad
+b=-\frac12 w^\top(p+q).
+\]
+下面证明垂直于 $p-q$ 且经过两点中点的超平面严格分离两个凸包。
+
+任取 $a\in C_+$，凸性保证 $p+t(a-p)\in C_+$ 对 $0\leq t\leq1$ 成立。由最近点性质，
+\[
+\|p+t(a-p)-q\|^2\geq\|p-q\|^2.
+\]
+展开后对 $t>0$ 除以 $t$，再令 $t\downarrow0$，得到 $w^\top(a-p)\geq0$。同样，对任意 $c\in C_-$，沿 $q+t(c-q)$ 变化有
+\[
+\|p-q-t(c-q)\|^2\geq\|p-q\|^2,
+\]
+从而 $w^\top(c-q)\leq0$。因此
+\[
+\begin{aligned}
+w^\top a+b
+&\geq w^\top p-\tfrac12w^\top(p+q)
+=\tfrac12\|p-q\|^2>0,\\
+w^\top c+b
+&\leq w^\top q-\tfrac12w^\top(p+q)
+=-\tfrac12\|p-q\|^2<0.
+\end{aligned}
+\]
+两个凸包中的全部点均被严格分开，原训练样本作为凸包中的点也被严格分开，故训练集线性可分。
+\end{proof}
+
+有限性在充分性证明中保证了凸包紧性及最近点对的存在；不能不加条件地把这一论证照搬到任意不相交集合。对 XOR，两个正例的凸包与两个负例的凸包都包含 $(1/2,1/2)^\top$，由定理~\ref{thm:lh-perceptron-convex-hulls} 可再次看出不可分。若同一个特征向量在训练集中具有相反标签，它本身就同时属于两个凸包，也立即排除了严格线性分离。
+
+本章的核心联系是：模型用仿射得分的符号分类，学习规则以非正函数间隔触发更新，有限可分性通过单位分离方向上的正间隔给出更新次数界，对偶形式则将相同轨迹表示为样本内积及非负更新系数。损失的连续凸性、算法有限终止和未知样本上的泛化是三个不同层面的性质，使用时应分别核对其定义与条件。
+
+% 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-3.pdf，第 49--58 页。
+
+
+
+
+

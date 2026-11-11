@@ -1,0 +1,114 @@
+% !TeX root = ../初等数论笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{4} % 保留原书章号。
+\chapter{一次同余方程与中国剩余定理}
+\label{ch:crt}
+
+设某项活动从第 $1$ 天起每隔 $6$ 天举行，另一项从第 $5$ 天起每隔 $8$ 天举行；它们在哪些天相遇？日期必须同时满足两个同余条件。与普通一次方程不同，同余方程的解通常是一个或几个周期性的整数集合。本章先解决一条线性约束，再说明多条约束怎样合并，以及相互冲突时如何识别。
+
+\section{一次同余方程的可解性与解数}
+
+\begin{theorem}
+\label{thm:linear-congruence}
+设 $a,b\in\mathbb Z$、$m\ge2$，$d=\gcd(a,m)$。方程 $ax\equiv b\pmod m$ 可解当且仅当 $d\mid b$。可解时，全部整数解构成模 $m/d$ 的一个同余类，在模 $m$ 意义下恰有 $d$ 个不同解类。
+\end{theorem}
+\begin{proof}
+方程等价于存在整数 $y$ 使 $ax-my=b$，由定理\ref{thm:linear-diophantine}得到可解条件。约去 $d$ 后，$a/d$ 与 $m/d$ 互素，因此当 $m/d>1$ 时，模逆元给出唯一的 $x_0\pmod{m/d}$；若 $m/d=1$，任意整数都是解。模 $m$ 的代表元可取
+\[
+ x_0,\ x_0+m/d,\ \ldots,\ x_0+(d-1)m/d.
+\]
+它们两两不同，且覆盖全部整数解。
+\end{proof}
+
+例如 $6x\equiv9\pmod{15}$ 约为 $2x\equiv3\pmod5$，故 $x\equiv4\pmod5$；在模 $15$ 下有三个解类 $4,9,14$。求解时必须说明采用哪个模数计数。
+
+从映射的角度看，模 $m$ 的每个类 $[x]_m$ 经乘以 $a$ 变为 $[ax]_m$。当 $a$ 与 $m$ 互素时，这个映射可逆，每个右端恰对应一个类；当最大公因数为 $d>1$ 时，某些右端永远无法得到，能得到的右端则各有 $d$ 个原像。定理给出的“无解或恰有 $d$ 类”正是这一现象的准确计数。例如 $6x\equiv8\pmod{15}$ 无解，因为左侧与 $15$ 的公共因子 $3$ 不整除右侧。
+
+\section{互素模数的中国剩余定理}
+
+\begin{theorem}[中国剩余定理]
+\label{thm:crt}
+设 $m_1,\ldots,m_r\ge2$ 两两互素，$a_i\in\mathbb Z$，$M=\prod_{i=1}^r m_i$。则
+\begin{equation}
+ x\equiv a_i\pmod{m_i},\qquad 1\le i\le r,
+ \label{eq:crt-system}
+\end{equation}
+在模 $M$ 意义下有唯一解。
+\end{theorem}
+\begin{proof}
+令 $M_i=M/m_i$。由两两互素，$\gcd(M_i,m_i)=1$，取 $u_i$ 使 $M_iu_i\equiv1\pmod{m_i}$。则
+\begin{equation}
+ x_0=\sum_{i=1}^r a_iM_iu_i
+ \label{eq:crt-construction}
+\end{equation}
+满足每个方程，因为其他各项均被相应的 $m_i$ 整除。若 $x,y$ 都为解，每个 $m_i$ 都整除 $x-y$，两两互素使其乘积 $M$ 也整除 $x-y$，唯一性得证。
+\end{proof}
+
+\emph{中国剩余定理（Chinese remainder theorem）}还说明，模 $M$ 的剩余类与各个模 $m_i$ 剩余类的组合一一对应，而且这种对应保持加法和乘法。
+
+构造式中的 $M_iu_i$ 可以看成一个“只保留第 $i$ 条信息”的系数：模 $m_i$ 时它为 $1$，模其他 $m_j$ 时它为 $0$。乘以指定余数 $a_i$ 后，再把这些项相加，各个余数互不干扰。唯一性部分则说明，虽然求逆元时可以选不同代表元、求出的整数 $x_0$ 也可能不同，但它们最后都属于同一个模 $M$ 的类。
+
+\begin{example}
+求模 $3,5,7$ 分别余 $2,3,2$ 的全部整数。
+\end{example}
+\begin{solve}
+$M=105$，可取 $M_1u_1=35\cdot2=70$、$M_2u_2=21$、$M_3u_3=15$。式\eqref{eq:crt-construction}给出 $x_0=2\cdot70+3\cdot21+2\cdot15=233$，故全部解为 $x\equiv23\pmod{105}$。
+\end{solve}
+
+同一例题也可逐步代入。由第一式写 $x=2+3t$，代入第二式得 $3t\equiv1\pmod5$，故 $t=2+5u$，于是 $x=8+15u$。再代入模 $7$ 的条件，得 $1+u\equiv2\pmod7$，所以 $u=1+7v$，最终 $x=23+105v$。直接构造适合统一证明，逐步代入更便于小规模手算；两种方法最后都应把自由整数参数或最终模数写清楚。
+
+\section{非互素模数的相容条件}
+
+\begin{theorem}
+\label{thm:general-crt}
+方程组 $x\equiv a_i\pmod{m_i}$（$m_i\ge2$）可解，当且仅当对任意 $i,j$，
+\[
+ \gcd(m_i,m_j)\mid(a_i-a_j).
+\]
+若可解，解在模 $L=\operatorname{lcm}(m_1,\ldots,m_r)$ 意义下唯一。
+\end{theorem}
+\begin{proof}
+任何解都给出 $a_i-a_j=(a_i-x)+(x-a_j)$，所以相容条件必要。反之，对每个整除 $L$ 的素数 $p$，选取使 $v_p(m_i)$ 最大的指标 $i(p)$，规定
+\[
+ x\equiv a_{i(p)}\pmod{p^{v_p(L)}}.
+\]
+这些素数幂两两互素，故有公共解。对任意 $m_j$ 的每个素数幂因子，相容条件保证此解与 $a_j$ 同余，于是满足全部原方程。任意两解之差被每个 $m_i$ 整除，故被 $L$ 整除。
+\end{proof}
+
+实际计算可逐项合并。已有 $x\equiv A\pmod L$，再加入 $x\equiv a\pmod m$，令 $x=A+Lt$，只需解 $Lt\equiv a-A\pmod m$。若不可解则停止；若得到 $t_0$，更新解为 $A+Lt_0$，更新模数为 $\operatorname{lcm}(L,m)$。
+
+\begin{example}[有公共因子的两条周期约束]
+求章首两项活动相遇的日期，即解 $x\equiv1\pmod6$、$x\equiv5\pmod8$。
+\end{example}
+\begin{solve}
+先检查相容性：$\gcd(6,8)=2$，且 $2\mid5-1$，所以有解。写 $x=1+6t$，得 $6t\equiv4\pmod8$，等价于 $3t\equiv2\pmod4$，所以 $t=2+4s$，从而 $x=13+24s$。最小正日期为 $13$，之后每隔 $24$ 天重复。若把第二个起始日期改为 $4$，第一条要求 $x$ 为奇数，第二条要求 $x$ 为偶数，立即无解；这就是相容条件的具体含义。
+\end{solve}
+
+\section{素数幂分解与解的组合}
+
+若 $m=\prod_i p_i^{\alpha_i}$，整系数多项式同余 $f(x)\equiv0\pmod m$ 等价于所有 $f(x)\equiv0\pmod{p_i^{\alpha_i}}$。局部根的每一种组合恰好给出一个模 $m$ 的根类，因此总体根数等于局部根数的乘积。
+
+\begin{example}
+求 $x^2\equiv1\pmod{15}$ 的全部解。
+\end{example}
+\begin{solve}
+模 $3$ 与模 $5$ 分别只有 $\pm1$ 两根。将四种符号组合用中国剩余定理合并，得到 $x\equiv1,4,11,14\pmod{15}$。这也说明合数模数下二次同余可有超过两个根。
+\end{solve}
+
+这里的四种组合分别为 $(1,1),(1,-1),(-1,1),(-1,-1)$，对应 $x=1,4,11,14$。不能在分解 $(x-1)(x+1)\equiv0\pmod{15}$ 后断言某一个因子必被 $15$ 整除；例如 $x=4$ 时，$3$ 与 $5$ 分别整除不同的因子。将模数拆成互素的素数幂，正是为了分别处理这些局部选择。
+
+\section{习题}
+
+一次同余首先检查最大公因数是否整除右端，再求解并注明最终模数。多条约束在互素时可以任意拼合，在不互素时必须检查共享余数信息是否一致。素数幂分解则把非线性同余的解分解为独立的局部选择。
+
+\begin{enumerate}
+ \item 解 $14x\equiv8\pmod{30}$，列出模 $30$ 的全部解类。
+ \item 解 $x\equiv1\pmod6$、$x\equiv5\pmod8$；再将第二式的 $5$ 改为 $4$，判断可解性。
+ \item 求 $x^2\equiv1\pmod{35}$ 的全部解。
+ \item 设 $p,q$ 为不同奇素数，证明 $x^2\equiv1\pmod{pq}$ 恰有四个根类。
+ \item\label{ex:crt-redundant} 解 $x\equiv2\pmod4$、$x\equiv6\pmod8$，说明其中哪条条件已被另一条包含。
+ \item\label{ex:crt-three} 解 $x\equiv2\pmod6$、$x\equiv5\pmod9$、$x\equiv4\pmod5$，给出最小非负解和最终模数。
+ \item\label{ex:crt-zero-roots} 求 $x^2\equiv0\pmod{12}$ 的全部根类，解释为什么不能只检查 $x\equiv0\pmod{12}$。
+ \item\label{ex:crt-idempotents} 求 $x^2\equiv x\pmod{30}$ 的全部根类；推广证明若 $m$ 为 $r$ 个不同素数的乘积，则 $x^2\equiv x\pmod m$ 恰有 $2^r$ 个根类。
+\end{enumerate}
+

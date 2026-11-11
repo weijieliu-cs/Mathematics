@@ -1,0 +1,76 @@
+% !TeX root = ../偏微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{16} % 保留原书章号。
+\chapter{非线性方程的基本方法}
+\label{chap:nonlinear}
+
+线性方程的叠加原理失效后，需要其他结构控制解。本章选择三种可重复使用的结构：压缩映射给出局部解，先验界支持延拓，凸能量与单调性处理非线性平衡。
+
+\section{不动点方法与局部适定性}
+考虑全空间反应扩散方程（reaction--diffusion equation）$u_t-\kappa\Delta u=F(u)$，设 $g$ 有界且一致连续，$F$ 局部利普希茨。记 $BUC(\mathbb R^n)$ 为有界一致连续函数的上确界范数空间，$S(t)g=K_\kappa(t)*g$。将方程改写为
+\begin{equation}
+ u(t)=S(t)g+\int_0^tS(t-s)F(u(s))\,ds.
+ \label{eq:semilinear-mild}
+\end{equation}
+在 $X=C([0,T];BUC)$ 中取闭球 $\|u\|_X\le R$，其中 $R>\|g\|_\infty$。记 $M_R=\max_{|r|\le R}|F(r)|$，$L_R$ 为该区间上的利普希茨常数。右端算子 $\mathcal A$ 满足
+\[
+ \|\mathcal Au\|_X\le\|g\|_\infty+TM_R,\qquad
+ \|\mathcal Au-\mathcal Av\|_X\le TL_R\|u-v\|_X.
+\]
+取 $T$ 使第一式不超过 $R$ 且 $TL_R<1$，由巴拿赫不动点定理得唯一局部\emph{温和解（mild solution）}，即满足积分式的解。附录\ref{app:functional}给出该定理的证明。若要提升为经典解，仍须核查数据与非线性所提供的额外正则性，不能把积分式可解直接等同于所有导数已存在。
+
+例如 $F(r)=r^2$、$\|g\|_\infty\le1$，可以选 $R=2$。此时 $M_R=4$，并由 $|r^2-s^2|\le4|r-s|$ 取 $L_R=4$。若 $T\le1/8$，则映射后的范数不超过 $1+4T\le3/2<2$，压缩常数不超过 $1/2$。这就把“时间足够小”变成了一个可检查的具体范围。这个范围只保证局部构造成功，不声称是解的最大存在时间；较粗的估计通常会给出较保守的时间下界。
+
+\section{比较原理、先验界与爆破}
+在解的有界范围内，$F$ 有利普希茨常数 $L$。两个光滑解之差满足 $w_t-\kappa\Delta w=a(x,t)w$，其中 $|a|\le L$；用 $e^{-Lt}w$ 将零阶系数化为非正，再应用最大值论证，可得相应初边值条件下的比较原理。全空间有界解可先加入趋向空间无穷大的微小屏障，使极值论证发生在有限区域，再令屏障系数趋于零。
+
+对 $F(u)=u(1-u)$，常数 $0,1$ 分别为解，故 $0\le g\le1$ 时解保持在该区间。局部不动点构造的时间下界只依赖这个范围，因而可反复延拓为整体温和解。反之，若最大存在时间有限而解的上确界始终有界，便可从靠近终点的时刻用统一时间步再次构造，产生矛盾。因此有限时间失效必须伴随相应范数无界。
+
+常数初值能帮助区分反应与扩散的作用。若 $g(x)=a$、$0<a<1$，空间梯度恒为零，方程退化为 $z'=z(1-z)$，积分得到 $u(x,t)=a e^t/(1-a+a e^t)$。它一直位于 $(0,1)$ 并趋于 $1$，说明即使没有空间变化，反应项也可以改变状态。对于非恒定初值，扩散调节空间差异，反应调节每个位置的局部增长；与常数解比较提供范围控制，但不能仅凭这个比较就断言所有解具有同一种精确收敛速度。
+
+\begin{example}
+对全空间方程 $u_t-\kappa\Delta u=u^2$，取常数初值 $g=a>0$，有精确解 $u(x,t)=a/(1-at)$，在 $t=1/a$ 发生\emph{有限时间爆破（finite-time blow-up）}。该解与齐次诺伊曼边界也相容，但不满足零狄利克雷边界，故不能不加说明地用于后者。
+\end{example}
+
+\section{变分法与单调性}
+设 $\Omega\subset\mathbb R^n$ 有界且为利普希茨区域，$n\le4$，$f\in L^2$。考虑零边界方程 $-\Delta u+u^3=f$ 及泛函
+\begin{equation}
+ J(v)=\frac12\int_\Omega|\nabla v|^2\,dx+
+      \frac14\int_\Omega|v|^4\,dx-\int_\Omega fv\,dx,
+ \qquad v\in H_0^1(\Omega).
+ \label{eq:nonlinear-functional}
+\end{equation}
+由 $H_0^1\hookrightarrow L^4$，各项均有意义。庞加莱与杨氏不等式给出 $J(v)\ge\frac14\|\nabla v\|_2^2-C\|f\|_2^2$，所以极小化序列在 $H_0^1$ 中有界。取弱收敛子列 $v_j\rightharpoonup u$；连续嵌入同时给出 $L^4$ 弱收敛，两个范数幂弱下半连续，线性源项弱连续，因而 $u$ 取得极小值。这就是\emph{直接法（direct method）}。在临界维数四，$H_0^1$ 到 $L^4$ 的嵌入一般不紧，但这里的弱下半连续论证仍然适用。
+
+沿任意 $v\in H_0^1$ 求变分得
+\[
+ \int_\Omega\nabla u\cdot\nabla v+u^3v\,dx=\int_\Omega fv\,dx.
+\]
+若 $u,w$ 为两个弱解，以差 $u-w$ 测试，得到
+\[
+ \|\nabla(u-w)\|_2^2+\int_\Omega(u^3-w^3)(u-w)\,dx=0.
+\]
+第二项非负，因为立方函数单调，故 $u=w$。非线性并不必然导致不唯一，关键在于具体结构。
+
+\section{哈密顿--雅可比方程与黏性解概览}
+对\emph{哈密顿--雅可比方程（Hamilton--Jacobi equation）}$u_t+H(\nabla u)=0$，$H$ 为给定连续函数，不光滑解的选择常使用\emph{黏性解（viscosity solution）}。连续函数 $u$ 是黏性次解，指任意 $C^1$ 测试函数 $\varphi$ 在内部从上方接触 $u$（$u-\varphi$ 有局部极大值）时有 $\varphi_t+H(\nabla\varphi)\le0$；从下方接触时要求相反不等式，得到黏性超解；同时满足二者就是黏性解。
+
+光滑解自然满足该定义，因为接触点一阶导数相同；非光滑处则由所有接触测试选择允许的尖点。例如 $u(x)=|x|$ 几乎处处满足 $|u'|=1$，但在零点被 $\varphi=0$ 从下方接触，超解条件要求 $|\varphi'|-1\ge0$，实际为 $-1$，所以它不是该稳态方程在整个直线上的黏性解。几乎处处满足方程并不足够，黏性解也不能与分布弱解仅按名称互换。
+
+\section{例题与习题}
+\begin{example}
+对局部不动点迭代 $u_{m+1}=\mathcal Au_m$，何时可以停止？
+\end{example}
+\begin{solve}
+若压缩常数为 $q=TL_R<1$，则由等比级数估计
+\[
+ \|u-u_m\|_X\le\frac{q}{1-q}\|u_m-u_{m-1}\|_X.
+\]
+因此给定容差 $\varepsilon$，右侧不超过 $\varepsilon$ 即可保证迭代误差达标。实际离散求积还引入额外误差，此估计只控制精确算子迭代。
+\end{solve}
+\begin{enumerate}
+ \item 对全局利普希茨 $F$，结合 $|F(r)|\le|F(0)|+L|r|$ 和格朗沃尔不等式证明有限时间内的先验上界。
+ \item 对式\eqref{eq:nonlinear-functional}直接计算一阶变分，并核查 $u^3v$ 的可积性。
+ \item 比较 $u^3$ 与 $-u^3$ 作为椭圆方程零阶项时的能量和单调性差异。
+\end{enumerate}
+

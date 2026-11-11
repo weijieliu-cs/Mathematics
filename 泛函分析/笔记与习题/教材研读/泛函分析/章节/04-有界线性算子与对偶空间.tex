@@ -1,0 +1,118 @@
+% !TeX root = ../泛函分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{3} % 保留原书章号。
+\chapter{有界线性算子与对偶空间}
+\label{chap:fa-operators}
+
+有限维线性映射由矩阵决定，而且自动连续。无限维空间中，线性本身不控制极限；需要一个与向量无关的估计，才能把线性代数与分析连接起来。
+
+\section{连续性与有界性}
+\begin{theorem}\label{thm:fa-bounded-continuous}
+赋范空间间的线性映射 $T:X\to Y$ 连续，当且仅当它在零点连续，当且仅当存在 $C\geq0$ 使 $\|Tx\|_Y\leq C\|x\|_X$ 对所有 $x\in X$ 成立。
+\end{theorem}
+\begin{proof}
+若 $T$ 在零点连续，取 $\delta>0$ 使 $\|u\|<\delta$ 时 $\|Tu\|<1$。对 $x\ne0$ 令 $u=\delta x/(2\|x\|)$，得到 $\|Tx\|\leq2\|x\|/\delta$。反之，统一估计给出 $\|Tx-Ty\|\leq C\|x-y\|$，即处处连续。
+\end{proof}
+满足上述估计的线性映射称为\emph{有界线性算子（bounded linear operator）}，其范数为
+\begin{equation}
+ \|T\|=\sup_{\|x\|_X\leq1}\|Tx\|_Y.
+ \label{eq:fa-operator-norm}
+\end{equation}
+它等于估计中最小的常数。这里“有界”指有界集的像有界；非零线性映射在整个空间上的像不可能有界，因为 $T(nx)=nTx$。
+
+求算子范数通常分两步：先对任意输入证明 $\|Tx\|\leq C\|x\|$，得到上界；再构造单位向量或一列单位向量，使输出范数达到或趋近 $C$，得到下界。仅证明一个估计并不能断言其中的常数最优。对非零定义域，还有 $\|T\|=\sup_{x\ne0}\|Tx\|/\|x\|$，它表示线性变换对误差的最大放大倍数。
+
+\begin{example}[积分算子的精确范数]\label{ex:fa-volterra-norm}
+在 $C([0,1])$ 的一致范数下，$Vf(t)=\int_0^t f(s)\,\mathrm ds$ 是范数为一的有界线性算子。
+\end{example}
+\begin{solve}
+积分的线性性保证 $V$ 线性，且 $|Vf(t)|\leq t\|f\|_\infty\leq\|f\|_\infty$。因此 $\|V\|\leq1$。取 $f(t)=1$，则 $Vf(t)=t$，输入与输出的一致范数都为一，所以 $\|V\|=1$。这同时表明积分操作在这一范数下不会放大扰动：$\|V(f+h)-Vf\|_\infty\leq\|h\|_\infty$。
+\end{solve}
+
+\begin{example}[上确界未必达到]
+在 $\ell^2$ 上令 $Dx=(a_jx_j)$，其中 $a_j=1-1/(j+1)$。则 $\|D\|=1$，但不存在单位向量 $x$ 使 $\|Dx\|=1$。
+\end{example}
+\begin{solve}
+一般有界对角算子满足 $\|D\|=\sup_j|a_j|$：上界逐坐标估计，下界用 $e_j$ 测试。本例的上确界为一，但每个 $a_j<1$。任意非零 $x$ 至少有一个非零坐标，故 $\sum a_j^2|x_j|^2<\sum|x_j|^2$；另一方面 $\|De_j\|=a_j\to1$。因此范数定义必须使用上确界，而不能无条件改成最大值。
+\end{solve}
+
+\section{算子空间与稠密延拓}
+$\mathcal B(X,Y)$ 在逐点运算及算子范数下是赋范空间。若 $S\in\mathcal B(Y,Z)$，则 $\|ST\|\leq\|S\|\|T\|$。
+\begin{proposition}\label{prop:fa-operator-complete}
+若 $Y$ 为 Banach 空间，则 $\mathcal B(X,Y)$ 完备，无须假定 $X$ 完备。
+\end{proposition}
+\begin{proof}
+若 $(T_n)$ 在算子范数下 Cauchy，则对每个 $x$，$(T_nx)$ 在 $Y$ 中 Cauchy。定义 $Tx=\lim_nT_nx$，逐点取极限可知 $T$ 线性。由 $\sup_n\|T_n\|<\infty$ 得 $T$ 有界；在 $\|(T_n-T_m)x\|\leq\varepsilon\|x\|$ 中令 $m\to\infty$，得到 $\|T_n-T\|\leq\varepsilon$。
+\end{proof}
+若 $D\subset X$ 是稠密线性子空间，$Y$ 完备，且 $T:D\to Y$ 有界，则
+\[
+ \widetilde T x=\lim_nTx_n\quad(x_n\in D,\ x_n\to x)
+\]
+给出唯一有界线性延拓，且 $\|\widetilde T\|=\|T\|$。极限的存在与无关性由 $\|Tx_n-Ty_n\|\leq\|T\|\|x_n-y_n\|$ 保证，线性和范数估计在极限下保持。
+
+\section{连续对偶与双对偶}
+\begin{definition}
+线性映射 $f:X\to\mathbb K$ 称为线性泛函（linear functional）。所有连续线性泛函组成\emph{对偶空间（dual space）}$X^*=\mathcal B(X,\mathbb K)$；所有线性泛函组成的代数对偶通常更大。
+\end{definition}
+由于标量域完备，命题\ref{prop:fa-operator-complete}说明 $X^*$ 总是 Banach 空间。对每个 $x\in X$，规定
+\[
+ (Jx)(f)=f(x)\quad(f\in X^*).
+\]
+则 $Jx\in X^{**}$ 且 $\|Jx\|\leq\|x\|$。第\ref{chap:fa-hahn-banach}章将证明等号成立；这意味着全部连续线性观测能够恢复向量的范数。
+
+\begin{example}[点值与积分]
+在 $C([0,1])$ 的一致范数下，$\delta_t(f)=f(t)$ 与 $I(f)=\int_0^1f(s)\,\mathrm ds$ 均为范数一的泛函。
+\end{example}
+\begin{solve}
+两者绝对值都不超过 $\|f\|_\infty$，故范数至多一；取常值函数 $f=1$ 达到一。若改用积分范数，点值泛函不连续：在 $t$ 附近取高度一、支撑长度趋零的连续尖峰函数即可。
+\end{solve}
+
+\section{数列空间的对偶表示}
+\begin{theorem}\label{thm:fa-sequence-dual}
+设 $1\leq p<\infty$、$1/p+1/q=1$，其中 $p=1$ 时 $q=\infty$。每个 $f\in(\ell^p)^*$ 唯一表示为
+\[
+ f(x)=\sum_{j=1}^{\infty}a_jx_j,\qquad a\in\ell^q,
+ \qquad\|f\|=\|a\|_q.
+\]
+此外，$c_0^*$ 通过同一配对等距同构于 $\ell^1$。复数情形这里采用不带共轭的双线性配对。
+\end{theorem}
+\begin{proof}
+Hölder 不等式先说明每个 $a\in\ell^q$ 都给出范数至多 $\|a\|_q$ 的泛函。反之，令 $a_j=f(e_j)$，其中 $e_j$ 是第 $j$ 个标准单位向量。有限支撑向量上已有所需公式。
+
+若 $1<p<\infty$，对前 $N$ 项令 $x_j=|a_j|^{q-1}\overline{a_j}/|a_j|$，零坐标取零。记 $A_N=\sum_{j\leq N}|a_j|^q$，则 $A_N=f(x)\leq\|f\|A_N^{1/p}$，所以 $A_N^{1/q}\leq\|f\|$。令 $N\to\infty$ 得 $a\in\ell^q$ 及范数的反向估计。$p=1$ 时由 $|a_j|\leq\|f\|$ 即可。最后由 $c_{00}$ 的稠密性延拓表示式。
+
+对 $c_0$，取前 $N$ 个坐标为 $\overline{a_j}/|a_j|$ 的向量，得到 $\sum_{j\leq N}|a_j|\leq\|f\|$。因此 $a\in\ell^1$；再由稠密性得到表示及范数相等。各坐标值决定 $a$，故表示唯一。
+\end{proof}
+在 $\sigma$ 有限测度空间上，对 $1\leq p<\infty$ 同样有 $(L^p)^*\cong L^q$，配对为 $f\mapsto\int af\,\mathrm d\mu$。这项测度论表示使用 Radon--Nikodym 定理，本书作为补充结果引用，见附录\ref{app:fa-measure}。不能把 $p=\infty$ 代入而断言 $(L^\infty)^*=L^1$；类似地，$(\ell^\infty)^*$ 一般大于由 $\ell^1$ 配对给出的部分。
+
+\section{核、值域与对偶算子}
+有界线性算子的核是闭子空间，因为它是闭集 $\{0\}$ 的逆像。值域却未必闭。
+\begin{example}\label{ex:fa-diagonal-range}
+在 $\ell^2$ 上令 $T(x_j)=(x_j/j)$。则 $\|T\|=1$，$T$ 单射，其值域稠密但不闭。
+\end{example}
+\begin{solve}
+范数估计由 $1/j\leq1$ 得到，取 $e_1$ 达到等号。值域包含所有有限支撑数列，故稠密；但 $y=(1/j)$ 属于 $\ell^2$，其唯一可能原像为 $(1,1,\ldots)$，不在 $\ell^2$，所以值域不是全空间，因而不闭。截断的 $y$ 给出值域中的序列收敛到值域外的点。
+\end{solve}
+
+对 $T\in\mathcal B(X,Y)$，其\emph{对偶算子（dual operator）}定义为 $T':Y^*\to X^*$，$T'f=f\circ T$。直接估计给出 $\|T'\|\leq\|T\|$。对 $M\subset X$，定义零化子 $M^\perp=\{f\in X^*:f|_M=0\}$，则
+\[
+ \ker T'=(\operatorname{Ran}T)^\perp.
+\]
+这是一条代数与连续性共同作用的关系：值域上的所有观测为零，恰好表示泛函经 $T$ 拉回后为零。第\ref{chap:fa-hahn-banach}章将据此刻画值域稠密性。
+
+核、值域与解集有直接联系。方程 $Tx=y$ 有解当且仅当 $y\in\operatorname{Ran}T$；若已有一个解 $x_0$，全部解恰为 $x_0+\ker T$。所以单射保证“至多一个解”，满射保证“每份数据都有解”，两者都没有直接给出误差估计。在例\ref{ex:fa-diagonal-range}中，数据扰动 $y^{(n)}=e_n/n$ 趋于零，其唯一原像却为 $e_n$，范数始终为一。这表明逆问题会放大小量，即使正向算子十分连续，反向求解仍可能不稳定。
+
+\section{例题与习题}
+\begin{example}[求导与定义域范数]
+求导映射 $D:C^1([0,1])\to C([0,1])$ 在定义域使用一致范数时无界；使用 $\|f\|_{C^1}=\|f\|_\infty+\|f'\|_\infty$ 时有界。
+\end{example}
+\begin{solve}
+取 $f_n(t)=\sin(nt)$，则 $\|f_n\|_\infty\leq1$ 而 $\|Df_n\|_\infty=n$，不存在统一估计。换用 $C^1$ 范数后，$\|Df\|_\infty\leq\|f\|_{C^1}$。由此可见，算子的连续性需要同时指定定义域与值域的范数。
+\end{solve}
+\begin{enumerate}
+ \item 对 $\ell^p$ 上左右移位 $L(x_1,x_2,\ldots)=(x_2,x_3,\ldots)$、$R(x)=(0,x_1,x_2,\ldots)$，计算范数、核与值域。
+ \item 证明有界线性算子在某个稠密子集上的值决定整个算子。
+ \item 证明 $(ST)'=T'S'$，并注明各映射的定义域和值域。
+ \item 对有界数列 $(a_j)$，求 $T(x_j)=(a_jx_j)$ 在 $\ell^p$ 上的算子范数，并判断哪些条件保证算子范数能在一个单位向量上达到；分别讨论 $p<\infty$ 与 $p=\infty$。
+\end{enumerate}
+

@@ -1,0 +1,364 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{3} % 保留原书章号。
+\chapter{朴素贝叶斯法}
+\label{chap:lihang-naive-bayes}
+
+% 研读来源：机器学习/textbooks/机器学习（分章原文）/机器学习-4.pdf，教材第 59--66 页。
+% 下文沿用教材的两节、五个小节；推导、适用条件与例题后验概率为学习补充。
+
+分类可以直接学习输入到类别的决策规则，也可以先描述不同类别如何产生特征，再由观测到的特征反推类别。\emph{朴素贝叶斯法}（naive Bayes method）采用后一条路线：学习类别的先验概率和各类中的特征分布，利用贝叶斯定理计算后验概率，最后作出分类。困难在于，高维特征的联合分布需要大量参数；本方法通过\emph{特征条件独立假设}降低估计难度。本章先说明这一模型及其决策依据，再讨论离散特征的极大似然估计、学习与分类算法，以及用于处理零频数的贝叶斯估计。
+
+\section{朴素贝叶斯法的学习与分类}
+\label{sec:lihang-nb-learning-classification}
+
+\subsection{基本方法}
+\label{subsec:lihang-nb-basic-method}
+
+设类别随机变量 $Y$ 取值于 $\mathcal{Y}=\{c_1,\ldots,c_K\}$，其中 $K\geq2$；特征随机向量为 $X=(X^{(1)},\ldots,X^{(n)})^{\mathsf T}$，其中 $n\geq1$。本章具体估计公式针对有限离散特征：第 $j$ 个特征的取值集合为 $\mathcal{A}_j=\{a_{j1},\ldots,a_{jS_j}\}$，输入空间为 $\mathcal{X}=\mathcal{A}_1\times\cdots\times\mathcal{A}_n$。类别和特征值的集合预先给定；数值形式的类别名称与特征编码不表示大小或距离。训练集
+\[
+    T=\{(x_i,y_i)\}_{i=1}^{N},\qquad
+    x_i=(x_i^{(1)},\ldots,x_i^{(n)})^{\mathsf T},\quad N\geq1,
+\]
+由未知联合分布 $P$ 独立同分布抽样得到。本章的 $\log$ 表示自然对数。$X,Y$ 表示随机对象，$x_i,y_i$ 表示已经观测到的取值，$i$ 是样本索引，$j$ 是特征索引，$k$ 是类别索引，$l$ 是某一特征的取值索引。
+
+记先验概率（prior probability）为 $\pi_k=P(Y=c_k)$，类条件概率（class-conditional probability）为 $\theta_{jlk}=P(X^{(j)}=a_{jl}\mid Y=c_k)$。这些条件概率在 $\pi_k>0$ 时由联合分布确定；对先验概率为零的类别，可任意选取规范化的条件分布而不改变联合分布。在不加结构限制时，每个类别中的完整特征向量有 $\prod_{j=1}^{n}S_j$ 种可能取值，需要同样数量的概率表项。扣除概率和为 $1$ 的约束，所有类条件分布共有 $K(\prod_{j=1}^{n}S_j-1)$ 个自由参数，另有 $K-1$ 个先验自由参数。当各 $S_j=S\geq2$ 时，联合表的规模随 $n$ 按 $S^n$ 增长，有限样本很难为每种组合提供足够观测。
+
+\begin{definition}
+\label{def:lihang-nb-conditional-independence}
+若对每个 $P(Y=c_k)>0$ 的类别及所有 $x\in\mathcal{X}$，都有
+\begin{equation}
+\label{eq:lihang-nb-conditional-independence}
+    P(X=x\mid Y=c_k)
+    =\prod_{j=1}^{n}P(X^{(j)}=x^{(j)}\mid Y=c_k),
+\end{equation}
+则称各特征在给定类别后\emph{相互条件独立}（mutually conditionally independent）。以此分解形式作为模型假设的生成分类方法称为朴素贝叶斯法。
+\end{definition}
+
+这里要求给定类别后所有特征的联合分布可以分解，特征数大于 $2$ 时仅有两两条件独立一般不够；也不要求特征在未给定类别时相互独立。例如，设 $P(Y=c_1)=P(Y=c_2)=1/2$，两个二元特征在每个类别内独立，且
+\[
+    P(X^{(j)}=1\mid Y=c_1)=0.9,\qquad
+    P(X^{(j)}=1\mid Y=c_2)=0.1,\qquad j=1,2.
+\]
+此时 $P(X^{(1)}=1)=P(X^{(2)}=1)=0.5$，但
+\[
+    P(X^{(1)}=1,X^{(2)}=1)
+    =\tfrac12(0.9)^2+\tfrac12(0.1)^2=0.41\neq0.25.
+\]
+类别混合可以造成边缘相关，因此不能用原始样本中两个特征相关这一事实直接否定条件独立。另一方面，实际数据未必满足式~\eqref{eq:lihang-nb-conditional-independence}，使用朴素贝叶斯模型时，这一分解是一项建模假设，不是由贝叶斯定理推出的结论。
+
+令 $\Theta=(\pi,\theta)$ 表示模型全部参数。对 $x^{(j)}=a_{jl}$，约定 $\theta_{jk}(x^{(j)})=\theta_{jlk}$，于是模型联合概率为
+\begin{equation}
+\label{eq:lihang-nb-joint-model}
+    P_\Theta(X=x,Y=c_k)=\pi_k\prod_{j=1}^{n}\theta_{jk}(x^{(j)}),\qquad
+    \pi_k\geq0,\quad\sum_{k=1}^{K}\pi_k=1,\quad
+    \theta_{jlk}\geq0,\quad\sum_{l=1}^{S_j}\theta_{jlk}=1.
+\end{equation}
+它确实定义了概率分布，因为对 $x$ 求和时，各特征的有限和可以分开，得到 $\sum_x P_\Theta(X=x,Y=c_k)=\pi_k$，再对 $k$ 求和即为 $1$。模型只需 $K\sum_j S_j$ 个条件概率表项，连同先验共有 $(K-1)+K\sum_j(S_j-1)$ 个自由参数；特征取值数有统一上界时，规模随特征数线性增长。它先建模联合分布再导出分类规则，因此属于\emph{生成模型}（generative model）。条件独立带来估计与计算的简化，也限制了模型能够表达的类内依赖关系。
+
+对满足 $P_\Theta(X=x)>0$ 的输入，贝叶斯定理给出后验概率（posterior probability）
+\begin{equation}
+\label{eq:lihang-nb-posterior}
+    P_\Theta(Y=c_k\mid X=x)
+    =\frac{\pi_k\prod_{j=1}^{n}\theta_{jk}(x^{(j)})}
+    {\displaystyle\sum_{r=1}^{K}\pi_r\prod_{j=1}^{n}\theta_{jr}(x^{(j)})}.
+\end{equation}
+分母使用独立的求和索引 $r$，且对待比较的类别 $k$ 相同。记各类的未归一化得分为
+\begin{equation}
+\label{eq:lihang-nb-score-rule}
+    s_k(x)=\pi_k\prod_{j=1}^{n}\theta_{jk}(x^{(j)}),\qquad
+    k^*(x)\in\arg\max_{1\leq k\leq K}s_k(x),\qquad f_\Theta(x)=c_{k^*(x)}.
+\end{equation}
+若有并列最大值，固定选取索引最小的类别，使分类器成为单值函数。\emph[caution]{得分是联合概率 $P_\Theta(X=x,Y=c_k)$，不是已经归一化的后验概率}；分类只需比较得分，报告后验概率则必须除以 $\sum_r s_r(x)$。若所有得分都为零，模型认为该输入不可能出现，式~\eqref{eq:lihang-nb-posterior} 的分母为零，不能把任意的并列选择解释为有后验依据的分类。
+
+\subsection{后验概率最大化的含义}
+\label{subsec:lihang-nb-posterior-risk}
+
+为何选择后验概率最大的类别，需要由损失函数说明。设 $f:\mathcal{X}\to\mathcal{Y}$ 为分类决策函数，采用\emph{零一损失}（zero-one loss）
+\[
+    L(y,a)=\mathbf{1}\{y\neq a\}
+    =\begin{cases}0,&y=a,\\1,&y\neq a,\end{cases}
+\]
+其中 $a$ 是预测类别，$\mathbf{1}\{A\}$ 是事件或命题 $A$ 的指示函数。相应的\emph{期望风险}（expected risk）为 $R_P(f)=\mathbb{E}_{(X,Y)\sim P}[L(Y,f(X))]=P(Y\neq f(X))$，即总体误分类概率。
+
+\begin{theorem}
+\label{thm:lihang-nb-bayes-decision}
+对有限输入空间和类别空间上的任意联合分布 $P$，在所有 $P(X=x)>0$ 的输入处选取后验概率最大的类别，可以使零一损失下的期望风险在所有分类函数中达到最小。该结论不需要特征条件独立假设。
+\end{theorem}
+
+\begin{proof}
+对固定输入 $x$ 和候选预测类别 $a$，条件风险为
+\begin{align*}
+    r_P(a\mid x)
+    &=\mathbb{E}_P[L(Y,a)\mid X=x]\\
+    &=\sum_{k=1}^{K}\mathbf{1}\{c_k\neq a\}P(Y=c_k\mid X=x)\\
+    &=1-P(Y=a\mid X=x).
+\end{align*}
+因此，最小化条件风险等价于最大化 $P(Y=a\mid X=x)$。由全期望公式，
+\[
+    R_P(f)=\mathbb{E}_X[r_P(f(X)\mid X)].
+\]
+令 $f^*(x)$ 在每个正概率输入处选取条件风险的最小值，则对任意 $f$，都有 $r_P(f^*(x)\mid x)\leq r_P(f(x)\mid x)$，乘以 $P(X=x)$ 并求和得到 $R_P(f^*)\leq R_P(f)$。零概率输入处的取值不影响风险。最小风险为
+\[
+    R_P^*=1-\mathbb{E}_X\!\left[\max_{1\leq k\leq K}P(Y=c_k\mid X)\right].\qedhere
+\]
+\end{proof}
+
+按真实后验概率分类所得的规则称为\emph{贝叶斯分类器}（Bayes classifier）。实际训练只能得到参数估计 $\widehat\Theta$，进而得到估计分布 $\widehat P=P_{\widehat\Theta}$。将定理~\ref{thm:lihang-nb-bayes-decision} 应用于 $\widehat P$，说明朴素贝叶斯决策在\emph{估计模型下}最小化零一风险；若真实分布不满足条件独立假设，或参数存在估计误差，便不能据此断言它已达到真实分布 $P$ 下的最小风险。对错误类别赋予不同代价时，应改为最小化 $\sum_k L(c_k,a)\widehat P(Y=c_k\mid X=x)$，一般不能继续仅比较后验概率大小。
+
+\section{朴素贝叶斯法的参数估计}
+\label{sec:lihang-nb-parameter-estimation}
+
+\subsection{极大似然估计}
+\label{subsec:lihang-nb-mle}
+
+训练样本已包含类别标签，因而可以直接按类别及特征值计数。定义
+\begin{equation}
+\label{eq:lihang-nb-counts}
+    N_k=\sum_{i=1}^{N}\mathbf{1}\{y_i=c_k\},\qquad
+    N_{jlk}=\sum_{i=1}^{N}\mathbf{1}\{x_i^{(j)}=a_{jl},\ y_i=c_k\}.
+\end{equation}
+其中 $N_k$ 是第 $k$ 类的样本数，$N_{jlk}$ 是该类中第 $j$ 个特征取值为 $a_{jl}$ 的样本数。由于每个样本属于且仅属于一个类别、每个特征具有且仅具有一个取值，有 $\sum_k N_k=N$ 和 $\sum_l N_{jlk}=N_k$。训练数据完整观测是这些计数恒等式的前提。
+
+\begin{proposition}
+\label{prop:lihang-nb-mle}
+在式~\eqref{eq:lihang-nb-joint-model} 的有限离散模型中，$N\geq1$ 时先验概率的\emph{极大似然估计}（maximum likelihood estimation，MLE）为
+\begin{equation}
+\label{eq:lihang-nb-mle-prior}
+    \widehat\pi_k=\frac{N_k}{N},\qquad k=1,\ldots,K.
+\end{equation}
+对 $N_k>0$ 的类别，条件概率的极大似然估计为
+\begin{equation}
+\label{eq:lihang-nb-mle-conditional}
+    \widehat\theta_{jlk}=\frac{N_{jlk}}{N_k},\qquad
+    j=1,\ldots,n,\quad l=1,\ldots,S_j.
+\end{equation}
+若 $N_k=0$，该类的条件分布不能由似然唯一确定，式~\eqref{eq:lihang-nb-mle-conditional} 不适用；任取满足概率约束的条件分布，配合 $\widehat\pi_k=0$，均给出同样的最大似然值。
+\end{proposition}
+
+\begin{proof}
+给定独立同分布的已标注样本，参数似然可以按计数整理为
+\begin{equation}
+\label{eq:lihang-nb-likelihood}
+    \mathcal{L}(\Theta;T)
+    =\prod_{i=1}^{N}\left[\pi_{k_i}\prod_{j=1}^{n}\theta_{jk_i}(x_i^{(j)})\right]
+    =\prod_{k=1}^{K}\pi_k^{N_k}
+      \prod_{j=1}^{n}\prod_{k=1}^{K}\prod_{l=1}^{S_j}\theta_{jlk}^{N_{jlk}},
+\end{equation}
+其中 $k_i$ 是满足 $y_i=c_{k_i}$ 的索引，约定零次幂为 $1$。取对数得到
+\[
+    \ell(\Theta;T)=\sum_{k=1}^{K}N_k\log\pi_k
+    +\sum_{j=1}^{n}\sum_{k=1}^{K}\sum_{l=1}^{S_j}N_{jlk}\log\theta_{jlk},
+\]
+其中 $0\log0$ 按连续延拓记为 $0$，正计数对应的参数若为零则对数似然为 $-\infty$。先验向量和每个条件概率向量分别受到和为 $1$ 的约束，因此可以分别求解。
+
+一般地，设计数 $m_1,\ldots,m_q\geq0$，$m=\sum_r m_r>0$，在概率单纯形 $p_r\geq0,\sum_r p_r=1$ 上最大化 $\sum_r m_r\log p_r$。令 $\bar p_r=m_r/m$，并记 $A=\{r:m_r>0\}$。若某个 $r\in A$ 对应 $p_r=0$，该目标不可能达到最大；否则由 $\log t\leq t-1$，
+\[
+    \sum_{r\in A}m_r\log\frac{p_r}{\bar p_r}
+    \leq m\sum_{r\in A}\bar p_r\!\left(\frac{p_r}{\bar p_r}-1\right)
+    =m\left(\sum_{r\in A}p_r-1\right)\leq0.
+\]
+取 $p_r=\bar p_r$ 达到等号；等号要求所有正计数项均取此值，零计数项均取零。因此归一化计数给出唯一最大值点，也覆盖最优解在边界上的情形。将该结论分别用于 $m_r=N_k$ 和 $m_r=N_{jlk}$，即得两式。若 $N_k=0$，则相应的所有 $N_{jlk}=0$，似然中与该类条件参数有关的因子恒为 $1$，故这些参数没有唯一估计。
+\end{proof}
+
+极大似然训练的目标是联合样本似然最大化，并非直接最小化训练分类错误数。对 $N_k>0$ 的类别，未观察到的特征值给出 $\widehat\theta_{jlk}=0$；这符合极大似然解的边界性质，却可能把一个本来可能出现的特征值视为不可能。若新输入在某一类下有任意一个零条件概率，该类的整个乘积得分便为零。这是有限样本计数与乘积结构共同造成的问题，不能从零频数直接推断真实概率为零。
+
+\subsection{学习与分类算法}
+\label{subsec:lihang-nb-algorithm}
+
+训练与预测可以分为两个阶段。输入为训练集 $T$、已知的类别及特征取值集合，以及待分类的 $x\in\mathcal{X}$；输出为预测类别，必要时同时输出估计后验概率。教材的基本算法采用极大似然估计，要求对需要估计条件概率的类别有 $N_k>0$。完整步骤如下。
+\begin{enumerate}
+    \item 将所有 $N_k,N_{jlk}$ 初始化为 $0$，逐个读取样本；对其所属类别累加 $N_k$，并对每个特征的对应取值累加 $N_{jlk}$。按式~\eqref{eq:lihang-nb-mle-prior}、\eqref{eq:lihang-nb-mle-conditional} 归一化计数，得到 $\widehat\pi_k,\widehat\theta_{jlk}$；零样本类别的条件分布作任意规范化约定，其分类得分为零。
+    \item 对给定 $x$，以估计参数代入式~\eqref{eq:lihang-nb-score-rule}，计算 $\widehat s_k(x)=\widehat\pi_k\prod_j\widehat\theta_{jk}(x^{(j)})$。若 $\sum_k\widehat s_k(x)>0$，选择得分最大的类别，并按固定规则处理并列；后验概率为 $\widehat s_k(x)/\sum_r\widehat s_r(x)$。若所有得分为零，则基本模型无法提供该输入的后验分类，需采用下节的正平滑等处理。
+\end{enumerate}
+这是一遍计数加有限次比较的闭式算法，没有迭代收敛或学习率的要求。在特征值可用常数时间索引的前提下，计数耗时 $O(Nn)$，完整概率表初始化与归一化耗时 $O(K\sum_j S_j)$，模型存储量为 $O(K+K\sum_j S_j)$，单个输入的预测耗时 $O(Kn)$。
+
+实现时常用对数得分
+\begin{equation}
+\label{eq:lihang-nb-log-score}
+    \widehat g_k(x)=\log\widehat\pi_k+
+    \sum_{j=1}^{n}\log\widehat\theta_{jk}(x^{(j)}).
+\end{equation}
+约定 $\log0=-\infty$；至少一个得分为正时，对数的单调性保证最大值类别不变，可避免多个小概率相乘造成浮点下溢。若还需要后验概率，令 $m=\max_k\widehat g_k(x)$，则
+\[
+    \widehat P(Y=c_k\mid X=x)
+    =\frac{\exp(\widehat g_k(x)-m)}{\sum_{r=1}^{K}\exp(\widehat g_r(x)-m)}.
+\]
+这一写法要求 $m$ 有限；所有类均为 $-\infty$ 时，数值变换不能修复模型的零分母问题。
+
+\begin{example}
+\label{ex:lihang-nb-mle-classification}
+教材例题的训练数据见表~\ref{tab:lihang-nb-training}。设 $\mathcal{A}_1=\{1,2,3\}$、$\mathcal{A}_2=\{S,M,L\}$，类别集合为 $\{1,-1\}$。用极大似然估计训练朴素贝叶斯分类器，并预测 $x=(2,S)^{\mathsf T}$ 的类别。
+\end{example}
+
+\begin{table}[htbp]
+\centering
+\caption{朴素贝叶斯分类的训练数据（据教材本章训练数据表整理）}
+\label{tab:lihang-nb-training}
+\begin{tabular}{c|ccccccccccccccc}
+\toprule
+样本 $i$ & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 & 13 & 14 & 15 \\
+\midrule
+$x_i^{(1)}$ & 1 & 1 & 1 & 1 & 1 & 2 & 2 & 2 & 2 & 2 & 3 & 3 & 3 & 3 & 3 \\
+$x_i^{(2)}$ & $S$ & $M$ & $M$ & $S$ & $S$ & $S$ & $M$ & $M$ & $L$ & $L$ & $L$ & $M$ & $M$ & $L$ & $L$ \\
+$y_i$ & $-1$ & $-1$ & 1 & 1 & $-1$ & $-1$ & $-1$ & 1 & 1 & 1 & 1 & 1 & 1 & 1 & $-1$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{solve}
+为避免反复展开同类计算，以类别值 $+$、$-$ 分别作下标，表示 $Y=1$、$Y=-1$。计数为 $N_+=9,N_-=6$；按取值顺序 $(1,2,3)$ 与 $(S,M,L)$，两个特征在各类中的计数向量分别为
+\[
+    (N_{1l,+})_{l=1}^{3}=(2,3,4),\qquad
+    (N_{1l,-})_{l=1}^{3}=(3,2,1),\qquad
+    (N_{2l,+})_{l=1}^{3}=(1,4,4),\qquad
+    (N_{2l,-})_{l=1}^{3}=(3,2,1).
+\]
+因此 $\widehat\pi_+=9/15,\widehat\pi_-=6/15$，四个条件概率向量依次为 $(2,3,4)/9$、$(3,2,1)/6$、$(1,4,4)/9$、$(3,2,1)/6$。对于输入 $(2,S)^{\mathsf T}$，只需取相应的两个条件概率：
+\begin{align*}
+    \widehat s_+(x)&=\frac{9}{15}\cdot\frac{3}{9}\cdot\frac{1}{9}=\frac{1}{45},\\
+    \widehat s_-(x)&=\frac{6}{15}\cdot\frac{2}{6}\cdot\frac{3}{6}=\frac{1}{15}.
+\end{align*}
+负类得分较大，故预测为 $-1$。将得分归一化，模型的后验概率为
+\[
+    \widehat P(Y=1\mid X=x)=\frac14,\qquad
+    \widehat P(Y=-1\mid X=x)=\frac34.
+\]
+这些概率依赖训练计数及条件独立模型，不能解释为已经核实的真实条件概率。
+\end{solve}
+
+\subsection{贝叶斯估计}
+\label{subsec:lihang-nb-bayesian-estimation}
+
+为缓解零频数问题，可以对每一个预先规定的可能取值加入同样的正\emph{伪计数}（pseudocount）$\lambda>0$，再进行归一化。教材给出的贝叶斯估计为
+\begin{equation}
+\label{eq:lihang-nb-smoothed-probabilities}
+    \widehat\pi_k^{(\lambda)}=\frac{N_k+\lambda}{N+K\lambda},\qquad
+    \widehat\theta_{jlk}^{(\lambda)}=\frac{N_{jlk}+\lambda}{N_k+S_j\lambda}.
+\end{equation}
+每个分母增加的量等于该概率向量所有伪计数的总和，因此
+\[
+    \sum_k\widehat\pi_k^{(\lambda)}=1,\qquad
+    \sum_l\widehat\theta_{jlk}^{(\lambda)}=1,
+\]
+且各分量严格为正。即使 $N_k=0$，条件估计也有定义，并等于 $1/S_j$。当 $\lambda=1$ 时称为\emph{拉普拉斯平滑}（Laplace smoothing）；当 $\lambda\downarrow0$ 时，先验估计趋于极大似然估计，$N_k>0$ 类别的条件估计也趋于其极大似然估计。对 $N_k=0$ 的类别，不能在条件公式中直接令 $\lambda=0$。
+
+平滑的作用也可由下式看出：对 $N_k>0$，
+\begin{equation}
+\label{eq:lihang-nb-smoothing-mixture}
+    \widehat\theta_{jlk}^{(\lambda)}
+    =\frac{N_k}{N_k+S_j\lambda}\frac{N_{jlk}}{N_k}
+     +\frac{S_j\lambda}{N_k+S_j\lambda}\frac{1}{S_j}.
+\end{equation}
+估计是经验频率与均匀分布的加权平均；$\lambda$ 越大，或该类样本越少，均匀分布所占权重越大。固定 $\lambda>0$ 且某类样本数增长时，这一权重趋于零；这说明伪计数的相对作用减小，并不单独构成对真实分类风险的保证。\emph[caution]{平滑保证预定有限取值集合中的概率为正，不会自动为集合外的新取值建立概率}；应用中若要使用“未知值”类别，应在确定取值集合时就将它纳入，并在训练及预测时使用相同编码。
+
+\begin{proposition}
+\label{prop:lihang-nb-dirichlet-estimation}
+将先验概率向量 $\pi$ 及每个条件概率向量 $\theta_{jk}=(\theta_{j1k},\ldots,\theta_{jS_jk})$ 视为未知随机参数，分别赋予相互独立的对称 Dirichlet（狄利克雷）先验
+\[
+    \pi\sim\operatorname{Dir}_K(\lambda,\ldots,\lambda),\qquad
+    \theta_{jk}\sim\operatorname{Dir}_{S_j}(\lambda,\ldots,\lambda),\qquad\lambda>0.
+\]
+则在完整观测的训练集 $T$ 给定后，各参数向量的后验均值等于式~\eqref{eq:lihang-nb-smoothed-probabilities}，它们也是逐个参数分量在平方损失下的贝叶斯估计。
+\end{proposition}
+
+\begin{proof}
+先考虑 $q\geq2$ 类的概率向量 $p=(p_1,\ldots,p_q)$。对参数 $\alpha_r>0$，Dirichlet 分布在概率单纯形上的密度为
+\[
+    h(p)=\frac{1}{B(\alpha)}\prod_{r=1}^{q}p_r^{\alpha_r-1},\qquad
+    B(\alpha)=\frac{\prod_{r=1}^{q}\Gamma(\alpha_r)}{\Gamma(\sum_{r=1}^{q}\alpha_r)}.
+\]
+这里 $\Gamma$ 为伽马函数。若观测的分类计数为 $m_1,\ldots,m_q$，似然关于 $p$ 正比于 $\prod_r p_r^{m_r}$，乘上先验密度可得后验分布 $\operatorname{Dir}_q(\alpha_1+m_1,\ldots,\alpha_q+m_q)$，这就是\emph{共轭先验}（conjugate prior）的性质。
+
+令 $\beta_r=\alpha_r+m_r$，$\beta_0=\sum_r\beta_r$，$e_r$ 为第 $r$ 个坐标为 $1$、其余为 $0$ 的向量。由归一化积分及 $\Gamma(t+1)=t\Gamma(t)$，
+\[
+    \mathbb{E}[p_r\mid T]
+    =\frac{B(\beta+e_r)}{B(\beta)}=\frac{\beta_r}{\beta_0}
+    =\frac{m_r+\alpha_r}{\sum_s m_s+\sum_s\alpha_s}.
+\]
+由于式~\eqref{eq:lihang-nb-likelihood} 按参数向量分解，且这些向量的先验独立，它们的后验也分别分解为
+\[
+    \pi\mid T\sim\operatorname{Dir}_K(N_1+\lambda,\ldots,N_K+\lambda),\qquad
+    \theta_{jk}\mid T\sim\operatorname{Dir}_{S_j}(N_{j1k}+\lambda,\ldots,N_{jS_jk}+\lambda).
+\]
+代入后验均值公式即得所需估计。若某个 $S_j=1$，该条件概率恒为 $1$，不需要非退化的密度描述，式~\eqref{eq:lihang-nb-smoothed-probabilities} 仍成立。对任意参数分量 $p_r$ 及点估计 $d_r$，后验平方损失满足
+\[
+    \mathbb{E}[(p_r-d_r)^2\mid T]
+    =\operatorname{Var}(p_r\mid T)+(\mathbb{E}[p_r\mid T]-d_r)^2,
+\]
+故在 $d_r=\mathbb{E}[p_r\mid T]$ 处最小，且这些均值合起来仍是规范化的概率向量。
+\end{proof}
+
+这一推导需要明确参数先验、似然及点估计的损失，不能仅将“分子分母加常数”当作贝叶斯定理本身。由于已标注完整数据下参数向量的后验独立，对一个新样本的后验预测联合概率还满足
+\[
+    P(X_{\mathrm{new}}=x,Y_{\mathrm{new}}=c_k\mid T)
+    =\mathbb{E}[\pi_k\prod_j\theta_{jk}(x^{(j)})\mid T]
+    =\widehat\pi_k^{(\lambda)}\prod_j\widehat\theta_{jk}^{(\lambda)}(x^{(j)}),
+\]
+其中新样本在参数给定后服从同一朴素贝叶斯模型，并与训练样本条件独立。对这一联合概率按类别归一化，就得到平滑后的分类后验。因此，在上述先验设定下，用后验均值代入分类公式也等价于对一个新样本先积分参数再分类。
+
+\begin{notealert}[type=caution,title={两种“后验最大化”的对象}]
+分类时最大化的是给定输入后的\emph{类别后验概率}；参数的\emph{最大后验估计}（maximum a posteriori estimation，MAP）则最大化参数的后验密度。式~\eqref{eq:lihang-nb-smoothed-probabilities} 是后验均值。对 $q$ 类概率向量，若后验参数满足 $m_r+\alpha_r>1$，其内部众数为 $(m_r+\alpha_r-1)/(m+\sum_s\alpha_s-q)$，通常不同于后验均值。$\lambda=1$ 的对称均匀先验给出的后验均值是拉普拉斯平滑，参数 MAP 则退回极大似然解；$\lambda=0$ 不对应合法的对称 Dirichlet 概率先验。
+\end{notealert}
+
+\begin{example}
+\label{ex:lihang-nb-laplace-classification}
+沿用例~\ref{ex:lihang-nb-mle-classification} 的数据，对先验和条件概率均取 $\lambda=1$，重新预测 $x=(2,S)^{\mathsf T}$ 的类别。
+\end{example}
+
+\begin{solve}
+类别数为 $K=2$，两个特征的取值数均为 $3$，故先验的分母为 $15+2=17$，两个类别的条件概率分母分别为 $9+3=12$、$6+3=9$。平滑后的先验为 $\widehat\pi_+^{(1)}=10/17,\widehat\pi_-^{(1)}=7/17$；按前例的取值顺序，四个条件概率向量为
+\[
+    \widehat\theta_{1,+}^{(1)}=\frac{(3,4,5)}{12},\qquad
+    \widehat\theta_{1,-}^{(1)}=\frac{(4,3,2)}{9},\qquad
+    \widehat\theta_{2,+}^{(1)}=\frac{(2,5,5)}{12},\qquad
+    \widehat\theta_{2,-}^{(1)}=\frac{(4,3,2)}{9}.
+\]
+因此
+\begin{align*}
+    \widehat s_+^{(1)}(x)&=\frac{10}{17}\cdot\frac{4}{12}\cdot\frac{2}{12}
+    =\frac{5}{153}\approx0.03268,\\
+    \widehat s_-^{(1)}(x)&=\frac{7}{17}\cdot\frac{3}{9}\cdot\frac{4}{9}
+    =\frac{28}{459}\approx0.06100.
+\end{align*}
+负类得分仍较大，故预测仍为 $-1$；归一化后有
+\[
+    \widehat P_1(Y=1\mid X=x)=\frac{15}{43},\qquad
+    \widehat P_1(Y=-1\mid X=x)=\frac{28}{43}.
+\]
+这里 $\widehat P_1$ 表示 $\lambda=1$ 的估计分布。平滑改变了估计的后验概率，但本例的类别排序没有改变；这并不意味着平滑在其他样本上也保持类别不变。
+\end{solve}
+
+\section{本章概要与习题}
+\label{sec:lihang-nb-summary-exercises}
+
+朴素贝叶斯法把高维类条件联合分布化为各个特征条件概率的乘积，通过较少的参数描述生成过程。训练阶段按类别与特征取值计数，预测阶段比较先验与类条件概率的乘积；需要报告后验概率时再归一化。零一损失解释了为何选择后验概率最大的类，但最优性始终相对于所用分布而言。极大似然估计用经验频率拟合概率，贝叶斯估计通过参数先验引入伪计数；拉普拉斯平滑能够处理预定取值集合中的零频数，却不能消除条件独立假设造成的模型偏差。
+
+教材章末两道习题分别要求推导极大似然公式与贝叶斯估计公式。下面将它们与正文推导对应，便于复习时独立完成。
+
+\begin{example}
+\label{ex:lihang-nb-exercise-mle}
+教材习题一：从极大似然原理推出先验概率及条件概率的估计公式，并说明零频数和零样本类别如何处理。
+\end{example}
+
+\begin{solve}
+先按式~\eqref{eq:lihang-nb-likelihood} 写出有监督样本的联合似然，再按概率向量分组。在所有计数严格为正的概率向量内部，用拉格朗日乘子法最大化 $\sum_r m_r\log p_r$，约束为 $\sum_r p_r=1$，驻点条件为 $m_r/p_r=\mu$；两边乘以 $p_r$ 后求和，得到 $\mu=\sum_r m_r=m$，故 $p_r=m_r/m$。分别代入类别计数和类内特征计数，便得到式~\eqref{eq:lihang-nb-mle-prior} 与式~\eqref{eq:lihang-nb-mle-conditional}。存在零计数时，内部驻点推导不充分，应使用命题~\ref{prop:lihang-nb-mle} 证明中的对数不等式处理边界；若 $N_k=0$，条件概率不受该组数据的似然约束，不能写成 $0/0$。
+\end{solve}
+
+\begin{example}
+\label{ex:lihang-nb-exercise-bayes}
+教材习题二：在适当的先验与估计准则下推出加法平滑公式，解释拉普拉斯平滑为何在每个可能取值上加 $1$。
+\end{example}
+
+\begin{solve}
+对每个概率向量独立采用各分量参数均为 $\lambda>0$ 的 Dirichlet 先验，乘上分类计数似然后，后验参数由 $\lambda$ 更新为“频数 $+\lambda$”。由命题~\ref{prop:lihang-nb-dirichlet-estimation}，平方损失下的贝叶斯估计等于后验均值，即每个更新后的参数除以该向量的参数总和；对先验向量与类条件向量分别应用，便得式~\eqref{eq:lihang-nb-smoothed-probabilities}。取 $\lambda=1$ 即为拉普拉斯平滑；它来自均匀 Dirichlet 先验的后验均值，而不是将后验密度最大化。
+\end{solve}
+
+教材的继续阅读将朴素贝叶斯与更一般的贝叶斯网络联系起来：本章模型对应于类别指向各特征的有向图，给定类别后没有额外的特征依赖。若希望表达类内特征间的依赖，需要进一步规定有向无环图结构及相应的条件概率分解，而不能只取消乘积假设就认为已经得到完整的新模型。这里仅指出后续方向，不展开图模型的学习与推断。
+
+% 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-5.pdf。
+% 覆盖教材第 5 章正文及习题；章、节编号随全文自动生成。
+
+
+
+

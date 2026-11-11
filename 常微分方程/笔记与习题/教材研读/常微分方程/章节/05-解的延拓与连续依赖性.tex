@@ -1,0 +1,91 @@
+% !TeX root = ../常微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{4} % 保留原书章号。
+\chapter{解的延拓与连续依赖性}
+\label{chap:ode-dependence}
+
+局部存在唯一性解决了初始时刻附近的问题。要研究较长时间，还需要控制解的大小，并了解初值或方程的微小变化如何传播。
+
+\section{Gronwall 不等式与误差估计}
+\begin{theorem}[Gronwall 不等式]
+\label{thm:ode-gronwall}
+设 $u,b$ 在 $[t_0,T]$ 上连续非负，$a\geq0$。若 $u(t)\leq a+\int_{t_0}^t b(s)u(s)\,\mathrm ds$，则
+\[
+ u(t)\leq a\exp\!\left(\int_{t_0}^t b(s)\,\mathrm ds\right).
+\]
+\end{theorem}
+\begin{proof}
+先令 $a>0$，记 $v(t)=a+\int_{t_0}^t b(s)u(s)\,\mathrm ds$，则 $u\leq v$、$v'\leq bv$。因此 $(e^{-\int_{t_0}^t b}v)'\leq0$，积分得到结论。若 $a=0$，将右端的常数换成任意 $\varepsilon>0$，应用已证结果后令 $\varepsilon\downarrow0$。
+\end{proof}
+
+向负时间的估计可用变量 $\tau=t_0-t$ 化为上述形式。该不等式的作用是把含未知函数积分的上界，变成已知量的显式上界。
+
+\section{解对初值和右端的连续依赖}
+设 $x'=f(t,x)$、$z'=g(t,z)$ 的两条解在 $[t_0,T]$ 上均存在。假设所需区域内 $f$ 关于状态的 Lipschitz 常数为 $L$，且沿 $z$ 有 $\|f(t,z(t))-g(t,z(t))\|\leq\eta$。记 $\delta=\|x(t_0)-z(t_0)\|$，由积分方程得到
+\[
+ \|x(t)-z(t)\|\leq\delta+\eta(t-t_0)+L\int_{t_0}^t\|x(s)-z(s)\|\,\mathrm ds.
+\]
+令右端为 $v(t)$，则 $v'\leq\eta+Lv$、$v(t_0)=\delta$，乘以积分因子可得
+\begin{equation}
+ \|x(t)-z(t)\|\leq
+ \begin{cases}
+ \delta e^{L(t-t_0)}+\dfrac{\eta}{L}(e^{L(t-t_0)}-1),&L>0,\\
+ \delta+\eta(t-t_0),&L=0.
+ \end{cases}
+ \label{eq:ode-dependence-bound}
+\end{equation}
+特别地，同一方程的初值误差最多按此上界放大。参考解图像位于定义域内部时，可选紧管状邻域；小扰动在首次可能离开该邻域前满足上述估计，选扰动足够小即可排除离开，再用延拓定理保证共同存在。这给出固定紧时间段上的连续依赖性。估计随时间增长，并不等于无限时间稳定性。
+
+\section{最大解与延拓定理}
+\begin{definition}
+若一个解在更大的区间上存在且限制到原区间后与原解相同，称其为原解的延拓（continuation）。不能进一步延拓的解称最大解（maximal solution），其定义区间称最大存在区间。
+\end{definition}
+
+在连续且局部 Lipschitz 的条件下，所有同初值局部解在交集上相同，因此可在其区间的并集上拼接成唯一最大解，其区间为某个开区间 $(\alpha,\beta)$。
+
+\begin{theorem}[有限端点的延拓判据]
+\label{thm:ode-continuation}
+设 $f:D\to\mathbb R^d$ 连续且关于状态局部 Lipschitz。若解在 $[t_0,\beta)$ 上存在，$\beta<\infty$，且接近 $\beta$ 时其图像保持在 $D$ 的某个紧子集 $K$ 内，则该解可延拓过 $\beta$。
+\end{theorem}
+\begin{proof}
+$f$ 在 $K$ 上有界，设界为 $M$。对足够接近 $\beta$ 的 $s,t$，积分方程给出 $\|x(t)-x(s)\|\leq M|t-s|$，故存在有限极限 $x_\beta$。由 $K$ 闭得 $(\beta,x_\beta)\in K\subset D$。在此点应用局部存在定理，并以积分方程将新旧解拼接；连续性保证拼接后的导数也满足方程，唯一性保证两段相容。
+\end{proof}
+
+因此，有限最大端点意味着解的图像无法继续保持在定义域内部的紧集里。原因可能是状态无界，也可能是趋近定义域边界，二者不能混同。
+
+\section{有限时间爆破与全局存在}
+解在有限时间内范数趋于无穷称为有限时间爆破（finite-time blow-up）。例如 $y'=y^2$、$y(0)=1$ 的解在 $t=1$ 爆破，即使右端在整个平面上光滑。
+
+\begin{theorem}[线性增长条件]
+设 $f$ 在 $\mathbb R\times\mathbb R^d$ 上连续且关于状态局部 Lipschitz，且
+\[
+ \|f(t,x)\|\leq a(t)+b(t)\|x\|,
+\]
+其中 $a,b$ 连续非负。则任意初值的解在整个实轴上存在。
+\end{theorem}
+\begin{proof}
+在任意有限时间段 $[t_0,T]$ 上，令 $A=\|x_0\|+\int_{t_0}^T a(s)\,\mathrm ds$。积分方程与定理\ref{thm:ode-gronwall}给出 $\|x(t)\|\leq A\exp(\int_{t_0}^T b)$，该界不依赖于尚未到达的最大端点。若有限最大端点位于此时间段，解图像就保持在一个紧柱体中，与定理\ref{thm:ode-continuation}矛盾。负时间同理。
+\end{proof}
+
+\begin{example}
+对 $y''+y^3=0$，能量 $(y')^2/2+y^4/4$ 守恒，因此状态 $(y,y')$ 始终有界。虽然其右端不满足全局线性增长上界，仍可用延拓判据证明解双向全局存在。充分条件不满足不代表结论不成立。
+\end{example}
+
+\section{参数依赖与变分方程（选学）}
+设 $\mu\in\mathbb R^m$，考虑 $x'=f(t,x,\mu)$、$x(t_0,\mu)=\xi(\mu)$。若 $f,D_xf,D_\mu f$ 连续且 $\xi\in C^1$，则在参考解的任意紧存在区间上，附近参数的解关于 $\mu$ 可微。其灵敏度矩阵 $Z=\partial x/\partial\mu\in\mathbb R^{d\times m}$ 满足
+\begin{equation}
+ Z'=D_xf(t,x,\mu)Z+D_\mu f(t,x,\mu),\qquad Z(t_0)=D\xi(\mu).
+ \label{eq:ode-sensitivity}
+\end{equation}
+\textbf{证明思路：}先由式\eqref{eq:ode-dependence-bound}控制参数差商，再对积分方程使用一阶增量公式。连续导数使余项在紧邻域内一致趋于零，Gronwall 估计使差商收敛到上述线性积分方程的解。这一论证提供可微性，随后才可合法地对原方程求参数导数。
+
+例如 $y'=\mu y$、$y(0)=y_0$ 给出 $y=y_0e^{\mu t}$，$Z=ty_0e^{\mu t}$；代入 $Z'=\mu Z+y$、$Z(0)=0$ 可核验。
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-growth} 对 $y'=\sin(t+y)$ 证明任意初值解全局存在，并给出两个初值解之差的上界。
+ \item\label{ex:ode-domain} 求 $y'=1/y$、$y(0)=1$ 的最大解，说明其有限端点为何不是状态爆破。
+ \item 对 $y''+cy'+ky=0$，$c,k>0$，用能量证明前向解有界，再证明全局存在。
+ \item 解释 $y'=y$ 的解为何连续依赖初值，但零解仍不是前向稳定的。
+\end{enumerate}
+

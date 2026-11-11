@@ -1,0 +1,98 @@
+% !TeX root = ../泛函分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{13} % 保留原书章号。
+\chapter{不动点方法与非线性方程}
+\label{chap:fa-fixed-point}
+
+线性方程可以研究核、值域与谱；非线性方程常改写为 $u=F(u)$。不动点方法的第一步是选定空间与不变集合，随后才判断压缩性、连续性或紧性。
+
+\section{压缩映射与非线性积分方程}
+考虑 $C([0,1])$ 上的方程
+\[
+ u(t)=g(t)+\lambda\int_0^1k(t,s)\phi(u(s))\,\mathrm ds,
+\]
+其中 $g,k$ 连续，$\phi:\mathbb R\to\mathbb R$ 为 Lipschitz 函数，常数为 $L$。右侧定义连续函数，且对应映射 $F$ 满足
+\[
+ \|Fu-Fv\|_\infty\leq q\|u-v\|_\infty,
+ \qquad q=|\lambda|L\max_t\int_0^1|k(t,s)|\,\mathrm ds.
+\]
+若 $q<1$，定理\ref{thm:fa-contraction}给出唯一解。算法为任取 $u_0\in C([0,1])$，计算 $u_{n+1}=F(u_n)$；可用后验误差界 $q\|u_n-u_{n-1}\|_\infty/(1-q)$ 作为停止依据。
+
+这个误差界针对精确计算 $F(u_n)$ 得到的迭代。若每步只算到误差 $\delta_n$，即 $\|\widetilde u_{n+1}-F(\widetilde u_n)\|_\infty\leq\delta_n$，则相对于真解 $u_*$，
+\[
+ \|\widetilde u_{n+1}-u_*\|_\infty
+ \leq q\|\widetilde u_n-u_*\|_\infty+\delta_n.
+\]
+若始终有 $\delta_n\leq\delta$，递推给出 $\|\widetilde u_n-u_*\|_\infty\leq q^n\|\widetilde u_0-u_*\|_\infty+\delta/(1-q)$。所以实际积分计算的误差会留下一个误差上界；要保证逼近真解的精度任意提高，需要进一步控制这些计算误差。
+
+\begin{example}[一个既能用压缩性又能用紧性的方程]\label{ex:fa-nonlinear-integral}
+考虑 $u(t)=t+\lambda\int_0^1ts\sin u(s)\,\mathrm ds$，其中 $\lambda\in\mathbb R$。当 $|\lambda|<2$ 时有唯一连续解；对任意实数 $\lambda$ 至少有一个连续解。
+\end{example}
+\begin{solve}
+因为 $|\sin a-\sin b|\leq|a-b|$，且 $\max_{0\leq t\leq1}\int_0^1ts\,\mathrm ds=1/2$，压缩常数可取 $q=|\lambda|/2$，给出第一项结论。为考察任意参数，注意每个解都必须形如 $u(t)=ct$，其中
+\[
+ c=1+\lambda\int_0^1s\sin(cs)\,\mathrm ds.
+\]
+右端作为 $c$ 的连续函数，始终落在区间 $[1-|\lambda|/2,1+|\lambda|/2]$ 中。在这个闭区间的左端，右端减 $c$ 非负；在右端非正，由介值定理得到一个不动点，因而得到连续解。后面的 Schauder 定理将把这种“连续映射保持一个闭有界凸集，且输出足够紧”的思想推广到不能化成一个标量的问题。
+\end{solve}
+
+\section{常微分方程的局部存在性}
+考虑 $u'(t)=b(t,u(t))$、$u(t_0)=u_0$，其中 $b$ 在矩形 $|t-t_0|\leq a$、$|u-u_0|\leq r$ 上连续，并对第二变量统一 Lipschitz，常数为 $L$。设该矩形上 $|b|\leq M$，选 $h\leq a$ 使 $hM\leq r$ 且 $hL<1$。在完备闭集
+\[
+ C=\{u\in C([t_0-h,t_0+h]):\|u-u_0\|_\infty\leq r\}
+\]
+上，$Fu(t)=u_0+\int_{t_0}^t b(s,u(s))\,\mathrm ds$ 保持 $C$ 不变且为压缩。其不动点连续，积分表达又给出可微性，因此是微分方程的局部唯一解。延长到更大时间区间需要进一步控制解的范围，不能仅凭局部估计断言全局存在。
+
+这里 $hM\leq r$ 用于确保近似曲线不离开已知 $b$ 的区域，$hL<1$ 用于确保两条近似曲线的距离收缩，二者解决不同问题。例如 $u'=u$、$u(0)=1$ 的 Picard 迭代从常值函数 $u_0(t)=1$ 开始，依次得到 $u_n(t)=\sum_{k=0}^nt^k/k!$，极限为 $e^t$。短区间上的压缩估计证明局部收敛，而级数的进一步估计还能证明任意有限区间上的收敛。相反，$u'=u^2$、$u(0)=1$ 的局部解 $u(t)=1/(1-t)$ 在 $t\uparrow1$ 时发散，说明局部 Lipschitz 条件不能单独保证全局解。
+
+\section{Schauder 不动点定理}
+本节引用有限维拓扑中的 Brouwer 不动点定理：有限维实线性空间中，非空紧凸集的每个连续自映射都有不动点。其拓扑证明超出本书范围，可参阅\cite{teschl-fa}的 Brouwer 映射度部分；下面给出从它推出无限维紧映射结论的完整论证。
+
+\begin{theorem}[Schauder]\label{thm:fa-schauder}
+设 $C$ 是 Banach 空间中的非空闭有界凸集，$F:C\to C$ 连续且 $F(C)$ 相对紧，则 $F$ 有不动点。
+\end{theorem}
+\begin{proof}
+记 $K=\overline{F(C)}\subset C$。对 $\varepsilon>0$ 选 $y_1,\ldots,y_m\in K$ 构成 $\varepsilon/2$ 网。在 $K$ 上定义
+\[
+ w_j(y)=\max(\varepsilon-\|y-y_j\|,0),\qquad
+ Q_\varepsilon(y)=\frac{\sum_jw_j(y)y_j}{\sum_jw_j(y)}.
+\]
+分母严格为正，映射连续，且 $\|Q_\varepsilon(y)-y\|<\varepsilon$。凸包 $D=\operatorname{conv}\{y_1,\ldots,y_m\}$ 为 $C$ 内有限维紧凸集，$Q_\varepsilon F:D\to D$ 连续，所以有不动点 $x_\varepsilon$。于是 $\|x_\varepsilon-Fx_\varepsilon\|<\varepsilon$。
+
+令 $\varepsilon\downarrow0$。由于 $Fx_\varepsilon\in K$，可选择一列使 $Fx_\varepsilon$ 收敛，$x_\varepsilon$ 也趋于同一极限 $x\in C$。由连续性 $Fx=x$。
+\end{proof}
+紧性提供的是可收敛的近似解，不提供压缩映射所具有的误差收缩率。
+
+证明中的有限维凸包是关键的过渡：$Q_\varepsilon$ 用有限多个代表点的加权平均近似紧集中的任意输出，把无限维映射变成有限维映射，再调用 Brouwer 定理。凸性保证这些平均点仍在允许集合内；相对紧性保证可以用有限个代表点控制全部输出，并从近似不动点提取极限；连续性保证极限真正满足方程。这些条件各自承担了明确的一步。
+
+\section{先验估计与 Schaefer 定理}
+非线性映射 $F:X\to X$ 称为紧映射，若它连续并把有界集映成相对紧集。
+\begin{theorem}[Schaefer 不动点定理]
+若 Banach 空间上的紧映射 $F$ 满足集合
+\[
+ \{x\in X:x=\lambda F(x)\text{ 对某个 }0\leq\lambda\leq1\}
+\]
+有界，则 $F$ 有不动点。
+\end{theorem}
+\begin{proof}
+取 $R$ 大于上述集合中所有元素的范数。在闭球 $RB_X$ 上定义 $G(x)=F(x)$（当 $\|F(x)\|\leq R$），否则定义 $G(x)=RF(x)/\|F(x)\|$。它连续、像相对紧，并将该闭球映入自身。由 Schauder 定理有 $x=G(x)$。若截断发生，则 $\|x\|=R$ 且 $x=\lambda F(x)$，$0<\lambda<1$，与 $R$ 的选取矛盾。因此没有截断，$x=F(x)$。
+\end{proof}
+这解释了先验估计的用途：不必事先找到所有解，只需给整个参数族的候选解一个统一界。
+
+\section{存在性、唯一性与算法收敛}
+$F(x)=1-x$ 在 $[0,1]$ 上连续，唯一不动点为 $1/2$，但除初值 $1/2$ 外，简单迭代在两个数之间交替。$F(x)=x$ 的每个点都是不动点。因此，Schauder 结论不包含唯一性，也不保证迭代收敛。研究算法时，必须另外给出收缩、单调性、能量下降或其他收敛依据。
+
+\section{例题与习题}
+\begin{example}[仅连续非线性的存在性]
+设 $g\in C([0,1])$、$k\in C([0,1]^2)$，$\phi:\mathbb R\to\mathbb R$ 连续且 $|\phi(s)|\leq A$。则方程 $u(t)=g(t)+\int_0^1k(t,s)\phi(u(s))\,\mathrm ds$ 至少有一个连续解。
+\end{example}
+\begin{solve}
+取 $R\geq\|g\|_\infty+A\max_t\int|k(t,s)|\,\mathrm ds$，右端映射保持闭球 $\|u\|_\infty\leq R$。$\phi$ 在 $[-R,R]$ 上一致连续，保证该映射连续；核的一致连续性给出像的等度连续性，一致有界性已由 $R$ 的选取保证。Arzelà--Ascoli 与 Schauder 定理给出解。这里不要求 $\phi$ 为压缩型非线性。
+\end{solve}
+\begin{enumerate}
+ \item 将例\ref{ex:fa-nonlinear-integral}的 $\sin u$ 改为 $\tanh u$，证明相同的唯一性充分条件仍成立，并证明任意实参数下至少有解。
+ \item 在常微分方程例中，明确 $hM\leq r$ 与 $hL<1$ 分别用于哪一步。
+ \item 给出连续自映射有多个不动点、且某些初值的迭代不收敛的区间例子。
+ \item 检查 Schauder 证明中闭性、凸性、连续性和紧性分别出现的位置。
+\end{enumerate}
+

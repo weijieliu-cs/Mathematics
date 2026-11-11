@@ -1,0 +1,100 @@
+% !TeX root = ../本科微分几何笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{2} % 保留原书章号。
+\chapter{平面曲线与整体几何}
+\label{chap:dg-plane}
+
+\section{有符号曲率与切向角}
+在定向平面中，令 $J(x,y)=(-y,x)$ 为逆时针直角旋转。对单位速曲线，取左法向 $n=J\mathbf t$，定义\emph{有符号曲率（signed curvature）} $k=\ip{\mathbf t'}n$，于是 $\mathbf t'=kn$、$n'=-k\mathbf t$。它允许为负和为零，与空间曲率的关系为 $\kappa=|k|$。
+
+区间上的连续单位切向量可写为 $\mathbf t=(\cos\theta,\sin\theta)$，其中 $\theta$ 是连续的实值\emph{切向角（tangent angle）}；存在性可由局部反三角函数沿区间连续拼接得到。求导可知 $k=\theta'$。对一般正则参数 $\gamma(t)=(x(t),y(t))$，
+\begin{equation}
+ k=\frac{x'y''-y'x''}{(x'^2+y'^2)^{3/2}}.
+ \label{eq:dg-signed-curvature}
+\end{equation}
+此处参数行进方向决定单位切向量，反向行进使 $k$ 变号；这与无符号曲率不变并不矛盾。
+
+给定光滑 $k(s)$，先令 $\theta(s)=\theta_0+\int_{s_0}^s k(\sigma)\dd\sigma$，再令
+\[
+ \gamma(s)=p_0+\int_{s_0}^s(\cos\theta(\sigma),\sin\theta(\sigma))\dd\sigma,
+\]
+即可构造单位速曲线，即使 $k$ 有零点也成立。若要求长度 $L$ 后光滑闭合，至少需要切向量周期和位移积分为零；只知道 $\int_0^L k\dd s\in2\pi\mathbb Z$ 不足以保证位移闭合。
+
+\section{闭曲线的旋转指标}
+\begin{definition}[旋转指标]
+设 $\gamma:\R/L\mathbb Z\to\R^2$ 为 $C^2$ 正则闭曲线，以弧长参数表示。在 $[0,L]$ 上选择连续切向角 $\theta$。由于端点切向量相同，存在整数
+\[
+ m=\frac{\theta(L)-\theta(0)}{2\pi}
+   =\frac1{2\pi}\int_0^L k\dd s,
+\]
+称为\emph{旋转指标（rotation index）}。改变 $\theta(0)$ 的 $2\pi$ 整数倍选择不影响 $m$。
+\end{definition}
+若一族闭曲线及其一阶导数连续依赖变形参数，而且始终正则，则旋转指标不变：切向量映射连续变形，角增量除以 $2\pi$ 是连续的整数值，因而只能恒定。允许切向量为零或发生非正则奇点时，这个论证失效。
+
+\begin{theorem}[简单闭曲线的转角定理]
+一条 $C^2$ 正则简单闭平面曲线若按内部在左的正向行进，则 $\int k\dd s=2\pi$；反向行进则等于 $-2\pi$。对分段 $C^2$ 的简单闭曲线，在各角点加上有符号外转角 $\alpha_j\in(-\pi,\pi)$，有
+\begin{equation}
+ \int k\dd s+\sum_j\alpha_j=2\pi.
+ \label{eq:dg-turning}
+\end{equation}
+这里要求角点处左右切向量不反向；更一般的退化角点需另外约定。
+\label{thm:dg-turning}
+\end{theorem}
+本定理的拓扑部分作为外部结论使用。证明路线是先证明正向简单多边形的总外转角为 $2\pi$，再用保持简单性的内接多边形逼近光滑曲线，使分段切向量的总转角收敛到曲率积分；保持简单性的逼近与平面分离性质是需要补充的关键，不能仅以图形直观代替。平面曲线的整体理论可沿文献~\cite{mit-notes,docarmo} 的相应主题继续学习。后文 Gauss--Bonnet 定理会明确使用这一结论。
+
+\begin{corollary}[简单闭曲线的总绝对曲率下界]
+在上述光滑简单闭曲线条件下，$\int_0^L|k|\dd s\ge2\pi$。
+\end{corollary}
+\begin{proof}
+由积分三角不等式与转角定理，$\int|k|\dd s\ge|\int k\dd s|=2\pi$。
+\end{proof}
+“简单”条件对旋转指标等于 $\pm1$ 至关重要。绕同一圆 $m$ 次的正则闭参数曲线，其曲率积分为 $2\pi m$，但不是简单闭曲线。
+
+\section{等周不等式}
+给定周长，哪条简单闭曲线围成的面积最大？这个问题把局部的速度约束与整体的面积积分联系起来。先给出所需的分析工具。
+\begin{lemma}[周期 Wirtinger 不等式]
+若 $f$ 为周期 $L$ 的 $C^1$ 实函数且 $\int_0^Lf\dd s=0$，则
+\begin{equation}
+ \int_0^L f^2\dd s\le\frac{L^2}{4\pi^2}\int_0^L(f')^2\dd s.
+ \label{eq:dg-wirtinger}
+\end{equation}
+等号当且仅当 $f(s)=a\cos(2\pi s/L)+b\sin(2\pi s/L)$。
+\label{lem:dg-wirtinger}
+\end{lemma}
+\begin{proof}
+这里使用 Fourier 分析的 Parseval 恒等式作为前置结论。零均值使常数项消失，将 $f$ 的正弦余弦系数记为 $a_n,b_n$，则 $\int f^2=(L/2)\sum_{n\ge1}(a_n^2+b_n^2)$，而 $\int(f')^2=(L/2)\sum_{n\ge1}(2\pi n/L)^2(a_n^2+b_n^2)$。逐项比较即得不等式；等号恰好要求 $n\ge2$ 的系数全为零。$C^1$ 周期函数满足这里使用的 $L^2$ 展开与导数的 Parseval 关系。
+\end{proof}
+
+\begin{theorem}[平面等周不等式]
+若 $C^2$ 正则简单闭平面曲线的长度为 $L$，所围区域面积为 $A$，则 $L^2\ge4\pi A$；等号当且仅当曲线为圆。
+\end{theorem}
+\begin{proof}
+取正向弧长参数，平移曲线使 $\int_0^L\gamma(s)\dd s=0$。Green 公式给出
+\[
+ 2A=\int_0^L(xy'-yx')\dd s
+ =\int_0^L\ip{J\gamma}{\gamma'}\dd s.
+\]
+应用 $L^2$ 空间的 Cauchy--Schwarz 不等式，再对两个坐标分别应用引理~\ref{lem:dg-wirtinger}，得到
+\[
+ 2A\le\Bigl(\int_0^L\norm\gamma^2\dd s\Bigr)^{1/2}
+          \Bigl(\int_0^L\norm{\gamma'}^2\dd s\Bigr)^{1/2}
+ \le\frac L{2\pi}\int_0^L\norm{\gamma'}^2\dd s
+ =\frac{L^2}{2\pi}.
+\]
+若等号成立，Cauchy--Schwarz 的等号条件给出 $\gamma'=cJ\gamma$，其中 $c>0$ 为常数，且单位速条件使 $\norm\gamma=1/c$ 恒定。因此曲线位于圆上；简单闭合排除重复绕行。反之，圆的周长和面积直接满足等号。
+\end{proof}
+
+\section{习题}
+\begin{exercise}\label{ex:dg-plane-ellipse}
+求逆时针椭圆 $\gamma(t)=(a\cos t,b\sin t)$，$a,b>0$，的有符号曲率，并求当 $a>b$ 时曲率的最大值与最小值。
+\end{exercise}
+\begin{exercise}\label{ex:dg-plane-closed}
+设 $k(s)$ 为周期 $L$ 的光滑函数。写出由 $k$ 构造的单位速平面曲线光滑闭合的充分必要条件，说明条件不依赖初始切向角。
+\end{exercise}
+\begin{exercise}\label{ex:dg-plane-offset}
+设单位速平面曲线的左法向为 $n$，令 $\gamma_a=\gamma+an$。在 $1-ak>0$ 的区间内求偏移曲线的弧长元与有符号曲率，并说明 $1-ak=0$ 时发生什么。
+\end{exercise}
+\begin{exercise}\label{ex:dg-plane-area}
+对 $\gamma(t)=(a\cos t,b\sin t)$ 用 Green 公式求围成面积，并结合等周不等式给出周长下界及等号条件。
+\end{exercise}
+

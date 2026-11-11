@@ -1,0 +1,206 @@
+% !TeX root = ../抽象代数笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{2} % 保留原书章号。
+\chapter{循环群与置换群}\label{ch:cyclic-permutation}
+
+循环群的每个元素都是同一元素的幂，因而其结构可以转化为整数的整除问题。置换群则直接记录对象之间的重新排列，是有限非交换群的基本模型。本章分别建立循环群的完整分类与置换的标准计算方法，并通过子群、元素阶和奇偶性识别两类结构的特征。
+
+\section{循环群及其分类}\label{sec:cyclic-classification}
+
+由上一章，循环群形如 $G=\langle g\rangle=\{g^k:k\in\mathbb Z\}$，元素 $g$ 称为一个\emph{生成元（generator）}。幂法则给出 $g^mg^n=g^{m+n}=g^{n+m}=g^ng^m$，所以每个循环群都是阿贝尔群；逆命题将在本章用反例否定。
+
+\begin{definition}[群同构]\label{def:group-isomorphism}
+设 $G,H$ 为群。若双射 $f:G\to H$ 满足 $f(ab)=f(a)f(b)$ 对所有 $a,b\in G$ 成立，则称 $f$ 为群同构，并记 $G\cong H$。
+\end{definition}
+
+同构保留单位元与逆元：由 $f(e)f(e)=f(e)$ 消去得 $f(e)=e$，再由 $f(a)f(a^{-1})=e$ 得 $f(a^{-1})=f(a)^{-1}$；这里两边的 $e$ 分别属于相应的群。逆双射也保持乘法，因为若 $y=f(a),z=f(b)$，则 $f^{-1}(yz)=ab=f^{-1}(y)f^{-1}(z)$。因此同构表示运算结构相同，而不仅是元素数量相同。一般不要求双射的结构保持映射将在第\ref{ch:quotient-groups}章系统讨论。
+
+\begin{theorem}[循环群的分类]\label{thm:cyclic-classification}
+每个无限循环群都同构于 $(\mathbb Z,+)$；每个 $n$ 阶循环群都同构于 $(\mathbb Z/n\mathbb Z,+)$。
+\end{theorem}
+\begin{proof}
+设 $G=\langle g\rangle$。若 $g$ 无限阶，映射 $k\mapsto g^k$ 从 $\mathbb Z$ 到 $G$ 满射，且由命题\ref{prop:order-divisibility}为单射；幂法则保证它把整数加法对应到群乘法。若 $|G|=n<\infty$，同一命题给出 $\operatorname{ord}(g)=n$，故 $\overline k\mapsto g^k$ 从 $\mathbb Z/n\mathbb Z$ 到 $G$ 良定义且双射，并同样保持运算。
+\end{proof}
+
+分类定理中的同构取决于生成元的选择，一般不唯一。它说明研究任意循环群时可以改用整数或剩余类计算。
+
+\begin{theorem}[循环群的子群]\label{thm:cyclic-subgroups}
+循环群的每个子群仍是循环群。更具体地，若 $H\leq\langle g\rangle$ 且 $H\ne\{e\}$，取使 $g^d\in H$ 的最小正整数 $d$，则 $H=\langle g^d\rangle$。
+\end{theorem}
+\begin{proof}
+平凡子群由 $e$ 生成。若 $H$ 非平凡，取 $g^k\in H$ 且 $g^k\ne e$；必要时取逆元，可以找到正指数，所以所述 $d$ 存在。对任意 $g^m\in H$，写 $m=qd+r$，其中 $0\leq r<d$，则 $g^r=g^m(g^d)^{-q}\in H$。若 $r>0$，与 $d$ 最小矛盾，故 $r=0$，于是 $g^m\in\langle g^d\rangle$。另一包含关系由 $g^d\in H$ 得到。
+\end{proof}
+
+\begin{proposition}[循环群中的元素阶]\label{prop:cyclic-element-order}
+若 $\operatorname{ord}(g)=n<\infty$，则对任意整数 $k$，有
+\begin{equation}\label{eq:cyclic-element-order}
+  \operatorname{ord}(g^k)=\frac{n}{\gcd(n,k)}.
+\end{equation}
+若 $g$ 无限阶，则 $k\ne0$ 时 $g^k$ 仍为无限阶。
+\end{proposition}
+\begin{proof}
+有限阶时，$(g^k)^m=e$ 等价于 $n\mid km$。记 $c=\gcd(n,k)$，约去 $c$ 并利用 $\gcd(n/c,k/c)=1$，可知这又等价于 $n/c\mid m$。最小的正整数 $m$ 因而为 $n/c$。无限阶时，若 $(g^k)^m=e$ 且 $m>0$，则 $km=0$，与 $k\ne0$ 矛盾。
+\end{proof}
+
+\section{生成元与子群格}\label{sec:cyclic-subgroup-lattice}
+
+\begin{corollary}[生成元判别]\label{cor:cyclic-generators}
+设 $G=\langle g\rangle$ 为 $n$ 阶循环群。则 $g^k$ 生成 $G$ 当且仅当 $\gcd(n,k)=1$。无限循环群 $\langle g\rangle$ 恰有两个生成元 $g,g^{-1}$。
+\end{corollary}
+\begin{proof}
+有限情形中，$g^k$ 生成 $G$ 当且仅当 $\langle g^k\rangle$ 的阶等于 $n$，使用式\eqref{eq:cyclic-element-order}即可。无限情形中，若 $g\in\langle g^k\rangle$，则 $g=g^{km}$ 对某个整数 $m$ 成立；由无限阶性有 $km=1$，所以 $k=\pm1$，两者也确实生成全群。
+\end{proof}
+
+\emph{欧拉函数（Euler's totient function）}$\varphi(n)$ 定义为 $1\leq k\leq n$ 中与 $n$ 互素的整数个数。故 $n$ 阶循环群恰有 $\varphi(n)$ 个生成元。约定 $\varphi(1)=1$，与平凡群的唯一元素生成该群相符。
+
+\begin{theorem}[有限循环群的子群分类]\label{thm:finite-cyclic-subgroups}
+设 $G=\langle g\rangle$ 的阶为 $n$。对每个正因子 $d\mid n$，$G$ 恰有一个 $d$ 阶子群
+\begin{equation}\label{eq:cyclic-subgroup-divisor}
+  H_d=\langle g^{n/d}\rangle.
+\end{equation}
+这些子群包含了 $G$ 的全部子群，并满足 $H_d\subseteq H_c$ 当且仅当 $d\mid c$。
+\end{theorem}
+\begin{proof}
+式\eqref{eq:cyclic-element-order}给出 $|H_d|=d$。若 $H$ 非平凡，按定理\ref{thm:cyclic-subgroups}写成 $\langle g^m\rangle$，其中 $m$ 是使 $g^m\in H$ 的最小正整数。对 $n$ 除以 $m$，由 $g^n=e\in H$ 与同一定理的余数论证得到 $m\mid n$，故 $|H|=n/m$，从阶即可唯一恢复 $m$。平凡子群对应 $d=1$。
+
+若 $d\mid c$，则 $g^{n/d}=(g^{n/c})^{c/d}$，故 $H_d\subseteq H_c$。反之，若包含关系成立，则 $H_d$ 的生成元作为 $H_c$ 的元素，其 $c$ 次幂为 $e$；由它的阶为 $d$ 及命题\ref{prop:order-divisibility}得 $d\mid c$。
+\end{proof}
+
+全部子群及其包含关系组成\emph{子群格（subgroup lattice）}：两个子群的最大公共子群是它们的交，包含两者的最小子群是由它们的并生成的子群。有限循环群的子群格由正因子的整除关系完全确定，特别地
+\[
+  H_d\cap H_c=H_{\gcd(d,c)},\qquad
+  \langle H_d\cup H_c\rangle=H_{\operatorname{lcm}(d,c)}.
+\]
+这些等式分别对应最大公因数与最小公倍数的整除性质。它们在一般群中没有相同形式，不能仅凭子群阶就推断子群相等。
+
+\begin{example}[十二阶循环群]
+在加法群 $\mathbb Z/12\mathbb Z$ 中，全部子群依次为
+\[
+  \langle\overline0\rangle,\quad\langle\overline6\rangle,\quad
+  \langle\overline4\rangle,\quad\langle\overline3\rangle,\quad
+  \langle\overline2\rangle,\quad\langle\overline1\rangle,
+\]
+阶分别为 $1,2,3,4,6,12$。整个群的生成元是 $\overline1,\overline5,\overline7,\overline{11}$。阶为 $3$ 与阶为 $4$ 的两个子群之交为平凡子群，但它们共同生成整个群，因为 $\gcd(3,4)=1$、$\operatorname{lcm}(3,4)=12$。
+\end{example}
+
+还可以按元素的阶对 $n$ 阶循环群计数。对每个 $d\mid n$，阶为 $d$ 的元素恰为唯一 $d$ 阶子群的生成元，所以
+\begin{equation}\label{eq:totient-divisor-sum}
+  \sum_{d\mid n}\varphi(d)=n.
+\end{equation}
+这里每个元素只计入其自身阶所对应的一项。
+
+\section{置换与循环分解}\label{sec:permutation-cycles}
+
+\begin{definition}[对称群与循环]
+集合 $\{1,\ldots,n\}$ 到自身的双射称为一个\emph{置换（permutation）}。全部这类置换在复合下组成\emph{对称群（symmetric group）}$S_n$，其中 $n\geq1$。对两两不同的 $a_1,\ldots,a_k$，记号 $(a_1\ a_2\ \cdots\ a_k)$ 表示把 $a_1$ 送到 $a_2$、依次把 $a_j$ 送到 $a_{j+1}$、把 $a_k$ 送回 $a_1$，并固定其余元素的置换，称为 $k$-循环（$k$-cycle）。
+\end{definition}
+
+$S_n$ 的阶为 $n!$，因为依次选择 $1,2,\ldots,n$ 的像时分别有 $n,n-1,\ldots,1$ 种选择。本书约定 $\sigma\tau=\sigma\circ\tau$，即先作用右侧的 $\tau$。循环写法可以循环移动起点，例如 $(1\ 3\ 2)=(3\ 2\ 1)$，但不能任意重排其中元素。
+
+\begin{theorem}[不相交循环分解]\label{thm:disjoint-cycles}
+每个 $\sigma\in S_n$ 都可分解为两两不相交的循环之积。若固定点也写为 $1$-循环，则除各循环的排列顺序及每个循环起点的选择外，分解唯一。
+\end{theorem}
+\begin{proof}
+从一个元素 $a$ 出发考察 $a,\sigma(a),\sigma^2(a),\ldots$。集合有限，必出现重复；由 $\sigma$ 可逆，重复意味着某个正整数次迭代回到 $a$。取最小这样的次数，之前各项两两不同，并形成一个循环。若尚有未出现的元素，则从该元素重复此过程。两个所得集合若相交，应用适当的 $\sigma$ 或 $\sigma^{-1}$ 就能将其中任意元素移至交点，因此两个集合实际相同；故不同集合不相交。有限步后覆盖全部元素，所得循环的乘积在每个元素上的作用与 $\sigma$ 一致。每个元素的迭代序列由 $\sigma$ 唯一确定，也就确定了它所属的循环。
+\end{proof}
+
+不相交循环可以交换，因为一个循环移动的元素全被另一个固定。循环的逆为 $(a_1\ a_k\ a_{k-1}\ \cdots\ a_2)$。固定点通常省略，恒等置换记为 $e$。
+
+\begin{proposition}[置换的阶]\label{prop:permutation-order}
+若 $\sigma$ 的不相交循环长度为 $k_1,\ldots,k_r$，则
+\[
+  \operatorname{ord}(\sigma)=\operatorname{lcm}(k_1,\ldots,k_r).
+\]
+\end{proposition}
+\begin{proof}
+在一个长度为 $k_j$ 的循环上，$\sigma^m$ 固定所有元素当且仅当 $k_j\mid m$。因此 $\sigma^m=e$ 当且仅当所有 $k_j$ 都整除 $m$，最小正解正是最小公倍数。恒等置换的所有循环长度均为 $1$，阶亦为 $1$。
+\end{proof}
+
+\begin{example}[复合与元素阶]\label{ex:permutation-products}
+设 $\sigma=(1\ 3\ 2)(4\ 5)$、$\tau=(1\ 4\ 2)$。按从右向左作用逐个追踪元素，得到
+\[
+  \sigma\tau=(1\ 5\ 4)(2\ 3),\qquad
+  \tau\sigma=(1\ 3)(2\ 4\ 5).
+\]
+例如在第一个复合中，$1\xmapsto{\tau}4\xmapsto{\sigma}5$，然后 $5\mapsto4\mapsto1$ 形成一个三循环。两个复合不同，显示 $S_5$ 不交换。$\sigma$ 的阶为 $\operatorname{lcm}(3,2)=6$，而不是两段循环长度之和。
+\end{example}
+
+\section{奇偶性与交错群}\label{sec:permutation-sign}
+
+长度为 $2$ 的循环称为\emph{对换（transposition）}。由
+\begin{equation}\label{eq:cycle-transpositions}
+  (a_1\ a_2\ \cdots\ a_k)
+  =(a_1\ a_k)(a_1\ a_{k-1})\cdots(a_1\ a_2)
+\end{equation}
+及不相交循环分解，每个置换都可写成对换的乘积。该表达并不唯一，例如可在任意位置插入两个相同的对换。要定义奇偶性，必须证明所有分解的对换数量具有相同奇偶。
+
+对 $\sigma\in S_n$，定义\emph{逆序数（inversion number）}
+\[
+  \operatorname{inv}(\sigma)
+  =\bigl|\{(i,j):1\leq i<j\leq n,\ \sigma(i)>\sigma(j)\}\bigr|.
+\]
+
+\begin{lemma}[对换改变逆序数的奇偶性]\label{lem:transposition-parity}
+若 $t$ 为对换，则 $\operatorname{inv}(\sigma t)$ 与 $\operatorname{inv}(\sigma)$ 的奇偶性相反。
+\end{lemma}
+\begin{proof}
+先设 $t=(i\ i+1)$。右乘 $t$ 把序列 $\sigma(1),\ldots,\sigma(n)$ 的两个相邻位置交换。任意其他位置都在两者同一侧，它与两者形成的逆序总数不变；只有这两个位置之间的逆序状态改变，所以逆序数改变 $1$ 或 $-1$。
+
+一般的 $t=(i\ j)$，其中 $i<j$，可写成
+\[
+  (i\ j)=(i\ i+1)(i+1\ i+2)\cdots(j-1\ j)
+  (j-2\ j-1)\cdots(i\ i+1).
+\]
+这是 $2(j-i)-1$ 个相邻对换之积；对其中每一步应用前面的结论，奇偶性改变奇数次，故总效果仍是改变奇偶性。$j=i+1$ 时后半部分为空乘积。
+\end{proof}
+
+\begin{theorem}[置换奇偶性的良定义性]\label{thm:permutation-parity}
+若 $\sigma=t_1\cdots t_m$ 是对换分解，则 $m\equiv\operatorname{inv}(\sigma)\pmod2$。因而分解中对换数的奇偶性只由 $\sigma$ 决定。
+\end{theorem}
+\begin{proof}
+从恒等置换开始依次右乘 $t_1,\ldots,t_m$，由引理\ref{lem:transposition-parity}，每次使逆序数的奇偶性改变一次。恒等置换的逆序数为 $0$，结论随即得到。
+\end{proof}
+
+\begin{definition}[符号与交错群]
+定义置换的\emph{符号（sign）}$\operatorname{sgn}(\sigma)=(-1)^{\operatorname{inv}(\sigma)}$。符号为 $1$ 的置换称为偶置换，符号为 $-1$ 的称为奇置换。全部偶置换组成的集合记为 $A_n$。
+\end{definition}
+
+\begin{proposition}[符号的乘法性]\label{prop:sign-multiplicative}
+对任意 $\sigma,\tau\in S_n$，有
+\begin{equation}\label{eq:sign-multiplicative}
+  \operatorname{sgn}(\sigma\tau)
+  =\operatorname{sgn}(\sigma)\operatorname{sgn}(\tau).
+\end{equation}
+因此 $A_n\leq S_n$，称为\emph{交错群（alternating group）}。当 $n\geq2$ 时，$|A_n|=n!/2$。
+\end{proposition}
+\begin{proof}
+分别把 $\sigma,\tau$ 写成 $r,s$ 个对换的乘积，拼接后给出 $\sigma\tau$ 的 $r+s$ 个对换分解，由定理\ref{thm:permutation-parity}得到式\eqref{eq:sign-multiplicative}。恒等置换的符号为 $1$；由 $\sigma\sigma^{-1}=e$ 得 $\operatorname{sgn}(\sigma^{-1})=\operatorname{sgn}(\sigma)$，所以偶置换对乘法及取逆封闭，构成子群。固定一个对换 $t$，映射 $\sigma\mapsto t\sigma$ 在奇、偶置换间互换，且自身为逆，因此两类数量相同，各占 $n!/2$。
+\end{proof}
+
+式\eqref{eq:cycle-transpositions}给出 $k$-循环的符号为 $(-1)^{k-1}$。若 $\sigma$ 的不相交循环个数为 $c$，其中包含固定点对应的 $1$-循环，则
+\begin{equation}\label{eq:sign-cycle-count}
+  \operatorname{sgn}(\sigma)=(-1)^{n-c}.
+\end{equation}
+例如三循环是偶置换，四循环是奇置换。符号描述的是置换的结构，不是置换阶的奇偶性；两个不相交对换之积就是阶为 $2$ 的偶置换。
+
+\section{例题、练习与自检}
+
+\begin{example}[阿贝尔群未必循环]\label{ex:klein-four}
+在 $S_4$ 中令 $a=(1\ 2)(3\ 4)$、$b=(1\ 3)(2\ 4)$、$c=(1\ 4)(2\ 3)$。逐点计算得到 $ab=ba=c$、$bc=cb=a$、$ca=ac=b$，并且 $a^2=b^2=c^2=e$。所以 $V_4=\{e,a,b,c\}$ 是四阶阿贝尔群，称为\emph{克莱因四元群（Klein four-group）}。它不循环，因为任一元素最多生成两个元素；它也不与四阶循环群同构，因为后者含四阶元素。三种非单位元都是偶置换，故 $V_4\leq A_4$。
+\end{example}
+
+\begin{enumerate}
+  \item\label{exer:cyclic-power-orders} 设 $g$ 的阶为 $84$，求 $g^{30}$ 的阶。若 $g$ 无限阶，求 $\langle g^6\rangle\cap\langle g^{10}\rangle$ 以及 $\langle g^6,g^{10}\rangle$。
+  \item\label{exer:cyclic-eighteen} 列出 $\mathbb Z/18\mathbb Z$ 的所有子群与整个群的生成元，并判断哪些子群之间存在包含关系。
+  \item\label{exer:cyclic-involution} 证明偶数阶循环群恰有一个二阶元素，奇数阶循环群没有二阶元素。借此再次说明 $V_4$ 不循环。
+  \item\label{exer:permutation-six} 设 $\sigma=(1\ 4\ 6\ 2)(3\ 5)\in S_6$，求 $\sigma^{-1}$、$\sigma^2$、$\operatorname{ord}(\sigma)$ 与 $\operatorname{sgn}(\sigma)$。
+  \item\label{exer:symmetric-four-orders} 列出 $S_4$ 中元素所有可能的阶，并证明没有遗漏。能否找到一个六阶元素？
+  \item\label{exer:symmetric-generators} 证明每个置换都是相邻对换 $(1\ 2),(2\ 3),\ldots,(n-1\ n)$ 的乘积，再证明当 $n\geq2$ 时 $S_n$ 由 $(1\ 2)$ 与 $(1\ 2\ \cdots\ n)$ 生成。
+  \item\label{exer:small-alternating-groups} 证明 $A_3$ 是循环群，写出其全部元素；判断 $A_4$ 是否为阿贝尔群，并用具体乘积支持结论。
+  \item\label{exer:totient-and-parity} 利用式\eqref{eq:totient-divisor-sum}计算 $\varphi(12)$，再用生成元判别直接核验。说明为什么某一次对换分解的长度，不能在尚未证明定理\ref{thm:permutation-parity}时就被当作置换的不变量。
+\end{enumerate}
+
+\textbf{部分提示与结果。} 第\ref{exer:cyclic-power-orders}题结果为 $14$、$\langle g^{30}\rangle$ 和 $\langle g^2\rangle$，最后一项使用贝祖等式。第\ref{exer:cyclic-eighteen}题子群的阶为 $1,2,3,6,9,18$，生成元为 $\overline1,\overline5,\overline7,\overline{11},\overline{13},\overline{17}$。第\ref{exer:permutation-six}题平方为 $(1\ 6)(2\ 4)$，阶为 $4$，符号为 $1$。第\ref{exer:symmetric-four-orders}题按不相交循环长度对 $4$ 的分拆分析，可能的阶恰为 $1,2,3,4$。第\ref{exer:symmetric-generators}题令 $c=(1\ 2\ \cdots\ n)$，计算 $c^{i-1}(1\ 2)c^{-(i-1)}$。
+
+循环群的分类给出了“整体结构由一个生成元控制”的完整例子，置换的循环分解则把计算化为若干互不干扰的部分。下一章将对任意子群构造陪集，把这些具体计算扩展为一般的有限群计数工具。
+

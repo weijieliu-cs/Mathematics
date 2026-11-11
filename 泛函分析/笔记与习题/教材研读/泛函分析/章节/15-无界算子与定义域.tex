@@ -1,0 +1,88 @@
+% !TeX root = ../泛函分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{14} % 保留原书章号。
+\chapter{无界算子与定义域}
+\label{chap:fa-unbounded}
+
+本章为选读内容。求导在 $L^2$ 范数下不能由函数本身的大小控制，因此不适合放进处处定义的有界算子框架。正确做法是把定义域一并写入算子的定义。
+
+\section{稠密定义、闭性与可闭性}
+记线性算子为 $A:D(A)\subset H\to H$，其中 $D(A)$ 为线性子空间。若 $\overline{D(A)}=H$，称其\emph{稠密定义（densely defined）}；若图像 $G(A)$ 在 $H\times H$ 中闭，称为\emph{闭算子（closed operator）}。等价的序列条件是：$x_n\in D(A)$、$x_n\to x$、$Ax_n\to y$ 时，必有 $x\in D(A)$ 且 $Ax=y$。
+
+若图像闭包仍为某个算子的图像，则称 $A$ 可闭（closable），该算子记为 $\overline A$。一个线性图像表示单值算子的充要条件是它与竖直子空间 $\{0\}\times H$ 仅相交于零，所以可闭性等价于
+\[
+ x_n\to0,\quad Ax_n\to y\quad\Longrightarrow\quad y=0.
+\]
+
+\section{图像范数}
+“闭算子”不是说定义域本身在 $H$ 中闭，也不是说算子把闭集映成闭集。它要求输入和输出一起收敛时，极限仍在同一张图像上。只知道 $x_n\to x$ 并不能要求 $Ax_n$ 收敛；但若后者也收敛，就不允许出现一个与算子关系不符的极限。这正是微分方程中同时控制函数与导数时需要的性质。
+
+\section{图像范数}
+在 $D(A)$ 上定义 $\|x\|_A=(\|x\|^2+\|Ax\|^2)^{1/2}$，称为图像范数（graph norm）。映射 $x\mapsto(x,Ax)$ 是到 $G(A)$ 的等距同构，因此 $A$ 闭当且仅当 $D(A)$ 在图像范数下完备。
+
+\begin{example}\label{ex:fa-unbounded-diagonal}
+在 $\ell^2$ 上，令 $(Ax)_n=nx_n$，$D(A)=\{x\in\ell^2:(nx_n)\in\ell^2\}$。它稠密定义、闭而无界。
+\end{example}
+\begin{solve}
+$D(A)$ 包含 $c_{00}$，所以稠密。若 $x^{(k)}\to x$、$Ax^{(k)}\to y$，逐坐标取极限得 $y_n=nx_n$，于是 $x\in D(A)$ 且 $Ax=y$，证明闭性。又 $\|Ae_n\|=n$，故它在原 $\ell^2$ 范数下无界。图像范数则为 $(\sum_n(1+n^2)|x_n|^2)^{1/2}$。
+\end{solve}
+
+取 $x=(1/n)\in\ell^2$，它的有限截断都在 $D(A)$ 中，却按 $\ell^2$ 范数趋于不属于 $D(A)$ 的 $x$，所以定义域确实不闭。相应输出的前 $N$ 个坐标均为一，其范数为 $\sqrt N$，没有收敛；因此这不违反算子的闭性。图像范数同时惩罚输入与输出的大小，在这个更强的范数下，刚才的截断序列不是 Cauchy 序列。
+
+作为 $D(A)$ 配图像范数到 $H$ 的映射，任何这样的 $A$ 都满足 $\|Ax\|\leq\|x\|_A$。所以“无界”始终指相对于原来的环境空间范数而言，并不排斥通过改变定义域范数获得一个有界映射；改变范数同时也改变了对输入数据精度的要求。
+
+\section{无界算子的伴随}
+若 $A$ 稠密定义，规定 $y\in D(A^*)$ 当且仅当存在 $C_y<\infty$ 使
+\[
+ |\langle Ax,y\rangle|\leq C_y\|x\|\quad(x\in D(A)).
+\]
+该泛函先唯一延拓到 $H$，再由 Riesz 表示得到唯一 $A^*y$，使 $\langle Ax,y\rangle=\langle x,A^*y\rangle$。
+
+这里估计右端必须是 $\|x\|$，不能擅自改成图像范数。对任意固定 $y$，Cauchy--Schwarz 总会给出 $|\langle Ax,y\rangle|\leq\|y\|\|Ax\|\leq\|y\|\|x\|_A$，但这样的估计并不能保证存在 $H$ 中的向量代表该泛函。伴随定义域正是挑出那些可以仅由原输入范数控制的测试向量。
+
+\begin{proposition}
+伴随 $A^*$ 总是闭算子；$A$ 可闭当且仅当 $D(A^*)$ 稠密，此时 $\overline A=A^{**}$。
+\end{proposition}
+\begin{proof}
+若 $y_n\to y$、$A^*y_n\to z$，则对任意 $x\in D(A)$ 取极限，得到 $\langle Ax,y\rangle=\langle x,z\rangle$，故 $y\in D(A^*)$ 且 $A^*y=z$。
+
+在乘积 Hilbert 空间中直接由定义得到
+\[
+ G(A)^\perp=\{(-A^*y,y):y\in D(A^*)\}.
+\]
+所以 $(0,z)\in\overline{G(A)}=G(A)^{\perp\perp}$ 当且仅当 $z\perp D(A^*)$。图像闭包不含非零竖直向量，恰好等价于 $D(A^*)$ 稠密。此时再次使用同一正交关系，得到 $G(A^{**})=\overline{G(A)}$。
+\end{proof}
+
+\section{对称、自伴与本质自伴}
+稠密定义的 $A$ 称为对称（symmetric），若 $\langle Ax,y\rangle=\langle x,Ay\rangle$ 对 $x,y\in D(A)$ 成立，即 $A\subset A^*$；称为自伴，若 $D(A)=D(A^*)$ 且两算子在其上相等。若 $A$ 可闭且 $\overline A$ 自伴，称为本质自伴（essentially self-adjoint）。对称性只检验共同定义域上的恒等式，自伴性还要求定义域已经足够大。
+
+\begin{theorem}[Hellinger--Toeplitz]
+在整个 Hilbert 空间上定义的对称线性算子必有界。
+\end{theorem}
+\begin{proof}
+设 $x_n\to x$、$Ax_n\to y$。对任意 $z\in H$，由对称性得 $\langle y,z\rangle=\lim_n\langle x_n,Az\rangle=\langle Ax,z\rangle$，因此 $y=Ax$。图像闭，且定义域为整个 $H$，由闭图像定理得到有界性。
+\end{proof}
+所以真正无界的自伴算子必有真定义域。例\ref{ex:fa-unbounded-diagonal}还是自伴的：用 $x=e_n$ 测试伴随关系，迫使 $(A^*y)_n=ny_n$，其属于 $\ell^2$ 恰好给出同一个定义域。
+
+\section{边界条件决定算子}
+在一维，$H^1(0,1)$ 的元素有唯一的连续绝对连续代表，满足 $u(t)=u(0)+\int_0^tu'(s)\,\mathrm ds$。这是因为减去弱导数的积分后，剩余函数弱导数为零，故为常数。因而端点值有意义，且可进行分部积分。
+
+端点取值在 $H^1$ 范数下连续。例如对任意 $t\in[0,1]$，$|u(0)|\leq|u(t)|+\int_0^1|u'|$，对 $t$ 积分并用 Cauchy--Schwarz 得 $|u(0)|\leq\|u\|_2+\|u'\|_2$，另一个端点同理。由此，$H_0^1$ 中的函数端点为零；反向结论在区间上由零延拓、光滑逼近及端点截断得到。因此本节可把 $H_0^1(0,1)$ 识别为端点均为零的 $H^1$ 函数。这个端点识别是一维结论；一般区域的边界值需要迹理论，不能对任意 $L^2$ 函数直接使用。
+
+在复 $L^2(0,1)$ 中考虑表达式 $-\mathrm i u'$，有边界恒等式
+\[
+ \langle-\mathrm iu',v\rangle-\langle u,-\mathrm iv'\rangle
+ =-\mathrm i[u\overline v]_0^1.
+\]
+若 $D(A_0)=H_0^1(0,1)$，两端点均为零，故 $A_0$ 对称。然而测试函数检验伴随只要求 $v\in H^1(0,1)$，边界项不再限制 $v$，因此 $D(A_0^*)=H^1(0,1)$，$A_0$ 不自伴。
+
+若改为周期定义域 $D(A_{\mathrm{per}})=\{u\in H^1(0,1):u(0)=u(1)\}$，伴随关系则迫使 $v(0)=v(1)$，故 $A_{\mathrm{per}}$ 自伴。特征方程给出 $u(t)=ce^{\mathrm i\lambda t}$，周期条件给出 $\lambda=2\pi n$，$n\in\mathbb Z$。同一微分表达式配上不同定义域，确实产生不同算子。
+
+\section{习题}
+\begin{enumerate}
+ \item 证明无界对角算子的定义域在 $\ell^2$ 中不闭，却在图像范数下完备。
+ \item 对 $A(x_n)=(a_nx_n)$，其中 $a_n$ 为任意实数列，写出最大自然定义域并证明自伴性。
+ \item 核对周期微分算子的伴随定义域，说明为何只验证分部积分恒等式还不够。
+ \item 构造稠密定义但不可闭的线性算子。提示：在 $c_{00}\subset\ell^2$ 上考虑 $Ax=(\sum_nnx_n)e_1$。
+\end{enumerate}
+

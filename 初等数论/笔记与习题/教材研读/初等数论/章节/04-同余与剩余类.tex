@@ -1,0 +1,121 @@
+% !TeX root = ../初等数论笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{3} % 保留原书章号。
+\chapter{同余与剩余类}
+\label{ch:congruences}
+
+钟面上经过 $12$ 小时会回到原来的刻度；判断星期时，只关心天数除以 $7$ 的余数。同余把这种“忽略整圈，只保留余数”的运算写成严格的数学语言。它使无限多个整数归入有限个类，因而适合处理大数、周期以及整数方程的无解判定。不过，模运算中的除法需要额外条件，这是本章最应注意的区别。
+
+\section{同余关系及其基本运算}
+
+\begin{definition}
+固定整数 $m\ge2$。若 $m\mid(a-b)$，称整数 $a,b$ 模 $m$ \emph{同余（congruent）}，记为 $a\equiv b\pmod m$。
+\end{definition}
+
+由带余除法，两个整数同余当且仅当它们除以 $m$ 的余数相同。整除的基本性质给出自反性、对称性与传递性，故同余是等价关系。需要模 $1$ 时，约定任意两个整数都同余。
+
+例如 $17\equiv5\pmod{12}$，因为 $17-5=12$；也有 $-7\equiv5\pmod{12}$，因为 $-7-5=-12$。这里并没有说 $17=5$，而是说它们保留的余数信息相同。表达式 $a\bmod m$ 在计算语境中通常指 $a$ 的最小非负余数，是一个具体整数；$a\equiv b\pmod m$ 则是比较两个整数的命题。严格区分这两种用法，可以避免把剩余类与代表元混为一谈。
+
+\begin{proposition}
+若 $a\equiv b\pmod m$、$c\equiv d\pmod m$，则 $a\pm c\equiv b\pm d\pmod m$ 且 $ac\equiv bd\pmod m$。因而对每个整系数多项式 $f$，$f(a)\equiv f(b)\pmod m$。
+\end{proposition}
+\begin{proof}
+和差结论直接来自差的整除性；乘积使用 $ac-bd=c(a-b)+b(c-d)$。重复使用乘法与加法即可得到多项式结论。
+\end{proof}
+
+例如 $10\equiv-1\pmod{11}$，所以 $10^{2k}\equiv1$、$10^{2k+1}\equiv-1\pmod{11}$。取余可在运算的每一步进行，不必先算出大整数。
+
+\section{同余约分与条件的作用}
+
+\begin{proposition}[约分法则]
+\label{prop:congruence-cancellation}
+设 $a,b,c\in\mathbb Z$、$m\ge2$，$d=\gcd(c,m)$。则
+\begin{equation}
+ ac\equiv bc\pmod m
+ \quad\Longleftrightarrow\quad
+ a\equiv b\pmod{m/d}.
+ \label{eq:congruence-cancellation}
+\end{equation}
+\end{proposition}
+\begin{proof}
+写 $c=dc',m=dm'$，则 $\gcd(c',m')=1$。原条件等价于 $m'\mid c'(a-b)$，由互素消去又等价于 $m'\mid a-b$；$m'=1$ 时也成立。
+\end{proof}
+
+因此，只有已知 $\gcd(c,m)=1$ 时，才能普遍地约去 $c$ 而保留模数。例如 $2\cdot1\equiv2\cdot4\pmod6$，约分后得到 $1\equiv4\pmod3$，不能得到模 $6$ 的同余。另一个常用规则是：若 $n\mid m$，则模 $m$ 同余蕴含模 $n$ 同余，反向通常不成立。
+
+\begin{example}[约分同时改变了什么]
+从 $12x\equiv18\pmod{30}$ 出发求解，并解释为什么不能直接写成 $2x\equiv3\pmod{30}$。
+\end{example}
+\begin{solve}
+原式表示 $30\mid6(2x-3)$，等价于 $5\mid2x-3$，故应写为 $2x\equiv3\pmod5$。由于 $2\cdot3\equiv1\pmod5$，两边乘以 $3$ 得 $x\equiv4\pmod5$。例如 $x=4$ 满足原式，却不满足错误的 $2x\equiv3\pmod{30}$。若约去的数与模数有公因子，除去系数中的因子时，也必须除去模数中相应的公因子。
+\end{solve}
+
+\section{剩余类、剩余系与模逆元}
+
+\begin{definition}
+整数 $a$ 的模 $m$ \emph{剩余类（residue class）}为 $[a]_m=\{a+km:k\in\mathbb Z\}$。全部剩余类的集合记为 $\mathbb Z/m\mathbb Z$。每类各选一个代表元所得的集合称为完全剩余系（complete residue system）。
+\end{definition}
+
+$0,1,\ldots,m-1$ 构成完全剩余系，所以恰有 $m$ 个类。定义 $[a]_m+[b]_m=[a+b]_m$、$[a]_m[b]_m=[ab]_m$；前节的保同余性质保证结果不依赖代表元。
+
+“不依赖代表元”是定义这两种运算必须验证的条件。例如模 $5$ 有 $[2]_5=[7]_5$、$[4]_5=[-1]_5$，用前一组代表元相加得到 $[6]_5=[1]_5$，用后一组得到的也是 $[6]_5$；一般情形由同余的加法性质保证。剩余类本身是一个无穷集合，而 $2$、$7$ 只是同一集合中的不同代表。后文为简化书写，常直接用代表元表示类，但“唯一解”通常指唯一的类。
+
+\begin{theorem}[模逆元]
+\label{thm:modular-inverse}
+整数 $a$ 模 $m$ 存在逆元，即存在 $u$ 使 $au\equiv1\pmod m$，当且仅当 $\gcd(a,m)=1$；逆元在模 $m$ 意义下唯一。
+\end{theorem}
+\begin{proof}
+若 $au-mv=1$，则 $a,m$ 的每个公因数都整除 $1$，故互素。反之用贝祖等式构造 $u$。若 $au\equiv av\equiv1$，由约分法则知 $u\equiv v\pmod m$。
+\end{proof}
+
+\emph{模逆元（modular inverse）}记为 $a^{-1}\pmod m$，这里的负指数不是实数倒数。每个可逆类各选一个代表元，称为简化剩余系（reduced residue system）。模素数时每个非零类均可逆，模合数时则可能存在两个非零类相乘为零，如 $[2]_6[3]_6=[0]_6$。
+
+这样的非零类称为\emph{零因子（zero divisor）}。它解释了为什么合数模数下不能随意约分：乘以零因子可能把不同的类变成同一类。反之，乘以可逆类可以再乘其逆元恢复原类，因此不会丢失信息。模素数时的许多性质优于模合数时，根本原因正是每个非零类均可逆。
+
+\begin{example}
+求 $3$ 模 $7$ 的逆元，并比较模 $7$ 与模 $8$ 的可逆类。
+\end{example}
+\begin{solve}
+$3\cdot5-7\cdot2=1$，所以逆元为 $5$。模 $7$ 的 $1,\ldots,6$ 全部可逆；模 $8$ 只有 $1,3,5,7$ 可逆，因为这些数且仅这些数与 $8$ 互素。
+\end{solve}
+
+\section{数位、周期与同余不变量}
+
+设非负整数 $N=\sum_{j=0}^k a_j10^j$，其中 $a_j$ 为十进制数位。由 $10\equiv1\pmod9$ 与 $10\equiv-1\pmod{11}$ 得
+\[
+ N\equiv\sum_{j=0}^k a_j\pmod9,\qquad
+ N\equiv\sum_{j=0}^k(-1)^ja_j\pmod{11}.
+\]
+这分别给出数位和与交错数位和判别法；模 $3$ 同理。一般进制 $B$ 的展开可用相同方法处理。
+
+\begin{example}[用不同模数检查同一个整数]
+判断 $72831$ 是否被 $9$ 与 $11$ 整除。
+\end{example}
+\begin{solve}
+数位和为 $7+2+8+3+1=21$，所以原数模 $9$ 余 $3$，不能被 $9$ 整除。从个位起作交错和，得到 $1-3+8-2+7=11$，所以原数被 $11$ 整除。相同的十进制展开在不同模数下保留不同信息；一个判别法失败，不影响另一个判别法成立。
+\end{solve}
+
+幂序列 $1,a,a^2,\ldots$ 模 $m$ 只有有限个状态，故存在 $0\le i<j$ 使 $a^i\equiv a^j$；之后乘以相同的幂，得到从第 $i$ 项起的周期性。若 $a$ 可逆，则可约去 $a^i$，得到从起点开始的周期性。一般底数只有最终周期性，例如模 $8$ 的 $1,2,4,0,0,\ldots$。
+
+\begin{example}
+证明 $x^2+y^2=4z+3$ 没有整数解。
+\end{example}
+\begin{proof}
+偶数平方模 $4$ 余 $0$，奇数平方模 $4$ 余 $1$，所以两平方和只能余 $0,1,2$，而右侧余 $3$，矛盾。
+\end{proof}
+
+\section{习题}
+
+同余的加、减、乘总能保持余数信息，约分却可能改变模数。可逆类允许恢复乘法前的信息，零因子则可能合并不同类。用同余排除整数解时，应明确列出所有可能余数，避免只检查几个样本。
+
+\begin{enumerate}
+ \item 求 $17$ 模 $43$ 的逆元。
+ \item 证明任意 $n+1$ 个整数中有两个之差被 $n$ 整除，其中 $n\ge1$。
+ \item 求整数平方模 $8$ 的全部可能余数，并证明奇数平方模 $8$ 均余 $1$。
+ \item 对进制 $B\ge2$，推导模 $B-1$ 与模 $B+1$ 的数位判别法。
+ \item\label{ex:cong-cancel} 求 $4x\equiv4\pmod{12}$ 的全部解类，并指出把 $4$ 直接约去但保留模数会漏掉哪些解。
+ \item\label{ex:cong-obstruction} 证明 $x^2+1=3y$ 没有整数解；再判断 $x^2+1=5y$ 是否有整数解。
+ \item\label{ex:cong-last-digit} 求 $7^{2026}$ 的个位数，写出所使用的余数周期。
+ \item\label{ex:cong-palindrome} 证明十进制下位数为偶数的回文整数都被 $11$ 整除。回文是指从左向右与从右向左读数位相同。
+\end{enumerate}
+

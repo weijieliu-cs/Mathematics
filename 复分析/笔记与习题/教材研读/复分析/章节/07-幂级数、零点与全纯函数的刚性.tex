@@ -1,0 +1,165 @@
+% !TeX root = ../复分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{6} % 保留原书章号。
+\chapter{幂级数、零点与全纯函数的刚性}
+\label{chap:ca-series}
+
+\section{复数项级数与一致收敛}
+
+复数项级数 $\sum_{n=0}^\infty c_n$ 的收敛定义为部分和收敛；它等价于实部、虚部级数分别收敛。若 $\sum|c_n|<\infty$，称为绝对收敛，绝对收敛蕴含收敛。这些结论都来自复数模与欧氏距离的一致性。
+
+\begin{definition}[一致收敛与局部一致收敛]
+函数列 $f_n$ 在集合 $E$ 上\emph{一致收敛（uniform convergence）}到 $f$，指对任意 $\varepsilon>0$，存在只依赖 $\varepsilon$ 的 $N$，使所有 $n\ge N$ 和所有 $z\in E$ 都有 $|f_n(z)-f(z)|<\varepsilon$。若在开集的每个紧子集上一致收敛，称为\emph{局部一致收敛（locally uniform convergence）}。
+\end{definition}
+
+逐点收敛允许 $N$ 随点改变，一致收敛要求同一个 $N$ 控制所有点。对函数项级数，一致收敛指其部分和一致收敛。常用的魏尔斯特拉斯判别法是：若 $|g_n(z)|\le M_n$ 对所有 $z\in E$ 成立，且非负数级数 $\sum M_n$ 收敛，则 $\sum g_n$ 在 $E$ 绝对且一致收敛。证明直接用尾和估计 $\sup_E|\sum_{n=p}^qg_n|\le\sum_{n=p}^qM_n$。
+
+\section{幂级数的收敛半径}
+
+\begin{definition}[幂级数]
+以 $a$ 为中心的\emph{幂级数（power series）}是形如 $\sum_{n=0}^\infty c_n(z-a)^n$ 的级数，其中系数 $c_n\in\mathbb C$。
+\end{definition}
+
+\begin{theorem}[收敛半径公式]
+\label{thm:ca-radius}
+令 $L=\limsup_{n\to\infty}|c_n|^{1/n}$，取 $R=1/L$，并约定 $1/0=\infty$、$1/\infty=0$。则幂级数在 $|z-a|<R$ 绝对收敛，在 $|z-a|>R$ 发散，并在每个闭圆盘 $|z-a|\le r<R$ 上一致收敛。$R$ 称为收敛半径；边界 $|z-a|=R$ 上的情况须另行判断。
+\end{theorem}
+\begin{proof}
+若 $r<R$，选取 $s$ 满足 $r<s<R$。由上极限定义，对充分大的 $n$，有 $|c_n|^{1/n}<1/s$，故 $|c_n(z-a)^n|\le(r/s)^n$。等比级数判别给出绝对且一致收敛。若 $|z-a|>R$，则 $\limsup|c_n(z-a)^n|^{1/n}=|z-a|L>1$，一般项甚至不趋于零，故发散。$L=0$ 或 $\infty$ 的情形用同样的内外半径比较处理。
+\end{proof}
+
+当系数比值有极限且表达式有意义时，可用 $R=\lim|c_n/c_{n+1}|$；但系数含零或比值振荡时，根值的上极限公式更可靠。例如 $\sum z^{2n}=1+z^2+z^4+\cdots$ 的奇次系数均为零，仍有收敛半径 $1$。级数 $\sum_{n=1}^\infty z^n/n$ 也有半径 $1$，但在 $z=1$ 发散，在 $z=-1$ 条件收敛，说明圆周上的点不能一概而论。
+
+\section{从柯西公式得到泰勒展开}
+
+\begin{theorem}[泰勒定理与解析性]
+\label{thm:ca-taylor}
+若 $f$ 在圆盘 $B(a,R)$ 全纯，则对 $|z-a|<R$，
+\begin{equation}
+ f(z)=\sum_{n=0}^\infty\frac{f^{(n)}(a)}{n!}(z-a)^n,
+ \label{eq:ca-taylor}
+\end{equation}
+且级数在每个较小闭圆盘上一致收敛。这称为以 $a$ 为中心的\emph{泰勒展开（Taylor expansion）}。
+\end{theorem}
+\begin{proof}
+取 $|z-a|<\rho<R$。在积分圆 $|\zeta-a|=\rho$ 上，几何级数给出
+\[
+ \frac1{\zeta-z}
+ =\frac1{\zeta-a}\frac1{1-(z-a)/(\zeta-a)}
+ =\sum_{n=0}^\infty\frac{(z-a)^n}{(\zeta-a)^{n+1}}.
+\]
+若 $|z-a|\le r<\rho$，该级数在积分圆和这个闭圆盘上由比值 $r/\rho<1$ 统一控制。代入柯西积分公式并逐项积分，再用高阶导数公式，得到系数 $f^{(n)}(a)/n!$。一致收敛也由相同的几何估计得到。
+\end{proof}
+
+反过来，一个幂级数在其收敛圆盘内表示全纯函数，并可逐项微分。为了说明微分的合法性，取 $r<s<R$，则 $|c_n|s^n$ 有界，因此 $n|c_n|r^{n-1}$ 由常数乘以 $n(r/s)^{n-1}$ 控制，导数级数在较小闭圆盘上一致收敛。对部分和沿短线段使用积分基本定理，再取一致极限，可知极限函数的导数就是导数级数。逐项积分则直接由曲线上的一致收敛保证。因此“全纯”与“局部可以展开成收敛幂级数的解析函数”在一复变量中等价。
+
+泰勒系数是唯一的，因为对级数逐项微分后代入中心，就得到 $c_n=f^{(n)}(a)/n!$。若 $M_\rho=\max_{|\zeta-a|=\rho}|f(\zeta)|$，柯西估计还给出截断误差
+\begin{equation}
+ \left|f(z)-\sum_{n=0}^{N}\frac{f^{(n)}(a)}{n!}(z-a)^n\right|
+ \le M_\rho\frac{(r/\rho)^{N+1}}{1-r/\rho},\qquad |z-a|\le r<\rho.
+ \label{eq:ca-taylor-error}
+\end{equation}
+这使级数不仅表示函数，还能用于带误差控制的数值近似。
+
+常用展开为
+\[
+ e^z=\sum_{n=0}^\infty\frac{z^n}{n!},\qquad
+ \sin z=\sum_{n=0}^\infty\frac{(-1)^nz^{2n+1}}{(2n+1)!},\qquad
+ \cos z=\sum_{n=0}^\infty\frac{(-1)^nz^{2n}}{(2n)!},
+\]
+三者收敛半径均为无穷。由等比级数逐项积分还得到
+\[
+ \operatorname{Log}(1+z)=\sum_{n=1}^\infty\frac{(-1)^{n-1}}n z^n,
+ \qquad |z|<1.
+\]
+这里 $1+z$ 位于右半平面，使用在 $z=0$ 取值为零的对数分支；微分后的级数为 $1/(1+z)$，再比较中心值确定积分常数。
+
+\begin{example}[实轴上的光滑不能决定泰勒半径]
+求 $f(z)=1/(1+z^2)$ 在 $0$ 的泰勒展开，并解释其收敛范围。
+\end{example}
+\begin{solve}
+等比级数给出 $f(z)=\sum_{n=0}^\infty(-1)^nz^{2n}$，条件为 $|z|<1$。虽然实函数 $1/(1+x^2)$ 对所有实数都光滑，复函数却在 $i,-i$ 处有不能消去的奇点，距离中心均为 $1$。若同一泰勒级数半径大于 $1$，其和会给出跨过这些点的全纯延拓，与奇点矛盾。因此应由复平面中的障碍判断半径，而不能只观察实轴。
+\end{solve}
+
+通常所说“收敛半径等于到最近奇点的距离”，应理解为所讨论单值全纯函数以该中心所能扩展的最大圆盘；人为缩小定义域并不会缩小一个既定幂级数的实际收敛半径，涉及多值延拓时还必须说明分支。
+
+\section{全纯函数列的极限}
+
+\begin{theorem}[局部一致极限定理]
+\label{thm:ca-uniform-limit}
+若 $f_n$ 在开集 $U$ 全纯，且局部一致收敛到 $f$，则 $f$ 全纯；对每个固定整数 $k\ge1$，$f_n^{(k)}$ 也局部一致收敛到 $f^{(k)}$。
+\end{theorem}
+\begin{proof}
+局部一致收敛保证极限连续。对连同内部包含于 $U$ 的任意三角形，沿边界的一致收敛使积分与极限可交换，故极限函数的边界积分为零，由莫雷拉定理知 $f$ 全纯。对紧集 $K\subset U$，可取统一的小半径 $r>0$，使以 $K$ 中每一点为中心的闭圆盘都位于 $U$，这些圆盘的并仍包含于一个紧子集。对差函数 $f_n-f$ 用柯西估计，得到
+\[
+ \sup_{a\in K}|f_n^{(k)}(a)-f^{(k)}(a)|
+ \le\frac{k!}{r^k}\sup_{\operatorname{dist}(z,K)\le r}|f_n(z)-f(z)|\longrightarrow0.
+\]
+\end{proof}
+
+这个定理远强于一般实函数的一致收敛结论。使用时要检查紧集上的一致控制，不能把“每个点都收敛”直接当成“导数也收敛”。
+
+\section{零点的阶与恒等定理}
+
+\begin{definition}[零点的阶]
+设 $f$ 在 $a$ 附近全纯。若 $f(a)=\cdots=f^{(m-1)}(a)=0$ 而 $f^{(m)}(a)\ne0$，则称 $a$ 为 $f$ 的 $m$ 阶零点（zero of order $m$），或重数为 $m$ 的零点。$m=1$ 时称简单零点。
+\end{definition}
+
+泰勒展开立即给出局部分解
+\begin{equation}
+ f(z)=(z-a)^m g(z),\qquad g\text{ 在 }a\text{ 附近全纯},\quad g(a)\ne0.
+ \label{eq:ca-zero-factor}
+\end{equation}
+由连续性，$g$ 在足够小的圆盘内没有零点，故 $a$ 是该圆盘内 $f$ 的唯一零点。如果所有阶导数都为零，则 $f$ 在某个圆盘恒为零。二者形成全纯函数零点结构的基本分岔。
+
+\begin{theorem}[恒等定理]
+\label{thm:ca-identity}
+设 $f,g$ 在区域 $D$ 全纯。如果集合 $\{z\in D:f(z)=g(z)\}$ 在 $D$ 内有聚点，则 $f\equiv g$。特别地，非常数全纯函数减去任意常数所得的零点在 $D$ 内都是孤立的。
+\end{theorem}
+\begin{proof}
+令 $h=f-g$。若零点在 $a\in D$ 聚集，局部分解排除了有限阶零点的可能，所以 $h$ 的所有泰勒系数均为零，$h$ 在 $a$ 附近恒为零。令 $E$ 为 $D$ 中使 $h$ 在其邻域恒为零的点集。它非空且开。若 $a_j\in E$ 且 $a_j\to a\in D$，则各阶导数连续性给出 $h^{(n)}(a)=0$，所以 $a\in E$，故 $E$ 在 $D$ 内也闭。由连通性 $E=D$。
+\end{proof}
+
+聚点必须落在区域内部。例如 $\sin(\pi/z)$ 在 $\mathbb C\setminus\{0\}$ 全纯，在 $z=1/n$ 处为零，却不恒为零，因为这些零点的聚点 $0$ 不在定义域中。另一方面，只要在区域内一小段实区间上知道两个全纯函数相等，就足以决定它们在整个连通区域相等；不必在二维开集中逐点验证。
+
+\section{最大模原理与施瓦茨引理}
+
+\begin{theorem}[最大模原理]
+\label{thm:ca-maximum}
+设 $f$ 在区域 $D$ 全纯。若 $|f|$ 在某个内点取得局部最大值，则 $f$ 为常数。因此，若 $D$ 有界、$f$ 在 $\overline D$ 连续且在 $D$ 全纯，则 $\max_{\overline D}|f|=\max_{\partial D}|f|$。
+\end{theorem}
+\begin{proof}
+设 $a$ 为局部最大点。若 $f(a)=0$，则小邻域内 $|f|\le0$，由恒等定理得结论。若 $f(a)\ne0$，写 $f(a)=Me^{i\alpha}$。取足够小的圆，柯西公式化为平均值式
+\[
+ M=\frac1{2\pi}\int_0^{2\pi}e^{-i\alpha}f(a+re^{it})\,\mathrm dt.
+\]
+取实部后，被积函数处处不超过 $M$，平均值却为 $M$；连续性迫使实部处处等于 $M$。又因模不超过 $M$，虚部必须为零。因此圆周上 $f\equiv f(a)$，恒等定理推出 $D$ 上恒定。对有界区域，连续性保证闭包上的最大值存在；若最大值只在内部取得，前一结论仍使它在边界取到。
+\end{proof}
+
+若全纯函数在区域内没有零点，对 $1/f$ 应用最大模原理可得最小模原理：非常数、无零点全纯函数的模不能在内部取得局部最小值。无零点条件不可省略，$f(z)=z$ 就在原点取得模的最小值零。
+
+\begin{theorem}[施瓦茨引理]
+\label{thm:ca-schwarz}
+若 $f:\mathbb D\to\mathbb D$ 全纯且 $f(0)=0$，则
+\[
+ |f(z)|\le|z|,\qquad |f'(0)|\le1.
+\]
+若在某个非零点第一式取等号，或第二式取等号，则 $f(z)=e^{i\theta}z$，其中 $\theta\in\mathbb R$。
+\end{theorem}
+\begin{proof}
+由泰勒展开，令 $g(z)=f(z)/z$ 并补上 $g(0)=f'(0)$ 后，$g$ 在单位圆盘全纯。对 $0<r<1$，圆周上 $|g|\le1/r$，最大模原理给出圆盘内部同样的估计。固定 $z$ 后令 $r\uparrow1$，得 $|g(z)|\le1$。若某个内点模等于 $1$，最大模原理使 $g$ 恒为一个模为 $1$ 的常数，从而得到等号情形。
+\end{proof}
+
+施瓦茨引理说明，固定原点的单位圆盘全纯自映射不能把一个点的模变大。等号只允许整体旋转，体现了全纯函数的刚性；它还将用于分类单位圆盘的双全纯自映射。
+
+\section{习题}
+\label{sec:ca-series-ex}
+\begin{enumerate}
+ \item 求 $\sum_{n=1}^\infty n z^n$ 的收敛半径和圆盘内的和。
+ \item 将 $1/(2-z)$ 在 $z=1$ 展开为泰勒级数，写出精确收敛半径。
+ \item 求 $\sin z-z$ 在原点的零点阶数；求 $(e^z-1)^2$ 在原点的零点阶数。
+ \item 设 $f$ 在单位圆盘全纯且 $f(1/n)=0$ 对所有整数 $n\ge2$ 成立，证明 $f\equiv0$；解释若点列改为 $1-1/n$，同一理由为何失效。
+ \item 设 $f:\mathbb D\to\mathbb D$ 全纯且 $f(0)=0$、$f'(0)=1$，求 $f$。
+ \item 求 $|z^2+1|$ 在闭单位圆盘上的最大值，并指出取等号的点。
+\end{enumerate}
+

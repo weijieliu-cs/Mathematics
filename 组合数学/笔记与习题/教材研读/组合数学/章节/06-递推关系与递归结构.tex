@@ -1,0 +1,68 @@
+% !TeX root = ../组合数学笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{5} % 保留原书章号。
+\chapter{递推关系与递归结构}
+\label{ch:recurrences}
+
+当大对象可以唯一地分解成较小对象时，计数自然产生\emph{递推关系（recurrence relation）}。建立递推时需先证明分解，求解递推时需另外处理初值。一个猜出的数列即使符合若干小值，也不能替代这两项工作。
+
+\section{从对象分解建立递推}
+
+用长度为 $1$ 和 $2$ 的砖覆盖 $1\times n$ 棋盘，记方案数为 $a_n$。空棋盘有一种空铺法，故 $a_0=1$；$a_1=1$。对 $n\ge2$，最后一块砖长度为 $1$ 或 $2$，删除后分别得到长度为 $n-1$ 或 $n-2$ 的铺法，而且可唯一补回。因此
+\begin{equation}
+  a_n=a_{n-1}+a_{n-2},\qquad a_0=a_1=1.
+  \label{eq:tiling-recurrence}
+\end{equation}
+前几项为 $1,1,2,3,5,8$。若 $F_0=0,F_1=1,F_n=F_{n-1}+F_{n-2}$，则 $a_n=F_{n+1}$。
+
+长度为 $n$ 且不含连续两个 $1$ 的零一串，记其数目为 $b_n$。当 $n\ge2$ 时，末位为 $0$ 的串由任意合法的 $n-1$ 位串补 $0$ 得到；末位为 $1$ 时末两位必须是 $01$，由合法的 $n-2$ 位串补 $01$ 得到。故同样有 $b_n=b_{n-1}+b_{n-2}$，但 $b_0=1,b_1=2$，所以 $b_n=F_{n+2}$。相同递推式不代表相同计数序列。
+
+\section{常系数线性递推与特征方程}
+
+设 $r\ge1$，$c_1,\ldots,c_r$ 为常数且 $c_r\ne0$，考虑
+\[
+  a_n=c_1a_{n-1}+\cdots+c_ra_{n-r}\quad(n\ge r).
+\]
+指定 $a_0,\ldots,a_{r-1}$ 后，每一后项均被唯一确定。代入 $a_n=\lambda^n$，得到\emph{特征方程（characteristic equation）} $\lambda^r-c_1\lambda^{r-1}-\cdots-c_r=0$。若有 $r$ 个不同的复根 $\lambda_1,\ldots,\lambda_r$，各指数序列都是解；前 $r$ 项组成的 Vandermonde 矩阵可逆，所以可唯一选择系数 $\alpha_j$ 匹配任意初值。唯一性给出 $a_n=\sum_j\alpha_j\lambda_j^n$。
+
+若某根 $\lambda$ 的重数为 $m$，应使用 $\lambda^n,n\lambda^n,\ldots,n^{m-1}\lambda^n$；一般形式由第\ref{ch:ogf}章的部分分式展开推出，不能仍只保留一个指数项。实系数与实初值保证共轭根的系数也配成共轭，因此最终结果为实数。
+
+\begin{example}
+式\eqref{eq:tiling-recurrence}的特征根为 $\phi=(1+\sqrt5)/2$ 与 $\psi=(1-\sqrt5)/2$，匹配初值得
+\[
+  a_n=\frac{\phi^{n+1}-\psi^{n+1}}{\sqrt5}.
+\]
+它虽然含无理数，却由递推与整数初值保证取整数。对 $u_n=2u_{n-1}-u_{n-2}$、$u_0=0,u_1=1$，特征根 $1$ 为二重根，实际解为 $u_n=n$，展示了重根多项式因子的必要性。
+\end{example}
+
+\section{非齐次递推与累积量}
+
+对 $a_n=ca_{n-1}+f(n)$（$n\ge1$），反复代入并归纳可得
+\begin{equation}
+  a_n=c^na_0+\sum_{j=1}^n c^{n-j}f(j).
+  \label{eq:inhomogeneous-recurrence}
+\end{equation}
+这个公式直接包括常数、多项式和指数驱动项。若使用待定系数法，应将候选特解代回验证；驱动项与齐次解重复时通常需要额外乘以 $n$，式\eqref{eq:inhomogeneous-recurrence}可以解释这种累积效应。
+
+\begin{example}[Hanoi 塔的最少移动次数]
+三个柱上有 $n$ 个大小不同的盘，每次移动最上面的一个，且大盘不能压在小盘上。记将完整盘堆移到指定另一柱的最少步数为 $T_n$，$T_0=0$。任何成功方案在最大盘第一次移动前，必须把上面的 $n-1$ 个盘移到第三柱；在最大盘最后一次移入目标柱后，又须把其余 $n-1$ 个盘移到它上面。这两段各至少需要 $T_{n-1}$ 步，最大盘至少移动一次，故 $T_n\ge2T_{n-1}+1$。先搬小盘、搬最大盘、再搬回小盘的递归方案达到此界，所以 $T_n=2T_{n-1}+1=2^n-1$。递推等式在此依赖下界证明和达到下界的构造。
+\end{example}
+
+\section{多状态递推与转移矩阵}
+
+若未来合法性依赖部分历史，就应把这些历史信息保留在状态中。对避免 $11$ 的零一串，令 $u_n$ 计数末位为 $0$ 的串，$v_n$ 计数末位为 $1$ 的串；把空串归入初始的零状态，取 $u_0=1,v_0=0$。则
+\[
+ \begin{pmatrix}u_{n+1}\\v_{n+1}\end{pmatrix}
+ =\begin{pmatrix}1&1\\1&0\end{pmatrix}
+  \begin{pmatrix}u_n\\v_n\end{pmatrix},\qquad b_n=u_n+v_n.
+\]
+矩阵第 $i$ 行第 $j$ 列表示从旧状态 $j$ 转移到新状态 $i$ 的选择数。一般有限状态计数可写成 $w_{n+1}=Mw_n$，解为 $w_n=M^nw_0$，最终再对接受状态求和。状态必须足以判断下一步是否合法，但无需记录对未来无影响的全部历史。
+
+\section{习题}
+\begin{enumerate}
+  \item\label{ex:recurrences-1} 求用长度 $1,2$ 的砖覆盖长度为 $8$ 的棋盘的方案数，并说明为何空棋盘初值必须为 $1$。
+  \item\label{ex:recurrences-2} 求解 $a_n=3a_{n-1}+2$、$a_0=1$，用代回与初值两项核对答案。
+  \item\label{ex:recurrences-3} 建立不含连续三个 $1$ 的长度为 $n$ 的零一串的递推与初值，计算 $n=5$ 时的数量。
+  \item\label{ex:recurrences-4} 对有重根的递推 $a_n=4a_{n-1}-4a_{n-2}$、$a_0=1,a_1=4$，求闭式并验证。
+\end{enumerate}
+

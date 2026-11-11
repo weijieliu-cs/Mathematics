@@ -1,0 +1,146 @@
+% !TeX root = ../凸优化笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{凸集}
+\label{ch:co-sets}
+
+凸集描述可以连续混合的可行方案。本章建立集合运算、投影和分离的工具；这些工具随后用于函数凸性、最优性条件和对偶理论。
+
+\section{仿射结构与凸结构}
+
+假设两份生产计划分别为 $x=(2,0)$ 与 $y=(0,4)$。按一半时间执行各计划，平均产量为 $(1,2)$；按四分之一与四分之三混合，则为 $(1/2,3)$。表达式 $\theta x+(1-\theta)y$ 正是这种混合的数学形式。若所有比例的混合都仍满足原要求，就说允许的方案集合是凸的。这里混合的是方案本身；若方案包含不可分割的设备数量，混合得到的小数可能没有实际意义。
+
+\begin{definition}
+集合 $C\subseteq\mathbb R^n$ 为仿射集（affine set），若任意 $x,y\in C$、$\theta\in\mathbb R$ 都有 $\theta x+(1-\theta)y\in C$。若只要求
+\begin{equation}
+ x,y\in C,\quad0\leq\theta\leq1
+ \quad\Longrightarrow\quad\theta x+(1-\theta)y\in C,
+ \label{eq:co-convex-set}
+\end{equation}
+则称 $C$ 为凸集（convex set）。
+\end{definition}
+
+有限和 $\sum_{i=1}^k\theta_i x_i$ 在 $\sum_i\theta_i=1$ 时称为仿射组合；再有 $\theta_i\geq0$ 时称为凸组合。凸集包含其任意有限个点的凸组合：对点数归纳，将最后一个点与其余点的归一化凸组合再次作两点凸组合即可；权重为零的点可先删去。
+
+集合 $S$ 的凸包（convex hull）$\operatorname{conv}S$ 是其所有有限凸组合组成的集合。两个凸组合的凸组合仍是凸组合，所以凸包为凸集；任何包含 $S$ 的凸集都包含这些组合，故凸包是包含 $S$ 的最小凸集。仿射包 $\operatorname{aff}S$ 同理由全部仿射组合构成。
+
+仿射组合允许负权重，所以可以越过端点；凸组合只能位于端点之间。例如 $(1-t)(0,0)+t(1,0)$ 在 $t\in\mathbb R$ 时描出整条横轴，在 $0\leq t\leq1$ 时只描出一条线段。线性子空间必须经过原点，仿射集可以平移后不经过原点，而凸集还允许有边界和弯曲轮廓。这些概念描述的是逐步放宽的几何结构。
+
+\begin{example}[从三个点得到一个三角形]
+求 $S=\{(0,0),(2,0),(0,2)\}$ 的凸包，并写成不等式形式。
+\end{example}
+\begin{solve}
+凸组合为 $(2\theta_2,2\theta_3)$，其中 $\theta_i\geq0$、$\theta_1+\theta_2+\theta_3=1$。令坐标为 $(u,v)$，得到 $u\geq0$、$v\geq0$、$u+v\leq2$。反过来，任何满足这些不等式的点都对应权重 $(1-(u+v)/2,u/2,v/2)$，所以两种表示完全等价。顶点表示便于理解“混合”，不等式表示便于检查一个方案是否可行。
+\end{solve}
+
+\begin{example}
+仿射方程组的解集 $\{x:Ax=b\}$ 是仿射集；单位圆周不是凸集，因为两个相反点的中点为原点。其凸包为单位闭圆盘：盘内非零点可由同一直径的两个端点凸组合得到，原点取相等权重即可。
+\end{example}
+
+\section{凸锥与典型集合}
+
+非空集合 $K$ 若对 $x\in K$、$t\geq0$ 有 $tx\in K$，称为锥（cone）；若还为凸集，则为凸锥（convex cone）。等价地，凸锥对非负线性组合封闭。以下集合反复出现：
+\begin{itemize}
+ \item 半空间 $\{x:a^{\mathsf T}x\leq b\}$ 与超平面 $\{x:a^{\mathsf T}x=b\}$，其中 $a\ne0$；有限个半空间和超平面的交称为多面体（polyhedron）。
+ \item 范数球 $\{x:\|x-c\|\leq r\}$，其中 $r\geq0$。三角不等式保证两点的凸组合仍在球内。椭球可写为 $\{c+Bu:\|u\|_2\leq1\}$；$B$ 可逆时它为满维椭球。
+ \item 概率单纯形 $\Delta_n=\{x\in\mathbb R_+^n:\mathbf1^{\mathsf T}x=1\}$，其中 $\mathbf1$ 为全一向量；二阶锥 $\mathcal Q_{n+1}=\{(x,t):\|x\|_2\leq t\}$。
+ \item 半正定锥 $\mathbb S_+^n$：若 $X,Y\succeq0$，则对 $\alpha,\beta\geq0$ 和任意 $v$，有 $v^{\mathsf T}(\alpha X+\beta Y)v\geq0$，故它为凸锥。
+\end{itemize}
+多面体不一定有界。非负正交锥 $\mathbb R_+^n$ 是多面体凸锥；半正定矩阵的对角元非负是必要条件，但不是半正定性的充分条件。
+
+在二维中，矩阵 $\left[\begin{smallmatrix}1&2\\2&1\end{smallmatrix}\right]$ 的对角元均为正，但沿 $v=(1,-1)^{\mathsf T}$ 的二次型为 $-2$，所以它不半正定。对称矩阵 $\left[\begin{smallmatrix}a&c\\c&b\end{smallmatrix}\right]$ 半正定的完整条件是 $a\geq0$、$b\geq0$、$ab-c^2\geq0$。矩阵序关心所有方向，而不只是坐标轴方向。
+
+\section{保凸运算与集合表示}
+
+\begin{proposition}
+凸集的任意交、笛卡尔积、仿射像、仿射原像和集合和均为凸集。
+\end{proposition}
+\begin{proof}
+若两点属于一族凸集的交，其线段属于族中每个集合，因而属于交。仿射映射 $T(x)=Ax+b$ 满足 $T(\theta x+(1-\theta)y)=\theta T(x)+(1-\theta)T(y)$，所以像和原像均保凸。对集合和 $C+D=\{c+d:c\in C,d\in D\}$，把两点凸组合分别在 $C,D$ 中展开即可；积集逐分量使用凸性。
+\end{proof}
+
+并集通常不保凸，例如 $\{-1\}\cup\{1\}$。投影是线性像，因此消去某些坐标保持凸性，但不一定保持闭性。
+
+这里的坐标投影是“忘记部分坐标”，与后文“寻找距离最近的点”不同。例如集合
+\[
+ C=\{(u,v):u>0,\ v\geq1/u\}
+\]
+凸且闭：凸性来自 $1/u$ 的凸性；若其点列在平面内收敛，极限第一坐标不可能为零，否则第二坐标必须趋于无穷，因此极限仍满足约束。然而将第二坐标消去后得到 $(0,+\infty)$，它并不闭。这个例子说明辅助变量被消去后，凸性容易保留，最小值能否取到却仍要重新检查。
+
+透视映射 $P(x,t)=x/t$ 定义于 $t>0$。若 $(x_1,t_1),(x_2,t_2)$ 属于此半空间内的凸集，为得到其像的权重 $\theta$，取原空间权重
+\[
+ \alpha=\frac{\theta t_2}{\theta t_2+(1-\theta)t_1}.
+\]
+代入可得 $P(\alpha(x_1,t_1)+(1-\alpha)(x_2,t_2))=\theta x_1/t_1+(1-\theta)x_2/t_2$，故透视像保凸。线性分式映射 $(Ax+b)/(c^{\mathsf T}x+d)$ 在分母为正的区域内是仿射映射与透视映射的复合，也保凸。
+
+\section{相对内部、闭性与投影预备}
+
+点 $x$ 为集合 $C$ 的内点，若某个以 $x$ 为中心的开球包含于 $C$。相对内部（relative interior）$\operatorname{ri}C$ 改为只要求开球与 $\operatorname{aff}C$ 的交包含于 $C$。例如 $\Delta_n$ 在 $n>1$ 时的内部为空，而相对内部由全部分量正的概率向量组成。集合包含其所有极限点时称为闭集；闭包 $\overline C$ 是包含 $C$ 的最小闭集。
+
+具体地，$\Delta_2$ 是连接 $(1,0)$ 和 $(0,1)$ 的线段。在平面中，以其中任意一点为中心的圆盘都会离开直线 $x_1+x_2=1$，所以它没有平面内点；若只沿这条直线移动，中点附近的一小段都在集合里，因此中点属于相对内部。引入这个概念，是为了在含等式约束的问题中正确表达“还有活动余地”，而不是把低维可行集误判为完全没有内部结构。
+
+闭性控制能否把极限点纳入集合，凸性控制两点之间能否连线。它们相互独立：开球凸但不闭，圆周闭但不凸。下面最近点定理同时使用闭性与凸性，前者帮助得到存在性，后者保证唯一性。
+
+\begin{theorem}[最近点存在唯一性]
+设 $C\subseteq\mathbb R^n$ 非空、闭且凸。对每个 $z\in\mathbb R^n$，存在唯一的 $u\in C$ 使 $\|z-u\|_2=\inf_{x\in C}\|z-x\|_2$。
+\label{thm:co-projection-existence}
+\end{theorem}
+\begin{proof}
+取 $x_0\in C$。寻找最近点时可限制于 $C\cap\{x:\|x-z\|_2\leq\|x_0-z\|_2\}$，这是非空紧集，连续距离函数在其上取得最小值。若不同的 $u,v$ 均为最近点，记共同平方距离为 $d^2$，则中点属于 $C$ 且
+\[
+ \left\|z-\frac{u+v}{2}\right\|_2^2
+ =\frac12\|z-u\|_2^2+\frac12\|z-v\|_2^2-\frac14\|u-v\|_2^2<d^2,
+\]
+矛盾。
+\end{proof}
+
+\section{分离与支撑超平面}
+
+平面中的直线 $a^{\mathsf T}x=\beta$ 把点按投影到法向量 $a$ 后的大小分成两侧，高维的超平面作用相同。分离定理要说明的是：如果一个点确实不属于闭凸集，就能找到一个线性不等式，集合内的点全部满足它，而这个点违反它。因而几何上的“在集合外”可以用一个线性证书表达。
+
+\begin{theorem}[点与闭凸集的严格分离]
+设 $C$ 非空闭凸且 $z\notin C$。存在 $a\ne0$、$\beta\in\mathbb R$，使 $a^{\mathsf T}x\leq\beta<a^{\mathsf T}z$ 对所有 $x\in C$ 成立。
+\end{theorem}
+\begin{proof}
+取最近点 $u$。对任意 $x\in C$，点 $u+t(x-u)$ 在 $0\leq t\leq1$ 时属于 $C$，其到 $z$ 的平方距离在 $t=0$ 处有非负右导数，故 $(z-u)^{\mathsf T}(x-u)\leq0$。令 $a=z-u\ne0$、$\beta=a^{\mathsf T}u$，则 $a^{\mathsf T}z-\beta=\|z-u\|_2^2>0$。
+\end{proof}
+
+一般分离定理断言：两个不相交的非空凸集 $C,D$ 存在 $a\ne0$、$\beta$，使 $a^{\mathsf T}x\leq\beta\leq a^{\mathsf T}y$ 对所有 $x\in C,y\in D$ 成立。此有限维定理在这里引用，证明见\cite{boyd-vandenberghe}关于分离的讨论。若一个集合紧、另一个闭，则距离取到且为正，最近点对可给出严格分离。仅有闭性而无紧性，不足以保证正距离。
+
+闭凸集 $C$ 的边界点 $u$ 存在支撑超平面（supporting hyperplane）：有 $a\ne0$ 使 $a^{\mathsf T}(x-u)\leq0$ 对所有 $x\in C$ 成立。可取趋于 $u$ 的集外点，将上述分离向量归一化后取收敛子列；极限向量仍为单位向量，极限不等式给出结论。
+
+例如单位闭球外的点 $z=(2,0)$ 的最近点为 $u=(1,0)$，法向量 $z-u=(1,0)$ 给出支撑线 $x_1=1$。球内各点满足 $x_1\leq1$，而 $z$ 满足 $x_1=2$。分离定理的证明把这个直观构造推广到了任意非空闭凸集，并不要求边界光滑。
+
+\section{广义不等式与对偶锥}
+
+正常锥（proper cone）是闭、凸、有非空内部且满足 $K\cap(-K)=\{0\}$ 的锥。定义 $x\preceq_K y$ 当且仅当 $y-x\in K$，则它具有自反性、传递性和反对称性，但两点可能不可比较。向量逐分量序和对称矩阵半正定序都是例子。集合的最小元须小于等于每个元素；极小元只要求不存在另一个不等于自身且小于等于自身的元素。
+
+凸锥 $K$ 的对偶锥（dual cone）定义为
+\begin{equation}
+ K^*=\{y:y^{\mathsf T}x\geq0\ \text{对所有 }x\in K\}.
+ \label{eq:co-dual-cone}
+\end{equation}
+它是闭半空间的交，故为闭凸锥。$\mathbb R_+^n$ 自对偶，因为可取各坐标单位向量检验符号。二阶锥也自对偶：若 $\|y\|_2\leq s$、$\|x\|_2\leq t$，则 $y^{\mathsf T}x+st\geq0$；反之取边界向量检验可得 $s\geq\|y\|_2$。$\mathbb S_+^n$ 在迹内积下自对偶：对 $X,Y\succeq0$，$\operatorname{tr}(XY)=\operatorname{tr}(X^{1/2}YX^{1/2})\geq0$；反向取 $X=vv^{\mathsf T}$ 即得 $v^{\mathsf T}Yv\geq0$。
+
+\begin{proposition}
+闭凸锥满足 $K^{**}=K$；一般凸锥满足 $K^{**}=\overline K$。
+\end{proposition}
+\begin{proof}
+由定义 $K\subseteq K^{**}$。若 $z\notin K$，严格分离给出 $a^{\mathsf T}x\leq\beta<a^{\mathsf T}z$。锥的缩放性质迫使 $a^{\mathsf T}x\leq0$ 对所有 $x\in K$，且因 $0\in K$ 有 $\beta\geq0$。于是 $-a\in K^*$ 而 $(-a)^{\mathsf T}z<0$，所以 $z\notin K^{**}$。非闭情形利用 $K^*=(\overline K)^*$ 即得。
+\end{proof}
+
+\section{例题与学习检查}
+\begin{example}[到半空间的投影]
+设 $a\ne0$，$C=\{x:a^{\mathsf T}x\leq b\}$。若 $a^{\mathsf T}z\leq b$，最近点就是 $z$；否则最近点为
+\[
+ u=z-\frac{a^{\mathsf T}z-b}{\|a\|_2^2}a.
+\]
+事实上 $a^{\mathsf T}u=b$，且任意可行 $x$ 满足 $(z-u)^{\mathsf T}(x-u)\leq0$。展开 $\|z-x\|_2^2$ 即知它不小于 $\|z-u\|_2^2$。
+\end{example}
+\begin{enumerate}
+ \item 判断 $\{x:\|Ax-b\|_2\leq1\}$、$\{x:\|x\|_2=1\}$ 是否凸，并指出退化维数可能带来的例外。
+ \item 求 $\{(x,y):x\geq0,\ 0\leq y\leq x\}$ 的对偶锥。提示：原锥由 $(1,0),(1,1)$ 生成，对偶条件为 $u\geq0,u+v\geq0$。
+ \item 证明闭凸集的相交可以没有内点，即使每个集合都有内点；再计算所得集合的相对内部。
+ \item 综合练习：将三角形 $\operatorname{conv}\{(0,0),(2,0),(0,2)\}$ 与半空间 $x_1+x_2\geq1$ 相交，写出顶点与不等式两种表示。核对结果为四边形，其顶点是 $(1,0),(2,0),(0,2),(0,1)$。
+\end{enumerate}
+

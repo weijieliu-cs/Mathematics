@@ -1,0 +1,64 @@
+% !TeX root = ../深度学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{18} % 保留原书章号。
+\chapter{概率生成建模与变分自编码器}
+\label{chap:dl-vae}
+判别任务给定输入预测目标，生成建模则研究数据分布并从中产生新样本。生成质量包含真实性与覆盖度：只输出一个看似真实的样本，并没有学会完整分布。隐变量模型通过先生成潜在因素、再生成观测来组织这一问题。
+
+\section{判别建模、生成建模与采样}
+生成模型可以定义 $p_\theta(\mathbf x)$，也可以定义带条件的 $p_\theta(\mathbf x\mid\mathbf c)$，例如根据类别或文本生成图像。显式密度使似然可作为训练或评价量；某些模型只有方便的采样程序，没有方便计算的密度。能采样、能算密度和能求训练梯度是三个不同能力，不能互相替代。
+
+给定独立观测样本，最大似然最小化平均负对数密度。连续密度依赖坐标尺度，数值大小不能直接跨预处理比较；高似然也不自动保证某个感知指标优秀。以两个分离高斯峰组成的数据为例，一个只生成其中一峰的模型可以产生许多合理样本，却遗漏另一类情况，因此还要评价模式覆盖。
+
+\section{隐变量模型与后验推断}
+设隐变量 $\mathbf Z\in\mathbb R^k$ 具有先验密度 $p(\mathbf z)$，条件模型为 $p_\theta(\mathbf x\mid\mathbf z)$，联合密度是 $p_\theta(\mathbf x,\mathbf z)=p(\mathbf z)p_\theta(\mathbf x\mid\mathbf z)$。边缘密度和后验分别为
+\[
+p_\theta(\mathbf x)=\int p(\mathbf z)p_\theta(\mathbf x\mid\mathbf z)\,d\mathbf z,
+\qquad p_\theta(\mathbf z\mid\mathbf x)=\frac{p_\theta(\mathbf x,\mathbf z)}{p_\theta(\mathbf x)}.
+\]
+后式要求分母为正。生成可先抽 $\mathbf Z$ 再抽条件观测，反向推断却需要难以计算的边缘积分。用网络给出近似后验 $q_\phi(\mathbf z\mid\mathbf x)$，使不同输入共享推断参数 $\phi$，称为摊销推断（amortized inference）。生成参数 $\theta$ 与推断参数 $\phi$ 承担不同角色。
+
+\section{证据下界及其推导条件}
+\begin{proposition}[ELBO 分解]
+固定满足 $0<p_\theta(\mathbf x)<\infty$ 的观测，设相关密度、期望存在且下式涉及的 KL 散度有限。定义\emph{证据下界（evidence lower bound, ELBO）}
+\begin{equation}
+\mathcal L_{\mathrm{ELBO}}(\theta,\phi;\mathbf x)
+=\mathbb E_{q_\phi(\mathbf Z\mid\mathbf x)}[\log p_\theta(\mathbf x\mid\mathbf Z)]
+-D_{\mathrm{KL}}(q_\phi(\mathbf Z\mid\mathbf x)\|p(\mathbf Z)).
+\label{eq:dl-elbo}
+\end{equation}
+则 $\log p_\theta(\mathbf x)=\mathcal L_{\mathrm{ELBO}}+D_{\mathrm{KL}}(q_\phi(\mathbf Z\mid\mathbf x)\|p_\theta(\mathbf Z\mid\mathbf x))\geq\mathcal L_{\mathrm{ELBO}}$。
+\end{proposition}
+\begin{proof}
+由贝叶斯分解，$\log p_\theta(\mathbf x)=\log p_\theta(\mathbf x,\mathbf z)-\log p_\theta(\mathbf z\mid\mathbf x)$。在右侧加减 $\log q_\phi(\mathbf z\mid\mathbf x)$ 后对 $q_\phi$ 积分，第一部分是 $\mathbb E_q\log p_\theta(\mathbf x\mid\mathbf Z)-D_{\mathrm{KL}}(q\|p)$，第二部分正是到真实后验的 KL 散度。非负性由离散证明的积分版本得到。
+\end{proof}
+第一项鼓励隐变量解释观测，第二项限制近似后验偏离先验。等号要求近似后验与真实后验几乎处处一致。联合最大化下界既改善生成模型又改善推断，但下界与似然可能存在间隙，因此不能把下界数值称作精确对数似然。
+
+\section{变分自编码器与重参数化}
+\emph{变分自编码器（variational autoencoder, VAE）}把上述生成器和近似后验参数化为网络\cite{kingma2013}。常用 $p(\mathbf z)=\mathcal N(\mathbf0,\mathbf I_k)$，$q_\phi=\mathcal N(\boldsymbol\mu_\phi(\mathbf x),\operatorname{diag}(\boldsymbol\sigma_\phi^2(\mathbf x)))$，各 $\sigma_j>0$。为使采样梯度能传回编码器，使用\emph{重参数化技巧（reparameterization trick）}
+\[
+\boldsymbol\epsilon\sim\mathcal N(\mathbf0,\mathbf I_k),\qquad
+\mathbf Z=\boldsymbol\mu_\phi(\mathbf x)+\boldsymbol\sigma_\phi(\mathbf x)\odot\boldsymbol\epsilon.
+\]
+随机性现在由与参数独立的 $\boldsymbol\epsilon$ 提供。若被积函数可微且邻域内导数受到可积函数控制，可交换微分与期望，得到路径导数的蒙特卡洛估计；离散采样不能无条件沿用这个可微变换。
+
+对角高斯的先验 KL 有解析式
+\begin{equation}
+D_{\mathrm{KL}}(q_\phi\|p)=\frac12\sum_{j=1}^k(\mu_j^2+\sigma_j^2-1-\log\sigma_j^2).
+\label{eq:dl-gaussian-kl}
+\end{equation}
+证明只需将两高斯对数密度相减，并使用 $\mathbb E_q[(Z_j-\mu_j)^2]=\sigma_j^2$ 和 $\mathbb E_qZ_j^2=\mu_j^2+\sigma_j^2$。条件观测若为固定方差高斯，负重建对数似然是适当缩放的平方误差；若为伯努利则是交叉熵。训练抽取数据和噪声、计算负 ELBO、反向更新 $\theta,\phi$；生成时只需先验与解码器。
+
+\section{例题与习题}
+\begin{example}[重建好不等于从先验生成好]
+一维近似后验为 $q=\mathcal N(1,1)$，先验为 $p=\mathcal N(0,1)$。计算 KL，说明该惩罚约束了什么。
+\end{example}
+\begin{solve}
+式\eqref{eq:dl-gaussian-kl}给出 $D_{\mathrm{KL}}(q\|p)=(1+1-1-0)/2=1/2$。即使编码后的点能很好重建，后验整体偏离先验仍受罚，因为生成阶段从先验取样；没有这一协调，仅在编码所得潜变量处重建好，不保证任意先验样本都被合理解码。反之，后验几乎等于先验也可能伴随模型忽略输入的后验坍塌，仍需检查潜变量的实际作用。
+\end{solve}
+\begin{enumerate}
+\item 独立推导式\eqref{eq:dl-gaussian-kl}，核对均值零、方差一时 KL 为零。
+\item 若编码器输出 $s_j=\log\sigma_j^2$，写出采样公式并解释为何尺度是 $e^{s_j/2}$。
+\item 在二维双峰数据上比较普通自编码器与 VAE，分别展示重建样本、先验采样和各模式覆盖，避免只选择好看的样本。
+\end{enumerate}
+

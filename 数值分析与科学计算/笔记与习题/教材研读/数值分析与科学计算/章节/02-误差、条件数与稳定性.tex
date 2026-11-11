@@ -1,0 +1,110 @@
+% !TeX root = ../数值分析与科学计算笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{误差、条件数与稳定性}
+\label{chap:na-errors}
+
+\section{误差的来源和衡量}
+\begin{definition}[绝对误差与相对误差]
+设 $x$ 是精确量，$\widehat x$ 是近似值。绝对误差（absolute error）为 $|\widehat x-x|$；当 $x\ne0$ 时，相对误差（relative error）为 $|\widehat x-x|/|x|$。向量情形用指定范数替代绝对值。若精确值为零，相对误差不定义，应使用绝对误差或事先约定的参考尺度。
+\end{definition}
+
+\emph{截断误差（truncation error）}来自用有限项级数、有限网格或有限差分替代无限或连续过程；\emph{舍入误差（rounding error）}来自有限精度数值表示和运算。迭代提前停止产生迭代误差。对一个固定模型，总误差可通过在精确解、精确离散解和实际计算解之间加入中间量后用三角不等式分解，但各项可能相互影响，不能假定它们总是独立随机量。
+
+\begin{example}[相同绝对误差的不同含义]
+长度 $1000$ 与 $0.001$ 都被测得绝对误差 $10^{-4}$ 时，相对误差分别为 $10^{-7}$ 与 $0.1$。前者足以支持许多相对精度要求，后者只有很粗略的相对精度。报告误差时应保留单位，或明确说明已经无量纲化。
+\end{example}
+
+\section{浮点模型与抵消}
+\label{sec:na-floating}
+规格化的基数为 $\beta$、有效位数为 $t$ 的浮点数（floating-point number）可写为 $\pm(d_0.d_1\cdots d_{t-1})_\beta\beta^e$，其中 $d_0\ne0$，指数 $e$ 位于有限范围。采用舍入到最近值且没有溢出、下溢影响时，单位舍入误差（unit roundoff）为 $u=\tfrac12\beta^{1-t}$。标准分析模型是
+\begin{equation}
+ \operatorname{fl}(a\circ b)=(a\circ b)(1+\delta),
+ \qquad |\delta|\le u,\qquad \circ\in\{+,-,\times,\div\},
+ \label{eq:na-rounding}
+\end{equation}
+除法要求 $b\ne0$，且精确结果处于该模型适用的范围。接近零的次正规数需要绝对误差模型；无穷大和非数值结果也不满足式~\eqref{eq:na-rounding}。常见二进制双精度格式的有效位数为 $53$，因此该约定下 $u=2^{-53}$；有的软件把 $1$ 与下一个较大浮点数的间距 $2^{-52}$ 称为机器精度，两种命名不能混用。
+
+\begin{proposition}[连乘的误差合并]
+若 $|\delta_j|\le u$ 且 $mu<1$，则
+\[
+ \prod_{j=1}^{m}(1+\delta_j)=1+\theta_m,
+ \qquad |\theta_m|\le\gamma_m:=\frac{mu}{1-mu}.
+\]
+\end{proposition}
+\begin{proof}
+乘积位于 $(1-u)^m$ 与 $(1+u)^m$ 之间。Bernoulli 不等式给出 $(1-u)^m\ge1-mu$。展开上界并用 $\binom mj\le m^j$，得 $(1+u)^m\le\sum_{j=0}^\infty(mu)^j=(1-mu)^{-1}$。上下两侧的偏差均不超过 $\gamma_m$。
+\end{proof}
+
+把逐项顺序求和展开为每个输入乘上一串舍入因子，可得精确输入 $a_1,\ldots,a_n$ 的求和界
+\[
+ |\operatorname{fl}(\textstyle\sum_{j=1}^n a_j)-\sum_{j=1}^n a_j|
+ \le\gamma_{n-1}\sum_{j=1}^n|a_j|,
+ \qquad (n-1)u<1.
+\]
+因此正负大数相互抵消时，绝对误差可能仍小，而相对于很小的最终和的误差很大。相近数相减并非总在该次减法中产生巨大相对舍入；危险往往在于已有输入误差相对于相减结果被放大。
+
+\begin{example}[等价公式的不同计算效果]
+当 $x>0$ 很大时，$\sqrt{x^2+1}-x$ 的两个项很接近。恒等变形给出
+\[
+ \sqrt{x^2+1}-x=\frac1{\sqrt{x^2+1}+x}.
+\]
+右式避免了最后一步抵消。若 $x^2$ 可能溢出，还应使用带尺度处理的平方和开方例程，而不能只做有理化。另一例是小 $x$ 时的 $\exp(x)-1$，应使用针对该表达式设计的函数或适当级数，而非先计算接近 $1$ 的指数值再相减。
+\end{example}
+
+\section{范数与扰动的尺度}
+\label{sec:na-norms}
+\begin{definition}[向量范数与诱导矩阵范数]
+向量范数（vector norm）满足正定性、绝对齐次性和三角不等式。对 $x\in\mathbb R^n$，常用
+\[
+ \|x\|_1=\sum_i|x_i|,\quad
+ \|x\|_2=(\sum_i x_i^2)^{1/2},\quad
+ \|x\|_\infty=\max_i|x_i|.
+\]
+对应的诱导矩阵范数（induced matrix norm）定义为 $\|A\|=\max_{x\ne0}\|Ax\|/\|x\|$。于是 $\|Ax\|\le\|A\|\|x\|$ 且 $\|AB\|\le\|A\|\|B\|$。
+\end{definition}
+具体地，$\|A\|_1=\max_j\sum_i|a_{ij}|$，$\|A\|_\infty=\max_i\sum_j|a_{ij}|$，$\|A\|_2=\sqrt{\lambda_{\max}(A^{\mathsf T}A)}$。后式来自对称矩阵正交谱分解与 Rayleigh 商。矩阵的 Frobenius 范数 $\|A\|_F=(\sum_{i,j}|a_{ij}|^2)^{1/2}$ 不是这里的诱导二范数，使用时应保留下标。
+
+\section{问题的条件与算法的稳定性}
+\label{sec:na-conditioning}
+\begin{definition}[局部条件数]
+若 $F$ 在 $x$ 附近可微，则数据扰动的绝对放大率由 $\|DF(x)\|$ 衡量。若 $x\ne0$ 且 $F(x)\ne0$，局部相对条件数（local relative condition number）定义为
+\[
+ \kappa_F(x)=\frac{\|DF(x)\|\|x\|}{\|F(x)\|}.
+\]
+标量情形为 $|xF'(x)/F(x)|$。它描述充分小、无结构限制的扰动的一阶最坏影响；允许扰动的集合改变时，条件数也可能改变。
+\end{definition}
+
+\begin{definition}[前向误差、后向误差与后向稳定]
+求 $y=F(x)$ 得到 $\widehat y$ 时，$\|\widehat y-y\|$ 是前向误差（forward error）。若存在 $\Delta x$ 使 $\widehat y=F(x+\Delta x)$，则可以用最小的允许扰动大小衡量后向误差（backward error）。算法若使相对后向误差至多为 $Cu$，其中 $C$ 对给定维数受控且不随数据病态程度任意增大，称其在相应误差模型下后向稳定（backward stable）。
+\end{definition}
+
+小后向误差通过条件数转化为前向误差，因此常用关系是“相对前向误差约不超过条件数乘相对后向误差”，其中“约”指小扰动的一阶估计。病态问题即使使用稳定算法，仍可能有很大前向误差。稳定性也有分量意义、范数意义及保持结构的版本，不能只给算法贴上“稳定”标签而省略具体含义。
+
+\begin{example}[相减问题的条件数]
+令 $F(a,b)=a-b$，在输入采用无穷范数、输出采用绝对值时，$\|DF\|=2$，因而相对条件数为 $2\max(|a|,|b|)/|a-b|$。若改用逐分量相对扰动 $|\Delta a|\le\eta|a|$、$|\Delta b|\le\eta|b|$，放大率变为 $(|a|+|b|)/|a-b|$。两者都说明接近相等的数据相减容易放大已有误差，但数值表达式因扰动模型不同而不同。
+\end{example}
+
+\section{收敛阶与误差估计}
+\begin{definition}[迭代的收敛阶]
+设 $x_k\to x_*$，且误差从某步起非零。若存在 $p\ge1$ 与 $0<C<\infty$，满足
+\[
+ \lim_{k\to\infty}\frac{|x_{k+1}-x_*|}{|x_k-x_*|^p}=C,
+\]
+则称收敛阶为 $p$；$p=1$ 时还要求 $C<1$ 才称线性收敛，$p=2$ 时称二次收敛。若仅有 $|e_{k+1}|\le C|e_k|^p$，一般表述为至少具有相应局部误差上界，不据此断言极限恰等于一个正数。
+\end{definition}
+
+网格方法的 $p$ 阶精度通常指 $E(h)=O(h^p)$，不同于迭代次数意义下的收敛阶。若 $E(h)=Ch^p+o(h^p)$ 且 $C\ne0$，误差比可估计阶数；没有精确解时，用三个逐次减半的网格结果 $A_h,A_{h/2},A_{h/4}$ 构造
+\[
+ p_{\mathrm{obs}}=\log_2\frac{|A_h-A_{h/2}|}{|A_{h/2}-A_{h/4}|}.
+\]
+这一估计要求进入同一渐近区间且差值未被舍入主导，不能在差值为零时直接使用。
+
+\section{习题}
+\begin{enumerate}[label=\arabic*.]
+\item\label{exr:na-error-rational} 将 $1-\cos x$ 改写成适于小 $x$ 的表达式，并解释改写解决的是哪种误差。
+\item\label{exr:na-error-norm} 计算 $A=\begin{pmatrix}1&-2\\3&4\end{pmatrix}$ 的一范数、无穷范数和 Frobenius 范数。
+\item\label{exr:na-error-condition} 求 $F(x)=\sqrt x$ 在 $x>0$ 时的绝对与相对条件数；说明为什么接近零时两个结论不矛盾。
+\item\label{exr:na-error-balance} 设总误差上界为 $C_1h^2+C_2u/h$，其中 $C_1,C_2>0$。求使此上界最小的 $h$，并说明不能据此保证实际误差在该点取最小值。
+\end{enumerate}
+

@@ -1,0 +1,131 @@
+% !TeX root = ../泛函分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{11} % 保留原书章号。
+\chapter{紧自伴算子的谱分解}
+\label{chap:fa-compact-spectral}
+
+本章把有限维对称矩阵的正交对角化推广到紧自伴算子。紧性保证能够从近似特征向量中提取极限，自伴性保证不同特征方向正交，两者结合得到可用于计算的展开。以下几何证明同时适用于实、复 Hilbert 空间；因此尚未学习复分析的读者，也可以先读本章的离散谱分解，再回头学习一般有界算子的谱理论。
+
+\section{特征值与正交性}
+若 $Tx=\lambda x$、$x\ne0$，且 $T=T^*$，则
+\[
+ \lambda\|x\|^2=\langle Tx,x\rangle
+ =\langle x,Tx\rangle=\overline\lambda\|x\|^2,
+\]
+所以 $\lambda$ 为实数。若 $Ty=\mu y$，$\lambda\ne\mu$，则 $(\lambda-\mu)\langle x,y\rangle=0$，故 $x\perp y$。某个特征空间的正交补在 $T$ 下保持不变，因为对该特征空间中的 $e$，$\langle Tx,e\rangle=\langle x,Te\rangle=0$。
+
+\section{极值与非零特征值}
+\begin{proposition}\label{prop:fa-compact-extreme}
+非零紧自伴算子 $T$ 有特征值 $\lambda$ 满足 $|\lambda|=\|T\|$。因此
+\[
+ \max_{\|x\|=1}|\langle Tx,x\rangle|=\|T\|.
+\]
+\end{proposition}
+\begin{proof}
+先证明对任意有界自伴算子，都有
+\[
+ m:=\sup_{\|x\|=1}|\langle Tx,x\rangle|=\|T\|.
+\]
+由 Cauchy--Schwarz 知 $m\leq\|T\|$。反向取单位向量 $x,y$，必要时给 $y$ 乘一个模为一的标量，使 $\langle Tx,y\rangle$ 为非负实数。记 $q(z)=\langle Tz,z\rangle$，利用自伴性和平行四边形恒等式，得到
+\[
+ |\langle Tx,y\rangle|
+ =\frac14\bigl(q(x+y)-q(x-y)\bigr)
+ \leq\frac m4\bigl(\|x+y\|^2+\|x-y\|^2\bigr)=m.
+\]
+对 $y$ 取上确界，再对 $x$ 取上确界，便得 $\|T\|\leq m$。实情形只需必要时把 $y$ 换为 $-y$。
+
+因 $T\ne0$，$m>0$。选单位向量 $x_n$ 使 $|q(x_n)|\to m$，再取子列，使 $q(x_n)\to\lambda$，其中 $\lambda=m$ 或 $-m$。由于 $\|Tx_n\|\leq m$，
+\[
+ \|Tx_n-\lambda x_n\|^2
+ =\|Tx_n\|^2-2\lambda q(x_n)+\lambda^2
+ \leq 2m^2-2\lambda q(x_n)\longrightarrow0.
+\]
+紧性给出 $Tx_n$ 的收敛子列；上式与 $\lambda\ne0$ 又使相应的 $x_n$ 收敛到某个单位向量 $x$。取极限得 $Tx=\lambda x$，于是极值达到，且 $|\lambda|=\|T\|$。
+\end{proof}
+这段证明只用了 Hilbert 空间的几何与紧性，没有依赖复分析，因此也直接适用于实 Hilbert 空间。关键是先把接近二次型极值的向量变成近似特征向量，再借助紧算子的输出收敛推出输入收敛；并没有把整个单位球当作范数紧集。
+
+\section{紧自伴谱定理}
+\begin{theorem}\label{thm:fa-compact-spectral}
+设 $T$ 为可分 Hilbert 空间 $H$ 上的紧自伴算子。其非零特征值可按重数列为有限列或可数列 $(\lambda_n)$，相应标准正交特征向量为 $(e_n)$，并且
+\[
+ H=\ker T\oplus\overline{\operatorname{span}\{e_n\}}.
+\]
+若列无穷，则 $\lambda_n\to0$；对任意 $x\in H$，
+\begin{equation}
+ Tx=\sum_n\lambda_n\langle x,e_n\rangle e_n,
+ \label{eq:fa-compact-spectral-expansion}
+\end{equation}
+级数按 Hilbert 范数收敛。
+\end{theorem}
+\begin{proof}
+若 $T\ne0$，由命题\ref{prop:fa-compact-extreme}选择绝对值最大的特征值及一个单位特征向量，然后把 $T$ 限制到其正交补，继续这一过程。限制仍紧且自伴。若有限步后限制为零，分解已经得到；否则得到正交列，$\|Te_n-Te_m\|^2=\lambda_n^2+\lambda_m^2$。紧性迫使 $\lambda_n\to0$。
+
+记 $M=\overline{\operatorname{span}\{e_n\}}$。任意 $x\in M^\perp$ 都属于每一步的剩余空间，其上算子范数等于下一步选出的 $|\lambda_n|$；令 $n\to\infty$ 得 $Tx=0$。反之，$x\in\ker T$ 必与所有非零特征向量正交，所以 $M^\perp=\ker T$。在 $M$ 中使用正交展开，在核中算子为零，即得式\eqref{eq:fa-compact-spectral-expansion}。
+\end{proof}
+$x$ 本身的展开应为 $x=P_{\ker T}x+\sum_n\langle x,e_n\rangle e_n$，不可遗漏核中的分量。按 $|\lambda_n|$ 递减排列时，有限秩截断 $T_Nx=\sum_{n\leq N}\lambda_n\langle x,e_n\rangle e_n$ 满足
+\[
+ \|T-T_N\|=\sup_{n>N}|\lambda_n|.
+\]
+上界由正交性得到，下界在相应特征向量上取到或逼近；有限列情形中，空尾部的上确界在此约定为零，即保留全部非零特征项后误差为零。
+
+\section{正算子的极小极大原理}
+设 $T\geq0$ 紧，非零特征值按 $\lambda_1\geq\lambda_2\geq\cdots>0$ 排列。对存在的第 $n$ 个特征值，有
+\[
+ \lambda_n=\min_{\dim L=n-1}\ \sup_{\substack{x\perp L\\\|x\|=1}}
+ \langle Tx,x\rangle.
+\]
+证明只需两个方向。取 $L=\operatorname{span}\{e_1,\ldots,e_{n-1}\}$，谱展开给出上界 $\lambda_n$；任意 $n-1$ 维的 $L$ 都使 $\operatorname{span}\{e_1,\ldots,e_n\}\cap L^\perp$ 含单位向量，该向量的二次型至少为 $\lambda_n$，得到下界。这是极小极大原理（min--max principle）的一个常用形式。
+
+当 $n=1$ 时，它就是在全部单位向量中最大化 $\langle Tx,x\rangle$。当 $n=2$ 时，先删去一个方向，再在其正交补上寻找最大的二次型；最有效的删法是删去第一特征方向，此时剩余最大值为 $\lambda_2$。一般地，删去前 $n-1$ 个最强方向，剩余最大值就是第 $n$ 个特征值。这个解释把公式中的“先上确界、再极小化”与逐个寻找特征方向联系起来。
+
+\section{奇异值与 Green 算子}
+若 $T:H_1\to H_2$ 是可分 Hilbert 空间间的紧算子，则 $T^*T$ 为正紧自伴算子。设其正特征值为 $s_n^2$，对应单位特征向量 $v_n$，定义 $u_n=Tv_n/s_n$。计算内积可知 $(u_n)$ 标准正交，并且
+\[
+ Tx=\sum_n s_n\langle x,v_n\rangle u_n.
+\]
+数 $s_n$ 称为\emph{奇异值（singular value）}。核 $\ker(T^*T)=\ker T$ 保证展开没有遗漏非零输出。按降序截断后的误差为 $s_{N+1}$。若至少有 $N+1$ 个正奇异值，任何秩至多 $N$ 的算子 $F$ 在 $\operatorname{span}\{v_1,\ldots,v_{N+1}\}$ 中都有单位核向量，故 $\|T-F\|\geq s_{N+1}$；若正奇异值只有至多 $N$ 个，截断已经等于 $T$，并约定 $s_{N+1}=0$。因此奇异值截断是算子范数下的最佳秩 $N$ 逼近。
+
+\begin{example}[区间上的 Green 算子]\label{ex:fa-green}
+在 $L^2(0,1)$ 上令
+\[
+ (Gf)(t)=\int_0^1(\min(t,s)-ts)f(s)\,\mathrm ds.
+\]
+则 $G$ 紧、自伴且单射，特征值为 $1/(n\pi)^2$，标准正交特征函数为 $e_n(t)=\sqrt2\sin(n\pi t)$。
+\end{example}
+\begin{solve}
+核连续且对称，故紧性与自伴性成立。将积分在 $s=t$ 处分开并求导，得到 $u=Gf$ 满足 $-u''=f$（弱导数意义）及 $u(0)=u(1)=0$，从而 $G$ 单射。若 $Gf=\lambda f$，$\lambda\ne0$，便有 $-f''=\lambda^{-1}f$ 及零边界条件。常微分方程求解给出 $\lambda=1/(n\pi)^2$ 和正弦函数；负值及零频率仅有零解。由紧自伴谱定理及核为零，这些特征函数的闭线性张成空间就是 $L^2(0,1)$。
+\end{solve}
+
+积分与微分之间的计算为
+\[
+ u(t)=(1-t)\int_0^t sf(s)\,\mathrm ds
+       +t\int_t^1(1-s)f(s)\,\mathrm ds,
+\]
+\[
+ u'(t)=-\int_0^t sf(s)\,\mathrm ds
+       +\int_t^1(1-s)f(s)\,\mathrm ds,
+ \qquad u''(t)=-f(t)\quad\text{几乎处处}.
+\]
+因为区间有限，$L^2$ 函数属于 $L^1$，上述变上限积分绝对连续，微分公式在几乎处处意义下成立。若 $f=\sum_nf_ne_n$，则 $u=Gf=\sum_n f_n e_n/(n\pi)^2$。积分求解把高频坐标缩小得更多，这既解释了 $G$ 的紧性，也说明逆向求导为什么会放大高频误差。
+
+\section{谱展开怎样解方程}
+设 $T$ 为紧自伴算子，非零特征数据如式\eqref{eq:fa-compact-spectral-expansion}。考虑实参数 $\alpha$ 下的方程 $(I-\alpha T)u=f$。写 $f=f_0+\sum_nf_ne_n$，其中 $f_0\in\ker T$，则逐个正交方向给出
+\[
+ P_{\ker T}u=f_0,\qquad (1-\alpha\lambda_n)\langle u,e_n\rangle=f_n.
+\]
+若所有分母均非零，则
+\[
+ u=f_0+\sum_n\frac{f_n}{1-\alpha\lambda_n}e_n.
+\]
+这个形式解确实属于 $H$：无穷列情形中 $\lambda_n\to0$，尾部分母的绝对值至少为 $1/2$，剩下有限个分母有正的最小绝对值，因此系数仍平方可和。若某个分母为零，必须要求对应的 $f_n=0$；满足这些条件时，相应的 $u$ 系数任意，其余系数按上式确定。这就是正交坐标中的 Fredholm 二择一。
+
+直接解 $Tu=f$ 则有另一种困难。除了 $f\perp\ker T$，还必须有 $\sum_n|f_n/\lambda_n|^2<\infty$，才能把形式原像放回 $H$。仅有正交条件只能保证 $f$ 属于值域的闭包，不能保证属于值域本身。对于 $\lambda_n\to0$ 的无限秩情形，除法会不断放大某些坐标；这与 $I-\alpha T$ 的分母趋于一形成清楚的区别。
+
+\section{习题}
+\begin{enumerate}
+ \item 验证实对角紧算子的谱分解，并计算截断误差。
+ \item 若紧自伴算子单射，证明其值域稠密；它的值域是否一定闭？
+ \item 利用例\ref{ex:fa-green}，求 $-u''=\sin(2\pi t)$、$u(0)=u(1)=0$ 的解。
+ \item 用乘法算子例\ref{ex:fa-multiplication-spectrum}说明一般有界自伴算子不能都按离散特征向量展开。
+\end{enumerate}
+

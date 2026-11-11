@@ -1,0 +1,92 @@
+% !TeX root = ../动手学强化学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{4} % 保留原书章号。
+\chapter{价值函数与贝尔曼方程}
+\label{ch:rl-bellman}
+
+本章采用有限折扣 MDP 与有界奖励。价值函数把一段随机未来压缩成一个条件期望，贝尔曼方程（Bellman equation）再把这个长期量分解成一步奖励和后继价值。后续大多数算法都是对这种递推关系的不同求解方式。
+
+\section{状态价值、动作价值与优势}
+
+\begin{definition}[价值与优势]
+对平稳策略 $\pi$，定义状态价值和动作价值
+\[
+v_\pi(s)=\mathbb E_\pi[G_t\mid S_t=s],\qquad
+q_\pi(s,a)=\mathbb E_\pi[G_t\mid S_t=s,A_t=a].
+\]
+第二式可理解为从 $s$ 强制先执行 $a$，以后再按 $\pi$ 行动，因而也能定义策略原本不选择动作的价值。优势函数为 $A_\pi(s,a)=q_\pi(s,a)-v_\pi(s)$。
+\end{definition}
+
+期望同时对策略动作和环境随机性取平均。按第一步动作使用全期望公式，得到
+\begin{equation}
+v_\pi(s)=\sum_a\pi(a\mid s)q_\pi(s,a),\qquad
+\sum_a\pi(a\mid s)A_\pi(s,a)=0.
+\label{eq:rl-value-advantage}
+\end{equation}
+优势为正表示该动作优于当前策略在该状态的平均表现，不一定表示即时奖励为正。由奖励界可知 $|v_\pi(s)|,|q_\pi(s,a)|\leq R_{\max}/(1-\gamma)$，后续条件期望和级数操作因此有可积性保证。
+
+\section{贝尔曼期望方程}
+
+由于 $G_t=R_{t+1}+\gamma G_{t+1}$，先按后继状态条件化，利用马尔可夫性质和后续策略的平稳性，得到
+\begin{align}
+q_\pi(s,a)&=r(s,a)+\gamma\sum_{s'}P(s'\mid s,a)v_\pi(s'),\label{eq:rl-bellman-q}\\
+v_\pi(s)&=\sum_a\pi(a\mid s)\left[r(s,a)+\gamma\sum_{s'}P(s'\mid s,a)v_\pi(s')\right].\label{eq:rl-bellman-v}
+\end{align}
+线性地拆开两个期望不要求奖励与下一状态独立。定义 $r_\pi(s)=\sum_a\pi(a\mid s)r(s,a)$ 和 $P_\pi(s,s')=\sum_a\pi(a\mid s)P(s'\mid s,a)$，则
+\[
+v_\pi=r_\pi+\gamma P_\pi v_\pi,
+\qquad v_\pi=(I-\gamma P_\pi)^{-1}r_\pi.
+\]
+逆矩阵存在性由式\eqref{eq:rl-matrix-inverse}保证。级数形式 $v_\pi=\sum_{k\geq0}\gamma^kP_\pi^kr_\pi$ 则把各个未来时刻的期望奖励明确相加。
+
+\begin{example}[两个状态的精确价值]
+设 $\gamma=1/2$。在状态 $1$ 每步奖励为 $1$，下一步以相等概率到两个状态；状态 $2$ 每步奖励为 $2$ 且保持不变。方程为 $v_1=1+\tfrac14v_1+\tfrac14v_2$、$v_2=2+\tfrac12v_2$，故 $v_2=4$、$v_1=8/3$。状态 $1$ 的价值大于即时奖励，原因是之后还有持续收益。
+\end{example}
+
+\section{最优价值与贝尔曼最优方程}
+
+最优价值 $v_*(s)$ 是从 $s$ 出发、在所有允许策略中可取得的期望回报上确界。定义策略算子和最优算子
+\[
+(T_\pi V)(s)=r_\pi(s)+\gamma(P_\pi V)(s),\qquad
+(T_*V)(s)=\max_a\left[r(s,a)+\gamma\sum_{s'}P(s'\mid s,a)V(s')\right].
+\]
+它们对逐分量次序单调：$V\leq W$ 蕴含 $TV\leq TW$。又因为有限集合上的最大值满足 $|\max_a x_a-\max_a y_a|\leq\max_a|x_a-y_a|$，两个算子均满足
+\begin{equation}
+\|TV-TW\|_\infty\leq\gamma\|V-W\|_\infty.
+\label{eq:rl-bellman-contraction}
+\end{equation}
+
+\begin{theorem}[有限折扣模型的最优性]
+$T_*$ 的唯一不动点等于 $v_*$，并满足贝尔曼最优方程 $v_*=T_*v_*$。任意在该方程中逐状态选择最大值动作的平稳确定性策略均为最优策略。
+\end{theorem}
+\begin{proof}
+压缩性质保证唯一不动点 $u$。有限动作集保证可取确定性贪心策略 $\pi_g$，使 $T_{\pi_g}u=T_*u=u$，故 $u=v_{\pi_g}$。另一方面，对任意动作都有 $u(s)\geq r(s,a)+\gamma\sum_{s'}P(s'\mid s,a)u(s')$。沿任意历史依赖策略反复条件化，可得 $u(s)\geq\mathbb E[\sum_{t=0}^{n-1}\gamma^tR_{t+1}+\gamma^nu(S_n)\mid S_0=s]$。$u$ 有界且 $\gamma<1$，末项趋于零，故 $u$ 不小于任何策略价值；它又被 $\pi_g$ 达到，因而等于 $v_*$。
+\end{proof}
+
+最优动作价值为 $q_*(s,a)=r(s,a)+\gamma\sum_{s'}P(s'\mid s,a)v_*(s')$，且 $v_*(s)=\max_aq_*(s,a)$。最优价值唯一不代表最优策略唯一：若几个动作的最优动作价值相同，它们都可被选取。
+
+\section{贝尔曼残差与误差控制}
+
+对任意近似价值 $V$，残差 $T_*V-V$ 衡量它偏离最优方程的程度。由三角不等式与压缩性，
+\[
+\|V-v_*\|_\infty\leq\|V-T_*V\|_\infty+\gamma\|V-v_*\|_\infty,
+\]
+故
+\begin{equation}
+\|V-v_*\|_\infty\leq\frac{\|T_*V-V\|_\infty}{1-\gamma}.
+\label{eq:rl-residual-bound}
+\end{equation}
+该界要求真实模型下全状态的精确残差；用有限批次的平均 TD 误差代替最大残差后，不能直接声称仍有同样保证。
+
+若 $\pi$ 对 $V$ 贪心，令 $e=\|V-v_*\|_\infty$，则利用 $T_\pi V=T_*V$ 可得 $\|T_\pi v_*-v_*\|_\infty\leq2\gamma e$。再应用策略算子的残差界，得到 $\|v_\pi-v_*\|_\infty\leq2\gamma e/(1-\gamma)$。因此价值准确能控制策略损失，但当 $\gamma$ 接近一时，该充分界可能较宽。
+
+\section{习题}
+\begin{enumerate}
+\item 验证式\eqref{eq:rl-value-advantage}，并构造所有动作即时奖励相同而优势不同的例子。
+\item 将两状态例子的折扣因子改为一般 $\gamma<1$，求两个价值的表达式，并检查 $\gamma=0$ 与趋近一时的行为。
+\item 证明 $T_\pi$ 的单调性和压缩性。若模型只在已访问状态上残差小，说明为什么不能直接使用式\eqref{eq:rl-residual-bound}。
+\end{enumerate}
+
+
+
+

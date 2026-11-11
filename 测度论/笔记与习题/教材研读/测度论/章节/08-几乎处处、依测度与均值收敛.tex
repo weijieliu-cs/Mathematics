@@ -1,0 +1,152 @@
+% !TeX root = ../测度论笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{7} % 保留原书章号。
+\chapter{几乎处处、依测度与均值收敛}
+\label{chap:mt-modes}
+
+\section{三种不同的误差要求}
+\begin{definition}
+对有限实值可测函数列 $f_n$ 与 $f$，称 $f_n$ \emph{几乎处处收敛（almost everywhere convergence）}于 $f$，若在某个可测零测集之外每点收敛；称其\emph{依测度收敛（convergence in measure）}于 $f$，若对每个 $\varepsilon>0$，
+\[
+ \mu(\{|f_n-f|>\varepsilon\})\longrightarrow0;
+\]
+对 $1\leq p<\infty$，称其\emph{$L^p$ 收敛（convergence in $L^p$）}于 $f$，若各函数属于 $L^p$ 且 $\int|f_n-f|^p\,\mathrm d\mu\to0$。$L^p$ 空间的完整定义见第\ref{chap:mt-lp}章。
+\end{definition}
+几乎处处收敛逐点检查最终行为；依测度收敛检查“大误差发生的集合”有多大；$L^p$ 收敛还把误差幅度纳入积分。后两者不能只靠观察图像是否逐点变小来判断。
+
+\begin{proposition}[收敛方式之间的联系]
+$L^p$ 收敛蕴含依测度收敛。若 $\mu(S)<\infty$，几乎处处收敛也蕴含依测度收敛。依测度收敛的序列总能选出几乎处处收敛到同一极限的子列，最后一条不要求 $\mu(S)<\infty$。
+\label{prop:mt-convergence-implications}
+\end{proposition}
+\begin{proof}
+对第一条，由 $\varepsilon^p\mathbf1_{\{|f_n-f|>\varepsilon\}}\leq|f_n-f|^p$ 得
+\[
+ \mu(\{|f_n-f|>\varepsilon\})
+ \leq\varepsilon^{-p}\int|f_n-f|^p.
+\]
+对第二条，固定 $\varepsilon>0$，令 $E_m=\bigcup_{n\geq m}\{|f_n-f|>\varepsilon\}$。这些集合递减，其交包含于一个例外零测集；从上连续性给出 $\mu(E_m)\to0$，进而控制每个尾项。
+
+对第三条，递增选择 $n_k$，使 $\mu(\{|f_{n_k}-f|>2^{-k}\})<2^{-k}$。由次可加性，尾部并集的测度至多为 $\sum_{k\geq m}2^{-k}$，故属于无穷多个坏集合的点组成零测集。在其余位置，最终总有 $|f_{n_k}-f|\leq2^{-k}$，所以子列收敛。
+\end{proof}
+
+\section{三个反例澄清边界}
+在 $\mathbb R$ 上，$\mathbf1_{[n,n+1]}$ 处处趋于零，但对 $0<\varepsilon<1$，超过 $\varepsilon$ 的集合测度恒为一，因此不依测度收敛。这说明有限测度假设不能从上一命题的第二条中删去。
+
+在 $(0,1)$ 上，$n\mathbf1_{(0,1/n)}$ 几乎处处且依测度趋于零，但 $L^1$ 范数恒为一，所以不在 $L^1$ 中趋于零。小概率或小测度的区域仍可能携带很大的幅度。
+
+依测度收敛也不保证原序列几乎处处收敛。把 $[0,1)$ 的二等分、四等分、八等分等分层区间逐层排列：令 $f_{2^k+j}$ 为
+$[j2^{-k},(j+1)2^{-k})$ 的示性函数，其中 $k\geq0$、$0\leq j<2^k$。这些函数的非零集合测度趋于零，故依测度趋于零；但每个点在每层恰有一次取值为一，也有无穷多次取值为零，所以在每点都不收敛。命题保证的是可以选择合适子列，而非整个序列自动收敛。
+
+\section{Egorov 定理：舍去小集合后的一致收敛}
+\begin{theorem}[Egorov 定理]
+若 $\mu(S)<\infty$ 且 $f_n\to f$ 几乎处处，则对每个 $\eta>0$，存在可测集 $E$，$\mu(E)<\eta$，使 $f_n$ 在 $S\setminus E$ 上一致收敛于 $f$。
+\label{thm:mt-egorov}
+\end{theorem}
+\begin{proof}
+先将例外零测集 $N$ 去掉。对正整数 $m,k$，令
+\[
+ E_{m,k}=\{s\notin N:\sup_{n\geq k}|f_n(s)-f(s)|>1/m\}.
+\]
+固定 $m$ 时，$E_{m,k}$ 随 $k$ 递减到空集。由有限测度下的从上连续性，选 $k_m$ 使 $\mu(E_{m,k_m})<\eta2^{-m-1}$。令 $E=N\cup\bigcup_mE_{m,k_m}$，则 $\mu(E)<\eta$。在补集上，任意 $n\geq k_m$ 均满足 $|f_n-f|\leq1/m$，这正给出一致收敛。
+\end{proof}
+该定理允许对不同 $\eta$ 舍去不同集合，并不表示存在一个固定的零测集，去掉后就一定一致收敛。它也不能直接把舍去集合上的积分误差控制住，因为那里可能存在很高的尖峰。
+
+\section{有限测度下依测度收敛的距离表示}
+若 $\mu(S)<\infty$，可在有限实值可测函数的几乎处处等价类上定义
+\[
+ d(f,g)=\int_S\min(1,|f-g|)\,\mathrm d\mu.
+\]
+这个量总是有限，并满足三角不等式，因为
+$\min(1,a+b)\leq\min(1,a)+\min(1,b)$。距离为零等价于几乎处处相等，因此取商后它是度量。将大误差截断为一，表示这个距离主要关心大误差发生的集合有多大，而不继续追究其幅度究竟有多高。
+
+依测度收敛等价于该距离收敛。对 $0<\varepsilon<1$，有
+\[
+ d(f_n,f)\leq\varepsilon\mu(S)+\mu(\{|f_n-f|>\varepsilon\}),
+\]
+所以依测度收敛先让第二项趋零，再令 $\varepsilon$ 趋零即可。反向由
+$d(f_n,f)\geq\min(1,\varepsilon)\mu(\{|f_n-f|>\varepsilon\})$
+得到尾部集合测度趋零。这一表述把定性的收敛条件转化成一个明确距离，但并没有把它增强为 $L^1$ 收敛，因为距离中的误差已被截断。
+
+在无限测度空间上，全局依测度收敛与局部依测度收敛应当区分。若 $S$ 被有限测度集合 $E_k$ 递增覆盖，局部依测度收敛指在每个 $E_k$ 上依测度收敛。函数 $\mathbf1_{[n,n+1]}$ 在实轴每个有界区间上最终为零，因此局部依测度收敛，却不全局依测度收敛。局部观察无法检测逃向无穷远的质量，正是二者差别的原因。
+
+\section{依测度 Cauchy 性与极限的存在}
+在已经知道极限函数的情况下，证明依测度收敛只需控制坏集合；但构造问题中往往事先并不知道极限是什么。此时可以仿照实数和范数空间中的做法，先比较序列的两项是否越来越接近。称 $(f_n)$ 依测度为 Cauchy 列，是指对每个 $\varepsilon,\eta>0$，存在 $N$，使 $m,n\geq N$ 时
+$\mu(\{|f_m-f_n|>\varepsilon\})<\eta$。
+
+\begin{proposition}
+在有限测度空间中，每个有限实值可测函数组成的依测度 Cauchy 列，都依测度收敛到某个有限实值可测函数。极限在几乎处处意义下唯一。
+\end{proposition}
+\begin{proof}
+由 Cauchy 条件递增选择 $n_k$，使
+$\mu(\{|f_{n_{k+1}}-f_{n_k}|>2^{-k}\})<2^{-k}$。
+这些坏集合的测度可求和，因此除去一个零测集后，每个点最终只经历好事件，相邻子列项的差被可求和数值列 $2^{-k}$ 控制。于是 $(f_{n_k}(s))$ 是实数 Cauchy 列，存在有限极限。在收敛集合上定义该极限，在可测零测例外集上取零，得到可测函数 $f$。
+
+子列几乎处处收敛；因为总测度有限，它也依测度收敛。固定 $\varepsilon,\eta>0$，先利用原序列的 Cauchy 性控制所有足够靠后的 $f_n$ 与某个足够靠后的子列项 $f_{n_k}$ 的差，再利用子列收敛控制 $f_{n_k}$ 与 $f$ 的差。由
+\[
+ \{|f_n-f|>\varepsilon\}\subseteq
+ \{|f_n-f_{n_k}|>\varepsilon/2\}
+ \cup\{|f_{n_k}-f|>\varepsilon/2\},
+\]
+可使两部分测度均小于 $\eta/2$，从而得到整列收敛。唯一性已由前面的三角估计说明。
+\end{proof}
+这个证明与 $L^p$ 完备性证明有共同结构：先从一个只有整体接近性的序列中选择相邻差可求和的子列，再逐点构造极限，最后把子列收敛推广回整列。区别在于，这里控制的是坏事件的测度，而 $L^p$ 完备性直接控制差的范数。认识相同证明结构在不同环境中的变形，有助于理解分析中“完备性”并不是某一个空间的孤立性质。
+
+结合前面的截断距离，可知有限实值可测函数按几乎处处相等取商后，在依测度收敛所对应的度量下是完备的。该空间包含不可积函数，因此它与 $L^1$ 是不同的完备空间；完备性本身并不说明积分会连续。若希望极限与期望同时稳定，还必须加入一致可积性等额外控制。
+
+\section{一致可积性：控制小集合中的积分质量}
+\begin{definition}
+在有限测度空间上，可积函数族 $\mathcal H$ 称为\emph{一致可积的（uniformly integrable）}，若
+\[
+ \lim_{M\to\infty}\sup_{h\in\mathcal H}
+ \int_{\{|h|>M\}}|h|\,\mathrm d\mu=0.
+\]
+\label{def:mt-uniform-integrability}
+\end{definition}
+对单个可积函数，高值尾部积分趋零由控制收敛保证。一致可积性把这一结论中的截断高度选成对整个函数族同时有效。它控制的不是函数是否取大值，而是所有大值合起来能够携带多少积分质量，因此允许各函数的峰值位置和峰值大小发生变化。
+
+\begin{proposition}[一致可积性的等价判别]
+在有限测度空间上，$\mathcal H$ 一致可积当且仅当它在 $L^1$ 中有界，并且积分关于集合测度一致绝对连续：对每个 $\varepsilon>0$，存在 $\delta>0$，使 $\mu(A)<\delta$ 时，对所有 $h\in\mathcal H$ 都有 $\int_A|h|<\varepsilon$。
+\label{prop:mt-ui-characterization}
+\end{proposition}
+\begin{proof}
+若一致可积，先选 $M$ 使所有高值尾部积分小于一，则
+$\int|h|\leq M\mu(S)+1$，得到统一 $L^1$ 上界。再为给定 $\varepsilon$ 选 $M$ 使尾部积分小于 $\varepsilon/2$，并用
+$\int_A|h|\leq M\mu(A)+\varepsilon/2$
+选择统一的 $\delta$。
+
+反向设 $\sup_h\int|h|\leq C<\infty$。Markov 估计给出
+$\mu(\{|h|>M\})\leq C/M$。取 $M$ 足够大，使这些集合的测度统一小于绝对连续性所需的 $\delta$，便得到所有尾部积分小于 $\varepsilon$。
+\end{proof}
+若存在一个 $g\in L^1$ 支配整个函数族，则它一致可积。另一常见充分条件是存在 $p>1$ 使 $\sup_h\int|h|^p\leq C$，因为在 $|h|>M$ 上有 $|h|\leq M^{1-p}|h|^p$，尾部积分至多为 $CM^{1-p}$。这些条件比单纯的 $L^1$ 有界强。集中尖峰 $n\mathbf1_{(0,1/n)}$ 的积分统一为一，但对每个 $M$ 都能选择 $n>M$，使全部质量落在高值尾部，故它不一致可积。
+
+\section{Vitali 收敛定理}
+\begin{theorem}[有限测度空间上的 Vitali 收敛定理]
+若 $\mu(S)<\infty$，$f_n\in L^1(\mu)$，且有限实值可测函数 $f$ 满足 $f_n\to f$ 依测度，则 $f_n\to f$ 于 $L^1$ 当且仅当函数族 $\{f_n:n\geq1\}$ 一致可积。
+\label{thm:mt-vitali-convergence}
+\end{theorem}
+\begin{proof}
+先设一致可积。其 $L^1$ 范数统一有界，且可从依测度收敛中选出几乎处处收敛子列。对子列使用 Fatou 引理得 $\int|f|<\infty$。每个可积函数的积分都对集合测度绝对连续，这可通过先截断高值尾部、再控制有界部分证明；因此可以把 $f$ 加入统一的小集合积分控制。
+
+给定 $\eta>0$，令 $A_n=\{|f_n-f|>\eta\}$，则 $\mu(A_n)\to0$。在补集上误差不超过 $\eta$，所以
+\[
+ \int|f_n-f|
+ \leq\eta\mu(S)+\int_{A_n}|f_n|+\int_{A_n}|f|.
+\]
+先把 $\eta$ 取小，再把 $n$ 取大，右侧三项可以任意小，得到 $L^1$ 收敛。
+
+反向若 $f_n\to f$ 于 $L^1$，则范数有界。对给定 $\varepsilon$，充分大的 $n$ 满足 $\int|f_n-f|<\varepsilon/2$，于是
+$\int_A|f_n|\leq\int_A|f|+\varepsilon/2$。
+选择 $\mu(A)$ 足够小可控制第一项；剩下有限多个初始函数各自的积分也绝对连续，取这些条件中的最小 $\delta$ 即可统一控制。应用命题\ref{prop:mt-ui-characterization}，得到一致可积性。
+\end{proof}
+
+Vitali 收敛定理将两个任务分开：依测度收敛保证大误差发生得越来越少，一致可积性保证这些少量位置不能集中大量积分质量。控制收敛定理是一个更易检验的充分条件，因为共同可积上界自动提供后一项控制。但如果峰的位置不断改变，寻找逐点上界困难时，一致可积性通常更合适。
+
+本定理与前面构造不可测集时使用的 Vitali 名称属于不同结论。前者研究函数列的积分收敛，后者说明平移不变长度无法定义在所有子集上；不要仅凭相同人名将它们理解成同一个工具。
+
+\section{习题}
+\begin{enumerate}
+ \item 证明依测度极限在几乎处处相等意义下唯一。
+ \item 对 $f_n(x)=n^\alpha\mathbf1_{(0,1/n)}(x)$，计算其 $L^p$ 范数，并确定何时在 $L^p(0,1)$ 中趋于零。
+ \item 用上述分层区间例子说明，即使 $L^p$ 收敛成立，原序列也未必几乎处处收敛。
+\end{enumerate}
+

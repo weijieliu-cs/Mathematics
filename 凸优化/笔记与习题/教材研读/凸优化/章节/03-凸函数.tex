@@ -1,0 +1,180 @@
+% !TeX root = ../凸优化笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{2} % 保留原书章号。
+\chapter{凸函数}
+\label{ch:co-functions}
+
+凸函数把集合的线段性质转化为函数值的不等式。判断凸性既可以求导，也可以把复杂函数分解为已知凸函数及保凸运算；后者往往更适合建模。
+
+\section{定义、上图与次水平集}
+
+对平方函数，两个输入的平均所对应的输出，不超过两个输出的平均。例如 $f(x)=x^2$ 时，$f((0+2)/2)=1$，而 $(f(0)+f(2))/2=2$。几何上，曲线在两点之间位于弦的下方；在多元情形，则沿每一条线段检查同样的性质。“凸”并不等于单调递增，$x^2$ 在负半轴递减而在正半轴递增，却在整个实轴上都是凸函数。
+
+\begin{definition}
+设 $D\subseteq\mathbb R^n$ 为凸集。函数 $f:D\to\mathbb R$ 为凸函数（convex function），若
+\begin{equation}
+ f(\theta x+(1-\theta)y)\leq\theta f(x)+(1-\theta)f(y),
+ \quad x,y\in D,\quad\theta\in[0,1].
+ \label{eq:co-convex-function}
+\end{equation}
+若对 $x\ne y$、$0<\theta<1$ 不等式严格，则称为严格凸函数（strictly convex function）。若 $-f$ 凸，则 $f$ 为凹函数（concave function）。
+\end{definition}
+
+上图（epigraph，亦称上境图）与水平 $\alpha$ 下的次水平集分别为
+\[
+ \operatorname{epi}f=\{(x,t):x\in D,\ f(x)\leq t\},\qquad
+ C_\alpha=\{x\in D:f(x)\leq\alpha\}.
+\]
+$f$ 凸当且仅当其上图凸：正向对两个上图点应用式\eqref{eq:co-convex-function}，反向取高度恰为 $f(x),f(y)$ 的两点即可。凸函数的次水平集也凸，因为两点函数值均不超过 $\alpha$ 时，其凸组合的函数值仍不超过 $\alpha$。
+
+允许函数取 $+\infty$，可将 $D$ 外的点统一排除。对于 $f:\mathbb R^n\to\mathbb R\cup\{+\infty\}$，有效定义域为 $\operatorname{dom}f=\{x:f(x)<+\infty\}$；定义域非空时称为适当函数（proper function）。上图闭时称为闭函数（closed function），在有限维空间中等价于下半连续。集合 $C$ 的指示函数（indicator function）$I_C$ 在 $C$ 上为零、在其外为 $+\infty$；它为凸函数当且仅当 $C$ 凸。
+
+例如在 $x\geq0$ 上最小化 $(x+1)^2$，可以写成在全空间最小化 $(x+1)^2+I_{[0,+\infty)}(x)$。负数的代价为无穷，因此不会成为有限目标的候选解。这里的指示函数与概率论中取值为零或一的示性函数不同。扩展值记号统一了目标与约束，但不能因此忽略定义域：即使某个表达式局部二阶导数非负，若指定的定义域不凸，也不能直接称它为本书意义下的凸函数。
+
+\section{一阶、二阶判据与曲率}
+
+\begin{theorem}[微分判据]
+设 $D$ 为开凸集。若 $f$ 在 $D$ 上可微，则它凸当且仅当
+\begin{equation}
+ f(y)\geq f(x)+\nabla f(x)^{\mathsf T}(y-x),\quad x,y\in D.
+ \label{eq:co-tangent-bound}
+\end{equation}
+若 $f$ 二次连续可微，则它凸当且仅当 $\nabla^2f(x)\succeq0$ 对所有 $x\in D$ 成立。
+\end{theorem}
+\begin{proof}
+由凸性，$[f(x+t(y-x))-f(x)]/t\leq f(y)-f(x)$。令 $t\downarrow0$ 得式\eqref{eq:co-tangent-bound}。反向令 $z=(1-\theta)x+\theta y$，分别在 $z$ 处对 $x,y$ 使用切平面下界，以 $1-\theta,\theta$ 加权后梯度项抵消，即得凸性。
+
+二阶判据可沿直线证明。令 $g(t)=f(x+td)$，则 $g''(t)=d^{\mathsf T}\nabla^2f(x+td)d$。海塞矩阵半正定使每条线上的导数单调，积分即得一阶下界；反之凸的二次可微单变量函数有 $g''(0)\geq0$，对任意方向 $d$ 即得到矩阵半正定。
+\end{proof}
+
+若海塞矩阵处处正定，则函数严格凸；逆命题不成立，$x^4$ 严格凸但在零点的二阶导数为零。给定 $\mu>0$，若 $f(x)-\mu\|x\|_2^2/2$ 凸，则称 $f$ 为 $\mu$-强凸函数（strongly convex function）。可微情形等价于
+\[
+ f(y)\geq f(x)+\nabla f(x)^{\mathsf T}(y-x)+\frac\mu2\|y-x\|_2^2.
+\]
+在二次连续可微情形，强凸性等价于 $\nabla^2f(x)\succeq\mu I$。另一方面，梯度的 $L$-利普希茨连续性（Lipschitz continuity）指 $\|\nabla f(x)-\nabla f(y)\|_2\leq L\|x-y\|_2$，它控制梯度变化的上界。对开凸域上的二次连续可微凸函数，这等价于 $\nabla^2f(x)\preceq LI$。
+
+一阶判据的意义比“二阶导数非负”更直接：在任意点作出的切平面，都给出全局下界。以 $f(x)=x^2$ 为例，在 $x=1$ 处的下界是 $1+2(y-1)=2y-1$，两者之差为 $(y-1)^2$。强凸性进一步要求这个差至少包含一个统一的正二次项，因此它给出了离开最优点后目标至少增加多少的定量信息。
+
+\begin{example}[三个容易混淆的曲率性质]
+比较实轴上的 $x^2$、$x^4$ 和 $e^x$ 的严格凸性、强凸性与全局梯度利普希茨性。
+\end{example}
+\begin{solve}
+$x^2$ 的二阶导数恒为 $2$，所以它是 $2$-强凸函数，梯度以 $L=2$ 利普希茨连续。$x^4$ 的导数 $4x^3$ 严格递增，所以函数严格凸；但二阶导数在零点为零，不存在正的全局强凸常数，又因 $12x^2$ 无上界，不存在全局梯度利普希茨常数。$e^x$ 的二阶导数处处为正，所以严格凸；它在负无穷方向趋于零、在正无穷方向无界，因此也没有这两个全局常数。若限制到有界区间，部分结论会改变，故曲率界必须连同适用区域一起陈述。
+\end{solve}
+
+检查多元函数的海塞矩阵时，只看各个二阶偏导 $\partial^2 f/\partial x_i^2$ 不够。例如 $f(x,y)=x^2+y^2+4xy$ 的两个对角二阶偏导均为 $2$，但沿 $(1,-1)$ 的二阶方向导数为 $-4$，函数并不凸。混合偏导描述变量之间的耦合，不能省略。
+
+\section{常用函数与詹森不等式}
+
+仿射函数同时凸、凹。二次函数 $f(x)=\tfrac12x^{\mathsf T}Px+q^{\mathsf T}x+r$ 在 $P=P^{\mathsf T}$ 时凸当且仅当 $P\succeq0$。任意范数都凸，因为三角不等式和正齐次性给出定义中的不等式。$e^x$ 在实轴上凸，$-\log x$ 在 $x>0$ 上凸，二者可直接用二阶导数验证。
+
+对数和指数函数（log-sum-exp）$f(x)=\log\sum_{i=1}^n e^{x_i}$ 的梯度分量为 $q_i=e^{x_i}/\sum_j e^{x_j}$，海塞矩阵为 $\operatorname{diag}(q)-qq^{\mathsf T}$。由于 $q_i\geq0$、$\sum_iq_i=1$，对任意 $v$，
+\[
+ v^{\mathsf T}\nabla^2f(x)v
+ =\sum_iq_i v_i^2-\left(\sum_iq_i v_i\right)^2
+ =\sum_iq_i\left(v_i-\sum_jq_jv_j\right)^2\geq0,
+\]
+故 $f$ 凸。它满足 $\max_i x_i\leq f(x)\leq\max_i x_i+\log n$，可用作最大值的光滑近似。
+
+在 $X\succ0$ 上，$F(X)=-\log\det X$ 沿对称方向 $H$ 的二阶导数为
+\[
+ D^2F(X)[H,H]=\operatorname{tr}(X^{-1}HX^{-1}H)
+ =\|X^{-1/2}HX^{-1/2}\|_{\mathrm F}^2\geq0,
+\]
+其中 $\|B\|_{\mathrm F}^2=\operatorname{tr}(B^{\mathsf T}B)$ 为弗罗贝尼乌斯范数平方，所以 $F$ 凸。
+
+\begin{proposition}[詹森不等式]
+若 $f$ 凸，$\theta_i\geq0$、$\sum_i\theta_i=1$，则
+\[
+ f\left(\sum_i\theta_i x_i\right)\leq\sum_i\theta_i f(x_i).
+\]
+\end{proposition}
+\begin{proof}
+对点数归纳，将最后一点与其余点的归一化凸组合作两次应用即可。若 $f$ 严格凸，等号要求所有正权重点相同，否则在归纳中至少一次出现严格不等式。
+\end{proof}
+期望形式称为 Jensen 不等式。一个便于核查的版本是：$f$ 在开凸集 $D$ 上凸且可微，随机向量 $Z$ 几乎处处属于 $D$，$\mathbb EZ\in D$，且 $Z,f(Z)$ 可积，则 $f(\mathbb EZ)\leq\mathbb E f(Z)$。在 $\mathbb EZ$ 处使用式\eqref{eq:co-tangent-bound}并取期望，线性项的期望为零，即得结论。
+
+例如对正数 $a,b$，将凹函数 $\log$ 的 Jensen 不等式应用于相等权重，得到 $\log((a+b)/2)\geq(\log a+\log b)/2$，指数化后就是算术平均不小于几何平均。对具有有限二阶矩的随机变量，取 $f(z)=z^2$，则 $(\mathbb EZ)^2\leq\mathbb EZ^2$，二者之差正是方差。凸性不等式由此把几何、代数与概率联系起来。
+
+\section{保凸运算与复合规则}
+
+非负加权和与仿射复合保凸。若每个 $f_\alpha$ 凸，则 $f(x)=\sup_\alpha f_\alpha(x)$ 为凸扩展值函数，因为
+\[
+ f_\alpha(\theta x+(1-\theta)y)
+ \leq\theta\sup_\beta f_\beta(x)+(1-\theta)\sup_\beta f_\beta(y)
+\]
+对每个 $\alpha$ 成立。逐点最小值不保凸，例如 $\min\{x,-x\}=-|x|$。
+
+若外层函数 $h$ 凸且单调不减、内层 $g$ 凸，则在复合有定义且定义域凸的条件下，$h\circ g$ 凸：先用 $g$ 的凸性及 $h$ 的单调性，再用 $h$ 的凸性。若 $h$ 单调不增，则应配合凹的 $g$。多变量外层函数按各分量的单调方向检验，不能只检查外层凸性。
+
+设 $F(x,y)$ 联合凸，$C$ 为固定凸集，$f(x)=\inf_{y\in C}F(x,y)$，且下确界不为 $-\infty$。取使 $F(x_i,y_i)\leq f(x_i)+\varepsilon$ 的近似最优点，使用联合凸性，再令 $\varepsilon\downarrow0$，便得 $f$ 凸。是否取到下确界不是此证明的必要条件，但 $f$ 未必闭。
+
+凸函数 $f$ 的透视函数（perspective）为 $g(x,t)=t f(x/t)$，定义于 $t>0$、$x/t\in\operatorname{dom}f$。令 $t=\theta t_1+(1-\theta)t_2$，则 $x/t$ 是 $x_1/t_1,x_2/t_2$ 以 $\theta t_1/t,(1-\theta)t_2/t$ 为权的凸组合，代入凸性并乘以 $t$ 即证 $g$ 联合凸。因此 $\|x\|_2^2/t$ 在 $t>0$ 上联合凸。
+
+\begin{example}[判断复合函数时先检查单调性]
+判断 $e^{x^2}$、$(x^2-1)^2$ 以及 $\sqrt{1+x^2}$ 在实轴上的凸性。
+\end{example}
+\begin{solve}
+指数函数凸且递增，因此 $e^{x^2}$ 可直接用复合规则判为凸。平方函数虽然凸，却在整个实轴上不单调，故不能仅凭“平方套平方”判断第二个函数；实际二阶导数为 $12x^2-4$，在零点附近为负，所以不凸。第三个函数的外层平方根是凹的，常用复合规则不能直接给出凸性；但它等于二维向量 $(1,x)$ 的欧氏范数，是范数与仿射映射的复合，故凸。规则不能证明，和函数不凸，是两回事。
+\end{solve}
+
+\section{共轭函数、次梯度与支撑下界}
+
+先从一个固定斜率 $y$ 的仿射下界 $y^{\mathsf T}x-c$ 出发。要使它对所有 $x$ 都不超过 $f(x)$，必须有 $c\geq y^{\mathsf T}x-f(x)$ 对所有 $x$ 成立。因此给定斜率时，最紧的这种下界所需的常数，就是下面定义的 $f^*(y)$。共轭函数把“按位置描述函数”转为“按斜率描述其支撑下界”。
+
+函数 $f$ 的凸共轭（convex conjugate）为
+\begin{equation}
+ f^*(y)=\sup_{x\in\operatorname{dom}f}\{y^{\mathsf T}x-f(x)\}.
+ \label{eq:co-conjugate}
+\end{equation}
+它是仿射函数的上确界，故总是凸的。例如 $f(x)=\|x\|_2^2/2$ 时，配方得 $f^*(y)=\|y\|_2^2/2$。$I_C^*(y)=\sup_{x\in C}y^{\mathsf T}x$ 称为 $C$ 的支撑函数（support function）。由定义立即得到 Fenchel 不等式 $f(x)+f^*(y)\geq y^{\mathsf T}x$。
+
+\begin{definition}
+设 $f$ 为适当凸函数，$x\in\operatorname{dom}f$。若向量 $g$ 满足 $f(z)\geq f(x)+g^{\mathsf T}(z-x)$ 对所有 $z$ 成立，则称 $g$ 为 $f$ 在 $x$ 处的次梯度（subgradient）；全部次梯度组成次微分（subdifferential）$\partial f(x)$。
+\end{definition}
+
+当 $x$ 位于有效定义域的内部且凸函数 $f$ 在 $x$ 可微时，次微分为 $\{\nabla f(x)\}$；$f(x)=|x|$ 的次微分在正点为 $\{1\}$、负点为 $\{-1\}$、零点为 $[-1,1]$。这由 $|z|\geq gz$ 对所有 $z$ 的条件直接得到。Fenchel 不等式取等号当且仅当 $y\in\partial f(x)$，因为等号正好要求 $x$ 在共轭定义的上确界中达到最大值。
+
+次梯度保留的是“支撑下界”而不一定是某个方向上的普通导数。在 $|x|$ 的尖点零处，斜率 $-1$ 到 $1$ 之间的每条过原点直线都在图像下方，因此次梯度是一个区间。对 $f(x)=\max_i(a_i^{\mathsf T}x+b_i)$，若第 $i$ 项在 $x$ 处达到最大值，则对任意 $z$，
+\[
+ f(z)\geq a_i^{\mathsf T}z+b_i
+ =f(x)+a_i^{\mathsf T}(z-x),
+\]
+故 $a_i$ 是一个次梯度；多个活跃斜率的凸组合也都是次梯度。这使分段线性函数也能用一阶信息分析。
+
+\begin{example}[绝对值的共轭]
+求实轴上 $f(x)=|x|$ 的共轭函数。
+\end{example}
+\begin{solve}
+若 $|y|\leq1$，则 $yx-|x|\leq0$ 对所有 $x$ 成立，取 $x=0$ 达到零。若 $y>1$，令 $x\to+\infty$；若 $y<-1$，令 $x\to-\infty$，均使表达式无界增大。因此 $f^*(y)=0$ 当 $|y|\leq1$，其余处为 $+\infty$，即区间 $[-1,1]$ 的指示函数。一个惩罚项在对偶中可以变成一个约束，这是正则化对偶模型的重要来源。
+\end{solve}
+
+次微分在定义域边界上可能为空。例如 $f(x)=-\sqrt{x}$ 定义于 $x\geq0$ 并在域外取 $+\infty$，在零点若有有限次梯度 $g$，则 $-1/\sqrt z\geq g$ 对所有 $z>0$，与 $z\downarrow0$ 矛盾。
+
+作为选读结论，有限维 Fenchel--Moreau 定理断言：适当闭凸函数满足 $f^{**}=f$。它说明该函数可由全部仿射下界恢复；一般函数只能直接得到 $f^{**}\leq f$。此定理可由上图分离证明，本节仅引用结论；该结果与闭性条件见\cite{boyd-vandenberghe}的共轭函数小节。
+
+\section{拟凸性、对数凸性与矩阵凸性}
+
+函数 $f$ 称为拟凸（quasiconvex），若每个次水平集都凸；等价地，$f(\theta x+(1-\theta)y)\leq\max\{f(x),f(y)\}$。凸函数必拟凸，反之不成立：$x^3$ 在实轴上的次水平集均为半直线，但其二阶导数在负半轴为负。拟凸最小化可通过逐次判断水平集是否与约束集相交来求解。
+
+正值函数 $f$ 若 $\log f$ 凸，称为对数凸（log-convex）；若 $\log f$ 凹，称为对数凹（log-concave）。例如 $e^{x^2}$ 对数凸，$e^{-x^2}$ 对数凹。对数凸函数是凸函数，因为 $f=\exp(\log f)$ 是凸递增函数与凸函数的复合。
+
+对矩阵值函数 $F:D\to\mathbb S^r$，关于半正定序的凸性指
+\[
+ F(\theta x+(1-\theta)y)\preceq\theta F(x)+(1-\theta)F(y).
+\]
+它等价于对每个 $v\in\mathbb R^r$，标量函数 $v^{\mathsf T}F(x)v$ 凸。例如 $F(x)=xx^{\mathsf T}$ 为此意义下的凸映射，因为右端减左端为 $\theta(1-\theta)(x-y)(x-y)^{\mathsf T}\succeq0$。逐元素凸性与矩阵序凸性不能混同。
+
+\section{例题与学习检查}
+\begin{example}[曲率与正则化]
+对 $\alpha>0$，函数 $f(x)=\tfrac12\|Ax-b\|_2^2+\tfrac\alpha2\|x\|_2^2$ 的海塞矩阵为 $A^{\mathsf T}A+\alpha I\succeq\alpha I$，因此它至少为 $\alpha$-强凸，即使 $A$ 秩亏也如此。若将平方正则项换成 $\alpha\|x\|_1$，目标仍凸，但一般不再可微或强凸。
+\end{example}
+\begin{enumerate}
+ \item 用海塞矩阵和透视函数两种方法证明 $x^2/t$ 在 $t>0$ 上联合凸。
+ \item 求 $f(x)=\tfrac12x^{\mathsf T}Px$ 在 $P\succ0$ 时的共轭。答案为 $\tfrac12y^{\mathsf T}P^{-1}y$。
+ \item 证明 $\max_i(a_i^{\mathsf T}x+b_i)$ 凸；若当前最大值由唯一指标取得，求其梯度。
+ \item 举例说明严格凸不推出强凸，凸不推出对数凸。提示：$x^4$ 与正半轴上的 $x$。
+ \item 基础练习：求 $f(x)=\max\{2x,-x\}$ 在零点的次微分。答案为 $[-1,2]$；应分别检验 $z>0$ 与 $z<0$ 的支撑不等式。
+ \item 推导练习：证明 $f(x)=\log(e^x+e^{-x})$ 严格凸，但在整个实轴上没有正的强凸常数。提示：$f''(x)=4/(e^x+e^{-x})^2$。
+\end{enumerate}
+

@@ -1,0 +1,385 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{16} % 保留原书章号。
+\chapter{潜在语义分析}
+\label{ch:lh-lsa}
+
+文本检索首先需要回答两个问题：怎样把一篇文本表示成可以计算的对象，以及怎样衡量两篇文本讨论的内容是否接近。直接按单词计数得到的表示简单而稀疏，但同义词可能被视为彼此无关的坐标，多义词又可能把不同内容混在同一坐标中。\emph{潜在语义分析}（latent semantic analysis, LSA）从单词在文本集合中的共同出现模式出发，通过低秩矩阵分解构造较低维的表示，尝试在单词与文本之间引入潜在话题这一层关系；用于信息检索时也称\emph{潜在语义索引}（latent semantic indexing, LSI）。
+
+本章沿用教材“单词向量空间与话题向量空间、潜在语义分析算法、非负矩阵分解算法”的路线，先说明矩阵两侧因子的含义，再讨论截断奇异值分解与非负矩阵分解。前者以正交方向描述主要变化，后者以非负成分的叠加描述文本，二者都是本章所讨论的非概率话题分析方法。阅读需要矩阵乘法、正交投影、特征值和基本微分；所用奇异值分解及优化步骤在本章给出必要说明。全文的 $\log$ 为自然对数，向量范数 $\|\cdot\|_2$ 为欧氏范数，矩阵范数 $\|\cdot\|_F$ 为弗罗贝尼乌斯范数，矩阵不等式 $A\geq0$ 表示所有元素非负。
+
+\section{单词向量空间与话题向量空间}
+\label{sec:lh-lsa-spaces}
+
+\subsection{单词向量空间}
+\label{subsec:lh-lsa-word-space}
+
+\begin{definition}[单词向量空间模型]
+\label{def:lh-lsa-vsm}
+给定文本集合 $\mathcal D=\{d_1,\ldots,d_n\}$ 和词表 $\mathcal V=\{w_1,\ldots,w_m\}$，以
+\begin{equation}
+X=(x_{ij})_{m\times n}=[x_1,\ldots,x_n]\in\mathbb R_{\geq0}^{m\times n}
+\label{eq:lh-lsa-word-document}
+\end{equation}
+表示\emph{单词-文本矩阵}（word-document matrix）。其中 $x_{ij}$ 是单词 $w_i$ 在文本 $d_j$ 中的频数或非负权值，列向量 $x_j\in\mathbb R^m$ 是该文本的表示。以这些向量及其内积、夹角等度量刻画文本关系，称为\emph{向量空间模型}（vector space model, VSM）。
+\end{definition}
+
+这里每一维对应一个单词，每一列对应一篇文本，不能把列向量误认为某个单词的词向量。该表示忽略词序，属于词袋（bag-of-words）表示；它把单词出现的模式作为文本内容的可计算近似，并没有给出自然语言语义的严格定义。词表通常很大，而每篇文本只使用其中一小部分单词，因此 $X$ 往往是稀疏矩阵。
+
+除直接计数外，教材使用\emph{单词频率-逆文本频率}（term frequency-inverse document frequency, TF-IDF）加权。记 $c_{ij}$ 为单词 $w_i$ 在文本 $d_j$ 中出现的次数，$L_j=\sum_{i=1}^m c_{ij}$ 为文本的词数，$n_i=\#\{j:c_{ij}>0\}$ 为含该单词的文本数。对 $L_j>0$、$1\leq n_i\leq n$，教材采用的权值为
+\begin{equation}
+x_{ij}=\frac{c_{ij}}{L_j}\log\frac{n}{n_i}.
+\label{eq:lh-lsa-tfidf}
+\end{equation}
+第一项衡量词在本篇文本中的相对频率，第二项降低普遍出现的词的权重；当 $n_i=n$ 时，该词的逆文本频率为 $0$。这是 TF-IDF 的一种具体约定，带平滑项、对数词频等其他版本会产生不同的矩阵，使用时应先固定定义。空文本不能代入式~\eqref{eq:lh-lsa-tfidf}，加权后全零的文本向量也需要单独处理。
+
+对非零向量 $x_p,x_q$，可以用内积 $x_p^{\mathsf T}x_q$ 或\emph{余弦相似度}（cosine similarity）
+\begin{equation}
+\operatorname{sim}_{\mathrm{word}}(d_p,d_q)
+=\frac{x_p^{\mathsf T}x_q}{\|x_p\|_2\|x_q\|_2}
+\label{eq:lh-lsa-word-cosine}
+\end{equation}
+比较文本。内积同时受方向和向量长度影响，余弦消除了整体正比例缩放的影响；对本节的非负向量，余弦在 $[0,1]$ 内。查询也可以使用同一词表和语料统计量表示成向量，再按与各文本的相似度排序。稀疏内积只需在共同非零坐标上求和，但相似度的语义解释仍依赖表示是否合适。
+
+\begin{example}
+\label{ex:lh-lsa-synonym-polysemy}
+教材的单词-文本矩阵例子包含四篇文本。依次按 airplane、aircraft、computer、apple、fruit、produce 排列行，频数矩阵为
+\begin{equation}
+X=\begin{pmatrix}
+2&0&0&0\\
+0&2&0&0\\
+0&0&1&0\\
+0&0&2&3\\
+0&0&0&1\\
+1&2&2&1
+\end{pmatrix}.
+\label{eq:lh-lsa-four-documents}
+\end{equation}
+比较前两篇文本以及后两篇文本的词空间余弦，说明表示的局限。
+\end{example}
+\begin{solve}
+前两列内积为 $2$，范数分别为 $\sqrt5$、$\sqrt8$；后两列内积为 $8$，范数分别为 $3$、$\sqrt{11}$，故
+\[
+\operatorname{sim}_{\mathrm{word}}(d_1,d_2)=\frac1{\sqrt{10}}\approx0.3162,
+\qquad
+\operatorname{sim}_{\mathrm{word}}(d_3,d_4)=\frac8{3\sqrt{11}}\approx0.8040.
+\]
+airplane 与 aircraft 表达相近内容，却分属两个坐标，因而前两篇文本的联系没有被充分表达。apple 在后两篇文本中可分别指计算机品牌和水果，共享坐标却不能区分词义。这分别体现了\emph{多词一义性}（synonymy）与\emph{一词多义性}（polysemy）带来的问题；produce 等共有词的权重也会影响比较结果。
+\end{solve}
+
+\subsection{话题向量空间}
+\label{subsec:lh-lsa-topic-space}
+
+话题（topic）在这里指由一组相关单词共同反映的内容方向。希望不同的同义词能参与相同话题，而同一个多义词能参与不同话题，再用一篇文本在各话题上的权值描述其内容。这是建模动机，并不意味着矩阵分解一定能恢复人的语义分类，也不意味着每个分解方向都能获得清晰的话题名称。
+
+设选取 $k$ 个向量 $t_\ell=(t_{1\ell},\ldots,t_{m\ell})^{\mathsf T}\in\mathbb R^m$，构成\emph{单词-话题矩阵}（word-topic matrix）$T=[t_1,\ldots,t_k]\in\mathbb R^{m\times k}$。它们张成的子空间为 $\mathcal S=\operatorname{span}\{t_1,\ldots,t_k\}$，维数是 $\operatorname{rank}(T)\leq k$；只有列线性无关时维数才等于 $k$。若用 $y_j\in\mathbb R^k$ 表示文本 $d_j$ 的话题系数，便希望
+\begin{equation}
+x_j\approx Ty_j=\sum_{\ell=1}^k y_{\ell j}t_\ell,
+\qquad
+X\approx TY,\qquad
+Y=[y_1,\ldots,y_n]\in\mathbb R^{k\times n}.
+\label{eq:lh-lsa-topic-factorization}
+\end{equation}
+$Y$ 称为\emph{话题-文本矩阵}（topic-document matrix）。$T$ 的列描述话题在单词坐标中的形式，$Y$ 的列描述文本在这些话题上的系数，$Ty_j$ 则是返回原词空间后的重构向量。
+
+\begin{proposition}[坐标、投影与内积]
+\label{prop:lh-lsa-projection}
+若 $T$ 列满秩，则对任意 $x\in\mathbb R^m$，最小二乘问题 $\min_y\|x-Ty\|_2^2$ 有唯一解
+\begin{equation}
+y^*=(T^{\mathsf T}T)^{-1}T^{\mathsf T}x,
+\qquad
+\widehat x=Ty^*=T(T^{\mathsf T}T)^{-1}T^{\mathsf T}x.
+\label{eq:lh-lsa-general-projection}
+\end{equation}
+其中 $\widehat x\in\mathcal S$ 是正交投影，$y^*\in\mathbb R^k$ 是其坐标。若 $T^{\mathsf T}T=I_k$，则 $y^*=T^{\mathsf T}x$，且对任意 $a,b\in\mathbb R^k$ 有 $(Ta)^{\mathsf T}(Tb)=a^{\mathsf T}b$。
+\end{proposition}
+\begin{proof}
+目标对 $y$ 的梯度为 $2T^{\mathsf T}(Ty-x)$。列满秩使 $T^{\mathsf T}T$ 正定，解正规方程便得到唯一最小点，且 $T^{\mathsf T}(x-\widehat x)=0$，即残差与 $\mathcal S$ 正交。最后，$(Ta)^{\mathsf T}(Tb)=a^{\mathsf T}(T^{\mathsf T}T)b$，代入正交条件即得结论。
+\end{proof}
+
+因此，把词空间向量变成坐标的映射一般不是 $T$ 本身，$T$ 的作用是把系数重构为词空间向量。若话题列不正交，重构向量的内积为 $y_p^{\mathsf T}(T^{\mathsf T}T)y_q$，未必等于 $y_p^{\mathsf T}y_q$；直接采用后一个内积，是在系数空间选用了另一种度量。潜在语义分析还需要从数据中学习 $T$，而不是事先知道话题后只求 $Y$，这正是下两节引入矩阵分解的原因。
+
+\section{潜在语义分析算法}
+\label{sec:lh-lsa-svd}
+
+\subsection{矩阵奇异值分解算法}
+\label{subsec:lh-lsa-truncated-svd}
+
+设 $X\in\mathbb R^{m\times n}$ 的秩为 $r>0$，其紧奇异值分解（singular value decomposition, SVD）为
+\begin{equation}
+X=U_r\Sigma_rV_r^{\mathsf T}
+=\sum_{\ell=1}^r\sigma_\ell u_\ell v_\ell^{\mathsf T},
+\qquad \sigma_1\geq\cdots\geq\sigma_r>0.
+\label{eq:lh-lsa-svd}
+\end{equation}
+这里 $U_r\in\mathbb R^{m\times r}$、$V_r\in\mathbb R^{n\times r}$ 的列分别是正交归一的左、右奇异向量，$\Sigma_r=\operatorname{diag}(\sigma_1,\ldots,\sigma_r)$。左奇异向量是 $XX^{\mathsf T}$ 的特征向量，右奇异向量是 $X^{\mathsf T}X$ 的特征向量，对应特征值均为 $\sigma_\ell^2$。不要求 $m\geq n$；只需 $r\leq\min(m,n)$。
+
+给定 $1\leq k\leq r$，保留最大的 $k$ 个奇异值及其对应向量，得到\emph{截断奇异值分解}（truncated SVD）
+\begin{equation}
+X_k=U_k\Sigma_kV_k^{\mathsf T},\qquad
+T=U_k,\qquad Y=\Sigma_kV_k^{\mathsf T}=U_k^{\mathsf T}X.
+\label{eq:lh-lsa-svd-factors}
+\end{equation}
+各因子的维度依次为 $m\times k$、$k\times k$、$k\times n$。$U_k$ 的列张成所学话题子空间，文本 $d_j$ 的话题表示及其重构分别为
+\begin{equation}
+y_j=U_k^{\mathsf T}x_j
+=(\sigma_1v_{j1},\ldots,\sigma_kv_{jk})^{\mathsf T},
+\qquad
+\widehat x_j=U_ky_j=\sum_{\ell=1}^k\sigma_\ell v_{j\ell}u_\ell.
+\label{eq:lh-lsa-document-coordinates}
+\end{equation}
+其中 $v_{j\ell}$ 是右奇异向量 $v_\ell$ 的第 $j$ 个分量。坐标等式对原始 $X$ 精确成立，而 $x_j\approx\widehat x_j$ 一般只是近似；只有保留了全部非零奇异方向时，才能把整个重构等式写成 $X=X_k$。
+
+由定理~\ref{thm:lh-svd-best-approximation}，截断 SVD 在给定秩约束下使平方重构误差最小，具体为
+\begin{equation}
+\min_{\operatorname{rank}(B)\leq k}\|X-B\|_F^2
+=\|X-X_k\|_F^2=\sum_{\ell=k+1}^r\sigma_\ell^2.
+\label{eq:lh-lsa-best-rank-k}
+\end{equation}
+当 $k=r$ 时，右端的空和为 $0$。该结论的证明已在前文给出，本章将其用于单词-文本矩阵；残差的各奇异方向相互正交，使误差可由丢弃的奇异值平方和直接计算。
+
+这个最优性针对给定矩阵的平方重构误差，不能直接推出检索或话题解释的效果最优。可以考察保留比例 $\sum_{\ell=1}^k\sigma_\ell^2/\sum_{\ell=1}^r\sigma_\ell^2$ 来描述重构信息量，但 $k$ 仍应结合下游任务选择。$k$ 太小会合并不同内容，太大则保留更多原始词差异及噪声；这种取舍不能由“维数越低越好”概括。
+
+\emph[tip]{SVD 话题分析的计算路线}是：先固定分词、词表和加权方法，构造 $X$；再给定 $k$，计算前 $k$ 个奇异三元组，输出 $U_k$ 与 $Y=\Sigma_kV_k^{\mathsf T}$；最后对非零的 $y_j$ 使用内积或余弦比较文本。新查询 $q\in\mathbb R^m$ 使用相同预处理后，以 $y_q=U_k^{\mathsf T}q$ 投影到同一空间，不能为查询单独重新学习一套坐标。即使 $q\ne0$，也可能有 $y_q=0$，此时话题空间余弦仍未定义。
+
+由于 $U_k$ 的列正交归一，$y_p^{\mathsf T}y_q=\widehat x_p^{\mathsf T}\widehat x_q$、$\|y_j\|_2=\|\widehat x_j\|_2$。又有 $Y^{\mathsf T}Y=V_k\Sigma_k^2V_k^{\mathsf T}$，说明本文的内积保留了奇异值的尺度。若改用 $V_k^{\mathsf T}$ 的列作为表示，就相当于把坐标再乘 $\Sigma_k^{-1}$，会改变相似度，不能与式~\eqref{eq:lh-lsa-document-coordinates} 混用。奇异向量可能含负分量，其符号本身也不唯一；同时把 $u_\ell,v_\ell$ 变号不会改变重构与文本相似度。
+
+\subsection{例子}
+\label{subsec:lh-lsa-examples}
+
+\begin{example}
+\label{ex:lh-lsa-four-documents-svd}
+对例~\ref{ex:lh-lsa-synonym-polysemy} 的矩阵取 $k=2$ 做潜在语义分析，观察词空间相似度的变化。这也给出教材习题 17.1 的一种具体计算。
+\end{example}
+\begin{solve}
+对式~\eqref{eq:lh-lsa-four-documents} 的矩阵数值求解奇异值分解，得到
+\[
+(\sigma_1,\sigma_2,\sigma_3,\sigma_4)
+\approx(4.4770,\ 2.7520,\ 2.0000,\ 1.1762).
+\]
+选取一组符号约定后，前两个话题上的文本坐标为
+\begin{equation}
+Y=\Sigma_2V_2^{\mathsf T}\approx
+\begin{pmatrix}
+0.7861&1.5721&2.8586&2.9635\\
+1.0770&2.1540&-0.1045&-1.3276
+\end{pmatrix}.
+\label{eq:lh-lsa-four-documents-coordinates}
+\end{equation}
+用未舍入的坐标计算，$\operatorname{sim}_{\mathrm{topic}}(d_1,d_2)=1$，$\operatorname{sim}_{\mathrm{topic}}(d_3,d_4)\approx0.9269$；平方重构误差为 $\sigma_3^2+\sigma_4^2\approx5.3835$。前两篇文本在此二维表示中同向，原来的同义词差异被压缩；但后两篇文本的相似度也提高了，多义词的混淆没有自动消失。这说明低秩表示能够汇总共现信息，却不能保证把每一种语义差异都正确区分，尤其在只有少量文本时更应核查结果。
+\end{solve}
+
+\begin{example}
+\label{ex:lh-lsa-textbook-nine-documents}
+教材还给出含 $11$ 个单词、$9$ 篇文本的频数矩阵，并取 $k=3$。说明分解后各矩阵及其列的含义，读取两篇文本的坐标。
+\end{example}
+\begin{solve}
+分解为 $X\approx U_3(\Sigma_3V_3^{\mathsf T})$，其中 $U_3$ 为 $11\times3$，$\Sigma_3V_3^{\mathsf T}$ 为 $3\times9$。前者的三列是三个潜在方向，后者的九列是九篇文本的坐标。教材将后一矩阵显示为两位小数：
+\begin{equation}
+Y\approx\begin{pmatrix}
+1.37&0.86&1.33&1.02&0.86&1.92&1.09&1.13&1.72\\
+-0.84&-0.39&-1.20&-0.63&-0.37&1.44&0.18&-0.81&1.15\\
+-0.82&0.28&-0.32&0.50&0.44&-1.02&1.10&0.00&0.68
+\end{pmatrix}.
+\label{eq:lh-lsa-nine-documents-coordinates}
+\end{equation}
+例如 $y_1\approx(1.37,-0.84,-0.82)^{\mathsf T}$、$y_2\approx(0.86,-0.39,0.28)^{\mathsf T}$，由这些已舍入数据计算的余弦约为 $0.7182$。这里每个坐标是带符号的线性系数，负数不表示“负概率”；也不能把第一行误读成第一篇文本。显示的两位小数仅用于阅读，精确重构与相似度计算应使用分解所得的完整数值。
+\end{solve}
+
+\section{非负矩阵分解算法}
+\label{sec:lh-lsa-nmf}
+
+\subsection{非负矩阵分解}
+\label{subsec:lh-lsa-nmf-definition}
+
+SVD 允许正负系数相互抵消，而词频本身是非负的。若希望每篇文本由若干非负话题成分相加构成，可以同时约束两个因子非负。
+
+\begin{definition}[非负矩阵分解]
+\label{def:lh-lsa-nmf}
+给定非负矩阵 $X\in\mathbb R_{\geq0}^{m\times n}$ 和整数 $k\geq1$，寻找
+\begin{equation}
+W=[w_1,\ldots,w_k]\in\mathbb R_{\geq0}^{m\times k},\qquad
+H=[h_1,\ldots,h_n]\in\mathbb R_{\geq0}^{k\times n},\qquad
+X\approx WH,
+\label{eq:lh-lsa-nmf-factorization}
+\end{equation}
+称为\emph{非负矩阵分解}（non-negative matrix factorization, NMF）。$W$ 称为基矩阵，$H$ 称为系数矩阵，近似程度由选定的损失函数衡量。
+\end{definition}
+
+对第 $j$ 篇文本有 $x_j\approx Wh_j=\sum_{\ell=1}^k h_{\ell j}w_\ell$，各项只有非负叠加，没有正负抵消。这里“基矩阵”是惯用名称，并不保证列向量线性无关。常取 $k<\min(m,n)$ 以获得低秩表示，但若按存储的标量个数衡量压缩，还必须有 $k(m+n)<mn$；仅有两个因子各自的某一维变小，不足以保证总参数更少。
+
+\subsection{潜在语义分析模型}
+\label{subsec:lh-lsa-nmf-topic-model}
+
+在文本分析中，$W$ 的第 $\ell$ 列表示第 $\ell$ 个话题的单词权重，$H$ 的第 $j$ 列表示第 $j$ 篇文本的话题权重。由于两者都非负，可以用每列中权重较大的词解释话题，再看各文本由哪些话题共同构成。可重构向量属于非负锥
+\begin{equation}
+\mathcal C_W=\{Wh:h\in\mathbb R_{\geq0}^k\},
+\label{eq:lh-lsa-nmf-cone}
+\end{equation}
+它一般不是线性子空间。固定 $W$ 后，求非负系数是带约束的拟合问题，通常既不是 $h=W^{\mathsf T}x$，也不是词空间上的固定线性变换。
+
+非负性便于“部分相加构成整体”的解释，但不自动赋予概率意义。若 $c_\ell=\sum_iW_{i\ell}>0$，可令 $C=\operatorname{diag}(c_1,\ldots,c_k)$，采用
+\begin{equation}
+\widetilde W=WC^{-1},\qquad
+\widetilde H=CH,\qquad
+\widetilde W\widetilde H=WH.
+\label{eq:lh-lsa-nmf-rescaling}
+\end{equation}
+此时 $\widetilde W$ 的每列和为 $1$，可以当作归一化的词权重阅读；$\widetilde H$ 的列和仍未必为 $1$，一般保留着文本的总量尺度。没有进一步的随机生成假设，整个分解仍是非概率模型。
+
+式~\eqref{eq:lh-lsa-nmf-rescaling} 也说明分解至少存在正对角缩放的不唯一性，话题顺序还可同时置换。比较不同文本的系数余弦前，应固定话题列的尺度；否则某一行 $H$ 的缩放会改变夹角，即使 $WH$ 完全相同。$W$ 一般不正交，因此 $h_p^{\mathsf T}h_q$ 与重构文本的内积 $h_p^{\mathsf T}W^{\mathsf T}Wh_q$ 也须区分。
+
+\subsection{非负矩阵分解的形式化}
+\label{subsec:lh-lsa-nmf-objectives}
+
+教材考虑两种损失。第一种是平方损失，采用不改变最小点的 $1/2$ 因子，将问题写成
+\begin{equation}
+\min_{\substack{W\in\mathbb R_{\geq0}^{m\times k}\\H\in\mathbb R_{\geq0}^{k\times n}}}
+J_E(W,H)=\frac12\|X-WH\|_F^2
+=\frac12\sum_{i=1}^m\sum_{j=1}^n\bigl(x_{ij}-(WH)_{ij}\bigr)^2.
+\label{eq:lh-lsa-nmf-euclidean}
+\end{equation}
+第二种是\emph{广义 Kullback--Leibler 散度}（generalized Kullback--Leibler divergence）
+\begin{equation}
+D(A\|B)=\sum_{i,j}\left(a_{ij}\log\frac{a_{ij}}{b_{ij}}-a_{ij}+b_{ij}\right),
+\label{eq:lh-lsa-generalized-kl}
+\end{equation}
+其中 $A,B$ 同型且非负。按连续延拓约定，$a=0$ 时单项为 $b$，$a>0,b=0$ 时为 $+\infty$，$a=b=0$ 时为 $0$。相应优化问题为
+\begin{equation}
+\min_{\substack{W\in\mathbb R_{\geq0}^{m\times k}\\H\in\mathbb R_{\geq0}^{k\times n}}}
+J_D(W,H)=D(X\|WH).
+\label{eq:lh-lsa-nmf-divergence}
+\end{equation}
+这一定义允许原始频数矩阵不归一化，不能省去 $-a_{ij}+b_{ij}$ 两项。
+
+\begin{proposition}[散度的基本性质]
+\label{prop:lh-lsa-kl-properties}
+对非负同型矩阵，$D(A\|B)\geq0$，且等号当且仅当 $A=B$。一般有 $D(A\|B)\ne D(B\|A)$；若 $\sum_{i,j}a_{ij}=\sum_{i,j}b_{ij}=1$，则式~\eqref{eq:lh-lsa-generalized-kl} 化为两个离散概率分布之间的 KL 散度。
+\end{proposition}
+\begin{proof}
+对 $a,b>0$，令 $t=a/b$，单项为 $b(t\log t-t+1)$。函数 $t\log t-t+1$ 的导数为 $\log t$，在 $t=1$ 取得唯一最小值 $0$；边界情形按上述约定仍非负，且仅在 $a=b$ 时为 $0$。逐项求和得到非负性和等号条件。交换 $a,b$ 一般改变数值，故不对称；两矩阵总和均为 $1$ 时，线性项求和相消，剩下通常的 KL 表达式。
+\end{proof}
+
+两种损失对 $W,H$ 之一固定后的另一变量都是凸的，但联合优化一般非凸。例如标量 $X=1$ 时，$(w,h)=(1,1)$ 与 $(2,1/2)$ 的两种损失都为 $0$，它们的中点 $(3/2,3/4)$ 却给出 $wh=9/8$ 和正损失，违反联合凸性。因此不能把每个子问题的凸性当作整个分解的全局最优保证，数值迭代的结果可能随初值而不同。
+
+\subsection{算法}
+\label{subsec:lh-lsa-nmf-algorithm}
+
+先对平方损失求梯度。因 $(WH)_{ij}=\sum_\ell W_{i\ell}H_{\ell j}$，逐项求导得
+\begin{align}
+\nabla_WJ_E&=(WH-X)H^{\mathsf T}=WHH^{\mathsf T}-XH^{\mathsf T},
+\label{eq:lh-lsa-nmf-gradient-w}\\
+\nabla_HJ_E&=W^{\mathsf T}(WH-X)=W^{\mathsf T}WH-W^{\mathsf T}X.
+\label{eq:lh-lsa-nmf-gradient-h}
+\end{align}
+例如 $\partial J_E/\partial W_{i\ell}=\sum_j((WH)_{ij}-x_{ij})H_{\ell j}$。普通梯度下降可能越出非负约束；若分别取元素步长 $W_{i\ell}/(WHH^{\mathsf T})_{i\ell}$ 和 $H_{\ell j}/(W^{\mathsf T}WH)_{\ell j}$，则加法更新化成教材的\emph{乘法更新规则}（multiplicative update rules）。
+
+\begin{theorem}[平方损失的乘法更新]
+\label{thm:lh-lsa-nmf-euclidean-update}
+给定 $X\geq0$，对严格正的当前因子，在各分母为正时，固定另一因子并作下列任一整块更新，均不增大 $J_E$：
+\begin{align}
+W_{i\ell}&\leftarrow W_{i\ell}
+\frac{(XH^{\mathsf T})_{i\ell}}{(WHH^{\mathsf T})_{i\ell}},
+\label{eq:lh-lsa-nmf-update-w}\\
+H_{\ell j}&\leftarrow H_{\ell j}
+\frac{(W^{\mathsf T}X)_{\ell j}}{(W^{\mathsf T}WH)_{\ell j}}.
+\label{eq:lh-lsa-nmf-update-h}
+\end{align}
+每一块右端都使用该块更新前的值；完成一块后，再以更新后的因子计算下一块。
+\end{theorem}
+\begin{proof}
+固定 $W$，各列的目标可分别写成 $f(h)=\frac12\|x-Wh\|_2^2$。令 $A=W^{\mathsf T}W$、$b=W^{\mathsf T}x$，则 $\nabla f(h)=Ah-b$。对当前 $h>0$，定义对角矩阵 $K_{\ell\ell}=(Ah)_\ell/h_\ell$。因 $A$ 对称且逐项非负，对任意 $z$ 有
+\[
+z^{\mathsf T}(K-A)z
+=\frac12\sum_{\ell,s}A_{\ell s}h_\ell h_s
+\left(\frac{z_\ell}{h_\ell}-\frac{z_s}{h_s}\right)^2\geq0.
+\]
+故辅助函数
+\[
+G(h'\mid h)=f(h)+(h'-h)^{\mathsf T}\nabla f(h)
++\frac12(h'-h)^{\mathsf T}K(h'-h)
+\]
+满足 $G(h'\mid h)\geq f(h')$，且 $G(h\mid h)=f(h)$。其最小点为
+\[
+h'_\ell=h_\ell-\frac{h_\ell}{(Ah)_\ell}\bigl((Ah)_\ell-b_\ell\bigr)
+=h_\ell\frac{b_\ell}{(Ah)_\ell}\geq0.
+\]
+于是 $f(h')\leq G(h'\mid h)\leq G(h\mid h)=f(h)$，逐列相加得到式~\eqref{eq:lh-lsa-nmf-update-h} 的结论。对转置问题使用同一论证，即得 $W$ 更新的结论。这里的辅助函数论证也说明，单凭“使用某种梯度步长”本身还不足以证明下降。
+\end{proof}
+
+对散度损失，令 $Z=WH$，在 $Z_{ij}>0$ 的位置定义 $R_{ij}=x_{ij}/Z_{ij}$，并令 $E=\mathbf1_m\mathbf1_n^{\mathsf T}$ 为全 $1$ 矩阵。由 $\partial(x\log(x/z)-x+z)/\partial z=1-x/z$ 得
+\begin{equation}
+\nabla_WJ_D=(E-R)H^{\mathsf T},\qquad
+\nabla_HJ_D=W^{\mathsf T}(E-R).
+\label{eq:lh-lsa-nmf-kl-gradient}
+\end{equation}
+对应的更新不再使用平方损失中的分母，而是下述规则。
+
+\begin{theorem}[散度损失的乘法更新]
+\label{thm:lh-lsa-nmf-kl-update}
+给定 $X\geq0$，在当前 $W,H$ 严格正、各分母为正时，交替作以下整块更新，均不增大 $J_D$：
+\begin{align}
+W_{i\ell}&\leftarrow W_{i\ell}
+\frac{\sum_{j=1}^n H_{\ell j}x_{ij}/(WH)_{ij}}
+{\sum_{j=1}^n H_{\ell j}},
+\label{eq:lh-lsa-nmf-kl-update-w}\\
+H_{\ell j}&\leftarrow H_{\ell j}
+\frac{\sum_{i=1}^m W_{i\ell}x_{ij}/(WH)_{ij}}
+{\sum_{i=1}^m W_{i\ell}}.
+\label{eq:lh-lsa-nmf-kl-update-h}
+\end{align}
+同样，每块内的全部比值使用该块开始时的因子计算，第二块使用第一块已经更新的结果。
+\end{theorem}
+\begin{proof}
+仍固定 $W$ 并只看一列 $x,h$。记 $z_i=(Wh)_i$、$\alpha_{i\ell}=W_{i\ell}h_\ell/z_i$，则 $\alpha_{i\ell}>0$、$\sum_\ell\alpha_{i\ell}=1$。由 $-\log$ 的凸性，对 $h'>0$ 有
+\[
+-\log\!\left(\sum_\ell W_{i\ell}h'_\ell\right)
+\leq-\sum_\ell\alpha_{i\ell}
+\log\frac{W_{i\ell}h'_\ell}{\alpha_{i\ell}},
+\]
+且在 $h'=h$ 时等号成立。将其乘以 $x_i\geq0$ 并加上线性项，便得到散度目标的一个相切上界；去掉与 $h'$ 无关的常数后，上界为
+\[
+\sum_\ell\left[
+\left(\sum_iW_{i\ell}\right)h'_\ell
+-\left(\sum_ix_i\alpha_{i\ell}\right)\log h'_\ell\right].
+\]
+逐坐标最小化可得 $h'_\ell=(\sum_ix_i\alpha_{i\ell})/(\sum_iW_{i\ell})$，代入 $\alpha_{i\ell}$ 即为式~\eqref{eq:lh-lsa-nmf-kl-update-h}。当分子为零时，最小点按连续延拓取 $h'_\ell=0$。由“目标不超过上界，上界经最小化不增”得到下降结论，转置后得到 $W$ 的更新。
+\end{proof}
+
+两种损失可使用同一迭代流程。输入非负矩阵 $X$、话题数 $k$、最大迭代次数 $t_{\max}$、容差 $\varepsilon>0$ 和选定的损失，输出数值近似因子 $W,H$ 及最终损失。若 $X=0$，直接取零乘积即可；否则先移除全零行、全零列并记录位置，最后补回对应的零权重，以免无信息的行列产生 $0/0$。对剩余的矩阵执行以下步骤。
+\begin{enumerate}
+\item 初始化严格正的 $W,H$，固定一种话题列的尺度约定，并记录初始损失 $J^{(0)}$。只要求非负的初始化可能把某些元素永久锁在零值，因而通常从正数开始。
+\item 在第 $t$ 轮，平方损失先按式~\eqref{eq:lh-lsa-nmf-update-w} 更新整个 $W$，再按式~\eqref{eq:lh-lsa-nmf-update-h} 更新整个 $H$；散度损失分别改用式~\eqref{eq:lh-lsa-nmf-kl-update-w} 和式~\eqref{eq:lh-lsa-nmf-kl-update-h}。每一块更新前统一计算其右端，避免在同一块中混用新旧元素。
+\item 如需对 $W$ 的列归一化，按式~\eqref{eq:lh-lsa-nmf-rescaling} 同时反向缩放 $H$ 的对应行，以保持乘积及损失不变；不能只缩放 $W$。此处也可选正的列欧氏范数作为 $c_\ell$。
+\item 计算 $J^{(t)}$。若 $|J^{(t)}-J^{(t-1)}|/\max\{1,J^{(t-1)}\}\leq\varepsilon$，可按损失变化停止；否则继续，直到 $t_{\max}$。返回因子时说明所用停止条件，达到上限并不表示已满足最优性条件。
+\end{enumerate}
+移除全零行列后，严格正初值使上述精确更新保持正性，因而每轮分母有定义；补回全零行列不会改变有效部分的拟合。浮点计算中若出现下溢、零分母或死话题，应检查并重置相应成分。直接在分母加小常数会改变更新映射，此时不能不加说明地沿用原规则的精确单调性结论。
+
+\begin{notealert}[type=caution,title={损失收敛不等于得到全局最优分解}]
+在更新有定义的条件下，两种损失均非增且下界为 $0$，因此损失数列收敛；这不足以推出因子数列一定收敛，更不足以推出全局最优。在严格正的内部，乘法更新不改变因子等价于相应梯度为零；在边界上，零元素即使梯度方向要求它增加，也可能因乘法形式保持为零，不能把所有不动点都称为约束最小点。
+\end{notealert}
+
+更具体地，在目标可微的位置，局部最小点必须满足非负约束的一阶 KKT 条件：$W,H\geq0$，$\nabla_WJ,\nabla_HJ\geq0$，且
+\begin{equation}
+W\odot\nabla_WJ=0,\qquad H\odot\nabla_HJ=0,
+\label{eq:lh-lsa-nmf-kkt}
+\end{equation}
+其中 $\odot$ 表示逐元素乘法。在正元素上梯度必须为零，在零元素上梯度必须非负；这些只是一般非凸问题的必要条件。实际可结合损失变化与一阶条件残差检查停止结果，并以多个初值比较拟合，而不把某次迭代输出视为唯一的话题结构。
+
+\section{本章小结与习题联系}
+\label{sec:lh-lsa-summary}
+
+本章的共同模型是 $X\approx TY$，关键在于同时学习潜在方向与文本系数。SVD 取 $T=U_k$、$Y=\Sigma_kV_k^{\mathsf T}$，在平方重构误差下给出全局最优的秩至多 $k$ 的近似，允许正负系数；NMF 取 $T=W$、$Y=H$，要求两因子非负，得到成分叠加的表示，但需要求解联合非凸优化。前者的系数由正交投影得到，后者的非负系数通常要通过约束优化得到，二者的“话题空间”几何含义并不完全相同。
+
+教材习题 17.1 的计算见例~\ref{ex:lh-lsa-four-documents-svd}，结果同时展示同义词联系的改善与多义词混淆仍可能存在；习题 17.2 所需的散度损失算法，由式~\eqref{eq:lh-lsa-nmf-kl-update-w}、式~\eqref{eq:lh-lsa-nmf-kl-update-h} 及共同迭代流程给出。对习题 17.3，必须说明所用算法与稀疏性假设：稠密矩阵完整 SVD 的常规复杂度为 $O(mn\min\{m,n\})$，截断方法的开销则依赖所用数值算法和迭代次数，不能仅凭保留 $k$ 个方向就把完整分解的代价改写成 $O(mnk)$。例如采用块子空间迭代、每轮进行与 $X,X^{\mathsf T}$ 的乘法和正交化时，$q$ 轮的主要开销为 $O(q\,\operatorname{nnz}(X)k+q(m+n)k^2)$，其中 $\operatorname{nnz}(X)$ 是非零元素数，$q$ 还依赖谱间隙和精度要求。
+
+对平方损失 NMF，按 $XH^{\mathsf T}$、$W^{\mathsf T}X$、$HH^{\mathsf T}$、$W^{\mathsf T}W$ 及相应乘积计算，一轮稠密交替更新的开销为 $O(mnk+(m+n)k^2)$，$t$ 轮再乘以 $t$；若 $X$ 稀疏，前一项可改为 $\operatorname{nnz}(X)k$。散度更新若显式形成 $WH$ 和逐元素比值，稠密实现每轮为 $O(mnk)$，并需要存储或分块处理 $m\times n$ 的重构量。因子本身占用 $O((m+n)k)$ 存储；复杂度描述须与实际矩阵乘法次序及中间量的存储方式一致。
+
+对习题 17.4，\emph{主成分分析}（principal component analysis, PCA）与 SVD 型 LSA 都可通过奇异值分解寻找低维正交方向，但数据预处理和解释目标不同。以列为样本时，标准 PCA 先求均值 $\bar x=n^{-1}\sum_jx_j$ 并中心化，$X_c=X-\bar x\mathbf1_n^{\mathsf T}$，再对 $X_c$ 做 SVD；其方向最大化相对均值的方差，重构为 $\bar x+U_kU_k^{\mathsf T}(x-\bar x)$，得到仿射子空间上的近似。本文的 LSA 通常直接分解词频或 TF-IDF 矩阵 $X$，重构为 $U_kU_k^{\mathsf T}x$，得到经过原点的线性子空间近似。中心化可能破坏词矩阵的稀疏性并引入负值，故不能把标准 PCA 的预处理无条件移到本章模型中；若对同一个中心化矩阵使用相同的截断 SVD，两者在线性代数计算上才一致。
+
+% 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-19.pdf。
+% 对应教材第 19 章，原书第 351--383 页；保留五节及其主要小节。
+
+
+
+

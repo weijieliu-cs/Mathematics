@@ -1,0 +1,51 @@
+% !TeX root = ../机器学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{0} % 保留原书章号。
+\chapter{统一记号与常用计算}
+\label{app:ml-notation}
+
+\section{记号索引}
+
+以下记号在各章首次使用时仍需解释；表中给出全书的默认约定，局部重定义必须显式声明。
+\begin{longtable}{@{}L{3.2cm}L{10.8cm}@{}}
+  \toprule
+  记号 & 含义与范围 \\
+  \midrule
+  \endhead
+  $X,Y$ 与 $x,y$ & 随机输入、随机输出及其观测值；向量或标量由任务确定。\\
+  $\mathcal D,n,d$ & 训练样本集、样本数与输入特征维数。\\
+  $\mathbf X$ & $n\times d$ 样本设计矩阵，第 $i$ 行为 $x_i^\top$。\\
+  $f_\theta,\theta,\widehat y$ & 参数化预测函数、参数与预测值。\\
+  $\ell,\mathcal R,\widehat{\mathcal R}_n$ & 单样本损失、总体风险与经验风险。\\
+  $C,K,k$ & 类别数、簇或混合成分数、近邻数；局部上下文另有说明时除外。\\
+  $w,b,\lambda,\eta$ & 线性权重、截距、正则化强度与学习率。\\
+  $\nabla,H,I_d$ & 梯度算子、局部使用的 Hessian 矩阵与 $d$ 维单位矩阵。\\
+  $Z,q,\mathcal L$ & 隐变量、近似隐变量分布与证据下界。\\
+  $S_t,A_t,R_{t+1}$ & 强化学习中时刻 $t$ 的状态、动作及随后获得的奖励。\\
+  $\pi,\gamma,G_t$ & 强化学习中的策略、折扣因子与回报；混合模型中的 $\pi_k$ 另表示混合权重。\\
+  \bottomrule
+\end{longtable}
+
+\section{常用公式与适用条件}
+
+固定 $A,y$，对列向量参数 $w$ 有
+\[
+ \nabla_w\frac12\|Aw-y\|^2=A^\top(Aw-y),\qquad
+ \nabla_w(w^\top Bw)=(B+B^\top)w.
+\]
+第二式只有在 $B$ 对称时才简化为 $2Bw$。若 $g$ 是向量函数，链式法则为 $\nabla(F\circ g)=J_g^\top\nabla F$，推导与维度约定见第\ref{chap:ml-linear-algebra}章。对矩阵参数，梯度由标量微分中对应系数读出，不应省略转置核对。
+
+Bernoulli 负对数似然可稳定写为 $\log(1+e^a)-ya$，关于分数 $a$ 的梯度是 $\sigma(a)-y$；Softmax 交叉熵关于分数向量的梯度是 $p-e_y$。一批样本取平均时，参数梯度也必须相应除以样本数。概率预测来自分布模型，决策还需结合损失矩阵，见第\ref{chap:ml-logistic}、\ref{chap:ml-generative}章。
+
+若 $F$ 梯度 $L$-Lipschitz，梯度下降满足
+$F(\theta-\eta\nabla F(\theta))\leq F(\theta)-\eta(1-L\eta/2)\|\nabla F(\theta)\|^2$；
+若迭代映射 $T$ 以系数 $0\leq c<1$ 压缩，则其固定点 $u^*$ 满足
+$\|u-u^*\|\leq\|u-Tu\|/(1-c)$。
+第一式用于判断步长导致的下降，第二式用于把计算残差转为解误差；二者的假设不可互换，分别见第\ref{chap:ml-optimization}、\ref{chap:ml-graphs}和\ref{chap:ml-rl}章。
+
+当 $Z_1,\ldots,Z_n$ 独立同分布且方差有限，$\operatorname{Var}(n^{-1}\sum_iZ_i)=\operatorname{Var}(Z_1)/n$；若存在相关性，还须加上全部非对角协方差项。因而模型平均、重复实验和链采样中的“样本数”不能直接互换，相关说明见第\ref{chap:ml-ensembles}、\ref{chap:ml-bayesian}章。
+
+
+
+
+

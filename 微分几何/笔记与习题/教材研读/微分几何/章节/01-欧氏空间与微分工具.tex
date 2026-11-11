@@ -1,0 +1,79 @@
+% !TeX root = ../本科微分几何笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{0} % 保留原书章号。
+\chapter{欧氏空间与微分工具}
+\label{chap:dg-tools}
+
+\section{内积、叉积与刚体运动}
+几何中的长度来自内积。对 $v,w\in\R^3$，内积与叉积满足
+\[
+ \norm{v\times w}^2=\norm v^2\norm w^2-\ip vw^2,
+ \qquad \ip{v\times w}{z}=\det(v,w,z).
+\]
+这里行列式以三个向量为列；$v\times w$ 的方向由标准右手定向决定。第一式也称 Gram 行列式恒等式，说明两个向量张成的平行四边形面积等于 $\norm{v\times w}$，且面积非零等价于两向量线性无关。
+
+\begin{definition}[欧氏刚体运动]
+映射 $F:\R^3\to\R^3$ 若可写为 $F(p)=Qp+a$，其中 $Q^{\mathsf T}Q=I_3$、$a\in\R^3$，称为\emph{刚体运动（rigid motion）}。当 $\det Q=1$ 时，它保持空间定向；当 $\det Q=-1$ 时，它反转空间定向。
+\end{definition}
+刚体运动保持内积差值 $\ip{F(p)-F(q)}{F(r)-F(q)}$，从而保持距离与角度。叉积的变换公式为
+\[
+ (Qv)\times(Qw)=(\det Q)Q(v\times w).
+\]
+证明只需把两边分别与任意 $Qz$ 作内积，利用三重积的行列式变换公式。这个额外的 $\det Q$ 解释了为什么挠率会在空间反射下变号。
+
+\section{微分、秩与局部坐标}
+设 $F:U\subset\R^m\to\R^n$ 可微。在 $p\in U$ 处，微分 $\dd F_p$ 是满足
+\[
+ F(p+h)=F(p)+\dd F_p(h)+o(\norm h)
+\]
+的线性映射。选定标准基以后，它的矩阵是 Jacobi 矩阵，但线性映射与矩阵表示应区分。链式法则写成
+\begin{equation}
+ \dd(G\circ F)_p=\dd G_{F(p)}\circ\dd F_p.
+ \label{eq:dg-chain}
+\end{equation}
+若 $m\le n$ 且 $\rank\dd F_p=m$，称 $F$ 在 $p$ 处为\emph{浸入（immersion）}；若 $m\ge n$ 且秩为 $n$，称为\emph{下沉（submersion）}。浸入是微分条件，不能单凭它推出整体单射。
+
+\begin{theorem}[逆函数定理与隐函数定理：作为分析前置知识]
+若光滑映射 $F:U\subset\R^n\to\R^n$ 在 $p$ 处满足 $\det\dd F_p\ne0$，则存在 $p$ 与 $F(p)$ 的邻域，使 $F$ 在其间成为具有光滑逆的双射。若光滑函数 $f:\R^3\supset U\to\R$ 满足 $f(p)=c$ 且某个偏导数非零，则 $f^{-1}(c)$ 在 $p$ 附近可表示为相应坐标方向上的光滑函数图像。
+\label{thm:dg-ift}
+\end{theorem}
+这两个结论在本书中引用，不重新证明。它们负责把非退化的微分信息提升为邻域内的坐标信息。行列式在一个点非零，只保证某个邻域内的可逆性；不能据此声称原定义域上的整体可逆性。
+
+\begin{example}[隐式球面与失效的判别条件]
+对 $f(x,y,z)=x^2+y^2+z^2$，在 $f^{-1}(R^2)$ 上若 $R>0$，则 $\grad f=2(x,y,z)\ne0$，故该集合局部为曲面。对方程 $z^2=0$，定义函数的梯度在解集上处处为零，但解集仍是平面。由此可见，非零梯度是某个方程给出正则曲面的充分条件，并不是任何定义方程都必须满足的必要条件。
+\end{example}
+
+\section{正定二次型与自伴算子}
+曲面的坐标基通常不正交。若一个二维内积空间的基为 $e_1,e_2$，其 Gram 矩阵为 $\mathbf g=(\ip{e_i}{e_j})$，则向量的坐标列 $a,b$ 满足 $\ip XY=a^{\mathsf T}\mathbf g b$。矩阵 $\mathbf g$ 对称正定，因此可逆，且 $\det\mathbf g>0$。
+
+\begin{proposition}[非正交基下的自伴性]
+设线性算子 $A$ 在上述基下的矩阵为 $\mathbf A$。它关于该内积自伴，当且仅当
+\[
+ \mathbf A^{\mathsf T}\mathbf g=\mathbf g\mathbf A.
+\]
+自伴算子具有实特征值，并存在内积意义下的标准正交特征基。
+\label{prop:dg-selfadjoint}
+\end{proposition}
+\begin{proof}
+自伴条件 $\ip{AX}{Y}=\ip{X}{AY}$ 对所有坐标列成立，恰好等价于矩阵等式。取正定对称平方根 $\mathbf g^{1/2}$，则 $\mathbf g^{1/2}\mathbf A\mathbf g^{-1/2}$ 为实对称矩阵。应用实对称矩阵的谱定理，再将所得特征基变换回来，即得结论。
+\end{proof}
+
+\section{微分方程与积分的使用条件}
+曲线的 Frenet 方程、平行移动和测地线方程都属于常微分方程。对 $y'=F(t,y)$，若 $F$ 连续且关于 $y$ 局部 Lipschitz，则每个初值有唯一的局部解；光滑 $F$ 满足这些条件。解延伸到整个参数区间需要额外控制，不能把局部存在唯一性当作整体存在性。线性方程 $y'=A(t)y+b(t)$ 在系数连续的区间上则有贯穿该区间的唯一解。
+
+后文对紧区间上的光滑变分求导，可由连续偏导数在紧集上有界来支持积分号下求导。使用 Green 公式时，区域取紧致、边界分段光滑，函数在其邻域内具有连续的一阶偏导数；更弱假设虽可成立，本书不在此展开。曲面积分跨多个坐标片时，可先细分区域再求和；局部表达的不变性保证结果不依赖细分与坐标。
+
+\section{习题}
+\begin{exercise}\label{ex:dg-tools-gram}
+证明 $v,w\in\R^3$ 的 Gram 行列式非负，并说明等号成立的充要条件。
+\end{exercise}
+\begin{exercise}\label{ex:dg-tools-immersion}
+对 $F(u,v)=(\cos u,\sin u,v)$，证明它处处为浸入但在 $\R^2$ 上不是单射；指出使它成为局部坐标的定义域限制。
+\end{exercise}
+\begin{exercise}\label{ex:dg-tools-selfadjoint}
+设 $\mathbf g=\operatorname{diag}(4,1)$、$\mathbf A=\begin{pmatrix}0&1\\4&0\end{pmatrix}$。验证自伴性，求特征值及关于 $\mathbf g$ 的单位特征向量。
+\end{exercise}
+\begin{exercise}\label{ex:dg-tools-cone}
+证明圆锥 $x^2+y^2=z^2$ 除顶点外是正则曲面，并用通过顶点的曲线切向量说明顶点不可能是正则曲面点。
+\end{exercise}
+

@@ -1,0 +1,78 @@
+% !TeX root = ../机器学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{7} % 保留原书章号。
+\chapter{感知机、逻辑回归与最大熵}
+\label{chap:ml-logistic}
+
+线性分类器用超平面划分输入空间。相同的边界形式可以对应不同目标：感知机关注误分类更新，逻辑回归拟合条件概率，最大熵从约束下的不确定性原则导出指数模型。
+
+\section{线性分类与感知机更新}
+
+令标签 $y_i\in\{-1,+1\}$，将截距并入扩展输入 $z_i=(x_i^\top,1)^\top$，分类分数为 $v^\top z_i$。感知机（perceptron）从 $v=0$ 开始，扫描样本；遇到 $y_iv^\top z_i\leq0$ 就更新 $v\leftarrow v+y_iz_i$，否则不变。整轮无更新即可停止，也可在预算耗尽时终止并报告尚未完全分开数据。零分数按更新条件处理，最终预测的并列规则另行固定。
+
+该更新使当前样本的带符号分数增加 $\|z_i\|^2$，但可能使别的样本更难分类。不可分数据上不存在所有约束都满足的参数，算法可能不停更新。因此必须把数据可分性与迭代程序区分。
+
+\section{线性可分性与错误次数界}
+
+\begin{theorem}[感知机的有限更新]
+设 $\|z_i\|\leq R$，且存在单位向量 $u$ 使 $y_iu^\top z_i\geq\gamma>0$ 对全部训练样本成立。上述从零开始的算法总更新次数 $M$ 满足 $M\leq(R/\gamma)^2$。
+\end{theorem}
+\begin{proof}
+每次更新使 $u^\top v$ 至少增加 $\gamma$，故 $u^\top v_M\geq M\gamma$。又因为仅在 $y_iv^\top z_i\leq0$ 时更新，
+$\|v+y_iz_i\|^2\leq\|v\|^2+R^2$，
+从而 $\|v_M\|\leq R\sqrt M$。由 Cauchy--Schwarz 不等式，$M\gamma\leq R\sqrt M$，解得结论。
+\end{proof}
+
+这里的间隔是相对于单位法向量的几何量，并且定义于扩展空间。定理保证有限次找到某个分离超平面，不保证最大间隔，也不直接给出测试正确率。
+
+\section{逻辑回归与交叉熵}
+
+改用 $y_i\in\{0,1\}$，设 $a_i=v^\top z_i$，逻辑回归（logistic regression）规定
+$p_i=P_\theta(Y=1\mid x_i)=\sigma(a_i)$，
+其中 $\sigma(a)=1/(1+e^{-a})$。独立条件 Bernoulli 似然的平均负对数为
+\begin{equation}
+ F(v)=\frac1n\sum_i[\log(1+e^{v^\top z_i})-y_iv^\top z_i].
+ \label{eq:ml-logistic-objective}
+\end{equation}
+若 $Z$ 的行是 $z_i^\top$，则 $\nabla F=Z^\top(p-y)/n$，
+$\nabla^2F=Z^\top WZ/n$，$W=\operatorname{diag}(p_i(1-p_i))$。因为 $W$ 非负，目标凸；可采用梯度下降或阻尼 Newton 法。
+
+凸性不保证有限最优解存在。若训练数据严格可分，沿某个分离方向不断增大参数范数可使交叉熵趋零，但有限分数不产生完全零一概率，最小值可能无法取到。适当二次惩罚可控制这种发散；是否惩罚截距及参数是否可辨识仍须明确。
+
+\section{多分类与概率决策}
+
+Softmax 回归为每类定义分数 $a_c(x)=w_c^\top x+b_c$，概率为 $p_c(x)=e^{a_c(x)}/\sum_re^{a_r(x)}$。真实类别为 $y$ 时损失是 $-\log p_y$，关于分数的梯度为 $p_c-\mathbf1\{y=c\}$。所有分数加上相同函数不改变概率，可固定一类参数或施加适当约束以处理冗余。
+
+零一损失下取概率最大的类别；若漏判代价为 $c_{\rm FN}$、误报代价为 $c_{\rm FP}$，二分类应在
+$p_1>c_{\rm FP}/(c_{\rm FP}+c_{\rm FN})$
+时判正类。阈值源于比较两种条件风险，高概率并非正确性的保证，概率质量还需校准评价。
+
+\section{最大熵原理与条件指数模型}
+
+设输入仅取训练中的有限个值，其经验分布为 $\widehat p(x)$，标签集合有限。选择条件分布 $q(y\mid x)$，在归一约束及特征期望
+$\sum_{x,y}\widehat p(x)q(y\mid x)\phi_j(x,y)=\widehat m_j$
+下最大化条件熵 $-\sum_{x,y}\widehat p(x)q(y\mid x)\log q(y\mid x)$。这里 $\widehat m_j$ 是观测到的平均特征。
+
+当存在适当的内部最优解和有限乘子时，对 $q$ 作拉格朗日求导得到
+\[
+ q_\lambda(y\mid x)=
+ \frac{\exp(\sum_j\lambda_j\phi_j(x,y))}
+ {\sum_{y'}\exp(\sum_j\lambda_j\phi_j(x,y'))}.
+\]
+对偶目标为平均对数配分函数减去 $\sum_j\lambda_j\widehat m_j$，也就是相应条件指数模型的负对数似然。取类别与输入的交叉特征得到 Softmax 回归。若经验约束位于可行边界，有限乘子表示不一定存在；最大熵原理不是不考虑约束就选择均匀预测。
+
+\section{例题、练习与学习检查}
+
+\begin{example}[一次逻辑回归更新]
+不含截距的一维模型初始 $w=0$，唯一观测为 $x=2,y=1$，步长为 $0.1$。
+\end{example}
+\begin{solve}
+初始 $p=1/2$，梯度为 $(p-y)x=-1$，更新得 $w=0.1$，新概率为 $\sigma(0.2)\approx0.5498$。更新提高了实际标签的概率，但尚未表示模型已经学会一般的分类关系。
+\end{solve}
+
+习题：对两个可分点手算感知机更新并验证间隔界所需假设；证明逻辑回归 Hessian 半正定；当误报代价为一、漏判代价为四时求最优概率阈值；说明分类边界不变时交叉熵仍可能改变的原因。
+
+
+
+
+

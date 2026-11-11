@@ -1,0 +1,51 @@
+% !TeX root = ../深度学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{线性代数、微积分与数值计算}
+\label{chap:dl-mathematics}
+网络首先是一个可以逐项计算的函数。理解它需要同时核对数学关系和数组形状：形状错误通常意味着不同的对象被错误组合，而数值不稳定则可能使正确公式产生无用的计算结果。
+
+\section{向量、矩阵、张量与形状}
+对列向量 $\mathbf x,\mathbf y\in\mathbb R^d$，内积为 $\mathbf x^\mathsf T\mathbf y=\sum_jx_jy_j$，欧氏范数为 $\|\mathbf x\|_2=(\sum_jx_j^2)^{1/2}$。矩阵 $\mathbf W\in\mathbb R^{m\times d}$ 的秩是其列空间的维数；它把 $d$ 维输入映到 $m$ 维输出。仿射变换 $\mathbf z=\mathbf W\mathbf x+\mathbf b$ 满足 $z_i=\sum_jW_{ij}x_j+b_i$，因此偏置必须属于 $\mathbb R^m$。矩阵的 Frobenius 范数定义为 $\|\mathbf W\|_F=(\sum_{ij}W_{ij}^2)^{1/2}$。
+
+程序中的\emph{张量（tensor）}通常指多维数组；本书不要求一般张量代数。以批量为行时，$\mathbf X_{\mathrm{batch}}\in\mathbb R^{B\times d}$ 的仿射输出为 $\mathbf X_{\mathrm{batch}}\mathbf W^\mathsf T+\mathbf1_B\mathbf b^\mathsf T$，其中 $\mathbf1_B$ 是全一列向量。广播只是省略了偏置的显式复制，不会改变数学含义。批量轴、通道轴和空间轴各有语义；重排轴与仅改变形状也不是同一操作。
+
+\section{导数、梯度、雅可比与链式法则}
+\begin{definition}[微分与梯度]
+设 $f:\mathbb R^d\to\mathbb R$ 在 $\mathbf x$ 的邻域内有定义。若存在向量 $\mathbf g$ 使 $f(\mathbf x+\mathbf u)=f(\mathbf x)+\mathbf g^\mathsf T\mathbf u+o(\|\mathbf u\|_2)$，则称 $f$ 在该点可微，$\mathbf g$ 称为\emph{梯度（gradient）}，记为 $\nabla f(\mathbf x)$。可微时沿方向 $\mathbf v$ 的方向导数为 $\nabla f(\mathbf x)^\mathsf T\mathbf v$。
+\end{definition}
+对可微映射 $F:\mathbb R^d\to\mathbb R^m$，其\emph{雅可比矩阵（Jacobian matrix）}为 $[DF]_{ij}=\partial F_i/\partial x_j$。若 $g:\mathbb R^m\to\mathbb R$ 也可微，则
+\begin{equation}
+\nabla_{\mathbf x}(g\circ F)(\mathbf x)=DF(\mathbf x)^\mathsf T\nabla g(F(\mathbf x)).
+\label{eq:dl-chain-rule}
+\end{equation}
+把 $F(\mathbf x+\mathbf u)=F(\mathbf x)+DF(\mathbf x)\mathbf u+o(\|\mathbf u\|)$ 代入 $g$ 的一阶展开即可得到这一\emph{链式法则（chain rule）}，它也是反向传播的局部依据。对二阶连续可微标量函数，\emph{海森矩阵（Hessian matrix）}为 $\nabla^2f=(\partial^2f/\partial x_i\partial x_j)_{ij}$，混合偏导相等保证它对称。
+
+\section{局部近似、曲率与条件数}
+若 $f$ 在邻域内二阶连续可微，则 $f(\mathbf x+\mathbf u)=f(\mathbf x)+\nabla f(\mathbf x)^\mathsf T\mathbf u+\frac12\mathbf u^\mathsf T\nabla^2f(\mathbf x)\mathbf u+o(\|\mathbf u\|_2^2)$。梯度给出一阶变化，海森矩阵描述曲率。梯度为零仅表示一阶项消失，局部极小、极大或鞍点都可能满足这一条件。
+
+对 $f(\mathbf x)=\frac12\mathbf x^\mathsf T\mathbf A\mathbf x$，设 $\mathbf A$ 对称正定，其特征值满足 $0<\lambda_{\min}\leq\lambda_{\max}$，谱条件数为 $\kappa=\lambda_{\max}/\lambda_{\min}$。梯度更新为 $\mathbf x_{t+1}=(\mathbf I-\eta\mathbf A)\mathbf x_t$；沿特征值 $\lambda_j$ 的坐标每次乘 $1-\eta\lambda_j$。故收敛到零的充分且对所有初值必要的条件为 $0<\eta<2/\lambda_{\max}$。较大 $\kappa$ 会使某些方向很慢，因此特征尺度影响优化；这是二次模型上的准确结论，不能直接当作全部非线性网络的收敛定理。
+
+\section{浮点运算与稳定计算}
+浮点数只能保存有限有效位，过大的指数可能上溢，两个很接近的数相减可能丢失相对精度。对 $a_1,\ldots,a_K\in\mathbb R$，令 $a_{\max}=\max_ka_k$，把最大指数因子提出得到
+\begin{equation}
+\log\sum_{k=1}^Ke^{a_k}=a_{\max}+\log\sum_{k=1}^Ke^{a_k-a_{\max}}.
+\label{eq:dl-logsumexp}
+\end{equation}
+右侧指数参数不大于零，避免了指数上溢。直接先计算 softmax 再取对数仍可能将很小概率舍入为零，因此分类损失宜直接由此式和逻辑值计算。
+
+若一元函数三阶连续可微，中心差分 $[f(x+h)-f(x-h)]/(2h)=f'(x)+O(h^2)$ 来自两次泰勒展开。步长减小时截断误差降低，但减法舍入误差经除以 $h$ 被放大；数值梯度不能通过无限减小步长无限提高精度。梯度检查宜避开不可导点，比较若干中等步长下的稳定结果。
+
+\section{例题与习题}
+\begin{example}[平方损失的矩阵梯度]
+设 $\mathbf W\in\mathbb R^{m\times d}$、$\mathbf y\in\mathbb R^m$，求 $f(\mathbf x)=\|\mathbf W\mathbf x-\mathbf y\|_2^2/2$ 的梯度与海森矩阵。
+\end{example}
+\begin{solve}
+记 $\mathbf r=\mathbf W\mathbf x-\mathbf y$。增量的一阶项为 $\mathbf r^\mathsf T\mathbf W\mathbf u$，故 $\nabla f=\mathbf W^\mathsf T\mathbf r\in\mathbb R^d$，再微分得 $\nabla^2f=\mathbf W^\mathsf T\mathbf W$。任意 $\mathbf v$ 满足 $\mathbf v^\mathsf T\nabla^2f\mathbf v=\|\mathbf W\mathbf v\|^2\geq0$；仅当 $\mathbf W$ 列满秩时海森矩阵正定。
+\end{solve}
+\begin{enumerate}
+\item 令 $a_1=1000,a_2=1001$，用式\eqref{eq:dl-logsumexp}把结果写成不含大指数的形式。
+\item 对 $f(x_1,x_2)=(x_1^2+x_2)^2$ 求梯度，并在 $(1,2)$ 核对沿 $(1,-1)$ 的方向导数。
+\item 对 $\mathbf A=\operatorname{diag}(1,100)$ 求允许所有初值收敛的固定步长范围，解释两个坐标的衰减速度差异。
+\end{enumerate}
+

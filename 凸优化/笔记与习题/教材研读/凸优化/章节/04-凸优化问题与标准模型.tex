@@ -1,0 +1,160 @@
+% !TeX root = ../凸优化笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{3} % 保留原书章号。
+\chapter{凸优化问题与标准模型}
+\label{ch:co-models}
+
+模型的凸性应从变量、定义域、目标及每个约束逐项检查。本章把前两章的判据转化为建模工具，并给出算法和对偶理论所需的基本最优性结论。
+
+\section{标准形式与最优性基本定理}
+
+凸目标需要和正确方向的约束配合。约束 $f_i(x)\leq0$ 选取凸函数的次水平集，因而保凸；约束 $f_i(x)\geq0$ 则没有同样保证。例如 $x^2\leq1$ 给出区间 $[-1,1]$，而 $x^2\geq1$ 给出两段分离的半直线。对等式约束，要求仿射是一个统一且容易检查的充分结构：它既不会像 $x^2=1$ 那样形成分离的点，也允许直接消元。
+
+式\eqref{eq:co-general-problem}在 $D$ 凸、$f_0,f_1,\ldots,f_m$ 凸、$h_j$ 仿射时称为标准形式凸问题。它的可行集是凸集，因为凸函数次水平集与仿射集的交仍凸。最大化凹函数也属于凸优化，因为取负号后得到凸的极小化问题。
+
+一个凸可行集可能被写成非标准约束。例如 $x^2=0$ 定义单点凸集，但左侧不是仿射函数；改写为 $x=0$ 就得到标准凸表示。建模时应寻找便于验证和求解的表示。
+
+\begin{theorem}[凸问题的最优解]
+在凸集 $C$ 上极小化凸函数 $f$ 时，每个局部最优解都是全局最优解；最优解集是凸集；若 $f$ 严格凸，则最优解至多一个。
+\end{theorem}
+\begin{proof}
+若局部最优点 $x^\star$ 不是全局最优点，存在 $y\in C$ 使 $f(y)<f(x^\star)$。对任意 $0<t<1$，$x_t=(1-t)x^\star+ty$ 可行且 $f(x_t)<f(x^\star)$；令 $t$ 足够小，便与局部最优性矛盾。若 $x,y$ 均最优，其凸组合的函数值不超过最优值，又不可能小于它，故仍最优。严格凸时两个不同最优点的中点会有更小函数值，故不能同时存在。
+\end{proof}
+
+存在性需另外保证。连续函数在非空紧可行集上取得最小值；更一般地，下半连续目标只要有一个非空紧的有限次水平集，就能在其上取得全局最小值。若目标在闭可行集上连续且随 $\|x\|_2\to\infty$ 趋于 $+\infty$，这种紧次水平集也存在。严格凸性只保证至多一个解，不能代替这些条件。
+
+局部即全局的证明依靠两个独立条件：可行集凸，使通向更好方案的短线段仍然可行；目标凸，使这条线段上立即出现目标改善。缺少前者，即使目标为 $(x-2)^2$，在可行集 $\{-1,2\}$ 上 $-1$ 也是局部最优却不是全局最优，因为它附近根本没有其他可行点。缺少后者，沿通向远处更好方案的线段，也可能先上升后下降。
+
+\section{一阶最优性与约束边界}
+
+\begin{theorem}
+设 $C$ 非空凸，$f$ 在包含 $C$ 的开凸集上凸且可微。点 $x^\star\in C$ 最优，当且仅当
+\begin{equation}
+ \nabla f(x^\star)^{\mathsf T}(x-x^\star)\geq0,
+ \quad\text{对所有 }x\in C.
+ \label{eq:co-first-order-optimality}
+\end{equation}
+\end{theorem}
+\begin{proof}
+必要性由线段 $x^\star+t(x-x^\star)$ 上目标在 $t=0$ 处的右导数非负得到。充分性由切平面下界 $f(x)\geq f(x^\star)+\nabla f(x^\star)^{\mathsf T}(x-x^\star)\geq f(x^\star)$ 得到。
+\end{proof}
+
+当 $C=\mathbb R^n$ 时，可取 $x-x^\star=-\nabla f(x^\star)$，故条件化为 $\nabla f(x^\star)=0$。约束问题则不必如此：在 $x\geq0$ 上最小化 $f(x)=x$，最优点为零而导数为 $1$。可行方向限制了实际能够下降的方向。
+
+对适当凸函数，包括通过指示函数编码约束的情形，由次梯度定义可知
+\[
+ x^\star\text{ 最优}\quad\Longleftrightarrow\quad0\in\partial f(x^\star).
+\]
+把它进一步拆成目标和约束各自的次微分时，需要相应的求和规则及资格条件。
+
+一阶最优性还给出一个可以计算的目标下界。对当前可行点 $x$，若
+\[
+ G_C(x)=\sup_{y\in C}\nabla f(x)^{\mathsf T}(x-y)
+\]
+有限，则 $0\leq f(x)-p^\star\leq G_C(x)$：将切平面下界对 $y\in C$ 取下确界即可。这个量比较的是当前点与所有可行方向的线性改善空间。在有界多面体上计算它是一个线性规划；在无界集合上它可能无穷大，因此并非任何问题都适用。
+
+\section{等价变换、松弛与拟凸优化}
+
+上图改写 $\min_x f(x)$ 为 $\min_{x,t}t$，约束 $f(x)\leq t$，保留最优值，并可由新解直接恢复 $x$。对于 $\min_x\max_i f_i(x)$，改写为 $\min t$、$f_i(x)\leq t$，常能消除目标中的非光滑最大值。可逆变量替换保留方案对应；严格递增的目标变换保留最优解，但通常改变最优值。
+
+辅助变量不会自动带来等价性，必须检查两个方向。上图改写中，任意原可行 $x$ 都能配上 $t=f(x)$，而任意新可行 $(x,t)$ 又满足 $f(x)\leq t$，因此双方的最优值相同。若写成 $f(x)=t$，虽然也能保持最优值，但非仿射凸函数的等式图像通常不是凸集；写成不等式正是保留凸结构的关键。
+
+\begin{example}[极小极大问题的手算与线性规划]
+选择一个实数 $x$，使它到 $0$ 与 $4$ 的最坏距离尽量小，即最小化 $\max\{|x|,|x-4|\}$。
+\end{example}
+\begin{solve}
+引入 $t$ 后，约束为 $-t\leq x\leq t$、$-t\leq x-4\leq t$。其中 $x\leq t$ 和 $x\geq4-t$ 要同时成立，必须有 $t\geq2$。取 $x=2,t=2$ 满足全部约束，所以最优值为 $2$。既可以把答案理解为两个端点的中点，也可以把 $t\geq2$ 理解为原问题的最优性证书。
+\end{solve}
+
+若以更大的集合 $\widetilde C\supseteq C$ 替代原可行集，则
+\[
+ \inf_{x\in\widetilde C}f(x)\leq\inf_{x\in C}f(x).
+\]
+因此松弛产生下界；只有松弛解还满足原约束时，才能直接认证它也是原问题的最优解。
+
+设 $f$ 拟凸、约束集 $C$ 凸，且能判断 $C\cap\{x:f(x)\leq\tau\}$ 是否为空。给定最优值下界 $l$ 和来自可行点的上界 $u$，每次取 $\tau=(l+u)/2$：可行时保存该点并令 $u=\tau$，不可行时令 $l=\tau$。经过 $\lceil\log_2((u_0-l_0)/\varepsilon)\rceil$ 次判定，区间长度不超过 $\varepsilon$；此计数不包括每次可行性判定的代价，并假设判定精确。
+
+\section{线性规划与凸二次规划}
+
+LP 的常用标准形式为
+\[
+ \min_x c^{\mathsf T}x,\qquad Ax=b,\quad x\geq0.
+\]
+自由变量可写成两个非负变量之差；不等式 $Gx\leq h$ 可引入非负松弛变量 $s$，写成 $Gx+s=h$。转换增加变量，但便于统一分析。
+
+凸二次规划（quadratic programming，QP）具有形式
+\[
+ \min_x\ \tfrac12x^{\mathsf T}Px+q^{\mathsf T}x+r,
+ \qquad Gx\leq h,\quad Ax=b,\quad P\succeq0.
+\]
+若不等式也为凸二次函数，则称为凸二次约束二次规划（quadratically constrained quadratic programming，QCQP）。每一个不等式的二次型矩阵都应半正定；任意二次等式通常不符合标准凸形式。最小二乘为 QP，因为其二次项矩阵为 $A^{\mathsf T}A$。
+
+\section{二阶锥规划与半正定规划}
+
+二阶锥规划（second-order cone programming，SOCP）的目标线性，约束由仿射等式及
+\[
+ \|A_i x+b_i\|_2\leq c_i^{\mathsf T}x+d_i
+\]
+组成。左、右两侧整体表示一个仿射向量落入二阶锥；右侧非负性已由该不等式保证。凸 QCQP 可以通过二次型分解和旋转二阶锥转为 SOCP，例如 $\|u\|_2^2\leq t$ 等价于 $\|(2u,t-1)\|_2\leq t+1$。
+
+半正定规划（semidefinite programming，SDP）允许仿射矩阵约束 $F_0+\sum_i x_iF_i\succeq0$，其中 $F_i$ 为给定对称矩阵。最大特征值极小化可写为 $\min t$，满足 $tI-F(x)\succeq0$，前提是 $F$ 关于变量仿射。
+
+\begin{proposition}[Schur 补]
+若 $A\succ0$，则
+\[
+ \begin{bmatrix}A&B\\B^{\mathsf T}&C\end{bmatrix}\succeq0
+ \quad\Longleftrightarrow\quad C-B^{\mathsf T}A^{-1}B\succeq0.
+\]
+\end{proposition}
+\begin{proof}
+对向量 $u,v$，块二次型等于
+\[
+ (u+A^{-1}Bv)^{\mathsf T}A(u+A^{-1}Bv)
+ +v^{\mathsf T}(C-B^{\mathsf T}A^{-1}B)v.
+\]
+充分性由两项非负得到；必要性取 $u=-A^{-1}Bv$。
+\end{proof}
+若 $A$ 仅半正定，须增加值域条件并使用广义逆，不能直接照用此公式。
+
+SOCP 与 SDP 的名称来自所使用的凸锥，而不是目标函数外观的复杂程度。例如 $x_1^2+x_2^2\leq t$ 表面上含有平方项，仍可用一个二阶锥约束表示。验证等价式时，先由 $\|(2u,t-1)\|_2\leq t+1$ 知道右端非负，再平方得 $4\|u\|_2^2+(t-1)^2\leq(t+1)^2$，即 $\|u\|_2^2\leq t$。反向中 $t\geq\|u\|_2^2\geq0$ 保证平方不会引入符号错误。
+
+一个最小的 SDP 例子是
+\[
+ \begin{bmatrix}t&x\\x&1\end{bmatrix}\succeq0
+ \quad\Longleftrightarrow\quad t\geq x^2.
+\]
+因此矩阵不等式既能描述多个方向的曲率，也能编码熟悉的标量二次不等式。遇到矩阵模型时，可以先在 $2\times2$ 情形展开检查，再理解其高维推广。
+
+\section{几何规划与对数变换}
+
+对正变量 $x_j>0$，单项式（monomial）为 $c\prod_jx_j^{a_j}$，其中 $c>0$、$a_j\in\mathbb R$；若干单项式的和称为正项式（posynomial）。几何规划（geometric programming，GP）的标准形式为最小化正项式，满足正项式不等式 $f_i(x)\leq1$ 和单项式等式 $h_j(x)=1$。
+
+令 $y_j=\log x_j$。单项式的对数成为 $\log c+a^{\mathsf T}y$，正项式的对数成为
+\[
+ \log\sum_k\exp(a_k^{\mathsf T}y+\log c_k),
+\]
+这是凸函数。因此对目标取对数、对每个约束取对数后，得到标准凸问题，原变量由 $x_j=e^{y_j}$ 恢复。
+
+\begin{example}
+长方形要求 $x,y>0$、面积 $xy\geq1$，求最小周长。模型为最小化 $2x+2y$，满足 $x^{-1}y^{-1}\leq1$，是 GP。由 $x+y\geq2\sqrt{xy}\geq2$，最优解为 $x=y=1$；对数改写中，面积约束成为 $-u-v\leq0$。
+\end{example}
+
+\section{多目标优化与建模检查}
+
+设可行集为 $C$，目标向量为 $F(x)=(f_1(x),\ldots,f_q(x))$。若 $x^\star\in C$，且不存在 $x\in C$ 使各目标均不大于 $F(x^\star)$ 且至少一项严格更小，则称 $x^\star$ 为帕累托最优（Pareto optimal）。给定权重 $w_i>0$，求解 $\min_{x\in C}\sum_iw_i f_i(x)$，称为加权和标量化（scalarization）。其最优解必为帕累托最优，否则支配它的点会有严格更小的加权和。若权重非负且不全为零，一般只能保证弱帕累托最优，即不存在同时严格改善全部目标的可行点。
+
+例如在 $0\leq x\leq1$ 上同时最小化 $x^2$ 和 $(x-1)^2$，每一点均为帕累托最优；正权重和的解为 $x=w_2/(w_1+w_2)$，展示了偏好权重对方案的影响。
+
+一个模型的最终检查应包括定义域、目标曲率、约束方向、等式仿射性以及辅助变量能否还原。诸如 $\|x\|_2\geq1$ 的约束虽使用凸函数，却是其超水平集，通常非凸。
+
+\section{例题与学习检查}
+\begin{example}[同一残差的不同模型]
+令 $e=Ax-b\in\mathbb R^r$。最小化 $\|e\|_1$ 等价于 LP：最小化 $\mathbf1^{\mathsf T}t$，约束 $-t\leq Ax-b\leq t$；最小化 $\|e\|_\infty$ 等价于最小化标量 $s$，约束 $-s\mathbf1\leq Ax-b\leq s\mathbf1$。最小化 $\|e\|_2$ 可用 SOCP 上图，而最小化其平方可用 QP。三种误差度量一般给出不同最优方案。
+\end{example}
+\begin{enumerate}
+ \item 将 $\min_x\max\{|x-1|,2|x+1|\}$ 写成 LP 并求解。答案为 $x=-1/3$，最优值 $4/3$。
+ \item 设 $f:\mathbb R^n\to\mathbb R$ 为 $\mu$-强凸连续函数，$C$ 为非空闭凸集。证明 $f$ 在 $C$ 上的最小值存在且唯一。提示：强凸下界提供强制性。
+ \item 用 Schur 补将 $y^{\mathsf T}X^{-1}y\leq t$、$X\succ0$ 写成矩阵不等式，并说明正定定义域不可遗漏。
+ \item 建模练习：把 $\min_x |x-1|+2|x+2|$ 写成 LP。再用次梯度核验 $x^\star=-2$、最优值为 $3$，比较“写成标准模型”与“解出模型”两个步骤。
+\end{enumerate}
+

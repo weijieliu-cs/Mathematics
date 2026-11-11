@@ -1,0 +1,95 @@
+% !TeX root = ../常微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{3} % 保留原书章号。
+\chapter{初值问题的存在性与唯一性}
+\label{chap:ode-existence}
+
+能否求出公式与解是否存在是不同问题。本章对有限维系统 $x'=f(t,x)$、$x(t_0)=x_0$ 建立局部理论，其中 $x\in\mathbb R^d$，$f:D\to\mathbb R^d$，$D\subseteq\mathbb R\times\mathbb R^d$ 为开集。
+
+\section{从微分方程到积分方程}
+设 $f$ 连续。对于图像包含于 $D$ 的连续函数 $x$，初值问题等价于
+\begin{equation}
+ x(t)=x_0+\int_{t_0}^t f(s,x(s))\,\mathrm ds.
+ \label{eq:ode-integral-ivp}
+\end{equation}
+一个方向是对 $x'=f(t,x)$ 积分；反方向则因被积函数连续，可由微积分基本定理对右端求导，并在 $t=t_0$ 恢复初值。积分形式把“求导数满足条件”转化为“寻找积分算子的不动点”。
+
+\section{Lipschitz 条件与函数空间}
+\begin{definition}
+若在某区域上存在 $L\geq0$，使同一时刻的任意两个允许状态满足
+\[
+ \|f(t,x)-f(t,z)\|\leq L\|x-z\|,
+\]
+则称 $f$ 关于状态变量满足 Lipschitz 条件（Lipschitz condition）。若每一点都有满足此条件的乘积邻域，则称局部 Lipschitz；邻域内的常数对时间一致。
+\end{definition}
+
+若 $D_xf$ 连续，在一个紧乘积邻域上有界且状态截面凸，则沿线段积分得到
+\[
+ f(t,x)-f(t,z)=\int_0^1D_xf(t,z+\theta(x-z))(x-z)\,\mathrm d\theta,
+\]
+故可取 $L=\sup\|D_xf\|$。例如 $|y|$ 是 Lipschitz 函数但在零点不可微，$\sqrt{|y|}$ 连续但在零点不满足局部 Lipschitz 条件。
+
+记 $C(J,\mathbb R^d)$ 为紧区间 $J$ 上的连续函数空间，赋予一致范数 $\|u\|_\infty=\max_{t\in J}\|u(t)\|$。一致 Cauchy 列逐点有极限，且收敛一致；一致极限连续，因此此空间完备。
+
+\begin{theorem}[压缩映射原理]
+设 $(X,d)$ 为非空完备度量空间，$T:X\to X$ 满足 $d(Tu,Tv)\leq qd(u,v)$，其中 $0\leq q<1$。则 $T$ 有唯一不动点，且从任意 $u_0\in X$ 出发的迭代 $u_{k+1}=Tu_k$ 收敛到该点。
+\end{theorem}
+\begin{proof}
+逐次估计得 $d(u_{k+1},u_k)\leq q^kd(u_1,u_0)$，故对 $m>k$，$d(u_m,u_k)\leq q^kd(u_1,u_0)/(1-q)$。完备性给出极限 $u$，而 Lipschitz 连续性给出 $Tu=u$。若 $Tv=v$，则 $d(u,v)\leq qd(u,v)$，所以 $u=v$。
+\end{proof}
+
+\section{Picard 迭代与存在唯一性定理}
+\begin{theorem}[Picard--Lindelöf 定理]
+\label{thm:ode-picard}
+设 $f$ 在 $D$ 上连续且关于状态局部 Lipschitz。则每个 $(t_0,x_0)\in D$ 都存在一个包含 $t_0$ 的区间，其上初值问题有唯一局部解。更精确地，任意两个同初值解在其定义区间的交集上相同。
+\end{theorem}
+\begin{proof}
+取包含于 $D$ 的闭柱体 $Q=\{|t-t_0|\leq a,\ \|x-x_0\|\leq b\}$，使 $f$ 在其上具有 Lipschitz 常数 $L$，并令 $M=\max_Q\|f\|$。取 $h>0$ 满足 $h\leq a$、$hM\leq b$、$hL<1$；若 $M$ 或 $L$ 为零，相应限制自动满足。在 $J=[t_0-h,t_0+h]$ 上，集合
+\[
+ X=\{u\in C(J,\mathbb R^d):\|u-x_0\|_\infty\leq b\}
+\]
+非空、闭且完备。定义 $Tu=x_0+\int_{t_0}^{\,t}f(s,u(s))\,\mathrm ds$。有 $\|Tu-x_0\|_\infty\leq hM\leq b$，以及 $\|Tu-Tv\|_\infty\leq hL\|u-v\|_\infty$，所以 $T$ 有唯一不动点，即所求解。任意同初值解因连续性在足够短的区间内属于上述集合，故局部相同。若两个解在共同区间内首次分离，则在分离端点重新应用局部唯一性可继续相等，产生矛盾；两个方向均如此。
+\end{proof}
+
+不动点的具体构造为 Picard 迭代（Picard iteration）
+\[
+ x^{[0]}(t)=x_0,\qquad x^{[k+1]}(t)=x_0+\int_{t_0}^t f(s,x^{[k]}(s))\,\mathrm ds.
+\]
+上标 $[k]$ 表示迭代次数。令 $q=hL<1$，证明还给出误差界
+\[
+ \|x-x^{[k]}\|_\infty\leq\frac{q^k}{1-q}\|x^{[1]}-x^{[0]}\|_\infty.
+\]
+
+\begin{example}
+对 $y'=t+y$、$y(0)=0$，前四次近似为 $y^{[0]}=0$、$y^{[1]}=t^2/2$、$y^{[2]}=t^2/2+t^3/6$、$y^{[3]}=t^2/2+t^3/6+t^4/24$。其极限为 $e^t-1-t$，直接求导可验证。Picard 迭代在这里产生了解的幂级数，但其一般依据是积分算子的收敛性。
+\end{example}
+
+\section{仅有连续性时的存在性与非唯一性}
+\begin{theorem}[Peano 存在定理]
+若有限维系统的 $f$ 在初值点的一个开邻域内连续，则该初值问题至少有一个局部解。
+\end{theorem}
+\begin{proof}[证明思路]
+在紧柱体上取有界的 $f$，选足够短的时间区间以使 Euler 折线不离开柱体。这些折线一致有界且具有共同的 Lipschitz 常数；由 Arzelà--Ascoli 定理可抽出一致收敛子列。利用 $f$ 在柱体上的一致连续性，证明折线满足积分方程的残差一致趋于零，再取极限得到式\eqref{eq:ode-integral-ivp}。向负时间同理。紧致性步骤见附录\ref{app:ode-analysis}。
+\end{proof}
+
+连续性不能保证唯一性。对 $y'=\sqrt{|y|}$、$y(0)=0$，每个 $a\geq0$ 都给出解
+\[
+ y_a(t)=\begin{cases}0,&t\leq a,\\(t-a)^2/4,&t>a.\end{cases}
+\]
+在 $a$ 处左右导数均为零，故它是 $C^1$ 函数，并处处满足方程。解可以等待任意时间后离开零点。另一方面，Lipschitz 条件只是唯一性的充分条件；某点不满足它时，必须另作判断。
+
+\section{高阶方程与方程组的统一处理}
+对 $y^{(n)}=g(t,y,\ldots,y^{(n-1)})$，令 $x_j=y^{(j-1)}$，得到
+\[
+ x_1'=x_2,\ \ldots,\ x_{n-1}'=x_n,\quad x_n'=g(t,x_1,\ldots,x_n).
+\]
+初始导数数据恰好组成向量初值。因此，只要 $g$ 连续且对状态局部 Lipschitz，就可应用定理\ref{thm:ode-picard}。若原方程是隐式的，则先检查能否在给定分支附近解出最高阶导数。
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-picard} 对 $y'=y$、$y(0)=1$ 写出前三次 Picard 迭代，并证明第 $k$ 次为 $\sum_{j=0}^k t^j/j!$。
+ \item 验证 $f(y)=|y|$ 的全局 Lipschitz 性，并求初值为正、零、负时的解。
+ \item 对 $y'=1/y$、$y(0)=0$，说明为什么上述两个存在定理都不能应用。
+ \item 将 $y''+y^3=0$ 写成一阶系统，验证每个初值附近的存在唯一性。
+\end{enumerate}
+

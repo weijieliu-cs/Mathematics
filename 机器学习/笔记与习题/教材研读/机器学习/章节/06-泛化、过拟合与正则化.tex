@@ -1,0 +1,80 @@
+% !TeX root = ../机器学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{5} % 保留原书章号。
+\chapter{泛化、过拟合与正则化}
+\label{chap:ml-generalization}
+
+模型从有限样本中选择一个预测函数，而最终风险由未知总体决定。学习理论研究这两个对象如何联系，以及假设类、样本量和选择规则怎样影响联系的可靠性。
+
+\section{总体风险与经验风险}
+
+设样本独立同分布于 $P$，预测函数属于假设类 $\mathcal H$，损失可积。总体风险与经验风险定义为
+\begin{equation}
+ \mathcal R(f)=\mathbb E_P[\ell(f(X),Y)],\qquad
+ \widehat{\mathcal R}_n(f)=\frac1n\sum_{i=1}^n\ell(f(x_i),y_i).
+ \label{eq:ml-risk}
+\end{equation}
+对一个事先固定的 $f$，经验风险是总体风险的无偏估计。但是训练输出 $\widehat f$ 依赖同一批数据，不能把固定函数的性质直接代入 $\widehat f$。在许多候选中取训练误差最小者，还可能偏向偶然适合当前样本的函数。
+
+\section{逼近、估计与优化误差}
+
+令 $\mathcal R^*$ 是允许所有适当可测预测函数时的最小风险或下确界，$\mathcal R_{\mathcal H}^*=\inf_{f\in\mathcal H}\mathcal R(f)$。二者之差是给定模型集合的逼近误差。假设数值训练得到 $\widetilde f$，满足
+$\widehat{\mathcal R}_n(\widetilde f)\leq\inf_{f\in\mathcal H}\widehat{\mathcal R}_n(f)+\varepsilon_{\rm opt}$。
+记 $\Delta_n=\sup_{f\in\mathcal H}|\mathcal R(f)-\widehat{\mathcal R}_n(f)|$，则
+\[
+ \mathcal R(\widetilde f)-\mathcal R^*
+ \leq(\mathcal R_{\mathcal H}^*-\mathcal R^*)+2\Delta_n+\varepsilon_{\rm opt}.
+\]
+证明只需依次以总体--经验偏差控制实际函数和一个接近总体下确界的候选，再令近似误差趋零。右侧分别反映模型表达限制、样本估计波动和优化不足。扩大模型集合可以减小第一项，却可能增大第二项和计算难度。
+
+\section{有限假设类的泛化界}
+
+以下结果展示有限模型选择的复杂度代价。
+\begin{theorem}[有限类的一致偏差界]
+设 $\mathcal H$ 是与训练样本无关的非空有限集合，样本独立同分布，损失取值于 $[0,1]$。对任意 $0<\delta<1$，以至少 $1-\delta$ 的概率，
+\begin{equation}
+ \sup_{f\in\mathcal H}|\mathcal R(f)-\widehat{\mathcal R}_n(f)|
+ \leq\sqrt{\frac{\log(2|\mathcal H|/\delta)}{2n}}.
+ \label{eq:ml-finite-bound}
+\end{equation}
+\end{theorem}
+\begin{proof}
+引用 Hoeffding 不等式的有界独立同分布变量形式（见文献\cite[附录B.4]{ml-uml}）：对固定 $f$，偏差超过 $\epsilon$ 的概率至多为 $2e^{-2n\epsilon^2}$。对 $\mathcal H$ 取并集界，任一函数偏差超过 $\epsilon$ 的概率至多为 $2|\mathcal H|e^{-2n\epsilon^2}$。令该上界等于 $\delta$，解出 $\epsilon$ 即得结论。不要求不同函数的经验风险相互独立。
+\end{proof}
+
+精确经验风险最小化的超额风险由上节再得到两倍的偏差界。有限类假设不能直接用于连续参数空间；平方损失无界时也需额外尾部或矩条件，不能直接使用本定理。界是保守的高概率保证，不是实际测试误差的精确预测。
+
+\section{偏差、方差与模型复杂度}
+
+设 $Y=m(X)+\varepsilon$，$\mathbb E[\varepsilon\mid X]=0$、$\operatorname{Var}(\varepsilon\mid X=x)=\sigma^2(x)$。令 $\widehat f_{\mathcal D}$ 由随机训练集产生，且相关二阶矩有限；测试响应独立于训练集。在固定 $x$ 处，
+\begin{equation}
+ \mathbb E_{\mathcal D,Y\mid x}(\widehat f_{\mathcal D}(x)-Y)^2
+ =\bigl(\mathbb E_{\mathcal D}\widehat f_{\mathcal D}(x)-m(x)\bigr)^2
+ +\operatorname{Var}_{\mathcal D}(\widehat f_{\mathcal D}(x))
+ +\sigma^2(x).
+ \label{eq:ml-bias-variance}
+\end{equation}
+加减训练平均预测并展开平方，交叉项由零均值消失，便得到分解。偏差描述平均预测与真实均值的差异，方差描述更换训练样本引起的预测波动，最后一项是条件噪声。
+
+这个等式专门针对平方损失，不能不加修改地用于准确率或交叉熵。所谓偏差--方差权衡是对某些模型族和训练行为的解释，不是模型越复杂方差必然越大的一般定理。
+
+\section{正则化与容量控制}
+
+正则化求解 $\min_f\widehat{\mathcal R}_n(f)+\lambda\Omega(f)$，其中 $\Omega$ 表达复杂度偏好。在线性模型中，$\|w\|_2^2$ 惩罚收缩参数，$\|w\|_1$ 惩罚还鼓励稀疏；特征缩放会改变相同惩罚的实际含义。约束式 $\Omega(f)\leq B$ 与惩罚式在适当凸性、存在性和乘子条件下可以联系，但不能任意指定 $B,\lambda$ 后断言解必相同。
+
+早停利用验证表现选择训练时长，也是一种控制训练输出的方法，其作用依目标和算法而定。无限假设类需更细的容量概念，例如刻画二分类可实现标记能力的 VC 维（Vapnik--Chervonenkis dimension），或衡量对随机符号拟合能力的 Rademacher 复杂度；本书不证明相应一般理论。实际选择正则化强度仍应使用第\ref{chap:ml-evaluation}章的独立评价流程。
+
+\section{例题、练习与学习检查}
+
+\begin{example}[模型数量的代价]
+预先固定十个取值损失在 $[0,1]$ 的候选模型，使用一千个独立样本，令 $\delta=0.05$。
+\end{example}
+\begin{solve}
+式\eqref{eq:ml-finite-bound}的偏差上界为 $\sqrt{\log400/2000}\approx0.0547$。它同时覆盖十个候选，因此允许观察训练风险后再选择其中之一。若候选集合本身利用同一数据任意构造，这个论证就不再直接适用。
+\end{solve}
+
+习题：证明本章三项误差上界；计算候选数量增加十倍时上例界的变化；从同一带噪声曲线独立生成多份训练集，比较低阶和高阶多项式在固定输入处的偏差与方差。实验只能支持所设生成机制下的观察，不能代替统一风险界。
+
+
+
+

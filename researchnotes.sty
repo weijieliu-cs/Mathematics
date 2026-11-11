@@ -89,6 +89,18 @@
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}
 
+% 前置部分（封面、前言或阅读说明）不显示页码；正文由 \mainmatter
+% 按文档类原有规则从阿拉伯数字 1 开始。目录在下方单独使用大写罗马数字。
+\@ifundefined{frontmatter}{}{%
+  \AddToHook{cmd/frontmatter/after}[researchnotes/front-pages]{%
+    \pagenumbering{gobble}%
+  }%
+}
+% 独立封面沿用文档类的 empty 样式；非独立标题页也不显示页码。
+\AddToHook{cmd/maketitle/after}[researchnotes/title-page]{%
+  \if@titlepage\else\thispagestyle{empty}\fi
+}
+
 % 七、章节标题
 % 为保留文档类原有的目录标题样式，在此集中读取中文宏包的内部值。
 % 先检查所需命令，再保存原值；恢复时使用公开的 \ctexset 接口。
@@ -338,58 +350,28 @@
 
 % 十三、目录的局部样式
 % 保留文档类原有的目录标题、布局和间距；目录链接可点击但不着色。
-% 成对钩子使用相同标签，所有临时设置均限制在目录分组内。
+% 先输出前页，再从 I 开始编号；结束时先输出目录末页，避免页码样式串页。
+% 书籍保留文档类的右页起始规则；前置部分随后恢复不显示页码的状态。
 \AddToHook{cmd/tableofcontents/before}[researchnotes/contents]{%
+  \@ifundefined{chapter}{\clearpage}{%
+    \if@openright\cleardoublepage\else\clearpage\fi
+  }%
   \begingroup
+  \let\rn@toc@thepage\thepage
+  \pagenumbering{Roman}%
   \hypersetup{hidelinks}%
   \let\baselinestretch\rn@toc@baselinestretch
   \selectfont
   \setlength{\parskip}{\rn@toc@parskip}%
   \rn@restoretocheading
 }
-\AddToHook{cmd/tableofcontents/after}[researchnotes/contents]{\endgroup}
-
-% 十四、章节选择与跨章引用
-% 各篇笔记在导言区用 \newcommand{\CompileChapter}{...} 配置章节列表，
-% 可放在加载本宏包之后；{0} 或列表中含 0 表示全文，{2,5} 表示选取多章。
-% 命令和条件开关在此定义，列表延迟到文档开始时读取，以保留原有配置方式。
-% 未配置列表的文档届时默认为 {0}，不要求文档类提供 chapter 计数器。
-\newif\ifcompileallchapters
-\newif\ifcompilechapter
-\AddToHook{begindocument}[researchnotes/chapter-selection]{%
-  \providecommand{\CompileChapter}{0}%
-  \@for\rn@chapter:=\CompileChapter\do{%
-    \expandafter\let\csname rn@selected@\number\rn@chapter\endcsname\@empty%
-  }%
-  \@ifundefined{rn@selected@0}
-    {\compileallchaptersfalse}
-    {\compileallchapterstrue}%
-}
-
-% 在正文中先调用 \selectchapter，再用 \ifcompilechapter...\fi 包围本章。
-% 可选参数是本章在正文或附录内的序号，必选参数是章节列表中的序号。
-\newcommand{\selectchapter}[2][0]{%
-  \compilechapterfalse
-  \ifcompileallchapters
-    \compilechaptertrue
-  \else
-    \@ifundefined{rn@selected@#2}{}{%
-      \compilechaptertrue
-      \ifnum#1=0\relax
-        \setcounter{chapter}{\numexpr#2-1\relax}%
-      \else
-        \setcounter{chapter}{\numexpr#1-1\relax}%
-      \fi
-    }%
-  \fi
-}
-% 参数依次为目标章号、编号引用、文字指引；目标章入选时保留编号引用。
-\newcommand{\crosschapterref}[3]{%
-  \ifcompileallchapters
-    #2%
-  \else
-    \@ifundefined{rn@selected@#1}{#3}{#2}%
-  \fi
+\AddToHook{cmd/tableofcontents/after}[researchnotes/contents]{%
+  \clearpage
+  % \pagenumbering 会全局定义 \thepage，不能仅依靠目录分组恢复。
+  \global\let\thepage\rn@toc@thepage
+  \endgroup
+  % article 类没有 \mainmatter，由目录结束处切回正文页码。
+  \@ifundefined{mainmatter}{\pagenumbering{arabic}}{}%
 }
 
 \endinput

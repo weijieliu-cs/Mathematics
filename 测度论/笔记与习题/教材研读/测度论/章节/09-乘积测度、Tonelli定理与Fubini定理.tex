@@ -1,0 +1,135 @@
+% !TeX root = ../测度论笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{8} % 保留原书章号。
+\chapter{乘积测度、Tonelli 定理与 Fubini 定理}
+\label{chap:mt-product}
+
+\section{从矩形的大小到乘积空间}
+设 $(S,\mathcal A,\mu)$ 与 $(T,\mathcal D,\nu)$ 为两个测度空间。矩形 $A\times B$ 的大小自然应当是 $\mu(A)\nu(B)$，约定 $0\cdot\infty=0$。\emph{乘积 $\sigma$ 代数（product sigma-algebra）}定义为
+\[
+ \mathcal A\otimes\mathcal D
+ =\sigma(\{A\times B:A\in\mathcal A,\ B\in\mathcal D\}).
+\]
+这里“乘积”包含由矩形经可数集合运算生成的集合，而不只包含矩形本身。
+
+\begin{theorem}[乘积测度的存在唯一性]
+若 $\mu,\nu$ 均为 $\sigma$ 有限测度，则在 $\mathcal A\otimes\mathcal D$ 上存在唯一的测度 $\mu\otimes\nu$，满足
+\[
+ (\mu\otimes\nu)(A\times B)=\mu(A)\nu(B).
+\]
+该测度也为 $\sigma$ 有限测度。
+\label{thm:mt-product-measure}
+\end{theorem}
+\begin{proof}
+对 $E\subseteq S\times T$，记 $E_s=\{t:(s,t)\in E\}$。首先，截面可测的集合全体对补集和可数并封闭，并包含所有可测矩形，因此每个 $E\in\mathcal A\otimes\mathcal D$ 的截面都可测。
+
+先假设 $\nu(T)<\infty$。满足 $s\mapsto\nu(E_s)$ 可测的乘积可测集 $E$ 组成一个 $\lambda$ 系统：全空间对应常数函数，补集对应有限常数 $\nu(T)$ 减去原函数，不交并对应非负可测函数的级数。它包含矩形这一 $\pi$ 系统，因此由定理\ref{thm:mt-pi-lambda}包含全部乘积可测集。一般 $\sigma$ 有限的 $\nu$ 可分成可数个有限测度块，在各块上应用刚才结论再求和，仍得到截面测度函数可测。
+
+现在定义 $\rho(E)=\int_S\nu(E_s)\,\mathrm d\mu(s)$。对不交集合列，截面也不交，先用 $\nu$ 的可列可加性，再用单调收敛，便得 $\rho$ 可列可加。对矩形有 $\rho(A\times B)=\mu(A)\nu(B)$，包括约定的零乘无穷情形。因此所需测度已经存在。
+
+取两个空间的有限测度覆盖，其两两乘积给出乘积空间的可数有限测度矩形覆盖。若有两个满足矩形公式的测度，将它们分别限制在这些有限矩形上，就得到在所有矩形上相同的有限测度。有限测度唯一性使限制测度相同，再用递增有限并覆盖整个空间，即得全局唯一性。有限矩形覆盖也同时证明 $\sigma$ 有限性。
+\end{proof}
+本证明直接从截面构造乘积测度，也展示了可测性、存在性和唯一性各自在何处得到保障。矩形公式只是起点；若未经生成族论证就将它用于任意集合，便会跳过乘积理论中最关键的一步。
+
+即使两个因子空间完备，乘积 $\sigma$ 代数上的测度也未必完备。欧氏空间中通常使用乘积测度的完备化来得到完整的勒贝格测度。下面的定理先在乘积 $\sigma$ 代数上陈述；完备化上的函数需要通过几乎处处相等的乘积可测版本处理，此时关于截面的结论可能只能对几乎所有参数成立。
+
+\section{非负积分与绝对可积积分}
+\begin{theorem}[Tonelli 定理]
+设两个因子测度空间 $\sigma$ 有限，$f:S\times T\to[0,\infty]$ 关于 $\mathcal A\otimes\mathcal D$ 可测，则两种截面函数均可测，迭代积分关于外层变量可测，并且
+\begin{equation}
+ \int_{S\times T}f\,\mathrm d(\mu\otimes\nu)
+ =\int_S\left(\int_T f(s,t)\,\mathrm d\nu(t)\right)\mathrm d\mu(s)
+ =\int_T\left(\int_S f(s,t)\,\mathrm d\mu(s)\right)\mathrm d\nu(t).
+ \label{eq:mt-tonelli}
+\end{equation}
+各积分允许为 $+\infty$。
+\label{thm:mt-tonelli}
+\end{theorem}
+\begin{proof}
+对示性函数 $f=\mathbf1_E$，第一种迭代积分等于乘积测度是上述构造的定义。交换两个因子的角色，可以构造第二种截面积分对应的测度；它在矩形上的值仍为 $\mu(A)\nu(B)$，故由唯一性与原乘积测度相同。于是两个迭代积分的等式对所有可测示性函数成立。
+
+有限线性组合给出非负简单函数情形。一般非负 $f$ 取简单函数 $s_n\uparrow f$，对每个截面使用单调收敛，再对外层变量使用单调收敛，同时对乘积积分使用同一定理，便将等式传到极限。内层积分是可测函数的单调极限，因此外层可测性也在这一过程中得到保证。
+\end{proof}
+
+\begin{theorem}[Fubini 定理]
+在相同的空间条件下，若实值乘积可测函数 $f$ 满足
+\[
+ \int_{S\times T}|f|\,\mathrm d(\mu\otimes\nu)<\infty,
+\]
+则几乎所有截面可积，两种迭代积分均存在且有限，并等于 $f$ 的乘积积分。不可积截面的内层积分可在外层零测集上另定义为零。
+\label{thm:mt-fubini}
+\end{theorem}
+\begin{proof}
+对 $|f|$ 使用 Tonelli 定理。两个非负迭代积分都有限，所以内层绝对积分几乎处处有限。再分别对 $f^+,f^-$ 使用 Tonelli，由于各自的总积分有限，可以相减，得到所需公式。
+\end{proof}
+上述证明先解决集合截面的可测性，再对函数作单调逼近，完整体现了“生成族加简单函数”的两层推广。实际计算中，非负性足以使用 Tonelli；有符号函数则通常先用 Tonelli 检查绝对积分，再使用 Fubini。
+
+\begin{example}[由水平集表示积分]
+对非负可测函数 $f:S\to[0,\infty]$，若 $\mu$ 为 $\sigma$ 有限测度，则
+\begin{equation}
+ \int_S f\,\mathrm d\mu
+ =\int_0^\infty\mu(\{s:f(s)>t\})\,\mathrm dt.
+ \label{eq:mt-layer-cake}
+\end{equation}
+对每个 $s$，有 $f(s)=\int_0^\infty\mathbf1_{\{t<f(s)\}}\,\mathrm dt$，且被积函数联合可测、非负。Tonelli 定理允许交换积分次序，得到公式。这把函数积分转化为各高度之上集合大小的累计。
+\end{example}
+
+\section{缺少绝对可积性时的次序问题}
+\begin{example}[两个迭代积分存在但不相等]
+在 $(0,1)^2$ 上取
+\[
+ f(x,y)=\frac{x^2-y^2}{(x^2+y^2)^2}.
+\]
+固定 $x>0$，被积函数是 $y/(x^2+y^2)$ 对 $y$ 的导数；固定 $y>0$，它是 $-x/(x^2+y^2)$ 对 $x$ 的导数。因此
+\[
+ \int_0^1\left(\int_0^1 f(x,y)\,\mathrm dy\right)\mathrm dx
+ =\int_0^1\frac{1}{1+x^2}\,\mathrm dx=\frac{\pi}{4},
+\]
+\[
+ \int_0^1\left(\int_0^1 f(x,y)\,\mathrm dx\right)\mathrm dy
+ =-\int_0^1\frac{1}{1+y^2}\,\mathrm dy=-\frac{\pi}{4}.
+\]
+这不违背 Fubini 定理，因为绝对积分发散。在 $0<y<x/2$ 上，
+$f(x,y)\geq12/(25x^2)$，故该区域的绝对积分至少为
+$\frac6{25}\int_0^1x^{-1}\,\mathrm dx=\infty$。交换 $x,y$ 得到负值区域具有同样的发散量，因而乘积空间上的有符号积分本身不定义。
+\end{example}
+
+\section{截面、投影与完备化不能混淆}
+对平面集合 $E$，截面 $E_x$ 固定了一个坐标，投影则问是否存在另一个坐标使点落入 $E$。截面对应直接代入一个参数，投影对应存在量词，两者具有不同的可测性性质。乘积可测集的每个截面可测，已经由生成族证明；不能仅凭这一结论就断言任意投影同样属于原 Borel $\sigma$ 代数。本书不需要一般投影定理，因此使用积分时应坚持已经证明的截面结论。
+
+乘积完备化引入的例外可以用一个简单结构说明。在 $[0,1]^2$ 上，竖线 $\{0\}\times[0,1]$ 的二维测度为零。若 $A\subseteq[0,1]$ 是勒贝格不可测集，则 $\{0\}\times A$ 属于二维勒贝格测度的完备化，因为它是该零测竖线的子集；但它不属于一维勒贝格 $\sigma$ 代数的乘积，否则在 $x=0$ 的截面 $A$ 就必须可测，产生矛盾。
+
+因此，在完备化上说“所有截面可测”可能错误，而“几乎所有截面可测”仍可成立。例外恰好集中在外层变量的一个零测集上。使用 Fubini 时允许修改这些例外截面上的内层积分值，不意味着可以任意修改正测度参数集合上的结果。写清楚结论中的几乎处处量词，就能避免把二维零测与每条直线上的一维零测混为一谈。
+
+\section{卷积作为积分换序的应用}
+对 $\mathbb R$ 上的可积函数 $f,g$，形式上定义\emph{卷积（convolution）}
+\[
+ (f*g)(x)=\int_{\mathbb R}f(x-y)g(y)\,\mathrm dy.
+\]
+这一表达式首先需要确认内层积分对几乎所有 $x$ 存在。对绝对值使用 Tonelli 定理，并利用勒贝格测度的平移不变性，
+\[
+ \int_{\mathbb R}\int_{\mathbb R}|f(x-y)g(y)|\,\mathrm dy\,\mathrm dx
+ =\int_{\mathbb R}|g(y)|\left(\int_{\mathbb R}|f(x-y)|\,\mathrm dx\right)\mathrm dy
+ =\|f\|_1\|g\|_1.
+\]
+所以卷积几乎处处绝对有定义，且 $\|f*g\|_1\leq\|f\|_1\|g\|_1$。若函数原来仅为勒贝格可测，可以先选择 Borel 版本使联合可测性直接成立；不同版本给出的卷积在几乎处处意义下相同，由同一绝对积分估计验证。
+
+若 $f,g$ 为两个独立随机变量的概率密度，卷积就是其和的密度。对任意 Borel 集 $A$，独立性给出联合密度 $f(u)g(v)$，于是
+\[
+ \mathbb P(X+Y\in A)=\iint\mathbf1_A(u+v)f(u)g(v)\,\mathrm du\,\mathrm dv
+ =\int_A(f*g)(x)\,\mathrm dx.
+\]
+最后一步对固定 $v$ 作平移换元，再用 Tonelli 定理。这个推导同时检查了非负性、积分交换和密度归一化，而不只是记忆一个形式公式。
+
+\section{迭代求和与多重积分的操作顺序}
+面对复杂积分时，可以先判断函数符号，再选择所用定理。非负函数即使积分发散，Tonelli 仍保证交换后得到同一个扩展实数；变号函数则应先检查绝对积分。若绝对积分有限，可以进一步把级数看作计数测度上的积分，把三重及更多重积分通过反复使用乘积空间理论处理。每一步的合法性都来自同一原则，而不是变量个数增加后自动获得。
+
+若某种迭代次序较容易计算，可以先把它用于绝对值，而不是直接用于原函数。只要算出一次非负迭代积分有限，Tonelli 就已经证明整体绝对可积，之后所有相应 Fubini 操作都有依据。相反，两个有符号迭代积分各自存在，并不保证整体绝对可积，更不保证二者相等；前面的反例正展示了这种误用。
+
+\section{习题}
+\begin{enumerate}
+ \item 用 Tonelli 定理证明，对双重非负数列 $a_{m,n}$，两种迭代求和次序给出相同结果，允许结果为无穷。
+ \item 若非负随机变量 $X$ 定义在概率空间上，用式\eqref{eq:mt-layer-cake}推出 $\mathbb E[X]=\int_0^\infty\mathbb P(X>t)\,\mathrm dt$。
+ \item 设 $f\in L^1(\mu)$、$g\in L^1(\nu)$。先证明 $(s,t)\mapsto f(s)g(t)$ 绝对可积，再计算其积分。
+\end{enumerate}
+

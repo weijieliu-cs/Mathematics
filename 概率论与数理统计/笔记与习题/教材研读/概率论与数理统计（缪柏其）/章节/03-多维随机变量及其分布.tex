@@ -1,0 +1,996 @@
+% !TeX root = ../概率论与数理统计（缪柏其）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{2} % 保留原书章号。
+\chapter{多维随机变量及其分布}
+\label{chap:study-multivariate}
+% 教材范围：第 3 章，第 88--122 页；正文六节及章末代表习题。
+
+只知道身高的分布和体重的分布，还不能回答“身高较高的人是否更可能体重较大”。这类问题既涉及各个量的取值规律，也涉及它们之间的依赖关系，需要把同一次随机试验中的多个观测量合在一起研究。本章沿教材第 3 章的顺序，先用联合分布描述整体，再从中导出边缘分布与条件分布，随后讨论独立性以及多个随机变量的函数。联合、边缘、条件这三个层次贯穿全章：联合分布保留共同变化的信息，边缘分布只观察部分分量，条件分布则描述给定信息后的概率规律。
+
+\section{多维随机变量及其分布}
+\label{sec:study-joint-distributions}
+
+\subsection{随机向量、联合分布函数与矩形概率}
+
+\begin{definition}
+\label{def:study-ch3-random-vector}
+设 $X_1,\ldots,X_n$ 是定义在同一概率空间 $(\Omega,\mathcal F,\mathbb P)$ 上的实随机变量，称
+\[
+  \boldsymbol X=(X_1,\ldots,X_n)
+\]
+为 $n$ 维\emph{随机向量（random vector）}，也称 $n$ 维随机变量。其\emph{联合分布函数（joint cumulative distribution function）}定义为
+\begin{equation}
+  F_{\boldsymbol X}(x_1,\ldots,x_n)
+  =\mathbb P(X_1\le x_1,\ldots,X_n\le x_n),
+  \qquad (x_1,\ldots,x_n)\in\mathbb R^n.
+  \label{eq:study-ch3-joint-cdf-n}
+\end{equation}
+\end{definition}
+
+“同一概率空间”表示这些分量来自同一个随机结果 $\omega$，但不预设分量之间独立。以下主要讨论二维情形，记
+\[
+  F(x,y)=F_{X,Y}(x,y)=\mathbb P(X\le x,Y\le y).
+\]
+逗号表示两个条件同时成立。与一维分布函数相似，$F$ 也通过对概率累加来描述分布；与一维不同的是，要分别控制两个坐标，并保留它们共同取值的信息。
+
+\begin{proposition}
+\label{prop:study-ch3-joint-cdf-rectangle}
+若 $a<b$、$c<d$，则
+\begin{equation}
+  \mathbb P(a<X\le b,c<Y\le d)
+  =F(b,d)-F(a,d)-F(b,c)+F(a,c).
+  \label{eq:study-ch3-joint-cdf-rectangle}
+\end{equation}
+因此，联合分布函数对每个坐标分别单调不减、分别右连续，并且满足
+\[
+  0\le F(x,y)\le1,\qquad
+  \lim_{x\to-\infty}F(x,y)=\lim_{y\to-\infty}F(x,y)=0,
+  \qquad \lim_{t\to+\infty}F(t,t)=1,
+\]
+其中前两个极限分别固定另一个坐标。它还满足\emph{矩形增量非负}：式~\eqref{eq:study-ch3-joint-cdf-rectangle} 的右端对任意 $a<b,c<d$ 都不小于 $0$。
+\end{proposition}
+
+\begin{proof}
+从事件 $\{X\le b,Y\le d\}$ 中去掉 $\{X\le a,Y\le d\}$ 与 $\{X\le b,Y\le c\}$，再加回被重复去掉的 $\{X\le a,Y\le c\}$，便得到矩形概率公式。单调性来自事件的包含关系。若 $x_k\downarrow x$，则 $\{X\le x_k,Y\le y\}$ 递减至 $\{X\le x,Y\le y\}$，由概率对递减事件列的连续性得到关于 $x$ 的右连续性，关于 $y$ 的证明相同。坐标趋于 $-\infty$ 时，对应事件递减至空集；$\{X\le t,Y\le t\}$ 随 $t\to+\infty$ 递增至 $\Omega$，由此得到极限。矩形增量非负则直接来自概率非负。
+\end{proof}
+
+矩形端点的开闭与分布函数采用的“$\le$”配套，离散情形不能随意改变。\emph[caution]{分别单调不减不能代替矩形增量非负。}例如，教材例 3.1 所用的反例可写成
+\[
+  H(x,y)=
+  \begin{cases}
+    1,&x\ge0,\ y\ge0,\ x+y\ge1,\\
+    0,&\text{其他}.
+  \end{cases}
+\]
+它分别单调不减、分别右连续，并满足上述边界极限；但取 $a=c=0,b=d=1$，矩形增量为 $1-1-1+0=-1$，所以它不可能是联合分布函数。二维分布的合法性还必须检查不同坐标之间的相容性。
+
+\subsection{离散型联合分布与多项分布}
+
+\begin{definition}
+\label{def:study-ch3-joint-pmf}
+若 $X,Y$ 分别只取有限或可数个值 $x_i,y_j$，则称 $(X,Y)$ 为二维离散型随机向量。其\emph{联合概率质量函数（joint probability mass function）}或联合分布律为
+\[
+  p_{ij}=\mathbb P(X=x_i,Y=y_j),\qquad i,j=1,2,\ldots.
+\]
+这些数满足 $p_{ij}\ge0$、$\sum_i\sum_jp_{ij}=1$；反过来，满足这两个条件的一组数给出一个离散型联合分布。对任意集合 $A\subseteq\mathbb R^2$，
+\begin{equation}
+  \mathbb P((X,Y)\in A)=\sum_{(x_i,y_j)\in A}p_{ij},\qquad
+  F(x,y)=\sum_{x_i\le x}\sum_{y_j\le y}p_{ij}.
+  \label{eq:study-ch3-joint-pmf-probability}
+\end{equation}
+\end{definition}
+
+取值表中的零概率格点也有意义，它们说明某些分量组合不能出现。将每个分量的所有可能值作笛卡尔积，只是便于列表，并不表示每种组合都有正概率。
+
+\begin{example}
+\label{ex:study-ch3-joint-exam}
+教材例 3.2：某学生数学成绩优秀的概率为 $0.6$；数学优秀时，物理优秀的条件概率为 $0.8$；数学未达优秀时，物理也未达优秀的条件概率为 $0.7$。令 $X,Y$ 分别表示数学、物理是否优秀，优秀记为 $1$，否则记为 $0$。求联合分布。
+\end{example}
+
+\begin{solve}
+用乘法公式逐项计算，例如
+\[
+  \mathbb P(X=1,Y=1)
+  =\mathbb P(X=1)\mathbb P(Y=1\mid X=1)=0.48.
+\]
+其余三项同理，得到
+\[
+  \begin{array}{c|cc}
+    X\backslash Y&0&1\\\hline
+    0&0.28&0.12\\
+    1&0.12&0.48
+  \end{array}
+\]
+四项之和为 $1$。表中概率来自题设的条件规律，不能在没有独立性依据时直接把两个边缘概率相乘。
+\end{solve}
+
+\begin{definition}
+\label{def:study-ch3-multinomial}
+一次试验恰有 $m$ 种互斥且穷尽的结果，其概率为 $p_1,\ldots,p_m$，其中 $p_i\ge0$、$\sum_{i=1}^mp_i=1$。将试验独立重复 $N$ 次，令 $X_i$ 表示第 $i$ 种结果出现的次数，则 $\boldsymbol X=(X_1,\ldots,X_m)$ 服从\emph{多项分布（multinomial distribution）}，记作 $M(N;p_1,\ldots,p_m)$，其联合分布律为
+\begin{equation}
+  \mathbb P(X_1=k_1,\ldots,X_m=k_m)
+  =\frac{N!}{k_1!\cdots k_m!}\prod_{i=1}^mp_i^{k_i},
+  \qquad k_i\in\{0,1,\ldots,N\},\quad \sum_{i=1}^mk_i=N,
+  \label{eq:study-ch3-multinomial-pmf}
+\end{equation}
+其他取值的概率为 $0$，并约定出现 $p_i=0,k_i=0$ 时 $0^0=1$。
+\end{definition}
+
+\begin{proof}
+对满足次数约束的一组 $(k_1,\ldots,k_m)$，先选择各类结果在 $N$ 次试验中的位置，共有 $N!/(k_1!\cdots k_m!)$ 种排列。每种排列由独立性具有相同概率 $\prod_i p_i^{k_i}$，对这些互斥排列求和即得式~\eqref{eq:study-ch3-multinomial-pmf}。归一性也可由多项式展开 $(p_1+\cdots+p_m)^N=1$ 验证。
+\end{proof}
+
+当 $m=2$ 时，只要知道 $X_1$ 就知道 $X_2=N-X_1$，因而多项分布化为二项分布。\emph[caution]{各次试验独立，不表示各类结果的总次数相互独立。}等式 $X_1+\cdots+X_m=N$ 已经给出了分量之间的约束。
+
+\subsection{联合密度、区域概率与常见模型}
+
+\begin{definition}
+\label{def:study-ch3-joint-density}
+若存在非负可积函数 $f(x,y)$，使任意 $(x,y)\in\mathbb R^2$ 都满足
+\begin{equation}
+  F(x,y)=\int_{-\infty}^{x}\int_{-\infty}^{y}f(u,v)\,\mathrm dv\,\mathrm du,
+  \label{eq:study-ch3-joint-density-cdf}
+\end{equation}
+则称 $(X,Y)$ 为具有联合密度的二维连续型随机向量，$f=f_{X,Y}$ 称为\emph{联合概率密度函数（joint probability density function）}。它满足
+\begin{equation}
+  \int_{\mathbb R^2}f(x,y)\,\mathrm dx\,\mathrm dy=1,\qquad
+  \mathbb P((X,Y)\in A)=\iint_A f(x,y)\,\mathrm dx\,\mathrm dy
+  \label{eq:study-ch3-joint-density-region}
+\end{equation}
+对任意 Borel 区域 $A$ 成立。
+\end{definition}
+
+联合密度是单位面积上的概率强度，$f(x,y)$ 本身不是 $\mathbb P(X=x,Y=y)$，也不必小于 $1$。密度存在时，单点、直线及其他二维面积为零的集合都具有概率 $0$；因此，积分区域边界上的开闭通常不影响结果。密度在零面积集合上的改动不改变分布，本章涉及密度相等的结论均按\emph{几乎处处（almost everywhere）}理解。若 $F$ 在某开区域内二阶连续可微，则由矩形增量公式及积分表示，该区域内的密度可取为
+\[
+  f(x,y)=\frac{\partial^2F}{\partial x\,\partial y}(x,y).
+\]
+在密度的连续点附近，对边长很小的矩形，其概率近似为 $f(x,y)\,\Delta x\,\Delta y$；这只是局部近似，精确概率仍由积分给出。上述定义与积分公式直接推广到 $n$ 维，将面积和二重积分分别换成体积与 $n$ 重积分。
+
+\begin{example}
+\label{ex:study-ch3-continuous-marginals-singular}
+教材例 3.4：设 $X$ 在 $(0,1)$ 上均匀分布，令 $Y=X$。说明虽然两个分量都有连续型分布，$(X,Y)$ 却没有二维联合密度。
+\end{example}
+
+\begin{solve}
+两个边缘分布均为 $U(0,1)$，但 $\mathbb P(Y=X)=1$。若存在二维联合密度，对直线 $y=x$ 积分应为 $0$，与这一概率等于 $1$ 矛盾。实际上，其联合分布函数为
+\[
+  F(x,y)=\max\{0,\min\{x,y,1\}\},
+\]
+它是连续函数，概率却全部集中在对角线段上。因此，联合分布函数连续、每个分量有密度，都不能单独保证存在联合密度。
+\end{solve}
+
+若平面区域 $D$ 的面积 $|D|$ 满足 $0<|D|<\infty$，在 $D$ 上的\emph{二维均匀分布（bivariate uniform distribution）}定义为
+\begin{equation}
+  f(x,y)=\frac1{|D|}\boldsymbol 1_D(x,y),\qquad
+  \mathbb P((X,Y)\in A)=\frac{|A\cap D|}{|D|},
+  \label{eq:study-ch3-uniform-region}
+\end{equation}
+其中 $\boldsymbol 1_D$ 为示性函数，点在 $D$ 内时取 $1$，否则取 $0$。均匀指单位面积上的概率强度相同，分量的边缘密度却可能并不均匀，因为不同位置的截面长度可能不同。
+
+本章另一常见模型是\emph{二元正态分布（bivariate normal distribution）}。给定 $\mu_1,\mu_2\in\mathbb R$、$\sigma_1,\sigma_2>0$、$-1<\rho<1$，若联合密度为
+\begin{equation}
+  f(x,y)=\frac1{2\pi\sigma_1\sigma_2\sqrt{1-\rho^2}}
+  \exp\!\left\{-\frac1{2(1-\rho^2)}
+    \left[\frac{(x-\mu_1)^2}{\sigma_1^2}
+    -\frac{2\rho(x-\mu_1)(y-\mu_2)}{\sigma_1\sigma_2}
+    +\frac{(y-\mu_2)^2}{\sigma_2^2}\right]\right\},
+  \label{eq:study-ch3-bivariate-normal-density}
+\end{equation}
+则记作 $(X,Y)\sim N(\mu_1,\mu_2,\sigma_1^2,\sigma_2^2,\rho)$。这里的 $\rho$ 控制两个分量的依赖结构，其与相关系数的关系在后续数字特征章节中说明；本式要求 $|\rho|<1$，不包含概率集中在直线上的退化情形。令
+\[
+  \boldsymbol\mu=\begin{pmatrix}\mu_1\\\mu_2\end{pmatrix},\qquad
+  \Sigma=\begin{pmatrix}\sigma_1^2&\rho\sigma_1\sigma_2\\
+    \rho\sigma_1\sigma_2&\sigma_2^2\end{pmatrix},
+\]
+则 $\det\Sigma=\sigma_1^2\sigma_2^2(1-\rho^2)>0$，密度也可写成
+\[
+  f(\boldsymbol x)=\frac{\exp\{-\tfrac12(\boldsymbol x-\boldsymbol\mu)^{\mathsf T}
+    \Sigma^{-1}(\boldsymbol x-\boldsymbol\mu)\}}
+    {2\pi\sqrt{\det\Sigma}}.
+\]
+对 $n$ 维非退化正态分布，将 $\Sigma$ 换成 $n$ 阶对称正定矩阵，分母中的 $2\pi$ 换成 $(2\pi)^{n/2}$，即得到相应联合密度；转置记号 $\mathsf T$ 用来区分列向量及其转置。
+
+\begin{example}
+\label{ex:study-ch3-joint-exponential-region}
+教材例 3.7：设 $f(x,y)=e^{-(x+y)}$，$x>0,y>0$，其他位置取 $0$。求联合分布函数以及 $\mathbb P(X+Y\le1)$。
+\end{example}
+
+\begin{solve}
+对正半轴上的变量分别积分，得到
+\[
+  F(x,y)=
+  \begin{cases}
+    (1-e^{-x})(1-e^{-y}),&x>0,y>0,\\
+    0,&\text{其他}.
+  \end{cases}
+\]
+事件 $X+Y\le1$ 在密度非零区域内对应三角形 $0<x<1,0<y<1-x$，故
+\[
+  \mathbb P(X+Y\le1)
+  =\int_0^1\int_0^{1-x}e^{-(x+y)}\,\mathrm dy\,\mathrm dx
+  =\int_0^1(e^{-x}-e^{-1})\,\mathrm dx
+  =1-2e^{-1}\approx0.2642.
+\]
+积分限必须同时反映事件条件和密度的非零区域。
+\end{solve}
+
+\section{边缘（际）分布}
+\label{sec:study-marginal-distributions}
+
+\subsection{从联合分布消去其余分量}
+
+\begin{definition}
+\label{def:study-ch3-marginal-distributions}
+联合分布中部分分量自身的分布，称为相应的\emph{边缘分布（marginal distribution）}或边际分布。对于 $(X,Y)$，由事件列的连续性有
+\begin{equation}
+  F_X(x)=\lim_{y\to+\infty}F(x,y),\qquad
+  F_Y(y)=\lim_{x\to+\infty}F(x,y).
+  \label{eq:study-ch3-marginal-cdf}
+\end{equation}
+若联合分布律为 $p_{ij}$，则
+\begin{equation}
+  p_{i\cdot}=\mathbb P(X=x_i)=\sum_jp_{ij},\qquad
+  p_{\cdot j}=\mathbb P(Y=y_j)=\sum_ip_{ij}.
+  \label{eq:study-ch3-marginal-pmf}
+\end{equation}
+若联合密度为 $f(x,y)$，则边缘密度可取为
+\begin{equation}
+  f_X(x)=\int_{-\infty}^{+\infty}f(x,y)\,\mathrm dy,\qquad
+  f_Y(y)=\int_{-\infty}^{+\infty}f(x,y)\,\mathrm dx.
+  \label{eq:study-ch3-marginal-density}
+\end{equation}
+\end{definition}
+
+边缘化保留所考察的分量，对其余分量的全部可能值求和或积分。对密度公式，可以先用非负函数积分的 Tonelli 定理交换积分次序，得到
+\[
+  F_X(x)=\int_{-\infty}^x
+    \left(\int_{-\infty}^{+\infty}f(u,y)\,\mathrm dy\right)\mathrm du,
+\]
+由一维密度的定义即可识别括号内的函数，无须额外假定可以逐点在积分号下求导。多维情形也完全相同：若 $\boldsymbol U\in\mathbb R^k$、$\boldsymbol V\in\mathbb R^{n-k}$ 具有联合密度 $f(\boldsymbol u,\boldsymbol v)$，则
+\[
+  f_{\boldsymbol U}(\boldsymbol u)
+  =\int_{\mathbb R^{n-k}}f(\boldsymbol u,\boldsymbol v)\,\mathrm d\boldsymbol v.
+\]
+从 $n$ 个坐标选取非空真子集共有 $2^n-2$ 种，因此按坐标子集计数有 $2^n-2$ 个边缘分布；这不保证这些分布作为函数都互不相同。
+
+\begin{example}
+\label{ex:study-ch3-triangle-marginals}
+设 $(X,Y)$ 在三角形 $D=\{(x,y):0<x<y<1\}$ 上均匀分布。求两个边缘密度，并解释其形状。
+\end{example}
+
+\begin{solve}
+三角形面积为 $1/2$，所以联合密度为 $2\boldsymbol 1_D(x,y)$。固定 $x\in(0,1)$ 时，$y$ 从 $x$ 变化至 $1$；固定 $y\in(0,1)$ 时，$x$ 从 $0$ 变化至 $y$。由式~\eqref{eq:study-ch3-marginal-density}，
+\[
+  f_X(x)=2(1-x)\boldsymbol 1_{(0,1)}(x),\qquad
+  f_Y(y)=2y\boldsymbol 1_{(0,1)}(y).
+\]
+两个边缘密度分别随截面长度递减、递增，均非均匀分布；它们的积分都为 $1$。这说明区域内的联合均匀性不能直接传给各个坐标。
+\end{solve}
+
+\subsection{边缘分布通常不能恢复联合分布}
+
+\begin{example}
+\label{ex:study-ch3-cards-marginals}
+教材例 3.8：袋中有 $3$ 张标为 $0$、$2$ 张标为 $1$ 的卡片。依次随机抽取两张，用 $X,Y$ 表示两次抽到的数字。比较有放回与不放回抽取的联合分布及边缘分布。
+\end{example}
+
+\begin{solve}
+有放回时，第二次仍从原来的五张卡片中抽取；不放回时，第二次只剩四张。因此两种联合分布分别为
+\[
+  \begin{array}{c|cc|c}
+    X\backslash Y&0&1&p_{i\cdot}\\\hline
+    0&9/25&6/25&3/5\\
+    1&6/25&4/25&2/5\\\hline
+    p_{\cdot j}&3/5&2/5&1
+  \end{array}
+  \qquad
+  \begin{array}{c|cc|c}
+    X\backslash Y&0&1&p_{i\cdot}\\\hline
+    0&6/20&6/20&3/5\\
+    1&6/20&2/20&2/5\\\hline
+    p_{\cdot j}&3/5&2/5&1
+  \end{array}
+\]
+两个模型的边缘分布完全相同，联合分布却不同；例如 $\mathbb P(X=1,Y=1)$ 分别为 $4/25$ 与 $1/10$。第二次抽取的边缘分布相同，并不表示第二次的结果不受第一次的影响。
+\end{solve}
+
+对于二元正态分布，令 $u=(x-\mu_1)/\sigma_1$、$v=(y-\mu_2)/\sigma_2$，利用
+\[
+  u^2-2\rho uv+v^2=(1-\rho^2)u^2+(v-\rho u)^2
+\]
+对 $y$ 积分，第二项对应的正态密度积分为 $1$，于是式~\eqref{eq:study-ch3-bivariate-normal-density} 的边缘分布为
+\begin{equation}
+  X\sim N(\mu_1,\sigma_1^2),\qquad
+  Y\sim N(\mu_2,\sigma_2^2).
+  \label{eq:study-ch3-bivariate-normal-marginals}
+\end{equation}
+这也验证了联合正态密度的归一性。两个边缘密度均不含 $\rho$，所以即使限制在二元正态分布族内，边缘分布也不能确定联合分布。
+
+更进一步，两个分量各自正态不保证它们联合正态。固定 $0<r<1$，将标准边缘、参数分别为 $r$ 与 $-r$ 的两种二元正态密度记为 $f_r,f_{-r}$，则混合密度 $\tfrac12f_r+\tfrac12f_{-r}$ 的两个边缘仍为标准正态。若它等于某个标准边缘的二元正态密度 $f_\rho$，由于该混合密度关于 $x$、$y$ 各自对称，式~\eqref{eq:study-ch3-bivariate-normal-density} 中的交叉项要求 $\rho=0$；但它在原点的值为 $1/(2\pi\sqrt{1-r^2})$，不同于 $f_0(0,0)=1/(2\pi)$。这些密度连续，因此不能仅靠零面积集合上的取值差异消除矛盾。这给出了教材例 3.10 所用的正态混合反例。
+
+\section{条件分布}
+\label{sec:study-conditional-distributions}
+
+\subsection{条件分布、联合分布与贝叶斯公式}
+
+条件分布描述已知某一分量取值后，另一分量的概率规律。对离散型随机向量，若 $p_{\cdot j}=\mathbb P(Y=y_j)>0$，直接应用事件的条件概率定义，有
+\begin{equation}
+  \mathbb P(X=x_i\mid Y=y_j)=\frac{p_{ij}}{p_{\cdot j}}.
+  \label{eq:study-ch3-conditional-pmf}
+\end{equation}
+固定条件 $Y=y_j$ 后，对 $i$ 求和为 $1$，因此它确实是一个概率分布。相应地，给定 $X=x_i$ 时，$Y$ 的条件分布律为 $p_{ij}/p_{i\cdot}$，要求 $p_{i\cdot}>0$。在联合分布表中，条件化就是取定一行或一列，再除以该行或该列的总概率。
+
+连续型情形需另作处理：有密度时 $\mathbb P(Y=y)=0$，不能把 $\mathbb P(X\in A,Y=y)/\mathbb P(Y=y)$ 当作定义。教材从窄条事件 $\{y<Y\le y+h\}$ 出发说明条件密度的含义；严格使用这种极限时，还需相应密度与积分随 $y$ 变化的正则性。更直接的处理是用联合密度与边缘密度的比值给出条件分布，并核对它能恢复原来的联合概率。
+
+\begin{definition}
+\label{def:study-ch3-conditional-density}
+设 $(X,Y)$ 具有联合密度 $f(x,y)$。对满足 $0<f_Y(y)<\infty$ 的 $y$，定义给定 $Y=y$ 时 $X$ 的\emph{条件概率密度函数（conditional probability density function）}为
+\begin{equation}
+  f_{X\mid Y}(x\mid y)=\frac{f(x,y)}{f_Y(y)},\qquad
+  F_{X\mid Y}(x\mid y)=\int_{-\infty}^x f_{X\mid Y}(u\mid y)\,\mathrm du.
+  \label{eq:study-ch3-conditional-density}
+\end{equation}
+给定 $X=x$ 时，同样有 $f_{Y\mid X}(y\mid x)=f(x,y)/f_X(x)$，要求 $0<f_X(x)<\infty$。
+\end{definition}
+
+固定合法的 $y$ 后，$f_{X\mid Y}(x\mid y)$ 非负且对 $x$ 的积分为 $1$。这里 $y$ 是条件参数，归一化时不能对 $y$ 积分代替对 $x$ 积分。边缘密度为零或不有限的取值构成对相应边缘分布概率为零的集合，条件分布在这些取值上可另行约定而不改变联合概率；因此，连续型条件分布由联合分布确定到几乎处处相同，并非在每个单点上天然唯一。
+
+由定义得到\emph{密度的乘法公式}与\emph{全概率公式}：
+\begin{equation}
+  f(x,y)=f_{Y\mid X}(y\mid x)f_X(x)
+        =f_{X\mid Y}(x\mid y)f_Y(y),\qquad
+  f_Y(y)=\int_{\mathbb R}f_{Y\mid X}(y\mid x)f_X(x)\,\mathrm dx.
+  \label{eq:study-ch3-density-product-total}
+\end{equation}
+例如，对 Borel 集 $A,B$，将第一种分解代入区域积分便得
+\[
+  \mathbb P(X\in A,Y\in B)
+  =\int_B\left(\int_A f_{X\mid Y}(x\mid y)\,\mathrm dx\right)f_Y(y)\,\mathrm dy,
+\]
+这正是条件分布与联合分布相容的含义。交换已知条件与所研究的变量，还得到密度形式的\emph{贝叶斯公式（Bayes' formula）}：
+\begin{equation}
+  f_{X\mid Y}(x\mid y)
+  =\frac{f_{Y\mid X}(y\mid x)f_X(x)}
+    {\displaystyle\int_{\mathbb R}f_{Y\mid X}(y\mid u)f_X(u)\,\mathrm du},
+  \label{eq:study-ch3-density-bayes}
+\end{equation}
+其中分母必须为有限正数。以上公式也适用于向量条件，只需对被消去的整个向量积分。
+
+\begin{example}
+\label{ex:study-ch3-two-stage-uniform}
+教材例 3.12：先在 $(0,1)$ 中均匀选取 $X$，给定 $X=x$ 后，再在 $(0,x)$ 中均匀选取 $Y$。求 $Y$ 的密度和 $F_{X\mid Y}(1/2\mid1/4)$。
+\end{example}
+
+\begin{solve}
+由抽样机制可知 $f_X(x)=1$，$0<x<1$，且 $f_{Y\mid X}(y\mid x)=1/x$，$0<y<x$。于是
+\[
+  f(x,y)=\frac1x\boldsymbol 1_{\{0<y<x<1\}}(x,y),\qquad
+  f_Y(y)=\int_y^1\frac{\mathrm dx}{x}
+       =-\ln y,\quad0<y<1,
+\]
+而 $f_Y$ 在其他位置取 $0$。给定 $0<y<1$，
+\[
+  f_{X\mid Y}(x\mid y)=\frac1{x(-\ln y)}\boldsymbol 1_{(y,1)}(x),
+  \qquad
+  F_{X\mid Y}(1/2\mid1/4)
+  =\frac{\ln(1/2)-\ln(1/4)}{-\ln(1/4)}=\frac12.
+\]
+联合取值区域是三角形，但密度为 $1/x$，所以这个模型并非三角形上的均匀分布。给定 $X=x$ 时 $Y$ 均匀，也不表示给定 $Y=y$ 时 $X$ 均匀。
+\end{solve}
+
+\subsection{正态模型中的条件分布}
+
+\begin{proposition}
+\label{prop:study-ch3-normal-conditional}
+若 $(X,Y)\sim N(\mu_1,\mu_2,\sigma_1^2,\sigma_2^2,\rho)$，其中 $|\rho|<1$，则
+\begin{equation}
+  Y\mid X=x\sim N\!\left(
+    \mu_2+\rho\frac{\sigma_2}{\sigma_1}(x-\mu_1),
+    \sigma_2^2(1-\rho^2)\right).
+  \label{eq:study-ch3-normal-conditional}
+\end{equation}
+交换两组下标即可得到 $X\mid Y=y$ 的分布。
+\end{proposition}
+
+\begin{proof}
+用式~\eqref{eq:study-ch3-bivariate-normal-density} 除以 $X$ 的边缘密度，再对 $y$ 配平方，得到
+\[
+  f_{Y\mid X}(y\mid x)
+  =\frac1{\sqrt{2\pi}\sigma_2\sqrt{1-\rho^2}}
+  \exp\!\left\{-\frac{
+    [y-\mu_2-\rho\sigma_2(x-\mu_1)/\sigma_1]^2}
+    {2\sigma_2^2(1-\rho^2)}\right\},
+\]
+识别其正态密度参数即可。分母在每个 $x\in\mathbb R$ 都为正，因此这里可选取对所有实数 $x$ 都有定义的这一版本。
+\end{proof}
+
+条件均值随 $x$ 线性变化，条件方差不随 $x$ 变化，并小于或等于边缘方差 $\sigma_2^2$。这是联合正态模型的具体性质，不能只凭两个边缘正态就使用式~\eqref{eq:study-ch3-normal-conditional}。
+
+教材例 3.13 给出另一个按条件规律建模的例子：以厘米为单位的身高 $H\sim N(172,36)$，给定 $H=h$ 后，以千克为单位的体重满足 $W\mid H=h\sim N(h-105,49)$。定义残差 $E=W-(H-105)$，其条件分布恒为 $N(0,49)$，所以对任意 Borel 集 $A,B$，
+\[
+  \mathbb P(E\in A,H\in B)
+  =\int_B\mathbb P(E\in A\mid H=h)f_H(h)\,\mathrm dh
+  =\mathbb P(E\in A)\mathbb P(H\in B).
+\]
+这说明 $E$ 与 $H$ 独立；应用第~\ref{sec:study-vector-transformations} 节将推导的独立正态变量相加公式，得 $W=H-105+E\sim N(67,85)$。也可直接对乘积 $f_{W\mid H}(w\mid h)f_H(h)$ 关于 $h$ 积分并配平方得到相同结论。这里 $H,W$ 分别表示以厘米、千克计的数值，线性关系中的系数和常数均以这一单位约定为前提。
+
+\section{相互独立的随机变量}
+\label{sec:study-independent-variables}
+
+\subsection{独立性的定义与等价判据}
+
+\begin{definition}
+\label{def:study-ch3-independent-variables}
+若对任意 $x,y\in\mathbb R$ 都有
+\begin{equation}
+  F_{X,Y}(x,y)=F_X(x)F_Y(y),
+  \label{eq:study-ch3-independence-cdf}
+\end{equation}
+则称随机变量 $X,Y$ \emph{相互独立（independent）}。等价地，对任意 Borel 集 $A,B\subseteq\mathbb R$，
+\begin{equation}
+  \mathbb P(X\in A,Y\in B)=\mathbb P(X\in A)\mathbb P(Y\in B).
+  \label{eq:study-ch3-independence-borel}
+\end{equation}
+\end{definition}
+
+式~\eqref{eq:study-ch3-independence-borel} 表明，关于 $X$ 的任意可测事件与关于 $Y$ 的任意可测事件都独立。取 $A=(-\infty,x],B=(-\infty,y]$ 就得到式~\eqref{eq:study-ch3-independence-cdf}；反向结论可先用矩形增量公式推广到半开区间，再由概率测度在这类生成集合上的唯一性推广到 Borel 集。因此，独立性要求整个分布的乘积分解，验证某一对事件独立通常不够。
+
+对离散型随机向量，独立性等价于 $p_{ij}=p_{i\cdot}p_{\cdot j}$ 对所有 $i,j$ 成立。必要性由单点事件直接得到；充分性由对式~\eqref{eq:study-ch3-joint-pmf-probability} 求和得到。对具有联合密度的随机向量，独立性等价于
+\begin{equation}
+  f(x,y)=f_X(x)f_Y(y)\quad\text{几乎处处成立}.
+  \label{eq:study-ch3-independence-density}
+\end{equation}
+充分性由矩形积分分离得到，必要性则由乘积密度与原联合分布在所有矩形上相同，以及密度的几乎处处唯一性得到。独立时，在合法的条件取值上，可以选取等于边缘分布的条件分布版本；例如 $f_{Y\mid X}(y\mid x)=f_Y(y)$ 对几乎所有 $x$ 成立。
+
+判断可分离性时须包括整个取值区域。若 $f(x,y)=a(x)b(y)$ 几乎处处成立，其中 $a,b$ 为非负可积函数，且其积分 $A,B$ 为正，则联合归一性给出 $AB=1$，两个边缘分别为 $Ba(x)$、$Ab(y)$，故 $X,Y$ 独立。但只在一个三角形内把非零表达式写成乘积，并不能完成这一分解，因为区域的示性函数还将 $x,y$ 耦合在一起。
+
+\begin{example}
+\label{ex:study-ch3-disk-dependence}
+教材例 3.16：设 $(X,Y)$ 在单位圆盘 $x^2+y^2<1$ 内均匀分布，证明 $X,Y$ 不独立。
+\end{example}
+
+\begin{solve}
+令 $A=\{X>3/4\}$、$B=\{Y>3/4\}$。圆盘内分别有正面积的部分满足这两个条件，所以 $\mathbb P(A)>0$、$\mathbb P(B)>0$；但两条件同时成立要求 $x^2+y^2>18/16>1$，因此 $\mathbb P(A\cap B)=0$。这与独立时应有 $\mathbb P(A\cap B)=\mathbb P(A)\mathbb P(B)>0$ 矛盾。该证明直接使用正概率事件，避免只在某个密度取值点上判断独立性。
+\end{solve}
+
+对二元正态分布，$X,Y$ 独立当且仅当 $\rho=0$。若 $\rho=0$，式~\eqref{eq:study-ch3-bivariate-normal-density} 直接分解为两个边缘密度的乘积。反之，独立要求这两个连续密度处处相等；在 $(\mu_1,\mu_2)$ 比较其值，得到 $1/\sqrt{1-\rho^2}=1$，所以 $\rho=0$。这里用到了联合正态密度的具体形式；对一般分布，后续章节定义的相关系数为零并不足以推出独立。
+
+\subsection{相互独立、两两独立与分组函数}
+
+随机变量 $X_1,\ldots,X_n$ \emph{相互独立（mutually independent）}的定义是：对任意 $x_1,\ldots,x_n\in\mathbb R$，
+\[
+  F_{\boldsymbol X}(x_1,\ldots,x_n)=\prod_{i=1}^nF_{X_i}(x_i).
+\]
+对离散型随机向量，这等价于所有联合点概率等于各边缘点概率的乘积；对具有联合密度的随机向量，等价于联合密度几乎处处等于 $\prod_i f_{X_i}(x_i)$。相互独立必然推出每一子组相互独立，特别推出两两独立；其逆命题一般不成立。
+
+\begin{example}
+\label{ex:study-ch3-pairwise-not-mutual}
+教材例 3.18：设 $X,Y$ 独立，且都以概率 $1/2$ 取 $-1,1$，令 $Z=XY$。证明 $X,Y,Z$ 两两独立但不相互独立。
+\end{example}
+
+\begin{solve}
+$Z$ 也等概率取 $-1,1$。对任意 $x,z\in\{-1,1\}$，有
+\[
+  \mathbb P(X=x,Z=z)=\mathbb P(X=x,Y=xz)=\frac14
+  =\mathbb P(X=x)\mathbb P(Z=z),
+\]
+所以 $X,Z$ 独立；交换 $X,Y$ 得 $Y,Z$ 独立，而 $X,Y$ 已由假设独立。然而
+\[
+  \mathbb P(X=1,Y=1,Z=-1)=0
+  \ne\mathbb P(X=1)\mathbb P(Y=1)\mathbb P(Z=-1)=\frac18.
+\]
+第三个变量被前两个的乘积完全确定，因此三者不相互独立。
+\end{solve}
+
+若 $X_1,\ldots,X_n$ 相互独立，从两个不相交指标组分别构造的 Borel 可测函数
+\[
+  U=g(X_1,\ldots,X_k),\qquad
+  V=h(X_{k+1},\ldots,X_n),\qquad1\le k<n,
+\]
+仍然独立。其依据是 $\{U\in A\}$ 与 $\{V\in B\}$ 分别属于两组独立坐标生成的事件族，因而概率可分解。特别地，$X,Y$ 独立时 $g(X),h(Y)$ 独立；函数内部不要求单调。但若两个函数共用了某个原变量，就不能仅凭原坐标独立而直接断言它们独立。
+
+\begin{example}
+\label{ex:study-ch3-meeting-probability}
+教材例 3.15：两人分别在一小时内独立、均匀地到达，先到者等候 $20$ 分钟后离开。求能会面的概率。
+\end{example}
+
+\begin{solve}
+以小时为单位，把起始时刻记为 $0$，则 $X,Y$ 独立且均服从 $U(0,1)$，联合密度在单位正方形内为 $1$。会面事件为 $|X-Y|\le1/3$，其补集由两个直角边均为 $2/3$ 的直角三角形组成，所以
+\[
+  \mathbb P(|X-Y|\le1/3)=1-2\cdot\frac12\left(\frac23\right)^2=\frac59.
+\]
+独立、均匀的到达机制是概率模型的假设；仅说“约在一小时内到达”并不能自动推出这些假设。
+\end{solve}
+
+\section{随机向量函数的分布}
+\label{sec:study-vector-transformations}
+
+\subsection{分布函数法与变量变换公式}
+
+求 $Z=g(X,Y)$ 的分布，首先应把关于 $Z$ 的事件还原成关于 $(X,Y)$ 的事件。对 Borel 可测函数 $g$，离散情形为
+\[
+  \mathbb P(Z=z)=\sum_{g(x_i,y_j)=z}p_{ij},
+\]
+具有联合密度时则为
+\begin{equation}
+  F_Z(z)=\iint_{g(x,y)\le z}f(x,y)\,\mathrm dx\,\mathrm dy.
+  \label{eq:study-ch3-vector-function-cdf}
+\end{equation}
+这种\emph{分布函数法（distribution function method）}不要求 $g$ 一一对应。先找出 $Z$ 的取值范围，再计算相应区域概率，可以避免分段条件遗漏；若所得分布绝对连续，再对 $F_Z$ 求导得到密度。向量函数 $(U,V)=(g_1(X,Y),g_2(X,Y))$ 也按同样原则求逆像区域的概率。
+
+\begin{theorem}
+\label{thm:study-ch3-jacobian-transform}
+设 $(X,Y)$ 具有联合密度 $f$，且以概率 $1$ 落在开集 $D\subseteq\mathbb R^2$ 内。设变换 $T:D\to G=T(D)$ 为一一对应的连续可微映射，具有连续可微逆映射
+\[
+  x=x(u,v),\qquad y=y(u,v),
+\]
+并且雅可比行列式在 $D$ 内非零。则 $(U,V)=T(X,Y)$ 具有联合密度
+\begin{equation}
+  f_{U,V}(u,v)
+  =f(x(u,v),y(u,v))
+    \left|\frac{\partial(x,y)}{\partial(u,v)}\right|
+    \boldsymbol 1_G(u,v),
+  \label{eq:study-ch3-jacobian-density}
+\end{equation}
+其中在 $G$ 上计算右侧的密度与行列式，在 $G$ 外令密度为 $0$，且
+\[
+  \frac{\partial(x,y)}{\partial(u,v)}
+  =\det\begin{pmatrix}
+    \partial x/\partial u&\partial x/\partial v\\
+    \partial y/\partial u&\partial y/\partial v
+  \end{pmatrix}.
+\]
+\end{theorem}
+
+\begin{proof}
+对任意 Borel 区域 $A\subseteq G$，积分换元给出
+\[
+  \mathbb P((U,V)\in A)
+  =\iint_{T^{-1}(A)}f(x,y)\,\mathrm dx\,\mathrm dy
+  =\iint_A f(x(u,v),y(u,v))
+    \left|\frac{\partial(x,y)}{\partial(u,v)}\right|
+    \,\mathrm du\,\mathrm dv.
+\]
+由密度的定义即得结论。绝对值来自面积伸缩，不随变换是否改变方向而改变概率的正负。
+\end{proof}
+
+该公式同样适用于 $n$ 维可逆光滑变换，行列式相应变为 $n$ 阶。若变换在整个取值区域上不一一对应，可在有限个互不重叠、覆盖全部概率的分支上分别换元，再把同一点各个原像的密度贡献相加；不能只保留某一个逆分支。若原变量具有联合密度，概率为零的分支边界可以单独忽略。只求一个函数 $Z=g(X,Y)$ 时，常补选另一个函数作为辅助变量，先求二维联合密度，再边缘化；雅可比因子和新取值区域必须同时计算。
+
+\subsection{和、差的分布与卷积}
+
+\begin{proposition}
+\label{prop:study-ch3-convolution}
+设 $(X,Y)$ 具有联合密度 $f$。则 $S=X+Y$ 具有密度
+\begin{equation}
+  f_S(s)=\int_{\mathbb R}f(x,s-x)\,\mathrm dx.
+  \label{eq:study-ch3-sum-density-general}
+\end{equation}
+若 $X,Y$ 独立且密度分别为 $f_X,f_Y$，则
+\begin{equation}
+  f_S(s)=\int_{\mathbb R}f_X(x)f_Y(s-x)\,\mathrm dx
+        =(f_X*f_Y)(s),
+  \label{eq:study-ch3-convolution}
+\end{equation}
+右侧称为两个密度的\emph{卷积（convolution）}。同理，$D=X-Y$ 的密度为 $f_D(d)=\int_{\mathbb R}f(d+y,y)\,\mathrm dy$。
+\end{proposition}
+
+\begin{proof}
+令 $U=X,S=X+Y$，逆变换为 $x=u,y=s-u$，雅可比行列式绝对值为 $1$。由定理~\ref{thm:study-ch3-jacobian-transform}，$f_{U,S}(u,s)=f(u,s-u)$，再对 $u$ 积分即可。独立时将联合密度分解成 $f_Xf_Y$，得到卷积公式；令 $D=X-Y,V=Y$ 可得差的公式。这一推导直接使用换元和边缘化，不需要在积分号下求导。
+\end{proof}
+
+\begin{example}
+\label{ex:study-ch3-exponential-sum-difference}
+教材例 3.20：设 $X,Y$ 独立，均服从率参数为 $\lambda>0$ 的指数分布，即密度为 $\lambda e^{-\lambda x}\boldsymbol 1_{(0,\infty)}(x)$。求和与差的分布。
+\end{example}
+
+\begin{solve}
+对 $S=X+Y$，密度非零要求 $x>0,s-x>0$，故 $s>0$ 时
+\[
+  f_S(s)=\int_0^s\lambda^2e^{-\lambda x}e^{-\lambda(s-x)}\,\mathrm dx
+        =\lambda^2s e^{-\lambda s},
+\]
+而 $s\le0$ 时取 $0$。重复卷积可得：若 $X_1,\ldots,X_n$ 独立同分布于此指数分布，则
+\begin{equation}
+  f_{X_1+\cdots+X_n}(s)
+  =\frac{\lambda^n}{(n-1)!}s^{n-1}e^{-\lambda s}
+    \boldsymbol 1_{(0,\infty)}(s).
+  \label{eq:study-ch3-integer-gamma-density}
+\end{equation}
+归纳时，把 $n$ 项和的密度与指数密度卷积，剩下的积分是 $\int_0^s x^{n-1}\,\mathrm dx=s^n/n$，由此得到 $n+1$ 项的公式。这是形状参数为 $n$、率参数为 $\lambda$ 的\emph{伽马分布（gamma distribution）}，记为 $\operatorname{Ga}(n,\lambda)$；若改用尺度参数，则尺度是 $1/\lambda$。
+
+对 $D=X-Y$，$y>0$ 与 $d+y>0$ 要求 $y>\max\{0,-d\}$，所以
+\[
+  f_D(d)=\lambda^2e^{-\lambda d}
+    \int_{\max\{0,-d\}}^\infty e^{-2\lambda y}\,\mathrm dy
+  =\frac\lambda2e^{-\lambda|d|},\qquad d\in\mathbb R.
+\]
+这是以 $0$ 为位置参数、以 $1/\lambda$ 为尺度参数的\emph{拉普拉斯分布（Laplace distribution）}。和只取正值，差可取任意实值，因此两者的积分限不能混用。
+\end{solve}
+
+教材例 3.21 中，若 $X\sim U(0,2)$、$Y\sim U(-1,1)$ 且独立，则联合密度为矩形内的 $1/4$。卷积积分的长度为区间 $(0,2)\cap(s-1,s+1)$ 的长度，因而
+\[
+  f_{X+Y}(s)=
+  \begin{cases}
+    (s+1)/4,&-1<s<1,\\
+    (3-s)/4,&1\le s<3,\\
+    0,&\text{其他}.
+  \end{cases}
+\]
+三角形密度来自两区间的重叠长度；分段位置由取值区间端点相遇的位置决定。
+
+\begin{proposition}
+\label{prop:study-ch3-normal-sum}
+若 $X\sim N(\mu_1,\sigma_1^2)$、$Y\sim N(\mu_2,\sigma_2^2)$，且 $X,Y$ 独立、$\sigma_1,\sigma_2>0$，则
+\begin{equation}
+  X+Y\sim N(\mu_1+\mu_2,\sigma_1^2+\sigma_2^2).
+  \label{eq:study-ch3-normal-sum}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+令 $a=\sigma_1^2$、$b=\sigma_2^2$、$t=s-\mu_1-\mu_2$、$r=x-\mu_1$。卷积指数中的平方和可分解为
+\[
+  \frac{r^2}{a}+\frac{(t-r)^2}{b}
+  =\frac{a+b}{ab}\left(r-\frac{at}{a+b}\right)^2
+   +\frac{t^2}{a+b}.
+\]
+对 $r$ 积分，第一项给出的高斯积分为 $\sqrt{2\pi ab/(a+b)}$，结合原密度的系数 $1/(2\pi\sqrt{ab})$，得到
+\[
+  f_{X+Y}(s)=\frac1{\sqrt{2\pi(a+b)}}
+    \exp\!\left\{-\frac{(s-\mu_1-\mu_2)^2}{2(a+b)}\right\},
+\]
+即为所述正态密度。
+\end{proof}
+
+独立的同类随机变量相加后仍属于同一分布族的性质，称为该分布族的\emph{再生性（reproductive property）}。正态分布的均值、方差参数在独立相加时分别相加；同率参数的整数形状伽马分布，其形状参数也在独立相加时相加。这里的独立性或参数一致条件均属于结论的一部分。一般的两个正态边缘既不能保证式~\eqref{eq:study-ch3-normal-sum} 的方差公式，也不能保证和仍为正态。
+
+\subsection{商、乘积与极坐标变换}
+
+设 $(X,Y)$ 具有联合密度，则 $\mathbb P(Y=0)=0$，商 $Z=X/Y$ 可在 $Y=0$ 上任意补充定义。令 $Z=X/Y,V=Y$，逆变换为 $x=zv,y=v$，其雅可比行列式绝对值为 $|v|$。在 $v>0$、$v<0$ 两个分支分别换元，得到
+\begin{equation}
+  f_{X/Y}(z)=\int_{\mathbb R}|v|f(zv,v)\,\mathrm dv;
+  \qquad
+  f_{X/Y}(z)=\int_{\mathbb R}|v|f_X(zv)f_Y(v)\,\mathrm dv
+  \quad\text{当 $X,Y$ 独立时}.
+  \label{eq:study-ch3-ratio-density}
+\end{equation}
+绝对值不能去掉，特别是分母允许取负值时。同样令 $T=XY,V=Y$，逆变换为 $x=t/v,y=v$，得到乘积密度
+\begin{equation}
+  f_{XY}(t)=\int_{\mathbb R\setminus\{0\}}
+    \frac1{|v|}f(t/v,v)\,\mathrm dv.
+  \label{eq:study-ch3-product-density}
+\end{equation}
+这些积分公式按几乎处处成立理解，某个零测集上密度取无穷大不妨碍它作为可积密度。
+
+\begin{example}
+\label{ex:study-ch3-standard-cauchy-ratio}
+教材例 3.23：若 $X,Y$ 独立且均服从 $N(0,1)$，求 $Z=X/Y$ 的密度。
+\end{example}
+
+\begin{solve}
+由式~\eqref{eq:study-ch3-ratio-density}，
+\[
+  f_Z(z)=\frac1{2\pi}\int_{\mathbb R}|v|
+    e^{-(1+z^2)v^2/2}\,\mathrm dv
+  =\frac1\pi\int_0^\infty v e^{-(1+z^2)v^2/2}\,\mathrm dv
+  =\frac1{\pi(1+z^2)},\quad z\in\mathbb R.
+\]
+这是\emph{标准柯西分布（standard Cauchy distribution）}。同样，两个独立、均值为零、方差相同的非退化正态变量之商也服从标准柯西分布，因为共同的尺度会在商中约去；不能把这一结论扩展成任意两个独立正态变量的商都服从标准柯西分布。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ch3-normal-polar}
+教材例 3.24：若 $X,Y$ 独立且均服从 $N(0,1)$，令 $R=\sqrt{X^2+Y^2}$，极角 $\Theta\in[0,2\pi)$ 满足 $X=R\cos\Theta,Y=R\sin\Theta$。求 $(R,\Theta)$ 的分布。
+\end{example}
+
+\begin{solve}
+去掉原点及选定的极角切割射线后，极坐标变换一一对应；被去掉的集合概率为零。逆变换的雅可比行列式绝对值为 $r$，所以
+\[
+  f_{R,\Theta}(r,\theta)
+  =\frac1{2\pi}r e^{-r^2/2}
+    \boldsymbol 1_{(0,\infty)}(r)\boldsymbol 1_{(0,2\pi)}(\theta).
+\]
+它分解为两个归一化密度的乘积，故 $R,\Theta$ 独立，且
+\[
+  f_R(r)=r e^{-r^2/2}\boldsymbol 1_{(0,\infty)}(r),\qquad
+  \Theta\sim U(0,2\pi).
+\]
+$R$ 的分布称为尺度为 $1$ 的\emph{瑞利分布（Rayleigh distribution）}。联合密度本身的旋转对称性与极坐标的面积因子 $r$ 共同决定这一结果，不能漏掉 $r$ 后直接对原正态密度积分。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ch3-uniform-transformations}
+教材例 3.25：设 $X_1,X_2,X_3$ 独立且均服从 $U(0,1)$，求 $Y=-a\ln X_1$（$a>0$）、$Z=X_2/X_1$ 和 $U=1/(X_1X_2X_3)$ 的分布。
+\end{example}
+
+\begin{solve}
+对 $y>0$，$\mathbb P(Y\le y)=\mathbb P(X_1\ge e^{-y/a})=1-e^{-y/a}$，所以 $Y$ 为率参数 $1/a$ 的指数变量。对商 $Z$，在单位正方形内积分得
+\[
+  F_Z(z)=
+  \begin{cases}
+    0,&z\le0,\\
+    z/2,&0<z<1,\\
+    1-1/(2z),&z\ge1.
+  \end{cases}
+\]
+其中 $0<z<1$ 时，事件为 $0<x_2\le zx_1$；$z\ge1$ 时，按 $x_1=1/z$ 分段，面积为 $\int_0^{1/z}zx_1\,\mathrm dx_1+\int_{1/z}^1\mathrm dx_1$。
+
+对乘积的倒数取对数：$V=\ln U=\sum_{i=1}^3(-\ln X_i)$。由于独立变量各自的可测函数仍独立，各项均服从率参数为 $1$ 的指数分布，所以由式~\eqref{eq:study-ch3-integer-gamma-density}，$f_V(v)=v^2e^{-v}/2$，$v>0$。再用 $U=e^V$ 及 $\mathrm dv/\mathrm du=1/u$，得到
+\[
+  f_U(u)=\frac{(\ln u)^2}{2u^2}\boldsymbol 1_{(1,\infty)}(u).
+\]
+乘积问题经对数化后转成独立和的问题，适用于这里各因子都为正的情形。
+\end{solve}
+
+\subsection{最大值、最小值与系统可靠性}
+
+\begin{proposition}
+\label{prop:study-ch3-extreme-distributions}
+设 $X_1,\ldots,X_n$ 相互独立，分布函数分别为 $F_1,\ldots,F_n$，令 $M=\max_iX_i$、$L=\min_iX_i$，则
+\begin{equation}
+  F_M(t)=\prod_{i=1}^nF_i(t),\qquad
+  F_L(t)=1-\prod_{i=1}^n[1-F_i(t)].
+  \label{eq:study-ch3-extreme-cdf}
+\end{equation}
+若各分量有密度 $f_i$，相应密度为
+\begin{equation}
+  f_M(t)=\sum_{i=1}^nf_i(t)\prod_{j\ne i}F_j(t),\qquad
+  f_L(t)=\sum_{i=1}^nf_i(t)\prod_{j\ne i}[1-F_j(t)].
+  \label{eq:study-ch3-extreme-density}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+$\{M\le t\}=\bigcap_i\{X_i\le t\}$，而 $\{L>t\}=\bigcap_i\{X_i>t\}$；分别利用相互独立并对后一事件取补集，得到分布函数公式。若各分量有密度，$F_i$ 绝对连续，有限乘积也绝对连续，按乘积法则几乎处处求导便得密度公式。
+\end{proof}
+
+若各分量同分布于 $F$、密度为 $f$，则 $f_M(t)=nf(t)F(t)^{n-1}$、$f_L(t)=nf(t)[1-F(t)]^{n-1}$。分布函数公式不要求原变量连续，离散情形只需用跳跃大小求点概率。例如，教材例 3.27 中两枚公平骰子独立掷出点数 $X,Y$，则
+\[
+  \mathbb P(\max\{X,Y\}=5)=\left(\frac56\right)^2-\left(\frac46\right)^2=\frac14,
+\]
+\[
+  \mathbb P(\min\{X,Y\}=3)=\left(\frac46\right)^2-\left(\frac36\right)^2=\frac7{36}.
+\]
+求离散极值分布时，相邻的两个分布函数值或生存概率值相减，不能使用密度求导公式。
+
+\begin{example}
+\label{ex:study-ch3-system-reliability}
+教材例 3.28：两个子系统的寿命 $X,Y$ 独立，分别服从率参数为 $\alpha>0$、$\beta>0$ 的指数分布。求串联、并联与备用三种连接方式下系统寿命的分布。
+\end{example}
+
+\begin{solve}
+串联系统有一个子系统失效就停止工作，所以寿命为 $L=\min\{X,Y\}$，且
+\[
+  \mathbb P(L>t)=e^{-(\alpha+\beta)t},\qquad t\ge0,
+\]
+即 $L$ 仍为指数变量，率参数为 $\alpha+\beta$。并联系统两个子系统全部失效才停止工作，因此寿命为 $M=\max\{X,Y\}$，对 $t>0$ 有
+\[
+  F_M(t)=(1-e^{-\alpha t})(1-e^{-\beta t}),\qquad
+  f_M(t)=\alpha e^{-\alpha t}+\beta e^{-\beta t}
+        -(\alpha+\beta)e^{-(\alpha+\beta)t}.
+\]
+这里假设并联工作不会改变各自原定的寿命规律。
+
+备用系统在第一个失效后启用第二个；在备用期间不老化、切换瞬时且可靠、两段工作寿命独立的模型下，总寿命为 $S=X+Y$。卷积给出，当 $t>0$ 且 $\alpha\ne\beta$ 时，
+\[
+  f_S(t)=\int_0^t\alpha e^{-\alpha x}\beta e^{-\beta(t-x)}\,\mathrm dx
+        =\frac{\alpha\beta}{\beta-\alpha}
+          (e^{-\alpha t}-e^{-\beta t}).
+\]
+若 $\alpha=\beta$，则 $f_S(t)=\alpha^2t e^{-\alpha t}$，不能把相等参数直接代入含 $\beta-\alpha$ 的分母。上述密度在 $t\le0$ 时均取 $0$。三个模型分别对应最小值、最大值和独立和，关键是先根据失效机制写出寿命函数，再选择分布公式。
+\end{solve}
+
+\section{扩展阅读：辛普森悖论}
+\label{sec:study-simpson-paradox}
+
+\emph{辛普森悖论（Simpson's paradox）}指分组比较与汇总比较可能出现相反方向：某一群体在每个分组中的成功比例都较高，汇总后成功比例却较低。教材用一个明确标为虚构的招生例子说明这一现象，数据如下。这里的“录取率”只是录取人数占申请人数的比例，不能仅凭这些比例判断性别是否造成录取差异。
+
+\begin{table}
+  \centering
+  \caption{教材中的虚构招生数据}
+  \label{tab:study-ch3-simpson-admissions}
+  \begin{tabular}{ccrrc}
+    \hline
+    学院&性别&录取人数&未录取人数&录取率\\\hline
+    法学院&男&8&45&$8/53\approx15.1\%$\\
+    法学院&女&51&101&$51/152\approx33.6\%$\\
+    商学院&男&201&50&$201/251\approx80.1\%$\\
+    商学院&女&92&9&$92/101\approx91.1\%$\\\hline
+    合计&男&209&95&$209/304\approx68.8\%$\\
+    合计&女&143&110&$143/253\approx56.5\%$\\\hline
+  \end{tabular}
+\end{table}
+
+由表~\ref{tab:study-ch3-simpson-admissions} 可见，每个学院的女生录取率都高于男生，但总体录取率低于男生。为看清其数学原因，从这些申请记录中等概率抽取一人，以 $A$ 表示“被录取”，$G$ 表示性别，$C$ 表示所申请的学院。条件全概率公式给出
+\begin{equation}
+  \mathbb P(A\mid G=g)
+  =\sum_c\mathbb P(A\mid G=g,C=c)\mathbb P(C=c\mid G=g).
+  \label{eq:study-ch3-simpson-total-probability}
+\end{equation}
+各组录取率的比较使用 $\mathbb P(A\mid G=g,C=c)$，总体则是以各自申请学院的比例为权重的加权平均。具体地，男生的法学院申请比例为 $53/304$，女生为 $152/253$，女生更多集中在录取率较低的法学院；男生更多集中在录取率较高的商学院。因此
+\[
+  \frac8{53}\frac{53}{304}+\frac{201}{251}\frac{251}{304}
+  =\frac{209}{304}
+  >\frac{143}{253}
+  =\frac{51}{152}\frac{152}{253}+\frac{92}{101}\frac{101}{253}.
+\]
+分组优势不能跨越不同的权重直接传递到总体。如果对男女使用同一组非负且和为 $1$ 的学院权重，逐组均较高的一方，其加权平均也较高；所以这里的反转来自分组比例与权重共同作用，不是概率运算矛盾。
+
+汇总比例和条件比例回答不同问题，均可正确描述各自对象。将男女按相同的学院权重比较，是一种明确了参照结构的标准化比较，但选择何种权重、是否应控制学院，还取决于要回答的实际问题及数据生成机制。\emph[caution]{条件概率的差异不直接等于因果效应。}是否存在不公平待遇，需结合申请选择、资格条件、录取规则等信息进一步研究，不能单凭汇总比例或单凭分组比例下结论。
+
+\section*{本章总结}
+\addcontentsline{toc}{section}{本章总结}
+
+本章从联合分布出发形成三条联系。第一，联合分布经过求和、积分或让其余坐标趋于 $+\infty$ 得到边缘分布，因而联合决定边缘；边缘通常丢失依赖信息，不能反推联合。第二，条件分布通过对已知条件归一化得到，联合密度、边缘密度与条件密度满足式~\eqref{eq:study-ch3-density-product-total}；连续型条件取值往往是零概率事件，必须在密度意义下处理。第三，独立性使联合分布分解为边缘分布的乘积，从而既能由边缘恢复联合，也能简化函数分布的计算。
+
+求函数分布时，先把事件写回原变量的取值区域，再选择分布函数法或可逆变量变换。变换后的密度必须同时包含原像处的联合密度、逆变换雅可比行列式的绝对值和新取值区域；辅助变量最后通过边缘化消去。和使用卷积，商使用式~\eqref{eq:study-ch3-ratio-density}，极值优先使用事件的交与补集。最后检查非负性、归一性、参数范围与取值范围，并核对独立性是否确由假设或证明得到。辛普森悖论则说明，从联合信息退回边缘信息时，比较对象和权重也随之改变。
+
+\section*{习题}
+\addcontentsline{toc}{section}{习题}
+
+以下选取教材第 3 章习题中的代表题，分别练习联合计数、条件化、混合模型、函数分布与独立性。题号沿用教材；解答补明计算所需的随机抽样或独立性假设。
+
+\begin{example}
+\label{ex:study-ch3-exercise-1}
+教材第 3 章习题 1：箱中有 $6$ 个球，红、白、黑球分别为 $1,2,3$ 个，不放回地随机取出 $2$ 个。以 $X,Y$ 分别表示取出的红球数与白球数，求联合分布。
+\end{example}
+
+\begin{solve}
+每个由两个球组成的无序子集等可能，共有 $\binom62=15$ 个。给定 $X=r,Y=s$，还需取 $2-r-s$ 个黑球，因此
+\[
+  p_{rs}=\frac{\binom1r\binom2s\binom3{2-r-s}}{\binom62},
+  \qquad r=0,1,\quad s=0,1,2,
+\]
+约定组合数下标不合法时取 $0$。具体联合分布律为
+\[
+  \begin{array}{c|ccc}
+    X\backslash Y&0&1&2\\\hline
+    0&3/15&6/15&1/15\\
+    1&3/15&2/15&0
+  \end{array}
+\]
+总和为 $1$。教材所求的联合分布函数可统一写成
+\[
+  F_{X,Y}(x,y)=\sum_{r=0}^1\sum_{s=0}^2
+    p_{rs}\boldsymbol 1_{\{r\le x\}}\boldsymbol 1_{\{s\le y\}}.
+\]
+这个形式保留了所有跳跃位置，无须把平面分成大量小区域逐块列式。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ch3-exercise-6}
+教材第 3 章习题 6：设射手各次射击独立，命中概率均为 $p\in(0,1)$，直到第二次命中为止。用 $X,Y$ 分别表示第一次、第二次命中时累计射击的次数，求联合分布及边缘分布。
+\end{example}
+
+\begin{solve}
+记 $q=1-p$。$X=i,Y=j$ 要求第 $i,j$ 次命中，前 $j$ 次中其余 $j-2$ 次均未命中，所以
+\[
+  \mathbb P(X=i,Y=j)=p^2q^{j-2},\qquad1\le i<j,
+\]
+其余取值概率为 $0$。对另一个指标求和，得到
+\[
+  \mathbb P(X=i)=\sum_{j=i+1}^\infty p^2q^{j-2}=pq^{i-1},\quad i\ge1,
+  \qquad
+  \mathbb P(Y=j)=(j-1)p^2q^{j-2},\quad j\ge2.
+\]
+第一个是首次命中等待次数的几何分布，第二个是第二次命中等待次数的负二项分布。在给定 $Y=j$ 时，$X$ 在 $1,\ldots,j-1$ 上均匀分布，概率均为 $1/(j-1)$。尽管射击结果逐次独立，$X,Y$ 却不独立；例如 $\mathbb P(X=2)>0$、$\mathbb P(Y=2)>0$，但二者不可能同时等于 $2$。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ch3-exercise-19}
+教材第 3 章习题 19：设 $X$ 服从率参数为 $1$ 的指数分布，且给定 $X=x$ 时，$Y$ 服从参数为 $x$ 的泊松分布。求 $Y$ 的分布律。
+\end{example}
+
+\begin{solve}
+条件概率为 $\mathbb P(Y=k\mid X=x)=e^{-x}x^k/k!$，$k=0,1,\ldots$。这里 $X$ 连续、$Y$ 离散，不能把联合模型当作二维连续密度。对条件分布按 $X$ 的密度积分得
+\[
+  \mathbb P(Y=k)=\int_0^\infty\frac{x^ke^{-x}}{k!}e^{-x}\,\mathrm dx
+  =\frac1{2^{k+1}},\qquad k=0,1,\ldots.
+\]
+计算使用 $\int_0^\infty x^ke^{-2x}\,\mathrm dx=k!/2^{k+1}$，可由分部积分对 $k$ 归纳证明。所得概率之和为 $1$，即 $Y$ 服从从 $0$ 开始计数、成功概率为 $1/2$ 的几何分布。随机化泊松参数后，边缘分布一般不再是泊松分布。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ch3-exercise-20}
+教材第 3 章习题 20：设 $(X,Y)$ 在正方形 $[0,2]^2$ 内均匀分布，求 $Z=|X-Y|$ 的密度。
+\end{example}
+
+\begin{solve}
+$Z$ 的取值在 $[0,2]$ 内。对 $0\le z\le2$，事件 $|X-Y|>z$ 对应正方形两角的两个直角三角形，直角边长为 $2-z$，总面积为 $(2-z)^2$。于是
+\[
+  F_Z(z)=1-\frac{(2-z)^2}{4},\quad0\le z\le2,
+  \qquad
+  f_Z(z)=\left(1-\frac z2\right)\boldsymbol 1_{(0,2)}(z).
+\]
+在 $z<0$ 时分布函数为 $0$，在 $z>2$ 时为 $1$。密度积分为 $1$，两个端点均无点概率。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ch3-exercise-24}
+教材第 3 章习题 24：从一副 $52$ 张扑克牌中随机取 $13$ 张，以 $X,Y$ 分别表示黑桃和红桃的张数。求联合分布，以及给定 $X=1$ 时 $Y$ 的条件分布。
+\end{example}
+
+\begin{solve}
+把牌分成 $13$ 张黑桃、$13$ 张红桃和 $26$ 张其他牌，每个 $13$ 张牌的子集等可能。因此
+\[
+  \mathbb P(X=x,Y=y)
+  =\frac{\binom{13}x\binom{13}y\binom{26}{13-x-y}}{\binom{52}{13}},
+  \qquad x,y\in\{0,1,\ldots,13\},\quad x+y\le13.
+\]
+其他取值的概率为 $0$。在恰有一张黑桃的条件下，其余 $12$ 张是从 $39$ 张非黑桃中等可能取出的，而其中有 $13$ 张红桃、$26$ 张其他牌，故
+\[
+  \mathbb P(Y=y\mid X=1)
+  =\frac{\binom{13}y\binom{26}{12-y}}{\binom{39}{12}},
+  \qquad y=0,1,\ldots,12.
+\]
+这是超几何分布。条件化后抽取张数与总体构成都已改变，不能继续使用原来的 $52$ 张总体。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ch3-exercise-28}
+教材第 3 章习题 28：班车起点站的上客人数 $X\sim\operatorname{Pois}(\lambda)$，$\lambda>0$。给定上客人数，每位乘客独立地以概率 $p\in(0,1)$ 在中途下车。令 $Y$ 为中途下车人数，求条件分布与联合分布。
+\end{example}
+
+\begin{solve}
+给定 $X=n$ 时，$Y$ 为 $n$ 个独立的下车指示变量之和，所以
+\[
+  \mathbb P(Y=m\mid X=n)=\binom nm p^m(1-p)^{n-m},
+  \qquad0\le m\le n.
+\]
+乘以 $X$ 的点概率，得到
+\[
+  \mathbb P(X=n,Y=m)
+  =e^{-\lambda}\frac{\lambda^n}{n!}\binom nm p^m(1-p)^{n-m},
+  \qquad n=0,1,\ldots,\quad m=0,\ldots,n.
+\]
+进一步令 $W=X-Y$ 为未在中途下车的人数，则对非负整数 $m,k$，
+\[
+  \mathbb P(Y=m,W=k)
+  =e^{-\lambda p}\frac{(\lambda p)^m}{m!}
+   e^{-\lambda(1-p)}\frac{[\lambda(1-p)]^k}{k!}.
+\]
+因此 $Y\sim\operatorname{Pois}(\lambda p)$、$W\sim\operatorname{Pois}(\lambda(1-p))$，并且 $Y,W$ 独立。这一分解也验证了所得联合分布的归一性。它并不表示 $X,Y$ 独立，因为 $X=Y+W$ 且始终有 $Y\le X$。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ch3-exercise-33}
+教材第 3 章习题 33：独立地重复掷一枚公平骰子，直到出现大于 $2$ 的点数。令 $X$ 为掷骰子的总次数，$Y$ 为最后一次的点数。求联合分布与边缘分布，并判断独立性。
+\end{example}
+
+\begin{solve}
+$X=k,Y=j$ 表示前 $k-1$ 次均出现 $1$ 或 $2$，第 $k$ 次出现指定的 $j\in\{3,4,5,6\}$。因此
+\[
+  \mathbb P(X=k,Y=j)=\left(\frac13\right)^{k-1}\frac16,
+  \qquad k=1,2,\ldots,\quad j=3,4,5,6.
+\]
+边缘分布为
+\[
+  \mathbb P(X=k)=\frac23\left(\frac13\right)^{k-1},\qquad
+  \mathbb P(Y=j)=\sum_{k=1}^\infty\frac16\left(\frac13\right)^{k-1}
+               =\frac14.
+\]
+每个联合点概率都等于相应的边缘点概率乘积，故 $X,Y$ 独立。等待多久与最后出现的是哪个合格点数，在这个模型中是独立的；停止规则本身并不必然造成依赖。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ch3-exercise-45}
+教材第 3 章习题 45（带星号）：在长度为 $1$ 的线段上独立、均匀地选取两点，将线段切成三段，求三段能组成非退化三角形的概率。
+\end{example}
+
+\begin{solve}
+以 $X,Y$ 表示两个切点坐标，联合密度在单位正方形内为 $1$。令 $U=\min\{X,Y\}$、$V=\max\{X,Y\}$；在 $0<u<v<1$ 上，两个原像 $(u,v)$ 与 $(v,u)$ 各贡献密度 $1$，故 $f_{U,V}(u,v)=2$。三段长为 $U,V-U,1-V$，总和为 $1$；能组成非退化三角形，当且仅当每段都小于 $1/2$，也就是
+\[
+  0<U<\frac12,\qquad \frac12<V<U+\frac12.
+\]
+所以所求概率为
+\[
+  \int_0^{1/2}\int_{1/2}^{u+1/2}2\,\mathrm dv\,\mathrm du
+  =\int_0^{1/2}2u\,\mathrm du=\frac14.
+\]
+边界对应退化三角形或重合切点，概率为零。结论依赖“两切点独立、均匀”的模型，不能把三段长度直接当作独立均匀变量。
+\end{solve}
+
+
+
+
+

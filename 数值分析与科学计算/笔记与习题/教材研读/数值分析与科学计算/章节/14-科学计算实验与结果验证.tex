@@ -1,0 +1,127 @@
+% !TeX root = ../数值分析与科学计算笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{13} % 保留原书章号。
+\chapter{科学计算实验与结果验证}
+\label{chap:na-practice}
+
+\section{从理论公式到可复现报告}
+一个完整计算实验应写明数学问题、输入数据、算法、容差、精度类型与停止原因，再报告误差或残差、运算规模和运行环境。若比较两个方法，函数评价次数、矩阵分解次数或总耗时应采用一致口径。未经测量的理论复杂度不能直接当作实测速度；单次计时也不能代表稳定的性能结论。
+
+误差曲线必须注明纵轴是绝对误差、相对误差、残差还是误差估计量。网格收敛实验应区分离散误差主导区与舍入误差平台；随机实验则需要多次独立重复，而不是只从一个种子的波动轨迹判断收敛率。对于未知真解的问题，可结合更精细计算、守恒关系、独立算法和制造解测试，但这些证据的作用不同，不宜把相互吻合称为无条件证明。
+
+本章代码使用 Python 标准库，作为有限规模、有限实数数据的教学实现。代码中的浮点零、有限性检查和异常信息是程序状态，不替代正文中的实数算术定理。代码示例聚焦算法核心，不承担任意精度计算、区间算术或生产级求解器的全部功能。
+
+\section{包根求解的教学实现}
+以下函数接收连续实函数及升序包根区间；函数值的符号需要可靠。返回值依次为中点、当前半区间宽度和停止状态。状态 \texttt{width} 表示通过位置容差停止；\texttt{computed\_zero} 仅表示程序评价得到零。函数并不把它与经过严格区间计算认证的精确零混为一谈。
+\begin{verbatim}
+import math
+
+def bisect(f, a, b, atol=1e-12, rtol=1e-10, maxiter=200):
+    if not (math.isfinite(a) and math.isfinite(b) and a < b):
+        raise ValueError("finite ordered endpoints required")
+    if not (math.isfinite(atol) and math.isfinite(rtol)
+            and atol > 0 and rtol >= 0
+            and isinstance(maxiter, int) and maxiter > 0):
+        raise ValueError("invalid tolerances or iteration limit")
+
+    def value(x):
+        y = f(x)
+        if not math.isfinite(y):
+            raise ValueError("nonfinite function value")
+        return y
+
+    fa, fb = value(a), value(b)
+    if fa == 0:
+        return a, 0.0, "computed_zero"
+    if fb == 0:
+        return b, 0.0, "computed_zero"
+    if (fa > 0) == (fb > 0):
+        raise ValueError("opposite signs required")
+    for _ in range(maxiter):
+        c = a / 2 + b / 2
+        radius = b / 2 - a / 2
+        if radius <= atol + rtol * abs(c):
+            return c, radius, "width"
+        if c == a or c == b:
+            raise ArithmeticError("floating-point stagnation")
+        fc = value(c)
+        if fc == 0:
+            return c, radius, "computed_zero"
+        if (fa > 0) != (fc > 0):
+            b = c
+        else:
+            a, fa = c, fc
+    raise RuntimeError("iteration limit reached")
+\end{verbatim}
+理论半区间界适用于精确端点与精确中点；在普通浮点实现中它是位置误差的工作估计，严格机器可验证包围还需向外舍入。相对阈值按当前中点尺度定义；接近零的根主要由绝对容差控制。
+
+\section{复合 Simpson 与标量 RK4}
+以下积分代码要求正偶数段数。\texttt{math.fsum} 改善长求和的舍入表现，但它不修复非光滑函数、错误节点或不适用的误差估计。
+\begin{verbatim}
+def composite_simpson(f, a, b, n):
+    if not isinstance(n, int) or n <= 0 or n % 2:
+        raise ValueError("n must be a positive even integer")
+    if not (math.isfinite(a) and math.isfinite(b) and a < b):
+        raise ValueError("finite ordered endpoints required")
+    h = (b - a) / n
+    if not math.isfinite(h) or h == 0:
+        raise ValueError("unusable step size")
+    values = [f(a)] + [f(a + j * h) for j in range(1, n)] + [f(b)]
+    if not all(math.isfinite(v) for v in values):
+        raise ValueError("nonfinite function value")
+    odd = math.fsum(values[1:n:2])
+    even = math.fsum(values[2:n:2])
+    result = h / 3 * math.fsum([values[0], values[-1],
+                              4 * odd, 2 * even])
+    if not math.isfinite(result):
+        raise ArithmeticError("nonfinite quadrature result")
+    return result
+
+def rk4_scalar(f, t0, t1, y0, n):
+    if not isinstance(n, int) or n <= 0:
+        raise ValueError("n must be a positive integer")
+    if not all(math.isfinite(v) for v in (t0, t1, y0)):
+        raise ValueError("finite data required")
+    if t1 <= t0:
+        raise ValueError("increasing time interval required")
+    h = (t1 - t0) / n
+    if not math.isfinite(h) or h == 0:
+        raise ValueError("unusable step size")
+    y = y0
+    for j in range(n):
+        t = t0 + j * h
+        k1 = f(t, y)
+        k2 = f(t + h / 2, y + h * k1 / 2)
+        k3 = f(t + h / 2, y + h * k2 / 2)
+        k4 = f(t + h, y + h * k3)
+        y += h * (k1 + 2 * k2 + 2 * k3 + k4) / 6
+        if not all(math.isfinite(v) for v in (k1, k2, k3, k4, y)):
+            raise ArithmeticError("nonfinite stage or solution")
+    return y
+\end{verbatim}
+以上函数只返回终点标量值；向量方程需要按分量保存与更新各阶段，而不是把 Python 列表的连接当作向量加法。时间步长由输入固定，没有局部误差自适应，也没有刚性检测，因此使用前应先做第~\ref{sec:na-ode-stability} 节的稳定性判断。
+
+\section{六组综合实验及验收问题}
+\subsection{抵消、步长与有效精度}
+计算 $g(x)=\sqrt{x^2+1}-x$ 及其有理化形式，取 $x=10^k$、$k=0,1,\ldots,8$；另用中心差分近似 $\exp'(1)=e$，取 $h=10^{-k}$、$k=1,\ldots,16$。用高精度参考值或解析表达式计算误差，记录误差最低点及随后上升或平台。验收时要区分函数评价误差、相消、最终除以步长的放大，不预设每台机器上最低点完全相同。
+
+\subsection{病态系统与不同最小二乘实现}
+采用 Hilbert 矩阵 $H_{ij}=1/(i+j-1)$，$1\le i,j\le n$，取 $n=3,5,8,10$，制造精确向量 $x_*=\boldsymbol1$ 并生成 $b=Hx_*$。分别报告求解残差、解误差和条件数估计；形成右端项时也会舍入，应注明是否以更高精度生成参考数据。再对 $m=50$ 个均匀节点上的带扰动数据作多项式拟合，比较单项式基的正规方程、Householder QR 和移位缩放后的正交基。验收关注残差小而系数误差大、基选择改变表示条件等现象，不把所有差异都解释为算法错误。
+
+\subsection{全局插值与分段插值}
+对 Runge 函数比较等距节点与 Chebyshev 节点的重心插值，再比较分段线性与自然三次样条。选取多组节点数，在独立且足够密的验证网格上计算最大采样误差；该量是连续一致误差的数值近似，不应声称就是严格最大值。特别观察端点区域、节点值扰动的影响，以及自然边界与原函数端点二阶导数不匹配的现象。
+
+\subsection{求积阶数与非光滑反例}
+先对 $e^x$ 在 $[0,1]$ 上用 $N=4,8,16,32,64$ 比较复合梯形、Simpson 和外推，记录误差比。再对 $\sqrt x$ 重复实验，其积分为 $2/3$，但端点导数不满足前述光滑假设。验收要求解释为什么第二组不能机械套用二阶、四阶定理。最后构造一个窄峰函数，说明有限采样的自适应估计可能漏峰。
+
+\subsection{ODE 稳定性与 PDE 网格收敛}
+对 $y'=-20y$、$y(0)=1$，比较显式 Euler 在 $h=0.05,0.1,0.15$ 的行为，分别对应衰减、边界振荡和放大。对 $y'=y$ 用 RK4 验证四阶，避免把纯指数测试的正确性当作一般非线性实现的充分验证；另加 $y'=y^2$、$y(0)=1$、$0\le t\le1/2$，精确解为 $1/(1-t)$。Poisson 实验使用制造解 $\sin(\pi x)$，验证二阶空间误差；热方程用 $u(x,t)=e^{-\pi^2t}\sin(\pi x)$，选 $\Delta t=0.4h^2$，检查总误差与稳定性。
+
+\subsection{FFT 约定与随机误差覆盖}
+先用手算可核验的四点 DFT 检查频率、符号和归一化，再用补零卷积与直接卷积对比。蒙特卡洛实验对 $\int_0^1x^2\,\mathrm dx$ 采用多组样本量，并在各样本量下重复独立运行，比较经验均方根误差与 $2/\sqrt{45N}$；统计所构造近似置信区间覆盖 $1/3$ 的比例。报告随机数生成器、种子安排、重复次数和区间构造方式，讨论有限重复带来的覆盖率统计波动。
+
+\section{方法选择的统一依据}
+若数据已有高噪声，过度细分或增加插值次数可能只是拟合噪声；若矩阵具有正定、稀疏或带状结构，应优先保留该结构；若局部高阶方法被刚性稳定条件迫使使用极小步长，应比较隐式方法的每步求解成本与总步数。需要严格误差证书时，普通浮点差值估计往往不足，应采用具有可证明界的方法或区间算术。
+
+算法选择最终应返回具体数学问题：输入扰动允许多大，输出需要什么误差准则，理论条件是否成立，计算资源限制在哪里。理解这些约束后，再讨论高阶、快速、随机或自适应方法的优势，才能使计算结果既高效又可解释。
+

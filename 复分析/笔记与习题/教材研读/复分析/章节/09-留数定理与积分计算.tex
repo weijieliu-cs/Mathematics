@@ -1,0 +1,262 @@
+% !TeX root = ../复分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{8} % 保留原书章号。
+\chapter{留数定理与积分计算}
+\label{chap:ca-residue}
+
+\section{留数只提取一个系数}
+
+\begin{definition}[留数]
+设 $a$ 为 $f$ 的孤立奇点，$f$ 在 $a$ 附近的洛朗展开为 $\sum_{n=-\infty}^\infty c_n(z-a)^n$，称 $c_{-1}$ 为 $f$ 在 $a$ 的\emph{留数（residue）}，记为 $\operatorname{Res}(f,a)$。
+\end{definition}
+
+留数不是奇点处的函数值，也不是主部的最高阶系数。它专门记录闭路积分能够检测到的那一项。由洛朗系数公式，
+\[
+ \operatorname{Res}(f,a)=\frac1{2\pi i}\oint_{|z-a|=r}f(z)\,\mathrm dz
+\]
+对足够小的正向圆成立。可去奇点的留数为零，但留数为零不意味着奇点可去：$1/z^2$ 在原点是二阶极点，留数却为零。
+
+\begin{proposition}[常用留数公式]
+\label{prop:ca-residue-formula}
+若 $a$ 为简单极点，则
+\[
+ \operatorname{Res}(f,a)=\lim_{z\to a}(z-a)f(z).
+\]
+若 $f=P/Q$，$P,Q$ 在 $a$ 附近全纯，$Q(a)=0$、$Q'(a)\ne0$，则
+\begin{equation}
+ \operatorname{Res}(P/Q,a)=\frac{P(a)}{Q'(a)}.
+ \label{eq:ca-simple-residue}
+\end{equation}
+若 $a$ 为 $m$ 阶极点，则
+\begin{equation}
+ \operatorname{Res}(f,a)=\frac1{(m-1)!}
+ \left.\frac{\mathrm d^{m-1}}{\mathrm dz^{m-1}}
+ \bigl[(z-a)^mf(z)\bigr]\right|_{z=a},
+ \label{eq:ca-pole-residue}
+\end{equation}
+其中方括号内按全纯延拓理解。
+\end{proposition}
+\begin{proof}
+简单极点情形直接从洛朗主部看出。若 $Q$ 有简单零点，写成 $Q(z)=(z-a)q(z)$，$q(a)=Q'(a)$，便得到商的公式；当 $P(a)=0$ 时奇点实际可去，公式仍给出零。一般 $m$ 阶极点情形，$(z-a)^mf(z)$ 的泰勒展开中 $(z-a)^{m-1}$ 项的系数恰为原函数的 $c_{-1}$，按泰勒系数公式即得。
+\end{proof}
+
+\begin{example}[选用最短的计算途径]
+计算 $e^z/z^3$、$1/(z^2+1)$、$e^{1/z}$ 分别在 $0,i,0$ 的留数。
+\end{example}
+\begin{solve}
+第一项从 $e^z=1+z+z^2/2+\cdots$ 读出留数 $1/2$，也可用二阶导数公式；第二项的分母在 $i$ 有简单零点，留数为 $1/(2i)$；第三项虽然有本性奇点，仍可从 $e^{1/z}=1+z^{-1}+z^{-2}/2!+\cdots$ 读出留数 $1$。留数并不限于极点处定义。
+\end{solve}
+
+\section{留数定理与无穷远点的留数}
+
+\begin{theorem}[留数定理]
+\label{thm:ca-residue}
+设 $\Gamma$ 为正向分段光滑简单闭曲线，$f$ 在 $\Gamma$ 及其内部的一个开邻域中，除内部有限个孤立奇点 $a_1,\ldots,a_m$ 外全纯，且曲线上没有奇点。则
+\begin{equation}
+ \oint_\Gamma f(z)\,\mathrm dz
+ =2\pi i\sum_{j=1}^m\operatorname{Res}(f,a_j).
+ \label{eq:ca-residue-theorem}
+\end{equation}
+\end{theorem}
+\begin{proof}
+在每个奇点周围取两两不相交且位于内部的小圆盘。剩余区域上 $f$ 全纯，由边界变形式~\eqref{eq:ca-boundary-deformation}，外边界积分等于各正向小圆积分之和。每个小圆积分由洛朗系数公式等于 $2\pi i$ 乘相应留数，故得结论。
+\end{proof}
+
+若 $D$ 为单连通区域，$f$ 除有限个孤立奇点外在 $D$ 全纯，而闭曲线 $\gamma\subset D$ 避开这些点但可以自交，则推广形式为
+\[
+ \oint_\gamma f(z)\,\mathrm dz
+ =2\pi i\sum_j\operatorname{Ind}(\gamma,a_j)\operatorname{Res}(f,a_j).
+\]
+它通过路径分解与绕数的可加性得到；负向绕行给负系数，绕多圈按圈数计算。本书主要计算使用简单闭曲线形式，遇到非单连通定义域时不能省略额外孔洞对路径的影响。
+
+\begin{definition}[无穷远点的留数]
+若 $f$ 在充分大的圆外全纯，定义
+\begin{equation}
+ \operatorname{Res}(f,\infty)
+ =-\operatorname{Res}\left(\frac{f(1/\zeta)}{\zeta^2},0\right).
+ \label{eq:ca-residue-infinity}
+\end{equation}
+\end{definition}
+
+负号和 $\zeta^{-2}$ 来自微分的换元 $\mathrm dz=-\zeta^{-2}\mathrm d\zeta$。因此若 $f$ 在大圆外展开的 $z^{-1}$ 系数为 $b_{-1}$，则 $\operatorname{Res}(f,\infty)=-b_{-1}$。注意这与直接对 $f(1/\zeta)$ 判断无穷远点的奇点类型是两种不同操作。若平面内只有有限个孤立奇点且其余处全纯，沿大圆积分可得
+\[
+ \sum_{a\in\mathbb C}\operatorname{Res}(f,a)+\operatorname{Res}(f,\infty)=0.
+\]
+例如 $f(z)=1/z$ 的有限留数为 $1$，无穷远留数为 $-1$，尽管函数本身在无穷远点可去。
+
+\section{有理函数的实轴积分}
+
+用复积分求实积分的基本步骤是：选择复函数和闭合路径；计算路径内留数；估计新增的圆弧或线段；最后取极限并分离所需的实部或虚部。闭合路径的选择应使新增部分可控，不能只计算留数而省略极限论证。
+
+\begin{theorem}[有理函数的上半平面公式]
+\label{thm:ca-rational-real}
+设 $R(z)=P(z)/Q(z)$ 为约分后的有理函数，实轴上无极点，且 $\deg Q\ge\deg P+2$。则实积分绝对收敛，并有
+\[
+ \int_{-\infty}^{\infty}R(x)\,\mathrm dx
+ =2\pi i\sum_{\operatorname{Im}a>0}\operatorname{Res}(R,a).
+\]
+\end{theorem}
+\begin{proof}
+实轴无极点保证有限区间上连续，次数条件使 $R(x)=O(x^{-2})$，故两端绝对可积。沿 $[-r,r]$ 与上半圆弧闭合，对充分大的 $r$，弧上有统一估计 $|R(z)|\le C/r^2$，弧积分的模至多为 $\pi C/r\to0$。留数定理后令 $r\to\infty$ 即得。
+\end{proof}
+
+\begin{example}[一个四次分母的积分]
+\label{ex:ca-quartic-integral}
+计算 $I=\int_{-\infty}^{\infty}\mathrm dx/(1+x^4)$。
+\end{example}
+\begin{solve}
+上半平面的极点为 $a=e^{i\pi/4}$、$b=e^{3i\pi/4}$，均为简单极点。留数和为
+\[
+ \frac1{4a^3}+\frac1{4b^3}=-\frac{i\sqrt2}{4}.
+\]
+分母次数高出分子四次，符合定理条件，因此
+\[
+ I=2\pi i\left(-\frac{i\sqrt2}{4}\right)=\frac\pi{\sqrt2}.
+\]
+被积函数为偶函数，所以 $\int_0^\infty\mathrm dx/(1+x^4)=\pi/(2\sqrt2)$。偶性只在实积分阶段使用；复平面中仍要完整列出所选半平面的极点。
+\end{solve}
+
+\section{三角有理式积分与单位圆}
+
+对一个周期上的三角有理式，代换 $z=e^{it}$ 把 $t\in[0,2\pi]$ 变成正向单位圆，且
+\begin{equation}
+ \cos t=\frac{z+z^{-1}}2,\qquad
+ \sin t=\frac{z-z^{-1}}{2i},\qquad
+ \mathrm dt=\frac{\mathrm dz}{iz}.
+ \label{eq:ca-trig-substitution}
+\end{equation}
+代换后的表达式是有理函数。使用前应保证原被积函数在积分区间连续，或另行处理实轴奇点；单位圆上有极点时不能直接套用普通留数定理。
+
+\begin{example}[参数积分]
+计算 $I(a,b)=\int_0^{2\pi}\mathrm dt/(a+b\cos t)$，其中 $a,b\in\mathbb R$ 且 $a>|b|$。
+\end{example}
+\begin{solve}
+当 $b=0$ 时结果为 $2\pi/a$。设 $b\ne0$，记 $\Delta=\sqrt{a^2-b^2}>0$。代换后
+\[
+ I(a,b)=\frac2i\oint_{|z|=1}\frac{\mathrm dz}{bz^2+2az+b}.
+\]
+两个根为 $r_1=(-a+\Delta)/b=-b/(a+\Delta)$ 与 $r_2=(-a-\Delta)/b$，乘积为 $1$。由 $a>|b|$ 可知 $|r_1|<1<|r_2|$。圆内留数为
+\[
+ \frac{2/i}{2br_1+2a}=\frac1{i\Delta},
+\]
+所以 $I(a,b)=2\pi/\sqrt{a^2-b^2}$。正平方根的选择由 $\Delta>0$ 明确确定，不能把符号留在计算之外。
+\end{solve}
+
+\section{振荡积分与若当估计}
+
+对含 $\cos(bx)$、$\sin(bx)$ 的积分，通常先组合为 $e^{ibx}$。若 $b>0$，则
+\[
+ |e^{ib(x+iy)}|=e^{-by}\le1\qquad(y\ge0),
+\]
+故适合向上半平面闭合；若 $b<0$，适合向下半平面闭合，并注意整个闭合路径变为顺时针。选择半平面由指数衰减方向决定。
+
+\begin{lemma}[若当圆弧估计]
+\label{lem:ca-jordan}
+设 $b>0$，$h$ 在上半圆弧 $\gamma_R:z=Re^{it}$、$0\le t\le\pi$ 上连续，$M_R=\max_{\gamma_R}|h(z)|$。则
+\[
+ \left|\int_{\gamma_R}e^{ibz}h(z)\,\mathrm dz\right|
+ \le\frac{\pi M_R}{b}.
+\]
+特别地，若 $M_R\to0$，则该弧积分趋于零。
+\end{lemma}
+\begin{proof}
+参数化给出上界 $RM_R\int_0^\pi e^{-bR\sin t}\,\mathrm dt$。利用关于 $\pi/2$ 的对称性，以及 $0\le t\le\pi/2$ 时 $\sin t\ge2t/\pi$，可估计为
+\[
+ 2RM_R\int_0^{\pi/2}e^{-2bRt/\pi}\,\mathrm dt
+ \le\frac{\pi M_R}{b}.
+\]
+\end{proof}
+
+这个估计比简单的长乘高估计更细，因为它使用了圆弧大部分位置上的指数衰减。当 $h(z)=O(1/z)$ 时，长乘高估计只能给出常数界，而本引理能得到趋零结论。不过圆弧趋零本身并不自动证明每个实轴单边反常积分收敛，仍应单独检查。
+
+\begin{example}[余弦变换型积分]
+对 $a>0$、$b\in\mathbb R$，计算
+\[
+ I=\int_{-\infty}^{\infty}\frac{\cos(bx)}{x^2+a^2}\,\mathrm dx.
+\]
+\end{example}
+\begin{solve}
+先取 $b>0$，对 $F(z)=e^{ibz}/(z^2+a^2)$ 向上闭合。圆内只有极点 $ia$，留数为 $e^{-ab}/(2ia)$。圆弧积分可用引理，也可直接用 $|e^{ibz}|\le1$ 和分母的二次增长控制。因此
+\[
+ \int_{-\infty}^{\infty}\frac{e^{ibx}}{x^2+a^2}\,\mathrm dx
+ =\frac\pi a e^{-ab}.
+\]
+取实部，再用余弦关于 $b$ 的偶性以及 $b=0$ 的有理函数积分，得到 $I=\pi e^{-a|b|}/a$。虚部积分为零也可由奇偶性检验。绝对可积的分母保证取实部与反常积分可交换。
+\end{solve}
+
+\section{支割线积分：非整数幂的应用}
+
+\begin{example}[钥匙孔路径]
+\label{ex:ca-keyhole}
+证明当 $0<\alpha<1$ 时，
+\begin{equation}
+ \int_0^\infty\frac{x^{\alpha-1}}{1+x}\,\mathrm dx
+ =\frac\pi{\sin(\pi\alpha)}.
+ \label{eq:ca-keyhole-integral}
+\end{equation}
+\end{example}
+\begin{solve}
+先检查实积分：原点附近为 $O(x^{\alpha-1})$，无穷远为 $O(x^{\alpha-2})$，两端分别要求 $\alpha>0$ 和 $\alpha<1$。取 $F(z)=z^{\alpha-1}/(1+z)$，在 $0<\arg z<2\pi$ 上选分支，支割线沿正实轴。路径从正实轴上侧的 $\varepsilon$ 走到 $R$，沿大圆逆时针返回下侧，再沿下侧从 $R$ 走回 $\varepsilon$，最后沿小圆顺时针闭合。严格说应先使两条射线与割线保持小角度，再令角度趋于零；在固定的 $[\varepsilon,R]$ 上，由连续边界极限可完成这一步。
+
+上侧的幂取值为 $x^{\alpha-1}$，下侧为 $e^{2\pi i(\alpha-1)}x^{\alpha-1}$，而下侧方向相反。因此两条直线段在取边界极限后的和为
+\[
+ \left(1-e^{2\pi i(\alpha-1)}\right)
+ \int_\varepsilon^R\frac{x^{\alpha-1}}{1+x}\,\mathrm dx.
+\]
+大圆弧积分为 $O(R^{\alpha-1})\to0$，小圆弧积分为 $O(\varepsilon^\alpha)\to0$，这里使用 $\alpha$ 为实数以及所选分支上的模为 $|z|^{\alpha-1}$。内部仅有极点 $-1$，其辐角是 $\pi$，留数为 $e^{i\pi(\alpha-1)}$。所以
+\[
+ \left(1-e^{2\pi i(\alpha-1)}\right)I
+ =2\pi i e^{i\pi(\alpha-1)}.
+\]
+由 $1-e^{2it}=-2ie^{it}\sin t$ 以及 $\sin(\pi(\alpha-1))=-\sin(\pi\alpha)$，得到所需结果。支割线两侧的函数值差，正是把复积分转换成实积分的关键。
+\end{solve}
+
+\section{实轴上的奇点与柯西主值}
+
+普通反常积分要求奇点两侧的积分分别收敛。比如 $\int_{-1}^1\mathrm dx/x$ 作为普通反常积分不收敛，但对称截断 $\int_{-1}^{-\varepsilon}\mathrm dx/x+\int_\varepsilon^1\mathrm dx/x$ 恒为零。这引出另一种极限，不能与普通积分混称。
+
+\begin{definition}[柯西主值]
+对 $a<c<b$，若极限存在，定义
+\[
+ \operatorname{PV}\int_a^b f(x)\,\mathrm dx
+ =\lim_{\varepsilon\downarrow0}
+ \left(\int_a^{c-\varepsilon}f(x)\,\mathrm dx
+ +\int_{c+\varepsilon}^bf(x)\,\mathrm dx\right).
+\]
+在无穷区间还可以约定对称截断 $\lim_{R\to\infty}\int_{-R}^Rf(x)\,\mathrm dx$。若同时有有限奇点和无穷端点，必须说明使用的截断方式。
+\end{definition}
+
+若 $f$ 在实轴点 $c$ 有简单极点，局部写成 $A/(z-c)+g(z)$，其中 $g$ 有界。用上半小圆从 $c-\varepsilon$ 绕到 $c+\varepsilon$，方向为顺时针，参数 $z=c+\varepsilon e^{it}$、$t:\pi\to0$ 给出小圆积分趋于 $-i\pi A$。这只是简单极点、指定半圆与指定方向下的结论，不是任何实轴奇点都能直接套用的“半个留数公式”。
+
+\begin{example}[狄利克雷积分]
+\label{ex:ca-dirichlet}
+计算 $\int_0^\infty\sin x/x\,\mathrm dx$。
+\end{example}
+\begin{solve}
+对 $e^{iz}/z$ 取上半大圆，并在原点用上半小圆顺时针避开。原点被排除在闭合区域之外，故闭路积分为零。大圆积分由若当估计趋于零，小圆积分趋于 $-i\pi$，于是
+\[
+ \lim_{R\to\infty}\lim_{\varepsilon\downarrow0}
+ \left(\int_{-R}^{-\varepsilon}\frac{e^{ix}}x\,\mathrm dx
+ +\int_\varepsilon^R\frac{e^{ix}}x\,\mathrm dx\right)=i\pi.
+\]
+这是复被积函数的主值结论。取虚部后，$\sin x/x$ 在原点可连续补值为 $1$；无穷端的普通反常积分也收敛，因为分部积分使尾段积分由 $O(1/R)$ 控制，例如
+\[
+ \int_R^S\frac{\sin x}{x}\,\mathrm dx
+ =\left[-\frac{\cos x}{x}\right]_R^S
+ -\int_R^S\frac{\cos x}{x^2}\,\mathrm dx.
+\]
+因此虚部给出普通积分 $\int_{-\infty}^{\infty}\sin x/x\,\mathrm dx=\pi$，再由偶性得 $\int_0^\infty\sin x/x\,\mathrm dx=\pi/2$。
+\end{solve}
+
+\section{习题}
+\label{sec:ca-residue-ex}
+\begin{enumerate}
+ \item 求 $\cos z/z^3$ 在原点的留数，以及 $z/[(z-1)^2(z+1)]$ 在 $1$ 处的留数。
+ \item 沿正向圆 $|z|=3$ 计算 $\oint z^2/[(z-1)(z-2)]\,\mathrm dz$。
+ \item 计算 $\int_{-\infty}^{\infty}\mathrm dx/(x^2+1)^2$，写出二阶极点处的留数计算。
+ \item 计算 $\int_0^{2\pi}\mathrm dt/(3+2\cos t)$。
+ \item 对 $a,b>0$，计算 $\int_0^\infty\cos(bx)/(x^2+a^2)\,\mathrm dx$。
+ \item 对 $0<p<q$，用代换和式~\eqref{eq:ca-keyhole-integral} 求 $\int_0^\infty x^{p-1}/(1+x^q)\,\mathrm dx$，其中实幂取正实轴上的通常定义。
+ \item 给出“留数为零但奇点不可去”的例子，并说明一个主值存在但普通反常积分不存在的例子。
+\end{enumerate}
+

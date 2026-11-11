@@ -1,0 +1,98 @@
+% !TeX root = ../偏微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{2} % 保留原书章号。
+\chapter{一阶方程与特征线法}
+\label{chap:characteristics}
+
+一阶方程规定了未知函数沿某些方向的变化率。沿这些方向积分，偏微分方程便化成常微分方程；这就是\emph{特征线法（method of characteristics）}。
+
+\section{常系数输运方程}
+对 $u_t+a u_x=f(x,t)$，取曲线 $x(s)=\xi+as$，链式法则给出
+\[
+ \frac{d}{ds}u(\xi+as,s)=f(\xi+as,s).
+\]
+在初值 $u(x,0)=g(x)$ 下，积分并令 $\xi=x-at$ 得
+\begin{equation}
+ u(x,t)=g(x-at)+\int_0^t f(x-a(t-s),s)\,ds.
+ \label{eq:transport-solution}
+\end{equation}
+当 $g\in C^1$、$f$ 及 $f_x$ 连续时，此式可直接微分验证为经典解。任何经典解沿同一特征线都必须满足上述常微分方程，因而该构造也证明唯一性。
+
+为什么曲线的斜率要选为 $a$？若沿任意曲线 $x=x(t)$ 求全导数，会得到 $u_t+x'(t)u_x$，只有选取 $x'=a$，才正好得到方程左侧。无源时这个导数为零，意味着一个随流移动的观察者看到的数值不变；固定位置的观察者看到的数值则可以随时间变化。这里 $\xi$ 表示粒子在 $t=0$ 时的位置，$x=\xi+at$ 表示它在时刻 $t$ 的位置，反解 $\xi=x-at$ 就是在追问当前位置的信号来自哪里。
+
+\begin{example}[带衰减的平移]
+求 $u_t+2u_x=-u$、$u(x,0)=e^{-x^2}$ 在全轴上的解。
+\end{example}
+\begin{solve}
+先解路径 $x=\xi+2t$，再令 $z(t)=u(\xi+2t,t)$，得到 $z'=-z$、$z(0)=e^{-\xi^2}$。故 $z=e^{-t}e^{-\xi^2}$，用 $\xi=x-2t$ 消去参数，得到
+\[
+ u(x,t)=e^{-t}e^{-(x-2t)^2}.
+\]
+峰的位置为 $x=2t$，峰值为 $e^{-t}$。传播速度来自输运系数，振幅衰减来自零阶项。计算 $u_t+2u_x$ 时，两个由 $x-2t$ 产生的项抵消，剩下 $-u$，从而同时核查了路径与振幅。
+\end{solve}
+
+在半轴 $x>0$ 且 $a>0$ 时，反向追踪特征线可能先遇到 $t=0$，也可能先遇到 $x=0$。无源且流入数据为 $u(0,t)=b(t)$ 时，解分别为 $g(x-at)$（$x\ge at$）和 $b(t-x/a)$（$x<at$）。连续性要求 $g(0)=b(0)$。当 $a<0$ 时 $x=0$ 是流出端，随意再给边值可能使问题矛盾。
+
+例如 $a=2$、$g(x)=0$、$b(t)=t$，则 $x\ge2t$ 时 $u=0$，$0<x<2t$ 时 $u=t-x/2$。在 $x=2t$ 两侧数值相接，但一阶导数不相接，所以这个解是连续的分段经典解，而不是整个半平面上的 $C^1$ 解。若希望在这条特征线上也一阶光滑，无源问题还需 $b'(0)+ag'(0)=0$。相容条件应随所要求的正则性提高，不能只检查函数值便宣布所有导数都相容。
+
+\section{变系数线性方程与特征系统}
+考虑 $a(x,y)u_x+b(x,y)u_y+d(x,y)u=f(x,y)$，定义
+\[
+ \frac{dx}{ds}=a(x,y),\qquad \frac{dy}{ds}=b(x,y),\qquad
+ \frac{dz}{ds}=f(x,y)-d(x,y)z.
+\]
+沿特征曲线应有 $z(s)=u(x(s),y(s))$。若系数为 $C^1$，前两式在每个初始点附近有唯一特征流；第三式是线性方程。记 $D(s)=\int_0^s d(x(\sigma),y(\sigma))\,d\sigma$，则
+\[
+ z(s)=e^{-D(s)}\left[z(0)+\int_0^s e^{D(\sigma)}f(x(\sigma),y(\sigma))\,d\sigma\right].
+\]
+最后还需把特征参数反解为 $x,y$，不能停在参数曲线的计算上。
+
+\begin{example}[变化的输运速度]
+求 $u_t+xu_x=0$、$u(x,0)=g(x)$，其中 $g\in C^1(\mathbb R)$。
+\end{example}
+\begin{solve}
+特征方程为 $x'=x$，故 $x(t)=\xi e^t$。沿特征 $u$ 不变，因此
+\[
+ u(x,t)=g(xe^{-t}).
+\]
+由于 $\partial x/\partial\xi=e^t>0$，任意有限时刻都能反解。若初始图形在 $[1,2]$ 外为零，后来就在 $[e^t,2e^t]$ 外为零，形状随空间伸展，不能把它理解为匀速平移。还应区分 $u_t+xu_x=0$ 与 $u_t+(xu)_x=0$：后者展开后多出 $u$，其解为 $e^{-t}g(xe^{-t})$，在可积数据下才保持空间总积分不变。
+\end{solve}
+
+\section{柯西问题与非特征条件}
+设在 $C^1$ 曲线 $\gamma(r)=(x_0(r),y_0(r))$ 上给定 $u=g(r)$。由每个 $\gamma(r)$ 发出特征线，得到映射 $(r,s)\mapsto(x(r,s),y(r,s))$。在 $s=0$，其雅可比行列式为
+\begin{equation}
+ x_0'(r)b(\gamma(r))-y_0'(r)a(\gamma(r)).
+ \label{eq:noncharacteristic}
+\end{equation}
+若此值非零，逆函数定理允许局部反解参数，从而在系数、初始曲线和数据为 $C^1$ 时构造唯一局部 $C^1$ 解。这称\emph{非特征条件（non-characteristic condition）}。
+
+若初始曲线本身是一条特征线，数据不能独立指定。以 $u_x+u_y=0$ 为例，解为 $u=F(y-x)$：在 $y=0$ 上给数据可以确定 $F$；在 $y=x$ 上的值只能为常数。非常数数据导致无解，常数数据则只确定 $F(0)$，不能决定整个解。
+
+非特征条件还可以从两条线性关系理解。沿初始曲线求导得到 $x_0'u_x+y_0'u_y=g'$，而方程给出 $au_x+bu_y=f-dg$。它们组成关于 $u_x,u_y$ 的二元线性方程组，系数行列式正是式\eqref{eq:noncharacteristic}。行列式非零时，初始切向信息与方程规定的方向信息互相独立；为零时，两者可能冲突，也可能重复而留下自由度。这个解释有助于理解条件的必要作用，但完整的局部构造仍依赖特征流和逆函数定理。
+
+\section{拟线性方程与特征线相交}
+对\emph{无黏伯格斯方程（inviscid Burgers equation）}$u_t+u u_x=0$，沿特征有 $du/dt=0$，因此 $u=g(\xi)$，而特征速度也是这个常数：
+\begin{equation}
+ x=\xi+t g(\xi),\qquad u(x,t)=g(\xi),\qquad
+ u_x(x,t)=\frac{g'(\xi)}{1+t g'(\xi)}.
+ \label{eq:burgers-characteristic}
+\end{equation}
+设 $g\in C^1(\mathbb R)$ 且 $g,g'$ 有界。如果 $m=\inf g'<0$，则在 $0\le t<-1/m$ 内，参数映射的导数至少为 $1+tm>0$，并且映射趋向两端无穷，所以可全局反解。若最小值 $m$ 在某点取得，则该点特征上的 $u_x$ 在 $t\uparrow-1/m$ 时趋于负无穷，而 $u$ 仍有界。这种现象称\emph{梯度爆破（gradient blow-up）}；其后不能继续使用单值的经典特征解。
+
+\section{例题与习题}
+\begin{example}
+求 $u_t+u u_x=0$、$u(x,0)=-\tanh x$ 的经典解存在区间及首个梯度奇异点。
+\end{example}
+\begin{solve}
+特征表示为 $x=\xi-t\tanh\xi$、$u=-\tanh\xi$。因 $g'(\xi)=-\operatorname{sech}^2\xi\ge-1$，在 $t<1$ 可反解。$\xi=0$ 对应 $x=0$，且
+\[
+ u_x(0,t)=-\frac1{1-t}.
+\]
+故首次梯度奇异发生于 $(x,t)=(0,1)$，函数值本身始终介于 $-1$ 与 $1$ 之间。
+\end{solve}
+\begin{enumerate}
+ \item 求 $u_t+a u_x=b u$ 的初值解，并核查 $b$ 对振幅而非传播速度的影响。
+ \item 对 $x u_x+y u_y=u$，在 $x=1$ 上给数据，求局部解并指出构造适用的区域。
+ \item 若 $g'\ge0$ 且 $g,g'$ 有界，证明伯格斯方程的上述构造在任意有限正时间保持经典可解。
+\end{enumerate}
+

@@ -1,0 +1,569 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{9} % 保留原书章号。
+\chapter{隐马尔可夫模型}
+\label{chap:lh-hmm}
+
+序列标注需要把观测序列与不可直接观测的状态序列联系起来。例如，语音信号可以被观测，而相应的音素状态需要推断。\emph{隐马尔可夫模型}（hidden Markov model，HMM）用一条隐藏的马尔可夫链描述状态的演化，再由当前状态生成观测，因此直接建模的是状态与观测的联合分布。本章依据教材第 10 章展开：先说明模型的生成假设，再用前向与后向递推计算概率和状态后验，继而推导参数学习方法，最后用维特比算法求解整条最可能的状态路径。所需基础是条件概率、全概率公式、极大似然估计和动态规划；Baum--Welch 算法所用的期望最大化思想在推导中一并说明。
+
+\section{隐马尔可夫模型的基本概念}
+\label{sec:lh-hmm-model}
+
+\subsection{隐马尔可夫模型的定义}
+
+设状态集合为 $\mathcal S=\{1,\ldots,N\}$，观测符号集合为 $\mathcal V=\{v_1,\ldots,v_M\}$，其中 $N,M$ 为正整数。用大写 $Z_t$ 表示时刻 $t$ 的隐藏状态随机变量，$X_t$ 表示观测随机变量；小写 $z_t,x_t$ 表示相应取值。长度为 $T\geq1$ 的随机序列记为 $Z_{1:T}$ 和 $X_{1:T}$，给定的观测序列记为 $x_{1:T}=(x_1,\ldots,x_T)$。教材使用 $I,O$ 表示状态序列和观测序列，这里改用上述记号以区分随机变量与取值。
+
+\begin{definition}
+\label{def:lh-hmm}
+有限状态、离散观测的齐次隐马尔可夫模型由参数 $\lambda=(A,B,\pi)$ 确定，其中
+\begin{equation}
+\label{eq:lh-hmm-parameters}
+ a_{ij}=P_\lambda(Z_{t+1}=j\mid Z_t=i),\qquad
+ b_i(k)=P_\lambda(X_t=v_k\mid Z_t=i),\qquad
+ \pi_i=P_\lambda(Z_1=i).
+\end{equation}
+这里 $A=(a_{ij})\in\mathbb R^{N\times N}$ 为状态转移概率矩阵（transition probability matrix），$B=(b_i(k))\in\mathbb R^{N\times M}$ 为观测概率矩阵，亦称发射概率矩阵（emission probability matrix），$\pi=(\pi_1,\ldots,\pi_N)^{\mathsf T}$ 为初始状态概率向量。各元素非负，并满足
+\[
+ \sum_{j=1}^N a_{ij}=1,\qquad
+ \sum_{k=1}^M b_i(k)=1,\qquad
+ \sum_{i=1}^N\pi_i=1.
+\]
+模型假定 $Z_t$ 构成以 $A$ 为转移矩阵的齐次一阶马尔可夫链；给定整个状态序列后，各时刻观测条件独立，且 $X_t$ 的分布仅由 $Z_t$ 决定。
+\end{definition}
+
+上述假设的可操作表述是：对具有正概率的条件事件，
+\begin{align}
+\label{eq:lh-hmm-markov}
+ P_\lambda(Z_{t+1}=j\mid Z_{1:t}=z_{1:t},X_{1:t}=x_{1:t})&=a_{z_tj},
+ &&1\leq t<T,\\
+\label{eq:lh-hmm-emission}
+ P_\lambda(X_{1:T}=x_{1:T}\mid Z_{1:T}=z_{1:T})&=\prod_{t=1}^T b_{z_t}(x_t).
+\end{align}
+当 $x=v_k$ 时，约定 $b_i(x)=b_i(k)$，避免把观测符号本身误当作矩阵列索引。齐次性要求 $A,B$ 不随 $t$ 改变；观测独立性是\emph[caution]{给定隐藏状态后的条件独立}，并不意味着 $X_1,\ldots,X_T$ 在边缘分布下相互独立，也不意味着观测序列自身必是一阶马尔可夫链。
+
+由概率链式法则和模型假设，完整路径与观测的联合概率为
+\begin{equation}
+\label{eq:lh-hmm-joint}
+ p_\lambda(z_{1:T},x_{1:T})
+ =\pi_{z_1}b_{z_1}(x_1)\prod_{t=1}^{T-1}a_{z_tz_{t+1}}b_{z_{t+1}}(x_{t+1}).
+\end{equation}
+其中 $p_\lambda$ 表示相应的概率质量函数，$T=1$ 时空乘积取 $1$。这个分解既给出生成过程，也为后续所有递推和学习公式提供依据。状态数、观测符号集合和序列长度在本章中视为已知；$T$ 固定，不额外设置终止状态或终止概率。
+
+\begin{example}
+\label{ex:lh-hmm-four-boxes}
+教材的四盒抽球模型中，四个盒子内红、白球数分别为 $(5,5)$、$(3,7)$、$(6,4)$、$(8,2)$。初始等概率选择盒子；此后盒子 $1$ 必转到盒子 $2$，盒子 $2,3$ 分别以 $0.4,0.6$ 的概率转到左、右相邻盒子，盒子 $4$ 以各 $0.5$ 的概率转到盒子 $3$ 或留在原处。每次从当前盒子均匀抽一球、记录颜色并放回，只能观察球色。写出该模型。
+\end{example}
+\begin{solve}
+令 $Z_t$ 为第 $t$ 次所选盒子的编号，$X_t$ 为球色，按红、白排列观测符号，则
+\[
+ A=\begin{pmatrix}
+ 0&1&0&0\\
+ 0.4&0&0.6&0\\
+ 0&0.4&0&0.6\\
+ 0&0&0.5&0.5
+ \end{pmatrix},\qquad
+ B=\begin{pmatrix}
+ 0.5&0.5\\0.3&0.7\\0.6&0.4\\0.8&0.2
+ \end{pmatrix},\qquad
+ \pi=\begin{pmatrix}0.25\\0.25\\0.25\\0.25\end{pmatrix}.
+\]
+每行概率之和均为 $1$。放回抽样保证每个盒子的球色分布不因之前的抽球结果改变，在每次抽球使用独立随机性的条件下符合观测假设。长度为 $5$ 的一次观测可以是 $(\text{红},\text{红},\text{白},\text{白},\text{红})$，但这组颜色通常不能唯一确定盒子的路径。
+\end{solve}
+
+\subsection{观测序列的生成过程}
+
+输入合法参数 $\lambda$ 与长度 $T$，先按 $\pi$ 抽取 $Z_1$。对 $t=1,\ldots,T$，在已得到 $Z_t=i$ 时按 $B$ 的第 $i$ 行生成 $X_t$；若 $t<T$，再按 $A$ 的第 $i$ 行抽取 $Z_{t+1}$，否则终止。输出观测序列 $X_{1:T}$，需要模拟完整数据时同时保留 $Z_{1:T}$。这个顺序先生成当前观测再决定是否转移，因而恰好生成 $T$ 个观测和 $T-1$ 次转移，$T=1$ 时也成立。
+
+\subsection{隐马尔可夫模型的三个基本问题}
+
+\emph{概率计算}给定 $\lambda,x_{1:T}$，求观测似然 $p_\lambda(x_{1:T})$；\emph{学习}由训练序列估计 $\lambda$，通常最大化观测数据的对数似然；\emph{解码}（decoding）给定 $\lambda,x_{1:T}$，求最可能的状态路径
+\begin{equation}
+\label{eq:lh-hmm-decoding-objective}
+ z_{1:T}^*\in\operatorname*{arg\,max}_{z_{1:T}\in\mathcal S^T}
+ P_\lambda(Z_{1:T}=z_{1:T}\mid X_{1:T}=x_{1:T}).
+\end{equation}
+后验概率要求 $p_\lambda(x_{1:T})>0$。此时其分母与候选路径无关，解码等价于最大化式~\eqref{eq:lh-hmm-joint} 的联合概率。教材称解码为“预测”，这里特指对\emph{已观测序列的隐藏状态}作推断；预测未来观测或未来状态是另一个条件概率问题。
+
+\section{概率计算算法}
+\label{sec:lh-hmm-inference}
+
+\subsection{直接计算法}
+
+对所有隐藏路径边缘化可得
+\begin{equation}
+\label{eq:lh-hmm-likelihood}
+ p_\lambda(x_{1:T})
+ =\sum_{z_1=1}^N\cdots\sum_{z_T=1}^N
+ \pi_{z_1}b_{z_1}(x_1)\prod_{t=1}^{T-1}a_{z_tz_{t+1}}b_{z_{t+1}}(x_{t+1}).
+\end{equation}
+逐条计算 $N^T$ 条路径、每条使用 $O(T)$ 次运算，需要 $O(TN^T)$ 时间。困难在于反复计算共享的路径前缀。\emph[tip]{把具有同一末状态的全部前缀合并}后，未来只需知道这个末状态及前缀的总概率，而无须保存每条前缀，这就得到前向算法。
+
+\subsection{前向算法}
+
+\begin{definition}
+\label{def:lh-hmm-forward}
+给定 $\lambda,x_{1:T}$，前向概率（forward probability）定义为
+\begin{equation}
+\label{eq:lh-hmm-alpha-def}
+ \alpha_t(i)=P_\lambda(X_{1:t}=x_{1:t},Z_t=i),\qquad 1\leq t\leq T.
+\end{equation}
+它是已观测前缀与当前状态的联合概率，通常不满足 $\sum_i\alpha_t(i)=1$。
+\end{definition}
+
+\begin{proposition}
+\label{prop:lh-hmm-forward}
+前向概率满足
+\begin{align}
+\label{eq:lh-hmm-alpha-init}
+ \alpha_1(i)&=\pi_i b_i(x_1),\\
+\label{eq:lh-hmm-alpha-rec}
+ \alpha_{t+1}(j)&=b_j(x_{t+1})\sum_{i=1}^N\alpha_t(i)a_{ij},
+ &&1\leq t<T,\\
+\label{eq:lh-hmm-alpha-end}
+ p_\lambda(x_{1:T})&=\sum_{i=1}^N\alpha_T(i).
+\end{align}
+\end{proposition}
+\begin{proof}
+初值直接来自联合概率分解。对递推式，按 $Z_t$ 的可能取值划分事件，得到
+\[
+ \begin{aligned}
+ \alpha_{t+1}(j)
+ &=\sum_{i=1}^N P_\lambda(X_{1:t}=x_{1:t},Z_t=i,Z_{t+1}=j,X_{t+1}=x_{t+1})\\
+ &=\sum_{i=1}^N\alpha_t(i)a_{ij}b_j(x_{t+1}).
+ \end{aligned}
+\]
+第二步使用马尔可夫性和观测条件独立性。最后对终点状态求和，即把所有路径分成 $N$ 类，得到观测似然。
+\end{proof}
+
+前向算法以 $\lambda,x_{1:T}$ 为输入，按式~\eqref{eq:lh-hmm-alpha-init} 初始化，依次完成 $T-1$ 次递推后按式~\eqref{eq:lh-hmm-alpha-end} 输出似然。稠密 $A$ 下每步计算 $N$ 个各含 $N$ 项的和，总时间为 $O(TN^2)$；只计算似然时滚动保存相邻时刻的向量即可，额外空间为 $O(N)$，若保留全部前向概率则为 $O(TN)$。$\alpha_t(i)$ 的下标 $t$ 同时标明观测前缀的终点和当前状态所在时刻。
+
+\begin{example}
+\label{ex:lh-hmm-three-boxes}
+教材的三盒模型采用
+\begin{equation}
+\label{eq:lh-hmm-three-boxes}
+ A=\begin{pmatrix}0.5&0.2&0.3\\0.3&0.5&0.2\\0.2&0.3&0.5\end{pmatrix},\qquad
+ B=\begin{pmatrix}0.5&0.5\\0.4&0.6\\0.7&0.3\end{pmatrix},\qquad
+ \pi=\begin{pmatrix}0.2\\0.4\\0.4\end{pmatrix},
+\end{equation}
+其中 $B$ 的两列依次对应红、白。求 $x_{1:3}=(\text{红},\text{白},\text{红})$ 的概率。
+\end{example}
+\begin{solve}
+把前向量按行写出，依次得到
+\[
+ \begin{aligned}
+ \alpha_1&=(0.1,\,0.16,\,0.28),\\
+ \alpha_2&=(0.077,\,0.1104,\,0.0606),\\
+ \alpha_3&=(0.04187,\,0.035512,\,0.052836).
+ \end{aligned}
+\]
+例如 $\alpha_2(1)=(0.1\times0.5+0.16\times0.3+0.28\times0.2)\times0.5=0.077$。因此
+\[
+ p_\lambda(x_{1:3})=0.04187+0.035512+0.052836=0.130218\approx0.13022.
+\]
+这里取教材参数的小数为精确值计算，最后再舍入；所得似然汇总了全部 $3^3$ 条路径，不能解释为某一条路径的概率。
+\end{solve}
+
+\subsection{后向算法}
+
+\begin{definition}
+\label{def:lh-hmm-backward}
+后向概率（backward probability）为
+\begin{equation}
+\label{eq:lh-hmm-beta-def}
+ \beta_t(i)=P_\lambda(X_{t+1:T}=x_{t+1:T}\mid Z_t=i),\qquad1\leq t\leq T.
+\end{equation}
+对不可达状态也可按模型指定的转移与发射机制定义右侧的后续生成分布。$\beta_t(i)$ 不含 $x_t$；$t=T$ 时后缀为空，故 $\beta_T(i)=1$。
+\end{definition}
+
+按下一个状态分解后续事件，得到后向递推与终止公式
+\begin{align}
+\label{eq:lh-hmm-beta-rec}
+ \beta_t(i)&=\sum_{j=1}^N a_{ij}b_j(x_{t+1})\beta_{t+1}(j),
+ &&t=T-1,\ldots,1,\\
+\label{eq:lh-hmm-beta-end}
+ p_\lambda(x_{1:T})&=\sum_{i=1}^N\pi_i b_i(x_1)\beta_1(i).
+\end{align}
+每项依次对应“转到 $j$、生成下一观测、生成剩余后缀”。因此，算法输入 $\lambda,x_{1:T}$，初始化 $\beta_T$ 为全 $1$ 向量，逆序递推到 $1$ 后输出式~\eqref{eq:lh-hmm-beta-end}。稠密情形时间复杂度同为 $O(TN^2)$；只求似然时额外空间为 $O(N)$。给定 $Z_t$ 后过去与未来分离，故
+\begin{equation}
+\label{eq:lh-hmm-cut}
+ P_\lambda(X_{1:T}=x_{1:T},Z_t=i)=\alpha_t(i)\beta_t(i),\qquad
+ p_\lambda(x_{1:T})=\sum_{i=1}^N\alpha_t(i)\beta_t(i).
+\end{equation}
+该恒等式在任意 $t=1,\ldots,T$ 都成立，可用于核对两种递推的一致性。在例~\ref{ex:lh-hmm-three-boxes} 中，$\beta_3=(1,1,1)$、$\beta_2=(0.54,0.49,0.57)$、$\beta_1=(0.2451,0.2622,0.2277)$，因而 $0.1\times0.2451+0.16\times0.2622+0.28\times0.2277=0.130218$。
+
+\subsection{状态后验概率与期望计数}
+
+以下假设观测似然 $L=p_\lambda(x_{1:T})>0$，所有后验都针对同一整段观测。定义单状态后验与相邻状态后验为
+\begin{align}
+\label{eq:lh-hmm-gamma}
+ \gamma_t(i)&=P_\lambda(Z_t=i\mid X_{1:T}=x_{1:T})
+ =\frac{\alpha_t(i)\beta_t(i)}{L},\\
+\label{eq:lh-hmm-xi}
+ \xi_t(i,j)&=P_\lambda(Z_t=i,Z_{t+1}=j\mid X_{1:T}=x_{1:T})
+ =\frac{\alpha_t(i)a_{ij}b_j(x_{t+1})\beta_{t+1}(j)}{L},
+ \quad t<T.
+\end{align}
+前一式由式~\eqref{eq:lh-hmm-cut} 和贝叶斯公式得到；后一式的分子把路径在相邻两个状态之间切开，依次相乘前缀概率、转移概率、下一观测概率和剩余后缀概率。它们满足
+\begin{equation}
+\label{eq:lh-hmm-posterior-consistency}
+ \sum_i\gamma_t(i)=1,\qquad
+ \sum_{i,j}\xi_t(i,j)=1,\qquad
+ \sum_j\xi_t(i,j)=\gamma_t(i),\qquad
+ \sum_i\xi_t(i,j)=\gamma_{t+1}(j).
+\end{equation}
+这些等式来自同一后验联合分布的边缘化，也说明 $\gamma_t$ 与 $\xi_t$ 不能任意独立指定。
+
+为把后验推断与参数学习连接起来，记 $\mathbf1\{E\}$ 为条件 $E$ 成立时取 $1$、否则取 $0$ 的示性函数。由条件期望的线性性，
+\begin{align}
+\label{eq:lh-hmm-counts}
+ \mathbb E_\lambda\!\left[\sum_{t=1}^T\mathbf1\{Z_t=i\}\,\middle|\,X_{1:T}=x_{1:T}\right]
+ &=\sum_{t=1}^T\gamma_t(i),\\
+\label{eq:lh-hmm-transition-counts}
+ \mathbb E_\lambda\!\left[\sum_{t=1}^{T-1}\mathbf1\{Z_t=i,Z_{t+1}=j\}\,\middle|\,X_{1:T}=x_{1:T}\right]
+ &=\sum_{t=1}^{T-1}\xi_t(i,j).
+\end{align}
+状态 $i$ 作为转移出发点的期望次数为 $\sum_{t=1}^{T-1}\gamma_t(i)$，因为最后一个时刻没有后续转移；状态 $i$ 发射 $v_k$ 的期望次数为 $\sum_{t=1}^T\gamma_t(i)\mathbf1\{x_t=v_k\}$。这些量是\emph{给定观测后的计数条件期望}，不是实际已经观测到的状态频数。另需区分滤波（filtering）概率 $P_\lambda(Z_t=i\mid X_{1:t}=x_{1:t})=\alpha_t(i)/\sum_j\alpha_t(j)$ 与平滑（smoothing）概率 $\gamma_t(i)$：后者还利用 $t$ 之后的观测。
+
+\begin{notealert}[type=tip,title={长序列的缩放计算}]
+长序列的概率连乘容易在浮点运算中下溢。令 $\widetilde\alpha_1(i)=\pi_i b_i(x_1)$，$c_1=\sum_i\widetilde\alpha_1(i)$，$\widehat\alpha_1=\widetilde\alpha_1/c_1$；此后递推
+\[
+ \widetilde\alpha_{t+1}(j)=b_j(x_{t+1})\sum_i\widehat\alpha_t(i)a_{ij},\qquad
+ c_{t+1}=\sum_j\widetilde\alpha_{t+1}(j),\qquad
+ \widehat\alpha_{t+1}(j)=\frac{\widetilde\alpha_{t+1}(j)}{c_{t+1}}.
+\]
+若各 $c_t>0$，则 $c_t=P_\lambda(X_t=x_t\mid X_{1:t-1}=x_{1:t-1})$（$t=1$ 时无条件前缀），从而 $\log L=\sum_t\log c_t$。配套的后向量须采用相同缩放：$\widehat\beta_T(i)=1$，
+\[
+ \widehat\beta_t(i)=\frac{\sum_j a_{ij}b_j(x_{t+1})\widehat\beta_{t+1}(j)}{c_{t+1}},\qquad
+ \gamma_t(i)=\widehat\alpha_t(i)\widehat\beta_t(i).
+\]
+这可由 $\widehat\alpha_t=\alpha_t/\prod_{s\leq t}c_s$ 和 $\widehat\beta_t=\beta_t/\prod_{s>t}c_s$ 验证，不能把已缩放的前向量与未缩放的后向量直接代入原公式。精确运算中若某个 $c_t=0$，则 $L=0$，该参数下观测不可能发生，后验无定义。
+\end{notealert}
+
+\section{学习算法}
+\label{sec:lh-hmm-learning}
+
+\subsection{监督学习方法}
+
+若训练数据包括相互独立的完整序列 $\{(x^{(s)}_{1:T_s},z^{(s)}_{1:T_s})\}_{s=1}^S$，且各序列共享同一参数，就可以直接统计初始状态、转移和发射次数。记
+\[
+ \begin{aligned}
+ C_i^{\mathrm{init}}&=\sum_{s=1}^S\mathbf1\{z_1^{(s)}=i\},\\
+ C_{ij}^{\mathrm{tr}}&=\sum_{s=1}^S\sum_{t=1}^{T_s-1}
+ \mathbf1\{z_t^{(s)}=i,z_{t+1}^{(s)}=j\},\\
+ C_{ik}^{\mathrm{em}}&=\sum_{s=1}^S\sum_{t=1}^{T_s}
+ \mathbf1\{z_t^{(s)}=i,x_t^{(s)}=v_k\}.
+ \end{aligned}
+\]
+由式~\eqref{eq:lh-hmm-joint}，忽略与参数无关的项，完整数据对数似然为
+\begin{equation}
+\label{eq:lh-hmm-supervised-loglik}
+ \ell_{\mathrm{comp}}(\lambda)
+ =\sum_i C_i^{\mathrm{init}}\log\pi_i
+ +\sum_{i,j}C_{ij}^{\mathrm{tr}}\log a_{ij}
+ +\sum_{i,k}C_{ik}^{\mathrm{em}}\log b_i(k).
+\end{equation}
+每行参数分别受概率归一化约束，因而极大似然估计为
+\begin{equation}
+\label{eq:lh-hmm-supervised-mle}
+ \widehat\pi_i=\frac{C_i^{\mathrm{init}}}{S},\qquad
+ \widehat a_{ij}=\frac{C_{ij}^{\mathrm{tr}}}{\sum_{r=1}^N C_{ir}^{\mathrm{tr}}},\qquad
+ \widehat b_i(k)=\frac{C_{ik}^{\mathrm{em}}}{\sum_{r=1}^M C_{ir}^{\mathrm{em}}}.
+\end{equation}
+后两式要求相应分母为正。这个结论可归结为：给定非负计数 $c_r$、$C=\sum_r c_r>0$，在 $p_r\geq0,\sum_rp_r=1$ 上最大化 $\sum_rc_r\log p_r$，解为 $p_r=c_r/C$。正计数部分的拉格朗日条件为 $c_r/p_r=\eta$，求和得 $\eta=C$；零计数部分在最优解中分配零概率即可。约定 $0\log0=0$，正计数乘以 $\log0$ 则表示目标为 $-\infty$。若整行计数均为零，似然不约束该行，任何合法概率行都达到相同值，不能用 $0/0$ 定义估计。
+
+\subsection{Baum--Welch 算法的 EM 推导}
+
+只有观测序列而没有状态标注时，极大化目标为
+\begin{equation}
+\label{eq:lh-hmm-observed-loglik}
+ \ell(\lambda)=\sum_{s=1}^S\log p_\lambda(x^{(s)}_{1:T_s}).
+\end{equation}
+每个对数内都包含隐藏路径求和，无法直接用已知频数作归一化。\emph{Baum--Welch 算法}（Baum--Welch algorithm）是期望最大化（expectation-maximization，EM）算法在 HMM 中的实现：先按当前模型计算隐藏路径的后验期望计数，再用这些计数重新估计参数。以下先推导单条序列情形；本小节用 $Q$ 表示 EM 的辅助函数，与状态集合 $\mathcal S$ 区别。
+
+固定当前参数 $\bar\lambda$，要求 $p_{\bar\lambda}(x_{1:T})>0$，令 $q(z_{1:T})=P_{\bar\lambda}(Z_{1:T}=z_{1:T}\mid X_{1:T}=x_{1:T})$。\emph{E 步}定义
+\begin{equation}
+\label{eq:lh-hmm-Q-def}
+ Q(\lambda\mid\bar\lambda)
+ =\sum_{z_{1:T}}q(z_{1:T})\log p_\lambda(z_{1:T},x_{1:T}).
+\end{equation}
+这里使用归一化的后验概率。教材推导中去掉的因子 $1/p_{\bar\lambda}(x_{1:T})$ 对单条固定观测、固定 $\bar\lambda$ 而言是正常数，故不改变 M 步的极大值点；保留它更便于将 $Q$ 解释为条件期望，并推广到多条独立序列。
+
+把式~\eqref{eq:lh-hmm-joint} 取对数后代入式~\eqref{eq:lh-hmm-Q-def}，各求和均有限，可以交换顺序。用当前参数计算的后验记为 $\bar\gamma_t(i),\bar\xi_t(i,j)$，得到
+\begin{equation}
+\label{eq:lh-hmm-Q-expanded}
+ \begin{aligned}
+ Q(\lambda\mid\bar\lambda)
+ &=\sum_i\bar\gamma_1(i)\log\pi_i
+ +\sum_{i,j}\left(\sum_{t=1}^{T-1}\bar\xi_t(i,j)\right)\log a_{ij}\\
+ &\quad+\sum_{i,k}\left(\sum_{t=1}^T\bar\gamma_t(i)\mathbf1\{x_t=v_k\}\right)\log b_i(k).
+ \end{aligned}
+\end{equation}
+例如转移项的系数来自 $\mathbb E_{\bar\lambda}[\mathbf1\{Z_t=i,Z_{t+1}=j\}\mid x_{1:T}]=\bar\xi_t(i,j)$。关键是后验全部由 $\bar\lambda$ 计算，在对候选参数 $\lambda$ 极大化时保持不变；不能把候选参数代回后验并在 M 步中一并求导。
+
+\emph{M 步}分别在概率单纯形上极大化三组对数项。以 $A$ 的第 $i$ 行为例，令 $d_{ij}=\sum_{t<T}\bar\xi_t(i,j)$、$d_i=\sum_jd_{ij}=\sum_{t<T}\bar\gamma_t(i)>0$，拉格朗日函数为
+\[
+ \mathcal L_i=\sum_jd_{ij}\log a_{ij}+\eta_i\left(1-\sum_j a_{ij}\right).
+\]
+正计数坐标上 $d_{ij}/a_{ij}=\eta_i$，归一化得 $\eta_i=d_i$，因而 $a_{ij}^{\mathrm{new}}=d_{ij}/d_i$。初始分布和发射分布使用相同论证，所以
+\begin{align}
+\label{eq:lh-hmm-bw-a}
+ a_{ij}^{\mathrm{new}}&=\frac{\sum_{t=1}^{T-1}\bar\xi_t(i,j)}{\sum_{t=1}^{T-1}\bar\gamma_t(i)},\\
+\label{eq:lh-hmm-bw-b}
+ b_i^{\mathrm{new}}(k)&=\frac{\sum_{t=1}^T\bar\gamma_t(i)\mathbf1\{x_t=v_k\}}{\sum_{t=1}^T\bar\gamma_t(i)},\\
+\label{eq:lh-hmm-bw-pi}
+ \pi_i^{\mathrm{new}}&=\bar\gamma_1(i).
+\end{align}
+零计数和整行零计数的处理与监督学习相同；若分母为零，可保留该行的旧值作为一个合法的 M 步选择。特别地，$T=1$ 时没有任何转移观测，$A$ 无法从该序列估计。式~\eqref{eq:lh-hmm-bw-a} 的分母只到 $T-1$，而式~\eqref{eq:lh-hmm-bw-b} 的分母到 $T$，因为每条长度为 $T$ 的路径有 $T-1$ 次转移、$T$ 次发射。
+
+\begin{proposition}
+\label{prop:lh-hmm-em-monotone}
+固定状态数和模型结构，若当前参数下观测似然为正，E 步精确计算后验，M 步选择使 $Q$ 不减的合法参数，则更新后的观测对数似然不减。该结论不保证得到全局极大值，也不单独保证参数序列收敛。
+\end{proposition}
+\begin{proof}
+只需证明单序列情形，多序列结果可逐项相加。对候选参数令
+\[
+ F(\lambda,q)=\sum_z q(z)\log p_\lambda(z,x)-\sum_zq(z)\log q(z),
+\]
+其中 $z,x$ 简写完整序列。若候选参数对 $q(z)>0$ 的路径均给出正联合概率，记其后验为 $q_\lambda(z)=p_\lambda(z,x)/p_\lambda(x)$，则
+\[
+ \log p_\lambda(x)-F(\lambda,q)
+ =\sum_zq(z)\log\frac{q(z)}{q_\lambda(z)}\geq0.
+\]
+右侧为非负的 Kullback--Leibler 散度；其非负性由 $\log u\leq u-1$ 得到。若候选参数在某个 $q(z)>0$ 的路径上给零概率，则 $F=-\infty$，不可能使有限的当前 $Q$ 不减。当前参数 $\bar\lambda$ 下 $q=q_{\bar\lambda}$，上式取等号；而固定 $q$ 时 $F$ 与 $Q$ 仅差不依赖 $\lambda$ 的后验熵。因此
+\[
+ \log p_{\lambda^{\mathrm{new}}}(x)
+ \geq F(\lambda^{\mathrm{new}},q)
+ \geq F(\bar\lambda,q)
+ =\log p_{\bar\lambda}(x).\qedhere
+\]
+\end{proof}
+
+\subsection{参数重估、训练流程与多序列边界}
+
+实际训练输入观测序列、状态数 $N$、观测字典、合法初值 $\lambda^{(0)}$、容差 $\varepsilon>0$ 和最大迭代次数 $K$，输出最后一次合法参数与相应对数似然。对 $n=0,1,\ldots,K-1$，在 $\lambda^{(n)}$ 下用前向与后向算法计算后验，再按式~\eqref{eq:lh-hmm-bw-a}、式~\eqref{eq:lh-hmm-bw-b} 和式~\eqref{eq:lh-hmm-bw-pi} 同时更新全部参数。计算新的观测对数似然后，若增量满足 $0\leq\ell(\lambda^{(n+1)})-\ell(\lambda^{(n)})\leq\varepsilon(1+|\ell(\lambda^{(n)})|)$，可停止；达到 $K$ 也停止。数值实现中若出现超出舍入误差的似然下降，应先检查缩放、后验归一化和更新公式；若似然为零，则不能继续按这些后验公式作 E 步。稠密单序列的每轮主要计算量为 $O(TN^2)$，在同时遍历 $M$ 个观测类别初始化或输出参数时另计 $O(NM)$。
+
+对 $S$ 条独立序列，分别计算各自的 $\bar\gamma_t^{(s)},\bar\xi_t^{(s)}$ 后汇总期望计数，更新公式为
+\begin{equation}
+\label{eq:lh-hmm-bw-multiple}
+ \begin{aligned}
+ a_{ij}^{\mathrm{new}}
+ &=\frac{\sum_{s=1}^S\sum_{t=1}^{T_s-1}\bar\xi_t^{(s)}(i,j)}
+ {\sum_{s=1}^S\sum_{t=1}^{T_s-1}\bar\gamma_t^{(s)}(i)},\\
+ b_i^{\mathrm{new}}(k)
+ &=\frac{\sum_{s=1}^S\sum_{t=1}^{T_s}\bar\gamma_t^{(s)}(i)\mathbf1\{x_t^{(s)}=v_k\}}
+ {\sum_{s=1}^S\sum_{t=1}^{T_s}\bar\gamma_t^{(s)}(i)},\\
+ \pi_i^{\mathrm{new}}&=\frac1S\sum_{s=1}^S\bar\gamma_1^{(s)}(i).
+ \end{aligned}
+\end{equation}
+每条序列分别初始化和终止。\emph[caution]{不能直接拼接独立序列}后套用单序列更新，否则会在前一条末尾与后一条开头之间增加不存在的转移，并漏掉各序列的初始状态计数。上述公式是汇总期望计数后归一化，通常也不同于先对每条序列估计参数再作简单平均。
+
+观测对数似然一般不是凹函数，初始化会影响结果，可用多个合法初值比较最终似然。若允许的转移或发射一开始设成零，则相应路径的后验计数也可能始终为零；结构性禁止项应保持零，而没有结构依据的零初值可能限制后续搜索。添加伪计数可用于平滑，但会改变纯极大似然的更新问题，应明确其先验或正则化含义。无状态标注时，对全部状态同时重命名不改变观测分布，因此即便取得相同最优似然，也不能仅据此断言参数具有唯一的语义解释。
+
+\section{预测与解码算法}
+\label{sec:lh-hmm-decoding}
+
+\subsection{逐时刻后验最大化的近似算法}
+
+当 $L>0$ 时，最直接的方法是在各时刻分别选择
+\begin{equation}
+\label{eq:lh-hmm-marginal-decode}
+ \widetilde z_t\in\operatorname*{arg\,max}_{1\leq i\leq N}\gamma_t(i),
+ \qquad t=1,\ldots,T.
+\end{equation}
+这称为逐位置的后验解码（posterior decoding）。它确实最小化不限制输出路径时的条件期望逐位置错误数：对任意候选 $\widehat z_{1:T}$，
+\[
+ \mathbb E_\lambda\!\left[\sum_t\mathbf1\{\widehat z_t\ne Z_t\}\,\middle|\,x_{1:T}\right]
+ =\sum_t[1-\gamma_t(\widehat z_t)],
+\]
+故各项可独立最小化。但式~\eqref{eq:lh-hmm-decoding-objective} 最大化的是\emph{整条路径同时正确的概率}，两个优化目标不同；逐位置解甚至可能包含零概率转移。
+
+例如只有一个观测符号、所有状态均以概率 $1$ 发射该符号，取
+\[
+ \pi=(0.5,0.26,0.24)^{\mathsf T},\qquad
+ A=\begin{pmatrix}0.6&0&0.4\\0&1&0\\0&1&0\end{pmatrix},\qquad T=2.
+\]
+观测不提供额外信息，故两时刻后验分别为 $(0.5,0.26,0.24)$ 和 $(0.3,0.5,0.2)$；逐位置最大化给出 $(1,2)$，但 $a_{12}=0$。这表明各时刻的边缘概率不能代替路径的联合概率。即使所有转移均为正，两种目标的最优解仍可能不同。
+
+\subsection{维特比算法}
+
+\emph{维特比算法}（Viterbi algorithm）用动态规划计算概率最大的整条路径。定义
+\begin{equation}
+\label{eq:lh-hmm-delta-def}
+ \delta_t(j)=\max_{z_1,\ldots,z_{t-1}}
+ p_\lambda(z_1,\ldots,z_{t-1},j,x_{1:t}).
+\end{equation}
+它保存以状态 $j$ 结尾的最佳前缀的联合概率；与 $\alpha_t(j)$ 对所有前缀求和不同，$\delta_t(j)$ 只取最大值。对两个均以 $j$ 结尾的前缀，任何固定未来路径带来的后续乘积相同且非负，故保留较大概率的前缀不会丢失全局最优解。这就是本模型的最优子结构，依赖于未来只通过当前状态与过去相联系。
+
+算法输入 $\lambda,x_{1:T}$，输出最优状态序列和其联合概率，采用以下递推与回溯：
+\begin{align}
+\label{eq:lh-hmm-viterbi-init}
+ \delta_1(j)&=\pi_jb_j(x_1),\qquad \psi_1(j)=0,\\
+\label{eq:lh-hmm-viterbi-rec}
+ \delta_t(j)&=b_j(x_t)\max_{1\leq i\leq N}\{\delta_{t-1}(i)a_{ij}\},
+ &&2\leq t\leq T,\\
+\label{eq:lh-hmm-viterbi-pointer}
+ \psi_t(j)&\in\operatorname*{arg\,max}_{1\leq i\leq N}\{\delta_{t-1}(i)a_{ij}\},
+ &&2\leq t\leq T,\\
+\label{eq:lh-hmm-viterbi-end}
+ p^*&=\max_j\delta_T(j),\qquad
+ z_T^*\in\operatorname*{arg\,max}_{j}\delta_T(j),\\
+\label{eq:lh-hmm-viterbi-backtrack}
+ z_t^*&=\psi_{t+1}(z_{t+1}^*),
+ &&t=T-1,\ldots,1.
+\end{align}
+$\psi_t(j)$ 记录最佳前缀在前一时刻的状态；出现并列时按固定规则选取一个即可，所得路径仍为最优路径。$T=1$ 时无需回溯。若 $p^*=0$，则所有路径的联合概率均为零，从而 $L=0$，不能解释为有效的后验解码。若 $L>0$，应注意
+\[
+ p^*=p_\lambda(z_{1:T}^*,x_{1:T}),\qquad
+ P_\lambda(Z_{1:T}=z_{1:T}^*\mid x_{1:T})=\frac{p^*}{L};
+\]
+$\max_j\delta_T(j)$ 本身不是路径的后验概率。
+
+稠密模型下时间复杂度为 $O(TN^2)$，滚动得分需要 $O(N)$ 空间，保存回溯指针需要 $O(TN)$ 空间。长序列可在对数域计算，约定 $\log0=-\infty$，则
+\[
+ d_1(j)=\log\pi_j+\log b_j(x_1),\qquad
+ d_t(j)=\log b_j(x_t)+\max_i\{d_{t-1}(i)+\log a_{ij}\}.
+\]
+这里 $d_t(j)=\log\delta_t(j)$；指针保存最大值的来源，对数域运算保持最优路径不变，并避免直接连乘导致的下溢。前向算法在对数域对应的是对指数项求和再取对数，不能也把求和改成最大值，否则所解问题已经改变。
+
+\begin{example}
+\label{ex:lh-hmm-viterbi}
+对例~\ref{ex:lh-hmm-three-boxes} 的三盒模型及观测 $(\text{红},\text{白},\text{红})$，用维特比算法求最优路径。
+\end{example}
+\begin{solve}
+初始化为 $\delta_1=(0.1,0.16,0.28)$，递推得到
+\[
+ \begin{aligned}
+ \delta_2&=(0.028,\,0.0504,\,0.042),&\qquad\psi_2&=(3,3,3),\\
+ \delta_3&=(0.00756,\,0.01008,\,0.0147),&\qquad\psi_3&=(2,2,3).
+ \end{aligned}
+\]
+例如 $\delta_2(1)=\max\{0.1\times0.5,0.16\times0.3,0.28\times0.2\}\times0.5=0.028$，取最大值的前驱为 $3$。终点 $z_3^*=3$，回溯得 $z_2^*=\psi_3(3)=3$、$z_1^*=\psi_2(3)=3$，故最优路径为 $(3,3,3)$，联合概率为
+\[
+ p^*=0.4\times0.7\times0.5\times0.3\times0.5\times0.7=0.0147.
+\]
+其后验概率为 $0.0147/0.130218\approx0.11289$。由前向与后向概率还可算出逐位置后验最大化路径为 $(3,2,3)$，其联合概率只有 $0.007056$。两个结果均为可行路径，但维特比解最大化整条路径的概率，体现了两种解码目标的差别。
+\end{solve}
+
+\section{习题与方法对照}
+\label{sec:lh-hmm-exercises}
+
+以下保留教材五道习题的核心条件，并给出可核查的解答。前三题分别练习后向似然、状态平滑和最优路径，后两题把前向、后向与维特比递推统一到路径分解中。
+
+\begin{example}
+\label{ex:lh-hmm-ex-backward}
+教材习题 10.1：沿用式~\eqref{eq:lh-hmm-three-boxes} 的模型，设 $T=4$，$x_{1:4}=(\text{红},\text{白},\text{红},\text{白})$，用后向算法求观测似然。
+\end{example}
+\begin{solve}
+从 $\beta_4=(1,1,1)$ 逆序递推，得到
+\[
+ \begin{aligned}
+ \beta_3&=(0.46,\,0.51,\,0.43),\\
+ \beta_2&=(0.2461,\,0.2312,\,0.2577),\\
+ \beta_1&=(0.112462,\,0.121737,\,0.104881).
+ \end{aligned}
+\]
+例如 $\beta_3(1)=0.5\times0.5+0.2\times0.6+0.3\times0.3=0.46$，因为下一观测是白色。代入初始状态分布和第一次红色观测的概率，得
+\[
+ p_\lambda(x_{1:4})
+ =0.1\times0.112462+0.16\times0.121737+0.28\times0.104881
+ =0.0600908.\qedhere
+\]
+\end{solve}
+
+\begin{example}
+\label{ex:lh-hmm-ex-smoothing}
+教材习题 10.2：设观测矩阵仍为式~\eqref{eq:lh-hmm-three-boxes} 中的 $B$，但转移矩阵及初始分布改为
+\[
+ A=\begin{pmatrix}0.5&0.1&0.4\\0.3&0.5&0.2\\0.2&0.2&0.6\end{pmatrix},\qquad
+ \pi=(0.2,0.3,0.5)^{\mathsf T}.
+\]
+对观测 $x_{1:8}=(\text{红},\text{白},\text{红},\text{红},\text{白},\text{红},\text{白},\text{白})$，求 $P_\lambda(Z_4=3\mid X_{1:8}=x_{1:8})$。
+\end{example}
+\begin{solve}
+先向前递推到 $4$，再从 $8$ 向后递推到 $4$。为便于核算，列出两侧中间量：
+\[
+ \begin{aligned}
+ \alpha_1&=(0.1,\,0.12,\,0.35),\\
+ \alpha_2&=(0.078,\,0.084,\,0.0822),\\
+ \alpha_3&=(0.04032,\,0.026496,\,0.068124),\\
+ \alpha_4&=(0.0208668,\,0.01236192,\,0.04361112),\\
+ \beta_8&=(1,\,1,\,1),\\
+ \beta_7&=(0.43,\,0.51,\,0.4),\\
+ \beta_6&=(0.1861,\,0.2415,\,0.1762),\\
+ \beta_5&=(0.105521,\,0.100883,\,0.111934),\\
+ \beta_4&=(0.04586531,\,0.05280909,\,0.04280618).
+ \end{aligned}
+\]
+分子 $\alpha_4(3)\beta_4(3)=0.0018668254527216$，分母必须汇总全部状态，而不能只使用第 $3$ 个状态的概率。于是
+\[
+ \begin{aligned}
+ L&=\sum_{i=1}^3\alpha_4(i)\beta_4(i)=0.0034767094492824,\\
+ P_\lambda(Z_4=3\mid x_{1:8})
+ &=\frac{0.0018668254527216}{0.0034767094492824}\approx0.536952.
+ \end{aligned}
+\]
+这利用了整条八时刻序列的信息；只把 $\alpha_4$ 归一化会得到滤波概率，不能回答本题的平滑问题。
+\end{solve}
+
+\begin{example}
+\label{ex:lh-hmm-ex-path}
+教材习题 10.3：对例~\ref{ex:lh-hmm-ex-backward} 的模型及四时刻观测，用维特比算法求最优路径。
+\end{example}
+\begin{solve}
+前三时刻的得分与例~\ref{ex:lh-hmm-viterbi} 相同，因为维特比前向递推在时刻 $t$ 只使用前 $t$ 个观测。对第四次白色观测继续计算，得到
+\[
+ \delta_4=(0.00189,\,0.003024,\,0.002205),\qquad \psi_4=(1,2,3).
+\]
+最大终点为 $z_4^*=2$，再由 $\psi_4(2)=2$、$\psi_3(2)=2$、$\psi_2(2)=3$ 回溯，得到
+\[
+ z_{1:4}^*=(3,2,2,2),\qquad
+ p_\lambda(z_{1:4}^*,x_{1:4})=0.003024.
+\]
+其后验概率为 $0.003024/0.0600908\approx0.050324$。追加一次观测后，最优路径的早期状态也可能改变，因此不能只在三时刻最优路径 $(3,3,3)$ 后添加一个状态就声称得到四时刻最优路径。
+\end{solve}
+
+\begin{example}
+\label{ex:lh-hmm-ex-two-cut}
+教材习题 10.4：对 $1\leq t<T$，用前向与后向概率证明
+\[
+ p_\lambda(x_{1:T})=\sum_{i=1}^N\sum_{j=1}^N
+ \alpha_t(i)a_{ij}b_j(x_{t+1})\beta_{t+1}(j).
+\]
+\end{example}
+\begin{solve}
+事件 $\{Z_t=i,Z_{t+1}=j\}$ 随 $i,j$ 变化组成样本空间的一个有限划分。给定相邻状态后，按式~\eqref{eq:lh-hmm-joint} 将其余路径分成左侧前缀与右侧后缀并分别求和，得到
+\[
+ \begin{aligned}
+ p_\lambda(x_{1:T})
+ &=\sum_{i,j}P_\lambda(X_{1:T}=x_{1:T},Z_t=i,Z_{t+1}=j)\\
+ &=\sum_{i,j}\alpha_t(i)a_{ij}b_j(x_{t+1})\beta_{t+1}(j).
+ \end{aligned}
+\]
+也可把式~\eqref{eq:lh-hmm-beta-rec} 代入式~\eqref{eq:lh-hmm-cut} 立即得到同一结果。此式是对联合概率求和，不需要 $L>0$；只有进一步除以 $L$ 求后验时才需要正似然条件。
+\end{solve}
+
+\begin{example}
+\label{ex:lh-hmm-ex-sum-max}
+教材习题 10.5：比较前向算法的 $\alpha$ 与维特比算法的 $\delta$ 的计算，说明两种输出的关系。
+\end{example}
+\begin{solve}
+两者初值相同，都是 $\pi_jb_j(x_1)$，递推都先结合转移概率再乘当前发射概率。前向递推对前驱状态求和，保留全部前缀的总概率；维特比递推对前驱状态取最大值，并记录其来源以便回溯。因此前者终止时求和得到 $L$，后者终止时取最大值得到 $p^*$。在路径层面，这个差别正是
+\[
+ L=\sum_{z_{1:T}}p_\lambda(z_{1:T},x_{1:T}),\qquad
+ p^*=\max_{z_{1:T}}p_\lambda(z_{1:T},x_{1:T}),\qquad 0\leq p^*\leq L.
+\]
+若 $L>0$，等号 $p^*=L$ 当且仅当只有一条路径具有正联合概率。Baum--Welch 的 E 步需要对全部路径取后验期望，故使用前向与后向算法；若改成只用维特比最优路径计数，就改变了训练算法，不再是这里推导的 EM 更新。
+\end{solve}
+
+本章的主要依赖关系是：联合分布分解决定前向与后向递推，两者给出状态与转移的后验，从而把有标注数据的频数估计推广为无标注数据的期望计数估计；将前缀聚合中的求和换为最大化，则得到求整条最佳路径的维特比算法。进一步阅读时，可把 HMM 看作动态贝叶斯网络（dynamic Bayesian network）的一种特例；教材还以概率上下文无关文法（probabilistic context-free grammar）提示从隐藏状态序列到隐藏树结构的推广。这些拓展不改变本章始终需要区分的三类对象：观测似然、单状态后验与整条路径的联合或后验概率。
+
+
+
+
+% 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-12.pdf。
+% 覆盖教材第 12 章正文（原书第 237--241 页）；随后空白页与无监督学习篇扉页不另立正文。
+
+
+
+

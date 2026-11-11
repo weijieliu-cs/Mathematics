@@ -1,0 +1,118 @@
+% !TeX root = ../测度论笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{集合、可数性与可测空间}
+\label{chap:mt-sets}
+
+\section{可数集合与可数运算}
+集合称为\emph{至多可数（at most countable）}，是指它为空、有限，或能够与 $\mathbb N$ 建立一一对应；本书简称为可数。$\mathbb Z$、$\mathbb Q$ 可数，而非退化实数区间不可数。对 $\mathbb Q$，可先按 $|p|+q$ 的大小依次列出所有分数 $p/q$，其中 $p\in\mathbb Z$、$q\in\mathbb N$，再删除重复项。这说明分数虽在实轴上稠密，仍能排成一列。
+
+在通常的集合论框架下，可数个可数集合的并仍可数：将各集合的枚举写成双指标 $a_{j,k}$，再按 $j+k$ 的大小遍历，删除重复项即可。不可数并没有这个性质。测度公理中的可列可加性只针对可数列，不能用于所有实数单点组成的不可数族。
+
+\section{集合列的上极限与下极限}
+\begin{definition}
+集合列 $(A_n)$ 的\emph{上极限（limit superior）}与\emph{下极限（limit inferior）}分别为
+\begin{equation}
+ \limsup_{n\to\infty}A_n=\bigcap_{m=1}^{\infty}\bigcup_{n\geq m}A_n,\qquad
+ \liminf_{n\to\infty}A_n=\bigcup_{m=1}^{\infty}\bigcap_{n\geq m}A_n.
+ \label{eq:mt-set-limits}
+\end{equation}
+\end{definition}
+$x\in\limsup A_n$ 表示每个起点之后都还能找到一个包含 $x$ 的集合，即 $x$ 属于无穷多个 $A_n$；$x\in\liminf A_n$ 表示存在一个起点，使其后的所有 $A_n$ 都包含 $x$。因此 $\liminf A_n\subseteq\limsup A_n$。对递增集合列，二者都等于并集；对递减集合列，二者都等于交集。
+
+\begin{example}
+若奇数项为 $[0,1]$，偶数项为 $[1,2]$，则 $\liminf A_n=\{1\}$，$\limsup A_n=[0,2]$。下极限要求最终每次都出现，上极限只要求反复出现。
+\end{example}
+
+\section{$\sigma$ 代数与生成族}
+\begin{definition}
+$S$ 上的\emph{$\sigma$ 代数（sigma-algebra）}是集合族 $\mathcal A\subseteq\mathcal P(S)$，满足 $S\in\mathcal A$；若 $A\in\mathcal A$，则 $S\setminus A\in\mathcal A$；若每个 $A_n\in\mathcal A$，则 $\bigcup_{n=1}^{\infty}A_n\in\mathcal A$。二元组 $(S,\mathcal A)$ 称为\emph{可测空间（measurable space）}，$\mathcal A$ 中的集合称为可测集。
+\end{definition}
+由补集运算及 De Morgan 公式，$\sigma$ 代数也对可数交、集合差和对称差封闭。这里“可测”首先是相对于指定集合族而言，并不表示已经给出了测度。
+
+给定集合族 $\mathcal C\subseteq\mathcal P(S)$，所有包含 $\mathcal C$ 的 $\sigma$ 代数的交仍是 $\sigma$ 代数；它称为 $\mathcal C$ 生成的 $\sigma$ 代数，记作 $\sigma(\mathcal C)$。这个交确实有定义，因为 $\mathcal P(S)$ 总包含 $\mathcal C$。在 $\mathbb R$ 上，由所有开集生成的 $\sigma$ 代数称为\emph{Borel $\sigma$ 代数（Borel sigma-algebra）}，记作 $\mathcal B(\mathbb R)$。
+
+\begin{proposition}
+$\mathcal B(\mathbb R)$ 也由所有开区间生成，或由所有射线 $(-\infty,a]$，$a\in\mathbb R$，生成。
+\end{proposition}
+\begin{proof}
+每个开集都是其中端点为有理数的开区间的并；这样的区间至多可数，故开区间生成所有开集。射线是闭集，因而属于 Borel $\sigma$ 代数。反过来，
+\[
+ (-\infty,b)=\bigcup_{n=1}^{\infty}(-\infty,b-1/n],\qquad
+ (a,b)=(-\infty,b)\setminus(-\infty,a].
+\]
+因此射线生成所有开区间，两个生成的 $\sigma$ 代数相同。
+\end{proof}
+
+\begin{example}[有限信息对应的集合族]
+令 $S=\{1,2,3,4\}$，只区分结果属于 $\{1,2\}$ 还是 $\{3,4\}$，则相应的 $\sigma$ 代数是
+\[
+ \mathcal A=\{\varnothing,\{1,2\},\{3,4\},S\}.
+\]
+此时 $\{1\}$ 不是可测集。它并非不存在，而是当前集合族不把它作为单独可辨认的事件。第\ref{chap:mt-probability}章将用这个观点解释条件期望。
+\end{example}
+
+\section{前置知识：量词、原像与扩展实数}
+\label{sec:mt-logical-tools}
+把集合条件翻译成量词，有助于理解后面概率为一或测度为零的陈述。例如，“$x$ 无穷多次属于 $A_n$”表示对每个 $m$ 都存在 $n\geq m$ 使 $x\in A_n$，所以先取尾部并集，再对所有起点取交集；“$x$ 最终一直属于 $A_n$”表示存在 $m$，使每个 $n\geq m$ 都满足该条件，所以先取尾部交集，再对起点取并集。式\eqref{eq:mt-set-limits}中的并与交，正是存在量词与全称量词的集合表达。
+
+原像保留这些逻辑结构。对映射 $f:S\to T$ 及 $T$ 的任意子集族 $(B_i)$，
+\[
+ f^{-1}\!\left(\bigcup_iB_i\right)=\bigcup_if^{-1}(B_i),\qquad
+ f^{-1}\!\left(\bigcap_iB_i\right)=\bigcap_if^{-1}(B_i),\qquad
+ f^{-1}(T\setminus B)=S\setminus f^{-1}(B).
+\]
+这些恒等式对任意指标族成立，与映射是否连续或可逆无关。相对地，直接像一般不保持交集和补集；例如一个常值映射可以把两个不交的非空集合映到同一个单点。这就是可测映射用原像定义的重要原因。
+
+为了允许长度、非负级数和非负积分发散，使用\emph{扩展实数（extended real numbers）}$[-\infty,\infty]$。它不是通常意义下的域：$+\infty+(-\infty)$ 不定义，$\infty-\infty$ 不定义，也不能像有限实数那样任意约分。对非负量，可数和定义为有限部分和的上确界，因此无论是否有限都具有明确意义。测度理论优先处理非负对象，正是为了先避开无穷量相消的问题。
+
+区分有限项和无限项同样必要。如果 $a_n,b_n\geq0$ 且 $a_n\leq b_n$，则 $\sum_na_n\leq\sum_nb_n$ 总有意义；但若已知两个级数都为无穷，不能将它们相减并从逐项差推断结果。例如 $\sum_n1-\sum_n1$ 不是一个已经定义的实数表达式，虽然逐项差组成的级数等于零。后文把积分拆成正负部分时，就是在系统排除这种歧义。
+
+\section{可数性的作用与有限空间的全部结构}
+可数性的使用不只出现在可列可加性中。开集可以由可数个有理端点区间生成，实值函数的可测性可以只检查有理阈值，几乎处处成立的可数多个性质可以同时放到一个共同的满测度集合上。它们都利用了“可数多个误差或例外仍可控制”这一事实。若将可数族替换为任意不可数族，对应结论一般就失去保证。
+
+可数个二值选择已经能够产生不可数多个结果。假定所有零一序列可以排成一列 $a^{(1)},a^{(2)},\ldots$，定义新序列的第 $n$ 位为 $1-a^{(n)}_n$，则新序列与第 $n$ 个旧序列在第 $n$ 位不同，因此不在这张表中。这一对角论证说明序列全体不可数。要点不是每个序列有多少项，而是所有可能的无限选择组合有多少种。
+
+在有限底空间上，任何 $\sigma$ 代数都对应一种分组。定义两个点等价，当且仅当它们对 $\mathcal A$ 中每个集合具有相同的隶属关系。每个等价类可以写成有限个可测集合或其补集的交，因此可测，且无法被 $\mathcal A$ 中的集合进一步分开。这些最小非空可测集称为该有限 $\sigma$ 代数的原子。这里是集合族意义下的原子，与后面“正测度且不能再分成两块正测度部分”的测度原子应区分。
+
+每个可测集必为若干原子的并，因为它只要包含某个点，就必须包含所有与该点不可区分的点。反过来，有限个原子的任意并都可测。因此，若有 $r$ 个原子，该 $\sigma$ 代数恰有 $2^r$ 个集合。这个结论为条件期望提供了最直观的模型：信息越细，原子的分组越小，能够表达的随机变量也越丰富。
+
+\section{生成族上的验证：$\pi$--$\lambda$ 定理}
+\label{sec:mt-pi-lambda}
+知道两个集合函数在区间上相同，为什么常能推出它们在所有 Borel 集上相同？需要证明“相同”这一性质能够从一个生成族传播到整个 $\sigma$ 代数。对此，引入两种比 $\sigma$ 代数要求更少的集合族。
+
+\begin{definition}
+对有限交封闭的非空集合族称为\emph{$\pi$ 系统（pi-system）}。包含 $S$、对补集封闭且对可数个两两不交集合之并封闭的集合族称为\emph{$\lambda$ 系统（lambda-system）}，也称 Dynkin 系统。
+\end{definition}
+若 $A\subseteq B$ 且两者属于一个 $\lambda$ 系统，则 $B\setminus A$ 也属于它：因为 $A$ 与 $S\setminus B$ 不交，先取它们的并，再取补集即可。一个既是 $\pi$ 系统又是 $\lambda$ 系统的集合族是 $\sigma$ 代数，因为它对有限交和补集封闭，可先把一般可数并改写成不交并。
+
+\begin{theorem}[$\pi$--$\lambda$ 定理]
+若 $\mathcal C$ 是 $\pi$ 系统，$\mathcal D$ 是包含 $\mathcal C$ 的 $\lambda$ 系统，则 $\sigma(\mathcal C)\subseteq\mathcal D$。
+\label{thm:mt-pi-lambda}
+\end{theorem}
+\begin{proof}
+记 $\mathcal L$ 为包含 $\mathcal C$ 的最小 $\lambda$ 系统，它由所有此类系统的交定义。固定 $A\in\mathcal C$，考察
+$\mathcal D_A=\{B\in\mathcal L:A\cap B\in\mathcal L\}$。
+由于 $A\in\mathcal L$，前述相对差性质和不交并性质说明 $\mathcal D_A$ 是 $\lambda$ 系统；由于 $\mathcal C$ 对交封闭，它包含 $\mathcal C$。最小性推出 $\mathcal D_A=\mathcal L$。
+
+现在固定任意 $B\in\mathcal L$，考察
+$\mathcal E_B=\{A\in\mathcal L:A\cap B\in\mathcal L\}$。
+相同论证说明它是 $\lambda$ 系统，而刚才的结论说明它包含 $\mathcal C$，故 $\mathcal E_B=\mathcal L$。这样就证明 $\mathcal L$ 对有限交封闭，于是 $\mathcal L$ 是 $\sigma$ 代数。因此 $\sigma(\mathcal C)\subseteq\mathcal L\subseteq\mathcal D$。
+\end{proof}
+
+\begin{corollary}[有限测度的唯一性]
+设 $\mu,\nu$ 是 $(S,\sigma(\mathcal C))$ 上的有限测度，$\mathcal C$ 为包含 $S$ 的 $\pi$ 系统。若两测度在 $\mathcal C$ 上相同，则在 $\sigma(\mathcal C)$ 上相同。
+\label{cor:mt-finite-uniqueness}
+\end{corollary}
+\begin{proof}
+满足 $\mu(A)=\nu(A)$ 的可测集组成 $\lambda$ 系统。补集步骤使用 $\mu(S)=\nu(S)<\infty$，以便合法相减；不交并步骤使用可列可加性。应用定理\ref{thm:mt-pi-lambda}即可。
+\end{proof}
+这一定理首次出现时可能显得抽象，但其用途十分具体：分布函数决定概率分布、矩形上的乘法规则决定联合分布、预测度在生成代数上的数值决定扩张，都会归结为这种唯一性。有限性若缺失，则需要先在可数个有限测度区域上局部验证，再合并，不能直接在无穷总质量上使用补集减法。
+
+\section{习题}
+\begin{enumerate}
+ \item 验证 $\{\varnothing,S\}$ 与 $\mathcal P(S)$ 均为 $\sigma$ 代数，并证明任意一族 $\sigma$ 代数的交仍是 $\sigma$ 代数。
+ \item 证明 $\mathbf1_{\limsup A_n}=\limsup_n\mathbf1_{A_n}$，并写出下极限的对应等式。
+ \item 在 $S=\{1,2,3\}$ 上构造两个 $\sigma$ 代数，使它们的并不是 $\sigma$ 代数。
+\end{enumerate}
+

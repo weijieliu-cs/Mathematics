@@ -1,0 +1,86 @@
+% !TeX root = ../数值分析与科学计算笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{10} % 保留原书章号。
+\chapter{边值问题与偏微分方程的差分入门}
+\label{chap:na-pde}
+
+\section{一维 Poisson 边值问题的离散化}
+考虑
+\begin{equation}
+ -u''(x)=f(x),\quad 0<x<1,\qquad u(0)=\alpha,\quad u(1)=\beta.
+ \label{eq:na-poisson}
+\end{equation}
+当 $f$ 连续时，积分两次并用边界条件确定积分常数，可得唯一二阶连续解。这里的未知是整个区间上的函数，边界条件给在两端，与初值问题不同。
+
+令整数 $N\ge2$、$h=1/N$、$x_i=ih$，以 $U_i$ 近似 $u(x_i)$。中心差分得到
+\begin{equation}
+ -\frac{U_{i-1}-2U_i+U_{i+1}}{h^2}=f(x_i),\quad1\le i<N,
+ \qquad U_0=\alpha,\quad U_N=\beta.
+ \label{eq:na-poisson-discrete}
+\end{equation}
+内部未知量组成 $N-1$ 维向量，系数矩阵为 $A_h=h^{-2}\operatorname{tridiag}(-1,2,-1)$，右端首、末分量分别加入 $\alpha/h^2$、$\beta/h^2$；只有一个内部点时，两项加到同一分量。对补零边界的任意内部向量 $v$，
+\[
+ v^{\mathsf T}A_hv=h^{-2}\sum_{i=0}^{N-1}(v_{i+1}-v_i)^2>0\quad(v\ne0),
+\]
+故 $A_h$ 为 SPD，离散系统唯一可解。
+
+\section{离散最大值原理与二阶误差}
+\begin{lemma}[离散比较原理]
+\label{lem:na-discrete-maximum}
+若网格函数 $v$ 满足 $v_0,v_N\ge0$ 且 $2v_i-v_{i-1}-v_{i+1}\ge0$，则所有 $v_i\ge0$。
+\end{lemma}
+\begin{proof}
+若存在负最小值，它只能在内部达到。在最小点，两侧值不小于该值，而给定不等式迫使两侧都等于它。递推到边界仍为同一负值，与边界非负矛盾。
+\end{proof}
+
+\begin{theorem}[Poisson 差分格式的全局误差]
+若式~\eqref{eq:na-poisson} 的解 $u\in C^4[0,1]$，则式~\eqref{eq:na-poisson-discrete} 的解满足
+\[
+ \max_{0\le i\le N}|U_i-u(x_i)|\le\frac{h^2}{96}\|u^{(4)}\|_\infty.
+\]
+\end{theorem}
+\begin{proof}
+以 $u_h$ 表示精确解的内部采样，差分 Taylor 余项给出缺陷 $\tau=A_hu_h-b_h$ 满足 $\|\tau\|_\infty\le h^2\|u^{(4)}\|_\infty/12$，其中 $b_h$ 已包含边界贡献。误差 $e=U-u_h$ 满足 $A_he=-\tau$ 且端点为零。屏障函数 $w_i=x_i(1-x_i)/2$ 满足 $A_hw=1$、$w_0=w_N=0$。对 $\|\tau\|_\infty w\pm e$ 应用引理~\ref{lem:na-discrete-maximum}，得到 $|e_i|\le\|\tau\|_\infty w_i\le\|\tau\|_\infty/8$。
+\end{proof}
+
+这个证明分为缺陷估计和离散求解算子的稳定控制两步。仅把精确解代入格式发现残差为 $O(h^2)$，还不足以证明解误差为 $O(h^2)$；必须控制残差到解的放大。
+
+\begin{example}[制造解检验]
+选取 $u(x)=\sin(\pi x)$，则 $f(x)=\pi^2\sin(\pi x)$、边界为零。把这一人为选择的精确解对应的数据代入程序，逐次减半 $h$，在离散误差主导时最大误差之比应趋近 $4$。这称为制造解法（method of manufactured solutions），用于检验实现与预期阶数，并不表示所有真实问题都具有已知精确解。
+\end{example}
+
+\section{热方程与时间、空间步长的耦合}
+对 $u_t=\nu u_{xx}$、$\nu>0$，在 $[0,1]$ 上配合已给定的初值与 Dirichlet 边界，采用空间步长 $h$、时间步长 $\Delta t$，得到显式格式
+\begin{equation}
+ U_i^{n+1}=rU_{i-1}^n+(1-2r)U_i^n+rU_{i+1}^n,
+ \qquad r=\frac{\nu\Delta t}{h^2}.
+ \label{eq:na-heat-explicit}
+\end{equation}
+当 $0\le r\le1/2$ 时，各系数非负且和为 $1$，故无源项、齐次边界下最大绝对值不会增加。周期网格上的模态 $e^{\mathrm i i\theta}$ 有放大因子 $G(\theta)=1-4r\sin^2(\theta/2)$，要求所有频率不增长也得到 $r\le1/2$。有限 Dirichlet 网格可有略宽的精确谱阈值，但 $1/2$ 是与网格无关的标准充分条件。
+
+若精确解具有有界的二阶时间导数和四阶空间导数，按 $\Delta t$ 归一化的局部缺陷为 $O(\Delta t+h^2)$。在上述最大范数稳定条件下，把每一步实际注入的 $\Delta t\,O(\Delta t+h^2)$ 累加，在固定终止时间可得全局误差 $O(\Delta t+h^2)$，还需初始和边界离散误差不超过同阶。
+
+\begin{example}[稳定约束的实际代价]
+取 $\nu=1$、$h=1/100$，显式格式要求 $\Delta t\le1/20000$。即使解变化平缓，计算到 $t=1$ 仍至少需要 $20000$ 步。将空间步长减半，允许时间步长变成原来的四分之一；在一维中网格点也约加倍，总工作量可能约增为八倍。
+\end{example}
+
+\section{隐式格式、方法线与适用范围}
+对齐次边界，半离散系统为 $U'(t)=-\nu A_hU(t)$。先离散空间、再用 ODE 方法积分的策略称为\emph{方法线（method of lines）}。随 $h\to0$，$A_h$ 最大特征值与 $h^{-2}$ 同阶，因此系统出现快速衰减尺度。
+
+隐式 Euler 给出 $(I+\nu\Delta t A_h)U^{n+1}=U^n$，每步是 SPD 三对角系统。它不受显式格式的同一稳定步长限制，但时间仍为一阶。Crank--Nicolson 格式为
+\[
+ (I+\tfrac12\nu\Delta t A_h)U^{n+1}
+ =(I-\tfrac12\nu\Delta t A_h)U^n.
+\]
+在解足够光滑且边界处理一致时，它在时间和空间均为二阶。由于对应隐式梯形法，高频模态在过大时间步下可能产生衰减很慢的符号振荡，二范数稳定并不等于保持非负性或单调性。
+
+本章只处理一维二阶椭圆问题和线性热方程的基础差分格式。一般区域、对流主导问题、复杂边界及非线性守恒律需要有限元、有限体积、上风方法或其他专门理论，不能把此处的稳定与收敛条件直接照搬。
+
+\section{习题}
+\begin{enumerate}[label=\arabic*.]
+\item\label{exr:na-pde-exact} 对 $-u''=2$、$u(0)=u(1)=0$，求精确解并证明中心差分在节点上精确恢复它。
+\item\label{exr:na-pde-spectrum} 验证 $A_h$ 的特征向量分量为 $\sin(k\pi i/N)$，求相应特征值，$1\le k<N$。
+\item\label{exr:na-pde-stability} 在周期偶数网格上取最高频误差 $U_i^0=(-1)^i$，分析 $r=0.6$ 时的显式热方程迭代。
+\item\label{exr:na-pde-mesh} 为使显式热方程格式的时间和空间误差均与 $h^2$ 同阶，应如何选择 $\Delta t$？还需检查什么约束？
+\end{enumerate}
+

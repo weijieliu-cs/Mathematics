@@ -1,0 +1,567 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{5} % 保留原书章号。
+\chapter{逻辑斯谛回归与最大熵模型}
+\label{ch:lh-logistic-maxent}
+
+分类不仅要给出类别，还常常需要表达预测的不确定性。本章研究条件概率模型 $P(Y\mid X)$：先把输入的线性得分转换为二分类或多分类概率，得到逻辑斯谛回归；再从满足经验特征约束的条件分布中选择熵最大的一个，推导最大熵模型。两条路线最终得到相同类型的对数线性模型，并把学习归结为光滑凸目标的最小化。
+
+本章对应教材第6章，保留其“逻辑斯谛回归模型、最大熵模型、模型学习的最优化算法”三部分及主要小节。阅读需要条件概率、微分、矩阵运算和拉格朗日乘子的基础；涉及熵、凸性与对偶性的关键步骤在使用时说明。本章采用自然对数，$\mathbb R$ 表示实数域，$\mathbf 1\{A\}$ 表示事件或条件 $A$ 成立时取 $1$、否则取 $0$ 的示性函数，$\|\cdot\|_2$ 表示欧氏范数。
+
+\section{逻辑斯谛回归模型}
+\label{sec:lh-logistic}
+
+\subsection{逻辑斯谛分布}
+\label{subsec:lh-logistic-distribution}
+
+\begin{definition}[逻辑斯谛分布]
+\label{def:lh-logistic-distribution}
+若连续随机变量 $Z$ 的分布函数为
+\begin{equation}
+F(z)=P(Z\leq z)=\frac{1}{1+\exp(-(z-\mu)/\gamma)},
+\qquad z\in\mathbb R,
+\label{eq:lh-logistic-cdf}
+\end{equation}
+则称 $Z$ 服从\emph{逻辑斯谛分布}（logistic distribution），其中 $\mu\in\mathbb R$ 为位置参数，$\gamma>0$ 为尺度参数。其概率密度为
+\begin{equation}
+f_Z(z)=F'(z)=\frac{\exp(-(z-\mu)/\gamma)}
+{\gamma\bigl(1+\exp(-(z-\mu)/\gamma)\bigr)^2}.
+\label{eq:lh-logistic-density}
+\end{equation}
+\end{definition}
+
+令 $\sigma(t)=1/(1+e^{-t})$，称其为逻辑斯谛函数；它是一种 S 形函数（sigmoid function），而“S 形函数”并不专指这一函数。由定义可得
+\begin{equation}
+\sigma(-t)=1-\sigma(t),\qquad
+\sigma'(t)=\sigma(t)\bigl(1-\sigma(t)\bigr)>0.
+\label{eq:lh-sigmoid-identities}
+\end{equation}
+因此 $F(\mu+t)+F(\mu-t)=1$，分布函数的图像关于 $(\mu,1/2)$ 中心对称，密度关于 $z=\mu$ 对称。分布函数在中心的斜率为 $F'(\mu)=1/(4\gamma)$，且两端分别趋于 $0$ 和 $1$；$\gamma$ 越小，中心附近的变化越陡。教材将 $\gamma$ 称为形状参数，从位置尺度族的角度看，它直接控制横向尺度。
+
+\subsection{二项逻辑斯谛回归模型}
+\label{subsec:lh-binary-logistic}
+
+设输入随机向量 $X$ 的取值 $x\in\mathbb R^d$，输出 $Y\in\{0,1\}$。线性得分 $\beta^{\mathsf T}x+b$ 可以取任意实数，不能直接作为概率；用 $\sigma$ 将其映射到 $(0,1)$，便得到二项逻辑斯谛回归。
+
+\begin{definition}[二项逻辑斯谛回归]
+\label{def:lh-binary-logistic}
+\emph{二项逻辑斯谛回归模型}（binomial logistic regression model）是条件分布
+\begin{equation}
+P_{\beta,b}(Y=1\mid X=x)=\sigma(\beta^{\mathsf T}x+b),\qquad
+P_{\beta,b}(Y=0\mid X=x)=1-\sigma(\beta^{\mathsf T}x+b),
+\label{eq:lh-binary-logistic}
+\end{equation}
+其中 $\beta\in\mathbb R^d$ 为权值向量，$b\in\mathbb R$ 为偏置。以下令 $\widetilde x=(x^{\mathsf T},1)^{\mathsf T}\in\mathbb R^{d+1}$、$w=(\beta^{\mathsf T},b)^{\mathsf T}\in\mathbb R^{d+1}$，统一写成 $p_w(x)=\sigma(w^{\mathsf T}\widetilde x)$。
+\end{definition}
+
+这里回归的是概率的变换，最终任务仍为分类。对于 $0<p<1$，\emph{几率}（odds）为 $p/(1-p)$，\emph{对数几率}（log odds）又称 logit，为 $\operatorname{logit}(p)=\log(p/(1-p))$。将式~\eqref{eq:lh-binary-logistic} 代入可得
+\begin{equation}
+\frac{p_w(x)}{1-p_w(x)}=\exp(w^{\mathsf T}\widetilde x),\qquad
+\operatorname{logit}(p_w(x))=w^{\mathsf T}\widetilde x.
+\label{eq:lh-log-odds}
+\end{equation}
+所以模型的核心假设是\emph{对数几率为输入的仿射函数}。若其他坐标固定，$x_j$ 增加一个单位使几率乘以 $e^{\beta_j}$，而不是使概率增加固定数值。概率变化还取决于原有得分，因为 $\partial p_w(x)/\partial x_j=\beta_jp_w(x)(1-p_w(x))$。
+
+在两类误判代价相同、以误分类概率为损失时，选择条件概率较大的类别；约定相等时选择 $1$，便有
+\begin{equation}
+\widehat y(x)=\mathbf 1\{p_w(x)\geq 1/2\}
+=\mathbf 1\{\beta^{\mathsf T}x+b\geq 0\}.
+\label{eq:lh-logistic-decision}
+\end{equation}
+当 $\beta\ne0$ 时，决策边界为超平面。若另取概率阈值 $\tau\in(0,1)$，对应的得分阈值为 $\log(\tau/(1-\tau))$；因此预测概率与选定分类阈值是两个不同环节。
+
+\begin{example}
+\label{ex:lh-logistic-odds}
+设一维模型为 $p(x)=\sigma((\log 2)x)$。求 $x=0,1,2$ 时的概率与几率，并说明两者的变化。
+\end{example}
+\begin{solve}
+几率为 $e^{(\log2)x}=2^x$，故三处几率分别为 $1,2,4$，概率分别为 $1/2,2/3,4/5$。输入每增加一个单位，几率都翻倍，而概率增量依次为 $1/6$ 与 $2/15$。这说明参数具有对数几率上的线性解释，概率本身随输入非线性变化。
+\end{solve}
+
+\begin{notealert}[type=caution,title={分布与条件模型的区别}]
+式~\eqref{eq:lh-logistic-cdf} 描述连续随机变量的分布，式~\eqref{eq:lh-binary-logistic} 描述给定输入后离散标签的条件分布。后者只使用前者的函数形状，并不要求输入 $X$ 服从逻辑斯谛分布，也没有把二值标签当作连续随机变量。
+\end{notealert}
+
+\subsection{模型参数估计}
+\label{subsec:lh-logistic-estimation}
+
+给定观测数据 $T=\{(x_i,y_i)\}_{i=1}^N$，其中 $x_i\in\mathbb R^d$、$y_i\in\{0,1\}$。若样本独立同分布，则给定输入后标签的条件似然可以分解；也可以直接以给定输入后的标签相互独立为条件建模假设。记 $p_i=p_w(x_i)$，条件似然与对数似然为
+\begin{align}
+\mathcal L(w)&=\prod_{i=1}^N p_i^{y_i}(1-p_i)^{1-y_i},\notag\\
+\ell_{\mathrm{bin}}(w)&=\sum_{i=1}^N\bigl[y_i\log p_i+(1-y_i)\log(1-p_i)\bigr]\notag\\
+&=\sum_{i=1}^N\bigl[y_iw^{\mathsf T}\widetilde x_i
+-\log(1+\exp(w^{\mathsf T}\widetilde x_i))\bigr].
+\label{eq:lh-logistic-loglik}
+\end{align}
+极大化 $\ell_{\mathrm{bin}}$ 等价于最小化平均负对数似然，即二元交叉熵（binary cross-entropy）
+\begin{equation}
+J_{\mathrm{bin}}(w)=-\frac1N\ell_{\mathrm{bin}}(w)
+=\frac1N\sum_{i=1}^N\bigl[\log(1+e^{w^{\mathsf T}\widetilde x_i})
+-y_iw^{\mathsf T}\widetilde x_i\bigr].
+\label{eq:lh-logistic-objective}
+\end{equation}
+这一步把概率估计转化为参数优化；求和与平均只相差正常数，最优解相同，但梯度尺度和学习率相应不同。
+
+\begin{proposition}[梯度与凸性]
+\label{prop:lh-logistic-convexity}
+对有限训练集和任意有限 $w$，$J_{\mathrm{bin}}$ 光滑，且
+\begin{align}
+\nabla J_{\mathrm{bin}}(w)&=\frac1N\sum_{i=1}^N(p_i-y_i)\widetilde x_i,
+\label{eq:lh-logistic-gradient}\\
+\nabla^2J_{\mathrm{bin}}(w)&=\frac1N\sum_{i=1}^Np_i(1-p_i)
+\widetilde x_i\widetilde x_i^{\mathsf T}\succeq0.
+\label{eq:lh-logistic-hessian}
+\end{align}
+因此目标为凸函数，每个驻点都是全局最小点。若增广设计矩阵 $A=(\widetilde x_1,\ldots,\widetilde x_N)^{\mathsf T}$ 列满秩，则目标严格凸，有限最小点若存在便唯一。
+\end{proposition}
+\begin{proof}
+对单个得分 $z_i=w^{\mathsf T}\widetilde x_i$，有 $\frac{\mathrm d}{\mathrm dz_i}\log(1+e^{z_i})=p_i$，再用式~\eqref{eq:lh-sigmoid-identities} 和链式法则即得梯度与海森矩阵。对任意 $v\in\mathbb R^{d+1}$，
+\[
+v^{\mathsf T}\nabla^2J_{\mathrm{bin}}(w)v
+=\frac1N\sum_{i=1}^Np_i(1-p_i)(v^{\mathsf T}\widetilde x_i)^2\geq0.
+\]
+有限参数下各 $p_i(1-p_i)>0$。若 $A$ 列满秩，非零 $v$ 不可能同时满足所有 $v^{\mathsf T}\widetilde x_i=0$，故上式严格为正，得到严格凸性。
+\end{proof}
+
+\emph[caution]{凸性不保证有限最优参数一定存在。}若存在 $v$ 使所有 $(2y_i-1)v^{\mathsf T}\widetilde x_i>0$，称训练集严格线性可分。取 $w=tv$、$t\to+\infty$，每项损失均趋于 $0$，但有限 $w$ 给出的概率严格介于 $0$ 与 $1$，损失仍为正，因而只有下确界而没有有限最小点。例如 $(x_1,y_1)=(-1,0)$、$(x_2,y_2)=(1,1)$，取偏置为 $0$、斜率为 $t$，有 $J_{\mathrm{bin}}=\log(1+e^{-t})\downarrow0$。这时设计矩阵仍列满秩，足见严格凸性与最小值的存在性必须分别讨论。
+
+一种补充做法是加入二次正则化，求解
+\begin{equation}
+\min_{w\in\mathbb R^{d+1}}
+J_{\mathrm{bin},\lambda}(w)=J_{\mathrm{bin}}(w)+\frac\lambda2\|w\|_2^2,
+\qquad\lambda>0.
+\label{eq:lh-logistic-regularized}
+\end{equation}
+此处对包括偏置在内的全部参数惩罚，目标连续、强凸，且当 $\|w\|_2\to\infty$ 时趋于无穷，因此存在唯一有限最小点。若实现中不惩罚偏置，则不能直接照用这个强凸性与存在性的结论，需要另查数据和未惩罚方向的条件。
+
+由式~\eqref{eq:lh-logistic-gradient} 立即得到教材习题所需的批量梯度下降算法：输入 $T$、初值 $w^{(0)}$、容差 $\varepsilon>0$ 与迭代上限，每轮计算全部 $p_i$ 和梯度；梯度范数不超过 $\varepsilon$ 时返回当前参数，否则取 $\eta_k>0$，更新
+\begin{equation}
+w^{(k+1)}=w^{(k)}-\frac{\eta_k}{N}
+\sum_{i=1}^N\bigl(p_{w^{(k)}}(x_i)-y_i\bigr)\widetilde x_i.
+\label{eq:lh-logistic-gd}
+\end{equation}
+达到迭代上限则返回近似解并注明未满足停止条件。因为 $p_i(1-p_i)\leq1/4$，梯度的一个利普希茨常数为 $L_g=\lambda_{\max}(A^{\mathsf T}A)/(4N)$；$\lambda_{\max}$ 表示最大特征值。当有限最小点存在时，固定步长 $0<\eta\leq1/L_g$ 可用于标准凸梯度下降。对式~\eqref{eq:lh-logistic-regularized}，梯度加 $\lambda w$，常数可取 $L_g+\lambda$。单轮稠密计算为 $O(N(d+1))$；这些结论针对批量精确梯度，不直接给出随机梯度方法的保证。
+
+实际计算不宜先得到接近 $0$ 或 $1$ 的概率再取对数，而应利用
+\[
+\log(1+e^z)=\max\{0,z\}+\log(1+e^{-|z|})
+\]
+求损失，并按 $z$ 的正负选用等价的 sigmoid 表达式，避免指数溢出。数值稳定的计算与优化目标的数学定义相互对应，但有限迭代输出仍是参数的数值近似。
+
+\subsection{多项逻辑斯谛回归}
+\label{subsec:lh-multinomial-logistic}
+
+当 $Y\in\{1,\ldots,K\}$、$K\geq2$ 时，可为每类设置得分 $a_k(x)=w_k^{\mathsf T}\widetilde x$，并定义\emph{多项逻辑斯谛回归}（multinomial logistic regression）
+\begin{equation}
+P_W(Y=k\mid X=x)=\frac{e^{a_k(x)}}{\sum_{r=1}^Ke^{a_r(x)}},
+\qquad k=1,\ldots,K.
+\label{eq:lh-softmax}
+\end{equation}
+这里 $W=(w_1,\ldots,w_K)$ 为参数组，右端称为 softmax。所有得分同时加上同一个数不改变概率，特别是所有 $w_k$ 同时加上相同向量不会改变模型。因此可选第 $K$ 类为基准，固定 $w_K=0$，得到教材形式
+\begin{equation}
+\begin{aligned}
+P_W(Y=k\mid X=x)&=\frac{e^{w_k^{\mathsf T}\widetilde x}}
+{1+\sum_{r=1}^{K-1}e^{w_r^{\mathsf T}\widetilde x}},\quad k<K,\\
+P_W(Y=K\mid X=x)&=\frac1{1+\sum_{r=1}^{K-1}e^{w_r^{\mathsf T}\widetilde x}}.
+\end{aligned}
+\label{eq:lh-baseline-softmax}
+\end{equation}
+相对基准类的对数几率满足 $\log(P_W(Y=k\mid x)/P_W(Y=K\mid x))=w_k^{\mathsf T}\widetilde x$；当只有两个类别时，它退化为二项模型。
+
+极大似然估计等价于最小化多类交叉熵
+\begin{equation}
+J_{\mathrm{multi}}(W)=\frac1N\sum_{i=1}^N
+\left[\log\left(\sum_{r=1}^Ke^{w_r^{\mathsf T}\widetilde x_i}\right)
+-w_{y_i}^{\mathsf T}\widetilde x_i\right],\qquad w_K=0.
+\label{eq:lh-multiclass-objective}
+\end{equation}
+对 $k<K$，梯度为 $N^{-1}\sum_i(P_W(Y=k\mid x_i)-\mathbf1\{y_i=k\})\widetilde x_i$。其凸性将在最大熵模型的统一推导中得到解释；选定基准去除了公共平移造成的冗余，但其他特征冗余或可分性问题仍可能存在。计算归一化因子时可令 $a_{\max}=\max_r a_r$，使用 $\log\sum_re^{a_r}=a_{\max}+\log\sum_re^{a_r-a_{\max}}$。
+
+\section{最大熵模型}
+\label{sec:lh-maxent}
+
+\subsection{最大熵原理}
+\label{subsec:lh-maxent-principle}
+
+仅有部分统计信息时，通常有许多分布与这些信息相容。\emph{最大熵原理}（maximum entropy principle）是在预先指定的样本空间和约束下，选择熵最大的分布；它把已知信息写成约束，同时避免额外加入没有依据的偏好。这是一项建模准则，并不宣称最大熵分布必然等于未知的真实分布，也不自动保证分类准确率最高。
+
+若离散随机变量 $Y$ 的取值集为有限集合 $\mathcal Y$，$|\mathcal Y|=K$，其分布为 $p$，则\emph{熵}（entropy）为
+\begin{equation}
+H(p)=-\sum_{y\in\mathcal Y}p(y)\log p(y),\qquad 0\log0:=0.
+\label{eq:lh-entropy}
+\end{equation}
+它满足 $0\leq H(p)\leq\log K$，右侧等号当且仅当 $p(y)=1/K$ 对所有 $y$ 成立。为核查上界，令均匀分布为 $u(y)=1/K$，则相对熵
+\[
+D(p\|u)=\sum_{y:p(y)>0}p(y)\log\frac{p(y)}{u(y)}
+=\log K-H(p)\geq0.
+\]
+这里相对熵的一般非负性可由 $-\log t\geq1-t$ 得到：若 $r(y)>0$，则 $D(p\|r)\geq\sum_{y:p(y)>0}(p(y)-r(y))\geq0$，等号仅当 $p=r$ 成立。熵的下界则来自各项 $-p(y)\log p(y)\geq0$。
+
+概率向量 $(p_1,\ldots,p_K)$ 位于概率单纯形 $\{p_k\geq0,\ \sum_kp_k=1\}$ 中；线性统计约束把它截成凸可行集，熵在这个集合上选出一个分布。无约束时均匀分布具有最大熵，有约束时一般不再全局均匀；只有在约束无法区分的状态之间，才有对称性带来的等概率关系。
+
+\begin{example}
+\label{ex:lh-five-outcomes}
+设 $Y$ 有五个可能取值 $\{A,B,C,D,E\}$。先在只有归一化约束时求最大熵分布，再增加约束 $p(A)+p(B)=3/10$，求新的最大熵分布。这对应教材的五状态例子。
+\end{example}
+\begin{solve}
+只有归一化约束时，上述熵上界给出五个概率均为 $1/5$。增加分组质量约束后，记 $G=\{A,B\}$、$G^{\mathrm c}=\{C,D,E\}$；两组质量分别为 $3/10$ 和 $7/10$。用条件概率展开熵可得
+\[
+H(p)=h(3/10)+\frac3{10}H(p(\cdot\mid G))
++\frac7{10}H(p(\cdot\mid G^{\mathrm c})),
+\]
+其中 $h(t)=-t\log t-(1-t)\log(1-t)$。第一项固定，后两项分别在组内均匀时最大，故唯一解为
+\begin{equation}
+p(A)=p(B)=\frac3{20},\qquad
+p(C)=p(D)=p(E)=\frac7{30}.
+\label{eq:lh-five-outcome-solution}
+\end{equation}
+组内等概率来自约束的对称性，两组之间并不等概率。
+\end{solve}
+
+若进一步加入教材提出的 $p(A)+p(C)=1/2$，原来的分组对称性就被打破，不能继续沿用式~\eqref{eq:lh-five-outcome-solution}。作为补充推导，令 $a=p(A)$，则 $p(B)=3/10-a$、$p(C)=1/2-a$、$p(D)+p(E)=1/5+a$；给定 $a$ 时，熵在 $p(D)=p(E)=1/10+a/2$ 处最大。把它代回熵，在 $0<a<3/10$ 上求导得
+\[
+\frac{\mathrm dH}{\mathrm da}
+=\log\frac{(3/10-a)(1/2-a)}{a(1/10+a/2)}.
+\]
+导数为零等价于 $a^2-(9/5)a+3/10=0$，区间内唯一根为 $a=(9-\sqrt{51})/10$。熵沿这条非平凡仿射路径严格凹，因此该根给出新增约束下的唯一最大熵解。这也说明重叠约束必须联合处理。
+
+\subsection{最大熵模型的定义}
+\label{subsec:lh-maxent-definition}
+
+回到分类问题，设 $\mathcal Y=\{1,\ldots,K\}$，训练集为 $T=\{(x_i,y_i)\}_{i=1}^N$。令 $\mathcal S=\{x_i:1\leq i\leq N\}$ 表示训练集中不同输入组成的有限集合。经验联合分布与经验输入边缘分布分别为
+\begin{equation}
+\widehat p(x,y)=\frac1N\sum_{i=1}^N\mathbf1\{x_i=x,\ y_i=y\},\qquad
+\widehat p(x)=\sum_{y\in\mathcal Y}\widehat p(x,y),\quad x\in\mathcal S.
+\label{eq:lh-empirical-distributions}
+\end{equation}
+即使原输入空间连续，有限样本的经验分布仍只在 $\mathcal S$ 上赋予质量。以下未标明范围的 $\sum_{x,y}$ 均指 $x\in\mathcal S$、$y\in\mathcal Y$ 上的有限求和，且 $\widehat p(x)>0$。
+
+\emph{特征函数}（feature function）$f_j(x,y)$ 用来描述输入与候选输出之间的统计关系。例如 $f_j(x,y)=\mathbf1\{x\in A_j,\ y=k_j\}$ 表示输入落在某个预先指定集合 $A_j$ 且输出为 $k_j$。教材首先采用二值特征，模型推导可推广到任意有限实值特征；但后文的 IIS 推导另需非负性。给定 $m$ 个特征，记 $f(x,y)=(f_1(x,y),\ldots,f_m(x,y))^{\mathsf T}$，经验特征期望为
+\begin{equation}
+c_j=\widehat{\mathbb E}[f_j]
+=\sum_{x,y}\widehat p(x,y)f_j(x,y)
+=\frac1N\sum_{i=1}^Nf_j(x_i,y_i).
+\label{eq:lh-empirical-moments}
+\end{equation}
+若候选条件分布为 $q(y\mid x)$，则模型特征期望是
+\begin{equation}
+\mathbb E_q[f_j]=\sum_{x,y}\widehat p(x)q(y\mid x)f_j(x,y).
+\label{eq:lh-model-moments}
+\end{equation}
+两个期望分别使用经验联合分布与联合分布 $\widehat p(x)q(y\mid x)$。条件模型不另外学习输入的边缘分布，而是把经验边缘固定下来。约束 $\mathbb E_q[f_j]=c_j$ 要求模型重现选定特征的样本均值；这是训练时采用的匹配条件，不是关于总体真实期望的无误差断言。
+
+\begin{definition}[条件最大熵模型]
+\label{def:lh-conditional-maxent}
+令 $\mathcal P$ 为 $\mathcal S$ 上全部条件分布组成的集合，即每个 $x$ 均满足 $q(y\mid x)\geq0$ 和 $\sum_yq(y\mid x)=1$。定义
+\begin{equation}
+\mathcal C=\{q\in\mathcal P:\mathbb E_q[f_j]=c_j,\ j=1,\ldots,m\},\qquad
+H(q)=-\sum_{x,y}\widehat p(x)q(y\mid x)\log q(y\mid x).
+\label{eq:lh-maxent-feasible-set}
+\end{equation}
+在 $\mathcal C$ 中使条件熵 $H(q)$ 最大的分布 $q^*$ 称为\emph{条件最大熵模型}（conditional maximum entropy model）。
+\end{definition}
+
+这里的条件熵始终相对于输入分布 $\widehat p(x)$ 计算。经验条件分布 $\widehat p(y\mid x)=\widehat p(x,y)/\widehat p(x)$ 本身满足全部经验特征约束，所以 $\mathcal C$ 非空。它是有限个概率单纯形的乘积与仿射约束的交，因而紧且凸；熵连续并在这个条件分布空间上严格凹，因此最大熵分布在 $\mathcal S$ 上存在且唯一。这个结论不要求最优概率都为正，也不等于参数表示唯一。对训练中未出现的输入，原始经验熵目标没有施加约束，预测依靠随后选定的参数化特征模型作延拓。
+
+\subsection{最大熵模型的学习}
+\label{subsec:lh-maxent-learning}
+
+为推导模型形式，先将最大熵问题改写成凸最小化问题：
+\begin{equation}
+\begin{aligned}
+\min_{q}\quad&-H(q)=\sum_{x,y}\widehat p(x)q(y\mid x)\log q(y\mid x),\\
+\text{满足}\quad&\mathbb E_q[f_j]=c_j,\quad j=1,\ldots,m,\\
+&\sum_yq(y\mid x)=1,\quad x\in\mathcal S,\qquad q(y\mid x)\geq0.
+\end{aligned}
+\label{eq:lh-maxent-primal}
+\end{equation}
+以下先讨论存在严格正可行分布的情形。在有限空间上，这给出使用有限拉格朗日乘子和内部驻点推导的充分条件。引入特征约束乘子 $w\in\mathbb R^m$，并为\emph{每个输入的归一化约束}分别引入 $\alpha_x\in\mathbb R$，定义
+\begin{equation}
+\begin{aligned}
+\mathscr L(q,w,\alpha)={}&\sum_{x,y}\widehat p(x)q(y\mid x)\log q(y\mid x)\\
+&+\sum_{j=1}^mw_j\bigl(c_j-\mathbb E_q[f_j]\bigr)
++\sum_x\widehat p(x)\alpha_x\left(1-\sum_yq(y\mid x)\right).
+\end{aligned}
+\label{eq:lh-maxent-lagrangian}
+\end{equation}
+因为各 $\widehat p(x)>0$，在归一化乘子前加入这个权重不会改变约束。对单个坐标 $q(y\mid x)>0$ 求偏导，得到
+\[
+\frac{\partial\mathscr L}{\partial q(y\mid x)}
+=\widehat p(x)\bigl[\log q(y\mid x)+1-w^{\mathsf T}f(x,y)-\alpha_x\bigr].
+\]
+令其为零，再逐个 $x$ 归一化，得到 $\alpha_x=1-\log Z_w(x)$ 和
+\begin{equation}
+p_w(y\mid x)=\frac{\exp(w^{\mathsf T}f(x,y))}{Z_w(x)},\qquad
+Z_w(x)=\sum_{y\in\mathcal Y}\exp(w^{\mathsf T}f(x,y)).
+\label{eq:lh-maxent-model}
+\end{equation}
+$Z_w(x)$ 称为\emph{规范化因子}或配分函数（partition function），它一般随输入变化。模型称为\emph{对数线性模型}（log-linear model），因为对数概率由特征的线性组合减去对数规范化因子构成。任意参数都给出合法分布，但只有满足所需最优性条件的参数才对应当前约束下的最大熵解。
+
+为明确对偶问题的定义，先消去归一化约束，令 $q\in\mathcal P$，只对特征等式作拉格朗日松弛。其对偶函数为
+\begin{equation}
+\begin{aligned}
+\Psi(w)&=\inf_{q\in\mathcal P}
+\left[-H(q)+w^{\mathsf T}\bigl(c-\mathbb E_q[f]\bigr)\right]\\
+&=w^{\mathsf T}c-\sum_x\widehat p(x)\log Z_w(x),
+\qquad c=(c_1,\ldots,c_m)^{\mathsf T}.
+\end{aligned}
+\label{eq:lh-maxent-dual}
+\end{equation}
+第二步可直接核查：对任意 $q\in\mathcal P$，方括号内的量等于
+\[
+w^{\mathsf T}c-\sum_x\widehat p(x)\log Z_w(x)
++\sum_x\widehat p(x)D\bigl(q(\cdot\mid x)\|p_w(\cdot\mid x)\bigr),
+\]
+最后一项非负且在 $q=p_w$ 时为零。\emph[caution]{求对偶函数的内层极小值时，只保留概率归一化与非负约束，不能同时把已松弛的特征匹配约束留在可行域中。}
+
+因此对偶问题是 $\max_{w\in\mathbb R^m}\Psi(w)$。在上述严格可行条件下，强对偶性成立且存在有限最优乘子；也可以用下面的相对熵恒等式直接验证候选解的最优性，而不把“原始目标凸”单独当作强对偶的充分说明。
+
+\begin{proposition}[最大熵解的相对熵验证]
+\label{prop:lh-maxent-certificate}
+若某个有限参数 $w^*$ 使 $p_{w^*}$ 满足全部特征约束，则它是式~\eqref{eq:lh-maxent-primal} 的唯一最优条件分布。对任意 $q\in\mathcal C$，有
+\begin{equation}
+H(q)=H(p_{w^*})-\sum_x\widehat p(x)
+D\bigl(q(\cdot\mid x)\|p_{w^*}(\cdot\mid x)\bigr).
+\label{eq:lh-maxent-kl-certificate}
+\end{equation}
+\end{proposition}
+\begin{proof}
+由 $\log p_w(y\mid x)=w^{\mathsf T}f(x,y)-\log Z_w(x)$ 和可行性，
+\[
+\sum_x\widehat p(x)D(q\|p_w)
+=-H(q)-w^{\mathsf T}c+\sum_x\widehat p(x)\log Z_w(x)
+=-H(q)-\Psi(w).
+\]
+这里 $D(q\|p_w)$ 的两个参数均指对应输入处的条件分布。再取 $w=w^*$、$q=p_{w^*}$，得到 $\Psi(w^*)=-H(p_{w^*})$；代回即为所需恒等式。相对熵的非负性给出最大性，等号条件和各 $\widehat p(x)>0$ 给出唯一性。
+\end{proof}
+
+\begin{example}
+\label{ex:lh-five-outcomes-dual}
+用式~\eqref{eq:lh-maxent-model} 重新求解例~\ref{ex:lh-five-outcomes} 中带分组质量约束的情形。
+\end{example}
+\begin{solve}
+把输入视为只有一个固定值，取唯一特征 $f(y)=\mathbf1\{y\in\{A,B\}\}$，经验期望为 $c=3/10$。模型为
+\[
+p_w(A)=p_w(B)=\frac{e^w}{2e^w+3},\qquad
+p_w(C)=p_w(D)=p_w(E)=\frac1{2e^w+3}.
+\]
+对偶函数为 $\Psi(w)=(3/10)w-\log(2e^w+3)$。令 $\Psi'(w)=3/10-2e^w/(2e^w+3)=0$，解得 $e^{w^*}=9/14$。代入即得到式~\eqref{eq:lh-five-outcome-solution}，且模型特征期望确为 $3/10$，所以命题~\ref{prop:lh-maxent-certificate} 保证它为唯一最大熵分布。
+\end{solve}
+
+若约束迫使某些最优概率为零，式~\eqref{eq:lh-maxent-model} 的有限参数表示可能不存在，因为指数形式在有限参数下总为正。此时原始问题的最大熵分布仍存在，但相应参数可能只能沿发散序列逼近；“分布存在”与“有限最优参数存在”应当区分。另一方面，若不同权值产生同一条件分布，唯一的最大熵分布也不会带来唯一权值。
+
+\subsection{极大似然估计}
+\label{subsec:lh-maxent-mle}
+
+对式~\eqref{eq:lh-maxent-model} 作条件极大似然估计，平均对数似然为
+\begin{equation}
+\begin{aligned}
+\ell(w)&=\frac1N\sum_{i=1}^N\log p_w(y_i\mid x_i)
+=\sum_{x,y}\widehat p(x,y)\log p_w(y\mid x)\\
+&=w^{\mathsf T}c-\sum_x\widehat p(x)\log Z_w(x)=\Psi(w).
+\end{aligned}
+\label{eq:lh-maxent-loglik}
+\end{equation}
+因此最大熵问题的对偶优化与这一对数线性条件模型的极大似然优化具有完全相同的目标。这里取的是平均对数似然，通常的样本对数似然为 $N\ell(w)$。以下统一最小化 $J(w)=-\ell(w)$，避免在算法中混淆极大化与极小化的梯度方向。
+
+对有限求和逐项求导，先得
+\[
+\frac{\partial\log Z_w(x)}{\partial w_j}
+=\sum_y p_w(y\mid x)f_j(x,y),
+\]
+从而
+\begin{equation}
+\frac{\partial J(w)}{\partial w_j}=\mathbb E_{p_w}[f_j]-c_j,
+\qquad
+\nabla^2J(w)=\sum_x\widehat p(x)
+\operatorname{Cov}_{p_w(\cdot\mid x)}\bigl(f(x,Y)\bigr)\succeq0.
+\label{eq:lh-maxent-gradient-hessian}
+\end{equation}
+这里 $\operatorname{Cov}$ 是协方差矩阵；给定 $x$ 时，随机性仅来自 $Y\sim p_w(\cdot\mid x)$。对任意 $v\in\mathbb R^m$，海森矩阵的二次型为 $\sum_x\widehat p(x)\operatorname{Var}_{p_w(\cdot\mid x)}(v^{\mathsf T}f(x,Y))\geq0$，因而 $J$ 凸、$\ell$ 凹。有限无约束最优参数满足 $\mathbb E_{p_{w^*}}[f_j]=c_j$，即梯度为零正好等价于特征期望匹配。若存在非零 $v$，使 $v^{\mathsf T}f(x,y)$ 对每个固定 $x$ 都不随 $y$ 变化，沿该方向改变权值不改变模型，目标就不会严格凸。
+
+逻辑斯谛回归是这个框架的特例：二分类时取 $f_j(x,y)=y\widetilde x_j$，$j=1,\ldots,d+1$，便有 $Z_w(x)=1+e^{w^{\mathsf T}\widetilde x}$；多分类时取 $f_{k,j}(x,y)=\mathbf1\{y=k\}\widetilde x_j$，$k<K$，便得到基准类 softmax。这里逻辑斯谛回归的特征可以为负，仍适用式~\eqref{eq:lh-maxent-gradient-hessian} 的凸性结论，但不能不加检查地代入后文依赖非负特征的 IIS 公式。
+
+若改为最小化 $J_\lambda(w)=J(w)+(\lambda/2)\|w\|_2^2$、$\lambda>0$，则目标存在唯一有限最小点，梯度为 $\mathbb E_{p_w}[f]-c+\lambda w$。此时最优性条件为 $\mathbb E_{p_w}[f]-c=-\lambda w$，一般不再精确匹配经验矩；正则化估计因此不能直接称为原来硬约束问题的同一个解。
+
+\begin{remark}
+\label{rem:lh-exponential-family}
+对固定输入 $x$，式~\eqref{eq:lh-maxent-model} 的形式为 $\exp(w^{\mathsf T}f(x,y)-\log Z_w(x))$，属于以 $f(x,y)$ 为充分统计量的条件指数族。特别地，二项逻辑斯谛回归的标签分布为
+\[
+p(y\mid x)=\exp\bigl(y\theta-\log(1+e^\theta)\bigr),\qquad
+y\in\{0,1\},\quad\theta=w^{\mathsf T}\widetilde x,
+\]
+这验证的是伯努利条件分布的指数族表示。教材习题中关于“逻辑斯谛分布”的表述需要先区分对象；上述计算并未证明定义~\ref{def:lh-logistic-distribution} 中连续位置尺度分布族的有限维指数族性质，不能把两种分布混为一谈。
+\end{remark}
+
+\section{模型学习的最优化算法}
+\label{sec:lh-maxent-optimization}
+
+本节继续使用式~\eqref{eq:lh-maxent-loglik} 的平均对数似然 $\ell(w)$ 及负对数似然 $J(w)=-\ell(w)$。IIS 直接构造使 $\ell$ 不下降的更新，拟牛顿法则最小化 $J$。两者优化的是同一模型的同一估计准则，但使用的特征条件和每轮计算方式不同；不能把算法名称当作另一种概率模型。
+
+\subsection{改进的迭代尺度法}
+\label{subsec:lh-iis}
+
+\emph{改进的迭代尺度法}（improved iterative scaling，IIS）的思路是构造对数似然改变量的可分离下界，从而把一个向量更新拆成若干一元方程。以下假设 $f_j(x,y)\geq0$，教材的二值特征是其特例。令
+\[
+\mu_w(x,y)=\widehat p(x)p_w(y\mid x),\qquad
+f^\#(x,y)=\sum_{j=1}^mf_j(x,y).
+\]
+给定当前参数 $w$ 和增量 $\delta\in\mathbb R^m$，由规范化因子的比值可得
+\begin{equation}
+\ell(w+\delta)-\ell(w)
+=\delta^{\mathsf T}c-\sum_x\widehat p(x)
+\log\left(\sum_yp_w(y\mid x)e^{\delta^{\mathsf T}f(x,y)}\right).
+\label{eq:lh-iis-difference}
+\end{equation}
+对每个输入使用 $-\log a\geq1-a$，并利用 $\sum_x\widehat p(x)=1$，得到第一层下界
+\begin{equation}
+\ell(w+\delta)-\ell(w)\geq A(\delta\mid w)
+:=\delta^{\mathsf T}c+1-\sum_{x,y}\mu_w(x,y)e^{\delta^{\mathsf T}f(x,y)}.
+\label{eq:lh-iis-first-bound}
+\end{equation}
+它仍然耦合各个 $\delta_j$。若 $f^\#(x,y)>0$，则 $f_j/f^\#$ 是非负且和为 $1$ 的权值，指数函数的凸性给出 Jensen 不等式
+\begin{equation}
+e^{\delta^{\mathsf T}f(x,y)}
+=\exp\left(\sum_j\frac{f_j(x,y)}{f^\#(x,y)}\delta_jf^\#(x,y)\right)
+\leq\sum_j\frac{f_j(x,y)}{f^\#(x,y)}e^{\delta_jf^\#(x,y)}.
+\label{eq:lh-iis-jensen}
+\end{equation}
+若 $f^\#(x,y)=0$，非负性保证所有 $f_j(x,y)=0$，相应指数项恒为 $1$，应单独保留，不能计算 $0/0$。把这些常数项抵消后，得到对零特征总和也有定义的第二层下界
+\begin{equation}
+\begin{aligned}
+B(\delta\mid w):={}&\sum_{j=1}^m\delta_jc_j\\
+&+\sum_{\substack{x,y\\f^\#(x,y)>0}}\mu_w(x,y)
+\sum_{j=1}^m\frac{f_j(x,y)}{f^\#(x,y)}
+\left(1-e^{\delta_jf^\#(x,y)}\right),
+\end{aligned}
+\label{eq:lh-iis-separable-bound}
+\end{equation}
+满足 $\ell(w+\delta)-\ell(w)\geq A(\delta\mid w)\geq B(\delta\mid w)$，且 $B(0\mid w)=0$。这个下界可以按 $\delta_j$ 分开最大化，因为每一项只含一个增量坐标。
+
+求偏导并将零特征项重新纳入求和，得到
+\begin{align}
+\frac{\partial B}{\partial\delta_j}
+&=c_j-\sum_{x,y}\mu_w(x,y)f_j(x,y)e^{\delta_jf^\#(x,y)},\notag\\
+\frac{\partial^2 B}{\partial\delta_j^2}
+&=-\sum_{x,y}\mu_w(x,y)f_j(x,y)f^\#(x,y)
+e^{\delta_jf^\#(x,y)}\leq0.
+\label{eq:lh-iis-bound-derivatives}
+\end{align}
+因此每个非平凡坐标的最大化归结为一元方程
+\begin{equation}
+\sum_{x,y}\widehat p(x)p_w(y\mid x)f_j(x,y)
+e^{\delta_jf^\#(x,y)}=c_j.
+\label{eq:lh-iis-update-equation}
+\end{equation}
+当 $c_j>0$ 时，特征在训练支持上必非恒零；对有限 $w$，左端随 $\delta_j$ 严格递增，从 $0$ 趋于无穷，故存在唯一有限根。若所有坐标均满足这一条件，各自取最大化点便有 $B(\delta\mid w)\geq B(0\mid w)=0$，从而保证一次完整更新不降低对数似然。
+
+\textbf{IIS 的迭代步骤。}输入经验分布、有限非负特征、容差 $\varepsilon>0$ 与最大迭代次数；先删除在训练支持与全部候选标签上恒为零的特征，并检查剩余特征是否存在零经验期望。对于每个剩余 $c_j>0$ 的通常情形，算法如下。
+\begin{enumerate}
+\item 初始化 $w^{(0)}=0$，计算经验期望 $c$。此时每个输入处的初始条件分布均为 $1/K$。
+\item 在第 $k$ 轮固定 $p_{w^{(k)}}$，对每个 $j$ 求解式~\eqref{eq:lh-iis-update-equation}，得到 $\delta_j$。本轮所有一元方程均使用同一轮的旧分布。
+\item 同时更新 $w^{(k+1)}=w^{(k)}+\delta$，重新计算模型概率和特征期望。若 $\|\mathbb E_{p_{w^{(k+1)}}}[f]-c\|_2\leq\varepsilon$，返回当前参数和模型；否则进入下一轮，直到迭代上限。
+\end{enumerate}
+这里把一轮中各增量求完后再统一更新，与可分离下界的推导直接对应。数值近似求根时应控制方程残差，并检查目标是否确有改善；不能把精确求根下的单调性无条件转用于任意近似更新。若 $c_j=0$ 但 $f_j$ 在某些候选输入输出对上为正，则式~\eqref{eq:lh-iis-update-equation} 没有有限根；相应约束迫使这些位置概率为零，涉及边界解，不能直接计算 $\log0$ 或把该特征当作恒零特征删除。
+
+若特征总和在所有 $(x,y)$ 上恒为常数 $M>0$，则更新方程化为 $e^{M\delta_j}\mathbb E_{p_w}[f_j]=c_j$，故
+\begin{equation}
+\delta_j=\frac1M\log\frac{c_j}{\mathbb E_{p_w}[f_j]}.
+\label{eq:lh-iis-constant-sum}
+\end{equation}
+当模型低估某特征的期望时，更新增大该特征的权值；高估时则减小。这个方向解释依赖当前模型期望与经验期望均为正。
+
+\begin{example}
+\label{ex:lh-iis-five-outcomes}
+对例~\ref{ex:lh-five-outcomes} 的分组约束，取 $f_1(y)=\mathbf1\{y\in\{A,B\}\}$、$f_2(y)=1-f_1(y)$，从零权值开始进行一轮 IIS。
+\end{example}
+\begin{solve}
+两个特征之和恒为 $M=1$，经验期望为 $(3/10,7/10)$，初始均匀分布下的模型期望为 $(2/5,3/5)$，所以
+\[
+\delta_1=\log(3/4),\qquad\delta_2=\log(7/6).
+\]
+更新后前两个状态的未归一化权为 $3/4$，后三个为 $7/6$，总和为 $2(3/4)+3(7/6)=5$。归一化后恰为 $3/20,3/20,7/30,7/30,7/30$，已经满足约束。这一例子具有分组对称性，不能据此认为一般 IIS 都在一轮内收敛。两个互补特征还带来公共平移冗余，但不妨碍得到唯一概率分布。
+\end{solve}
+
+一般情况下，$f^\#$ 随输入输出对变化。令
+\begin{equation}
+\begin{aligned}
+g_j(a)&=\sum_{x,y}\mu_w(x,y)f_j(x,y)e^{af^\#(x,y)}-c_j,\\
+g_j'(a)&=\sum_{x,y}\mu_w(x,y)f_j(x,y)f^\#(x,y)e^{af^\#(x,y)},
+\end{aligned}
+\label{eq:lh-iis-root-function}
+\end{equation}
+可用牛顿迭代 $a^{(t+1)}=a^{(t)}-g_j(a^{(t)})/g_j'(a^{(t)})$ 求根。在上述正经验期望条件下 $g_j'>0$，可先找到函数异号区间，再采用保留区间的牛顿步或二分步。唯一简单根能支持根附近的牛顿局部二次收敛，并不保证任意初值的无保护牛顿迭代全局收敛。
+
+精确 IIS 使 $\ell(w^{(k)})$ 单调不减，而每个观测对数概率不超过 $0$，所以目标值序列有上界并收敛。这还不是参数收敛定理；若参数序列确实收敛到有限 $w^*$，则增量趋于零，在式~\eqref{eq:lh-iis-update-equation} 中取极限便得到特征期望匹配，由命题~\ref{prop:lh-maxent-certificate} 可知极限模型最优。一次稠密模型期望计算约需 $O(|\mathcal S|Km)$ 运算，额外的一元求根还会增加开销；稀疏特征可按非零项计算。
+
+\subsection{拟牛顿法}
+\label{subsec:lh-maxent-quasi-newton}
+
+\emph{拟牛顿法}（quasi-Newton method）利用相邻迭代点的梯度差近似曲率，避免每次显式构造精确海森矩阵。这里最小化 $J(w)=-\ell(w)$，其梯度由式~\eqref{eq:lh-maxent-gradient-hessian} 给出；若采用正则化，则把目标及梯度一并替换为 $J_\lambda$ 与 $\nabla J_\lambda$。这类方法允许一般实值特征，不依赖 IIS 的非负性条件。
+
+先以牛顿法作为参照：在 $\nabla^2J(w)$ 可逆时，用 $\nabla^2J(w)p=-\nabla J(w)$ 求搜索方向，再选步长。对数线性模型的海森矩阵可能因特征冗余而奇异，所以不能仅由半正定性就直接取逆。BFGS 法以对称正定矩阵 $B_k\in\mathbb R^{m\times m}$ 近似海森矩阵，记 $g_k=\nabla J(w^{(k)})$，解
+\begin{equation}
+B_kp_k=-g_k,\qquad
+w^{(k+1)}=w^{(k)}+\alpha_kp_k,\quad\alpha_k>0.
+\label{eq:lh-bfgs-direction}
+\end{equation}
+当 $g_k\ne0$ 时，$g_k^{\mathsf T}p_k=-g_k^{\mathsf T}B_k^{-1}g_k<0$，因此 $p_k$ 为下降方向。定义参数步长向量 $s_k=w^{(k+1)}-w^{(k)}$ 和梯度差向量 $r_k=g_{k+1}-g_k$，BFGS 更新为
+\begin{equation}
+B_{k+1}=B_k-\frac{B_ks_ks_k^{\mathsf T}B_k}{s_k^{\mathsf T}B_ks_k}
++\frac{r_kr_k^{\mathsf T}}{r_k^{\mathsf T}s_k}.
+\label{eq:lh-bfgs-update}
+\end{equation}
+它满足割线条件 $B_{k+1}s_k=r_k$，即用本轮观测到的梯度变化拟合沿实际步长的曲率。当 $r_k^{\mathsf T}s_k>0$ 且 $B_k\succ0$ 时，新矩阵仍对称正定，两个分母也均为正。
+
+教材以沿搜索方向精确最小化描述步长选择；实际可使用满足 Wolfe 条件的线搜索。取 $0<c_1<c_2<1$，要求
+\begin{align}
+J(w^{(k)}+\alpha_kp_k)&\leq J(w^{(k)})
++c_1\alpha_kg_k^{\mathsf T}p_k,\notag\\
+\nabla J(w^{(k)}+\alpha_kp_k)^{\mathsf T}p_k
+&\geq c_2g_k^{\mathsf T}p_k.
+\label{eq:lh-wolfe-conditions}
+\end{align}
+第一式要求充分下降，第二式控制更新后的方向导数。由第二式和下降方向可得
+\[
+r_k^{\mathsf T}s_k
+=\alpha_k(g_{k+1}-g_k)^{\mathsf T}p_k
+\geq\alpha_k(c_2-1)g_k^{\mathsf T}p_k>0,
+\]
+这解释了线搜索与保持近似海森矩阵正定之间的联系。
+
+\textbf{最大熵模型学习的 BFGS 算法。}输入训练集或经验分布、特征、目标 $J$ 及其梯度、容差 $\varepsilon>0$ 与迭代上限；选定 $w^{(0)}$，取 $B_0=I_m$ 或其他对称正定矩阵，$I_m$ 为 $m$ 阶单位矩阵。
+\begin{enumerate}
+\item 计算 $g_k=\nabla J(w^{(k)})$。若 $\|g_k\|_2\leq\varepsilon$，返回当前参数与 $p_{w^{(k)}}$；否则解式~\eqref{eq:lh-bfgs-direction} 得到 $p_k$。
+\item 沿 $p_k$ 搜索满足式~\eqref{eq:lh-wolfe-conditions} 的正步长，更新参数并计算 $g_{k+1}$。若已满足梯度容差则返回。
+\item 计算 $s_k,r_k$，检查曲率量 $r_k^{\mathsf T}s_k$；在其可靠为正时使用式~\eqref{eq:lh-bfgs-update}，否则重新检查线搜索，必要时跳过该次矩阵更新或重置正定矩阵。继续迭代，达到上限或线搜索失败时报告当前近似解及停止原因。
+\end{enumerate}
+精确驻点由凸性保证全局最优，但数值容差下的点只是近似驻点；没有额外条件时，小梯度也不等于给出了明确的参数误差界。若对全部参数作 $\lambda>0$ 的二次正则化，则强凸性给出 $\|w-w^*\|_2\leq\|\nabla J_\lambda(w)\|_2/\lambda$。标准 BFGS 的局部超线性收敛需要有限最优点、其附近海森矩阵正定及适当光滑性和线搜索等条件，不能只凭目标凸便宣称任意初始化都具有这一速度。
+
+实现时也可维护逆海森矩阵近似 $H_k=B_k^{-1}$，直接令 $p_k=-H_kg_k$。逆 BFGS 更新为
+\begin{equation}
+H_{k+1}=(I_m-\rho_ks_kr_k^{\mathsf T})H_k
+(I_m-\rho_kr_ks_k^{\mathsf T})+\rho_ks_ks_k^{\mathsf T},
+\qquad\rho_k=\frac1{r_k^{\mathsf T}s_k}.
+\label{eq:lh-inverse-bfgs}
+\end{equation}
+海森近似 $B_k$ 与逆海森近似 $H_k$ 的更新公式不同，不能交换使用。维护稠密 $H_k$ 时，方向与矩阵更新需 $O(m^2)$ 时间、$O(m^2)$ 存储，另加线搜索中的目标和梯度计算；若直接维护 $B_k$，每轮求解线性方程的成本还取决于所用矩阵分解方式。
+
+教材习题还要求写出最大熵模型学习的 DFP（Davidon--Fletcher--Powell）算法。它同样维护逆海森近似，目标、梯度、初始化、下降方向、线搜索及停止准则均可采用上述流程，只需将逆矩阵更新替换为
+\begin{equation}
+H_{k+1}=H_k+\frac{s_ks_k^{\mathsf T}}{s_k^{\mathsf T}r_k}
+-\frac{H_kr_kr_k^{\mathsf T}H_k}{r_k^{\mathsf T}H_kr_k}.
+\label{eq:lh-dfp-update}
+\end{equation}
+在 $H_k\succ0$、$s_k^{\mathsf T}r_k>0$ 时，DFP 更新保持对称正定并满足逆割线条件 $H_{k+1}r_k=s_k$。因此，教材的梯度下降与 DFP 算法练习分别由式~\eqref{eq:lh-logistic-gd} 及式~\eqref{eq:lh-dfp-update} 连同各自流程给出了可执行的学习步骤；关于指数族的对象区别见备注~\ref{rem:lh-exponential-family}。
+
+回看本章，逻辑斯谛回归从线性对数几率定义条件模型，最大熵方法从经验特征约束推导指数形式，两者在对数线性模型上汇合。最大熵与极大似然的等价发生在明确指定的特征、经验边缘和未正则化目标下；算法则负责数值求解这些目标。学习时应依次检查概率是否归一化、经验量与模型量是否区分、负对数似然的梯度方向是否正确，以及有限最优参数和相应收敛条件是否成立。
+
+
+
+% 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-7.pdf。
+% 对应教材第 7 章，PDF 第 1--44 页，书页 111--154；本笔记独立编排章节编号。
+
+
+
+
+

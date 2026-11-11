@@ -1,0 +1,161 @@
+% !TeX root = ../复分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{3} % 保留原书章号。
+\chapter{初等函数与多值函数的分支}
+\label{chap:ca-elementary}
+
+\section{复指数：把伸缩和旋转写在一起}
+
+实指数满足 $e^{x+y}=e^xe^y$，而单位圆上的旋转满足辐角相加。把这两种规律结合起来，自然得到下面的定义。
+
+\begin{definition}[复指数函数]
+对 $z=x+iy$，定义
+\begin{equation}
+ e^z=e^x(\cos y+i\sin y).
+ \label{eq:ca-exp}
+\end{equation}
+\end{definition}
+
+由实三角恒等式，$e^{z+w}=e^ze^w$；由模的计算，$|e^z|=e^{\operatorname{Re}z}>0$。所以复指数没有零点。其分量 $u=e^x\cos y$、$v=e^x\sin y$ 光滑且满足 C--R 方程，故它是整函数，并且 $(e^z)'=e^z$。取 $x=0$ 就得到欧拉公式 $e^{iy}=\cos y+i\sin y$，这也说明前面极形式的记号与本章定义一致。
+
+\begin{proposition}[复指数的周期与相等条件]
+对任意 $z,w\in\mathbb C$，
+\[
+ e^z=e^w\quad\Longleftrightarrow\quad z-w=2k\pi i\quad(k\in\mathbb Z).
+\]
+\end{proposition}
+\begin{proof}
+等式等价于 $e^{z-w}=1$。先比较模可知 $\operatorname{Re}(z-w)=0$，再比较实部、虚部可知虚部为 $2k\pi$。反方向直接代入定义即可。
+\end{proof}
+
+因此，实指数的一一对应性质不再适用于整个复平面。几何上，竖直直线 $x=c$ 映成圆 $|w|=e^c$，水平直线 $y=c$ 映成辐角为 $c$ 的射线。指数将横向位置编码为模，将纵向位置编码为辐角；纵向移动 $2\pi$ 后图像重复。这一几何描述会帮助我们理解对数为什么具有多值性。
+
+\begin{example}[解指数方程]
+求 $e^{2z}=-4$ 的全部解。
+\end{example}
+\begin{solve}
+设 $z=x+iy$。比较模有 $e^{2x}=4$，故 $x=\ln2$；比较辐角有 $2y=\pi+2k\pi$。所以
+\[
+ z=\ln2+i\left(\frac\pi2+k\pi\right),\qquad k\in\mathbb Z.
+\]
+只写主辐角会漏掉无穷多个解。
+\end{solve}
+
+\section{复对数与支割线}
+
+对给定的 $z\ne0$，求所有满足 $e^w=z$ 的 $w$，就得到复对数的全部值。
+
+\begin{definition}[多值对数与对数分支]
+若 $z=re^{i\theta}\ne0$，则
+\[
+ \log z=\{\ln r+i(\theta+2k\pi):k\in\mathbb Z\}
+\]
+称为多值对数。在区域 $D\subset\mathbb C\setminus\{0\}$ 上，一个连续函数 $L$ 若满足 $e^{L(z)}=z$，称为对数的一个\emph{分支（branch）}。
+\end{definition}
+
+本书在裂平面
+\[
+ \Omega_0=\mathbb C\setminus(-\infty,0]
+\]
+上选取 $-\pi<\operatorname{Arg}z<\pi$，定义\emph{对数主分支（principal branch of logarithm）}
+\begin{equation}
+ \operatorname{Log}z=\ln|z|+i\operatorname{Arg}z,
+ \qquad z\in\Omega_0.
+ \label{eq:ca-log}
+\end{equation}
+删去的非正实轴称为\emph{支割线（branch cut）}。第~\ref{chap:ca-plane} 章允许在负实轴上定义辐角主值 $\pi$，这里则为了得到连续且全纯的函数，将整条非正实轴排除；这两个使用场景应加以区分。
+
+在不穿过支割线的小邻域内，令 $\theta=\operatorname{Arg}(x+iy)$，由极坐标微分可得
+\[
+ (\ln r)_x=\frac{x}{x^2+y^2},\quad
+ (\ln r)_y=\frac{y}{x^2+y^2},\quad
+ \theta_x=-\frac{y}{x^2+y^2},\quad
+ \theta_y=\frac{x}{x^2+y^2}.
+\]
+这些连续偏导满足 C--R 方程，故 $\operatorname{Log}$ 在 $\Omega_0$ 全纯，且
+\begin{equation}
+ (\operatorname{Log}z)'=\frac1z.
+ \label{eq:ca-log-derivative}
+\end{equation}
+一般连续对数分支在每个小邻域内与这样的局部分支相差一个固定的 $2k\pi i$，因此也全纯并具有同样的导数。
+
+\begin{proposition}[去心平面上不存在连续对数分支]
+\label{prop:ca-no-global-log}
+不存在定义在整个 $\mathbb C\setminus\{0\}$ 上的连续函数 $L$，使 $e^{L(z)}=z$。
+\end{proposition}
+\begin{proof}
+假设存在。沿单位圆写 $z=e^{it}$，$0\le t\le2\pi$。由指数相等条件，$L(e^{it})-it\in2\pi i\mathbb Z$。左侧连续，取值却只在离散集合内，因而在整个区间为常数。于是 $L(e^{2\pi i})-L(1)=2\pi i$，而 $e^{2\pi i}=1$ 使左侧应为零，矛盾。
+\end{proof}
+
+这个障碍来自绕原点一周后的辐角变化，不来自局部导数计算。对数运算也必须服从分支条件。例如在主分支中取 $z=w=e^{3\pi i/4}$，则
+\[
+ \operatorname{Log}z+\operatorname{Log}w=\frac{3\pi i}{2},\qquad
+ \operatorname{Log}(zw)=-\frac{\pi i}{2}.
+\]
+二者相差 $2\pi i$。熟悉的对数乘法公式若不说明分支，只能在允许相差 $2k\pi i$ 的意义下使用。
+
+\section{幂函数、根函数与分支点}
+
+给定 $\alpha\in\mathbb C$ 和一个对数分支 $L$，在其定义域上定义
+\[
+ z^\alpha=e^{\alpha L(z)}.
+\]
+这是单值全纯函数，求导得 $(z^\alpha)'=\alpha e^{(\alpha-1)L(z)}=\alpha z^{\alpha-1}$，等式两侧使用同一个分支。若换用 $L+2k\pi i$，函数值会乘上 $e^{2k\pi i\alpha}$。当 $\alpha$ 为整数时该因子总为 $1$，多值性消失；当 $\alpha=p/q$ 为最简分数且 $q>0$ 时，非零点处有 $q$ 个不同值；一般复指数则需直接检查这些因子。
+
+\begin{example}[平方根分支]
+在 $\Omega_0$ 上定义 $s(z)=\exp(\operatorname{Log}z/2)$。则 $s(z)^2=z$，且 $\operatorname{Re}s(z)>0$；另一个平方根分支为 $-s(z)$。从上侧趋近负实轴上的 $-r$ 时，$s(z)\to i\sqrt r$；从下侧趋近时，$s(z)\to-i\sqrt r$。这说明不能直接把该分支连续地补到支割线两侧。
+\end{example}
+
+沿一条围绕原点一周的路径连续追踪平方根，辐角从 $\theta/2$ 变成 $\theta/2+\pi$，函数值变号。原点因此称为这个多值表达式的分支点（branch point）。分支点不能直接当作单值全纯函数的孤立奇点使用留数公式：后者要求在一个完整的去心圆盘上有单值全纯函数，而平方根的上述局部分支并不满足这一要求。
+
+\begin{example}[复数幂也可能取实数值]
+求 $i^i$ 的全部值。
+\end{example}
+\begin{solve}
+因为 $\log i=i(\pi/2+2k\pi)$，所以
+\[
+ i^i=\exp\left(-\frac\pi2-2k\pi\right),\qquad k\in\mathbb Z.
+\]
+所有值都为正实数，主值为 $e^{-\pi/2}$。计算时应先列对数的值，再乘指数，最后取指数函数，不能把多值步骤直接省略。
+\end{solve}
+
+反三角函数也须局部选择。例如在 $0$ 的充分小邻域内，取满足 $q(0)=1$ 的 $q(z)=\sqrt{1-z^2}$，并取 $q(z)+iz$ 附近满足 $L(1)=0$ 的对数，令
+\[
+ A(z)=-iL\bigl(q(z)+iz\bigr).
+\]
+由于 $(q+iz)(q-iz)=1$，可由指数形式直接验证 $\sin A(z)=z$，且 $A(0)=0$、$A'(z)=1/q(z)$。这是反正弦的一个局部分支；公式中的根与对数若另作选择，必须重新核对分支。
+
+\section{三角函数与双曲函数}
+
+定义
+\[
+ \sin z=\frac{e^{iz}-e^{-iz}}{2i},\qquad
+ \cos z=\frac{e^{iz}+e^{-iz}}2,
+ \qquad
+ \sinh z=\frac{e^z-e^{-z}}2,\qquad
+ \cosh z=\frac{e^z+e^{-z}}2.
+\]
+它们都是整函数，在实轴上与实函数定义一致。直接微分得到 $(\sin z)'=\cos z$、$(\cos z)'=-\sin z$，由指数的乘法法则得到加法公式以及 $\sin^2z+\cos^2z=1$。这里的平方是复数平方，不是模的平方，不能推出 $|\sin z|\le1$。
+
+把 $z=x+iy$ 代入，可得
+\[
+ \sin(x+iy)=\sin x\cosh y+i\cos x\sinh y,
+ \quad
+ \cos(x+iy)=\cos x\cosh y-i\sin x\sinh y.
+\]
+特别地，$\sin(iy)=i\sinh y$，其模随 $|y|$ 增大而无界。实轴上有界只是对整个复平面的一个切片观察。由指数方程，$\sin z=0$ 当且仅当 $z=k\pi$，$\cos z=0$ 当且仅当 $z=\pi/2+k\pi$，其中 $k\in\mathbb Z$；故 $\tan z=\sin z/\cos z$ 只在去掉后一组点的区域上全纯。
+
+\section{习题}
+\label{sec:ca-elementary-ex}
+\begin{enumerate}
+ \item 求 $e^z=1+i$ 的全部解。
+ \item 计算 $\operatorname{Log}(1-i)$，并求 $(-1)^{1/3}$ 的全部值；解释为什么后者不能只写一个值。
+ \item 求 $\sin z=2$ 的全部解。提示：令 $w=e^{iz}$，先解关于 $w$ 的二次方程。
+ \item 在右半平面上，选取在正实轴取实数值的对数分支，证明 $\operatorname{Log}(1/z)=-\operatorname{Log}z$。
+ \item\label{ex:ca-no-square-root} 模仿命题~\ref{prop:ca-no-global-log}，证明整个去心平面上不存在连续平方根 $s$ 满足 $s(z)^2=z$。
+
+  \item\label{ex:ca-exp-solutions} 求 $e^z=-2$ 的全部解；求 $\sin z=0$ 与 $\cosh z=0$ 的全部解。
+  \item\label{ex:ca-log-product} 设 $z,w,zw\in \Omega_0$。以 $\operatorname{Arg}z+\operatorname{Arg}w$ 为条件，分类写出 $\operatorname{Log}(zw)$ 与 $\operatorname{Log}z+\operatorname{Log}w$ 的关系。
+  \item\label{ex:ca-square-root-domain} 在上半平面选择辐角 $0<\theta<\pi$，写出平方根分支及其像集，并求导数。
+\end{enumerate}
+

@@ -1,0 +1,123 @@
+% !TeX root = ../数值分析与科学计算笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{7} % 保留原书章号。
+\chapter{多项式插值与分段逼近}
+\label{chap:na-interpolation}
+
+\section{插值问题与 Lagrange 形式}
+给定互不相同的节点 $x_0,\ldots,x_n$ 和数据 $y_0,\ldots,y_n$，插值要求寻找 $p_n\in\mathcal P_n$ 满足 $p_n(x_j)=y_j$。它把离散信息延拓为函数表示，可用于评价、求导和积分；这些后续运算对误差的放大方式并不相同。
+
+\begin{theorem}[多项式插值的存在唯一性]
+上述插值问题有唯一解，可写为
+\begin{equation}
+ p_n(x)=\sum_{j=0}^ny_j\ell_j(x),\qquad
+ \ell_j(x)=\prod_{i\ne j}\frac{x-x_i}{x_j-x_i}.
+ \label{eq:na-lagrange}
+\end{equation}
+\end{theorem}
+\begin{proof}
+$\ell_j(x_i)$ 在 $i=j$ 时为 $1$，其余为 $0$，故式~\eqref{eq:na-lagrange} 满足所有条件。若有两解，其差为次数不超过 $n$ 且具有 $n+1$ 个不同零点的多项式，因此恒为零。
+\end{proof}
+
+在单项式基下直接解 Vandermonde 系统也可得到插值多项式，但该表示可能很病态。\emph{重心插值公式（barycentric interpolation formula）}令 $w_j=1/\prod_{i\ne j}(x_j-x_i)$，则当 $x$ 不等于任一节点时
+\begin{equation}
+ p_n(x)=\frac{\sum_{j=0}^n w_jy_j/(x-x_j)}{\sum_{j=0}^n w_j/(x-x_j)}.
+ \label{eq:na-barycentric}
+\end{equation}
+推导只需把式~\eqref{eq:na-lagrange} 中共同因子 $\prod_i(x-x_i)$ 约去，并利用 $\sum_j\ell_j(x)=1$。在节点处直接返回对应数据，避免除零。权重可共同乘任意非零常数，预处理后每次评价为 $O(n)$；一般节点的朴素权重计算为 $O(n^2)$，大量节点还需要防止权重溢出或下溢。
+
+\section{差商、Newton 形式与余项}
+差商（divided difference）递归定义为 $f[x_i]=f(x_i)$ 以及
+\[
+ f[x_i,\ldots,x_{i+k}]=
+ \frac{f[x_{i+1},\ldots,x_{i+k}]-f[x_i,\ldots,x_{i+k-1}]}{x_{i+k}-x_i}.
+\]
+插值多项式可写成
+\[
+ p_n(x)=f[x_0]+\sum_{k=1}^nf[x_0,\ldots,x_k]\prod_{j=0}^{k-1}(x-x_j).
+\]
+此形式称 Newton 插值形式，增加一个节点时只需增加一个最高次项；嵌套乘法可在 $O(n)$ 时间评价。它与 Newton 求根法是不同问题中的不同算法。
+
+\begin{theorem}[插值余项]
+\label{thm:na-interpolation-error}
+设 $f\in C^{n+1}[a,b]$，节点均属于 $[a,b]$。对任意 $x\in[a,b]$，有某个 $\xi$ 位于节点与 $x$ 的最小覆盖区间内，使
+\begin{equation}
+ f(x)-p_n(x)=\frac{f^{(n+1)}(\xi)}{(n+1)!}\prod_{j=0}^n(x-x_j).
+ \label{eq:na-interpolation-error}
+\end{equation}
+在节点处等式两边均为零，不必指定唯一的 $\xi$。
+\end{theorem}
+\begin{proof}
+对非节点 $x$，记 $\omega(t)=\prod_j(t-x_j)$，取 $C=(f(x)-p_n(x))/\omega(x)$。函数 $g(t)=f(t)-p_n(t)-C\omega(t)$ 在所有节点及 $x$ 上为零，连续应用 Rolle 定理得到某点 $g^{(n+1)}(\xi)=0$。由于 $p_n^{(n+1)}=0$、$\omega^{(n+1)}=(n+1)!$，即得余项。
+\end{proof}
+
+\begin{example}[二次函数的线性插值]
+用节点 $0,1$ 插值 $f(x)=x^2$ 得 $p_1(x)=x$。误差为 $x(x-1)$，在 $[0,1]$ 上最大绝对值为 $1/4$。余项公式也给出 $f''/2!=1$，因而在本例是精确误差表达式。
+\end{example}
+
+\section{节点选择、Runge 现象与 Chebyshev 多项式}
+\label{sec:na-chebyshev}
+当次数增长时，余项同时涉及高阶导数和节点乘积，不能仅根据分母中的阶乘断言误差趋零。函数 $f(x)=1/(1+25x^2)$ 在 $[-1,1]$ 上的等距高次插值会在端部出现严重振荡，这是经典的\emph{Runge 现象（Runge phenomenon）}。本书将其用作可复现实验；改善节点分布或采用分段低次方法比盲目加大全局次数更可靠。
+
+\begin{definition}[Chebyshev 多项式]
+令 $T_0(x)=1$、$T_1(x)=x$，并递推 $T_{n+1}(x)=2xT_n(x)-T_{n-1}(x)$。由余弦加法公式，$T_n(\cos\theta)=\cos(n\theta)$。$n\ge1$ 时其最高次项系数为 $2^{n-1}$，且在 $[-1,1]$ 上绝对值不超过 $1$。
+\end{definition}
+
+\begin{proposition}[节点乘积的极小性质]
+在所有 $n+1$ 次首一多项式中，$2^{-n}T_{n+1}$ 在 $[-1,1]$ 上达到最小的一致范数 $2^{-n}$。因而选择节点
+\[
+ x_j=\cos\frac{(2j+1)\pi}{2(n+1)},\qquad j=0,\ldots,n,
+\]
+可使节点乘积的最大绝对值最小。
+\end{proposition}
+\begin{proof}
+该首一多项式在 $n+2$ 个余弦极值点交替取 $\pm2^{-n}$。若另一个首一多项式在整个区间绝对值严格小于 $2^{-n}$，二者之差会在相邻极值点之间至少有一个零点，共至少 $n+1$ 个；但最高次项相消后其次数至多为 $n$，矛盾。
+\end{proof}
+
+节点的误差放大还可用 Lebesgue 函数 $\Lambda_n(x)=\sum_j|\ell_j(x)|$ 描述。若数据误差满足 $|\Delta y_j|\le\delta$，则插值值误差至多为 $\Lambda_n(x)\delta$。令 $\Lambda_n=\max_{[-1,1]}\Lambda_n(x)$，任取 $q\in\mathcal P_n$，由插值算子 $I_nq=q$ 得
+\[
+ \|f-I_nf\|_\infty\le(1+\Lambda_n)\|f-q\|_\infty.
+\]
+取所有 $q$ 的下确界，说明插值误差由函数本身的可逼近性和节点造成的放大共同决定。Chebyshev 节点改善一般插值行为，但对任意连续函数都无条件一致收敛的说法仍然过强。
+
+\section{分段线性、Hermite 插值与三次样条}
+设 $a=x_0<\cdots<x_N=b$，$h_i=x_{i+1}-x_i$，$h=\max_i h_i$。每个小区间使用两端点线性插值，拼成连续的分段线性函数 $I_hf$。若 $f\in C^2[a,b]$，定理~\ref{thm:na-interpolation-error} 给出
+\[
+ \|f-I_hf\|_\infty\le\frac{h^2}{8}\|f''\|_\infty,
+\]
+因为每段上 $|(x-x_i)(x-x_{i+1})|\le h_i^2/4$。局部低次逼近随着网格加密收敛，不需要不断提高单段次数。
+
+若端点导数也已知，可以在一段 $[a,b]$ 上构造三次 Hermite 插值。令 $t=(x-a)/(b-a)$，则
+\begin{align*}
+ H(x)={}&(2t^3-3t^2+1)f(a)+(-2t^3+3t^2)f(b)\\
+ &+(b-a)(t^3-2t^2+t)f'(a)+(b-a)(t^3-t^2)f'(b).
+\end{align*}
+四个端点条件直接确定唯一三次多项式。若 $f\in C^4[a,b]$，重复零点版本的 Rolle 论证给出误差 $f(x)-H(x)=f^{(4)}(\xi)(x-a)^2(x-b)^2/4!$。这里导数数据若由差分估计而来，其误差必须另计。
+
+\emph{三次样条（cubic spline）}在各小区间为三次以下多项式，并要求整体二阶连续。只指定节点值还不足以唯一确定样条，需要两个边界条件。自然边界条件为 $S''(a)=S''(b)=0$；夹持边界条件给定 $S'(a)$、$S'(b)$，二者含义不同。
+
+设 $M_i=S''(x_i)$。自然三次样条令 $M_0=M_N=0$，其余未知量满足
+\begin{equation}
+ h_{i-1}M_{i-1}+2(h_{i-1}+h_i)M_i+h_iM_{i+1}
+ =6\left(\frac{y_{i+1}-y_i}{h_i}-\frac{y_i-y_{i-1}}{h_{i-1}}\right),
+ \quad 1\le i<N.
+ \label{eq:na-spline-system}
+\end{equation}
+在 $[x_i,x_{i+1}]$ 内，函数由
+\begin{align*}
+ S(x)={}&\frac{M_i(x_{i+1}-x)^3+M_{i+1}(x-x_i)^3}{6h_i}\\
+ &+\left(y_i-\frac{M_ih_i^2}{6}\right)\frac{x_{i+1}-x}{h_i}
+ +\left(y_{i+1}-\frac{M_{i+1}h_i^2}{6}\right)\frac{x-x_i}{h_i}
+\end{align*}
+给出。它的二阶导数是端点二阶导数的线性插值，积分两次并代入节点值即可推导；再令相邻段的一阶导数连续便得到式~\eqref{eq:na-spline-system}。
+
+内部线性系统对称且严格对角占优，对角元为正，故正定并唯一可解，可用三对角方法以 $O(N)$ 代价求出全部 $M_i$。样条的整体误差与函数光滑性、边界条件及网格有关；自然边界若与原函数端点二阶导数不一致，不能直接套用匹配边界条件时的全区间四阶误差断言。
+
+\section{习题}
+\begin{enumerate}[label=\arabic*.]
+\item\label{exr:na-interp-poly} 用节点 $0,1,2$ 与数据 $1,2,5$，分别写出 Lagrange 和 Newton 插值形式，并求 $p(3/2)$。
+\item\label{exr:na-interp-error} 对 $f(x)=\exp x$ 在 $[0,1]$ 的均匀分段线性插值，给出保证一致误差不超过 $10^{-4}$ 的网格段数充分条件。
+\item\label{exr:na-interp-spline} 求节点 $0,1,2$、数据 $0,1,0$ 对应的自然三次样条的节点二阶导数，并写出第一段表达式。
+\item\label{exr:na-interp-cheb} 求 $T_3$，列出它的零点，核对首一化后的最大绝对值。
+\end{enumerate}
+

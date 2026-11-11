@@ -1,0 +1,91 @@
+% !TeX root = ../常微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{11} % 保留原书章号。
+\chapter{边值问题与 Sturm--Liouville 理论初步}
+\label{chap:ode-boundary}
+
+边值问题在区间两端共同限制解。它的可解性由微分方程和边界条件共同决定，不能直接套用初值问题的唯一性结论。
+
+\section{两点边值问题的存在性与唯一性}
+设二阶正则线性方程的通解为 $y=y_p+c_1y_1+c_2y_2$，边界条件为 $B_1[y]=b_1$、$B_2[y]=b_2$，其中 $B_i$ 是端点值与端点导数的线性组合。代入得到
+\[
+ \begin{pmatrix}B_1[y_1]&B_1[y_2]\\B_2[y_1]&B_2[y_2]\end{pmatrix}
+ \begin{pmatrix}c_1\\c_2\end{pmatrix}
+ =\begin{pmatrix}b_1-B_1[y_p]\\b_2-B_2[y_p]\end{pmatrix}.
+\]
+矩阵可逆时唯一可解；奇异时须检查相容性，相容则解不唯一，不相容则无解。
+
+\begin{example}
+对 $y''+\lambda y=0$、$y(0)=y(\pi)=0$，$\lambda\leq0$ 时只有零解；$\lambda>0$ 时 $y=C\sin(\sqrt\lambda t)$，第二个边界条件要求 $C\sin(\sqrt\lambda\pi)=0$。所以非零解恰在 $\lambda=n^2$、$n=1,2,\ldots$ 出现，对应 $y=C\sin nt$。这些特殊参数称特征值。
+\end{example}
+
+\section{自伴形式与 Lagrange 恒等式}
+在有限区间 $[a,b]$ 上，设 $p\in C^1$、$q,w\in C$ 均为实函数，$p,w>0$。定义 $L[y]=-(py')'+qy$，研究
+\begin{equation}
+ L[y]=\lambda w(t)y,
+ \label{eq:ode-sturm-liouville}
+\end{equation}
+配合齐次、分离且不含 $\lambda$ 的实边界条件
+\[
+ \alpha_1y(a)+\alpha_2p(a)y'(a)=0,\qquad
+ \beta_1y(b)+\beta_2p(b)y'(b)=0,
+\]
+其中每一对系数不同时为零。这称正则 Sturm--Liouville 问题（regular Sturm--Liouville problem）。$y=0$ 的端点条件称 Dirichlet 条件，$y'=0$ 称 Neumann 条件，两者的非平凡线性组合称 Robin 条件。
+
+对 $u,v\in C^2[a,b]$，直接展开可得 Lagrange 恒等式
+\begin{equation}
+ \int_a^b(uL[v]-vL[u])\,\mathrm dt
+ =[p(vu'-uv')]_a^b.
+ \label{eq:ode-lagrange-identity}
+\end{equation}
+若 $u,v$ 满足上述相同的齐次边界条件，则在每个端点，两向量 $(u,pu')$、$(v,pv')$ 属于同一条一维直线，行列式为零，故边界项消失。这是自伴（self-adjoint）结构的具体体现。
+
+\section{Green 函数与非齐次边值问题}
+考虑 $L[y]=f$ 及齐次边界条件，假设对应齐次问题只有零解。取 $L[\phi]=L[\psi]=0$，其中非零解 $\phi$ 满足左端条件，非零解 $\psi$ 满足右端条件。量
+\[
+ D=p(t)(\phi\psi'-\phi'\psi)
+\]
+由方程可知为常数，且 $D\ne0$；否则两解相关，将产生满足两端条件的非零齐次解。定义 Green 函数（Green's function）
+\[
+ G(t,s)=-\frac1D
+ \begin{cases}\phi(t)\psi(s),&t\leq s,\\\phi(s)\psi(t),&t\geq s.\end{cases}
+\]
+它在 $t=s$ 连续，满足两端边界条件，并有 $-p(s)[G_t(s^+,s)-G_t(s^-,s)]=1$。因此分段求导可验证
+\[
+ y(t)=\int_a^bG(t,s)f(s)\,\mathrm ds
+\]
+满足 $L[y]=f$。导数的跳跃符号由算子中的负号决定。
+
+\begin{example}
+对 $-y''=1$、$y(0)=y(1)=0$，可取 $\phi=t$、$\psi=1-t$，$D=-1$，所以 $G(t,s)=\min(t,s)[1-\max(t,s)]$。积分得 $y=t(1-t)/2$，直接求二阶导数即可核验。
+\end{example}
+
+\section{Sturm--Liouville 特征值与正交性}
+\begin{theorem}
+正则分离自伴问题的特征值均为实数；属于不同特征值的实特征函数关于权函数 $w$ 正交。
+\end{theorem}
+\begin{proof}
+若 $L[y]=\lambda wy$，实系数使 $L[\overline y]=\overline\lambda w\overline y$。对 $u=\overline y,v=y$ 应用式\eqref{eq:ode-lagrange-identity}得 $(\lambda-\overline\lambda)\int_a^bw|y|^2=0$，而非零解的积分严格为正，故 $\lambda$ 实。若 $L[u]=\lambda wu$、$L[v]=\mu wv$，同一恒等式得 $(\mu-\lambda)\int_a^bwuv=0$；$\lambda\ne\mu$ 时即为正交。
+\end{proof}
+
+在分离边界条件下，每个特征值的解空间还是一维：满足左端条件的初始向量空间为一维，初值唯一性把它映成一维解空间。对于本章的正则问题，其全部特征值可排为 $\lambda_1<\lambda_2<\cdots\to\infty$，特征函数在加权空间 $L^2_w(a,b)$ 中构成完备正交系。后两项属于谱理论结论，此处引用而不证明，见\cite[第5章]{teschl-ode}；不能仅由正交性推断完备性。
+
+\section{振荡、零点与展开（选学）}
+对同一方程 $y''+a(t)y'+b(t)y=0$ 的两个独立实解 $u,v$，它们的零点交错，即 Sturm 分离定理。证明如下：非零解的零点都是简单零点，否则初值唯一性使其恒为零。在 $u$ 的两个相邻零点间，$u$ 符号固定，而 Wronskian 不变号，所以在两端 $v$ 的符号相反，至少有一零点。又有 $(v/u)'=W/u^2$ 严格同号，故至多有一个零点。
+
+对 $u''+q_1u=0$、$v''+q_2v=0$，若连续系数满足 $q_2>q_1$，则 $u$ 的每两个相邻零点之间有 $v$ 的零点。这是比较定理的一种形式：若反设内部无零点，可调整符号使 $u,v$ 在内部都正；则 $(u'v-uv')'=(q_2-q_1)uv>0$，但该量在左端非负、右端非正，矛盾。
+
+正则分离 Sturm--Liouville 问题的第 $n$ 个特征函数在 $(a,b)$ 内有 $n-1$ 个零点，此结论依赖振荡理论。对 $f\in L^2_w$，其正交展开系数为
+\[
+ c_n=\frac{\int_a^b f(t)y_n(t)w(t)\,\mathrm dt}{\int_a^b y_n(t)^2w(t)\,\mathrm dt}.
+\]
+完备性保证部分和在范数 $\|f\|_w^2=\int_a^b|f|^2w$ 下收敛；这并不自动保证逐点或一致收敛。Legendre 方程在端点有退化系数，不能不经检查就作为本章正则定理的实例。
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-neumann} 求 $-y''=\lambda y$、$y'(0)=y'(\pi)=0$ 的特征值和特征函数，注意零特征值。
+ \item\label{ex:ode-mixed} 求 $-y''=\lambda y$、$y(0)=y'(\pi)=0$ 的特征值。
+ \item 求 $-y''=t$、$y(0)=y(1)=0$，分别用直接积分和 Green 函数验证。
+ \item 对 $-y''=f$、$y'(0)=y'(1)=0$，证明可解当且仅当 $\int_0^1f=0$，且解只确定到一个加法常数。
+\end{enumerate}
+

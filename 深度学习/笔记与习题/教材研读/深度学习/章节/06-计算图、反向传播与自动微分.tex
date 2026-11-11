@@ -1,0 +1,49 @@
+% !TeX root = ../深度学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{5} % 保留原书章号。
+\chapter{计算图、反向传播与自动微分}
+\label{chap:dl-backprop}
+\emph{反向传播（backpropagation）}把链式法则按计算图组织起来，复用中间结果以避免重复计算。其输入是前向计算保存的量及输出端导数，输出是损失对各参数的梯度。
+
+\section{计算图与局部导数}
+\emph{计算图（computational graph）}用有向边表示数值依赖。对 $u=wx$、$v=u+b$、$\ell=(v-y)^2/2$，前向依次计算 $u,v,\ell$；反向从 $\partial\ell/\partial\ell=1$ 出发，得到 $\partial\ell/\partial v=v-y$，再乘局部导数得到 $\partial\ell/\partial w=(v-y)x$、$\partial\ell/\partial b=v-y$。
+
+若一个结点流向多条路径，总导数是所有路径贡献之和。例如 $u=x^2$、$v=x+u$，则 $dv/dx=1+2x$。共享权重被多次使用时也必须累加各处贡献，不能让后算出的梯度覆盖先前结果。前向图只要是有限无环图，就能按拓扑顺序计算、按逆拓扑顺序传导；循环网络沿有限时间展开后也属于这种情形。
+
+\section{反向模式与向量--雅可比乘积}
+对中间映射 $\mathbf v=F(\mathbf u)$，若已知列梯度 $\overline{\mathbf v}=\nabla_{\mathbf v}\ell$，则式\eqref{eq:dl-chain-rule}给出 $\overline{\mathbf u}=DF(\mathbf u)^\mathsf T\overline{\mathbf v}$。按行写为 $\overline{\mathbf u}^\mathsf T=\overline{\mathbf v}^\mathsf TDF$，称\emph{向量--雅可比乘积（vector--Jacobian product, VJP）}。通常只计算这一乘积，无需形成完整雅可比矩阵。
+
+\emph{自动微分（automatic differentiation）}对程序使用的基本算子应用精确微分规则，数值结果仍受浮点误差影响。前向模式传播输入方向，适合较少输入方向；反向模式从输出传播梯度，特别适合一个标量损失对大量参数求导。若各算子的反向成本与前向成本同阶，一次标量反向传播的运算量与前向同阶；保存激活却可能占用大量内存，重计算可用更多运算换更少存储。
+
+\section{全连接层与激活层的梯度}
+在式\eqref{eq:dl-forward-layer}中令 $\boldsymbol\delta^{(l)}=\nabla_{\mathbf a^{(l)}}\ell$。由 $da_i^{(l)}=\sum_jh_j^{(l-1)}dW_{ij}^{(l)}+db_i^{(l)}+\sum_jW_{ij}^{(l)}dh_j^{(l-1)}$，逐项读取微分系数可得
+\begin{equation}
+\nabla_{\mathbf W^{(l)}}\ell=\boldsymbol\delta^{(l)}(\mathbf h^{(l-1)})^\mathsf T,
+\qquad \nabla_{\mathbf b^{(l)}}\ell=\boldsymbol\delta^{(l)}.
+\label{eq:dl-layer-gradients}
+\end{equation}
+对逐元素可微隐藏激活，链式法则继续给出
+\begin{equation}
+\boldsymbol\delta^{(l)}=((\mathbf W^{(l+1)})^\mathsf T\boldsymbol\delta^{(l+1)})\odot\phi_l'(\mathbf a^{(l)}).
+\label{eq:dl-backprop-recursion}
+\end{equation}
+前一个式子的形状为 $d_l\times d_{l-1}$，后一个为 $d_l$，与相应参数或中间量一致。对输出逻辑值的 softmax 交叉熵，以式\eqref{eq:dl-softmax-gradient}的 $\mathbf p-\mathbf y$ 初始化；对恒等输出的平方损失，以预测减目标初始化。批量平均损失的参数梯度是各样本梯度的平均，而非未经缩放的和。
+
+\section{自动微分与梯度检查}
+符号微分构造导数表达式，数值微分用邻近函数值近似导数，自动微分则沿实际执行的算子传播导数。程序中主动停止梯度会把一个中间量对上游的导数设为零，改变的正是所求梯度。梯度缓冲常采用累加语义，故每次独立更新前须清零；需要累积多个微批量时则应在整个累积开始前清零。
+
+在远离不可导点的位置，选方向 $\mathbf v$，比较 $\nabla J(\theta)^\mathsf T\mathbf v$ 与 $[J(\theta+h\mathbf v)-J(\theta-h\mathbf v)]/(2h)$。检查时固定随机掩码等随机性，并试几个步长，否则两次前向的随机差别可能掩盖导数。没有梯度通常说明图不连通或未记录，零梯度可能是真实平坦、饱和或相消，数值错误还可能来自错误广播和损失缩放。
+
+\section{例题与习题}
+\begin{example}[一次完整的两层更新]
+设 $h=\rho(w_1x+b_1)$、$\widehat y=w_2h+b_2$，$x=2,y=1$，初值 $w_1=w_2=1,b_1=b_2=0$，损失为 $(\widehat y-y)^2/2$。用学习率 $0.1$ 同时更新四个参数。
+\end{example}
+\begin{solve}
+前向得 $h=2,\widehat y=2,\ell=1/2$。输出误差为一，故 $\partial\ell/\partial w_2=2$、$\partial\ell/\partial b_2=1$；隐藏激活位于正半轴，故 $\partial\ell/\partial w_1=2$、$\partial\ell/\partial b_1=1$。全部梯度在旧参数处计算，更新得 $w_1=w_2=0.8,b_1=b_2=-0.1$，新输出为 $0.8(0.8\times2-0.1)-0.1=1.1$，新损失为 $0.005$。
+\end{solve}
+\begin{enumerate}
+\item 对 $f_w(x)=wx$、$x=2,y=1,w=1$ 核对梯度为 $2$，更新到 $w=0.8$ 后平方损失为 $0.18$。
+\item 写出两条分支共享同一权重时的梯度和，说明边反向边更新参数为什么不再是同一点处的梯度下降。
+\item 对本章两层例题用中心差分验证四个梯度，随后把隐藏预激活移到零，解释梯度检查结果的变化。
+\end{enumerate}
+

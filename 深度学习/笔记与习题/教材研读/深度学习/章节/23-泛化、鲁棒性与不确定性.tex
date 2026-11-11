@@ -1,0 +1,51 @@
+% !TeX root = ../深度学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{22} % 保留原书章号。
+\chapter{泛化、鲁棒性与不确定性}
+\label{chap:dl-reliability}
+一个测试分数支持的是特定数据、任务和评价协议下的结论。要把训练结果用于新场景，必须分析样本误差、分布变化与概率解释；可视化或高置信度不能代替这些证据。
+
+\section{泛化误差与有限模型类的界}
+\begin{theorem}[有限模型类的一致界]
+设非空有限预测器集合 $\mathcal H$ 在观察数据前固定，损失取值于 $[0,1]$，训练样本为来自 $P$ 的 $n$ 个独立同分布观测。对 $0<\delta<1$，以至少 $1-\delta$ 的概率，所有 $h\in\mathcal H$ 同时满足
+\begin{equation}
+|\mathcal R(h)-\widehat{\mathcal R}_n(h)|\leq
+\sqrt{\frac{\log(2|\mathcal H|/\delta)}{2n}}.
+\label{eq:dl-finite-generalization}
+\end{equation}
+\end{theorem}
+\begin{proof}
+先对 $Z\in[0,1]$ 证明 $\mathbb E e^{\lambda(Z-\mathbb EZ)}\leq e^{\lambda^2/8}$。令 $g(\lambda)$ 是左侧的对数，$g(0)=g'(0)=0$，$g''(\lambda)$ 等于指数加权分布下的 $Z$ 方差。该分布仍支撑于 $[0,1]$，故方差不超过 $\mathbb E(Z-1/2)^2\leq1/4$；两次积分得界，负 $\lambda$ 同理。由于 $Z$ 有界，此处求导与期望可交换。
+
+对固定 $h$ 的独立样本损失，利用矩母函数乘积和 Markov 不等式，$P(\widehat{\mathcal R}_n-\mathcal R\geq\varepsilon)\leq\exp(-\lambda n\varepsilon+n\lambda^2/8)$。取 $\lambda=4\varepsilon$ 得 $e^{-2n\varepsilon^2}$，反向偏差同理。对 $|\mathcal H|$ 个预测器取并集界，失败概率不超过 $2|\mathcal H|e^{-2n\varepsilon^2}$；令它等于 $\delta$ 即得结论。
+\end{proof}
+因为结论同时覆盖全部 $h$，可以在这个固定集合内用数据选择模型。若统一误差上界为 $\varepsilon$，经验最小化解 $\widehat h$ 相对集合内总体最优解 $h^*$ 满足 $\mathcal R(\widehat h)\leq\widehat{\mathcal R}_n(\widehat h)+\varepsilon\leq\widehat{\mathcal R}_n(h^*)+\varepsilon\leq\mathcal R(h^*)+2\varepsilon$。无限实参数网络不属于有限集合，不能把参数个数直接代入 $|\mathcal H|$；无界交叉熵也不满足本定理的损失假设。
+
+\section{分布变化与鲁棒性评估}
+训练分布 $P$ 与使用分布 $Q$ 可能不同。协变量变化指输入边缘改变而条件标签规律保持，标签比例变化指类别先验改变而各类条件输入分布保持，概念变化则涉及 $P(Y\mid\mathbf X)$ 改变。\emph{分布外（out-of-distribution, OOD）}评价需明确究竟改变了哪些条件，不宜把所有新数据都当成同一种挑战。
+
+\emph{对抗扰动（adversarial perturbation）}在指定约束下寻找增大损失的输入变化。给定合法集合 $\{\boldsymbol\Delta:\|\boldsymbol\Delta\|\leq\epsilon,\mathbf x+\boldsymbol\Delta\in\mathcal X\}$，局部鲁棒损失是其中损失的上确界。对可微损失的一阶近似和无其他约束的 $L^\infty$ 球，最大化线性项得到 $\Delta_j=\epsilon\operatorname{sign}(\partial\ell/\partial x_j)$；它只是线性化攻击步骤，不是全局最坏扰动的证明。自然损坏、对抗扰动和真实分布变化应分别评估。
+
+\section{概率校准与不确定性}
+令分类预测为 $\widehat Y$、最大类别概率为 $C$。\emph{置信度校准（confidence calibration）}要求 $\mathbb E[\mathbf1\{Y=\widehat Y\}\mid C]=C$ 几乎处处成立，即给出某置信水平的预测在总体上具有相符的正确比例。校准与准确率不同：一个总报多数类频率的简单模型也可能校准，但辨别能力有限。
+
+可靠性图按置信度分组比较组内正确比例与平均置信度。经验校准误差可定义为 $\sum_b(|B_b|/n)|\operatorname{acc}(B_b)-\operatorname{conf}(B_b)|$，它依赖分箱、样本量，空箱应忽略。负对数似然和 Brier 分数 $n^{-1}\sum_i\sum_k(p_{ik}-\mathbf1\{y_i=k\})^2$ 同时评价完整概率预测。数据本身的随机性与模型知识不足是不同不确定性来源，单个 softmax 最大值不会自动把它们区分开。
+
+\section{解释方法、消融与因果边界}
+输入梯度描述当前点附近的局部敏感性，显著性图把这种敏感性映回输入位置；梯度小可能来自饱和，不一定表示信息不重要。遮挡或删除特征测试较大变化，却可能产生不自然输入。注意力权重是计算中的相对分配，可帮助定位模型行为，但不能仅据权重大小断言某特征是预测的因果原因。
+
+解释应服务于可反驳的问题，例如“改变这个属性是否改变预测”，再构造保持其他条件尽量相同的样本。隐私、训练记忆和群体误差也需要具体评价：平均正确率可能掩盖某类输入的持续失败，复述训练片段需要与正常公共短语区分。对照越接近实际使用条件，结论的适用范围越清楚。
+
+\section{例题与习题}
+\begin{example}[相同准确率，不同经验校准]
+十个二分类样本中八个为正类。两个模型都始终预测正类，分别输出正类概率 $0.9$ 和 $0.8$。比较准确率和这组样本上的置信度偏差。
+\end{example}
+\begin{solve}
+准确率均为 $0.8$。第一模型的平均置信度为 $0.9$，与实际正确比例相差 $0.1$；第二模型在这组样本上相符。按二元标量平方概率误差计算，两者分别为 $0.8(0.1)^2+0.2(0.9)^2=0.17$ 和 $0.8(0.2)^2+0.2(0.8)^2=0.16$。有限样本上的相符不证明总体校准，更不证明分布变化后仍校准。
+\end{solve}
+\begin{enumerate}
+\item 取 $n=1000,|\mathcal H|=100,\delta=0.05$，计算式\eqref{eq:dl-finite-generalization}并判断其信息量。
+\item 说明多次看测试结果后继续选择模型，为什么破坏了“最终固定方案的独立评价”解释。
+\item 对同一模型分别做自然损坏和受约束扰动评估，记录预算、输入合法范围、任务指标与置信度变化。
+\end{enumerate}
+

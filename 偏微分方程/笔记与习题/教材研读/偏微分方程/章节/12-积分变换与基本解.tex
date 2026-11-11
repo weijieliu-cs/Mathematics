@@ -1,0 +1,112 @@
+% !TeX root = ../偏微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{11} % 保留原书章号。
+\chapter{积分变换与基本解}
+\label{chap:transforms}
+
+有限区间产生离散频率，全空间则产生连续频率。积分变换把空间微分转为代数乘法，保留时间方向的常微分方程。
+
+\section{傅里叶变换的约定与性质}
+对 $f\in L^1(\mathbb R^n)$ 定义\emph{傅里叶变换（Fourier transform）}
+\begin{equation}
+ \widehat f(\xi)=\int_{\mathbb R^n}e^{-ix\cdot\xi}f(x)\,dx,
+ \qquad
+ f(x)=\frac1{(2\pi)^n}\int_{\mathbb R^n}e^{ix\cdot\xi}\widehat f(\xi)\,d\xi.
+ \label{eq:fourier-convention}
+\end{equation}
+第二式在例如 $f$ 为施瓦茨函数（Schwartz function，即函数及其各阶导数快于任意负幂衰减）时成立；若 $f,\widehat f\in L^1$，则在相应连续代表上成立。$i^2=-1$，$\xi$ 为频率变量。
+
+对快速衰减的光滑函数，分部积分和富比尼定理给出
+\[
+ \widehat{\partial_{x_j}f}=i\xi_j\widehat f,\qquad
+ \widehat{\Delta f}=-|\xi|^2\widehat f,\qquad
+ \widehat{f*g}=\widehat f\,\widehat g,
+\]
+其中 $(f*g)(x)=\int f(x-y)g(y)\,dy$ 称\emph{卷积（convolution）}。逆变换可先在频域乘以 $e^{-\varepsilon|\xi|^2}$，把积分写成高斯卷积，再由逼近恒等算子性质令 $\varepsilon\downarrow0$。由密度延拓得到\emph{普朗歇尔定理（Plancherel's theorem）}
+\[
+ \|f\|_2^2=(2\pi)^{-n}\|\widehat f\|_2^2.
+\]
+对一般 $L^2$ 函数，变换先以 $L^2$ 极限定义，原积分未必逐点绝对收敛。
+
+傅里叶变换使用复数只是为了把正弦与余弦合并成 $e^{ix\cdot\xi}$，并不要求物理解取复值。实函数满足 $\widehat f(-\xi)=\overline{\widehat f(\xi)}$，正负频率互为共轭，逆变换后仍为实数。区间长度有限时边界筛选离散频率；全轴没有这类端点约束，频率连续取值，所以求和变成积分。
+
+\begin{example}[卷积如何叠加平移响应]
+在一维取 $p=\mathbf1_{[0,1]}$。对任意 $x$，$(p*p)(x)$ 等于区间 $[0,1]$ 与 $[x-1,x]$ 的交叠长度，因而
+\[
+ (p*p)(x)=\begin{cases}
+ x,&0\le x\le1,\\ 2-x,&1\le x\le2,\\0,&\text{其余位置}.
+ \end{cases}
+\]
+这个例子把卷积从符号变成一个可计算的重叠量。热核卷积则使用平滑权重，计算初值在邻域中的加权平均。卷积定理 $\widehat{p*p}=\widehat p^{\,2}$ 表示空间中的叠加平均，在频域中化成普通乘法；它不能与逐点乘积的变换混淆。
+\end{example}
+
+\section{频域中的热方程与波动方程}
+空间变换把热方程化为 $\partial_t\widehat u+\kappa|\xi|^2\widehat u=0$，因此 $\widehat u=e^{-\kappa t|\xi|^2}\widehat g$。对高斯因子作逆变换恰得式\eqref{eq:heat-kernel}。高频衰减更快，是平滑与逆向不稳定的共同原因。
+
+波动方程相应给出
+\begin{equation}
+ \widehat u(\xi,t)=\cos(c|\xi|t)\widehat g(\xi)
+ +\frac{\sin(c|\xi|t)}{c|\xi|}\widehat h(\xi).
+ \label{eq:wave-fourier}
+\end{equation}
+零频率处第二个乘子取极限 $t$。每个频率只是振荡，没有热方程那样的指数衰减。对光滑快速衰减数据可直接逆变换验证；能量数据的解释依靠普朗歇尔等式和相应范数估计。
+
+\section{拉普拉斯变换与半轴时间问题}
+若 $v(t)$ 及所需导数分段连续且至多指数增长，定义\emph{拉普拉斯变换（Laplace transform）}
+\[
+ V(s)=\mathcal Lv(s)=\int_0^\infty e^{-st}v(t)\,dt,
+\]
+其中 $\operatorname{Re}s$ 大于相应增长率。分部积分给出 $\mathcal L(v')=sV-v(0)$、$\mathcal L(v'')=s^2V-sv(0)-v'(0)$。初始数据成为代数项，不应在变换中丢失。
+
+例如半轴 $x>0$ 上 $u_t=\kappa u_{xx}$、零初值、端点温度 $u(0,t)=b(t)$，并选择在 $x\to\infty$ 衰减的解。对时间变换得 $\kappa U_{xx}-sU=0$，故
+\[
+ U(x,s)=B(s)e^{-x\sqrt{s/\kappa}},\qquad \operatorname{Re}\sqrt{s/\kappa}>0.
+\]
+选择平方根分支与舍去增长解都来自无穷远条件。当 $b(t)=1$（$t>0$）时，反演为 $u=\operatorname{erfc}(x/(2\sqrt{\kappa t}))$，其中 $\operatorname{erfc}(z)=\frac2{\sqrt\pi}\int_z^\infty e^{-r^2}\,dr$。该问题在初始边界角点不相容，解的初值按每个固定 $x>0$ 的极限理解。
+
+这里还可用相似变量独立核查反演结果。令 $z=x/(2\sqrt{\kappa t})$、$u=W(z)$，则 $u_t=-zW'/(2t)$、$\kappa u_{xx}=W''/(4t)$，故 $W''+2zW'=0$。边界与远处条件为 $W(0)=1$、$W(\infty)=0$，积分后恰得 $W=\operatorname{erfc}$。同一个解由积分变换与相似变量两种方法得到，能够检查常数 $2$、平方根尺度及边界方向是否正确。
+
+\section{卷积、基本解与杜阿梅尔公式}
+受迫热方程的频率方程为 $\partial_t\widehat u+\kappa|\xi|^2\widehat u=\widehat f$，积分因子法给出
+\[
+ \widehat u(t)=e^{-\kappa t|\xi|^2}\widehat g+
+ \int_0^t e^{-\kappa(t-s)|\xi|^2}\widehat f(s)\,ds.
+\]
+逆变换恢复第\ref{chap:heat}章的时空卷积公式。积分上限为 $t$ 表示因果性：当前状态不依赖未来源项。椭圆基本解则没有这种时间方向。遇到狄拉克点源或不可积核时，需要第\ref{chap:sobolev}章的分布语言，不能把形式变换当成已经完成的存在性证明。
+
+\section{例题与习题}
+\begin{example}
+按式\eqref{eq:fourier-convention}计算 $f(x)=e^{-a x^2}$ 的一维傅里叶变换，$a>0$。
+\end{example}
+\begin{solve}
+记变换为 $I(\xi)$。利用 $xf=-(2a)^{-1}f'$ 并分部积分，得 $I'(\xi)=-\xi I(\xi)/(2a)$。又 $I(0)=\sqrt{\pi/a}$，所以
+\[
+ \widehat f(\xi)=\sqrt{\pi/a}\,e^{-\xi^2/(4a)}.
+\]
+各维相乘得到高维公式，并检查热核的系数 $(4\pi\kappa t)^{-n/2}$。
+\end{solve}
+\begin{enumerate}
+ \item 由平移和伸缩的变量替换求 $f(x-a)$ 与 $f(bx)$（$b>0$）的傅里叶变换。
+ \item 对式\eqref{eq:wave-fourier}核查两项初始数据，特别处理 $\xi=0$。
+ \item 直接微分验证半轴的互补误差函数解，并说明其在哪个角点不连续。
+\end{enumerate}
+
+\section{经典方法的选择与相互检查}
+\label{sec:method-comparison}
+到这里，已经有了几种表面不同、实际相通的方法。特征线把方向导数变成沿曲线的常微分方程；分离变量和傅里叶变换把空间微分转成每个频率上的代数系数；格林函数把任意源写成点源响应的叠加。选择方法时，应同时看方程、区域和边界，不能只看方程名称。下表总结本书基础部分中最常见的对应关系。
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lYY@{}}
+\toprule
+问题结构 & 优先考虑的方法 & 使用时需要核查的条件\\
+\midrule
+一阶输运 & 沿特征积分，反解起点 & 初始曲线非特征，边界处区分流入与流出\\
+区间上的线性初边值问题 & 本征函数展开 & 基函数满足齐次边界，非零边界先提升\\
+全空间常系数演化 & 傅里叶变换与核卷积 & 数据可积性或增长范围，变换与求导的合法性\\
+圆盘、球或矩形平衡场 & 分离变量、泊松核或格林函数 & 原点正则性、角点相容性及边界数据\\
+一般区域上的唯一性与稳定性 & 最大值原理或能量法 & 方程的符号条件、边界项与解的正则性\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+以同一空间振型 $X(x)=\sin(\pi x/\ell)$ 为例，$-X''=\lambda_1X$。热方程把其系数变为 $e^{-\kappa\lambda_1t}$，波动方程把其系数变为 $\cos(c\sqrt{\lambda_1}t)$ 与 $\sin(c\sqrt{\lambda_1}t)$，受恒定模态源驱动的泊松方程则把系数除以 $\lambda_1$。分别出现 $\lambda_1$、$\sqrt{\lambda_1}$ 与 $\lambda_1^{-1}$，是衰减、振荡与平衡响应的区别。算完一个问题后，可以用初值、边值、量纲、极限状态与已知估计交叉检查，而不必把每个结果孤立记忆。
+

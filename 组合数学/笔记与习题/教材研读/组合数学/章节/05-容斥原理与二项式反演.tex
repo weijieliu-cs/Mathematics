@@ -1,0 +1,94 @@
+% !TeX root = ../组合数学笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{4} % 保留原书章号。
+\chapter{容斥原理与二项式反演}
+\label{ch:inclusion-exclusion}
+
+若多个坏条件可以同时出现，分别扣除它们会重复扣除交集。容斥的作用是精确修正每个对象的总贡献，而不是凭记忆交替添加若干项。使用时先确定全集，再定义坏事件及其交集。
+
+\section{容斥公式及其逐元素证明}
+
+\begin{theorem}[容斥原理（principle of inclusion--exclusion）]
+设 $\Omega$ 为有限集合，$A_1,\ldots,A_m\subseteq\Omega$，则
+\begin{equation}
+  \left|\Omega\setminus\bigcup_{i=1}^m A_i\right|
+  =\sum_{S\subseteq[m]}(-1)^{|S|}
+    \left|\bigcap_{i\in S}A_i\right|,
+  \label{eq:inclusion-exclusion}
+\end{equation}
+其中空指标交集定义为 $\Omega$。
+\end{theorem}
+\begin{proof}
+固定 $\omega\in\Omega$，假设它恰好属于 $t$ 个坏事件。右侧包含它的项对应这 $t$ 个事件的所有子集，因此其总贡献为 $\sum_{j=0}^t(-1)^j\binom tj$。当 $t=0$ 时为 $1$，当 $t>0$ 时为零，恰好与左侧的计数一致。对所有 $\omega$ 求和即得。
+\end{proof}
+
+记事件的指示函数为 $\mathbf1_A$，公式也可由 $\mathbf1_{\Omega\setminus\cup_iA_i}=\prod_i(1-\mathbf1_{A_i})$ 展开后求和得到。若只需求至少满足一个坏条件的数量，用 $|\Omega|$ 减去式\eqref{eq:inclusion-exclusion}即可；若各坏事件本来互斥，则所有二重及以上交集为空，公式退化为加法原理。
+
+\section{错排与受限位置}
+
+\begin{definition}
+$[n]$ 上的排列 $\pi$ 若对每个 $i$ 都满足 $\pi(i)\ne i$，称为\emph{错排（derangement）}。错排数记为 $D_n$，并规定 $D_0=1$。
+\end{definition}
+
+在全部 $n!$ 个排列中取坏事件 $A_i=\{\pi:\pi(i)=i\}$。指定 $j$ 个位置固定后，其余位置任意排列，交集大小为 $(n-j)!$；故
+\begin{equation}
+  D_n=\sum_{j=0}^n(-1)^j\binom nj(n-j)!
+      =n!\sum_{j=0}^n\frac{(-1)^j}{j!}.
+  \label{eq:derangements}
+\end{equation}
+例如 $D_4=24-24+12-4+1=9$。若要求恰有 $r$ 个固定点，先选这些位置，再使其余位置错排，得到 $\binom nrD_{n-r}$；若只要求至少 $r$ 个固定点，不能使用同一公式。
+
+当 $n\ge2$ 时还有 $D_n=(n-1)(D_{n-1}+D_{n-2})$。固定 $\pi(1)=j\ne1$。若 $\pi(j)=1$，删除这个二循环，剩 $D_{n-2}$ 种；若 $\pi(j)\ne1$，设 $\pi(k)=1$，删除 $1$ 并改令 $k$ 指向 $j$，得到其余 $n-1$ 个元素上的错排。逆向在指向 $j$ 的箭头中插入 $1$，说明后一对应可逆。再乘 $j$ 的 $n-1$ 种选择即得。
+
+一般禁位条件可放在 $n\times n$ 棋盘的格集 $B$ 上，格 $(i,j)$ 表示禁止 $\pi(i)=j$。令 $r_k$ 为在 $B$ 中放置 $k$ 个互不同行且互不同列的车的方法数，$r_0=1$，则合法排列数为 $\sum_{k=0}^n(-1)^k r_k(n-k)!$。这是对禁位事件容斥：只有互不同行列的事件交集非空，指定 $k$ 个像后还剩 $(n-k)!$ 种。多项式 $\sum_k r_kx^k$ 称为\emph{车多项式（rook polynomial）}。
+
+\section{满射与有上界的分配}
+
+从 $[n]$ 到 $[k]$ 的满射要求每个像值出现。设 $n\ge0,k\ge1$，令 $A_i$ 表示像中没有 $i$；禁止 $j$ 个像值后有 $(k-j)^n$ 个映射，因此满射数为
+\[
+  \sum_{j=0}^k(-1)^j\binom kj(k-j)^n.
+\]
+沿用空映射约定 $0^0=1$。例如五个不同物品放进三个不同非空盒子，方案数为 $3^5-3\cdot2^5+3=150$。
+
+对非负整数上界 $u_1,\ldots,u_k$，考虑 $x_1+\cdots+x_k=n$ 且 $0\le x_i\le u_i$。定义
+\[
+  H_k(t)=\begin{cases}\binom{t+k-1}{k-1},&t\ge0,\\0,&t<0.\end{cases}
+\]
+若指标集 $S$ 中的变量违反上界，令 $y_i=x_i-(u_i+1)$（$i\in S$），其余不变，交集计数为 $H_k(n-\sum_{i\in S}(u_i+1))$。故解数等于
+\begin{equation}
+  \sum_{S\subseteq[k]}(-1)^{|S|}
+  H_k\left(n-\sum_{i\in S}(u_i+1)\right).
+  \label{eq:bounded-compositions}
+\end{equation}
+例如 $x_1+x_2+x_3=8$、$0\le x_i\le4$ 时，总数为 $\binom{10}{2}-3\binom52=15$；两变量同时至少为 $5$ 已不可能，所以没有后续非零项。
+
+\section{二项式反演及其适用形式}
+
+\begin{theorem}[二项式反演（binomial inversion）]
+对实数或复数序列 $(a_n)_{n\ge0},(b_n)_{n\ge0}$，有
+\begin{equation}
+  b_n=\sum_{k=0}^n\binom nk a_k
+  \quad\Longleftrightarrow\quad
+  a_n=\sum_{k=0}^n(-1)^{n-k}\binom nk b_k.
+  \label{eq:binomial-inversion}
+\end{equation}
+\end{theorem}
+\begin{proof}
+代入第一式并交换有限求和，反演式右侧变为
+\[
+ \sum_{j=0}^n a_j\binom nj
+ \sum_{k=j}^n(-1)^{n-k}\binom{n-j}{k-j}.
+\]
+内层和在 $j<n$ 时为零，在 $j=n$ 时为 $1$，故结果为 $a_n$。反向代入得到同样的二项式交错和，或利用第一式作为对角元为 $1$ 的三角递推逐项唯一确定 $a_n$，从而得到等价性。
+\end{proof}
+
+例如把排列按非固定点的集合分类，得 $n!=\sum_{k=0}^n\binom nkD_k$。二项式反演立即恢复错排公式。这里的变换把“恰好使用某个支撑集”的计数汇总为“支撑集任意”的计数，反演则将二者分离。
+
+\section{习题}
+\begin{enumerate}
+  \item\label{ex:inclusion-exclusion-1} 求六个不同对象的错排数，以及恰有两个固定点的排列数。
+  \item\label{ex:inclusion-exclusion-2} 求长度为 $5$、使用字母 $A,B,C$ 且每种字母都出现的字符串数。
+  \item\label{ex:inclusion-exclusion-3} 求 $x_1+x_2+x_3+x_4=10$ 且 $0\le x_i\le3$ 的整数解数。
+  \item\label{ex:inclusion-exclusion-4} 若 $b_n=2^n$ 且 $b_n=\sum_{k=0}^n\binom nk a_k$，用反演求 $a_n$，再解释其组合意义。
+\end{enumerate}
+

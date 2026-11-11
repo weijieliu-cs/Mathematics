@@ -1,0 +1,384 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{13} % 保留原书章号。
+\chapter{聚类方法}
+\label{ch:lh-clustering}
+
+\emph{聚类}（clustering）根据样本之间的相似性，把没有类别标签的数据归入若干个\emph{簇}（cluster），以发现数据的结构。类别由所选表示、相似性度量和算法共同确定，因而聚类结果并不是脱离这些选择而唯一存在的“真实分类”。本章先说明样本间与簇间的距离，再介绍产生嵌套划分的层次聚类，以及直接优化簇内平方误差的 $k$ 均值聚类；重点是理解度量、目标函数和求解算法各自承担的作用。
+
+本章采用教材的列向量约定：给定 $n$ 个观测样本，每个样本有 $m$ 个实值属性，记
+\begin{equation}
+X=(x_1,\ldots,x_n)=[x_{rj}]_{m\times n},\qquad
+x_j=(x_{1j},\ldots,x_{mj})^{\mathsf T}\in\mathbb R^m.
+\label{eq:lh-cluster-data}
+\end{equation}
+这里 $X$ 是观测数据矩阵；即使两个样本的坐标相同，也保留不同的样本索引。因此下文严格地对索引集合 $\mathcal I=\{1,\ldots,n\}$ 进行划分，$G\subseteq\mathcal I$ 表示一个簇，$i\in G$ 表示样本 $x_i$ 属于该簇。这样可以避免把重复观测误删成集合中的同一个元素。
+
+\section{聚类的基本概念}
+\label{sec:lh-cluster-basics}
+
+\subsection{相似度或距离}
+\label{subsec:lh-cluster-similarity}
+
+\emph{相似度}（similarity）通常越大表示越相似，\emph{距离}（distance）通常越小表示越相似。严格的度量 $d$ 应满足非负性、$d(x,y)=0$ 当且仅当 $x=y$、对称性和三角不等式；聚类也可以使用不满足全部度量公理的相异度，但此时不能直接使用只对度量成立的推论。属性的单位、尺度和相关性会影响距离，故在选择算法以前就应确定哪些差异应被视为重要。
+
+\begin{definition}[闵可夫斯基距离]
+\label{def:lh-cluster-minkowski}
+对 $x_i,x_j\in\mathbb R^m$ 及 $1\leq p<\infty$，\emph{闵可夫斯基距离}（Minkowski distance）定义为
+\begin{equation}
+d_p(x_i,x_j)=\left(\sum_{r=1}^m|x_{ri}-x_{rj}|^p\right)^{1/p}.
+\label{eq:lh-cluster-minkowski}
+\end{equation}
+$p=1$ 时为\emph{曼哈顿距离}（Manhattan distance），$p=2$ 时为\emph{欧氏距离}（Euclidean distance）；其极限形式为\emph{切比雪夫距离}（Chebyshev distance）
+\begin{equation}
+d_\infty(x_i,x_j)=\max_{1\leq r\leq m}|x_{ri}-x_{rj}|.
+\label{eq:lh-cluster-chebyshev}
+\end{equation}
+\end{definition}
+
+令 $a=\max_r|x_{ri}-x_{rj}|$，则 $a\leq d_p(x_i,x_j)\leq m^{1/p}a$，由夹逼可得 $p\to\infty$ 时的极限。$p$ 增大时，较大的坐标差异受到更强的相对强调；当 $0<p<1$ 时，同样的表达式一般不满足三角不等式，不属于这里的距离族。若不同属性的单位不同，直接使用欧氏距离会使数值尺度大的属性占主导；按属性标准差缩放是一种处理方式，但标准差为零的属性必须另行处理，而且缩放本身也体现了对各属性重要性的选择。
+
+\begin{definition}[马哈拉诺比斯距离]
+\label{def:lh-cluster-mahalanobis}
+设 $S\in\mathbb R^{m\times m}$ 为对称正定矩阵，\emph{马哈拉诺比斯距离}（Mahalanobis distance），简称马氏距离，定义为
+\begin{equation}
+d_S(x_i,x_j)=\sqrt{(x_i-x_j)^{\mathsf T}S^{-1}(x_i-x_j)}.
+\label{eq:lh-cluster-mahalanobis}
+\end{equation}
+通常以数据的样本协方差矩阵作为 $S$。具体地，当 $n\geq2$ 时，令 $\bar x=n^{-1}\sum_{j=1}^n x_j$，取 $S=(n-1)^{-1}\sum_{j=1}^n(x_j-\bar x)(x_j-\bar x)^{\mathsf T}$，并要求它可逆。
+\end{definition}
+
+正定性保证 $S^{-1/2}$ 存在，故 $d_S(x_i,x_j)=\|S^{-1/2}x_i-S^{-1/2}x_j\|_2$，即先对数据进行\emph{白化}（whitening），再计算欧氏距离。若 $S=\operatorname{diag}(s_1^2,\ldots,s_m^2)$，它就是按标准差缩放后的欧氏距离；若 $S=I_m$，则退化为普通欧氏距离。\emph[caution]{协方差矩阵为单位矩阵只说明各分量不相关且方差为 $1$，一般不能推出独立。}对于可逆线性变换 $y=Ax+b$，若同时把 $S$ 变为 $ASA^{\mathsf T}$，则所得马氏距离不变；这里的尺度不变性要求数据与协方差作相应变换，而不是任意改变数据后仍固定原来的 $S$。
+
+样本协方差矩阵的秩至多为 $\min\{m,n-1\}$，所以 $n\leq m$ 时必然不可逆，属性之间有线性依赖时也会出现奇异性。此时不能直接代入式~\eqref{eq:lh-cluster-mahalanobis}；可在适当子空间中计算，或用 $S+\lambda I_m$、$\lambda>0$ 正则化。使用伪逆则可能使不同点的距离为零，因而一般只得到\emph{伪度量}（pseudometric）；这些处理改变或限制了所采用的几何结构。
+
+\begin{definition}[相关系数与夹角余弦]
+\label{def:lh-cluster-correlation-cosine}
+令 $a_i=m^{-1}\sum_{r=1}^m x_{ri}$、$u_i=x_i-a_i\mathbf1_m$，其中 $\mathbf1_m$ 为全 $1$ 向量。当 $u_i,u_j$ 均非零时，两个样本向量的\emph{相关系数}（correlation coefficient）为
+\begin{equation}
+r_{ij}=\frac{u_i^{\mathsf T}u_j}{\|u_i\|_2\|u_j\|_2}
+=\frac{\sum_{r=1}^m(x_{ri}-a_i)(x_{rj}-a_j)}
+{\sqrt{\sum_{r=1}^m(x_{ri}-a_i)^2}\sqrt{\sum_{r=1}^m(x_{rj}-a_j)^2}}.
+\label{eq:lh-cluster-correlation}
+\end{equation}
+当 $x_i,x_j$ 均非零时，\emph{夹角余弦}（cosine similarity）为
+\begin{equation}
+s_{ij}=\frac{x_i^{\mathsf T}x_j}{\|x_i\|_2\|x_j\|_2}.
+\label{eq:lh-cluster-cosine}
+\end{equation}
+两者都位于 $[-1,1]$，相关系数是将两个向量分别按其坐标均值中心化之后的夹角余弦。
+\end{definition}
+
+这里的相关系数是在两个已观测向量的对应坐标之间计算的描述量，不能仅凭该式就把属性坐标视为独立同分布的随机样本。两种相似度都忽略正比例缩放，而相关系数还忽略向量各坐标共同增加的常数。$r_{ij}$ 或 $s_{ij}$ 接近 $1$ 表示同向，接近 $-1$ 表示反向；只有在应用明确把反向模式也看成相似时，才宜使用 $|r_{ij}|$。不能把“相关系数绝对值大”与“相关系数大”混为同一种规则。常量向量的相关系数、零向量的余弦都未定义；对于含负坐标的数据，余弦接近 $0$ 表示近乎正交，并不涵盖全部不相似情形。
+
+\begin{example}
+\label{ex:lh-cluster-metric-choice}
+取 $u=(1,2,3)^{\mathsf T}$、$v=(2,4,6)^{\mathsf T}$、$w=(1,2,4)^{\mathsf T}$，比较欧氏距离与余弦相似度给出的关系。
+\end{example}
+\begin{solve}
+有 $\|u-w\|_2=1<\sqrt{14}=\|u-v\|_2$，故按位置距离看，$w$ 更接近 $u$。但 $v=2u$，所以 $s(u,v)=1$，而 $s(u,w)=17/\sqrt{294}<1$，按方向相似度看，$v$ 更接近 $u$。两种结论分别保留绝对数值与相对方向，选择哪一种应由问题决定。
+\end{solve}
+
+若希望把余弦用于最小相异度的合并规则，可以使用 $1-s_{ij}$，但它一般不满足三角不等式。对单位化向量 $\widehat x_i=x_i/\|x_i\|_2$，有 $\|\widehat x_i-\widehat x_j\|_2^2=2(1-s_{ij})$，所以 $\sqrt{2(1-s_{ij})}$ 是单位球面上的欧氏距离。相似度到相异度的转换应与后续规则相配合，不能一面把较大的值解释为更相似，一面仍选择数值最小的一对。
+
+\subsection{类或簇}
+\label{subsec:lh-cluster-clusters}
+
+\begin{definition}[硬聚类与软聚类]
+\label{def:lh-cluster-partition}
+\emph{硬聚类}（hard clustering）把 $\mathcal I$ 划分为若干非空子集 $G_1,\ldots,G_k$，满足
+\begin{equation}
+G_\ell\cap G_q=\varnothing\quad(\ell\ne q),\qquad
+\bigcup_{\ell=1}^kG_\ell=\mathcal I.
+\label{eq:lh-cluster-partition}
+\end{equation}
+每个样本恰属于一个簇。\emph{软聚类}（soft clustering）则允许以多个隶属程度或归属概率描述一个样本，例如用 $r_{i\ell}\geq0$、$\sum_{\ell=1}^k r_{i\ell}=1$ 表示其对各簇的归属；允许类别重叠的描述也比硬划分更宽泛。本章两个主要算法都输出硬划分。
+\end{definition}
+
+簇是否“足够紧密”还需要额外标准。设 $G\subseteq\mathcal I$，$n_G=|G|\geq2$，$d_{ij}=d(x_i,x_j)$。给定 $T>0$，教材依次考虑四类约束：所有点对都近、每个点至少有一个近邻、每个点到其余点的平均距离小，以及全簇的平均距离小且极端距离受控。将不同点对明确写出，分别为
+\begin{align}
+&d_{ij}\leq T,\qquad &&\forall i,j\in G,
+\label{eq:lh-cluster-diameter-condition}\\
+&\forall i\in G\ \exists j\in G\setminus\{i\},\qquad &&d_{ij}\leq T,
+\label{eq:lh-cluster-neighbor-condition}\\
+&\frac1{n_G-1}\sum_{\substack{j\in G\\j\ne i}}d_{ij}\leq T,
+&&\forall i\in G,
+\label{eq:lh-cluster-point-average}\\
+&\frac1{n_G(n_G-1)}\sum_{i\in G}\sum_{\substack{j\in G\\j\ne i}}d_{ij}\leq T,
+\qquad &&d_{ij}\leq V\quad(\forall i,j\in G),
+\label{eq:lh-cluster-global-average}
+\end{align}
+其中最后一种另给 $V>0$。这些是不同的紧密性标准，并非互相等价的簇定义，也不会单独决定整个数据集应如何划分。单元素簇可约定直径为零，但上述含 $n_G-1$ 的平均距离条件不直接适用。
+
+\begin{proposition}[紧密性条件之间的关系]
+\label{prop:lh-cluster-conditions}
+当 $n_G\geq2$ 时，在同一阈值 $T$ 下，式~\eqref{eq:lh-cluster-diameter-condition} 蕴含式~\eqref{eq:lh-cluster-point-average}，后者又蕴含式~\eqref{eq:lh-cluster-neighbor-condition}。若还要求 $V\geq T$，则式~\eqref{eq:lh-cluster-diameter-condition} 也蕴含式~\eqref{eq:lh-cluster-global-average}。
+\end{proposition}
+\begin{proof}
+若每个 $d_{ij}\leq T$，则固定 $i$ 后，其余 $n_G-1$ 个距离的平均值不超过 $T$；再对 $i$ 平均，全簇的平均距离也不超过 $T$。若某个点到其他所有点的距离都大于 $T$，其平均值也大于 $T$，故平均值约束必保证至少存在一个不超过 $T$ 的距离。最后，$d_{ij}\leq T\leq V$ 给出额外的最大距离约束。
+\end{proof}
+
+不能把上述结论理解为对任意预先指定的 $V$ 都成立：若 $V<T$，第一个条件不保证距离小于 $V$。逆向蕴含也一般不成立。例如直线上的四点 $0,0.1,10,10.1$ 在 $T=0.2$ 时各有近邻，却不满足直径约束；三点 $0,1,2$ 在 $T=1.5$ 时，每点到其余点的平均距离都不超过 $1.5$，直径却为 $2$。前者也说明“每点有近邻”甚至不能保证阈值邻接图连通。
+
+\begin{definition}[簇的中心、直径与散布]
+\label{def:lh-cluster-statistics}
+对非空簇 $G$，其\emph{中心}（centroid）、\emph{直径}（diameter）和\emph{散布矩阵}（scatter matrix）分别为
+\begin{align}
+\mu_G&=\frac1{n_G}\sum_{i\in G}x_i,
+\label{eq:lh-cluster-centroid}\\
+D_G&=\max_{i,j\in G}d_{ij},
+\label{eq:lh-cluster-diameter}\\
+A_G&=\sum_{i\in G}(x_i-\mu_G)(x_i-\mu_G)^{\mathsf T}.
+\label{eq:lh-cluster-scatter}
+\end{align}
+当 $n_G\geq2$ 时，本笔记采用通常的样本协方差归一化 $S_G=A_G/(n_G-1)$；若把簇视为等权经验分布，其协方差则为 $A_G/n_G$。两种归一化应加以区分，分母由样本数决定，$A_G,S_G$ 的维度均为 $m\times m$。
+\end{definition}
+
+中心是坐标均值，不一定是实际样本，也不一定处于高密度区域。散布矩阵保留各方向的变化及其联系，欧氏情形下其迹满足 $\operatorname{tr}(A_G)=\sum_{i\in G}\|x_i-\mu_G\|_2^2$，恰好是该簇对 $k$ 均值目标的贡献。这里把 $S_G$ 称为样本协方差是代数上的约定；若要进一步声称它是某个总体协方差的无偏估计，还需相应的随机抽样假设，数据依赖的聚类结果本身不自动保证该性质。
+
+\subsection{类与类之间的距离}
+\label{subsec:lh-cluster-linkage}
+
+对于两个非空簇 $G_p,G_q$，簇间相异度也称\emph{连接}（linkage），它把样本间的比较扩展到簇的比较。教材列出的四种规则为
+\begin{align}
+D_{\mathrm{single}}(G_p,G_q)&=\min_{i\in G_p,\,j\in G_q}d_{ij},
+\label{eq:lh-cluster-single-linkage}\\
+D_{\mathrm{complete}}(G_p,G_q)&=\max_{i\in G_p,\,j\in G_q}d_{ij},
+\label{eq:lh-cluster-complete-linkage}\\
+D_{\mathrm{centroid}}(G_p,G_q)&=d(\mu_{G_p},\mu_{G_q}),
+\label{eq:lh-cluster-centroid-linkage}\\
+D_{\mathrm{average}}(G_p,G_q)&=\frac1{n_pn_q}\sum_{i\in G_p}\sum_{j\in G_q}d_{ij},
+\label{eq:lh-cluster-average-linkage}
+\end{align}
+其中 $n_p=|G_p|$、$n_q=|G_q|$，依次称为\emph{单连接}（single linkage，最短距离）、\emph{完全连接}（complete linkage，最长距离）、中心距离和平均距离。中心距离要求样本处于可以计算均值的空间；只给出一般相异度矩阵时，单连接、完全连接以及平均连接仍可通过汇总跨簇点对计算，中心距离则未必有定义。
+
+单连接只需存在一对近邻就可能合并，容易沿一串近邻形成长链；完全连接要求最远的跨簇点对也足够接近，倾向于限制簇的直径。平均连接综合所有跨簇点对，中心距离只比较两个均值，可能忽略形状与内部离散程度。即使点间 $d$ 是度量，这些连接规则也不一定在所有簇的集合上构成度量，例如不同簇的均值可以相同。连接方式的改变会改变后续合并次序，并非仅改变距离的计算速度。
+
+\section{层次聚类}
+\label{sec:lh-hierarchical-clustering}
+
+\emph{层次聚类}（hierarchical clustering）构造一系列彼此嵌套的划分。\emph{聚合聚类}（agglomerative clustering）从单元素簇出发，逐次合并；\emph{分裂聚类}（divisive clustering）从包含全部样本的一个簇出发，逐次拆分。每一层仍是硬划分，但不同层之间保留包含关系；只需在某一层截断，就可得到指定簇数的聚类结果。分裂方法还必须明确选择哪个簇以及如何二分，仅说“取最远的两个点”并不能决定其余样本的归属。
+
+聚合方法需要确定样本间相异度、簇间连接和停止条件。以下用最小连接值作为合并规则，输入 $n$ 个样本及其距离矩阵 $D=[d_{ij}]_{n\times n}$，输出合并记录及最终划分：先置 $\mathcal G^{(0)}=\{\{1\},\ldots,\{n\}\}$；第 $t$ 步在当前不同簇中选择
+\begin{equation}
+(A,B)\in\operatorname*{arg\,min}_{\substack{G_p,G_q\in\mathcal G^{(t)}\\p<q}}
+D(G_p,G_q),\qquad
+\mathcal G^{(t+1)}=(\mathcal G^{(t)}\setminus\{A,B\})\cup\{A\cup B\}.
+\label{eq:lh-cluster-agglomerative-step}
+\end{equation}
+记录被合并的两个簇及其连接值，并更新新簇与其余簇的连接；并列时按固定规则选择。若目标是完整层次结构，则执行 $n-1$ 次合并；若只需 $k$ 个簇，则在 $n-k$ 次合并后停止。若限制合并后簇的直径，则应在接受合并前检查该约束；单连接值小不保证新簇的直径小。
+
+\begin{proposition}[连接值的递推更新]
+\label{prop:lh-cluster-linkage-update}
+设 $U=A\cup B$，$A,B,C$ 为互不相交的非空簇，则
+\begin{align}
+D_{\mathrm{single}}(U,C)&=\min\{D_{\mathrm{single}}(A,C),D_{\mathrm{single}}(B,C)\},
+\notag\\
+D_{\mathrm{complete}}(U,C)&=\max\{D_{\mathrm{complete}}(A,C),D_{\mathrm{complete}}(B,C)\},
+\notag\\
+D_{\mathrm{average}}(U,C)&=\frac{|A|D_{\mathrm{average}}(A,C)+|B|D_{\mathrm{average}}(B,C)}{|A|+|B|}.
+\label{eq:lh-cluster-linkage-updates}
+\end{align}
+中心距离可先用 $\mu_U=(|A|\mu_A+|B|\mu_B)/(|A|+|B|)$ 更新中心，再计算 $d(\mu_U,\mu_C)$。
+\end{proposition}
+\begin{proof}
+$U$ 与 $C$ 的点对集合是 $A$ 与 $C$、$B$ 与 $C$ 的点对集合的并，故最小值与最大值分别按上述方式更新。平均连接的距离总和拆成两部分，分别为 $|A||C|D_{\mathrm{average}}(A,C)$ 与 $|B||C|D_{\mathrm{average}}(B,C)$，再除以 $(|A|+|B|)|C|$ 即得结论。中心更新则直接来自均值定义。
+\end{proof}
+
+初始欧氏距离矩阵的计算需要 $O(n^2m)$ 时间和 $O(n^2)$ 存储。若每轮扫描当前所有簇对寻找最小值，总扫描量为 $\sum_{q=2}^nO(q^2)=O(n^3)$；结合式~\eqref{eq:lh-cluster-linkage-updates}，单连接、完全连接或平均连接的一种直接实现的总时间为 $O(n^2m+n^3)$。教材给出的 $O(n^3m)$ 可理解为在合并过程中反复以 $m$ 维运算重新计算距离时的粗上界，不能视为所有实现必需的复杂度。以上区分了输入距离的构造、最小值搜索及连接值更新三个开销来源。
+
+\begin{example}
+\label{ex:lh-cluster-agglomerative-five}
+教材的五样本例采用单连接。为突出合并所需的信息，记 $G_i=\{i\}$，已知最小的非对角距离为 $d_{35}=1$；合并 $G_3,G_5$ 后，$G_6=\{3,5\}$ 到 $G_1,G_2,G_4$ 的单连接值依次为 $2,5,5$，其余三对距离为 $d_{12}=7$、$d_{14}=9$、$d_{24}=4$。求后续合并次序。
+\end{example}
+\begin{solve}
+第一步在连接值 $1$ 处得到 $G_6$。随后最小连接值为 $2$，故把 $G_1$ 与 $G_6$ 合并为 $G_7=\{1,3,5\}$。利用最小值更新，有
+\[
+D_{\mathrm{single}}(G_7,G_2)=\min\{7,5\}=5,\qquad
+D_{\mathrm{single}}(G_7,G_4)=\min\{9,5\}=5.
+\]
+由于 $D_{\mathrm{single}}(G_2,G_4)=4$，下一步合并为 $G_8=\{2,4\}$，最后在连接值 $5$ 处把 $G_7,G_8$ 合并。完整合并值依次为 $1,2,4,5$；若需要两个簇，应停在 $\{\{1,3,5\},\{2,4\}\}$。这些记录即可表达教材树状图中的包含关系，无须另行假设各点的坐标。
+\end{solve}
+
+单连接的合并值不会下降，因为新连接是两个旧连接的最小值，而被选中的合并值已经是当前全局最小值；完全连接和平均连接也有相应的单调性。但中心连接可能出现新合并值低于先前合并值的情形，不能不加条件地把所有层次聚类都理解为合并高度单调的树。聚合过程一旦合并便不再拆开，早期选择会影响整个层次结构。
+
+作为教材分裂聚类习题的一种具体构造，可先计算所有点间距离，从 $\{\mathcal I\}$ 出发，每轮选取直径最大的非单元素簇 $G$，找出其中最远的一对样本作为两个种子，把其他样本指派给距离较近的种子，按固定规则处理并列，并使两个种子分别保留在两个子簇中；重复至簇数达到指定的 $k\leq n$。若所选簇直径为零，则按索引直接分成两个非空部分。对于含 $s$ 个点的簇，扫描最远点对需要 $O(s^2)$ 次距离查表；在最不均衡的连续分裂中，$\sum_{s=2}^nO(s^2)=O(n^3)$，故缓存距离的一种朴素实现总时间为 $O(n^2m+n^3)$、存储为 $O(n^2)$。这是一种明确的分裂启发式，复杂度依赖所选规则，不能作为所有分裂聚类算法的统一结论。
+
+\section{\texorpdfstring{$k$}{k} 均值聚类}
+\label{sec:lh-kmeans}
+
+\subsection{模型}
+\label{subsec:lh-kmeans-model}
+
+\emph{$k$ 均值聚类}（$k$-means clustering）给定簇数 $k$，通过中心描述各簇，得到平坦的硬划分。设 $1\leq k\leq n$，用满射
+\begin{equation}
+C:\mathcal I\longrightarrow\{1,\ldots,k\},\qquad G_\ell=\{i:C(i)=\ell\}
+\label{eq:lh-kmeans-assignment}
+\end{equation}
+表示划分；满射条件保证每个簇非空。不同的簇编号可以描述同一个无标号划分，故模型的内容是哪些样本同属一簇，而不是编号本身。$k=1$ 时全部样本属于一个簇，$k=n$ 时可令每个观测独成一簇；通常研究 $1<k<n$。
+
+\subsection{策略}
+\label{subsec:lh-kmeans-objective}
+
+对划分 $C$，令 $n_\ell=|G_\ell|$、$\mu_\ell=n_\ell^{-1}\sum_{C(i)=\ell}x_i$。$k$ 均值以\emph{簇内平方和}（within-cluster sum of squares）为目标，求解
+\begin{equation}
+\min_{\substack{C:\mathcal I\to\{1,\ldots,k\}\\C\text{ 为满射}}}
+W(C),\qquad
+W(C)=\sum_{\ell=1}^k\sum_{C(i)=\ell}\|x_i-\mu_\ell\|_2^2.
+\label{eq:lh-kmeans-wcss}
+\end{equation}
+这一目标衡量同簇样本围绕均值的离散程度，不是所有簇间距离的直接最大化。虽然教材在目标中使用欧氏距离平方，\emph[caution]{平方欧氏距离本身一般不满足三角不等式}：在直线上，$|0-2|^2=4>|0-1|^2+|1-2|^2=2$。因此应把它看作此处的平方损失，而不能自动赋予普通欧氏距离的全部性质。
+
+\begin{proposition}[均值的最优性与成对距离表示]
+\label{prop:lh-kmeans-centroid-optimum}
+对非空簇 $G$ 及任意中心 $c\in\mathbb R^m$，有
+\begin{align}
+\sum_{i\in G}\|x_i-c\|_2^2
+&=\sum_{i\in G}\|x_i-\mu_G\|_2^2+n_G\|c-\mu_G\|_2^2,
+\label{eq:lh-kmeans-variance-decomposition}\\
+\sum_{i\in G}\|x_i-\mu_G\|_2^2
+&=\frac1{2n_G}\sum_{i\in G}\sum_{j\in G}\|x_i-x_j\|_2^2.
+\label{eq:lh-kmeans-pairwise}
+\end{align}
+因而固定簇成员时，平方损失的唯一最优中心为 $\mu_G$。
+\end{proposition}
+\begin{proof}
+将 $x_i-c=(x_i-\mu_G)+(\mu_G-c)$ 展开平方并求和，交叉项因 $\sum_{i\in G}(x_i-\mu_G)=0$ 消失，即得式~\eqref{eq:lh-kmeans-variance-decomposition}。另一方面，展开所有点对的平方距离可得
+\[
+\sum_{i,j\in G}\|x_i-x_j\|_2^2
+=2n_G\sum_{i\in G}\|x_i\|_2^2-2\left\|\sum_{i\in G}x_i\right\|_2^2
+=2n_G\sum_{i\in G}\|x_i-\mu_G\|_2^2.
+\]
+除以 $2n_G$ 即得第二式。由于 $n_G>0$，第一式的附加项仅在 $c=\mu_G$ 时为零。
+\end{proof}
+
+为说明为什么不能直接枚举最优划分，设 $S(n,k)$ 为把 $n$ 个有区别的观测划分成 $k$ 个无标号非空簇的数量，即第二类斯特林数（Stirling number of the second kind），则
+\begin{equation}
+S(n,k)=\frac1{k!}\sum_{q=0}^k(-1)^{k-q}\binom{k}{q}q^n.
+\label{eq:lh-kmeans-stirling}
+\end{equation}
+其推导是先数到 $k$ 个有标号簇的满射：全部映射有 $k^n$ 个，按哪些簇为空使用容斥原理，得到右端求和；每个无标号非空划分恰对应 $k!$ 种簇标号，再除以 $k!$。对固定 $k\geq2$、$n\to\infty$，主项为 $k^n/k!$，其余项相对主项趋于零，故 $S(n,k)\sim k^n/k!$。这里的指数增长有明确的参数范围；$k=1$ 或 $k=n$ 时都只有一个无标号划分。教材指出一般欧氏平方和聚类的全局优化是 NP 困难问题，而候选划分多这一计数事实本身并不是 NP 困难性的证明。
+
+\subsection{算法}
+\label{subsec:lh-kmeans-algorithm}
+
+引入独立的中心变量 $M=(c_1,\ldots,c_k)$，把目标写为
+\begin{equation}
+J(C,M)=\sum_{i=1}^n\|x_i-c_{C(i)}\|_2^2.
+\label{eq:lh-kmeans-joint-objective}
+\end{equation}
+若固定 $M$ 且暂不强制非空约束，每个样本的归属可以单独优化，最优选择是最近中心；若固定一个非空划分 $C$，由命题~\ref{prop:lh-kmeans-centroid-optimum}，最优中心就是各簇均值。这给出教材采用的交替更新，也常称为 Lloyd 迭代。
+
+算法的输入为 $X$、$k$、初始中心 $M^{(0)}$、最大迭代次数及可选容差，输出为近似划分与中心。可随机选择 $k$ 个样本作为初始中心；随机性只来自初始化，给定初始化及并列处理规则后，后续精确更新是确定的。第 $t$ 轮执行
+\begin{align}
+C^{(t)}(i)&\in\operatorname*{arg\,min}_{1\leq\ell\leq k}
+\|x_i-c_\ell^{(t)}\|_2^2,\qquad i=1,\ldots,n,
+\label{eq:lh-kmeans-assignment-step}\\
+c_\ell^{(t+1)}&=\frac1{n_\ell^{(t)}}\sum_{C^{(t)}(i)=\ell}x_i,
+\qquad n_\ell^{(t)}=|\{i:C^{(t)}(i)=\ell\}|>0.
+\label{eq:lh-kmeans-center-step}
+\end{align}
+首次分配遇到等距时可选编号最小的中心；以后若原归属仍是最近中心之一，则保持原归属，否则按固定编号选择。更新均值后，若划分与上轮相同则停止；若采用中心位移或目标改变量小于容差的规则，则得到的是容差意义下的近似结果。达到迭代上限时也返回当前划分及其均值，并注明尚未满足所选收敛条件。
+
+\begin{notealert}[type=caution,title={空簇必须单独处理}]
+最近中心分配可能产生空簇，随机抽取不同索引也不能排除重复坐标或后续空簇。若 $n_\ell^{(t)}=0$，式~\eqref{eq:lh-kmeans-center-step} 无定义。一种保持 $k$ 个非空簇的修复是：从至少含两个样本的簇中取一个样本，单独组成空缺簇，并把新中心设为该样本，再更新各簇均值。$n\geq k$ 保证有空缺时总能找到这样的供体簇。此移动把被移样本对旧中心的非负损失改为零，其他样本先保留原中心，随后重算均值又不增加损失，故该修复不增大 $J$；它不再是固定全部中心后的纯最近中心分配，下面的有限终止证明则明确以无空簇情形为条件。
+\end{notealert}
+
+\begin{example}
+\label{ex:lh-kmeans-five}
+教材给出五个二维样本
+\[
+X=\begin{pmatrix}0&0&1&5&5\\2&0&0&0&2\end{pmatrix}.
+\]
+取 $k=2$，先以 $x_1=(0,2)^{\mathsf T}$、$x_2=(0,0)^{\mathsf T}$ 为初始中心，求算法的最终划分。
+\end{example}
+\begin{solve}
+$x_1,x_2$ 分别属于自己的中心；$x_3,x_4,x_5$ 到两个初始中心的平方距离依次为 $(5,1)$、$(29,25)$、$(25,29)$。因此第一轮得到
+\[
+G_1=\{1,5\},\qquad G_2=\{2,3,4\},\qquad
+c_1=(5/2,2)^{\mathsf T},\quad c_2=(2,0)^{\mathsf T}.
+\]
+到这两个新中心的平方距离按样本索引排列为
+\[
+\begin{pmatrix}
+25/4&8\\41/4&4\\25/4&1\\41/4&9\\25/4&13
+\end{pmatrix}.
+\]
+逐行选择较小值后归属不变，故算法停止。最终簇内平方和为 $W=25/2+(4+1+9)=53/2$。停止的原因是该划分与均值相互一致，不能仅据此声称它在全部二簇划分中最优。
+\end{solve}
+
+稠密数据的一次分配需要 $O(nkm)$ 时间，重算均值需要 $O(nm)$ 时间，因此每轮为 $O(nkm)$；运行 $T_{\mathrm{iter}}$ 轮的总时间为 $O(T_{\mathrm{iter}}nkm)$，还需计入所采用的初始化与空簇处理开销。输入数据占 $O(nm)$ 存储，若不保存全部点到中心的距离，额外只需 $O(n+km)$ 存储。教材给出的 $O(nkm)$ 应理解为单轮量级，而不是与迭代轮数无关的完整运行时间。
+
+\subsection{算法特性}
+\label{subsec:lh-kmeans-properties}
+
+\begin{proposition}[目标单调性与有条件的有限终止]
+\label{prop:lh-kmeans-convergence}
+若每轮分配后各簇均非空，并使用精确算术、精确最近中心分配及均值更新，则交替迭代的目标值不增，且因非负而收敛。若并列时保持原归属，则以划分不变为停止条件的算法有限步终止。这个结论不保证全局最优。
+\end{proposition}
+\begin{proof}
+固定中心时，式~\eqref{eq:lh-kmeans-assignment-step} 对每项分别取最小值；固定划分时，式~\eqref{eq:lh-kmeans-center-step} 由均值的最优性最小化平方和。因此
+\begin{equation}
+J(C^{(t+1)},M^{(t+2)})
+\leq J(C^{(t+1)},M^{(t+1)})
+\leq J(C^{(t)},M^{(t+1)}).
+\label{eq:lh-kmeans-descent}
+\end{equation}
+其中首尾两项分别是 $W(C^{(t+1)})$ 与 $W(C^{(t)})$，故目标单调且下有界。进一步，保持等距点原归属时，只要有样本改变归属，它到新中心的距离就严格小于到原中心的距离，第二个不等式便严格成立。无空簇划分的数量有限，而每个划分经均值更新后对应唯一的 $W(C)$；严格下降时不可能重复访问旧划分，故最终必出现归属不变并停止。
+\end{proof}
+
+终止时，每个样本属于一个最近中心，每个中心是其簇均值，因而分别固定两块变量时都不能通过单独优化另一块来降低目标。这是交替优化的固定点条件；它不意味着同时改变划分与中心也不能改进。仅凭“非负目标单调下降”本身也只能推出目标值收敛，不能自动推出划分有限步稳定，后者还使用了有限划分数及严格下降规则。
+
+\begin{example}
+\label{ex:lh-kmeans-initialization}
+对例~\ref{ex:lh-kmeans-five} 的同一组数据，改以 $x_1$ 与 $x_5$ 为初始中心，比较所得结果。
+\end{example}
+\begin{solve}
+第一次分配得到 $G_1=\{1,2,3\}$、$G_2=\{4,5\}$，其均值为 $c_1=(1/3,2/3)^{\mathsf T}$、$c_2=(5,1)^{\mathsf T}$。再次按最近中心分配，归属不变，故这一划分也为固定点。它的平方和为
+\[
+W=\left(\frac{17}{9}+\frac59+\frac89\right)+(1+1)
+=\frac{16}{3}<\frac{53}{2}.
+\]
+因此例~\ref{ex:lh-kmeans-five} 的固定点确实不是全局最优；本例给出了一个更优划分，但尚未通过枚举或其他下界证明本例划分就是全局最优解。
+\end{solve}
+
+初始化决定算法从哪里开始下降。可多次随机初始化，比较所得 $W$ 并保留较小者，也可先用层次聚类得到 $k$ 个簇，再取各簇中心或选取距其中心最近的样本作为初始中心。多次运行增加寻找较好固定点的机会，额外计算量约随运行次数增加，但有限次重启仍不构成全局最优保证。中心从某一初值移动的幅度也没有普遍的小量保证，不能由最近中心分配规则推出中心始终靠近初始位置。
+
+平方损失使离中心很远的点具有较大影响，均值也可能被少量离群样本拉动。固定中心后，第 $\ell$ 个簇的判定区域由对所有 $q\ne\ell$ 成立的 $\|x-c_\ell\|_2^2\leq\|x-c_q\|_2^2$ 确定；若各中心互异，这些条件展开后给出以超平面分界的\emph{沃罗诺伊划分}（Voronoi partition），边界上的并列再按指定规则处理。它适合用欧氏空间中围绕中心的紧密程度刻画数据；对于弯曲、细长或密度差异很大的结构，较小的平方和未必对应希望发现的簇。更换相异度后也不能机械保留均值更新，例如一维绝对误差之和由中位数最小化，原有更新公式必须由新目标重新推导。
+
+簇数 $k$ 需要结合数据与任务选择。记 $W_k^*$ 为恰有 $k$ 个非空簇时的全局最小平方和，则
+\begin{equation}
+W_{k+1}^*\leq W_k^*\quad(1\leq k<n),\qquad W_n^*=0.
+\label{eq:lh-kmeans-k-monotone}
+\end{equation}
+因为总能把一个至少含两个样本的簇再拆成两个，先让两个新簇共用旧中心，损失保持不变，再分别取均值，损失不会增加。于是不能仅靠最小训练平方和来确定有意义的 $k$，否则总能偏好更细的划分；不同 $k$ 下的有限次算法输出甚至未必服从上述全局最优值的单调性。
+
+教材建议观察簇数增加时平均直径等紧密性指标的变化。下降由快转缓的“肘部”可作为探索线索，但其存在、唯一性及与任务所需簇数的一致性都没有一般保证；任意运行所得平均直径也不必单调。二分查找要求事先存在明确且单调的判定条件，不能仅凭一条可能有拐点的经验曲线就保证找到“最优 $k$”。实际比较还需结合簇的可解释性、重采样或重启后的稳定性，以及领域中需要保留的结构。
+
+\begin{remark}[与高斯混合模型及 EM 的联系]
+\label{rem:lh-kmeans-gmm}
+为比较硬归属与概率归属，设潜在类别 $Z\in\{1,\ldots,k\}$，$P(Z=\ell)=1/k$，且观测随机向量 $U$ 满足 $U\mid Z=\ell\sim\mathcal N(c_\ell,\sigma^2I_m)$，其中各混合分量共享固定的 $\sigma>0$。给定观测 $x_i$，EM 的 E 步计算责任度
+\begin{equation}
+r_{i\ell}=P(Z=\ell\mid U=x_i)
+=\frac{\exp(-\|x_i-c_\ell\|_2^2/(2\sigma^2))}
+{\sum_{q=1}^k\exp(-\|x_i-c_q\|_2^2/(2\sigma^2))},
+\label{eq:lh-kmeans-gmm-responsibility}
+\end{equation}
+M 步对均值使用加权平均 $c_\ell=\sum_i r_{i\ell}x_i/\sum_i r_{i\ell}$。有限 $\sigma>0$ 且中心有限时，每个样本对各簇都有严格为正的责任度，而 $k$ 均值使用取 $0$ 或 $1$ 的硬归属。固定观测与中心，当 $\sigma\to0$ 且每个样本的最近中心唯一时，责任度趋于对应最近中心的示性值；若最近中心并列，极限不必是单一硬归属。
+
+这一联系也可以从目标看出。令 $a_i=\min_\ell\|x_i-c_\ell\|_2^2$，则
+\[
+a_i\leq-2\sigma^2\log\left(\frac1k\sum_{\ell=1}^k
+e^{-\|x_i-c_\ell\|_2^2/(2\sigma^2)}\right)
+\leq a_i+2\sigma^2\log k.
+\]
+左边利用每个指数项至多为 $e^{-a_i/(2\sigma^2)}$，右边利用至少有一项等于这个值。因 $n,k$ 有限，求和并令 $\sigma\to0$，便得到 $\sum_i a_i$：混合模型负对数似然去掉与中心无关的项并乘以 $2\sigma^2$ 后，其极限是最近中心平方误差。因此 $k$ 均值可与这一受限球形高斯模型的小方差极限联系起来，但一般的高斯混合模型还可估计混合权重和各分量协方差，普通 EM 并不等同于 $k$ 均值。两者都可能受初始化影响，输出形式与所优化的目标则不同。
+\end{remark}
+
+
+% 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-15.pdf。
+% 对应教材第 15 章，原书第 271--295 页；沿用本文的自动章节编号。
+
+
+
+

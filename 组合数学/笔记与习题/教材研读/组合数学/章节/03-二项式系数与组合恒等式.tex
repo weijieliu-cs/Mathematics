@@ -1,0 +1,81 @@
+% !TeX root = ../组合数学笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{2} % 保留原书章号。
+\chapter{二项式系数与组合恒等式}
+\label{ch:identities}
+
+一个组合恒等式通常意味着同一对象集具有两种描述。代数计算可以验证等式，组合证明则进一步说明两侧为何应当相等。带权和也能纳入这一观点：权重往往对应为对象增加一个标记或一个附加选择。
+
+\section{二项式定理与多项式定理}
+
+\begin{theorem}
+对非负整数 $n$ 及可交换的变量 $x,y,x_1,\ldots,x_r$，有
+\[
+  (x+y)^n=\sum_{k=0}^n\binom nk x^ky^{n-k},\qquad
+  (x_1+\cdots+x_r)^n=
+  \sum_{\substack{n_1+\cdots+n_r=n\\n_i\ge0}}
+  \binom{n}{n_1,\ldots,n_r}\prod_{i=1}^r x_i^{n_i}.
+\]
+\end{theorem}
+\begin{proof}
+展开乘积时，从每个因子中选择一个加项。得到 $x^ky^{n-k}$ 恰需在 $n$ 个因子中指定 $k$ 个选择 $x$，所以系数为 $\binom nk$。一般情形先指定哪些因子选择各个 $x_i$，计数正是式\eqref{eq:multinomial-count}。
+\end{proof}
+
+这分别是\emph{二项式定理（binomial theorem）}与\emph{多项式定理（multinomial theorem）}。它们首先是有限多项式恒等式，代入数值不会产生收敛问题；非整数指数的无限展开属于另一层次，不能由有限乘积的论证直接得到。
+
+\section{Pascal 恒等式与边界条件}
+
+设 $n\ge1$。按一个 $k$ 元子集是否包含指定元素 $n$ 分类，得到
+\[
+  \binom nk=\binom{n-1}{k-1}+\binom{n-1}{k}.
+\]
+不包含 $n$ 时从 $[n-1]$ 选 $k$ 个，包含时还须选 $k-1$ 个。配合越界下标取零及 $\binom00=1$，可逐行生成 Pascal 三角形。取补集给出 $\binom nk=\binom n{n-k}$；两式分别来自分类与双射，不必先依赖阶乘运算。
+
+对全部子集按大小分类，得 $\sum_{k=0}^n\binom nk=2^n$。当 $n\ge1$ 时，偶数大小与奇数大小子集等数，故 $\sum_{k=0}^n(-1)^k\binom nk=0$；$n=0$ 时该和为 $1$。区分这个边界是后续反演证明的关键。
+
+\section{双重计数与带标记对象}
+
+\emph{双重计数（double counting）}是对同一个有限集合按不同属性求和。令
+\[
+  \mathcal I=\{(A,a):A\subseteq[n],\ a\in A\}.
+\]
+先选大小为 $k$ 的 $A$，再从中标记一个元素，得到 $\sum_k k\binom nk$；先选标记 $a$，再任意选择其余 $n-1$ 个元素是否入选，得到 $n2^{n-1}$。因此对 $n\ge1$，
+\begin{equation}
+  \sum_{k=0}^n k\binom nk=n2^{n-1}.
+  \label{eq:marked-subsets}
+\end{equation}
+同样地，标记一个有序的不同元素对，得到 $\sum_k k(k-1)\binom nk=n(n-1)2^{n-2}$（$n\ge2$）。由于 $k^2=k(k-1)+k$，可据此求出平方权重和。
+
+\begin{example}
+从八人中任意选一个非空委员会并指定一名负责人。先定负责人有 $8$ 种，其余七人各可入选或不入选，共 $8\cdot2^7=1024$ 种。若先定委员会大小，则得到 $\sum_{k=1}^8 k\binom8k$。这里负责人由委员会内部产生，不能把所有委员会数直接乘以 $8$，因为并非每个人都在每个委员会中。
+\end{example}
+
+\section{Vandermonde 恒等式与格路径}
+
+\begin{theorem}[Vandermonde 恒等式]
+对非负整数 $r,s,m$，有
+\begin{equation}
+  \sum_{k=0}^{m}\binom rk\binom{s}{m-k}=\binom{r+s}{m}.
+  \label{eq:vandermonde}
+\end{equation}
+\end{theorem}
+\begin{proof}
+把 $r+s$ 个不同元素分成大小为 $r,s$ 的两个不交集合。一个 $m$ 元子集从第一部分选出唯一确定的 $k$ 个元素，从第二部分选出 $m-k$ 个元素。对 $k$ 分类即得；不可能的 $k$ 对应零项，因而无需另改求和范围。
+\end{proof}
+
+取 $r=s=n,m=n$ 并使用对称性，得 $\sum_{k=0}^n\binom nk^2=\binom{2n}{n}$。另一个常用恒等式为 $\sum_{j=k}^n\binom jk=\binom{n+1}{k+1}$（$0\le k\le n$）：计数 $[n+1]$ 的 $(k+1)$ 元子集，若最大元素为 $j+1$，其余 $k$ 个从 $[j]$ 中选取。
+
+\emph{格路径（lattice path）}在本章指每步只向右或向上移动一个单位的路径。从 $(0,0)$ 到 $(a,b)$，其中 $a,b\ge0$，共有 $a+b$ 步，其中 $a$ 步向右，故路径数为 $\binom{a+b}{a}$。若必须经过 $(u,v)$ 且 $0\le u\le a,0\le v\le b$，分成经过该点前后的两段，得到
+\[
+  \binom{u+v}{u}\binom{a+b-u-v}{a-u}.
+\]
+例如从 $(0,0)$ 到 $(4,3)$ 有 $35$ 条路径，其中经过 $(2,1)$ 的有 $3\cdot6=18$ 条，因此避开该点的有 $17$ 条。多个禁点的交叠条件将引向容斥原理。
+
+\section{习题}
+\begin{enumerate}
+  \item\label{ex:identities-1} 用双重计数证明 $\binom nk\binom kr=\binom nr\binom{n-r}{k-r}$，其中 $0\le r\le k\le n$。
+  \item\label{ex:identities-2} 求 $\sum_{k=0}^n k^2\binom nk$，分别处理 $n=0,1$ 后写出适用的一般公式。
+  \item\label{ex:identities-3} 从 $(0,0)$ 到 $(5,4)$ 的格路径中，同时经过 $(1,1)$ 和 $(3,2)$ 的有多少条？若两个必经点不能按坐标偏序排列会怎样？
+  \item\label{ex:identities-4} 给出“曲棍球杆”恒等式的递推证明，并与按最大元素分类的证明比较。
+\end{enumerate}
+

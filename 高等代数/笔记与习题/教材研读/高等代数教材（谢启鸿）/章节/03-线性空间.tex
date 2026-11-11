@@ -1,0 +1,947 @@
+% !TeX root = ../高等代数教材（谢启鸿）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{2} % 保留原书章号。
+\chapter{线性空间}
+\label{chap:linear-spaces}
+
+% 依据《高等代数学》第四版第三章第 3.1--3.10 节整理，不含章末复习题。
+线性方程组既可以写成矩阵等式，也可以理解为向量之间的线性组合关系。要说明哪些方程是多余的、解为什么能够用有限个参数描述，需要从具体的行向量和列向量中提炼出共同的运算结构。本章先确定系数所在的数域，再研究线性空间、线性相关性、基与维数；随后用矩阵的秩和坐标把抽象问题化为计算，最后通过子空间刻画线性方程组的全部解。
+
+\section{数域}
+\label{sec:number-fields}
+
+研究线性关系时，不仅要指定向量，还要指定允许使用哪些系数。例如，整数的和、差、积仍是整数，但两个整数相除未必得到整数；有理数、实数和复数则对除数非零的四则运算都封闭。解线性方程时经常需要除以非零系数，这正是引入数域的原因。
+
+\begin{definition}
+\label{def:number-field}
+设 $K\subseteq\mathbb C$ 至少含有两个不同的元素。如果对任意 $a,b\in K$，都有
+\[
+    a+b\in K,\qquad a-b\in K,\qquad ab\in K,
+\]
+并且当 $b\ne0$ 时还有 $a/b\in K$，就称 $K$ 为一个\emph{数域}，即复数域的子域（subfield of $\mathbb C$）。本书所说的数域均采用这一含义，运算继承自复数的通常运算。
+\end{definition}
+
+$\mathbb Q$、$\mathbb R$、$\mathbb C$ 都是数域，$\mathbb Z$ 则因 $1/2\notin\mathbb Z$ 而不是数域。整数集对加、减、乘封闭，是数环的一个例子；数域还要求对非零元素的除法封闭。数域可以比 $\mathbb Q$ 大而比 $\mathbb R$ 小，并不只有上述三个熟悉的例子。
+
+\begin{example}
+\label{ex:quadratic-number-field}
+证明
+\[
+    \mathbb Q(\sqrt2)=\{a+b\sqrt2:a,b\in\mathbb Q\}
+\]
+是一个数域。
+\end{example}
+
+\begin{solve}
+这个集合含有 $0,1$。对任意 $a,b,c,d\in\mathbb Q$，有
+\[
+    (a+b\sqrt2)\pm(c+d\sqrt2)=(a\pm c)+(b\pm d)\sqrt2,
+\]
+以及
+\[
+    (a+b\sqrt2)(c+d\sqrt2)=(ac+2bd)+(ad+bc)\sqrt2,
+\]
+所以加、减、乘封闭。若 $c+d\sqrt2\ne0$，则 $c^2-2d^2\ne0$：否则，当 $d=0$ 时也有 $c=0$；当 $d\ne0$ 时，$(c/d)^2=2$ 将与 $\sqrt2$ 的无理性矛盾。于是分母有理化得到
+\[
+    \frac{a+b\sqrt2}{c+d\sqrt2}
+    =\frac{ac-2bd}{c^2-2d^2}
+     +\frac{bc-ad}{c^2-2d^2}\sqrt2\in\mathbb Q(\sqrt2).
+\]
+因此除法也封闭，结论成立。
+\end{solve}
+
+同样，给定 $t\in\mathbb C$，所有形如 $p(t)/q(t)$ 的数构成数域 $\mathbb Q(t)$，其中 $p,q$ 为有理系数多项式且 $q(t)\ne0$。验证时只需通分、相乘，并在取倒数时要求分子非零。教材中的 $t=\pi$ 是这一构造的例子；若 $t=\sqrt2$，利用 $(\sqrt2)^2=2$，就可把这些分式化为例~\ref{ex:quadratic-number-field} 中的形式。
+
+\begin{theorem}
+\label{thm:number-field-contains-rationals}
+任一数域 $K$ 都包含 $\mathbb Q$，因而 $\mathbb Q$ 是按包含关系而言最小的数域。
+\end{theorem}
+
+\begin{proof}
+取 $a\in K$，由减法封闭性得 $0=a-a\in K$。因为 $K$ 至少有两个不同元素，其中必有一个非零元素 $b$，故 $1=b/b\in K$。将 $1$ 连加可得所有正整数，再取相反数可得所有整数。对任意整数 $m,n$ 且 $n\ne0$，除法封闭性给出 $m/n\in K$，所以 $\mathbb Q\subseteq K$。
+\end{proof}
+
+以下若无另外说明，$K$ 总表示一个固定数域，所有线性组合的系数都取自 $K$。特别地，$K$ 是无限集，这一点将在说明线性方程组具有无穷多个解时用到。
+
+\section{行向量和列向量}
+\label{sec:row-column-vectors}
+
+平面上的向量可以用终点相对于原点的两个坐标描述。保留“有序数组”这一代数特征，就能把向量推广到任意正整数个分量，而不必依赖二维、三维的几何图像。
+
+\begin{definition}
+\label{def:row-column-vector}
+设 $n\geq1$，$a_1,\ldots,a_n\in K$。有序数组
+\[
+    \alpha=(a_1,\ldots,a_n)
+\]
+称为 $K$ 上的\emph{$n$ 维行向量}（row vector）；将同样的分量依次排成一列所得的
+\[
+    \alpha^{\mathsf T}=\begin{pmatrix}a_1\\\vdots\\a_n\end{pmatrix}
+\]
+称为 $K$ 上的\emph{$n$ 维列向量}（column vector）。分别以 $K^n$、$K_n$ 记它们的全体，符号 $\mathsf T$ 表示转置。
+\end{definition}
+
+行向量是 $1\times n$ 矩阵，列向量是 $n\times1$ 矩阵；二者可通过转置对应，但在矩阵运算中必须区分形状。两个同行向量或同列向量相等，是指它们分量个数相同且对应分量相等。因此 $(1,2)\ne(2,1)$，分量的次序属于向量数据的一部分。
+
+对 $\alpha=(a_1,\ldots,a_n)$、$\beta=(b_1,\ldots,b_n)\in K^n$ 及 $k\in K$，定义
+\begin{align*}
+    \alpha+\beta&=(a_1+b_1,\ldots,a_n+b_n),\\
+    k\alpha&=(ka_1,\ldots,ka_n),\\
+    -\alpha&=(-a_1,\ldots,-a_n),\qquad
+    \alpha-\beta=\alpha+(-\beta).
+\end{align*}
+这些运算所得的向量仍在 $K^n$ 中；零向量为 $0=(0,\ldots,0)$。列向量也按对应分量定义这些运算。两种向量都满足加法交换律、结合律、零元和负元性质，以及数乘的结合律、单位元性质和两条分配律；下一节把这些共同性质列为公理。
+
+在 $\mathbb R^2$、$\mathbb R^3$ 中，加法对应平行四边形法则；$k\alpha$ 的长度为 $|k|$ 倍，$k>0$ 时方向相同，$k<0$ 时方向相反，$k=0$ 时得到零向量。这个几何解释限于实向量的相应模型，而按分量定义的运算对任意数域与任意 $n$ 都适用。
+
+\section{线性空间}
+\label{sec:vector-space-axioms}
+
+行向量、列向量、多项式和函数的具体形式不同，却都允许相加和乘以一个标量。线性空间把这些对象的共同运算规律抽象出来，使同一套理论能够用于不同的问题。
+
+\begin{definition}
+\label{def:vector-space}
+设 $V$ 是非空集合。在 $V$ 上给定加法 $V\times V\to V$，在 $K$ 与 $V$ 之间给定\emph{数乘}（scalar multiplication）$K\times V\to V$，分别记为 $(\alpha,\beta)\mapsto\alpha+\beta$、$(k,\alpha)\mapsto k\alpha$。若对任意 $\alpha,\beta,\gamma\in V$ 及 $k,l\in K$，满足
+\begin{align*}
+    \alpha+\beta&=\beta+\alpha,&
+    (\alpha+\beta)+\gamma&=\alpha+(\beta+\gamma),\\
+    \alpha+0&=\alpha,&
+    \alpha+(-\alpha)&=0,\\
+    1\alpha&=\alpha,&
+    k(l\alpha)&=(kl)\alpha,\\
+    k(\alpha+\beta)&=k\alpha+k\beta,&
+    (k+l)\alpha&=k\alpha+l\alpha,
+\end{align*}
+其中第三式要求存在一个对所有 $\alpha$ 都适用的 $0\in V$，第四式要求每个 $\alpha$ 都有一个负元 $-\alpha\in V$，则称 $V$ 为数域 $K$ 上的\emph{线性空间}或\emph{向量空间}（vector space）。$V$ 的元素称为向量，$K$ 的元素称为标量，$0\in V$ 称为零向量。
+\end{definition}
+
+定义已经要求加法与数乘的结果唯一且仍在 $V$ 中；封闭性必须先于八条公理核查。零向量是抽象对象，在不同模型中可以是零数组、零矩阵、零多项式或零函数。只有结合集合、数域和指定运算，才能判断是否得到线性空间。
+
+\begin{example}
+\label{ex:basic-vector-spaces}
+在按分量定义的加法、数乘下，$K^n$ 与 $K_n$ 都是 $K$ 上的线性空间。固定大小的矩阵全体 $K^{m\times n}$ 在通常的矩阵加法和数乘下也是线性空间，公理可逐个元素验证。
+
+有理、实或复系数的情形可以统一写成 $K[x]$，即 $K$ 上一元多项式全体。按同次项系数相加并逐项数乘，$K[x]$ 成为线性空间；对非负整数 $d$，
+\[
+    K[x]_{\leq d}=\{a_0+a_1x+\cdots+a_dx^d:a_i\in K\}
+\]
+也构成线性空间，其中包含零多项式。次数恰为 $d$ 的多项式全体则不包含零多项式，不能构成这一运算下的线性空间。
+
+实连续函数全体 $C[0,1]$ 在逐点运算
+\[
+    (f+g)(t)=f(t)+g(t),\qquad (kf)(t)=k f(t)
+\]
+下是实线性空间：连续性保证封闭性，其余公理由实数运算逐点给出。这里标量 $k$ 是实数，而向量是整个函数。
+\end{example}
+
+\begin{example}
+\label{ex:complex-as-real-space}
+复数全体 $\mathbb C$ 在通常加法与实数数乘下是 $\mathbb R$ 上的线性空间；允许复数数乘时，又是 $\mathbb C$ 上的线性空间。更一般地，若数域 $K_1\subseteq K_2$，则 $K_2$ 在通常运算下可看成 $K_1$ 上的线性空间。因此，\emph[caution]{同一个向量集合配上不同的标量数域，会得到不同的线性空间结构}。
+\end{example}
+
+\begin{proposition}
+\label{prop:vector-space-basic-identities}
+线性空间的零向量及每个向量的负元都是唯一的，加法满足消去律。对任意 $\alpha\in V$、$k\in K$，还有
+\[
+    0\alpha=0,\qquad k0=0,\qquad (-1)\alpha=-\alpha,
+    \qquad k\alpha=0\ \Longrightarrow\ k=0\text{ 或 }\alpha=0.
+\]
+第一式左端的 $0$ 是标量零，右端的 $0$ 是零向量。
+\end{proposition}
+
+\begin{proof}
+若 $0_1,0_2$ 都是零向量，则 $0_1=0_1+0_2=0_2$。若 $\alpha+\beta=\alpha+\gamma$，两边同加 $\alpha$ 的一个负元，由结合律得 $\beta=\gamma$，这就是消去律；将它用于 $\alpha+\beta=0=\alpha+\gamma$，就得负元唯一。
+
+由 $0\alpha=(0+0)\alpha=0\alpha+0\alpha$，消去 $0\alpha$ 得 $0\alpha=0$；同理由 $k0=k(0+0)=k0+k0$ 得 $k0=0$。又
+\[
+    \alpha+(-1)\alpha=(1+(-1))\alpha=0\alpha=0,
+\]
+故负元唯一性给出 $(-1)\alpha=-\alpha$。最后，若 $k\alpha=0$ 且 $k\ne0$，则数域中存在 $k^{-1}$，从而
+\[
+    \alpha=(k^{-1}k)\alpha=k^{-1}(k\alpha)=k^{-1}0=0.\qedhere
+\]
+\end{proof}
+
+定义 $\alpha-\beta=\alpha+(-\beta)$ 后，可以依据这些性质进行移项。加法结合律允许省去多项求和的括号，交换律允许改变求和次序；两条分配律则使有限个向量的线性组合可以按通常的代数规则展开和合并。
+
+\section{向量的线性关系}
+\label{sec:linear-relations}
+
+设 $A=(a_{ij})\in K^{m\times n}$，其列向量为 $\alpha_1,\ldots,\alpha_n\in K_m$，$b\in K_m$。矩阵方程 $Ax=b$ 等价于
+\begin{equation}
+\label{eq:linear-system-column-combination}
+    x_1\alpha_1+\cdots+x_n\alpha_n=b.
+\end{equation}
+因此，求方程组的解，就是寻找一组系数，把常数项向量表示为系数矩阵各列的组合。这一观察把方程组问题转化为一般线性空间中的线性关系问题。
+
+\begin{definition}
+\label{def:linear-combination}
+设 $\alpha_1,\ldots,\alpha_s,\beta\in V$。若存在 $k_1,\ldots,k_s\in K$，使
+\[
+    \beta=k_1\alpha_1+\cdots+k_s\alpha_s,
+\]
+则称 $\beta$ 是这些向量的\emph{线性组合}（linear combination），或称 $\beta$ 可由它们\emph{线性表示}。空向量组的线性组合约定只有零向量。
+\end{definition}
+
+\begin{definition}
+\label{def:linear-dependence}
+向量组 $\alpha_1,\ldots,\alpha_s$ 称为\emph{线性相关}（linearly dependent），是指存在不全为零的 $k_1,\ldots,k_s\in K$，使
+\begin{equation}
+\label{eq:linear-dependence-relation}
+    k_1\alpha_1+\cdots+k_s\alpha_s=0.
+\end{equation}
+若式~\eqref{eq:linear-dependence-relation} 只能由 $k_1=\cdots=k_s=0$ 成立，则称该向量组\emph{线性无关}或\emph{线性独立}（linearly independent）。空向量组约定为线性无关。
+\end{definition}
+
+这里“不全为零”指至少一个系数非零。每组向量都有全零系数给出的等式，它不能证明线性相关。由式~\eqref{eq:linear-system-column-combination} 可知，$Ax=b$ 有解当且仅当 $b$ 可由 $A$ 的列向量线性表示；$Ax=0$ 有非零解当且仅当这些列向量线性相关。
+
+\begin{example}
+\label{ex:linear-relations-elementary}
+在 $K^3$ 中，$(1,2,4)=2(1,0,1)+(-1,2,2)$。又若
+\[
+    \alpha_1=(1,2,3),\qquad \alpha_2=(2,-1,-4),\qquad
+    \alpha_3=(1,1,1),
+\]
+则 $3\alpha_1+\alpha_2-5\alpha_3=0$，所以这三个向量线性相关。另一方面，标准单位行向量 $e_1,\ldots,e_n$ 线性无关，因为
+\[
+    k_1e_1+\cdots+k_ne_n=(k_1,\ldots,k_n)=0
+\]
+迫使所有系数为零；任意 $(a_1,\ldots,a_n)$ 又等于 $\sum_i a_ie_i$。标准单位列向量也有相同结论。
+\end{example}
+
+标量数域不能省略。例如，在 $\mathbb C$ 作为实线性空间时，$1,i$ 线性无关，因为实数 $a,b$ 满足 $a+bi=0$ 只能有 $a=b=0$；把 $\mathbb C$ 看成复线性空间时，它们却满足 $1\cdot1+i\cdot i=0$，因而线性相关。
+
+\begin{proposition}
+\label{prop:dependence-basic-criteria}
+单个向量组成的向量组线性相关当且仅当该向量为零；含零向量的向量组必线性相关。线性相关组的任何扩大组仍线性相关，线性无关组的任何部分组仍线性无关。一个非空向量组线性相关，当且仅当其中至少有一个向量可由其余向量线性表示。
+\end{proposition}
+
+\begin{proof}
+单个向量的结论来自命题~\ref{prop:vector-space-basic-identities}；含零向量时，给该零向量取系数 $1$，其余系数取 $0$，即得到非平凡关系。已有非平凡关系可对新增向量补上零系数，所以相关性在扩大后保留；取逆否命题就得到无关性的部分组结论。
+
+若式~\eqref{eq:linear-dependence-relation} 中 $k_j\ne0$，则
+\[
+    \alpha_j=-\sum_{i\ne j}\frac{k_i}{k_j}\alpha_i.
+\]
+反之，把 $\alpha_j=\sum_{i\ne j}c_i\alpha_i$ 移到等式一边，就得到 $\alpha_j$ 的系数为 $1$ 的非平凡关系。
+\end{proof}
+
+两向量线性相关等价于其中一个是另一个的标量倍，须允许零向量情形并适当选择表示方向；两个向量均非零时，就是通常的成比例。三个向量两两线性无关却未必整体无关，例如 $e_1,e_2,e_1+e_2$。在实三维空间中，两个非零向量相关对应共线，三个向量相关对应它们位于一个过原点的平面内。
+
+\begin{theorem}
+\label{thm:unique-linear-representation}
+假设 $\beta$ 已能由 $\alpha_1,\ldots,\alpha_s$ 线性表示，则这一表示的系数唯一，当且仅当 $\alpha_1,\ldots,\alpha_s$ 线性无关。
+\end{theorem}
+
+\begin{proof}
+若这组向量无关，把 $\beta$ 的两个表示相减，得
+\[
+    \sum_{i=1}^s(k_i-l_i)\alpha_i=0,
+\]
+所以 $k_i=l_i$ 对所有 $i$ 成立。反之，若存在不全为零的 $c_i$ 满足 $\sum_i c_i\alpha_i=0$，则由一个表示 $\beta=\sum_i k_i\alpha_i$ 可得到另一个表示 $\beta=\sum_i(k_i+c_i)\alpha_i$，故表示不唯一。
+\end{proof}
+
+\begin{proposition}
+\label{prop:representation-transitive}
+若向量组 $A$ 中每个向量可由向量组 $B$ 线性表示，$B$ 中每个向量又可由向量组 $C$ 线性表示，则 $A$ 中每个向量可由 $C$ 线性表示。
+\end{proposition}
+
+\begin{proof}
+设 $\alpha_i=\sum_j a_{ij}\beta_j$，$\beta_j=\sum_k b_{jk}\gamma_k$。代入并重排有限和，得
+\[
+    \alpha_i=\sum_k\left(\sum_j a_{ij}b_{jk}\right)\gamma_k.\qedhere
+\]
+\end{proof}
+
+\begin{corollary}
+\label{cor:adjoin-vector-independence}
+若 $\alpha_1,\ldots,\alpha_s$ 线性无关，则添加向量 $\beta$ 后仍线性无关，当且仅当 $\beta$ 不能由原向量组线性表示。
+\end{corollary}
+
+\begin{proof}
+若 $\beta$ 可被表示，移项就得到扩大组的非平凡关系。反之，若扩大组相关，在其非平凡关系中 $\beta$ 的系数必须非零，否则将与原组无关矛盾；解出 $\beta$ 即得所需表示。
+\end{proof}
+
+从行的角度看，增广矩阵某一行若是其余行的线性组合，对应方程就可由其余方程推出，因此能够删去而不改变解集。\emph[caution]{判断某个方程是否多余，需要同时考虑系数和常数项}；仅有系数行相关，未必能删除相应方程，例如 $x=0$ 与 $x=1$ 的系数相同，却组成无解方程组。
+
+\section{向量组的秩}
+\label{sec:vector-family-rank}
+
+线性相关说明一组向量中存在可以由其余向量表示的冗余。逐步删去这样的向量，最终留下线性无关而又足以表示原组全部向量的部分组。秩刻画的就是保留这种表示能力所需的独立向量个数。
+
+\begin{definition}
+\label{def:maximal-independent-family}
+线性空间 $V$ 中的向量集合称为\emph{向量族}，有限个向量组成的族称为\emph{向量组}。设 $S\subseteq V$，若 $\alpha_1,\ldots,\alpha_r\in S$ 线性无关，且 $S$ 中每个向量均可由它们线性表示，则称它们为 $S$ 的一个\emph{极大线性无关组}（maximal linearly independent subset），简称极大无关组。
+\end{definition}
+
+“极大”表示不能再从 $S$ 添加一个向量而仍保持无关，由推论~\ref{cor:adjoin-vector-independence}，这与定义中的表示条件等价。有限向量组一定有极大无关组：依次检查其中的向量，只在新向量不能由已保留向量表示时才保留它；最终所得组无关，而每个未保留向量都能由最终组表示。若 $S$ 为空或仅含零向量，取空组即可。极大无关组不一定唯一，例如 $e_1,e_2,e_1+e_2$ 中任取两个，都得到一个极大无关组。
+
+\begin{lemma}[线性表示的个数比较]
+\label{lem:independent-versus-spanning}
+设 $\alpha_1,\ldots,\alpha_r$ 线性无关，且每个 $\alpha_i$ 都可由 $\beta_1,\ldots,\beta_s$ 线性表示，则 $r\leq s$。
+\end{lemma}
+
+\begin{proof}
+用逐个替换的办法证明。若 $r=0$，结论成立；否则 $\alpha_1\ne0$，它在 $\beta_1,\ldots,\beta_s$ 的表示中至少有一个系数非零。适当重排后，可解出 $\beta_1$，从而把原表示组替换为
+\[
+    \alpha_1,\beta_2,\ldots,\beta_s,
+\]
+并且所有 $\alpha_i$ 仍可由新组表示。假设已替换了 $k<r$ 个向量，现有表示组为 $\alpha_1,\ldots,\alpha_k$ 与尚未替换的 $\beta$。在 $\alpha_{k+1}$ 的表示中，至少一个尚未替换的 $\beta$ 的系数非零，否则 $\alpha_{k+1}$ 可由 $\alpha_1,\ldots,\alpha_k$ 表示，与无关性矛盾。故可以继续替换。
+
+如果 $r>s$，替换 $s$ 次后，$\alpha_{s+1}$ 仍须由 $\alpha_1,\ldots,\alpha_s$ 表示，再次与无关性矛盾。因此 $r\leq s$。
+\end{proof}
+
+这个引理也可以记为：\emph[tip]{若较多的向量均能由较少的向量表示，较多的那组必线性相关}。若两个线性无关组可以互相线性表示，分别应用引理便知它们含有相同个数的向量。特别地，一个向量族的任意两个有限极大无关组具有相同的向量个数。
+
+\begin{definition}
+\label{def:vector-rank-equivalence}
+向量组 $S$ 的极大无关组所含的向量个数称为 $S$ 的\emph{秩}（rank），记为 $r(S)$ 或 $\operatorname{rank}S$。若一般向量族有有限极大无关组，也按同样方式定义其秩。空组或只含零向量的组的秩为 $0$。两个向量组若可以互相线性表示，则称它们\emph{等价}（equivalent）。
+\end{definition}
+
+\begin{theorem}
+\label{thm:rank-under-representation}
+若 $A$ 中每个向量都可由 $B$ 线性表示，则 $r(A)\leq r(B)$。因此等价向量组具有相同的秩。
+\end{theorem}
+
+\begin{proof}
+分别取 $A,B$ 的极大无关组 $A_0,B_0$。由表示的传递性，$A_0$ 可由 $B_0$ 表示，再用引理~\ref{lem:independent-versus-spanning} 即得 $|A_0|\leq|B_0|$。若两组等价，交换 $A,B$ 后还有反向不等式。
+\end{proof}
+
+相同的秩并不能单独保证向量组等价，例如 $K^2$ 中的单向量组 $\{e_1\}$ 与 $\{e_2\}$ 都有秩 $1$，却不能互相线性表示。秩反映独立向量的个数，等价还要求表示出的向量范围一致。
+
+\begin{definition}
+\label{def:basis-dimension}
+若 $e_1,\ldots,e_n\in V$ 线性无关，且 $V$ 中每个向量均可由它们线性表示，就称它们为 $V$ 的一组\emph{基}（basis），并称 $V$ 为\emph{$n$ 维线性空间}，记为 $\dim_K V=n$；数域明确时简记 $\dim V=n$。零空间 $\{0\}$ 的基约定为空组，维数为 $0$。不存在有限基的空间称为\emph{无限维线性空间}（infinite-dimensional vector space）。
+\end{definition}
+
+基就是整个空间的极大无关组。个数比较引理保证有限维空间的任意两组基所含向量个数相等，所以维数不依赖选基。基既要无关，又要能够表示整个空间；取定基后，表示系数的唯一性由定理~\ref{thm:unique-linear-representation} 保证。
+
+\begin{example}
+\label{ex:dimensions-of-standard-spaces}
+$K^n$、$K_n$ 的标准单位向量分别构成一组基，故维数均为 $n$。$K[x]_{\leq d}$ 的一组基为 $1,x,\ldots,x^d$，因为每个多项式都能且只能按其系数写成这些单项式的线性组合，所以维数为 $d+1$。若 $E_{ij}$ 表示仅第 $(i,j)$ 元素为 $1$ 的 $m\times n$ 矩阵，则全部 $E_{ij}$ 组成 $K^{m\times n}$ 的基，其维数为 $mn$。
+
+$\mathbb C$ 作为实线性空间时的一组基为 $1,i$，所以 $\dim_{\mathbb R}\mathbb C=2$；作为复线性空间时，单个向量 $1$ 就是一组基，所以 $\dim_{\mathbb C}\mathbb C=1$。维数必须连同标量数域理解。
+
+$K[x]$ 则是无限维的：任意 $N\geq0$，$1,x,\ldots,x^N$ 都线性无关。若存在含 $n$ 个向量的有限基，取 $N=n$，就与引理~\ref{lem:independent-versus-spanning} 矛盾。相同理由说明实连续函数空间 $C[0,1]$ 也是无限维的：若 $\sum_{j=0}^N c_jt^j=0$ 对整个区间成立，在其中取 $N+1$ 个互异点代入，所得系数方程组的 Vandermonde 行列式非零，故所有 $c_j=0$。
+\end{example}
+
+\begin{theorem}
+\label{thm:finite-dimensional-basis-criteria}
+设 $\dim V=n$。$V$ 中任意超过 $n$ 个向量必线性相关。对于恰好 $n$ 个向量，下列三个条件等价：它们构成 $V$ 的基；它们线性无关；它们能线性表示 $V$ 中的每个向量。
+\end{theorem}
+
+\begin{proof}
+任意向量都可由一组含 $n$ 个向量的基表示，故超过 $n$ 个向量时由个数比较引理可知相关。若 $e_1,\ldots,e_n$ 无关，对任意 $\alpha\in V$，扩大组 $e_1,\ldots,e_n,\alpha$ 相关，推论~\ref{cor:adjoin-vector-independence} 给出 $\alpha$ 可由前 $n$ 个向量表示，故它们是基。
+
+若 $e_1,\ldots,e_n$ 能表示整个 $V$，取其极大无关组，设含 $r\leq n$ 个向量。这 $r$ 个向量仍能表示 $V$，因而也是 $V$ 的基，必须有 $r=n$。于是原来的 $n$ 个向量全都无关。基按定义同时满足另两个条件。
+\end{proof}
+
+\begin{theorem}[基扩张定理]
+\label{thm:basis-extension}
+设 $\dim V=n$，$\alpha_1,\ldots,\alpha_r$ 是 $V$ 中的线性无关组。给定 $V$ 的任一组基 $e_1,\ldots,e_n$，总能从这些基向量中选出 $n-r$ 个，添加到原组中，得到 $V$ 的一组基。
+\end{theorem}
+
+\begin{proof}
+若当前组还不能表示整个 $V$，就至少有一个 $e_i$ 不能由当前组表示，否则由表示的传递性，$V$ 中每个向量都能被当前组表示。将这个 $e_i$ 添加后，由推论~\ref{cor:adjoin-vector-independence} 仍然无关。重复此过程；无关组至多含 $n$ 个向量，而含 $n$ 个向量时必为基，因此恰可补入 $n-r$ 个向量。
+\end{proof}
+
+这些结论给出两种互补的构造方法：从生成组中删去冗余可得到基，从无关组出发补入必要向量也可得到基。以下关于维数与基扩张的讨论均在有限维情形下进行，除非另行说明。
+
+\section{矩阵的秩}
+\label{sec:matrix-rank}
+
+\begin{definition}
+\label{def:matrix-row-column-rank}
+设 $A\in K^{m\times n}$。$A$ 的全部行向量组成的向量组的秩称为 $A$ 的\emph{行秩}（row rank），全部列向量组成的向量组的秩称为 $A$ 的\emph{列秩}（column rank）。
+\end{definition}
+
+初等行变换包括互换两行、以非零标量乘一行，以及将一行的标量倍加到另一行；初等列变换同样定义。三类变换都可逆，分别可以用同样的交换、倒数倍乘或相反数倍相加还原。它们分别相当于左乘或右乘一个可逆的初等矩阵。
+
+\begin{theorem}
+\label{thm:rank-elementary-invariance}
+初等行变换与初等列变换都不改变矩阵的行秩和列秩。
+\end{theorem}
+
+\begin{proof}
+更一般地，设 $P$ 是 $m$ 阶可逆矩阵。$PA$ 的每一行都是 $A$ 各行的线性组合；由 $A=P^{-1}(PA)$，反向表示也成立，因此二者行向量组等价，行秩相同。若 $A$ 的列向量为 $\alpha_1,\ldots,\alpha_n$，则 $PA$ 的对应列为 $P\alpha_1,\ldots,P\alpha_n$，并且
+\[
+    \sum_j c_jP\alpha_j=0
+    \quad\Longleftrightarrow\quad
+    P\left(\sum_j c_j\alpha_j\right)=0
+    \quad\Longleftrightarrow\quad
+    \sum_j c_j\alpha_j=0.
+\]
+故任意对应部分组的无关性以及各列之间的表示关系都保持，列秩也相同。特别地，初等行变换具有所述性质。对转置矩阵应用同一论证，或把行列角色互换，就得到右乘可逆矩阵及初等列变换的结论。
+\end{proof}
+
+对任意矩阵，若其中存在非零元素，就可把它通过行列交换移到左上角，再倍乘使其为 $1$，然后消去它所在行、列的其余元素；对剩余右下角矩阵重复这一过程，直到剩下零矩阵。由此得到相抵标准形
+\begin{equation}
+\label{eq:matrix-rank-normal-form}
+    PAQ=J_r=\begin{pmatrix}I_r&0\\0&0\end{pmatrix},
+\end{equation}
+其中 $P,Q$ 分别为 $m$ 阶、$n$ 阶可逆矩阵，$0\leq r\leq\min(m,n)$。零矩阵对应 $r=0$，边界情形允许某些块为空。$J_r$ 的行秩、列秩都等于 $r$，所以定理~\ref{thm:rank-elementary-invariance} 给出下述结论。
+
+\begin{corollary}
+\label{cor:row-rank-equals-column-rank}
+任一矩阵的行秩等于列秩，统称为矩阵的\emph{秩}，记为 $r(A)$ 或 $\operatorname{rank}A$。它等于式~\eqref{eq:matrix-rank-normal-form} 中的 $r$，并满足
+\[
+    r(A^{\mathsf T})=r(A),\qquad r(PAQ)=r(A)
+\]
+（其中 $P,Q$ 可逆）。两个同型矩阵能通过初等行列变换互相转化，当且仅当它们的秩相同。
+\end{corollary}
+
+最后一个结论中，“同型”是指行数与列数分别相同；相同秩使两矩阵具有同一个相抵标准形，反向则由秩的不变性成立。对于 $n$ 阶方阵，$r(A)=n$、$A$ 可逆、$\det A\ne0$、各行线性无关、各列线性无关相互等价。这时称 $A$ 为\emph{满秩矩阵}（full-rank matrix）。这里可逆性的判定也能直接从标准形看出：$r=n$ 时 $PAQ=I_n$，从而 $A=P^{-1}Q^{-1}$；可逆时，左乘 $A^{-1}$ 不改变秩，故 $r(A)=r(I_n)=n$。
+
+\begin{proposition}
+\label{prop:echelon-rank-pivot-columns}
+设 $R$ 为行阶梯形矩阵，即零行在底部，各非零行的首个非零元素所在列依次严格右移。若它有 $r$ 个非零行，则 $r(R)=r$，这些首个非零元素称为\emph{主元}（pivot），主元所在的 $r$ 列构成列向量组的一个极大无关组。若 $R=PA$ 且 $P$ 可逆，则 $A$ 中同样列号的原列向量也构成 $A$ 的一个极大无关组。
+\end{proposition}
+
+\begin{proof}
+设主元列号为 $j_1<\cdots<j_r$。在非零行的线性关系中，依次查看第 $j_1,\ldots,j_r$ 个分量，就依次得到第一、第二直到第 $r$ 行的系数为零，因此这些行无关，$r(R)=r$。取主元列与前 $r$ 行交叉处的方阵，得到主对角线非零的上三角矩阵，其行列式非零，故这些列无关。它们已有 $r$ 个，而整个列向量组秩为 $r$，由个数比较引理可知它们能表示其余各列。最后，由定理~\ref{thm:rank-elementary-invariance} 证明中关于左乘可逆矩阵的结论，列之间的全部线性关系被保留，故同样列号适用于原矩阵。
+\end{proof}
+
+因此，求秩时只需用初等行变换化成阶梯形并数非零行；求原列向量组的极大无关组时，还要记录主元列号，并回到原矩阵选列。\emph[caution]{行变换后的非零行可以求出行秩，但一般不是原行向量组的部分组；列变换也可能改变原列之间的表示关系}。若要求一组原行向量的极大无关组，可对 $A^{\mathsf T}$ 用同样的选列方法。
+
+\begin{definition}
+\label{def:matrix-minor}
+在 $A$ 中选取 $k$ 行与 $k$ 列，保持原次序，把交叉处的元素组成的 $k$ 阶行列式称为 $A$ 的一个\emph{$k$ 阶子式}（minor）。
+\end{definition}
+
+\begin{theorem}
+\label{thm:rank-by-minors}
+非零矩阵 $A$ 的秩等于其非零子式的最高阶数。等价地，对 $1\leq r\leq\min(m,n)$，$r(A)=r$ 当且仅当存在一个非零 $r$ 阶子式，而全部 $r+1$ 阶子式都为零；若 $r+1>\min(m,n)$，后一条件自然无须检查。零矩阵的秩为 $0$。
+\end{theorem}
+
+\begin{proof}
+设 $r(A)=r>0$。选出 $r$ 个无关行组成 $r\times n$ 矩阵 $B$，它的行秩为 $r$，故列秩也为 $r$。再从 $B$ 中选出 $r$ 个无关列，所得方阵可逆，就得到 $A$ 的一个非零 $r$ 阶子式。
+
+任取 $k>r$ 行，它们线性相关；保留所选 $k$ 列的分量后，原来的非平凡关系仍成立，因此对应的 $k$ 阶子式有相关行，行列式为零。于是全部高于 $r$ 阶的子式为零。
+
+反之，若有非零 $r$ 阶子式，则对应的 $r$ 个原行必无关，否则在所选列上限制分量就会迫使该子式为零，故 $r(A)\geq r$。若全部 $r+1$ 阶子式为零，按一行展开逐阶归纳，可知更高阶子式也都为零。结合前半部分已证的“秩为多少就存在该阶非零子式”，不可能有 $r(A)>r$，故 $r(A)=r$。
+\end{proof}
+
+\begin{proposition}
+\label{prop:matrix-rank-product-block}
+对可相乘矩阵 $A,B$，以及任意两个矩阵 $C,D$，有
+\[
+    r(AB)\leq\min\{r(A),r(B)\},\qquad
+    r\begin{pmatrix}C&0\\0&D\end{pmatrix}=r(C)+r(D).
+\]
+第二式中的各零块按大小配合，$C,D$ 不必是方阵。
+\end{proposition}
+
+\begin{proof}
+$AB$ 的每一列都是 $A$ 各列的线性组合，故 $r(AB)\leq r(A)$。若 $B$ 的一个极大无关组为 $\beta_{j_1},\ldots,\beta_{j_s}$，则每个 $A\beta_j$ 都可由 $A\beta_{j_1},\ldots,A\beta_{j_s}$ 表示，因而 $r(AB)\leq s=r(B)$。第二式可分别把 $C,D$ 化为各自的相抵标准形；所得分块矩阵共有 $r(C)+r(D)$ 个独立的非零行，且所有变换都保持秩。
+\end{proof}
+
+\begin{example}
+\label{ex:idempotent-rank-criterion}
+证明 $n$ 阶矩阵 $A$ 满足 $A^2=A$，当且仅当 $r(A)+r(I_n-A)=n$。
+\end{example}
+
+\begin{solve}
+令 $B=I_n-A$。通过可逆的分块行列运算，有
+\[
+    \begin{pmatrix}A&0\\0&B\end{pmatrix}
+    \longrightarrow\begin{pmatrix}A&B\\0&B\end{pmatrix}
+    \longrightarrow\begin{pmatrix}I_n&B\\B&B\end{pmatrix}
+    \longrightarrow\begin{pmatrix}I_n&B\\0&B-B^2\end{pmatrix}
+    \longrightarrow\begin{pmatrix}I_n&0\\0&A-A^2\end{pmatrix}.
+\]
+这里先把第二块行加到第一块行，再把第二块列加到第一块列，然后以第一块行消去左下块，最后消去右上块；这些操作可分别由可逆分块三角矩阵实现。于是
+\[
+    r(A)+r(I_n-A)=n+r(A-A^2).
+\]
+因此左端等于 $n$ 当且仅当 $A-A^2=0$。满足这一等式的 $A$ 称为\emph{幂等矩阵}（idempotent matrix）。
+\end{solve}
+
+\begin{example}
+\label{ex:vector-rank-by-columns}
+求向量组
+\[
+    \alpha_1=(1,0,2),\quad\alpha_2=(2,-1,3),\quad
+    \alpha_3=(3,-2,4),\quad\alpha_4=(4,-3,5)
+\]
+的秩与一个极大无关组。
+\end{example}
+
+\begin{solve}
+将这些行向量转置后按列拼成矩阵，做初等行变换：
+\[
+    A=\begin{pmatrix}1&2&3&4\\0&-1&-2&-3\\2&3&4&5\end{pmatrix}
+    \longrightarrow
+    \begin{pmatrix}1&0&-1&-2\\0&1&2&3\\0&0&0&0\end{pmatrix}.
+\]
+非零行数为 $2$，主元列为第一、第二列，所以原向量组的秩为 $2$，$\alpha_1,\alpha_2$ 是一个极大无关组。行变换保留列之间的关系，还可读出
+\[
+    \alpha_3=-\alpha_1+2\alpha_2,\qquad
+    \alpha_4=-2\alpha_1+3\alpha_2.\qedhere
+\]
+\end{solve}
+
+一般地，若要判定 $s$ 个 $n$ 维向量是否无关，就把它们按列拼成 $n\times s$ 矩阵并求秩：秩等于 $s$ 时无关，小于 $s$ 时相关。只有在 $s=n$ 时，才能直接用这个方阵的行列式是否非零来作同一判定；非方阵则应使用求秩或子式判据。
+
+\section{坐标向量}
+\label{sec:coordinate-vectors}
+
+基把抽象向量转换成一组可以计算的数。设 $\dim_K V=n$，固定一组\emph{有序基} $\mathcal E=(e_1,\ldots,e_n)$。任意 $\alpha\in V$ 均有唯一表示
+\[
+    \alpha=a_1e_1+\cdots+a_ne_n.
+\]
+称 $a_i$ 为 $\alpha$ 在此基下的第 $i$ 个\emph{坐标}（coordinate），称
+\begin{equation}
+\label{eq:coordinate-column-definition}
+    [\alpha]_{\mathcal E}=\begin{pmatrix}a_1\\\vdots\\a_n\end{pmatrix}\in K_n
+\end{equation}
+为它的\emph{坐标向量}（coordinate vector）。本章统一采用列坐标；教材先用行坐标建立对应，随后也转为列坐标。基的次序必须固定，因为调换基向量会相应改变坐标的次序。
+
+坐标映射 $\Phi_{\mathcal E}:V\to K_n$，$\alpha\mapsto[\alpha]_{\mathcal E}$，是双射：存在唯一表示保证每个向量对应唯一坐标，而任意 $K_n$ 中的列向量也能作为系数组合出一个 $V$ 中的向量。若 $[\alpha]_{\mathcal E}=a$、$[\beta]_{\mathcal E}=b$，逐项合并基的系数可得
+\begin{equation}
+\label{eq:coordinate-map-linearity}
+    [\alpha+\beta]_{\mathcal E}=a+b,\qquad
+    [k\alpha]_{\mathcal E}=ka\quad(k\in K).
+\end{equation}
+左端运算发生在 $V$ 中，右端运算发生在 $K_n$ 中，这一对应不仅配对了元素，也保持了线性运算。
+
+\begin{definition}
+\label{def:vector-space-isomorphism}
+设 $V,U$ 是\emph[caution]{同一数域 $K$ 上}的线性空间。如果存在双射 $\varphi:V\to U$，满足
+\[
+    \varphi(\alpha+\beta)=\varphi(\alpha)+\varphi(\beta),\qquad
+    \varphi(k\alpha)=k\varphi(\alpha),
+\]
+就称 $\varphi$ 为一个\emph{线性同构}（linear isomorphism），称 $V,U$ \emph{同构}（isomorphic），记为 $V\cong U$。
+\end{definition}
+
+\begin{theorem}
+\label{thm:coordinates-and-isomorphism}
+数域 $K$ 上的任意 $n$ 维线性空间均同构于 $K_n$，也同构于 $K^n$。同构映射保持零向量、所有线性组合关系和向量组的秩，并把基映成基。同一数域上的两个有限维线性空间同构，当且仅当维数相等。
+\end{theorem}
+
+\begin{proof}
+式~\eqref{eq:coordinate-map-linearity} 已说明坐标映射是 $V\to K_n$ 的同构；转置给出 $K_n\to K^n$ 的同构。对任意同构 $\varphi$，由 $\varphi(0)=\varphi(0+0)=\varphi(0)+\varphi(0)$ 得 $\varphi(0)=0$。线性运算的保持性与单射性又给出
+\[
+    \sum_i c_i\alpha_i=0
+    \quad\Longleftrightarrow\quad
+    \sum_i c_i\varphi(\alpha_i)=0.
+\]
+所以对应向量组具有完全相同的系数关系，无关性和表示关系均保持；极大无关组因此仍是极大无关组，秩也相同。若原组是 $V$ 的基，再用 $\varphi$ 的满射性，就知像向量能表示整个 $U$，故像组是 $U$ 的基。
+
+同构关系满足自反、对称与传递：恒等映射是同构；同构的逆映射由原映射的双射性和运算保持性可知仍保持运算；两个同构的复合也是双射并保持运算。因此，维数相同的两个空间均同构于同一个 $K_n$，它们彼此同构；反过来，同构把基映成基，迫使两空间维数相等。
+\end{proof}
+
+这一结论说明，固定数域后，有限维线性空间的线性结构由维数决定；但具体的坐标同构依赖所选有序基。向量本身与它的坐标应当区分：同一个向量可以在不同基下具有不同坐标，而固定基后才能逐项比较、相加和求秩。
+
+\begin{example}
+\label{ex:rank-through-coordinates}
+设 $\mathcal E=(e_1,e_2,e_3)$ 是 $V$ 的基，且
+\[
+    \alpha_1=e_1+2e_2+3e_3,\qquad
+    \alpha_2=2e_1-e_2-3e_3,\qquad
+    \alpha_3=e_1-3e_2-6e_3.
+\]
+求这组向量的秩并判断其线性相关性。
+\end{example}
+
+\begin{solve}
+把坐标列向量拼成矩阵并作初等行变换：
+\[
+    \begin{pmatrix}1&2&1\\2&-1&-3\\3&-3&-6\end{pmatrix}
+    \longrightarrow
+    \begin{pmatrix}1&0&-1\\0&1&1\\0&0&0\end{pmatrix}.
+\]
+坐标向量组的秩为 $2$，故原向量组的秩也是 $2$，三个向量线性相关。第一、第二列是主元列，因此 $\alpha_1,\alpha_2$ 是一个极大无关组，并有 $\alpha_3=-\alpha_1+\alpha_2$。
+\end{solve}
+
+\section{基变换与过渡矩阵}
+\label{sec:basis-change-transition}
+
+坐标依赖于基，换基问题就是求同一个向量在不同坐标系统中的表示关系。以下始终使用列坐标；先明确新基向量在旧基下的坐标，就能确定所有向量的坐标变换。
+
+\begin{definition}
+\label{def:transition-matrix}
+设 $\mathcal E=(e_1,\ldots,e_n)$、$\mathcal F=(f_1,\ldots,f_n)$ 为 $V$ 的两组有序基，将新基写为
+\[
+    f_j=\sum_{i=1}^n p_{ij}e_i\qquad(1\leq j\leq n).
+\]
+称
+\begin{equation}
+\label{eq:transition-matrix-columns}
+    P_{\mathcal E\to\mathcal F}
+    =\bigl([f_1]_{\mathcal E},\ldots,[f_n]_{\mathcal E}\bigr)
+    =(p_{ij})
+\end{equation}
+为从基 $\mathcal E$ 到基 $\mathcal F$ 的\emph{过渡矩阵}（transition matrix）。即它的\emph{第 $j$ 列是第 $j$ 个新基向量在旧基下的坐标}。
+\end{definition}
+
+把上述基关系形式地简记为 $(f_1,\ldots,f_n)=(e_1,\ldots,e_n)P$，其中 $P=P_{\mathcal E\to\mathcal F}$；这里乘法只是各列给出的线性组合。若
+\[
+    \alpha=\sum_i x_ie_i=\sum_j y_jf_j,
+\]
+将 $f_j$ 的表达式代入并比较 $e_i$ 的系数，就得到 $x_i=\sum_jp_{ij}y_j$，从而
+\begin{equation}
+\label{eq:coordinate-change-column}
+    [\alpha]_{\mathcal E}=P_{\mathcal E\to\mathcal F}[\alpha]_{\mathcal F}.
+\end{equation}
+\emph[caution]{按这里的命名，从旧基到新基的过渡矩阵，直接把新坐标变成旧坐标；从旧坐标求新坐标需要用其逆矩阵}。记住“列是新基的旧坐标”，比孤立记忆箭头更可靠。
+
+\begin{theorem}
+\label{thm:transition-inverse-composition}
+过渡矩阵总可逆，并有
+\begin{equation}
+\label{eq:transition-inverse-composition}
+    P_{\mathcal F\to\mathcal E}=P_{\mathcal E\to\mathcal F}^{-1},\qquad
+    P_{\mathcal E\to\mathcal G}
+    =P_{\mathcal E\to\mathcal F}P_{\mathcal F\to\mathcal G},
+\end{equation}
+其中 $\mathcal G$ 是第三组有序基。反之，给定基 $\mathcal E$ 与任意可逆 $n$ 阶矩阵 $P$，按 $(f_1,\ldots,f_n)=(e_1,\ldots,e_n)P$ 得到的向量构成新基，其过渡矩阵就是 $P$。
+\end{theorem}
+
+\begin{proof}
+若 $Pc=0$，以 $P$ 的各列为新基的旧坐标，就有 $[\sum_j c_jf_j]_{\mathcal E}=0$。由坐标映射的单射性和 $f_j$ 的无关性，得到 $c=0$，故 $P$ 的列向量无关，$P$ 可逆。设反向过渡矩阵为 $Q$，对任意 $\alpha$，式~\eqref{eq:coordinate-change-column} 连用两次给出
+\[
+    [\alpha]_{\mathcal E}=PQ[\alpha]_{\mathcal E}.
+\]
+旧坐标可遍历整个 $K_n$，特别地可依次取标准单位列向量，故 $PQ=I_n$，即 $Q=P^{-1}$。三组基的坐标关系连续代入，就有
+\[
+    [\alpha]_{\mathcal E}
+    =P_{\mathcal E\to\mathcal F}P_{\mathcal F\to\mathcal G}[\alpha]_{\mathcal G},
+\]
+依次令 $\alpha$ 为 $\mathcal G$ 的基向量，就得到乘法公式。最后，若 $P$ 可逆，$\sum_jc_jf_j=0$ 等价于 $Pc=0$，故 $f_j$ 无关；它们恰有 $n$ 个，由定理~\ref{thm:finite-dimensional-basis-criteria} 可知构成一组基。
+\end{proof}
+
+\begin{example}
+\label{ex:transition-matrix-computation}
+在 $\mathbb R^3$ 中给定两组基
+\[
+    \mathcal F=\bigl((1,0,-1),(2,1,1),(1,1,1)\bigr),\qquad
+    \mathcal G=\bigl((0,1,1),(-1,1,0),(1,2,1)\bigr).
+\]
+求从 $\mathcal F$ 到 $\mathcal G$ 的过渡矩阵。
+\end{example}
+
+\begin{solve}
+以标准单位行向量组成的有序基为 $\mathcal E$。把各基向量的标准坐标按列排列，得
+\[
+    F=P_{\mathcal E\to\mathcal F}
+     =\begin{pmatrix}1&2&1\\0&1&1\\-1&1&1\end{pmatrix},\qquad
+    G=P_{\mathcal E\to\mathcal G}
+     =\begin{pmatrix}0&-1&1\\1&1&2\\1&0&1\end{pmatrix}.
+\]
+由过渡矩阵的复合公式，所求矩阵为 $P=F^{-1}G$。对增广块矩阵 $(F\mid G)$ 作同步初等行变换，把左块化为 $I_3$，就得到
+\[
+    (F\mid G)\longrightarrow(I_3\mid P),\qquad
+    P=\begin{pmatrix}0&1&1\\-1&-3&-2\\2&4&4\end{pmatrix}.
+\]
+例如第一列表示 $g_1=-f_2+2f_3$；其余两列也分别给出 $g_2,g_3$ 的表示。直接相乘可验证 $FP=G$，而任意向量的坐标满足 $[\alpha]_{\mathcal F}=P[\alpha]_{\mathcal G}$。
+\end{solve}
+
+若改用行坐标，令 $a_{\mathcal E}=[\alpha]_{\mathcal E}^{\mathsf T}$、$a_{\mathcal F}=[\alpha]_{\mathcal F}^{\mathsf T}$，对式~\eqref{eq:coordinate-change-column} 转置就得到 $a_{\mathcal E}=a_{\mathcal F}P^{\mathsf T}$。因此，行坐标与列坐标都可使用，但不能在同一公式中混用相乘方向与转置规则。
+
+\section{子空间}
+\label{sec:linear-subspaces}
+
+实三维空间中过原点的直线、平面，对向量的加法与数乘封闭，因此自身也具有线性空间结构。子空间把这种“在原空间中保留同一套线性运算”的关系推广到抽象情形。
+
+\begin{definition}
+\label{def:linear-subspace}
+设 $V$ 是 $K$ 上的线性空间，$U\subseteq V$ 非空。如果对任意 $\alpha,\beta\in U$、$k\in K$ 都有 $\alpha+\beta\in U$、$k\alpha\in U$，则称 $U$ 为 $V$ 的\emph{线性子空间}（linear subspace），简称子空间，运算继承自 $V$。
+\end{definition}
+
+非空性与封闭性给出 $0=0\alpha\in U$、$-\alpha=(-1)\alpha\in U$，其余公理由 $V$ 直接继承，故 $U$ 确实是同一数域上的线性空间。判定时也可等价地检查：$U\ne\varnothing$，且对任意 $\alpha,\beta\in U$、$a,b\in K$，有 $a\alpha+b\beta\in U$。仅检查含零向量并不充分，还必须检查对线性组合的封闭性。
+
+$\{0\}$ 与 $V$ 本身称为\emph{平凡子空间}。若 $\dim V=n$，在子空间中不断加入不能由已有向量表示的新向量，得到的无关组至多含 $n$ 个向量，故子空间必有有限基并满足 $\dim U\leq n$。若 $\dim U=n$，它的一组基也是 $V$ 的基，所以 $U=V$；因此非平凡子空间满足 $0<\dim U<n$。更一般地，有限维子空间 $U\subseteq W$ 相等当且仅当维数相等。
+
+\begin{definition}
+\label{def:span}
+设 $S\subseteq V$，以 $L(S)$ 或 $\operatorname{span}_K S$ 表示 $S$ 中向量的全部有限线性组合组成的集合，称为 $S$ \emph{生成}或\emph{张成的子空间}（linear span）。约定 $L(\varnothing)=\{0\}$；若 $S=\{\alpha_1,\ldots,\alpha_s\}$，也记为 $L(\alpha_1,\ldots,\alpha_s)$。
+\end{definition}
+
+\begin{proposition}
+\label{prop:span-minimal-subspace}
+$L(S)$ 是包含 $S$ 的最小子空间，即 $S\subseteq L(S)$，且任意包含 $S$ 的子空间都包含 $L(S)$。若 $S$ 有有限极大无关组 $\alpha_1,\ldots,\alpha_r$，则
+\[
+    L(S)=L(\alpha_1,\ldots,\alpha_r),\qquad \dim L(S)=r(S)=r.
+\]
+\end{proposition}
+
+\begin{proof}
+有限线性组合之和及其数乘仍是有限线性组合，故 $L(S)$ 是子空间。每个 $\alpha\in S$ 都是自身系数为 $1$ 的组合，故 $S\subseteq L(S)$。若 $S\subseteq U$ 且 $U$ 为子空间，封闭性保证 $S$ 的所有有限线性组合都在 $U$ 中，因此 $L(S)\subseteq U$。
+
+若 $\alpha_1,\ldots,\alpha_r$ 是 $S$ 的极大无关组，$S$ 可由它们表示，表示的传递性给出 $L(S)\subseteq L(\alpha_1,\ldots,\alpha_r)$；反向包含由 $\alpha_i\in S$ 得到。它们无关且生成该空间，因此是一组基，维数为 $r$。
+\end{proof}
+
+\begin{definition}
+\label{def:subspace-intersection-sum}
+设 $U,W$ 是 $V$ 的子空间。它们的\emph{交空间}为集合交 $U\cap W$，\emph{和空间}（sum of subspaces）为
+\[
+    U+W=\{u+w:u\in U,\ w\in W\}.
+\]
+有限多个子空间的和相应定义为 $\sum_{i=1}^sU_i=\{\sum_{i=1}^su_i:u_i\in U_i\}$。
+\end{definition}
+
+这些交与和都是子空间。交的封闭性来自运算结果仍属于每个参与的子空间；和的封闭性则来自
+\[
+    a(u_1+w_1)+b(u_2+w_2)
+    =(au_1+bu_2)+(aw_1+bw_2)\in U+W.
+\]
+和空间包含每个相加的子空间，并且
+\begin{equation}
+\label{eq:sum-span-union}
+    U_1+\cdots+U_s=L(U_1\cup\cdots\cup U_s),
+\end{equation}
+因为左端是包含各 $U_i$ 的子空间，而右端中的线性组合可按属于哪个 $U_i$ 分组。集合并本身一般不是子空间，例如两条不同的过原点直线的并对加法未必封闭。任意一族子空间的交仍是子空间，因为它们都含零向量，且封闭性可逐个验证。
+
+\begin{example}
+\label{ex:coordinate-subspaces}
+在 $K^3$ 中，令 $U_1=L(e_1)$、$U_2=L(e_2)$、$U_3=L(e_3)$，并令 $X=L(e_1,e_2)$、$Y=L(e_2,e_3)$。则
+\[
+    X=U_1+U_2,\qquad Y=U_2+U_3,\qquad
+    X\cap Y=U_2,\qquad X+Y=K^3.
+\]
+在实数情形，$X,Y$ 是两个坐标平面，它们的交是一条坐标轴；相加时共同方向会被重复计入，这正是下一维数公式中减去交空间维数的原因。
+\end{example}
+
+\begin{theorem}[维数公式]
+\label{thm:subspace-dimension-formula}
+设 $U,W$ 为有限维子空间，则
+\begin{equation}
+\label{eq:subspace-dimension-formula}
+    \dim(U+W)=\dim U+\dim W-\dim(U\cap W).
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+设 $\dim(U\cap W)=k$，取交空间的一组基 $c_1,\ldots,c_k$，分别扩张为
+\[
+    c_1,\ldots,c_k,u_1,\ldots,u_{p-k}\quad\text{与}\quad
+    c_1,\ldots,c_k,w_1,\ldots,w_{q-k},
+\]
+其中 $p=\dim U$、$q=\dim W$。把交空间的基只保留一份，得到向量组
+\begin{equation}
+\label{eq:sum-space-basis-construction}
+    c_1,\ldots,c_k,u_1,\ldots,u_{p-k},w_1,\ldots,w_{q-k}.
+\end{equation}
+它能表示任意 $u+w$，因此生成 $U+W$。若这些向量的某个线性组合为零，把 $w_j$ 的组合移到一边，就得到
+\[
+    \sum_{j=1}^{q-k}b_jw_j
+    =-\sum_{i=1}^ka_ic_i-\sum_{j=1}^{p-k}d_ju_j\in U\cap W.
+\]
+左端因而也可由 $c_i$ 表示。由于 $c_i,w_j$ 是 $W$ 的基，必有所有 $b_j=0$；代回原关系，再由 $c_i,u_j$ 的无关性得所有 $a_i,d_j=0$。故式~\eqref{eq:sum-space-basis-construction} 是一组基，向量个数为 $p+q-k$，即得结论。交空间为零时，$c_i$ 一段为空，论证仍成立。
+\end{proof}
+
+\begin{definition}
+\label{def:direct-sum}
+设 $U_1,\ldots,U_s$ 是 $V$ 的子空间。若对每个 $i$ 都有
+\begin{equation}
+\label{eq:direct-sum-intersection-condition}
+    U_i\cap\sum_{j\ne i}U_j=\{0\},
+\end{equation}
+则称它们的和为\emph{直接和}或\emph{直和}（direct sum），记为 $U_1\oplus\cdots\oplus U_s$。对于两个子空间，这一条件就是 $U_1\cap U_2=\{0\}$。
+\end{definition}
+
+\begin{theorem}
+\label{thm:direct-sum-equivalences}
+设 $W=U_1+\cdots+U_s$，其中各 $U_i$ 有限维。下列条件等价：
+\begin{enumerate}
+    \item $W=U_1\oplus\cdots\oplus U_s$；
+    \item 若 $u_1+\cdots+u_s=0$ 且 $u_i\in U_i$，则所有 $u_i=0$；
+    \item 每个 $w\in W$ 都能唯一地写为 $w=u_1+\cdots+u_s$，其中 $u_i\in U_i$；
+    \item 分别取各 $U_i$ 的一组基后，将它们按组拼接就得到 $W$ 的一组基；
+    \item $\dim W=\sum_{i=1}^s\dim U_i$；
+    \item 对每个 $i=2,\ldots,s$，都有 $U_i\cap(U_1+\cdots+U_{i-1})=\{0\}$。
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+若为直和，由 $u_i=-\sum_{j\ne i}u_j$ 与定义的交条件，逐个得 $u_i=0$。反之，若零向量只有这种零分解，对任意 $u\in U_i\cap\sum_{j\ne i}U_j$，把它在其余子空间中的表示移项，就可推出 $u=0$，所以条件一、二等价。
+
+每个 $w\in W$ 按定义至少有一个分解。把两个分解相减，便把唯一性归结为零向量的分解唯一性；取 $w=0$ 又得反向结论，故条件二、三等价。各子空间基的拼接组始终生成 $W$。条件二保证拼接组的任何零线性组合，先按子空间分组后每组都为零，再由各自基的无关性得全部系数为零；反之，若拼接组是基，把 $u_i$ 分别按各自的基展开，也得条件二。因此条件二、四等价。拼接组的长度为 $\sum_i\dim U_i$，由定理~\ref{thm:finite-dimensional-basis-criteria}，它是基当且仅当长度等于 $\dim W$，故条件四、五等价。
+
+条件二显然推出条件六。若条件六成立而有非零的零和分解，取最大的 $i$ 使 $u_i\ne0$；$i=1$ 时零和本身已矛盾，$i\geq2$ 时有 $u_i=-\sum_{j<i}u_j\in U_i\cap\sum_{j<i}U_j$，同样矛盾。因此条件六也推出条件二。
+\end{proof}
+
+在例~\ref{ex:coordinate-subspaces} 中，$K^3=U_1\oplus U_2\oplus U_3$，因为标准坐标给出每个向量的唯一分解；但 $X+Y$ 不是直和，因为交空间为 $U_2\ne\{0\}$。对于三个及以上子空间，\emph[caution]{两两交为零并不足以保证直和}：在 $K^2$ 中，$L(e_1)$、$L(e_2)$、$L(e_1+e_2)$ 两两交为零，却满足 $e_1+e_2-(e_1+e_2)=0$ 这一各组分量非零的零和关系；三个一维空间的和只有二维。必须检查某个子空间与其余子空间之和的交，或使用定理~\ref{thm:direct-sum-equivalences} 中的等价条件。
+
+\section{线性方程组的解}
+\label{sec:linear-system-solutions}
+
+设 $A\in K^{m\times n}$、$b\in K_m$，未知列向量 $x\in K_n$，考虑线性方程组
+\begin{equation}
+\label{eq:general-linear-system}
+    Ax=b.
+\end{equation}
+称 $A$ 为系数矩阵，$\widetilde A=(A\mid b)$ 为增广矩阵。$b=0$ 时称为\emph{齐次线性方程组}（homogeneous linear system），否则称为\emph{非齐次线性方程组}（nonhomogeneous linear system）。求解始终在指定数域 $K$ 中进行，解的分量与参数都必须取自 $K$。
+
+\begin{theorem}[解的判定]
+\label{thm:linear-system-consistency}
+方程组~\eqref{eq:general-linear-system} 有解，当且仅当 $r(A)=r(\widetilde A)$。具体地，
+\[
+    \begin{cases}
+        r(A)<r(\widetilde A),&\text{无解},\\
+        r(A)=r(\widetilde A)=n,&\text{有唯一解},\\
+        r(A)=r(\widetilde A)<n,&\text{有无穷多个解}.
+    \end{cases}
+\]
+\end{theorem}
+
+\begin{proof}
+设 $A$ 的列向量为 $\alpha_1,\ldots,\alpha_n$。由式~\eqref{eq:linear-system-column-combination}，有解等价于 $b$ 可由这些列向量表示。若能表示，添加 $b$ 不改变秩，故 $r(\widetilde A)=r(A)$；若不能表示，把 $b$ 添加到 $A$ 的列向量的一个极大无关组后仍无关，故增广矩阵的秩比系数矩阵大 $1$。这证明了有解的判据。
+
+在有解前提下，由定理~\ref{thm:unique-linear-representation}，表示系数唯一当且仅当 $A$ 的 $n$ 列无关，即 $r(A)=n$。若 $r(A)<n$，则存在 $z\ne0$ 使 $Az=0$。取一个解 $x_0$，任意 $t\in K$ 都给出解 $x_0+tz$；不同 $t$ 给出不同解，而 $K$ 包含无限集 $\mathbb Q$，故解有无穷多个。
+\end{proof}
+
+齐次方程组总有零解，称为\emph{平凡解}（trivial solution）。它有非零解当且仅当 $r(A)<n$；特别地，方程个数少于未知数个数时，$r(A)\leq m<n$，必有非零解。方程个数与未知数个数相等时，是否存在非零解还取决于系数矩阵的秩，不能仅凭个数判断。
+
+\begin{definition}
+\label{def:homogeneous-solution-space}
+齐次方程组 $Ax=0$ 的全部解组成的集合
+\[
+    S_0=\{x\in K_n:Ax=0\}
+\]
+称为其\emph{解空间}（solution space）。该空间的一组基称为齐次方程组的\emph{基础解系}（fundamental system of solutions）。
+\end{definition}
+
+$S_0$ 确实是子空间：它包含零向量，且 $Au=Av=0$ 时，$A(au+bv)=aAu+bAv=0$。因此，找出基础解系就能用有限个解向量的线性组合表示全部解；这比逐个列举解更能体现方程组的结构。
+
+\begin{theorem}
+\label{thm:homogeneous-solution-dimension}
+若 $r(A)=r$，则 $\dim S_0=n-r$。当 $r<n$ 时，存在 $n-r$ 个线性无关的解向量 $\eta_1,\ldots,\eta_{n-r}$，使全部解唯一地写为
+\begin{equation}
+\label{eq:homogeneous-general-solution}
+    x=t_1\eta_1+\cdots+t_{n-r}\eta_{n-r},\qquad t_j\in K.
+\end{equation}
+当 $r=n$ 时，$S_0=\{0\}$，基础解系为空组。
+\end{theorem}
+
+\begin{proof}
+对 $A$ 作初等行变换，并在需要时重排未知数，使 $r$ 个主元对应的变量排在前面，再消去各主元列的其余元素。用 $x=\Pi y$ 表示变量重排，其中 $\Pi$ 为置换矩阵，就把方程组化为
+\[
+    \begin{pmatrix}I_r&C\\0&0\end{pmatrix}
+    \begin{pmatrix}y_{\mathrm p}\\y_{\mathrm f}\end{pmatrix}=0,
+    \qquad C\in K^{r\times(n-r)}.
+\]
+其中 $y_{\mathrm p}$ 为主元变量列，$y_{\mathrm f}$ 为\emph{自由变量}（free variables）列。方程等价于 $y_{\mathrm p}=-Cy_{\mathrm f}$，自由变量可以任取。令 $t=y_{\mathrm f}\in K_{n-r}$，则
+\[
+    x=\Pi\begin{pmatrix}-C\\I_{n-r}\end{pmatrix}t.
+\]
+依次令 $t$ 为 $K_{n-r}$ 的标准单位列向量 $e_j$，得到
+\begin{equation}
+\label{eq:fundamental-solutions-from-free-variables}
+    \eta_j=\Pi\begin{pmatrix}-Ce_j\\e_j\end{pmatrix},
+    \qquad 1\leq j\leq n-r.
+\end{equation}
+这些向量生成所有解；若 $\sum_jt_j\eta_j=0$，先左乘 $\Pi^{-1}$，再查看后 $n-r$ 个分量，就得 $t_1=\cdots=t_{n-r}=0$，故它们无关，构成基础解系。$r=n$ 时没有自由变量，只有零解；$r=0$ 时方程组为零方程组，解空间就是整个 $K_n$，结论同样成立。
+\end{proof}
+
+这里 $n-r$ 同时是自由变量个数、基础解系中向量的个数和解空间的维数。基础解系不唯一，但任何基础解系都必须无关并生成全部解；仅仅给出 $n-r$ 个解向量，不能省略这两个条件的核查。
+
+\begin{theorem}[非齐次方程组解的结构]
+\label{thm:nonhomogeneous-solution-structure}
+设 $Ax=b$ 有解，取其中一个解 $x_0$，称为一个\emph{特解}（particular solution），以 $S_0$ 记相伴齐次方程组 $Ax=0$ 的解空间，则全部解组成的集合为
+\begin{equation}
+\label{eq:nonhomogeneous-affine-solution-set}
+    S_b=x_0+S_0=\{x_0+z:z\in S_0\}.
+\end{equation}
+若 $\eta_1,\ldots,\eta_{n-r}$ 是 $S_0$ 的一组基础解系，则通解为
+\begin{equation}
+\label{eq:nonhomogeneous-general-solution}
+    x=x_0+t_1\eta_1+\cdots+t_{n-r}\eta_{n-r},\qquad t_j\in K.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+若 $Az=0$，则 $A(x_0+z)=Ax_0+Az=b$，故右端全部是解。反之，任意解 $x$ 满足 $A(x-x_0)=b-b=0$，所以 $x-x_0\in S_0$，得到式~\eqref{eq:nonhomogeneous-affine-solution-set}。最后用基础解系展开 $z$，就得到通解。
+\end{proof}
+
+非齐次方程组的解集是齐次解空间的一次平移，称为\emph{仿射子空间}（affine subspace）。当 $b\ne0$ 且有解时，解集不含零向量，因而不是线性子空间；它的仿射维数为 $n-r$。两个非齐次解的差是齐次解，一个非齐次解加上任意齐次解仍是非齐次解，但两个非齐次解之和一般不再满足原方程。$r=n$ 时，式~\eqref{eq:nonhomogeneous-general-solution} 中的和为空，正好退化为唯一特解。
+
+实际计算以增广矩阵为输入，用初等行变换消元，必要时只对系数列作列对换并记录未知数的重排。有限次消元后可得到
+\begin{equation}
+\label{eq:linear-system-reduced-block-form}
+    \begin{pmatrix}I_r&C&\vline&d\\0&0&\vline&h\end{pmatrix}.
+\end{equation}
+若 $h$ 有非零元素，就出现 $0=h_i\ne0$ 的矛盾方程，应输出无解；若 $h=0$，自由变量取零给出特解，依次取标准单位值则得到基础解系，具体为
+\[
+    x_0=\Pi\begin{pmatrix}d\\0\end{pmatrix},\qquad
+    \eta_j=\Pi\begin{pmatrix}-Ce_j\\e_j\end{pmatrix}.
+\]
+最后恢复原变量次序并写出式~\eqref{eq:nonhomogeneous-general-solution}。行变换同步作用于系数与常数项，保持同解；\emph[caution]{常数列不能参与系数列的对换，系数列对换后也必须恢复解向量的分量顺序}。其他列变换会引入更一般的未知量替换，若不跟踪该替换，就不能直接把变换后的解当作原方程组的解。
+
+\begin{example}
+\label{ex:linear-system-general-solution}
+求 $Ax=b$ 的全部解，其中
+\[
+    A=\begin{pmatrix}
+        1&3&-2&4&1\\
+        2&6&-3&5&2\\
+        4&11&-7&15&5\\
+        1&3&-1&1&1
+    \end{pmatrix},\qquad b=\begin{pmatrix}2\\5\\3\\3\end{pmatrix}.
+\]
+\end{example}
+
+\begin{solve}
+对增广矩阵作初等行变换，得到
+\[
+    (A\mid b)\longrightarrow
+    \left(\begin{array}{ccccc|c}
+        1&0&0&4&4&-14\\
+        0&1&0&-2&-1&6\\
+        0&0&1&-3&0&1\\
+        0&0&0&0&0&0
+    \end{array}\right).
+\]
+系数矩阵与增广矩阵的秩都为 $3$。令 $x_4=s$、$x_5=t$，可得
+\[
+    x_1=-14-4s-4t,\qquad x_2=6+2s+t,\qquad x_3=1+3s.
+\]
+因此全部解为
+\[
+    x=\begin{pmatrix}-14\\6\\1\\0\\0\end{pmatrix}
+      +s\begin{pmatrix}-4\\2\\3\\1\\0\end{pmatrix}
+      +t\begin{pmatrix}-4\\1\\0\\0\\1\end{pmatrix},\qquad s,t\in K.
+\]
+两个方向向量的第四、第五分量分别为 $(1,0)$、$(0,1)$，所以线性无关；代回 $A$ 可验证它们均是齐次解，且特解满足 $Ax_0=b$。自由变量表达式保证没有遗漏其他解，解集的仿射维数为 $5-3=2$。
+\end{solve}
+
+\begin{example}
+\label{ex:linear-system-variable-permutation}
+求解
+\[
+    \left\{\begin{aligned}
+        x_1+2x_2-x_3+3x_4+x_5&=2,\\
+        2x_1+4x_2-2x_3+6x_4+3x_5&=6,\\
+        -x_1-2x_2+x_3-x_4+3x_5&=4.
+    \end{aligned}\right.
+\]
+\end{example}
+
+\begin{solve}
+只做行变换即可得到
+\[
+    \left(\begin{array}{ccccc|c}
+        1&2&-1&0&0&3\\
+        0&0&0&1&0&-1\\
+        0&0&0&0&1&2
+    \end{array}\right).
+\]
+主元列为第一、第四、第五列，自由变量为 $x_2,x_3$。若希望把主元变量排在前面，可以引入
+\[
+    (y_1,y_2,y_3,y_4,y_5)=(x_1,x_4,x_5,x_2,x_3),
+\]
+得到 $y_1=3-2y_4+y_5$、$y_2=-1$、$y_3=2$。恢复原变量次序，取 $x_2=s$、$x_3=t$，就有
+\[
+    x=\begin{pmatrix}3\\0\\0\\-1\\2\end{pmatrix}
+      +s\begin{pmatrix}-2\\1\\0\\0\\0\end{pmatrix}
+      +t\begin{pmatrix}1\\0\\1\\0\\0\end{pmatrix},\qquad s,t\in K.
+\]
+这也说明主元列未必是原矩阵的前 $r$ 列，基础解系中的单位分量应对应真正的自由变量位置。
+\end{solve}
+
+
+
+
+
+

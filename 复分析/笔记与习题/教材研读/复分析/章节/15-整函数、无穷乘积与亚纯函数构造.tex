@@ -1,0 +1,243 @@
+% !TeX root = ../复分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{14} % 保留原书章号。
+\chapter{整函数、无穷乘积与亚纯函数构造}
+\label{chap:ca-entire}
+
+前面常从一个给定函数出发寻找零点、极点与留数。本章反过来问：能否指定零点及重数，再构造整函数；能否指定各极点的主部，再构造亚纯函数？有限数据可由多项式和部分分式处理，无穷数据则必须加入收敛控制。无穷乘积中的指数修正与主部级数中的多项式修正，正是解决这两个问题的工具。
+
+\section{无穷乘积与对数级数}
+
+对一列非零复数 $b_n$，称 $\prod_{n=1}^{\infty}b_n$ 收敛，是指部分乘积趋于非零的有限极限；若允许极限为零，应另行说明。收敛的必要条件是 $b_n\to1$，但这不充分，例如 $\prod_{n=1}^N(1+1/n)=N+1$ 发散。若有有限个零因子，整个乘积为零，其余尾乘积仍须按上述意义讨论。
+
+\begin{theorem}[局部一致收敛的乘积判别]
+\label{thm:ca-product-convergence}
+设 $u_n$ 在区域 $D$ 上全纯，且对每个紧集 $K\subset D$，有 $\sum_n\sup_K|u_n|<\infty$。则部分乘积 $\prod_{n=1}^N(1+u_n)$ 局部一致收敛到全纯函数 $P$。若各因子都不恒为零，则 $P$ 的零点恰为各因子的零点，零点阶数等于该点处有限个相关因子阶数之和；在任何因子都不为零的点，$P$ 不为零。
+\end{theorem}
+\begin{proof}
+在一个紧集的稍大紧邻域上，尾项一致满足 $|u_n|\le1/2$。在 $|w|<1$ 中取 $\log(1+w)$ 的零点归一化分支，由其幂级数得
+\[
+ |\log(1+w)|\le\sum_{k\ge1}|w|^k\le2|w|\qquad(|w|\le1/2).
+\]
+所以尾部对数级数在各紧集上一致收敛，其和全纯。尾乘积等于此和的指数，因而局部一致收敛且处处非零。乘上有限个初始因子得到 $P$，并由局部表示读出零点与阶数。因为尾因子在给定紧邻域内都接近一，所以不会有无穷多个因子同时在其中的同一点为零。
+\end{proof}
+
+\section{魏尔斯特拉斯乘积定理}
+
+直接使用 $\prod_n(1-z/a_n)$，即使 $|a_n|\to\infty$，也不保证收敛。为消掉对数展开中的低阶项，定义\emph{初等因子（elementary factor）}
+\begin{equation}
+ E_0(w)=1-w,\qquad
+ E_p(w)=(1-w)\exp\left(w+\frac{w^2}{2}+\cdots+\frac{w^p}{p}\right),\quad p\ge1.
+ \label{eq:ca-elementary-factors}
+\end{equation}
+在 $|w|<1$ 内，选择在原点取零的对数，有
+\begin{equation}
+ \log E_p(w)=-\sum_{k=p+1}^{\infty}\frac{w^k}{k},\qquad
+ |\log E_p(w)|\le2|w|^{p+1}\quad(|w|\le1/2).
+ \label{eq:ca-factor-estimate}
+\end{equation}
+指数因子没有零点，故 $E_p$ 仍恰在 $w=1$ 有一个简单零点，修正只改善收敛而不改变零点数据。
+
+\begin{theorem}[魏尔斯特拉斯乘积定理，Weierstrass product theorem]
+\label{thm:ca-weierstrass-product}
+设不同的非零点 $a_n$ 在复平面中无有限聚点，给每点指定正整数重数 $m_n$，并给原点指定非负整数重数 $m$。存在整函数，其零点恰为这些点且具有指定重数。可以选非负整数 $p_n$，使
+\begin{equation}
+ P(z)=z^m\prod_{n=1}^{\infty}E_{p_n}(z/a_n)^{m_n}
+ \label{eq:ca-canonical-product}
+\end{equation}
+局部一致收敛。任何具有相同零点数据的非零整函数均可写成 $e^{g(z)}P(z)$，其中 $g$ 为整函数。
+\end{theorem}
+\begin{proof}
+无有限聚点保证每个闭圆盘只含有限个 $a_n$，故可枚举使 $|a_n|\to\infty$。选 $p_n$ 满足 $2m_n2^{-(p_n+1)}\le2^{-n}$。固定 $|z|\le R$，当 $n$ 足够大时有 $|a_n|\ge2R$，由式~\eqref{eq:ca-factor-estimate}，
+\[
+ m_n|\log E_{p_n}(z/a_n)|\le2m_n2^{-(p_n+1)}\le2^{-n}.
+\]
+所以尾对数级数在闭圆盘上一致收敛，尾乘积为非零全纯函数；前面只有有限个因子，零点位置和重数由这些因子给出。$R$ 任意，得到整函数 $P$。有限点集的情形直接用有限乘积。
+
+若 $f$ 有相同零点数据，则局部分解表明 $f/P$ 在这些点可去，延拓后为处处非零的整函数。复平面单连通，故它有全纯对数 $g$，于是 $f=e^gP$。反之，乘以 $e^g$ 不改变任何零点数据。
+\end{proof}
+
+\begin{example}[给正整数指定简单零点]
+由于 $\sum n^{-2}<\infty$，
+\[
+ P(z)=\prod_{n=1}^{\infty}(1-z/n)e^{z/n}
+\]
+局部一致收敛，零点恰为正整数且都简单。对任意紧集，充分大的 $n$ 满足 $|z/n|\le1/2$，尾对数绝对值受 $2|z|^2/n^2$ 控制。这比仅说“各因子趋于一”多出了所需的可求和误差。$e^{z^2}P(z)$ 有完全相同的零点，说明零点数据不能唯一确定整函数。
+\end{example}
+
+\section{米塔--莱夫勒定理与主部级数}
+
+\begin{theorem}[全平面上的米塔--莱夫勒定理，Mittag--Leffler theorem]
+\label{thm:ca-mittag-leffler}
+设不同点 $a_n\in\mathbb C$ 无有限聚点，在每点指定一个非零有限主部
+\[
+ Q_n(z)=\sum_{k=1}^{r_n}\frac{c_{n,k}}{(z-a_n)^k},\qquad c_{n,r_n}\ne0.
+\]
+存在亚纯函数 $F$，其极点恰为这些点，且在 $a_n$ 的洛朗主部为 $Q_n$。任意两个这样的函数之差为整函数。
+\end{theorem}
+\begin{proof}
+先把原点及有限个特殊点的主部分离，余下可设 $a_n\ne0$、$|a_n|\to\infty$。$Q_n$ 在 $|z|<|a_n|$ 全纯，因此可用其原点泰勒多项式 $T_n$ 在 $|z|\le|a_n|/2$ 上逼近，使
+\[
+ \sup_{|z|\le|a_n|/2}|Q_n(z)-T_n(z)|<2^{-n}.
+\]
+令 $F=\sum_n(Q_n-T_n)$，再加回先前分离的有限主部。在任意不含指定极点的紧集上，尾项最终满足上述可求和估计，因而级数局部一致收敛并全纯。在 $a_j$ 周围取不含其他指定点的小圆盘，除第 $j$ 项以外的和在该圆盘全纯；减去 $T_j$ 也不改变主部。因此主部恰为 $Q_j$，没有额外极点。若 $F_1,F_2$ 有相同主部，则其差在每个指定点的主部消失，所有这些奇点均可去，故差为整函数。
+\end{proof}
+
+\begin{example}[规定留数不能确定唯一函数]
+要在每个正整数处设置简单极点且留数为一，可取
+\[
+ F(z)=\sum_{n=1}^{\infty}\left(\frac1{z-n}+\frac1n\right).
+\]
+当 $|z|\le R$、$n>2R$ 时，合并后的项为 $z/[n(z-n)]$，模不超过 $2R/n^2$，故远离极点局部一致收敛。它在每个 $n$ 的主部为 $1/(z-n)$；任意加上一个整函数仍满足同样要求。单独求和 $\sum1/(z-n)$ 则没有这个收敛保证。
+\end{example}
+
+\begin{corollary}[离散点上的整函数插值]
+\label{cor:ca-entire-interpolation}
+若不同点 $a_n$ 无有限聚点，则对任意复数 $A_n$，存在整函数 $f$ 满足 $f(a_n)=A_n$。
+\end{corollary}
+\begin{proof}
+用魏尔斯特拉斯定理取零点恰为 $a_n$ 且都简单的整函数 $g$。在 $a_n$ 指定主部 $A_n/[g'(a_n)(z-a_n)]$，其中 $A_n=0$ 时不指定极点。米塔--莱夫勒定理给出相应亚纯函数 $h$。乘积 $f=gh$ 在每个 $a_n$ 都可去，其延拓值由 $g(z)=g'(a_n)(z-a_n)+O((z-a_n)^2)$ 得到 $A_n$。其他位置全纯，故 $f$ 整。
+\end{proof}
+
+\section{余切的部分分式与正弦的无穷乘积}
+
+\begin{theorem}[正弦与余切的展开]
+\label{thm:ca-sine-product}
+在 $\mathbb C\setminus\mathbb Z$ 上局部一致地有
+\begin{equation}
+ \pi\cot(\pi z)=\frac1z+\sum_{n=1}^{\infty}\frac{2z}{z^2-n^2};
+ \label{eq:ca-cot-partial-fractions}
+\end{equation}
+在整个复平面上局部一致地有
+\begin{equation}
+ \sin(\pi z)=\pi z\prod_{n=1}^{\infty}\left(1-\frac{z^2}{n^2}\right).
+ \label{eq:ca-sine-product}
+\end{equation}
+\end{theorem}
+\begin{proof}
+固定 $z\notin\mathbb Z$，取充分大的正整数 $N$，使顶点为 $\pm(N+1/2)\pm i(N+1/2)$ 的正向正方形边界 $\Gamma_N$ 将 $z,-z$ 严格包在内部，研究
+\[
+ I_N=\frac1{2\pi i}\int_{\Gamma_N}
+ \frac{\pi\cot(\pi\zeta)}{\zeta^2-z^2}\,d\zeta.
+\]
+在竖边上，余切的模不超过一；在横边上，由指数形式可得其模不超过一个与 $N$ 无关的常数，例如 $\coth(\pi/2)$。分母模至少为 $(N+1/2)^2-|z|^2$，边长总和为 $8(N+1/2)$，故 $I_N\to0$。整数点 $n$ 处的留数为 $1/(n^2-z^2)$；$\zeta=z$ 与 $\zeta=-z$ 两点的留数之和为 $\pi\cot(\pi z)/z$。留数定理因此给出
+\[
+ 0=\lim_{N\to\infty}\left(\sum_{n=-N}^{N}\frac1{n^2-z^2}
+ +\frac{\pi\cot(\pi z)}z\right),
+\]
+整理即得式~\eqref{eq:ca-cot-partial-fractions}。其级数尾项在每个避开整数的紧集上受常数乘 $n^{-2}$ 控制，故局部一致收敛。
+
+令 $P(z)=\pi z\prod_{n\ge1}(1-z^2/n^2)$。乘积判别保证它整，且零点恰为整数并都简单。在不含这些零点的紧邻域上，对充分大的因子选接近零的对数，所得对数级数局部一致收敛；全纯函数列的导数收敛定理允许逐项求导。因此
+\[
+ \frac{P'}P=\frac1z+\sum_{n\ge1}\frac{2z}{z^2-n^2}
+ =\frac{(\sin\pi z)'}{\sin\pi z}.
+\]
+比值 $\sin(\pi z)/P(z)$ 的整数点奇点均可去，在连通集 $\mathbb C\setminus\mathbb Z$ 上导数为零，故延拓为常数。令 $z\to0$，比值趋于一，得到乘积公式。这个最后的归一化步骤排除了仅由零点数据无法确定的非零指数因子。
+\end{proof}
+
+\section{伽马函数：积分、延拓与乘积}
+
+对 $\operatorname{Re}z>0$ 定义\emph{伽马函数（Gamma function）}
+\begin{equation}
+ \Gamma(z)=\int_0^{\infty}t^{z-1}e^{-t}\,dt,
+ \qquad t^{z-1}=\exp((z-1)\log t),\quad t>0.
+ \label{eq:ca-gamma-integral}
+\end{equation}
+若 $z$ 属于右半平面的紧集，则有 $0<\delta\le\operatorname{Re}z\le M$。在零附近，任意固定阶导数的被积式受 $t^{\delta-1}|\log t|^k$ 控制；在无穷远处受 $t^{M-1}e^{-t}|\log t|^k$ 控制，两者均可积。因此截断积分及其各阶导数在紧集上一致收敛，允许对参数逐次微分，得到全纯性。实变量分部积分给出
+\begin{equation}
+ \Gamma(z+1)=z\Gamma(z),\qquad \Gamma(1)=1,
+ \label{eq:ca-gamma-recurrence}
+\end{equation}
+端点项消失使用 $\operatorname{Re}z>0$。
+
+反复使用式~\eqref{eq:ca-gamma-recurrence}，在 $\operatorname{Re}z>-N-1$ 中以
+\[
+ \Gamma(z)=\frac{\Gamma(z+N+1)}{z(z+1)\cdots(z+N)}
+\]
+定义亚纯延拓。不同 $N$ 的定义由递推关系相容，故覆盖整个平面。可能的极点只有 $0,-1,-2,\ldots$；在 $z=-n$ 附近取 $N=n$，分子趋于一，分母中除 $z+n$ 外各因子之积为 $(-1)^n n!$，所以它们都是简单极点，且
+\begin{equation}
+ \operatorname{Res}(\Gamma,-n)=\frac{(-1)^n}{n!}.
+ \label{eq:ca-gamma-residues}
+\end{equation}
+
+\begin{proposition}[反射公式与无零点性]
+\label{prop:ca-gamma-reflection}
+作为亚纯函数恒等式，有
+\begin{equation}
+ \Gamma(z)\Gamma(1-z)=\frac{\pi}{\sin\pi z}.
+ \label{eq:ca-gamma-reflection}
+\end{equation}
+伽马函数在其全纯点处没有零点，因此 $1/\Gamma$ 延拓为整函数，零点恰为非正整数且都简单。
+\end{proposition}
+\begin{proof}
+当 $\operatorname{Re}z,\operatorname{Re}w>0$ 时，双重积分绝对收敛。以 $s=ru$、$t=r(1-u)$ 作换元，雅可比为 $r$，得到
+\[
+ \Gamma(z)\Gamma(w)=\Gamma(z+w)
+ \int_0^1u^{z-1}(1-u)^{w-1}\,du.
+\]
+对 $0<\operatorname{Re}z<1$ 取 $w=1-z$，再令 $u=t/(1+t)$，得到
+\[
+ \Gamma(z)\Gamma(1-z)=\int_0^\infty\frac{t^{z-1}}{1+t}\,dt.
+\]
+两侧在该条带全纯；第~\ref{chap:ca-residue} 章钥匙孔积分对实数 $0<z<1$ 已给出右侧为 $\pi/\sin\pi z$，恒等定理遂将等式推广到整个条带，再由亚纯延拓推广到全平面。若 $z$ 非整数，则两个伽马因子都有限，右侧非零，故任一因子均非零。正整数处由递推关系得 $\Gamma(n)=(n-1)!\ne0$；非正整数处为简单极点。倒数的结论由局部洛朗展开得到。
+\end{proof}
+
+\begin{theorem}[伽马函数的魏尔斯特拉斯乘积]
+\label{thm:ca-gamma-product}
+设 $\gamma_E=\lim_{N\to\infty}(\sum_{n=1}^N1/n-\log N)$ 为欧拉常数，则
+\begin{equation}
+ \frac1{\Gamma(z)}=z e^{\gamma_E z}
+ \prod_{n=1}^{\infty}\left(1+\frac zn\right)e^{-z/n},
+ \label{eq:ca-gamma-product}
+\end{equation}
+右侧在整个复平面局部一致收敛。
+\end{theorem}
+\begin{proof}
+对 $\operatorname{Re}z>0$，反复分部积分得
+\[
+ \int_0^1 t^{z-1}(1-t)^N\,dt
+ =\frac{N!}{z(z+1)\cdots(z+N)}.
+\]
+乘以 $N^z$ 并令 $s=Nt$，左侧成为 $\int_0^N s^{z-1}(1-s/N)^N\,ds$。在 $0\le s<N$ 上有 $(1-s/N)^N\le e^{-s}$；在任意右半平面紧集上，可用零附近的 $s^{\delta-1}$ 与无穷远的 $s^{M-1}e^{-s}$ 作统一可积控制。于是该积分局部一致趋于 $\Gamma(z)$，从而
+\[
+ \frac1{\Gamma(z)}=
+ \lim_{N\to\infty}zN^{-z}\prod_{n=1}^N(1+z/n).
+\]
+这里取倒数合法，因为上一命题保证右半平面上 $\Gamma$ 无零点。把有限乘积改写为
+\[
+ z\exp\left(z\left(\sum_{n=1}^N\frac1n-\log N\right)\right)
+ \prod_{n=1}^N(1+z/n)e^{-z/n}.
+\]
+括号内的实数列有下界且单调递减：其相邻差为 $1/(N+1)-\log(1+1/N)<0$，下界由积分比较给出，故极限 $\gamma_E$ 存在。乘积的尾对数受常数乘 $|z|^2/n^2$ 控制，因而在整个复平面局部一致收敛。两侧都是整函数，在右半平面相等，恒等定理给出全平面的公式。
+\end{proof}
+
+\begin{example}[半整数值与零点数据]
+式~\eqref{eq:ca-gamma-reflection} 在 $z=1/2$ 给出 $\Gamma(1/2)^2=\pi$；积分定义保证它为正，故 $\Gamma(1/2)=\sqrt\pi$。递推得到 $\Gamma(5/2)=3\sqrt\pi/4$。式~\eqref{eq:ca-gamma-product} 的零点恰为 $0,-1,-2,\ldots$，与极点分析一致；指数因子 $e^{\gamma_E z}$ 则表明仅指定倒数的零点还不能确定伽马函数。
+\end{example}
+
+\section{增长条件怎样补充零点信息}
+
+若整函数满足 $|f(z)|\le C(1+|z|^m)$，其中 $m$ 为非负整数，则在原点使用柯西估计得
+\[
+ |f^{(k)}(0)|\le k!C(1+R^m)/R^k.
+\]
+当 $k>m$ 时令 $R\to\infty$，得到高阶导数为零，故 $f$ 是次数不超过 $m$ 的多项式。这个已在基础习题出现的论证说明，整体增长能显著压缩具有相同局部数据的函数集合。
+
+对非常数整函数，定义最大模 $M_f(r)=\max_{|z|=r}|f(z)|$，以及\emph{增长阶（order of growth）}
+\[
+ \rho(f)=\limsup_{r\to\infty}\frac{\log\log M_f(r)}{\log r}.
+\]
+非常数整函数的 $M_f(r)$ 最终大于一，故此式在充分大 $r$ 有意义。非常数多项式的阶为零；$f(z)=e^{z^k}$ 的最大模为 $e^{r^k}$，阶为 $k$。有限增长阶下，阿达马分解定理进一步把乘积分解中的指数限制为适当次数的多项式，并限制所需初等因子的阶数；这需要额外的增长估计，属于后续整函数论的结果，本章不把它作为已证明的工具。任意整函数的分解应使用已证的 $e^gP$ 形式，不能擅自把 $g$ 当成多项式。
+
+\section{习题与解答}
+
+\begin{enumerate}
+ \item 构造零点恰为 $1,2,3,\ldots$ 且在 $n$ 处重数为 $n$ 的整函数。
+ \item 构造在每个正整数 $n$ 有主部 $(z-n)^{-2}$、没有其他极点的亚纯函数。
+ \item 计算 $\Gamma$ 在 $-3$ 处的留数和 $\Gamma(7/2)$。
+ \item 为什么 $\sin(\pi z)$ 与 $e^z\sin(\pi z)$ 有相同零点，却不能由零点相同推出二者相等？
+\end{enumerate}
+\begin{solve}[解答]
+第一题可取 $\prod_{n\ge1}E_2(z/n)^n$，因为在紧集上的尾对数受 $2R^3/n^2$ 控制。第二题直接取 $\sum_{n\ge1}(z-n)^{-2}$ 即可：远离极点的紧集上尾项受常数乘 $n^{-2}$ 控制，所以此例无需额外修正。第三题由式~\eqref{eq:ca-gamma-residues} 得留数 $-1/6$，由递推得 $\Gamma(7/2)=15\sqrt\pi/8$。第四题的比值为非恒定但处处非零的整函数 $e^z$；零点只决定乘积的零因子，还需要归一化、增长或其他条件控制剩余指数因子。
+\end{solve}
+

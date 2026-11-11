@@ -1,0 +1,871 @@
+% !TeX root = ../数学分析教材（伍胜健）笔记.tex
+% 本文件由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{8} % 保留原书章号。
+\chapter{数项级数}
+\label{chap:numerical-series}
+
+% 本章依据《数学分析》第九章正文整理：数学分析-9.pdf，第 1--42 页（书内第 123--164 页）；不含习题九。
+有限个数相加只涉及代数运算，无穷多个数相加则必须借助极限：先取有限项的和，再研究这些和是否趋向一个确定的实数。因此，数项级数本质上是部分和序列的极限问题，却又因通项的结构而具有专门的判别方法。本章先讨论收敛的含义及正项级数，再研究正负项抵消所产生的条件收敛，最后说明分组、重排、相乘及无穷乘积的适用条件；这些内容也是以后研究函数项级数的基础。
+
+\section{数项级数的基本概念}
+\label{sec:basic-concepts-of-numerical-series}
+
+\subsection{数项级数的基本概念}
+\label{subsec:basic-concepts-of-numerical-series}
+
+\begin{definition}
+设 $\{a_n\}_{n\geq1}$ 为实数列，形式上的无穷和
+\[
+    a_1+a_2+\cdots+a_n+\cdots=\sum_{n=1}^{\infty}a_n
+\]
+称为\emph{数项级数}（numerical series），$a_n$ 称为\emph{通项}（general term）。令
+\begin{equation}
+    S_n=\sum_{k=1}^n a_k,\qquad n\geq1,
+    \label{eq:numerical-series-partial-sums}
+\end{equation}
+称 $S_n$ 为第 $n$ 个\emph{部分和}（partial sum）。若 $S_n\to S\in\mathbb R$，则称级数\emph{收敛}（convergent），并记 $\sum_{n=1}^{\infty}a_n=S$，其中 $S$ 为级数的和；否则称级数\emph{发散}（divergent）。
+\end{definition}
+
+$\sum_{n=1}^{\infty}a_n$ 既可表示待研究的级数，也可在收敛已经确立后表示其和，使用时须区分。发散包含部分和趋于 $+\infty$、趋于 $-\infty$ 以及没有极限等情形；只有前两种情形才分别称为发散到 $+\infty$、$-\infty$。级数的通项序列与部分和序列也不能混淆：前者描述每次增加多少，后者才决定无穷和是否存在。
+
+\begin{example}
+\label{ex:geometric-numerical-series}
+讨论\emph{几何级数}（geometric series，也称等比级数）$\sum_{n=0}^{\infty}q^n$ 的敛散性，其中 $q\in\mathbb R$，约定零次幂为 $1$。
+\end{example}
+
+\begin{solve}
+取前 $n$ 项之和。当 $q\neq1$ 时，
+\[
+    \sum_{k=0}^{n-1}q^k=\frac{1-q^n}{1-q}.
+\]
+故 $|q|<1$ 时级数收敛，且和为 $1/(1-q)$。$q=1$ 时部分和为 $n$；$q=-1$ 时部分和在 $1$ 与 $0$ 之间交替；$q>1$ 时部分和趋于 $+\infty$；$q<-1$ 时部分和的两个奇偶子列分别趋于相反的无穷。因此收敛的充分必要条件是 $|q|<1$，而 $q<-1$ 时不能把发散误写为趋于某一个带符号的无穷。
+\end{solve}
+
+\begin{example}
+\label{ex:telescoping-shifted-harmonic-series}
+设 $m$ 为正整数，证明 $\sum_{n=1}^{\infty}1/(n(n+m))$ 收敛，并求其和。
+\end{example}
+
+\begin{solve}
+把通项拆为 $m^{-1}(1/n-1/(n+m))$，有限求和后相消，得
+\[
+    \sum_{k=1}^{n}\frac1{k(k+m)}
+    =\frac1m\left(\sum_{k=1}^{m}\frac1k
+                     -\sum_{k=n+1}^{n+m}\frac1k\right).
+\]
+右侧最后一个有限和介于 $0$ 与 $m/(n+1)$ 之间，趋于零，因而
+\[
+    \sum_{n=1}^{\infty}\frac1{n(n+m)}=\frac1m\sum_{k=1}^{m}\frac1k.
+    \qedhere
+\]
+\end{solve}
+
+\begin{example}
+\label{ex:factorial-series-for-e}
+由 $e=\lim_{m\to\infty}(1+1/m)^m$ 出发，证明 $e=\sum_{k=0}^{\infty}1/k!$，并估计截断误差。
+\end{example}
+
+\begin{solve}
+令 $T_n=\sum_{k=0}^n1/k!$。由 $k!\geq2^{k-1}$（$k\geq1$）知 $T_n\leq3$，故其单调递增而有有限极限 $T$。对固定的 $n$ 及 $m\geq n$，二项式展开给出
+\[
+    \sum_{k=0}^n\frac1{k!}
+       \prod_{j=0}^{k-1}\left(1-\frac jm\right)
+    \leq\left(1+\frac1m\right)^m
+    \leq\sum_{k=0}^m\frac1{k!}=T_m,
+\]
+其中空乘积取 $1$。先令 $m\to\infty$，得 $T_n\leq e\leq T$；再令 $n\to\infty$，即得 $T=e$。对 $n\geq1$，利用 $(n+j)!\geq n!(n+1)^j$，且 $j\geq2$ 时严格大于，可得
+\begin{equation}
+    0<e-T_n=\sum_{j=1}^{\infty}\frac1{(n+j)!}
+      <\frac1{n!}\sum_{j=1}^{\infty}\frac1{(n+1)^j}
+      =\frac1{n\,n!}.
+    \label{eq:factorial-series-tail-bound}
+\end{equation}
+这里对无穷尾和的估计可先对有限尾和成立，再取极限。这一估计也可用于证明 $e$ 无理：若 $e=p/q$，取整数 $n\geq\max\{q,2\}$，则 $n!(e-T_n)$ 为整数，却严格介于 $0$ 与 $1/n$ 之间，矛盾。例~\ref{ex:taylor-approximation-and-irrationality-of-e} 给出了利用泰勒余项的另一种证明。
+\end{solve}
+
+\begin{proposition}[有限项改变与线性运算]
+\label{prop:series-finite-changes-and-linearity}
+改变级数有限项的值不改变其敛散性，但一般会改变其和。对非零常数 $c$，$\sum a_n$ 与 $\sum ca_n$ 同敛散。若 $\sum a_n=A$、$\sum b_n=B$ 都收敛，则对任意 $\alpha,\beta\in\mathbb R$，
+\[
+    \sum_{n=1}^{\infty}(\alpha a_n+\beta b_n)=\alpha A+\beta B.
+\]
+\end{proposition}
+
+\begin{proof}
+改变有限项后，充分靠后的部分和只相差一个固定常数；乘以非零常数后，部分和也乘以该常数。这就证明前两项结论。最后一项来自有限和的线性及收敛序列的极限运算法则。
+\end{proof}
+
+线性公式要求相关级数已经收敛，不能把两个发散级数的形式相减当作两个无穷和之差。有限项改变的性质也说明，判别敛散性时往往只需核对充分靠后的项；但求和时必须把被删去的初始项补回。
+
+\subsection{柯西准则}
+\label{subsec:cauchy-criterion-for-series}
+
+\begin{theorem}[级数的柯西准则]
+\label{thm:cauchy-criterion-for-numerical-series}
+实数项级数 $\sum_{n=1}^{\infty}a_n$ 收敛的充分必要条件是
+\begin{equation}
+    \forall\varepsilon>0,\quad\exists N\in\mathbb N,\quad
+    \forall n\geq N,\ \forall p\geq1,\quad
+    \left|\sum_{k=n+1}^{n+p}a_k\right|<\varepsilon,
+    \label{eq:cauchy-condition-for-numerical-series}
+\end{equation}
+其中 $n,p$ 均为整数。
+\end{theorem}
+
+\begin{proof}
+式~\eqref{eq:cauchy-condition-for-numerical-series} 中的尾段和等于 $S_{n+p}-S_n$，故这一条件恰好是部分和序列的柯西条件。应用定理~\ref{thm:cauchy-convergence-criterion} 即得结论。
+\end{proof}
+
+\emph[caution]{这里的 $N$ 必须同时适用于所有尾段长度 $p$，不能在固定 $p$ 后才选取 $N$。}特别取 $p=1$，得到收敛的必要条件 $a_n\to0$；其逆命题不成立。例如调和级数 $\sum1/n$ 的通项趋于零，但
+\[
+    S_{2n}-S_n=\sum_{k=n+1}^{2n}\frac1k\geq\frac12,
+\]
+违反柯西条件，故发散。由于其部分和单调递增，实际上发散到 $+\infty$。
+
+\begin{example}
+\label{ex:series-term-test-divergence}
+证明 $\sum_{n=1}^{\infty}n\ln(1+1/n)$ 发散；并讨论 $\sum_{n=1}^{\infty}\sin(n\theta)$，其中 $\theta\in\mathbb R$。
+\end{example}
+
+\begin{solve}
+由 $\ln(1+t)\sim t$（$t\to0$），有 $n\ln(1+1/n)\to1$，故第一个级数发散。对第二个级数，若 $\theta\in\pi\mathbb Z$，各项均为零，级数收敛；若 $\theta\notin\pi\mathbb Z$ 而级数收敛，则必有 $\sin(n\theta)\to0$。由
+\[
+    \sin((n+1)\theta)
+    =\cos\theta\sin(n\theta)+\sin\theta\cos(n\theta)
+\]
+及 $\sin\theta\neq0$ 推出 $\cos(n\theta)\to0$，与 $\sin^2(n\theta)+\cos^2(n\theta)=1$ 矛盾。因此第二个级数仅在 $\theta\in\pi\mathbb Z$ 时收敛。
+\end{solve}
+
+\section{正项级数}
+\label{sec:positive-term-series}
+
+\subsection{比较判别法}
+\label{subsec:comparison-tests-for-series}
+
+\begin{definition}
+若 $\sum_{n=1}^{\infty}|a_n|$ 收敛，称 $\sum a_n$ \emph{绝对收敛}（absolutely convergent）；若 $\sum a_n$ 收敛而 $\sum|a_n|$ 发散，称其\emph{条件收敛}（conditionally convergent）。若每项 $a_n\geq0$，称 $\sum a_n$ 为\emph{正项级数}（positive-term series）；本书的这一名称允许通项为零，要求严格为正时另行说明。
+\end{definition}
+
+\begin{proposition}
+\label{prop:absolute-convergence-implies-convergence}
+绝对收敛级数必收敛。
+\end{proposition}
+
+\begin{proof}
+由三角不等式，
+\[
+    \left|\sum_{k=n+1}^{n+p}a_k\right|
+    \leq\sum_{k=n+1}^{n+p}|a_k|.
+\]
+右端由 $\sum|a_n|$ 的柯西条件一致趋于零，故 $\sum a_n$ 也满足式~\eqref{eq:cauchy-condition-for-numerical-series}。
+\end{proof}
+
+\begin{theorem}[正项级数的有界性判据]
+\label{thm:positive-series-bounded-partial-sums}
+正项级数收敛的充分必要条件是其部分和序列有上界；若发散，则部分和趋于 $+\infty$。
+\end{theorem}
+
+\begin{proof}
+正项级数的部分和单调递增，故由单调收敛原理，有上界时收敛，无上界时趋于 $+\infty$。反向结论来自收敛序列必有界。
+\end{proof}
+
+\begin{theorem}[比较判别法]
+\label{thm:series-comparison-test}
+设 $a_n,b_n\geq0$，并且存在 $C>0$ 及正整数 $N$，使 $n\geq N$ 时 $a_n\leq Cb_n$。若 $\sum b_n$ 收敛，则 $\sum a_n$ 收敛；若 $\sum a_n$ 发散，则 $\sum b_n$ 发散。
+\end{theorem}
+
+\begin{proof}
+忽略有限个初始项后，部分和满足 $\sum_{k=N}^n a_k\leq C\sum_{k=N}^n b_k$。由定理~\ref{thm:positive-series-bounded-partial-sums}，右侧有界蕴含左侧有界；第二个结论是第一个结论的逆否命题。
+\end{proof}
+
+\begin{corollary}[极限比较判别法]
+\label{cor:series-limit-comparison-test}
+设 $a_n\geq0$、$b_n>0$，且 $a_n/b_n\to\ell\in[0,+\infty]$。若 $0<\ell<+\infty$，则两级数同敛散；若 $\ell=0$，则 $\sum b_n$ 收敛可推出 $\sum a_n$ 收敛；若 $\ell=+\infty$，则 $\sum b_n$ 发散可推出 $\sum a_n$ 发散。
+\end{corollary}
+
+\begin{proof}
+$0<\ell<+\infty$ 时，充分大的 $n$ 满足 $(\ell/2)b_n\leq a_n\leq(3\ell/2)b_n$，可向两个方向比较。$\ell=0$ 时最终有 $a_n\leq b_n$；$\ell=+\infty$ 时最终有 $a_n\geq b_n$，分别应用比较判别法。
+\end{proof}
+
+\emph[caution]{极限为零或无穷时只得到所述的单向结论。}例如 $1/n^2=o(1/n)$，却不能从调和级数发散推出 $\sum1/n^2$ 发散。比较判别法中的非负条件也至关重要：一般任意项级数的抵消不能仅由通项大小控制。
+
+\begin{example}
+\label{ex:p-series-convergence}
+讨论\emph{$p$ 级数}（$p$-series）$\sum_{n=1}^{\infty}n^{-p}$，其中 $p\in\mathbb R$。
+\end{example}
+
+\begin{solve}
+$p\leq1$ 时，$n^{-p}\geq1/n$，故发散。$p>1$ 时按二进区间估计，每个 $j\geq0$ 满足
+\[
+    \sum_{n=2^j}^{2^{j+1}-1}\frac1{n^p}
+    \leq 2^j\frac1{2^{jp}}=2^{-j(p-1)}.
+\]
+右侧关于 $j$ 构成收敛的几何级数，因而所有原级数部分和都有同一个上界，故收敛。因此 $p$ 级数恰在 $p>1$ 时收敛。这里使用的是有限分组估计与部分和有界性，不预先假定无穷分组可以任意拆合。
+\end{solve}
+
+\begin{example}
+\label{ex:comparison-series-fibonacci-and-logcos}
+设 $F_1=1$、$F_2=2$、$F_{n+2}=F_{n+1}+F_n$，证明 $\sum1/F_n$ 收敛；并判断 $\sum_{n=1}^{\infty}[-\ln\cos(1/n)]$ 的敛散性。
+\end{example}
+
+\begin{solve}
+$F_n$ 为递增正数列，故 $F_{n+2}\geq2F_n$。由此 $F_{2k-1}\geq2^{k-1}$、$F_{2k}\geq2^k$，两个奇偶子列的倒数都可用几何级数控制，原正项级数的部分和因而有界。对第二个级数，$0<\cos(1/n)<1$，并且
+\[
+    -\ln\cos\frac1n
+    \sim1-\cos\frac1n\sim\frac1{2n^2}.
+\]
+由极限比较判别法，该级数收敛。识别等价主项后与几何级数、$p$ 级数比较，是处理正项级数的基本方法。
+\end{solve}
+
+\subsection{达朗贝尔判别法与柯西判别法}
+\label{subsec:dalembert-and-cauchy-tests}
+
+几何级数的通项之比及通项的 $n$ 次方根都反映其指数衰减率。因此，考察一般正项级数的相邻项比值或根值，可以把它与几何级数联系起来。以下判别式中的上、下极限均允许取扩充实数值。
+
+\begin{theorem}[达朗贝尔比值判别法]
+\label{thm:dalembert-ratio-test}
+设 $a_n>0$，记
+\[
+    r^*=\limsup_{n\to\infty}\frac{a_{n+1}}{a_n},\qquad
+    r_*=\liminf_{n\to\infty}\frac{a_{n+1}}{a_n}.
+\]
+若 $r^*<1$，则 $\sum a_n$ 收敛；若 $r_*>1$，则发散。特别地，若比值有极限 $r$，则 $r<1$ 时收敛，$r>1$ 时发散；$r=1$ 时本判别法没有结论。此法称为\emph{达朗贝尔判别法}（d'Alembert's ratio test）。
+\end{theorem}
+
+\begin{proof}
+若 $r^*<1$，取 $r^*<q<1$，则从某个 $N$ 开始有 $a_{n+1}\leq qa_n$，从而 $a_n\leq a_Nq^{n-N}$，可与收敛几何级数比较。若 $r_*>1$，取 $1<q<r_*$，则最终有 $a_n\geq a_Nq^{n-N}$，通项不趋于零，故发散。
+\end{proof}
+
+\begin{theorem}[柯西根值判别法]
+\label{thm:cauchy-root-test}
+设 $a_n\geq0$，记 $\rho=\limsup_{n\to\infty}\sqrt[n]{a_n}$。若 $\rho<1$，则 $\sum a_n$ 收敛；若 $\rho>1$，则发散；$\rho=1$ 时没有结论。此法称为\emph{柯西判别法}（Cauchy's root test）。
+\end{theorem}
+
+\begin{proof}
+若 $\rho<1$，取 $\rho<q<1$，则最终有 $\sqrt[n]{a_n}<q$，即 $a_n<q^n$。若 $\rho>1$，取 $1<q<\rho$，则有无穷多个 $n$ 满足 $a_n>q^n$，通项不可能趋于零。注意发散部分只需这样的下标无穷多，不要求所有充分大的下标都满足该不等式。
+\end{proof}
+
+对任意实数 $p$，$a_n=n^{-p}$ 的比值与根值都趋于 $1$，但其级数可收敛也可发散，因此两个判别法的临界值都不能补上等号。任意项级数应用这两种方法时，通常先对 $|a_n|$ 作判断：得到收敛即为绝对收敛；因根值或比值大于 $1$ 而得到的发散，则来自原通项也不趋于零。
+
+对严格正数列还有
+\begin{equation}
+    \liminf_{n\to\infty}\frac{a_{n+1}}{a_n}
+    \leq\liminf_{n\to\infty}\sqrt[n]{a_n}
+    \leq\limsup_{n\to\infty}\sqrt[n]{a_n}
+    \leq\limsup_{n\to\infty}\frac{a_{n+1}}{a_n}.
+    \label{eq:series-ratio-root-limits}
+\end{equation}
+证明时，任取大于最右端上极限的有限正数 $q$，最终有 $a_{n+1}\leq qa_n$，故 $\limsup\sqrt[n]{a_n}\leq q$，再让 $q$ 下降到该上极限；最右端为 $+\infty$ 时此侧不等式自动成立。左侧同理，对小于比值下极限的正数作几何下界；下极限为零时直接利用根值非负。因而比值有极限时根值也有相同极限，根值判别法能够覆盖比值判别法的上述有效情形。
+
+\begin{example}
+\label{ex:factorial-power-ratio-test}
+讨论 $\sum_{n=1}^{\infty}z^nn!/n^n$，其中 $z\geq0$。
+\end{example}
+
+\begin{solve}
+$z=0$ 时级数各项为零。$z>0$ 时记通项为 $a_n$，则
+\[
+    \frac{a_{n+1}}{a_n}=z\left(\frac n{n+1}\right)^n\longrightarrow\frac ze.
+\]
+所以 $0<z<e$ 时收敛，$z>e$ 时发散。$z=e$ 时比值判别法失效，须另行分析；由 $(1+1/n)^n<e$，有 $a_{n+1}/a_n>1$，故 $a_n\geq a_1>0$，仍发散。因此原级数恰在 $0\leq z<e$ 时收敛。
+\end{solve}
+
+\begin{example}
+\label{ex:root-test-with-oscillating-ratios}
+设 $0<a<b<1$，奇数 $n$ 时令 $c_n=a^n$，偶数 $n$ 时令 $c_n=b^n$。判断 $\sum c_n$ 的敛散性。
+\end{example}
+
+\begin{solve}
+$\sqrt[n]{c_n}$ 按奇偶分别为 $a,b$，故根值上极限为 $b<1$，级数收敛。另一方面，$c_{n+1}/c_n$ 沿奇数下标趋于 $+\infty$，沿偶数下标趋于零，故比值判别法的两个充分条件均不满足。这说明根值可以保留被相邻项比值的振荡掩盖的整体衰减信息。
+\end{solve}
+
+\subsection{拉贝判别法}
+\label{subsec:raabe-test}
+
+当相邻项比值趋于 $1$ 时，几何级数的比较通常不再敏感。对参考通项 $a_n=n^{-p}$，有
+\[
+    n\left(\frac{a_n}{a_{n+1}}-1\right)
+    =n\left[\left(1+\frac1n\right)^p-1\right]\longrightarrow p.
+\]
+因此，考察比值偏离 $1$ 的一阶程度，可以转而与 $p$ 级数比较。
+
+\begin{theorem}[拉贝判别法]
+\label{thm:raabe-series-test}
+设 $a_n>0$，令 $R_n=n(a_n/a_{n+1}-1)$。若 $\liminf R_n>1$，则 $\sum a_n$ 收敛；若 $\limsup R_n<1$，则发散。特别地，$R_n\to r$ 时，$r>1$ 可判收敛，$r<1$ 可判发散，而 $r=1$ 一般没有结论。此法称为\emph{拉贝判别法}（Raabe's test）。另外，若最终恒有 $R_n\leq1$，即使 $R_n\to1$，仍可判定级数发散。
+\end{theorem}
+
+\begin{proof}
+若 $\liminf R_n>1$，选取实数 $1<p<c<\liminf R_n$。由 $(1+1/n)^p=1+p/n+o(1/n)$，充分大的 $n$ 满足
+\[
+    \frac{a_n}{a_{n+1}}\geq1+\frac cn
+      >\left(1+\frac1n\right)^p,
+\]
+即 $(n+1)^pa_{n+1}<n^pa_n$。所以 $n^pa_n$ 从某项起有上界，$a_n\leq Cn^{-p}$，级数收敛。
+
+若最终有 $R_n\leq1$，则 $a_n/a_{n+1}\leq(n+1)/n$，即 $(n+1)a_{n+1}\geq na_n$。于是最终有 $a_n\geq C/n$，其中 $C>0$，故级数发散。$\limsup R_n<1$ 蕴含这一最终不等式，发散部分随即成立。
+\end{proof}
+
+\begin{example}
+\label{ex:raabe-double-factorial-series}
+设 $p>0$，讨论
+\[
+    \sum_{n=1}^{\infty}\left[\frac{(2n-1)!!}{(2n)!!}\right]^p,
+\]
+其中 $(2n-1)!!=1\cdot3\cdots(2n-1)$，$(2n)!!=2\cdot4\cdots2n$。
+\end{example}
+
+\begin{solve}
+记通项为 $a_n$，则
+\[
+    R_n=n\left[\left(\frac{2n+2}{2n+1}\right)^p-1\right]
+        \longrightarrow\frac p2.
+\]
+故 $p>2$ 时收敛，$0<p<2$ 时发散。$p=2$ 时极限为 $1$，但进一步计算有
+\[
+    R_n=\frac{n(4n+3)}{(2n+1)^2}<1,
+\]
+可由定理~\ref{thm:raabe-series-test} 的最终不等式判定发散。因此恰在 $p>2$ 时收敛。临界情形的结论来自额外的不等式，而不是把极限判据擅自延伸到 $r=1$。
+\end{solve}
+
+\subsection{柯西积分判别法}
+\label{subsec:cauchy-integral-test}
+
+\begin{theorem}[柯西积分判别法]
+\label{thm:cauchy-integral-test-for-series}
+设 $f:[1,+\infty)\to[0,+\infty)$ 单调不增，则正项级数 $\sum_{n=1}^{\infty}f(n)$ 与广义积分 $\int_1^{\infty}f(x)\,dx$ 同敛散。这称为\emph{柯西积分判别法}（Cauchy's integral test）。这里 $f$ 在每个有限闭区间上单调有界，故黎曼可积。
+\end{theorem}
+
+\begin{proof}
+由 $f(n+1)\leq f(x)\leq f(n)$（$n\leq x\leq n+1$），得到
+\[
+    f(n+1)\leq\int_n^{n+1}f(x)\,dx\leq f(n).
+\]
+有限求和后有
+\begin{equation}
+    \sum_{k=2}^{n+1}f(k)
+    \leq\int_1^{n+1}f(x)\,dx
+    \leq\sum_{k=1}^n f(k).
+    \label{eq:series-integral-comparison}
+\end{equation}
+两边都是非负量累积而成的单调序列，一边有界时另一边也有界，故级数与积分同时收敛。反之任一无界则另一也无界，均趋于 $+\infty$。
+\end{proof}
+
+积分判别法给出的是敛散性的等价，级数的和一般不等于积分值。若已知收敛，记 $r_n=\sum_{k=n+1}^{\infty}f(k)$，相同的区间估计还给出
+\begin{equation}
+    \int_{n+1}^{\infty}f(x)\,dx\leq r_n
+       \leq\int_n^{\infty}f(x)\,dx,
+    \label{eq:integral-test-series-tail-bound}
+\end{equation}
+可用于估计截断误差。单调性只需从某点起成立，有限个初始项不影响判别。
+
+\begin{example}
+\label{ex:logarithmic-p-series}
+讨论 $\sum_{n=2}^{\infty}1/(n^p(\ln n)^q)$，其中 $p,q\in\mathbb R$。
+\end{example}
+
+\begin{solve}
+$p>1$ 时，选取 $1<r<p$，由 $n^{r-p}(\ln n)^{-q}\to0$，可与收敛的 $\sum n^{-r}$ 比较。$p<1$ 时，选取 $p<r<1$，有 $n^{r-p}(\ln n)^{-q}\to+\infty$，可与发散的 $\sum n^{-r}$ 比较。这里使用了任意固定的对数幂都慢于正幂的增长。
+
+$p=1$ 时，$f(x)=1/(x(\ln x)^q)$ 最终递减，令 $t=\ln x$，得
+\[
+    \int_2^{\infty}\frac{dx}{x(\ln x)^q}
+      =\int_{\ln2}^{\infty}t^{-q}\,dt.
+\]
+后者恰在 $q>1$ 时收敛。因此原级数收敛的充分必要条件是 $p>1$，或 $p=1$ 且 $q>1$；其余情形均发散。特别地，$\sum1/(n(\ln n)^q)$ 的拉贝量趋于 $1$，仍可有两种不同的敛散性。
+\end{solve}
+
+\begin{example}
+\label{ex:positive-series-tail-powered-denominator}
+设 $a_n>0$ 且 $\sum a_n$ 收敛，令 $r_n=\sum_{k=n}^{\infty}a_k$。证明当 $p<1$ 时，$\sum a_n/r_n^p$ 收敛。
+\end{example}
+
+\begin{solve}
+有 $r_n\downarrow0$、$a_n=r_n-r_{n+1}$。$0\leq p<1$ 时，因 $t^{-p}$ 单调不增，
+\[
+    \frac{a_n}{r_n^p}
+      \leq\int_{r_{n+1}}^{r_n}t^{-p}\,dt.
+\]
+对 $n=1,\ldots,N$ 求和，得到部分和不超过
+\[
+    \int_{r_{N+1}}^{r_1}t^{-p}\,dt
+      \leq\frac{r_1^{1-p}}{1-p}.
+\]
+故级数收敛。$p<0$ 时，$r_n^{-p}\leq r_1^{-p}$，直接与 $\sum a_n$ 比较即可。取 $0<p<1$ 时，新通项与 $a_n$ 的比值为 $r_n^{-p}\to+\infty$，说明在一个收敛正项级数之上仍可构造通项相对更大而保持收敛的级数。
+\end{solve}
+
+\section{任意项级数}
+\label{sec:general-term-series}
+
+对于正负项兼有的级数，绝对收敛仍可用正项级数的方法判定；但若绝对值级数发散，原级数还可能因抵消而收敛。研究这种情形，既要控制通项趋零，也要控制正负项累积抵消的方式。
+
+\subsection{交错级数的敛散性}
+\label{subsec:convergence-of-alternating-series}
+
+先说明一种可以从分组级数返回原级数的情形。一般而言，分组后的部分和仅是原部分和的一个子列，其收敛不足以保证整个序列收敛；若每组长度有统一上界，且原通项趋零，则可控制组内遗漏的部分和。
+
+\begin{theorem}[有界长度分组的逆向结论]
+\label{thm:bounded-block-grouping-series}
+设 $a_n\to0$，$0=n_0<n_1<n_2<\cdots$ 为整数，且存在正整数 $M$ 使 $n_k-n_{k-1}\leq M$。令
+\[
+    b_k=\sum_{j=n_{k-1}+1}^{n_k}a_j.
+\]
+若 $\sum b_k=S$，则 $\sum a_n=S$。
+\end{theorem}
+
+\begin{proof}
+记原部分和为 $S_n$，则 $S_{n_k}=\sum_{j=1}^k b_j\to S$。给定 $n$，取 $k$ 使 $n_k\leq n<n_{k+1}$，便有
+\[
+    |S_n-S_{n_k}|
+    \leq M\sup_{j\geq n_k+1}|a_j|\longrightarrow0.
+\]
+因 $n\to\infty$ 时 $k\to\infty$，故 $S_n\to S$。
+\end{proof}
+
+\begin{definition}
+设 $b_n\geq0$，形如 $\sum_{n=1}^{\infty}(-1)^{n-1}b_n$ 或其相反数的级数称为\emph{交错级数}（alternating series）。
+\end{definition}
+
+\begin{theorem}[莱布尼茨判别法及余项估计]
+\label{thm:leibniz-alternating-series-test}
+设 $b_n\geq0$、$b_{n+1}\leq b_n$ 且 $b_n\to0$，则交错级数 $\sum_{n=1}^{\infty}(-1)^{n-1}b_n$ 收敛。若其和为 $S$，前 $n$ 项和为 $S_n$，则
+\begin{equation}
+    0\leq(-1)^n(S-S_n)\leq b_{n+1},
+    \qquad |S-S_n|\leq b_{n+1}.
+    \label{eq:leibniz-series-remainder}
+\end{equation}
+这称为\emph{莱布尼茨判别法}（Leibniz's alternating series test）。
+\end{theorem}
+
+\begin{proof}
+有
+\[
+    S_{2n}=\sum_{k=1}^n(b_{2k-1}-b_{2k})\geq0,
+\]
+并且 $S_{2n}$ 随 $n$ 单调递增。另一方面，
+\[
+    S_{2n}=b_1-\sum_{k=1}^{n-1}(b_{2k}-b_{2k+1})-b_{2n}\leq b_1.
+\]
+故 $S_{2n}$ 收敛；又 $S_{2n+1}-S_{2n}=b_{2n+1}\to0$，所以奇偶部分和有相同极限 $S$。奇数部分和单调递减，偶数部分和单调递增，因而 $S$ 位于任意相邻的两个部分和之间。$S_{n+1}-S_n=(-1)^nb_{n+1}$，即得式~\eqref{eq:leibniz-series-remainder}。
+\end{proof}
+
+单调性只须从某一项起成立，此时余项估计对相应靠后的截断仍成立。仅有符号交错和 $b_n\to0$ 不能保证收敛，例如令 $b_{2k-1}=1/\sqrt{k}$、$b_{2k}=1/(2\sqrt{k})$，则 $b_n\to0$，但偶数部分和为 $\frac12\sum_{k=1}^n k^{-1/2}\to+\infty$。同时，莱布尼茨判别法只先给出收敛，是否绝对收敛还需另行判断 $\sum b_n$。
+
+\begin{example}
+\label{ex:alternating-logarithmic-p-series}
+讨论 $\sum_{n=2}^{\infty}(-1)^n/(n^p(\ln n)^q)$ 的收敛性与绝对收敛性，其中 $p,q\in\mathbb R$。
+\end{example}
+
+\begin{solve}
+记 $b(x)=x^{-p}(\ln x)^{-q}$，则
+\[
+    \frac{b'(x)}{b(x)}=-\frac1x\left(p+\frac q{\ln x}\right).
+\]
+当 $p>0$，或 $p=0$ 且 $q>0$ 时，$b(n)\to0$ 且最终递减，故交错级数收敛。其余情形通项绝对值不趋于零，级数发散。由例~\ref{ex:logarithmic-p-series}，其中 $p>1$，或 $p=1$ 且 $q>1$ 时绝对收敛；其余已经判为收敛的情形均为条件收敛。特别地，交错调和级数条件收敛，而 $\sum(-1)^n/n^2$ 绝对收敛。
+\end{solve}
+
+\subsection{狄利克雷判别法和阿贝尔判别法}
+\label{subsec:dirichlet-and-abel-tests}
+
+交错符号的作用在于其部分和有界。更一般地，如果一列数的部分和始终受控，再乘上单调趋零的权重，其尾段和也能受控。实现这一想法的工具是离散的分部积分公式。
+
+\begin{lemma}[阿贝尔变换]
+\label{lem:abel-summation-by-parts}
+设 $A_0=0$、$A_k=\sum_{j=1}^k a_j$，则对整数 $1\leq m\leq n$，
+\begin{equation}
+    \sum_{k=m}^n a_kb_k
+    =A_nb_n-A_{m-1}b_m
+      +\sum_{k=m}^{n-1}A_k(b_k-b_{k+1}).
+    \label{eq:abel-summation-by-parts}
+\end{equation}
+该恒等式称为\emph{阿贝尔变换}（Abel transformation），也称\emph{分部求和}（summation by parts）。
+\end{lemma}
+
+\begin{proof}
+代入 $a_k=A_k-A_{k-1}$，分别把两个有限和的下标平移，再合并同一 $A_k$ 的系数，即得等式。整个过程仅涉及有限和，不需要任何收敛假设。
+\end{proof}
+
+\begin{theorem}[狄利克雷判别法]
+\label{thm:dirichlet-test-for-series}
+若 $\sum a_n$ 的部分和序列有界，$\{b_n\}$ 单调且 $b_n\to0$，则 $\sum a_nb_n$ 收敛。这称为\emph{狄利克雷判别法}（Dirichlet's test）。
+\end{theorem}
+
+\begin{proof}
+设 $|A_n|\leq M$。对 $m\leq k\leq n$，令 $C_k=\sum_{j=m}^k a_j=A_k-A_{m-1}$，则 $|C_k|\leq2M$。在式~\eqref{eq:abel-summation-by-parts} 中从 $m$ 重新累加，得到
+\[
+    \sum_{k=m}^n a_kb_k=C_nb_n+\sum_{k=m}^{n-1}C_k(b_k-b_{k+1}).
+\]
+单调趋零的实数列保持同一弱符号，且
+$\sum_{k=m}^{n-1}|b_k-b_{k+1}|=|b_m|-|b_n|$，因此
+\[
+    \left|\sum_{k=m}^n a_kb_k\right|
+      \leq2M\left(|b_n|+\sum_{k=m}^{n-1}|b_k-b_{k+1}|\right)
+      =2M|b_m|\longrightarrow0.
+\]
+这一估计对任意 $n\geq m$ 一致成立，故由柯西准则，级数收敛。
+\end{proof}
+
+\begin{theorem}[阿贝尔判别法]
+\label{thm:abel-test-for-series}
+若 $\sum a_n$ 收敛，$\{b_n\}$ 单调有界，则 $\sum a_nb_n$ 收敛。这称为\emph{阿贝尔判别法}（Abel's test）。
+\end{theorem}
+
+\begin{proof}
+单调有界保证 $b_n\to b\in\mathbb R$，故 $b_n-b$ 单调趋零。收敛级数 $\sum a_n$ 的部分和有界，由狄利克雷判别法，$\sum a_n(b_n-b)$ 收敛；而 $\sum ba_n$ 也收敛。二者相加，便得 $\sum a_nb_n$ 收敛。
+\end{proof}
+
+两种判别法的假设不能混用：狄利克雷判别法对第一因子只要求部分和有界，但第二因子必须趋零；阿贝尔判别法允许第二因子趋于非零常数，却要求第一因子本身构成收敛级数。取 $a_n=(-1)^{n-1}$，其部分和有界，便可由狄利克雷判别法重新得到莱布尼茨判别法。
+
+\begin{example}
+\label{ex:dirichlet-trigonometric-series}
+设 $a_n\geq0$ 单调趋零，讨论 $\sum a_n\sin(nx)$ 与 $\sum a_n\cos(nx)$。若另有 $\sum a_n=+\infty$，说明何时为条件收敛。
+\end{example}
+
+\begin{solve}
+当 $x\notin2\pi\mathbb Z$ 时，由三角恒等式的有限求和，
+\begin{align*}
+    \sum_{k=1}^n\sin(kx)
+       &=\frac{\cos(x/2)-\cos((n+1/2)x)}{2\sin(x/2)},\\
+    \sum_{k=1}^n\cos(kx)
+       &=\frac{\sin((n+1/2)x)-\sin(x/2)}{2\sin(x/2)}.
+\end{align*}
+对固定的 $x$，两个部分和均有与 $n$ 无关的上界，故由狄利克雷判别法，两级数都收敛。$x\in2\pi\mathbb Z$ 时，正弦级数恒为零，余弦级数等于 $\sum a_n$。若 $\sum a_n$ 收敛，则 $|a_n\sin(nx)|,|a_n\cos(nx)|\leq a_n$，所以两级数对一切 $x$ 均绝对收敛。
+
+以下设 $\sum a_n=+\infty$。当 $x\notin\pi\mathbb Z$ 时，$2x\notin2\pi\mathbb Z$，故 $\sum a_n\cos(2nx)$ 收敛。利用 $|\sin t|\geq\sin^2t$、$|\cos t|\geq\cos^2t$，在有限和层面有
+\begin{align*}
+    \sum_{k=1}^n a_k|\sin(kx)|
+       &\geq\frac12\sum_{k=1}^n a_k
+             -\frac12\sum_{k=1}^n a_k\cos(2kx),\\
+    \sum_{k=1}^n a_k|\cos(kx)|
+       &\geq\frac12\sum_{k=1}^n a_k
+             +\frac12\sum_{k=1}^n a_k\cos(2kx).
+\end{align*}
+两个右端均趋于 $+\infty$，因此两级数均条件收敛。$x\in\pi\mathbb Z$ 时，正弦级数恒为零，绝对收敛；若 $x$ 为 $\pi$ 的奇数倍，余弦级数为 $\sum(-1)^na_n$，收敛但不绝对收敛；若为 $2\pi$ 的整数倍，余弦级数发散。于是，在 $\sum a_n$ 发散的假设下，正弦级数恰在 $x\notin\pi\mathbb Z$ 时条件收敛，余弦级数恰在 $x\notin2\pi\mathbb Z$ 时条件收敛。
+\end{solve}
+
+\section{数项级数的性质}
+\label{sec:properties-of-numerical-series}
+
+有限和的结合律、交换律及分配律可以自由使用，但级数还包含取极限的步骤。分组会选取部分和子列，重排会改变累积抵消的次序，乘法则要规定怎样累加所有两两乘积。因此，这些运算能否保持收敛及其和，必须分别讨论。
+
+\subsection{结合律}
+\label{subsec:associativity-of-series}
+
+\begin{theorem}[收敛级数的分组]
+\label{thm:grouping-convergent-series}
+设 $\sum a_n=S$，任取整数 $0=n_0<n_1<n_2<\cdots$，令
+\[
+    b_k=a_{n_{k-1}+1}+\cdots+a_{n_k}.
+\]
+则 $\sum b_k$ 收敛且和为 $S$。也就是说，保持原次序，把相邻的有限项依次分组，不改变收敛级数的和。
+\end{theorem}
+
+\begin{proof}
+分组级数的第 $k$ 个部分和为 $\sum_{j=1}^k b_j=S_{n_k}$，是原部分和序列的子列，故同样趋于 $S$。
+\end{proof}
+
+逆命题一般不成立：$1-1+1-1+\cdots$ 发散，分为 $(1-1)+(1-1)+\cdots$ 却得到和为零的级数。这也说明，不能从一个已经收敛的分组级数出发任意拆开括号，除非另有控制组内部分和的条件。定理~\ref{thm:bounded-block-grouping-series} 给出了一种这样的条件。
+
+对正项级数，分组收敛可以推出原级数收敛，因为原部分和被相邻的分组部分和夹住。更一般地，若每一组内各项同为非负或同为非正，则组内部分和单调，仍有
+\[
+    \min\{S_{n_{k-1}},S_{n_k}\}\leq S_n
+       \leq\max\{S_{n_{k-1}},S_{n_k}\},
+    \qquad n_{k-1}\leq n\leq n_k.
+\]
+若分组部分和趋于 $S$，夹逼即得原部分和也趋于 $S$。这个结论依赖组内同号，不要求组长有统一上界。
+
+\subsection{交换律}
+\label{subsec:commutativity-of-series}
+
+\begin{definition}
+若 $\pi:\mathbb N\to\mathbb N$ 为双射，则称 $\sum_{n=1}^{\infty}a_{\pi(n)}$ 为 $\sum a_n$ 的一个\emph{重排}（rearrangement）。双射保证每个原下标恰好出现一次，既不遗漏也不重复。
+\end{definition}
+
+\begin{theorem}[有界位移重排]
+\label{thm:bounded-displacement-rearrangement}
+若存在正整数 $M$ 使 $|\pi(n)-n|\leq M$ 对所有 $n$ 成立，则 $\sum a_n$ 与 $\sum a_{\pi(n)}$ 同敛散，并且收敛时和相同。
+\end{theorem}
+
+\begin{proof}
+先设原级数收敛，则 $a_n\to0$。记两级数部分和分别为 $S_n,T_n$。$\{\pi(1),\ldots,\pi(n)\}$ 包含所有不超过 $n-M$ 的正整数，且不含大于 $n+M$ 的整数，故 $n>M$ 时
+\[
+    |T_n-S_n|\leq\sum_{k=n-M+1}^{n+M}|a_k|\longrightarrow0.
+\]
+右侧只有固定的 $2M$ 项，故两者有相同极限。反之，逆双射也满足 $|\pi^{-1}(n)-n|\leq M$，对重排后的级数应用刚证明的方向即可。
+\end{proof}
+
+\begin{theorem}[绝对收敛级数的重排]
+\label{thm:absolutely-convergent-series-rearrangement}
+若 $\sum a_n$ 绝对收敛，则任意重排 $\sum a_{\pi(n)}$ 也绝对收敛，并且
+\[
+    \sum_{n=1}^{\infty}a_{\pi(n)}=\sum_{n=1}^{\infty}a_n,
+    \qquad
+    \sum_{n=1}^{\infty}|a_{\pi(n)}|=\sum_{n=1}^{\infty}|a_n|.
+\]
+\end{theorem}
+
+\begin{proof}
+先考察非负项。$\sum_{k=1}^n|a_{\pi(k)}|\leq\sum_{k=1}^{\infty}|a_k|$，故重排后的绝对值级数收敛，且其和不超过原和；再用逆双射，得到反向不等式，从而绝对值级数的和相同。
+
+记 $\sum a_n=S$。给定 $\varepsilon>0$，取 $K$ 使 $\sum_{k>K}|a_k|<\varepsilon$；由双射性，存在 $N$，使 $n\geq N$ 时重排的前 $n$ 项已经包含原级数的前 $K$ 项。于是
+\[
+    |T_n-S|
+    \leq|T_n-S_K|+|S_K-S|
+    \leq2\sum_{k>K}|a_k|<2\varepsilon.
+\]
+故 $T_n\to S$，任意重排不改变原和。
+\end{proof}
+
+\begin{example}
+\label{ex:alternating-harmonic-rearrangement}
+证明交错调和级数的和为 $\ln2$，而把它重排为每两个正项后接一个负项时，和变为 $\frac32\ln2$。
+\end{example}
+
+\begin{solve}
+令 $H_n=\sum_{k=1}^n1/k$。对固定正整数 $m$，
+\[
+    H_{mn}-H_n=\frac1n\sum_{k=n+1}^{mn}\frac1{k/n}
+       \longrightarrow\int_1^m\frac{dx}{x}=\ln m,
+\]
+这是连续函数 $1/x$ 在 $[1,m]$ 上的黎曼和。原级数的偶数部分和为 $H_{2n}-H_n\to\ln2$，奇数部分和与相邻偶数部分和之差趋零，因此原和为 $\ln2$。
+
+重排后的级数为
+\[
+    1+\frac13-\frac12+\frac15+\frac17-\frac14+\cdots.
+\]
+它的前 $3n$ 项之和为
+\[
+    T_{3n}=H_{4n}-\frac12H_{2n}-\frac12H_n
+          =(H_{4n}-H_{2n})+\frac12(H_{2n}-H_n)
+          \longrightarrow\frac32\ln2.
+\]
+$T_{3n+1}-T_{3n}=1/(4n+1)$，$T_{3n+2}-T_{3n+1}=1/(4n+3)$，均趋于零，故整个重排级数收敛到这一新值。该重排每项都出现一次；改变和的原因是条件收敛，不能据此否认它是合法的重排。
+\end{solve}
+
+\begin{theorem}[黎曼重排定理]
+\label{thm:riemann-rearrangement}
+若实数项级数 $\sum a_n$ 条件收敛，则对任意 $s\in\mathbb R$，存在一个重排收敛到 $s$；也分别存在重排使部分和趋于 $+\infty$ 或 $-\infty$。这称为\emph{黎曼重排定理}（Riemann rearrangement theorem）。
+\end{theorem}
+
+\begin{proof}
+定义正部与负部的大小为
+\[
+    a_n^+=\max\{a_n,0\},\qquad a_n^-=\max\{-a_n,0\}.
+\]
+于是 $a_n=a_n^+-a_n^-$、$|a_n|=a_n^++a_n^-$。条件收敛蕴含
+\begin{equation}
+    \sum a_n^+=+\infty,\qquad \sum a_n^-=+\infty,
+    \qquad a_n\to0.
+    \label{eq:conditional-series-positive-negative-parts}
+\end{equation}
+事实上，若两个非负级数都收敛，则原级数绝对收敛；若仅一个收敛，另一个发散，则原部分和趋于一个带符号的无穷，与收敛矛盾。
+
+把正项按原次序列为 $p_1,p_2,\ldots$，把负项按原次序列为 $-q_1,-q_2,\ldots$，其中 $p_j,q_j>0$ 且均趋零。给定 $s\in\mathbb R$，先依次取正项，直到部分和首次大于 $s$；若初始值 $0$ 已大于 $s$，这一首次正项阶段可为空。再依次取负项，直到首次小于 $s$；此后正负阶段交替进行。每个阶段都能在有限步结束，因为两类项的总量都为 $+\infty$。除初始阶段外，每次向上越过 $s$ 的超出量不超过最后加入的正项，每次向下越过的不足量不超过最后加入的负项，故阶段端点的部分和都趋于 $s$。阶段内部分和单调地位于相邻端点之间，也趋于 $s$，因此整个重排收敛到 $s$。每类项都按原次序不断取用，故每一非零项最终都会出现；若有零项，按原次序在各阶段间逐个插入即可。
+
+若要求趋于 $+\infty$，第 $k$ 阶段先至少取一个尚未使用的正项，并继续取正项直到部分和大于 $k+q_k$，再加入负项 $-q_k$。阶段末部分和大于 $k$，阶段内的正项累加不低于上一阶段末值，最后加入负项后也仍大于 $k$，故全部部分和趋于 $+\infty$。正负两类项都被穷尽，零项仍可依次插入。对 $-a_n$ 作同样构造，便得到趋于 $-\infty$ 的重排。
+\end{proof}
+
+因此，对已经收敛的实数项级数，绝对收敛保证所有重排同和；若只是条件收敛，则任意重排同和的结论不能成立。使用交换律前，应先核对绝对收敛，或核对具体重排是否满足定理~\ref{thm:bounded-displacement-rearrangement} 等额外条件。
+
+\subsection{级数的乘法（分配律）}
+\label{subsec:multiplication-and-distributivity-of-series}
+
+设 $\sum a_n$、$\sum b_n$ 为两个级数，其所有两两乘积 $a_ib_j$ 构成以 $(i,j)\in\mathbb N^2$ 为下标的乘积矩阵。有限分配律并不直接规定无穷矩阵的累加顺序，须先选定排序或分组方式。
+
+\begin{definition}
+令
+\begin{equation}
+    c_n=\sum_{k=1}^n a_kb_{n+1-k},\qquad n\geq1,
+    \label{eq:cauchy-product-coefficients}
+\end{equation}
+则级数 $\sum_{n=1}^{\infty}c_n$ 称为两个级数的\emph{柯西乘积}（Cauchy product）。它按乘积矩阵的斜对角线求和，把下标满足 $i+j=n+1$ 的各项归为一组。
+\end{definition}
+
+另一种方式是按扩大的正方形边界分组。记 $A_n=\sum_{k=1}^n a_k$、$B_n=\sum_{k=1}^n b_k$，并令 $A_0=B_0=0$，则第 $n$ 组为
+\[
+    d_n=A_nb_n+a_nB_{n-1}=A_nB_n-A_{n-1}B_{n-1}.
+\]
+所以 $\sum_{k=1}^n d_k=A_nB_n$。只要两个原级数分别收敛到 $A,B$，这一\emph{按正方形分组的级数}就收敛到 $AB$；但分组的组长为 $2n-1$，并无统一上界，故不能仅凭此式推出拆开每组之后的级数也收敛，更不能推出柯西乘积收敛。
+
+\begin{theorem}[绝对收敛级数的乘法]
+\label{thm:absolutely-convergent-series-product}
+若 $\sum a_n=A$、$\sum b_n=B$ 都绝对收敛，则把所有 $a_ib_j$ 按任意次序各取一次所成的级数均绝对收敛，且和为 $AB$。特别地，柯西乘积也绝对收敛，且
+\begin{equation}
+    \sum_{n=1}^{\infty}\sum_{k=1}^n a_kb_{n+1-k}
+      =\left(\sum_{n=1}^{\infty}a_n\right)
+       \left(\sum_{n=1}^{\infty}b_n\right).
+    \label{eq:absolute-series-cauchy-product}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+记 $U=\sum|a_n|$、$V=\sum|b_n|$。任意有限个乘积项的绝对值之和都不超过一个包含它们的有限矩形的绝对值和，而后者不超过 $UV$。故任一枚举对应的绝对值级数部分和有界，级数绝对收敛。由定理~\ref{thm:absolutely-convergent-series-rearrangement}，所有枚举的和相同。
+
+选定一种逐层列出正方形边界元素的枚举，它在列完 $n\times n$ 正方形时的部分和为 $A_nB_n\to AB$。由于这一枚举已经证明收敛，其和就等于该子列的极限 $AB$，于是所有枚举均同和。最后，把斜对角线枚举分组即得柯西乘积；又有
+\[
+    \sum_{n=1}^N|c_n|
+    \leq\sum_{\substack{i,j\geq1\\i+j\leq N+1}}|a_i b_j|
+    \leq UV,
+\]
+故它也绝对收敛，且由分组定理保持和 $AB$。
+\end{proof}
+
+\begin{example}
+\label{ex:conditional-series-cauchy-square-divergence}
+设 $0<\alpha\leq1/2$，$a_n=(-1)^{n-1}/n^\alpha$。证明 $\sum a_n$ 收敛，但它与自身的柯西乘积发散。
+\end{example}
+
+\begin{solve}
+由莱布尼茨判别法，原级数收敛；因 $\sum n^{-\alpha}$ 发散，它为条件收敛。自乘的柯西乘积通项为
+\[
+    c_n=(-1)^{n-1}\sum_{k=1}^n
+        \frac1{[k(n+1-k)]^\alpha}.
+\]
+由 $k(n+1-k)\leq(n+1)^2/4$，得到
+\[
+    |c_n|\geq\frac{4^\alpha n}{(n+1)^{2\alpha}}.
+\]
+$0<\alpha<1/2$ 时该下界趋于 $+\infty$；$\alpha=1/2$ 时趋于 $2$。所以 $c_n$ 不趋于零，柯西乘积发散。相同两个原级数的正方形分组乘积却仍收敛到原和的平方，说明排序与分组方式在缺少绝对收敛条件时确实会影响结论。
+\end{solve}
+
+\section{无穷乘积}
+\label{sec:infinite-products}
+
+无穷乘积同样由有限运算的极限定义，但收敛约定与级数不同。如果允许部分积趋于零也算收敛，那么单个零因子就能使后续全部部分积变为零，无法反映其余因子的累积性质。因此，本节按照教材约定，只把具有有限非零极限的部分积称为收敛。
+
+\begin{definition}
+设 $\{v_n\}_{n\geq1}$ 为实数列，称 $\prod_{n=1}^{\infty}v_n$ 为\emph{无穷乘积}（infinite product），并称
+\[
+    P_n=\prod_{k=1}^n v_k
+\]
+为第 $n$ 个\emph{部分积}（partial product）。若 $P_n\to P\in\mathbb R\setminus\{0\}$，则称该无穷乘积\emph{收敛}，并记 $\prod_{n=1}^{\infty}v_n=P$；否则称为发散。特别地，部分积趋于零也属于这里的发散情形。
+\end{definition}
+
+\begin{proposition}
+\label{prop:infinite-product-necessary-condition}
+无穷乘积 $\prod v_n$ 收敛的必要条件是每个因子非零，并且 $v_n\to1$。所以收敛乘积的因子从某项起均为正数；对因子全非零的乘积，改变有限个因子而仍保持这些因子非零，不改变敛散性。
+\end{proposition}
+
+\begin{proof}
+若有零因子，则充分靠后的 $P_n$ 均为零，不满足定义。若 $P_n\to P\neq0$，则
+\[
+    v_n=\frac{P_n}{P_{n-1}}\longrightarrow1.
+\]
+因此充分大的 $n$ 满足 $v_n>0$。有限个非零因子的替换，只使充分靠后的部分积乘以一个固定非零常数，故不改变是否具有有限非零极限。
+\end{proof}
+
+$v_n\to1$ 不是充分条件。例如
+$\prod_{k=1}^n(1+1/k)=n+1\to+\infty$；而 $\prod_{k=2}^n(1-1/k)=1/n\to0$，同样发散。对最终为正的因子，可以把有限个初始非零因子提出，只研究正因子尾积；这样得到的尾积若收敛，其极限必为正数，而整个乘积的符号由初始因子决定。
+
+\begin{theorem}[无穷乘积的对数判据]
+\label{thm:infinite-product-logarithmic-criterion}
+设 $v_n>0$，则 $\prod v_n$ 收敛的充分必要条件是实数项级数 $\sum\ln v_n$ 收敛；收敛时
+\begin{equation}
+    \prod_{n=1}^{\infty}v_n
+      =\exp\left(\sum_{n=1}^{\infty}\ln v_n\right).
+    \label{eq:infinite-product-logarithm}
+\end{equation}
+特别地，对 $u_n>-1$，可取 $v_n=1+u_n$ 来研究 $\prod(1+u_n)$。
+\end{theorem}
+
+\begin{proof}
+有限部分积与对数部分和满足
+\[
+    P_n=\exp\left(\sum_{k=1}^n\ln v_k\right),\qquad
+    \sum_{k=1}^n\ln v_k=\ln P_n.
+\]
+对数部分和趋于有限实数 $L$ 时，由指数函数连续性，$P_n\to e^L>0$。反之，若乘积收敛，则正部分积的极限 $P$ 非零，故 $P>0$，由对数函数连续性得到对数部分和趋于 $\ln P$。
+\end{proof}
+
+若对数部分和趋于 $-\infty$，部分积趋于零；若趋于 $+\infty$，部分积趋于 $+\infty$。这两种情形均不满足乘积收敛的定义。对一般有正有负的 $u_n$，不能仅凭 $\ln(1+u_n)\sim u_n$ 就断言两个级数同敛散，因为任意项级数不适用正项级数的极限比较判别法。
+
+\begin{corollary}
+\label{cor:nonnegative-infinite-product-test}
+若 $u_n\geq0$，则 $\prod(1+u_n)$ 收敛的充分必要条件是 $\sum u_n$ 收敛。
+\end{corollary}
+
+\begin{proof}
+若 $\sum u_n$ 收敛，则 $u_n\to0$，利用 $0\leq\ln(1+u_n)\leq u_n$ 可知对数级数收敛，进而乘积收敛。反之，乘积收敛首先蕴含 $u_n\to0$，从而最终有 $0\leq u_n\leq1$，且
+\[
+    \ln(1+u_n)=\int_0^{u_n}\frac{dt}{1+t}\geq\frac{u_n}{2}.
+\]
+对数级数收敛，由比较判别法知 $\sum u_n$ 收敛。
+\end{proof}
+
+\begin{example}
+\label{ex:infinite-product-p-power}
+讨论 $\prod_{n=1}^{\infty}(1+n^{-p})$，其中 $p\in\mathbb R$。
+\end{example}
+
+\begin{solve}
+当 $p>1$ 时，$\sum n^{-p}$ 收敛，由推论~\ref{cor:nonnegative-infinite-product-test}，乘积收敛。$0<p\leq1$ 时对数级数与发散的 $\sum n^{-p}$ 同敛散，故部分积趋于 $+\infty$。$p\leq0$ 时，各因子均不小于 $2$，部分积也趋于 $+\infty$。因此原乘积恰在 $p>1$ 时收敛。
+\end{solve}
+
+\begin{example}
+\label{ex:wallis-infinite-product}
+证明
+\begin{equation}
+    \prod_{n=1}^{\infty}\left(1-\frac1{4n^2}\right)=\frac2\pi,
+    \qquad
+    \prod_{n=1}^{\infty}\frac{(2n)^2}{(2n-1)(2n+1)}=\frac\pi2.
+    \label{eq:wallis-infinite-product}
+\end{equation}
+第二个等式通常称为\emph{沃利斯乘积}（Wallis product）。
+\end{example}
+
+\begin{solve}
+记 $r_n=(2n-1)!!/(2n)!!$，则有限部分积为
+\[
+    P_n=\prod_{k=1}^n\frac{(2k-1)(2k+1)}{(2k)^2}
+       =(2n+1)r_n^2.
+\]
+为求极限，令 $I_m=\int_0^{\pi/2}\sin^m x\,dx$。对整数 $m\geq2$，分部积分给出 $I_m=(m-1)(I_{m-2}-I_m)$，即
+\[
+    I_m=\frac{m-1}{m}I_{m-2},\qquad I_0=\frac\pi2,\quad I_1=1.
+\]
+递推得到 $I_{2n}=(\pi/2)r_n$、$I_{2n+1}=1/((2n+1)r_n)$。又由 $0\leq\sin x\leq1$，
+\[
+    \frac{2n+1}{2n+2}
+       =\frac{I_{2n+2}}{I_{2n}}
+       \leq\frac{I_{2n+1}}{I_{2n}}\leq1,
+\]
+所以 $I_{2n+1}/I_{2n}\to1$，并有
+\[
+    P_n=\frac2\pi\frac{I_{2n}}{I_{2n+1}}\longrightarrow\frac2\pi.
+\]
+极限非零，故乘积收敛；取有限部分积的倒数，再取极限，就得到第二个等式。
+\end{solve}
+
+\begin{example}
+\label{ex:euler-product-zeta}
+对实数 $s>1$，定义 $\zeta(s)=\sum_{n=1}^{\infty}n^{-s}$。将素数按递增顺序记为 $p_1,p_2,\ldots$，证明\emph{欧拉乘积公式}（Euler product formula）
+\begin{equation}
+    \zeta(s)=\prod_{j=1}^{\infty}(1-p_j^{-s})^{-1},
+    \qquad
+    \prod_{j=1}^{\infty}(1-p_j^{-s})=\frac1{\zeta(s)}.
+    \label{eq:euler-product-zeta}
+\end{equation}
+\end{example}
+
+\begin{solve}
+$s>1$ 保证 $p$ 级数 $\zeta(s)$ 有限。对前 $N$ 个素数，分别使用几何级数，并利用正整数的素因数分解唯一性，得
+\[
+    Q_N=\prod_{j=1}^N(1-p_j^{-s})^{-1}
+       =\sum_{\substack{m\geq1\\m\text{ 的素因子均属于 }\{p_1,\ldots,p_N\}}}\frac1{m^s},
+\]
+其中整数 $1$ 也包括在右侧。这个展开可先把每个几何级数截为有限和，使用有限分配律，再让各截断长度趋于无穷；所有项非负，故有限和单调增加，不涉及未经证明的条件收敛级数重排。唯一分解保证每个符合条件的整数恰好出现一次。
+
+右侧包括所有 $m\leq p_N$，而未出现的整数都大于 $p_N$，因此
+\[
+    0\leq\zeta(s)-Q_N\leq\sum_{m>p_N}\frac1{m^s}\longrightarrow0.
+\]
+故第一项乘积收敛到 $\zeta(s)>0$；取倒数得到第二项乘积的非零极限。这说明无穷乘积可以把整数的乘法分解结构与级数联系起来。
+
+这个关系也能反证素数只有有限个的假设。若全部素数仅为 $p_1,\ldots,p_N$，相同的有限素数展开对每个 $s>1$ 都给出
+\[
+    \zeta(s)=\prod_{j=1}^N(1-p_j^{-s})^{-1}.
+\]
+当 $s\downarrow1$ 时，右侧趋于有限正数 $\prod_{j=1}^N(1-p_j^{-1})^{-1}$，左侧却无界。事实上，任意给定 $M>0$，可先取整数 $K$ 使 $\sum_{n=1}^K1/n>2M$，再由这个有限和关于 $s$ 的连续性，令 $s>1$ 充分接近 $1$，使 $\zeta(s)\geq\sum_{n=1}^K n^{-s}>M$。矛盾说明素数不可能只有有限个。这里先固定有限的 $K$ 再取 $s\downarrow1$，没有把极限直接交换进一个尚未核实的无穷和。
+\end{solve}
+
+\section*{习题九}
+\addcontentsline{toc}{section}{习题九}

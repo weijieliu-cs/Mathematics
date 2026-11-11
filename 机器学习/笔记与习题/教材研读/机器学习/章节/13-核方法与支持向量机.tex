@@ -1,0 +1,66 @@
+% !TeX root = ../机器学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{12} % 保留原书章号。
+\chapter{核方法与支持向量机}
+\label{chap:ml-kernels}
+
+支持向量机通过控制分类间隔构造边界，核方法则把线性算法推广到隐式特征空间。两者结合后，非线性边界仍可通过凸二次优化求解。
+
+\section{间隔与硬间隔分类}
+
+标签为 $y_i\in\{-1,+1\}$，分数为 $w^\top x_i+b$。函数间隔 $y_i(w^\top x_i+b)$ 随参数缩放改变，几何间隔则除以 $\|w\|$。对线性可分且两类均出现的数据，可固定最小函数间隔为一，将最大几何间隔写成
+\begin{equation}
+ \min_{w,b}\frac12\|w\|^2,\qquad
+ y_i(w^\top x_i+b)\geq1\quad(i=1,\ldots,n).
+ \label{eq:ml-svm-primal}
+\end{equation}
+间隔边界分别为分数等于 $\pm1$ 的超平面，二者距离为 $2/\|w\|$。无法线性分开时硬间隔问题不可行。
+
+\section{软间隔与合页损失}
+
+引入松弛变量 $\xi_i\geq0$，允许 $y_i(w^\top x_i+b)\geq1-\xi_i$，目标变为
+$\frac12\|w\|^2+C_{\rm svm}\sum_i\xi_i$，$C_{\rm svm}>0$。
+固定 $w,b$ 时，最小可行松弛为 $\max(0,1-y_i(w^\top x_i+b))$，因此消去松弛便得到合页损失（hinge loss）。
+
+$0<\xi_i\leq1$ 可能只表示位于间隔内，$\xi_i>1$ 才表示分数符号错误；恰好为一对应零分数。将目标除以 $nC_{\rm svm}$ 后，与平均合页损失加 $\lambda\|w\|^2/2$ 对应的强度是 $\lambda=1/(nC_{\rm svm})$。系数约定不同，参数数值就不能直接比较。
+
+\section{对偶问题与支持向量}
+
+为间隔约束引入 $\alpha_i\geq0$，为松弛非负约束引入乘子。拉格朗日驻点条件给出
+$w=\sum_i\alpha_iy_ix_i$、$\sum_i\alpha_iy_i=0$，
+并由松弛方向得到 $0\leq\alpha_i\leq C_{\rm svm}$。代回得到对偶：
+\begin{equation}
+ \max_\alpha\ \sum_i\alpha_i-\frac12\sum_{i,j}\alpha_i\alpha_jy_iy_jx_i^\top x_j,
+ \quad 0\leq\alpha_i\leq C_{\rm svm},\quad \sum_i\alpha_iy_i=0.
+ \label{eq:ml-svm-dual}
+\end{equation}
+软间隔问题存在严格可行点，结合凸性和第\ref{chap:ml-optimization}章的对偶条件，可由最优对偶系数恢复原始最优解。
+
+$\alpha_i>0$ 的点称支持向量（support vector）。当 $0<\alpha_i<C_{\rm svm}$ 时，互补松弛给出 $\xi_i=0$ 及 $y_i(w^\top x_i+b)=1$，可用于恢复 $b$。达到上界的样本可以位于间隔内、边界上或误分类，不能一概视为误分类。若不存在中间系数，须利用 KKT 不等式确定可行截距区间。
+
+\section{半正定核与隐式特征空间}
+
+对称函数 $k(x,z)$ 是半正定核，意指任意有限点集和系数 $a_i$ 都满足 $\sum_{ij}a_ia_jk(x_i,x_j)\geq0$。若 $k(x,z)=\langle\phi(x),\phi(z)\rangle$，该性质来自平方范数 $\|\sum_i a_i\phi(x_i)\|^2$。用核值替代对偶中的内积和预测中的内积，就是核技巧（kernel trick）。
+
+线性核 $x^\top z$ 合法；$(x^\top z+c)^m$ 在 $c\geq0$、整数 $m\geq1$ 时可展开为有限特征内积。Gaussian 核 $e^{-\gamma\|x-z\|^2}$、$\gamma>0$ 也半正定：将其写为 $e^{-\gamma\|x\|^2}e^{-\gamma\|z\|^2}\sum_{r\geq0}(2\gamma x^\top z)^r/r!$，每个有限部分和对应非负加权特征内积，逐点极限保留有限 Gram 矩阵的半正定性。任意直观相似度不一定满足这一条件。
+
+\section{核算法的计算与选择}
+
+预测为 $f(x)=\sum_i\alpha_iy_ik(x_i,x)+b$，只有非零系数的样本参与。序列最小优化（sequential minimal optimization，SMO）每次联合更新少量对偶坐标，以保持线性约束，再逐步求解二次规划。稠密 Gram 矩阵 $\mathbf K$ 需要 $O(n^2)$ 存储，大样本时可考虑线性特征方法或核近似。
+
+在特征 Hilbert 空间中，若目标只依赖训练预测并惩罚权重平方范数，将权重分解为训练特征张成空间内与正交方向两部分；正交部分不改变训练预测却增加范数，故最优权重可取为训练特征的线性组合。这给出常用表示原理的直接证明。核岭回归相应可取系数 $a=(\mathbf K+n\lambda I)^{-1}y$，$\lambda>0$。核宽度和正则化分别影响几何与复杂度，应共同验证。
+
+\section{例题、练习与学习检查}
+
+\begin{example}[两个点的最大间隔]
+一维样本为 $(x_1,y_1)=(-1,-1)$、$(x_2,y_2)=(1,1)$。
+\end{example}
+\begin{solve}
+约束为 $w-b\geq1$、$w+b\geq1$，故 $w\geq1+|b|$。最小范数解为 $w=1,b=0$，单侧几何间隔为一。硬间隔对偶的两个系数均为 $1/2$，满足 $w=\sum_i\alpha_iy_ix_i=1$。
+\end{solve}
+
+习题：证明合页损失是零一误分类损失的上界（固定零分数的处理）；检查矩阵 $\left(\begin{smallmatrix}1&2\\2&1\end{smallmatrix}\right)$ 是否可能为半正定核的 Gram 矩阵；解释核宽度趋向极小空间尺度时对训练点记忆与泛化的影响。
+
+
+
+

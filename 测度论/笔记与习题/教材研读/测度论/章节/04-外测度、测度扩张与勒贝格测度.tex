@@ -1,0 +1,149 @@
+% !TeX root = ../测度论笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{3} % 保留原书章号。
+\chapter{外测度、测度扩张与勒贝格测度}
+\label{chap:mt-construction}
+
+\section{先覆盖，再决定哪些集合可测}
+给复杂集合赋予长度，直接把集合分解成区间往往不可行，因为它可能不含任何区间。另一种办法是先用可数个区间覆盖它，计算覆盖所需的总长度，再对所有覆盖取下确界。这个过程可以作用于任意子集，产生外测度；但外测度通常只有次可加性，需要进一步筛选可测集，才能得到真正的测度。
+
+\begin{definition}
+$S$ 上的\emph{外测度（outer measure）}是映射 $\mu^*:\mathcal P(S)\to[0,\infty]$，满足 $\mu^*(\varnothing)=0$、单调性，以及可数次可加性
+\[
+ \mu^*\!\left(\bigcup_nE_n\right)\leq\sum_n\mu^*(E_n).
+\]
+这里所有 $E_n$ 都可以是任意子集。
+\end{definition}
+
+在 $\mathbb R$ 上定义\emph{勒贝格外测度（Lebesgue outer measure）}
+\begin{equation}
+ \lambda^*(E)=\inf\left\{\sum_{n=1}^{\infty}(b_n-a_n):
+ E\subseteq\bigcup_{n=1}^{\infty}(a_n,b_n),\quad a_n<b_n\right\}.
+ \label{eq:mt-lebesgue-outer}
+\end{equation}
+区间端点均为有限实数；有限覆盖也允许使用。空集的值约定为零。
+
+\begin{proposition}
+式\eqref{eq:mt-lebesgue-outer}定义外测度，且对有限的 $a<b$，$\lambda^*([a,b])=b-a$。
+\end{proposition}
+\begin{proof}
+单调性来自覆盖族的包含关系。证明次可加性时，若 $\sum_j\lambda^*(E_j)=\infty$，不等式已经成立。否则给定 $\varepsilon>0$，为每个 $E_j$ 选择总长度小于 $\lambda^*(E_j)+\varepsilon2^{-j}$ 的可数区间覆盖。合并所有覆盖，得到 $\lambda^*(\bigcup_jE_j)\leq\sum_j\lambda^*(E_j)+\varepsilon$，再令 $\varepsilon\downarrow0$。
+
+用 $(a-\varepsilon,b+\varepsilon)$ 覆盖 $[a,b]$，可得 $\lambda^*([a,b])\leq b-a$。反向考虑任意可数开区间覆盖。由 $[a,b]$ 的紧性可以提取有限子覆盖；有限个区间要覆盖从 $a$ 到 $b$ 的整段，其长度之和至少为 $b-a$。后一事实可通过合并相交区间验证：合并后的并集总长度不超过原长度之和，而包含 $[a,b]$ 的连通部分长度至少为 $b-a$。因此每个原覆盖的总长度也至少为 $b-a$，取下确界完成证明。
+\end{proof}
+
+\section{Carathéodory 可测性与扩张定理}
+\begin{definition}
+给定外测度 $\mu^*$，集合 $A\subseteq S$ 称为\emph{Carathéodory 可测的（Carathéodory measurable）}，是指对每个 $E\subseteq S$，
+\begin{equation}
+ \mu^*(E)=\mu^*(E\cap A)+\mu^*(E\setminus A).
+ \label{eq:mt-caratheodory}
+\end{equation}
+\end{definition}
+次可加性已经保证左侧不超过右侧，所以关键是反向不等式。条件要求 $A$ 能把每个测试集合分成内外两部分而不增加总量；只检验 $E=S$ 一般不够。
+
+\begin{theorem}[Carathéodory 外测度定理]
+满足式\eqref{eq:mt-caratheodory}的集合全体 $\mathcal M$ 构成 $\sigma$ 代数，且 $\mu^*|_{\mathcal M}$ 是完备测度。
+\label{thm:mt-caratheodory}
+\end{theorem}
+\begin{proof}
+空集与补集的封闭性直接来自定义。若 $A,B$ 可测，先按 $A$ 切分任意 $E$，再按 $B$ 切分 $E\setminus A$，得到
+\[
+ \mu^*(E)=\mu^*(E\cap A)+\mu^*(E\cap A^c\cap B)
+             +\mu^*(E\setminus(A\cup B)).
+\]
+前两项之和至少为 $\mu^*(E\cap(A\cup B))$，结合次可加性即得 $A\cup B$ 可测。对两两不交的 $A_n\in\mathcal M$，逐次切分得到
+\[
+ \mu^*(E)\geq\sum_{n=1}^{m}\mu^*(E\cap A_n)
+       +\mu^*\!\left(E\setminus\bigcup_{n=1}^{\infty}A_n\right).
+\]
+令 $m\to\infty$，再对 $E\cap\bigcup_nA_n$ 使用次可加性，便得可数并的可测性；一般并可先变成不交并。令 $E=\bigcup_nA_n$，同一估计与次可加性给出可列可加性。若 $\mu^*(N)=0$ 且 $B\subseteq N$，则对任意 $E$，单调性和次可加性给出 $\mu^*(E)=\mu^*(E\setminus B)$，因此 $B$ 可测且测度为零。
+\end{proof}
+
+若集合族只对有限并与补集封闭，称为\emph{代数（algebra）}。代数 $\mathcal C$ 上的\emph{预测度（premeasure）}$\mu_0$ 满足空集取零，并且对两两不交、并集仍在 $\mathcal C$ 中的集合列满足可列可加性。用 $\mathcal C$ 中的可数覆盖定义外测度，可以将容易计算的初始数据扩张为测度。
+
+\begin{theorem}[预测度扩张]
+代数 $\mathcal C$ 上的预测度 $\mu_0$ 可以扩张为 $\sigma(\mathcal C)$ 上的测度。若 $S$ 可由 $\mathcal C$ 中可数个 $\mu_0$ 有限的集合覆盖，则扩张在 $\sigma(\mathcal C)$ 上唯一。
+\label{thm:mt-extension}
+\end{theorem}
+\begin{proof}
+对任意 $E\subseteq S$ 定义
+\[
+ \mu^*(E)=\inf\left\{\sum_{n=1}^{\infty}\mu_0(C_n):
+ E\subseteq\bigcup_nC_n,\quad C_n\in\mathcal C\right\}.
+\]
+空集取零；因为 $S\in\mathcal C$，覆盖族不会为空。与勒贝格外测度相同的误差分配论证说明 $\mu^*$ 是外测度。对 $A\in\mathcal C$，单个集合覆盖给出 $\mu^*(A)\leq\mu_0(A)$。反向若 $A\subseteq\bigcup_nC_n$，则
+$B_n=A\cap(C_n\setminus\bigcup_{j<n}C_j)$
+属于 $\mathcal C$、两两不交，且并集为 $A$。预测度公理适用，故
+$\mu_0(A)=\sum_n\mu_0(B_n)\leq\sum_n\mu_0(C_n)$，取下确界得到相反不等式。
+
+再固定 $A\in\mathcal C$。每个覆盖集合 $C_n$ 可分成 $C_n\cap A$ 与 $C_n\setminus A$，两者都在代数中；有限可加性说明这次切分保持总预测度。因此，对任意 $E$ 的每个代数覆盖，其总代价至少为 $\mu^*(E\cap A)+\mu^*(E\setminus A)$。对覆盖取下确界，得到 Carathéodory 条件中所需的反向不等式。所以 $\mathcal C$ 中的集合均为 $\mu^*$ 可测，定理\ref{thm:mt-caratheodory}产生的测度可以限制到 $\sigma(\mathcal C)$，并与 $\mu_0$ 相容。
+
+最后证明唯一性。由假设将 $S$ 分成 $\mathcal C$ 中两两不交且预测度有限的 $D_n$。若 $\mu,\nu$ 是两个扩张，对每个固定 $n$，集合函数 $\mu(A\cap D_n)$ 与 $\nu(A\cap D_n)$ 是整个 $\sigma(\mathcal C)$ 上的有限测度，并在代数 $\mathcal C$ 上相同。推论\ref{cor:mt-finite-uniqueness}给出它们在所有可测集上相同。再对 $n$ 求和，得到 $\mu(A)=\nu(A)$。
+\end{proof}
+存在性与唯一性的条件不同，不能把 $\sigma$ 有限性误认为任何测度存在所必需的条件。预测度只在初始代数中规定数值，外测度负责处理任意覆盖，Carathéodory 条件筛选可以无损切分的集合，生成族定理则保证不同构造不能在最终对象上产生歧义。
+
+\section{勒贝格可测集、Borel 集与零测集}
+勒贝格外测度的 Carathéodory 可测集称为\emph{勒贝格可测集（Lebesgue measurable set）}，组成 $\sigma$ 代数 $\mathcal L(\mathbb R)$；其上的测度记为 $\lambda$。这里引用构造理论的进一步结论：所有 Borel 集均勒贝格可测，区间的测度为长度，$\lambda$ 平移不变，并且 $(\mathbb R,\mathcal L(\mathbb R),\lambda)$ 是 Borel 长度测度的完备化。相关证明见\cite[第1章]{teschl-ra}。
+
+这些结论中，区间可测性可通过在端点处切开区间覆盖验证；平移不变性则来自平移前后覆盖的长度完全相同。完备化的描述说明，勒贝格可测集包含 Borel 集及其零测修改，而不是简单地把任意子集都宣布为可测。
+
+\begin{example}[稠密性与测度大小无关]
+每个单点都可以被任意短的区间覆盖，所以 $\lambda(\{x\})=0$。有理数集可数，故 $\lambda(\mathbb Q)=0$，尽管它在 $\mathbb R$ 中稠密。于是 $\lambda([0,1]\setminus\mathbb Q)=1$。测度描述大小，稠密性描述每个开区间是否相交，两者回答不同问题。
+\end{example}
+
+\begin{example}[不可数的零测集]
+从 $[0,1]$ 开始，每一步删除每个保留区间的中间三分之一，记第 $n$ 步保留的闭集为 $C_n$，并令 $C=\bigcap_nC_n$。$C_n$ 是 $2^n$ 个长度为 $3^{-n}$ 的闭区间之并，所以
+\[
+ \lambda(C)=\lim_n\lambda(C_n)=\lim_n(2/3)^n=0.
+\]
+这里使用了有限测度下的从上连续性。另一方面，每个二进制序列 $(\varepsilon_k)$ 对应点 $\sum_{k=1}^{\infty}2\varepsilon_k3^{-k}\in C$。不同序列给出不同点：首次不同位置的差为 $2\cdot3^{-k}$，之后全部差的绝对值至多为 $3^{-k}$。由于二进制序列集合不可数，$C$ 不可数。这说明零测不等于可数。
+\end{example}
+
+\section{开集与紧集逼近：勒贝格测度的正则性}
+\label{sec:mt-regularity}
+一个集合的边界可能非常复杂，但在测度意义下，它仍可以由比较简单的开集和紧集逼近。这种逼近不要求边界光滑，也不要求原集合包含区间；要求的是多出来或少掉的部分具有很小测度。它把抽象可测集重新与欧氏空间的拓扑联系起来，是连续函数逼近可测函数的基础。
+
+\begin{theorem}[实轴上勒贝格测度的正则性]
+对每个勒贝格可测集 $E\subseteq\mathbb R$，
+\[
+ \lambda(E)=\inf\{\lambda(U):E\subseteq U,\ U\text{ 开}\}
+ =\sup\{\lambda(K):K\subseteq E,\ K\text{ 紧}\}.
+\]
+若 $\lambda(E)<\infty$，则对每个 $\varepsilon>0$，可选择 $K\subseteq E\subseteq U$，使 $\lambda(U\setminus K)<\varepsilon$。
+\label{thm:mt-regularity}
+\end{theorem}
+\begin{proof}
+先设 $\lambda(E)<\infty$。按外测度定义，取可数开区间覆盖，其长度和小于 $\lambda(E)+\varepsilon$。它们的并 $U$ 开，且 $\lambda(U)\leq$ 该长度和，因此 $\lambda(U\setminus E)<\varepsilon$。
+
+对内逼近，先选 $R$ 足够大，使 $\lambda(E\setminus[-R,R])<\varepsilon$；这是从下连续性用于 $E\cap[-R,R]$ 的结果。再对 $[-R,R]\setminus E$ 作外逼近，选择开集 $V$ 包含它，使 $\lambda(V\setminus([-R,R]\setminus E))<\varepsilon$。令 $K=[-R,R]\setminus V$，则 $K$ 是紧集且包含于 $E$，并有 $\lambda(E\setminus K)<2\varepsilon$。通过一开始缩小误差预算，可得定理所要求的任意精度。
+
+若 $\lambda(E)=\infty$，任何包含 $E$ 的开集都具有无穷测度，外逼近等式成立。另一方面，$\lambda(E\cap[-R,R])\uparrow\infty$，先取具有任意大有限测度的截断，再对它作紧集内逼近，可使紧子集的测度任意大，得到内逼近等式。
+\end{proof}
+
+这里的紧集可以是不连通的，开集也可以由无穷多个区间组成。“用紧集逼近”并不意味着只保留一个闭区间。若 $\lambda(E)<\infty$，还可进一步用有限个区间组成的集合在对称差测度意义下逼近 $E$：先取紧集 $K$ 和开集 $U$，用包含于 $U$ 的小开区间覆盖 $K$，再由紧性抽取有限子覆盖。它们的并 $V$ 满足 $K\subseteq V\subseteq U$，故 $E\triangle V\subseteq U\setminus K$。
+
+\section{为何勒贝格可测集比 Borel 集更多}
+对有限测度可测集 $E$，为每个 $n$ 取开集 $U_n\supseteq E$，使 $\lambda(U_n\setminus E)<2^{-n}$。令 $G=\bigcap_nU_n$，则 $G$ 是 Borel 集，$E\subseteq G$，且 $\lambda(G\setminus E)=0$。一般可测集可先分解成与有界区间的交，再对这些有限测度部分作同样构造。因此，每个勒贝格可测集都与某个 Borel 集仅相差一个零测集。
+
+还需要注意，前述差集本身只知勒贝格可测。对任意外测度为零的集合，可选择总长度趋于零的开覆盖，并取覆盖并集的可数交，得到一个包含它的 Borel 零测集。于是，勒贝格可测集确实可以由 Borel 集加上或删去 Borel 零测集的任意子集得到。这就解释了“Borel 长度测度的完备化”这一描述，而不是仅凭名称将两个集合族视为相同。
+
+在概率模型中，使用 Borel 集有利于保留与拓扑和映射的清晰关系，使用完备化则有利于自由修改零概率事件上的数值。两种做法各有作用。需要复合映射、构造乘积或讨论截面时，应明确当前使用哪一个集合族，因为完备化和这些构造的次序未必可以随意交换。
+
+\section{不可测集为什么出现：Vitali 构造}
+\label{sec:mt-vitali-set}
+一个自然问题是：为什么不直接给实轴的所有子集定义长度？在通常采用选择公理的集合论框架下，平移不变性、可列可加性和区间长度规则无法同时扩展到全部子集。下面的论证给出具体障碍，其作用是解释定义边界，而不是要求实际计算中经常构造不可测集。
+
+在 $[0,1]$ 上定义等价关系 $x\sim y$ 当且仅当 $x-y\in\mathbb Q$。从每个等价类中选择一个代表，组成集合 $V$；这一步使用选择公理。对每个 $q\in\mathbb Q\cap[-1,1]$，考虑平移集 $V+q$。这些集合两两不交：若 $v+q=v'+q'$，则 $v-v'$ 为有理数，代表的唯一性给出 $v=v'$，进而 $q=q'$。
+
+这些平移的并包含 $[0,1]$，因为每个点与其所在等价类的代表相差一个位于 $[-1,1]$ 的有理数；同时，它们的并包含于 $[-1,2]$。若 $V$ 勒贝格可测，平移不变性使每个平移具有相同测度。若该测度为零，可数并的测度为零，与包含长度为一的区间矛盾；若该测度为正，可数个不交平移的总测度为无穷，与包含于长度为三的区间矛盾。因此 $V$ 不可测。
+
+这一矛盾并未否定区间长度或可列可加性，而是说明可测集合族必须受到限制。外测度仍然可以赋给 $V$ 一个非负数，但不能保证它在任意不交分解下具有测度所需的加法性。外测度定义在所有子集上，与测度定义在特定 $\sigma$ 代数上，二者的职责在这里得到清楚区分。
+
+\section{习题}
+\begin{enumerate}
+ \item 直接利用覆盖定义证明任意可数集合的勒贝格外测度为零。
+ \item 设 $E\subseteq\mathbb R$，证明 $\lambda^*(E+t)=\lambda^*(E)$，其中 $E+t=\{x+t:x\in E\}$。
+ \item 解释“区间内每个单点测度为零，所以区间测度为零”错用了哪一个公理条件。
+\end{enumerate}
+

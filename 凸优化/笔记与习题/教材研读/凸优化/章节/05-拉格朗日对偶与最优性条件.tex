@@ -1,0 +1,231 @@
+% !TeX root = ../凸优化笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{4} % 保留原书章号。
+\chapter{拉格朗日对偶与最优性条件}
+\label{ch:co-duality}
+
+可行点给出极小化问题的上界；对偶理论构造下界。当上下界一致时，最优性得到认证。对偶变量还描述约束扰动的影响，并把几何最优性条件写成可以求解的方程与不等式。
+
+回顾资源分配例，收益满足 $3x_1+2x_2\leq10$，并不是因为逐个列出了所有可行方案，而是因为把两条资源约束各乘以一再相加。对偶理论系统地寻找这种“加权后的约束证书”。对于极小化问题，方向改为构造下界；非负权重保证不等式相加时方向正确，等式的权重则可以取任意符号。
+
+\section{拉格朗日函数与对偶函数}
+
+对式\eqref{eq:co-general-problem}，引入不等式乘子 $\lambda\in\mathbb R_+^m$、等式乘子 $\nu\in\mathbb R^p$，定义拉格朗日函数（Lagrangian）和对偶函数（dual function）：
+\begin{equation}
+ \mathcal L(x,\lambda,\nu)=f_0(x)+\sum_i\lambda_i f_i(x)+\sum_j\nu_j h_j(x),
+ \qquad g(\lambda,\nu)=\inf_{x\in D}\mathcal L(x,\lambda,\nu).
+ \label{eq:co-lagrangian-dual-function}
+\end{equation}
+对 $x$ 取下确界时保留定义域 $D$，但不再要求已纳入拉格朗日函数的约束。$g$ 可以取 $-\infty$，此时该乘子不给出有用的有限下界。
+
+为何要去掉这些约束再取下确界？因为在原可行点上，$\lambda_i f_i(x)\leq0$，所以拉格朗日函数不大于原目标；若再允许 $x$ 在更大的定义域内选择，下确界只会更小。这两次放松共同产生一个可靠的下界。直接把原可行约束全部保留在内层，虽然仍能定义一个下界，却通常没有简化求解，也不是这里所用的对偶构造。
+
+\begin{example}[一个可以画出全部下界的对偶]
+求问题 $\min x^2/2$、$x\geq2$ 的对偶函数，并比较几组乘子的作用。
+\end{example}
+\begin{solve}
+将约束写为 $2-x\leq0$。对 $\lambda\geq0$，配方得到
+\[
+ \mathcal L(x,\lambda)=\frac12(x-\lambda)^2
+                  +2\lambda-\frac12\lambda^2,\qquad
+ g(\lambda)=2\lambda-\frac12\lambda^2.
+\]
+乘子 $0,1,2,3$ 分别给出下界 $0,3/2,2,3/2$。选一个合法乘子即可得到下界，对偶优化则在这些下界中选最大的一个。凹抛物线 $g$ 在 $\lambda=2$ 达到 $2$，而原可行点 $x=2$ 的目标也为 $2$，于是无需遍历可行半直线就证明了最优性。
+\end{solve}
+
+\begin{proposition}
+对偶函数关于乘子为凹函数，无须假设原问题凸。
+\end{proposition}
+\begin{proof}
+固定 $x$ 时，$\mathcal L$ 关于乘子仿射。用 $y=(\lambda,\nu)$ 简记乘子，对 $0\leq\theta\leq1$ 有
+\[
+ \inf_x\mathcal L(x,\theta y_1+(1-\theta)y_2)
+ \geq\theta\inf_x\mathcal L(x,y_1)+(1-\theta)\inf_x\mathcal L(x,y_2),
+\]
+这正是凹性。
+\end{proof}
+
+\begin{example}
+对 $\min_x x$，约束 $x\geq1$，有 $\mathcal L=x+\lambda(1-x)$。若 $\lambda\ne1$，对自由变量 $x$ 的线性函数无下界；若 $\lambda=1$，$g(1)=1$。对偶函数的有限性本身产生了乘子约束，不能只形式化地求导后忽略其余情况。
+\end{example}
+
+\section{对偶问题、弱对偶与证书}
+
+对偶问题为最大化 $g(\lambda,\nu)$，满足 $\lambda\geq0$；其最优值为 $d^\star$。这是在凸域上最大化凹函数，因此是凸优化问题。
+
+\begin{theorem}[弱对偶]
+对任意原可行点 $x$ 与 $\lambda\geq0$、$\nu\in\mathbb R^p$，有 $g(\lambda,\nu)\leq f_0(x)$，从而 $d^\star\leq p^\star$。
+\end{theorem}
+\begin{proof}
+由下确界定义及可行性，
+\[
+ g(\lambda,\nu)\leq\mathcal L(x,\lambda,\nu)
+ =f_0(x)+\sum_i\lambda_i f_i(x)\leq f_0(x).
+\]
+分别对原变量取下确界、对乘子取上确界即可。
+\end{proof}
+
+当原、对偶值有限时，对偶间隙（duality gap）$f_0(x)-g(\lambda,\nu)$ 给出
+\[
+ 0\leq f_0(x)-p^\star\leq f_0(x)-g(\lambda,\nu).
+\]
+因此原可行点与对偶可行点的目标差不超过 $\varepsilon$，就认证了 $\varepsilon$-次优性。这个结论不需要强对偶，但在最优对偶间隙为正时可能无法得到任意小的证书。
+
+弱对偶还可以识别某些问题状态。如果对偶目标可以任意大，那么原问题不可能存在具有有限目标值的可行点；反过来，原目标无下界时，不可能存在一个给出有限下界的对偶点。这些结论都是同一不等式的推论。但“没有找到有限对偶点”本身不是原问题无下界的证明，计算失败与数学不可行必须区别开来。
+
+\section{强对偶与 Slater 条件}
+
+若 $d^\star=p^\star$，称为强对偶（strong duality）。凸性之外还需适当的约束资格条件（constraint qualification）来保证它。下面给出适合首次学习的版本。
+
+强对偶说的是两侧的最优值相同，不是说任意一对原、对偶点的值都相同，也不是说两侧一定存在最优解。Slater 条件的几何含义是：在满足等式后，还能找到一点使每条不等式都有严格余量。这个余量防止可行集仅靠某种退化接触形成，从而帮助把分离超平面转化为有限的拉格朗日乘子。首次学习可以先掌握定理的条件和后面的反例，再阅读分离证明。
+
+\begin{theorem}[Slater 条件的有限值版本]
+设 $f_0,\ldots,f_m$ 在 $\mathbb R^n$ 上为有限凸函数，等式约束为 $Ax=b$，$A$ 满行秩。若存在 $\bar x$ 满足 $A\bar x=b$、$f_i(\bar x)<0$ 对所有 $i$ 成立，且 $p^\star$ 有限，则强对偶成立，且存在最优乘子。此结论不要求原最优值取到。
+\label{thm:co-slater}
+\end{theorem}
+\begin{proof}
+考虑凸集
+\[
+ \mathcal U=\{(u,v,t):\text{存在 }x,\ f_i(x)<u_i,\ Ax-b=v,\ f_0(x)<t\}.
+\]
+点 $(0,0,p^\star)$ 不属于 $\mathcal U$。由分离定理，存在非零向量 $(\lambda,\nu,\eta)$，使
+\[
+ \lambda^{\mathsf T}u+\nu^{\mathsf T}v+\eta t\geq\eta p^\star
+ \quad\text{对所有 }(u,v,t)\in\mathcal U.
+\]
+$u_i,t$ 可任意增大，故 $\lambda\geq0,\eta\geq0$。若 $\eta=0$，在严格可行点 $\bar x$ 取 $f_i(\bar x)<u_i<0$、$v=0$，得 $\lambda=0$。随后 $\nu^{\mathsf T}(Ax-b)\geq0$ 对所有 $x$，迫使 $A^{\mathsf T}\nu=0$；满行秩推出 $\nu=0$，与分离向量非零矛盾。因此 $\eta>0$，归一化使其为 $1$。
+
+固定任意 $x$，令 $u_i\downarrow f_i(x)$、$t\downarrow f_0(x)$，得到 $\mathcal L(x,\lambda,\nu)\geq p^\star$。取下确界知 $g(\lambda,\nu)\geq p^\star$；弱对偶给出反向不等式，故这组乘子取到 $d^\star=p^\star$。
+\end{proof}
+
+更一般的版本允许凸的有效定义域 $D$，要求严格可行点位于 $\operatorname{ri}D$；仿射不等式还可放宽为非严格成立。该推广见\cite{boyd-vandenberghe}关于 Slater 条件的讨论。本书使用时明确采用哪个版本。
+
+资格条件是充分条件而非必要条件。例如 $\min_x x$、$x^2\leq0$ 的原最优值为零，对偶函数在 $\lambda>0$ 时为 $-1/(4\lambda)$，故强对偶仍成立，但有限乘子不能取到零。这里没有严格可行点，KKT 乘子也不存在。
+
+作为对照，将目标改为 $x^2$ 而保留 $x^2\leq0$，仍然没有严格可行点，但取 $\lambda=0$ 时对偶值已为零，且原点满足 KKT 条件。因而 Slater 条件不成立，只表示这个充分定理不能使用，不能立即推断强对偶失败或乘子不存在。检查具体模型时，还可以尝试把 $x^2\leq0$ 改写为等价的仿射等式 $x=0$，消除由表示带来的退化。
+
+\section{KKT 条件与互补松弛}
+
+设 $D$ 为开凸集，各 $f_i$ 在其上凸且可微，等式约束为 $Ax=b$。Karush--Kuhn--Tucker 条件（KKT conditions）为
+\begin{equation}
+ \begin{aligned}
+ &x^\star\in D,\quad f_i(x^\star)\leq0,\quad Ax^\star=b,\\
+ &\lambda_i^\star\geq0,\quad\lambda_i^\star f_i(x^\star)=0,\quad i=1,\ldots,m,\\
+ &\nabla f_0(x^\star)+\sum_i\lambda_i^\star\nabla f_i(x^\star)
+    +A^{\mathsf T}\nu^\star=0.
+ \end{aligned}
+ \label{eq:co-kkt}
+\end{equation}
+前三类关系分别表达原可行性、对偶可行性和互补松弛（complementary slackness），最后一式为拉格朗日函数的驻点条件。
+
+驻点式可以理解为一种力的平衡：目标的下降方向被若干活跃约束的法向量阻挡，等式乘子则补偿只能沿可行平面运动的限制。互补松弛把这种解释写成代数关系：若某条不等式还有余量，它就不需要提供阻挡作用，乘子必为零；若乘子为正，约束必须恰好卡在边界。活跃约束（active constraint）只表示 $f_i(x^\star)=0$，并不自动表示它的乘子严格为正。
+
+\begin{theorem}
+满足式\eqref{eq:co-kkt}的点是原、对偶最优点。反之，若原最优解存在、强对偶成立且对偶最优值取到，则原、对偶最优点满足 KKT 条件。因此在 Slater 条件下，KKT 是已有原最优解的必要充分刻画。
+\end{theorem}
+\begin{proof}
+拉格朗日函数关于 $x$ 凸，驻点条件使 $x^\star$ 取到其下确界；互补松弛和原可行性给出 $g(\lambda^\star,\nu^\star)=f_0(x^\star)$，由弱对偶知最优。
+
+反向，从 $g(\lambda^\star,\nu^\star)\leq\mathcal L(x^\star,\lambda^\star,\nu^\star)\leq f_0(x^\star)$ 且两端相等可知，中间两步均取等号。各 $\lambda_i^\star f_i(x^\star)\leq0$ 且总和为零，故逐项为零；$x^\star$ 又是开域内拉格朗日函数的极小点，所以梯度为零。
+\end{proof}
+
+若某约束严格不活跃，即 $f_i(x^\star)<0$，其乘子必为零；活跃约束的乘子却也可能为零。若把非空闭凸约束 $x\in C$ 保留在定义域中，则在 $x\in C$ 处定义法锥（normal cone）$N_C(x)=\{v:v^{\mathsf T}(z-x)\leq0\text{ 对所有 }z\in C\}$，相应的拉格朗日最小化条件为 $-\nabla_x\mathcal L\in N_C(x)$。乘子的存在仍须单独核查资格条件。
+
+\begin{example}[先猜活跃约束，再用 KKT 核查]
+\label{ex:co-active-constraints}
+求
+\[
+ \min_{x,y}\ \frac12\bigl[(x-2)^2+(y-1)^2\bigr],
+ \qquad x+y\leq2,\quad x\geq0,\quad y\geq0.
+\]
+\end{example}
+\begin{solve}
+无约束解 $(2,1)$ 违反总量限制，所以先猜总量约束活跃，而非负约束有余量。分别给三个不等式配乘子 $\lambda,\mu,\eta\geq0$，驻点式为
+\[
+ x-2+\lambda-\mu=0,\qquad
+ y-1+\lambda-\eta=0.
+\]
+猜测 $x,y>0$ 后，互补松弛给 $\mu=\eta=0$；再用 $x+y=2$，解得 $\lambda=1/2$、$x=3/2$、$y=1/2$。结果确实非负、可行，并满足所有互补式，所以猜测得到验证，KKT 的充分性证明它全局最优，目标值为 $1/4$。目标严格凸，故解唯一。若算出的某个坐标为负，必须撤回对应的不活跃假设，重新讨论边界情形。
+
+在点 $(1/2,1/2)$ 三条不等式都严格成立，因此 Slater 条件也成立，必要性保证没有遗漏不满足 KKT 的最优点。小规模问题可以这样枚举活跃情况；约束很多时，逐个枚举会产生过多组合，应使用后面的数值方法。
+\end{solve}
+
+KKT 中的驻点条件单独使用很容易出错。例如在 $x\geq1$ 上最小化 $x^2$，直接令目标导数为零会得到不可行点零；而在实轴上最小化非凸函数 $x^4-x^2$，驻点零反而是局部极大点。本节的全局充分性同时依靠凸性、原可行性、乘子符号、互补松弛和驻点条件，不能只保留最后一行。
+
+\section{鞍点、共轭与不同对偶表示}
+
+拉格朗日鞍点（saddle point）满足
+\[
+ \mathcal L(x^\star,\lambda,\nu)
+ \leq\mathcal L(x^\star,\lambda^\star,\nu^\star)
+ \leq\mathcal L(x,\lambda^\star,\nu^\star)
+\]
+对所有 $x\in D,\lambda\geq0,\nu$ 成立。右侧表示 $x^\star$ 最小化拉格朗日函数；左侧迫使原可行性和互补松弛，否则相应乘子可使左侧无界增大。因此鞍点与达到相同有限值的原对偶最优点对应。
+
+对 $\min_x f(x)$、$Ax=b$，共轭给出
+\[
+ g(\nu)=\inf_x\{f(x)+(A^{\mathsf T}\nu)^{\mathsf T}x-b^{\mathsf T}\nu\}
+       =-f^*(-A^{\mathsf T}\nu)-b^{\mathsf T}\nu.
+\]
+例如 $f(x)=\|x\|_2^2/2$ 时，$g(\nu)=-\|A^{\mathsf T}\nu\|_2^2/2-b^{\mathsf T}\nu$。若 $A$ 满行秩，则
+\[
+ \nu^\star=-(AA^{\mathsf T})^{-1}b,\qquad
+ x^\star=A^{\mathsf T}(AA^{\mathsf T})^{-1}b.
+\]
+这就是等式约束最小范数解，原对偶值同为 $b^{\mathsf T}(AA^{\mathsf T})^{-1}b/2$。
+
+LP $\min c^{\mathsf T}x$、$Ax=b$、$x\geq0$ 的对偶也可由有限性求得。将 $x\geq0$ 留在定义域中，则 $g(\nu)=-b^{\mathsf T}\nu$ 当且仅当 $c+A^{\mathsf T}\nu\geq0$，否则为 $-\infty$。改变变量 $y=-\nu$ 得熟悉的形式：最大化 $b^{\mathsf T}y$，满足 $A^{\mathsf T}y\leq c$。
+
+\section{扰动、灵敏度与乘子的解释}
+
+把约束改为 $f_i(x)\leq u_i$、$Ax=b+v$，最优值记为 $p(u,v)$。设原问题强对偶且有最优乘子 $(\lambda^\star,\nu^\star)$，则对扰动问题的任意可行点使用原拉格朗日下界，有
+\begin{equation}
+ p(u,v)\geq p(0,0)-{\lambda^\star}^{\mathsf T}u-{\nu^\star}^{\mathsf T}v.
+ \label{eq:co-sensitivity-bound}
+\end{equation}
+确切地说，$f_0(x)\geq g(\lambda^\star,\nu^\star)-{\lambda^\star}^{\mathsf T}u-{\nu^\star}^{\mathsf T}v$，再对扰动可行集取下确界即可。若 $p$ 在原点邻域有限且可微，支撑下界的斜率唯一，因而 $\nabla_up(0,0)=-\lambda^\star$、$\nabla_vp(0,0)=-\nu^\star$。
+
+乘子称为影子价格（shadow price），表示放宽单位约束可能带来的边际目标改进。等式扰动的符号取决于采用 $Ax=b+v$ 还是其他约定，不能脱离定义记忆。
+
+在例\ref{ex:co-active-constraints}中，将总量上限改为 $2+u$。只要 $-1<u<1$，原来的活跃结构保持不变，解为
+\[
+ x(u)=\frac{3+u}{2},\qquad y(u)=\frac{1+u}{2},\qquad
+ p(u)=\frac{(1-u)^2}{4}.
+\]
+因此 $p'(0)=-1/2=-\lambda^\star$，确实与乘子解释一致。这里精确值满足 $p(u)=1/4-u/2+u^2/4$，而对偶提供的是全局线性下界 $p(u)\geq1/4-u/2$。只有取足够小的扰动时，才可把线性项解释为近似变化量；扰动很大导致活跃约束改变时，不能继续把原来的乘子当作新的精确斜率。
+
+\section{择一定理与锥对偶}
+
+\begin{theorem}[Farkas 引理]
+对 $A\in\mathbb R^{r\times n}$、$b\in\mathbb R^r$，下列两个系统恰有一个可行：
+\[
+ Ax=b,\ x\geq0;\qquad A^{\mathsf T}y\geq0,\ b^{\mathsf T}y<0.
+\]
+\end{theorem}
+\begin{proof}
+两者不能同时可行，否则 $b^{\mathsf T}y=x^{\mathsf T}A^{\mathsf T}y\geq0$。若第一个不可行，则 $b$ 不属于有限生成锥 $K=\{Ax:x\geq0\}$。该锥是闭的：每个锥组合可消去线性相关的活动生成元，写成线性无关生成元的非负组合；这样的子锥各自闭，且只有有限多个。由点与闭凸锥的严格分离，存在 $y\in K^*$ 满足 $b^{\mathsf T}y<0$，而 $y\in K^*$ 等价于 $A^{\mathsf T}y\geq0$。
+\end{proof}
+
+对于仿射锥约束 $F(x)\in-K$，选择 $z\in K^*$，则 $\langle z,F(x)\rangle\leq0$，故它可以作为拉格朗日项。对 SDP 约束 $F(x)\succeq0$，相应项写为 $-\langle Z,F(x)\rangle$，$Z\succeq0$；互补性为 $\langle Z,F(x)\rangle=0$。两者半正定时还可推出 $ZF(x)=0$，但不是逐元素相乘。
+
+\section{例题与学习检查}
+\begin{example}[用 KKT 求解与认证]
+求 $\min_{x\geq1}x^2/2$。
+\end{example}
+\begin{solve}
+$\mathcal L=x^2/2+\lambda(1-x)$，$g(\lambda)=\lambda-\lambda^2/2$，$\lambda\geq0$。KKT 给出 $x=\lambda$、$\lambda(1-x)=0$、$x\geq1$，因此 $x^\star=\lambda^\star=1$。原对偶目标均为 $1/2$，最优性得到认证。点 $x=2$ 严格可行，因此 Slater 条件也成立。
+\end{solve}
+
+\begin{example}[比例资源分配]
+给定权重 $w_i>0$、预算 $B>0$，最大化 $\sum_iw_i\log x_i$，满足 $x_i>0$、$\sum_i x_i\leq B$。
+\end{example}
+\begin{solve}
+转为最小化负效用。驻点条件为 $-w_i/x_i+\lambda=0$；由于效用对每个变量递增，预算约束取等号。记 $W=\sum_iw_i$，得到 $\lambda^\star=W/B$、$x_i^\star=Bw_i/W$。这些点满足 KKT，因此最优；负效用严格凸，故解唯一。预算的边际效用为 $W/B$，与乘子一致。
+\end{solve}
+\begin{enumerate}
+ \item 求 $\min_{x\geq0}(x-a)^2/2$ 的最优解和乘子，按 $a$ 的符号讨论。答案为 $x^\star=\max\{a,0\}$、$\lambda^\star=\max\{-a,0\}$。
+ \item 验证 $\min x$、$x^2\leq0$ 的最优点不满足任何有限乘子的 KKT 条件，解释它与充分性定理并不矛盾。
+ \item 对任意原可行点和对偶可行点证明：若目标相等，它们分别最优；说明该论证为何不需要 Slater 条件。
+ \item 综合练习：求 $\min_{x+y\leq B,\ x,y\geq0}[(x-2)^2+(y-1)^2]/2$ 对所有 $B>0$ 的解。提示：在 $0<B\leq1$ 时为 $(B,0)$；在 $1<B<3$ 时为 $((B+1)/2,(B-1)/2)$；在 $B\geq3$ 时为 $(2,1)$。分别给出合法乘子，观察活跃约束怎样改变。
+\end{enumerate}
+

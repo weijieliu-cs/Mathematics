@@ -1,0 +1,164 @@
+% !TeX root = ../初等数论笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{11} % 保留原书章号。
+\chapter{Pell 方程}
+\label{ch:pell}
+
+方程 $x^2-2y^2=1$ 的解 $(3,2),(17,12),(99,70)$ 很快变大，逐个试代 $y$ 不便于解释其规律。前章已经说明，连分数能够产生非常接近平方根的有理数；本章利用 $x/y$ 对 $\sqrt D$ 的近似，把解的搜索化为渐近分数的检查，再用带根号数的乘法描述全部解。
+
+\section{方程形式与平方模数的区别}
+
+固定非平方正整数 $D$，\emph{佩尔方程（Pell equation）}为
+\begin{equation}
+ x^2-Dy^2=1,\qquad x,y\in\mathbb Z.
+ \label{eq:pell-equation}
+\end{equation}
+$y=0$ 给出平凡解 $(\pm1,0)$；非平凡解可先取 $x,y>0$，再恢复符号。若 $D=s^2$ 是平方，则 $(x-sy)(x+sy)=1$，整数因子只能同为 $1$ 或同为 $-1$，因而只有平凡解。非平方条件实质上改变了方程的结构。
+
+对形如 $u=x+y\sqrt D$ 的数定义共轭 $u'=x-y\sqrt D$ 与\emph{范数（norm）} $N(u)=uu'=x^2-Dy^2$。由直接乘法可知 $N(uv)=N(u)N(v)$。整数系数在乘法下保持；若 $N(u)=1$，其逆元就是共轭，仍有整数系数。
+
+这里的“范数”不是长度，也不要求为非负数；它是一个便于记录方程左侧的代数表达式。若 $u=x+y\sqrt D$、$v=z+w\sqrt D$，则
+\[
+ uv=(xz+Dyw)+(xw+yz)\sqrt D,
+\]
+所以整数系数在乘法下保持的事实完全来自普通展开。例如 $3+2\sqrt2$ 的范数是 $1$，平方得到 $17+12\sqrt2$，其范数仍为 $1$，故自动产生另一组解。
+
+\section{连分数方法与基本解}
+
+设 $P_k/Q_k$ 为 $\sqrt D$ 的渐近分数，$B_j,C_j$ 为式\eqref{eq:surd-recurrence}的状态。
+
+\begin{lemma}
+\label{lem:pell-convergent-norm}
+对每个 $k\ge0$，
+\begin{equation}
+ P_k^2-DQ_k^2=(-1)^{k+1}C_{k+1}.
+ \label{eq:pell-convergent-norm}
+\end{equation}
+而任意满足 $x,y>0$、$x^2-Dy^2=\pm1$ 的解，$x/y$ 必为 $\sqrt D$ 的渐近分数。
+\end{lemma}
+\begin{proof}
+将 $\alpha_{k+1}=(\sqrt D+B_{k+1})/C_{k+1}$ 代入式\eqref{eq:complete-quotient}，比较有理部分和 $\sqrt D$ 的系数，得
+\[
+ P_k=B_{k+1}Q_k+C_{k+1}Q_{k-1},\qquad
+ DQ_k=B_{k+1}P_k+C_{k+1}P_{k-1}.
+\]
+消去 $B_{k+1}$，再用行列式恒等式即得范数公式。
+
+若 $x^2-Dy^2=\pm1$，则 $\gcd(x,y)=1$，并有
+\[
+ \left|\frac xy-\sqrt D\right|
+ =\frac1{y^2(x/y+\sqrt D)}<\frac1{2y^2}.
+\]
+这里 $D\ge2$，且 $(x/y)^2=D\pm1/y^2\ge D-1\ge1$，所以 $x/y\ge1$，分母括号大于 $2$。由定理\ref{thm:legendre-approximation}，$x/y$ 必是渐近分数。
+\end{proof}
+
+\begin{theorem}[基本解的周期公式]
+\label{thm:pell-fundamental}
+设 $\sqrt D$ 的最小周期长度为 $\ell$。方程\eqref{eq:pell-equation}存在正整数解，其中 $x$ 最小的一组称为\emph{基本解（fundamental solution）}，并由
+\[
+ (x_1,y_1)=
+ \begin{cases}
+ (P_{\ell-1},Q_{\ell-1}),&\ell\text{ 为偶数},\\
+ (P_{2\ell-1},Q_{2\ell-1}),&\ell\text{ 为奇数}
+ \end{cases}
+\]
+给出。
+\end{theorem}
+\begin{proof}
+由定理\ref{thm:sqrt-period}之后的状态结论，$C_j=1$ 当且仅当 $\ell\mid j$。因此渐近分数给出范数 $\pm1$ 当且仅当 $k+1=r\ell$，相应范数为 $(-1)^{r\ell}$。最早的正范数出现于所列下标，这也证明了解的存在。任意正解都由引理\ref{lem:pell-convergent-norm}来自渐近分数，而这些分子的值严格递增，所以最早出现者即为基本解。
+\end{proof}
+
+计算时先求周期，再用整数递推计算相应的 $P_k,Q_k$，最后代回原方程核查。也可以依次测试渐近分数的范数直到遇到 $1$；上述定理保证过程终止。
+
+\begin{example}[从一个周期中读出基本解]
+求 $x^2-14y^2=1$ 的基本解。
+\end{example}
+\begin{solve}
+前章已算出 $\sqrt{14}=[3;\overline{1,2,1,6}]$，周期 $\ell=4$ 为偶数，所以取下标 $3$ 的渐近分数。前四个渐近分数依次为 $3,4,11/3,15/4$；对应的 $P_k^2-14Q_k^2$ 依次为 $-5,2,-5,1$。因此基本解为 $(15,4)$，代回得 $225-14\cdot16=1$。此处下标从 $0$ 开始，所以“下标 $\ell-1$”意味着取前 $\ell$ 个部分商，而不是把周期末项 $6$ 也算进去。
+\end{solve}
+
+若周期为奇数，第一周期末得到范数 $-1$，必须到第二周期对应位置才得到范数 $1$。例如 $\sqrt5=[2;\overline4]$，第一项 $2/1$ 给出 $2^2-5=-1$，再取一项得到 $9/4$，才有 $9^2-5\cdot4^2=1$。这个符号差别解释了基本解公式为何按周期奇偶分成两种情况。
+
+\section{全部正整数解的生成}
+
+\begin{theorem}
+\label{thm:pell-all}
+若 $(x_1,y_1)$ 是基本解，则全部正整数解恰由
+\begin{equation}
+ x_n+y_n\sqrt D=(x_1+y_1\sqrt D)^n,
+ \qquad n=1,2,\ldots
+ \label{eq:pell-all-solutions}
+\end{equation}
+给出。
+\end{theorem}
+\begin{proof}
+令 $U=x_1+y_1\sqrt D>1$。正整数幂的系数为正整数，范数为 $1$，所以确实给出解。
+
+反之，任取正解对应的 $V=x+y\sqrt D>1$。因为 $U>1$，可选整数 $n\ge0$ 使 $U^n\le V<U^{n+1}$。令 $W=VU^{-n}$，由 $U^{-1}=x_1-y_1\sqrt D$，$W$ 有整数系数、范数为 $1$，且 $1\le W<U$。写 $W=X+Y\sqrt D$，则
+\[
+ X=\frac{W+W^{-1}}2,\qquad
+ Y=\frac{W-W^{-1}}{2\sqrt D}.
+\]
+若 $W>1$，则 $X,Y>0$，且 $X<x_1$：函数 $(t+t^{-1})/2$ 在 $t>1$ 上严格递增，可由两值作差验证。这与基本解的最小性矛盾。故 $W=1$，即 $V=U^n$；因 $V>1$，必有 $n\ge1$。
+\end{proof}
+
+展开乘法得到不含根号的递推
+\[
+ x_{n+1}=x_1x_n+Dy_1y_n,\qquad
+ y_{n+1}=y_1x_n+x_1y_n.
+\]
+全部整数解还包括 $(\pm1,0)$ 以及对每个正解独立改变两个坐标的符号。
+
+定理的前半部分只说明“取幂总能造出解”，后半部分才证明“每个解都是这种幂”。后半部分的思想是用基本单位 $U$ 反复缩小任意解 $V$，把它移入区间 $[1,U)$；若得到的数严格大于 $1$，它就对应比基本解还小的正解，产生矛盾。因此得到的只能是 $1$，原来的 $V$ 必为 $U$ 的整数幂。这比验证前几组解都符合递推强得多。
+
+\begin{example}
+求 $x^2-2y^2=1$ 的前三组正整数解。
+\end{example}
+\begin{solve}
+$\sqrt2=[1;\overline2]$，周期长为 $1$，基本解取下标 $1$ 的渐近分数 $3/2$，故为 $(3,2)$。再由 $(3+2\sqrt2)^2=17+12\sqrt2$、$(3+2\sqrt2)^3=99+70\sqrt2$，得到 $(17,12)$、$(99,70)$。定理\ref{thm:pell-all}保证继续取幂可得到全部正解。
+\end{solve}
+
+\section{负 Pell 方程与相关问题}
+
+\begin{proposition}
+\label{prop:negative-pell}
+$x^2-Dy^2=-1$ 有整数解，当且仅当 $\sqrt D$ 的最小周期长度 $\ell$ 为奇数。可解时最小正解为 $(P_{\ell-1},Q_{\ell-1})$。
+\end{proposition}
+\begin{proof}
+任意正解均来自渐近分数；由式\eqref{eq:pell-convergent-norm}，范数为 $-1$ 等价于 $k+1=r\ell$ 且 $r\ell$ 为奇数。这在 $\ell$ 为奇数时且仅此时可发生，最早下标为 $\ell-1$。若存在任意整数解，取坐标绝对值即可得到正解，因为 $D\ge2$ 排除了零坐标。
+\end{proof}
+
+若最小负范数正解对应 $V_0=x_0+y_0\sqrt D$，正 Pell 方程基本解对应 $U$，则负方程全部正解为 $V_0U^n$（$n\ge0$）。确实，任一其他负范数正解 $V\ge V_0$ 的商 $V/V_0=-VV_0'$ 有整数系数、范数 $1$ 且不小于 $1$，所以由定理\ref{thm:pell-all}是 $U$ 的非负整数幂。
+
+例如 $D=2$ 时 $1^2-2\cdot1^2=-1$；$D=3$ 的周期长为 $2$，负方程无解，也可用模 $3$ 的平方余数直接排除。一般方程 $x^2-Dy^2=N$ 的解乘以范数 $1$ 的元素仍是解，但可能存在多个互不相连的解族，不能直接照搬单一基本解生成全部解的结论。
+
+\section{从整数问题识别 Pell 方程}
+
+\begin{example}[相邻整数的平方关系]
+求满足 $m^2=2n(n+1)+1$ 的非负整数 $n$ 的生成方法，其中 $m$ 为正整数。
+\end{example}
+\begin{solve}
+令 $X=2n+1$，原式等价于 $X^2-2m^2=-1$。负 Pell 方程的全部正解满足
+\[
+ X_j+m_j\sqrt2=(1+\sqrt2)(3+2\sqrt2)^j,\qquad j\ge0.
+\]
+这些解中的 $X_j$ 都是奇数，因为 $X_j^2=2m_j^2-1$ 为奇数。因此 $n_j=(X_j-1)/2$ 是非负整数，反向代入也成立。前三组 $(X_j,m_j)$ 为 $(1,1),(7,5),(41,29)$，得到 $n=0,3,20$。两次变换都可逆，且奇偶条件得到验证，所以这一生成方法覆盖全部所求解。
+\end{solve}
+
+识别 Pell 型方程时通常先配方，使某个一次表达式的平方减去另一平方的固定倍数等于常数；随后检查常数是否为 $1$ 或 $-1$，并检查新变量是否还受奇偶性或整除条件限制。若常数不是 $\pm1$，本章的范数乘法仍能生成解，但完备性需要另作讨论。
+
+\section{习题}
+
+连分数保证基本解存在并给出寻找方法，范数乘法保证取幂生成新解，最小性论证保证不遗漏任何正解。应用中必须检查配方变换是否可逆，以及新变量是否还带有奇偶或整除约束。
+
+\begin{enumerate}
+ \item 求 $D=3,5,13$ 时正 Pell 方程的基本解，并代入验证。
+ \item 写出 $x^2-2y^2=-1$ 的前三组正解。
+ \item 证明三角数 $n(n+1)/2$ 为平方 $m^2$ 等价于 $(2n+1)^2-8m^2=1$，求前两个正整数 $n$。
+ \item 由整数递推证明正 Pell 方程的正解有无穷多组，且两坐标均严格递增。
+ \item\label{ex:pell-seven} 求 $x^2-7y^2=1$ 的基本解和第二组正解。
+ \item\label{ex:pell-negative-five} 求 $x^2-5y^2=-1$ 的前三组正解，并核对范数。
+ \item\label{ex:pell-second-order} 设 $(x_n,y_n)$ 由基本解 $(x_1,y_1)$ 生成，补充 $(x_0,y_0)=(1,0)$，证明 $x_{n+2}=2x_1x_{n+1}-x_n$、$y_{n+2}=2x_1y_{n+1}-y_n$。
+ \item\label{ex:pell-obstruction} 证明若 $D$ 有一个模 $4$ 余 $3$ 的素因子，则负 Pell 方程无整数解；说明这是一条必要条件，不能仅凭排除此障碍就宣布有解。
+\end{enumerate}
+

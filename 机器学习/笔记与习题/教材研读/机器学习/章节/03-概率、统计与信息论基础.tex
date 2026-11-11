@@ -1,0 +1,94 @@
+% !TeX root = ../机器学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{2} % 保留原书章号。
+\chapter{概率、统计与信息论基础}
+\label{chap:ml-probability}
+
+预测不仅需要一个数值，也需要说明这个数值从何而来、依赖什么假设。概率描述观测如何产生，统计利用观测估计未知规律，信息论则提供衡量概率预测的一组准则。
+
+\section{联合分布、条件分布与独立性}
+
+离散情形中，联合概率 $p(x,y)$ 经求和得到边缘概率 $p(x)=\sum_yp(x,y)$；在 $p(x)>0$ 时，条件概率为 $p(y\mid x)=p(x,y)/p(x)$。连续情形以密度和积分代替概率质量与求和，单点密度不是单点事件的概率。贝叶斯公式
+\[
+ p(y\mid x)=\frac{p(x\mid y)p(y)}{p(x)}
+\]
+把先验 $p(y)$ 与观测证据 $p(x\mid y)$ 结合为后验。分母必须为正，连续情形中的条件分布按几乎处处的意义理解。
+
+独立性要求联合分布分解为边缘分布乘积；条件独立 $X\perp Y\mid Z$ 要求在给定 $Z$ 后相应条件分布分解。两者不相互蕴含。例如，不同人群中的身高与某项指标可能条件独立，但合并不同人群后共同的人群差异会引入相关。条件独立表达的是条件分布结构，不是特征之间数值上“相关性很小”。
+
+Bernoulli 分布用 $p\in[0,1]$ 描述二元成功概率；类别分布用非负且和为一的概率向量描述多个互斥类别。若 $\Sigma$ 正定，多元正态密度为
+\[
+ p(x)=\frac{\exp[-\tfrac12(x-\mu)^\top\Sigma^{-1}(x-\mu)]}
+ {(2\pi)^{d/2}|\Sigma|^{1/2}}.
+\]
+半正定但奇异的 $\Sigma$ 仍可定义退化正态分布，却不再有上述关于 $d$ 维体积的密度。
+
+\section{期望、协方差与条件期望}
+
+可积随机变量的期望是分布加权平均；不要求独立就有期望线性性。有限二阶矩时，$\operatorname{Cov}(X,Y)=\mathbb E[(X-\mathbb EX)(Y-\mathbb EY)]$；独立推出零协方差，反向不成立。条件期望 $\mathbb E[Y\mid X]$ 是利用 $X$ 的信息预测 $Y$ 的一个基本对象，全期望公式给出 $\mathbb E\,\mathbb E[Y\mid X]=\mathbb EY$，全方差公式为
+\[
+ \operatorname{Var}(Y)=\mathbb E[\operatorname{Var}(Y\mid X)]
+ +\operatorname{Var}(\mathbb E[Y\mid X]).
+\]
+
+\begin{proposition}[平方损失与零一损失的最优预测]
+若 $\mathbb EY^2<\infty$，则平方风险在所有平方可积的预测函数中由 $m(X)=\mathbb E[Y\mid X]$ 达到最小。有限类别、零一损失下，最优分类选择后验概率最大的类别。
+\end{proposition}
+\begin{proof}
+写 $Y-f(X)=Y-m(X)+m(X)-f(X)$。交叉项期望为零，因为 $\mathbb E[Y-m(X)\mid X]=0$，故
+\[
+ \mathbb E(Y-f(X))^2=\mathbb E(Y-m(X))^2+\mathbb E(m(X)-f(X))^2.
+\]
+第二项非负。分类时，在输入 $x$ 处预测类别 $c$ 的条件错误率为 $1-P(Y=c\mid X=x)$，取最小即取后验最大；并列时任取一个固定的择优规则。
+\end{proof}
+
+\section{似然与统计估计}
+
+设模型为 $\{p_\theta:\theta\in\Theta\}$，独立样本 $x_1,\ldots,x_n$ 的似然（likelihood）是 $L(\theta)=\prod_i p_\theta(x_i)$。极大似然估计（maximum likelihood estimation，MLE）在允许的参数集合内最大化 $L$ 或 $\log L$。此时数据固定，参数变化；似然本身不是参数的概率密度，通常也不对参数积分为一。
+
+对 $n$ 次 Bernoulli 观测，成功次数为 $s$，对数似然为 $s\log p+(n-s)\log(1-p)$。若 $0<s<n$，令导数为零得到 $\widehat p=s/n$；若 $s=0$ 或 $s=n$，最优解在边界，分别为零或一。若人为限制 $0<p<1$，这些边界情形只有上确界而没有最大值。参数估计的存在性、唯一性和统计精度是三个不同问题。
+
+\section{先验、后验与预测分布}
+
+贝叶斯方法为参数指定先验密度 $p(\theta)$，由
+\[
+ p(\theta\mid\mathcal D)=\frac{p(\mathcal D\mid\theta)p(\theta)}
+ {\int p(\mathcal D\mid u)p(u)\,du}
+\]
+形成后验，前提是分母正且有限。最大后验估计（maximum a posteriori estimation，MAP）取后验密度的一个最大点，而后验预测使用
+$p(y_{\rm new}\mid x_{\rm new},\mathcal D)=\int p_\theta(y_{\rm new}\mid x_{\rm new})p(\theta\mid\mathcal D)\,d\theta$。
+前者保留一个参数值，后者对参数不确定性求平均。
+
+若 Bernoulli 参数先验为 $\operatorname{Beta}(a,b)$，$a,b>0$，先验密度正比于 $p^{a-1}(1-p)^{b-1}$，则观测 $s$ 次成功后后验为 $\operatorname{Beta}(a+s,b+n-s)$，下一次成功的预测概率为 $(a+s)/(a+b+n)$。独立零均值 Gaussian 参数先验的负对数含二次项，故特定 MAP 目标对应二次正则化；比例系数必须结合似然中的噪声方差和损失平均约定确定。
+
+\section{熵、交叉熵与相对熵}
+
+对有限集合上的概率向量 $p,q$，用自然对数定义熵（entropy）$H(p)=-\sum_jp_j\log p_j$、交叉熵 $H(p,q)=-\sum_jp_j\log q_j$，以及 Kullback--Leibler 散度
+\[
+ D_{\rm KL}(p\Vert q)=\sum_jp_j\log\frac{p_j}{q_j}
+ =H(p,q)-H(p).
+\]
+约定 $0\log0=0$；若某个 $p_j>0$ 而 $q_j=0$，交叉熵和散度为无穷。KL 不对称，也不满足一般的三角不等式，因此不是距离。
+
+由 $\log u\leq u-1$，当 $q$ 在 $p$ 的支持上为正时，
+\[
+ -D_{\rm KL}(p\Vert q)=\sum_{p_j>0}p_j\log(q_j/p_j)
+ \leq\sum_{p_j>0}q_j-1\leq0.
+\]
+等号当且仅当 $p=q$。因而在真实分布固定时，最小化期望对数损失等价于最小化相应 KL。分类正确率只检查最大分量所在类别，对数损失则评价为实际类别分配的概率，二者关注的对象不同。
+
+\section{例题、练习与学习检查}
+
+\begin{example}[先验会改变分类]
+垃圾邮件比例为 $0.2$，某词在垃圾邮件与正常邮件中的出现概率分别为 $0.8$、$0.1$。出现该词的邮件为垃圾邮件的概率是多少？
+\end{example}
+\begin{solve}
+后验为 $0.2\times0.8/(0.2\times0.8+0.8\times0.1)=2/3$。仅比较 $0.8$ 与 $0.1$ 忽略了两类的先验比例；后验还取决于实际应用中类别分布是否与这些概率一致。
+\end{solve}
+
+习题：十次试验七次成功，计算 $\operatorname{Beta}(2,2)$ 先验下的后验、预测成功概率及 MAP；答案分别为 $\operatorname{Beta}(9,5)$、$9/14$、$2/3$。设 $X$ 在 $\{-1,0,1\}$ 上均匀分布，证明 $X$ 与 $X^2$ 不相关但不独立。比较给真实类别概率 $0.9$ 与 $0.6$ 的两个分类器的单样本对数损失，并说明二者可有相同的零一损失。
+
+
+
+
+

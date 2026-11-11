@@ -1,0 +1,175 @@
+% !TeX root = ../初等数论笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{整除、最大公因数与欧几里得算法}
+\label{ch:divisibility}
+
+若有 $84$ 支笔和 $30$ 本练习本，要分成若干份完全相同的礼包且不剩余，礼包份数必须同时整除 $84$ 和 $30$；最多能分多少份，就是最大公因数问题。本章把这样的分组问题推广为整数之间的整除关系，并说明一个核心事实：求最大公因数、构造整数线性组合、求解一次整数方程，本质上使用的是同一套工具。
+
+\section{整除关系与带余除法}
+
+\begin{definition}
+对 $a,b\in\mathbb Z$，若存在 $k\in\mathbb Z$ 使 $b=ak$，则称 $a$ \emph{整除（divide）} $b$，记为 $a\mid b$；否则记为 $a\nmid b$。
+\end{definition}
+
+每个整数都整除 $0$，而 $0\mid b$ 当且仅当 $b=0$。若 $a\mid b$ 且 $a\mid c$，则对任意 $u,v\in\mathbb Z$ 有 $a\mid ub+vc$，因为 $b=ar,c=as$ 蕴含 $ub+vc=a(ur+vs)$。整除具有传递性；若 $a\mid b$ 且 $b\ne0$，则 $|a|\le|b|$。
+
+整除符号表达一种关系，不是一个商：$3\mid12$ 是真命题，而 $12/3=4$ 是数值等式。对非零 $a,b$，$a\mid b$ 且 $b\mid a$ 只能推出 $a=\pm b$，若另有 $a,b>0$ 才能推出相等。例如 $-3$ 和 $3$ 相互整除。这些符号和正负号上的区别会影响后文的唯一性陈述。
+
+\begin{theorem}[带余除法（division algorithm）]
+\label{thm:division}
+对任意 $a\in\mathbb Z$ 与 $b\in\mathbb Z_{>0}$，存在唯一的整数 $q,r$，使
+\begin{equation}
+  a=bq+r,\qquad 0\le r<b.
+  \label{eq:division-algorithm}
+\end{equation}
+\end{theorem}
+\begin{proof}
+集合 $S=\{a-bq:q\in\mathbb Z,\ a-bq\ge0\}$ 非空：例如取 $q=-|a|$。由良序原理取其最小元 $r=a-bq$。若 $r\ge b$，则 $r-b\in S$ 且更小，矛盾，故 $0\le r<b$。若另有 $a=bq'+r'$，则 $b(q-q')=r'-r$；右端绝对值小于 $b$，只能为 $0$，于是 $q=q',r=r'$。
+\end{proof}
+
+例如 $-17=5(-4)+3$，所以除以 $5$ 的余数是 $3$。余数的非负约定对负被除数同样适用。
+
+式\eqref{eq:division-algorithm}中的 $q$ 称为商，$r$ 称为余数。若只要求 $a=bq+r$ 而不限制余数范围，就会出现无穷多个表示，例如 $17=5\cdot3+2=5\cdot2+7$；唯一性来自长度为 $b$ 的范围 $0\le r<b$。在数轴上，可以把它理解为先找到包含 $a$ 的区间 $[bq,b(q+1))$，再测量 $a$ 到左端点的整数距离。
+
+\section{最大公因数、互素与贝祖等式}
+
+\begin{definition}
+不全为零的整数 $a,b$ 的\emph{最大公因数（greatest common divisor）} $\gcd(a,b)$ 是它们最大的正公因数。若 $\gcd(a,b)=1$，称 $a,b$ \emph{互素（coprime）}。
+\end{definition}
+
+公因数集合非空，且被任一非零数的绝对值所界，故最大公因数存在。特别地，$\gcd(a,0)=|a|$（$a\ne0$），改变符号不影响最大公因数。本书不使用 $\gcd(0,0)$。
+
+\begin{theorem}[贝祖等式]
+\label{thm:bezout}
+设 $a,b\in\mathbb Z$ 不全为零，$d=\gcd(a,b)$。则存在 $u,v\in\mathbb Z$ 使 $au+bv=d$，而且每个公因数都整除 $d$。
+\end{theorem}
+\begin{proof}
+所有正的整数线性组合 $ax+by$ 构成非空集合，取其中最小元 $s=au+bv$。将 $a$ 除以 $s$，余数 $r=a-qs$ 仍是 $a,b$ 的整数线性组合；若 $r>0$，则 $r<s$ 违背最小性，故 $s\mid a$。同理 $s\mid b$。任意公因数都整除 $s$，从而不超过 $s$；因此 $s=d$，并得到所需等式。
+\end{proof}
+
+\emph{贝祖等式（Bézout's identity）}把公因数问题转化为线性组合。由它还知全部整数线性组合恰为 $d$ 的整数倍。
+
+这一证明的关键并不是直接寻找“最大的因数”，而是寻找“最小的正线性组合”。带余除法把任何不能整除的情形变成更小的正线性组合，迫使最小者同时整除 $a,b$。例如 $\gcd(12,18)=6$，所以 $12x+18y$ 的所有可能取值恰为 $6$ 的整数倍：$6=18-12$，把此式乘以任意整数即可得到每一个这样的倍数。特别地，互素等价于能用整数系数拼出 $1$。
+
+\begin{corollary}[互素消去]
+\label{cor:coprime-cancellation}
+若 $\gcd(a,b)=1$ 且 $a\mid bc$，则 $a\mid c$。
+\end{corollary}
+\begin{proof}
+取 $au+bv=1$，乘以 $c$ 得 $c=auc+bvc$；右侧两项均被 $a$ 整除。
+\end{proof}
+
+\section{欧几里得算法与扩展算法}
+
+贝祖等式给出存在性，但其证明未直接提供便于手算的系数。欧几里得算法一方面求最大公因数，另一方面保存每次带余除法的信息，回代后就能把存在性证明变成具体计算。算法正确性要分为两件事：每次更新不改变答案，且更新一定会结束。
+
+若 $a=bq+r$，则 $a,b$ 的公因数恰是 $b,r$ 的公因数，因而
+\[
+  \gcd(a,b)=\gcd(b,r).
+\]
+\emph{欧几里得算法（Euclidean algorithm）}对 $A=|a|,B=|b|$ 反复执行：若 $B=0$，输出 $A$；否则用带余除法求 $R$，令 $(A,B)\leftarrow(B,R)$。非零余数严格递减，故算法终止；最大公因数在更新中不变，最后一个非零余数即为答案。
+
+扩展算法同时记录系数。对非负初值 $A,B$，以 $(r_0,s_0,t_0)=(A,1,0)$、$(r_1,s_1,t_1)=(B,0,1)$ 开始；当 $r_i>0$ 时取 $q_i=\lfloor r_{i-1}/r_i\rfloor$，并令
+\[
+ (r_{i+1},s_{i+1},t_{i+1})
+ =(r_{i-1},s_{i-1},t_{i-1})-q_i(r_i,s_i,t_i).
+\]
+这里 $\lfloor x\rfloor$ 表示不超过实数 $x$ 的最大整数，称为下取整；后文的 $\lceil x\rceil$ 表示不小于 $x$ 的最小整数，称为上取整。不变式 $r_i=s_iA+t_iB$ 由递推保持，故最后一组非零余数的系数给出贝祖等式。原数为负时，把相应系数变号；若初始 $B=0$，直接返回第一组。
+
+\begin{example}
+求 $252,198$ 的最大公因数和一组贝祖系数。
+\end{example}
+\begin{solve}
+带余除法依次为 $252=198+54$、$198=3\cdot54+36$、$54=36+18$、$36=2\cdot18$，故最大公因数为 $18$。回代得
+\[
+ 18=54-36=4\cdot54-198=4\cdot252-5\cdot198.
+\]
+\end{solve}
+
+同一计算也可用系数表完成。下表的每一行都满足 $r=252s+198t$，下一行由前两行相减若干倍得到；因此读到最后一个非零余数时，贝祖系数已经同时求出。
+\[
+\begin{array}{c|r|r|r}
+ &r&s&t\\\hline
+0&252&1&0\\
+1&198&0&1\\
+2&54&1&-1\\
+3&36&-3&4\\
+4&18&4&-5
+\end{array}
+\]
+回代法较适合短计算，系数表适合写成程序。二者记录的是同一个不变式，并不是两个不同的定理。
+
+\section{最小公倍数与一次不定方程}
+
+非零整数 $a,b$ 的\emph{最小公倍数（least common multiple）}记为 $\operatorname{lcm}(a,b)$，即最小正公倍数。写 $|a|=dA,|b|=dB$，其中 $d=\gcd(a,b)$，则 $\gcd(A,B)=1$。若 $m$ 为公倍数，写 $m=dAt$，由 $B\mid At$ 得 $B\mid t$，故 $dAB\mid m$。因此
+\begin{equation}
+ \operatorname{lcm}(a,b)=\frac{|ab|}{\gcd(a,b)}.
+ \label{eq:gcd-lcm}
+\end{equation}
+
+多个整数的最大公因数可递归计算；它们整体最大公因数为 $1$ 并不等于两两互素，例如 $6,10,15$。
+
+\begin{theorem}[一次不定方程]
+\label{thm:linear-diophantine}
+设 $a,b,c\in\mathbb Z$，$a,b$ 不全为零，$d=\gcd(a,b)$。方程 $ax+by=c$ 有整数解当且仅当 $d\mid c$。若 $(x_0,y_0)$ 是一组解，则全部解为
+\begin{equation}
+ x=x_0+\frac bd t,\qquad y=y_0-\frac ad t,\qquad t\in\mathbb Z.
+ \label{eq:linear-diophantine-solutions}
+\end{equation}
+\end{theorem}
+\begin{proof}
+必要性由 $d\mid ax+by$ 得到；充分性将贝祖等式乘以 $c/d$ 即可。任意两组解之差满足 $(a/d)(x-x_0)=-(b/d)(y-y_0)$。若 $b\ne0$，互素消去给出 $b/d\mid x-x_0$，代入得到通解；若 $b=0$，则 $a/d=\pm1$，$x$ 固定而 $y$ 任意，同一公式仍覆盖全部解。反向代入验证每组参数确为解。
+\end{proof}
+
+要求未知量取整数值的方程称为\emph{不定方程（Diophantine equation）}；名称不意味着它必有无穷多解。
+
+通解中的参数 $t$ 有明确的几何含义：从一组整数解出发，沿着向量 $(b/d,-a/d)$ 走整数步，仍在直线 $ax+by=c$ 上。除以 $d$ 后两个方向分量互素，保证这个步长没有跳过其他整数点。求非负解时，应先得到整数通解，再把 $x,y\ge0$ 转化为对同一个参数 $t$ 的上下界；分别寻找两个看似合适的参数会破坏两坐标之间的关联。
+
+\begin{example}
+求 $18x+30y=42$ 的全部整数解和非负整数解。
+\end{example}
+\begin{solve}
+约去最大公因数 $6$ 后得到 $3x+5y=7$，一组解为 $(-1,2)$，故 $x=-1+5t,y=2-3t$。非负性要求 $t\ge1$ 且 $t\le0$，所以不存在非负整数解，尽管整数解有无穷多组。
+\end{solve}
+
+\section{非负表示与两种面额问题}
+
+在计件和配比问题中，负数解通常没有实际含义。例如，用面额 $4$ 与 $7$ 的单位凑出总量 $N$，要求的是 $4x+7y=N$ 且 $x,y\ge0$。互素只保证整数解存在，并不保证非负解存在；不过当总量足够大时，情况会稳定下来。
+
+\begin{theorem}[两种面额的最大不可表示数]
+\label{thm:two-coins}
+若整数 $a,b\ge2$ 且 $\gcd(a,b)=1$，则不能表示成 $ax+by$（$x,y\in\mathbb Z_{\ge0}$）的最大整数为 $ab-a-b$。换言之，$ab-a-b$ 不可表示，而每个整数 $N>ab-a-b$ 都可表示。
+\end{theorem}
+\begin{proof}
+若 $ab-a-b=ax+by$，移项得 $ab=a(x+1)+b(y+1)$。于是 $a\mid b(y+1)$，互素消去给出 $a\mid y+1$。因为 $y+1>0$，有 $y+1\ge a$，从而右侧严格大于 $ab$，矛盾。
+
+再设 $N>ab-a-b$。数 $0,b,2b,\ldots,(a-1)b$ 除以 $a$ 的余数两两不同：若 $a\mid b(i-j)$，则 $a\mid i-j$，而 $|i-j|<a$，故 $i=j$。它们恰好覆盖全部余数，因此可选 $0\le y\le a-1$ 使 $a\mid N-by$。写 $N-by=ax$。由
+\[
+ N-by\ge N-(a-1)b>-a
+\]
+知 $ax$ 是严格大于 $-a$ 的 $a$ 的整数倍，只能满足 $ax\ge0$。于是 $x,y$ 均非负。
+\end{proof}
+
+\begin{example}[存在性判据与实际求解]
+用 $4$ 与 $7$ 两种单位表示 $25$，求全部非负表示；再判断哪些较大的总量一定可表示。
+\end{example}
+\begin{solve}
+一组整数解为 $(1,3)$，由一次不定方程的通解公式，可写 $x=1-7t$、$y=3+4t$，其中 $t\in\mathbb Z$。非负性迫使 $t=0$，唯一表示为 $25=4+3\cdot7$。定理\ref{thm:two-coins}又说明最大不可表示数为 $28-4-7=17$，因而每个至少为 $18$ 的整数都可表示。定理判定大范围的存在性，通解则回答某个总量究竟有多少种表示。
+\end{solve}
+
+\section{习题}
+
+本章把公因数、线性组合和一次整数方程联系起来。欧几里得算法提供具体系数，贝祖等式解释可解性；非负条件则需要在整数通解上另行限制参数。解题时应把“有整数解”与“有符合实际范围的解”分开。
+
+\begin{enumerate}
+ \item 对 $-37$ 除以 $8$ 作带余除法；求 $\gcd(414,662)$ 并写出贝祖等式。
+ \item 证明 $\gcd(a,b)=\gcd(a,a+b)$，其中 $a,b$ 不全为零。
+ \item 求 $35x+22y=1$ 的全部整数解。
+ \item 若 $a,b>0$ 且互素，证明 $a\mid c$、$b\mid c$ 蕴含 $ab\mid c$。
+ \item\label{ex:div-consecutive} 对任意整数 $n$，证明 $\gcd(n,n+1)=1$，并直接给出一组贝祖系数。
+ \item\label{ex:div-combinations} 对任意整数 $n$，证明 $\gcd(2n+1,3n+1)=1$。提示：寻找与 $n$ 无关的线性组合。
+ \item\label{ex:div-nonnegative} 求 $4x+7y=100$ 的全部非负整数解，并解释为什么不会遗漏。
+ \item\label{ex:div-gcd-lcm-count} 给定正整数 $d,L$，求满足 $\gcd(a,b)=d$、$\operatorname{lcm}(a,b)=L$ 的正整数有序对 $(a,b)$ 的个数。可使用下一章的唯一分解，并按 $d\mid L$ 是否成立分类。
+\end{enumerate}
+

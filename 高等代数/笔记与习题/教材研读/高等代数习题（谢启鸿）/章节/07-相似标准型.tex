@@ -1,0 +1,860 @@
+% !TeX root = ../高等代数习题（谢启鸿）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{6} % 保留原书章号。
+\chapter{相似标准型}
+\label{chap:xie-ex-similarity}
+
+% 依据《高等代数习题（谢启鸿）》第7章整理。
+% 来源：高等代数/textbooks/高等代数习题（谢启鸿）/高代习题-7.pdf，PDF第1--81页，书页354--434。
+本章研究同一个线性变换在不同基下的矩阵如何分类。相抵允许独立地改变定义域和陪域的基，其全系不变量是秩；相似要求两边使用同一组基，因而必须保留更细的信息。基本路线是把数字矩阵 $A$ 转化为特征矩阵 $\lambda I-A$，通过多项式矩阵的相抵得到行列式因子、不变因子和初等因子，再分别构造有理标准型与 Jordan 标准型。循环子空间和广义特征向量说明这些代数不变量的几何意义，矩阵函数及矩阵方程则展示标准型的用途。以下 $\mathbb K$ 表示数域，即 $\mathbb C$ 的子域；除另有说明外，$V$ 为 $\mathbb K$ 上的 $n$ 维线性空间，$n\geq1$，$T$ 为其线性变换，$A$ 为 $T$ 在某组基下的矩阵。记 $\chi_A(\lambda)=\det(\lambda I_n-A)$，$m_A(\lambda)$ 为 $A$ 的首一极小多项式。
+
+\section{基本概念}
+\label{sec:xie-ex-sim-basic}
+
+\subsection{多项式矩阵与 Smith 标准形}
+\label{subsec:xie-ex-sim-smith}
+
+\begin{definition}
+元素属于多项式环 $\mathbb K[\lambda]$ 的矩阵称为\emph{多项式矩阵（polynomial matrix）}或 $\lambda$-矩阵。其初等行、列变换包括交换两行或两列，以非零常数乘一行或一列，以及把一行或一列的多项式倍加到另一行或另一列。能够通过有限次这些变换互相转化的同型矩阵称为\emph{相抵（equivalent）}。
+\end{definition}
+
+这些变换都在 $\mathbb K[\lambda]$ 内可逆；其中第二类只能乘非零常数，因为多项式环的可逆元恰是非零常数。例如，把一行乘以 $\lambda$ 一般不可逆，不能作为求标准形时的合法变换。方阵 $U(\lambda)$ 在多项式环上可逆，当且仅当 $\det U(\lambda)$ 是非零常数：必要性来自行列式的乘法公式，充分性来自伴随矩阵公式。这样的矩阵又称\emph{幺模矩阵（unimodular matrix）}。因此 $M,N$ 相抵可表为 $N=UMW$，其中 $U,W$ 为相应阶数的幺模矩阵；它们在每个标量 $\lambda_0$ 处的取值仍是可逆数字矩阵。
+
+\begin{theorem}[Smith 标准形]
+\label{thm:xie-ex-sim-smith}
+设 $M(\lambda)$ 为 $a\times b$ 多项式矩阵，$r$ 为它在有理函数域 $\mathbb K(\lambda)$ 上的秩，则 $M$ 相抵于
+\[
+ \operatorname{diag}(d_1,\ldots,d_r,0,\ldots,0),
+ \qquad d_1\mid d_2\mid\cdots\mid d_r,
+\]
+其中 $d_i$ 是非零首一多项式；这一对角形状按 $a\times b$ 理解，且 $d_i$ 由 $M$ 唯一确定，称为其\emph{不变因子（invariant factors）}。
+\end{theorem}
+
+存在性的构造思路是反复使用多项式带余除法。先把非零元素移到左上角，用行、列相减降低同一行、列中非零余式的次数，直到左上角元素能整除这一行和列的元素并将它们消去；若它不能整除右下子矩阵的某个元素，可把该元素引入首行，再作除法，使主元次数继续下降。次数不能无限下降，故最终得到能整除其余元素的首个主元，再对右下子矩阵递归处理。这里只说明构造的关键步骤；唯一性由下面的行列式因子公式直接给出。
+
+\begin{definition}
+令 $D_0=1$。对 $1\leq k\leq\min(a,b)$，若 $M$ 有非零 $k$ 阶子式，则所有 $k$ 阶子式的首一最大公因式称为 $k$ 阶\emph{行列式因子（determinantal divisor）}，记为 $D_k$；若这些子式全为零，则约定 $D_k=0$。
+\end{definition}
+
+\begin{proposition}
+\label{prop:xie-ex-sim-divisors}
+行列式因子在多项式矩阵的相抵变换下不变，且
+\begin{equation}
+ D_k=d_1\cdots d_k\quad(1\leq k\leq r),
+ \qquad d_k=\frac{D_k}{D_{k-1}}.
+ \label{eq:xie-ex-sim-divisors}
+\end{equation}
+\end{proposition}
+\begin{proof}
+由 Cauchy--Binet 公式，$UMW$ 的每个 $k$ 阶子式都是 $M$ 的 $k$ 阶子式的多项式线性组合，所以 $D_k(M)$ 整除这些新子式。对逆变换使用相同论证，即得两个首一最大公因式相等。在 Smith 形中，每个非零 $k$ 阶子式都是若干 $d_i$ 的乘积，由整除链知它是 $d_1\cdots d_k$ 的倍式，而前 $k$ 个对角元本身给出这个子式。因此其首一最大公因式恰为该乘积，逐项相除即得不变因子及其唯一性。
+\end{proof}
+
+\subsection{不变因子与有理标准型}
+
+数字矩阵 $A$ 的行列式因子和不变因子，均指其特征矩阵 $\lambda I_n-A$ 的相应因子。由于该特征矩阵的行列式是 $n$ 次首一多项式，它有恰好 $n$ 个非零不变因子。把其中的 $1$ 省去后，记非常数不变因子为
+\[
+ q_1\mid q_2\mid\cdots\mid q_s,
+ \qquad \sum_{i=1}^s\deg q_i=n.
+\]
+因而 $\lambda I_n-A$ 的 Smith 形是 $\operatorname{diag}(1,\ldots,1,q_1,\ldots,q_s)$。这里常数因子 $1$ 可以省写，但在使用第几个不变因子时应恢复完整的 $n$ 项。
+
+\begin{definition}
+对 $d$ 次首一多项式 $p(\lambda)=\lambda^d+a_{d-1}\lambda^{d-1}+\cdots+a_1\lambda+a_0$，定义其\emph{友阵（companion matrix）}
+\[
+ C(p)=\begin{pmatrix}
+ 0&0&\cdots&0&-a_0\\
+ 1&0&\cdots&0&-a_1\\
+ 0&1&\cdots&0&-a_2\\
+ \vdots&\vdots&\ddots&\vdots&\vdots\\
+ 0&0&\cdots&1&-a_{d-1}
+ \end{pmatrix},
+\]
+并记 Frobenius 块为 $F(p)=C(p)^{\mathsf T}$；当 $d=1$ 时，两者均为 $(-a_0)$。
+\end{definition}
+
+\begin{theorem}[有理标准型]
+\label{thm:xie-ex-sim-rational}
+矩阵 $A$ 在 $\mathbb K$ 上相似于
+\[
+ \operatorname{diag}\bigl(C(q_1),\ldots,C(q_s)\bigr),
+\]
+也相似于将每个 $C(q_i)$ 换成 $F(q_i)$ 的矩阵。它们称为\emph{有理标准型（rational canonical form）}，其中
+\begin{equation}
+ \chi_A=q_1\cdots q_s,
+ \qquad m_A=q_s.
+ \label{eq:xie-ex-sim-char-min}
+\end{equation}
+这里“有理”表示构造无需离开给定数域，并不要求 $\mathbb K=\mathbb Q$。
+\end{theorem}
+
+有理标准型的存在性来自特征矩阵的 Smith 形及相似判据，见第~\ref{sec:xie-ex-sim-invariants} 节；它与循环子空间的对应见第~\ref{sec:xie-ex-sim-cyclic} 节。每个友阵的特征多项式、极小多项式都是相应的 $q_i$；分块对角矩阵的特征多项式为各块的乘积，极小多项式为各块极小多项式的首一最小公倍式，故整除链给出式~\eqref{eq:xie-ex-sim-char-min}。
+
+\subsection{初等因子与 Jordan 标准型}
+
+\begin{definition}
+把每个非常数不变因子在 $\mathbb K[\lambda]$ 中分解为互异首一不可约多项式的幂，其所有\emph{非平凡不可约幂因子}组成的多重集合称为 $A$ 的\emph{初等因子组（elementary divisors）}。例如，$q=(\lambda-1)^2(\lambda+1)^3$ 贡献两个初等因子 $(\lambda-1)^2$、$(\lambda+1)^3$；同一因子若在不同不变因子中出现，必须保留其重复次数。
+\end{definition}
+
+从初等因子恢复不变因子时，应对每个不可约多项式分别把正指数按升序排列，在左端补零，使各列等长，再逐列相乘；这保证所得多项式构成整除链。反过来，只需将每个不变因子作不可约分解。\emph[caution]{有理标准型的块数等于非常数不变因子的个数，Jordan 块数等于复数域上初等因子的个数，两者一般不同。}
+
+\begin{theorem}[Jordan 标准型]
+\label{thm:xie-ex-sim-jordan}
+若 $A\in M_n(\mathbb C)$，则 $A$ 相似于若干 Jordan 块的直和，其中
+\[
+ J_r(\mu)=\mu I_r+N_r,
+ \qquad
+ N_r=\begin{pmatrix}
+ 0&1&&0\\
+ &0&\ddots&\\
+ &&\ddots&1\\
+ 0&&&0
+ \end{pmatrix},
+ \qquad N_r^r=0,
+ \qquad N_1=(0).
+\]
+每个初等因子 $(\lambda-\mu)^r$ 对应一个 $J_r(\mu)$，因此 Jordan 标准型除各块的排列顺序外唯一。属于 $\mu$ 的各块阶数之和是其代数重数，块数是其几何重数，最大块阶数是 $\lambda-\mu$ 在 $m_A$ 中的指数。
+\end{theorem}
+
+Jordan 型要求特征多项式在当前数域上分裂；一般数域总存在有理标准型，却未必能在该数域上写出通常的 Jordan 型。第~\ref{sec:xie-ex-sim-general-field} 节将用不可约多项式对应的广义 Jordan 块处理这一差别。
+
+\subsection{矩阵序列与矩阵幂级数}
+
+矩阵序列 $A_k$ 收敛于 $B$，是指每个矩阵元分别收敛。对复幂级数 $f(z)=\sum_{j=0}^{\infty}c_jz^j$，若部分和矩阵 $\sum_{j=0}^{k}c_jA^j$ 收敛，则其极限记为 $f(A)$。设标量幂级数的收敛半径为 $R$，$\rho(A)=\max\{|\mu|:\mu\text{ 是 }A\text{ 的特征值}\}$ 为\emph{谱半径（spectral radius）}，则 $\rho(A)<R$ 保证 $f(A)$ 收敛，$\rho(A)>R$ 时不收敛；边界 $\rho(A)=R$ 需要另行判断。相似变换与分块对角运算都可逐项作用于部分和，并在收敛后保留下来。具体计算公式及收敛理由将在第~\ref{sec:xie-ex-sim-functions} 节展开。
+
+\section{矩阵相似的全系不变量}
+\label{sec:xie-ex-sim-invariants}
+
+\begin{theorem}[相似的四种等价判据]
+\label{thm:xie-ex-sim-criteria}
+对同一数域 $\mathbb K$ 上的同阶矩阵 $A,B$，下列条件等价：$A$ 与 $B$ 在 $\mathbb K$ 上相似；$\lambda I-A$ 与 $\lambda I-B$ 在 $\mathbb K[\lambda]$ 上相抵；两者有相同的行列式因子组；两者有相同的不变因子组；两者有相同的初等因子组。
+\end{theorem}
+
+相似推出特征矩阵相抵，可直接写成 $\lambda I-B=P^{-1}(\lambda I-A)P$；反方向的常数过渡矩阵提取方法见命题~\ref{prop:xie-ex-sim-polynomial-transition}，其证明也适用于 $B$ 代替其中的 $J$。行列式因子与不变因子的等价由式~\eqref{eq:xie-ex-sim-divisors} 给出，不变因子与初等因子的等价由不可约分解及补零重组给出。这些判据是完整分类；只比较迹、行列式、秩、特征多项式或极小多项式，一般只能得到必要条件。
+
+\begin{example}
+\label{ex:xie-ex-sim-char-min-insufficient}
+比较 $A=\operatorname{diag}(J_3(0),J_3(0))$ 与 $B=\operatorname{diag}(J_3(0),J_2(0),J_1(0))$，判断相同的特征多项式和极小多项式是否足以保证相似。
+\end{example}
+\begin{solve}
+两者都有 $\chi(\lambda)=\lambda^6$、$m(\lambda)=\lambda^3$，但 $\operatorname{rank}A=4$、$\operatorname{rank}B=3$，故不相似。特征多项式记录各特征值的总维数，极小多项式记录最大块，二者没有完整记录其余块的分配。
+\end{solve}
+
+\begin{proposition}
+\label{prop:xie-ex-sim-diagonal-gcd}
+对首一非零多项式 $f,g$，令 $d=\gcd(f,g)$、$h=\operatorname{lcm}(f,g)$，则 $\operatorname{diag}(f,g)$ 相抵于 $\operatorname{diag}(d,h)$。特别地，将特征矩阵相抵化为任一非零对角矩阵后，直接收集各对角元的不可约幂因子，就得到初等因子组，无须先整理出整除链。
+\end{proposition}
+\begin{proof}
+前一矩阵的一阶行列式因子为 $d$，二阶行列式因子为 $fg$，故其不变因子为 $d,fg/d=d,h$。对每个不可约多项式 $p$，这一操作将两个指数 $a,b$ 换成 $\min(a,b),\max(a,b)$，保留正指数的多重集合。依次作这样的操作直至得到整除链，即证第二个结论。
+\end{proof}
+
+\begin{example}
+证明 $A$ 与 $A^{\mathsf T}$ 相似，并说明分块对角矩阵的块顺序为何不影响相似类。
+\end{example}
+\begin{solve}
+$\lambda I-A^{\mathsf T}=(\lambda I-A)^{\mathsf T}$，转置把每个子式变成对应的转置子式，行列式值不变，故两者行列式因子相同。对 $\operatorname{diag}(A_1,\ldots,A_k)$，可分别将各块的特征矩阵对角化，再用命题~\ref{prop:xie-ex-sim-diagonal-gcd} 收集初等因子；所得多重集合是各块初等因子组的并，保留重复次数。交换块顺序不改变它，也可直接用置换基向量构造相似变换。
+\end{solve}
+
+\begin{proposition}[相似性在数域扩张下不变]
+\label{prop:xie-ex-sim-field-extension}
+若 $\mathbb K\subseteq\mathbb L\subseteq\mathbb C$，且 $A,B\in M_n(\mathbb K)$，则它们在 $\mathbb L$ 上相似当且仅当在 $\mathbb K$ 上相似。
+\end{proposition}
+\begin{proof}
+系数扩张不会改变一组 $\mathbb K[\lambda]$ 多项式的首一最大公因式：原最大公因式仍整除各式，而它在 $\mathbb K[\lambda]$ 中可表为这些多项式的线性组合，故扩张后的公因式也整除它。因此行列式因子及不变因子不变，再用定理~\ref{thm:xie-ex-sim-criteria} 即得结论。初等因子的不可约分解则可能随数域改变，不能将它与不变因子混为一谈。
+\end{proof}
+
+\begin{example}
+设 $A,C$ 为可逆同阶矩阵，证明存在可逆常数矩阵 $P,Q$ 使 $A=PCQ$、$B=PDQ$，当且仅当 $\lambda A-B$ 与 $\lambda C-D$ 相抵。
+\end{example}
+\begin{solve}
+必要性由 $\lambda A-B=P(\lambda C-D)Q$ 给出。反之，分别左乘 $A^{-1}$、$C^{-1}$，可知 $\lambda I-A^{-1}B$ 与 $\lambda I-C^{-1}D$ 相抵，故存在可逆 $Q$ 使 $A^{-1}B=Q^{-1}C^{-1}DQ$。令 $P=AQ^{-1}C^{-1}$ 即得所求。$A,C$ 可逆使矩阵束能化为特征矩阵，是这一推导的必要前提。
+\end{solve}
+
+\section{有理标准型的几何与应用}
+\label{sec:xie-ex-sim-cyclic}
+
+\begin{definition}
+对 $0\ne v\in V$，称
+\[
+ \mathcal C(T,v)=\operatorname{span}_{\mathbb K}\{v,Tv,T^2v,\ldots\}
+\]
+为 $v$ 生成的\emph{循环子空间（cyclic subspace）}，$v$ 为其循环向量。它是包含 $v$ 的最小 $T$-不变子空间；若它等于 $V$，则称 $V$ 是关于 $T$ 的循环空间。
+\end{definition}
+
+\begin{proposition}
+\label{prop:xie-ex-sim-cyclic-basis}
+若 $r=\dim\mathcal C(T,v)$，则 $v,Tv,\ldots,T^{r-1}v$ 构成该空间的一组基，$T$ 的限制在此基下的矩阵是某个 $r$ 次首一多项式的友阵。反之，表示矩阵为友阵的变换具有循环向量。
+\end{proposition}
+\begin{proof}
+设首次出现依赖的幂次为 $r_0$，则有唯一关系 $T^{r_0}v=-a_0v-\cdots-a_{r_0-1}T^{r_0-1}v$。反复作用 $T$ 后，更高幂也属于前 $r_0$ 项的张成空间，故 $r_0=r$；各基向量的像给出 $C(p)$，其中 $p(\lambda)=\lambda^r+a_{r-1}\lambda^{r-1}+\cdots+a_0$。反过来，友阵满足 $C(p)^je_1=e_{j+1}$，$0\leq j<r$，故 $e_1$ 是循环向量。
+\end{proof}
+
+\begin{theorem}[循环分解与循环空间判据]
+\label{thm:xie-ex-sim-cyclic}
+若 $T$ 的非常数不变因子为 $q_1\mid\cdots\mid q_s$，则存在直和分解
+\[
+ V=\mathcal C(T,v_1)\oplus\cdots\oplus\mathcal C(T,v_s),
+ \qquad \dim\mathcal C(T,v_i)=\deg q_i,
+\]
+各限制变换的特征多项式和极小多项式均为 $q_i$。特别地，$V$ 为循环空间，当且仅当只有一个非常数不变因子，当且仅当 $m_T=\chi_T$。
+\end{theorem}
+\begin{proof}
+取有理标准型对应的基，并按每个友阵块分组，命题~\ref{prop:xie-ex-sim-cyclic-basis} 即给出循环分解。循环空间的矩阵是友阵，故特征多项式等于极小多项式；反之，若 $m_T=\chi_T$，式~\eqref{eq:xie-ex-sim-char-min} 表明除最大不变因子外不可能再有非常数因子，于是整个空间就是一个循环分量。
+\end{proof}
+
+若 $A$ 有 $n$ 个不同特征值，则 $\chi_A=m_A=\prod_i(\lambda-\mu_i)$，所以它是循环的。在分裂域中取相应特征向量 $u_i$，向量 $v=u_1+\cdots+u_n$ 是一个循环向量，因为 $v,Av,\ldots,A^{n-1}v$ 在基 $u_i$ 下的坐标矩阵是非奇异的 Vandermonde 矩阵。更一般地，若 $\chi_A$ 在 $\mathbb K[\lambda]$ 中无重不可约因子，则整除链迫使所有这些因子都出现在最大不变因子中，因此 $m_A=\chi_A$；由于数域的特征为零，不可约多项式在 $\mathbb C$ 中无重根，故此时 $A$ 在 $\mathbb C$ 上有互异特征值。
+
+\begin{proposition}
+$\chi_T$ 在 $\mathbb K[\lambda]$ 中不可约，当且仅当 $V$ 没有非零真 $T$-不变子空间，当且仅当每个非零向量都是循环向量。若只假设 $m_T=p$ 不可约，则每个非零不变子空间上的限制变换的极小多项式都是 $p$，并且该子空间可分解为若干个维数 $\deg p$ 的循环子空间的直和。
+\end{proposition}
+\begin{proof}
+若 $U$ 是非零真不变子空间，把它的一组基扩张成 $V$ 的基，所得分块上三角矩阵使 $\chi_T$ 分解为两个正次数多项式的乘积，故不可约性排除了这样的 $U$。若不存在这样的 $U$，则每个非零 $v$ 的循环子空间只能等于 $V$。反之，若每个非零向量都循环，而 $\chi_T=gh$ 是非平凡分解，则 $g(T)h(T)=0$，至少一个因子变换奇异；设 $0\ne v\in\ker g(T)$，则它的循环空间维数至多 $\deg g<n$，产生矛盾。最后，非零限制变换的极小多项式是 $m_T=p$ 的非常数首一因子，只能为 $p$；其所有非常数不变因子也只能为 $p$，应用循环分解即可。
+\end{proof}
+
+\begin{example}
+证明存在满足 $A^2+2A+5I_n=0$ 的实矩阵，当且仅当 $n$ 为偶数；并解释 $n\geq4$ 时为何有无穷多个不变子空间。
+\end{example}
+\begin{solve}
+$p(\lambda)=\lambda^2+2\lambda+5$ 在 $\mathbb R$ 上不可约，故每个非常数不变因子都为 $p$，从而 $n=2k$。反之，取 $k$ 个 $C(p)=\left(\begin{smallmatrix}0&-5\\1&-2\end{smallmatrix}\right)$ 的直和即可。若 $k\geq2$，在前两个循环分量的基 $e_1,e_2$ 与 $e_3,e_4$ 中，对每个 $c\in\mathbb R$，空间 $\operatorname{span}(e_1+ce_3,e_2+ce_4)$ 都是不变子空间，并且不同 $c$ 给出不同子空间。一般的解与此标准型相似，故也有同样的性质。
+\end{solve}
+
+\begin{proposition}
+\label{prop:xie-ex-sim-rank-bounds}
+对任意 $A$，有 $\deg m_A\leq\operatorname{rank}A+1$。若 $q_1,\ldots,q_s$ 是其非常数不变因子，则对 $\mu\in\mathbb K$ 有
+\begin{equation}
+ \dim\ker(A-\mu I_n)=\#\{i:q_i(\mu)=0\}.
+ \label{eq:xie-ex-sim-geometric-invariant}
+\end{equation}
+\end{proposition}
+\begin{proof}
+设 $d=\deg m_A$。有理标准型中包含 $d$ 阶块 $C(m_A)$，其秩至少为 $d-1$，因为其次对角线上的 $1$ 构成一个非零 $d-1$ 阶子式，故 $\operatorname{rank}A\geq d-1$；$d=1$ 时此不等式直接成立。再将特征矩阵的 Smith 等式在 $\lambda=\mu$ 处取值，左右幺模矩阵仍可逆，于是 $\mu I_n-A$ 的秩等于 $\operatorname{diag}(1,\ldots,1,q_1(\mu),\ldots,q_s(\mu))$ 的秩，即得所述零度公式。
+\end{proof}
+
+\begin{proposition}[零迹与交换子]
+\label{prop:xie-ex-sim-commutator}
+$C\in M_n(\mathbb K)$ 可写成 $C=AB-BA$，当且仅当 $\operatorname{tr}C=0$。
+\end{proposition}
+\begin{proof}
+必要性由 $\operatorname{tr}(AB)=\operatorname{tr}(BA)$ 得出。充分性先证零迹矩阵相似于主对角元全为零的矩阵，对阶数归纳：纯量矩阵 $cI_n$ 若迹为零，则 $c=0$；若 $C$ 非纯量，则存在 $v$ 使 $v,Cv$ 线性无关，否则每个向量都是特征向量，比较一组基及两两之和便会推出 $C$ 是纯量。以 $v,Cv$ 开始选基，第一主对角元为零，右下 $n-1$ 阶块的迹仍为零。用归纳假设只在该块内换基，就使全部主对角元为零。设由此得到 $C_0=(c_{ij})$，取 $\mathbb K$ 中互异的 $a_1,\ldots,a_n$，令 $A_0=\operatorname{diag}(a_1,\ldots,a_n)$、$b_{ij}=c_{ij}/(a_i-a_j)$（$i\ne j$）、$b_{ii}=0$，则 $A_0B_0-B_0A_0=C_0$。最后把两矩阵同时变换回原基即可。
+\end{proof}
+
+\section{乘法交换性诱导的多项式表示}
+\label{sec:xie-ex-sim-centralizer}
+
+记 $\mathbb K[A]=\{f(A):f\in\mathbb K[\lambda]\}$，以及\emph{中心化子（centralizer）} $\mathcal Z(A)=\{B\in M_n(\mathbb K):AB=BA\}$。总有 $\mathbb K[A]\subseteq\mathcal Z(A)$，但相等需要条件，例如 $\mathbb K[I_n]$ 仅含纯量矩阵，而 $\mathcal Z(I_n)=M_n(\mathbb K)$。
+
+\begin{theorem}
+\label{thm:xie-ex-sim-centralizer}
+下列条件等价：$A$ 是循环矩阵；$m_A=\chi_A$；$\mathcal Z(A)=\mathbb K[A]$。这些条件成立时，$\mathcal Z(A)$ 的一组基为 $I_n,A,\ldots,A^{n-1}$，每个交换矩阵都唯一表示为次数小于 $n$ 的 $A$ 的多项式。
+\end{theorem}
+\begin{proof}
+设 $v$ 为循环向量，$B$ 与 $A$ 交换。唯一写成 $Bv=\sum_{j=0}^{n-1}c_jA^jv=f(A)v$ 后，交换性给出 $BA^jv=A^jBv=f(A)A^jv$。因为这些 $A^jv$ 构成一组基，故 $B=f(A)$。若次数小于 $n$ 的多项式满足 $f(A)=0$，则由 $\deg m_A=n$ 可知 $f=0$，从而基与唯一性也成立。
+
+反之，若非常数不变因子有 $s\geq2$ 个，在有理标准型 $F=\operatorname{diag}(F(q_1),\ldots,F(q_s))$ 中取 $E=\operatorname{diag}(I,0,\ldots,0)$，则 $EF=FE$。若 $E=f(F)$，最后一块给出 $q_s\mid f$，而 $q_1\mid q_s$，便有 $f(F(q_1))=0$，与第一块为 $I$ 矛盾。将 $E$ 变换回原基即得一个不属于 $\mathbb K[A]$ 的交换矩阵。
+\end{proof}
+
+对单个 Jordan 块 $J=\mu I_n+N_n$，中心化子具体为
+\[
+ \mathcal Z(J)=\left\{c_0I_n+c_1N_n+\cdots+c_{n-1}N_n^{n-1}:c_j\in\mathbb K\right\},
+\]
+即各条上对角线为常数的上三角矩阵。更一般地，若 $A$ 是下 Hessenberg（lower Hessenberg）矩阵，即主对角线上方第二条及更高的对角线全为零，并且上次对角元全部非零，则特征矩阵的前 $n-1$ 行、后 $n-1$ 列给出非零常数子式，故 $D_{n-1}=1$，$A$ 也是循环矩阵。$n=1$ 时结论直接成立。
+
+\begin{proposition}[分块多项式的拼接]
+\label{prop:xie-ex-sim-crt}
+设 $A=\operatorname{diag}(A_1,\ldots,A_k)$，每个 $A_i$ 适合非零多项式 $g_i$，且 $g_i$ 两两互素。若 $B=\operatorname{diag}(f_1(A_1),\ldots,f_k(A_k))$，则存在次数小于 $\deg m_A\leq n$ 的多项式 $f$，使 $B=f(A)$。
+\end{proposition}
+\begin{proof}
+多项式中国剩余定理给出 $h\equiv f_i\pmod{g_i}$，于是 $h(A_i)=f_i(A_i)$，故 $h(A)=B$。再用 $m_A$ 除 $h$ 并取余式，即得所需次数界。互素性使各块上的要求彼此独立；任意分块上的多项式表示一般不能直接拼接。
+\end{proof}
+
+\begin{example}
+设 $\operatorname{rank}A=n-1$ 且 $AB=BA=0$，证明 $B$ 可表示为 $A$ 的次数小于 $n$ 的多项式。
+\end{example}
+\begin{solve}
+若 $B=0$ 无须证明。否则 $AB=0$ 使 $B$ 的列属于一维空间 $\ker A$，$BA=0$ 使其行属于一维左零空间，所以所有满足这两个条件的矩阵组成一个一维空间。因 $A$ 奇异，可写 $m_A(\lambda)=\lambda g(\lambda)$；由极小性知 $g(A)\ne0$，而 $Ag(A)=g(A)A=0$。故 $B$ 是 $g(A)$ 的常数倍，且 $\deg g=\deg m_A-1<n$。结合满秩时的 Cayley--Hamilton 公式与秩至多 $n-2$ 时伴随矩阵为零，可知任意方阵的伴随矩阵都能表示为 $A$ 的次数小于 $n$ 的多项式。
+\end{solve}
+
+\begin{theorem}[复数域上的 Jordan--Chevalley 分解]
+\label{thm:xie-ex-sim-jc}
+任意复矩阵 $A$ 唯一分解为 $A=D+N$，其中 $D$ 可对角化，$N$ 幂零，且 $DN=ND$。此外 $D,N$ 都是 $A$ 的多项式。
+\end{theorem}
+\begin{proof}
+将属于同一特征值 $\mu_i$ 的 Jordan 块合并为 $J_i=\mu_iI+N_i$，令 $s_i$ 为这些块的最大阶数。多项式中国剩余定理给出 $f(\lambda)\equiv\mu_i\pmod{(\lambda-\mu_i)^{s_i}}$，故在 Jordan 基下，$f(A)$ 的各块为 $\mu_iI$。取 $D=f(A)$、$N=A-f(A)$，即满足全部条件。
+
+若还有 $A=D'+N'$ 满足这些条件，则 $D',N'$ 都与 $A$ 交换，因而与 $D,N$ 交换。两个交换的可对角化矩阵 $D,D'$ 可同时对角化，因为其中一个的各特征子空间对另一个不变，限制变换仍可对角化，故 $D-D'$ 可对角化。另一方面，$N,N'$ 交换且幂零，由二项式公式知 $N'-N$ 仍幂零。等式 $D-D'=N'-N$ 表明这一矩阵同时可对角化且幂零，只能为零，于是分解唯一。
+\end{proof}
+
+\section{可对角化的判定}
+\label{sec:xie-ex-sim-diagonalizable}
+
+\begin{theorem}
+\label{thm:xie-ex-sim-diagonalizable}
+复矩阵 $A$ 可对角化，当且仅当 $m_A$ 无重根，当且仅当其初等因子全为一次多项式，当且仅当其 Jordan 块全为一阶。对一般数域 $\mathbb K$，在 $\mathbb K$ 上可对角化要求 $m_A$ 是\emph[caution]{互异一次因子的乘积}，仅在 $\mathbb K[\lambda]$ 中没有重不可约因子还不够。
+\end{theorem}
+\begin{proof}
+在复数域上，$\lambda-\mu$ 在 $m_A$ 中的指数恰为属于 $\mu$ 的最大 Jordan 块阶数，故这些条件等价。一般数域上，若 $m_A=\prod_i(\lambda-\mu_i)$ 且各 $\mu_i\in\mathbb K$ 互异，则互素因子对应的核空间直和分解给出 $V=\bigoplus_i\ker(A-\mu_iI)$，因此存在特征向量基。反之，对角矩阵的极小多项式就是其互异对角元对应的一次因子之积。
+\end{proof}
+
+因此，只要找到一个无重根的零化多项式 $g$，由 $m_A\mid g$ 就能判定复可对角化。幂等矩阵 $A^2=A$ 的标准型是 $\operatorname{diag}(I_r,0)$，$r=\operatorname{rank}A$；满足 $A^k=I$ 的复矩阵也可对角化，因为 $z^k-1$ 与其导数没有公共根。相反，非零幂零矩阵一定不能对角化：若能对角化，其所有对角元只能为零，便会推出矩阵本身为零。实矩阵 $C(\lambda^2+1)$ 的极小多项式无重不可约因子，但没有实特征值，说明“复可对角化”与“实可对角化”必须区别。
+
+\begin{proposition}[限制、商空间与不变补空间]
+\label{prop:xie-ex-sim-complement}
+若复线性变换 $T$ 可对角化，则它在任意不变子空间 $U$ 上的限制变换及在 $V/U$ 上的诱导变换都可对角化。并且，$T$ 可对角化，当且仅当它的每个不变子空间都有不变补空间。
+\end{proposition}
+\begin{proof}
+$m_T$ 同时零化限制变换和商变换，故两者的极小多项式都整除无重根的 $m_T$，得到第一结论。设 $E_i$ 为 $T$ 的各特征子空间，多项式谱投影保持 $U$，所以 $U=\bigoplus_i(U\cap E_i)$；在每个 $E_i$ 内选取 $U\cap E_i$ 的补空间并求直和，就得到不变补空间。反之，设所有不变子空间都有不变补空间，令 $E$ 为全部特征向量张成的空间。若 $E\ne V$，其非零不变补空间上的限制变换在复数域中有一个非零特征向量，这又应属于 $E$，与直和矛盾。因此 $E=V$，$T$ 可对角化。
+\end{proof}
+
+\begin{proposition}[核、像与秩的判据]
+\label{prop:xie-ex-sim-kernel-criterion}
+复矩阵 $A$ 可对角化，当且仅当对每个特征值 $\mu$，以下任一条件成立：
+\begin{align*}
+ &\ker(A-\mu I)\cap\operatorname{Im}(A-\mu I)=\{0\};\\
+ &V=\ker(A-\mu I)\oplus\operatorname{Im}(A-\mu I);\\
+ &\ker(A-\mu I)=\ker((A-\mu I)^2);\\
+ &\operatorname{rank}(A-\mu I)=\operatorname{rank}((A-\mu I)^2).
+\end{align*}
+上述条件均需对每个特征值分别检验。
+\end{proposition}
+\begin{proof}
+记 $L=A-\mu I$。映射 $L:\ker L^2\to\ker L\cap\operatorname{Im}L$ 满射，核为 $\ker L$，故交空间为零等价于两级核相等；秩零度定理又给出其余等价条件。若 Jordan 型中有属于 $\mu$ 的长度至少为二的链 $Lv_2=v_1\ne0$、$Lv_1=0$，则 $v_1$ 属于上述交空间，所以这些条件迫使每个块均为一阶。反之，对角型下核与像由互补的基向量张成，条件成立。核或像连续两级相等后，高次核或像也随之稳定。
+\end{proof}
+
+\begin{example}
+设 $g\in\mathbb C[z]$，且对 $A$ 的每个特征值 $\mu$ 都有 $g'(\mu)\ne0$，证明 $A$ 可对角化当且仅当 $g(A)$ 可对角化。
+\end{example}
+\begin{solve}
+必要性由在特征向量基中计算多项式得到。对充分性，在 $J_r(\mu)=\mu I+N_r$ 上有
+\[
+ g(J_r(\mu))-g(\mu)I=N_rH(N_r),\qquad H(0)=g'(\mu)\ne0.
+\]
+$H(N_r)$ 可逆且与 $N_r$ 交换，所以左边各次幂的秩与 $N_r$ 的对应幂相同，它有且只有一个大小为 $r$ 的 Jordan 块。若 $A$ 有 $r>1$ 的块，则 $g(A)$ 也不能对角化。导数条件不可省，例如 $A=J_2(0)$、$g(z)=z^2$ 时 $g(A)=0$ 可对角化而 $A$ 不可对角化。
+\end{solve}
+
+\begin{example}
+设 $A\in M_n(\mathbb C)$，在 $M_n(\mathbb C)$ 上定义 $\Phi(X)=AXA^{\mathsf T}$、$\Psi(X)=AX-XA^{\mathsf T}$。证明这两个线性变换分别可对角化，当且仅当 $A$ 可对角化。
+\end{example}
+\begin{solve}
+若 $A=PDP^{-1}$，用坐标变换 $X=PYP^{\mathsf T}$，两个算子分别化为 $Y\mapsto DYD^{\mathsf T}$、$Y\mapsto DY-YD^{\mathsf T}$；基础矩阵 $E_{ij}$ 分别是特征值为 $d_id_j$、$d_i-d_j$ 的特征向量，故充分性成立。
+
+反之，若 $A$ 有 $r\geq2$ 的块 $J_r(\mu)$，同样的坐标变换把问题化到 Jordan 型；只在这个块对应的 $r\times r$ 位置非零的矩阵组成一个共同不变子空间。在该子空间的基础矩阵基下，$\Phi$ 为三角形且对角元全为 $\mu^2$，但不是纯量算子：$\mu\ne0$ 时 $\Phi(E_{21})=\mu^2E_{21}+\mu E_{11}$，$\mu=0$ 时 $\Phi(E_{22})=E_{11}$。同理，$\Psi$ 为三角形且对角元全为零，而 $\Psi(E_{21})=E_{11}\ne0$。只有一个特征值的可对角化算子必为纯量算子，所以这两个限制均不可对角化，与命题~\ref{prop:xie-ex-sim-complement} 矛盾。这里右侧明确使用转置；具体计算必须与题设中的乘法次序一致。
+\end{solve}
+
+\begin{example}
+设 $s=\deg m_A$，定义 $s$ 阶矩阵 $H=(\operatorname{tr}(A^{i+j-2}))_{i,j=1}^{s}$，其中 $\operatorname{tr}(A^0)=n$。证明 $A$ 在复数域上可对角化，当且仅当 $H$ 可逆。
+\end{example}
+\begin{solve}
+设互异特征值为 $\mu_1,\ldots,\mu_k$，代数重数为 $a_1,\ldots,a_k$。令 $W_{ij}=\mu_j^{i-1}$，则 $H=W\operatorname{diag}(a_1,\ldots,a_k)W^{\mathsf T}$。总有 $s\geq k$；若 $A$ 不可对角化，$m_A$ 有重根，故 $s>k$，于是 $\operatorname{rank}H\leq k<s$。若 $A$ 可对角化，则 $s=k$，$W$ 为方阵，且
+\[
+ \det H=\left(\prod_{j=1}^{k}a_j\right)
+ \prod_{i<j}(\mu_j-\mu_i)^2\ne0.
+\]
+这是 Vandermonde 分解的应用，不需要把复数域上的双线性矩阵 $W^{\mathsf T}$ 当作共轭转置。
+\end{solve}
+
+\section{Jordan 标准型的求法}
+\label{sec:xie-ex-sim-jordan-computation}
+
+计算 Jordan 型时，先用特征多项式确定每个特征值的总维数，再用极小多项式确定最大块，或用 $\dim\ker(A-\mu I)$ 确定块数。若信息仍不足，就继续计算 $(A-\mu I)^k$ 的秩。对于结构简单的特征矩阵，非零常数子式可以迅速确定若干行列式因子；但含参数时，除以参数之前必须分情形，不能把可能为零的量作为初等变换中的非零常数。
+
+\begin{theorem}[秩序列确定 Jordan 块]
+\label{thm:xie-ex-sim-rank-sequence}
+固定特征值 $\mu$，记 $R_k=\operatorname{rank}((A-\mu I)^k)$，$R_0=n$。则属于 $\mu$ 且阶数至少为 $k$ 的 Jordan 块数为 $R_{k-1}-R_k$，阶数恰为 $k$ 的块数为
+\begin{equation}
+ b_k=R_{k-1}-2R_k+R_{k+1},\qquad k\geq1.
+ \label{eq:xie-ex-sim-block-count}
+\end{equation}
+因此对 $A,B\in M_n(\mathbb C)$，两者相似当且仅当对其特征值集合之并中的每个 $\mu$，及 $1\leq k\leq n$，都有 $\operatorname{rank}((A-\mu I)^k)=\operatorname{rank}((B-\mu I)^k)$。
+\end{theorem}
+\begin{proof}
+非 $\mu$ 特征值的块在减去 $\mu I$ 后可逆，对所有 $R_k$ 贡献相同的秩。属于 $\mu$ 的一个 $r$ 阶块贡献 $\max(r-k,0)$，其前后两级之差在 $r\geq k$ 时为 $1$，否则为 $0$，所以第一次差分统计“至少 $k$ 阶”，再差分就统计“恰为 $k$ 阶”。幂次到 $n$ 时核已稳定，故有限的秩数据足以确定全部块。相似必保留这些秩；反过来，相同的块数给出相同的 Jordan 型。
+\end{proof}
+
+\begin{example}
+设 $N$ 为九阶幂零矩阵，且 $\operatorname{rank}N=5$、$\operatorname{rank}N^2=2$、$N^3=0$，求其 Jordan 型。
+\end{example}
+\begin{solve}
+秩序列为 $9,5,2,0,0$，相邻差为 $4,3,2,0$，所以总块数为 $4$，至少二阶的有 $3$ 个，至少三阶的有 $2$ 个。再取差得到一阶、二阶、三阶块数分别为 $1,1,2$，故标准型为 $\operatorname{diag}(J_1(0),J_2(0),J_3(0),J_3(0))$。检验总阶数 $1+2+3+3=9$，极小多项式为 $\lambda^3$。
+\end{solve}
+
+\begin{example}
+\label{ex:xie-ex-sim-rank-one}
+设 $n>1$ 且 $\operatorname{rank}A=1$，按 $\operatorname{tr}A$ 分类求 Jordan 型。
+\end{example}
+\begin{solve}
+写 $A=uv^{\mathsf T}$，令 $c=v^{\mathsf T}u=\operatorname{tr}A$，则 $A^2=cA$。若 $c\ne0$，多项式 $\lambda(\lambda-c)$ 无重根，故 $A$ 可对角化，且其秩为一，标准型为 $\operatorname{diag}(c,0,\ldots,0)$。若 $c=0$，则 $A^2=0$ 而 $A\ne0$，所以各块至多二阶；每个二阶零特征值块贡献秩一，故恰有一个 $J_2(0)$，其余为一阶零块。这也说明秩一矩阵幂等当且仅当迹为 $1$，幂零当且仅当迹为 $0$。
+\end{solve}
+
+\begin{example}
+设
+\[
+ A=\begin{pmatrix}
+ 1&a+2&5&7\\0&1&3&6\\0&0&1&b+4\\0&0&0&1
+ \end{pmatrix},
+\]
+按参数确定 Jordan 型。
+\end{example}
+\begin{solve}
+令 $N=A-I_4$、$\alpha=a+2$、$\beta=b+4$。若 $\alpha\beta\ne0$，则 $\operatorname{rank}N=3$，唯一特征值 $1$ 的几何重数为一，故标准型为 $J_4(1)$。若 $\alpha\beta=0$，则 $\operatorname{rank}N=2$：第三、四列在前两行构成的子式为 $5\cdot6-7\cdot3=9$，而秩三的子式消失。又有
+\[
+ N^2_{13}=3\alpha,\quad N^2_{14}=6\alpha+5\beta,
+ \quad N^2_{24}=3\beta,\quad N^3_{14}=3\alpha\beta.
+\]
+若 $\alpha,\beta$ 恰有一个为零，则 $N^2\ne0$、$N^3=0$，两块的最大阶为三，故标准型为 $\operatorname{diag}(J_3(1),1)$；若二者均为零，则 $N^2=0$，两块均为二阶，标准型为 $\operatorname{diag}(J_2(1),J_2(1))$。
+\end{solve}
+
+\begin{proposition}[Jordan 块的整数幂]
+\label{prop:xie-ex-sim-jordan-power}
+若 $a\ne0$、$m$ 为非零整数，则 $J_n(a)^m$ 的 Jordan 型为 $J_n(a^m)$。若 $m\geq1$ 且 $N=J_n(0)$，则 $m\geq n$ 时 $N^m=0$；$m<n$ 时写 $n=mq+r$，$0\leq r<m$，其 Jordan 型由 $r$ 个 $J_{q+1}(0)$ 与 $m-r$ 个 $J_q(0)$ 组成。
+\end{proposition}
+\begin{proof}
+对非零 $a$，在 $aI+N$ 的有限 Taylor 展开中，$J_n(a)^m-a^mI=NH(N)$ 且 $H(0)=ma^{m-1}\ne0$，所以其各次幂的秩与 $N$ 相同。负整数幂也成立，因为 $a\ne0$ 保证 $z^m$ 在 $a$ 附近解析。对零特征值，$N^me_j=e_{j-m}$，约定下标非正时为零；按下标模 $m$ 分组，就把原来一条长度为 $n$ 的链拆为 $m$ 条链，其中 $r$ 条长 $q+1$，其余长 $q$。各条链互不重叠且覆盖全部基向量，得到所述标准型。
+\end{proof}
+
+特别地，若 $A$ 的特征值全为 $1$，则对每个正整数 $m$ 都有 $A^m\sim A$；若其特征值全属于 $\{1,-1\}$，则 $A^{-1}\sim A$。这两个结论都保留了每个块的阶数，但一般的矩阵幂可能合并不同的特征值，也可能使零特征值块分裂。
+
+\section{过渡矩阵的求法}
+\label{sec:xie-ex-sim-transition}
+
+已知 Jordan 型 $J$ 后，还需构造可逆矩阵 $P$ 满足 $AP=PJ$，才能把标准型用于具体计算。若 $J$ 中有块 $J_r(\mu)$，$P$ 中对应的列必须构成一条链
+\begin{equation}
+ (A-\mu I)v_1=0,\qquad
+ (A-\mu I)v_j=v_{j-1}\quad(2\leq j\leq r).
+ \label{eq:xie-ex-sim-chain}
+\end{equation}
+这里 $v_j$ 是广义特征向量；本文以 $v_1$ 为零级，$v_j$ 为 $j-1$ 级。每条链应按 $v_1,\ldots,v_r$ 排列为 $P$ 的列，才能对应上次对角线为 $1$ 的约定。
+
+\subsection{从多项式相抵变换提取常数矩阵}
+
+\begin{proposition}
+\label{prop:xie-ex-sim-polynomial-transition}
+设幺模矩阵 $U(\lambda),W(\lambda)$ 满足
+\[
+ U(\lambda)(\lambda I-A)W(\lambda)=\lambda I-J.
+\]
+将 $W$ 作右侧除法，写成 $W(\lambda)=S(\lambda)(\lambda I-J)+P$，其中 $P$ 为常数矩阵，则 $P$ 可逆，且 $AP=PJ$。
+\end{proposition}
+\begin{proof}
+右侧带余除法成立，是因为 $\lambda I-J$ 的最高次系数为单位矩阵，可以逐次消去最高项。代入相抵等式并整理，得
+\[
+ (\lambda I-A)P=
+ \bigl(U^{-1}(\lambda)-(\lambda I-A)S(\lambda)\bigr)(\lambda I-J).
+\]
+左边次数至多为一，右边最后一因子首项为 $\lambda I$，故括号内只能是常数矩阵 $R$；比较一次项与常数项得 $P=R$、$AP=PJ$。若 $P$ 奇异，$\ker P$ 是非零的 $J$-不变子空间，在复数域中可取 $0\ne v\in\ker P$ 满足 $Jv=\mu v$，于是 $W(\mu)v=S(\mu)(\mu I-J)v+Pv=0$，与 $W(\mu)$ 可逆矛盾。原矩阵在较小数域时，也可在复数域中作这一反证，所得常数矩阵 $P$ 的元素仍属于原数域。
+\end{proof}
+
+\subsection{解链方程与选择链顶向量}
+
+直接求解式~\eqref{eq:xie-ex-sim-chain} 时，必须保证下一步方程有解。任取一个特征向量未必能继续延长成所需链：例如 $A=\operatorname{diag}(J_2(0),0)$，特征向量 $e_3$ 不属于 $\operatorname{Im}A$，所以 $Av=e_3$ 无解。\emph[tip]{可先选择链顶 $w$，满足 $(A-\mu I)^rw=0$、$(A-\mu I)^{r-1}w\ne0$，再按倒序列出其像；这样链方程自动成立。}不同链之间还要检验线性无关，不能只逐条保证链内无关。
+
+\begin{example}
+\label{ex:xie-ex-sim-transition}
+对
+\[
+ A=\begin{pmatrix}2&6&-15\\1&1&-5\\1&2&-6\end{pmatrix},
+ \qquad J=\operatorname{diag}(-1,J_2(-1)),
+\]
+构造 $P$ 使 $P^{-1}AP=J$。
+\end{example}
+\begin{solve}
+令 $N=A+I_3$，则 $N^2=0$、$\operatorname{rank}N=1$。可取短链向量 $u=(-2,1,0)^{\mathsf T}$；又取长链顶 $w=e_1$，则 $v=Nw=(3,1,1)^{\mathsf T}$。因此
+\[
+ P=(u,v,w)=\begin{pmatrix}-2&3&1\\1&1&0\\0&1&0\end{pmatrix},
+ \qquad \det P=1.
+\]
+由 $Nu=Nv=0$、$Nw=v$ 可直接核对 $AP=PJ$。在 $\ker N$ 的常见基 $(-2,1,0)^{\mathsf T}$、$(5,0,1)^{\mathsf T}$ 中，任意单取一个都不能作为长链的底端，而二者之和恰为 $v$；这一例子说明保留参数、检查可解性是必要的。
+\end{solve}
+
+对一般根子空间，记 $N=A-\mu I$ 在该空间上的限制，并令
+\[
+ F_k=\ker N\cap\operatorname{Im}N^{k-1},\qquad
+ F_1\supseteq F_2\supseteq\cdots.
+\]
+从最大的非零 $F_k$ 开始，逐层将 $F_{k+1}$ 的基扩张为 $F_k$ 的基；每个本层新增的向量 $b$ 都可以提升为 $N^{k-1}w=b$，并满足 $N^kw=0$。由这个 $w$ 构造长度为 $k$ 的链，最终得到全部链。其独立性与维数论证见第~\ref{sec:xie-ex-sim-geometry} 节。这种方法把“选择合适的特征向量”改为选择与核、像滤过相容的基，尤其适合多个不同长度块同时出现的情形。
+
+\begin{example}
+设 $A_{ij}\in M_n(\mathbb K)$（$1\leq i,j\leq n$）均非零，并满足 $A_{ij}A_{kl}=\delta_{jk}A_{il}$，其中 $\delta_{jk}$ 为 Kronecker 符号。证明存在同一个可逆矩阵 $P$，使所有 $P^{-1}A_{ij}P=E_{ij}$ 同时成立。
+\end{example}
+\begin{solve}
+取 $v$ 使 $u_1=A_{11}v\ne0$，则 $A_{11}u_1=u_1$。令 $u_i=A_{i1}u_1$，有 $A_{1i}u_i=u_1$，故每个 $u_i\ne0$，且 $A_{ij}u_k=\delta_{jk}u_i$。若 $\sum_kc_ku_k=0$，作用 $A_{1j}$ 得 $c_ju_1=0$，所以全部系数为零。这 $n$ 个向量构成一组基，取 $P=(u_1,\ldots,u_n)$，便有 $A_{ij}P=PE_{ij}$，得到所求。乘法关系在此直接规定了新基下每个算子的作用。
+\end{solve}
+
+\section{Jordan 标准型的应用}
+\label{sec:xie-ex-sim-applications}
+
+只要问题在相似或同时相似变换下保持不变，就可以依次处理单个 Jordan 块、分块对角矩阵和一般矩阵。对涉及两个矩阵的问题，通常先化简其中一个，并把另一个按相同方式分块；不能独立改变两矩阵的基而仍声称保留它们之间的乘法关系。
+
+\subsection{秩、核像分解与矩阵方程}
+
+\begin{proposition}
+\label{prop:xie-ex-sim-fitt-zero}
+复矩阵 $A$ 相似于 $\operatorname{diag}(N,C)$，其中 $N$ 幂零、$C$ 可逆，允许其中一块为空。若 $\mu$ 的代数重数为 $a$，其最大 Jordan 块阶数为 $s$，则
+\[
+ \operatorname{rank}((A-\mu I)^k)=n-a
+ \quad\Longleftrightarrow\quad k\geq s.
+\]
+特别地，$\operatorname{rank}A=\operatorname{rank}A^2$ 当且仅当零特征值的块全为一阶；若零不是特征值，这一秩等式也成立。
+\end{proposition}
+\begin{proof}
+将零特征值与非零特征值的块分别归组，便得到第一结论。在 $A-\mu I$ 中，非 $\mu$ 块始终贡献秩 $n-a$，其余块各贡献 $\max(r-k,0)$；这些贡献全部消失恰好要求 $k$ 不小于最大块阶数。
+\end{proof}
+
+\begin{example}
+设 $AB=BA=0$ 且 $\operatorname{rank}A=\operatorname{rank}A^2$，证明 $\operatorname{rank}(A+B)=\operatorname{rank}A+\operatorname{rank}B$。
+\end{example}
+\begin{solve}
+在相同的基下，$A=\operatorname{diag}(0,C)$，其中 $C$ 可逆。将 $B$ 对应分块，两个乘积为零迫使其非左上块全部为零，故 $B=\operatorname{diag}(B_0,0)$。此时 $A+B=\operatorname{diag}(B_0,C)$，秩的加法公式立即成立。这一分块论证也适用于一般数域，所需核像分解见第~\ref{sec:xie-ex-sim-general-field} 节。
+\end{solve}
+
+\begin{theorem}[Sylvester 方程]
+\label{thm:xie-ex-sim-sylvester}
+设 $A\in M_a(\mathbb C)$、$B\in M_b(\mathbb C)$。方程 $AX-XB=0$ 只有零解，当且仅当 $A,B$ 无公共特征值；这也等价于对每个 $C\in M_{a\times b}(\mathbb C)$，方程 $AX-XB=C$ 有唯一解。
+\end{theorem}
+\begin{proof}
+分别换基把 $B$ 化为 Jordan 型后，可按其各块独立解方程。对一个块 $J_r(\mu)$，将未知块写为 $X=(x_1,\ldots,x_r)$，右端块写为 $(c_1,\ldots,c_r)$，得到
+\[
+ (A-\mu I)x_1=c_1,\qquad
+ (A-\mu I)x_j=x_{j-1}+c_j\quad(2\leq j\leq r).
+\]
+若无公共特征值，$A-\mu I$ 可逆，故依次唯一确定各列。若存在公共特征值 $\mu$，取 $A$ 的右特征向量 $u\ne0$ 与 $B$ 的左特征行向量 $w\ne0$，则 $X=uw\ne0$ 满足 $AX=XB$，所以相应线性映射有非零核，不可能有唯一解。由于定义域与值域的维数均为 $ab$，单射、满射和可逆等价，从而得到全部结论。
+\end{proof}
+
+若 $A,B$ 无公共特征值，解 $AX-XB=C$ 后取 $S=\left(\begin{smallmatrix}I&-X\\0&I\end{smallmatrix}\right)$，可直接验证
+\[
+ S^{-1}\begin{pmatrix}A&C\\0&B\end{pmatrix}S
+ =\begin{pmatrix}A&0\\0&B\end{pmatrix}.
+\]
+因此两个谱不相交的对角块之间的非对角块可以通过相似变换消去。若两块有公共特征值，则这种消去一般不成立，非对角块可能把两个短链连接成长链。
+
+\begin{example}
+设 $C=AB-BA$ 且 $AC=CA$、$BC=CB$，证明 $C$ 幂零。
+\end{example}
+\begin{solve}
+把 $C$ 按不同特征值的根子空间分块。因为 $A,B$ 都与 $C$ 交换，它们保持每个根子空间；在其中一个维数为 $d$、对应特征值为 $\mu$ 的分量上有 $C_0=A_0B_0-B_0A_0$。取迹得 $d\mu=\operatorname{tr}C_0=0$，而特征为零，故 $\mu=0$。因此 $C$ 的全部特征值为零，由 Cayley--Hamilton 定理可知 $C$ 幂零。
+\end{solve}
+
+\subsection{矩阵幂、方根与对称矩阵分解}
+
+当 $\mu\ne0$ 时，对非负整数 $k$，Jordan 块的二项式展开为
+\begin{equation}
+ J_r(\mu)^k=
+ \sum_{j=0}^{\min(k,r-1)}\binom{k}{j}\mu^{k-j}N_r^j.
+ \label{eq:xie-ex-sim-matrix-power}
+\end{equation}
+当 $\mu=0$ 时可以直接使用 $N_r^k$，避免写出负指数或含混的 $0^0$。将各块计算结果拼接，再用 $A^k=PJ^kP^{-1}$ 回到原坐标。
+
+\begin{proposition}
+\label{prop:xie-ex-sim-complex-root}
+每个可逆复矩阵都存在任意给定正整数次的复矩阵方根。
+\end{proposition}
+\begin{proof}
+只需对 $J_r(\mu)=\mu I+N_r$ 构造，因可逆性知 $\mu\ne0$。取 $\nu^m=\mu$，令
+\[
+ B_r=\nu\sum_{j=0}^{r-1}\binom{1/m}{j}\mu^{-j}N_r^j,
+ \qquad
+ \binom{\alpha}{j}=\frac{\alpha(\alpha-1)\cdots(\alpha-j+1)}{j!},
+ \quad \binom{\alpha}{0}=1.
+\]
+形式幂级数恒等式 $((1+z)^{1/m})^m=1+z$ 在模 $z^r$ 意义下成立，代入幂零矩阵 $\mu^{-1}N_r$ 后高次项全为零，故 $B_r^m=J_r(\mu)$。各块直和后再作相似变换，即得所求。奇异情形没有普遍保证，例如 $J_2(0)$ 无二阶矩阵平方根：若 $B^2=J_2(0)$，则 $B$ 的特征值全为零，二阶 Cayley--Hamilton 定理给出 $B^2=0$，矛盾。
+\end{proof}
+
+\begin{proposition}
+每个复矩阵都能分解为两个复对称矩阵的乘积，并且可以指定其中任意一个因子可逆；还存在可逆复对称矩阵 $Q$ 满足 $Q^{-1}AQ=A^{\mathsf T}$。
+\end{proposition}
+\begin{proof}
+设 $A=PJP^{-1}$，对每个 Jordan 块取反序单位矩阵 $R_i$，其反对角线元素为 $1$，其余为零。令 $R=\operatorname{diag}(R_i)$，则 $R^{\mathsf T}=R$、$R^2=I$，且 $JR=RJ^{\mathsf T}$。于是 $Q=PRP^{\mathsf T}$ 可逆且对称，并有 $AQ=QA^{\mathsf T}$，即 $Q^{-1}AQ=A^{\mathsf T}$。由此 $AQ$ 和 $Q^{-1}A$ 都对称，故
+\[
+ A=(AQ)Q^{-1}=Q(Q^{-1}A)
+\]
+给出两种分解，分别让第二个或第一个因子可逆。这里的对称指普通转置，不能替换为共轭转置。
+\end{proof}
+
+\section{矩阵函数}
+\label{sec:xie-ex-sim-functions}
+
+\subsection{Jordan 块上的有限 Taylor 公式}
+
+\begin{theorem}
+\label{thm:xie-ex-sim-functional-calculus}
+若 $f$ 在 $A$ 的每个特征值附近解析，且 $A=P\operatorname{diag}(J_{r_i}(\mu_i))P^{-1}$，则可通过
+\begin{equation}
+ f(J_r(\mu))=\sum_{j=0}^{r-1}\frac{f^{(j)}(\mu)}{j!}N_r^j,
+ \qquad
+ f(A)=P\operatorname{diag}\bigl(f(J_{r_i}(\mu_i))\bigr)P^{-1}
+ \label{eq:xie-ex-sim-taylor}
+\end{equation}
+定义矩阵函数。若 $f$ 是多项式或在包含全部特征值的圆盘内收敛的幂级数，此定义与直接代入一致。$f(A)$ 的特征值为各 $f(\mu_i)$，按相应代数重数计。
+\end{theorem}
+\begin{proof}
+多项式在 $\mu$ 处的 Taylor 展开代入 $\mu I+N_r$ 后，$N_r^r=0$ 使高次项全部消失，得到第一式。对收敛幂级数，在收敛圆盘内部，其各阶导数级数都收敛，故部分和矩阵的每条上对角线分别趋于 $f^{(j)}(\mu)/j!$，得到相同公式。对局部解析函数，设属于互异特征值 $\mu$ 的最大块阶数为 $s_\mu$，多项式插值给出唯一的 $h$，满足 $\deg h<\deg m_A$ 及
+\[
+ h^{(j)}(\mu)=f^{(j)}(\mu),\qquad 0\leq j<s_\mu.
+\]
+这可由模 $(z-\mu)^{s_\mu}$ 的多项式中国剩余定理得到。公式定义的矩阵就是 $h(A)$，因此不依赖 Jordan 基或块的排列。各块是对角元全为 $f(\mu)$ 的上三角矩阵，所以得到特征值结论。
+\end{proof}
+
+这一公式也说明谱半径与收敛半径的关系：若 $\rho(A)<R$，全部所需导数级数都在收敛圆盘内部收敛，故矩阵级数收敛；若 $\rho(A)>R$，取一个模大于 $R$ 的特征值及其特征向量，矩阵部分和在该向量上的作用就是不收敛的标量部分和，故矩阵级数不收敛。在边界上，不仅 $f(\mu)$ 的级数，还可能需要相应的导数级数收敛，不能仅凭 $\rho(A)=R$ 判定。
+
+\begin{example}
+设 $N$ 幂零，证明 $e^N$ 与 $I+N$ 相似。
+\end{example}
+\begin{solve}
+若 $N^s=0$，则 $e^N=\sum_{j=0}^{s-1}N^j/j!$，且
+\[
+ e^N-I=NH(N),\qquad H(N)=\sum_{j=0}^{s-2}\frac{N^j}{(j+1)!}
+\]
+在 $s\geq2$ 时成立；$N=0$ 的结论直接成立。$H(N)$ 的常数项为 $I$，故可逆，并与 $N$ 交换。于是 $\operatorname{rank}((e^N-I)^k)=\operatorname{rank}N^k$，而两矩阵 $e^N$、$I+N$ 的特征值全为 $1$，用定理~\ref{thm:xie-ex-sim-rank-sequence} 即得相似。这是“函数在特征值处的导数非零便保留块阶数”的具体应用。
+\end{solve}
+
+\subsection{矩阵指数与可交换条件}
+
+定义 Frobenius 范数 $\|A\|_F=(\sum_{i,j}|a_{ij}|^2)^{1/2}$。Cauchy--Schwarz 不等式给出 $\|AB\|_F\leq\|A\|_F\|B\|_F$，而三角不等式来自矩阵元组成的向量的欧氏范数。因此矩阵指数 $e^A=\sum_{k=0}^{\infty}A^k/k!$ 对每个有限阶矩阵绝对收敛，矩阵级数的乘法可以用对应范数级数控制。
+
+\begin{proposition}
+\label{prop:xie-ex-sim-exp}
+若 $AB=BA$，则 $e^Ae^B=e^{A+B}=e^Be^A$。任意复矩阵 $A$ 都满足
+\[
+ (e^A)^{-1}=e^{-A},\qquad
+ \det(e^A)=e^{\operatorname{tr}A}.
+\]
+由幂级数定义的矩阵正弦、余弦还满足 $\sin^2A+\cos^2A=I$、$\sin(2A)=2\sin A\cos A$。
+\end{proposition}
+\begin{proof}
+两个指数级数绝对收敛，且双重级数的范数和受 $\bigl(\sum_i\|A^i\|_F/i!\bigr)\bigl(\sum_j\|B^j\|_F/j!\bigr)$ 控制，故可按总次数重排；交换性使同次项之和为 $\sum_{i+j=k}A^iB^j/(i!j!)=(A+B)^k/k!$，于是得到指数乘法公式。取 $B=-A$ 即得逆矩阵公式。若 $\mu_1,\ldots,\mu_n$ 为按重数计的特征值，式~\eqref{eq:xie-ex-sim-taylor} 给出 $\det(e^A)=\prod_i e^{\mu_i}=e^{\sum_i\mu_i}=e^{\operatorname{tr}A}$。最后由 $\cos A=(e^{iA}+e^{-iA})/2$、$\sin A=(e^{iA}-e^{-iA})/(2i)$，及 $iA,-iA$ 的交换性，展开相乘即得两个三角恒等式。
+\end{proof}
+
+\begin{example}
+说明矩阵指数的乘法公式不能省去交换性。
+\end{example}
+\begin{solve}
+取 $A=E_{12}$、$B=E_{21}$ 为二阶基础矩阵，则 $A^2=B^2=0$，故
+\[
+ e^Ae^B=\begin{pmatrix}2&1\\1&1\end{pmatrix},
+ \qquad e^Be^A=\begin{pmatrix}1&1\\1&2\end{pmatrix}.
+\]
+它们不相等，因而不可能都等于 $e^{A+B}$。对于不同矩阵参数的标量恒等式，必须先检查其推导是否依赖乘法交换性。
+\end{solve}
+
+\subsection{矩阵幂的极限}
+
+\begin{theorem}
+\label{thm:xie-ex-sim-power-limit}
+$\lim_{k\to\infty}A^k$ 存在，当且仅当每个特征值满足 $|\mu|<1$，或满足 $\mu=1$ 且属于 $1$ 的 Jordan 块全为一阶。此时极限是在 $1$ 的特征子空间上的投影，其核为其他特征值的根子空间的直和。特别地，$A^k\to0$ 当且仅当 $\rho(A)<1$。
+\end{theorem}
+\begin{proof}
+若 $|\mu|<1$，式~\eqref{eq:xie-ex-sim-matrix-power} 中每一项都是至多固定次数的 $k$ 的多项式乘以几何衰减项，因而趋于零；$\mu=0$ 时各块的高次幂直接为零。若 $|\mu|>1$，块的对角元不收敛；若 $|\mu|=1$ 且 $\mu\ne1$，序列 $\mu^k$ 也不收敛，因为相邻两项之差的模恒为 $|\mu-1|>0$。最后，$J_r(1)^k$ 在 $r\geq2$ 时的上次对角元为 $k$，不收敛；$r=1$ 时恒为 $1$。逐块判断再作相似变换，便得到结论。若 $P$ 中先排 $1$ 的基向量，则极限为 $P\operatorname{diag}(I,0)P^{-1}$。
+\end{proof}
+
+\section{Jordan 标准型的几何}
+\label{sec:xie-ex-sim-geometry}
+
+\subsection{主分解与根子空间}
+
+\begin{theorem}[主分解]
+\label{thm:xie-ex-sim-primary}
+设 $m_T=\prod_{i=1}^{t}p_i^{s_i}$，其中 $p_i$ 为 $\mathbb K[\lambda]$ 中互异的首一不可约多项式，则
+\begin{equation}
+ V=\bigoplus_{i=1}^{t}V_i,
+ \qquad V_i=\ker\bigl(p_i(T)^{s_i}\bigr).
+ \label{eq:xie-ex-sim-primary}
+\end{equation}
+若 $\chi_T=\prod_i p_i^{a_i}$，则 $T|_{V_i}$ 的特征多项式为 $p_i^{a_i}$，极小多项式为 $p_i^{s_i}$，且 $\dim V_i=a_i\deg p_i$。特别地，$\ker(p_i(T)^{a_i})=\ker(p_i(T)^{s_i})$。
+\end{theorem}
+\begin{proof}
+令 $h_i=m_T/p_i^{s_i}$。中国剩余定理给出多项式 $e_i=u_ih_i$，使 $e_i\equiv1\pmod{p_i^{s_i}}$ 且 $e_i\equiv0\pmod{p_j^{s_j}}$（$j\ne i$）。由于 $\sum_i e_i\equiv1\pmod{m_T}$，有 $\sum_i e_i(T)=I$；又 $p_i^{s_i}e_i$ 是 $m_T$ 的倍式，故 $e_i(T)V\subseteq V_i$。在 $V_i$ 上 $e_i(T)=I$，在其他 $V_j$ 上它为零，因此这些算子是相互正交的代数投影，给出直和分解。
+
+各限制变换由 $p_i^{s_i}$ 零化，所以其特征多项式只含不可约因子 $p_i$；整体特征多项式是各限制特征多项式的乘积，故指数必为 $a_i$。整体极小多项式是各限制极小多项式的最小公倍式，而各分量只含不同的 $p_i$，所以其指数必为 $s_i$。维数由特征多项式次数得出。在 $V_i$ 上 $p_i(T)^{s_i}=0$，而在其余分量上 $p_i(T)$ 可逆，故用任何不小于 $s_i$ 的指数取核都得到同一个 $V_i$，特别可取 $a_i$。
+\end{proof}
+
+在复数域上 $p_i(\lambda)=\lambda-\mu_i$，空间 $V_i$ 称为对应的\emph{根子空间（generalized eigenspace）}，也等于 $\ker(T-\mu_iI)^n$。限制变换 $N_i=T|_{V_i}-\mu_iI$ 幂零，因此 Jordan 型的几何构造分成两步：先分离不同特征值的根子空间，再在每个根子空间上构造幂零链。特征子空间 $\ker(T-\mu_iI)$ 只是根子空间中的第一级核，二者相等恰好表示该特征值的块全为一阶。
+
+\subsection{幂零链基的构造}
+
+\begin{proposition}
+\label{prop:xie-ex-sim-nilpotent-chains}
+有限维空间上的幂零变换 $N$ 存在由若干条链 $w,Nw,\ldots,N^{r-1}w$ 组成的基，且 $N^rw=0$、$N^{r-1}w\ne0$。按每条链的逆序排列后，其表示矩阵是零特征值 Jordan 块的直和。
+\end{proposition}
+\begin{proof}
+采用第~\ref{sec:xie-ex-sim-transition} 节的 $F_k=\ker N\cap\operatorname{Im}N^{k-1}$。选取与下降链 $F_1\supseteq F_2\supseteq\cdots$ 相容的基，并把每个 $F_k$ 中相对 $F_{k+1}$ 新增的基向量 $b$ 提升为 $N^{k-1}w=b$，产生一条长度为 $k$ 的链。所有链底 $b$ 合在一起是 $\ker N$ 的一组基。
+
+证明所得全部链向量无关：若有线性关系，按向量距链底的层数计，设其中系数非零的最高层为 $h$，作用 $N^{h-1}$ 后，仅这一层留下各链底的线性组合。链底无关使该层系数全为零，逐层下降即得所有系数为零。另一方面，映射 $N:\operatorname{Im}N^{k-1}\to\operatorname{Im}N^k$ 的核为 $F_k$，所以 $\dim F_k=\operatorname{rank}N^{k-1}-\operatorname{rank}N^k$。由幂零性及有限求和，全部链向量的数目为
+\[
+ \sum_{k\geq1}k(\dim F_k-\dim F_{k+1})
+ =\sum_{k\geq1}\dim F_k=\dim V.
+\]
+因此它们确为一组基。在每条链的逆序 $N^{r-1}w,\ldots,Nw,w$ 下，$N$ 的矩阵就是 $J_r(0)$。
+\end{proof}
+
+结合主分解与幂零链基，就得到 Jordan 标准型的几何存在性证明。每个块 $J_r(\mu)$ 对应一个循环子空间，链顶为最后一个基向量。对 $N=T-\mu I$，有 $\mathcal C(N,w)=\mathcal C(T,w)$，因为 $N$ 与 $T$ 互为对方的一次多项式；Jordan 链进一步要求 $N^rw=0$。因此两种循环空间在此相同，差别在于选用使幂零作用显露出来的链基。一般有理标准型的一个循环块则可能包含多个不同特征值，不能简单地把它与一个 Jordan 块等同。
+
+\subsection{不变子空间的结构与个数}
+
+\begin{proposition}
+\label{prop:xie-ex-sim-invariant-count-complex}
+单个 Jordan 块 $J_n(\mu)$ 恰有 $n+1$ 个不变子空间，即 $\operatorname{span}(e_1,\ldots,e_k)$，$0\leq k\leq n$。若复线性变换 $T$ 是循环的，且 $\chi_T=\prod_{i=1}^{t}(\lambda-\mu_i)^{a_i}$，则其不变子空间恰有 $\prod_i(a_i+1)$ 个；若 $T$ 非循环，则有无穷多个不变子空间。
+\end{proposition}
+\begin{proof}
+对单块令 $N=J_n(\mu)-\mu I$。任取非零不变子空间 $U$，设 $k$ 为其中向量可能出现的最高非零坐标位置，则 $U\subseteq\operatorname{span}(e_1,\ldots,e_k)$。取第 $k$ 坐标非零的 $u\in U$，向量 $u,Nu,\ldots,N^{k-1}u$ 无关且全部属于右边这个 $k$ 维空间，故 $U$ 等于它。
+
+循环时，每个特征值只有一个 Jordan 块。不变子空间 $U$ 被主分解中的多项式投影保持，故 $U=\bigoplus_i(U\cap V_i)$；每个分量有 $a_i+1$ 种选择，乘法原理给出总数。非循环时，某个特征值至少有两个 Jordan 块，所以其特征子空间至少二维；取其中独立向量 $u,v$，直线 $\mathbb C(u+cv)$（$c\in\mathbb C$）两两不同，且均为不变子空间。
+\end{proof}
+
+\section{一般数域上的相似标准型}
+\label{sec:xie-ex-sim-general-field}
+
+\subsection{核像分解与基域问题}
+
+\begin{proposition}[Fitting 分解]
+\label{prop:xie-ex-sim-fitting}
+对任意数域上的有限维线性变换 $T$，当整数 $s$ 足够大（例如 $s=n$）时，有
+\[
+ V=\ker T^s\oplus\operatorname{Im}T^s.
+\]
+两个分量均为不变子空间，$T$ 在前者上幂零，在后者上可逆。并且 $V=\ker T\oplus\operatorname{Im}T$ 当且仅当 $\operatorname{rank}T=\operatorname{rank}T^2$；若 $T$ 奇异，这也等价于 $0$ 是 $m_T$ 的单根。
+\end{proposition}
+\begin{proof}
+有限维性使核、像链在不超过 $n$ 步后稳定。若 $v=T^su\in\ker T^s$，则 $T^{2s}u=0$，稳定性给出 $u\in\ker T^s$，故 $v=0$。两空间维数之和为 $n$，所以得到直和。$T$ 在核空间上幂零，而在稳定像空间上是满射，有限维性保证可逆。对于一级核像分解，映射 $T:\operatorname{Im}T\to\operatorname{Im}T^2$ 的核为 $\ker T\cap\operatorname{Im}T$，故交为零与两像秩相同等价。若奇异且一级分解成立，$m_T$ 是 $\lambda$ 与可逆限制变换的极小多项式的最小公倍式，因后者常数项非零，$0$ 是单根。反之若 $m_T=\lambda g$、$g(0)\ne0$，则主分解给出 $V=\ker T\oplus\ker g(T)$，且 $T$ 在后者上可逆，所以 $\ker g(T)=\operatorname{Im}T$。
+\end{proof}
+
+此证明完全留在 $\mathbb K$ 内，无需构造复 Jordan 基。另一方面，如果问题只涉及秩、特征多项式、极小多项式或两个原域矩阵是否相似，也可先在复数域中证明，再依据这些量在扩域下的不变性返回原域。\emph[caution]{某个方程在复数域中存在解，并不能据此断言它在原数域中存在解。}例如一阶实矩阵 $(-1)$ 有复平方根，却无实平方根；存在性问题必须检查构造是否仍在给定数域内。
+
+\subsection{不可约多项式对应的广义 Jordan 块}
+
+设 $p$ 是 $\mathbb K[\lambda]$ 中 $d$ 次首一不可约多项式，记 $F=F(p)=C(p)^{\mathsf T}$，并令 $E=e_de_1^{\mathsf T}$，即第 $(d,1)$ 元为 $1$、其余为零的 $d$ 阶矩阵。对正整数 $e$，定义两种 $de$ 阶块
+\[
+ G_e(p)=\begin{pmatrix}
+ F&I_d&&0\\&F&\ddots&\\&&\ddots&I_d\\0&&&F
+ \end{pmatrix},
+ \qquad
+ H_e(p)=\begin{pmatrix}
+ F&E&&0\\&F&\ddots&\\&&\ddots&E\\0&&&F
+ \end{pmatrix}.
+\]
+当 $e=1$ 时都按 $F$ 理解。当 $d=1$、$p(\lambda)=\lambda-\mu$ 时，两种块都退化为通常的 $J_e(\mu)$。
+
+\begin{proposition}
+\label{prop:xie-ex-sim-generalized-block}
+$G_e(p)$ 与 $H_e(p)$ 的特征多项式、极小多项式都为 $p^e$，故二者都是循环矩阵，不变因子组均为 $1,\ldots,1,p^e$。
+\end{proposition}
+\begin{proof}
+分块上三角结构给出特征多项式 $p^e$。先看 $G=G_e(p)$：$p(G)$ 的对角块为 $p(F)=0$，第一条上分块对角线为 $p'(F)$。数域特征为零，故不可约多项式 $p$ 与 $p'$ 互素，由 Bézout 等式知 $p'(F)$ 可逆。于是 $p(G)^e=0$，而 $e\geq2$ 时 $p(G)^{e-1}$ 的第 $(1,e)$ 块为 $p'(F)^{e-1}\ne0$，所以 $m_G=p^e$；$e=1$ 时 $m_F=p$。再看 $H=H_e(p)$：它的普通上次对角元全为 $1$，其余更高的对角线全为零，故 $\lambda I-H$ 的前 $de-1$ 行、后 $de-1$ 列构成一个主对角元全为 $-1$ 的三角子式，其值非零。当 $de>1$ 时 $D_{de-1}=1$，所以唯一非常数不变因子为 $\chi_H=p^e$；$de=1$ 时结论直接成立。
+\end{proof}
+
+若 $A$ 在 $\mathbb K$ 上的初等因子组为 $p_1^{e_1},\ldots,p_t^{e_t}$，则它在 $\mathbb K$ 上同时相似于
+\[
+ \operatorname{diag}(G_{e_1}(p_1),\ldots,G_{e_t}(p_t)),
+ \qquad
+ \operatorname{diag}(H_{e_1}(p_1),\ldots,H_{e_t}(p_t)).
+\]
+理由是各块恰贡献对应的一个初等因子，整体初等因子多重集合与 $A$ 相同。这就是一般数域上的\emph{广义 Jordan 标准型（generalized Jordan form）}。同一初等因子还可用 $C(p_i^{e_i})$ 表示；与这个友阵相比，广义 Jordan 块显露了同一不可约多项式对应的层次结构。
+
+在 $\mathbb R$ 上，不可约多项式只有一次多项式和形如 $(\lambda-a)^2+b^2$（$b>0$）的二次多项式。后者对应的常见实块为
+\[
+ R_e(a,b)=\begin{pmatrix}
+ R(a,b)&I_2&&0\\&R(a,b)&\ddots&\\&&\ddots&I_2\\0&&&R(a,b)
+ \end{pmatrix},
+ \qquad R(a,b)=\begin{pmatrix}a&-b\\b&a\end{pmatrix}.
+\]
+$F((\lambda-a)^2+b^2)$ 与 $R(a,b)$ 有相同的二次不可约特征多项式，故实相似，将同一相似变换用于各对角块，且 $I_2$ 保持不变，便得到 $G_e((\lambda-a)^2+b^2)\sim R_e(a,b)$。在复数域中，这个实块分解为 $J_e(a+ib)$ 与 $J_e(a-ib)$ 的直和；这解释了实矩阵的非实特征值及对应块为何成共轭对出现。
+
+\subsection{分解、不变子空间与实矩阵方根}
+
+\begin{proposition}
+\label{prop:xie-ex-sim-jc-general}
+每个 $A\in M_n(\mathbb K)$ 唯一分解为 $A=D+N$，其中 $D,N\in M_n(\mathbb K)$，$D$ 在复数域上可对角化，$N$ 幂零且 $DN=ND$。
+\end{proposition}
+\begin{proof}
+在每个 $G_e(p)$ 内，将对角块组成的矩阵记为 $D_0$，将上分块次对角线上的单位矩阵组成的矩阵记为 $N_0$，则 $G_e(p)=D_0+N_0$，两者交换且 $N_0$ 幂零。不可约多项式 $p$ 在复数域内无重根，所以 $F(p)$ 在复数域上可对角化，$D_0$ 也可对角化。逐块构造后用原数域上的过渡矩阵变换回去，即得到 $D,N\in M_n(\mathbb K)$；唯一性由复数域上的定理~\ref{thm:xie-ex-sim-jc} 保证。这里的 $D$ 未必在 $\mathbb K$ 上可对角化，例如实数域上的非实共轭特征值块。
+\end{proof}
+
+\begin{proposition}
+\label{prop:xie-ex-sim-invariant-count-general}
+若 $T$ 是循环变换，且 $m_T=\chi_T=\prod_i p_i^{a_i}$，则每个不变子空间都唯一写成 $\ker d(T)$，其中 $d$ 遍历 $\chi_T$ 的首一因子，因而恰有 $\prod_i(a_i+1)$ 个不变子空间。若 $T$ 非循环，则在任意数域上都有无穷多个不变子空间。
+\end{proposition}
+\begin{proof}
+取循环向量 $v$，映射 $f\mapsto f(T)v$ 把 $\mathbb K[\lambda]/(\chi_T)$ 与 $V$ 对应，乘以 $\lambda$ 对应作用 $T$。一个 $T$-不变子空间在此对应下的原像是包含 $(\chi_T)$ 的理想，故为 $(g)$，其中 $g$ 是 $\chi_T$ 的唯一首一因子。令 $d=\chi_T/g$，则 $d(T)f(T)v=0$ 当且仅当 $\chi_T\mid df$，当且仅当 $g\mid f$，所以此子空间恰为 $\ker d(T)$，并有维数 $\deg d$。数出首一因子即得有限个数。
+
+若非循环，整除链中至少有两个非常数不变因子，它们共享某个不可约因子 $p$。在两个相应的循环分量内，分别存在一个与 $\mathbb K[\lambda]/(p)$ 同构的非零不变子空间 $U_1,U_2$：在 $\mathbb K[\lambda]/(q)$ 中可取由 $q/p$ 生成的子空间。取与 $T$ 交换的模同构 $\varphi:U_1\to U_2$，则 $\{u+c\varphi(u):u\in U_1\}$ 随 $c\in\mathbb K$ 给出两两不同的不变子空间。数域为无限域，故有无穷多个。
+\end{proof}
+
+\begin{proposition}
+\label{prop:xie-ex-sim-real-root}
+设 $A$ 为可逆实矩阵，$m$ 为正整数。若 $m$ 为奇数，则存在实矩阵 $B$ 满足 $B^m=A$；若 $m$ 为偶数，则存在这样的实矩阵 $B$，当且仅当对每个负实特征值，属于它的每种阶数的 Jordan 块均出现偶数次。
+\end{proposition}
+\begin{proof}
+正实特征值可以选取实数 $m$ 次方根，非实共轭特征值可以选取互为共轭的方根；用命题~\ref{prop:xie-ex-sim-complex-root} 的有限展开，可分别得到实块或可组成实矩阵的共轭块。负实特征值在 $m$ 为奇数时也有实数方根。若 $m$ 为偶数而同阶负特征值块成对出现，就给这两个块选取共轭的非实方根，仍可组成实矩阵，证明充分性。
+
+反之，若 $B$ 为实矩阵且 $B^m=A$，当 $m$ 为偶数时，$B$ 的实特征值的 $m$ 次幂不可能是负数；所有映为某负特征值的 $B$ 的特征值都非实，并成共轭对。由于 $B$ 可逆，$z^m$ 在这些特征值处的导数非零，故取幂保留 Jordan 块阶数，每一对共轭块贡献两个同阶的负特征值块。这给出必要性。
+\end{proof}
+
+\section{基础训练与方法整合}
+\label{sec:xie-ex-sim-training}
+
+基础训练应检验“由哪些数据能恢复全部块”以及“每种操作在哪个环、哪个数域中合法”。下列题解归纳原章训练中的主要方法，不逐项重抄选择题选项。对于具体矩阵，先检查总阶数、特征多项式、最大块与几何重数是否一致；对含参数题，还要检查参数为零或特征值碰合时是否产生新的分支。
+
+\begin{example}
+设某八阶矩阵在复数域上的初等因子为 $(\lambda-1)^2,(\lambda-1)^2,(\lambda+1)^3,\lambda$，求不变因子及 Jordan 型。
+\end{example}
+\begin{solve}
+按不可约因子分别排列指数，$\lambda-1$ 对应 $(2,2)$，$\lambda+1$ 对应 $(0,3)$，$\lambda$ 对应 $(0,1)$；逐列相乘，得到非常数不变因子
+\[
+ q_1=(\lambda-1)^2,\qquad
+ q_2=\lambda(\lambda-1)^2(\lambda+1)^3.
+\]
+加上六个 $1$，即为完整的八项不变因子。Jordan 型为 $\operatorname{diag}(J_2(1),J_2(1),J_3(-1),0)$，共四块，而有理标准型只有两个块。次数检验为 $2+2+3+1=8$。
+\end{solve}
+
+\begin{example}
+设 $A$ 为 $n$ 阶实矩阵，$n\geq2$，且 $\deg D_{n-1}=n-2$，描述其不变因子组。
+\end{example}
+\begin{solve}
+由 $m_A=D_n/D_{n-1}$ 得 $\deg m_A=2$。若 $m_A$ 在 $\mathbb R$ 上不可约，则每个非常数不变因子都是 $m_A$，故 $n$ 为偶数，有 $n/2$ 个这样的因子，其余为 $1$。若 $m_A=(\lambda-a)(\lambda-b)$，允许 $a=b$，则整除链中的非常数因子只能先是若干个同一个一次因子 $\lambda-c$（$c=a$ 或 $b$），再是若干个 $m_A$；不能在链中同时出现两个不同且互不整除的一次因子。设一次因子出现 $u$ 次、二次因子出现 $v$ 次，则 $u\geq0$、$v\geq1$、$u+2v=n$，再补 $n-u-v$ 个 $1$。这些形式也都使 $\deg D_{n-1}=n-2$，故分类完整。
+\end{solve}
+
+\begin{example}
+证明任意 $A\in M_n(\mathbb K)$ 都可写成一个纯量矩阵与两个幂零矩阵之和。
+\end{example}
+\begin{solve}
+令 $c=\operatorname{tr}A/n$，则 $A-cI_n$ 迹为零。命题~\ref{prop:xie-ex-sim-commutator} 的证明已说明，可将它相似化为主对角元全为零的矩阵 $M$。将 $M$ 分成严格上三角部分 $M_1$ 与严格下三角部分 $M_2$，二者均幂零；再变换回原基，就得到 $A=cI_n+N_1+N_2$。两个幂零部分一般不交换，故不能由此推断它们的和也幂零。
+\end{solve}
+
+\begin{example}
+设 $A,B$ 都与同一循环矩阵 $T$ 交换，$v$ 是循环向量，证明 $A=B$ 当且仅当 $Av=Bv$。并说明相似矩阵是否一定能用同一个过渡矩阵同时化为 Jordan 型。
+\end{example}
+\begin{solve}
+由 $Av=Bv$ 及交换性，得 $AT^jv=T^jAv=T^jBv=BT^jv$，$0\leq j<n$；这些向量构成一组基，故 $A=B$。后一问题的答案是否定的：取 $n\geq2$、$A=J_n(0)$、$B=2J_n(0)$，二者都相似于唯一的标准块 $J_n(0)$。若同一个 $P$ 同时把两者化为该块，就会有 $P^{-1}BP=2P^{-1}AP=2J_n(0)=J_n(0)$，矛盾。相同的标准型保证分别存在换基矩阵，不保证换基矩阵相同。
+\end{solve}
+
+\begin{example}
+说明多项式矩阵乘积的次数为何可能降低，并证明对固定 $A$，表示 $M(\lambda)=(\lambda I-A)Q(\lambda)+R$ 中的常数余项与商都唯一。
+\end{example}
+\begin{solve}
+若最高次系数的乘积为零，乘积中的最高次项就消失。例如 $M(\lambda)=\lambda E_{11}$、$N(\lambda)=\lambda E_{22}$ 是二阶一次矩阵多项式，但乘积为零矩阵。对第二问，若有两个表示，相减得 $(\lambda I-A)(Q_1-Q_2)=R_2-R_1$。若 $Q_1-Q_2\ne0$，左边的次数比它高一，因为 $\lambda I-A$ 的最高次系数为单位矩阵，不会消去首项；但右边是常数矩阵，矛盾。因此两商相等，余项也相等。这种保留乘法次序的带余除法正是命题~\ref{prop:xie-ex-sim-polynomial-transition} 的基础。
+\end{solve}
+
+\begin{example}
+设 $g\in\mathbb C[z]$ 是非常数多项式。若对 $A$ 的每个特征值 $\mu$，方程 $g(z)=\mu$ 都有一个根 $\nu$ 满足 $g'(\nu)\ne0$，证明存在复矩阵 $B$ 使 $g(B)=A$。
+\end{example}
+\begin{solve}
+对 $A$ 的每个块 $J_r(\mu)$ 选取这样的 $\nu$。有限 Taylor 公式给出 $g(J_r(\nu))-\mu I=N_rH(N_r)$，且 $H(0)=g'(\nu)\ne0$，所以其幂的秩与 $N_r$ 一样，$g(J_r(\nu))$ 相似于 $J_r(\mu)$。于是适当相似变换 $J_r(\nu)$ 就得到一个 $B_r$ 使 $g(B_r)=J_r(\mu)$；把这些块合并并返回原基即可。原训练中条件 $\gcd(\chi_A(g(z)),g'(z))=1$ 保证每个原像点都是这样的单根，所以是一个充分条件；实际构造只需每个特征值至少有一个导数非零的原像。
+\end{solve}
+
+\begin{example}
+证明每个可逆复矩阵 $A$ 都有复矩阵对数，即存在 $L$ 使 $e^L=A$。
+\end{example}
+\begin{solve}
+对每个 $J_r(\mu)$，取复数 $\ell$ 使 $e^{\ell}=\mu$，并令
+\[
+ L_r=\ell I_r+\sum_{j=1}^{r-1}\frac{(-1)^{j+1}}{j}\mu^{-j}N_r^j.
+\]
+空和按零理解。形式幂级数 $\exp(\log(1+z))=1+z$ 在模 $z^r$ 意义下成立，故代入 $\mu^{-1}N_r$，结合可交换的指数乘法公式得 $e^{L_r}=\mu I_r+N_r$。各块直和并作相似变换便得到 $L$。不同的标量对数分支可能给出不同的矩阵对数，这里只证明存在性。
+\end{solve}
+
+复习时可把各类信息归于同一条链：Smith 形给出不变因子，不可约分解给出初等因子，复数域上的一次幂因子给出 Jordan 块，块的阶数决定核、像和秩序列，而链基给出实际过渡矩阵。矩阵函数只需在每个特征值处保留有限阶导数；数域上的存在性问题则还必须检查所用特征值、方根及过渡矩阵是否位于指定数域。这样既能从代数不变量读取结构，也能用循环向量与空间分解核查计算结果。
+
+% BEGIN textbook-xie-exercises-ch8
+% 教材来源：《高等代数习题（谢启鸿）》第8章，印刷页435--485；高代习题-8.pdf。
+% 按原书九节主题整合学习笔记；例题为选讲，非训练题逐题誊录。
+
+
+
+

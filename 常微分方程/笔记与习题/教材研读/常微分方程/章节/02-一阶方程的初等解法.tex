@@ -1,0 +1,132 @@
+% !TeX root = ../常微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{一阶方程的初等解法}
+\label{chap:ode-first-order}
+
+一阶方程没有统一的初等求解公式。有效的方法是识别结构，把方程化为积分或线性方程。每次除法、代换和开方都可能缩小定义域，必须同时检查被排除的解。
+
+\section{直接积分与变量可分离方程}
+若 $y'=g(t)$ 且 $g$ 连续，则初值解为 $y(t)=y_0+\int_{t_0}^t g(s)\,\mathrm ds$。更一般地，对变量可分离方程（separable equation）
+\[
+ y'=g(t)h(y),
+\]
+先检查 $h(c)=0$ 所给出的常值解 $y\equiv c$。在 $h(y)\ne0$ 的区间上，选取 $H'=1/h$，由链式法则得 $(H(y(t)))'=g(t)$，故
+\begin{equation}
+ \int_{y_0}^{y(t)}\frac{\mathrm du}{h(u)}=\int_{t_0}^t g(s)\,\mathrm ds.
+ \label{eq:ode-separable}
+\end{equation}
+因为 $H'\ne0$，在相应分支上可以局部解出 $y$。分离变量的实质是链式法则，不是将导数当作两个独立数字相除。
+
+\begin{example}[Logistic 增长]
+设 $r,K>0$，求逻辑斯谛增长（logistic growth）模型 $y'=ry(1-y/K)$、$y(0)=y_0>0$ 的解。
+\end{example}
+\begin{solve}
+平衡解为 $0,K$。对非平衡分支，积分得到 $\log|y/(K-y)|=rt+C$，整理并代入初值得
+\begin{equation}
+ y(t)=\frac{K}{1+(K/y_0-1)e^{-rt}}.
+ \label{eq:ode-logistic}
+\end{equation}
+该式也包含 $y_0=K$ 的解。对所有 $t\geq0$ 分母为正，故正向解全局存在且趋于 $K$；$y_0<K$ 时递增，$y_0>K$ 时递减。向负时间延拓时仍须检查分母，不能由正向全局存在推出双向全局存在。
+\end{solve}
+
+\section{一阶线性方程与常数变易法}
+设 $p,q$ 在区间 $I$ 上连续，$t_0\in I$。对于 $y'+p(t)y=q(t)$，令 $P(t)=\int_{t_0}^t p(s)\,\mathrm ds$，则
+\[
+ (e^{P(t)}y)'=e^{P(t)}q(t).
+\]
+由积分得到
+\begin{equation}
+ y(t)=e^{-P(t)}\left[y_0+\int_{t_0}^t e^{P(s)}q(s)\,\mathrm ds\right].
+ \label{eq:ode-first-linear}
+\end{equation}
+$e^P$ 称为积分因子（integrating factor）。这个推导同时给出存在性和唯一性：式\eqref{eq:ode-first-linear}满足初值，而任何解均须满足同一积分恒等式。
+
+齐次解为 $Ce^{-P}$。将常数 $C$ 换成函数 $C(t)$，代回方程得到 $C'=e^Pq$，这就是常数变易法（variation of constants）。两个非齐次解之差为齐次解，但两个非齐次解的和一般不再满足原方程。
+
+\begin{example}[混合槽]
+容量为 $V>0$ 的槽内液体均匀混合，以相同流量 $q>0$ 流入和流出，流入浓度恒为 $c_{\mathrm{in}}$。求初始溶质量为 $m_0$ 时的溶质量。
+\end{example}
+\begin{solve}
+槽内容量保持 $V$，流出浓度为 $m/V$。守恒关系给出 $m'=qc_{\mathrm{in}}-qm/V$，所以
+\[
+ m(t)=Vc_{\mathrm{in}}+(m_0-Vc_{\mathrm{in}})e^{-qt/V}.
+\]
+时间尺度 $V/q$ 越小，浓度接近流入浓度越快。
+\end{solve}
+
+\section{齐次型方程与常见变量代换}
+对 $y'=G(y/t)$，在不含 $0$ 的时间区间令 $v=y/t$。由 $y'=v+tv'$ 得
+\[
+ tv'=G(v)-v.
+\]
+先保留 $G(v)=v$ 给出的直线解 $y=vt$，再对其余分支分离变量：$\mathrm dv/(G(v)-v)=\mathrm dt/t$。
+
+\begin{example}
+求 $y'=1+y/t$ 在 $t\ne0$ 上的解。
+\end{example}
+\begin{solve}
+令 $y=tv$，得到 $tv'=1$，故 $v=\log|t|+C$，即 $y=t(\log|t|+C)$。解分别定义在正、负半轴；原方程在 $t=0$ 未定义。
+\end{solve}
+
+若右端依赖两个仿射式的比值，例如 $(at+by+c)/(dt+ey+f)$，可先求使两仿射式同时为零的交点并平移。若 $ae-bd\ne0$，交点唯一，平移后常可化为齐次型；若行列式为零，应利用线性相关结构另作代换，不能强行求不存在的交点。
+
+\section{Bernoulli 方程与 Riccati 方程}
+Bernoulli 方程（Bernoulli equation）为
+\[
+ y'+p(t)y=q(t)y^\alpha.
+\]
+$\alpha=0,1$ 时它是线性的。对 $\alpha\ne0,1$，在实幂及代换有定义且 $y\ne0$ 的区间令 $z=y^{1-\alpha}$，得到
+\[
+ z'+(1-\alpha)p(t)z=(1-\alpha)q(t).
+\]
+解出 $z$ 后须在原分支反解，并单独检验 $y\equiv0$ 是否为原方程的解。
+
+\begin{example}
+求 $y'+y=y^2$、$y(0)=1/2$ 的解。
+\end{example}
+\begin{solve}
+令 $z=1/y$，则 $z'-z=-1$，$z(0)=2$，所以 $z=1+e^t$，$y=1/(1+e^t)$，其最大区间为 $\mathbb R$。
+\end{solve}
+
+Riccati 方程（Riccati equation）为 $y'=a(t)y^2+b(t)y+c(t)$。若已知特解 $y_p$，令 $y=y_p+1/u$，计算得
+\[
+ u'+(2ay_p+b)u=-a.
+\]
+这是线性方程；反代要求 $u\ne0$，而特解 $y_p$ 须单独保留。例如 $y'=y^2-1$ 的特解为 $1$，代换后 $u'+2u=-1$，故 $y=1+(Ce^{-2t}-1/2)^{-1}$，再加上 $y\equiv1$，并逐支确定区间。
+
+\section{恰当方程与积分因子}
+\begin{definition}
+在开区域 $D\subseteq\mathbb R^2$ 上，若存在 $C^1$ 函数 $H$ 使 $H_t=M$、$H_y=N$，则称 $M\,\mathrm dt+N\,\mathrm dy=0$ 为恰当方程（exact equation）。其积分曲线位于 $H(t,y)=C$ 上。
+\end{definition}
+
+若 $M,N\in C^1(D)$，必要条件为 $M_y=N_t$。在矩形区域该条件也充分：固定 $(t_0,y_0)$，取
+\[
+ H(t,y)=\int_{t_0}^t M(s,y_0)\,\mathrm ds+\int_{y_0}^y N(t,v)\,\mathrm dv,
+\]
+则 $H_y=N$，而 $H_t=M(t,y_0)+\int_{y_0}^y M_y(t,v)\,\mathrm dv=M(t,y)$。单连通开区域上的充分性可由路径积分的无关性证明。若要将等值线写成 $y(t)$，还需局部检查 $N=H_y\ne0$。
+
+若原方程不恰当，可寻找处处非零的因子 $\mu$。由 $(\mu M)_y=(\mu N)_t$ 可得两种常用情形：
+\begin{align*}
+ \frac{M_y-N_t}{N}=a(t)&\quad\Longrightarrow\quad \mu(t)=\exp\!\left(\int a(t)\,\mathrm dt\right),\quad N\ne0,\\
+ \frac{N_t-M_y}{M}=b(y)&\quad\Longrightarrow\quad \mu(y)=\exp\!\left(\int b(y)\,\mathrm dy\right),\quad M\ne0.
+\end{align*}
+条件仅在相应非零分母区域内使用；并非所有方程都有这两类积分因子。
+
+\begin{example}
+解 $(2ty+y)\,\mathrm dt+t\,\mathrm dy=0$，其中 $t\ne0$。
+\end{example}
+\begin{solve}
+$M_y=2t+1$、$N_t=1$，故 $(M_y-N_t)/N=2$。乘以 $e^{2t}$ 后，左端正是 $\mathrm d(te^{2t}y)$，所以 $y=Ce^{-2t}/t$。
+\end{solve}
+
+\section{方法选择与习题}
+先检查线性或可分离结构，再考虑比值代换、Bernoulli 型、已知特解的 Riccati 型与恰当性。求得表达式后，代回原式、恢复初值并确定区间，才能完成解答。
+\begin{enumerate}
+ \item\label{ex:ode-separate} 求 $y'=2ty$、$y(0)=3$。
+ \item\label{ex:ode-linear} 求 $y'+2y=e^t$、$y(0)=0$。
+ \item\label{ex:ode-exact} 求 $(2ty+1)\,\mathrm dt+(t^2+2y)\,\mathrm dy=0$ 的势函数，并说明何处可局部解出 $y(t)$。
+ \item 对 $y'=y^{2/3}$，讨论除以 $y^{2/3}$ 会遗漏哪些解；检验在一段时间内等于零后再离开的函数。
+ \item 从式\eqref{eq:ode-logistic}确定 $y_0>K$ 时包含 $0$ 的最大存在区间。
+\end{enumerate}
+

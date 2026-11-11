@@ -1,0 +1,95 @@
+% !TeX root = ../泛函分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{15} % 保留原书章号。
+\chapter{一般谱定理与函数演算}
+\label{chap:fa-general-spectral}
+
+本章为选读内容。乘法算子可以没有任何特征向量，因而一般自伴算子不能只靠特征值求和表示。谱积分用可测集合上的正交投影代替单个特征空间。本章证明连续函数演算的基本构造，对一般谱定理给出准确陈述和证明思路；完整论证可参阅文献\cite{teschl}的谱定理部分。
+
+\section{投影值测度}
+先看矩阵 $T=\operatorname{diag}(1,2,2)$。令 $P_1$ 投影到第一坐标轴，$P_2$ 投影到后两个坐标组成的平面，就有 $T=P_1+2P_2$。对任意数集 $B$，令 $E(B)$ 保留那些特征值落在 $B$ 中的坐标。例如 $E(\{2\})=P_2$，$E(\{1,2\})=I$，$E(\{3\})=0$。于是 $T=\int\lambda\,\mathrm dE(\lambda)$ 在这里就是一个有限和。无限维谱积分沿用同样的思想，只是不能保证全部信息都集中在有限或可数个单点上。
+
+\begin{definition}
+设 $S$ 是实轴或复平面的 Borel 子集。\emph{投影值测度（projection-valued measure）}是从 $S$ 的 Borel 集到 $H$ 上正交投影的映射 $E$，满足 $E(S)=I$、$E(\varnothing)=0$、$E(B\cap C)=E(B)E(C)$，且对两两不交的 $B_n$，
+\[
+ E\Bigl(\bigcup_nB_n\Bigr)x=\sum_nE(B_n)x\quad(x\in H),
+\]
+其中级数在 $H$ 中收敛。
+\end{definition}
+给定 $x$，$\mu_x(B)=\langle E(B)x,x\rangle=\|E(B)x\|^2$ 为有限正测度。用 $\mathbf1_B$ 表示在 $B$ 上取一、在其外取零的示性函数。对简单函数 $s=\sum_ja_j\mathbf1_{B_j}$，定义 $s(E)=\sum_ja_jE(B_j)$。若 $B_j$ 两两不交，则
+\[
+ \|s(E)x\|^2=\sum_j|a_j|^2\mu_x(B_j)=\int|s|^2\,\mathrm d\mu_x.
+\]
+有界 Borel 函数可由简单函数一致逼近，这个等式保证相应算子在范数下收敛，定义 $f(E)=\int f\,\mathrm dE$。
+
+强可数可加性表示对每个固定向量 $x$，各个谱区间中的分量可以在范数下相加；它通常不是算子范数意义的可数可加性。例如在 $\ell^2$ 中，第 $j$ 个坐标投影记为 $P_j$，则 $\sum_{j=1}^NP_jx\to x$ 对每个 $x$ 成立，但 $\|I-\sum_{j=1}^NP_j\|=1$。因此定义中明确写出向量 $x$ 与收敛意义，是不可省略的部分。
+
+\section{连续函数演算}
+先设 $T$ 有界自伴。对多项式 $p$，$p(T)$ 正规。正规算子 $N$ 满足 $\|N^2\|=\|N\|^2$：计算
+\[
+ \|N^2\|^2=\|(N^*)^2N^2\|=\|(N^*N)^2\|=\|N^*N\|^2,
+\]
+最后一步用自伴算子的范数恒等式。重复取平方并用谱半径公式，得 $\|N\|=r(N)$。因此多项式谱映射定理给出
+\[
+ \|p(T)\|=\max_{\lambda\in\sigma(T)}|p(\lambda)|.
+\]
+
+对 $f\in C(\sigma(T))$，由实紧集上的 Weierstrass 逼近定理，取多项式 $p_n$ 在谱上一致趋于 $f$；定义 $f(T)=\lim_np_n(T)$。上式保证极限存在、与逼近选择无关，并且
+\[
+ (fg)(T)=f(T)g(T),\quad \overline f(T)=f(T)^*,\quad
+ \|f(T)\|=\max_{\sigma(T)}|f|.
+\]
+这称为\emph{连续函数演算（continuous functional calculus）}。对复平面上的正规算子需要同时使用 $z,\overline z$ 的多项式以及 Stone--Weierstrass 定理，不能只用解析多项式逼近所有连续函数。
+
+函数演算的实际含义是把数值函数作用到每个谱方向上。在有限维对角情形，$f(T)=\operatorname{diag}(f(\lambda_1),\ldots,f(\lambda_m))$；一般情形则用上述极限保持同样的运算规律。若 $0\notin\sigma(T)$，函数 $f(\lambda)=1/\lambda$ 在谱上连续，乘法性质给出 $f(T)T=I$，于是恢复逆算子。若 $T\geq0$，同样可以用 $f(\lambda)=\sqrt\lambda$ 构造平方根。
+
+谱区间的示性函数通常在谱上不连续，因此不能只靠连续函数演算就直接代入 $\mathbf1_B$。一般谱定理提供的 Borel 函数演算，正是为了同时容纳这类谱投影；它是理论中的进一步扩展，而非把连续逼近步骤原样重复一遍。
+
+\section{一般有界谱定理}
+\begin{theorem}[谱定理；本节引用]\label{thm:fa-general-spectral}
+每个复 Hilbert 空间上的有界正规算子 $T$ 都有唯一的投影值测度 $E$，定义在 $\sigma(T)$ 上，使
+\begin{equation}
+ T=\int_{\sigma(T)}\lambda\,\mathrm dE(\lambda).
+ \label{eq:fa-general-spectral-integral}
+\end{equation}
+有界 Borel 函数演算由 $f(T)=\int f\,\mathrm dE$ 给出。若 $T$ 自伴，谱在实轴上。
+\end{theorem}
+\begin{proof}[证明思路]
+先建立连续函数演算。对每个 $x$，$f\mapsto\langle f(T)x,x\rangle$ 是正线性泛函，用 Riesz--Markov 表示得到测度 $\mu_x$。对不同向量使用极化恒等式，恢复交叉项的测度；再证明这些测度给出算子 $E(B)$，且满足投影性、乘法性与强可数可加性，最后由简单函数逼近构造 Borel 演算。由标量测度恢复算子并验证投影性是关键步骤，此处仅说明路线，不作为完整证明。
+\end{proof}
+投影 $E(\{\lambda\})$ 的像恰为 $\lambda$ 的特征空间。紧自伴算子具有可数个非零谱原子，再加零处的核投影，其谱积分就是第\ref{chap:fa-compact-spectral}章的求和公式。若谱测度没有相应单点原子，谱点就不产生特征向量。
+
+\section{无界自伴谱定理}
+对无界算子，表达式必须与定义域同时给出。一般谱定理的无界版本断言：每个自伴算子 $A$ 有唯一实轴上的投影值测度 $E$，使
+\[
+ D(A)=\left\{x:\int_{\mathbb R}\lambda^2\,\mathrm d\mu_x(\lambda)<\infty\right\},
+ \qquad Ax=\lim_{N\to\infty}\int_{[-N,N]}\lambda\,\mathrm dE(\lambda)x.
+\]
+这里的极限按向量范数取得。更一般地，有限值 Borel 函数 $f$ 给出
+\[
+ D(f(A))=\{x:\int|f|^2\,\mathrm d\mu_x<\infty\},\qquad
+ \|f(A)x\|^2=\int|f|^2\,\mathrm d\mu_x.
+\]
+本书引用这一版本；它可由有界谱定理配合 Cayley 变换等方法建立，完整条件与证明见\cite{teschl}。无界函数演算中的算子乘法需要核对定义域，不能无条件照搬有界代数公式。
+
+以 $\ell^2$ 上的 $Ax=(nx_n)$ 为例，谱投影 $E(B)$ 保留满足 $n\in B$ 的坐标，故 $\mu_x(B)=\sum_{n\in B}|x_n|^2$。积分条件立即变成 $\sum_n n^2|x_n|^2<\infty$，正是例\ref{ex:fa-unbounded-diagonal}中的定义域；而 $A^2$ 的定义域要求 $\sum_n n^4|x_n|^2<\infty$。例如 $x_n=1/n^2$ 属于 $D(A)$，却不属于 $D(A^2)$。所以即使 $Ax$ 已有定义，也不能自动再作用一次 $A$。
+
+\section{平方根、谱投影与演化算子}
+若 $T\geq0$ 有界自伴，则 $T^{1/2}=\int\sqrt\lambda\,\mathrm dE(\lambda)$ 为正算子且平方等于 $T$。其正平方根唯一：若 $B\geq0$ 且 $B^2=T$，对 $B$ 的连续函数演算应用恒等式 $\sqrt{s^2}=s$（$s\geq0$），即得 $B=(B^2)^{1/2}=T^{1/2}$。
+
+若 $A$ 自伴，$e^{\mathrm itA}=\int e^{\mathrm it\lambda}\,\mathrm dE(\lambda)$ 为酉算子。由谱积分的乘法性质形成群；由 $|e^{\mathrm it\lambda}-1|^2\leq4$ 和支配收敛定理，对每个 $x$ 有 $e^{\mathrm itA}x\to x$。若 $A\geq0$，则 $e^{-tA}$（$t\geq0$）同样强连续，且范数至多一，是下一章的一个重要半群。
+
+\section{例题与习题}
+\begin{example}[乘法算子的谱投影]
+在 $L^2(0,1)$ 上令 $Tf(t)=tf(t)$。对 Borel 集 $B\subset[0,1]$，$E(B)f=\mathbf1_Bf$，且 $g(T)f(t)=g(t)f(t)$。
+\end{example}
+\begin{solve}
+示性函数乘法为正交投影，不交集合对应正交分量；可数可加性由 $L^2$ 收敛得到。简单函数逐项验证谱积分，再用一致逼近得到有界 Borel 函数公式。每个单点零测，所以 $E(\{\lambda\})=0$，这与算子没有特征值相符。
+\end{solve}
+\begin{enumerate}
+ \item 对 $\ell^2$ 上的自伴对角算子写出 $E(B)$，由谱积分恢复其定义域。
+ \item 验证非负乘法算子的平方根就是乘以原函数的平方根。
+ \item 比较谱投影 $E(B)$ 与某个单点特征空间投影，说明二者信息量的差别。
+ \item 证明 $e^{-tA}$ 在 $A\geq0$ 时保持范数不增，但不一定按算子范数趋于 $I$。
+\end{enumerate}
+

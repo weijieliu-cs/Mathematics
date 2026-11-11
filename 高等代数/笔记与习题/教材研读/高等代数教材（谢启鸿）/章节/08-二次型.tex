@@ -1,0 +1,590 @@
+% !TeX root = ../高等代数教材（谢启鸿）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{7} % 保留原书章号。
+\chapter{二次型}
+\label{chap:quadratic-forms}
+
+二次曲线方程中的 $x^2,xy,y^2$ 构成二次齐次部分。旋转坐标轴可以消去其中的交叉项，平移坐标则用来处理一次项；本章抽出前一个问题，研究多元二次齐次多项式在可逆线性变量代换下的化简。把多项式写成矩阵形式后，这一问题转化为对称矩阵的\emph{合同分类}：先证明交叉项总能消去，再确定不同化简结果中哪些量保持不变，最后利用这些不变量判断二次型的正负性。
+
+本章用 $\mathbb K$ 表示一个数域，$n\geq 1$，变量向量均按列排列，$A^{\mathsf T}$ 表示矩阵的转置。数域的特征为零，因而可以除以 $2$；这正是二次型与对称矩阵一一对应、以及后面配方法成立的基本条件。实数域与复数域上的合同分类有所不同，涉及大小比较时将明确限制在实数域；最后一节另行引入复数域上的 Hermite 型。
+
+\section{二次型的化简与矩阵的合同}
+\label{sec:quadratic-congruence}
+% 依据教材第 346--351 页，第 8.1 节。
+
+\begin{definition}
+\label{def:quadratic-form-matrix}
+系数属于 $\mathbb K$ 的 $n$ 元\emph{二次型}（quadratic form）是形如
+\begin{equation}
+\label{eq:quadratic-form-matrix}
+    f(x_1,\ldots,x_n)
+    =\sum_{i=1}^n a_{ii}x_i^2+2\sum_{1\leq i<j\leq n}a_{ij}x_ix_j
+    =x^{\mathsf T}Ax
+\end{equation}
+的二次齐次多项式，其中 $x=(x_1,\ldots,x_n)^{\mathsf T}$，规定 $a_{ji}=a_{ij}$，从而 $A=(a_{ij})$ 是对称矩阵，称为 $f$ 的\emph{相伴矩阵}或\emph{系数矩阵}。这里允许部分系数为零，也把零多项式包括在内。
+\end{definition}
+
+“二次齐次”要求每个非零单项式的总次数都是 $2$：$x_ix_j$ 是二次项，$x_i^2x_j$ 则不是；含非零一次项或常数项的多项式也不是二次型。式~\eqref{eq:quadratic-form-matrix} 中交叉项的系数写成 $2a_{ij}$，是因为矩阵乘积同时包含 $a_{ij}x_ix_j$ 和 $a_{ji}x_jx_i$。因此，\emph[caution]{填写相伴矩阵时，交叉项系数必须分半放入两个对称位置}。
+
+\begin{example}
+\label{ex:quadratic-matrix-representation}
+写出 $f(x_1,x_2)=x_1^2+3x_1x_2+x_2^2$ 的相伴矩阵，并说明只含平方项的二次型所对应的矩阵有什么特点。
+\end{example}
+\begin{solve}
+由交叉项系数 $3=2a_{12}$，得
+\[
+    f(x_1,x_2)
+    =\begin{pmatrix}x_1&x_2\end{pmatrix}
+    \begin{pmatrix}1&\frac32\\\frac32&1\end{pmatrix}
+    \begin{pmatrix}x_1\\x_2\end{pmatrix}.
+\]
+一般地，$\sum_i d_ix_i^2$ 的相伴矩阵为 $\operatorname{diag}(d_1,\ldots,d_n)$；反过来，对称矩阵对应的二次型只含平方项，当且仅当其非对角元全为零，即它是对角矩阵。
+\end{solve}
+
+对称性的要求使这种表示具有唯一性。设对称矩阵 $D=(d_{ij})$ 满足 $x^{\mathsf T}Dx=0$ 对每个 $x\in\mathbb K^n$ 成立，记 $e_i$ 为第 $i$ 个标准单位列向量。取 $x=e_i$ 得 $d_{ii}=0$；再取 $x=e_i+e_j$（$i\ne j$），得 $2d_{ij}=0$，故 $D=0$。将这一结论应用于两个相伴矩阵之差，便得到唯一性。若不要求矩阵对称，任意矩阵 $M$ 都满足
+\[
+    x^{\mathsf T}Mx=x^{\mathsf T}\frac{M+M^{\mathsf T}}2x,
+\]
+其反对称部分对二次型没有贡献；当 $n\geq2$ 时，可以加入非零反对称矩阵而不改变二次型，因而一般不再唯一。
+
+\begin{definition}
+\label{def:matrix-congruence}
+设 $A,B\in\mathbb K^{n\times n}$。若存在 $\mathbb K$ 上的可逆矩阵 $C$，使
+\begin{equation}
+\label{eq:matrix-congruence}
+    B=C^{\mathsf T}AC,
+\end{equation}
+则称 $A$ 与 $B$ 在 $\mathbb K$ 上\emph{合同}（congruent）。对二次型施行\emph{可逆线性变量代换} $x=Cy$ 后，有
+\begin{equation}
+\label{eq:quadratic-coordinate-change}
+    f(Cy)=y^{\mathsf T}(C^{\mathsf T}AC)y.
+\end{equation}
+因此，两个二次型能通过可逆线性代换相互转化，当且仅当它们的相伴对称矩阵合同。只含平方项的形式称为二次型的\emph{标准型}（standard form），也称对角型。
+\end{definition}
+
+这里 $x$ 是旧变量，$y$ 是新变量，矩阵 $C$ 的方向由 $x=Cy$ 确定；若先配方得到 $y=Tx$，真正的变换矩阵是 $C=T^{-1}$。从基变换看，若新基由旧基右乘 $C$ 得到，同一个向量的两组坐标也满足 $x=Cy$。可逆性保证新、旧变量一一对应，避免把原空间压缩到一个较低维子空间。
+
+合同关系是等价关系：取 $C=I_n$ 得自反性；由 $B=C^{\mathsf T}AC$ 得 $A=(C^{-1})^{\mathsf T}BC^{-1}$，故有对称性；再由 $D=H^{\mathsf T}BH$ 得 $D=(CH)^{\mathsf T}A(CH)$，故有传递性。合同还保持秩，并满足
+\begin{equation}
+\label{eq:congruence-rank-determinant}
+    \operatorname{rank}B=\operatorname{rank}A,
+    \qquad \det B=(\det C)^2\det A.
+\end{equation}
+特别地，实合同保持行列式的正负性，但不保持行列式的数值。合同与相似的变换公式分别是 $C^{\mathsf T}AC$ 与 $C^{-1}AC$，两者分类的问题不同；例如 $I_2$ 与 $\operatorname{diag}(4,1)$ 在实数域上合同，特征值却不同。
+
+\begin{lemma}
+\label{lem:paired-congruence-operations}
+对称矩阵上相互配对的初等行、列变换都是合同变换：交换第 $i,j$ 行并交换第 $i,j$ 列；将第 $i$ 行与第 $i$ 列各乘同一个非零常数；将第 $i$ 行的 $t$ 倍加到第 $j$ 行，再将第 $i$ 列的 $t$ 倍加到第 $j$ 列（$i\ne j$）。
+\end{lemma}
+\begin{proof}
+若行变换相当于左乘初等矩阵 $E$，配对的列变换便相当于右乘 $E^{\mathsf T}$，所得矩阵为 $EAE^{\mathsf T}$。取 $C=E^{\mathsf T}$ 即得合同关系，而且 $(EAE^{\mathsf T})^{\mathsf T}=EAE^{\mathsf T}$，所以对称性也保持。
+\end{proof}
+
+\begin{theorem}
+\label{thm:symmetric-congruence-diagonalization}
+任意数域 $\mathbb K$ 上的对称矩阵 $A\in\mathbb K^{n\times n}$ 都合同于一个对角矩阵。等价地，任意 $\mathbb K$ 上的二次型都能经可逆线性变量代换化为标准型。
+\end{theorem}
+\begin{proof}
+对阶数归纳，$n=1$ 或 $A=0$ 时结论成立。设 $A\ne0$。若有非零对角元，通过配对交换把它移到第 $(1,1)$ 位；若所有对角元都是零，则必有 $a_{ij}\ne0$，将第 $j$ 行加到第 $i$ 行，再作配对列变换，第 $(i,i)$ 元素变成 $2a_{ij}\ne0$，再移到首位。因此经过合同变换，可设
+\[
+    A=\begin{pmatrix}a&b^{\mathsf T}\\b&B\end{pmatrix},
+    \qquad a\ne0,
+\]
+其中 $b\in\mathbb K^{n-1}$，$B$ 是 $n-1$ 阶对称矩阵。取可逆矩阵
+\begin{equation}
+\label{eq:quadratic-schur-elimination}
+    C_1=\begin{pmatrix}1&-a^{-1}b^{\mathsf T}\\0&I_{n-1}\end{pmatrix},
+    \qquad
+    C_1^{\mathsf T}AC_1
+    =\begin{pmatrix}a&0\\0&B-a^{-1}bb^{\mathsf T}\end{pmatrix}.
+\end{equation}
+右下角仍对称，由归纳假设存在可逆矩阵 $D$ 将其合同化为对角矩阵。再取 $C_2=\operatorname{diag}(1,D)$，则 $(C_1C_2)^{\mathsf T}A(C_1C_2)$ 对角化。把前面为取得非零首元所用的变换一并乘入，便得到所需的可逆矩阵。
+\end{proof}
+
+证明同时给出了算法：找到非零主元，消去它所在行、列的其余元素，然后在剩余对称子块上重复；若剩余子块为零，就停止。每一步都在原数域内进行，不需要开平方；是否能把非零对角元进一步统一为 $1$ 或 $-1$，则取决于数域，这将在第~\ref{sec:quadratic-inertia} 节讨论。
+
+\section{二次型的化简}
+\label{sec:quadratic-reduction}
+% 依据教材第 351--356 页，第 8.2 节。
+
+配方法与初等变换法描述的是同一个消元过程：前者直接整理多项式，后者在相伴矩阵上记录配对行、列变换。无论采用哪一种，都应同时给出对角型与可逆变量代换，并核对代换矩阵的方向。
+
+\subsection{配方法}
+
+若 $x_1^2$ 的系数 $a\ne0$，将二次型写成
+\[
+    f(x)=ax_1^2+2x_1b^{\mathsf T}\widehat x
+          +\widehat x^{\mathsf T}B\widehat x,
+    \qquad \widehat x=(x_2,\ldots,x_n)^{\mathsf T}.
+\]
+配成完全平方得到
+\begin{equation}
+\label{eq:quadratic-completing-square}
+    f(x)=a\bigl(x_1+a^{-1}b^{\mathsf T}\widehat x\bigr)^2
+          +\widehat x^{\mathsf T}(B-a^{-1}bb^{\mathsf T})\widehat x.
+\end{equation}
+令 $y_1=x_1+a^{-1}b^{\mathsf T}\widehat x$，其余变量暂不变，就消去了与第一个新变量有关的全部交叉项。对剩下的变量继续配方，便得到标准型。这些代换逐步组成可逆三角变换，与式~\eqref{eq:quadratic-schur-elimination} 完全对应。
+
+如果当前子式没有平方项而存在非零交叉项 $2a_{ij}x_ix_j$，先令 $x_i=u_i+u_j$、$x_j=u_i-u_j$，其余变量不变。该二维代换的行列式为 $-2\ne0$，而 $2a_{ij}x_ix_j=2a_{ij}u_i^2-2a_{ij}u_j^2$；由于原来没有平方项，其他交叉项不会抵消这两个新平方项，故可继续配方。
+
+\begin{example}
+\label{ex:quadratic-completing-square}
+将教材中的二次型
+\[
+    f=x_1^2+2x_1x_2-4x_1x_3-3x_2^2-6x_2x_3+x_3^2
+\]
+化为标准型，并求 $x=Cy$ 中的矩阵 $C$。
+\end{example}
+\begin{solve}
+先把含 $x_1$ 的项配成平方，再处理 $x_2$：
+\[
+\begin{aligned}
+    f&=(x_1+x_2-2x_3)^2-4x_2^2-2x_2x_3-3x_3^2\\
+     &=(x_1+x_2-2x_3)^2
+       -\left(2x_2+\frac12x_3\right)^2-\frac{11}{4}x_3^2.
+\end{aligned}
+\]
+令 $y_1=x_1+x_2-2x_3$、$y_2=2x_2+\frac12x_3$、$y_3=x_3$，则
+\[
+    f=y_1^2-y_2^2-\frac{11}{4}y_3^2,
+    \qquad
+    x=Cy,\quad
+    C=\begin{pmatrix}
+        1&-\frac12&\frac94\\
+        0&\frac12&-\frac14\\
+        0&0&1
+    \end{pmatrix}.
+\]
+这里 $\det C=\frac12\ne0$，且直接相乘可核对 $C^{\mathsf T}AC=\operatorname{diag}(1,-1,-\frac{11}{4})$。
+\end{solve}
+
+\begin{notealert}[type=caution,title={平方和恒等式不一定给出可逆代换}]
+教材给出的恒等式
+\[
+    2x_1^2+2x_2^2+2x_3^2-2x_1x_2+2x_1x_3+2x_2x_3
+    =(x_1-x_2)^2+(x_1+x_3)^2+(x_2+x_3)^2
+\]
+本身正确，但若依次将右边三个线性式记为 $y_1,y_2,y_3$，就有 $y_2=y_1+y_3$，变换矩阵不可逆。因此不能据此说原二次型通过可逆代换变为三个独立变量的平方和。检验一次代换是否成立，除了核对多项式恒等式，还必须核对可逆性。
+\end{notealert}
+
+\subsection{初等变换法}
+
+为同时记录对角型和变换矩阵，可从增广矩阵 $(A\mid I_n)$ 出发。每次对整个增广矩阵实施一次初等行变换，再\emph{只在左半部}实施相应的配对列变换；右半部只记录行变换。若累计行变换矩阵为 $L$，整个过程就满足
+\begin{equation}
+\label{eq:quadratic-augmented-elimination}
+    (A\mid I_n)\longrightarrow(LAL^{\mathsf T}\mid L)
+      =(D\mid L).
+\end{equation}
+当 $D$ 为对角矩阵时，取 $C=L^{\mathsf T}$，便有 $C^{\mathsf T}AC=D$。这里必须区分：对左半部成对变换，对右半部只作行变换；不能对整个 $n\times2n$ 矩阵任意作列消元。
+
+\begin{example}
+\label{ex:quadratic-elementary-reduction}
+用初等变换法化简教材中的二次型
+\[
+    f=x_1^2-3x_2^2-2x_1x_2+2x_1x_3-6x_2x_3.
+\]
+\end{example}
+\begin{solve}
+其相伴矩阵为
+\[
+    A=\begin{pmatrix}1&-1&1\\-1&-3&-3\\1&-3&0\end{pmatrix}.
+\]
+先作第 $2$ 行加第 $1$ 行、第 $3$ 行减第 $1$ 行，并分别作配对列变换，左半部变成
+\[
+    \begin{pmatrix}1&0&0\\0&-4&-2\\0&-2&-1\end{pmatrix}.
+\]
+再作第 $3$ 行减去第 $2$ 行的 $\frac12$ 倍及配对列变换，按式~\eqref{eq:quadratic-augmented-elimination} 记录，最终得到
+\[
+    (D\mid L)=
+    \left(\begin{array}{ccc|ccc}
+        1&0&0&1&0&0\\
+        0&-4&0&1&1&0\\
+        0&0&0&-\frac32&-\frac12&1
+    \end{array}\right).
+\]
+故
+\[
+    C=L^{\mathsf T}=
+    \begin{pmatrix}1&1&-\frac32\\0&1&-\frac12\\0&0&1\end{pmatrix},
+    \qquad f(Cy)=y_1^2-4y_2^2.
+\]
+第三个平方项的系数为零，所以标准型仍有三个变量，而相伴矩阵的秩为 $2$。
+\end{solve}
+
+\begin{example}
+\label{ex:quadratic-zero-diagonal-pivot}
+化简不含平方项的二次型 $f=2x_1x_2+4x_1x_3-4x_2x_3$。
+\end{example}
+\begin{solve}
+相伴矩阵为
+\[
+    A=\begin{pmatrix}0&1&2\\1&0&-2\\2&-2&0\end{pmatrix}.
+\]
+将第 $2$ 行加到第 $1$ 行，再将第 $2$ 列加到第 $1$ 列，得到
+\[
+    \begin{pmatrix}2&1&0\\1&0&-2\\0&-2&0\end{pmatrix}.
+\]
+接着用首元 $2$ 消去第 $(1,2)$、$(2,1)$ 元素，得到对称子块 $\begin{pmatrix}-\frac12&-2\\-2&0\end{pmatrix}$；再用主元 $-\frac12$ 消去其中的交叉项，最终得到
+\[
+    C^{\mathsf T}AC=\operatorname{diag}\left(2,-\frac12,8\right),
+    \qquad
+    C=\begin{pmatrix}1&-\frac12&2\\1&\frac12&-2\\0&0&1\end{pmatrix}.
+\]
+因此 $x=Cy$ 将 $f$ 化为 $2y_1^2-\frac12y_2^2+8y_3^2$，且 $\det C=1$。没有平方项意味着需要先制造非零主元，并不妨碍合同对角化。
+\end{solve}
+
+\section{惯性定理}
+\label{sec:quadratic-inertia}
+% 依据教材第 357--360 页，第 8.3 节。
+
+合同对角化解决了交叉项能否消去的问题，但对角元仍依赖代换的选择。例如，一个非零平方项可以通过缩放变量改变系数的大小。分类问题需要进一步回答：这些不同的对角型中，究竟保留了哪些不能被可逆代换改变的信息？
+
+\subsection{实二次型与惯性指数}
+
+设实二次型已化为 $d_1z_1^2+\cdots+d_rz_r^2$，其中 $d_i\ne0$。合同保持秩，故 $r=\operatorname{rank}A$。调整变量次序，使前 $p$ 个系数为正，随后 $q=r-p$ 个为负；再对非零项取 $z_i=y_i/\sqrt{|d_i|}$，零系数所对应的变量不变，就得到
+\begin{equation}
+\label{eq:real-quadratic-normal-form}
+    f=y_1^2+\cdots+y_p^2-y_{p+1}^2-\cdots-y_{p+q}^2.
+\end{equation}
+其相伴矩阵为 $J_{p,q}=\operatorname{diag}(I_p,-I_q,0_{n-p-q})$，称为\emph{规范标准型}（canonical form）。式中省略的变量具有零系数，并未从原来的 $n$ 维空间中删除。
+
+\begin{theorem}[惯性定理]
+\label{thm:real-quadratic-inertia}
+一个实二次型经过不同的可逆实线性代换化为标准型时，非零平方项中正系数项的个数与负系数项的个数分别保持不变。因此规范标准型中的 $p,q$ 唯一确定。
+\end{theorem}
+\begin{proof}
+缩放变量不改变系数的符号，故只需比较两个规范标准型。假设同一个二次型具有表达式
+\[
+    \sum_{i=1}^p y_i^2-\sum_{i=p+1}^{p+q}y_i^2
+    =\sum_{i=1}^{p'}z_i^2-\sum_{i=p'+1}^{p'+q'}z_i^2,
+    \qquad z=Ty,
+\]
+其中 $T$ 可逆。若 $p>p'$，考虑关于 $y$ 的齐次线性方程组
+\[
+    z_1=\cdots=z_{p'}=0,
+    \qquad y_{p+1}=\cdots=y_n=0.
+\]
+这里只有 $p'+n-p<n$ 个方程，因此存在非零解 $y$。代入上式，左边为 $\sum_{i=1}^p y_i^2>0$，右边却不大于零，矛盾。交换两组变量，同理排除 $p<p'$，故 $p=p'$。两标准型的相伴矩阵都与 $A$ 合同，秩相同，即 $p+q=p'+q'$，所以 $q=q'$。
+\end{proof}
+
+\begin{definition}
+\label{def:quadratic-inertia-indices}
+实二次型及其相伴实对称矩阵的\emph{正惯性指数}（positive index of inertia）为规范标准型中的正项数 $p$，\emph{负惯性指数}（negative index of inertia）为负项数 $q$，\emph{秩}为 $r=p+q$，\emph{符号差}（signature）为 $s=p-q$。零项数为 $n-r$，也等于相伴矩阵核的维数。
+\end{definition}
+
+由 $p=(r+s)/2$、$q=(r-s)/2$，知道秩与符号差就能恢复正、负惯性指数。对固定的阶数 $n$，这一对整数完整决定实合同类；这里 $p,q\geq0$ 且 $p+q\leq n$，所以 $r,s$ 也必须满足 $|s|\leq r\leq n$ 以及 $r\equiv s\pmod2$。
+
+\begin{theorem}
+\label{thm:real-symmetric-congruence-classification}
+两个同阶实对称矩阵合同，当且仅当它们的正、负惯性指数分别相同；等价地，当且仅当它们的秩与符号差分别相同。这样的量称为合同关系下的\emph{全系不变量}（complete invariants）。
+\end{theorem}
+\begin{proof}
+必要性由惯性定理与秩不变性得到。若两个矩阵的正、负惯性指数相同，它们就都合同于同一个 $J_{p,q}$，由合同的对称性和传递性即知它们合同。
+\end{proof}
+
+例如，例~\ref{ex:quadratic-completing-square} 的惯性指数为 $(1,2)$，例~\ref{ex:quadratic-elementary-reduction} 的惯性指数为 $(1,1)$ 且有一个零项，例~\ref{ex:quadratic-zero-diagonal-pivot} 的惯性指数为 $(2,1)$。计算惯性指数只需看任意一个对角标准型中的系数符号，不必真的把非零系数缩放成 $\pm1$。若 $A$ 非奇异，式~\eqref{eq:congruence-rank-determinant} 还给出 $\operatorname{sgn}(\det A)=(-1)^q$；行列式的符号只记录 $q$ 的奇偶性，不能单独决定合同类。
+
+\subsection{复二次型}
+
+\begin{theorem}
+\label{thm:complex-symmetric-congruence-classification}
+秩为 $r$ 的 $n$ 阶复对称矩阵合同于 $\operatorname{diag}(I_r,0_{n-r})$。因此，秩是同阶复对称矩阵在复合同关系下的全系不变量。
+\end{theorem}
+\begin{proof}
+先由定理~\ref{thm:symmetric-congruence-diagonalization} 化为 $\operatorname{diag}(d_1,\ldots,d_r,0,\ldots,0)$，其中 $d_i\ne0$。每个非零复数 $d_i$ 都有非零复平方根 $c_i$，在相应变量上令 $z_i=y_i/c_i$，便把 $d_iz_i^2$ 化为 $y_i^2$。必要性由秩的合同不变性得到；充分性由两个矩阵都合同于上述同一对角矩阵得到。
+\end{proof}
+
+在实数域上，$\operatorname{diag}(1,-1)$ 的惯性指数为 $(1,1)$，不与 $I_2$ 合同；但在复数域上，取 $C=\operatorname{diag}(1,\mathrm i)$ 即有
+\[
+    C^{\mathsf T}\operatorname{diag}(1,-1)C=I_2.
+\]
+因此\emph[caution]{合同分类必须注明数域}。复二次型 $x^{\mathsf T}Ax$ 一般取复值，即使取到实值也会因 $x\mapsto\mathrm i x$ 而变号，不能照搬实二次型的正定性概念；保留实值与正负性结构的复数推广是第~\ref{sec:hermitian-forms} 节的 Hermite 型。
+
+\section{正定型与正定矩阵}
+\label{sec:positive-definite-quadratic}
+% 依据教材第 361--365 页，第 8.4 节；补充与判据直接相关的半正定辨析。
+
+本节始终设 $A=A^{\mathsf T}\in\mathbb R^{n\times n}$，$f(x)=x^{\mathsf T}Ax$。讨论正定矩阵时，对称性是本章约定的一部分；若任取非对称矩阵，其二次型只由对称部分决定，就不能直接套用这里的主子式判据。
+
+\begin{definition}
+\label{def:quadratic-definiteness}
+若对每个 $x\in\mathbb R^n\setminus\{0\}$ 都有 $f(x)>0$，则称 $f$ 为\emph{正定型}（positive definite quadratic form），$A$ 为\emph{正定矩阵}。将不等式分别改为 $f(x)<0$、$f(x)\geq0$、$f(x)\leq0$，依次定义\emph{负定型}、\emph{半正定型}与\emph{半负定型}及其相伴矩阵。若存在向量 $u,v$ 使 $f(u)>0$、$f(v)<0$，则称 $f$ 为\emph{不定型}（indefinite quadratic form）。
+\end{definition}
+
+半正定允许某个非零向量取值为零，也包括正定的情形；半负定同理。零二次型同时半正定、半负定，但既不正定也不负定。非零半正定型可能仍不正定，例如 $x_1^2$ 作为二元二次型，在 $(0,1)^{\mathsf T}$ 处取零值。
+
+\begin{theorem}
+\label{thm:definiteness-inertia}
+设 $A$ 的正、负惯性指数为 $p,q$，秩为 $r=p+q$。则 $f$ 正定当且仅当 $p=n$，负定当且仅当 $q=n$，半正定当且仅当 $q=0$（即 $p=r$），半负定当且仅当 $p=0$（即 $q=r$），不定当且仅当 $p>0$ 且 $q>0$。特别地，正定矩阵合同于 $I_n$，负定矩阵合同于 $-I_n$，秩为 $r$ 的半正定矩阵合同于 $\operatorname{diag}(I_r,0)$。
+\end{theorem}
+\begin{proof}
+可逆变量代换把非零向量一一对应到非零向量，所以正负性在合同下保持。对规范标准型~\eqref{eq:real-quadratic-normal-form}，全体 $n$ 项都为正时，任意非零向量的取值都为正；反之，只要有负项或零项，取该位置的单位向量便得到负值或零值，故不能正定。负定情形对 $-f$ 使用同样的论证。规范标准型在所有向量处非负当且仅当没有负项，非正当且仅当没有正项；同时有正项、负项时，取相应单位向量便取得异号值。这也证明了其余结论。
+\end{proof}
+
+\begin{proposition}
+\label{prop:positive-semidefinite-gram}
+实对称矩阵 $A$ 半正定且秩为 $r$，当且仅当存在秩为 $r$ 的实矩阵 $R\in\mathbb R^{r\times n}$，使 $A=R^{\mathsf T}R$。特别地，$A$ 正定当且仅当可取 $n$ 阶可逆实矩阵 $R$ 使 $A=R^{\mathsf T}R$。
+\end{proposition}
+\begin{proof}
+若 $C^{\mathsf T}AC=\operatorname{diag}(I_r,0)$，取 $R=(I_r\ \ 0)C^{-1}$，即得 $A=R^{\mathsf T}R$，且 $\operatorname{rank}R=r$。反之，若有这样的分解，则
+\[
+    x^{\mathsf T}Ax=(Rx)^{\mathsf T}(Rx)=\sum_{i=1}^r(Rx)_i^2\geq0.
+\]
+并且 $Ax=0$ 当且仅当 $Rx=0$：一个方向直接成立，另一个方向由 $Ax=0$ 推出上式为零，故 $Rx=0$。所以 $\operatorname{rank}A=\operatorname{rank}R=r$。当 $r=n$ 时，$R$ 可逆，非零 $x$ 对应非零 $Rx$，从而二次型严格为正。$r=0$ 时将 $R$ 理解为零行矩阵，相应乘积为零矩阵。
+\end{proof}
+
+\subsection{顺序主子式判据}
+
+\begin{definition}
+\label{def:principal-minors-quadratic}
+从矩阵 $A$ 选取同一组指标 $J\subseteq\{1,\ldots,n\}$ 的行和列所得的子矩阵记为 $A[J]$，称为\emph{主子矩阵}（principal submatrix），其行列式称为\emph{主子式}（principal minor）。特别地，令 $A_k=A[\{1,\ldots,k\}]$，则
+\[
+    \Delta_k=\det A_k\qquad(k=1,\ldots,n)
+\]
+称为 $A$ 的\emph{顺序主子式}（leading principal minors），并约定 $\Delta_0=1$。
+\end{definition}
+
+\begin{theorem}[Sylvester 判据]
+\label{thm:sylvester-positive-definite}
+实对称矩阵 $A$ 正定，当且仅当 $\Delta_k>0$ 对所有 $k=1,\ldots,n$ 成立。
+\end{theorem}
+\begin{proof}
+先证必要性。若 $A$ 正定，将任意非零 $u\in\mathbb R^k$ 补成 $x=(u^{\mathsf T},0,\ldots,0)^{\mathsf T}$，就有 $u^{\mathsf T}A_ku=x^{\mathsf T}Ax>0$，所以 $A_k$ 正定。由定理~\ref{thm:definiteness-inertia}，存在可逆实矩阵 $B$ 使 $B^{\mathsf T}A_kB=I_k$，取行列式得 $\Delta_k=(\det B)^{-2}>0$。
+
+再对 $n$ 归纳证明充分性。$n=1$ 时结论成立。设 $n\geq2$ 且各 $\Delta_k>0$，写成
+\[
+    A=\begin{pmatrix}A_{n-1}&b\\b^{\mathsf T}&a\end{pmatrix}.
+\]
+由归纳假设，$A_{n-1}$ 正定且可逆。取
+\[
+    C=\begin{pmatrix}I_{n-1}&-A_{n-1}^{-1}b\\0&1\end{pmatrix},
+    \qquad
+    C^{\mathsf T}AC
+     =\operatorname{diag}(A_{n-1},\delta),
+    \quad \delta=a-b^{\mathsf T}A_{n-1}^{-1}b.
+\]
+由于 $\det C=1$，有 $\Delta_n=\Delta_{n-1}\delta$，故 $\delta>0$。于是右边所对应的二次型为 $u^{\mathsf T}A_{n-1}u+\delta t^2$，对 $(u,t)\ne0$ 严格为正，因此 $A$ 正定。
+\end{proof}
+
+负定性可化为 $-A$ 的正定性，而 $-A$ 的第 $k$ 个顺序主子式为 $(-1)^k\Delta_k$，故
+\begin{equation}
+\label{eq:negative-definite-leading-minors}
+    A\text{ 负定}\quad\Longleftrightarrow\quad
+    (-1)^k\Delta_k>0\quad(k=1,\ldots,n).
+\end{equation}
+更一般地，若 $\Delta_1,\ldots,\Delta_{n-1}$ 全非零，逐次配方不需交换主元，可得到对角元 $d_k=\Delta_k/\Delta_{k-1}$：每个前 $k$ 阶块在行列式为 $1$ 的三角合同变换下化为 $\operatorname{diag}(d_1,\ldots,d_k)$，所以 $\Delta_k=d_1\cdots d_k$，相邻两式相除即得此公式。若某个中间顺序主子式为零，该计算公式便不能直接使用，但仍可用第~\ref{sec:quadratic-reduction} 节的方法交换或制造非零主元。
+
+\begin{example}
+\label{ex:positive-definite-parameter}
+求实参数 $t$ 的范围，使教材中的二次型
+\[
+    f=x_1^2+4x_2^2+4x_3^2+3x_4^2
+      +2tx_1x_2-2x_1x_3+4x_2x_3
+\]
+正定。
+\end{example}
+\begin{solve}
+相伴矩阵及其顺序主子式为
+\[
+    A=\begin{pmatrix}
+        1&t&-1&0\\t&4&2&0\\-1&2&4&0\\0&0&0&3
+    \end{pmatrix},
+\]
+\[
+    \Delta_1=1,\qquad \Delta_2=4-t^2,\qquad
+    \Delta_3=-4(t-1)(t+2),\qquad
+    \Delta_4=-12(t-1)(t+2).
+\]
+由定理~\ref{thm:sylvester-positive-definite}，需要同时满足 $-2<t<2$ 与 $-2<t<1$，故所求范围为 $-2<t<1$。端点不能纳入，因为此时 $\det A=0$，不可能正定。
+\end{solve}
+
+\subsection{主子矩阵与半正定性的辨析}
+
+\begin{proposition}
+\label{prop:positive-definite-principal-submatrices}
+正定实对称矩阵的每个非空主子矩阵都正定，故所有主子式都为正。特别地，$a_{ii}>0$，且对 $i\ne j$ 有
+\begin{equation}
+\label{eq:positive-definite-entry-bound}
+    a_{ij}^2<a_{ii}a_{jj}.
+\end{equation}
+因此矩阵中绝对值最大的元素只能出现在主对角线上。
+\end{proposition}
+\begin{proof}
+对任意主子矩阵，将它的变量按所选指标填入原向量，其余位置补零，所得二次型取值与原二次型相同，因此主子矩阵正定，其行列式为正。取一阶主子矩阵得 $a_{ii}>0$；取指标 $\{i,j\}$ 得 $a_{ii}a_{jj}-a_{ij}^2>0$。所以
+\[
+    |a_{ij}|<\sqrt{a_{ii}a_{jj}}\leq\max\{a_{ii},a_{jj}\},
+\]
+每个非对角元的绝对值都严格小于某个对角元，最后的结论随之成立。
+\end{proof}
+
+\begin{proposition}
+\label{prop:semidefinite-all-principal-minors}
+实对称矩阵 $A$ 半正定，当且仅当它的所有主子式都非负。仅要求所有顺序主子式非负，并不足以判定半正定。
+\end{proposition}
+\begin{proof}
+若 $A$ 半正定，任意主子矩阵也由补零向量的方法判知半正定。其规范标准型只有 $1$ 和 $0$，由行列式的合同变换公式知行列式非负。
+
+反之，假设所有主子式非负。对任意 $\varepsilon>0$，$A+\varepsilon I_n$ 的第 $k$ 个顺序主子式按行列式的多重线性展开为
+\[
+    \det(A_k+\varepsilon I_k)
+      =\sum_{J\subseteq\{1,\ldots,k\}}
+          \varepsilon^{k-|J|}\det A[J]>0,
+\]
+其中约定 $\det A[\varnothing]=1$。展开时，在未选入 $J$ 的位置取对角元 $\varepsilon$，其余位置留下主子式 $\det A[J]$，因而每项非负，且空集项为 $\varepsilon^k>0$。由定理~\ref{thm:sylvester-positive-definite}，$A+\varepsilon I_n$ 正定。固定任意 $x$ 并令 $\varepsilon\downarrow0$，由 $x^{\mathsf T}Ax+\varepsilon x^{\mathsf T}x\geq0$ 得 $x^{\mathsf T}Ax\geq0$，故 $A$ 半正定。
+
+反例取 $A=\operatorname{diag}(0,-1)$，其两个顺序主子式都是零，但在 $x=(0,1)^{\mathsf T}$ 处二次型取值为 $-1$，所以并非半正定。
+\end{proof}
+
+正定性只需检验指定顺序下的 $n$ 个顺序主子式，半正定性的相应判据则涉及所有主子式，不能把严格不等号机械改成非严格不等号。对具体题目，若主子式过多，通常先用配方或合同消元求出惯性指数，再按定理~\ref{thm:definiteness-inertia} 判别更直接。
+
+\section{Hermite 型}
+\label{sec:hermitian-forms}
+% 依据教材第 366--369 页，第 8.5 节正文；不录入本节习题或章末复习题。
+
+复二次型采用 $z^{\mathsf T}Az$，其值一般不是实数，因而没有实二次型那样的正负性理论。要在复向量空间上得到实值的二次表达式，需要在两个因子中的一个上引入共轭。以下用 $\overline A$ 表示逐元素共轭，用 $A^{\mathsf H}=\overline A^{\mathsf T}$ 表示\emph{共轭转置}（conjugate transpose），$\mathrm i$ 为虚数单位。
+
+\begin{definition}
+\label{def:hermitian-form}
+若复矩阵 $A\in\mathbb C^{n\times n}$ 满足 $A^{\mathsf H}=A$，即 $a_{ji}=\overline{a_{ij}}$，则称它为\emph{Hermite 矩阵}（Hermitian matrix，厄米矩阵）。相应的表达式
+\begin{equation}
+\label{eq:hermitian-form}
+    h(z)=z^{\mathsf H}Az
+       =\sum_{i,j=1}^n a_{ij}\overline{z_i}z_j,
+    \qquad z\in\mathbb C^n,
+\end{equation}
+称为\emph{Hermite 型}（Hermitian form），$A$ 称为其相伴矩阵。
+\end{definition}
+
+Hermite 矩阵的对角元都是实数，且
+\[
+    \overline{h(z)}=z^{\mathsf H}A^{\mathsf H}z=h(z),
+    \qquad
+    h(z)=\sum_i a_{ii}|z_i|^2
+          +2\sum_{i<j}\operatorname{Re}
+              \bigl(a_{ij}\overline{z_i}z_j\bigr),
+\]
+所以 $h$ 的值总是实数。它满足 $h(tz)=|t|^2h(z)$，而复二次型满足 $f(tz)=t^2f(z)$；特别地，$h(\mathrm i z)=h(z)$，而 $f(\mathrm i z)=-f(z)$。Hermite 型是实变量意义下的二次齐次表达式，通常不是只含 $z_1,\ldots,z_n$ 的复多项式。若系数与变量都限制为实数，它便退化为实二次型。
+
+Hermite 型与 Hermite 矩阵也一一对应。若 Hermite 矩阵 $D$ 满足 $z^{\mathsf H}Dz=0$ 对每个 $z$ 成立，取 $z=e_i$ 得 $d_{ii}=0$；取 $e_i+e_j$ 得 $2\operatorname{Re}d_{ij}=0$；取 $e_i+\mathrm i e_j$ 得 $-2\operatorname{Im}d_{ij}=0$。因此 $D=0$，相伴矩阵唯一。这比实对称情形多用了一个带虚数单位的测试向量，用来确定非对角元的虚部。
+
+\begin{definition}
+\label{def:hermitian-star-congruence}
+若两个同阶 Hermite 矩阵满足
+\begin{equation}
+\label{eq:hermitian-congruence}
+    B=C^{\mathsf H}AC,
+    \qquad C\in\mathbb C^{n\times n}\text{ 可逆},
+\end{equation}
+则称它们\emph{复相合}，也称\emph{共轭合同}（$*$-congruent）。这正是可逆复线性变量代换 $z=Cw$ 下的相伴矩阵变换关系，因为 $h(Cw)=w^{\mathsf H}(C^{\mathsf H}AC)w$。
+\end{definition}
+
+复相合是等价关系，验证方法与第~\ref{sec:quadratic-congruence} 节相同，只需将转置换成共轭转置。它保持 Hermite 性与秩，并满足
+\begin{equation}
+\label{eq:hermitian-congruence-determinant}
+    \det(C^{\mathsf H}AC)=|\det C|^2\det A.
+\end{equation}
+对应的初等变换也必须带共轭：若左边作行变换 $E$，右边配对作列变换 $E^{\mathsf H}$，得到 $EAE^{\mathsf H}$。例如，第 $i$ 行乘 $t\ne0$ 时，第 $i$ 列应乘 $\overline t$；把第 $i$ 行的 $t$ 倍加到第 $j$ 行时，第 $i$ 列的 $\overline t$ 倍应加到第 $j$ 列。若用增广矩阵记录累计行变换 $L$，最终的变量代换矩阵应取 $C=L^{\mathsf H}$。
+
+\subsection{对角化与惯性定理}
+
+\begin{theorem}
+\label{thm:hermitian-congruence-diagonalization}
+任意 Hermite 矩阵 $A$ 都复相合于一个实对角矩阵，因而其 Hermite 型总能经可逆复线性变量代换化为 $d_1|w_1|^2+\cdots+d_n|w_n|^2$，其中 $d_i\in\mathbb R$。
+\end{theorem}
+\begin{proof}
+对阶数归纳。零矩阵无需变换。若 $A\ne0$ 且有非零对角元，通过配对行、列交换将其移到首位。若对角元全为零，取 $a_{ij}\ne0$，则
+\[
+    (e_i+\overline{a_{ij}}e_j)^{\mathsf H}
+    A(e_i+\overline{a_{ij}}e_j)=2|a_{ij}|^2\ne0.
+\]
+把标准基中的 $e_i$ 换成 $e_i+\overline{a_{ij}}e_j$，其他基向量不变，仍为一组基；相应复相合变换便制造了非零对角元。因此可以设
+\[
+    A=\begin{pmatrix}a&b^{\mathsf H}\\b&B\end{pmatrix},
+    \qquad a\in\mathbb R\setminus\{0\},\quad B^{\mathsf H}=B.
+\]
+取
+\[
+    C_1=\begin{pmatrix}1&-a^{-1}b^{\mathsf H}\\0&I_{n-1}\end{pmatrix},
+    \qquad
+    C_1^{\mathsf H}AC_1
+      =\operatorname{diag}(a,B-a^{-1}bb^{\mathsf H}).
+\]
+右下角仍为 Hermite 矩阵，由归纳假设可继续对角化。最后得到的矩阵仍是 Hermite 矩阵，故所有对角元均为实数。
+\end{proof}
+
+\begin{theorem}[Hermite 型的惯性定理]
+\label{thm:hermitian-inertia}
+每个 $n$ 元 Hermite 型都能经可逆复线性变量代换化为
+\begin{equation}
+\label{eq:hermitian-normal-form}
+    h=|w_1|^2+\cdots+|w_p|^2
+       -|w_{p+1}|^2-\cdots-|w_{p+q}|^2,
+\end{equation}
+其中 $p,q$ 唯一确定，分别称为正、负惯性指数。其秩为 $r=p+q$，符号差为 $s=p-q$；正、负惯性指数（等价地，秩与符号差）构成同阶 Hermite 矩阵复相合的全系不变量。
+\end{theorem}
+\begin{proof}
+由定理~\ref{thm:hermitian-congruence-diagonalization}，先化为实系数的模平方和；再按系数正负排列，并以 $1/\sqrt{|d_i|}$ 缩放非零项的变量，即得式~\eqref{eq:hermitian-normal-form}。
+
+若同一型另有正项数为 $p'$ 的规范标准型，且 $p>p'$，仿照定理~\ref{thm:real-quadratic-inertia} 的证明，令第二组变量的前 $p'$ 个坐标为零，同时令第一组变量的后 $n-p$ 个坐标为零。这是一个少于 $n$ 个方程的复齐次线性方程组，故有非零复解。此时第一种表达式为严格正的模平方和，第二种表达式不大于零，矛盾。交换两种表达式得 $p=p'$；再由秩不变得到 $q=q'$。两矩阵具有相同的 $p,q$ 时，都复相合于 $\operatorname{diag}(I_p,-I_q,0)$，所以这些不变量也充分决定复相合类。
+\end{proof}
+
+这里的分类与复对称矩阵的合同分类不同：对模平方项作 $w_i\mapsto\mathrm i w_i$，其符号不会改变，因此 Hermite 型仍保留正、负惯性指数，不能仅用秩分类。
+
+\subsection{正定 Hermite 型}
+
+Hermite 型的值为实数，故可按定义~\ref{def:quadratic-definiteness} 的不等式定义正定、负定、半正定、半负定和不定，只需将量词的范围换成复向量。特别地，正定要求对每个 $z\in\mathbb C^n\setminus\{0\}$ 都有 $z^{\mathsf H}Az>0$，不能只检查实向量。由规范标准型直接可知，正定等价于 $p=n$，半正定等价于 $q=0$，不定等价于 $p,q$ 都为正，其余判别也与实二次型平行。
+
+\begin{theorem}
+\label{thm:hermitian-positive-definite-criteria}
+设 $A$ 为 $n$ 阶 Hermite 矩阵，则以下条件等价：$A$ 正定；$A$ 复相合于 $I_n$；存在可逆复矩阵 $R$ 使 $A=R^{\mathsf H}R$；$A$ 的所有顺序主子式均严格大于零。
+\end{theorem}
+\begin{proof}
+由惯性定理，正定等价于复相合于 $I_n$。若 $C^{\mathsf H}AC=I_n$，取 $R=C^{-1}$ 就得 $A=R^{\mathsf H}R$；反之，若有这样的分解，则非零 $z$ 满足
+\[
+    z^{\mathsf H}Az=(Rz)^{\mathsf H}(Rz)
+       =\sum_i|(Rz)_i|^2>0.
+\]
+所以前三个条件等价。
+
+对于主子式判据，先注意任意 Hermite 主子矩阵的行列式都是实数，因为 $\overline{\det H}=\det H^{\mathsf H}=\det H$。若 $A$ 正定，补零向量的论证说明每个顺序主子矩阵也正定；将它复相合于单位矩阵，并使用式~\eqref{eq:hermitian-congruence-determinant}，可知其行列式严格为正。
+
+反之，若所有顺序主子式 $\Delta_k>0$，对阶数归纳。$n=1$ 时成立；$n\geq2$ 时写成
+\[
+    A=\begin{pmatrix}H&b\\b^{\mathsf H}&a\end{pmatrix}.
+\]
+由归纳假设，$H$ 正定且可逆，取 $C=\begin{pmatrix}I&-H^{-1}b\\0&1\end{pmatrix}$，则
+\[
+    C^{\mathsf H}AC=\operatorname{diag}(H,\delta),
+    \qquad \delta=a-b^{\mathsf H}H^{-1}b
+                  =\frac{\Delta_n}{\Delta_{n-1}}>0.
+\]
+右边的 Hermite 型在非零向量处严格为正，故 $A$ 正定。
+\end{proof}
+
+\begin{example}
+\label{ex:hermitian-positive-definite}
+判断 Hermite 矩阵 $A=\begin{pmatrix}2&\mathrm i\\-\mathrm i&2\end{pmatrix}$ 是否正定，并给出相应型的配方。
+\end{example}
+\begin{solve}
+它的顺序主子式为 $\Delta_1=2$、$\Delta_2=3$，均为正，故 $A$ 正定。相应的配方为
+\[
+\begin{aligned}
+    h(z)&=2|z_1|^2+2|z_2|^2
+             +2\operatorname{Re}(\mathrm i\overline{z_1}z_2)\\
+        &=2\left|z_1+\frac{\mathrm i}{2}z_2\right|^2
+             +\frac32|z_2|^2.
+\end{aligned}
+\]
+令 $w_1=z_1+\frac{\mathrm i}{2}z_2$、$w_2=z_2$，即
+\[
+    z=Cw,\qquad C=\begin{pmatrix}1&-\frac{\mathrm i}{2}\\0&1\end{pmatrix},
+    \qquad C^{\mathsf H}AC=\operatorname{diag}\left(2,\frac32\right).
+\]
+该计算同时核对了交叉项中的共轭位置以及复相合变换的方向。
+\end{solve}
+
+
+
+
+
+

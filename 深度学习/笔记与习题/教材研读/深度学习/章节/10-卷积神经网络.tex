@@ -1,0 +1,49 @@
+% !TeX root = ../深度学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{9} % 保留原书章号。
+\chapter{卷积神经网络}
+\label{chap:dl-cnn}
+把图像展平后使用全连接层，会为不同位置学习互不相关的权重。若同一种局部模式在不同位置都可能出现，共享局部规则更符合任务结构。卷积网络把局部连接与权重共享直接写进模型。
+
+\section{从全连接到局部连接与权重共享}
+\emph{卷积神经网络（convolutional neural network, CNN）}在空间邻域中应用可学习核，并在不同位置复用核参数。一个宽 $k$ 的一维核可写成 $y_i=\sum_{u=0}^{k-1}w_ux_{i+u}$。它计算的是\emph{互相关（cross-correlation）}；数学卷积通常包含核索引翻转。深度学习习惯把这种不翻转的运算也称卷积，本书公式按互相关约定书写。
+
+局部性限制单层只读取邻域，共享权重限制各位置使用同一规则。全连接映射可以表示更多位置特定关系，卷积则减少独立参数，表达一种归纳偏置。若任务依赖绝对位置且未加入位置信息，过强共享可能不合适；结构选择必须联系数据语义。
+
+\section{卷积运算、通道与输出形状}
+令输入 $X_{c,i,j}$ 有 $C_{\mathrm{in}}$ 个通道，核 $W_{o,c,u,v}$ 的空间大小为 $k_h\times k_w$，输出通道为 $o$。以步幅一、无填充为例，
+\[
+Y_{o,i,j}=b_o+\sum_{c=1}^{C_{\mathrm{in}}}\sum_{u=0}^{k_h-1}\sum_{v=0}^{k_w-1}W_{o,c,u,v}X_{c,i+u,j+v}.
+\]
+每个输出通道都对输入通道求和，而不是让通道独立通过。总参数量为 $C_{\mathrm{out}}(C_{\mathrm{in}}k_hk_w+1)$，与输入空间大小无关。
+
+单轴输入长度为 $H$、核长为 $k$、两端各补 $p_0$ 个零、步幅为 $s\geq1$、膨胀率为 $r\geq1$ 时，有效核宽为 $r(k-1)+1$。可用的核起点从零开始，每次增加 $s$，不得超过 $H+2p_0-r(k-1)-1$，故
+\begin{equation}
+H_{\mathrm{out}}=\left\lfloor\frac{H+2p_0-r(k-1)-1}{s}\right\rfloor+1.
+\label{eq:dl-conv-shape}
+\end{equation}
+这里要求填充后输入至少能容纳一个有效核，二维沿两轴分别计算。非对称填充时应以两侧填充总数替换 $2p_0$。
+
+\section{感受野、池化与平移性质}
+\emph{感受野（receptive field）}是一个输出可能依赖的输入区域。对顺序堆叠层，令 $R_0=j_0=1$，其中 $R_l$ 是理论感受野宽度、$j_l$ 是相邻输出对应到原输入的间隔。核长 $k_l$、膨胀率 $r_l$、步幅 $s_l$ 给出 $R_l=R_{l-1}+(k_l-1)r_lj_{l-1}$、$j_l=s_lj_{l-1}$。这描述可能连接范围，不等于各输入对输出的实际影响相同。
+
+最大池化取窗口最大值，平均池化取均值；二者常用于下采样。无限网格上的步幅一卷积满足 $C(T_\Delta x)=T_\Delta C(x)$，其中 $T_\Delta$ 为整数平移，这称\emph{平移等变性（translation equivariance）}。把输入索引整体替换即可验证此式。有限边界填充和带步幅下采样可能破坏一般平移下的严格等变性。等变是输出随输入移动，不变则是输出保持不动，两者不同。
+
+\section{卷积层的学习与分类网络}
+卷积核参数在多个输出位置出现。记输出梯度为 $\Delta_{o,i,j}$，则上式中的核梯度为 $\partial\ell/\partial W_{o,c,u,v}=\sum_{i,j}\Delta_{o,i,j}X_{c,i+u,j+v}$；共享权重梯度按使用位置累加，偏置梯度为 $\sum_{i,j}\Delta_{o,i,j}$。输入梯度则把各输出贡献送回对应输入位置，仍是计算图的链式法则。
+
+分类网络可交替堆叠卷积、激活与下采样，最后展平接全连接头，或对每个通道作全局平均后分类。全局平均大幅减少头部参数，但也舍弃显式空间布局。普通稠密卷积乘加量约为 $H_{\mathrm{out}}W_{\mathrm{out}}C_{\mathrm{out}}C_{\mathrm{in}}k_hk_w$；激活存储另随批量与空间分辨率增长。参数少不等于运行快，实际延迟还受算子实现和数据移动影响。
+
+\section{例题与习题}
+\begin{example}[边缘差分核]
+输入为 $\left(\begin{smallmatrix}1&2&3\\4&5&6\\7&8&9\end{smallmatrix}\right)$，核为 $\left(\begin{smallmatrix}1&0\\0&-1\end{smallmatrix}\right)$，无偏置、无填充、步幅一。求输出。
+\end{example}
+\begin{solve}
+四个窗口分别计算 $1-5,2-6,4-8,5-9$，输出为 $\left(\begin{smallmatrix}-4&-4\\-4&-4\end{smallmatrix}\right)$。式\eqref{eq:dl-conv-shape}给出每轴长度 $3-2+1=2$。同一个核在每个位置计算相同方向的局部差分，这就是权重共享的具体含义。
+\end{solve}
+\begin{enumerate}
+\item 输入 $32\times32$、$3$ 通道，使用 $16$ 个 $3\times3$ 核、填充一、步幅二，求输出形状与含偏置参数量。
+\item 求两层 $3\times3$、步幅一卷积的理论感受野，再把第一层步幅改成二。
+\item 在相同图像划分和预算上比较 MLP 与 CNN，并测量图像平移前后的预测变化，解释边界处理的影响。
+\end{enumerate}
+

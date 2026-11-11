@@ -1,0 +1,429 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{15} % 保留原书章号。
+\chapter{主成分分析}
+\label{ch:lh-pca}
+
+当多个观测变量含有相近的变化趋势时，直接保留全部变量会掩盖数据的主要结构。\emph{主成分分析}（principal component analysis，PCA）用一组正交方向重新表达数据，并依次选取投影方差最大的方向，以少量线性组合概括原变量的主要变化。本章中的“信息保留”特指\emph{方差的保留}，并非信息论中的熵，也不保证保留所有与分类、预测有关的信息。其核心问题是：在给定维数的线性子空间中，怎样使投影后的总方差最大，等价地，使重构的均方误差最小？
+
+本章按教材的总体主成分分析与样本主成分分析两部分展开。前者以随机向量的均值和协方差为已知量，给出主成分的定义、最优化性质和解释方法；后者用有限数据估计这些量，再通过特征值分解或奇异值分解计算主成分。为区分随机对象与数据，以下用 $X=(X_1,\ldots,X_m)^{\mathsf T}$ 表示随机向量，$x_j\in\mathbb R^m$ 表示第 $j$ 个观测值，$\mathbf X=(x_1,\ldots,x_n)\in\mathbb R^{m\times n}$ 表示以样本为列的数据矩阵。$I_d$ 表示 $d$ 阶单位矩阵，$\operatorname{tr}$ 表示矩阵的迹，$\operatorname{Cov}$ 与 $\operatorname{Var}$ 分别表示协方差与方差。
+
+\section{总体主成分分析}
+\label{sec:lh-pca-population}
+
+\subsection{基本想法}
+\label{subsec:lh-pca-idea}
+
+设 $\mathbb E\|X\|_2^2<\infty$，记均值向量与协方差矩阵为
+\begin{equation}
+\mu=\mathbb E X,\qquad
+\Sigma=\mathbb E\bigl[(X-\mu)(X-\mu)^{\mathsf T}\bigr]
+=(\sigma_{ij})_{m\times m}.
+\label{eq:lh-pca-population-cov}
+\end{equation}
+矩阵 $\Sigma$ 对称半正定，因为对任意 $a\in\mathbb R^m$，$a^{\mathsf T}\Sigma a=\operatorname{Var}(a^{\mathsf T}X)\geq0$。将数据中心移到原点后，沿单位方向 $a$ 的坐标为 $a^{\mathsf T}(X-\mu)$，其方差就是这个二次型。若不约束 $\|a\|_2$，把 $a$ 放大即可任意放大正方差，因而单位长度约束是比较方向所必需的。
+
+以二维数据为例，若点云大致沿某条直线延展，则沿这条直线的投影变化大，沿垂直方向的变化小。把前者作为第一坐标轴、后者作为第二坐标轴，便把主要变化与较小变化分开；只保留第一坐标，就得到一维近似。对于任意单位向量 $a$ 和中心化的观测值 $z$，勾股分解给出
+\begin{equation}
+\|z\|_2^2=(a^{\mathsf T}z)^2
++\|z-aa^{\mathsf T}z\|_2^2.
+\label{eq:lh-pca-pythagoras}
+\end{equation}
+因此，在样本已经中心化时，最大化投影坐标的平方和等价于最小化点到该直线的距离平方和；取期望后，同一关系把投影方差最大化与均方重构误差最小化联系起来。单个坐标的平方只是对方差的一项贡献，方差还须取期望或按相应分母作样本汇总。
+
+\emph[caution]{保留全部坐标的正交变换不改变总方差；PCA 优化的是前若干个坐标保留的方差。}在 $m$ 维空间中使用完整的正交基，仅仅改变坐标表示，没有降维；只有舍弃部分坐标后，所选方向才决定损失多少方差。中心化是这一直观与方差相对应的前提，而把各变量进一步缩放到单位方差是另一项选择，将在第~\ref{subsec:lh-pca-standardized-population} 小节讨论。
+
+\subsection{定义和导出}
+\label{subsec:lh-pca-definition}
+
+对于 $Y_k=a_k^{\mathsf T}(X-\mu)$，有
+\begin{equation}
+\mathbb E Y_k=0,\qquad
+\operatorname{Var}(Y_k)=a_k^{\mathsf T}\Sigma a_k,\qquad
+\operatorname{Cov}(Y_j,Y_k)=a_j^{\mathsf T}\Sigma a_k.
+\label{eq:lh-pca-linear-cov}
+\end{equation}
+教材也使用不中心化的形式 $a_k^{\mathsf T}X$，其均值为 $a_k^{\mathsf T}\mu$，与这里的形式只相差常数，因而求出的方向、方差与协方差相同。以下统一使用中心化的主成分，使降维和重构公式中的平移明确可见。
+
+\begin{definition}[总体主成分]
+\label{def:lh-pca-population}
+对满足式~\eqref{eq:lh-pca-population-cov} 的随机向量 $X$，依次选择单位向量 $a_1,\ldots,a_m$，使
+\begin{equation}
+a_k\in\mathop{\arg\max}_{a\in\mathbb R^m}
+\left\{a^{\mathsf T}\Sigma a:
+a^{\mathsf T}a=1,\quad a^{\mathsf T}a_j=0\ (1\leq j<k)\right\}.
+\label{eq:lh-pca-sequential}
+\end{equation}
+称 $a_k$ 为第 $k$ 个\emph{主成分方向}，称随机变量 $Y_k=a_k^{\mathsf T}(X-\mu)$ 为第 $k$ 个\emph{总体主成分}（population principal component）。记 $A=(a_1,\ldots,a_m)$，则 $A^{\mathsf T}A=AA^{\mathsf T}=I_m$，完整主成分向量为 $Y=A^{\mathsf T}(X-\mu)$。
+\end{definition}
+
+这里显式要求方向两两正交，以涵盖奇异协方差矩阵的情况。教材以“单位系数且主成分互不相关”逐次定义：当已选方向满足 $\Sigma a_j=\lambda_j a_j$ 且 $\lambda_j>0$ 时，$\operatorname{Cov}(a^{\mathsf T}X,a_j^{\mathsf T}X)=\lambda_j a^{\mathsf T}a_j=0$ 正好等价于方向正交；若 $\lambda_j=0$，不相关约束自动成立，便不能据此推出正交。这时仍可在零特征空间内补成标准正交基。\emph[caution]{各系数向量长度为 $1$ 本身并不保证它们构成正交矩阵。}
+
+\begin{theorem}[主成分与协方差矩阵的谱分解]
+\label{thm:lh-pca-eigen}
+设 $\Sigma$ 的特征值按 $\lambda_1\geq\cdots\geq\lambda_m\geq0$ 排列，$a_1,\ldots,a_m$ 是对应的一组标准正交特征向量，则它们满足定义~\ref{def:lh-pca-population}，且
+\begin{equation}
+\operatorname{Var}(Y_k)=\lambda_k,\qquad
+\Sigma=A\Lambda A^{\mathsf T},\qquad
+\Lambda=\operatorname{diag}(\lambda_1,\ldots,\lambda_m).
+\label{eq:lh-pca-spectral}
+\end{equation}
+反之，逐次最优化得到的方向可组成这样一组按特征值排序的标准正交特征向量。
+\end{theorem}
+\begin{proof}
+由实对称矩阵的谱定理，存在上述标准正交特征向量。将任意单位向量写成 $a=\sum_{j=1}^m c_j a_j$，则
+\[
+\sum_{j=1}^m c_j^2=1,\qquad
+a^{\mathsf T}\Sigma a=\sum_{j=1}^m\lambda_j c_j^2
+\leq\lambda_1.
+\]
+取 $a=a_1$ 达到上界，故它给出第一主成分。若还要求 $a\perp a_1,\ldots,a_{k-1}$，则 $c_1=\cdots=c_{k-1}=0$，上式的最大值变为 $\lambda_k$，取 $a=a_k$ 达到。等号成立时，$a$ 只能在尚未选取的、特征值为 $\lambda_k$ 的特征子空间内有非零分量，因此也是对应特征向量；逐次应用即得反向结论。最后，$a_k^{\mathsf T}\Sigma a_k=\lambda_k$，而 $\Sigma A=A\Lambda$ 与 $AA^{\mathsf T}=I_m$ 给出谱分解。
+\end{proof}
+
+从约束优化角度看，第一步的拉格朗日函数为 $L(a,\lambda)=a^{\mathsf T}\Sigma a-\lambda(a^{\mathsf T}a-1)$，驻点满足 $\Sigma a=\lambda a$。这说明候选方向是特征向量；要断定最大值对应最大特征值，还需要证明中的谱展开比较，而不能仅靠驻点方程。后续步骤是在已选方向的正交补中重复同一比较。
+
+方向的符号没有唯一性：$a_k$ 与 $-a_k$ 都有效，只使主成分坐标整体变号。若特征值重合，相应特征子空间内任意标准正交基都可采用。对 $1\leq q<m$，若 $\lambda_q>\lambda_{q+1}$，前 $q$ 个方向张成的子空间唯一，但其中的基仍可能因重特征值而不唯一；若截断位置满足 $\lambda_q=\lambda_{q+1}$，最优 $q$ 维子空间也可能不唯一。零特征值对应的中心化主成分方差为零，因而几乎处处等于零，不携带随机变化。
+
+\subsection{主要性质}
+\label{subsec:lh-pca-properties}
+
+由式~\eqref{eq:lh-pca-spectral} 可直接求出完整主成分的协方差和总方差：
+\begin{equation}
+\operatorname{Cov}(Y)=A^{\mathsf T}\Sigma A=\Lambda,\qquad
+\sum_{k=1}^m\operatorname{Var}(Y_k)
+=\sum_{k=1}^m\lambda_k
+=\operatorname{tr}(\Sigma)=\sum_{i=1}^m\sigma_{ii}.
+\label{eq:lh-pca-trace}
+\end{equation}
+后一等式也可由 $\operatorname{tr}(A\Lambda A^{\mathsf T})=\operatorname{tr}(\Lambda A^{\mathsf T}A)$ 得到。由于 $X-\mu=AY$，完整变换保留全部数据；前 $q$ 个主成分只保留这一展开的前 $q$ 项。
+
+主成分之间的零协方差表示\emph{互不相关}（uncorrelated），一般不表示\emph{相互独立}（independent）。例如，令 $U$ 以相同概率取 $-1,0,1$，取 $X_1=U$、$X_2=U^2-2/3$，则两者均值为零，方差分别为 $2/3$、$2/9$，且 $\operatorname{Cov}(X_1,X_2)=\mathbb E U^3=0$。协方差矩阵已经对角化，它们本身即可作为主成分，但 $X_2$ 由 $X_1$ 决定，且两者都不是常量，所以并不独立。若 $X$ 联合服从多元正态分布，线性变换后仍联合正态，此时对角协方差才可推出各主成分相互独立。
+
+\begin{definition}[因子负荷量]
+\label{def:lh-pca-loading}
+当 $\sigma_{ii}>0$ 且 $\lambda_k>0$ 时，称主成分 $Y_k$ 与原变量 $X_i$ 的相关系数为\emph{因子负荷量}（factor loading），记为
+\begin{equation}
+\ell_{ik}=\operatorname{Corr}(X_i,Y_k)
+=\frac{\sqrt{\lambda_k}\,a_{ik}}{\sqrt{\sigma_{ii}}},
+\qquad a_k=(a_{1k},\ldots,a_{mk})^{\mathsf T}.
+\label{eq:lh-pca-loading}
+\end{equation}
+\end{definition}
+
+为验证这一公式，令 $e_i$ 为第 $i$ 个标准基向量，则 $\operatorname{Cov}(X_i,Y_k)=e_i^{\mathsf T}\Sigma a_k=\lambda_k a_{ik}$；除以两个标准差即可。方向系数 $a_{ik}$ 与相关系数 $\ell_{ik}$ 是不同的量，不能混用；“负荷”在不同文献中也可能指其他经过缩放的系数，本章沿用教材的相关系数定义。若原变量或主成分方差为零，其相关系数无定义，不把零方差主成分代入式~\eqref{eq:lh-pca-loading}。
+
+若各 $\sigma_{ii}>0$，并令 $r=\operatorname{rank}(\Sigma)$，则正方差主成分满足
+\begin{equation}
+\sum_{i=1}^m\sigma_{ii}\ell_{ik}^2=\lambda_k
+\quad(1\leq k\leq r),\qquad
+\sum_{k=1}^r\ell_{ik}^2=1
+\quad(1\leq i\leq m).
+\label{eq:lh-pca-loading-identities}
+\end{equation}
+第一式使用 $\sum_i a_{ik}^2=1$；第二式使用 $\sigma_{ii}=\sum_{k=1}^r\lambda_k a_{ik}^2$。这些恒等式说明，全部非零主成分可以解释每个变量的全部方差，但保留其中一部分时，不同变量的保留程度可能相差很大。
+
+\subsection{主成分的个数}
+\label{subsec:lh-pca-component-count}
+
+逐次最大化方差还需回答一个整体问题：前 $q$ 个主成分是否在所有 $q$ 维正交投影中保留最多方差？下面的结论同时解释应保留哪些方向、应舍弃哪些方向。
+
+\begin{theorem}[给定维数下的方差最优化]
+\label{thm:lh-pca-variance-optimal}
+设 $\Sigma$ 的特征值和方向如定理~\ref{thm:lh-pca-eigen}，$1\leq q\leq m$。对任意 $B\in\mathbb R^{m\times q}$ 且 $B^{\mathsf T}B=I_q$，有
+\begin{equation}
+\sum_{j=m-q+1}^m\lambda_j
+\leq\operatorname{tr}(B^{\mathsf T}\Sigma B)
+\leq\sum_{j=1}^q\lambda_j.
+\label{eq:lh-pca-variance-bounds}
+\end{equation}
+取最后 $q$ 个特征向量达到左端，取 $A_q=(a_1,\ldots,a_q)$ 达到右端。
+\end{theorem}
+\begin{proof}
+令 $C=A^{\mathsf T}B$，记第 $j$ 行的平方范数为 $w_j=\sum_{k=1}^q c_{jk}^2$。由 $C^{\mathsf T}C=I_q$，有 $\sum_jw_j=q$；又 $w_j=\|B^{\mathsf T}a_j\|_2^2\leq\|a_j\|_2^2=1$，故 $0\leq w_j\leq1$。于是
+\[
+\operatorname{tr}(B^{\mathsf T}\Sigma B)=\sum_{j=1}^m\lambda_jw_j.
+\]
+当 $q<m$ 时，由 $\sum_{j\leq q}(1-w_j)=\sum_{j>q}w_j$，得到
+\[
+\sum_{j=1}^q\lambda_j-\sum_{j=1}^m\lambda_jw_j
+\geq\lambda_q\sum_{j\leq q}(1-w_j)
+-\lambda_q\sum_{j>q}w_j=0.
+\]
+这一上界论证只用到了特征值的排序，故也可应用于 $-\Sigma$，其降序特征值为 $-\lambda_m,\ldots,-\lambda_1$，得到 $-\operatorname{tr}(B^{\mathsf T}\Sigma B)\leq-\sum_{j=m-q+1}^m\lambda_j$，即所需下界。$q=m$ 时两个界均等于 $\operatorname{tr}(\Sigma)$。取相应特征向量时，$w_j$ 在所选位置为 $1$、其余为 $0$，从而达到相应界。
+\end{proof}
+
+对中心化向量的 $q$ 维投影重构为 $\widehat X_q=\mu+A_qA_q^{\mathsf T}(X-\mu)$。更一般地，对任意上述 $B$，$P=BB^{\mathsf T}$ 是正交投影矩阵，满足 $P^{\mathsf T}=P$、$P^2=P$，因此
+\begin{align}
+\mathbb E\|X-\mu-BB^{\mathsf T}(X-\mu)\|_2^2
+&=\operatorname{tr}\bigl((I_m-P)\Sigma\bigr)\notag\\
+&=\operatorname{tr}(\Sigma)-\operatorname{tr}(B^{\mathsf T}\Sigma B).
+\label{eq:lh-pca-population-reconstruction}
+\end{align}
+这里使用 $\mathbb E\|M(X-\mu)\|_2^2=\operatorname{tr}(M\Sigma M^{\mathsf T})$ 和迹的循环性质，所需期望因有限二阶矩而存在。由定理~\ref{thm:lh-pca-variance-optimal}，PCA 使这一误差最小，最小值为 $\sum_{j=q+1}^m\lambda_j$。所以最大投影方差与最小均方重构误差是同一优化问题的两种表达；该结论针对欧氏距离下的正交投影，并不声称任意非线性压缩都不能更好。
+
+\begin{definition}[方差贡献率与累计方差贡献率]
+\label{def:lh-pca-explained-variance}
+若 $\operatorname{tr}(\Sigma)>0$，第 $k$ 个主成分的\emph{方差贡献率}（explained variance ratio）与前 $q$ 个主成分的\emph{累计方差贡献率}分别为
+\begin{equation}
+\eta_k=\frac{\lambda_k}{\sum_{j=1}^m\lambda_j},\qquad
+C_q=\sum_{k=1}^q\eta_k
+=\frac{\sum_{k=1}^q\lambda_k}{\operatorname{tr}(\Sigma)}.
+\label{eq:lh-pca-explained-variance}
+\end{equation}
+\end{definition}
+
+给定阈值 $\tau\in(0,1]$，可取满足 $C_q\geq\tau$ 的最小 $q$。教材举出的 $70\%$ 或 $80\%$ 是选择阈值的例子，并无普遍适用的固定标准。由式~\eqref{eq:lh-pca-population-reconstruction}，$1-C_q$ 正是最优重构误差占总方差的比例；若总方差为零，所有变量都几乎处处等于均值，贡献率的分母为零，应直接按常量数据处理。
+
+累计贡献率概括全部变量，不能说明某一个变量保留得是否充分。对 $\sigma_{ii}>0$，定义前 $q$ 个主成分对变量 $X_i$ 的贡献率为
+\begin{equation}
+v_i(q)=\frac{\sum_{k=1}^q\lambda_k a_{ik}^2}{\sigma_{ii}}
+=\sum_{\substack{1\leq k\leq q\\\lambda_k>0}}\ell_{ik}^2,
+\qquad 0\leq v_i(q)\leq1.
+\label{eq:lh-pca-variable-contribution}
+\end{equation}
+事实上，$\widehat X_{i,q}-\mu_i=\sum_{k=1}^qa_{ik}Y_k$，各 $Y_k$ 互不相关，所以重构变量的方差为分子，而残差方差为 $\sigma_{ii}(1-v_i(q))$。这些方向上的残差与已保留的主成分也互不相关，故该重构同时是用这些主成分作线性最小二乘预测的结果。因而 $v_i(q)$ 可解释为线性回归的决定系数，即复相关系数的平方；在 $q$ 包含零方差方向时，只使用正方差主成分定义复相关。这一解释涉及线性可解释方差，不声称等于条件均值所解释的全部非线性变化。
+
+\subsection{规范化变量的总体主成分}
+\label{subsec:lh-pca-standardized-population}
+
+若变量的量纲或尺度不同，原始协方差会使方差较大的变量占据较大权重。假设各 $\sigma_{ii}>0$，令 $D=\operatorname{diag}(\sqrt{\sigma_{11}},\ldots,\sqrt{\sigma_{mm}})$，作\emph{标准化}（standardization，教材称“规范化”）
+\begin{equation}
+Z=D^{-1}(X-\mu),\qquad
+Z_i=\frac{X_i-\mu_i}{\sqrt{\sigma_{ii}}},\qquad
+R=\operatorname{Cov}(Z)=D^{-1}\Sigma D^{-1}.
+\label{eq:lh-pca-standardization}
+\end{equation}
+$R$ 是原变量的相关矩阵，主对角元均为 $1$。对 $R$ 作主成分分析称为相关矩阵 PCA，对 $\Sigma$ 作分析称为协方差矩阵 PCA；两者优化的是不同尺度下的方差，结果通常不同。若某变量方差为零，不能除以其标准差，应先移除该常量变量，并在重构时补回其常量值。
+
+设 $R$ 的特征值为 $\theta_1\geq\cdots\geq\theta_m\geq0$，对应标准正交特征向量为 $b_1,\ldots,b_m$，$b_k=(b_{1k},\ldots,b_{mk})^{\mathsf T}$，标准化后的主成分为 $W_k=b_k^{\mathsf T}Z$。将前述结论中的 $\Sigma$ 换成 $R$，便得到
+\begin{equation}
+\sum_{k=1}^m\theta_k=\operatorname{tr}(R)=m,\qquad
+\eta_k^{(R)}=\frac{\theta_k}{m},\qquad
+\operatorname{Corr}(Z_i,W_k)=\sqrt{\theta_k}\,b_{ik}
+\quad(\theta_k>0).
+\label{eq:lh-pca-standardized-properties}
+\end{equation}
+因此，对正特征值有 $\sum_i\operatorname{Corr}(Z_i,W_k)^2=\theta_k$，对每个变量有 $\sum_{k:\theta_k>0}\operatorname{Corr}(Z_i,W_k)^2=1$。由于正比例缩放和平移不改变相关系数，同一负荷量也等于 $\operatorname{Corr}(X_i,W_k)$。
+
+标准化不只是消去量纲的记号变换。例如 $\Sigma=\operatorname{diag}(100,1)$ 时，协方差 PCA 唯一的第一主轴为第一个坐标方向，保留方差比例为 $100/101$；标准化后 $R=I_2$，所有单位方向的方差均为 $1$，任何第一主轴的贡献率都为 $1/2$。前者重视原尺度上的绝对变化，后者使每个变量的边际方差具有相同权重。若把标准化空间的重构变回原单位，它最小化的是 $\|D^{-1}(X-\widehat X)\|_2^2$ 的期望，而非一般意义下的原单位欧氏误差。因此是否标准化应由变量含义和分析目标决定，不能把两种结果直接当作同一个最优解。
+
+\section{样本主成分分析}
+\label{sec:lh-pca-sample}
+
+\subsection{样本主成分的定义和性质}
+\label{subsec:lh-pca-sample-definition}
+
+总体协方差通常未知，需要用观测数据代替。给定 $n\geq2$ 个 $m$ 维样本 $x_1,\ldots,x_n$，仍以样本为列，定义
+\begin{equation}
+\mathbf X=(x_1,\ldots,x_n),\qquad
+\bar x=\frac1n\sum_{j=1}^n x_j,\qquad
+\mathbf X_c=\mathbf X-\bar x\mathbf 1_n^{\mathsf T},\qquad
+S=\frac1{n-1}\mathbf X_c\mathbf X_c^{\mathsf T}.
+\label{eq:lh-pca-sample-cov}
+\end{equation}
+这里 $\mathbf 1_n$ 为全部分量等于 $1$ 的 $n$ 维向量，$x_{ij}$ 为 $\mathbf X$ 第 $i$ 行第 $j$ 列元素，即第 $j$ 个样本的第 $i$ 个变量，$\bar x_i=n^{-1}\sum_jx_{ij}$。样本协方差矩阵 $S=(s_{i\ell})_{m\times m}$ 的元素为
+\[
+s_{i\ell}=\frac1{n-1}\sum_{j=1}^n(x_{ij}-\bar x_i)(x_{\ell j}-\bar x_\ell).
+\]
+对任意方向 $a,b\in\mathbb R^m$，样本得分 $a^{\mathsf T}x_j$ 的均值为 $a^{\mathsf T}\bar x$，样本方差为 $a^{\mathsf T}Sa$；两组得分的样本协方差为 $a^{\mathsf T}Sb$。这些都是给定数据后的代数等式，无须先假设样本服从正态分布。
+
+\begin{definition}[样本主成分]
+\label{def:lh-pca-sample}
+将定义~\ref{def:lh-pca-population} 中的 $\Sigma$ 换成样本协方差矩阵 $S$，逐次最大化 $a^{\mathsf T}Sa$，所得标准正交方向称为\emph{样本主成分方向}。若其前 $q$ 个方向组成 $\widehat A_q$，则
+\begin{equation}
+\mathbf Y_q=\widehat A_q^{\mathsf T}\mathbf X_c\in\mathbb R^{q\times n}
+\label{eq:lh-pca-sample-scores}
+\end{equation}
+称为主成分\emph{得分矩阵}（score matrix），第 $j$ 列为样本 $x_j$ 的 $q$ 维表示，第 $k$ 行为全部样本在第 $k$ 个主成分上的得分。
+\end{definition}
+
+系数向量描述投影规则，得分是把具体样本代入后得到的坐标；二者也不等于因子负荷量。由定理~\ref{thm:lh-pca-eigen}，$\widehat A_q$ 的列就是 $S$ 的前 $q$ 个标准正交特征向量。若相应特征值为 $\widehat\lambda_1\geq\cdots\geq\widehat\lambda_q$，则
+\begin{equation}
+\frac1{n-1}\mathbf Y_q\mathbf Y_q^{\mathsf T}
+=\operatorname{diag}(\widehat\lambda_1,\ldots,\widehat\lambda_q).
+\label{eq:lh-pca-score-cov}
+\end{equation}
+总体部分关于迹、方差贡献率、负荷量与重构误差的代数结论都可用 $S$ 和样本统计量重写，但样本得分互不相关并不保证用这些估计方向变换未来观测时，总体协方差也恰好对角化。
+
+中心化矩阵满足 $\mathbf X_c\mathbf 1_n=0$，故
+\begin{equation}
+\operatorname{rank}(S)=\operatorname{rank}(\mathbf X_c)
+\leq\min\{m,n-1\}.
+\label{eq:lh-pca-sample-rank}
+\end{equation}
+因此当 $m\geq n$ 时，样本协方差必然奇异，至多只有 $n-1$ 个正方差主成分。若秩为 $r$，保留前 $r$ 个主成分就能精确重构当前中心化样本，但这不等于证明总体只具有 $r$ 个变化方向，也不意味着这些方向都能稳定推广到新数据。
+
+\begin{proposition}[样本协方差的无偏性]
+\label{prop:lh-pca-unbiased-cov}
+设随机样本 $X^{(1)},\ldots,X^{(n)}$ 独立同分布，具有有限二阶矩、均值 $\mu$ 和协方差 $\Sigma$，以随机样本构造式~\eqref{eq:lh-pca-sample-cov} 中的 $S$，则 $\mathbb E S=\Sigma$。
+\end{proposition}
+\begin{proof}
+令 $\bar X=n^{-1}\sum_jX^{(j)}$，对每组样本都有
+\[
+\sum_{j=1}^n(X^{(j)}-\bar X)(X^{(j)}-\bar X)^{\mathsf T}
+=\sum_{j=1}^n(X^{(j)}-\mu)(X^{(j)}-\mu)^{\mathsf T}
+-n(\bar X-\mu)(\bar X-\mu)^{\mathsf T}.
+\]
+由独立性，$\operatorname{Cov}(\bar X)=\Sigma/n$。取期望，右端为 $n\Sigma-n(\Sigma/n)=(n-1)\Sigma$，再除以 $n-1$ 即得结论。
+\end{proof}
+
+这个结论解释了样本协方差中的分母 $n-1$，也给出教材相应习题的证明。若统一改用 $n$ 作分母，协方差只乘以 $(n-1)/n$，因而方向与方差贡献率不变，但特征值及其与奇异值的换算必须同步改变。\emph[caution]{样本协方差的无偏性不能直接传递给样本相关系数、特征值或特征向量。}相关系数含随机标准差的比值，其期望一般不等于总体相关系数；讨论这些量的极大似然估计还需另给分布模型，不能仅凭 PCA 的代数分解得出。
+
+对所有 $s_{ii}>0$ 的变量，令 $D_s=\operatorname{diag}(\sqrt{s_{11}},\ldots,\sqrt{s_{mm}})$，样本标准化矩阵与样本相关矩阵为
+\begin{equation}
+\mathbf Z=D_s^{-1}\mathbf X_c,\qquad
+R_s=D_s^{-1}SD_s^{-1}
+=\frac1{n-1}\mathbf Z\mathbf Z^{\mathsf T}.
+\label{eq:lh-pca-sample-standardization}
+\end{equation}
+$\mathbf Z$ 的每一行均值为零、样本方差为 $1$，所以 $R_s$ 的对角元为 $1$、迹为 $m$。相关矩阵 PCA 对 $R_s$ 求特征向量，并用它们左乘 $\mathbf Z$ 得到得分；协方差矩阵 PCA 则对 $S$ 求特征向量，并左乘 $\mathbf X_c$。不能把其中一种矩阵的特征向量与另一种尺度的数据混合使用。
+
+\subsection{相关矩阵的特征值分解算法}
+\label{subsec:lh-pca-eigendecomposition}
+
+教材的传统算法先标准化，再分解样本相关矩阵。为同时说明两种尺度，以下用 $\mathbf M$ 表示选定的中心化分析矩阵：相关矩阵 PCA 取 $\mathbf M=\mathbf Z$，协方差矩阵 PCA 取 $\mathbf M=\mathbf X_c$。记
+\[
+C_M=\frac1{n-1}\mathbf M\mathbf M^{\mathsf T}
+=\widehat A\operatorname{diag}(\gamma_1,\ldots,\gamma_m)\widehat A^{\mathsf T},
+\qquad\gamma_1\geq\cdots\geq\gamma_m\geq0.
+\]
+这里 $\widehat A=(\widehat a_1,\ldots,\widehat a_m)$ 为标准正交特征向量矩阵，$\gamma_i$ 为所选尺度下的样本主成分方差；取相关矩阵时 $\sum_i\gamma_i=m$。算法的输入为 $\mathbf X\in\mathbb R^{m\times n}$、尺度选择，以及目标维数 $q$ 或累计贡献率阈值 $\tau$；输出包括预处理参数、投影方向、主成分得分与方差贡献率，具体过程为：
+\begin{enumerate}
+\item 计算 $\bar x$ 和 $\mathbf X_c$；若选择相关矩阵 PCA，先移除零样本方差变量，再计算 $D_s$ 与 $\mathbf Z$，确定 $\mathbf M$。此后 $m$ 指保留的变量数。
+\item 形成 $C_M$，使用实对称矩阵的特征值分解，按降序同步排列特征值与特征向量。理论上求解 $\det(C_M-\gamma I_m)=0$ 可刻画特征值，数值计算不必显式展开特征多项式。
+\item 若总方差 $\operatorname{tr}(C_M)=0$，返回常量数据结果；否则计算 $\eta_i=\gamma_i/\operatorname{tr}(C_M)$。按给定 $q$ 截断，或取累计贡献率首次达到 $\tau$ 的维数，通常只保留正特征值对应的方向。
+\item 令 $\widehat A_q=(\widehat a_1,\ldots,\widehat a_q)$，计算 $\mathbf Y_q=\widehat A_q^{\mathsf T}\mathbf M$。如需解释主成分，再按式~\eqref{eq:lh-pca-loading} 与式~\eqref{eq:lh-pca-variable-contribution} 的样本版本计算负荷量和各变量贡献率；相关矩阵情形的负荷量为 $\sqrt{\gamma_k}\,\widehat a_{ik}$。
+\item 保存 $\bar x$、必要的 $D_s$、保留变量的索引与 $\widehat A_q$。新观测 $x_{\mathrm{new}}$ 必须沿用这些参数：协方差 PCA 的得分为 $\widehat A_q^{\mathsf T}(x_{\mathrm{new}}-\bar x)$，相关矩阵 PCA 的得分为 $\widehat A_q^{\mathsf T}D_s^{-1}(x_{\mathrm{new}}-\bar x)$，其中先取已保留变量的坐标。
+\end{enumerate}
+这是矩阵分解算法，取得分解并完成截断后即可输出，无须另设类似梯度下降的外层更新过程；若底层数值分解未达到容差，应报告数值求解未完成。稠密情况下，形成 $C_M$ 的计算量为 $O(m^2n)$，完整特征分解约为 $O(m^3)$，形成得分为 $O(qmn)$；除存储数据外，协方差矩阵需 $O(m^2)$ 存储。若用于后续监督学习，均值、标准差、方向与维数选择都应在训练数据上确定，再用于验证或测试数据，避免引入测试数据的信息。
+
+\begin{example}
+\label{ex:lh-pca-four-courses}
+教材例题给出语文、外语、数学、物理四门课程标准化成绩的样本相关矩阵
+\begin{equation}
+R_s=\begin{pmatrix}
+1&0.44&0.29&0.33\\
+0.44&1&0.35&0.32\\
+0.29&0.35&1&0.60\\
+0.33&0.32&0.60&1
+\end{pmatrix}.
+\label{eq:lh-pca-course-correlation}
+\end{equation}
+要求累计方差贡献率至少为 $75\%$，求保留的主成分并解释其含义。
+\end{example}
+\begin{solve}
+直接按式~\eqref{eq:lh-pca-course-correlation} 所列矩阵重新计算，四个特征值约为 $2.170165,\ 0.871005,\ 0.566179,\ 0.392650$，其和为 $4$。所以各方差贡献率约为 $0.542541,\ 0.217751,\ 0.141545,\ 0.098163$。第一主成分尚未达到阈值，前两个的累计贡献率约为 $0.760293$，故取 $q=2$。这里特征值表示主成分方差，贡献率还必须除以总方差 $4$。
+
+记四门课程标准化后的取值为 $z_1,z_2,z_3,z_4$，选择第一方向系数均为正、第二方向语文系数为正的一组符号，得到得分公式
+\begin{align*}
+y_1&\approx0.4599z_1+0.4763z_2+0.5287z_3+0.5311z_4,\\
+y_2&\approx0.5679z_1+0.4909z_2-0.4756z_3-0.4586z_4.
+\end{align*}
+第一主成分把四门课程同向组合，可解释为一种综合成绩方向；第二主成分把两门语言课程与数学、物理作反向组合，可解释为文理成绩的相对差异。整体改变某一方向的符号不会改变它表达的相对关系，也不会改变所保留的子空间。
+
+按未舍入的特征值和特征向量计算，相关负荷量与各变量贡献率见表~\ref{tab:lh-pca-course-loadings}。前两个主成分保留约 $76\%$ 的总方差，但对各门课程保留的方差比例分别约为 $74\%$、$70\%$、$80\%$、$80\%$。负荷量说明变量与主成分的相关关系，不能仅凭其大小断言某门课程具有因果意义上的重要性。
+\begin{table}
+\centering
+\caption{四门课程的前两个主成分负荷量与变量贡献率}
+\label{tab:lh-pca-course-loadings}
+\begin{tabular}{lrrrr}
+\toprule
+项目 & 语文 & 外语 & 数学 & 物理\\
+\midrule
+$\ell_{i1}$ & $0.6775$ & $0.7017$ & $0.7789$ & $0.7823$\\
+$\ell_{i2}$ & $0.5300$ & $0.4582$ & $-0.4438$ & $-0.4280$\\
+$v_i(2)$ & $0.7399$ & $0.7023$ & $0.8037$ & $0.7953$\\
+\bottomrule
+\end{tabular}
+\end{table}
+本例系数、负荷量与贡献率统一由题给相关矩阵计算，部分数值与教材表中的近似值不同。由于只给出了相关矩阵而没有逐人的原始成绩，能够确定投影规则及其方差性质，不能据此还原每个学生的主成分得分。
+\end{solve}
+
+\subsection{数据矩阵的奇异值分解算法}
+\label{subsec:lh-pca-svd}
+
+形成协方差矩阵并非计算主成分的必要步骤。设选定尺度下的中心化矩阵 $\mathbf M\in\mathbb R^{m\times n}$ 的秩为 $r>0$，其\emph{紧致奇异值分解}（compact singular value decomposition）为
+\begin{equation}
+\mathbf M=U_r\Delta_rV_r^{\mathsf T},\qquad
+\Delta_r=\operatorname{diag}(d_1,\ldots,d_r),\qquad
+d_1\geq\cdots\geq d_r>0,
+\label{eq:lh-pca-data-svd}
+\end{equation}
+其中 $U_r\in\mathbb R^{m\times r}$、$V_r\in\mathbb R^{n\times r}$ 的列分别标准正交。于是
+\begin{equation}
+C_M=\frac1{n-1}\mathbf M\mathbf M^{\mathsf T}
+=U_r\operatorname{diag}\left(\frac{d_1^2}{n-1},\ldots,
+\frac{d_r^2}{n-1}\right)U_r^{\mathsf T}.
+\label{eq:lh-pca-svd-covariance}
+\end{equation}
+因而\emph{以样本为列时，直接分解数据矩阵应取左奇异向量作为主成分方向}，主成分方差为 $\gamma_k=d_k^2/(n-1)$，其余特征值为零。对于 $1\leq q\leq r$，记 $U_q,V_q$ 为前 $q$ 列，$\Delta_q=\operatorname{diag}(d_1,\ldots,d_q)$，则
+\begin{equation}
+\widehat A_q=U_q,\qquad
+\mathbf Y_q=U_q^{\mathsf T}\mathbf M=\Delta_qV_q^{\mathsf T},\qquad
+\widehat{\mathbf M}_q=U_q\mathbf Y_q
+=U_q\Delta_qV_q^{\mathsf T}.
+\label{eq:lh-pca-svd-scores}
+\end{equation}
+方向矩阵为 $m\times q$，得分矩阵为 $q\times n$，重构矩阵仍为 $m\times n$，这三个维度也能帮助识别转置错误。
+
+教材算法先将数据转置并缩放，定义
+\begin{equation}
+\mathbf T=\frac1{\sqrt{n-1}}\mathbf M^{\mathsf T}
+\in\mathbb R^{n\times m},\qquad
+\mathbf T^{\mathsf T}\mathbf T=C_M.
+\label{eq:lh-pca-transposed-data}
+\end{equation}
+此时 $\mathbf T$ 的每一列对应一个变量，该列在 $n$ 个样本上的均值为零。若 $\mathbf T=\widetilde U_r\widetilde\Delta_r\widetilde V_r^{\mathsf T}$，则应取其\emph{右奇异向量} $\widetilde V_r\in\mathbb R^{m\times r}$ 作为方向。可选择 $\widetilde U_r=V_r$、$\widetilde V_r=U_r$、$\widetilde\Delta_r=\Delta_r/\sqrt{n-1}$；若单独求解两次分解，符号或重奇异值子空间内的基可能不同，但对应子空间相同。记 $\widetilde\Delta_r$ 的对角元为 $s_1\geq\cdots\geq s_r>0$，便有
+\begin{equation}
+\gamma_k=s_k^2,\qquad
+\mathbf Y_q=\widetilde V_q^{\mathsf T}\mathbf M
+=\sqrt{n-1}\,\widetilde\Delta_q\widetilde U_q^{\mathsf T}.
+\label{eq:lh-pca-transposed-scores}
+\end{equation}
+所以教材取右奇异向量与直接分解 $\mathbf M$ 时取左奇异向量完全一致；关键是分解对象已经从 $m\times n$ 变成 $n\times m$。奇异向量给出投影方向，不能直接把方向矩阵本身称为样本得分矩阵。
+
+采用教材的转置形式，输入预处理后的 $\mathbf M$ 及目标维数 $q$ 或累计贡献率阈值 $\tau$，可将算法写为：
+\begin{enumerate}
+\item 构造式~\eqref{eq:lh-pca-transposed-data} 中的 $\mathbf T$；若 $\|\mathbf T\|_F=0$，返回常量数据结果。这里 $\|A\|_F=(\sum_{i,j}a_{ij}^2)^{1/2}$ 为弗罗贝尼乌斯范数（Frobenius norm）。
+\item 计算所需的奇异值和右奇异向量，按奇异值降序排列，确定数值秩；保留的正方差主成分个数取 $1\leq q\leq r$。若按阈值选维数，则取满足 $\sum_{k=1}^q s_k^2/\|\mathbf T\|_F^2\geq\tau$ 的最小 $q$，并求出足够多的奇异值以达到该阈值。
+\item 返回方向矩阵 $\widetilde V_q$、得分 $\mathbf Y_q=\widetilde V_q^{\mathsf T}\mathbf M$、方差 $s_k^2$ 和贡献率 $s_k^2/\|\mathbf T\|_F^2$；需要重构时计算 $\widehat{\mathbf M}_q=\widetilde V_q\mathbf Y_q$。
+\item 将重构恢复到原始尺度：协方差 PCA 取 $\widehat{\mathbf X}_q=\bar x\mathbf 1_n^{\mathsf T}+\widehat{\mathbf M}_q$；相关矩阵 PCA 取 $\widehat{\mathbf X}_q=\bar x\mathbf 1_n^{\mathsf T}+D_s\widehat{\mathbf M}_q$，并补回预先移除的常量变量。
+\end{enumerate}
+若只计算截断分解，贡献率的分母仍须为全部数据的平方范数，不能用已保留奇异值的平方和代替，否则累计贡献率会被错误地算成 $1$。数值秩需依据奇异值容差判断；将很小但非零的奇异值视为零属于数值近似，应与精确代数秩区分。
+
+稠密完整 SVD 的计算量约为 $O(mn\min\{m,n\})$；只求少数分量时可以采用截断算法，但具体复杂度和误差依赖所用算法，不能统一宣称为 $O(qmn)$。直接 SVD 无须显式形成 $m\times m$ 协方差矩阵，特别适合变量多于样本的情形；在有限精度下还可避免形成 Gram 矩阵所带来的条件数平方效应。具体说，在非零奇异值对应的子空间上，$\mathbf M\mathbf M^{\mathsf T}$ 的最大、最小正特征值之比为 $(d_1/d_r)^2$，因此很小的分量在显式形成协方差时更容易受到舍入误差影响。
+
+\begin{theorem}[样本 PCA 与最佳低秩近似]
+\label{thm:lh-pca-low-rank}
+设 $\mathbf M$ 的紧致 SVD 如式~\eqref{eq:lh-pca-data-svd}，$1\leq q\leq r$。在所有秩不超过 $q$ 的矩阵中，截断重构 $\widehat{\mathbf M}_q$ 是弗罗贝尼乌斯范数下的一个最佳近似，且
+\begin{equation}
+\min_{\substack{L\in\mathbb R^{m\times n}\\\operatorname{rank}(L)\leq q}}
+\|\mathbf M-L\|_F^2
+=\|\mathbf M-\widehat{\mathbf M}_q\|_F^2
+=\sum_{j=q+1}^r d_j^2
+=(n-1)\sum_{j=q+1}^m\gamma_j.
+\label{eq:lh-pca-low-rank}
+\end{equation}
+其中令 $\gamma_j=0$ 对 $j>r$。去掉目标中的平方不改变最优解。
+\end{theorem}
+\begin{proof}
+对任意可行的 $L$，令 $P_L$ 为其列空间上的正交投影，则 $P_LL=L$。按每列的正交分解，
+\[
+\|\mathbf M-L\|_F^2
+=\|(I_m-P_L)\mathbf M\|_F^2
++\|P_L\mathbf M-L\|_F^2
+\geq\|\mathbf M\|_F^2-\operatorname{tr}(P_L\mathbf M\mathbf M^{\mathsf T}).
+\]
+投影 $P_L$ 的秩不超过 $q$，故由定理~\ref{thm:lh-pca-variance-optimal} 及特征值非负性，$\operatorname{tr}(P_L\mathbf M\mathbf M^{\mathsf T})\leq\sum_{j=1}^q d_j^2$。又 $\|\mathbf M\|_F^2=\sum_{j=1}^r d_j^2$，得到误差下界 $\sum_{j>q}d_j^2$。取 $L=U_qU_q^{\mathsf T}\mathbf M=\widehat{\mathbf M}_q$，由于各奇异向量标准正交，残余项 $\sum_{j>q}d_ju_jv_j^{\mathsf T}$ 的平方范数恰好等于该下界，因而达到最优值。最后用 $d_j^2=(n-1)\gamma_j$ 即得末式。
+\end{proof}
+
+这给出教材关于 PCA 等价于低秩逼近的习题所需依据：对中心化或进一步标准化的分析矩阵，先投影到前 $q$ 个主方向，再由得分重构，正是最佳秩不超过 $q$ 的近似。约束应写为 $\operatorname{rank}(L)\leq q$；若误写为严格小于 $q$，最多只能保留 $q-1$ 个非零方向，问题便发生改变。未经中心化就直接截断原始数据矩阵，求出的仍是该原始矩阵的低秩近似，但方向反映的是关于原点的二阶矩，通常不等于围绕样本均值的协方差 PCA。
+
+保留全部正奇异值时，当前样本可被精确重构；保留少数奇异值时，$\sum_{j>q}d_j^2$ 量化所损失的平方误差。但只有在额外的信号与噪声假设下，才能把小方差方向解释为噪声，普通 PCA 本身不提供这一判别。它也对异常值和尺度敏感，且只寻找线性子空间；是否适合作为后续任务的预处理，应结合变量含义、验证表现与重构需求判断，而不能只看累计方差贡献率。
+
+% 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-17.pdf。
+% 对应教材第 17 章，原书第 321--338 页；章节、公式和定理均自动编号。
+
+
+
+

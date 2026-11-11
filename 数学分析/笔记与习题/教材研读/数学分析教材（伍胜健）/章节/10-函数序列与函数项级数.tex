@@ -1,0 +1,663 @@
+% !TeX root = ../数学分析教材（伍胜健）笔记.tex
+% 本文件由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{9} % 保留原书章号。
+\chapter{函数序列与函数项级数}
+\label{chap:function-sequences-and-series}
+
+% 本章正文依据数学分析-10.pdf 第 1--36 页及第 37 页习题前的结束语，
+% 对应教材第 171--207 页习题十之前的正文；习题十不在本次整理范围内。
+用多项式、三角函数等简单函数逼近较复杂的函数，会自然地得到函数序列及函数项级数。这里不仅要对每个自变量求一个数列极限，还要研究所得函数能否继承连续性、可积性和可导性。困难在于：对每个固定点都收敛，并不能控制整个区间上的逼近误差。本章以\emph{一致收敛}为主要工具，依次讨论收敛的概念与判别、极限与其他运算的交换，并说明如何用级数构造具有指定性质的函数。以下主要讨论定义在非空集合上的实值函数；积分均指黎曼积分，除另有说明外，区间端点的连续性、导数和极限均按相应单侧理解。
+
+\section{函数序列与函数项级数的基本问题}
+\label{sec:basic-problems-of-function-sequences-and-series}
+
+\begin{definition}
+\label{def:pointwise-function-sequence-convergence}
+设 $E_0\subseteq\mathbb R$ 非空，对每个 $n\in\mathbb N$，$f_n:E_0\to\mathbb R$。按正整数排列的函数 $f_1,f_2,\ldots$ 称为\emph{函数序列}（sequence of functions）。若数列 $\{f_n(x)\}$ 在 $x\in E_0$ 处收敛，则称 $x$ 为该函数序列的收敛点；全部收敛点组成的集合 $E$ 称为\emph{收敛域}（domain of convergence）。在 $E$ 上定义
+\[
+    f(x)=\lim_{n\to\infty}f_n(x),
+\]
+称 $f$ 为\emph{极限函数}（limit function），并称 $f_n$ 在 $E$ 上\emph{逐点收敛}（pointwise convergence）于 $f$。
+\end{definition}
+
+\begin{definition}
+\label{def:function-series-and-sum-function}
+设 $u_n:E_0\to\mathbb R$，形式和 $\sum_{n=1}^\infty u_n(x)$ 称为\emph{函数项级数}（series of functions）。记
+\[
+    S_N(x)=\sum_{n=1}^N u_n(x).
+\]
+若数列 $\{S_N(x)\}$ 收敛，则称级数在 $x$ 处收敛；全部收敛点组成其收敛域。在收敛域上，
+\[
+    S(x)=\lim_{N\to\infty}S_N(x)=\sum_{n=1}^\infty u_n(x)
+\]
+称为\emph{和函数}（sum function）。若 $\sum_{n=1}^\infty|u_n(x)|$ 收敛，则称原级数在该点绝对收敛。
+\end{definition}
+
+固定 $x$ 后，这些问题分别退化为数列与数项级数问题，因此可先用数列极限与数项级数的方法求收敛域与极限函数。函数项级数的收敛等价于其部分和序列的收敛；反过来，约定 $f_0=0$ 后，恒有
+\[
+    f_N(x)=\sum_{n=1}^N\bigl(f_n(x)-f_{n-1}(x)\bigr),
+\]
+故函数序列也可写成一个级数的部分和序列。但从逐点收敛进一步推断函数性质时，需要新的条件。
+
+\begin{example}
+\label{ex:pointwise-limits-and-operation-failures}
+考察 $f_n(x)=x^n$（$x\in\mathbb R$）、$g_n(x)=nx(1-x^2)^n$（$0\leq x\leq1$）、$h_n(x)=\sin(nx)/\sqrt n$（$x\in\mathbb R$）及 $p_n(x)=\frac{2x}{\pi}\arctan(nx)$（$x\in\mathbb R$）的极限及其连续性、积分或导数，说明逐点收敛本身不能保证这些运算与极限交换。
+\end{example}
+
+\begin{solve}
+首先，$f_n(x)=x^n$ 在实轴上的收敛域为 $(-1,1]$，且
+\[
+    f(x)=\begin{cases}0,&-1<x<1,\\1,&x=1.\end{cases}
+\]
+每个 $f_n$ 都连续，但极限函数在 $1$ 处不左连续。特别地，先令 $n\to\infty$ 再令 $x\to1-$，与按相反次序取极限，分别得到 $0$ 与 $1$。
+
+其次，在 $[0,1]$ 上令 $g_n(x)=nx(1-x^2)^n$。端点处恒为零；固定 $0<x<1$ 后，几何衰减快于 $n$ 的增长，故 $g_n(x)\to0$。另一方面，换元 $t=1-x^2$ 得
+\[
+    \int_0^1g_n(x)\,dx=\frac{n}{2(n+1)}\longrightarrow\frac12,
+    \qquad \int_0^1\lim_{n\to\infty}g_n(x)\,dx=0.
+\]
+这里极限函数甚至是连续函数，但积分仍不能与极限交换；靠近零点的狭窄区域保留了不能忽略的积分贡献。
+
+再次，令 $h_n(x)=\sin(nx)/\sqrt n$，则实轴上恒有 $|h_n(x)|\leq1/\sqrt n$，故极限函数为零；但 $h_n'(0)=\sqrt n\to+\infty$，因而极限的导数不等于导数的极限。最后，令
+\[
+    p_n(x)=\frac{2x}{\pi}\arctan(nx),\qquad
+    p_n'(x)=\frac2\pi\arctan(nx)+\frac{2nx}{\pi(1+n^2x^2)}.
+\]
+有 $p_n(x)\to|x|$，且导函数在每一点都有极限：$x>0$ 时为 $1$，$x<0$ 时为 $-1$，$x=0$ 时为 $0$。然而 $|x|$ 在零点不可导。这说明即使导函数序列也逐点收敛，仍不足以保证极限函数可导。
+\end{solve}
+
+上述例子提出三个需要分别回答的问题：连续函数的极限是否连续，可积函数的极限是否可积并允许交换积分与极限，可导函数的极限是否可导并允许交换微分与极限。第三个问题所需的控制比前两个更强，不能把同一条收敛条件机械地用于所有运算。
+
+\section{一致收敛的概念}
+\label{sec:concept-of-uniform-convergence}
+
+逐点收敛的量词次序是
+\[
+    \forall x\in E\ \forall\varepsilon>0\ \exists N=N(\varepsilon,x)
+    \ \forall n\geq N:\quad |f_n(x)-f(x)|<\varepsilon.
+\]
+不同点可以需要不同的项数。若希望一个足够靠后的函数在整个集合上同时逼近 $f$，就必须使这里的 $N$ 与 $x$ 无关。
+
+\begin{definition}
+\label{def:uniform-function-sequence-and-series-convergence}
+设 $f_n,f:E\to\mathbb R$，$E\neq\varnothing$。若
+\begin{equation}
+    \forall\varepsilon>0\ \exists N=N(\varepsilon)\ \forall n\geq N
+    \ \forall x\in E:\quad |f_n(x)-f(x)|<\varepsilon,
+    \label{eq:uniform-function-sequence-convergence}
+\end{equation}
+则称 $f_n$ 在 $E$ 上\emph{一致收敛}（uniform convergence）于 $f$，记为 $f_n\rightrightarrows f$。若级数 $\sum_{n=1}^\infty u_n$ 的部分和序列在 $E$ 上一致收敛于 $S$，则称该级数在 $E$ 上一致收敛。写 $R_N=S-S_N$ 时，这等价于余项 $R_N\rightrightarrows0$。
+\end{definition}
+
+一致收敛必逐点收敛，因而极限函数唯一。几何上，对给定的 $\varepsilon$，充分靠后的每条曲线 $y=f_n(x)$ 在全部 $x\in E$ 处，都落在 $f(x)-\varepsilon<y<f(x)+\varepsilon$ 的带形区域中。这里不要求 $E$ 闭、有界，也不要求函数连续。与式~\eqref{eq:uniform-function-sequence-convergence} 对应，\emph[caution]{不一致收敛}的准确表述是
+\begin{equation}
+    \exists\varepsilon_0>0\ \forall N\in\mathbb N\ \exists n\geq N
+    \ \exists x\in E:\quad |f_n(x)-f(x)|\geq\varepsilon_0.
+    \label{eq:negation-of-uniform-function-convergence}
+\end{equation}
+因此，只要能找到 $n_j\to\infty$ 和随之移动的点 $x_j\in E$，使误差始终不小于一个固定正数，就能否定一致收敛；这里并不要求全部 $x_j$ 是同一个点。
+
+\begin{example}
+\label{ex:uniform-powers-and-endpoint-factor}
+讨论 $x^n$ 在不同区间上的一致收敛性，并证明：若 $g\in C([0,1])$ 且 $g(1)=0$，则 $x^ng(x)\rightrightarrows0$ 于 $[0,1]$。
+\end{example}
+
+\begin{solve}
+对 $0<r<1$，在 $[-r,r]$ 或 $(-r,r)$ 上均有 $|x^n|\leq r^n\to0$，故一致收敛于零。在 $(-1,1)$ 或 $[0,1)$ 上，取 $x_n=2^{-1/n}\to1$，则 $x_n^n=1/2$，故不一致收敛于零。同样的点列也说明在 $[0,1]$ 上不一致收敛于其分段定义的极限函数。可见极限函数在一个集合上连续，也不意味着原序列一定在该集合上一致收敛。
+
+对于第二个结论，记 $M=\max_{[0,1]}|g|$。给定 $\varepsilon>0$，由 $g$ 在 $1$ 处连续且 $g(1)=0$，可取 $0<\delta<1$，使 $1-\delta<x\leq1$ 时 $|g(x)|<\varepsilon$。在这一小段上，全部 $n$ 都满足 $|x^ng(x)|<\varepsilon$；在其余部分 $0\leq x\leq1-\delta$，有
+\[
+    |x^ng(x)|\leq M(1-\delta)^n\longrightarrow0.
+\]
+取与 $x$ 无关的充分大 $N$，便可同时控制两部分。这个证明体现了常用方法：靠近端点时利用系数函数变小，离开端点后利用几何因子的统一衰减。
+\end{solve}
+
+\begin{example}
+\label{ex:uniform-telescoping-rational-series}
+讨论 $x>0$ 时级数
+\[
+    \sum_{n=1}^\infty
+    \frac{(2n+1)x}{(1+n^2x)(1+(n+1)^2x)}
+\]
+在 $[a,+\infty)$（$a>0$）及 $(0,+\infty)$ 上的一致收敛性。
+\end{example}
+
+\begin{solve}
+通项可写为 $1/(1+n^2x)-1/(1+(n+1)^2x)$，故
+\[
+    S_N(x)=\frac1{1+x}-\frac1{1+(N+1)^2x},\qquad
+    S(x)=\frac1{1+x}.
+\]
+在 $[a,+\infty)$ 上，余项绝对值不超过 $1/(1+(N+1)^2a)\to0$，所以一致收敛。在 $(0,+\infty)$ 上取 $x_N=(N+1)^{-2}$，则余项恒为 $1/2$，所以不一致收敛。这也说明无界区间上可以一致收敛，而有问题的区域可能是一个未包含的有限端点附近。
+\end{solve}
+
+\begin{proposition}
+\label{prop:elementary-uniform-convergence-properties}
+一致收敛具有以下性质：在 $E$ 上一致收敛的序列，在其任意非空子集上也一致收敛；若同一序列在 $E_1,E_2$ 上分别一致收敛于同一个函数的限制，则在 $E_1\cup E_2$ 上也一致收敛。若 $f_n\rightrightarrows f$、$g_n\rightrightarrows g$ 于 $E$，则对固定实数 $\alpha,\beta$，有 $\alpha f_n+\beta g_n\rightrightarrows\alpha f+\beta g$。若还存在常数 $M_1,M_2$，使全部 $n$、$x\in E$ 满足 $|f_n(x)|\leq M_1$、$|g_n(x)|\leq M_2$，则 $f_ng_n\rightrightarrows fg$。
+\end{proposition}
+
+\begin{proof}
+限制到子集时沿用原来的 $N$；有限并集取两组 $N$ 的最大值。线性组合使用
+\[
+    |\alpha f_n+\beta g_n-\alpha f-\beta g|
+    \leq|\alpha|\,|f_n-f|+|\beta|\,|g_n-g|.
+\]
+最后一项中，取逐点极限知 $|f|\leq M_1$、$|g|\leq M_2$，再由
+\[
+    |f_ng_n-fg|\leq M_1|g_n-g|+M_2|f_n-f|
+\]
+得到结论。
+\end{proof}
+
+上述对全部 $n$、$x$ 同时成立的界称为函数序列的\emph{一致有界性}（uniform boundedness）。它比每一个函数分别有界更强。乘积的结论不能无条件使用：在 $(0,1)$ 上，$(1-x)x^n\rightrightarrows0$，常值序列 $g_n(x)=1/(1-x)$ 一致收敛于自身，但乘积 $x^n$ 不一致收敛于零。这里 $g_n$ 没有关于 $x$ 的统一界。有限并集的性质也不能直接推广到可数并集，例如 $[0,1)=\bigcup_{m\geq2}[0,1-1/m]$，$x^n$ 在每个小区间上一致收敛，在并集上却不一致收敛。
+
+\section{函数序列与函数项级数一致收敛的判别法}
+\label{sec:uniform-convergence-tests}
+
+\subsection{柯西准则}
+\label{subsec:cauchy-criterion-for-uniform-convergence}
+
+\begin{theorem}[一致收敛的柯西准则]
+\label{thm:uniform-convergence-cauchy-criterion}
+设 $f_n:E\to\mathbb R$，$E\neq\varnothing$。则 $\{f_n\}$ 在 $E$ 上一致收敛的充分必要条件是
+\begin{equation}
+    \forall\varepsilon>0\ \exists N\ \forall m,n\geq N
+    \ \forall x\in E:\quad |f_n(x)-f_m(x)|<\varepsilon.
+    \label{eq:uniform-cauchy-criterion}
+\end{equation}
+因此，$\sum_{n=1}^\infty u_n$ 在 $E$ 上一致收敛，等价于
+\begin{equation}
+    \forall\varepsilon>0\ \exists N\ \forall q\geq p\geq N
+    \ \forall x\in E:\quad
+    \left|\sum_{k=p}^q u_k(x)\right|<\varepsilon.
+    \label{eq:uniform-series-cauchy-criterion}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+若 $f_n\rightrightarrows f$，将 $|f_n-f_m|$ 用 $|f_n-f|+|f_m-f|$ 控制即可。反之，式~\eqref{eq:uniform-cauchy-criterion} 对每个固定 $x$ 给出实数柯西列，故由实数系的完备性存在 $f(x)=\lim_m f_m(x)$。给定 $\varepsilon>0$，先把柯西条件中的误差取为 $\varepsilon/2$，固定 $n\geq N$ 后令 $m\to\infty$，得到对全部 $x\in E$ 成立的
+\[
+    |f_n(x)-f(x)|\leq\frac\varepsilon2<\varepsilon.
+\]
+于是得到一致收敛。将该准则用于部分和序列，就得到级数形式；有限个初始项不影响结论。
+\end{proof}
+
+\begin{corollary}
+\label{cor:uniform-series-term-necessary-condition}
+若 $\sum_{n=1}^\infty u_n$ 在 $E$ 上一致收敛，则 $u_n\rightrightarrows0$ 于 $E$。
+\end{corollary}
+
+\begin{proof}
+在式~\eqref{eq:uniform-series-cauchy-criterion} 中取 $p=q=n$。
+\end{proof}
+
+通项一致趋于零仍只是必要条件。例如 $u_n(x)=1/n$ 在任何非空 $E$ 上都一致趋于零，但相应级数在每一点都发散。与定义相比，柯西准则的主要作用是无需预先求出极限函数或和函数。
+
+\begin{proposition}[补入端点]
+\label{prop:uniform-convergence-extension-to-endpoints}
+设 $a<b$，每个 $f_n\in C([a,b])$，且 $\{f_n\}$ 在 $(a,b)$ 上一致收敛，则它在 $[a,b]$ 上也一致收敛。相应地，若级数各项在 $[a,b]$ 上连续，且级数在 $(a,b)$ 上一致收敛，则在 $[a,b]$ 上也一致收敛。
+\end{proposition}
+
+\begin{proof}
+在开区间上用柯西条件将 $|f_n-f_m|$ 控制在 $\varepsilon/2$ 内。固定充分大的 $n,m$，分别令 $x\to a+$、$x\to b-$，由连续性得到端点处的差不超过 $\varepsilon/2$，故在整个闭区间上小于 $\varepsilon$。再用柯西准则即得结论。对级数只需将 $f_n$ 换成连续的部分和。
+\end{proof}
+
+例如 $\sum_{n=1}^\infty(-1)^n/(1+nx)$ 在每个 $x>0$ 处由交错级数判别法收敛，在 $[a,+\infty)$（$a>0$）上的余项绝对值不超过 $1/(1+(N+1)a)$，所以一致收敛。但它在 $(0,+\infty)$ 上不一致收敛，因为取 $x_n=1/n$ 时通项绝对值恒为 $1/2$，不满足推论~\ref{cor:uniform-series-term-necessary-condition}。也可反证：若在 $(0,+\infty)$ 上一致收敛，则限制到 $(0,1)$ 并补入端点后，在 $x=0$ 也应收敛，与 $\sum(-1)^n$ 发散矛盾。
+
+\subsection{一致收敛的判别法}
+\label{subsec:uniform-convergence-tests}
+
+\begin{theorem}[上确界判别法]
+\label{thm:uniform-convergence-supremum-test}
+设 $f_n,f:E\to\mathbb R$，记扩展实数
+\[
+    d_n=\sup_{x\in E}|f_n(x)-f(x)|\in[0,+\infty].
+\]
+则 $f_n\rightrightarrows f$ 于 $E$ 的充分必要条件是 $d_n\to0$。级数一致收敛于 $S$ 的相应条件为 $\sup_{x\in E}|S_N(x)-S(x)|\to0$。
+\end{theorem}
+
+\begin{proof}
+若一致收敛，则对给定 $\varepsilon>0$，充分大的 $n$ 满足全部误差小于 $\varepsilon/2$，从而 $d_n\leq\varepsilon/2<\varepsilon$。反之，$d_n<\varepsilon$ 直接给出对全部 $x$ 成立的误差界。
+\end{proof}
+
+在误差有界时，可将该上确界记为一致范数 $\|f_n-f\|_{\infty,E}$。判别法只需上确界，不要求最大值能够取到；“最值判别法”是其常用名称，不能因此遗漏开区间或无界区间。例如在实轴上，
+\[
+    f_n(x)=\frac{x}{1+n^2x^2},\qquad
+    \sup_{x\in\mathbb R}|f_n(x)|=\frac1{2n}\longrightarrow0.
+\]
+这个上界可直接由 $1+n^2x^2\geq2n|x|$ 得到，并在 $x=\pm1/n$ 处取到，故 $f_n\rightrightarrows0$。
+
+\begin{example}
+\label{ex:uniform-composite-exponential-limit}
+设 $a>0$，证明 $f_n(x)=n^2(e^{1/(nx)}-1)\sin(1/(nx))$ 在 $[a,+\infty)$ 上一致收敛于 $1/x^2$。
+\end{example}
+
+\begin{solve}
+令 $H(t)=((e^t-1)/t)(\sin t/t)$（$t\neq0$），并令 $H(0)=1$。由两个基本极限，$H$ 在零点连续。令 $t=1/(nx)$，则
+\[
+    \left|f_n(x)-\frac1{x^2}\right|
+       =\frac1{x^2}|H(t)-1|
+       \leq\frac1{a^2}\sup_{0\leq t\leq1/(na)}|H(t)-1|
+       \longrightarrow0.
+\]
+最后的极限来自零点连续性的定义，且该界与 $x$ 无关。证明一致收敛时，不能仅将对每个固定 $x$ 成立的小 $o$ 余项直接当作关于全部 $x$ 的统一估计；这里通过 $0<t\leq1/(na)$ 补足了这一控制。
+\end{solve}
+
+\begin{definition}
+\label{def:absolute-uniform-convergence}
+若 $\sum_{n=1}^\infty|u_n(x)|$ 在 $E$ 上一致收敛，则称 $\sum_{n=1}^\infty u_n(x)$ 在 $E$ 上\emph{绝对一致收敛}（absolute uniform convergence）。
+\end{definition}
+
+由柯西准则和三角不等式，绝对一致收敛必推出一致收敛及每一点的绝对收敛。反向一般不成立：\emph[caution]{“一致收敛且逐点绝对收敛”并不等于“绝对一致收敛”}。此外，$\sum_n\sup_{x\in E}|u_n(x)|<\infty$ 是绝对一致收敛的充分条件，不能将它与定义混同。
+
+\begin{theorem}[魏尔斯特拉斯 $M$ 判别法]
+\label{thm:weierstrass-uniform-m-test}
+若存在非负实数 $M_n$，使全部 $x\in E$ 满足 $|u_n(x)|\leq M_n$，且数项级数 $\sum_{n=1}^\infty M_n$ 收敛，则 $\sum_{n=1}^\infty u_n$ 在 $E$ 上绝对一致收敛。这称为\emph{魏尔斯特拉斯 $M$ 判别法}（Weierstrass $M$-test）。
+\end{theorem}
+
+\begin{proof}
+对任意 $q\geq p$，有
+\[
+    \sup_{x\in E}\sum_{k=p}^q|u_k(x)|\leq\sum_{k=p}^qM_k.
+\]
+右边由数项级数的柯西准则可一致控制，再用式~\eqref{eq:uniform-series-cauchy-criterion} 即可。
+\end{proof}
+
+\begin{example}
+\label{ex:uniform-exponential-function-series}
+设实数 $\alpha>1$，证明 $\sum_{n=1}^\infty x^\alpha e^{-nx}$ 在 $[0,+\infty)$ 上绝对一致收敛，其中 $x=0$ 时每项定义为零。
+\end{example}
+
+\begin{solve}
+对固定 $n$，函数在正半轴上的导数为 $x^{\alpha-1}e^{-nx}(\alpha-nx)$，因此最大值在 $x=\alpha/n$ 处取得，且
+\[
+    \sup_{x\geq0}x^\alpha e^{-nx}
+    =\left(\frac\alpha e\right)^\alpha\frac1{n^\alpha}.
+\]
+由 $p$ 级数收敛及 $M$ 判别法得到结论。这里控制的是整个正半轴上的最大误差，而不是仅对固定 $x$ 使用指数衰减。
+\end{solve}
+
+当正负抵消对收敛起主要作用时，应使用狄利克雷或阿贝尔判别法。两者的共同工具是\emph{阿贝尔变换}（Abel transformation），也称分部求和。对固定 $x$ 和 $q\geq p$，记 $A_k(x)=\sum_{j=p}^ku_j(x)$，直接展开可得
+\begin{equation}
+    \sum_{k=p}^qu_kv_k
+    =A_qv_q+\sum_{k=p}^{q-1}A_k(v_k-v_{k+1}).
+    \label{eq:uniform-abel-summation}
+\end{equation}
+若对这一段全部 $k$ 有 $|A_k|\leq B$，且 $v_k$ 关于 $k$ 单调，则
+\begin{equation}
+    \left|\sum_{k=p}^qu_kv_k\right|
+    \leq B\bigl(|v_q|+|v_p-v_q|\bigr).
+    \label{eq:uniform-abel-summation-bound}
+\end{equation}
+单调性使差的绝对值之和可以望远镜求和；这里及以下判别法中的单调性都指项指标 $n$ 的单调性。
+
+\begin{theorem}[狄利克雷判别法]
+\label{thm:uniform-dirichlet-test}
+设 $u_n,v_n:E\to\mathbb R$。若部分和一致有界，即存在 $M>0$，使
+\[
+    \left|\sum_{k=1}^nu_k(x)\right|\leq M,
+    \qquad n\geq1,\ x\in E,
+\]
+并且对每个固定 $x$，$v_n(x)$ 关于 $n$ 单调，且 $v_n\rightrightarrows0$ 于 $E$，则 $\sum_{n=1}^\infty u_nv_n$ 在 $E$ 上一致收敛。这称为\emph{狄利克雷判别法}（Dirichlet's test）。
+\end{theorem}
+
+\begin{proof}
+任意尾段的部分和 $A_k$ 满足 $|A_k|\leq2M$。固定 $x$ 后，单调趋于零的实数列 $v_n(x)$ 不越过零，故
+\[
+    |v_q(x)|+|v_p(x)-v_q(x)|=|v_p(x)|.
+\]
+由式~\eqref{eq:uniform-abel-summation-bound}，任意 $q\geq p$ 满足
+\[
+    \sup_{x\in E}\left|\sum_{k=p}^qu_k(x)v_k(x)\right|
+    \leq2M\sup_{x\in E}|v_p(x)|\longrightarrow0.
+\]
+于是级数满足一致柯西条件。
+\end{proof}
+
+\begin{theorem}[阿贝尔判别法]
+\label{thm:uniform-abel-test}
+设 $\sum_{n=1}^\infty u_n$ 在 $E$ 上一致收敛；对每个固定 $x\in E$，$v_n(x)$ 关于 $n$ 单调，且存在 $C>0$，使全部 $n,x$ 满足 $|v_n(x)|\leq C$。则 $\sum_{n=1}^\infty u_nv_n$ 在 $E$ 上一致收敛。这称为\emph{阿贝尔判别法}（Abel's test）。
+\end{theorem}
+
+\begin{proof}
+给定 $\varepsilon>0$，由 $\sum u_n$ 的一致柯西条件，可选 $N$，使 $q\geq k\geq p\geq N$ 时，全部 $x$ 都有 $|A_k(x)|<\varepsilon/(3C+1)$。式~\eqref{eq:uniform-abel-summation-bound} 中的另一因子满足
+\[
+    |v_q|+|v_p-v_q|\leq3C,
+\]
+故任意充分靠后的尾段均小于 $\varepsilon$，再用柯西准则即可。
+\end{proof}
+
+狄利克雷判别法要求一个因子的部分和一致有界，另一个因子一致趋于零；阿贝尔判别法要求前一个级数已经一致收敛，另一个因子只需单调且一致有界。阿贝尔判别法中虽有逐点极限 $v(x)=\lim_n v_n(x)$，却不能擅自假设 $v_n\rightrightarrows v$，再套用狄利克雷判别法；$v_n(x)=x^n$ 在 $[0,1]$ 上就是反例。
+
+\begin{example}
+\label{ex:uniform-dirichlet-and-abel-applications}
+应用上述判别法讨论 $\sum_{n=1}^\infty(-1)^n/(n+x)$，以及给定实数列 $\{a_n\}$ 后的 $\sum_{n=1}^\infty a_n/n^x$。
+\end{example}
+
+\begin{solve}
+对于第一个级数，在 $[0,+\infty)$ 上取 $u_n=(-1)^n$、$v_n(x)=1/(n+x)$。前者的部分和绝对值不超过 $1$，后者关于 $n$ 递减且 $0<v_n(x)\leq1/n$，所以级数一致收敛。若 $I$ 是不含负整数的任意有限闭区间，则从某个指标起，对全部 $x\in I$ 都有 $n+x\geq n/2>0$；舍去有限个初始项后仍可用相同判别法，故在 $I$ 上也一致收敛。对任意固定的非极点 $x$，$1/|n+x|\sim1/n$，所以该级数在每一点都不绝对收敛。
+
+对于第二个级数，它在 $[1,+\infty)$ 上一致收敛的充分必要条件是 $\sum_{n=1}^\infty a_n/n$ 收敛。必要性取 $x=1$ 即得。充分性将通项写为
+\[
+    \frac{a_n}{n^x}=\frac{a_n}{n}\,\frac1{n^{x-1}}.
+\]
+与 $x$ 无关的级数 $\sum a_n/n$ 在该集合上一致收敛，而 $n^{1-x}$ 对每个 $x\geq1$ 关于 $n$ 单调，且始终介于 $0$ 与 $1$ 之间，故由阿贝尔判别法得到结论。
+\end{solve}
+
+\begin{example}
+\label{ex:uniform-and-pointwise-absolute-not-absolute-uniform}
+证明 $\sum_{n=1}^\infty(-1)^n(1-x)x^n$ 在 $[0,1]$ 上一致收敛，且每一点都绝对收敛，但不绝对一致收敛。
+\end{example}
+
+\begin{solve}
+取 $u_n=(-1)^n$、$v_n=(1-x)x^n$。对每个固定 $x\in[0,1]$，$v_n$ 关于 $n$ 非增；由例~\ref{ex:uniform-powers-and-endpoint-factor}，$v_n\rightrightarrows0$，故狄利克雷判别法给出一致收敛。每点的绝对值级数是几何级数，其和为
+\[
+    A(x)=\sum_{n=1}^\infty(1-x)x^n
+    =\begin{cases}x,&0\leq x<1,\\0,&x=1.\end{cases}
+\]
+在 $x<1$ 处，绝对值级数的第 $N$ 个余项为 $x^{N+1}$，其在 $[0,1)$ 上的上确界始终为 $1$，故绝对值级数不一致收敛。
+\end{solve}
+
+\section{一致收敛的函数序列和函数项级数}
+\label{sec:uniformly-convergent-function-sequences-and-series}
+
+一致收敛使误差估计能够先对所有自变量统一成立，再固定某个充分靠后的函数使用其性质。下面连续性证明中的三项分解、积分中的统一误差界，以及可导性证明中的差商控制，都是这一原则的具体形式。
+
+\subsection{极限函数的连续性}
+\label{subsec:continuity-of-limit-functions}
+
+\begin{theorem}[连续性与一致极限]
+\label{thm:continuity-of-uniform-limit}
+设 $E\subseteq\mathbb R$，$x_0\in E$，每个 $f_n$ 在 $x_0$ 处相对于 $E$ 连续，且 $f_n\rightrightarrows f$ 于 $E$。则 $f$ 在 $x_0$ 处连续。特别地，连续函数序列的一致极限仍连续；各项连续且一致收敛的函数项级数，其和函数连续。
+\end{theorem}
+
+\begin{proof}
+给定 $\varepsilon>0$，先固定一个充分大的 $n_0$，使全部 $x\in E$ 满足 $|f_{n_0}(x)-f(x)|<\varepsilon/3$。再由这个固定函数在 $x_0$ 的连续性选取 $\delta>0$，使 $x\in E$、$|x-x_0|<\delta$ 时，$|f_{n_0}(x)-f_{n_0}(x_0)|<\varepsilon/3$。于是
+\[
+    |f(x)-f(x_0)|
+    \leq |f(x)-f_{n_0}(x)|
+       +|f_{n_0}(x)-f_{n_0}(x_0)|
+       +|f_{n_0}(x_0)-f(x_0)|<\varepsilon.
+\]
+对级数应用于连续的部分和即可。
+\end{proof}
+
+\begin{theorem}[一致收敛下交换两次极限]
+\label{thm:exchange-limits-under-uniform-convergence}
+设 $x_0$ 为 $E$ 的聚点，$f_n\rightrightarrows f$ 于 $E\setminus\{x_0\}$，且每个有限极限 $a_n=\lim_{x\to x_0,\,x\in E}f_n(x)$ 存在。则 $\{a_n\}$ 收敛，$\lim_{x\to x_0,\,x\in E}f(x)$ 存在，并且
+\begin{equation}
+    \lim_{x\to x_0}\lim_{n\to\infty}f_n(x)
+    =\lim_{n\to\infty}\lim_{x\to x_0}f_n(x).
+    \label{eq:exchange-uniform-double-limits}
+\end{equation}
+式中的 $x$ 均限制在 $E\setminus\{x_0\}$ 内。若级数一致收敛且每项在 $x_0$ 有有限极限，则相应地可交换求和与该点极限。
+\end{theorem}
+
+\begin{proof}
+一致柯西条件中先固定充分大的 $m,n$，再令 $x\to x_0$，得 $|a_n-a_m|\leq\varepsilon$，故 $a_n\to a\in\mathbb R$。为证明 $f(x)\to a$，将
+\[
+    |f(x)-a|\leq|f(x)-f_{n_0}(x)|
+          +|f_{n_0}(x)-a_{n_0}|+|a_{n_0}-a|
+\]
+的首尾两项通过固定充分大的 $n_0$ 控制，再通过 $x\to x_0$ 控制中间一项。对级数，将 $f_n$ 换为部分和，$a_n$ 换为各项极限的有限和即可。
+\end{proof}
+
+连续性是局部性质，因而只在 $x_0$ 的一个相对邻域内一致收敛，已经足够保证该点连续。对开区间 $I$，若每个 $x_0\in I$ 都有一个邻域，使 $f_n$ 在其中一致收敛，则称\emph{局部一致收敛}（locally uniform convergence）；若在任意有限闭子区间 $[c,d]\subset I$ 上都一致收敛，则称\emph{内闭一致收敛}（uniform convergence on compact subintervals）。二者在开区间上等价：一个方向直接在点的附近取闭子区间；另一个方向由闭子区间的有限覆盖性，选出有限个局部邻域，并取所需项数的最大值。函数项级数使用其部分和作相同定义。因此，开区间上连续函数的内闭一致极限仍连续。
+
+\begin{example}
+\label{ex:locally-uniform-trigonometric-series}
+若实数列 $\{a_n\}$ 单调且 $a_n\to0$，证明 $\sum_{n=1}^\infty a_n\cos(nx)$ 与 $\sum_{n=1}^\infty a_n\sin(nx)$ 的和函数在 $(0,2\pi)$ 内连续。
+\end{example}
+
+\begin{solve}
+对 $0<x<2\pi$，有限和公式为
+\[
+    \sum_{k=1}^N\cos(kx)
+      =\frac{\sin((N+\tfrac12)x)-\sin(x/2)}{2\sin(x/2)},
+    \qquad
+    \sum_{k=1}^N\sin(kx)
+      =\frac{\cos(x/2)-\cos((N+\tfrac12)x)}{2\sin(x/2)}.
+\]
+在任意 $[\delta,2\pi-\delta]$（$0<\delta<\pi$）上，两者绝对值都不超过 $1/\sin(\delta/2)$；$a_n$ 与 $x$ 无关，故一致趋于零。由狄利克雷判别法，两级数均内闭一致收敛；各项连续，所以和函数在整个开区间内连续。靠近 $0$ 或 $2\pi$ 时，上述部分和界可能增大，不能据此声称在整个开区间上一致收敛。
+\end{solve}
+
+\begin{theorem}[狄尼定理]
+\label{thm:dini-uniform-convergence}
+设 $a<b$，$f_n\in C([a,b])$，在 $[a,b]$ 上逐点收敛于 $f$，且对每个固定 $x$，$f_n(x)$ 关于 $n$ 单调。则 $f\in C([a,b])$ 的充分必要条件是 $f_n\rightrightarrows f$ 于 $[a,b]$。这一结论称为\emph{狄尼定理}（Dini's theorem）。
+\end{theorem}
+
+\begin{proof}
+一致收敛推出连续性已证。反过来，若 $f$ 连续，令 $g_n=|f_n-f|$，则每个 $g_n$ 连续，且 $g_n(x)$ 对每点单调下降到零。给定 $\varepsilon>0$，记相对开集
+\[
+    U_n=\{x\in[a,b]:g_n(x)<\varepsilon\}.
+\]
+有 $U_n\subseteq U_{n+1}$，且这些集合覆盖 $[a,b]$。由有限覆盖定理，可取有限子覆盖；设其中最大的指标为 $N$，由嵌套关系便有 $U_N=[a,b]$。所以全部 $n\geq N$、$x\in[a,b]$ 都满足 $g_n(x)<\varepsilon$，即一致收敛。
+\end{proof}
+
+\begin{corollary}[非负项级数的狄尼定理]
+\label{cor:dini-nonnegative-function-series}
+设 $u_n\in C([a,b])$、$u_n\geq0$，且 $\sum_{n=1}^\infty u_n$ 在 $[a,b]$ 上逐点收敛于 $S$。则该级数一致收敛的充分必要条件是 $S$ 连续。
+\end{corollary}
+
+\begin{proof}
+连续的部分和 $S_N$ 关于 $N$ 逐点非减，直接应用狄尼定理。
+\end{proof}
+
+狄尼定理的条件各有作用。$x^n$ 在 $[0,1]$ 上单调且逐点收敛，但极限不连续，故不一致收敛；在 $[0,1)$ 上其极限恒为零且连续，却仍不一致收敛，说明紧的闭区间条件不能省去。另一方面，在 $[0,1]$ 上，$h_n(x)=nx^2e^{-nx^2}$ 逐点趋于连续函数零，但 $h_n(1/\sqrt n)=1/e$，故不一致收敛；这里缺少关于 $n$ 的单调性。判定极限是否连续时，一致收敛是充分条件，而不是一般的必要条件。
+
+\subsection{极限函数的积分}
+\label{subsec:integration-of-limit-functions}
+
+\begin{theorem}[一致极限的可积性与积分极限]
+\label{thm:integration-of-uniform-limit}
+设 $a<b$，每个 $f_n$ 在 $[a,b]$ 上黎曼可积，且 $f_n\rightrightarrows f$ 于 $[a,b]$。则 $f$ 在 $[a,b]$ 上黎曼可积，且
+\begin{equation}
+    \int_a^bf(x)\,dx
+       =\lim_{n\to\infty}\int_a^bf_n(x)\,dx.
+    \label{eq:uniform-limit-integration}
+\end{equation}
+此外，若 $F_n(x)=\int_a^xf_n(t)\,dt$、$F(x)=\int_a^xf(t)\,dt$，则 $F_n\rightrightarrows F$ 于 $[a,b]$。
+\end{theorem}
+
+\begin{proof}
+由一致收敛，固定充分大的 $n_0$ 可使 $|f-f_{n_0}|\leq1$，故 $f$ 有界。给定 $\varepsilon>0$，再选 $n_0$ 使 $\|f-f_{n_0}\|_\infty<\eta=\varepsilon/(4(b-a))$。对任意子区间 $J$，记 $\omega_J(h)=\sup_Jh-\inf_Jh$ 为振幅，则
+\[
+    \omega_J(f)\leq\omega_J(f_{n_0})+2\eta.
+\]
+由于 $f_{n_0}$ 可积，可选分割 $P$，使其上、下达布和之差小于 $\varepsilon/2$，于是
+\[
+    U(f,P)-L(f,P)
+    \leq U(f_{n_0},P)-L(f_{n_0},P)+2\eta(b-a)<\varepsilon.
+\]
+由达布可积准则，$f$ 可积。再由积分的保序性及绝对值不等式，
+\begin{equation}
+    \left|\int_a^b(f_n-f)\,dx\right|
+       \leq(b-a)\|f_n-f\|_\infty\longrightarrow0.
+    \label{eq:uniform-integral-error-bound}
+\end{equation}
+同样有 $|F_n(x)-F(x)|\leq(b-a)\|f_n-f\|_\infty$，此界与 $x$ 无关，故变上限积分序列也一致收敛。
+\end{proof}
+
+\begin{corollary}[逐项积分]
+\label{cor:termwise-integration-uniform-series}
+若每个 $u_n$ 在有限闭区间 $[a,b]$ 上可积，且 $\sum_{n=1}^\infty u_n$ 在该区间上一致收敛于 $S$，则 $S$ 可积，且
+\begin{equation}
+    \int_a^b\left(\sum_{n=1}^\infty u_n(x)\right)\,dx
+       =\sum_{n=1}^\infty\int_a^bu_n(x)\,dx.
+    \label{eq:uniform-series-termwise-integration}
+\end{equation}
+这种交换称为\emph{逐项积分}（termwise integration）。
+\end{corollary}
+
+\begin{proof}
+将定理用于部分和 $S_N$，再使用有限和的积分线性性质。
+\end{proof}
+
+这些结论不要求每项连续，但要求在同一个有限闭区间上一致收敛。内闭一致收敛只保证在各个有限闭子区间内可交换积分；对无穷区间、瑕积分或趋向收敛域边界的积分上限，还需额外控制积分尾部，不能直接沿用式~\eqref{eq:uniform-integral-error-bound}。
+
+\begin{example}
+\label{ex:logarithm-series-by-termwise-integration}
+证明 $|x|<1$ 时
+\begin{equation}
+    \frac12\ln\frac{1+x}{1-x}
+       =\sum_{n=0}^\infty\frac{x^{2n+1}}{2n+1}.
+    \label{eq:logarithm-odd-power-series}
+\end{equation}
+\end{example}
+
+\begin{solve}
+由几何级数，$1/(1-t^2)=\sum_{n=0}^\infty t^{2n}$。固定 $|x|<1$，在以 $0,x$ 为端点的闭区间上，$|t^{2n}|\leq|x|^{2n}$，由 $M$ 判别法可逐项积分，故
+\[
+    \int_0^x\frac{dt}{1-t^2}
+       =\sum_{n=0}^\infty\int_0^xt^{2n}\,dt
+       =\sum_{n=0}^\infty\frac{x^{2n+1}}{2n+1}.
+\]
+左边积分为 $\frac12\ln((1+x)/(1-x))$，得到所求公式。$x<0$ 时使用定积分的方向约定，推导仍然成立；这里用到的是内闭一致收敛，无须声称原几何级数在 $(-1,1)$ 上一致收敛。
+\end{solve}
+
+\begin{example}
+\label{ex:euler-constant-integral-series}
+计算 $\displaystyle I=\int_0^1\sum_{n=1}^\infty\frac{x}{n(n+x)}\,dx$。
+\end{example}
+
+\begin{solve}
+在 $[0,1]$ 上，$0\leq x/(n(n+x))\leq1/n^2$，故由 $M$ 判别法及逐项积分定理，
+\[
+    I=\sum_{n=1}^\infty\int_0^1
+          \left(\frac1n-\frac1{n+x}\right)\,dx
+      =\lim_{N\to\infty}\left(\sum_{n=1}^N\frac1n-\ln(N+1)\right)
+      =\gamma.
+\]
+这里 $\gamma=\lim_{N\to\infty}(H_N-\ln N)$ 为欧拉常数，$H_N=\sum_{n=1}^N1/n$。该极限存在，因为由 $1/(N+1)<\int_N^{N+1}dt/t$，$H_N-\ln N$ 单调下降；又 $\ln(N+1)=\int_1^{N+1}dt/t\leq H_N$，故它有下界。将 $\ln N$ 换为 $\ln(N+1)$ 只改变一个趋于零的量。
+\end{solve}
+
+\subsection{极限函数的导数}
+\label{subsec:derivatives-of-limit-functions}
+
+微分考察任意小尺度上的增量，因此对函数值的一致控制仍不足以控制导数；例~\ref{ex:pointwise-limits-and-operation-failures} 中的 $\sin(nx)/\sqrt n$ 已给出反例。另一方面，只知道导函数一致收敛也不够确定原函数，因为每一项还可加上任意常数。例如 $f_n(x)=n$ 的导函数恒为零，原函数却处处发散。因此需要同时控制导函数，并在至少一个点固定原函数的常数部分。
+
+\begin{theorem}[导数与极限的交换]
+\label{thm:differentiation-of-function-sequence}
+设 $a<b$，每个 $f_n$ 在 $[a,b]$ 上可导，端点取有限单侧导数。若存在 $x_0\in[a,b]$，使数列 $\{f_n(x_0)\}$ 收敛，且 $f_n'\rightrightarrows g$ 于 $[a,b]$，则存在函数 $f$，使 $f_n\rightrightarrows f$ 于 $[a,b]$，$f$ 在该区间上可导，且
+\begin{equation}
+    f'(x)=g(x)=\lim_{n\to\infty}f_n'(x),
+    \qquad x\in[a,b].
+    \label{eq:uniform-derivative-limit}
+\end{equation}
+端点处的结论按相应单侧理解；本定理不要求各 $f_n'$ 连续。
+\end{theorem}
+
+\begin{proof}
+先证原函数序列一致收敛。对 $f_n-f_m$ 在 $x_0$ 与任意 $x$ 之间使用拉格朗日中值定理，得
+\[
+    |f_n(x)-f_m(x)|
+    \leq|f_n(x_0)-f_m(x_0)|
+       +(b-a)\|f_n'-f_m'\|_\infty.
+\]
+右边由给定点处的柯西条件及导函数的一致柯西条件趋于零，故 $f_n\rightrightarrows f$。
+
+再固定 $y\in[a,b]$，对 $x\neq y$ 记
+\[
+    Q_n(x)=\frac{f_n(x)-f_n(y)}{x-y},\qquad
+    Q(x)=\frac{f(x)-f(y)}{x-y}.
+\]
+中值定理给出 $|Q_n(x)-Q_m(x)|\leq\|f_n'-f_m'\|_\infty$，所以 $\{Q_n\}$ 在 $[a,b]\setminus\{y\}$ 上一致柯西，并逐点收敛于 $Q$，因而一致收敛。另一方面，$\lim_{x\to y}Q_n(x)=f_n'(y)$。由定理~\ref{thm:exchange-limits-under-uniform-convergence} 可交换这两个极限，得到 $\lim_{x\to y}Q(x)=\lim_nf_n'(y)=g(y)$，即 $f'(y)=g(y)$。端点采用相应单侧极限，证明相同。
+\end{proof}
+
+\begin{corollary}[逐项求导]
+\label{cor:termwise-differentiation-uniform-derivative-series}
+设每个 $u_n$ 在 $[a,b]$ 上可导，端点按单侧理解。若 $\sum_{n=1}^\infty u_n(x_0)$ 在某个 $x_0\in[a,b]$ 处收敛，且导函数级数 $\sum_{n=1}^\infty u_n'$ 在 $[a,b]$ 上一致收敛，则原级数在该区间上一致收敛，和函数可导，并且
+\begin{equation}
+    \left(\sum_{n=1}^\infty u_n(x)\right)'
+       =\sum_{n=1}^\infty u_n'(x).
+    \label{eq:termwise-differentiation-function-series}
+\end{equation}
+这一交换称为\emph{逐项求导}（termwise differentiation）。
+\end{corollary}
+
+\begin{proof}
+将前一定理应用于部分和序列。
+\end{proof}
+
+在开区间内，可导性同样是局部性质。因此，若 $f_n$ 已逐点收敛、$f_n'$ 内闭一致收敛，就能在每个闭子区间上应用上述定理，得到极限函数可导以及式~\eqref{eq:uniform-derivative-limit}。对级数也有相同结论。若只给出一个点的收敛，则对任意有限闭子区间，可先取同时包含它与该点的更大闭子区间，借此把常数部分的控制传递过去。上述结论保证有限闭子区间上的一致收敛，不能直接在无界区间上把中值定理中的长度替换为一个不存在的有限统一界。
+
+\begin{example}
+\label{ex:zeta-function-smoothness-by-series}
+证明函数 $\displaystyle\zeta(x)=\sum_{n=1}^\infty n^{-x}$ 在 $(1,+\infty)$ 内具有任意阶连续导数，并写出其表达式。
+\end{example}
+
+\begin{solve}
+固定 $\delta>0$ 和非负整数 $m$，通项的 $m$ 阶导数为 $(-\ln n)^m/n^x$，其中 $m=0$ 时将分子理解为 $1$。在 $x\geq1+\delta$ 上，
+\[
+    \left|\frac{(-\ln n)^m}{n^x}\right|
+    \leq\frac{(\ln n)^m}{n^{1+\delta}}.
+\]
+对固定 $m,\delta$，对数增长慢于任意正幂，故充分大的 $n$ 满足 $(\ln n)^m\leq n^{\delta/2}$；右边因而可由收敛的 $p$ 级数 $\sum n^{-1-\delta/2}$ 控制。$M$ 判别法给出各阶导函数级数的一致收敛。先由连续性定理，再在任意有限闭子区间内反复逐项求导，得到
+\[
+    \zeta^{(m)}(x)=\sum_{n=1}^\infty\frac{(-\ln n)^m}{n^x},
+    \qquad x>1.
+\]
+每个和函数均连续，故 $\zeta\in C^\infty((1,+\infty))$。这里 $\zeta$ 称为实变量上的\emph{黎曼 $\zeta$ 函数}（Riemann zeta function）；本例只讨论 $x>1$ 的级数定义。
+\end{solve}
+
+\begin{example}
+\label{ex:series-with-prescribed-discontinuity-set}
+设 $\{x_n\}\subset[0,1]$ 各项互不相同。构造一个有界函数，其在 $[0,1]$ 上的不连续点恰为全部 $x_n$；再构造一个可导函数，其导函数的不连续点恰为这些点。
+\end{example}
+
+\begin{solve}
+定义符号函数 $\operatorname{sgn}(t)$ 在 $t>0$、$t=0$、$t<0$ 时分别为 $1,0,-1$，并令
+\[
+    F(x)=\sum_{n=1}^\infty\frac{\operatorname{sgn}(x-x_n)}{2^n},
+    \qquad 0\leq x\leq1.
+\]
+每项绝对值不超过 $2^{-n}$，所以级数一致收敛，且 $|F|\leq1$。若 $x\notin\{x_n\}$，则每一项都在该点连续，故 $F$ 连续。若 $x=x_k$，去掉第 $k$ 项后，其余级数仍一致收敛，且每一项在 $x_k$ 连续，所以其和在该点连续；第 $k$ 项在该点不连续，因而 $F$ 也不连续。端点使用相对连续性，结论仍成立。
+
+再令
+\[
+    h(t)=\begin{cases}t^2\sin(1/t),&t\neq0,\\0,&t=0,\end{cases}
+    \qquad
+    G(x)=\sum_{n=1}^\infty\frac{h(x-x_n)}{2^n}.
+\]
+$h$ 处处可导，$h'(0)=0$，而 $t\neq0$ 时 $h'(t)=2t\sin(1/t)-\cos(1/t)$；$h'$ 恰在零点不连续。在 $|t|\leq1$ 上有 $|h(t)|\leq1$、$|h'(t)|\leq3$，故原级数和导函数级数均由 $M$ 判别法一致收敛，逐项求导得到
+\[
+    G'(x)=\sum_{n=1}^\infty\frac{h'(x-x_n)}{2^n}.
+\]
+在 $x\notin\{x_n\}$ 处，各项连续，故 $G'$ 连续；在 $x=x_k$ 处，去掉第 $k$ 项后的和连续，而第 $k$ 项不连续，所以 $G'$ 不连续。端点导数按单侧理解。即使选取一个在 $[0,1]$ 中稠密的点列，这两个构造仍然成立；因此逐项求导定理本身并不要求导函数连续。
+\end{solve}
+
+教材最后还用三角波级数说明，连续函数甚至可以处处不可导。下面给出这一构造，并利用逐级网格上的割线斜率核查其性质。
+
+\begin{example}
+\label{ex:continuous-nowhere-differentiable-triangular-series}
+设 $\varphi(x)=\operatorname{dist}(x,\mathbb Z)=\inf_{k\in\mathbb Z}|x-k|$，即把 $[-1/2,1/2]$ 上的 $|x|$ 作周期为 $1$ 的延拓。证明
+\[
+    W(x)=\sum_{n=1}^\infty\frac{\varphi(4^nx)}{4^n},
+    \qquad x\in\mathbb R,
+\]
+连续，但没有任何一点存在有限导数。
+\end{example}
+
+\begin{solve}
+由 $0\leq\varphi\leq1/2$ 及 $\sum4^{-n}<\infty$，$M$ 判别法保证级数在实轴上一致收敛；各项连续，所以 $W$ 连续。
+
+固定 $x$，先设 $x$ 不属于任何网格 $4^{-p}\mathbb Z$。以 $\lfloor t\rfloor$ 表示不大于 $t$ 的最大整数，令
+\[
+    a_p=\frac{\lfloor4^px\rfloor}{4^p},\qquad b_p=a_p+4^{-p},
+    \qquad D_p=\frac{W(b_p)-W(a_p)}{b_p-a_p}.
+\]
+有 $a_p<x<b_p$，二者均趋于 $x$。对 $n\geq p$，$4^na_p$、$4^nb_p$ 都是整数，所以相应项在两端均为零。对 $n<p$，第 $n$ 项的折点为 $k/(2\cdot4^n)$（$k\in\mathbb Z$），均落在 $4^{-p}\mathbb Z$ 中，因此该项在 $[a_p,b_p]$ 上为斜率等于 $1$ 或 $-1$ 的线性函数。由网格嵌套，进入下一层时，原有各项的斜率保持不变，仅新增第 $p$ 项的斜率，故
+\[
+    D_{p+1}-D_p\in\{-1,1\}.
+\]
+因此 $\{D_p\}$ 不可能收敛。若 $W'(x)=L\in\mathbb R$ 存在，由
+\[
+    W(t)=W(x)+L(t-x)+o(|t-x|)
+\]
+分别取 $t=a_p,b_p$，并利用 $|b_p-x|+|x-a_p|=b_p-a_p$，却会得到 $D_p\to L$，矛盾。
+
+若 $x\in4^{-p_0}\mathbb Z$，改用 $[x,x+4^{-p}]$（$p\geq p_0$）的右侧割线。有限个 $n<p_0$ 的项在充分短的右邻域内斜率固定；对 $p_0\leq n<p$，$4^nx$ 为整数且 $0\leq4^n(t-x)\leq1/4$，相应项在该区间的斜率均为 $1$；对 $n\geq p$，端点值均为零。因此右侧割线斜率随 $p$ 趋于 $+\infty$，也不可能有有限导数。两种情形覆盖了全部实数。
+\end{solve}
+
+\section*{习题十}
+\addcontentsline{toc}{section}{习题十}

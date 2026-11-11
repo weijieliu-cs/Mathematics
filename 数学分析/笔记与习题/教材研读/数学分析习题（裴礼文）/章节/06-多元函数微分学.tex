@@ -1,0 +1,764 @@
+% !TeX root = ../数学分析习题（裴礼文）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{5} % 保留原书章号。
+\chapter{多元函数微分学}
+\label{chap:pei-multivariable-differentiation}
+% 来源：数学分析/textbooks/数分习题（分章原文）/数分习题-6.pdf，PDF 第 1--107 页。按主题整理学习笔记，并非逐题抄录。
+
+本章研究从欧氏空间到实数或另一欧氏空间的映射。与一元情形相比，自变量可以沿不同方向趋近同一点，因而沿坐标轴得到的信息未必能控制整个邻域；微分也应当理解为一个同时适用于所有小增量的线性近似。本章沿教材第六章的次序，从极限与连续出发，讨论偏导数、全微分、Taylor 公式与极值、隐函数及函数相关，最后归纳方向导数与梯度，并把计算中需要的条件与容易混淆的逆命题一并说明。
+
+\section{欧氏空间、多元函数的极限与连续}
+\label{sec:pei-euclidean-limits-continuity}
+
+\subsection{范数、距离与集合的基本性质}
+
+在 $\mathbb R^m$ 中，对 $x=(x_1,\ldots,x_m)$ 定义欧氏范数（Euclidean norm）$\|x\|=(\sum_{i=1}^m x_i^2)^{1/2}$，距离为 $d(x,y)=\|x-y\|$。逐项估计与 Cauchy--Schwarz 不等式给出
+\begin{equation}
+\label{eq:pei-coordinate-norm-bounds}
+\max_{1\le i\le m}|x_i|\le\|x\|\le\sum_{i=1}^m|x_i|\le\sqrt m\,\|x\|.
+\end{equation}
+因此向量收敛等价于各坐标分别收敛，使用球形邻域或各坐标同时受控的矩形邻域定义极限，得到的概念相同。
+
+\begin{definition}
+设 $E\subset\mathbb R^m$。若某个开球 $B(a,r)=\{x:\|x-a\|<r\}$ 包含于 $E$，称 $a$ 为 $E$ 的内点；若每个 $B(a,r)$ 都与 $E$ 和 $\mathbb R^m\setminus E$ 相交，称 $a$ 为边界点。若每个去心球 $B(a,r)\setminus\{a\}$ 都与 $E$ 相交，称 $a$ 为聚点。$E$ 的闭包记为 $\overline E$，边界记为 $\partial E$；开集是每一点均为内点的集合，闭集是包含全部聚点的集合。
+\end{definition}
+
+从定义可得 $\partial E=\overline E\cap\overline{\mathbb R^m\setminus E}$，故边界总是闭集。有限维欧氏空间中的有界闭集是紧集（compact set）：任意序列有收敛到该集内一点的子列，等价地，任意开覆盖有有限子覆盖。后面由局部控制获得统一控制，或由连续性获得最大、最小值时，真正使用的是紧性。
+
+有限维空间中还可换用其他范数。若 $N$ 是满足正定性、绝对齐次性与三角不等式的范数，沿坐标分解可得 $N(x)\le\sum_i|x_i|N(e_i)\le C\|x\|$，从而 $|N(x)-N(y)|\le C\|x-y\|$，所以 $N$ 关于欧氏距离连续。它在单位球面上的最小值 $c$ 严格为正，齐次性遂给出 $c\|x\|\le N(x)\le C\|x\|$。因此有限维空间中的任意两种范数给出相同的收敛、连续和一致连续概念。
+
+\begin{proposition}
+\label{prop:pei-distance-function}
+对非空集合 $E\subset\mathbb R^m$，定义点到集合的距离 $d(x,E)=\inf_{z\in E}\|x-z\|$。则
+\[
+|d(x,E)-d(y,E)|\le\|x-y\|,\qquad d(x,E)=0\ \Longleftrightarrow\ x\in\overline E.
+\]
+特别地，距离函数在整个空间上满足 Lipschitz 条件，因而一致连续；若 $E$ 闭，则 $d(x,E)=0$ 等价于 $x\in E$。
+\end{proposition}
+\begin{proof}
+对每个 $z\in E$，由三角不等式有 $d(x,E)\le\|x-y\|+\|y-z\|$，对 $z$ 取下确界，再交换 $x,y$ 即得第一式。若 $d(x,E)=0$，每个正整数 $n$ 都可选 $z_n\in E$ 使 $\|x-z_n\|<1/n$，故 $x\in\overline E$；反向结论直接由闭包的邻域定义得到。
+\end{proof}
+
+\begin{example}
+设非空紧集 $K$ 包含于开集 $U\subset\mathbb R^m$，且 $U\ne\mathbb R^m$。构造连续函数 $\varphi:\mathbb R^m\to[0,1]$，使其在 $K$ 上等于 $1$、在 $\mathbb R^m\setminus U$ 上等于 $0$。
+\end{example}
+\begin{solve}
+令
+\[
+\varphi(x)=\frac{d(x,\mathbb R^m\setminus U)}{d(x,K)+d(x,\mathbb R^m\setminus U)}.
+\]
+两个闭集 $K$ 与 $\mathbb R^m\setminus U$ 不相交，由命题~\ref{prop:pei-distance-function}，分母在每一点都为正，所以该式定义连续函数并具有所需取值。若还要在 $K$ 与 $U$ 的外部之间留出统一宽度，可将连续正函数 $d(x,\mathbb R^m\setminus U)$ 限制在紧集 $K$ 上取最小值，得到 $d(K,\mathbb R^m\setminus U)>0$。
+\end{solve}
+
+\subsection{重极限、路径与极坐标的一致估计}
+
+\begin{definition}
+设 $a$ 是 $D\subset\mathbb R^m$ 的聚点，$f:D\to\mathbb R^p$。若对任意 $\varepsilon>0$，存在 $\delta>0$，使得对所有 $x\in D$，$0<\|x-a\|<\delta$ 蕴含 $\|f(x)-A\|<\varepsilon$，则称 $\lim_{x\to a,\,x\in D}f(x)=A$。当 $m\ge2$ 时，这也称为重极限或全面极限（joint limit）。
+\end{definition}
+
+该定义等价于序列判别法：每个满足 $x_n\in D\setminus\{a\}$、$x_n\to a$ 的序列都应满足 $f(x_n)\to A$。必要性是把极限定义应用于序列；若充分性不成立，可对某个固定的 $\varepsilon_0>0$，逐次在 $1/n$ 邻域中选出 $\|f(x_n)-A\|\ge\varepsilon_0$ 的点，得到矛盾。因此，找出两条路径或两个序列给出不同极限，就能否定重极限；验证若干条路径则不足以证明它存在。
+
+\begin{example}
+\label{ex:pei-radial-limit-failure}
+证明函数 $f(x,y)=x^2y/(x^4+y^2)$ 在原点的每条固定射线上均趋于 $0$，但重极限不存在。
+\end{example}
+\begin{solve}
+在直线 $y=kx$ 上，$k\ne0$ 时有 $f(x,kx)=kx/(x^2+k^2)\to0$；在两条坐标轴上函数恒为 $0$。但沿 $y=x^2$ 有 $f(x,x^2)=1/2$。极坐标把函数写为 $F(r,\theta)=f(r\cos\theta,r\sin\theta)$，每条射线上的收敛只表示对每个固定 $\theta$ 有 $F(r,\theta)\to0$；证明重极限需要一个同时控制所有角度的半径，即
+\[
+\sup_{0\le\theta<2\pi}|F(r,\theta)|\longrightarrow0\qquad(r\downarrow0).
+\]
+这里的非径向路径说明该一致收敛条件失败。
+\end{solve}
+
+\emph[tip]{存在性通常由统一上界证明，不存在性通常由路径反例证明。}例如
+\[
+0\le\frac{x^2y^2}{x^2+y^2}\le\frac{x^2+y^2}{4}\longrightarrow0.
+\]
+更一般地，若 $|f(r\cos\theta,r\sin\theta)-A|\le Cr^\alpha$ 对所有角度成立，其中 $\alpha>0$、$C$ 与角度无关，就得到重极限 $A$。若函数是正次数齐次函数，即 $f(tx)=t^\alpha f(x)$（$t>0$、$\alpha>0$），且在单位球面上有界，也可写成 $f(x)=\|x\|^\alpha f(x/\|x\|)$，从而得出 $f(x)\to0$。
+
+\begin{proposition}
+设 $F(r,\theta)$ 对每个固定角度满足 $F(r,\theta)\to A$（$r\downarrow0$），并且这一族角度函数在圆周上等度连续（equicontinuous）：对任意 $\varepsilon>0$，存在与 $r$ 无关的 $\eta>0$，使圆周角距离小于 $\eta$ 时 $|F(r,\theta)-F(r,\phi)|<\varepsilon$，其中 $0<r<r_0$。则 $F(r,\theta)\to A$ 关于角度一致，因而相应的二元函数在原点具有重极限 $A$。
+\end{proposition}
+\begin{proof}
+利用圆周紧性，选有限个角度 $\theta_1,\ldots,\theta_N$，使每个角度距某个 $\theta_j$ 小于 $\eta$。由这有限条射线上的收敛，可取同一个 $\delta>0$ 使 $0<r<\delta$ 时所有 $|F(r,\theta_j)-A|<\varepsilon$。任意角度的误差均不超过 $2\varepsilon$，这就给出所需的一致估计。
+\end{proof}
+
+\subsection{累次极限与交换次序的条件}
+
+累次极限（iterated limit）$\lim_{x\to a}\lim_{y\to b}f(x,y)$ 要先在固定 $x$ 时求内层极限，其存在性与重极限的存在性互不等价。例如 $f(x,y)=xy/(x^2+y^2)$ 的两个累次极限都是 $0$，重极限却不存在；而在 $xy\ne0$ 时定义
+\[
+f(x,y)=x\sin\frac1y+y\sin\frac1x,
+\]
+并在坐标轴上补为 $0$，则 $|f(x,y)|\le|x|+|y|$ 保证重极限为 $0$，但固定非零 $x$ 或非零 $y$ 时，相应的内层极限不存在。若重极限为 $A$，且 $g(x)=\lim_{y\to b}f(x,y)$ 在 $a$ 的某个去心邻域中存在，则将重极限估计中的 $y$ 趋于 $b$ 可得 $|g(x)-A|\le\varepsilon$，故相应的累次极限存在并等于 $A$。
+
+\begin{theorem}
+\label{thm:pei-interchange-limits}
+设 $f$ 在 $(a,b)$ 附近的去心乘积邻域内定义，$g(x)=\lim_{y\to b}f(x,y)$ 对每个 $x$ 存在，且 $f(x,y)\to h(y)$（$x\to a$）关于该邻域内的 $y$ 一致。则 $\lim_{x\to a}g(x)$ 与 $\lim_{y\to b}h(y)$ 都存在且相等。
+\end{theorem}
+\begin{proof}
+由一致收敛，对任意 $\varepsilon>0$，当 $x,x'$ 均充分接近 $a$ 时，对所有允许的 $y$ 有
+\[
+|f(x,y)-f(x',y)|\le|f(x,y)-h(y)|+|h(y)-f(x',y)|<2\varepsilon.
+\]
+令 $y\to b$，得到 $|g(x)-g(x')|\le2\varepsilon$。由实数的 Cauchy 极限准则，$g(x)\to A$。再固定一个充分接近 $a$ 的 $x_*$，使 $|g(x_*)-A|<\varepsilon$ 且 $|f(x_*,y)-h(y)|<\varepsilon$ 对所有 $y$ 成立。最后令 $y$ 足够接近 $b$，用
+\[
+|h(y)-A|\le|h(y)-f(x_*,y)|+|f(x_*,y)-g(x_*)|+|g(x_*)-A|
+\]
+得到误差小于 $3\varepsilon$，故 $h(y)\to A$。
+\end{proof}
+
+\subsection{连续、分别连续与紧集上的统一控制}
+
+$f:D\to\mathbb R^p$ 在 $a\in D$ 连续，指 $\lim_{x\to a,\,x\in D}f(x)=f(a)$；在孤立点该条件自动成立。连续也等价于保持序列极限，或任意开集的逆像都是 $D$ 中的相对开集。后一描述中的“相对”不可省略：当定义域不是开集时，逆像未必是整个 $\mathbb R^m$ 的开集。向量值映射连续等价于各分量连续。
+
+二元函数联合连续必然分别对每个变量连续，反向不成立；将 $xy/(x^2+y^2)$ 在原点补为 $0$ 就给出反例。若在原点附近有统一的 Lipschitz 估计 $|f(x,y)-f(x,y')|\le L|y-y'|$，且 $x\mapsto f(x,0)$ 在 $0$ 连续，则
+\[
+|f(x,y)-f(0,0)|\le L|y|+|f(x,0)-f(0,0)|\longrightarrow0.
+\]
+另一充分条件是分别连续，且对 $y$ 单调，单调方向在所讨论矩形内相同：先以 $y_0\pm\eta$ 处的函数值夹住 $f(x,y)$，再利用这两条水平线上的 $x$ 连续性和 $x_0$ 处的 $y$ 连续性，即可证明在 $(x_0,y_0)$ 联合连续。
+
+\begin{proposition}
+\label{prop:pei-maximum-continuity}
+若 $K\subset\mathbb R^m$、$L\subset\mathbb R^n$ 为非空紧集，$f$ 在 $K\times L$ 上连续，则 $M(y)=\max_{x\in K}f(x,y)$ 与 $m(y)=\min_{x\in K}f(x,y)$ 都在 $L$ 上连续。
+\end{proposition}
+\begin{proof}
+极值存在由紧性保证。对任意 $y,y'\in L$，逐点比较并取最大值得到
+\[
+|M(y)-M(y')|\le\max_{x\in K}|f(x,y)-f(x,y')|.
+\]
+$f$ 在紧集 $K\times L$ 上一致连续，所以右端随 $\|y-y'\|\to0$ 而趋于 $0$。最小值的结论应用于 $-f$ 即得。
+\end{proof}
+
+确界与下确界的交换一般只有不等式。对任意实值有界函数 $f$，由 $\inf_y f(x,y)\le f(x,y)\le\sup_x f(x,y)$，先后取确界可得
+\[
+\sup_x\inf_y f(x,y)\le\inf_y\sup_x f(x,y).
+\]
+即使 $f$ 连续也未必取等号，例如 $f(x,y)=(x-y)^2$、$x,y\in[0,1]$ 时两边分别为 $0$ 与 $1/4$。若存在鞍点 $(x_*,y_*)$ 满足 $f(x,y_*)\le f(x_*,y_*)\le f(x_*,y)$，则两边均等于该鞍点值；若 $f$ 对 $x$ 在整个区间上一致单调，也可把 $\sup_x$ 固定为同一个端点取值，直接验证等号。
+
+\begin{remark}
+若实值函数 $f$ 在 $a$ 的某邻域有界，令 $M(r)=\sup_{x\in B(a,r)}f(x)$、$m(r)=\inf_{x\in B(a,r)}f(x)$。随 $r\downarrow0$，非负差值 $M(r)-m(r)$ 单调不增，故有有限极限 $\omega_f(a)$，称为 $f$ 在 $a$ 处的振幅（oscillation）。$f$ 在 $a$ 连续当且仅当 $\omega_f(a)=0$：连续性给出邻域内所有值都接近 $f(a)$；反向利用 $m(r)\le f(a),f(x)\le M(r)$，把函数值之差控制在振幅内。
+\end{remark}
+
+\begin{theorem}
+\label{thm:pei-uniform-extension}
+若 $f:E\to\mathbb R^p$ 一致连续，则它能唯一地一致连续延拓到 $\overline E$。特别地，若 $D$ 是有界开集，$f:D\to\mathbb R^p$ 连续，则 $f$ 在 $D$ 上一致连续，当且仅当对每个 $a\in\partial D$，沿 $D$ 趋于 $a$ 的有限极限存在。
+\end{theorem}
+\begin{proof}
+对 $a\in\overline E$ 取 $x_n\in E$、$x_n\to a$。一致连续性使 $f(x_n)$ 为 Cauchy 列；比较两种选点序列可知其极限与选择无关，于是定义延拓值。对 $a,b\in\overline E$，用 $E$ 内趋于它们的序列传递原来的一致连续估计，即得延拓仍一致连续，唯一性由 $E$ 在闭包中稠密得到。
+
+对后一结论，必要性来自上述延拓。充分性需检查边界值彼此相容：按给定边界极限补定义 $\overline f$。若 $a_n\in\overline D$、$a_n\to a$，可在 $D$ 中选 $z_n$ 使 $\|z_n-a_n\|<1/n$ 且 $\|f(z_n)-\overline f(a_n)\|<1/n$，故 $z_n\to a$，由内部连续性或 $a$ 处的边界极限可知 $\overline f(a_n)\to\overline f(a)$。所以延拓在紧集 $\overline D$ 上连续，从而一致连续。
+\end{proof}
+
+\section{多元函数的偏导数与可微性}
+\label{sec:pei-partials-differentiability}
+
+\subsection{偏导数与全微分分别控制什么}
+
+对定义在 $a\in\mathbb R^n$ 邻域内的实值函数，偏导数（partial derivative）定义为
+\[
+f_{x_i}(a)=\lim_{t\to0}\frac{f(a+te_i)-f(a)}{t},
+\]
+其中 $e_i$ 是第 $i$ 个坐标单位向量，其余坐标保持不变。分段定义函数在分界点的偏导必须回到这个定义；不能把只在去心邻域成立的求导公式直接代入分界点。下文约定 $f_{xy}=\partial_y(\partial_x f)$，先求 $x$ 偏导，再求 $y$ 偏导；在未核实条件前，不交换求导次序。
+
+\begin{definition}
+设 $f:U\subset\mathbb R^n\to\mathbb R^m$，$U$ 开，$a\in U$。若存在线性映射 $A:\mathbb R^n\to\mathbb R^m$，使
+\begin{equation}
+\label{eq:pei-frechet-differentiability}
+f(a+h)-f(a)=Ah+o(\|h\|)\qquad(h\to0),
+\end{equation}
+则称 $f$ 在 $a$ 可微（differentiable），$A$ 称为导数或微分，记为 $Df(a)$；增量 $h$ 的全微分（total differential）为 $df(a)[h]=Df(a)h$。对实值函数，梯度（gradient）记为 $\nabla f(a)=(f_{x_1}(a),\ldots,f_{x_n}(a))$，因而 $Df(a)h=\nabla f(a)\cdot h=\sum_i f_{x_i}(a)h_i$；对向量值函数，其矩阵是 Jacobi 矩阵（Jacobian matrix）$J_f(a)=(\partial f_i/\partial x_j)_{m\times n}$。
+\end{definition}
+
+线性近似若存在则唯一：若 $Ah$ 与 $Bh$ 均满足式~\eqref{eq:pei-frechet-differentiability}，令 $h=tv$ 并除以 $t$，可得 $(A-B)v=0$ 对每个 $v$ 成立。可微蕴含连续和全部偏导数存在，但偏导数存在仅检查有限个方向，不能推出可微。若偏导数已求出，检验可微的直接标准是
+\begin{equation}
+\label{eq:pei-differentiability-test}
+\frac{f(a+h)-f(a)-\sum_i f_{x_i}(a)h_i}{\|h\|}\longrightarrow0.
+\end{equation}
+
+\begin{theorem}
+\label{thm:pei-continuous-partials}
+若 $f$ 的一阶偏导数在 $a$ 的某邻域存在，且都在 $a$ 连续，则 $f$ 在 $a$ 可微。二元情形还可减弱为：$f_x$ 在邻域内存在且在 $a=(a_1,a_2)$ 连续，而 $f_y(a)$ 存在。
+\end{theorem}
+\begin{proof}
+证明二元的较弱结论。将增量拆为两条坐标线段，并在第一条线上用一元中值定理，得到
+\begin{align*}
+f(a_1+h,a_2+k)-f(a_1,a_2)
+&=f_x(a_1+\theta h,a_2+k)h\\
+&\quad+f_y(a_1,a_2)k+o(|k|),\qquad 0<\theta<1.
+\end{align*}
+$f_x$ 在 $a$ 连续，故把第一项替换为 $f_x(a)h$ 的误差是 $o(\sqrt{h^2+k^2})$；第二个余项也具有该性质。高维结论沿各坐标逐段拆分，用同样估计即可。
+\end{proof}
+
+\begin{example}
+\label{ex:pei-bounded-partials-not-differentiable}
+令 $f(x,y)=xy/\sqrt{x^2+y^2}$（$(x,y)\ne(0,0)$），$f(0,0)=0$。证明它连续，两个偏导数存在且有界，但在原点不可微。
+\end{example}
+\begin{solve}
+$|f(x,y)|\le\sqrt{x^2+y^2}/2$ 保证原点连续，沿两轴的定义给出 $f_x(0,0)=f_y(0,0)=0$。在非原点处，
+\[
+f_x=\frac{y^3}{(x^2+y^2)^{3/2}},\qquad f_y=\frac{x^3}{(x^2+y^2)^{3/2}},
+\]
+所以绝对值均不超过 $1$。但沿 $x=y=t\ne0$，$f(t,t)/\sqrt{2t^2}=1/2$，不满足式~\eqref{eq:pei-differentiability-test}。这同时说明偏导有界所带来的局部 Lipschitz 控制仍不足以保证某一点可微。
+\end{solve}
+
+\begin{example}
+在原点补为 $0$ 的函数
+\[
+f_\alpha(x,y)=(x^2+y^2)^\alpha\sin\frac1{\sqrt{x^2+y^2}},\qquad (x,y)\ne(0,0),\quad\alpha\in\mathbb R,
+\]
+在原点可微的充要条件是什么？
+\end{example}
+\begin{solve}
+沿 $y=0$，偏导定义中的差商为 $|t|^{2\alpha}\sin(1/|t|)/t$，其有限极限存在当且仅当 $2\alpha-1>0$，此时为 $0$；必要性可分别沿正弦等于 $1$ 和 $-1$ 的正数序列验证。若 $\alpha>1/2$，两个原点偏导均为 $0$，且以 $r=\sqrt{x^2+y^2}$ 记，有 $|f_\alpha|/r\le r^{2\alpha-1}\to0$，所以该条件也充分。这里先确定线性项，再比较余项与距离的阶数，避免只凭连续性判断可微。
+\end{solve}
+
+\subsection{复合函数、隐式求导与齐次函数}
+
+\begin{theorem}
+\label{thm:pei-chain-rule}
+若 $g:\mathbb R^k\to\mathbb R^n$ 在 $a$ 可微，$f:\mathbb R^n\to\mathbb R^m$ 在 $g(a)$ 可微，且复合映射在相应邻域内有定义，则 $f\circ g$ 在 $a$ 可微，且
+\[
+D(f\circ g)(a)=Df(g(a))Dg(a).
+\]
+\end{theorem}
+\begin{proof}
+写 $g(a+h)-g(a)=Bh+o(\|h\|)=v$，则 $\|v\|=O(\|h\|)$。代入 $f(g(a)+v)-f(g(a))=Av+o(\|v\|)$，得到 $ABh+o(\|h\|)$。这也解释了链式法则需要对整个增量的控制，不能仅凭各偏导存在就无条件套用。
+\end{proof}
+
+实值函数 $z=f(x,y)$、$x=x(s,t)$、$y=y(s,t)$ 的链式法则为 $z_s=f_xx_s+f_yy_s$、$z_t=f_xx_t+f_yy_t$，其中 $f_x,f_y$ 在 $(x(s,t),y(s,t))$ 处取值。二次求导时，这些偏导仍是复合函数。例如 $F(t)=f(t,t^2)$ 且 $f\in C^2$ 时，
+\[
+F'(t)=f_x+2tf_y,\qquad F''(t)=f_{xx}+4tf_{xy}+4t^2f_{yy}+2f_y,
+\]
+右端均在 $(t,t^2)$ 处取值。末项来自内层函数 $t^2$ 的二阶导数，不能遗漏。对恒等式 $G(x,y,z(x,y))=0$，若 $G\in C^2$ 且 $G_z\ne0$，则
+\[
+z_x=-\frac{G_x}{G_z},\qquad z_{xx}=-\frac{G_{xx}+2G_{xz}z_x+G_{zz}z_x^2}{G_z}.
+\]
+这些公式在原隐式关系成立的点上使用；局部存在与唯一性由第~\ref{sec:pei-implicit-dependence} 节的定理保证。
+
+\begin{proposition}
+\label{prop:pei-euler-homogeneous}
+设 $C\subset\mathbb R^n$ 为开锥域，即 $x\in C$、$t>0$ 蕴含 $tx\in C$，且 $f\in C^1(C)$。则 $f$ 是 $q$ 次齐次函数（homogeneous function），即 $f(tx)=t^qf(x)$，当且仅当
+\begin{equation}
+\label{eq:pei-euler-identity}
+\sum_{i=1}^n x_i f_{x_i}(x)=qf(x)\qquad(x\in C).
+\end{equation}
+\end{proposition}
+\begin{proof}
+必要性是对 $t\mapsto f(tx)$ 求导后令 $t=1$。反过来，固定 $x\in C$，对 $t^{-q}f(tx)$ 求导，利用在 $tx$ 处成立的式~\eqref{eq:pei-euler-identity} 得导数为零，所以它恒等于 $f(x)$。
+\end{proof}
+
+若齐次函数 $f\in C^k(C)$，则对 $t\mapsto f(tx)=t^qf(x)$ 求 $k$ 次导数，并令 $t=1$，得到
+\[
+D^kf(x)[x,\ldots,x]=q(q-1)\cdots(q-k+1)f(x).
+\]
+二元形式的左端为 $\sum_{j=0}^k\binom{k}{j}x^jy^{k-j}\partial_x^j\partial_y^{k-j}f(x,y)$。此处 $x,y$ 是方向向量的固定分量；若把它简写为 $\bigl(x\partial_x+y\partial_y\bigr)^kf$，必须声明系数不再参与求导，否则所得算符幂会产生额外项。
+
+\subsection{混合偏导数与矩形差商}
+
+\begin{theorem}
+\label{thm:pei-mixed-partials}
+若 $f_x,f_y,f_{xy},f_{yx}$ 在 $(a,b)$ 的某邻域存在，且其中一个混合偏导数在 $(a,b)$ 连续，则 $f_{xy}(a,b)=f_{yx}(a,b)$。
+\end{theorem}
+\begin{proof}
+设 $f_{xy}$ 连续。对 $h,k\ne0$ 引入矩形差商
+\[
+Q(h,k)=\frac{f(a+h,b+k)-f(a+h,b)-f(a,b+k)+f(a,b)}{hk}.
+\]
+先对 $x$ 再对 $y$ 使用一元中值定理，得 $Q(h,k)=f_{xy}(a+\theta h,b+\eta k)$，所以其重极限为 $f_{xy}(a,b)$。另一方面，先令 $k\to0$ 再令 $h\to0$，按定义得到 $f_{yx}(a,b)$。由重极限与已存在的累次极限的关系，两者相等。
+\end{proof}
+
+\begin{example}
+令 $f(x,y)=xy(x^2-y^2)/(x^2+y^2)$（非原点），$f(0,0)=0$。说明混合偏导存在仍不保证可以交换次序。
+\end{example}
+\begin{solve}
+按定义有 $f_x(0,y)=-y$、$f_y(x,0)=x$，包括原点处两者均为 $0$。所以 $f_{xy}(0,0)=-1$、$f_{yx}(0,0)=1$。差异不违反定理~\ref{thm:pei-mixed-partials}，因为连续性条件不成立。矩形差商的两个累次极限不同，正是次序不能交换的具体表现。
+\end{solve}
+
+\subsection{微分方程中的变量替换}
+
+对偏微分方程换元时，应先确定哪些是新自变量、哪些是因变量，检查变换的局部可逆性，再逐阶建立导数关系。以 $x=r\cos\theta$、$y=r\sin\theta$、$r>0$ 为例，若 $U(r,\theta)=u(x,y)$，则
+\[
+\partial_x=\cos\theta\,\partial_r-\frac{\sin\theta}{r}\partial_\theta,\qquad
+\partial_y=\sin\theta\,\partial_r+\frac{\cos\theta}{r}\partial_\theta.
+\]
+这些算符的系数随 $r,\theta$ 变化，二次作用时也必须求导，不能只把右端当作常系数一次式平方。由链式法则可得
+\begin{align*}
+U_{rr}&=u_{xx}\cos^2\theta+2u_{xy}\sin\theta\cos\theta+u_{yy}\sin^2\theta,\\
+U_{\theta\theta}&=r^2\bigl(u_{xx}\sin^2\theta-2u_{xy}\sin\theta\cos\theta+u_{yy}\cos^2\theta\bigr)-rU_r.
+\end{align*}
+相加消去混合项，得到平面 Laplace 算子（Laplacian）的极坐标表达式
+\begin{equation}
+\label{eq:pei-polar-laplacian}
+u_{xx}+u_{yy}=U_{rr}+\frac1rU_r+\frac1{r^2}U_{\theta\theta},\qquad r>0.
+\end{equation}
+
+\begin{example}
+\label{ex:pei-quadratic-conformal-change}
+设 $u\in C^2$，取 $\xi=x^2-y^2$、$\eta=2xy$，写 $u(x,y)=v(\xi,\eta)$。把方程 $u_{xx}+u_{yy}=0$ 化为新变量方程。
+\end{example}
+\begin{solve}
+一次求导得 $u_x=2xv_\xi+2yv_\eta$、$u_y=-2yv_\xi+2xv_\eta$；再次求导并相加，得到
+\[
+u_{xx}+u_{yy}=4(x^2+y^2)(v_{\xi\xi}+v_{\eta\eta}).
+\]
+所以在非原点的局部坐标片中，新方程为 $v_{\xi\xi}+v_{\eta\eta}=0$。换元的 Jacobi 行列式为 $4(x^2+y^2)$，在原点为零；此外 $(x,y)$ 与 $(-x,-y)$ 具有相同的像，故局部可逆也不能理解为整个平面上的一一对应。
+\end{solve}
+
+对线性换元 $x=Q\xi$，若 $Q$ 是正交矩阵，则梯度长度与 Laplace 算子保持不变。事实上 $\nabla_\xi(u\circ Q)=Q^{\mathsf T}\nabla_xu$，二阶导数矩阵按 $H_\xi=Q^{\mathsf T}H_xQ$ 变换，利用 $QQ^{\mathsf T}=I$ 取迹即可。若因变量也发生变化，如 $u=e^\psi v$，还应在链式法则中同时使用乘积法则；只有把全部导数化为新变量表达式后，才代回原方程化简。
+
+\section{多元 Taylor 公式、凸函数、几何应用与极值}
+\label{sec:pei-taylor-convexity-extrema}
+
+\subsection{沿线段化为一元问题与展开式的唯一性}
+
+设 $a$ 与 $a+h$ 之间的线段位于函数定义域中，作 $g(t)=f(a+th)$，$0\le t\le1$。其中 $D^jf(x)$ 表示 $j$ 阶导数所定义的 $j$ 重线性映射。链式法则给出 $g^{(j)}(t)=D^jf(a+th)[h,\ldots,h]$，从而可将一元 Taylor 公式应用于 $g$。例如 $f\in C^2$ 时，在 $a=(a_1,a_2)$ 附近有
+\begin{equation}
+\label{eq:pei-second-order-taylor}
+f(a+(h,k))=f(a)+f_x(a)h+f_y(a)k+\frac12\bigl(f_{xx}(a)h^2+2f_{xy}(a)hk+f_{yy}(a)k^2\bigr)+o(h^2+k^2).
+\end{equation}
+一般地，若 $f\in C^N$ 于 $a$ 的邻域，则
+\begin{equation}
+\label{eq:pei-multivariable-taylor}
+f(a+h)=\sum_{|\alpha|\le N}\frac{\partial^\alpha f(a)}{\alpha!}h^\alpha+o(\|h\|^N).
+\end{equation}
+这里多重指标（multi-index）$\alpha=(\alpha_1,\ldots,\alpha_n)$ 的分量为非负整数，$|\alpha|=\sum_i\alpha_i$，$\alpha!=\prod_i\alpha_i!$，$h^\alpha=\prod_i h_i^{\alpha_i}$。余项是关于全部增量的估计，不能只在每个固定方向上分别成立。
+
+\begin{proof}
+对 $N\ge1$，沿线段应用积分余项公式，并把 $N$ 阶导数在 $a$ 的值从积分中分离，余项为
+\[
+\frac1{(N-1)!}\int_0^1(1-t)^{N-1}\bigl(D^Nf(a+th)-D^Nf(a)\bigr)[h,\ldots,h]\,dt.
+\]
+由 $D^Nf$ 在 $a$ 连续，该式绝对值不超过 $\omega(\|h\|)\|h\|^N/N!$，其中 $\omega(r)\to0$。这给出式~\eqref{eq:pei-multivariable-taylor} 所需的统一余项估计。
+\end{proof}
+
+这种多项式近似唯一。若两个次数不超过 $N$ 的多项式都与 $f(a+h)$ 相差 $o(\|h\|^N)$，把它们之差按齐次次数分组，并取最低的非零齐次项 $P_j(h)$。令 $h=tv$，除以 $t^j$ 再令 $t\downarrow0$，得到 $P_j(v)=0$ 对每个 $v$ 成立，矛盾。因此，只要通过初等展开、乘法或代换获得了正确总次数和余项，就无需逐个高阶求导来确认 Taylor 系数。
+
+\begin{example}
+把 $e^x\cos y$ 在原点展开到总次数四。
+\end{example}
+\begin{solve}
+将 $e^x$ 与 $\cos y$ 的一元展开相乘，仅保留总次数不超过四的项，得到
+\[
+e^x\cos y=1+x+\frac{x^2-y^2}{2}+\frac{x^3-3xy^2}{6}+\frac{x^4-6x^2y^2+y^4}{24}+o(r^4),\quad r=\sqrt{x^2+y^2}.
+\]
+被舍弃的乘积项为 $O(r^5)$，一元余项也可由 $|x|,|y|\le r$ 控制，所以这是二元意义下的展开。按上述唯一性，它与直接计算偏导得到的 Taylor 多项式相同。
+\end{solve}
+
+同样的线段方法给出多元中值估计。若 $D$ 为凸开集，$f\in C^1(D)$，且 $\|\nabla f(x)\|\le M$ 对所有 $x\in D$ 成立，则
+\begin{equation}
+\label{eq:pei-gradient-lipschitz}
+|f(y)-f(x)|=\left|\int_0^1\nabla f(x+t(y-x))\cdot(y-x)\,dt\right|\le M\|y-x\|.
+\end{equation}
+凸性保证积分所经线段仍在定义域内。若函数在紧凸集的某开邻域内为 $C^1$，梯度连续性自动给出该紧集上的有限上界。对向量值映射可用导数的算子范数得到相同类型的估计，但不能无条件写成 $F(y)-F(x)=DF(\xi)(y-x)$ 并要求所有分量共用同一点 $\xi$。
+
+\subsection{凸函数的一阶与二阶刻画}
+
+\begin{definition}
+设 $D\subset\mathbb R^n$ 为凸集。若对任意 $x,y\in D$、$t\in[0,1]$ 有
+\[
+f((1-t)x+ty)\le(1-t)f(x)+tf(y),
+\]
+则称 $f:D\to\mathbb R$ 为凸函数（convex function）；若 $x\ne y$、$0<t<1$ 时均严格小于，则称为严格凸函数。
+\end{definition}
+
+\begin{theorem}
+\label{thm:pei-convexity-criteria}
+设 $D$ 为凸开集。可微函数 $f$ 为凸函数，当且仅当对任意 $x,y\in D$，
+\begin{equation}
+\label{eq:pei-convex-support}
+f(y)\ge f(x)+\nabla f(x)\cdot(y-x).
+\end{equation}
+若进一步 $f\in C^2(D)$，则凸性等价于每一点的 Hesse 矩阵（Hessian matrix）$H_f(x)=(\partial_{x_j}\partial_{x_i}f(x))$ 半正定。
+\end{theorem}
+\begin{proof}
+若 $f$ 凸，将定义式移项除以 $t>0$，再令 $t\downarrow0$ 即得式~\eqref{eq:pei-convex-support}。反向令 $z=(1-t)x+ty$，分别在 $z$ 处对 $x,y$ 应用该式，按权重 $1-t,t$ 相加，梯度项抵消，即得凸性。二阶结论把函数限制到任一线段上：$g(s)=f(x+sv)$ 满足 $g''(s)=v^{\mathsf T}H_f(x+sv)v$，一元凸函数的二阶判别遂给出充要条件。
+\end{proof}
+
+由式~\eqref{eq:pei-convex-support}，凸函数的每个驻点都是全局最小值点；严格凸时，最小值点若存在则至多一个。处处正定的 Hesse 矩阵保证严格凸，但不是必要条件，如 $x^4+y^4$ 严格凸，原点 Hesse 矩阵却为零。还需区分局部与全局：某一点 Hesse 矩阵正定只控制该点附近，不能直接推出整个定义域上的凸性。
+
+\subsection{曲线与曲面的切空间}
+
+若 $F\in C^1$，$S=\{x:F(x)=0\}$，且 $\nabla F(a)\ne0$，则 $S$ 在 $a$ 附近为正则曲面，其切空间为
+\[
+T_aS=\{v:\nabla F(a)\cdot v=0\}.
+\]
+在 $\mathbb R^3$ 中，相应切平面是 $\nabla F(a)\cdot(x-a)=0$，法线是 $x=a+t\nabla F(a)$。必要的正交关系来自对曲面内曲线 $F(\gamma(t))=0$ 求导；切空间维数及每个切向量都能由曲线实现，则由隐函数定理保证。若 $\nabla F(a)=0$，上述方程可能退化为 $0=0$，不能据此判断切平面存在或不存在。
+
+对参数曲线 $r(t)$，若 $r'(t_0)\ne0$，切线方向为 $r'(t_0)$，法平面为 $r'(t_0)\cdot(x-r(t_0))=0$。对参数曲面 $r(s,t)$，若 $r_s\times r_t\ne0$，其法向量可取该叉积。若空间曲线由 $F=G=0$ 给出，且两梯度线性无关，则切向量可取 $\nabla F\times\nabla G$。两个正则曲面的锐夹角可通过两法向量计算：$\cos\theta=|n_1\cdot n_2|/(\|n_1\|\|n_2\|)$。
+
+\begin{example}
+求圆锥面 $r(\rho,\theta)=(\rho\cos\theta,\rho\sin\theta,\rho\cot\alpha)$ 在 $a=r(\rho_0,\theta_0)$ 处的切平面，其中 $0<\alpha<\pi/2$、$\rho_0>0$。
+\end{example}
+\begin{solve}
+$r_\rho=(\cos\theta,\sin\theta,\cot\alpha)$，$r_\theta=(-\rho\sin\theta,\rho\cos\theta,0)$，故可取法向量 $n=(\cos\theta_0\cot\alpha,\sin\theta_0\cot\alpha,-1)$。代入 $n\cdot(X-a)=0$，利用 $n\cdot a=0$，得到
+\[
+X\cos\theta_0+Y\sin\theta_0-Z\tan\alpha=0.
+\]
+每个正则点的切平面都经过锥顶；顶点 $\rho_0=0$ 不满足参数秩条件，须另行讨论。
+\end{solve}
+
+\subsection{自由极值与退化情形}
+
+\begin{theorem}
+\label{thm:pei-unconstrained-extrema}
+设 $a$ 为开集内点。若可微函数 $f$ 在 $a$ 取局部极值，则 $\nabla f(a)=0$。若 $f\in C^2$，且 $a$ 为驻点，则 $H_f(a)$ 正定时 $a$ 为严格局部极小值点，负定时为严格局部极大值点，不定时为鞍点；半正定或半负定时，一般不能据此判定。
+\end{theorem}
+\begin{proof}
+极值的必要条件来自把 $f$ 限制在每条坐标线上，再用一元 Fermat 定理。驻点处 Taylor 公式为 $f(a+h)-f(a)=\tfrac12h^{\mathsf T}H_f(a)h+o(\|h\|^2)$。若矩阵正定，其二次型在单位球面上有正的最小值 $c$，于是主项至少为 $c\|h\|^2/2$，并能压住余项；负定同理。不定时存在正、负两种方向，各自沿射线取足够小的增量，就得到两种符号的函数增量。
+\end{proof}
+
+二元情形记 $A=f_{xx}(a)$、$B=f_{xy}(a)$、$C=f_{yy}(a)$、$\Delta=AC-B^2$。$\Delta>0$ 时按 $A$ 的正负区分极小与极大，$\Delta<0$ 时无局部极值，$\Delta=0$ 时需研究高阶项或定义。必要条件还包括：$C^2$ 函数在内点取极小值时，Hesse 矩阵必半正定，因为任意方向的一元二阶导数都非负。函数不光滑时还须检查不可微点，不能只解梯度为零的方程。
+
+\begin{example}
+\label{ex:pei-linewise-minimum-failure}
+证明 $f(x,y)=(y-x^2)(y-2x^2)$ 在过原点的每条直线上都以原点为严格局部极小值点，但原点不是二元函数的局部极小值点。
+\end{example}
+\begin{solve}
+在非水平直线 $y=kx$（$k\ne0$）上，$f(x,kx)=x^2(k-x)(k-2x)$，当非零 $x$ 足够小时为正；在水平轴上 $f(x,0)=2x^4>0$，在竖直轴上 $f(0,y)=y^2>0$。然而沿曲线 $y=3x^2/2$ 有 $f(x,3x^2/2)=-x^4/4<0$。各直线所用的邻域半径依赖于方向，不能得到一个同时控制所有方向的邻域。这与例~\ref{ex:pei-radial-limit-failure} 中的一致性障碍相同。
+\end{solve}
+
+\subsection{条件极值与 Lagrange 乘数}
+
+\begin{theorem}
+\label{thm:pei-lagrange-multipliers}
+设 $f,g_1,\ldots,g_m\in C^1$，$m<n$，$a$ 满足 $g_i(a)=0$，且约束梯度 $\nabla g_1(a),\ldots,\nabla g_m(a)$ 线性无关。若 $f$ 在约束集上于 $a$ 取局部极值，则存在 $\lambda_1,\ldots,\lambda_m$ 使
+\[
+\nabla f(a)+\sum_{i=1}^m\lambda_i\nabla g_i(a)=0.
+\]
+\end{theorem}
+\begin{proof}
+由约束的秩条件及隐函数定理，约束集在 $a$ 附近是光滑曲面，其切空间为 $T=\{v:Dg(a)v=0\}$，其中 $g=(g_1,\ldots,g_m)$。对约束集内经过 $a$ 的曲线求导，极值性给出 $\nabla f(a)\cdot v=0$ 对所有 $v\in T$ 成立。因此 $\nabla f(a)$ 属于 $T^\perp$，而 $T^\perp$ 恰为约束梯度张成的空间，即得结论。
+\end{proof}
+
+令 $L(x,\lambda)=f(x)+\sum_i\lambda_i g_i(x)$。乘数方程只产生正则约束点中的候选点，仍须判别；若约束梯度失去秩，相应点应单独检查。若函数及约束为 $C^2$，在乘数候选点 $a$ 处，应把二次型 $v^{\mathsf T}H_xL(a,\lambda)v$ 限制在非零切向量 $v\in T$ 上：正定保证严格条件极小值，负定保证严格条件极大值，出现两种符号则无条件极值，半定仍需进一步分析。这里固定乘数，只对 $x$ 求 Hesse 矩阵；无需它在整个空间上正定。该判别由对局部参数化 $x=\psi(u)$ 的目标函数求二阶导得到：利用 $g\circ\psi=0$ 与驻点方程，恰好消去参数化二阶导项，留下 $D\psi^{\mathsf T}H_xL\,D\psi$。
+
+\begin{example}
+在约束 $xyz=1$ 下，求 $f(x,y,z)=x^4+y^4+z^4$ 的最小值，并检查乘数判别。
+\end{example}
+\begin{solve}
+取 $L=f+\lambda(xyz-1)$。驻点方程乘以对应变量后给出 $4x^4+\lambda=4y^4+\lambda=4z^4+\lambda=0$。结合 $xyz=1$ 得 $|x|=|y|=|z|=1$，共四个符号乘积为正的点。由算术几何平均不等式，$x^4+y^4+z^4\ge3|xyz|^{4/3}=3$，所以它们都是全局最小值点。
+
+在 $(1,1,1)$ 处 $\lambda=-4$，切向量满足 $h+k+l=0$，且
+\[
+d_x^2L=12(h^2+k^2+l^2)-8(hk+hl+kl)=16(h^2+k^2+l^2)>0
+\]
+对非零切向量成立，故也是严格条件局部极小值。其余三点由改变坐标符号得到同样结论。该约束集不紧，但下界与取等点已直接给出存在性；沿 $(x,y,z)=(t,1,t^{-1})$ 可见目标无上界。
+\end{solve}
+
+\subsection{闭区域最值、二次型与不等式}
+
+连续函数在非空紧集上的最大、最小值必存在，求解时分别检查内部驻点、边界上的条件驻点以及边角和不光滑点，最后比较全部候选值。边界由若干段组成时需逐段处理，不能只求内部偏导。若定义域开或无界，必须另外控制边界趋近或无穷远处的行为；“只有一个驻点”本身不能保证它是全局最值点。
+
+\begin{example}
+设 $A=A^{\mathsf T}\in\mathbb R^{n\times n}$，求 $q(x)=x^{\mathsf T}Ax$ 在单位球面上的最值；若 $A$ 正定，再求椭球面 $x^{\mathsf T}Ax=1$ 的半轴长度。
+\end{example}
+\begin{solve}
+球面紧，极值存在。乘数方程为 $Ax=\lambda x$、$\|x\|=1$，候选值 $q(x)=\lambda$，故最小、最大值分别为 $A$ 的最小、最大特征值，并在相应单位特征向量处取得。用正交矩阵对角化 $A$ 后，椭球方程成为 $\sum_i\lambda_i\xi_i^2=1$。正定性保证 $\lambda_i>0$，因此各主轴方向为特征向量，半轴长度为 $1/\sqrt{\lambda_i}$。仅有行列式非零不足以保证二次曲面是椭球。
+\end{solve}
+
+更一般地，对二次目标 $f(x)=\tfrac12x^{\mathsf T}Ax+b^{\mathsf T}x$ 与线性约束 $Cx=d$，假设 $A$ 对称且 $C\in\mathbb R^{m\times n}$ 满行秩，乘数条件化为
+\[
+\begin{pmatrix}A&C^{\mathsf T}\\C&0\end{pmatrix}\begin{pmatrix}x\\\lambda\end{pmatrix}=\begin{pmatrix}-b\\d\end{pmatrix}.
+\]
+若 $A$ 在 $\ker C$ 上正定，则该方程唯一可解，所得点为唯一全局最小值点：对任意可行增量 $v\in\ker C$，一次项由乘数条件消失，目标增量恰为 $\tfrac12v^{\mathsf T}Av$。块矩阵的可逆性也可由齐次方程推出：先左乘 $v^{\mathsf T}$ 得 $v=0$，再由 $C$ 满行秩得到乘数为零。
+
+\begin{example}
+\label{ex:pei-weighted-product-bound}
+设 $a,b,c>0$。证明 $ab^2c^3\le108\bigl((a+b+c)/6\bigr)^6$，并给出等号条件。
+\end{example}
+\begin{solve}
+固定 $a+b+c=s>0$，在紧单纯形 $a,b,c\ge0$ 上最大化连续函数 $ab^2c^3$。它在边界为零、内部为正，故最大值在内部取得。等价地，在内部最大化 $\log a+2\log b+3\log c$，乘数方程给出 $1/a=2/b=3/c$，从而 $a=s/6$、$b=s/3$、$c=s/2$，目标值为 $s^6/432=108(s/6)^6$。对数目标严格凹，且候选点唯一，因此这是最大值，等号当且仅当 $a:b:c=1:2:3$。推广时固定正权重 $w_i$，同样得到固定总和下 $\prod_i a_i^{w_i}$ 的最优比例 $a_i\propto w_i$。
+\end{solve}
+
+\subsection{建模应用：选变量、说明存在性并解释结果}
+
+\begin{example}
+把长度为 $1$ 的铁丝分为三段，分别围成圆、正方形与等边三角形，求面积之和最小时三段长度的比例。
+\end{example}
+\begin{solve}
+以三段长度 $\ell_1,\ell_2,\ell_3\ge0$ 为变量，比以半径、边长为变量更直接地表达约束 $\ell_1+\ell_2+\ell_3=1$。面积和为
+\[
+S=\frac{\ell_1^2}{4\pi}+\frac{\ell_2^2}{16}+\frac{\ell_3^2}{12\sqrt3}.
+\]
+它在闭单纯形上连续，最小值存在且由严格凸性至多一个。乘数方程给出 $\ell_1/(2\pi)=\ell_2/8=\ell_3/(6\sqrt3)$，所以最优比例为 $\pi:4:3\sqrt3$；归一化后即可得到各段长度，最小面积为 $1/[4(\pi+4+3\sqrt3)]$。所得三段均为正且满足乘数方程，由凸性的一阶条件可知它优于所有边界分配。
+\end{solve}
+
+\begin{example}
+设两个均匀介质以平面为界，传播速度为 $v_1,v_2>0$。点 $A,B$ 分居界面两侧，与界面的距离分别为 $a,b>0$，其投影的距离为 $\ell\ge0$。在分段直线传播的模型下，由最短时间原则导出折射关系。
+\end{example}
+\begin{solve}
+先在包含两点及界面法向的平面内，以折射点相对 $A$ 的投影位置 $x\in\mathbb R$ 为变量，总时间为
+\[
+T(x)=\frac{\sqrt{a^2+x^2}}{v_1}+\frac{\sqrt{b^2+(\ell-x)^2}}{v_2}.
+\]
+$T(x)\to+\infty$ 当 $|x|\to\infty$，且 $T''(x)=a^2/[v_1(a^2+x^2)^{3/2}]+b^2/[v_2(b^2+(\ell-x)^2)^{3/2}]>0$，故存在唯一最小值。$\ell>0$ 时，$T'(0)<0<T'(\ell)$，最优点在 $(0,\ell)$；驻点方程给出
+\[
+\frac{x}{v_1\sqrt{a^2+x^2}}=\frac{\ell-x}{v_2\sqrt{b^2+(\ell-x)^2}},\qquad\frac{\sin\alpha}{v_1}=\frac{\sin\beta}{v_2},
+\]
+其中 $\alpha,\beta$ 与界面法线所成角分别为入射角和折射角。允许折射点离开上述平面时，额外的横向距离会同时增大两段长度，故最优点仍在该平面内。$\ell=0$ 时唯一最优点为 $x=0$，两角均为零；两种介质速度相同并把终点反射到同侧时，同类计算给出镜面反射的等角关系。
+\end{solve}
+
+\section{隐函数存在定理及函数相关}
+\label{sec:pei-implicit-dependence}
+
+\subsection{一个方程：先证明存在，再使用求导公式}
+
+\begin{theorem}
+\label{thm:pei-scalar-implicit}
+设 $F(x,y)$ 在 $(a,b)\in\mathbb R^n\times\mathbb R$ 的邻域内连续，$F(a,b)=0$，$F_y$ 在该邻域内存在并连续，且 $F_y(a,b)\ne0$。则存在 $a$ 的邻域 $U$ 与 $b$ 的开区间 $I$，使每个 $x\in U$ 恰有一个 $y=\varphi(x)\in I$ 满足 $F(x,y)=0$，且 $\varphi$ 连续、$\varphi(a)=b$。若进一步 $F\in C^k$（$k\ge1$），则 $\varphi\in C^k$，且
+\begin{equation}
+\label{eq:pei-implicit-derivative}
+\frac{\partial\varphi}{\partial x_i}(x)=-\frac{F_{x_i}(x,\varphi(x))}{F_y(x,\varphi(x))}.
+\end{equation}
+\end{theorem}
+\begin{proof}
+不妨设 $F_y(a,b)>0$。缩小邻域使 $F_y\ge c>0$，则对固定 $x$，函数 $y\mapsto F(x,y)$ 严格递增。先取足够小的 $\eta>0$，有 $F(a,b-\eta)<0<F(a,b+\eta)$；由连续性，这两个严格不等式在 $x$ 的某邻域仍成立。介值定理与严格单调性给出 $I=(b-\eta,b+\eta)$ 中唯一的零点。
+
+对固定 $x_0\in U$，在 $\varphi(x_0)$ 两侧任取足够近的 $y_-,y_+$，连续性保证 $x$ 接近 $x_0$ 时仍有 $F(x,y_-)<0<F(x,y_+)$，所以 $y_-<\varphi(x)<y_+$，得到连续性。若 $F\in C^1$，以 $u=\varphi(x+h)-\varphi(x)$ 记，由 $F_y\ge c$ 的中值估计及 $F$ 对 $x$ 的局部有界导数可知 $|u|\le C\|h\|$。再将 $F(x+h,\varphi(x)+u)-F(x,\varphi(x))=0$ 作一阶展开，得
+\[
+0=D_xF(x,\varphi(x))h+F_y(x,\varphi(x))u+o(\|h\|).
+\]
+解出 $u$ 即得可微性与式~\eqref{eq:pei-implicit-derivative}，其右端连续。对更高阶导数递推使用该式，得到 $C^k$ 正则性。
+\end{proof}
+
+这是\emph[caution]{局部的充分条件}，其唯一性只限于所选区间 $I$，不排除远处存在其他解。$F_y(a,b)=0$ 时应另行分析：$y^3-x=0$ 仍唯一确定连续函数 $y=x^{1/3}$，但在原点不可微；$y^3-x^3=0$ 则唯一确定光滑函数 $y=x$；$y^2-x=0$ 在原点附近既有分支又有无实根的一侧。这些情形不能仅凭定理失效就作同一个判断。
+
+\begin{example}
+\label{ex:pei-implicit-non-invertibility}
+对 $F(x,y)=x^2+y+\sin(xy)$，讨论原点附近的隐函数 $y=\varphi(x)$，并判断能否反过来唯一确定 $x$ 为 $y$ 的函数。
+\end{example}
+\begin{solve}
+$F(0,0)=0$、$F_y(0,0)=1$，故存在唯一光滑局部分支 $\varphi(0)=0$，且
+\[
+\varphi'(x)=-\frac{2x+\varphi(x)\cos(x\varphi(x))}{1+x\cos(x\varphi(x))}.
+\]
+由 $\varphi'(0)=0$ 得 $\varphi(x)=o(x)$，所以 $\varphi'(x)=-2x+o(x)$；它在足够小的负半轴严格递增、正半轴严格递减，原点为严格极大值点。进一步 $\varphi''(0)=-2$，故 $\varphi(x)=-x^2+o(x^2)$。在两侧分支的共同值域内，每个充分接近零的负数对应两个不同的 $x$，因此无法在原点的双侧邻域中把全部解唯一表示为 $x=x(y)$。
+\end{solve}
+
+\subsection{方程组、局部反函数与二阶微分}
+
+\begin{theorem}
+\label{thm:pei-system-implicit}
+设 $F:U\subset\mathbb R^n\times\mathbb R^m\to\mathbb R^m$ 为 $C^1$ 映射，$F(a,b)=0$，且 $m\times m$ 矩阵 $D_yF(a,b)$ 可逆。则在 $(a,b)$ 的适当乘积邻域内，方程组 $F(x,y)=0$ 唯一确定 $C^1$ 映射 $y=\varphi(x)$，满足
+\begin{equation}
+\label{eq:pei-implicit-jacobian}
+D\varphi(x)=-[D_yF(x,\varphi(x))]^{-1}D_xF(x,\varphi(x)).
+\end{equation}
+若 $F\in C^k$，则 $\varphi\in C^k$。
+\end{theorem}
+\begin{proof}
+记 $B=[D_yF(a,b)]^{-1}$，对固定 $x$ 考虑 $T_x(y)=y-BF(x,y)$。在中心点有 $D_yT_a(b)=0$。由导数连续性，可在一个闭球 $\overline B(b,r)$ 及 $a$ 的足够小邻域上统一保证 $\|D_yT_x\|\le q<1$，并使 $\|T_x(b)-b\|\le(1-q)r/2$。线段积分估计说明 $T_x$ 把该闭球映入自身且为压缩映射。由下一段给出的迭代论证，存在唯一不动点，即唯一零点 $\varphi(x)$。
+
+比较两个参数对应的不动点方程可得 $\|\varphi(x)-\varphi(x')\|\le C\|x-x'\|/(1-q)$。因此隐函数增量为 $O(\|x-x'\|)$，将它代入 $F(x,\varphi(x))=0$ 的一阶展开并解线性方程，即得式~\eqref{eq:pei-implicit-jacobian} 与连续可微性。更高阶正则性由该式递推得到。
+\end{proof}
+
+\begin{proposition}
+\label{prop:pei-parameter-contraction}
+设 $K$ 是欧氏空间中的非空闭集，$T_x:K\to K$ 关于 $y$ 满足统一的压缩条件 $\|T_x(y)-T_x(z)\|\le q\|y-z\|$，其中 $0\le q<1$。从 $y_0\in K$ 出发作 $y_{j+1}=T_x(y_j)$，则它收敛到 $T_x$ 的唯一不动点 $\varphi(x)$，且
+\[
+\|y_j-\varphi(x)\|\le\frac{q^j}{1-q}\|y_1-y_0\|.
+\]
+若 $T_x(y)$ 关于参数 $x$ 连续，则不动点也关于 $x$ 连续。
+\end{proposition}
+\begin{proof}
+逐次应用压缩条件有 $\|y_{j+1}-y_j\|\le q^j\|y_1-y_0\|$，求几何级数可知序列为 Cauchy 列，因 $K$ 闭而在 $K$ 中收敛；由 $T_x$ 的连续性，极限为不动点，尾和估计给出误差界。两个不动点的距离至多为自身的 $q$ 倍，故只能相同。最后固定 $x_0$，比较不动点方程得
+\[
+\|\varphi(x)-\varphi(x_0)\|\le\frac{\|T_x(\varphi(x_0))-T_{x_0}(\varphi(x_0))\|}{1-q}\longrightarrow0.
+\]
+\end{proof}
+
+例如方程 $y=f(x)+\psi(y)$ 中，若 $f$ 连续、$\psi$ 在 $b$ 附近满足常数 $q<1$ 的 Lipschitz 条件，且 $b=f(a)+\psi(b)$，可选闭区间使该映射在 $x$ 接近 $a$ 时映入自身，再应用命题~\ref{prop:pei-parameter-contraction}。这里压缩条件可以替代可微性条件；只验证 Lipschitz 常数小于 $1$ 而不验证映入自身，仍不足以完成存在性论证。
+
+\begin{corollary}
+\label{cor:pei-inverse-function}
+若 $G:U\subset\mathbb R^n\to\mathbb R^n$ 为 $C^1$ 映射，且 $\det DG(a)\ne0$，则 $G$ 在 $a$ 的某开邻域与 $G(a)$ 的某开邻域之间有唯一 $C^1$ 反函数，且 $D(G^{-1})(G(x))=[DG(x)]^{-1}$。
+\end{corollary}
+\begin{proof}
+对方程 $G(x)-z=0$，把 $z$ 作为自变量、$x$ 作为未知量，应用定理~\ref{thm:pei-system-implicit}。同时缩小邻域，使邻域内所有解均受其局部唯一性控制，就得到互逆关系和导数公式。
+\end{proof}
+
+求隐函数的一、二阶导数时，可以保持方程组形式，先求导再在指定点代值。对 $F(x,\varphi(x))=0$，给定方向 $h$，记 $w=D\varphi(x)h$，则
+\[
+D_yF\,w=-D_xF\,h.
+\]
+若 $F\in C^2$，再求一次同方向导数，有
+\begin{equation}
+\label{eq:pei-implicit-second-differential}
+D_yF\,D^2\varphi(x)[h,h]=-D^2F(x,\varphi(x))[(h,w),(h,w)].
+\end{equation}
+两次都解同一个系数矩阵的线性系统即可。式中 $h$ 固定，不对增量本身求导；若把自变量另设为非线性参数曲线，还须加上该曲线的二阶导项。
+
+\subsection{局部非退化与全局单射的区别}
+
+Jacobi 行列式处处非零只保证各点附近可逆，即使定义域凸，也不能单独推出全局单射。例如
+\begin{equation}
+\label{eq:pei-local-not-global-inverse}
+G(x,y)=(e^x\cos y,e^x\sin y),\qquad(x,y)\in\mathbb R^2,
+\end{equation}
+有 $\det DG=e^{2x}>0$，却满足 $G(x,y+2\pi)=G(x,y)$。不能把一个二次型 $v^{\mathsf T}DG(\xi)v=0$ 误判为 $DG(\xi)v=0$，更不能由此断言行列式为零；可逆的反对称矩阵就能使前一个二次型对全部 $v$ 为零。
+
+\begin{proposition}
+\label{prop:pei-monotone-injectivity}
+设 $D\subset\mathbb R^n$ 为凸开集，$G\in C^1(D,\mathbb R^n)$。若对所有 $x\in D$、$v\ne0$ 都有 $v^{\mathsf T}DG(x)v>0$，即导数矩阵的对称部分正定，则 $G$ 在 $D$ 上单射。
+\end{proposition}
+\begin{proof}
+对不同的 $x,y\in D$，令 $v=y-x\ne0$。沿线段积分得
+\[
+(G(y)-G(x))\cdot(y-x)=\int_0^1v^{\mathsf T}DG(x+tv)v\,dt>0.
+\]
+所以 $G(x)\ne G(y)$。本结论只需 $C^1$，且不要求 $DG$ 本身对称；若对称，则它简化为通常的正定矩阵条件。
+\end{proof}
+
+另一方向，若存在 $c>0$ 使 $\|G(x)-G(y)\|\ge c\|x-y\|$ 对所有 $x,y\in D$ 成立，则固定 $x$、令 $y=x+tv$，除以 $|t|$ 并取极限，得 $\|DG(x)v\|\ge c\|v\|$。因此 $DG(x)$ 单射，在方阵情形行列式非零。这一论证直接从差商出发，无需为向量值函数假设一个所有分量共用的中值点。
+
+\subsection{局部最小值分支、最优值导数与 Legendre 变换}
+
+\begin{proposition}
+\label{prop:pei-local-envelope}
+设 $f\in C^2$ 于 $(a,b)\in\mathbb R^2$ 的邻域，$f_x(a,b)=0$、$f_{xx}(a,b)>0$。则在 $b$ 的某邻域存在唯一的近邻驻点分支 $x=\xi(y)$，每个 $\xi(y)$ 都是 $x\mapsto f(x,y)$ 的严格局部极小值点。相应局部极小值函数 $v(y)=f(\xi(y),y)$ 满足
+\[
+v'(y)=f_y(\xi(y),y),\qquad
+v''(y)=f_{yy}-\frac{f_{xy}^2}{f_{xx}},
+\]
+第二式各项均在 $(\xi(y),y)$ 处取值。
+\end{proposition}
+\begin{proof}
+对方程 $f_x(x,y)=0$ 应用隐函数定理，得 $\xi'=-f_{xy}/f_{xx}$，并由连续性缩小邻域使 $f_{xx}>0$。链式法则给出 $v'=f_x\xi'+f_y=f_y$；再求导即得二阶式。此处构造的是局部极小值分支，未断言它对全部 $x$ 给出全局最小值。
+\end{proof}
+
+教材中的另一类换元可写为局部 Legendre 变换（Legendre transform）。设 $f\in C^2$，$u=\nabla f(x)$，且 $\det H_f(a)\ne0$。由反函数定理，在 $a$ 附近可反解 $x=x(u)$，定义
+\[
+g(u)=u\cdot x(u)-f(x(u)).
+\]
+直接求微分，$dg=x\cdot du+(u-\nabla f(x))\cdot dx=x\cdot du$，因此 $\nabla g(u)=x(u)$、$H_g(u)=[H_f(x(u))]^{-1}$。若 $f$ 为二次齐次函数，由 Euler 公式 $x\cdot\nabla f(x)=2f(x)$，还有 $g(u)=f(x(u))$。这些是局部等式；若要把 $g$ 定义为全空间上确界 $\sup_x(u\cdot x-f(x))$，则还需相应的凸性及最优解存在条件。
+
+\subsection{函数相关与 Jacobi 矩阵的秩}
+
+设 $Y=(y_1,\ldots,y_m):U\subset\mathbb R^n\to\mathbb R^m$ 为 $C^1$ 映射，$a\in U$、$b=Y(a)$。若存在 $b$ 的邻域上的非平凡关系 $\Phi$，使 $\Phi(Y(x))=0$ 在 $a$ 附近恒成立，就得到函数间的局部依赖。使用微分判别时，应明确关系的正则性：本段称 $C^1$ 关系满足 $\nabla\Phi(b)\ne0$ 时为\emph{正则局部函数关系}。它说明像点受一个真正的局部方程约束，不只是选择一个在像集上偶然消失的函数。
+
+\begin{theorem}
+\label{thm:pei-functional-rank}
+若 $\operatorname{rank}DY(a)=m$，则 $Y$ 的局部像包含 $b$ 的一个邻域，因而不存在在 $b$ 的每个邻域都不恒为零的局部函数关系。若在 $a$ 的某邻域内 $DY$ 的秩恒为 $r<m$，则重新排列输入及输出坐标后，$y_1,\ldots,y_r$ 局部无关，其余输出可写为
+\[
+y_j=\psi_j(y_1,\ldots,y_r),\qquad j=r+1,\ldots,m,
+\]
+其中 $\psi_j$ 为 $C^1$ 函数；这些方程给出正则局部函数关系。
+\end{theorem}
+\begin{proof}
+满行秩时，选出可逆的 $m$ 阶子式，固定其余输入坐标，便得到一个可应用反函数定理的方形映射，所以像包含 $b$ 的邻域。
+
+对常秩 $r>0$ 的情形，选定非零的 $r$ 阶子式，取新输入坐标 $(y_1,\ldots,y_r,x_{r+1},\ldots,x_n)$。其变换导数可逆，故局部可作坐标。常秩条件说明其余 $y_j$ 在这些新坐标中对后 $n-r$ 个坐标的偏导数全为零；在足够小的矩形邻域内，它们只依赖于前 $r$ 个坐标，得到所需 $\psi_j$。$r=0$ 时全部导数为零，缩小到连通邻域后各分量恒为常数，结论相应成立。
+\end{proof}
+
+仅在单独一点秩不足，不能反推局部函数相关；例如 $Y(x)=x^3$ 在原点导数为零，但局部像仍包含原点的整个邻域。对齐次线性函数组 $Y(x)=Ax$，则函数相关等价于各行线性相关：若行相关，存在非零常向量 $c$ 使 $c^{\mathsf T}Y(x)=0$；若各行独立，则满行秩条件排除任何非平凡局部关系。线性相关总给出函数相关，但非线性关系可能在线性无关的函数之间出现，如 $y_1=x$、$y_2=x^2$ 满足 $y_2-y_1^2=0$。
+
+线性相关还可用导数构造必要条件。若一元函数 $u_1,\ldots,u_m$ 有到 $m-1$ 阶的导数，且存在不全为零的常数 $c_j$ 使 $\sum_jc_ju_j=0$，将恒等式逐次求导便知 Wronski 行列式（Wronskian）$W(x)=\det(u_j^{(i-1)}(x))_{i,j=1}^m$ 恒为零。反向结论对一般光滑度条件不成立，例如 $u_1(x)=x^2$、$u_2(x)=x|x|$ 在 $\mathbb R$ 上均为 $C^1$，Wronski 行列式恒零，但分别在正、负半轴检验可知它们线性无关；若要逆推，需另加微分方程解空间等结构条件。
+
+当 $F$ 由函数级数给出时，应用隐函数定理之前须先证明和函数具有所需连续性和偏导数。可在考察点的闭矩形邻域上用与变量无关的可求和上界，分别控制原级数及一阶偏导级数，再按逐项求导定理核实 $F\in C^1$。仅在某点逐项算出了形式上的 $F_y$，不能代替邻域内的正则性检查。
+
+\section{方向导数与梯度}
+\label{sec:pei-directions-gradients}
+
+\subsection{定义中的方向、参数与可微性条件}
+
+前面已经利用梯度计算切空间，本节进一步定义方向导数，说明它与可微性的关系以及梯度的计算方法。本文对单位向量 $e$ 采用双侧极限
+\[
+\partial_ef(a)=\lim_{t\to0}\frac{f(a+te)-f(a)}t.
+\]
+有些教材采用 $t\downarrow0$ 的单侧方向导数，使用时应核对约定。给定非零向量 $v$ 时，若问题要求“沿 $v$ 的方向的单位距离变化率”，应先归一化为 $e=v/\|v\|$；直接求 $t\mapsto f(a+tv)$ 的导数得到的是沿参数 $t$ 的变化率，可微时等于 $\nabla f(a)\cdot v=\|v\|\partial_ef(a)$。
+
+若全部方向导数存在，也不保证它们关于方向向量组成线性映射。例如将 $f(x,y)=x^3/(x^2+y^2)$ 在原点补为 $0$，沿单位向量 $(p,q)$ 的方向导数为 $p^3$，若存在表示微分的线性映射，由两轴方向导数只能得到 $A=(1,0)$，但一般的 $p^3$ 不等于 $A\cdot(p,q)=p$，故原点不可微。
+
+可微时，方向导数关于方向向量具有线性结构，$\partial_ef=\nabla f\cdot e$；梯度不是若干方向导数的标量拼合规则，而是唯一表示微分的向量。偏导数存在、全部方向导数存在、方向导数由某线性映射表示、函数可微，这几项也应分清：最后一项要求余项对所有方向统一为距离的高阶无穷小，前三项本身均未提供这种一致性。
+
+\begin{example}
+\label{ex:pei-zero-directions-discontinuous}
+将 $f(x,y)=x^6y/(x^{12}+y^2)$ 在原点补为 $0$。证明它在原点的全部方向导数均为 $0$，但不连续。
+\end{example}
+\begin{solve}
+对单位向量 $e=(p,q)$，若 $q=0$，沿该方向函数恒为零；若 $q\ne0$，则
+\[
+\frac{f(tp,tq)}t=\frac{t^4p^6q}{t^{10}p^{12}+q^2}\longrightarrow0.
+\]
+然而沿 $y=x^6$ 有 $f(x,x^6)=1/2$，故不连续，也不可微。这比“全部方向导数存在但不组成线性映射”的反例更强：即使方向导数全为零，仍需检查邻域内的统一余项。
+\end{solve}
+
+\begin{theorem}
+\label{thm:pei-lipschitz-directional-differentiability}
+设 $f$ 在 $a$ 的某邻域满足 Lipschitz 条件 $|f(x)-f(y)|\le L\|x-y\|$，并且对所有单位向量 $e$，方向导数存在且 $\partial_ef(a)=A\cdot e$，其中 $A\in\mathbb R^n$ 固定。则 $f$ 在 $a$ 可微，$Df(a)h=A\cdot h$。
+\end{theorem}
+\begin{proof}
+令 $R(r,e)=[f(a+re)-f(a)]/r-A\cdot e$，其中 $r>0$。对固定 $e$，方向导数条件保证 $R(r,e)\to0$；而
+\[
+|R(r,e)-R(r,e')|\le(L+\|A\|)\|e-e'\|,
+\]
+右端与 $r$ 无关。用单位球面的有限覆盖，先选有限个方向控制全部角度，再对这有限个方向选同一个充分小的半径，得到 $\sup_{\|e\|=1}|R(r,e)|\to0$。把任意非零 $h$ 写成 $r e$，即得可微性定义。
+\end{proof}
+
+该定理补上了例~\ref{ex:pei-zero-directions-discontinuous} 缺少的局部 Lipschitz 条件；例~\ref{ex:pei-bounded-partials-not-differentiable} 则虽然局部 Lipschitz，但在两个分量均非零的方向上连双侧方向导数也不存在。两者说明这些假设分别承担不同作用，不能只保留其中一个。
+
+\subsection{从给定方向恢复梯度及其约束}
+
+若 $f$ 在 $a$ 可微，在 $n$ 个线性无关的单位向量 $e_1,\ldots,e_n$ 上已知 $\partial_{e_i}f(a)=c_i$，则由线性系统 $e_i\cdot\nabla f(a)=c_i$ 可唯一恢复梯度。这些方向未必正交，但若不线性无关就未必能唯一恢复。特别地，若在连通开集内上述 $n$ 个固定独立方向的导数处处为零，则梯度处处为零，函数为常数：在每个包含于定义域的球内由线段中值定理得局部常值，再由连通性推出整体常值。
+
+平面内若 $\nabla f(a)\ne0$，某个给定方向导数值 $c$ 对应的单位向量满足直线方程 $\nabla f(a)\cdot e=c$；直线与单位圆至多有两个交点。因此，若已知至少一个方向导数非零，却有三个不同单位方向的方向导数相同，则 $f$ 在该点不可微。又若 $N\ge2$ 个单位向量在圆周上等角排列，则 $\sum_{j=1}^N e_j=0$，由微分的线性性得 $\sum_j\partial_{e_j}f(a)=0$。这些结论都以可微性为前提，不能反过来从少量方向数据断言可微。
+
+对正交单位基 $e_1,\ldots,e_n$，Parseval 恒等式给出
+\[
+\sum_{i=1}^n(\partial_{e_i}f(a))^2=\|\nabla f(a)\|^2.
+\]
+若 $f\in C^2$，二阶方向导数为 $\partial_e^2f(a)=e^{\mathsf T}H_f(a)e$，所以
+\[
+\sum_{i=1}^n\partial_{e_i}^2f(a)=\operatorname{tr}H_f(a)=\sum_{j=1}^n f_{x_jx_j}(a).
+\]
+这从方向导数角度解释了梯度长度和 Laplace 算子在正交坐标变换下的不变性。
+
+\subsection{法向导数与曲线坐标中的梯度}
+
+在正则曲面上选定单位法向量 $\nu$ 后，法向导数（normal derivative）为 $\partial_\nu f=\nabla f\cdot\nu$；若曲面是区域 $\{F<0\}$ 的边界且 $\nabla F\ne0$，其外单位法向量为 $\nu=\nabla F/\|\nabla F\|$。必须先区分内外方向，再作归一化。若 $f$ 在光滑曲面上恒为常数，则任一切向量 $v$ 均满足 $\nabla f\cdot v=0$；这一结论也可直接对曲面内的曲线求导得到。
+
+\begin{example}
+设椭球面 $x^2/a^2+y^2/b^2+z^2/c^2=1$，其中 $a\ge b\ge c>0$。求 $u(x,y,z)=x^2+y^2+z^2$ 的外法向导数，并求其最大、最小值。
+\end{example}
+\begin{solve}
+外单位法向量为
+\[
+\nu=\frac{(x/a^2,y/b^2,z/c^2)}{\sqrt{x^2/a^4+y^2/b^4+z^2/c^4}},
+\]
+故在椭球面上有 $\partial_\nu u=2/\sqrt{x^2/a^4+y^2/b^4+z^2/c^4}$。令 $s_1=x^2/a^2$、$s_2=y^2/b^2$、$s_3=z^2/c^2$，则 $s_i\ge0$、$\sum_i s_i=1$，分母平方是 $s_1/a^2+s_2/b^2+s_3/c^2$，介于 $1/a^2$ 与 $1/c^2$ 之间。因此最小值为 $2c$，最大值为 $2a$，分别在最短与最长半轴的端点取得；半轴相等时可有更多取等点。
+\end{solve}
+
+在极坐标中，$e_r=(\cos\theta,\sin\theta)$、$e_\theta=(-\sin\theta,\cos\theta)$ 是局部正交单位基。若 $U(r,\theta)=u(r\cos\theta,r\sin\theta)$，链式法则给出 $U_r=\nabla u\cdot e_r$、$U_\theta=r\nabla u\cdot e_\theta$，故
+\[
+\nabla u=U_r e_r+\frac1rU_\theta e_\theta,\qquad r>0.
+\]
+这里 $\partial_\theta$ 对应弧长为 $r\,d\theta$ 的移动，所以角向分量带 $1/r$，不能直接把 $(U_r,U_\theta)$ 当成正交单位基下的梯度分量。
+
+更一般地，设平面局部坐标 $r=r(s,t)$ 为 $C^1$，$r_s,r_t$ 非零且正交，记尺度因子 $H_s=\|r_s\|$、$H_t=\|r_t\|$。若 $\widetilde f(s,t)=f(r(s,t))$，则
+\[
+\nabla f=\frac{\widetilde f_s}{H_s^2}r_s+\frac{\widetilde f_t}{H_t^2}r_t
+=\frac{\widetilde f_s}{H_s}\frac{r_s}{H_s}+\frac{\widetilde f_t}{H_t}\frac{r_t}{H_t}.
+\]
+因为右端与 $r_s,r_t$ 的内积分别为 $\widetilde f_s,\widetilde f_t$，与链式法则完全相同，而这两个向量构成一组基，所以该表达式唯一成立。若坐标向量不正交，则必须解包含其两两内积的线性系统，不能继续套用此式。
+
+\subsection{方向导数的中心差分与误差界}
+
+\begin{proposition}
+设 $f\in C^3$ 于线段 $\{a+te:|t|\le h\}$ 的某邻域，$e$ 为单位向量，$h>0$。若线段上 $|D^3f(x)[e,e,e]|\le M_e$，则
+\[
+\left|\frac{f(a+he)-f(a-he)}{2h}-\partial_ef(a)\right|\le\frac{M_eh^2}{6}.
+\]
+若各坐标三阶偏导数在该线段上绝对值均不超过 $M$，可取 $M_e=Mn^{3/2}$。
+\end{proposition}
+\begin{proof}
+对 $g(t)=f(a+te)$ 分别在 $h$ 与 $-h$ 处写到二阶的 Taylor 公式，相减时常数项与二阶项抵消；两个三阶余项的绝对值之和至多为 $M_eh^3/3$，除以 $2h$ 即得误差界。最后
+\[
+|D^3f(x)[e,e,e]|\le M\sum_{i,j,k}|e_ie_je_k|=M\Bigl(\sum_i|e_i|\Bigr)^3\le Mn^{3/2}.
+\]
+这里必须先控制沿 $e$ 的三阶导数，不能把坐标偏导的界直接当成方向导数的同一个界；二维情形得到 $\sqrt2 Mh^2/3$ 的误差上界。
+\end{proof}
+
+
+
+
+

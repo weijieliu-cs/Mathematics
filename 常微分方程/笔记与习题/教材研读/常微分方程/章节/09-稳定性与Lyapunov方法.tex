@@ -1,0 +1,77 @@
+% !TeX root = ../常微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{8} % 保留原书章号。
+\chapter{稳定性与 Lyapunov 方法}
+\label{chap:ode-stability}
+
+本章研究自治系统 $x'=f(x)$，假设 $f$ 局部 Lipschitz。将平衡点平移到原点后有 $f(0)=0$。稳定性描述的是所有充分小初始扰动在整个未来的行为，比有限时间的连续依赖性更强。
+
+\section{稳定、渐近稳定与指数稳定}
+\begin{definition}
+原点称为 Lyapunov 稳定（Lyapunov stable），若对每个 $\varepsilon>0$，存在 $\delta>0$，使 $\|x(0)\|<\delta$ 的解对所有 $t\geq0$ 存在且满足 $\|x(t)\|<\varepsilon$。若不满足此条件，称不稳定。
+
+若原点稳定，且存在 $r>0$ 使 $\|x(0)\|<r$ 的解均趋于零，则称渐近稳定（asymptotically stable）。若存在 $C\geq1$、$\alpha,r>0$ 使这些解满足 $\|x(t)\|\leq Ce^{-\alpha t}\|x(0)\|$，则称指数稳定（exponentially stable）。
+\end{definition}
+
+指数稳定蕴含渐近稳定，渐近稳定蕴含稳定，逆命题一般不成立。$y'=0$ 的零解稳定而不渐近稳定。$y'=-y^3$ 的解为 $y_0/\sqrt{1+2y_0^2t}$，零解渐近稳定，但只有代数衰减，不指数稳定。若吸引域为整个状态空间且原点稳定，称全局渐近稳定。非自治系统的一致稳定性还要求 $\delta$ 不依赖初始时刻，本章不将这一条件隐含在自治定义中。
+
+\section{常系数线性系统的稳定性判据}
+\begin{theorem}
+\label{thm:ode-linear-stability}
+对 $x'=Ax$：原点稳定当且仅当所有特征值实部不大于零，且虚轴上的特征值均为半单特征值，即相应 Jordan 块均为一阶。原点渐近稳定当且仅当所有特征值实部严格为负；此时也指数稳定。
+\end{theorem}
+\begin{proof}
+由 Jordan 公式，负实部块产生多项式乘衰减指数，虚轴上一阶块有界；故第一组条件使 $\sup_{t\geq0}\|e^{tA}\|<\infty$，立即得到稳定性。正实部块产生指数增长，虚轴上高阶块产生多项式增长，均可将相应初始向量任意缩小而仍使解最终离开某个固定邻域，故不稳定。全部实部为负时，第\ref{chap:ode-linear-system}章已证明指数估计；若有纯虚特征值，则存在不趋于零的非零解，因此不渐近稳定。
+\end{proof}
+
+\section{非线性系统的线性化方法}
+若 $f\in C^1$，记 $A=Df(0)$，可写 $f(x)=Ax+r(x)$，其中 $\|r(x)\|/\|x\|\to0$。当 $A$ 全部特征值实部为负时，取 $\|e^{tA}\|\leq Me^{-\alpha t}$，并在足够小球内使 $\|r(x)\|\leq\eta\|x\|$、$M\eta<\alpha$。常数变易给出
+\[
+ e^{\alpha t}\|x(t)\|\leq M\|x_0\|+M\eta\int_0^t e^{\alpha s}\|x(s)\|\,\mathrm ds.
+\]
+Gronwall 不等式推出 $\|x(t)\|\leq M\|x_0\|e^{-(\alpha-M\eta)t}$。初值足够小时此估计阻止解首次离开小球，延拓定理再保证前向全局存在。因此原点局部指数稳定。
+
+若 $A$ 有正实部特征值，则原点不稳定，这是线性化不稳定性定理；证明需要控制不稳定方向上的非线性余项，此处引用标准结论而省略证明，参见\cite[第9章]{teschl-ode}。若没有正实部特征值但有零实部特征值，线性化一般不能判定。例如 $y'=-y^3$、$y'=y^3$ 的线性化均为 $y'=0$，前者渐近稳定，后者的任意正初值解都将离开原点邻域。
+
+\section{Lyapunov 直接法}
+\begin{definition}
+若 $C^1$ 函数 $V$ 在原点邻域满足 $V(0)=0$、$V(x)>0$（$x\ne0$），称 $V$ 正定。其沿系统的导数定义为 $\dot V(x)=\nabla V(x)\cdot f(x)$，故沿解 $\frac{\mathrm d}{\mathrm dt}V(x(t))=\dot V(x(t))$。具有适当符号性质的 $V$ 称 Lyapunov 函数（Lyapunov function）。
+\end{definition}
+
+\begin{theorem}[Lyapunov 直接法]
+若 $V$ 局部正定且 $\dot V\leq0$，则原点稳定。若进一步 $\dot V(x)<0$ 对所有邻近非零点成立，则原点渐近稳定。
+\end{theorem}
+\begin{proof}
+取闭球 $\overline B_\varepsilon$ 包含在所用邻域内。正定性和紧性给出 $m=\min_{\|x\|=\varepsilon}V(x)>0$。由 $V$ 连续，可取 $\delta<\varepsilon$ 使 $\|x\|<\delta$ 时 $V(x)<m$。沿解 $V$ 不增，故解不能首次到达球面；它保持在内部紧子水平集中，因此可向前延拓，得到稳定性。
+
+若 $\dot V$ 负定，先把小初值解限制在上述紧子水平集。对任意更小半径 $\rho>0$，稳定性给出一个半径 $\sigma>0$，使进入 $B_\sigma$ 的解以后始终处于 $B_\rho$。若解永不进入 $B_\sigma$，则在所处紧集与 $\|x\|\geq\sigma$ 的交集上有 $\dot V\leq-c<0$，从而 $V$ 最终为负，矛盾。因此它最终进入并保持在任意 $B_\rho$，即趋于零。
+\end{proof}
+
+\begin{example}[二次型的构造]
+若 $A$ 为 Hurwitz 矩阵，即全部特征值实部为负，给定对称正定矩阵 $Q$，定义
+\[
+ P=\int_0^\infty e^{tA^{\mathsf T}}Qe^{tA}\,\mathrm dt.
+\]
+指数估计保证收敛，且 $x^{\mathsf T}Px=\int_0^\infty (e^{tA}x)^{\mathsf T}Q(e^{tA}x)\,\mathrm dt>0$。对被积函数求导并积分得 $A^{\mathsf T}P+PA=-Q$。因此 $V=x^{\mathsf T}Px$ 满足 $\dot V=-x^{\mathsf T}Qx<0$，给出线性系统的稳定性证书。
+\end{example}
+
+\section{不变性原理与全局结论（选学）}
+\begin{theorem}[LaSalle 不变性原理，紧集版本]
+设 $K\subset D$ 为紧的正向不变集，$V\in C^1$ 且 $\dot V\leq0$ 于 $K$。令 $M$ 为 $\{x\in K:\dot V(x)=0\}$ 中最大的完整不变子集，则每个从 $K$ 出发的解到 $M$ 的距离趋于零。
+\end{theorem}
+\begin{proof}[证明思路]
+$V(x(t))$ 单调有界，故趋于某数 $c$。轨道的 $\omega$ 极限集非空、紧且不变，其上 $V\equiv c$，于是沿该集合内的完整轨道有 $\dot V=0$，故极限集包含于 $M$。若轨道到 $M$ 的距离不趋于零，可取一列远离 $M$ 的状态，紧性产生属于极限集的极限点，矛盾。
+\end{proof}
+
+例如阻尼振子 $y'=v$、$v'=-ky-cv$，$k,c>0$，取 $V=(ky^2+v^2)/2$，则 $\dot V=-cv^2$ 只是半负定。在 $v=0$ 上保持不变还要求 $v'=-ky=0$，故最大不变子集只有原点。能量子水平集紧且正向不变，所以每个解趋于原点。
+
+若 $V$ 定义于整个 $\mathbb R^d$ 且 $V(x)\to\infty$ 当 $\|x\|\to\infty$，称其径向无界（radially unbounded）。结合 $\dot V\leq0$ 可将每条解限制在紧子水平集中，保证前向全局存在；若再满足负定导数或上述不变性条件，可得到全局渐近稳定。
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-stable} 判断 $y'=0$、$y'=-y$、$y'=-y^3$、$y'=y^3$ 的零解稳定性，说明理由。
+ \item\label{ex:ode-lyapunov} 用 $V=(u^2+v^2)/2$ 证明 $u'=-u-v^3$、$v'=u v^2-v$ 的原点全局渐近稳定。
+ \item 对 $A=\begin{pmatrix}-1&1\\0&-1\end{pmatrix}$，求满足 $A^{\mathsf T}P+PA=-I_2$ 的对称矩阵 $P$。
+ \item 说明 $\dot V\leq0$ 为什么不足以推出渐近稳定，并用无阻尼振子的能量举例。
+\end{enumerate}
+

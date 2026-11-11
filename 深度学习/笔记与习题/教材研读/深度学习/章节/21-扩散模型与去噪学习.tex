@@ -1,0 +1,70 @@
+% !TeX root = ../深度学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{20} % 保留原书章号。
+\chapter{扩散模型与去噪学习}
+\label{chap:dl-diffusion}
+把数据逐步加噪容易实现；扩散模型学习相反方向的恢复过程，再从简单噪声出发生成数据。本章以离散时间去噪扩散概率模型为主\cite{ho2020}，先固定加噪机制，再分别说明训练与采样。
+
+\section{正向加噪过程与闭式边缘}
+令数据为 $\mathbf X_0\in\mathbb R^d$，时间 $t=1,\ldots,T$，噪声日程 $0<\beta_t<1$，记 $\alpha_t=1-\beta_t$、$\bar\alpha_t=\prod_{s=1}^t\alpha_s$、$\bar\alpha_0=1$。给定前一状态，令
+\[
+\mathbf X_t=\sqrt{\alpha_t}\mathbf X_{t-1}+\sqrt{\beta_t}\boldsymbol\epsilon_t,
+\qquad \boldsymbol\epsilon_t\sim\mathcal N(\mathbf0,\mathbf I_d),
+\]
+各步噪声相互独立并独立于数据。反复代入，原始信号系数为 $\sqrt{\bar\alpha_t}$，累计噪声仍为高斯，其方差按递推 $v_t=\alpha_tv_{t-1}+\beta_t$、$v_0=0$ 得 $v_t=1-\bar\alpha_t$。因此
+\begin{equation}
+q(\mathbf x_t\mid\mathbf x_0)=\mathcal N(\mathbf x_t;\sqrt{\bar\alpha_t}\mathbf x_0,(1-\bar\alpha_t)\mathbf I_d).
+\label{eq:dl-diffusion-forward}
+\end{equation}
+训练可直接按此式抽任意时刻，无需逐步加噪。当 $\bar\alpha_T$ 很小时，经过适当缩放的数据在终点通常接近标准高斯；任意有限日程下并不严格相等，数据尺度和终点残余信号都需考虑。
+
+\section{反向条件分布与噪声预测目标}
+给定干净样本，正向高斯模型允许精确计算
+\[
+q(\mathbf x_{t-1}\mid\mathbf x_t,\mathbf x_0)=\mathcal N(\widetilde{\boldsymbol\mu}_t,\widetilde\beta_t\mathbf I_d),\qquad
+\widetilde\beta_t=\frac{1-\bar\alpha_{t-1}}{1-\bar\alpha_t}\beta_t,
+\]
+其中 $t\geq2$，$\widetilde{\boldsymbol\mu}_t=\frac{\sqrt{\bar\alpha_{t-1}}\beta_t}{1-\bar\alpha_t}\mathbf x_0+\frac{\sqrt{\alpha_t}(1-\bar\alpha_{t-1})}{1-\bar\alpha_t}\mathbf x_t$。这是将 $q(\mathbf x_t\mid\mathbf x_{t-1})q(\mathbf x_{t-1}\mid\mathbf x_0)$ 相乘并对 $\mathbf x_{t-1}$ 配方所得。生成时不知道 $\mathbf x_0$，因此不能直接使用此后验。
+
+时间条件网络 $\epsilon_\theta(\mathbf x_t,t)$ 预测实际加入的噪声。简化训练目标为
+\begin{equation}
+\mathcal L_{\mathrm{simple}}=\mathbb E_{t,\mathbf X_0,\boldsymbol\epsilon}
+\left\|\boldsymbol\epsilon-\epsilon_\theta(\sqrt{\bar\alpha_t}\mathbf X_0+\sqrt{1-\bar\alpha_t}\boldsymbol\epsilon,t)\right\|_2^2,
+\label{eq:dl-diffusion-loss}
+\end{equation}
+通常 $t$ 均匀取自 $\{1,\ldots,T\}$，$\boldsymbol\epsilon$ 是独立标准高斯。每步训练抽数据、时间和噪声，构造带噪输入，计算均方误差后更新网络。若从完整变分目标推导、固定反向方差 $\sigma_t^2>0$，中间步噪声误差带权 $\beta_t^2/[2\sigma_t^2\alpha_t(1-\bar\alpha_t)]$，还包含端点项；舍去时间权重得到常用简化目标，二者不是逐项相同的损失。
+
+\section{反向采样与条件控制}
+噪声预测对应的反向均值参数化为
+\begin{equation}
+\boldsymbol\mu_\theta(\mathbf x_t,t)=\frac1{\sqrt{\alpha_t}}
+\left(\mathbf x_t-\frac{\beta_t}{\sqrt{1-\bar\alpha_t}}\epsilon_\theta(\mathbf x_t,t)\right).
+\label{eq:dl-diffusion-reverse}
+\end{equation}
+一种常用生成过程从 $\mathbf x_T\sim\mathcal N(\mathbf0,\mathbf I_d)$ 开始，对 $t=T,\ldots,2$ 抽独立 $\mathbf z_t\sim\mathcal N(\mathbf0,\mathbf I_d)$，更新 $\mathbf x_{t-1}=\boldsymbol\mu_\theta(\mathbf x_t,t)+\sigma_t\mathbf z_t$，例如选择 $\sigma_t^2=\widetilde\beta_t$；末步直接输出 $\boldsymbol\mu_\theta(\mathbf x_1,1)$。末步确定性输出是这一采样约定，不能与任意非零方差的末步随机模型混同。训练只抽一个时间，完整生成却调用网络多次，因此成本不同。
+
+带条件 $c$ 时可令网络输入 $\epsilon_\theta(\mathbf x_t,t,c)$。同时训练有条件和空条件分支后，可采用 $\widehat\epsilon=\epsilon_{\varnothing}+w(\epsilon_c-\epsilon_{\varnothing})$，其中 $w=1$ 为原条件预测，$w>1$ 强化该差异。这种引导改变采样更新，可能改善条件符合程度也可能降低多样性；其效果应与日程、步数和条件一起评价。
+
+\section{得分解释与进阶联系}
+对光滑且正的带噪边缘密度 $p_t$，\emph{得分函数（score function）}定义为 $\nabla_{\mathbf x}\log p_t(\mathbf x)$。在可将微分移入混合密度积分的正则条件下，对高斯核求导得到
+\[
+\nabla_{\mathbf x}\log p_t(\mathbf x)
+=-\frac{\mathbb E[\boldsymbol\epsilon\mid\mathbf X_t=\mathbf x]}{\sqrt{1-\bar\alpha_t}}.
+\]
+因为均方误差的最优预测器是条件均值，理想噪声预测可转成边缘得分估计。这解释了去噪与概率密度局部方向的联系；这里“得分”不是生成质量指标，也不是单个样本的分类置信度。
+
+连续时间扩散需要随机微分方程和相应正则性，不能把离散时间步简单写成微分符号就视为严格极限证明。潜空间扩散先编码数据，再在隐空间加噪与生成，可降低表示尺寸，但质量同时受编码解码误差和扩散误差影响。这些是进阶阅读方向，不作为掌握离散算法的先决条件。
+
+\section{例题与习题}
+\begin{example}[两步加噪]
+一维干净样本 $x_0=2$，取 $\beta_1=0.1,\beta_2=0.2$。求 $X_2\mid x_0$ 的均值、方差及第二步后验方差。
+\end{example}
+\begin{solve}
+$\bar\alpha_2=0.9\times0.8=0.72$，故条件均值为 $2\sqrt{0.72}\approx1.697$，方差为 $0.28$。给定 $x_2,x_0$ 后，$X_1$ 的后验方差为 $\widetilde\beta_2=0.2\times0.1/0.28=1/14$。边缘加噪方差与反向后验方差描述不同条件下的不确定性，不能混用。
+\end{solve}
+\begin{enumerate}
+\item 用归纳法证明正向累计噪声方差为 $1-\bar\alpha_t$，注明独立性用在何处。
+\item 把 $\mathbf x_0=(\mathbf x_t-\sqrt{1-\bar\alpha_t}\boldsymbol\epsilon)/\sqrt{\bar\alpha_t}$ 代入后验均值，推导式\eqref{eq:dl-diffusion-reverse}中的系数。
+\item 在二维混合分布上训练噪声预测器，固定模型比较不同采样设置，并同时记录模式覆盖、条件满足和网络调用次数。
+\end{enumerate}
+

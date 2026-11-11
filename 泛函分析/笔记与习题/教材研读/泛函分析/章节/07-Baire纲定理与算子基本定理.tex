@@ -1,0 +1,106 @@
+% !TeX root = ../泛函分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{6} % 保留原书章号。
+\chapter{Baire 纲定理与算子基本定理}
+\label{chap:fa-baire}
+
+完备性不仅保证给定 Cauchy 序列收敛，还能把逐点信息转化为统一估计。本章的三个基本工具分别回答：一族算子是否统一有界，满射是否把开集映成开集，以及闭图像是否足以保证连续。
+
+\section{Baire 纲定理}
+集合 $A$ 称为无处稠密（nowhere dense），若 $\overline A$ 的内部为空；可数个无处稠密集之并称为第一纲集（meagre set）。
+\begin{theorem}[Baire 纲定理]\label{thm:fa-baire}
+非空完备度量空间中，可数个稠密开集的交仍然稠密。因此，该空间不能表示为可数个无处稠密集之并。
+\end{theorem}
+\begin{proof}
+设 $U_n$ 稠密且开，$V$ 为任意非空开集。在 $V\cap U_1$ 中选择正半径闭球 $\overline B(x_1,r_1)$；再在 $B(x_1,r_1)\cap U_2$ 中选闭球，以此递归，使
+\[
+ \overline B(x_{n+1},r_{n+1})\subset B(x_n,r_n)\cap U_{n+1},
+ \qquad0<r_n\leq2^{-n}.
+\]
+球心构成 Cauchy 序列，完备性给出极限 $x$。每个闭球均包含足够后面的球心，故 $x$ 属于所有闭球，从而 $x\in V\cap\bigcap_nU_n$。由于 $V$ 任意，交集稠密。对无处稠密集闭包的补集应用这一结论，即得后一断言。
+\end{proof}
+“第一纲”是拓扑概念，“零测”是测度概念，二者不能替代。
+
+后面最常用的是它的等价形式：若非空完备度量空间被可数个闭集覆盖，则至少一个闭集有非空内部。这里一定要有“闭”与“可数”。例如实数可以写成不可数个单点闭集的并，每个单点内部为空；这不违反 Baire 定理。在不完备空间 $\mathbb Q$ 中，所有有理数的单点组成可数个无处稠密闭集，却覆盖了整个空间。Baire 定理把完备性转化为“某个估计必须在一整块邻域内同时成立”的工具。
+
+\section{一致有界原理}
+\begin{theorem}[Banach--Steinhaus]\label{thm:fa-uniform-boundedness}
+设 $X$ 为 Banach 空间，$Y$ 为赋范空间，$\mathcal T\subset\mathcal B(X,Y)$。若对每个 $x\in X$，$\sup_{T\in\mathcal T}\|Tx\|<\infty$，则 $\sup_{T\in\mathcal T}\|T\|<\infty$。
+\end{theorem}
+\begin{proof}
+令 $E_n=\{x:\sup_{T\in\mathcal T}\|Tx\|\leq n\}$，每个 $E_n$ 闭且 $X=\bigcup_nE_n$。Baire 定理保证某个 $E_N$ 含球 $B(x_0,r)$。当 $\|h\|<r$ 时，$x_0,x_0+h\in E_N$，所以 $\|Th\|\leq2N$ 对所有 $T$ 成立。取 $h=(r/2)x$、$\|x\|\leq1$，即得 $\|T\|\leq4N/r$。
+\end{proof}
+这里逐点有界的上界原本可随 $x$ 改变，结论却产生一个控制所有单位向量的常数。值域 $Y$ 不需要完备。
+
+更明确地，假设是对每个 $x$ 存在 $C_x$，使 $\|Tx\|\leq C_x$ 对所有 $T\in\mathcal T$ 成立；结论是存在一个 $C$，使 $\|Tx\|\leq C\|x\|$ 对所有 $T,x$ 同时成立。不能把“对每个 $T$ 存在 $C_T$”误当作假设，因为那只是各算子分别有界。例如 $T_n=nI$ 每个都有界，但对任何非零输入都不逐点有界。
+
+\begin{example}[缺少完备性时]
+在 $c_{00}$ 的上确界范数下，令 $T_nx=nx_n$。对每个 $x\in c_{00}$，$\sup_n|T_nx|<\infty$，但 $\|T_n\|=n$。
+\end{example}
+每个向量仅有有限个非零坐标，因此逐点有界；取 $x=e_n$ 得到算子范数。定义域不完备正是定理不能应用的原因。
+
+\section{开映射与有界逆}
+\begin{theorem}[开映射定理]\label{thm:fa-open-mapping}
+Banach 空间间的有界线性满射 $T:X\to Y$ 将开集映成开集。因而有界线性双射的逆也有界。
+\end{theorem}
+\begin{proof}
+用 $B_X,B_Y$ 表示闭单位球。满射性给出 $Y=\bigcup_{n\geq1}T(nB_X)$，因而这些像的闭包覆盖 $Y$。由 $Y$ 的完备性和 Baire 定理，某个 $\overline{T(nB_X)}$ 包含开球 $B(y_0,r)$。若 $\|y\|<r$，则 $y_0+y/2$ 与 $y_0-y/2$ 都在该球中。分别用 $T(nB_X)$ 中的点逼近它们，作差得到 $y\in\overline{T(2nB_X)}$。缩放后即存在 $\delta>0$ 满足
+\[
+ \delta B_Y\subset\overline{T(B_X)}.
+\]
+必要时缩小 $\delta$，可把开球中的包含改写为这一闭球包含。
+
+现在消去闭包。对 $\|y\|\leq\delta/2$，由缩放后的包含选择 $\|x_1\|\leq1/2$ 使 $\|y-Tx_1\|\leq\delta/4$。递归选 $\|x_k\|\leq2^{-k}$，使第 $k$ 次残差不超过 $\delta2^{-k-1}$。级数 $x=\sum_kx_k$ 在 $X$ 中收敛，$\|x\|\leq1$，连续性给出 $Tx=y$。于是 $(\delta/2)B_Y\subset T(B_X)$。再缩放一次可用定义域中的开球容纳所需原像，故 $T$ 在零点开；平移给出处处开。双射的逆因此连续，由定理\ref{thm:fa-bounded-continuous}有界。
+\end{proof}
+满射性控制解的存在；单射性控制唯一性；有界逆定理则在 Banach 框架下保证解对数据连续依赖。这是三个不同的判断。
+
+上面的证明也指出两个完备性假设用在不同位置：$Y$ 完备用于 Baire 定理，$X$ 完备用于把逐次修正 $x_1+x_2+\cdots$ 求和。第一次得到的闭包包含只表示每个小数据都有近似原像；第二步不断消除残差，才把近似可解提升为真正可解。不能把 $\overline{T(B_X)}$ 直接换成 $T(B_X)$，因为一般连续映射不保持闭集。
+
+\begin{proposition}[闭值域与稳定下界]\label{prop:fa-closed-range-bound}
+设 $X,Y$ 为 Banach 空间，$T\in\mathcal B(X,Y)$ 单射。则 $\operatorname{Ran}T$ 闭当且仅当存在 $c>0$ 使 $\|Tx\|\geq c\|x\|$ 对所有 $x\in X$ 成立。
+\end{proposition}
+\begin{proof}
+若值域闭，它本身为 Banach 空间；把 $T$ 看作 $X\to\operatorname{Ran}T$ 的有界双射，有界逆定理给出 $\|x\|\leq C\|Tx\|$。反之，若 $Tx_n\to y$，下界使 $x_n$ 为 Cauchy 序列；由 $X$ 完备得 $x_n\to x$，连续性给出 $y=Tx$，故值域闭。
+\end{proof}
+这个下界给出实际的稳定性：若 $Tx=y$、$T\widetilde x=\widetilde y$，则 $\|x-\widetilde x\|\leq c^{-1}\|y-\widetilde y\|$。它只控制值域内的数据，还不能单独证明满射；满射需要另外验证。
+
+\section{闭图像定理}
+\begin{theorem}\label{thm:fa-closed-graph}
+设 $X,Y$ 为 Banach 空间，线性映射 $T:X\to Y$ 定义在整个 $X$ 上。则 $T$ 有界当且仅当图像 $G(T)=\{(x,Tx):x\in X\}$ 在 $X\times Y$ 中闭。
+\end{theorem}
+\begin{proof}
+有界性保证 $x_n\to x$、$Tx_n\to y$ 时 $y=Tx$，故图像闭。反之，$X\times Y$ 在范数 $\|(x,y)\|=\|x\|+\|y\|$ 下完备，闭子空间 $G(T)$ 也完备。投影 $P:G(T)\to X$，$P(x,Tx)=x$，为有界线性双射。其逆有界，故 $\|x\|+\|Tx\|\leq C\|x\|$，得到 $T$ 有界。
+\end{proof}
+实际应用时，不必事先证明 $Tx_n$ 收敛；只需证明“若 $x_n\to x$ 且 $Tx_n\to y$，则 $y=Tx$”。不过，定义域必须是整个 Banach 空间；真子空间上定义的闭微分算子并不因此有界。
+
+\begin{example}[利用闭图像验证连续性]
+设 $X$ 为 Banach 空间，线性映射 $T:X\to\ell^2$ 处处有定义，并且每个坐标泛函 $x\mapsto(Tx)_j$ 都连续。则 $T$ 是有界算子。
+\end{example}
+\begin{solve}
+设 $x_n\to x$ 且 $Tx_n\to y$ 在 $\ell^2$ 范数下成立。对每个固定 $j$，坐标泛函的连续性给出 $(Tx_n)_j\to(Tx)_j$，而 $\ell^2$ 范数收敛又给出 $(Tx_n)_j\to y_j$。因此 $y_j=(Tx)_j$ 对所有 $j$ 成立，也就是 $y=Tx$。图像闭，由闭图像定理得到统一估计 $\|Tx\|_2\leq C\|x\|$。假设中“$T$ 处处取值于 $\ell^2$”不可忽略；只给出无穷多个连续坐标公式，未必保证这些输出组成平方可和数列。
+\end{solve}
+
+\section{如何选择定理}
+对一族算子从逐点估计求统一范数界，用一致有界原理；对连续线性满射求开性，用开映射定理；对双射估计逆，用有界逆定理；对难以直接估计的处处定义线性算子，可验证闭图像。除一致有界原理的值域外，这些定理中出现的空间均须满足相应完备性假设。
+
+\begin{proposition}
+若 $X,Y$ 为 Banach 空间，$T_n\in\mathcal B(X,Y)$，且每个 $x$ 上 $T_nx$ 收敛，则逐点极限 $Tx=\lim_nT_nx$ 为有界线性算子。
+\end{proposition}
+\begin{proof}
+逐点收敛给出逐点有界，一致有界原理给出 $M=\sup_n\|T_n\|<\infty$。线性运算与极限相容，且 $\|Tx\|\leq M\|x\|$。
+\end{proof}
+
+\section{例题与习题}
+\begin{example}[两个完备范数的等价性]
+若 $X$ 上的两个范数均完备，且 $\|x\|_a\leq C\|x\|_b$，则二者等价。
+\end{example}
+\begin{solve}
+恒等映射 $I:(X,\|\cdot\|_b)\to(X,\|\cdot\|_a)$ 为有界线性双射，故其逆有界，提供另一侧范数估计。若缺少完备性，这个结论会失败，例如连续函数空间上的积分范数与一致范数。
+\end{solve}
+\begin{enumerate}
+ \item\label{exer:fa-hamel} 证明无限维 Banach 空间不可能有可数 Hamel 基。
+ \item\label{exer:fa-dense-convergence} 若 $T_n$ 在某稠密线性子空间上逐点收敛，且 $\sup_n\|T_n\|<\infty$，证明在 Banach 值域中它在整个定义域上逐点收敛。
+ \item 对例\ref{ex:fa-diagonal-range}的对角算子解释其逆在值域的诱导范数下为何无界，这与有界逆定理是否矛盾？
+ \item 证明一个可数完备度量空间必有孤立点。
+\end{enumerate}
+

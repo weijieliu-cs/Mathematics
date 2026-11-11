@@ -1,0 +1,55 @@
+% !TeX root = ../深度学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{21} % 保留原书章号。
+\chapter{图神经网络与结构化数据}
+\label{chap:dl-gnn}
+图像具有规则网格，分子、关系网络和引用网络却具有不规则邻接关系。图神经网络沿给定关系传递信息，并要求结果不依赖人为的节点编号；结构本身成为模型输入的一部分。
+
+\section{图、特征与学习任务}
+图 $G=(V,E)$ 由节点集 $V$ 与边集 $E$ 组成，设 $|V|=N$。邻接矩阵 $\mathbf A\in\mathbb R^{N\times N}$ 的 $A_{uv}$ 表示从节点 $u$ 到 $v$ 的边权；无向图的邻接矩阵对称。节点特征矩阵 $\mathbf H^{(0)}\in\mathbb R^{N\times d_0}$ 按行存储表示，边也可以携带类型或属性。节点预测为每个节点输出，链接预测评价两个节点的关系，整图预测把一张图映到一个目标。
+
+传导式学习（transductive learning）可以在训练时看到待预测节点的无标签特征与允许结构；归纳式学习（inductive learning）要求规则可用于未见节点或图。它们利用的信息不同，指标不可脱离设定比较。链接预测通常需要从输入图中移除待预测目标边，否则边的存在本身可能泄漏答案；具体可见结构必须按真实预测时点规定。
+
+\section{消息传递与置换对称性}
+\emph{消息传递（message passing）}的一层可写为
+\[
+\mathbf m_v^{(l)}=\operatorname{AGG}\{M_l(\mathbf h_v^{(l)},\mathbf h_u^{(l)},\mathbf e_{uv}):u\in\mathcal N(v)\},\qquad
+\mathbf h_v^{(l+1)}=U_l(\mathbf h_v^{(l)},\mathbf m_v^{(l)}),
+\]
+其中 $\mathcal N(v)$ 是邻居集合，$\mathbf e_{uv}$ 是可选边特征，$M_l,U_l$ 在各节点共享，AGG 为求和、平均或最大值等对集合排列不敏感的运算。平均丢弃了部分邻居数量信息，求和保留规模却使数值随度数变化，选择对应不同偏置。
+
+\begin{proposition}[消息传递的置换性质]
+若聚合对邻居顺序不变，消息与更新函数共享且不额外使用编号，则重新编号节点会以相同方式重排每层节点表示。对节点表示求和等对称读出进一步得到整图不变表示。
+\end{proposition}
+\begin{proof}
+初始特征随编号重排。若第 $l$ 层满足对应关系，重编号后的每个节点拥有同一组重新编号的邻居消息，多重集合只改变列举顺序，聚合值不变，共享更新保持对应关系。归纳得到全部层；最后的对称读出不依赖节点排列。
+\end{proof}
+
+\section{图卷积、归一化与图注意力}
+对无向非负权图，令 $\widetilde{\mathbf A}=\mathbf A+\mathbf I_N$，$\widetilde D_{vv}=\sum_u\widetilde A_{vu}>0$。一种图卷积层\cite{kipf2016}为
+\begin{equation}
+\mathbf H^{(l+1)}=\sigma\!\left(\widetilde{\mathbf D}^{-1/2}\widetilde{\mathbf A}\widetilde{\mathbf D}^{-1/2}\mathbf H^{(l)}\mathbf W^{(l)}\right),
+\label{eq:dl-graph-convolution}
+\end{equation}
+其中 $\mathbf W^{(l)}\in\mathbb R^{d_l\times d_{l+1}}$ 右乘行表示，与全连接层的列向量权重记法需区分。自环保留自身信息，对称度归一化控制不同度数的传播尺度，但其每行和一般不等于一，不能简单称为邻居算术平均。
+
+图注意力可在 $u\in\mathcal N(v)\cup\{v\}$ 上计算可学习分数 $s_{vu}$，归一化为 $a_{vu}=e^{s_{vu}}/\sum_we^{s_{vw}}$，再聚合 $\sum_ua_{vu}\mathbf W\mathbf h_u$。共享打分规则与邻居内 softmax 保持置换性质，权重则依赖当前特征。它改变了聚合权重，不取消图结构限定的可见范围。
+
+\section{传播范围、过平滑与图数据泄漏}
+不含全局连接的一层局部消息传递只能扩大一跳可见范围，$L$ 层只能沿最多 $L$ 条边传播。加深可读取更远处信息，也可能压缩大量邻域差异。对纯线性传播 $\mathbf H^{(L)}=\mathbf S^L\mathbf H^{(0)}$，若对称 $\mathbf S$ 有单位特征向量 $\mathbf v$ 对应唯一特征值一，其余特征值绝对值小于一，则由谱分解 $\mathbf S^L\to\mathbf v\mathbf v^\mathsf T$；不同节点表示趋向同一低维模式。这是\emph{过平滑（oversmoothing）}的一种明确机制，不是所有含非线性、残差和可训练权重网络的无条件结论。
+
+邻居数随跳数迅速增长而状态维度固定，还可能使远处信息难以传递，常称信息过度压缩（oversquashing）。邻居采样可控制计算，但会改变传播的随机性。评估时应检查跨划分实体重复、目标边残留、时间信息和标签进入特征等问题；允许看到测试节点结构的传导设定本身不等于泄漏，关键在于是否使用了设定禁止的信息。
+
+\section{例题与习题}
+\begin{example}[路径图的一层聚合]
+四节点无向路径为 $1$--$2$--$3$--$4$，各边权一，加自环后使用式\eqref{eq:dl-graph-convolution}，特征为 $(1,0,0,1)^\mathsf T$，权重和激活均取恒等。求输出。
+\end{example}
+\begin{solve}
+加自环度数为 $(2,3,3,2)$。节点一从自身得到 $1/2$，节点二从节点一得到 $1/\sqrt6$，另一侧对称，输出为 $(1/2,1/\sqrt6,1/\sqrt6,1/2)^\mathsf T$。重新编号只会对应重排结果；若错误地把归一化当作每行平均，就会得到不同数值。
+\end{solve}
+\begin{enumerate}
+\item 写出本例的完整归一化邻接矩阵，并验证它对称但部分行和不等于一。
+\item 比较求和与平均聚合对重复邻居特征的反应，说明二者可区分的信息不同。
+\item 在固定图任务上比较仅用节点特征的 MLP、图模型和打乱边的对照，分别说明训练时可见的结构与标签。
+\end{enumerate}
+

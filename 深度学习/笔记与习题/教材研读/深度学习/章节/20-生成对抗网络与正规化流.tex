@@ -1,0 +1,62 @@
+% !TeX root = ../深度学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{19} % 保留原书章号。
+\chapter{生成对抗网络与正规化流}
+\label{chap:dl-gan-flow}
+VAE 用近似推断处理难算的边缘似然。另一条路线用判别器衡量生成与真实数据的差异；还有一条路线严格限制变换可逆，使密度可以直接计算。二者各有明确目标，也有不同结构约束。
+
+\section{生成器、判别器与对抗目标}
+\emph{生成对抗网络（generative adversarial network, GAN）}把先验噪声 $\mathbf Z\sim p_Z$ 映为 $G_\theta(\mathbf Z)$，判别器 $D_\psi(\mathbf x)\in(0,1)$ 估计样本来自真实数据的相对可能性。经典目标\cite{goodfellow2014}是
+\begin{equation}
+\min_\theta\max_\psi V(\theta,\psi),\qquad
+V=\mathbb E_{\mathbf X\sim P_{\mathrm{data}}}\log D_\psi(\mathbf X)
++\mathbb E_{\mathbf Z\sim p_Z}\log(1-D_\psi(G_\theta(\mathbf Z))).
+\label{eq:dl-gan}
+\end{equation}
+实际训练交替固定生成器更新判别器、固定判别器更新生成器。判别器步骤不应更新生成器；生成器步骤仍需让梯度穿过判别器的输入路径，只是暂不更新判别器参数。
+
+当判别器很容易辨别假样本时，原生成器目标可能产生较弱梯度。常用非饱和目标 $-\mathbb E_{\mathbf Z}\log D_\psi(G_\theta(\mathbf Z))$，它与式\eqref{eq:dl-gan}的生成器目标不同，不能把二者写作同一损失。训练需要明确两种更新各执行多少次、优化器状态和停止预算。
+
+\section{理想判别器与实际训练困难}
+固定生成分布，设真实、生成分布相对于共同测度具有密度 $p,q$。若判别器函数类不受限，则对 $p(\mathbf x)+q(\mathbf x)>0$，逐点最大化 $p\log D+q\log(1-D)$ 得
+\[
+D^*(\mathbf x)=\frac{p(\mathbf x)}{p(\mathbf x)+q(\mathbf x)}.
+\]
+内点可由求导 $p/D-q/(1-D)=0$ 得到，二阶导数为负；仅一个密度非零时，最优是边界极限。代入积分，令 $m=(p+q)/2$，得
+\[
+\sup_DV=-\log4+D_{\mathrm{KL}}(p\|m)+D_{\mathrm{KL}}(q\|m)
+=-\log4+2\operatorname{JS}(p,q),
+\]
+其中 $\operatorname{JS}$ 是 Jensen--Shannon 散度，定义为这两个 KL 的半和。因此在此理想化问题中，若生成器可表示真实分布，全局最优在 $p=q$ 达到。
+
+这一结论假设每次判别器能充分优化且函数类不受限，不是交替梯度算法的收敛证明。有限数据与网络下，双方目标同时变化，可能震荡；生成器只覆盖少数模式称模式坍塌，不能通过展示几张真实感强的样本排除。应记录多个种子、全部抽样协议与分布覆盖。
+
+\section{可逆变换与密度变量替换}
+\emph{正规化流（normalizing flow）}使用同维可逆映射 $\mathbf X=f_\theta(\mathbf Z)$。若映射与逆映射可微，雅可比行列式非零且基分布有密度，则变量替换公式给出
+\begin{equation}
+\log p_\theta(\mathbf x)=\log p_Z(f_\theta^{-1}(\mathbf x))
++\log|\det Df_\theta^{-1}(\mathbf x)|.
+\label{eq:dl-flow-density}
+\end{equation}
+体积扩张处密度降低，体积收缩处密度升高，因此行列式项不能省略。若 $f=f_L\circ\cdots\circ f_1$，雅可比行列式的乘积在对数下变成和；设计目标是在足够灵活的同时，使每层逆变换和对数行列式容易计算。相关密度变换思想见文献\cite{rezende2015}。
+
+基分布中采样后按正向映射生成，在数据端用逆映射计算密度；不同文献也可能反过来命名“正向”，必须以公式判断。流严格保持输入输出维数，若要引入降维或离散数据，需额外模型或预处理，不能直接把同维连续公式原样套用。
+
+\section{耦合层、模型取舍与生成评价}
+把 $\mathbf z$ 分为 $\mathbf z_a,\mathbf z_b$，仿射耦合层定义 $\mathbf x_a=\mathbf z_a$、$\mathbf x_b=\mathbf z_b\odot\exp s(\mathbf z_a)+t(\mathbf z_a)$，其中 $s,t$ 输出与 $\mathbf z_b$ 同维。逆变换为 $\mathbf z_a=\mathbf x_a$、$\mathbf z_b=(\mathbf x_b-t(\mathbf x_a))\odot\exp[-s(\mathbf x_a)]$。雅可比为分块三角矩阵，对数绝对行列式是 $\sum_js_j(\mathbf z_a)$；$s,t$ 本身不必可逆。交换分块或加入置换后堆叠，可让不同坐标被更新。
+
+VAE 优化似然下界，GAN 通过对抗判别学习采样器，流在结构约束下直接计算密度。评价应同时关注质量、覆盖和任务用途。基于固定图像特征的分布指标还依赖特征提取器、样本量和估计方法；一个指标较好不能证明生成分布等于真实分布，二维可控数据上的模式计数往往更容易解释。
+
+\section{例题与习题}
+\begin{example}[缩放的密度修正]
+令 $Z\sim\mathcal N(0,1)$，$X=2Z+1$。求 $X$ 的密度并计算 $p_X(1)$。
+\end{example}
+\begin{solve}
+逆映射为 $z=(x-1)/2$、导数为 $1/2$，故 $p_X(x)=\frac1{2\sqrt{2\pi}}\exp[-(x-1)^2/8]$，$p_X(1)=1/(2\sqrt{2\pi})$。若忘记因子 $1/2$，密度积分会等于二而非一，说明体积修正是概率守恒所必需。
+\end{solve}
+\begin{enumerate}
+\item 对两点分布 $p=(0.8,0.2),q=(0.2,0.8)$ 求最优判别器，再检查 $p=q$ 时的最优值。
+\item 推导二维仿射耦合层的雅可比与逆映射，说明每层保持一部分坐标时为何需要交换分块。
+\item 在同一二维双峰数据上比较一个 GAN 和一个小型流，报告模式覆盖、训练稳定性及是否能直接评价密度。
+\end{enumerate}
+

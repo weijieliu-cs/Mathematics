@@ -1,0 +1,183 @@
+% !TeX root = ../本科微分几何笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{7} % 保留原书章号。
+\chapter{协变导数与曲面基本方程}
+\label{chap:dg-connection}
+
+\section{为什么需要切向微分}
+曲面上向量场在相邻点属于不同的切平面。把它们看作 $\R^3$ 中的向量后可以求导，但导数一般含有法向分量。例如球面上一条大圆的切向量在空间中不断改变，然而这种改变完全沿球面法向，没有切向转弯。为了研究只依赖曲面内部的变化，应将欧氏导数投影回切平面。
+
+\begin{definition}[协变导数]
+设 $X,Y$ 为曲面上的光滑切向量场。记 $D_XY$ 为把 $Y$ 视为 $\R^3$ 值函数后沿 $X$ 的方向导数，定义
+\[
+ \nabla_XY=(D_XY)^\top,
+\]
+其中 $\top$ 表示正交投影到切空间，称为曲面的\emph{协变导数（covariant derivative）}。沿曲线 $\gamma$ 的切向量场 $V(t)$ 类似定义 $\nabla_{\dot\gamma}V=(\dd V/\dd t)^\top$。
+\end{definition}
+它满足对 $X$ 的函数线性、对 $Y$ 的实线性以及 Leibniz 法则 $\nabla_X(fY)=X(f)Y+f\nabla_XY$，具有这些性质的微分结构称为\emph{联络（connection）}。还有
+\begin{equation}
+ X\ip YZ=\ip{\nabla_XY}Z+\ip Y{\nabla_XZ},
+ \label{eq:dg-metric-compatible}
+\end{equation}
+称为与度量相容。因为法向分量与切向量正交，该式直接来自欧氏内积的求导法则。沿曲线满足 $\nabla_{\dot\gamma}V=0$ 的向量场称为平行向量场；由起点向量求得终点向量的过程称为\emph{平行移动（parallel transport）}，其存在唯一性与保内积性质见习题~\ref{ex:dg-connection-parallel}。
+
+对标量函数定义 $[X,Y]f=X(Yf)-Y(Xf)$，得到向量场的\emph{Lie 括号（Lie bracket）}；本书所需的关键性质为坐标向量场满足 $[\partial_i,\partial_j]=0$。协变导数还满足 $\nabla_XY-\nabla_YX=[X,Y]$，称为无挠性（torsion-free）。在坐标基上这是混合偏导相等的结果，再由乘积法则推广到一般向量场。此处的“挠”与空间曲线的挠率是不同概念。
+
+\section{Christoffel 符号与 Gauss--Weingarten 公式}
+将二阶导数按切向和法向分解，得到
+\begin{equation}
+ \mathbf x_{ij}=\sum_{k=1}^2\Gamma^k_{ij}\mathbf x_k+b_{ij}\nu,
+ \qquad
+ \nu_i=-\sum_{k,\ell=1}^2g^{k\ell}b_{i\ell}\mathbf x_k.
+ \label{eq:dg-gauss-weingarten}
+\end{equation}
+第一式称为 Gauss 公式，第二式称为 Weingarten 公式。系数 $\Gamma^k_{ij}$ 称为\emph{Christoffel 符号（Christoffel symbols）}。它们描述坐标切向基自身的变化，具有 $\Gamma^k_{ij}=\Gamma^k_{ji}$。
+
+\begin{proposition}[由度量求 Christoffel 符号]
+\begin{equation}
+ \Gamma^k_{ij}=\frac12\sum_{\ell=1}^2g^{k\ell}
+ (\partial_i g_{j\ell}+\partial_jg_{i\ell}-\partial_\ell g_{ij}).
+ \label{eq:dg-christoffel}
+\end{equation}
+\end{proposition}
+\begin{proof}
+对 $g_{j\ell}=\ip{\mathbf x_j}{\mathbf x_\ell}$ 求偏导，将 $\partial_i g_{j\ell}+\partial_jg_{i\ell}-\partial_\ell g_{ij}$ 展开。混合偏导相等使多余项抵消，只剩 $2\ip{\mathbf x_{ij}}{\mathbf x_\ell}=2\sum_k\Gamma^k_{ij}g_{k\ell}$。乘以逆度量矩阵即得结论。
+\end{proof}
+对 $X=\sum_iX^i\mathbf x_i$、$Y=\sum_jY^j\mathbf x_j$，有
+\begin{equation}
+ (\nabla_XY)^k=\sum_iX^i\partial_iY^k+
+ \sum_{i,j}\Gamma^k_{ij}X^iY^j.
+ \label{eq:dg-covariant-coordinates}
+\end{equation}
+式~\eqref{eq:dg-christoffel} 表明协变导数由第一基本形式决定。Christoffel 符号本身不是张量分量：坐标变换还会带来坐标函数的二阶导数项，故在一个坐标系中全为零不意味着在另一个坐标系中也全为零。
+
+\begin{example}[平面的极坐标]
+在 $r>0$ 的局部极坐标中，$\mathrm I=\dd r^2+r^2\dd\theta^2$，非零 Christoffel 符号为
+\[
+ \Gamma^r_{\theta\theta}=-r,\qquad
+ \Gamma^\theta_{r\theta}=\Gamma^\theta_{\theta r}=1/r.
+\]
+平面并未因此具有非零曲率；这些符号反映极坐标基沿位置改变。实际曲率还需要考察协变导数的非交换性。
+\end{example}
+
+\section{曲率算子、Gauss 方程与绝妙定理}
+\begin{definition}[曲率算子]
+约定\emph{曲率算子（curvature operator）}为
+\[
+ R(X,Y)Z=\nabla_X\nabla_YZ-\nabla_Y\nabla_XZ-\nabla_{[X,Y]}Z.
+\]
+利用协变导数的乘积法则可检查，右端对 $X,Y,Z$ 都具有函数线性，所以在一点的值只依赖三个向量在该点的值，而不依赖延拓方式。
+\end{definition}
+
+\begin{theorem}[Gauss 方程]
+对欧氏三维空间中的正则曲面，
+\begin{equation}
+ R(X,Y)Z=\mathrm{II}(Y,Z)SX-\mathrm{II}(X,Z)SY.
+ \label{eq:dg-gauss-equation}
+\end{equation}
+若 $e_1,e_2$ 为任意标准正交切向基，则
+\begin{equation}
+ K=\ip{R(e_1,e_2)e_2}{e_1}.
+ \label{eq:dg-intrinsic-K}
+\end{equation}
+\label{thm:dg-gauss}
+\end{theorem}
+\begin{proof}
+一般向量场的 Gauss 公式是 $D_XY=\nabla_XY+\mathrm{II}(X,Y)\nu$，且 $D_X\nu=-SX$。欧氏导数满足 $D_XD_YZ-D_YD_XZ-D_{[X,Y]}Z=0$。代入两项分解，取切向分量得
+\[
+ 0=R(X,Y)Z-\mathrm{II}(Y,Z)SX+\mathrm{II}(X,Z)SY,
+\]
+得到第一式。取 $X=e_1,Y=Z=e_2$，与 $e_1$ 作内积，结果为第二基本形式在标准正交基下的行列式，即 $\det S=K$。
+\end{proof}
+
+\begin{theorem}[Gauss 绝妙定理]
+曲面的高斯曲率由第一基本形式及其至多二阶导数确定，因而在局部等距映射下保持不变。
+\label{thm:dg-egregium}
+\end{theorem}
+\begin{proof}
+由式~\eqref{eq:dg-christoffel}，协变导数由度量及其一阶导数确定；曲率算子再求一次导数，因而只需二阶导数。定理~\ref{thm:dg-gauss} 将它与外蕴定义的 $K$ 联系起来。具体地，坐标下
+\begin{equation}
+ K=\frac{1}{\det\mathbf g}\sum_{\ell=1}^2 g_{1\ell}
+ \left[\partial_1\Gamma^\ell_{22}-\partial_2\Gamma^\ell_{12}
+ +\sum_{m=1}^2\left(\Gamma^m_{22}\Gamma^\ell_{1m}
+ -\Gamma^m_{12}\Gamma^\ell_{2m}\right)\right].
+ \label{eq:dg-K-christoffel}
+\end{equation}
+局部等距在对应坐标下给出同样的度量系数，代入即知高斯曲率相同。
+\end{proof}
+因此球面不可能与平面局部等距；圆柱的 $K=0$ 则与其局部展开相容。反过来，两个曲面在一点具有相同 $K$，远不足以说明它们的邻域等距。这个定理也不声称 $H$ 由度量决定，平面与圆柱已提供反例。
+
+\section{Codazzi 方程与曲面论基本定理}
+定义第二基本形式的协变导数
+\[
+ (\nabla_X\mathrm{II})(Y,Z)=X\bigl(\mathrm{II}(Y,Z)\bigr)
+ -\mathrm{II}(\nabla_XY,Z)-\mathrm{II}(Y,\nabla_XZ).
+\]
+对前一节欧氏导数交换式取法向分量，而非切向分量，得到
+\begin{equation}
+ (\nabla_X\mathrm{II})(Y,Z)=(\nabla_Y\mathrm{II})(X,Z).
+ \label{eq:dg-codazzi}
+\end{equation}
+这称为\emph{Codazzi 方程（Codazzi equations）}。坐标中
+\[
+ (\nabla_i b)_{jk}=\partial_i b_{jk}
+ -\sum_\ell\Gamma^\ell_{ij}b_{\ell k}
+ -\sum_\ell\Gamma^\ell_{ik}b_{j\ell},\qquad
+ (\nabla_i b)_{jk}=(\nabla_j b)_{ik}.
+\]
+相应算子形式为 $(\nabla_XS)Y=(\nabla_YS)X$，其中 $(\nabla_XS)Y=\nabla_X(SY)-S(\nabla_XY)$；等价性来自度量相容与自伴性。
+
+\begin{theorem}[曲面论基本定理：局部版本]
+设开集 $U\subset\R^2$ 上给定光滑正定对称矩阵 $\mathbf g=(g_{ij})$ 与光滑对称矩阵 $\mathbf b=(b_{ij})$。用 $\mathbf g$ 定义式~\eqref{eq:dg-christoffel} 中的联络，若 $\mathbf g,\mathbf b$ 满足 Gauss 方程和 Codazzi 方程，则每个点附近都存在正则浸入 $\mathbf x$ 及单位法向，使第一、第二基本形式恰为 $\mathbf g,\mathbf b$。在连通且充分小的邻域内，保持所选法向对应关系时，该浸入在刚体运动意义下唯一；若初始三标架的空间定向也固定，则比较它们的刚体运动保持空间定向。
+\label{thm:dg-surface-fundamental}
+\end{theorem}
+\begin{proof}[证明思路与所需外部工具]
+将式~\eqref{eq:dg-gauss-weingarten} 看作未知标架 $(\mathbf x_1,\mathbf x_2,\nu)$ 的线性偏微分方程。Gauss 与 Codazzi 方程正是混合偏导相容的条件。引用相容线性一阶系统的局部可积性定理，可从给定初始标架求得局部解；该步骤是本证明使用的偏微分方程前置结果。度量内积关系满足同一微分系统，初值满足后便保持。方程还给出 $\partial_2\mathbf x_1=\partial_1\mathbf x_2$，由局部 Poincar\'e 引理可积分出位置函数 $\mathbf x$。正定性保证其秩为 $2$。两组初始数据由刚体运动联系，线性系统的唯一性使该关系在邻域内保持。本书不展开可积性定理的一般证明，也不从这一局部结论推断整体嵌入或闭合性。
+\end{proof}
+
+\begin{corollary}[全脐曲面的刚性]
+若连通正则曲面的每一点都是脐点，则它包含于一个平面或一个球面。
+\end{corollary}
+\begin{proof}
+局部选法向，有 $S=\lambda I$，其中 $\lambda=H$ 光滑。Codazzi 方程化为 $X(\lambda)Y=Y(\lambda)X$。取两个线性无关切向量，可得它们沿 $\lambda$ 的方向导数都为零，所以 $\lambda$ 局部为常数。若该常数为零，$\nu$ 局部恒定，曲面局部在平面内；否则 $\dd(\mathbf x+\nu/\lambda)=0$，得到球心。交叠开片不可能同时属于两个不同平面或球面，因为两不同球面或平面的交集不含曲面开片。连通性遂将局部结论拼成同一个平面或球面。
+\end{proof}
+
+\section{正交标架与零曲率的局部展开}
+在一个小坐标片上选正向标准正交切向标架 $e_1,e_2$，定义一形式 $\omega$ 使
+\[
+ \nabla_Xe_1=\omega(X)e_2,\qquad
+ \nabla_Xe_2=-\omega(X)e_1.
+\]
+一形式在每点是切向量到实数的线性映射；若 $\omega=A\dd u+B\dd v$，其外微分为 $\dd\omega=(\partial_uB-\partial_vA)\dd u\wedge\dd v$，楔积表示交替乘积。由曲率算子的定义可算得 $R(X,Y)e_1=\dd\omega(X,Y)e_2$，于是
+\begin{equation}
+ \dd\omega=-K\dd A.
+ \label{eq:dg-connection-curvature}
+\end{equation}
+这里 $\dd A$ 作为定向面积形式使用，取值 $\dd A(e_1,e_2)=1$。若旋转标架角度为 $\phi$，新的一形式为 $\widetilde\omega=\omega+\dd\phi$。
+
+\begin{proposition}[零高斯曲率的局部平面模型]
+若曲面某邻域内 $K\equiv0$，则每一点都有更小的邻域与平面开集等距。
+\end{proposition}
+\begin{proof}
+缩小到坐标圆盘，式~\eqref{eq:dg-connection-curvature} 表明 $\omega$ 闭合。平面区域上的局部 Poincar\'e 引理给出函数 $\phi$，使 $\dd\phi=-\omega$，旋转后标架平行。设 $\eta^1,\eta^2$ 为该标架的对偶一形式。平行性与无挠性给出
+\[
+ \dd\eta^a(X,Y)=\ip{e_a}{\nabla_XY-\nabla_YX-[X,Y]}=0.
+\]
+再次使用局部 Poincar\'e 引理，得到 $\eta^1=\dd y^1,\eta^2=\dd y^2$。两一形式线性无关，故 $(y^1,y^2)$ 是局部坐标，且 $\mathrm I=(\dd y^1)^2+(\dd y^2)^2$。这就是局部等距展开。
+\end{proof}
+此处只用到二维局部版本的 Poincar\'e 引理：星形开集上的闭一形式可沿从中心出发的线段积分为一个势函数，其证明可由积分求导完成。命题是局部结论；圆柱、圆锥的绕行和接缝问题仍然存在。
+
+\section{习题}
+\begin{exercise}\label{ex:dg-connection-warped}
+对度量 $\dd s^2+r(s)^2\dd\theta^2$ 求全部非零 Christoffel 符号，并用式~\eqref{eq:dg-K-christoffel} 推出 $K=-r''/r$。
+\end{exercise}
+\begin{exercise}\label{ex:dg-connection-conformal}
+对 $\mathrm I=e^{2\varphi(u,v)}(\dd u^2+\dd v^2)$，证明 $K=-e^{-2\varphi}(\varphi_{uu}+\varphi_{vv})$，并验证式~\eqref{eq:dg-stereo-metric} 的曲率为 $1$。
+\end{exercise}
+\begin{exercise}\label{ex:dg-connection-incompatible}
+在平面参数域上指定 $\mathrm I=\dd u^2+\dd v^2$、$\mathrm{II}=\dd u^2+\dd v^2$。证明不存在具有这两种基本形式的曲面片。
+\end{exercise}
+\begin{exercise}\label{ex:dg-connection-parallel}
+证明沿任意光滑曲线，给定初始切向量存在唯一平行向量场，并证明两个平行向量场的内积沿曲线保持不变。
+\end{exercise}
+

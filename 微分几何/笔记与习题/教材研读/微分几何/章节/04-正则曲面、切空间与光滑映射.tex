@@ -1,0 +1,92 @@
+% !TeX root = ../本科微分几何笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{3} % 保留原书章号。
+\chapter{正则曲面、切空间与光滑映射}
+\label{chap:dg-surfaces}
+
+\section{曲面为何需要多个坐标片}
+球面的经纬度在极点失效，并不意味着球面在那里不光滑；平面上的极坐标在原点失效，也不意味着平面在原点有奇点。必须区分坐标退化与几何对象本身的奇点。为此，正则曲面的定义要求每一点至少存在一种良好坐标，而不是要求某一张熟悉的坐标处处有效。
+
+\begin{definition}[正则曲面与参数片]
+集合 $\Sigma\subset\R^3$ 称为\emph{正则曲面（regular surface）}，若对每个 $p\in\Sigma$，存在 $\R^3$ 中开邻域 $V$、开集 $U\subset\R^2$ 及映射 $\mathbf x:U\to V\cap\Sigma$，使 $\mathbf x$ 光滑、是到其像的同胚，且 $\rank\dd\mathbf x_q=2$ 对所有 $q\in U$ 成立。$\mathbf x$ 称为参数片，其逆称为局部坐标图（coordinate chart）。
+\label{def:dg-surface}
+\end{definition}
+定义中的同胚条件控制子空间拓扑，秩条件控制微分结构。单有秩条件给出浸入曲面，可能产生自交或重复覆盖；正则曲面则在每一点像一张不自交的局部曲面。正文首先研究无边界曲面；有边界情形在第~\ref{chap:dg-manifolds} 章解释。
+
+\begin{proposition}[坐标过渡的光滑性]
+两个参数片 $\mathbf x:U\to\Sigma$、$\widetilde{\mathbf x}:\widetilde U\to\Sigma$ 在像的交集上给出光滑坐标变换 $\phi=\mathbf x^{-1}\circ\widetilde{\mathbf x}$，且 $\det D\phi\ne0$。
+\end{proposition}
+\begin{proof}
+由于 $D\mathbf x$ 秩为 $2$，在每个点可选两个空间坐标，使对应的 $2\times2$ 子式非零。令 $\pi$ 为投影到这两个坐标的映射，则 $\pi\circ\mathbf x$ 局部可逆，且
+\[
+ \mathbf x^{-1}\circ\widetilde{\mathbf x}
+ =(\pi\circ\mathbf x)^{-1}\circ\pi\circ\widetilde{\mathbf x}
+\]
+在足够小的邻域成立，故过渡映射光滑。同理其逆也光滑，链式法则说明导数可逆。
+\end{proof}
+
+\begin{example}[图像、水平集与球面]
+光滑函数 $f:U\subset\R^2\to\R$ 的图像由 $\mathbf x(u,v)=(u,v,f(u,v))$ 参数化，前两个坐标投影给出连续逆，且 $\mathbf x_u\times\mathbf x_v=(-f_u,-f_v,1)\ne0$。更一般地，定理~\ref{thm:dg-ift} 说明正则水平集 $F^{-1}(c)$ 在 $\grad F\ne0$ 处都是曲面。球面可用分别朝向各坐标轴正负方向的六个图像片覆盖，避免把经纬度的极点退化当作曲面奇点。
+\end{example}
+
+\section{切空间与单位法向量}
+\begin{definition}[切空间]
+对 $p\in\Sigma$，定义 $T_p\Sigma$ 为所有曲面内光滑曲线 $\gamma$ 在 $\gamma(0)=p$ 时的速度 $\gamma'(0)$ 所组成的集合，称为\emph{切空间（tangent space）}。
+\end{definition}
+\begin{proposition}[切空间的坐标描述]
+若 $p=\mathbf x(u_0,v_0)$，则
+\begin{equation}
+ T_p\Sigma=\operatorname{span}\{\mathbf x_u,\mathbf x_v\},
+ \qquad
+ \gamma'(0)=u'(0)\mathbf x_u+v'(0)\mathbf x_v.
+ \label{eq:dg-tangent}
+\end{equation}
+因此 $T_p\Sigma$ 是二维线性子空间，与参数片选择无关。
+\end{proposition}
+\begin{proof}
+任意曲面曲线在参数片内可写为 $\gamma(t)=\mathbf x(u(t),v(t))$，链式法则给出所需包含关系。反过来，对任意 $a,b$，曲线 $t\mapsto\mathbf x(u_0+at,v_0+bt)$ 在足够小的区间内有速度 $a\mathbf x_u+b\mathbf x_v$。故二者相等。
+\end{proof}
+严格地说，过 $p$ 的仿射切平面是 $p+T_p\Sigma$；切空间把切向量的起点移至原点。局部单位法向量可以选为
+\begin{equation}
+ \nu=\frac{\mathbf x_u\times\mathbf x_v}{\norm{\mathbf x_u\times\mathbf x_v}}.
+ \label{eq:dg-unit-normal}
+\end{equation}
+若曲面由正则方程 $F=c$ 给出，则 $T_p\Sigma=\ker\dd F_p$，$\grad F/\norm{\grad F}$ 给出另一种法向选择。
+
+\section{曲面定向}
+\begin{definition}[可定向曲面]
+若整个曲面上存在连续单位法向场，称曲面\emph{可定向（orientable）}；指定其中一个单位法向场就是选择定向。对光滑正则曲面，连续法向选择在每个坐标片上等于式~\eqref{eq:dg-unit-normal} 或其负向，因而自动光滑。
+\end{definition}
+若 $\widetilde{\mathbf x}=\mathbf x\circ\phi$，则
+\[
+ \widetilde{\mathbf x}_{\widetilde u}\times
+ \widetilde{\mathbf x}_{\widetilde v}
+ =(\det D\phi)(\mathbf x_u\times\mathbf x_v).
+\]
+因此，可定向性等价于能够选择一族覆盖曲面的参数片，使交叠处的坐标变换行列式为正。球面取外法向就是一个整体定向。莫比乌斯带绕中心圈一周后局部法向反转，无法把局部法向拼成整体连续法向；去掉边界后的莫比乌斯带仍提供不可定向曲面的例子。
+
+连通可定向曲面恰有两个定向。事实上，两单位法向场在每一点的比例只能是 $\pm1$，而连续的离散值函数在连通集合上必为常数。若曲面不连通，各连通分支可分别选方向。
+
+\section{曲面之间的映射与微分}
+映射 $F:\Sigma\to\widetilde\Sigma$ 称为光滑，若在任意适用的局部坐标下 $\widetilde{\mathbf x}^{-1}\circ F\circ\mathbf x$ 光滑。坐标过渡的光滑性保证只需在一组覆盖坐标中检查。
+
+对 $v=\gamma'(0)\in T_p\Sigma$，定义
+\[
+ \dd F_p(v)=(F\circ\gamma)'(0)\in T_{F(p)}\widetilde\Sigma.
+\]
+局部坐标中的链式法则说明它只依赖 $v$，不依赖所选曲线，并且是线性映射。若 $F$ 为双射且 $F,F^{-1}$ 都光滑，称其为\emph{微分同胚（diffeomorphism）}。若 $\dd F_p$ 在某点可逆，则 $F$ 在该点附近为微分同胚，但仍不能据此推出整体双射。
+
+\section{习题}
+\begin{exercise}\label{ex:dg-surfaces-tangent}
+求椭球 $x^2/a^2+y^2/b^2+z^2/c^2=1$ 在 $(x_0,y_0,z_0)$ 处的仿射切平面，其中 $a,b,c>0$。
+\end{exercise}
+\begin{exercise}\label{ex:dg-surfaces-chart}
+球面经纬参数为 $\mathbf x(\theta,\varphi)=R(\sin\theta\cos\varphi,\sin\theta\sin\varphi,\cos\theta)$。计算叉积并说明其退化位置，给出覆盖北极的替代参数片。
+\end{exercise}
+\begin{exercise}\label{ex:dg-surfaces-orientation}
+证明连通曲面上的两个光滑单位法向场或者处处相同，或者处处相反，并说明连通性不能删去。
+\end{exercise}
+\begin{exercise}\label{ex:dg-surfaces-differential}
+令 $F:\R^2\to\Sigma$，$F(u,v)=(u,v,u^2+v^2)$。求 $\dd F_{(u,v)}(a,b)$，并证明平面与这个抛物面微分同胚。
+\end{exercise}
+

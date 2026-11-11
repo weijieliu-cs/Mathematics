@@ -1,0 +1,84 @@
+% !TeX root = ../常微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{9} % 保留原书章号。
+\chapter{幂级数解法与特殊函数初步}
+\label{chap:ode-series}
+
+幂级数把未知函数转化为一列待定系数，适合构造局部解析解。递推式只解决形式计算，收敛性决定该形式级数是否真正给出解。
+
+\section{解析系数与常点附近的幂级数解}
+若标准方程 $y''+p(t)y'+q(t)y=0$ 的 $p,q$ 在 $t_0$ 附近可展为收敛幂级数，则称 $t_0$ 为常点（ordinary point）。记 $z=t-t_0$，设
+\[
+ p=\sum_{j\geq0}p_jz^j,\quad q=\sum_{j\geq0}q_jz^j,\quad y=\sum_{j\geq0}a_jz^j.
+\]
+比较 $z^k$ 的系数得到
+\begin{equation}
+ (k+2)(k+1)a_{k+2}
+ =-\sum_{j=0}^k\bigl[p_j(k-j+1)a_{k-j+1}+q_ja_{k-j}\bigr].
+ \label{eq:ode-power-recursion}
+\end{equation}
+因此 $a_0=y(t_0)$、$a_1=y'(t_0)$ 决定所有系数。解析存在定理保证所得级数在某个非零半径内收敛；证明可用系数的优级数估计，此处省略估计细节，参见\cite[第4章]{teschl-ode}。
+
+\begin{example}
+对 $y''+y=0$，递推为 $a_{k+2}=-a_k/((k+2)(k+1))$，从而
+\[
+ y=a_0\sum_{j=0}^\infty\frac{(-1)^jt^{2j}}{(2j)!}
+ +a_1\sum_{j=0}^\infty\frac{(-1)^jt^{2j+1}}{(2j+1)!}
+ =a_0\cos t+a_1\sin t.
+\]
+阶乘分母使两级数对任意 $t$ 收敛，故这里的解是全局解析的。
+\end{example}
+
+对 $y''-ty=0$，有 $a_2=0$、$(k+2)(k+1)a_{k+2}=a_{k-1}$（$k\geq1$），于是两个初始系数分别产生
+\[
+ y=a_0(1+t^3/6+t^6/180+\cdots)+a_1(t+t^4/12+t^7/504+\cdots).
+\]
+这说明级数方法并不要求解已经有初等函数名称。
+
+\section{收敛区间与形式计算的合法性}
+幂级数在收敛半径内可逐项微分，且在任何更小闭区间上一致收敛。因而只有证明收敛以后，代入方程和系数比较才形成一个完整解的构造。
+
+若 $p,q$ 可作为复解析函数延伸到以 $t_0$ 为中心、半径 $R$ 的圆盘，则对应初值解在该圆盘解析，其 Taylor 级数至少在 $|t-t_0|<R$ 收敛。最近的系数奇点给出常用的保证范围，但某个特殊解可能跨过该点。例如 $y''-y'/t=0$ 在零点系数奇异，其解 $1,t^2$ 却都在零点解析。仅凭系数奇点不能断言每个解的精确收敛半径。
+
+\section{正则奇点与 Frobenius 方法}
+设 $t_0=0$ 是系数奇点。如果 $P(t)=tp(t)$、$Q(t)=t^2q(t)$ 都可在零点解析延拓，则称零点为正则奇点（regular singular point）。方程可写成
+\[
+ t^2y''+tP(t)y'+Q(t)y=0.
+\]
+Frobenius 方法（Frobenius method）在 $t>0$ 上试取 $y=t^r\sum_{k=0}^\infty a_kt^k$，$a_0\ne0$。若 $P=\sum p_jt^j$、$Q=\sum q_jt^j$，最低次项给出指标方程（indicial equation）
+\[
+ F(r):=r(r-1)+p_0r+q_0=0,
+\]
+其余项满足
+\[
+ F(r+k)a_k=-\sum_{j=1}^k[p_j(r+k-j)+q_j]a_{k-j},\qquad k\geq1.
+\]
+若两个指标根之差不是整数，各根产生一个 Frobenius 解，且所得级数在足够小邻域收敛。复根可在复数中计算再取实部与虚部；实幂在这里用 $t^r=e^{r\log t}$ 解释。
+
+重根或根差为整数时，递推可能遇到零分母，第二解可能需要对数项；其是否出现须由递推或降阶公式判断。例如 $t^2y''+ty'=0$ 的解为 $1,\log t$，而 $t^2y''-2y=0$ 的解为 $t^2,t^{-1}$，虽根差为整数却不含对数。上述收敛与解型定理见\cite[第4章]{teschl-ode}，本章只展开构造计算。
+
+\section{Bessel 方程与 Legendre 方程}
+Bessel 方程（Bessel equation）为
+\[
+ t^2y''+ty'+(t^2-\nu^2)y=0.
+\]
+零点为正则奇点，指标根为 $\pm\nu$。对整数 $n\geq0$，规范化的一个解为第一类 Bessel 函数
+\[
+ J_n(t)=\sum_{k=0}^\infty\frac{(-1)^k}{k!(n+k)!}\left(\frac t2\right)^{2k+n}.
+\]
+相邻项比值证明它对所有有限 $t$ 收敛；代入递推可验证方程。二阶方程仍需第二个独立解，在零点附近它一般具有奇性，故不能把 $J_n$ 单独当成通解。
+
+Legendre 方程（Legendre equation）为
+\[
+ (1-t^2)y''-2ty'+\ell(\ell+1)y=0.
+\]
+在零点展开得 $a_{k+2}=[k(k+1)-\ell(\ell+1)]a_k/[(k+2)(k+1)]$。当 $\ell=n\geq0$ 为整数时，与 $n$ 同奇偶的级数在次数 $n$ 终止，经 $P_n(1)=1$ 规范化得到 Legendre 多项式。前几项为 $P_0=1$、$P_1=t$、$P_2=(3t^2-1)/2$。不同次数的多项式在 $[-1,1]$ 上正交，可将方程写成 $((1-t^2)P_n')'+n(n+1)P_n=0$，对两个次数交叉相乘相减后积分；端点因 $1-t^2=0$ 且多项式导数有界而消失。
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-airy} 求 $y''-ty=0$、$y(0)=1$、$y'(0)=0$ 的前四个非零 Taylor 项。
+ \item\label{ex:ode-frobenius} 求 $t^2y''+ty'-4y=0$ 在 $t>0$ 上的指标根与通解。
+ \item 写出 $J_0$ 的前三个非零项，并代回方程检查相应阶数。
+ \item 由递推求 $P_3$，并直接验证它与 $P_1$ 在 $[-1,1]$ 上正交。
+\end{enumerate}
+

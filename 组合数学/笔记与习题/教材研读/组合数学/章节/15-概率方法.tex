@@ -1,0 +1,60 @@
+% !TeX root = ../组合数学笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{14} % 保留原书章号。
+\chapter{概率方法}
+\label{ch:probabilistic}
+
+概率方法通过随机选择证明确定性对象存在。若坏对象出现的期望数量小于一，就必有一次选择完全没有坏对象；若一个得分的期望很高，就必有某次选择达到至少该得分。随机性来自我们设计的有限样本空间，而非未知的自然分布。
+
+\section{有限概率空间与指示变量}
+
+设有限非空集合 $\Omega$ 上给定概率 $p(\omega)\ge0$，且 $\sum_{\omega\in\Omega}p(\omega)=1$。事件 $A\subseteq\Omega$ 的概率为 $\mathbb P(A)=\sum_{\omega\in A}p(\omega)$；实值\emph{随机变量（random variable）} $X$ 是 $\Omega$ 上的函数，其\emph{期望（expectation）}为 $\mathbb E X=\sum_\omega X(\omega)p(\omega)$。事件的指示变量 $\mathbf1_A$ 在 $A$ 中取一，否则取零。
+
+由定义直接得到 $\mathbb E\mathbf1_A=\mathbb P(A)$。对有限个随机变量 $X_1,\ldots,X_m$ 和实常数 $a_i$，交换有限求和即得
+\[
+ \mathbb E\left(\sum_{i=1}^m a_iX_i\right)=\sum_{i=1}^m a_i\mathbb E X_i.
+\]
+这不要求独立。若事件 $A,B$ 独立，才有 $\mathbb P(A\cap B)=\mathbb P(A)\mathbb P(B)$；涉及多个事件的乘积时须有相应的联合独立性，不能由两两独立自动替代。
+
+\section{第一矩方法与存在性}
+
+\begin{proposition}[第一矩方法（first moment method）]
+若 $X$ 为非负整数值随机变量且 $\mathbb E X<1$，则 $\mathbb P(X=0)>0$。任意有限实值随机变量还至少有一个正概率取值不小于 $\mathbb E X$。
+\end{proposition}
+\begin{proof}
+由 $X\ge\mathbf1_{\{X\ge1\}}$，得 $\mathbb P(X\ge1)\le\mathbb E X<1$，故第一项成立。若所有正概率取值都严格小于期望，它们的加权平均也严格小于期望，与定义矛盾。
+\end{proof}
+
+更一般地，对非负 $X$ 和 $a>0$，$a\mathbf1_{\{X\ge a\}}\le X$ 给出 Markov 不等式 $\mathbb P(X\ge a)\le\mathbb E X/a$。事件并的指示变量至多为各事件指示变量之和，因此 $\mathbb P(\bigcup_iA_i)\le\sum_i\mathbb P(A_i)$。这些上界即使在事件相关时仍成立。
+
+\begin{example}[大割的存在]
+图有 $m$ 条边，将每个顶点独立等概率放入左右两组。对每条边 $e$，令 $I_e$ 表示其端点是否被分开，则 $\mathbb E I_e=1/2$。跨组边数 $X=\sum_eI_e$ 的期望为 $m/2$，故存在至少含 $\lceil m/2\rceil$ 条跨组边的划分，称为一个\emph{割（cut）}。证明使用期望线性性，不需要不同边的指示变量独立。
+\end{example}
+
+\section{随机染色与 Ramsey 下界}
+
+将 $K_n$ 的每条边独立等概率染成红或蓝，设 $n\ge k\ge2$，令 $X$ 为单色 $K_k$ 的数量。每个 $k$ 元顶点集有 $\binom k2$ 条边，全红和全蓝是两个互斥事件，各自概率为 $2^{-\binom k2}$。因此
+\begin{equation}
+ \mathbb E X=\binom nk\,2^{1-\binom k2}.
+ \label{eq:ramsey-first-moment}
+\end{equation}
+若右侧小于一，则存在没有单色 $K_k$ 的染色，所以 $R(k,k)>n$。例如 $k=5,n=10$ 时，期望为 $252/512<1$，得 $R(5,5)>10$。这个例子的意义是展示方法，而不是声称得到最佳下界。
+
+不同顶点集上的单色团事件通常相关，但求和只需各自的概率。必须要求期望严格小于一；若等于一，上述论证无法排除 $X$ 恒为一的情况。
+
+\section{删改法与条件期望法}
+
+\emph{删改法（alteration method）}先随机产生候选结构，再删除局部障碍。设图有 $n$ 个顶点、$m$ 条边，各点独立以概率 $p\in[0,1]$ 入选。令 $X$ 为入选点数、$Y$ 为两端都入选的边数，则 $\mathbb E(X-Y)=np-mp^2$。对每条仍存在的入选边删去一个端点，至多删去初始的 $Y$ 个点，得到大小至少为 $X-Y$ 的独立集。因某次取值不低于期望，必存在大小至少为 $np-mp^2$ 的独立集；大小为整数时可向上取整。例如 $n=100,m=200,p=1/4$ 给出至少 $13$ 个点的独立集。删改保证是确定性的，随机性只用于选取较好的初始样本。
+
+\emph{条件期望法（method of conditional expectations）}可以把某些存在性证明改为构造。对已固定的部分选择，剩余随机选择的平均得分是当前条件期望；若下一步有若干结果，它们的条件期望按概率平均等于当前值，因此至少有一个结果不降低它。逐步选择这样的结果，最终确定的得分不低于最初期望。
+
+在大割问题中，按固定次序处理顶点，把当前顶点放到使它与已放置邻点之间的跨组边最多的一侧；与未放置点相关的边仍有一半的预期贡献，不受本次选择影响。于是条件期望不下降，最后割大小至少 $m/2$。邻接表中每条边只需常数次检查，可在 $O(n+m)$ 时间完成。一般问题只有在条件期望可有效计算时，此方法才给出高效算法。
+
+\section{习题}
+\begin{enumerate}
+  \item\label{ex:probabilistic-1} 在均匀随机排列中，令 $X$ 为固定点数，证明 $n\ge1$ 时 $\mathbb E X=1$。这能否仅靠第一矩方法证明错排存在？
+  \item\label{ex:probabilistic-2} 用随机二染色证明：若一个超图有 $m$ 条边、每条边恰含 $k\ge1$ 个顶点，且 $m2^{1-k}<1$，则存在无单色边的顶点染色。超图的边在此指顶点的子集。
+  \item\label{ex:probabilistic-3} 对固定 $n,m>0$，在 $0\le p\le1$ 上最大化删改法下界 $np-mp^2$，分别讨论 $2m\ge n$ 与 $2m<n$。
+  \item\label{ex:probabilistic-4} 在五边形上执行条件期望的大割算法，给出顶点处理次序、每步选择和最终割，说明它不必预先知道最优值。
+\end{enumerate}
+

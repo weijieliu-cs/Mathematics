@@ -1,0 +1,141 @@
+% !TeX root = ../泛函分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{4} % 保留原书章号。
+\chapter{Hilbert 空间与正交展开}
+\label{chap:fa-hilbert}
+
+内积把长度、角度与正交性放在同一结构中。完备内积空间保留了有限维最小二乘的几何，同时允许用无穷多个正交坐标描述一个向量。
+
+\section{内积及其诱导范数}
+内积不仅衡量长度，还能测量一个向量沿另一个方向的分量。在实欧氏空间中，$\langle x,e\rangle$ 是 $x$ 在单位方向 $e$ 上的有向投影长度；在函数空间中，$\int f\overline g$ 扮演同样的角色。复数情形需要共轭，才能保证 $\langle x,x\rangle$ 为非负实数。
+
+\begin{definition}
+线性空间 $H$ 上的\emph{内积（inner product）}$\langle x,y\rangle$ 对第一个变量线性，满足 $\langle x,y\rangle=\overline{\langle y,x\rangle}$，且 $\langle x,x\rangle\geq0$，等号仅当 $x=0$。由内积定义的范数为 $\|x\|=\sqrt{\langle x,x\rangle}$；此范数完备时称 $H$ 为\emph{Hilbert 空间（Hilbert space）}。
+\end{definition}
+\begin{proposition}[Cauchy--Schwarz 不等式]
+$|\langle x,y\rangle|\leq\|x\|\|y\|$，且等号成立当且仅当 $x,y$ 线性相关。
+\end{proposition}
+\begin{proof}
+当 $y\ne0$ 时，展开 $\|x-\langle x,y\rangle y/\|y\|^2\|^2\geq0$，即得 $\|x\|^2-|\langle x,y\rangle|^2/\|y\|^2\geq0$。等号等价于该差向量为零；$y=0$ 的情形直接成立。
+\end{proof}
+这一不等式给出范数的三角不等式。内积还满足平行四边形恒等式
+\[
+ \|x+y\|^2+\|x-y\|^2=2\|x\|^2+2\|y\|^2.
+\]
+在复空间中可由范数恢复内积：
+\[
+ \langle x,y\rangle=\tfrac14\bigl(\|x+y\|^2-\|x-y\|^2
+ +\mathrm i\|x+\mathrm iy\|^2-\mathrm i\|x-\mathrm iy\|^2\bigr).
+\]
+这是极化恒等式（polarization identity）。并非任意范数都来自内积；例如 $\mathbb R^2$ 的最大值范数不满足平行四边形恒等式。$\ell^2$ 与 $L^2(\mu)$ 的内积分别为 $\sum_jx_j\overline{y_j}$ 与 $\int f\overline g\,\mathrm d\mu$，其完备性已在上一部分证明。
+
+上述反例可用两个坐标向量核查。取 $x=(1,0)$、$y=(0,1)$，最大值范数下 $\|x+y\|^2+\|x-y\|^2=2$，而 $2\|x\|^2+2\|y\|^2=4$。因此不能仅凭一个空间有范数，就在其中使用勾股定理或正交投影。相反，内积诱导范数的三角不等式来自
+\[
+ \|x+y\|^2=\|x\|^2+2\operatorname{Re}\langle x,y\rangle+\|y\|^2
+ \leq(\|x\|+\|y\|)^2.
+\]
+这一推导也说明 Cauchy--Schwarz 是几何结构与范数估计之间的桥梁。
+
+\section{最佳逼近与正交投影}
+集合 $C$ 凸，是指 $u,v\in C$ 及 $0\leq t\leq1$ 时 $(1-t)u+tv\in C$。记 $x\perp y$ 表示 $\langle x,y\rangle=0$；对 $M\subset H$，其正交补为 $M^\perp=\{x\in H:\langle x,m\rangle=0\text{ 对所有 }m\in M\}$。这里的正交补由 $H$ 中的向量组成，与一般对偶空间中的零化子通过 Riesz 表示相联系。
+\begin{theorem}[投影定理]\label{thm:fa-projection}
+设 $C$ 是 Hilbert 空间 $H$ 的非空闭凸子集。对每个 $x\in H$，存在唯一 $p\in C$ 使 $\|x-p\|=\inf_{z\in C}\|x-z\|$。该点由
+\[
+ \operatorname{Re}\langle x-p,z-p\rangle\leq0\quad(z\in C)
+\]
+刻画。若 $C=M$ 是闭线性子空间，则 $x-p\perp M$，从而 $H=M\oplus M^\perp$。
+\end{theorem}
+\begin{proof}
+记距离下确界为 $d$，取 $z_n\in C$ 使 $\|x-z_n\|\to d$。由凸性，中点在 $C$，平行四边形恒等式给出
+\[
+ \|z_n-z_m\|^2\leq2\|x-z_n\|^2+2\|x-z_m\|^2-4d^2\to0.
+\]
+完备性与闭性给出 $z_n\to p\in C$，且 $\|x-p\|=d$。同一不等式用于两个极小点即得唯一性。将 $p+t(z-p)$ 代入最小性，展开平方、除以 $t>0$ 并令 $t\downarrow0$，得到所述不等式；反之展开 $\|x-z\|^2$ 即知它保证最小性。
+
+若 $C=M$，可令 $z=p+tv$，其中 $t$ 取正负实数，复空间中还可取纯虚数，故 $\langle x-p,v\rangle=0$。分解唯一，因为 $M\cap M^\perp=\{0\}$。
+\end{proof}
+记最近点为 $P_Mx$。由分解唯一性，$P_M$ 线性；由勾股恒等式 $\|x\|^2=\|P_Mx\|^2+\|x-P_Mx\|^2$，$\|P_M\|\leq1$，当 $M\ne\{0\}$ 时等号成立。闭性不能删除：若 $M$ 稠密而不闭，则 $x\notin M$ 到 $M$ 的距离为零，却无最近点。
+
+投影定理的证明没有假定有界序列有范数收敛子列。它利用凸性允许取中点，再用平行四边形恒等式直接证明极小化序列是 Cauchy 序列。这是无限维证明中常见的替代办法。凸性也不能省略：在实直线上，闭集 $\{-1,1\}$ 到 $0$ 有两个最近点。
+
+对一般闭凸集，记最近点映射为 $P_C$。它未必线性，但满足 $\|P_Cx-P_Cy\|\leq\|x-y\|$。事实上，令 $p=P_Cx,q=P_Cy$，分别在变分不等式中取候选点 $q,p$，相加整理得
+\[
+ \|p-q\|^2\leq\operatorname{Re}\langle x-y,p-q\rangle
+ \leq\|x-y\|\|p-q\|.
+\]
+当 $p\ne q$ 时除以 $\|p-q\|$ 即得结论，$p=q$ 时直接成立。例如 $\mathbb R$ 到 $[0,\infty)$ 的投影为 $x\mapsto\max(x,0)$，它连续且不放大距离，却不是线性映射。
+
+\section{Riesz 表示定理}
+\begin{theorem}\label{thm:fa-riesz-representation}
+对每个 $f\in H^*$，存在唯一 $y\in H$ 使 $f(x)=\langle x,y\rangle$ 对所有 $x\in H$ 成立，且 $\|f\|=\|y\|$。
+\end{theorem}
+\begin{proof}
+$f=0$ 时取 $y=0$。否则 $M=\ker f$ 为真闭子空间。选 $z\notin M$，由投影定理，$z-P_Mz$ 是 $M^\perp$ 中的非零向量；将其归一化得到单位向量 $e$。若 $f(e)=0$，则 $e\in M\cap M^\perp=\{0\}$，矛盾，所以 $f(e)\ne0$。而 $x-f(x)e/f(e)\in M$，故 $\langle x,e\rangle=f(x)/f(e)$。取 $y=\overline{f(e)}e$ 即得表示。若两个向量给出同一泛函，将它们的差代入即知差为零。Cauchy--Schwarz 给出范数上界，取 $x=y/\|y\|$ 得到等号。
+\end{proof}
+复数情形中，$y\mapsto\langle\,\cdot\,,y\rangle$ 是共轭线性等距对应；它不是复线性映射。内积的变量约定将影响伴随及 Fourier 系数的写法。
+
+这个定理把任意连续线性测量变成与一个固定向量的内积。比如在 $L^2(0,1)$ 中，$f(u)=\int_0^1t u(t)\,\mathrm dt$ 的表示向量是 $y(t)=t$，所以 $\|f\|=\|t\|_2=1/\sqrt3$，而不是粗略估计得到的一。复数情形中，若写成 $f(u)=\int a(t)u(t)\,\mathrm dt$，表示向量应为 $\overline a$；这与前章不带共轭的对偶配对约定一致。
+
+\section{正交系与 Fourier 展开}
+标准正交系 $(e_j)$ 满足 $\langle e_j,e_k\rangle=\delta_{jk}$，其中 $\delta_{jk}$ 在 $j=k$ 时为一，否则为零。对有限部分，正交投影为 $P_Nx=\sum_{j=1}^N\langle x,e_j\rangle e_j$，勾股恒等式给出 Bessel 不等式
+\[
+ \sum_{j=1}^{\infty}|\langle x,e_j\rangle|^2\leq\|x\|^2.
+\]
+因此 $P_Nx$ 为 Cauchy 序列，其极限是 $x$ 在 $\overline{\operatorname{span}\{e_j\}}$ 上的正交投影。若此闭包为 $H$，称 $(e_j)$ 为标准正交基（orthonormal basis），并有
+\begin{equation}
+ x=\sum_{j=1}^{\infty}\langle x,e_j\rangle e_j,
+ \qquad \|x\|^2=\sum_{j=1}^{\infty}|\langle x,e_j\rangle|^2.
+ \label{eq:fa-parseval}
+\end{equation}
+后一等式称为 Parseval 恒等式。可分 Hilbert 空间取可数稠密集，逐次进行 Gram--Schmidt 正交化并略去相关向量，即得到有限或可数正交基。Hamel 基只允许有限线性组合，不能与这里允许范数收敛级数的正交基混同。
+
+\begin{proposition}[平方可和系数与向量的对应]\label{prop:fa-riesz-fischer}
+若 $(e_j)_{j\geq1}$ 是 Hilbert 空间中的标准正交系，$(a_j)\in\ell^2$，则 $\sum_ja_je_j$ 在 $H$ 中收敛到某个 $x$，且 $\langle x,e_j\rangle=a_j$、$\|x\|^2=\sum_j|a_j|^2$。当该正交系为基时，这给出 $H$ 与 $\ell^2$ 的线性等距对应。
+\end{proposition}
+\begin{proof}
+若 $s_N=\sum_{j\leq N}a_je_j$，则对 $N>M$，$\|s_N-s_M\|^2=\sum_{M<j\leq N}|a_j|^2\to0$。完备性给出 $s_N\to x$。内积连续，故逐个系数取极限得到 $\langle x,e_j\rangle=a_j$；范数连续给出范数等式。正交系为基时，每个 $x$ 都由自己的系数展开，因而对应同时单射、满射。
+\end{proof}
+
+标准正交系是否完备，也可以用“是否遗漏了一个正交方向”判断：它是正交基当且仅当 $\langle x,e_j\rangle=0$ 对所有 $j$ 成立只能推出 $x=0$。这是因为其闭线性张成空间的正交补恰由这些 $x$ 组成，再应用投影定理即可。Bessel 不等式对任何正交系成立，Parseval 等式则要求没有遗漏的方向。
+
+在 $L^2(0,2\pi)$ 中，$e_k(t)=(2\pi)^{-1/2}e^{\mathrm ikt}$（$k\in\mathbb Z$）构成标准正交基；完备性是 Fourier 分析中的三角多项式稠密定理，这里引用该结果，参见\cite{teschl-ra}的 Fourier 级数部分。式\eqref{eq:fa-parseval}保证 $L^2$ 展开，不自动保证逐点或一致收敛。
+
+\section{伴随与特殊算子}
+对 $T\in\mathcal B(H)$ 和固定 $y$，泛函 $x\mapsto\langle Tx,y\rangle$ 连续。Riesz 表示给出唯一 $T^*y$ 满足
+\[
+ \langle Tx,y\rangle=\langle x,T^*y\rangle.
+\]
+由唯一性可知 $T^*$ 线性，且 $\|T^*y\|\leq\|T\|\|y\|$。逐一在内积中检验可得
+\[
+ (ST)^*=T^*S^*,\quad (T^*)^*=T,\quad
+ (\alpha T)^*=\overline\alpha T^*,\quad\|T^*\|=\|T\|.
+\]
+此外，$\|Tx\|^2=\langle x,T^*Tx\rangle\leq\|T^*T\|\|x\|^2$，结合次乘性得到 $\|T^*T\|=\|T\|^2$。由伴随定义，$T^*y=0$ 当且仅当 $\langle Tx,y\rangle=0$ 对所有 $x$ 成立，故 $\ker T^*=(\operatorname{Ran}T)^\perp$；再取正交补，得到 $\overline{\operatorname{Ran}T}=(\ker T^*)^\perp$。
+
+$T=T^*$ 时称自伴（self-adjoint）；$T^*T=TT^*$ 时称正规（normal）；$T^*T=TT^*=I$ 时称酉（unitary）；自伴且 $\langle Tx,x\rangle\geq0$ 时称正算子（positive operator）。正交投影恰是自伴幂等算子：正交分解直接给出 $P_M^*=P_M$；反之 $P^2=P=P^*$ 保证 $Px\perp x-Px$，且 $\operatorname{Ran}P=\ker(I-P)$ 闭。
+
+\section{例题与习题}
+\begin{example}[最佳一次逼近]
+在 $L^2(0,1)$ 中，$t^2$ 的最佳一次多项式逼近是 $t-1/6$。
+\end{example}
+\begin{solve}
+设投影为 $a+bt$。误差与 $1,t$ 正交，因此
+\[
+ a+\tfrac12b=\tfrac13,\qquad \tfrac12a+\tfrac13b=\tfrac14.
+\]
+解得 $a=-1/6$、$b=1$。这两个方程就是最小二乘的正规方程；投影定理同时保证所得解为唯一全局最佳逼近。
+\end{solve}
+
+更一般地，若 $\phi_1,\ldots,\phi_m$ 线性无关，令 $M=\operatorname{span}\{\phi_1,\ldots,\phi_m\}$，写 $P_Mx=\sum_jc_j\phi_j$，则正交条件给出
+\[
+ \sum_{j=1}^m\langle\phi_j,\phi_i\rangle c_j=\langle x,\phi_i\rangle
+ \quad(1\leq i\leq m).
+\]
+矩阵 $G_{ij}=\langle\phi_j,\phi_i\rangle$ 称为 Gram 矩阵。对非零系数向量 $c$，$c^*Gc=\|\sum_jc_j\phi_j\|^2>0$，故矩阵正定、方程组唯一可解。若基标准正交，$G=I$，系数立即变成 Fourier 系数。这样，函数逼近中的投影问题被转化为可以实际求解的有限维线性方程组。
+\begin{enumerate}
+ \item\label{exer:fa-shift-adjoint} 证明 $\ell^2$ 中左右移位互为伴随，右移保持范数但不是酉算子。
+ \item 证明无限标准正交序列的任意两项距离为 $\sqrt2$。
+ \item\label{exer:fa-double-perp} 证明 $M^{\perp\perp}=\overline M$，其中 $M$ 是线性子空间。
+ \item 证明 $\ker T^*=(\operatorname{Ran}T)^\perp$，并推得 $\overline{\operatorname{Ran}T}=(\ker T^*)^\perp$。
+\end{enumerate}
+

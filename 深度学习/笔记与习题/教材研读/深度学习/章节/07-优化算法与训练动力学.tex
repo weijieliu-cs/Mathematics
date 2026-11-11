@@ -1,0 +1,67 @@
+% !TeX root = ../深度学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{6} % 保留原书章号。
+\chapter{优化算法与训练动力学}
+\label{chap:dl-optimization}
+训练是根据梯度逐步更新参数的过程。训练目标下降与新样本表现改善有关，但并不等价；本章先建立可证明的下降条件，再讨论随机梯度和常用更新规则。
+
+\section{梯度下降与下降条件}
+\emph{梯度下降（gradient descent）}沿当前负梯度方向更新参数，步长 $\eta>0$ 称\emph{学习率（learning rate）}。负梯度给出欧氏范数约束下最陡的一阶下降方向，但有限步长是否下降还取决于目标的曲率。
+\begin{proposition}[光滑函数的单步下降]
+设 $J:\mathbb R^p\to\mathbb R$ 可微，且 $\|\nabla J(\mathbf u)-\nabla J(\mathbf v)\|_2\leq L\|\mathbf u-\mathbf v\|_2$，其中 $L>0$。取 $\theta^+=\theta-\eta\nabla J(\theta)$，则
+\begin{equation}
+J(\theta^+)\leq J(\theta)-\eta(1-L\eta/2)\|\nabla J(\theta)\|_2^2.
+\label{eq:dl-descent}
+\end{equation}
+因此 $0<\eta<2/L$ 且梯度非零时严格下降。
+\end{proposition}
+\begin{proof}
+令增量为 $\mathbf u$。由沿线段积分，$J(\theta+\mathbf u)-J(\theta)-\nabla J(\theta)^\mathsf T\mathbf u=\int_0^1[\nabla J(\theta+t\mathbf u)-\nabla J(\theta)]^\mathsf T\mathbf u\,dt\leq L\|\mathbf u\|_2^2/2$。代入 $\mathbf u=-\eta\nabla J(\theta)$ 即得。
+\end{proof}
+若另有 $J\geq J_{\inf}$，固定 $0<\eta\leq1/L$，累加可得 $\min_{0\leq t<T}\|\nabla J(\theta_t)\|^2\leq2(J(\theta_0)-J_{\inf})/(\eta T)$。这说明出现小梯度点，不保证参数序列收敛到全局最小值。凸可微目标的驻点是全局最小点，强凸性还给出唯一性；含 ReLU 的目标不处处光滑，不能直接无条件套用本命题。
+
+\section{随机梯度与小批量训练}
+每步在给定过去状态后，独立均匀抽取 $B$ 个不同训练索引组成 $\mathcal B_t$。对可微样本损失与惩罚定义
+\begin{equation}
+\mathbf g_t=\frac1B\sum_{i\in\mathcal B_t}\nabla_\theta\ell(f_{\theta_t}(\mathbf x_i),y_i)+\lambda\nabla\Omega(\theta_t),
+\qquad \theta_{t+1}=\theta_t-\eta_t\mathbf g_t.
+\label{eq:dl-sgd}
+\end{equation}
+每个索引被选中的概率为 $B/n$，故条件期望 $\mathbb E[\mathbf g_t\mid\theta_t,\mathcal D]=\nabla J(\theta_t)$。这就是\emph{随机梯度下降（stochastic gradient descent, SGD）}的基本依据。每轮随机重排后依次取批量时，后续批量受已用索引限制，不能直接声称同样的逐步条件无偏性。批量归一化等跨样本运算也需要按实际批量目标重新解释梯度。
+
+一次迭代执行一次更新，一个\emph{训练轮次（epoch）}通常指遍历训练集一次。独立有放回抽样时，样本梯度协方差有限则平均梯度的协方差缩小为原来的 $1/B$；较大批量减少这种抽样波动，却增加单步计算。随机单步不保证目标单调下降，学习率和总预算必须共同考虑。
+
+\section{动量、自适应更新与权重衰减}
+\emph{动量（momentum）}保存历史梯度方向。一种约定为 $\mathbf v_t=\beta\mathbf v_{t-1}+\mathbf g_t$、$\theta_{t+1}=\theta_t-\eta_t\mathbf v_t$，初值 $\mathbf v_{-1}=0$、$0\leq\beta<1$。有些实现将新梯度乘 $1-\beta$，两种学习率含义不同。AdaGrad 逐坐标累计平方梯度，RMSProp 用指数平均代替无限累积，都通过历史幅度调整更新尺度。
+
+Adam 同时维护一阶、二阶矩。以下令更新编号从 $t=1$ 开始，$\mathbf m_0=\mathbf v_0=0$，逐元素计算
+\begin{align}
+\mathbf m_t&=\beta_1\mathbf m_{t-1}+(1-\beta_1)\mathbf g_t,&
+\mathbf v_t&=\beta_2\mathbf v_{t-1}+(1-\beta_2)\mathbf g_t\odot\mathbf g_t,\notag\\
+\widehat{\mathbf m}_t&=\mathbf m_t/(1-\beta_1^t),&
+\widehat{\mathbf v}_t&=\mathbf v_t/(1-\beta_2^t),\notag\\
+\theta_t&=\theta_{t-1}-\eta_t\widehat{\mathbf m}_t/(\sqrt{\widehat{\mathbf v}_t}+\varepsilon).
+\label{eq:dl-adam}
+\end{align}
+这里 $0\leq\beta_1,\beta_2<1$、$\varepsilon>0$，$\mathbf g_t$ 在 $\theta_{t-1}$ 处计算，除法和开方均逐元素。偏差校正补偿零初始化造成的初期缩小，不是对任意非平稳过程的准确统计建模。
+
+普通 SGD 对 $\lambda\|\theta\|^2/2$ 的惩罚产生 $\theta^+=(1-\eta\lambda)\theta-\eta\nabla\widehat{\mathcal R}_n$。自适应算法若把惩罚加入梯度，会同时对它预条件化；\emph{解耦权重衰减（decoupled weight decay）}则把参数缩小与自适应梯度步骤分开，通常不再等价于相同的 $L^2$ 惩罚。
+
+\section{学习率调度与停止准则}
+学习率可以固定、分段下降或平滑改变。例如总更新数为 $T$ 时，余弦日程可取 $\eta_t=\eta_{\min}+(\eta_{\max}-\eta_{\min})(1+\cos(\pi t/T))/2$，$0\leq t\leq T$；预热则在初期从较小值升到预设值。这些日程是可检验的训练设计，不是对所有目标最优的公式。
+
+优化停止可依据预算、梯度或目标变化；统计意义上的模型选择通常依据验证表现。保存验证指标最佳的检查点与保存最后一次更新并不相同。比较优化器时，应说明按相同轮次、更新数还是计算时间匹配预算，同时报告允许的调参次数。复杂非凸网络上的效果主要由受控实验说明，不能从算法名称推断普遍优劣。
+
+\section{例题与习题}
+\begin{example}[动量累积与步长]
+对 $J(\theta)=\theta^2/2$，从 $\theta_0=1$ 出发，取 $\eta=0.1,\beta=0.9$ 和上述未归一化动量，计算前两次更新。
+\end{example}
+\begin{solve}
+第一步 $g_0=1,v_0=1,\theta_1=0.9$；第二步 $g_1=0.9,v_1=0.9\times1+0.9=1.8,\theta_2=0.72$。普通梯度下降第二步为 $0.81$。动量在方向一致时累积更新，但这一个例子不能证明它对全部目标更快或更稳定。
+\end{solve}
+\begin{enumerate}
+\item 从式\eqref{eq:dl-descent}推导本章的最小梯度范数界，指出下界 $J_{\inf}$ 用于哪一步。
+\item 在零初始矩状态下，对标量梯度 $g_1=2$ 计算 Adam 的偏差校正结果，保留 $\varepsilon$。
+\item 在二维二次函数上比较三个学习率的轨迹，再在同一 MLP 上比较 SGD 与 Adam，分别报告数学模型和实际网络的结果。
+\end{enumerate}
+

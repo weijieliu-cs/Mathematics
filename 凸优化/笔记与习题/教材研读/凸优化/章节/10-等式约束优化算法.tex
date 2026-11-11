@@ -1,0 +1,116 @@
+% !TeX root = ../凸优化笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{9} % 保留原书章号。
+\chapter{等式约束优化算法}
+\label{ch:co-equality}
+
+考虑 $\min_x f(x)$，满足 $Ax=b$。等式要求每一步位移保持在可行方向内，或在迭代中逐步消除等式残差。本章假设 $f$ 在开凸域上二次连续可微，并在使用牛顿系统时明确秩与曲率条件。
+
+例如要求 $x_1+x_2=1$ 时，可行位移必须满足 $d_1+d_2=0$。即使目标沿横轴下降，也不能只改变第一分量；必须同时补偿第二分量。等式约束算法的任务，是从一开始就在这样的可行方向中寻找改善，或者同时减少目标驻点残差和等式误差。
+
+\section{仿射约束与降维表示}
+
+设 $A\in\mathbb R^{p\times n}$。首先检查 $b\in\operatorname{range}A$；否则等式系统不可行。可以删除冗余等式，以下通常假设 $A$ 满行秩。若 $p=n$，可行点唯一，只需检查其是否在目标定义域内。
+
+当 $p<n$，取可行点 $\bar x$，令 $F\in\mathbb R^{n\times(n-p)}$ 的列构成 $\ker A$ 的一组基。所有可行点唯一写成 $x=\bar x+Fz$，于是原问题化为无约束问题
+\[
+ \min_z\widetilde f(z)=f(\bar x+Fz),\qquad
+ \nabla\widetilde f=F^{\mathsf T}\nabla f,\quad
+ \nabla^2\widetilde f=F^{\mathsf T}\nabla^2fF.
+\]
+因此只有可行方向上的曲率直接影响约束最优性。
+
+在约束 $x_1+x_2=1$ 上，可以取 $\bar x=(1,0)^{\mathsf T}$、$F=(1,-1)^{\mathsf T}$，于是 $x=(1+z,-z)^{\mathsf T}$。二维问题实际只有一个自由变量。等式约束并不一定增加数学难度，有时恰好能消去多余的自由度。例 $f(x_1,x_2)=x_1^2/2$、$x_2=0$，全空间海塞矩阵奇异，但可行子空间上的目标严格凸。
+
+对于凸可微目标，约束最优性等价于 $F^{\mathsf T}\nabla f(x^\star)=0$。这是说梯度与所有可行方向正交，而不是说梯度本身为零。由于 $(\ker A)^\perp=\operatorname{range}A^{\mathsf T}$，它又等价于存在 $\nu$ 使 $\nabla f(x^\star)+A^{\mathsf T}\nu=0$。零空间形式和拉格朗日乘子形式只是同一几何事实的两种坐标表达。
+
+\section{等式约束二次问题与 KKT 系统}
+
+对二次目标 $f(x)=x^{\mathsf T}Px/2+q^{\mathsf T}x+r$、$P=P^{\mathsf T}$，驻点与可行性构成
+\[
+ \begin{bmatrix}P&A^{\mathsf T}\\A&0\end{bmatrix}
+ \begin{bmatrix}x\\\nu\end{bmatrix}
+ =\begin{bmatrix}-q\\b\end{bmatrix}.
+\]
+即使 $P$ 在全空间不正定，只要在 $\ker A$ 上正定，该二次问题也有唯一约束最小点。
+
+\begin{proposition}[KKT 矩阵的非奇异性]
+若 $A$ 满行秩，且对所有非零 $d\in\ker A$ 有 $d^{\mathsf T}Pd>0$，则上述 KKT 矩阵非奇异。
+\end{proposition}
+\begin{proof}
+设齐次系统满足 $Pd+A^{\mathsf T}w=0$、$Ad=0$。第一式左乘 $d^{\mathsf T}$ 得 $d^{\mathsf T}Pd=0$，故 $d=0$；随后 $A^{\mathsf T}w=0$，由满行秩得 $w=0$。齐次系统仅有零解，因此矩阵可逆。
+\end{proof}
+冗余约束会使乘子不唯一，即使原变量的最优点仍唯一。因此数值奇异可能来自约束表示，并不必然来自目标缺少约束最小值。
+
+\section{可行初始点的约束牛顿法}
+
+给定 $Ax_k=b$，令 $g_k=\nabla f(x_k)$、$H_k=\nabla^2f(x_k)$。最小化局部二次模型，约束方向满足 $Ad=0$，得到
+\begin{equation}
+ \begin{bmatrix}H_k&A^{\mathsf T}\\A&0\end{bmatrix}
+ \begin{bmatrix}d_k\\w_k\end{bmatrix}
+ =-\begin{bmatrix}g_k\\0\end{bmatrix}.
+ \label{eq:co-equality-newton}
+\end{equation}
+若 $H_k$ 在 $\ker A$ 上正定，系统唯一可解。由方向方程左乘 $d_k^{\mathsf T}$ 得 $g_k^{\mathsf T}d_k=-d_k^{\mathsf T}H_kd_k\leq0$；非零方向严格下降，零方向对应约束驻点。
+
+算法从可行初值开始，每步解式\eqref{eq:co-equality-newton}，用回溯保证目标下降及定义域可行，然后更新 $x_{k+1}=x_k+t_kd_k$。由于 $Ad_k=0$，任意步长均保持等式。约束牛顿减量可定义为 $\sqrt{d_k^{\mathsf T}H_kd_k}$，其为零当且仅当约束方向的一阶最优性条件成立；转换为误差上界仍需曲率或自协调假设。
+
+令 $d_k=F\Delta z_k$，将方向方程左乘 $F^{\mathsf T}$，得到 $F^{\mathsf T}H_kF\Delta z_k=-F^{\mathsf T}g_k$，这就是降维目标的牛顿方程。因此第\ref{ch:co-unconstrained}章的局部收敛定理可在降维空间中使用，而无需全空间海塞矩阵正定。
+
+\section{不可行初始点与原对偶残差}
+
+若初值不满足等式，令原残差（primal residual）和对偶残差（dual residual）为
+\[
+ r_{\mathrm p}(x)=Ax-b,\qquad
+ r_{\mathrm d}(x,\nu)=\nabla f(x)+A^{\mathsf T}\nu.
+\]
+对二者组成的非线性方程使用牛顿法，得到
+\[
+ \begin{bmatrix}\nabla^2f(x)&A^{\mathsf T}\\A&0\end{bmatrix}
+ \begin{bmatrix}\Delta x\\\Delta\nu\end{bmatrix}
+ =-\begin{bmatrix}r_{\mathrm d}\\r_{\mathrm p}\end{bmatrix}.
+\]
+更新 $(x,\nu)\leftarrow(x,\nu)+t(\Delta x,\Delta\nu)$。原残差精确满足 $r_{\mathrm p}^{+}=(1-t)r_{\mathrm p}$；若取单位步长，下一点即满足等式，但可能因目标定义域或非线性残差而不能采用该步长。
+
+可对总残差 $R=(r_{\mathrm d},r_{\mathrm p})$ 回溯，要求 $\|R^+\|_2\leq(1-\alpha t)\|R\|_2$ 并保持定义域。若残差雅可比可逆且方向精确，则 $R^+=R-tR+o(t)$，故小步长会被接受。这里下降的是残差，不保证目标每步都下降。局部快速收敛要求雅可比非奇异和相应光滑性，全局收敛仍需额外条件。
+
+\begin{example}[从不可行点同时修正两个残差]
+仍取 $f(x)=[(x_1-2)^2+x_2^2]/2$、$x_1+x_2=1$，但从 $x=(0,0)$、$\nu=0$ 开始。
+\end{example}
+\begin{solve}
+当前 $r_{\mathrm p}=-1$、$r_{\mathrm d}=(-2,0)^{\mathsf T}$。牛顿方程为
+\[
+ \Delta x_1+\Delta\nu=2,\qquad
+ \Delta x_2+\Delta\nu=0,\qquad
+ \Delta x_1+\Delta x_2=1.
+\]
+解得 $\Delta\nu=1/2$、$\Delta x=(3/2,-1/2)$。采用单位步长后，$x=(3/2,-1/2)$、$\nu=1/2$，原残差和对偶残差都为零。这里残差方程本身是仿射的，故牛顿线性化没有近似误差；对一般非二次目标，单位步长只保证等式残差消失，不保证驻点残差同时消失。
+\end{solve}
+
+\section{块消元与结构化求解}
+
+若 $H\succ0$，方向系统 $H\Delta x+A^{\mathsf T}\Delta\nu=-r_{\mathrm d}$、$A\Delta x=-r_{\mathrm p}$ 可消去 $\Delta x$，得到
+\[
+ AH^{-1}A^{\mathsf T}\Delta\nu
+ =r_{\mathrm p}-AH^{-1}r_{\mathrm d},\qquad
+ \Delta x=-H^{-1}(r_{\mathrm d}+A^{\mathsf T}\Delta\nu).
+\]
+满行秩使 Schur 补 $AH^{-1}A^{\mathsf T}$ 正定。公式中的 $H^{-1}$ 在实现时由解方程完成。若 $H$ 仅在零空间上正定，可能不可逆，应使用零空间法或对整个对称不定 KKT 矩阵作分解。
+
+零空间法降低变量维数，但构造稠密基可能破坏原稀疏结构；Schur 补法适合等式较少的情形，却可能增加填充和条件数。实际方法的选择取决于维数与矩阵结构，不能只比较公式长短。
+
+\section{例题、终止条件与学习检查}
+\begin{example}[守恒约束下的一步牛顿]
+最小化 $f(x)=\tfrac12[(x_1-2)^2+x_2^2]$，满足 $x_1+x_2=1$。取可行初值 $x_0=(1,0)$，有 $g_0=(-1,0)$、$H_0=I$。方向方程为 $d_1+w=1$、$d_2+w=0$、$d_1+d_2=0$，得 $w=1/2$、$d=(1/2,-1/2)$。单位步长到达 $x^\star=(3/2,-1/2)$，目标值为 $1/4$；这是二次模型精确性在约束空间中的表现。
+\end{example}
+
+停止时至少检查 $\|Ax-b\|_2$ 与 $\|\nabla f(x)+A^{\mathsf T}\nu\|_2$。尺度不同的残差应结合绝对、相对容差解释；当 $x$ 已可行且 $f$ 在全空间为 $\mu$-强凸时，$\|r_{\mathrm d}\|_2^2/(2\mu)$ 是目标误差上界，因为 $A(x-x^\star)=0$ 使乘子项消去。不可行点不能直接使用这个结论。
+
+\begin{enumerate}
+ \item 用消元 $x_2=1-x_1$ 重新求解上述例题，并核对方向。
+ \item 在 $f(x)=x_1^2/2$、$x_2=0$ 中写出 KKT 矩阵，验证其可逆而 $\nabla^2f$ 不可逆。
+ \item 给等式系统重复添加一条相同约束，说明原解、乘子和线性系统非奇异性分别怎样变化。
+ \item 对不可行初始点方法验证原残差递推，并说明单位步长后的目标域检查为什么仍然必要。
+ \item 推导练习：若 $F$ 的列正交归一，说明 $\|F^{\mathsf T}\nabla f(x)\|_2$ 衡量的是哪个可行子空间中的梯度；在 $x_1+x_2=1$ 的二维例中直接计算它，并与乘子残差比较。
+\end{enumerate}
+

@@ -1,0 +1,45 @@
+% !TeX root = ../深度学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{14} % 保留原书章号。
+\chapter{表示学习与自监督学习}
+\label{chap:dl-representation}
+一个表示是否有用，要看它保留的信息能否支持目标任务。监督分类只是一种学习表示的方式；重建输入、匹配不同视图和预测被遮住的部分，也能构造可训练目标，但各自偏好的信息不同。
+
+\section{表示的用途与评价方式}
+\emph{表示学习（representation learning）}寻找映射 $g_\phi:\mathcal X\to\mathbb R^d$，使输出便于下游预测、检索或其他操作。若编码器把两个应属不同类别的输入映到完全相同表示，任何只读取该表示的确定性分类器都无法区分它们。因此表示需要丢弃无关变化，同时保留任务需要的差异；何者无关取决于任务。
+
+\emph{线性探测（linear probing）}冻结 $g_\phi$，仅训练线性输出头；端到端微调则允许改变编码器。两者回答不同问题：前者评价当前表示对线性读出的适用性，后者评价经过额外监督适配后的性能。可视化成簇、维度较低或训练重建好，都不能单独证明下游效果；应固定划分、标注量、探测器容量和选择预算。
+
+\section{自编码器与重建目标}
+\emph{自编码器（autoencoder）}由编码器 $g_\phi$ 和解码器 $d_\psi$ 组成，重建 $\widehat{\mathbf x}=d_\psi(g_\phi(\mathbf x))$。对连续向量可最小化 $n^{-1}\sum_i\|\mathbf x_i-\widehat{\mathbf x}_i\|^2$；对离散数据应使用相应的概率损失。中间维度小于输入维度形成瓶颈，但低维本身不保证语义有用，过大容量甚至可以记住有限训练集。
+
+对中心化数据、线性编码解码、平方误差和低秩瓶颈，最优重建子空间可由\emph{主成分分析（principal component analysis, PCA）}的领先特征方向给出。这是截断奇异值分解的标准最小误差结论，此处引用；编码器和解码器因子未必唯一，非线性网络也不与 PCA 等价。去噪自编码器输入扰动样本 $\widetilde{\mathbf x}$ 却重建原样本 $\mathbf x$，优化 $\mathbb E_{\mathbf X,\widetilde{\mathbf X}\mid\mathbf X}\|d_\psi(g_\phi(\widetilde{\mathbf X}))-\mathbf X\|^2$，迫使模型利用可恢复的结构，而非直接复制。
+
+\section{对比学习与正负样本}
+\emph{对比学习（contrastive learning）}把应当接近的表示作为正对，把候选中的其他表示作为负对。对 $B$ 个样本构造两种保持任务语义的视图，得到单位向量 $\mathbf q_i,\mathbf k_i$，温度 $\tau>0$。一种单向批量目标为
+\begin{equation}
+\ell_i=-\log\frac{\exp(\mathbf q_i^\mathsf T\mathbf k_i/\tau)}{\sum_{j=1}^B\exp(\mathbf q_i^\mathsf T\mathbf k_j/\tau)}.
+\label{eq:dl-contrastive}
+\end{equation}
+它把“在 $B$ 个候选中找到配对视图”写成分类任务。对分数 $s_{ij}=\mathbf q_i^\mathsf T\mathbf k_j/\tau$，梯度仍为 $p_{ij}-\mathbf1\{j=i\}$，正对分数被相对提高，其他分数被相对降低。
+
+若所有输入都产生相同向量，各候选概率为 $1/B$，损失为 $\log B$，称\emph{表示坍塌（representation collapse）}。损失能区分此状态与更好的匹配，不等于任意优化过程必然避开坍塌。增强若改变真实语义，会构造错误正对；批量中的不同样本若语义相同，也可能成为假负例。目标定义和数据构造因此同样重要。
+
+\section{掩码预测与目标构造}
+\emph{掩码建模（masked modeling）}随机选择位置集合 $M$，用可见部分 $\mathbf x_{\bar M}$ 预测被遮住的内容。例如离散序列的目标为 $-\sum_{t\in M}\log p_\theta(x_t\mid\mathbf x_{\bar M},M)$，只在指定目标位置求损失。输入若通过另一条未遮蔽路径泄漏真实目标，网络可能只学到复制。遮蔽过少时问题可能过易，过多时可用信息不足，选择应通过下游评价检验。
+
+像素重建、词元分类和特征回归强调的信息不同。无显式负样本的方法可以使用预测器、停止梯度、目标网络或方差约束等机制；它们改变了目标或优化结构，不能把“去掉负样本”视作完整算法。自监督信号来自数据自身，但仍包含增强不变性、上下文可预测性等建模假设。
+
+\section{例题与习题}
+\begin{example}[温度化匹配]
+在式\eqref{eq:dl-contrastive}中取 $B=2$，某查询与正、负键的相似度分别为 $1,0$，温度为一。求配对概率与损失，并与表示坍塌比较。
+\end{example}
+\begin{solve}
+正对概率为 $e/(e+1)$，损失为 $\log(1+e^{-1})\approx0.313$。坍塌时两个分数相等，概率为 $1/2$，损失为 $\log2\approx0.693$。该例说明相对匹配改善会降低目标，但不证明学到的差异就是下游任务需要的差异。
+\end{solve}
+\begin{enumerate}
+\item 构造一个重建误差很低而分类所需信息被丢弃的表示例子，说明重建与分类目标的差别。
+\item 推导式\eqref{eq:dl-contrastive}对查询向量的梯度，先把单位向量看作自由变量，再讨论归一化链式法则。
+\item 固定编码器、下游标签数量和线性探测协议，比较随机初始化与一种自监督预训练，并报告增强选择的影响。
+\end{enumerate}
+

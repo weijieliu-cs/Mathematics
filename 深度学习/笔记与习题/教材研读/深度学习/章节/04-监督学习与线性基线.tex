@@ -1,0 +1,57 @@
+% !TeX root = ../深度学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{3} % 保留原书章号。
+\chapter{监督学习与线性基线}
+\label{chap:dl-baselines}
+在复杂网络之前先建立线性基线，可以分辨收益来自数据、特征还是结构。线性模型还能把目标、解的存在唯一性与数值算法清楚分开，为后续非凸问题提供参照。
+
+\section{总体风险、经验风险与正则化目标}
+\begin{definition}[风险与经验风险]
+对数据分布 $P$ 和给定损失，模型的总体风险为 $\mathcal R(\theta)=\mathbb E_{(\mathbf X,Y)\sim P}[\ell(f_\theta(\mathbf X),Y)]$。对训练样本和非负正则化强度 $\lambda$，经验目标为
+\begin{equation}
+\widehat{\mathcal R}_n(\theta)=\frac1n\sum_{i=1}^n\ell(f_\theta(\mathbf x_i),y_i),
+\qquad J(\theta)=\widehat{\mathcal R}_n(\theta)+\lambda\Omega(\theta),
+\label{eq:dl-empirical-objective}
+\end{equation}
+其中 $\Omega$ 是预先选定的惩罚函数。
+\end{definition}
+\emph{正则化（regularization）}通过惩罚、约束或其他机制引入对解的偏好，式中的 $\Omega$ 是显式惩罚的一种形式。固定 $\theta$ 时，独立同分布且可积的样本损失使经验风险成为总体风险的无偏估计，并由大数定律收敛。若 $\theta$ 由同一数据选出，这个固定参数结论不足以说明它的训练误差可靠估计了测试误差。训练算法实际返回的 $\widehat\theta$ 还可能不是 $J$ 的精确最小点：有限数据、函数类限制和优化不足是不同误差来源。
+
+\section{线性回归与最小二乘}
+令增广特征 $\widetilde{\mathbf x}_i=(\mathbf x_i^\mathsf T,1)^\mathsf T$，参数 $\mathbf w$ 包含偏置，设计矩阵 $\mathbf A$ 的第 $i$ 行是 $\widetilde{\mathbf x}_i^\mathsf T$，目标向量为 $\mathbf y$。最小二乘目标 $J(\mathbf w)=\|\mathbf A\mathbf w-\mathbf y\|_2^2/(2n)$ 的梯度为 $\mathbf A^\mathsf T(\mathbf A\mathbf w-\mathbf y)/n$，其最小点满足正规方程
+\begin{equation}
+\mathbf A^\mathsf T\mathbf A\mathbf w=\mathbf A^\mathsf T\mathbf y.
+\label{eq:dl-normal-equations}
+\end{equation}
+几何上，$\mathbf A\mathbf w$ 是 $\mathbf y$ 到 $\operatorname{col}(\mathbf A)$ 的正交投影，有限维子空间的投影总存在且唯一；参数唯一当且仅当 $\mathbf A$ 列满秩。秩不足时，同一拟合向量对应一族相差于 $\ker\mathbf A$ 的参数，可用伪逆选最小范数解。加入 $\lambda\|\mathbf w\|^2/2$ 且 $\lambda>0$ 后，方程变成 $(\mathbf A^\mathsf T\mathbf A+n\lambda\mathbf I)\mathbf w=\mathbf A^\mathsf T\mathbf y$，系数矩阵正定；这里只对全部参数加惩罚，排除偏置时须另写惩罚矩阵。
+
+数值计算宜用 QR、奇异值分解或相应线性求解器，避免为了套用公式而显式求逆。对于二阶矩有限的回归目标，还可写出 $\mathbb E[(Y-a)^2\mid\mathbf X]=\operatorname{Var}(Y\mid\mathbf X)+(a-\mathbb E[Y\mid\mathbf X])^2$，故无函数类限制时平方风险由条件均值最小化；线性模型是在其可表示范围内逼近这一函数。
+
+\section{逻辑回归与多分类模型}
+\emph{逻辑回归（logistic regression）}在二分类中取分数 $z=\mathbf w^\mathsf T\mathbf x+b$，经\emph{逻辑函数（sigmoid）} $\sigma(z)=1/(1+e^{-z})$ 得到类别一的概率。由 $\sigma'(z)=\sigma(z)(1-\sigma(z))$ 可得二元交叉熵对 $z$ 的导数为 $\sigma(z)-y$。它是非线性概率映射，但决策边界 $z=0$ 仍是超平面，因此名称中的“回归”不意味着它用于连续数值回归。
+
+对 $K$ 个类别，\emph{逻辑值（logit）}向量 $\mathbf z\in\mathbb R^K$ 经 softmax 变为 $p_k=e^{z_k}/\sum_je^{z_j}$。目标的\emph{独热编码（one-hot encoding）}为 $y_k=\mathbf1\{y=k\}$，交叉熵是 $\ell=-z_y+\log\sum_je^{z_j}$，直接微分得到
+\begin{equation}
+\frac{\partial\ell}{\partial z_k}=p_k-y_k.
+\label{eq:dl-softmax-gradient}
+\end{equation}
+利用式\eqref{eq:dl-logsumexp}稳定计算损失，避免重复 softmax 或先舍入概率。改变分类阈值会改变决策，通常不改变已经训练的概率模型。
+
+\section{评价指标、模型选择与误差来源}
+以指定正类为基准，记真正例、假正例、假负例和真负例数为 $TP,FP,FN,TN$。准确率为 $(TP+TN)/n$，精确率为 $TP/(TP+FP)$，召回率为 $TP/(TP+FN)$，$F_1=2TP/(2TP+FP+FN)$；分母为零时必须报告采用的约定。多分类的宏平均给各类相同权重，微平均先合并计数，类别不均衡时二者可能差异很大。
+
+回归的\emph{均方误差（mean squared error, MSE）}为 $n^{-1}\sum_i(\widehat y_i-y_i)^2$，\emph{平均绝对误差（mean absolute error, MAE）}为 $n^{-1}\sum_i|\widehat y_i-y_i|$，前者对大残差更敏感。选择指标应联系误判代价与使用对象。验证集用于比较模型与超参数，反复针对它改方案会产生选择偏差；独立测试集只在方案确定后评价，不能继续充当调参信号。
+
+\section{例题与习题}
+\begin{example}[拟合一条直线]
+对样本 $(x,y)=(0,1),(1,2),(2,2)$，求含截距的最小二乘直线。
+\end{example}
+\begin{solve}
+有 $\bar x=1,\bar y=5/3$，斜率 $w=\sum_i(x_i-\bar x)(y_i-\bar y)/\sum_i(x_i-\bar x)^2=1/2$，截距 $b=\bar y-w\bar x=7/6$。三个残差为 $1/6,-1/3,1/6$，均方误差为 $1/18$。残差不全为零并不表示算法失败，而是样本不在同一条直线上。
+\end{solve}
+\begin{enumerate}
+\item 对分数 $(0,0,0)$ 和真实类别一，计算 softmax、交叉熵及其梯度。
+\item 证明给所有逻辑值同时加同一常数不改变 softmax 输出，说明参数冗余的一种来源。
+\item 在相同数据划分上比较常数预测、线性模型与加入二次特征的模型，报告训练和验证误差，解释更低训练误差是否对应更低验证误差。
+\end{enumerate}
+

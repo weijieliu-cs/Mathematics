@@ -1,0 +1,108 @@
+% !TeX root = ../泛函分析笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{7} % 保留原书章号。
+\chapter{弱拓扑、弱星拓扑与收敛}
+\label{chap:fa-weak}
+
+无限维闭单位球通常不紧。一个自然的补救是只要求每个连续线性观测收敛，而不要求误差在所有观测上同时趋于零。这种收敛较弱，却与线性方程和凸优化相容。
+
+\section{弱拓扑与弱星拓扑}
+\begin{definition}
+$X$ 的\emph{弱拓扑（weak topology）}$\sigma(X,X^*)$ 是使所有 $f\in X^*$ 连续的最弱拓扑。点 $x$ 的基本邻域为
+\[
+ U(x;f_1,\ldots,f_m;\varepsilon)=
+ \{y\in X:|f_j(y-x)|<\varepsilon,\ 1\leq j\leq m\},
+\]
+其中 $m$ 有限且 $\varepsilon>0$。$X^*$ 上使所有取值映射 $f\mapsto f(x)$ 连续的最弱拓扑称为\emph{弱星拓扑（weak-star topology）}$\sigma(X^*,X)$。
+\end{definition}
+弱邻域只限制有限个泛函。范数小则这些观测都小，故弱拓扑弱于范数拓扑。命题\ref{prop:fa-norming-functional}保证不同点能被泛函区分，所以弱拓扑是 Hausdorff 的。
+
+“较弱”指开集更少，于是收敛要求也更少。范数收敛要求 $\sup_{\|f\|\leq1}|f(x_n-x)|\to0$，弱收敛只要求对每个固定的 $f$，$|f(x_n-x)|\to0$。后者允许达到给定误差所需的指标 $N$ 随测试泛函改变，不能交换这里的极限与上确界。可把一个泛函理解为一个固定测量装置：每台固定装置最后都看不到误差，并不保证存在一个时刻，使所有装置同时看不到误差。
+
+在 $\ell^2$ 中，只限制前 $m$ 个坐标的邻域 $\{x:|x_j|<\varepsilon,1\leq j\leq m\}$ 包含所有 $te_{m+1}$，$t\in\mathbb R$，因而范数无界。一般无限维空间的有限个泛函也有非零公共核：若公共核为零，映射 $x\mapsto(f_1(x),\ldots,f_m(x))$ 将是到有限维空间的线性单射，迫使原空间有限维。沿公共核中的方向可以任意放大而不改变这些测试值，所以弱邻域通常不能被理解为范数意义下的小球。
+
+\section{序列收敛及其例子}
+由基本邻域定义，
+\begin{align}
+ x_n\rightharpoonup x
+ &\iff f(x_n)\to f(x)\quad\text{对每个 }f\in X^*,
+ \label{eq:fa-weak-convergence}\\
+ f_n\overset{*}{\rightharpoonup}f
+ &\iff f_n(x)\to f(x)\quad\text{对每个 }x\in X.
+ \label{eq:fa-weak-star-convergence}
+\end{align}
+$X^*$ 自身的弱拓扑是 $\sigma(X^*,X^{**})$，比弱星拓扑使用更多测试对象。一般弱拓扑不必可度量化，序列不能完整刻画其中的闭包和紧性；一般表述需要附录\ref{app:fa-topology}中的网。
+
+\begin{example}\label{ex:fa-weak-unit-vectors}
+$\ell^2$ 中 $e_n\rightharpoonup0$，但 $\|e_n\|_2=1$。把 $\ell^1$ 视为 $c_0^*$ 时，同样的 $e_n$ 弱星趋于零，却不在 $\ell^1$ 中弱趋于零。
+\end{example}
+\begin{solve}
+$\ell^2$ 的任意泛函由一个平方可和数列表示，其第 $n$ 个坐标趋零，故 $f(e_n)\to0$。对 $c_0$ 的任意元素 $x$，$e_n(x)=x_n\to0$，得到弱星收敛。但 $\ell^1$ 上的连续泛函 $f(x)=\sum_jx_j$ 对所有 $e_n$ 取值一，排除弱收敛到零。
+\end{solve}
+
+这个例子中，$e_n$ 的质量没有缩小，只是向后面的坐标移动；这解释了范数恒为一与弱极限为零为何可以同时成立。对 $\ell^1$ 而言，同一个求和泛函会把全部坐标一起计入，因此能一直测到数值一。弱收敛不仅依赖向量的公式，还依赖所在空间的连续对偶。
+
+\section{有界性与下半连续性}
+\begin{proposition}\label{prop:fa-weak-bounds}
+弱收敛序列范数有界，且 $x_n\rightharpoonup x$ 时
+\[
+ \|x\|\leq\liminf_n\|x_n\|.
+\]
+若 $X$ 为 Banach 空间，则 $X^*$ 中的弱星收敛序列也范数有界。
+\end{proposition}
+\begin{proof}
+将 $Jx_n$ 视为完备空间 $X^*$ 上的连续泛函。弱收敛保证它们逐点有界，由一致有界原理及 $\|Jx_n\|=\|x_n\|$ 得到范数有界；这一步不需要 $X$ 本身完备。对任意 $\|f\|\leq1$，有 $|f(x)|=\lim_n|f(x_n)|\leq\liminf_n\|x_n\|$，再对 $f$ 取上确界。弱星情形直接把 $f_n$ 作为 $X$ 上的泛函使用一致有界原理，此时需要 $X$ 完备。
+\end{proof}
+有界线性算子弱到弱连续，因为对 $g\in Y^*$，$g(Tx_n)=(T'g)(x_n)\to(T'g)(x)$。因此线性约束能够在弱极限中保持。
+
+\begin{proposition}[在 $\ell^2$ 中怎样验证弱收敛]\label{prop:fa-coordinate-weak}
+设 $x^{(n)},x\in\ell^2$。则 $x^{(n)}\rightharpoonup x$ 当且仅当 $\sup_n\|x^{(n)}\|_2<\infty$，且对每个固定 $j$ 有 $x_j^{(n)}\to x_j$。
+\end{proposition}
+\begin{proof}
+必要性由弱收敛的有界性及坐标泛函的连续性得到。反之，对任意 $y\in\ell^2$，把内积拆为前 $N$ 项与尾部。前 $N$ 项因逐坐标收敛趋于零；尾部满足
+\[
+ \left|\sum_{j>N}(x_j^{(n)}-x_j)\overline{y_j}\right|
+ \leq(M+\|x\|_2)\left(\sum_{j>N}|y_j|^2\right)^{1/2},
+ \qquad M=\sup_n\|x^{(n)}\|_2.
+\]
+先选 $N$ 使尾部对所有 $n$ 同时很小，再选 $n$ 控制有限部分，便得 $\langle x^{(n)}-x,y\rangle\to0$。Riesz 表示说明这已测试了全部连续泛函。
+\end{proof}
+
+不能删掉统一范数界。例如 $x^{(n)}=ne_n$ 的每个固定坐标最终为零，但取 $y=(1/j)\in\ell^2$，便有 $\langle x^{(n)},y\rangle=1$，所以它不弱趋于零。这也展示了证明中尾部估计的必要性。
+
+在 Hilbert 空间中，弱收敛与范数收敛可以组合为强收敛：若 $x_n\rightharpoonup x$ 且 $\|x_n\|\to\|x\|$，则
+\[
+ \|x_n-x\|^2=\|x_n\|^2+\|x\|^2-2\operatorname{Re}\langle x_n,x\rangle\to0.
+\]
+
+\section{凸集的闭包与 Mazur 引理}
+\begin{theorem}\label{thm:fa-convex-weak-closure}
+赋范空间中，凸集的范数闭包与弱闭包相同。特别地，范数闭凸集弱闭。
+\end{theorem}
+\begin{proof}
+由于弱拓扑较弱，范数闭包包含于弱闭包。若 $x$ 不在凸集 $C$ 的范数闭包中，定理\ref{thm:fa-separation}给出 $f\in X^*$ 和 $a$，使 $\sup_C\operatorname{Re}f<a<\operatorname{Re}f(x)$。集合 $\{y:\operatorname{Re}f(y)>a\}$ 是与 $C$ 不交的弱开邻域，所以 $x$ 也不在弱闭包中。
+\end{proof}
+集合 $A$ 的凸包 $\operatorname{conv}A$ 由所有有限凸组合 $\sum_{j=1}^ma_jx_j$ 组成，其中 $x_j\in A$、$a_j\geq0$、$\sum_ja_j=1$。
+\begin{corollary}[Mazur 引理]\label{cor:fa-mazur}
+若 $x_n\rightharpoonup x$，则存在每个尾部的有限凸组合 $y_n\in\operatorname{conv}\{x_k:k\geq n\}$，使 $\|y_n-x\|\to0$。
+\end{corollary}
+\begin{proof}
+$x$ 属于每个尾部的弱闭包，因此属于该尾部凸包的弱闭包，也就属于范数闭包。选择 $y_n$ 使 $\|y_n-x\|<1/n$ 即可。
+\end{proof}
+这里使用凸组合，并不保证原序列存在强收敛子列。例\ref{ex:fa-weak-unit-vectors}的 $e_n$ 没有强收敛子列，但 $n^{-1}(e_1+\cdots+e_n)$ 的范数为 $n^{-1/2}$。
+
+凸性是闭包定理的重要条件。在无限维 Hilbert 空间中，单位球面 $S=\{x:\|x\|=1\}$ 范数闭，却不是弱闭，因为一个标准正交序列位于 $S$ 中并弱趋于 $0\notin S$。与之相对，闭单位球既闭又凸，因此弱闭。对求极小值问题而言，约束 $\|x\|\leq1$ 可以在弱极限中保持，约束 $\|x\|=1$ 则可能丢失，这一差别会直接影响存在性论证。
+
+\section{算子的不同收敛方式}
+对 $T_n,T\in\mathcal B(X,Y)$，算子范数收敛要求 $\|T_n-T\|\to0$；\emph{强算子收敛（strong operator convergence）}要求对每个 $x$ 有 $\|T_nx-Tx\|\to0$；\emph{弱算子收敛（weak operator convergence）}只要求 $g(T_nx)\to g(Tx)$ 对每个 $x\in X,g\in Y^*$ 成立。三者依次蕴含。
+
+在 $\ell^2$ 上令 $P_n$ 保留前 $n$ 个坐标，则 $P_nx\to x$ 对每个 $x$ 成立，而 $\|P_n-I\|=1$，所以强算子收敛不蕴含算子范数收敛。右移算子 $R$ 的幂满足 $R^nx\rightharpoonup0$：先对有限支撑测试向量验证，再用稠密性与 $\|R^n\|=1$ 延拓。因此 $R^n$ 弱算子趋零，却不强算子趋零。
+
+\section{例题与习题}
+\begin{enumerate}
+ \item 若 $(x_n)$ 范数有界，且在 $X^*$ 的某个范数稠密子集上 $f(x_n)\to f(x)$，证明 $x_n\rightharpoonup x$。
+ \item 证明有限维空间中的弱收敛与范数收敛等价。
+ \item 对 $\ell^2$ 的单位向量，构造由第 $n$ 项开始的有限凸组合，使其范数趋零。
+ \item 证明无限维赋范空间中任意基本弱零邻域都是范数无界的。提示：有限多个泛函的公共核非零。
+\end{enumerate}
+

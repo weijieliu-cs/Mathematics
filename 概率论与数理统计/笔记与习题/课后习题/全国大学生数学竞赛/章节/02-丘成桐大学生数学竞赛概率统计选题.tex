@@ -1,0 +1,1163 @@
+% !TeX root = ../大学生数学竞赛概率论与数理统计试题选编与专题训练.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{丘成桐大学生数学竞赛概率统计选题}
+本章选题均来自官方历年笔试题包。每节标题给出年份与组别，每道例题注明原题号；题名是为便于检索新增的中文主题名。题面以数学内容为中心译写，解答与补充说明为本书编订。涉及部分选录或条件校订时就地说明，不将删节后的问题冒称为完整原卷。各年未收入的题目不补造题号。
+
+\section{2012年个人赛}
+\begin{example}[原题1：强化抽样与随机乘积]\label{yau:2012-1}
+一只袋中有 $b$ 个黑球和 $r$ 个红球，其中 $b,r>0$。第一次等可能取出一球后放回，并加入 $a\ge0$ 个同色球，再等可能取一球。已知第二球为红色，求第一球为黑色的条件概率。另外，设随机变量列满足 $\lim_{M\to\infty}\sup_n\PP(|X_n|>M)=0$，而 $Y_n\xrightarrow{P}0$，证明 $X_nY_n\xrightarrow{P}0$。
+\end{example}
+\begin{solve}
+记 $B_1,R_2$ 分别为第一球黑、第二球红。按第一球颜色分解，
+\[
+\PP(R_2)=\frac b{b+r}\frac r{b+r+a}+\frac r{b+r}\frac{r+a}{b+r+a}=\frac r{b+r}.
+\]
+因此贝叶斯公式给出
+\[
+\PP(B_1\mid R_2)=\frac{br/[(b+r)(b+r+a)]}{r/(b+r)}=\frac b{b+r+a}.
+\]
+第二球的边缘颜色比例保持不变，但两次颜色并不独立；$a>0$ 时第二球为红色的信息会降低第一球为黑色的后验概率。
+
+对第二问，固定 $\varepsilon>0$ 与 $M>0$，事件包含关系给出
+\[
+\{|X_nY_n|>\varepsilon\}\subseteq\{|X_n|>M\}\cup\{|Y_n|>\varepsilon/M\}.
+\]
+于是 $\limsup_n\PP(|X_nY_n|>\varepsilon)\le\sup_n\PP(|X_n|>M)$。先令 $n\to\infty$，再令 $M\to\infty$ 即得结论。这里的条件称为\emph{紧性}（tightness），也常写为 $X_n=O_P(1)$。证明不要求 $X_n,Y_n$ 相互独立。若去掉紧性，取 $X_n=n,Y_n=1/n$ 即不能得到结论。
+\end{solve}
+
+\begin{example}[原题2：条件期望的正值集合与正态投影]\label{yau:2012-2}
+设 $X\ge0$ 可积，$\mathcal G$ 是子 $\sigma$ 代数，$Y=\E(X\mid\mathcal G)$。证明 $\{X>0\}\subseteq\{Y>0\}$ 几乎处处，且 $\{Y>0\}$ 是包含 $\{X>0\}$ 的最小 $\mathcal G$ 可测集合，集合比较均按零测集等同。另设 $(U,V)$ 联合正态，均值为零，方差分别为 $\sigma^2,\tau^2>0$，相关系数为 $\rho$，求 $\E(U\mid U+V)$。
+\end{example}
+\begin{solve}
+因为 $Y\ge0$，集合 $D=\{Y=0\}\in\mathcal G$。由条件期望定义，$\E(X\mathbf1_D)=\E(Y\mathbf1_D)=0$。非负变量期望为零意味着它几乎处处为零，故 $X=0$ 在 $D$ 上几乎处处成立，得到第一个包含关系。
+
+若 $A\in\mathcal G$ 且 $\{X>0\}\subseteq A$ 几乎处处，则 $X\mathbf1_{A^c}=0$，从而 $\E(Y\mathbf1_{A^c})=0$。同理 $Y=0$ 在 $A^c$ 上几乎处处成立，即 $\{Y>0\}\subseteq A$。这也给出原题中本质下确界的准确含义：它是按几乎处处包含关系得到的最小集合，而不是对不可数族随意逐点取交。
+
+令 $W=U+V$，则
+\[
+v=\Var(W)=\sigma^2+\tau^2+2\rho\sigma\tau,\qquad \Cov(U,W)=\sigma^2+\rho\sigma\tau.
+\]
+若 $v>0$，令 $c=(\sigma^2+\rho\sigma\tau)/v$。联合正态变量 $U-cW$ 与 $W$ 不相关，因此独立；残差均值为零，故
+\[
+\E(U\mid U+V)=\frac{\sigma^2+\rho\sigma\tau}{\sigma^2+\tau^2+2\rho\sigma\tau}(U+V).
+\]
+若 $v=0$，则 $W=0$ 几乎处处，此时条件期望为 $\E U=0$，不能代入分母为零的公式。
+\end{solve}
+
+\begin{example}[原题3：联合分布的乘积分布混合]\label{yau:2012-3}
+设 $p(i,j)>0$，$1\le i\le m,1\le j\le n$，且总和为1。判断能否写成有限混合 $p(i,j)=\sum_k\lambda_k a_k(i)b_k(j)$，其中 $\lambda_k\ge0$、$\sum_k\lambda_k=1$，而每个 $a_k,b_k$ 都是概率质量函数；用条件概率解释。
+\end{example}
+\begin{solve}
+取 $\lambda_k=\sum_jp(k,j)$，$a_k(i)=\mathbf1_{\{i=k\}}$，$b_k(j)=p(k,j)/\lambda_k$，其中 $1\le k\le m$。各量满足题设的非负性与归一化，且
+\[
+\sum_{k=1}^m\lambda_k a_k(i)b_k(j)=\lambda_i\frac{p(i,j)}{\lambda_i}=p(i,j).
+\]
+概率解释是先抽取行指标 $K$，再令 $I=K$，根据第 $K$ 行的条件分布抽取 $J$。给定 $K$ 后，退化的 $I$ 与 $J$ 条件独立；对隐藏变量 $K$ 混合之后，$I,J$ 可以相关。若允许零质量行，只需删去它们。
+
+这一分解说明“条件独立的混合”可以表示任意有限联合分布，不能反推混合后的独立性。只用一个乘积项才等价于独立。题设没有要求 $a_k(i)$ 严格正，也没有规定混合项数小于矩阵秩，因此上述退化条件分布是合法构造。
+\end{solve}
+
+\begin{example}[原题4：秩和统计量的均值与方差]\label{yau:2012-4}
+两组相互独立的连续样本容量为 $m,n$，合并容量 $N=m+n$，无并列值。记第二组的秩和为 $W$，并令 $U=\sum_{i=1}^m\sum_{j=1}^n\mathbf1_{\{X_i<Y_j\}}$。证明 $W=U+n(n+1)/2$；在两组分布相同的零假设下，计算 $\E W$ 和 $\Var(W)$。
+\end{example}
+\begin{solve}
+将第二组自身排序为 $Y_{(1)}<\cdots<Y_{(n)}$，其中第 $j$ 个数的合并秩等于 $j$ 加上小于它的第一组样本个数。求和即得恒等式。因此以这两个统计量进行同方向的置换检验时，拒绝域仅相差一个平移。
+
+在零假设下，第二组占据的 $n$ 个秩是 $\{1,\ldots,N\}$ 的均匀随机子集。令 $I_k$ 表示秩 $k$ 是否属于第二组，则
+\[
+\E I_k=\frac nN,\quad \Var(I_k)=\frac{nm}{N^2},\quad \Cov(I_k,I_l)=-\frac{nm}{N^2(N-1)}\quad(k\ne l).
+\]
+由 $W=\sum_k kI_k$，首先有 $\E W=n(N+1)/2$。令 $\bar r=(N+1)/2$，利用 $\sum_k I_k=n$，可将方差写成
+\[
+\Var(W)=\frac{nm}{N(N-1)}\sum_{k=1}^N(k-\bar r)^2=\frac{mn(N+1)}{12}.
+\]
+故常用标准化量为
+\[
+Z=\frac{W-n(N+1)/2}{\sqrt{mn(N+1)/12}}.
+\]
+当 $m/N$ 留在 $(0,1)$ 的紧子区间且 $N\to\infty$ 时，可用有限总体中心极限定理得到渐近标准正态分布。$\PP(X<Y)=1/2$ 并不等价于两总体分布完全相同，因此不能把秩和检验对所有分布差异都具有一致功效作为本题结论。
+\end{solve}
+
+\begin{example}[原题5：不相关但不独立]\label{yau:2012-5}
+设 $X$ 有关于零对称的 Lebesgue 密度，$\E X^2<\infty$，令 $Y=|X|$。证明 $X,Y$ 不相关，但不独立。
+\end{example}
+\begin{solve}
+对称性与可积性给出 $\E X=0$、$\E(X|X|)=0$，故协方差为零。若 $X$ 与 $|X|$ 独立，则 $\sigma(|X|)\subseteq\sigma(X)$ 又与 $\sigma(X)$ 独立，所以任一事件 $A\in\sigma(|X|)$ 满足 $\PP(A)=\PP(A)^2$。这迫使 $|X|$ 的所有分布函数值为0或1，即 $|X|$ 几乎处处为常数。
+
+然而若 $|X|=c$ 几乎处处，$X$ 就集中在至多两个点 $\{-c,c\}$，不可能拥有对 Lebesgue 测度的概率密度。因此独立性不成立。密度假设在此排除了对称二点分布这一例外：若 $X=\pm1$，则 $|X|\equiv1$ 的确与 $X$ 独立。
+\end{solve}
+
+\begin{example}[原题6：指数比例与随机幂]\label{yau:2012-6}
+设 $E_1,\ldots,E_n$ 独立服从率为1的指数分布，$U_1,\ldots,U_n$ 独立服从 $U(0,1)$，两组相互独立。对 $1\le m<n$，令 $X=(E_1+\cdots+E_m)/(E_1+\cdots+E_n)$。求 $X$ 的密度，证明 $(n-m)X/[m(1-X)]\sim F_{2m,2(n-m)}$，并求 $Z=(U_1\cdots U_n)^{-X}$ 的密度。
+\end{example}
+\begin{solve}
+令 $A=\sum_{i\le m}E_i$、$B=\sum_{i>m}E_i$。它们是独立的 $\operatorname{Gamma}(m,1)$ 与 $\operatorname{Gamma}(n-m,1)$ 变量。作变换 $x=A/(A+B),v=A+B$，逆变换的雅可比绝对值为 $v$，联合密度分解为 Beta 与 Gamma 密度，因此
+\[
+f_X(x)=\frac{\Gamma(n)}{\Gamma(m)\Gamma(n-m)}x^{m-1}(1-x)^{n-m-1},\quad0<x<1.
+\]
+又 $2A\sim\chi^2_{2m},2B\sim\chi^2_{2(n-m)}$，所以所给比值就是 $(2A/2m)/(2B/[2(n-m)])$。
+
+令 $V=-\sum_i\log U_i\sim\operatorname{Gamma}(n,1)$，且 $V$ 与 $X$ 独立。上述 Beta--Gamma 分解的逆方向告诉我们 $XV\sim\operatorname{Gamma}(m,1)$。也可直接积分：对 $w>0$，
+\[
+f_{XV}(w)=\int_w^\infty f_X(w/v)f_V(v)\frac{dv}{v}=\frac{w^{m-1}e^{-w}}{\Gamma(m)}.
+\]
+最后 $Z=e^{XV}$，故
+\[
+f_Z(z)=\frac{(\log z)^{m-1}}{\Gamma(m)z^2}\mathbf1_{\{z>1\}}.
+\]
+注意指数是随机变量 $X$，不能用 $\E X$ 替换后求分布。结果中 $n$ 消失，是 Beta--Gamma 配对产生的结构性简化。
+\end{solve}
+
+\section{2013年个人赛}
+\begin{example}[原题1：尾概率与有界变换]\label{yau:2013-1}
+若 $\sum_{n\ge1}\PP(|X_n|>n)<\infty$，证明 $\limsup_n|X_n|/n\le1$ 几乎处处。再证明 $X_n\xrightarrow P0$ 当且仅当存在 $r>0$ 使 $\E[|X_n|^r/(1+|X_n|^r)]\to0$。
+\end{example}
+\begin{solve}
+由第一 Borel--Cantelli 引理，事件 $\{|X_n|>n\}$ 仅发生有限次的概率为1。在每条属于这一满概率事件的样本路径上，最终都有 $|X_n|/n\le1$，因此得到上极限界；无需独立性。
+
+记 $g_r(x)=|x|^r/(1+|x|^r)$。若 $X_n\xrightarrow P0$，固定 $\delta>0$，由 $0\le g_r\le1$ 得
+\[
+\E g_r(X_n)\le\frac{\delta^r}{1+\delta^r}+\PP(|X_n|>\delta).
+\]
+先令 $n\to\infty$ 再令 $\delta\downarrow0$。反之，对每个 $\varepsilon>0$，
+\[
+\PP(|X_n|>\varepsilon)\le\frac{1+\varepsilon^r}{\varepsilon^r}\E g_r(X_n)\to0.
+\]
+实际上只要收敛依概率成立，任意 $r>0$ 都有效。有界变换压缩了尾部，原变量本身不必可积，也不要求任何高阶矩存在。
+\end{solve}
+
+\begin{example}[原题2：两个正态变量在第一象限内的和]\label{yau:2013-2}
+设 $X,Y$ 独立服从 $N(0,1)$。在事件 $A=\{X\ge0,Y\ge0\}$ 条件下，求 $S=X+Y$ 的期望和分布函数。
+\end{example}
+\begin{solve}
+由于条件事件是两个独立事件的交，条件下 $X,Y$ 仍独立，且各自具有半正态分布。直接积分得 $\E(X\mid X\ge0)=\sqrt{2/\pi}$，故 $\E(S\mid A)=2\sqrt{2/\pi}$。
+
+为求分布，令 $U=(X+Y)/\sqrt2,V=(X-Y)/\sqrt2$，则 $U,V$ 独立标准正态，且 $A=\{U\ge|V|\}$。对于 $s\ge0$，
+\[
+\PP(S\le s\mid A)=4\int_0^{s/\sqrt2}\phi(u)[2\Phi(u)-1]\,du.
+\]
+注意 $[2\Phi(u)-1]^2$ 的导数为 $4\phi(u)[2\Phi(u)-1]$，所以
+\[
+F_{S\mid A}(s)=\begin{cases}0,&s<0,\\{}[2\Phi(s/\sqrt2)-1]^2,&s\ge0.\end{cases}
+\]
+其密度为 $2\sqrt2\,\phi(s/\sqrt2)[2\Phi(s/\sqrt2)-1]$，$s>0$。这个分布不同于简单地把 $N(0,2)$ 截断到正半轴，因为条件还约束了差 $X-Y$。
+\end{solve}
+
+\begin{example}[原题3：纪录次数]\label{yau:2013-3}
+设 $X_1,X_2,\ldots$ 独立同分布且分布连续，$A_k=\{X_k=\max_{i\le k}X_i\}$，$R_n=\sum_{k=1}^n\mathbf1_{A_k}$。求 $\PP(A_k),\E R_n,\Var(R_n)$。
+\end{example}
+\begin{solve}
+连续性排除并列最大值；对前 $k$ 个位置的对称性给出 $\PP(A_k)=1/k$。因此 $\E R_n=H_n=\sum_{k=1}^n1/k$。计算方差需处理相依性，不能仅由相同分布断言各纪录事件独立。
+
+令 $Q_k$ 为 $X_k$ 在前 $k$ 个观测中的秩。连续独立同分布样本的排序排列均匀分布，而每个排列与插入秩序列 $(Q_1,\ldots,Q_n)$ 一一对应。可能序列数是 $\prod_{k=1}^nk=n!$，每个序列概率为 $1/n!$，所以 $Q_k$ 相互独立，且在 $1,\ldots,k$ 上均匀。纪录事件就是 $\{Q_k=k\}$，从而
+\[
+\Var(R_n)=\sum_{k=1}^n\frac1k\left(1-\frac1k\right)=H_n-\sum_{k=1}^n\frac1{k^2}.
+\]
+均值与方差均为 $\log n+O(1)$。这个表示与 CMC 稀疏红球计数题具有同一分布结构，连接点是独立的 $\operatorname{Bernoulli}(1/k)$ 指标。
+\end{solve}
+
+\begin{example}[原题4：指数模型的平均 $p$ 值]\label{yau:2013-4}
+设 $X_1,\ldots,X_n$ 来自均值参数为 $\theta>0$ 的指数总体，用较大的 $T=\sum_iX_i$ 拒绝 $H_0:\theta=\theta_0$，备择为 $\theta>\theta_0$。令 $p(T)=\PP_{\theta_0}(T'\ge T)$。求零假设下 $\E p(T)$，给出一般参数下的表达式；当 $n=1$ 时显式计算并说明单调性。
+\end{example}
+\begin{solve}
+零假设下 $T$ 的分布连续，概率积分变换给出 $p(T)\sim U(0,1)$，故期望为 $1/2$。在均值参数为 $\theta$ 时，Gamma 生存函数为
+\[
+p(t)=e^{-t/\theta_0}\sum_{j=0}^{n-1}\frac{(t/\theta_0)^j}{j!}.
+\]
+将其对 $\operatorname{Gamma}(n,1/\theta)$ 密度积分，得到
+\[
+\E_\theta p(T)=\sum_{j=0}^{n-1}\binom{n+j-1}{j}\frac{\theta^j\theta_0^n}{(\theta+\theta_0)^{n+j}}.
+\]
+特别地 $n=1$ 时，$\E_\theta p(T)=\theta_0/(\theta+\theta_0)$，严格递减。对一般 $n$，可耦合为 $T=\theta G$，其中 $G\sim\operatorname{Gamma}(n,1)$，且 $p(t)$ 严格递减，直接得到同样的单调性。
+
+原题还要求讨论单调似然比族。若 $T$ 的分布对参数具有递增的单调似然比，则 $T$ 随参数随机增大；任意有界递减函数的期望随之不增。可用密度比与阈值比较证明随机序，再对递减函数用层蛋糕积分。因此上尾 $p$ 值的平均数不增，但严格递减需要排除分布相同、统计量退化等情况。对离散模型，非随机化 $p$ 值在零假设下一般不是均匀分布，$1/2$ 不能照搬。
+\end{solve}
+
+\begin{example}[原题5：均匀位置族的条件覆盖率]\label{yau:2013-5}
+设 $X_1,X_2$ 独立服从 $U(\theta-1/2,\theta+1/2)$，$0<\alpha<1$。求 $c>0$ 使 $\PP_\theta(|\bar X-\theta|<c)=1-\alpha$；证明在两观测距离足够接近1的条件下，这个区间的条件覆盖率为1，并解释其含义。
+\end{example}
+\begin{solve}
+中心化后 $Z_i=X_i-\theta$ 独立均匀于 $(-1/2,1/2)$。均值 $M=(Z_1+Z_2)/2$ 的密度为 $2-4|m|$，$|m|<1/2$，所以
+\[
+\PP(|M|\ge c)=(1-2c)^2,\qquad c=\frac{1-\sqrt\alpha}{2}.
+\]
+另一方面，令 $D=|X_2-X_1|$。两个观测都处于长度为1、中心为 $\theta$ 的区间内，故必有
+\[
+|\bar X-\theta|\le\frac{1-D}{2}.
+\]
+给定 $D\ge1-\varepsilon$，若 $0<\varepsilon<2c$，则 $|\bar X-\theta|<c$ 恒成立，条件覆盖率为1。这不违背无条件覆盖率 $1-\alpha$：后者对所有可能的样本距离取平均，前者只考察信息特别强的一类样本。
+
+原题以 $x_1=1,x_2=2$ 讨论实际报告。模型给出的参数相容集合是 $[\max_i x_i-1/2,\min_i x_i+1/2]=\{3/2\}$。但精确差值为1是概率零事件；对舍入后的数据，应把测量精度和真实观测区分开。条件覆盖率的信息依赖于所条件化的统计量，不能简单以“已观察到数据”为由把所有频率学区间解释成参数后验概率。
+\end{solve}
+
+\begin{example}[原题6：离散均匀总体上端点的 UMVUE]\label{yau:2013-6}
+设样本 $X_1,\ldots,X_n$ 独立均匀于 $\{1,\ldots,N\}$，未知正整数 $N$。找出完全充分统计量，并构造 $N$ 的一致最小方差无偏估计。此处按原题采用有放回独立模型。
+\end{example}
+\begin{solve}
+最大值 $M=\max_iX_i$ 的分布为
+\[
+\PP_N(M=m)=\frac{m^n-(m-1)^n}{N^n},\quad1\le m\le N.
+\]
+样本似然为 $N^{-n}\mathbf1_{\{M\le N\}}$，故因子分解定理说明 $M$ 充分。若 $\E_N h(M)=0$ 对所有 $N$ 成立，则 $\sum_{m=1}^Nh(m)[m^n-(m-1)^n]=0$；相邻两个 $N$ 的等式相减，得到 $h(N)=0$。所以 $M$ 完全。
+
+要找 $g(M)$ 无偏，只需解
+\[
+\sum_{m=1}^Ng(m)[m^n-(m-1)^n]=N^{n+1}.
+\]
+再作相邻差分即可得
+\[
+\widehat N=\frac{M^{n+1}-(M-1)^{n+1}}{M^n-(M-1)^n}.
+\]
+它在每个固定 $N$ 下方差有限，由 Lehmann--Scheffé 定理为 UMVUE。无放回模型常见的公式 $(n+1)M/n-1$ 与本题不同；抽样机制改变后不能沿用同一个无偏修正。
+\end{solve}
+
+\section{2014年个人赛}
+\begin{example}[原题1：正态分布的积分恒等式刻画]\label{yau:2014-1}
+对任意紧支撑的光滑实函数 $f$，随机变量 $X$ 满足 $\E[Xf(X)]=\E[f'(X)]$。证明 $X\sim N(0,1)$。
+\end{example}
+\begin{solve}
+不能直接取 $f(x)=e^{itx}$，因为它不紧支撑，且题设未给出 $\E|X|<\infty$。下面用分布导数规避这一缺口。记 $\mu$ 为 $X$ 的概率测度，把它视为广义函数，题设等价于
+\[
+\mu'=-x\mu,
+\]
+因为 $\langle\mu',f\rangle=-\int f'\,d\mu$。在任意有界区间上令 $\nu=e^{x^2/2}\mu$，广义函数乘积法则给出 $\nu'=0$。导数为零的广义函数是常数：任意积分为零的紧支撑测试函数 $g$ 都可写为某紧支撑光滑函数的导数，故 $\langle\nu,g\rangle=0$；从而 $\nu$ 只依赖测试函数的积分。
+
+因此在整条实线上 $\mu(dx)=c e^{-x^2/2}dx$，且局部区间上的常数在重叠处一致。由归一化 $c=(2\pi)^{-1/2}$，得到标准正态分布。这个证明使用广义函数的初步语言；其核心仅是把积分分部恒等式转化为一阶线性微分方程，而非预先假设密度存在。
+\end{solve}
+
+\begin{example}[原题2：正交随机级数的一个充分条件]\label{yau:2014-2}
+设 $X_n$ 两两不相关、均值为零，且 $\sum_{n\ge1}n\E X_n^2<\infty$。证明部分和 $S_n=\sum_{i=1}^nX_i$ 几乎处处收敛。
+\end{example}
+\begin{solve}
+先证明一个二进制极大估计。对 $2^k$ 个均值为零、两两正交的变量 $Z_1,\ldots,Z_{2^k}$，每个前缀 $\{1,\ldots,j\}$ 可以拆成至多 $k+1$ 个不交的二进制区间。由 Cauchy--Schwarz，再把所有可能二进制区间的块和平方加起来，得到
+\[
+\E\max_{j\le2^k}\left|\sum_{i=1}^j Z_i\right|^2\le(k+1)^2\sum_{i=1}^{2^k}\E Z_i^2.
+\]
+理由是每一层的区间划分都恰好覆盖这些变量，正交性消去每个块和平方的交叉项，所有 $k+1$ 层的期望总和为 $(k+1)\sum_i\E Z_i^2$。
+
+对原序列的第 $k$ 块 $2^k\le i<2^{k+1}$，记方差和为 $v_k$，块内前缀绝对值最大值为 $M_k$。上式给出 $\E M_k\le(k+1)\sqrt{v_k}$。再由 Cauchy--Schwarz，
+\[
+\sum_{k\ge0}\E M_k\le
+\left[\sum_{k\ge0}\frac{(k+1)^2}{2^k}\right]^{1/2}
+\left[\sum_{k\ge0}2^kv_k\right]^{1/2}<\infty.
+\]
+最后一个级数由题设控制。因此 Tonelli 定理说明 $\sum_kM_k<\infty$ 几乎处处。任意较晚的部分和之差，由首尾两个块内前缀以及中间完整块的和组成，其绝对值不超过相应 $M_k$ 尾和的两倍，故部分和是 Cauchy 列。这里独立性没有被使用，两两不相关已足够。
+\end{solve}
+
+\begin{example}[原题3：改变测度后的条件期望]\label{yau:2014-3}
+设概率测度 $P,Q$ 相互绝对连续，$L=dQ/dP$，$\mathcal G\subseteq\mathcal F$。证明 $0<\E_P(L\mid\mathcal G)<\infty$ 几乎处处，并对非负可测 $f$ 证明
+\[
+\E_P(fL\mid\mathcal G)=\E_Q(f\mid\mathcal G)\E_P(L\mid\mathcal G).
+\]
+\end{example}
+\begin{solve}
+由 $\E_PL=1$，条件期望 $Z=\E_P(L\mid\mathcal G)$ 有限几乎处处。若 $D=\{Z=0\}$，则 $Q(D)=\E_P(L\mathbf1_D)=0$，由 $P\ll Q$ 得 $P(D)=0$，故 $Z>0$。
+
+先设 $f$ 有界非负，令 $H=\E_P(fL\mid\mathcal G)/Z$。对于 $A\in\mathcal G$，利用 $H$ 的 $\mathcal G$ 可测性，
+\[
+\int_AH\,dQ=\E_P(\mathbf1_AHL)=\E_P(\mathbf1_AHZ)=\E_P(\mathbf1_AfL)=\int_Af\,dQ.
+\]
+这正是 $H=\E_Q(f\mid\mathcal G)$ 的定义。对一般非负 $f$，以 $f\wedge m$ 逼近并使用条件单调收敛定理，得到允许无穷值的等式。对有正负号的 $f$，应另假设 $\E_Q|f|<\infty$。
+
+分母 $Z$ 是限制到信息 $\mathcal G$ 后的似然比；它不能随意换成常数1。只有当 $P,Q$ 在 $\mathcal G$ 上相同时才有 $Z=1$。
+\end{solve}
+
+\begin{example}[原题4：用最大值或均值预测第一个样本]\label{yau:2014-4}
+设 $X_1,\ldots,X_n$ 独立服从 $U(0,1)$，只保留 $M=X_{(n)}$ 或 $\bar X$。按平方误差损失分别给出预测 $X_1$ 的最佳方法，并比较其总体均方误差。
+\end{example}
+\begin{solve}
+平方误差下最佳预测是条件期望。给定 $M=m$，第一个样本以概率 $1/n$ 是最大值，此时为 $m$；否则其条件分布为 $U(0,m)$。因此
+\[
+\E(X_1\mid M)=\frac mn+\frac{n-1}{n}\frac m2=\frac{n+1}{2n}M.
+\]
+给定 $\bar X$，交换性使所有 $\E(X_i\mid\bar X)$ 相同，而其和为 $n\bar X$，故 $\E(X_1\mid\bar X)=\bar X$。
+
+若 $T$ 是观察到的统计量，最佳预测风险为 $\Var(X_1)-\Var(\E[X_1\mid T])$。这里 $\Var(X_1)=1/12$、$\Var(\bar X)=1/(12n)$，且 $M$ 的密度为 $nm^{n-1}$，所以 $\Var(M)=n/[(n+1)^2(n+2)]$。于是
+\[
+R_M=\frac1{12}-\frac1{4n(n+2)},\qquad R_{\bar X}=\frac1{12}-\frac1{12n}.
+\]
+两者之差为 $(n-1)/[12n(n+2)]\ge0$；$n>1$ 时保留均值的总体平方预测风险较小。比较针对的是恢复单个 $X_1$ 的平方损失，并不意味着样本均值在估计所有参数或解决所有决策问题时都优于最大值。
+\end{solve}
+
+\begin{example}[原题5：受约束多项分布中的估计与检验]\label{yau:2014-5}
+独立抽样 $n$ 次，红、蓝、黄三类概率分别为 $p_1,p_2,p_3$，已知 $p_3=3p_1$。记计数为 $N_1,N_2,N_3$。求 $p_2$ 的 MLE 及其内部参数下的渐近分布，并构造检验 $H_0:p_1=p_2=p_3/3$ 的似然比统计量。
+\end{example}
+\begin{solve}
+令 $q=p_2$，则 $(p_1,p_2,p_3)=((1-q)/4,q,3(1-q)/4)$。去掉与 $q$ 无关的因子，似然为 $q^{N_2}(1-q)^{n-N_2}$，故 $\widehat q=N_2/n$；端点计数对应闭参数空间的边界最大值。固定 $0<q<1$ 时，
+\[
+\sqrt n(\widehat q-q)\xrightarrow dN(0,q(1-q)).
+\]
+零假设等价于 $q=1/5$，其概率向量是 $(1/5,1/5,3/5)$。受约束模型中备择只有一个自由参数，因此
+\[
+-2\log\Lambda=2\left[N_2\log\frac{N_2/n}{1/5}+(n-N_2)\log\frac{1-N_2/n}{4/5}\right],
+\]
+约定 $0\log0=0$。在零假设和 $n\to\infty$ 下，它趋于 $\chi^2_1$。不能拿三分类无约束备择的两个自由度代替这里的一个自由度；$p_3=3p_1$ 是整个模型中持续有效的限制。
+\end{solve}
+
+
+\section{2015年个人赛}
+\begin{example}[原题1：二次矩的最大值与正态回归]\label{yau:2015-1}
+设 $\E X=\E Y=0$，$\Var(X)=\Var(Y)=1$，相关系数为 $\rho$。证明 $\E\max(X^2,Y^2)\le1+\sqrt{1-\rho^2}$。另设 $(U,V)$ 联合正态、均值为零、方差为 $\sigma^2,\tau^2>0$、相关系数为 $\rho$，求 $\E(U\mid V)$。
+\end{example}
+\begin{solve}
+由 $\max(a,b)=(a+b+|a-b|)/2$，
+\[
+\E\max(X^2,Y^2)=1+\frac12\E|(X-Y)(X+Y)|.
+\]
+Cauchy--Schwarz 不等式与二阶矩计算给出
+\[
+\E|(X-Y)(X+Y)|\le\sqrt{(2-2\rho)(2+2\rho)}=2\sqrt{1-\rho^2}.
+\]
+这里不要求正态性。第二问利用联合正态结构，令 $R=U-\rho\sigma V/\tau$，则 $\Cov(R,V)=0$，从而 $R,V$ 独立；因此 $\E(U\mid V)=\rho\sigma V/\tau$。若 $\rho=\pm1$，残差退化为零，公式仍然成立。应区分第一问的任意联合分布与第二问特有的正态假设。
+\end{solve}
+
+\begin{example}[原题2：连续两次正面的等待时间]\label{yau:2015-2}
+独立抛公平硬币，直到首次出现连续两次正面为止，求总抛掷次数的期望。
+\end{example}
+\begin{solve}
+只需记录当前末尾连续正面的长度是0还是1。令相应的剩余期望为 $e_0,e_1$，完成时为0，则第一步分析给出
+\[
+e_0=1+\frac12e_0+\frac12e_1,\qquad e_1=1+\frac12e_0.
+\]
+解得 $e_0=6,e_1=4$。这些方程的期望有限性可先独立验证：每个不交的两次抛掷块以概率 $1/4$ 全为正面，等待成功块的次数是几何变量，故总等待时间被一个期望为8的变量控制。这样不会在尚未证明有限时直接操纵无穷期望。
+
+若正面概率为 $p\in(0,1]$，相同递推给出 $(1+p)/p^2$。把每对相邻抛掷都当作独立试验并取成功率 $p^2$ 的倒数会漏掉模式重叠产生的影响。
+\end{solve}
+
+\begin{example}[原题3：正态平方级数的可积性]\label{yau:2015-3}
+设 $X_n$ 独立正态，均值为 $\mu_n$，方差为 $\sigma_n^2$。若 $\sum_nX_n^2$ 的部分和在 $L^1$ 中收敛，证明其在每个 $L^p$（$1\le p<\infty$）中收敛。再设 $\mu_n=0$ 且 $\sum_n\sigma_n^2=\infty$，证明 $\sum_nX_n^2=\infty$ 几乎处处。
+\end{example}
+\begin{solve}
+非负性与 $L^1$ 收敛说明 $\sum_n(\mu_n^2+\sigma_n^2)<\infty$。固定 $p\ge1$，若 $Z\sim N(0,1)$，则由 $X_n\overset d=\mu_n+\sigma_nZ$，
+\[
+\|X_n^2\|_p=\|X_n\|_{2p}^2\le2\mu_n^2+2\sigma_n^2\|Z\|_{2p}^2.
+\]
+因此 $\sum_n\|X_n^2\|_p<\infty$，由 $L^p$ 的完备性，部分和在 $L^p$ 收敛；其极限与单调的几乎处处极限一致。
+
+第二问不能仅从期望无穷推出随机和无穷。令 $S=\sum_nX_n^2$，独立性给出
+\[
+\E e^{-\sum_{k=1}^nX_k^2}=\prod_{k=1}^n(1+2\sigma_k^2)^{-1/2}.
+\]
+由于 $\sum_k\sigma_k^2=\infty$，有 $\sum_k\log(1+2\sigma_k^2)=\infty$：若无穷多个方差大于固定阈值则直接成立，否则用 $\log(1+2x)\ge c x$ 在有界区间上的下界。故右端趋零。控制收敛得 $\E e^{-S}=0$，约定 $e^{-\infty}=0$；非负性迫使 $e^{-S}=0$ 几乎处处，即 $S=\infty$。
+\end{solve}
+
+\begin{example}[原题4：指数样本最小值的估计性质]\label{yau:2015-4}
+设 $X_1,\ldots,X_n$ 独立来自均值为 $\theta>0$ 的指数分布，$M_n=\min_iX_i$。判断 $nM_n$ 对 $\theta$ 是否无偏、一致、有效。
+\end{example}
+\begin{solve}
+生存函数为 $\PP(M_n>t)=e^{-nt/\theta}$，从而 $nM_n\sim\operatorname{Exp}(1/\theta)$，其分布不随 $n$ 变化。因此 $\E(nM_n)=\theta$，无偏；但对任何固定 $\varepsilon>0$，
+\[
+\PP(nM_n>\theta+\varepsilon)=e^{-1-\varepsilon/\theta}>0,
+\]
+所以它不依概率收敛于 $\theta$。其方差恒为 $\theta^2$。
+
+单个观测的得分为 $-1/\theta+X/\theta^2$，Fisher 信息为 $1/\theta^2$，$n$ 个样本的无偏估计方差下界为 $\theta^2/n$。样本均值达到此界，故 $n>1$ 时 $nM_n$ 不有效；$n=1$ 时两者相同。无偏性是对每个样本量的平均性质，不保证误差随样本量增大而缩小。
+\end{solve}
+
+\begin{example}[原题5：已知相对方差的正态模型]\label{yau:2015-5}
+设独立的 $Y_i\sim N(\mu,\theta^2x_i^2)$，其中 $\theta>0,\mu\in\mathbb R$ 未知，$x_i\ne0$ 已知，$n\ge2$。构造 $\theta$ 的 $1-\alpha$ 置信区间，并给出检验 $H_0:\theta=1$ 对双侧备择的精确检验。
+\end{example}
+\begin{solve}
+令 $w_i=x_i^{-2}$，加权均值为 $\widehat\mu=\sum_iw_iY_i/\sum_iw_i$，残差平方和为 $Q=\sum_iw_i(Y_i-\widehat\mu)^2$。标准化向量 $(Y_i/|x_i|)$ 的误差协方差为 $\theta^2I$；均值位于由 $(1/|x_i|)$ 张成的一维空间。正交投影分解给出
+\[
+Q/\theta^2\sim\chi^2_{n-1},
+\]
+并与加权均值独立。因此置信区间为
+\[
+\left[\sqrt{\frac Q{\chi^2_{n-1;1-\alpha/2}}},\quad
+\sqrt{\frac Q{\chi^2_{n-1;\alpha/2}}}\right].
+\]
+在 $H_0$ 下 $Q\sim\chi^2_{n-1}$，可在 $Q<\chi^2_{n-1;\alpha/2}$ 或 $Q>\chi^2_{n-1;1-\alpha/2}$ 时拒绝。这是精确的等尾双侧检验；并未声称它是在所有可能意义下唯一最优的检验。损失一个自由度来自估计共同均值，与各 $x_i$ 是否相同无关。
+\end{solve}
+
+\section{2016年个人赛}
+\begin{example}[原题1：不立即回头的格点游走]\label{yau:2016-1}
+二维格点游走第一步等可能选择四个方向，此后每步等可能选择除立即回到上一步位置外的三个方向。令 $T$ 为首次踏上已经访问位置的步数，证明 $\E T<35$。
+\end{example}
+\begin{solve}
+每一步相对于上一步方向，可以表示为左转、右转或直行，三者独立且概率均为 $1/3$。若出现连续三次左转，或连续三次右转，则四条相邻边围成单位正方形，必然回到一个已访问的位置。因此 $T$ 不超过“第一步加等待 LLL 或 RRR 模式出现所需转向次数”。
+
+对这一模式等待问题，状态0表示末尾没有 L/R 连段，状态1、2表示末尾同向 L 或 R 连段长度为1、2。令剩余期望为 $e_0,e_1,e_2$，则
+\[
+\begin{aligned}
+e_0&=1+(e_0+2e_1)/3,\\
+e_1&=1+(e_0+e_1+e_2)/3,\\
+e_2&=1+(e_0+e_1)/3.
+\end{aligned}
+\]
+解得 $e_0=39/2,e_1=18,e_2=27/2$。期望有限可由不交三转向块以概率 $2/27$ 成功来预先控制。因此
+\[
+\E T\le1+39/2=41/2<35.
+\]
+这个上界只利用最短的正方形回路；其他回路会使 $T$ 更早发生，所以无需精确列举全部自相交路径。
+\end{solve}
+
+\begin{example}[原题2：随机符号矩阵的算子范数]\label{yau:2016-2}
+设 $A$ 是 $N\times N$ 随机矩阵，元素独立且等概率为 $\pm1$。证明对每个 $\delta>0$，$\PP(\|A\|_{\mathrm{op}}\ge N^{1/2+\delta})\to0$。
+\end{example}
+\begin{solve}
+一阶 Frobenius 界只能得到 $\|A\|\le N$，不足以处理小 $\delta$。固定正整数 $k$，利用 $AA^{\mathrm T}$ 非负定，
+\[
+\|A\|_{\mathrm{op}}^{2k}\le\operatorname{tr}(AA^{\mathrm T})^k.
+\]
+展开迹得到长度为 $2k$ 的闭合二部游走：行指标、列指标交替出现，每条边对应一个矩阵元素。独立性和零均值使仅有每条不同边出现偶数次的项能贡献非零期望。于是不同边至多 $k$ 条；游走连通，所涉及的不同顶点至多 $k+1$ 个。
+
+固定 $k$ 时，指标相等关系的模式只有有限种，记其数的一个上界为 $C_k$，与 $N$ 无关；每种模式至多有 $N^{k+1}$ 个赋值，每个非零期望为1。因此
+\[
+\E\operatorname{tr}(AA^{\mathrm T})^k\le C_kN^{k+1}.
+\]
+Markov 不等式给出所求概率不超过 $C_kN^{1-2k\delta}$。选取整数 $k>1/(2\delta)$ 即得趋零。这只是幂次尺度上的上界，不包含最优常数2；证明也适用于把算子范数定义在复向量空间上的实矩阵。
+\end{solve}
+
+\begin{example}[原题3：非均匀投球中的二球盒数]\label{yau:2016-3}
+将2016个球独立投入2016个盒子，前1008个盒子的单球概率为 $u=1/(3\cdot1008)$，后1008个为 $v=2/(3\cdot1008)$。令 $T$ 为恰含两个球的盒数，求其方差。
+\end{example}
+\begin{solve}
+令 $N=2016,m=1008$，并定义
+\[
+a(p)=\binom N2p^2(1-p)^{N-2},\qquad
+b(p,q)=\frac{N!}{2!2!(N-4)!}p^2q^2(1-p-q)^{N-4}.
+\]
+单盒恰有两个球的概率为 $a(p)$，两个指定不同盒各有两个球的联合概率为 $b(p,q)$。若 $I_i$ 为相应指示变量，则 $T=\sum_iI_i$，所以
+\[
+\begin{aligned}
+\Var(T)={}&m a(u)[1-a(u)]+m a(v)[1-a(v)]\\
+&+m(m-1)\{b(u,u)-a(u)^2\}\\
+&+m(m-1)\{b(v,v)-a(v)^2\}\\
+&+2m^2\{b(u,v)-a(u)a(v)\}.
+\end{aligned}
+\]
+这是精确表达式。每个球只能占据一个盒子，各盒占用数并不独立；把 $T$ 当成二项分布会漏掉后三项。若数值求值，可通过对数和稳定的乘积计算幂与阶乘比；无须先计算 $2016!$ 本身。
+\end{solve}
+
+\begin{example}[原题4：均值与倒数均值的乘积]\label{yau:2016-4}
+设 $0<a<b$，随机变量 $X$ 几乎处处取值于 $[a,b]$。确定 $\E X\cdot\E(1/X)$ 的所有可能值。
+\end{example}
+\begin{solve}
+由 Cauchy--Schwarz，乘积至少为1，常数变量达到等号。因为 $(X-a)(X-b)\le0$，除以正数 $X$ 得 $X+ab/X\le a+b$。令 $s=\E X,t=\E(1/X)$，则 $s+abt\le a+b$，而
+\[
+4abst\le(s+abt)^2\le(a+b)^2.
+\]
+故上界为 $(a+b)^2/(4ab)$。取 $\PP(X=a)=\PP(X=b)=1/2$ 同时达到两个等号。
+
+为说明区间中每个值都能达到，取端点二点分布 $\PP(X=a)=q$，则
+\[
+\E X\E(1/X)=1+\frac{(b-a)^2}{ab}q(1-q).
+\]
+当 $q$ 从0连续增加到 $1/2$，右端覆盖整个闭区间。因此答案恰为 $[1,(a+b)^2/(4ab)]$，而不只是一个上下界估计。
+\end{solve}
+
+\begin{example}[原题5：负漂移下的非负访问次数]\label{yau:2016-5}
+设 $X_i$ 独立同分布，$\E X_1=-1$（期望为有限实数），$S_n=\sum_{i=1}^nX_i$，$T=\#\{n\ge1:S_n\ge0\}$。求 $\PP(T=\infty)$。
+\end{example}
+\begin{solve}
+有限实数期望意味着 $\E|X_1|<\infty$。由强大数定律，$S_n/n\to-1$ 几乎处处。因此每条属于该满概率事件的路径上，都有一个有限的随机 $N$，使 $n\ge N$ 时 $S_n/n<-1/2$，于是 $S_n<0$。所以非负访问只发生在前 $N-1$ 个时刻，$\PP(T=\infty)=0$。
+
+结论不保证 $\E T<\infty$；几乎处处有限与期望有限是不同性质。也不能仅从 $\E S_n=-n$ 得到路径最终为负，关键是强大数定律。
+\end{solve}
+
+\section{2017年个人赛}
+\begin{example}[原题1：抽去球直到仅余一种颜色]\label{yau:2017-1}
+从含750个红球、250个蓝球的袋中逐次无放回等可能抽球，直到余球只有一种颜色。令余球数为 $L$，求整数 $m$ 使 $\E L\in[m,m+1]$。
+\end{example}
+\begin{solve}
+预先把所有球作均匀随机排列，抽球顺序就是该排列。一个指定红球最终留下，当且仅当它排在全部250个蓝球之后；在这个红球与250个蓝球的相对次序中，每个位置等可能，因此留下概率为 $1/251$。同理每个蓝球留下的概率是 $1/751$。由期望线性性，
+\[
+\E L=\frac{750}{251}+\frac{250}{751}=3+\frac{60497}{188501}\in(3,4).
+\]
+故 $m=3$。一般红、蓝球数为 $r,b$ 时，期望为 $r/(b+1)+b/(r+1)$。各球是否留下并不独立，但求期望时不需要独立性。
+\end{solve}
+
+\begin{example}[原题2：二叉树信号传播的阈值辨析]\label{yau:2017-2}
+根节点取值 $X_0=\pm1$。每条边独立地以概率 $p\in(0,1/2)$ 翻转父节点符号，令 $X_h$ 为第 $h$ 层 $2^h$ 个符号的平均。分析
+\[
+R_h=\frac{[\E(X_h\mid X_0=1)-\E(X_h\mid X_0=-1)]^2}{\Var(X_h\mid X_0=1)}.
+\]
+原卷要求一个阈值，使其一侧趋零、另一侧发散；请核查这个表述。
+\end{example}
+\begin{solve}
+令 $a=1-2p\in(0,1)$。逐层条件期望给出 $\E(X_h\mid X_0)=a^hX_0$。记条件于 $X_0=1$ 的方差为 $v_h$，则由全方差公式
+\[
+v_{h+1}=a^2v_h+\frac{1-a^2}{2^{h+1}},\quad v_0=0.
+\]
+这是因为给定上一层后，下层边上的翻转独立，每个符号的条件方差都是 $1-a^2$。因此
+\[
+v_h=(1-a^2)a^{2h}\sum_{j=1}^h(2a^2)^{-j},\qquad
+R_h=\frac4{(1-a^2)\sum_{j=1}^h(2a^2)^{-j}}.
+\]
+阈值为 $p_c=(1-1/\sqrt2)/2$。当 $p\ge p_c$，$R_h\to0$；等号时 $R_h=8/h$。当 $0<p<p_c$，则
+\[
+R_h\longrightarrow\frac{4(2a^2-1)}{1-a^2}>0,
+\]
+极限有限，\textit{并不发散}。因此按原卷给出的这一信噪比定义，“发散”应校订为“趋于严格正的有限极限”。这不是记号选择造成的差异，而是由完整方差递推直接得到的反证。阈值仍能区分信号相对于噪声是否消失。
+\end{solve}
+
+\begin{example}[原题3：不同硬币参数的无限序列测度]\label{yau:2017-3}
+在无限硬币序列空间上，$P_p$ 表示独立抛掷且正面概率为 $p\in[0,1]$ 的测度。构造事件 $A_p$，使 $P_p(A_p)>1/2$，而任意 $q\ne p$ 都满足 $P_q(A_p)<1/2$。
+\end{example}
+\begin{solve}
+令 $H_i$ 是第 $i$ 次正面的指示变量，取
+\[
+A_p=\left\{\lim_{n\to\infty}\frac1n\sum_{i=1}^nH_i=p\right\}.
+\]
+通过上极限和下极限的可数并交，这个事件属于由有限坐标生成的 $\sigma$ 代数。在 $P_p$ 下强大数定律给出 $P_p(A_p)=1$；在 $P_q$ 下样本频率几乎处处趋于 $q$，所以 $P_q(A_p)=0$。端点参数0与1同样成立。
+
+这说明不同参数的无限乘积测度相互奇异；有限次观测不能以概率1辨认参数，与无限序列上存在这样的分离事件并不矛盾。
+\end{solve}
+
+\begin{example}[原题4：随机图最大团的粗上下界]\label{yau:2017-4}
+在随机图 $G(n,p)$ 中，各边独立以固定概率 $p\in(0,1)$ 出现。令 $K_n$ 为最大团大小。证明对每个 $\varepsilon>0$，
+\[
+\PP(K_n\le2(1+\varepsilon)\log_{1/p}n)\to1,
+\]
+以及 $\PP(K_n\ge(1-\varepsilon)\sqrt{2\log_{1/p}n})\to1$。
+\end{example}
+\begin{solve}
+对固定 $k$ 点集合，它成为团的概率为 $p^{k(k-1)/2}$。并集界给出 $\PP(K_n\ge k)\le\binom nk p^{k(k-1)/2}\le n^kp^{k(k-1)/2}$。取 $k=\lceil2(1+\varepsilon)\log_{1/p}n\rceil$，对数中的二次主项严格为负且量级为 $(\log n)^2$，故概率趋零；整数取整可用稍小的正 $\varepsilon$ 处理所述实数阈值。
+
+对下界，只需考虑 $0<\varepsilon<1$。把顶点分成 $M=\lfloor n/k\rfloor$ 个不交的 $k$ 点块，每块为团的事件相互独立。故
+\[
+\PP(K_n<k)\le(1-p^{k(k-1)/2})^M\le\exp[-Mp^{k(k-1)/2}].
+\]
+取 $k$ 约为 $(1-\varepsilon)\sqrt{2\log_{1/p}n}$，则 $p^{k(k-1)/2}=n^{-(1-\varepsilon)^2+o(1)}$，因此 $Mp^{k(k-1)/2}\to\infty$。取整同样可通过略调 $\varepsilon$ 完成。这一下界比真实的对数尺度弱，但已达到原题要求；它的优点是仅靠不交块独立性即可证明。
+\end{solve}
+
+\begin{example}[原题5：纯死亡过程的概率生成函数]\label{yau:2017-5}
+一个封闭总体共有 $N+1$ 人，健康人数过程 $X(t)$ 初值为 $N$，在状态 $k$ 时只以率 $\lambda k(N+1-k)$ 跳到 $k-1$。令 $G(s,t)=\E[s^{X(t)}]$，$0\le s\le1$。求它满足的偏微分方程与初值。
+\end{example}
+\begin{solve}
+对函数 $f(k)=s^k$，生成元为
+\[
+Lf(k)=\lambda k(N+1-k)(s^{k-1}-s^k).
+\]
+有限状态空间允许逐项求导。注意 $\partial_sG=\E[Xs^{X-1}]$、$s\partial_{ss}G=\E[X(X-1)s^{X-1}]$，于是
+\[
+\partial_tG=\lambda(1-s)\left(N\partial_sG-s\partial_{ss}G\right),\quad G(s,0)=s^N.
+\]
+另外 $G(1,t)=1$。原卷仅写出向下转移率的表达式时，需将“只有感染导致的单步向下跳跃”作为过程模型补明；若还允许恢复或其他跳跃，生成元和方程都会改变。
+\end{solve}
+
+\section{2018年个人赛}
+\begin{example}[原题1：搜索失败后的最优下一步]\label{yau:2018-1}
+目标位于区域 A、B 的先验概率为 $0.7,0.3$。若目标在 A，每次搜索 A 的成功率为 $0.4$；若在 B，每次搜索 B 的成功率为 $0.8$。给定目标位置，各次搜索独立；搜错区域不能发现目标。已在 A 搜索4次、在 B 搜索1次，均失败。为了最大化下一次发现目标的概率，应搜索哪里？
+\end{example}
+\begin{solve}
+记所有失败的信息为 $D$，两个位置的未归一化后验权重为
+\[
+w_A=0.7(0.6)^4=0.09072,\qquad w_B=0.3(0.2)=0.06.
+\]
+归一化后 $\PP(A\mid D)=w_A/(w_A+w_B)>1/2$，但下一次搜索 A、B 的成功概率分别为 $0.4w_A/(w_A+w_B)$ 与 $0.8w_B/(w_A+w_B)$。由于 $0.036288<0.048$，应搜索 B。
+
+决策目标是下一次成功概率，不是目标所在位置的后验概率。若搜索成本、持续时间不同，还需先明确收益目标；本题按两次可选搜索的成本相同理解。
+\end{solve}
+
+\begin{example}[原题2：圆周游走中最后被访问的人]\label{yau:2018-2}
+一位教师与12位学生围坐成环。礼物从教师出发，每次独立地以相同概率传给左右相邻的人。礼物最终归首次访问时刻最晚的学生所有。哪些学生获奖概率最大？
+\end{example}
+\begin{solve}
+固定一名学生，将环在该学生处剪开，视为区间格点 $0,1,\ldots,13$，两端0与13对应同一名指定学生。其余12人位于内部，教师起点为某个 $j\in\{1,\ldots,12\}$。指定学生最后被访问，当且仅当在碰到端点之前，游走已到达过内部两端1和12；到过两者就已沿最近邻路径走过所有内部格点。
+
+若先到1，再要在0之前到12，赌徒破产公式给出概率 $1/12$；若先到12，再要在13之前到1，概率同样是 $1/12$。把“先到哪一个内部端点”分情况，其概率之和为1，所以指定学生最后被访问的概率恒为 $1/12$。起点恰在内部端点时同样成立。
+
+因此12位学生概率相同，都是最大者。环上相对教师的位置并不产生优势；这一结论依赖对称最近邻传递，不能从单纯的几何对称直接推出，因为教师固定后并非所有学生都可由保留教师位置的旋转互换。
+\end{solve}
+
+\begin{example}[原题3：多人各带多件礼物的归还数]\label{yau:2018-3}
+$N$ 人各带 $k$ 件可区分礼物，离开时每人随机取走 $k$ 件，所有等大小分配方案等可能。固定正整数 $k$，令 $X_N$ 为回到原主人手中的礼物件数，求 $N\to\infty$ 时的极限分布。
+\end{example}
+\begin{solve}
+把每人接收的 $k$ 个位置标号，分配等价于 $Nk$ 件礼物到 $Nk$ 个位置的均匀随机排列。每件礼物有 $k$ 个属于其原主人的正确位置，因此 $\E X_N=k$。
+
+用下降阶乘 $(x)_r=x(x-1)\cdots(x-r+1)$。固定 $r$，$\E(X_N)_r$ 是对有序的 $r$ 件不同礼物同时归主概率求和。来自互不相同主人的礼物组有 $N^rk^r+O(N^{r-1})$ 个，每组有 $k^r$ 个合法位置赋值，概率为 $k^r/(Nk)_r$。含同一主人重复的礼物组只有 $O(N^{r-1})$ 个，贡献总计 $O(1/N)$。所以
+\[
+\E(X_N)_r\longrightarrow k^r.
+\]
+还可统一界为 $\E(X_N)_r\le k^r$：任意礼物组至多有 $k^r$ 个合法位置组合。故对 $0\le t\le1$，阶乘展开被 $\sum_rk^rt^r/r!$ 控制，允许逐项取极限：
+\[
+\E(1-t)^{X_N}\longrightarrow\sum_{r=0}^\infty\frac{(-kt)^r}{r!}=e^{-kt}.
+\]
+这是 $\operatorname{Pois}(k)$ 的概率生成函数，得到 $X_N\xrightarrow d\operatorname{Pois}(k)$。当 $k=1$ 时退化为随机排列固定点数的经典结论。
+\end{solve}
+
+\begin{example}[原题4：精度矩阵与条件独立]\label{yau:2018-4}
+设 $X\sim N(0,\Sigma)$，$\Sigma$ 正定，精度矩阵 $\Omega=\Sigma^{-1}=(\omega_{ij})$。证明 $\omega_{ij}=0$ 时，给定其余坐标后 $X_i,X_j$ 条件独立。
+\end{example}
+\begin{solve}
+固定其余坐标 $z$。联合密度作为 $x_i,x_j$ 的函数，其指数中的二次项为
+\[
+-\frac12\left(\omega_{ii}x_i^2+2\omega_{ij}x_ix_j+\omega_{jj}x_j^2+2a(z)x_i+2b(z)x_j\right),
+\]
+其中只依赖 $z$ 的项可并入归一化常数。若 $\omega_{ij}=0$，这个表达式是一个仅含 $x_i$ 的二次式加上一个仅含 $x_j$ 的二次式。因为 $\omega_{ii},\omega_{jj}>0$，两个指数核都可积，归一化后条件联合密度等于两个条件密度的乘积。
+
+实际上条件协方差矩阵是相应 $2\times2$ 精度子块的逆。因此精度中的零描述条件独立，而协方差中的零描述联合正态变量的边缘独立，两者位置和含义不同。
+\end{solve}
+
+\begin{example}[原题5：正态向量的投影与样本相关系数]\label{yau:2018-5}
+设 $X\sim N(0,I_n)$。对单位向量 $a$，证明 $\sqrt{n-1}\,a^{\mathrm T}X/\sqrt{\|X\|^2-(a^{\mathrm T}X)^2}\sim t_{n-1}$。再令 $Y$ 与 $X$ 独立，$n\ge3$，且中心化向量 $Y-\bar Y\mathbf1$ 几乎处处非零，证明样本相关系数 $r$ 满足 $\sqrt{n-2}\,r/\sqrt{1-r^2}\sim t_{n-2}$。
+\end{example}
+\begin{solve}
+补全 $a$ 为正交基，正态旋转不变性说明 $a^{\mathrm T}X\sim N(0,1)$，其余 $n-1$ 个坐标仍为独立标准正态，并与该投影独立。分母平方就是这些坐标的平方和，因此由 $t$ 分布定义得第一问。
+
+令 $H=I_n-\mathbf1\mathbf1^{\mathrm T}/n$，条件于 $Y$，向量 $a=HY/\|HY\|$ 是 $\mathbf1^\perp$ 中的固定单位向量。$HX$ 在这个 $n-1$ 维空间内是标准正态，且
+\[
+r=\frac{a^{\mathrm T}HX}{\|HX\|}.
+\]
+在该空间应用第一问，维度变为 $n-1$，故自由度为 $n-2$。条件分布不依赖 $Y$，因此无条件结论也成立。
+
+\emph{原题条件校订：}官方原卷仅要求 $\PP(Y=0)=0$，这不足以定义样本相关系数。例如 $Y\equiv\mathbf1$ 非零，但其中心化范数为零。本书补为 $\PP(HY=0)=0$；此补充直接关系到统计量是否有定义。
+\end{solve}
+
+
+\section{2019年个人赛选题}
+\begin{example}[原题1：正随机变量的根上极限]\label{yau:2019-1}
+设 $X_n>0$，存在常数 $C$ 使 $\E X_n\le C$、$\E[(-\log X_n)^+]\le C$ 对所有 $n$ 成立。证明 $\limsup_nX_n^{1/n}=1$ 几乎处处。
+\end{example}
+\begin{solve}
+固定 $\varepsilon>0$，Markov 不等式给出 $\PP(X_n>e^{\varepsilon n})\le Ce^{-\varepsilon n}$，其和有限。Borel--Cantelli 引理说明最终 $X_n^{1/n}\le e^\varepsilon$，对正有理 $\varepsilon$ 取交得上极限不超过1。
+
+另一方面，若 $X_n^{1/n}\le e^{-\varepsilon}$ 对所有充分大的 $n$ 成立，那么 $(-\log X_n)^+\ge\varepsilon n$ 最终成立。对固定 $N$，事件 $D_N=\bigcap_{n\ge N}\{(-\log X_n)^+\ge\varepsilon n\}$ 的概率满足 $\PP(D_N)\le C/(\varepsilon n)$ 对所有 $n\ge N$ 成立，所以 $\PP(D_N)=0$。对 $N$ 取可数并得“最终低于 $e^{-\varepsilon}$”的概率为零。因此上极限至少为 $e^{-\varepsilon}$，再令有理 $\varepsilon\downarrow0$。两个方向都不要求序列独立。
+\end{solve}
+
+\begin{example}[原题2：反射随机游走的正常返性]\label{yau:2019-2}
+设 $\xi_n$ 独立同分布，取值 $0,1,2$ 的概率为 $a,b,c$，其中 $a>c>0$、$a+b+c=1$。定义 $Y_0=0,Y_{n+1}=\max(0,Y_n+\xi_{n+1}-1)$。证明该链在非负整数上不可约且正常返。
+\end{example}
+\begin{solve}
+在正整数状态，链以概率 $a$ 向下、$c$ 向上、$b$ 停留；在0，以概率 $a+b$ 停留、以概率 $c$ 到1。由于 $a,c>0$，任意两个状态之间都有正概率路径，故不可约。
+
+令 $r=c/a<1$，构造 $\pi_j=(1-r)r^j$。它归一化，且相邻状态满足详细平衡 $\pi_jc=\pi_{j+1}a$；0处的自环也与平稳方程相容。因此 $\pi$ 是平稳概率分布。不可约可数状态链存在平稳概率分布等价于正常返，故结论成立。
+
+也可直接检验从 $j>0$ 到0的期望时间为 $j/(a-c)$：对停在0的随机游走使用漂移 $c-a$，先停在有限区间再取极限即可。0出发一步后或者返回0，或者到1，故平均返回时间 $1+c/(a-c)=a/(a-c)=1/\pi_0$。正漂移或零漂移时，上述几何分布不能归一化，说明严格不等式 $a>c$ 具有实质作用。
+\end{solve}
+
+\begin{example}[原题4(a)--(e)：完全随机分组的有限总体推断]\label{yau:2019-4}
+本题选录原题的(a)--(e)，不含后续模拟和再随机化扩展。固定 $N=n_1+n_0$ 个单位的潜在结果 $y_i(1),y_i(0)$，等可能选择 $n_1$ 个单位接受处理，其余接受对照。设 $n_1,n_0\ge2$，目标为 $\tau=N^{-1}\sum_i[y_i(1)-y_i(0)]$。求两组观测均值差 $\widehat\tau$ 的期望与方差，讨论用两组样本方差估计其方差的性质。
+\end{example}
+\begin{solve}
+随机性只来自分组，不来自潜在结果。令 $Z_i$ 为处理指示变量，则 $\E Z_i=n_1/N$，$\Cov(Z_i,Z_j)=-n_1n_0/[N^2(N-1)]$，$i\ne j$。估计量为
+\[
+\widehat\tau=\frac1{n_1}\sum_iZ_iy_i(1)-\frac1{n_0}\sum_i(1-Z_i)y_i(0).
+\]
+立即得到 $\E\widehat\tau=\tau$。记以 $N-1$ 为分母的有限总体方差为 $S_1^2,S_0^2,S_\tau^2$，后者对应个体效应 $y_i(1)-y_i(0)$。展开协方差得
+\[
+\Var(\widehat\tau)=\frac{S_1^2}{n_1}+\frac{S_0^2}{n_0}-\frac{S_\tau^2}{N}.
+\]
+例如先将随机部分写成 $\sum_iZ_i[y_i(1)/n_1+y_i(0)/n_0]$，对简单随机子集使用有限总体方差公式，再用 $S_\tau^2=S_1^2+S_0^2-2S_{10}$ 即可核查这个恒等式。
+
+两组观测样本方差 $s_1^2,s_0^2$ 分别无偏估计 $S_1^2,S_0^2$，所以
+\[
+\widehat V=s_1^2/n_1+s_0^2/n_0,\qquad \E\widehat V-\Var(\widehat\tau)=S_\tau^2/N\ge0.
+\]
+若处理效应为同一常数，$S_\tau^2=0$，则方差估计无偏；效应异质时平均偏大。由于一个单位只能观察到两个潜在结果之一，$S_\tau^2$ 一般不能由观测数据直接无偏估计。这个模型没有自动给出有限样本正态性，使用正态近似还需要排除少数极端单位支配总方差等条件。
+\end{solve}
+
+\section{2020年笔试}
+\begin{example}[原题1：有界零均值变量的指数矩]\label{yau:2020-1}
+设 $X$ 本质有界且 $\E X=0$，证明 $\E e^X\le\cosh\|X\|_\infty$。
+\end{example}
+\begin{solve}
+令 $a=\|X\|_\infty$。若 $a=0$ 结论为等式。若 $a>0$，指数函数的凸性说明对 $x\in[-a,a]$，
+\[
+e^x\le\frac{a+x}{2a}e^a+\frac{a-x}{2a}e^{-a}.
+\]
+将 $x=X$ 取期望，用 $\E X=0$ 得 $\E e^X\le(e^a+e^{-a})/2$。严格凸性说明非退化时等号要求 $X\in\{-a,a\}$ 几乎处处，再由零均值要求两端概率各为一半。
+
+把 $X$ 换为 $tX$ 得 $\E e^{tX}\le\cosh(ta)\le e^{t^2a^2/2}$。最后一步可比较幂级数，利用 $(2k)!\ge2^kk!$。该推导把精确端点界连接到常用的次高斯界。
+\end{solve}
+
+\begin{example}[原题2：泊松分布的差分恒等式]\label{yau:2020-2}
+设 $\lambda>0$，$\E|X|<\infty$，且对任意有界光滑实函数 $f$，$\lambda\E f(X+1)=\E[Xf(X)]$。证明 $X\sim\operatorname{Pois}(\lambda)$。
+\end{example}
+\begin{solve}
+分别取余弦和正弦再合并，允许使用 $f(x)=e^{itx}$。记特征函数为 $\varphi(t)$，可积性保证 $\varphi'(t)=i\E[Xe^{itX}]$，因此
+\[
+\varphi'(t)=i\lambda e^{it}\varphi(t),\qquad \varphi(0)=1.
+\]
+一阶线性方程唯一解为 $\varphi(t)=\exp\{\lambda(e^{it}-1)\}$。展开指数可写成 $\sum_{k\ge0}e^{itk}e^{-\lambda}\lambda^k/k!$，故由特征函数唯一性得到泊松分布。题设没有预先假设整数支撑，该支撑是由刻画恒等式推出的。
+\end{solve}
+
+\begin{example}[原题3：偏置随机游走命中零点]\label{yau:2020-3}
+从正整数 $a$ 出发，每步独立以概率 $p$ 向右、$1-p$ 向左。令 $\tau_0$ 为首次到0的时间。对全部 $p\in[0,1]$ 求 $\PP_a(\tau_0<\infty)$。
+\end{example}
+\begin{solve}
+先在有限区间 $\{0,1,\ldots,M\}$ 内考虑先到0的概率 $h(j)$。边界为 $h(0)=1,h(M)=0$，内部满足 $h(j)=ph(j+1)+qh(j-1)$，其中 $q=1-p$。若 $0<p<1,p\ne q$，解为
+\[
+h(a)=\frac{(q/p)^a-(q/p)^M}{1-(q/p)^M}.
+\]
+若 $p=q=1/2$，则 $h(a)=1-a/M$。事件“先到0而非 $M$”随 $M$ 增加，其并集是最终到0的事件，因为有限时间命中0的路径最大高度有限。因此令 $M\to\infty$ 得
+\[
+\PP_a(\tau_0<\infty)=\begin{cases}1,&0\le p\le1/2,\\((1-p)/p)^a,&1/2<p\le1.\end{cases}
+\]
+端点 $p=0,1$ 可直接检查。对称游走命中概率虽为1，但其命中时间期望无穷；命中概率与平均等待时间需分别研究。
+\end{solve}
+
+\begin{example}[原题4：独立坐标与旋转不变性的正态刻画]\label{yau:2020-4}
+设 $X,Y$ 独立、均值为零、方差有限且非零。若向量 $(X,Y)$ 的分布在旋转角 $\theta$ 下不变，且 $\theta$ 不是90度的整数倍，证明 $X,Y$ 为同方差的正态变量。
+\end{example}
+\begin{solve}
+令 $c=\cos\theta,s=\sin\theta$，两者非零。协方差矩阵的旋转不变性先给出 $\Var(X)=\Var(Y)=v>0$。记特征函数为 $f,g$，不变性与坐标独立给出
+\[
+f(u)g(w)=f(cu+sw)g(-su+cw).
+\]
+在原点邻域两者非零，可取连续对数 $F,G$；二阶矩保证它们二次连续可微。对 $u,w$ 求混合导数，得到 $csF''(cu+sw)-csG''(-su+cw)=0$。旋转可逆，两个自变量可独立变化，因此 $F'',G''$ 在原点邻域都是相同常数 $-v$。结合零均值与函数值，局部有 $f(t)=g(t)=e^{-vt^2/2}$。
+
+还需把局部结论推广到全实线。由上式取 $w=0$ 和 $u=0$ 得
+\[
+f(t)=f(ct)g(-st),\qquad g(t)=f(st)g(ct).
+\]
+设两函数已在 $|t|\le R$ 上具有正态表达式，令 $q=\max(|c|,|s|)<1$，右端表明表达式也在 $|t|\le R/q$ 成立。反复扩大区间覆盖实线，因而两特征函数均为 $e^{-vt^2/2}$。这一步避免了把局部相同的特征函数误当成自动全局相同。
+\end{solve}
+
+\begin{example}[原题5：平衡分组再随机化的无偏性]\label{yau:2020-5}
+对偶数 $N$ 个单位，先等可能选择一半进入处理组；仅当两组固定协变量均值的 Mahalanobis 距离不超过给定阈值时接受，否则重抽。假设接受集合非空。证明这种设计下两组样本均值差对平均处理效应无偏。
+\end{example}
+\begin{solve}
+每个平衡分配向量 $z$ 都有互补分配 $1-z$，二者先验概率相同。交换两组只会把协变量均值差变号，Mahalanobis 距离作为二次型不变，因此 $z$ 被接受当且仅当 $1-z$ 被接受。在条件于接受后的分配分布中，每个单位进入处理组的概率仍为 $1/2$。
+
+对于固定潜在结果 $y_i(1),y_i(0)$，
+\[
+\E\left[\frac2N\sum_iZ_iy_i(1)-\frac2N\sum_i(1-Z_i)y_i(0)\ \middle|\ \text{接受}\right]
+=\frac1N\sum_i[y_i(1)-y_i(0)].
+\]
+因此原题中结果为协变量线性函数的情形当然成立，而且这个对称性论证对任意固定潜在结果都成立。平衡准则须预先仅由协变量和分组决定，不能在看到结果变量后选择有利分配。
+\end{solve}
+
+\begin{example}[原题6：不等大小组的反例]\label{yau:2020-6}
+说明前题的互补对称论证在奇数样本量、不等组容量下可能失败，并给出小样本偏差反例。
+\end{example}
+\begin{solve}
+取三个单位，协变量为 $(0,0,1)$，一人处理、两人对照。所有人的两个潜在结果都等于其协变量，所以真实平均处理效应为0。若唯一处理者是第三人，两组协变量均值差为1；若是前两人之一，均值差为 $-1/2$。使用绝对差不超过 $3/4$ 的接受准则，只保留后两种分配，此时观测均值差总为 $-1/2$，故有偏。
+
+在单协变量情形，Mahalanobis 距离只是均值差平方乘以固定正常数，适当选择阈值与上述准则等价。互补分配会把一人处理变为两人处理，已经离开原来的设计空间，所以不能用互补配对证明边缘处理概率保持 $1/3$。若需要每个单位的处理概率都为正，可给被拒方案一个很小的正接受概率，偏差仍然存在，只是不再等于 $-1/2$。
+\end{solve}
+
+\section{2021年笔试}
+\begin{example}[原题1：弱收敛与较低阶矩收敛]\label{yau:2021-1}
+设 $X_n\xrightarrow dX$，存在 $r,C>0$ 使 $\sup_n\E|X_n|^r\le C$。证明对每个 $0<s<r$，$\E|X_n|^s\to\E|X|^s$。
+\end{example}
+\begin{solve}
+对有界连续函数 $h_M(x)=\min(|x|^r,M)$，弱收敛给出 $\E h_M(X)=\lim_n\E h_M(X_n)\le C$，再由单调收敛得 $\E|X|^r\le C$。对任意 $K>0$，
+\[
+\E[|X_n|^s\mathbf1_{\{|X_n|>K\}}]\le K^{s-r}\E|X_n|^r\le CK^{s-r},
+\]
+对 $X$ 同样成立。函数 $g_K(x)=\min(|x|^s,K^s)$ 有界连续，故其期望收敛；原矩与截断矩的差由上式一致控制。先取 $n\to\infty$ 再取 $K\to\infty$ 即得结论。
+
+严格不等式 $s<r$ 必须保留。例如 $X_n=n^{1/r}$ 的概率为 $1/n$，否则为0，则 $X_n\xrightarrow P0$ 而 $\E|X_n|^r=1$。这说明仅有同阶矩有界不足以推出该阶矩收敛。
+\end{solve}
+
+\begin{example}[原题2：马尔可夫链的访问概率和]\label{yau:2021-2}
+设可数状态马尔可夫链的 $n$ 步转移概率为 $p_n(x,y)$，约定 $p_0(x,y)=\mathbf1_{\{x=y\}}$。证明对正整数 $L,N$，
+\[
+\sum_{n=L}^{L+N}p_n(x,y)\le\sum_{n=0}^Np_n(y,y).
+\]
+\end{example}
+\begin{solve}
+令 $\tau=\inf\{n\ge L:X_n=y\}$。在时间窗 $[L,L+N]$ 内，若未命中 $y$，访问总数为0；若首次在 $L+j$ 命中，则从该时刻起剩余 $N-j$ 步的期望访问次数为 $\sum_{k=0}^{N-j}p_k(y,y)$。由强马尔可夫性质，
+\[
+\sum_{n=L}^{L+N}p_n(x,y)=\sum_{j=0}^N\PP_x(\tau=L+j)\sum_{k=0}^{N-j}p_k(y,y).
+\]
+每个内和不超过 $\sum_{k=0}^Np_k(y,y)$，而外层概率总和不超过1，故得结论。时间窗长度为 $N+1$，所以右端必须包括 $k=0$ 的那次起点访问。
+\end{solve}
+
+\begin{example}[原题3：随机符号和的几乎处处增长率]\label{yau:2021-3}
+设 $X_i$ 独立等概率取 $\pm1$，$S_n=\sum_{i=1}^nX_i$。证明对每个 $\alpha>1/2$，$S_n/n^\alpha\to0$ 几乎处处。
+\end{example}
+\begin{solve}
+由 $\E e^{tS_n}=(\cosh t)^n\le e^{nt^2/2}$，对任意 $u>0$ 作指数 Markov 估计并取 $t=u/n$ 得
+\[
+\PP(|S_n|\ge u)\le2e^{-u^2/(2n)}.
+\]
+令 $u=\varepsilon n^\alpha$，则 $\sum_n\PP(|S_n|\ge\varepsilon n^\alpha)\le\sum_n2e^{-\varepsilon^2n^{2\alpha-1}/2}<\infty$。Borel--Cantelli 引理对 $\varepsilon=1,1/2,1/3,\ldots$ 同时应用，得到结论。
+
+若只用方差和普通 Chebyshev 不等式，会得到 $n^{1-2\alpha}$ 的界，在 $1/2<\alpha\le1$ 时不够可求和。更强的尾界在这里弥补了求和性，而不是改变大数定律的中心。
+\end{solve}
+
+\begin{example}[原题4：随机零一矩阵行列式的奇偶性]\label{yau:2021-4}
+设 $A_n$ 是 $n\times n$ 矩阵，元素独立等概率为0或1。求行列式为奇数的概率，并证明其极限严格为正。
+\end{example}
+\begin{solve}
+整数行列式为奇数等价于矩阵在有限域 $\mathbb F_2$ 上可逆。依次暴露列向量：若前 $j$ 列线性独立，它们张成的子空间恰有 $2^j$ 个元素，而新列在 $2^n$ 个向量中均匀。因此
+\[
+p_n=\prod_{j=0}^{n-1}(1-2^{j-n})=\prod_{k=1}^n(1-2^{-k}).
+\]
+各因子小于1且正，有限乘积单调趋于某个极限。对 $k\ge2$，$-\log(1-2^{-k})\le2\cdot2^{-k}$，所以负对数级数收敛，乘积极限严格为正。论证推广到 $q$ 元有限域时，结果为 $\prod_{k=1}^n(1-q^{-k})$。
+\end{solve}
+
+\begin{example}[原题5：保持随机性的协变量平衡算法]\label{yau:2021-5}
+给定偶数个单位及其固定协变量，要把一半分到处理组、一半分到对照组，并尽量平衡多个协变量及预先选定的非线性特征。给出明确算法，且保证每个单位接受任一处理的概率为正。
+\end{example}
+\begin{solve}
+先在观察结果之前确定特征矩阵 $W$，其中可含中心化协变量、平方和交互项。对任意平衡分配 $z$，计算两组特征均值差 $d(z)$，并选定半正定权矩阵 $B$，如在非退化特征子空间上的协方差逆矩阵。定义准则 $M(z)=d(z)^{\mathrm T}Bd(z)$，预先选择阈值 $a$ 使接受集合 $\mathcal A=\{z:M(z)\le a\}$ 非空。
+
+每次独立均匀抽取一个平衡分配，若属于 $\mathcal A$ 则输出，否则重试。这给出有限状态上的拒绝抽样算法；接受概率 $q>0$，平均尝试次数为 $1/q$，几乎处处终止。输出在 $\mathcal A$ 上均匀，且 $M(1-z)=M(z)$，故每个单位处理概率恰为 $1/2$。
+
+如果阈值太严，计算时间可能很大，应通过与结果变量无关的预先试算确定可行阈值，或从候选方案中选取一批关于互补封闭的优良方案再均匀抽取。所谓平衡指选定特征上的准则，而非保证每个未来结果或未观测变量都平衡。
+\end{solve}
+
+\begin{example}[原题6：已知随机化机制下的估计与精确检验]\label{yau:2021-6}
+某分组算法的完整随机化分布 $q(z)$ 已知，各单位处理概率 $\pi_i\in(0,1)$。是否能无偏估计平均处理效应？是否能在尖锐零假设下作有限样本随机化检验？给出方法。
+\end{example}
+\begin{solve}
+定义 Horvitz--Thompson 估计量
+\[
+\widehat\tau_{\rm HT}=\frac1N\sum_{i=1}^N\left[\frac{Z_iY_i^{\rm obs}}{\pi_i}-\frac{(1-Z_i)Y_i^{\rm obs}}{1-\pi_i}\right].
+\]
+由于处理项出现时 $Y_i^{\rm obs}=y_i(1)$，对照项出现时为 $y_i(0)$，逐项取期望即得平均处理效应，无需各 $Z_i$ 独立。若 $\pi_i$ 不全相同，普通组均值差一般不能替代这种加权。
+
+在尖锐零假设 $y_i(1)=y_i(0)$ 对每个单位成立时，所有潜在结果都可由观测补全。选择预先规定的检验统计量 $T$，在所有可能分配上按照真实 $q(z)$ 计算
+\[
+p=\sum_zq(z)\mathbf1_{\{|T(z)|\ge|T(z_{\rm obs})|\}}.
+\]
+以 $p\le\alpha$ 拒绝，零假设下大小不超过 $\alpha$；离散性可通过边界随机化处理。不能在算法实际排除了某些分配时仍使用所有平衡分配的均匀置换分布。若用有限次模拟代替完整求和，通常的“加一”Monte Carlo 秩检验可保持有效性，但裸模拟尾比例与精确枚举值应区分。仅有平均效应为零的弱零假设不能逐个补全结果，以上尖锐检验不能原样套用。
+\end{solve}
+
+\section{2022年笔试}
+\begin{example}[原题1：高斯分布族对弱极限封闭]\label{yau:2022-1}
+设 $X_n\sim N(\mu_n,\sigma_n^2)$，允许 $\sigma_n=0$，且 $X_n\xrightarrow dX$。证明 $X$ 仍为允许退化的高斯变量。
+\end{example}
+\begin{solve}
+弱收敛保证分布列紧。先证明参数有界。若某子列 $\sigma_n\to\infty$，则任意固定长度区间的概率不超过区间长度除以 $\sqrt{2\pi}\sigma_n$，与紧性矛盾。因此 $\sigma_n$ 有界。若 $|\mu_n|\to\infty$ 而方差有界，Chebyshev 不等式表明任何固定紧区间的概率趋零，再次矛盾，故 $\mu_n$ 也有界。
+
+从参数列选取收敛子列 $\mu_{n_j}\to\mu,\sigma_{n_j}^2\to v\ge0$。其特征函数趋于 $e^{i\mu t-vt^2/2}$，所以子列弱收敛于 $N(\mu,v)$。同时整个序列弱收敛于 $X$，弱极限唯一，故 $X$ 的分布就是该高斯分布。当 $v=0$ 时是点质量 $\delta_\mu$。这个证明不需要预先假设均值或方差收敛，也不通过无条件交换矩和极限来证明它们有界。
+\end{solve}
+
+\begin{example}[原题2：全变差距离的最大耦合表示]\label{yau:2022-2}
+设实线上的概率测度 $\mu,\nu$ 有密度 $f,g$。证明
+\[
+\sup_A|\mu(A)-\nu(A)|=\inf\{\PP(U\ne V):\mathcal L(U)=\mu,\mathcal L(V)=\nu\}.
+\]
+\end{example}
+\begin{solve}
+对任意耦合和事件 $A$，$|\PP(U\in A)-\PP(V\in A)|\le\PP(U\ne V)$，故左端不超过右端。又若 $h=\min(f,g)$，$c=\int h$，则直接分解正负部分可得
+\[
+\sup_A|\mu(A)-\nu(A)|=\frac12\int|f-g|=1-c.
+\]
+构造达到下界的耦合：以概率 $c$，从密度 $h/c$ 抽一个值并同时令 $U=V$；以概率 $1-c$，分别从 $(f-h)/(1-c)$ 和 $(g-h)/(1-c)$ 抽取 $U,V$。后两个密度的正值支撑互不相交，所以这一分支必有 $U\ne V$。边缘密度正确，且不等概率恰为 $1-c$。$c=0$ 或1的情形分别只保留相应分支。
+
+该构造称为\emph{最大耦合}（maximal coupling）。一般无密度情形，可取共同支配测度 $\mu+\nu$ 并使用 Radon--Nikodym 密度，得到同一证明。
+\end{solve}
+
+\begin{example}[原题3：骰子模式11与12的等待时间]\label{yau:2022-3}
+独立投掷公平六面骰，$\tau_{11}$ 与 $\tau_{12}$ 分别为首次出现相邻模式11、12的完成时刻。求两者期望并比较。
+\end{example}
+\begin{solve}
+等待11时，用末尾是否为1建立状态。令 $a_0,a_1$ 为剩余期望，
+\[
+a_0=1+\frac56a_0+\frac16a_1,\quad a_1=1+\frac56a_0,
+\]
+故 $a_0=42$。等待12时，同样令 $b_0,b_1$ 表示末尾非1、末尾为1，
+\[
+b_0=1+\frac56b_0+\frac16b_1,\quad b_1=1+\frac46b_0+\frac16b_1.
+\]
+第二个方程中投出2完成，投出1继续保持状态1，其余四种回到状态0。解得 $b_0=36$，所以 $\E\tau_{11}>\E\tau_{12}$。有限性由不交两投块独立成功的几何上界得到。两个模式各自在固定两投窗口内的概率相同，但重叠结构不同，因此首次等待期望不同。
+\end{solve}
+
+\begin{example}[原题4：共同重置状态产生的收缩]\label{yau:2022-4}
+可数状态链满足存在 $y_0$ 与 $\theta>0$，使所有 $x$ 都有 $p(x,y_0)\ge\theta$。证明一步转移对分布间的 $\ell^1$ 距离严格收缩，并证明存在唯一平稳分布及几何收敛界。
+\end{example}
+\begin{solve}
+必有 $0<\theta\le1$。若 $\theta<1$，定义 Markov 核 $R$ 使
+\[
+P(x,\cdot)=\theta\delta_{y_0}+(1-\theta)R(x,\cdot).
+\]
+对于总质量为零的有符号列 $\eta$，公共部分消去；三角不等式与 $R$ 的行和为1给出 $\|\eta R\|_1\le\|\eta\|_1$，因此
+\[
+\|\mu P-\nu P\|_1\le(1-\theta)\|\mu-\nu\|_1.
+\]
+概率分布集合在 $\ell^1$ 中是闭集，因而完备。Banach 不动点定理说明映射 $\mu\mapsto\mu P$ 有唯一固定点 $\pi$。迭代收缩即得 $\|\mu P^n-\pi\|_1\le2(1-\theta)^n$。若 $\theta=1$，所有行都是 $\delta_{y_0}$，一步后已达平稳，可任选 $0<\lambda<1$ 满足原题形式的上界。
+
+无需假定链不可约；公共重置状态和全局收缩已足够排除多个平稳分布。可数状态集合上的完备性是存在性论证的一部分，不能只凭“距离越来越小”直接宣布存在极限分布。
+\end{solve}
+
+\begin{example}[原题5：正态线性模型中的标准化均值]\label{yau:2022-5}
+设 $Y=X\beta+e$，$e\sim N(0,\sigma^2I_n)$，$X$ 已知、秩为 $k$，$\nu=n-k>1$。目标为 $\gamma=x_1\beta/\sigma$，其中 $x_1$ 是设计矩阵第一行。求无偏估计并讨论有限方差意义下的 UMVUE。允许 $X$ 不满列秩。
+\end{example}
+\begin{solve}
+令 $P$ 为到 $\operatorname{col}(X)$ 的正交投影，$\widehat\mu_1=(PY)_1$，$Q=\|(I-P)Y\|^2$。正态正交投影保证 $\widehat\mu_1$ 与 $Q$ 独立，$\E\widehat\mu_1=x_1\beta$，$Q/\sigma^2\sim\chi^2_\nu$。Gamma 积分给出
+\[
+\E Q^{-1/2}=\frac1{\sigma\sqrt2}\frac{\Gamma((\nu-1)/2)}{\Gamma(\nu/2)},\quad \nu>1.
+\]
+因此
+\[
+\widehat\gamma=\frac{\sqrt2\Gamma(\nu/2)}{\Gamma((\nu-1)/2)}\frac{\widehat\mu_1}{\sqrt Q}
+\]
+无偏。取列空间正交基 $U$，统计量 $(U^{\mathrm T}Y,\|Y\|^2)$ 是一个满自然参数开集上的指数族的完全充分统计量：自然参数可取 $(U^{\mathrm T}X\beta/\sigma^2,-1/(2\sigma^2))\in\mathbb R^k\times(-\infty,0)$。它与 $(PY,Q)$ 等价，故上述无偏函数在可积的充分统计量函数中唯一。
+
+当 $\nu>2$，$\E Q^{-1}=1/[\sigma^2(\nu-2)]<\infty$，从而 $\widehat\gamma$ 方差有限，由 Lehmann--Scheffé 定理为 UMVUE。当 $\nu=2$ 且 $x_1\ne0$ 时，$P_{11}>0$，所以 $\E\widehat\mu_1^2>0$，而 $\E Q^{-1}=\infty$，上述无偏估计的二阶矩无穷。若存在另一个有限方差无偏估计，条件于完全充分统计量后仍应有有限方差，却必须等于 $\widehat\gamma$，矛盾。因此这一边界情形不存在有限方差无偏估计。若 $x_1=0$，目标恒为0，取零估计即可。
+
+\emph{与参考解答的区别：}官方题包的解答给出相同无偏修正，但在仅有 $\nu>1$ 时直接称其为 UMVUE。本书将通常要求有限方差的定义下 $\nu=2$ 的例外单独列出，避免把一阶可积误作二阶可积。
+\end{solve}
+
+\begin{example}[原题6：异方差正态均值的极小极大估计]\label{yau:2022-6}
+设独立的 $X_i\sim N(\theta_i,i^2)$，$1\le i\le d$，原题 $d=2022$。在损失 $L(\theta,\delta)=\sum_i(\delta_i-\theta_i)^2/i^2$ 下，证明直接取 $\delta=X$ 是极小极大估计。
+\end{example}
+\begin{solve}
+令 $Z_i=X_i/i,\eta_i=\theta_i/i$，则变为 $Z\sim N(\eta,I_d)$，损失为标准平方损失。直接估计的风险恒为 $d$，故极小极大风险不超过 $d$。
+
+为证明相反方向，给 $\eta$ 一个独立正态先验 $N(0,t^2I_d)$。平方损失下 Bayes 估计为后验均值 $t^2Z/(1+t^2)$，其 Bayes 风险为 $dt^2/(1+t^2)$。任何估计的最大风险至少为它在这一先验下的平均风险，而平均风险至少为最小 Bayes 风险。因此
+\[
+\inf_\delta\sup_\eta R(\eta,\delta)\ge\frac{dt^2}{1+t^2}.
+\]
+令 $t\to\infty$ 得下界 $d$，与直接估计的常风险相同。这里用的是正常、有限方差先验的一列极限，不是把不存在的“均匀先验”当成概率分布。极小极大不等于可容许；在维度足够大时，常风险估计仍可能被收缩估计逐点改进。
+\end{solve}
+
+
+\section{2023年笔试}
+\begin{example}[原题1：强化预测分布的边缘与映射]\label{yau:2023-1}
+设 $\alpha>0$，$X_1\sim G_0$，且给定前 $n$ 个观测，$X_{n+1}$ 的条件分布为 $[\alpha G_0+\sum_{i=1}^n\delta_{X_i}]/(\alpha+n)$。求 $X_n$ 的边缘分布；令 $Y_n=\mathbf1_{\{X_n>0\}}$，判断该序列是否满足同型预测规则。
+\end{example}
+\begin{solve}
+对任意 Borel 集 $A$，若前 $n$ 个变量的边缘都是 $G_0$，全期望给出
+\[
+\PP(X_{n+1}\in A)=\frac{\alpha G_0(A)+\sum_{i=1}^n\PP(X_i\in A)}{\alpha+n}=G_0(A).
+\]
+由归纳，所有边缘分布相同，但一般不独立。令 $q=G_0((0,\infty))$，在完整历史下 $Y_{n+1}$ 成功概率为 $[\alpha q+\sum_iY_i]/(\alpha+n)$。右端只依赖 $Y$ 历史，故再条件于 $Y_1,\ldots,Y_n$ 仍不变。因此基分布为 $\operatorname{Bernoulli}(q)$，浓度参数仍为 $\alpha$。
+
+这里原题用“Dirichlet 过程”称呼观测序列；严格说这是 Dirichlet 随机概率测度积分掉后产生的 Pólya 预测序列。对任意可测映射 $h$，同样得到基分布 $G_0\circ h^{-1}$ 和同一浓度参数的预测规则。题设基分布的一、二阶矩存在性对这两问并非必要。
+\end{solve}
+
+\begin{example}[原题2：逐步精细的信息与条件期望极限]\label{yau:2023-2}
+设 $X,Y\ge0$ 为有限随机变量，$W=H(X,Y)$ 可积，$\phi(x)=x/(1+x)$。令 $U_n=2^{-n}\lfloor2^n\phi(X)\rfloor$、$V_n=\E(W\mid U_n)$。证明 $V_n$ 的几乎处处极限存在并确定它。
+\end{example}
+\begin{solve}
+令 $\mathcal G_n=\sigma(U_n)$。二进制分割逐步细化，故 $\mathcal G_n\subseteq\mathcal G_{n+1}$；并且 $U_n\to\phi(X)$，而每个 $U_n$ 又是 $X$ 的函数。因此
+\[
+\sigma\left(\bigcup_n\mathcal G_n\right)=\sigma(\phi(X))=\sigma(X),
+\]
+最后一步由 $\phi$ 在非负半轴上一一对应且逆映射 $u/(1-u)$ 可测得到。条件期望的向上收敛定理（Lévy upward theorem）对可积 $W$ 给出
+\[
+V_n\longrightarrow\E(W\mid X)\quad\text{几乎处处且在 }L^1\text{ 中}.
+\]
+这里 $V_n$ 是一个一致可积鞅。可先对有界 $W$ 应用鞅收敛，再用 $W$ 的可积截断逼近来证明上述定理；一致可积性确保极限的期望信息不丢失。极限通常是对 $Y$ 剩余随机性取平均后的函数，而非 $H(X,Y)$ 本身。
+\end{solve}
+
+\begin{example}[原题3：纪录数的宽于标准差的偏差]\label{yau:2023-3}
+设 $X_i$ 独立服从 $U(0,1)$，$R_n$ 是前 $n$ 次观测中出现新最大纪录的次数。若 $m_n\to\infty$，求 $\lim_n\PP(|R_n-\log n|>m_n\sqrt{\log n})$。
+\end{example}
+\begin{solve}
+由例~\ref{yau:2013-3}，$\E R_n=H_n=\log n+O(1)$，$\Var(R_n)=\log n+O(1)$。由于 $m_n\sqrt{\log n}\to\infty$，对充分大的 $n$，均值与 $\log n$ 的差小于阈值的一半。于是
+\[
+\PP(|R_n-\log n|>m_n\sqrt{\log n})\le\frac{4\Var(R_n)}{m_n^2\log n}\to0.
+\]
+答案为0。这里无需中心极限定理；阈值是标准差的发散倍数，二阶矩控制已足够。如果把 $m_n$ 换成固定正常数，极限一般非零，需要用更精细的正态极限来求。
+\end{solve}
+
+\begin{example}[原题4：混合表示是否就是条件概率]\label{yau:2023-4}
+设概率核 $Q(t,A)$ 与随机变量 $T$ 的分布 $\Pi$ 满足 $P(A)=\int Q(t,A)\Pi(dt)$。仅凭这一条件，是否必有 $P(A\mid T)=Q(T,A)$ 几乎处处？
+\end{example}
+\begin{solve}
+不一定。取 $\Omega=\{0,1\}$，两个点各概率 $1/2$，$T(\omega)=\omega$，并令所有 $t$ 都有 $Q(t,A)=P(A)$。这是合法概率核，且显然满足混合恒等式。可是对 $A=\{1\}$，$Q(T,A)\equiv1/2$，而 $P(A\mid T)=\mathbf1_{\{T=1\}}$。
+
+正确的条件概率核要求更强的局部化恒等式：对每个 Borel 集 $B$ 与每个 $A$，
+\[
+P(A\cap\{T\in B\})=\int_BQ(t,A)\Pi(dt).
+\]
+原题只给 $B=\mathbb R$ 的情形，无法决定条件依赖结构。这与只知道两个边缘分布不能决定联合分布是同一个信息缺失问题。
+\end{solve}
+
+\begin{example}[原题5：双边停止抽样下的完全性与无偏估计]\label{yau:2023-5}
+每次独立试验的四类概率为 $(1-\theta)/2,(1-\theta)/2,\theta/2,\theta/2$，$0<\theta<1$。固定整数 $r\ge2$，当前两类累计达到 $r$ 次或后两类累计达到 $r+1$ 次时停止。令最终四类计数为 $X_1,\ldots,X_4$，$A=X_1+X_2,B=X_3+X_4$。判断 $(A,B)$ 是否完全，并求 $\theta$ 的 UMVUE。
+\end{example}
+\begin{solve}
+把后两类合并为成功，成功概率为 $\theta$。停止支持集有两条边：$(r,b)$，$0\le b\le r$，以及 $(a,r+1)$，$0\le a\le r-1$。最后一次结果由停止边决定，故
+\[
+\begin{aligned}
+\PP(A=r,B=b)&=\binom{r+b-1}{b}(1-\theta)^r\theta^b,\\
+\PP(A=a,B=r+1)&=\binom{a+r}{a}(1-\theta)^a\theta^{r+1}.
+\end{aligned}
+\]
+若 $\E_\theta g(A,B)=0$ 对所有 $\theta$ 成立，整理为
+\[
+(1-\theta)^rP(\theta)+\theta^{r+1}Q(1-\theta)=0,
+\]
+其中 $P$ 次数至多 $r$，$Q$ 次数至多 $r-1$，其系数分别为各 $g$ 值乘正组合数。等式表明 $P$ 在0有至少 $r+1$ 阶零点，因为 $(1-\theta)^r$ 在0不为零；所以 $P\equiv0$，继而 $Q\equiv0$。全部 $g$ 值为零，得到完全性。样本似然中参数仅通过 $(A,B)$ 出现，因此也充分。
+
+第一次试验是否成功的指标 $I$ 无偏估计 $\theta$。给定最终计数和停止边，去掉最后一次结果后，前面结果的顺序均匀，因此
+\[
+\E(I\mid A,B)=\frac{B-\mathbf1_{\{B=r+1\}}}{A+B-1}.
+\]
+这是完全充分统计量的函数，且有限支持保证有限方差，所以是 UMVUE。虽然完整有序路径未保留，该条件期望表达式只用最终计数即可计算。
+\end{solve}
+
+\begin{example}[原题6：潜在泊松混合中的比率估计与精确检验]\label{yau:2023-6}
+设 $S\sim\operatorname{Pois}(2\lambda)$，给定 $S=s$ 后 $X,Y$ 独立，分别为成功概率 $2^{-s-1}$ 与 $\theta2^{-s}$ 的 Bernoulli 变量，$\lambda>0,0<\theta<1$。只观察 $n$ 组独立的 $(X_i,Y_i)$。求 $\widehat\theta=\bar Y/(2\bar X)$ 的渐近分布，并为 $H_0:\theta=1/2$ 构造精确检验。
+\end{example}
+\begin{solve}
+记 $q=e^{-\lambda}$，由泊松生成函数得
+\[
+\E X=q/2,\quad\E Y=\theta q,\quad\E(XY)=\theta q^{3/2}/2.
+\]
+从而 $\Cov(X,Y)=\theta(q^{3/2}-q^2)/2$。对 $g(x,y)=y/(2x)$，在总体均值处梯度为 $(-2\theta/q,1/q)$。二维中心极限定理和 Delta 方法给出
+\[
+\sqrt n(\widehat\theta-\theta)\xrightarrow d
+N\left(0,\frac{\theta(2\theta+1)}q-\frac{2\theta^2}{\sqrt q}\right).
+\]
+有限样本可能有 $\bar X=0$，可在此事件任意定义估计值；其概率为 $(1-q/2)^n\to0$，不会改变固定参数下的渐近分布。
+
+令 $N_{01}$、$N_{10}$ 分别为不一致配对 $(0,1)$ 和 $(1,0)$ 的个数，$D=N_{01}+N_{10}$。相应单次概率为
+\[
+p_{01}=\theta q-\theta q^{3/2}/2,\qquad p_{10}=q/2-\theta q^{3/2}/2.
+\]
+在零假设下二者相等，故条件于 $D$，$N_{01}\sim\operatorname{Bin}(D,1/2)$，可构造精确双侧二项检验；$D=0$ 时没有条件检验信息。备择下成功概率为 $p_{01}/(p_{01}+p_{10})$，偏离 $1/2$ 的方向与 $\theta-1/2$ 相同。功效同时受条件不平衡程度与不一致配对数量影响，后者的期望为 $n[(\theta+1/2)q-\theta q^{3/2}]$。因此不能只凭“参数离零假设更远”就忽略有效配对数或把双侧有限样本功效的单调性当作已证明事实。
+\end{solve}
+
+\section{2024年笔试选题}
+\begin{example}[原题1：公平多方博弈中内部对局数]\label{yau:2024-1}
+$r$ 人初始资本为正整数 $n_i$。每轮选择两名尚未出局的人公平对赌一个单位，资本降为0者出局，直到一人拥有全部资本 $n=\sum_i n_i$。选择规则可根据过去信息决定，但不能预知本轮独立公平结果。对玩家子集 $S$，令 $T_S$ 为两名参与者都属于 $S$ 的对局数，求 $\E T_S$ 并判断是否依赖选择机制。
+\end{example}
+\begin{solve}
+记第 $t$ 轮后各资本为 $C_i(t)$，终止时间为 $\tau$。每一轮不论选择哪两人，资本平方和的条件期望增加2，且总平方和至多 $n^2$，故对有界停时 $\tau\wedge m$，
+\[
+2\E(\tau\wedge m)\le n^2-\sum_i n_i^2.
+\]
+令 $m\to\infty$ 得 $\E\tau<\infty$，因而终止几乎处处发生。
+
+固定 $i\ne j$。只有当两人彼此对赌时，乘积 $C_iC_j$ 的条件期望减少1；若只有一人参与，公平性使乘积条件期望不变。令 $N_{ij}(t)$ 为截至 $t$ 两人的相互对局数，则 $C_i(t)C_j(t)+N_{ij}(t)$ 是鞅。先在 $\tau\wedge m$ 使用停时恒等式，再对有界资本乘积用控制收敛、对计数用单调收敛，得到
+\[
+\E N_{ij}(\tau)=n_in_j,
+\]
+因为结束时两人不可能同时拥有正资本。对 $S$ 内无序对求和，
+\[
+\E T_S=\sum_{\substack{i<j\\i,j\in S}}n_in_j.
+\]
+因此期望与非预知的选择机制无关。若允许根据尚未发生的胜负来选择参与者，公平的条件增量论证就不成立，故适应性条件应明确。
+\end{solve}
+
+\begin{example}[原题3：随机幂的小数位极限]\label{yau:2024-3}
+设 $X\sim U(0,1)$，$D_{m,k}$ 是 $X^k$ 小数点后第 $m$ 位十进制数字。求 $\lim_m\PP(D_{m,m}=i)$，$i=0,\ldots,9$；对一般 $k=k(m)>1$，给出所有数字渐近等可能的充要条件。
+\end{example}
+\begin{solve}
+设 $a=1/k\in(0,1)$，$Z=X^k$ 的分布函数为 $z^a$，密度为递减函数 $az^{a-1}$。令 $h=10^{-m}$，每段长度 $10h$ 包含第 $m$ 位的十个数字各一个宽 $h$ 的子段。第一段 $[0,10h)$ 中数字 $i$ 的概率为
+\[
+h^a[(i+1)^a-i^a],
+\]
+其中 $0^a=0$。在其余各段内，由密度单调性，每个子段概率与该段总概率的十分之一的误差，绝对值不超过 $h$ 乘该段首尾密度之差。对这些段求和望远镜相消，误差至多
+\[
+h\,a(10h)^{a-1}\le a(10h)^a.
+\]
+当 $m\to\infty$ 时，该界对 $0<a<1$ 一致趋零，因为 $\sup_{a>0}ae^{-a(m-1)\log10}=O(1/m)$。对 $i\ge1$，$(i+1)^a-i^a\le C_i a$；同时 $(10^a-1)h^a\le C a(10h)^a$。因此得到一致渐近式
+\[
+\PP(D_{m,k}=i)=\frac1{10}+\left(\mathbf1_{\{i=0\}}-\frac1{10}\right)10^{-m/k}+o(1).
+\]
+取 $k=m$ 得数字0的极限为 $19/100$，其他九个数字各为 $9/100$。所有数字极限为 $1/10$ 当且仅当 $10^{-m/k(m)}\to0$，即 $m/k(m)\to\infty$。固定幂与随位数一起增长的幂具有不同极限，不能先固定 $k$ 证明均匀后无条件令 $k=m$。
+\end{solve}
+
+\begin{example}[原题5：分组极大值再取最小值的中位数估计]\label{yau:2024-5}
+把 $n=rc$ 个独立同分布观测排列成 $r\times c$ 矩阵，连续分布函数为 $F$，中位数 $\beta$ 满足 $F(\beta)=1/2$。令 $\widehat\beta=\min_{j\le c}\max_{i\le r}X_{ij}$。求其中位数无偏条件；若 $r,c\to\infty$ 且渐近中位数无偏，$F'(\beta)=f(\beta)>0$，求 $r(\widehat\beta-\beta)$ 的极限分布。
+\end{example}
+\begin{solve}
+每一列最大值的分布函数为 $F(x)^r$，各列独立，因此
+\[
+\PP(\widehat\beta\le x)=1-[1-F(x)^r]^c.
+\]
+精确中位数无偏要求 $(1-2^{-r})^c=1/2$；若只能选择整数 $r,c$，未必每个 $n$ 都能精确满足。渐近条件是 $c\log(1-2^{-r})\to-\log2$，在 $r\to\infty$ 下等价于 $c2^{-r}\to\log2$。结合 $c=n/r$ 可写成 $n/(r2^r)\to\log2$；仅有 $r\sim\log_2 n$ 不足以确定所需常数。
+
+对固定实数 $z$，可微性给出 $F(\beta+z/r)=1/2+f(\beta)z/r+o(1/r)$，因此
+\[
+F(\beta+z/r)^r=2^{-r}\exp\{2f(\beta)z+o(1)\}.
+\]
+代回精确分布函数，得到
+\[
+\PP(r(\widehat\beta-\beta)\le z)\to
+1-\exp\{-(\log2)e^{2f(\beta)z}\}.
+\]
+这是非正态的极值型极限，中位数为0，收敛尺度为 $r$ 而不是 $\sqrt n$。这里考虑的是满足整数乘积与校准条件的样本量序列，不能忽略分组大小的整数约束。
+\end{solve}
+
+\section{2025年笔试选题}
+\begin{example}[原题1(1)：单个正态观测的比例型置信区间]\label{yau:2025-1}
+本题只选录原题1的第(1)问，不含其后随机区间的极小极大论断。设 $X\sim N(\mu,\sigma^2)$，$\mu\in\mathbb R,\sigma>0$ 都未知。给定 $c_1<c_2$，区间端点为 $c_1X,c_2X$ 的较小者和较大者。计算它对 $\mu$ 的覆盖概率。
+\end{example}
+\begin{solve}
+若 $\mu=0$，因为 $\PP(X=0)=0$，覆盖概率为 $\mathbf1_{\{c_1\le0\le c_2\}}$。若 $\mu\ne0$，令 $V=X/\mu\sim N(1,s^2)$，$s=\sigma/|\mu|$。覆盖事件可不分 $X$ 正负地写为
+\[
+(1-c_1V)(1-c_2V)\le0.
+\]
+当 $c_1c_2>0$，令 $l=\min(1/c_1,1/c_2)$、$u=\max(1/c_1,1/c_2)$，覆盖概率为 $\Phi((u-1)/s)-\Phi((l-1)/s)$。当 $c_1c_2<0$，事件是 $V\le l$ 或 $V\ge u$，概率为
+\[
+\Phi((l-1)/s)+1-\Phi((u-1)/s).
+\]
+若 $c_1=0<c_2$，概率为 $1-\Phi((1/c_2-1)/s)$；若 $c_1<c_2=0$，概率为 $\Phi((1/c_1-1)/s)$。这些公式明确展示覆盖率通常依赖未知的信噪比 $|\mu|/\sigma$。因此任意选择的比例端点并不会自动给出某个统一的名义置信水平，必须进一步对参数取下确界或进行设计。
+\end{solve}
+
+\section{2026年笔试选题}
+\begin{example}[原题1：序数变量的联合分布与优胜概率]\label{yau:2026-1}
+设 $Y_1,Y_0\in\{0,\ldots,L-1\}$，边缘分布函数为 $F_1,F_0$，给定一个 copula $C$ 使联合分布函数为 $C(F_1(k),F_0(j))$，约定 $F_a(-1)=0$。求 $\psi=\PP(Y_1>Y_0)$。再说明在共同阈值模型 $Y_a=\ell\Leftrightarrow\tau_{\ell-1}<\mu_a+\varepsilon_a\le\tau_\ell$ 下，潜在误差的同一 copula 如何诱导该公式。
+\end{example}
+\begin{solve}
+联合质量函数是联合分布函数的二维差分，因而
+\[
+\begin{aligned}
+p_{kj}={}&C(F_1(k),F_0(j))-C(F_1(k-1),F_0(j))\\
+&-C(F_1(k),F_0(j-1))+C(F_1(k-1),F_0(j-1)).
+\end{aligned}
+\]
+将 $k>j$ 的质量求和可得 $\psi$。更简洁地，固定 $Y_0=j$ 后对 $Y_1\le j$ 作差，得到
+\[
+\psi=1-\sum_{j=0}^{L-1}\{C(F_1(j),F_0(j))-C(F_1(j),F_0(j-1))\}.
+\]
+阈值模型中事件 $Y_a\le k$ 等价于 $\varepsilon_a\le\tau_k-\mu_a$，而 $F_a(k)=F_{\varepsilon_a}(\tau_k-\mu_a)$。把两个阈值同时代入潜在联合分布即得所述离散联合分布。
+
+离散边缘下 copula 一般不唯一；题目给定的 $C$ 是依赖结构假设。若两个组来自不同个体，只知道两个边缘分布，未必能从数据识别同一个体的两种潜在结果之间的依赖，故 $\psi$ 的数值依赖这个额外设定。
+\end{solve}
+
+\begin{example}[原题2：分块回归与残差化定理]\label{yau:2026-2}
+设设计矩阵 $[X_1\ X_2]$ 满列秩，$M_1=I-X_1(X_1^{\mathrm T}X_1)^{-1}X_1^{\mathrm T}$。证明完整最小二乘回归 $Y$ 关于 $[X_1\ X_2]$ 中的第二组系数，等于 $M_1Y$ 关于 $M_1X_2$ 的回归系数。
+\end{example}
+\begin{solve}
+固定 $\beta_2$ 后，最小化 $\|Y-X_1\beta_1-X_2\beta_2\|^2$ 的 $\beta_1$ 是 $Y-X_2\beta_2$ 在 $X_1$ 上的投影系数，因此轮廓目标为
+\[
+\|M_1(Y-X_2\beta_2)\|^2.
+\]
+这已经是残差化回归的目标。由于 $M_1$ 对称幂等，正规方程给出
+\[
+\widehat\beta_2=(X_2^{\mathrm T}M_1X_2)^{-1}X_2^{\mathrm T}M_1Y.
+\]
+矩阵可逆性来自完整设计满列秩：若 $M_1X_2v=0$，则 $X_2v\in\operatorname{col}(X_1)$，除 $v=0$ 外会构成完整设计列之间的线性依赖。因此 $X_2^{\mathrm T}M_1X_2$ 正定。
+
+这称为 Frisch--Waugh--Lovell 定理。它是确定性的投影恒等式，不需要误差正态或同方差；这些分布假设只在进一步推断标准误、置信区间时使用。
+\end{solve}
+
+\begin{example}[原题3：偏斜正态密度与均值]\label{yau:2026-3}
+设 $a>0$，$\phi,\Phi$ 分别为标准正态密度和分布函数。证明 $f(x)=2\phi(x)\Phi(ax)$ 是概率密度，并计算相应变量的期望。
+\end{example}
+\begin{solve}
+非负性直接成立。利用 $\Phi(ax)+\Phi(-ax)=1$ 及 $\phi$ 对称，
+\[
+2\int_{\mathbb R}\phi(x)\Phi(ax)\,dx=\int_{\mathbb R}\phi(x)[\Phi(ax)+\Phi(-ax)]\,dx=1.
+\]
+又 $|x|f(x)\le2|x|\phi(x)$ 可积。由于 $x\phi(x)=-\phi'(x)$，积分分部时边界项为零，故
+\[
+\E Y=2a\int_{\mathbb R}\phi(x)\phi(ax)\,dx
+=\sqrt{\frac2\pi}\frac a{\sqrt{1+a^2}}.
+\]
+当 $a\downarrow0$，密度趋于标准正态且均值趋零；当 $a\to\infty$，密度趋于正半轴上的半正态且均值趋于 $\sqrt{2/\pi}$，与公式相符。
+\end{solve}
+
+\begin{example}[原题4：布朗运动对称区间退出时间的二阶矩]\label{yau:2026-4}
+设 $B_t$ 是从0出发的标准布朗运动，$\tau_a=\inf\{t\ge0:|B_t|=a\}$，$a>0$。求 $\E\tau_a^2$。
+\end{example}
+\begin{solve}
+先从一般初值 $x\in(-a,a)$ 出发。解边值问题 $\tfrac12u''=-1,u(\pm a)=0$ 得 $u(x)=a^2-x^2$。对有界停时 $t\wedge\tau_a$ 用 Itô 公式，因 $u\ge0$ 且有界，得到 $\E_x(t\wedge\tau_a)\le u(x)$，进而退出几乎处处有限。再令 $t\to\infty$，用控制收敛与单调收敛得 $\E_x\tau_a=u(x)$。
+
+由强马尔可夫性质和非负积分换序，
+\[
+\E_x\tau_a^2=2\E_x\int_0^{\tau_a}\E(\tau_a-s\mid\mathcal F_s)\,ds
+=2\E_x\int_0^{\tau_a}u(B_s)\,ds.
+\]
+右端有限，因为 $u\le a^2$ 且退出时间一阶矩有限。再解 $\tfrac12v''=-2u,v(\pm a)=0$，积分得
+\[
+v(x)=\frac{x^4}{3}-2a^2x^2+\frac{5a^4}{3}.
+\]
+同样在 $t\wedge\tau_a$ 上应用 Itô 公式，再由 $u,v$ 的有界性及 $\E\tau_a<\infty$ 取极限，得到 $v(x)=2\E_x\int_0^{\tau_a}u(B_s)\,ds$。因此
+\[
+\E\tau_a^2=v(0)=\frac{5a^4}{3},\qquad \Var(\tau_a)=\frac{2a^4}{3}.
+\]
+该推导先证明所需可积性再使用停时极限，不能未经验证直接把无界退出时间代入任意鞅恒等式。
+\end{solve}
+
+
+
+
+
+

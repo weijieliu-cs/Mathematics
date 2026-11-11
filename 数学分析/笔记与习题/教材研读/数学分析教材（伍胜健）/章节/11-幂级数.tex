@@ -1,0 +1,711 @@
+% !TeX root = ../数学分析教材（伍胜健）笔记.tex
+% 本文件由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{10} % 保留原书章号。
+\chapter{幂级数}
+\label{chap:power-series}
+
+% 本章正文依据数学分析-11.pdf 第 1--27 页，对应教材第 212--238 页；
+% 第 27 页开始的习题十一不在本次整理范围内。
+多项式容易计算、求导和积分，而幂级数的部分和都是多项式，因此幂级数提供了一条用简单函数研究复杂函数的途径。与一般函数项级数相比，幂级数的收敛域具有特别整齐的形状，并且在收敛区间内部可以任意次逐项求导和积分。本章先确定收敛范围，再研究和函数的性质以及初等函数的幂级数展开，最后讨论一个更一般的问题：即使函数不能展开成幂级数，是否仍能用多项式一致逼近？以下讨论实系数、实变量的幂级数，除另有说明外，级数的指标从 $0$ 开始。
+
+\section{幂级数的收敛半径与收敛域}
+\label{sec:radius-and-domain-of-convergence}
+
+\subsection{幂级数的收敛半径与收敛域}
+\label{subsec:radius-and-domain-of-convergence}
+
+\begin{definition}
+\label{def:real-power-series}
+设 $x_0\in\mathbb R$，$a_n\in\mathbb R$。形如
+\begin{equation}
+    \sum_{n=0}^\infty a_n(x-x_0)^n
+    =a_0+a_1(x-x_0)+a_2(x-x_0)^2+\cdots
+    \label{eq:general-real-power-series}
+\end{equation}
+的函数项级数称为以 $x_0$ 为中心的\emph{幂级数}（power series），$a_n$ 称为系数。全部收敛点组成它的\emph{收敛域}（domain of convergence）；在收敛域上，级数的和定义其和函数。常数项在 $x=x_0$ 时取值为 $a_0$，故中心总是收敛点。
+\end{definition}
+
+作平移 $t=x-x_0$，即可把一般情形化为 $\sum a_nt^n$，所以先讨论中心为零的情形。以下几个级数说明，端点是否属于收敛域必须另外判断。
+
+\begin{example}
+\label{ex:power-series-basic-convergence-domains}
+求 $\sum_{n=0}^\infty n!x^n$、$\sum_{n=0}^\infty x^n$、$\sum_{n=1}^\infty x^n/n$、$\sum_{n=1}^\infty x^n/n^2$ 及 $\sum_{n=0}^\infty x^n/n!$ 的收敛域，其中 $0!=1$。
+\end{example}
+
+\begin{solve}
+当 $x\neq0$ 时，$n!|x|^n$ 的相邻项之比为 $(n+1)|x|\to+\infty$，故通项不趋于零，第一个级数仅在 $x=0$ 收敛。几何级数 $\sum x^n$ 在 $|x|<1$ 时绝对收敛，而在 $|x|\geq1$ 时通项不趋于零，所以收敛域为 $(-1,1)$。对于 $\sum x^n/n$，当 $|x|<1$ 时可用几何级数比较，当 $|x|>1$ 时通项不趋于零；在 $x=-1$ 处为收敛的交错级数，在 $x=1$ 处为发散的调和级数，因此收敛域为 $[-1,1)$。同理，$\sum x^n/n^2$ 的两个端点都绝对收敛，收敛域为 $[-1,1]$。最后，$x\neq0$ 时有
+\[
+    \frac{|x|^{n+1}/(n+1)!}{|x|^n/n!}
+    =\frac{|x|}{n+1}\longrightarrow0,
+\]
+所以 $\sum x^n/n!$ 对每个实数都绝对收敛，收敛域为 $\mathbb R$。
+\end{solve}
+
+\begin{theorem}[由一个收敛点控制内部区间]
+\label{thm:power-series-interior-absolute-uniform-convergence}
+若 $\sum_{n=0}^\infty a_nx^n$ 在 $x=t\neq0$ 处收敛，则对每个 $0<r<|t|$，它在 $[-r,r]$ 上绝对一致收敛，即 $\sum |a_nx^n|$ 在该区间上一致收敛。
+\end{theorem}
+
+\begin{proof}
+由收敛级数的通项趋于零，数列 $\{a_nt^n\}$ 有界，故存在 $M>0$，使所有 $n\geq0$ 都满足 $|a_nt^n|\leq M$。于是当 $|x|\leq r$ 时，
+\[
+    |a_nx^n|\leq M\left(\frac r{|t|}\right)^n.
+\]
+右边组成收敛的几何级数，由定理~\ref{thm:weierstrass-uniform-m-test} 即得结论。这里仅要求在 $t$ 处收敛，无须假设该点绝对收敛。
+\end{proof}
+
+\begin{theorem}[收敛半径与收敛域]
+\label{thm:power-series-radius-and-domain}
+对于任意幂级数 $\sum_{n=0}^\infty a_n(x-x_0)^n$，存在唯一的 $R\in[0,+\infty]$，使级数在 $|x-x_0|<R$ 时绝对收敛，并在这个开区间的每个有限闭子区间上绝对一致收敛；在 $|x-x_0|>R$ 时发散。$R$ 称为\emph{收敛半径}（radius of convergence）。当 $R=0$ 时，级数仅在 $x_0$ 处收敛；当 $R=+\infty$ 时，级数在整个实轴上收敛。当 $0<R<+\infty$ 时，两个端点 $x_0\pm R$ 的敛散性需要分别判断，故收敛域是
+\[
+    (x_0-R,x_0+R),\quad [x_0-R,x_0+R),\quad
+    (x_0-R,x_0+R],\quad [x_0-R,x_0+R]
+\]
+四种区间中的一种。
+\end{theorem}
+
+\begin{proof}
+平移后设 $x_0=0$，令
+\[
+    R=\sup\left\{|t|:\sum_{n=0}^\infty a_nt^n\text{ 收敛}\right\},
+\]
+集合无上界时规定 $R=+\infty$。若 $r<R$，由上确界的定义，可找到收敛点 $t$，使 $|t|>r$；前一定理保证级数在 $[-r,r]$ 上绝对一致收敛。任一有限闭子区间都可包含在这样的 $[-r,r]$ 内。若 $|x|>R$，按 $R$ 的定义该点不能收敛。$R=0$ 和 $R=+\infty$ 的结论也由定义及同一论证得到。唯一性来自内部收敛、外部发散这两个性质；有限正半径时，前例及将 $x$ 换成 $-x$ 得到的例子说明四种端点组合都可能出现。
+\end{proof}
+
+\emph[caution]{收敛半径控制的是开区间内部与闭区间外部，不能决定端点，也不能保证在整个开区间上一致收敛。}例如几何级数在 $(-1,1)$ 内闭绝对一致收敛，但在 $[0,1)$ 上的余项 $x^{N+1}/(1-x)$ 无法一致趋于零。
+
+\subsection{收敛半径的求法}
+\label{subsec:computing-the-radius-of-convergence}
+
+\begin{theorem}[柯西--哈达玛定理]
+\label{thm:cauchy-hadamard-radius}
+设 $\sum a_n(x-x_0)^n$ 的收敛半径为 $R$，记
+\[
+    \rho=\limsup_{n\to\infty}\sqrt[n]{|a_n|}\in[0,+\infty].
+\]
+则
+\begin{equation}
+    R=\frac1\rho,
+    \qquad \frac10:=+\infty,\quad \frac1{+\infty}:=0.
+    \label{eq:cauchy-hadamard-radius}
+\end{equation}
+这称为\emph{柯西--哈达玛公式}（Cauchy--Hadamard formula）。
+\end{theorem}
+
+\begin{proof}
+固定 $t=x-x_0\neq0$，有
+\[
+    \limsup_{n\to\infty}\sqrt[n]{|a_nt^n|}=|t|\rho.
+\]
+当 $0<\rho<+\infty$ 时，数项级数的根值判别法说明 $|t|\rho<1$ 时绝对收敛，$|t|\rho>1$ 时发散，因此 $R=1/\rho$。当 $\rho=0$ 时，每个有限 $t$ 都使根值上极限为零，故 $R=+\infty$；当 $\rho=+\infty$ 时，每个非零 $t$ 都使其为 $+\infty$，故 $R=0$。中心 $t=0$ 始终收敛，无须使用上述乘积式。
+\end{proof}
+
+\begin{corollary}[比值法]
+\label{cor:power-series-ratio-radius}
+若系数从某项起均不为零，且扩展实数极限
+\[
+    \lim_{n\to\infty}\left|\frac{a_{n+1}}{a_n}\right|=\rho
+\]
+存在，则仍有式~\eqref{eq:cauchy-hadamard-radius}。当 $0<\rho<+\infty$ 时，也可写成 $R=\lim_{n\to\infty}|a_n/a_{n+1}|$。
+\end{corollary}
+
+\begin{proof}
+固定 $t\neq0$ 后，$|a_{n+1}t^{n+1}|/|a_nt^n|\to\rho|t|$，直接用比值判别法即可确定内部与外部的敛散性；$\rho=0,+\infty$ 时分别得到处处收敛与仅在中心收敛。
+\end{proof}
+
+比值极限不存在时，不能用比值法推出一个半径，但根值的上极限公式始终适用。对于\emph{缺项幂级数}（lacunary power series），必须按实际幂次确定系数，未出现的幂次系数为零；求根时不能把求和指标误当成幂次。
+
+\begin{example}
+\label{ex:lacunary-factorial-power-series}
+求缺项幂级数 $\displaystyle\sum_{n=0}^\infty n!x^{n^2}$ 的收敛半径与收敛域。
+\end{example}
+
+\begin{solve}
+在正幂次 $m=n^2$ 处系数为 $n!$，其余正幂次处为零。由
+\[
+    1\leq(n!)^{1/n^2}\leq(n^n)^{1/n^2}
+    =n^{1/n}\longrightarrow1,
+\]
+可知完整系数序列的根值上极限为 $1$，故 $R=1$。在 $x=\pm1$ 处，通项的绝对值为 $n!$，不趋于零，所以收敛域为 $(-1,1)$。这里 $|x|<1$ 时，$x^{n^2}$ 的衰减能够压过 $n!$ 的增长。
+\end{solve}
+
+\begin{example}
+\label{ex:shifted-and-parameter-power-series}
+求 $\displaystyle\sum_{n=1}^\infty\frac{\ln(n+1)}{n^2}(x-3)^n$，以及带参数 $\alpha>0$ 的 $\displaystyle\sum_{n=1}^\infty\frac{(x+1)^n}{2^{n^\alpha}}$ 的收敛半径与收敛域。
+\end{example}
+
+\begin{solve}
+第一个级数的中心为 $3$，且
+\[
+    \left|\frac{a_{n+1}}{a_n}\right|
+    =\frac{n^2\ln(n+2)}{(n+1)^2\ln(n+1)}\longrightarrow1,
+\]
+故 $R=1$。在 $x=2,4$ 处，绝对值级数均为 $\sum\ln(n+1)/n^2$；因 $\ln(n+1)\leq\sqrt n$ 对充分大的 $n$ 成立，该级数收敛，所以收敛域为 $[2,4]$。
+
+第二个级数的中心为 $-1$，系数满足
+\[
+    \sqrt[n]{a_n}=2^{-n^{\alpha-1}}
+    \longrightarrow
+    \begin{cases}
+        1,&0<\alpha<1,\\
+        1/2,&\alpha=1,\\
+        0,&\alpha>1.
+    \end{cases}
+\]
+因此半径依次为 $1,2,+\infty$。当 $0<\alpha<1$ 时，端点为 $-2,0$，绝对值级数为 $\sum2^{-n^\alpha}$；由 $n^\alpha/\ln n\to+\infty$，充分大的 $n$ 满足 $n^\alpha\ln2\geq2\ln n$，于是 $2^{-n^\alpha}\leq n^{-2}$，两个端点都绝对收敛。当 $\alpha=1$ 时，端点为 $-3,1$，通项绝对值恒为 $1$，两端均发散。当 $\alpha>1$ 时，没有有限端点需要检查。故其收敛域分别为 $[-2,0]$、$(-3,1)$ 与 $\mathbb R$。
+\end{solve}
+
+\section{幂级数的性质}
+\label{sec:properties-of-power-series}
+
+\begin{theorem}[阿贝尔定理]
+\label{thm:abel-power-series-uniform-convergence}
+设 $\sum a_n(x-x_0)^n$ 的收敛半径为 $R>0$。它在 $(x_0-R,x_0+R)$ 内闭绝对一致收敛，这一结论通常称为\emph{阿贝尔第一定理}（Abel's first theorem）。若 $R<+\infty$ 且级数在右端点 $x_0+R$ 收敛，则它在每个 $[c,x_0+R]$（$x_0-R<c<x_0+R$）上一致收敛；若在左端点 $x_0-R$ 收敛，则在每个 $[x_0-R,d]$（$x_0-R<d<x_0+R$）上一致收敛。端点处的这两个结论通常称为\emph{阿贝尔第二定理}（Abel's second theorem）。若两端都收敛，则在整个闭区间上一致收敛。
+\end{theorem}
+
+\begin{proof}
+内部的结论已由定理~\ref{thm:power-series-radius-and-domain} 证明。若右端点收敛，在 $x\in[x_0,x_0+R]$ 上写成
+\[
+    a_n(x-x_0)^n=a_nR^n
+        \left(\frac{x-x_0}{R}\right)^n.
+\]
+级数 $\sum a_nR^n$ 与 $x$ 无关，因而作为函数项级数一致收敛；后一因子关于 $n$ 单调不增，并一致有界于 $1$。由定理~\ref{thm:uniform-abel-test}，乘积级数在该闭区间上一致收敛，再与内部的闭区间拼接即可。左端点的证明相同，只需写成
+\[
+    a_n(x-x_0)^n=a_n(-R)^n
+        \left(\frac{x_0-x}{R}\right)^n,
+    \qquad x_0-R\leq x\leq x_0.
+\]
+两端都收敛时，把左右两个闭区间合并，便得全区间的一致收敛。
+\end{proof}
+
+\begin{corollary}[和函数的连续性与端点极限]
+\label{cor:power-series-continuity-and-abel-limits}
+幂级数的和函数在其收敛域上连续，端点按相对连续性理解。特别地，当 $0<R<+\infty$ 时，若对应端点级数收敛，则
+\begin{align}
+    \lim_{x\to(x_0+R)-}\sum_{n=0}^\infty a_n(x-x_0)^n
+        &=\sum_{n=0}^\infty a_nR^n,
+        \label{eq:abel-right-endpoint-limit}\\
+    \lim_{x\to(x_0-R)+}\sum_{n=0}^\infty a_n(x-x_0)^n
+        &=\sum_{n=0}^\infty a_n(-R)^n.
+        \label{eq:abel-left-endpoint-limit}
+\end{align}
+\end{corollary}
+
+\begin{proof}
+各项是连续的多项式，在内点附近及已经收敛的端点附近，都可使用前一定理得到闭区间上的一致收敛，再用连续函数一致极限的连续性即得。
+\end{proof}
+
+阿贝尔定理的逻辑方向需要区分：\emph[caution]{先有端点级数收敛，才能把内侧极限与端点求和交换；和函数在端点有有限内侧极限，并不足以反推端点级数收敛。}例如 $\sum_{n=0}^\infty(-1)^nx^n=1/(1+x)$ 在 $x\to1-$ 时趋于 $1/2$，但 $\sum(-1)^n$ 发散。
+
+\begin{theorem}[逐项积分]
+\label{thm:power-series-termwise-integration}
+设 $f(x)=\sum_{n=0}^\infty a_n(x-x_0)^n$ 的收敛半径为 $R>0$，$\alpha,\beta$ 是其收敛域内任意两点，则
+\begin{equation}
+    \int_\alpha^\beta f(x)\,dx
+    =\sum_{n=0}^\infty
+       \frac{a_n}{n+1}
+       \bigl[(\beta-x_0)^{n+1}-(\alpha-x_0)^{n+1}\bigr].
+    \label{eq:power-series-integral-between-convergence-points}
+\end{equation}
+特别地，在收敛域内有
+\begin{equation}
+    \int_{x_0}^x f(t)\,dt
+       =\sum_{n=0}^\infty\frac{a_n}{n+1}(x-x_0)^{n+1}.
+    \label{eq:power-series-integral-from-center}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+先设 $\alpha\leq\beta$。若二者都在内部，由内闭一致收敛可逐项积分；若其中一个或两个为已经收敛的端点，则阿贝尔定理仍保证在 $[\alpha,\beta]$ 上一致收敛，由推论~\ref{cor:termwise-integration-uniform-series} 得到同一结论。$\alpha>\beta$ 时由定积分的定向约定处理。
+\end{proof}
+
+\begin{theorem}[逐项求导及任意阶光滑性]
+\label{thm:power-series-termwise-differentiation}
+设 $f(x)=\sum a_n(x-x_0)^n$ 的收敛半径为 $R>0$，则 $f$ 在开区间 $(x_0-R,x_0+R)$ 上具有任意阶连续导数，且对每个正整数 $k$，
+\begin{equation}
+    f^{(k)}(x)=\sum_{n=k}^\infty
+        n(n-1)\cdots(n-k+1)a_n(x-x_0)^{n-k}.
+    \label{eq:power-series-arbitrary-derivatives}
+\end{equation}
+逐项求导或从中心逐项积分所得到的幂级数，都与原级数具有相同的收敛半径。
+\end{theorem}
+
+\begin{proof}
+先说明一次求导与积分不改变半径。对求导级数记 $b_{n-1}=na_n$，对积分级数记 $c_{n+1}=a_n/(n+1)$，则对充分大的 $n$，
+\[
+    |b_{n-1}|^{1/(n-1)}
+        =\bigl(n^{1/n}|a_n|^{1/n}\bigr)^{n/(n-1)},\qquad
+    |c_{n+1}|^{1/(n+1)}
+        =\left(\frac{|a_n|^{1/n}}{(n+1)^{1/n}}\right)^{n/(n+1)}.
+\]
+因 $n^{1/n},(n+1)^{1/n}\to1$，且 $n/(n\pm1)\to1$，这两列的上极限都等于 $\limsup|a_n|^{1/n}$，包括零与 $+\infty$ 两种情形。由柯西--哈达玛公式，它们的半径均为 $R$。反复应用可得任意阶求导级数也有半径 $R$。
+
+任取内部的有限闭区间，并将它扩大为仍在内部且包含 $x_0$ 的闭区间。求导级数在其上一致收敛，原级数在 $x_0$ 处收敛，因此由推论~\ref{cor:termwise-differentiation-uniform-derivative-series} 可逐项求导。各阶重复这一论证得到式~\eqref{eq:power-series-arbitrary-derivatives}；每个导函数又是连续项级数的内闭一致极限，故均连续。
+\end{proof}
+
+求导与积分保持收敛半径，但可能改变端点的敛散性。若原级数在某端点收敛，积分级数在该端点也收敛；若求导级数在某端点收敛，则原级数也在该端点收敛，因为可把原通项写成求导通项乘以该端点相对中心的距离再除以 $n$，使用阿贝尔判别法。反向推断一般不成立。例如从 $\sum_{n=0}^\infty x^n$ 连续两次从零积分，依次得到
+\[
+    \sum_{n=0}^\infty\frac{x^{n+1}}{n+1},\qquad
+    \sum_{n=0}^\infty\frac{x^{n+2}}{(n+1)(n+2)},
+\]
+三者半径都为 $1$，收敛域却依次为 $(-1,1)$、$[-1,1)$ 和 $[-1,1]$。逐项求导公式首先是开区间内部的结论，不能仅凭原级数在端点收敛就延用到该点。
+
+\begin{example}
+\label{ex:power-series-logarithmic-endpoint-changes}
+设 $p,q>0$，讨论
+\[
+    F(x)=\sum_{n=1}^\infty\frac{x^n}{n^p\ln^q(n+1)}
+\]
+及其从零逐项积分、逐项求导后所得级数的收敛域。
+\end{example}
+
+\begin{solve}
+系数的 $n$ 次根趋于 $1$，故三个级数的半径均为 $1$。原级数在 $x=-1$ 处由交错级数判别法收敛；在 $x=1$ 处，由对数型正项级数的判别，$\sum1/[n^p\ln^q(n+1)]$ 当且仅当 $p>1$，或 $p=1$ 且 $q>1$ 时收敛。这里可用 $\ln(n+1)\sim\ln n$，再对 $1/(t^p\ln^qt)$ 使用积分判别法；$p=1$ 时换元 $u=\ln t$，$p\neq1$ 时用对数与幂的阶比较。因此原级数的收敛域为
+\[
+    \begin{cases}
+        [-1,1],&p>1\text{，或 }p=1,\ q>1,\\
+        [-1,1),&0<p<1\text{，或 }p=1,\ 0<q\leq1.
+    \end{cases}
+\]
+积分级数为 $\sum x^{n+1}/[(n+1)n^p\ln^q(n+1)]$，因 $p>0$，在两个端点均绝对收敛，故收敛域为 $[-1,1]$。
+
+求导级数为 $\sum x^{n-1}/[n^{p-1}\ln^q(n+1)]$。当 $p\geq1$ 时，端点 $-1$ 处的绝对值通项单调趋于零，因而交错收敛；当 $0<p<1$ 时，$n^{1-p}/\ln^q(n+1)\to+\infty$，两个端点的通项都不趋于零。端点 $1$ 的判别相当于把原级数的 $p$ 换成 $p-1$，故求导级数的收敛域为
+\[
+    \begin{cases}
+        [-1,1],&p>2\text{，或 }p=2,\ q>1,\\
+        [-1,1),&1\leq p<2\text{，或 }p=2,\ 0<q\leq1,\\
+        (-1,1),&0<p<1.
+    \end{cases}
+\]
+可见积分能够改善端点收敛性，而求导可能使原本收敛的端点消失。
+\end{solve}
+
+\begin{example}
+\label{ex:power-series-summation-by-two-derivatives}
+求 $\displaystyle f(x)=\sum_{n=1}^\infty\frac{x^{2n+1}}{n(2n+1)}$ 的和函数，并求 $\displaystyle\sum_{n=1}^\infty1/[n(2n+1)]$。
+\end{example}
+
+\begin{solve}
+半径为 $1$，且两个端点均绝对收敛。在 $|x|<1$ 内连续两次逐项求导，得到
+\[
+    f'(x)=\sum_{n=1}^\infty\frac{x^{2n}}n,
+    \qquad f''(x)=2\sum_{n=1}^\infty x^{2n-1}
+       =\frac{2x}{1-x^2}.
+\]
+利用 $f'(0)=f(0)=0$，先后积分得
+\[
+    f'(x)=-\ln(1-x^2),\qquad
+    f(x)=(1-x)\ln(1-x)+2x-(1+x)\ln(1+x).
+\]
+当 $x\to1-$ 时，用 $t\ln t\to0$ 及阿贝尔端点定理可得
+\[
+    \sum_{n=1}^\infty\frac1{n(2n+1)}=2-2\ln2.
+\]
+同理，$f(-1)=2\ln2-2$；闭区间上的和函数由上式作连续延拓得到。计算时先在开区间内部求导，再用已经核实的端点收敛性取极限，避免了直接在端点求导。
+\end{solve}
+
+\section{初等函数的幂级数展开}
+\label{sec:power-series-expansions-of-elementary-functions}
+
+\subsection{泰勒级数}
+\label{subsec:taylor-series}
+
+幂级数的性质回答了由系数研究和函数的问题；现在反过来，给定函数 $f$，希望找到系数，使幂级数的和恰好等于 $f$。逐项求导说明，如果这样的展开存在，其系数已经被 $f$ 在中心处的各阶导数完全确定。困难不在于写出一个形式上的级数，而在于证明它确实表示原函数。
+
+\begin{definition}
+\label{def:taylor-series-and-real-analyticity}
+若 $f$ 在 $x_0$ 处具有任意阶导数，则幂级数
+\begin{equation}
+    \sum_{n=0}^\infty\frac{f^{(n)}(x_0)}{n!}(x-x_0)^n,
+    \qquad f^{(0)}:=f,
+    \label{eq:taylor-series-definition}
+\end{equation}
+称为 $f$ 在 $x_0$ 处的\emph{泰勒级数}（Taylor series）；$x_0=0$ 时称为\emph{麦克劳林级数}（Maclaurin series）。若存在 $\delta>0$，使该级数在 $|x-x_0|<\delta$ 内收敛且和等于 $f(x)$，则称这个等式为 $f$ 在 $x_0$ 附近的\emph{泰勒展式}（Taylor expansion），并称 $f$ 在 $x_0$ 处\emph{实解析}（real analytic）。若开区间 $I$ 的每一点都具有这样的局部表示，则称 $f$ 在 $I$ 上实解析。
+\end{definition}
+
+\begin{theorem}[幂级数展开的唯一性]
+\label{thm:uniqueness-of-power-series-expansion}
+若对 $|x-x_0|<R$（$R>0$）有 $f(x)=\sum a_n(x-x_0)^n$，则
+\begin{equation}
+    a_n=\frac{f^{(n)}(x_0)}{n!},\qquad n=0,1,2,\ldots.
+    \label{eq:power-series-coefficients-by-derivatives}
+\end{equation}
+因此，同一中心处的幂级数展开若存在，必唯一，且必为该函数的泰勒展式。
+\end{theorem}
+
+\begin{proof}
+由定理~\ref{thm:power-series-termwise-differentiation}，可在内部逐项求任意阶导数。令 $x=x_0$ 时，$n$ 阶导数级数中只有原第 $n$ 项留下，得到 $f^{(n)}(x_0)=n!a_n$；$n=0$ 时直接代入。
+\end{proof}
+
+\begin{example}
+\label{ex:smooth-flat-function-not-real-analytic}
+设
+\[
+    f(x)=\begin{cases}e^{-1/x^2},&x\neq0,\\0,&x=0.\end{cases}
+\]
+证明 $f\in C^\infty(\mathbb R)$，但它在零点附近不能展开成幂级数。
+\end{example}
+
+\begin{solve}
+先注意，对每个非负整数 $m$，令 $u=1/x^2\to+\infty$，由指数增长快于幂增长可知
+\[
+    |x|^{-m}e^{-1/x^2}=u^{m/2}e^{-u}\longrightarrow0.
+\]
+在 $x\neq0$ 处反复求导，每一阶导数都具有 $P_n(1/x)e^{-1/x^2}$ 的形式，其中 $P_n$ 为多项式。这可由归纳法核实：若当前多项式为 $P(t)$，下一阶对应多项式为 $-t^2P'(t)+2t^3P(t)$。
+
+归纳证明零点处各阶导数存在且等于零。已知第 $n$ 阶导数在零点为零、在非零点具有上述形式，则
+\[
+    \lim_{h\to0}\frac{f^{(n)}(h)-f^{(n)}(0)}h
+       =\lim_{h\to0}\frac{P_n(1/h)}h e^{-1/h^2}=0.
+\]
+所以第 $n+1$ 阶导数在零点存在且为零；它在非零点的表达式也趋于零，故在零点连续。由 $n=0$ 起归纳，得到 $f\in C^\infty(\mathbb R)$ 及 $f^{(n)}(0)=0$。于是其麦克劳林级数恒为零，而任意非零 $x$ 都有 $f(x)>0$；由展开的唯一性，$f$ 不可能在零点的任何邻域内由幂级数表示。
+\end{solve}
+
+此例区分了三个层次：有任意阶导数，泰勒级数具有正收敛半径，泰勒级数的和等于原函数。它们不能仅凭形式上的系数计算互相替代；本例的泰勒级数甚至在整个实轴收敛，却仍不能在零点附近表示 $f$。
+
+\subsection{初等函数的泰勒展式}
+\label{subsec:taylor-expansions-of-elementary-functions}
+
+\begin{theorem}[泰勒展开的余项判据]
+\label{thm:taylor-expansion-remainder-criterion}
+设 $f\in C^\infty((x_0-\delta,x_0+\delta))$，记
+\[
+    T_N(x)=\sum_{n=0}^N\frac{f^{(n)}(x_0)}{n!}(x-x_0)^n,
+    \qquad R_N(x)=f(x)-T_N(x).
+\]
+则 $f$ 在这个区间内等于其泰勒级数，当且仅当对每个固定的 $x$ 都有 $R_N(x)\to0$。若进一步在某个集合 $E$ 上有 $\sup_{x\in E}|R_N(x)|\to0$，则泰勒部分和在 $E$ 上一致收敛于 $f$。
+\end{theorem}
+
+\begin{proof}
+由 $T_N(x)=f(x)-R_N(x)$，逐点收敛与一致收敛的两个结论分别直接来自定义。应用时可使用第~\ref{sec:taylor-formula} 节的拉格朗日余项或式~\eqref{eq:taylor-integral-remainder} 中的积分余项估计 $R_N$，但不能在没有估计的情况下把有限阶泰勒公式直接改写为无穷级数。
+\end{proof}
+
+\begin{proposition}[指数、正弦与余弦的展开]
+\label{prop:exponential-sine-cosine-power-expansions}
+对每个 $x\in\mathbb R$，有
+\begin{align}
+    e^x&=\sum_{n=0}^\infty\frac{x^n}{n!},
+        \label{eq:exponential-maclaurin-expansion}\\
+    \sin x&=\sum_{n=0}^\infty
+        \frac{(-1)^nx^{2n+1}}{(2n+1)!},
+        \label{eq:sine-maclaurin-expansion}\\
+    \cos x&=\sum_{n=0}^\infty
+        \frac{(-1)^nx^{2n}}{(2n)!}.
+        \label{eq:cosine-maclaurin-expansion}
+\end{align}
+三者的收敛半径均为 $+\infty$，并在每个有限闭区间上绝对一致收敛。
+\end{proposition}
+
+\begin{proof}
+指数函数各阶导数仍为自身；正弦与余弦的各阶导数由四步循环得到，绝对值不超过 $1$，故泰勒系数分别如上。固定 $x$，拉格朗日余项满足
+\[
+    |R_N^{\exp}(x)|\leq e^{|x|}\frac{|x|^{N+1}}{(N+1)!},
+    \qquad
+    |R_N^{\sin}(x)|,\ |R_N^{\cos}(x)|
+       \leq\frac{|x|^{N+1}}{(N+1)!}.
+\]
+这里上标只标明所属函数，不表示求导。对固定 $x$，右边的阶乘分母使其趋于零，由余项判据得到展开；在 $|x|\leq M$ 上以 $M$ 替代 $|x|$ 还得到一致控制。绝对收敛及收敛半径也可直接用比值法核实。
+\end{proof}
+
+\begin{theorem}[广义二项式展开]
+\label{thm:generalized-binomial-series}
+对 $\alpha\in\mathbb R$，定义\emph{广义二项式系数}（generalized binomial coefficient）为
+\[
+    \binom\alpha0=1,\qquad
+    \binom\alpha n=\frac{\alpha(\alpha-1)\cdots(\alpha-n+1)}{n!}
+    \quad(n\geq1).
+\]
+当 $|x|<1$ 时，成立
+\begin{equation}
+    (1+x)^\alpha=\sum_{n=0}^\infty\binom\alpha n x^n.
+    \label{eq:generalized-binomial-expansion}
+\end{equation}
+若 $\alpha$ 是非负整数，右边为有限和，即通常的二项式定理，半径为 $+\infty$，并按多项式意义对所有实数成立。其余情形半径为 $1$，端点的结论如下：当 $\alpha>0$ 且非整数时，两端均绝对收敛，式~\eqref{eq:generalized-binomial-expansion} 可连续延拓到 $[-1,1]$；当 $-1<\alpha<0$ 时，只在右端点条件收敛，等式成立于 $(-1,1]$；当 $\alpha\leq-1$ 时，两端都发散，收敛域为 $(-1,1)$。
+\end{theorem}
+
+\begin{proof}
+非负整数情形由有限二项式定理得到，以下设 $\alpha$ 不是非负整数，记 $c_n=\binom\alpha n$。相邻项满足
+\[
+    \left|\frac{c_{n+1}}{c_n}\right|
+       =\frac{|\alpha-n|}{n+1}\longrightarrow1,
+\]
+故半径为 $1$。为了证明和确为 $(1+x)^\alpha$，使用积分余项：
+\[
+    R_N(x)=\frac{\alpha(\alpha-1)\cdots(\alpha-N)}{N!}
+       \int_0^x(x-t)^N(1+t)^{\alpha-N-1}\,dt.
+\]
+固定 $0<|x|<1$，当 $t$ 位于 $0$ 与 $x$ 之间时，$1+t>0$，并有
+\[
+    \left|\frac{x-t}{1+t}\right|\leq|x|.
+\]
+当 $x>0$ 时可用 $0\leq x-t\leq x(1+t)$；当 $x<0$ 时可用 $0\leq t-x\leq(-x)(1+t)$，后一不等式等价于 $t(1+x)\leq0$。令
+\[
+    C_{\alpha,x}=\int_{\min(0,x)}^{\max(0,x)}(1+t)^{\alpha-1}\,dt<+\infty,
+\]
+于是
+\[
+    |R_N(x)|\leq (N+1)|c_{N+1}|\,|x|^N C_{\alpha,x}
+       \longrightarrow0.
+\]
+最后的极限可由右侧数列相邻项的比值趋于 $|x|<1$ 得到；$x=0$ 时余项恒为零。这证明了内部的等式。
+
+再判断端点。若 $\alpha>0$，对充分大的 $n$ 有
+\[
+    n\left(\frac{|c_n|}{|c_{n+1}|}-1\right)
+       =\frac{n(\alpha+1)}{n-\alpha}
+       \longrightarrow\alpha+1>1.
+\]
+由拉贝判别法，$\sum|c_n|$ 收敛，两个端点都绝对收敛。阿贝尔定理将内部等式延拓到端点，和分别为 $0$ 与 $2^\alpha$。
+
+若 $-1<\alpha<0$，则 $c_n=(-1)^nb_n$，$b_n>0$，且
+\[
+    \frac{b_{n+1}}{b_n}=1-\frac{1+\alpha}{n+1}\in(0,1).
+\]
+由 $1-u\leq e^{-u}$ 及调和级数发散，乘积表达式说明 $b_n\to0$，故 $x=1$ 处交错收敛，再由阿贝尔定理知和为 $2^\alpha$。在 $x=-1$ 处，通项为 $b_n>0$；若该级数收敛，阿贝尔定理会推出 $(1+x)^\alpha$ 在 $x\to-1+$ 时有有限极限，与其趋于 $+\infty$ 矛盾，故发散，右端点也不是绝对收敛。
+
+若 $\alpha\leq-1$，则 $b_n=|c_n|$ 满足 $b_0=1$、$b_{n+1}/b_n=(n-\alpha)/(n+1)\geq1$，故两端的通项都不趋于零。各情形至此全部确定。
+\end{proof}
+
+\begin{proposition}[反正弦与对数的展开]
+\label{prop:arcsine-and-logarithm-power-expansions}
+有
+\begin{align}
+    \arcsin x
+       &=\sum_{n=0}^\infty
+         \frac{(2n-1)!!}{(2n)!!}\frac{x^{2n+1}}{2n+1},
+       &&-1\leq x\leq1,
+       \label{eq:arcsine-maclaurin-expansion}\\
+    \ln(1+x)
+       &=\sum_{n=1}^\infty\frac{(-1)^{n+1}}n x^n,
+       &&-1<x\leq1.
+       \label{eq:logarithm-maclaurin-expansion}
+\end{align}
+其中 $m!!$ 表示同奇偶性的正整数连乘，约定 $(-1)!!=0!!=1$。这两个级数的收敛半径均为 $1$；反正弦级数在两个端点都绝对收敛，对数级数在右端点条件收敛、左端点发散。
+\end{proposition}
+
+\begin{proof}
+先在二项式展开中取 $\alpha=-1/2$ 并将变量换为 $-x^2$，得到
+\[
+    \frac1{\sqrt{1-x^2}}
+       =\sum_{n=0}^\infty\frac{(2n-1)!!}{(2n)!!}x^{2n},
+    \qquad |x|<1.
+\]
+在 $0$ 与任一内部点 $x$ 之间逐项积分，由 $\arcsin0=0$ 得到式~\eqref{eq:arcsine-maclaurin-expansion} 的内部等式。记
+\[
+    d_n=\frac{(2n-1)!!}{(2n)!!(2n+1)}.
+\]
+有 $n(d_n/d_{n+1}-1)\to3/2>1$，拉贝判别法说明 $\sum d_n$ 收敛，故两个端点均绝对收敛，再由阿贝尔定理及 $\arcsin$ 的连续性得到端点等式。特别地，
+\begin{equation}
+    \frac\pi2=\sum_{n=0}^\infty
+       \frac{(2n-1)!!}{(2n)!!(2n+1)}.
+    \label{eq:pi-by-arcsine-series}
+\end{equation}
+
+另一方面，在 $|x|<1$ 内由几何级数有 $1/(1+x)=\sum_{n=0}^\infty(-1)^nx^n$，从 $0$ 到 $x$ 逐项积分即得对数展开。在 $x=1$ 处，级数交错收敛，由阿贝尔定理知其和为 $\ln2$；在 $x=-1$ 处，级数为 $-\sum_{n=1}^\infty1/n$，故发散。
+\end{proof}
+
+求较复杂函数的泰勒展式时，应先寻找已知展式之间的联系。变量平移与代换、逐项积分或求导以及绝对收敛级数的乘积，常比直接计算一般的高阶导数更有效；每次变换仍须说明收敛范围。若所得展开以另一点为中心，要先把自变量改写成该中心的增量。
+
+\begin{example}
+\label{ex:shifted-sine-composition-taylor-expansion}
+求 $f(x)=\sin(x^2-2x)$ 在 $x=1$ 处的泰勒展式。
+\end{example}
+
+\begin{solve}
+令 $h=x-1$，则 $x^2-2x=h^2-1$，利用正弦差角公式和已知展开得到
+\[
+    \sin(x^2-2x)
+       =\cos1\sum_{n=0}^\infty
+           \frac{(-1)^n(x-1)^{4n+2}}{(2n+1)!}
+        -\sin1\sum_{n=0}^\infty
+           \frac{(-1)^n(x-1)^{4n}}{(2n)!}.
+\]
+两个级数对所有实数 $x$ 都绝对收敛，其合并形式是以 $1$ 为中心的幂级数；由唯一性，它正是所求泰勒展式。
+\end{solve}
+
+\begin{example}
+\label{ex:finite-geometric-denominator-expansion}
+设整数 $k\geq2$，求 $\displaystyle1/(1+x+\cdots+x^{k-1})$ 的麦克劳林展式。
+\end{example}
+
+\begin{solve}
+对 $|x|<1$，有限几何和公式及无穷几何级数给出
+\[
+    \frac1{1+x+\cdots+x^{k-1}}
+       =\frac{1-x}{1-x^k}
+       =\sum_{n=0}^\infty x^{kn}-\sum_{n=0}^\infty x^{kn+1}.
+\]
+因 $k\geq2$，两列幂次不重合，合并后的系数仅为 $0,1,-1$，且有无穷多个非零系数，所以系数根值的上极限为 $1$，半径为 $1$。在 $x=\pm1$ 处，合并后级数的通项均不趋于零，故收敛域为 $(-1,1)$。即使原有理函数在某个端点有定义，也不能据此推断其麦克劳林级数在该点收敛。
+\end{solve}
+
+\begin{proposition}[幂级数的乘积]
+\label{prop:product-of-power-series}
+设 $f(x)=\sum a_n(x-x_0)^n$ 与 $g(x)=\sum b_n(x-x_0)^n$ 的半径分别为 $R_1,R_2>0$，令 $r=\min(R_1,R_2)$。当 $|x-x_0|<r$ 时，
+\begin{equation}
+    f(x)g(x)=\sum_{n=0}^\infty c_n(x-x_0)^n,
+    \qquad c_n=\sum_{j=0}^na_jb_{n-j}.
+    \label{eq:cauchy-product-of-power-series}
+\end{equation}
+乘积级数的半径至少为 $r$，可能因系数抵消而更大。
+\end{proposition}
+
+\begin{proof}
+固定内部点，两个数项级数都绝对收敛，故可使用柯西乘积并重排，按总幂次合并即得公式。对任意 $0<s<r$，还有
+\[
+    \sum_{n=0}^\infty|c_n|s^n
+       \leq\left(\sum_{n=0}^\infty|a_n|s^n\right)
+          \left(\sum_{n=0}^\infty|b_n|s^n\right)<+\infty,
+\]
+故新级数半径至少为 $r$。
+\end{proof}
+
+\begin{example}
+\label{ex:square-logarithm-maclaurin-expansion}
+求 $\ln^2(1+x)$ 的麦克劳林展式，并确定其收敛域。
+\end{example}
+
+\begin{solve}
+当 $|x|<1$ 时，对式~\eqref{eq:logarithm-maclaurin-expansion} 作柯西乘积，第 $m$ 次幂（$m\geq2$）的系数为
+\[
+    (-1)^m\sum_{j=1}^{m-1}\frac1{j(m-j)}
+       =\frac{2(-1)^m}{m}\sum_{j=1}^{m-1}\frac1j.
+\]
+记调和数 $H_n=\sum_{j=1}^n1/j$，得到
+\begin{equation}
+    \ln^2(1+x)=2\sum_{m=2}^\infty
+        \frac{(-1)^mH_{m-1}}m x^m,
+    \qquad -1<x\leq1.
+    \label{eq:square-logarithm-maclaurin-expansion}
+\end{equation}
+先在 $|x|<1$ 内获得这个等式，再单独检查端点：$H_{m-1}/m\to0$，且 $H_m/(m+1)\leq H_{m-1}/m$（$m\geq2$），故 $x=1$ 时交错收敛，阿贝尔定理说明和为 $\ln^22$。在 $x=-1$ 时，各项为 $2H_{m-1}/m\geq2/m$，级数发散。因此收敛域为 $(-1,1]$，右端点为条件收敛。端点结论来自独立判别，不能仅由内部的乘积公式直接推出。
+\end{solve}
+
+\section{连续函数的多项式逼近}
+\label{sec:polynomial-approximation-of-continuous-functions}
+
+若函数在某点附近有幂级数展开，取部分和就能在收敛区间内部的闭子区间上一致逼近它。但是，这要求函数在相应区域具有很强的局部性质；例~\ref{ex:smooth-flat-function-not-real-analytic} 说明，甚至无限次可微也不足以保证泰勒展开。若只要求逼近误差一致趋于零，而允许每次重新选择多项式的全部系数，则可以把函数类扩大到任意有限闭区间上的连续函数。
+
+\begin{definition}
+\label{def:uniform-polynomial-approximation}
+设 $f:I\to\mathbb R$，$I$ 为非空区间。若对每个 $\varepsilon>0$，都存在实系数多项式 $P$，使
+\begin{equation}
+    \|f-P\|_{\infty,I}:=\sup_{x\in I}|f(x)-P(x)|<\varepsilon,
+    \label{eq:uniform-polynomial-approximation}
+\end{equation}
+则称 $f$ 在 $I$ 上\emph{可被多项式一致逼近}（uniformly approximable by polynomials），也简称可被多项式逼近。多项式的次数与系数允许依赖于 $\varepsilon$。
+\end{definition}
+
+这个定义等价于存在多项式序列 $\{P_n\}$ 在 $I$ 上一致收敛于 $f$：一个方向可对误差 $1/n$ 逐次选取 $P_n$，另一个方向直接由一致收敛的定义得到。由于多项式连续，连续函数一致极限的定理说明，连续性是可被多项式一致逼近的必要条件。以下定理证明，在有限闭区间上，这也是充分条件。
+
+\begin{theorem}[魏尔斯特拉斯逼近定理]
+\label{thm:weierstrass-polynomial-approximation}
+设 $a<b$ 为有限实数，$f\in C([a,b])$，则 $f$ 在 $[a,b]$ 上可被多项式一致逼近，即存在多项式序列 $\{P_n\}$，使
+\[
+    \sup_{x\in[a,b]}|P_n(x)-f(x)|\longrightarrow0.
+\]
+这称为\emph{魏尔斯特拉斯逼近定理}（Weierstrass approximation theorem）。
+\end{theorem}
+
+为证明定理，先考察多项式一致逼近在有限线性组合与一致极限下的稳定性，再从绝对值函数构造分段线性函数的逼近。
+
+\begin{lemma}[有限线性组合与一致极限]
+\label{lem:polynomial-approximation-closure}
+在固定的 $[a,b]$ 上，若 $f_1,\ldots,f_m$ 都可被多项式一致逼近，则对任意实数 $c_1,\ldots,c_m$，$\sum_{j=1}^mc_jf_j$ 也可被多项式一致逼近。若每个 $f_n$ 都可被多项式一致逼近，且 $f_n\rightrightarrows f$ 于 $[a,b]$，则 $f$ 也可被多项式一致逼近。
+\end{lemma}
+
+\begin{proof}
+给定 $\varepsilon>0$，令 $C=\sum_{j=1}^m|c_j|$，对每个 $j$ 选多项式 $Q_j$，使 $\|f_j-Q_j\|_{\infty,[a,b]}<\varepsilon/(C+1)$。则 $\sum c_jQ_j$ 是多项式，且
+\[
+    \left\|\sum_{j=1}^mc_jf_j-\sum_{j=1}^mc_jQ_j\right\|_{\infty,[a,b]}
+       \leq\sum_{j=1}^m|c_j|\|f_j-Q_j\|_{\infty,[a,b]}
+       <\varepsilon.
+\]
+再证第二个结论。先取某个 $n$，使 $\|f-f_n\|_{\infty,[a,b]}<\varepsilon/2$，再选多项式 $P$，使 $\|f_n-P\|_{\infty,[a,b]}<\varepsilon/2$。三角不等式给出 $\|f-P\|_{\infty,[a,b]}<\varepsilon$。
+\end{proof}
+
+\begin{lemma}[绝对值函数的多项式逼近]
+\label{lem:absolute-value-polynomial-approximation}
+对每个固定的 $c\in\mathbb R$，存在多项式序列 $\{P_{n,c}\}$，在任意有限闭区间上一致收敛于 $|x-c|$。
+\end{lemma}
+
+\begin{proof}
+先在 $[-1,1]$ 上逼近 $|x|$。广义二项式定理在 $\alpha=1/2$ 时给出
+\[
+    \sqrt{1+t}=\sum_{j=0}^\infty\binom{1/2}j t^j,
+    \qquad -1\leq t\leq1.
+\]
+级数两端均绝对收敛，故由阿贝尔定理在整个 $[-1,1]$ 上一致收敛。记部分和为 $S_N(t)$，将 $t=x^2-1\in[-1,0]$ 代入，得到
+\[
+    S_N(x^2-1)\rightrightarrows\sqrt{1+x^2-1}=|x|,
+    \qquad -1\leq x\leq1.
+\]
+$S_N(x^2-1)$ 是关于 $x$ 的多项式，所以 $|x|$ 在该区间可被多项式一致逼近。
+
+对每个正整数 $n$，选多项式 $Q_n$，使 $\sup_{|t|\leq1}|Q_n(t)-|t||<1/n^2$，再令
+\[
+    P_{n,c}(x)=nQ_n\left(\frac{x-c}{n}\right).
+\]
+固定有限闭区间 $[A,B]$，当 $n\geq\max_{x\in[A,B]}|x-c|$ 时，所有代入点均属于 $[-1,1]$，因此
+\[
+    \sup_{x\in[A,B]}|P_{n,c}(x)-|x-c||<\frac1n\longrightarrow0.
+\]
+同一个序列由此在每个有限闭区间上一致收敛；这里没有声称在整个实轴上一致收敛。
+\end{proof}
+
+\begin{definition}
+\label{def:continuous-piecewise-linear-function}
+设 $g\in C([a,b])$。若存在分割 $a=t_0<t_1<\cdots<t_m=b$，使 $g$ 在每个 $[t_{i-1},t_i]$ 上都是一次或常数函数，则称 $g$ 为\emph{连续分段线性函数}（continuous piecewise linear function）。另记\emph{正部函数}（positive-part function）为
+\[
+    H(x)=\max\{x,0\}=\frac{x+|x|}{2},\qquad x\in\mathbb R.
+\]
+\end{definition}
+
+\begin{lemma}[分段线性函数的表示与逼近]
+\label{lem:piecewise-linear-hinge-representation}
+设 $g$ 对分割 $a=t_0<\cdots<t_m=b$ 连续分段线性，各段斜率为
+\[
+    s_i=\frac{g(t_i)-g(t_{i-1})}{t_i-t_{i-1}},\qquad 1\leq i\leq m.
+\]
+则对 $x\in[a,b]$，有
+\begin{equation}
+    g(x)=g(a)+s_1H(x-a)
+       +\sum_{j=1}^{m-1}(s_{j+1}-s_j)H(x-t_j).
+    \label{eq:piecewise-linear-positive-part-representation}
+\end{equation}
+因此，每个连续分段线性函数都可在 $[a,b]$ 上被多项式一致逼近。
+\end{lemma}
+
+\begin{proof}
+式~\eqref{eq:piecewise-linear-positive-part-representation} 右边是连续分段线性函数，在 $x=a$ 处等于 $g(a)$。对 $x\in(t_{i-1},t_i)$，只有分点在 $x$ 左侧的正部函数有斜率 $1$，所以右边在该段的斜率为
+\[
+    s_1+\sum_{j=1}^{i-1}(s_{j+1}-s_j)=s_i.
+\]
+从首段起逐段比较函数值与斜率，即知两边相等。又因 $H(x-c)=(x-c+|x-c|)/2$，由前一引理及有限线性组合的稳定性，每个 $H(x-c)$ 都可被多项式一致逼近，再对表示式使用同一稳定性即得结论。
+\end{proof}
+
+\begin{proof}[魏尔斯特拉斯逼近定理的证明]
+由定理~\ref{thm:heine-cantor-uniform-continuity}，$f$ 在 $[a,b]$ 上一致连续。给定 $\varepsilon>0$，选 $\delta>0$，使 $|x-y|<\delta$ 时有 $|f(x)-f(y)|<\varepsilon/2$。取网格宽度小于 $\delta$ 的分割 $a=t_0<\cdots<t_m=b$，令 $g$ 为通过各点 $(t_i,f(t_i))$ 的连续分段线性插值函数。若 $x\in[t_{i-1},t_i]$，写成
+\[
+    x=(1-\theta)t_{i-1}+\theta t_i,\qquad
+    g(x)=(1-\theta)f(t_{i-1})+\theta f(t_i),
+    \qquad 0\leq\theta\leq1,
+\]
+便有
+\[
+    |g(x)-f(x)|
+       \leq(1-\theta)|f(t_{i-1})-f(x)|
+          +\theta|f(t_i)-f(x)|<\frac\varepsilon2.
+\]
+由于 $g-f$ 在紧区间上连续并取到最大值，上述逐点严格不等式也给出 $\|g-f\|_{\infty,[a,b]}<\varepsilon/2$。由引理~\ref{lem:piecewise-linear-hinge-representation}，可再选多项式 $P$，使 $\|P-g\|_{\infty,[a,b]}<\varepsilon/2$。于是
+\[
+    \|P-f\|_{\infty,[a,b]}
+       \leq\|P-g\|_{\infty,[a,b]}+\|g-f\|_{\infty,[a,b]}
+       <\varepsilon.
+\]
+对每个误差 $1/n$ 这样选取多项式，即得所需的多项式序列。等价地，也可先取一列网格宽度趋于零的分段线性插值函数，再使用引理~\ref{lem:polynomial-approximation-closure} 中关于一致极限的结论。
+\end{proof}
+
+这个证明把一般连续函数的逼近分为两步：由一致连续性控制线性插值误差，再把有限个绝对值函数的逼近组合成一个多项式。它不要求 $f$ 可导，也不要求这些多项式是某点的泰勒部分和；例如 $|x|$ 在零点不可导，仍可在每个有限闭区间上被多项式一致逼近。反过来，多项式一致收敛也不能保证导数收敛。区间条件同样重要，例如 $1/x$ 虽在 $(0,1)$ 连续，却不能在整个 $(0,1)$ 上被多项式一致逼近，因为每个多项式在 $[0,1]$ 上有界，而 $1/x$ 在零点附近无界。
+
+\section*{习题十一}
+\addcontentsline{toc}{section}{习题十一}

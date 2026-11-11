@@ -1,0 +1,62 @@
+% !TeX root = ../动手学强化学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{13} % 保留原书章号。
+\chapter{策略梯度方法}
+\label{ch:rl-policy-gradient}
+
+价值方法先估计动作后果，再据此选择动作；策略梯度方法（policy gradient method）直接调节动作分布的参数。它适用于可微随机策略，尤其便于处理连续动作，但梯度估计可能具有较大方差，目标通常也不是凸优化问题。
+
+\section{参数化策略与性能目标}
+
+离散策略可由实数得分 $z_\theta(s,a)$ 通过 softmax 得到 $\pi_\theta(a\mid s)=\exp z_\theta(s,a)/\sum_b\exp z_\theta(s,b)$。连续策略可用均值和正标准差参数化高斯分布；动作有界时还需要适当变换及密度修正。允许的参数集合必须保证概率合法。
+
+目标为 $J(\theta)=\mathbb E_{\pi_\theta,\mu}[G_0]$，环境核与初始分布不依赖 $\theta$。首先考虑固定有限时域 $T$、有界奖励和在相关支持上正且可微的策略，并假定可交换微分与期望。无限时域结论还需控制导数与级数，不能只依靠奖励有界就忽略所有交换条件。
+
+\section{轨迹概率与对数导数推导}
+
+轨迹概率中与参数有关的因子只有 $\prod_{t=0}^{T-1}\pi_\theta(A_t\mid S_t)$，因此对数导数是 $\sum_t\nabla_\theta\log\pi_\theta(A_t\mid S_t)$。由对数导数恒等式，
+\[
+\nabla J(\theta)=\mathbb E\!\left[G_0\sum_{t=0}^{T-1}\nabla\log\pi_\theta(A_t\mid S_t)\right].
+\]
+已发生的奖励不能被当前动作改变。更严格地，给定选动作前的历史，$\mathbb E[\nabla\log\pi_\theta(A_t\mid S_t)\mid H_t]=\sum_a\nabla\pi_\theta(a\mid S_t)=0$。因此与过去奖励相乘的项在期望中为零，得到
+\begin{equation}
+\nabla J(\theta)=\mathbb E\!\left[\sum_{t=0}^{T-1}\gamma^t\nabla\log\pi_\theta(A_t\mid S_t)G_t\right].
+\label{eq:rl-reinforce-gradient}
+\end{equation}
+外层 $\gamma^t$ 与 $G_t$ 中从 $t$ 起计的相对折扣不同；删除前者一般会改变此处指定目标的梯度。
+
+\section{策略梯度定理与访问分布}
+
+无限折扣任务中，定义归一化折扣访问分布
+\[
+d_{\mu,\pi}(s)=(1-\gamma)\sum_{t=0}^\infty\gamma^t\Pr_{\mu,\pi}(S_t=s).
+\]
+它对状态求和为一。将式\eqref{eq:rl-reinforce-gradient}中的回报按状态动作条件化，并在允许交换无穷和与期望的条件下，得到策略梯度定理
+\begin{equation}
+\nabla J(\theta)=\frac1{1-\gamma}\mathbb E_{S\sim d_{\mu,\pi_\theta},A\sim\pi_\theta}
+\left[\nabla\log\pi_\theta(A\mid S)q_{\pi_\theta}(S,A)\right].
+\label{eq:rl-policy-gradient}
+\end{equation}
+若使用未归一化访问权重，则无需前面的 $1/(1-\gamma)$。定理不显式包含状态分布的导数，是轨迹求导与因果抵消的结果，并不表示该分布不随策略变化。实践中均匀抽取有限轨迹时间步与精确折扣访问分布并不完全相同，权重和目标必须对应。
+
+\section{REINFORCE 与基线}
+
+REINFORCE 固定当前策略采样回合，逆序算回报，再按式\eqref{eq:rl-reinforce-gradient}作梯度上升。为减小方差，可用 $G_t-b(S_t)$ 替代 $G_t$，其中基线 $b$ 不依赖当前动作。给定 $S_t=s$，基线项的期望梯度为 $b(s)\sum_a\nabla\pi_\theta(a\mid s)=0$，因此不改变期望梯度。该论证要求基线在条件化后不额外依赖本次动作；用同一数据拟合随机基线时，应留意额外统计依赖。
+
+基线常用价值网络估计。演员更新时把基线输出视为固定评价信号，其参数通过单独回归损失训练。$v_\pi$ 是自然基线，但在一般梯度范数加权下不一定是方差最小的基线。无偏梯度也不保证每轮收益增加，更不保证非凸参数化达到全局最优。
+
+\begin{example}[双动作策略的一次更新]
+设第一动作概率为 $p=\sigma(\theta)=1/(1+e^{-\theta})$，第二动作为 $1-p$。若选到第一动作，$\partial_\theta\log p=1-p$；选到第二动作则为 $-p$。当 $p=1/2$、选第一动作且其回报比基线高 $2$，本次梯度估计为 $1$；步长 $0.1$ 将 $\theta$ 从零更新到 $0.1$，第一动作概率约为 $0.525$。
+\end{example}
+
+\section{习题与实验}
+\begin{enumerate}
+\item 从 softmax 定义证明 $\partial\log\pi(a)/\partial z_b=\mathbf1\{a=b\}-\pi(b)$。
+\item 证明状态基线项的期望梯度为零，构造直接减去动作相关基线而未校正时改变梯度的例子。
+\item 在可枚举短轨迹的小 MDP 中精确计算目标，用中心有限差分核验期望策略梯度，再比较有无基线的样本梯度方差。
+\end{enumerate}
+
+
+
+
+

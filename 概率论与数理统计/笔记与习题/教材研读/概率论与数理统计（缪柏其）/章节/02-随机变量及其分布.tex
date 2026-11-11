@@ -1,0 +1,1000 @@
+% !TeX root = ../概率论与数理统计（缪柏其）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{1} % 保留原书章号。
+\chapter{随机变量及其分布}
+\label{chap:study-random-variables}
+
+本章把第一章中关于事件的概率转化为实数轴上的分布问题。学习的主线是：先用随机变量记录试验结果，再用分布律、分布函数或密度刻画其概率规律，最后研究确定的数值变换如何改变分布。各种分布的名称并不能代替建模条件，尤其要区分固定次数内的成功数、达到指定成功次数所需的试验数，以及给定时间或空间范围内的事件计数。
+
+\section{随机变量的概念}
+\label{sec:study-random-variable-concept}
+
+随机试验的结果可能是硬币的正反面、球的颜色或比赛的胜负记录。研究时，我们常常只关心其中某个数值特征，例如正面出现的次数。随机变量就是按照所研究的问题选定一种数值记录规则，给每个样本点赋予一个实数，从而把关于具体结果的问题转化为关于数值的问题。
+
+\begin{definition}
+\label{def:study-random-variable}
+设随机试验的样本空间为 $\Omega$，并已给定事件及其概率。若实值函数
+\[
+  X:\Omega\longrightarrow\mathbb R,\qquad
+  \omega\longmapsto X(\omega)
+\]
+满足：对任意实数 $u$，集合
+\begin{equation}
+  \{X\le u\}:=\{\omega\in\Omega:X(\omega)\le u\}
+  \label{eq:study-random-variable-measurability}
+\end{equation}
+都是该概率模型中的事件，则称 $X$ 为一个\emph{随机变量（random variable）}。
+\end{definition}
+
+上述事件条件称为\emph{可测性（measurability）}要求，保证相应概率有意义；在有限样本空间且所有子集均为事件时，每个实值函数都满足这一要求。赋值规则 $X$ 是事先确定的，随机性来自试验最终出现哪个样本点 $\omega$。
+
+\begin{example}
+\label{ex:study-random-variable-two-coins}
+独立抛掷一枚公平硬币两次，每次正面和反面出现的概率均为 $1/2$。用 $H$ 表示正面，$T$ 表示反面，记随机变量 $X$ 为两次抛掷中正面出现的次数。写出 $X$ 的赋值规则，说明具体取值与事件的区别，并求事件 $\{X=1\}$ 和 $\{X\le1\}$ 的概率。
+\end{example}
+
+\begin{solve}
+用两个字母依次记录两次抛掷的结果，样本空间为
+\[
+  \Omega=\{HH,HT,TH,TT\}.
+\]
+由公平性与独立性，四个样本点等可能，各自对应的单点事件的概率为 $1/4$。按照“数出正面的个数”这一规则，
+\begin{equation}
+  X(HH)=2,\qquad X(HT)=X(TH)=1,\qquad X(TT)=0.
+  \label{eq:study-random-variable-coin-map}
+\end{equation}
+所以 $X$ 的可能取值为 $0,1,2$。若实际结果为 $HT$，则本次观察到的\emph{实现值（realization）}为 $x=X(HT)=1$。这里，$HT$ 是样本点，$X$ 是赋值函数，$1$ 是具体取值；通常用大写字母表示随机变量，用小写字母表示其取值。
+
+“恰好出现一次正面”对应事件
+\begin{equation}
+  \{X=1\}:=\{\omega\in\Omega:X(\omega)=1\}
+    =\{HT,TH\}.
+  \label{eq:study-random-variable-coin-event}
+\end{equation}
+因此，仅知道 $X=1$ 不能区分 $HT$ 与 $TH$，随机变量不一定保留结果的全部信息。记号 $\mathbb P(X=1)$ 是 $\mathbb P(\{X=1\})$ 的简写；由两个单点事件的互斥性，
+\[
+  \mathbb P(X=1)=\mathbb P(\{HT\})+\mathbb P(\{TH\})
+    =\frac14+\frac14=\frac12.
+\]
+同样，“至多出现一次正面”对应事件
+\[
+  \{X\le1\}=\{\omega\in\Omega:X(\omega)\le1\}
+    =\{TT,HT,TH\}.
+\]
+它包含三个等可能的样本点，故 $\mathbb P(X\le1)=3/4$。这些计算说明，关于随机变量的数值条件，仍然是在描述样本空间中的事件。
+
+若还要区分 $HT$ 与 $TH$，可以在同一样本空间上再定义 $Y$：第一次为正面时取 $1$，否则取 $0$。这样，$HT$ 与 $TH$ 虽然都使 $X=1$，却分别使 $Y=1$ 与 $Y=0$，说明可以用不同随机变量记录同一试验的不同特征。\emph{同一次试验只产生一个样本点，却可以同时确定多个随机变量的取值。}
+\end{solve}
+
+\section{离散型随机变量的分布}
+\label{sec:study-discrete-distributions}
+
+\begin{definition}
+\label{def:study-discrete-mass}
+若存在有限或可数的实数集合 $S=\{x_1,x_2,\ldots\}$，使 $\mathbb P(X\in S)=1$，则称 $X$ 为\emph{离散型随机变量（discrete random variable）}。将互不相同的取值与相应概率
+\begin{equation}
+  p_k=\mathbb P(X=x_k),\qquad p_k\ge0,\qquad \sum_kp_k=1
+  \label{eq:study-discrete-mass-conditions}
+\end{equation}
+合在一起，称为 $X$ 的\emph{分布律}，也称\emph{概率质量函数（probability mass function, pmf）}。
+\end{definition}
+
+各事件 $\{X=x_k\}$ 两两互斥，并以概率 $1$ 覆盖全部结果，因此式~\eqref{eq:study-discrete-mass-conditions} 中的归一化条件来自可数可加性。对任意所讨论的可测集合 $A\subseteq\mathbb R$，有
+\begin{equation}
+  \mathbb P(X\in A)=\sum_{k:x_k\in A}p_k.
+  \label{eq:study-discrete-set-probability}
+\end{equation}
+所以掌握分布律后，计算概率就是确定哪些取值满足条件，再将对应概率相加。反过来，任意满足非负性和总和为 $1$ 的数列，都可在可数样本空间上构成一个分布律；仅列出取值而不给出概率，还没有确定随机变量的分布。
+
+\subsection{0-1 分布与二项分布}
+\label{subsec:study-bernoulli-binomial}
+
+把试验的两类结果分别称为“成功”和“失败”。若只记录一次试验是否成功，就得到 0-1 分布；若进行固定次数的独立重复试验，每次成功的概率相同，并记录成功的总次数，就得到二项分布。“成功”和“失败”只是结果的名称，不表示好坏。
+
+\begin{definition}
+\label{def:study-bernoulli-distribution}
+设 $p\in[0,1]$。若随机变量 $X$ 取值于 $\{0,1\}$，且
+\begin{equation}
+  \mathbb P(X=1)=p,\qquad \mathbb P(X=0)=1-p,
+  \label{eq:study-bernoulli-mass}
+\end{equation}
+则称 $X$ 服从参数为 $p$ 的\emph{0-1 分布}，也称\emph{伯努利分布（Bernoulli distribution）}，记作 $X\sim\mathrm{Bern}(p)$。
+\end{definition}
+
+例如，抛掷一次硬币，正面出现的概率为 $p$；把正面记为 $1$、反面记为 $0$，所得随机变量便服从 $\mathrm{Bern}(p)$。
+
+\begin{definition}
+\label{def:study-binomial-distribution}
+设 $n$ 为正整数，$p\in[0,1]$。进行 $n$ 次相互独立的试验，每次只有成功与失败两类结果，且每次成功的概率均为 $p$，这样的试验序列称为\emph{伯努利试验序列（Bernoulli trials）}。令 $X_i$ 在第 $i$ 次试验成功时取 $1$，失败时取 $0$，其中 $i=1,\ldots,n$，则成功的总次数为
+\begin{equation}
+  Y=X_1+X_2+\cdots+X_n.
+  \label{eq:study-binomial-sum}
+\end{equation}
+称 $Y$ 的分布为参数为 $n,p$ 的\emph{二项分布（binomial distribution）}，记作 $Y\sim\mathrm{Bin}(n,p)$。其中 $X_1,\ldots,X_n$ 相互独立，均服从 $\mathrm{Bern}(p)$，而 $Y$ 取值于 $\{0,1,\ldots,n\}$。
+\end{definition}
+
+计算二项分布的概率时，应区分“指定哪些次试验成功”和“只指定成功的总次数”：前者确定一个完整的结果序列，后者通常包含多个不同序列。
+
+\begin{example}
+\label{ex:study-binomial-three-trials}
+独立进行三次试验，每次成功的概率均为 $p\in(0,1)$。记 $Y$ 为成功的总次数，求恰好成功两次的概率，并说明计数系数的来源。
+\end{example}
+
+\begin{solve}
+用 $S$ 表示成功，$F$ 表示失败，按试验顺序记录结果。恰好成功两次对应 $SSF$、$SFS$ 和 $FSS$ 三种结果，由独立性，每种结果的概率均为 $p^2(1-p)$。它们对应的事件两两互斥，所以
+\begin{equation}
+  \mathbb P(Y=2)=3p^2(1-p).
+  \label{eq:study-binomial-three-trials}
+\end{equation}
+其中 $3=\binom32$ 是从三个试验位置中选出两个成功位置的方法数。
+\end{solve}
+
+\begin{proposition}
+\label{prop:study-binomial-mass}
+设 $Y\sim\mathrm{Bin}(n,p)$，其中 $n$ 为正整数。当 $0<p<1$ 时，$Y$ 的概率分布为
+\begin{equation}
+  \mathbb P(Y=k)=\binom nk p^k(1-p)^{n-k},
+  \qquad k=0,1,\ldots,n,
+  \label{eq:study-binomial-mass}
+\end{equation}
+其余取值的概率为 $0$。当 $p=0$ 时，$\mathbb P(Y=0)=1$；当 $p=1$ 时，$\mathbb P(Y=n)=1$。
+\end{proposition}
+
+\begin{proof}
+先设 $0<p<1$，固定整数 $k\in\{0,1,\ldots,n\}$。若事先指定哪 $k$ 次试验成功、其余 $n-k$ 次试验失败，由各次试验的独立性，这一种完整安排的概率为
+\[
+  \underbrace{p\cdots p}_{k\text{ 个}}
+  \underbrace{(1-p)\cdots(1-p)}_{n-k\text{ 个}}
+  =p^k(1-p)^{n-k},
+\]
+其中没有因子时相应的乘积按 $1$ 计算。由于每次试验的成功概率相同，这一概率只取决于成功与失败的次数，不取决于它们出现的具体位置。
+
+从 $n$ 个试验位置中选出 $k$ 个成功位置，共有
+\[
+  \binom nk=\frac{n!}{k!(n-k)!}
+\]
+种选法，其中 $0!=1$。选定成功位置后，其余位置全部为失败，所以每个选法恰好对应一种完整安排；这里只需选择位置，无须再给选中的位置另作排列。不同安排对应的事件两两互斥，而成功总次数恰为 $k$ 的所有结果都包含在这些安排中。由概率的有限可加性，将这 $\binom nk$ 个相同的概率相加，得到
+\[
+  \mathbb P(Y=k)=\binom nk p^k(1-p)^{n-k}.
+\]
+此外，成功次数必在 $0$ 与 $n$ 之间；若 $p=0$，每次试验都以概率 $1$ 失败，故 $Y=0$ 的概率为 $1$；若 $p=1$，同理可得 $Y=n$ 的概率为 $1$。
+\end{proof}
+
+因此，式~\eqref{eq:study-binomial-mass} 中的组合数统计的是成功位置的安排数，$p^k(1-p)^{n-k}$ 则是一种指定安排的概率。\emph[tip]{同一种安排内部，由独立性将各次试验的概率相乘；不同安排之间，由互斥性将各个事件的概率相加。}这里具有相同成功次数的序列等可能，并不要求全部结果序列等可能。
+
+两种分布的关系也可由式~\eqref{eq:study-binomial-sum} 看出：\emph{二项随机变量是若干个相互独立、参数相同的 0-1 随机变量之和。}当 $n=1$ 时，$\mathrm{Bin}(1,p)$ 就是 $\mathrm{Bern}(p)$。应用二项分布时，应核对试验次数固定、各次试验相互独立、成功概率相同这三个条件；若抽样方式不满足这些条件，就需要根据实际模型重新计算分布。
+
+\subsection{离散均匀分布}
+\label{subsec:study-discrete-uniform}
+
+设 $x_1,\ldots,x_n$ 为 $n\ge1$ 个不同的实数。若
+\begin{equation}
+  \mathbb P(X=x_k)=\frac1n,\qquad k=1,\ldots,n,
+  \label{eq:study-discrete-uniform}
+\end{equation}
+则称 $X$ 服从这 $n$ 个取值上的\emph{离散均匀分布（discrete uniform distribution）}。例如，均匀骰子的点数在 $\{1,\ldots,6\}$ 上均匀分布。古典概型中的样本点等可能，但把多个样本点合并为同一个随机变量取值后，各取值未必仍等可能；例~\ref{ex:study-random-variable-two-coins} 中四个样本点等可能，正面次数 $0,1,2$ 的概率却分别为 $1/4,1/2,1/4$。下面的抽样问题也体现了这一差别。
+
+\subsection{标记重捕模型与超几何分布}
+\label{subsec:study-capture-recapture}
+
+% 教材例 2.5：标记重捕（Capture-Recapture）模型。
+\begin{example}
+\label{ex:study-capture-recapture}
+池塘中共有 $N$ 条鱼，第一次捕捞 $M$ 条，标记后全部放回，充分混合后再不放回地捕捞 $n$ 条，其中 $N,M,n$ 为整数，$N\ge1$、$0\le M\le N$、$1\le n\le N$。假定鱼群组成与标记保持不变，第二次捕捞时每个包含 $n$ 条不同鱼的组合等可能。求其中恰有 $m$ 条鱼带标记的概率。
+\end{example}
+
+\begin{solve}
+这称为\emph{标记重捕（capture--recapture）模型}。记 $X$ 为第二次捕捞中有标记鱼的数量。“不放回”指第二次捕捞时同一条鱼不会被重复抽到，与第一次标记后放回并不矛盾。不考虑捕捞顺序，每个具体的 $n$ 条鱼的组合是一个样本点，全部样本点共有 $\binom Nn$ 个，且等可能；这里 $\binom ab$ 表示从 $a$ 个不同对象中选出 $b$ 个的组合数。
+
+要使 $X=m$，需从 $M$ 条有标记鱼中选出 $m$ 条，再从 $N-M$ 条无标记鱼中选出 $n-m$ 条。\emph[tip]{选定有标记部分后，无标记部分的不同选择仍会形成不同的完整结果。}两部分的任意选法可以配对，每个完整结果又唯一确定这两部分，故有利结果数为 $\binom Mm\binom{N-M}{n-m}$。由古典概率公式，
+\begin{equation}
+  \mathbb P(X=m)=\frac{\binom Mm\binom{N-M}{n-m}}{\binom Nn}.
+  \label{eq:study-hypergeometric-mass}
+\end{equation}
+这称为参数为 $(N,M,n)$ 的\emph{超几何分布（hypergeometric distribution）}。由于两类鱼的数量有限，可能的整数取值满足
+\begin{equation}
+  \max\{0,n-(N-M)\}\le m\le\min\{M,n\},
+  \label{eq:study-hypergeometric-support}
+\end{equation}
+范围外的概率为 $0$。这里使用的是选法数的乘法原理，不要求额外的独立性假设；等可能的是具体组合，而不是 $X$ 的不同取值。
+\end{solve}
+
+\subsection{负二项分布与几何分布}
+\label{subsec:study-negative-binomial-geometric}
+
+二项分布先固定试验次数，再数成功次数；如果改为不断进行伯努利试验，直到第 $r$ 次成功才停止，随机的就是停止时的试验次数。设各次试验相互独立，成功概率为 $p\in(0,1)$，记 $q=1-p$，$r\ge1$ 为整数，$T_r$ 表示第 $r$ 次成功发生时的累计试验次数。对于整数 $k\ge r$，事件 $\{T_r=k\}$ 要求前 $k-1$ 次恰好成功 $r-1$ 次，第 $k$ 次成功，所以
+\begin{equation}
+  \mathbb P(T_r=k)=\binom{k-1}{r-1}p^rq^{k-r},
+  \qquad k=r,r+1,\ldots.
+  \label{eq:study-negative-binomial-mass}
+\end{equation}
+这称为参数为 $r,p$ 的\emph{负二项分布（negative binomial distribution）}或\emph{帕斯卡分布（Pascal distribution）}，记为 $T_r\sim\mathrm{NB}(r,p)$。利用负二项级数，在 $0\le q<1$ 时，
+\[
+  \sum_{k=r}^{\infty}\binom{k-1}{r-1}p^rq^{k-r}
+  =p^r\sum_{j=0}^{\infty}\binom{r+j-1}{j}q^j
+  =p^r(1-q)^{-r}=1.
+\]
+这也说明在这些假设下，第 $r$ 次成功以概率 $1$ 在有限次试验内出现。有些文献把第 $r$ 次成功前的失败次数 $W_r=T_r-r$ 称为负二项随机变量，此时取值从 $0$ 开始，分布律为 $\mathbb P(W_r=j)=\binom{r+j-1}{j}p^rq^j$；使用公式前须先核对计数对象。
+
+当 $r=1$ 时，$T=T_1$ 表示首次成功时的试验次数，其分布称为\emph{几何分布（geometric distribution）}，记为 $T\sim\mathrm{Ge}(p)$，且
+\begin{equation}
+  \mathbb P(T=k)=q^{k-1}p\quad(k=1,2,\ldots),\qquad
+  \mathbb P(T>m)=q^m\quad(m=0,1,\ldots).
+  \label{eq:study-geometric-mass-tail}
+\end{equation}
+这里尾概率也可直接由“前 $m$ 次全部失败”得到。几何分布的核心性质是\emph{无记忆性（memoryless property）}：在已经等待 $m$ 次仍未成功的条件下，还要等待超过 $n$ 次的概率，与一开始等待超过 $n$ 次的概率相同。
+
+\begin{theorem}[几何分布的无记忆性及刻画]
+\label{thm:study-geometric-memoryless}
+若 $T\sim\mathrm{Ge}(p)$，$0<p<1$，则对任意非负整数 $m,n$，
+\begin{equation}
+  \mathbb P(T>m+n\mid T>m)=\mathbb P(T>n).
+  \label{eq:study-geometric-memoryless}
+\end{equation}
+反之，若 $T$ 以概率 $1$ 取正整数值，所有尾概率 $\mathbb P(T>m)$ 均为正，且满足此等式，则 $T$ 服从某个参数 $p\in(0,1)$ 的几何分布。
+\end{theorem}
+
+\begin{proof}
+正向结论由 $q^{m+n}/q^m=q^n$ 得到。反向令 $s_m=\mathbb P(T>m)$，则 $s_0=1$，条件概率等式给出 $s_{m+n}=s_ms_n$，从而 $s_m=s_1^m$。记 $q=s_1$，由假设 $q>0$；又因 $T$ 有限且取正整数值，事件 $\{T>m\}$ 下降至空集，故 $s_m\to0$，排除 $q=1$。于是 $0<q<1$，并有
+\[
+  \mathbb P(T=k)=s_{k-1}-s_k=(1-q)q^{k-1},\qquad k\ge1,
+\]
+即为参数 $p=1-q$ 的几何分布。
+\end{proof}
+
+% 教材例 2.8：巴拿赫火柴问题。
+\begin{example}
+\label{ex:study-banach-matches}
+两盒火柴最初各有 $n\ge1$ 根，每次独立地以相同概率选择其中一盒，若盒中有火柴则取用一根，直到某次选中的盒子已经空了才停止。求停止时另一盒剩有 $r$ 根火柴的概率，其中 $r=0,\ldots,n$。
+\end{example}
+
+\begin{solve}
+先指定被发现为空的是甲盒。把选择甲盒看作成功，停止时恰为第 $n+1$ 次选中甲盒；此前已从乙盒取走 $n-r$ 根，因此总选择次数为 $2n-r+1$。其概率为
+\[
+  \binom{2n-r}{n}\left(\frac12\right)^{2n-r+1}.
+\]
+在这类序列的前 $2n-r$ 次选择中，甲盒恰被选择 $n$ 次，乙盒恰被选择 $n-r\le n$ 次，因此此前不会已经选中空盒。由甲、乙对称性，且“最后选中甲空盒”与“最后选中乙空盒”互斥，所求概率为
+\begin{equation}
+  \mathbb P(R=r)=\binom{2n-r}{n}2^{-(2n-r)},
+  \qquad r=0,\ldots,n.
+  \label{eq:study-banach-matches}
+\end{equation}
+即使 $r=0$，两种最后选择仍是互斥的，可以相加。这里的停止时刻是\emph{发现盒空}，与刚刚用完某盒最后一根火柴的时刻不同。
+\end{solve}
+
+\subsection{泊松分布与稀有事件近似}
+\label{subsec:study-poisson}
+
+\begin{definition}
+\label{def:study-poisson}
+设 $\lambda>0$。若随机变量 $X$ 的分布律为
+\begin{equation}
+  \mathbb P(X=k)=e^{-\lambda}\frac{\lambda^k}{k!},
+  \qquad k=0,1,2,\ldots,
+  \label{eq:study-poisson-mass}
+\end{equation}
+则称 $X$ 服从参数为 $\lambda$ 的\emph{泊松分布（Poisson distribution）}，记为 $X\sim\mathrm{Pois}(\lambda)$。
+\end{definition}
+
+各项非负，而指数函数的幂级数给出 $\sum_{k=0}^{\infty}e^{-\lambda}\lambda^k/k!=1$。泊松分布常用于给定时间或空间范围内的事件计数，但采用这一模型需要相应的机制或数据支持，不能只因事件发生次数较少就断定其服从泊松分布。教材的微生物模型可这样表述：$N$ 个微生物独立、均匀地分布在体积为 $V$ 的液体中，固定体积 $v$ 内的个数服从 $\mathrm{Bin}(N,v/V)$；若 $N,V\to\infty$，且 $N/V\to d>0$，则可由下述定理得到参数 $dv$ 的泊松极限。独立性和空间均匀性在这里是建模假设。
+
+\begin{theorem}[泊松逼近定理]
+\label{thm:study-poisson-limit}
+设 $X_n\sim\mathrm{Bin}(n,p_n)$，其中 $np_n\to\lambda\in(0,\infty)$。则对每个固定的非负整数 $k$，
+\begin{equation}
+  \lim_{n\to\infty}\mathbb P(X_n=k)
+  =e^{-\lambda}\frac{\lambda^k}{k!}.
+  \label{eq:study-poisson-limit}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+因为 $p_n\to0$，对固定 $k$ 和充分大的 $n$，
+\[
+  \mathbb P(X_n=k)
+  =\frac{(np_n)^k}{k!}
+    \prod_{j=0}^{k-1}\left(1-\frac jn\right)
+    (1-p_n)^n(1-p_n)^{-k}.
+\]
+当 $k=0$ 时乘积取 $1$。有限乘积及最后一项均趋于 $1$，且由 $\log(1-u)=-u+O(u^2)$，
+\[
+  n\log(1-p_n)=-np_n+O(np_n^2)\longrightarrow-\lambda,
+\]
+其中 $np_n^2=(np_n)p_n\to0$，故 $(1-p_n)^n\to e^{-\lambda}$，代入即得。
+\end{proof}
+
+实际计算中，$n$ 较大、$p$ 较小时可取 $\lambda=np$，用泊松概率近似二项概率；这是近似而非恒等式，精度还取决于参数和所求事件。例如 $X\sim\mathrm{Pois}(2)$ 时，
+\[
+  \mathbb P(X\ge3)=1-\mathbb P(X\le2)
+  =1-e^{-2}\left(1+2+\frac{2^2}{2!}\right)
+  =1-5e^{-2}\approx0.3233.
+\]
+类似地，对于 $T_r\sim\mathrm{NB}(r,p_r)$，若 $r\to\infty$ 且 $r(1-p_r)\to\lambda>0$，则对每个固定的 $j\ge0$，
+\[
+  \mathbb P(T_r-r=j)
+  =\frac{[r(1-p_r)]^j}{j!}
+    \prod_{\ell=0}^{j-1}\left(1+\frac\ell r\right)p_r^r
+  \longrightarrow e^{-\lambda}\frac{\lambda^j}{j!}.
+\]
+此时近似为泊松分布的是停止前的\emph{失败次数}，而总试验次数还包含确定的 $r$ 次成功。
+
+% 教材例 2.14：维修人员配备。
+\begin{example}
+\label{ex:study-poisson-repair}
+有 $200$ 台设备，各台在所考察时刻是否故障相互独立，故障概率均为 $0.01$。每名工人同时只能处理一台设备，至少需配备多少人，才能使故障设备数超过工人数的概率小于 $0.01$？
+\end{example}
+
+\begin{solve}
+令 $X$ 为故障设备数，则 $X\sim\mathrm{Bin}(200,0.01)$，所求为满足 $\mathbb P(X>N)<0.01$ 的最小非负整数 $N$。用 $Z\sim\mathrm{Pois}(2)$ 近似，
+\[
+  \mathbb P(Z>5)\approx0.01656,\qquad
+  \mathbb P(Z>6)\approx0.00453,
+\]
+由尾概率随 $N$ 非增，近似计算给出 $N=6$。若按精确二项概率核验，相应尾概率约为 $0.01602$ 和 $0.00430$，因而本题精确的最少人数也是 $6$。只凭极限定理本身不能对任意有限参数作出严格的误差保证，本题的最终判断可由有限二项和直接核实。
+\end{solve}
+
+% 教材例 2.15：泊松计数的独立记录。
+\begin{example}
+\label{ex:study-poisson-thinning}
+设单位时间内发射的粒子数 $X\sim\mathrm{Pois}(\lambda)$。给定发射的粒子后，各粒子以概率 $p\in(0,1)$ 被独立记录，且这一记录机制不随 $X$ 改变。求记录到的粒子数 $Y$ 的分布。
+\end{example}
+
+\begin{solve}
+给定 $X=n$ 时，$Y$ 的条件分布为 $\mathrm{Bin}(n,p)$。对整数 $k\ge0$，由全概率公式与非负级数求和，
+\begin{align*}
+  \mathbb P(Y=k)
+  &=\sum_{n=k}^{\infty}\binom nk p^k(1-p)^{n-k}
+       e^{-\lambda}\frac{\lambda^n}{n!}\\
+  &=e^{-\lambda}\frac{(\lambda p)^k}{k!}
+       \sum_{j=0}^{\infty}\frac{[\lambda(1-p)]^j}{j!}
+    =e^{-\lambda p}\frac{(\lambda p)^k}{k!}.
+\end{align*}
+所以 $Y\sim\mathrm{Pois}(\lambda p)$。这里随机的是总发射数和每个粒子是否被记录，先给定总数再平均，可以把这两层随机性分开处理。
+\end{solve}
+
+\section{连续型随机变量的分布}
+\label{sec:study-continuous-distributions}
+
+\subsection{适用于所有随机变量的分布函数}
+\label{subsec:study-cdf}
+
+离散分布可逐点相加，但一般随机变量的取值未必能逐一列举，甚至每个单点的概率都为零。为统一描述各类分布，先记录随机变量落在半直线上的概率。
+
+\begin{definition}
+\label{def:study-cdf}
+随机变量 $X$ 的\emph{分布函数（cumulative distribution function, cdf）}定义为
+\begin{equation}
+  F_X(x)=\mathbb P(X\le x),\qquad x\in\mathbb R.
+  \label{eq:study-cdf-definition}
+\end{equation}
+不致混淆时简记为 $F(x)$。自变量 $x$ 是确定的实数，$F_X$ 是由 $X$ 的分布确定的普通函数。
+\end{definition}
+
+\begin{proposition}[分布函数的基本性质]
+\label{prop:study-cdf-properties}
+任意随机变量的分布函数均非减、右连续，并满足
+\begin{equation}
+  0\le F(x)\le1,\qquad
+  \lim_{x\to-\infty}F(x)=0,\qquad
+  \lim_{x\to+\infty}F(x)=1.
+  \label{eq:study-cdf-properties}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+若 $x_1<x_2$，则 $\{X\le x_1\}\subseteq\{X\le x_2\}$，由概率的单调性得到非减性，取值界限也直接来自概率的界限。事件 $\{X\le n\}$ 随正整数 $n$ 增加而上升至整个样本空间，$\{X\le-n\}$ 则下降至空集，由概率的连续性得到两端极限，再结合单调性推广到实数趋于无穷的情形。若 $x_n\downarrow x$，则 $\{X\le x_n\}\downarrow\{X\le x\}$，故 $F(x_n)\to F(x)$，这证明了右连续性。
+\end{proof}
+
+记 $F(x-)=\lim_{t\uparrow x}F(t)$。由 $\{X\le x-1/n\}\uparrow\{X<x\}$，有
+\begin{equation}
+  F(x-)=\mathbb P(X<x),\qquad
+  \mathbb P(X=x)=F(x)-F(x-).
+  \label{eq:study-cdf-atom}
+\end{equation}
+因此，分布函数在一点的跳跃高度就是该点的概率。对任意 $a<b$，端点的包含方式对应下列不同公式：
+\begin{equation}
+  \begin{aligned}
+    \mathbb P(a<X\le b)&=F(b)-F(a),&
+    \mathbb P(a\le X\le b)&=F(b)-F(a-),\\
+    \mathbb P(a<X<b)&=F(b-)-F(a),&
+    \mathbb P(a\le X<b)&=F(b-)-F(a-).
+  \end{aligned}
+  \label{eq:study-cdf-intervals}
+\end{equation}
+例如第一式来自 $\{X\le b\}=\{X\le a\}\cup\{a<X\le b\}$ 的不交分解，其他公式用左右端点的单点概率调整即可。
+
+对离散型随机变量，分布律与分布函数相互确定：
+\begin{equation}
+  F(x)=\sum_{k:x_k\le x}p_k,\qquad
+  p_k=F(x_k)-F(x_k-).
+  \label{eq:study-discrete-cdf}
+\end{equation}
+这一写法不要求所有取值都能按相邻大小顺序排列。有限取值的情形给出常见的阶梯图形；一般可数取值的情形也应使用式~\eqref{eq:study-discrete-cdf}，而不预设两个相邻取值之间必有非空区间。分布相同的随机变量可以定义在不同的样本空间上，也不必在每次试验中取相同的值；分布描述的是概率规律。
+
+% 教材例 2.17：同时含连续部分和跳跃部分的分布函数。
+\begin{example}
+\label{ex:study-mixed-cdf}
+设随机变量 $X$ 的分布函数为
+\[
+  F(x)=\begin{cases}
+    0,&x<0,\\
+    x/2,&0\le x<1,\\
+    2/3,&1\le x<2,\\
+    11/12,&2\le x<3,\\
+    1,&x\ge3.
+  \end{cases}
+\]
+求 $\mathbb P(X<3)$、$\mathbb P(X=1)$、$\mathbb P(X>1/2)$ 和 $\mathbb P(2<X\le4)$。
+\end{example}
+
+\begin{solve}
+分别依据左极限、跳跃、补事件和半开区间公式，得到
+\[
+  \begin{aligned}
+    \mathbb P(X<3)&=F(3-)=\frac{11}{12},&
+    \mathbb P(X=1)&=\frac23-\frac12=\frac16,\\
+    \mathbb P(X>1/2)&=1-F(1/2)=\frac34,&
+    \mathbb P(2<X\le4)&=F(4)-F(2)=\frac1{12}.
+  \end{aligned}
+\]
+这个分布在 $(0,1)$ 上的连续部分共有概率 $1/2$，在 $1,2,3$ 三点的概率分别为 $1/6,1/4,1/12$，合计为 $1$。它属于\emph{混合型分布（mixed distribution）}，既不是纯离散型，也不能仅用一个普通密度函数表示全部概率。
+\end{solve}
+
+\subsection{密度、积分与绝对连续性}
+\label{subsec:study-density}
+
+\begin{definition}
+\label{def:study-density}
+若存在非负可积函数 $f_X$，使随机变量 $X$ 的分布函数可写为
+\begin{equation}
+  F_X(x)=\int_{-\infty}^{x}f_X(t)\,\mathrm dt,
+  \qquad x\in\mathbb R,
+  \label{eq:study-density-definition}
+\end{equation}
+则称 $X$ 为\emph{连续型随机变量}，更确切地称为\emph{绝对连续型随机变量（absolutely continuous random variable）}，$f_X$ 称为其\emph{概率密度函数（probability density function, pdf）}。
+\end{definition}
+
+密度满足 $f_X(x)\ge0$ 以及 $\int_{\mathbb R}f_X(x)\,\mathrm dx=1$，并由积分计算概率：
+\begin{equation}
+  \mathbb P(a<X\le b)=\int_a^bf_X(x)\,\mathrm dx,
+  \qquad
+  \mathbb P(X\in A)=\int_Af_X(x)\,\mathrm dx.
+  \label{eq:study-density-probability}
+\end{equation}
+后一式对可测集合 $A$ 成立，是前一式从区间推广到一般集合的形式。绝对连续的 $F_X$ 必连续，故 $\mathbb P(X=x)=0$；因此有限区间的四种端点写法具有相同概率。\emph[caution]{单点概率为零不表示该点不可能作为观察值，密度值也不是单点概率。}密度可以大于 $1$，只要在整个实轴上的积分等于 $1$；改变有限个点上的密度值不改变分布。更一般地，在长度为零的集合上改变密度值，也不改变各个概率，这就是密度只在\emph{几乎处处（almost everywhere）}意义下唯一。
+
+若 $f_X$ 在 $x$ 处连续，由微积分基本定理有 $F_X'(x)=f_X(x)$，从而当 $h\downarrow0$ 时，
+\begin{equation}
+  \mathbb P(x<X\le x+h)=f_X(x)h+o(h).
+  \label{eq:study-density-local}
+\end{equation}
+密度描述的是单位长度上的局部概率集中程度，而非不依赖区间长度的概率。将观测数据分组时，直方图应以“组内相对频数除以组距”为高度，使矩形面积等于该组的相对频数；它是根据样本构成的密度近似，不能直接等同于未知总体的真实密度。
+
+连续型随机变量的密度不一定连续；反过来，分布函数连续只保证没有单点概率，不能保证存在密度，奇异连续分布就是反例。因此，离散型和本节定义的连续型没有穷尽所有分布，分布函数才是统一的描述工具。
+
+% 教材例 2.19：分段密度的积分。
+\begin{example}
+\label{ex:study-piecewise-density}
+设随机变量 $X$ 的密度为
+\[
+  f(x)=\begin{cases}
+    2x/3,&0\le x<1,\\
+    2(x-2)^2,&1\le x\le2,\\
+    0,&\text{其他}.
+  \end{cases}
+\]
+求其分布函数，并说明密度的不连续是否导致分布函数跳跃。
+\end{example}
+
+\begin{solve}
+两段的积分分别为 $1/3$ 和 $2/3$，总积分为 $1$。分段积分时须计入此前各段已累积的概率，得到
+\[
+  F(x)=\begin{cases}
+    0,&x<0,\\
+    x^2/3,&0\le x<1,\\
+    1+\dfrac23(x-2)^3,&1\le x\le2,\\
+    1,&x>2.
+  \end{cases}
+\]
+在 $x=1$ 处，密度左极限为 $2/3$，右侧值为 $2$，但 $F(1-)=F(1)=1/3$。所以密度的跳变只会影响分布函数的局部斜率，并不产生单点概率。
+\end{solve}
+
+\subsection{均匀分布与指数分布}
+\label{subsec:study-uniform-exponential}
+
+\begin{definition}
+\label{def:study-continuous-uniform}
+设 $-\infty<a<b<\infty$。若随机变量 $X$ 的密度为
+\begin{equation}
+  f_X(x)=\begin{cases}
+    1/(b-a),&a<x<b,\\
+    0,&\text{其他},
+  \end{cases}
+  \label{eq:study-uniform-density}
+\end{equation}
+则称 $X$ 服从区间 $(a,b)$ 上的\emph{均匀分布（uniform distribution）}，记为 $X\sim U(a,b)$。
+\end{definition}
+
+积分得到
+\begin{equation}
+  F_X(x)=\begin{cases}
+    0,&x\le a,\\
+    (x-a)/(b-a),&a<x<b,\\
+    1,&x\ge b.
+  \end{cases}
+  \label{eq:study-uniform-cdf}
+\end{equation}
+因此，对于 $a\le c<d\le b$，有 $\mathbb P(c<X<d)=(d-c)/(b-a)$；等长子区间具有相同概率。这里的均匀性是对区间长度而言，不能解释为不可数个点各占有同一个正概率。端点的单点概率为零，所以把 $(a,b)$ 改成相应的闭区间不会改变分布。
+
+\begin{definition}
+\label{def:study-exponential}
+设 $\lambda>0$。若随机变量 $X$ 的密度为
+\begin{equation}
+  f_X(x)=\begin{cases}
+    \lambda e^{-\lambda x},&x>0,\\
+    0,&x\le0,
+  \end{cases}
+  \label{eq:study-exponential-density}
+\end{equation}
+则称 $X$ 服从参数为 $\lambda$ 的\emph{指数分布（exponential distribution）}，记为 $X\sim\mathrm{Exp}(\lambda)$。本笔记采用\emph{率参数（rate parameter）}约定，其倒数为另一种常用的尺度参数。
+\end{definition}
+
+对 $x\ge0$，积分给出
+\begin{equation}
+  F_X(x)=1-e^{-\lambda x},\qquad
+  S_X(x):=\mathbb P(X>x)=e^{-\lambda x}.
+  \label{eq:study-exponential-cdf-tail}
+\end{equation}
+对 $x<0$，$F_X(x)=0$，$S_X(x)=1$。函数 $S_X$ 称为\emph{生存函数（survival function）}，适合表示寿命超过某一时长的概率。
+
+\begin{theorem}[指数分布的无记忆性及刻画]
+\label{thm:study-exponential-memoryless}
+若 $X\sim\mathrm{Exp}(\lambda)$，则对任意 $s,t\ge0$，
+\begin{equation}
+  \mathbb P(X>s+t\mid X>t)=\mathbb P(X>s).
+  \label{eq:study-exponential-memoryless}
+\end{equation}
+反之，若 $X$ 为非负、有限的连续型随机变量，$S_X(t)>0$ 对每个 $t\ge0$ 成立，且满足此等式，则 $X$ 服从某个指数分布。
+\end{theorem}
+
+\begin{proof}
+正向等式为 $e^{-\lambda(s+t)}/e^{-\lambda t}=e^{-\lambda s}$。反向令 $H(t)=-\log S_X(t)$，无记忆性给出 $H(s+t)=H(s)+H(t)$，且 $H$ 非减。记 $\lambda=H(1)$，由可加性先得 $H(m/n)=\lambda m/n$，再用从两侧逼近实数的非负有理数及单调性，得到 $H(t)=\lambda t$。因为 $S_X(t)\to0$，$\lambda$ 不能为零，故 $S_X(t)=e^{-\lambda t}$，即得结论。
+\end{proof}
+
+几何分布刻画离散试验次数中的等待，指数分布刻画连续时间中的等待，两者的无记忆性形式相似，但取值范围和尾概率公式不同。若把 $X$ 解释为寿命，式~\eqref{eq:study-exponential-memoryless} 表明已经正常工作的时长不改变剩余寿命的条件分布；这一假设不适合直接描述明显存在老化效应的对象。
+
+进一步，若非负寿命 $X$ 在 $(0,\infty)$ 上有连续密度，且 $S_X(t)>0$，则在 $t>0$ 处可定义\emph{失效率（hazard rate）}
+\begin{equation}
+  r(t)=\lim_{h\downarrow0}
+    \frac{\mathbb P(t<X\le t+h\mid X>t)}{h}
+  =\frac{f_X(t)}{S_X(t)},
+  \label{eq:study-hazard-rate}
+\end{equation}
+失效率是每单位时间的条件失效强度，$r(t)h$ 才是短时间内条件失效概率的近似。由 $S_X'(t)=-f_X(t)$，若 $S_X(0)=1$，则
+\begin{equation}
+  S_X(t)=\exp\left(-\int_0^tr(u)\,\mathrm du\right),\qquad
+  f_X(t)=r(t)\exp\left(-\int_0^tr(u)\,\mathrm du\right).
+  \label{eq:study-hazard-survival}
+\end{equation}
+对一般局部可积的非负 $r$，这些等式在相应的几乎处处意义下成立；要使寿命有限的概率为 $1$，还须有 $\int_0^{\infty}r(u)\,\mathrm du=\infty$。常数 $r(t)=\lambda$ 导出指数分布；若 $r(t)=kt^{k-1}/\eta^k$（$t>0$），其中 $k,\eta>0$，则
+\[
+  F_X(t)=1-\exp\bigl(-(t/\eta)^k\bigr),\qquad t\ge0,
+\]
+得到\emph{韦布尔分布（Weibull distribution）}。$k=1$ 时它成为指数分布，$k>1$ 和 $0<k<1$ 分别允许递增和递减的失效率。
+
+\subsection{正态分布与标准化}
+\label{subsec:study-normal}
+
+\begin{definition}
+\label{def:study-normal}
+设 $\mu\in\mathbb R$、$\sigma>0$。若随机变量 $X$ 的密度为
+\begin{equation}
+  f_X(x)=\frac1{\sqrt{2\pi}\sigma}
+    \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right),
+  \qquad x\in\mathbb R,
+  \label{eq:study-normal-density}
+\end{equation}
+则称 $X$ 服从\emph{正态分布（normal distribution）}，也称\emph{高斯分布（Gaussian distribution）}，记为 $X\sim N(\mu,\sigma^2)$。其中 $\mu$ 是位置参数，$\sigma$ 是尺度参数；记号中的第二个参数是 $\sigma^2$。
+\end{definition}
+
+密度关于 $x=\mu$ 对称，在该点达到最大值 $1/(\sqrt{2\pi}\sigma)$，拐点位于 $\mu\pm\sigma$。固定 $\sigma$ 改变 $\mu$ 使曲线平移；固定 $\mu$ 增大 $\sigma$ 则使曲线变宽、峰值降低，但总面积仍为 $1$。取 $\mu=0,\sigma=1$ 得到\emph{标准正态分布（standard normal distribution）}，其密度和分布函数分别记为
+\begin{equation}
+  \varphi(z)=\frac1{\sqrt{2\pi}}e^{-z^2/2},\qquad
+  \Phi(z)=\int_{-\infty}^z\varphi(t)\,\mathrm dt.
+  \label{eq:study-standard-normal}
+\end{equation}
+正态密度的归一化可由高斯积分说明：令 $I=\int_{\mathbb R}e^{-x^2/2}\,\mathrm dx$，由非负被积函数的重积分公式和极坐标变换，
+\[
+  I^2=\int_{\mathbb R^2}e^{-(x^2+y^2)/2}\,\mathrm dx\,\mathrm dy
+  =\int_0^{2\pi}\!\int_0^{\infty}e^{-r^2/2}r\,\mathrm dr\,\mathrm d\theta
+  =2\pi.
+\]
+故 $I=\sqrt{2\pi}$，再经平移和尺度变换即得一般情形。
+
+\begin{proposition}[标准化公式]
+\label{prop:study-normal-standardization}
+若 $X\sim N(\mu,\sigma^2)$，则 $Z=(X-\mu)/\sigma\sim N(0,1)$，且对 $a<b$，
+\begin{equation}
+  F_X(x)=\Phi\left(\frac{x-\mu}{\sigma}\right),\qquad
+  \mathbb P(a<X\le b)=
+    \Phi\left(\frac{b-\mu}{\sigma}\right)
+    -\Phi\left(\frac{a-\mu}{\sigma}\right).
+  \label{eq:study-normal-standardization}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+在 $F_X(x)=\int_{-\infty}^xf_X(t)\,\mathrm dt$ 中作代换 $u=(t-\mu)/\sigma$，即得分布函数公式。又由 $\sigma>0$，$\mathbb P(Z\le z)=F_X(\mu+\sigma z)=\Phi(z)$，区间概率由两端分布函数之差得到。
+\end{proof}
+
+由对称性，$\Phi(-z)=1-\Phi(z)$，因而
+\begin{equation}
+  \mathbb P(|X-\mu|\le k\sigma)=2\Phi(k)-1\quad(k>0).
+  \label{eq:study-normal-central-probability}
+\end{equation}
+取 $k=1,2,3$，相应概率约为 $0.6827,0.9545,0.9973$。因此所谓“三倍标准差范围”包含很大概率，但区间外仍有约 $0.0027$ 的概率，不能把正态随机变量的取值范围严格截为 $[\mu-3\sigma,\mu+3\sigma]$。
+
+由于 $\varphi(z)>0$，$\Phi$ 连续且严格递增，并把实轴映到 $(0,1)$，其反函数记为 $\Phi^{-1}$，称为标准正态分布的\emph{分位数函数（quantile function）}。对 $u\in(0,1)$，$\Phi^{-1}(u)$ 是使左侧累积概率等于 $u$ 的唯一实数；因而可把概率约束反过来转化为高度、时间等数值的设计条件。
+
+% 教材例 2.23：车门高度。
+\begin{example}
+\label{ex:study-normal-door}
+假定所研究人群的男子身高 $X\sim N(172,36)$，单位为厘米。以身高超过车门高度作为碰头事件，怎样选择高度 $H$，使碰头概率小于 $0.01$？
+\end{example}
+
+\begin{solve}
+这里 $\sigma=6$，所需条件为
+\[
+  1-\Phi\left(\frac{H-172}{6}\right)<0.01,
+\]
+等价于 $H>172+6\Phi^{-1}(0.99)\approx185.958$ 厘米。因此选 $H=186$ 厘米即可，模型下的超高概率约为 $0.0098$。若身高模型或碰头条件改变，应重新判断；这一计算是给定模型下的概率设计。
+\end{solve}
+
+\section{随机变量函数的分布}
+\label{sec:study-transformed-distributions}
+
+若已知 $X$ 的分布，而研究对象是 $Y=g(X)$，就需要把 $X$ 的概率经过确定的函数 $g$ 转移到新的数轴上。这里假定 $g$ 为可测函数，从而 $Y$ 仍是随机变量。变换后的类型由 $X$ 与 $g$ 共同决定，连续型随机变量经过函数变换后也可能变成离散型或混合型。
+
+\subsection{离散变换与分布函数法}
+\label{subsec:study-transformation-cdf}
+
+若 $X$ 离散，$\mathbb P(X=x_k)=p_k$，则对每个可能的新取值 $y$，
+\begin{equation}
+  \mathbb P(Y=y)=\sum_{k:g(x_k)=y}p_k.
+  \label{eq:study-discrete-transformation}
+\end{equation}
+\emph[tip]{先列出不同的新取值，再合并映到同一取值的概率。}例如教材例 2.24 中，$X$ 在 $-1,0,1,3,4$ 上的概率依次为 $0.1,0.2,0.2,0.4,0.1$，则 $Y=X^2$ 的分布律为
+\[
+  \begin{array}{c|cccc}
+    y&0&1&9&16\\\hline
+    \mathbb P(Y=y)&0.2&0.3&0.4&0.1
+  \end{array}
+\]
+其中 $Y=1$ 同时包含 $X=-1$ 和 $X=1$ 两种情形。若 $g$ 恒等于常数 $c$，则 $\mathbb P(Y=c)=1$，称为\emph{退化分布（degenerate distribution）}。
+
+对任意类型的 $X$，都可先用\emph{分布函数法（distribution function method）}：
+\begin{equation}
+  F_Y(y)=\mathbb P(g(X)\le y).
+  \label{eq:study-general-transformation-cdf}
+\end{equation}
+其关键是解出集合 $\{x:g(x)\le y\}$。若 $X$ 有密度 $f_X$，则
+\begin{equation}
+  F_Y(y)=\int_{\{x:g(x)\le y\}}f_X(x)\,\mathrm dx.
+  \label{eq:study-continuous-transformation-cdf}
+\end{equation}
+求得 $F_Y$ 后，应先检查它是否存在跳跃或其他不属于绝对连续部分的概率，再决定能否仅以求导得到完整的密度。
+
+\subsection{单调变换及分段单调变换}
+\label{subsec:study-density-transformation}
+
+\begin{theorem}[单调变换的密度公式]
+\label{thm:study-monotone-density-transformation}
+设 $X$ 具有密度 $f_X$，且 $\mathbb P(X\in I)=1$，其中 $I$ 为开区间。若 $g$ 在 $I$ 上连续可微且 $g'(x)\ne0$，则 $g$ 在 $I$ 上严格单调，反函数 $h:g(I)\to I$ 连续可微，$Y=g(X)$ 具有密度
+\begin{equation}
+  f_Y(y)=\begin{cases}
+    f_X(h(y))|h'(y)|,&y\in g(I),\\
+    0,&y\notin g(I).
+  \end{cases}
+  \label{eq:study-monotone-density-transformation}
+\end{equation}
+密度等式按几乎处处意义理解，区间端点的密度值可任意指定为非负值。
+\end{theorem}
+
+\begin{proof}
+连续且不为零的 $g'$ 在区间内符号恒定，故 $g$ 严格单调，反函数定理给出 $h'(y)=1/g'(h(y))$。若 $g$ 递增，则在 $g(I)$ 内有 $F_Y(y)=F_X(h(y))$；若 $g$ 递减，则 $F_Y(y)=1-F_X(h(y))$，因为 $X$ 的单点概率为零。更直接地，在任一子区间 $(c,d)\subseteq g(I)$ 上作积分换元，两种情况均得到
+\[
+  \mathbb P(c<Y\le d)=\int_c^df_X(h(y))|h'(y)|\,\mathrm dy.
+\]
+所得函数在整个像区间的积分为 $1$，因此确为 $Y$ 的密度。绝对值来自递减变换时积分方向的反转。
+\end{proof}
+
+特别地，当 $Y=aX+b$、$a\ne0$ 时，
+\begin{equation}
+  f_Y(y)=\frac1{|a|}f_X\left(\frac{y-b}{a}\right).
+  \label{eq:study-affine-density}
+\end{equation}
+若 $X\sim N(\mu,\sigma^2)$，代入正态密度可得
+\begin{equation}
+  aX+b\sim N(a\mu+b,a^2\sigma^2).
+  \label{eq:study-affine-normal}
+\end{equation}
+这一公式也适用于 $a<0$；若 $a=0$，则新分布退化在 $b$，须单独处理。
+
+若 $X$ 以概率 $1$ 落在有限或可数个互不相交的开区间 $I_j$ 的并集中，$g$ 在每个 $I_j$ 上满足上述条件，反函数记为 $h_j$，则将各分支的概率相加得到
+\begin{equation}
+  f_Y(y)=\sum_{j:y\in g(I_j)}f_X(h_j(y))|h_j'(y)|.
+  \label{eq:study-piecewise-transformation}
+\end{equation}
+对可数个分支，可由非负函数的求和与积分交换验证此式；分割时漏掉的边界点必须具有总概率零。不能把一个多对一变换任意选一个反函数后直接代入单调公式。
+
+% 教材例 2.26：平方变换。
+\begin{example}
+\label{ex:study-square-transformation}
+设 $X$ 的密度为 $f_X$，分布函数为 $F_X$。求 $Y=X^2$ 的分布。
+\end{example}
+
+\begin{solve}
+$Y\ge0$ 且 $\mathbb P(Y=0)=0$。当 $y>0$ 时，
+\[
+  F_Y(y)=\mathbb P(-\sqrt y\le X\le\sqrt y)
+  =F_X(\sqrt y)-F_X(-\sqrt y),
+\]
+而 $y\le0$ 时 $F_Y(y)=0$。在正负两个半轴分别换元，得到密度
+\begin{equation}
+  f_Y(y)=\begin{cases}
+    \dfrac{f_X(\sqrt y)+f_X(-\sqrt y)}{2\sqrt y},&y>0,\\
+    0,&y\le0.
+  \end{cases}
+  \label{eq:study-square-density}
+\end{equation}
+当 $X\sim N(0,1)$ 时，两分支概率贡献相同，因而 $f_Y(y)=e^{-y/2}/\sqrt{2\pi y}$（$y>0$）。该密度在 $0$ 的右侧趋于无穷，但可积，且不在 $0$ 处产生正概率。
+\end{solve}
+
+% 教材例 2.27：正弦变换。
+\begin{example}
+\label{ex:study-sine-transformation}
+设 $X\sim U(0,\pi)$，求 $Y=\sin X$ 的密度。
+\end{example}
+
+\begin{solve}
+对 $0<y<1$，不等式 $\sin x\le y$ 在 $(0,\pi)$ 中对应两个区间 $(0,\arcsin y]$ 和 $[\pi-\arcsin y,\pi)$，所以
+\[
+  F_Y(y)=\frac{2\arcsin y}{\pi},\qquad
+  f_Y(y)=\frac{2}{\pi\sqrt{1-y^2}}.
+\]
+在 $y\le0$ 时 $F_Y(y)=0$，在 $y\ge1$ 时 $F_Y(y)=1$；密度在 $(0,1)$ 外可取零。这与式~\eqref{eq:study-piecewise-transformation} 中两个反函数分支的贡献之和相同。
+\end{solve}
+
+\begin{notealert}[type=caution,title={变换可能改变分布类型}]
+若 $X\sim U(0,1)$，而 $Y=\mathbf 1_{\{X>1/2\}}$，则 $Y\sim\mathrm{Bern}(1/2)$，连续型变量变成了离散型。若令 $Z=\max\{X,1/2\}$，则 $\mathbb P(Z=1/2)=1/2$，其余概率在 $(1/2,1)$ 上连续分布，得到混合型分布。变换在一个有正概率的区域内取常值时，必须保留这一整块概率，不能只对可微部分套用密度公式。
+\end{notealert}
+
+\section{扩展阅读：正态分布的由来}
+\label{sec:study-normal-origin}
+
+教材从二项分布的近似和测量误差的建模两条线索解释正态分布的来源，分别联系棣莫弗、拉普拉斯关于极限分布的研究和高斯关于误差分析的研究。理解这些线索，重点在于说明钟形密度从什么数学条件产生，而不是把所有观测数据都预设成正态分布。
+
+\subsection{从二项概率到正态极限}
+\label{subsec:study-normal-binomial-origin}
+
+先考虑 $S_n\sim\mathrm{Bin}(n,1/2)$。当 $n$ 为偶数，且 $k=n/2+j$ 时，
+\[
+  \mathbb P(S_n=k)=\binom{n}{n/2+j}2^{-n}.
+\]
+利用斯特林公式 $m!\sim\sqrt{2\pi m}(m/e)^m$，再对对数作展开，可在 $|j|\le C\sqrt n$（$C>0$ 固定）的中心范围内得到一致近似
+\begin{equation}
+  \mathbb P(S_n=n/2+j)
+  =\sqrt{\frac2{\pi n}}\exp\left(-\frac{2j^2}{n}\right)
+    \bigl(1+o(1)\bigr).
+  \label{eq:study-binomial-local-normal}
+\end{equation}
+这里给出的是推导思路：令 $u=2j/n=O(n^{-1/2})$，阶乘比的主要指数项为
+\[
+  -\frac n2\bigl[(1+u)\log(1+u)+(1-u)\log(1-u)\bigr]
+  =-\frac{nu^2}{2}+O(nu^4)
+  =-\frac{2j^2}{n}+O(n^{-1}),
+\]
+平方根因子则给出 $\sqrt{2/(\pi n)}(1+o(1))$，这说明中心尺度为 $\sqrt n$，并解释了平方指数的来源。
+
+令 $z_j=2j/\sqrt n$，相邻标准化取值间距为 $\Delta z=2/\sqrt n$，式~\eqref{eq:study-binomial-local-normal} 的右侧正好为 $\varphi(z_j)\Delta z$。因而对固定的有限区间，将相应的二项概率相加，就是正态密度的黎曼和。这给出了离散概率为何会趋近连续曲线下面积的解释。一般成功概率下的完整结论为\emph{棣莫弗--拉普拉斯定理（de Moivre--Laplace theorem）}：若 $S_n\sim\mathrm{Bin}(n,p)$，$p\in(0,1)$ 固定，则
+\begin{equation}
+  \lim_{n\to\infty}
+  \mathbb P\left(\frac{S_n-np}{\sqrt{np(1-p)}}\le z\right)
+  =\Phi(z),\qquad z\in\mathbb R.
+  \label{eq:study-de-moivre-laplace}
+\end{equation}
+一般情形的证明留待第~\ref{sec:study-limit-theorems} 节的极限定理讨论。有限 $n$ 时，这是概率近似；尤其在 $p$ 接近 $0$ 或 $1$ 时，不能仅以 $n$ 较大为由忽略分布偏斜。
+
+\subsection{从算术平均的最优性反推误差密度}
+\label{subsec:study-normal-error-origin}
+
+另一条线索从测量误差出发。设同一未知真值为 $\theta\in\mathbb R$，测量值为 $x_1,\ldots,x_n$，各次随机误差相互独立、具有相同的严格正密度 $f$，且 $f$ 在实轴上连续可微。给定观测值后，将其联合密度看成 $\theta$ 的函数，得到\emph{似然函数（likelihood function）}
+\[
+  L(\theta)=\prod_{i=1}^nf(x_i-\theta).
+\]
+\emph{最大似然估计（maximum likelihood estimation）}选择使此函数最大的参数值。现在提出一个强的建模要求：对每个样本量及每组实数观测，算术平均 $\bar x=n^{-1}\sum_i x_i$ 都是似然函数的最大点。由于参数范围为整个实轴，最大点须满足可微函数的一阶必要条件。
+
+令 $\psi(u)=f'(u)/f(u)$。将 $\theta=\bar x$ 代入对数似然的一阶导数，得到
+\begin{equation}
+  \sum_{i=1}^n\psi(x_i-\bar x)=0.
+  \label{eq:study-gaussian-score-condition}
+\end{equation}
+在 $n=2$ 时取观测 $u,-u$，得到 $\psi(-u)=-\psi(u)$；在 $n=3$ 时取观测 $u,v,-u-v$，再用奇性，得到
+\[
+  \psi(u+v)=\psi(u)+\psi(v).
+\]
+连续的可加函数必为线性函数：先由可加性在有理数上得到 $\psi(r)=cr$，再用连续性推广到所有实数。因此 $\psi(u)=cu$，积分得到
+\[
+  \log f(u)=\frac c2u^2+C.
+\]
+若 $c\ge0$，所得正函数不能在整个实轴上归一化为概率密度；故 $c<0$，令 $c=-1/\sigma^2$，再用高斯积分归一化，得到
+\begin{equation}
+  f(u)=\frac1{\sqrt{2\pi}\sigma}
+    \exp\left(-\frac{u^2}{2\sigma^2}\right).
+  \label{eq:study-gaussian-error-characterization}
+\end{equation}
+反过来，在这一密度下，最大化 $L(\theta)$ 等价于最小化平方误差和，因为
+\[
+  \sum_{i=1}^n(x_i-\theta)^2
+  =\sum_{i=1}^n(x_i-\bar x)^2+n(\theta-\bar x)^2,
+\]
+其唯一最小点确为 $\bar x$。这说明正态误差模型与算术平均、最小二乘法之间有严格联系；结论依赖独立同分布、正密度的光滑性以及对所有样本都要求平均值最优等条件，不能仅凭某一次采用了平均数便断定误差服从正态分布。
+
+两条线索也有不同的逻辑地位：二项极限描述许多独立随机贡献相加后的近似规律，误差推导则在明确的最优性要求下刻画密度。把复杂误差视为许多微小因素之和，可以为正态近似提供动机，但仍须核对相应极限定理的条件；偏斜、重尾或受共同因素影响的数据，未必适合直接使用正态模型。
+
+\section*{本章总结}
+\addcontentsline{toc}{section}{本章总结}
+
+随机变量是样本空间上的数值函数，分布刻画其取值的概率规律。离散型分布由取值与概率质量确定，连续型分布由密度的积分确定，各类分布都能用 $F_X(x)=\mathbb P(X\le x)$ 描述。计算区间概率时，应先判断端点是否有概率质量；只有没有相应单点概率时，才可自由改变端点开闭。密度是概率对长度的集中程度，既不等于单点概率，也不要求逐点小于 $1$。
+
+常用模型按计数方式区分：伯努利分布记录一次试验是否成功，二项分布记录固定次数中的成功数，超几何分布记录有限总体不放回抽样中的某类对象数，负二项与几何分布记录达到成功条件的试验次数，泊松分布描述给定范围内的计数。均匀分布把区间概率与长度联系起来，指数分布对应具有无记忆性的连续等待，正态分布则通过标准化归结为 $\Phi$ 的计算。分布选择依赖条件，泊松和正态极限提供近似依据，不能把近似等同于精确模型。
+
+求 $Y=g(X)$ 的分布时，离散情形将相同像的概率相加；一般情形先写 $F_Y(y)=\mathbb P(g(X)\le y)$，再解出原像集合。只有确认绝对连续性和单调分支条件后，才使用带导数绝对值的密度变换公式。下面选取教材习题练习有限抽样、跳跃端点、模型计算和分布变换，题号均指教材本章习题。
+
+\section*{习题}
+\addcontentsline{toc}{section}{习题}
+
+\begin{example}
+\label{ex:study-ch2-exercise-6}
+教材习题 6。$10$ 件产品中有 $8$ 件正品、$2$ 件次品，每次从剩余产品中等可能地抽取一件，直到首次取到正品。设 $T$ 为抽取次数，求其分布律和分布函数。
+\end{example}
+
+\begin{solve}
+由于至多先抽到两件次品，$T$ 只能取 $1,2,3$。逐次使用条件概率，得到
+\[
+  \mathbb P(T=1)=\frac45,\qquad
+  \mathbb P(T=2)=\frac2{10}\frac89=\frac8{45},\qquad
+  \mathbb P(T=3)=\frac2{10}\frac19=\frac1{45}.
+\]
+三项之和为 $1$，因而
+\[
+  F_T(t)=\begin{cases}
+    0,&t<1,\\
+    4/5,&1\le t<2,\\
+    44/45,&2\le t<3,\\
+    1,&t\ge3.
+  \end{cases}
+\]
+虽然 $T$ 是首次成功的等待次数，但不放回抽样使后续成功率随已抽结果改变，因此不能直接使用几何分布。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ch2-exercise-8}
+教材习题 8。独立射击 $20$ 次，每次命中率为 $0.2$，以 $X$ 记命中次数。求至少命中一次的概率，并求 $X$ 最有可能的取值。
+\end{example}
+
+\begin{solve}
+$X\sim\mathrm{Bin}(20,0.2)$，所以 $\mathbb P(X\ge1)=1-0.8^{20}\approx0.9885$。设 $p_k=\mathbb P(X=k)$，对 $0\le k\le19$，
+\[
+  \frac{p_{k+1}}{p_k}=\frac{20-k}{k+1}\frac{0.2}{0.8}
+  =\frac{20-k}{4(k+1)}.
+\]
+此比值在 $k\le3$ 时大于 $1$，在 $k\ge4$ 时小于 $1$，故 $p_k$ 先增加至 $k=4$，之后下降，唯一最可能的命中次数为 $4$。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ch2-exercise-18}
+教材习题 18。设随机变量 $X$ 的分布函数为
+\[
+  F(x)=\begin{cases}
+    0,&x<0,\\
+    x/4,&0\le x<1,\\
+    1/2+(x-1)/4,&1\le x<2,\\
+    5/6,&2\le x<3,\\
+    1,&x\ge3.
+  \end{cases}
+\]
+求 $\mathbb P(X=k)$（$k=1,2,3$）及 $\mathbb P(1/2<X<3/2)$。
+\end{example}
+
+\begin{solve}
+逐点取跳跃高度，而非代入分布函数后直接当作单点概率，得
+\[
+  \mathbb P(X=1)=\frac12-\frac14=\frac14,\quad
+  \mathbb P(X=2)=\frac56-\frac34=\frac1{12},\quad
+  \mathbb P(X=3)=1-\frac56=\frac16.
+\]
+两个区间端点都是连续点，因而
+\[
+  \mathbb P(1/2<X<3/2)=F(3/2)-F(1/2)=\frac58-\frac18=\frac12.
+\]
+这一概率已经包含 $X=1$ 的概率质量，不能只把两个端点间的分段导数积分后就停止计算。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ch2-exercise-24}
+教材习题 24。设 $X\sim U(-5,5)$，求关于实数 $u$ 的方程 $u^2+Xu+1=0$ 有实根的概率。
+\end{example}
+
+\begin{solve}
+系数 $X$ 随机，未知数 $u$ 是方程中的实数变量。有实根等价于判别式 $X^2-4\ge0$，即 $X\in(-5,-2]\cup[2,5)$。由均匀分布，所求概率是这些区间总长度与 $10$ 之比，即 $6/10=3/5$。边界 $X=\pm2$ 的概率为零，不改变结果。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ch2-exercise-28}
+教材习题 28。机器检修时间 $X\sim\mathrm{Exp}(1)$，单位为小时。求检修时间超过 $2$ 小时的概率；已知检修 $2$ 小时仍未完成，求总检修时间超过 $4$ 小时的条件概率。
+\end{example}
+
+\begin{solve}
+由生存函数及无记忆性，
+\[
+  \mathbb P(X>2)=e^{-2},\qquad
+  \mathbb P(X>4\mid X>2)=\frac{e^{-4}}{e^{-2}}=e^{-2}.
+\]
+二者均约为 $0.1353$，但描述的信息条件不同；未给定已等待时间时，总检修时间超过 $4$ 小时的概率应为 $e^{-4}$。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ch2-exercise-31}
+教材习题 31（1）。设 $X\sim N(1,4)$，求 $\mathbb P(0\le X\le4)$、$\mathbb P(X>2.4)$ 和 $\mathbb P(|X|>2)$。
+\end{example}
+
+\begin{solve}
+这里 $\sigma=2$，依次标准化得到
+\[
+  \begin{aligned}
+    \mathbb P(0\le X\le4)&=\Phi(1.5)-\Phi(-0.5)\approx0.6247,\\
+    \mathbb P(X>2.4)&=1-\Phi(0.7)\approx0.2420,\\
+    \mathbb P(|X|>2)&=\Phi(-1.5)+1-\Phi(0.5)\approx0.3753.
+  \end{aligned}
+\]
+最后一个事件需分成 $X<-2$ 与 $X>2$，因为分布中心为 $1$，不能直接把两尾视为相等。
+\end{solve}
+
+\begin{example}
+\label{ex:study-ch2-exercise-42}
+教材习题 42。设随机变量 $X$ 的分布函数 $F$ 连续且在实轴上严格递增，证明 $U=F(X)$ 服从 $U(0,1)$。
+\end{example}
+
+\begin{proof}
+由 $F$ 连续、严格递增及两端极限，对每个 $u\in(0,1)$，存在唯一的 $x_u\in\mathbb R$，使 $F(x_u)=u$。因此
+\[
+  \mathbb P(U\le u)=\mathbb P(F(X)\le u)
+  =\mathbb P(X\le x_u)=F(x_u)=u.
+\]
+又对有限的 $X$ 有 $0<F(X)<1$，故 $u\le0$ 时分布函数为 $0$，$u\ge1$ 时为 $1$，与均匀分布相同。这一结论称为\emph{概率积分变换（probability integral transform）}。严格递增是此处使用普通反函数的充分条件；如果分布函数有平坦区间，就需要另外处理反函数的定义。
+\end{proof}
+
+\begin{example}
+\label{ex:study-ch2-exercise-44}
+教材习题 44。设 $X$ 的密度为 $f_X(x)=2(1-x)$（$0<x<1$），其余处为零。构造 $(0,1)$ 上的单调递增函数 $g$，使 $g(X)\sim\mathrm{Exp}(1)$。
+\end{example}
+
+\begin{solve}
+在 $(0,1)$ 上积分得 $F_X(x)=2x-x^2=1-(1-x)^2$，它连续且严格递增。由概率积分变换的同样论证，$U=F_X(X)\sim U(0,1)$。对 $y\ge0$，
+\[
+  \mathbb P(-\log(1-U)\le y)
+  =\mathbb P(U\le1-e^{-y})=1-e^{-y}.
+\]
+所以可取
+\begin{equation}
+  g(x)=-\log(1-F_X(x))=-2\log(1-x),\qquad0<x<1.
+  \label{eq:study-exercise-44-transform}
+\end{equation}
+由于 $g'(x)=2/(1-x)>0$，它确为所需的单调递增函数。这也展示了从一种连续分布先变到均匀分布、再变到目标分布的构造方法。
+\end{solve}
+
+
+
+
+

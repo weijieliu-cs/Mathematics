@@ -1,0 +1,661 @@
+% !TeX root = ../机器学习教材（李航）笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{0} % 保留原书章号。
+\chapter{统计学习及监督学习概论}
+\label{chap:lh-learning-overview}
+
+给定一批邮件及其类别，怎样判断新邮件是否为垃圾邮件；给定若干输入与测量结果，怎样预测新的结果；没有标记时，又能从数据中发现什么结构？这些问题都要求从有限经验中提取可以用于新情形的规律。统计学习关注的核心问题是：用什么模型表示规律，按照什么准则从数据中确定模型，以及怎样检验所得规律能否推广到未见数据。
+
+本章先建立数据、学习任务与模型的共同语言，再以\emph{模型、策略和算法}组织监督学习方法，随后讨论评估、正则化、交叉验证与泛化，最后比较生成方法和判别方法，说明分类、标注和回归三类应用。阅读时应始终区分数据生成的未知规律、学习者选择的模型族、样本上的优化目标与新数据上的预测表现；这四者相互联系，却不是同一个对象。
+
+\section{统计学习}
+\label{sec:lh-statistical-learning}
+
+\emph{统计学习}（statistical learning），也称统计机器学习（statistical machine learning），研究计算机如何依据数据构建统计模型，并利用模型进行预测和分析。这里的“学习”体现为系统利用经验改进在给定任务上的表现，而不是单纯保存已经出现的样本。预测侧重对未知结果作出判断，分析侧重揭示数据中的关联或潜在结构；二者都需要明确研究对象、数据表示和评价标准。
+
+数据可以是数值、文本、图像、声音或它们的组合，进入模型前通常需要表示为变量或特征。用随机变量描述观测的不确定性，用概率分布描述其统计规律，是统计学习的基本建模方式。\emph[caution]{数据具有可利用的统计规律是建模前提，不是有限样本自动保证的结论。}样本是否具有代表性、训练与应用环境是否一致、特征是否包含必要信息，都会影响学习结果；本章主要讨论模型学习，不展开数据采集问题。
+
+一个典型学习过程是：取得有限训练数据，规定候选模型的范围，确定选择模型的准则，通过计算求得模型，再将其用于新数据。研究方法时要回答模型怎样构造，研究理论时要回答方法何时有效、需要多少数据和计算，研究应用时则要将任务转化为可检验的学习问题。这一过程同时涉及概率统计、信息论、计算与优化；本章使用的独立同分布假设适用于基础监督学习分析，并不覆盖所有在线、序列或交互数据。
+
+\section{统计学习的分类}
+\label{sec:lh-learning-categories}
+
+学习方法可以按反馈信息、模型形式、数据到达方式和所用技术分类。这些划分考察的是不同方面，彼此可以交叉：例如，一个方法可以同时是监督的、概率的、参数化的，并采用批量训练。
+
+\subsection{基本分类}
+\label{subsec:lh-basic-categories}
+
+\emph{监督学习}（supervised learning）从带有输入与输出对应关系的\emph{标注数据}（labeled data）中学习预测规则。为明确对象，记原始输入空间为 $\mathcal U$，特征映射为 $\phi:\mathcal U\to\mathcal X$，其中 $\mathcal X\subseteq\mathbb R^d$ 是特征空间（feature space），$\mathcal Y$ 是输出空间（output space）。若不区分原始输入和特征，就直接将 $\mathcal X$ 称为输入空间（input space）。一个实例（instance）的特征向量写为
+\[
+    x=(x^{(1)},\ldots,x^{(d)})^\top,
+\]
+其中 $x^{(j)}$ 是第 $j$ 个特征；第 $i$ 个样本的第 $j$ 个特征则记为 $x_i^{(j)}$，不要把样本下标与特征上标混淆。
+
+随机输入、输出分别记为 $X$、$Y$，其观测值为 $x$、$y$。训练集（training set）记为
+\begin{equation}
+    T=\{(x_i,y_i)\}_{i=1}^N,
+    \qquad x_i\in\mathcal X,\quad y_i\in\mathcal Y.
+    \label{eq:lh-training-set}
+\end{equation}
+基本分析假设随机样本对 $(X_i,Y_i)$ 独立同分布（independent and identically distributed，i.i.d.），共同分布记为 $P_{XY}$，且独立的新样本也来自该分布。\emph[caution]{独立同分布指样本对之间独立且分布相同，不要求一个样本内部的 $X$ 与 $Y$ 独立。}恰恰是二者的统计联系，使利用输入预测输出成为可能。$P_{XY}$ 对学习者未知，训练数据只提供关于它的有限信息。
+
+\begin{definition}
+\label{def:lh-hypothesis-space}
+\emph{假设空间}（hypothesis space）是学习者预先规定的候选模型集合，记为 $\mathcal F$。决策模型通常写成 $f:\mathcal X\to\mathcal Y$；概率预测模型通常写成条件分布 $p_\theta(\cdot\mid x)$。训练算法将训练集 $T$ 映射为选定的模型 $\widehat f$ 或 $p_{\widehat\theta}$；预测时，使用该模型处理新的输入。
+\end{definition}
+
+决策函数产生预测值 $\widehat y=\widehat f(x)$；概率分类模型产生各类别的条件概率，在 $0$--$1$ 损失下可按
+\[
+    \widehat y\in\arg\max_{y\in\mathcal Y}p_{\widehat\theta}(y\mid x)
+\]
+作出决策，最大值并列时预先规定选择规则。这里的 $\widehat f(X)$ 是对真实输出 $Y$ 的预测，不能把 $Y=\widehat f(X)$ 当成一般数据必然满足的无噪声关系。训练的目标是在有限数据中学习可推广的关系，而不只是复现训练标签。
+
+\emph{无监督学习}（unsupervised learning）使用无标注数据 $U=\{x_i\}_{i=1}^N$，研究数据中的潜在结构或概率规律。聚类为相似实例分组，降维将实例表示为较低维坐标，密度估计近似数据分布。若隐结构记为 $Z$，相应模型可以是映射 $z=g(x)$、条件分布 $p_\theta(z\mid x)$，或联合模型 $p_\theta(x,z)$；在联合模型中，对 $Z$ 求和或积分得到 $p_\theta(x)$。不同目标对应不同评价准则，“没有人工标签”并不意味着没有优化目标，也不意味着所得簇必然对应预先设想的语义类别。
+
+\emph{强化学习}（reinforcement learning）研究智能体在与环境交互时如何选择行动，以改进长期累积奖励。采用有限马尔可夫决策过程（Markov decision process，MDP）建模时，记其为 $(\mathcal S,\mathcal A,P,r,\gamma)$：$\mathcal S$、$\mathcal A$ 分别为有限状态集、动作集，$P(s'\mid s,a)$ 为转移概率，$r(s,a)$ 为期望即时奖励，$\gamma$ 为折扣因子。令 $S_t,A_t,R_{t+1}$ 分别表示时刻 $t$ 的状态、动作和随后收到的奖励，则
+\[
+    P(s'\mid s,a)=\Pr(S_{t+1}=s'\mid S_t=s,A_t=a),
+    \qquad
+    r(s,a)=\mathbb E[R_{t+1}\mid S_t=s,A_t=a].
+\]
+马尔可夫假设要求给定当前状态与动作后，下一状态和奖励的条件规律不再依赖更早历史。$r(s,a)$ 只描述奖励的条件均值，并不表示奖励必然是确定值。
+
+\emph{策略}（policy）$\pi(a\mid s)$ 规定给定状态时选择动作的概率，确定性策略是其特殊情形。为使无限时域回报有定义，本章采用 $0\leq\gamma<1$，并假设存在有限常数 $C$ 使 $|R_t|\leq C$ 几乎处处成立；此时折扣回报绝对有界，状态价值与动作价值分别定义为
+\begin{align}
+    V^\pi(s)
+    &=\mathbb E_\pi\!\left[\sum_{k=0}^\infty\gamma^kR_{t+k+1}
+      \,\middle|\,S_t=s\right],
+      \label{eq:lh-state-value}\\
+    Q^\pi(s,a)
+    &=\mathbb E_\pi\!\left[\sum_{k=0}^\infty\gamma^kR_{t+k+1}
+      \,\middle|\,S_t=s,A_t=a\right].
+      \label{eq:lh-action-value}
+\end{align}
+第二式先执行给定动作 $a$，以后按 $\pi$ 行动；期望来自环境转移、奖励及随机策略。若用 $\gamma=1$，则还需有限时域或保证回报可积的终止等条件。学习最优策略关注长期价值，因此即时奖励最大的动作未必最好；行动还会改变随后获得的数据，这与静态监督学习有明显区别。
+
+强化学习可按是否显式利用环境模型分为有模型（model-based）和无模型（model-free）方法；前者利用已知或学习到的转移、奖励模型规划。另一条划分是直接优化策略的基于策略（policy-based）方法与估计价值后导出决策的基于价值（value-based）方法。两条划分考察不同性质，不能据此断言所有基于策略或价值的方法都只能是无模型方法。
+
+\emph{半监督学习}（semi-supervised learning）联合利用少量标注数据和较多无标注数据；无标注数据能否改善预测，取决于其结构与目标标签之间是否有可利用的联系。\emph{主动学习}（active learning）则由学习者选择希望获得标签的实例，向标注者查询后更新模型，关注有限标注预算下的效果。前者改变可利用的数据组成，后者改变获得标注的方式，二者也可以结合。
+
+\subsection{按模型分类}
+\label{subsec:lh-model-categories}
+
+\emph{概率模型}（probabilistic model）显式描述概率分布，例如类别条件概率 $p_\theta(y\mid x)$；\emph{非概率模型}（non-probabilistic model）或确定性预测模型（deterministic prediction model）直接给出函数值、类别或评分。对分类概率取最大值可以得到决策函数，但决策函数通常丢失概率信息，不能唯一还原原来的分布。若给出类别评分 $s_y(x)$，可另外定义
+\[
+    q(y\mid x)=\frac{\exp(s_y(x))}{\sum_{c\in\mathcal Y}\exp(s_c(x))},
+\]
+但这是对有限类别评分所作的新概率建模，不能自动保证所得概率与真实频率吻合。条件随机场和逻辑斯谛回归都可直接建模条件概率，因而\emph[caution]{“概率模型”与“生成模型”并不是同义概念}；后者的区分见第~\ref{sec:lh-generative-discriminative} 节。
+
+概率图模型（probabilistic graphical model）利用图描述分布的分解及条件独立关系。最基本的计算仍是边缘化与乘法规则：对离散变量，$p(x)=\sum_y p(x,y)$、$p(x,y)=p(x)p(y\mid x)$，后式的条件概率在 $p(x)>0$ 处使用；连续情形相应用积分与密度表示。有向图和无向图采用不同的因子分解形式，图本身并不能免除归一化与概率一致性的要求。
+
+\emph{线性模型}（linear model）和\emph{非线性模型}（nonlinear model）的区分需要说明相对于什么变量。预测函数 $f_w(x)=w^\top x+b$ 关于输入是仿射的，机器学习中通常也称线性模型；$f_w(x)=w^\top\phi(x)$ 对固定特征 $\phi(x)$ 是线性的，而对原始输入可以非线性。多项式回归关于输入非线性，却关于系数线性；近邻方法的预测函数一般也不是输入的线性函数。因此，不宜仅凭算法名称判定线性与非线性。
+
+\emph{参数化模型}（parametric model）由维数固定、不随样本量增长的参数向量刻画，例如固定特征数的线性回归或固定结构的神经网络。\emph{非参数化模型}（nonparametric model）不以固定有限维参数族作为整体限制，其表示规模可随数据量或所选复杂度增长，例如通常保存训练实例的近邻方法。非参数化不等于没有参数；实际计算仍会使用有限的数据结构。模型的参数化性质取决于具体设定，例如固定维数的线性支持向量机不能仅因名为支持向量机就一概归为非参数模型。
+
+\subsection{按算法分类}
+\label{subsec:lh-algorithm-categories}
+
+\emph{批量学习}（batch learning）先取得一批训练数据，再训练模型并用于预测；\emph{在线学习}（online learning）面向依次到达的数据，在反复预测、获得反馈与更新之间推进。在线监督学习在时刻 $t$ 先用当前模型 $f_t$ 对 $x_t$ 预测，取得 $y_t$ 后计算损失，再更新为 $f_{t+1}$。若模型为 $f_\theta$、损失对参数可微，一个可能的更新是
+\[
+    \theta_{t+1}=\theta_t-\eta_t
+    \left.\nabla_\theta L\bigl(y_t,f_\theta(x_t)\bigr)
+      \right|_{\theta=\theta_t},
+    \qquad \eta_t>0,
+\]
+其中 $L$ 度量真实输出与预测的差异，$\eta_t$ 是步长；非光滑目标需要相应的次梯度等方法。此式只是更新示例，其收敛性还需要另外规定目标、数据与步长条件。
+
+在线方式适合需要及时反馈、难以保存全部数据或分布随时间变化的情形，但“每次用一个样本计算梯度”与“在线学习任务”不能完全等同：在固定数据上多次随机抽样训练也可使用随机梯度。批量或在线描述的是数据和更新的组织方式，不能单凭这一点断言哪一种预测必然更准。
+
+\subsection{按技巧分类}
+\label{subsec:lh-technique-categories}
+
+\emph{贝叶斯学习}（Bayesian learning）将未知参数表示为随机变量 $\Theta$，以先验分布（prior distribution）表达观测前的信息，以后验分布（posterior distribution）表达观测后的信息。设观测数据为 $D$、参数取值为 $\theta$，用 $\pi(\theta)$ 表示先验密度，$p(D\mid\theta)$ 表示给定参数时的数据密度。若边缘似然 $p(D)$ 有限且为正，则贝叶斯公式为
+\begin{equation}
+    \pi(\theta\mid D)
+    =\frac{p(D\mid\theta)\pi(\theta)}{p(D)},
+    \qquad
+    p(D)=\int p(D\mid\theta)\pi(\theta)\,\mathrm d\theta.
+    \label{eq:lh-bayes-posterior}
+\end{equation}
+离散参数使用求和。$p(D\mid\theta)$ 对固定 $\theta$ 是关于数据的概率模型，对固定 $D$ 则是关于参数的\emph{似然函数}（likelihood function），不因此成为参数的概率分布。
+
+给出单一参数时，可采用\emph{最大后验估计}（maximum a posteriori estimation，MAP）；\emph{极大似然估计}（maximum likelihood estimation，MLE）则只优化似然：
+\[
+    \widehat\theta_{\mathrm{MAP}}\in
+      \arg\max_{\theta}\pi(\theta\mid D),
+    \qquad
+    \widehat\theta_{\mathrm{ML}}\in
+      \arg\max_{\theta}p(D\mid\theta).
+\]
+两式均以相应最优解存在为前提。在同一参数化及同一约束区域上，若先验密度为正常数，则 MAP 与 MLE 的解集相同；无界参数空间上未必存在可归一化的均匀先验。完整的贝叶斯预测还要平均参数不确定性：若新观测 $Z$ 在给定 $\Theta$ 后与 $D$ 条件独立，则
+\begin{equation}
+    p(z\mid D)=\int p(z\mid\theta)\pi(\theta\mid D)\,\mathrm d\theta.
+    \label{eq:lh-posterior-predictive}
+\end{equation}
+这与直接把 $\widehat\theta_{\mathrm{MAP}}$ 代入模型是不同的预测方式。
+
+\emph{核方法}（kernel method）通过内积表示在特征空间中的计算。若映射 $\phi:\mathcal X\to\mathcal H$ 的值属于实内积空间，则
+\begin{equation}
+    K(x,x')=\langle\phi(x),\phi(x')\rangle_{\mathcal H}
+    \label{eq:lh-kernel-inner-product}
+\end{equation}
+称为相应的核函数（kernel function）。当算法只通过内积使用特征时，可用 $K(x,x')$ 代替显式构造 $\phi(x)$ 后的内积，这就是核技巧（kernel trick）。由内积性质，对任意有限样本和实数 $c_1,\ldots,c_m$，必有
+\[
+    \sum_{i,j=1}^m c_ic_jK(x_i,x_j)
+    =\left\|\sum_{i=1}^m c_i\phi(x_i)\right\|_{\mathcal H}^2\geq0.
+\]
+因此任意定义的“相似度”不能未经核查就当成内积核使用；对称性与上述正半定条件是必要的，反向构造属于后续核方法的理论内容。特征变换可以增加表达能力，但不自动保证给定数据一定可分。
+
+\begin{example}
+\label{ex:lh-quadratic-kernel}
+设 $x=(x^{(1)},x^{(2)})^\top\in\mathbb R^2$。构造特征映射，使 $K(x,x')=(x^\top x')^2$ 表示映射后的内积。
+\end{example}
+\begin{solve}
+取 $\phi(x)=((x^{(1)})^2,\sqrt2x^{(1)}x^{(2)},(x^{(2)})^2)^\top$，则
+\[
+    \phi(x)^\top\phi(x')
+    =(x^{(1)}x'^{(1)})^2
+      +2x^{(1)}x^{(2)}x'^{(1)}x'^{(2)}
+      +(x^{(2)}x'^{(2)})^2
+    =(x^\top x')^2.
+\]
+在该特征上取线性组合就得到关于原始输入的二次函数，而计算核值时不必逐项生成这些二次特征。
+\end{solve}
+
+\section{统计学习方法三要素}
+\label{sec:lh-three-elements}
+
+“模型、策略和算法”分别回答\emph{学什么、按什么标准选择、怎样计算}。模型族相同而损失或正则项不同，会形成不同的学习问题；优化目标相同而求解算法不同，则可能得到不同精度和计算代价的数值结果。
+
+\subsection{模型}
+\label{subsec:lh-model}
+
+模型是对输入输出关系的具体假设，假设空间则规定所有允许的候选。参数化决策模型可写为
+\[
+    \mathcal F=\{f_\theta:\mathcal X\to\mathcal Y\mid\theta\in\Omega\},
+    \qquad \Omega\subseteq\mathbb R^p;
+\]
+概率模型族相应写为 $\mathcal P=\{p_\theta(\cdot\mid x):\theta\in\Omega\}$。$\Omega$ 称为参数空间（parameter space），$p$ 是参数维数，未必等于输入特征数 $d$；不同参数也可能表示同一个模型。真实数据规律不一定包含在选定模型族中，因此学习可以是在受限范围内寻找较好近似，而不一定是恢复一个确实存在的“真实参数”。
+
+\subsection{策略}
+\label{subsec:lh-strategy}
+
+\begin{definition}
+\label{def:lh-loss-risk}
+\emph{损失函数}（loss function）$L(y,a)\geq0$ 度量真实输出 $y$ 与预测 $a$ 的差异。本笔记沿用教材次序，将真实输出放在第一项。以下假设模型与损失的复合函数可测。对决策函数 $f$，其\emph{期望风险}（expected risk）定义为
+\begin{equation}
+    R(f)=\mathbb E_{(X,Y)\sim P_{XY}}[L(Y,f(X))]
+        =\int L(y,f(x))\,\mathrm dP_{XY}(x,y).
+    \label{eq:lh-expected-risk}
+\end{equation}
+给定训练集 $T$，其\emph{经验风险}（empirical risk）定义为
+\begin{equation}
+    \widehat R_T(f)=\frac1N\sum_{i=1}^N L(y_i,f(x_i)).
+    \label{eq:lh-empirical-risk}
+\end{equation}
+比较有限风险时假设损失可积。概率预测则将 $f(x)$ 换为所预测的分布，损失也相应定义在概率分布上。
+\end{definition}
+
+分类常用 $0$--$1$ 损失 $L(y,a)=\mathbf1_{\{y\ne a\}}$，其中 $\mathbf1_A$ 是事件 $A$ 的指示函数；实值回归常用平方损失 $L(y,a)=(y-a)^2$ 和绝对损失 $L(y,a)=|y-a|$。对离散输出的概率预测 $q(\cdot\mid x)$，\emph{对数损失}（logarithmic loss）为
+\begin{equation}
+    L(y,q(\cdot\mid x))=-\log q(y\mid x),
+    \label{eq:lh-log-loss}
+\end{equation}
+约定对真实发生的类别预测概率为零时损失为 $+\infty$。本章 $\log$ 表示自然对数。连续输出的负对数密度也可作为优化目标，但密度可以大于 $1$，其负对数不一定非负，不能直接套用离散概率损失的所有性质。
+
+期望风险衡量总体表现，经验风险只衡量样本表现。由于 $P_{XY}$ 未知，通常不能直接计算式~\eqref{eq:lh-expected-risk}。对一个\emph{不依赖训练样本而固定的} $f$，若样本独立同分布且损失可积，大数定律给出 $\widehat R_T(f)\to R(f)$ 几乎必然成立。训练所得 $\widehat f$ 却依赖同一训练集，不能把固定函数的大数定律直接作为其泛化保证；还需控制候选模型集合或学习过程的复杂度。
+
+\begin{definition}
+\label{def:lh-erm-srm}
+在经验最小值可以达到时，\emph{经验风险最小化}（empirical risk minimization，ERM）选择
+\begin{equation}
+    \widehat f\in\arg\min_{f\in\mathcal F}\widehat R_T(f).
+    \label{eq:lh-erm}
+\end{equation}
+加入正则项 $J(f)\geq0$ 后，可按惩罚形式选择
+\begin{equation}
+    \widehat f_\lambda\in\arg\min_{f\in\mathcal F}
+      \{\widehat R_T(f)+\lambda J(f)\},\qquad\lambda\geq0.
+    \label{eq:lh-penalized-risk}
+\end{equation}
+其中 $J$ 表达选定的复杂度惩罚或偏好，$\lambda$ 控制惩罚强度。若最小值不能达到，或只使用数值算法，应另外说明近似求解的含义。
+\end{definition}
+
+教材用式~\eqref{eq:lh-penalized-risk} 说明\emph{结构风险最小化}（structural risk minimization，SRM）的思想：同时考虑拟合误差和复杂度。更一般的结构风险最小化可在一系列复杂度递增的假设空间中，依据风险上界选择模型；惩罚目标是常用实现形式，不能不加条件地将任意罚项都视为严格的泛化误差上界。正则项也不是总体风险本身，“目标值更小”与“实际泛化更好”仍需区别。
+
+对条件概率模型，使用式~\eqref{eq:lh-log-loss} 时，经验风险最小化等价于极大化条件似然，推导见例~\ref{ex:lh-erm-mle}。若再加入先验密度 $\pi(\theta)$，最大后验估计等价于最小化
+\begin{equation}
+    -\frac1N\sum_{i=1}^N\log p_\theta(y_i\mid x_i)
+    -\frac1N\log\pi(\theta).
+    \label{eq:lh-map-penalty}
+\end{equation}
+这给出正则化的一种概率解释；加上与参数无关的常数不改变最优解。\emph[caution]{平均损失与总损失的尺度不同，先验项或正则项的系数必须同步换算。}
+
+\subsection{算法}
+\label{subsec:lh-algorithm}
+
+算法（algorithm）是求解模型选择目标的具体计算过程。若存在适用的解析解，可以直接计算；更常见的是用迭代算法求近似解。描述算法时需要交代输入数据和超参数、初始化、更新规则、终止条件以及输出对象。停止可依据目标变化、梯度或次梯度条件、误差容限及计算预算，但达到停止条件并不自动意味着到达全局最优。
+
+目标的凸性、可微性、约束和数值条件会影响可用算法及其保证。即使每步目标值不增，也不必然推出参数收敛；参数收敛也不必然意味着得到全局最优；优化得很精确仍不能代替泛化分析。模型参数由训练估计，而正则化强度、模型阶数等通常作为超参数，在训练过程之外利用验证信息选择。
+
+\section{模型评估与模型选择}
+\label{sec:lh-model-evaluation}
+
+\subsection{训练误差与测试误差}
+\label{subsec:lh-training-test-error}
+
+设 $\widehat f$ 已由训练过程确定，另有未参与训练和模型选择的测试集 $T_{\mathrm{test}}=\{(x'_j,y'_j)\}_{j=1}^{N_{\mathrm{test}}}$。在给定评价损失下，训练误差是 $\widehat R_T(\widehat f)$，测试误差为
+\begin{equation}
+    \widehat R_{\mathrm{test}}(\widehat f)
+      =\frac1{N_{\mathrm{test}}}\sum_{j=1}^{N_{\mathrm{test}}}
+        L(y'_j,\widehat f(x'_j)).
+    \label{eq:lh-test-risk}
+\end{equation}
+当测试样本独立于整个训练与选择过程、来自同一总体且损失可积时，给定所得模型的测试误差期望等于其总体风险。训练误差一般没有这样的无偏性，因为模型就是根据训练数据选出的。一个有限测试集仍有抽样误差，不能把一次比较当作对方法优劣的绝对证明。
+
+若评价采用 $0$--$1$ 损失，测试误差就是错误率（error rate），准确率（accuracy）为
+\[
+    \mathrm{Acc}=\frac1{N_{\mathrm{test}}}
+      \sum_{j=1}^{N_{\mathrm{test}}}\mathbf1_{\{y'_j=\widehat f(x'_j)\}}
+      =1-\widehat R_{\mathrm{test}}(\widehat f).
+\]
+训练损失与评价指标可以不同，例如分类模型按对数损失训练、按准确率评价；这种选择常出于可优化性与任务需求，但必须明确两者各自测量什么。
+
+\subsection{过拟合与模型选择}
+\label{subsec:lh-overfitting}
+
+\emph{模型选择}（model selection）是在不同模型族、结构或超参数之间作出选择。\emph{过拟合}（overfitting）指学习过度适应有限训练数据中的偶然性或噪声，表现为训练拟合很好，而对新数据的预测较差；\emph{欠拟合}（underfitting）则指模型或学习过程不足以刻画主要规律。过拟合并不要求模型参数数目超过某个已知“真实参数数目”，其判断依赖目标分布下的预测表现。
+
+对嵌套空间 $\mathcal F_0\subseteq\mathcal F_1\subseteq\cdots$，在同一数据和损失下精确最小化经验风险，有
+\[
+    \inf_{f\in\mathcal F_{m+1}}\widehat R_T(f)
+       \leq\inf_{f\in\mathcal F_m}\widehat R_T(f),
+\]
+因为扩大集合不会提高下确界。这只说明最优训练误差不增，不说明测试误差也不增。测试误差随复杂度先降后升是常见示意，不能作为所有数据、模型与训练方式必须满足的定律。
+
+\begin{example}
+\label{ex:lh-polynomial-fitting}
+教材例 1.1 用多项式拟合说明模型选择。给定实数样本 $(x_i,y_i)$，在次数不超过 $M$ 的多项式
+\[
+    f_M(x;w)=\sum_{j=0}^M w_jx^j,
+    \qquad w=(w_0,\ldots,w_M)^\top\in\mathbb R^{M+1}
+\]
+中最小化平方误差。说明如何求系数、解何时唯一，以及增加次数为何可能导致过拟合。
+\end{example}
+\begin{solve}
+记 $y=(y_1,\ldots,y_N)^\top$，设计矩阵 $V\in\mathbb R^{N\times(M+1)}$ 的元素为 $V_{i,j+1}=x_i^j$，其中 $j=0,\ldots,M$。目标可写成
+\begin{equation}
+    E_M(w)=\frac1{2N}\sum_{i=1}^N(f_M(x_i;w)-y_i)^2
+      =\frac1{2N}\|Vw-y\|_2^2.
+    \label{eq:lh-polynomial-least-squares}
+\end{equation}
+令梯度为零得到正规方程（normal equations）
+\begin{equation}
+    V^\top V\widehat w=V^\top y.
+    \label{eq:lh-normal-equations}
+\end{equation}
+该目标是凸二次函数，所以正规方程的解都是全局最小点。最小点存在：在有限维空间中，将 $y$ 正交投影到 $V$ 的列空间，即得到某个 $V\widehat w$；残差与列空间正交，正好满足正规方程。若 $V$ 满列秩，则 $V^\top V$ 正定，唯一解为
+\[
+    \widehat w=(V^\top V)^{-1}V^\top y.
+\]
+若 $V$ 不满列秩，则存在非零 $h$ 使 $Vh=0$，$\widehat w+h$ 与 $\widehat w$ 有相同拟合值，因而系数不唯一；训练点上的最优拟合向量仍由正交投影唯一确定。
+
+当 $x_i$ 两两不同时，若 $N\geq M+1$，$Vh=0$ 意味着一个次数不超过 $M$ 的多项式有至少 $M+1$ 个不同零点，因此该多项式恒为零，$V$ 满列秩。特别地，$M=N-1$ 时可唯一插值任意给定的 $y_i$，训练误差为零；$M>N-1$ 时则可插值但系数不唯一。若观测中含噪声，这样的插值也会拟合噪声，不能仅由零训练误差推断新点预测准确。教材比较 $10$ 个样本下 $M=0,1,3,9$ 的曲线，其作用是展示欠拟合与过拟合的可能性，不是在任何数据上都推荐三次多项式。实际选择 $M$ 应使用验证数据或其他有依据的复杂度控制。
+\end{solve}
+
+\section{正则化与交叉验证}
+\label{sec:lh-regularization-cv}
+
+\subsection{正则化}
+\label{subsec:lh-regularization}
+
+\emph{正则化}（regularization）在拟合目标之外加入限制或偏好，以控制模型对有限数据的适应程度。沿用式~\eqref{eq:lh-polynomial-least-squares} 的模型，对全部系数施加 $L_2$ 或 $L_1$ 惩罚可分别写为
+\begin{align}
+    E_{2,\lambda}(w)
+      &=\frac1{2N}\|Vw-y\|_2^2+\frac\lambda2\|w\|_2^2,
+      \label{eq:lh-ridge-objective}\\
+    E_{1,\lambda}(w)
+      &=\frac1{2N}\|Vw-y\|_2^2+\lambda\|w\|_1,
+      \label{eq:lh-lasso-objective}
+\end{align}
+其中 $\|w\|_2^2=\sum_{j=0}^M w_j^2$、$\|w\|_1=\sum_{j=0}^M|w_j|$，$\lambda\geq0$。$L_2$ 惩罚连续收缩系数，$L_1$ 惩罚在零点具有非光滑性，常产生部分系数恰为零的稀疏解，但不保证每个问题都出现零系数。这里惩罚了截距 $w_0$；实际建模常将截距排除，届时应相应改变惩罚矩阵和解的条件。
+
+对式~\eqref{eq:lh-ridge-objective}，当 $\lambda>0$ 时有
+\[
+    \nabla E_{2,\lambda}(w)=\frac1N V^\top(Vw-y)+\lambda w,
+    \qquad
+    \widehat w_\lambda=(V^\top V+N\lambda I_{M+1})^{-1}V^\top y.
+\]
+其中 $I_{M+1}$ 是单位矩阵；任意非零 $u$ 都满足 $u^\top(V^\top V+N\lambda I_{M+1})u=\|Vu\|_2^2+N\lambda\|u\|_2^2>0$，所以逆存在且解唯一。这说明正则化既改变统计偏好，也可能改善求解的确定性；它不是在原最小二乘解之后任意缩小几个系数。
+
+从式~\eqref{eq:lh-map-penalty} 看，负对数先验提供惩罚：独立高斯先验对应平方 $L_2$ 项，独立拉普拉斯先验对应 $L_1$ 项，比例系数须结合似然尺度计算。奥卡姆剃刀（Occam's razor）在此体现为，在解释数据的能力相近时偏向较简单的模型；这是一种选择原则，而非保证简单模型总是正确的定理。特征单位会影响系数惩罚，因此缩放与 $\lambda$ 的选择需要一并考虑；具体参数选择仍依赖验证或额外理论。
+
+\subsection{交叉验证}
+\label{subsec:lh-cross-validation}
+
+\emph{交叉验证}（cross-validation）通过反复划分数据，比较候选训练方案在未参与该次拟合的数据上的表现。首先区分三种用途：训练集拟合参数，验证集（validation set）选择模型或超参数，测试集（test set）用于最终评价。教材“简单交叉验证”中用于选择模型的留出部分，在本笔记中称为验证集，以免与最终测试集混淆；反复依据某组数据修改模型后，这组数据就已经参与了选择过程。
+
+当数据足够时，可先划分训练、验证、测试三部分：在训练集上拟合各候选，比较验证误差，确定方案后可在训练与验证数据的合并集上重新训练，最后在保留的测试集上评估。若数据较少，可先保留测试集，再在开发数据上做 $S$ 折交叉验证（$S$-fold cross-validation），其中 $2\leq S\leq N_{\mathrm{dev}}$，$N_{\mathrm{dev}}$ 是开发样本数。将开发样本索引划分为非空、互不相交且大小尽量接近的 $I_1,\ldots,I_S$；对候选配置 $h$，第 $s$ 次仅在 $I_s$ 之外训练，所得模型记为 $\widehat f_{h,-s}$。按样本加权的验证误差为
+\begin{equation}
+    \widehat R_{\mathrm{CV}}(h)
+       =\frac1{N_{\mathrm{dev}}}\sum_{s=1}^S\sum_{i\in I_s}
+          L(y_i,\widehat f_{h,-s}(x_i)),
+    \qquad
+    \widehat h\in\arg\min_{h\in\mathcal H}\widehat R_{\mathrm{CV}}(h),
+    \label{eq:lh-cross-validation}
+\end{equation}
+其中 $\mathcal H$ 是预先规定的有限候选集合。等大折时，这也等于各折平均损失的算术平均；折大小不等时应说明采用的加权方式。选出的是\emph{训练配置}，随后应按 $\widehat h$ 在全部开发数据上重新拟合，而不是直接把某一折的模型当作最终模型。
+
+\emph{留一交叉验证}（leave-one-out cross-validation）取 $S=N_{\mathrm{dev}}$，每次仅留出一个样本，其余样本用于训练。它能让每次训练使用较多数据，但通常需要更多次拟合，而且不同折训练集高度重叠，不能把折结果当成相互独立的观测。留出法、$S$ 折法与留一法的选择取决于数据规模、拟合代价和评价目的，不存在单凭折数就保证更准确的规则。
+
+\begin{notealert}[type=caution,title={验证对象应包含整个训练流程}]
+标准化、特征筛选等凡需从数据估计的步骤，都应只在每折训练部分拟合，再用于该折验证部分。先用全部数据筛选特征再交叉验证，会将验证信息泄露到训练过程。随机划分适用于样本近似独立且使用目标相符的情形；同一主体的重复记录应考虑按主体分组，时间预测应保持先训练、后验证的时间关系。交叉验证分数参与了模型选择，不能代替独立的最终测试；需要评估完整调参流程而又没有独立测试集时，可采用外层评估、内层调参的嵌套划分。
+\end{notealert}
+
+\section{泛化能力}
+\label{sec:lh-generalization}
+
+\subsection{泛化误差}
+\label{subsec:lh-generalization-error}
+
+\emph{泛化能力}（generalization ability）是模型对未见数据进行预测的能力。给定由训练集 $T$ 学到的模型 $\widehat f_T$，其\emph{泛化误差}（generalization error）就是独立新样本上的期望风险
+\begin{equation}
+    R(\widehat f_T)
+      =\mathbb E_{(X,Y)\sim P_{XY}}
+          [L(Y,\widehat f_T(X))\mid T],
+    \label{eq:lh-generalization-error}
+\end{equation}
+这里先将训练结果固定，期望只针对新样本；若算法自身随机，还应固定其随机结果或另行对其平均。由于训练集随机，$R(\widehat f_T)$ 也是随机量；再对训练样本取期望，才得到训练过程的平均泛化误差。相应的泛化间隙为 $R(\widehat f_T)-\widehat R_T(\widehat f_T)$，它与泛化误差本身不同。
+
+测试误差是总体风险的样本估计，泛化界则给出某个抽样概率下的理论保证。一个上界较松，不表示实际误差一定大；两个方法的上界大小，也未必能决定其真实风险大小。若训练与应用分布改变，本章同分布条件下的结论需要重新核查。
+
+\subsection{泛化误差上界}
+\label{subsec:lh-generalization-bound}
+
+先说明本节使用的概率工具。\emph{Hoeffding 不等式}指出：若独立随机变量 $Z_i$ 满足 $a_i\leq Z_i\leq b_i$ 几乎处处成立，且 $\sum_i(b_i-a_i)^2>0$，记 $\overline Z=N^{-1}\sum_{i=1}^N Z_i$，则对任意 $t>0$，
+\begin{align}
+    \Pr(\overline Z-\mathbb E\overline Z\geq t)
+       &\leq\exp\!\left(-\frac{2N^2t^2}{\sum_{i=1}^N(b_i-a_i)^2}\right),
+       \label{eq:lh-hoeffding-upper}\\
+    \Pr(\mathbb E\overline Z-\overline Z\geq t)
+       &\leq\exp\!\left(-\frac{2N^2t^2}{\sum_{i=1}^N(b_i-a_i)^2}\right).
+       \label{eq:lh-hoeffding-lower}
+\end{align}
+这里按教材引用该不等式，不证明其本身；以下完整给出由它推出的有限假设空间泛化界。注意变量只需独立而不必同分布；在学习问题中使用独立同分布，另为保证各项损失具有相同的总体均值。
+
+\begin{theorem}[有限假设空间的泛化界]
+\label{thm:lh-finite-generalization}
+设二分类输出空间为 $\{-1,+1\}$，训练样本对 $(X_i,Y_i)$ 独立同分布于 $P_{XY}$。设 $\mathcal F=\{f_1,\ldots,f_m\}$ 是\emph{不依赖本次训练样本而预先固定的} 非空有限分类函数集合，各 $f_j:\mathcal X\to\{-1,+1\}$ 可测，采用 $0$--$1$ 损失。对任意 $0<\delta<1$，以至少 $1-\delta$ 的概率，对所有 $f\in\mathcal F$ 同时成立
+\begin{equation}
+    R(f)\leq\widehat R_T(f)+\varepsilon_{N,m,\delta},
+    \qquad
+    \varepsilon_{N,m,\delta}
+       =\sqrt{\frac{\log m+\log(1/\delta)}{2N}}.
+    \label{eq:lh-finite-generalization-bound}
+\end{equation}
+概率针对训练样本的联合抽样而言。
+\end{theorem}
+
+\begin{proof}
+对一个固定的 $f$，令 $Z_i=L(Y_i,f(X_i))$。这些变量独立、取值于 $[0,1]$，且 $\mathbb E Z_i=R(f)$、$N^{-1}\sum_iZ_i=\widehat R_T(f)$。由式~\eqref{eq:lh-hoeffding-lower}，对任意 $\varepsilon>0$，
+\[
+    \Pr\bigl(R(f)-\widehat R_T(f)\geq\varepsilon\bigr)
+       \leq e^{-2N\varepsilon^2}.
+\]
+对所有候选使用并集上界，不要求不同候选的损失相互独立，得到
+\begin{align*}
+    \Pr\!\left(\exists f\in\mathcal F:
+          R(f)-\widehat R_T(f)\geq\varepsilon\right)
+    &\leq\sum_{f\in\mathcal F}
+       \Pr\bigl(R(f)-\widehat R_T(f)\geq\varepsilon\bigr)\\
+    &\leq m e^{-2N\varepsilon^2}.
+\end{align*}
+令右端等于 $\delta$，解得式~\eqref{eq:lh-finite-generalization-bound} 中的 $\varepsilon_{N,m,\delta}$。在补事件上，全部候选同时满足严格小于该偏差，因而也满足所述非严格不等式。
+\end{proof}
+
+该结论的关键是“对所有候选同时成立”，因此同一事件上也可将依赖训练数据选出的经验最小化模型 $\widehat f_T$ 代入。若只对一个事先固定的 $f$ 建立结论，就不能不加论证地替换成训练后挑出的模型。有限集合上的 $\log m$ 项反映了在多个候选中进行选择的代价；无限集合不能把 $m$ 直接写成无穷后仍得到有用结论，需要其他容量工具。
+
+\begin{corollary}[经验风险最小化的风险比较]
+\label{cor:lh-erm-risk-comparison}
+在定理~\ref{thm:lh-finite-generalization} 的条件下，记
+\[
+    \widetilde\varepsilon
+       =\sqrt{\frac{\log(2m/\delta)}{2N}},
+    \quad
+    \widehat f_T\in\arg\min_{f\in\mathcal F}\widehat R_T(f),
+    \quad
+    f_{\mathcal F}^*\in\arg\min_{f\in\mathcal F}R(f).
+\]
+则以至少 $1-\delta$ 的概率，
+\begin{equation}
+    R(\widehat f_T)\leq R(f_{\mathcal F}^*)+2\widetilde\varepsilon.
+    \label{eq:lh-erm-oracle-bound}
+\end{equation}
+这是对教材有限空间界的补充推论，比较的是学习结果与同一假设空间内的最优风险。
+\end{corollary}
+
+\begin{proof}
+对每个 $f$ 的两个偏差方向分别使用 Hoeffding 不等式，再对 $m$ 个函数取并集上界，得
+\[
+    \Pr\!\left(\exists f\in\mathcal F:
+       |R(f)-\widehat R_T(f)|\geq\widetilde\varepsilon\right)
+       \leq 2m e^{-2N\widetilde\varepsilon^2}=\delta.
+\]
+在其补事件上，由经验最小化性质，
+\[
+    R(\widehat f_T)
+      \leq\widehat R_T(\widehat f_T)+\widetilde\varepsilon
+      \leq\widehat R_T(f_{\mathcal F}^*)+\widetilde\varepsilon
+      \leq R(f_{\mathcal F}^*)+2\widetilde\varepsilon.
+      \qedhere
+\]
+\end{proof}
+
+固定 $m$ 和 $\delta$ 时，随样本量增加而趋于零的是上述偏差项，而不是必然整个泛化误差；噪声和模型限制仍可能使 $R(f_{\mathcal F}^*)>0$。若希望定理中的单侧偏差项不超过 $\eta>0$，充分条件是 $N\geq\log(m/\delta)/(2\eta^2)$。模型规模也随 $N$ 改变时，应同时检查 $\log m$ 的增长，不能只考察分母的样本量。
+
+\section{生成模型与判别模型}
+\label{sec:lh-generative-discriminative}
+
+\begin{definition}
+\label{def:lh-generative-discriminative}
+\emph{生成方法}（generative approach）学习输入与输出的联合分布 $p_\theta(x,y)$，再据此推导预测所需的条件分布或决策，其模型称为\emph{生成模型}（generative model）。\emph{判别方法}（discriminative approach）直接学习条件分布 $p_\theta(y\mid x)$、决策函数或用于决策的评分，其模型称为\emph{判别模型}（discriminative model）。
+\end{definition}
+
+对有限类别，在边缘概率或密度为正的输入处，生成模型给出
+\begin{equation}
+    p_\theta(y\mid x)
+       =\frac{p_\theta(x,y)}{\sum_{c\in\mathcal Y}p_\theta(x,c)}
+       =\frac{p_\theta(x\mid y)p_\theta(y)}
+          {\sum_{c\in\mathcal Y}p_\theta(x\mid c)p_\theta(c)}.
+    \label{eq:lh-generative-posterior}
+\end{equation}
+这相当于同时描述类别比例与各类别中的输入分布。朴素贝叶斯和隐马尔可夫模型是典型例子；逻辑斯谛回归、条件随机场直接建模条件分布，感知机、支持向量机等直接学习决策或评分，属于判别方法。是否输出概率与是否建模联合分布是两个问题，概率输出本身不足以判断生成或判别。
+
+从联合分布可以求出条件分布，但单独给定 $p(y\mid x)$ 一般不能唯一恢复 $p(x,y)$，因为还缺少 $p(x)$。生成建模适合需要描述数据分布、采样或对隐变量求和的任务；判别建模将重点放在给定输入的预测上，允许直接采用针对任务的特征。生成假设正确与否、模型复杂度及样本量都会影响两类方法的表现，不能普遍断言生成方法总收敛更快或判别方法总更准确。含隐变量也不是生成方法独有的性质，判别模型同样可以引入隐变量。
+
+\begin{example}
+\label{ex:lh-generative-binary}
+设类别 $Y\in\{0,1\}$，先验概率为 $\Pr(Y=1)=0.4$；二元特征 $X\in\{0,1\}$ 满足 $\Pr(X=1\mid Y=1)=0.8$、$\Pr(X=1\mid Y=0)=0.2$。由该生成模型判断观察到 $X=1$ 时的类别。
+\end{example}
+\begin{solve}
+联合概率分别为 $\Pr(X=1,Y=1)=0.8\times0.4=0.32$ 与 $\Pr(X=1,Y=0)=0.2\times0.6=0.12$，所以
+\[
+    \Pr(Y=1\mid X=1)=\frac{0.32}{0.32+0.12}=\frac8{11}.
+\]
+在两类误判代价相同的 $0$--$1$ 损失下，应预测为类别 $1$；若误判代价改变，最优决策阈值也会改变，不能仅凭概率较大就断言在任意损失下都应作相同决策。
+\end{solve}
+
+\section{监督学习应用}
+\label{sec:lh-supervised-applications}
+
+\subsection{分类问题}
+\label{subsec:lh-classification}
+
+\emph{分类}（classification）的输出空间是有限类别集合 $\mathcal Y=\{1,\ldots,C\}$，其中 $C\geq2$；输入既可以是连续变量，也可以是离散变量或其组合。训练所得预测规则称为\emph{分类器}（classifier）。例如文本分类可用词是否出现、词频等表示一篇文本，将其分入预先给定的主题或邮件类别；类别标签来自训练数据，区别于无监督聚类自行形成分组。
+
+二分类评价需先指定关注的正类（positive class），其余为负类（negative class）。记真正例（true positive）数为 $\mathrm{TP}$、假负例（false negative）数为 $\mathrm{FN}$、假正例（false positive）数为 $\mathrm{FP}$、真负例（true negative）数为 $\mathrm{TN}$。它们分别对应真实为正且预测为正、真实为正却预测为负、真实为负却预测为正、真实为负且预测为负。样本总数为四者之和，常用指标为
+\begin{align}
+    \mathrm{Acc}
+       &=\frac{\mathrm{TP}+\mathrm{TN}}
+          {\mathrm{TP}+\mathrm{FN}+\mathrm{FP}+\mathrm{TN}},
+          \label{eq:lh-accuracy}\\
+    \mathrm{Prec}
+       &=\frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FP}},
+    \qquad
+    \mathrm{Rec}=\frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FN}},
+          \label{eq:lh-precision-recall}\\
+    F_1
+       &=\frac{2\,\mathrm{Prec}\,\mathrm{Rec}}{\mathrm{Prec}+\mathrm{Rec}}
+        =\frac{2\mathrm{TP}}{2\mathrm{TP}+\mathrm{FP}+\mathrm{FN}}.
+          \label{eq:lh-f1}
+\end{align}
+\emph{精确率}（precision，也称查准率）考察预测正例中有多少是真的，\emph{召回率}（recall，也称查全率）考察真实正例中有多少被找到，$F_1$ 是二者的调和平均。各分式只在分母非零时定义；特别地，两率都为零时首个 $F_1$ 分式需作约定，若后一个计数分式分母为正，可据此赋值为零。评价前应说明如何处理不存在预测正例或真实正例的情形。
+
+\begin{example}
+\label{ex:lh-imbalanced-classification}
+某测试集有 $100$ 个正例、$900$ 个负例。分类器给出 $\mathrm{TP}=60$、$\mathrm{FN}=40$、$\mathrm{FP}=20$、$\mathrm{TN}=880$。计算指标，并与全部预测为负类的规则比较。
+\end{example}
+\begin{solve}
+该分类器的准确率为 $940/1000=0.94$，精确率为 $60/80=0.75$，召回率为 $60/100=0.60$，$F_1=120/(120+20+40)=2/3$。全部预测为负的规则也有 $0.90$ 的准确率，却没有找到任何正例，召回率为零，精确率因没有预测正例而未定义。这说明类别不平衡时只看准确率可能掩盖任务关心的失败；仍应结合正类含义和误判代价评价。
+\end{solve}
+
+\subsection{标注问题}
+\label{subsec:lh-tagging}
+
+\emph{标注}（tagging）是为输入观测序列预测相应标记序列的监督学习任务，也是\emph{结构化预测}（structured prediction）的一种形式。为区别样本索引与序列位置，第 $i$ 个样本写成
+\[
+    x_i=(x_{i,1},\ldots,x_{i,n_i}),
+    \qquad
+    y_i=(y_{i,1},\ldots,y_{i,n_i}),\qquad y_{i,t}\in\mathcal C,
+\]
+其中 $n_i$ 是该序列长度，$\mathcal C$ 是有限标记集；不同样本的长度可以不同，与训练序列总数 $N$ 之间不存在固定大小关系。词性标注和命名实体识别都是典型任务，每个位置的预测往往依赖周围观测与相邻标记，不能一概当作相互独立的分类。
+
+若对长度为 $n$ 的序列建模为 $p_\theta(y_{1:n}\mid x_{1:n})$，在整条序列的 $0$--$1$ 损失下，预测可写为
+\begin{equation}
+    \widehat y_{1:n}\in\arg\max_{y_{1:n}\in\mathcal C^n}
+        p_{\widehat\theta}(y_{1:n}\mid x_{1:n}).
+    \label{eq:lh-sequence-decoding}
+\end{equation}
+若每个位置有 $K=|\mathcal C|$ 个候选标记，无约束序列共有 $K^n$ 种，因此常需利用隐马尔可夫模型或条件随机场等模型的分解结构进行有效推断。逐位置取边缘概率最大的标签与取整条序列联合概率最大的标签不一定相同，它们对应不同决策目标。
+
+例如用 BIO 规则表示实体片段，$B$ 表示一个片段的开始，$I$ 表示其后续位置，$O$ 表示片段之外；“北京大学位于北京”若按“北京大学、位于、北京”三个词输入，可标为 $(B,O,B)$，表示两个单词级实体片段。标注评价可以计算词元准确率，也可以按完整实体片段计算精确率、召回率与 $F_1$；必须说明评价单位、边界和类型是否都要匹配。词元标对较多并不保证实体片段识别同样准确。
+
+\subsection{回归问题}
+\label{subsec:lh-regression}
+
+\emph{回归}（regression）预测实值或实向量输出，本章主要取 $Y\in\mathbb R$。特征既可以包含连续量，也可以包含编码后的离散量，不要求输入输出都必须是连续随机变量。输入特征数不同可区分一元与多元回归；预测函数的形式不同可区分线性与非线性回归。拟合的是统计关系，单凭回归关系不能推断改变某个输入就必然导致输出发生相应变化。
+
+在平方损失下，预测目标与条件均值有直接联系。假设 $\mathbb E[Y^2]<\infty$，记 $\mu(X)=\mathbb E[Y\mid X]$；对二阶可积的预测 $f(X)$，将 $Y-f(X)=(Y-\mu(X))+(\mu(X)-f(X))$ 平方并取条件期望，由 $\mathbb E[Y-\mu(X)\mid X]=0$ 得
+\begin{equation}
+    \mathbb E[(Y-f(X))^2\mid X]
+       =\operatorname{Var}(Y\mid X)+(\mu(X)-f(X))^2.
+    \label{eq:lh-regression-conditional-risk}
+\end{equation}
+再取期望可知，在所有二阶可积预测函数中，条件均值最小化平方风险；若只能在受限假设空间中选择，则是在其中逼近条件均值，不保证能精确表示它。方差项也说明即使预测了条件均值，风险仍可能因噪声而为正。绝对损失则以条件中位数为最优预测之一，条件中位数不唯一时最优解也可能不唯一；因此同一数据上的“最佳回归函数”需要连同损失说明。
+
+实际回归可用均方误差或平均绝对误差评价。若平方损失与关于系数线性的模型结合，就得到最小二乘问题，例如例~\ref{ex:lh-polynomial-fitting}；一般非线性模型的平方损失优化则未必有解析解或全局唯一解。时间预测还应使用预测时确实可得的特征，并采用符合时间顺序的评价方式。
+
+\section*{本章概要}
+\addcontentsline{toc}{section}{本章概要}
+
+统计学习以有限数据为依据，在假设空间内按给定准则选择模型，再用算法实现求解。监督、无监督和强化学习的主要区别在于可利用的反馈与任务目标；概率性、线性、参数化和在线性则考察方法的不同侧面。理解一个具体方法，应分别指出数据形式、模型族、损失与正则项、求解方式和评价目标。
+
+训练误差是拟合依据，泛化误差才刻画给定分布下的新样本表现；验证用于选择方案，独立测试用于评价最终流程。正则化与交叉验证帮助控制选择，但效果仍取决于数据和模型假设。有限假设空间的 Hoeffding 界说明如何同时控制全部候选的偏差，以及为什么训练后选择的模型需要统一保证。生成与判别的区分在于是否建模联合分布，分类、标注与回归的区分则主要取决于输出结构和损失。
+
+\section*{习题与解答}
+\addcontentsline{toc}{section}{习题与解答}
+
+以下对应教材本章习题 1.1、1.2，重点将估计公式放回模型、策略与算法的框架。
+
+\begin{example}
+\label{ex:lh-bernoulli-estimation}
+教材习题 1.1。设 $X_1,\ldots,X_n$ 独立同分布于伯努利分布（Bernoulli distribution），$n\geq1$，$\Pr(X_i=1)=\theta$，$\theta\in[0,1]$。观测值为 $x_i\in\{0,1\}$，其中 $k=\sum_{i=1}^n x_i$。求极大似然估计与一种贝叶斯估计，并分别说明统计学习方法三要素。
+\end{example}
+\begin{solve}
+模型是伯努利分布族 $\{p_\theta(x)=\theta^x(1-\theta)^{1-x}:\theta\in[0,1]\}$，各端点概率按伯努利分布直接定义。对已观测的有序样本，似然为
+\[
+    \mathcal L(\theta)=\prod_{i=1}^n p_\theta(x_i)
+       =\theta^k(1-\theta)^{n-k}.
+\]
+若只观测到成功次数 $k$，二项似然多出与 $\theta$ 无关的组合系数，最优解相同。对 $0<k<n$，对数似然在 $(0,1)$ 上满足
+\[
+    \ell'(\theta)=\frac{k}{\theta}-\frac{n-k}{1-\theta},
+    \qquad
+    \ell''(\theta)=-\frac{k}{\theta^2}
+                     -\frac{n-k}{(1-\theta)^2}<0,
+\]
+故其唯一最大点为 $k/n$。若 $k=0$，似然 $(1-\theta)^n$ 在 $\theta=0$ 达到最大；若 $k=n$，似然 $\theta^n$ 在 $\theta=1$ 达到最大。因此统一得到
+\begin{equation}
+    \widehat\theta_{\mathrm{ML}}=\frac{k}{n}.
+    \label{eq:lh-bernoulli-mle}
+\end{equation}
+这里模型是上述分布族，策略是极大化似然或最小化平均负对数似然，算法是统计 $k$ 后使用解析式；读取全部样本需 $O(n)$ 时间、$O(1)$ 额外空间。
+
+贝叶斯方法需另外指定先验。取 $\Theta\sim\operatorname{Beta}(\alpha,\beta)$，其中 $\alpha,\beta>0$，密度为
+\[
+    \pi(\theta)=\frac{\theta^{\alpha-1}(1-\theta)^{\beta-1}}
+                         {B(\alpha,\beta)},\quad 0<\theta<1,
+    \qquad
+    B(a,b)=\int_0^1 t^{a-1}(1-t)^{b-1}\,\mathrm dt.
+\]
+似然乘先验后，各幂次相加，因此
+\begin{equation}
+    \Theta\mid x_{1:n}\sim\operatorname{Beta}(k+\alpha,n-k+\beta).
+    \label{eq:lh-bernoulli-posterior}
+\end{equation}
+当 $k+\alpha>1$ 且 $n-k+\beta>1$ 时，对数后验严格凹且内部模态存在，其最大后验估计为
+\begin{equation}
+    \widehat\theta_{\mathrm{MAP}}
+       =\frac{k+\alpha-1}{n+\alpha+\beta-2}.
+    \label{eq:lh-bernoulli-map}
+\end{equation}
+若条件不满足，需另行讨论端点或无界密度，不能直接套用内部模态公式。例如均匀先验 $\alpha=\beta=1$ 下，按闭区间上的连续密度版本取模态，MAP 与 MLE 相同，包括 $k=0,n$ 的端点情形。
+
+“贝叶斯估计”不唯一指 MAP。若参数估计采用平方损失，则后验风险满足
+\[
+    \mathbb E[(\Theta-a)^2\mid x_{1:n}]
+       =\operatorname{Var}(\Theta\mid x_{1:n})
+          +(\mathbb E[\Theta\mid x_{1:n}]-a)^2,
+\]
+故最优点估计是后验均值。由 $\operatorname{Beta}(A,B)$ 的均值为 $A/(A+B)$，得到
+\begin{equation}
+    \widehat\theta_{\mathrm{Bayes}}
+       =\mathbb E[\Theta\mid x_{1:n}]
+       =\frac{k+\alpha}{n+\alpha+\beta}.
+    \label{eq:lh-bernoulli-posterior-mean}
+\end{equation}
+该均值公式也可直接由 $B(A+1,B)/B(A,B)=A/(A+B)$ 算出。新一次试验在给定 $\Theta$ 后与已有试验独立时，后验预测成功概率同样等于这个后验均值。均匀先验下为 $(k+1)/(n+2)$，与 MAP 的 $k/n$ 不同。
+
+因此贝叶斯建模由伯努利似然与 Beta 先验共同规定；策略可以是完整后验推断后进行预测，也可以是在明确损失下选择点估计，或取 MAP。算法利用共轭形式更新两个形状参数，再计算所需的均值、模态或预测概率。只有明确所求对象后，才能完整说明其“策略”，不能把后验分布、MAP 和后验均值视为同一结果。
+\end{solve}
+
+\begin{example}
+\label{ex:lh-erm-mle}
+教材习题 1.2。设监督学习模型为条件概率分布族 $\{p_\theta(y\mid x):\theta\in\Omega\}$。证明在对数损失下，经验风险最小化与条件极大似然估计等价，并说明因子分解的条件。
+\end{example}
+\begin{solve}
+假设给定参数时样本对独立同分布，且在给定全部输入后，各输出的条件分布按 $p_\theta(y_i\mid x_i)$ 分解，则条件似然为
+\[
+    \mathcal L_c(\theta;T)
+       =\prod_{i=1}^N p_\theta(y_i\mid x_i).
+\]
+对数损失下的经验风险为
+\[
+    \widehat R_T(\theta)
+       =-\frac1N\sum_{i=1}^N\log p_\theta(y_i\mid x_i)
+       =-\frac1N\log\mathcal L_c(\theta;T).
+\]
+由于对数严格递增、乘以负常数反转大小关系，在相同参数域上且最优解存在时，
+\[
+    \arg\min_{\theta\in\Omega}\widehat R_T(\theta)
+       =\arg\max_{\theta\in\Omega}\mathcal L_c(\theta;T).
+\]
+对零条件概率按扩展值 $-\log0=+\infty$ 处理，此关系仍保持；若最优值只能逼近，则应比较相应上确界、下确界及近似解，而不能声称存在一个已达到的估计。若建模的是完整联合似然 $\prod_i p_\theta(x_i,y_i)$，还会包含输入分布；只有输入分布不含待估参数，或明确只采用条件似然时，才能直接使用上述条件形式。序列内部存在依赖时，也应对整个序列的模型似然使用相应对数损失，不能任意分解为位置间独立的乘积。
+\end{solve}
+
+% 教材来源：机器学习/textbooks/机器学习（分章原文）/机器学习-2.pdf，正文第 35--47 页。
+
+
+
+
+

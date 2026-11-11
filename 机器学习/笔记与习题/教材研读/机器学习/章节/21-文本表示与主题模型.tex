@@ -1,0 +1,65 @@
+% !TeX root = ../机器学习笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{20} % 保留原书章号。
+\chapter{文本表示与主题模型}
+\label{chap:ml-text}
+
+文本通常是高维稀疏数据。词项表示提供计数空间，矩阵分解提供连续低维坐标，主题模型则以文档和词的潜在生成结构解释共现。
+
+\section{词袋、词频与文本特征}
+
+词袋（bag of words）以词出现次数表示文档，忽略顺序。设训练语料含 $D$ 篇文档、词表大小为 $V$，计数矩阵 $N_{dv}$ 记录词 $v$ 在文档 $d$ 中的次数。一个常用 TF--IDF（term frequency--inverse document frequency）约定为
+$A_{dv}=N_{dv}[1+\log((D+1)/(\mathrm{df}_v+1))]$，
+其中 $\mathrm{df}_v$ 是含词 $v$ 的训练文档数；词频归一与向量归一是可选的后续步骤。
+
+逆文档频率降低普遍词的相对权重，不意味着普遍词完全无信息。分词、词表与频率统计只在训练部分确定，未登录词使用预定规则处理；词袋在需要词序或否定关系的任务中有明显表达限制。
+
+\section{潜在语义分析}
+
+潜在语义分析（latent semantic analysis，LSA）对加权矩阵 $A$ 作截断 SVD，$A\approx U_r\Sigma_rV_r^\top$。训练文档的低维坐标可取 $AV_r=U_r\Sigma_r$，新文档词向量 $a$ 使用 $aV_r$。维数 $r$ 控制压缩程度，词权重和后续相似度共同决定实际表示。
+
+SVD 最小化平方重构误差，因子可正可负，旋转或符号也存在不唯一性。因而一个坐标不必是可直接命名的概率主题；主题解释需要检查高权重词和实际文档，而不能只看重构误差。
+
+\section{非负矩阵分解}
+
+非负矩阵分解（nonnegative matrix factorization，NMF）求 $A\approx WH$，其中 $W\in\mathbb R_+^{D\times K}$、$H\in\mathbb R_+^{K\times V}$。平方目标为 $\|A-WH\|_F^2/2$，联合问题非凸，固定一因子后对另一因子是带非负约束的凸二次问题。
+
+一种常见迭代逐元素取
+$H\leftarrow H\odot(W^\top A)/(W^\top WH)$，
+$W\leftarrow W\odot(AH^\top)/(WHH^\top)$，
+须保证使用的分母为正并明确更新次序。零元素可能永久锁定，数值修补改变原迭代，应另行检查目标变化。即使全部元素非负，因子仍有正尺度变换和置换的不唯一性。
+
+\section{概率潜在语义分析}
+
+概率潜在语义分析（probabilistic latent semantic analysis，PLSA）规定
+$p(v\mid d)=\sum_{k=1}^K\theta_{dk}\phi_{kv}$，
+其中 $\theta_d$ 为文档主题比例，$\phi_k$ 为主题词分布，两者分别归一。计数似然关于参数的部分为 $\sum_{d,v}N_{dv}\log p(v\mid d)$。
+
+E 步计算 $r_{dvk}=\theta_{dk}\phi_{kv}/\sum_l\theta_{dl}\phi_{lv}$；M 步令 $\theta_{dk}$ 正比于 $\sum_vN_{dv}r_{dvk}$，$\phi_{kv}$ 正比于 $\sum_dN_{dv}r_{dvk}$，分别归一；这些更新要求观测词的混合概率及所用归一化分母为正。文档特定参数随文档数增长；新文档需在已学习主题词分布下另行推断其主题比例。
+
+\section{潜在狄利克雷分配}
+
+潜在狄利克雷分配（latent Dirichlet allocation，LDA）给每篇文档比例设置先验 $\theta_d\sim\operatorname{Dirichlet}(\alpha)$，给每个主题词分布设置先验 $\phi_k\sim\operatorname{Dirichlet}(\beta)$，所有超参数分量为正。每个词位置先抽主题 $z_{dt}\sim\operatorname{Categorical}(\theta_d)$，再抽词 $w_{dt}\sim\operatorname{Categorical}(\phi_{z_{dt}})$。此处 LDA 与线性判别分析只是缩写相同。
+
+积分消去 $\theta,\phi$ 后，单个位置词为 $v$ 时的折叠 Gibbs 条件概率正比于
+\[
+ (n_{dk}^{-}+\alpha_k)
+ \frac{n_{kv}^{-}+\beta_v}{n_{k\cdot}^{-}+\sum_u\beta_u}.
+\]
+上标减号表示计数排除当前词，$n_{dk}$ 是文档主题计数，$n_{kv}$ 是主题词计数；文档长度分母对候选主题相同，已被省略。比例归一后再采样，不能把未归一权重当作概率。变分推断则以近似分布代替逐词采样，二者都需评估计算误差和主题稳定性。
+
+\section{例题、练习与学习检查}
+
+\begin{example}[一次主题后验计算]
+某文档两主题比例为 $(0.6,0.4)$，某个词在两主题中的概率为 $(0.1,0.3)$。
+\end{example}
+\begin{solve}
+主题责任度正比于 $(0.06,0.12)$，故为 $(1/3,2/3)$。第二主题的先验比例较小，却因更能解释这个词而获得更大后验责任度。
+\end{solve}
+
+习题：在一个三篇短文语料上计算词频与 TF--IDF；检验 PLSA 更新后的归一化；说明 NMF 因子尺度不唯一；定义留出词的预测协议并比较平均负对数似然及其指数——困惑度（perplexity）。更低困惑度不必对应更符合人工语义的主题。
+
+
+
+
+

@@ -1,0 +1,82 @@
+% !TeX root = ../常微分方程笔记.tex
+% 由主文档通过 \input 载入；请编译主文档。
+\setcounter{chapter}{2} % 保留原书章号。
+\chapter{隐式方程与可降阶方程}
+\label{chap:ode-reduction}
+
+某些方程的导数不能直接解出，或虽为高阶却缺少部分变量。此时参数化与降阶能够揭示特殊结构，但通常只能先得到局部结果。
+
+\section{导数未解出的一阶方程}
+考虑 $F(t,y,p)=0$，其中 $p=y'$。若 $F\in C^1$，且在满足方程的点 $(t_0,y_0,p_0)$ 有 $F_p\ne0$，则隐函数定理给出附近的唯一分支 $p=f(t,y)$。若 $F_p=0$，该结论不再适用；这并不自动意味着无解或不唯一。
+
+例如 $(y')^2=4y$ 在 $y>0$ 有两个分支 $y'=\pm2\sqrt y$。$y=(t-C)^2$ 可在 $t=C$ 两侧分别属于不同分支。因此解隐式方程时，应记录分支及可能发生分支连接的位置。
+
+\section{以导数为参数的方法}
+本节及下一节的参数函数假设为 $C^2$。若能写成 $y=\phi(t,p)$，沿 $C^2$ 解求导，得到 $p=\phi_t+\phi_p p'$。在 $p$ 可作局部参数且 $p-\phi_t\ne0$ 的区域，
+\[
+ \frac{\mathrm dt}{\mathrm dp}=\frac{\phi_p(t,p)}{p-\phi_t(t,p)}.
+\]
+解出 $t=t(p)$ 后，由 $y=\phi(t(p),p)$ 得参数曲线，并检验 $\mathrm dy/\mathrm dp=p\,\mathrm dt/\mathrm dp$。若 $t'(p)=0$，则不能直接用该参数表示局部函数 $y(t)$。常值 $p$ 和被除去的零因子必须另行检查。
+
+若写成 $t=\psi(y,p)$，同理由 $\mathrm dy=p\,\mathrm dt$ 得
+\[
+ (1-p\psi_y)\frac{\mathrm dy}{\mathrm dp}=p\psi_p.
+\]
+这些求导对解具有额外正则性要求；所得曲线最后仍按原方程所要求的 $C^1$ 条件验证。
+
+\section{Clairaut 方程、Lagrange 方程与奇解}
+Clairaut 方程（Clairaut equation）为 $y=tp+\phi(p)$。在 $C^2$ 分支上求导得到 $(t+\phi'(p))p'=0$。常值 $p=C$ 给出直线族 $y=Ct+\phi(C)$；另一候选分支为
+\[
+ t=-\phi'(p),\qquad y=\phi(p)-p\phi'(p).
+\]
+它是直线族的候选包络（envelope），仍须检查参数正则性与原方程。
+
+\begin{example}[奇解]
+求 $y=ty'+(y')^2$ 的直线族及其奇解。
+\end{example}
+\begin{solve}
+直线族为 $y=Ct+C^2$。候选包络满足 $t=-2p$，故 $y=-t^2/4$。其导数为 $-t/2$，代入右端得 $-t^2/2+t^2/4=-t^2/4$，验证成立。它不对应任何固定 $C$，称为奇解（singular solution）。在切点处可将直线分支与抛物线分支作 $C^1$ 拼接，因此上述直线族与奇解不应被误称为对所有 $C^1$ 解的无条件穷尽。
+\end{solve}
+
+Lagrange 方程（Lagrange equation）为 $y=t\phi(p)+\psi(p)$。求导后，在 $p\ne\phi(p)$ 的参数分支上得到
+\[
+ \frac{\mathrm dt}{\mathrm dp}-\frac{\phi'(p)}{p-\phi(p)}t
+ =\frac{\psi'(p)}{p-\phi(p)}.
+\]
+它关于 $t(p)$ 是一阶线性方程。若常数 $c$ 满足 $c=\phi(c)$，则还应检验直线 $y=ct+\psi(c)$。
+
+\section{缺少未知函数或自变量的高阶方程}
+若方程只含 $t,y^{(k)},\ldots,y^{(n)}$，令 $z=y^{(k)}$，先解 $(n-k)$ 阶方程，再积分 $k$ 次恢复 $y$。例如 $y'''=y''$ 给出 $z'=z$，所以 $y=C_1e^t+C_2t+C_3$。
+
+对不显含 $t$ 的二阶方程 $y''=G(y,y')$，若某段解满足 $y'\ne0$，则 $y$ 可作局部自变量。令 $p(y)=y'$，链式法则给出
+\[
+ p\frac{\mathrm dp}{\mathrm dy}=G(y,p).
+\]
+求得 $p(y)$ 后再解 $y'=p(y)$。平衡解由 $G(c,0)=0$ 单独确定；转向点 $p=0$ 附近须重新检查局部可逆性。
+
+\section{能量积分与守恒关系}
+对 $y''=-V'(y)$，其中 $V\in C^1$，有
+\begin{equation}
+ \frac{\mathrm d}{\mathrm dt}\left(\frac{(y')^2}{2}+V(y)\right)
+ =y'(y''+V'(y))=0.
+ \label{eq:ode-energy}
+\end{equation}
+故能量 $E=(y')^2/2+V(y)$ 沿解不变。这种沿解保持常数的关系称为首次积分（first integral）。在单调分支上，
+\[
+ y'=\pm\sqrt{2(E-V(y))},\qquad
+ t-t_0=\pm\int_{y_0}^{y(t)}\frac{\mathrm du}{\sqrt{2(E-V(u))}}.
+\]
+允许的位置必须满足 $V(y)\leq E$，而 $V(y)=E$ 对应可能的转向点。
+
+\begin{example}
+设 $y''=-\omega^2y$，$\omega>0$，$y(0)=A>0$、$y'(0)=0$。能量恒为 $\omega^2A^2/2$，所以 $|y|\leq A$。由初始加速度为负，先选下降分支；积分得 $y=A\cos(\omega t)$，并可直接代回验证其全局成立。转向点处的分支更换由原方程确定，不能始终固定同一个平方根符号。
+\end{example}
+
+\section{习题}
+\begin{enumerate}
+ \item\label{ex:ode-clairaut} 求 $y=ty'-(y')^2$ 的直线解族与奇解，并代回验证。
+ \item\label{ex:ode-reduce} 解 $y''=2y'$、$y(0)=0$、$y'(0)=1$。
+ \item 对 $y''+y^3=0$ 建立能量积分，证明任意解在其存在区间上位置与速度均有界。
+ \item 说明“能量恒定”为什么不能单独决定运动方向，指出给定初值还提供了什么信息。
+\end{enumerate}
+
